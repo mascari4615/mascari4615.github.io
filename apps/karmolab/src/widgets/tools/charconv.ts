@@ -1,11 +1,11 @@
 /**
- * 문자 변환 허브 — 화면 (흡수 ⓒ)
+ * 문자 변환 허브. 화면 (흡수 ⓒ)
  *
- * 골격만이다. 계산은 전부 `core/charconv.ts` — 여기서 다시 짜면 화면과 MCP 가 갈린다.
+ * 골격만이다. 계산은 전부 `core/charconv.ts`. 여기서 다시 짜면 화면과 MCP 가 갈린다.
  *
  * 네 갈래를 한 화면에 둔 이유: 이 변환들은 **따로 찾아 들어가는 것 자체가 마찰**이다.
- * 「전각인가?」를 의심할 정도면 이미 한참 헤맨 뒤다. 그래서 붙여 놓고, 붙여 넣는 순간
- * **섞여 있으면 먼저 알려 준다** — 물어보기 전에 답이 보이는 편이 낫다.
+ * 전각인가?를 의심할 정도면 이미 한참 헤맨 뒤다. 그래서 붙여 놓고, 붙여 넣는 순간
+ * **섞여 있으면 먼저 알려 준다**. 물어보기 전에 답이 보이는 편이 낫다.
  */
 import {
   ambiguousChars,
@@ -33,7 +33,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   type Mode = 'half' | 'full' | 'roman' | 'split' | 'join' | 'simp' | 'trad' | 'pinyin';
 
-  /* 이름은 **쓸 때 정한다** — 이 배열이 모듈 뜨는 순간에 굳으면 한국어로 굳는다. */
+  /* 이름은 **쓸 때 정한다**. 이 배열이 모듈 뜨는 순간에 굳으면 한국어로 굳는다. */
   const modes = (): Array<{ id: Mode; label: string }> => [
     { id: 'half', label: t('charconv.t01') },
     { id: 'full', label: t('charconv.t02') },
@@ -46,8 +46,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   ];
 
   /*
-   * 소리 표(2만 자·167KB)는 **묶음에 안 넣는다.** 전각·반각만 쓰러 온 사람에게까지 물리면
-   * 「가볍게 열린다」가 깨진다. 「병음」을 고른 사람만 한 번 받아 오고, 그 뒤로는 안 받는다.
+   * 소리 표(2만 자, 167KB)는 **묶음에 안 넣는다.** 전각, 반각만 쓰러 온 사람에게까지 물리면
+   * 가볍게 열린다가 깨진다. 병음을 고른 사람만 한 번 받아 오고, 그 뒤로는 안 받는다.
    * 받는 중에 또 눌러도 한 번만 간다(단발).
    */
   let pinyinTable: PinyinTable | null = null;
@@ -66,7 +66,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         return pinyinTable;
       })
       .catch((err) => {
-        /* 실패는 기억하지 않는다 — 잠깐 끊긴 것뿐일 수 있다. 다음에 다시 눌러 볼 수 있어야 한다. */
+        /* 실패는 기억하지 않는다. 잠깐 끊긴 것뿐일 수 있다. 다음에 다시 눌러 볼 수 있어야 한다. */
         pinyinLoading = null;
         throw err;
       });
@@ -92,7 +92,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       case 'trad':
         return toTraditional(text);
       case 'pinyin':
-        /* 표가 아직이면 빈칸 — 아래 render 가 「받는 중」이라고 말한다. */
+        /* 표가 아직이면 빈칸. 아래 render 가 받는 중이라고 말한다. */
         return pinyinTable === null ? '' : pinyinOf(pinyinTable, text, tone);
     }
   };
@@ -101,7 +101,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'charconv',
     title: t('widgets.charconv.title', undefined, "문자 변환"),
     category: 'tool',
-    desc: t('widgets-desc.charconv.desc', undefined, "전각·반각, 한글·로마자, 한글·자모를 한 곳에서. 붙여 넣으면 섞인 글자를 먼저 알려 줍니다"),
+    desc: t('widgets-desc.charconv.desc', undefined, "전각, 반각, 한글, 로마자, 한글, 자모를 한 곳에서. 붙여 넣으면 섞인 글자를 먼저 알려 줍니다"),
     layout: 'wide',
     tabs: [
       {
@@ -149,12 +149,12 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           const render = (): void => {
             output.value = input.value === '' ? '' : convert(mode, input.value);
-            /* 묻기 전에 알려 준다 — 「왜 검색이 안 되지」의 답이 대개 이것이다. */
+            /* 묻기 전에 알려 준다. 왜 검색이 안 되지의 답이 대개 이것이다. */
             const warn = $('#ccWarn');
 
             /*
              * 뜻을 봐야 정해지는 글자는 **바꾼 다음에** 말해 줘야 한다. 조용히 하나 골라 두면
-             * 사람은 맞는 줄 알고 그대로 쓴다 — 发 를 髮 로 써야 할 자리에 發 이 들어간다.
+             * 사람은 맞는 줄 알고 그대로 쓴다. 发 를 髮 로 써야 할 자리에 發 이 들어간다.
              */
             $('#ccToneRow').hidden = mode !== 'pinyin';
 
@@ -166,12 +166,12 @@ import { t, loadNamespace } from '../../lib/i18n';
             } else if (multi.length> 0) {
               warn.textContent =
                 t('charconv.t13') +
-                multi.map((m) => `${m.ch} → ${m.readings.join(t('charconv.t14'))}`).join(' · ');
+                multi.map((m) => `${m.ch} → ${m.readings.join(t('charconv.t14'))}`).join(', ');
               warn.className = 'tool-note error';
             } else if (amb.length> 0) {
               warn.textContent =
                 t('charconv.t15') +
-                amb.map((a) => `${a.ch} → ${a.candidates.join(t('charconv.t14'))}`).join(' · ');
+                amb.map((a) => `${a.ch} → ${a.candidates.join(t('charconv.t14'))}`).join(', ');
               warn.className = 'tool-note error';
             } else if (mode !== 'full' && hasFullWidth(input.value)) {
               warn.textContent = t('charconv.t16');
@@ -210,7 +210,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             render();
           };
 
-          // 주소로 부른 경우 (`?op=width&text=…&mode=full`). 없으면 예시로 시작한다.
+          // 주소로 부른 경우 (`?op=width&text=...&mode=full`). 없으면 예시로 시작한다.
           const call = readInvocation(spec);
           if (call === null) {
             input.value = 'ＫａｒｍｏＬａｂ　１２３';

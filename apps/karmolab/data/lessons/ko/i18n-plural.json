@@ -4,7 +4,7 @@
   "blocks": [
     {
       "type": "p",
-      "text": "「1개 / 2개」 두 가지면 된다고 생각하는 순간 러시아어·아랍어에서 무너진다. **복수형 규칙은 언어마다 다르다.**"
+      "text": "1개 / 2개 두 가지면 된다고 생각하는 순간 러시아어, 아랍어에서 무너진다. **복수형 규칙은 언어마다 다르다.**"
     },
     {
       "type": "h",
@@ -13,7 +13,7 @@
     {
       "type": "demo",
       "kind": "html",
-      "label": "언어와 개수를 바꿔 보라 — 규칙이 다르다",
+      "label": "언어와 개수를 바꿔 보라. 규칙이 다르다",
       "height": "190px",
       "controls": [
         {
@@ -50,13 +50,13 @@
           ]
         }
       ],
-      "text": "<div style=\"font:15px system-ui;line-height:2\">\n  <div>개수: <b>{{n}}</b> · 언어: <b>{{loc}}</b></div>\n  <div id=\"rule\"></div>\n  <div id=\"fmt\"></div>\n</div>\n<script>\n  const n = {{n}}, loc = '{{loc}}';\n  document.getElementById('rule').textContent =\n    '복수형 갈래: ' + new Intl.PluralRules(loc).select(n);\n  document.getElementById('fmt').textContent =\n    '숫자 표기: ' + new Intl.NumberFormat(loc).format(n * 1234.5);\n</script>"
+      "text": "<div style=\"font:15px system-ui;line-height:2\">\n  <div>개수: <b>{{n}}</b>, 언어: <b>{{loc}}</b></div>\n  <div id=\"rule\"></div>\n  <div id=\"fmt\"></div>\n</div>\n<script>\n  const n = {{n}}, loc = '{{loc}}';\n  document.getElementById('rule').textContent =\n    '복수형 갈래: ' + new Intl.PluralRules(loc).select(n);\n  document.getElementById('fmt').textContent =\n    '숫자 표기: ' + new Intl.NumberFormat(loc).format(n * 1234.5);\n</script>"
     },
     {
       "type": "code",
       "lang": "text",
       "label": "언어별 복수 범주",
-      "text": "한국어·일본어 : other 하나\n영어          : one, other\n러시아어      : one, few, many, other\n아랍어        : zero, one, two, few, many, other\n\n그래서 「if (n === 1)」 은 영어 전용 코드다"
+      "text": "한국어, 일본어 : other 하나\n영어          : one, other\n러시아어      : one, few, many, other\n아랍어        : zero, one, two, few, many, other\n\n그래서 if (n === 1) 은 영어 전용 코드다"
     },
     {
       "type": "h",
@@ -76,7 +76,7 @@
     },
     {
       "type": "h",
-      "text": "3. 성별·선택"
+      "text": "3. 성별, 선택"
     },
     {
       "type": "code",
@@ -90,7 +90,7 @@
     },
     {
       "type": "note",
-      "text": "자리 표시자에 **이름을 붙여라**(`{name}` — `%s` 같은 위치 기반은 어순이 바뀌면 뒤섞인다). 번역가가 순서를 자유롭게 바꿀 수 있어야 자연스러운 문장이 나온다."
+      "text": "자리 표시자에 **이름을 붙여라**(`{name}`. `%s` 같은 위치 기반은 어순이 바뀌면 뒤섞인다). 번역가가 순서를 자유롭게 바꿀 수 있어야 자연스러운 문장이 나온다."
     },
     {
       "type": "h",
@@ -98,7 +98,7 @@
     },
     {
       "type": "p",
-      "text": "문장 중간에 링크·굵게가 들어가면 HTML 을 번역 문자열에 넣게 되는데, 위험하고 깨지기 쉽다. **컴포넌트 보간**(`<b>{name}</b>` 을 태그 자리 표시자로)을 지원하는 라이브러리 기능을 쓰라."
+      "text": "문장 중간에 링크, 굵게가 들어가면 HTML 을 번역 문자열에 넣게 되는데, 위험하고 깨지기 쉽다. **컴포넌트 보간**(`<b>{name}</b>` 을 태그 자리 표시자로)을 지원하는 라이브러리 기능을 쓰라."
     },
     {
       "type": "h",
@@ -106,7 +106,7 @@
     },
     {
       "type": "try",
-      "text": "`Intl.PluralRules` 로 ko·en·ru·ar 에서 0·1·2·5·11 이 어느 범주인지 출력해 보라."
+      "text": "`Intl.PluralRules` 로 ko, en, ru, ar 에서 0, 1, 2, 5, 11 이 어느 범주인지 출력해 보라."
     },
     {
       "type": "try",
@@ -122,7 +122,7 @@
         "항상 안전하다"
       ],
       "answer": 0,
-      "why": "러시아어·아랍어는 범주가 여럿이다."
+      "why": "러시아어, 아랍어는 범주가 여럿이다."
     },
     {
       "q": "자리 표시자에 이름을 붙이는 이유는?",
@@ -135,7 +135,7 @@
       "why": "위치 기반은 어순 변경에 취약하다."
     },
     {
-      "q": "문장 중간의 링크·강조를 다루는 권장 방법은?",
+      "q": "문장 중간의 링크, 강조를 다루는 권장 방법은?",
       "choices": [
         "컴포넌트/태그 보간 기능 사용",
         "번역 문자열에 HTML 을 직접 넣기",

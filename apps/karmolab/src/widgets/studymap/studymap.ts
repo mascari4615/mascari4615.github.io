@@ -1,14 +1,14 @@
 /**
  * 개발자 스터디 맵 (TASK-KL-STUDYMAP)
  *
- * 로드맵 사이트는 많다. 그런데 대부분 **네모와 화살표**만 준다 — 「이걸 왜 배우나」와
- * 「어디까지 하면 넘어가도 되나」가 없다. 그게 없으면 지도가 아니라 목록이다.
+ * 로드맵 사이트는 많다. 그런데 대부분 **네모와 화살표**만 준다. 이걸 왜 배우나와
+ * 어디까지 하면 넘어가도 되나가 없다. 그게 없으면 지도가 아니라 목록이다.
  *
- * 그래서 노드 하나가 네 가지를 다 들고 있다: 무엇을 · 왜 · 언제 넘어가나 · 어디서 읽나.
- * 표는 `data/studymap.json` 한 곳이고 여기는 그리기만 한다 — 주제를 늘릴 때 코드를 안 건드린다.
+ * 그래서 노드 하나가 네 가지를 다 들고 있다: 무엇을, 왜, 언제 넘어가나, 어디서 읽나.
+ * 표는 `data/studymap.json` 한 곳이고 여기는 그리기만 한다. 주제를 늘릴 때 코드를 안 건드린다.
  *
- * 진도는 이 브라우저에만 남는다(localStorage). 로그인·서버 없음 —
- * 「체크하려고 가입」이 지도를 안 열게 만드는 가장 흔한 이유라서.
+ * 진도는 이 브라우저에만 남는다(localStorage). 로그인, 서버 없음 . 
+ * 체크하려고 가입이 지도를 안 열게 만드는 가장 흔한 이유라서.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { layoutTree, layoutMeaning, type TreeNode } from './tree';
@@ -30,8 +30,8 @@ interface SmStage { id: string; title: string; nodes: SmNode[] }
 interface SmTrack { id: string; title: string; emoji: string; lead: string; scope?: 'personal'; stages: SmStage[] }
 interface SmData { tracks: SmTrack[] }
 
-/** 강의 한 편 — `data/lessons/<언어>/<칸id>.json`. 위젯은 그리기만 하고 내용은 표에 있다. */
-/** demo = 실행되는 예제. kind 가 어떤 판에서 돌릴지 정한다(html · js 캔버스 · 프래그먼트 셰이더). */
+/** 강의 한 편. `data/lessons/<언어>/<칸id>.json`. 위젯은 그리기만 하고 내용은 표에 있다. */
+/** demo = 실행되는 예제. kind 가 어떤 판에서 돌릴지 정한다(html, js 캔버스, 프래그먼트 셰이더). */
 interface SmBlock {
   type: 'p' | 'h' | 'code' | 'note' | 'try' | 'demo';
   text: string;
@@ -39,18 +39,18 @@ interface SmBlock {
   label?: string;
   kind?: 'html' | 'js' | 'shader';
   height?: string;
-  /** 손잡이 — 코드 안 `{{id}}` 자리에 값이 들어간다. */
+  /** 손잡이. 코드 안 `{{id}}` 자리에 값이 들어간다. */
   controls?: Array<{ id: string; label: string; type: 'range' | 'toggle' | 'select'; min?: number; max?: number; step?: number; value?: string | number | boolean; options?: Array<{ value: string; label: string }> }>;
 }
 interface SmQuiz { q: string; choices: string[]; answer: number; why?: string }
 /**
  * 한 칸(주제) 안의 **한 장(章)**.
- * 왜 나누나: 「HTML」 같은 주제를 글 한 편으로 끝내면 공부가 안 된다 — 읽을거리지 강의가 아니다.
+ * 왜 나누나: HTML 같은 주제를 글 한 편으로 끝내면 공부가 안 된다. 읽을거리지 강의가 아니다.
  * 바깥 세상의 좋은 과정도 한 주제를 여러 장으로 쪼갠다(web.dev Learn HTML = 21장, MDN 은 모듈 안에
- * 여러 편 + 「기술 시험」). 그래서 칸 = 장들의 묶음으로 두고, 장마다 확인 문제를 붙인다.
+ * 여러 편 + 기술 시험). 그래서 칸 = 장들의 묶음으로 두고, 장마다 확인 문제를 붙인다.
  */
 interface SmPart { id: string; title: string; minutes?: number; blocks: SmBlock[]; quiz?: SmQuiz[] }
-/** 옛 모양(장 없이 blocks 하나)도 그대로 읽는다 — 아직 안 쪼갠 칸이 대부분이다. */
+/** 옛 모양(장 없이 blocks 하나)도 그대로 읽는다. 아직 안 쪼갠 칸이 대부분이다. */
 interface SmLesson { id: string; minutes?: number; blocks?: SmBlock[]; quiz?: SmQuiz[]; parts?: SmPart[] }
 
 /** 어느 모양으로 적혔든 **장의 목록**으로 만들어 준다. 화면은 이 한 가지 모양만 안다. */
@@ -59,7 +59,7 @@ function partsOf(lesson: SmLesson, fallbackTitle: string): SmPart[] {
   return [{ id: '1', title: fallbackTitle, minutes: lesson.minutes, blocks: lesson.blocks || [], quiz: lesson.quiz }];
 }
 
-/** 다른 언어 덧씌우기 표 — id 로만 짝을 짓는다(순서·구조를 다시 적지 않는다). */
+/** 다른 언어 덧씌우기 표. id 로만 짝을 짓는다(순서, 구조를 다시 적지 않는다). */
 interface SmOverlay {
   tracks?: Record<string, { title?: string; lead?: string }>;
   stages?: Record<string, string>;
@@ -85,7 +85,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
             why: nOver.why ?? node.why,
             check: nOver.check ?? node.check,
             tool: node.tool && nOver.tool ? { ...node.tool, label: nOver.tool } : node.tool,
-            /* 링크 이름만 바꾼다 — 주소는 정본 한 곳에서만 관리한다(둘로 갈리면 죽은 주소가 숨는다). */
+            /* 링크 이름만 바꾼다. 주소는 정본 한 곳에서만 관리한다(둘로 갈리면 죽은 주소가 숨는다). */
             links: node.links?.map((link, at) => ({ ...link, label: nOver.links?.[at] ?? link.label })),
           };
         }),
@@ -97,11 +97,11 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 
 (function (): void {
   const DONE_KEY = 'karmolab-studymap-done';
-  /** 장별 통과 기록 — `칸id#장id`. 칸 하나가 여러 장이면 **전부** 통과해야 칸이 끝난다. */
+  /** 장별 통과 기록. `칸id#장id`. 칸 하나가 여러 장이면 **전부** 통과해야 칸이 끝난다. */
   const PART_KEY = 'karmolab-studymap-parts';
   const TRACK_KEY = 'karmolab-studymap-track';
 
-  /** 본문의 **굵게** 만 살린다. 그 외는 전부 글자로 — 표에 태그를 열어 두면 그게 구멍이 된다. */
+  /** 본문의 **굵게** 만 살린다. 그 외는 전부 글자로. 표에 태그를 열어 두면 그게 구멍이 된다. */
   const strong = (text: string): string =>
     String(text ?? '')
       .replace(/&/g, '&amp;')
@@ -142,7 +142,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     try {
       localStorage.setItem(DONE_KEY, JSON.stringify([...done]));
     } catch {
-      /* 사생활 보호 모드 등 — 진도만 안 남고 지도는 그대로 쓴다 */
+      /* 사생활 보호 모드 등. 진도만 안 남고 지도는 그대로 쓴다 */
     }
   }
 
@@ -151,7 +151,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
     const style = document.createElement('style');
     style.id = 'studymap-widget-styles';
     style.textContent = `
-/* 스터디 맵 — 읽는 화면이다. 글줄 길이와 여백이 첫 번째 기능. */
+/* 스터디 맵. 읽는 화면이다. 글줄 길이와 여백이 첫 번째 기능. */
 .sm-wrap { display: flex; flex-direction: column; gap: 20px; }
 
 .sm-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; justify-content: space-between; }
@@ -172,21 +172,21 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 @media (min-width: 900px) { .sm-body { grid-template-columns: 216px minmax(0, 1fr); gap: 28px; align-items: start; } }
 .sm-main { min-width: 0; }
 .sm-tracks { display: flex; flex-wrap: wrap; gap: 8px; }
-/* 좁은 화면 — 갈래 41개를 펼치면 지도가 화면 밖으로 밀린다. 한 줄 레일로 눕히고 옆으로 굴린다. */
+/* 좁은 화면. 갈래 41개를 펼치면 지도가 화면 밖으로 밀린다. 한 줄 레일로 눕히고 옆으로 굴린다. */
 @media (max-width: 899px) {
   .sm-body { display: flex; flex-direction: column; }
   .sm-tracks { order: 2; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
   .sm-main { order: 1; }
   .sm-track-btn { flex: 0 0 auto; min-height: 44px; white-space: nowrap; }
   .sm-scope-line { display: none; }
-  /* 손가락은 8px 알약을 못 누른다 — 최소 44px (iOS·안드로이드 공통 권고). */
+  /* 손가락은 8px 알약을 못 누른다. 최소 44px (iOS, 안드로이드 공통 권고). */
   .sm-find-btn, .doc-demo-btn, .sm-back, .sm-crumb-btn { min-height: 44px; padding-left: 14px; padding-right: 14px; }
   .sm-check { width: 26px; height: 26px; }
   .sm-pager { grid-template-columns: 1fr; }
   .doc-demo-ctl input[type="range"] { width: 132px; height: 32px; }
 }
 @media (min-width: 900px) {
-  /* 갈래 17개를 알약으로 깔면 첫 화면이 목록에 덮인다 — 넓은 화면에선 옆으로 세운다. */
+  /* 갈래 17개를 알약으로 깔면 첫 화면이 목록에 덮인다. 넓은 화면에선 옆으로 세운다. */
   .sm-tracks { position: sticky; top: 12px; flex-direction: column; flex-wrap: nowrap; gap: 2px; max-height: calc(100vh - 40px); overflow-y: auto; padding-right: 4px; }
   .sm-track-btn { width: 100%; justify-content: flex-start; border-color: transparent; background: none; border-radius: var(--radius-lg); padding: 7px 10px; }
   .sm-track-btn .sm-count { margin-left: auto; }
@@ -197,7 +197,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-track-btn.is-on { border-color: var(--accent); color: var(--text-primary); background: var(--accent-subtle); }
 .sm-track-btn .sm-count { font-variant-numeric: tabular-nums; opacity: .7; font-size: 11px; }
 .sm-track-btn.is-personal { border-style: dashed; }
-/* 펼친 갈래의 속 — 단계 이름은 작게, 칸 제목은 누를 수 있게. */
+/* 펼친 갈래의 속. 단계 이름은 작게, 칸 제목은 누를 수 있게. */
 .sm-track-open { display: none; }
 @media (min-width: 900px) {
   .sm-track-open { display: block; margin: 2px 0 8px; padding-left: 10px; border-left: 1px solid var(--border); }
@@ -211,7 +211,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-scope-line::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .sm-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; border: 1px dashed var(--border-strong); color: var(--secondary); margin-left: 8px; vertical-align: middle; }
 
-/* 찾기는 평소엔 접혀 있다 — 지도를 훑는 게 기본 동작이고, 찾기는 목적이 생겼을 때만 쓴다. */
+/* 찾기는 평소엔 접혀 있다. 지도를 훑는 게 기본 동작이고, 찾기는 목적이 생겼을 때만 쓴다. */
 .sm-findbar { display: flex; align-items: center; gap: 8px; }
 .sm-find-btn { border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); font: inherit; font-size: 11px; padding: 5px 11px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
 .sm-find-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -219,7 +219,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-search { width: 100%; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: 11px; }
 .sm-search:focus { outline: none; border-color: var(--accent); }
 
-/* 단계 = 왼쪽 등뼈 한 줄. 세로로 이어지는 게 「지도」의 뼈대다. */
+/* 단계 = 왼쪽 등뼈 한 줄. 세로로 이어지는 게 지도의 뼈대다. */
 .sm-stage { position: relative; padding-left: 26px; }
 .sm-stage::before { content: ''; position: absolute; left: 7px; top: 6px; bottom: -18px; width: 2px; background: linear-gradient(180deg, var(--secondary), var(--border)); opacity: .5; }
 .sm-stage.is-clear::before { background: linear-gradient(180deg, var(--success), var(--border)); opacity: .6; }
@@ -249,9 +249,9 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-open:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .sm-has-lesson { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; margin-left: 7px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); vertical-align: middle; }
 
-/* 강의 — 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
+/* 강의. 읽는 화면. 글줄은 68ch 를 안 넘긴다. */
 /**
- * 읽는 화면의 글 리듬. 재 보니 본문 12px 인데 코드가 18px 이었다 — 위계가 뒤집혀 있었다.
+ * 읽는 화면의 글 리듬. 재 보니 본문 12px 인데 코드가 18px 이었다. 위계가 뒤집혀 있었다.
  * 문서 사이트 기준으로 다시 잡는다: 본문이 가장 크고, 코드는 그보다 한 단 작게, 줄높이는 한글에 맞춰 넉넉히.
  */
 .sm-lesson { max-width: 70ch; font-size: 15px; line-height: 1.85; }
@@ -268,7 +268,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .sm-lesson .sm-why { font-size: 13px; line-height: 1.8; }
 .sm-lesson .sm-links { margin-top: 22px; }
 .sm-code pre { position: relative; }
-/* 살아 있는 예제 — 결과가 위, 고칠 코드가 아래. 결과를 먼저 봐야 코드를 읽을 마음이 생긴다. */
+/* 살아 있는 예제. 결과가 위, 고칠 코드가 아래. 결과를 먼저 봐야 코드를 읽을 마음이 생긴다. */
 .sm-demo { margin: 14px 0; }
 .doc-demo { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
 .doc-demo-view { width: 100%; border: 0; display: block; background: #fff; }
@@ -285,7 +285,7 @@ function applyOverlay(data: SmData, over: SmOverlay): SmData {
 .doc-copy { position: absolute; top: 6px; right: 6px; font: inherit; font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-tertiary); cursor: pointer; opacity: 0; transition: opacity .15s; }
 pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .doc-copy:hover { color: var(--accent); border-color: var(--accent); }
-/* 목차 — 좁은 화면에선 접힌 채로 위에, 넓은 화면에선 글 옆에 붙어 따라온다. */
+/* 목차. 좁은 화면에선 접힌 채로 위에, 넓은 화면에선 글 옆에 붙어 따라온다. */
 .sm-lesson-wrap { display: block; }
 .doc-toc { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; margin: 0 0 18px; background: var(--bg-secondary); }
 .doc-toc-title { font-size: 10px; letter-spacing: .05em; color: var(--text-tertiary); margin-bottom: 8px; }
@@ -298,7 +298,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-lesson { min-width: 0; }
   .doc-toc { position: sticky; top: 12px; margin: 44px 0 0; max-height: calc(100vh - 80px); overflow-y: auto; }
 }
-/* ── 나무 눈 ── 관계를 보는 화면. 선은 「먼저 이것」을 뜻한다. */
+/* ── 나무 눈 ── 관계를 보는 화면. 선은 먼저 이것을 뜻한다. */
 .sm-resume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; width: 100%; text-align: left; margin-bottom: 16px; padding: 14px 18px; border: 1px solid var(--accent); border-radius: var(--radius-xl); background: var(--accent-subtle); color: var(--text-primary); font: inherit; cursor: pointer; }
 .sm-resume:hover { background: var(--accent-dim); }
 .sm-resume-tag { font-size: 10px; letter-spacing: .06em; color: var(--accent); }
@@ -312,17 +312,17 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-review-tag { position: absolute; top: 8px; right: 10px; font-size: 12px; }
 .sm-resume-track { font-size: 11px; color: var(--text-tertiary); margin-left: auto; }
 .sm-tree-head { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-tertiary); margin-bottom: 8px; }
-/* 캔버스가 자기 크기를 잡는다 — 우리는 자리만 내준다(가로 스크롤은 이제 캔버스 몫). */
-/* 캔버스는 자기 상자를 height:100% 로 채운다 — 그래서 **크기를 정하는 틀**을 하나 감싸 준다.
+/* 캔버스가 자기 크기를 잡는다. 우리는 자리만 내준다(가로 스크롤은 이제 캔버스 몫). */
+/* 캔버스는 자기 상자를 height:100% 로 채운다. 그래서 **크기를 정하는 틀**을 하나 감싸 준다.
    (안 감싸면 100% 가 auto 를 만나 상자가 한없이 커진다: 실측 910px.) */
-/* 지도는 **창**이다 — 블루마블(bm-wrap)과 같은 규약: 높이를 부모에게 안 묻고 화면 기준으로
+/* 지도는 **창**이다. 블루마블(bm-wrap)과 같은 규약: 높이를 부모에게 안 묻고 화면 기준으로
    스스로 정한다. 62vh 짜리 상자에 41갈래를 넣으니 지도가 아니라 우표였다.
    작은 화면에서도 420px 는 되고, 커도 화면을 넘지 않는다. */
 .sm-tree { height: clamp(420px, calc(100svh - 200px), 900px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-secondary); }
 .sm-tree-in { width: 100%; height: 100%; }
 /* 나무 보기 = **지도가 화면이다** (블루마블 bm-wrap 규약 그대로).
    ① 화면 높이를 스스로 갖고 ② 위로 끌어올려 머리띠 밑까지 파고들고 ③ 조작부는 전부 **떠 있다.**
-   앞선 두 판은 지도를 상자에 넣은 채 제목·진도·「이어서」를 위에 쌓아 340px 를 먹였다 —
+   앞선 두 판은 지도를 상자에 넣은 채 제목, 진도, 이어서를 위에 쌓아 340px 를 먹였다 . 
    그건 큰 상자지 화면이 아니다.
    --sm-lift = 이 자리가 화면 꼭대기에서 얼마나 내려와 있나(JS 가 잰다).
    --sm-sbw  = 세로 스크롤막대 폭. 100vw 만 쓰면 그 폭만큼 가로 스크롤이 생긴다. */
@@ -335,14 +335,14 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-wrap.is-map .sm-view { height: 100%; }
 .sm-wrap.is-map .sm-tree { height: 100%; border: 0; border-radius: 0; }
 .sm-wrap.is-map .sm-foot { display: none; }
-/* 떠 있는 조각의 공통 살결 — 비치는 유리. 지구본 위의 칩과 같은 물성이다. */
+/* 떠 있는 조각의 공통 살결. 비치는 유리. 지구본 위의 칩과 같은 물성이다. */
 .sm-wrap.is-map .sm-head, .sm-wrap.is-map .sm-findbar, .sm-wrap.is-map .sm-tracks,
 .sm-wrap.is-map .sm-view > .sm-resume, .sm-wrap.is-map .sm-view > .sm-tree-head {
   position: absolute; z-index: 6; border-radius: var(--radius-lg);
   border: 1px solid var(--border); box-shadow: 0 14px 44px rgba(0, 0, 0, .34);
   background: color-mix(in srgb, var(--bg-primary) 76%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
-/* 머리띠(껍데기)가 위 52px 를 덮는다 — 조각은 그 아래에서 시작한다. */
+/* 머리띠(껍데기)가 위 52px 를 덮는다. 조각은 그 아래에서 시작한다. */
 .sm-wrap.is-map .sm-head { top: 64px; left: 18px; right: auto; width: 242px;
   display: block; padding: 12px 14px; }
 .sm-wrap.is-map .sm-head .sm-title { font-size: var(--font-size-sm); }
@@ -351,16 +351,16 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-wrap.is-map .sm-findbar { top: 64px; right: 18px; padding: 6px; display: flex; gap: 6px; }
 .sm-wrap.is-map .sm-tracks { top: 196px; left: 18px; width: 242px; max-height: calc(100% - 300px);
   padding: 10px 8px; overflow-y: auto; }
-/* 「이어서」와 안내 한 줄 = 지구본의 아래 띠 자리. 눈이 마지막에 닿는 곳이다. */
+/* 이어서와 안내 한 줄 = 지구본의 아래 띠 자리. 눈이 마지막에 닿는 곳이다. */
 .sm-wrap.is-map .sm-view > .sm-resume { left: 50%; transform: translateX(-50%); bottom: 56px;
   width: min(560px, calc(100% - 300px)); margin: 0; }
 .sm-wrap.is-map .sm-view > .sm-tree-head { left: 50%; transform: translateX(-50%); bottom: 18px;
   margin: 0; padding: 7px 14px; font-size: 11px; }
-/* 읽는 중에는 아래 띠를 접는다 — 덮개보다 위에 떠 있어서 글 위에 얹혀 보였다. */
+/* 읽는 중에는 아래 띠를 접는다. 덮개보다 위에 떠 있어서 글 위에 얹혀 보였다. */
 .sm-wrap.is-map.is-reading .sm-view > .sm-resume,
 .sm-wrap.is-map.is-reading .sm-view > .sm-tree-head { display: none; }
 @media (max-width: 899px) {
-  /* 좁은 화면 — 왼쪽에 유리판을 띄울 자리가 없다. 갈래 레일은 아래에 눕히고 지도가 나머지를 갖는다. */
+  /* 좁은 화면. 왼쪽에 유리판을 띄울 자리가 없다. 갈래 레일은 아래에 눕히고 지도가 나머지를 갖는다. */
   .sm-wrap.is-map .sm-tracks { top: auto; bottom: 60px; left: 8px; right: 8px; width: auto;
     max-height: none; display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
   .sm-wrap.is-map .sm-head { width: calc(100% - 16px); left: 8px; top: 60px; }
@@ -368,25 +368,25 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-wrap.is-map .sm-view > .sm-resume { display: none; }
 }
 
-/* 강의는 지도를 **덮는다** — 갈아 끼우지 않는다. 뒤가 비쳐야 「어디에서 열었는지」를 안 잃고,
+/* 강의는 지도를 **덮는다**. 갈아 끼우지 않는다. 뒤가 비쳐야 어디에서 열었는지를 안 잃고,
    닫았을 때 지도가 보던 그 자리 그대로다(전에는 카메라가 처음으로 돌아갔다).
    흐림은 뒤 그림을 지우려는 것이 아니라 **글자를 읽히게** 하려는 것이다. */
 .sm-main { position: relative; }
-/* 덮개는 **지도를 지우지 않는다** — 옅게 흐려 뒤로 물릴 뿐이다. 글은 가운데 한 폭으로만 앉는다
-   (글줄이 길면 못 읽고, 화면을 다 덮으면 「지도에서 열었다」가 사라진다). */
+/* 덮개는 **지도를 지우지 않는다**. 옅게 흐려 뒤로 물릴 뿐이다. 글은 가운데 한 폭으로만 앉는다
+   (글줄이 길면 못 읽고, 화면을 다 덮으면 지도에서 열었다가 사라진다). */
 .sm-reader { position: absolute; inset: 0; z-index: 5; overflow-y: auto; overscroll-behavior: contain;
   min-height: 60svh; padding: 0; border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
   backdrop-filter: blur(4px) saturate(.9); -webkit-backdrop-filter: blur(4px) saturate(.9);
   animation: sm-reader-in .18s ease-out; }
-/* 글이 앉는 판 — 여기만 또렷하다. 뒤 지도가 살짝 비치되 글자를 안 흔든다. */
+/* 글이 앉는 판. 여기만 또렷하다. 뒤 지도가 살짝 비치되 글자를 안 흔든다. */
 .sm-reader > * { max-width: 780px; margin: 22px auto; padding: 20px 24px 30px;
   border: 1px solid var(--border); border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
   backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
   box-shadow: 0 18px 60px rgba(0, 0, 0, .38); }
 @keyframes sm-reader-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-/* 흐림을 못 그리는 브라우저에서는 **불투명하게** — 반투명만 남으면 글자 뒤로 지도가 비쳐 못 읽는다. */
+/* 흐림을 못 그리는 브라우저에서는 **불투명하게**. 반투명만 남으면 글자 뒤로 지도가 비쳐 못 읽는다. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .sm-reader { background: color-mix(in srgb, var(--bg-primary) 78%, transparent); }
   .sm-reader > * { background: var(--bg-primary); }
@@ -469,7 +469,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .sm-tool:hover { background: var(--accent-dim); }
 .sm-next-tag { position: absolute; top: -8px; right: 12px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--bg-void); }
 
-/* ── 기다림·비어 있음·손이 닿는 자리 ── 화면이 「지금 무슨 상태인지」 스스로 말하게 한다. */
+/* ── 기다림, 비어 있음, 손이 닿는 자리 ── 화면이 지금 무슨 상태인지 스스로 말하게 한다. */
 .sm-skel { max-width: 68ch; }
 .sm-skel-line { height: 13px; border-radius: 6px; margin: 10px 0; background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 37%, var(--bg-tertiary) 63%); background-size: 400% 100%; animation: sm-shimmer 1.4s ease infinite; }
 .sm-skel-line.is-crumb { width: 42%; height: 10px; }
@@ -483,13 +483,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 .doc-demo::after { content: ''; }
 .sm-empty-art { font-size: 26px; display: block; margin-bottom: 8px; opacity: .8; }
 
-/* 키보드로 오는 사람에게도 지금 어디인지 보이게 — 초점 테두리를 한 규칙으로 묶는다. */
+/* 키보드로 오는 사람에게도 지금 어디인지 보이게. 초점 테두리를 한 규칙으로 묶는다. */
 .sm-node-title:focus-visible, .sm-track-btn:focus-visible, .sm-track-node:focus-visible,
 .sm-nav-btn:focus-visible, .sm-resume:focus-visible, .sm-find-btn:focus-visible,
 .doc-demo-btn:focus-visible, .doc-toc-a:focus-visible, .sm-crumb-btn:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-md);
 }
-/* 눌리는 느낌 — 누르는 순간 살짝 들어간다(0.06초). */
+/* 눌리는 느낌. 누르는 순간 살짝 들어간다(0.06초). */
 .sm-track-btn:active, .sm-nav-btn:active, .sm-resume:active, .doc-demo-btn:active, .sm-find-btn:active { transform: translateY(1px); }
 .sm-node.is-just-done { animation: sm-pop .5s ease; }
 @keyframes sm-pop { 0% { box-shadow: 0 0 0 0 var(--success-subtle); } 60% { box-shadow: 0 0 0 10px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
@@ -511,7 +511,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-nodes { grid-template-columns: 1fr; }
   .sm-stage { padding-left: 20px; }
 }
-/* 모바일 마무리 — 위에서 정의한 기본값을 덮으려면 뒤에 와야 한다(같은 힘이면 나중 것이 이긴다). */
+/* 모바일 마무리. 위에서 정의한 기본값을 덮으려면 뒤에 와야 한다(같은 힘이면 나중 것이 이긴다). */
 @media (max-width: 899px) {
   .sm-pager { grid-template-columns: 1fr; }
   .sm-nav-btn { min-height: 56px; }
@@ -520,8 +520,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   .sm-lesson-wrap { display: block; }
   .sm-resume { padding: 16px; }
   .sm-node-title { min-height: 40px; }
-  /* 강의를 읽는 동안은 지도 머리를 접는다 — 첫 화면에 본문이 오게. */
-  /* 읽는 동안 접는 것은 머리와 찾기까지다. **옆줄 목록은 남긴다** — 강의가 지도를 덮고 있으니
+  /* 강의를 읽는 동안은 지도 머리를 접는다. 첫 화면에 본문이 오게. */
+  /* 읽는 동안 접는 것은 머리와 찾기까지다. **옆줄 목록은 남긴다**. 강의가 지도를 덮고 있으니
    다음 칸으로 옮겨 다닐 손잡이가 필요하다(좁은 화면에서는 자리가 없어 그것도 접는다). */
 .sm-wrap.is-reading .sm-head, .sm-wrap.is-reading .sm-findbar { display: none; }
 @media (max-width: 899px) { .sm-wrap.is-reading .sm-tracks { display: none; } }
@@ -532,10 +532,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
   function buildStudymap(container: HTMLElement): void {
     injectStyles();
-    container.innerHTML = `<div class="sm-empty">${esc(t('studymap.loading', undefined, '지도를 펴는 중…'))}</div>`;
+    container.innerHTML = `<div class="sm-empty">${esc(t('studymap.loading', undefined, '지도를 펴는 중...'))}</div>`;
 
     /* 내용 정본은 한국어 한 벌(`studymap.json`)이고, 다른 언어는 **덧씌우는 표**로 온다
-       (`studymap.<언어>.json`). 아직 안 옮긴 칸은 한국어가 그대로 보인다 — 빈 칸보다 낫고,
+       (`studymap.<언어>.json`). 아직 안 옮긴 칸은 한국어가 그대로 보인다. 빈 칸보다 낫고,
        무엇이 안 옮겨졌는지도 그 자리에서 드러난다. */
     const code = locale();
     const base = fetch('/apps/karmolab/data/studymap.json').then((r) => r.json());
@@ -547,7 +547,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             .catch(() => null);
 
     /* 자리는 **미리 구워 온다** (`data/studymap-atlas.json`). 뜻을 재는 일은 이 기계에서만 돌고,
-       브라우저는 결과 표만 받는다 — 화면에서 모델을 돌리면 아무도 못 쓴다.
+       브라우저는 결과 표만 받는다. 화면에서 모델을 돌리면 아무도 못 쓴다.
        표가 없으면 옛 방식(선수 층 쌓기)으로 그대로 그린다. */
     const atlas = fetch('/apps/karmolab/data/studymap-atlas.json')
       .then((r) => (r.ok ? (r.json() as Promise<SmAtlas>) : null))
@@ -563,7 +563,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       });
   }
 
-  /** 뜻으로 구운 자리 — 갈래는 두 축, 칸은 층 안 순서 하나. */
+  /** 뜻으로 구운 자리. 갈래는 두 축, 칸은 층 안 순서 하나. */
   interface SmAtlas {
     tier?: string;
     baked?: string;
@@ -601,15 +601,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           <button type="button" class="sm-find-btn" data-sm="viewbtn">🌳 ${esc(t('studymap.view.tree', undefined, '나무'))}</button>
           <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
           <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
-                 placeholder="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}"
-                 aria-label="${esc(t('studymap.search', undefined, '주제 찾기 — 예: rebase, 인덱스, 캐시'))}">
+                 placeholder="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}"
+                 aria-label="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}">
         </div>
         <div class="sm-body">
           <nav class="sm-tracks" data-sm="tracks" aria-label="${esc(t('studymap.tracks', undefined, '갈래'))}"></nav>
           <div class="sm-main" data-sm="stages" aria-live="polite">
             <!-- 지도와 강의는 **형제**다. 전에는 같은 자리를 갈아 끼워서, 강의를 열면 지도가
                  통째로 죽었다(캔버스를 다시 굽고 카메라가 처음으로 돌아갔다). 지도는 그대로 두고
-                 강의를 그 위에 덮는다 — 뒤가 비쳐야 「어디에서 열었는지」를 안 잃는다. -->
+                 강의를 그 위에 덮는다. 뒤가 비쳐야 어디에서 열었는지를 안 잃는다. -->
             <div class="sm-view" data-sm="view"></div>
             <div class="sm-reader" data-sm="reader" hidden></div>
           </div>
@@ -624,13 +624,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     const q = <T extends HTMLElement>(key: string): T => container.querySelector(`[data-sm="${key}"]`) as T;
     const elTracks = q<HTMLDivElement>('tracks');
     const elStages = q<HTMLDivElement>('stages');
-    /** 지도·목록이 사는 자리. 화면을 갈아엎는 것은 여기까지다. */
+    /** 지도, 목록이 사는 자리. 화면을 갈아엎는 것은 여기까지다. */
     const elView = q<HTMLDivElement>('view');
-    /** 강의가 사는 자리 — 지도 위에 덮인다. 닫아도 지도는 그대로 살아 있다. */
+    /** 강의가 사는 자리. 지도 위에 덮인다. 닫아도 지도는 그대로 살아 있다. */
     const elReader = q<HTMLDivElement>('reader');
     const elSearch = q<HTMLInputElement>('search');
 
-    /* 선수 관계는 갈래를 넘는다 — id 하나로 어느 갈래의 어느 칸인지 바로 찾을 표를 만든다. */
+    /* 선수 관계는 갈래를 넘는다. id 하나로 어느 갈래의 어느 칸인지 바로 찾을 표를 만든다. */
     const whereIs = new Map<string, { node: SmNode; trackId: string }>();
     for (const tr of tracks) for (const st of tr.stages) for (const n of st.nodes) whereIs.set(n.id, { node: n, trackId: tr.id });
 
@@ -638,17 +638,17 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     const nodesOf = (tr: SmTrack): SmNode[] => tr.stages.flatMap((s) => s.nodes);
 
     /**
-     * 지도 전체를 한 줄로 편 순서. 강의 아래 「이전·다음 칸」이 갈래 끝에서 멈추지 않고
-     * 다음 갈래로 이어지게 하려는 것 — 읽던 흐름이 끊기면 사람은 거기서 그만둔다.
+     * 지도 전체를 한 줄로 편 순서. 강의 아래 이전, 다음 칸이 갈래 끝에서 멈추지 않고
+     * 다음 갈래로 이어지게 하려는 것. 읽던 흐름이 끊기면 사람은 거기서 그만둔다.
      */
     const flatOrder: Array<{ id: string; title: string; trackId: string; stageTitle: string }> = tracks.flatMap((tr) =>
       tr.stages.flatMap((st) => st.nodes.map((n) => ({ id: n.id, title: n.title, trackId: tr.id, stageTitle: st.title }))),
     );
     const orderAt = new Map(flatOrder.map((x, i) => [x.id, i]));
 
-    /** 지도를 어떤 눈으로 보나 — 목록(읽기)과 나무(관계). 고른 것은 다음에도 기억한다. */
+    /** 지도를 어떤 눈으로 보나. 목록(읽기)과 나무(관계). 고른 것은 다음에도 기억한다. */
     const VIEW_KEY = 'karmolab-studymap-view';
-    /** 나무 눈의 층 — 갈래 성좌인지, 한 갈래 안 칸 트리인지. */
+    /** 나무 눈의 층. 갈래 성좌인지, 한 갈래 안 칸 트리인지. */
     let zoom: 'tracks' | 'nodes' = 'tracks';
     let view: 'list' | 'tree' = (() => {
       try {
@@ -659,11 +659,11 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     })();
 
     /**
-     * 간격 반복 — 한 번 맞혔다고 아는 게 아니다. 맞힐수록 사이를 벌리고, 틀리면 다시 좁힌다.
-     * 상자(box) 0~4 에 따라 다음에 볼 날이 정해진다: 1일 · 3일 · 7일 · 16일 · 35일.
+     * 간격 반복. 한 번 맞혔다고 아는 게 아니다. 맞힐수록 사이를 벌리고, 틀리면 다시 좁힌다.
+     * 상자(box) 0~4 에 따라 다음에 볼 날이 정해진다: 1일, 3일, 7일, 16일, 35일.
      */
     /**
-     * 「끝냄」이 어디서 왔는지 — 확인 문제를 통과해서(quiz)인지, 손으로 표시해서(self)인지.
+     * 끝냄이 어디서 왔는지. 확인 문제를 통과해서(quiz)인지, 손으로 표시해서(self)인지.
      * 전에는 둘이 섞여 규칙이 안 보였다. 이제 칸마다 근거가 붙는다.
      */
     const SRC_KEY = 'karmolab-studymap-done-src';
@@ -703,7 +703,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       try {
         localStorage.setItem(REVIEW_KEY, JSON.stringify(map));
       } catch {
-        /* 못 적어도 이번 학습은 된다 — 복습 일정만 안 남는다 */
+        /* 못 적어도 이번 학습은 된다. 복습 일정만 안 남는다 */
       }
     }
     /** 맞히면 사이를 벌리고, 틀리면 오늘 안에 다시 본다(10분 뒤). */
@@ -723,7 +723,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       writeReview(map);
       return card;
     }
-    /** 지금 볼 때가 된 칸들 — 가장 오래 밀린 것부터. */
+    /** 지금 볼 때가 된 칸들. 가장 오래 밀린 것부터. */
     function dueList(): string[] {
       const map = readReview();
       const now = Date.now();
@@ -733,7 +733,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         .map(([id]) => id);
     }
 
-    /** 마지막으로 연 강의 — 「이어서」의 근거. 화면을 닫아도 남는다. */
+    /** 마지막으로 연 강의. 이어서의 근거. 화면을 닫아도 남는다. */
     const LAST_KEY = 'karmolab-studymap-last';
     const readLast = (): string => {
       try {
@@ -762,12 +762,12 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           let divider = '';
           if (tr.scope === 'personal' && !scopeMarked) {
             scopeMarked = true;
-            divider = `<div class="sm-scope-line">${esc(t('studymap.scope.personal', undefined, '내 것 — 이 저장소 이야기'))}</div>`;
+            divider = `<div class="sm-scope-line">${esc(t('studymap.scope.personal', undefined, '내 것. 이 저장소 이야기'))}</div>`;
           }
           const all = nodesOf(tr);
           const d = all.filter((n) => done.has(n.id)).length;
           /**
-           * 고른 갈래는 **그 자리에서 펼친다** — 단계와 칸 제목이 옆 목록에 그대로 보인다.
+           * 고른 갈래는 **그 자리에서 펼친다**. 단계와 칸 제목이 옆 목록에 그대로 보인다.
            * 지도의 어디쯤 있는지 보면서 옮겨 다니게 하려는 것(고를 때마다 본문만 갈아 끼우면 길을 잃는다).
            */
           const open = tr.id === current;
@@ -791,7 +791,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     }
 
     /**
-     * 갈래끼리의 선수 관계는 **칸의 선수 관계에서 저절로 나온다** —
+     * 갈래끼리의 선수 관계는 **칸의 선수 관계에서 저절로 나온다** . 
      * A 갈래의 칸을 먼저 해야 하는 칸이 B 갈래에 있으면 A → B.
      * 손으로 적은 갈래 순서표를 따로 두면 칸을 고칠 때마다 어긋난다.
      */
@@ -821,7 +821,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     }
 
     /**
-     * 한 갈래 안 칸 트리 — **단계가 곧 층**이다.
+     * 한 갈래 안 칸 트리. **단계가 곧 층**이다.
      * 앞 칸을 선수로 이어 붙이면 깊이가 계속 깊어져 한 줄로 늘어선다(그러면 지도가 아니라 목록이다).
      * 그래서 층은 단계 번호로 고정하고, 선은 표에 적힌 진짜 선수 관계만 긋는다.
      */
@@ -845,20 +845,20 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       return out;
     }
 
-    /** 지금 복습할 때가 된 칸 · 끝냄의 근거 — 그릴 때마다 한 번만 읽는다. */
+    /** 지금 복습할 때가 된 칸, 끝냄의 근거. 그릴 때마다 한 번만 읽는다. */
     let dueSet = new Set<string>();
     let doneSrc: DoneSrc = {};
 
-    /** 칸 한 장. 찾기 결과에서도 같은 카드를 쓴다 — 두 벌로 그리면 곧 어긋난다. */
+    /** 칸 한 장. 찾기 결과에서도 같은 카드를 쓴다. 두 벌로 그리면 곧 어긋난다. */
     function cardHtml(n: SmNode, nextId: string | null): string {
       const isDone = done.has(n.id);
       const isNext = n.id === nextId;
       /**
-       * 카드는 **제목과 한 줄 이유**까지만 — 넘어갈 기준·먼저 볼 칸·바깥 자료는 전부 강의 안으로 옮겼다.
+       * 카드는 **제목과 한 줄 이유**까지만. 넘어갈 기준, 먼저 볼 칸, 바깥 자료는 전부 강의 안으로 옮겼다.
        * 지도는 훑는 화면이라 카드마다 링크가 붙으면 눈이 갈 곳을 잃고, 링크를 누르면 사이트 밖으로 나간다.
        */
       const needsReview = dueSet.has(n.id);
-      /* 끝냄의 근거를 카드에 적는다 — 「문제를 풀어서」와 「내가 눌러서」는 무게가 다르다. */
+      /* 끝냄의 근거를 카드에 적는다. 문제를 풀어서와 내가 눌러서는 무게가 다르다. */
       const how = isDone ? doneSrc[n.id] || 'self' : '';
       const howTag = how
         ? `<span class="sm-how is-${how}">${esc(
@@ -880,13 +880,13 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       </div>`;
     }
 
-    /** 찾기는 **지도 전체**를 본다. 갈래 안에서만 찾으면 「없다」는 답이 거짓말이 된다. */
+    /** 찾기는 **지도 전체**를 본다. 갈래 안에서만 찾으면 없다는 답이 거짓말이 된다. */
     function searchHtml(): string {
       const groups = tracks
         .map((tr) => ({ tr, found: nodesOf(tr).filter(hits) }))
         .filter((g) => g.found.length > 0);
       if (groups.length === 0) {
-        /* 빈 화면도 화면이다 — 왜 비었는지와 다음에 뭘 할지를 같이 준다. */
+        /* 빈 화면도 화면이다. 왜 비었는지와 다음에 뭘 할지를 같이 준다. */
         return `<div class="sm-empty"><span class="sm-empty-art">🔍</span>${esc(
           t('studymap.nohit', undefined, '지도 어디에도 그런 주제가 없다. 다른 말로 찾아 보라.'),
         )}<div style="margin-top:10px"><button type="button" class="sm-find-btn" data-clear="1">${esc(
@@ -895,7 +895,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
       const total = groups.reduce((s, g) => s + g.found.length, 0);
       return (
-        `<div class="sm-found">${esc(t('studymap.found', { n: total, tracks: groups.length }, '지도 전체에서 {n}칸 · {tracks}갈래'))}</div>` +
+        `<div class="sm-found">${esc(t('studymap.found', { n: total, tracks: groups.length }, '지도 전체에서 {n}칸, {tracks}갈래'))}</div>` +
         groups
           .map(
             (g) => `<section class="sm-stage sm-stage-find">
@@ -909,7 +909,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       );
     }
 
-    /* 강의는 눌렀을 때 받아 온다 — 134편을 미리 받으면 첫 화면이 죽는다.
+    /* 강의는 눌렀을 때 받아 온다. 134편을 미리 받으면 첫 화면이 죽는다.
        한 번 받은 것은 이 화면이 열려 있는 동안 다시 안 받는다. */
     const lessonCache = new Map<string, SmLesson | null>();
     let hasLesson = new Set<string>();
@@ -922,21 +922,21 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         if (!query) paint();
       })
       .catch(() => {
-        /* 목록을 못 받아도 강의는 눌러서 열린다 — 표시만 안 붙는다 */
+        /* 목록을 못 받아도 강의는 눌러서 열린다. 표시만 안 붙는다 */
       });
 
     /**
      * 강의를 열면 브라우저 방문 기록에 한 칸을 쌓는다.
-     * 마우스 「뒤로」가 강의를 닫고 지도로 돌아오게 하려는 것 —
+     * 마우스 뒤로가 강의를 닫고 지도로 돌아오게 하려는 것 . 
      * 안 그러면 뒤로 버튼이 사이트 밖(홈)으로 나가 버린다.
-     * 주소는 그대로 둔다(pushState 에 url 안 넘김) — 다른 위젯의 해시와 안 싸운다.
+     * 주소는 그대로 둔다(pushState 에 url 안 넘김). 다른 위젯의 해시와 안 싸운다.
      */
     let lessonOpen: string | null = null;
-    /** 지금 읽는 장. 칸이 여러 장이면 뒤로가기·다음장이 이 값을 따라간다. */
+    /** 지금 읽는 장. 칸이 여러 장이면 뒤로가기, 다음장이 이 값을 따라간다. */
     let partOpen: string | null = null;
-    /* 목차 감시는 화면을 갈아엎을 때마다 푼다 — 안 그러면 죽은 화면을 계속 재려 든다. */
+    /* 목차 감시는 화면을 갈아엎을 때마다 푼다. 안 그러면 죽은 화면을 계속 재려 든다. */
     let stopWatching: (() => void) | null = null;
-    /** 캔버스 정리 — 화면을 갈아엎을 때 옛 캔버스를 걷는다. */
+    /** 캔버스 정리. 화면을 갈아엎을 때 옛 캔버스를 걷는다. */
     let stopTree: (() => void) | null = null;
 
     async function openLesson(id: string, viaHistory = false, wantPart?: string): Promise<void> {
@@ -946,19 +946,19 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         try {
           history.pushState({ smLesson: id, smPart: wantPart }, '');
         } catch {
-          /* 기록을 못 쌓아도 강의는 열린다 — 뒤로가기만 예전처럼 동작한다 */
+          /* 기록을 못 쌓아도 강의는 열린다. 뒤로가기만 예전처럼 동작한다 */
         }
       }
       lessonOpen = id;
       partOpen = wantPart ?? null;
-      /* 읽는 중에는 머리(제목·진도·찾기)를 접는다 — 좁은 화면에서 본문이 화면 밖으로 밀리던 것. */
+      /* 읽는 중에는 머리(제목, 진도, 찾기)를 접는다. 좁은 화면에서 본문이 화면 밖으로 밀리던 것. */
       container.querySelector('.sm-wrap')?.classList.add('is-reading');
       elReader.hidden = false;
       elReader.scrollTop = 0;
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
-      /* 글자 한 줄 대신 **올 모양**을 미리 그린다 — 화면이 덜 튄다(레이아웃이 미리 자리를 잡는다). */
-      elReader.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
+      /* 글자 한 줄 대신 **올 모양**을 미리 그린다. 화면이 덜 튄다(레이아웃이 미리 자리를 잡는다). */
+      elReader.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중...'))}" aria-busy="true">
         <div class="sm-skel-line is-crumb"></div>
         <div class="sm-skel-line is-title"></div>
         <div class="sm-skel-line is-meta"></div>
@@ -976,11 +976,11 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
 
       writeLast(id);
-      /* 빵부스러기 — 지금 지도의 어디인지. 문서 사이트에서 길을 잃지 않게 하는 최소 장치. */
+      /* 빵부스러기. 지금 지도의 어디인지. 문서 사이트에서 길을 잃지 않게 하는 최소 장치. */
       const stageTitle = flatOrder[orderAt.get(id) ?? 0]?.stageTitle || '';
       const back = `<nav class="sm-crumb"><button type="button" class="sm-crumb-btn" data-back="1">${esc(trackOf(found.trackId).title)}</button><span>›</span><span>${esc(stageTitle)}</span></nav>`;
 
-      /* 이전·다음 칸 — 갈래 경계를 넘어 이어진다. */
+      /* 이전, 다음 칸. 갈래 경계를 넘어 이어진다. */
       const at = orderAt.get(id) ?? -1;
       const near = (step: number): string => {
         const x = at >= 0 ? flatOrder[at + step] : undefined;
@@ -991,15 +991,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           <span class="sm-nav-title">${esc(x.title)}</span>
         </button>`;
       };
-      /* 페이저 조립은 장을 고른 뒤에 한다(아래) — 다음이 「다음 장」일 수도, 「다음 칸」일 수도 있어서. */
-      /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다** — 읽고 끝나면 안 남는다. */
+      /* 페이저 조립은 장을 고른 뒤에 한다(아래). 다음이 다음 장일 수도, 다음 칸일 수도 있어서. */
+      /* 도구가 붙은 칸은 **여기서 바로 해 볼 수 있다**. 읽고 끝나면 안 남는다. */
       const toolRow = node.tool ? `<a class="sm-link sm-tool" href="#${esc(node.tool.id)}">▶ ${esc(node.tool.label)}</a>` : '';
       const linkRow =
         toolRow +
         (node.links || [])
           .map((l) => `<a class="sm-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} ↗</a>`)
           .join('');
-      /* 「먼저 이것」 — 못 하면 막힌다는 뜻이 아니라, 막혔을 때 돌아갈 자리를 알려 준다. */
+      /* 먼저 이것. 못 하면 막힌다는 뜻이 아니라, 막혔을 때 돌아갈 자리를 알려 준다. */
       const prereqRow = (node.prereq || [])
         .map((pid) => {
           const p = whereIs.get(pid);
@@ -1016,7 +1016,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         ? `<div class="sm-callout"><span class="sm-callout-tag">${esc(t('studymap.check', undefined, '넘어가도 될 때'))}</span>${esc(node.check)}</div>`
         : '';
 
-      /* 아직 안 쓴 강의 — 없는 척하지 말고 「없다」고 말한다. 카드에 있던 것은 그대로 보인다. */
+      /* 아직 안 쓴 강의. 없는 척하지 말고 없다고 말한다. 카드에 있던 것은 그대로 보인다. */
       if (!lesson) {
         const pager = `<nav class="sm-pager">${near(-1)}${near(1)}</nav>`;
         elReader.innerHTML = `<div class="sm-lesson">${back}
@@ -1031,7 +1031,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
 
-      /* 장 고르기 — 지정이 없으면 **아직 통과 못 한 첫 장**부터. 공부는 이어서 하는 것이다. */
+      /* 장 고르기. 지정이 없으면 **아직 통과 못 한 첫 장**부터. 공부는 이어서 하는 것이다. */
       const parts = partsOf(lesson, node.title);
       const partDone = readParts();
       const isPartDone = (pid: string): boolean => partDone.has(`${id}#${pid}`);
@@ -1040,7 +1040,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       const part = parts[pIdx];
       partOpen = part.id;
 
-      /* 장 목록 — 몇 장짜리인지, 지금 몇 장째인지, 어디까지 통과했는지가 한눈에. */
+      /* 장 목록. 몇 장짜리인지, 지금 몇 장째인지, 어디까지 통과했는지가 한눈에. */
       const partRail =
         parts.length > 1
           ? `<nav class="sm-parts" aria-label="${esc(t('studymap.lesson.parts', undefined, '장 목록'))}">${parts
@@ -1055,7 +1055,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         .map((blk) => {
           if (blk.type === 'h') return `<h4>${esc(blk.text)}</h4>`;
           if (blk.type === 'code') {
-            /* 언어를 표에 적어 둔 그대로 넘긴다 — 강조는 공용 모듈이 Prism 으로 한다. */
+            /* 언어를 표에 적어 둔 그대로 넘긴다. 강조는 공용 모듈이 Prism 으로 한다. */
             const lang = /^[\w-]+$/.test(blk.lang || '') ? (blk.lang as string) : 'text';
             return `<div class="sm-code">${blk.label ? `<div class="sm-code-label">${esc(blk.label)}</div>` : ''}<pre><code class="language-${esc(lang)}">${esc(blk.text)}</code></pre></div>`;
           }
@@ -1073,7 +1073,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         })
         .join('');
 
-      /** 장 사이 이동이 먼저, 칸 경계는 그다음 — 읽던 흐름이 끊기지 않게. */
+      /** 장 사이 이동이 먼저, 칸 경계는 그다음. 읽던 흐름이 끊기지 않게. */
       const step = (dir: -1 | 1): string => {
         const nx = parts[pIdx + dir];
         if (!nx) return near(dir);
@@ -1104,7 +1104,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
       elReader.innerHTML = `<div class="sm-lesson-wrap"><article class="sm-lesson">${back}
         <h3>${esc(node.title)}</h3>
-        <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${parts.length > 1 ? ` · ${esc(t('studymap.lesson.partno', { n: pIdx + 1, all: parts.length }, '{n}/{all}장'))}` : ''}${part.minutes ? ` · ${esc(t('studymap.lesson.minutes', { n: part.minutes }, '약 {n}분'))}` : ''}</div>
+        <div class="sm-lesson-meta">${esc(trackOf(found.trackId).title)}${parts.length > 1 ? `, ${esc(t('studymap.lesson.partno', { n: pIdx + 1, all: parts.length }, '{n}/{all}장'))}` : ''}${part.minutes ? `, ${esc(t('studymap.lesson.minutes', { n: part.minutes }, '약 {n}분'))}` : ''}</div>
         ${prereqBlock}
         ${partRail}
         ${parts.length > 1 ? `<h4 class="sm-part-title">${esc(part.title)}</h4>` : ''}
@@ -1115,7 +1115,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         ${pager}
       </article></div>`;
 
-      /* 코드 강조·복사도 문서 위젯과 같은 모듈로 — 강의는 코드가 본체다. */
+      /* 코드 강조, 복사도 문서 위젯과 같은 모듈로. 강의는 코드가 본체다. */
       const lessonBody = elStages.querySelector('.sm-lesson');
       if (lessonBody instanceof HTMLElement) {
         addCopyButtons(lessonBody, t('studymap.copy', undefined, '복사'), t('studymap.copied', undefined, '복사됨'));
@@ -1128,7 +1128,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         void highlightCode(lessonBody);
       }
 
-      /* 목차는 공용 모듈이 만든다 — 문서 위젯과 같은 규칙을 쓰려고(SSOT). */
+      /* 목차는 공용 모듈이 만든다. 문서 위젯과 같은 규칙을 쓰려고(SSOT). */
       const article = elStages.querySelector('.sm-lesson');
       const wrap = elStages.querySelector('.sm-lesson-wrap');
       if (article instanceof HTMLElement && wrap instanceof HTMLElement) {
@@ -1144,7 +1144,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         }
       }
 
-      /* 채점은 고르는 즉시. 다 맞히면 그 칸은 저절로 체크된다 — 「읽었다」가 아니라 「됐다」가 기준. */
+      /* 채점은 고르는 즉시. 다 맞히면 그 칸은 저절로 체크된다. 읽었다가 아니라 됐다가 기준. */
       const quizRoot = elStages.querySelector('[data-lesson]');
       const items = part.quiz || [];
       if (quizRoot instanceof HTMLElement && items.length > 0) {
@@ -1167,7 +1167,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             const chosen = qb.querySelector('input:checked') as HTMLInputElement | null;
             return chosen !== null && Number(chosen.value) === items[Number((qb as HTMLElement).dataset.quiz)].answer;
           });
-          /* 하나라도 틀리면 그 자리에서 복습 간격을 좁힌다 — 「맞힐 때까지」가 아니라 「또 볼 때까지」. */
+          /* 하나라도 틀리면 그 자리에서 복습 간격을 좁힌다. 맞힐 때까지가 아니라 또 볼 때까지. */
           const missed = picked !== item.answer;
           if (missed) gradeReview(id, false);
 
@@ -1180,7 +1180,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
               note.className = 'sm-quiz-done';
               quizRoot.appendChild(note);
             }
-            note.textContent = t('studymap.review.set', { when }, '다 맞혔다 — 다음 복습은 {when}');
+            note.textContent = t('studymap.review.set', { when }, '다 맞혔다. 다음 복습은 {when}');
           }
           if (cleared) {
             /* 이 장은 통과. 칸이 끝나는 것은 **모든 장**을 통과했을 때다. */
@@ -1205,10 +1205,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     /**
      * 지도를 화면으로 만드는 데 필요한 두 수를 잰다 (블루마블은 둘 다 상수로 박아 뒀지만,
-     * 여기는 위에 얹힌 것(도구 제목·설명)이 화면 폭에 따라 접혀서 높이가 변한다).
+     * 여기는 위에 얹힌 것(도구 제목, 설명)이 화면 폭에 따라 접혀서 높이가 변한다).
      *  - `--sm-lift` = 이 자리가 화면 꼭대기에서 얼마나 내려와 있나. 그만큼 끌어올린다.
      *  - `--sm-sbw`  = 세로 스크롤막대 폭. 안 빼면 그 폭만큼 가로 스크롤이 생긴다.
-     * 재기 전에 끌어올린 값을 **0 으로 되돌린다** — 안 그러면 잰 값이 지난번 끌어올림을 또 먹는다.
+     * 재기 전에 끌어올린 값을 **0 으로 되돌린다**. 안 그러면 잰 값이 지난번 끌어올림을 또 먹는다.
      */
     const measureBar = (): void => {
       const wrap = container.querySelector<HTMLElement>('.sm-wrap');
@@ -1230,7 +1230,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       lessonOpen = null;
       const wrapEl = container.querySelector('.sm-wrap');
       wrapEl?.classList.remove('is-reading');
-      /* 나무 보기에서만 지도가 화면을 차지한다 — 목록 보기는 글이라 원래 폭이 맞다. */
+      /* 나무 보기에서만 지도가 화면을 차지한다. 목록 보기는 글이라 원래 폭이 맞다. */
       wrapEl?.classList.toggle('is-map', view === 'tree');
       measureBar();
       elReader.hidden = true;
@@ -1262,7 +1262,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       meter.setAttribute('aria-label', t('studymap.progress', undefined, '이 갈래 진도'));
       q<HTMLElement>('pall').textContent = t('studymap.all', { done: everyDone, total: everyNode.length }, '지도 전체 {done} / {total}');
 
-      /* 「다음 한 칸」 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
+      /* 다음 한 칸 = 아직 안 한 첫 노드. 지도를 열자마자 할 일이 하나 보여야 한다. */
       const next = all.find((n) => !done.has(n.id));
       dueSet = new Set(dueList());
       doneSrc = readSrc();
@@ -1274,7 +1274,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
 
       if (view === 'tree') {
-        /* 나무 눈 — 1층은 갈래 성좌, 갈래를 고르면 2층 칸 트리. 「이어서」가 맨 위에 온다. */
+        /* 나무 눈. 1층은 갈래 성좌, 갈래를 고르면 2층 칸 트리. 이어서가 맨 위에 온다. */
         const lastId = readLast();
         const lastWhere = lastId ? whereIs.get(lastId) : undefined;
         const resume = lastWhere
@@ -1291,7 +1291,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             </button>`
             : '';
 
-        /* 복습이 밀려 있으면 「이어서」보다 먼저 보여 준다 — 새로 배우는 것보다 잊는 것이 빠르다. */
+        /* 복습이 밀려 있으면 이어서보다 먼저 보여 준다. 새로 배우는 것보다 잊는 것이 빠르다. */
         const due = dueList();
         const review = due.length
           ? `<button type="button" class="sm-resume is-review" data-open="${esc(due[0])}">
@@ -1301,9 +1301,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             </button>`
           : '';
 
-        /* 좁은 화면에서는 사이를 좁힌다 — 손가락으로 굴리는 거리가 짧아야 길을 안 잃는다. */
+        /* 좁은 화면에서는 사이를 좁힌다. 손가락으로 굴리는 거리가 짧아야 길을 안 잃는다. */
         const narrow = (elStages.clientWidth || window.innerWidth) < 700;
-        /* 1층은 **뜻 지도**다 — 구운 자리가 있으면 그것으로, 없으면 옛 층 쌓기로. */
+        /* 1층은 **뜻 지도**다. 구운 자리가 있으면 그것으로, 없으면 옛 층 쌓기로. */
         const trackNodes = trackTreeNodes();
         const haveAt = trackNodes.every((n) => Array.isArray(n.at));
         const layer =
@@ -1314,15 +1314,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             : layoutTree(nodeTreeNodes(tr), narrow ? 116 : 150, narrow ? 88 : 104);
         const head =
           zoom === 'tracks'
-            ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도 — 가까이 있을수록 강의 내용이 비슷하다 · 눌러서 안으로'))}</div>`
+            ? `<div class="sm-tree-head">${esc(t('studymap.tree.tracks', undefined, '갈래 지도. 가까이 있을수록 강의 내용이 비슷하다, 눌러서 안으로'))}</div>`
             : `<div class="sm-tree-head"><button type="button" class="sm-crumb-btn" data-zoom="tracks">${esc(t('studymap.tree.up', undefined, '← 갈래 지도'))}</button><span>${esc(tr.emoji)} ${esc(tr.title)}</span></div>`;
 
         elView.innerHTML = `${review}${resume}${head}<div class="sm-tree"><div class="sm-tree-in" data-sm="treehost"></div></div>`;
-        /* 그리기는 KarmoGraph 엔진에 맡긴다 — 확대·이동·미니맵·손가락 두 개가 공짜로 따라온다. */
+        /* 그리기는 KarmoGraph 엔진에 맡긴다. 확대, 이동, 미니맵, 손가락 두 개가 공짜로 따라온다. */
         const host = elStages.querySelector('[data-sm="treehost"]');
         if (host instanceof HTMLElement) {
           stopTree?.();
-          /* 추천 경로 = 다음 한 칸까지 가는 선수 사슬. 41갈래 앞에서 「뭐부터」에 답한다. */
+          /* 추천 경로 = 다음 한 칸까지 가는 선수 사슬. 41갈래 앞에서 뭐부터에 답한다. */
           const pathTo = (id: string | undefined): string[] => {
             if (!id) return [];
             const seen = new Set<string>();
@@ -1337,9 +1337,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           stopTree = mountTree(host, layer, {
             size: zoom === 'tracks' ? 68 : 60,
             focusId: zoom === 'tracks' ? current : next?.id,
-            /* 갈래 안은 칸이 적다 — 통째로 보여 주는 편이 「어디쯤인지」에 더 잘 답한다. */
+            /* 갈래 안은 칸이 적다. 통째로 보여 주는 편이 어디쯤인지에 더 잘 답한다. */
             fitAll: zoom === 'nodes',
-            /* 띠 이름은 **깊이별로** 정한다 — 단계 순서와 깊이가 어긋날 수 있어서(선수 관계가 더 깊게 만든다). */
+            /* 띠 이름은 **깊이별로** 정한다. 단계 순서와 깊이가 어긋날 수 있어서(선수 관계가 더 깊게 만든다). */
             laneLabels:
               zoom === 'tracks'
                 ? []
@@ -1353,9 +1353,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
                     }
                     return byDepth;
                   })(),
-            /* 이웃 묶음은 뜻 지도에만 — 갈래 안은 「단계」가 이미 배경을 맡는다(둘을 겹치면 둘 다 안 읽힌다). */
+            /* 이웃 묶음은 뜻 지도에만. 갈래 안은 단계가 이미 배경을 맡는다(둘을 겹치면 둘 다 안 읽힌다). */
             groups: zoom === 'tracks' && haveAt ? atlasCoords?.clusters ?? [] : [],
-            /* 뜻 지도에는 「여기까지 가는 길」이 없다 — 갈래 사이 순서를 사람이 안 적었기 때문이다.
+            /* 뜻 지도에는 여기까지 가는 길이 없다. 갈래 사이 순서를 사람이 안 적었기 때문이다.
                지금 갈래 하나만 밝힌다(없는 길에 불을 켜면 그것도 거짓말이다). */
             pathIds: zoom === 'tracks' ? (haveAt ? [current] : pathTo(current)) : pathTo(next?.id),
             onPick: (id) => {
@@ -1396,14 +1396,14 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
     elTracks.addEventListener('click', (e) => {
       /* 읽는 중에는 옆줄의 칸이 **곧바로 그 강의를 연다**(위에서 `data-open` 으로 그린다).
-         이 갈래가 없어서 강의를 편 뒤에는 옆줄이 통째로 죽어 있었다 — 눌러도 아무 일도
+         이 갈래가 없어서 강의를 편 뒤에는 옆줄이 통째로 죽어 있었다. 눌러도 아무 일도
          안 났다(2026-08-29 실측). */
       const openBtn = (e.target as HTMLElement).closest('[data-open]') as HTMLElement | null;
       if (openBtn) {
         void openLesson(openBtn.dataset.open || '');
         return;
       }
-      /* 펼쳐진 목록의 칸을 누르면 본문에서 그 칸을 비춘다 — 지도 안에서 길을 잃지 않게. */
+      /* 펼쳐진 목록의 칸을 누르면 본문에서 그 칸을 비춘다. 지도 안에서 길을 잃지 않게. */
       const goto = (e.target as HTMLElement).closest('[data-sm-goto]') as HTMLElement | null;
       if (goto) {
         const id = goto.dataset.smGoto || '';
@@ -1426,10 +1426,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       paint();
     });
 
-    /* Esc — 덮어 놓은 것은 걷는 길이 있어야 한다. 뒤로가기와 **같은 길**로 보낸다
+    /* Esc. 덮어 놓은 것은 걷는 길이 있어야 한다. 뒤로가기와 **같은 길**로 보낸다
        (그래야 기록에 빈 칸이 안 남는다). 글자를 치는 중이면 가로채지 않는다. */
     const onKey = (e: KeyboardEvent): void => {
-      /* 떼어 낸 판이 남의 Esc 를 먹지 않게 — 이 위젯의 자리가 아직 붙어 있을 때만 (popstate 와 같은 규약). */
+      /* 떼어 낸 판이 남의 Esc 를 먹지 않게. 이 위젯의 자리가 아직 붙어 있을 때만 (popstate 와 같은 규약). */
       if (e.key !== 'Escape' || !lessonOpen || !elStages.isConnected) return;
       const el = document.activeElement;
       if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return;
@@ -1439,7 +1439,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     };
     document.addEventListener('keydown', onKey);
 
-    /* 뒤로/앞으로 — 우리가 쌓은 칸이면 강의를 열고 닫는다. 남의 기록이면 손대지 않는다. */
+    /* 뒤로/앞으로. 우리가 쌓은 칸이면 강의를 열고 닫는다. 남의 기록이면 손대지 않는다. */
     window.addEventListener('popstate', (e) => {
       const st = e.state as { smLesson?: string; smPart?: string } | null;
       if (st?.smLesson) {
@@ -1452,7 +1452,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     elStages.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
 
-      /* 나무 눈 — 갈래를 누르면 그 갈래 안으로, 칸을 누르면 강의로. */
+      /* 나무 눈. 갈래를 누르면 그 갈래 안으로, 칸을 누르면 강의로. */
       const up = target.closest('[data-zoom]') as HTMLElement | null;
       if (up) {
         zoom = 'tracks';
@@ -1476,7 +1476,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         }
         return;
       }
-      /* 장 이동 — 같은 칸 안이므로 기록도 한 칸 쌓는다(뒤로가기가 장 단위로 돌아간다). */
+      /* 장 이동. 같은 칸 안이므로 기록도 한 칸 쌓는다(뒤로가기가 장 단위로 돌아간다). */
       const jump = target.closest('[data-part]') as HTMLElement | null;
       if (jump && lessonOpen) {
         void openLesson(lessonOpen, false, jump.dataset.part || undefined);
@@ -1488,7 +1488,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
       if (target.closest('[data-back]')) {
-        /* 화면의 「지도로」도 뒤로가기와 같은 길로 — 기록에 빈 칸이 남지 않게 */
+        /* 화면의 지도로도 뒤로가기와 같은 길로. 기록에 빈 칸이 남지 않게 */
         if (lessonOpen && (history.state as { smLesson?: string } | null)?.smLesson) history.back();
         else paint();
         return;
@@ -1530,7 +1530,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
       writeDone(done);
       paint();
-      /* 다시 그리면 방금 누른 자리가 어디였는지 사라진다 — 그 카드만 잠깐 반짝여 눈을 붙잡는다. */
+      /* 다시 그리면 방금 누른 자리가 어디였는지 사라진다. 그 카드만 잠깐 반짝여 눈을 붙잡는다. */
       if (box.checked) {
         const again = elStages.querySelector(`[data-id="${CSS.escape(id)}"]`);
         if (again instanceof HTMLElement) {
@@ -1549,7 +1549,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
     });
 
-    /* 목록 눈과 나무 눈을 오간다 — 읽을 때는 목록, 길을 볼 때는 나무. */
+    /* 목록 눈과 나무 눈을 오간다. 읽을 때는 목록, 길을 볼 때는 나무. */
     const elViewBtn = q<HTMLButtonElement>('viewbtn');
     function paintViewBtn(): void {
       elViewBtn.textContent = view === 'tree' ? `📋 ${t('studymap.view.list', undefined, '목록')}` : `🌳 ${t('studymap.view.tree', undefined, '나무')}`;
@@ -1568,7 +1568,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     paintViewBtn();
 
     const elFindBtn = q<HTMLButtonElement>('findbtn');
-    /* 접기·펴기. 펴면 바로 커서가 들어가고, 비운 채 접으면 지도로 돌아온다. */
+    /* 접기, 펴기. 펴면 바로 커서가 들어가고, 비운 채 접으면 지도로 돌아온다. */
     function showSearch(on: boolean): void {
       elSearch.hidden = !on;
       elFindBtn.setAttribute('aria-expanded', String(on));
@@ -1589,7 +1589,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       paint();
     });
 
-    /* 진도는 이 브라우저에만 있다 — 기기를 바꾸면 사라진다. 서버를 두는 대신
+    /* 진도는 이 브라우저에만 있다. 기기를 바꾸면 사라진다. 서버를 두는 대신
        **한 줄로 들고 다니게** 한다(가입 없이 옮기는 가장 싼 방법). */
     q<HTMLButtonElement>('export').addEventListener('click', () => {
       const code = [...done].join(' ');
@@ -1598,10 +1598,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
       if (typeof Toolbox !== 'undefined' && Toolbox.copyText) {
-        Toolbox.copyText(code, { message: t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.') });
+        Toolbox.copyText(code, { message: t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 진도 가져오기에 붙여 넣어라.') });
         return;
       }
-      prompt(t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.'), code);
+      prompt(t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 진도 가져오기에 붙여 넣어라.'), code);
     });
 
     q<HTMLButtonElement>('import').addEventListener('click', () => {

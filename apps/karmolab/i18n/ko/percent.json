@@ -18,6 +18,6 @@
   "percent.tab": "계산",
   "percent.word.what": "몇",
   "percent.value.combined": "{price} (합쳐서 {pct}% 할인)",
-  "percent.label.nth": "{sentence} — {n}번째 값",
+  "percent.label.nth": "{sentence}. {n}번째 값",
   "percent.copy.one": "복사: {v}"
 }

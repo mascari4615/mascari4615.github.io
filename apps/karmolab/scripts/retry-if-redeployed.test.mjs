@@ -1,11 +1,11 @@
 /**
- * 「배포가 뒤처진 화면을 보고 빨개진 것」을 빨강으로 적지 않는지 — 실제 사고의 회귀 검사.
+ * 배포가 뒤처진 화면을 보고 빨개진 것을 빨강으로 적지 않는지. 실제 사고의 회귀 검사.
  *
- * 2026-08-17: 실주소 검사가 「달리 부르는 이름이 없다 — tts·printkit·nettool·protobuf」로 빨갰다.
+ * 2026-08-17: 실주소 검사가 달리 부르는 이름이 없다. tts, printkit, nettool, protobuf로 빨갰다.
  * 넷 다 **이미 저장소에 적혀 있었고**, 화면만 그 커밋 이전 판이었다. 3분 뒤 다시 재도 같은 옛 판이라
- * 「진짜 빨강」으로 적혔다 — 못 본 것을 봤다고 적은 것이다. 이제 그런 답은 2(못 돌림)로 내린다.
+ * 진짜 빨강으로 적혔다. 못 본 것을 봤다고 적은 것이다. 이제 그런 답은 2(못 돌림)로 내린다.
  *
- * ★ 판을 알려 주는 서버는 **딴 프로세스**로 띄운다 — 껍데기를 spawnSync 로 부르는 동안
+ * ★ 판을 알려 주는 서버는 **딴 프로세스**로 띄운다. 껍데기를 spawnSync 로 부르는 동안
  *   이 프로세스의 일감줄이 멎어, 같은 프로세스 안 서버는 아이의 물음에 영영 답을 못 한다
  *   (그렇게 짜서 한 판을 통째로 매달아 봤다).
  */
@@ -21,7 +21,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const shell = path.join(here, 'retry-if-redeployed.mjs');
 const temp = mkdtempSync(path.join(os.tmpdir(), 'rir-'));
 
-/* 시늉 명령은 파일로 둔다 — `node -e "…"` 는 윈도우 shell 을 거치며 괄호에서 깨진다. */
+/* 시늉 명령은 파일로 둔다. `node -e "..."` 는 윈도우 shell 을 거치며 괄호에서 깨진다. */
 const stub = path.join(temp, 'exit.js');
 writeFileSync(stub, 'process.exit(Number(process.env.RIR_TEST_CODE || 0));');
 
@@ -75,13 +75,13 @@ test('화면이 바로 내 판이면 빨강은 빨강 그대로(1)', () => {
   assert.match(out, /진짜 빨강/);
 });
 
-test('못 돌림(2)은 옛 판이어도 그대로 2 — 다시 재지 않는다', () => {
+test('못 돌림(2)은 옛 판이어도 그대로 2. 다시 재지 않는다', () => {
   const { code, out } = run({ sha: 'eeeeeeee5555555555555555555555555555eeee', verdict: 2 });
   assert.equal(code, 2, out);
   assert.doesNotMatch(out, /다시 잰다/);
 });
 
-test('초록은 옛 판이어도 초록 — 실주소가 성하다는 건 그 자체로 사실이다', () => {
+test('초록은 옛 판이어도 초록. 실주소가 성하다는 건 그 자체로 사실이다', () => {
   const { code, out } = run({ sha: '999999997777777777777777777777777777aaaa', verdict: 0 });
   assert.equal(code, 0, out);
 });

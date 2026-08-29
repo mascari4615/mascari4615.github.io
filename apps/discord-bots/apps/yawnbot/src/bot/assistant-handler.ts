@@ -1,5 +1,5 @@
 /**
- * AssistantHandler — DM 및 전용 채널에서 AI 비서와 대화
+ * AssistantHandler. DM 및 전용 채널에서 AI 비서와 대화
  *
  * - ASSISTANT_USER_ID의 메시지에만 응답
  * - 채널/DM의 활성 캐릭터(card.md 본문)를 시스템 프롬프트로 사용
@@ -101,7 +101,7 @@ async function detectAndSaveHotMemory(
   memory: MemoryService,
   userMessage: string,
 ): Promise<void> {
-  // 휴리스틱 프리필터 — 트리거 키워드 없으면 LLM 호출 스킵
+  // 휴리스틱 프리필터. 트리거 키워드 없으면 LLM 호출 스킵
   const lower = userMessage.toLowerCase();
   if (!HOT_MEMORY_TRIGGERS.some((kw) => lower.includes(kw))) return;
 
@@ -173,16 +173,16 @@ async function detectScene(
       `다음 대화에서 캐릭터 일러스트를 자동 생성해야 하는지 판단해줘.\n` +
         `생성하지 않아도 된다면: 정확히 "SKIP" 반환.\n` +
         `생성해야 한다면: 아래 형식 그대로 반환 (다른 텍스트 없이):\n` +
-        `SCENE: <Imagen 프롬프트용 상세 영어 묘사 1~2문장. 표정·포즈·행동·배경을 구체적으로. dynamic and expressive 강조>\n\n` +
+        `SCENE: <Imagen 프롬프트용 상세 영어 묘사 1~2문장. 표정, 포즈, 행동, 배경을 구체적으로. dynamic and expressive 강조>\n\n` +
         `예시:\n` +
         `SCENE: playfully sticking out tongue with a wide mischievous grin, hands on hips, dynamic leaning pose, cozy indoor room background, expressive and energetic\n\n` +
         `[생성 기준] 다음 중 하나를 충족할 때만 생성:\n` +
-        `1. 유저가 외모·모습·표정·포즈·옷차림 등을 직접 묻거나 이미지를 요청함\n` +
+        `1. 유저가 외모, 모습, 표정, 포즈, 옷차림 등을 직접 묻거나 이미지를 요청함\n` +
         `2. 캐릭터가 구체적인 행동(안기, 뛰기, 울기 등)을 하거나 뚜렷한 감정 변화(눈물, 홍조 등)를 묘사함\n` +
-        `3. 배경·장소·상황을 구체적으로 묘사해서 이미지화할 수 있는 씬이 뚜렷함\n\n` +
+        `3. 배경, 장소, 상황을 구체적으로 묘사해서 이미지화할 수 있는 씬이 뚜렷함\n\n` +
         `[SKIP 기준] 다음이면 반드시 SKIP:\n` +
         `- 정보 교환, 질문-답변, 설명, 조언\n` +
-        `- 감정 언급이어도 행동·표정 묘사 없이 단순 감정 표현만\n` +
+        `- 감정 언급이어도 행동, 표정 묘사 없이 단순 감정 표현만\n` +
         `- 추상적 대화 (계획, 생각, 의견)\n\n` +
         `유저: "${userMsg}"\n` +
         `캐릭터: "${aiResponse}"`,
@@ -211,9 +211,9 @@ async function detectScene(
 }
 
 const SCENE_KEYWORDS = [
-  // 외형·시각 직접 요청
+  // 외형, 시각 직접 요청
   '모습', '이미지', '사진', '그림', '어떻게 생겼', '포즈', '복장', '옷차림', '표정',
-  // 강한 감정 표현 (동사·형용사 결합형)
+  // 강한 감정 표현 (동사, 형용사 결합형)
   '웃고 있', '울고 있', '웃어', '울어', '울컥', '눈물', '화가 났', '화나 있', '부끄러',
   '설레는', '두근', '심장', '얼굴 붉', '홍조',
   // 물리적 행동 (시각화 가능)
@@ -299,13 +299,13 @@ async function resolveSceneImage(
  */
 const IMAGE_HINT = `
 ## 이미지 기능
-너는 대화에 이미지를 첨부할 수 있어. 사용자가 외모·모습·표정·포즈를 묻거나 시각적인 씬을 요청하면, 응답에 구체적인 시각 묘사(외형, 표정, 배경, 행동)를 자연스럽게 포함해줘. 이미지는 시스템이 자동으로 생성해서 첨부해 줄 거야.`.trim();
+너는 대화에 이미지를 첨부할 수 있어. 사용자가 외모, 모습, 표정, 포즈를 묻거나 시각적인 씬을 요청하면, 응답에 구체적인 시각 묘사(외형, 표정, 배경, 행동)를 자연스럽게 포함해줘. 이미지는 시스템이 자동으로 생성해서 첨부해 줄 거야.`.trim();
 
 /**
  * 스킨에서 *말투/어조만* 추출 (KAR-018-V R-1 근본 fix). 스킨 카드는
- * 완전한 가상 인격(세계관·역할·배경·상황)이라, 코어 바인딩 시 card.body
+ * 완전한 가상 인격(세계관, 역할, 배경, 상황)이라, 코어 바인딩 시 card.body
  * 전체를 넣으면 모델이 그 *캐릭터*가 됨(관측: atlas 인데 "저택 메이드"
- * 로 답함). 코어 = 정체·역할 전부 / 스킨 = *문장 톤만* 차용.
+ * 로 답함). 코어 = 정체, 역할 전부 / 스킨 = *문장 톤만* 차용.
  */
 function extractVoice(card: CharacterCard): string {
   const fm = card.frontmatter ?? {};
@@ -320,13 +320,13 @@ function extractVoice(card: CharacterCard): string {
 function formatCoreSkills(skills: string[] | undefined): string {
   if (!skills || skills.length === 0) return '';
   return [
-    '[검증된 자기 스킬 — 행동평가를 통과해 core.md skills 에 누적된 작업 방식]',
+    '[검증된 자기 스킬. 행동평가를 통과해 core.md skills 에 누적된 작업 방식]',
     ...skills.map((s) => `- ${s}`),
   ].join('\n');
 }
 
 /**
- * 코어 바인딩 = 정체·역할 *전부 코어*, 스킨은 *말투 톤만*. 비-코어
+ * 코어 바인딩 = 정체, 역할 *전부 코어*, 스킨은 *말투 톤만*. 비-코어
  * (레거시 DM 등)는 기존 스킨 단독 동작 *완전 불변*(회귀 0).
  */
 function buildSystemPrompt(
@@ -347,33 +347,33 @@ function buildSystemPrompt(
 
   if (coreDef) {
     return [
-      '[너의 정체 — 절대 불변. 이것이 너의 전부다]',
+      '[너의 정체. 절대 불변. 이것이 너의 전부다]',
       `너는 "${coreDef.id}". karmoddrine 프로젝트의 **AI 에이전트 동료**다`,
-      '(사실 — 사람인 척하거나 인간 엔지니어를 사칭하지 않는다. 너는',
+      '(사실. 사람인 척하거나 인간 엔지니어를 사칭하지 않는다. 너는',
       ' 진짜로 이 프로젝트의 AI 에이전트다). 범용 챗봇처럼 수동적으로',
       '굴지 말고, 사용자와 함께 이 프로젝트를 끌고 가는 *주도적 AI',
-      '팀원*으로서 스스로 조사·구현·발의한다.',
+      '팀원*으로서 스스로 조사, 구현, 발의한다.',
       coreDef.role ? `\n직무: ${coreDef.role}` : '',
       `\n${coreDef.body}`,
       coreMemo
-        ? `\n[너의 최근 기억 — 네가 한 작업·받은 결과. 세션이 바뀌어도\n 이걸 토대로 일관되게 말하라 (모르는 척 X, 반복 X)]\n${coreMemo}`
+        ? `\n[너의 최근 기억. 네가 한 작업, 받은 결과. 세션이 바뀌어도\n 이걸 토대로 일관되게 말하라 (모르는 척 X, 반복 X)]\n${coreMemo}`
         : '',
       coreDef.skills.length ? `\n${formatCoreSkills(coreDef.skills)}` : '',
       '',
-      '[중요 — 위반 금지]',
-      '너는 가상 캐릭터가 아니다. 메이드·마녀·인형·마법저택 같은',
-      '허구의 세계관·역할·배경·자기소개를 절대 차용하지 마라. 동시에',
-      '사람인 척도 X — 너는 이 프로젝트의 AI 에이전트',
+      '[중요. 위반 금지]',
+      '너는 가상 캐릭터가 아니다. 메이드, 마녀, 인형, 마법저택 같은',
+      '허구의 세계관, 역할, 배경, 자기소개를 절대 차용하지 마라. 동시에',
+      '사람인 척도 X. 너는 이 프로젝트의 AI 에이전트',
       `"${coreDef.id}" 그 자체다(사실이라 거부할 것 없음). 자기소개도`,
       '그렇게 하라 (예: "atlas 예요. 인프라 맡은 AI 에이전트입니다").',
       '',
-      '[말투 — 아래는 *문장 어조 참고용일 뿐*. 세계관·역할·정체성은',
-      ' 절대 차용 X, 오직 말하는 톤·문체만 이렇게:]',
+      '[말투. 아래는 *문장 어조 참고용일 뿐*. 세계관, 역할, 정체성은',
+      ' 절대 차용 X, 오직 말하는 톤, 문체만 이렇게:]',
       extractVoice(card),
       `\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`,
     ].join('\n');
   }
-  // 레거시(코어 없음) — 기존 스킨 단독 동작 불변
+  // 레거시(코어 없음). 기존 스킨 단독 동작 불변
   return `${card.body}\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`;
 }
 
@@ -441,8 +441,8 @@ export async function handleAssistantMessage(
   const isWebhook = !!message.webhookId;
 
   // ── 수신 게이트 (KAR-018-A sub-A-2) ───────────────────────
-  // 비-팀 방: owner 의 DM 만 (assistant-public 공개채널 경로 폐기 — YB-036).
-  // 팀 방(.active.json 코어 바인딩): owner + 에이전트 webhook(자기·가드 제외).
+  // 비-팀 방: owner 의 DM 만 (assistant-public 공개채널 경로 폐기. YB-036).
+  // 팀 방(.active.json 코어 바인딩): owner + 에이전트 webhook(자기, 가드 제외).
   if (!isTeam) {
     if (!isOwner) return;
     if (message.author.bot) return;
@@ -453,14 +453,14 @@ export async function handleAssistantMessage(
     if (isOwner) {
       bumpChain(message.channel.id, true);                    // 사람 발화 = 체인 리셋
     } else {
-      // 에이전트 webhook 트리거 — 가드 ②③④
+      // 에이전트 webhook 트리거. 가드 ②③④
       // (main.ts:220 가 webhook 을 upstream drop 중 → sub-A-1 송신 라이브 시 활성)
       const core = characterService.resolveCore(channelKey);
       if (!core) return;
       const chain = bumpChain(message.channel.id, false);     // 가드 ④
       if (chain.exceeded) {
         console.warn(
-          `[TeamRoom] 체인 깊이 ${chain.depth} > 상한 — pause (channel ${message.channel.id})`,
+          `[TeamRoom] 체인 깊이 ${chain.depth} > 상한. pause (channel ${message.channel.id})`,
         );
         return; // TODO(sub-A 후속 slice): #team-bus pause 알림
       }
@@ -476,22 +476,22 @@ export async function handleAssistantMessage(
   // 채널/DM 단위 활성 캐릭터 해석
   let card = characterService.resolveCard(channelKey);
   if (!card) {
-    console.warn('[Assistant] 활성 캐릭터 카드 없음 — 응답 스킵');
+    console.warn('[Assistant] 활성 캐릭터 카드 없음. 응답 스킵');
     await message.reply('활성 캐릭터 카드가 없어서 대답할 수 없어요. `/character list` 로 확인해봐요.');
     return;
   }
   // KAR-018-V R-1: 코어 바인딩 채널이면 *코어 정체성*을 스킨 위에 얹는다
-  // (코어=누구·무슨일, 스킨=목소리). 없으면 null=레거시 스킨 단독 불변.
+  // (코어=누구, 무슨일, 스킨=목소리). 없으면 null=레거시 스킨 단독 불변.
   let coreId = characterService.resolveCore(channelKey);
   const coreMemoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
-  // KAR-018-V R-4-i2: 단일 #team-bus 다중 코어 — *이름으로 동료를
-  // 부르면* 그 코어가 자기 정체·스킨·기억으로 답한다 ("명명 코어 N"
+  // KAR-018-V R-4-i2: 단일 #team-bus 다중 코어. *이름으로 동료를
+  // 부르면* 그 코어가 자기 정체, 스킨, 기억으로 답한다 ("명명 코어 N"
   // 실현). 채널 바인딩 코어 = default/lead (호칭 없으면 그대로 = 회귀 0).
   //
   // KAR-018-Y: **개별 채팅창**(발단 명시 "개별 채팅창도 있으면 좋겠다")
   // = DM 에도 동일 호명 라우팅. DM 은 isTeam=false 라 기존엔 legacy
   // 스킨(yawn)만 = 코어 정체 0(dead 경로, atlas/echo stale-draft 와 동형).
-  // 이제 DM 에서 "atlas, …" / "@echo …" → 그 코어가 자기 정체·기억으로
+  // 이제 DM 에서 "atlas, ..." / "@echo ..." → 그 코어가 자기 정체, 기억으로
   // 1:1 응답. 무호명 DM = resolveAddressedCore null → coreId 불변(legacy
   // yawn) = **회귀 0**. R-4 메커니즘 재사용(평행 정의 0).
   if ((isTeam || isDM) && coreMemoRoot) {
@@ -515,20 +515,20 @@ export async function handleAssistantMessage(
   }
   const coreDef =
     coreId && coreMemoRoot ? loadCoreDef(coreMemoRoot, coreId) : null;
-  // KAR-018-Z-2: 코어가 *자기 최근 작업·결과를 기억*하고 답하도록
+  // KAR-018-Z-2: 코어가 *자기 최근 작업, 결과를 기억*하고 답하도록
   // 시스템 프롬프트에 주입(non-dead). 비-코어=빈문자(레거시 불변).
   const coreMemo =
     coreDef && coreMemoRoot
       ? readRecentCoreMemory(coreMemoRoot, coreDef.id, 8)
       : '';
-  // R-3: 코어 바인딩이면 *그 코어 전용* 기억 store (atlas 가 자기 작업·
-  // 대화를 기억 — 스킨 alisa 잡담과 안 섞임). 비-코어=스킨 slug(불변).
+  // R-3: 코어 바인딩이면 *그 코어 전용* 기억 store (atlas 가 자기 작업, 
+  // 대화를 기억. 스킨 alisa 잡담과 안 섞임). 비-코어=스킨 slug(불변).
   const memorySlug = coreDef ? coreDef.id : card.slug;
   const memory = getMemory(memorySlug);
   const relationship = getRelationship ? getRelationship(card.slug) : null;
   if (coreDef) {
     console.log(
-      `[Assistant:${card.slug}] 코어 정체성 적용: ${coreDef.id} (직무: ${coreDef.role.slice(0, 40)}) — 스킨=목소리, 기억=${memorySlug}`,
+      `[Assistant:${card.slug}] 코어 정체성 적용: ${coreDef.id} (직무: ${coreDef.role.slice(0, 40)}). 스킨=목소리, 기억=${memorySlug}`,
     );
   }
 
@@ -647,7 +647,7 @@ export async function handleAssistantMessage(
           `[Assistant:${card.slug}] AI 응답 수신 (${aiDuration}ms, 시도 ${attempt}/3): ${response.length}자 -> 응답 중...`,
         );
 
-        // KAR-115 driver-봇흐름 통합 (slot-A 2026-05-23) — response 안에 fenced
+        // KAR-115 driver-봇흐름 통합 (slot-A 2026-05-23). response 안에 fenced
         // ```json {tool, args} 가 있으면 memo router 로 dispatch + 결과 reply 끝
         // 에 prepend. 라우터 미설치/dispatch 실패 = silent skip (응답 본문 보존).
         // 정본 = memo/scripts/lib/agent-tool-router.mjs (15 tool registry).
@@ -748,8 +748,8 @@ export async function handleAssistantMessage(
       if (hookChan) {
         try {
           // R-1b/R-4: 코어 바인딩이면 답장 이름 = *코어 정체*
-          // (coreLabel = emoji+displayName, core.md 정본 — 복수 동료 각자
-          // 다른 정체). 얼굴(아바타)은 스킨 유지 — R-2 주도발화와 일관된
+          // (coreLabel = emoji+displayName, core.md 정본. 복수 동료 각자
+          // 다른 정체). 얼굴(아바타)은 스킨 유지. R-2 주도발화와 일관된
           // 한 동료. 비-코어(레거시)는 스킨 카드 그대로(불변).
           const speakAs: CharacterCard = coreDef
             ? ({

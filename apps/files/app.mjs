@@ -30,7 +30,7 @@ const tabVault = document.getElementById('tab-vault');
 let lastBlob = '';
 let vaultSession = null;
 let vaultListing = null;
-/* 액자 보기는 폴더를 뜰 때 되돌려 줘야 한다 — 칸마다 blob 을 들고 있다. */
+/* 액자 보기는 폴더를 뜰 때 되돌려 줘야 한다. 칸마다 blob 을 들고 있다. */
 let gallery = null;
 const VIEW_KEY = 'files.vault.view';
 /** 지금 폴더가 그린 파일 차례. 다음과 이전이 이걸 따름 */
@@ -160,7 +160,7 @@ function showVaultGate(msg) {
 // ── PC 업로드 관리 (데스크톱 앱에서만) ───────────────────────────────────────
 // 왜 여기 있나: 전송기를 터미널에서 띄우면 그 세션이 죽을 때 같이 죽는다.
 // 데스크톱 앱이 붙들면 창을 닫아도 살아 있고, 앱을 껐다 켜도 다시 붙는다.
-// 화면에는 집계 수치만 온다 — 원본 경로·파일 이름·비밀번호는 오가지 않는다.
+// 화면에는 집계 수치만 온다. 원본 경로, 파일 이름, 비밀번호는 오가지 않는다.
 const UPLOAD_TARGET_KEY = 'files.upload.target';
 
 function desktopInvoke(cmd, args) {
@@ -172,7 +172,7 @@ function isDesktop() {
   return typeof globalThis.__TAURI__?.core?.invoke === 'function';
 }
 
-// 데스크톱에서는 이 화면이 카모랩 창을 갈아탄 자리다 — 돌아갈 길과 따로 띄울 길을 준다.
+// 데스크톱에서는 이 화면이 카모랩 창을 갈아탄 자리다. 돌아갈 길과 따로 띄울 길을 준다.
 // 웹에서는 둘 다 뜻이 없으므로 아예 안 그린다.
 function mountDesktopNav() {
   const el = document.getElementById('desknav');
@@ -182,7 +182,7 @@ function mountDesktopNav() {
     return;
   }
   el.hidden = false;
-  // 아이콘은 카모랩 셸의 창 단추와 같은 모양이다 — 같은 앱인데 결이 다르면 붙인 티가 난다.
+  // 아이콘은 카모랩 셸의 창 단추와 같은 모양이다. 같은 앱인데 결이 다르면 붙인 티가 난다.
   const ico = (d) =>
     '<svg viewBox="0 0 12 12" aria-hidden="true">' + d + '</svg>';
   el.innerHTML =
@@ -201,7 +201,7 @@ function mountDesktopNav() {
 
   // 이 화면이 **어느 창**에 떠 있냐에 따라 돌아가는 길이 다르다.
   // 카모랩 창을 갈아탄 것이면 히스토리에 카모랩이 남아 뒤로가기가 먹지만,
-  // 따로 띄운 Files 창은 이 페이지가 첫 장이라 뒤로 갈 곳이 없다 — 그때는 창을 닫는다.
+  // 따로 띄운 Files 창은 이 페이지가 첫 장이라 뒤로 갈 곳이 없다. 그때는 창을 닫는다.
   const winApi = globalThis.__TAURI__?.window?.getCurrentWindow;
   const win = typeof winApi === 'function' ? winApi() : null;
   const standalone = win?.label === 'files';
@@ -209,14 +209,14 @@ function mountDesktopNav() {
   const back = document.getElementById('nav-back');
   if (standalone) {
     back.textContent = '닫기';
-    back.title = '따로 띄운 창입니다 — 닫으면 KarmoLab 이 그대로 있습니다';
+    back.title = '따로 띄운 창입니다. 닫으면 KarmoLab 이 그대로 있습니다';
   }
   back.addEventListener('click', () => {
     if (standalone) {
       win?.close?.();
       return;
     }
-    // 뒤로가기가 **아니다**. 이 화면은 폴더를 해시로 넘기므로 히스토리가 폴더마다 쌓인다 —
+    // 뒤로가기가 **아니다**. 이 화면은 폴더를 해시로 넘기므로 히스토리가 폴더마다 쌓인다 . 
     // `history.back()` 이면 카모랩이 아니라 직전 폴더로 간다(2026-08-29 조수님이 봤다).
     // 앱이 갈아타기 직전 카모랩 주소를 적어 뒀다가 한 번에 되돌린다.
     desktopInvoke('karmolab_navigate').catch(() => history.back());
@@ -232,8 +232,8 @@ function mountDesktopNav() {
     });
   }
 
-  // 창 테두리가 없는 앱이라(decorations:false) 최소화·최대화·닫기를 화면이 그려야 한다.
-  // 카모랩 셸에는 이미 있지만 이 화면은 그 셸이 아니다 — 없으면 창을 닫을 길이 없다.
+  // 창 테두리가 없는 앱이라(decorations:false) 최소화, 최대화, 닫기를 화면이 그려야 한다.
+  // 카모랩 셸에는 이미 있지만 이 화면은 그 셸이 아니다. 없으면 창을 닫을 길이 없다.
   if (!win) return;
   const on = (id, fn) => document.getElementById(id)?.addEventListener('click', () => {
     try {
@@ -274,17 +274,17 @@ function renderUploadPanel(st) {
     esc(UPLOAD_LABEL[st.status] || st.status) + '</span>' +
     (st.total
       ? '<span class="up-num">' + st.done.toLocaleString() + ' / ' + st.total.toLocaleString() +
-        ' · ' + pct + '%</span>'
+        ', ' + pct + '%</span>'
       : '<span class="up-num">' + esc(st.note || '') + '</span>') +
     '</div>' +
     (st.total ? '<div class="up-bar"><i style="width:' + pct + '%"></i></div>' : '') +
     '<div class="up-meta">' +
-    (st.total ? '올림 ' + st.uploaded.toLocaleString() + ' · 건너뜀 ' + st.skipped.toLocaleString() : '') +
-    (st.startedAt ? ' · 시작 ' + esc(st.startedAt) : '') +
+    (st.total ? '올림 ' + st.uploaded.toLocaleString() + ', 건너뜀 ' + st.skipped.toLocaleString() : '') +
+    (st.startedAt ? ', 시작 ' + esc(st.startedAt) : '') +
     '</div>' +
     '<div class="up-acts">' +
     '<button id="up-pick" type="button"' + (busy ? ' disabled' : '') + '>' +
-    (target ? esc(target) : '폴더 고르기…') + '</button>' +
+    (target ? esc(target) : '폴더 고르기...') + '</button>' +
     (busy
       ? '<button id="up-stop" type="button">중지</button>'
       : '<button id="up-start" type="button">' + (st.status === 'stopped' ? '이어서 올리기' : '올리기') + '</button>') +
@@ -295,7 +295,7 @@ function renderUploadPanel(st) {
     pickBtn.addEventListener('click', async () => {
       pickBtn.disabled = true;
       try {
-        // 취소하면 빈 문자열이 온다 — 고른 것이 없을 뿐이라 아무 것도 바꾸지 않는다.
+        // 취소하면 빈 문자열이 온다. 고른 것이 없을 뿐이라 아무 것도 바꾸지 않는다.
         const picked = (await desktopInvoke('vault_upload_pick_target') || '').trim();
         if (picked) {
           sessionStorage.setItem(UPLOAD_TARGET_KEY, picked);
@@ -358,7 +358,7 @@ function mountUploader() {
   if (!el) return;
   el.hidden = false;
   if (!isDesktop()) {
-    // 웹·PWA 에서는 설명만. 전송기와 열쇠는 PC 안에서만 산다.
+    // 웹, PWA 에서는 설명만. 전송기와 열쇠는 PC 안에서만 산다.
     el.innerHTML = '<div class="up-note">올리기는 PC 앱에서만 됩니다. 여기서는 보기만 가능합니다.</div>';
     return;
   }
@@ -380,7 +380,7 @@ function loadLaptop() {
     showLaptopGate();
     return;
   }
-  box.innerHTML = '<p class="none">불러오는 중…</p>';
+  box.innerHTML = '<p class="none">불러오는 중...</p>';
   fetch(LAPTOP + '/files/api/list?p=' + encodeURIComponent(p), {
     headers: { Authorization: auth },
   }).then((r) => {
@@ -475,7 +475,7 @@ function viewMode() {
   }
 }
 
-/** 보기 전환 단추 — 그림이 있는 폴더에서만 뜻이 있다. */
+/** 보기 전환 단추. 그림이 있는 폴더에서만 뜻이 있다. */
 function viewSwitch(mode) {
   return '<div class="viewsw">' +
     '<button type="button" data-view="list"' + (mode === 'list' ? ' class="on"' : '') + '>목록</button>' +
@@ -504,7 +504,7 @@ function renderVaultDir(dir) {
   });
 
   if (mode === 'grid') {
-    /* 폴더는 액자 위에 한 줄로 남긴다 — 그림만 보이면 위로 올라갈 길이 사라진다. */
+    /* 폴더는 액자 위에 한 줄로 남긴다. 그림만 보이면 위로 올라갈 길이 사라진다. */
     box.innerHTML =
       (canGrid ? viewSwitch(mode) : '') +
       (folders.length
@@ -604,7 +604,7 @@ async function renderVaultFile(path) {
   });
   crumb.innerHTML = vaultCrumbs(path.split('/').slice(0, -1).join('/')) +
     '<span class="sep">/</span><a>' + esc(path.split('/').pop()) + '</a>';
-  box.innerHTML = '<p class="none">여는 중…</p>';
+  box.innerHTML = '<p class="none">여는 중...</p>';
   /* 열람 저장(R2)에 없으면 여기서 못 엶. 정본은 Drive.
      예전엔 그냥 열 수 없습니다. 이유를 말해야 사람이 다음 수를 앎
      (2026-08-29: 영상이 목록엔 뜨는데 눌러도 조용히 실패) */
@@ -677,7 +677,7 @@ async function loadVault() {
     showVaultGate();
     return;
   }
-  box.innerHTML = '<p class="none">불러오는 중…</p>';
+  box.innerHTML = '<p class="none">불러오는 중...</p>';
   try {
     await ensureVault();
   } catch (e) {

@@ -1,7 +1,7 @@
 /**
- * panels/terms-panel.ts — 내 용어 (TASK-KL-202 개편 2, 다섯 번째 이사).
+ * panels/terms-panel.ts. 내 용어 (TASK-KL-202 개편 2, 다섯 번째 이사).
  *
- * 팩에 없는 노드·관계 종류를 사람이 직접 만드는 자리. 저장은 맵이 아니라 **사람** 단위라
+ * 팩에 없는 노드, 관계 종류를 사람이 직접 만드는 자리. 저장은 맵이 아니라 **사람** 단위라
  * (`terms.ts`), 이 패널은 그 덩이를 ctx 로 빌려 고치고 `applyTerms()` 로 알린다.
  */
 import { newTermId } from '../terms';
@@ -9,10 +9,10 @@ import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 import { forgetTerm } from '../terms';
 
-/** 화살표 상태 글자 — 없음 / 한쪽 / 양쪽. */
+/** 화살표 상태 글자. 없음 / 한쪽 / 양쪽. */
 function arrowGlyph(e: { arrow: boolean; arrowStart?: boolean }): string {
   if (e.arrow && e.arrowStart) return '↔';
-  return e.arrow ? '→' : '—';
+  return e.arrow ? '→' : '. ';
 }
 
 export function renderTermsPanel(ctx: PanelCtx): void {
@@ -97,7 +97,7 @@ export function renderTermsPanel(ctx: PanelCtx): void {
       ctx.applyTerms();
     };
     (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
-      // 이미 그 종류로 놓아둔 노드는 건드리지 않는다 — 이름·색만 잃고 그림은 남는다.
+      // 이미 그 종류로 놓아둔 노드는 건드리지 않는다. 이름, 색만 잃고 그림은 남는다.
       forgetTerm(id);   // 지운 표시가 없으면 다른 탭의 저장이 이 용어를 도로 살린다
       ctx.terms.nodeKinds = ctx.terms.nodeKinds.filter((k) => k.id !== id);
       ctx.applyTerms();

@@ -1,11 +1,11 @@
 /**
  * 증명사진 규격과 인화 배치 (TASK-KL-316 / 27)
  *
- * 증명사진에서 사람이 막히는 건 셋이다: **크기(mm)** · **얼굴이 차지해야 하는 비율** · **인화 배치**.
+ * 증명사진에서 사람이 막히는 건 셋이다: **크기(mm)**, **얼굴이 차지해야 하는 비율**, **인화 배치**.
  * 사진관은 그걸 알아서 해 주지만, 온라인 접수는 파일을 직접 만들어야 한다.
  *
- * 얼굴을 **자동으로 찾지는 않는다** — 그건 학습 모형이 필요하고 이 사이트는 안 받는다(26번과 같은 이유).
- * 대신 규격이 요구하는 **눈높이·머리 크기 자리를 선으로 그려** 사람이 맞추게 한다.
+ * 얼굴을 **자동으로 찾지는 않는다**. 그건 학습 모형이 필요하고 이 사이트는 안 받는다(26번과 같은 이유).
+ * 대신 규격이 요구하는 **눈높이, 머리 크기 자리를 선으로 그려** 사람이 맞추게 한다.
  * 자동으로 어긋나게 잘리는 것보다, 선을 보고 맞춘 사진이 접수에서 안 튕긴다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -33,7 +33,7 @@ export const spec: ToolSpec = {
 
 export interface Spec {
   id: string;
-  /** 나라 코드 — 화면이 이름을 붙인다 */
+  /** 나라 코드. 화면이 이름을 붙인다 */
   country: 'kr' | 'jp' | 'us' | 'eu' | 'cn';
   /** 쓰임새 열쇠 (i18n) */
   use: string;
@@ -49,7 +49,7 @@ export interface Spec {
   background: 'white' | 'lightGray' | 'plain';
 }
 
-/** **아는 것만** 적는다. 규정은 나라마다 바뀌므로 화면에서 「접수처 안내를 확인」이라고 같이 말한다. */
+/** **아는 것만** 적는다. 규정은 나라마다 바뀌므로 화면에서 접수처 안내를 확인이라고 같이 말한다. */
 export const SPECS: Spec[] = [
   { id: 'kr-passport', country: 'kr', use: 'passport', widthMm: 35, heightMm: 45, headMin: 0.5, headMax: 0.7, eyeMin: 0.55, eyeMax: 0.72, background: 'white' },
   { id: 'kr-id', country: 'kr', use: 'idCard', widthMm: 35, heightMm: 45, headMin: 0.5, headMax: 0.72, eyeMin: 0.55, eyeMax: 0.75, background: 'white' },
@@ -87,7 +87,7 @@ export function plan(spec: Spec, dpi = 300): Plan {
     heightPx,
     headMinPx: Math.round(heightPx * spec.headMin),
     headMaxPx: Math.round(heightPx * spec.headMax),
-    /* 규정은 「아래에서부터」인데 그림은 위에서부터 그린다 — 여기서 한 번만 뒤집는다. */
+    /* 규정은 아래에서부터인데 그림은 위에서부터 그린다. 여기서 한 번만 뒤집는다. */
     eyeTopPx: Math.round(heightPx * (1 - spec.eyeMax)),
     eyeBottomPx: Math.round(heightPx * (1 - spec.eyeMin)),
     dpi
@@ -114,7 +114,7 @@ export interface Sheet {
   gap: number;
 }
 
-/** 인화지에 몇 장이 들어가나 — **자르는 여유**를 빼고 센다(붙여 놓으면 못 자른다). */
+/** 인화지에 몇 장이 들어가나. **자르는 여유**를 빼고 센다(붙여 놓으면 못 자른다). */
 export function sheet(spec: Spec, paper: Paper = '4x6', dpi = 300, gapMm = 2, marginMm = 4): Sheet {
   const [pw, ph] = PAPER_MM[paper];
   const widthPx = mmToPx(pw, dpi);
@@ -127,7 +127,7 @@ export function sheet(spec: Spec, paper: Paper = '4x6', dpi = 300, gapMm = 2, ma
   const cols = Math.max(0, Math.floor((widthPx - margin * 2 + gap) / (cellW + gap)));
   const rows = Math.max(0, Math.floor((heightPx - margin * 2 + gap) / (cellH + gap)));
   const slots: Array<{ x: number; y: number; w: number; h: number }> = [];
-  /* 남는 자리는 **가운데로 모은다** — 한쪽으로 몰리면 자를 때 한 장이 종이 끝에 걸린다. */
+  /* 남는 자리는 **가운데로 모은다**. 한쪽으로 몰리면 자를 때 한 장이 종이 끝에 걸린다. */
   const usedW = cols * cellW + Math.max(0, cols - 1) * gap;
   const usedH = rows * cellH + Math.max(0, rows - 1) * gap;
   const startX = Math.round((widthPx - usedW) / 2);
@@ -140,7 +140,7 @@ export function sheet(spec: Spec, paper: Paper = '4x6', dpi = 300, gapMm = 2, ma
   return { paper, widthPx, heightPx, slots, cols, rows, gap };
 }
 
-/** 자른 사진이 규격을 지키나 — 머리 높이와 눈 자리를 픽셀로 받아 본다. */
+/** 자른 사진이 규격을 지키나. 머리 높이와 눈 자리를 픽셀로 받아 본다. */
 export function check(spec: Spec, planned: Plan, headPx: number, eyeYPx: number): { ok: boolean; problems: string[] } {
   const problems: string[] = [];
   if (headPx < planned.headMinPx) problems.push('headTooSmall');
@@ -151,7 +151,7 @@ export function check(spec: Spec, planned: Plan, headPx: number, eyeYPx: number)
 }
 
 export const run: ToolRunner = (op, args) => {
-  if (op === 'specs') return SPECS.map((s) => s.id + '  ' + s.widthMm + '×' + s.heightMm + 'mm  head ' + Math.round(s.headMin * 100) + '–' + Math.round(s.headMax * 100) + '%').join('\n');
+  if (op === 'specs') return SPECS.map((s) => s.id + '  ' + s.widthMm + '×' + s.heightMm + 'mm  head ' + Math.round(s.headMin * 100) + '-' + Math.round(s.headMax * 100) + '%').join('\n');
   const found = findSpec(String(args.id ?? ''));
   if (found === undefined) throw new Error('모르는 규격입니다: ' + String(args.id));
   const dpi = args.dpi === undefined ? 300 : Number(args.dpi);
@@ -159,8 +159,8 @@ export const run: ToolRunner = (op, args) => {
     const p = plan(found, dpi);
     return [
       p.widthPx + '×' + p.heightPx + ' px @ ' + dpi + ' dpi',
-      'head  ' + p.headMinPx + '–' + p.headMaxPx + ' px',
-      'eyes  ' + p.eyeTopPx + '–' + p.eyeBottomPx + ' px from top'
+      'head  ' + p.headMinPx + '-' + p.headMaxPx + ' px',
+      'eyes  ' + p.eyeTopPx + '-' + p.eyeBottomPx + ' px from top'
     ].join('\n');
   }
   if (op === 'sheet') {

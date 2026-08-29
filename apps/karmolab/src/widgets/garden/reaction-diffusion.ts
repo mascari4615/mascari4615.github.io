@@ -27,7 +27,7 @@ export function presetForDay(day: string): ReactionPreset {
   return REACTION_PRESETS[(hash >>> 0) % REACTION_PRESETS.length];
 }
 
-/** Gray–Scott reaction diffusion on a torus. A is replenished, B consumes A and duplicates. */
+/** Gray-Scott reaction diffusion on a torus. A is replenished, B consumes A and duplicates. */
 export class ReactionDiffusion {
   readonly w: number;
   readonly h: number;

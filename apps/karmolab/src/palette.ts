@@ -3,26 +3,26 @@
  *
  * 왜 있나: 등록된 도구가 160개인데 앱 안에 찾는 입력이 **하나도 없었다**. 찾는 길은
  * 123개짜리 드롭다운을 훑거나, 앱을 나가서 목록 페이지로 가는 것뿐이었다(그 검색은
- * 검색엔진 유입용으로 만든 정적 페이지다). 첫 화면조차 「상단 메뉴에서 카테고리를 열고
- * 도구를 선택하세요」라고 적혀 있었다 — 찾는 부담을 사람에게 떠넘기는 문구다.
+ * 검색엔진 유입용으로 만든 정적 페이지다). 첫 화면조차 상단 메뉴에서 카테고리를 열고
+ * 도구를 선택하세요라고 적혀 있었다. 찾는 부담을 사람에게 떠넘기는 문구다.
  *
  * 어떻게: 표면은 **하나**다. 첫 화면에서는 그 자리에 박혀 있고(inline), 도구를 보는
  * 중에는 `Ctrl/⌘+K` 로 같은 것이 떠오른다(overlay).
  *
- * ★ **머리띠 검색칸은 2026-08-19 에 들어왔다** (사용자 요청 — 아카라이브식). 예전 이 자리에는
- *   「헤더에 상시 검색창은 두지 않는다 — 사용자가 명시적으로 거부했다」가 적혀 있었다.
- *   그때 뒤집힌 것은 **갈래 메뉴**다: 머리띠에서 갈래 여섯을 뺐으므로(84개가 4·5·41 로 갈려
- *   나눔이 이미 죽어 있었다) 도구를 여는 정문이 첫 화면에만 남았다 — 도구를 보는 중에는
+ * ★ **머리띠 검색칸은 2026-08-19 에 들어왔다** (사용자 요청. 아카라이브식). 예전 이 자리에는
+ *   헤더에 상시 검색창은 두지 않는다. 사용자가 명시적으로 거부했다가 적혀 있었다.
+ *   그때 뒤집힌 것은 **갈래 메뉴**다: 머리띠에서 갈래 여섯을 뺐으므로(84개가 4, 5, 41 로 갈려
+ *   나눔이 이미 죽어 있었다) 도구를 여는 정문이 첫 화면에만 남았다. 도구를 보는 중에는
  *   ⌘K 를 아는 사람만 열 수 있다. 그래서 그 칸을 머리띠로 올렸다. 표면은 여전히 하나다:
  *   머리띠 칸은 제 목록을 안 그리고 이 창을 `open(친 글자)` 로 넘긴다.
  *
- * 찾기 대상은 이름·한 줄 설명·별칭·초성이다. 별칭 파일은 이미 있었는데(`tool-aliases.json`)
- * 목록 페이지만 쓰고 앱은 안 쓰고 있었다. 초성은 한국어 입력에서 제일 빠른 길이다 —
- * 「ㄱㅈㅅ」로 「글자수 세기」가 나온다.
+ * 찾기 대상은 이름, 한 줄 설명, 별칭, 초성이다. 별칭 파일은 이미 있었는데(`tool-aliases.json`)
+ * 목록 페이지만 쓰고 앱은 안 쓰고 있었다. 초성은 한국어 입력에서 제일 빠른 길이다 . 
+ * ㄱㅈㅅ로 글자수 세기가 나온다.
  *
  * 묶음의 탭으로 들어간 도구(예: base64)는 메뉴에서 숨겨져 있지만 여기서는 찾아진다.
  * `Toolbox.switchPage` 가 묶음으로 보내고 그 탭을 열어 주므로, 메뉴에 없다는 것이
- * 「닿을 수 없다」를 뜻하지 않게 된다. 메뉴 123개 대 찾기 160개의 차이가 여기서 난다.
+ * 닿을 수 없다를 뜻하지 않게 된다. 메뉴 123개 대 찾기 160개의 차이가 여기서 난다.
  */
 
 import { compactSearchText } from './search/tool-search';
@@ -50,7 +50,7 @@ type Entry = {
   icon: string;
   /** 찾기에만 쓰이고 화면에는 안 보이는 다른 이름들 */
   alias: string;
-  /** 이름의 초성 (한글만) — 「ㄱㅈㅅ」 같은 입력용 */
+  /** 이름의 초성 (한글만). ㄱㅈㅅ 같은 입력용 */
   cho: string;
   /** 이 도구가 어느 묶음의 탭인지 (아니면 null). 둘러보기에서 부모 밑에 붙인다. */
   bundle: string | null;
@@ -65,20 +65,20 @@ type Entry = {
 type Hit = {
   entry: Entry;
   score: number;
-  /** 이름에서 일치한 구간 [시작, 끝) — 강조에 쓴다 */
+  /** 이름에서 일치한 구간 [시작, 끝). 강조에 쓴다 */
   range: [number, number] | null;
 };
 
 const RECENT_KEY = 'toolbox_recent_tools';
 const FAVORITES_KEY = 'toolbox_favorites';
-/** 도구 목록에서 별로 꽂은 것 — 저절로 쌓이는 「최근」과 달리 사람이 고른 것 (TASK-KL-129) */
+/** 도구 목록에서 별로 꽂은 것. 저절로 쌓이는 최근과 달리 사람이 고른 것 (TASK-KL-129) */
 const PINNED_KEY = 'toolbox_pinned_tools';
 const RECENT_MAX = 8;
 const RESULT_MAX = 40;
 /* 첫 화면에 박힌 드롭다운은 **스크롤이 안 생겨야 한다** (TASK-KL-136, 사용자 요청).
- * 그래서 높이를 CSS 로 자르는 대신 **줄 수를 여기서 자른다** — 잘라낸 것은 「전체 목록에서
- * 찾아보기 →」가 받는다. 잘라 놓고 안에서 또 스크롤하게 두면 잘린 줄도 못 보고 화면도 길다.
- * ⌘K 로 뜨는 쪽은 그대로다 — 그건 찾으려고 연 창이라 길어도 된다. */
+ * 그래서 높이를 CSS 로 자르는 대신 **줄 수를 여기서 자른다**. 잘라낸 것은 전체 목록에서
+ * 찾아보기 →가 받는다. 잘라 놓고 안에서 또 스크롤하게 두면 잘린 줄도 못 보고 화면도 길다.
+ * ⌘K 로 뜨는 쪽은 그대로다. 그건 찾으려고 연 창이라 길어도 된다. */
 const INLINE_ROW_MAX = 5;
 const INLINE_RESULT_MAX = 8;
 
@@ -87,7 +87,7 @@ const CHO_TABLE = [
   'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
 ];
 
-/** 한글 음절을 초성으로. 한글이 아니면 그대로 (영문·숫자도 같이 쳐질 수 있으므로). */
+/** 한글 음절을 초성으로. 한글이 아니면 그대로 (영문, 숫자도 같이 쳐질 수 있으므로). */
 function toCho(s: string): string {
   let out = '';
   for (const ch of s) {
@@ -98,16 +98,16 @@ function toCho(s: string): string {
   return out;
 }
 
-/** 찾기 비교용 정규화 — 대소문자·공백을 지운다. 「글자수 세기」와 「글자수세기」가 같아야 한다. */
+/** 찾기 비교용 정규화. 대소문자, 공백을 지운다. 글자수 세기와 글자수세기가 같아야 한다. */
 function norm(s: unknown): string {
   /* 별칭은 한 줄 글월이 보통이지만 **목록으로 적힌 것도 있다**(`chain`). 글월로만 알고 다루면
-   * 찾기 알맹이가 통째로 터져 이름 바꾸기까지 멈춘다 — 실제로 그렇게 6개가 안 바뀌었다. */
+   * 찾기 알맹이가 통째로 터져 이름 바꾸기까지 멈춘다. 실제로 그렇게 6개가 안 바뀌었다. */
   const text = Array.isArray(s) ? s.join(' ') : s == null ? '' : String(s);
   return text.toLowerCase().replace(/\s+/g, '');
 }
 
-/** 입력이 초성만으로 이뤄졌나 (「ㄱㅈㅅ」). 그럴 때만 초성 대조를 켠다 —
- *  안 그러면 「사」가 「ㅅ」으로 잘못 걸린다. */
+/** 입력이 초성만으로 이뤄졌나 (ㄱㅈㅅ). 그럴 때만 초성 대조를 켠다 . 
+ *  안 그러면 사가 ㅅ으로 잘못 걸린다. */
 function isChoQuery(q: string): boolean {
   return /^[ㄱ-ㅎ]+$/.test(q);
 }
@@ -115,25 +115,25 @@ function isChoQuery(q: string): boolean {
 /* ── 바로 답하기 (TASK-KL-110) ────────────────────────────────
  *
  * 도구를 쓰는 길은 늘 넷이었다: 찾고 → 열고 → 넣고 → 읽는다. 그런데 자주 묻는 것 중에는
- * **한 줄이면 끝나는** 질문이 많다 — 24px 이 몇 rem 인지, 1024KB 가 몇 MB 인지, 이 색의
+ * **한 줄이면 끝나는** 질문이 많다. 24px 이 몇 rem 인지, 1024KB 가 몇 MB 인지, 이 색의
  * RGB 값이 뭔지. 그걸 위해 매번 도구를 여는 것은 네 걸음을 걷는 일이다.
  *
  * 그래서 친 그대로가 질문이면 목록 맨 위에 답을 놓는다. Enter 를 치면 그 답이 복사된다
  * (값을 본 다음 하는 일은 대개 붙여넣기다). 도구가 필요하면 그 아래 줄이 그대로 있다.
  *
- * **작게 시작한다** — 셋뿐이다. 여기서 쓸모가 확인되면 늘린다. 답을 내는 규칙이 도구와
+ * **작게 시작한다**. 셋뿐이다. 여기서 쓸모가 확인되면 늘린다. 답을 내는 규칙이 도구와
  * 어긋나면 그게 더 나쁘므로(같은 질문에 두 답), 도구와 값이 같은지 검사로 묶어 둔다.
  */
 type Answer = { label: string; value: string; hint?: string; toolId: string };
 
-/** 숫자를 사람이 읽기 좋게 — 끝의 0 은 지운다 (1.5000 → 1.5) */
+/** 숫자를 사람이 읽기 좋게. 끝의 0 은 지운다 (1.5000 → 1.5) */
 function num(n: number): string {
   if (!isFinite(n)) return '';
   const r = Math.round(n * 10000) / 10000;
   return String(r);
 }
 
-/** px ↔ rem (뿌리 글자 크기 16 기준 — cssunit 도구의 기본값과 같다) */
+/** px ↔ rem (뿌리 글자 크기 16 기준. cssunit 도구의 기본값과 같다) */
 function answerCssUnit(q: string): Answer[] {
   const m = /^(-?\d+(?:\.\d+)?)\s*(px|rem|em)\b(?:\s*(?:to|→|>)\s*(px|rem|em))?$/i.exec(q.trim());
   if (!m) return [];
@@ -149,7 +149,7 @@ function answerCssUnit(q: string): Answer[] {
     .map((u) => ({ label: `${m[1]}${from} → ${u}`, value: all[u], hint: '뿌리 16px 기준', toolId: 'cssunit' }));
 }
 
-/** 바이트 크기 — 1024 배(KiB 계열)와 1000 배(KB 계열)를 함께 보여 준다 */
+/** 바이트 크기. 1024 배(KiB 계열)와 1000 배(KB 계열)를 함께 보여 준다 */
 function answerByteSize(q: string): Answer[] {
   const m = /^(-?\d+(?:\.\d+)?)\s*(b|kb|mb|gb|tb|kib|mib|gib|tib)$/i.exec(q.trim());
   if (!m) return [];
@@ -165,7 +165,7 @@ function answerByteSize(q: string): Answer[] {
   const labelBin = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
   for (let i = 1; i < 5; i++) {
     const d = bytes / Math.pow(1000, i);
-    // 친 단위 그대로를 답이라고 내밀지 않는다 — 「1024kb → 1024 KB」 는 답이 아니라 메아리다.
+    // 친 단위 그대로를 답이라고 내밀지 않는다. 1024kb → 1024 KB 는 답이 아니라 메아리다.
     if (label[i].toLowerCase() !== unit && d >= 0.001 && d < 10000) {
       out.push({ label: `${m[1]}${unit} → ${label[i]}`, value: num(d) + ' ' + label[i], toolId: 'bytesize' });
     }
@@ -177,7 +177,7 @@ function answerByteSize(q: string): Answer[] {
   return out.slice(0, 4);
 }
 
-/** 색 — #hex 를 RGB 로 (반대 방향은 색 도구가 더 잘 한다) */
+/** 색. #hex 를 RGB 로 (반대 방향은 색 도구가 더 잘 한다) */
 function answerColor(q: string): Answer[] {
   const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(q.trim());
   if (!m) return [];
@@ -228,7 +228,7 @@ const KarmoPalette = (() => {
   searchIndex.register({ id: 'docs', documents: () => docsEntries.map((entry) => ({
     value: entry, id: entry.id, title: entry.title, description: entry.desc, aliases: entry.alias,
   })) });
-  /** 이번 주에 많이 쓴 도구 id — 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
+  /** 이번 주에 많이 쓴 도구 id. 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
   let popularIds: string[] = [];
 
   /* ── 최근 쓴 도구 ─────────────────────────────────────────── */
@@ -255,7 +255,7 @@ const KarmoPalette = (() => {
     }
   }
 
-  /** 도구 목록(`/t/`)에서 별로 꽂아 둔 것 — 사람이 직접 고른 목록 (TASK-KL-129) */
+  /** 도구 목록(`/t/`)에서 별로 꽂아 둔 것. 사람이 직접 고른 목록 (TASK-KL-129) */
   function getPinnedToolIds(): string[] {
     try {
       const raw = localStorage.getItem(PINNED_KEY);
@@ -287,7 +287,7 @@ const KarmoPalette = (() => {
 
   /* ── 인덱스 ───────────────────────────────────────────────── */
 
-  /** 별칭은 있으면 좋고 없어도 도는 것 — 못 받아도 조용히 넘어간다. */
+  /** 별칭은 있으면 좋고 없어도 도는 것. 못 받아도 조용히 넘어간다. */
   async function loadAliases(): Promise<void> {
     if (aliasLoaded) return;
     aliasLoaded = true;
@@ -301,7 +301,7 @@ const KarmoPalette = (() => {
         rebuildSearchIndex();
       }
     } catch (_) {
-      /* 오프라인이면 이름·설명으로만 찾는다 */
+      /* 오프라인이면 이름, 설명으로만 찾는다 */
     }
   }
 
@@ -360,9 +360,9 @@ const KarmoPalette = (() => {
     const all = (typeof Toolbox !== 'undefined' ? Toolbox.getTools() : []) as PaletteTool[];
     const isDesktop = typeof Toolbox !== 'undefined' && Toolbox.isDesktopApp ? Toolbox.isDesktopApp() : false;
     entries = all
-      // 데스크톱 앱 전용 도구는 브라우저에서 열 수 없다 — 찾아져 봐야 빈 화면이다.
+      // 데스크톱 앱 전용 도구는 브라우저에서 열 수 없다. 찾아져 봐야 빈 화면이다.
       .filter((t) => !(t.desktopOnly || t.category === 'desktop') || isDesktop)
-      // 「내 정보」는 헤더에 제 버튼이 있다. 여기서 또 나오면 결과가 지저분해진다.
+      // 내 정보는 헤더에 제 버튼이 있다. 여기서 또 나오면 결과가 지저분해진다.
       .filter((t) => t.id !== 'user')
       .map((t) => ({
         id: t.id,
@@ -379,7 +379,7 @@ const KarmoPalette = (() => {
 
   function rebuildSearchIndex(): void {
     searchIndex.refresh('tools');
-    /* 첫 글자만 유독 굼뜬 것을 없앤다 — 다듬기는 질문과 무관하므로 한가할 때 미리 해 둔다
+    /* 첫 글자만 유독 굼뜬 것을 없앤다. 다듬기는 질문과 무관하므로 한가할 때 미리 해 둔다
        (실측: 첫 글자 305ms → 그 뒤 67ms. 미리 하면 첫 글자도 그 값이 된다). */
     const idle = (typeof window !== 'undefined' && (window as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback)
       || ((cb: () => void) => setTimeout(cb, 200));
@@ -396,12 +396,12 @@ const KarmoPalette = (() => {
   /* ── 점수 ─────────────────────────────────────────────────── */
 
   /**
-   * 높을수록 위. 자리를 이름 안에서 어디서 맞췄는지까지 본다 —
-   * 「pdf」를 쳤을 때 이름이 「PDF 편집」인 것이 설명에만 pdf 가 있는 것보다 위여야 한다.
+   * 높을수록 위. 자리를 이름 안에서 어디서 맞췄는지까지 본다 . 
+   * pdf를 쳤을 때 이름이 PDF 편집인 것이 설명에만 pdf 가 있는 것보다 위여야 한다.
    */
   /**
    * 정규화된 자리(공백 제거)를 원래 이름의 자리로 되돌린다.
-   * 이것을 안 하면 「글자수 세기」에서 공백 때문에 강조가 한 칸씩 밀린다.
+   * 이것을 안 하면 글자수 세기에서 공백 때문에 강조가 한 칸씩 밀린다.
    */
   function titleRange(title: string, nq: string, normStart: number): [number, number] | null {
     let seen = 0;
@@ -504,7 +504,7 @@ const KarmoPalette = (() => {
 
   /**
    * 답 한 줄 (TASK-KL-110). 도구 줄과 같은 모양이되 값이 주인공이라 크게 놓는다.
-   * 누르거나 Enter 를 치면 **복사**된다 — 값을 본 다음 하는 일은 대개 붙여넣기다.
+   * 누르거나 Enter 를 치면 **복사**된다. 값을 본 다음 하는 일은 대개 붙여넣기다.
    */
   function addAnswerRow(inst: Instance, a: Answer): void {
     const row = document.createElement('div');
@@ -517,7 +517,7 @@ const KarmoPalette = (() => {
       'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>' +
       '<span class="kp-row-text">' +
       '<span class="kp-answer-value">' + esc(a.value) + '</span>' +
-      '<span class="kp-row-desc">' + esc(a.label) + (a.hint ? ' · ' + esc(a.hint) : '') + '</span>' +
+      '<span class="kp-row-desc">' + esc(a.label) + (a.hint ? ', ' + esc(a.hint) : '') + '</span>' +
       '</span>' +
       '<span class="kp-row-badge">Enter 복사</span>';
     row.addEventListener('mousemove', () => setActive(inst, inst.rows.findIndex((r) => r.el === row)));
@@ -528,17 +528,17 @@ const KarmoPalette = (() => {
 
   function copyAnswer(inst: Instance, value: string): void {
     if (typeof Toolbox !== 'undefined' && Toolbox.copyText) {
-      void Toolbox.copyText(value, { message: '복사했어요 — ' + value });
+      void Toolbox.copyText(value, { message: '복사했어요. ' + value });
     }
     if (inst.mode === 'overlay') close();
   }
 
   /**
-   * 빈 입력일 때 보여 주는 것 — 이번 주 인기 → 내 것 → 최근 → 즐겨찾기 → 둘러보기.
+   * 빈 입력일 때 보여 주는 것. 이번 주 인기 → 내 것 → 최근 → 즐겨찾기 → 둘러보기.
    *
    * 첫 화면에서는 **줄이 스크롤 없이 다 보여야 한다** (TASK-KL-136). 그래서 줄로 나가는
-   * 세 가지(내 것·최근·즐겨찾기)는 합쳐서 `INLINE_ROW_MAX` 줄까지만 나간다 — 앞의 것이
-   * 자리를 다 쓰면 뒤의 것은 이번 화면에 안 나온다. 칩으로 나가는 둘(인기·둘러보기)은
+   * 세 가지(내 것, 최근, 즐겨찾기)는 합쳐서 `INLINE_ROW_MAX` 줄까지만 나간다. 앞의 것이
+   * 자리를 다 쓰면 뒤의 것은 이번 화면에 안 나온다. 칩으로 나가는 둘(인기, 둘러보기)은
    * 한 줄씩이라 그 셈에서 빠진다.
    */
   function renderResting(inst: Instance): void {
@@ -548,19 +548,19 @@ const KarmoPalette = (() => {
 
     /* ★ 둘러보기가 **맨 위**다 (2026-08-19, 사용자 요청).
      *
-     * 둘러보기는 언제나 있다 — 예전에는 최근·즐겨찾기가 비었을 때만 보여 줘서, 도구를 한 번이라도
+     * 둘러보기는 언제나 있다. 예전에는 최근, 즐겨찾기가 비었을 때만 보여 줘서, 도구를 한 번이라도
      * 쓴 순간 둘러볼 길이 통째로 사라졌다(실측: 최근이 생기자 칩 4개 → 0개).
-     * 그 뒤로도 맨 **아래**에 있었는데, 그 자리는 내 것·최근·즐겨찾기를 다 지나야 닿는다 —
+     * 그 뒤로도 맨 **아래**에 있었는데, 그 자리는 내 것, 최근, 즐겨찾기를 다 지나야 닿는다 . 
      * 줄이 스무 개 쌓이면 화면 밖이라 없는 것과 같았다. 머리띠에서 갈래를 뺀 지금은 더 그렇다:
-     * 「무엇이 있는지」 훑는 길이 이 줄 하나뿐이다. 그래서 첫 줄로 올린다.
+     * 무엇이 있는지 훑는 길이 이 줄 하나뿐이다. 그래서 첫 줄로 올린다.
      * 칩은 낮아서(줄의 절반) 위에 놔도 아래 목록을 크게 밀지 않는다. */
     inst.list.appendChild(sectionEl('둘러보기'));
     inst.list.appendChild(browseChips(inst));
 
-    /* 이번 주에 많이 쓴 도구 (TASK-KL-136, 사용자 요청 — 첫 화면 칩 줄에서 여기로 옮겼다).
+    /* 이번 주에 많이 쓴 도구 (TASK-KL-136, 사용자 요청. 첫 화면 칩 줄에서 여기로 옮겼다).
      * 도구로 가는 길이 화면 여기저기 흩어져 있으면 어디를 봐야 하는지 매번 고르게 된다.
      * 실측이 없으면(서버에 못 닿거나 이번 주에 아무도 안 썼으면) 이 자리는 안 생긴다. */
-    /* 넷까지다 — 여섯이면 넓은 화면에서도 칩이 두 줄로 접힌다(실측). 한 줄이 규칙이다. */
+    /* 넷까지다. 여섯이면 넓은 화면에서도 칩이 두 줄로 접힌다(실측). 한 줄이 규칙이다. */
     const popular = popularIds
       .map(byId)
       .filter((e): e is Entry => !!e)
@@ -571,8 +571,8 @@ const KarmoPalette = (() => {
     }
 
     /* 도구 목록에서 별로 꽂아 둔 것 (TASK-KL-129).
-     * 사람이 **직접 고른** 것이라 저절로 쌓이는 「최근」보다 앞에 온다.
-     * 「즐겨찾기」와 다르다 — 그쪽은 모든 도구를 자동으로 담는 화면이라 고른 티가 안 난다. */
+     * 사람이 **직접 고른** 것이라 저절로 쌓이는 최근보다 앞에 온다.
+     * 즐겨찾기와 다르다. 그쪽은 모든 도구를 자동으로 담는 화면이라 고른 티가 안 난다. */
     const pinned = getPinnedToolIds()
       .map(byId)
       .filter((e): e is Entry => !!e)
@@ -613,7 +613,7 @@ const KarmoPalette = (() => {
     setActive(inst, inst.rows.length ? 0 : -1);
   }
 
-  /** 도구 칩 한 줄 — 줄(row)보다 훨씬 낮아서 좁은 자리에 여럿 담긴다 (TASK-KL-136). */
+  /** 도구 칩 한 줄. 줄(row)보다 훨씬 낮아서 좁은 자리에 여럿 담긴다 (TASK-KL-136). */
   function toolChips(inst: Instance, list: Entry[]): HTMLElement {
     const wrap = document.createElement('div');
     wrap.className = 'kp-browse kp-browse-tools';
@@ -630,16 +630,16 @@ const KarmoPalette = (() => {
     return wrap;
   }
 
-  /** 갈래 칩 한 줄 — 「여기에 이만큼 있다」 + 그 갈래로 들어가는 문. */
+  /** 갈래 칩 한 줄. 여기에 이만큼 있다 + 그 갈래로 들어가는 문. */
   function browseChips(inst: Instance): HTMLElement {
     const cats = typeof Toolbox !== 'undefined' && Toolbox.getCategories ? Toolbox.getCategories() : [];
     const wrap = document.createElement('div');
     wrap.className = 'kp-browse';
     wrap.setAttribute('role', 'presentation');
-    /* 「전체 도구 목록 →」이 **맨 앞**이다 (2026-08-19, 사용자 결정). 갈래 칩은 좁히는 길이고
-     * 이건 전부를 펼치는 길이라, 좁히기를 다 읽은 뒤에 나오면 「좁히는 것 중 하나」로 읽힌다.
-     * 창이 아니라 **딴 장**이므로 단추가 아닌 링크다 — 새 탭·주소 복사가 되어야 한다.
-     * 머리띠 「내 도구」 판 바닥에도 같은 문이 있다: 거기는 판을 열어야 보이고, 여기는
+    /* 전체 도구 목록 →이 **맨 앞**이다 (2026-08-19, 사용자 결정). 갈래 칩은 좁히는 길이고
+     * 이건 전부를 펼치는 길이라, 좁히기를 다 읽은 뒤에 나오면 좁히는 것 중 하나로 읽힌다.
+     * 창이 아니라 **딴 장**이므로 단추가 아닌 링크다. 새 탭, 주소 복사가 되어야 한다.
+     * 머리띠 내 도구 판 바닥에도 같은 문이 있다: 거기는 판을 열어야 보이고, 여기는
      * 찾다가 막힌 자리에서 바로 보인다. */
     const idx = document.createElement('a');
     idx.className = 'kp-browse-chip kp-browse-chip--index';
@@ -655,7 +655,7 @@ const KarmoPalette = (() => {
       b.className = 'kp-browse-chip';
       b.innerHTML = esc(c.label) + ' <span class="kp-browse-n">' + n + '</span>';
       b.addEventListener('click', () => {
-        /* 갈래 하나가 123줄인 것도 있다 — 첫 화면에 박힌 칸에 그걸 펼치면 화면이 통째로
+        /* 갈래 하나가 123줄인 것도 있다. 첫 화면에 박힌 칸에 그걸 펼치면 화면이 통째로
          * 목록이 된다 (TASK-KL-136). 펼치는 일은 **떠오르는 창**이 맡는다: 거기는 찾으려고
          * 연 창이라 길어도 되고 스크롤도 제자리다. 첫 화면 칸은 짧게 유지된다. */
         if (inst.mode === 'inline') {
@@ -674,7 +674,7 @@ const KarmoPalette = (() => {
   /**
    * 한 갈래 전체를 펼친다.
    *
-   * 그냥 이름순으로 늘어놓으면 「도구」 갈래가 123줄짜리 벽이 된다 — 그중 대부분은
+   * 그냥 이름순으로 늘어놓으면 도구 갈래가 123줄짜리 벽이 된다. 그중 대부분은
    * 묶음 안의 탭이라, 부모와 떨어져 나오면 무엇의 일부인지 알 수 없다. 그래서
    * **부모 밑에 자식을 붙여** 낸다. 눈으로 훑을 때 묶음이 한 덩어리로 읽힌다.
    */
@@ -682,7 +682,7 @@ const KarmoPalette = (() => {
     resetList(inst);
 
     // 되돌아갈 길. 이게 없으면 갈래를 한 번 누른 사람이 막다른 골목에 갇힌다
-    // (입력을 지워도 안 돌아왔다 — 실측으로 확인하고 넣었다).
+    // (입력을 지워도 안 돌아왔다. 실측으로 확인하고 넣었다).
     const back = document.createElement('button');
     back.type = 'button';
     back.className = 'kp-back';
@@ -707,7 +707,7 @@ const KarmoPalette = (() => {
       (kids.get(p.id) || []).sort(byKo).forEach((k) => addRow(inst, k, null, undefined, true));
       kids.delete(p.id);
     });
-    // 부모가 이 갈래에 없는 자식(부모가 다른 갈래인 경우) — 빠뜨리지 않는다.
+    // 부모가 이 갈래에 없는 자식(부모가 다른 갈래인 경우). 빠뜨리지 않는다.
     [...kids.values()].flat().sort(byKo).forEach((k) => addRow(inst, k, null));
 
     setActive(inst, inst.rows.length ? 0 : -1);
@@ -722,20 +722,20 @@ const KarmoPalette = (() => {
 
   /* ── 말로 부리기 (TASK-KL-196 E) ─────────────────────────────────────────
    *
-   * 이름으로 못 찾은 그 자리에서만 뜬다. **누를 때 데려온다**(`src/ask.ts`) — 첫 화면 부팅
+   * 이름으로 못 찾은 그 자리에서만 뜬다. **누를 때 데려온다**(`src/ask.ts`). 첫 화면 부팅
    * JS 천장(40KB gz)에 이미 닿아 있어서, 눌러 본 사람만 받는 것이 맞다.
    */
   function askWire(inst: Instance, host: HTMLElement, q: string): void {
     const button = host.querySelector<HTMLButtonElement>('.kp-ask');
     if (!button) return;
     if (!(window as any).KarmoAccount?.apiBase) {
-      button.remove(); // 서버가 없으면 이 길 자체가 없다 — 눌러도 아무 일 없는 단추가 제일 나쁘다
+      button.remove(); // 서버가 없으면 이 길 자체가 없다. 눌러도 아무 일 없는 단추가 제일 나쁘다
       return;
     }
     const run = (): void => {
       button.disabled = true;
-      button.textContent = '고르는 중…';
-      /* `?.` 로 부르면 **묶음이 안 만들어진다** — 빌드가 부르는 곳을 글자로 찾는데
+      button.textContent = '고르는 중...';
+      /* `?.` 로 부르면 **묶음이 안 만들어진다**. 빌드가 부르는 곳을 글자로 찾는데
          (`entry-points.mjs`) 그 모양은 안 잡힌다. 잡히는 모양으로 적고 있는지는 위에서 본다. */
       const bring = Toolbox.ensureScript;
       if (!bring) return;
@@ -764,7 +764,7 @@ const KarmoPalette = (() => {
   function render(inst: Instance): void {
     const q = inst.input.value.trim();
     resetList(inst);
-    /* 「말로 찾기」가 걸어 둔 Enter 는 **그 빈 자리에서만** 산다. 안 지우면 결과가 나온
+    /* 말로 찾기가 걸어 둔 Enter 는 **그 빈 자리에서만** 산다. 안 지우면 결과가 나온
        뒤에도 Enter 가 그쪽으로 가서, 첫 줄을 고르는 평소 동작이 조용히 사라진다. */
     inst.input.onkeydown = null;
 
@@ -774,7 +774,7 @@ const KarmoPalette = (() => {
       return;
     }
 
-    // 답이 있으면 맨 위에 (TASK-KL-110). 도구 줄은 그대로 아래에 남는다 —
+    // 답이 있으면 맨 위에 (TASK-KL-110). 도구 줄은 그대로 아래에 남는다 . 
     // 더 손보고 싶으면 그리로 가면 된다.
     const answers = answersFor(q);
     if (answers.length) {
@@ -782,17 +782,17 @@ const KarmoPalette = (() => {
       answers.forEach((a) => addAnswerRow(inst, a));
     }
 
-    /* 첫 화면 칸은 결과도 짧게 자른다 (TASK-KL-136) — 40줄이 나오면 그 자리에서 스크롤이
-     * 생기고, 화면이 아래로 한참 길어진다. 잘린 것은 아래 「전체 목록에서 찾아보기 →」가 받는다. */
+    /* 첫 화면 칸은 결과도 짧게 자른다 (TASK-KL-136). 40줄이 나오면 그 자리에서 스크롤이
+     * 생기고, 화면이 아래로 한참 길어진다. 잘린 것은 아래 전체 목록에서 찾아보기 →가 받는다. */
     const cap = inst.mode === 'inline' ? INLINE_RESULT_MAX : RESULT_MAX;
     const all = search(q);
     const hits = all.slice(0, cap);
     if (!hits.length && !answers.length) {
-      // 안 나왔을 때 막다른 길로 끝내지 않는다 — 목록 페이지가 별칭·본문까지 훑는다.
+      // 안 나왔을 때 막다른 길로 끝내지 않는다. 목록 페이지가 별칭, 본문까지 훑는다.
       const empty = document.createElement('div');
       empty.className = 'kp-empty';
       empty.innerHTML =
-        '<p>「' + esc(q) + '」 로 찾은 도구가 없어요.</p>' +
+        '<p>' + esc(q) + ' 로 찾은 도구가 없어요.</p>' +
         '<button type="button" class="kp-ask">하려는 일로 찾기 →</button>' +
         '<a class="kp-empty-link" href="' + toolIndexPath() + '?q=' + encodeURIComponent(q) + '">전체 목록에서 찾아보기 →</a>';
       inst.list.appendChild(empty);
@@ -802,8 +802,8 @@ const KarmoPalette = (() => {
     }
 
     /* 답을 낸 그 도구는 **반드시** 아래에 세운다.
-     * 「24px to rem」 같은 식은 도구 이름과 안 겹쳐서 찾기에는 하나도 안 걸린다 — 그러면
-     * 답만 덩그러니 남고 「더 손보러 갈 길」이 막힌다(검사가 이걸 잡았다). 답은 한 줄짜리
+     * 24px to rem 같은 식은 도구 이름과 안 겹쳐서 찾기에는 하나도 안 걸린다. 그러면
+     * 답만 덩그러니 남고 더 손보러 갈 길이 막힌다(검사가 이걸 잡았다). 답은 한 줄짜리
      * 질문에만 대답하므로, 더 하고 싶은 사람에게는 도구가 필요하다. */
     const extra: Entry[] = [];
     const shown = new Set(hits.map((h) => h.entry.id));
@@ -817,21 +817,21 @@ const KarmoPalette = (() => {
     }
 
     if (hits.length || extra.length) {
-      // 답이 위에 있으면 그 아래 도구 줄에 이름표를 달아 준다 — 안 그러면 답과 도구가
+      // 답이 위에 있으면 그 아래 도구 줄에 이름표를 달아 준다. 안 그러면 답과 도구가
       // 한 덩어리로 보여, 첫 줄을 눌렀을 때 무엇이 일어날지 헷갈린다.
       if (answers.length) inst.list.appendChild(sectionEl('도구'));
       extra.forEach((e) => addRow(inst, e, null));
       hits.forEach((h) => addRow(inst, h.entry, h.range,
         h.entry.source === 'lesson' ? '강의' : h.entry.source === 'study' ? '학습' : h.entry.source === 'docs' ? '문서' : undefined));
     }
-    /* 잘라낸 것이 있으면 **말해 준다** — 안 그러면 「이게 전부」로 읽힌다 (TASK-KL-136).
+    /* 잘라낸 것이 있으면 **말해 준다**. 안 그러면 이게 전부로 읽힌다 (TASK-KL-136).
      * 첫 화면 칸에서는 ⌘K 창이 이어받고, 그 창마저 넘치면 전체 목록 페이지로 보낸다. */
     if (all.length > hits.length) {
       const query = inst.input.value;
       const more = document.createElement('button');
       more.type = 'button';
       more.className = 'kp-more';
-      more.textContent = '결과 ' + all.length + '개 중 ' + hits.length + '개 · 더 보기 →';
+      more.textContent = '결과 ' + all.length + '개 중 ' + hits.length + '개, 더 보기 →';
       more.addEventListener('click', () => {
         if (inst.mode === 'inline') {
           open();
@@ -905,7 +905,7 @@ const KarmoPalette = (() => {
     );
   }
 
-  /** 지금 짚은 줄을 실행한다 — 도구면 열고, 답이면 복사한다. */
+  /** 지금 짚은 줄을 실행한다. 도구면 열고, 답이면 복사한다. */
   function activate(inst: Instance, i: number): void {
     const r = inst.rows[i];
     if (!r) return;
@@ -930,7 +930,7 @@ const KarmoPalette = (() => {
         e.preventDefault();
         close();
       } else if (inst.input.value) {
-        // 첫 화면에서는 닫을 것이 없다 — 대신 입력을 비운다.
+        // 첫 화면에서는 닫을 것이 없다. 대신 입력을 비운다.
         e.preventDefault();
         inst.input.value = '';
         render(inst);
@@ -944,7 +944,7 @@ const KarmoPalette = (() => {
     /* 첫 화면 쪽은 **만들 때부터 접어 둔다** (TASK-KL-201 후속).
      *
      * 접는 일은 아래에서 `collapse()` 가 하는데, 그건 목록을 다 만든 **뒤에** 불린다. 그래서
-     * 한 프레임 동안 목록이 펼쳐진 채로 그려졌다가 접힌다 — 실측: 팔레트가 429px 로 나타났다
+     * 한 프레임 동안 목록이 펼쳐진 채로 그려졌다가 접힌다. 실측: 팔레트가 429px 로 나타났다
      * 65px 로 줄고, 그 바람에 아래 카드 줄이 **364px 위로 튀었다**(밀림 0.075, 전체의 대부분).
      * 클래스를 처음부터 달아 두면 펼쳐진 순간 자체가 없다. */
     root.className = 'kp kp-' + mode + (mode === 'inline' ? ' kp-collapsed' : '');
@@ -979,7 +979,7 @@ const KarmoPalette = (() => {
     } else {
       /* 눈에 보이는 닫기 (TASK-KL-101).
        * 지금까지 닫는 길은 Esc 키와 바깥 누르기뿐이었다. 폰에는 Esc 가 없고, 화면이 좁아
-       * 바깥이 거의 안 보인다 — 열고 나면 **검색을 해야만 빠져나올 수 있었다.**
+       * 바깥이 거의 안 보인다. 열고 나면 **검색을 해야만 빠져나올 수 있었다.**
        * 키보드에만 있는 조작은 폰에서는 없는 기능이다. */
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
@@ -1015,9 +1015,9 @@ const KarmoPalette = (() => {
     input.addEventListener('keydown', (e) => onKey(inst, e));
 
     /* 첫 화면에서는 **누르기 전까지 목록을 접어 둔다** (TASK-KL-129, 사용자 요청).
-     * 예전에는 열린 채로 있어서 첫 화면의 절반을 목록이 차지했다 — 아직 아무것도 안 물어봤는데
+     * 예전에는 열린 채로 있어서 첫 화면의 절반을 목록이 차지했다. 아직 아무것도 안 물어봤는데
      * 답이 먼저 펼쳐져 있는 셈이다. 찾을 마음이 있을 때(입력을 누를 때) 펼친다.
-     * ⌘K 로 뜨는 쪽은 그대로 열려 있다 — 그건 찾으려고 연 것이다. */
+     * ⌘K 로 뜨는 쪽은 그대로 열려 있다. 그건 찾으려고 연 것이다. */
     if (mode === 'inline') {
       const collapse = (): void => {
         if (inst.input.value) return;         // 친 글이 있으면 결과를 접지 않는다
@@ -1026,8 +1026,8 @@ const KarmoPalette = (() => {
       };
       /* 뜬 목록이 **화면 밖으로 자라지 않게** 아래 남은 자리를 재서 알려 준다.
        * 목록은 이제 흐름 밖에 떠 있어서(첫 화면이 안 밀리는 대신) 길어지면 그냥 화면 밖으로
-       * 나간다 — 실측: 1440×900 에서 8줄이 178px 삐져나갔다. CSS 만으로는 「입력칸 아래 남은
-       * 높이」를 알 수 없으므로(vh 는 화면 전체다) 여기서 재서 `--kp-space` 로 넘긴다.
+       * 나간다. 실측: 1440×900 에서 8줄이 178px 삐져나갔다. CSS 만으로는 입력칸 아래 남은
+       * 높이를 알 수 없으므로(vh 는 화면 전체다) 여기서 재서 `--kp-space` 로 넘긴다.
        * 배율을 올리면 남는 자리가 줄고, 그만큼 목록이 안에서 굴러간다. */
       const measure = (): void => {
         const bottom = root.getBoundingClientRect().bottom;
@@ -1059,7 +1059,7 @@ const KarmoPalette = (() => {
 
   /* ── 바깥 통로 ─────────────────────────────────────────────── */
 
-  /** 첫 화면 안에 박아 넣는다 (TASK-KL-099 — 여기가 기본 진입로다). */
+  /** 첫 화면 안에 박아 넣는다 (TASK-KL-099. 여기가 기본 진입로다). */
   function mountInline(container: HTMLElement): void {
     if (!entries.length) buildIndex();
     void loadStudyMap();
@@ -1086,7 +1086,7 @@ const KarmoPalette = (() => {
   }
 
   /** `seed` = 머리띠 검색칸에 친 글자 (2026-08-19). 거기서 한 글자 치면 이 창이 열리는데,
-   *  그 글자를 안 넘기면 사람은 자기가 친 것이 사라진 줄 안다 — 그대로 이어 받는다. */
+   *  그 글자를 안 넘기면 사람은 자기가 친 것이 사라진 줄 안다. 그대로 이어 받는다. */
   function open(seed?: string): void {
     if (overlay) {
       if (seed) { overlay.input.value = seed; render(overlay); }
@@ -1125,7 +1125,7 @@ const KarmoPalette = (() => {
     if (scrim && scrim.classList.contains('kp-scrim')) scrim.remove();
     else overlay.root.remove();
     overlay = null;
-    // 열기 전에 보던 자리로 되돌려 준다 — 안 그러면 키보드 사용자가 문서 맨 위로 떨어진다.
+    // 열기 전에 보던 자리로 되돌려 준다. 안 그러면 키보드 사용자가 문서 맨 위로 떨어진다.
     if (restore && typeof (restore as HTMLElement).focus === 'function') {
       (restore as HTMLElement).focus();
     }
@@ -1138,7 +1138,7 @@ const KarmoPalette = (() => {
 
   /**
    * 이번 주에 많이 쓴 도구를 넘겨받는다 (TASK-KL-136). 실측 통계를 받아 오는 곳은
-   * `toolbox.fillHomePulse` 한 곳이다 — 같은 것을 여기서 또 물으면 「도구를 열었다」를 세는
+   * `toolbox.fillHomePulse` 한 곳이다. 같은 것을 여기서 또 물으면 도구를 열었다를 세는
    * 서버를 두 번 두드리게 된다. 쉬는 화면(빈 입력)일 때만 다시 그린다.
    */
   function setPopular(ids: string[]): void {
@@ -1155,7 +1155,7 @@ const KarmoPalette = (() => {
     if (overlay) render(overlay);
   }
 
-  /** 머리띠 「많이 쓰는 것」이 이 값을 읽는다 (2026-08-19) — 세는 곳은 여기 한 곳뿐이다. */
+  /** 머리띠 많이 쓰는 것이 이 값을 읽는다 (2026-08-19). 세는 곳은 여기 한 곳뿐이다. */
   function getPopular(): string[] {
     return [...popularIds];
   }

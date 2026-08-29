@@ -45,7 +45,7 @@ test('하루에 몰아 떠든 것으로는 오래 본 사이가 안 된다', () 
   assert.ok(twentyDaysLight.level > hundredPerDay.level, '함께 지낸 시간은 말수로 사는 게 아니다');
 });
 
-test('한참 못 보면 식는다 — 다만 없던 일이 되진 않는다', () => {
+test('한참 못 보면 식는다. 다만 없던 일이 되진 않는다', () => {
   const untilYesterday = readRapport(overDays(25), { now });
   const untilMonthAgo = readRapport(overDays(25, 3, 30), { now });
   assert.ok(untilMonthAgo.level < untilYesterday.level);
@@ -53,7 +53,7 @@ test('한참 못 보면 식는다 — 다만 없던 일이 되진 않는다', ()
   assert.match(untilMonthAgo.note, /한참 못 봤다/);
 });
 
-test('사이는 사람이 건넨 말로 센다 — 얘 혼잣말로 가까워지지 않는다', () => {
+test('사이는 사람이 건넨 말로 센다. 얘 혼잣말로 가까워지지 않는다', () => {
   const monologueOnly = [];
   for (let d = 0; d < 20; d += 1) {
     monologueOnly.push({ role: 'said', channel: 'clock', text: '혼잣말', at: baseline - d * day });
@@ -67,7 +67,7 @@ test('사이 설명은 말투에만 배게 하라고 함께 일러 준다', () =
   assert.match(readRapport(overDays(5), { now }).note, /말로 설명하지는 마라/);
 });
 
-test('언제 재도 값이 같다 — 시계를 넣을 수 있어서 시험이 흔들리지 않는다', () => {
+test('언제 재도 값이 같다. 시계를 넣을 수 있어서 시험이 흔들리지 않는다', () => {
   const entries = overDays(7);
   assert.deepEqual(readRapport(entries, { now }).level, readRapport(entries, { now }).level);
 });

@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "text",
       "label": "종류별로 자리가 다르다",
-      "text": "설정(config)   : macOS ~/Library/Preferences · Windows %APPDATA% · Linux ~/.config\n데이터(data)   : ~/Library/Application Support · %APPDATA% · ~/.local/share\n캐시(cache)    : ~/Library/Caches · %LOCALAPPDATA% · ~/.cache  ← 지워져도 되는 것만\n로그           : ~/Library/Logs · %LOCALAPPDATA%\\Logs · ~/.local/state\n\n프레임워크의 path API 를 쓰면 알아서 골라 준다"
+      "text": "설정(config)   : macOS ~/Library/Preferences, Windows %APPDATA%, Linux ~/.config\n데이터(data)   : ~/Library/Application Support, %APPDATA%, ~/.local/share\n캐시(cache)    : ~/Library/Caches, %LOCALAPPDATA%, ~/.cache  ← 지워져도 되는 것만\n로그           : ~/Library/Logs, %LOCALAPPDATA%\\Logs, ~/.local/state\n\n프레임워크의 path API 를 쓰면 알아서 골라 준다"
     },
     {
       "type": "note",
@@ -26,7 +26,7 @@
     },
     {
       "type": "p",
-      "text": "사용자의 문서·사진에 접근하려면 **파일 선택 대화상자**로 받는 것이 원칙이다. macOS 는 폴더 접근에 별도 권한이 필요하고, 샌드박스 앱은 선택한 것 외에는 못 본다."
+      "text": "사용자의 문서, 사진에 접근하려면 **파일 선택 대화상자**로 받는 것이 원칙이다. macOS 는 폴더 접근에 별도 권한이 필요하고, 샌드박스 앱은 선택한 것 외에는 못 본다."
     },
     {
       "type": "h",
@@ -44,7 +44,7 @@
     },
     {
       "type": "note",
-      "text": "토큰·비밀번호는 평문 파일에 두지 말고 **OS 자격 증명 저장소**(keychain·Credential Manager·Secret Service)를 쓰라. 로컬 앱이라도 다른 프로그램이 읽을 수 있다."
+      "text": "토큰, 비밀번호는 평문 파일에 두지 말고 **OS 자격 증명 저장소**(keychain, Credential Manager, Secret Service)를 쓰라. 로컬 앱이라도 다른 프로그램이 읽을 수 있다."
     },
     {
       "type": "h",
@@ -71,7 +71,7 @@
     {
       "q": "캐시를 데이터와 구분해 저장하는 이유는?",
       "choices": [
-        "지워져도 앱이 동작해야 하고 OS·사용자가 지울 수 있어야 하기 때문",
+        "지워져도 앱이 동작해야 하고 OS, 사용자가 지울 수 있어야 하기 때문",
         "속도 때문",
         "용량 계산 때문"
       ],
@@ -89,7 +89,7 @@
       "why": "중간에 죽어도 원본이 깨지지 않는다."
     },
     {
-      "q": "토큰·비밀번호의 올바른 보관처는?",
+      "q": "토큰, 비밀번호의 올바른 보관처는?",
       "choices": [
         "OS 자격 증명 저장소(키체인 등)",
         "설정 JSON",

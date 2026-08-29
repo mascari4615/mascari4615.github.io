@@ -1,14 +1,14 @@
 /**
  * 사진 크기 맞추기 (TASK-KL-088)
  *
- * 「3MB 이하로 올려 주세요」, 「가로 1024px 로 맞춰 주세요」 — 서류 접수나 게시판에서 자주 걸린다.
+ * 3MB 이하로 올려 주세요, 가로 1024px 로 맞춰 주세요. 서류 접수나 게시판에서 자주 걸린다.
  * 대충 줄이면 기준을 못 맞추거나 필요 이상으로 뭉갠다.
  *
- * 신경 쓴 곳 — **목표를 숫자로 준다.**
- *  - 「용량 맞추기」를 고르면 그 크기 아래로 **떨어질 때까지 스스로 품질을 찾아 준다.**
+ * 신경 쓴 곳. **목표를 숫자로 준다.**
+ *  - 용량 맞추기를 고르면 그 크기 아래로 **떨어질 때까지 스스로 품질을 찾아 준다.**
  *    사람이 슬라이더를 밀어 가며 맞출 일이 아니다.
  *  - 크게 줄일 때는 **여러 번 나눠 줄인다.** 한 번에 확 줄이면 글자와 선이 부서진다.
- *  - 원본보다 커지는 일이 없게 한다 — 「줄이려고 눌렀는데 커졌다」는 배신이다.
+ *  - 원본보다 커지는 일이 없게 한다. 줄이려고 눌렀는데 커졌다는 배신이다.
  */
 import { fileSize as size } from './shared/media';
 import { escapeHtml as esc } from './shared/text';
@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /**
-   * 여러 번 나눠 줄인다. 한 번에 1/4 로 보내면 글자·선이 부서지는데,
+   * 여러 번 나눠 줄인다. 한 번에 1/4 로 보내면 글자, 선이 부서지는데,
    * 절반씩 여러 번 거치면 훨씬 곱게 남는다.
    */
   function shrink(src: CanvasImageSource, sw: number, sh: number, tw: number, th: number): HTMLCanvasElement {
@@ -57,8 +57,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   /**
    * 내보내기는 `shared/image` 의 것을 쓴다 (TASK-KL-272).
    *
-   * 전에는 여기서 `cv.toBlob(r, type, q)` 를 그냥 불렀다. 그런데 **JPG 는 투명을 못 담는다** —
-   * 투명하던 자리가 **새까맣게** 나왔다. 「크기만 줄였는데 그림이 검게 됐다」는 조용한 고장이라
+   * 전에는 여기서 `cv.toBlob(r, type, q)` 를 그냥 불렀다. 그런데 **JPG 는 투명을 못 담는다** . 
+   * 투명하던 자리가 **새까맣게** 나왔다. 크기만 줄였는데 그림이 검게 됐다는 조용한 고장이라
    * 눈으로만 보면 놓친다. 공용 쪽은 JPG 일 때 흰 바탕을 먼저 깔고 그린다.
    */
   const toBlob = (cv: HTMLCanvasElement, type: string, q: number): Promise<Blob | null> =>
@@ -115,8 +115,8 @@ import { t, loadNamespace } from '../../lib/i18n';
                 </div>
               </div>
 
-              <!-- iLoveIMG 등 상위 도구는 「픽셀 또는 백분율」 둘 다 받는다. 원본 크기를 모르고
-                   「반으로만 줄이고 싶다」는 사람에게는 픽셀 칸이 오히려 걸림돌이다. -->
+              <!-- iLoveIMG 등 상위 도구는 픽셀 또는 백분율 둘 다 받는다. 원본 크기를 모르고
+                   반으로만 줄이고 싶다는 사람에게는 픽셀 칸이 오히려 걸림돌이다. -->
               <div id="irPercentWrap" style="display:none;">
                 <div class="tool-sublabel">${esc(t('imgresize.label.percent'))} <span id="irPercentVal" class="range-value">50%</span></div>
                 <input type="range" id="irPercent" aria-label="원본 대비 비율 (%)" min="5" max="200" step="5" value="50">
@@ -172,11 +172,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           let made: Blob | null = null;
           let mode: 'side' | 'percent' | 'bytes' = 'side';
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 공용 `loadImage` 를 쓴다 (TASK-KL-280) — 주소 만들고 거두는 네 줄이 도구마다 있었다. */
+          /** 공용 `loadImage` 를 쓴다 (TASK-KL-280). 주소 만들고 거두는 네 줄이 도구마다 있었다. */
           async function load(file: File): Promise<void> {
             let im: HTMLImageElement;
             try {
@@ -225,7 +225,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 const cv = shrink(img, img.naturalWidth, img.naturalHeight, dims.w, dims.h);
                 blob = await toBlob(cv, type, 0.92);
               } else if (mode === 'percent') {
-                /* 원본 크기를 몰라도 「반으로」 처럼 말할 수 있어야 한다. 비율은 그대로 지킨다. */
+                /* 원본 크기를 몰라도 반으로 처럼 말할 수 있어야 한다. 비율은 그대로 지킨다. */
                 const pct = parseInt($<HTMLInputElement>('#irPercent').value, 10) / 100;
                 const noUp = $<HTMLInputElement>('#irNoUp').checked;
                 const k = noUp ? Math.min(pct, 1) : pct;
@@ -237,13 +237,13 @@ import { t, loadNamespace } from '../../lib/i18n';
                 blob = await toBlob(cv, type, 0.92);
               } else {
                 const limit = parseInt($<HTMLInputElement>('#irBytes').value, 10) * 1024 * 1024;
-                // 품질을 먼저 낮춰 본다 — 크기를 줄이는 것보다 잃는 게 적다
+                // 품질을 먼저 낮춰 본다. 크기를 줄이는 것보다 잃는 게 적다
                 let long = Math.max(img.naturalWidth, img.naturalHeight);
                 for (let round = 0; round < 6 && !blob; round++) {
                   dims = targetSize(long);
                   const cv = shrink(img, img.naturalWidth, img.naturalHeight, dims.w, dims.h);
                   for (let q = 92; q>= 40; q -= 8) {
-                    say(`기준에 맞추는 중… 긴 변 ${long}px · 품질 ${q}%`);
+                    say(`기준에 맞추는 중... 긴 변 ${long}px, 품질 ${q}%`);
                     const b = await toBlob(cv, type === 'image/png' ? 'image/jpeg' : type, q / 100);
                     if (b && b.size <= limit) {
                       blob = b;
@@ -261,12 +261,12 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               if (!blob) throw new Error(t('imgresize.err.convert'));
               made = blob;
-              attachImage(preview, blob); // 공용 — 앞 주소를 거두고 물린다
+              attachImage(preview, blob); // 공용. 앞 주소를 거두고 물린다
               preview.style.display = '';
               saveBtn.disabled = false;
 
               const pct = Math.round(Math.abs(1 - blob.size / originalSize) * 100);
-              // 커졌으면 커졌다고 적는다 — 「-3% 줄었어요」는 숫자도 말도 틀린다
+              // 커졌으면 커졌다고 적는다. -3% 줄었어요는 숫자도 말도 틀린다
               const verdict =
                 blob.size < originalSize
                   ? t('imgresize.verdict.smaller', { pct })
@@ -296,11 +296,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           const fileInput = $<HTMLInputElement>('#irFile');
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('imgresize', (f: File) => void load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 여기 손으로 적던 열두 줄이
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 여기 손으로 적던 열두 줄이
            * 서른한 도구에 있었고, 그중 여덟은 **붙여넣기가 빠져 있었다**. 이제 안 빠진다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
@@ -342,7 +342,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const aName = `${baseName}-맞춤.${ext}`;
             download(made, aName);
             say(t('imgresize.say.saved', { size: size(made.size) }), 'ok');
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'imgresize' });
           };
   }

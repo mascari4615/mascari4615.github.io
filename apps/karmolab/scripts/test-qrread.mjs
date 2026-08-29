@@ -1,8 +1,8 @@
 /**
  * QR 읽기가 진짜로 해독하는지 확인한다 (TASK-KL-088)
  *
- * 「QR 을 찾지 못했어요」는 오류가 아니라 정상 안내다. 그래서 해독이 통째로 망가져도
- * 도구는 조용히 그 말만 반복한다 — 파일도 오류도 없다.
+ * QR 을 찾지 못했어요는 오류가 아니라 정상 안내다. 그래서 해독이 통째로 망가져도
+ * 도구는 조용히 그 말만 반복한다. 파일도 오류도 없다.
  *
  * 그래서 **우리가 만든 QR 을 우리가 읽게** 한다. 만들기 도구가 옆 탭에 있으니
  * 두 기능이 서로를 검사하는 셈이다. 읽은 값이 넣은 값과 같아야 한다.
@@ -20,7 +20,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12) — 자매 검사들과 같은 처방. */
+/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12). 자매 검사들과 같은 처방. */
 await page.route('**/*', (route) => {
   const url = new URL(route.request().url());
   if (url.href.includes('jsqr')) {
@@ -59,7 +59,7 @@ await page.evaluate(() => {
   // 브라우저 기본 기능이 있어도 **해독기 경로**를 확인해야 하므로 일부러 감춘다
   // (기본 기능만 통과시키면 해독기가 깨져도 모른다)
   delete window.BarcodeDetector;
-  // qrgen 은 화면 문구 도우미를 쓴다 — 시험에는 필요 없으니 빈 것으로 채운다
+  // qrgen 은 화면 문구 도우미를 쓴다. 시험에는 필요 없으니 빈 것으로 채운다
   window.Mdd = { linePreset() {} };
 });
 await page.addScriptTag({ content: read('js/widgets/tools/qrgen.js') });
@@ -78,7 +78,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(readHost);
   reader.tabs[0].build(readHost);
 
-  /* 둘 다 그려질 때까지 기다린다 — build() 는 말 묶음을 받아 온 뒤에 그린다. */
+  /* 둘 다 그려질 때까지 기다린다. build() 는 말 묶음을 받아 온 뒤에 그린다. */
   for (let i = 0; (genHost.children.length === 0 || readHost.children.length === 0) && i < 320; i++) {
     await new Promise((r) => setTimeout(r, 25));
   }
@@ -133,7 +133,7 @@ const result = await page.evaluate(async () => {
       gotWifi === wifi &&
       wifiInfo.includes('와이파이') &&
       wifiInfo.includes('우리집'),
-    why: `주소 ${gotUrl === url ? '일치' : '불일치(' + gotUrl + ')'} · 안내 [${urlInfo.slice(0, 30)}] · 와이파이 ${gotWifi === wifi ? '일치' : '불일치'} · 안내 [${wifiInfo.slice(0, 30)}]`
+    why: `주소 ${gotUrl === url ? '일치' : '불일치(' + gotUrl + ')'}, 안내 [${urlInfo.slice(0, 30)}], 와이파이 ${gotWifi === wifi ? '일치' : '불일치'}, 안내 [${wifiInfo.slice(0, 30)}]`
   };
 });
 

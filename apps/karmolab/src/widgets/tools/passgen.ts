@@ -1,11 +1,11 @@
 /**
- * 비밀번호 만들기·확인 (TASK-KL-088)
+ * 비밀번호 만들기, 확인 (TASK-KL-088)
  *
- * 「비밀번호 강도」를 봐 주는 사이트는 많은데, 거기에 진짜 쓰는 비밀번호를 넣는 건 위험하다.
- * 여기서는 **아무것도 보내지 않는다** — 그래서 마음 놓고 넣을 수 있다.
+ * 비밀번호 강도를 봐 주는 사이트는 많은데, 거기에 진짜 쓰는 비밀번호를 넣는 건 위험하다.
+ * 여기서는 **아무것도 보내지 않는다**. 그래서 마음 놓고 넣을 수 있다.
  *
- * 강도를 색깔로만 알려 주면 아무 도움이 안 된다. 「얼마나 버티나」를 시간으로 말해 주고,
- * 왜 약한지(자판 순서·반복·연도·흔한 낱말)를 짚어 준다. 사람은 이유를 알아야 고친다.
+ * 강도를 색깔로만 알려 주면 아무 도움이 안 된다. 얼마나 버티나를 시간으로 말해 주고,
+ * 왜 약한지(자판 순서, 반복, 연도, 흔한 낱말)를 짚어 준다. 사람은 이유를 알아야 고친다.
  */
 import { analyze, type ChunkKind } from '../../core/passgen';
 import { escapeHtml as esc } from './shared/text';
@@ -22,13 +22,13 @@ import { checkPassword, verdict } from '../../lib/pwned';
   const AMBIG = 'lIO01';
 
   /**
-   * 외우기 쉬운 비밀번호 — **발음되는 조각**을 이어 만든다.
+   * 외우기 쉬운 비밀번호. **발음되는 조각**을 이어 만든다.
    *
    * 왜 있나: 무작위 20자는 안전하지만 아무도 못 외운다. 그래서 사람들은 적어 두거나 짧게 바꾼다.
    *
    * 낱말 사전을 쓰는 방식(diceware)도 있지만, 사전이 작으면 **길어 보여도 실제로는 약하다**
-   * (낱말 50개로 4개를 이으면 6억 가지뿐 — 무작위 5자보다 못하다). 사전을 크게 넣으면 이 도구가
-   * 무거워진다. 그래서 자음+모음 조각을 그 자리에서 만들어 잇는다 — 조각 하나가 20×6×21 = 2,520
+   * (낱말 50개로 4개를 이으면 6억 가지뿐. 무작위 5자보다 못하다). 사전을 크게 넣으면 이 도구가
+   * 무거워진다. 그래서 자음+모음 조각을 그 자리에서 만들어 잇는다. 조각 하나가 20×6×21 = 2,520
    * 가지라 넷만 이어도 사전 방식보다 세고, 소리 내어 읽히므로 외워진다.
    */
   const CONS = 'bcdfghjklmnprstvwyz';
@@ -43,7 +43,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
   }
   const SYLLABLE_SPACE = CONS.length * VOWEL.length * (CONS.length + 1);
 
-  /** 흔한 비밀번호 조각 — 이게 들어가면 길이와 무관하게 금방 뚫린다. */
+  /** 흔한 비밀번호 조각. 이게 들어가면 길이와 무관하게 금방 뚫린다. */
   const COMMON = ['password', 'qwerty', 'admin', '1234', 'iloveyou', 'letmein', 'welcome', 'dragon', 'monkey', 'abc123', 'asdf', 'zxcv'];
 
   function pick(pool: string, n: number): string {
@@ -65,9 +65,9 @@ import { checkPassword, verdict } from '../../lib/pwned';
   }
 
   /**
-   * 「몇 초 버틴다」를 사람 말로 (TASK-KL-203).
+   * 몇 초 버틴다를 사람 말로 (TASK-KL-203).
    *
-   * 초·분·시간·일·달·년을 손으로 적지 않는다 — `Intl` 이 **모든 언어의 단위 이름**을 안다.
+   * 초, 분, 시간, 일, 달, 년을 손으로 적지 않는다. `Intl` 이 **모든 언어의 단위 이름**을 안다.
    * 손으로 적으면 언어를 늘릴 때마다 여섯 개를 또 옮겨야 하고, 복수형이 갈리는 언어에서 틀린다
    * (1 hour / 2 hours). 브라우저에 맡기면 그 규칙이 공짜로 따라온다.
    */
@@ -106,9 +106,9 @@ import { checkPassword, verdict } from '../../lib/pwned';
   };
 
   /**
-   * 약점 목록. **점수와 같은 판정에서 나온다** — 알맹이가 싸게 매긴 바로 그 덩어리들이다.
+   * 약점 목록. **점수와 같은 판정에서 나온다**. 알맹이가 싸게 매긴 바로 그 덩어리들이다.
    *
-   * 예전에는 여기서 따로 정규식을 돌렸다. 그러면 「약점 없음」인데 점수는 깎이거나 그 반대가
+   * 예전에는 여기서 따로 정규식을 돌렸다. 그러면 약점 없음인데 점수는 깎이거나 그 반대가
    * 되고, 사람은 무엇을 고쳐야 할지 알 수 없다. 이유와 숫자는 같은 자리에서 나와야 한다.
    */
   function weaknesses(pw: string): string[] {
@@ -137,11 +137,11 @@ import { checkPassword, verdict } from '../../lib/pwned';
   }
 
   /**
-   * 세기. **계산은 `core/passgen` 이 한다** — 이 화면과 MCP(`passgen_strength`)가 같은 값을
-   * 내야 하기 때문이다. 갈리면 「사이트는 강하다는데 에이전트는 약하다더라」가 된다.
+   * 세기. **계산은 `core/passgen` 이 한다**. 이 화면과 MCP(`passgen_strength`)가 같은 값을
+   * 내야 하기 때문이다. 갈리면 사이트는 강하다는데 에이전트는 약하다더라가 된다.
    *
    * 여기 있던 옛 계산(글자 종류 풀^길이 − 약점당 12비트)은 버렸다. 그 방식은 `Password1!` 을
-   * 통과시키고 긴 낱말묶음을 탈락시킨다 — 정확히 거꾸로였다.
+   * 통과시키고 긴 낱말묶음을 탈락시킨다. 정확히 거꾸로였다.
    */
   function strength(pw: string): { bits: number; label: string; time: string; tone: string } {
     const analyzed = pw === '' ? null : analyze(pw);
@@ -164,16 +164,16 @@ import { checkPassword, verdict } from '../../lib/pwned';
 
   Toolbox.register({
     id: 'passgen',
-    title: '비밀번호 만들기·확인',
+    title: '비밀번호 만들기, 확인',
     category: 'tool',
-    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     desc: t('widgets-desc.passgen.desc', undefined, '안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다'),
     layout: 'wide',
     icon: '<rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/>',
     tabs: [
       {
         id: 'make',
-        /* 등록 순간에 쓰인다 — 원본을 기본값으로 함께 준다. */
+        /* 등록 순간에 쓰인다. 원본을 기본값으로 함께 준다. */
         label: t('passgen.tab', undefined, '만들기'),
         build: function (container: HTMLElement): void {
           void loadNamespace('passgen').then(function () {
@@ -196,7 +196,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
   function drawMake(container: HTMLElement): void {
     /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
           container.innerHTML = `
-            <div class="tool-display" id="pgOut" style="word-break:break-all; user-select:all;">—</div>
+            <div class="tool-display" id="pgOut" style="word-break:break-all; user-select:all;">. </div>
 
             <div class="tool-section field-group">
               <div class="tool-sublabel">${esc(t('passgen.label.length'))} <span id="pgLenVal" class="range-value">${esc(t('passgen.label.lengthValue', { n: 20 }))}</span></div>
@@ -234,13 +234,13 @@ import { checkPassword, verdict } from '../../lib/pwned';
           const stats = $<HTMLElement>('#pgStats');
           const status = $<HTMLElement>('#pgStatus');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           let mode: 'random' | 'words' = 'random';
 
-          /** 낱말을 이어 만든다 — 무작위 뽑기는 암호용 난수(crypto)로 한다. */
+          /** 낱말을 이어 만든다. 무작위 뽑기는 암호용 난수(crypto)로 한다. */
           function makeWords(): void {
             const n = parseInt($<HTMLInputElement>('#pgWords').value, 10);
             const r = new Uint32Array(n * 3 + 1);
@@ -250,7 +250,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
             const tail = String(r[n * 3] % 100).padStart(2, '0');
             const pw = parts.join('-') + '-' + tail;
             out.textContent = pw;
-            /* 세기는 글자 수가 아니라 **고른 가짓수**로 센다 — 조각 하나가 SYLLABLE_SPACE 가지다.
+            /* 세기는 글자 수가 아니라 **고른 가짓수**로 센다. 조각 하나가 SYLLABLE_SPACE 가지다.
                글자 기준으로 재면 이 방식이 실제보다 약해 보인다(길지만 소문자뿐이라서). */
             const bits = Math.log2(Math.pow(SYLLABLE_SPACE, n) * 100);
             const seconds2 = Math.pow(2, bits - 1) / 1e10;
@@ -320,7 +320,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
 
             <div class="tool-section field-group">
               <button class="btn" id="pcPwned">${esc(t('passgen.pwned.btn', undefined, '유출 목록에 있는지 확인'))}</button>
-              <p class="pc-how">${esc(t('passgen.pwned.how', undefined, '비밀번호는 안 보냅니다 — 해시 앞 다섯 글자만 보내고, 나머지 대조는 이 브라우저에서 합니다'))}</p>
+              <p class="pc-how">${esc(t('passgen.pwned.how', undefined, '비밀번호는 안 보냅니다. 해시 앞 다섯 글자만 보내고, 나머지 대조는 이 브라우저에서 합니다'))}</p>
               <div id="pcPwnedOut"></div>
             </div>
 
@@ -361,8 +361,8 @@ import { checkPassword, verdict } from '../../lib/pwned';
             Toolbox.trackUse?.('check');
           }
 
-          /* 유출 확인은 **누를 때만** 한다 — 글자마다 물어보면 남의 서버를 두들기는 꼴이고,
-             무엇보다 「내가 언제 물어봤는지」를 사람이 정하게 하는 편이 맞다. */
+          /* 유출 확인은 **누를 때만** 한다. 글자마다 물어보면 남의 서버를 두들기는 꼴이고,
+             무엇보다 내가 언제 물어봤는지를 사람이 정하게 하는 편이 맞다. */
           const pwnedOut = $<HTMLElement>('#pcPwnedOut');
           $<HTMLButtonElement>('#pcPwned').onclick = (): void => {
             const pw = input.value;
@@ -370,10 +370,10 @@ import { checkPassword, verdict } from '../../lib/pwned';
               pwnedOut.innerHTML = `<div class="tool-status warn">${esc(t('passgen.pwned.empty', undefined, '먼저 비밀번호를 적어 주세요'))}</div>`;
               return;
             }
-            pwnedOut.innerHTML = `<div class="tool-status">${esc(t('passgen.pwned.asking', undefined, '물어보는 중…'))}</div>`;
+            pwnedOut.innerHTML = `<div class="tool-status">${esc(t('passgen.pwned.asking', undefined, '물어보는 중...'))}</div>`;
             void checkPassword(pw).then((r) => {
               if (!r) {
-                pwnedOut.innerHTML = `<div class="tool-status warn">${esc(t('passgen.pwned.failed', undefined, '지금은 확인할 수 없습니다 — 잠시 뒤 다시'))}</div>`;
+                pwnedOut.innerHTML = `<div class="tool-status warn">${esc(t('passgen.pwned.failed', undefined, '지금은 확인할 수 없습니다. 잠시 뒤 다시'))}</div>`;
                 return;
               }
               const v = verdict(r.count);
@@ -381,10 +381,10 @@ import { checkPassword, verdict } from '../../lib/pwned';
               const msg =
                 v === 'clean'
                   ? t('passgen.pwned.clean', undefined, '알려진 유출 목록에는 없습니다')
-                  : t('passgen.pwned.found', { n: r.count.toLocaleString() }, `유출 목록에 ${r.count.toLocaleString()}번 나옵니다 — 쓰지 마세요`);
+                  : t('passgen.pwned.found', { n: r.count.toLocaleString() }, `유출 목록에 ${r.count.toLocaleString()}번 나옵니다. 쓰지 마세요`);
               pwnedOut.innerHTML =
                 `<div class="tool-status ${tone}" id="pcPwnedMsg">${esc(msg)}</div>` +
-                `<p class="pc-how" id="pcPwnedSent">${esc(t('passgen.pwned.sent', { sent: r.sent, n: r.amongst.toLocaleString() }, `보낸 것: ${r.sent} 다섯 글자뿐 · 받은 해시 ${r.amongst.toLocaleString()}개 중 어느 것인지 서버는 모릅니다`))}</p>`;
+                `<p class="pc-how" id="pcPwnedSent">${esc(t('passgen.pwned.sent', { sent: r.sent, n: r.amongst.toLocaleString() }, `보낸 것: ${r.sent} 다섯 글자뿐, 받은 해시 ${r.amongst.toLocaleString()}개 중 어느 것인지 서버는 모릅니다`))}</p>`;
             });
           };
 

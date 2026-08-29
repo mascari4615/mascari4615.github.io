@@ -1,15 +1,15 @@
 /**
- * 옛 지구의 해안선 만들기 — 「블루마블」 지질 모드가 쓸 대륙 윤곽 (TASK-KL-206)
+ * 옛 지구의 해안선 만들기. 블루마블 지질 모드가 쓸 대륙 윤곽 (TASK-KL-206)
  *
  * 위성 사진은 2000년까지밖에 없다. 그보다 뒤로 가려면 사진이 아니라 **재구성**이다:
  * 판이 어떻게 움직였는지를 되감아 그 시대의 대륙을 다시 그린 것.
  *
  * GPlates Web Service (gws.gplates.org) 가 시대를 주면 그때의 해안선을 GeoJSON 으로 준다.
- * 다만 한 시대가 1.2MB 다 — 슬라이더를 움직일 때마다 받으면 회선이 그걸로 찬다.
+ * 다만 한 시대가 1.2MB 다. 슬라이더를 움직일 때마다 받으면 회선이 그걸로 찬다.
  * 그래서 **몇 시대를 미리 받아 줄여서 담는다**: 좌표를 0.1° 로 자르고(지구본 한 화면에서
  * 그보다 촘촘해도 같은 픽셀), 작은 조각(섬)은 버린다.
  *
- * 사용: node scripts/gen-paleo.mjs   (결과는 커밋한다 — 빌드는 網 없이 돈다)
+ * 사용: node scripts/gen-paleo.mjs   (결과는 커밋한다. 빌드는 網 없이 돈다)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,11 +18,11 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.join(root, 'data/paleo');
 
-/** 보여 줄 시대 (백만 년 전) — 대륙 배치가 확 달라지는 지점만 골랐다. */
-/* 기본 모델이 되돌릴 수 있는 데까지만 — 420·540Ma 는 400 을 돌려준다(실측). */
+/** 보여 줄 시대 (백만 년 전). 대륙 배치가 확 달라지는 지점만 골랐다. */
+/* 기본 모델이 되돌릴 수 있는 데까지만. 420, 540Ma 는 400 을 돌려준다(실측). */
 const AGES = [0, 60, 120, 180, 240, 300];
 
-/** 폴리곤 하나가 이보다 작으면 버린다 (도²) — 지구본에서는 점으로도 안 보인다. */
+/** 폴리곤 하나가 이보다 작으면 버린다 (도²). 지구본에서는 점으로도 안 보인다. */
 const MIN_AREA = 25;
 
 function ringArea(pts) {
@@ -40,7 +40,7 @@ function flatten(coords, out) {
   const flat = [];
   let lastLon = null;
   for (const [lon, lat] of ring) {
-    // 날짜변경선을 넘는 고리는 그리면 지구를 가로지르는 줄이 생긴다 — 그 자리에서 끊는다
+    // 날짜변경선을 넘는 고리는 그리면 지구를 가로지르는 줄이 생긴다. 그 자리에서 끊는다
     if (lastLon !== null && Math.abs(lon - lastLon) > 180) {
       if (flat.length >= 8 && ringArea(flat) >= MIN_AREA) out.push(flat.slice());
       flat.length = 0;
@@ -82,7 +82,7 @@ for (const ma of AGES) {
   fs.writeFileSync(file, JSON.stringify({ ma, rings }), 'utf8');
   const kb = fs.statSync(file).size / 1024;
   index.push({ ma, rings: rings.length, kb: Math.round(kb) });
-  console.log(`[paleo] ${String(ma).padStart(3)}Ma · 고리 ${rings.length} · ${kb.toFixed(0)}KB`);
+  console.log(`[paleo] ${String(ma).padStart(3)}Ma, 고리 ${rings.length}, ${kb.toFixed(0)}KB`);
 }
 
 fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify({ ages: AGES, files: index }), 'utf8');

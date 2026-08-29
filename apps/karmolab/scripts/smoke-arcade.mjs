@@ -1,21 +1,21 @@
 /**
  * 오락실이 진짜로 뜨고 진짜로 굴러가는지 (TASK-KL-242)
  *
- * 커널 검사(`test:arcade`)는 창을 안 띄운다 — 규칙은 전부 맞는데 화면이 안 뜨면 그 초록은
+ * 커널 검사(`test:arcade`)는 창을 안 띄운다. 규칙은 전부 맞는데 화면이 안 뜨면 그 초록은
  * 거짓이다. 그래서 여기서는 **브라우저를 열어 실제로 눌러 본다.**
  *
  * 보는 것:
  *   ① 오락실을 열면 실험 카드가 뜬다
- *   ② 「혼자」를 누르면 판이 시작되고 **빈 자리에 봇이 앉아 있다**
+ *   ② 혼자를 누르면 판이 시작되고 **빈 자리에 봇이 앉아 있다**
  *   ③ 반응 측정: 판이 저절로 넘어가고 다섯 판 뒤 결과가 뜬다 (아무도 안 눌러도)
  *   ④ 오목: 칸을 누르면 내 돌이 놓이고, **봇이 스스로 둔다**
  *
- * 로컬 dev 서버(`npm run dev`)를 본다 — 배포를 기다리면 화면 한 번 고치는 데 몇 분이 든다.
- * 서버가 없으면 「못 돌았다」(2)로 끝낸다. 통과도 실패도 아니다.
+ * 로컬 dev 서버(`npm run dev`)를 본다. 배포를 기다리면 화면 한 번 고치는 데 몇 분이 든다.
+ * 서버가 없으면 못 돌았다(2)로 끝낸다. 통과도 실패도 아니다.
  *
  * ⚠ **고치는 중에 돌리지 마라.** dev 서버는 파일을 저장하면 위젯을 갈아 끼운다(핫리로드).
- *    검사가 판을 굴리는 동안 그 일이 일어나면 화면이 로비로 되돌아가고, 「다섯 판이 끝까지」가
- *    까닭 없이 빨개진다. 실제로 세 번 그렇게 헤맸다 — 실패 덤프의 `play:"none"` 이 그 표식이다
+ *    검사가 판을 굴리는 동안 그 일이 일어나면 화면이 로비로 되돌아가고, 다섯 판이 끝까지가
+ *    까닭 없이 빨개진다. 실제로 세 번 그렇게 헤맸다. 실패 덤프의 `play:"none"` 이 그 표식이다
  *    (판이 안 구른 게 아니라 화면이 통째로 다시 그려졌다).
  *
  * `npm run test:arcade:ui`
@@ -25,11 +25,11 @@ import { smokeBase } from './lib/smoke-base.mjs';
 import { waitHydrated } from './lib/hydrated.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14).
-   여태 사람이 켜는 `npm run dev`(8813)만 봤고 없으면 「못 돌았다」로 끝냈다 — 그런데 CI 는 그
+   여태 사람이 켜는 `npm run dev`(8813)만 봤고 없으면 못 돌았다로 끝냈다. 그런데 CI 는 그
    서버를 **한 번도 안 켠다.** 그래서 오락실 화면 검사(게임 51종을 전부 열어 보는 그 검사)가
-   verify 에서 늘 「못 돌림」이었다. 못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고,
+   verify 에서 늘 못 돌림이었다. 못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고,
    없으면 저장소를 그대로 내어 준다(다른 화면 검사들과 같은 `serveRepo`). */
-/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+/* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
 const server = await smokeBase();
 const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
@@ -38,7 +38,7 @@ const failures = [];
 const check = (name, cond, detail = '') => {
   if (cond) console.log(`  [O] ${name}`);
   else {
-    console.log(`  [X] ${name} — ${detail}`);
+    console.log(`  [X] ${name}. ${detail}`);
     failures.push(name);
   }
 };
@@ -46,27 +46,27 @@ const check = (name, cond, detail = '') => {
 let cantRun = '';
 const browser = await chromium.launch();
 const page = await browser.newPage();
-page.on('pageerror', (e) => failures.push(`창에서 터졌다 — ${e.message}`));
+page.on('pageerror', (e) => failures.push(`창에서 터졌다. ${e.message}`));
 
 try {
-  /* 옆 세션이 파일을 고치면 이 창이 새로고침되어 판이 로비로 돌아간다 — 그건 오락실의
+  /* 옆 세션이 파일을 고치면 이 창이 새로고침되어 판이 로비로 돌아간다. 그건 오락실의
      결함이 아니라 검사의 결함이다(실측: play:"none", status:""). 갈아 끼우기 통로를 막는다. */
   await page.route('**/__dev', (r) => r.abort());
   const res = await page.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
   if (!res || !res.ok()) cantRun = `dev 서버가 안 뜬다 (${PAGE})`;
 } catch (e) {
-  cantRun = `dev 서버에 못 닿았다 — ${e.message}`;
+  cantRun = `dev 서버에 못 닿았다. ${e.message}`;
 }
 
 if (!cantRun) {
-  /* 셸이 살아난 뒤에 도구를 부른다 — `Toolbox` 는 전역 이름이지 `window` 의 것이 아니다. */
+  /* 셸이 살아난 뒤에 도구를 부른다. `Toolbox` 는 전역 이름이지 `window` 의 것이 아니다. */
   await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
   await page.evaluate(() => Toolbox.switchPage('arcade'));
 
   try {
     await waitHydrated(page, '[data-obj="reflex"]', { timeout: 30000 });
   } catch (e) {
-    cantRun = `오락실 화면이 안 떴다 — ${e.message}`;
+    cantRun = `오락실 화면이 안 떴다. ${e.message}`;
   }
 }
 
@@ -77,11 +77,11 @@ if (!cantRun) {
   const objs = await page.locator('[data-obj]').count();
   check('진열장에 물건이 선다', objs >= 2, `${objs}개`);
 
-  /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 —
+  /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 . 
    * 새 게임을 넣을 때 화면 검사를 새로 짤 필요가 없다는 뜻이다.
-   * 깊은 검사(시계·판정)는 아래에서 두 게임만 본다. 여기서는 「뜨고, 자리가 차고, 뭔가 그려졌나」.
-   * 「혼자·같이 두 길」도 여기서 같이 본다 — 집은 화면마다 두 단추가 있어야 한다. */
-  console.log('[arcade-ui] 모든 게임 — 열어 보기');
+   * 깊은 검사(시계, 판정)는 아래에서 두 게임만 본다. 여기서는 뜨고, 자리가 차고, 뭔가 그려졌나.
+   * 혼자, 같이 두 길도 여기서 같이 본다. 집은 화면마다 두 단추가 있어야 한다. */
+  console.log('[arcade-ui] 모든 게임. 열어 보기');
   ids = await page.$$eval('[data-obj]', (bs) => bs.map((b) => b.dataset.obj));
   const noHost = [];
   for (const id of ids) {
@@ -100,8 +100,8 @@ if (!cantRun) {
         { timeout: 10000 }
       );
       const seats = await page.locator('#acSeats .ac-seat').allTextContents();
-      /* 둘 이상이 필요한 게임만 봇이 앉는다 — 혼자서도 되는 게임(자리 최소 1)은 나 하나가 정상이다.
-       * 「봇이 있어야 한다」로 못 박으면 그 게임들이 틀린 것처럼 보인다. */
+      /* 둘 이상이 필요한 게임만 봇이 앉는다. 혼자서도 되는 게임(자리 최소 1)은 나 하나가 정상이다.
+       * 봇이 있어야 한다로 못 박으면 그 게임들이 틀린 것처럼 보인다. */
       const hasBot = seats.some((t) => t.includes('🤖'));
       check(
         `${id}: 혼자 열면 판이 뜬다` + (seats.length > 1 ? ' + 빈 자리에 봇이 앉는다' : ' (혼자 하는 놀이)'),
@@ -114,19 +114,19 @@ if (!cantRun) {
     await page.click('#acQuit');
     await page.waitForSelector('[data-obj]', { timeout: 10000 });
   }
-  check('혼자·같이 두 길이 다 있다', noHost.length === 0, noHost.join(' / '));
+  check('혼자, 같이 두 길이 다 있다', noHost.length === 0, noHost.join(' / '));
 
-  console.log('[arcade-ui] 반응 측정 — 혼자');
+  console.log('[arcade-ui] 반응 측정. 혼자');
   await page.click('[data-obj="reflex"]');
   await page.click('[data-solo="reflex"]');
   await page.waitForSelector('.ac-choice', { timeout: 10000 });
   const seats = await page.locator('.ac-seat').allTextContents();
-  /* 셋이다 — 인원은 판이 아니라 오락실이 정한다(`seating.ts`). 전에는 최솟값이라 「1명부터」인
+  /* 셋이다. 인원은 판이 아니라 오락실이 정한다(`seating.ts`). 전에는 최솟값이라 1명부터인
      판이 혼자 돌았다. 그 수를 여기 상수로 또 적으면 두 곳이 갈리므로 셋을 못 박아 둔다. */
   check('자리가 셋이다 (나 + 봇 둘)', seats.length === 3, seats.join(' / '));
   check('빈 자리에 봇이 앉았다', seats.some((s) => s.includes('🤖')), seats.join(' / '));
 
-  /* 아무도 안 눌러도 제한시간이 지나면 판이 넘어가야 한다 — 그게 시계가 도는 증거다. */
+  /* 아무도 안 눌러도 제한시간이 지나면 판이 넘어가야 한다. 그게 시계가 도는 증거다. */
   const first = await page.locator('#acStatus').textContent();
   await page.waitForFunction(
     (before) => (document.querySelector('#acStatus')?.textContent || '') !== before,
@@ -135,12 +135,12 @@ if (!cantRun) {
   );
   check('판이 저절로 넘어간다 (시계가 돈다)', true);
 
-  /* 다섯 판이 끝나면 「한 판 더」가 나온다. */
+  /* 다섯 판이 끝나면 한 판 더가 나온다. */
   try {
     await page.waitForSelector('#acAgain:visible', { timeout: 60000 });
     check('다섯 판이 끝까지 굴러 결과가 뜬다', true);
   } catch {
-    /* 못 끝났으면 **화면이 그때 뭐라고 하고 있었는지**를 남긴다 — 「시간 초과」만 적어 두면
+    /* 못 끝났으면 **화면이 그때 뭐라고 하고 있었는지**를 남긴다. 시간 초과만 적어 두면
        판이 안 굴렀는지, 굴렀는데 단추가 안 떴는지 구분이 안 된다. */
     const dump = await page.evaluate(() => ({
       status: document.querySelector('#acStatus')?.textContent,
@@ -151,7 +151,7 @@ if (!cantRun) {
     check('다섯 판이 끝까지 굴러 결과가 뜬다', false, JSON.stringify(dump));
   }
 
-  console.log('[arcade-ui] 오목 — 혼자');
+  console.log('[arcade-ui] 오목. 혼자');
   await page.click('#acQuit');
   await page.waitForSelector('[data-obj="gomoku"]', { timeout: 10000 });
   await page.click('[data-obj="gomoku"]');
@@ -160,7 +160,7 @@ if (!cantRun) {
   check('아홉 칸 판이 뜬다', (await page.locator('.ac-cell').count()) === 81);
 
   await page.locator('.ac-cell').nth(40).click();
-  /* 그리기는 다음 프레임에 온다 — 누르자마자 읽으면 아직 빈 칸이다(검사 쪽 경주). */
+  /* 그리기는 다음 프레임에 온다. 누르자마자 읽으면 아직 빈 칸이다(검사 쪽 경주). */
   try {
     await page.waitForFunction(
       () => (document.querySelectorAll('.ac-cell')[40]?.textContent || '').trim() === '●',
@@ -189,11 +189,11 @@ await browser.close();
 if (server) await server.close();
 
 if (cantRun) {
-  console.log(`[arcade-ui] 못 돌았다 — ${cantRun} (통과 아님)`);
+  console.log(`[arcade-ui] 못 돌았다. ${cantRun} (통과 아님)`);
   process.exit(2);
 }
 if (failures.length) {
   console.log(`[arcade-ui] 실패 ${failures.length}건`);
   process.exit(1);
 }
-console.log(`[arcade-ui] 화면 통과 — 게임 ${ids.length}종 전부 열림 · 봇 착석 · 시계 · 다섯 판 · 오목 착수`);
+console.log(`[arcade-ui] 화면 통과. 게임 ${ids.length}종 전부 열림, 봇 착석, 시계, 다섯 판, 오목 착수`);

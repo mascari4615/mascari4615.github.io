@@ -2,7 +2,7 @@
   "numword.tab": "Convert",
   "numword.label.num": "Number",
   "numword.label.kor": "Korean numerals",
-  "numword.opt.formal": "Money style (spell out 일십 · 일백)",
+  "numword.opt.formal": "Money style (spell out 일십, 일백)",
   "numword.btn.copyKor": "Copy Korean",
   "numword.btn.copyMoney": "Copy money phrase",
   "numword.btn.clear": "Clear",

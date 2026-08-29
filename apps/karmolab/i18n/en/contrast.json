@@ -19,9 +19,9 @@
   "contrast.say.ok": "Usable for body text.",
   "contrast.say.largeOnly": "Only usable for large text.",
   "contrast.say.bad": "Hard to read. Push the colours further apart.",
-  "contrast.note.aaBody": "{mark} — the minimum bar",
-  "contrast.note.aaLarge": "{mark} — 18pt and up, or bold 14pt",
-  "contrast.note.aaaBody": "{mark} — the stricter bar",
-  "contrast.note.nonText": "{mark} — the bar for non-text elements",
+  "contrast.note.aaBody": "{mark}. the minimum bar",
+  "contrast.note.aaLarge": "{mark}. 18pt and up, or bold 14pt",
+  "contrast.note.aaaBody": "{mark}. the stricter bar",
+  "contrast.note.nonText": "{mark}. the bar for non-text elements",
   "contrast.value.suggest": "Text colour {hex} instead (contrast {ratio})"
 }

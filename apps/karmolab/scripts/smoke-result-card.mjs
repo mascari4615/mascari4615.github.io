@@ -1,9 +1,9 @@
 /**
- * 결과를 그림으로 — 계산기 답이 카드가 되는가 (TASK-KL-196 F)
+ * 결과를 그림으로. 계산기 답이 카드가 되는가 (TASK-KL-196 F)
  *
  * 왜 화면 검사인가: 이 기능은 **도구가 그린 모양을 읽어서** 산다(`.cc-stat`). 그 모양이
  * 바뀌거나 단추가 안 붙으면 아무 시험도 안 깨지는데 사람은 아무것도 못 얻는다.
- * 결과물은 그림이라 실제로 그려서 크기·바탕·글자 화소를 재야 한다.
+ * 결과물은 그림이라 실제로 그려서 크기, 바탕, 글자 화소를 재야 한다.
  *
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-result-card.mjs
  */
@@ -24,15 +24,15 @@ page.on('response', (r) => {
   if (r.status() === 404 && /\/js\//.test(r.url())) missing.push(r.url());
 });
 
-// 체질량지수 — 값 두 개면 답이 나오는, 가장 단순한 계산기.
+// 체질량지수. 값 두 개면 답이 나오는, 가장 단순한 계산기.
 await page.goto(`${URL_TARGET}#bmi`, { waitUntil: 'networkidle', timeout: 30000 });
-/* 도구는 **묶음 화면**으로 열린다(`#bmi` → 건강 묶음). 「활성 화면의 첫 입력칸」으로
-   집으면 같은 묶음의 다른 도구(퍼센트) 칸을 잡는다 — 여기서 한 번 헛짚었다.
+/* 도구는 **묶음 화면**으로 열린다(`#bmi` → 건강 묶음). 활성 화면의 첫 입력칸으로
+   집으면 같은 묶음의 다른 도구(퍼센트) 칸을 잡는다. 여기서 한 번 헛짚었다.
    이 도구의 제 id 로 집는다. */
-/* ★ **합쳐진 도구는 묶음 안의 탭을 눌러야 생긴다** (2026-08-13). BMI 는 「계산기」 묶음의
+/* ★ **합쳐진 도구는 묶음 안의 탭을 눌러야 생긴다** (2026-08-13). BMI 는 계산기 묶음의
    탭이 됐다(`widgets-lazy-meta.ts` 의 `bundle: 'calc'`). 주소만으로는 묶음 화면까지만 열리고
-   그 탭은 사람이 눌러야 그려진다 — 도구는 멀쩡한데 검사만 15초를 기다리다 죽었다.
-   (먹·아스키 아트도 같은 일을 겪었다. 탭이 언제 붙는지 맞히지 말고 보일 때까지 눌러 본다.) */
+   그 탭은 사람이 눌러야 그려진다. 도구는 멀쩡한데 검사만 15초를 기다리다 죽었다.
+   (먹, 아스키 아트도 같은 일을 겪었다. 탭이 언제 붙는지 맞히지 말고 보일 때까지 눌러 본다.) */
 for (let i = 0; i < 20; i += 1) {
   if (await page.locator('#bmH').first().isVisible().catch(() => false)) break;
   const tab = page.locator('button', { hasText: /BMI|체질량/ }).first();
@@ -41,10 +41,10 @@ for (let i = 0; i < 20; i += 1) {
 }
 await page.waitForSelector('#bmH', { timeout: 15000 });
 
-// ① 값을 넣기 전에는 단추가 없어야 한다 — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+// ① 값을 넣기 전에는 단추가 없어야 한다. 눌러도 아무 일 없는 단추가 제일 나쁘다.
 await page.waitForTimeout(900);
-/* 이 도구는 기본값(170·65)이 박혀 있어 열자마자 답이 있다 — 그러면 단추도 바로 붙는 것이
-   맞다. 「답이 없을 때 안 붙는다」는 값을 지워서 본다. */
+/* 이 도구는 기본값(170, 65)이 박혀 있어 열자마자 답이 있다. 그러면 단추도 바로 붙는 것이
+   맞다. 답이 없을 때 안 붙는다는 값을 지워서 본다. */
 await page.fill('#bmH', '');
 await page.dispatchEvent('#bmH', 'input');
 await page.waitForTimeout(400);
@@ -88,14 +88,14 @@ else {
   if (card.bar === card.bg) problems.push('왼쪽 띠가 없다');
   if (card.ink < 2000) problems.push(`글자가 거의 안 찍혔다 (어두운 화소 ${card.ink}개)`);
   if (card.rows < 1) problems.push('딸린 줄이 하나도 안 실렸다');
-  /* 175cm·70kg = 22.9. 사람이 물어본 값이 카드의 주인공이어야 한다 — 분류 글자(「정상」)가
+  /* 175cm, 70kg = 22.9. 사람이 물어본 값이 카드의 주인공이어야 한다. 분류 글자(정상)가
      주인공이면 정작 그 수가 카드에 없다. */
-  if (!/22\.9/.test(card.headline)) problems.push(`카드의 큰 값이 화면의 수와 다르다: 「${card.headline}」`);
+  if (!/22\.9/.test(card.headline)) problems.push(`카드의 큰 값이 화면의 수와 다르다: ${card.headline}`);
   if (process.env.SHOT) fs.writeFileSync(process.env.SHOT, Buffer.from(card.dataUrl.split(',')[1], 'base64'));
 }
 
 /* ★ 한 번 더 확인하고 말한다 (2026-08-12). 이 검사는 배포 직후에 도는데, 그 사이 **다음
- *   배포가 자산을 갈아 끼우면** 이름에 해시가 붙은 조각이 잠깐 404 가 된다 — 제품이 깨진 게
+ *   배포가 자산을 갈아 끼우면** 이름에 해시가 붙은 조각이 잠깐 404 가 된다. 제품이 깨진 게
  *   아니라 사이트가 교체 중인 순간을 잰 것이다(실측: perf.<해시>.js 가 그렇게 빨갰고,
  *   같은 주소를 곧바로 다시 부르니 200 이었다). 진짜로 없는 조각은 다시 불러도 없다. */
 const stillMissing = [];
@@ -111,4 +111,4 @@ if (problems.length) {
   console.error('❌ 결과 카드\n  - ' + problems.join('\n  - '));
   process.exit(1);
 }
-console.log(`✅ 결과 카드 — 값 넣기 전엔 단추 없음 · 답 나오면 붙음 · 카드에 「${card.headline}」 + ${card.rows}줄`);
+console.log(`✅ 결과 카드. 값 넣기 전엔 단추 없음, 답 나오면 붙음, 카드에 ${card.headline} + ${card.rows}줄`);

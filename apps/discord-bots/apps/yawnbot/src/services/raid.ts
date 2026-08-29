@@ -1,5 +1,5 @@
 /**
- * RaidService — C# RaidService → Node.js 이식
+ * RaidService. C# RaidService → Node.js 이식
  * 레이드 보스 관리 (소환, 공격, 보상)
  */
 import { GameDataService } from './gamedata';

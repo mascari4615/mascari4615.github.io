@@ -1,6 +1,6 @@
 {
   "img2pdf.tab": "Images → PDF",
-  "img2pdf.drop": "Drop photos here or click to choose them (several · PNG and JPG)",
+  "img2pdf.drop": "Drop photos here or click to choose them (several, PNG and JPG)",
   "img2pdf.label.paper": "Paper",
   "img2pdf.label.orient": "Orientation",
   "img2pdf.label.margin": "Margin",
@@ -11,8 +11,8 @@
   "img2pdf.orient.landscape": "Landscape",
   "img2pdf.btn.run": "Bundle into a PDF",
   "img2pdf.btn.clear": "Clear",
-  "img2pdf.status.idle": "Each photo keeps its ratio and sits centred — nothing gets squashed.",
-  "img2pdf.say.loadingLib": "Loading the PDF engine…",
+  "img2pdf.status.idle": "Each photo keeps its ratio and sits centred. nothing gets squashed.",
+  "img2pdf.say.loadingLib": "Loading the PDF engine...",
   "img2pdf.err.lib": "Could not load the PDF engine",
   "img2pdf.err.noFile": "Add the photos first.",
   "img2pdf.file.name": "photos.pdf",
@@ -20,5 +20,5 @@
   "img2pdf.say.cleared": "Cleared.",
   "img2pdf.value.nth": "#{n}",
   "img2pdf.say.done": "Bundled {n} photos into a PDF and downloaded it.",
-  "img2pdf.say.picked": "{n} photos · they go in the order you added them."
+  "img2pdf.say.picked": "{n} photos, they go in the order you added them."
 }

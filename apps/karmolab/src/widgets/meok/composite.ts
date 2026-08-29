@@ -1,16 +1,16 @@
 /**
- * 「먹」 — 레이어 합성 (TASK-KL-240 · 1단계)
+ * 먹. 레이어 합성 (TASK-KL-240, 1단계)
  *
  * 브라우저 캔버스의 `globalCompositeOperation` 에 맡기지 않고 **직접 섞는다**. 이유 셋:
- *  ① 화면 없이 검사할 수 있어야 한다 — 합성이 틀리면 그림 전체가 틀린다.
- *  ② 내보내기(PNG·GIF·스프라이트시트)와 화면이 **같은 답**을 내야 한다. 캔버스에 맡기면
- *     브라우저마다 반올림이 달라 「화면이랑 저장한 게 다르다」가 생긴다.
- *  ③ 클리핑·레이어 마스크는 캔버스 합성 연산에 아예 없다.
+ *  ① 화면 없이 검사할 수 있어야 한다. 합성이 틀리면 그림 전체가 틀린다.
+ *  ② 내보내기(PNG, GIF, 스프라이트시트)와 화면이 **같은 답**을 내야 한다. 캔버스에 맡기면
+ *     브라우저마다 반올림이 달라 화면이랑 저장한 게 다르다가 생긴다.
+ *  ③ 클리핑, 레이어 마스크는 캔버스 합성 연산에 아예 없다.
  *
  * 색은 straight alpha(0..255)로 들고, 섞을 때만 0..1 로 편다.
  * 합성 식은 W3C Compositing and Blending Level 1 의 것을 그대로 쓴다:
- *   Co = as·(1−ab)·Cs + as·ab·B(Cb,Cs) + (1−as)·ab·Cb      (미리 곱해진 결과)
- *   ao = as + ab·(1−as)
+ *   Co = as, (1−ab), Cs + as, ab, B(Cb,Cs) + (1−as), ab, Cb      (미리 곱해진 결과)
+ *   ao = as + ab, (1−as)
  */
 
 import { celAt, cloneSurface, createSurface, type BlendMode, type Doc, type Layer, type Surface } from './doc';
@@ -41,7 +41,7 @@ const BLEND: Record<BlendMode, Blend> = {
 export interface CompositeRect { x: number; y: number; w: number; h: number }
 
 export interface CompositeOptions {
-  /** 어니언스킨 — 앞/뒤 몇 프레임을 얼마나 옅게 깔지. 0 = 끔. */
+  /** 어니언스킨. 앞/뒤 몇 프레임을 얼마나 옅게 깔지. 0 = 끔. */
   onionBefore?: number;
   onionAfter?: number;
   onionOpacity?: number;
@@ -50,7 +50,7 @@ export interface CompositeOptions {
   /** 합성에서 뺄 레이어(그리는 중인 획을 따로 얹을 때). */
   skipLayer?: string | null;
   /**
-   * 이 사각형만 다시 섞는다. 붓질 한 번에 4000×3000 전체를 다시 섞으면 손이 끊긴다 —
+   * 이 사각형만 다시 섞는다. 붓질 한 번에 4000×3000 전체를 다시 섞으면 손이 끊긴다 . 
    * 실제로 더러워진 자리는 붓 크기만 하다.
    */
   rect?: CompositeRect;
@@ -84,7 +84,7 @@ function drawLayerInto(
       const ao = as + ab * (1 - as);
       for (let c = 0; c < 3; c += 1) {
         const cs = src[i + c] / 255;
-        /* 아래 색은 미리 곱해져 있으므로 풀어서 본다 — 알파 0 이면 섞을 색 자체가 없다. */
+        /* 아래 색은 미리 곱해져 있으므로 풀어서 본다. 알파 0 이면 섞을 색 자체가 없다. */
         const cb = ab > 0 ? dst[i + c] / ab : 0;
         dst[i + c] = as * (1 - ab) * cs + as * ab * blend(cb, cs) + (1 - as) * ab * cb;
       }
@@ -93,7 +93,7 @@ function drawLayerInto(
   }
 }
 
-/** 그 레이어가 화면에 내는 알파만 따로 뽑는다 — 클리핑 밑판을 만들 때 쓴다. */
+/** 그 레이어가 화면에 내는 알파만 따로 뽑는다. 클리핑 밑판을 만들 때 쓴다. */
 function alphaOf(layer: Layer, cel: Surface, width: number, rect: CompositeRect, out: Float32Array): void {
   const src = cel.data;
   const mask = layer.mask;
@@ -109,13 +109,13 @@ function alphaOf(layer: Layer, cel: Surface, width: number, rect: CompositeRect,
 
 /**
  * 문서 한 프레임을 한 장으로 굽는다.
- * `only` 를 주면 그 레이어들만(순서 그대로) — `mergeDown` 이 두 장만 합칠 때 쓴다.
+ * `only` 를 주면 그 레이어들만(순서 그대로). `mergeDown` 이 두 장만 합칠 때 쓴다.
  */
 export function composite(doc: Doc, frame: number, only?: Layer[], opts: CompositeOptions = {}): Surface {
   const out = opts.into && opts.into.w === doc.w && opts.into.h === doc.h ? opts.into : createSurface(doc.w, doc.h);
   const count = doc.w * doc.h;
   const buf = new Float32Array(count * 4);
-  /* 손댈 자리 — 안 주면 판 전체. 판 밖으로 나가지 않게 잘라 둔다. */
+  /* 손댈 자리. 안 주면 판 전체. 판 밖으로 나가지 않게 잘라 둔다. */
   const rx = Math.max(0, Math.min(doc.w - 1, opts.rect ? opts.rect.x | 0 : 0));
   const ry = Math.max(0, Math.min(doc.h - 1, opts.rect ? opts.rect.y | 0 : 0));
   const rect: CompositeRect = {
@@ -130,7 +130,7 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
   const onionAfter = only ? 0 : Math.max(0, opts.onionAfter || 0);
   const onionOpacity = opts.onionOpacity == null ? 0.28 : opts.onionOpacity;
 
-  /* 어니언스킨을 **먼저** 깐다 — 앞뒤 프레임은 현재 프레임 밑에 옅게 눕는다. */
+  /* 어니언스킨을 **먼저** 깐다. 앞뒤 프레임은 현재 프레임 밑에 옅게 눕는다. */
   const ghosts: Array<{ frame: number; alpha: number }> = [];
   for (let d = onionBefore; d >= 1; d -= 1) {
     if (frame - d >= 0) ghosts.push({ frame: frame - d, alpha: onionOpacity / d });
@@ -148,7 +148,7 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
       const cel = celAt(layer, atFrame);
       if (!cel) return;
       if (layer.clip) {
-        /* 끼워 붙인 레이어 — 밑판 모양 밖은 안 보인다. 밑판이 없으면 그냥 보통 레이어. */
+        /* 끼워 붙인 레이어. 밑판 모양 밖은 안 보인다. 밑판이 없으면 그냥 보통 레이어. */
         drawLayerInto(buf, doc.w, rect, layer, cel, alphaScale, clipAlpha);
       } else {
         drawLayerInto(buf, doc.w, rect, layer, cel, alphaScale, null);
@@ -161,7 +161,7 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
   ghosts.forEach(g => paint(g.frame, g.alpha));
   paint(frame, 1);
 
-  /* 미리 곱해진 값을 되돌려 8비트로 굳힌다. 넘겨받은 판이면 그 자리를 **덮어쓴다** —
+  /* 미리 곱해진 값을 되돌려 8비트로 굳힌다. 넘겨받은 판이면 그 자리를 **덮어쓴다** . 
      지운 자리가 옛 그림으로 남으면 안 되므로 알파 0 도 그대로 쓴다. */
   for (let y = rect.y; y < rect.y + rect.h; y += 1) {
     for (let x = rect.x; x < rect.x + rect.w; x += 1) {
@@ -180,11 +180,11 @@ export function composite(doc: Doc, frame: number, only?: Layer[], opts: Composi
   return out;
 }
 
-/** 모든 프레임을 구워 낸다 — GIF·스프라이트시트 내보내기의 입구. */
+/** 모든 프레임을 구워 낸다. GIF, 스프라이트시트 내보내기의 입구. */
 export const compositeAll = (doc: Doc): Surface[] =>
   Array.from({ length: doc.frames }, (_unused, f) => composite(doc, f));
 
-/** 스프라이트시트 한 장 — 가로로 이어 붙인다(cols 를 주면 격자). */
+/** 스프라이트시트 한 장. 가로로 이어 붙인다(cols 를 주면 격자). */
 export function spriteSheet(doc: Doc, cols?: number, scale = 1): Surface {
   const frames = compositeAll(doc);
   const columns = Math.max(1, cols || frames.length);

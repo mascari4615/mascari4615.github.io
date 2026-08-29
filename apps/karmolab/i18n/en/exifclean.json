@@ -2,7 +2,7 @@
   "exifclean.tab": "Remove EXIF",
   "exifclean.drop": "Drop a JPG photo here, or click to choose one",
   "exifclean.btn.run": "Strip it and download",
-  "exifclean.status.idle": "The photo is opened only in your browser — nothing is uploaded anywhere.",
+  "exifclean.status.idle": "The photo is opened only in your browser. nothing is uploaded anywhere.",
   "exifclean.err.jpgOnly": "Only JPG photos carry this data. PNG files almost never hold a location.",
   "exifclean.row.gps": "Taken at",
   "exifclean.row.gpsNote": "{v}  ← this can reveal your home or workplace",

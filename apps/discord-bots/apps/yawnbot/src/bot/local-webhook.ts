@@ -1,15 +1,15 @@
 /**
- * 로컬 기기·앱이 보낸 webhook 수신 (TASK-WM-087).
+ * 로컬 기기, 앱이 보낸 webhook 수신 (TASK-WM-087).
  *
  * GitHub webhook (`/webhook/github`) 과 같은 express app 에 mount.
  * 정본 = `webhook-routes.json` 의 `localRoutes` (kind 별 채널) + fallback `localDefault` → `default`.
  *
  * 신뢰 모델:
  *   - 같은 머신 (KarmoLab Tauri ↔ yawnbot NSSM) 또는 신뢰 LAN 내부 호출 가정.
- *   - `LOCAL_WEBHOOK_SECRET` env 박혀있으면 `X-Yawnbot-Secret` header 와 정합 검증 — 미박힘 시 dev 모드 (auth bypass + warn).
+ *   - `LOCAL_WEBHOOK_SECRET` env 박혀있으면 `X-Yawnbot-Secret` header 와 정합 검증. 미박힘 시 dev 모드 (auth bypass + warn).
  *
  * 첫 사용처: KarmoLab Tauri 의 `wm_log_watcher.rs` (Editor.log → error CS\d+ 발견 시 POST).
- * 미래 사용처: KarmoLab 다른 알림 (메트릭 / 사고 / 발견) 도 같은 endpoint 재사용 — kind 만 분기.
+ * 미래 사용처: KarmoLab 다른 알림 (메트릭 / 사고 / 발견) 도 같은 endpoint 재사용. kind 만 분기.
  */
 import type { Application } from 'express';
 import { EmbedBuilder } from 'discord.js';
@@ -110,7 +110,7 @@ export function mountLocalWebhook(app: Application, client: Client): void {
       if (expectedSecret) {
         const provided = req.headers['x-yawnbot-secret'];
         if (typeof provided !== 'string' || provided !== expectedSecret) {
-          console.warn('[LocalWebhook] secret mismatch — reject');
+          console.warn('[LocalWebhook] secret mismatch. reject');
           res.sendStatus(401);
           return;
         }
@@ -125,7 +125,7 @@ export function mountLocalWebhook(app: Application, client: Client): void {
       const sent = await sendLocalEvent(client, payload as LocalEventPayload);
       if (sent === 0) {
         console.warn(
-          `[LocalWebhook] kind="${payload.kind}" 매칭 채널 없음/전송 0 — 생략 (data/webhook-routes.json 확인)`,
+          `[LocalWebhook] kind="${payload.kind}" 매칭 채널 없음/전송 0. 생략 (data/webhook-routes.json 확인)`,
         );
       }
       res.sendStatus(200);
@@ -137,12 +137,12 @@ export function mountLocalWebhook(app: Application, client: Client): void {
 
   if (!hasAnyLocalRoute()) {
     console.warn(
-      '[LocalWebhook] data/webhook-routes.json 의 localRoutes·localDefault 가 모두 비어있고 default 도 비면 — 모든 local 요청은 noop 됩니다.',
+      '[LocalWebhook] data/webhook-routes.json 의 localRoutes, localDefault 가 모두 비어있고 default 도 비면. 모든 local 요청은 noop 됩니다.',
     );
   }
   if (!expectedSecret) {
     console.warn(
-      '[LocalWebhook] LOCAL_WEBHOOK_SECRET 미설정 — 인증 bypass (dev 모드). prod 에선 NSSM AppEnvironmentExtra 로 박을 것.',
+      '[LocalWebhook] LOCAL_WEBHOOK_SECRET 미설정. 인증 bypass (dev 모드). prod 에선 NSSM AppEnvironmentExtra 로 박을 것.',
     );
   }
 }

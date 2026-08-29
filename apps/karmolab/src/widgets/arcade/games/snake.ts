@@ -1,18 +1,18 @@
 /**
- * 뱀 경주 — 남이 지나간 자리가 벽이 된다 (TASK-KL-242)
+ * 뱀 경주. 남이 지나간 자리가 벽이 된다 (TASK-KL-242)
  *
- * 에어하키에 이어 **동시 실시간** 두 번째. 다른 점은 액션이 자리도 아니고 누름도 아닌 **방향**이라는 것 —
+ * 에어하키에 이어 **동시 실시간** 두 번째. 다른 점은 액션이 자리도 아니고 누름도 아닌 **방향**이라는 것 . 
  * 한 번 정하면 바꿀 때까지 유지된다. 그래서 소식이 하나 늦어도 뱀이 멈추지 않는다(늦게 온
  * 방향은 그때부터 적용될 뿐이다).
  *
  * 혼자 하던 뱀을 여럿이 하게 만드는 법: **서로의 몸이 벽**이다. 먹이를 다투는 게 아니라
- * 자리를 다툰다 — 앞서 나가면 유리한 게 아니라 길을 더 많이 막아 놓은 쪽이 유리하다.
+ * 자리를 다툰다. 앞서 나가면 유리한 게 아니라 길을 더 많이 막아 놓은 쪽이 유리하다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
 export const W = 21;
 export const H = 21;
-/** 한 칸 가는 데 걸리는 시간 — 프레임이 아니라 이 값이 빠르기를 정한다. */
+/** 한 칸 가는 데 걸리는 시간. 프레임이 아니라 이 값이 빠르기를 정한다. */
 const STEP_MS = 140;
 const START_LEN = 3;
 
@@ -35,7 +35,7 @@ export interface SnakeState {
   over: boolean;
 }
 
-/** 「이 방향으로」 — 누름이 아니라 방향이다. 늦게 와도 그때부터 돌면 그만이다. */
+/** 이 방향으로. 누름이 아니라 방향이다. 늦게 와도 그때부터 돌면 그만이다. */
 export type SnakeAction = { dir: number };
 
 const xy = (c: number): [number, number] => [c % W, Math.floor(c / W)];
@@ -84,7 +84,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     if (!me?.alive) return s;
     const dir = a?.dir;
     if (!Number.isInteger(dir) || dir < 0 || dir > 3) return s;
-    /* 제 몸으로 바로 되돌아가는 방향은 안 받는다 — 손가락이 미끄러져 자멸하는 일이 잦다. */
+    /* 제 몸으로 바로 되돌아가는 방향은 안 받는다. 손가락이 미끄러져 자멸하는 일이 잦다. */
     if ((dir + 2) % 4 === me.dir) return s;
     return { ...s, snakes: s.snakes.map((sn, i) => (i === seat ? { ...sn, dir } : sn)) };
   },
@@ -92,7 +92,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
   tick(s, ctx) {
     if (s.over || ctx.now < s.nextAt) return s;
 
-    /* **모두 한 칸씩 동시에** 간다 — 차례로 옮기면 먼저 옮긴 쪽이 유리해진다. */
+    /* **모두 한 칸씩 동시에** 간다. 차례로 옮기면 먼저 옮긴 쪽이 유리해진다. */
     const heads = s.snakes.map((sn) => {
       if (!sn.alive) return -1;
       const [hx, hy] = xy(sn.body[0]);
@@ -111,7 +111,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     const snakes = s.snakes.map((sn, i) => {
       if (!sn.alive) return sn;
       const head = heads[i];
-      /* 같은 칸에 둘이 들어오면 둘 다 죽는다 — 먼저 계산된 쪽이 이기면 순서가 승부를 정한다. */
+      /* 같은 칸에 둘이 들어오면 둘 다 죽는다. 먼저 계산된 쪽이 이기면 순서가 승부를 정한다. */
       const crash = walls.has(head) || heads.filter((h) => h === head).length > 1;
       if (crash) return { ...sn, alive: false };
 
@@ -122,7 +122,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
       return { ...sn, body, ate: sn.ate + (grew ? 1 : 0) };
     });
 
-    /* 먹은 만큼 다시 뿌린다 — 판에 먹이가 없으면 아무 일도 안 일어난다. */
+    /* 먹은 만큼 다시 뿌린다. 판에 먹이가 없으면 아무 일도 안 일어난다. */
     const taken = new Set(snakes.flatMap((sn) => (sn.alive ? sn.body : [])));
     while (food.length < Math.max(2, s.snakes.length)) food.push(spawnFood(taken, ctx.rng));
 

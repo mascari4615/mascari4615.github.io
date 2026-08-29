@@ -99,6 +99,6 @@ test('page 창을 띄우면 채팅 화면이 나오고 도구 카드가 흐른�
     if (/\[말함\]/.test(emitted) && parts.some((p) => p.kind === 'tool')) { spoke = true; break; }
     await brief(200);
   }
-  assert.ok(spoke, `page 에서 말·도구가 안 흐른다. parts=${JSON.stringify(parts)} 뱉은 것:\n${emitted.slice(-2000)}`);
+  assert.ok(spoke, `page 에서 말, 도구가 안 흐른다. parts=${JSON.stringify(parts)} 뱉은 것:\n${emitted.slice(-2000)}`);
   assert.ok(parts.some((p) => p.kind === 'image'), `그림 칸이 안 왔다: ${JSON.stringify(parts)}`);
 });

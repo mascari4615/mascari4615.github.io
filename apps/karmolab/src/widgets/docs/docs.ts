@@ -1,5 +1,5 @@
 /**
- * Docs — 소개, 로드맵·기획, 가이드, 프로젝트 통합 명령
+ * Docs. 소개, 로드맵, 기획, 가이드, 프로젝트 통합 명령
  *
  * marked.js로 마크다운 렌더링, Prism.js로 코드 하이라이팅, ```mermaid 는 Mermaid 렌더.
  */
@@ -21,18 +21,18 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
    * 도해는 **우리 엔진이 그린다** (TASK-KL-326).
    *
    * 예전엔 `js/vendor/mermaid.min.js` 를 `<script>` 로 불렀다. 그런데 **그 파일이 저장소에도
-   * 배포에도 없었다** — 추적되는 vendor 12개 중 mermaid 만 처음부터 안 들어왔고, 그래서 실주소
+   * 배포에도 없었다**. 추적되는 vendor 12개 중 mermaid 만 처음부터 안 들어왔고, 그래서 실주소
    * 에서 그림 자리가 통째로 비어 있었다(404). 3MB 짜리를 들이는 대신, 이미 우리가 가진 것을 잇는다:
    *
    *   글  →  `core/mermaidlite` (읽기)  →  `lib/karmograph/from-mermaid` (판으로)
    *       →  `lib/karmograph/render`   (그림)
    *
-   * mermaid **문법**은 그대로 받는다 — 남이 쓴 문서(깃허브 raw)를 여는 것이 이 도구의 일이라
+   * mermaid **문법**은 그대로 받는다. 남이 쓴 문서(깃허브 raw)를 여는 것이 이 도구의 일이라
    * 문법은 우리가 못 정한다. 우리 것으로 가져오는 것은 *그리는 일* 뿐이다.
    *
    * 편집기(`canvas.ts` 257KB)는 안 부른다. 문서에 필요한 건 그림 한 장이지 끌고 고치는 판이 아니다.
    */
-  /* ```mermaid → div 는 이제 공용 렌더러(`lib/markdown/render`)의 확장이다 (TASK-KL-354) —
+  /* ```mermaid → div 는 이제 공용 렌더러(`lib/markdown/render`)의 확장이다 (TASK-KL-354) . 
      여기 있던 marked.use 전역 등록을 걷어냈다. 그리는 일(karmograph)은 여전히 이 위젯 몫. */
 
   /** 펜스가 marked 확장을 타지 않았을 때(구버전 등) 대비 */
@@ -160,8 +160,8 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
   }
 
   /**
-   * GitHub `raw.githubusercontent.com` 등 — 레포 루트 기준 상대 경로 Markdown.
-   * 기본: 이 사이트 레포 `main`. 포크·다른 브랜치는 `window.KARMOLAB_DOCS_RAW_BASE`로 덮어쓰기
+   * GitHub `raw.githubusercontent.com` 등. 레포 루트 기준 상대 경로 Markdown.
+   * 기본: 이 사이트 레포 `main`. 포크, 다른 브랜치는 `window.KARMOLAB_DOCS_RAW_BASE`로 덮어쓰기
    * (끝에 `/` 포함한 전체 prefix, 예: https://raw.githubusercontent.com/you/repo/main/)
    */
   function getDocsRepoRawBase(): string {
@@ -188,7 +188,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     });
   }
 
-  /** worldwiki 위젯과 동일한 슬러그·앵커·목차 패턴 */
+  /** worldwiki 위젯과 동일한 슬러그, 앵커, 목차 패턴 */
   function docsEsc(s: string): string {
     return typeof Toolbox !== 'undefined' && Toolbox.escapeHtml ? Toolbox.escapeHtml(s) : s;
   }
@@ -236,7 +236,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     tocEl: HTMLElement | null
   ): Array<{ id: string; text: string; level: number }> {
     const used = new Set<string>();
-    /* 제목 찾기·id 박기는 공용 모듈이 한다(SSOT) — id 규칙만 예전 그대로 넘겨 기존 앵커 링크를 살린다. */
+    /* 제목 찾기, id 박기는 공용 모듈이 한다(SSOT). id 규칙만 예전 그대로 넘겨 기존 앵커 링크를 살린다. */
     const toc = collectHeadings(root, {
       selector: 'h1, h2, h3',
       min: 1,
@@ -307,7 +307,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
   }
 
   /**
-   * 목차의 「지금 읽는 곳」 표시와 클릭 이동 — 공용 모듈(`lib/doc-view`)에 맡긴다.
+   * 목차의 지금 읽는 곳 표시와 클릭 이동. 공용 모듈(`lib/doc-view`)에 맡긴다.
    * 예전에는 IntersectionObserver 로 판단해 제목이 여럿 보일 때 표시가 흔들렸다.
    * 지금은 스터디 맵 강의와 같은 규칙(위에서 지나온 마지막 제목)을 쓴다.
    */
@@ -336,7 +336,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
         const banner =
           t('docs.t10') +
           repoRelativePath +
-          '` — GitHub **raw** (`main` 기본). `window.KARMOLAB_DOCS_RAW_BASE` 에 끝이 `/`인 URL을 넣으면 다른 브랜치·포크를 볼 수 있어요.\n\n---\n\n';
+          '`. GitHub **raw** (`main` 기본). `window.KARMOLAB_DOCS_RAW_BASE` 에 끝이 `/`인 URL을 넣으면 다른 브랜치, 포크를 볼 수 있어요.\n\n---\n\n';
         renderMarkdown(container, banner + md);
       })
       .catch(function () {
@@ -366,7 +366,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
       return;
     }
 
-    // 공용 렌더러 한 벌 (TASK-KL-354) — 내 문서라 trust self, 전 기능.
+    // 공용 렌더러 한 벌 (TASK-KL-354). 내 문서라 trust self, 전 기능.
     body.innerHTML = renderMarkdownShared(md, { trust: 'self', marked, breaks: true });
 
     const layout = document.createElement('div');
@@ -391,12 +391,12 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
 
     replaceMermaidCodeBlocksFallback(body);
 
-    /* 언어 표기가 없으면 예전엔 javascript 로 칠했다 — 셸·설정 파일이 엉뚱하게 물들어서 그대로 둔다. */
+    /* 언어 표기가 없으면 예전엔 javascript 로 칠했다. 셸, 설정 파일이 엉뚱하게 물들어서 그대로 둔다. */
     body.querySelectorAll('pre code').forEach((block: Element) => {
       const lang = block.className.match(/language-([\w-]+)/)?.[1];
       if (lang) block.className = 'language-' + lang;
     });
-    /* ```demo-html · demo-js · demo-shader 울타리는 실행되는 판으로 바꾼다(강의와 같은 모듈). */
+    /* ```demo-html, demo-js, demo-shader 울타리는 실행되는 판으로 바꾼다(강의와 같은 모듈). */
     body.querySelectorAll('pre code[class*="language-demo-"]').forEach((block: Element) => {
       const kind = block.className.match(/language-demo-(html|js|shader)/)?.[1];
       if (!kind) return;
@@ -419,7 +419,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     if (tocMeta.length < 2) {
       layout.classList.add('docs-md-layout--no-toc');
     } else {
-      /* 문서를 갈아 끼울 때마다 예전 감시를 푼다 — 안 그러면 사라진 화면을 계속 재려 든다. */
+      /* 문서를 갈아 끼울 때마다 예전 감시를 푼다. 안 그러면 사라진 화면을 계속 재려 든다. */
       docsStopWatching?.();
       docsStopWatching = wireDocsTocActive(tocNav, body, findDocsScrollRoot(layout), tocMeta);
       Toolbox.onDispose?.(function () {
@@ -430,7 +430,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
 
     const mermaidEls = body.querySelectorAll('.mermaid');
     if (mermaidEls.length > 0) {
-      /* 문서 색을 그대로 쓴다 — 판만 까맣게 남으면 오려 붙인 것처럼 보인다
+      /* 문서 색을 그대로 쓴다. 판만 까맣게 남으면 오려 붙인 것처럼 보인다
          (`canvas-theme.ts` 가 같은 이유로 값을 읽어 박는다). */
       const css = getComputedStyle(body);
       const theme = {
@@ -448,7 +448,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
         try {
           const { spec, diagram } = specFromMermaid(text);
           if (diagram.kind === 'unknown') {
-            /* 못 읽는 종류(sequence·state 등)는 **글 그대로** 둔다 — 빈칸보다 낫다.
+            /* 못 읽는 종류(sequence, state 등)는 **글 그대로** 둔다. 빈칸보다 낫다.
                문법이 늘어나면 `core/mermaidlite` 를 넓히는 것이 그 자리다. */
             element.innerHTML = '';
             const pre = document.createElement('pre');
@@ -467,8 +467,8 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
 
   // ── TASK-KL-015-B: 통합 문서 위젯 ─────────────────────────────────────────────────────────
   // docs.ts 가 자체 사이드바 (그룹 헤더 + 동적 항목) + 본문 + TOC 그림. Toolbox tabs 단일.
-  // 「프로젝트 문서」 그룹 = 외부 md/GitHub raw (현 hardcode).
-  // 「캐릭터/시스템/개념/lore」 그룹 = `world/wiki/manifest.json` 동적 walk (sub-A 의 sync 결과).
+  // 프로젝트 문서 그룹 = 외부 md/GitHub raw (현 hardcode).
+  // 캐릭터/시스템/개념/lore 그룹 = `world/wiki/manifest.json` 동적 walk (sub-A 의 sync 결과).
   type ExternalSource =
     | { kind: 'local'; path: string }
     | { kind: 'github'; path: string };
@@ -487,8 +487,8 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     { id: 'docs-guide', label: t('docs.t20'), source: { kind: 'local', path: 'guide.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t21') },
     { id: 'docs-karmo-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmo-ai.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t22') },
     { id: 'docs-discord-yawnbot', label: t('docs.t23'), source: { kind: 'local', path: 'discord-yawnbot.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t24') },
-    { id: 'docs-discord-bots-readme', label: 'discord-bots · README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t25') },
-    { id: 'docs-tauri-readme', label: 'Tauri · README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t26') },
+    { id: 'docs-discord-bots-readme', label: 'discord-bots, README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t25') },
+    { id: 'docs-tauri-readme', label: 'Tauri, README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t26') },
     { id: 'docs-project-commands', label: t('docs.t27'), source: { kind: 'local', path: 'project-commands-guide.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t28') },
     { id: 'docs-laptop', label: t('docs.t29'), source: { kind: 'local', path: 'laptop.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t30') },
     { id: 'docs-local-dev', label: t('docs.t31'), source: { kind: 'local', path: 'local-dev-runner.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t32') },
@@ -546,10 +546,10 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
   }
 
   /** sub-C: 타입별 default view header (카드 + 관계 그래프 mermaid). 본문 위에 prepend.
-   *  blockquote 사용 X — fence(mermaid) 와 충돌하면 평문 렌더되는 케이스 있음. 일반 단락 + 수평선. */
+   *  blockquote 사용 X. fence(mermaid) 와 충돌하면 평문 렌더되는 케이스 있음. 일반 단락 + 수평선. */
   function buildEntityHeader(dirName: string, item: EntityManifestItem, manifest: DocsManifest): string {
     const parts: string[] = [];
-    // 공통 카드 — title + oneLine (h3 + emphasis)
+    // 공통 카드. title + oneLine (h3 + emphasis)
     const iconPrefix = item.icon ? item.icon + ' ' : '';
     parts.push('### ' + iconPrefix + docsEsc(item.title));
     parts.push('');
@@ -565,11 +565,11 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
     if (item.depends && item.depends.length > 0) meta.push('depends: ' + item.depends.map(function (d) { return '`' + docsEsc(d) + '`'; }).join(', '));
     if (item.tags && item.tags.length > 0) meta.push(item.tags.map(function (t) { return '`#' + docsEsc(t) + '`'; }).join(' '));
     if (meta.length > 0) {
-      parts.push(meta.join(' · '));
+      parts.push(meta.join(', '));
       parts.push('');
     }
-    // character 의 관계 그래프 — relationships 가 있으면 mermaid 자동 생성.
-    // marked fence 인식 우회: 직접 <div class="mermaid"> 인라인 HTML — mermaid lib 가 .mermaid 셀렉터 자동 잡음.
+    // character 의 관계 그래프. relationships 가 있으면 mermaid 자동 생성.
+    // marked fence 인식 우회: 직접 <div class="mermaid"> 인라인 HTML. mermaid lib 가 .mermaid 셀렉터 자동 잡음.
     if (dirName === 'characters' && item.relationships && item.relationships.length > 0) {
       const mmdLines: string[] = ['graph LR'];
       const selfId = sanitizeMermaidId(item.slug);
@@ -656,7 +656,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
 
     function renderSide(): void {
       const html: string[] = [];
-      // 외부 문서 그룹 (현재 10 항목 hardcode — 외부 README/가이드 등)
+      // 외부 문서 그룹 (현재 10 항목 hardcode. 외부 README/가이드 등)
       html.push('<div class="docs-shell-group">');
       html.push(t('docs.t41'));
       html.push('<ul class="docs-shell-list">');
@@ -664,7 +664,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
         html.push('<li><button type="button" class="docs-shell-btn" data-key="external:' + escAttr(item.id) + '">' + docsEsc(item.label) + '</button></li>');
       }
       html.push('</ul></div>');
-      // entity 그룹 (manifest 의 동적 walk — 비면 그룹 자체 숨김)
+      // entity 그룹 (manifest 의 동적 walk. 비면 그룹 자체 숨김)
       for (const group of ENTITY_GROUPS) {
         const items = manifest[group.key];
         if (!items || items.length === 0) continue;
@@ -753,7 +753,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
       renderMarkdown(target, t('docs.t46') + docsEsc(key) + '*');
     }
 
-    // 진입 — manifest fetch (실패해도 외부 문서 그룹은 표시)
+    // 진입. manifest fetch (실패해도 외부 문서 그룹은 표시)
     loadManifest()
       .then(function (m) { manifest = m; renderSide(); })
       .catch(function (err) {
@@ -768,7 +768,7 @@ import { renderMarkdown as renderMarkdownShared } from '../../lib/markdown/rende
       {
         id: 'docs',
         label: t('docs.t48', undefined, "문서"),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('docs').then(function () {
             buildDocsShell(container);

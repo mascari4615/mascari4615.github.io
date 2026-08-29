@@ -1,12 +1,12 @@
 /**
- * 선반(foundry) 말 붙이기 — 만든 것을 올리고, 남이 쓴 것을 본다 (TASK-KL-254)
+ * 선반(foundry) 말 붙이기. 만든 것을 올리고, 남이 쓴 것을 본다 (TASK-KL-254)
  *
- * 도구는 「어디에 담기나」를 몰라야 한다. 지금은 노트북이 받지만 나중에 다른 데로 옮겨도
+ * 도구는 어디에 담기나를 몰라야 한다. 지금은 노트북이 받지만 나중에 다른 데로 옮겨도
  * 도구 쪽 코드는 이 파일만 보면 되게 가둔다(서버 쪽도 같은 이유로 드라이버 뒤에 있다).
  *
  * ★ 올리기에는 열쇠가 든다. 브라우저에 열쇠를 박아 둘 수는 없으므로 **쓰는 사람이 자기 것을
- *   넣어 둔다**(이 브라우저에만 남는다). 열쇠가 없으면 올리기 단추를 아예 안 보여 준다 —
- *   눌렀다가 「권한 없음」을 보는 것보다 낫다. 보는 것은 누구나 되므로 열쇠가 없어도 열린다.
+ *   넣어 둔다**(이 브라우저에만 남는다). 열쇠가 없으면 올리기 단추를 아예 안 보여 준다 . 
+ *   눌렀다가 권한 없음을 보는 것보다 낫다. 보는 것은 누구나 되므로 열쇠가 없어도 열린다.
  */
 
 const TOKEN_KEY = 'karmolab_foundry_token';
@@ -29,7 +29,7 @@ export const foundryBase = (): string => {
   try {
     return localStorage.getItem(BASE_KEY) || DEFAULT_BASE;
   } catch {
-    return DEFAULT_BASE;   // 사생활 보호 모드 등 — 저장소가 막혀도 보는 것은 되어야 한다
+    return DEFAULT_BASE;   // 사생활 보호 모드 등. 저장소가 막혀도 보는 것은 되어야 한다
   }
 };
 
@@ -67,13 +67,13 @@ export interface UploadInput {
   title: string;
   mime: string;
   bytes: Uint8Array;
-  /** 다시 열 수 있게 하는 설정 — 이게 있어야 남이 「이대로 열기」를 누를 수 있다. */
+  /** 다시 열 수 있게 하는 설정. 이게 있어야 남이 이대로 열기를 누를 수 있다. */
   recipe?: Record<string, unknown>;
 }
 
 export async function uploadToFoundry(input: UploadInput): Promise<FoundryItem> {
   const token = foundryToken();
-  if (!token) throw new Error('선반 열쇠가 없다 — 설정에서 넣어라');
+  if (!token) throw new Error('선반 열쇠가 없다. 설정에서 넣어라');
   const response = await fetch(`${foundryBase()}/foundry`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -87,7 +87,7 @@ export async function uploadToFoundry(input: UploadInput): Promise<FoundryItem> 
   });
   const body = await response.json().catch(() => ({})) as { ok?: boolean; error?: string; item?: FoundryItem };
   if (!response.ok || !body.ok || !body.item) {
-    // 서버가 적어 준 이유를 그대로 올린다 — 「실패」만 보이면 고칠 수가 없다.
+    // 서버가 적어 준 이유를 그대로 올린다. 실패만 보이면 고칠 수가 없다.
     throw new Error(body.error || `선반이 안 받았다 (${response.status})`);
   }
   return { ...body.item, url: `${foundryBase()}${body.item.url ?? '/foundry/' + body.item.id}` };

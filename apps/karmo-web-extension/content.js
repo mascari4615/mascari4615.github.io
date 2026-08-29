@@ -1,6 +1,6 @@
 /**
- * 사이트별 컨텐츠 스크립트 — 채팅 DOM 등 페이지 데이터를 로컬로 전달.
- * (치지직) 중첩 span을 전부 긁으면 같은 말이 반복·누적되어 보이므로 줄 단위 innerText만 사용.
+ * 사이트별 컨텐츠 스크립트. 채팅 DOM 등 페이지 데이터를 로컬로 전달.
+ * (치지직) 중첩 span을 전부 긁으면 같은 말이 반복, 누적되어 보이므로 줄 단위 innerText만 사용.
  */
 
 /** Tauri `CHAT_OVERLAY_INGEST_PORT` 와 동일해야 함 */
@@ -30,7 +30,7 @@ async function forwardToLocal(payload) {
   }
 }
 
-/** aside > … > div[2] — 치지직 채팅 스크롤 컨테이너 (레이아웃 바뀌면 수정) */
+/** aside > ... > div[2]. 치지직 채팅 스크롤 컨테이너 (레이아웃 바뀌면 수정) */
 function getChzzkChatListEl() {
   const aside = document.querySelector("section aside") || document.querySelector("aside");
   if (!aside) {
@@ -40,7 +40,7 @@ function getChzzkChatListEl() {
 }
 
 /**
- * 한 줄(div)의 innerText만 사용 — 중첩 span을 나열하지 않음.
+ * 한 줄(div)의 innerText만 사용. 중첩 span을 나열하지 않음.
  */
 function normalizeBlockText(el) {
   return el.innerText.replace(/\u00a0/g, " ").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();

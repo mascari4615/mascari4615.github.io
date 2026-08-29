@@ -25,7 +25,7 @@ import { t, loadNamespace } from '../lib/i18n';
   );
 
   function buildDashboard(container: HTMLElement): void {
-    /* 이 화면은 사람이 「내 정보」 탭을 열 때 따로 받아 온다 — 아무도 말 묶음을 챙겨
+    /* 이 화면은 사람이 내 정보 탭을 열 때 따로 받아 온다. 아무도 말 묶음을 챙겨
        주지 않으므로 스스로 받고 그린다. */
     void loadNamespace('dashboard').then(() => {
       Mdd.linePreset('tool_run', { msg: t('dashboard.t10') });

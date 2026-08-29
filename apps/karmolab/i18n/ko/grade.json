@@ -3,7 +3,7 @@
   "grade.aria.future": "앞으로 들을 학점",
   "grade.scale.45": "4.5 만점",
   "grade.scale.43": "4.3 만점",
-  "grade.label.courses": "과목 — 한 줄에 「학점 성적」 (예: 3 A+)",
+  "grade.label.courses": "과목. 한 줄에 학점 성적 (예: 3 A+)",
   "grade.label.target": "목표 학점 채우기",
   "grade.status.idle": "학점 수로 가중한 평균입니다. 단순 평균과 다릅니다.",
   "grade.tab": "학점",
@@ -24,6 +24,6 @@
   "grade.value.points": "{n}점",
   "grade.value.courses": "{n}과목",
   "grade.value.andMore": " 외 {n}",
-  "grade.value.impossible": "{n} — 만점으로도 불가능",
-  "grade.say.unreadable": "{n}줄을 못 읽었어요. 「3 A+」 처럼 학점과 성적을 띄어 적어 주세요."
+  "grade.value.impossible": "{n}. 만점으로도 불가능",
+  "grade.say.unreadable": "{n}줄을 못 읽었어요. 3 A+ 처럼 학점과 성적을 띄어 적어 주세요."
 }

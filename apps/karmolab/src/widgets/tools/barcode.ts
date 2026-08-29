@@ -8,7 +8,7 @@
  *  - **못 만드는 값은 만들기 전에 말해 준다.** EAN-13 은 숫자 13자리여야 하고 마지막 자리는
  *    검사 숫자다. 그냥 그려 놓으면 라벨을 다 뽑고 나서야 안 읽히는 걸 알게 된다.
  *  - 검사 숫자는 **자동으로 채워 준다** (12자리만 넣으면 된다). 손으로 계산할 것이 아니다.
- *  - 여백(quiet zone)을 반드시 남긴다. 이걸 빼면 스캐너가 시작을 못 찾는다 — 직접 그린
+ *  - 여백(quiet zone)을 반드시 남긴다. 이걸 빼면 스캐너가 시작을 못 찾는다. 직접 그린
  *    바코드가 안 읽히는 가장 흔한 이유다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -19,7 +19,7 @@ import { markLive } from './shared/say';
 
 (function (): void {
 
-  /** Code128 (B/C 자동) — 글자·숫자 아무거나 담을 수 있어 물품 관리에 두루 쓴다 */
+  /** Code128 (B/C 자동). 글자, 숫자 아무거나 담을 수 있어 물품 관리에 두루 쓴다 */
   const CODE128: string[] = [
     '11011001100','11001101100','11001100110','10010011000','10010001100','10001001100','10011001000','10011000100','10001100100','11001001000',
     '11001000100','11000100100','10110011100','10011011100','10011001110','10111001100','10011101100','10011100110','11001110010','11001011100',
@@ -35,7 +35,7 @@ import { markLive } from './shared/say';
   ];
   const STOP = '1100011101011';
 
-  /** EAN-13 검사 숫자 — 홀수 자리는 1배, 짝수 자리는 3배 */
+  /** EAN-13 검사 숫자. 홀수 자리는 1배, 짝수 자리는 3배 */
   function eanCheck(d12: string): number {
     let sum = 0;
     for (let i = 0; i < 12; i++) sum += Number(d12[i]) * (i % 2 === 0 ? 1 : 3);
@@ -68,7 +68,7 @@ import { markLive } from './shared/say';
       return bits + '101';
     }
 
-    // Code128-B — 아스키 32~126
+    // Code128-B. 아스키 32~126
     if (/[^\x20-\x7e]/.test(value)) throw new Error(t('barcode.err.code128'));
     if (!value) throw new Error(t('barcode.err.empty'));
     let sum = 104; // START B
@@ -85,7 +85,7 @@ import { markLive } from './shared/say';
     id: 'barcode',
     title: t('widgets.barcode.title', undefined, "바코드 만들기"),
     category: 'tool',
-    desc: t('widgets-desc.barcode.desc', undefined, "재고·도서·물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"),
+    desc: t('widgets-desc.barcode.desc', undefined, "재고, 도서, 물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"),
     layout: 'wide',
     icon: '<path d="M4 5v14M7 5v14M9.5 5v14M13 5v14M16 5v14M18 5v14M20 5v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     tabs: [
@@ -138,7 +138,7 @@ import { markLive } from './shared/say';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const canvas = $<HTMLCanvasElement>('#bcCanvas');
           const status = $<HTMLElement>('#bcStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const stats = $<HTMLElement>('#bcStats');
           let kind = 'code128';
@@ -165,7 +165,7 @@ import { markLive } from './shared/say';
               return;
             }
 
-            // 여백을 반드시 남긴다 — 이게 없으면 스캐너가 시작을 못 찾는다
+            // 여백을 반드시 남긴다. 이게 없으면 스캐너가 시작을 못 찾는다
             const quiet = unit * 10;
             const textH = withText ? 22 : 0;
             canvas.width = bits.length * unit + quiet * 2;
@@ -209,7 +209,7 @@ import { markLive } from './shared/say';
               container.querySelectorAll('#bcKind .tool-chip').forEach((c) => c.classList.remove('active'));
               chip.classList.add('active');
               kind = (chip as HTMLElement).dataset.kind || 'code128';
-              // 규격을 바꾸면 담을 수 있는 값도 달라진다 — 예시를 갈아 준다
+              // 규격을 바꾸면 담을 수 있는 값도 달라진다. 예시를 갈아 준다
               const input = $<HTMLInputElement>('#bcValue');
               if (kind === 'ean13' && /\D/.test(input.value)) input.value = '880123456789';
               if (kind === 'code128' && /^\d{12,13}$/.test(input.value)) input.value = 'KARMOLAB-001';
@@ -231,13 +231,13 @@ import { markLive } from './shared/say';
               say(t('barcode.err.noValue'), 'error');
               return;
             }
-            // 공용 한 자리(`shared/image.encode`) — JPG 흰 바탕 규칙이 거기 있다.
-            // ★ 지역 `encode(value, kind)` 와 이름이 겹친다 — 공용은 `toPng` 로 받아 쓴다.
+            // 공용 한 자리(`shared/image.encode`). JPG 흰 바탕 규칙이 거기 있다.
+            // ★ 지역 `encode(value, kind)` 와 이름이 겹친다. 공용은 `toPng` 로 받아 쓴다.
             //   그냥 부르면 바코드 인코더가 캔버스를 받는 꼴이 된다(타입검사가 잡았다).
             toPng(canvas, 'png').then((blob) => {
               const name = t('barcode.file.name');
               download(blob, name);
-              /* 만든 그림은 크기 맞추기·PDF 로 이어질 수 있다 (TASK-KL-298). */
+              /* 만든 그림은 크기 맞추기, PDF 로 이어질 수 있다 (TASK-KL-298). */
               Toolbox.offerNext?.(status, { blob, name, from: 'barcode' });
               say(t('barcode.say.saved'), 'ok');
             });

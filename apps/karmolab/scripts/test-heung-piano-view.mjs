@@ -20,19 +20,19 @@ assert.equal(noteName(60), 'C4');
 assert.equal(noteName(61), 'C♯4');
 assert.equal(noteName(72), 'C5');
 
-// 배율 — 접히면 타임라인 그대로, 크게 열면 짧은 클립을 넓힌다
+// 배율. 접히면 타임라인 그대로, 크게 열면 짧은 클립을 넓힌다
 assert.equal(pianoScale(clip([], 4), 72, false, 1500), 72, '접힌 상태는 타임라인 배율 그대로');
 assert.ok(pianoScale(clip([], 4), 72, true, 1500) > 72, '크게 열면 짧은 클립이 넓어진다');
 assert.ok(pianoScale(clip([], 4), 72, true, 1500) <= 160, '아무리 넓혀도 상한이 있다');
 assert.equal(pianoScale(clip([], 200), 72, true, 1500), 72, '긴 클립은 타임라인 배율 아래로 안 내려간다');
 assert.ok(pianoScale(clip([], 4), 72, true, 300) >= 72, '좁은 화면에서도 배율이 음수로 안 간다');
 
-// 첫 스크롤 — 가장 높은 음이 위쪽에 걸린다
+// 첫 스크롤. 가장 높은 음이 위쪽에 걸린다
 assert.equal(initialScrollTop(clip([])), Math.max(0, (PIANO_GEOMETRY.high - 72) * PIANO_GEOMETRY.row - 64), '음이 없으면 C5 기준');
 assert.equal(initialScrollTop(clip([note('n1', 0, 84)])), 0, '천장 음이면 맨 위');
 assert.ok(initialScrollTop(clip([note('n1', 0, 40)])) > 0, '낮은 음은 아래로 내려가 있다');
 
-// 뷰 — 고른 음만 표시가 붙는다
+// 뷰. 고른 음만 표시가 붙는다
 const view = buildPianoView({
   clip: clip([note('n1', 0, 60), note('n2', 1, 64, 1)]),
   beatsPerBar: 4, expanded: false, pxPerBeat: 72, viewportWidth: 1500,
@@ -59,7 +59,7 @@ const evil = buildPianoView({
 });
 assert.ok(!evil.html.includes('<img'), '클립 이름의 태그가 살아서 나가지 않는다');
 assert.ok(evil.html.includes('&lt;img'), '이스케이프된 형태로 보인다');
-assert.ok(evil.html.includes('작게'), '크게 열린 상태면 단추가 「작게」');
+assert.ok(evil.html.includes('작게'), '크게 열린 상태면 단추가 작게');
 
 // 빈 클립도 죽지 않는다
 const empty = buildPianoView({ clip: clip([]), beatsPerBar: 4, expanded: false, pxPerBeat: 72, viewportWidth: 1500, isSelected: () => false, esc });
@@ -68,6 +68,6 @@ assert.equal((empty.html.match(/class="hu-note/g) || []).length, 0);
 
 // 마디 눈금은 박자 설정을 따른다
 const three = buildPianoView({ clip: clip([], 12), beatsPerBar: 3, expanded: false, pxPerBeat: 72, viewportWidth: 1500, isSelected: () => false, esc });
-assert.equal((three.html.match(/class="hu-piano-bar"/g) || []).length, 5, '12박 · 3/4 = 눈금 5개(0,3,6,9,12)');
+assert.equal((three.html.match(/class="hu-piano-bar"/g) || []).length, 5, '12박, 3/4 = 눈금 5개(0,3,6,9,12)');
 
-console.log('[test-heung-piano-view] ✓ 음이름 · 배율 · 첫 스크롤 · 선택 표시 · 이스케이프 · 마디 눈금');
+console.log('[test-heung-piano-view] ✓ 음이름, 배율, 첫 스크롤, 선택 표시, 이스케이프, 마디 눈금');

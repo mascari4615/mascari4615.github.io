@@ -19,9 +19,9 @@
   "contrast.say.ok": "本文に使えます。",
   "contrast.say.largeOnly": "大きな文字にだけ使えます。",
   "contrast.say.bad": "読みにくいです。色をもっと離してください。",
-  "contrast.note.aaBody": "{mark} — 最低の基準",
-  "contrast.note.aaLarge": "{mark} — 18pt 以上または太字 14pt",
-  "contrast.note.aaaBody": "{mark} — より厳しい基準",
-  "contrast.note.nonText": "{mark} — 文字でない要素の基準",
+  "contrast.note.aaBody": "{mark}. 最低の基準",
+  "contrast.note.aaLarge": "{mark}. 18pt 以上または太字 14pt",
+  "contrast.note.aaaBody": "{mark}. より厳しい基準",
+  "contrast.note.nonText": "{mark}. 文字でない要素の基準",
   "contrast.value.suggest": "文字色を {hex} に（コントラスト {ratio}）"
 }

@@ -16,7 +16,7 @@
   "listdiff.stat.all": "전부",
   "listdiff.copy.done": "결과를 복사했어요",
   "listdiff.value.count": "{n}개",
-  "listdiff.say.counts": "A {a}줄 · B {b}줄 — 중복은 하나로 셉니다.",
+  "listdiff.say.counts": "A {a}줄, B {b}줄. 중복은 하나로 셉니다.",
   "listdiff.sample.a": "사과\n바나나\n포도\n딸기",
   "listdiff.sample.b": "바나나\n딸기\n수박"
 }

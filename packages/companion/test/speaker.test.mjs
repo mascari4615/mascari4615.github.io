@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { Companion, InMemoryMemory, alwaysRespond } from '../dist/index.js';
 
-/* 화자 — 여럿이 있는 자리를 위한 바탕. 여태 얘의 세상엔 사람이 한 명뿐이었다. */
+/* 화자. 여럿이 있는 자리를 위한 바탕. 여태 얘의 세상엔 사람이 한 명뿐이었다. */
 
 const run = (seen) => {
   const body = {
@@ -38,7 +38,7 @@ test('누가 한 말인지 기억에 함께 담긴다', async () => {
   assert.equal(userText.who, '민수');
 });
 
-test('안 주면 없는 채로 둔다 — 단둘이면 이름이 필요 없다', async () => {
+test('안 주면 없는 채로 둔다. 단둘이면 이름이 필요 없다', async () => {
   const seen3 = [];
   const { companion, memory } = run(seen3);
   await companion.start();
@@ -48,7 +48,7 @@ test('안 주면 없는 채로 둔다 — 단둘이면 이름이 필요 없다',
   assert.equal(memory.all().find((e) => e.role === 'sensed').who, undefined);
 });
 
-test('여럿이 말하면 각자 이름으로 남는다 — 독백이 되면 안 된다', async () => {
+test('여럿이 말하면 각자 이름으로 남는다. 독백이 되면 안 된다', async () => {
   const seen4 = [];
   const { companion, memory } = run(seen4);
   await companion.start();

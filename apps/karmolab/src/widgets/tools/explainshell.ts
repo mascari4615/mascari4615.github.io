@@ -3,10 +3,10 @@
  *
  * 남의 글에서 복사한 명령을 실행하기 전에, 그게 무엇을 하는지 조각마다 알려 준다.
  *
- * **바깥으로 한 글자도 안 나간다.** 명령줄에는 서버 주소·사용자 이름·토큰이 섞여 있는데,
+ * **바깥으로 한 글자도 안 나간다.** 명령줄에는 서버 주소, 사용자 이름, 토큰이 섞여 있는데,
  * 원래 이 일을 하던 사이트는 그걸 남의 서버로 보낸다. 여기서는 브라우저 안에서 끝난다.
  *
- * 그리고 설명서를 통째로 붙이지 않는다 — 「이거 실행해도 되나」를 묻는 사람에게 필요한 건
+ * 그리고 설명서를 통째로 붙이지 않는다. 이거 실행해도 되나를 묻는 사람에게 필요한 건
  * 설명서가 아니라 한 문장이다.
  */
 import { dangersOf, explain, type Part, type Segment } from '../../lib/shell-explain';
@@ -48,7 +48,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   function draw(container: HTMLElement): void {
 
-    /** `**굵게**` 만 살린다 — 사전에 적어 둔 강조가 화면에서 그대로 별표로 보이면 안 된다. */
+    /** `**굵게**` 만 살린다. 사전에 적어 둔 강조가 화면에서 그대로 별표로 보이면 안 된다. */
     const strong = (v: string): string =>
       esc(v).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
@@ -59,7 +59,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                style="width:100%; font-family:var(--font-mono,monospace);"
                value="${esc(SAMPLES[0])}">
         <div class="tool-chips" style="margin-top:var(--space-sm);">
-          ${SAMPLES.map((s, i) => `<button type="button" class="tool-chip" data-sample="${i}">${esc(s.slice(0, 26))}${s.length> 26 ? '…' : ''}</button>`).join('')}
+          ${SAMPLES.map((s, i) => `<button type="button" class="tool-chip" data-sample="${i}">${esc(s.slice(0, 26))}${s.length> 26 ? '...' : ''}</button>`).join('')}
         </div>
       </div>
 
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <div class="ex-seg">
           ${head}
           <div class="ex-title">${esc(t('explainshell.seg', { n: i + 1 }, `명령 ${i + 1}`))}${
-            seg.summary ? ` — <span class="ex-sum">${strong(seg.summary)}</span>` : ''
+            seg.summary ? `. <span class="ex-sum">${strong(seg.summary)}</span>` : ''
           }</div>
           <table class="ex-table"><tbody>${rows}</tbody></table>
         </div>`;

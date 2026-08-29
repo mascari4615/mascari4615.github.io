@@ -18,6 +18,6 @@
   "radix.row.uint32": "Fits in unsigned 32-bit",
   "radix.verdict.fits": "Yes",
   "radix.verdict.overflow": "Overflows",
-  "radix.say.done": "Converted · click a box to copy it as is.",
+  "radix.say.done": "Converted, click a box to copy it as is.",
   "radix.err.digit": "There is a character that does not exist in base {base}."
 }

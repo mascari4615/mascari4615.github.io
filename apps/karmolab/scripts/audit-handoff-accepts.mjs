@@ -1,14 +1,14 @@
 /**
  * **받는다고 적어 놓고 안 받는 도구** 잡기 (TASK-KL-238 / 2 photopea)
  *
- * 「이어서」 줄은 도구 메타의 `accepts` 를 보고 갈 곳을 고른다. 그런데 실제로 받는 손은
- * 코드의 `Toolbox.onHandoff(...)` 다. 둘이 갈라지면 **오류 없이 빈 화면**이 뜬다 —
+ * 이어서 줄은 도구 메타의 `accepts` 를 보고 갈 곳을 고른다. 그런데 실제로 받는 손은
+ * 코드의 `Toolbox.onHandoff(...)` 다. 둘이 갈라지면 **오류 없이 빈 화면**이 뜬다 . 
  * 사람은 넘겼다고 믿고, 도구는 아무것도 안 받은 채 처음 화면을 보여 준다.
  *
- * 실측(2026-08-14): 「먹」이 `accepts: ['image/*']` 라고 적어 두고 `onHandoff` 가 없었다.
- * 「이미지 편집 → 먹」으로 넘기면 그림이 사라진 것처럼 보였다. 눈으로는 못 잡는 종류다.
+ * 실측(2026-08-14): 먹이 `accepts: ['image/*']` 라고 적어 두고 `onHandoff` 가 없었다.
+ * 이미지 편집 → 먹으로 넘기면 그림이 사라진 것처럼 보였다. 눈으로는 못 잡는 종류다.
  *
- * 여기서 재는 것: **선언한 도구는 받는 손이 있어야 한다.** 반대(손은 있는데 선언이 없다)도 본다 —
+ * 여기서 재는 것: **선언한 도구는 받는 손이 있어야 한다.** 반대(손은 있는데 선언이 없다)도 본다 . 
  * 그건 받을 수 있는데 목록에 안 뜨는 경우라, 사람이 그 길을 영영 못 찾는다.
  *
  * 사용: node scripts/audit-handoff-accepts.mjs   (npm run audit:handoff)
@@ -47,7 +47,7 @@ const walk = (dir) => {
 };
 walk(path.join(root, 'src/widgets'));
 
-/* 「받는 손이 여기 없어도 되는」 것들 — 껍데기가 대신 받아 넘긴다(재료 작업대). */
+/* 받는 손이 여기 없어도 되는 것들. 껍데기가 대신 받아 넘긴다(재료 작업대). */
 const SHELL_TAKES = new Set(
   [...meta.matchAll(/id:\s*'([^']+)'[\s\S]*?bundle:\s*'([^']+)'/g)].map((m) => m[1])
 );
@@ -56,20 +56,20 @@ const missing = [];
 for (const [id, kinds] of declared) {
   if (handlers.has(id)) continue;
   if (SHELL_TAKES.has(id)) continue; // 묶음 안 도구는 껍데기가 받아 준다
-  missing.push(`${id} — accepts: ${kinds.join('·')} 라고 적었는데 onHandoff 가 없다 (넘기면 빈 화면)`);
+  missing.push(`${id}. accepts: ${kinds.join(', ')} 라고 적었는데 onHandoff 가 없다 (넘기면 빈 화면)`);
 }
 
 const stray = [];
 for (const id of handlers) {
   if (declared.has(id)) continue;
-  stray.push(`${id} — onHandoff 는 있는데 메타에 accepts 가 없다 (받을 수 있는데 목록에 안 뜬다)`);
+  stray.push(`${id}. onHandoff 는 있는데 메타에 accepts 가 없다 (받을 수 있는데 목록에 안 뜬다)`);
 }
 
 if (missing.length === 0 && stray.length === 0) {
-  console.log(`[handoff-accepts] 선언 ${declared.size}개 · 받는 손 ${handlers.size}개 — 어긋남 없음`);
+  console.log(`[handoff-accepts] 선언 ${declared.size}개, 받는 손 ${handlers.size}개. 어긋남 없음`);
   process.exit(0);
 }
 console.error('[handoff-accepts] 선언과 실물이 어긋난다:');
 for (const m of [...missing, ...stray]) console.error(`  - ${m}`);
-console.error('  고치는 법: 도구 코드에 `Toolbox.onHandoff("<id>", (file) => …)` 를 걸거나, 메타의 accepts 를 지워라.');
+console.error('  고치는 법: 도구 코드에 `Toolbox.onHandoff("<id>", (file) => ...)` 를 걸거나, 메타의 accepts 를 지워라.');
 process.exit(1);

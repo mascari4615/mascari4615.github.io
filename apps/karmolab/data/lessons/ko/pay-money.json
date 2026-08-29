@@ -8,14 +8,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "부동소수(float)로 돈을 세면 **1원씩 어긋난다.** `0.1 + 0.2` 가 `0.30000000000000004` 인 그 오차다 — 컴퓨터는 소수를 2진수로 근사해 저장하니, 10진 소수(돈)를 정확히 못 담는다. 작은 오차가 수천 건 쌓이면 정산에서 안 맞고, **그 오차는 늘 정산 날에 발견된다.** 돈은 float 로 다루지 않는다."
+          "text": "부동소수(float)로 돈을 세면 **1원씩 어긋난다.** `0.1 + 0.2` 가 `0.30000000000000004` 인 그 오차다. 컴퓨터는 소수를 2진수로 근사해 저장하니, 10진 소수(돈)를 정확히 못 담는다. 작은 오차가 수천 건 쌓이면 정산에서 안 맞고, **그 오차는 늘 정산 날에 발견된다.** 돈은 float 로 다루지 않는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "float 오차 — 쌓이면 드러난다",
+          "label": "float 오차. 쌓이면 드러난다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{count}};                   // 19.99 를 몇 번 더하나\n  const floatSum = 19.99 * n;            // float 곱셈\n  const intSum = 1999 * n;               // 센트(정수)로\n  const floatStr = floatSum.toString();\n  const drifted = floatStr.length > 8 || floatStr.includes('000000') || floatStr.includes('999999');\n  render('19.99 x ' + n + ' 계산',\n    '  float: ' + floatStr + (drifted ? '  <span class=\\\"no\\\">← 오차!</span>' : '') + '\\n' +\n    '  정수(센트): ' + intSum + '센트 = ' + (intSum/100).toFixed(2) + '  <span class=\\\"ok\\\">정확</span>\\n\\n' +\n    (drifted\n      ? '  <span class=\\\"no\\\">float 는 2진 근사라 10진 소수를 정확히 못 담는다 — 오차가 보인다.</span>'\n      : '  아직 오차가 눈에 안 보여도, 쌓이면 정산 날 드러난다.'),\n    '돈을 float 로 세면 2진 근사 오차가 쌓인다 — 정수(최소 단위)로 세라.',\n    bars([['float 결과', 90, floatStr.slice(0,14), drifted ? '#fca5a5' : '#fbbf24'],\n          ['정수(센트)', 90, intSum + '센트', '#4ade80']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const n = {{count}};                   // 19.99 를 몇 번 더하나\n  const floatSum = 19.99 * n;            // float 곱셈\n  const intSum = 1999 * n;               // 센트(정수)로\n  const floatStr = floatSum.toString();\n  const drifted = floatStr.length > 8 || floatStr.includes('000000') || floatStr.includes('999999');\n  render('19.99 x ' + n + ' 계산',\n    '  float: ' + floatStr + (drifted ? '  <span class=\\\"no\\\">← 오차!</span>' : '') + '\\n' +\n    '  정수(센트): ' + intSum + '센트 = ' + (intSum/100).toFixed(2) + '  <span class=\\\"ok\\\">정확</span>\\n\\n' +\n    (drifted\n      ? '  <span class=\\\"no\\\">float 는 2진 근사라 10진 소수를 정확히 못 담는다. 오차가 보인다.</span>'\n      : '  아직 오차가 눈에 안 보여도, 쌓이면 정산 날 드러난다.'),\n    '돈을 float 로 세면 2진 근사 오차가 쌓인다. 정수(최소 단위)로 세라.',\n    bars([['float 결과', 90, floatStr.slice(0,14), drifted ? '#fca5a5' : '#fbbf24'],\n          ['정수(센트)', 90, intSum + '센트', '#4ade80']]));\n</script>",
           "controls": [
             {
               "id": "count",
@@ -32,19 +32,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "float 의 함정",
-          "text": "// 나쁨\nconst total = 19.99 * 3;        // 59.97000000000001\n0.1 + 0.2;                      // 0.30000000000000004\n\n// 왜: float 는 2진수로 저장 → 10진 소수(0.1·19.99)를 정확히 못 담는다\n// 좋음: 최소 단위(센트·원)의 정수로 계산\nconst total = 1999 * 3;        // 5997 (센트) — 정확"
+          "text": "// 나쁨\nconst total = 19.99 * 3;        // 59.97000000000001\n0.1 + 0.2;                      // 0.30000000000000004\n\n// 왜: float 는 2진수로 저장 → 10진 소수(0.1, 19.99)를 정확히 못 담는다\n// 좋음: 최소 단위(센트, 원)의 정수로 계산\nconst total = 1999 * 3;        // 5997 (센트). 정확"
         },
         {
           "type": "note",
-          "text": "**오차는 늘 정산에서 발견된다 — 그래서 위험하다.** 개발·테스트에선 몇 건 안 되니 안 보이다가, 운영에서 수만 건이 쌓이면 「장부가 3원 안 맞는」 상태가 된다. 돈은 1원도 틀리면 안 되는 도메인이라(신뢰·회계·법), 「대충 맞으면」이 통하지 않는다. float 오차는 「나중에 크게 터지는」 대표적 부채다(design-evolve 의 되돌리기 어려운 것)."
+          "text": "**오차는 늘 정산에서 발견된다. 그래서 위험하다.** 개발, 테스트에선 몇 건 안 되니 안 보이다가, 운영에서 수만 건이 쌓이면 장부가 3원 안 맞는 상태가 된다. 돈은 1원도 틀리면 안 되는 도메인이라(신뢰, 회계, 법), 대충 맞으면이 통하지 않는다. float 오차는 나중에 크게 터지는 대표적 부채다(design-evolve 의 되돌리기 어려운 것)."
         },
         {
           "type": "p",
-          "text": "**돈은 특별한 도메인이다 — 정확성이 절대 요구된다.** 화면 좌표·물리 계산은 float 의 근사가 괜찮지만, 돈은 **정확한 10진**이라야 한다. 그래서 돈을 다루는 언어·라이브러리는 정수(최소 단위)나 10진 타입(BigDecimal·decimal)을 쓴다(2장). 「이 값이 돈인가?」를 물어, 돈이면 float 를 절대 안 쓰는 규칙을 세운다(design-model 의 개념에 이름)."
+          "text": "**돈은 특별한 도메인이다. 정확성이 절대 요구된다.** 화면 좌표, 물리 계산은 float 의 근사가 괜찮지만, 돈은 **정확한 10진**이라야 한다. 그래서 돈을 다루는 언어, 라이브러리는 정수(최소 단위)나 10진 타입(BigDecimal, decimal)을 쓴다(2장). 이 값이 돈인가?를 물어, 돈이면 float 를 절대 안 쓰는 규칙을 세운다(design-model 의 개념에 이름)."
         },
         {
           "type": "try",
-          "text": "네 코드에서 금액을 float(소수)로 다루는 곳을 찾아라 — `price * quantity`, `* 0.1`(세율) 등. 있으면 정수(최소 단위)로 바꿀 후보다."
+          "text": "네 코드에서 금액을 float(소수)로 다루는 곳을 찾아라. `price * quantity`, `* 0.1`(세율) 등. 있으면 정수(최소 단위)로 바꿀 후보다."
         }
       ],
       "quiz": [
@@ -85,19 +85,19 @@
     },
     {
       "id": "2",
-      "title": "정수로 저장 — 최소 단위",
+      "title": "정수로 저장. 최소 단위",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "돈은 **최소 단위의 정수**로 저장한다 — 달러는 센트(1달러=100센트), 원은 원(이미 최소 단위). `$19.99` 를 `1999`(센트)로 다루면 곱셈·덧셈이 **정확**하다. 나누기·표시할 때만 100 으로 나눈다. 「정수로 계산하고, 표시 계층에서만 소수로」가 핵심 규칙이다."
+          "text": "돈은 **최소 단위의 정수**로 저장한다. 달러는 센트(1달러=100센트), 원은 원(이미 최소 단위). `$19.99` 를 `1999`(센트)로 다루면 곱셈, 덧셈이 **정확**하다. 나누기, 표시할 때만 100 으로 나눈다. 정수로 계산하고, 표시 계층에서만 소수로가 핵심 규칙이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "최소 단위 정수 — 정확한 계산",
+          "label": "최소 단위 정수. 정확한 계산",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const dollars = {{amount}};            // 표시용 달러(소수 두 자리 가정)\n  const cents = Math.round(dollars * 100);\n  const qty = 3;\n  render('$' + dollars.toFixed(2) + ' x ' + qty,\n    '  저장: ' + cents + '센트 (정수)\\n' +\n    '  계산: ' + cents + ' x ' + qty + ' = ' + (cents * qty) + '센트\\n' +\n    '  표시: $' + (cents * qty / 100).toFixed(2) + '  <span class=\\\"ok\\\">← 100으로 나누는 건 표시할 때만</span>\\n\\n' +\n    '  정수로 계산하니 오차 0 — 나누기·표시에서만 소수로 환산한다.',\n    '$19.99 → 1999센트로 저장·계산. 100으로 나누는 건 표시 계층에서만.',\n    steps([\n      ['저장: 최소 단위 정수(' + cents + '센트)', 'good'],\n      ['계산: 정수끼리 곱·덧(오차 0)', 'good'],\n      ['표시: /100 으로 소수 환산', 'good']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const dollars = {{amount}};            // 표시용 달러(소수 두 자리 가정)\n  const cents = Math.round(dollars * 100);\n  const qty = 3;\n  render('$' + dollars.toFixed(2) + ' x ' + qty,\n    '  저장: ' + cents + '센트 (정수)\\n' +\n    '  계산: ' + cents + ' x ' + qty + ' = ' + (cents * qty) + '센트\\n' +\n    '  표시: $' + (cents * qty / 100).toFixed(2) + '  <span class=\\\"ok\\\">← 100으로 나누는 건 표시할 때만</span>\\n\\n' +\n    '  정수로 계산하니 오차 0. 나누기, 표시에서만 소수로 환산한다.',\n    '$19.99 → 1999센트로 저장, 계산. 100으로 나누는 건 표시 계층에서만.',\n    steps([\n      ['저장: 최소 단위 정수(' + cents + '센트)', 'good'],\n      ['계산: 정수끼리 곱, 덧(오차 0)', 'good'],\n      ['표시: /100 으로 소수 환산', 'good']]));\n</script>",
           "controls": [
             {
               "id": "amount",
@@ -112,15 +112,15 @@
         },
         {
           "type": "note",
-          "text": "**정수 저장의 이점: 정확·비교·정렬이 안전하다.** 정수는 곱·덧·비교가 오차 없이 정확하고, DB 에서도 정수 컬럼(bigint)으로 저장해 정렬·합계(SUM)가 정확하다. float 컬럼에 돈을 넣으면 DB 의 SUM 도 오차가 난다(db-index·db-explain 의 정확성). 「돈 = 최소 단위 정수 컬럼」을 스키마 규칙으로 정하면, 계산·저장·집계가 모두 정확해진다."
+          "text": "**정수 저장의 이점: 정확, 비교, 정렬이 안전하다.** 정수는 곱, 덧, 비교가 오차 없이 정확하고, DB 에서도 정수 컬럼(bigint)으로 저장해 정렬, 합계(SUM)가 정확하다. float 컬럼에 돈을 넣으면 DB 의 SUM 도 오차가 난다(db-index, db-explain 의 정확성). 돈 = 최소 단위 정수 컬럼을 스키마 규칙으로 정하면, 계산, 저장, 집계가 모두 정확해진다."
         },
         {
           "type": "p",
-          "text": "**큰 금액은 정수 범위를 넘을 수 있다 — 64비트·BigInt·10진 타입.** 센트로 저장하면 값이 100배 커져, 32비트 정수는 넘칠 수 있다(약 2100만 달러). 그래서 64비트 정수(bigint)나, 언어에 따라 BigInt·decimal(BigDecimal·Python decimal) 타입을 쓴다. 특히 **나눗셈·이자·환율**처럼 소수가 불가피한 계산엔 10진 타입이 정수보다 다루기 쉽다 — 언어·도메인에 맞는 정확한 타입을 고른다."
+          "text": "**큰 금액은 정수 범위를 넘을 수 있다. 64비트, BigInt, 10진 타입.** 센트로 저장하면 값이 100배 커져, 32비트 정수는 넘칠 수 있다(약 2100만 달러). 그래서 64비트 정수(bigint)나, 언어에 따라 BigInt, decimal(BigDecimal, Python decimal) 타입을 쓴다. 특히 **나눗셈, 이자, 환율**처럼 소수가 불가피한 계산엔 10진 타입이 정수보다 다루기 쉽다. 언어, 도메인에 맞는 정확한 타입을 고른다."
         },
         {
           "type": "try",
-          "text": "네 스키마·코드의 금액을 최소 단위 정수로 저장·계산하게 바꿔라. DB 컬럼이 float 라면 정수(bigint)로, 나눗셈·이자가 많으면 decimal 타입을 검토하라."
+          "text": "네 스키마, 코드의 금액을 최소 단위 정수로 저장, 계산하게 바꿔라. DB 컬럼이 float 라면 정수(bigint)로, 나눗셈, 이자가 많으면 decimal 타입을 검토하라."
         }
       ],
       "quiz": [
@@ -128,7 +128,7 @@
           "q": "돈을 저장하는 올바른 방법은?",
           "choices": [
             "float",
-            "최소 단위의 정수(센트·원)",
+            "최소 단위의 정수(센트, 원)",
             "문자열",
             "소수"
           ],
@@ -147,15 +147,15 @@
           "why": "계산은 정수로."
         },
         {
-          "q": "큰 금액·이자·환율에 적합한 타입은?",
+          "q": "큰 금액, 이자, 환율에 적합한 타입은?",
           "choices": [
             "32비트 정수",
-            "64비트 정수·decimal(10진) 타입",
+            "64비트 정수, decimal(10진) 타입",
             "float",
             "문자열"
           ],
           "answer": 1,
-          "why": "범위·소수 처리."
+          "why": "범위, 소수 처리."
         }
       ]
     },
@@ -166,14 +166,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「최소 단위」는 통화마다 다르다. **KRW·JPY 는 0자리**(1원·1엔이 최소), **USD·EUR 는 2자리**(센트), 일부(BHD·KWD)는 **3자리**. 그래서 「금액」만 저장하면 안 되고 **통화와 함께** 저장해야 — `1999` 가 USD 면 $19.99, JPY 면 ¥1999 다. 통화 없는 금액은 뜻이 불완전하다(design-model 의 Money 값 객체)."
+          "text": "최소 단위는 통화마다 다르다. **KRW, JPY 는 0자리**(1원, 1엔이 최소), **USD, EUR 는 2자리**(센트), 일부(BHD, KWD)는 **3자리**. 그래서 금액만 저장하면 안 되고 **통화와 함께** 저장해야. `1999` 가 USD 면 $19.99, JPY 면 ¥1999 다. 통화 없는 금액은 뜻이 불완전하다(design-model 의 Money 값 객체)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "같은 숫자, 다른 통화 — 다른 금액",
+          "label": "같은 숫자, 다른 통화. 다른 금액",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const cur = '{{cur}}';\n  const cases = {\n    KRW: ['KRW(원)', 0, '19990 → ₩19,990 (소수 0자리)'],\n    JPY: ['JPY(엔)', 0, '19990 → ¥19,990 (소수 0자리)'],\n    USD: ['USD(달러)', 2, '1999 → $19.99 (센트, 2자리)'],\n    EUR: ['EUR(유로)', 2, '1999 → €19.99 (2자리)'],\n    KWD: ['KWD(디나르)', 3, '19990 → 19.990 (3자리!)'],\n  }[cur];\n  render('통화: ' + cases[0] + ' (소수 ' + cases[1] + '자리)',\n    '  ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"warn\\\">같은 저장 숫자라도 통화에 따라 실제 금액이 다르다.</span>\\n' +\n    '  그래서 「금액」은 반드시 「통화」와 함께 — Money(amount, currency).',\n    '최소 단위는 통화마다 다르다(KRW 0·USD 2·KWD 3). 금액은 통화와 함께 저장.',\n    box('Money 값 객체', '{ amount: 정수(최소단위), currency: \\'' + cur + '\\' }\\n소수 자릿수는 통화가 정한다', 'good'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const cur = '{{cur}}';\n  const cases = {\n    KRW: ['KRW(원)', 0, '19990 → ₩19,990 (소수 0자리)'],\n    JPY: ['JPY(엔)', 0, '19990 → ¥19,990 (소수 0자리)'],\n    USD: ['USD(달러)', 2, '1999 → $19.99 (센트, 2자리)'],\n    EUR: ['EUR(유로)', 2, '1999 → €19.99 (2자리)'],\n    KWD: ['KWD(디나르)', 3, '19990 → 19.990 (3자리!)'],\n  }[cur];\n  render('통화: ' + cases[0] + ' (소수 ' + cases[1] + '자리)',\n    '  ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"warn\\\">같은 저장 숫자라도 통화에 따라 실제 금액이 다르다.</span>\\n' +\n    '  그래서 금액은 반드시 통화와 함께. Money(amount, currency).',\n    '최소 단위는 통화마다 다르다(KRW 0, USD 2, KWD 3). 금액은 통화와 함께 저장.',\n    box('Money 값 객체', '{ amount: 정수(최소단위), currency: \\'' + cur + '\\' }\\n소수 자릿수는 통화가 정한다', 'good'));\n</script>",
           "controls": [
             {
               "id": "cur",
@@ -207,15 +207,15 @@
         },
         {
           "type": "note",
-          "text": "**금액과 통화는 늘 함께 다닌다 — 하나의 Money 개념이다(design-model 2장).** `amount: number, currency: string` 을 따로 넘기면 짝이 어긋나고, 다른 통화의 금액을 더하는 실수가 난다(₩1000 + $10?). `Money` 값 객체로 묶어 **통화 다른 금액의 덧셈을 거부**하고, 소수 자릿수를 통화에서 가져오면(반올림·표시), 통화 관련 실수가 구조적으로 막힌다."
+          "text": "**금액과 통화는 늘 함께 다닌다. 하나의 Money 개념이다(design-model 2장).** `amount: number, currency: string` 을 따로 넘기면 짝이 어긋나고, 다른 통화의 금액을 더하는 실수가 난다(₩1000 + $10?). `Money` 값 객체로 묶어 **통화 다른 금액의 덧셈을 거부**하고, 소수 자릿수를 통화에서 가져오면(반올림, 표시), 통화 관련 실수가 구조적으로 막힌다."
         },
         {
           "type": "p",
-          "text": "**소수 3자리 통화가 함정을 판다.** 대부분 「돈 = 2자리」로 하드코딩하는데, KWD·BHD 같은 3자리 통화에선 그 가정이 틀려 금액이 1000배 어긋난다. 「최소 단위로 몇 배 곱하나」를 **통화 데이터에서** 조회해야(ISO 4217 의 minor unit) 어느 통화든 정확하다. 국제 결제를 다룬다면 「2자리」를 박아 넣지 마라 — 통화가 자릿수를 정한다."
+          "text": "**소수 3자리 통화가 함정을 판다.** 대부분 돈 = 2자리로 하드코딩하는데, KWD, BHD 같은 3자리 통화에선 그 가정이 틀려 금액이 1000배 어긋난다. 최소 단위로 몇 배 곱하나를 **통화 데이터에서** 조회해야(ISO 4217 의 minor unit) 어느 통화든 정확하다. 국제 결제를 다룬다면 2자리를 박아 넣지 마라. 통화가 자릿수를 정한다."
         },
         {
           "type": "try",
-          "text": "네 코드가 「돈 = 2자리」로 하드코딩됐는지 보라. 여러 통화를 다룬다면, 통화별 소수 자릿수(minor unit)를 데이터로 조회해 최소 단위 환산·표시하게 하라."
+          "text": "네 코드가 돈 = 2자리로 하드코딩됐는지 보라. 여러 통화를 다룬다면, 통화별 소수 자릿수(minor unit)를 데이터로 조회해 최소 단위 환산, 표시하게 하라."
         }
       ],
       "quiz": [
@@ -223,7 +223,7 @@
           "q": "통화마다 다른 것은?",
           "choices": [
             "색",
-            "소수 자릿수(KRW 0·USD 2·KWD 3)",
+            "소수 자릿수(KRW 0, USD 2, KWD 3)",
             "속도",
             "이름"
           ],
@@ -242,7 +242,7 @@
           "why": "Money 값 객체."
         },
         {
-          "q": "「돈 = 2자리」 하드코딩의 위험은?",
+          "q": "돈 = 2자리 하드코딩의 위험은?",
           "choices": [
             "없음",
             "3자리 통화(KWD)에서 1000배 어긋남",
@@ -256,19 +256,19 @@
     },
     {
       "id": "4",
-      "title": "반올림 규칙 — 어디서 반올림하나",
+      "title": "반올림 규칙. 어디서 반올림하나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "부가세·할인·분할에서 **어디서 반올림하느냐**로 합계가 달라진다. `항목별로 반올림 후 합` vs `합한 뒤 반올림` 이 1원 차이를 낸다. 규칙을 **한 곳에 정하고**(예: 항목별 반올림) 일관되게 적용해야, 화면 합계와 결제 합계가 안 어긋난다. 반올림은 「언제·어떤 방식으로」를 명시적으로 정하는 결정이다."
+          "text": "부가세, 할인, 분할에서 **어디서 반올림하느냐**로 합계가 달라진다. `항목별로 반올림 후 합` vs `합한 뒤 반올림` 이 1원 차이를 낸다. 규칙을 **한 곳에 정하고**(예: 항목별 반올림) 일관되게 적용해야, 화면 합계와 결제 합계가 안 어긋난다. 반올림은 언제, 어떤 방식으로를 명시적으로 정하는 결정이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "반올림 위치 — 항목별 vs 합계",
+          "label": "반올림 위치. 항목별 vs 합계",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const items = [333, 333, 334];         // 세전 (센트 예시 아님, 원)\n  const rate = 0.1;\n  let result;\n  if (mode === 'each') {\n    result = items.map(x => Math.round(x * rate)).reduce((a,b)=>a+b, 0);  // 항목별 반올림 후 합\n  } else {\n    result = Math.round(items.reduce((a,b)=>a+b,0) * rate);               // 합 후 반올림\n  }\n  const each = items.map(x => Math.round(x*rate)).reduce((a,b)=>a+b,0);\n  const whole = Math.round(items.reduce((a,b)=>a+b,0)*rate);\n  render((mode === 'each' ? '항목별 반올림 후 합' : '합한 뒤 반올림') + ' (세율 10%)',\n    '  항목: 333·333·334 각 10%\\n' +\n    '  항목별 반올림 후 합 = ' + each + '\\n  합(1000) 후 반올림 = ' + whole + '\\n\\n' +\n    (each !== whole\n      ? '  <span class=\\\"no\\\">두 방식이 ' + Math.abs(each-whole) + '원 다르다!</span> 규칙을 한 곳에 정해 일관되게.'\n      : '  이 경우엔 같지만, 값에 따라 달라진다 — 규칙을 명시해야.'),\n    '어디서 반올림하냐로 합계가 갈린다. 규칙을 한 곳에 정하고 일관 적용.',\n    bars([['항목별 반올림', each*3, each+'원', mode==='each'?'#4ade80':'#64748b'],\n          ['합 후 반올림', whole*3, whole+'원', mode==='whole'?'#4ade80':'#64748b']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const items = [333, 333, 334];         // 세전 (센트 예시 아님, 원)\n  const rate = 0.1;\n  let result;\n  if (mode === 'each') {\n    result = items.map(x => Math.round(x * rate)).reduce((a,b)=>a+b, 0);  // 항목별 반올림 후 합\n  } else {\n    result = Math.round(items.reduce((a,b)=>a+b,0) * rate);               // 합 후 반올림\n  }\n  const each = items.map(x => Math.round(x*rate)).reduce((a,b)=>a+b,0);\n  const whole = Math.round(items.reduce((a,b)=>a+b,0)*rate);\n  render((mode === 'each' ? '항목별 반올림 후 합' : '합한 뒤 반올림') + ' (세율 10%)',\n    '  항목: 333, 333, 334 각 10%\\n' +\n    '  항목별 반올림 후 합 = ' + each + '\\n  합(1000) 후 반올림 = ' + whole + '\\n\\n' +\n    (each !== whole\n      ? '  <span class=\\\"no\\\">두 방식이 ' + Math.abs(each-whole) + '원 다르다!</span> 규칙을 한 곳에 정해 일관되게.'\n      : '  이 경우엔 같지만, 값에 따라 달라진다. 규칙을 명시해야.'),\n    '어디서 반올림하냐로 합계가 갈린다. 규칙을 한 곳에 정하고 일관 적용.',\n    bars([['항목별 반올림', each*3, each+'원', mode==='each'?'#4ade80':'#64748b'],\n          ['합 후 반올림', whole*3, whole+'원', mode==='whole'?'#4ade80':'#64748b']]));\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -290,15 +290,15 @@
         },
         {
           "type": "note",
-          "text": "**「반올림 방식」도 규칙이다 — 반올림·내림·은행가 반올림.** 일반 반올림(0.5→올림)은 큰 데이터에서 **위로 편향**된다. 회계는 **은행가 반올림**(0.5→가까운 짝수)으로 편향을 없애기도 한다. 그리고 세금은 **내림/올림**이 법으로 정해진 경우가 있다. 「어떤 방식으로」를 도메인·법에 맞게 정하고 한 곳에 두면(design-coupling 의 응집), 곳곳의 미묘한 불일치가 사라진다."
+          "text": "**반올림 방식도 규칙이다. 반올림, 내림, 은행가 반올림.** 일반 반올림(0.5→올림)은 큰 데이터에서 **위로 편향**된다. 회계는 **은행가 반올림**(0.5→가까운 짝수)으로 편향을 없애기도 한다. 그리고 세금은 **내림/올림**이 법으로 정해진 경우가 있다. 어떤 방식으로를 도메인, 법에 맞게 정하고 한 곳에 두면(design-coupling 의 응집), 곳곳의 미묘한 불일치가 사라진다."
         },
         {
           "type": "p",
-          "text": "**화면과 결제가 어긋나는 대부분이 반올림 불일치다.** 프론트가 항목별로 반올림해 보여 준 합계와, 백엔드가 합 후 반올림한 결제액이 1원 달라 「표시와 청구가 다른」 클레임이 난다. 반올림 규칙을 **한곳(대개 백엔드)에 정하고 프론트는 그 결과를 받아 표시**하거나, 규칙을 공유해 양쪽이 같게 계산한다 — 계산의 단일 원본(api-doc 의 단일 원본)이 답이다."
+          "text": "**화면과 결제가 어긋나는 대부분이 반올림 불일치다.** 프론트가 항목별로 반올림해 보여 준 합계와, 백엔드가 합 후 반올림한 결제액이 1원 달라 표시와 청구가 다른 클레임이 난다. 반올림 규칙을 **한곳(대개 백엔드)에 정하고 프론트는 그 결과를 받아 표시**하거나, 규칙을 공유해 양쪽이 같게 계산한다. 계산의 단일 원본(api-doc 의 단일 원본)이 답이다."
         },
         {
           "type": "try",
-          "text": "네 세금·할인 계산이 항목별로 반올림하는지 합 후인지 확인하고, 규칙을 한 곳에 명시하라. 프론트 표시 합계와 백엔드 결제액이 같은 규칙을 쓰는지 대조하라."
+          "text": "네 세금, 할인 계산이 항목별로 반올림하는지 합 후인지 확인하고, 규칙을 한 곳에 명시하라. 프론트 표시 합계와 백엔드 결제액이 같은 규칙을 쓰는지 대조하라."
         }
       ],
       "quiz": [
@@ -317,18 +317,18 @@
           "q": "일반 반올림(0.5 올림)의 문제는?",
           "choices": [
             "느림",
-            "큰 데이터에서 위로 편향 — 은행가 반올림 등 고려",
+            "큰 데이터에서 위로 편향. 은행가 반올림 등 고려",
             "부정확",
             "표시"
           ],
           "answer": 1,
-          "why": "도메인·법에 맞게."
+          "why": "도메인, 법에 맞게."
         },
         {
           "q": "화면 합계와 결제액이 어긋나는 흔한 원인은?",
           "choices": [
             "네트워크",
-            "반올림 규칙 불일치(프론트·백엔드)",
+            "반올림 규칙 불일치(프론트, 백엔드)",
             "DNS",
             "float만"
           ],
@@ -339,19 +339,19 @@
     },
     {
       "id": "5",
-      "title": "분배 — 나머지 1원은 누구에게",
+      "title": "분배. 나머지 1원은 누구에게",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**1000원을 3명에게 나누면 333·333·334** — 나눠떨어지지 않는 1원이 남는다. 이 남는 돈을 **누구에게 줄지 규칙을 정해야** 한다(첫 번째·마지막·큰 몫 순 등). 그리고 **분배의 합이 원금과 정확히 같아야** 한다 — 각자 반올림해 더하면 원금과 달라지는 게 돈 분배의 함정이다."
+          "text": "**1000원을 3명에게 나누면 333, 333, 334**. 나눠떨어지지 않는 1원이 남는다. 이 남는 돈을 **누구에게 줄지 규칙을 정해야** 한다(첫 번째, 마지막, 큰 몫 순 등). 그리고 **분배의 합이 원금과 정확히 같아야** 한다. 각자 반올림해 더하면 원금과 달라지는 게 돈 분배의 함정이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "1000원을 N명에게 — 합이 원금과 같은가",
+          "label": "1000원을 N명에게. 합이 원금과 같은가",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const people = {{people}};\n  const total = 1000;\n  const base = Math.floor(total / people);\n  const remainder = total - base * people;   // 남는 돈\n  const shares = [];\n  for (let i = 0; i < people; i++) shares.push(base + (i < remainder ? 1 : 0));\n  const sum = shares.reduce((a,b)=>a+b,0);\n  const cells = shares.map((s, i) => [i < remainder ? 'extra' : '', s + '원' + (i < remainder ? '+' : '')]);\n  render('1000원 ÷ ' + people + '명',\n    '  기본 ' + base + '원씩 · 남는 ' + remainder + '원을 앞 ' + remainder + '명에게 +1\\n' +\n    '  분배: ' + shares.join(' · ') + '\\n' +\n    '  합 = ' + sum + '  <span class=\\\"' + (sum === total ? 'ok' : 'no') + '\\\">' +\n      (sum === total ? '= 원금 1000 ✓' : '≠ 원금!') + '</span>\\n\\n' +\n    '  나머지를 규칙대로 분배 — 합이 원금과 정확히 같아야 한다(1원도 안 새게).',\n    '나눠떨어지지 않는 나머지를 규칙대로 배분 — 분배 합 = 원금이 불변식.',\n    coins(cells));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const people = {{people}};\n  const total = 1000;\n  const base = Math.floor(total / people);\n  const remainder = total - base * people;   // 남는 돈\n  const shares = [];\n  for (let i = 0; i < people; i++) shares.push(base + (i < remainder ? 1 : 0));\n  const sum = shares.reduce((a,b)=>a+b,0);\n  const cells = shares.map((s, i) => [i < remainder ? 'extra' : '', s + '원' + (i < remainder ? '+' : '')]);\n  render('1000원 ÷ ' + people + '명',\n    '  기본 ' + base + '원씩, 남는 ' + remainder + '원을 앞 ' + remainder + '명에게 +1\\n' +\n    '  분배: ' + shares.join(', ') + '\\n' +\n    '  합 = ' + sum + '  <span class=\\\"' + (sum === total ? 'ok' : 'no') + '\\\">' +\n      (sum === total ? '= 원금 1000 ✓' : '≠ 원금!') + '</span>\\n\\n' +\n    '  나머지를 규칙대로 분배. 합이 원금과 정확히 같아야 한다(1원도 안 새게).',\n    '나눠떨어지지 않는 나머지를 규칙대로 배분. 분배 합 = 원금이 불변식.',\n    coins(cells));\n</script>",
           "controls": [
             {
               "id": "people",
@@ -368,19 +368,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "정확히 나누기",
-          "text": "function split(total, n) {\n  const base = Math.floor(total / n);\n  const remainder = total - base * n;   // 남는 최소 단위\n  return Array.from({ length: n }, (_, i) => base + (i < remainder ? 1 : 0));\n  // 남는 remainder 개를 앞에서부터 1씩 — 합은 정확히 total\n}\n// split(1000, 3) → [334, 333, 333], 합 1000 (규칙: 앞사람 우대)"
+          "text": "function split(total, n) {\n  const base = Math.floor(total / n);\n  const remainder = total - base * n;   // 남는 최소 단위\n  return Array.from({ length: n }, (_, i) => base + (i < remainder ? 1 : 0));\n  // 남는 remainder 개를 앞에서부터 1씩. 합은 정확히 total\n}\n// split(1000, 3) → [334, 333, 333], 합 1000 (규칙: 앞사람 우대)"
         },
         {
           "type": "note",
-          "text": "**「각자 반올림 후 더하기」가 원금을 어긴다.** `1000/3 = 333.33` 을 각자 333 으로 반올림해 더하면 999 — 1원이 증발한다. 반대로 334 로 올리면 1002 — 2원이 생긴다. **먼저 정수로 나누고(base), 나머지를 규칙대로 배분**해야 합이 정확히 원금이 된다. 「분배 합 = 원금」이 절대 불변식이다 — 돈은 생기거나 없어지면 안 된다(회계의 제1원칙)."
+          "text": "**각자 반올림 후 더하기가 원금을 어긴다.** `1000/3 = 333.33` 을 각자 333 으로 반올림해 더하면 999. 1원이 증발한다. 반대로 334 로 올리면 1002. 2원이 생긴다. **먼저 정수로 나누고(base), 나머지를 규칙대로 배분**해야 합이 정확히 원금이 된다. 분배 합 = 원금이 절대 불변식이다. 돈은 생기거나 없어지면 안 된다(회계의 제1원칙)."
         },
         {
           "type": "p",
-          "text": "**나머지 배분 규칙은 공정성·법과 얽힌다.** 누가 1원을 더 받나 — 첫 사람? 큰 몫? 무작위? 정산·수수료·세금 분배에선 이 규칙이 계약·법으로 정해지기도 한다. 규칙을 명시하고(design-record ADR), 테스트로 「합=원금」과 「배분 규칙」을 고정하면(8장), 「분배가 왜 이렇게 됐지」의 논쟁과 오차가 사라진다. 작은 1원이지만 규칙은 명시적이어야 한다."
+          "text": "**나머지 배분 규칙은 공정성, 법과 얽힌다.** 누가 1원을 더 받나. 첫 사람? 큰 몫? 무작위? 정산, 수수료, 세금 분배에선 이 규칙이 계약, 법으로 정해지기도 한다. 규칙을 명시하고(design-record ADR), 테스트로 합=원금과 배분 규칙을 고정하면(8장), 분배가 왜 이렇게 됐지의 논쟁과 오차가 사라진다. 작은 1원이지만 규칙은 명시적이어야 한다."
         },
         {
           "type": "try",
-          "text": "1000원을 3명에게 나누는 함수를 쓰고, ① 합이 정확히 1000 인지 ② 나머지 배분 규칙이 일관된지 테스트로 고정하라. 여러 금액·인원으로 「합=원금」이 늘 성립하는지 확인하라."
+          "text": "1000원을 3명에게 나누는 함수를 쓰고, ① 합이 정확히 1000 인지 ② 나머지 배분 규칙이 일관된지 테스트로 고정하라. 여러 금액, 인원으로 합=원금이 늘 성립하는지 확인하라."
         }
       ],
       "quiz": [
@@ -396,7 +396,7 @@
           "why": "돈이 생기거나 없어지면 안 됨."
         },
         {
-          "q": "「각자 반올림 후 더하기」의 문제는?",
+          "q": "각자 반올림 후 더하기의 문제는?",
           "choices": [
             "느림",
             "합이 원금과 달라짐(1원 증발/생성)",
@@ -421,19 +421,19 @@
     },
     {
       "id": "6",
-      "title": "환율 — 시점의 값이다",
+      "title": "환율. 시점의 값이다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**환율은 시점의 값**이다 — 지금 1달러가 1350원이어도 어제는 1340원이었다. 결제 시점의 환율과 **환산된 금액을 함께 저장**하지 않으면, 나중에 그 거래 금액을 **재현할 수 없다.** 「$10 결제」만 저장하고 원화 금액·환율을 안 남기면, 정산·환불 때 「그때 얼마였지?」를 못 답한다."
+          "text": "**환율은 시점의 값**이다. 지금 1달러가 1350원이어도 어제는 1340원이었다. 결제 시점의 환율과 **환산된 금액을 함께 저장**하지 않으면, 나중에 그 거래 금액을 **재현할 수 없다.** $10 결제만 저장하고 원화 금액, 환율을 안 남기면, 정산, 환불 때 그때 얼마였지?를 못 답한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "환율 저장 — 나중에 재현되나",
+          "label": "환율 저장. 나중에 재현되나",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const saved = '{{saved}}' === 'yes';\n  render(saved ? '환율·환산액도 저장' : '원화 금액만(또는 달러만) 저장',\n    (saved\n      ? '  저장: $10 · 환율 1350 · ₩13,500 (결제 시점 값)\\n' +\n        '  <span class=\\\"ok\\\">나중에 정확히 재현 — 환불도 그때 ₩13,500 으로.</span>'\n      : '  저장: $10 만 (또는 지금 환율로 계산)\\n' +\n        '  <span class=\\\"no\\\">지금 환율(1340)로 재계산하면 ₩13,400 — 결제한 금액과 다르다! 재현 불가.</span>'),\n    '환율은 시점 값. 결제 시점 환율·환산액을 함께 저장해야 나중에 재현된다.',\n    box(saved ? '재현 가능' : '재현 불가',\n      saved ? '{ usd: 1000, rate: 1350, krw: 13500, at: \\'결제시각\\' }'\n            : '{ usd: 1000 }  // 환율 없음 → 나중에 금액 못 맞춤',\n      saved ? 'good' : 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const saved = '{{saved}}' === 'yes';\n  render(saved ? '환율, 환산액도 저장' : '원화 금액만(또는 달러만) 저장',\n    (saved\n      ? '  저장: $10, 환율 1350, ₩13,500 (결제 시점 값)\\n' +\n        '  <span class=\\\"ok\\\">나중에 정확히 재현. 환불도 그때 ₩13,500 으로.</span>'\n      : '  저장: $10 만 (또는 지금 환율로 계산)\\n' +\n        '  <span class=\\\"no\\\">지금 환율(1340)로 재계산하면 ₩13,400. 결제한 금액과 다르다! 재현 불가.</span>'),\n    '환율은 시점 값. 결제 시점 환율, 환산액을 함께 저장해야 나중에 재현된다.',\n    box(saved ? '재현 가능' : '재현 불가',\n      saved ? '{ usd: 1000, rate: 1350, krw: 13500, at: \\'결제시각\\' }'\n            : '{ usd: 1000 }  // 환율 없음 → 나중에 금액 못 맞춤',\n      saved ? 'good' : 'bad'));\n</script>",
           "controls": [
             {
               "id": "saved",
@@ -447,7 +447,7 @@
                 },
                 {
                   "value": "yes",
-                  "label": "환율·환산액도"
+                  "label": "환율, 환산액도"
                 }
               ]
             }
@@ -455,15 +455,15 @@
         },
         {
           "type": "note",
-          "text": "**환율은 시점의 값이다 — 결제 시점의 환율과 그 값을 함께 저장하지 않으면 나중에 금액을 재현할 수 없다.** 거래엔 「원통화 금액·환율·환산 금액·시각」을 다 남긴다. 그래야 ① 환불을 결제한 금액 그대로 ② 정산·회계를 시점 기준으로 ③ 분쟁 시 「그때 이 환율이었다」를 증명한다. 「지금 환율로 재계산」은 시간이 지나면 반드시 틀린다 — 값은 그 순간에 고정(snapshot)해 저장한다."
+          "text": "**환율은 시점의 값이다. 결제 시점의 환율과 그 값을 함께 저장하지 않으면 나중에 금액을 재현할 수 없다.** 거래엔 원통화 금액, 환율, 환산 금액, 시각을 다 남긴다. 그래야 ① 환불을 결제한 금액 그대로 ② 정산, 회계를 시점 기준으로 ③ 분쟁 시 그때 이 환율이었다를 증명한다. 지금 환율로 재계산은 시간이 지나면 반드시 틀린다. 값은 그 순간에 고정(snapshot)해 저장한다."
         },
         {
           "type": "p",
-          "text": "**돈 계산은 「그때의 상태」를 남기는 게 원칙이다(design-record·api-version 의 역사 보존).** 환율뿐 아니라 세율·할인율·수수료율도 **적용 시점의 값**을 함께 저장한다 — 나중에 세율이 바뀌어도 과거 거래는 그때 세율로 재현돼야 한다. 「율(rate)은 바뀌고, 거래는 그때 값으로 고정」 — 이 원칙이 회계·정산의 재현성을 지킨다. 계산 결과만이 아니라 **계산의 근거(율·시점)**를 남긴다."
+          "text": "**돈 계산은 그때의 상태를 남기는 게 원칙이다(design-record, api-version 의 역사 보존).** 환율뿐 아니라 세율, 할인율, 수수료율도 **적용 시점의 값**을 함께 저장한다. 나중에 세율이 바뀌어도 과거 거래는 그때 세율로 재현돼야 한다. 율(rate)은 바뀌고, 거래는 그때 값으로 고정. 이 원칙이 회계, 정산의 재현성을 지킨다. 계산 결과만이 아니라 **계산의 근거(율, 시점)**를 남긴다."
         },
         {
           "type": "try",
-          "text": "환율·세율·할인율이 적용된 거래를 저장할 때, 적용된 율과 환산 결과·시각을 함께 남기는지 확인하라. 「지금 값으로 재계산」하는 곳이 있으면 시점 값 저장으로 바꿔라."
+          "text": "환율, 세율, 할인율이 적용된 거래를 저장할 때, 적용된 율과 환산 결과, 시각을 함께 남기는지 확인하라. 지금 값으로 재계산하는 곳이 있으면 시점 값 저장으로 바꿔라."
         }
       ],
       "quiz": [
@@ -476,13 +476,13 @@
             "포트"
           ],
           "answer": 1,
-          "why": "환불·정산·분쟁."
+          "why": "환불, 정산, 분쟁."
         },
         {
           "q": "환율 거래에 남길 것은?",
           "choices": [
             "달러만",
-            "원통화 금액·환율·환산액·시각 전부",
+            "원통화 금액, 환율, 환산액, 시각 전부",
             "환율만",
             "없음"
           ],
@@ -490,7 +490,7 @@
           "why": "그때 상태를 고정."
         },
         {
-          "q": "세율·할인율도 어떻게 다루나?",
+          "q": "세율, 할인율도 어떻게 다루나?",
           "choices": [
             "지금 값 재계산",
             "적용 시점의 값을 함께 저장(거래는 그때 값으로 고정)",
@@ -504,19 +504,19 @@
     },
     {
       "id": "7",
-      "title": "표시 vs 계산 — 계층을 나눈다",
+      "title": "표시 vs 계산. 계층을 나눈다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "**계산은 정수(최소 단위)로, 표시는 표시 계층에서만.** 화면에 `$19.99`·`₩19,990` 로 보이는 것은 **표시**일 뿐, 내부 계산은 정수(1999·19990)로 한다. 표시는 통화·로케일에 맞춰 `Intl.NumberFormat` 같은 도구가 통화 기호·천 단위 구분·소수 자릿수를 알아서 붙인다 — 표시 형식과 계산 값을 섞지 않는다."
+          "text": "**계산은 정수(최소 단위)로, 표시는 표시 계층에서만.** 화면에 `$19.99`, `₩19,990` 로 보이는 것은 **표시**일 뿐, 내부 계산은 정수(1999, 19990)로 한다. 표시는 통화, 로케일에 맞춰 `Intl.NumberFormat` 같은 도구가 통화 기호, 천 단위 구분, 소수 자릿수를 알아서 붙인다. 표시 형식과 계산 값을 섞지 않는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "표시 형식 — 로케일·통화에 맡긴다",
+          "label": "표시 형식. 로케일, 통화에 맡긴다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const loc = '{{locale}}';\n  const cents = 1999990;                 // 최소 단위 정수(예: 센트/원)\n  const cases = {\n    koKR: ['ko-KR / KRW', '₩1,999,990', '천 단위 콤마 · 원화 기호 · 소수 0'],\n    enUS: ['en-US / USD', '$19,999.90', '천 단위 콤마 · 달러 · 소수 2'],\n    deDE: ['de-DE / EUR', '19.999,90 €', '독일: 점=천단위 · 콤마=소수 · 기호 뒤'],\n  }[loc];\n  render('같은 값, 로케일별 표시: ' + cases[0],\n    '  내부 값(정수): ' + cents + '  →  표시: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n' +\n    '  ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"warn\\\">독일은 점·콤마가 반대!</span> 표시 형식을 손으로 만들지 말고 Intl 에 맡긴다.',\n    '계산은 정수로, 표시는 Intl.NumberFormat 이 로케일·통화에 맞춰 붙인다.',\n    box('Intl.NumberFormat', 'new Intl.NumberFormat(\\'' + loc.replace('koKR','ko-KR').replace('enUS','en-US').replace('deDE','de-DE') + '\\',\\n  { style: \\'currency\\', currency: ... }).format(값)', 'good'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const loc = '{{locale}}';\n  const cents = 1999990;                 // 최소 단위 정수(예: 센트/원)\n  const cases = {\n    koKR: ['ko-KR / KRW', '₩1,999,990', '천 단위 콤마, 원화 기호, 소수 0'],\n    enUS: ['en-US / USD', '$19,999.90', '천 단위 콤마, 달러, 소수 2'],\n    deDE: ['de-DE / EUR', '19.999,90 €', '독일: 점=천단위, 콤마=소수, 기호 뒤'],\n  }[loc];\n  render('같은 값, 로케일별 표시: ' + cases[0],\n    '  내부 값(정수): ' + cents + '  →  표시: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n' +\n    '  ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"warn\\\">독일은 점, 콤마가 반대!</span> 표시 형식을 손으로 만들지 말고 Intl 에 맡긴다.',\n    '계산은 정수로, 표시는 Intl.NumberFormat 이 로케일, 통화에 맞춰 붙인다.',\n    box('Intl.NumberFormat', 'new Intl.NumberFormat(\\'' + loc.replace('koKR','ko-KR').replace('enUS','en-US').replace('deDE','de-DE') + '\\',\\n  { style: \\'currency\\', currency: ... }).format(값)', 'good'));\n</script>",
           "controls": [
             {
               "id": "locale",
@@ -544,15 +544,15 @@
           "type": "code",
           "lang": "javascript",
           "label": "표시는 Intl 에 맡긴다",
-          "text": "// 계산은 정수로 끝내고, 표시할 때만 포맷\nnew Intl.NumberFormat('ko-KR', {\n  style: 'currency', currency: 'KRW'\n}).format(1999990 / 1);      // ₩1,999,990\n\n// 통화·로케일이 소수 자릿수·기호·구분자를 알아서 결정\n// 직접 문자열 조합(₩ + 값.toLocaleString()) 하지 말 것 — 로케일마다 규칙이 다름"
+          "text": "// 계산은 정수로 끝내고, 표시할 때만 포맷\nnew Intl.NumberFormat('ko-KR', {\n  style: 'currency', currency: 'KRW'\n}).format(1999990 / 1);      // ₩1,999,990\n\n// 통화, 로케일이 소수 자릿수, 기호, 구분자를 알아서 결정\n// 직접 문자열 조합(₩ + 값.toLocaleString()) 하지 말 것. 로케일마다 규칙이 다름"
         },
         {
           "type": "note",
-          "text": "**표시 형식은 로케일마다 딴판이다 — 손으로 만들지 마라.** 독일은 `1.999,90`(점=천단위, 콤마=소수), 미국은 `1,999.90` 으로 **점·콤마가 반대**다. 통화 기호 위치(앞/뒤), 소수 자릿수, 음수 표기도 다르다. `Intl.NumberFormat`(또는 언어별 통화 포맷 라이브러리)이 이 규칙을 다 안다 — 직접 `₩ + 문자열` 로 조합하면 반드시 어느 로케일에서 틀린다(i18n 트랙)."
+          "text": "**표시 형식은 로케일마다 딴판이다. 손으로 만들지 마라.** 독일은 `1.999,90`(점=천단위, 콤마=소수), 미국은 `1,999.90` 으로 **점, 콤마가 반대**다. 통화 기호 위치(앞/뒤), 소수 자릿수, 음수 표기도 다르다. `Intl.NumberFormat`(또는 언어별 통화 포맷 라이브러리)이 이 규칙을 다 안다. 직접 `₩ + 문자열` 로 조합하면 반드시 어느 로케일에서 틀린다(i18n 트랙)."
         },
         {
           "type": "p",
-          "text": "**계층 분리가 핵심이다(design-boundary).** 「돈 값」(정수, 통화)은 도메인·저장·계산 계층에, 「표시 문자열」(₩1,999,990)은 표시 계층에만 산다. 표시 문자열을 다시 파싱해 계산하거나, 계산 값에 통화 기호를 섞으면 경계가 무너진다. 「내부는 정수, 경계에서 표시로 변환」 — design-boundary 의 「새어 나옴 방지」가 돈에서도 그대로다."
+          "text": "**계층 분리가 핵심이다(design-boundary).** 돈 값(정수, 통화)은 도메인, 저장, 계산 계층에, 표시 문자열(₩1,999,990)은 표시 계층에만 산다. 표시 문자열을 다시 파싱해 계산하거나, 계산 값에 통화 기호를 섞으면 경계가 무너진다. 내부는 정수, 경계에서 표시로 변환. design-boundary 의 새어 나옴 방지가 돈에서도 그대로다."
         },
         {
           "type": "try",
@@ -575,7 +575,7 @@
           "q": "통화 표시를 직접 문자열로 조합하면?",
           "choices": [
             "빠름",
-            "로케일마다 규칙(점·콤마·기호)이 달라 틀림",
+            "로케일마다 규칙(점, 콤마, 기호)이 달라 틀림",
             "안전",
             "정확"
           ],
@@ -586,7 +586,7 @@
           "q": "독일 로케일의 특징은?",
           "choices": [
             "미국과 같음",
-            "점=천단위·콤마=소수(미국과 반대)",
+            "점=천단위, 콤마=소수(미국과 반대)",
             "기호 없음",
             "소수 0"
           ],
@@ -597,19 +597,19 @@
     },
     {
       "id": "8",
-      "title": "검산 — 불변식과 대사",
+      "title": "검산. 불변식과 대사",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "돈 계산은 **불변식을 테스트로 고정**한다: `주문 합계 = 항목 합 + 세금 − 할인 + 배송비`, `분배 합 = 원금`, `차변 = 대변`(복식부기). 이 등식들이 늘 성립하는지 테스트로 박고, 운영에선 정기적으로 **대사(reconciliation)** — 우리 장부와 결제사·은행 기록을 맞춰 본다. 「맞을 것」이 아니라 「맞는지 계속 확인」한다."
+          "text": "돈 계산은 **불변식을 테스트로 고정**한다: `주문 합계 = 항목 합 + 세금 − 할인 + 배송비`, `분배 합 = 원금`, `차변 = 대변`(복식부기). 이 등식들이 늘 성립하는지 테스트로 박고, 운영에선 정기적으로 **대사(reconciliation)**. 우리 장부와 결제사, 은행 기록을 맞춰 본다. 맞을 것이 아니라 맞는지 계속 확인한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "불변식 검산 — 등식이 성립하나",
+          "label": "불변식 검산. 등식이 성립하나",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const inv = '{{inv}}';\n  const cases = {\n    order:  ['주문 합계 = 항목 + 세금 - 할인 + 배송', '10000 + 1000 - 500 + 3000 = 13500', '주문마다 이 등식을 검증'],\n    split:  ['분배 합 = 원금', '334 + 333 + 333 = 1000', '나눈 것을 다 더하면 원금(5장)'],\n    ledger: ['차변 = 대변 (복식부기)', '들어온 곳 합 = 나간 곳 합', '모든 돈은 어디선가 와서 어디론가 — 안 맞으면 오류'],\n    recon:  ['우리 장부 = 결제사 기록', '내 정산액 = PG 명세 합', '대사(reconciliation) — 정기적으로 맞춰 본다'],\n  }[inv];\n  render('불변식: ' + cases[0],\n    '  예: ' + cases[1] + '\\n  뜻: ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">이 등식을 테스트·대사로 고정 — 안 맞으면 즉시 오류를 잡는다.</span>',\n    '돈 불변식(합계·분배·복식부기·대사)을 테스트로 고정하고 정기 대사한다.',\n    box(cases[0], cases[1] + '\\n' + cases[2], 'good'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const inv = '{{inv}}';\n  const cases = {\n    order:  ['주문 합계 = 항목 + 세금 - 할인 + 배송', '10000 + 1000 - 500 + 3000 = 13500', '주문마다 이 등식을 검증'],\n    split:  ['분배 합 = 원금', '334 + 333 + 333 = 1000', '나눈 것을 다 더하면 원금(5장)'],\n    ledger: ['차변 = 대변 (복식부기)', '들어온 곳 합 = 나간 곳 합', '모든 돈은 어디선가 와서 어디론가. 안 맞으면 오류'],\n    recon:  ['우리 장부 = 결제사 기록', '내 정산액 = PG 명세 합', '대사(reconciliation). 정기적으로 맞춰 본다'],\n  }[inv];\n  render('불변식: ' + cases[0],\n    '  예: ' + cases[1] + '\\n  뜻: ' + cases[2] + '\\n\\n' +\n    '  <span class=\\\"ok\\\">이 등식을 테스트, 대사로 고정. 안 맞으면 즉시 오류를 잡는다.</span>',\n    '돈 불변식(합계, 분배, 복식부기, 대사)을 테스트로 고정하고 정기 대사한다.',\n    box(cases[0], cases[1] + '\\n' + cases[2], 'good'));\n</script>",
           "controls": [
             {
               "id": "inv",
@@ -639,15 +639,15 @@
         },
         {
           "type": "note",
-          "text": "**주문 합계 = 항목 합 + 세금 − 할인 + 배송비 — 이 불변식을 테스트로 고정하라.** 돈 로직은 반올림·분배·환율 등 미묘한 곳이 많아, 「등식이 늘 성립하는가」를 property 테스트(quality 트랙)로 넓게 검증하면 숨은 오차가 드러난다. 그리고 운영에선 **정기 대사** — 매일 우리 장부 합과 결제사·은행 명세를 맞춰, 1원이라도 벌어지면 그날 잡는다(막힌 지 며칠 뒤 발견이 아니라)."
+          "text": "**주문 합계 = 항목 합 + 세금 − 할인 + 배송비. 이 불변식을 테스트로 고정하라.** 돈 로직은 반올림, 분배, 환율 등 미묘한 곳이 많아, 등식이 늘 성립하는가를 property 테스트(quality 트랙)로 넓게 검증하면 숨은 오차가 드러난다. 그리고 운영에선 **정기 대사**. 매일 우리 장부 합과 결제사, 은행 명세를 맞춰, 1원이라도 벌어지면 그날 잡는다(막힌 지 며칠 뒤 발견이 아니라)."
         },
         {
           "type": "p",
-          "text": "**복식부기의 「차변=대변」이 가장 강한 불변식이다.** 모든 돈 이동을 「어디서 와서 어디로 갔나」 양쪽으로 기록하면(들어온 계정 + / 나간 계정 −), 전체 합이 늘 0 이어야 한다 — 안 맞으면 어딘가 돈이 새거나 생긴 것이다. 결제·정산 시스템이 복식부기로 이벤트를 남기면(append-only, db-migrate·api-version 정신), 「돈이 왜 안 맞지」를 추적할 감사 기록이 생긴다. 검산은 사후 확인이자 사고의 조기 경보다(quality 의 무음 실패 회피)."
+          "text": "**복식부기의 차변=대변이 가장 강한 불변식이다.** 모든 돈 이동을 어디서 와서 어디로 갔나 양쪽으로 기록하면(들어온 계정 + / 나간 계정 −), 전체 합이 늘 0 이어야 한다. 안 맞으면 어딘가 돈이 새거나 생긴 것이다. 결제, 정산 시스템이 복식부기로 이벤트를 남기면(append-only, db-migrate, api-version 정신), 돈이 왜 안 맞지를 추적할 감사 기록이 생긴다. 검산은 사후 확인이자 사고의 조기 경보다(quality 의 무음 실패 회피)."
         },
         {
           "type": "try",
-          "text": "네 주문 합계 불변식(`합계 = 항목 + 세금 - 할인 + 배송`)을 테스트로 고정하고, 여러 값·통화로 property 테스트하라. 운영이면 결제사 명세와 우리 장부를 맞추는 정기 대사가 있는지 확인하라."
+          "text": "네 주문 합계 불변식(`합계 = 항목 + 세금 - 할인 + 배송`)을 테스트로 고정하고, 여러 값, 통화로 property 테스트하라. 운영이면 결제사 명세와 우리 장부를 맞추는 정기 대사가 있는지 확인하라."
         }
       ],
       "quiz": [
@@ -655,7 +655,7 @@
           "q": "돈 계산 검산의 핵심은?",
           "choices": [
             "빠른 계산",
-            "불변식(합계·분배·복식부기)을 테스트로 고정 + 정기 대사",
+            "불변식(합계, 분배, 복식부기)을 테스트로 고정 + 정기 대사",
             "float",
             "표시"
           ],
@@ -666,7 +666,7 @@
           "q": "대사(reconciliation)란?",
           "choices": [
             "암호화",
-            "우리 장부와 결제사·은행 기록을 맞춰 봄",
+            "우리 장부와 결제사, 은행 기록을 맞춰 봄",
             "반올림",
             "환율"
           ],
@@ -688,19 +688,19 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 돈 다루기",
+      "title": "점검표. 돈 다루기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "돈을 다루는 코드를 짜거나 점검할 때 이 목록을 확인하라. 핵심은 「정수로·통화와 함께·반올림 규칙·시점 저장·검산」이다."
+          "text": "돈을 다루는 코드를 짜거나 점검할 때 이 목록을 확인하라. 핵심은 정수로, 통화와 함께, 반올림 규칙, 시점 저장, 검산이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '돈을 float 로 다루지 않는다(정수/decimal)',\n    '최소 단위 정수로 저장·계산한다',\n    '금액을 통화와 함께 다룬다(Money·자릿수)',\n    '반올림 규칙을 한 곳에 정하고 일관 적용',\n    '분배는 나머지 규칙 + 합=원금 보장',\n    '환율·세율은 시점 값·환산액을 함께 저장',\n    '계산은 정수, 표시는 Intl(로케일)에 맡김',\n    '불변식을 테스트로 고정 + 정기 대사',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 1원도 안 새고, 나중에 재현되고, 검산된다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '정수로·통화와 함께·반올림 규칙·시점 저장·검산. 돈 다루기의 다섯 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .coins { display:flex; gap:4px; flex-wrap:wrap; margin:8px 0; }\n  .coins .c { padding:5px 9px; border-radius:5px; font:11px ui-monospace; background:#1e293b; color:#cbd5e1; }\n  .coins .c.extra { background:#0e7490; color:#fff; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const coins = (cells) => '<div class=\"coins\">' + cells.map(([cls, label]) =>\n    '<span class=\"c ' + cls + '\">' + esc(label) + '</span>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '돈을 float 로 다루지 않는다(정수/decimal)',\n    '최소 단위 정수로 저장, 계산한다',\n    '금액을 통화와 함께 다룬다(Money, 자릿수)',\n    '반올림 규칙을 한 곳에 정하고 일관 적용',\n    '분배는 나머지 규칙 + 합=원금 보장',\n    '환율, 세율은 시점 값, 환산액을 함께 저장',\n    '계산은 정수, 표시는 Intl(로케일)에 맡김',\n    '불변식을 테스트로 고정 + 정기 대사',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인. 1원도 안 새고, 나중에 재현되고, 검산된다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '정수로, 통화와 함께, 반올림 규칙, 시점 저장, 검산. 돈 다루기의 다섯 축.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -715,15 +715,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 돈은 정확해야 한다 — 정수로, 통화와 함께, 검산하며.** float 를 피해 최소 단위 정수로 계산하고(1·2장), 통화·자릿수를 함께 다루고(3장), 반올림·분배 규칙을 명시하고(4·5장), 시점 값을 저장하고(6장), 불변식으로 검산한다(8장). 「대충 맞으면」이 없는 도메인이라, 규칙을 명시하고 테스트·대사로 지킨다."
+          "text": "**한 줄 요약: 돈은 정확해야 한다. 정수로, 통화와 함께, 검산하며.** float 를 피해 최소 단위 정수로 계산하고(1, 2장), 통화, 자릿수를 함께 다루고(3장), 반올림, 분배 규칙을 명시하고(4, 5장), 시점 값을 저장하고(6장), 불변식으로 검산한다(8장). 대충 맞으면이 없는 도메인이라, 규칙을 명시하고 테스트, 대사로 지킨다."
         },
         {
           "type": "p",
-          "text": "**이 칸의 연결.** 돈은 api-idempotent(중복 결제 방지)·db-lock(동시 차감)·design-model(Money 값 객체)·design-record(율·시점 기록)·quality(불변식 테스트)와 이어진다. pay 트랙의 나머지(흐름·멱등·환불·보안·구독·수수료)도 이 「정확한 돈」 위에 선다. **「1원도 틀리지 않게」라는 규율이 결제·정산 시스템의 토대**다."
+          "text": "**이 칸의 연결.** 돈은 api-idempotent(중복 결제 방지), db-lock(동시 차감), design-model(Money 값 객체), design-record(율, 시점 기록), quality(불변식 테스트)와 이어진다. pay 트랙의 나머지(흐름, 멱등, 환불, 보안, 구독, 수수료)도 이 정확한 돈 위에 선다. **1원도 틀리지 않게라는 규율이 결제, 정산 시스템의 토대**다."
         },
         {
           "type": "try",
-          "text": "이 8개 항목으로 네 돈 코드를 점검하라. 「float 안 쓰기(정수)」와 「불변식 테스트」 두 가지부터 잡으면, 정산에서 터지던 1원 오차가 사라진다."
+          "text": "이 8개 항목으로 네 돈 코드를 점검하라. float 안 쓰기(정수)와 불변식 테스트 두 가지부터 잡으면, 정산에서 터지던 1원 오차가 사라진다."
         }
       ],
       "quiz": [
@@ -731,7 +731,7 @@
           "q": "돈 다루기의 한 줄 요약은?",
           "choices": [
             "빠르게",
-            "정확하게 — 정수로·통화와 함께·검산하며",
+            "정확하게. 정수로, 통화와 함께, 검산하며",
             "float 로",
             "대충"
           ],
@@ -741,9 +741,9 @@
         {
           "q": "돈 다루기의 다섯 축은?",
           "choices": [
-            "빠름·큼·전역·float·표시",
-            "정수로·통화와 함께·반올림 규칙·시점 저장·검산",
-            "캐시·복제·샤딩·압축·인덱스",
+            "빠름, 큼, 전역, float, 표시",
+            "정수로, 통화와 함께, 반올림 규칙, 시점 저장, 검산",
+            "캐시, 복제, 샤딩, 압축, 인덱스",
             "표시만"
           ],
           "answer": 1,
@@ -753,7 +753,7 @@
           "q": "돈이 이어지는 다른 주제는?",
           "choices": [
             "없음",
-            "api-idempotent·db-lock·design-model·quality",
+            "api-idempotent, db-lock, design-model, quality",
             "속도",
             "문법"
           ],

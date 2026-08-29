@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * audit-atlas-minimap — **당겨 들어가도 여기가 전체의 어디인지 아나** (TASK-KAR-233).
+ * audit-atlas-minimap. **당겨 들어가도 여기가 전체의 어디인지 아나** (TASK-KAR-233).
  *
  * 당겨 들어간 자리에 아무것도 없어 길을 잃는 걸 사막 안개(desert fog)라 부른다
  * (Jul & Furnas, UIST 1998). 우리 지도도 8배로 당기면 **화면 225칸 중 47칸(21%)이
  * 글 열 개도 안 되는 허허벌판**이었다. 그 자리에서 화면에 남는 단서가 하나도 없었다.
  *
  * 그래서 구석에 작은 지도를 두고 지금 보는 자리를 네모로 그린다. 이 자는 그게
- * **정말 맞는 네모인지** 본다 — 있는 척만 하고 엉뚱한 데를 가리키면 없느니만 못하다:
+ * **정말 맞는 네모인지** 본다. 있는 척만 하고 엉뚱한 데를 가리키면 없느니만 못하다:
  *  - 멀리서는 안 뜨고, 당기면 뜬다
- *  - 네모의 자리·크기가 배율에서 계산한 값과 맞는다 (밀어 다녀도)
- *  - **글이 없는 자리(안개)에서도** 네모가 남는다 — 거기가 이 자의 존재 이유다
+ *  - 네모의 자리, 크기가 배율에서 계산한 값과 맞는다 (밀어 다녀도)
+ *  - **글이 없는 자리(안개)에서도** 네모가 남는다. 거기가 이 자의 존재 이유다
  *  - 눌러서 건너뛸 수 있다
  */
 import fs from 'node:fs';
@@ -25,12 +25,12 @@ const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 const ATLAS = atlasPath(HERE);
 
 if (!fs.existsSync(ATLAS) || !fs.existsSync(BUNDLE)) {
-  console.log('[minimap] 지도나 번들이 없다 — 검사 건너뜀');
+  console.log('[minimap] 지도나 번들이 없다. 검사 건너뜀');
   process.exit(0);
 }
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch {
-  console.log('[minimap] playwright 가 없다 — 검사 건너뜀');
+  console.log('[minimap] playwright 가 없다. 검사 건너뜀');
   process.exit(0);
 }
 
@@ -54,7 +54,7 @@ await page.evaluate(() => {
   const h = document.createElement('div');
   h.id = 'host'; h.style.width = '1200px'; h.style.height = '760px';
   document.body.appendChild(h);
-  /* **셸과 같은 길로 얹는다** — 셸은 `tabs[].build` 로만 그린다. 예전엔 여기서
+  /* **셸과 같은 길로 얹는다**. 셸은 `tabs[].build` 로만 그린다. 예전엔 여기서
          `render(h)` 를 직접 불렀는데, 그 바람에 위젯이 셸이 안 읽는 모양으로 등록해도
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
@@ -69,10 +69,10 @@ const read = () => page.evaluate(() => ({
   h: document.querySelector('#host .atlas-canvas').height,
 }));
 
-/* 멀리서는 안 떠야 한다 — 전체가 이미 화면인데 또 전체를 그리면 자리만 먹는다. */
+/* 멀리서는 안 떠야 한다. 전체가 이미 화면인데 또 전체를 그리면 자리만 먹는다. */
 const far = await read();
 console.log(`[minimap] 멀리(배율 ${far.scale.toFixed(2)}) → ${far.mini ? '떴다' : '안 떴다'}`);
-if (far.mini) bad.push('멀리서도 작은 지도가 뜬다 — 자리만 먹는다');
+if (far.mini) bad.push('멀리서도 작은 지도가 뜬다. 자리만 먹는다');
 
 async function wheelIn(times) {
   for (let k = 0; k < times; k += 1) {
@@ -94,8 +94,8 @@ const near = await read();
 console.log(`[minimap] 당기고(배율 ${near.scale.toFixed(2)}) → ${near.mini ? '떴다' : '안 떴다(고장)'}`);
 if (!near.mini) bad.push('당겨도 작은 지도가 안 뜬다');
 
-/* **네모가 맞나 — 뜻으로 잰다.** 배율·여백을 자가 다시 계산하면 위젯 식을 베끼는
-     꼴이라 같이 틀려도 모른다(처음에 그렇게 8.8% 를 「고장」으로 잘못 읽었다).
+/* **네모가 맞나. 뜻으로 잰다.** 배율, 여백을 자가 다시 계산하면 위젯 식을 베끼는
+     꼴이라 같이 틀려도 모른다(처음에 그렇게 8.8% 를 고장으로 잘못 읽었다).
      대신 이렇게 본다: 네모 안에 든 글 수 == 지금 화면에 보이는 글 수.
      네모가 엉뚱한 데를 가리키면 두 수가 갈라진다. */
 let fogSeen = 0; let fogWithMini = 0; let worst = 0;
@@ -112,7 +112,7 @@ if (near.mini) {
       if (!mini) return { mini: null };
       const [, , W, H] = mini.box;
       const [lx, ly, lw, lh] = mini.rect;
-      /* 네모를 지도 자리로 되돌린다. **-1..1 이라고 넘겨짚지 않는다** —
+      /* 네모를 지도 자리로 되돌린다. **-1..1 이라고 넘겨짚지 않는다** . 
          굽는 쪽이 테두리로 접기를 그만두면서 점이 자 밖으로도 나간다. */
       const b = window.__atlasBounds || { x0: -1, x1: 1, y0: -1, y1: 1 };
       const sx = b.x1 - b.x0; const sy = b.y1 - b.y0;
@@ -127,11 +127,11 @@ if (near.mini) {
     worst = Math.max(worst, err);
     if (r.visible < 10) { fogSeen += 1; fogWithMini += 1; }
   }
-  console.log(`[minimap] 네모 안 글 수 vs 화면 속 글 수 — 어긋남 최대 ${(worst * 100).toFixed(1)}% · 안개 자리 ${fogSeen}곳 중 작은 지도 남은 곳 ${fogWithMini}`);
+  console.log(`[minimap] 네모 안 글 수 vs 화면 속 글 수. 어긋남 최대 ${(worst * 100).toFixed(1)}%, 안개 자리 ${fogSeen}곳 중 작은 지도 남은 곳 ${fogWithMini}`);
   if (worst > 0.1) bad.push(`네모가 가리키는 곳과 실제 화면이 다르다 (어긋남 ${(worst * 100).toFixed(1)}%)`);
   if (fogSeen && fogWithMini < fogSeen) bad.push('정작 안개 자리에서 작은 지도가 사라진다');
 
-  /* 눌러서 건너뛰나 — 안개에서 빠져나오는 길. */
+  /* 눌러서 건너뛰나. 안개에서 빠져나오는 길. */
   const before = await page.evaluate(() => [window.__atlasView?.x, window.__atlasView?.y]);
   const m = near.mini.box;
   const dpr = await page.evaluate(() => window.devicePixelRatio || 1);

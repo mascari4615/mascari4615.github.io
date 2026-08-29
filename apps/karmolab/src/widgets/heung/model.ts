@@ -18,9 +18,9 @@ export interface StudioClip {
   duration: number;
   offset: number;
   assetId?: string;
-  /** 이 클립만 소리를 끈다 — 트랙 전체를 끄지 않고 한 부분만 빼 보려고. */
+  /** 이 클립만 소리를 끈다. 트랙 전체를 끄지 않고 한 부분만 빼 보려고. */
   mute: boolean;
-  /** 잠그면 옮기거나 길이를 바꾸거나 지울 수 없다 — 다 짠 부분을 실수로 건드리지 않게. */
+  /** 잠그면 옮기거나 길이를 바꾸거나 지울 수 없다. 다 짠 부분을 실수로 건드리지 않게. */
   locked: boolean;
   /** 트랙 색 대신 쓸 색. 없으면 트랙 색을 따른다. */
   color?: string;
@@ -30,7 +30,7 @@ export interface StudioClip {
   fadeOut: number;
 }
 
-/** 자동화할 수 있는 값. 눈금 범위가 달라서 뷰·엔진이 이 이름으로 갈라진다. */
+/** 자동화할 수 있는 값. 눈금 범위가 달라서 뷰, 엔진이 이 이름으로 갈라진다. */
 export type AutomationParam = 'volume' | 'pan' | 'reverb';
 
 export const AUTOMATION_RANGE: Record<AutomationParam, { min: number; max: number }> = {
@@ -42,7 +42,7 @@ export const AUTOMATION_RANGE: Record<AutomationParam, { min: number; max: numbe
 export interface AutomationPoint {
   id: string;
   beat: number;
-  /** 0~1.2 — 트랙 볼륨과 같은 눈금. */
+  /** 0~1.2. 트랙 볼륨과 같은 눈금. */
   value: number;
 }
 
@@ -61,16 +61,16 @@ export interface StudioTrack {
   compressor: number;
   reverb: number;
   instrument: OscillatorType;
-  /** 소리의 모양 — 붙는 속도·줄어드는 속도·버티는 크기·꼬리 길이(초). */
+  /** 소리의 모양. 붙는 속도, 줄어드는 속도, 버티는 크기, 꼬리 길이(초). */
   envelope: { attack: number; decay: number; sustain: number; release: number };
-  /** 저역 통과 필터 — 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
+  /** 저역 통과 필터. 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
   filter: { cutoff: number; envelope: number };
   /** 살짝 어긋난 두 번째 오실레이터로 두툼하게 (0 = 끔, 센트). */
   detune: number;
   clips: StudioClip[];
   /** 시간에 따라 움직이는 값들. 점이 0개인 항목은 트랙의 고정값을 그대로 쓴다. */
   automation: Record<AutomationParam, AutomationPoint[]>;
-  /** 접으면 클립 미리보기 대신 얇은 띠만 남는다 — 곡이 길어지면 세로가 부족해진다. */
+  /** 접으면 클립 미리보기 대신 얇은 띠만 남는다. 곡이 길어지면 세로가 부족해진다. */
   folded: boolean;
   /** 줄 높이(px). 드럼처럼 촘촘한 트랙은 키우고 배경은 줄인다. */
   height: number;
@@ -103,9 +103,9 @@ export interface StudioProject {
   snap: number;
   tracks: StudioTrack[];
   assets: StudioAsset[];
-  /** 구간 이름표 — 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
+  /** 구간 이름표. 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
   markers: StudioMarker[];
-  /** 스윙 0~0.6 — 뒷박을 얼마나 늦게 칠지. 0 이면 정박. */
+  /** 스윙 0~0.6. 뒷박을 얼마나 늦게 칠지. 0 이면 정박. */
   swing: number;
   updatedAt: string;
 }
@@ -116,10 +116,10 @@ export type StudioSelection =
   | { type: 'note'; trackId: string; clipId: string; noteId: string }
   | null;
 
-/** 줄 높이 규칙 — 뷰·제스처가 같은 숫자를 본다. */
+/** 줄 높이 규칙. 뷰, 제스처가 같은 숫자를 본다. */
 export const TRACK_HEIGHT = { min: 44, max: 260, default: 84 } as const;
 
-/** 저장본·드래그에서 온 값을 쓸 수 있는 높이로 접는다. 숫자가 아니면 기본값. */
+/** 저장본, 드래그에서 온 값을 쓸 수 있는 높이로 접는다. 숫자가 아니면 기본값. */
 export function clampTrackHeight(value: unknown): number {
   const number = Number(value);
   if (!Number.isFinite(number)) return TRACK_HEIGHT.default;
@@ -128,7 +128,7 @@ export function clampTrackHeight(value: unknown): number {
 
 const COLORS = ['#8b7cf6', '#42b9a8', '#ed8b55', '#e15d8a', '#5d9cec', '#c5a34e'];
 
-/** 클립에 골라 줄 수 있는 색 — 트랙 색과 같은 묶음이라 화면이 안 튄다. */
+/** 클립에 골라 줄 수 있는 색. 트랙 색과 같은 묶음이라 화면이 안 튄다. */
 export const CLIP_COLORS = COLORS;
 
 /** 다음 색으로 한 칸. 트랙 색을 따르던 것(undefined)이면 첫 색부터. */
@@ -264,7 +264,7 @@ export function normalizeProject(input: unknown): StudioProject {
     track.detune = clamp((source as { detune?: unknown }).detune, 0, 60, 8);
     track.folded = source.folded === true;
     track.height = source.height === undefined ? TRACK_HEIGHT.default : clampTrackHeight(source.height);
-    /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다 — 새 자리로 옮겨 담는다. */
+    /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다. 새 자리로 옮겨 담는다. */
     const legacyVolume = (raw as { volumeAutomation?: unknown }).volumeAutomation;
     const storedAutomation = (source as { automation?: Partial<Record<AutomationParam, unknown>> }).automation;
     track.automation = {
@@ -293,7 +293,7 @@ export function projectJson(project: StudioProject, pretty = true): string {
 }
 
 /**
- * 음 편집 연산 — 피아노롤 도구가 쓰는 순수 변형.
+ * 음 편집 연산. 피아노롤 도구가 쓰는 순수 변형.
  * 전부 제자리 변형이지만 프로젝트/DOM 을 모르므로 단위 테스트로 닫힌다.
  */
 
@@ -345,7 +345,7 @@ export function legatoNotes(notes: StudioNote[], limit: number): number {
   return changed;
 }
 
-/** 점을 시간순으로 세운다 — 편집이 어디에 점을 놓든 읽는 쪽은 정렬을 전제한다. */
+/** 점을 시간순으로 세운다. 편집이 어디에 점을 놓든 읽는 쪽은 정렬을 전제한다. */
 /** 저장본에서 온 점들을 값 범위에 맞춰 걸러 낸다. 숫자가 아닌 위치는 버린다. */
 export function cleanAutomation(input: unknown, param: AutomationParam): AutomationPoint[] {
   if (!Array.isArray(input)) return [];
@@ -387,7 +387,7 @@ export function automationValueAt(points: AutomationPoint[], beat: number, fallb
   return last.value;
 }
 
-/** 같은 자리에 점을 겹쳐 놓지 않는다 — 가까우면 그 점의 값을 바꾼다. */
+/** 같은 자리에 점을 겹쳐 놓지 않는다. 가까우면 그 점의 값을 바꾼다. */
 export function putAutomationPoint(points: AutomationPoint[], beat: number, value: number, param: AutomationParam = 'volume', tolerance = 0.05): AutomationPoint[] {
   const range = AUTOMATION_RANGE[param];
   const clean = Math.max(0, beat);
@@ -399,7 +399,7 @@ export function putAutomationPoint(points: AutomationPoint[], beat: number, valu
 }
 
 /**
- * 트랙 순서 바꾸기 — 잡은 자리에서 놓은 자리로 옮긴다.
+ * 트랙 순서 바꾸기. 잡은 자리에서 놓은 자리로 옮긴다.
  * 범위를 벗어난 자리는 양 끝으로 접고, 제자리면 원래 배열을 그대로 돌려준다.
  */
 export function moveTrack(tracks: StudioTrack[], from: number, to: number): StudioTrack[] {
@@ -416,7 +416,7 @@ export function sortMarkers(markers: StudioMarker[]): StudioMarker[] {
   return [...markers].sort((a, b) => a.beat - b.beat);
 }
 
-/** 같은 자리에 겹쳐 놓지 않는다 — 가까우면 이름만 바꾼다. */
+/** 같은 자리에 겹쳐 놓지 않는다. 가까우면 이름만 바꾼다. */
 export function putMarker(markers: StudioMarker[], beat: number, name: string, tolerance = 0.05): StudioMarker[] {
   const at = Math.max(0, beat);
   const existing = markers.find((marker) => Math.abs(marker.beat - at) <= tolerance);
@@ -426,8 +426,8 @@ export function putMarker(markers: StudioMarker[], beat: number, name: string, t
 }
 
 /**
- * 지금 자리에서 앞/뒤 이름표. 없으면 `null` — 곡 처음/끝으로 튕기지 않는다.
- * 바로 그 자리에 있는 이름표는 「같은 자리」로 보고 건너뛴다.
+ * 지금 자리에서 앞/뒤 이름표. 없으면 `null`. 곡 처음/끝으로 튕기지 않는다.
+ * 바로 그 자리에 있는 이름표는 같은 자리로 보고 건너뛴다.
  */
 export function stepMarker(markers: StudioMarker[], beat: number, direction: 1 | -1, tolerance = 0.001): StudioMarker | null {
   const sorted = sortMarkers(markers);
@@ -440,7 +440,7 @@ export function stepMarker(markers: StudioMarker[], beat: number, direction: 1 |
 
 /**
  * 손으로 두드린 시각들에서 BPM 을 낸다. 오래된 두드림과 튀는 간격은 빼고 평균을 쓴다.
- * 두 번 미만이면 `null` — 아직 셀 수 없다.
+ * 두 번 미만이면 `null`. 아직 셀 수 없다.
  */
 export function tapTempo(times: number[], maxGapMs = 2500): number | null {
   if (times.length < 2) return null;
@@ -469,7 +469,7 @@ export function selectionRange(clips: { start: number; duration: number }[]): { 
 }
 
 /**
- * 스윙 — 격자의 **뒷칸**을 뒤로 민다. `unit` 은 스윙을 먹일 칸(기본 8분음표 = 0.5박).
+ * 스윙. 격자의 **뒷칸**을 뒤로 민다. `unit` 은 스윙을 먹일 칸(기본 8분음표 = 0.5박).
  * 앞칸은 그대로 두고 뒷칸만 미는 게 사람이 치는 느낌에 가깝다.
  */
 export function swingBeat(beat: number, swing: number, unit = 0.5): number {
@@ -488,7 +488,7 @@ export function swingBeat(beat: number, swing: number, unit = 0.5): number {
 }
 
 /**
- * 컴퓨터 자판을 건반으로 — 트래커 배열. 아랫줄이 낮은 옥타브, 윗줄이 한 옥타브 위.
+ * 컴퓨터 자판을 건반으로. 트래커 배열. 아랫줄이 낮은 옥타브, 윗줄이 한 옥타브 위.
  * 모르는 자판은 `null` (그 키는 원래 하던 일을 계속한다).
  */
 const KEY_ROWS: Record<string, number> = {
@@ -503,7 +503,7 @@ export function keyToPitch(key: string, octave: number, low = 0, high = 127): nu
   return pitch < low || pitch > high ? null : pitch;
 }
 
-/** 자판 건반이 덮는 키인지 — 도구 단축키와 겹치는지 미리 알아야 한다. */
+/** 자판 건반이 덮는 키인지. 도구 단축키와 겹치는지 미리 알아야 한다. */
 export function isPianoKey(key: string): boolean {
   return KEY_ROWS[String(key).toLowerCase()] !== undefined;
 }

@@ -3,20 +3,20 @@ import { stripParticle, worthWondering } from './curiosity';
 import type { MemoryEntry } from './types';
 
 /**
- * 놀릴 거리 — 재미는 저절로 생기지 않는다.
+ * 놀릴 거리. 재미는 저절로 생기지 않는다.
  *
- * 레퍼런스에서 가장 자주 짚이는 것: 저쪽은 **재미가 설계 목표**다. 「사람 같음」보다 「재밌음」을
+ * 레퍼런스에서 가장 자주 짚이는 것: 저쪽은 **재미가 설계 목표**다. 사람 같음보다 재밌음을
  * 앞에 두고 만들었고, 무표정하게 딱 잘라 말하는 농담과 **가벼운 놀리기**가 그 축이다.
  *
  * 우리 얘한테는 재미를 위한 장치가 **하나도 없었다.** 진지하고 짧다. 그런데 웃기라고 지시만
- * 늘리면 억지 개그가 나온다 — 필요한 건 지시가 아니라 **놀릴 거리**다. 그리고 우리는 이미
+ * 늘리면 억지 개그가 나온다. 필요한 건 지시가 아니라 **놀릴 거리**다. 그리고 우리는 이미
  * 조수님에 대해 꽤 안다.
  *
  * 기계로 정확히 잴 수 있는 것만 고른다. 지어내면 그건 놀리는 게 아니라 트집이다.
- * - **같은 걸 또 물었다** — 기록에 그대로 남아 있다.
- * - **잔다고 하고 안 잤다** — 말과 시각이 어긋난다.
+ * - **같은 걸 또 물었다**. 기록에 그대로 남아 있다.
+ * - **잔다고 하고 안 잤다**. 말과 시각이 어긋난다.
  *
- * 선 하나: **놀리는 것과 비난은 다르다.** 그리고 조수님이 힘들어 보이면 안 놀린다 —
+ * 선 하나: **놀리는 것과 비난은 다르다.** 그리고 조수님이 힘들어 보이면 안 놀린다 . 
  * 그 자리에서 놀리는 건 재미가 아니라 무례다.
  */
 export interface Tease {
@@ -28,7 +28,7 @@ export interface Tease {
 
 const hardWords = /(힘들|지쳤|짜증|화나|우울|속상|안 좋|최악|망했|죽겠)/;
 
-/** 지금 놀릴 자리가 아닌가 — 힘들어 보이면 안 놀린다. */
+/** 지금 놀릴 자리가 아닌가. 힘들어 보이면 안 놀린다. */
 export function tooSoreToTease(entries: readonly MemoryEntry[], howMany = 3): boolean {
   return conversationOnly(entries)
     .filter((e) => e.role === 'sensed')
@@ -36,7 +36,7 @@ export function tooSoreToTease(entries: readonly MemoryEntry[], howMany = 3): bo
     .some((e) => hardWords.test(e.text));
 }
 
-/** 물음에서 알맹이 낱말들을 뽑는다 — 「그 셰이더 어떻게 됐어?」 → 셰이더. */
+/** 물음에서 알맹이 낱말들을 뽑는다. 그 셰이더 어떻게 됐어? → 셰이더. */
 function core(text: string): string[] {
   return text
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
@@ -48,8 +48,8 @@ function core(text: string): string[] {
 /**
  * 전에도 같은 걸 물었나. 그 물음을 돌려준다.
  *
- * **똑같은 문장**이 아니라 **같은 알맹이**를 본다 — 사람은 같은 걸 물어도 매번 다르게 말한다.
- * 그리고 **너무 오래된 건 안 센다** — 두 달 전에 물은 걸 「또 물었네」 하면 그건 놀리는 게
+ * **똑같은 문장**이 아니라 **같은 알맹이**를 본다. 사람은 같은 걸 물어도 매번 다르게 말한다.
+ * 그리고 **너무 오래된 건 안 센다**. 두 달 전에 물은 걸 또 물었네 하면 그건 놀리는 게
  * 아니라 소름이다.
  */
 export function askedBefore(
@@ -78,7 +78,7 @@ const sleepText = /(잘게|자야지|잔다|잠들|이제 자|자러|굿나잇|�
 /**
  * 잔다고 해 놓고 아직 있나.
  *
- * 「이제 잘게」라고 한 지 한참 지났는데 또 말을 걸면, 그건 놀릴 자리다.
+ * 이제 잘게라고 한 지 한참 지났는데 또 말을 걸면, 그건 놀릴 자리다.
  */
 export function stayedUp(
   entries: readonly MemoryEntry[],
@@ -109,13 +109,13 @@ export function findTease(
   const repeatQuestion = askedBefore(said, entries, { now });
   if (repeatQuestion !== null) {
     const when = new Date(repeatQuestion.at);
-    return { from: '또 물음', what: `조수님이 「${repeatQuestion.text.slice(0, 24)}」 를 ${when.getMonth() + 1}월 ${when.getDate()}일에도 물었다` };
+    return { from: '또 물음', what: `조수님이 ${repeatQuestion.text.slice(0, 24)} 를 ${when.getMonth() + 1}월 ${when.getDate()}일에도 물었다` };
   }
 
   const notAsleep = stayedUp(entries, { now });
   if (notAsleep !== null) {
     const minutes = Math.round((now - notAsleep.at) / 60_000);
-    return { from: '잔다더니', what: `조수님이 ${minutes}분 전에 「${notAsleep.text.slice(0, 20)}」 라고 해 놓고 아직 있다` };
+    return { from: '잔다더니', what: `조수님이 ${minutes}분 전에 ${notAsleep.text.slice(0, 20)} 라고 해 놓고 아직 있다` };
   }
 
   return null;
@@ -131,7 +131,7 @@ export function teaseNote(tease: Tease | null): string {
   if (tease === null) return '';
   return (
     `놀릴 만한 거리: ${tease.what}. ` +
-    '쓸지 말지는 네가 정해라 — 매번 놀리면 피곤하다. ' +
+    '쓸지 말지는 네가 정해라. 매번 놀리면 피곤하다. ' +
     '쓴다면 **가볍게 한 마디**, 비난이 아니라 놀리기다.'
   );
 }

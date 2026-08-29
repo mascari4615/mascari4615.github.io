@@ -1,14 +1,14 @@
 {
   "redact.tab": "隠す",
-  "redact.drop": "隠したい画像をドラッグするか、押して選んでください — 貼り付け（Ctrl+V）もできます",
-  "redact.mode.fill": "黒塗り — 元に戻せません",
+  "redact.drop": "隠したい画像をドラッグするか、押して選んでください. 貼り付け（Ctrl+V）もできます",
+  "redact.mode.fill": "黒塗り. 元に戻せません",
   "redact.mode.pixel": "モザイク",
   "redact.label.block": "モザイクの粗さ",
-  "redact.label.stage": "隠したいところをドラッグしてください — 何回でもできます",
+  "redact.label.stage": "隠したいところをドラッグしてください. 何回でもできます",
   "redact.btn.save": "PNG でダウンロード",
   "redact.btn.undo": "今のを取り消す",
   "redact.btn.reset": "最初に戻す",
-  "redact.status.idle": "画像はブラウザの中だけで扱われます — どこにも送りません。",
+  "redact.status.idle": "画像はブラウザの中だけで扱われます. どこにも送りません。",
   "redact.stat.boxes": "隠した箇所",
   "redact.stat.size": "画像サイズ",
   "redact.stat.area": "隠した面積",
@@ -27,7 +27,7 @@
   "redact.say.saved": "{size} でダウンロードしました。隠した場所はファイルの中にも残らず、写真にあった位置情報も一緒に落ちました。",
   "redact.file.fallback": "画像",
   "redact.file.suffix": "-加工済み",
-  "redact.kb.hint": "キーボードでも操作できます — 矢印で移動、Shift+矢印でサイズ、Enter で塗りつぶし",
+  "redact.kb.hint": "キーボードでも操作できます. 矢印で移動、Shift+矢印でサイズ、Enter で塗りつぶし",
   "redact.kb.label": "隠す範囲を選ぶ（矢印=移動、Shift+矢印=サイズ、Enter=隠す、Backspace=取り消し）",
-  "redact.kb.moved": "範囲 {x},{y} · サイズ {w}×{h}"
+  "redact.kb.moved": "範囲 {x},{y}, サイズ {w}×{h}"
 }

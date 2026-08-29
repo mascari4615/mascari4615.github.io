@@ -1,10 +1,10 @@
 /**
- * 반응 측정 — 실시간·동시·여러 명 (TASK-KL-242)
+ * 반응 측정. 실시간, 동시, 여러 명 (TASK-KL-242)
  *
- * 커널이 「동시에 손을 뻗는 게임」을 감당하는지 보여 주는 자리. 제한시간이 흐르고, 아무나
+ * 커널이 동시에 손을 뻗는 게임을 감당하는지 보여 주는 자리. 제한시간이 흐르고, 아무나
  * 먼저 맞히면 그 사람이 가져간다. 차례가 없다 = `canAct` 를 안 쓴다.
  *
- * 문제는 씨앗에서 나온다 — 같은 방에 있는 넷은 **같은 문제**를 본다. 다르면 시합이 아니다.
+ * 문제는 씨앗에서 나온다. 같은 방에 있는 넷은 **같은 문제**를 본다. 다르면 시합이 아니다.
  * 판마다 제한시간이 줄어든다(와리오웨어: 설명을 읽을 틈이 없어야 재밌다).
  */
 import type { GameDef, GameCtx, BotMove } from '../types';
@@ -17,7 +17,7 @@ export interface ReflexState {
   /** 이 시각을 넘기면 판이 끝난다 (커널 시계) */
   endsAt: number;
   startedAt: number;
-  /** 자리별로 고른 것 — 아직 안 골랐으면 null */
+  /** 자리별로 고른 것. 아직 안 골랐으면 null */
   picks: Array<{ choice: number; at: number } | null>;
 }
 
@@ -31,7 +31,7 @@ const COLORS: Array<[string, string]> = [
   ['노랑', '#eab308'], ['보라', '#a855f7'], ['주황', '#f97316']
 ];
 
-/** 판 만들기 — 세 갈래를 씨앗으로 고른다. */
+/** 판 만들기. 세 갈래를 씨앗으로 고른다. */
 function makeRound(ctx: GameCtx, limitMs: number): ReflexState {
   const kind = Math.floor(ctx.rng() * 3);
   let order = '';
@@ -57,7 +57,7 @@ function makeRound(ctx: GameCtx, limitMs: number): ReflexState {
     answer = choices.indexOf(String(sum));
     order = `${a} + ${b}`;
   } else {
-    /* 글자 말고 색을 골라라 — 글자와 색이 어긋난다(스트룹) */
+    /* 글자 말고 색을 골라라. 글자와 색이 어긋난다(스트룹) */
     const target = pick(ctx.rng, COLORS);
     const rest = shuffle(ctx.rng, COLORS.filter((c) => c[0] !== target[0]));
     answer = Math.floor(ctx.rng() * 4);
@@ -68,7 +68,7 @@ function makeRound(ctx: GameCtx, limitMs: number): ReflexState {
       else { const c = rest[(i % 3) + 1] ?? rest[1]; choices.push(c[0]); tint.push(c[1]); }
     }
     order = `${target[0]} 색!`;
-    /* 색은 화면이 알아야 하니 글자에 섞어 보낸다 — 상태는 그물망을 건너야 해서 통짜 값만 쓴다 */
+    /* 색은 화면이 알아야 하니 글자에 섞어 보낸다. 상태는 그물망을 건너야 해서 통짜 값만 쓴다 */
     choices = choices.map((c, i) => `${c}\u0000${tint[i]}`);
   }
 
@@ -82,7 +82,7 @@ export const reflex: GameDef<ReflexState, ReflexAction> = {
   realtime: true,
 
   init(ctx) {
-    /* 판이 갈수록 짧아진다 — 마지막 판은 1.5초다. 밑을 두는 이유: 0 으로 수렴하면
+    /* 판이 갈수록 짧아진다. 마지막 판은 1.5초다. 밑을 두는 이유: 0 으로 수렴하면
        사람이 손을 뻗기도 전에 끝나 시합이 아니라 화면 깜빡임이 된다. */
     return makeRound(ctx, Math.max(1500, LIMIT_START - ctx.round * LIMIT_STEP));
   },
@@ -128,7 +128,7 @@ export const reflex: GameDef<ReflexState, ReflexAction> = {
   bot(s, seat, ctx): BotMove<ReflexAction> | null {
     if (s.picks[seat]) return null;
     const limit = s.endsAt - s.startedAt;
-    /* 사람처럼 — 가끔 틀리고 가끔 늦는다. 늘 맞히면 이길 수 없고 늘 틀리면 이길 이유가 없다. */
+    /* 사람처럼. 가끔 틀리고 가끔 늦는다. 늘 맞히면 이길 수 없고 늘 틀리면 이길 이유가 없다. */
     const right = ctx.rng() < 0.72;
     const choice = right ? s.answer : (s.answer + 1 + Math.floor(ctx.rng() * 3)) % s.choices.length;
     return { action: { choice }, delayMs: 500 + ctx.rng() * Math.max(400, limit - 900) };

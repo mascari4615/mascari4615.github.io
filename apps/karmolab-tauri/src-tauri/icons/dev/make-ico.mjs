@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// make-ico.mjs — dev PNGs → dev/icon.ico (PNG-in-ICO, Vista+ format, TASK-KL-039)
-// 의존성 없음 — built-in fs만.
+// make-ico.mjs. dev PNGs → dev/icon.ico (PNG-in-ICO, Vista+ format, TASK-KL-039)
+// 의존성 없음. built-in fs만.
 // 실행: node apps/karmolab-tauri/src-tauri/icons/dev/make-ico.mjs
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -14,7 +14,7 @@ const sizes = ['32x32.png', '128x128.png'];
 
 const pngs = sizes.map(name => {
   const path = join(__dir, name);
-  if (!existsSync(path)) throw new Error(`missing: ${path} — generate.ps1 먼저 실행`);
+  if (!existsSync(path)) throw new Error(`missing: ${path}. generate.ps1 먼저 실행`);
   return readFileSync(path);
 });
 

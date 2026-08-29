@@ -8,7 +8,7 @@
  * 넘겨도 아무도 안 다친다. 하지만 원본이 반쪽만 답해서 절반이 사라진 것이라면,
  * 그걸 그대로 커밋하는 순간 표가 망가진 채로 배포된다.
  *
- * 그래서 「조금 바뀌었다」와 「이상하게 바뀌었다」를 가른다. 이상하면 0 이 아닌 값으로 끝나고,
+ * 그래서 조금 바뀌었다와 이상하게 바뀌었다를 가른다. 이상하면 0 이 아닌 값으로 끝나고,
  * 부르는 쪽(주간 갱신 워크플로)이 커밋을 접는다.
  */
 import { execFileSync } from 'node:child_process';
@@ -33,7 +33,7 @@ function committed(file) {
   }
 }
 
-// 늘어나는 건 정상이다(새 챔피언·새 캐릭터). 줄어드는 건 원본이 반쪽만 답했다는 신호에 가깝다.
+// 늘어나는 건 정상이다(새 챔피언, 새 캐릭터). 줄어드는 건 원본이 반쪽만 답했다는 신호에 가깝다.
 const MAX_GROW = 0.15;
 const MAX_SHRINK = 0.03;
 
@@ -44,7 +44,7 @@ for (const file of readdirSync(dataDir).filter((f) => f.endsWith('.json'))) {
   const now = JSON.parse(readFileSync(join(dataDir, file), 'utf8'));
   const was = committed(file);
   if (!was) {
-    console.log(`${file}: 새 표 (${now.items.length}개) — 비교할 게 없다`);
+    console.log(`${file}: 새 표 (${now.items.length}개). 비교할 게 없다`);
     changed += 1;
     continue;
   }
@@ -60,14 +60,14 @@ for (const file of readdirSync(dataDir).filter((f) => f.endsWith('.json'))) {
   const how = `${was.items.length} → ${now.items.length} (${delta > 0 ? '+' : ''}${delta}, ${(ratio * 100).toFixed(1)}%)`;
   if (over) {
     bad += 1;
-    console.error(`${file}: ⛔ ${how} — 자동으로 넘기기엔 너무 크다. 원본이 반쪽만 답했는지 사람이 봐야 한다.`);
+    console.error(`${file}: ⛔ ${how}. 자동으로 넘기기엔 너무 크다. 원본이 반쪽만 답했는지 사람이 봐야 한다.`);
   } else {
-    console.log(`${file}: ${how} — 넘겨도 되는 크기`);
+    console.log(`${file}: ${how}. 넘겨도 되는 크기`);
   }
 }
 
 if (bad) {
-  console.error(`\n표 ${bad}개가 이상하게 바뀌었다 — 커밋하지 않는다.`);
+  console.error(`\n표 ${bad}개가 이상하게 바뀌었다. 커밋하지 않는다.`);
   process.exit(1);
 }
-console.log(`\n바뀐 표 ${changed}개 — 전부 넘겨도 되는 크기다.`);
+console.log(`\n바뀐 표 ${changed}개. 전부 넘겨도 되는 크기다.`);

@@ -2,10 +2,10 @@
  * 닮은 사진 찾기 (TASK-KL-316 / 30)
  *
  * 여러 장을 한꺼번에 받아 **모양으로** 묶는다. 셈은 `core/dupphoto`.
- * 파일을 여럿 받고 그림으로 보여 줘야 해서 **새 위젯**이다(로그 보기·번들 지도와 같은 이유).
+ * 파일을 여럿 받고 그림으로 보여 줘야 해서 **새 위젯**이다(로그 보기, 번들 지도와 같은 이유).
  *
- * 지우지 않는다 — 브라우저는 남의 폴더를 못 지우고, 지우는 건 되돌릴 수 없다.
- * 「어느 것을 남기면 되는지」와 「지우면 얼마나 줄어드는지」만 말하고, 목록을 복사해 준다.
+ * 지우지 않는다. 브라우저는 남의 폴더를 못 지우고, 지우는 건 되돌릴 수 없다.
+ * 어느 것을 남기면 되는지와 지우면 얼마나 줄어드는지만 말하고, 목록을 복사해 준다.
  */
 import { dHash, group, toGray, totalSaved, type Photo } from '../../core/dupphoto';
 import { escapeHtml as esc } from './shared/text';
@@ -150,7 +150,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     $<HTMLButtonElement>('#dpCopy').onclick = async (): Promise<void> => {
       const groups = group(photos, Number($<HTMLInputElement>('#dpStrict').value));
       if (groups.length === 0) return;
-      /* 지우는 건 사람이 한다 — 지울 이름만 줄줄이 준다(파일 관리자에 붙여 찾기 쉽게). */
+      /* 지우는 건 사람이 한다. 지울 이름만 줄줄이 준다(파일 관리자에 붙여 찾기 쉽게). */
       const lines = groups.flatMap((g) => g.others.map((p) => p.name));
       await Toolbox.copyText?.(lines.join('\n'), { message: t('dupphoto.copied', { n: lines.length }) });
     };

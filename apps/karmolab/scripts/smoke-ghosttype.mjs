@@ -1,7 +1,7 @@
 /**
  * 유령 타자 대결이 실제로 대결이 되는지 (TASK-KL-131)
  *
- * 다른 검사로는 못 잡는다 — 「값을 넣으면 반응하는지」는 한 칸에 글자를 넣고 화면이 달라지는지만
+ * 다른 검사로는 못 잡는다. 값을 넣으면 반응하는지는 한 칸에 글자를 넣고 화면이 달라지는지만
  * 본다. 이 도구의 존재 이유는 **친 기록이 주소가 되고, 그 주소를 열면 유령이 달리는 것**이라
  * 그 한 바퀴를 직접 돌려 봐야 한다. 화면이 뜨는지 보는 검사는 유령이 통째로 죽어도 통과한다.
  *
@@ -9,7 +9,7 @@
  *   ① 글을 끝까지 친다 → 결과와 **주소**가 나온다
  *   ② 그 주소를 새로 연다 → 유령 이름이 뜨고, 치는 동안 유령이 **앞으로 나아간다**
  *   ③ 아주 빠르게 치면 이기고, 느리게 치면 진다 (판정이 한쪽으로 굳어 있지 않다)
- *   ④ 타수는 자소 단위다 — 「값」 한 글자가 4타로 세어져야 한다
+ *   ④ 타수는 자소 단위다. 값 한 글자가 4타로 세어져야 한다
  *
  * 사용: node scripts/smoke-ghosttype.mjs
  *       BASE=http://127.0.0.1:8801/apps/blog node scripts/smoke-ghosttype.mjs
@@ -26,7 +26,7 @@ const URL_TOOL = `${BASE}/t/ghosttype/`;
 
 const failures = [];
 const check = (name, cond, detail) => {
-  if (!cond) failures.push(`${name} — ${detail}`);
+  if (!cond) failures.push(`${name}. ${detail}`);
 };
 
 const browser = await chromium.launch();
@@ -43,12 +43,12 @@ function withGhost(url) {
 let stage = '시작';
 
 async function open(url) {
-  // 빈 쪽을 거쳐 간다 — 주소만 바뀌면 도구가 스스로 새로 열기 때문에(같은 문서 안 이동 대응),
+  // 빈 쪽을 거쳐 간다. 주소만 바뀌면 도구가 스스로 새로 열기 때문에(같은 문서 안 이동 대응),
   // 곧바로 옮겨 가면 검사가 그 새로 열림과 겹쳐 치던 글자를 잃는다.
   await page.goto('about:blank');
   const res = await page.goto(url, { waitUntil: 'domcontentloaded' });
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전)`);
-  // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
+  // 보인다고 손이 달린 것은 아니다. 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
   await waitHydrated(page, '#gtInput');
 }
 
@@ -56,8 +56,8 @@ async function open(url) {
 async function typeAll(perChar) {
   /* ★ 칠 글이 **가만해질 때까지** 기다린 뒤 친다 (2026-08-12).
    *   위젯은 말 묶음을 받아 온 뒤 화면을 다시 그리고, 판이 끝나면 스스로 화면을 옮긴다.
-   *   ① 먼저 읽어 둔 옛 글을 치면 「다 쳤다」가 안 되고(20초 대기 후 죽음)
-   *   ② 한 글자마다 다시 읽으면 그 화면 옮김과 부딪혀 「실행 맥락이 사라졌다」로 죽는다.
+   *   ① 먼저 읽어 둔 옛 글을 치면 다 쳤다가 안 되고(20초 대기 후 죽음)
+   *   ② 한 글자마다 다시 읽으면 그 화면 옮김과 부딪혀 실행 맥락이 사라졌다로 죽는다.
    *   그래서 **읽기는 치기 전에 한 번만**, 대신 두 번 연속 같은 글이 나올 때까지 기다린다. */
   let target = '';
   for (let tries = 0; tries < 40; tries += 1) {
@@ -105,7 +105,7 @@ try {
   const after = await page.evaluate(() => document.querySelector('#gtGhost')?.style.left || '');
   check('유령이 달린다', before !== after, `유령 위치가 그대로다 (${before} → ${after})`);
 
-  // ③ 아주 빠르게 치면 이긴다 — 판정이 한쪽으로 굳어 있지 않은지
+  // ③ 아주 빠르게 치면 이긴다. 판정이 한쪽으로 굳어 있지 않은지
   await open(withGhost(first.url));
   stage = '③ 빠르게 쳐서 이기기';
   const fast = await typeAll(0);
@@ -116,7 +116,7 @@ try {
   const slow = await typeAll(60);
   check('느리면 진다', /졌다/.test(slow.verdict), `판정: ${slow.verdict}`);
 
-  // ⑤ 타수는 자소 단위 — 「값」 한 글자를 4타로 세는가
+  // ⑤ 타수는 자소 단위. 값 한 글자를 4타로 세는가
   await open(URL_TOOL);
   const jamo = await page.evaluate(() => {
     const own = document.querySelector('#gtOwn');
@@ -130,7 +130,7 @@ try {
   check('자소 단위 타건', /40타건/.test(own.score), `점수: ${own.score} (10글자 × 4타 = 40이어야 한다)`);
   check('내 글이 주소에 담김', /#g=/.test(own.url) && own.url.length > 60, `주소: ${own.url.slice(0, 60)}`);
 } catch (e) {
-  /* 어디서 멈췄는지 없이 「끝까지 못 갔다」만 남기면 다음 사람이 처음부터 다시 좁혀야 한다. */
+  /* 어디서 멈췄는지 없이 끝까지 못 갔다만 남기면 다음 사람이 처음부터 다시 좁혀야 한다. */
   failures.push(`검사가 끝까지 못 갔다 (단계: ${stage}): ${e.message}`);
 } finally {
   await browser.close();
@@ -141,4 +141,4 @@ if (failures.length > 0) {
   for (const f of failures) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('[smoke-ghosttype] 대결 한 바퀴 확인 — 주소 생성 · 유령 재생 · 이김/짐 양쪽 · 자소 타수 · 내 글');
+console.log('[smoke-ghosttype] 대결 한 바퀴 확인. 주소 생성, 유령 재생, 이김/짐 양쪽, 자소 타수, 내 글');

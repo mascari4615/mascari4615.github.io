@@ -1,8 +1,8 @@
 /**
- * 거짓말 주사위 — 부르거나, 거짓말이라 하거나 (TASK-KL-242)
+ * 거짓말 주사위. 부르거나, 거짓말이라 하거나 (TASK-KL-242)
  *
- * 스물여섯 개가 전부 **정직한** 놀이였다. 여기서 처음으로 **속이는 것이 규칙 안에 있다** —
- * 자기 주사위만 보고 「판 전체에 O 이 N개 있다」고 부르는데, 그 말이 참일 필요가 없다.
+ * 스물여섯 개가 전부 **정직한** 놀이였다. 여기서 처음으로 **속이는 것이 규칙 안에 있다** . 
+ * 자기 주사위만 보고 판 전체에 O 이 N개 있다고 부르는데, 그 말이 참일 필요가 없다.
  *
  * 커널에게는 새로울 게 없다: 감추는 것은 `redact` 가 이미 하고, 부르는 말은 그냥 수다.
  * 다만 **거짓말이 성립하려면 남의 주사위가 진짜로 안 보여야** 하고, 그건 이 커널이
@@ -18,16 +18,16 @@ const FACES = 6;
 export interface LiarsState {
   /** 자리별 주사위 눈 (남의 것은 `redact` 가 지운다) */
   dice: number[][];
-  /** 지금 걸린 말 — 「눈 face 가 count 개 이상」 */
+  /** 지금 걸린 말. 눈 face 가 count 개 이상 */
   bid: { face: number; count: number } | null;
   /** 누가 그 말을 했나 */
   bidder: number;
   turn: number;
   /** 살아 있는 자리 */
   alive: boolean[];
-  /** 방금 벌어진 일 — 화면이 한 줄로 말한다 */
+  /** 방금 벌어진 일. 화면이 한 줄로 말한다 */
   last: { kind: 'bid' | 'call'; who: number; text: string } | null;
-  /** 방금 판정 — 「거짓말이다」가 이 놀이의 순간이다(건 말에는 소리를 안 붙인다). */
+  /** 방금 판정. 거짓말이다가 이 놀이의 순간이다(건 말에는 소리를 안 붙인다). */
   judge?: { loser: number; real: number };
   /** 판정을 보여 주는 동안 */
   showAt: number;
@@ -72,7 +72,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
     };
   },
 
-  /** 남의 주사위는 안 보인다 — 이게 없으면 속일 수가 없다. */
+  /** 남의 주사위는 안 보인다. 이게 없으면 속일 수가 없다. */
   redact(s, seat) {
     if (s.showAt !== 0) return s; /* 판정 중에는 다 보여 준다 */
     return { ...s, dice: s.dice.map((d, i) => (i === seat ? d : d.map(() => 0))) };
@@ -90,7 +90,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
       const count = a.count;
       if (!Number.isInteger(face) || face < 2 || face > FACES) return s;
       if (!Number.isInteger(count) || count < 1) return s;
-      /* 앞말보다 세야 한다 — 개수가 많거나, 개수가 같고 눈이 높거나. */
+      /* 앞말보다 세야 한다. 개수가 많거나, 개수가 같고 눈이 높거나. */
       if (s.bid && !(count > s.bid.count || (count === s.bid.count && face > s.bid.face))) return s;
       return {
         ...s,
@@ -104,7 +104,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
     if (a?.kind !== 'call') return s;
     if (!s.bid || s.bidder < 0) return s;
 
-    /* 「거짓말이다」 — 세어 본다. 말이 참이면 부른 사람이, 거짓이면 말한 사람이 잃는다. */
+    /* 거짓말이다. 세어 본다. 말이 참이면 부른 사람이, 거짓이면 말한 사람이 잃는다. */
     const real = countFace(s.dice, s.bid.face);
     const truth = real >= s.bid.count;
     const loser = truth ? seat : s.bidder;
@@ -137,7 +137,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
 
   outcome(s, ctx): Outcome {
     if (aliveCount(s) > 1) {
-      /* 거는 말은 한 판에 수십 번이라 소리를 안 붙인다 — 순간은 **주사위를 잃을 때**다.
+      /* 거는 말은 한 판에 수십 번이라 소리를 안 붙인다. 순간은 **주사위를 잃을 때**다.
          분간은 남은 주사위 수가 해 준다(잃을 때마다 반드시 준다). */
       if (!s.judge) return { over: false };
       return {
@@ -167,7 +167,7 @@ export const liars: GameDef<LiarsState, LiarsAction> = {
     const total = s.dice.reduce((n, d) => n + d.length, 0);
 
     if (!s.bid) {
-      /* 첫 말 — 내 주사위에 많은 눈으로 조심스럽게 부른다. */
+      /* 첫 말. 내 주사위에 많은 눈으로 조심스럽게 부른다. */
       const counts = new Array(FACES + 1).fill(0);
       for (const d of mine) if (d !== 1) counts[d]++;
       let face = 2;

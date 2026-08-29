@@ -1,5 +1,5 @@
 /**
- * gallery.ts — /갤러리 커맨드
+ * gallery.ts. /갤러리 커맨드
  *
  * 캐릭터별 image-cache/index.json을 읽어 최근 이미지를 Discord embed로 표시.
  * hitCount(많이 재사용된) 또는 createdAt(최신) 기준 정렬 선택 가능.

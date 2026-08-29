@@ -1,15 +1,15 @@
 /**
- * **앱이 사는 자리 — 한 벌** (change.karmolab-at-root ①)
+ * **앱이 사는 자리. 한 벌** (change.karmolab-at-root ①)
  *
  * 왜: 앱 주소 `/karmolab/` 가 773곳에 글자로 박혀 있었다. 뿌리로 옮기려면 그 전부를 손대야
- * 하는데, 손댈 때마다 몇 곳은 흘린다 — 흘린 자리는 404 로만 드러난다.
+ * 하는데, 손댈 때마다 몇 곳은 흘린다. 흘린 자리는 404 로만 드러난다.
  * 그래서 **주소를 만드는 자리는 전부 여기를 거친다**. 옮길 때 바뀌는 것은 아래 한 줄뿐이다.
  *
  * 짝: `scripts/lib/site-base.mjs` (정적 장 생성기 쪽). 두 값이 어긋나면 `test:site-base` 가 선다.
  *
  * 안 거치는 것:
- *  - 자산 경로 `/apps/karmolab/*` — 따로 나가는 트리다. 이 이관과 무관
- *  - 주석·문서에 적힌 설명용 주소 — 글자가 곧 뜻이다
+ *  - 자산 경로 `/apps/karmolab/*`. 따로 나가는 트리다. 이 이관과 무관
+ *  - 주석, 문서에 적힌 설명용 주소. 글자가 곧 뜻이다
  */
 
 /** 앱 뿌리. 항상 `/` 로 시작하고 `/` 로 끝난다. */
@@ -47,7 +47,7 @@ export function profilePath(handle: string): string {
 
 /**
  * **앱 뿌리 밑이지만 앱이 아닌 자리** (change.karmolab-at-root ②).
- * 짝 = `scripts/lib/site-base.mjs`. 뜻은 그쪽 머리말에 있다 — `test:site-base` 가 목록 일치를 본다.
+ * 짝 = `scripts/lib/site-base.mjs`. 뜻은 그쪽 머리말에 있다. `test:site-base` 가 목록 일치를 본다.
  */
 export const NON_APP_PREFIXES = [
     '/posts/',
@@ -73,7 +73,7 @@ export function isAppPath(pathname: string): boolean {
 
 /**
  * 도구 상세 장 주소에서 도구 id 를 뽑는다. 그 장이 아니면 null.
- * `/karmolab/t/qr/` → `qr` · `/karmolab/` → null
+ * `/karmolab/t/qr/` → `qr`, `/karmolab/` → null
  */
 export function toolIdFromPath(pathname: string): string | null {
     if (!isAppPath(pathname)) return null;
@@ -81,7 +81,7 @@ export function toolIdFromPath(pathname: string): string | null {
     return /^t\/([a-z0-9][a-z0-9-]*)\/?$/.exec(rest)?.[1] ?? null;
 }
 
-/** 사이트 주소 — 사람에게 보여 주거나 밖으로 나가는 링크에 쓴다. */
+/** 사이트 주소. 사람에게 보여 주거나 밖으로 나가는 링크에 쓴다. */
 export const SITE_ORIGIN = 'https://blog.mascari4615.com';
 
 /** 절대 주소. `appUrl('t/qr/')` → `https://blog.mascari4615.com/karmolab/t/qr/` */

@@ -32,7 +32,7 @@ export async function handleAnniversaryList(ctx: BotContext, interaction: ChatIn
 
   const lines = list.map((a) => {
     const dateStr = `${a.month}월 ${a.day}일${a.year ? ` (${a.year}년~)` : ''}`;
-    return `\`${a.id.slice(0, 8)}\` **${a.label}** — ${dateStr}`;
+    return `\`${a.id.slice(0, 8)}\` **${a.label}**. ${dateStr}`;
   });
 
   const embed = new EmbedBuilder()
@@ -63,7 +63,7 @@ export async function handleAnniversaryAdd(ctx: BotContext, interaction: ChatInp
   const entry = svc.add(label, month, day, year);
   const dateStr = `${month}월 ${day}일${year ? ` (${year}년~)` : ''}`;
   await interaction.reply({
-    content: `✅ 기념일 추가됨: **${entry.label}** — ${dateStr}`,
+    content: `✅ 기념일 추가됨: **${entry.label}**. ${dateStr}`,
     flags: MessageFlags.Ephemeral,
   });
 }

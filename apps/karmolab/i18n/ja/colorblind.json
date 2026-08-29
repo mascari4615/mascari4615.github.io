@@ -4,7 +4,7 @@
   "colorblind.label.b": "色 2",
   "colorblind.kind.normal": "一般",
   "colorblind.kind.protanopia": "1型（赤が見えにくい）",
-  "colorblind.kind.deuteranopia": "2型（緑が見えにくい）— いちばん多い",
+  "colorblind.kind.deuteranopia": "2型（緑が見えにくい）.  いちばん多い",
   "colorblind.kind.tritanopia": "3型（青が見えにくい）",
   "colorblind.kind.achromatopsia": "全色盲",
   "colorblind.status.idle": "色だけで意味を分けず、形や文字も一緒に使ってください。",
@@ -12,6 +12,6 @@
   "colorblind.verdict.hard": "見分けにくい",
   "colorblind.verdict.ok": "見分けられる",
   "colorblind.say.allFine": "すべての型で2色が見分けられます。",
-  "colorblind.say.hard": "{n}種類の型で2色がほとんど同じに見えます — 色だけで意味を分けず、形や文字も一緒に使ってください。",
-  "colorblind.value.verdict": "{verdict} · 差 {d}"
+  "colorblind.say.hard": "{n}種類の型で2色がほとんど同じに見えます. 色だけで意味を分けず、形や文字も一緒に使ってください。",
+  "colorblind.value.verdict": "{verdict}, 差 {d}"
 }

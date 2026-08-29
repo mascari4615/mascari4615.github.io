@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { meaningMemory, similarity } from '../dist/index.js';
 
-/* 진짜 모델은 시험에서 안 쓴다 — 뜨는 데 수십 초 걸리고, 남의 모델이 바뀌면 우리 시험이
+/* 진짜 모델은 시험에서 안 쓴다. 뜨는 데 수십 초 걸리고, 남의 모델이 바뀌면 우리 시험이
    빨개지는 건 우리 고장이 아니다. 대신 **꺼내는 규칙**과 **준비 안 됐을 때**를 잠근다.
    가짜 뜻 = 낱말 몇 개를 축으로 삼은 벡터. */
 const axis = ['매움', '음식', '날씨', '게임'];
@@ -39,19 +39,19 @@ test('낱말이 하나도 안 겹쳐도 뜻으로 찾는다', async () => {
   assert.equal(produced[0].text, '마라탕은 매워서 못 먹어');
 });
 
-test('안 닮은 건 안 꺼낸다 — 문턱 아래는 버린다', async () => {
+test('안 닮은 건 안 꺼낸다. 문턱 아래는 버린다', async () => {
   const meaning2 = new meaningMemory({ measure: fakeMeasure(table2), threshold: 0.9 });
   await meaning2.store([{ role: 'sensed', channel: 'web', text: '오늘 날씨 좋다', at: 1 }]);
   assert.deepEqual(await meaning2.find('매운 음식 싫어함'), []);
 });
 
-test('아직 준비가 안 됐으면 빈손으로 돌아온다 — 기다리게 하지 않는다', async () => {
+test('아직 준비가 안 됐으면 빈손으로 돌아온다. 기다리게 하지 않는다', async () => {
   const meaning3 = new meaningMemory({ measure: { measure: async () => null } });
   assert.equal(await meaning3.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]), 0);
   assert.deepEqual(await meaning3.find('아무거나 물어봄'), []);
 });
 
-test('짧은 말은 색인에 안 담는다 — 「응」이 아무거나 닮아 보이면 안 된다', async () => {
+test('짧은 말은 색인에 안 담는다. 응이 아무거나 닮아 보이면 안 된다', async () => {
   const meaning4 = new meaningMemory({ measure: fakeMeasure({ ...table2, '응': [1, 0, 0, 0] }) });
   await meaning4.store([{ role: 'sensed', channel: 'web', text: '응', at: 1 }]);
   assert.equal(meaning4.storedCount, 0);
@@ -65,7 +65,7 @@ test('같은 말은 두 번 안 담는다', async () => {
   assert.equal(meaning5.storedCount, 1);
 });
 
-test('방금 나눈 말은 빼고 준다 — 두뇌가 이미 보고 있다', async () => {
+test('방금 나눈 말은 빼고 준다. 두뇌가 이미 보고 있다', async () => {
   const meaning6 = new meaningMemory({ measure: fakeMeasure(table2), threshold: 0.5 });
   await meaning6.store([{ role: 'sensed', channel: 'web', text: '마라탕은 매워서 못 먹어', at: 1 }]);
   const produced2 = await meaning6.find('저번에 못 먹는다고 한 게 뭐였지', { toDrop: new Set(['마라탕은 매워서 못 먹어']) });

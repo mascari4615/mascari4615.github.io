@@ -1,9 +1,9 @@
 /**
  * 컬링 화면 (TASK-KL-242)
  *
- * **위에서 내려다본다.** 이 놀이의 전부가 「가운데에서 얼마나 먼가」라서, 비스듬한 3D 로 그리면
- * 거리가 눈으로 안 재진다 — 보기 좋으라고 읽기 어렵게 만들면 손해다.
- * (3D 가 값진 자리는 핀이 서 있는 볼링·당구 쪽이다. 그때 따로 만든다.)
+ * **위에서 내려다본다.** 이 놀이의 전부가 가운데에서 얼마나 먼가라서, 비스듬한 3D 로 그리면
+ * 거리가 눈으로 안 재진다. 보기 좋으라고 읽기 어렵게 만들면 손해다.
+ * (3D 가 값진 자리는 핀이 서 있는 볼링, 당구 쪽이다. 그때 따로 만든다.)
  *
  * 겨눔은 **한 번에 하나씩**: 좌우를 정하고, 세기를 정하고, 던진다. 끌기 한 번으로 둘 다 받으면
  * 폰에서 손가락이 미끄러지는 순간 엉뚱한 데로 간다.
@@ -52,10 +52,10 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       c.setTransform(k, 0, 0, k, 0, 0);
       c.clearRect(0, 0, W, H);
 
-      /* 얼음 — 공용 붓(`paint.ts`). 평평한 한 색이면 종이가 된다. */
+      /* 얼음. 공용 붓(`paint.ts`). 평평한 한 색이면 종이가 된다. */
       ice(c, W, H);
 
-      /* 하우스 — 바깥부터 안쪽으로 */
+      /* 하우스. 바깥부터 안쪽으로 */
       const rings: Array<[number, string]> = [
         [HOUSE_R, '#93c5fd'], [HOUSE_R * 0.66, '#f8fafc'], [HOUSE_R * 0.34, '#fca5a5'], [1.6, '#f8fafc']
       ];
@@ -74,7 +74,7 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       c.lineTo(W, H - 12);
       c.stroke();
 
-      /* 겨눔 선 — 내 차례일 때만 */
+      /* 겨눔 선. 내 차례일 때만 */
       if (myTurn) {
         const a = (Number(aim.value) / 100) * 1;
         const len = 26 + (Number(pow.value) / 100) * 40;
@@ -89,9 +89,9 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       }
 
       for (const st of s.stones) {
-        /* 돌은 얼음 위에 **놓인 것**이다 — 그림자와 빛을 같이 그린다(`orb`). */
+        /* 돌은 얼음 위에 **놓인 것**이다. 그림자와 빛을 같이 그린다(`orb`). */
         orb(c, st.x, st.y, R, SEAT_COLOR[st.seat % SEAT_COLOR.length]);
-        /* 손잡이 — 어느 쪽 돌인지 겹쳐도 보이게 */
+        /* 손잡이. 어느 쪽 돌인지 겹쳐도 보이게 */
         c.beginPath();
         c.arc(st.x, st.y, R * 0.34, 0, Math.PI * 2);
         c.fillStyle = 'rgba(252,250,246,.92)';

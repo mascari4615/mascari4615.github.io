@@ -1,5 +1,5 @@
 /**
- * 「먹」 저장 검사 — 접었다 펴도 그림이 같은가 (TASK-KL-240)
+ * 먹 저장 검사. 접었다 펴도 그림이 같은가 (TASK-KL-240)
  *
  * 자동 저장은 조용히 망가지는 기능이다: 저장은 되는데 열었더니 색이 밀려 있거나 프레임이
  * 사라지는 식. 눈으로는 다음 세션에야 안다. 그래서 여기서 **왕복**을 값으로 잠근다.
@@ -41,7 +41,7 @@ const S = load('storage');
 
 /* ===== 판 한 장 왕복 ===== */
 {
-  /* 단색 — 크게 접힌다. */
+  /* 단색. 크게 접힌다. */
   const flat = D.createSurface(64, 64, [10, 20, 30, 255]);
   const packed = S.packSurface(flat);
   assert.ok(packed.length < flat.data.length / 20, '단색은 20배 넘게 접힌다 (' + packed.length + ' / ' + flat.data.length + ')');
@@ -49,7 +49,7 @@ const S = load('storage');
   assert.deepEqual([...back.data], [...flat.data], '펴면 같은 그림');
 }
 {
-  /* 전부 다른 색 — 최악이라도 원본보다 크게 부풀지 않는다. */
+  /* 전부 다른 색. 최악이라도 원본보다 크게 부풀지 않는다. */
   const noisy = D.createSurface(40, 40);
   for (let p = 0; p < 1600; p += 1) {
     noisy.data.set([(p * 7) % 256, (p * 13) % 256, (p * 29) % 256, 255], p * 4);
@@ -59,7 +59,7 @@ const S = load('storage');
   assert.deepEqual([...S.unpackSurface(packed, 40, 40).data], [...noisy.data], '잡색도 왕복');
 }
 {
-  /* 도트 그림 꼴 — 묶임과 안 묶임이 섞인다. */
+  /* 도트 그림 꼴. 묶임과 안 묶임이 섞인다. */
   const sprite = D.createSurface(16, 16);
   for (let y = 0; y < 16; y += 1) {
     for (let x = 0; x < 16; x += 1) {
@@ -105,7 +105,7 @@ const S = load('storage');
   assert.equal(S.isStoredDoc({ hello: 1 }), false, '남의 파일은 거른다');
   assert.ok(S.storedSize(stored) > 0);
 
-  /* IndexedDB·파일을 거치면 JSON 을 지나므로, 그 왕복까지 함께 본다. */
+  /* IndexedDB, 파일을 거치면 JSON 을 지나므로, 그 왕복까지 함께 본다. */
   const roundTripped = JSON.parse(JSON.stringify(stored));
   const opened = S.unpackDoc(roundTripped);
 
@@ -131,7 +131,7 @@ const S = load('storage');
   assert.equal(openedInk.cels[1], null, '물려받던 프레임은 물려받은 채로 (hold 유지)');
 }
 {
-  /* 저장본이 깨져 있어도 열 수 있는 만큼은 연다 — 「아예 못 염」이 제일 나쁘다. */
+  /* 저장본이 깨져 있어도 열 수 있는 만큼은 연다. 아예 못 염이 제일 나쁘다. */
   const doc = D.createDoc(4, 4);
   const stored = S.packDoc(doc);
   stored.frames = 2;                 /* 프레임 수만 늘어난 저장본 */
@@ -144,4 +144,4 @@ const S = load('storage');
   assert.throws(() => S.unpackDoc(broken), /레이어/, '레이어가 없으면 조용히 빈 문서를 내지 않고 알린다');
 }
 
-console.log('[test-meok-storage] ✓ 접기/펴기 왕복(단색 20배·잡색 무부풀림) · 문서 통째(레이어 속성·마스크·hold·고른 자리) · JSON 왕복 · 깨진 저장본');
+console.log('[test-meok-storage] ✓ 접기/펴기 왕복(단색 20배, 잡색 무부풀림), 문서 통째(레이어 속성, 마스크, hold, 고른 자리), JSON 왕복, 깨진 저장본');

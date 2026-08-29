@@ -7,7 +7,7 @@
   "enc.how.cp949asUtf8": "Traced back cp949 (EUC-KR) text read as UTF-8",
   "enc.how.sjisAsUtf8": "Traced back shift_jis text read as UTF-8",
   "enc.how.double": "Traced back double-encoded UTF-8",
-  "enc.how.percent": "Decoded percent-encoding (%EC%95%88…)",
+  "enc.how.percent": "Decoded percent-encoding (%EC%95%88...)",
   "enc.how.htmlRef": "Decoded HTML numeric references (&#xAC00;)",
   "enc.how.jsEscape": "Decoded JavaScript escapes (가)"
 }

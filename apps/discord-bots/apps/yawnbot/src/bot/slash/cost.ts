@@ -1,5 +1,5 @@
 /**
- * cost.ts — 이미지 생성 비용 대시보드
+ * cost.ts. 이미지 생성 비용 대시보드
  *
  * image-log.jsonl (캐릭터 캐시) + image-log/ (수동 /이미지 커맨드) 집계.
  *
@@ -98,7 +98,7 @@ function aggregateImageLog(memoRepoPath: string, stats: AggStats): void {
             const e = JSON.parse(trimmed) as ImageLogEntry;
             const day = toDateStr(e.savedAt);
             stats.generated++;
-            // /이미지 커맨드 로그에는 costUsd 없음 — 모델로 추정
+            // /이미지 커맨드 로그에는 costUsd 없음. 모델로 추정
             const cost = estimateCostFromModel(e.model ?? '');
             stats.totalCost += cost;
             stats.byDay[day] = (stats.byDay[day] ?? 0) + cost;
@@ -163,7 +163,7 @@ export async function handleCost(ctx: BotContext, interaction: ChatInputCommandI
   // 모델별 정렬 (비용 내림차순)
   const modelLines = Object.entries(stats.byModel)
     .sort((a, b) => b[1].cost - a[1].cost)
-    .map(([model, { cost, count }]) => `\`${model}\` — ${count}장 / ${fmt(cost)}`)
+    .map(([model, { cost, count }]) => `\`${model}\`. ${count}장 / ${fmt(cost)}`)
     .join('\n') || '없음';
 
   // 최근 7일 일별
@@ -171,7 +171,7 @@ export async function handleCost(ctx: BotContext, interaction: ChatInputCommandI
   const dailyLines = days7
     .map((day) => {
       const cost = stats.byDay[day] ?? 0;
-      const bar = cost > 0 ? '█'.repeat(Math.max(1, Math.round(cost / 0.02))) : '·';
+      const bar = cost > 0 ? '█'.repeat(Math.max(1, Math.round(cost / 0.02))) : ', ';
       return `\`${day.slice(5)}\` ${bar} ${fmt(cost)}`;
     })
     .join('\n');

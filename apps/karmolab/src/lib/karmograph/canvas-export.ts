@@ -1,19 +1,19 @@
 /**
- * lib/karmograph/canvas-export.ts — 화면에 그려진 것을 **파일로** (TASK-KL-202 방향① 해체 3조각).
+ * lib/karmograph/canvas-export.ts. 화면에 그려진 것을 **파일로** (TASK-KL-202 방향① 해체 3조각).
  *
- * 내보내기는 「그리기」와 결이 다르다: 화면용으로만 있던 것들(손잡이·선택 표시·배경 무늬·pan/zoom 변환)을
+ * 내보내기는 그리기와 결이 다르다: 화면용으로만 있던 것들(손잡이, 선택 표시, 배경 무늬, pan/zoom 변환)을
  * **걷어 내는 일**이 대부분이다. 그 목록이 캔버스 본체에 섞여 있으면, 새 화면 장식이 생길 때마다
- * 내보낸 그림에 슬그머니 끼어든다 — 그래서 「무엇을 걷어 내는가」를 한 곳에 모아 둔다.
+ * 내보낸 그림에 슬그머니 끼어든다. 그래서 무엇을 걷어 내는가를 한 곳에 모아 둔다.
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-/** 화면에만 있던 것 — 그림에는 남지 않아야 하는 자국들. */
+/** 화면에만 있던 것. 그림에는 남지 않아야 하는 자국들. */
 const SCREEN_ONLY_SELECTORS = [
   '.ck-link-handle',   // 선을 뽑는 파란 점
   '.ck-link-temp',     // 끌고 있는 임시 선
   '.ck-size-handle',   // 카드 크기 손잡이
-  '.ck-guide',         // 끌 때 뜨는 맞춤 줄 — 화면에만 있는 것이다
+  '.ck-guide',         // 끌 때 뜨는 맞춤 줄. 화면에만 있는 것이다
   '.ck-edge-hit',      // 선 클릭용 두꺼운 투명 선
   '.ck-edge-grip',     // 선 휘기 손잡이
 ];
@@ -21,7 +21,7 @@ const SCREEN_ONLY_SELECTORS = [
 export interface ExportOptions {
   padding?: number;
   background?: string;
-  /** 캔버스 CSS — 그림 안에 인라인으로 넣어 남의 뷰어에서도 같은 모양이 나오게 한다. */
+  /** 캔버스 CSS. 그림 안에 인라인으로 넣어 남의 뷰어에서도 같은 모양이 나오게 한다. */
   css?: string;
 }
 
@@ -45,7 +45,7 @@ export function exportSvgString(
   clone.setAttribute('height', String(Math.round(h)));
   clone.setAttribute('viewBox', `${bounds.minX - pad} ${bounds.minY - pad} ${w} ${h}`);
 
-  // 화면용 변환(pan/zoom)은 viewBox 가 대신한다 — 남겨 두면 두 번 적용된다.
+  // 화면용 변환(pan/zoom)은 viewBox 가 대신한다. 남겨 두면 두 번 적용된다.
   clone.querySelector('.ck-world')?.removeAttribute('transform');
   // 배경 무늬는 화면 좌표에 깔려 있어 viewBox 를 바꾸면 어긋난다(배경색은 opts.background 가 채운다).
   clone.querySelector('.ck-bg')?.remove();

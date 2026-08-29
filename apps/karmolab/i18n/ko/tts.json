@@ -9,13 +9,13 @@
   "tts.btn.pause": "잠깐 멈춤 / 이어서",
   "tts.btn.stop": "그만",
   "tts.status.idle": "읽을 글을 적으세요",
-  "tts.status.ready": "문장 {n}개 · 약 {m}분 {s}초",
+  "tts.status.ready": "문장 {n}개, 약 {m}분 {s}초",
   "tts.status.speaking": "{i} / {n} 문장 읽는 중",
   "tts.status.paused": "잠깐 멈췄습니다",
   "tts.status.resumed": "이어서 읽습니다",
   "tts.status.stopped": "그만뒀습니다",
   "tts.status.done": "다 읽었습니다",
-  "tts.status.failed": "읽다가 멈췄습니다 — 다시 눌러 주세요",
+  "tts.status.failed": "읽다가 멈췄습니다. 다시 눌러 주세요",
   "tts.status.noVoice": "이 브라우저에 쓸 목소리가 없습니다 (운영체제 음성 팩을 깔면 늘어납니다)",
-  "tts.note.noSave": "파일로 저장은 못 합니다 — 브라우저의 읽어 주기는 소리를 스피커로 보낼 뿐 우리에게 주지 않습니다. 녹음이 필요하면 「화면 녹화」 도구로 소리까지 담거나 운영체제의 녹음을 쓰세요. 글은 브라우저를 벗어나지 않습니다."
+  "tts.note.noSave": "파일로 저장은 못 합니다. 브라우저의 읽어 주기는 소리를 스피커로 보낼 뿐 우리에게 주지 않습니다. 녹음이 필요하면 화면 녹화 도구로 소리까지 담거나 운영체제의 녹음을 쓰세요. 글은 브라우저를 벗어나지 않습니다."
 }

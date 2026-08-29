@@ -3,7 +3,7 @@
   "textclean.label.in": "元のテキスト",
   "textclean.label.out": "結果",
   "textclean.ph.in": "1行に1つずつ貼り付けてください",
-  "textclean.label.ops": "処理 — 上から順に適用されます",
+  "textclean.label.ops": "処理. 上から順に適用されます",
   "textclean.op.trim": "両端の空白を削除",
   "textclean.op.squeeze": "途中の空白を1つに",
   "textclean.op.dropEmpty": "空行を削除",
@@ -32,6 +32,6 @@
   "textclean.btn.swap": "結果を元のテキストに",
   "textclean.btn.clear": "消去",
   "textclean.status.idle": "貼り付けるとすぐ整理されます。",
-  "textclean.status.done": "{before}行 → {after}行 · {chars}文字",
+  "textclean.status.done": "{before}行 → {after}行, {chars}文字",
   "textclean.copy.done": "整理したテキストをコピーしました"
 }

@@ -1,5 +1,5 @@
 /**
- * /방 슬래시 — 에이전트 임시 작업방(스레드) 생성·초대·해체 (KAR-018-A sub-A-3).
+ * /방 슬래시. 에이전트 임시 작업방(스레드) 생성, 초대, 해체 (KAR-018-A sub-A-3).
  * 방 = .active.json 코어 바인딩된 스레드 → isTeamRoom true (team-thread.ts).
  */
 import { MessageFlags, TextChannel } from 'discord.js';
@@ -19,7 +19,7 @@ export async function handleRoom(
   const cs = ctx.characterService;
   if (!cs) {
     await interaction.reply(
-      ephemeral('MEMO_REPO_PATH 미설정 — 캐릭터/코어 시스템 비활성.'),
+      ephemeral('MEMO_REPO_PATH 미설정. 캐릭터/코어 시스템 비활성.'),
     );
     return;
   }
@@ -32,7 +32,7 @@ export async function handleRoom(
     const core = interaction.options.getString('코어', true).trim();
     if (!(ch instanceof TextChannel)) {
       await interaction.reply(
-        ephemeral('이 채널에선 방 생성 불가 — 일반 텍스트 채널에서 실행해줘요 (스레드 안 X).'),
+        ephemeral('이 채널에선 방 생성 불가. 일반 텍스트 채널에서 실행해줘요 (스레드 안 X).'),
       );
       return;
     }
@@ -46,7 +46,7 @@ export async function handleRoom(
   if (sub === '초대') {
     const core = interaction.options.getString('코어', true).trim();
     if (!ch?.isThread()) {
-      await interaction.reply(ephemeral('방(스레드) 안에서만 — 그 방 스레드에서 실행해줘요.'));
+      await interaction.reply(ephemeral('방(스레드) 안에서만. 그 방 스레드에서 실행해줘요.'));
       return;
     }
     inviteCore(ch.id, core, cs);
@@ -56,11 +56,11 @@ export async function handleRoom(
 
   if (sub === '해체') {
     if (!ch?.isThread()) {
-      await interaction.reply(ephemeral('방(스레드) 안에서만 — 해체할 방 스레드에서 실행해줘요.'));
+      await interaction.reply(ephemeral('방(스레드) 안에서만. 해체할 방 스레드에서 실행해줘요.'));
       return;
     }
     await dissolveRoom(ch, cs);
-    await interaction.reply(ephemeral('방 해체 완료 — 코어 바인딩 제거 + 스레드 아카이브.'));
+    await interaction.reply(ephemeral('방 해체 완료. 코어 바인딩 제거 + 스레드 아카이브.'));
     return;
   }
 }

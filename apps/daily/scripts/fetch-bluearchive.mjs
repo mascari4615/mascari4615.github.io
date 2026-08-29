@@ -1,10 +1,10 @@
 /**
  * 블루 아카이브 학생 표 만들기 (TASK-KL-200).
- * 출처 = SchaleDB 공개 자료의 **한국어** 판. 호출 두 번(학생·낱말)이면 끝난다.
+ * 출처 = SchaleDB 공개 자료의 **한국어** 판. 호출 두 번(학생, 낱말)이면 끝난다.
  *
  *   node scripts/fetch-bluearchive.mjs
  *
- * 낱말(학교·역할·공격·방어 이름)을 여기에 손으로 적지 않는다 — 손으로 적은 표는 반드시
+ * 낱말(학교, 역할, 공격, 방어 이름)을 여기에 손으로 적지 않는다. 손으로 적은 표는 반드시
  * 원본과 어긋난다. 같은 곳에서 온 `localization` 을 그대로 쓴다.
  */
 import { saveTable } from './lib-table.mjs';
@@ -23,10 +23,10 @@ const get = async (path) => {
 const [studentsRaw, loc] = await Promise.all([get('/data/kr/students.min.json'), get('/data/kr/localization.min.json')]);
 const students = Array.isArray(studentsRaw) ? studentsRaw : Object.values(studentsRaw);
 
-/** 낱말을 못 찾으면 영어 열쇠가 그대로 화면에 뜬다 — 그건 표가 바뀌었다는 신호라 세운다. */
+/** 낱말을 못 찾으면 영어 열쇠가 그대로 화면에 뜬다. 그건 표가 바뀌었다는 신호라 세운다. */
 const say = (group, key) => {
   const word = loc[group]?.[key];
-  if (!word) throw new Error(`${group} 에 「${key}」 낱말이 없다 — 원본이 바뀌었다`);
+  if (!word) throw new Error(`${group} 에 ${key} 낱말이 없다. 원본이 바뀌었다`);
   return word;
 };
 
@@ -49,7 +49,7 @@ const items = students
     role: say('TacticRole', s.TacticRole),
     bullet: say('BulletType', s.BulletType),
     armor: say('ArmorType', s.ArmorType),
-    // 총기 종류는 낱말표에 없다(AR·SMG 가 그대로 쓰이는 이름이다).
+    // 총기 종류는 낱말표에 없다(AR, SMG 가 그대로 쓰이는 이름이다).
     weapon: s.WeaponType,
     star: s.StarGrade,
   }))

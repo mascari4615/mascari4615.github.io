@@ -1,5 +1,5 @@
 /**
- * /character 슬래시 — DM/채널별 활성 캐릭터 관리
+ * /character 슬래시. DM/채널별 활성 캐릭터 관리
  */
 import path from 'path';
 import { EmbedBuilder, MessageFlags, AttachmentBuilder } from 'discord.js';
@@ -25,7 +25,7 @@ function summarizeCard(card: CharacterCard): string {
   if (card.tone) parts.push(`톤: ${card.tone}`);
   if (card.speechStyle) parts.push(`말투: ${card.speechStyle}`);
   if (card.relationship) parts.push(`관계: ${card.relationship}`);
-  return parts.join(' · ') || '(frontmatter 없음)';
+  return parts.join(', ') || '(frontmatter 없음)';
 }
 
 export async function handleCharacterList(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
@@ -132,7 +132,7 @@ export async function handleCharacterInfo(ctx: BotContext, interaction: ChatInpu
     return;
   }
 
-  const bodyPreview = card.body.length > 1000 ? card.body.slice(0, 1000) + '\n…' : card.body;
+  const bodyPreview = card.body.length > 1000 ? card.body.slice(0, 1000) + '\n...' : card.body;
 
   const embed = new EmbedBuilder()
     .setTitle(`🎭 ${card.displayName} (${card.slug})`)
@@ -172,7 +172,7 @@ export async function handleCharacterReset(ctx: BotContext, interaction: ChatInp
 }
 
 /**
- * /character 카드 core — 이 DM/채널의 에이전트 *코어*(실제 정체성=무슨 일) 설정/조회/해제.
+ * /character 카드 core. 이 DM/채널의 에이전트 *코어*(실제 정체성=무슨 일) 설정/조회/해제.
  * 스킨(외모 껍데기)은 /character 카드 switch. 코어/스킨 독립 스왑 (KAR-018-A).
  */
 export async function handleCharacterCore(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
@@ -196,7 +196,7 @@ export async function handleCharacterCore(ctx: BotContext, interaction: ChatInpu
     await interaction.reply({
       content: core
         ? `이 ${where}: 코어 **${core}** ⊕ 스킨 **${skin}**`
-        : `이 ${where}: 코어 없음 (레거시 skin-only · 스킨 **${skin}**)`,
+        : `이 ${where}: 코어 없음 (레거시 skin-only, 스킨 **${skin}**)`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -211,7 +211,7 @@ export async function handleCharacterCore(ctx: BotContext, interaction: ChatInpu
     return;
   }
 
-  // 코어 실체 검증(memo/.claude/agents/<id>/)은 후속 슬라이스(dispatcher/팩토리) — 현재 free-form.
+  // 코어 실체 검증(memo/.claude/agents/<id>/)은 후속 슬라이스(dispatcher/팩토리). 현재 free-form.
   cs.setChannelCore(channelKey, id as string);
   await interaction.reply({
     content: `이 ${where}: 코어 **${id}** 설정 (스킨 **${cs.resolveSlug(channelKey)}** 보존). ⚠ 코어 실체 검증 = 후속.`,
@@ -242,8 +242,8 @@ export async function handleCharacterReload(ctx: BotContext, interaction: ChatIn
 }
 
 /**
- * /character image — 현재 채널 활성 캐릭터의 외형(appearance.md)으로 이미지 생성.
- * 상황 비우면 외형만 써서 기본 포즈·프로필 이미지.
+ * /character image. 현재 채널 활성 캐릭터의 외형(appearance.md)으로 이미지 생성.
+ * 상황 비우면 외형만 써서 기본 포즈, 프로필 이미지.
  */
 export async function handleCharacterImage(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   const cs: CharacterService | null = ctx.characterService;
@@ -297,7 +297,7 @@ export async function handleCharacterImage(ctx: BotContext, interaction: ChatInp
 }
 
 /**
- * /character image-history — 자동 생성된 씬 이미지 캐시 목록 조회.
+ * /character image-history. 자동 생성된 씬 이미지 캐시 목록 조회.
  */
 export async function handleCharacterImageHistory(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   const cs: CharacterService | null = ctx.characterService;
@@ -346,7 +346,7 @@ export async function handleCharacterImageHistory(ctx: BotContext, interaction: 
     const sceneLabel = entry.sceneDesc?.slice(0, 100) || '(no scene)';
     embed.addFields({
       name: sceneLabel,
-      value: `히트: ${entry.hitCount}회 · ${date} · \`${entry.id.slice(0, 8)}\``,
+      value: `히트: ${entry.hitCount}회, ${date}, \`${entry.id.slice(0, 8)}\``,
       inline: false,
     });
   }

@@ -1,5 +1,5 @@
 /**
- * 무한 텍스트 어드벤처 turn loop — KL-032 결정 4 (자유+선택지 N개).
+ * 무한 텍스트 어드벤처 turn loop. KL-032 결정 4 (자유+선택지 N개).
  *
  * - 사용자 입력 (자유 텍스트 또는 선택지 클릭) → provider.complete → parseTurnResponse → UI 갱신
  * - history = AdventureMessage[] (provider 인터페이스), session.turns = AdventureTurnRecord[] (raw 누적)

@@ -11,7 +11,7 @@ import { auditLayout, describeLayout } from './lib/layout-audit.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 const bundle = path.join(root, 'js/widgets/heung/heung.js');
-if (!fs.existsSync(bundle)) { console.error('[smoke-heung] bundle missing — run build.mjs first'); process.exit(1); }
+if (!fs.existsSync(bundle)) { console.error('[smoke-heung] bundle missing. run build.mjs first'); process.exit(1); }
 const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2' };
 const server = http.createServer((request,response)=>{let url=decodeURIComponent(request.url.split('?')[0]);if(url.endsWith('/'))url+='index.html';const file=path.join(repoRoot,url.replace(/^\//,''));if(!file.startsWith(repoRoot)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){response.writeHead(404).end('not found');return;}const ext=path.extname(file);let body=fs.readFileSync(file);if(ext==='.html')body=Buffer.from(stripJekyll(String(body)));response.writeHead(200,{'Content-Type':mime[ext]||'application/octet-stream'}).end(body);});
 await new Promise((resolve)=>server.listen(0,'127.0.0.1',resolve));
@@ -28,11 +28,11 @@ catch (error) {
   console.error('[smoke-heung] boot diagnostic', JSON.stringify(diagnostic), errors);
   throw error;
 }
-/* ★ **모양이 붙기 전에 재면 「레이아웃 오류」로 헛빨개진다** (2026-08-17, 라이브 실측).
+/* ★ **모양이 붙기 전에 재면 레이아웃 오류로 헛빨개진다** (2026-08-17, 라이브 실측).
    여기서는 0.4초만 재우고 곧바로 `.hu-work` 의 display 를 읽었는데, 바쁜 기계에서는 아직
-   위젯 스타일이 안 붙어 `block` 이 읽혔다 — 화면이 깨진 게 아니라 **아직 안 꾸며진 것**이다
+   위젯 스타일이 안 붙어 `block` 이 읽혔다. 화면이 깨진 게 아니라 **아직 안 꾸며진 것**이다
    (라이브 점검 조각 하나가 그렇게 섰다). 시간을 재우지 말고 **모양이 붙기를** 기다린다.
-   끝내 안 붙으면 아래 판정이 그대로 빨갛게 말한다 — 진짜 회귀는 그대로 잡힌다. */
+   끝내 안 붙으면 아래 판정이 그대로 빨갛게 말한다. 진짜 회귀는 그대로 잡힌다. */
 await untilTrue(page, () => getComputedStyle(document.querySelector('.hu-work')).display === 'grid', { max: 5000 });
 const problems=[];
 const initial=await page.evaluate(()=>({tracks:document.querySelectorAll('.hu-track-row').length,clips:document.querySelectorAll('.hu-clip').length,notes:document.querySelectorAll('.hu-note').length,layout:getComputedStyle(document.querySelector('.hu-work')).display}));
@@ -44,7 +44,7 @@ const clipStartAfterContext=await page.locator('.hu-clip').first().evaluate((ele
 await page.keyboard.press('Escape');
 await page.keyboard.press('e');const selectTool=await page.locator('.hu-root').getAttribute('data-tool');await page.keyboard.press('p');const drawTool=await page.locator('.hu-root').getAttribute('data-tool');await page.keyboard.press('e');
 await page.keyboard.press('Control+c');const firstLaneBox=await page.locator('.hu-lane[data-kind=midi]').first().boundingBox();await page.mouse.click(firstLaneBox.x+420,firstLaneBox.y+38);await page.keyboard.press('Control+v');await page.waitForTimeout(80);const clipCountAfterPaste=await page.locator('.hu-clip').count();
-/* 다중 선택 — box drag 로 묶고, 한 clip 을 끌면 묶음 전체가 같은 거리만큼 간다. */
+/* 다중 선택. box drag 로 묶고, 한 clip 을 끌면 묶음 전체가 같은 거리만큼 간다. */
 await page.keyboard.press('e');
 /* 좁은 화면에서도 두 clip 이 한 화면에 들어오도록 먼저 축소한다 (mobile 390px). */
 for(let step=0;step<4;step++)await page.click('[data-act=zoom-out]');
@@ -57,19 +57,19 @@ const bandRight=Math.min(viewport.width-2,multiLaneBox.x+multiLaneBox.width-2,Ma
 const bandTop=Math.min(...multiClipBoxes.map((box)=>box.top))+3;
 const bandBottom=Math.max(...multiClipBoxes.map((box)=>box.bottom))-3;
 await page.mouse.move(bandRight,bandTop);await page.mouse.down();await page.mouse.move(bandLeft,bandBottom,{steps:6});await page.mouse.up();
-/* 재우지 말고 **골라질 때까지** — 바쁜 기계에서는 80ms 안에 표시가 안 붙어 0 으로 읽힌다. */
+/* 재우지 말고 **골라질 때까지**. 바쁜 기계에서는 80ms 안에 표시가 안 붙어 0 으로 읽힌다. */
 await untilTrue(page,()=>document.querySelectorAll('.hu-lane[data-kind=midi] .hu-clip.is-selected').length>0,{max:3000});
 const boxSelected=await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip.is-selected').count();
-/* 클립 소리 끄기 — 트랙 전체를 끄지 않고 한 부분만 빼 본다. */
+/* 클립 소리 끄기. 트랙 전체를 끄지 않고 한 부분만 빼 본다. */
 await page.keyboard.press('m');
-/* 소리 끄기 표시가 붙을 때까지 — 무엇을 기다리는지 아는 자리다. */
+/* 소리 끄기 표시가 붙을 때까지. 무엇을 기다리는지 아는 자리다. */
 await untilTrue(page,()=>document.querySelectorAll('.hu-clip.is-muted').length>0,{max:3000});
 const mutedCount=await page.locator('.hu-clip.is-muted').count();
 await page.waitForTimeout(400);
 const mutedSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+track.clips.filter((clip)=>clip.mute).length,0):-1;});
 await page.keyboard.press('m');await page.waitForTimeout(140);
 const mutedAfterToggle=await page.locator('.hu-clip.is-muted').count();
-/* 묶음 clipboard — 선택한 clip 전부가 재생 헤드 기준으로 상대 간격을 지킨 채 붙는다. */
+/* 묶음 clipboard. 선택한 clip 전부가 재생 헤드 기준으로 상대 간격을 지킨 채 붙는다. */
 const clipCountBeforeMultiCopy=await page.locator('.hu-clip').count();
 await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');await page.waitForTimeout(140);
 const clipCountAfterMultiPaste=await page.locator('.hu-clip').count();
@@ -86,7 +86,7 @@ const grabX=await page.evaluate(([left,right,y])=>{for(let x=left+6;x<right-14;x
 await page.mouse.move(grabX,grabY);await page.mouse.down();await page.mouse.move(grabX+72,grabY,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
 const startsAfterMultiMove=await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.left)));
 const multiDeltas=startsAfterMultiMove.map((value,index)=>value-(startsBeforeMultiMove[index]??0));
-/* 되돌려 놓는다 — 이후 검사(짧은 loop 재생)가 clip 위치에 의존한다. */
+/* 되돌려 놓는다. 이후 검사(짧은 loop 재생)가 clip 위치에 의존한다. */
 const dragBack=await page.locator('.hu-lane[data-kind=midi]').first().locator('.hu-clip').first().boundingBox();
 const backX=await page.evaluate(([left,right,y])=>{for(let x=left+6;x<right-14;x+=4){const element=document.elementFromPoint(x,y);if(element&&element.closest('.hu-clip')&&!element.closest('[data-resize]'))return x;}return left+18;},[dragBack.x,dragBack.x+dragBack.width,dragBack.y+22]);
 await page.mouse.move(backX,dragBack.y+22);await page.mouse.down();await page.mouse.move(backX-72,dragBack.y+22,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
@@ -127,19 +127,19 @@ await page.click('[data-act=midi]');
 const afterAddTrack=await page.locator('.hu-track-row').count();await page.click('[data-act=undo]');const afterUndoTrack=await page.locator('.hu-track-row').count();await page.click('[data-act=redo]');const afterRedoTrack=await page.locator('.hu-track-row').count();
 await page.keyboard.press('p');
 const lane=page.locator('.hu-lane[data-kind=midi]').last();
-/* 좌표 hit-test 는 sticky head·눈금자·가로 스크롤에 흔들린다 — 요소에 직접 이벤트를 준다 (clientX=0 → beat 0). */
+/* 좌표 hit-test 는 sticky head, 눈금자, 가로 스크롤에 흔들린다. 요소에 직접 이벤트를 준다 (clientX=0 → beat 0). */
 await lane.dispatchEvent('dblclick',{button:0});await page.waitForTimeout(140);
 const piano=page.locator('[data-piano]');
 await piano.dblclick({position:{x:180,y:120}});await page.waitForTimeout(120);
 const noteCountBeforeFlDuplicate=await page.locator('.hu-note').count();await page.keyboard.press('Control+b');await page.waitForTimeout(80);const noteCountAfterFlDuplicate=await page.locator('.hu-note').count();
 const resizeHandle=page.locator('.hu-note-handle').last();const resizeBox=await resizeHandle.boundingBox();const noteWidthBefore=await resizeHandle.locator('..').evaluate((element)=>element.getBoundingClientRect().width);await page.mouse.move(resizeBox.x+2,resizeBox.y+3);await page.mouse.down();await page.mouse.move(resizeBox.x+70,resizeBox.y+3,{steps:3});await page.mouse.up();await page.waitForTimeout(80);const noteWidthAfter=await page.locator('.hu-note').last().evaluate((element)=>element.getBoundingClientRect().width);
-/* MIDI 건반 — 기기가 없어도 죽지 않고 사람에게 뭐라도 말해야 한다. */
+/* MIDI 건반. 기기가 없어도 죽지 않고 사람에게 뭐라도 말해야 한다. */
 const midiButton=await page.locator('[data-note-act=midi]').count();
 const midiTitleBefore=await page.locator('[data-note-act=midi]').getAttribute('title');
 await page.click('[data-note-act=midi]');await page.waitForTimeout(500);
 const midiTitleAfter=await page.locator('[data-note-act=midi]').getAttribute('title');
 const midiAlive=await page.locator('.hu-piano').count();
-/* 자판 건반 — 켜면 Z~M 이 음이 되고, 끄면 도구 단축키로 돌아온다. */
+/* 자판 건반. 켜면 Z~M 이 음이 되고, 끄면 도구 단축키로 돌아온다. */
 const notesBeforeStep=await page.locator('.hu-note').count();
 await page.click('[data-note-act=step]');await page.waitForTimeout(140);
 const stepOn=await page.locator('[data-note-act=step]').evaluate((element)=>element.classList.contains('is-on'));
@@ -151,7 +151,7 @@ await page.click('[data-note-act=step]');await page.waitForTimeout(140);
 await page.keyboard.press('e');await page.waitForTimeout(120);
 const toolAfterStepOff=await page.locator('.hu-root').getAttribute('data-tool');
 await page.keyboard.press('p');await page.waitForTimeout(80);
-/* piano roll 다중 선택 — 빈 칸 box drag 로 음을 묶고, 하나를 끌면 전부 같이 간다. */
+/* piano roll 다중 선택. 빈 칸 box drag 로 음을 묶고, 하나를 끌면 전부 같이 간다. */
 await page.keyboard.press('e');
 const pianoSurface=await page.locator('[data-piano]').boundingBox();
 const noteBoxes=await page.locator('.hu-note').evaluateAll((elements)=>elements.map((element)=>{const box=element.getBoundingClientRect();return {left:box.left,top:box.top,right:box.right,bottom:box.bottom};}));
@@ -172,16 +172,16 @@ await page.keyboard.press('Control+b');await page.waitForTimeout(140);
 const noteCountAfterGroupDuplicate=await page.locator('.hu-note').count();
 await page.keyboard.press('Delete');await page.waitForTimeout(140);
 const noteCountAfterGroupDelete=await page.locator('.hu-note').count();
-/* 이후 검사는 note 한 개 선택 상태를 전제한다 — 수식어 없이 하나를 눌러 묶음을 접는다. */
+/* 이후 검사는 note 한 개 선택 상태를 전제한다. 수식어 없이 하나를 눌러 묶음을 접는다. */
 await page.keyboard.press('p');
 const focusBox=await page.locator('.hu-note').first().boundingBox();
 const focusY=focusBox.y+focusBox.height/2;
 const focusX=await page.evaluate(([left,right,y])=>{for(let x=left+3;x<right-9;x+=3){const element=document.elementFromPoint(x,y);if(element&&element.closest('.hu-note')&&!element.closest('[data-note-resize]'))return x;}return left+3;},[focusBox.x,focusBox.x+focusBox.width,focusY]);
 await page.mouse.click(focusX,focusY);await page.waitForTimeout(100);
 const focusedNotes=await page.locator('.hu-note.is-selected').count();
-/* 피아노롤 도구 — quantize / transpose / velocity 가 고른 음에만 닿는다. */
+/* 피아노롤 도구. quantize / transpose / velocity 가 고른 음에만 닿는다. */
 const notePitchesBeforeTranspose=await page.locator('.hu-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
-/* 지금은 음 하나만 골라 둔 상태 — 도구는 고른 음에만 닿아야 한다.
+/* 지금은 음 하나만 골라 둔 상태. 도구는 고른 음에만 닿아야 한다.
    ±12 는 음역 천장에 걸려 왕복이 비대칭이라(정상) 여기선 ±1 로 잰다. 천장 규칙은 단위 테스트가 덮는다. */
 await page.click('[data-note-act=up]');await page.waitForTimeout(120);
 const notePitchesAfterTranspose=await page.locator('.hu-note').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.top)));
@@ -195,13 +195,13 @@ await page.waitForTimeout(120);
 const velocityHeightsAfter=await page.locator('.hu-vel').evaluateAll((elements)=>elements.map((element)=>parseFloat(element.style.height)));
 const quantizeStatus=await (async()=>{await page.click('[data-note-act=quantize]');await page.waitForTimeout(120);return page.locator('[data-role=status]').textContent();})();
 const noteCountBeforePaste=await page.locator('.hu-note').count();await page.keyboard.press('Control+c');await page.keyboard.press('Control+v');await page.waitForTimeout(80);const noteCountAfterPaste=await page.locator('.hu-note').count();
-/* 확장 편집기가 열려 있을 때만 접는다 — 무조건 toggle 하면 오히려 열려서 툴바를 덮는다. */
+/* 확장 편집기가 열려 있을 때만 접는다. 무조건 toggle 하면 오히려 열려서 툴바를 덮는다. */
 if(await page.locator('.hu-editor.is-expanded').count())await page.click('[data-act=toggle-editor]');
 const arrangerScrollBefore=await page.locator('[data-role=scroll]').evaluate((element)=>{element.scrollLeft=300;return element.scrollLeft;});await page.click('[data-act=zoom-in]');const arrangerScrollAfter=await page.locator('[data-role=scroll]').evaluate((element)=>element.scrollLeft);
-/* ruler — 클릭은 재생 헤드, 빈 곳 드래그는 새 loop 구간, 손잡이는 경계 이동. */
+/* ruler. 클릭은 재생 헤드, 빈 곳 드래그는 새 loop 구간, 손잡이는 경계 이동. */
 const rulerBox=await page.locator('[data-role=ruler]').boundingBox();
 const rulerY=rulerBox.y+15;
-/* 눈금자 왼쪽 172px 은 sticky 머리라 눌러도 안 먹는다 — 실제로 눈금이 드러난 x 를 찾는다. */
+/* 눈금자 왼쪽 172px 은 sticky 머리라 눌러도 안 먹는다. 실제로 눈금이 드러난 x 를 찾는다. */
 const rulerX=await page.evaluate(([y])=>{const ruler=document.querySelector('[data-role=ruler]');const box=ruler.getBoundingClientRect();for(let x=Math.max(2,box.left)+4;x<Math.min(window.innerWidth-4,box.right);x+=6){const el=document.elementFromPoint(x,y);if(el===ruler||(el&&el.closest('[data-role=ruler]')&&!el.closest('.hu-ruler-head')))return x;}return box.left+200;},[rulerY]);
 const playheadBeforeRulerClick=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.mouse.click(rulerX,rulerY);await page.waitForTimeout(120);
@@ -214,7 +214,7 @@ const loopGripHit=await page.evaluate(()=>{const grip=document.querySelector('[d
 await page.mouse.move(loopGripHit.x,loopGripHit.y);await page.mouse.down();await page.mouse.move(loopGripHit.x+120,loopGripHit.y,{steps:4});await page.mouse.up();await page.waitForTimeout(120);
 const loopAfterGrip=await page.locator('.hu-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
 await page.click('[data-act=back]');await page.locator('[data-project-ins=loopEnd]').fill('0.25');await page.locator('[data-project-ins=loopEnd]').press('Tab');await page.waitForTimeout(800);const engineBefore=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=play]');await page.waitForTimeout(180);await page.locator('[data-track-volume]').first().evaluate((element)=>{element.value='0.42';element.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForTimeout(520);const engineDuring=await page.evaluate(()=>({close:window.__ksClose,param:window.__ksParamUpdates}));await page.click('[data-act=stop]');
-/* 녹음 대상(●)·박자 소리 — 죽어 있던 단추가 실제 상태를 갖는다. */
+/* 녹음 대상(●), 박자 소리. 죽어 있던 단추가 실제 상태를 갖는다. */
 const armButtons=page.locator('[data-track-act=arm]');
 const armDisabledOnMidi=await armButtons.first().isDisabled();
 const audioArm=page.locator('.hu-track-row').filter({has:page.locator('.hu-lane[data-kind=audio]')}).locator('[data-track-act=arm]').first();
@@ -232,7 +232,7 @@ await page.click('[data-act=play]');await page.waitForTimeout(700);await page.cl
 const clicksAfter=await page.evaluate(()=>window.__ksOsc);
 await page.click('[data-act=metronome]');await page.waitForTimeout(80);
 const metronomeOff=await page.locator('[data-act=metronome]').evaluate((element)=>element.classList.contains('is-on'));
-/* 구간 이름표 — 눈금자 더블클릭으로 만들고, 눌러 그 자리로 가고, Alt+←/→ 로 건너뛴다. */
+/* 구간 이름표. 눈금자 더블클릭으로 만들고, 눌러 그 자리로 가고, Alt+←/→ 로 건너뛴다. */
 page.once('dialog',(dialog)=>dialog.accept('Chorus'));
 const markerRuler=await page.locator('[data-role=ruler]').boundingBox();
 const markerX=await page.evaluate(([y])=>{const ruler=document.querySelector('[data-role=ruler]');const box=ruler.getBoundingClientRect();for(let x=Math.max(2,box.left)+4;x<Math.min(window.innerWidth-4,box.right);x+=6){const el=document.elementFromPoint(x,y);if(el&&el.closest('[data-role=ruler]')&&!el.closest('.hu-ruler-head')&&!el.closest('[data-marker]'))return x;}return box.left+240;},[markerRuler.y+15]);
@@ -249,7 +249,7 @@ await page.keyboard.press('Alt+ArrowRight');await page.waitForTimeout(120);
 const playheadAfterMarkerKey=await page.locator('[data-role=playhead]').evaluate((element)=>parseFloat(element.style.left));
 await page.locator('[data-marker]').first().click({button:'right'});await page.waitForTimeout(140);
 const markerCountAfterDelete=await page.locator('[data-marker]').count();
-/* 처음 여는 사람 안내 — 한 번 닫으면 다시 안 뜬다. */
+/* 처음 여는 사람 안내. 한 번 닫으면 다시 안 뜬다. */
 const guideVisible=await page.locator('[data-role=guide]:not([hidden])').count();
 await page.click('[data-act=guide-close]');await page.waitForTimeout(120);
 const guideAfterClose=await page.locator('[data-role=guide]:not([hidden])').count();
@@ -260,7 +260,7 @@ const hintDraw=await page.locator('.hu-lane-hint').first().textContent().catch((
 await page.keyboard.press('e');await page.waitForTimeout(120);
 const hintSelect=await page.locator('.hu-lane-hint').first().textContent().catch(()=>'');
 await page.keyboard.press('p');await page.waitForTimeout(120);
-/* 단축키 도움말 — ? 로 열고 Escape 로 닫는다. */
+/* 단축키 도움말. ? 로 열고 Escape 로 닫는다. */
 await page.locator('.hu-root').click({position:{x:5,y:5}});
 await page.keyboard.press('?');await page.waitForTimeout(160);
 const helpKeys=await page.locator('.hu-help kbd').count();
@@ -271,7 +271,7 @@ await page.click('[data-act=help]');await page.waitForTimeout(160);
 const helpFromButton=await page.locator('.hu-help').count();
 await page.click('[data-help-act=close]');await page.waitForTimeout(160);
 const helpAfterClose=await page.locator('.hu-help').count();
-/* 셋잇단 격자 — 고르면 화면 눈금도 같이 바뀐다(격자와 음이 어긋나면 못 쓴다). */
+/* 셋잇단 격자. 고르면 화면 눈금도 같이 바뀐다(격자와 음이 어긋나면 못 쓴다). */
 const gridBefore=await page.locator('.hu-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--hu-grid').trim());
 await page.selectOption('[data-bind=snap]','0.3333333333333333');await page.waitForTimeout(200);
 const gridTriplet=await page.locator('.hu-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--hu-grid').trim());
@@ -279,14 +279,14 @@ await page.waitForTimeout(400);
 const snapSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.snap:-1;});
 await page.selectOption('[data-bind=snap]','0.25');await page.waitForTimeout(200);
 const gridBack=await page.locator('.hu-root').evaluate((element)=>getComputedStyle(element).getPropertyValue('--hu-grid').trim());
-/* 스윙 — 고르면 저장에 남고, 껐다 켜면 정박으로 돌아온다(위치는 안 건드린다). */
+/* 스윙. 고르면 저장에 남고, 껐다 켜면 정박으로 돌아온다(위치는 안 건드린다). */
 const noteBeatsBeforeSwing=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.flatMap((t)=>t.clips).flatMap((c)=>c.notes||[]).map((n)=>n.beat).join(','):'';});
 await page.selectOption('[data-bind=swing]','0.3');await page.waitForTimeout(450);
 const swingSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.swing:-1;});
 const noteBeatsAfterSwing=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.flatMap((t)=>t.clips).flatMap((c)=>c.notes||[]).map((n)=>n.beat).join(','):'';});
 await page.selectOption('[data-bind=swing]','0');await page.waitForTimeout(450);
 const swingOff=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.swing:-1;});
-/* TAP 으로 BPM · 선택 구간 반복 재생 · Space 두 번이면 처음으로. */
+/* TAP 으로 BPM, 선택 구간 반복 재생, Space 두 번이면 처음으로. */
 const bpmBefore=await page.locator('[data-bind=bpm]').inputValue();
 for(let tap=0;tap<6;tap++)await page.click('[data-act=tap]');
 await page.waitForTimeout(150);
@@ -298,7 +298,7 @@ const loopDuringSelection=await page.locator('.hu-loop').evaluate((element)=>({l
 await page.waitForTimeout(180);
 await page.click('[data-act=stop]');await page.waitForTimeout(150);
 const loopAfterSelection=await page.locator('.hu-loop').evaluate((element)=>({left:parseFloat(element.style.left),width:parseFloat(element.style.width)}));
-/* 클립 잠금 — 다 짠 부분을 실수로 못 건드리게. */
+/* 클립 잠금. 다 짠 부분을 실수로 못 건드리게. */
 await page.locator('.hu-clip.is-selected').first().click({button:'right'});await page.waitForSelector('.hu-context:not([hidden])');
 await page.locator('.hu-context [role=menuitem]').filter({hasText:'잠금'}).first().click();await page.waitForTimeout(160);
 const lockedCount=await page.locator('.hu-clip.is-locked').count();
@@ -314,13 +314,13 @@ const clipsAfterLockedDelete=await page.locator('.hu-clip').count();
 await page.locator('.hu-clip.is-locked').first().click({button:'right'});await page.waitForSelector('.hu-context:not([hidden])');
 await page.locator('.hu-context [role=menuitem]').filter({hasText:'잠금'}).first().click();await page.waitForTimeout(160);
 const lockedAfterUnlock=await page.locator('.hu-clip.is-locked').count();
-/* 트랙 접기·순서 바꾸기 — 곡이 길어지면 세로가 모자란다. */
+/* 트랙 접기, 순서 바꾸기. 곡이 길어지면 세로가 모자란다. */
 const laneHeightBefore=await page.locator('.hu-track-row').first().locator('.hu-lane').evaluate((element)=>element.getBoundingClientRect().height);
 await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
 const laneHeightFolded=await page.locator('.hu-track-row').first().locator('.hu-lane').evaluate((element)=>element.getBoundingClientRect().height);
 await page.locator('[data-track-act=fold]').first().click();await page.waitForTimeout(120);
 const laneHeightUnfolded=await page.locator('.hu-track-row').first().locator('.hu-lane').evaluate((element)=>element.getBoundingClientRect().height);
-/* 줄 높이 — 촘촘한 트랙은 키운다. */
+/* 줄 높이. 촘촘한 트랙은 키운다. */
 const rowHeightBefore=await page.locator('.hu-track-row').first().evaluate((element)=>element.getBoundingClientRect().height);
 const resizeGrip=await page.locator('[data-track-resize]').first().boundingBox();
 await page.mouse.move(resizeGrip.x+resizeGrip.width/2,resizeGrip.y+3);await page.mouse.down();
@@ -335,7 +335,7 @@ await page.mouse.move(gripBox.x+5,gripBox.y+7);await page.mouse.down();
 await page.mouse.move(gripBox.x+5,lastRowBox.y+lastRowBox.height-6,{steps:6});
 await page.mouse.up();await page.waitForTimeout(160);
 const namesAfterReorder=await page.locator('[data-track-name]').evaluateAll((elements)=>elements.map((element)=>element.value));
-/* 볼륨 자동화 줄 — A 로 열고, 빈 곳을 눌러 점을 놓고, 우클릭으로 지운다. */
+/* 볼륨 자동화 줄. A 로 열고, 빈 곳을 눌러 점을 놓고, 우클릭으로 지운다. */
 await page.locator('[data-track-act=auto]').first().click();await page.waitForTimeout(120);
 const autoLaneOpen=await page.locator('[data-auto]').count();
 const autoBox=await page.locator('[data-auto]').first().boundingBox();
@@ -358,7 +358,7 @@ if(!panSpot)problems.push('자동화 줄에서 누를 자리를 못 찾았다');
 if(panSpot){await page.mouse.click(panSpot.x,panSpot.y);await page.waitForTimeout(160);}
 const panPointsAfter=await page.locator('[data-auto] [data-auto-point]').count();
 const autoSaved=await page.evaluate(()=>{const raw=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return raw?raw.tracks.reduce((sum,track)=>sum+((track.automation?.volume||[]).length)+((track.automation?.pan||[]).length),0):-1;});
-/* 믹서 미터 — 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
+/* 믹서 미터. 페이더 위치가 아니라 실제로 나는 소리를 그린다. */
 await page.click('[data-side=mixer]');await page.waitForTimeout(100);
 const meterCount=await page.locator('[data-meter]').count();
 const meterBeforePlay=await page.locator('[data-meter-db]').first().textContent();
@@ -375,12 +375,12 @@ const meterAfterStop=await page.locator('[data-meter] span').evaluateAll((elemen
 await page.click('[data-side=inspector]');await page.waitForTimeout(80);
 await page.fill('[data-bind=project-name]','Smoke Song');await page.locator('[data-bind=project-name]').press('Tab');await page.waitForTimeout(400);
 const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null'));
-const projectDownload=page.waitForEvent('download',{timeout:10000});await page.click('[data-act=save]');let projectDownloadEvent;try{projectDownloadEvent=await projectDownload;}catch(error){const state=await page.evaluate(()=>({expanded:document.querySelector('.hu-editor')?.className,status:document.querySelector('[data-role=status]')?.textContent,tool:document.querySelector('.hu-root')?.getAttribute('data-tool')}));throw new Error(`project download missing: ${JSON.stringify(state)} · ${errors.join(' | ')}`,{cause:error});}const portable=JSON.parse(fs.readFileSync(await projectDownloadEvent.path(),'utf8'));
+const projectDownload=page.waitForEvent('download',{timeout:10000});await page.click('[data-act=save]');let projectDownloadEvent;try{projectDownloadEvent=await projectDownload;}catch(error){const state=await page.evaluate(()=>({expanded:document.querySelector('.hu-editor')?.className,status:document.querySelector('[data-role=status]')?.textContent,tool:document.querySelector('.hu-root')?.getAttribute('data-tool')}));throw new Error(`project download missing: ${JSON.stringify(state)}, ${errors.join(' | ')}`,{cause:error});}const portable=JSON.parse(fs.readFileSync(await projectDownloadEvent.path(),'utf8'));
 const portableNoteCount=portable.tracks.flatMap((track)=>track.clips).flatMap((clip)=>clip.notes||[]).length;
 await page.locator('[data-file=project]').setInputFiles({name:'roundtrip.karmo.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(portable))});await page.waitForTimeout(500);
 const reopened=await page.evaluate(()=>({name:document.querySelector('[data-bind=project-name]').value,tracks:document.querySelectorAll('.hu-track-row').length,assets:JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null')?.assets?.length}));
-/* 내보내기 판 — 범위·표본율·채널·정규화를 정하고 나간다. */
-/* 트랙별 내보내기 — ZIP 하나로 묶여 나온다. */
+/* 내보내기 판. 범위, 표본율, 채널, 정규화를 정하고 나간다. */
+/* 트랙별 내보내기. ZIP 하나로 묶여 나온다. */
 await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
 await page.locator('[data-export=stems]').check();
 const stemsDownload=page.waitForEvent('download',{timeout:60000});
@@ -400,10 +400,10 @@ const wavDownload=page.waitForEvent('download');await page.click('[data-export-a
 const exportStatus=await page.locator('[data-role=status]').textContent();
 await page.waitForTimeout(200);
 const exportClosed=await page.locator('.hu-export').count()===0;const wavPath=await download.path();const wav=fs.readFileSync(wavPath);await page.waitForTimeout(200);
-/* 같은 종류의 다른 트랙으로 세로 drag — 클립이 실제로 다른 lane 으로 옮겨져야 한다.
+/* 같은 종류의 다른 트랙으로 세로 drag. 클립이 실제로 다른 lane 으로 옮겨져야 한다.
    390px 화면에서는 세로 drop 지점의 hit-test 가 lane 을 안정적으로 집지 못해 desktop 에서만 잰다. */
 const midiLaneCounts=async()=>page.locator('.hu-lane[data-kind=midi]').evaluateAll((elements)=>elements.map((element)=>element.querySelectorAll('.hu-clip').length));
-/* 좁은 화면에서는 lane 이 스크롤 밖에 있을 수 있다 — 먼저 보이게 만들고 좌표를 잰다. */
+/* 좁은 화면에서는 lane 이 스크롤 밖에 있을 수 있다. 먼저 보이게 만들고 좌표를 잰다. */
 let laneCountsBeforeCross=[],laneCountsAfterCross=[];
 if(!mobile){
   await page.locator('[data-role=scroll]').evaluate((element)=>{element.scrollTop=0;element.scrollLeft=0;});
@@ -421,8 +421,8 @@ if(!mobile){
   laneCountsAfterCross=await midiLaneCounts();
 }
 
-/* 클립 수는 화면이 아니라 프로젝트에서 센다 — 화면 밖 클립은 안 그리므로(KL-220 14회차)
-   DOM 개수는 「지금 보이는 것」이지 「가진 것」이 아니다. */
+/* 클립 수는 화면이 아니라 프로젝트에서 센다. 화면 밖 클립은 안 그리므로(KL-220 14회차)
+   DOM 개수는 지금 보이는 것이지 가진 것이 아니다. */
 const after=await page.evaluate(()=>{const saved=JSON.parse(localStorage.getItem('karmolab_heung_project_v1')||'null');return {tracks:document.querySelectorAll('.hu-track-row').length,clips:saved?saved.tracks.reduce((sum,track)=>sum+track.clips.length,0):-1,visibleClips:document.querySelectorAll('.hu-clip').length,notes:document.querySelectorAll('.hu-note').length,osc:window.__ksOsc,status:document.querySelector('[data-role=status]').textContent};});
 if(initial.tracks<2||initial.clips<1||initial.notes<4)problems.push(`기본 프로젝트가 비었다 (${JSON.stringify(initial)})`);
 if(clipStartAfterContext!==clipStartBeforeContext||!contextLabels.includes('편집기 열기'))problems.push(`우클릭 입력 격리 실패 (${clipStartBeforeContext}→${clipStartAfterContext}, ${contextLabels.join(', ')})`);
@@ -440,9 +440,9 @@ if(!gridBefore||gridBefore===gridTriplet)problems.push(`셋잇단으로 바꿔�
 if(Math.abs(snapSaved-1/3)>0.001)problems.push(`셋잇단 격자가 저장에 안 남았다 (${snapSaved})`);
 if(gridBack!==gridBefore)problems.push(`격자를 되돌려도 눈금이 안 돌아온다 (${gridBefore}→${gridBack})`);
 if(swingSaved!==0.3)problems.push(`스윙이 저장에 안 남았다 (${swingSaved})`);
-if(noteBeatsAfterSwing!==noteBeatsBeforeSwing)problems.push('스윙이 음의 저장 위치를 건드렸다 — 소리 낼 때만 밀어야 한다');
+if(noteBeatsAfterSwing!==noteBeatsBeforeSwing)problems.push('스윙이 음의 저장 위치를 건드렸다. 소리 낼 때만 밀어야 한다');
 if(swingOff!==0)problems.push(`스윙 끄기가 안 된다 (${swingOff})`);
-if(!(bpmAfterTap>=60&&bpmAfterTap<=300)||String(bpmAfterTap)===String(bpmBefore))problems.push(`TAP 이 BPM 을 안 바꾼다 (${bpmBefore}→${bpmAfterTap}) — 정확한 값 계산은 단위 테스트가 본다`);
+if(!(bpmAfterTap>=60&&bpmAfterTap<=300)||String(bpmAfterTap)===String(bpmBefore))problems.push(`TAP 이 BPM 을 안 바꾼다 (${bpmBefore}→${bpmAfterTap}). 정확한 값 계산은 단위 테스트가 본다`);
 if(!loopOnDuringSelection)problems.push('선택 구간 재생인데 LOOP 가 안 켜졌다');
 if(loopDuringSelection.width===loopBeforeSelection.width&&loopDuringSelection.left===loopBeforeSelection.left)problems.push('선택 구간이 loop 로 안 잡힌다');
 if(Math.abs(loopAfterSelection.left-loopBeforeSelection.left)>1||Math.abs(loopAfterSelection.width-loopBeforeSelection.width)>1)problems.push(`멈춘 뒤 원래 loop 로 안 돌아왔다 (${JSON.stringify(loopBeforeSelection)}→${JSON.stringify(loopAfterSelection)})`);
@@ -502,7 +502,7 @@ if(engineDuring.param<=engineBefore.param)problems.push(`재생 중 mixer parame
 if(!armDisabledOnMidi)problems.push('MIDI 트랙의 녹음 대상 단추가 잠겨 있지 않다');
 if(!armedOn||!/Armed/.test(armStatus||''))problems.push(`녹음 대상 지정이 안 된다 (${armedOn}, ${armStatus})`);
 if(armedOff)problems.push('녹음 대상 해제가 안 된다');
-if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다 — 무장 대상 검사가 무의미');
+if(armedLaneClipsBefore<1)problems.push('오디오 트랙에 클립이 없다. 무장 대상 검사가 무의미');
 if(!metronomeOn||metronomeOff)problems.push(`박자 소리 토글이 상태를 안 바꾼다 (${metronomeOn}→${metronomeOff})`);
 if(clicksAfter<=clicksBefore)problems.push(`박자 소리가 안 난다 (oscillator ${clicksBefore}→${clicksAfter})`);
 if(markerCount!==1)problems.push(`구간 이름표 추가 실패 (${markerCount})`);
@@ -525,7 +525,7 @@ if(panPointsAfter!==panPointsBefore+1)problems.push(`팬 자동화 점이 안 �
 if(autoSaved<1)problems.push(`자동화가 저장에 안 남았다 (${autoSaved})`);
 if(meterCount<2)problems.push(`믹서 미터가 트랙 수만큼 없다 (${meterCount})`);
 if(meterBeforePlay!=='−∞')problems.push(`재생 전 미터가 0 이 아니다 (${meterBeforePlay})`);
-if(!meterMoved)problems.push('재생해도 미터가 안 움직인다 — 가짜 미터');
+if(!meterMoved)problems.push('재생해도 미터가 안 움직인다. 가짜 미터');
 if(meterDbSeen==='−∞')problems.push('미터가 움직였는데 dB 표시가 안 붙는다');
 if(meterAfterStop.some((value)=>value>0.5))problems.push(`정지 뒤에도 미터가 남아 있다 (${JSON.stringify(meterAfterStop)})`);
 if(saved?.name!=='Smoke Song'||saved.tracks.length!==after.tracks)problems.push('자동 저장 round-trip 실패');
@@ -542,14 +542,14 @@ if(wav.readUInt32LE(24)!==22050)problems.push(`표본율 선택이 안 먹었다
 if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'||wav.length<10000)problems.push(`WAV 출력 실패 (${wav.length} bytes)`);
 if(initial.layout!=='grid')problems.push(`작업공간 레이아웃 오류 (${initial.layout})`);
 if(errors.length)problems.push(`브라우저 오류: ${errors.slice(0,3).join(' | ')}`);
-/* 눈 게이트 — 잘리고 튀어나온 것을 브라우저 안에서 직접 잰다 (33회차 교훈).
+/* 눈 게이트. 잘리고 튀어나온 것을 브라우저 안에서 직접 잰다 (33회차 교훈).
    검사가 전부 초록인 채로 BPM 칸이 잘려 있었다. */
 const layout=await auditLayout(page,'.hu-root',{ignore:['.hu-help','.hu-export','[data-role=context]','.hu-track-title']});
-if(!layout.ok)problems.push('눈 게이트를 못 돌렸다 — .hu-root 를 못 찾음');
-else for(const line of describeLayout(layout))problems.push(`화면 ${mobile?'(모바일)':'(데스크톱)'} · ${line}`);
+if(!layout.ok)problems.push('눈 게이트를 못 돌렸다. .hu-root 를 못 찾음');
+else for(const line of describeLayout(layout))problems.push(`화면 ${mobile?'(모바일)':'(데스크톱)'}, ${line}`);
 
 const shotIndex=process.argv.indexOf('--shot');if(shotIndex>0&&process.argv[shotIndex+1])await page.screenshot({path:process.argv[shotIndex+1],fullPage:true});
 await browser.close();server.close();
-console.log(`[smoke-heung] tracks ${initial.tracks}→${after.tracks} · clips ${initial.clips}→${after.clips} · notes ${initial.notes}→${after.notes} · synth ${after.osc} · WAV ${wav.length}B`);
+console.log(`[smoke-heung] tracks ${initial.tracks}→${after.tracks}, clips ${initial.clips}→${after.clips}, notes ${initial.notes}→${after.notes}, synth ${after.osc}, WAV ${wav.length}B`);
 if(problems.length){console.error('[smoke-heung] ✗\n  - '+problems.join('\n  - '));process.exit(1);}
 console.log('[smoke-heung] ✓ 편집 → 재생 → 자동저장 → WAV 출력이 한 화면에서 닫힌다');

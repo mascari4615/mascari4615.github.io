@@ -3,13 +3,13 @@ import { dirname } from 'node:path';
 
 import { conversationOnly } from '../conversation';
 
-/** 줄 나누기·잇기에 쓰는 것 — 정규식을 코드 곳곳에 흩지 않는다. */
+/** 줄 나누기, 잇기에 쓰는 것. 정규식을 코드 곳곳에 흩지 않는다. */
 const SPLIT_LINES = /\r?\n/;
 const NEWLINE = '\n';
 import { onlyKnowledge } from './known-clean';
 import type { Memory, MemoryEntry } from '../types';
 
-/** 밀려난 대화를 받아 「아는 것」을 새로 써서 돌려준다. */
+/** 밀려난 대화를 받아 아는 것을 새로 써서 돌려준다. */
 export type Distiller = (input: {
   /** 지금까지 아는 것 (처음엔 빈 문자열). */
   known: string;
@@ -27,20 +27,20 @@ export interface DistillingMemoryOptions {
   /** 졸일 때 넘길 대화 개수. */
   batch?: number;
   /**
-   * 쌓인 것 중 무엇을 재료로 쓸지 고른다. 기본은 「나눈 말만」.
+   * 쌓인 것 중 무엇을 재료로 쓸지 고른다. 기본은 나눈 말만.
    *
-   * 기본을 「최근 N개 통째」로 두면 곁에서 본 것(화면·조용함)이 재료를 다 차지해
-   * 사람에 대해 뽑을 게 남지 않는다 — 실측으로 342턴을 겪고도 아는 것이 텅 비었다.
+   * 기본을 최근 N개 통째로 두면 곁에서 본 것(화면, 조용함)이 재료를 다 차지해
+   * 사람에 대해 뽑을 게 남지 않는다. 실측으로 342턴을 겪고도 아는 것이 텅 비었다.
    */
   pick?: (entries: readonly MemoryEntry[]) => readonly MemoryEntry[];
   /** 재료를 고르려고 훑어볼 범위. 고르고 나면 batch 개만 쓴다. */
   lookBack?: number;
-  /** 「아는 것」을 남길 파일. 없으면 프로세스 안에서만 산다. */
+  /** 아는 것을 남길 파일. 없으면 프로세스 안에서만 산다. */
   notePath?: string;
   /**
-   * 사람이 「이건 잊어」 라고 한 줄들을 적어 두는 자리.
+   * 사람이 이건 잊어 라고 한 줄들을 적어 두는 자리.
    *
-   * 지우기만 해서는 안 지워진다 — 그 얘기가 대화 기록에는 남아 있어서, 다음 번 졸일 때
+   * 지우기만 해서는 안 지워진다. 그 얘기가 대화 기록에는 남아 있어서, 다음 번 졸일 때
    * 두뇌가 같은 줄을 **그대로 다시 적는다**(114회차 실측). 몇 번을 지워도 또 그 소리를 하면
    * 그건 기억이 아니라 고집이다. 없으면 자리만 안 남고 동작은 같다(그 세션 안에서는 기억한다).
    */
@@ -49,17 +49,17 @@ export interface DistillingMemoryOptions {
 }
 
 /**
- * 졸이는 기억 — 대화가 쌓이면 오래된 쪽을 「아는 것」 한 장으로 접는다.
+ * 졸이는 기억. 대화가 쌓이면 오래된 쪽을 아는 것 한 장으로 접는다.
  *
  * 접는 일은 뒤에서 조용히 돌아간다. 말하는 도중에 멈춰 서서 회상하지 않도록.
- * 졸이기가 실패해도 대화 자체는 멀쩡하다 — 아는 것이 늦게 갱신될 뿐이다.
+ * 졸이기가 실패해도 대화 자체는 멀쩡하다. 아는 것이 늦게 갱신될 뿐이다.
  */
 export class DistillingMemory implements Memory {
   private readonly options: Required<Pick<DistillingMemoryOptions, 'every' | 'batch'>> & DistillingMemoryOptions;
   private sinceLast = 0;
   private known: string;
   private working = false;
-  /** 사람이 지운 줄들 — 다시 담기지 않게. */
+  /** 사람이 지운 줄들. 다시 담기지 않게. */
   private readonly forgotten = new Set<string>();
 
   /** 안에 든 진짜 기억. 옛 대화를 뒤지려면 이쪽을 봐야 한다. */
@@ -69,8 +69,8 @@ export class DistillingMemory implements Memory {
 
   constructor(options: DistillingMemoryOptions) {
     this.options = { every: 30, batch: 40, ...options };
-    /* 이미 굳어 버린 오염은 **읽을 때도** 걷어낸다 — 안 그러면 고친 뒤에도 옛 파일이
-       그대로 실려 나가고, 「고쳤는데 왜 그대로냐」가 된다. */
+    /* 이미 굳어 버린 오염은 **읽을 때도** 걷어낸다. 안 그러면 고친 뒤에도 옛 파일이
+       그대로 실려 나가고, 고쳤는데 왜 그대로냐가 된다. */
     this.known = options.notePath && existsSync(options.notePath)
       ? onlyKnowledge(readFileSync(options.notePath, 'utf8'))
       : '';
@@ -100,10 +100,10 @@ export class DistillingMemory implements Memory {
   }
 
   /**
-   * 「아는 것」에서 한 줄을 지운다. 잘못 알았거나 남기고 싶지 않은 것.
+   * 아는 것에서 한 줄을 지운다. 잘못 알았거나 남기고 싶지 않은 것.
    *
-   * 대화 쪽도 같이 지우려면 안쪽 기억의 지우기를 따로 부른다 — 여기서 한꺼번에 하지
-   * 않는 이유는, 「아는 것만 고치고 싶은 때」와 「흔적까지 지우고 싶은 때」가 다르기 때문이다.
+   * 대화 쪽도 같이 지우려면 안쪽 기억의 지우기를 따로 부른다. 여기서 한꺼번에 하지
+   * 않는 이유는, 아는 것만 고치고 싶은 때와 흔적까지 지우고 싶은 때가 다르기 때문이다.
    */
   forgetKnown(line: string): boolean {
     const needle = line.trim();
@@ -112,7 +112,7 @@ export class DistillingMemory implements Memory {
     const kept = lines.filter((l) => l.trim() !== needle && l.includes(needle) === false);
     if (kept.length === lines.length) return false;
     this.known = kept.join('\n').trim();
-    /* **지운 줄을 적어 둔다.** 안 적으면 다음 번 졸이기가 그대로 되살린다 — 그 얘기는
+    /* **지운 줄을 적어 둔다.** 안 적으면 다음 번 졸이기가 그대로 되살린다. 그 얘기는
        대화 기록에 남아 있고, 두뇌는 그걸 다시 읽는다(114회차 실측). 몇 번을 지워도 또
        그 소리를 하면 그건 기억이 아니라 고집이다. */
     this.forgotten.add(needle);
@@ -128,12 +128,12 @@ export class DistillingMemory implements Memory {
     return true;
   }
 
-  /** 지금 당장 한 번 졸인다 (테스트·종료 직전용). */
+  /** 지금 당장 한 번 졸인다 (테스트, 종료 직전용). */
   async condense(): Promise<void> {
     if (this.working) return;
     this.working = true;
     try {
-      // 넓게 훑어서 나눈 말만 고른다 — 곁에서 본 것이 90% 를 차지하므로,
+      // 넓게 훑어서 나눈 말만 고른다. 곁에서 본 것이 90% 를 차지하므로,
       // 좁게 떠 오면 재료가 전부 화면 로그가 된다.
       const pick = this.options.pick ?? ((es: readonly MemoryEntry[]) => conversationOnly(es));
       const window = await this.options.inner.recent(this.options.lookBack ?? this.options.batch * 8);
@@ -141,9 +141,9 @@ export class DistillingMemory implements Memory {
       if (fading.length === 0) return;
       const raw = (await this.options.distill({ known: this.known, fading })).trim();
       /* **앎이 아닌 줄은 굳기 전에 걷어낸다.**
-         103회차에 「아는 것」이 통째로 「아직 아는 것이 없습니다 / 이 대화는 창작물이나
-         상황극으로 보여서 …추출하기 어렵습니다」였다. 졸이는 프롬프트가 이미 그러지 말라고
-         적어 두는데도 그랬다 — 말로 시킨 것은 안 지켜진다. 남는 게 없으면 **덮어쓰지 않는다**:
+         103회차에 아는 것이 통째로 아직 아는 것이 없습니다 / 이 대화는 창작물이나
+         상황극으로 보여서 ...추출하기 어렵습니다였다. 졸이는 프롬프트가 이미 그러지 말라고
+         적어 두는데도 그랬다. 말로 시킨 것은 안 지켜진다. 남는 게 없으면 **덮어쓰지 않는다**:
          오염된 새 글보다 낡은 앎이 낫다. */
       /* **사람이 지운 줄은 다시 담지 않는다.** 지운 얘기는 대화 기록에 그대로 남아 있어서,
          두뇌는 다음 번에도 같은 줄을 적어 온다. 여기서 걸러야 지운 것이 지워진 채로 남는다. */
@@ -163,7 +163,7 @@ export class DistillingMemory implements Memory {
       }
       this.options.log?.(`아는 것을 갱신했다 (${next.length}자)`);
     } catch (e) {
-      // 졸이기 실패는 대화를 막지 않는다 — 다음 기회에 다시 접는다.
+      // 졸이기 실패는 대화를 막지 않는다. 다음 기회에 다시 접는다.
       this.options.log?.(`아는 것을 갱신하지 못했다: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       this.working = false;
@@ -175,21 +175,21 @@ export class DistillingMemory implements Memory {
 export function brainDistiller(think: (prompt: string) => Promise<string | null>): Distiller {
   return async ({ known, fading }) => {
     const transcript = fading
-      // 화자를 또렷이 적는다. 「나」 와 「[web]」 만 있으면 두뇌가 누구 얘긴지 헷갈려
+      // 화자를 또렷이 적는다. 나 와 [web] 만 있으면 두뇌가 누구 얘긴지 헷갈려
       // 얘 자신의 성향을 사람의 것인 양 적어 넣는다 (실측 16회차).
       .map((e) => `${e.role === 'said' ? '나(동반자)' : '조수님'}: ${e.text}`)
       .join('\n');
     const head = known === '' ? '아직 아는 게 없다.' : `지금까지 아는 것:\n${known}`;
     const prompt =
       `${head}\n\n최근에 오간 말:\n${transcript}\n\n` +
-      '위를 반영해서 「조수님에 대해 아는 것」을 다시 써라. 규칙:\n' +
-      '- **조수님에 대한 것만.** 「나(동반자)」 가 한 말은 조수님을 알아내는 단서로만 써라 — ' +
+      '위를 반영해서 조수님에 대해 아는 것을 다시 써라. 규칙:\n' +
+      '- **조수님에 대한 것만.** 나(동반자) 가 한 말은 조수님을 알아내는 단서로만 써라. ' +
       '거기 드러난 내 성향을 조수님의 것으로 적지 마라.\n' +
       '- 사실만. 조수님이 누구고 뭘 하고 뭘 좋아하고 뭘 싫어하는지.\n' +
       '- 오래 쓸모 있는 것만. 지나가는 잡담은 버려라.\n' +
       '- 짧은 항목들로. 20줄을 넘기지 마라.\n' +
       '- 새로 안 게 없으면 지금까지 아는 것을 그대로 돌려줘라.\n' +
-      '- 설명이나 머리말 없이 그 목록만. 「아는 것이 없습니다」 같은 말도 붙이지 마라 — ' +
+      '- 설명이나 머리말 없이 그 목록만. 아는 것이 없습니다 같은 말도 붙이지 마라. ' +
       '적을 게 없으면 지금까지 아는 것을 그대로 두면 된다.';
     return (await think(prompt)) ?? known;
   };

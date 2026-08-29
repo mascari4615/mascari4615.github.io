@@ -1,11 +1,11 @@
 /**
  * QR 코드 읽기 (TASK-KL-088)
  *
- * 화면에 뜬 QR 은 폰으로 찍을 수 없다. 캡처해 두고 「이거 뭐지」 하고 남는데, 읽어 보겠다고
- * 낯선 사이트에 올리는 건 곤란하다 — QR 에는 초대 링크·와이파이 비밀번호·계좌가 들어 있다.
+ * 화면에 뜬 QR 은 폰으로 찍을 수 없다. 캡처해 두고 이거 뭐지 하고 남는데, 읽어 보겠다고
+ * 낯선 사이트에 올리는 건 곤란하다. QR 에는 초대 링크, 와이파이 비밀번호, 계좌가 들어 있다.
  *
- * 두 갈래를 둔다: **그림 파일**(캡처·사진)과 **카메라**(눈앞의 QR).
- * 읽은 뒤에는 그냥 글자만 보여 주지 않고 **무엇인지 알려 준다** — 주소면 어디로 가는지,
+ * 두 갈래를 둔다: **그림 파일**(캡처, 사진)과 **카메라**(눈앞의 QR).
+ * 읽은 뒤에는 그냥 글자만 보여 주지 않고 **무엇인지 알려 준다**. 주소면 어디로 가는지,
  * 와이파이면 어느 망인지. QR 은 눈으로 확인할 수 없어서 그대로 누르면 위험하다.
  *
  * 해독은 브라우저에 그 기능이 있으면 그걸 쓰고(내려받을 것이 없다), 없을 때만 해독기를 받는다.
@@ -22,7 +22,7 @@ import { statusLine } from './shared/say';
     (data: Uint8ClampedArray, w: number, h: number): { data: string } | null;
   }
 
-  /** 읽은 값이 무엇인지 알아본다 — 그대로 누르기 전에 사람이 판단할 수 있게. */
+  /** 읽은 값이 무엇인지 알아본다. 그대로 누르기 전에 사람이 판단할 수 있게. */
   function explain(text: string): Array<[string, string]> {
     const rows: Array<[string, string]> = [];
     const wifi = text.match(/^WIFI:(.*);;?$/i);
@@ -65,20 +65,20 @@ import { statusLine } from './shared/say';
 
   Toolbox.register({
     id: 'qrread',
-    /* 도구 큰제목이 이 값을 쓴다 — 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
+    /* 도구 큰제목이 이 값을 쓴다. 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
        큰제목만 한국어로 남았다). 등록 순간이라 기다릴 수 없어 원본을 기본값으로 함께 준다. */
     title: t('widgets.qrread.title', undefined, 'QR 코드 읽기'),
     category: 'tool',
-    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     desc: t('widgets-desc.qrread.desc', undefined, '그림이나 카메라로 QR 을 읽고, 그 안에 무엇이 들었는지 알려 줍니다. 어디에도 올리지 않습니다'),
     layout: 'wide',
     icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        /* 등록 순간에 쓰이는 유일한 글 — 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
+        /* 등록 순간에 쓰이는 유일한 글. 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
         label: t('qrread.tab', undefined, 'QR 읽기'),
-        /* 도구의 *자기 화면* 은 스크립트가 그린다 — 그래서 이 글은 찍을 때가 아니라 **여기서**
+        /* 도구의 *자기 화면* 은 스크립트가 그린다. 그래서 이 글은 찍을 때가 아니라 **여기서**
            갈아 끼워야 한다. 그 언어 장에는 이 묶음이 머리말에 미리 박혀 있어 기다림이 0 이고,
            앱 안(해시 주소)에서 열면 그때 한 번 받아온다. 받아온 **뒤에** 그리는 이유는
            안 기다리고 그리면 화면에 열쇠 이름이 그대로 뜨기 때문이다. */
@@ -135,11 +135,11 @@ import { statusLine } from './shared/say';
           let stream: MediaStream | null = null;
           let scanning = 0;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 브라우저에 읽는 기능이 있으면 그걸 쓴다 — 그러면 내려받을 것이 없다. */
+          /** 브라우저에 읽는 기능이 있으면 그걸 쓴다. 그러면 내려받을 것이 없다. */
           async function reader(): Promise<(cv: HTMLCanvasElement) => Promise<string | null>> {
             const BD = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => Detector }).BarcodeDetector;
             if (BD) {
@@ -186,7 +186,7 @@ import { statusLine } from './shared/say';
             const read = await reader();
             const bitmap = await createImageBitmap(src);
             const cv = document.createElement('canvas');
-            // 너무 작으면 못 읽고 너무 크면 느리다 — 적당한 크기로 맞춘다
+            // 너무 작으면 못 읽고 너무 크면 느리다. 적당한 크기로 맞춘다
             const scale = Math.min(1600 / Math.max(bitmap.width, bitmap.height), 1);
             cv.width = Math.round(bitmap.width * Math.max(scale, 0.2));
             cv.height = Math.round(bitmap.height * Math.max(scale, 0.2));
@@ -247,7 +247,7 @@ import { statusLine } from './shared/say';
 
           /* 파일 받는 자리 = 공용 배선 (TASK-KL-290 → KL-257 이관).
              손으로 적을 때 빠져 있던 둘이 이걸로 생긴다: **키보드로 열기**(Enter/Space)와
-             **붙여넣기**. 여기 코드는 「받은 뒤 무엇을 하나」만 남는다. */
+             **붙여넣기**. 여기 코드는 받은 뒤 무엇을 하나만 남는다. */
           const read = (f: File): void => {
             void fromImage(f).catch((e: Error) => say(t('qrread.status.readError', { message: e.message }), 'error'));
           };

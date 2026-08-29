@@ -1,12 +1,12 @@
 /**
  * 코드 사진의 **껍데기** (TASK-KL-245)
  *
- * carbon.now.sh 도 ray.so 도 「둥근 창 + 신호등 세 개」 하나뿐이다. 우리는 껍데기를 하나로
- * 정하지 않는다 — 고르는 것은 쓰는 사람이고, 그러니 껍데기는 **갈아 끼우는 부품**이어야 한다.
+ * carbon.now.sh 도 ray.so 도 둥근 창 + 신호등 세 개 하나뿐이다. 우리는 껍데기를 하나로
+ * 정하지 않는다. 고르는 것은 쓰는 사람이고, 그러니 껍데기는 **갈아 끼우는 부품**이어야 한다.
  * 껍데기 하나 = 이 파일의 표에 한 줄. 새 껍데기를 더하는 일이 그 이상으로 커지면 안 된다.
  *
  * 껍데기는 **코드를 모른다.** 테두리를 어떻게 그리고 안쪽을 얼마나 비우는지만 안다.
- * 반대로 코드를 그리는 쪽은 껍데기를 모른다. 그래서 「종이 껍데기 + 어두운 색칠」 같은
+ * 반대로 코드를 그리는 쪽은 껍데기를 모른다. 그래서 종이 껍데기 + 어두운 색칠 같은
  * 조합도 따로 만들 것 없이 그냥 된다.
  */
 
@@ -15,7 +15,7 @@ export interface FrameMeta {
   lang: string;
   /** 줄 수 */
   lines: number;
-  /** 파일 이름 — 비어 있을 수 있다 */
+  /** 파일 이름. 비어 있을 수 있다 */
   file: string;
   /** 오늘 날짜 `YYYY-MM-DD` */
   today: string;
@@ -36,9 +36,9 @@ export interface FramePalette {
   inner: string;
   /** 기본 글자색 */
   text: string;
-  /** 줄 번호·라벨처럼 물러나야 하는 것 */
+  /** 줄 번호, 라벨처럼 물러나야 하는 것 */
   faint: string;
-  /** 어두운 바탕인가 — 문법 색을 고를 때 쓴다 */
+  /** 어두운 바탕인가. 문법 색을 고를 때 쓴다 */
   dark: boolean;
 }
 
@@ -47,7 +47,7 @@ export interface Frame {
   /** 코드가 들어갈 안쪽 여백 */
   pad: { top: number; right: number; bottom: number; left: number };
   palette: FramePalette;
-  /** 코드 **뒤**에 깔 것 (창틀·라벨·종이결) */
+  /** 코드 **뒤**에 깔 것 (창틀, 라벨, 종이결) */
   back(c: CanvasRenderingContext2D, box: Box, meta: FrameMeta): void;
   /** 코드 **위**에 얹을 것 (테두리 마감) */
   front?(c: CanvasRenderingContext2D, box: Box, meta: FrameMeta): void;
@@ -55,7 +55,7 @@ export interface Frame {
 
 const UI = '600 13px KarmoSans, ui-sans-serif, system-ui, sans-serif';
 
-/** 모서리가 둥근 네모 — `roundRect` 가 없는 자리를 위해 직접 그린다. */
+/** 모서리가 둥근 네모. `roundRect` 가 없는 자리를 위해 직접 그린다. */
 function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
   const rr = Math.min(r, w / 2, h / 2);
   c.beginPath();
@@ -73,7 +73,7 @@ function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number,
 
 /* ── 껍데기들 ─────────────────────────────────────────────────────────── */
 
-/** 실험실 표본 — 라벨이 붙은 유리판. KarmoLab 것으로 보이는 기본값. */
+/** 실험실 표본. 라벨이 붙은 유리판. KarmoLab 것으로 보이는 기본값. */
 const specimen: Frame = {
   id: 'specimen',
   pad: { top: 52, right: 22, bottom: 22, left: 18 },
@@ -83,7 +83,7 @@ const specimen: Frame = {
     c.fillStyle = this.palette.inner;
     c.fill();
 
-    /* 밑에 깔린 모눈 — 실험 노트의 결. 아주 옅게, 코드를 방해하지 않을 만큼만. */
+    /* 밑에 깔린 모눈. 실험 노트의 결. 아주 옅게, 코드를 방해하지 않을 만큼만. */
     c.save();
     roundRect(c, b.x, b.y, b.w, b.h, 14);
     c.clip();
@@ -103,7 +103,7 @@ const specimen: Frame = {
     }
     c.restore();
 
-    /* 표본 라벨 — 무엇을, 얼마나, 언제. */
+    /* 표본 라벨. 무엇을, 얼마나, 언제. */
     c.save();
     c.font = UI;
     c.textBaseline = 'middle';
@@ -111,7 +111,7 @@ const specimen: Frame = {
     c.fillText(m.lang.toUpperCase(), b.x + 18, b.y + 26);
     const w1 = c.measureText(m.lang.toUpperCase()).width;
     c.fillStyle = this.palette.faint;
-    const tail = `· ${m.lines}줄 · ${m.today}`;
+    const tail = `,  ${m.lines}줄, ${m.today}`;
     c.fillText(tail, b.x + 18 + w1 + 8, b.y + 26);
     if (m.file) {
       const fw = c.measureText(m.file).width;
@@ -133,7 +133,7 @@ const specimen: Frame = {
   }
 };
 
-/** 터미널 창 — 경로가 제목이고, 맨 위에 프롬프트 한 줄. */
+/** 터미널 창. 경로가 제목이고, 맨 위에 프롬프트 한 줄. */
 const terminal: Frame = {
   id: 'terminal',
   pad: { top: 46, right: 20, bottom: 20, left: 16 },
@@ -149,7 +149,7 @@ const terminal: Frame = {
     c.fillStyle = 'rgba(255,255,255,.045)';
     c.fillRect(b.x, b.y, b.w, 38);
     c.restore();
-    /* 신호등 대신 우리 표식 — 남의 운영체제 흉내를 낼 이유가 없다. */
+    /* 신호등 대신 우리 표식. 남의 운영체제 흉내를 낼 이유가 없다. */
     c.save();
     const cy = b.y + 19;
     const marks = ['#5c6b7f', '#5c6b7f', '#9fe0c8'];
@@ -162,7 +162,7 @@ const terminal: Frame = {
     c.font = UI;
     c.textBaseline = 'middle';
     c.fillStyle = this.palette.faint;
-    const title = m.file || `${m.lang} · ${m.lines}줄`;
+    const title = m.file || `${m.lang}, ${m.lines}줄`;
     const tw = c.measureText(title).width;
     c.fillText(title, b.x + (b.w - tw) / 2, cy);
     c.restore();
@@ -175,7 +175,7 @@ const terminal: Frame = {
   }
 };
 
-/** 인쇄된 종이 — 틀이 없다. 종이결과 줄 번호만. */
+/** 인쇄된 종이. 틀이 없다. 종이결과 줄 번호만. */
 const paper: Frame = {
   id: 'paper',
   pad: { top: 34, right: 26, bottom: 30, left: 20 },
@@ -183,7 +183,7 @@ const paper: Frame = {
   back(c, b, m) {
     c.fillStyle = this.palette.inner;
     c.fillRect(b.x, b.y, b.w, b.h);
-    /* 종이결 — 규칙적인 점을 아주 옅게. 무늬가 보이면 종이가 아니라 벽지가 된다. */
+    /* 종이결. 규칙적인 점을 아주 옅게. 무늬가 보이면 종이가 아니라 벽지가 된다. */
     c.save();
     c.fillStyle = 'rgba(120,105,80,.05)';
     for (let y = b.y + 3; y < b.y + b.h; y += 4) {
@@ -203,7 +203,7 @@ const paper: Frame = {
   }
 };
 
-/** 민짜 — 껍데기 없음. 남의 문서에 끼워 넣을 때. */
+/** 민짜. 껍데기 없음. 남의 문서에 끼워 넣을 때. */
 const bare: Frame = {
   id: 'bare',
   pad: { top: 16, right: 16, bottom: 16, left: 14 },

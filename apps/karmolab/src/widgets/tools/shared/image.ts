@@ -2,20 +2,20 @@
  * 이미지를 다루는 **한 자리** (TASK-KL-261)
  *
  * 이미지 도구 열하나가 각자 이렇게 하고 있었다(2026-08-13 실측):
- *   - `new Image()` + `URL.createObjectURL` 로 파일 읽기 — **8/11**
- *   - `canvas.getContext('2d')` 로 다시 그리기 — **9/11**
- *   - `toBlob` 로 내보내기 — **7/11**
- *   - `a.download` 로 내려주기 — **9/11**
- *   - 끌어다 놓기(`dragover`) 배선 — **8/11**
+ *   - `new Image()` + `URL.createObjectURL` 로 파일 읽기. **8/11**
+ *   - `canvas.getContext('2d')` 로 다시 그리기. **9/11**
+ *   - `toBlob` 로 내보내기. **7/11**
+ *   - `a.download` 로 내려주기. **9/11**
+ *   - 끌어다 놓기(`dragover`) 배선. **8/11**
  *
- * 같은 것을 아홉 번 적으면 **아홉 곳이 서로 다르게 낡는다**. 한 곳에서 「WebP 도 내보내기」나
- * 「HEIC 는 못 읽는다고 말하기」를 배워도 나머지 여덟은 모른다. 그래서 여기 하나만 둔다.
+ * 같은 것을 아홉 번 적으면 **아홉 곳이 서로 다르게 낡는다**. 한 곳에서 WebP 도 내보내기나
+ * HEIC 는 못 읽는다고 말하기를 배워도 나머지 여덟은 모른다. 그래서 여기 하나만 둔다.
  *
- * [[TASK-KL-258]] 의 `shared/pdf.ts` 와 같은 이치다 — 다만 이쪽은 **바깥 라이브러리가 없다**.
- * 브라우저의 캔버스가 곧 엔진이라, 여기 모이는 것은 「어떻게 부르는가」의 되풀이다.
+ * [[TASK-KL-258]] 의 `shared/pdf.ts` 와 같은 이치다. 다만 이쪽은 **바깥 라이브러리가 없다**.
+ * 브라우저의 캔버스가 곧 엔진이라, 여기 모이는 것은 어떻게 부르는가의 되풀이다.
  */
 
-/** 파일·blob 을 그림으로 읽는다. objectURL 은 **여기서 거둔다** — 각자 거두다 잊으면 샌다. */
+/** 파일, blob 을 그림으로 읽는다. objectURL 은 **여기서 거둔다**. 각자 거두다 잊으면 샌다. */
 export async function loadImage(src: File | Blob | string): Promise<HTMLImageElement> {
   const url = typeof src === 'string' ? src : URL.createObjectURL(src);
   try {
@@ -31,7 +31,7 @@ export async function loadImage(src: File | Blob | string): Promise<HTMLImageEle
   }
 }
 
-/** 원본 크기 — 「1920×1080」 한 줄을 위해 파일마다 다시 읽지 않게. */
+/** 원본 크기. 1920×1080 한 줄을 위해 파일마다 다시 읽지 않게. */
 export async function sizeOf(src: File | Blob): Promise<{ w: number; h: number }> {
   const img = await loadImage(src);
   return { w: img.naturalWidth, h: img.naturalHeight };
@@ -39,7 +39,7 @@ export async function sizeOf(src: File | Blob): Promise<{ w: number; h: number }
 
 /**
  * 캔버스에 옮겨 그린다. `fit` 이 있으면 **비율을 지키며** 그 안에 들어가게 줄인다.
- * (늘리지는 않는다 — 작은 그림을 크게 그려 봤자 흐려지기만 한다.)
+ * (늘리지는 않는다. 작은 그림을 크게 그려 봤자 흐려지기만 한다.)
  */
 export function toCanvas(
   img: HTMLImageElement | HTMLCanvasElement,
@@ -63,7 +63,7 @@ export function toCanvas(
 export type ImageFormat = 'png' | 'jpeg' | 'webp';
 
 /**
- * 내보내기. **JPEG 는 투명을 못 담아** 그냥 넘기면 투명한 데가 검게 나온다 —
+ * 내보내기. **JPEG 는 투명을 못 담아** 그냥 넘기면 투명한 데가 검게 나온다 . 
  * 그래서 바탕을 먼저 깔고 그린다(각 도구가 저마다 잊던 자리다).
  */
 export async function encode(
@@ -89,22 +89,22 @@ export async function encode(
   });
 }
 
-/** 이름 짓기 — 「사진.png」 + 「-작게」 → 「사진-작게.webp」 */
+/** 이름 짓기. 사진.png + -작게 → 사진-작게.webp */
 export function renameTo(original: string, suffix: string, format?: ImageFormat): string {
   const stem = original.replace(/\.[^.]+$/, '') || 'image';
   const ext = format ? (format === 'jpeg' ? 'jpg' : format) : original.split('.').pop() || 'png';
   return `${stem}${suffix}.${ext}`;
 }
 
-/** 내려주기 — 아홉 곳이 각자 적던 네 줄. */
+/** 내려주기. 아홉 곳이 각자 적던 네 줄. */
 /**
  * 그림을 **화면에 물린다**. 앞서 물려 있던 주소는 거둔다.
  *
- * 왜 (2026-08-14 실측): `imgmerge`·`imgresize` 가 결과 미리보기를 `el.src = createObjectURL(blob)`
- * 로만 물리고 **거두지 않았다**. 다시 만들 때마다 주소가 쌓인다 — 화면은 멀쩡해서 아무도 모른다.
+ * 왜 (2026-08-14 실측): `imgmerge`, `imgresize` 가 결과 미리보기를 `el.src = createObjectURL(blob)`
+ * 로만 물리고 **거두지 않았다**. 다시 만들 때마다 주소가 쌓인다. 화면은 멀쩡해서 아무도 모른다.
  *
  * `download` 와 다르다: 저건 다 쓰면 바로 거두면 되지만, 미리보기는 **화면이 계속 쥐고 있어야**
- * 한다. 그래서 「다음 것을 물릴 때 앞 것을 거둔다」가 맞는 규칙이다. (소리 쪽 `attachAudio` 와 짝)
+ * 한다. 그래서 다음 것을 물릴 때 앞 것을 거둔다가 맞는 규칙이다. (소리 쪽 `attachAudio` 와 짝)
  */
 export function attachImage(el: HTMLImageElement, src: Blob | File): string {
   const prev = el.dataset.karmoObjectUrl;
@@ -126,7 +126,7 @@ export function download(blob: Blob, filename: string): void {
 /**
  * **이미 있는 주소**를 내려준다 (dataURL, 또는 다른 데서도 쓰는 objectURL).
  *
- * `download(blob, name)` 과 갈라 둔 이유는 **거두느냐**다 — 이쪽 주소는 화면이 계속 쓰고 있어서
+ * `download(blob, name)` 과 갈라 둔 이유는 **거두느냐**다. 이쪽 주소는 화면이 계속 쓰고 있어서
  * 거두면 그 자리 그림이 깨진다. 한 함수에 섞으면 어느 쪽인지 부르는 쪽이 매번 판단해야 한다.
  */
 export function downloadUrl(url: string, filename: string): void {

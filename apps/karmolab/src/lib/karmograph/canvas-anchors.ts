@@ -1,9 +1,9 @@
 /**
- * lib/karmograph/canvas-anchors.ts — 임시 자리(anchor) (TASK-KL-202 방향① 해체 9조각).
+ * lib/karmograph/canvas-anchors.ts. 임시 자리(anchor) (TASK-KL-202 방향① 해체 9조각).
  */
 import type { EphemeralAnchor } from './spec';
 
-/** 임시 자리 한 칸의 실제 자리·크기. `offsetY` = 스펙 좌표에서 아래로 밀린 양. */
+/** 임시 자리 한 칸의 실제 자리, 크기. `offsetY` = 스펙 좌표에서 아래로 밀린 양. */
 export interface AnchorLayout {
   x: number;
   y: number;
@@ -14,7 +14,7 @@ export interface AnchorLayout {
 
 /**
  * 같은 묶음에 속한 임시 자리들을 **위에서 아래로 쌓는다**. 안에 든 것이 많으면 그만큼 키우고,
- * 다음 자리는 그 아래로 밀린다 — 안 밀면 자료가 는 순간 자리끼리 겹쳐 서로를 가린다.
+ * 다음 자리는 그 아래로 밀린다. 안 밀면 자료가 는 순간 자리끼리 겹쳐 서로를 가린다.
  */
 export function computeAnchorLayout(
   anchors: EphemeralAnchor[],
@@ -36,7 +36,7 @@ export function computeAnchorLayout(
       const offsetY = effY - a.y;
       let h = a.h;
       if (items.length > 0) {
-        // 안에 든 것들의 y 는 스펙 좌표 기준 — 밀린 만큼 더해야 진짜 바닥이 나온다.
+        // 안에 든 것들의 y 는 스펙 좌표 기준. 밀린 만큼 더해야 진짜 바닥이 나온다.
         const maxBottom = Math.max(...items.map((n) => n.y + offsetY + n.h));
         h = Math.max(a.h, maxBottom - effY + 8);
       }
@@ -50,9 +50,9 @@ export function computeAnchorLayout(
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
- * 임시 자리(anchor) 그리기 — 바깥 자료(파일·서비스)에서 흘러들어오는 것들이 잠깐 놓이는 상자.
+ * 임시 자리(anchor) 그리기. 바깥 자료(파일, 서비스)에서 흘러들어오는 것들이 잠깐 놓이는 상자.
  * KarmoGraph 에서는 거의 안 쓰이고 cockpit 이 쓴다. 그래도 **캔버스 본체에 남겨 두면**
- * 「이건 뭐지?」로 읽는 시간을 계속 먹는다 — 쓰는 쪽이 분명한 것은 따로 둔다.
+ * 이건 뭐지?로 읽는 시간을 계속 먹는다. 쓰는 쪽이 분명한 것은 따로 둔다.
  */
 export interface AnchorBox {
   x: number;

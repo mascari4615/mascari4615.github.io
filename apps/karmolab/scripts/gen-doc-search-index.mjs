@@ -24,5 +24,5 @@ for (const [file, docId] of Object.entries(ids)) {
   }
 }
 fs.writeFileSync(path.join(root, 'data', 'docs-search-index.ko.json'),
-  JSON.stringify({ $comment: '자동 생성 — gen-doc-search-index.mjs. 문서 위젯 통합 검색 색인.', documents }, null, 2) + '\n');
-console.log(`[doc-search-index] 문서 ${Object.keys(ids).length}개 · 제목 ${documents.length}개`);
+  JSON.stringify({ $comment: '자동 생성. gen-doc-search-index.mjs. 문서 위젯 통합 검색 색인.', documents }, null, 2) + '\n');
+console.log(`[doc-search-index] 문서 ${Object.keys(ids).length}개, 제목 ${documents.length}개`);

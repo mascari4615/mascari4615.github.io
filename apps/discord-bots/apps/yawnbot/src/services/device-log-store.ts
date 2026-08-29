@@ -2,21 +2,21 @@
  * 기기(폰) 실행 로그 저장소 (TASK-WM-201).
  *
  * 폰에서 도는 WM 이 배치로 밀어 넣은 로그 줄을 **세션당 NDJSON 한 파일**로 쌓고,
- * 사람(웹)·AI(tail)가 같은 파일을 읽는다. Discord 전송·HTTP 는 여기 없음 —
- * 본 모듈은 *검증·저장·조회* 만 (bot/device-log.ts 가 HTTP·알림 담당).
+ * 사람(웹), AI(tail)가 같은 파일을 읽는다. Discord 전송, HTTP 는 여기 없음 . 
+ * 본 모듈은 *검증, 저장, 조회* 만 (bot/device-log.ts 가 HTTP, 알림 담당).
  *
  * 왜 NDJSON 인가: append 가 원자적이고(줄 단위), 중간이 깨져도 나머지 줄이 살고,
  * tail 이 파일 되감기만으로 끝난다. DB 는 이 규모에 과한 운영 부담.
  *
  * 신뢰 경계: 페이로드는 *외부 입력*이다. 세션 이름은 파일명이 되므로 화이트리스트
- * 검증, 줄 수·길이·파일 크기는 전부 상한을 둔다(디스크 폭주 = 노트북 prod 정지).
+ * 검증, 줄 수, 길이, 파일 크기는 전부 상한을 둔다(디스크 폭주 = 노트북 prod 정지).
  */
 import fs from 'fs';
 import path from 'path';
 
 /** 한 줄. 폰이 보낸 원본을 정규화한 형태. */
 export interface DeviceLogLine {
-  /** epoch ms (수신 서버 기준으로 보정하지 않음 — 폰 시계 그대로). */
+  /** epoch ms (수신 서버 기준으로 보정하지 않음. 폰 시계 그대로). */
   t: number;
   /** Unity LogType 소문자: log / warning / error / exception / assert. */
   level: string;
@@ -43,7 +43,7 @@ export interface DeviceLogLimits {
   maxMsgChars: number;
   /** 한 줄 스택 최대 길이. */
   maxStackChars: number;
-  /** 세션 파일 최대 크기(byte). 넘으면 그 세션은 더 안 받는다(회전 X — 원인 줄이 앞에 있다). */
+  /** 세션 파일 최대 크기(byte). 넘으면 그 세션은 더 안 받는다(회전 X. 원인 줄이 앞에 있다). */
   maxSessionBytes: number;
   /** 보존 일수. 지나면 청소. */
   retentionDays: number;
@@ -60,7 +60,7 @@ export const DEFAULT_LIMITS: DeviceLogLimits = {
   maxTotalBytes: 512 * 1024 * 1024,
 };
 
-/** 세션 이름 = 파일명. 경로 조작·유니코드 트랩 차단 위해 좁은 화이트리스트. */
+/** 세션 이름 = 파일명. 경로 조작, 유니코드 트랩 차단 위해 좁은 화이트리스트. */
 const SESSION_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/;
 
 const LEVELS = new Set(['log', 'warning', 'error', 'exception', 'assert']);
@@ -88,7 +88,7 @@ export function parseBatch(body: unknown, limits: DeviceLogLimits = DEFAULT_LIMI
   }
   const raw = body as Record<string, unknown>;
   if (!isValidSession(raw.session)) {
-    return { batch: null, error: 'session 필수 — [A-Za-z0-9][A-Za-z0-9_.-]{0,63}', dropped: 0 };
+    return { batch: null, error: 'session 필수. [A-Za-z0-9][A-Za-z0-9_.-]{0,63}', dropped: 0 };
   }
   if (!Array.isArray(raw.lines)) {
     return { batch: null, error: 'lines 배열 필수', dropped: 0 };
@@ -149,7 +149,7 @@ export interface AppendResult {
 
 /**
  * 배치를 세션 파일에 append. 첫 배치면 헤더 줄(kind=meta)을 먼저 적어
- * 기기·빌드 정보가 파일 자체에 남게 한다(파일만 보고도 어느 기기인지 안다).
+ * 기기, 빌드 정보가 파일 자체에 남게 한다(파일만 보고도 어느 기기인지 안다).
  */
 export function appendBatch(
   dir: string,
@@ -227,7 +227,7 @@ export function listSessions(dir: string): SessionInfo[] {
         }
       }
     } catch {
-      // 헤더가 깨졌어도 목록에선 빼지 않는다 — 로그 본문이 더 중요.
+      // 헤더가 깨졌어도 목록에선 빼지 않는다. 로그 본문이 더 중요.
     }
     out.push({ session, bytes: stat.size, updatedAt: stat.mtimeMs, device, platform, build });
   }
@@ -381,7 +381,7 @@ export function deleteSession(dir: string, session: string): boolean {
   return true;
 }
 
-/** 같은 에러의 반복을 접기 위한 지문 — 메시지 첫 줄 + 스택 첫 프레임. */
+/** 같은 에러의 반복을 접기 위한 지문. 메시지 첫 줄 + 스택 첫 프레임. */
 export function errorFingerprint(line: DeviceLogLine): string {
   const firstMsgLine = line.msg.split('\n', 1)[0].trim().slice(0, 200);
   const firstFrame = (line.stack ?? '').split('\n', 1)[0].trim().slice(0, 200);

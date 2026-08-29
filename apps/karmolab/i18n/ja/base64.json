@@ -11,7 +11,7 @@
   "base64.err.decode": "Base64 として読めない文字が混ざっています。",
   "base64.copy.code": "Base64 をコピーしました",
   "base64.copy.text": "テキストをコピーしました",
-  "base64.err.noText": "先にテキストを書いてください — その状態をリンクにします。",
+  "base64.err.noText": "先にテキストを書いてください. その状態をリンクにします。",
   "base64.copy.link": "この状態で開くリンクをコピーしました",
   "base64.say.size": "{bytes} バイト → {chars} 文字"
 }

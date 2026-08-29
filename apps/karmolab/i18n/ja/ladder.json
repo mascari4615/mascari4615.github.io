@@ -1,7 +1,7 @@
 {
   "ladder.mdd": "結果はあみだくじに聞いてください。",
-  "ladder.label.names": "参加者 — 1行に1人",
-  "ladder.label.prizes": "結果 — 1行に1つ（空なら当たり／はずれ）",
+  "ladder.label.names": "参加者. 1行に1人",
+  "ladder.label.prizes": "結果. 1行に1つ（空なら当たり／はずれ）",
   "ladder.ph.names": "あかり\nけんた\nさくら\nたくみ",
   "ladder.ph.prizes": "コーヒー\nはずれ\nはずれ\nはずれ",
   "ladder.sample.names": "あかり\nけんた\nさくら\nたくみ",
@@ -14,6 +14,6 @@
   "ladder.prize.win": "当たり",
   "ladder.prize.lose": "はずれ",
   "ladder.copy.done": "結果をコピーしました",
-  "ladder.say.ready": "{n}人 · 上の名前を押すと道筋をたどります。",
+  "ladder.say.ready": "{n}人, 上の名前を押すと道筋をたどります。",
   "ladder.name": "あみだくじ"
 }

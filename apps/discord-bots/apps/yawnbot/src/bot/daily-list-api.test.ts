@@ -1,8 +1,8 @@
 /**
  * 전부대기 라우트 시험 (TASK-KL-197).
  *
- * 보는 것은 셈이 아니라(그건 store 시험이 본다) **배선**이다: 로그인 없이 되는가 ·
- * 이상한 몸통을 받아 적지 않는가 · 낸 답이 다음 사람의 비율로 돌아오는가.
+ * 보는 것은 셈이 아니라(그건 store 시험이 본다) **배선**이다: 로그인 없이 되는가 , 
+ * 이상한 몸통을 받아 적지 않는가, 낸 답이 다음 사람의 비율로 돌아오는가.
  * 라우트가 지워지면 이 파일 하나가 잡는다(그 사고가 이 레포에서 두 번 났다).
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -55,7 +55,7 @@ describe('전부대기 라우트', () => {
     expect(body.shares['리자몽']).toBe(1);
   });
 
-  it('아직 아무도 안 푼 문제는 비어 있다고 말한다 — 없는 것을 지어내지 않는다', async () => {
+  it('아직 아무도 안 푼 문제는 비어 있다고 말한다. 없는 것을 지어내지 않는다', async () => {
     const res = await fetch(`${baseUrl}/kl/daily-list/shares?topic=lol&q=roles%3D%EC%84%9C%ED%8F%AC%ED%84%B0`);
     const body = (await res.json()) as { people: number; shares: null };
     expect(body.people).toBe(0);

@@ -5,11 +5,11 @@
   "dupphoto.label.strict": "얼마나 닮아야 한 묶음",
   "dupphoto.btn.copy": "지울 이름 복사",
   "dupphoto.keep": "이걸 남기세요",
-  "dupphoto.group": "{n}장 · 지우면 {saved} 줄어듭니다",
+  "dupphoto.group": "{n}장, 지우면 {saved} 줄어듭니다",
   "dupphoto.status.idle": "사진을 여러 장 고르세요",
-  "dupphoto.status.reading": "{n}장 읽는 중…",
+  "dupphoto.status.reading": "{n}장 읽는 중...",
   "dupphoto.status.none": "{n}장 중 닮은 것이 없습니다",
-  "dupphoto.status.found": "묶음 {groups}개 · 다 지우면 {saved} 줄어듭니다",
+  "dupphoto.status.found": "묶음 {groups}개, 다 지우면 {saved} 줄어듭니다",
   "dupphoto.copied": "지워도 되는 이름 {n}개를 복사했습니다",
-  "dupphoto.note.noDelete": "지우지 않습니다 — 브라우저는 폴더의 파일을 못 지우고, 지우는 건 되돌릴 수 없습니다. 어느 것을 남기면 되는지만 알려 주고 이름 목록을 복사해 드립니다. 크기만 줄인 사본·다시 압축된 사진도 같은 묶음에 들어옵니다(파일 해시가 아니라 그림 모양으로 봅니다)."
+  "dupphoto.note.noDelete": "지우지 않습니다. 브라우저는 폴더의 파일을 못 지우고, 지우는 건 되돌릴 수 없습니다. 어느 것을 남기면 되는지만 알려 주고 이름 목록을 복사해 드립니다. 크기만 줄인 사본, 다시 압축된 사진도 같은 묶음에 들어옵니다(파일 해시가 아니라 그림 모양으로 봅니다)."
 }

@@ -1,8 +1,8 @@
 /**
- * panels/stamps-panel.ts — 떠 둔 「본」 목록 (TASK-KL-202 방향⑤).
+ * panels/stamps-panel.ts. 떠 둔 본 목록 (TASK-KL-202 방향⑤).
  *
- * 본은 **맵보다 오래 산다**(사람 창고에 있다). 그래서 목록은 「이 맵에 무엇이 있나」가 아니라
- * 「내가 자주 쓰는 덩어리가 무엇인가」다 — 어느 맵에서 열어도 같은 목록이 보인다.
+ * 본은 **맵보다 오래 산다**(사람 창고에 있다). 그래서 목록은 이 맵에 무엇이 있나가 아니라
+ * 내가 자주 쓰는 덩어리가 무엇인가다. 어느 맵에서 열어도 같은 목록이 보인다.
  */
 import { loadStamps } from '../stamps';
 import type { PanelCtx } from './context';
@@ -25,7 +25,7 @@ export function renderStampsPanel(ctx: PanelCtx): void {
           <button class="btn btn-ghost" data-km="stamp-put" data-key="${esc(st.id)}">${esc(t('karmograph.stampPut.label'))}</button>
           <button class="btn btn-ghost" data-km="stamp-del" data-key="${esc(st.id)}" title="${esc(t('karmograph.stampDel.title'))}">×</button>
         </div>
-        <div class="km-hint" style="margin:-4px 0 8px">${esc(st.nodes.slice(0, 5).map((n) => n.label || t('karmograph.unnamed')).join(' · '))}${st.nodes.length > 5 ? ' ' + t('karmograph.andMore', { n: st.nodes.length - 5 }) : ''}</div>`).join('')}
+        <div class="km-hint" style="margin:-4px 0 8px">${esc(st.nodes.slice(0, 5).map((n) => n.label || t('karmograph.unnamed')).join(', '))}${st.nodes.length > 5 ? ' ' + t('karmograph.andMore', { n: st.nodes.length - 5 }) : ''}</div>`).join('')}
     <button class="btn btn-ghost" data-km="stamp-close">${esc(t('karmograph.stampClose.label'))}</button>`;
 
   side.querySelectorAll('[data-km="stamp-put"]').forEach((el) => {

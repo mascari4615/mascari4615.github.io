@@ -1,19 +1,19 @@
 /**
  * KarmoLab 놀이 기록 원장 (TASK-KL-148).
  *
- * 왜 있나: 놀이터에 놀이가 여섯인데 **한 판이 끝나면 아무 데도 안 남았다**. 반응속도·속도측정은
+ * 왜 있나: 놀이터에 놀이가 여섯인데 **한 판이 끝나면 아무 데도 안 남았다**. 반응속도, 속도측정은
  * 저장이 아예 0줄이라 새로고침 한 번이면 없던 일이 되고, 나머지도 이 브라우저 안에만 있었다.
- * 기록이 안 남으면 놀이는 한 번 하고 끝이다 — 다시 올 이유도, 남과 겨룰 것도 없다.
+ * 기록이 안 남으면 놀이는 한 번 하고 끝이다. 다시 올 이유도, 남과 겨룰 것도 없다.
  *
- * 왜 흔적 원장(`karmolab-traces`)에 안 넣나: 그쪽은 **누구인지 모르는 흔적**(방문·도구 열림·글)이고
- * 여기는 **계정에 붙는 기록**이다. 저장 주기도 반대다 — 흔적은 잦고 값이 없어 모아서 쓰지만,
+ * 왜 흔적 원장(`karmolab-traces`)에 안 넣나: 그쪽은 **누구인지 모르는 흔적**(방문, 도구 열림, 글)이고
+ * 여기는 **계정에 붙는 기록**이다. 저장 주기도 반대다. 흔적은 잦고 값이 없어 모아서 쓰지만,
  * 기록은 드물고 한 판이 곧 결과라 그 자리에서 쓴다. 한 파일에 두면 둘 중 하나가 늘 손해를 본다.
  *
  * 순위 방향은 **여기 한 벌만** 있다 (`PLAY_GAMES`). 반응속도는 작을수록 좋고 연승은 클수록 좋은데,
- * 이걸 화면에도 적으면 그날부터 갈라진다. 화면은 자기 숫자를 그리기만 하고, 「누가 위인가」는
+ * 이걸 화면에도 적으면 그날부터 갈라진다. 화면은 자기 숫자를 그리기만 하고, 누가 위인가는
  * 서버가 정한다.
  *
- * 판을 전부 쌓지 않는다 — 사람마다 종목마다 **최고 한 줄** + 날짜별 최고 30일 + 최근 판 200개.
+ * 판을 전부 쌓지 않는다. 사람마다 종목마다 **최고 한 줄** + 날짜별 최고 30일 + 최근 판 200개.
  * 그래서 원장이 무한히 늘지 않는다.
  *
  * 저장 = `data/karmolab-plays-state.json` (`.gitignore` 의 `data/*-state.json`).
@@ -25,7 +25,7 @@ import { kstDay } from './karmolab-traces';
 
 const STATE_FILE = 'karmolab-plays-state.json';
 
-/** 날짜별 최고를 며칠치 들고 있나. 「어제의 나」와 최근 흐름에 쓴다. */
+/** 날짜별 최고를 며칠치 들고 있나. 어제의 나와 최근 흐름에 쓴다. */
 const DAY_HISTORY = 30;
 
 /** 최근 판 몇 개를 들고 있나 (광장 피드가 나중에 그대로 쓴다). */
@@ -34,12 +34,12 @@ const RECENT_MAX = 200;
 export interface PlayGameSpec {
   id: string;
   label: string;
-  /** `high` = 큰 값이 좋다(연승) · `low` = 작은 값이 좋다(반응속도 ms). */
+  /** `high` = 큰 값이 좋다(연승), `low` = 작은 값이 좋다(반응속도 ms). */
   better: 'high' | 'low';
   unit: string;
   /**
-   * 사람이 낼 수 있는 범위. 밖은 받지 않는다 — 손으로 아무 값이나 보낼 수 있는 자리다.
-   * 순위판에 「0ms」가 한 줄 박히면 그 순위판은 그날로 죽는다.
+   * 사람이 낼 수 있는 범위. 밖은 받지 않는다. 손으로 아무 값이나 보낼 수 있는 자리다.
+   * 순위판에 0ms가 한 줄 박히면 그 순위판은 그날로 죽는다.
    */
   min: number;
   max: number;
@@ -48,10 +48,10 @@ export interface PlayGameSpec {
   /**
    * 순위판이 **표마다 갈리는가**.
    *
-   * 「높은 쪽 고르기」는 포켓몬 표와 롤 표가 완전히 다른 놀이다 — 한 순위판에 섞으면 쉬운 표를
+   * 높은 쪽 고르기는 포켓몬 표와 롤 표가 완전히 다른 놀이다. 한 순위판에 섞으면 쉬운 표를
    * 고른 사람이 1등이 된다. 반응속도는 그런 게 없어서 순위판이 하나다.
    *
-   * 사람이 만든 표(UGC)도 여기로 들어온다 — 표가 늘 때마다 서버를 고치지 않아도 된다.
+   * 사람이 만든 표(UGC)도 여기로 들어온다. 표가 늘 때마다 서버를 고치지 않아도 된다.
    */
   variants: boolean;
 }
@@ -78,10 +78,10 @@ export const PLAY_GAMES: PlayGameSpec[] = [
   { id: 'speed', label: '속도측정', better: 'high', unit: 'MB/s', min: 0.01, max: 1000, decimals: 2, variants: false },
   // 표마다 순위판이 갈린다 (포켓몬 10연승과 롤 10연승은 같은 기록이 아니다).
   { id: 'higher', label: '높은 쪽 고르기', better: 'high', unit: '연승', min: 1, max: 10000, decimals: 0, variants: true },
-  // 몇 번 물어 맞혔나 — **적게 물을수록** 잘한 것이다. 못 맞힌 판은 아예 안 보낸다.
+  // 몇 번 물어 맞혔나. **적게 물을수록** 잘한 것이다. 못 맞힌 판은 아예 안 보낸다.
   // 표마다 갈린다: 항목이 넷인 표에서 3번 만에 맞히는 것과 천 개짜리에서 3번은 다른 일이다.
   { id: 'twenty', label: '스무고개', better: 'low', unit: '개', min: 1, max: 20, decimals: 0, variants: true },
-  // 하루 한 문제 — 다섯 번 안에 맞혀야 한다. 오늘 순위가 이 놀이의 순위다(원장이 날짜별로 센다).
+  // 하루 한 문제. 다섯 번 안에 맞혀야 한다. 오늘 순위가 이 놀이의 순위다(원장이 날짜별로 센다).
   { id: 'quest', label: '오늘의 문제', better: 'low', unit: '번', min: 1, max: 5, decimals: 0, variants: false },
 ];
 
@@ -90,12 +90,12 @@ export function playGame(id: unknown): PlayGameSpec | null {
   return PLAY_GAMES.find((g) => g.id === id) ?? null;
 }
 
-/** 받아들일 점수인가. NaN·무한대·범위 밖은 전부 버린다. */
+/** 받아들일 점수인가. NaN, 무한대, 범위 밖은 전부 버린다. */
 export function isValidScore(spec: PlayGameSpec, raw: unknown): raw is number {
   return typeof raw === 'number' && Number.isFinite(raw) && raw >= spec.min && raw <= spec.max;
 }
 
-/** 이쪽이 더 좋은 기록인가. 순위·최고 판정이 전부 이 한 줄을 지난다. */
+/** 이쪽이 더 좋은 기록인가. 순위, 최고 판정이 전부 이 한 줄을 지난다. */
 export function isBetter(spec: PlayGameSpec, next: number, prev: number): boolean {
   return spec.better === 'low' ? next < prev : next > prev;
 }
@@ -148,7 +148,7 @@ export interface PlayOutcome {
   improved: boolean;
   /** 오늘의 최고 (이 판 포함). */
   todayBest: number;
-  /** 어제의 최고. 없으면 null — 「어제의 나」가 여기서 나온다. */
+  /** 어제의 최고. 없으면 null. 어제의 나가 여기서 나온다. */
   yesterdayBest: number | null;
   /** 역대 순위 / 겨루는 사람 수. */
   rank: number;
@@ -163,7 +163,7 @@ function emptyState(): PlaysState {
   return { version: 1, games: {}, recent: [] };
 }
 
-/** 소수 자리를 맞춘다 — 저장과 화면이 다른 값을 말하지 않게 여기서 한 번만 자른다. */
+/** 소수 자리를 맞춘다. 저장과 화면이 다른 값을 말하지 않게 여기서 한 번만 자른다. */
 function round(spec: PlayGameSpec, value: number): number {
   const factor = Math.pow(10, spec.decimals);
   return Math.round(value * factor) / factor;
@@ -193,7 +193,7 @@ export class KarmolabPlayStore {
         };
       }
     } catch (error) {
-      console.error('[karmolab-plays] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
+      console.error('[karmolab-plays] 상태 파일을 못 읽었다. 빈 원장으로 시작한다:', error);
     }
     return emptyState();
   }
@@ -202,7 +202,7 @@ export class KarmolabPlayStore {
    * 저장.
    *
    * 흔적 원장과 달리 **한 판마다 바로 쓴다**. 한 판은 사람이 몇 초를 들여 만든 결과라, 모아 쓰다
-   * 봇이 죽으면 「방금 깬 기록」이 통째로 사라진다 — 그게 제일 나쁘다. 놀이는 초당 수백 번
+   * 봇이 죽으면 방금 깬 기록이 통째로 사라진다. 그게 제일 나쁘다. 놀이는 초당 수백 번
    * 일어나는 일이 아니라서 그래도 된다.
    */
   private save(): void {
@@ -222,16 +222,16 @@ export class KarmolabPlayStore {
   }
 
   /**
-   * 표를 다듬는다 — 표가 갈리는 놀이는 표 이름이 있어야 하고, 안 갈리는 놀이는 표를 무시한다.
+   * 표를 다듬는다. 표가 갈리는 놀이는 표 이름이 있어야 하고, 안 갈리는 놀이는 표를 무시한다.
    * `false` 면 받아들일 수 없는 표다.
    */
   private variantOf(spec: PlayGameSpec, raw: unknown): string | null | false {
-    if (!spec.variants) return null; // 표가 없는 놀이 — 뭘 보내오든 순위판은 하나다
+    if (!spec.variants) return null; // 표가 없는 놀이. 뭘 보내오든 순위판은 하나다
     if (!isValidVariant(raw)) return false;
     return raw;
   }
 
-  /** 한 판을 적는다. 점수·표가 이상하면 null (부르는 쪽이 400 을 돌려준다). */
+  /** 한 판을 적는다. 점수, 표가 이상하면 null (부르는 쪽이 400 을 돌려준다). */
   record(
     gameId: string,
     handle: string,
@@ -255,7 +255,7 @@ export class KarmolabPlayStore {
     const days = { ...(before?.days ?? {}) };
     const dayBest = days[day];
     if (dayBest === undefined || isBetter(spec, score, dayBest)) days[day] = score;
-    // 오래된 날은 버린다 — 안 버리면 오래 논 사람의 줄만 끝없이 길어진다.
+    // 오래된 날은 버린다. 안 버리면 오래 논 사람의 줄만 끝없이 길어진다.
     const keep = Object.keys(days)
       .sort()
       .slice(-DAY_HISTORY);
@@ -296,7 +296,7 @@ export class KarmolabPlayStore {
   /**
    * 순위판. `day` 는 오늘 것만.
    *
-   * 같은 점수는 **먼저 낸 사람이 위**다 — 나중에 온 사람이 앞사람을 밀어내면 「깼다」는 말이
+   * 같은 점수는 **먼저 낸 사람이 위**다. 나중에 온 사람이 앞사람을 밀어내면 깼다는 말이
    * 거짓이 된다.
    */
   board(
@@ -333,10 +333,10 @@ export class KarmolabPlayStore {
   }
 
   /**
-   * 시즌 순위 (TASK-KL-182 F2) — 여러 판을 하나로 모은다.
+   * 시즌 순위 (TASK-KL-182 F2). 여러 판을 하나로 모은다.
    *
-   * 놀이마다 순위판이 따로 있으면 「누가 제일 잘하나」에 답이 없다. 판마다 1등에게 금,
-   * 2·3등에게 은·동을 주고 **메달 수로** 줄 세운다 — 종목이 다른 사람을 비교하는 유일하게
+   * 놀이마다 순위판이 따로 있으면 누가 제일 잘하나에 답이 없다. 판마다 1등에게 금,
+   * 2, 3등에게 은, 동을 주고 **메달 수로** 줄 세운다. 종목이 다른 사람을 비교하는 유일하게
    * 정직한 방법이다(점수를 섞으면 단위가 다른 수를 더하는 셈이 된다).
    *
    * 아무 판에도 안 오른 사람은 목록에 없다. 0 으로 줄 세우지 않는다.
@@ -368,7 +368,7 @@ export class KarmolabPlayStore {
   }
 
   /**
-   * 한 사람의 최고 — **논 순위판마다 한 줄**. 표가 갈리는 놀이는 표마다 한 줄이 된다
+   * 한 사람의 최고. **논 순위판마다 한 줄**. 표가 갈리는 놀이는 표마다 한 줄이 된다
    * (포켓몬 12연승과 롤 3연승은 다른 기록이다).
    */
   me(handle: string, now: Date = new Date()): Array<{
@@ -394,7 +394,7 @@ export class KarmolabPlayStore {
       const gameId = split < 0 ? key : key.slice(0, split);
       const variant = split < 0 ? null : key.slice(split + 2);
       const spec = playGame(gameId);
-      if (!spec) continue; // 표에서 내려간 옛 놀이 — 기록은 두되 내보내지 않는다
+      if (!spec) continue; // 표에서 내려간 옛 놀이. 기록은 두되 내보내지 않는다
       const all = this.board(spec.id, 'all', Number.MAX_SAFE_INTEGER, now, variant);
       out.push({
         game: spec.id,
@@ -414,14 +414,14 @@ export class KarmolabPlayStore {
     return out;
   }
 
-  /** 최근 판 — 「방금 누가 뭘 했다」. 아직 아무 판도 없으면 빈 배열(0 을 꾸며 내지 않는다). */
+  /** 최근 판. 방금 누가 뭘 했다. 아직 아무 판도 없으면 빈 배열(0 을 꾸며 내지 않는다). */
   recent(limit = 20): RecentPlay[] {
     return this.state.recent.slice(0, Math.max(0, limit));
   }
 
   /**
-   * 겨루는 사람 수 요약 — 순위판이 설 만한지 화면이 먼저 물어본다.
-   * 표가 갈리는 놀이는 **표 전체를 합쳐** 센다(「이 놀이를 몇 명이 하나」이지 순위가 아니다).
+   * 겨루는 사람 수 요약. 순위판이 설 만한지 화면이 먼저 물어본다.
+   * 표가 갈리는 놀이는 **표 전체를 합쳐** 센다(이 놀이를 몇 명이 하나이지 순위가 아니다).
    */
   stats(): Array<{
     game: string;

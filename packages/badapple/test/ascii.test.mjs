@@ -1,8 +1,8 @@
 /**
- * 아스키 표면 — 밝기가 글자 농도로, 색이 칸 색으로 나오는지 (TASK-KL-244).
+ * 아스키 표면. 밝기가 글자 농도로, 색이 칸 색으로 나오는지 (TASK-KL-244).
  *
  * 램프 방향을 시험에 박아 두는 이유: 뒤집힌 그림도 그럴듯해 보여서 눈으로는 안 잡힌다.
- * 「어두운 것부터」가 규약이고, 그게 깨지면 여기서 빨개져야 한다.
+ * 어두운 것부터가 규약이고, 그게 깨지면 여기서 빨개져야 한다.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,7 +39,7 @@ test('중간 밝기는 램프 가운데로 간다', () => {
 });
 
 test('밝기 평면이 없는 1비트 클립도 그냥 그려진다', () => {
-	// 계조가 없으면 켜짐/꺼짐이 램프 양 끝으로 간다 — 색을 모르는 옛 파일도 이 표면에 꽂힌다.
+	// 계조가 없으면 켜짐/꺼짐이 램프 양 끝으로 간다. 색을 모르는 옛 파일도 이 표면에 꽂힌다.
 	const got = paintOnce({ width: 2, height: 1, cells: Uint8Array.from([0, 1]) }, { cols: 2, rows: 1 });
 	assert.equal(got.text, ' @');
 	assert.equal(got.colors, null);

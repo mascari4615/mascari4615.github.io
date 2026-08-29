@@ -7,7 +7,7 @@
  *
  * -t / --title: catalog title (생략 시 --sync 는 기존 JSON 제목 유지, 그 외 imported-catalog)
  * --merge 기존.json: 기존 items 전부 유지 + 텍스트에만 있는 이름은 새 id로 추가
- * --sync 기존.json: 텍스트 기준 동기화 — 이름이 같으면 기존 항목(id·imageKey 등) 그대로, 텍스트에 없으면 삭제, 새 이름은 새 id
+ * --sync 기존.json: 텍스트 기준 동기화. 이름이 같으면 기존 항목(id, imageKey 등) 그대로, 텍스트에 없으면 삭제, 새 이름은 새 id
  * --no-dedupe: 같은 이름 여러 줄이면 항목 여러 개 (merge/sync 시 이름이 맞는 기존 항목을 순서대로 소비)
  */
 
@@ -46,7 +46,7 @@ function parseArgs() {
                 '사용법:\n' +
                     '  -i 입력.txt -o 출력.json [-t 제목] [--merge 기존.json | --sync 기존.json] [--no-dedupe]\n' +
                     '  --merge  기존 항목 유지 + 텍스트에만 있는 이름 추가\n' +
-                    '  --sync   텍스트와 동기화(기존 id·필드 보존, 빠진 이름 삭제, 새 줄 추가)\n',
+                    '  --sync   텍스트와 동기화(기존 id, 필드 보존, 빠진 이름 삭제, 새 줄 추가)\n',
             );
             process.exit(0);
         }

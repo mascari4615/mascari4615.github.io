@@ -2,7 +2,7 @@
  * 정적 블로그 글의 커뮤니티 답글 조각 (change.board-unify ③).
  *
  * 본문은 git에서 구워진 채 그대로 산다. 이 파일이 실패해도 `#comments` 안만 실패 문구로 바뀌고
- * 글은 막지 않는다. 모양·익명 이름표·대댓글·좋아요·삭제 규칙은 커뮤니티 글 상세와 같다.
+ * 글은 막지 않는다. 모양, 익명 이름표, 대댓글, 좋아요, 삭제 규칙은 커뮤니티 글 상세와 같다.
  */
 import { renderMarkdown, escapeHtml as esc } from './widgets/community-markdown';
 
@@ -94,7 +94,7 @@ function asName(data: ThreadResponse): string {
   const anon = data.myAnon
     ? `<span class="c-anon" style="color:${esc(data.myAnon.color)}">${esc(data.myAnon.name)}</span>`
     : '오늘의 익명';
-  if (!data.myHandle) return `${anon}(으)로 남는다 · <button type="button" class="c-linkbtn" data-signin>로그인</button>`;
+  if (!data.myHandle) return `${anon}(으)로 남는다, <button type="button" class="c-linkbtn" data-signin>로그인</button>`;
   return `<label class="c-anonpick"><input type="checkbox" data-anon> 익명</label>
       <span data-asname data-mine="@${esc(data.myHandle)}">@${esc(data.myHandle)}</span>(으)로 남는다
       <template data-anonname>${anon}</template>`;
@@ -127,7 +127,7 @@ function signIn(): void {
 function failure(): void {
   if (!root) return;
   root.removeAttribute('aria-busy');
-  root.innerHTML = `<div class="c-empty">답글 서버에 못 닿았다 — 글은 그대로 읽을 수 있다.
+  root.innerHTML = `<div class="c-empty">답글 서버에 못 닿았다. 글은 그대로 읽을 수 있다.
       <button type="button" class="c-linkbtn" data-retry>다시 받기</button></div>`;
   root.querySelector('[data-retry]')?.addEventListener('click', () => void load());
 }

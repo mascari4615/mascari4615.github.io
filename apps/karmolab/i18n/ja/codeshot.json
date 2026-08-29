@@ -13,7 +13,7 @@
   "codeshot.status.ready": "描けました",
   "codeshot.status.saved": "保存しました",
   "codeshot.status.copied": "クリップボードに入れました",
-  "codeshot.status.noclip": "このブラウザは画像コピーを塞いでいます — 保存をお使いください",
+  "codeshot.status.noclip": "このブラウザは画像コピーを塞いでいます. 保存をお使いください",
   "codeshot.stat.lines": "行",
   "codeshot.stat.size": "画像サイズ",
   "codeshot.frame.specimen": "実験室の標本",

@@ -1,12 +1,12 @@
 /**
- * 글자 카드 — **공유될 그림 그대로**.
+ * 글자 카드. **공유될 그림 그대로**.
  *
- * 이 도구의 재미는 「재밌는 글자가 나오면 그걸 공유하는 것」이다(사용자, 2026-08-09).
- * 그러니 화면에 보이는 판과 남에게 나가는 그림이 **달라선 안 된다** — 화면의 무대가 곧 이 카드고,
+ * 이 도구의 재미는 재밌는 글자가 나오면 그걸 공유하는 것이다(사용자, 2026-08-09).
+ * 그러니 화면에 보이는 판과 남에게 나가는 그림이 **달라선 안 된다**. 화면의 무대가 곧 이 카드고,
  * 누르면 그 판이 그대로 1200×630 그림이 된다.
  *
- * 화풍 = 「여백의 판」(사용자 컨펌). 거의 빈 판에 글자만 거대하게, 아래 한 줄만 작게.
- * 남의 피드에서 튀는 건 정보가 아니라 여백이다 — 촘촘한 글 사이의 텅 빈 한 장이 그 자리다.
+ * 화풍 = 여백의 판(사용자 컨펌). 거의 빈 판에 글자만 거대하게, 아래 한 줄만 작게.
+ * 남의 피드에서 튀는 건 정보가 아니라 여백이다. 촘촘한 글 사이의 텅 빈 한 장이 그 자리다.
  *
  * 그림을 내보내는 순서는 늘 같다: 공유 창에 그림 얹기 → 안 되면 내려받기
  * → 그것도 막히면 글자만 복사. 없는 기능을 있는 척하지 않는다.
@@ -20,28 +20,28 @@ const HEIGHT = 630;
 export interface CardFacts {
   /** 큰 글씨 몸통 */
   text: string;
-  /** 왼쪽 아래 — 방송 이름·주기 */
+  /** 왼쪽 아래. 방송 이름, 주기 */
   channel: string;
-  /** 오른쪽 아래 — 나온 시각 */
+  /** 오른쪽 아래. 나온 시각 */
   stamp: string;
-  /** 사건일 때만 (「진짜 단어다」) */
+  /** 사건일 때만 (진짜 단어다) */
   mark?: string;
 }
 
-/** 글꼴이 **오기 전에** 그리면 폴백으로 찍힌다 — 그림은 되돌릴 수 없으므로 기다린다. */
+/** 글꼴이 **오기 전에** 그리면 폴백으로 찍힌다. 그림은 되돌릴 수 없으므로 기다린다. */
 async function readyFonts(): Promise<void> {
   try {
     const fonts = (document as unknown as { fonts?: FontFaceSet }).fonts;
     if (!fonts) return;
     await Promise.race([fonts.ready, new Promise((r) => setTimeout(r, 1200))]);
   } catch {
-    /* 글꼴 없이 그린다 — 여기서 멈추면 공유 자체가 사라진다 */
+    /* 글꼴 없이 그린다. 여기서 멈추면 공유 자체가 사라진다 */
   }
 }
 
 /**
- * 판 하나를 그린다. 화면의 무대와 이 그림은 **같은 함수**를 쓴다(`scale` 만 다르다) —
- * 두 벌로 나뉘면 언젠가 한쪽만 고쳐지고, 그때 「보던 것과 다른 게 나갔다」가 된다.
+ * 판 하나를 그린다. 화면의 무대와 이 그림은 **같은 함수**를 쓴다(`scale` 만 다르다) . 
+ * 두 벌로 나뉘면 언젠가 한쪽만 고쳐지고, 그때 보던 것과 다른 게 나갔다가 된다.
  */
 export function paintCard(
   c: CanvasRenderingContext2D,
@@ -55,12 +55,12 @@ export function paintCard(
 
   const pad = Math.round(w * 0.055);
   const small = Math.max(11, Math.round(w * 0.018));
-  /* 작은 판(지나간 것들)에서는 아래 한 줄을 뺀다 — 그 크기에선 글씨가 뭉개져 얼룩으로만 보이고,
+  /* 작은 판(지나간 것들)에서는 아래 한 줄을 뺀다. 그 크기에선 글씨가 뭉개져 얼룩으로만 보이고,
      시각은 어차피 판 밖에 적혀 있다. 큰 판에서만 적는다. */
   const roomy = w >= 420;
 
-  /* 몸통 — 판에 꽉 차되 절대 넘치지 않게. 글자 수가 셋이든 넷이든 같은 무게로 보여야 하므로
-     「글자 크기」가 아니라 **재 본 폭**으로 맞춘다(한글은 로마자보다 넓다). */
+  /* 몸통. 판에 꽉 차되 절대 넘치지 않게. 글자 수가 셋이든 넷이든 같은 무게로 보여야 하므로
+     글자 크기가 아니라 **재 본 폭**으로 맞춘다(한글은 로마자보다 넓다). */
   const limit = w - pad * 4;
   let size = Math.round(h * (roomy ? 0.34 : 0.42));
   c.textAlign = 'center';
@@ -75,14 +75,14 @@ export function paintCard(
   c.fillStyle = ink.fg;
   c.fillText(facts.text, w / 2, midY);
 
-  // 사건 표식 — 몸통 아래 한 줄. 이것 하나로 「그냥 지나간 것」과 「공유할 것」이 갈린다.
+  // 사건 표식. 몸통 아래 한 줄. 이것 하나로 그냥 지나간 것과 공유할 것이 갈린다.
   if (facts.mark) {
     c.font = `600 ${Math.round(small * 1.5)}px KarmoSans, sans-serif`;
     c.fillStyle = ink.accent;
     c.fillText(`◆  ${facts.mark}`, w / 2, midY + size * 0.62 + small * 1.6);
   }
 
-  // 아래 한 줄 — 어느 방송인지, 언제 것인지. 이게 없으면 나중에 아무도 모른다.
+  // 아래 한 줄. 어느 방송인지, 언제 것인지. 이게 없으면 나중에 아무도 모른다.
   if (!roomy) return;
   c.textBaseline = 'alphabetic';
   c.font = `${small}px KarmoSans, sans-serif`;
@@ -94,7 +94,7 @@ export function paintCard(
 }
 
 /**
- * 무대에 보이는 것을 그대로 큰 그림으로. **그리는 함수를 받아서** 쓴다 —
+ * 무대에 보이는 것을 그대로 큰 그림으로. **그리는 함수를 받아서** 쓴다 . 
  * 화면과 그림이 같은 붓을 쓰게 하려는 것이다(두 벌로 나뉘면 언젠가 한쪽만 고쳐진다).
  */
 export async function drawShareable(
@@ -122,10 +122,10 @@ export async function shareCard(
   const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
   if (nav.share && nav.canShare?.({ files: [file] })) {
     try {
-      await nav.share({ files: [file], text: `${facts.text} — ${facts.channel}` });
+      await nav.share({ files: [file], text: `${facts.text}. ${facts.channel}` });
       return t('pulse.t18');
     } catch (err) {
-      /* 사용자가 창을 닫은 것도 여기로 온다 — 실패로 떠들지 않는다 */
+      /* 사용자가 창을 닫은 것도 여기로 온다. 실패로 떠들지 않는다 */
       if ((err as Error)?.name === 'AbortError') return '';
     }
   }
@@ -141,7 +141,7 @@ export async function shareCard(
     /* 다음 수단으로 */
   }
 
-  // 마지막 — 내려받기
-  download(blob, `pulse-${facts.text}.png`); // 공용 한 자리 — 거두는 시점까지 같이 온다
+  // 마지막. 내려받기
+  download(blob, `pulse-${facts.text}.png`); // 공용 한 자리. 거두는 시점까지 같이 온다
   return t('pulse.t20');
 }

@@ -9,7 +9,7 @@
   "imagegen.ph.igCfIcon": "アイコン (絵文字)",
   "imagegen.ph.igCfPrompt": "プロンプト (キャラクター枠: &lt;A&gt;, &lt;B&gt;, &lt;CHAR&gt; など)",
   "imagegen.ph.igNegPrompt": "例: blurry, low quality, watermark",
-  "imagegen.ph.igPrompt": "画像のプロンプトを入力してください…",
+  "imagegen.ph.igPrompt": "画像のプロンプトを入力してください...",
   "imagegen.title.igHistoryBtn": "最近のプロンプト",
   "imagegen.t04": "リクエスト/レスポンスの生データを見る",
   "imagegen.t05": "📚 プリセット",
@@ -71,7 +71,7 @@
   "imagegen.t51": "比較には画像が2枚以上必要です。",
   "imagegen.t52": "🔀 比較を解除",
   "imagegen.t53": "<div class=\"ig-history-empty\">まだ履歴がありません</div>",
-  "imagegen.t54": "⏳ 整えています…",
+  "imagegen.t54": "⏳ 整えています...",
   "imagegen.t55": "プロンプトを整えました。",
   "imagegen.t56": "画像を作ってみましょうか?",
   "imagegen.t57": "Gemini (画像)",
@@ -162,7 +162,7 @@
   "imagegen.shelf": "棚",
   "imagegen.shelfHelp": "つくったものを棚に上げる (CC0)",
   "imagegen.shelfKeyAsk": "棚の鍵（このブラウザにだけ残る）",
-  "imagegen.shelfSending": "棚に上げている…",
+  "imagegen.shelfSending": "棚に上げている...",
   "imagegen.shelfDone": "棚に上げた",
   "imagegen.shelfUntitled": "名もない絵"
 }

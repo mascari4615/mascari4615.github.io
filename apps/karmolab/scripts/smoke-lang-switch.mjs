@@ -1,8 +1,8 @@
 /**
  * 언어 단추가 **정말 도는지** 본다 (TASK-KL-203 S3-b)
  *
- * 왜 필요한가: 이 단추는 「눌러야」 처음 쓰인다. 화면에 그려진 것만 보고는 목록이 열리는지,
- * 고른 뒤 제 주소로 옮겨 가는지 알 수 없다 — 눌러도 아무 일 없는 단추가 제일 나쁘고, 그건
+ * 왜 필요한가: 이 단추는 눌러야 처음 쓰인다. 화면에 그려진 것만 보고는 목록이 열리는지,
+ * 고른 뒤 제 주소로 옮겨 가는지 알 수 없다. 눌러도 아무 일 없는 단추가 제일 나쁘고, 그건
  * 오류도 안 남긴다. 그래서 **검사가 직접 누른다**.
  *
  * 보는 것 넷:
@@ -28,17 +28,17 @@ const repoRoot = path.dirname(path.dirname(appRoot));
    `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 쥐고 있어도
    <b>부딪히지 않고 성공한다</b>. 그리고 `127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
    작은 판으로 재현했다: ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 = 먼저 잡은 쪽.
-   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다 — `smoke-region` 을 그렇게 재 보니
-   <b>멀쩡한 판이 「페이스 단위가 그 나라 것이 아니다」로 빨개졌다</b>(거짓 빨강).
-   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다. `smoke-region` 을 그렇게 재 보니
+   <b>멀쩡한 판이 페이스 단위가 그 나라 것이 아니다로 빨개졌다</b>(거짓 빨강).
+   0 을 주면 운영체제가 빈 자리를 준다. 충돌 자체가 없어진다. */
 const PORT = Number(process.env.PORT || 0);
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
-/* 앱을 그대로 띄우려면 주소 규칙(`/apps/karmolab/js/…`)이 살아 있어야 한다 — 레포 뿌리를 낸다.
-   ★ Jekyll 앞머리는 **떼고** 낸다 (2026-08-16). 예전 주석은 「글자로 보일 뿐 지장 없다」였는데
+/* 앱을 그대로 띄우려면 주소 규칙(`/apps/karmolab/js/...`)이 살아 있어야 한다. 레포 뿌리를 낸다.
+   ★ Jekyll 앞머리는 **떼고** 낸다 (2026-08-16). 예전 주석은 글자로 보일 뿐 지장 없다였는데
      그건 head 안에 아무것도 중요한 게 없을 때 이야기였다. 앞머리가 글자로 읽히는 순간
-     `<head>` 가 닫힌 것으로 쳐져서, 그 안의 보안 meta(CSP)가 **head 밖**이 되어 무시된다 —
+     `<head>` 가 닫힌 것으로 쳐져서, 그 안의 보안 meta(CSP)가 **head 밖**이 되어 무시된다 . 
      배포(Jekyll 이 떼고 냄)에서는 멀쩡한데 시험만 빨개졌다. 시험이 배포와 같은 모양을 봐야 한다. */
 const server = http.createServer((req, res) => {
   const url = decodeURIComponent(req.url.split('?')[0]);
@@ -73,7 +73,7 @@ const base = `http://127.0.0.1:${PORT_IN_USE}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!document.getElementById('settingsPageBtn'), undefined, { timeout: 5000 });
 
-/* 이 장이 가진 언어 = 짝 표시. 생성기·검사와 같은 규칙이다. */
+/* 이 장이 가진 언어 = 짝 표시. 생성기, 검사와 같은 규칙이다. */
 const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
   els.map((e) => e.getAttribute('hreflang'))
 );
@@ -94,34 +94,34 @@ if (!/^KO$/.test(code || '')) fail.push(`칸 언어 글자가 KO 가 아니다: 
 /* ② */
 await page.click('#settingsMenuLang');
 /* ★ **누른 직후에 세지 마라** (2026-08-28, 같은 커밋 재실행에서 거짓 빨강): 목록은 다음 프레임에
-   그려진다 — 첫 판은 통과했는데 재실행이 「눌러도 목록이 안 열린다」로 떨어졌다. 기다린 뒤에도
+   그려진다. 첫 판은 통과했는데 재실행이 눌러도 목록이 안 열린다로 떨어졌다. 기다린 뒤에도
    없으면 그때가 진짜 고장이다. */
 const menu = page.locator('.lang-menu');
 await page.waitForSelector('.lang-menu', { timeout: 3000 }).catch(() => {});
 if (!(await menu.count())) fail.push('눌러도 목록이 안 열린다');
 else {
   const text = await menu.innerText();
-  /* 기대값 = **이 장이 실제로 가진 언어** (짝 표시 기준). 켠 언어 전부로 재면 안 된다 —
+  /* 기대값 = **이 장이 실제로 가진 언어** (짝 표시 기준). 켠 언어 전부로 재면 안 된다 . 
      번역이 덜 찬 언어는 장이 안 찍히고 목록에도 안 올라오는 게 맞는 동작이다. */
   for (const l of expected) {
     if (!text.includes(l.endonym)) fail.push(`목록에 ${l.endonym} 이 없다`);
   }
   for (const l of ENABLED_LOCALES) {
     if (!expected.includes(l) && text.includes(l.endonym))
-      fail.push(`장이 없는 ${l.endonym} 이 목록에 있다 — 고르면 404 가 난다`);
+      fail.push(`장이 없는 ${l.endonym} 이 목록에 있다. 고르면 404 가 난다`);
   }
 }
 
-/* ③ — 기본 언어가 아닌 첫 언어를 고른다. */
+/* ③. 기본 언어가 아닌 첫 언어를 고른다. */
 /* ★ **표본 도구를 손으로 박지 않는다** (2026-08-13). 여기 `charcount` 가 박혀 있었는데
-   그 도구가 작업대로 합쳐지자 이 검사가 「이름이 null」로 빨개졌다 — 번역은 멀쩡한데
+   그 도구가 작업대로 합쳐지자 이 검사가 이름이 null로 빨개졌다. 번역은 멀쩡한데
    **없어진 도구를 물어본** 것이다. 지금 실제로 있는 도구 중 세 판본에 이름이 다 있는
    첫째를 표본으로 쓴다(도구가 합쳐지거나 사라져도 검사는 살아 있다). */
 const sample = (() => {
-  /* ★ **「있는 도구」는 말 묶음이 아니라 장(page)이 있는 도구다** (2026-08-14).
+  /* ★ **있는 도구는 말 묶음이 아니라 장(page)이 있는 도구다** (2026-08-14).
      여기서는 세 판본에 이름이 있는 첫 도구를 표본으로 골랐는데, 그 조건을 통과하고도
-     **도구 장이 없는** 것이 있다(`life` — 말 묶음엔 이름이 있지만 `tools-seo.json` 에 없다).
-     그러면 화면에 그 이름이 안 뜨고, 이 검사는 「이름이 안 바뀌었다: null」로 빨개진다 —
+     **도구 장이 없는** 것이 있다(`life`. 말 묶음엔 이름이 있지만 `tools-seo.json` 에 없다).
+     그러면 화면에 그 이름이 안 뜨고, 이 검사는 이름이 안 바뀌었다: null로 빨개진다 . 
      언어 전환은 멀쩡한데. 장이 있는 것만 표본으로 쓴다. */
   const withPage = JSON.parse(fs.readFileSync(path.join(appRoot, 'data/tools-seo.json'), 'utf8')).tools;
   const koNames = names.ko || {};
@@ -140,16 +140,16 @@ if (target && (await menu.count())) {
   await page.getByRole('option').filter({ hasText: target.endonym }).click();
   await page.waitForTimeout(300);
   const to = page.url();
-  /* 이 검사판은 `index.html` 을 직접 열었으므로 옮겨 간 주소도 그 규칙을 따른다 —
+  /* 이 검사판은 `index.html` 을 직접 열었으므로 옮겨 간 주소도 그 규칙을 따른다 . 
      중요한 것은 **그 언어의 앞머리가 붙었는가**다. */
   if (!to.includes(target.prefix)) fail.push(`고른 뒤 ${target.prefix} 로 안 옮겨 갔다: ${to}`);
 }
 
-/* ④ — **검사판 사정과 진짜 고장을 가른다.**
+/* ④. **검사판 사정과 진짜 고장을 가른다.**
    여기서 걸러지는 것: 없는 장으로 옮겨 가 생긴 404, 그리고 바깥 서버(yawnbot)의 CORS 거절.
-   후자는 이 검사가 `127.0.0.1` 에서 도는 탓이지 코드가 깨진 게 아니다 — 실서비스 주소에서는
+   후자는 이 검사가 `127.0.0.1` 에서 도는 탓이지 코드가 깨진 게 아니다. 실서비스 주소에서는
    허용돼 있다. 이걸 안 가르면 검사가 늘 빨갛고, 그러면 사람이 검사를 꺼 버린다.
-   그리고 `AbortError: Transition was skipped` — 화면 전환 애니메이션 도중에 우리가 주소를
+   그리고 `AbortError: Transition was skipped`. 화면 전환 애니메이션 도중에 우리가 주소를
    옮겨 버려서 나는 것이다. 언어를 고르면 페이지가 떠나는 게 **맞는 동작**이고, 떠나는 쪽이
    이긴 흔적이 이 줄이다. */
 const real = errors.filter(
@@ -157,10 +157,10 @@ const real = errors.filter(
 );
 if (real.length) fail.push('콘솔 오류: ' + real.slice(0, 3).join(' | '));
 
-/* ⑤ 언어 장마다 **도구 이름이 그 언어로** 나오는가 (TASK-KL-203 S5-b·S7).
-   이름은 목록이 대입되는 자리에서 갈아 끼운다 — 그 고리가 빠지면 화면은 멀쩡한데 옆줄·목록·⌘K 의
+/* ⑤ 언어 장마다 **도구 이름이 그 언어로** 나오는가 (TASK-KL-203 S5-b, S7).
+   이름은 목록이 대입되는 자리에서 갈아 끼운다. 그 고리가 빠지면 화면은 멀쩡한데 옆줄, 목록, ⌘K 의
    이름만 한국어로 남는다. 한국어를 읽는 사람 눈에는 안 보이는 종류라 여기서 직접 열어 본다.
-   **켠 언어를 전부 돈다** — 언어가 늘 때 이 검사도 저절로 는다(한 언어만 박아 두면 새 언어는
+   **켠 언어를 전부 돈다**. 언어가 늘 때 이 검사도 저절로 는다(한 언어만 박아 두면 새 언어는
    아무도 안 본 채로 나간다). */
 for (const l of expected) {
   if (!l.prefix) continue;
@@ -185,8 +185,8 @@ for (const l of expected) {
   if (shown !== want) fail.push(`${l.code} 장의 도구 이름이 안 바뀌었다: ${shown} (기대 ${want})`);
   /* 한국어로 남은 이름 = **번역이 있는데 안 갈아 끼운 것**만 잘못이다. 아직 안 옮긴 도구
      (다른 작업이 방금 새로 만든 위젯 등)까지 세면, 누가 도구를 하나 넣을 때마다 이 검사가
-     빨개지고 그러면 사람이 검사를 꺼 버린다 — 도구 장 260장이 통째로 멈췄던 것과 같은 덫이다.
-     「안 바뀐 것」과 「아직 없는 것」을 가른다. */
+     빨개지고 그러면 사람이 검사를 꺼 버린다. 도구 장 260장이 통째로 멈췄던 것과 같은 덫이다.
+     안 바뀐 것과 아직 없는 것을 가른다. */
   const stillKorean = await tab.evaluate(
     () =>
       (window.KARMOLAB_LAZY_META || [])
@@ -198,7 +198,7 @@ for (const l of expected) {
     return !!v && !/[가-힣]/.test(v);
   });
   if (havingTranslation.length) {
-    fail.push(`${l.code} 장: 번역이 있는데 이름이 안 바뀌었다 — ${havingTranslation.join(', ')}`);
+    fail.push(`${l.code} 장: 번역이 있는데 이름이 안 바뀌었다. ${havingTranslation.join(', ')}`);
   } else if (stillKorean.length) {
     console.log(`[lang-switch] ${l.code}: 아직 안 옮긴 도구 ${stillKorean.length}개 (${stillKorean.join(', ')})`);
   }
@@ -212,4 +212,4 @@ if (fail.length) {
   for (const f of fail) console.error('[lang-switch] ' + f);
   process.exit(1);
 }
-console.log(`[lang-switch] ⚙ → 언어 칸 정상 — 글자 ${code} · 목록 ${expected.length}개(켠 언어 ${ENABLED_LOCALES.length}) · 고르면 주소 이동`);
+console.log(`[lang-switch] ⚙ → 언어 칸 정상. 글자 ${code}, 목록 ${expected.length}개(켠 언어 ${ENABLED_LOCALES.length}), 고르면 주소 이동`);

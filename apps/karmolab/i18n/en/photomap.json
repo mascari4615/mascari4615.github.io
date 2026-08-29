@@ -10,8 +10,8 @@
   "photomap.undated": "{n} photos without a date",
   "photomap.span": "about {km} km across",
   "photomap.status.idle": "Pick several photos",
-  "photomap.status.reading": "Reading {n} photos…",
-  "photomap.status.ok": "{n} photos · {places} places · {without} without a position",
+  "photomap.status.reading": "Reading {n} photos...",
+  "photomap.status.ok": "{n} photos, {places} places, {without} without a position",
   "photomap.status.noneWithGps": "None of the {n} photos carry a position (location was off in the camera, or it was already stripped)",
-  "photomap.note.noTiles": "No map tiles are fetched — asking a tile server for them would tell it where your photos were taken. So only dots are drawn, and a real map opens in a new tab only when you click. Photos and positions never leave this browser."
+  "photomap.note.noTiles": "No map tiles are fetched. asking a tile server for them would tell it where your photos were taken. So only dots are drawn, and a real map opens in a new tab only when you click. Photos and positions never leave this browser."
 }

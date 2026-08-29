@@ -8,7 +8,7 @@ test('화면에서 열리는 것만 열람 저장에 둔다', () => {
   }
 });
 
-test('영상·기타는 정본에만 둔다 — 값만 나가고 화면은 안 달라진다', () => {
+test('영상, 기타는 정본에만 둔다. 값만 나가고 화면은 안 달라진다', () => {
   for (const p of ['big.mp4', 'clip.MKV', 'pack.zip', 'setup.exe', 'a.psd']) {
     assert.equal(mirrorable(p), false, p);
   }

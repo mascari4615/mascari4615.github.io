@@ -3,19 +3,19 @@
   "parts": [
     {
       "id": "1",
-      "title": "무엇을 지키려는가 — 세 가지 목표",
+      "title": "무엇을 지키려는가. 세 가지 목표",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "암호를 「비밀로 만드는 기술」로만 알면 도구를 잘못 고른다. 지키려는 것이 셋이기 때문이다 — **기밀성**(남이 못 읽게), **무결성**(안 바뀌게), **진정성**(누가 보냈는지)."
+          "text": "암호를 비밀로 만드는 기술로만 알면 도구를 잘못 고른다. 지키려는 것이 셋이기 때문이다. **기밀성**(남이 못 읽게), **무결성**(안 바뀌게), **진정성**(누가 보냈는지)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "목표를 골라 보라 — 어떤 도구가 답하나",
+          "label": "목표를 골라 보라. 어떤 도구가 답하나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{goal}}';\n  const t = {\n    conf: ['기밀성 — 남이 못 읽게', '암호화 (AES-GCM · TLS)',\n      ['키가 있어야 원문을 얻는다'],\n      '주의: 암호화만으로는 <span class=\"warn\">바뀌지 않았다는 보장이 없다</span> — 그래서 인증 암호화를 쓴다(3장).'],\n    integ:['무결성 — 안 바뀌게', '해시 · MAC (HMAC)',\n      ['같은 입력이면 같은 지문 · 1비트만 달라도 완전히 달라진다'],\n      '해시만으로는 「누가 만들었나」를 모른다 — 공격자도 해시를 다시 계산할 수 있다.'],\n    auth: ['진정성 — 누가 보냈나', 'HMAC · 전자서명',\n      ['비밀 키를 아는 사람만 만들 수 있는 값을 붙인다'],\n      'HMAC 은 키를 나눠 가진 둘 사이에서, 서명은 <span class=\"ok\">누구나 검증</span>할 수 있게.'],\n    order:['셋을 함께', '인증 암호화(AEAD) · TLS',\n      ['AES-GCM · ChaCha20-Poly1305 은 암호화와 무결성을 한 번에'],\n      '직접 조합하지 마라 — 순서와 방식에서 실수가 나온다. AEAD 하나로 끝낸다.'],\n    forward:['미래의 유출까지 대비', '전방 비밀성 (ephemeral 키 교환)',\n      ['오늘 통신을 녹음해 뒀다가 나중에 서버 키를 훔쳐도 못 푼다'],\n      'TLS 1.3 이 기본으로 제공한다 — 매 연결마다 임시 키를 새로 만든다.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  도구: ' + esc(t[1]) + '\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + t[3],\n    '가장 흔한 실수는 「암호화했으니 안전하다」 — 목표를 먼저 정해야 도구가 정해진다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{goal}}';\n  const t = {\n    conf: ['기밀성. 남이 못 읽게', '암호화 (AES-GCM, TLS)',\n      ['키가 있어야 원문을 얻는다'],\n      '주의: 암호화만으로는 <span class=\"warn\">바뀌지 않았다는 보장이 없다</span>. 그래서 인증 암호화를 쓴다(3장).'],\n    integ:['무결성. 안 바뀌게', '해시, MAC (HMAC)',\n      ['같은 입력이면 같은 지문, 1비트만 달라도 완전히 달라진다'],\n      '해시만으로는 누가 만들었나를 모른다. 공격자도 해시를 다시 계산할 수 있다.'],\n    auth: ['진정성. 누가 보냈나', 'HMAC, 전자서명',\n      ['비밀 키를 아는 사람만 만들 수 있는 값을 붙인다'],\n      'HMAC 은 키를 나눠 가진 둘 사이에서, 서명은 <span class=\"ok\">누구나 검증</span>할 수 있게.'],\n    order:['셋을 함께', '인증 암호화(AEAD), TLS',\n      ['AES-GCM, ChaCha20-Poly1305 은 암호화와 무결성을 한 번에'],\n      '직접 조합하지 마라. 순서와 방식에서 실수가 나온다. AEAD 하나로 끝낸다.'],\n    forward:['미래의 유출까지 대비', '전방 비밀성 (ephemeral 키 교환)',\n      ['오늘 통신을 녹음해 뒀다가 나중에 서버 키를 훔쳐도 못 푼다'],\n      'TLS 1.3 이 기본으로 제공한다. 매 연결마다 임시 키를 새로 만든다.'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  도구: ' + esc(t[1]) + '\\n\\n' +\n    t[2].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  ' + t[3],\n    '가장 흔한 실수는 암호화했으니 안전하다. 목표를 먼저 정해야 도구가 정해진다.');\n</script>",
           "controls": [
             {
               "id": "goal",
@@ -49,17 +49,17 @@
         },
         {
           "type": "note",
-          "text": "**암호는 직접 만들지 않는다.** 알고리즘도, 조합 방식도 이미 검증된 것이 있다 — 직접 조립하면 「돌아가는데 안전하지 않은」 코드가 나온다. 이 칸의 목표는 **고르고 확인할 줄 아는 것**이지 구현하는 것이 아니다."
+          "text": "**암호는 직접 만들지 않는다.** 알고리즘도, 조합 방식도 이미 검증된 것이 있다. 직접 조립하면 돌아가는데 안전하지 않은 코드가 나온다. 이 칸의 목표는 **고르고 확인할 줄 아는 것**이지 구현하는 것이 아니다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "이 칸에서 다룰 순서",
-          "text": "2장  해시 — 되돌릴 수 없는 지문\n3장  대칭 암호 — 빠르고 키 하나 (AEAD)\n4장  비대칭 — 공개키와 서명\n5장  TLS — 실제 통신에서 이 셋이 어떻게 쓰이나\n6장  무작위성 — 예측 가능한 난수의 함정\n7장  흔한 실수 모음\n8장  오늘 무엇을 쓰나"
+          "text": "2장  해시. 되돌릴 수 없는 지문\n3장  대칭 암호. 빠르고 키 하나 (AEAD)\n4장  비대칭. 공개키와 서명\n5장  TLS. 실제 통신에서 이 셋이 어떻게 쓰이나\n6장  무작위성. 예측 가능한 난수의 함정\n7장  흔한 실수 모음\n8장  오늘 무엇을 쓰나"
         },
         {
           "type": "try",
-          "text": "내 서비스에서 암호가 쓰이는 자리를 세어 보라 — HTTPS·비밀번호 해시·세션 서명·API 서명·파일 암호화. 각각이 위 세 목표 중 무엇을 위한 것인지 적어 보라."
+          "text": "내 서비스에서 암호가 쓰이는 자리를 세어 보라. HTTPS, 비밀번호 해시, 세션 서명, API 서명, 파일 암호화. 각각이 위 세 목표 중 무엇을 위한 것인지 적어 보라."
         }
       ],
       "quiz": [
@@ -75,7 +75,7 @@
           "why": "그래서 AEAD 를 쓴다."
         },
         {
-          "q": "「누가 보냈는지」를 누구나 검증할 수 있게 하는 것은?",
+          "q": "누가 보냈는지를 누구나 검증할 수 있게 하는 것은?",
           "choices": [
             "해시",
             "HMAC",
@@ -100,19 +100,19 @@
     },
     {
       "id": "2",
-      "title": "해시 — 되돌릴 수 없는 지문",
+      "title": "해시. 되돌릴 수 없는 지문",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "해시는 **어떤 입력이든 고정 길이 지문**으로 바꾼다. 성질 셋이 중요하다 — 같은 입력은 같은 지문, **1비트만 달라도 완전히 다른 지문**, 지문에서 원문을 되돌릴 수 없음."
+          "text": "해시는 **어떤 입력이든 고정 길이 지문**으로 바꾼다. 성질 셋이 중요하다. 같은 입력은 같은 지문, **1비트만 달라도 완전히 다른 지문**, 지문에서 원문을 되돌릴 수 없음."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "글자를 바꿔 보라 — 지문이 얼마나 달라지나",
+          "label": "글자를 바꿔 보라. 지문이 얼마나 달라지나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const v = '{{text}}';\n  (async () => {\n    const enc = new TextEncoder();\n    const h1 = hex(await crypto.subtle.digest('SHA-256', enc.encode('hello')));\n    const h2 = hex(await crypto.subtle.digest('SHA-256', enc.encode(v)));\n    let same = 0;\n    for (let i = 0; i < h1.length; i++) if (h1[i] === h2[i]) same++;\n    render('crypto.subtle.digest(\\'SHA-256\\', …)',\n      '  같은 자리 글자 수: ' + same + ' / ' + h1.length +\n      (v === 'hello' ? '  <span class=\"ok\">(같은 입력 = 같은 지문)</span>'\n                     : '  <span class=\"warn\">(눈사태 효과 — 한 글자 차이인데 거의 전부 다르다)</span>') +\n      '\\n\\n  <span class=\"dim\">해시는 되돌릴 수 없다. 다만 흔한 값은 미리 계산해 맞춰 볼 수 있다(레인보우 테이블).</span>',\n      '지문 길이는 입력 길이와 무관하다 — 1바이트든 1GB 든 64자리 16진수.',\n      box('입력 A', 'hello') + box('SHA-256(A)', h1) +\n      box('입력 B', v) + box('SHA-256(B)', h2, v === 'hello' ? 'good' : ''));\n  })();\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const v = '{{text}}';\n  (async () => {\n    const enc = new TextEncoder();\n    const h1 = hex(await crypto.subtle.digest('SHA-256', enc.encode('hello')));\n    const h2 = hex(await crypto.subtle.digest('SHA-256', enc.encode(v)));\n    let same = 0;\n    for (let i = 0; i < h1.length; i++) if (h1[i] === h2[i]) same++;\n    render('crypto.subtle.digest(\\'SHA-256\\', ...)',\n      '  같은 자리 글자 수: ' + same + ' / ' + h1.length +\n      (v === 'hello' ? '  <span class=\"ok\">(같은 입력 = 같은 지문)</span>'\n                     : '  <span class=\"warn\">(눈사태 효과. 한 글자 차이인데 거의 전부 다르다)</span>') +\n      '\\n\\n  <span class=\"dim\">해시는 되돌릴 수 없다. 다만 흔한 값은 미리 계산해 맞춰 볼 수 있다(레인보우 테이블).</span>',\n      '지문 길이는 입력 길이와 무관하다. 1바이트든 1GB 든 64자리 16진수.',\n      box('입력 A', 'hello') + box('SHA-256(A)', h1) +\n      box('입력 B', v) + box('SHA-256(B)', h2, v === 'hello' ? 'good' : ''));\n  })();\n</script>",
           "controls": [
             {
               "id": "text",
@@ -142,17 +142,17 @@
         },
         {
           "type": "p",
-          "text": "쓰이는 자리가 넓다 — **무결성 확인**(파일 다운로드 검증), **중복 제거**(같은 파일인가), **커밋 해시**(git 칸 1장), **비밀번호 저장**(단, 느린 해시로 — 앞 칸 2장)."
+          "text": "쓰이는 자리가 넓다. **무결성 확인**(파일 다운로드 검증), **중복 제거**(같은 파일인가), **커밋 해시**(git 칸 1장), **비밀번호 저장**(단, 느린 해시로. 앞 칸 2장)."
         },
         {
           "type": "note",
-          "text": "**MD5·SHA-1 은 쓰지 마라.** 충돌(다른 입력이 같은 지문)이 실제로 만들어진다 — 서명·무결성 검증에서 위조가 가능하다. 오늘의 기본값은 **SHA-256**(또는 SHA-3·BLAKE3)이다."
+          "text": "**MD5, SHA-1 은 쓰지 마라.** 충돌(다른 입력이 같은 지문)이 실제로 만들어진다. 서명, 무결성 검증에서 위조가 가능하다. 오늘의 기본값은 **SHA-256**(또는 SHA-3, BLAKE3)이다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "용도에 따라 다른 해시",
-          "text": "// 무결성·식별 — 빠른 해시\nawait crypto.subtle.digest('SHA-256', bytes);\n\n// 비밀번호 — 일부러 느린 해시 (앞 칸 2장)\nawait argon2.hash(password);\n\n// 키를 아는 사람만 만들 수 있는 지문 — HMAC\nconst mac = await crypto.subtle.sign('HMAC', key, bytes);\n\n// 비교는 상수 시간으로 (7장)\ncrypto.timingSafeEqual(a, b);"
+          "text": "// 무결성, 식별. 빠른 해시\nawait crypto.subtle.digest('SHA-256', bytes);\n\n// 비밀번호. 일부러 느린 해시 (앞 칸 2장)\nawait argon2.hash(password);\n\n// 키를 아는 사람만 만들 수 있는 지문. HMAC\nconst mac = await crypto.subtle.sign('HMAC', key, bytes);\n\n// 비교는 상수 시간으로 (7장)\ncrypto.timingSafeEqual(a, b);"
         },
         {
           "type": "try",
@@ -161,7 +161,7 @@
       ],
       "quiz": [
         {
-          "q": "해시의 「눈사태 효과」란?",
+          "q": "해시의 눈사태 효과란?",
           "choices": [
             "길이가 는다",
             "1비트만 달라도 지문이 완전히 달라진다",
@@ -172,7 +172,7 @@
           "why": "부분 일치로는 아무것도 알 수 없다."
         },
         {
-          "q": "MD5·SHA-1 을 피하는 이유는?",
+          "q": "MD5, SHA-1 을 피하는 이유는?",
           "choices": [
             "느려서",
             "충돌을 실제로 만들 수 있어서",
@@ -180,7 +180,7 @@
             "표준이 아니라서"
           ],
           "answer": 1,
-          "why": "서명·무결성 위조가 가능하다."
+          "why": "서명, 무결성 위조가 가능하다."
         },
         {
           "q": "비밀번호에 SHA-256 을 쓰면?",
@@ -197,19 +197,19 @@
     },
     {
       "id": "3",
-      "title": "대칭 암호 — 같은 키로 잠그고 연다",
+      "title": "대칭 암호. 같은 키로 잠그고 연다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "대칭 암호는 **키 하나**로 암호화하고 복호화한다. 빠르고 단순해서 실제 자료는 거의 다 이것으로 암호화된다 — 문제는 **키를 어떻게 나눠 갖느냐**이고, 그 답이 4장이다."
+          "text": "대칭 암호는 **키 하나**로 암호화하고 복호화한다. 빠르고 단순해서 실제 자료는 거의 다 이것으로 암호화된다. 문제는 **키를 어떻게 나눠 갖느냐**이고, 그 답이 4장이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 암호화해 보라 — 무엇이 필요한가",
+          "label": "직접 암호화해 보라. 무엇이 필요한가",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  (async () => {\n    const enc = new TextEncoder();\n    const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);\n    const iv = crypto.getRandomValues(new Uint8Array(12));\n    const msg = '계좌번호 110-1234-5678';\n    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(msg));\n    const raw = hex(await crypto.subtle.exportKey('raw', key));\n    let extra = '', cls = 'good';\n    if (mode === 'reuse') {\n      extra = 'IV(논스)를 재사용하면 AES-GCM 은 <span class=\"no\">완전히 무너진다</span> — 두 평문의 XOR 이 드러나고 인증도 깨진다.';\n      cls = 'bad';\n    } else if (mode === 'tamper') {\n      extra = '암호문 1바이트를 바꾸면 복호화가 <span class=\"ok\">실패한다</span> — GCM 이 인증 태그를 검사하기 때문(무결성).';\n    } else if (mode === 'ecb') {\n      extra = 'ECB 모드는 같은 블록이 같은 암호문이 된다 — 그림을 암호화하면 <span class=\"no\">윤곽이 그대로 보인다</span>. 쓰지 마라.';\n      cls = 'bad';\n    } else {\n      extra = '키 · IV(매번 새로) · 암호문 · 인증 태그. AES-GCM 은 태그를 암호문에 붙여 준다.';\n    }\n    render('crypto.subtle.encrypt({ name: \\'AES-GCM\\', iv }, key, data)',\n      '  ' + extra,\n      '대칭 암호의 실전 규칙: AEAD 를 쓰고 · IV 는 절대 재사용하지 않는다.',\n      box('평문', msg) + box('키 (256비트)', raw, cls === 'bad' ? 'bad' : '') +\n      box('IV (매번 새로)', hex(iv)) + box('암호문 + 인증 태그', hex(ct).slice(0, 96) + '…', cls));\n  })();\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  (async () => {\n    const enc = new TextEncoder();\n    const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);\n    const iv = crypto.getRandomValues(new Uint8Array(12));\n    const msg = '계좌번호 110-1234-5678';\n    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(msg));\n    const raw = hex(await crypto.subtle.exportKey('raw', key));\n    let extra = '', cls = 'good';\n    if (mode === 'reuse') {\n      extra = 'IV(논스)를 재사용하면 AES-GCM 은 <span class=\"no\">완전히 무너진다</span>. 두 평문의 XOR 이 드러나고 인증도 깨진다.';\n      cls = 'bad';\n    } else if (mode === 'tamper') {\n      extra = '암호문 1바이트를 바꾸면 복호화가 <span class=\"ok\">실패한다</span>. GCM 이 인증 태그를 검사하기 때문(무결성).';\n    } else if (mode === 'ecb') {\n      extra = 'ECB 모드는 같은 블록이 같은 암호문이 된다. 그림을 암호화하면 <span class=\"no\">윤곽이 그대로 보인다</span>. 쓰지 마라.';\n      cls = 'bad';\n    } else {\n      extra = '키, IV(매번 새로), 암호문, 인증 태그. AES-GCM 은 태그를 암호문에 붙여 준다.';\n    }\n    render('crypto.subtle.encrypt({ name: \\'AES-GCM\\', iv }, key, data)',\n      '  ' + extra,\n      '대칭 암호의 실전 규칙: AEAD 를 쓰고, IV 는 절대 재사용하지 않는다.',\n      box('평문', msg) + box('키 (256비트)', raw, cls === 'bad' ? 'bad' : '') +\n      box('IV (매번 새로)', hex(iv)) + box('암호문 + 인증 태그', hex(ct).slice(0, 96) + '...', cls));\n  })();\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -239,21 +239,21 @@
         },
         {
           "type": "note",
-          "text": "**IV(논스)는 매번 새로, 절대 재사용 금지.** 비밀일 필요는 없어서 암호문 앞에 그냥 붙여 보낸다. AES-GCM 에서 같은 키+IV 로 두 번 암호화하면 보안이 완전히 무너진다 — 랜덤 12바이트를 매번 만들어라."
+          "text": "**IV(논스)는 매번 새로, 절대 재사용 금지.** 비밀일 필요는 없어서 암호문 앞에 그냥 붙여 보낸다. AES-GCM 에서 같은 키+IV 로 두 번 암호화하면 보안이 완전히 무너진다. 랜덤 12바이트를 매번 만들어라."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "저장 형식은 이렇게",
-          "text": "// 암호문에 필요한 것을 함께 저장한다\nconst payload = { v: 1, iv: b64(iv), ct: b64(ciphertext), keyId: 'k-2026-08' };\n\n// keyId 를 넣어 두면 나중에 키를 교체(회전)할 수 있다\n//   새 자료는 새 키로 · 옛 자료는 옛 키로 복호화 후 재암호화\n\n// 절대 하지 말 것\n//  · 키를 코드·이미지에 굽기\n//  · IV 를 고정값으로\n//  · 직접 만든 「XOR 암호화」"
+          "text": "// 암호문에 필요한 것을 함께 저장한다\nconst payload = { v: 1, iv: b64(iv), ct: b64(ciphertext), keyId: 'k-2026-08' };\n\n// keyId 를 넣어 두면 나중에 키를 교체(회전)할 수 있다\n//   새 자료는 새 키로, 옛 자료는 옛 키로 복호화 후 재암호화\n\n// 절대 하지 말 것\n// , 키를 코드, 이미지에 굽기\n// , IV 를 고정값으로\n// , 직접 만든 XOR 암호화"
         },
         {
           "type": "p",
-          "text": "**키를 어디에 두느냐가 실제 난이도**다. 앱 안에 있으면 앱이 뚫리면 함께 뚫린다 — 그래서 KMS(키 관리 서비스)를 쓴다. 데이터 키를 따로 만들고 그 키만 KMS 로 감싸는 **봉투 암호화**가 표준 패턴이다."
+          "text": "**키를 어디에 두느냐가 실제 난이도**다. 앱 안에 있으면 앱이 뚫리면 함께 뚫린다. 그래서 KMS(키 관리 서비스)를 쓴다. 데이터 키를 따로 만들고 그 키만 KMS 로 감싸는 **봉투 암호화**가 표준 패턴이다."
         },
         {
           "type": "try",
-          "text": "내 서비스에 암호화해 저장하는 자료가 있으면, 그 키가 어디 있는지 확인하라. 코드·환경 변수에 평문으로 있으면 KMS 로 옮길 후보다."
+          "text": "내 서비스에 암호화해 저장하는 자료가 있으면, 그 키가 어디 있는지 확인하라. 코드, 환경 변수에 평문으로 있으면 KMS 로 옮길 후보다."
         }
       ],
       "quiz": [
@@ -272,7 +272,7 @@
           "q": "AEAD(AES-GCM 등)가 함께 제공하는 것은?",
           "choices": [
             "압축",
-            "무결성·인증(변조 감지)",
+            "무결성, 인증(변조 감지)",
             "키 교환",
             "서명"
           ],
@@ -294,19 +294,19 @@
     },
     {
       "id": "4",
-      "title": "비대칭 — 공개키와 서명",
+      "title": "비대칭. 공개키와 서명",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "대칭 암호의 문제는 **키를 어떻게 전달하느냐**다. 비대칭 암호는 키를 **둘로 나눠** 이 문제를 푼다 — 공개키는 아무나 가져도 되고, 개인키만 나에게 있다."
+          "text": "대칭 암호의 문제는 **키를 어떻게 전달하느냐**다. 비대칭 암호는 키를 **둘로 나눠** 이 문제를 푼다. 공개키는 아무나 가져도 되고, 개인키만 나에게 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "용도를 골라 보라 — 어느 키로 무엇을 하나",
+          "label": "용도를 골라 보라. 어느 키로 무엇을 하나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{use}}';\n  (async () => {\n    const enc = new TextEncoder();\n    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);\n    const msg = '주문 #1042 를 승인함';\n    const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, kp.privateKey, enc.encode(msg));\n    const pub = hex(await crypto.subtle.exportKey('raw', kp.publicKey));\n    const okSig = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, kp.publicKey, sig, enc.encode(msg));\n    const okTampered = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, kp.publicKey, sig, enc.encode(msg + '!'));\n    const t = {\n      sign:  ['서명 — 개인키로 만들고 공개키로 검증',\n        '검증 결과: ' + (okSig ? '<span class=\"ok\">유효</span>' : '무효') +\n        '  ·  글자 하나 바꾼 뒤: ' + (okTampered ? '유효' : '<span class=\"no\">무효</span>'),\n        '「이 사람이 이 내용에 동의했다」를 누구나 확인할 수 있다 — 부인할 수 없다.'],\n      encrypt:['암호화 — 공개키로 잠그고 개인키로 연다', '',\n        '아무나 나에게 비밀을 보낼 수 있다. 다만 <span class=\"warn\">느리다</span> — 실제로는 대칭키를 이 방식으로 전달하고, 자료는 대칭 암호로.'],\n      exchange:['키 교환 — 서로 공개값만 주고받아 같은 비밀을 만든다', '',\n        'Diffie-Hellman. 도청자는 오간 값을 다 봐도 그 비밀을 못 만든다 — TLS 의 핵심(5장).'],\n      cert:  ['인증서 — 「이 공개키가 이 도메인의 것」을 제3자가 보증', '',\n        '공개키만으로는 「누구 것인지」를 모른다. 그래서 CA 가 서명한 인증서가 필요하다.'],\n    }[c];\n    render('crypto.subtle.sign / verify',\n      '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' + (t[1] ? '  ' + t[1] + '\\n\\n' : '') + '  ' + t[2],\n      '개인키는 절대 나가지 않는다 — 나가는 것은 서명이나 공개값뿐.',\n      box('공개키 (배포해도 됨)', pub.slice(0, 80) + '…', 'good') +\n      box('개인키', '(절대 밖으로 내보내지 않는다)', 'bad') +\n      box('서명', hex(sig).slice(0, 80) + '…'));\n  })();\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{use}}';\n  (async () => {\n    const enc = new TextEncoder();\n    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);\n    const msg = '주문 #1042 를 승인함';\n    const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, kp.privateKey, enc.encode(msg));\n    const pub = hex(await crypto.subtle.exportKey('raw', kp.publicKey));\n    const okSig = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, kp.publicKey, sig, enc.encode(msg));\n    const okTampered = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, kp.publicKey, sig, enc.encode(msg + '!'));\n    const t = {\n      sign:  ['서명. 개인키로 만들고 공개키로 검증',\n        '검증 결과: ' + (okSig ? '<span class=\"ok\">유효</span>' : '무효') +\n        ' ,  글자 하나 바꾼 뒤: ' + (okTampered ? '유효' : '<span class=\"no\">무효</span>'),\n        '이 사람이 이 내용에 동의했다를 누구나 확인할 수 있다. 부인할 수 없다.'],\n      encrypt:['암호화. 공개키로 잠그고 개인키로 연다', '',\n        '아무나 나에게 비밀을 보낼 수 있다. 다만 <span class=\"warn\">느리다</span>. 실제로는 대칭키를 이 방식으로 전달하고, 자료는 대칭 암호로.'],\n      exchange:['키 교환. 서로 공개값만 주고받아 같은 비밀을 만든다', '',\n        'Diffie-Hellman. 도청자는 오간 값을 다 봐도 그 비밀을 못 만든다. TLS 의 핵심(5장).'],\n      cert:  ['인증서. 이 공개키가 이 도메인의 것을 제3자가 보증', '',\n        '공개키만으로는 누구 것인지를 모른다. 그래서 CA 가 서명한 인증서가 필요하다.'],\n    }[c];\n    render('crypto.subtle.sign / verify',\n      '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' + (t[1] ? '  ' + t[1] + '\\n\\n' : '') + '  ' + t[2],\n      '개인키는 절대 나가지 않는다. 나가는 것은 서명이나 공개값뿐.',\n      box('공개키 (배포해도 됨)', pub.slice(0, 80) + '...', 'good') +\n      box('개인키', '(절대 밖으로 내보내지 않는다)', 'bad') +\n      box('서명', hex(sig).slice(0, 80) + '...'));\n  })();\n</script>",
           "controls": [
             {
               "id": "use",
@@ -336,17 +336,17 @@
         },
         {
           "type": "p",
-          "text": "**실무에서는 섞어 쓴다.** 비대칭은 느리므로 「키 교환·서명」에만 쓰고, 실제 자료는 대칭 암호로 처리한다 — TLS 도, 암호화 메신저도, JWT 서명도 전부 이 조합이다."
+          "text": "**실무에서는 섞어 쓴다.** 비대칭은 느리므로 키 교환, 서명에만 쓰고, 실제 자료는 대칭 암호로 처리한다. TLS 도, 암호화 메신저도, JWT 서명도 전부 이 조합이다."
         },
         {
           "type": "note",
-          "text": "**공개키만으로는 「누구 것인지」를 알 수 없다.** 그래서 인증서(CA 가 서명한 「이 공개키는 example.com 의 것」)가 필요하다 — 중간자 공격을 막는 것은 암호가 아니라 이 **신뢰 사슬**이다."
+          "text": "**공개키만으로는 누구 것인지를 알 수 없다.** 그래서 인증서(CA 가 서명한 이 공개키는 example.com 의 것)가 필요하다. 중간자 공격을 막는 것은 암호가 아니라 이 **신뢰 사슬**이다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "어디서 이미 쓰고 있나",
-          "text": "// SSH 키 (셸 칸 3장) — 서명으로 신원 증명\n// git 커밋 서명 · npm 패키지 서명 (공급망 칸)\n// JWT RS256 — 발급자가 서명, 여러 서비스가 공개키로 검증 (앞 칸 4장)\n// TLS 인증서 — 서버 신원 확인 (5장)\n// 패스키 — 개인키는 기기 안, 서명만 나간다 (앞 칸 6장)"
+          "text": "// SSH 키 (셸 칸 3장). 서명으로 신원 증명\n// git 커밋 서명, npm 패키지 서명 (공급망 칸)\n// JWT RS256. 발급자가 서명, 여러 서비스가 공개키로 검증 (앞 칸 4장)\n// TLS 인증서. 서버 신원 확인 (5장)\n// 패스키. 개인키는 기기 안, 서명만 나간다 (앞 칸 6장)"
         },
         {
           "type": "try",
@@ -374,7 +374,7 @@
             "키가 짧아서"
           ],
           "answer": 1,
-          "why": "비대칭은 키 교환·서명에 쓴다."
+          "why": "비대칭은 키 교환, 서명에 쓴다."
         },
         {
           "q": "공개키가 진짜 그 도메인의 것임을 보증하는 것은?",
@@ -391,19 +391,19 @@
     },
     {
       "id": "5",
-      "title": "TLS — 자물쇠 아이콘 뒤의 일",
+      "title": "TLS. 자물쇠 아이콘 뒤의 일",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "HTTPS 는 앞의 도구들이 **한 번에** 쓰이는 자리다. 접속 한 번에 「서버 확인 → 키 합의 → 대칭 암호로 통신」이 일어난다."
+          "text": "HTTPS 는 앞의 도구들이 **한 번에** 쓰이는 자리다. 접속 한 번에 서버 확인 → 키 합의 → 대칭 암호로 통신이 일어난다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 무엇이 오가나",
+          "label": "단계를 밀어 보라. 무엇이 오가나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['ClientHello', '지원하는 암호 방식·TLS 버전을 알린다 · 임시 공개값을 함께 보낸다'],\n    ['ServerHello + 인증서', '서버가 방식을 고르고 <span class=\"ok\">인증서</span>를 보낸다 — 「나는 example.com 이다」'],\n    ['인증서 검증', '브라우저가 CA 서명 사슬·도메인·만료를 확인 (4장의 신뢰 사슬)'],\n    ['키 합의 완료', '양쪽이 같은 세션 키를 만든다 — 도청자는 오간 값을 다 봐도 못 만든다'],\n    ['암호화된 통신', '이제부터 <span class=\"ok\">대칭 암호(AEAD)</span>로 주고받는다 — 빠르다'],\n  ];\n  render('https://example.com',\n    '  ' + (s + 1) + '/5  <span class=\"ok\">' + esc(steps[s][0]) + '</span>\\n\\n  ' + steps[s][1] +\n    (s === 4 ? '\\n\\n  <span class=\"dim\">TLS 1.3 은 왕복 한 번(1-RTT)에 끝난다 — 이전 버전보다 빠르고 단순하다.</span>' : ''),\n    '자물쇠 아이콘 = 「암호화됨 + 인증서가 이 도메인 것」. 「안전한 사이트」라는 뜻은 아니다.',\n    box('이 단계에서 쓰이는 도구',\n      ['(협상)', '비대칭 — 인증서', '서명 검증 — 신뢰 사슬', '키 교환 (ECDHE) — 전방 비밀성',\n       '대칭 암호 AEAD'][s], s >= 3 ? 'good' : ''));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const steps = [\n    ['ClientHello', '지원하는 암호 방식, TLS 버전을 알린다, 임시 공개값을 함께 보낸다'],\n    ['ServerHello + 인증서', '서버가 방식을 고르고 <span class=\"ok\">인증서</span>를 보낸다. 나는 example.com 이다'],\n    ['인증서 검증', '브라우저가 CA 서명 사슬, 도메인, 만료를 확인 (4장의 신뢰 사슬)'],\n    ['키 합의 완료', '양쪽이 같은 세션 키를 만든다. 도청자는 오간 값을 다 봐도 못 만든다'],\n    ['암호화된 통신', '이제부터 <span class=\"ok\">대칭 암호(AEAD)</span>로 주고받는다. 빠르다'],\n  ];\n  render('https://example.com',\n    '  ' + (s + 1) + '/5  <span class=\"ok\">' + esc(steps[s][0]) + '</span>\\n\\n  ' + steps[s][1] +\n    (s === 4 ? '\\n\\n  <span class=\"dim\">TLS 1.3 은 왕복 한 번(1-RTT)에 끝난다. 이전 버전보다 빠르고 단순하다.</span>' : ''),\n    '자물쇠 아이콘 = 암호화됨 + 인증서가 이 도메인 것. 안전한 사이트라는 뜻은 아니다.',\n    box('이 단계에서 쓰이는 도구',\n      ['(협상)', '비대칭. 인증서', '서명 검증. 신뢰 사슬', '키 교환 (ECDHE). 전방 비밀성',\n       '대칭 암호 AEAD'][s], s >= 3 ? 'good' : ''));\n</script>",
           "controls": [
             {
               "id": "step",
@@ -418,17 +418,17 @@
         },
         {
           "type": "note",
-          "text": "**자물쇠는 「이 사이트가 착하다」는 뜻이 아니다.** 「통신이 암호화됐고, 인증서가 그 도메인 것」일 뿐이다 — 피싱 사이트도 인증서를 받을 수 있다. 도메인을 눈으로 확인하는 습관이 여전히 필요하다."
+          "text": "**자물쇠는 이 사이트가 착하다는 뜻이 아니다.** 통신이 암호화됐고, 인증서가 그 도메인 것일 뿐이다. 피싱 사이트도 인증서를 받을 수 있다. 도메인을 눈으로 확인하는 습관이 여전히 필요하다."
         },
         {
           "type": "code",
           "lang": "bash",
           "label": "직접 들여다보기",
-          "text": "openssl s_client -connect example.com:443 -servername example.com </dev/null | head -30\n#   인증서 사슬 · 프로토콜 버전 · 선택된 암호 방식이 보인다\n\ncurl -vI https://example.com 2>&1 | grep -i 'SSL\\|TLS\\|subject'\n\n# 만료 확인 (인증서 만료는 흔한 장애 원인)\necho | openssl s_client -connect example.com:443 2>/dev/null | openssl x509 -noout -dates"
+          "text": "openssl s_client -connect example.com:443 -servername example.com </dev/null | head -30\n#   인증서 사슬, 프로토콜 버전, 선택된 암호 방식이 보인다\n\ncurl -vI https://example.com 2>&1 | grep -i 'SSL\\|TLS\\|subject'\n\n# 만료 확인 (인증서 만료는 흔한 장애 원인)\necho | openssl s_client -connect example.com:443 2>/dev/null | openssl x509 -noout -dates"
         },
         {
           "type": "p",
-          "text": "**인증서 만료가 실제 장애 원인**으로 자주 등장한다. 자동 갱신(Let's Encrypt·ACME)을 걸어 두고, **만료 30일 전 알림**을 붙여라 — 갱신 자동화가 조용히 멈춘 것을 그때 알게 된다."
+          "text": "**인증서 만료가 실제 장애 원인**으로 자주 등장한다. 자동 갱신(Let's Encrypt, ACME)을 걸어 두고, **만료 30일 전 알림**을 붙여라. 갱신 자동화가 조용히 멈춘 것을 그때 알게 된다."
         },
         {
           "type": "try",
@@ -445,7 +445,7 @@
             "없음"
           ],
           "answer": 1,
-          "why": "비대칭은 키 교환·인증서에만."
+          "why": "비대칭은 키 교환, 인증서에만."
         },
         {
           "q": "자물쇠 아이콘이 뜻하는 것은?",
@@ -473,19 +473,19 @@
     },
     {
       "id": "6",
-      "title": "무작위성 — 예측 가능하면 전부 무너진다",
+      "title": "무작위성. 예측 가능하면 전부 무너진다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "암호의 안전은 **키·논스·토큰이 예측 불가능하다**는 전제 위에 있다. 그런데 `Math.random()` 은 암호용이 아니다 — 값이 예측 가능하다."
+          "text": "암호의 안전은 **키, 논스, 토큰이 예측 불가능하다**는 전제 위에 있다. 그런데 `Math.random()` 은 암호용이 아니다. 값이 예측 가능하다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "생성 방식을 골라 보라 — 무엇이 위험한가",
+          "label": "생성 방식을 골라 보라. 무엇이 위험한가",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const bad1 = Math.random().toString(36).slice(2, 12);\n  const bad2 = Date.now().toString(36);\n  const good = hex(crypto.getRandomValues(new Uint8Array(16)));\n  const uuid = crypto.randomUUID();\n  const t = {\n    math:  ['Math.random()', 'bad', bad1,\n      '<span class=\"no\">암호용이 아니다.</span> 내부 상태를 몇 개의 출력으로 복원할 수 있다 — 세션 토큰·재설정 링크에 쓰면 위험.'],\n    time:  ['시각 기반', 'bad', bad2,\n      '<span class=\"no\">거의 그대로 예측된다.</span> 가입 시각을 아는 사람이 토큰을 맞힐 수 있다.'],\n    seq:   ['순차 번호', 'bad', '1042',\n      '토큰으로 쓰면 열거 공격이 그대로 성립. ID 로는 괜찮지만 <span class=\"warn\">권한 확인이 없으면</span> IDOR 로 이어진다.'],\n    csprng:['crypto.getRandomValues', 'good', good,\n      '<span class=\"ok\">암호학적 난수.</span> 세션 ID·재설정 토큰·IV·키에는 반드시 이것.'],\n    uuid:  ['crypto.randomUUID()', 'good', uuid,\n      'v4 UUID 는 122비트 무작위 — 식별자로 충분하다. 다만 <span class=\"warn\">비밀 토큰으로는 128비트 이상</span>을 권한다.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : 'no') + '\">' + esc(t[0]) + '</span>\\n\\n  ' + t[3],\n    '규칙: 「추측되면 곤란한 값」은 전부 암호학적 난수로.',\n    box('생성된 값', t[2], t[1]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{how}}';\n  const bad1 = Math.random().toString(36).slice(2, 12);\n  const bad2 = Date.now().toString(36);\n  const good = hex(crypto.getRandomValues(new Uint8Array(16)));\n  const uuid = crypto.randomUUID();\n  const t = {\n    math:  ['Math.random()', 'bad', bad1,\n      '<span class=\"no\">암호용이 아니다.</span> 내부 상태를 몇 개의 출력으로 복원할 수 있다. 세션 토큰, 재설정 링크에 쓰면 위험.'],\n    time:  ['시각 기반', 'bad', bad2,\n      '<span class=\"no\">거의 그대로 예측된다.</span> 가입 시각을 아는 사람이 토큰을 맞힐 수 있다.'],\n    seq:   ['순차 번호', 'bad', '1042',\n      '토큰으로 쓰면 열거 공격이 그대로 성립. ID 로는 괜찮지만 <span class=\"warn\">권한 확인이 없으면</span> IDOR 로 이어진다.'],\n    csprng:['crypto.getRandomValues', 'good', good,\n      '<span class=\"ok\">암호학적 난수.</span> 세션 ID, 재설정 토큰, IV, 키에는 반드시 이것.'],\n    uuid:  ['crypto.randomUUID()', 'good', uuid,\n      'v4 UUID 는 122비트 무작위. 식별자로 충분하다. 다만 <span class=\"warn\">비밀 토큰으로는 128비트 이상</span>을 권한다.'],\n  }[c];\n  render('', '  <span class=\"' + (t[1] === 'good' ? 'ok' : 'no') + '\">' + esc(t[0]) + '</span>\\n\\n  ' + t[3],\n    '규칙: 추측되면 곤란한 값은 전부 암호학적 난수로.',\n    box('생성된 값', t[2], t[1]));\n</script>",
           "controls": [
             {
               "id": "how",
@@ -521,19 +521,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "환경별 이름만 다르다",
-          "text": "// 브라우저 · Node 19+\ncrypto.getRandomValues(new Uint8Array(32));\ncrypto.randomUUID();\n\n// Node\nimport { randomBytes, randomUUID } from 'node:crypto';\nrandomBytes(32).toString('base64url');\n\n// Python\nimport secrets; secrets.token_urlsafe(32)   // random 모듈이 아니다\n\n// 절대 쓰지 말 것: Math.random() · rand() · Date.now() 조합"
+          "text": "// 브라우저, Node 19+\ncrypto.getRandomValues(new Uint8Array(32));\ncrypto.randomUUID();\n\n// Node\nimport { randomBytes, randomUUID } from 'node:crypto';\nrandomBytes(32).toString('base64url');\n\n// Python\nimport secrets; secrets.token_urlsafe(32)   // random 모듈이 아니다\n\n// 절대 쓰지 말 것: Math.random(), rand(), Date.now() 조합"
         },
         {
           "type": "note",
-          "text": "**「추측되면 곤란한가」가 기준**이다 — 세션 ID·비밀번호 재설정 토큰·초대 링크·API 키·IV·솔트. 반대로 화면 애니메이션의 무작위나 A/B 배정에는 `Math.random()` 이 적당하다(빠르다)."
+          "text": "**추측되면 곤란한가가 기준**이다. 세션 ID, 비밀번호 재설정 토큰, 초대 링크, API 키, IV, 솔트. 반대로 화면 애니메이션의 무작위나 A/B 배정에는 `Math.random()` 이 적당하다(빠르다)."
         },
         {
           "type": "p",
-          "text": "그리고 **길이도 중요하다.** 8자리 숫자 토큰은 1억 가지뿐이라 대입이 가능하다 — 비밀 토큰은 **128비트 이상**(base64url 로 22자 정도)을 쓰고, 레이트 리밋과 만료를 함께 건다."
+          "text": "그리고 **길이도 중요하다.** 8자리 숫자 토큰은 1억 가지뿐이라 대입이 가능하다. 비밀 토큰은 **128비트 이상**(base64url 로 22자 정도)을 쓰고, 레이트 리밋과 만료를 함께 건다."
         },
         {
           "type": "try",
-          "text": "내 코드에서 `Math.random()` 을 grep 해 보라. 토큰·ID·키를 만드는 자리에 있으면 오늘 바꿀 자리다."
+          "text": "내 코드에서 `Math.random()` 을 grep 해 보라. 토큰, ID, 키를 만드는 자리에 있으면 오늘 바꿀 자리다."
         }
       ],
       "quiz": [
@@ -563,7 +563,7 @@
           "q": "`Math.random()` 을 써도 되는 곳은?",
           "choices": [
             "재설정 토큰",
-            "화면 애니메이션·A/B 배정",
+            "화면 애니메이션, A/B 배정",
             "IV",
             "API 키"
           ],
@@ -584,9 +584,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "실수를 골라 보라 — 왜 위험한가",
+          "label": "실수를 골라 보라. 왜 위험한가",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{mistake}}';\n  const t = {\n    b64:    ['base64 를 암호화로 착각', 'atob(\\'c2VjcmV0\\') === \\'secret\\'',\n      'base64 는 <span class=\"no\">인코딩</span>이지 암호가 아니다. 누구나 되돌린다.'],\n    timing: ['비교를 == 로 한다', 'if (token === expected)',\n      '문자열 비교는 <span class=\"warn\">다른 지점에서 멈춘다</span> — 응답 시간으로 한 글자씩 맞힐 수 있다(타이밍 공격). 상수 시간 비교를 써라.'],\n    roll:   ['직접 만든 암호', 'XOR 로 간단히 섞기',\n      '「돌아가는데 안전하지 않은」 코드의 전형. 검증된 라이브러리를 써라.'],\n    key:    ['키를 코드에 넣기', 'const KEY = \\'my-secret-key\\'',\n      '저장소·이미지·번들에 그대로 남는다(설정 칸 3장). KMS 나 비밀 관리로.'],\n    encrypt:['해시를 써야 할 곳에 암호화', 'password = encrypt(pw)',\n      '복호화 가능하면 유출 시 전부 평문이 된다. 비밀번호는 <span class=\"ok\">되돌릴 수 없어야</span> 한다.'],\n    verify: ['검증을 건너뛴다', 'rejectUnauthorized: false',\n      '인증서 검증을 끄면 TLS 의 <span class=\"no\">중간자 방어가 통째로 사라진다</span> — 개발 편의로 켜 두고 그대로 배포되는 일이 흔하다.'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n  ' + t[2],\n    '알고리즘이 아니라 사용법에서 사고가 난다 — 리뷰에서 이 여섯을 찾아라.',\n    box('이런 코드', t[1], 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{mistake}}';\n  const t = {\n    b64:    ['base64 를 암호화로 착각', 'atob(\\'c2VjcmV0\\') === \\'secret\\'',\n      'base64 는 <span class=\"no\">인코딩</span>이지 암호가 아니다. 누구나 되돌린다.'],\n    timing: ['비교를 == 로 한다', 'if (token === expected)',\n      '문자열 비교는 <span class=\"warn\">다른 지점에서 멈춘다</span>. 응답 시간으로 한 글자씩 맞힐 수 있다(타이밍 공격). 상수 시간 비교를 써라.'],\n    roll:   ['직접 만든 암호', 'XOR 로 간단히 섞기',\n      '돌아가는데 안전하지 않은 코드의 전형. 검증된 라이브러리를 써라.'],\n    key:    ['키를 코드에 넣기', 'const KEY = \\'my-secret-key\\'',\n      '저장소, 이미지, 번들에 그대로 남는다(설정 칸 3장). KMS 나 비밀 관리로.'],\n    encrypt:['해시를 써야 할 곳에 암호화', 'password = encrypt(pw)',\n      '복호화 가능하면 유출 시 전부 평문이 된다. 비밀번호는 <span class=\"ok\">되돌릴 수 없어야</span> 한다.'],\n    verify: ['검증을 건너뛴다', 'rejectUnauthorized: false',\n      '인증서 검증을 끄면 TLS 의 <span class=\"no\">중간자 방어가 통째로 사라진다</span>. 개발 편의로 켜 두고 그대로 배포되는 일이 흔하다.'],\n  }[c];\n  render('', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n  ' + t[2],\n    '알고리즘이 아니라 사용법에서 사고가 난다. 리뷰에서 이 여섯을 찾아라.',\n    box('이런 코드', t[1], 'bad'));\n</script>",
           "controls": [
             {
               "id": "mistake",
@@ -626,19 +626,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "상수 시간 비교",
-          "text": "// 나쁨 — 다른 지점에서 멈춘다\nif (userToken === storedToken) { … }\n\n// 좋음 — 길이가 같으면 항상 같은 시간\nimport { timingSafeEqual } from 'node:crypto';\nconst a = Buffer.from(userToken), b = Buffer.from(storedToken);\nif (a.length === b.length && timingSafeEqual(a, b)) { … }\n\n// 웹훅 서명 검증에서 특히 중요하다"
+          "text": "// 나쁨. 다른 지점에서 멈춘다\nif (userToken === storedToken) { ... }\n\n// 좋음. 길이가 같으면 항상 같은 시간\nimport { timingSafeEqual } from 'node:crypto';\nconst a = Buffer.from(userToken), b = Buffer.from(storedToken);\nif (a.length === b.length && timingSafeEqual(a, b)) { ... }\n\n// 웹훅 서명 검증에서 특히 중요하다"
         },
         {
           "type": "note",
-          "text": "**`rejectUnauthorized: false` 는 개발 중에도 쓰지 마라.** 한 번 켜 두면 그대로 배포되고, 그 순간 HTTPS 의 의미가 사라진다 — 사설 CA 를 신뢰 목록에 추가하는 것이 올바른 해법이다."
+          "text": "**`rejectUnauthorized: false` 는 개발 중에도 쓰지 마라.** 한 번 켜 두면 그대로 배포되고, 그 순간 HTTPS 의 의미가 사라진다. 사설 CA 를 신뢰 목록에 추가하는 것이 올바른 해법이다."
         },
         {
           "type": "p",
-          "text": "그리고 **암호는 만료된다.** 오늘 안전한 것이 10년 뒤에도 안전하지는 않다(MD5·SHA-1·RSA-1024 가 그랬다). 그래서 **알고리즘·키 버전을 값에 담아 두는 것**이 중요하다 — 나중에 갈아 끼울 수 있게(3장의 `keyId`)."
+          "text": "그리고 **암호는 만료된다.** 오늘 안전한 것이 10년 뒤에도 안전하지는 않다(MD5, SHA-1, RSA-1024 가 그랬다). 그래서 **알고리즘, 키 버전을 값에 담아 두는 것**이 중요하다. 나중에 갈아 끼울 수 있게(3장의 `keyId`)."
         },
         {
           "type": "try",
-          "text": "내 코드에서 `rejectUnauthorized`·`verify=False`·`InsecureSkipVerify` 를 grep 해 보라. 하나라도 있으면 왜 있는지 확인하라."
+          "text": "내 코드에서 `rejectUnauthorized`, `verify=False`, `InsecureSkipVerify` 를 grep 해 보라. 하나라도 있으면 왜 있는지 확인하라."
         }
       ],
       "quiz": [
@@ -646,7 +646,7 @@
           "q": "base64 는?",
           "choices": [
             "암호화",
-            "인코딩 — 누구나 되돌린다",
+            "인코딩. 누구나 되돌린다",
             "해시",
             "압축"
           ],
@@ -654,7 +654,7 @@
           "why": "비밀을 감추지 못한다."
         },
         {
-          "q": "토큰·서명 비교에 `===` 를 쓰면?",
+          "q": "토큰, 서명 비교에 `===` 를 쓰면?",
           "choices": [
             "문제없다",
             "응답 시간으로 값을 맞힐 수 있다",
@@ -679,19 +679,19 @@
     },
     {
       "id": "8",
-      "title": "오늘 무엇을 쓰나 — 고르는 표",
+      "title": "오늘 무엇을 쓰나. 고르는 표",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "이 칸의 실용적인 결론은 짧다 — **상황별로 정해진 선택지가 있고, 그것만 쓰면 된다.**"
+          "text": "이 칸의 실용적인 결론은 짧다. **상황별로 정해진 선택지가 있고, 그것만 쓰면 된다.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 무엇을 쓰나",
+          "label": "상황을 골라 보라. 무엇을 쓰나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{need}}';\n  const t = {\n    pw:    ['비밀번호 저장', 'Argon2id (또는 bcrypt·scrypt)',\n      ['비용 인자를 기계에 맞춰 조정 (로그인 100ms 안팎)'],\n      '절대 SHA 계열 단독으로 쓰지 마라.'],\n    token: ['세션·재설정 토큰', 'crypto.getRandomValues (128비트 이상)',\n      ['만료 · 1회용 · 해시해서 저장'],\n      '토큰도 DB 에는 해시로 두면 유출 피해가 준다.'],\n    data:  ['자료 암호화 (저장)', 'AES-256-GCM (또는 ChaCha20-Poly1305)',\n      ['IV 매번 새로 · keyId 함께 저장 · 키는 KMS'],\n      '봉투 암호화: 데이터 키를 만들고 그 키만 KMS 로 감싼다.'],\n    transit:['전송 구간', 'TLS 1.3 (HTTPS)',\n      ['HSTS · 자동 갱신 · 만료 알림'],\n      '내부망 통신도 암호화하는 쪽이 요즘 기본이다.'],\n    sign:  ['서명·검증', 'Ed25519 (또는 ECDSA P-256)',\n      ['여러 곳에서 검증해야 하면 비대칭', '둘만 아는 사이면 HMAC-SHA256 이 더 단순'],\n      'JWT 라면 RS256·EdDSA — 검증하는 쪽이 서명은 못 하게.'],\n    file:  ['파일 무결성', 'SHA-256 (또는 BLAKE3)',\n      ['공개 배포물은 서명까지 (공급망 칸)'],\n      '해시만으로는 「누가 만든 파일인지」를 모른다.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '\\n\\n  <span class=\"ok\">' + esc(t[1]) + '</span>\\n\\n' +\n    t[2].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[3]),\n    '고민이 되면 「표준 라이브러리의 기본값」을 따르는 것이 대개 맞다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{need}}';\n  const t = {\n    pw:    ['비밀번호 저장', 'Argon2id (또는 bcrypt, scrypt)',\n      ['비용 인자를 기계에 맞춰 조정 (로그인 100ms 안팎)'],\n      '절대 SHA 계열 단독으로 쓰지 마라.'],\n    token: ['세션, 재설정 토큰', 'crypto.getRandomValues (128비트 이상)',\n      ['만료, 1회용, 해시해서 저장'],\n      '토큰도 DB 에는 해시로 두면 유출 피해가 준다.'],\n    data:  ['자료 암호화 (저장)', 'AES-256-GCM (또는 ChaCha20-Poly1305)',\n      ['IV 매번 새로, keyId 함께 저장, 키는 KMS'],\n      '봉투 암호화: 데이터 키를 만들고 그 키만 KMS 로 감싼다.'],\n    transit:['전송 구간', 'TLS 1.3 (HTTPS)',\n      ['HSTS, 자동 갱신, 만료 알림'],\n      '내부망 통신도 암호화하는 쪽이 요즘 기본이다.'],\n    sign:  ['서명, 검증', 'Ed25519 (또는 ECDSA P-256)',\n      ['여러 곳에서 검증해야 하면 비대칭', '둘만 아는 사이면 HMAC-SHA256 이 더 단순'],\n      'JWT 라면 RS256, EdDSA. 검증하는 쪽이 서명은 못 하게.'],\n    file:  ['파일 무결성', 'SHA-256 (또는 BLAKE3)',\n      ['공개 배포물은 서명까지 (공급망 칸)'],\n      '해시만으로는 누가 만든 파일인지를 모른다.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '\\n\\n  <span class=\"ok\">' + esc(t[1]) + '</span>\\n\\n' +\n    t[2].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[3]),\n    '고민이 되면 표준 라이브러리의 기본값을 따르는 것이 대개 맞다.');\n</script>",
           "controls": [
             {
               "id": "need",
@@ -729,21 +729,21 @@
         },
         {
           "type": "note",
-          "text": "**고수준 라이브러리를 쓰라.** libsodium(`crypto_secretbox`)·Tink·age 같은 것들은 「모드·IV·패딩」 선택을 아예 없애 준다 — 고를 것이 적을수록 실수도 적다."
+          "text": "**고수준 라이브러리를 쓰라.** libsodium(`crypto_secretbox`), Tink, age 같은 것들은 모드, IV, 패딩 선택을 아예 없애 준다. 고를 것이 적을수록 실수도 적다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "쓰지 말아야 할 목록",
-          "text": "MD5 · SHA-1            충돌 가능 — 무결성·서명 금지\nDES · 3DES · RC4       낡음\nAES-ECB                패턴이 드러남\nRSA PKCS#1 v1.5 암호화  패딩 오라클 — OAEP 를 쓴다\n직접 만든 XOR·치환      논외\nMath.random()          암호용 아님"
+          "text": "MD5, SHA-1            충돌 가능. 무결성, 서명 금지\nDES, 3DES, RC4       낡음\nAES-ECB                패턴이 드러남\nRSA PKCS#1 v1.5 암호화  패딩 오라클. OAEP 를 쓴다\n직접 만든 XOR, 치환      논외\nMath.random()          암호용 아님"
         },
         {
           "type": "p",
-          "text": "그리고 **양자 컴퓨터 이야기**가 종종 나오는데, 지금 당장 코드를 바꿀 일은 아니다. 다만 **알고리즘을 갈아 끼울 수 있는 구조**(버전·keyId)를 만들어 두는 것은 지금 할 수 있는 준비다 — 이 칸에서 반복된 그 이야기다."
+          "text": "그리고 **양자 컴퓨터 이야기**가 종종 나오는데, 지금 당장 코드를 바꿀 일은 아니다. 다만 **알고리즘을 갈아 끼울 수 있는 구조**(버전, keyId)를 만들어 두는 것은 지금 할 수 있는 준비다. 이 칸에서 반복된 그 이야기다."
         },
         {
           "type": "try",
-          "text": "내 서비스의 여섯 자리(비밀번호·토큰·저장 암호화·전송·서명·무결성)를 위 표와 대조하라. 다른 것을 쓰고 있으면 이유가 있는지 확인하라."
+          "text": "내 서비스의 여섯 자리(비밀번호, 토큰, 저장 암호화, 전송, 서명, 무결성)를 위 표와 대조하라. 다른 것을 쓰고 있으면 이유가 있는지 확인하라."
         }
       ],
       "quiz": [
@@ -751,7 +751,7 @@
           "q": "비밀번호 저장의 오늘 기본값은?",
           "choices": [
             "SHA-256",
-            "Argon2id·bcrypt·scrypt",
+            "Argon2id, bcrypt, scrypt",
             "AES",
             "MD5+솔트"
           ],
@@ -778,13 +778,13 @@
             "표준이라"
           ],
           "answer": 1,
-          "why": "모드·IV 선택을 없애 준다."
+          "why": "모드, IV 선택을 없애 준다."
         }
       ]
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -795,22 +795,22 @@
           "type": "code",
           "lang": "text",
           "label": "암호 점검표",
-          "text": "고르기\n  [ ] 비밀번호는 Argon2·bcrypt·scrypt 인가 (SHA 단독 X)          (2·8장)\n  [ ] 저장 암호화는 AEAD 인가 (AES-GCM·ChaCha20-Poly1305)        (3·8장)\n  [ ] 해시는 SHA-256 이상인가 (MD5·SHA-1 X)                      (2장)\n  [ ] 서명은 Ed25519·ECDSA·RS256 인가                            (4·8장)\n쓰기\n  [ ] IV·논스를 매번 새로 만드나 (재사용 0)                      (3장)\n  [ ] 토큰·키를 암호학적 난수로 만드나 (Math.random X)           (6장)\n  [ ] 토큰·서명 비교가 상수 시간인가                             (7장)\n  [ ] 비밀번호를 「암호화」하고 있지 않나 (해시여야)              (7장)\n키와 인증서\n  [ ] 키가 코드·이미지에 없나 (KMS·비밀 관리)                    (3·7장)\n  [ ] 값에 keyId·버전이 들어 있어 교체가 가능한가                (3·8장)\n  [ ] 인증서 자동 갱신 + 만료 알림이 있나                        (5장)\n  [ ] 인증서 검증을 끈 코드가 없나 (rejectUnauthorized 등)       (7장)"
+          "text": "고르기\n  [ ] 비밀번호는 Argon2, bcrypt, scrypt 인가 (SHA 단독 X)          (2, 8장)\n  [ ] 저장 암호화는 AEAD 인가 (AES-GCM, ChaCha20-Poly1305)        (3, 8장)\n  [ ] 해시는 SHA-256 이상인가 (MD5, SHA-1 X)                      (2장)\n  [ ] 서명은 Ed25519, ECDSA, RS256 인가                            (4, 8장)\n쓰기\n  [ ] IV, 논스를 매번 새로 만드나 (재사용 0)                      (3장)\n  [ ] 토큰, 키를 암호학적 난수로 만드나 (Math.random X)           (6장)\n  [ ] 토큰, 서명 비교가 상수 시간인가                             (7장)\n  [ ] 비밀번호를 암호화하고 있지 않나 (해시여야)              (7장)\n키와 인증서\n  [ ] 키가 코드, 이미지에 없나 (KMS, 비밀 관리)                    (3, 7장)\n  [ ] 값에 keyId, 버전이 들어 있어 교체가 가능한가                (3, 8장)\n  [ ] 인증서 자동 갱신 + 만료 알림이 있나                        (5장)\n  [ ] 인증서 검증을 끈 코드가 없나 (rejectUnauthorized 등)       (7장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['base64 는 암호화가 아니다', true],\n    ['AES-GCM 에서 IV 는 재사용해도 된다', false],\n    ['해시는 되돌릴 수 없다', true],\n    ['세션 토큰을 Math.random() 으로 만들어도 된다', false],\n    ['TLS 의 실제 데이터 전송은 대칭 암호로 한다', true],\n    ['자물쇠 아이콘은 안전한 사이트라는 뜻이다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 3장(IV) 5장(TLS·자물쇠) 6장(난수) 7장(base64)');\n</script>"
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; word-break:break-all; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['base64 는 암호화가 아니다', true],\n    ['AES-GCM 에서 IV 는 재사용해도 된다', false],\n    ['해시는 되돌릴 수 없다', true],\n    ['세션 토큰을 Math.random() 으로 만들어도 된다', false],\n    ['TLS 의 실제 데이터 전송은 대칭 암호로 한다', true],\n    ['자물쇠 아이콘은 안전한 사이트라는 뜻이다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로. 3장(IV) 5장(TLS, 자물쇠) 6장(난수) 7장(base64)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 공급망이다. 여기까지가 「내가 쓰는 암호」였다면, 다음은 **내가 가져다 쓰는 남의 코드**를 어떻게 믿을 것인가다 — 서명과 무결성이 거기서 다시 쓰인다."
+          "text": "다음 칸은 공급망이다. 여기까지가 내가 쓰는 암호였다면, 다음은 **내가 가져다 쓰는 남의 코드**를 어떻게 믿을 것인가다. 서명과 무결성이 거기서 다시 쓰인다."
         },
         {
           "type": "try",
-          "text": "위 점검표의 「쓰기」 네 줄을 내 코드에서 실제로 grep 해 확인하라 — 특히 `Math.random()` 과 `===` 비교."
+          "text": "위 점검표의 쓰기 네 줄을 내 코드에서 실제로 grep 해 확인하라. 특히 `Math.random()` 과 `===` 비교."
         }
       ],
       "quiz": [
@@ -818,7 +818,7 @@
           "q": "암호에서 사고가 나는 주된 이유는?",
           "choices": [
             "알고리즘이 깨져서",
-            "쓰는 방식(IV 재사용·난수·비교)",
+            "쓰는 방식(IV 재사용, 난수, 비교)",
             "키 길이",
             "성능"
           ],
@@ -829,7 +829,7 @@
           "q": "나중에 알고리즘을 갈아 끼우려면?",
           "choices": [
             "문서화",
-            "값에 버전·keyId 를 담아 둔다",
+            "값에 버전, keyId 를 담아 둔다",
             "긴 키",
             "여러 알고리즘 병행"
           ],

@@ -64,11 +64,11 @@ import { t } from '../../lib/i18n';
                 prompt: `A cute maid (Alisa). Face: Sharp intellectual eyes, stylish glasses (megane), stoic cool beauty expression. Black ponytail. Wearing a classic black and white maid outfit. Holding a large magical broomstick. Dynamic posing. Clean background, detailed.` },
             { id: 'ling', icon: '🧟‍♀️', get label() { return t('imagegen.opt.ling.label'); }, shortLabel: 'Ling, a Jiangshi vampire maid girl',
                 prompt: `A beautiful Jiangshi (Chinese vampire) maid girl named Ling. Face: Innocent baby face, mischievous smile. Body: Glamorous and curvy. Dark brown hair in cute twin-buns. Costume: Black Qipao-Maid fusion dress, form-fitting with frills. Paper talisman on forehead. Floating pose. White background, detailed.` },
-            /* 화면에 사는 티메토와 같은 사람이 나와야 한다 — 「보라머리 소녀」만으로는
+            /* 화면에 사는 티메토와 같은 사람이 나와야 한다. 보라머리 소녀만으로는
                뽑을 때마다 다른 사람이 됐다(예전 마스코트 12장이 12명이던 이유). */
             { id: 'timeto', icon: '💜', get label() { return t('imagegen.opt.timeto.label'); },
                 shortLabel: 'Timeto, girl with lavender hair, two side buns, ahoge, purple eyes',
-                prompt: `Timeto (티메토) — young lab director. Long lavender hair with two side buns and an ahoge, large purple eyes, white lab coat over navy turtleneck, yellow ribbon at the chest, black pants and boots` }
+                prompt: `Timeto (티메토). young lab director. Long lavender hair with two side buns and an ahoge, large purple eyes, white lab coat over navy turtleneck, yellow ribbon at the chest, black pants and boots` }
         ]
     };
 
@@ -95,7 +95,7 @@ import { t } from '../../lib/i18n';
     const CUSTOM_PRESETS_KEY = 'toolbox_imagegen_custom_presets';
     const CUSTOM_CHARACTERS_KEY = 'toolbox_imagegen_custom_characters';
 
-    /* 탭 이름은 **읽을 때 정한다** — 이 파일은 화면보다 먼저 뜨므로 값으로 두면 한국어로 굳는다. */
+    /* 탭 이름은 **읽을 때 정한다**. 이 파일은 화면보다 먼저 뜨므로 값으로 두면 한국어로 굳는다. */
     const CONTEXT_TAB_LABELS = {
         get bg() { return t('imagegen.ctxTab.bg'); },
         get story() { return t('imagegen.ctxTab.story'); },

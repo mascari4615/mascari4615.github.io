@@ -4,8 +4,8 @@
  * 강의나 인터뷰를 소리만 남기고 싶을 때, 대개 영상을 통째로 남의 서버에 올린다.
  * 브라우저는 이미 영상 파일의 소리를 해독할 수 있으니 올릴 이유가 없다.
  *
- * 주의: 브라우저가 해독하지 못하는 코덱이 있다(특히 일부 mkv·avi). 그때는 실패를 숨기지 않고
- * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
+ * 주의: 브라우저가 해독하지 못하는 코덱이 있다(특히 일부 mkv, avi). 그때는 실패를 숨기지 않고
+ * 어떤 파일이 되는지 알려 준다. 아무 일도 안 일어남이 제일 나쁜 결과다.
  */
 import { encodeAudio, fileSize as size, mmss, audioCtx, loadAudioInfo } from './shared/media';
 import { escapeHtml as esc } from './shared/text';
@@ -62,11 +62,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           const status = $<HTMLElement>('#vaStatus');
           let file: File | null = null;
           let buffer: AudioBuffer | null = null;
-          /* 파일이 원래 몇 번 잰 소리인가 — 재생 장치 값(`buffer.sampleRate`)과 다르다 */
+          /* 파일이 원래 몇 번 잰 소리인가. 재생 장치 값(`buffer.sampleRate`)과 다르다 */
           let rate = 0;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           async function decode(f: File): Promise<void> {
@@ -90,7 +90,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('video2audio', (f: File) => void decode(f));
           }
@@ -111,7 +111,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               .then((blob) => {
                 const aName = name.replace(/\.[^.]+$/, '') + '.' + format;
                 download(blob, aName);
-                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'video2audio' });
                 say(t('video2audio.say.done', { len: mmss(held.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('extract');

@@ -1,14 +1,14 @@
 /**
- * 반응속도 — 한 판이 끝나면 기록 원장에 남는다 (TASK-KL-148).
+ * 반응속도. 한 판이 끝나면 기록 원장에 남는다 (TASK-KL-148).
  *
- * 예전에는 저장이 한 줄도 없어서 새로고침 한 번이면 없던 일이 됐다. 이제 최고·순위·「어제의 나」가
+ * 예전에는 저장이 한 줄도 없어서 새로고침 한 번이면 없던 일이 됐다. 이제 최고, 순위, 어제의 나가
  * 그 자리에 붙는다. 서버가 죽거나 로그인을 안 했으면 이 브라우저 최고만 뜨고 놀이는 그대로 된다.
  */
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
 import { copyResultCard } from '../lib/result-card';
 import { t, loadNamespace } from '../lib/i18n';
 
-/** 작을수록 좋다 — 이건 놀이 자체의 성질이라 놀이가 말한다. 순위는 서버가 매긴다. */
+/** 작을수록 좋다. 이건 놀이 자체의 성질이라 놀이가 말한다. 순위는 서버가 매긴다. */
 const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 0 };
 
 (function (): void {
@@ -73,7 +73,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
           const bestOut = bestEl;
           const boardOut = boardEl;
 
-          /* 자랑은 그림으로 (TASK-KL-151 ②) — 「247ms」는 글로 붙여넣으면 아무도 안 본다.
+          /* 자랑은 그림으로 (TASK-KL-151 ②). 247ms는 글로 붙여넣으면 아무도 안 본다.
              한 판이라도 해야 뜬다: 아직 아무 기록도 없는데 자랑 단추부터 있으면 빈 카드가 나간다. */
           const shareBtn = container.querySelector<HTMLButtonElement>('#reactionShare')!;
           shareBtn.addEventListener('click', () => {
@@ -96,7 +96,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
           const bestTime = Toolbox.getProgress?.('reaction_best');
           if (bestTime) bestOut.textContent = t('reaction.best', { ms: bestTime });
 
-          // 순위판은 들어오자마자 붙인다 — 「남들은 어느 정도인가」가 한 판 하게 만드는 힘이다.
+          // 순위판은 들어오자마자 붙인다. 남들은 어느 정도인가가 한 판 하게 만드는 힘이다.
           // 서버에 못 닿거나 아직 아무도 안 놀았으면 아무것도 안 붙는다.
           mountPlayBoard(boardEl, SPEC);
 
@@ -182,7 +182,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
 
                 const currentBest = Toolbox.getProgress?.('reaction_best') ?? 0;
                 if (!currentBest || reactionTime < currentBest) {
-                  // 도전과제·계정 동기화가 이 값을 본다. 화면에 보이는 「최고」는 아래 기록 원장이 그린다
+                  // 도전과제, 계정 동기화가 이 값을 본다. 화면에 보이는 최고는 아래 기록 원장이 그린다
                   // (두 곳에서 그리면 하나가 낡은 값을 들고 남는다).
                   Toolbox.setProgress?.('reaction_best', reactionTime);
                   Mdd.linePreset('success', { msg: t('reaction.t10') });
@@ -200,7 +200,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
                 if (reactionTime < 150) {
                   Toolbox.completeAchievement?.('reaction_150', { title: t('reaction.t15') });
                 }
-                // 한 판이 끝났다 — 기록 원장에 남긴다. 실패해도 위 화면은 이미 다 그려져 있다.
+                // 한 판이 끝났다. 기록 원장에 남긴다. 실패해도 위 화면은 이미 다 그려져 있다.
                 void submitPlay(SPEC, reactionTime).then((result) => {
                   if (!bestOut.isConnected) return;
                   renderPlayResult(bestOut, SPEC, result);

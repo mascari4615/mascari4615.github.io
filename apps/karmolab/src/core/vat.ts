@@ -74,7 +74,7 @@ function report(r: VatResult, ratePercent: number, how: string): string {
     `Supply: ${won(r.supply)}`,
     `VAT: ${won(r.tax)}`,
     `Total: ${won(r.total)}`,
-    `Rate: ${ratePercent}%  ·  ${how}`,
+    `Rate: ${ratePercent}% ,  ${how}`,
     `Check: supply + VAT = ${won(r.supply + r.tax)} (must match the total)`
   ].join('\n');
 }

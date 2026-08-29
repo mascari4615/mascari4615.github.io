@@ -1,9 +1,9 @@
 /**
- * 알람 위젯 — TASK-KL-064 (Free Alarm Clock 레퍼런스).
+ * 알람 위젯. TASK-KL-064 (Free Alarm Clock 레퍼런스).
  *
- * 설정/관리 UI (목록 CRUD · 시각 · 반복요일 · 라벨 · 사운드 · 볼륨 · 스누즈 ·
- * OS 강제기상 · autostart). 발화는 Rust 상주 스케줄러가 별 풀스크린 창
- * (#alarm-fire, alarm-fire.ts)으로 처리 — 본 위젯 탭이 닫혀 있어도 울린다.
+ * 설정/관리 UI (목록 CRUD, 시각, 반복요일, 라벨, 사운드, 볼륨, 스누즈 , 
+ * OS 강제기상, autostart). 발화는 Rust 상주 스케줄러가 별 풀스크린 창
+ * (#alarm-fire, alarm-fire.ts)으로 처리. 본 위젯 탭이 닫혀 있어도 울린다.
  *
  * 데스크톱(Tauri) 전용. 웹에서는 안내만.
  */
@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../lib/i18n';
   function fmtRepeat(repeat: number[]): string {
     if (repeat.length === 0) return t('alarm.t08');
     if (repeat.length === 7) return t('alarm.t09');
-    return [...repeat].sort((a, b) => a - b).map((d) => dow()[d]).join('·');
+    return [...repeat].sort((a, b) => a - b).map((d) => dow()[d]).join(', ');
   }
 
   function build(container: HTMLElement): void {
@@ -188,7 +188,7 @@ import { t, loadNamespace } from '../lib/i18n';
         if (a.force_wake) bits.push(t('alarm.t16'));
         if (a.snooze_minutes > 0) bits.push(t('alarm.t17') + a.snooze_minutes + t('alarm.t18'));
         bits.push(a.sound_path ? t('alarm.t19') : t('alarm.t20'));
-        sub.textContent = bits.join(' · ');
+        sub.textContent = bits.join(', ');
         meta.appendChild(lbl);
         meta.appendChild(sub);
         item.appendChild(meta);
@@ -457,14 +457,14 @@ import { t, loadNamespace } from '../lib/i18n';
     title: t('widgets.alarm.title', undefined, "알람"),
     category: 'tool',
     desktopOnly: true,
-    desc: t('widgets-desc.alarm.desc', undefined, "강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064) — 상주 스케줄러 + OS 강제기상 + autostart"),
+    desc: t('widgets-desc.alarm.desc', undefined, "강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064). 상주 스케줄러 + OS 강제기상 + autostart"),
     layout: 'form',
     icon: '<circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v4l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 3 2 6M19 3l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'alarm-main',
         label: t('alarm.tab.main', undefined, '알람'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('alarm').then(function () {
             build(container);

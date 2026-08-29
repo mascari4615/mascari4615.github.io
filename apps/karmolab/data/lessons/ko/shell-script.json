@@ -3,7 +3,7 @@
   "parts": [
     {
       "id": "1",
-      "title": "첫 세 줄 — 안전벨트부터 맨다",
+      "title": "첫 세 줄. 안전벨트부터 맨다",
       "minutes": 8,
       "blocks": [
         {
@@ -13,9 +13,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "옵션을 켜고 꺼 보라 — 무엇이 달라지나",
+          "label": "옵션을 켜고 꺼 보라. 무엇이 달라지나",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const e = {{e}}, u = {{u}}, p = {{p}};\n  const lines = [];\n  lines.push('<span class=\"dim\">  #!/usr/bin/env bash</span>');\n  lines.push('  set -' + (e ? 'e' : '') + (u ? 'u' : '') + (e || u ? 'o pipefail' : '') + (!e && !u && !p ? '(없음)' : ''));\n  lines.push('');\n  lines.push('  cp missing.txt /tmp/     <- 실패한다');\n  lines.push(e ? '  <span class=\"ok\">-> 여기서 멈춘다 (set -e)</span>'\n               : '  <span class=\"no\">-> 실패를 무시하고 다음 줄로 (기본값)</span>');\n  lines.push('');\n  lines.push('  rm -rf \"$TARGET\"/build   <- TARGET 이 비어 있다면?');\n  lines.push(u ? '  <span class=\"ok\">-> unbound variable 오류로 멈춘다 (set -u)</span>'\n               : '  <span class=\"no\">-> rm -rf /build 로 펼쳐진다 (기본값)</span>');\n  lines.push('');\n  lines.push('  grep ERROR log | head    <- grep 이 실패하면?');\n  lines.push(p ? '  <span class=\"ok\">-> 파이프 전체가 실패로 (pipefail)</span>'\n               : '  <span class=\"no\">-> 마지막 명령(head)만 보므로 성공으로 친다 (기본값)</span>');\n  render('cat deploy.sh', lines.join('\\n'),\n    '세 옵션이 없으면 스크립트는 「실패해도 계속, 없는 변수도 빈 값으로, 파이프 중간 실패는 무시」로 돈다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const e = {{e}}, u = {{u}}, p = {{p}};\n  const lines = [];\n  lines.push('<span class=\"dim\">  #!/usr/bin/env bash</span>');\n  lines.push('  set -' + (e ? 'e' : '') + (u ? 'u' : '') + (e || u ? 'o pipefail' : '') + (!e && !u && !p ? '(없음)' : ''));\n  lines.push('');\n  lines.push('  cp missing.txt /tmp/     <- 실패한다');\n  lines.push(e ? '  <span class=\"ok\">-> 여기서 멈춘다 (set -e)</span>'\n               : '  <span class=\"no\">-> 실패를 무시하고 다음 줄로 (기본값)</span>');\n  lines.push('');\n  lines.push('  rm -rf \"$TARGET\"/build   <- TARGET 이 비어 있다면?');\n  lines.push(u ? '  <span class=\"ok\">-> unbound variable 오류로 멈춘다 (set -u)</span>'\n               : '  <span class=\"no\">-> rm -rf /build 로 펼쳐진다 (기본값)</span>');\n  lines.push('');\n  lines.push('  grep ERROR log | head    <- grep 이 실패하면?');\n  lines.push(p ? '  <span class=\"ok\">-> 파이프 전체가 실패로 (pipefail)</span>'\n               : '  <span class=\"no\">-> 마지막 명령(head)만 보므로 성공으로 친다 (기본값)</span>');\n  render('cat deploy.sh', lines.join('\\n'),\n    '세 옵션이 없으면 스크립트는 실패해도 계속, 없는 변수도 빈 값으로, 파이프 중간 실패는 무시로 돈다.');\n</script>",
           "controls": [
             {
               "id": "e",
@@ -41,19 +41,19 @@
           "type": "code",
           "lang": "bash",
           "label": "스크립트의 시작은 늘 이 모양",
-          "text": "#!/usr/bin/env bash\nset -euo pipefail\nIFS=$'\\n\\t'\n\n# -e  명령이 실패하면 즉시 멈춘다\n# -u  선언 안 된 변수를 쓰면 오류\n# -o pipefail  파이프 중간이 실패해도 전체를 실패로\n# IFS  공백으로 단어를 쪼개지 않게 (탭·줄바꿈만)"
+          "text": "#!/usr/bin/env bash\nset -euo pipefail\nIFS=$'\\n\\t'\n\n# -e  명령이 실패하면 즉시 멈춘다\n# -u  선언 안 된 변수를 쓰면 오류\n# -o pipefail  파이프 중간이 실패해도 전체를 실패로\n# IFS  공백으로 단어를 쪼개지 않게 (탭, 줄바꿈만)"
         },
         {
           "type": "note",
-          "text": "`#!/usr/bin/env bash` 가 `#!/bin/bash` 보다 낫다 — bash 가 어디 깔렸든 `PATH` 에서 찾는다(macOS·BSD 는 위치가 다르다). 그리고 `#!/bin/sh` 라고 적으면 **bash 가 아닌 다른 셸**로 돌 수 있어 `[[ ]]`·배열이 안 먹는다."
+          "text": "`#!/usr/bin/env bash` 가 `#!/bin/bash` 보다 낫다. bash 가 어디 깔렸든 `PATH` 에서 찾는다(macOS, BSD 는 위치가 다르다). 그리고 `#!/bin/sh` 라고 적으면 **bash 가 아닌 다른 셸**로 돌 수 있어 `[[ ]]`, 배열이 안 먹는다."
         },
         {
           "type": "p",
-          "text": "`set -e` 에도 함정이 있다 — `if cmd; then` 이나 `cmd || true` 처럼 **실패를 이미 다루는 자리**에서는 멈추지 않는다(그래야 조건문이 성립한다). 그래서 「실패해도 괜찮은」 줄은 명시적으로 `|| true` 를 붙이는 습관이 좋다."
+          "text": "`set -e` 에도 함정이 있다. `if cmd; then` 이나 `cmd || true` 처럼 **실패를 이미 다루는 자리**에서는 멈추지 않는다(그래야 조건문이 성립한다). 그래서 실패해도 괜찮은 줄은 명시적으로 `|| true` 를 붙이는 습관이 좋다."
         },
         {
           "type": "try",
-          "text": "내 스크립트 폴더에서 `head -3 *.sh` 를 쳐 보라. `set -euo pipefail` 이 없는 파일이 몇 개인지 세어라 — 그것이 오늘의 목록이다."
+          "text": "내 스크립트 폴더에서 `head -3 *.sh` 를 쳐 보라. `set -euo pipefail` 이 없는 파일이 몇 개인지 세어라. 그것이 오늘의 목록이다."
         }
       ],
       "quiz": [
@@ -94,19 +94,19 @@
     },
     {
       "id": "2",
-      "title": "따옴표 — 모든 사고의 근원",
+      "title": "따옴표. 모든 사고의 근원",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "셸 스크립트 버그의 **절반 이상**이 따옴표다. 규칙은 하나뿐이다 — **변수를 쓸 때는 늘 `\"$var\"` 로 감싼다.** 이유를 한 번 보면 다시는 안 잊는다."
+          "text": "셸 스크립트 버그의 **절반 이상**이 따옴표다. 규칙은 하나뿐이다. **변수를 쓸 때는 늘 `\"$var\"` 로 감싼다.** 이유를 한 번 보면 다시는 안 잊는다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "따옴표를 켜고 꺼 보라 — 인자가 몇 개가 되나",
+          "label": "따옴표를 켜고 꺼 보라. 인자가 몇 개가 되나",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const quoted = {{q}}, val = '{{val}}';\n  const values = { space: 'my file.txt', glob: '*.txt', empty: '', normal: 'app.log' };\n  const v = values[val];\n  const files = ['a.txt', 'b.txt'];\n  let args;\n  if (quoted) args = [v];                       /* 따옴표: 통째로 하나 */\n  else if (v === '') args = [];                 /* 안 감싸면 빈 값은 사라진다 */\n  else if (v === '*.txt') args = files;         /* 글롭이 펼쳐진다 */\n  else args = v.split(' ');                     /* 공백으로 쪼개진다 */\n  const cls = quoted ? 'good' : (args.length === 1 ? '' : 'bad');\n  render('rm ' + (quoted ? '\\\"$f\\\"' : '$f') + '     # f=' + JSON.stringify(v),\n    '  실제로 rm 이 받는 인자: <span class=\"' + (args.length === 1 ? 'ok' : 'no') + '\">' + args.length + '개</span>\\n\\n' +\n    (quoted ? '  <span class=\"ok\">따옴표가 있으면 값이 무엇이든 인자 하나다.</span>'\n            : v === '' ? '  <span class=\"no\">빈 값은 아예 사라진다 -> rm 이 인자 없이 불린다(또는 다음 인자를 먹는다).</span>'\n            : v === '*.txt' ? '  <span class=\"no\">글롭이 펼쳐져 파일 두 개가 지워진다.</span>'\n            : '  <span class=\"no\">공백에서 쪼개져 「my」와 「file.txt」 두 개가 된다.</span>'),\n    '셸은 변수를 펼친 뒤 다시 쪼개고 글롭까지 편다. 따옴표가 그 두 단계를 막는다.',\n    chips(args.length ? args : ['(없음)'], cls));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const quoted = {{q}}, val = '{{val}}';\n  const values = { space: 'my file.txt', glob: '*.txt', empty: '', normal: 'app.log' };\n  const v = values[val];\n  const files = ['a.txt', 'b.txt'];\n  let args;\n  if (quoted) args = [v];                       /* 따옴표: 통째로 하나 */\n  else if (v === '') args = [];                 /* 안 감싸면 빈 값은 사라진다 */\n  else if (v === '*.txt') args = files;         /* 글롭이 펼쳐진다 */\n  else args = v.split(' ');                     /* 공백으로 쪼개진다 */\n  const cls = quoted ? 'good' : (args.length === 1 ? '' : 'bad');\n  render('rm ' + (quoted ? '\\\"$f\\\"' : '$f') + '     # f=' + JSON.stringify(v),\n    '  실제로 rm 이 받는 인자: <span class=\"' + (args.length === 1 ? 'ok' : 'no') + '\">' + args.length + '개</span>\\n\\n' +\n    (quoted ? '  <span class=\"ok\">따옴표가 있으면 값이 무엇이든 인자 하나다.</span>'\n            : v === '' ? '  <span class=\"no\">빈 값은 아예 사라진다 -> rm 이 인자 없이 불린다(또는 다음 인자를 먹는다).</span>'\n            : v === '*.txt' ? '  <span class=\"no\">글롭이 펼쳐져 파일 두 개가 지워진다.</span>'\n            : '  <span class=\"no\">공백에서 쪼개져 my와 file.txt 두 개가 된다.</span>'),\n    '셸은 변수를 펼친 뒤 다시 쪼개고 글롭까지 편다. 따옴표가 그 두 단계를 막는다.',\n    chips(args.length ? args : ['(없음)'], cls));\n</script>",
           "controls": [
             {
               "id": "q",
@@ -144,19 +144,19 @@
           "type": "code",
           "lang": "bash",
           "label": "따옴표 규칙 네 줄",
-          "text": "\"$var\"        # 늘 이렇게. 값이 무엇이든 인자 하나\n\"$@\"          # 인자 전부를 「각각 하나씩」 그대로 넘긴다 ($* 와 다르다)\n\"${arr[@]}\"   # 배열도 마찬가지\n'작은따옴표'   # 안의 $ 와 백틱을 펼치지 않는다 (정규식·awk 코드에 좋다)\n\n# 값이 있을 때만 쓰기\n: \"${DIR:?DIR 이 비었다}\"      # 비었으면 오류 내고 멈춤\nout=\"${NAME:-이름없음}\"        # 비었으면 기본값"
+          "text": "\"$var\"        # 늘 이렇게. 값이 무엇이든 인자 하나\n\"$@\"          # 인자 전부를 각각 하나씩 그대로 넘긴다 ($* 와 다르다)\n\"${arr[@]}\"   # 배열도 마찬가지\n'작은따옴표'   # 안의 $ 와 백틱을 펼치지 않는다 (정규식, awk 코드에 좋다)\n\n# 값이 있을 때만 쓰기\n: \"${DIR:?DIR 이 비었다}\"      # 비었으면 오류 내고 멈춤\nout=\"${NAME:-이름없음}\"        # 비었으면 기본값"
         },
         {
           "type": "note",
-          "text": "`\"$@\"` 와 `$*` 는 다르다. `\"$@\"` 는 인자를 **각각 따로** 넘기고, `\"$*\"` 는 **하나로 붙여서** 넘긴다. 다른 스크립트에 인자를 넘겨줄 때는 언제나 `\"$@\"` 다 — 그래야 공백이 든 인자가 살아서 간다."
+          "text": "`\"$@\"` 와 `$*` 는 다르다. `\"$@\"` 는 인자를 **각각 따로** 넘기고, `\"$*\"` 는 **하나로 붙여서** 넘긴다. 다른 스크립트에 인자를 넘겨줄 때는 언제나 `\"$@\"` 다. 그래야 공백이 든 인자가 살아서 간다."
         },
         {
           "type": "p",
-          "text": "예외는 딱 하나다 — `[[ ]]` 안에서는 단어 쪼개기가 안 일어나므로 안 감싸도 된다. 다만 **늘 감싸는 습관**이 예외를 기억하는 것보다 싸다. 감싸서 손해 보는 경우는 거의 없다."
+          "text": "예외는 딱 하나다. `[[ ]]` 안에서는 단어 쪼개기가 안 일어나므로 안 감싸도 된다. 다만 **늘 감싸는 습관**이 예외를 기억하는 것보다 싸다. 감싸서 손해 보는 경우는 거의 없다."
         },
         {
           "type": "try",
-          "text": "`f='a b'; touch \"$f\"; rm $f` 를 빈 폴더에서 해 보라 — 「a: No such file」이 뜬다. 그다음 `rm \"$f\"` 로 제대로 지워라."
+          "text": "`f='a b'; touch \"$f\"; rm $f` 를 빈 폴더에서 해 보라. a: No such file이 뜬다. 그다음 `rm \"$f\"` 로 제대로 지워라."
         }
       ],
       "quiz": [
@@ -164,7 +164,7 @@
           "q": "`rm $f` 에서 f 가 `my file.txt` 라면?",
           "choices": [
             "파일 하나를 지운다",
-            "「my」와 「file.txt」 두 개로 쪼개진다",
+            "my와 file.txt 두 개로 쪼개진다",
             "오류",
             "아무 일 없음"
           ],
@@ -191,25 +191,25 @@
             "줄바꿈을 없앤다"
           ],
           "answer": 1,
-          "why": "정규식·awk 코드를 넘길 때 유용하다."
+          "why": "정규식, awk 코드를 넘길 때 유용하다."
         }
       ]
     },
     {
       "id": "3",
-      "title": "조건과 종료 코드 — 셸의 참·거짓",
+      "title": "조건과 종료 코드. 셸의 참, 거짓",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "셸의 조건은 다른 언어와 다르다. `if` 가 보는 것은 값이 아니라 **명령의 종료 코드**다 — **0이면 참**, 그 외는 거짓. 「성공 = 0」이라는 규약 위에 조건문이 얹혀 있다."
+          "text": "셸의 조건은 다른 언어와 다르다. `if` 가 보는 것은 값이 아니라 **명령의 종료 코드**다. **0이면 참**, 그 외는 거짓. 성공 = 0이라는 규약 위에 조건문이 얹혀 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "조건을 골라 보라 — 무엇을 비교하나",
+          "label": "조건을 골라 보라. 무엇을 비교하나",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    exit: ['if grep -q ERROR app.log; then …', ['grep 이 찾으면 종료 코드 0 -> 참',\n      '못 찾으면 1 -> 거짓', '-q 는 출력 없이 코드만'],\n      '값이 아니라 「명령이 성공했나」를 본다 — 셸다운 조건문.'],\n    str: ['if [[ \"$name\" == \"admin\" ]]; then …', ['[[ ]] 는 bash 의 조건 문법',\n      '== 는 무늬 맞추기도 된다: [[ \"$f\" == *.log ]]', '=~ 로 정규식도'],\n      '옛 [ ] 보다 안전하다 — 빈 값·공백에서 깨지지 않는다.'],\n    num: ['if (( count > 10 )); then …', ['(( )) 안에서는 숫자 계산이 그대로',\n      '문자열 비교는 [[ ]], 숫자는 (( )) 또는 [[ -gt ]]'],\n      '(( )) 안에서는 $ 를 안 붙여도 된다.'],\n    file: ['if [[ -f \"$path\" ]]; then …', ['-f 파일이 있나 · -d 폴더인가 · -s 크기가 0 이 아닌가',\n      '-r 읽을 수 있나 · -x 실행할 수 있나 · -z 빈 문자열인가'],\n      '스크립트 앞머리에서 전제를 확인하는 데 쓴다.'],\n    chain: ['cmd1 && cmd2 || echo \"실패\"', ['&& 는 앞이 성공(0)일 때만 뒤를 실행',\n      '|| 는 앞이 실패했을 때만', '<span class=\"warn\">주의: cmd2 가 실패해도 || 가 돈다</span>'],\n      '짧아서 좋지만 세 개를 엮으면 헷갈린다 — 그때는 if 로 풀어 써라.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  · ' + s).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>',\n    'if 는 종료 코드를 본다 — 0 = 참. 그래서 grep·test·[[ ]] 가 모두 같은 자리에 들어간다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    exit: ['if grep -q ERROR app.log; then ...', ['grep 이 찾으면 종료 코드 0 -> 참',\n      '못 찾으면 1 -> 거짓', '-q 는 출력 없이 코드만'],\n      '값이 아니라 명령이 성공했나를 본다. 셸다운 조건문.'],\n    str: ['if [[ \"$name\" == \"admin\" ]]; then ...', ['[[ ]] 는 bash 의 조건 문법',\n      '== 는 무늬 맞추기도 된다: [[ \"$f\" == *.log ]]', '=~ 로 정규식도'],\n      '옛 [ ] 보다 안전하다. 빈 값, 공백에서 깨지지 않는다.'],\n    num: ['if (( count > 10 )); then ...', ['(( )) 안에서는 숫자 계산이 그대로',\n      '문자열 비교는 [[ ]], 숫자는 (( )) 또는 [[ -gt ]]'],\n      '(( )) 안에서는 $ 를 안 붙여도 된다.'],\n    file: ['if [[ -f \"$path\" ]]; then ...', ['-f 파일이 있나, -d 폴더인가, -s 크기가 0 이 아닌가',\n      '-r 읽을 수 있나, -x 실행할 수 있나, -z 빈 문자열인가'],\n      '스크립트 앞머리에서 전제를 확인하는 데 쓴다.'],\n    chain: ['cmd1 && cmd2 || echo \"실패\"', ['&& 는 앞이 성공(0)일 때만 뒤를 실행',\n      '|| 는 앞이 실패했을 때만', '<span class=\"warn\">주의: cmd2 가 실패해도 || 가 돈다</span>'],\n      '짧아서 좋지만 세 개를 엮으면 헷갈린다. 그때는 if 로 풀어 써라.'],\n  }[c];\n  render(t[0], t[1].map((s) => ' , ' + s).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>',\n    'if 는 종료 코드를 본다. 0 = 참. 그래서 grep, test, [[ ]] 가 모두 같은 자리에 들어간다.');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -245,7 +245,7 @@
           "type": "code",
           "lang": "bash",
           "label": "반복은 글롭과 while read 두 가지면 된다",
-          "text": "for f in *.log; do            # 글롭을 그대로 (ls 출력을 파싱하지 마라)\n  echo \"처리: $f\"\ndone\n\nwhile IFS= read -r line; do   # 한 줄씩 (IFS= 와 -r 이 짝)\n  echo \"[$line]\"\ndone < input.txt\n\n# find 결과를 안전하게 돌기 (공백·특수문자 대응)\nwhile IFS= read -r -d '' f; do\n  echo \"$f\"\ndone < <(find . -name '*.ts' -print0)"
+          "text": "for f in *.log; do            # 글롭을 그대로 (ls 출력을 파싱하지 마라)\n  echo \"처리: $f\"\ndone\n\nwhile IFS= read -r line; do   # 한 줄씩 (IFS= 와 -r 이 짝)\n  echo \"[$line]\"\ndone < input.txt\n\n# find 결과를 안전하게 돌기 (공백, 특수문자 대응)\nwhile IFS= read -r -d '' f; do\n  echo \"$f\"\ndone < <(find . -name '*.ts' -print0)"
         },
         {
           "type": "note",
@@ -258,7 +258,7 @@
       ],
       "quiz": [
         {
-          "q": "셸에서 「참」에 해당하는 종료 코드는?",
+          "q": "셸에서 참에 해당하는 종료 코드는?",
           "choices": [
             "1",
             "0",
@@ -272,7 +272,7 @@
           "q": "`[ ]` 대신 `[[ ]]` 를 권하는 이유는?",
           "choices": [
             "빠르다",
-            "빈 값·공백에서 깨지지 않고 무늬·정규식이 된다",
+            "빈 값, 공백에서 깨지지 않고 무늬, 정규식이 된다",
             "POSIX 표준",
             "짧다"
           ],
@@ -283,30 +283,30 @@
           "q": "한 줄씩 읽을 때의 정석은?",
           "choices": [
             "for line in $(cat f)",
-            "while IFS= read -r line; do … done < f",
+            "while IFS= read -r line; do ... done < f",
             "cat f | for",
             "read -a"
           ],
           "answer": 1,
-          "why": "공백·역슬래시를 지킨다."
+          "why": "공백, 역슬래시를 지킨다."
         }
       ]
     },
     {
       "id": "4",
-      "title": "인자 받기 — 쓰는 사람을 배려한다",
+      "title": "인자 받기. 쓰는 사람을 배려한다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "스크립트가 유용해지면 남(또는 3개월 뒤의 나)이 쓴다. 그때 필요한 것은 기능이 아니라 **사용법·검증·기본값**이다. 열 줄이면 갖출 수 있다."
+          "text": "스크립트가 유용해지면 남(또는 3개월 뒤의 나)이 쓴다. 그때 필요한 것은 기능이 아니라 **사용법, 검증, 기본값**이다. 열 줄이면 갖출 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "호출을 골라 보라 — 어떻게 받히나",
+          "label": "호출을 골라 보라. 어떻게 받히나",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    pos: ['./deploy.sh prod v2.1.0',\n      ['$0 = ./deploy.sh', '$1 = prod', '$2 = v2.1.0', '$# = 2 (개수)', '\\\"$@\\\" = 전부'],\n      '간단한 스크립트는 이걸로 충분하다. 다만 순서를 외워야 한다.'],\n    check: ['./deploy.sh          (인자 없이)',\n      ['if [[ $# -lt 2 ]]; then', '  echo \\\"사용법: $0 <환경> <버전>\\\" >&2', '  exit 1', 'fi'],\n      '사용법은 stderr(>&2)로, 종료 코드는 0 이 아닌 값으로. 이 두 줄이 「도구다움」의 절반.'],\n    opt: ['./deploy.sh -e prod -v v2.1.0 --dry-run',\n      ['while [[ $# -gt 0 ]]; do', '  case \\\"$1\\\" in', '    -e) ENV=\\\"$2\\\"; shift 2 ;;',\n       '    --dry-run) DRY=1; shift ;;', '    *) echo \\\"모르는 옵션: $1\\\" >&2; exit 1 ;;', '  esac', 'done'],\n      '옵션이 세 개를 넘으면 순서 인자보다 이쪽이 낫다 — 읽는 사람이 뜻을 안다.'],\n    env: ['ENV=prod DRY_RUN=1 ./deploy.sh',\n      ['ENV=\\\"${ENV:?ENV 를 지정하라}\\\"', 'DRY_RUN=\\\"${DRY_RUN:-0}\\\"'],\n      'CI·컨테이너에서는 환경 변수가 자연스럽다. :? 로 필수, :- 로 기본값.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    pos: ['./deploy.sh prod v2.1.0',\n      ['$0 = ./deploy.sh', '$1 = prod', '$2 = v2.1.0', '$# = 2 (개수)', '\\\"$@\\\" = 전부'],\n      '간단한 스크립트는 이걸로 충분하다. 다만 순서를 외워야 한다.'],\n    check: ['./deploy.sh          (인자 없이)',\n      ['if [[ $# -lt 2 ]]; then', '  echo \\\"사용법: $0 <환경> <버전>\\\" >&2', '  exit 1', 'fi'],\n      '사용법은 stderr(>&2)로, 종료 코드는 0 이 아닌 값으로. 이 두 줄이 도구다움의 절반.'],\n    opt: ['./deploy.sh -e prod -v v2.1.0 --dry-run',\n      ['while [[ $# -gt 0 ]]; do', '  case \\\"$1\\\" in', '    -e) ENV=\\\"$2\\\"; shift 2 ;;',\n       '    --dry-run) DRY=1; shift ;;', '    *) echo \\\"모르는 옵션: $1\\\" >&2; exit 1 ;;', '  esac', 'done'],\n      '옵션이 세 개를 넘으면 순서 인자보다 이쪽이 낫다. 읽는 사람이 뜻을 안다.'],\n    env: ['ENV=prod DRY_RUN=1 ./deploy.sh',\n      ['ENV=\\\"${ENV:?ENV 를 지정하라}\\\"', 'DRY_RUN=\\\"${DRY_RUN:-0}\\\"'],\n      'CI, 컨테이너에서는 환경 변수가 자연스럽다. :? 로 필수, :- 로 기본값.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -342,11 +342,11 @@
         },
         {
           "type": "note",
-          "text": "**사용법과 오류는 `>&2`(stderr)로.** 결과만 stdout 으로 나가야 다음 명령이 이어받을 수 있다(파이프 칸 5장). 그리고 실패는 반드시 **0이 아닌 종료 코드**로 끝내라 — CI 가 그것으로 판단한다."
+          "text": "**사용법과 오류는 `>&2`(stderr)로.** 결과만 stdout 으로 나가야 다음 명령이 이어받을 수 있다(파이프 칸 5장). 그리고 실패는 반드시 **0이 아닌 종료 코드**로 끝내라. CI 가 그것으로 판단한다."
         },
         {
           "type": "p",
-          "text": "위험한 작업이면 `--dry-run` 을 기본으로 두는 것도 좋다. 「무엇이 실행될지」를 먼저 찍고, `--yes` 가 있을 때만 실제로 실행한다 — 사고를 막는 가장 값싼 장치다."
+          "text": "위험한 작업이면 `--dry-run` 을 기본으로 두는 것도 좋다. 무엇이 실행될지를 먼저 찍고, `--yes` 가 있을 때만 실제로 실행한다. 사고를 막는 가장 값싼 장치다."
         },
         {
           "type": "try",
@@ -355,7 +355,7 @@
       ],
       "quiz": [
         {
-          "q": "사용법·오류 메시지를 보낼 곳은?",
+          "q": "사용법, 오류 메시지를 보낼 곳은?",
           "choices": [
             "stdout",
             "stderr (>&2)",
@@ -391,19 +391,19 @@
     },
     {
       "id": "5",
-      "title": "실패를 다루기 — trap 과 정리",
+      "title": "실패를 다루기. trap 과 정리",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "스크립트는 중간에 죽는다 — 실패하거나, 사람이 Ctrl-C 를 누르거나, 배포 시스템이 신호를 보내거나. 그때 **임시 파일·잠금·중간 상태**를 남기지 않는 것이 좋은 스크립트다."
+          "text": "스크립트는 중간에 죽는다. 실패하거나, 사람이 Ctrl-C 를 누르거나, 배포 시스템이 신호를 보내거나. 그때 **임시 파일, 잠금, 중간 상태**를 남기지 않는 것이 좋은 스크립트다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "무엇을 걸지 골라 보라",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    cleanup: ['tmp=$(mktemp -d)\\ntrap \\'rm -rf \\\"$tmp\\\"\\' EXIT',\n      ['EXIT 은 어떻게 끝나든 실행된다 — 성공·실패·Ctrl-C 전부',\n       'mktemp 로 만든 임시 폴더를 반드시 치운다'],\n      '임시 자원을 만들면 그 다음 줄에 바로 trap 을 건다 — 나중으로 미루면 잊는다.'],\n    err: ['trap \\'echo \\\"실패: $LINENO 줄\\\" >&2\\' ERR',\n      ['ERR 은 명령이 실패했을 때 (set -e 와 함께)',\n       '$LINENO 로 어느 줄인지 남긴다'],\n      '긴 스크립트에서 「어디서 죽었는지」를 알려 준다 — 로그만 보고 고칠 수 있게.'],\n    int: ['trap \\'echo \\\"중단됨\\\"; exit 130\\' INT TERM',\n      ['INT = Ctrl-C · TERM = kill 기본',\n       '130 은 「SIGINT 로 죽었다」는 관례적 코드(128+2)'],\n      '배포 스크립트는 TERM 을 받아 롤백하거나 잠금을 푸는 자리로 쓴다.'],\n    lock: ['exec 9>/tmp/deploy.lock\\nflock -n 9 || { echo \\\"이미 실행 중\\\" >&2; exit 1; }',\n      ['같은 스크립트가 겹쳐 도는 것을 막는다',\n       '파일 서술자를 잡아 두면 프로세스가 죽을 때 자동으로 풀린다'],\n      'cron 으로 도는 작업에 특히 중요하다 — 앞 판이 안 끝났는데 다음 판이 시작되는 사고.'],\n    retry: ['for i in 1 2 3; do\\n  curl -fsS \\\"$URL\\\" && break\\n  sleep $((i * 2))\\ndone',\n      ['일시적 실패는 다시 해 보면 된다', '간격을 늘려 가며(백오프) 세 번'],\n      '네트워크·외부 API 는 재시도가 기본. 다만 「같은 요청을 두 번 해도 안전한가」를 먼저 확인하라.'],\n  }[c];\n  render('', '  ' + esc(t[0]).split('\\n').join('\\n  ') + '\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    cleanup: ['tmp=$(mktemp -d)\\ntrap \\'rm -rf \\\"$tmp\\\"\\' EXIT',\n      ['EXIT 은 어떻게 끝나든 실행된다. 성공, 실패, Ctrl-C 전부',\n       'mktemp 로 만든 임시 폴더를 반드시 치운다'],\n      '임시 자원을 만들면 그 다음 줄에 바로 trap 을 건다. 나중으로 미루면 잊는다.'],\n    err: ['trap \\'echo \\\"실패: $LINENO 줄\\\" >&2\\' ERR',\n      ['ERR 은 명령이 실패했을 때 (set -e 와 함께)',\n       '$LINENO 로 어느 줄인지 남긴다'],\n      '긴 스크립트에서 어디서 죽었는지를 알려 준다. 로그만 보고 고칠 수 있게.'],\n    int: ['trap \\'echo \\\"중단됨\\\"; exit 130\\' INT TERM',\n      ['INT = Ctrl-C, TERM = kill 기본',\n       '130 은 SIGINT 로 죽었다는 관례적 코드(128+2)'],\n      '배포 스크립트는 TERM 을 받아 롤백하거나 잠금을 푸는 자리로 쓴다.'],\n    lock: ['exec 9>/tmp/deploy.lock\\nflock -n 9 || { echo \\\"이미 실행 중\\\" >&2; exit 1; }',\n      ['같은 스크립트가 겹쳐 도는 것을 막는다',\n       '파일 서술자를 잡아 두면 프로세스가 죽을 때 자동으로 풀린다'],\n      'cron 으로 도는 작업에 특히 중요하다. 앞 판이 안 끝났는데 다음 판이 시작되는 사고.'],\n    retry: ['for i in 1 2 3; do\\n  curl -fsS \\\"$URL\\\" && break\\n  sleep $((i * 2))\\ndone',\n      ['일시적 실패는 다시 해 보면 된다', '간격을 늘려 가며(백오프) 세 번'],\n      '네트워크, 외부 API 는 재시도가 기본. 다만 같은 요청을 두 번 해도 안전한가를 먼저 확인하라.'],\n  }[c];\n  render('', '  ' + esc(t[0]).split('\\n').join('\\n  ') + '\\n\\n' +\n    t[1].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -439,11 +439,11 @@
           "type": "code",
           "lang": "bash",
           "label": "실전 배포 스크립트의 뼈대",
-          "text": "#!/usr/bin/env bash\nset -euo pipefail\n\ntmp=$(mktemp -d)\ntrap 'rm -rf \"$tmp\"' EXIT\ntrap 'echo \"실패: ${BASH_SOURCE[0]}:$LINENO\" >&2' ERR\n\nlog() { printf '[%s] %s\\n' \"$(date +%H:%M:%S)\" \"$*\" >&2; }\n\nlog '내려받는 중…'\ncurl -fsS \"$URL\" -o \"$tmp/app.tar.gz\"      # -f 가 없으면 404 도 성공으로 친다\n\nlog '푸는 중…'\ntar xz -C \"$tmp\" -f \"$tmp/app.tar.gz\"\n\nlog '바꿔 끼우는 중…'\nln -sfn \"$tmp/app\" /srv/app/current        # -n 을 빠뜨리지 마라 (앞 칸 5장)\nlog '끝'"
+          "text": "#!/usr/bin/env bash\nset -euo pipefail\n\ntmp=$(mktemp -d)\ntrap 'rm -rf \"$tmp\"' EXIT\ntrap 'echo \"실패: ${BASH_SOURCE[0]}:$LINENO\" >&2' ERR\n\nlog() { printf '[%s] %s\\n' \"$(date +%H:%M:%S)\" \"$*\" >&2; }\n\nlog '내려받는 중...'\ncurl -fsS \"$URL\" -o \"$tmp/app.tar.gz\"      # -f 가 없으면 404 도 성공으로 친다\n\nlog '푸는 중...'\ntar xz -C \"$tmp\" -f \"$tmp/app.tar.gz\"\n\nlog '바꿔 끼우는 중...'\nln -sfn \"$tmp/app\" /srv/app/current        # -n 을 빠뜨리지 마라 (앞 칸 5장)\nlog '끝'"
         },
         {
           "type": "note",
-          "text": "`curl` 에 **`-f`(--fail)** 를 붙이지 않으면 404·500 응답도 **성공(코드 0)** 으로 처리된다 — 오류 HTML 을 파일로 저장해 놓고 「성공」이라고 말한다. `set -e` 를 켜 놔도 이건 안 잡힌다. `-fsS` 를 통째로 외워 두라."
+          "text": "`curl` 에 **`-f`(--fail)** 를 붙이지 않으면 404, 500 응답도 **성공(코드 0)** 으로 처리된다. 오류 HTML 을 파일로 저장해 놓고 성공이라고 말한다. `set -e` 를 켜 놔도 이건 안 잡힌다. `-fsS` 를 통째로 외워 두라."
         },
         {
           "type": "try",
@@ -452,10 +452,10 @@
       ],
       "quiz": [
         {
-          "q": "`trap … EXIT` 가 도는 시점은?",
+          "q": "`trap ... EXIT` 가 도는 시점은?",
           "choices": [
             "성공했을 때만",
-            "어떻게 끝나든(성공·실패·Ctrl-C)",
+            "어떻게 끝나든(성공, 실패, Ctrl-C)",
             "오류일 때만",
             "시작할 때"
           ],
@@ -466,7 +466,7 @@
           "q": "`curl` 에 `-f` 가 없으면?",
           "choices": [
             "느려진다",
-            "404·500 도 성공으로 처리된다",
+            "404, 500 도 성공으로 처리된다",
             "리다이렉트를 못 따라간다",
             "인증이 안 된다"
           ],
@@ -488,19 +488,19 @@
     },
     {
       "id": "6",
-      "title": "디버깅 — 보이게 만들기",
+      "title": "디버깅. 보이게 만들기",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "셸 스크립트는 조용히 틀린다. 그래서 **보이게 만드는 도구**를 아는 것이 곧 실력이다 — 실행 추적, 정적 검사, 그리고 로그."
+          "text": "셸 스크립트는 조용히 틀린다. 그래서 **보이게 만드는 도구**를 아는 것이 곧 실력이다. 실행 추적, 정적 검사, 그리고 로그."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "도구를 골라 보라 — 무엇을 보여 주나",
+          "label": "도구를 골라 보라. 무엇을 보여 주나",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    x: ['bash -x deploy.sh prod', ['+ ENV=prod', '+ VERSION=latest',\n      \"+ curl -fsS https://…/prod/latest.tar.gz -o /tmp/x/app.tar.gz\",\n      '+ ln -sfn /tmp/x/app /srv/app/current'],\n      '실제로 펼쳐진 뒤의 명령을 그대로 보여 준다 — 변수가 무엇으로 바뀌었는지 눈으로 본다.'],\n    ps4: ['PS4=\\'+${BASH_SOURCE##*/}:$LINENO: \\' bash -x deploy.sh',\n      ['+deploy.sh:12: ENV=prod', '+deploy.sh:18: curl -fsS …'],\n      '줄 번호까지 찍는다. 긴 스크립트에서는 이게 있어야 쓸모가 있다.'],\n    part: ['set -x   …   set +x', ['의심 구간만 켰다 끈다'],\n      '전체를 -x 로 돌리면 출력이 넘친다 — 좁혀서 보라.'],\n    check: ['shellcheck deploy.sh',\n      ['SC2086: Double quote to prevent globbing and word splitting.',\n       'SC2164: Use cd … || exit in case cd fails.',\n       'SC2046: Quote this to prevent word splitting.'],\n      '이 칸에서 배운 함정을 기계가 대신 잡아 준다. 에디터 확장으로 켜 두면 실시간으로 잡힌다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  <span class=\"dim\">' + esc(s) + '</span>').join('\\n') +\n    '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    x: ['bash -x deploy.sh prod', ['+ ENV=prod', '+ VERSION=latest',\n      \"+ curl -fsS https://.../prod/latest.tar.gz -o /tmp/x/app.tar.gz\",\n      '+ ln -sfn /tmp/x/app /srv/app/current'],\n      '실제로 펼쳐진 뒤의 명령을 그대로 보여 준다. 변수가 무엇으로 바뀌었는지 눈으로 본다.'],\n    ps4: ['PS4=\\'+${BASH_SOURCE##*/}:$LINENO: \\' bash -x deploy.sh',\n      ['+deploy.sh:12: ENV=prod', '+deploy.sh:18: curl -fsS ...'],\n      '줄 번호까지 찍는다. 긴 스크립트에서는 이게 있어야 쓸모가 있다.'],\n    part: ['set -x   ...   set +x', ['의심 구간만 켰다 끈다'],\n      '전체를 -x 로 돌리면 출력이 넘친다. 좁혀서 보라.'],\n    check: ['shellcheck deploy.sh',\n      ['SC2086: Double quote to prevent globbing and word splitting.',\n       'SC2164: Use cd ... || exit in case cd fails.',\n       'SC2046: Quote this to prevent word splitting.'],\n      '이 칸에서 배운 함정을 기계가 대신 잡아 준다. 에디터 확장으로 켜 두면 실시간으로 잡힌다.'],\n  }[c];\n  render(t[0], t[1].map((s) => '  <span class=\"dim\">' + esc(s) + '</span>').join('\\n') +\n    '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -540,7 +540,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **로그 함수 하나**를 만들어 두면 디버깅이 쉬워진다 — 시각과 함께 stderr 로 찍는 세 줄짜리 함수면 충분하다. `echo` 를 그냥 쓰면 결과 출력과 섞여 파이프가 오염된다."
+          "text": "그리고 **로그 함수 하나**를 만들어 두면 디버깅이 쉬워진다. 시각과 함께 stderr 로 찍는 세 줄짜리 함수면 충분하다. `echo` 를 그냥 쓰면 결과 출력과 섞여 파이프가 오염된다."
         },
         {
           "type": "try",
@@ -585,7 +585,7 @@
     },
     {
       "id": "7",
-      "title": "예약 실행 — cron 과 systemd 타이머",
+      "title": "예약 실행. cron 과 systemd 타이머",
       "minutes": 8,
       "blocks": [
         {
@@ -595,9 +595,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "함정을 골라 보라 — 왜 cron 에서만 안 되나",
+          "label": "함정을 골라 보라. 왜 cron 에서만 안 되나",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    path: ['node: command not found',\n      ['cron 의 PATH 는 /usr/bin:/bin 정도로 최소다', '~/.bashrc·nvm 설정을 안 읽는다'],\n      '절대 경로를 쓰거나, 스크립트 안에서 PATH 를 명시하라: export PATH=\\\"/home/mas/.nvm/…/bin:$PATH\\\"'],\n    cwd: ['./config.yml: No such file',\n      ['cron 은 홈 디렉터리에서 실행한다 — 스크립트 폴더가 아니다'],\n      '스크립트 맨 위에서 자기 자리로 이동: cd \\\"$(dirname \\\"${BASH_SOURCE[0]}\\\")\\\"'],\n    log:  ['(아무 일도 안 일어난 것 같다)',\n      ['출력이 어디로 갔는지 모른다 — 기본은 메일(대개 안 읽힘)'],\n      '언제나 로그로: >> /var/log/job.log 2>&1  · 그리고 시작·끝을 찍어라'],\n    overlap: ['같은 작업이 여러 개 돌고 있다',\n      ['앞 판이 5분 넘게 걸리는데 5분마다 예약했다'],\n      'flock -n 으로 겹침 방지 (5장). 또는 실행 시간을 재서 주기를 늘려라.'],\n    tz:   ['새벽 3시에 돌기로 했는데 낮에 돈다',\n      ['서버 시간대가 UTC 다 — 한국 시각이 아니다'],\n      'timedatectl 로 확인. 컨테이너는 기본이 UTC 인 경우가 많다.'],\n  }[c];\n  render('crontab -e', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    path: ['node: command not found',\n      ['cron 의 PATH 는 /usr/bin:/bin 정도로 최소다', '~/.bashrc, nvm 설정을 안 읽는다'],\n      '절대 경로를 쓰거나, 스크립트 안에서 PATH 를 명시하라: export PATH=\\\"/home/mas/.nvm/.../bin:$PATH\\\"'],\n    cwd: ['./config.yml: No such file',\n      ['cron 은 홈 디렉터리에서 실행한다. 스크립트 폴더가 아니다'],\n      '스크립트 맨 위에서 자기 자리로 이동: cd \\\"$(dirname \\\"${BASH_SOURCE[0]}\\\")\\\"'],\n    log:  ['(아무 일도 안 일어난 것 같다)',\n      ['출력이 어디로 갔는지 모른다. 기본은 메일(대개 안 읽힘)'],\n      '언제나 로그로: >> /var/log/job.log 2>&1 , 그리고 시작, 끝을 찍어라'],\n    overlap: ['같은 작업이 여러 개 돌고 있다',\n      ['앞 판이 5분 넘게 걸리는데 5분마다 예약했다'],\n      'flock -n 으로 겹침 방지 (5장). 또는 실행 시간을 재서 주기를 늘려라.'],\n    tz:   ['새벽 3시에 돌기로 했는데 낮에 돈다',\n      ['서버 시간대가 UTC 다. 한국 시각이 아니다'],\n      'timedatectl 로 확인. 컨테이너는 기본이 UTC 인 경우가 많다.'],\n  }[c];\n  render('crontab -e', '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">' + esc(t[2]) + '</span>', '');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -637,20 +637,20 @@
         },
         {
           "type": "note",
-          "text": "예약 작업은 **성공했는지 아무도 안 본다**는 것이 진짜 위험이다. 백업이 3개월째 실패하고 있었다는 이야기는 흔하다 — 끝날 때 헬스체크 URL 을 때리거나(`curl -fsS $PING_URL`), 실패 시에만 알림을 보내라."
+          "text": "예약 작업은 **성공했는지 아무도 안 본다**는 것이 진짜 위험이다. 백업이 3개월째 실패하고 있었다는 이야기는 흔하다. 끝날 때 헬스체크 URL 을 때리거나(`curl -fsS $PING_URL`), 실패 시에만 알림을 보내라."
         },
         {
           "type": "p",
-          "text": "systemd 타이머는 cron 의 대안이다 — 로그가 `journalctl` 로 모이고, 놓친 실행을 따라잡을 수 있고(`Persistent=true`), 다른 유닛과 의존 관계를 걸 수 있다. 서버가 systemd 라면 새로 만드는 정기 작업은 이쪽이 낫다."
+          "text": "systemd 타이머는 cron 의 대안이다. 로그가 `journalctl` 로 모이고, 놓친 실행을 따라잡을 수 있고(`Persistent=true`), 다른 유닛과 의존 관계를 걸 수 있다. 서버가 systemd 라면 새로 만드는 정기 작업은 이쪽이 낫다."
         },
         {
           "type": "try",
-          "text": "`crontab -l` 로 걸린 작업을 보고, 각각 **로그가 남는지**·**flock 이 있는지**·**절대 경로인지** 세 가지를 확인하라. 하나라도 빠졌으면 오늘 고칠 자리다."
+          "text": "`crontab -l` 로 걸린 작업을 보고, 각각 **로그가 남는지**, **flock 이 있는지**, **절대 경로인지** 세 가지를 확인하라. 하나라도 빠졌으면 오늘 고칠 자리다."
         }
       ],
       "quiz": [
         {
-          "q": "cron 에서만 「command not found」가 나는 이유는?",
+          "q": "cron 에서만 command not found가 나는 이유는?",
           "choices": [
             "권한",
             "PATH 가 최소이고 셸 설정을 안 읽어서",
@@ -664,12 +664,12 @@
           "q": "예약 작업에서 가장 자주 놓치는 것은?",
           "choices": [
             "성능",
-            "성공·실패를 아무도 안 본다는 점",
+            "성공, 실패를 아무도 안 본다는 점",
             "권한",
             "문법"
           ],
           "answer": 1,
-          "why": "헬스체크·실패 알림을 붙인다."
+          "why": "헬스체크, 실패 알림을 붙인다."
         },
         {
           "q": "앞 판이 안 끝났는데 다음 판이 시작되는 것을 막으려면?",
@@ -691,14 +691,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "셸 스크립트는 **접착제**로 최고다 — 명령을 잇고, 파일을 옮기고, 조건을 걸고. 그런데 어느 선을 넘으면 파이썬·노드로 옮기는 편이 싸다. 그 선을 알아보는 것도 실력이다."
+          "text": "셸 스크립트는 **접착제**로 최고다. 명령을 잇고, 파일을 옮기고, 조건을 걸고. 그런데 어느 선을 넘으면 파이썬, 노드로 옮기는 편이 싸다. 그 선을 알아보는 것도 실력이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "신호를 골라 보라 — 넘길 때인가",
+          "label": "신호를 골라 보라. 넘길 때인가",
           "height": "320px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    json: ['JSON 을 다뤄야 한다',\n      '<span class=\"warn\">경계</span> — jq 로 되면 셸, 구조를 만들고 바꿔야 하면 넘겨라.',\n      'curl … | jq -r \\'.items[].name\\'   <- 이 정도는 셸이 낫다'],\n    data: ['배열·딕셔너리로 자료를 다룬다',\n      '<span class=\"no\">넘길 때</span> — bash 배열은 중첩이 안 되고 문법이 험하다.',\n      '자료 구조가 나오면 그때가 신호다.'],\n    len: ['200줄이 넘고 함수가 열 개다',\n      '<span class=\"no\">넘길 때</span> — 테스트도 어렵고 읽기도 어렵다.',\n      '길이보다 「테스트를 쓰고 싶은가」가 더 정확한 기준이다.'],\n    glue: ['명령 대여섯 개를 순서대로 잇는다',\n      '<span class=\"ok\">셸이 맞다</span> — 파이썬으로 옮기면 subprocess 로 더 길어진다.',\n      '이런 일에 셸을 이길 언어는 없다.'],\n    port: ['윈도우에서도 돌아야 한다',\n      '<span class=\"no\">넘길 때</span> — 셸 스크립트는 옮기기 어렵다.',\n      'Node·Python 이면 그대로 돈다. 팀 환경이 섞여 있으면 처음부터 그쪽으로.'],\n  }[c];\n  render('', '  <span class=\"dim\">' + esc(t[0]) + '</span>\\n\\n  ' + t[1] + '\\n\\n  ' + esc(t[2]),\n    '기준 한 줄: 명령을 잇는 일이면 셸, 자료를 다루는 일이면 프로그래밍 언어.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    json: ['JSON 을 다뤄야 한다',\n      '<span class=\"warn\">경계</span>. jq 로 되면 셸, 구조를 만들고 바꿔야 하면 넘겨라.',\n      'curl ... | jq -r \\'.items[].name\\'   <- 이 정도는 셸이 낫다'],\n    data: ['배열, 딕셔너리로 자료를 다룬다',\n      '<span class=\"no\">넘길 때</span>. bash 배열은 중첩이 안 되고 문법이 험하다.',\n      '자료 구조가 나오면 그때가 신호다.'],\n    len: ['200줄이 넘고 함수가 열 개다',\n      '<span class=\"no\">넘길 때</span>. 테스트도 어렵고 읽기도 어렵다.',\n      '길이보다 테스트를 쓰고 싶은가가 더 정확한 기준이다.'],\n    glue: ['명령 대여섯 개를 순서대로 잇는다',\n      '<span class=\"ok\">셸이 맞다</span>. 파이썬으로 옮기면 subprocess 로 더 길어진다.',\n      '이런 일에 셸을 이길 언어는 없다.'],\n    port: ['윈도우에서도 돌아야 한다',\n      '<span class=\"no\">넘길 때</span>. 셸 스크립트는 옮기기 어렵다.',\n      'Node, Python 이면 그대로 돈다. 팀 환경이 섞여 있으면 처음부터 그쪽으로.'],\n  }[c];\n  render('', '  <span class=\"dim\">' + esc(t[0]) + '</span>\\n\\n  ' + t[1] + '\\n\\n  ' + esc(t[2]),\n    '기준 한 줄: 명령을 잇는 일이면 셸, 자료를 다루는 일이면 프로그래밍 언어.');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -732,17 +732,17 @@
         },
         {
           "type": "note",
-          "text": "옮기기로 했다면 **한꺼번에 다시 쓰지 마라.** 잘 도는 셸 스크립트를 그대로 두고, 새 기능부터 새 언어로 쓰고 셸이 그것을 부르게 하면 된다. 「접착제는 셸, 논리는 언어」로 나누는 것이 현실적인 절충이다."
+          "text": "옮기기로 했다면 **한꺼번에 다시 쓰지 마라.** 잘 도는 셸 스크립트를 그대로 두고, 새 기능부터 새 언어로 쓰고 셸이 그것을 부르게 하면 된다. 접착제는 셸, 논리는 언어로 나누는 것이 현실적인 절충이다."
         },
         {
           "type": "code",
           "lang": "bash",
-          "label": "셸이 잘하는 일 · 못하는 일",
-          "text": "# 잘한다 — 이런 건 셸로\ndocker build -t app . && docker push app && ssh prod 'docker pull app && systemctl restart app'\nfind . -name '*.png' | xargs -P 8 -n 1 optimize\ngrep ERROR app.log | awk '{print $4}' | sort | uniq -c | sort -rn\n\n# 못한다 — 이런 건 언어로\n#  · 중첩 자료(JSON·YAML)를 만들고 바꾸기\n#  · 여러 상태를 들고 도는 계산\n#  · 단위 테스트가 필요한 논리\n#  · 오류를 종류별로 다르게 처리하기"
+          "label": "셸이 잘하는 일, 못하는 일",
+          "text": "# 잘한다. 이런 건 셸로\ndocker build -t app . && docker push app && ssh prod 'docker pull app && systemctl restart app'\nfind . -name '*.png' | xargs -P 8 -n 1 optimize\ngrep ERROR app.log | awk '{print $4}' | sort | uniq -c | sort -rn\n\n# 못한다. 이런 건 언어로\n# , 중첩 자료(JSON, YAML)를 만들고 바꾸기\n# , 여러 상태를 들고 도는 계산\n# , 단위 테스트가 필요한 논리\n# , 오류를 종류별로 다르게 처리하기"
         },
         {
           "type": "p",
-          "text": "그리고 셸 안에서도 **한 줄이 세 번 이상 반복되면 함수로, 스크립트가 세 번 이상 쓰이면 `~/bin` 이나 저장소의 `scripts/` 로** 옮겨라. 재사용되는 순간 이름·사용법·버전이 필요해진다."
+          "text": "그리고 셸 안에서도 **한 줄이 세 번 이상 반복되면 함수로, 스크립트가 세 번 이상 쓰이면 `~/bin` 이나 저장소의 `scripts/` 로** 옮겨라. 재사용되는 순간 이름, 사용법, 버전이 필요해진다."
         },
         {
           "type": "try",
@@ -765,7 +765,7 @@
           "q": "다른 언어로 넘길 신호는?",
           "choices": [
             "줄 수만",
-            "중첩 자료·상태 계산·테스트가 필요할 때",
+            "중첩 자료, 상태 계산, 테스트가 필요할 때",
             "느릴 때",
             "사람이 많을 때"
           ],
@@ -787,29 +787,29 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "스크립트를 하나 쓸 때마다 이 목록을 지나가라. 열 줄이면 「돌아가는 것」과 「믿을 수 있는 것」의 차이가 생긴다."
+          "text": "스크립트를 하나 쓸 때마다 이 목록을 지나가라. 열 줄이면 돌아가는 것과 믿을 수 있는 것의 차이가 생긴다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "스크립트 점검표",
-          "text": "머리\n  [ ] #!/usr/bin/env bash · set -euo pipefail                    (1장)\n  [ ] 인자 검사 + 사용법(>&2) + 0 아닌 종료 코드                  (4장)\n  [ ] 자기 폴더로 cd (상대 경로를 쓸 거면)                        (7장)\n본문\n  [ ] 변수는 전부 \"$var\" · 인자 전달은 \"$@\"                       (2장)\n  [ ] 빈 값 방어: \"${DIR:?}\" · 기본값 \"${X:-기본}\"                (2장)\n  [ ] 반복은 글롭 또는 while IFS= read -r                         (3장)\n  [ ] curl 은 -fsS · 위험한 명령은 먼저 -print/--dry-run          (5장)\n끝\n  [ ] 임시 자원은 trap … EXIT 로 정리                             (5장)\n  [ ] 겹쳐 돌면 안 되면 flock                                     (5·7장)\n  [ ] 로그는 stderr · 결과는 stdout                               (4·6장)\n검증\n  [ ] shellcheck 통과 · bash -n 문법 확인                         (6장)\n  [ ] 예약 작업이면 로그·절대경로·성공 알림                        (7장)"
+          "text": "머리\n  [ ] #!/usr/bin/env bash, set -euo pipefail                    (1장)\n  [ ] 인자 검사 + 사용법(>&2) + 0 아닌 종료 코드                  (4장)\n  [ ] 자기 폴더로 cd (상대 경로를 쓸 거면)                        (7장)\n본문\n  [ ] 변수는 전부 \"$var\", 인자 전달은 \"$@\"                       (2장)\n  [ ] 빈 값 방어: \"${DIR:?}\", 기본값 \"${X:-기본}\"                (2장)\n  [ ] 반복은 글롭 또는 while IFS= read -r                         (3장)\n  [ ] curl 은 -fsS, 위험한 명령은 먼저 -print/--dry-run          (5장)\n끝\n  [ ] 임시 자원은 trap ... EXIT 로 정리                             (5장)\n  [ ] 겹쳐 돌면 안 되면 flock                                     (5, 7장)\n  [ ] 로그는 stderr, 결과는 stdout                               (4, 6장)\n검증\n  [ ] shellcheck 통과, bash -n 문법 확인                         (6장)\n  [ ] 예약 작업이면 로그, 절대경로, 성공 알림                        (7장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['set -e 가 없으면 실패해도 다음 줄로 넘어간다', true],\n    ['rm $f 는 f 에 공백이 있어도 안전하다', false],\n    ['셸에서 참은 종료 코드 0 이다', true],\n    ['curl 은 404 를 받으면 실패로 끝난다', false],\n    ['trap … EXIT 는 Ctrl-C 로 끝나도 실행된다', true],\n    ['cron 은 내 PATH 를 그대로 쓴다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(set -e) 2장(따옴표) 3장(종료코드) 5장(curl·trap) 7장(cron)');\n</script>"
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  pre { margin:6px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n  .arg { display:inline-block; background:#1e293b; border-radius:5px; padding:2px 7px; margin:2px 3px 2px 0;\n         font:12px ui-monospace, monospace; }\n  .arg.bad { background:#3b1d1d; color:#fca5a5; }\n  .arg.good { background:#14351f; color:#86efac; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"args\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const chips = (list, cls) => list.map((a) =>\n    '<span class=\"arg ' + (cls || '') + '\">' + esc(a) + '</span>').join('');\n  function render(cmd, body, hint, args) {\n    document.getElementById('cmd').textContent = cmd ? '$ ' + cmd : '';\n    document.getElementById('args').innerHTML = args || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['set -e 가 없으면 실패해도 다음 줄로 넘어간다', true],\n    ['rm $f 는 f 에 공백이 있어도 안전하다', false],\n    ['셸에서 참은 종료 코드 0 이다', true],\n    ['curl 은 404 를 받으면 실패로 끝난다', false],\n    ['trap ... EXIT 는 Ctrl-C 로 끝나도 실행된다', true],\n    ['cron 은 내 PATH 를 그대로 쓴다', false],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로. 1장(set -e) 2장(따옴표) 3장(종료코드) 5장(curl, trap) 7장(cron)');\n</script>"
         },
         {
           "type": "note",
-          "text": "이것으로 셸 갈래를 한 바퀴 돌았다 — 경로·권한·파이프·프로세스·SSH·스크립트. 여섯 칸이 서로 이어져 있다: **경로와 권한이 바닥, 파이프가 도구, 프로세스가 상태, SSH 가 원격, 스크립트가 자동화.**"
+          "text": "이것으로 셸 갈래를 한 바퀴 돌았다. 경로, 권한, 파이프, 프로세스, SSH, 스크립트. 여섯 칸이 서로 이어져 있다: **경로와 권한이 바닥, 파이프가 도구, 프로세스가 상태, SSH 가 원격, 스크립트가 자동화.**"
         },
         {
           "type": "try",
@@ -829,15 +829,15 @@
           "why": "안전벨트부터 맨다."
         },
         {
-          "q": "「돌아가는 것」과 「믿을 수 있는 것」을 가르는 것은?",
+          "q": "돌아가는 것과 믿을 수 있는 것을 가르는 것은?",
           "choices": [
             "길이",
-            "실패 처리·정리·검증이 있는가",
+            "실패 처리, 정리, 검증이 있는가",
             "주석",
             "함수 수"
           ],
           "answer": 1,
-          "why": "trap·검사·shellcheck 이 그 차이다."
+          "why": "trap, 검사, shellcheck 이 그 차이다."
         }
       ]
     }

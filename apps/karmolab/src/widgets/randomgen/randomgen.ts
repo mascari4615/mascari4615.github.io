@@ -2,10 +2,10 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { inkOn } from '../../lib/ink-on';
 
 /**
- * 랜덤 생성기 — 창작용 키워드·주제 뽑기
+ * 랜덤 생성기. 창작용 키워드, 주제 뽑기
  * randomgen-topics.js에 정의된 주제를 기반으로 동작
  *
- * 참고: [니힐 랜덤 키워드](https://nihilapp.github.io/keyword) — 창작자용 랜덤 키워드 사이트
+ * 참고: [니힐 랜덤 키워드](https://nihilapp.github.io/keyword). 창작자용 랜덤 키워드 사이트
  */
 (function () {
     type Topic = RandomGenTopic;
@@ -417,7 +417,7 @@ import { inkOn } from '../../lib/ink-on';
                         var titleClass = 'randomgen-ccg-title';
                         if (isColor) {
                             frameStyle = ' style="background:' + bgHex + '!important;border-color:' + bgHex + ';"';
-                            /* 검정 글자가 나은 바탕인지 한 번만 정하고 **카드에** 표시한다 —
+                            /* 검정 글자가 나은 바탕인지 한 번만 정하고 **카드에** 표시한다 . 
                                예전엔 제목만 뒤집고 아래 줄(무엇의 색인지)은 늘 검정이라, 어두운
                                색이 뽑히면 그 줄이 검정 위 검정이었다(실측 대비 1.79 = 안 보임). */
                             if (inkOn(bgHex!).kind === 'dark') {

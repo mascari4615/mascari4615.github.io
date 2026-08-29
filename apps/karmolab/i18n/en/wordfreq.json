@@ -5,7 +5,7 @@
   "wordfreq.opt.particle": "Strip Korean particles",
   "wordfreq.opt.stop": "Drop common words",
   "wordfreq.opt.case": "Case sensitive",
-  "wordfreq.label.phrases": "Repeated phrases — twice or more",
+  "wordfreq.label.phrases": "Repeated phrases. twice or more",
   "wordfreq.btn.copy": "Copy table",
   "wordfreq.status.idle": "Seeing how often you repeat yourself is the fastest way to cut a draft down.",
   "wordfreq.status.done": "Showing the top {n}. Seeing how often you repeat yourself is the fastest way to cut a draft down.",

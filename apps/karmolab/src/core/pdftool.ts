@@ -1,4 +1,4 @@
-/** PDF 페이지 편집 — 바이트 알맹이 (TASK-KL-205 P4). */
+/** PDF 페이지 편집. 바이트 알맹이 (TASK-KL-205 P4). */
 import type { ToolRunner, ToolSpec } from './types';
 
 interface PdfBackend {
@@ -70,5 +70,5 @@ export const run: ToolRunner = async (op, args, deps) => {
     if (![90, 180, 270].includes(degrees)) throw new Error('회전은 90, 180, 270도만 가능합니다');
     return backend.rotate(data, pages, degrees);
   }
-  throw new Error(`pdftool 에 「${op}」 는 없습니다`);
+  throw new Error(`pdftool 에 ${op} 는 없습니다`);
 };

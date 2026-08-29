@@ -1,17 +1,17 @@
 /**
- * 멍 — 멍때리며 보는 화면 (TASK-KL-247)
+ * 멍. 멍때리며 보는 화면 (TASK-KL-247)
  *
  * 사용자: "이런 식으로 뭔가 이쁜것들 멍때리면서 보기 좋은 것들 계속 더 만들건데"
  *
- * 그래서 이건 **작품 한 개가 아니라 자리**다. 껍데기(캔버스·손잡이·멈춤·저장·전체화면·
+ * 그래서 이건 **작품 한 개가 아니라 자리**다. 껍데기(캔버스, 손잡이, 멈춤, 저장, 전체화면, 
  * 안 보이면 멈추기)는 여기 한 번만 짓고, 작품은 `pieces.ts` 규약만 지키면 파일 하나씩
  * 늘어난다. 두 번째 작품을 만들 때 다시 지을 것이 없어야 실제로 계속 늘어난다.
  *
  * 화면은 **그림이 주인공**이다. 손잡이는 손을 떼면 사라지고(2.6초), 움직이면 돌아온다.
- * 계기판을 옆에 세워 두면 그림이 「설정 미리보기」가 되어 버린다 — 그건 멍때릴 수 없다.
+ * 계기판을 옆에 세워 두면 그림이 설정 미리보기가 되어 버린다. 그건 멍때릴 수 없다.
  *
  * 안 보이면 멈춘다. 다른 탭으로 가거나 앱 안의 다른 도구로 넘어가면 시각이 안 흐르고
- * 그리지도 않는다 — 켜 두는 물건이라 이게 배터리 문제로 직결된다.
+ * 그리지도 않는다. 켜 두는 물건이라 이게 배터리 문제로 직결된다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { droste } from './droste';
@@ -26,7 +26,7 @@ import { download, encode } from '../tools/shared/image';
   const STORE = 'karmolab.meong.v1';
   const HINT_SEEN = 'karmolab.meong.hint';
 
-  /** 작품 목록 — 늘리는 자리는 여기 한 줄이다. */
+  /** 작품 목록. 늘리는 자리는 여기 한 줄이다. */
   const PIECES: Piece[] = [droste];
 
   const meta: Record<string, unknown> = Toolbox.getLazyWidgetPublicMeta
@@ -48,7 +48,7 @@ import { download, encode } from '../tools/shared/image';
         if (p && typeof p === 'object') return p;
       }
     } catch {
-      /* 저장본이 깨졌으면 그냥 기본값으로 시작한다 — 여기서 죽으면 화면이 통째로 빈다 */
+      /* 저장본이 깨졌으면 그냥 기본값으로 시작한다. 여기서 죽으면 화면이 통째로 빈다 */
     }
     return { piece: PIECES[0].id, seed: Math.random(), params: {} };
   }
@@ -171,13 +171,13 @@ import { download, encode } from '../tools/shared/image';
     fit();
     root.style.background = piece.bg(params);
 
-    /** 작품이 고른 첫 장면부터 연다 — t=0 이 볼 만하다는 보장이 없다. */
+    /** 작품이 고른 첫 장면부터 연다. t=0 이 볼 만하다는 보장이 없다. */
     function rewind(): void {
       time = piece.startTime ? piece.startTime(w, h, params) : 0;
     }
     rewind();
 
-    /* 「움직임 줄이기」를 켜 둔 사람에게 끝없이 도는 화면을 들이밀지 않는다. 멈춘 채로 열고,
+    /* 움직임 줄이기를 켜 둔 사람에게 끝없이 도는 화면을 들이밀지 않는다. 멈춘 채로 열고,
        보고 싶으면 누르면 된다. 그림 자체는 그대로 한 장 그려 둔다(빈 화면이 아니다). */
     const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (calm) running = false;
@@ -191,7 +191,7 @@ import { download, encode } from '../tools/shared/image';
     const ro = new ResizeObserver(function () {
       const was = w;
       fit();
-      // 멈춰 있는 동안 창이 크게 바뀌면 첫 장면 계산이 어긋난다 — 그때만 다시 맞춘다.
+      // 멈춰 있는 동안 창이 크게 바뀌면 첫 장면 계산이 어긋난다. 그때만 다시 맞춘다.
       if (!running && Math.abs(w - was) > 1) rewind();
       if (onScreen()) paint();
     });
@@ -260,7 +260,7 @@ import { download, encode } from '../tools/shared/image';
         return t('meong.piece.' + p.id);
       }
 
-      /* 작품 고르개 — 하나뿐이면 안 그린다(고를 게 없는 고르개는 고장으로 보인다) */
+      /* 작품 고르개. 하나뿐이면 안 그린다(고를 게 없는 고르개는 고장으로 보인다) */
       function renderChips(): void {
         chips.innerHTML = '';
         if (PIECES.length < 2) return;
@@ -375,7 +375,7 @@ import { download, encode } from '../tools/shared/image';
       panelBtn.setAttribute('aria-pressed', 'false');
 
       iconBtn('⤓', 'save', function () {
-        /* 화면 그대로 뜨면 배경화면으로 쓰기엔 잘다. 같은 구도를 두 배 해상도로 다시 그린다 —
+        /* 화면 그대로 뜨면 배경화면으로 쓰기엔 잘다. 같은 구도를 두 배 해상도로 다시 그린다 . 
            작품이 CSS 픽셀 기준으로 그리므로 `dpr` 만 올리면 구도는 그대로고 선만 촘촘해진다. */
         const big = document.createElement('canvas');
         big.width = Math.round(w * 2);
@@ -385,7 +385,7 @@ import { download, encode } from '../tools/shared/image';
           bctx.setTransform(2, 0, 0, 2, 0, 0);
           piece.frame({ ctx: bctx, w, h, dpr: 2, time, params, seed });
         }
-        // 공용 한 자리(`shared/image`) — 굽기·내려받기·주소 거두기가 거기 한 벌로 있다.
+        // 공용 한 자리(`shared/image`). 굽기, 내려받기, 주소 거두기가 거기 한 벌로 있다.
         encode(bctx ? big : canvas, 'png').then(function (blob) {
           download(blob, 'karmolab-meong-' + piece.id + '-' + Math.round(seed * 1e6) + '.png');
           Toolbox.showToast?.(t('meong.saved'), 'success');

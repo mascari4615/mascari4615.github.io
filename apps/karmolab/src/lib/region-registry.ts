@@ -1,10 +1,10 @@
 /**
- * ⚠ 자동 생성 — 손으로 고치지 말 것 (TASK-KL-203 S10).
+ * ⚠ 자동 생성. 손으로 고치지 말 것 (TASK-KL-203 S10).
  * 정본은 `data/regions.json` 이고, `node scripts/build-i18n.mjs` 가 여기에 찍는다.
  */
 export interface RegionMeta {
   code: string;
-  /** 그 나라 사람이 부르는 이름 — 지역 단추에 보여 준다. */
+  /** 그 나라 사람이 부르는 이름. 지역 단추에 보여 준다. */
   endonym: string;
   flag: string;
   /** 이 나라로 짚어 주는 시간대들. 브라우저는 나라를 안 알려 주지만 시간대는 알려 준다. */

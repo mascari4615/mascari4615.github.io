@@ -1,8 +1,8 @@
 /**
  * 하이로우 화면 (TASK-KL-242)
  *
- * 쌓인 점수를 **크게** 보여 준다 — 이 놀이의 긴장은 「지금 챙기면 얼마」에서 나온다.
- * 그 숫자가 작으면 「한 장만 더」의 무게가 안 실린다.
+ * 쌓인 점수를 **크게** 보여 준다. 이 놀이의 긴장은 지금 챙기면 얼마에서 나온다.
+ * 그 숫자가 작으면 한 장만 더의 무게가 안 실린다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
@@ -17,7 +17,7 @@ export const highlowView: GameView<HighLowState, HighLowAction> = {
   mount(el, act) {
     el.innerHTML =
       '<div class="ac-hl">' +
-      /* 카드 두 장은 공용 한 벌(`card.ts`)이 그린다 — 이 판만의 64×90 을 따로 두지 않는다. */
+      /* 카드 두 장은 공용 한 벌(`card.ts`)이 그린다. 이 판만의 64×90 을 따로 두지 않는다. */
       '<div class="ac-hlcards"><span id="acHlCur"></span><span id="acHlNext"></span></div>' +
       '<div class="ac-hlpot" id="acHlPot"></div>' +
       '<div class="ac-hlbar">' +
@@ -42,7 +42,7 @@ export const highlowView: GameView<HighLowState, HighLowAction> = {
       const myTurn = s.turn === mySeat && (s.left[mySeat] ?? 0) > 0 && !v.finished;
 
       cur.innerHTML = cardMark(label(s.card));
-      /* 아직 안 뒤집힌 다음 장은 **뒷면**이다 — 물음표를 적는 것보다 카드답다. */
+      /* 아직 안 뒤집힌 다음 장은 **뒷면**이다. 물음표를 적는 것보다 카드답다. */
       nxt.innerHTML = s.shown ? cardMark(label(s.shown)) : cardBack();
       nxt.className = 'ac-hlnext' + (s.last === 1 ? ' ac-ok' : s.last === -1 ? ' ac-no' : '');
 
@@ -60,7 +60,7 @@ export const highlowView: GameView<HighLowState, HighLowAction> = {
       el.querySelector('#acHlLeft')!.innerHTML = v.seats
         .map((seat, i) =>
           '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + '">' +
-          seat.name + ' <b>' + (s.banked[i] ?? 0) + '</b> · ' +
+          seat.name + ' <b>' + (s.banked[i] ?? 0) + '</b>, ' +
           t('arcade.highlow.left', { n: String(s.left[i] ?? 0) }) + '</span>')
         .join('');
     };

@@ -1,19 +1,19 @@
 /**
- * 컬링 — 밀어서 가운데에 가깝게 (TASK-KL-242)
+ * 컬링. 밀어서 가운데에 가깝게 (TASK-KL-242)
  *
- * 오락실의 **첫 「장난감 스포츠」**다. 앞의 열다섯은 전부 칸·카드·수였고, 이건 처음으로
- * **물체가 움직인다**. 클럽하우스 51 의 큰 축(볼링·당구·다트·컬링)이 이 자리에서 열린다.
+ * 오락실의 **첫 장난감 스포츠**다. 앞의 열다섯은 전부 칸, 카드, 수였고, 이건 처음으로
+ * **물체가 움직인다**. 클럽하우스 51 의 큰 축(볼링, 당구, 다트, 컬링)이 이 자리에서 열린다.
  *
  * 지키는 것:
- *  - **물리는 커널 안에 있다.** 순수 함수고, 시계는 밖에서 온다 — 그래서 창 없이 검증할 수 있고,
+ *  - **물리는 커널 안에 있다.** 순수 함수고, 시계는 밖에서 온다. 그래서 창 없이 검증할 수 있고,
  *    주인 한 곳에서만 굴러 승부가 갈린다. 화면은 그 결과를 그리기만 한다(3D든 2D든).
  *  - **한 걸음은 고정 시간**(`STEP_MS`)이다. 프레임에 물리를 맡기면 빠른 기기와 느린 기기가
- *    다른 결과를 낸다 — 같은 힘으로 밀었는데 승부가 달라지면 그건 놀이가 아니다.
- *  - 값은 전부 수로 남는다(위치·속도). 그래야 그물망을 건너고, 그림은 어디서든 다시 그린다.
+ *    다른 결과를 낸다. 같은 힘으로 밀었는데 승부가 달라지면 그건 놀이가 아니다.
+ *  - 값은 전부 수로 남는다(위치, 속도). 그래야 그물망을 건너고, 그림은 어디서든 다시 그린다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
-/** 판 크기 — 실제 컬링 시트 비율을 줄인 것. 세로가 길다. */
+/** 판 크기. 실제 컬링 시트 비율을 줄인 것. 세로가 길다. */
 export const W = 100;
 export const H = 260;
 /** 하우스(과녁) 가운데 */
@@ -24,7 +24,7 @@ export const R = 5;
 
 /** 물리 한 걸음. 프레임이 아니라 이 값이 시간을 정한다. */
 const STEP_MS = 16;
-/** 얼음 마찰 — 클수록 빨리 선다 */
+/** 얼음 마찰. 클수록 빨리 선다 */
 const FRICTION = 0.986;
 /** 이보다 느리면 선 것으로 본다 */
 const STOP_V = 0.02;
@@ -45,7 +45,7 @@ export interface CurlingState {
   turn: number;
   /** 자리별 남은 개수 */
   left: number[];
-  /** 지금 미끄러지는 중인가 — 그동안은 아무도 못 던진다 */
+  /** 지금 미끄러지는 중인가. 그동안은 아무도 못 던진다 */
   moving: boolean;
   /** 다 던졌나 */
   done: boolean;
@@ -56,7 +56,7 @@ export type CurlingAction = { aim: number; power: number };
 
 const dist2 = (a: Stone, b: Stone): number => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 
-/** 한 걸음 굴린다. **순수 함수** — 같은 입력이면 어디서 돌려도 같은 그림이 나온다. */
+/** 한 걸음 굴린다. **순수 함수**. 같은 입력이면 어디서 돌려도 같은 그림이 나온다. */
 export function stepPhysics(stones: Stone[]): { stones: Stone[]; moving: boolean } {
   const out = stones.map((s) => ({ ...s }));
 
@@ -82,7 +82,7 @@ export function stepPhysics(stones: Stone[]): { stones: Stone[]; moving: boolean
       const d = Math.sqrt(d2);
       const nx = (b.x - a.x) / d;
       const ny = (b.y - a.y) / d;
-      /* 겹친 만큼 떼어 놓는다 — 안 떼면 다음 걸음에 또 부딪혀 진동한다. */
+      /* 겹친 만큼 떼어 놓는다. 안 떼면 다음 걸음에 또 부딪혀 진동한다. */
       const push = (R * 2 - d) / 2;
       a.x -= nx * push; a.y -= ny * push;
       b.x += nx * push; b.y += ny * push;
@@ -130,7 +130,7 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
     const power = typeof a?.power === 'number' ? a.power : NaN;
     if (!Number.isFinite(aim) || !Number.isFinite(power)) return s;
 
-    /* 겨눔은 좌우로만 조금 — 컬링은 앞으로 밀어 보내는 놀이다. 세기는 0~1 을 벗어나면 자른다. */
+    /* 겨눔은 좌우로만 조금. 컬링은 앞으로 밀어 보내는 놀이다. 세기는 0~1 을 벗어나면 자른다. */
     const ang = Math.max(-0.35, Math.min(0.35, aim));
     const pw = Math.max(0.15, Math.min(1, power));
     const speed = 1.2 + pw * 2.6;
@@ -146,14 +146,14 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
   },
 
   /**
-   * 물리는 여기서 돈다. **밀린 시간만큼 여러 걸음**을 밟는다 — 창을 뒤에 뒀다 돌아와도
+   * 물리는 여기서 돈다. **밀린 시간만큼 여러 걸음**을 밟는다. 창을 뒤에 뒀다 돌아와도
    * 판이 어긋나지 않고, 느린 기기에서도 같은 그림이 나온다.
    */
   tick(s, ctx) {
     if (!s.moving || s.done) return s;
     let stones = s.stones;
     let moving = true;
-    /* 한 번에 너무 많이 밟으면 프레임이 튄다 — 상한을 둔다(밀린 건 다음 tick 이 마저 밟는다). */
+    /* 한 번에 너무 많이 밟으면 프레임이 튄다. 상한을 둔다(밀린 건 다음 tick 이 마저 밟는다). */
     for (let n = 0; n < 12 && moving; n++) {
       const r = stepPhysics(stones);
       stones = r.stones;
@@ -199,7 +199,7 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
   bot(s, seat, ctx): BotMove<CurlingAction> | null {
     if (s.done || s.moving || s.turn !== seat) return null;
     if ((s.left[seat] ?? 0) <= 0) return null;
-    /* 가운데를 노리되 손이 조금 떨린다 — 늘 정확하면 사람이 한 번도 못 이긴다. */
+    /* 가운데를 노리되 손이 조금 떨린다. 늘 정확하면 사람이 한 번도 못 이긴다. */
     const aim = (ctx.rng() - 0.5) * 0.12;
     const power = 0.56 + (ctx.rng() - 0.5) * 0.12;
     return { action: { aim, power }, delayMs: 700 + ctx.rng() * 700 };

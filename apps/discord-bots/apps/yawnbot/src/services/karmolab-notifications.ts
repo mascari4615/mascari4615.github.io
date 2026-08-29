@@ -1,10 +1,10 @@
 /**
- * KarmoLab 알림 — **공용** substrate (TASK-KL-098).
+ * KarmoLab 알림. **공용** substrate (TASK-KL-098).
  *
  * 왜 공용인가 (사용자 발화: "알림 기능 같은 경우에는 다른 기능도 함께 쓸 수 있도록 Common하게.
  * 커뮤니티만 쓸 기능은 아닌듯?"): 알림은 커뮤니티의 기능이 아니라 **플랫폼의 기능**이다.
- * 커뮤니티는 첫 사용처일 뿐이고, 도구·계정·봇·앞으로 올 것들이 같은 자리를 쓴다.
- * 그래서 이 파일은 「답글」이나 「좋아요」를 모른다 — 그건 부르는 쪽이 정한다.
+ * 커뮤니티는 첫 사용처일 뿐이고, 도구, 계정, 봇, 앞으로 올 것들이 같은 자리를 쓴다.
+ * 그래서 이 파일은 답글이나 좋아요를 모른다. 그건 부르는 쪽이 정한다.
  *
  * 왜 필요한가: 내 글에 답글이 달려도 모르면 사람은 안 돌아온다. 커뮤니티가 사는지 죽는지는
  * 여기서 갈린다.
@@ -26,19 +26,19 @@ export interface Notification {
     /** 받을 사람 (계정 id). */
     accountId: string;
     /**
-     * 어디서 온 알림인가 — `community` / `tool` / `account` … 부르는 쪽이 정한다.
+     * 어디서 온 알림인가. `community` / `tool` / `account` ... 부르는 쪽이 정한다.
      * 화면이 갈래별로 묶거나 끌 수 있게 하려고 둔다.
      */
     source: string;
     /** 한 줄 제목. 목록에서 이것만 보인다. */
     title: string;
-    /** 한 줄 더 — 없어도 된다. */
+    /** 한 줄 더. 없어도 된다. */
     body: string | null;
     /** 누르면 갈 곳 (사이트 안 상대 주소). */
     url: string | null;
     /**
      * 묶음 열쇠. 같은 열쇠의 알림이 이미 안 읽힌 채로 있으면 **새로 만들지 않고 그것을 올린다**.
-     * 예: 한 글의 답글은 전부 같은 열쇠 → 「답글 3개」로 묶인다.
+     * 예: 한 글의 답글은 전부 같은 열쇠 → 답글 3개로 묶인다.
      */
     groupKey: string | null;
     /** 묶인 개수 (1 이면 안 묶인 것). */
@@ -54,7 +54,7 @@ interface NotificationsState {
     /**
      * 알림을 **디스코드로도** 받기로 한 사람들 (TASK-KL-157).
      *
-     * 왜 여기인가: 이건 계정의 성질이 아니라 알림의 성질이다. 「어디로 받을 것인가」는
+     * 왜 여기인가: 이건 계정의 성질이 아니라 알림의 성질이다. 어디로 받을 것인가는
      * 알림 도메인이 답할 질문이고, 계정 파일에 또 하나의 설정 서랍을 만들지 않는다.
      *
      * 기본은 **꺼짐**이다. 부르지도 않았는데 말 거는 일은 켠 사람에게만 한다.
@@ -85,7 +85,7 @@ export class KarmolabNotificationStore {
                 return { version: 1, items: parsed.items ?? [], discordOn: parsed.discordOn ?? [] };
             }
         } catch (error) {
-            console.error('[karmolab-notifications] 상태 파일을 못 읽었다 — 빈 목록으로 시작한다:', error);
+            console.error('[karmolab-notifications] 상태 파일을 못 읽었다. 빈 목록으로 시작한다:', error);
         }
         return { version: 1, items: [], discordOn: [] };
     }
@@ -164,7 +164,7 @@ export class KarmolabNotificationStore {
         };
         this.state.items.unshift(notification);
 
-        // 한 사람이 너무 많이 들고 있지 않게 — 오래된 것부터 버린다.
+        // 한 사람이 너무 많이 들고 있지 않게. 오래된 것부터 버린다.
         const mine = this.state.items.filter((n) => n.accountId === input.accountId);
         if (mine.length > MAX_PER_ACCOUNT) {
             const drop = new Set(mine.slice(MAX_PER_ACCOUNT).map((n) => n.id));
@@ -194,7 +194,7 @@ export class KarmolabNotificationStore {
     /**
      * 알림이 실제로 만들어질 때마다 불린다.
      *
-     * 저장소는 디스코드를 **모른다.** 보내는 일은 봇이 있는 자리(합성 지점)에서 꽂는다 —
+     * 저장소는 디스코드를 **모른다.** 보내는 일은 봇이 있는 자리(합성 지점)에서 꽂는다 . 
      * 안 그러면 이 파일이 discord.js 를 끌고 들어와 시험조차 못 돌게 된다.
      */
     private sink: ((notification: Notification) => void) | null = null;

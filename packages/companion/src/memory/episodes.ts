@@ -4,20 +4,20 @@ import { dirname } from 'node:path';
 import type { MemoryEntry } from '../types';
 
 /**
- * 그때 그 일 — 감정이 실린 순간만 따로 남긴다.
+ * 그때 그 일. 감정이 실린 순간만 따로 남긴다.
  *
  * 기억 쪽 레퍼런스가 공통으로 짚는 것: **감정이 실린 일은 오래 남고, 나머지는 흐려진다.**
  * 사람 기억이 그렇고, 그래서 오래 쓰는 동반자도 그렇게 만든다.
  *
- * 우리 기억은 두 겹이었다 — 최근 몇 마디, 그리고 졸여서 만든 **사실 목록**. 사실 목록은
- * 오래 쓸모 있는 것만 남기라고 시켰더니 **사건이 통째로 사라졌다.** 「지난주에 발표
- * 망했다고 속상해했다」가 「발표를 했다」로 줄거나 아예 빠진다. 그런데 사람이 다시
+ * 우리 기억은 두 겹이었다. 최근 몇 마디, 그리고 졸여서 만든 **사실 목록**. 사실 목록은
+ * 오래 쓸모 있는 것만 남기라고 시켰더니 **사건이 통째로 사라졌다.** 지난주에 발표
+ * 망했다고 속상해했다가 발표를 했다로 줄거나 아예 빠진다. 그런데 사람이 다시
  * 꺼내고 싶은 건 사실이 아니라 그 순간이다.
  *
- * 그래서 세 번째 겹을 둔다. **감정이 실린 순간만** 그대로 남긴다 — 졸이지 않고, 말한
+ * 그래서 세 번째 겹을 둔다. **감정이 실린 순간만** 그대로 남긴다. 졸이지 않고, 말한
  * 그대로. 몇 개 안 되므로 오래 들고 있어도 무겁지 않다.
  *
- * 좁게 잡는다. 아무 말이나 사건으로 세면 「오늘 점심 뭐 먹었어」가 다음 달에 튀어나온다.
+ * 좁게 잡는다. 아무 말이나 사건으로 세면 오늘 점심 뭐 먹었어가 다음 달에 튀어나온다.
  */
 
 export interface Episode {
@@ -39,7 +39,7 @@ const loadedWords = [
 /** 이 말이 얼마나 사건 같은가. 0 이면 그냥 지나가는 text. */
 export function measureEnergy(text: string): number {
   const text2 = text.trim();
-  if (text2.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
+  if (text2.length < 6) return 0; // 응 ㅇㅇ 같은 건 사건이 아니다
   let score = 0;
   for (const mark of loadedWords) if (text2.includes(mark)) score += 2;
   score += Math.min(2, (text2.match(/[!?]/g) ?? []).length);
@@ -60,16 +60,16 @@ export interface EpisodeStoreOptions {
   /**
    * 낱말 표가 놓친 말을 **두뇌에게 물어본다.** 0~9 를 text 개수만큼 돌려줘야 한다.
    *
-   * 없으면 낱말 표만 쓴다 — 그때는 그때대로 돌아가되, 놓치는 게 많다는 걸 알고 쓰는 것이다.
+   * 없으면 낱말 표만 쓴다. 그때는 그때대로 돌아가되, 놓치는 게 많다는 걸 알고 쓰는 것이다.
    */
   ask?: (texts: readonly string[]) => Promise<readonly number[] | null>;
   log?: (message: string) => void;
 }
 
 /**
- * 두뇌에게 물어볼 만한 말인가 — **아무거나 물으면 그게 값이다.**
+ * 두뇌에게 물어볼 만한 말인가. **아무거나 물으면 그게 값이다.**
  *
- * 「응」 「ㅇㅇ」 같은 건 물어볼 것도 없고, 얘한테 시키는 text(「짧게 설명해줘」)도 사건이
+ * 응 ㅇㅇ 같은 건 물어볼 것도 없고, 얘한테 시키는 text(짧게 설명해줘)도 사건이
  * 아니다. 실제 기록을 보니 사람 text 197개 중 113개가 낱말 세 개도 안 됐다.
  */
 function worthAsking(text: string): boolean {
@@ -104,7 +104,7 @@ export class EpisodeStore {
    * 오간 말에서 사건을 줍는다.
    *
    * **사람이 한 말만 센다.** 얘가 한 말을 사건으로 세면 제가 흥분한 걸 사람의 일로
-   * 기억한다 — 같은 뿌리를 이미 네 번 밟았다(16·23·48·53회차).
+   * 기억한다. 같은 뿌리를 이미 네 번 밟았다(16, 23, 48, 53회차).
    */
   learn(entries: readonly MemoryEntry[]): number {
     let storedCount = 0;
@@ -113,7 +113,7 @@ export class EpisodeStore {
       if (this.has(e.text)) continue;
       const energy = measureEnergy(e.text);
       if (energy < this.options.threshold) {
-        // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다 — 나중에 두뇌에게 물어본다.
+        // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다. 나중에 두뇌에게 물어본다.
         if (worthAsking(e.text)) this.toAsk.set(e.text.trim(), e.at);
         continue;
       }
@@ -137,7 +137,7 @@ export class EpisodeStore {
 
   private tidy(): void {
     // 자리가 모자라면 **기운이 약한 것부터** 버린다. 오래됐다고 버리면 정작 큰일이
-    // 먼저 사라진다 — 사람은 오래된 큰일을 더 오래 기억한다.
+    // 먼저 사라진다. 사람은 오래된 큰일을 더 오래 기억한다.
     if (this.list.length > this.options.keep) {
       this.list.sort((a, b) => b.energy - a.energy || b.at - a.at);
       this.list = this.list.slice(0, this.options.keep);
@@ -154,7 +154,7 @@ export class EpisodeStore {
   /**
    * 낱말 표가 놓친 말을 **두뇌에게 물어본다.**
    *
-   * 대답을 기다리느라 답이 늦어지면 안 되므로 **말하는 길에서 부르지 않는다** — 한 turn 이
+   * 대답을 기다리느라 답이 늦어지면 안 되므로 **말하는 길에서 부르지 않는다**. 한 turn 이
    * 끝난 뒤에 따로 부른다. 실패하면 조용히 넘어가지 않고 적는다.
    */
   async reflect(atOnce = 8): Promise<number> {
@@ -167,11 +167,11 @@ export class EpisodeStore {
     try {
       scores = await ask2(bundle.map(([text]) => text));
     } catch (err) {
-      this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
+      this.options.log?.(`되새기다 실패. ${(err as Error)?.message ?? err}`);
       return 0;
     }
     if (scores === null || scores.length !== bundle.length) {
-      this.options.log?.(`되새김 대답이 안 맞는다 — ${bundle.length}개 물었는데 ${scores?.length ?? '없음'}개 왔다`);
+      this.options.log?.(`되새김 대답이 안 맞는다. ${bundle.length}개 물었는데 ${scores?.length ?? '없음'}개 왔다`);
       return 0;
     }
 
@@ -226,9 +226,9 @@ export class EpisodeStore {
 /**
  * 견줄 만한 낱말만 남긴다.
  *
- * **앞 두 글자로 견준다.** 한국어는 같은 말이 「속상해 / 속상하다 / 속상했어」로 계속
- * 모양을 바꾼다 — 통째로 견주면 같은 일을 얘기하는데도 하나도 안 겹친다(실측). 앞
- * 두 글자는 대개 그대로 남는다. 조사·한 글자 말은 아무 데나 겹치므로 버린다.
+ * **앞 두 글자로 견준다.** 한국어는 같은 말이 속상해 / 속상하다 / 속상했어로 계속
+ * 모양을 바꾼다. 통째로 견주면 같은 일을 얘기하는데도 하나도 안 겹친다(실측). 앞
+ * 두 글자는 대개 그대로 남는다. 조사, 한 글자 말은 아무 데나 겹치므로 버린다.
  */
 function pick(text: string): string[] {
   return (text.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? [])
@@ -247,19 +247,19 @@ export function overlapCount(currentWords: readonly string[], pastText: string):
 const halfLife = 14;
 
 /**
- * 어느 옛 일이 지금 떠오르나 — **겹침만으로 고르면 안 된다.**
+ * 어느 옛 일이 지금 떠오르나. **겹침만으로 고르면 안 된다.**
  *
  * 여태 겹치는 낱말 수가 가장 많은 것 하나를 골랐다. 그런데 똑같이 두 개씩 겹치면 목록에서
  * **먼저 만난 것**이 이겼고, 목록은 시간순이라 결국 **가장 오래되고 사소한 일**이 이겼다.
  * 큰일을 따로 남겨 두고도 정작 꺼낼 때는 그 큰일이 진 것이다.
  *
- * 레퍼런스(Generative Agents, UIST 2023)가 같은 자리를 셋으로 나눈다 — **이어짐 · 큰일 ·
+ * 레퍼런스(Generative Agents, UIST 2023)가 같은 자리를 셋으로 나눈다. **이어짐, 큰일 , 
  * 최근**. 셋을 더해서 고른다. 우리도 그렇게 한다. 다만 무게는 우리 쪽 사정에 맞춘다.
  *
  * - **이어짐이 가장 세다.** 안 겹치는 얘기가 튀어나오는 게 제일 이상하다. 겹친 수를 그대로
  *   쓰면 말이 길수록 이기므로, 지금 말의 낱말 수로 나눠 견준다.
  * - **큰일이 최근을 이긴다.** 사람은 오래된 큰일을 어제 점심보다 더 잘 꺼낸다. 그래서
- *   최근은 셋 중 가장 약하게만 얹는다 — 비기는 자리를 가르는 정도.
+ *   최근은 셋 중 가장 약하게만 얹는다. 비기는 자리를 가르는 정도.
  */
 export function recallScore(e: Episode, currentWordCount: number, overlap2: number, now: number): number {
   const continued = Math.min(1, overlap2 / Math.max(2, currentWordCount));
@@ -270,15 +270,15 @@ export function recallScore(e: Episode, currentWordCount: number, overlap2: numb
 }
 
 /**
- * 두뇌에게 「이거 기억할 만한 일이야?」를 묻는 자리.
+ * 두뇌에게 이거 기억할 만한 일이야?를 묻는 자리.
  *
  * **낱말 표로는 안 된다는 걸 재서 알았다.** 실제 기록에서 사람 text 197개가 오갔는데 사건으로
- * 담긴 건 **둘**이었다. 「오늘 회의가 길어서 좀 지쳤어」 「엄마랑 좀 다퉜어」 「발표 준비
- * 하나도 못 했는데 내일이야」 — 전부 0점이었다. 표에 든 낱말이 하나도 안 들어 있어서다.
+ * 담긴 건 **둘**이었다. 오늘 회의가 길어서 좀 지쳤어 엄마랑 좀 다퉜어 발표 준비
+ * 하나도 못 했는데 내일이야. 전부 0점이었다. 표에 든 낱말이 하나도 안 들어 있어서다.
  * 표를 늘려도 다음 말에서 또 놓친다. 사람 말은 표에 안 담긴다.
  *
  * 레퍼런스(Generative Agents)가 여기서 하는 건 **두뇌에게 점수를 물어보는 것**이다. 우리도
- * 두뇌가 이미 있으니 물어본다. 다만 **말하는 길에서는 안 부른다** — 답이 늦어지면 그게 더
+ * 두뇌가 이미 있으니 물어본다. 다만 **말하는 길에서는 안 부른다**. 답이 늦어지면 그게 더
  * 큰 손해다. 한 turn 끝나고 따로 부른다.
  */
 export function askEnergy(ask: (prompt: string) => Promise<string | null>) {
@@ -287,20 +287,20 @@ export function askEnergy(ask: (prompt: string) => Promise<string | null>) {
     const list = texts2.map((text5, i) => `${i + 1}. ${text5.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
     const answer = await ask(
       '아래는 사람이 한 말들이다. 각각이 **나중에 다시 꺼낼 만한 일**인지 0~9 로 매겨라.\n' +
-        '0 = 그냥 지나가는 text · 3 = 기억해 둘 만함 · 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
-        '지시·부탁·질문은 사건이 아니다 — 0 이다.\n' +
+        '0 = 그냥 지나가는 text, 3 = 기억해 둘 만함, 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
+        '지시, 부탁, 질문은 사건이 아니다. 0 이다.\n' +
         `숫자만 줄바꿈으로 ${texts2.length}개, 다른 말은 붙이지 마라.\n\n${list}`,
     );
     if (answer === null) return null;
-    /* **줄마다 마지막 숫자**를 본다. 통째로 숫자를 긁으면 두뇌가 「1. 5」처럼 번호를 붙여
-       답할 때 그 번호까지 점수로 센다 — 세 개 물었는데 [1,5,2] 가 나왔다(실측). */
+    /* **줄마다 마지막 숫자**를 본다. 통째로 숫자를 긁으면 두뇌가 1. 5처럼 번호를 붙여
+       답할 때 그 번호까지 점수로 센다. 세 개 물었는데 [1,5,2] 가 나왔다(실측). */
     const number = answer
       .split('\n')
       .map((line) => (line.match(/\d+/g) ?? []).pop())
       .filter((n): n is string => n !== undefined)
       .map(Number)
       .slice(0, texts2.length);
-    // 개수가 안 맞으면 **억지로 맞추지 않는다** — 어긋난 채 담으면 엉뚱한 말이 큰일이 된다.
+    // 개수가 안 맞으면 **억지로 맞추지 않는다**. 어긋난 채 담으면 엉뚱한 말이 큰일이 된다.
     return number.length === texts2.length ? number : null;
   };
 }
@@ -316,15 +316,15 @@ export function roughlyWhen(at: number, now: number): string {
 }
 
 /**
- * 두뇌에 얹을 한 줄 — **이어지는 옛 일이 있을 때만.**
+ * 두뇌에 얹을 한 줄. **이어지는 옛 일이 있을 때만.**
  *
- * 늘 붙이면 「기억하는 척」이 되고, 재료만 먹는다. 진짜로 겹칠 때만 꺼낸다.
+ * 늘 붙이면 기억하는 척이 되고, 재료만 먹는다. 진짜로 겹칠 때만 꺼낸다.
  */
 export function episodeNote(store: EpisodeStore, currentText: string, now: number): string {
   const pastTime2 = store.related(currentText, 2, now);
   if (pastTime2 === null) return '';
   return (
-    `${roughlyWhen(pastTime2.at, now)} 조수님이 이런 말을 했다: 「${pastTime2.said.slice(0, 60)}」. ` +
-    '이어지는 얘기면 그때 일을 아는 티를 내라 — 다만 캐묻지는 마라.'
+    `${roughlyWhen(pastTime2.at, now)} 조수님이 이런 말을 했다: ${pastTime2.said.slice(0, 60)}. ` +
+    '이어지는 얘기면 그때 일을 아는 티를 내라. 다만 캐묻지는 마라.'
   );
 }

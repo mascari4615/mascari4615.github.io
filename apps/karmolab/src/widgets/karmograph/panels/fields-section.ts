@@ -1,8 +1,8 @@
 /**
- * panels/fields-section.ts — 이 노드만의 칸 (TASK-KL-202, Tana 슈퍼태그 계보).
+ * panels/fields-section.ts. 이 노드만의 칸 (TASK-KL-202, Tana 슈퍼태그 계보).
  *
- * 인물에게는 「출신·소속」, 사건에는 「시점」, 개념에는 「출처」가 필요하다. 그런데 종류마다
- * 칸을 **미리 정의하게 만들면** 아무도 안 쓴다 — 첫 노드를 놓기 전에 스키마부터 짜야 하기 때문이다.
+ * 인물에게는 출신, 소속, 사건에는 시점, 개념에는 출처가 필요하다. 그런데 종류마다
+ * 칸을 **미리 정의하게 만들면** 아무도 안 쓴다. 첫 노드를 놓기 전에 스키마부터 짜야 하기 때문이다.
  *
  * 그래서 스키마를 **쓰면서 자라게** 둔다: 칸 이름은 자유롭게 적고, *같은 종류의 다른 노드가 쓴
  * 이름*이 후보로 뜬다. 세 번째 인물부터는 고르기만 하면 되고, 결과적으로 종류마다 칸이 정렬된다.
@@ -26,11 +26,11 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
   const rows = Object.entries(node.fields ?? {});
   const has = (name: string): boolean => Object.prototype.hasOwnProperty.call(node.fields ?? {}, name);
   const suggest = kindFieldNames(ctx, node).filter((n) => !has(n));
-  // 이 맵에 아직 아무도 안 쓴 종류라면 **팩이 들고 있는 틀**을 시작값으로 권한다 —
+  // 이 맵에 아직 아무도 안 쓴 종류라면 **팩이 들고 있는 틀**을 시작값으로 권한다 . 
   // 빈 칸에서 시작하면 무엇을 적을지 몰라 아무것도 안 적는다 (World Anvil 의 template 계보).
   const template = (ctx.nodeKinds().find((k) => k.id === node.kind)?.fields ?? []).filter((n) => !has(n));
-  // 칸에 「소속: 마왕성」이라고 적었는데 마왕성이 이 맵의 노드라면, 그건 **관계**다.
-  // 글로만 남으면 그림에 안 나온다 — 선으로 올릴지 물어본다 (Airtable 의 「다른 표 연결」 계보).
+  // 칸에 소속: 마왕성이라고 적었는데 마왕성이 이 맵의 노드라면, 그건 **관계**다.
+  // 글로만 남으면 그림에 안 나온다. 선으로 올릴지 물어본다 (Airtable 의 다른 표 연결 계보).
   const linked = new Set(
     ctx.spec().edges.filter((e) => e.from === node.id || e.to === node.id)
       .map((e) => (e.from === node.id ? e.to : e.from)),
@@ -64,10 +64,10 @@ export function fieldsSectionHtml(ctx: PanelCtx, node: GraphNode): string {
         <button class="btn btn-ghost" data-km="fld-add">${esc(t('karmograph.fldAdd.label'))}</button>
       </div>
       ${suggest.length === 0 ? '' : `<div class="km-hint">${esc(t('karmograph.fldSuggest.hint', {
-        list: suggest.slice(0, 6).join(' · '),
+        list: suggest.slice(0, 6).join(', '),
       }))}</div>`}
       ${template.length === 0 ? '' : `<button class="btn btn-ghost" data-km="fld-template">${esc(t('karmograph.fldTemplate.label', {
-        list: template.join(' · '),
+        list: template.join(', '),
       }))}</button>`}
     </div>`;
 }
@@ -80,9 +80,9 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
     const input = el as HTMLInputElement;
     input.oninput = () => {
       fields()[input.dataset.key ?? ''] = input.value;
-      touch(false);   // 타자 중에는 패널을 다시 그리지 않는다 — 커서가 날아간다.
+      touch(false);   // 타자 중에는 패널을 다시 그리지 않는다. 커서가 날아간다.
     };
-    // 다 치고 손을 뗄 때만 다시 그린다. 그래야 「이 값이 이 맵의 노드다 → 선으로 잇겠나」가
+    // 다 치고 손을 뗄 때만 다시 그린다. 그래야 이 값이 이 맵의 노드다 → 선으로 잇겠나가
     // 그 자리에서 뜬다(타자 한 글자마다 다시 그리면 아무것도 못 친다).
     input.onchange = () => {
       const value = input.value.trim();
@@ -90,7 +90,7 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
       if (hit) touch(true);
     };
   });
-  // 칸 **이름**을 고치는 것은 자리 옮기기다 — 순서를 지키려 새로 담는다(그냥 지웠다 넣으면 맨 뒤로 간다).
+  // 칸 **이름**을 고치는 것은 자리 옮기기다. 순서를 지키려 새로 담는다(그냥 지웠다 넣으면 맨 뒤로 간다).
   side.querySelectorAll('[data-km="fld-name"]').forEach((el) => {
     const input = el as HTMLInputElement;
     input.onchange = () => {
@@ -134,7 +134,7 @@ export function bindFieldsSection(ctx: PanelCtx, node: GraphNode, touch: (redraw
     fields()[name] = fields()[name] ?? '';
     touch(true);
     /* ★ 칸을 만들면 **그 칸에 커서를 준다** (TASK-KL-271 R7 / C3).
-       패널은 통째로 다시 그려지므로 「칸 추가」를 누른 순간 커서가 판 밖으로 떨어졌다(실측:
+       패널은 통째로 다시 그려지므로 칸 추가를 누른 순간 커서가 판 밖으로 떨어졌다(실측:
        누른 뒤 포커스가 BODY). 칸 이름을 적는 사람은 곧바로 **값**을 적으려는 것인데, 손이
        한 번 더 가야 했다. 다시 그린 뒤에 그 칸을 찾아 커서를 놓는다. */
     requestAnimationFrame(() => {

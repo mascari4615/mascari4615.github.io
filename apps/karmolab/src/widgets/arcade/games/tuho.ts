@@ -1,14 +1,14 @@
 /**
- * 투호 — 항아리에 화살 넣기 (TASK-KL-242)
+ * 투호. 항아리에 화살 넣기 (TASK-KL-242)
  *
- * 쉰한 번째, 마지막 게임. 윷놀이·제기차기와 같은 마당에서 나온 놀이라 셋이 한 묶음이 된다.
+ * 쉰한 번째, 마지막 게임. 윷놀이, 제기차기와 같은 마당에서 나온 놀이라 셋이 한 묶음이 된다.
  *
- * 겨눔은 둘뿐이다 — **좌우 각도와 세기.** 다트가 「점을 맞히기」라면 투호는 **「거리를 맞히기」**다.
- * 세게 던지면 넘어가고 약하면 못 미친다. 그래서 화면도 위에서 내려다보지 않고 서서 본다 —
+ * 겨눔은 둘뿐이다. **좌우 각도와 세기.** 다트가 점을 맞히기라면 투호는 **거리를 맞히기**다.
+ * 세게 던지면 넘어가고 약하면 못 미친다. 그래서 화면도 위에서 내려다보지 않고 서서 본다 . 
  * 멀고 가까움이 안 보이면 이 놀이는 성립하지 않는다.
  *
  * 항아리 아가리에 그대로 들어가면 2점, 귀(양옆 손잡이)에 걸치면 1점. 원래 투호에도 귀에
- * 거는 수가 따로 있다 — 아깝게 빗나간 것이 그냥 0점이면 판이 밋밋해진다.
+ * 거는 수가 따로 있다. 아깝게 빗나간 것이 그냥 0점이면 판이 밋밋해진다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -19,7 +19,7 @@ export const H = 150;
 export const FROM = { x: 50, y: 138 };
 /** 항아리 */
 export const POT = { x: 50, y: 42, r: 6.5 };
-/** 귀 — 아가리 양옆 */
+/** 귀. 아가리 양옆 */
 export const EAR_DX = 11;
 export const EAR_R = 4.2;
 /** 화살 하나가 날아가는 시간 */
@@ -59,7 +59,7 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
   id: 'tuho',
   seats: [1, 6],
   rounds: 1,
-  /* 화살이 날아가는 동안 시계가 돌아야 한다 — 차례 게임이지만 시간이 필요하다. */
+  /* 화살이 날아가는 동안 시계가 돌아야 한다. 차례 게임이지만 시간이 필요하다. */
   realtime: true,
 
   init(ctx) {
@@ -85,7 +85,7 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
     const A = Math.min(1, Math.max(0, ang));
     const P = Math.min(1, Math.max(0, pow));
 
-    /* 손이 흔들린다 — 같은 값을 눌러도 똑같이 안 간다. 씨앗에서 나오므로 손님 화면도 같다. */
+    /* 손이 흔들린다. 같은 값을 눌러도 똑같이 안 간다. 씨앗에서 나오므로 손님 화면도 같다. */
     const shake = (ctx.rng() - 0.5) * 3.2;
     const lat = (A - 0.5) * 0.62;
     const range = 46 + P * 76 + shake;
@@ -103,7 +103,7 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
     const left = s.left.map((v, i) => (i === seat ? v - 1 : v));
     const score = s.score.map((v, i) => (i === seat ? v + worth : v));
     const shots = [...s.shots, { x: to.x, y: to.y, worth, seat }];
-    /* 다음 차례 — 화살이 남은 사람 중에서 */
+    /* 다음 차례. 화살이 남은 사람 중에서 */
     let turn = seat;
     for (let k = 1; k <= left.length; k++) {
       const i = (seat + k) % left.length;
@@ -114,9 +114,9 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
 
   outcome(s, ctx): Outcome {
     if (!s.over) {
-      /* 판이 도는 중에도 **마지막 한 발**을 말로 낸다 (arcade-next 「놀이마다의 소리」).
-         아가리에 들었는지는 이미 `shots` 끝에 있다 — 새로 만들지 않고 그걸 쓴다.
-         **발마다 달라지는 값은 안 싣는다** — 여기는 차례가 돌아 `who` 가 매번 바뀌므로
+      /* 판이 도는 중에도 **마지막 한 발**을 말로 낸다 (arcade-next 놀이마다의 소리).
+         아가리에 들었는지는 이미 `shots` 끝에 있다. 새로 만들지 않고 그걸 쓴다.
+         **발마다 달라지는 값은 안 싣는다**. 여기는 차례가 돌아 `who` 가 매번 바뀌므로
          말이 저절로 달라진다. 되돌려 재 보고(그 값을 빼도 안 빨개짐) 뺐다. 증명 안 되는 줄은 안 남긴다. */
       const shot = s.shots[s.shots.length - 1];
       if (!shot) return { over: false };
@@ -144,7 +144,7 @@ export const tuho: GameDef<TuhoState, TuhoAction> = {
     if (s.over || s.fly || s.turn !== seat || s.left[seat] <= 0) return null;
     /* 항아리로 곧장 가는 값을 거꾸로 풀고, 손버릇만큼 흔든다.
      *
-     * **자리 번호로 손버릇을 가르지 않는다** — 전에는 `0.05 + (seat % 4) * 0.028` 이라
+     * **자리 번호로 손버릇을 가르지 않는다**. 전에는 `0.05 + (seat % 4) * 0.028` 이라
      * 0번이 늘 제일 정확했다. 자리가 실력을 정하면 뒷자리에 앉은 사람은 이유도 모르고 진다
      * (제기에서 같은 병을 97% 승률로 실측했다). 흔들림 폭은 판마다 뽑는다. */
     const want = dist(FROM.x, FROM.y, POT.x, POT.y);

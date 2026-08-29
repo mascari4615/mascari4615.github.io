@@ -22,10 +22,10 @@ test('새 줄은 그때부터, 있던 줄은 처음 본 날을 지킨다', () =>
 test('앞머리 기호나 공백이 달라도 같은 줄로 본다', () => {
   const s = new KnownStamps({ now: () => 5 });
   s.sync('- 커피를  좋아함');
-  assert.notEqual(s.stampOf('• 커피를 좋아함'), null);
+  assert.notEqual(s.stampOf('- 커피를 좋아함'), null);
 });
 
-test('사라졌다 돌아와도 처음 본 날을 잃지 않는다 — 몇 주 알던 게 오늘 것이 되면 안 된다', () => {
+test('사라졌다 돌아와도 처음 본 날을 잃지 않는다. 몇 주 알던 게 오늘 것이 되면 안 된다', () => {
   let now3 = 1_000;
   const s = new KnownStamps({ now: () => now3 });
   s.sync('- 커피를 좋아함');
@@ -56,7 +56,7 @@ test('얼마나 오래 알았는지 사람 말로', () => {
 
 // ── 두뇌에 얹는 한 줄 ────────────────────────────────────────────────
 
-test('오늘 처음 안 것만 짚는다 — 예전부터 알던 척을 막는 게 목적이다', () => {
+test('오늘 처음 안 것만 짚는다. 예전부터 알던 척을 막는 게 목적이다', () => {
   let now5 = 10 * day;
   const s = new KnownStamps({ now: () => now5 });
   s.sync('- 커피를 좋아함');
@@ -68,7 +68,7 @@ test('오늘 처음 안 것만 짚는다 — 예전부터 알던 척을 막는 �
   assert.match(note, /예전부터 알던 것처럼 말하지 마라/);
 });
 
-test('오늘 안 게 없으면 아무 말도 안 얹는다 — 늘 붙으면 재료만 먹는다', () => {
+test('오늘 안 게 없으면 아무 말도 안 얹는다. 늘 붙으면 재료만 먹는다', () => {
   let now6 = 10 * day;
   const s = new KnownStamps({ now: () => now6 });
   s.sync('- 커피를 좋아함');
@@ -84,7 +84,7 @@ test('너무 많이 늘어놓지 않는다', () => {
   assert.equal((justLearned(multiline, s, now7).match(/번 알게 됨/g) ?? []).length, 3);
 });
 
-test('모르는 줄은 안 짚는다 — 아직 세어 본 적 없는 것을 오늘 것으로 치면 안 된다', () => {
+test('모르는 줄은 안 짚는다. 아직 세어 본 적 없는 것을 오늘 것으로 치면 안 된다', () => {
   const s = new KnownStamps({ now: () => 5 * day });
   assert.equal(justLearned('- 처음 보는 줄', s, 5 * day), '');
 });

@@ -34,10 +34,10 @@ export interface EdgeSpeechOptions {
 }
 
 /**
- * 엣지 뉴럴 음성 — 키도 계정도 없이 쓰는 자연스러운 목소리.
+ * 엣지 뉴럴 음성. 키도 계정도 없이 쓰는 자연스러운 목소리.
  *
  * 이 컴퓨터에 깔린 한국어 목소리는 옛날 방식 하나뿐이라 로봇처럼 들린다. 그래서 소리는
- * 서버에서 만들어 내려보내고, 그게 안 되면 브라우저 내장 목소리로 물러선다 — 인터넷이
+ * 서버에서 만들어 내려보내고, 그게 안 되면 브라우저 내장 목소리로 물러선다. 인터넷이
  * 끊겨도 말은 하게.
  */
 export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
@@ -70,11 +70,11 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
-      // `name@결` 형태면 그 결의 빠르기·높낮이를 쓴다.
+      // `name@결` 형태면 그 결의 빠르기, 높낮이를 쓴다.
       const at = (voiceId ?? '').lastIndexOf('@');
       const name = at < 0 ? (voiceId || defaultVoice) : (voiceId as string).slice(0, at);
       const toneName = at < 0 ? null : (voiceId as string).slice(at + 1);
-      // 결은 그때그때 마음에서 온다. 손으로 적어 두는 자리는 없앴다 — 목록만 부풀리고
+      // 결은 그때그때 마음에서 온다. 손으로 적어 두는 자리는 없앴다. 목록만 부풀리고
       // 고를 이유가 없었다.
       const tone = toneName === null ? undefined : moodTone[toneName as Tone];
 

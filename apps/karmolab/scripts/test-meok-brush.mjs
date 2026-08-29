@@ -1,5 +1,5 @@
 /**
- * 이미지 편집기 붓·픽셀 검사 (TASK-KL-240)
+ * 이미지 편집기 붓, 픽셀 검사 (TASK-KL-240)
  *
  * 붓에서 눈으로 잡기 어려운 것 둘을 여기서 잠근다:
  *  ① 반투명 붓으로 천천히 그어도 **한 겹**이어야 한다(도장 겹침이 안 진해진다)
@@ -47,17 +47,17 @@ const P = load('pixel');
 
 const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
 
-/* ===== 붓 — 한 획은 한 겹 ===== */
+/* ===== 붓. 한 획은 한 겹 ===== */
 {
   const surface = D.createSurface(64, 64);
   const settings = { ...B.defaultBrush(), size: 12, hardness: 1, opacity: 0.5, spacing: 0.05, smoothing: 0, color: [255, 0, 0] };
   const stroke = new B.Stroke(surface, settings);
   stroke.begin({ x: 10, y: 32 });
-  /* 아주 촘촘히 — 도장이 수십 번 겹친다. */
+  /* 아주 촘촘히. 도장이 수십 번 겹친다. */
   for (let x = 10; x <= 50; x += 0.5) stroke.move({ x, y: 32 });
   stroke.end();
   const a = alphaAt(surface, 30, 32);
-  assert.equal(a, 128, '반투명 붓을 천천히 그어도 한 겹(도장 겹침이 안 쌓인다) — 실제 ' + a);
+  assert.equal(a, 128, '반투명 붓을 천천히 그어도 한 겹(도장 겹침이 안 쌓인다). 실제 ' + a);
 }
 
 /* 빠르게 그어도 점선이 안 된다 */
@@ -83,20 +83,20 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.equal(alphaAt(surface, 0, 0), 255, '붓 밖은 안 건드린다');
 }
 
-/* 흐름(flow) — 한 번 지나면 옅고, 여러 획이면 진해진다 */
+/* 흐름(flow). 한 번 지나면 옅고, 여러 획이면 진해진다 */
 {
   const settings = { ...B.defaultBrush(), size: 8, hardness: 1, flow: 0.25, opacity: 1, smoothing: 0, color: [0, 0, 0], pressureFlow: 0 };
   const surface = D.createSurface(16, 16);
   const first = new B.Stroke(surface, settings);
   first.begin({ x: 8, y: 8 }); first.end();
   const once = alphaAt(surface, 8, 8);
-  assert.equal(once, 64, '한 도장은 흐름만큼만 — 실제 ' + once);
+  assert.equal(once, 64, '한 도장은 흐름만큼만. 실제 ' + once);
   const second = new B.Stroke(surface, settings);
   second.begin({ x: 8, y: 8 }); second.end();
   assert.ok(alphaAt(surface, 8, 8) > once, '획을 또 그으면 진해진다');
 }
 
-/* 필압 — 약하게 누르면 가늘다 */
+/* 필압. 약하게 누르면 가늘다 */
 {
   const settings = { ...B.defaultBrush(), size: 20, hardness: 1, smoothing: 0, pressureSize: 1, pressureFlow: 0, color: [0, 0, 0] };
   const soft = D.createSurface(40, 40);
@@ -109,7 +109,7 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.ok(width(soft) < width(hard) / 2, '약한 필압이 눈에 띄게 가늘다 (' + width(soft) + ' vs ' + width(hard) + ')');
 }
 
-/* 픽셀 모드 — 격자 칸에 딱 붙고 흐린 가장자리가 없다 */
+/* 픽셀 모드. 격자 칸에 딱 붙고 흐린 가장자리가 없다 */
 {
   const surface = D.createSurface(32, 32);
   const stroke = new B.Stroke(surface, { ...B.defaultBrush(), pixel: true, grid: 8, size: 8, smoothing: 0, color: [0, 0, 0] });
@@ -139,7 +139,7 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   const changed = P.floodFill(surface, 1, 1, [255, 0, 0, 255]);
   assert.equal(changed, 32, '벽 왼쪽만 칠한다 (4×8)');
   assert.equal(surface.data[(0 * 8 + 5) * 4], 255, '벽 너머는 안 샌다');
-  assert.equal(P.floodFill(surface, 1, 1, [255, 0, 0, 255]), 0, '같은 색 다시 칠하면 0 — 되돌리기 단계 안 늘림');
+  assert.equal(P.floodFill(surface, 1, 1, [255, 0, 0, 255]), 0, '같은 색 다시 칠하면 0. 되돌리기 단계 안 늘림');
 }
 {
   /* 이어져 있지 않아도 같은 색 전부 */
@@ -171,7 +171,7 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.equal(doc.layers[0].cels[0].data[(3 * 32 + 3) * 4 + 3], 255, '한 칸이 4×4 로 커진다');
   assert.equal(doc.layers[0].cels[1].data[3], 0, '둘째 프레임은 첫 칸이 비었다');
 
-  /* 왕복 — 옛 도구로도 계속 열린다 */
+  /* 왕복. 옛 도구로도 계속 열린다 */
   const back = P.ditherdeckFromDoc(doc, (d, f) => C.composite(d, f));
   assert.equal(back.size, 8);
   assert.equal(back.frames.length, 2);
@@ -180,7 +180,7 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.equal(back.frames[1][63], '#18222d');
 }
 
-/* 색 읽기 · 팔레트 뽑기 */
+/* 색 읽기, 팔레트 뽑기 */
 {
   assert.deepEqual([...P.parseHex('#f0a')], [255, 0, 170, 255]);
   assert.deepEqual([...P.parseHex('#12345678')], [18, 52, 86, 120]);
@@ -194,7 +194,7 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.equal(palette.length, 2);
 }
 
-/* 새 픽셀 문서 · 칸 칠하기 */
+/* 새 픽셀 문서, 칸 칠하기 */
 {
   const doc = P.createPixelDoc(16, 8, 'sprite');
   assert.equal(doc.w, 128);
@@ -206,4 +206,4 @@ const alphaAt = (surface, x, y) => surface.data[(y * surface.w + x) * 4 + 3];
   assert.equal(cel.data[((3 * 8) * 128 + 3 * 8) * 4 + 3], 0, '옆 칸은 안 건드린다');
 }
 
-console.log('[test-meok-brush] ✓ 한 획 한 겹 · 빈틈 없음 · 지우개 · 흐름 · 필압 · 픽셀 격자 · 채우기 · ditherdeck 왕복');
+console.log('[test-meok-brush] ✓ 한 획 한 겹, 빈틈 없음, 지우개, 흐름, 필압, 픽셀 격자, 채우기, ditherdeck 왕복');

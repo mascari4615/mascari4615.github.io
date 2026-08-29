@@ -1,7 +1,7 @@
 {
-  "regextest.mdd": "Regular expressions are not scary. Let’s try them together!",
+  "regextest.mdd": "Regular expressions are not scary. Let's try them together!",
   "regextest.label.pattern": "Pattern",
-  "regextest.note.flags": "Flags — g all, i ignore case, m multiline, s dot matches newlines, u unicode",
+  "regextest.note.flags": "Flags. g all, i ignore case, m multiline, s dot matches newlines, u unicode",
   "regextest.aria.flags": "Flags",
   "regextest.label.text": "Test string",
   "regextest.aria.text": "Text to test",
@@ -21,14 +21,14 @@
   "regextest.sample.date": "released 2026-08-05, ends 2027-01-01",
   "regextest.preset.spaces": "Repeated spaces",
   "regextest.sample.spaces": "a  sentence   with    gaps",
-  "regextest.err.pattern": "Pattern error — ",
+  "regextest.err.pattern": "Pattern error. ",
   "regextest.value.none": "(none)",
   "regextest.hint.text": "<span style=\"color:var(--text-tertiary);\">Type a test string</span>",
   "regextest.err.replace": "Replacement error: ",
   "regextest.hint.replace": "<span style=\"color:var(--text-tertiary);\">Type a replacement and the result appears</span>",
-  "regextest.label.replace": "Replacement (optional) — $1 and $<name> work",
+  "regextest.label.replace": "Replacement (optional). $1 and $<name> work",
   "regextest.value.matches": "{n} matches",
   "regextest.value.noMatch": "No matches",
-  "regextest.explain.title": "What this pattern means (piece by piece · railroad)",
-  "regextest.explain.cannot": "Could not read it —"
+  "regextest.explain.title": "What this pattern means (piece by piece, railroad)",
+  "regextest.explain.cannot": "Could not read it . "
 }

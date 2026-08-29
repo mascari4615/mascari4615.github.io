@@ -1,10 +1,10 @@
 /**
- * yawnbot 캐릭터 런타임 내구 스냅샷 (TASK-KAR-CHARSTATE — heartbeat 패턴 미러)
+ * yawnbot 캐릭터 런타임 내구 스냅샷 (TASK-KAR-CHARSTATE. heartbeat 패턴 미러)
  *
  * KAR-MEMOSYNC part2 가 캐릭터 런타임 상태(mood/relationship/.active/memory
- * logs 등)를 git untrack → prod memo divergence 동결은 해소됐으나 git 백업·
- * 이력·머신간 복원이 사라졌다. 본 모듈은 그 상태를 *단일-writer 내구
- * 스냅샷*으로 복원한다 — divergence 0 을 유지하며 durable.
+ * logs 등)를 git untrack → prod memo divergence 동결은 해소됐으나 git 백업, 
+ * 이력, 머신간 복원이 사라졌다. 본 모듈은 그 상태를 *단일-writer 내구
+ * 스냅샷*으로 복원한다. divergence 0 을 유지하며 durable.
  *
  * 설계 = `heartbeat.ts`(`writeHeartbeatOnce`, TASK-YB-021) 동형:
  *  - GitHub Contents API (GET sha → PUT) 로 memo orphan 브랜치 파일 갱신.
@@ -12,37 +12,37 @@
  *  - **로컬 git 완전 무관** → 다세션 인덱스 race 0, main 히스토리 무관,
  *    merge/divergence 구조적 0 (KAR-MEMOSYNC 동결 근본의 정확한 회피).
  *  - **단일 writer = prod 봇만** → PUT race 0 (divergence 재발 방지 불변식,
- *    TASK 6동기 「멀티」 행: 다중 writer 금지).
+ *    TASK 6동기 멀티 행: 다중 writer 금지).
  *
- * heartbeat 와 *다른 브랜치* (`yawnbot-character-state`) — 관심사 분리:
+ * heartbeat 와 *다른 브랜치* (`yawnbot-character-state`). 관심사 분리:
  * heartbeat = liveness 시각 / charstate = 캐릭터 상태 스냅샷.
  *
  * 번들 대상 = KAR-MEMOSYNC part2 가 .gitignore 한 캐릭터 런타임 산출:
  * characters/.active.json, 캐릭터별 relationship.json,
  * memory/mood.json, memory/user.md, memory/self.md,
  * memory/.growth-updated, memory/.user-self-updated, 그리고
- * memory 하위 logs·daily·weekly·monthly 의 .md 요약·로그.
+ * memory 하위 logs, daily, weekly, monthly 의 .md 요약, 로그.
  * image-cache(재생성 가능 바이너리 캐시, 캐릭터 상태 아님) +
  * proposal 파이프라인 JSONL 3종(append-only 운영로그) = scope 제외.
  *
  * skip-if-unchanged: 직전 PUT 한 번들 해시를 기억 → 무변경이면 PUT 생략
- * (heartbeat 의 노이즈 억제 정신 — 단, charstate 는 「변경 시에만」 PUT).
+ * (heartbeat 의 노이즈 억제 정신. 단, charstate 는 변경 시에만 PUT).
  *
  * 순수부(collectBundle / serializeBundle / bundleHash / planSnapshot)는
- * fs/clock 주입으로 단위 테스트 가능 (실 네트워크·실 GitHub 무관).
+ * fs/clock 주입으로 단위 테스트 가능 (실 네트워크, 실 GitHub 무관).
  *
- * 복원(pull-down)은 본 모듈 scope 밖 — KAR-MEMOSYNC 측정상 모든 소비
+ * 복원(pull-down)은 본 모듈 scope 밖. KAR-MEMOSYNC 측정상 모든 소비
  * 서비스가 missing-file self-heal(CharacterService/MemoryService
  * initialize, Mood/Relationship _load 기본값) 하므로 필수 부팅경로 아님.
  * 복원 경로 추가 = 데드 인프라(code-style dead-interface 금지) → TASK 후속.
  *
  * 환경:
- *  - MEMO_GITHUB_PAT (또는 GITHUB_TOKEN)        — memo write 토큰 (미설정 시 비활성)
- *  - MEMO_REPO_PATH                              — 로컬 memo 클론 경로 (미설정 시 비활성)
- *  - YAWNBOT_CHARSTATE_REPO                      — 기본 'mascari4615/memo'
- *  - YAWNBOT_CHARSTATE_BRANCH                    — 기본 'yawnbot-character-state'
- *  - YAWNBOT_CHARSTATE_PATH                      — 기본 '.character-state/bundle.json'
- *  - YAWNBOT_CHARSTATE_INTERVAL_MIN              — 간격(분, 기본 30, 최소 1)
+ *  - MEMO_GITHUB_PAT (또는 GITHUB_TOKEN)       . memo write 토큰 (미설정 시 비활성)
+ *  - MEMO_REPO_PATH                             . 로컬 memo 클론 경로 (미설정 시 비활성)
+ *  - YAWNBOT_CHARSTATE_REPO                     . 기본 'mascari4615/memo'
+ *  - YAWNBOT_CHARSTATE_BRANCH                   . 기본 'yawnbot-character-state'
+ *  - YAWNBOT_CHARSTATE_PATH                     . 기본 '.character-state/bundle.json'
+ *  - YAWNBOT_CHARSTATE_INTERVAL_MIN             . 간격(분, 기본 30, 최소 1)
  */
 
 import fs from 'fs';
@@ -62,11 +62,11 @@ const BUNDLE_SCHEMA = 1;
 
 /**
  * 캐릭터 런타임 산출 중 스냅샷 대상 (KAR-MEMOSYNC part2 가 .gitignore 한
- * 것과 정합 — image-cache·proposal JSONL 제외). 모두 `characters/` 하위
+ * 것과 정합. image-cache, proposal JSONL 제외). 모두 `characters/` 하위
  * 상대 경로. glob 이 아니라 결정적 walk(heartbeat 처럼 결정성 우선).
  */
 
-/** characters/<slug>/memory 하위에서 번들에 포함할 파일·디렉토리. */
+/** characters/<slug>/memory 하위에서 번들에 포함할 파일, 디렉토리. */
 const MEMORY_FILES = ['mood.json', 'user.md', 'self.md', '.growth-updated', '.user-self-updated'];
 const MEMORY_SUBDIRS = ['logs', 'daily', 'weekly', 'monthly'];
 /** characters/<slug> 직속에서 포함할 파일. */
@@ -86,7 +86,7 @@ export interface CharacterStateBundle {
   /** 스냅샷 시각 (ISO). */
   ts: string;
   source: 'yawnbot';
-  /** path 오름차순 정렬된 엔트리 — 직렬화 결정성. */
+  /** path 오름차순 정렬된 엔트리. 직렬화 결정성. */
   entries: BundleEntry[];
 }
 
@@ -119,7 +119,7 @@ export function collectBundle(
     try {
       content = f.readFileSync(absPath, 'utf-8');
     } catch {
-      return; // 읽기 실패(권한·경합) = skip, 다음 tick 에서 재시도
+      return; // 읽기 실패(권한, 경합) = skip, 다음 tick 에서 재시도
     }
     entries.push({ path: relPosix, content });
   };
@@ -179,7 +179,7 @@ export function serializeBundle(bundle: CharacterStateBundle): string {
 }
 
 /**
- * 콘텐츠 해시 — skip-if-unchanged 판정용. ts 는 제외(시각만 바뀌어도
+ * 콘텐츠 해시. skip-if-unchanged 판정용. ts 는 제외(시각만 바뀌어도
  * 매번 PUT 되는 노이즈 방지). entries 만 해시.
  */
 export function bundleHash(entries: BundleEntry[]): string {
@@ -206,7 +206,7 @@ export interface SnapshotPlan {
 
 /**
  * 순수 계획: 현 번들 수집 → 해시 → prevHash 와 비교해 skip 판정.
- * IO 0 (fs 주입). PUT 여부·페이로드를 결정만 한다.
+ * IO 0 (fs 주입). PUT 여부, 페이로드를 결정만 한다.
  */
 export function planSnapshot(
   cfg: { memoRepoPath: string },
@@ -267,7 +267,7 @@ export async function writeSnapshotOnce(
     { fsImpl: deps.fsImpl, now },
   );
   if (plan.skip) {
-    logger.log(`[CharState] 변경 없음 — PUT 생략 (entries=${plan.entryCount})`);
+    logger.log(`[CharState] 변경 없음. PUT 생략 (entries=${plan.entryCount})`);
     return plan.hash;
   }
 
@@ -388,7 +388,7 @@ export async function runSnapshotTick(
     if (prevHealthy === null && healthy) {
       // 첫 tick 정상 → alert 없음
     } else if (healthy) {
-      alert?.({ healthy: true, reason: `charstate 복구 — ${reason}` });
+      alert?.({ healthy: true, reason: `charstate 복구. ${reason}` });
     } else {
       alert?.({ healthy: false, reason });
     }
@@ -424,7 +424,7 @@ export interface SnapshotDeps {
 }
 
 export interface SnapshotHandle {
-  /** 즉시 1회 tick (테스트·수동 트리거용). */
+  /** 즉시 1회 tick (테스트, 수동 트리거용). */
   tickNow: () => Promise<void>;
   /** interval 해제. */
   stop: () => void;
@@ -435,7 +435,7 @@ let activeTickNow: (() => Promise<void>) | null = null;
 
 /**
  * 캐릭터 스냅샷 시작. token/memoRepoPath 미설정 시 경고 후 no-op
- * (heartbeat 와 동일 graceful 정책 — divergence 동결 해소가 본 모듈
+ * (heartbeat 와 동일 graceful 정책. divergence 동결 해소가 본 모듈
  * 미설정으로 깨지면 안 됨). 즉시 1회 후 interval 등록.
  */
 export function startCharacterStateSnapshot(deps: SnapshotDeps): SnapshotHandle | null {
@@ -445,11 +445,11 @@ export function startCharacterStateSnapshot(deps: SnapshotDeps): SnapshotHandle 
   const memoRepoPath = deps.memoRepoPath?.trim();
   const logger = deps.logger ?? console;
   if (!token) {
-    logger.warn('[CharState] MEMO_GITHUB_PAT 미설정 — 캐릭터 스냅샷 비활성');
+    logger.warn('[CharState] MEMO_GITHUB_PAT 미설정. 캐릭터 스냅샷 비활성');
     return null;
   }
   if (!memoRepoPath) {
-    logger.warn('[CharState] MEMO_REPO_PATH 미설정 — 캐릭터 스냅샷 비활성');
+    logger.warn('[CharState] MEMO_REPO_PATH 미설정. 캐릭터 스냅샷 비활성');
     return null;
   }
 
@@ -508,7 +508,7 @@ export function stopCharacterStateSnapshot(): void {
 }
 
 /**
- * 수동 트리거 — 현재 활성 character state 스냅샷의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
+ * 수동 트리거. 현재 활성 character state 스냅샷의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
  * 비활성(token/path 미설정 등) 시 `inactive` 반환.
  */
 export async function triggerCharStateSnapshotNow(): Promise<{ status: 'ok' | 'inactive' }> {

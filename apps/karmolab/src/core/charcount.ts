@@ -1,15 +1,15 @@
 /**
- * 글자수 세기 — 알맹이 (TASK-KL-088 / S1)
+ * 글자수 세기. 알맹이 (TASK-KL-088 / S1)
  *
- * MCP 로 내놓는 이유(B등급): 「몇 글자야?」의 답이 **기준마다 다르다.**
- *  ① 공백 포함 / 제외 — 자소서는 대개 공백 포함, 어떤 곳은 제외
- *  ② 글자 / 바이트 — 옛 시스템은 바이트로 자른다. 한글은 UTF-8 에서 3바이트, EUC-KR 에서 2바이트
- *  ③ 이모지 — 코드 단위로 세면 2로 세진다. 사람이 보기엔 한 글자다
- * LLM 은 이 중 하나로 뭉뚱그려 답하고, 한도가 걸린 칸(자소서·메타 설명)에서 그게 사고가 된다.
- * 그래서 **여러 기준을 한 번에** 낸다 — 어느 기준인지도 함께.
+ * MCP 로 내놓는 이유(B등급): 몇 글자야?의 답이 **기준마다 다르다.**
+ *  ① 공백 포함 / 제외. 자소서는 대개 공백 포함, 어떤 곳은 제외
+ *  ② 글자 / 바이트. 옛 시스템은 바이트로 자른다. 한글은 UTF-8 에서 3바이트, EUC-KR 에서 2바이트
+ *  ③ 이모지. 코드 단위로 세면 2로 세진다. 사람이 보기엔 한 글자다
+ * LLM 은 이 중 하나로 뭉뚱그려 답하고, 한도가 걸린 칸(자소서, 메타 설명)에서 그게 사고가 된다.
+ * 그래서 **여러 기준을 한 번에** 낸다. 어느 기준인지도 함께.
  *
- * 원고지·EUC-KR 은 한국(과 일본)에서만 뜻이 있는 칸이다. 화면은 지역을 보고 감추지만,
- * 알맹이는 값을 다 낸다 — 부르는 쪽이 고르면 된다.
+ * 원고지, EUC-KR 은 한국(과 일본)에서만 뜻이 있는 칸이다. 화면은 지역을 보고 감추지만,
+ * 알맹이는 값을 다 낸다. 부르는 쪽이 고르면 된다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -18,16 +18,16 @@ export const spec: ToolSpec = {
   ops: {
     count: {
       desc:
-        'Count text every way at once — with/without spaces, words, sentences, lines, paragraphs,' +
+        'Count text every way at once. with/without spaces, words, sentences, lines, paragraphs,' +
         ' UTF-8 and EUC-KR bytes, Korean manuscript pages, and a breakdown by script.' +
-        ' Emoji count as one character as a person sees them (naive .length says 2–7 for one emoji).' +
+        ' Emoji count as one character as a person sees them (naive .length says 2-7 for one emoji).' +
         ' / 글자수를 여러 기준으로 한 번에. 이모지는 보이는 대로 한 글자.',
       in: { text: 'string' },
       out: 'string'
     },
     fits: {
       desc:
-        'Check whether text fits a limit, choosing the basis (with/without spaces, or bytes) —' +
+        'Check whether text fits a limit, choosing the basis (with/without spaces, or bytes) . ' +
         ' forms disagree on which one they mean.' +
         ' / 한도에 들어가는지. 기준을 골라서.',
       in: { text: 'string', limit: 'number', basis: 'string?' },
@@ -46,7 +46,7 @@ const DIGIT = /[0-9]/;
  */
 export const chars = (text: string): string[] => [...text];
 
-/* `Intl.Segmenter` 는 이 판의 타입 목록에 아직 없다(브라우저·Node 에는 있다) — 필요한 만큼만 적는다. */
+/* `Intl.Segmenter` 는 이 판의 타입 목록에 아직 없다(브라우저, Node 에는 있다). 필요한 만큼만 적는다. */
 interface GraphemeSegmenter {
   segment: (input: string) => Iterable<{ segment: string }>;
 }
@@ -55,11 +55,11 @@ let segmenter: GraphemeSegmenter | null | undefined;
 /**
  * **사람이 세는 글자 수** (TASK-KL-276).
  *
- * `[...text]` 는 코드포인트라 가족 이모지 「👨‍👩‍👧」 를 **5**, 국기를 2, NFD 로 풀린 `é` 를 2 로 센다.
- * 이 도구를 보는 이유가 트위터 글자수·이력서 자수 제한이라 **사람 눈과 다르면 쓸모가 없다**.
- * (이 파일의 설명문은 이미 「사람이 보는 대로 센다」고 적어 두고 있었다 — 구현만 안 그랬다.)
+ * `[...text]` 는 코드포인트라 가족 이모지 👨‍👩‍👧 를 **5**, 국기를 2, NFD 로 풀린 `é` 를 2 로 센다.
+ * 이 도구를 보는 이유가 트위터 글자수, 이력서 자수 제한이라 **사람 눈과 다르면 쓸모가 없다**.
+ * (이 파일의 설명문은 이미 사람이 보는 대로 센다고 적어 두고 있었다. 구현만 안 그랬다.)
  *
- * 못 쓰는 환경이면 옛 방식으로 내려간다 — 수가 조금 달라져도 멈추지는 않는다.
+ * 못 쓰는 환경이면 옛 방식으로 내려간다. 수가 조금 달라져도 멈추지는 않는다.
  */
 export const graphemeCount = (text: string): number => {
   if (!text) return 0;
@@ -79,14 +79,14 @@ export const graphemeCount = (text: string): number => {
 
 export function byteLength(s: string, encoding: 'utf8' | 'euckr' = 'utf8'): number {
   if (encoding === 'utf8') return new TextEncoder().encode(s).length;
-  /* EUC-KR 근사: 한글·한자·전각 = 2바이트, ASCII = 1바이트.
+  /* EUC-KR 근사: 한글, 한자, 전각 = 2바이트, ASCII = 1바이트.
      이모지처럼 **애초에 못 담는 글자**는 여기서 2로 세지 말고 따로 알린다(`euckrUnsafe`). */
   let n = 0;
   for (const ch of chars(s)) n += (ch.codePointAt(0) ?? 0) > 127 ? 2 : 1;
   return n;
 }
 
-/** 옛 인코딩(EUC-KR)에 못 담기는 글자 — 이모지 등. 붙여넣는 곳에서 깨진다. */
+/** 옛 인코딩(EUC-KR)에 못 담기는 글자. 이모지 등. 붙여넣는 곳에서 깨진다. */
 export function euckrUnsafe(s: string): string[] {
   const out: string[] = [];
   for (const ch of chars(s)) {
@@ -95,14 +95,14 @@ export function euckrUnsafe(s: string): string[] {
   return out;
 }
 
-/** 원고지는 **칸**이다 — 줄이 바뀌면 남은 칸은 버린다. 한 줄 20칸 · 한 장 200칸. */
+/** 원고지는 **칸**이다. 줄이 바뀌면 남은 칸은 버린다. 한 줄 20칸, 한 장 200칸. */
 export function manuscriptSheets(text: string): number {
   if (text.trim() === '') return 0;
   const cells = text.split('\n').reduce((sum, line) => sum + Math.ceil(chars(line).length / 20 || 0), 0);
   return Math.ceil((cells * 20) / 200);
 }
 
-/** 마지막 문장에 마침표가 없어도 문장이다 — 자소서 마지막 줄이 늘 그렇다. */
+/** 마지막 문장에 마침표가 없어도 문장이다. 자소서 마지막 줄이 늘 그렇다. */
 export function sentenceCount(text: string): number {
   const closed = (text.match(/[^.!?。？！\n]+[.!?。？！]+/g) ?? []).length;
   const tail = text.replace(/[\s\S]*[.!?。？！]/, '').trim();
@@ -142,8 +142,8 @@ export function count(text: string): Counts {
     else other++;
   }
   return {
-    /* 「글자 수」는 사람이 세는 덩이(자소) 수다. 아래 `hangul`·`latin` 갈래별 수는 **문자 하나하나**를
-     * 세므로 서로 안 맞을 수 있는데, 그게 맞다 — 묻는 것이 다르다. */
+    /* 글자 수는 사람이 세는 덩이(자소) 수다. 아래 `hangul`, `latin` 갈래별 수는 **문자 하나하나**를
+     * 세므로 서로 안 맞을 수 있는데, 그게 맞다. 묻는 것이 다르다. */
     withSpace: graphemeCount(text),
     withoutSpace: graphemeCount(text.replace(/\s/g, '')),
     words: text.trim() === '' ? 0 : text.trim().split(/\s+/).length,
@@ -177,13 +177,13 @@ export const run: ToolRunner = (op, args) => {
   if (op === 'count') {
     const c = count(text);
     const lines = [
-      `공백 포함 ${c.withSpace}자  ·  공백 제외 ${c.withoutSpace}자  ← 어느 기준인지 확인하세요`,
-      `단어 ${c.words}  ·  문장 ${c.sentences}  ·  줄 ${c.lines}  ·  문단 ${c.paragraphs}`,
-      `UTF-8 ${c.utf8}바이트  ·  EUC-KR ${c.euckr}바이트 (옛 시스템은 바이트로 자릅니다)`,
-      `원고지 ${c.manuscript}장  ·  한글 ${c.hangul} · 영문 ${c.latin} · 숫자 ${c.digit} · 공백 ${c.space} · 기타 ${c.other}`
+      `공백 포함 ${c.withSpace}자 ,  공백 제외 ${c.withoutSpace}자  ← 어느 기준인지 확인하세요`,
+      `단어 ${c.words} ,  문장 ${c.sentences} ,  줄 ${c.lines} ,  문단 ${c.paragraphs}`,
+      `UTF-8 ${c.utf8}바이트 ,  EUC-KR ${c.euckr}바이트 (옛 시스템은 바이트로 자릅니다)`,
+      `원고지 ${c.manuscript}장 ,  한글 ${c.hangul}, 영문 ${c.latin}, 숫자 ${c.digit}, 공백 ${c.space}, 기타 ${c.other}`
     ];
     if (c.unsafe.length > 0) {
-      lines.push(`⚠ EUC-KR 로는 못 담는 글자가 있습니다: ${c.unsafe.join(' ')} — 옛 시스템에 붙여넣으면 깨집니다.`);
+      lines.push(`⚠ EUC-KR 로는 못 담는 글자가 있습니다: ${c.unsafe.join(' ')}. 옛 시스템에 붙여넣으면 깨집니다.`);
     }
     return lines.join('\n');
   }
@@ -193,17 +193,17 @@ export const run: ToolRunner = (op, args) => {
     if (Number.isFinite(limit) === false || limit <= 0) throw new Error('한도를 0보다 큰 숫자로 주세요');
     const basis = String(args.basis ?? 'withSpace') as Basis;
     if (basis in BASIS_KO === false) {
-      throw new Error(`모르는 기준입니다: ${basis} (withSpace · withoutSpace · utf8 · euckr)`);
+      throw new Error(`모르는 기준입니다: ${basis} (withSpace, withoutSpace, utf8, euckr)`);
     }
     const c = count(text);
     const now = c[basis];
     const left = limit - now;
     return [
       `${BASIS_KO[basis]} ${now} / 한도 ${limit}`,
-      left >= 0 ? `${left} 남음 (통과)` : `${-left} 초과 — 줄여야 합니다`,
-      `참고: 공백 포함 ${c.withSpace} · 공백 제외 ${c.withoutSpace} · UTF-8 ${c.utf8}바이트`
+      left >= 0 ? `${left} 남음 (통과)` : `${-left} 초과. 줄여야 합니다`,
+      `참고: 공백 포함 ${c.withSpace}, 공백 제외 ${c.withoutSpace}, UTF-8 ${c.utf8}바이트`
     ].join('\n');
   }
 
-  throw new Error(`charcount 에 「${op}」 는 없습니다`);
+  throw new Error(`charcount 에 ${op} 는 없습니다`);
 };

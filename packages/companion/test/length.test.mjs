@@ -4,7 +4,7 @@ import test from 'node:test';
 import { acceptLength, usualLength, wasShort } from '../dist/index.js';
 
 const text2 = (text, role = 'sensed') => ({ role, channel: 'web', kind: 'text', text, at: Date.now() });
-/** 말수 적은 사람 — 실측 분포와 비슷하게 잡았다(사람 말 가운데값 7~10자). */
+/** 말수 적은 사람. 실측 분포와 비슷하게 잡았다(사람 말 가운데값 7~10자). */
 const usual = ['응', 'ㅇㅇ', '그러게', '오늘 뭐 했어', '그래', '음 그렇구나'].map((t) => text2(t));
 
 test('여느 때보다 훨씬 길게 털어놓으면 받아 준다', () => {
@@ -12,19 +12,19 @@ test('여느 때보다 훨씬 길게 털어놓으면 받아 준다', () => {
   assert.match(r, /한마디로 받지 마라/);
 });
 
-test('짧아도 감정이 실렸으면 받아 준다 — 「망했어」를 한마디로 받으면 안 된다', () => {
+test('짧아도 감정이 실렸으면 받아 준다. 망했어를 한마디로 받으면 안 된다', () => {
   assert.match(acceptLength({ justNow: '아 진짜 망했어', recent: usual }), /감정이 실렸다/);
 });
 
-test('여느 때 같은 말에는 안 켠다 — 늘 켜면 그냥 「길게 말해라」가 되어 인격을 덮는다', () => {
+test('여느 때 같은 말에는 안 켠다. 늘 켜면 그냥 길게 말해라가 되어 인격을 덮는다', () => {
   for (const t of ['응', '그러게', '오늘 뭐 했어', 'ㅇㅇ']) {
     assert.equal(acceptLength({ justNow: t, recent: usual }), '', `${t}`);
   }
 });
 
-test('말길이는 그 사람 자신과 견준다 — 딱 잘라 정하면 말 많은 사람은 늘 걸린다', () => {
+test('말길이는 그 사람 자신과 견준다. 딱 잘라 정하면 말 많은 사람은 늘 걸린다', () => {
   const talkativePerson = Array.from({ length: 8 }, () => text2('오늘은 아침부터 이것저것 하느라 정신이 하나도 없었고 회의도 많았어'));
-  // 말 많은 사람에게 스무 자는 여느 때보다 짧다 — 켜지면 안 된다
+  // 말 많은 사람에게 스무 자는 여느 때보다 짧다. 켜지면 안 된다
   assert.equal(acceptLength({ justNow: '오늘 좀 바빴어 그래도 괜찮았고 별일은 없었어', recent: talkativePerson }), '');
   // 같은 말이 말수 적은 사람에게는 긴 말이다
   assert.notEqual(acceptLength({ justNow: '오늘 좀 바빴어 그래도 괜찮았고 별일은 없었어', recent: usual }), '');
@@ -34,14 +34,14 @@ test('여느 때를 모를 만큼 짧은 사이면 견줄 것이 없다고 말�
   assert.equal(usualLength([text2('응'), text2('그래')]), 0);
 });
 
-test('아직 모르는 사이여도 두 마디쯤 되면 받아 준다 — 바닥이 그래서 있다', () => {
+test('아직 모르는 사이여도 두 마디쯤 되면 받아 준다. 바닥이 그래서 있다', () => {
   assert.equal(acceptLength({ justNow: '가'.repeat(12), recent: [text2('응')] }), '', '열두 자는 털어놓은 게 아니다');
   assert.notEqual(acceptLength({ justNow: '가'.repeat(29), recent: [text2('응')] }), '');
 });
 
 test('한 번 길게 쓴 것이 여느 때를 통째로 끌어올리지 않는다', () => {
   const mixed = [...usual, text2('가'.repeat(300)), text2('응'), text2('그래')];
-  assert.ok(usualLength(mixed) < 30, `가운데값이어야 한다 — 지금 ${usualLength(mixed)}`);
+  assert.ok(usualLength(mixed) < 30, `가운데값이어야 한다. 지금 ${usualLength(mixed)}`);
 });
 
 test('빈 말에는 아무것도 안 한다', () => {
@@ -50,18 +50,18 @@ test('빈 말에는 아무것도 안 한다', () => {
 
 // ── 재는 자리 ────────────────────────────────────────────────────
 
-test('받아 줄 자리인데 한마디로 끊었으면 잡아낸다 — 시켜 놓고 안 세면 재료만 얹고 끝난다', () => {
-  assert.match(wasShort('응…', true), /한마디로 끊었다/);
+test('받아 줄 자리인데 한마디로 끊었으면 잡아낸다. 시켜 놓고 안 세면 재료만 얹고 끝난다', () => {
+  assert.match(wasShort('응...', true), /한마디로 끊었다/);
   assert.equal(wasShort('진짜 고생했네. 그 중에 재밌던 건 뭐였어?', true), null);
 });
 
-test('받아 줄 자리가 아니면 짧아도 안 잡는다 — 짧은 게 이 얘의 인격이다', () => {
-  assert.equal(wasShort('응…', false), null);
+test('받아 줄 자리가 아니면 짧아도 안 잡는다. 짧은 게 이 얘의 인격이다', () => {
+  assert.equal(wasShort('응...', false), null);
 });
 
-test('되묻는 말은 짧아도 안 막는다 — 막았더니 좋은 답이 「…」로 떨어졌다', () => {
-  // 실측: 「뭐가 재밌었어?」(11자)가 걸려서 버려지고 끝내 「…」가 나갔다
+test('되묻는 말은 짧아도 안 막는다. 막았더니 좋은 답이 ...로 떨어졌다', () => {
+  // 실측: 뭐가 재밌었어?(11자)가 걸려서 버려지고 끝내 ...가 나갔다
   assert.equal(wasShort('뭐가 재밌었어?', true), null);
   assert.equal(wasShort('그래서?', true), null);
-  assert.match(wasShort('응…', true), /한마디로 끊었다/);
+  assert.match(wasShort('응...', true), /한마디로 끊었다/);
 });

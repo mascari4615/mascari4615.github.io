@@ -8,7 +8,7 @@
   "vat.round.floor": "Round down (the usual practice)",
   "vat.round.half": "Round to nearest",
   "vat.btn.copy": "Copy the three lines",
-  "vat.status.idle": "Korean VAT (10% by default). Taking VAT out of a gross amount divides by 1.1 — that is not the same as subtracting 10%.",
+  "vat.status.idle": "Korean VAT (10% by default). Taking VAT out of a gross amount divides by 1.1. that is not the same as subtracting 10%.",
   "vat.stat.tax": "VAT",
   "vat.stat.total": "Gross (what you charge)",
   "vat.row.rate": "Rate",

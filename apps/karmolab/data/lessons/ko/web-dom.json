@@ -3,33 +3,33 @@
   "parts": [
     {
       "id": "1",
-      "title": "찾기 — 화면에서 조각 집어 오기",
+      "title": "찾기. 화면에서 조각 집어 오기",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "프레임워크가 대신 해 주는 일이 정확히 이것이다 — **상태를 화면으로 바꾸는 일**. 한 번 손으로 해 본 사람만 프레임워크가 무엇을 아껴 주는지 안다. 첫걸음은 화면에서 조각을 집어 오는 것."
+          "text": "프레임워크가 대신 해 주는 일이 정확히 이것이다. **상태를 화면으로 바꾸는 일**. 한 번 손으로 해 본 사람만 프레임워크가 무엇을 아껴 주는지 안다. 첫걸음은 화면에서 조각을 집어 오는 것."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "쓰는 것은 사실상 둘뿐",
-          "text": "const one  = document.querySelector('#todo');       // 첫 번째 하나 (없으면 null)\nconst many = document.querySelectorAll('.item');    // 전부 (없으면 빈 목록)\n\n// 범위를 좁혀서 찾는다 — document 전체를 뒤지지 않는다\nconst btn = card.querySelector('[data-act=\"del\"]');"
+          "text": "const one  = document.querySelector('#todo');       // 첫 번째 하나 (없으면 null)\nconst many = document.querySelectorAll('.item');    // 전부 (없으면 빈 목록)\n\n// 범위를 좁혀서 찾는다. document 전체를 뒤지지 않는다\nconst btn = card.querySelector('[data-act=\"del\"]');"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 더해 보라 — 두 목록이 다르게 움직인다",
+          "label": "항목을 더해 보라. 두 목록이 다르게 움직인다",
           "height": "260px",
           "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <button id=\"add\">항목 추가</button>\n  <ul id=\"list\"><li>하나</li><li>둘</li></ul>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const list = document.getElementById('list');\n  const snapshot = document.querySelectorAll('#list li');       // 그 순간의 사진\n  const live = list.getElementsByTagName('li');                  // 살아 있는 목록\n  const log = document.getElementById('log');\n  const draw = () => { log.textContent =\n    'querySelectorAll(정지 사진): ' + snapshot.length + '개\\n' +\n    'getElementsByTagName(살아 있음): ' + live.length + '개'; };\n  draw();\n  document.getElementById('add').onclick = () => {\n    const li = document.createElement('li');\n    li.textContent = '새 항목 ' + (live.length + 1);\n    list.append(li);\n    draw();\n  };\n</script>"
         },
         {
           "type": "note",
-          "text": "`querySelectorAll` 이 주는 것은 **그 순간의 목록**이다. 나중에 추가된 요소는 안 들어 있다. 그래서 「분명 넣었는데 안 잡힌다」가 생긴다 — 다시 찾거나, 애초에 부모에 이벤트를 걸어라(3장)."
+          "text": "`querySelectorAll` 이 주는 것은 **그 순간의 목록**이다. 나중에 추가된 요소는 안 들어 있다. 그래서 분명 넣었는데 안 잡힌다가 생긴다. 다시 찾거나, 애초에 부모에 이벤트를 걸어라(3장)."
         },
         {
           "type": "p",
-          "text": "돌려주는 값도 다르다. `querySelectorAll` 은 NodeList — `forEach` 는 되지만 `map`·`filter` 는 없다. 배열로 쓰려면 `[...nodes]` 로 편다."
+          "text": "돌려주는 값도 다르다. `querySelectorAll` 은 NodeList. `forEach` 는 되지만 `map`, `filter` 는 없다. 배열로 쓰려면 `[...nodes]` 로 편다."
         },
         {
           "type": "try",
@@ -41,7 +41,7 @@
           "q": "`querySelectorAll` 로 받은 목록에 나중에 추가한 요소가 들어 있나?",
           "choices": [
             "들어 있다",
-            "안 들어 있다 — 그 순간의 사진이다",
+            "안 들어 있다. 그 순간의 사진이다",
             "브라우저마다 다르다",
             "새로고침해야 한다"
           ],
@@ -74,29 +74,29 @@
     },
     {
       "id": "2",
-      "title": "만들기 — innerHTML 과 createElement",
+      "title": "만들기. innerHTML 과 createElement",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "화면에 무언가를 새로 붙이는 방법은 두 갈래다. 문자열로 통째로 넣거나(`innerHTML`), 요소를 만들어 붙이거나(`createElement`). 갈림길의 기준은 하나 — **그 문자열에 남의 입력이 섞이는가.**"
+          "text": "화면에 무언가를 새로 붙이는 방법은 두 갈래다. 문자열로 통째로 넣거나(`innerHTML`), 요소를 만들어 붙이거나(`createElement`). 갈림길의 기준은 하나. **그 문자열에 남의 입력이 섞이는가.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이름 칸에 태그를 넣어 보라 — 한쪽만 실행된다",
+          "label": "이름 칸에 태그를 넣어 보라. 한쪽만 실행된다",
           "height": "260px",
           "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <input id=\"name\" value=\"&lt;img src=x onerror=&quot;this.replaceWith('스크립트가 돌았다')&quot;&gt;\" style=\"width:100%\">\n  <p class=\"hint\">위 값을 그대로 두고 두 단추를 눌러 보라.</p>\n  <button id=\"b1\">innerHTML 로 넣기</button>\n  <button id=\"b2\">textContent 로 넣기</button>\n  <div id=\"o1\" class=\"panel\" style=\"margin-top:8px;background:#111c33\"></div>\n  <div id=\"o2\" class=\"panel\" style=\"margin-top:6px;background:#111c33\"></div>\n</div>\n<script>\n  const v = () => document.getElementById('name').value;\n  document.getElementById('b1').onclick = () => { document.getElementById('o1').innerHTML = '안녕, ' + v(); };\n  document.getElementById('b2').onclick = () => { document.getElementById('o2').textContent = '안녕, ' + v(); };\n</script>"
         },
         {
           "type": "note",
-          "text": "`innerHTML` 에 남의 입력을 그대로 넣으면 그 사람이 적은 태그가 **실행된다**(XSS). 글자로만 보여 줄 자리에는 언제나 `textContent` 다 — 빠르기까지 하다."
+          "text": "`innerHTML` 에 남의 입력을 그대로 넣으면 그 사람이 적은 태그가 **실행된다**(XSS). 글자로만 보여 줄 자리에는 언제나 `textContent` 다. 빠르기까지 하다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "조립해서 붙이기",
-          "text": "const li = document.createElement('li');\nli.className = 'item';\nli.textContent = todo.text;          // 남의 입력은 여기로\nli.dataset.id = todo.id;             // data-id 속성\nlist.append(li);                     // appendChild 보다 편하다(여러 개·문자열 가능)"
+          "text": "const li = document.createElement('li');\nli.className = 'item';\nli.textContent = todo.text;          // 남의 입력은 여기로\nli.dataset.id = todo.id;             // data-id 속성\nlist.append(li);                     // appendChild 보다 편하다(여러 개, 문자열 가능)"
         },
         {
           "type": "p",
@@ -105,12 +105,12 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "틀을 미리 적어 두고 복제하기 — template",
+          "label": "틀을 미리 적어 두고 복제하기. template",
           "text": "<template id=\"row\">\n  <li class=\"item\"><span class=\"t\"></span><button data-act=\"del\">지우기</button></li>\n</template>\n\nconst tpl = document.getElementById('row');\nconst node = tpl.content.cloneNode(true);\nnode.querySelector('.t').textContent = todo.text;\nlist.append(node);"
         },
         {
           "type": "try",
-          "text": "내 코드에서 `innerHTML` 을 전부 찾아라. 안에 변수가 들어가는데 그 변수가 사용자·서버에서 온 값이면, 그 자리를 `textContent` 나 `createElement` 로 바꿔라."
+          "text": "내 코드에서 `innerHTML` 을 전부 찾아라. 안에 변수가 들어가는데 그 변수가 사용자, 서버에서 온 값이면, 그 자리를 `textContent` 나 `createElement` 로 바꿔라."
         }
       ],
       "quiz": [
@@ -140,7 +140,7 @@
           "q": "`<template>` 의 특징은?",
           "choices": [
             "화면에 바로 보인다",
-            "내용이 실행·로드되지 않고 대기한다",
+            "내용이 실행, 로드되지 않고 대기한다",
             "CSS 전용이다",
             "서버에서만 쓴다"
           ],
@@ -151,19 +151,19 @@
     },
     {
       "id": "3",
-      "title": "이벤트 — 하나에 걸고 위임한다",
+      "title": "이벤트. 하나에 걸고 위임한다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "이벤트는 **캡처(위→아래) → 대상 → 버블(아래→위)** 순으로 흐른다. 이 흐름을 알면 「항목마다 리스너 걸기」를 안 하게 된다 — 부모 하나에 걸고 눌린 곳을 읽으면 된다."
+          "text": "이벤트는 **캡처(위→아래) → 대상 → 버블(아래→위)** 순으로 흐른다. 이 흐름을 알면 항목마다 리스너 걸기를 안 하게 된다. 부모 하나에 걸고 눌린 곳을 읽으면 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "항목을 눌러 보라 — 리스너는 딱 하나뿐이다",
+          "label": "항목을 눌러 보라. 리스너는 딱 하나뿐이다",
           "height": "260px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <ul id=\"list\">\n    <li><span>사료</span><button data-act=\"del\">지우기</button></li>\n    <li><span>모래</span><button data-act=\"del\">지우기</button></li>\n  </ul>\n  <button id=\"add\">항목 추가</button>\n  <div class=\"log\" id=\"log\">리스너 1개 — 나중에 추가한 항목도 그대로 작동한다.</div>\n</div>\n<script>\n  const list = document.getElementById('list');\n  const log = document.getElementById('log');\n  let n = 2;\n  /* 부모 하나에만 건다 — 자식이 몇 개든, 나중에 생기든 상관없다 */\n  list.addEventListener('click', (e) => {\n    const btn = e.target.closest('[data-act=\"del\"]');\n    if (!btn) return;                       // 관심 없는 클릭은 그냥 흘린다\n    const li = btn.closest('li');\n    log.textContent = '지움: ' + li.querySelector('span').textContent + '  (리스너는 여전히 1개)';\n    li.remove();\n  });\n  document.getElementById('add').onclick = () => {\n    n++;\n    const li = document.createElement('li');\n    li.innerHTML = '<span>새 항목 ' + n + '</span><button data-act=\"del\">지우기</button>';\n    list.append(li);\n  };\n</script>"
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <ul id=\"list\">\n    <li><span>사료</span><button data-act=\"del\">지우기</button></li>\n    <li><span>모래</span><button data-act=\"del\">지우기</button></li>\n  </ul>\n  <button id=\"add\">항목 추가</button>\n  <div class=\"log\" id=\"log\">리스너 1개. 나중에 추가한 항목도 그대로 작동한다.</div>\n</div>\n<script>\n  const list = document.getElementById('list');\n  const log = document.getElementById('log');\n  let n = 2;\n  /* 부모 하나에만 건다. 자식이 몇 개든, 나중에 생기든 상관없다 */\n  list.addEventListener('click', (e) => {\n    const btn = e.target.closest('[data-act=\"del\"]');\n    if (!btn) return;                       // 관심 없는 클릭은 그냥 흘린다\n    const li = btn.closest('li');\n    log.textContent = '지움: ' + li.querySelector('span').textContent + '  (리스너는 여전히 1개)';\n    li.remove();\n  });\n  document.getElementById('add').onclick = () => {\n    n++;\n    const li = document.createElement('li');\n    li.innerHTML = '<span>새 항목 ' + n + '</span><button data-act=\"del\">지우기</button>';\n    list.append(li);\n  };\n</script>"
         },
         {
           "type": "p",
@@ -181,7 +181,7 @@
         },
         {
           "type": "try",
-          "text": "항목마다 리스너를 거는 코드를 하나 골라 부모 위임으로 바꿔 보라. 그리고 항목을 1000개 넣어 두 방식의 메모리·설치 시간을 비교하라."
+          "text": "항목마다 리스너를 거는 코드를 하나 골라 부모 위임으로 바꿔 보라. 그리고 항목을 1000개 넣어 두 방식의 메모리, 설치 시간을 비교하라."
         }
       ],
       "quiz": [
@@ -222,19 +222,19 @@
     },
     {
       "id": "4",
-      "title": "이벤트 다루기 — 막기 · 떼기 · 아끼기",
+      "title": "이벤트 다루기. 막기, 떼기, 아끼기",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "리스너를 걸 줄 아는 다음 단계는 **멈추고, 떼고, 아끼는** 법이다. 세 가지 다 「나중에 생기는 문제」를 미리 막는 일이다."
+          "text": "리스너를 걸 줄 아는 다음 단계는 **멈추고, 떼고, 아끼는** 법이다. 세 가지 다 나중에 생기는 문제를 미리 막는 일이다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "두 손잡이를 켜 보고 무엇이 달라지나 보라",
           "height": "300px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <form id=\"f\">\n    <input name=\"q\" value=\"고양이\">\n    <button>보내기</button>\n  </form>\n  <div id=\"outer\" class=\"panel\" style=\"margin-top:10px;background:#111c33\">\n    바깥\n    <button id=\"inner\" style=\"margin-left:8px\">안쪽 단추</button>\n  </div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const prevent = {{prevent}}, stop = {{stop}};\n  const log = document.getElementById('log');\n  const say = (s) => { log.textContent = s + '\\n' + log.textContent; };\n  document.getElementById('f').addEventListener('submit', (e) => {\n    if (prevent) { e.preventDefault(); say('submit — preventDefault: 새로고침 안 함'); }\n    else { say('submit — 기본 동작 그대로(원래라면 화면이 넘어간다)'); e.preventDefault(); }\n  });\n  document.getElementById('outer').addEventListener('click', () => say('  바깥까지 올라옴'));\n  document.getElementById('inner').addEventListener('click', (e) => {\n    if (stop) { e.stopPropagation(); say('안쪽 클릭 — stopPropagation: 여기서 끊김'); }\n    else say('안쪽 클릭');\n  });\n</script>",
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <form id=\"f\">\n    <input name=\"q\" value=\"고양이\">\n    <button>보내기</button>\n  </form>\n  <div id=\"outer\" class=\"panel\" style=\"margin-top:10px;background:#111c33\">\n    바깥\n    <button id=\"inner\" style=\"margin-left:8px\">안쪽 단추</button>\n  </div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const prevent = {{prevent}}, stop = {{stop}};\n  const log = document.getElementById('log');\n  const say = (s) => { log.textContent = s + '\\n' + log.textContent; };\n  document.getElementById('f').addEventListener('submit', (e) => {\n    if (prevent) { e.preventDefault(); say('submit. preventDefault: 새로고침 안 함'); }\n    else { say('submit. 기본 동작 그대로(원래라면 화면이 넘어간다)'); e.preventDefault(); }\n  });\n  document.getElementById('outer').addEventListener('click', () => say('  바깥까지 올라옴'));\n  document.getElementById('inner').addEventListener('click', (e) => {\n    if (stop) { e.stopPropagation(); say('안쪽 클릭. stopPropagation: 여기서 끊김'); }\n    else say('안쪽 클릭');\n  });\n</script>",
           "controls": [
             {
               "id": "prevent",
@@ -252,17 +252,17 @@
         },
         {
           "type": "p",
-          "text": "`preventDefault()` 는 **브라우저의 기본 동작**을 막는다(폼 전송, 링크 이동, 체크박스 켜짐). `stopPropagation()` 은 **위로 올라가는 것**을 막는다 — 이건 아껴 써라. 부모의 위임 리스너까지 같이 죽어서, 나중에 「왜 저 메뉴만 안 닫히지」가 된다."
+          "text": "`preventDefault()` 는 **브라우저의 기본 동작**을 막는다(폼 전송, 링크 이동, 체크박스 켜짐). `stopPropagation()` 은 **위로 올라가는 것**을 막는다. 이건 아껴 써라. 부모의 위임 리스너까지 같이 죽어서, 나중에 왜 저 메뉴만 안 닫히지가 된다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "떼는 법 — 요즘은 AbortController 하나로",
+          "label": "떼는 법. 요즘은 AbortController 하나로",
           "text": "const ac = new AbortController();\nwindow.addEventListener('resize', onResize, { signal: ac.signal });\nel.addEventListener('scroll', onScroll, { signal: ac.signal });\n\nac.abort();   // 걸어 둔 것 전부 한 번에 뗀다"
         },
         {
           "type": "note",
-          "text": "`scroll`·`touchmove` 처럼 자주 터지는 이벤트는 `{ passive: true }` 를 붙여라 — 「preventDefault 안 하겠다」는 약속이라 브라우저가 스크롤을 기다리지 않는다. 그리고 값이 바뀔 때마다 서버를 부르지 말고 **디바운스**하라(6장)."
+          "text": "`scroll`, `touchmove` 처럼 자주 터지는 이벤트는 `{ passive: true }` 를 붙여라. preventDefault 안 하겠다는 약속이라 브라우저가 스크롤을 기다리지 않는다. 그리고 값이 바뀔 때마다 서버를 부르지 말고 **디바운스**하라(6장)."
         },
         {
           "type": "try",
@@ -290,7 +290,7 @@
             "모바일에서 안 돼서"
           ],
           "answer": 1,
-          "why": "「바깥을 누르면 닫기」 같은 장치가 조용히 멈춘다."
+          "why": "바깥을 누르면 닫기 같은 장치가 조용히 멈춘다."
         },
         {
           "q": "여러 리스너를 한 번에 떼는 요즘 방법은?",
@@ -323,9 +323,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 만져 보라 — 화면은 어디서도 읽지 않는다",
+          "label": "직접 만져 보라. 화면은 어디서도 읽지 않는다",
           "height": "360px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <form id=\"f\" style=\"display:flex;gap:6px\">\n    <input id=\"t\" placeholder=\"할 일\" style=\"flex:1\">\n    <button>추가</button>\n  </form>\n  <div style=\"margin-top:8px;display:flex;gap:6px\">\n    <button data-f=\"all\">전부</button><button data-f=\"open\">남은 것</button><button data-f=\"done\">끝난 것</button>\n  </div>\n  <ul id=\"list\"></ul>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  /* 진실 */\n  let todos = [{ id: 1, text: '사료 사기', done: false }, { id: 2, text: '모래 갈기', done: true }];\n  let filter = 'all';\n  const list = document.getElementById('list'), log = document.getElementById('log');\n\n  /* 진실 -> 화면. 이 함수는 화면에서 아무것도 읽지 않는다 */\n  function render() {\n    const shown = todos.filter((t) => filter === 'all' || (filter === 'done') === t.done);\n    list.replaceChildren(...shown.map((t) => {\n      const li = document.createElement('li');\n      const cb = document.createElement('input');\n      cb.type = 'checkbox'; cb.checked = t.done; cb.dataset.id = t.id;\n      const span = document.createElement('span');\n      span.textContent = t.text;\n      span.style.textDecoration = t.done ? 'line-through' : 'none';\n      const del = document.createElement('button');\n      del.textContent = '지우기'; del.dataset.del = t.id; del.style.marginLeft = 'auto';\n      li.append(cb, span, del);\n      return li;\n    }));\n    log.textContent = '상태: ' + JSON.stringify(todos.map((t) => (t.done ? '[x] ' : '[ ] ') + t.text)) + '  ·  보기: ' + filter;\n  }\n\n  /* 사건 -> 진실 */\n  document.getElementById('f').addEventListener('submit', (e) => {\n    e.preventDefault();\n    const input = document.getElementById('t');\n    if (!input.value.trim()) return;\n    todos = [...todos, { id: Date.now(), text: input.value.trim(), done: false }];\n    input.value = '';\n    render();\n  });\n  document.body.addEventListener('click', (e) => {\n    const f = e.target.closest('[data-f]');\n    if (f) { filter = f.dataset.f; render(); return; }\n    const d = e.target.closest('[data-del]');\n    if (d) { todos = todos.filter((t) => t.id !== Number(d.dataset.del)); render(); }\n  });\n  document.body.addEventListener('change', (e) => {\n    const cb = e.target.closest('input[type=checkbox]');\n    if (!cb) return;\n    todos = todos.map((t) => (t.id === Number(cb.dataset.id) ? { ...t, done: cb.checked } : t));\n    render();\n  });\n  render();\n</script>"
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <form id=\"f\" style=\"display:flex;gap:6px\">\n    <input id=\"t\" placeholder=\"할 일\" style=\"flex:1\">\n    <button>추가</button>\n  </form>\n  <div style=\"margin-top:8px;display:flex;gap:6px\">\n    <button data-f=\"all\">전부</button><button data-f=\"open\">남은 것</button><button data-f=\"done\">끝난 것</button>\n  </div>\n  <ul id=\"list\"></ul>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  /* 진실 */\n  let todos = [{ id: 1, text: '사료 사기', done: false }, { id: 2, text: '모래 갈기', done: true }];\n  let filter = 'all';\n  const list = document.getElementById('list'), log = document.getElementById('log');\n\n  /* 진실 -> 화면. 이 함수는 화면에서 아무것도 읽지 않는다 */\n  function render() {\n    const shown = todos.filter((t) => filter === 'all' || (filter === 'done') === t.done);\n    list.replaceChildren(...shown.map((t) => {\n      const li = document.createElement('li');\n      const cb = document.createElement('input');\n      cb.type = 'checkbox'; cb.checked = t.done; cb.dataset.id = t.id;\n      const span = document.createElement('span');\n      span.textContent = t.text;\n      span.style.textDecoration = t.done ? 'line-through' : 'none';\n      const del = document.createElement('button');\n      del.textContent = '지우기'; del.dataset.del = t.id; del.style.marginLeft = 'auto';\n      li.append(cb, span, del);\n      return li;\n    }));\n    log.textContent = '상태: ' + JSON.stringify(todos.map((t) => (t.done ? '[x] ' : '[ ] ') + t.text)) + ' ,  보기: ' + filter;\n  }\n\n  /* 사건 -> 진실 */\n  document.getElementById('f').addEventListener('submit', (e) => {\n    e.preventDefault();\n    const input = document.getElementById('t');\n    if (!input.value.trim()) return;\n    todos = [...todos, { id: Date.now(), text: input.value.trim(), done: false }];\n    input.value = '';\n    render();\n  });\n  document.body.addEventListener('click', (e) => {\n    const f = e.target.closest('[data-f]');\n    if (f) { filter = f.dataset.f; render(); return; }\n    const d = e.target.closest('[data-del]');\n    if (d) { todos = todos.filter((t) => t.id !== Number(d.dataset.del)); render(); }\n  });\n  document.body.addEventListener('change', (e) => {\n    const cb = e.target.closest('input[type=checkbox]');\n    if (!cb) return;\n    todos = todos.map((t) => (t.id === Number(cb.dataset.id) ? { ...t, done: cb.checked } : t));\n    render();\n  });\n  render();\n</script>"
         },
         {
           "type": "note",
@@ -333,16 +333,16 @@
         },
         {
           "type": "p",
-          "text": "`replaceChildren()` 은 통째로 갈아 끼운다. 항목이 수천 개가 되면 그때 「달라진 것만 고치기」를 고민하면 된다 — 그 고민을 대신 해 주는 물건이 React·Vue 의 가상 DOM 이다. **순서가 이렇다: 먼저 한 방향, 그다음 최적화.**"
+          "text": "`replaceChildren()` 은 통째로 갈아 끼운다. 항목이 수천 개가 되면 그때 달라진 것만 고치기를 고민하면 된다. 그 고민을 대신 해 주는 물건이 React, Vue 의 가상 DOM 이다. **순서가 이렇다: 먼저 한 방향, 그다음 최적화.**"
         },
         {
           "type": "try",
-          "text": "위 데모에 「전부 지우기」를 더한다면 어디를 고칠까? 답은 한 줄이다 — `todos = []; render();`. 화면을 만지는 코드가 한 줄도 없으면 제대로 짠 것이다."
+          "text": "위 데모에 전부 지우기를 더한다면 어디를 고칠까? 답은 한 줄이다. `todos = []; render();`. 화면을 만지는 코드가 한 줄도 없으면 제대로 짠 것이다."
         }
       ],
       "quiz": [
         {
-          "q": "「한 방향」의 뜻은?",
+          "q": "한 방향의 뜻은?",
           "choices": [
             "이벤트가 한 방향으로 흐른다",
             "상태를 바꾸면 화면을 다시 그리고, 화면에서 상태를 읽지 않는다",
@@ -378,7 +378,7 @@
     },
     {
       "id": "6",
-      "title": "폼과 입력 — 값을 받는 자리",
+      "title": "폼과 입력. 값을 받는 자리",
       "minutes": 8,
       "blocks": [
         {
@@ -388,9 +388,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "글자를 쳐 보라 — 세 값이 언제 갱신되나",
+          "label": "글자를 쳐 보라. 세 값이 언제 갱신되나",
           "height": "300px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <form id=\"f\">\n    <p><input name=\"q\" placeholder=\"검색어를 쳐 보라\" style=\"width:100%\"></p>\n    <p><label><input type=\"checkbox\" name=\"only\" checked> 재고만</label>\n       <select name=\"sort\"><option value=\"new\">최신</option><option value=\"cheap\">저렴</option></select></p>\n    <button>보내기</button>\n  </form>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const wait = {{wait}};\n  const f = document.getElementById('f'), log = document.getElementById('log');\n  let inputN = 0, changeN = 0, callN = 0, timer;\n  const dump = () => Object.fromEntries(new FormData(f));\n  const draw = () => { log.textContent =\n    'FormData: ' + JSON.stringify(dump()) +\n    '\\ninput 이벤트 ' + inputN + '번 · change 이벤트 ' + changeN + '번' +\n    '\\n실제 서버를 부른 횟수(디바운스 ' + wait + 'ms): ' + callN; };\n  f.addEventListener('input', () => {\n    inputN++; draw();\n    clearTimeout(timer);\n    timer = setTimeout(() => { callN++; draw(); }, wait);\n  });\n  f.addEventListener('change', () => { changeN++; draw(); });\n  f.addEventListener('submit', (e) => { e.preventDefault(); log.textContent = '보냄: ' + JSON.stringify(dump()); });\n  draw();\n</script>",
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <form id=\"f\">\n    <p><input name=\"q\" placeholder=\"검색어를 쳐 보라\" style=\"width:100%\"></p>\n    <p><label><input type=\"checkbox\" name=\"only\" checked> 재고만</label>\n       <select name=\"sort\"><option value=\"new\">최신</option><option value=\"cheap\">저렴</option></select></p>\n    <button>보내기</button>\n  </form>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const wait = {{wait}};\n  const f = document.getElementById('f'), log = document.getElementById('log');\n  let inputN = 0, changeN = 0, callN = 0, timer;\n  const dump = () => Object.fromEntries(new FormData(f));\n  const draw = () => { log.textContent =\n    'FormData: ' + JSON.stringify(dump()) +\n    '\\ninput 이벤트 ' + inputN + '번, change 이벤트 ' + changeN + '번' +\n    '\\n실제 서버를 부른 횟수(디바운스 ' + wait + 'ms): ' + callN; };\n  f.addEventListener('input', () => {\n    inputN++; draw();\n    clearTimeout(timer);\n    timer = setTimeout(() => { callN++; draw(); }, wait);\n  });\n  f.addEventListener('change', () => { changeN++; draw(); });\n  f.addEventListener('submit', (e) => { e.preventDefault(); log.textContent = '보냄: ' + JSON.stringify(dump()); });\n  draw();\n</script>",
           "controls": [
             {
               "id": "wait",
@@ -405,21 +405,21 @@
         },
         {
           "type": "p",
-          "text": "`input` 은 **글자 하나마다**, `change` 는 **다 쓰고 빠져나갈 때**(체크박스·선택은 즉시) 돈다. 검색어 자동완성처럼 매 글자 반응해야 하면 input 이지만, 그때마다 서버를 부르면 안 된다 — 마지막 입력 뒤 잠깐 기다리는 **디바운스**를 건다."
+          "text": "`input` 은 **글자 하나마다**, `change` 는 **다 쓰고 빠져나갈 때**(체크박스, 선택은 즉시) 돈다. 검색어 자동완성처럼 매 글자 반응해야 하면 input 이지만, 그때마다 서버를 부르면 안 된다. 마지막 입력 뒤 잠깐 기다리는 **디바운스**를 건다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "디바운스와 스로틀",
-          "text": "// 디바운스: 조용해질 때까지 기다렸다 한 번 (검색어·자동저장)\nconst debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };\n\n// 스로틀: 일정 간격으로만 (스크롤 위치·드래그)\nconst throttle = (fn, ms) => { let last = 0; return (...a) => {\n  const now = Date.now();\n  if (now - last >= ms) { last = now; fn(...a); }\n}; };"
+          "text": "// 디바운스: 조용해질 때까지 기다렸다 한 번 (검색어, 자동저장)\nconst debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };\n\n// 스로틀: 일정 간격으로만 (스크롤 위치, 드래그)\nconst throttle = (fn, ms) => { let last = 0; return (...a) => {\n  const now = Date.now();\n  if (now - last >= ms) { last = now; fn(...a); }\n}; };"
         },
         {
           "type": "note",
-          "text": "폼을 JS 로만 만들지 마라. `<form>` 안에 두고 `submit` 을 가로채면 **Enter 키 전송·브라우저 자동완성·필수값 검사**가 공짜로 따라온다. `div` + `click` 으로 짜면 그 셋을 손으로 다시 만들어야 한다."
+          "text": "폼을 JS 로만 만들지 마라. `<form>` 안에 두고 `submit` 을 가로채면 **Enter 키 전송, 브라우저 자동완성, 필수값 검사**가 공짜로 따라온다. `div` + `click` 으로 짜면 그 셋을 손으로 다시 만들어야 한다."
         },
         {
           "type": "try",
-          "text": "내 화면의 검색 입력에 디바운스가 있는지 보라. 없다면 네트워크 탭을 열고 글자를 열 번 쳐 보라 — 요청이 열 번 나가면 지금 고칠 자리다."
+          "text": "내 화면의 검색 입력에 디바운스가 있는지 보라. 없다면 네트워크 탭을 열고 글자를 열 번 쳐 보라. 요청이 열 번 나가면 지금 고칠 자리다."
         }
       ],
       "quiz": [
@@ -432,7 +432,7 @@
             "blur"
           ],
           "answer": 1,
-          "why": "change 는 다 쓰고 빠져나갈 때(선택·체크는 즉시)."
+          "why": "change 는 다 쓰고 빠져나갈 때(선택, 체크는 즉시)."
         },
         {
           "q": "검색어 입력에 디바운스를 거는 이유는?",
@@ -460,7 +460,7 @@
     },
     {
       "id": "7",
-      "title": "빠르게 — 화면을 언제 다시 그리나",
+      "title": "빠르게. 화면을 언제 다시 그리나",
       "minutes": 8,
       "blocks": [
         {
@@ -472,7 +472,7 @@
           "kind": "html",
           "label": "방식을 바꿔 보고 시간을 재 보라",
           "height": "290px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <div id=\"host\" style=\"height:110px;overflow:auto;background:#111c33;border-radius:8px;padding:6px\"></div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const how = '{{how}}', N = {{n}};\n  const host = document.getElementById('host'), log = document.getElementById('log');\n  const t0 = performance.now();\n  if (how === 'one') {\n    for (let i = 0; i < N; i++) { const d = document.createElement('div'); d.textContent = '줄 ' + i; host.append(d); }\n  } else if (how === 'frag') {\n    const frag = document.createDocumentFragment();\n    for (let i = 0; i < N; i++) { const d = document.createElement('div'); d.textContent = '줄 ' + i; frag.append(d); }\n    host.append(frag);\n  } else {\n    for (let i = 0; i < N; i++) { const d = document.createElement('div'); d.textContent = '줄 ' + i; host.append(d); void host.offsetHeight; }\n  }\n  const ms = performance.now() - t0;\n  log.textContent =\n    (how === 'one' ? '하나씩 append' : how === 'frag' ? 'DocumentFragment 로 모아서 한 번' : '하나씩 + 매번 offsetHeight 읽기(강제 리플로우)') +\n    '\\n' + N + '줄 · ' + ms.toFixed(1) + 'ms';\n</script>",
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <div id=\"host\" style=\"height:110px;overflow:auto;background:#111c33;border-radius:8px;padding:6px\"></div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  const how = '{{how}}', N = {{n}};\n  const host = document.getElementById('host'), log = document.getElementById('log');\n  const t0 = performance.now();\n  if (how === 'one') {\n    for (let i = 0; i < N; i++) { const d = document.createElement('div'); d.textContent = '줄 ' + i; host.append(d); }\n  } else if (how === 'frag') {\n    const frag = document.createDocumentFragment();\n    for (let i = 0; i < N; i++) { const d = document.createElement('div'); d.textContent = '줄 ' + i; frag.append(d); }\n    host.append(frag);\n  } else {\n    for (let i = 0; i < N; i++) { const d = document.createElement('div'); d.textContent = '줄 ' + i; host.append(d); void host.offsetHeight; }\n  }\n  const ms = performance.now() - t0;\n  log.textContent =\n    (how === 'one' ? '하나씩 append' : how === 'frag' ? 'DocumentFragment 로 모아서 한 번' : '하나씩 + 매번 offsetHeight 읽기(강제 리플로우)') +\n    '\\n' + N + '줄, ' + ms.toFixed(1) + 'ms';\n</script>",
           "controls": [
             {
               "id": "how",
@@ -513,7 +513,7 @@
         },
         {
           "type": "note",
-          "text": "애니메이션은 `left`·`top`·`width` 대신 `transform`·`opacity` 로 하라. 이 둘만 레이아웃을 다시 계산하지 않고 합성 단계에서 끝난다. 그리고 화면 갱신에 맞추려면 `requestAnimationFrame` 이다."
+          "text": "애니메이션은 `left`, `top`, `width` 대신 `transform`, `opacity` 로 하라. 이 둘만 레이아웃을 다시 계산하지 않고 합성 단계에서 끝난다. 그리고 화면 갱신에 맞추려면 `requestAnimationFrame` 이다."
         },
         {
           "type": "p",
@@ -521,7 +521,7 @@
         },
         {
           "type": "try",
-          "text": "위 데모를 3000줄로 올리고 세 방식을 비교하라. 「하나씩 + 매번 크기 읽기」가 몇 배 느린지 적어 두라 — 그 숫자가 강제 리플로우의 값이다."
+          "text": "위 데모를 3000줄로 올리고 세 방식을 비교하라. 하나씩 + 매번 크기 읽기가 몇 배 느린지 적어 두라. 그 숫자가 강제 리플로우의 값이다."
         }
       ],
       "quiz": [
@@ -562,19 +562,19 @@
     },
     {
       "id": "8",
-      "title": "보조기기와 초점 — 화면을 바꿨다고 알려 주기",
+      "title": "보조기기와 초점. 화면을 바꿨다고 알려 주기",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "JS 로 화면을 바꾸면 **눈으로 보는 사람에게만** 바뀐 것이 보인다. 스크린리더에게는 아무 일도 안 일어난 것과 같다 — 알려 주는 것은 우리 몫이다."
+          "text": "JS 로 화면을 바꾸면 **눈으로 보는 사람에게만** 바뀐 것이 보인다. 스크린리더에게는 아무 일도 안 일어난 것과 같다. 알려 주는 것은 우리 몫이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "메시지를 띄워 보라 — aria-live 가 있는 쪽만 읽힌다",
+          "label": "메시지를 띄워 보라. aria-live 가 있는 쪽만 읽힌다",
           "height": "260px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <button id=\"go\">저장하기</button>\n  <p class=\"hint\">스크린리더는 aria-live 가 붙은 자리만 「새로 생긴 글」로 읽어 준다.</p>\n  <div id=\"plain\" class=\"panel\" style=\"background:#111c33;margin-top:6px\">(aria-live 없음)</div>\n  <div id=\"live\" class=\"panel\" role=\"status\" aria-live=\"polite\" style=\"background:#111c33;margin-top:6px\">(aria-live=\"polite\")</div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  let n = 0;\n  document.getElementById('go').onclick = () => {\n    n++;\n    document.getElementById('plain').textContent = '저장됨 ' + n + ' (조용히 바뀐다)';\n    document.getElementById('live').textContent = '저장됨 ' + n + ' (읽어 준다)';\n    document.getElementById('log').textContent =\n      'role=\"status\" + aria-live=\"polite\" = 하던 말을 끊지 않고 이어서 알림\\n' +\n      'aria-live=\"assertive\" = 즉시 끊고 알림 (오류처럼 급한 것만)';\n  };\n</script>"
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <button id=\"go\">저장하기</button>\n  <p class=\"hint\">스크린리더는 aria-live 가 붙은 자리만 새로 생긴 글로 읽어 준다.</p>\n  <div id=\"plain\" class=\"panel\" style=\"background:#111c33;margin-top:6px\">(aria-live 없음)</div>\n  <div id=\"live\" class=\"panel\" role=\"status\" aria-live=\"polite\" style=\"background:#111c33;margin-top:6px\">(aria-live=\"polite\")</div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  let n = 0;\n  document.getElementById('go').onclick = () => {\n    n++;\n    document.getElementById('plain').textContent = '저장됨 ' + n + ' (조용히 바뀐다)';\n    document.getElementById('live').textContent = '저장됨 ' + n + ' (읽어 준다)';\n    document.getElementById('log').textContent =\n      'role=\"status\" + aria-live=\"polite\" = 하던 말을 끊지 않고 이어서 알림\\n' +\n      'aria-live=\"assertive\" = 즉시 끊고 알림 (오류처럼 급한 것만)';\n  };\n</script>"
         },
         {
           "type": "p",
@@ -583,20 +583,20 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "돌려주기 — 세 줄",
+          "label": "돌려주기. 세 줄",
           "text": "let opener = null;\nfunction open() { opener = document.activeElement; dialog.showModal(); }\nfunction close() { dialog.close(); opener?.focus(); }"
         },
         {
           "type": "note",
-          "text": "`<dialog>` 요소를 쓰면 초점 가두기·Esc 로 닫기·바깥 어둡게가 브라우저 몫이 된다. 직접 만든 모달은 그 셋을 전부 손으로 짜야 하고, 대개 하나쯤 빠진다."
+          "text": "`<dialog>` 요소를 쓰면 초점 가두기, Esc 로 닫기, 바깥 어둡게가 브라우저 몫이 된다. 직접 만든 모달은 그 셋을 전부 손으로 짜야 하고, 대개 하나쯤 빠진다."
         },
         {
           "type": "p",
-          "text": "그리고 화면에 없는 상태를 `display:none` 대신 `hidden` 속성이나 `inert` 로 다뤄라. `inert` 가 붙은 덩어리는 **초점도, 클릭도, 스크린리더도** 들어가지 못한다 — 뒤에 깔린 화면을 막을 때 정확히 맞는 도구다."
+          "text": "그리고 화면에 없는 상태를 `display:none` 대신 `hidden` 속성이나 `inert` 로 다뤄라. `inert` 가 붙은 덩어리는 **초점도, 클릭도, 스크린리더도** 들어가지 못한다. 뒤에 깔린 화면을 막을 때 정확히 맞는 도구다."
         },
         {
           "type": "try",
-          "text": "내 화면에서 모달·드롭다운을 열고 Tab 을 눌러 보라. 초점이 뒤쪽 화면으로 새어 나가면 `inert` 나 `<dialog>` 로 고칠 자리다."
+          "text": "내 화면에서 모달, 드롭다운을 열고 Tab 을 눌러 보라. 초점이 뒤쪽 화면으로 새어 나가면 `inert` 나 `<dialog>` 로 고칠 자리다."
         }
       ],
       "quiz": [
@@ -631,13 +631,13 @@
             "readonly"
           ],
           "answer": 1,
-          "why": "초점·클릭·보조기기 접근을 함께 막는다."
+          "why": "초점, 클릭, 보조기기 접근을 함께 막는다."
         }
       ]
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -648,18 +648,18 @@
           "type": "code",
           "lang": "text",
           "label": "화면을 JS 로 만들 때 점검표",
-          "text": "[ ] 진실이 한 곳에 있나 (화면에서 값을 다시 읽고 있지 않나)\n[ ] 사용자 입력이 innerHTML 로 들어가고 있지 않나 -> textContent\n[ ] 항목마다 리스너를 걸고 있지 않나 -> 부모 위임 + closest()\n[ ] 떠날 때 리스너·타이머를 떼나 -> AbortController\n[ ] 반복문 안에서 크기를 읽고 있지 않나 -> 전부 읽고 전부 쓰기\n[ ] 여러 개 붙일 때 Fragment 를 쓰나\n[ ] 폼을 <form> 안에 두고 submit 을 가로채나\n[ ] 바뀐 것을 aria-live 로 알리나 · 모달 초점을 돌려주나\n[ ] 자주 터지는 입력에 디바운스/스로틀이 있나"
+          "text": "[ ] 진실이 한 곳에 있나 (화면에서 값을 다시 읽고 있지 않나)\n[ ] 사용자 입력이 innerHTML 로 들어가고 있지 않나 -> textContent\n[ ] 항목마다 리스너를 걸고 있지 않나 -> 부모 위임 + closest()\n[ ] 떠날 때 리스너, 타이머를 떼나 -> AbortController\n[ ] 반복문 안에서 크기를 읽고 있지 않나 -> 전부 읽고 전부 쓰기\n[ ] 여러 개 붙일 때 Fragment 를 쓰나\n[ ] 폼을 <form> 안에 두고 submit 을 가로채나\n[ ] 바뀐 것을 aria-live 로 알리나, 모달 초점을 돌려주나\n[ ] 자주 터지는 입력에 디바운스/스로틀이 있나"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 점검 — 이 화면의 냄새를 세어 본다",
+          "label": "스스로 점검. 이 화면의 냄새를 세어 본다",
           "height": "260px",
-          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <div id=\"app\">\n    <ul id=\"l\"><li>하나 <button>x</button></li><li>둘 <button>x</button></li></ul>\n    <div id=\"msg\"></div>\n  </div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  /* 일부러 나쁘게 짠 코드 — 무엇이 나쁜지 세어 보자 */\n  document.querySelectorAll('#l button').forEach((b) => b.addEventListener('click', () => b.closest('li').remove()));\n  const checks = [\n    ['항목마다 리스너를 걸었나', document.querySelectorAll('#l button').length > 1],\n    ['나중에 추가한 항목은 안 먹는다', true],\n    ['진실(배열)이 없고 화면이 곧 자료다', !window.__state],\n    ['알림에 aria-live 가 없다', !document.getElementById('msg').hasAttribute('aria-live')],\n  ];\n  document.getElementById('log').textContent =\n    checks.map(([k, bad]) => (bad ? '  X  ' : '  O  ') + k).join('\\n') +\n    '\\n\\n고치는 법: 부모 위임 + 배열 상태 + render() + aria-live';\n</script>"
+          "text": "<style>\n  body { font: 14px/1.7 system-ui, sans-serif; margin: 0; color: #e2e8f0; }\n  .panel { background:#0b1220; border-radius:10px; padding:12px; }\n  button { font: inherit; padding:6px 12px; border-radius:8px; border:1px solid #334155;\n           background:#1e293b; color:#e2e8f0; cursor:pointer; }\n  button:hover { border-color:#60a5fa; }\n  input { font: inherit; padding:6px 10px; border-radius:8px; border:1px solid #334155;\n          background:#0f172a; color:#e2e8f0; }\n  ul { list-style:none; padding:0; margin:8px 0 0; }\n  li { display:flex; gap:8px; align-items:center; padding:6px 8px; background:#111c33; border-radius:8px; margin-bottom:6px; }\n  .log { font: 12.5px/1.6 ui-monospace, monospace; color:#94a3b8; white-space:pre-wrap; margin-top:8px; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"panel\">\n  <div id=\"app\">\n    <ul id=\"l\"><li>하나 <button>x</button></li><li>둘 <button>x</button></li></ul>\n    <div id=\"msg\"></div>\n  </div>\n  <div class=\"log\" id=\"log\"></div>\n</div>\n<script>\n  /* 일부러 나쁘게 짠 코드. 무엇이 나쁜지 세어 보자 */\n  document.querySelectorAll('#l button').forEach((b) => b.addEventListener('click', () => b.closest('li').remove()));\n  const checks = [\n    ['항목마다 리스너를 걸었나', document.querySelectorAll('#l button').length > 1],\n    ['나중에 추가한 항목은 안 먹는다', true],\n    ['진실(배열)이 없고 화면이 곧 자료다', !window.__state],\n    ['알림에 aria-live 가 없다', !document.getElementById('msg').hasAttribute('aria-live')],\n  ];\n  document.getElementById('log').textContent =\n    checks.map(([k, bad]) => (bad ? '  X  ' : '  O  ') + k).join('\\n') +\n    '\\n\\n고치는 법: 부모 위임 + 배열 상태 + render() + aria-live';\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 브라우저가 실제로 어떻게 화면을 그리는가다. 여기까지가 「내가 화면을 바꾸는 법」이었다면, 다음은 「그 변경이 화면에 나타나기까지」다."
+          "text": "다음 칸은 브라우저가 실제로 어떻게 화면을 그리는가다. 여기까지가 내가 화면을 바꾸는 법이었다면, 다음은 그 변경이 화면에 나타나기까지다."
         },
         {
           "type": "try",

@@ -1,7 +1,7 @@
 /**
  * 마크다운 문법표 (TASK-KL-088)
  *
- * 「표 문법이 뭐였더라」 를 찾을 때 필요한 건 설명이 아니라 **바로 붙여 넣을 조각**이다.
+ * 표 문법이 뭐였더라 를 찾을 때 필요한 건 설명이 아니라 **바로 붙여 넣을 조각**이다.
  * 그래서 항목마다 실제로 동작하는 예시를 복사값으로 둔다.
  * GitHub Flavored Markdown(GFM) 기준이며, 편집기에 따라 안 되는 건 따로 표시했다.
  */
@@ -9,7 +9,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /** [복사할 조각, 이름, 설명] */
-  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /* 표는 **쓸 때** 짓는다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const md = (): Record<string, Array<[string, string, string]>> => ({
     [t('markdown.t01')]: [
       [t('markdown.t02'), t('markdown.t03'), t('markdown.t04')],
@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       [t('markdown.t88'), t('markdown.t89'), t('markdown.t90')],
       ['#123', t('markdown.t91'), t('markdown.t92')],
       ['```mermaid\ngraph TD;\nA-->B;\n```', t('markdown.t93'), t('markdown.t94')],
-      [t('markdown.s.alert'), t('markdown.t95'), 'NOTE·TIP·IMPORTANT·WARNING·CAUTION'],
+      [t('markdown.s.alert'), t('markdown.t95'), 'NOTE, TIP, IMPORTANT, WARNING, CAUTION'],
       [t('markdown.s.details'), t('markdown.t96'), t('markdown.t97')]
     ],
     [t('markdown.t98')]: [
@@ -72,7 +72,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'markdown',
     title: t('widgets.markdown.title', undefined, "마크다운 문법표"),
     category: 'ref',
-    desc: t('widgets-desc.markdown.desc', undefined, "제목·표·코드블록·체크박스 등 마크다운 문법을 찾아 그대로 복사합니다 (GFM 기준)"),
+    desc: t('widgets-desc.markdown.desc', undefined, "제목, 표, 코드블록, 체크박스 등 마크다운 문법을 찾아 그대로 복사합니다 (GFM 기준)"),
     layout: 'wide',
     icon: '<rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 15V9l3 3 3-3v6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9v4M15 12l2 2 2-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [

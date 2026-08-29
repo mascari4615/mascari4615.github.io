@@ -1,11 +1,11 @@
 /**
- * 서버 결산(Wrapped) 집계 — 「우리 서버 한 주/한 해 요약 카드」의 데이터 층.
+ * 서버 결산(Wrapped) 집계. 우리 서버 한 주/한 해 요약 카드의 데이터 층.
  *
  * 설계 불변 3개:
- *  1. **메시지 내용은 절대 저장하지 않는다.** 길이(글자수)·시각·이모지 이름만 센다.
+ *  1. **메시지 내용은 절대 저장하지 않는다.** 길이(글자수), 시각, 이모지 이름만 센다.
  *     결산에 필요한 건 "누가 얼마나 떠들었나"지 "뭐라고 했나"가 아니다.
  *  2. **일(day) 버킷.** KST 기준 YYYY-MM-DD 로 쪼개 두면 주간/월간/연간이 전부 같은 코드로 나온다.
- *  3. **집계는 순수 함수.** 파일 I/O·throttle 은 recorder 가 갖고, 기록·요약 함수는 state 를
+ *  3. **집계는 순수 함수.** 파일 I/O, throttle 은 recorder 가 갖고, 기록, 요약 함수는 state 를
  *     받아 state 를 고치는 순수 로직 → 테스트가 Discord 없이 돈다.
  *
  * 저장 위치 = `data/server-stats-state.json` (`.gitignore` 의 `data/*-state.json` 에 이미 걸림).
@@ -57,28 +57,28 @@ export interface ServerStatsState {
   /**
    * 서버ID → 개발 콘솔 키. 공유 키와 **다른** 값이다.
    * 카드 주소는 자랑하려고 남에게 주는 것이고, 콘솔은 서버 안을 들여다보는 자리다.
-   * 하나로 묶으면 카드를 공유하는 순간 콘솔까지 열린다 — 그래서 열쇠를 둘로 나눈다.
+   * 하나로 묶으면 카드를 공유하는 순간 콘솔까지 열린다. 그래서 열쇠를 둘로 나눈다.
    * 이 키는 디스코드에서 서버 관리 권한이 있는 사람만, 나만 보이는 답으로 받아 간다.
    */
   devKeys: Record<string, string>;
   /**
    * 서버ID → 주간 자동 게시 설정. 켠 서버만 들어 있다 (기본 = 꺼짐).
-   * 명령을 쳐야만 나오는 결산은 습관이 안 된다 — 월요일 아침에 먼저 와야 한다.
+   * 명령을 쳐야만 나오는 결산은 습관이 안 된다. 월요일 아침에 먼저 와야 한다.
    */
   weekly: Record<string, WeeklySchedule>;
 }
 
 export interface WeeklySchedule {
-  /** 게시할 채널 — 켠 사람이 명령을 친 그 채널. */
+  /** 게시할 채널. 켠 사람이 명령을 친 그 채널. */
   channelId: string;
   /** 마지막으로 올린 날 (KST). 같은 주에 두 번 올리지 않기 위한 표식. */
   lastPostedDayKey: string | null;
 }
 
-/** 며칠치를 보관할지 — 연간 결산까지 커버. */
+/** 며칠치를 보관할지. 연간 결산까지 커버. */
 export const RETENTION_DAYS = 400;
 
-/** 「새벽」 정의 = KST 0시 이상 6시 미만. */
+/** 새벽 정의 = KST 0시 이상 6시 미만. */
 export const NIGHT_START_HOUR = 0;
 export const NIGHT_END_HOUR = 6;
 
@@ -116,7 +116,7 @@ export function emptyState(): ServerStatsState {
   return { version: 1, guilds: {}, shares: {}, weekly: {}, devKeys: {} };
 }
 
-/** 개발 콘솔 키 — 없으면 만든다. 공유 키와 절대 같은 값이 되지 않는다(따로 뽑는다). */
+/** 개발 콘솔 키. 없으면 만든다. 공유 키와 절대 같은 값이 되지 않는다(따로 뽑는다). */
 export function getOrCreateDevKey(state: ServerStatsState, guildId: string): string {
   const existing = state.devKeys[guildId];
   if (existing) return existing;
@@ -133,14 +133,14 @@ export function guildIdForDevKey(state: ServerStatsState, key: string): string |
   return null;
 }
 
-/** 월요일(KST) 아침 게시 기준. 시각은 「이후 아무 때나」 — 봇이 꺼져 있었어도 켜지면 따라잡는다. */
+/** 월요일(KST) 아침 게시 기준. 시각은 이후 아무 때나. 봇이 꺼져 있었어도 켜지면 따라잡는다. */
 export const WEEKLY_POST_WEEKDAY = 1; // 0=일, 1=월
 export const WEEKLY_POST_HOUR = 10;
 
 /**
  * 지금 주간 결산을 올려야 하는 서버들.
  * 시각이 정확히 맞아떨어질 때만 보내면 봇이 잠깐 꺼진 주는 통째로 건너뛴다
- * → 「월요일 10시 이후이고, 이번 주에 아직 안 보냈으면」 으로 판단한다.
+ * → 월요일 10시 이후이고, 이번 주에 아직 안 보냈으면 으로 판단한다.
  */
 export function dueWeeklyPosts(
   state: ServerStatsState,
@@ -153,7 +153,7 @@ export function dueWeeklyPosts(
 
   for (const [guildId, schedule] of Object.entries(state.weekly)) {
     if (!schedule?.channelId) continue;
-    // 이번 주 월요일의 날짜 키 — 이걸 표식으로 삼으면 주 단위로 정확히 한 번이 된다.
+    // 이번 주 월요일의 날짜 키. 이걸 표식으로 삼으면 주 단위로 정확히 한 번이 된다.
     const daysSinceMonday = (weekday + 6) % 7;
     if (daysSinceMonday === 0 && hour < WEEKLY_POST_HOUR) continue; // 월요일 아침 전
     const mondayKey = kstDayKey(new Date(now.getTime() - daysSinceMonday * 24 * 60 * 60 * 1000));
@@ -172,7 +172,7 @@ export function markWeeklyPosted(state: ServerStatsState, guildId: string, now: 
 }
 
 /**
- * 서버의 공유 키 — 없으면 만들어 준다. 한 번 만들면 주소가 안 바뀐다(북마크 가능).
+ * 서버의 공유 키. 없으면 만들어 준다. 한 번 만들면 주소가 안 바뀐다(북마크 가능).
  * 22자 base64url ≈ 128bit → 무작위로 맞힐 수 없다.
  */
 export function getOrCreateShareKey(state: ServerStatsState, guildId: string): string {
@@ -319,7 +319,7 @@ export interface MessageEvent {
   userId: string;
   userName: string;
   channelId: string;
-  /** 메시지 내용 — 여기서 길이·이모지만 뽑고 **저장하지 않는다**. */
+  /** 메시지 내용. 여기서 길이, 이모지만 뽑고 **저장하지 않는다**. */
   content: string;
   at: Date;
 }
@@ -387,7 +387,7 @@ export interface RankedUser {
 export interface ServerSummary {
   /** 집계 대상 일수 */
   days: number;
-  /** 실제로 기록이 있는 날 수 — 0 이면 "아직 쌓인 게 없다" */
+  /** 실제로 기록이 있는 날 수. 0 이면 "아직 쌓인 게 없다" */
   daysWithData: number;
   totalMessages: number;
   totalChars: number;
@@ -410,7 +410,7 @@ export interface ServerSummary {
   hours: number[];
 }
 
-/** 새벽형 판정 최소 표본 — 3개 보내고 다 새벽이면 "새벽 유령"이라 하기 민망하다. */
+/** 새벽형 판정 최소 표본. 3개 보내고 다 새벽이면 "새벽 유령"이라 하기 민망하다. */
 export const NIGHT_OWL_MIN_MESSAGES = 10;
 
 export function summarize(
@@ -526,7 +526,7 @@ export interface DebugRow {
 export interface DebugDump {
   /** 이 서버에 기록이 있는 날짜 키 (최신순) */
   dayKeys: string[];
-  /** 오늘(KST) 날짜 키 — 방금 보낸 메시지가 여기 잡혀야 정상 */
+  /** 오늘(KST) 날짜 키. 방금 보낸 메시지가 여기 잡혀야 정상 */
   todayKey: string;
   /** 요청 범위 안의 유저별 원시 수치 (많이 쓴 순) */
   rows: DebugRow[];
@@ -534,9 +534,9 @@ export interface DebugDump {
   hours: number[];
   /** 채널별 메시지 수 (많은 순) */
   channels: { channelId: string; count: number }[];
-  /** 이모지 전체 (많은 순) — 카드는 3개만 보여주지만 여기선 다 준다 */
+  /** 이모지 전체 (많은 순). 카드는 3개만 보여주지만 여기선 다 준다 */
   emojis: { name: string; count: number }[];
-  /** 날짜별 추이 (오래된 순) — 요일·흐름을 보려면 이게 있어야 한다 */
+  /** 날짜별 추이 (오래된 순). 요일, 흐름을 보려면 이게 있어야 한다 */
   daily: { dayKey: string; msgs: number; users: number }[];
   /** 아직 파일에 안 쓴 변경이 있나 */
   dirty: boolean;
@@ -546,7 +546,7 @@ export interface DebugDump {
   stateFileMtime: string | null;
 }
 
-/** 원시 수치 덤프 — 카드가 이상할 때 "집계 자체가 틀렸나 표시가 틀렸나"를 가른다. */
+/** 원시 수치 덤프. 카드가 이상할 때 "집계 자체가 틀렸나 표시가 틀렸나"를 가른다. */
 export function debugDump(
   state: ServerStatsState,
   guildId: string,
@@ -623,12 +623,12 @@ export interface Analytics {
   /** 집계 범위 (KST 날짜 키) */
   from: string;
   to: string;
-  /** 이번 기간 / 바로 앞의 같은 길이 기간 — 늘었나 줄었나를 보려면 둘 다 필요하다 */
+  /** 이번 기간 / 바로 앞의 같은 길이 기간. 늘었나 줄었나를 보려면 둘 다 필요하다 */
   current: PeriodTotals;
   previous: PeriodTotals;
-  /** 날짜별 (오래된 순, 빈 날도 0 으로 채움 — 끊긴 날이 보여야 리듬이 읽힌다) */
+  /** 날짜별 (오래된 순, 빈 날도 0 으로 채움. 끊긴 날이 보여야 리듬이 읽힌다) */
   daily: { dayKey: string; msgs: number; users: number }[];
-  /** [요일][시각] 메시지 수. 요일 0=일 … 6=토 */
+  /** [요일][시각] 메시지 수. 요일 0=일 ... 6=토 */
   weekdayHour: number[][];
   /** 사람별 전체 (많이 쓴 순) */
   people: DebugRow[];
@@ -650,7 +650,7 @@ export function weekdayOf(dayKey: string): number {
 }
 
 function totalsFor(guild: GuildStat | undefined, dayKeys: string[]): PeriodTotals {
-  // 참여자는 ID 로 센다 — 닉네임은 기간 중에 바뀔 수 있어 이름으로 세면 두 명이 된다.
+  // 참여자는 ID 로 센다. 닉네임은 기간 중에 바뀔 수 있어 이름으로 세면 두 명이 된다.
   const ids = new Set<string>();
   let messages = 0;
   let chars = 0;
@@ -680,7 +680,7 @@ export function buildAnalytics(
 
   const detail = debugDump(state, guildId, options);
 
-  // 빈 날도 0 으로 채운다 — 안 그러면 "쉰 날" 이 그래프에서 사라진다.
+  // 빈 날도 0 으로 채운다. 안 그러면 "쉰 날" 이 그래프에서 사라진다.
   const byDay = new Map(detail.daily.map((d) => [d.dayKey, d]));
   const daily = currentKeys
     .slice()
@@ -764,7 +764,7 @@ export class ServerStatsRecorder {
         return this.state;
       }
     } catch (err) {
-      console.warn('[ServerStats] state 읽기 실패 — 새 state 로 시작:', err);
+      console.warn('[ServerStats] state 읽기 실패. 새 state 로 시작:', err);
     }
     this.state = emptyState();
     return this.state;
@@ -805,12 +805,12 @@ export class ServerStatsRecorder {
     return { ...dump, dirty: this.dirty, statePath: this.statePath, stateFileExists, stateFileMtime };
   }
 
-  /** 디버그용 즉시 저장 — 20초 기다리지 않고 파일을 눈으로 확인하고 싶을 때. */
+  /** 디버그용 즉시 저장. 20초 기다리지 않고 파일을 눈으로 확인하고 싶을 때. */
   flushNow(): void {
     this.flush();
   }
 
-  /** 대시보드용 분석 (기간 비교·요일×시각 포함). */
+  /** 대시보드용 분석 (기간 비교, 요일×시각 포함). */
   analytics(guildId: string, days: number, now = new Date()): Analytics {
     return buildAnalytics(this.load(), guildId, { days, now });
   }
@@ -827,7 +827,7 @@ export class ServerStatsRecorder {
     return key;
   }
 
-  /** 공유 키로 서버 찾기 — 모르는 키면 null. */
+  /** 공유 키로 서버 찾기. 모르는 키면 null. */
   guildIdForShareKey(key: string): string | null {
     return guildIdForShareKey(this.load(), key);
   }
@@ -844,7 +844,7 @@ export class ServerStatsRecorder {
     return key;
   }
 
-  /** 개발 콘솔 키로 서버 찾기 — 공유 키를 넣으면 null. */
+  /** 개발 콘솔 키로 서버 찾기. 공유 키를 넣으면 null. */
   guildIdForDevKey(key: string): string | null {
     return guildIdForDevKey(this.load(), key);
   }

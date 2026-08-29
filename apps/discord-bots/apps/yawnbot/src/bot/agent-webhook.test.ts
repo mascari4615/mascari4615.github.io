@@ -1,7 +1,7 @@
 /**
  * agent-webhook 루프가드 회귀 테스트 (KAR-018-A self-loop 회귀 근본 fix).
  * tracer-bullet: isOwnAgentWebhook 가 *send 전에* true (register-after-send
- * race 부재 입증) — 이 순서가 깨지면 main.ts 게이트가 자기 답장을 재인입.
+ * race 부재 입증). 이 순서가 깨지면 main.ts 게이트가 자기 답장을 재인입.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { sendAsSkin, isOwnAgentWebhook } from './agent-webhook';
@@ -33,9 +33,9 @@ function mockChannel(onSendAssert: () => void) {
   };
 }
 
-describe('isOwnAgentWebhook — race-free 루프가드', () => {
+describe('isOwnAgentWebhook. race-free 루프가드', () => {
   beforeEach(() => {
-    // 모듈 전역 set 누수 무해(미지의 id 는 false) — 본 테스트 id 만 검증
+    // 모듈 전역 set 누수 무해(미지의 id 는 false). 본 테스트 id 만 검증
   });
 
   it('미지/null/undefined → false (안전 기본)', () => {

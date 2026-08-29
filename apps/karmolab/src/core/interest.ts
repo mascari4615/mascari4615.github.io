@@ -17,7 +17,7 @@ export const spec: ToolSpec = {
   ops: {
     deposit: {
       desc:
-        'Korean time deposit (simple interest) — maturity interest and the amount actually received,' +
+        'Korean time deposit (simple interest). maturity interest and the amount actually received,' +
         ' after the 15.4% interest income tax that quoted rates never include.',
       in: { amount: 'number', rate: 'number', months: 'number' },
       out: 'string'
@@ -25,14 +25,14 @@ export const spec: ToolSpec = {
     saving: {
       desc:
         'Korean installment savings (simple interest). Only the early deposits earn a full year, so the' +
-        ' real interest is roughly half of total × rate — the single most common money miscalculation here.' +
+        ' real interest is roughly half of total × rate. the single most common money miscalculation here.' +
         ' The gap is shown explicitly.',
       in: { monthly: 'number', rate: 'number', months: 'number' },
       out: 'string'
     },
     loan: {
       desc:
-        'Equal-payment loan — monthly payment, total repaid, total interest.',
+        'Equal-payment loan. monthly payment, total repaid, total interest.',
       in: { amount: 'number', rate: 'number', months: 'number' },
       out: 'string'
     }
@@ -118,7 +118,7 @@ export const run: ToolRunner = (op, args) => {
     const principal = monthly * months;
     const gross = savingInterest(monthly, rate, months);
     const r = afterTax(principal, gross);
-    // 「총액 × 연이율」로 오해한 값도 같이 보여 준다 — 그 차이가 이 도구의 값이다.
+    // 총액 × 연이율로 오해한 값도 같이 보여 준다. 그 차이가 이 도구의 값이다.
     const naive = principal * (rate / 100);
     return [
       `After-tax payout: ${won(r.payout)}`,

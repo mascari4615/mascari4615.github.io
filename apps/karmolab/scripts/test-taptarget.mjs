@@ -5,7 +5,7 @@
  * 폰에서 자꾸 빗나간다. 눈으로는 멀쩡해 보여서 아무도 신고하지 않는 종류의 문제다.
  *
  * 도구마다 인라인 스타일로 짜여 있어 공용 CSS 한 곳에서 잡았는데, 그 규칙이 실제로 먹는지는
- * 재 봐야 안다 — 인라인 스타일이 이기면 아무 일도 안 일어난다.
+ * 재 봐야 안다. 인라인 스타일이 이기면 아무 일도 안 일어난다.
  *
  * 사용: node scripts/test-taptarget.mjs
  */
@@ -19,17 +19,17 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 /* 실제로 22px 이었던 넉 장 + 대조로 잘 되던 것 하나.
-   ★ `textdiff`·`textredact` 는 「텍스트 도구」 작업대(`text`)로 합쳐졌다 — 그 이름으로는 위젯이
-   등록되지 않으므로(실측: 「textdiff 위젯이 등록되지 않았다」) 그 조작이 사는 작업대를 잰다. */
+   ★ `textdiff`, `textredact` 는 텍스트 도구 작업대(`text`)로 합쳐졌다. 그 이름으로는 위젯이
+   등록되지 않으므로(실측: textdiff 위젯이 등록되지 않았다) 그 조작이 사는 작업대를 잰다. */
 const TOOLS = ['text', 'uuidgen', 'hashgen', 'asciiart'];
 
 /* ★ **지어진 것을 보는 검사다** (2026-08-17). 여기서 읽는 `js/widgets/**` 는 빌드 산출물이라
    깨끗한 사본(밀 커밋만 풀어 놓은 자리)에는 없다. 없는 것을 읽다 ENOENT 로 죽으면
-   「누를 자리가 작다」가 아니라 **검사가 깨진 것처럼** 보인다 — 실제로 push 관문이 그렇게 섰다.
+   누를 자리가 작다가 아니라 **검사가 깨진 것처럼** 보인다. 실제로 push 관문이 그렇게 섰다.
    못 볼 상황은 못 본다고 말한다(rc 2 = 통과로 세지 않는다). 지으려면 `node build.mjs`. */
-/* ★ **도구 이름이 곧 파일 이름은 아니다** (2026-08-17, CI 로그로 알아냈다). textdiff·textredact 는
-   「텍스트 도구」 작업대로 합쳐진 숨은 도구라 제 파일이 없다(메타의 bundle 이 text 다).
-   그런데 여기서는 <이름>.js 만 찾아 「없다」고 하고 **늘 못 돌림으로 끝났다** — CI 에서 이 검사는
+/* ★ **도구 이름이 곧 파일 이름은 아니다** (2026-08-17, CI 로그로 알아냈다). textdiff, textredact 는
+   텍스트 도구 작업대로 합쳐진 숨은 도구라 제 파일이 없다(메타의 bundle 이 text 다).
+   그런데 여기서는 <이름>.js 만 찾아 없다고 하고 **늘 못 돌림으로 끝났다**. CI 에서 이 검사는
    한 번도 안 돌았다. 내 자리에서는 옛 빌드가 남긴 textdiff.js 때문에 초록으로 보였다(더 나쁘다).
    지어진 메타에서 그 도구가 어느 묶음인지 읽어 그 파일을 본다. */
 const metaPath = path.join(root, 'js/widgets-lazy-meta.js');
@@ -44,7 +44,7 @@ const readSites = (id) => hits(id) || hits(bundle(id));
 {
   const missing = meta2 ? TOOLS.filter((id) => !readSites(id)) : TOOLS;
   if (missing.length) {
-    console.log(`[test-taptarget] 못 돌림 — 지어진 도구 파일이 없다 (${missing.join(', ')}). 통과로 세지 않는다 — 먼저 \`node build.mjs\`.`);
+    console.log(`[test-taptarget] 못 돌림. 지어진 도구 파일이 없다 (${missing.join(', ')}). 통과로 세지 않는다. 먼저 \`node build.mjs\`.`);
     process.exit(2);
   }
 }
@@ -56,7 +56,7 @@ await page.goto('http://localhost/');
 await page.addStyleTag({ content: read('css/tools.css') });
 await page.evaluate(() => {
   window.__reg = {};
-  // 도구들이 부르는 말풍선 — 여기서는 아무 일도 안 하면 된다
+  // 도구들이 부르는 말풍선. 여기서는 아무 일도 안 하면 된다
   window.Mdd = { linePreset() {}, line() {}, say() {} };
   window.Toolbox = {
     register: (t) => { window.__reg[t.id] = t; },
@@ -65,7 +65,7 @@ await page.evaluate(() => {
   };
 });
 for (const id of TOOLS) {
-  /* 위 고르기와 **같은 규칙**으로 읽는다 — 앞에서만 고치고 여기서 옛 이름을 읽으면 ENOENT 로 죽는다. */
+  /* 위 고르기와 **같은 규칙**으로 읽는다. 앞에서만 고치고 여기서 옛 이름을 읽으면 ENOENT 로 죽는다. */
   await page.addScriptTag({ content: read(readSites(id)) });
 }
 
@@ -80,8 +80,8 @@ const out = await page.evaluate(async (tools) => {
     document.body.appendChild(host);
     try {
       tool.tabs[0].build(host);
-      /* 그려질 때까지 기다린다 — 안 그러면 잰 것이 0 개인 채 「작은 게 없다」로 통과해 버린다
-         (실제로는 「안 봤다」다). 도구마다 말 묶음을 받아 온 뒤에 그린다. */
+      /* 그려질 때까지 기다린다. 안 그러면 잰 것이 0 개인 채 작은 게 없다로 통과해 버린다
+         (실제로는 안 봤다다). 도구마다 말 묶음을 받아 온 뒤에 그린다. */
       await window.__karmoWaitDrawn(host);
     } catch (e) { return { ok: false, why: id + " 화면을 못 만들었다: " + e.message }; }
     for (const el of host.querySelectorAll('input[type=checkbox], input[type=radio]')) {
@@ -95,7 +95,7 @@ const out = await page.evaluate(async (tools) => {
   }
   return {
     ok: checked > 0 && small.length === 0,
-    why: checked === 0 ? '잰 것이 하나도 없다 — 검사가 헛돌고 있다: ' + small.join(' / ') : `${checked}개 잼 · 32px 미만 ${small.length ? small.join(' , ') : '없음'}`
+    why: checked === 0 ? '잰 것이 하나도 없다. 검사가 헛돌고 있다: ' + small.join(' / ') : `${checked}개 잼, 32px 미만 ${small.length ? small.join(' , ') : '없음'}`
   };
 }, TOOLS);
 

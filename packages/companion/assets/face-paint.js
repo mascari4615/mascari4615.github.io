@@ -1,10 +1,10 @@
 /**
- * 얼굴 — 눈 깜빡임과 입.
+ * 얼굴. 눈 깜빡임과 입.
  *
- * 이 몸의 얼굴은 뼈가 아니라 **그림 한 장**이다. 눈·코·입이 몸 전체 그림(1024×1024)
+ * 이 몸의 얼굴은 뼈가 아니라 **그림 한 장**이다. 눈, 코, 입이 몸 전체 그림(1024×1024)
  * 한구석에 그려져 있고, 표정용 뼈도 모프도 없다. 그래서 표정을 만들려면 그림을
- * 고쳐 그리는 수밖에 없다 — 사람이 새로 그리는 게 아니라, 원본을 복사해 두고
- * **눈·입 자리만 코드로 덧칠한다.** 색도 원본에서 뽑으므로 화풍이 안 어긋난다.
+ * 고쳐 그리는 수밖에 없다. 사람이 새로 그리는 게 아니라, 원본을 복사해 두고
+ * **눈, 입 자리만 코드로 덧칠한다.** 색도 원본에서 뽑으므로 화풍이 안 어긋난다.
  *
  * 덧칠하는 칸은 아래 세 개뿐이라, 매 판 다시 칠해도 비용이 거의 없다.
  */
@@ -13,8 +13,8 @@ import * as THREE from 'three';
 /**
  * 그림 속 얼굴 칸 (1024 기준 픽셀).
  *
- * 이 그림에서 얼굴은 옆으로 누워 있다 — 눈이 위아래로 나란한 게 아니라 좌우로 나란하다.
- * 그래서 「눈을 감는다」는 칸을 **가로로** 가늘게 덮는 것이 된다.
+ * 이 그림에서 얼굴은 옆으로 누워 있다. 눈이 위아래로 나란한 게 아니라 좌우로 나란하다.
+ * 그래서 눈을 감는다는 칸을 **가로로** 가늘게 덮는 것이 된다.
  */
 const FACE = {
   eyes: [
@@ -24,7 +24,7 @@ const FACE = {
   mouth: { x: 556, y: 392, w: 20, h: 20 },
 };
 
-/** 그림에서 색 하나를 뽑는다 — 새로 칠할 색을 손으로 정하지 않기 위해서. */
+/** 그림에서 색 하나를 뽑는다. 새로 칠할 색을 손으로 정하지 않기 위해서. */
 function pickColor(ink, x, y) {
   const [r, g, b] = ink.getImageData(x, y, 1, 1).data;
   return `rgb(${r}, ${g}, ${b})`;
@@ -33,7 +33,7 @@ function pickColor(ink, x, y) {
 /**
  * 눈 칸 둘레에서 **살색**을 찾는다.
  *
- * 한 점만 찍어 쓰면 그게 머리카락일 수도 있다 — 실제로 눈 옆이 머리카락인 자리가 있다.
+ * 한 점만 찍어 쓰면 그게 머리카락일 수도 있다. 실제로 눈 옆이 머리카락인 자리가 있다.
  * 둘레를 여러 군데 찍어 그중 가장 밝은 것을 고른다. 이 그림에서 살은 창백하고 머리는
  * 진한 주황이라, 밝기만으로 갈린다.
  */
@@ -54,10 +54,10 @@ function skinAround(ink, box) {
 }
 
 /**
- * 모델의 얼굴 그림을 「고쳐 그릴 수 있는 그림」으로 바꿔 끼운다.
+ * 모델의 얼굴 그림을 고쳐 그릴 수 있는 그림으로 바꿔 끼운다.
  *
  * @returns {{ setBlink(closed: number): void, setMouth(open: number): void } | null}
- *   못 찾으면 `null` — 얼굴이 안 움직일 뿐 나머지는 그대로 돈다.
+ *   못 찾으면 `null`. 얼굴이 안 움직일 뿐 나머지는 그대로 돈다.
  */
 export async function paintableFace(model, options = {}) {
   const debug = options.debug === true;
@@ -74,7 +74,7 @@ export async function paintableFace(model, options = {}) {
   if (maps.length === 0) return null;
 
   // 모델을 다 읽었다고 **그림까지 다 온 건 아니다.** 그림은 따로 받아 오므로, 여기서
-  // 안 기다리면 아직 빈 그림을 보고 「얼굴 없음」이라고 판정해 버린다(실측).
+  // 안 기다리면 아직 빈 그림을 보고 얼굴 없음이라고 판정해 버린다(실측).
   const arrived = async (texture) => {
     for (let waited = 0; waited < 60; waited += 1) {
       if (texture.image?.width > 0) return true;
@@ -98,10 +98,10 @@ export async function paintableFace(model, options = {}) {
   const lash = pickColor(ink, FACE.eyes[0].x + 12, FACE.eyes[0].y + 20);
   const inside = pickColor(ink, FACE.mouth.x + 10, FACE.mouth.y + 10);
 
-  // 원본 눈·입 칸을 따로 떠 둔다 — 되돌릴 때 다시 그리기 위해서.
+  // 원본 눈, 입 칸을 따로 떠 둔다. 되돌릴 때 다시 그리기 위해서.
   const saved = [...FACE.eyes, FACE.mouth].map((box) => ink.getImageData(box.x, box.y, box.w, box.h));
 
-  // 원본 **텍스처**의 설정을 그대로 물려받는다. 특히 위아래 뒤집기 —
+  // 원본 **텍스처**의 설정을 그대로 물려받는다. 특히 위아래 뒤집기 . 
   // 이걸 빼먹으면 온몸의 색이 뒤바뀐다(머리가 옷 색을 뒤집어쓴다, 실측).
   const origin = maps[0].map;
   const texture = new THREE.CanvasTexture(board);
@@ -140,13 +140,13 @@ export async function paintableFace(model, options = {}) {
       FACE.eyes.forEach((box, index) => {
         restore(index, box);
         if (step > 0) {
-          // 눈꺼풀이 내려온다 = 살색으로 덮어 내려온다. 덮는 방향은 **그림의 가로**다 —
+          // 눈꺼풀이 내려온다 = 살색으로 덮어 내려온다. 덮는 방향은 **그림의 가로**다 . 
           // 이 그림에서 얼굴이 누워 있어서, 화면의 위아래가 그림에서는 좌우다(실측:
           // 세로로 덮었더니 눈이 옆에서부터 지워졌다).
           const lid = Math.round(box.w * step);
           ink.fillStyle = skin;
           ink.fillRect(box.x + box.w - lid, box.y, lid, box.h);
-          // 감긴 자리에는 속눈썹 한 줄이 남는다 — 이게 없으면 눈이 지워진 것처럼 보인다.
+          // 감긴 자리에는 속눈썹 한 줄이 남는다. 이게 없으면 눈이 지워진 것처럼 보인다.
           if (step > 0.5) {
             ink.fillStyle = lash;
             ink.fillRect(box.x + box.w - lid, box.y + 2, 3, box.h - 4);

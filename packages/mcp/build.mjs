@@ -2,7 +2,7 @@
  * 알맹이를 Node 가 읽을 수 있는 모양으로 찍어 낸다 (TASK-KL-205 / S1 P3)
  *
  * 알맹이(`apps/karmolab/src/core/*.ts`)는 화면 쪽 저장소에 있고 TypeScript 다. Node 는 그걸
- * 그대로 못 읽으므로 여기서 한 벌 묶어 `dist/` 에 놓는다. **베끼는 게 아니라 찍어 내는 것**이다 —
+ * 그대로 못 읽으므로 여기서 한 벌 묶어 `dist/` 에 놓는다. **베끼는 게 아니라 찍어 내는 것**이다 . 
  * 원본은 한 곳뿐이고, 여기 것은 매번 새로 만들어진다(그래서 dist 는 커밋하지 않는다).
  *
  * 목록을 손으로 안 적는다: `core/` 에 있는 것 중 `spec` 을 내놓는 파일이 곧 대상이다.
@@ -20,15 +20,15 @@ const coreDir = path.resolve(here, '../../apps/karmolab/src/core');
 /**
  * esbuild 를 **화면 쪽 저장소 것으로** 빌려 쓴다.
  * 여기에 따로 설치하면 같은 도구가 두 벌이 되고, 이 저장소는 `npm ci` 가 링크를 따라가
- * 원본을 지운 사고 이력이 있다 — 설치를 늘릴수록 그 지뢰밭이 넓어진다. 빌드에만 쓰는 도구라
- * 빌려 쓰는 편이 짐이 적다. 없으면 「어디서 설치하라」까지 말해 준다.
+ * 원본을 지운 사고 이력이 있다. 설치를 늘릴수록 그 지뢰밭이 넓어진다. 빌드에만 쓰는 도구라
+ * 빌려 쓰는 편이 짐이 적다. 없으면 어디서 설치하라까지 말해 준다.
  */
 const requireFromApp = createRequire(pathToFileURL(path.resolve(here, '../../apps/karmolab/package.json')).href);
 let esbuild;
 try {
   esbuild = await import(pathToFileURL(requireFromApp.resolve('esbuild')).href);
 } catch {
-  console.error('[@karmo/mcp] esbuild 를 못 찾았다 — `cd apps/karmolab && npm install` 먼저');
+  console.error('[@karmo/mcp] esbuild 를 못 찾았다. `cd apps/karmolab && npm install` 먼저');
   process.exit(1);
 }
 const outDir = path.join(here, 'dist');
@@ -41,7 +41,7 @@ if (fs.existsSync(coreDir) === false) {
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 
-// `spec` 을 내놓는 파일만 도구다. types.ts·sha3.ts 같은 **부품**은 도구가 아니다.
+// `spec` 을 내놓는 파일만 도구다. types.ts, sha3.ts 같은 **부품**은 도구가 아니다.
 const entries = fs
   .readdirSync(coreDir)
   .filter((f) => f.endsWith('.ts'))
@@ -49,7 +49,7 @@ const entries = fs
   .map((f) => path.join(coreDir, f));
 
 if (entries.length === 0) {
-  console.error('[@karmo/mcp] spec 을 내놓는 알맹이가 하나도 없다 — 빌드할 게 없다');
+  console.error('[@karmo/mcp] spec 을 내놓는 알맹이가 하나도 없다. 빌드할 게 없다');
   process.exit(1);
 }
 
@@ -65,8 +65,8 @@ await esbuild.build({
 });
 
 /*
- * 소리 표(병음)는 알맹이에 안 박혀 있다 — 화면 쪽은 필요할 때 받아 오고, 여기서는 파일로
- * 함께 싣는다. 안 실으면 `charconv_pinyin` 이 「표가 없습니다」만 내놓는다(조용히 원문을
+ * 소리 표(병음)는 알맹이에 안 박혀 있다. 화면 쪽은 필요할 때 받아 오고, 여기서는 파일로
+ * 함께 싣는다. 안 실으면 `charconv_pinyin` 이 표가 없습니다만 내놓는다(조용히 원문을
  * 돌려주지는 않으니 들키긴 하지만, 쓸 수 없는 도구를 목록에 올려 두는 셈이다).
  */
 const pinyinSrc = path.join(here, '../../apps/karmolab/data/han-pinyin.json');
@@ -76,7 +76,7 @@ if (fs.existsSync(pinyinSrc) === false) {
 }
 fs.copyFileSync(pinyinSrc, path.join(outDir, 'han-pinyin.json'));
 
-// 무엇이 들어 있는지 적어 둔다 — 서버가 이걸 읽어 도구를 올린다(손으로 적은 목록 없음).
+// 무엇이 들어 있는지 적어 둔다. 서버가 이걸 읽어 도구를 올린다(손으로 적은 목록 없음).
 const manifest = entries.map((f) => path.basename(f, '.ts'));
 fs.writeFileSync(path.join(outDir, 'manifest.json'), JSON.stringify({ tools: manifest }, null, 2) + '\n');
 
@@ -91,8 +91,8 @@ fs.writeFileSync(path.join(outDir, 'build.json'), JSON.stringify({ commit, at: n
 /*
  * README 에 적힌 도구 개수가 실제와 갈리지 않게 못을 박는다.
  *
- * 이 숫자는 README 에 세 군데 손으로 적혀 있다(첫 줄 · 「## Tools (N)」 · 한국어 단락). 도구를
- * 하나 넣을 때마다 세 곳을 다 고쳐야 하는데, 하나 빠뜨려도 **아무 것도 안 깨진다** — 발행된
+ * 이 숫자는 README 에 세 군데 손으로 적혀 있다(첫 줄, ## Tools (N), 한국어 단락). 도구를
+ * 하나 넣을 때마다 세 곳을 다 고쳐야 하는데, 하나 빠뜨려도 **아무 것도 안 깨진다**. 발행된
  * 뒤에야 남이 세어 보고 안 맞는 걸 발견한다. 그래서 여기서 센다. 여기가 진짜 개수를 아는 자리다.
  */
 let opCount = 0;
@@ -108,15 +108,15 @@ const claimed = [...readme.matchAll(/(\d+)\s*tools|## Tools \((\d+)\)|도구 (\d
 );
 const wrong = claimed.filter((n) => n !== opCount);
 if (claimed.length === 0) {
-  console.error('[@karmo/mcp] README 에 도구 개수가 안 적혀 있다 — 세는 자리를 잃었다');
+  console.error('[@karmo/mcp] README 에 도구 개수가 안 적혀 있다. 세는 자리를 잃었다');
   process.exit(1);
 }
 if (wrong.length > 0) {
-  /* ★ **여기서 고쳐 준다 — 사람을 부르지 않는다** (2026-08-14).
+  /* ★ **여기서 고쳐 준다. 사람을 부르지 않는다** (2026-08-14).
      이 숫자는 **여기서 세는 값**이 정본이다. 그러니 README 가 뒤처졌다는 것은
-     「사람이 판단할 일」이 아니라 그냥 **베껴 넣으면 되는 일**이다.
+     사람이 판단할 일이 아니라 그냥 **베껴 넣으면 되는 일**이다.
      여태 빨강이었고, 오늘 그것 하나로 master 가 여러 판 섰다(그 판들은 `verify` 가
-     빌드 단계에서 멈춰 뒤 검사를 아예 못 돌았다 — 값 하나 때문에 전부 못 본 것이다).
+     빌드 단계에서 멈춰 뒤 검사를 아예 못 돌았다. 값 하나 때문에 전부 못 본 것이다).
      고칠 방법이 하나뿐인 빨강은 게이트가 아니라 잡일이다. */
   const fixed = readme
     .replace(/(\d+)(\s*tools)/g, `${opCount}$2`)
@@ -124,14 +124,14 @@ if (wrong.length > 0) {
     .replace(/도구 \d+개/g, `도구 ${opCount}개`);
   fs.writeFileSync(readmePath, fixed);
   console.log(
-    `[@karmo/mcp] README 의 도구 개수를 맞췄다: ${claimed.join('·')} → ${opCount} (세는 자리가 정본이다)`
+    `[@karmo/mcp] README 의 도구 개수를 맞췄다: ${claimed.join(', ')} → ${opCount} (세는 자리가 정본이다)`
   );
 }
 
 /*
  * 공식 레지스트리(registry.modelcontextprotocol.io)에 올릴 `server.json` 은 버전을 **또 적는다**
- * (세 곳: 최상위 `version` · `packages[0].version` · npm 이름). 손으로 적는 곳이 늘면 갈린다 —
- * 레지스트리가 「0.1.0 을 받아라」라고 말하는데 npm 에는 0.2.0 만 있으면, 설치가 조용히 실패한다.
+ * (세 곳: 최상위 `version`, `packages[0].version`, npm 이름). 손으로 적는 곳이 늘면 갈린다 . 
+ * 레지스트리가 0.1.0 을 받아라라고 말하는데 npm 에는 0.2.0 만 있으면, 설치가 조용히 실패한다.
  */
 const serverJsonPath = path.join(here, 'server.json');
 if (fs.existsSync(serverJsonPath)) {
@@ -142,10 +142,10 @@ if (fs.existsSync(serverJsonPath)) {
   const mismatches = [];
 
   /* ★ **베끼면 되는 것은 베낀다** (2026-08-14). 버전과 npm 이름은 `package.json` 이 정본이고,
-     `server.json` 은 그걸 옮겨 적은 자리다 — 갈렸다는 건 사람이 판단할 일이 아니라 잡일이다.
+     `server.json` 은 그걸 옮겨 적은 자리다. 갈렸다는 건 사람이 판단할 일이 아니라 잡일이다.
      오늘 README 개수 하나로 `verify` 가 빌드 단계에서 멈춰 뒤 검사 백여 개를 못 봤다.
      같은 꼴을 여기도 남겨 둘 이유가 없다.
-     **베낄 수 없는 것**(설명문 길이·대문자 네임스페이스·`mcpName` 불일치)은 그대로 빨강이다 —
+     **베낄 수 없는 것**(설명문 길이, 대문자 네임스페이스, `mcpName` 불일치)은 그대로 빨강이다 . 
      그건 사람이 무엇을 쓸지 정해야 하는 자리다. */
   const fixed2 = [];
   if (reg.version !== pkgVersion) { fixed2.push(`version ${reg.version} → ${pkgVersion}`); reg.version = pkgVersion; }
@@ -155,20 +155,20 @@ if (fs.existsSync(serverJsonPath)) {
   }
   if (fixed2.length > 0) {
     fs.writeFileSync(serverJsonPath, JSON.stringify(reg, null, 2) + String.fromCharCode(10));
-    console.log(`[@karmo/mcp] server.json 을 package.json 에 맞췄다: ${fixed2.join(' · ')}`);
+    console.log(`[@karmo/mcp] server.json 을 package.json 에 맞췄다: ${fixed2.join(', ')}`);
   }
   /*
    * 레지스트리는 설명문을 **100자까지만** 받는다 (2026-08-10, 등재가 여기서 422 로 튕겼다).
-   * npm 쪽 설명문은 더 길어도 되므로 둘은 같을 수 없다 — 그래서 여기서 길이를 지킨다.
+   * npm 쪽 설명문은 더 길어도 되므로 둘은 같을 수 없다. 그래서 여기서 길이를 지킨다.
    * 발행 워크플로 끝까지 갔다가 마지막 한 줄로 튕기는 것보다, 빌드에서 미리 멈추는 게 싸다.
    */
   /*
-   * 네임스페이스는 **소문자만** 받는다 (2026-08-10, 등재가 403 으로 튕겼다 —
-   * 「You have permission to publish: io.github.mascari4615/*」 인데 우리는 대문자 M 으로 적었다).
+   * 네임스페이스는 **소문자만** 받는다 (2026-08-10, 등재가 403 으로 튕겼다 . 
+   * You have permission to publish: io.github.mascari4615/* 인데 우리는 대문자 M 으로 적었다).
    * 깃허브 계정 이름은 대소문자를 보존해서 보여 주므로, 그대로 옮겨 적으면 이 함정에 빠진다.
    */
   /*
-   * 레지스트리는 **npm 쪽에도 같은 이름이 적혀 있는지** 확인한다 — package.json 의 `mcpName`.
+   * 레지스트리는 **npm 쪽에도 같은 이름이 적혀 있는지** 확인한다. package.json 의 `mcpName`.
    * 없으면 400 으로 튕긴다(2026-08-10, 세 번째 튕김). 이건 발행된 npm 판을 보고 확인하므로,
    * 여기서 고쳐도 **새 버전을 npm 에 올려야** 반영된다.
    */
@@ -176,11 +176,11 @@ if (fs.existsSync(serverJsonPath)) {
    * 깃허브 정본 표기는 **전부 소문자**다(`gh api repos/... --jq .full_name`). provenance 서명에는
    * 그 소문자 이름이 박히고, npm 은 package.json 의 `repository.url` 과 **글자 단위로** 대조한다.
    * 대문자로 적어 두면 서명까지 다 해 놓고 마지막 PUT 에서 422 로 튕긴다(2026-08-10, 여섯 번째).
-   * 같은 함정을 오늘 세 번 밟았다 — 레지스트리 네임스페이스 · npm Trusted Publisher 화면 · 여기.
+   * 같은 함정을 오늘 세 번 밟았다. 레지스트리 네임스페이스, npm Trusted Publisher 화면, 여기.
    */
   const repoUrl = pkg.repository?.url ?? '';
   if (repoUrl !== repoUrl.toLowerCase()) {
-    mismatches.push(`repository.url 에 대문자가 있다 (${repoUrl}) — provenance 는 소문자 정본과 대조한다`);
+    mismatches.push(`repository.url 에 대문자가 있다 (${repoUrl}). provenance 는 소문자 정본과 대조한다`);
   }
 
   if (pkg.mcpName !== reg.name) {
@@ -188,17 +188,17 @@ if (fs.existsSync(serverJsonPath)) {
   }
 
   if (reg.name !== reg.name.toLowerCase()) {
-    mismatches.push(`name 에 대문자가 있다 (${reg.name}) — 레지스트리 네임스페이스는 소문자만`);
+    mismatches.push(`name 에 대문자가 있다 (${reg.name}). 레지스트리 네임스페이스는 소문자만`);
   }
 
   if ((reg.description ?? '').length > 100) {
-    mismatches.push(`description 이 ${reg.description.length}자 — 레지스트리 상한은 100자`);
+    mismatches.push(`description 이 ${reg.description.length}자. 레지스트리 상한은 100자`);
   }
 
   if (mismatches.length > 0) {
-    console.error(`[@karmo/mcp] server.json 이 package.json 과 갈렸다: ${mismatches.join(' · ')}`);
+    console.error(`[@karmo/mcp] server.json 이 package.json 과 갈렸다: ${mismatches.join(', ')}`);
     process.exit(1);
   }
 }
 
-console.log(`[@karmo/mcp] 알맹이 ${manifest.length}개 · 도구 ${opCount}개 찍음: ${manifest.join(' · ')}`);
+console.log(`[@karmo/mcp] 알맹이 ${manifest.length}개, 도구 ${opCount}개 찍음: ${manifest.join(', ')}`);

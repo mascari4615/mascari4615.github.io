@@ -1,11 +1,11 @@
 /**
- * 큰 파일 나누기·합치기 (TASK-KL-088)
+ * 큰 파일 나누기, 합치기 (TASK-KL-088)
  *
  * 메일 첨부는 25MB, 메신저는 더 작다. 그래서 큰 파일을 보낼 때 사람들은 클라우드에 올리고
- * 링크를 준다 — 회사 자료나 계약서를 그렇게 올리기 곤란한 경우가 많다.
+ * 링크를 준다. 회사 자료나 계약서를 그렇게 올리기 곤란한 경우가 많다.
  *
  * 파일을 조각으로 나누면 그냥 여러 번 보내면 된다. 받는 쪽은 여기서 다시 합친다.
- * **압축도 변환도 하지 않는다** — 바이트를 그대로 잘랐다가 그대로 잇는다.
+ * **압축도 변환도 하지 않는다**. 바이트를 그대로 잘랐다가 그대로 잇는다.
  * 그래서 합친 결과는 원본과 완전히 같다(검사값으로 확인시켜 준다).
  */
 import { fileSize as size } from './shared/media';
@@ -24,7 +24,7 @@ import { download } from './shared/image';
 
   Toolbox.register({
     id: 'filesplit',
-    title: t('widgets.filesplit.title', undefined, '큰 파일 나누기·합치기'),
+    title: t('widgets.filesplit.title', undefined, '큰 파일 나누기, 합치기'),
     category: 'tool',
     desc: t(
       'widgets-desc.filesplit.desc',
@@ -36,7 +36,7 @@ import { download } from './shared/image';
     tabs: [
       {
         id: 'app',
-        label: t('filesplit.tab', undefined, '나누기·합치기'),
+        label: t('filesplit.tab', undefined, '나누기, 합치기'),
         build: function (container: HTMLElement): void {
           void loadNamespace('filesplit').then(function () {
             draw(container);
@@ -94,8 +94,8 @@ import { download } from './shared/image';
           let one: File | null = null;
           let many: File[] = [];
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function setMode(next: 'split' | 'join'): void {
@@ -121,7 +121,7 @@ import { download } from './shared/image';
           }
 
           /**
-           * 조각 이름 = . 번호만 담으면 **마지막 조각을 빠뜨려도 모른다** —
+           * 조각 이름 = . 번호만 담으면 **마지막 조각을 빠뜨려도 모른다** . 
            * 남은 것끼리는 1,2,3 으로 이어져 멀쩡해 보이기 때문이다(시험에서 그대로 통과했다).
            * 전체 개수를 같이 적어 두면 몇 개짜리인지 알 수 있다. 옛 이름(.001.part)도 읽어 준다.
            */
@@ -134,8 +134,8 @@ import { download } from './shared/image';
           const partIndex = (name: string): number => partOf(name).index;
 
           /**
-           * 조각 크기(바이트). 소수도 받도록 parseFloat 를 쓰고, 0 이하면 기본값으로 되돌린다 —
-           * 0 이 되면 「무한히 나누기」에 빠져 브라우저가 멈춘다(시험에서 실제로 그렇게 됐다).
+           * 조각 크기(바이트). 소수도 받도록 parseFloat 를 쓰고, 0 이하면 기본값으로 되돌린다 . 
+           * 0 이 되면 무한히 나누기에 빠져 브라우저가 멈춘다(시험에서 실제로 그렇게 됐다).
            */
           function chunkBytes(): number {
             const mb = parseFloat($<HTMLSelectElement>('#fsSize').value);
@@ -156,7 +156,7 @@ import { download } from './shared/image';
             }
             const sorted = many.slice().sort((a, b) => partIndex(a.name) - partIndex(b.name));
             const missing: number[] = [];
-            // 이름에 적힌 전체 개수가 있으면 그 수를 기준으로 본다 — 뒤쪽이 통째로 빠진 경우를 잡는다
+            // 이름에 적힌 전체 개수가 있으면 그 수를 기준으로 본다. 뒤쪽이 통째로 빠진 경우를 잡는다
             const declared = Math.max(0, ...sorted.map((f) => partOf(f.name).total));
             const expected = Math.max(sorted.length, declared);
             for (let want = 1; want <= expected; want++) {
@@ -176,7 +176,7 @@ import { download } from './shared/image';
             stats.innerHTML =
               statCell(t('filesplit.stat.count'), t('filesplit.value.pieces', { n: sorted.length }), true) +
               statCell(t('filesplit.stat.joined'), size(total));
-            // 조각이 빠진 채 합치면 열리지 않는 파일이 나온다 — 그 전에 말해 준다
+            // 조각이 빠진 채 합치면 열리지 않는 파일이 나온다. 그 전에 말해 준다
             if (missing.length)
               say(t('filesplit.err.missing', { list: missing.slice(0, 3).join(', ') }), 'error');
             else if (sorted.length) say(t('filesplit.say.ordered', { n: sorted.length }), 'ok');
@@ -234,7 +234,7 @@ import { download } from './shared/image';
             render();
           }
 
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다.
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 붙여넣기가 같이 딸려 온다.
            * 이 도구는 **여러 개**를 받는다(조각을 다시 잇는 쪽). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => take(files) });
           $<HTMLElement>('#fsModeSplit').onclick = () => setMode('split');

@@ -1,13 +1,13 @@
 /**
  * 여러 장 중 **몇 장이 깨졌을 때** 그 사실이 남는지 (TASK-KL-302)
  *
- * 전에는 안 남았다. 한 장이 깨지면 그 말을 하긴 했는데, 곧이어 나오는 「n장 다 됐습니다」가
+ * 전에는 안 남았다. 한 장이 깨지면 그 말을 하긴 했는데, 곧이어 나오는 n장 다 됐습니다가
  * 그 말을 **덮었다**. 스무 장을 넣고 두 장이 깨지면 사람이 보는 것은 18 이라는 숫자뿐이라,
  * 어느 것이 왜 안 됐는지 알 수 없고 다시 하려면 스무 장을 통째로 다시 넣어야 했다.
  *
  * 그래서 **깨진 그림을 일부러 섞어** 넣고 본다:
  *   ① 끝말에 실패한 파일 **이름이 남는가**
- *   ② 「안 된 것만 다시」 단추가 **깨진 것 수만큼** 나오는가
+ *   ② 안 된 것만 다시 단추가 **깨진 것 수만큼** 나오는가
  *   ③ 성공한 것들은 그대로 목록에 있는가 (하나 깨졌다고 나머지를 버리지 않는다)
  *
  * 사용: node scripts/smoke-batch-retry.mjs
@@ -17,7 +17,7 @@ import { serveRepo } from './lib/serve-static.mjs';
 
 const failures = [];
 const check = (name, cond, detail) => {
-  if (!cond) failures.push(`${name} — ${detail}`);
+  if (!cond) failures.push(`${name}. ${detail}`);
 };
 
 const site = await serveRepo();
@@ -60,7 +60,7 @@ try {
   const rows = await page.locator('#ibList .tool-list-row').count();
   check('성공한 것은 목록에 남는다', rows === 1, `줄 ${rows}개`);
 
-  /* 눌러도 깨진 것은 여전히 깨진다 — 사라지지 않고 그대로 남아야 한다(거짓 성공 금지) */
+  /* 눌러도 깨진 것은 여전히 깨진다. 사라지지 않고 그대로 남아야 한다(거짓 성공 금지) */
   await btn.click();
   await page.waitForFunction(
     () => /안 됩니다|failed|失敗/.test(document.querySelector('#ibStatus')?.textContent || ''),
@@ -82,4 +82,4 @@ if (failures.length) {
   for (const f of failures) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('[smoke-batch-retry] 여러 장 중 깨진 것 — 이름이 남고, 그것만 다시 할 수 있다 (8가지 확인)');
+console.log('[smoke-batch-retry] 여러 장 중 깨진 것. 이름이 남고, 그것만 다시 할 수 있다 (8가지 확인)');

@@ -1,7 +1,7 @@
 /**
  * 반응 측정 화면 (TASK-KL-242)
  *
- * 고르는 곳은 **늘 같은 자리에 넷**이다 — 판마다 버튼이 옮겨 다니면 읽는 시간이 반응 시간에
+ * 고르는 곳은 **늘 같은 자리에 넷**이다. 판마다 버튼이 옮겨 다니면 읽는 시간이 반응 시간에
  * 섞여서 무엇을 재고 있는지 알 수 없게 된다.
  */
 import type { GameView } from '../views';
@@ -25,7 +25,7 @@ export const reflexView: GameView<ReflexState, ReflexAction> = {
       const s = v.state;
       if (orderEl.textContent !== s.order) orderEl.textContent = s.order;
 
-      /* 버튼은 문제가 바뀔 때만 다시 만든다 — 매 프레임 다시 만들면 누르는 순간 사라진다. */
+      /* 버튼은 문제가 바뀔 때만 다시 만든다. 매 프레임 다시 만들면 누르는 순간 사라진다. */
       const key = `${v.round}:${s.order}:${s.choices.join('|')}`;
       if (key !== drawnFor) {
         drawnFor = key;

@@ -1,9 +1,9 @@
 /**
- * **첫 화면이 왜 막히나** — 어느 코드가 주 스레드를 잡는지 (TASK-KL)
+ * **첫 화면이 왜 막히나**. 어느 코드가 주 스레드를 잡는지 (TASK-KL)
  *
- * `measure-speed` 는 「막힘 몇 ms」까지만 말한다. 어디가 먹었는지는 안 말한다.
+ * `measure-speed` 는 막힘 몇 ms까지만 말한다. 어디가 먹었는지는 안 말한다.
  * 여기서는 크롬의 표본 프로파일러(V8 Sampling Profiler)를 켜서
- * **함수 단위 self time** 으로 나눈다 — 인라인 스크립트도 줄 번호까지 나온다.
+ * **함수 단위 self time** 으로 나눈다. 인라인 스크립트도 줄 번호까지 나온다.
  *
  * 사용: node scripts/profile-blocking.mjs [경로] [머무는초]
  *   예) node scripts/profile-blocking.mjs '' 5
@@ -73,7 +73,7 @@ const top = [...merged.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15);
 const totalBlocked = longs.reduce((a, b) => a + Math.max(0, b - 50), 0);
 
 console.log(`\n=== ${URL_} ===`);
-console.log(`긴 작업 ${longs.length}개 (${longs.join(', ')}ms) · 막힘 합계 ${totalBlocked}ms`);
+console.log(`긴 작업 ${longs.length}개 (${longs.join(', ')}ms), 막힘 합계 ${totalBlocked}ms`);
 console.log('\n주 스레드를 오래 잡은 코드 (자기 시간):');
 for (const [k, ms] of top) console.log(`  ${String(Math.round(ms)).padStart(5)}ms  ${k}`);
 

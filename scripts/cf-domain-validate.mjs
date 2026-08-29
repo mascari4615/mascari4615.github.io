@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CF Domain Validation — TASK-KAR-032
+ * CF Domain Validation. TASK-KAR-032
  *
  * Validates Cloudflare API token and zone access for mascari4615.com
  *

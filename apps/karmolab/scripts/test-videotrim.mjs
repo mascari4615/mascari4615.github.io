@@ -4,9 +4,9 @@
  * 이 도구는 구간을 **실제로 재생하며 담는다**. 그래서 조용히 어긋날 자리가 둘이다:
  *  ① 시작 지점으로 옮기기 전에 담기 시작하면 엉뚱한 데서 시작된다
  *  ② 끝 지점에서 멈추지 못하면 영상 끝까지 담긴다
- * 둘 다 오류가 안 난다 — 파일은 나오고, 내용만 틀린다.
+ * 둘 다 오류가 안 난다. 파일은 나오고, 내용만 틀린다.
  *
- * 그래서 결과의 **길이**를 재서 고른 구간과 맞는지 본다. 길이가 맞아야 시작·끝 둘 다 맞은 것이다.
+ * 그래서 결과의 **길이**를 재서 고른 구간과 맞는지 본다. 길이가 맞아야 시작, 끝 둘 다 맞은 것이다.
  *
  * 사용: node scripts/test-videotrim.mjs
  */
@@ -24,8 +24,8 @@ const page = await browser.newPage();
  * ★ `/apps/karmolab/js/**` 요청은 **디스크의 진짜 산출물**로 돌려준다 (2026-08-12).
  *   위젯의 build() 는 말 묶음(i18n)을 받아 온 **뒤에** 그린다. 그 loader 는 묶음이 실렸는지까지
  *   보고 안 실렸으면 reject 하므로, 껍데기 HTML 을 돌려주면 그리기가 영영 안 일어나고
- *   `#vtFile` 이 null 이라 「Cannot set properties of null」로 죽는다 — 검사가 굶긴 것이다.
- *   (자매 검사 test-video2gif.mjs · smoke-core-parity.mjs 와 같은 처방.)
+ *   `#vtFile` 이 null 이라 Cannot set properties of null로 죽는다. 검사가 굶긴 것이다.
+ *   (자매 검사 test-video2gif.mjs, smoke-core-parity.mjs 와 같은 처방.)
  */
 await page.route('**/*', (route) => {
   const url = new URL(route.request().url());
@@ -54,7 +54,7 @@ const result = await page.evaluate(async () => {
   const tool = window.__reg['videotrim'];
   if (!tool) return { ok: false, why: '위젯이 등록되지 않았다' };
 
-  // 4초짜리 시험 영상 (소리 없이 화면만 — 담기 경로는 동일하다)
+  // 4초짜리 시험 영상 (소리 없이 화면만. 담기 경로는 동일하다)
   const makeVideo = () =>
     new Promise((resolve) => {
       const cv = document.createElement('canvas');
@@ -81,13 +81,13 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
-  /* build() 는 말 묶음을 받아 온 뒤에 그린다 — 그려질 때까지 기다린다(sleep 아님). */
+  /* build() 는 말 묶음을 받아 온 뒤에 그린다. 그려질 때까지 기다린다(sleep 아님). */
   const waitEl = async (sel, ms = 8000) => {
     const until = Date.now() + ms;
     for (;;) {
       const found = host.querySelector(sel);
       if (found) return found;
-      if (Date.now() > until) throw new Error(`${sel} 이 ${ms}ms 안에 안 그려졌다 — build() 가 기다리는 말 묶음이 안 온다`);
+      if (Date.now() > until) throw new Error(`${sel} 이 ${ms}ms 안에 안 그려졌다. build() 가 기다리는 말 묶음이 안 온다`);
       await new Promise((r) => setTimeout(r, 25));
     }
   };
@@ -143,7 +143,7 @@ const result = await page.evaluate(async () => {
   const off = Math.abs(measured - wanted);
   return {
     ok: measured > 0 && off < Math.max(0.5, wanted * 0.35),
-    why: `원본 ${duration.toFixed(1)}초 · 고른 구간 ${wanted.toFixed(1)}초 · 담긴 길이 ${measured.toFixed(1)}초 (차이 ${off.toFixed(2)}초)`
+    why: `원본 ${duration.toFixed(1)}초, 고른 구간 ${wanted.toFixed(1)}초, 담긴 길이 ${measured.toFixed(1)}초 (차이 ${off.toFixed(2)}초)`
   };
 });
 

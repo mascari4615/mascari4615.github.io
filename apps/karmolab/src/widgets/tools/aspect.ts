@@ -1,7 +1,7 @@
 /**
  * 비율 계산기 (TASK-KL-088)
  *
- * 「가로를 1280 으로 줄이면 세로는?」 을 손으로 하면 소수점에서 1px 씩 어긋나고,
+ * 가로를 1280 으로 줄이면 세로는? 을 손으로 하면 소수점에서 1px 씩 어긋나고,
  * 그 1px 이 쌓여 이미지가 미묘하게 눌린다. 원본 비율을 유지한 채 한쪽만 정하면
  * 나머지를 채워 주고, 흔한 화면비(16:9 등)로 맞출 때 필요한 여백도 함께 낸다.
  */
@@ -13,7 +13,7 @@ import { markLive } from './shared/say';
 
   const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
 
-  /* 이름은 **쓸 때** 붙인다 — 표로 굳히면 그 시점엔 말 묶음이 아직 안 와서 한국어로 박힌다. */
+  /* 이름은 **쓸 때** 붙인다. 표로 굳히면 그 시점엔 말 묶음이 아직 안 와서 한국어로 박힌다. */
   const common = (): Array<[number, number, string]> => [
     [16, 9, t('aspect.name.169')],
     [4, 3, t('aspect.name.43')],
@@ -29,7 +29,7 @@ import { markLive } from './shared/say';
     id: 'aspect',
     title: t('widgets.aspect.title', undefined, "화면 비율 계산기"),
     category: 'tool',
-    desc: t('widgets-desc.aspect.desc', undefined, "가로·세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함"),
+    desc: t('widgets-desc.aspect.desc', undefined, "가로, 세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함"),
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 6l18 12" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>',
     tabs: [
@@ -85,8 +85,8 @@ import { markLive } from './shared/say';
           const nh = $<HTMLInputElement>('#asNewH');
           const out = $<HTMLElement>('#asOut');
           const status = $<HTMLElement>('#asStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           let lastEdited: 'w' | 'h' = 'w';
 
@@ -123,7 +123,7 @@ import { markLive } from './shared/say';
             if (outW> 0 && outH> 0) {
               rows.push(row(t('aspect.row.newSize'), `${outW} × ${outH}`));
               rows.push(row(t('aspect.row.scale'), t('aspect.value.scale', { n: (outW / W).toFixed(3) })));
-              // 16:9 화면에 넣을 때 생기는 위아래(또는 좌우) 여백 — 영상 작업에서 자주 필요하다.
+              // 16:9 화면에 넣을 때 생기는 위아래(또는 좌우) 여백. 영상 작업에서 자주 필요하다.
               const box169 = outW / (16 / 9);
               rows.push(
                 row(

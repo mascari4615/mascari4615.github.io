@@ -18,7 +18,7 @@ test('방금까지 얘기하던 참이면 끼어들지 않는다', () => {
   assert.equal(reasonToSpeak({ ...base, sinceTalkedMs: 2 * minutes }), null);
 });
 
-test('할 말이 없으면 조용하다 — 말 걸려고 말 걸지 않는다', () => {
+test('할 말이 없으면 조용하다. 말 걸려고 말 걸지 않는다', () => {
   assert.equal(reasonToSpeak(base), null);
 });
 
@@ -51,7 +51,7 @@ test('아주 오래 못 봤으면 아는 척 한 번', () => {
   assert.match(r.why, /오랜만/);
 });
 
-test('한 번에 한 가지 이유만 든다 — 여러 개를 쏟으면 알림이 된다', () => {
+test('한 번에 한 가지 이유만 든다. 여러 개를 쏟으면 알림이 된다', () => {
   const r = reasonToSpeak({
     ...base, hour: 3, sinceTalkedMs: 9 * time, wondering: '뭐 하나', windowTitle: '새 창', lastWindowTitle: '옛 창',
   });
@@ -80,7 +80,7 @@ test('이유가 없으면 아예 안 깨운다', async () => {
   assert.deepEqual(woke, []);
 });
 
-test('이유를 보다 터져도 조용히 넘어간다 — 깨우는 일이 멈추지 않게', async () => {
+test('이유를 보다 터져도 조용히 넘어간다. 깨우는 일이 멈추지 않게', async () => {
   const problems = [];
   const sense = nudgeSense({
     everyMs: 15,

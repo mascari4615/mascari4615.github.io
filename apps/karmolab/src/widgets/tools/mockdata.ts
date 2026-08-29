@@ -1,8 +1,8 @@
 /**
- * 가짜 데이터 — 칸 종류만 적으면 채워 준다 (TASK-KL-316 / 6)
+ * 가짜 데이터. 칸 종류만 적으면 채워 준다 (TASK-KL-316 / 6)
  *
- * 「개발 도구」 작업대의 **만들기** 칸. 알맹이는 `core/mockdata` (들고 온 것이 없어도 되는 할 일).
- * 씨앗을 화면에 내놓는다 — 같은 씨앗이면 같은 데이터라, 「아까 그 표」를 다시 부를 수 있다.
+ * 개발 도구 작업대의 **만들기** 칸. 알맹이는 `core/mockdata` (들고 온 것이 없어도 되는 할 일).
+ * 씨앗을 화면에 내놓는다. 같은 씨앗이면 같은 데이터라, 아까 그 표를 다시 부를 수 있다.
  */
 import { emit, generate, spec, type Locale, type Out } from '../../core/mockdata';
 import { escapeHtml as esc } from './shared/text';
@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.mockdata.desc',
       undefined,
-      '칸 종류만 적으면 그럴듯한 시험용 데이터를 만듭니다. 한국어·영어·일본어 이름, CSV·JSON·SQL 로'
+      '칸 종류만 적으면 그럴듯한 시험용 데이터를 만듭니다. 한국어, 영어, 일본어 이름, CSV, JSON, SQL 로'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M9 10v9M15 10v9" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',
@@ -127,7 +127,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     [count].forEach((el) => el.addEventListener('input', render));
     [locale, to].forEach((el) => el.addEventListener('change', render));
     $<HTMLButtonElement>('#mkRun').onclick = render;
-    /* 씨앗을 굴린다 — 「다른 걸로 한 판 더」 */
+    /* 씨앗을 굴린다. 다른 걸로 한 판 더 */
     $<HTMLButtonElement>('#mkShuffle').onclick = (): void => {
       seed.value = String(Math.floor(Math.random() * 999999));
       render();

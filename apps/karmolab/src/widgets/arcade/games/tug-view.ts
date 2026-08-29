@@ -1,7 +1,7 @@
 /**
  * 줄다리기 화면 (TASK-KL-242)
  *
- * 헛심을 냈을 때 **바로 알려 준다** — 안 알려 주면 「빨리 누를수록 좋다」고 믿고 계속 그렇게 한다.
+ * 헛심을 냈을 때 **바로 알려 준다**. 안 알려 주면 빨리 누를수록 좋다고 믿고 계속 그렇게 한다.
  * 규칙을 글로 적어 두는 것보다 그 순간에 보여 주는 쪽이 배운다.
  */
 import { t } from '../../../lib/i18n';
@@ -27,7 +27,7 @@ export const tugView: GameView<TugState, TugAction> = {
 
     return (v, mySeat, now) => {
       const s = v.state;
-      /* 내 쪽이 늘 오른쪽으로 끌려오게 — 자리1이면 방향을 뒤집어 그린다. */
+      /* 내 쪽이 늘 오른쪽으로 끌려오게. 자리1이면 방향을 뒤집어 그린다. */
       const dir = mySeat === 0 ? 1 : -1;
       const pct = 50 + (s.rope * dir * 50) / GOAL;
       knot.style.left = Math.max(2, Math.min(98, pct)) + '%';

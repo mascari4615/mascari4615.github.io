@@ -1,11 +1,11 @@
 /**
- * 알람 발화 풀스크린 페이지 — TASK-KL-064.
+ * 알람 발화 풀스크린 페이지. TASK-KL-064.
  *
  * `index.html` 의 `location.hash === '#alarm-fire'` 조기 분기가 대시보드 부트
  * *전에* 로드 (가벼움, toolbox 비의존). Rust 상주 스케줄러가 발화 시 label
- * "alarm" WebviewWindow 를 이 페이지로 띄운다 (always-on-top·fullscreen).
+ * "alarm" WebviewWindow 를 이 페이지로 띄운다 (always-on-top, fullscreen).
  *
- * Tauri 전역(withGlobalTauri=true) 직접 사용 — tauri-bridge 번들 비의존
+ * Tauri 전역(withGlobalTauri=true) 직접 사용. tauri-bridge 번들 비의존
  * (조기 분기라 toolbox 파이프라인 안 탐). capabilities/default.json 의
  * windows=["main","alarm"] + remote url 매칭이 invoke/listen 을 허용.
  *
@@ -125,7 +125,7 @@
           });
       } else if (tries > 50) {
         window.clearInterval(poll);
-        showAlarm(null); // Tauri 미주입(웹 직접 열림) — 라벨 기본문구만
+        showAlarm(null); // Tauri 미주입(웹 직접 열림). 라벨 기본문구만
       }
     }, 100);
   }

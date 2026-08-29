@@ -2,15 +2,15 @@
  * build-worldbook: memo/wm/design/** → apps/karmolab/data/worldbook.json (단방향)
  *
  * 왜: KarmoLab 이 WM 의 메인 웹이 된다(정본 memo/projects/wm-hub.md). 그런데 WM 은
- * 한창 개발 중이라 문서 모양이 자주 바뀐다. 그래서 이 수집기는 **WM 의 현재 스키마를 모른다** —
+ * 한창 개발 중이라 문서 모양이 자주 바뀐다. 그래서 이 수집기는 **WM 의 현재 스키마를 모른다** . 
  * frontmatter 에 있는 키를 그대로 싣고, 없는 것은 조용히 뺀다. 필드가 늘어도 웹 코드는 안 고친다.
  *
  * 기존 sync-wiki.mjs 와의 차이: sync-wiki 는 `slug/entityId/type/title` 을 강제하는 **엄격한**
- * entity 파이프(캐릭터 카드·챗봇 바인딩용). 이쪽은 설정 문서 전체를 **느슨하게** 긁는 도감용이다.
+ * entity 파이프(캐릭터 카드, 챗봇 바인딩용). 이쪽은 설정 문서 전체를 **느슨하게** 긁는 도감용이다.
  * 파서(frontmatter 부분집합)는 같은 규약을 쓴다.
  *
  * 공개 범위: memo/wm/design/web-policy.json (폴더 단위) + 문서 frontmatter `web:` (문서가 이김).
- *   public = 본문까지 / summary = 제목·한 줄만 / private = 산출에 없음
+ *   public = 본문까지 / summary = 제목, 한 줄만 / private = 산출에 없음
  *
  * 사용:
  *   node scripts/build-worldbook.mjs            # 수집 후 data/worldbook.json 갱신
@@ -31,12 +31,12 @@ const OUT_PATH = path.join(KARMOLAB_ROOT, 'data/worldbook.json');
 
 const CHECK = process.argv.includes('--check');
 
-/** 폴더명 → 사람이 읽는 종류 이름. 없으면 폴더명 그대로 — 새 폴더가 생겨도 탭이 자동으로 뜬다. */
+/** 폴더명 → 사람이 읽는 종류 이름. 없으면 폴더명 그대로. 새 폴더가 생겨도 탭이 자동으로 뜬다. */
 const KIND_LABEL = {
   characters: '인물',
   world: '세계',
   gameplay: '규칙',
-  art: '그림·소리',
+  art: '그림, 소리',
   vision: '방향',
   content: '콘텐츠',
   systems: '시스템',
@@ -119,13 +119,13 @@ function parseYamlSimple(yaml) {
   return obj;
 }
 
-// ── 문서에서 사람이 읽는 조각 뽑기 (없으면 조용히 생략 — 필수는 title 하나) ─────────────────
+// ── 문서에서 사람이 읽는 조각 뽑기 (없으면 조용히 생략. 필수는 title 하나) ─────────────────
 function firstHeading(body) {
   const m = body.match(/^#\s+(.+)$/m);
   return m ? m[1].trim() : '';
 }
 
-/** 첫 문단 = 한 줄 소개. 인용(>)·표·목록·머리말은 건너뛴다. */
+/** 첫 문단 = 한 줄 소개. 인용(>), 표, 목록, 머리말은 건너뛴다. */
 function firstParagraph(body) {
   const lines = body.split(/\r?\n/);
   const buf = [];
@@ -141,7 +141,7 @@ function firstParagraph(body) {
     if (buf.join(' ').length > 200) break;
   }
   const s = buf.join(' ').replace(/\*\*/g, '').replace(/`/g, '');
-  return s.length > 220 ? s.slice(0, 217) + '…' : s;
+  return s.length > 220 ? s.slice(0, 217) + '...' : s;
 }
 
 function toArray(v) {
@@ -188,7 +188,7 @@ async function collect() {
   if (fs.existsSync(POLICY_PATH)) {
     policy = JSON.parse(await fsp.readFile(POLICY_PATH, 'utf8'));
   } else {
-    problems.push(`공개 정책 파일 없음: ${POLICY_PATH} — 전부 비공개로 떨어진다`);
+    problems.push(`공개 정책 파일 없음: ${POLICY_PATH}. 전부 비공개로 떨어진다`);
   }
   const fallback = policy._default || 'private';
 
@@ -209,7 +209,7 @@ async function collect() {
       try {
         meta = parseYamlSimple(fm);
       } catch (err) {
-        problems.push(`${rel}: frontmatter 파싱 실패 — ${err.message}`);
+        problems.push(`${rel}: frontmatter 파싱 실패. ${err.message}`);
         continue;
       }
     }
@@ -231,7 +231,7 @@ async function collect() {
     const title = String(meta.title || '').trim() || firstHeading(body) || path.basename(rel, '.md');
     if (!title) { problems.push(`${rel}: 제목을 찾을 수 없음(frontmatter title 도 H1 도 없음)`); continue; }
 
-    // frontmatter 의 나머지 키를 **그대로** 싣는다 — 웹은 모르는 키도 그린다.
+    // frontmatter 의 나머지 키를 **그대로** 싣는다. 웹은 모르는 키도 그린다.
     const fields = {};
     for (const [k, v] of Object.entries(meta)) {
       if (['title', 'web'].includes(k)) continue;
@@ -258,7 +258,7 @@ async function collect() {
   }
 
   for (const f of unknownFolders) {
-    notes.push(`정책 없는 새 폴더 "${f}" — 기본값(${fallback}) 적용. web-policy.json 에서 한 번 판정할 것`);
+    notes.push(`정책 없는 새 폴더 "${f}". 기본값(${fallback}) 적용. web-policy.json 에서 한 번 판정할 것`);
   }
 
   docs.sort((a, b) => (a.kind === b.kind ? a.title.localeCompare(b.title, 'ko') : a.kind.localeCompare(b.kind)));
@@ -273,7 +273,7 @@ async function collect() {
     docs,
   };
 
-  if (docs.length === 0) problems.push('공개 문서가 0 건 — 도감이 백지가 된다');
+  if (docs.length === 0) problems.push('공개 문서가 0 건. 도감이 백지가 된다');
   return { ok: problems.length === 0, problems, notes, book };
 }
 
@@ -281,22 +281,22 @@ async function collect() {
 async function main() {
   const hasMemo = fs.existsSync(DESIGN_ROOT);
   if (!hasMemo) {
-    // memo 는 비공개 레포 — CI 에는 없다. 커밋된 worldbook.json 을 그대로 쓴다.
+    // memo 는 비공개 레포. CI 에는 없다. 커밋된 worldbook.json 을 그대로 쓴다.
     if (!fs.existsSync(OUT_PATH)) {
       console.error(`[worldbook] memo 도 없고 커밋된 산출도 없다: ${OUT_PATH}`);
       process.exit(1);
     }
     const prev = JSON.parse(await fsp.readFile(OUT_PATH, 'utf8'));
-    /* 바닥 (2026-08-14). memo 가 있는 갈래에는 「0건이면 실패」·「30% 넘게 줄면 실패」가 있는데
-     * **이 갈래에는 아무것도 없었다** — 그리고 CI 는 언제나 이 갈래로 온다(memo 는 비공개다).
+    /* 바닥 (2026-08-14). memo 가 있는 갈래에는 0건이면 실패, 30% 넘게 줄면 실패가 있는데
+     * **이 갈래에는 아무것도 없었다**. 그리고 CI 는 언제나 이 갈래로 온다(memo 는 비공개다).
      * 즉 커밋된 산출이 비어 있으면 배포는 초록, 도감은 백지가 된다. 그 조합이 제일 무섭다. */
     const kept = prev.counts?.docs;
     if (typeof kept !== 'number' || kept < 1) {
-      console.error(`[worldbook] ❌ 커밋된 산출에 문서가 ${kept ?? '?'}건이다 — 이건 「memo 가 없다」가 아니라 **산출이 비었다**는 뜻이다.`);
+      console.error(`[worldbook] ❌ 커밋된 산출에 문서가 ${kept ?? '?'}건이다. 이건 memo 가 없다가 아니라 **산출이 비었다**는 뜻이다.`);
       console.error('[worldbook]   memo 가 있는 기계에서 `npm run build:worldbook` 을 돌려 다시 커밋할 것.');
       process.exit(1);
     }
-    console.log(`[worldbook] memo 없음 — 커밋된 산출 사용 (문서 ${kept}건)`);
+    console.log(`[worldbook] memo 없음. 커밋된 산출 사용 (문서 ${kept}건)`);
     return;
   }
 
@@ -310,7 +310,7 @@ async function main() {
   if (prev && book && prev.counts?.docs > 0) {
     const drop = 1 - book.counts.docs / prev.counts.docs;
     if (drop > 0.3) {
-      problems.push(`문서 수가 ${prev.counts.docs} → ${book.counts.docs} 로 ${Math.round(drop * 100)}% 줄었다 — 수집이 깨진 것 아닌지 확인`);
+      problems.push(`문서 수가 ${prev.counts.docs} → ${book.counts.docs} 로 ${Math.round(drop * 100)}% 줄었다. 수집이 깨진 것 아닌지 확인`);
     }
   }
 
@@ -320,7 +320,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`[worldbook] 문서 ${book.counts.docs}건 · 종류 ${book.counts.kinds}개 · 비공개 제외 ${book.counts.privateSkipped}건`);
+  console.log(`[worldbook] 문서 ${book.counts.docs}건, 종류 ${book.counts.kinds}개, 비공개 제외 ${book.counts.privateSkipped}건`);
   for (const k of book.kinds) console.log(`  - ${k.id} (${k.label}) ${k.count}`);
 
   if (CHECK) {
@@ -328,14 +328,14 @@ async function main() {
     const a = JSON.stringify(prev.docs);
     const b = JSON.stringify(book.docs);
     if (a !== b) {
-      console.error('[worldbook] ❌ --check: memo 정본과 커밋된 worldbook.json 이 다르다 — `npm run build:worldbook` 후 커밋할 것');
+      console.error('[worldbook] ❌ --check: memo 정본과 커밋된 worldbook.json 이 다르다. `npm run build:worldbook` 후 커밋할 것');
       process.exit(1);
     }
     console.log('[worldbook] --check 통과 (정본과 산출 일치)');
     return;
   }
 
-  /* 내용이 그대로면 「만든 시각」도 그대로 둔다 — 안 그러면 빌드할 때마다 이 파일 한 줄이
+  /* 내용이 그대로면 만든 시각도 그대로 둔다. 안 그러면 빌드할 때마다 이 파일 한 줄이
    * 바뀌어 커밋이 지저분해지고, 남의 세션과 부딪힌다(실측으로 매 빌드마다 dirty). */
   if (prev && JSON.stringify(prev.docs) === JSON.stringify(book.docs) && prev.generatedAt) {
     book.generatedAt = prev.generatedAt;

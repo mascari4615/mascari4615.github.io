@@ -15,9 +15,9 @@ test('종류별로 센다', () => {
   assert.equal(t.count('죽음'), 0);
 });
 
-test('실제로 있었던 자리를 남긴다 — 숫자만 있으면 뭘 고칠지 모른다', () => {
+test('실제로 있었던 자리를 남긴다. 숫자만 있으면 뭘 고칠지 모른다', () => {
   const t = new Troubles();
-  t.hit('걸림', '「무엇을 도와드릴까요」');
+  t.hit('걸림', '무엇을 도와드릴까요');
   assert.match(t.all[0].what, /도와드릴까요/);
 });
 
@@ -27,7 +27,7 @@ test('너무 긴 것은 잘라 둔다', () => {
   assert.ok(t.all[0].what.length <= 120);
 });
 
-test('종류마다 몇 개씩만 남긴다 — 한 종류가 쏟아지면 다른 종류가 밀려난다', () => {
+test('종류마다 몇 개씩만 남긴다. 한 종류가 쏟아지면 다른 종류가 밀려난다', () => {
   const t = new Troubles({ keepEach: 2 });
   for (let i = 0; i < 10; i += 1) t.hit('걸림', `걸린 것 ${i}`);
   t.hit('못함', '손 하나');
@@ -48,7 +48,7 @@ test('걸린 게 없으면 그렇다고 말한다', () => {
   assert.match(troublesReport(new Troubles()), /아직 걸린 게 없다/);
 });
 
-test('잦은 것을 위에 둔다 — 한 번 있었던 일보다 자꾸 나는 일이 고칠 거리다', () => {
+test('잦은 것을 위에 둔다. 한 번 있었던 일보다 자꾸 나는 일이 고칠 거리다', () => {
   const t = new Troubles();
   t.hit('못함', '한 번');
   for (let i = 0; i < 5; i += 1) t.hit('걸림', `자주 ${i}`);
@@ -58,7 +58,7 @@ test('잦은 것을 위에 둔다 — 한 번 있었던 일보다 자꾸 나는 
 
 test('실제 자리도 같이 보여 준다', () => {
   const t = new Troubles();
-  t.hit('걸림', '「무엇을 도와드릴까요」');
+  t.hit('걸림', '무엇을 도와드릴까요');
   const table = troublesReport(t);
   assert.match(table, /걸림 1번/);
   assert.match(table, /도와드릴까요/);
@@ -72,7 +72,7 @@ test('없는 종류는 표에 안 올린다', () => {
 
 // ── 껐다 켜기 ───────────────────────────────────────────────────────
 
-test('파일에 남겨 두면 껐다 켜도 이어진다 — 며칠 봐야 뭐가 자주 나는지 안다', async () => {
+test('파일에 남겨 두면 껐다 켜도 이어진다. 며칠 봐야 뭐가 자주 나는지 안다', async () => {
   const { mkdtempSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');

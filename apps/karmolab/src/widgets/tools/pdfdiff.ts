@@ -1,13 +1,13 @@
 /**
- * 판본 대조 — 문서 두 벌에서 바뀐 자리만 짚어 준다 (TASK-KL-130)
+ * 판본 대조. 문서 두 벌에서 바뀐 자리만 짚어 준다 (TASK-KL-130)
  *
  * 왜 만들었나: 대조 도구는 흔한데 **전부 글자만 본다.** 계약서에서 표가 밀렸거나 도장이 빠진 건
  * 글자 대조로는 안 잡힌다. 그림까지 보는 대조는 대개 파일을 서버로 올리는데, 계약서는 그걸 못 한다.
  * 그래서 **글자층 + 그림** 둘 다 보고, 전부 브라우저 안에서 끝낸다.
  *
- * 두 갈래를 쓰는 이유가 서로를 메운다 —
+ * 두 갈래를 쓰는 이유가 서로를 메운다 . 
  *   글자층: 무엇이 사라지고 무엇이 들어왔는지 *읽을 수 있게* 말해 준다. 스캔본에는 아예 없다.
- *   그림  : 글자가 없어도(스캔·도장·표 이동) 잡힌다. 대신 「무엇이」는 못 말한다.
+ *   그림  : 글자가 없어도(스캔, 도장, 표 이동) 잡힌다. 대신 무엇이는 못 말한다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { wireDrop } from './shared/drop-well';
@@ -16,9 +16,9 @@ import { diffLines as coreDiffLines } from '../../core/diff';
 import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, pdfBlob, renderPage, suffixName, type PdfJs, type PdfJsDoc, type PdfPage, type PdfLibDoc, type PDFLib } from './shared/pdf';
 
 (function (): void {
-  const MAX_PAGES = 30; // 이보다 길면 브라우저가 오래 잡힌다 — 자르고 그 사실을 말한다
+  const MAX_PAGES = 30; // 이보다 길면 브라우저가 오래 잡힌다. 자르고 그 사실을 말한다
   const BLOCK = 8; // 픽셀을 이 크기 칸으로 묶어 본다 (글자 한 획 단위 잡음을 걸러낸다)
-  const DIFF_THRESHOLD = 24; // 칸 평균 밝기 차가 이보다 크면 「달라졌다」
+  const DIFF_THRESHOLD = 24; // 칸 평균 밝기 차가 이보다 크면 달라졌다
 
   interface TextItem {
     str: string;
@@ -28,7 +28,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
   type Box = { x: number; y: number; w: number; h: number };
   type Op = { type: 'same' | 'add' | 'del'; text: string };
 
-  /** 글자 조각을 줄로 묶는다 — PDF 는 한 줄이 여러 조각으로 쪼개져 들어온다. */
+  /** 글자 조각을 줄로 묶는다. PDF 는 한 줄이 여러 조각으로 쪼개져 들어온다. */
   function linesOf(items: TextItem[]): string[] {
     const rows = new Map<number, { x: number; s: string }[]>();
     for (const it of items) {
@@ -39,7 +39,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
       (rows.get(key) as { x: number; s: string }[]).push({ x: it.transform[4], s: it.str });
     }
     return [...rows.entries()]
-      .sort((a, b) => b[0] - a[0]) // PDF 의 y 는 아래에서 위로 — 위쪽 줄이 먼저
+      .sort((a, b) => b[0] - a[0]) // PDF 의 y 는 아래에서 위로. 위쪽 줄이 먼저
       .map(([, parts]) =>
         parts
           .sort((a, b) => a.x - b.x)
@@ -52,8 +52,8 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
   }
 
   /**
-   * 줄 견주기는 `core/diff` 하나만 쓴다 (TASK-KL-316) — 여기, 글 작업대, 견주기 도구가
-   * 각자 LCS 를 갖고 있으면 같은 두 쪽에 서로 다른 답이 나온다. 여기선 「사라진 줄 / 들어온 줄」만 쓴다.
+   * 줄 견주기는 `core/diff` 하나만 쓴다 (TASK-KL-316). 여기, 글 작업대, 견주기 도구가
+   * 각자 LCS 를 갖고 있으면 같은 두 쪽에 서로 다른 답이 나온다. 여기선 사라진 줄 / 들어온 줄만 쓴다.
    */
   function diffLines(a: string[], b: string[]): Op[] {
     return coreDiffLines(a.join('\n'), b.join('\n')).map((edit) => ({
@@ -79,7 +79,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
         for (let y = by * BLOCK; y < y1; y++) {
           for (let x = bx * BLOCK; x < x1; x++) {
             const p = (y * w + x) * 4;
-            // 밝기만 본다 — 색이 조금 도는 것보다 글자가 있고 없고가 중요하다
+            // 밝기만 본다. 색이 조금 도는 것보다 글자가 있고 없고가 중요하다
             const la = (A.data[p] * 299 + A.data[p + 1] * 587 + A.data[p + 2] * 114) / 1000;
             const lb = (B.data[p] * 299 + B.data[p + 1] * 587 + B.data[p + 2] * 114) / 1000;
             sum += Math.abs(la - lb);
@@ -90,7 +90,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
       }
     }
 
-    // 붙어 있는 칸 뭉치를 하나의 상자로 (4-이웃 flood fill, 재귀 X — 큰 페이지에서 스택이 터진다)
+    // 붙어 있는 칸 뭉치를 하나의 상자로 (4-이웃 flood fill, 재귀 X. 큰 페이지에서 스택이 터진다)
     const seen = new Uint8Array(cols * rows);
     const boxes: Box[] = [];
     const stack: number[] = [];
@@ -144,7 +144,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
     desc: t(
       'widgets-desc.pdfdiff.desc',
       undefined,
-      '문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표·도장이 밀린 것도 잡습니다'
+      '문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표, 도장이 밀린 것도 잡습니다'
     ),
     layout: 'wide',
     icon: '<path d="M9 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 8h3M7 12h2M14 8h3M14 12h3M14 16h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -212,13 +212,13 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           const files: { A: File | null; B: File | null } = { A: null, B: null };
           let pdfjs: PdfJs | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /* 두 자리(앞·뒤)를 같은 배선으로 연다. 파일 받는 손잡이는 **공용**을 쓴다
-             (KL-290 -> KL-257) — 손으로 적을 때 늘 빠지던 키보드 열기(Enter/Space)와
-             붙여넣기가 여기서 함께 온다. 이 함수에 남는 것은 「받은 뒤 무엇을 하나」뿐이다. */
+          /* 두 자리(앞, 뒤)를 같은 배선으로 연다. 파일 받는 손잡이는 **공용**을 쓴다
+             (KL-290 -> KL-257). 손으로 적을 때 늘 빠지던 키보드 열기(Enter/Space)와
+             붙여넣기가 여기서 함께 온다. 이 함수에 남는 것은 받은 뒤 무엇을 하나뿐이다. */
           function wireSide(side: 'A' | 'B'): void {
             const drop = $<HTMLElement>('#pdDrop' + side);
             const input = $<HTMLInputElement>('#pdFile' + side);
@@ -250,7 +250,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             canvas.width = Math.round(w ?? vp.width);
             canvas.height = Math.round(h ?? vp.height);
             const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-            ctx.fillStyle = '#fff'; // PDF 는 배경이 비어 있다 — 흰 종이를 깔아야 두 장을 비교할 수 있다
+            ctx.fillStyle = '#fff'; // PDF 는 배경이 비어 있다. 흰 종이를 깔아야 두 장을 비교할 수 있다
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             await page.render({ canvasContext: ctx, viewport: vp }).promise;
             return canvas;
@@ -279,7 +279,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             }
             const mode = $<HTMLSelectElement>('#pdMode').value;
             const onlyChanged = $<HTMLInputElement>('#pdOnlyChanged').checked;
-            // 민감도는 「칸을 얼마나 잘게 볼까」가 아니라 「얼마나 달라야 다르다고 할까」로 푼다.
+            // 민감도는 칸을 얼마나 잘게 볼까가 아니라 얼마나 달라야 다르다고 할까로 푼다.
             const level = parseInt(sens.value, 10);
             const threshold = level === 1 ? DIFF_THRESHOLD * 2 : level === 3 ? DIFF_THRESHOLD / 2 : DIFF_THRESHOLD;
             out.innerHTML = '';
@@ -316,7 +316,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
                 const [pa, pb] = await Promise.all([docA.getPage(n), docB.getPage(n)]);
                 const vpa = pa.getViewport({ scale: 1.5 });
                 const vpb = pb.getViewport({ scale: 1.5 });
-                // 종이 크기가 다르면 큰 쪽에 맞춘다 — 크기가 다른 것 자체도 「달라진 것」이다
+                // 종이 크기가 다르면 큰 쪽에 맞춘다. 크기가 다른 것 자체도 달라진 것이다
                 const W = Math.round(Math.max(vpa.width, vpb.width));
                 const H = Math.round(Math.max(vpa.height, vpb.height));
 
@@ -393,11 +393,11 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
               if (total> limit) notes.push(t('pdfdiff.note.limit', { limit, total }));
               if (textless> 0) notes.push(t('pdfdiff.note.textless', { n: textless }));
               if (changedPages === 0) {
-                say(t('pdfdiff.say.same') + (notes.length> 0 ? ' · ' + notes.join(' · ') : ''), 'ok');
+                say(t('pdfdiff.say.same') + (notes.length> 0 ? ', ' + notes.join(', ') : ''), 'ok');
                 if (out.children.length === 0)
                   out.innerHTML = `<div class="tool-status ok">${esc(t('pdfdiff.say.noChangedPages'))}</div>`;
               } else {
-                say(t('pdfdiff.say.changed', { n: changedPages }) + (notes.length> 0 ? ' · ' + notes.join(' · ') : ''));
+                say(t('pdfdiff.say.changed', { n: changedPages }) + (notes.length> 0 ? ', ' + notes.join(', ') : ''));
               }
               Toolbox.trackUse?.('compare');
             } catch (e) {
@@ -405,7 +405,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             }
           }
 
-          /** diffBoxes 의 민감도 조절판 — 기준값만 바꿔 같은 알고리즘을 쓴다. */
+          /** diffBoxes 의 민감도 조절판. 기준값만 바꿔 같은 알고리즘을 쓴다. */
           function diffBoxesWith(A: ImageData, B: ImageData, w: number, h: number, threshold: number): Box[] {
             if (threshold === DIFF_THRESHOLD) return diffBoxes(A, B, w, h);
             // 기준값이 다르면 밝기 차를 미리 키우거나 줄여서 같은 판정기를 태운다

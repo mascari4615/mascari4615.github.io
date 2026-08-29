@@ -12,8 +12,8 @@
  *   WEBHOOK_PORT (기본 4615)
  *
  * 실행:
- *   npm run tunnel        — 터널만 (봇은 별도 터미널)
- *   npm run dev           — --with-bot 옵션으로 npm run dev:bot 까지 spawn (통합)
+ *   npm run tunnel       . 터널만 (봇은 별도 터미널)
+ *   npm run dev          . --with-bot 옵션으로 npm run dev:bot 까지 spawn (통합)
  */
 import { spawn } from 'node:child_process';
 import process from 'node:process';
@@ -29,11 +29,11 @@ ensureGh();
 const children = [];
 
 if (withBot) {
-  console.log('[Tunnel] --with-bot — npm run dev:bot 동시 시작');
+  console.log('[Tunnel] --with-bot. npm run dev:bot 동시 시작');
   const bot = spawn('npm', ['run', 'dev:bot'], { stdio: 'inherit', shell: true });
   children.push(bot);
   bot.on('exit', (code) => {
-    console.log(`[Tunnel] 봇 프로세스 종료 (code=${code}) — cloudflared 정리`);
+    console.log(`[Tunnel] 봇 프로세스 종료 (code=${code}). cloudflared 정리`);
     for (const c of children) if (c !== bot && c.killed === false) c.kill('SIGINT');
     process.exit(code ?? 0);
   });

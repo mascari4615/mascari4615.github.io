@@ -3,7 +3,7 @@
  *
  * 학점은 단순 평균이 아니라 **학점 수로 가중한 평균**이다. 3학점 과목의 A와
  * 1학점 과목의 A는 무게가 다른데, 그냥 더해 나누면 이 차이가 사라진다.
- * 목표 학점을 채우려면 남은 학기에 얼마가 필요한지도 함께 낸다 — 그게 실제 질문이다.
+ * 목표 학점을 채우려면 남은 학기에 얼마가 필요한지도 함께 낸다. 그게 실제 질문이다.
  */
 import { maxOf, neededAverage, parseCourses, scaleOf, spec } from '../../core/grade';
 import { escapeHtml as esc } from './shared/text';
@@ -66,8 +66,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const out = $<HTMLElement>('#grOut');
           const need = $<HTMLElement>('#grNeed');
           const status = $<HTMLElement>('#grStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           let scale = scaleOf('45');
           let max = maxOf(scale);
@@ -78,7 +78,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
           function run(): void {
-            /* 읽기·가중 평균은 `src/core/grade.ts` 가 한다 — 「단순 평균과 다르다」가
+            /* 읽기, 가중 평균은 `src/core/grade.ts` 가 한다. 단순 평균과 다르다가
                이 도구의 요점이고, 시험도 거기에 붙어 있다 (TASK-KL-205). */
             const parsed = parseCourses(list.value, scale);
             const { credits, points, counted, bad } = parsed;
@@ -87,16 +87,16 @@ import { t, loadNamespace } from '../../lib/i18n';
             const simple = parsed.simple;
 
             stats.innerHTML =
-              stat(t('grade.stat.gpa'), credits ? gpa.toFixed(2) : '—', true) +
+              stat(t('grade.stat.gpa'), credits ? gpa.toFixed(2) : '. ', true) +
               stat(t('grade.stat.credits'), String(credits)) +
-              stat(t('grade.stat.percent'), credits ? t('grade.value.points', { n: ((gpa / max) * 100).toFixed(1) }) : '—');
+              stat(t('grade.stat.percent'), credits ? t('grade.value.points', { n: ((gpa / max) * 100).toFixed(1) }) : '. ');
 
             out.innerHTML =
               row(t('grade.row.courses'), t('grade.value.courses', { n: counted })) +
-              row(t('grade.row.weighted'), credits ? gpa.toFixed(3) : '—') +
-              row(t('grade.row.simple'), counted ? simple.toFixed(3) : '—') +
-              row(t('grade.row.ofMax'), credits ? `${gpa.toFixed(2)} / ${max}` : '—') +
-              (bad.length ? row(t('grade.row.unreadable'), bad.slice(0, 3).join(' · ') + (bad.length> 3 ? t('grade.value.andMore', { n: bad.length - 3 }) : '')) : '');
+              row(t('grade.row.weighted'), credits ? gpa.toFixed(3) : '. ') +
+              row(t('grade.row.simple'), counted ? simple.toFixed(3) : '. ') +
+              row(t('grade.row.ofMax'), credits ? `${gpa.toFixed(2)} / ${max}` : '. ') +
+              (bad.length ? row(t('grade.row.unreadable'), bad.slice(0, 3).join(', ') + (bad.length> 3 ? t('grade.value.andMore', { n: bad.length - 3 }) : '')) : '');
 
             // 목표를 채우려면 남은 학점에서 평균 얼마가 필요한가
             const target = parseFloat($<HTMLInputElement>('#grTarget').value);

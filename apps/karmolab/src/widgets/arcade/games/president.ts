@@ -1,13 +1,13 @@
 /**
- * 대부호 — 같은 수를 같은 장수로, 더 높게 (TASK-KL-242)
+ * 대부호. 같은 수를 같은 장수로, 더 높게 (TASK-KL-242)
  *
- * 여럿이 하는 카드 놀이의 뼈대다. 앞의 스피드가 「둘이서 실시간」이었다면 이건 **셋넷이 차례로**,
- * 그리고 **한 수가 카드 여러 장**이다 — 커널이 「한 수 = 값 하나」를 가정하지 않는다는 마지막 증명.
+ * 여럿이 하는 카드 놀이의 뼈대다. 앞의 스피드가 둘이서 실시간이었다면 이건 **셋넷이 차례로**,
+ * 그리고 **한 수가 카드 여러 장**이다. 커널이 한 수 = 값 하나를 가정하지 않는다는 마지막 증명.
  *
  * 간추린 규칙: 낸 사람이 정한 장수를 맞춰야 하고, 수는 더 높아야 한다. 못 내면 넘긴다.
  * 나만 빼고 다 넘기면 판이 비고, 내가 새로 시작한다. **손이 먼저 비는 사람이 대부호.**
  *
- * 2 가 제일 세다(원래 놀이 그대로) — 1(A) 다음이 아니라 맨 위다. 그 한 줄이 판을 뒤집는 재미다.
+ * 2 가 제일 세다(원래 놀이 그대로). 1(A) 다음이 아니라 맨 위다. 그 한 줄이 판을 뒤집는 재미다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
@@ -33,7 +33,7 @@ export type PresidentAction = { kind: 'play'; rank: number; count: number } | { 
 
 const countOf = (hand: number[], rank: number): number => hand.filter((c) => c === rank).length;
 
-/** 지금 낼 수 있는 수·장수 조합. */
+/** 지금 낼 수 있는 수, 장수 조합. */
 export function options(s: PresidentState, seat: number): Array<{ rank: number; count: number }> {
   const hand = s.hands[seat] ?? [];
   const out: Array<{ rank: number; count: number }> = [];
@@ -49,7 +49,7 @@ export function options(s: PresidentState, seat: number): Array<{ rank: number; 
   return out;
 }
 
-/** 다음에 둘 사람 — 이미 손이 빈 사람은 건너뛴다. */
+/** 다음에 둘 사람. 이미 손이 빈 사람은 건너뛴다. */
 function nextSeat(s: PresidentState, from: number, seats: number): number {
   for (let k = 1; k <= seats; k++) {
     const i = (from + k) % seats;
@@ -71,7 +71,7 @@ export const president: GameDef<PresidentState, PresidentAction> = {
     const hands = ctx.seats.map((_, i) =>
       mixed.filter((_, k) => k % n === i).sort((a, b) => power(a) - power(b))
     );
-    /* 3 을 가진 사람이 먼저 낸다 — 누가 시작할지 규칙으로 정해야 매번 같다. */
+    /* 3 을 가진 사람이 먼저 낸다. 누가 시작할지 규칙으로 정해야 매번 같다. */
     const first = hands.findIndex((h) => h.includes(3));
     return {
       hands,

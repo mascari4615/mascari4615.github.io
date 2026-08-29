@@ -1,5 +1,5 @@
 /**
- * /방 빌더 — 에이전트 임시 작업방 스레드 (KAR-018-A sub-A-3, slice-6).
+ * /방 빌더. 에이전트 임시 작업방 스레드 (KAR-018-A sub-A-3, slice-6).
  * registry.ts 가 단일 정본; deploy-commands 가 builder().toJSON() 파생.
  */
 import { SlashCommandBuilder } from 'discord.js';
@@ -7,7 +7,7 @@ import { SlashCommandBuilder } from 'discord.js';
 export const roomCommand = () =>
   new SlashCommandBuilder()
     .setName('방')
-    .setDescription('에이전트 임시 작업방(스레드) 관리 — KAR-018-A')
+    .setDescription('에이전트 임시 작업방(스레드) 관리. KAR-018-A')
     .addSubcommand((s) =>
       s
         .setName('생성')
@@ -28,5 +28,5 @@ export const roomCommand = () =>
         ),
     )
     .addSubcommand((s) =>
-      s.setName('해체').setDescription('이 방(스레드) 해체 — 코어 해제 + 아카이브'),
+      s.setName('해체').setDescription('이 방(스레드) 해체. 코어 해제 + 아카이브'),
     );

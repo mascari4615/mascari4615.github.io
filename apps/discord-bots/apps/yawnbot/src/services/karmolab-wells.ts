@@ -1,13 +1,13 @@
 /**
- * 표 우물 — 바깥에서 놀이 재료를 길어 오는 **자리 하나** (TASK-KL-153).
+ * 표 우물. 바깥에서 놀이 재료를 길어 오는 **자리 하나** (TASK-KL-153).
  *
  * 왜 이 파일이 따로 있나: 첫 우물(스팀)을 만들 때는 스팀 전용 코드였다. 두 번째 우물을
- * 붙이는 순간 「캐시·동시요청·바깥이 죽었을 때」를 우물 수만큼 베껴 쓰게 된다 — 그때부터
+ * 붙이는 순간 캐시, 동시요청, 바깥이 죽었을 때를 우물 수만큼 베껴 쓰게 된다. 그때부터
  * 우물마다 성질이 갈린다(하나는 캐시가 있고 하나는 없고). 그래서 **우물이 둘이 되는 자리**에서
- * 공통을 뽑았다: 여기는 「길어 오고 · 쥐고 있고 · 바깥이 죽으면 지난 걸 준다」만 안다.
- * 각 우물은 「어디서 무엇을 어떻게 표로 만드나」만 안다(`build`).
+ * 공통을 뽑았다: 여기는 길어 오고, 쥐고 있고, 바깥이 죽으면 지난 걸 준다만 안다.
+ * 각 우물은 어디서 무엇을 어떻게 표로 만드나만 안다(`build`).
  *
- * 새 우물 = 이 파일에 `build` 하나 추가. 화면·라우트·캐시는 손 안 댄다.
+ * 새 우물 = 이 파일에 `build` 하나 추가. 화면, 라우트, 캐시는 손 안 댄다.
  */
 import { STEAM_SOURCES, toPack, type SteamPackField, type SteamPackItem, type SteamSourceId } from './karmolab-steam';
 
@@ -19,11 +19,11 @@ export interface WellPack {
   emoji: string;
   fields: WellField[];
   items: WellItem[];
-  /** 언제 길어 온 것인가 (ISO). 화면이 「몇 시 기준」을 말할 수 있게. */
+  /** 언제 길어 온 것인가 (ISO). 화면이 몇 시 기준을 말할 수 있게. */
   fetchedAt: string;
   /** 바깥이 죽어서 지난 표를 주는 중인가. */
   stale: boolean;
-  /** 어느 우물에서 왔나 — 순위판이 표마다 갈리는 근거가 된다(`well:<id>`). */
+  /** 어느 우물에서 왔나. 순위판이 표마다 갈리는 근거가 된다(`well:<id>`). */
   well: string;
 }
 
@@ -35,7 +35,7 @@ export interface WellSpec {
   title: string;
   emoji: string;
   desc: string;
-  /** 이 우물이 열쇠를 요구하나 (없으면 목록에서 「아직 못 씀」으로 선다). */
+  /** 이 우물이 열쇠를 요구하나 (없으면 목록에서 아직 못 씀으로 선다). */
   needsKey?: string;
   build: (fetch: WellFetcher) => Promise<{ fields: WellField[]; items: WellItem[] }>;
 }
@@ -47,7 +47,7 @@ const MIN_ITEMS = 4;
 
 /* ── 우물들 ────────────────────────────────────────────── */
 
-/** 스팀 셋 — 첫 우물. 변환은 `karmolab-steam.ts` 가 그대로 맡는다. */
+/** 스팀 셋. 첫 우물. 변환은 `karmolab-steam.ts` 가 그대로 맡는다. */
 const steamWells: WellSpec[] = (Object.keys(STEAM_SOURCES) as SteamSourceId[]).map((source) => ({
   id: `steam-${source}`,
   title: STEAM_SOURCES[source].title,
@@ -75,20 +75,20 @@ interface JikanAnime {
 /**
  * 애니 100 (Jikan = MyAnimeList).
  *
- * 한 판에 25개씩만 준다 — 네 번 부른다. **한 번에 몰아 부르면 막힌다**(초당 3회 제한):
+ * 한 판에 25개씩만 준다. 네 번 부른다. **한 번에 몰아 부르면 막힌다**(초당 3회 제한):
  * 실측에서 `limit` 을 붙이면 504 로 돌아왔다. 그래서 그냥 페이지를 차례로 넘긴다.
  */
 const animeWell: WellSpec = {
   id: 'anime-top',
   title: '평점 높은 애니 100',
   emoji: '🌸',
-  desc: 'MyAnimeList 평점 상위 — 별점·본 사람 수·화수·제작사',
+  desc: 'MyAnimeList 평점 상위. 별점, 본 사람 수, 화수, 제작사',
   build: async (fetch) => {
     const items: WellItem[] = [];
     const seen = new Set<string>();
     for (let page = 1; page <= 4; page += 1) {
-      /* **한 판이 실패해도 표는 산다.** 실측(2026-08-08): 3·4쪽이 자주 504 로 돌아온다
-       * (그쪽 사정이다). 그때 전체를 실패로 만들면 「애니 우물」이 통째로 안 열린다 —
+      /* **한 판이 실패해도 표는 산다.** 실측(2026-08-08): 3, 4쪽이 자주 504 로 돌아온다
+       * (그쪽 사정이다). 그때 전체를 실패로 만들면 애니 우물이 통째로 안 열린다 . 
        * 50개짜리 표로도 놀이는 충분히 된다. 받은 데까지 쓰고 조용히 멈춘다. */
       let raw: { data?: JikanAnime[] };
       try {
@@ -140,14 +140,14 @@ interface MealRow {
 /**
  * 요리 (TheMealDB).
  *
- * 첫 글자로만 찾을 수 있어서 몇 글자를 훑는다. 견줄 숫자는 **재료 가짓수**뿐이다 —
- * 그래서 이 표는 「높은 쪽 고르기」보다 월드컵·티어표 쪽 재료다(그림이 전부 있다).
+ * 첫 글자로만 찾을 수 있어서 몇 글자를 훑는다. 견줄 숫자는 **재료 가짓수**뿐이다 . 
+ * 그래서 이 표는 높은 쪽 고르기보다 월드컵, 티어표 쪽 재료다(그림이 전부 있다).
  */
 const mealWell: WellSpec = {
   id: 'meal',
   title: '세계 요리',
   emoji: '🍳',
-  desc: '나라·분류·재료 가짓수 — 그림이 전부 있어 월드컵에 좋다',
+  desc: '나라, 분류, 재료 가짓수. 그림이 전부 있어 월드컵에 좋다',
   build: async (fetch) => {
     const items: WellItem[] = [];
     const seen = new Set<string>();
@@ -163,7 +163,7 @@ const mealWell: WellSpec = {
         if (row.strMealThumb) item.img = row.strMealThumb;
         if (row.strArea) item.area = String(row.strArea);
         if (row.strCategory) item.cat = String(row.strCategory);
-        // 재료 칸은 스무 개까지 있고 대개 뒤쪽이 비어 있다 — 실제로 적힌 것만 센다.
+        // 재료 칸은 스무 개까지 있고 대개 뒤쪽이 비어 있다. 실제로 적힌 것만 센다.
         const ing = Object.keys(row).filter((k) => /^strIngredient/.test(k) && String(row[k] ?? '').trim()).length;
         if (ing > 0) item.ing = ing;
         items.push(item);
@@ -187,7 +187,7 @@ export function wellById(id: unknown): WellSpec | null {
   return WELLS.filter((w) => w.id === id)[0] ?? null;
 }
 
-/* ── 길어 오고 · 쥐고 있기 ─────────────────────────────── */
+/* ── 길어 오고, 쥐고 있기 ─────────────────────────────── */
 
 async function defaultFetcher(url: string): Promise<unknown> {
   const control = new AbortController();
@@ -212,8 +212,8 @@ interface CacheEntry {
 /**
  * 우물마다 표 하나를 쥐고 있는다.
  *
- * 시계와 바깥을 갈아 끼울 수 있게 클래스로 둔다 — 전역 캐시를 쓰면 시험끼리 서로의 표를
- * 물려받아 「혼자 돌리면 초록, 같이 돌리면 빨강」이 된다.
+ * 시계와 바깥을 갈아 끼울 수 있게 클래스로 둔다. 전역 캐시를 쓰면 시험끼리 서로의 표를
+ * 물려받아 혼자 돌리면 초록, 같이 돌리면 빨강이 된다.
  */
 export class WellStore {
   private cache = new Map<string, CacheEntry>();
@@ -225,7 +225,7 @@ export class WellStore {
     private readonly ttlMs: number = CACHE_MS,
   ) {}
 
-  /** 이미 길어 둔 표. 없으면 null — 목록 화면이 굳이 지금 바깥에 나가지 않게. */
+  /** 이미 길어 둔 표. 없으면 null. 목록 화면이 굳이 지금 바깥에 나가지 않게. */
   peek(id: string): WellPack | null {
     return this.cache.get(id)?.pack ?? null;
   }
@@ -261,7 +261,7 @@ export class WellStore {
       return pack;
     } catch (err) {
       const stale = this.cache.get(well.id);
-      // 바깥이 죽었다 — 어제 숫자로 노는 건 아무 문제가 없다. 진짜로 아무것도 없을 때만 던진다.
+      // 바깥이 죽었다. 어제 숫자로 노는 건 아무 문제가 없다. 진짜로 아무것도 없을 때만 던진다.
       if (stale) return { ...stale.pack, stale: true };
       throw err;
     }
@@ -269,9 +269,9 @@ export class WellStore {
 }
 
 /**
- * 오늘의 표 — 날짜(KST)로 **모두에게 같은** 우물 하나를 고른다.
+ * 오늘의 표. 날짜(KST)로 **모두에게 같은** 우물 하나를 고른다.
  *
- * 왜 무작위가 아닌가: 사람마다 다른 표가 뜨면 「오늘 이거 해 봤어?」가 성립하지 않는다.
+ * 왜 무작위가 아닌가: 사람마다 다른 표가 뜨면 오늘 이거 해 봤어?가 성립하지 않는다.
  * 순위판도 같은 표를 봐야 겨룰 수 있다. 그래서 날짜만 넣으면 누구나 같은 답이 나온다.
  */
 export function wellOfTheDay(day: string, wells: WellSpec[] = WELLS): WellSpec {
@@ -280,7 +280,7 @@ export function wellOfTheDay(day: string, wells: WellSpec[] = WELLS): WellSpec {
   return wells[Math.abs(hash) % wells.length];
 }
 
-/** 오늘(KST) `YYYY-MM-DD`. 서버·화면이 같은 모양을 써야 하루가 안 어긋난다. */
+/** 오늘(KST) `YYYY-MM-DD`. 서버, 화면이 같은 모양을 써야 하루가 안 어긋난다. */
 export function kstDay(now: Date = new Date()): string {
   return new Date(now.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
 }

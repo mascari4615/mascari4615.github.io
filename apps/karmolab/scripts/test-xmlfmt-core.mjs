@@ -1,9 +1,9 @@
 /**
- * XML 펴기·뭉치기·JSON 으로 — **값이 안 바뀌는가** (TASK-KL-238 / 42 codebeautify).
+ * XML 펴기, 뭉치기, JSON 으로. **값이 안 바뀌는가** (TASK-KL-238 / 42 codebeautify).
  *
  * 포맷터가 하면 안 되는 일은 하나다: **내용을 바꾸는 것.** 보기 좋게 편다면서 글자 안의 공백을
  * 먹거나 CDATA 를 풀어 버리면, 그 결과를 도로 쓰는 순간 시스템이 조용히 틀린다. 그래서 여기서
- * 크게 지키는 것은 「예쁘게 나오나」가 아니라 **펴고 뭉쳐도 같은 것인가**다.
+ * 크게 지키는 것은 예쁘게 나오나가 아니라 **펴고 뭉쳐도 같은 것인가**다.
  *
  * 사용: node scripts/test-xmlfmt-core.mjs   (npm run test:xmlfmt)
  */
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const stamp = Date.now();
@@ -55,16 +55,16 @@ eq(
 );
 eq(X.run('format', { text: '<a><!-- 메모 --><b/></a>' }), '<a>\n  <!-- 메모 -->\n  <b />\n</a>', '주석을 지우지 않는다');
 
-/* ★ 값이 안 바뀌어야 한다 — CDATA 안은 원문 그대로. */
+/* ★ 값이 안 바뀌어야 한다. CDATA 안은 원문 그대로. */
 const cdata = '<a><![CDATA[ <b> 그대로 & 둔다 ]]></a>';
 check(X.run('format', { text: cdata }).includes('<![CDATA[ <b> 그대로 & 둔다 ]]>'), 'CDATA 안은 손대지 않는다');
 check(X.run('minify', { text: cdata }).includes('<![CDATA[ <b> 그대로 & 둔다 ]]>'), '뭉칠 때도 CDATA 는 그대로');
 
-/* 속성은 순서·값을 지킨다 */
+/* 속성은 순서, 값을 지킨다 */
 eq(
   X.run('minify', { text: '<a  x="1"   y="2" >t</a>' }),
   '<a x="1" y="2">t</a>',
-  '속성은 순서·값 그대로, 사이 공백만 정리'
+  '속성은 순서, 값 그대로, 사이 공백만 정리'
 );
 eq(X.run('minify', { text: '<a>\n  <b> 안쪽 글자 </b>\n</a>' }), '<a><b>안쪽 글자</b></a>', '태그 사이 공백만 버린다');
 
@@ -72,7 +72,7 @@ eq(X.run('minify', { text: '<a>\n  <b> 안쪽 글자 </b>\n</a>' }), '<a><b>안�
 const src = '<rss version="2.0"><channel><title>제목</title><item><link>http://a/b?x=1&amp;y=2</link></item></channel></rss>';
 eq(X.run('minify', { text: X.run('format', { text: src }) }), src, '펴고 다시 뭉치면 처음과 같다');
 
-/* & 는 두 번 바뀌면 안 된다 — `&amp;` 가 `&amp;amp;` 가 되는 흔한 사고 */
+/* & 는 두 번 바뀌면 안 된다. `&amp;` 가 `&amp;amp;` 가 되는 흔한 사고 */
 eq(X.run('minify', { text: '<a>&amp; &lt; 짝</a>' }), '<a>&amp; &lt; 짝</a>', '이미 이스케이프된 것을 또 이스케이프하지 않는다');
 
 /* ── JSON 으로 ── */
@@ -112,8 +112,8 @@ check(threw, '없는 연산은 던진다');
 
 process.stdout.write('\n');
 if (failures.length) {
-  console.error(`\nXML 다루기 — ${failures.length}건 실패:`);
+  console.error(`\nXML 다루기. ${failures.length}건 실패:`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('XML 다루기 — 전부 통과');
+console.log('XML 다루기. 전부 통과');

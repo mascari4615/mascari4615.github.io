@@ -1,12 +1,12 @@
 /**
  * 그림 속 글자 읽기 (TASK-KL-316 / 29)
  *
- * 「이미지」 작업대의 할 일 한 칸. 갈래 가르기·다듬기는 `core/ocr`, 펴기·이진화는 `core/docscan`.
+ * 이미지 작업대의 할 일 한 칸. 갈래 가르기, 다듬기는 `core/ocr`, 펴기, 이진화는 `core/docscan`.
  *
  * 이 화면이 지키는 것 셋:
- *   ① **글자 든 PDF 는 여기서 안 읽는다** — `pdf2text` 로 보낸다(그쪽이 더 정확하고 빠르다).
- *   ② 모형은 **켠 사람만** 받는다(`lib/ai-engine` 규약) — 크기를 먼저 말해 준다.
- *   ③ 한국어·일본어는 **아직 못 읽는다고 말한다**. 되는 척하면 사람이 자기 사진을 의심한다.
+ *   ① **글자 든 PDF 는 여기서 안 읽는다**. `pdf2text` 로 보낸다(그쪽이 더 정확하고 빠르다).
+ *   ② 모형은 **켠 사람만** 받는다(`lib/ai-engine` 규약). 크기를 먼저 말해 준다.
+ *   ③ 한국어, 일본어는 **아직 못 읽는다고 말한다**. 되는 척하면 사람이 자기 사진을 의심한다.
  */
 import { looksEmpty, modelFor, route, tidy } from '../../core/ocr';
 import { escapeHtml as esc } from './shared/text';
@@ -125,7 +125,7 @@ import { toolPage } from '../../lib/site-base';
       const image = new Image();
       image.onload = (): void => {
         URL.revokeObjectURL(url);
-        /* 읽기 전에 다듬는다 — 회색·지역 이진화가 인식률을 크게 바꾼다(28번의 셈을 그대로 쓴다). */
+        /* 읽기 전에 다듬는다. 회색, 지역 이진화가 인식률을 크게 바꾼다(28번의 셈을 그대로 쓴다). */
         const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
         canvas.width = Math.round(image.width * scale);
         canvas.height = Math.round(image.height * scale);
@@ -153,7 +153,7 @@ import { toolPage } from '../../lib/site-base';
       const language = $<HTMLSelectElement>('#ocLang').value;
       const model = modelFor(language);
       if (model === undefined) {
-        /* 못 읽는 말은 **못 읽는다고 말한다** — 빈 답을 주면 사람이 자기 사진을 의심한다. */
+        /* 못 읽는 말은 **못 읽는다고 말한다**. 빈 답을 주면 사람이 자기 사진을 의심한다. */
         status.textContent = t('ocr.status.noModel', { language: $<HTMLSelectElement>('#ocLang').selectedOptions[0].text });
         return;
       }

@@ -1,14 +1,14 @@
 /**
- * 점과 상자 — 선을 그어 칸을 닫는다 (TASK-KL-242)
+ * 점과 상자. 선을 그어 칸을 닫는다 (TASK-KL-242)
  *
- * 두는 곳이 **칸도 줄도 아니라 「선」**이다. 커널이 「한 수」의 모양을 안 정한다는 것을
- * 사목(줄)·오목(칸)에 이어 세 번째로 보여 주는 자리.
+ * 두는 곳이 **칸도 줄도 아니라 선**이다. 커널이 한 수의 모양을 안 정한다는 것을
+ * 사목(줄), 오목(칸)에 이어 세 번째로 보여 주는 자리.
  *
- * 칸을 닫으면 **한 번 더** 둔다 — 짝 맞추기와 같은 리듬이고, 차례를 게임이 갖기에 그냥 된다.
+ * 칸을 닫으면 **한 번 더** 둔다. 짝 맞추기와 같은 리듬이고, 차례를 게임이 갖기에 그냥 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
-/** 칸이 몇 줄인가. 4×4 = 선 40개 — 폰에서 손가락으로 짚을 수 있는 크기다. */
+/** 칸이 몇 줄인가. 4×4 = 선 40개. 폰에서 손가락으로 짚을 수 있는 크기다. */
 export const C = 4;
 /** 가로선 개수 (위아래 경계 포함) */
 export const HCOUNT = (C + 1) * C;
@@ -21,7 +21,7 @@ export interface DotsState {
   boxes: number[];
   turn: number;
   last: number;
-  /** 방금 칸을 닫은 사람과 몇 칸인가 — 닫는 순간이 이 놀이의 전부다. */
+  /** 방금 칸을 닫은 사람과 몇 칸인가. 닫는 순간이 이 놀이의 전부다. */
   got?: { by: number; n: number };
 }
 
@@ -72,7 +72,7 @@ export const dots: GameDef<DotsState, DotsAction> = {
 
   outcome(s, ctx): Outcome {
     if (s.boxes.some((b) => b === 0)) {
-      /* 판이 안 끝나도 「칸을 닫았다」는 나른다. 선을 긋기만 한 수에는 소리를 안 붙인다 —
+      /* 판이 안 끝나도 칸을 닫았다는 나른다. 선을 긋기만 한 수에는 소리를 안 붙인다 . 
          한 판에 선이 수십 개라 다 울리면 시끄럽고, 이 놀이의 순간은 **닫는 것**이다.
          뭉치지 않는 이유: 닫힌 칸 수가 매번 늘어 말이 달라진다. */
       if (!s.got) return { over: false };
@@ -116,7 +116,7 @@ export const dots: GameDef<DotsState, DotsAction> = {
       if (s.boxes.some((b, k) => b === 0 && closes(t, k))) return move(i);
     }
 
-    /* ② 아니면 **상대에게 칸을 내주지 않는 선**을 고른다 — 세 변이 그어진 칸을 만들면 바로 뺏긴다. */
+    /* ② 아니면 **상대에게 칸을 내주지 않는 선**을 고른다. 세 변이 그어진 칸을 만들면 바로 뺏긴다. */
     const safe = free.filter((i) => {
       const t = s.lines.slice();
       t[i] = seat + 1;

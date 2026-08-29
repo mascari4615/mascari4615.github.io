@@ -1,4 +1,4 @@
-/** 캔버스로 굽는 텍스처 — 이미지 파일 0. 색공간·필터를 매번 다시 적지 않으려고 한 곳에 둔다. */
+/** 캔버스로 굽는 텍스처. 이미지 파일 0. 색공간, 필터를 매번 다시 적지 않으려고 한 곳에 둔다. */
 import * as THREE from '../vendor/three.module.min.js';
 
 /**
@@ -17,7 +17,7 @@ export function canvasTex(w, h, draw, o = {}) {
     return t;
 }
 
-/** 위에서 아래로 두 색이 흐르는 판 — 벽·하늘에 쓴다 (단색 벽은 3D 에서 종이처럼 보인다). */
+/** 위에서 아래로 두 색이 흐르는 판. 벽, 하늘에 쓴다 (단색 벽은 3D 에서 종이처럼 보인다). */
 export function gradientTex(top, bottom, steps = 256) {
     return canvasTex(4, steps, (g, w, h) => {
         const grd = g.createLinearGradient(0, 0, 0, h);

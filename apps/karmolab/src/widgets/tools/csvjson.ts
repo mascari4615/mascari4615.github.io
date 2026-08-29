@@ -2,8 +2,8 @@
  * CSV ↔ JSON 변환 (TASK-KL-088)
  *
  * CSV 는 쉼표로 자르면 되는 것처럼 보이지만 **따옴표 안의 쉼표와 줄바꿈**이 있다.
- * 순진하게 자르면 열이 밀려 조용히 망가진 데이터가 나온다 — 그래서 한 글자씩 읽는다.
- * 되돌릴 때도 쉼표·따옴표·줄바꿈이 든 값은 따옴표로 감싸고 안쪽 따옴표는 겹쳐 적는다.
+ * 순진하게 자르면 열이 밀려 조용히 망가진 데이터가 나온다. 그래서 한 글자씩 읽는다.
+ * 되돌릴 때도 쉼표, 따옴표, 줄바꿈이 든 값은 따옴표로 감싸고 안쪽 따옴표는 겹쳐 적는다.
  */
 import { coerce, parseCsv, spec, toCsv } from '../../core/csvjson';
 import { escapeHtml as esc } from './shared/text';
@@ -17,7 +17,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'csvjson',
     title: t('widgets.csvjson.title', undefined, "CSV ↔ JSON 변환"),
     category: 'tool',
-    desc: t('widgets-desc.csvjson.desc', undefined, "표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표·줄바꿈도 안 깨집니다"),
+    desc: t('widgets-desc.csvjson.desc', undefined, "표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표, 줄바꿈도 안 깨집니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="8" height="16" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h8M3 14h8" stroke="currentColor" stroke-width="1.3"/><path d="M15 6h1a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: [
@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <textarea id="cjCsv" rows="7" spellcheck="false" placeholder="${esc(t('csvjson.ph.csv'))}"></textarea>
             </div>
             <div class="tool-actions tight">
-              <!-- 방향 단추를 없앴다. **고친 쪽이 곧 방향**이다 — CSV 를 고치면 JSON 이,
+              <!-- 방향 단추를 없앴다. **고친 쪽이 곧 방향**이다. CSV 를 고치면 JSON 이,
                    JSON 을 고치면 CSV 가 따라온다 (TASK-KL-133). -->
               <button class="btn btn-ghost" id="cjCopy">${esc(t('csvjson.btn.copy'))}</button>
             </div>
@@ -67,7 +67,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const csv = $<HTMLTextAreaElement>('#cjCsv');
           const json = $<HTMLTextAreaElement>('#cjJson');
           const status = $<HTMLElement>('#cjStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const delim = (): string => $<HTMLSelectElement>('#cjDelim').value;
 
@@ -127,7 +127,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           $<HTMLSelectElement>('#cjDelim').addEventListener('change', toJson);
           $<HTMLInputElement>('#cjCoerce').addEventListener('change', toJson);
 
-          // 주소로 부른 경우 (`?op=toJson&csv=…`) — 아니면 예시 (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=toJson&csv=...`). 아니면 예시 (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'toCsv') {
             json.value = String(call.args.json ?? '');

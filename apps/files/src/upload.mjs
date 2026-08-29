@@ -50,7 +50,7 @@ if (dry) {
   process.exit(0);
 }
 
-/* 데몬은 remote 를 안 가린다 — rc 한 판에 여러 원격을 태운다.
+/* 데몬은 remote 를 안 가린다. rc 한 판에 여러 원격을 태운다.
    예전엔 열람 저장이 켜지면 데몬을 아예 안 띄웠는데, 그러면 청크마다 rclone 프로세스를
    새로 띄워 몇 배로 느려진다. 열람 저장을 켠 값을 속도로 치를 이유가 없다. */
 const daemon = await startRcloneDaemon();
@@ -67,9 +67,9 @@ session.deferIndex = true;
 console.log('클라우드 염');
 
 /* 진행 상태를 **정해진 자리**에 적는다.
-   왜: 터미널에서 띄우면 로그 자리는 띄운 쪽이 정한다 — 그러면 데스크톱 앱이 그 로그를 못 찾아
-   「진행 수치는 안 보입니다」가 된다(2026-08-27 조수님이 그 화면을 봤다). 누가 띄우든
-   같은 자리에 적으면 앱이 읽는다. 여기 적는 것은 **집계 수치뿐** — 경로·파일 이름은 안 적는다. */
+   왜: 터미널에서 띄우면 로그 자리는 띄운 쪽이 정한다. 그러면 데스크톱 앱이 그 로그를 못 찾아
+   진행 수치는 안 보입니다가 된다(2026-08-27 조수님이 그 화면을 봤다). 누가 띄우든
+   같은 자리에 적으면 앱이 읽는다. 여기 적는 것은 **집계 수치뿐**. 경로, 파일 이름은 안 적는다. */
 const progressPath = new URL('../.upload-progress.json', import.meta.url);
 /** 열람 저장(R2)에 보낸 수. writeProgress 가 첫 호출부터 읽으므로 그 위에 선다. */
 let mirroredCount = 0;
@@ -80,7 +80,7 @@ async function writeProgress(stage, total, done, uploaded, skipped) {
     done,
     uploaded,
     skipped,
-    // 열람 저장(R2)에 보낸 수. 「R2 로 가긴 하나」를 눈으로 셀 수 있어야 한다 —
+    // 열람 저장(R2)에 보낸 수. R2 로 가긴 하나를 눈으로 셀 수 있어야 한다 . 
     // 안 그러면 안 가는 건지 지금 올리는 게 영상뿐인 건지 구분이 안 된다.
     mirrored: mirroredCount,
     pid: process.pid,
@@ -108,7 +108,7 @@ try {
         continue;
       }
     }
-    // 청크를 쓰는 자리는 session.store 다 — 파일마다 갈아끼워 R2 로 갈 것만 보낸다.
+    // 청크를 쓰는 자리는 session.store 다. 파일마다 갈아끼워 R2 로 갈 것만 보낸다.
     // 영상은 크기까지 봐야 판단된다 (mirror-policy: 큰 영상은 화면이 못 연다)
     const toMirror = mirrorable(rel, f.size);
     if (toMirror) mirroredCount += 1;

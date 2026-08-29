@@ -2,7 +2,7 @@
   "numword.tab": "변환",
   "numword.label.num": "숫자",
   "numword.label.kor": "한글",
-  "numword.opt.formal": "금액 표기 (일십·일백까지 붙여 적기)",
+  "numword.opt.formal": "금액 표기 (일십, 일백까지 붙여 적기)",
   "numword.btn.copyKor": "한글 복사",
   "numword.btn.copyMoney": "금액 문구 복사",
   "numword.btn.clear": "지우기",

@@ -1,6 +1,6 @@
 /**
- * team-tab.ts — 에이전트 팀 콘솔 (Cockpit 탭, TASK-KL-082 병합).
- * agent-team.ts build() 로직 이식. Toolbox.register X — cockpit.ts 가 탭으로 마운트.
+ * team-tab.ts. 에이전트 팀 콘솔 (Cockpit 탭, TASK-KL-082 병합).
+ * agent-team.ts build() 로직 이식. Toolbox.register X. cockpit.ts 가 탭으로 마운트.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -133,7 +133,7 @@ function taskStatusVisual(s: string): { color: string; emoji: string; label: str
   if (l === 'ready') return { color: '#3a3', emoji: '🟢', label: l };
   if (l === 'hold') return { color: '#888', emoji: '⏸', label: l };
   if (l === 'seed') return { color: '#ca0', emoji: '🌱', label: l };
-  return { color: '#888', emoji: '·', label: l };
+  return { color: '#888', emoji: ', ', label: l };
 }
 
 function taskDomain(id: string): { color: string; emoji: string; label: string } {
@@ -421,7 +421,7 @@ export function buildTeamTab(container: HTMLElement): void {
     }
   }
 
-  /** 자동 새로고침. **보이는 동안만** 돈다 (`lib/tick`) — 덮어 둔 탭에서 망을 두드릴 이유가 없다. */
+  /** 자동 새로고침. **보이는 동안만** 돈다 (`lib/tick`). 덮어 둔 탭에서 망을 두드릴 이유가 없다. */
   function applyAutoRefresh(): void {
     if (stopAuto !== null) { stopAuto(); stopAuto = null; }
     if (autoChk.checked) stopAuto = intervalWhileVisible(() => void load(), REFRESH_MS);

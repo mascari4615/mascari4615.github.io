@@ -1,15 +1,15 @@
 /**
- * 광장 (TASK-KL-098) — 이 사이트의 숫자를 **전부 공개하는 자리**.
+ * 광장 (TASK-KL-098). 이 사이트의 숫자를 **전부 공개하는 자리**.
  *
  * 왜 있나 (사용자: "사이트에 대한 통계 등을 투명하게 공개"): 보통 사이트는 방문 수를 주인만
- * 본다. 그러면 오는 사람 입장에서 이곳은 늘 텅 빈 곳이다 — 옆에 누가 있는지 알 방법이 없으니까.
- * 숫자를 열어 두면 두 가지가 동시에 된다: 오는 사람은 「사람이 있구나」를 알고, 만든 쪽은
- * 「보여줄 수 있는 수」만 세게 된다. 감추면 부풀리게 된다.
+ * 본다. 그러면 오는 사람 입장에서 이곳은 늘 텅 빈 곳이다. 옆에 누가 있는지 알 방법이 없으니까.
+ * 숫자를 열어 두면 두 가지가 동시에 된다: 오는 사람은 사람이 있구나를 알고, 만든 쪽은
+ * 보여줄 수 있는 수만 세게 된다. 감추면 부풀리게 된다.
  *
  * 세 가지 규칙:
  *  ① **지어낸 수는 한 개도 없다.** 전부 서버가 실제로 센 값이다.
- *  ② **아직 0인 칸은 자리 자체를 안 만든다.** 0이 늘어선 화면은 「비었다」가 아니라 「죽었다」로 읽힌다.
- *  ③ **무엇을 안 세는지도 같이 적는다.** 공개는 「좋은 수만 보여주기」가 아니다.
+ *  ② **아직 0인 칸은 자리 자체를 안 만든다.** 0이 늘어선 화면은 비었다가 아니라 죽었다로 읽힌다.
+ *  ③ **무엇을 안 세는지도 같이 적는다.** 공개는 좋은 수만 보여주기가 아니다.
  *
  * 서버(집 노트북)에 못 닿으면 광장만 조용히 닫힌다. 도구는 그대로 돈다.
  */
@@ -60,7 +60,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         lastAt: string | null;
     }
 
-    /** 순위표에 한 번에 몇 개까지. 나머지는 눌러서 편다 — 160개를 그냥 쏟으면 아무도 안 읽는다. */
+    /** 순위표에 한 번에 몇 개까지. 나머지는 눌러서 편다. 160개를 그냥 쏟으면 아무도 안 읽는다. */
     const TOP_N = 12;
 
     Mdd.injectCSS('plaza', `
@@ -84,7 +84,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-section h3 { margin:0 0 4px; font-size:var(--font-size-md); color:var(--text-primary); }
         .plaza-section-note { margin:0 0 12px; font-size:11px; color:var(--text-tertiary); }
 
-        /* 방금 있었던 일 (TASK-KL-151 ③) — 숫자만 있는 광장은 「사람이 있다」까지만 말한다. */
+        /* 방금 있었던 일 (TASK-KL-151 ③). 숫자만 있는 광장은 사람이 있다까지만 말한다. */
         .plaza-feed { list-style:none; margin:0 0 6px; padding:0; }
         .plaza-feed li { padding:5px 0; font-size:var(--font-size-sm); color:var(--text-secondary);
             border-bottom:1px solid var(--border); }
@@ -93,7 +93,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-dim { color:var(--text-tertiary); font-size:11px; }
         .plaza-sub { margin:14px 0 4px; font-size:var(--font-size-sm); color:var(--text-primary); }
 
-        /* 14일 막대 — 빈 날도 자리를 지켜야 「요즘 조용하다」가 보인다. */
+        /* 14일 막대. 빈 날도 자리를 지켜야 요즘 조용하다가 보인다. */
         .plaza-spark { display:flex; align-items:flex-end; gap:4px; height:64px;
             padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); }
@@ -135,7 +135,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-open ul { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px; }
         .plaza-open li { font-size:var(--font-size-xs); color:var(--text-secondary); line-height:1.55; }
 
-        /* 지금 보고 있는 사람 — 유일하게 「지금」을 말하는 줄이라 눈에 띄어야 한다. */
+        /* 지금 보고 있는 사람. 유일하게 지금을 말하는 줄이라 눈에 띄어야 한다. */
         .plaza-online { display:inline-flex; align-items:center; gap:8px; align-self:flex-start;
             padding:7px 14px; border:1px solid var(--border); border-radius:999px;
             background:var(--bg-secondary); font-size:var(--font-size-xs); color:var(--text-secondary); }
@@ -186,7 +186,7 @@ import { profilePath, toolPage } from '../lib/site-base';
     /**
      * 명예의 전당 (TASK-KL-156 D4).
      *
-     * 여기 뜨는 사람은 **본인이 프로필과 발자국을 열어 둔 사람뿐**이다 — 가린 사람은 서버가
+     * 여기 뜨는 사람은 **본인이 프로필과 발자국을 열어 둔 사람뿐**이다. 가린 사람은 서버가
      * 애초에 안 보낸다. 아무도 없으면 이 자리는 통째로 안 그려진다(빈 순위표는 초라할 뿐이다).
      */
     type Leader = { handle: string; displayName: string; streak: number; activeDays: number };
@@ -215,8 +215,8 @@ import { profilePath, toolPage } from '../lib/site-base';
     /**
      * 놀이 시즌 순위 (TASK-KL-182 F2).
      *
-     * 놀이마다 순위판이 따로 있으면 「누가 제일 잘하나」에 답이 없다. 판마다 메달을 주고
-     * **메달 수로** 줄 세운다 — 점수를 섞으면 단위가 다른 수를 더하는 셈이라 그 합은 뜻이 없다.
+     * 놀이마다 순위판이 따로 있으면 누가 제일 잘하나에 답이 없다. 판마다 메달을 주고
+     * **메달 수로** 줄 세운다. 점수를 섞으면 단위가 다른 수를 더하는 셈이라 그 합은 뜻이 없다.
      */
     type SeasonRow = { handle: string; gold: number; silver: number; bronze: number; boards: number };
 
@@ -254,12 +254,12 @@ import { profilePath, toolPage } from '../lib/site-base';
     }
 
     function offline(container: HTMLElement): void {
-        // 서버가 죽은 것과 「아무 일도 없다」는 다르다. 섞어서 말하지 않는다.
+        // 서버가 죽은 것과 아무 일도 없다는 다르다. 섞어서 말하지 않는다.
         container.innerHTML =
             `<div class="plaza-wrap"><p class="plaza-note">${esc(t('plaza.err.offline'))}</p></div>`;
     }
 
-    /* ===== 방문 — 블로그의 Total / Today ===== */
+    /* ===== 방문. 블로그의 Total / Today ===== */
 
     function renderVisits(visits: Visits | null): string {
         if (!visits || visits.total === 0) return '';
@@ -285,13 +285,13 @@ import { profilePath, toolPage } from '../lib/site-base';
             .map((d, index) => {
                 const height = Math.round((d.visits / max) * 100);
                 const today = index === days.length - 1 ? '1' : '0';
-                return `<div class="plaza-spark-bar" data-today="${today}" title="${escapeHtml(d.day)} · ${t('plaza.spark.tip', { visits: num(d.visits), people: num(d.people) })}"><i style="height:${Math.max(height, d.visits > 0 ? 6 : 0)}%"></i></div>`;
+                return `<div class="plaza-spark-bar" data-today="${today}" title="${escapeHtml(d.day)}, ${t('plaza.spark.tip', { visits: num(d.visits), people: num(d.people) })}"><i style="height:${Math.max(height, d.visits > 0 ? 6 : 0)}%"></i></div>`;
             })
             .join('');
         return `
             <section class="plaza-section">
                 <h3>${esc(t('plaza.t11'))}</h3>
-                <p class="plaza-section-note">막대 하나가 하루입니다. 맨 오른쪽이 오늘 · 가장 높은 날 ${num(max)}번</p>
+                <p class="plaza-section-note">막대 하나가 하루입니다. 맨 오른쪽이 오늘, 가장 높은 날 ${num(max)}번</p>
                 <div class="plaza-spark">${bars}</div>
                 <div class="plaza-spark-axis"><span>${escapeHtml(days[0].day)}</span><span>${esc(t('plaza.t12'))}</span></div>
             </section>`;
@@ -301,7 +301,7 @@ import { profilePath, toolPage } from '../lib/site-base';
 
     /**
      * 누적 수는 과거를 말하고, 이 수만이 **지금**을 말한다.
-     * 0명이면 안 그린다 — 「지금 0명이 보고 있어요」는 오는 사람을 쫓아내는 문장이다.
+     * 0명이면 안 그린다. 지금 0명이 보고 있어요는 오는 사람을 쫓아내는 문장이다.
      * (내가 보고 있으면 최소 1이므로, 0이 뜨는 건 서버가 아직 나를 못 센 순간뿐이다.)
      */
     function renderOnline(visits: Visits | null): string {
@@ -315,14 +315,14 @@ import { profilePath, toolPage } from '../lib/site-base';
         return `<div class="plaza-online"><span class="plaza-online-dot"></span><span>${line}</span></div>`;
     }
 
-    /* ===== 누가 왔나 (사람 · 검색엔진 · AI) ===== */
+    /* ===== 누가 왔나 (사람, 검색엔진, AI) ===== */
 
     /**
-     * 사람 · 검색엔진 · AI 를 나눠서 공개한다 (사용자: "크롤러로 통계로 얼만큼인지 분류되면 좋을듯.
+     * 사람, 검색엔진, AI 를 나눠서 공개한다 (사용자: "크롤러로 통계로 얼만큼인지 분류되면 좋을듯.
      * AI가 사이트 접속하는것도 만약 탐지 가능하면").
      *
-     * 가려내는 근거는 **접속하는 쪽이 스스로 밝히는 이름** 하나뿐이다. 감추고 들어오면 못 잡는다 —
-     * 그래서 그 사실을 숨기지 않고 화면에 같이 적는다. 못 알아본 것은 「알 수 없음」으로 가고
+     * 가려내는 근거는 **접속하는 쪽이 스스로 밝히는 이름** 하나뿐이다. 감추고 들어오면 못 잡는다 . 
+     * 그래서 그 사실을 숨기지 않고 화면에 같이 적는다. 못 알아본 것은 알 수 없음으로 가고
      * 사람 수에는 안 들어간다.
      */
     function renderKinds(visits: Visits | null): string {
@@ -357,8 +357,8 @@ import { profilePath, toolPage } from '../lib/site-base';
                         .join('')}
                 </div>
                 ${
-                    // 가려내기는 나중에 붙였다. 그 전 방문은 종류를 모른다 — 그 사실을 안 적으면
-                    // 위의 「방문 N」과 여기 합계가 안 맞는 것이 오류처럼 보인다.
+                    // 가려내기는 나중에 붙였다. 그 전 방문은 종류를 모른다. 그 사실을 안 적으면
+                    // 위의 방문 N과 여기 합계가 안 맞는 것이 오류처럼 보인다.
                     (visits?.total ?? 0) > sum
                         ? `<p class="plaza-section-note">${t('plaza.beforeFilter', { n: num((visits?.total ?? 0) - sum) })}</p>`
                         : ''
@@ -369,7 +369,7 @@ import { profilePath, toolPage } from '../lib/site-base';
 
     /* ===== 이번 주 KarmoLab ===== */
 
-    /** 늘었나 줄었나 — 비교값 없는 수는 「많다/적다」를 말할 수 없다. */
+    /** 늘었나 줄었나. 비교값 없는 수는 많다/적다를 말할 수 없다. */
     function delta(now: number, before: number): string {
         if (before === 0) return now > 0 ? `<span class="plaza-up">${esc(t('plaza.trend.new'))}</span>` : '';
         const diff = Math.round(((now - before) / before) * 100);
@@ -381,7 +381,7 @@ import { profilePath, toolPage } from '../lib/site-base';
 
     function renderRecap(recap: Recap | null): string {
         if (!recap) return '';
-        // 한 주 동안 아무 일도 없었으면 안 그린다. 0으로 채운 결산은 「죽은 사이트」의 증거가 된다.
+        // 한 주 동안 아무 일도 없었으면 안 그린다. 0으로 채운 결산은 죽은 사이트의 증거가 된다.
         const quiet =
             recap.visits.now === 0 && recap.toolOpens.now === 0 && recap.posts === 0 && recap.replies === 0;
         if (quiet) return '';
@@ -396,13 +396,13 @@ import { profilePath, toolPage } from '../lib/site-base';
         if (recap.topTools.length > 0) {
             const named = namedTools(recap.topTools.map((t) => t.toolId));
             if (named.length > 0) {
-                lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t18'))}</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
+                lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t18'))}</span><span class="plaza-row-value">${named.map(escapeHtml).join(', ')}</span></div>`);
             }
         }
         if (recap.newTools.length > 0) {
             const named = namedTools(recap.newTools);
             if (named.length > 0) {
-                lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t19'))}</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
+                lines.push(`<div class="plaza-row"><span class="plaza-row-name">${esc(t('plaza.t19'))}</span><span class="plaza-row-value">${named.map(escapeHtml).join(', ')}</span></div>`);
             }
         }
         if (recap.posts > 0 || recap.replies > 0) {
@@ -417,7 +417,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         return `
             <section class="plaza-section">
                 <h3>${esc(t('plaza.t22'))}</h3>
-                <p class="plaza-section-note">${escapeHtml(recap.from)} ~ ${escapeHtml(recap.to)} · 지난주와 견줍니다</p>
+                <p class="plaza-section-note">${escapeHtml(recap.from)} ~ ${escapeHtml(recap.to)}, 지난주와 견줍니다</p>
                 <div class="plaza-rows">${lines.join('')}</div>
             </section>`;
     }
@@ -486,7 +486,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         return `
             <section class="plaza-section">
                 <h3>${esc(t('plaza.t20'))}</h3>
-                <p class="plaza-section-note">갤러리 ${num(boards.length)}개 · 글 ${num(total)}개</p>
+                <p class="plaza-section-note">갤러리 ${num(boards.length)}개, 글 ${num(total)}개</p>
                 <div class="plaza-rows">
                     ${alive
                         .map(
@@ -544,7 +544,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         items: number;
     }
 
-    /** 「몇 분 전」. 시각을 그대로 적으면 살아 있는지 죽었는지가 안 읽힌다. */
+    /** 몇 분 전. 시각을 그대로 적으면 살아 있는지 죽었는지가 안 읽힌다. */
     function ago(iso: string): string {
         const gap = Date.now() - new Date(iso).getTime();
         const min = Math.floor(gap / 60000);
@@ -562,8 +562,8 @@ import { profilePath, toolPage } from '../lib/site-base';
         const games = new Map((feed.games ?? []).map((g) => [g.game, g]));
         const plays = (feed.plays ?? []).slice(0, 8);
         const packs = feed.packs ?? [];
-        // 아직 아무도 안 놀았고 표도 없으면 **자리 자체를 안 만든다** — 0 이 늘어선 화면은
-        // 「비었다」가 아니라 「죽었다」로 읽힌다 (이 파일의 규칙 ②).
+        // 아직 아무도 안 놀았고 표도 없으면 **자리 자체를 안 만든다**. 0 이 늘어선 화면은
+        // 비었다가 아니라 죽었다로 읽힌다 (이 파일의 규칙 ②).
         if (!plays.length && !packs.length) return '';
 
         const playRows = plays
@@ -571,13 +571,13 @@ import { profilePath, toolPage } from '../lib/site-base';
                 const g = games.get(p.game);
                 const label = g ? g.label : p.game;
                 const unit = g ? g.unit : '';
-                return `<li>${p.best ? '🏆 ' : ''}<b>${escapeHtml(p.handle)}</b> · ${escapeHtml(label)} ${p.score}${escapeHtml(unit)} <span class="plaza-dim">${ago(p.at)}</span></li>`;
+                return `<li>${p.best ? '🏆 ' : ''}<b>${escapeHtml(p.handle)}</b>, ${escapeHtml(label)} ${p.score}${escapeHtml(unit)} <span class="plaza-dim">${ago(p.at)}</span></li>`;
             })
             .join('');
         const packRows = packs
             .map(
                 (k) =>
-                    `<li>${escapeHtml(k.emoji)} <b>${escapeHtml(k.title)}</b> <span class="plaza-dim">${t('plaza.unit.items', { n: k.items })} · ${escapeHtml(k.ownerHandle)}</span></li>`
+                    `<li>${escapeHtml(k.emoji)} <b>${escapeHtml(k.title)}</b> <span class="plaza-dim">${t('plaza.unit.items', { n: k.items })}, ${escapeHtml(k.ownerHandle)}</span></li>`
             )
             .join('');
 
@@ -643,16 +643,16 @@ import { profilePath, toolPage } from '../lib/site-base';
         if (hasTools) renderTools(container, stats.tools);
     }
 
-    /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
+    /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다. 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('plaza'),
-        // 글판은 여기 두지 않는다 — 커뮤니티(`/c/`)가 제 페이지로 갖는다.
+        // 글판은 여기 두지 않는다. 커뮤니티(`/c/`)가 제 페이지로 갖는다.
         // 같은 것을 두 곳에 두면 한쪽은 반드시 낡고, 어느 쪽이 진짜인지 아무도 모르게 된다.
         tabs: [
             {
                 id: 'plaza-main',
                 label: t('plaza.tab.stats', undefined, '통계'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('plaza').then(function () {
                         buildOverview(container);

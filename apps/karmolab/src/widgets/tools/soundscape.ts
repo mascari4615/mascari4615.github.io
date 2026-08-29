@@ -1,13 +1,13 @@
 /**
  * 소리 풍경 (TASK-KL-248)
  *
- * 집중할 때 트는 배경음. **내려받는 음원이 0바이트다** — 잡음을 만들어 거르고 몇 개의 진동을
- * 겹치는 것으로 비·파도·모닥불이 된다(`lib/soundscape.ts`). 그래서 같은 소리가 두 번
+ * 집중할 때 트는 배경음. **내려받는 음원이 0바이트다**. 잡음을 만들어 거르고 몇 개의 진동을
+ * 겹치는 것으로 비, 파도, 모닥불이 된다(`lib/soundscape.ts`). 그래서 같은 소리가 두 번
  * 반복되지 않는다: 녹음이라면 반드시 이음매가 들리는데, 오래 틀어 두는 소리에서 그 이음매가
  * 가장 거슬리는 부분이다.
  *
  * 같은 엔진을 지구본(`widgets/bluemarble/sound.ts`)도 쓴다. 거기서는 **자리**가 크기를 정하고
- * 여기서는 **사람**이 정한다 — 손잡이를 누가 잡느냐만 다르다.
+ * 여기서는 **사람**이 정한다. 손잡이를 누가 잡느냐만 다르다.
  */
 import { LAYERS, PRESETS, Soundscape, type LayerId } from '../../lib/soundscape';
 import { escapeHtml as esc } from './shared/text';
@@ -24,7 +24,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.soundscape.desc',
       undefined,
-      '비·파도·모닥불을 섞어 집중용 배경음을 만듭니다. 음원을 내려받지 않고 그 자리에서 소리를 만들어 같은 소리가 반복되지 않습니다'
+      '비, 파도, 모닥불을 섞어 집중용 배경음을 만듭니다. 음원을 내려받지 않고 그 자리에서 소리를 만들어 같은 소리가 반복되지 않습니다'
     ),
     layout: 'wide',
     icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -71,13 +71,13 @@ import { t, loadNamespace } from '../../lib/i18n';
     const powerEl = $<HTMLButtonElement>('#ssPower');
     const status = $<HTMLElement>('#ssStatus');
 
-    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
     const say = statusLine(status);
 
     const scape = new Soundscape();
 
-    /** 마지막으로 섞어 둔 것을 기억한다 — 매번 처음부터 맞추게 하면 아무도 두 번 안 쓴다. */
+    /** 마지막으로 섞어 둔 것을 기억한다. 매번 처음부터 맞추게 하면 아무도 두 번 안 쓴다. */
     const load = (): Partial<Record<LayerId, number>> => {
       try {
         return JSON.parse(localStorage.getItem(STORE) || '{}') as Partial<Record<LayerId, number>>;
@@ -120,7 +120,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         scape.set(l.id, Number(el.value) / 100);
         paint(l.id);
         save();
-        /* 슬라이더를 올렸는데 아무 소리도 안 나면 고장으로 보인다 — 그 손짓 안에서 켠다. */
+        /* 슬라이더를 올렸는데 아무 소리도 안 나면 고장으로 보인다. 그 손짓 안에서 켠다. */
         if (!scape.running && Number(el.value)> 0) power(true);
         else if (scape.running) report();
       });
@@ -148,7 +148,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     function power(on: boolean): void {
       if (on) {
-        scape.start(); // 이 클릭 안에서 — 브라우저가 제스처 밖의 소리를 막는다
+        scape.start(); // 이 클릭 안에서. 브라우저가 제스처 밖의 소리를 막는다
         powerEl.textContent = t('soundscape.btn.off', undefined, '멈추기');
       } else {
         scape.stop();

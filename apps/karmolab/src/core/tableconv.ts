@@ -117,7 +117,7 @@ export const run: ToolRunner = (op, args) => {
     : null;
   if (body === null) throw new Error(`Unknown output format: ${to} (markdown, csv, tsv, json)`);
 
-  return `Input: ${kind} · ${rows.length} rows × ${Math.max(...rows.map((r) => r.length))} columns
+  return `Input: ${kind}, ${rows.length} rows × ${Math.max(...rows.map((r) => r.length))} columns
 
 ${body}`;
 };

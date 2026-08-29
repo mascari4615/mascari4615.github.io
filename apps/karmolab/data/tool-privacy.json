@@ -1,5 +1,5 @@
 {
-  "$comment": "도구마다 「내가 넣은 것이 이 기기를 떠나는가」. 정본 = 이 파일, 재는 곳 = scripts/audit-tool-privacy.mjs, 보이는 곳 = 도구 장 바닥 한 줄 + 도구 머리 배지. 여기 없는 도구는 default(local) 로 본다 — 코드에 바깥 호출이 생기면 검사가 막고 여기 적으라고 말한다. (TASK-KL-352)",
+  "$comment": "도구마다 내가 넣은 것이 이 기기를 떠나는가. 정본 = 이 파일, 재는 곳 = scripts/audit-tool-privacy.mjs, 보이는 곳 = 도구 장 바닥 한 줄 + 도구 머리 배지. 여기 없는 도구는 default(local) 로 본다. 코드에 바깥 호출이 생기면 검사가 막고 여기 적으라고 말한다. (TASK-KL-352)",
   "default": "local",
   "labels": {
     "local": "기기 안에서만",
@@ -10,12 +10,12 @@
     "yours": "당신이 정한 주소로 감"
   },
   "notes": {
-    "local": "넣은 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.",
-    "assets": "넣은 내용은 브라우저 안에서만 처리됩니다. 처음 열 때 계산에 쓸 자료·모형만 내려받습니다.",
-    "ours": "일부 기능이 KarmoLab 서버와 주고받습니다 — 아래에 무엇이 가는지 적어 두었습니다.",
-    "third-party": "일부 기능이 바깥 서비스로 나갑니다 — 아래에 어디로 무엇이 가는지 적어 두었습니다.",
-    "ai": "AI 기능을 쓰면 넣은 내용이 AI 제공자에게 전송됩니다 — 아래를 확인하세요.",
-    "yours": "당신이 적은 주소로 요청이 실제로 나갑니다 — 그 주소의 주인에게 내용이 전달됩니다."
+    "local": "넣은 내용은 브라우저 안에서만 처리되며 어디에도 저장, 전송되지 않습니다.",
+    "assets": "넣은 내용은 브라우저 안에서만 처리됩니다. 처음 열 때 계산에 쓸 자료, 모형만 내려받습니다.",
+    "ours": "일부 기능이 KarmoLab 서버와 주고받습니다. 아래에 무엇이 가는지 적어 두었습니다.",
+    "third-party": "일부 기능이 바깥 서비스로 나갑니다. 아래에 어디로 무엇이 가는지 적어 두었습니다.",
+    "ai": "AI 기능을 쓰면 넣은 내용이 AI 제공자에게 전송됩니다. 아래를 확인하세요.",
+    "yours": "당신이 적은 주소로 요청이 실제로 나갑니다. 그 주소의 주인에게 내용이 전달됩니다."
   },
   "tools": {
     "about": {
@@ -34,14 +34,14 @@
     },
     "apitest": {
       "where": "yours",
-      "sends": "적은 주소·헤더·본문 그대로 브라우저가 요청을 보냅니다. 우리 서버를 거치지 않습니다.",
+      "sends": "적은 주소, 헤더, 본문 그대로 브라우저가 요청을 보냅니다. 우리 서버를 거치지 않습니다.",
       "to": [
         "당신이 적은 주소"
       ]
     },
     "arcade": {
       "where": "ours",
-      "sends": "점수·기록이 KarmoLab 서버에 남습니다 (순위표용).",
+      "sends": "점수, 기록이 KarmoLab 서버에 남습니다 (순위표용).",
       "to": [
         "yawnbot.mascari4615.com"
       ]
@@ -63,7 +63,7 @@
     },
     "bluemarble": {
       "where": "third-party",
-      "sends": "지구·우주 자료를 공개 API 에서 받아 옵니다. 보내는 입력은 없습니다.",
+      "sends": "지구, 우주 자료를 공개 API 에서 받아 옵니다. 보내는 입력은 없습니다.",
       "to": [
         "nasa.gov",
         "usgs.gov",
@@ -98,7 +98,7 @@
     },
     "community": {
       "where": "ours",
-      "sends": "적은 글·댓글이 KarmoLab 서버에 저장되어 남에게 보입니다.",
+      "sends": "적은 글, 댓글이 KarmoLab 서버에 저장되어 남에게 보입니다.",
       "to": [
         "yawnbot.mascari4615.com"
       ]
@@ -109,7 +109,7 @@
     },
     "curlkit": {
       "where": "yours",
-      "sends": "「보내 보기」를 눌렀을 때만 적은 주소로 요청이 나갑니다. 변환만 할 때는 아무것도 안 나갑니다.",
+      "sends": "보내 보기를 눌렀을 때만 적은 주소로 요청이 나갑니다. 변환만 할 때는 아무것도 안 나갑니다.",
       "to": [
         "당신이 적은 주소"
       ]
@@ -144,27 +144,27 @@
     },
     "heung": {
       "where": "local",
-      "whyLocal": "`fetch` 가 보이지만 받는 곳이 `data:` 주소다 — 브라우저가 자기 메모리에서 읽는다. 밖으로 나가는 것이 아니다.",
+      "whyLocal": "`fetch` 가 보이지만 받는 곳이 `data:` 주소다. 브라우저가 자기 메모리에서 읽는다. 밖으로 나가는 것이 아니다.",
       "sends": "고른 파일은 브라우저 안에서만 다뤄집니다."
     },
     "higher": {
       "where": "ours",
-      "sends": "점수·오늘 기록이 KarmoLab 서버에 남습니다.",
+      "sends": "점수, 오늘 기록이 KarmoLab 서버에 남습니다.",
       "to": [
         "yawnbot.mascari4615.com"
       ]
     },
     "image": {
       "where": "ai",
-      "sends": "AI 갈래(생성·편집)를 쓸 때만 그림·글이 밖으로 나갑니다. 그 밖의 편집은 브라우저 안에서 끝납니다.",
+      "sends": "AI 갈래(생성, 편집)를 쓸 때만 그림, 글이 밖으로 나갑니다. 그 밖의 편집은 브라우저 안에서 끝납니다.",
       "to": [
         "generativelanguage.googleapis.com (Google)",
-        "laptop.mascari4615.com (내 컴퓨터 — Foundry)"
+        "laptop.mascari4615.com (내 컴퓨터. Foundry)"
       ]
     },
     "imageedit": {
       "where": "ai",
-      "sends": "「AI」 갈래를 쓸 때만 그림이 Google Gemini 로 전송됩니다. 자르기·크기·필터 등 나머지 편집은 전부 브라우저 안에서 끝납니다.",
+      "sends": "AI 갈래를 쓸 때만 그림이 Google Gemini 로 전송됩니다. 자르기, 크기, 필터 등 나머지 편집은 전부 브라우저 안에서 끝납니다.",
       "to": [
         "generativelanguage.googleapis.com (Google)"
       ]
@@ -205,7 +205,7 @@
     },
     "memo-atlas": {
       "where": "local",
-      "whyLocal": "코드에 github.com 이 있지만 **부르는 게 아니라 링크 주소**다 — 고른 글의 원문으로 넘어가는 단추를 만들 때만 쓰인다(사용자가 눌러야 이동한다). 임베딩·자리잡기·그리기는 전부 브라우저 안에서 끝나고, 지도 파일도 이 기기에서만 읽는다.",
+      "whyLocal": "코드에 github.com 이 있지만 **부르는 게 아니라 링크 주소**다. 고른 글의 원문으로 넘어가는 단추를 만들 때만 쓰인다(사용자가 눌러야 이동한다). 임베딩, 자리잡기, 그리기는 전부 브라우저 안에서 끝나고, 지도 파일도 이 기기에서만 읽는다.",
       "sends": "아무것도 안 보낸다.",
       "to": []
     },
@@ -246,7 +246,7 @@
     },
     "passgen": {
       "where": "third-party",
-      "sends": "「유출 확인」을 누를 때만, 비밀번호의 SHA-1 해시 **앞 다섯 글자**가 Have I Been Pwned 로 갑니다. 비밀번호 자체와 나머지 해시는 안 나가고 대조는 이 브라우저에서 합니다. 누르지 않으면 아무것도 안 나갑니다.",
+      "sends": "유출 확인을 누를 때만, 비밀번호의 SHA-1 해시 **앞 다섯 글자**가 Have I Been Pwned 로 갑니다. 비밀번호 자체와 나머지 해시는 안 나가고 대조는 이 브라우저에서 합니다. 누르지 않으면 아무것도 안 나갑니다.",
       "to": [
         "api.pwnedpasswords.com"
       ]
@@ -260,7 +260,7 @@
     },
     "planner": {
       "where": "third-party",
-      "sends": "로그인하면 Google 캘린더·할 일과 직접 주고받습니다. 우리 서버를 거치지 않습니다.",
+      "sends": "로그인하면 Google 캘린더, 할 일과 직접 주고받습니다. 우리 서버를 거치지 않습니다.",
       "to": [
         "googleapis.com (Google)"
       ]
@@ -274,7 +274,7 @@
     },
     "postgraph": {
       "where": "local",
-      "whyLocal": "fetch 는 우리 정적 파일(post-graph.json) 한 장뿐 — 남의 서버로 가는 것이 없다. 그리기는 전부 브라우저 안.",
+      "whyLocal": "fetch 는 우리 정적 파일(post-graph.json) 한 장뿐. 남의 서버로 가는 것이 없다. 그리기는 전부 브라우저 안.",
       "sends": "아무것도 안 보냅니다.",
       "to": []
     },
@@ -340,14 +340,14 @@
     },
     "user": {
       "where": "ours",
-      "sends": "계정·활동 기록을 KarmoLab 서버와 주고받습니다.",
+      "sends": "계정, 활동 기록을 KarmoLab 서버와 주고받습니다.",
       "to": [
         "blog.mascari4615.com"
       ]
     },
     "usertool": {
       "where": "ours",
-      "sends": "남이 올린 도구 목록·실행 횟수·신고가 KarmoLab 서버를 거칩니다. 도구 자체는 모래상자 안에서 돕니다.",
+      "sends": "남이 올린 도구 목록, 실행 횟수, 신고가 KarmoLab 서버를 거칩니다. 도구 자체는 모래상자 안에서 돕니다.",
       "to": [
         "yawnbot.mascari4615.com"
       ]
@@ -368,7 +368,7 @@
     },
     "wm": {
       "where": "ours",
-      "sends": "게임 소식·기록을 KarmoLab 서버와 GitHub 공개 자료에서 받아 옵니다.",
+      "sends": "게임 소식, 기록을 KarmoLab 서버와 GitHub 공개 자료에서 받아 옵니다.",
       "to": [
         "yawnbot.mascari4615.com",
         "github.com"

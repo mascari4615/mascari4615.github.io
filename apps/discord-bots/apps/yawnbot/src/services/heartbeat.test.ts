@@ -1,5 +1,5 @@
 /**
- * heartbeat 순수부 + 스케줄링 회귀 (TASK-YB-021 — 자체 구현 피벗).
+ * heartbeat 순수부 + 스케줄링 회귀 (TASK-YB-021. 자체 구현 피벗).
  * sender = memo orphan 브랜치 Contents API (GET sha → PUT 시각).
  * 핵심 잠금:
  *  ① GET 200 → 그 sha 로 PUT (기존 파일 갱신) / GET 404 → sha 없이 PUT (생성)
@@ -36,7 +36,7 @@ function res(status: number, json?: unknown): Response {
   } as Response;
 }
 
-describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
+describe('writeHeartbeatOnce. Contents API GET sha → PUT', () => {
   it('기존 파일(GET 200) → 그 sha 로 PUT, body=base64 JSON+branch', async () => {
     const calls: Array<{ url: string; opts: RequestInit }> = [];
     const fetchImpl = vi.fn(async (url: string, opts: RequestInit) => {
@@ -138,7 +138,7 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
   });
 });
 
-describe('runHeartbeatTick — 상태 전이 alert', () => {
+describe('runHeartbeatTick. 상태 전이 alert', () => {
   const okFetch = () =>
     vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(200),
@@ -222,7 +222,7 @@ describe('runHeartbeatTick — 상태 전이 alert', () => {
   });
 });
 
-describe('startHeartbeat — 스케줄링', () => {
+describe('startHeartbeat. 스케줄링', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => {
     stopHeartbeat();

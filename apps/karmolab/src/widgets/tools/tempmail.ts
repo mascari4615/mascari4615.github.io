@@ -1,7 +1,7 @@
 /**
- * 잠깐 쓰는 메일 (흡혈 원장 3·50 temp-mail / TASK-KL-339)
+ * 잠깐 쓰는 메일 (흡혈 원장 3, 50 temp-mail / TASK-KL-339)
  *
- * 10분만 사는 주소를 만들어 확인 메일을 받는다. 셈·통신은 `lib/tempmail`.
+ * 10분만 사는 주소를 만들어 확인 메일을 받는다. 셈, 통신은 `lib/tempmail`.
  *
  * ★ 이 도구가 바깥 temp-mail 과 다른 점: **주소를 알아도 못 읽는다.** 발급할 때 열쇠를
  * 따로 받아 이 탭에만 두고(sessionStorage), 조회에 그 열쇠를 쓴다. 주소는 남에게 줘도 된다.
@@ -91,7 +91,7 @@ import {
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
     const status = $<HTMLElement>('#tmStatus');
-    /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 편지가 왔는지를 여기로 듣는다. */
+    /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 편지가 왔는지를 여기로 듣는다. */
     markLive(status);
 
     let box: Mailbox | null = recall();
@@ -107,7 +107,7 @@ import {
       stopClock = null;
     };
 
-    /* 위젯이 갈아 끼워질 때 시계를 놓고 간다 — 안 놓으면 갈아 끼울 때마다 쌓인다. */
+    /* 위젯이 갈아 끼워질 때 시계를 놓고 간다. 안 놓으면 갈아 끼울 때마다 쌓인다. */
     Toolbox.onDispose?.(stopAll);
 
     /** 아직 안 켜졌으면 **그렇게 말한다.** 주소만 그럴듯하게 내주는 게 제일 나쁘다. */
@@ -169,7 +169,7 @@ import {
         };
       });
 
-      /* 확인 코드를 맨 위에 크게 — 이 도구를 쓰는 이유의 열에 아홉이 그거다. */
+      /* 확인 코드를 맨 위에 크게. 이 도구를 쓰는 이유의 열에 아홉이 그거다. */
       const newest = letters[letters.length - 1];
       const code = newest ? codeIn(newest.text) : null;
       const panel = $<HTMLElement>('#tmCode');
@@ -185,7 +185,7 @@ import {
       if (box === null) return;
       const got = await readBox(box);
       if (got === null) {
-        /* 사라졌거나 열쇠가 안 맞는다 — 뒷단은 둘을 구별해 주지 않는다(그게 맞다). */
+        /* 사라졌거나 열쇠가 안 맞는다. 뒷단은 둘을 구별해 주지 않는다(그게 맞다). */
         box = null;
         forget();
         stopAll();
@@ -203,7 +203,7 @@ import {
     function start(): void {
       stopAll();
       /*
-       * 5초에 한 번 묻는다 — 확인 메일은 대개 십몇 초 안에 온다. 더 자주 물으면 남의 서버다.
+       * 5초에 한 번 묻는다. 확인 메일은 대개 십몇 초 안에 온다. 더 자주 물으면 남의 서버다.
        *
        * ★ **숨은 탭에서는 안 묻는다** (`intervalWhileVisible`). 확인 메일을 기다리는 사람은
        * 대개 이 탭을 떠나 가입 창에 가 있는데, 그 사이에도 5초마다 남의 서버를 두드리면
@@ -216,7 +216,7 @@ import {
       void refresh();
     }
 
-    /** 탭으로 돌아오면 기다리지 않고 바로 묻는다 — 5초를 더 기다리게 하면 느려 보인다. */
+    /** 탭으로 돌아오면 기다리지 않고 바로 묻는다. 5초를 더 기다리게 하면 느려 보인다. */
     const onBack = (): void => {
       if (!document.hidden && box !== null) void refresh();
     };
@@ -257,7 +257,7 @@ import {
     };
     $<HTMLButtonElement>('#tmCodeCopy').onclick = (): void => copy($<HTMLElement>('#tmCodeValue').textContent ?? '');
 
-    /* 새로고침해도 이 탭에서는 그 주소가 그대로다 — 열쇠가 세션에 남아 있다. */
+    /* 새로고침해도 이 탭에서는 그 주소가 그대로다. 열쇠가 세션에 남아 있다. */
     if (box !== null) {
       renderBox();
       status.textContent = t('tempmail.status.resumed');

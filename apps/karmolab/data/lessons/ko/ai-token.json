@@ -8,14 +8,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "LLM 은 글자도 단어도 아닌 **토큰** 단위로 글을 읽고 쓴다. 토큰은 자주 나오는 글자 덩어리다 — 영어는 대략 한 단어에 1~2토큰, 한글·코드·기호는 더 잘게 쪼개진다. 이 단위가 **비용·속도·한계**를 전부 정한다."
+          "text": "LLM 은 글자도 단어도 아닌 **토큰** 단위로 글을 읽고 쓴다. 토큰은 자주 나오는 글자 덩어리다. 영어는 대략 한 단어에 1~2토큰, 한글, 코드, 기호는 더 잘게 쪼개진다. 이 단위가 **비용, 속도, 한계**를 전부 정한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "문장을 골라 보라 — 몇 토큰으로 쪼개지나",
+          "label": "문장을 골라 보라. 몇 토큰으로 쪼개지나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{text}}';\n  const samples = {\n    en:   'The quick brown fox',\n    ko:   '빠른 갈색 여우가 뛴다',\n    code: 'const x = arr.map(f);',\n    emoji:'가격은 1,200원 🐱',\n  };\n  const s = samples[c];\n  const list = toks(s);\n  render('tokenize(\\'' + s + '\\')',\n    '  글자 수: ' + [...s].length + '  ·  대략 토큰 수: ' + list.length +\n    '\\n\\n  <span class=\"dim\">' +\n    (c === 'en' ? '영어는 단어 단위에 가깝다 — 가장 효율적.'\n     : c === 'ko' ? '한글은 글자마다 쪼개지기 쉽다 — 같은 뜻이라도 토큰이 더 든다.'\n     : c === 'code' ? '코드는 기호마다 토큰 — 들여쓰기·괄호도 센다.'\n     : '숫자·이모지는 여러 토큰이 되기도 한다.') + '</span>',\n    '실제 토큰화(BPE)는 이 근사와 다르지만, 「덩어리로 쪼갠다」는 감각은 같다.',\n    tokHtml(list));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{text}}';\n  const samples = {\n    en:   'The quick brown fox',\n    ko:   '빠른 갈색 여우가 뛴다',\n    code: 'const x = arr.map(f);',\n    emoji:'가격은 1,200원 🐱',\n  };\n  const s = samples[c];\n  const list = toks(s);\n  render('tokenize(\\'' + s + '\\')',\n    '  글자 수: ' + [...s].length + ' ,  대략 토큰 수: ' + list.length +\n    '\\n\\n  <span class=\"dim\">' +\n    (c === 'en' ? '영어는 단어 단위에 가깝다. 가장 효율적.'\n     : c === 'ko' ? '한글은 글자마다 쪼개지기 쉽다. 같은 뜻이라도 토큰이 더 든다.'\n     : c === 'code' ? '코드는 기호마다 토큰. 들여쓰기, 괄호도 센다.'\n     : '숫자, 이모지는 여러 토큰이 되기도 한다.') + '</span>',\n    '실제 토큰화(BPE)는 이 근사와 다르지만, 덩어리로 쪼갠다는 감각은 같다.',\n    tokHtml(list));\n</script>",
           "controls": [
             {
               "id": "text",
@@ -37,7 +37,7 @@
                 },
                 {
                   "value": "emoji",
-                  "label": "숫자·이모지"
+                  "label": "숫자, 이모지"
                 }
               ]
             }
@@ -45,17 +45,17 @@
         },
         {
           "type": "note",
-          "text": "**같은 뜻이라도 언어마다 토큰 수가 다르다.** 영어가 가장 적고, 한글·일본어·코드는 더 많다 — 그래서 같은 내용을 한글로 넣으면 비용이 더 나오고 문맥창도 더 빨리 찬다. 다국어 서비스에서 실제로 체감되는 차이다."
+          "text": "**같은 뜻이라도 언어마다 토큰 수가 다르다.** 영어가 가장 적고, 한글, 일본어, 코드는 더 많다. 그래서 같은 내용을 한글로 넣으면 비용이 더 나오고 문맥창도 더 빨리 찬다. 다국어 서비스에서 실제로 체감되는 차이다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "실제로 세어 보기",
-          "text": "// 각 제공자의 토크나이저로 정확히 센다\n// OpenAI: tiktoken · Anthropic: SDK 의 count_tokens\nimport { encoding_for_model } from 'tiktoken';\nconst enc = encoding_for_model('gpt-4o');\nconst n = enc.encode('세어 볼 문장').length;\n\n// 대략 어림 (영어 기준): 토큰 ≈ 글자 / 4  ≈ 단어 x 1.3\n// 한글은 이보다 훨씬 많다 — 반드시 실제 토크나이저로 확인"
+          "text": "// 각 제공자의 토크나이저로 정확히 센다\n// OpenAI: tiktoken, Anthropic: SDK 의 count_tokens\nimport { encoding_for_model } from 'tiktoken';\nconst enc = encoding_for_model('gpt-4o');\nconst n = enc.encode('세어 볼 문장').length;\n\n// 대략 어림 (영어 기준): 토큰 ≈ 글자 / 4  ≈ 단어 x 1.3\n// 한글은 이보다 훨씬 많다. 반드시 실제 토크나이저로 확인"
         },
         {
           "type": "p",
-          "text": "왜 토큰인가? 글자 단위는 시퀀스가 너무 길어지고, 단어 단위는 사전이 무한히 커진다. **자주 나오는 덩어리**로 쪼개면 둘의 절충이 된다 — 흔한 단어는 한 토큰, 희귀한 것은 여러 조각."
+          "text": "왜 토큰인가? 글자 단위는 시퀀스가 너무 길어지고, 단어 단위는 사전이 무한히 커진다. **자주 나오는 덩어리**로 쪼개면 둘의 절충이 된다. 흔한 단어는 한 토큰, 희귀한 것은 여러 조각."
         },
         {
           "type": "try",
@@ -72,7 +72,7 @@
             "문장"
           ],
           "answer": 2,
-          "why": "비용·속도·한계를 정한다."
+          "why": "비용, 속도, 한계를 정한다."
         },
         {
           "q": "같은 뜻일 때 토큰이 가장 적은 언어는?",
@@ -83,7 +83,7 @@
             "코드"
           ],
           "answer": 1,
-          "why": "그래서 비용·문맥에 유리하다."
+          "why": "그래서 비용, 문맥에 유리하다."
         },
         {
           "q": "토큰 단위를 쓰는 이유는?",
@@ -100,19 +100,19 @@
     },
     {
       "id": "2",
-      "title": "문맥창 — 한 번에 볼 수 있는 양",
+      "title": "문맥창. 한 번에 볼 수 있는 양",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "모델이 한 번에 처리할 수 있는 토큰 수가 **문맥창(context window)** 이다. 그리고 이 창에는 **입력과 출력이 함께** 들어간다 — 프롬프트가 길면 답할 공간이 줄어든다."
+          "text": "모델이 한 번에 처리할 수 있는 토큰 수가 **문맥창(context window)** 이다. 그리고 이 창에는 **입력과 출력이 함께** 들어간다. 프롬프트가 길면 답할 공간이 줄어든다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "입력 길이를 밀어 보라 — 답할 공간이 얼마나 남나",
+          "label": "입력 길이를 밀어 보라. 답할 공간이 얼마나 남나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const inTok = {{input}};\n  const win = 8000;   /* 예: 8K 문맥창 */\n  const maxOut = Math.max(0, win - inTok - 200);  /* 200 = 시스템·여유 */\n  const inPct = (inTok / win) * 100;\n  const sysPct = (200 / win) * 100;\n  const outPct = (maxOut / win) * 100;\n  render('context window = ' + win.toLocaleString() + ' tokens',\n    '  입력: ' + inTok.toLocaleString() + '  ·  시스템/여유: 200  ·  답할 수 있는 최대: ' +\n    maxOut.toLocaleString() + '\\n\\n' +\n    (maxOut < 500 ? '  <span class=\"no\">답할 공간이 거의 없다 — 긴 답이 중간에 잘린다.</span>'\n                  : '  <span class=\"ok\">여유 있음.</span>'),\n    '입력과 출력은 같은 창을 나눠 쓴다 — 넣을수록 답할 자리가 준다.',\n    bar([[sysPct, '#334155'], [inPct, '#1e40af'], [outPct, '#166534']]) +\n    '<div class=\"hint\">회색=시스템 · 파랑=입력 · 초록=답할 공간</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const inTok = {{input}};\n  const win = 8000;   /* 예: 8K 문맥창 */\n  const maxOut = Math.max(0, win - inTok - 200);  /* 200 = 시스템, 여유 */\n  const inPct = (inTok / win) * 100;\n  const sysPct = (200 / win) * 100;\n  const outPct = (maxOut / win) * 100;\n  render('context window = ' + win.toLocaleString() + ' tokens',\n    '  입력: ' + inTok.toLocaleString() + ' ,  시스템/여유: 200 ,  답할 수 있는 최대: ' +\n    maxOut.toLocaleString() + '\\n\\n' +\n    (maxOut < 500 ? '  <span class=\"no\">답할 공간이 거의 없다. 긴 답이 중간에 잘린다.</span>'\n                  : '  <span class=\"ok\">여유 있음.</span>'),\n    '입력과 출력은 같은 창을 나눠 쓴다. 넣을수록 답할 자리가 준다.',\n    bar([[sysPct, '#334155'], [inPct, '#1e40af'], [outPct, '#166534']]) +\n    '<div class=\"hint\">회색=시스템, 파랑=입력, 초록=답할 공간</div>');\n</script>",
           "controls": [
             {
               "id": "input",
@@ -127,21 +127,21 @@
         },
         {
           "type": "note",
-          "text": "**문맥창을 넘으면 오류이거나 잘림**이다. 긴 대화·문서를 넣을 때 「앞부분을 모델이 잊은 것처럼」 보이는 것은, 실제로 창에서 밀려났기 때문이다 — 창은 크지만 무한하지 않다."
+          "text": "**문맥창을 넘으면 오류이거나 잘림**이다. 긴 대화, 문서를 넣을 때 앞부분을 모델이 잊은 것처럼 보이는 것은, 실제로 창에서 밀려났기 때문이다. 창은 크지만 무한하지 않다."
         },
         {
           "type": "p",
-          "text": "그리고 **창이 크다고 다 잘 쓰는 것은 아니다.** 아주 긴 문맥의 **가운데**에 있는 정보를 모델이 놓치는 현상(lost in the middle)이 있다 — 중요한 것은 앞이나 뒤에, 그리고 필요한 것만 넣는 편이 낫다."
+          "text": "그리고 **창이 크다고 다 잘 쓰는 것은 아니다.** 아주 긴 문맥의 **가운데**에 있는 정보를 모델이 놓치는 현상(lost in the middle)이 있다. 중요한 것은 앞이나 뒤에, 그리고 필요한 것만 넣는 편이 낫다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "창을 관리하는 법",
-          "text": "// 긴 대화 — 오래된 것을 요약하거나 자른다\nconst kept = [systemMsg, ...summarize(oldMessages), ...recentMessages];\n\n// 긴 문서 — 통째로 넣지 말고 관련 부분만 (RAG, 4번째 칸)\nconst relevant = await search(query);   // 필요한 조각만\n\n// 넣기 전에 센다\nif (countTokens(prompt) > window - maxOutput) trim(prompt);"
+          "text": "// 긴 대화. 오래된 것을 요약하거나 자른다\nconst kept = [systemMsg, ...summarize(oldMessages), ...recentMessages];\n\n// 긴 문서. 통째로 넣지 말고 관련 부분만 (RAG, 4번째 칸)\nconst relevant = await search(query);   // 필요한 조각만\n\n// 넣기 전에 센다\nif (countTokens(prompt) > window - maxOutput) trim(prompt);"
         },
         {
           "type": "try",
-          "text": "긴 대화를 하다 모델이 앞의 지시를 「잊는」 순간을 관찰하라. 그 지점이 대략 문맥창의 한계다 — 중요한 지시는 시스템 메시지에 두면 덜 밀린다."
+          "text": "긴 대화를 하다 모델이 앞의 지시를 잊는 순간을 관찰하라. 그 지점이 대략 문맥창의 한계다. 중요한 지시는 시스템 메시지에 두면 덜 밀린다."
         }
       ],
       "quiz": [
@@ -157,7 +157,7 @@
           "why": "프롬프트가 길면 답할 공간이 준다."
         },
         {
-          "q": "긴 대화에서 모델이 앞부분을 「잊은」 것처럼 보이는 이유는?",
+          "q": "긴 대화에서 모델이 앞부분을 잊은 것처럼 보이는 이유는?",
           "choices": [
             "버그",
             "문맥창에서 밀려났다",
@@ -176,25 +176,25 @@
             "전부 균등"
           ],
           "answer": 1,
-          "why": "중요한 건 앞뒤에·필요한 것만."
+          "why": "중요한 건 앞뒤에, 필요한 것만."
         }
       ]
     },
     {
       "id": "3",
-      "title": "비용 — 토큰이 곧 돈이다",
+      "title": "비용. 토큰이 곧 돈이다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "API 요금은 **토큰 단위**로 매겨진다. 그리고 입력과 출력의 단가가 다르다 — 대개 **출력이 몇 배 비싸다**. 비용을 잡으려면 이 구조를 알아야 한다."
+          "text": "API 요금은 **토큰 단위**로 매겨진다. 그리고 입력과 출력의 단가가 다르다. 대개 **출력이 몇 배 비싸다**. 비용을 잡으려면 이 구조를 알아야 한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "설정을 바꿔 보라 — 요금이 어떻게 달라지나",
+          "label": "설정을 바꿔 보라. 요금이 어떻게 달라지나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const inTok = {{input}}, outTok = {{output}}, calls = {{calls}};\n  /* 예시 단가 (실제는 모델마다 다름): 입력 $3/1M · 출력 $15/1M */\n  const inCost = inTok / 1e6 * 3;\n  const outCost = outTok / 1e6 * 15;\n  const per = inCost + outCost;\n  const total = per * calls;\n  render('요금 계산',\n    '  한 번당:\\n' +\n    '    입력 ' + inTok.toLocaleString() + ' tok  ->  $' + inCost.toFixed(5) + '\\n' +\n    '    출력 ' + outTok.toLocaleString() + ' tok  ->  $' + outCost.toFixed(5) + '  (출력이 5배 단가)\\n' +\n    '    합계  $' + per.toFixed(5) + '\\n\\n' +\n    '  하루 ' + calls.toLocaleString() + '회  ->  <span class=\"warn\">$' + total.toFixed(2) + '/일</span>' +\n    '  ·  월 약 $' + (total * 30).toFixed(0),\n    '출력 단가가 더 비싸다 — 「짧게 답하게」가 곧 비용 절감이다.',\n    bar([[inCost / per * 100, '#1e40af'], [outCost / per * 100, '#9f1239']]) +\n    '<div class=\"hint\">파랑=입력 비용 · 빨강=출력 비용</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const inTok = {{input}}, outTok = {{output}}, calls = {{calls}};\n  /* 예시 단가 (실제는 모델마다 다름): 입력 $3/1M, 출력 $15/1M */\n  const inCost = inTok / 1e6 * 3;\n  const outCost = outTok / 1e6 * 15;\n  const per = inCost + outCost;\n  const total = per * calls;\n  render('요금 계산',\n    '  한 번당:\\n' +\n    '    입력 ' + inTok.toLocaleString() + ' tok  ->  $' + inCost.toFixed(5) + '\\n' +\n    '    출력 ' + outTok.toLocaleString() + ' tok  ->  $' + outCost.toFixed(5) + '  (출력이 5배 단가)\\n' +\n    '    합계  $' + per.toFixed(5) + '\\n\\n' +\n    '  하루 ' + calls.toLocaleString() + '회  ->  <span class=\"warn\">$' + total.toFixed(2) + '/일</span>' +\n    ' ,  월 약 $' + (total * 30).toFixed(0),\n    '출력 단가가 더 비싸다. 짧게 답하게가 곧 비용 절감이다.',\n    bar([[inCost / per * 100, '#1e40af'], [outCost / per * 100, '#9f1239']]) +\n    '<div class=\"hint\">파랑=입력 비용, 빨강=출력 비용</div>');\n</script>",
           "controls": [
             {
               "id": "input",
@@ -227,21 +227,21 @@
         },
         {
           "type": "note",
-          "text": "**출력이 대개 3~5배 비싸다.** 그래서 「간결하게 답하라」·「JSON 만 반환하라」 같은 지시가 품질뿐 아니라 비용에도 직접 작용한다. 장황하게 설명하게 두면 토큰이 그대로 요금이 된다."
+          "text": "**출력이 대개 3~5배 비싸다.** 그래서 간결하게 답하라, JSON 만 반환하라 같은 지시가 품질뿐 아니라 비용에도 직접 작용한다. 장황하게 설명하게 두면 토큰이 그대로 요금이 된다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "비용을 줄이는 순서",
-          "text": "1. 출력을 짧게        — 형식 지정 · 「설명 없이」 · max_tokens 제한\n2. 입력을 줄여         — 필요한 문맥만 (RAG) · 예시 최소화\n3. 프롬프트 캐싱        — 반복되는 시스템·문서 부분을 캐시 (단가 대폭 절감)\n4. 작은 모델로 라우팅   — 쉬운 요청은 값싼 모델로\n5. 배치 API            — 급하지 않은 대량 작업은 절반 값"
+          "text": "1. 출력을 짧게       . 형식 지정, 설명 없이, max_tokens 제한\n2. 입력을 줄여        . 필요한 문맥만 (RAG), 예시 최소화\n3. 프롬프트 캐싱       . 반복되는 시스템, 문서 부분을 캐시 (단가 대폭 절감)\n4. 작은 모델로 라우팅  . 쉬운 요청은 값싼 모델로\n5. 배치 API           . 급하지 않은 대량 작업은 절반 값"
         },
         {
           "type": "p",
-          "text": "**프롬프트 캐싱**이 특히 큰 레버다 — 매 요청에 같은 시스템 프롬프트·문서를 넣는다면, 그 부분을 캐시하면 반복 비용이 크게 준다. 자주 쓰는 긴 컨텍스트가 있는 서비스라면 먼저 볼 자리다."
+          "text": "**프롬프트 캐싱**이 특히 큰 레버다. 매 요청에 같은 시스템 프롬프트, 문서를 넣는다면, 그 부분을 캐시하면 반복 비용이 크게 준다. 자주 쓰는 긴 컨텍스트가 있는 서비스라면 먼저 볼 자리다."
         },
         {
           "type": "try",
-          "text": "내 서비스의 한 요청에서 입력·출력 토큰을 세어 위 계산에 넣어 보라. 하루 호출 수를 곱하면 월 비용이 나온다 — 대개 출력 줄이기가 가장 큰 효과다."
+          "text": "내 서비스의 한 요청에서 입력, 출력 토큰을 세어 위 계산에 넣어 보라. 하루 호출 수를 곱하면 월 비용이 나온다. 대개 출력 줄이기가 가장 큰 효과다."
         }
       ],
       "quiz": [
@@ -257,7 +257,7 @@
           "why": "짧게 답하게 하는 것이 절감."
         },
         {
-          "q": "반복되는 시스템·문서 비용을 줄이는 것은?",
+          "q": "반복되는 시스템, 문서 비용을 줄이는 것은?",
           "choices": [
             "작은 모델",
             "프롬프트 캐싱",
@@ -282,19 +282,19 @@
     },
     {
       "id": "4",
-      "title": "출력을 다루기 — 스트리밍과 지연",
+      "title": "출력을 다루기. 스트리밍과 지연",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "모델은 **토큰을 하나씩** 만든다. 그래서 긴 답은 다 만들어질 때까지 기다리면 느리게 느껴진다 — **스트리밍**은 만들어지는 대로 흘려보내 체감 속도를 크게 바꾼다."
+          "text": "모델은 **토큰을 하나씩** 만든다. 그래서 긴 답은 다 만들어질 때까지 기다리면 느리게 느껴진다. **스트리밍**은 만들어지는 대로 흘려보내 체감 속도를 크게 바꾼다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "방식을 골라 보라 — 사용자가 무엇을 겪나",
+          "label": "방식을 골라 보라. 사용자가 무엇을 겪나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{mode}}';\n  const outTok = 400, tps = 50;  /* 초당 50토큰 생성 가정 */\n  const total = outTok / tps;\n  const t = {\n    wait:   ['전부 기다렸다 한 번에', '첫 글자까지: ' + total.toFixed(1) + '초',\n      '짧은 답은 괜찮지만, 긴 답은 <span class=\"no\">멈춘 것처럼</span> 보인다.'],\n    stream: ['스트리밍 (토큰마다)', '첫 글자까지: 약 0.3초 (TTFT)',\n      '<span class=\"ok\">바로 읽기 시작</span>한다 — 총 시간은 같지만 체감이 다르다.'],\n    ttft:   ['지연의 두 부분', '첫 토큰까지(TTFT) + 토큰당 시간(TPOT)',\n      'TTFT 는 입력 길이·모델 크기에 · TPOT 는 출력 길이에 좌우된다.'],\n    long:   ['긴 입력의 영향', '입력 8000 토큰 -> TTFT 가 늘어난다',\n      '모델이 입력을 다 읽어야 첫 토큰이 나온다 — 입력이 길면 시작도 늦다.'],\n  }[c];\n  render('출력 ' + outTok + ' 토큰 · 초당 ' + tps + ' 토큰',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  ' + esc(t[1]) + '\\n\\n  ' + t[2],\n    '체감 속도의 핵심은 「첫 글자까지의 시간(TTFT)」 — 스트리밍이 이걸 극적으로 줄인다.',\n    bar(c === 'stream' ? [[3, '#166534'], [97, '#334155']]\n                       : [[100, c === 'wait' ? '#334155' : '#1e40af']]) +\n    '<div class=\"hint\">' + (c === 'stream' ? '초록=첫 토큰(빠름) · 나머지는 흐르며 채워진다' : '전부 기다린다') + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{mode}}';\n  const outTok = 400, tps = 50;  /* 초당 50토큰 생성 가정 */\n  const total = outTok / tps;\n  const t = {\n    wait:   ['전부 기다렸다 한 번에', '첫 글자까지: ' + total.toFixed(1) + '초',\n      '짧은 답은 괜찮지만, 긴 답은 <span class=\"no\">멈춘 것처럼</span> 보인다.'],\n    stream: ['스트리밍 (토큰마다)', '첫 글자까지: 약 0.3초 (TTFT)',\n      '<span class=\"ok\">바로 읽기 시작</span>한다. 총 시간은 같지만 체감이 다르다.'],\n    ttft:   ['지연의 두 부분', '첫 토큰까지(TTFT) + 토큰당 시간(TPOT)',\n      'TTFT 는 입력 길이, 모델 크기에, TPOT 는 출력 길이에 좌우된다.'],\n    long:   ['긴 입력의 영향', '입력 8000 토큰 -> TTFT 가 늘어난다',\n      '모델이 입력을 다 읽어야 첫 토큰이 나온다. 입력이 길면 시작도 늦다.'],\n  }[c];\n  render('출력 ' + outTok + ' 토큰, 초당 ' + tps + ' 토큰',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n  ' + esc(t[1]) + '\\n\\n  ' + t[2],\n    '체감 속도의 핵심은 첫 글자까지의 시간(TTFT). 스트리밍이 이걸 극적으로 줄인다.',\n    bar(c === 'stream' ? [[3, '#166534'], [97, '#334155']]\n                       : [[100, c === 'wait' ? '#334155' : '#1e40af']]) +\n    '<div class=\"hint\">' + (c === 'stream' ? '초록=첫 토큰(빠름), 나머지는 흐르며 채워진다' : '전부 기다린다') + '</div>');\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -324,21 +324,21 @@
         },
         {
           "type": "note",
-          "text": "**지연은 두 부분**이다 — 첫 토큰까지(TTFT)와 토큰당 시간(TPOT). 스트리밍은 총 시간을 줄이지 못하지만 TTFT 를 사용자에게 노출해 **기다림을 견딜 만하게** 만든다. 채팅 UI 가 전부 스트리밍인 이유다."
+          "text": "**지연은 두 부분**이다. 첫 토큰까지(TTFT)와 토큰당 시간(TPOT). 스트리밍은 총 시간을 줄이지 못하지만 TTFT 를 사용자에게 노출해 **기다림을 견딜 만하게** 만든다. 채팅 UI 가 전부 스트리밍인 이유다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "스트리밍 받기",
-          "text": "const stream = await client.messages.create({ model, messages, stream: true });\nfor await (const event of stream) {\n  if (event.type === 'content_block_delta') {\n    process.stdout.write(event.delta.text);   // 오는 대로 화면에\n  }\n}\n// 주의: 도중에 끊길 수 있다 — 부분 결과 처리·재시도를 고려"
+          "text": "const stream = await client.messages.create({ model, messages, stream: true });\nfor await (const event of stream) {\n  if (event.type === 'content_block_delta') {\n    process.stdout.write(event.delta.text);   // 오는 대로 화면에\n  }\n}\n// 주의: 도중에 끊길 수 있다. 부분 결과 처리, 재시도를 고려"
         },
         {
           "type": "p",
-          "text": "다만 **스트리밍이 항상 답은 아니다.** JSON 을 파싱해 쓰거나, 도구 호출 결과를 받아 다음 단계로 넘겨야 하면 완성본이 필요하다 — 사람이 읽는 텍스트는 스트리밍, 프로그램이 처리하는 구조화 출력은 완성 후 처리가 맞다."
+          "text": "다만 **스트리밍이 항상 답은 아니다.** JSON 을 파싱해 쓰거나, 도구 호출 결과를 받아 다음 단계로 넘겨야 하면 완성본이 필요하다. 사람이 읽는 텍스트는 스트리밍, 프로그램이 처리하는 구조화 출력은 완성 후 처리가 맞다."
         },
         {
           "type": "try",
-          "text": "같은 프롬프트를 스트리밍 켜고/끄고 호출해 「첫 글자까지의 시간」을 비교하라. 총 시간은 비슷해도 체감이 완전히 다르다."
+          "text": "같은 프롬프트를 스트리밍 켜고/끄고 호출해 첫 글자까지의 시간을 비교하라. 총 시간은 비슷해도 체감이 완전히 다르다."
         }
       ],
       "quiz": [
@@ -368,7 +368,7 @@
           "q": "스트리밍이 부적합한 경우는?",
           "choices": [
             "채팅 답변",
-            "JSON·도구 호출처럼 완성본이 필요한 출력",
+            "JSON, 도구 호출처럼 완성본이 필요한 출력",
             "긴 글",
             "설명"
           ],
@@ -384,14 +384,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "출력을 통제하지 못하면 비용도 지연도 예측이 안 된다. 통제 손잡이가 몇 개 있다 — **최대 길이·형식 지정·정지 조건**."
+          "text": "출력을 통제하지 못하면 비용도 지연도 예측이 안 된다. 통제 손잡이가 몇 개 있다. **최대 길이, 형식 지정, 정지 조건**."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "손잡이를 골라 보라 — 무엇을 통제하나",
+          "label": "손잡이를 골라 보라. 무엇을 통제하나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{knob}}';\n  const t = {\n    max:   ['max_tokens (최대 길이)', ['넘으면 그 지점에서 잘린다'],\n      '안전장치로 반드시 설정한다 — 무한 생성·폭주 비용을 막는다.',\n      '<span class=\"warn\">주의: 잘리면 JSON 이 깨진다</span> — 넉넉히 주되 상한은 둔다.'],\n    format:['형식 지정', ['「JSON 만」·「한 문장으로」·스키마 제공'],\n      '가장 효과적. 「설명 없이 결과만」 한 줄이 출력을 절반으로 줄인다.',\n      '구조화 출력(JSON 모드·스키마 강제)을 지원하면 파싱 실패가 사라진다.'],\n    stop:  ['정지 시퀀스', ['특정 문자열이 나오면 멈춘다'],\n      '형식이 끝나는 지점을 알려 준다 — 예: \\'\\\\n\\\\n\\' 나 \\'</answer>\\'.',\n      '반복·군더더기를 자르는 데도 쓴다.'],\n    temp:  ['temperature', ['0 에 가까우면 일관·결정적 · 높으면 다양'],\n      '길이보다 <span class=\"warn\">일관성</span>의 손잡이. 추출·분류는 0, 창작은 높게.',\n      '재현이 필요한 평가·테스트에서는 0(또는 고정 시드).'],\n    schema:['구조화 출력', ['스키마를 주면 그 모양만 나온다'],\n      '「JSON 을 달라」보다 강력하다 — 모델이 형식을 어길 수 없게 강제.',\n      '도구 호출·추출 작업에서 파싱 안정성을 크게 높인다(다음 칸들).'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]) + '\\n  ' + t[3],\n    '통제된 출력 = 예측 가능한 비용·지연·파싱. 셋 다 여기서 좋아진다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{knob}}';\n  const t = {\n    max:   ['max_tokens (최대 길이)', ['넘으면 그 지점에서 잘린다'],\n      '안전장치로 반드시 설정한다. 무한 생성, 폭주 비용을 막는다.',\n      '<span class=\"warn\">주의: 잘리면 JSON 이 깨진다</span>. 넉넉히 주되 상한은 둔다.'],\n    format:['형식 지정', ['JSON 만, 한 문장으로, 스키마 제공'],\n      '가장 효과적. 설명 없이 결과만 한 줄이 출력을 절반으로 줄인다.',\n      '구조화 출력(JSON 모드, 스키마 강제)을 지원하면 파싱 실패가 사라진다.'],\n    stop:  ['정지 시퀀스', ['특정 문자열이 나오면 멈춘다'],\n      '형식이 끝나는 지점을 알려 준다. 예: \\'\\\\n\\\\n\\' 나 \\'</answer>\\'.',\n      '반복, 군더더기를 자르는 데도 쓴다.'],\n    temp:  ['temperature', ['0 에 가까우면 일관, 결정적, 높으면 다양'],\n      '길이보다 <span class=\"warn\">일관성</span>의 손잡이. 추출, 분류는 0, 창작은 높게.',\n      '재현이 필요한 평가, 테스트에서는 0(또는 고정 시드).'],\n    schema:['구조화 출력', ['스키마를 주면 그 모양만 나온다'],\n      'JSON 을 달라보다 강력하다. 모델이 형식을 어길 수 없게 강제.',\n      '도구 호출, 추출 작업에서 파싱 안정성을 크게 높인다(다음 칸들).'],\n  }[c];\n  render('', '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]) + '\\n  ' + t[3],\n    '통제된 출력 = 예측 가능한 비용, 지연, 파싱. 셋 다 여기서 좋아진다.');\n</script>",
           "controls": [
             {
               "id": "knob",
@@ -425,26 +425,26 @@
         },
         {
           "type": "note",
-          "text": "**`max_tokens` 를 안 걸면 사고가 난다.** 모델이 반복 루프에 빠지거나 장황해지면 그대로 요금이 된다 — 상한을 두되, JSON 이 중간에 잘리지 않게 넉넉히 잡고 형식으로 짧게 유도하는 편이 낫다."
+          "text": "**`max_tokens` 를 안 걸면 사고가 난다.** 모델이 반복 루프에 빠지거나 장황해지면 그대로 요금이 된다. 상한을 두되, JSON 이 중간에 잘리지 않게 넉넉히 잡고 형식으로 짧게 유도하는 편이 낫다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "구조화 출력으로 파싱을 안정화",
-          "text": "// 「JSON 을 달라」 (깨질 수 있다)\nconst prompt = '결과를 JSON 으로만 답하라.';\n\n// 스키마 강제 (모델이 형식을 못 어긴다)\nconst res = await client.messages.create({\n  model, messages,\n  tools: [{ name: 'extract', input_schema: {\n    type: 'object',\n    properties: { name: { type: 'string' }, score: { type: 'number' } },\n    required: ['name', 'score'],\n  }}],\n  tool_choice: { type: 'tool', name: 'extract' },\n});"
+          "text": "// JSON 을 달라 (깨질 수 있다)\nconst prompt = '결과를 JSON 으로만 답하라.';\n\n// 스키마 강제 (모델이 형식을 못 어긴다)\nconst res = await client.messages.create({\n  model, messages,\n  tools: [{ name: 'extract', input_schema: {\n    type: 'object',\n    properties: { name: { type: 'string' }, score: { type: 'number' } },\n    required: ['name', 'score'],\n  }}],\n  tool_choice: { type: 'tool', name: 'extract' },\n});"
         },
         {
           "type": "p",
-          "text": "**temperature 는 길이가 아니라 일관성**의 손잡이다 — 0 에 가까우면 같은 입력에 거의 같은 답, 높으면 다양해진다. 추출·분류·평가처럼 **재현이 필요한 작업은 낮게**, 브레인스토밍·창작은 높게."
+          "text": "**temperature 는 길이가 아니라 일관성**의 손잡이다. 0 에 가까우면 같은 입력에 거의 같은 답, 높으면 다양해진다. 추출, 분류, 평가처럼 **재현이 필요한 작업은 낮게**, 브레인스토밍, 창작은 높게."
         },
         {
           "type": "try",
-          "text": "같은 추출 작업을 「JSON 으로 답하라」와 스키마 강제로 각각 20번 돌려 파싱 실패율을 비교하라. 구조화 출력 쪽이 거의 0 일 것이다."
+          "text": "같은 추출 작업을 JSON 으로 답하라와 스키마 강제로 각각 20번 돌려 파싱 실패율을 비교하라. 구조화 출력 쪽이 거의 0 일 것이다."
         }
       ],
       "quiz": [
         {
-          "q": "무한 생성·폭주 비용을 막는 것은?",
+          "q": "무한 생성, 폭주 비용을 막는 것은?",
           "choices": [
             "temperature",
             "max_tokens",
@@ -458,7 +458,7 @@
           "q": "출력을 가장 크게 줄이는 지시는?",
           "choices": [
             "느리게 답하라",
-            "「설명 없이 결과만」 형식 지정",
+            "설명 없이 결과만 형식 지정",
             "정확히 답하라",
             "길게 답하라"
           ],
@@ -480,7 +480,7 @@
     },
     {
       "id": "6",
-      "title": "왜 세는지 — 잘림과 폭주를 미리 막기",
+      "title": "왜 세는지. 잘림과 폭주를 미리 막기",
       "minutes": 8,
       "blocks": [
         {
@@ -490,9 +490,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "사고를 골라 보라 — 세면 막힌다",
+          "label": "사고를 골라 보라. 세면 막힌다",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    overflow:['입력이 창을 넘는다', ['긴 문서를 통째로 넣었다', '400 오류 또는 앞부분 잘림'],\n      '넣기 전에 세서 초과하면 자르거나 요약하거나 RAG 로.'],\n    cutoff: ['답이 중간에 잘린다', ['max_tokens 가 작거나 입력이 창을 거의 채움',\n      'JSON 이 반만 나와 파싱 실패'],\n      '입력 + 예상 출력 <= 창 을 미리 확인 · finish_reason 을 검사한다.'],\n    runaway:['비용 폭주', ['사용자 입력을 그대로 넣어 무한히 길어짐',\n      '루프에서 매번 전체 대화를 다시 보냄'],\n      '입력 상한 · max_tokens · 사용자별 레이트 리밋·예산 알림.'],\n    history:['대화가 길어지며 느려지고 비싸짐', ['매 턴 전체 히스토리를 보낸다'],\n      '오래된 것을 요약·자르기 — 창 관리(2장).'],\n    retry:  ['실패 후 재시도로 중복 과금', ['타임아웃마다 처음부터 다시'],\n      '멱등성·부분 결과 활용 · 스트리밍 중단 대비.'],\n  }[c];\n  render('countTokens() 를 미리',\n    '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '「보내기 전에 센다」 한 줄이 이 사고들의 대부분을 막는다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{case}}';\n  const t = {\n    overflow:['입력이 창을 넘는다', ['긴 문서를 통째로 넣었다', '400 오류 또는 앞부분 잘림'],\n      '넣기 전에 세서 초과하면 자르거나 요약하거나 RAG 로.'],\n    cutoff: ['답이 중간에 잘린다', ['max_tokens 가 작거나 입력이 창을 거의 채움',\n      'JSON 이 반만 나와 파싱 실패'],\n      '입력 + 예상 출력 <= 창 을 미리 확인, finish_reason 을 검사한다.'],\n    runaway:['비용 폭주', ['사용자 입력을 그대로 넣어 무한히 길어짐',\n      '루프에서 매번 전체 대화를 다시 보냄'],\n      '입력 상한, max_tokens, 사용자별 레이트 리밋, 예산 알림.'],\n    history:['대화가 길어지며 느려지고 비싸짐', ['매 턴 전체 히스토리를 보낸다'],\n      '오래된 것을 요약, 자르기. 창 관리(2장).'],\n    retry:  ['실패 후 재시도로 중복 과금', ['타임아웃마다 처음부터 다시'],\n      '멱등성, 부분 결과 활용, 스트리밍 중단 대비.'],\n  }[c];\n  render('countTokens() 를 미리',\n    '  <span class=\"no\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  <span class=\"ok\">-> ' + esc(t[2]) + '</span>',\n    '보내기 전에 센다 한 줄이 이 사고들의 대부분을 막는다.');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -528,19 +528,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "보내기 전 검사",
-          "text": "const inputTokens = countTokens(prompt);\nconst budget = window - maxOutput - safetyMargin;\nif (inputTokens > budget) {\n  prompt = await shrink(prompt);   // 요약·자르기·관련 부분만\n}\n\n// 응답 후 — 잘렸는지 확인\nif (response.stop_reason === 'max_tokens') {\n  // 잘림 처리: 이어받기 요청 · 사용자에게 알림\n}\n\n// 사용량 기록 (실제 청구는 응답의 usage 필드로)\nlog({ inputTokens: usage.input_tokens, outputTokens: usage.output_tokens });"
+          "text": "const inputTokens = countTokens(prompt);\nconst budget = window - maxOutput - safetyMargin;\nif (inputTokens > budget) {\n  prompt = await shrink(prompt);   // 요약, 자르기, 관련 부분만\n}\n\n// 응답 후. 잘렸는지 확인\nif (response.stop_reason === 'max_tokens') {\n  // 잘림 처리: 이어받기 요청, 사용자에게 알림\n}\n\n// 사용량 기록 (실제 청구는 응답의 usage 필드로)\nlog({ inputTokens: usage.input_tokens, outputTokens: usage.output_tokens });"
         },
         {
           "type": "note",
-          "text": "**실제 과금은 응답의 `usage` 필드**로 확인하라 — 어림 계산과 실제 토큰 수는 다르다. 이 값을 요청마다 기록하면 비용을 추적하고, 어느 기능이 비싼지 알 수 있다(관측 칸의 그 습관)."
+          "text": "**실제 과금은 응답의 `usage` 필드**로 확인하라. 어림 계산과 실제 토큰 수는 다르다. 이 값을 요청마다 기록하면 비용을 추적하고, 어느 기능이 비싼지 알 수 있다(관측 칸의 그 습관)."
         },
         {
           "type": "p",
-          "text": "그리고 **사용자별 예산·레이트 리밋**을 두라. LLM 요청은 하나가 비쌀 수 있어서, 악의적이거나 실수로 반복하는 사용자 하나가 요금을 크게 올린다 — 상한과 알림이 안전장치다."
+          "text": "그리고 **사용자별 예산, 레이트 리밋**을 두라. LLM 요청은 하나가 비쌀 수 있어서, 악의적이거나 실수로 반복하는 사용자 하나가 요금을 크게 올린다. 상한과 알림이 안전장치다."
         },
         {
           "type": "try",
-          "text": "내 서비스의 LLM 호출에 `usage` 를 로깅하고 있는지 확인하라. 없으면 추가하라 — 비용을 못 재면 못 줄인다."
+          "text": "내 서비스의 LLM 호출에 `usage` 를 로깅하고 있는지 확인하라. 없으면 추가하라. 비용을 못 재면 못 줄인다."
         }
       ],
       "quiz": [
@@ -548,7 +548,7 @@
           "q": "보내기 전에 토큰을 세는 이유는?",
           "choices": [
             "빠르게",
-            "창 초과·잘림·폭주를 미리 막으려고",
+            "창 초과, 잘림, 폭주를 미리 막으려고",
             "정확도",
             "표준"
           ],
@@ -570,7 +570,7 @@
           "q": "비용 폭주를 막는 안전장치는?",
           "choices": [
             "큰 모델",
-            "입력 상한·max_tokens·사용자별 예산",
+            "입력 상한, max_tokens, 사용자별 예산",
             "스트리밍",
             "캐싱만"
           ],
@@ -581,19 +581,19 @@
     },
     {
       "id": "7",
-      "title": "모델 고르기 — 크기·속도·비용의 저울",
+      "title": "모델 고르기. 크기, 속도, 비용의 저울",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "가장 큰 모델을 항상 쓰는 것은 대개 낭비다. **작업 난이도에 맞춰** 고르면 비용과 지연이 크게 준다 — 쉬운 것은 값싼 모델, 어려운 것만 큰 모델."
+          "text": "가장 큰 모델을 항상 쓰는 것은 대개 낭비다. **작업 난이도에 맞춰** 고르면 비용과 지연이 크게 준다. 쉬운 것은 값싼 모델, 어려운 것만 큰 모델."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "작업을 골라 보라 — 어떤 모델이 맞나",
+          "label": "작업을 골라 보라. 어떤 모델이 맞나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{task}}';\n  const t = {\n    classify:['분류·추출·라우팅', '작고 빠른 모델', 'ok',\n      '정답이 좁고 검증이 쉽다 — 큰 모델은 과잉. 속도·비용에서 크게 이득.'],\n    chat:    ['일반 대화·요약', '중간 모델', 'ok',\n      '대부분의 트래픽. 품질과 비용의 균형점.'],\n    reason:  ['복잡한 추론·코드·다단계', '큰(추론) 모델', 'warn',\n      '느리고 비싸지만 어려운 것을 해낸다 — 정말 필요한 요청에만.'],\n    route:   ['난이도에 따라 나누기', '라우팅', 'ok',\n      '먼저 값싼 모델로 시도 · 자신 없으면 큰 모델로 (cascade). 비용을 크게 줄인다.'],\n    local:   ['민감 데이터·오프라인·대량', '작은 로컬 모델', 'warn',\n      '데이터가 밖으로 안 나가고 호출당 비용이 없다 — 대신 품질·운영 부담.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '  ->  <span class=\"' + (t[2] === 'ok' ? 'ok' : 'warn') + '\">' + esc(t[1]) + '</span>\\n\\n  ' + t[3],\n    '규칙: 작업 난이도에 모델을 맞춘다 — 「항상 최대」는 대개 낭비다.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{task}}';\n  const t = {\n    classify:['분류, 추출, 라우팅', '작고 빠른 모델', 'ok',\n      '정답이 좁고 검증이 쉽다. 큰 모델은 과잉. 속도, 비용에서 크게 이득.'],\n    chat:    ['일반 대화, 요약', '중간 모델', 'ok',\n      '대부분의 트래픽. 품질과 비용의 균형점.'],\n    reason:  ['복잡한 추론, 코드, 다단계', '큰(추론) 모델', 'warn',\n      '느리고 비싸지만 어려운 것을 해낸다. 정말 필요한 요청에만.'],\n    route:   ['난이도에 따라 나누기', '라우팅', 'ok',\n      '먼저 값싼 모델로 시도, 자신 없으면 큰 모델로 (cascade). 비용을 크게 줄인다.'],\n    local:   ['민감 데이터, 오프라인, 대량', '작은 로컬 모델', 'warn',\n      '데이터가 밖으로 안 나가고 호출당 비용이 없다. 대신 품질, 운영 부담.'],\n  }[c];\n  render('', '  ' + esc(t[0]) + '  ->  <span class=\"' + (t[2] === 'ok' ? 'ok' : 'warn') + '\">' + esc(t[1]) + '</span>\\n\\n  ' + t[3],\n    '규칙: 작업 난이도에 모델을 맞춘다. 항상 최대는 대개 낭비다.');\n</script>",
           "controls": [
             {
               "id": "task",
@@ -603,11 +603,11 @@
               "options": [
                 {
                   "value": "classify",
-                  "label": "분류·추출"
+                  "label": "분류, 추출"
                 },
                 {
                   "value": "chat",
-                  "label": "대화·요약"
+                  "label": "대화, 요약"
                 },
                 {
                   "value": "reason",
@@ -627,17 +627,17 @@
         },
         {
           "type": "note",
-          "text": "**라우팅(cascade)이 큰 레버**다 — 대부분의 요청은 쉬우므로 값싼 모델로 먼저 시도하고, 결과가 미덥지 않을 때만 큰 모델로 올린다. 트래픽의 8할이 쉬운 서비스라면 비용이 몇 배 준다."
+          "text": "**라우팅(cascade)이 큰 레버**다. 대부분의 요청은 쉬우므로 값싼 모델로 먼저 시도하고, 결과가 미덥지 않을 때만 큰 모델로 올린다. 트래픽의 8할이 쉬운 서비스라면 비용이 몇 배 준다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "고를 때 보는 축",
-          "text": "· 품질     — 이 작업을 충분히 해내는 가장 작은 모델은?\n· 지연     — 사용자가 기다리나(대화) 아닌가(배치)\n· 비용     — 호출량 x 토큰 x 단가\n· 문맥창   — 넣어야 할 문서가 큰가\n· 데이터   — 밖으로 나가도 되나 (로컬·전용 배포 필요?)\n· 안정성   — 버전 고정·폐기 일정 (모델도 바뀐다)"
+          "text": ",  품질    . 이 작업을 충분히 해내는 가장 작은 모델은?, 지연    . 사용자가 기다리나(대화) 아닌가(배치), 비용    . 호출량 x 토큰 x 단가, 문맥창  . 넣어야 할 문서가 큰가, 데이터  . 밖으로 나가도 되나 (로컬, 전용 배포 필요?), 안정성  . 버전 고정, 폐기 일정 (모델도 바뀐다)"
         },
         {
           "type": "p",
-          "text": "그리고 **모델을 갈아 끼울 수 있게** 만들어라. 모델은 자주 바뀌고(더 좋고 싼 것이 나온다), 폐기되기도 한다 — 모델 이름을 설정으로 빼고 평가(다음 칸들)를 갖춰 두면 교체가 한 줄이 된다."
+          "text": "그리고 **모델을 갈아 끼울 수 있게** 만들어라. 모델은 자주 바뀌고(더 좋고 싼 것이 나온다), 폐기되기도 한다. 모델 이름을 설정으로 빼고 평가(다음 칸들)를 갖춰 두면 교체가 한 줄이 된다."
         },
         {
           "type": "try",
@@ -646,7 +646,7 @@
       ],
       "quiz": [
         {
-          "q": "분류·추출 작업에 맞는 모델은?",
+          "q": "분류, 추출 작업에 맞는 모델은?",
           "choices": [
             "가장 큰 모델",
             "작고 빠른 모델",
@@ -687,14 +687,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "토큰·문맥·비용의 감각은 **아키텍처 결정**으로 이어진다. LLM 을 붙일 때 던지는 질문이 정해진다."
+          "text": "토큰, 문맥, 비용의 감각은 **아키텍처 결정**으로 이어진다. LLM 을 붙일 때 던지는 질문이 정해진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "결정을 골라 보라 — 무엇을 묻나",
+          "label": "결정을 골라 보라. 무엇을 묻나",
           "height": "340px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{q}}';\n  const t = {\n    context:['무엇을 문맥에 넣나', ['전부 넣기 vs 필요한 것만(RAG)', '넣을수록 비싸고 느리고, 가운데를 놓친다'],\n      '기본을 「필요한 것만」으로 — 다음 칸(RAG)의 이유가 여기 있다.'],\n    cache:  ['반복되는 부분이 있나', ['시스템 프롬프트·문서·예시', '캐싱으로 반복 비용 절감'],\n      '자주 쓰는 긴 컨텍스트는 캐시 · 안정적인 접두사를 앞에 둔다.'],\n    stream: ['사람이 읽나 기계가 처리하나', ['읽으면 스트리밍 · 처리하면 완성 후'],\n      'UX 와 파싱이 여기서 갈린다(4장).'],\n    budget: ['비용 상한이 있나', ['사용자별 예산 · 요청별 max_tokens · 알림'],\n      'LLM 은 요청당 비용이 크다 — 상한 없이 열어 두지 마라.'],\n    fallback:['실패하면', ['타임아웃·과부하·창 초과·안전 거부', '재시도 · 대체 모델 · 사용자 안내'],\n      'LLM 호출은 자주 실패한다 — 없으면 서비스가 함께 멈춘다.'],\n  }[c];\n  render('LLM 을 붙일 때',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => '  · ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '토큰 감각이 설계 질문으로 — 문맥·캐시·스트리밍·예산·폴백.');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{q}}';\n  const t = {\n    context:['무엇을 문맥에 넣나', ['전부 넣기 vs 필요한 것만(RAG)', '넣을수록 비싸고 느리고, 가운데를 놓친다'],\n      '기본을 필요한 것만으로. 다음 칸(RAG)의 이유가 여기 있다.'],\n    cache:  ['반복되는 부분이 있나', ['시스템 프롬프트, 문서, 예시', '캐싱으로 반복 비용 절감'],\n      '자주 쓰는 긴 컨텍스트는 캐시, 안정적인 접두사를 앞에 둔다.'],\n    stream: ['사람이 읽나 기계가 처리하나', ['읽으면 스트리밍, 처리하면 완성 후'],\n      'UX 와 파싱이 여기서 갈린다(4장).'],\n    budget: ['비용 상한이 있나', ['사용자별 예산, 요청별 max_tokens, 알림'],\n      'LLM 은 요청당 비용이 크다. 상한 없이 열어 두지 마라.'],\n    fallback:['실패하면', ['타임아웃, 과부하, 창 초과, 안전 거부', '재시도, 대체 모델, 사용자 안내'],\n      'LLM 호출은 자주 실패한다. 없으면 서비스가 함께 멈춘다.'],\n  }[c];\n  render('LLM 을 붙일 때',\n    '  <span class=\"ok\">' + esc(t[0]) + '</span>\\n\\n' +\n    t[1].map((s) => ' , ' + esc(s)).join('\\n') + '\\n\\n  ' + esc(t[2]),\n    '토큰 감각이 설계 질문으로. 문맥, 캐시, 스트리밍, 예산, 폴백.');\n</script>",
           "controls": [
             {
               "id": "q",
@@ -728,21 +728,21 @@
         },
         {
           "type": "note",
-          "text": "**LLM 호출은 자주 실패한다** — 과부하(429)·타임아웃·창 초과·안전 거부. 이것을 예외로 다루지 말고 **정상 경로의 일부**로 설계하라: 재시도(백오프), 대체 모델, 그리고 사용자에게 보여 줄 대비책. 없으면 LLM 이 흔들릴 때 서비스가 함께 멈춘다."
+          "text": "**LLM 호출은 자주 실패한다**. 과부하(429), 타임아웃, 창 초과, 안전 거부. 이것을 예외로 다루지 말고 **정상 경로의 일부**로 설계하라: 재시도(백오프), 대체 모델, 그리고 사용자에게 보여 줄 대비책. 없으면 LLM 이 흔들릴 때 서비스가 함께 멈춘다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "붙일 때의 기본 뼈대",
-          "text": "async function ask(input, { maxOutput = 500 } = {}) {\n  const prompt = buildPrompt(input);\n  assertUnderBudget(prompt, maxOutput);      // 창·예산 확인 (6장)\n  try {\n    const r = await withRetry(() => client.create({ ...prompt, max_tokens: maxOutput }));\n    logUsage(r.usage);                        // 비용 추적\n    return r;\n  } catch (e) {\n    if (isOverloaded(e)) return await fallbackModel(prompt);\n    throw e;                                   // 사용자에게 보여 줄 대비책은 상위에서\n  }\n}"
+          "text": "async function ask(input, { maxOutput = 500 } = {}) {\n  const prompt = buildPrompt(input);\n  assertUnderBudget(prompt, maxOutput);      // 창, 예산 확인 (6장)\n  try {\n    const r = await withRetry(() => client.create({ ...prompt, max_tokens: maxOutput }));\n    logUsage(r.usage);                        // 비용 추적\n    return r;\n  } catch (e) {\n    if (isOverloaded(e)) return await fallbackModel(prompt);\n    throw e;                                   // 사용자에게 보여 줄 대비책은 상위에서\n  }\n}"
         },
         {
           "type": "p",
-          "text": "그리고 **LLM 을 서비스의 유일한 답으로 두지 마라.** 캐시된 답·규칙 기반 처리·사람 개입이 함께 있으면, LLM 이 틀리거나 비싸거나 느릴 때 우회로가 생긴다 — LLM 은 강력한 도구지 만능 해결책이 아니다."
+          "text": "그리고 **LLM 을 서비스의 유일한 답으로 두지 마라.** 캐시된 답, 규칙 기반 처리, 사람 개입이 함께 있으면, LLM 이 틀리거나 비싸거나 느릴 때 우회로가 생긴다. LLM 은 강력한 도구지 만능 해결책이 아니다."
         },
         {
           "type": "try",
-          "text": "내 LLM 기능 하나에 「과부하 시 어떻게 되나」를 물어라. 답이 「그냥 실패」면 재시도·폴백을 붙일 자리다."
+          "text": "내 LLM 기능 하나에 과부하 시 어떻게 되나를 물어라. 답이 그냥 실패면 재시도, 폴백을 붙일 자리다."
         }
       ],
       "quiz": [
@@ -755,13 +755,13 @@
             "무작위"
           ],
           "answer": 1,
-          "why": "비용·지연·정확도 모두."
+          "why": "비용, 지연, 정확도 모두."
         },
         {
           "q": "LLM 호출 실패를 다루는 태도는?",
           "choices": [
             "예외로 처리",
-            "정상 경로의 일부로 설계(재시도·폴백)",
+            "정상 경로의 일부로 설계(재시도, 폴백)",
             "무시",
             "재시작"
           ],
@@ -783,33 +783,33 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "토큰은 LLM 의 모든 것(비용·속도·한계)의 단위다. 붙일 때 이 목록을 훑어라."
+          "text": "토큰은 LLM 의 모든 것(비용, 속도, 한계)의 단위다. 붙일 때 이 목록을 훑어라."
         },
         {
           "type": "code",
           "lang": "text",
-          "label": "토큰·비용·문맥 점검표",
-          "text": "이해\n  [ ] 내 언어·데이터의 토큰 밀도를 아나 (한글은 영어보다 많다)   (1장)\n  [ ] 문맥창에 입력·출력이 함께 든다는 것을 아나                 (2장)\n비용\n  [ ] 출력이 입력보다 비싸다는 것을 반영했나 (짧게 답하게)        (3장)\n  [ ] 반복 컨텍스트를 캐싱하나                                    (3·8장)\n  [ ] usage 로 실제 토큰을 기록하나                              (6장)\n출력 통제\n  [ ] max_tokens 를 반드시 거나                                  (5장)\n  [ ] 구조화가 필요한 곳은 스키마를 강제하나                     (5장)\n  [ ] 사람이 읽으면 스트리밍, 기계가 처리하면 완성 후            (4장)\n안전장치\n  [ ] 보내기 전에 토큰을 세나 (창 초과·잘림 방지)                (6장)\n  [ ] 사용자별 예산·레이트 리밋이 있나                           (6장)\n  [ ] 과부하·타임아웃에 재시도·폴백이 있나                       (8장)\n모델\n  [ ] 작업 난이도에 맞춰 모델을 고르나 (항상 최대 X)             (7장)\n  [ ] 모델 이름을 설정으로 빼서 교체 가능한가                    (7장)"
+          "label": "토큰, 비용, 문맥 점검표",
+          "text": "이해\n  [ ] 내 언어, 데이터의 토큰 밀도를 아나 (한글은 영어보다 많다)   (1장)\n  [ ] 문맥창에 입력, 출력이 함께 든다는 것을 아나                 (2장)\n비용\n  [ ] 출력이 입력보다 비싸다는 것을 반영했나 (짧게 답하게)        (3장)\n  [ ] 반복 컨텍스트를 캐싱하나                                    (3, 8장)\n  [ ] usage 로 실제 토큰을 기록하나                              (6장)\n출력 통제\n  [ ] max_tokens 를 반드시 거나                                  (5장)\n  [ ] 구조화가 필요한 곳은 스키마를 강제하나                     (5장)\n  [ ] 사람이 읽으면 스트리밍, 기계가 처리하면 완성 후            (4장)\n안전장치\n  [ ] 보내기 전에 토큰을 세나 (창 초과, 잘림 방지)                (6장)\n  [ ] 사용자별 예산, 레이트 리밋이 있나                           (6장)\n  [ ] 과부하, 타임아웃에 재시도, 폴백이 있나                       (8장)\n모델\n  [ ] 작업 난이도에 맞춰 모델을 고르나 (항상 최대 X)             (7장)\n  [ ] 모델 이름을 설정으로 빼서 교체 가능한가                    (7장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여섯 문항",
+          "label": "스스로 채점. 여섯 문항",
           "height": "290px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화 — 실제 BPE 는 아니지만 「덩어리로 쪼갠다」를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['같은 뜻이면 한글이 영어보다 토큰이 많다', true],\n    ['문맥창에는 출력만 들어간다', false],\n    ['보통 출력 단가가 입력보다 비싸다', true],\n    ['스트리밍은 총 생성 시간을 줄인다', false],\n    ['max_tokens 는 안 걸어도 안전하다', false],\n    ['작업 난이도에 맞춰 모델을 고르면 비용이 준다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로 — 1장(밀도) 2장(창) 3장(비용) 4장(스트리밍) 5장(max) 7장(모델)');\n</script>"
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .toks { display:flex; flex-wrap:wrap; gap:3px; margin:8px 0; }\n  .tok { padding:3px 6px; border-radius:5px; font:12px ui-monospace, monospace; }\n  .bar { height:20px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0; }\n  .bar i { display:block; height:100%; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const COLORS = ['#1e40af', '#166534', '#854d0e', '#6b21a8', '#9f1239', '#155e75'];\n  /** 대략적 토큰화. 실제 BPE 는 아니지만 덩어리로 쪼갠다를 보여 주는 근사. */\n  function toks(s) {\n    return s.match(/\\s+|[a-zA-Z]+|[0-9]+|[가-힣]|[^\\sa-zA-Z0-9가-힣]/g) || [];\n  }\n  const tokHtml = (list) => '<div class=\"toks\">' + list.map((t, i) =>\n    '<span class=\"tok\" style=\"background:' + COLORS[i % COLORS.length] + '\">' +\n    esc(t === ' ' ? '␣' : t) + '</span>').join('') + '</div>';\n  const bar = (segs) => '<div class=\"bar\">' + segs.map(([pct, c]) =>\n    '<i style=\"width:' + pct + '%;background:' + c + '\"></i>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const q = [\n    ['같은 뜻이면 한글이 영어보다 토큰이 많다', true],\n    ['문맥창에는 출력만 들어간다', false],\n    ['보통 출력 단가가 입력보다 비싸다', true],\n    ['스트리밍은 총 생성 시간을 줄인다', false],\n    ['max_tokens 는 안 걸어도 안전하다', false],\n    ['작업 난이도에 맞춰 모델을 고르면 비용이 준다', true],\n  ];\n  render('self-check',\n    q.map(([t, a]) => (a ? '<span class=\"ok\">  O  ' : '<span class=\"no\">  X  ') + esc(t) + '</span>').join('\\n'),\n    '틀린 것이 있으면 그 장으로. 1장(밀도) 2장(창) 3장(비용) 4장(스트리밍) 5장(max) 7장(모델)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 프롬프트 = 사양서다. 여기까지가 「무엇을 얼마나 넣고 받나」였다면, 다음은 **무엇을 어떻게 지시하나**다 — 애매한 부탁이 아니라 명확한 사양으로."
+          "text": "다음 칸은 프롬프트 = 사양서다. 여기까지가 무엇을 얼마나 넣고 받나였다면, 다음은 **무엇을 어떻게 지시하나**다. 애매한 부탁이 아니라 명확한 사양으로."
         },
         {
           "type": "try",
-          "text": "위 목록에서 「안전장치」 세 줄부터 확인하라. `max_tokens`·예산·폴백 중 하나라도 없으면 비용 사고의 문이 열려 있는 것이다."
+          "text": "위 목록에서 안전장치 세 줄부터 확인하라. `max_tokens`, 예산, 폴백 중 하나라도 없으면 비용 사고의 문이 열려 있는 것이다."
         }
       ],
       "quiz": [
@@ -817,7 +817,7 @@
           "q": "토큰이 정하는 것은?",
           "choices": [
             "정확도만",
-            "비용·속도·한계(문맥창)",
+            "비용, 속도, 한계(문맥창)",
             "언어만",
             "모델 크기"
           ],
@@ -827,8 +827,8 @@
         {
           "q": "비용 사고를 막는 최소 세 가지는?",
           "choices": [
-            "큰 모델·캐시·스트리밍",
-            "max_tokens·예산·폴백",
+            "큰 모델, 캐시, 스트리밍",
+            "max_tokens, 예산, 폴백",
             "짧은 프롬프트만",
             "로컬 모델"
           ],

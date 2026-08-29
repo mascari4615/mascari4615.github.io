@@ -10,7 +10,7 @@ function tempMemory() {
   return new JsonlFileMemory(join(mkdtempSync(join(tmpdir(), 'companion-recall-')), 'conversation.jsonl'));
 }
 
-test('옛 대화를 낱말로 찾는다 — 최신 것부터', () => {
+test('옛 대화를 낱말로 찾는다. 최신 것부터', () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '나 고양이 키우고 싶어', at: 1 });
   memory.remember({ role: 'said', channel: 'web', text: '고양이는 손이 많이 가', at: 2 });
@@ -21,7 +21,7 @@ test('옛 대화를 낱말로 찾는다 — 최신 것부터', () => {
   assert.equal(hits[0].at, 2, '최신 것이 먼저');
 });
 
-test('없는 낱말은 빈 손으로 돌아온다 — 지어내지 않는다', () => {
+test('없는 낱말은 빈 손으로 돌아온다. 지어내지 않는다', () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '안녕', at: 1 });
   assert.deepEqual(memory.search('강아지'), []);
@@ -50,7 +50,7 @@ test('찾기 손은 결과를 두뇌에 되돌린다고 표시돼 있다', () =>
   assert.equal(recallHand(() => []).feedsBack, true);
 });
 
-test('찾아낸 것을 보고 다시 답한다 — 찾아놓고 모른 채로 답하지 않는다', async () => {
+test('찾아낸 것을 보고 다시 답한다. 찾아놓고 모른 채로 답하지 않는다', async () => {
   const seen = [];
   const brain = {
     name: 'two-step',
@@ -74,7 +74,7 @@ test('찾아낸 것을 보고 다시 답한다 — 찾아놓고 모른 채로 �
   await companion.start();
   await companion.feed({ channel: 'web', kind: 'text', text: '저번에 그거 뭐였지?', at: Date.now() });
 
-  assert.equal(seen.length, 2, '두 번 생각한다 — 찾기 전과 후');
+  assert.equal(seen.length, 2, '두 번 생각한다. 찾기 전과 후');
   assert.equal(seen[0], null);
   assert.match(spoken[0], /고양이 얘기 했었다/);
 });
@@ -100,7 +100,7 @@ import { recallFrom } from '../dist/index.js';
 
 function tenDaysAgo() { return Date.now() - 10 * 86_400_000; }
 
-test('지난 대화를 자동으로 찾아 붙인다 — 두뇌가 부르지 않아도', () => {
+test('지난 대화를 자동으로 찾아 붙인다. 두뇌가 부르지 않아도', () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '나 매운 거 못 먹어', at: tenDaysAgo() });
   const recall = recallFrom((w, l) => memory.search(w, l));
@@ -109,7 +109,7 @@ test('지난 대화를 자동으로 찾아 붙인다 — 두뇌가 부르지 않
   assert.match(found.join(''), /매운 거 못 먹어/);
 });
 
-test('말끝이 달라도 찾는다 — 「먹는다고」로 「먹어」를 찾아낸다', () => {
+test('말끝이 달라도 찾는다. 먹는다고로 먹어를 찾아낸다', () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '나 매운 거 못 먹어', at: tenDaysAgo() });
   const found = recallFrom((w, l) => memory.search(w, l))({ text: '먹는다고 한 거' }, []);
@@ -133,7 +133,7 @@ test('흔한 말로는 옛 대화를 헤집지 않는다', () => {
   assert.deepEqual(recallFrom((w, l) => memory.search(w, l))({ text: '그거 뭐야' }, []), []);
 });
 
-test('찾을 게 없으면 빈 손으로 돌아온다 — 지어내지 않는다', () => {
+test('찾을 게 없으면 빈 손으로 돌아온다. 지어내지 않는다', () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '고양이 얘기', at: tenDaysAgo() });
   assert.deepEqual(recallFrom((w, l) => memory.search(w, l))({ text: '자동차 어땠지' }, []), []);
@@ -142,7 +142,7 @@ test('찾을 게 없으면 빈 손으로 돌아온다 — 지어내지 않는다
 test('찾은 것은 코어를 지나 두뇌까지 간다', async () => {
   const memory = tempMemory();
   memory.remember({ role: 'sensed', channel: 'web', text: '나 매운 거 못 먹어', at: tenDaysAgo() });
-  // 옛말이 최근 목록 밖으로 밀려나야 「찾아올」 일이 생긴다 — 최근에 있으면 이미 보인다.
+  // 옛말이 최근 목록 밖으로 밀려나야 찾아올 일이 생긴다. 최근에 있으면 이미 보인다.
   for (let i = 0; i < 20; i += 1) {
     memory.remember({ role: 'sensed', channel: 'web', text: `그 뒤 잡담 ${i}`, at: tenDaysAgo() + i });
   }

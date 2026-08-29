@@ -30,27 +30,27 @@
 ## AI 기능
 
 1. [Google AI Studio](https://aistudio.google.com/apikey)에서 API 키 발급
-2. **내 정보 → 설정**에서 **Gemini(AI Studio) 프로필·키** 입력 (여러 프로필·활성 프로필 전환 가능)
-3. **이미지 생성·챗봇** 등에서 Vertex 경로를 쓰려면 같은 설정 화면의 **Vertex AI(API 키·GCP 프로젝트 ID·리전)** 도 채웁니다
+2. **내 정보 → 설정**에서 **Gemini(AI Studio) 프로필, 키** 입력 (여러 프로필, 활성 프로필 전환 가능)
+3. **이미지 생성, 챗봇** 등에서 Vertex 경로를 쓰려면 같은 설정 화면의 **Vertex AI(API 키, GCP 프로젝트 ID, 리전)** 도 채웁니다
 4. 저장 후 AI 도구 사용 가능
 
-> API 키·Vertex 설정은 브라우저 **localStorage**에만 저장돼요.
+> API 키, Vertex 설정은 브라우저 **localStorage**에만 저장돼요.
 
-개발자용으로 모델 ID·REST URL 등을 레포 한곳에서 맞추는 **`@karmo/ai`** 패키지가 있고, 브라우저는 루트 엔트리만 번들에 포함됩니다. **Discord 봇·카카오보내기**는 **`@karmo/ai/node`** 와 `.env`로 **AI Studio**(`GEMINI_API_KEY`) 또는 **Vertex**(`KARMO_AI_SURFACE=vertex` + `VERTEX_*`)를 고를 수 있어요. Toolbox **문서 → KarmoLabAI** 탭을 보세요.
+개발자용으로 모델 ID, REST URL 등을 레포 한곳에서 맞추는 **`@karmo/ai`** 패키지가 있고, 브라우저는 루트 엔트리만 번들에 포함됩니다. **Discord 봇, 카카오보내기**는 **`@karmo/ai/node`** 와 `.env`로 **AI Studio**(`GEMINI_API_KEY`) 또는 **Vertex**(`KARMO_AI_SURFACE=vertex` + `VERTEX_*`)를 고를 수 있어요. Toolbox **문서 → KarmoLabAI** 탭을 보세요.
 
 ## 문서 위젯
 
-**문서** 도구 안에서는 왼쪽에 **세로 목록**으로 문서 제목을 고르고, 오른쪽에 본문이 나와요(탭이 많아서 가로로 두지 않음). 본문 안에서는 **제목(h1–h3)이 둘 이상**이면 세계관 위키와 같은 방식으로 **목차**(오른쪽 고정·좁은 화면에서는 위)와 **제목 옆 # 링크 복사**가 붙어요.
+**문서** 도구 안에서는 왼쪽에 **세로 목록**으로 문서 제목을 고르고, 오른쪽에 본문이 나와요(탭이 많아서 가로로 두지 않음). 본문 안에서는 **제목(h1-h3)이 둘 이상**이면 세계관 위키와 같은 방식으로 **목차**(오른쪽 고정, 좁은 화면에서는 위)와 **제목 옆 # 링크 복사**가 붙어요.
 
-소개·로드맵·가이드·**Discord·욘봇**(`discord-yawnbot.md`) 등은 `apps/karmolab/js/widgets/docs/` 안 Markdown이에요. **discord-bots · README** / **Tauri · README** 탭만 GitHub **raw**로 레포 파일을 불러와요 (`main` push 기준).
+소개, 로드맵, 가이드, **Discord, 욘봇**(`discord-yawnbot.md`) 등은 `apps/karmolab/js/widgets/docs/` 안 Markdown이에요. **discord-bots, README** / **Tauri, README** 탭만 GitHub **raw**로 레포 파일을 불러와요 (`main` push 기준).
 
 | 탭 이름 | 출처 |
 |---------|------|
-| Discord·욘봇 | `discord-yawnbot.md` — 욘봇은 **탭 하나**; 명령·env는 본문의 GitHub README 링크 |
-| discord-bots · README | `apps/discord-bots/README.md` (raw) |
-| Tauri · README | `apps/karmolab-tauri/README.md` (raw) |
+| Discord, 욘봇 | `discord-yawnbot.md`. 욘봇은 **탭 하나**; 명령, env는 본문의 GitHub README 링크 |
+| discord-bots, README | `apps/discord-bots/README.md` (raw) |
+| Tauri, README | `apps/karmolab-tauri/README.md` (raw) |
 
-다른 브랜치·포크를 보려면 개발자 도구 콘솔에서 `window.KARMOLAB_DOCS_RAW_BASE`에 `https://raw.githubusercontent.com/사용자/저장소/브랜치/` 형태(끝에 `/`)를 넣은 뒤 탭을 다시 열면 됩니다.
+다른 브랜치, 포크를 보려면 개발자 도구 콘솔에서 `window.KARMOLAB_DOCS_RAW_BASE`에 `https://raw.githubusercontent.com/사용자/저장소/브랜치/` 형태(끝에 `/`)를 넣은 뒤 탭을 다시 열면 됩니다.
 
 ## 데이터
 

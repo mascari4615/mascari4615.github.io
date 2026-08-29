@@ -10,10 +10,10 @@
   "comparepic.say.07": "保存する画像を作れませんでした",
   "comparepic.say.08": "いま見えているとおりに保存しました",
   "comparepic.say.09": "写真を二枚選んでください。ファイルは端末の外に出ません",
-  "comparepic.sizeDiff": "大きさが違います ({a} / {b}) — 大きいほうに合わせて重ねました",
-  "comparepic.same.line": "機械の判定: {word} — 似ている度 {pct}%（違う所 {bits}/64）。左右反転・回転・大きな切り抜きは捉えられません",
+  "comparepic.sizeDiff": "大きさが違います ({a} / {b}). 大きいほうに合わせて重ねました",
+  "comparepic.same.line": "機械の判定: {word}. 似ている度 {pct}%（違う所 {bits}/64）。左右反転・回転・大きな切り抜きは捉えられません",
   "comparepic.same.same": "同じ写真です",
   "comparepic.same.likely": "ほぼ同じ写真です（保存し直し・サイズ変更の程度）",
-  "comparepic.same.maybe": "似ています — 目で確かめてください",
+  "comparepic.same.maybe": "似ています. 目で確かめてください",
   "comparepic.same.different": "別の写真です"
 }

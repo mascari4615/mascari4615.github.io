@@ -16,5 +16,5 @@
   "lorem.unit.count": "개",
   "lorem.note.latin": "영문 시안용입니다.",
   "lorem.copy.done": "더미 텍스트를 복사했어요",
-  "lorem.status.count": "{n}자 · {note}"
+  "lorem.status.count": "{n}자, {note}"
 }

@@ -1,14 +1,14 @@
 /**
- * git 되돌리기 — 「망했다」에서 명령까지 (TASK-KL-316 / 12)
+ * git 되돌리기. 망했다에서 명령까지 (TASK-KL-316 / 12)
  *
  * git 은 **되돌리는 법이 상황마다 다르다**. 밀었냐 안 밀었냐, 남이 받아 갔냐에 따라
  * `reset` 이 답이기도 하고 그게 남의 저장소를 망가뜨리기도 한다. 그런데 검색하면
- * 그 조건은 빼고 명령만 복사되어 온다 — 사고는 거기서 난다.
+ * 그 조건은 빼고 명령만 복사되어 온다. 사고는 거기서 난다.
  *
- * 그래서 여기서는 **조건을 먼저 묻고**(밀었나 · 남이 받았나 · 담았나) 그에 맞는 차례만 준다.
+ * 그래서 여기서는 **조건을 먼저 묻고**(밀었나, 남이 받았나, 담았나) 그에 맞는 차례만 준다.
  * 각 걸음에는 **되돌릴 수 있나**를 붙인다. 되돌릴 수 없는 걸음은 화면이 붉게 세운다.
  *
- * 말은 여기서 안 짓는다 — id 만 돌려주고 문장은 화면(i18n)이 만든다.
+ * 말은 여기서 안 짓는다. id 만 돌려주고 문장은 화면(i18n)이 만든다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -31,28 +31,28 @@ export const spec: ToolSpec = {
   }
 };
 
-/** 걸음의 위험도 — 화면이 색을 고르는 데 쓴다. */
+/** 걸음의 위험도. 화면이 색을 고르는 데 쓴다. */
 export type Risk = 'safe' | 'rewrite' | 'destructive';
 
 export interface Step {
   cmd: string;
-  /** 왜 이 걸음인지 — i18n 열쇠 (`gitundo.step.<key>`) */
+  /** 왜 이 걸음인지. i18n 열쇠 (`gitundo.step.<key>`) */
   why: string;
   risk: Risk;
   /** 이 걸음 뒤에 되돌릴 길이 있나 */
   undoable: boolean;
-  /** 밀었을 때만 · 안 밀었을 때만 보이는 걸음 */
+  /** 밀었을 때만, 안 밀었을 때만 보이는 걸음 */
   onlyIf?: 'pushed' | 'notPushed';
 }
 
 export interface Scenario {
   id: string;
-  /** 되돌린 뒤 남는 것 — 화면이 「무엇이 남나」로 보여 준다 */
+  /** 되돌린 뒤 남는 것. 화면이 무엇이 남나로 보여 준다 */
   keeps: 'changes' | 'nothing' | 'history';
   steps: Step[];
 }
 
-/* 명령 자체는 어느 말에서나 같다 — 그래서 여기 둔다. 설명만 화면이 만든다. */
+/* 명령 자체는 어느 말에서나 같다. 그래서 여기 둔다. 설명만 화면이 만든다. */
 export const SCENARIOS: Scenario[] = [
   {
     id: 'lastMessage',
@@ -167,11 +167,11 @@ export function stepsFor(id: string, answers: Answers = {}): Step[] {
   const pushed = answers.pushed === true || answers.shared === true;
   const kept = found.steps.filter((s) => (s.onlyIf === 'pushed' ? pushed : s.onlyIf === 'notPushed' ? !pushed : true));
   if (!pushed) return kept;
-  /* 이미 나간 판이면 「역사를 다시 쓰는」 걸음보다 「되돌리는 커밋」이 먼저다 */
+  /* 이미 나간 판이면 역사를 다시 쓰는 걸음보다 되돌리는 커밋이 먼저다 */
   return [...kept].sort((a, b) => Number(b.why === 'preferRevert' || b.why === 'revert') - Number(a.why === 'preferRevert' || a.why === 'revert'));
 }
 
-/** 이 상황에서 가장 위험한 정도 — 화면이 경고를 세울지 고른다. */
+/** 이 상황에서 가장 위험한 정도. 화면이 경고를 세울지 고른다. */
 export function worstRisk(steps: Step[]): Risk {
   if (steps.some((s) => s.risk === 'destructive')) return 'destructive';
   if (steps.some((s) => s.risk === 'rewrite')) return 'rewrite';

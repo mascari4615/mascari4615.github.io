@@ -11,7 +11,7 @@
   "mermaidlite.status.ok": "Drew {nodes} nodes and {edges} links",
   "mermaidlite.status.savedSvg": "Saved as SVG",
   "mermaidlite.status.savedPng": "Saved as PNG",
-  "mermaidlite.status.pngFail": "Could not make a PNG — save the SVG instead",
+  "mermaidlite.status.pngFail": "Could not make a PNG. save the SVG instead",
   "mermaidlite.copy.done": "SVG copied",
-  "mermaidlite.note.subset": "Not all of mermaid — flowcharts (flowchart/graph) and entity diagrams (erDiagram) only. subgraph, class and style are not read yet; lines we could not read are listed under the editor."
+  "mermaidlite.note.subset": "Not all of mermaid. flowcharts (flowchart/graph) and entity diagrams (erDiagram) only. subgraph, class and style are not read yet; lines we could not read are listed under the editor."
 }

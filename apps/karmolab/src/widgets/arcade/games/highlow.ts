@@ -1,8 +1,8 @@
 /**
- * 하이로우 — 다음 장이 위냐 아래냐 (TASK-KL-242)
+ * 하이로우. 다음 장이 위냐 아래냐 (TASK-KL-242)
  *
- * 규칙이 한 줄인 놀이. 그런데 **그만둘 때를 고르는 것**이 진짜 수다 — 이어 맞힐수록 점수가
- * 배로 커지고, 한 번 틀리면 그 판에 쌓은 것이 다 날아간다. 「한 장만 더」가 이 놀이 전부다.
+ * 규칙이 한 줄인 놀이. 그런데 **그만둘 때를 고르는 것**이 진짜 수다. 이어 맞힐수록 점수가
+ * 배로 커지고, 한 번 틀리면 그 판에 쌓은 것이 다 날아간다. 한 장만 더가 이 놀이 전부다.
  *
  * 각자 제 더미로 친다(남과 안 부딪힌다). 세 판씩 하고 합이 큰 쪽이 이긴다.
  * 여럿이 해도 차례를 기다릴 뿐이라 셋넷이 붙어도 지루하지 않다.
@@ -14,7 +14,7 @@ const ROUNDS_PER_SEAT = 3;
 export interface HighLowState {
   /** 지금 보이는 카드 (1~13) */
   card: number;
-  /** 방금 뒤집힌 카드 — 맞았는지 보여 주고 다음으로 넘어간다 */
+  /** 방금 뒤집힌 카드. 맞았는지 보여 주고 다음으로 넘어간다 */
   shown: number;
   /** 이번 판에 쌓은 점수 */
   pot: number;
@@ -23,9 +23,9 @@ export interface HighLowState {
   /** 자리별 남은 판 수 */
   left: number[];
   turn: number;
-  /** 방금 결과 — 0 없음, 1 맞음, -1 틀림 */
+  /** 방금 결과. 0 없음, 1 맞음, -1 틀림 */
   last: number;
-  /** 방금 그 일을 한 자리 (말·소리에 이름을 싣는다) */
+  /** 방금 그 일을 한 자리 (말, 소리에 이름을 싣는다) */
   lastBy?: number;
 }
 
@@ -76,11 +76,11 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
     if (a?.kind !== 'high' && a?.kind !== 'low') return s;
 
     const next = draw(ctx.rng);
-    /* 같은 수는 맞은 것으로 친다 — 안 그러면 「아무것도 아닌 실패」가 생겨 억울하다. */
+    /* 같은 수는 맞은 것으로 친다. 안 그러면 아무것도 아닌 실패가 생겨 억울하다. */
     const ok = next === s.card || (a.kind === 'high' ? next > s.card : next < s.card);
 
     if (ok) {
-      /* 맞힐수록 배로 — 「한 장만 더」가 이 놀이의 심장이다. */
+      /* 맞힐수록 배로. 한 장만 더가 이 놀이의 심장이다. */
       return { ...s, card: next, shown: next, pot: s.pot === 0 ? 1 : s.pot * 2, last: 1, lastBy: seat };
     }
 
@@ -91,7 +91,7 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
 
   outcome(s, ctx): Outcome {
     if (s.left.some((n) => n > 0)) {
-      /* 판이 안 끝나도 방금 일은 나른다 — 이어 맞히는 맛과 다 날리는 순간이 이 놀이의 전부다. */
+      /* 판이 안 끝나도 방금 일은 나른다. 이어 맞히는 맛과 다 날리는 순간이 이 놀이의 전부다. */
       if (s.lastBy === undefined) return { over: false };
       const who = ctx.seats[s.lastBy]?.name ?? '';
       if (s.last === 1) return { over: false, note: { key: 'arcade.highlow.hit', params: { who, n: String(s.pot) }, sound: 'good' } };
@@ -112,7 +112,7 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
 
   bot(s, seat, ctx): BotMove<HighLowAction> | null {
     if (s.turn !== seat || (s.left[seat] ?? 0) <= 0) return null;
-    /* 쌓인 게 커지면 챙긴다 — 사람도 대개 그렇게 한다. */
+    /* 쌓인 게 커지면 챙긴다. 사람도 대개 그렇게 한다. */
     if (s.pot >= 8) return { action: { kind: 'bank' }, delayMs: 700 + ctx.rng() * 500 };
     /* 7 보다 낮으면 위, 높으면 아래. 반반이면 아무거나. */
     const kind = s.card < 7 ? 'high' : s.card > 7 ? 'low' : ctx.rng() < 0.5 ? 'high' : 'low';

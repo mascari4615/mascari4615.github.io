@@ -1,5 +1,5 @@
 /**
- * Life 채널 위젯 — 화면 캡처 (PrintScreen) / 음성 녹음 (Ctrl+Alt+Space) on/off 토글.
+ * Life 채널 위젯. 화면 캡처 (PrintScreen) / 음성 녹음 (Ctrl+Alt+Space) on/off 토글.
  * 기능이 off 상태면 Whisper 모델 (~3.1GB) 이 RAM 에서 해제됨.
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -240,8 +240,8 @@ import { intervalWhileVisible } from '../../lib/tick';
     }
 
     // voice_loading(decoder 비동기 로드) 동안만 1초 폴링, loaded 시 중단.
-    // build() 1회 X — enable 시점 + 초기 복원(이미 로딩 중)에 시작.
-    /** 폴링을 멈추는 함수 (`lib/tick`). **보이는 동안만** 묻는다 — 덮어 둔 탭에서 물어도
+    // build() 1회 X. enable 시점 + 초기 복원(이미 로딩 중)에 시작.
+    /** 폴링을 멈추는 함수 (`lib/tick`). **보이는 동안만** 묻는다. 덮어 둔 탭에서 물어도
      *  볼 사람이 없고, 돌아오는 순간 한 번 바로 물어 화면이 곧바로 맞춰진다. */
     let stopPoll: (() => void) | null = null;
     function endPoll(): void {
@@ -262,7 +262,7 @@ import { intervalWhileVisible } from '../../lib/tick';
       }, 1000);
     }
 
-    // 초기 상태 로드 — 앱 재시작 시 voice 복원으로 이미 loading 중이면 폴링.
+    // 초기 상태 로드. 앱 재시작 시 voice 복원으로 이미 loading 중이면 폴링.
     getFeatureStates()
       .then((s) => {
         screenUpdater?.(s.screen_enabled, false);

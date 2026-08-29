@@ -1,20 +1,20 @@
 /**
- * **궤도 카메라** — 가운데를 두고 돌려 본다 (three 의 OrbitControls 를 안 쓴다).
+ * **궤도 카메라**. 가운데를 두고 돌려 본다 (three 의 OrbitControls 를 안 쓴다).
  *
  * 왜 직접: 벤더에 든 것은 `three.module.min.js` 한 벌뿐이고, 컨트롤을 더 들이면 **한 곳으로
- * 모은다**는 이 꾸러미의 뜻이 흐려진다. 우리가 쓰는 것은 돌기·당기기·밀기 셋뿐이라 셈이 짧다.
+ * 모은다**는 이 꾸러미의 뜻이 흐려진다. 우리가 쓰는 것은 돌기, 당기기, 밀기 셋뿐이라 셈이 짧다.
  *
  * 나뉘어 있는 이유:
  * - `orbitPosition()` = **순수 셈**. 화면도 three 도 필요 없어 headless 로 잰다
- * - `createOrbit()` = 그 셈에 손잡이(관성·한계·입력)를 붙인 것
+ * - `createOrbit()` = 그 셈에 손잡이(관성, 한계, 입력)를 붙인 것
  *
- * 좌표 규약: y 가 위. `pitch` 는 수평면에서 잰 각(라디안) — +면 위에서 내려다본다.
- * 위·아래 꼭짓점에서는 방위가 뒤집혀 손맛이 무너지므로 **한계를 둔다**(기본 ±85°).
+ * 좌표 규약: y 가 위. `pitch` 는 수평면에서 잰 각(라디안). +면 위에서 내려다본다.
+ * 위, 아래 꼭짓점에서는 방위가 뒤집혀 손맛이 무너지므로 **한계를 둔다**(기본 ±85°).
  */
 
 export const HALF_PI = Math.PI / 2;
 
-/** 가운데·거리·방위·높이 → 카메라 자리. 순수 함수 (같은 입력 = 같은 자리). */
+/** 가운데, 거리, 방위, 높이 → 카메라 자리. 순수 함수 (같은 입력 = 같은 자리). */
 export function orbitPosition(target, distance, yaw, pitch) {
   const [tx, ty, tz] = target;
   const cp = Math.cos(pitch);
@@ -33,8 +33,8 @@ export function clamp(v, lo, hi) {
 /**
  * 궤도 상태 + 손잡이.
  *
- * `update(dt)` 를 그리기 바퀴에서 부르면 **관성**이 목표값을 따라간다 — 손을 떼도 조금 더 돈다.
- * 관성을 0 으로 두면 즉시 따라간다(시험·정지 화면용).
+ * `update(dt)` 를 그리기 바퀴에서 부르면 **관성**이 목표값을 따라간다. 손을 떼도 조금 더 돈다.
+ * 관성을 0 으로 두면 즉시 따라간다(시험, 정지 화면용).
  */
 export function createOrbit({
   target = [0, 0, 0],
@@ -66,7 +66,7 @@ export function createOrbit({
       want.distance = clamp(want.distance * Math.exp(delta * zoomSpeed), minDistance, maxDistance);
       return api;
     },
-    /** 가운데를 옮긴다 — 화면 기준(오른쪽·위)으로 민다. */
+    /** 가운데를 옮긴다. 화면 기준(오른쪽, 위)으로 민다. */
     pan(dx, dy) {
       const s = want.distance * 0.0015;
       const right = [Math.cos(want.yaw), 0, -Math.sin(want.yaw)];
@@ -89,7 +89,7 @@ export function createOrbit({
       if (next.target) { want.target = [...next.target]; now.target = [...next.target]; }
       return api;
     },
-    /** 관성 한 걸음. `dt` 는 초 — 프레임이 밀려도 같은 속도로 따라가게. */
+    /** 관성 한 걸음. `dt` 는 초. 프레임이 밀려도 같은 속도로 따라가게. */
     update(dt = 1 / 60) {
       const k = damping <= 0 ? 1 : 1 - Math.exp(-dt / damping);
       now.yaw += (want.yaw - now.yaw) * k;
@@ -110,7 +110,7 @@ export function createOrbit({
       return api;
     },
     /**
-     * 마우스·손가락을 붙인다. **끄는 손을 돌려준다** — 화면이 사라질 때 부르면 리스너가 떨어진다.
+     * 마우스, 손가락을 붙인다. **끄는 손을 돌려준다**. 화면이 사라질 때 부르면 리스너가 떨어진다.
      * 포즈 소스(KarmoPose)도 같은 `rotate/zoom/pan` 을 부르면 되므로 여기 안 들어온다.
      */
     attach(el, { button = 0 } = {}) {

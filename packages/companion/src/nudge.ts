@@ -1,12 +1,12 @@
 import type { Sensation, Sense } from './types';
 
 /**
- * 스스로 말 걸기 — 아무도 안 물었을 때.
+ * 스스로 말 걸기. 아무도 안 물었을 때.
  *
  * 뉴로사마는 묻지 않아도 스스로 말한다. 우리 얘는 화면을 봤을 때만 입을 열었고, 혼잣말은
  * 아예 꺼 두고 있었다. 켜 봐야 시계가 무작정 깨우는 것이라 방해가 되기 쉬웠다.
  *
- * 그래서 시간이 아니라 **이유**로 깨운다. 이유가 없으면 조용히 넘어간다 — 할 말 없는데
+ * 그래서 시간이 아니라 **이유**로 깨운다. 이유가 없으면 조용히 넘어간다. 할 말 없는데
  * 말 거는 건 곁에 있는 게 아니라 성가신 것이다.
  */
 export interface Reason {
@@ -34,7 +34,7 @@ const time = 60 * 60_000;
 /**
  * 지금 말 걸 이유가 있나.
  *
- * 이유는 하나만 고른다 — 여러 개를 한꺼번에 쏟으면 그건 대화가 아니라 알림이다.
+ * 이유는 하나만 고른다. 여러 개를 한꺼번에 쏟으면 그건 대화가 아니라 알림이다.
  * 급한 것부터 본다.
  */
 export function reasonToSpeak(input: NudgeInput): Reason | null {
@@ -52,7 +52,7 @@ export function reasonToSpeak(input: NudgeInput): Reason | null {
   // 하던 일이 바뀌었으면 눈에 밟힌다.
   if (windowTitle !== null && windowTitle !== '' && windowTitle !== lastWindowTitle && alone > 20 * 60_000) {
     return {
-      why: `조수님이 하던 걸 바꿨다 — 지금은 「${windowTitle.slice(0, 60)}」 를 보고 있다. 한마디만.`,
+      why: `조수님이 하던 걸 바꿨다. 지금은 ${windowTitle.slice(0, 60)} 를 보고 있다. 한마디만.`,
       key: `창-${windowTitle.slice(0, 40)}`,
     };
   }
@@ -72,7 +72,7 @@ export function reasonToSpeak(input: NudgeInput): Reason | null {
 
 export interface NudgeSenseOptions {
   channel?: string;
-  /** 얼마나 자주 「이유가 있나」 살펴볼까. */
+  /** 얼마나 자주 이유가 있나 살펴볼까. */
   everyMs?: number;
   /** 지금 이유가 있나. */
   reason: () => Reason | null;
@@ -82,7 +82,7 @@ export interface NudgeSenseOptions {
 /**
  * 이유가 있을 때만 깨우는 감각.
  *
- * 같은 이유로는 다시 깨우지 않는다 — 창을 안 바꾸고 계속 있다고 계속 말 걸면 그건
+ * 같은 이유로는 다시 깨우지 않는다. 창을 안 바꾸고 계속 있다고 계속 말 걸면 그건
  * 곁에 있는 게 아니라 쫓아다니는 것이다.
  */
 export function nudgeSense(options: NudgeSenseOptions): Sense {
@@ -105,7 +105,7 @@ export function nudgeSense(options: NudgeSenseOptions): Sense {
         }
         if (reason === null || alreadySaid.has(reason.key)) return;
         alreadySaid.add(reason.key);
-        // 너무 오래 쌓이면 옛것부터 잊는다 — 하루 종일 켜 두는 물건이다.
+        // 너무 오래 쌓이면 옛것부터 잊는다. 하루 종일 켜 두는 물건이다.
         if (alreadySaid.size > 200) alreadySaid.delete([...alreadySaid][0] as string);
         log(`말 걸 이유가 생겼다: ${reason.key}`);
         emit({ channel, kind: 'nudge', text: reason.why, at: Date.now() });

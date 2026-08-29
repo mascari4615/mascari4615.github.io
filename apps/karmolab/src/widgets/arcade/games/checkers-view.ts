@@ -2,7 +2,7 @@
  * 체커 화면 (TASK-KL-242)
  *
  * 한 수가 두 칸을 가리키므로 **두 번 누른다**: 내 말을 고르고, 갈 곳을 고른다.
- * 고른 뒤 갈 수 있는 곳을 점으로 보여 준다 — 대각선만 간다는 걸 말로 안 적어도 알게 된다.
+ * 고른 뒤 갈 수 있는 곳을 점으로 보여 준다. 대각선만 간다는 걸 말로 안 적어도 알게 된다.
  */
 import type { GameView } from '../views';
 import { pieceMarkup } from '../piece';
@@ -25,7 +25,7 @@ export const checkersView: GameView<CheckersState, CheckersAction> = {
     return (v, mySeat) => {
       const s = v.state;
       const myTurn = s.won === -1 && s.turn === mySeat;
-      /* 연달아 뛰는 중이면 그 말이 이미 골라져 있다 — 사람이 다시 고르게 하면 헷갈린다. */
+      /* 연달아 뛰는 중이면 그 말이 이미 골라져 있다. 사람이 다시 고르게 하면 헷갈린다. */
       if (s.chain >= 0 && myTurn) pick = s.chain;
       if (!myTurn) pick = -1;
 

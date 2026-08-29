@@ -1,10 +1,10 @@
 /**
- * 버전 범위 셈 — `^1.2.3` 이 진짜로 무엇을 받나 (TASK-KL-316 / 13)
+ * 버전 범위 셈. `^1.2.3` 이 진짜로 무엇을 받나 (TASK-KL-316 / 13)
  *
  * `^` 와 `~` 는 **읽는 사람마다 다르게 안다**. 특히 0.x 는 규칙이 다르다(`^0.2.3` 은 0.3.0 을 안 받는다).
- * 그래서 여기서는 범위를 **경계 두 개**로 펴서 보여 준다 — 「이상 · 미만」으로 적히면 다툴 일이 없다.
+ * 그래서 여기서는 범위를 **경계 두 개**로 펴서 보여 준다. 이상, 미만으로 적히면 다툴 일이 없다.
  *
- * 겹치는지도 본다: 두 곳이 같은 꾸러미를 `^1.2.0` 과 `~1.1.0` 으로 잡고 있으면 **겹치는 판이 없다** —
+ * 겹치는지도 본다: 두 곳이 같은 꾸러미를 `^1.2.0` 과 `~1.1.0` 으로 잡고 있으면 **겹치는 판이 없다** . 
  * 설치는 되는데 하나가 두 벌 깔리는 그 상황이다. 여기서 미리 말한다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -48,7 +48,7 @@ export function compare(a: Version, b: Version): number {
   if (a.major !== b.major) return a.major - b.major;
   if (a.minor !== b.minor) return a.minor - b.minor;
   if (a.patch !== b.patch) return a.patch - b.patch;
-  /* 미리보기(-beta)는 정식보다 **낮다** — 이걸 반대로 알면 `^1.0.0` 이 1.0.0-beta 를 받는다고 착각한다. */
+  /* 미리보기(-beta)는 정식보다 **낮다**. 이걸 반대로 알면 `^1.0.0` 이 1.0.0-beta 를 받는다고 착각한다. */
   if (a.pre === undefined && b.pre === undefined) return 0;
   if (a.pre === undefined) return 1;
   if (b.pre === undefined) return -1;
@@ -57,7 +57,7 @@ export function compare(a: Version, b: Version): number {
 
 export const show = (v: Version): string => v.major + '.' + v.minor + '.' + v.patch + (v.pre === undefined ? '' : '-' + v.pre);
 
-/** 한 덩이 범위 = 「이 위 · 이 아래」. 위는 **미만**(exclusive) 이 기본이다. */
+/** 한 덩이 범위 = 이 위, 이 아래. 위는 **미만**(exclusive) 이 기본이다. */
 export interface Bound {
   from?: Version;
   fromInclusive: boolean;
@@ -72,7 +72,7 @@ const bump = (v: Version, part: 'major' | 'minor' | 'patch'): Version =>
       ? { major: v.major, minor: v.minor + 1, patch: 0 }
       : { major: v.major, minor: v.minor, patch: v.patch + 1 };
 
-/** 조각 하나(`^1.2.3` · `>=2` · `1.x`)를 경계로 편다. */
+/** 조각 하나(`^1.2.3`, `>=2`, `1.x`)를 경계로 편다. */
 function oneBound(piece: string): Bound {
   const text = piece.trim();
   if (text === '' || text === '*' || text === 'x' || text === 'latest') return { fromInclusive: true, toInclusive: false };
@@ -80,7 +80,7 @@ function oneBound(piece: string): Bound {
   const caret = /^\^\s*(.+)$/.exec(text);
   if (caret !== null) {
     const v = parse(caret[1]);
-    /* 0.x 는 **다르다** — 0.2.3 은 0.3.0 을 안 받고, 0.0.3 은 0.0.4 도 안 받는다. */
+    /* 0.x 는 **다르다**. 0.2.3 은 0.3.0 을 안 받고, 0.0.3 은 0.0.4 도 안 받는다. */
     const upper = v.major > 0 ? bump(v, 'major') : v.minor > 0 ? bump(v, 'minor') : bump(v, 'patch');
     return { from: v, fromInclusive: true, to: upper, toInclusive: false };
   }
@@ -135,7 +135,7 @@ function andBounds(list: Bound[]): Bound {
   return out;
 }
 
-/** 범위 하나 = 「또는」으로 이어진 덩이들. */
+/** 범위 하나 = 또는으로 이어진 덩이들. */
 export function bounds(range: string): Bound[] {
   return range
     .split('||')
@@ -193,7 +193,7 @@ export function maxSatisfying(versions: string[], range: string): string | undef
   return ok.sort((x, y) => compare(parse(x), parse(y)))[ok.length - 1];
 }
 
-/** 사람이 읽는 「이상 · 미만」 (말은 화면이 붙이고, 여기선 수만 낸다) */
+/** 사람이 읽는 이상, 미만 (말은 화면이 붙이고, 여기선 수만 낸다) */
 export function edges(range: string): Array<{ from?: string; fromInclusive: boolean; to?: string; toInclusive: boolean }> {
   return bounds(range).map((b) => ({
     from: b.from === undefined ? undefined : show(b.from),

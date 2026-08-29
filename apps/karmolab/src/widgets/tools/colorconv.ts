@@ -1,5 +1,5 @@
 /**
- * 색상 변환 · 팔레트 (TASK-KL-088)
+ * 색상 변환, 팔레트 (TASK-KL-088)
  * HEX/RGB/HSL 상호 변환 + 대비비(WCAG) 계산 + 조화 팔레트.
  * 내부 정본은 HSL 하나로 두고 표기만 바꾼다 (표기별 상태를 따로 들면 반올림 왕복에서 색이 흐른다).
  */
@@ -90,7 +90,7 @@ import { escapeHtml as esc } from './shared/text';
     id: 'colorconv',
     title: t('widgets.colorconv.title', undefined, "색상 변환"),
     category: 'tool',
-    desc: t('widgets-desc.colorconv.desc', undefined, "HEX·RGB·HSL·CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다"),
+    desc: t('widgets-desc.colorconv.desc', undefined, "HEX, RGB, HSL, CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.5"/>',
     tabs: [
@@ -140,7 +140,7 @@ import { escapeHtml as esc } from './shared/text';
           const paletteEl = $<HTMLElement>('#ccPalette');
           const shadesEl = $<HTMLElement>('#ccShades');
 
-          // 견본 글자색은 견본 자기 밝기로 정한다 — 흰 글자로 고정하면 노란색 같은
+          // 견본 글자색은 견본 자기 밝기로 정한다. 흰 글자로 고정하면 노란색 같은
           // 밝은 견본에서 이름과 코드가 안 보인다 (테마와 무관하게 안 보였다).
           function swatchInk(hex: string): string {
             const rgb = hexToRgb(hex);
@@ -232,9 +232,9 @@ import { escapeHtml as esc } from './shared/text';
           });
           /* 화면 어디서든 색을 집는다 (EyeDropper).
            *
-           * 색 변환기를 쓰는 이유의 상당수는 「저 화면에 있는 저 색이 뭐냐」다. 지금까지는 화면을
+           * 색 변환기를 쓰는 이유의 상당수는 저 화면에 있는 저 색이 뭐냐다. 지금까지는 화면을
            * 캡처해 그림 도구로 열어 스포이드를 써야 했다. 브라우저가 그 일을 해 준다.
-           * 다만 아직 모든 브라우저에 있는 기능이 아니라, **있는 곳에서만 단추를 보인다** —
+           * 다만 아직 모든 브라우저에 있는 기능이 아니라, **있는 곳에서만 단추를 보인다** . 
            * 눌러도 안 되는 단추를 두지 않는다. */
           const ED = (window as unknown as { EyeDropper?: new () => { open(): Promise<{ sRGBHex: string }> } }).EyeDropper;
           if (ED) {
@@ -247,7 +247,7 @@ import { escapeHtml as esc } from './shared/text';
                 render(r.sRGBHex);
                 Toolbox.trackUse?.('pick');
               } catch (_) {
-                /* 사람이 Esc 로 그만둔 것도 여기로 온다 — 아무 말도 하지 않는다. */
+                /* 사람이 Esc 로 그만둔 것도 여기로 온다. 아무 말도 하지 않는다. */
               }
             };
           }

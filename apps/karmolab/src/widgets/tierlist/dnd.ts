@@ -232,8 +232,8 @@ interface TlDnDOptions {
 
         /* ★ **자판만으로도 카드를 옮긴다** (2026-08-17). 여기는 끌기 말고는 길이 없어서
            마우스가 없으면 순위를 아예 못 매겼다(접근성 감사가 이름으로 짚은 자리).
-           ← → = 같은 줄에서 앞뒤 · ↑ ↓ = 위/아래 줄로 옮기기.
-           끌기와 **같은 onDrop** 을 부른다 — 두 길이 갈라지면 한쪽만 고쳐진다. */
+           ← → = 같은 줄에서 앞뒤, ↑ ↓ = 위/아래 줄로 옮기기.
+           끌기와 **같은 onDrop** 을 부른다. 두 길이 갈라지면 한쪽만 고쳐진다. */
         function lines(): HTMLElement[] {
             return Array.from(root.querySelectorAll<HTMLElement>('.tl-dropzone:not([data-toc-drop]), .tl-pool'));
         }
@@ -263,7 +263,7 @@ interface TlDnDOptions {
                 const end = line[next].querySelectorAll('.tl-item').length;
                 onDrop?.({ itemId, tierId: line[next].dataset.tierId, insertIdx: end });
             }
-            /* 옮기고 나면 화면이 다시 그려진다 — 같은 카드에 초점을 도로 준다(안 그러면 길을 잃는다). */
+            /* 옮기고 나면 화면이 다시 그려진다. 같은 카드에 초점을 도로 준다(안 그러면 길을 잃는다). */
             requestAnimationFrame(() => {
                 root.querySelector<HTMLElement>(`.tl-item[data-item-id="${itemId}"]`)?.focus();
             });

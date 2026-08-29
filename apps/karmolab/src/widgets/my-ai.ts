@@ -1,15 +1,15 @@
 /**
- * 내 AI — 구독 살림 한 화면. TASK-KL-248.
+ * 내 AI. 구독 살림 한 화면. TASK-KL-248.
  *
  * 남은 할당량, 개발 환경, 에이전트 운영, 공급자 연결을 한곳에 둔다. 그래서 화면은
- * 벤더 목록을 스스로 들고 있지 않고, 백엔드가 돌려주는 카드를 그대로 그린다 —
+ * 벤더 목록을 스스로 들고 있지 않고, 백엔드가 돌려주는 카드를 그대로 그린다 . 
  * 새 구독을 붙일 때 고칠 곳이 두 벌로 갈라지지 않게.
  *
  * 계약 하나: **신선도를 숨기지 않는다.** 라이브로 물어본 값과 로컬에 남은
- * 마지막 관측은 칩과 명도로 구분한다. 스냅샷을 라이브처럼 그리면 「20% 남았네」
+ * 마지막 관측은 칩과 명도로 구분한다. 스냅샷을 라이브처럼 그리면 20% 남았네
  * 하고 들어갔다 벽 친다 (실제로 Codex 스냅샷 20% 옆에서 라이브는 96% 였다).
  *
- * 데스크톱 전용 — 토큰과 로컬 로그는 Tauri 백엔드(ai_quota)만 만진다.
+ * 데스크톱 전용. 토큰과 로컬 로그는 Tauri 백엔드(ai_quota)만 만진다.
  */
 import { isDesktop, invoke } from '../tauri-bridge';
 import { t, loadNamespace } from '../lib/i18n';
@@ -38,7 +38,7 @@ import { t, loadNamespace } from '../lib/i18n';
     notes: string[];
   };
 
-  /** 카드 한 장 = 벤더 하나. 목록·순서·색은 전부 백엔드가 정한다. */
+  /** 카드 한 장 = 벤더 하나. 목록, 순서, 색은 전부 백엔드가 정한다. */
   type VendorCard = {
     id: string;
     label: string;
@@ -47,11 +47,11 @@ import { t, loadNamespace } from '../lib/i18n';
     error: string | null;
   };
 
-  /** 라이브 카드만 의미가 있는 주기 — 스냅샷은 다시 읽어도 그대로다. */
+  /** 라이브 카드만 의미가 있는 주기. 스냅샷은 다시 읽어도 그대로다. */
   const AUTO_REFRESH_MS = 60_000;
 
   /**
-   * 같은 수치를 「남음」으로 볼지 「사용」으로 볼지는 사람마다 갈린다 — 한쪽으로
+   * 같은 수치를 남음으로 볼지 사용으로 볼지는 사람마다 갈린다. 한쪽으로
    * 고정하면 나머지 한쪽은 매번 100에서 빼야 한다. 선택은 이 컴퓨터에 남는다.
    */
   type MeterMode = 'left' | 'used';
@@ -112,9 +112,9 @@ import { t, loadNamespace } from '../lib/i18n';
       case 'seven_day':
         return t('my-ai.win.seven_day', undefined, '7일');
       case 'seven_day_opus':
-        return t('my-ai.win.seven_day_opus', undefined, '7일 · Opus');
+        return t('my-ai.win.seven_day_opus', undefined, '7일, Opus');
       case 'seven_day_sonnet':
-        return t('my-ai.win.seven_day_sonnet', undefined, '7일 · Sonnet');
+        return t('my-ai.win.seven_day_sonnet', undefined, '7일, Sonnet');
       case 'one_day':
         return t('my-ai.win.one_day', undefined, '1일');
       case 'primary':
@@ -132,7 +132,7 @@ import { t, loadNamespace } from '../lib/i18n';
   /** 백엔드가 주는 안정 코드 → 사용자가 뭘 해야 하는지. */
   function errorText(code: string): string {
     if (code === 'token-expired')
-      return t('my-ai.err.token_expired', undefined, '로그인이 만료됐다 — 터미널에서 claude 를 한 번 실행하면 갱신된다.');
+      return t('my-ai.err.token_expired', undefined, '로그인이 만료됐다. 터미널에서 claude 를 한 번 실행하면 갱신된다.');
     if (code === 'no-credentials' || code === 'no-oauth-block' || code === 'bad-credentials')
       return t('my-ai.err.no_credentials', undefined, '로그인 정보를 못 찾았다.');
     if (code === 'not-installed')
@@ -151,11 +151,11 @@ import { t, loadNamespace } from '../lib/i18n';
     if (code === 'live-failed')
       return t('my-ai.note.live_failed', undefined, '실시간 조회가 막혀서 로컬에 남은 마지막 기록을 보여준다.');
     if (code === 'no-percent-api')
-      return t('my-ai.note.no_percent_api', undefined, 'x.ai 에 잔량 조회 API 가 없어 퍼센트는 못 뽑는다 — 아래는 로그에 남은 사실.');
+      return t('my-ai.note.no_percent_api', undefined, 'x.ai 에 잔량 조회 API 가 없어 퍼센트는 못 뽑는다. 아래는 로그에 남은 사실.');
     return code;
   }
 
-  /** 과거 시각 → 「3시간 전」. 신선도 칩의 전부다. */
+  /** 과거 시각 → 3시간 전. 신선도 칩의 전부다. */
   function ago(epoch: number): string {
     const diff = Math.max(0, nowSecs() - epoch);
     if (diff < 90) return t('my-ai.time.just_now', undefined, '방금');
@@ -167,7 +167,7 @@ import { t, loadNamespace } from '../lib/i18n';
     return t('my-ai.time.day_ago', { n: days }, `${days}일 전`);
   }
 
-  /** 미래 시각 → 「3시간 12분 뒤」. 이미 지났으면 곧 리셋. */
+  /** 미래 시각 → 3시간 12분 뒤. 이미 지났으면 곧 리셋. */
   function until(epoch: number): string {
     const diff = epoch - nowSecs();
     if (diff <= 0) return t('my-ai.time.resetting', undefined, '리셋 대기');
@@ -184,7 +184,7 @@ import { t, loadNamespace } from '../lib/i18n';
     return t('my-ai.time.in_day', { n: days }, `${days}일 뒤`);
   }
 
-  /** 미래 시각 → 「오늘 14:00」. 상대 표현만 두면 몇 시인지 사람이 암산해야 한다. */
+  /** 미래 시각 → 오늘 14:00. 상대 표현만 두면 몇 시인지 사람이 암산해야 한다. */
   function resetClock(epoch: number): string {
     const at = new Date(epoch * 1000);
     const hm = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
@@ -200,18 +200,18 @@ import { t, loadNamespace } from '../lib/i18n';
     );
   }
 
-  /** 리셋 표기 = 남은 시간 + 실제 시각. 「7일 뒤」만으로는 언제 풀리는지 안 잡힌다. */
+  /** 리셋 표기 = 남은 시간 + 실제 시각. 7일 뒤만으로는 언제 풀리는지 안 잡힌다. */
   function resetHtml(epoch: number): string {
     const full = new Date(epoch * 1000).toLocaleString();
     const text = t(
       'my-ai.time.reset_at',
       { rel: until(epoch), clock: resetClock(epoch) },
-      `${until(epoch)} · ${resetClock(epoch)}`
+      `${until(epoch)}, ${resetClock(epoch)}`
     );
     return `<span class="myai-reset" title="${esc(full)}">${esc(text)}</span>`;
   }
 
-  /** 게이지 색 — 아직 여유 / 슬슬 / 곧 벽. 수치를 색으로 한 번 더 말한다. */
+  /** 게이지 색. 아직 여유 / 슬슬 / 곧 벽. 수치를 색으로 한 번 더 말한다. */
   function gaugeTone(percent: number): string {
     if (percent >= 85) return 'danger';
     if (percent >= 60) return 'warn';
@@ -232,7 +232,7 @@ import { t, loadNamespace } from '../lib/i18n';
     const left = Math.round((100 - used) * 10) / 10;
     const usedText = t('my-ai.t12', { n: used }, `${used}% 사용`);
     const leftText = t('my-ai.t11', { n: left }, `${left}% 남음`);
-    // 색은 언제나 「얼마나 썼나」 기준 — 막대가 남은 쪽을 채워도 위험도의 뜻은 그대로다.
+    // 색은 언제나 얼마나 썼나 기준. 막대가 남은 쪽을 채워도 위험도의 뜻은 그대로다.
     const tone = gaugeTone(used);
     const headline = meterMode === 'used' ? usedText : leftText;
     const footline = meterMode === 'used' ? leftText : usedText;
@@ -304,7 +304,7 @@ import { t, loadNamespace } from '../lib/i18n';
       ? `<p class="myai-error">${esc(errorText(card.error))}</p>`
       : card.quota
         ? cardBodyHtml(card.quota)
-        : `<p class="myai-note">${esc(t('my-ai.t19', undefined, '읽는 중…'))}</p>`;
+        : `<p class="myai-note">${esc(t('my-ai.t19', undefined, '읽는 중...'))}</p>`;
 
     return `
       <section class="myai-card${card.error ? ' myai-card--error' : ''}" style="--myai-accent:${esc(card.accent)}">
@@ -324,7 +324,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
       .myai-lede { margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); flex: 1 1 240px; }
       .myai-actions { display: flex; align-items: center; gap: 8px; }
-      /* 남음 ⟷ 사용 = 같은 수치의 다른 표현. 새로고침 옆에 붙여 「보기」 묶음으로 읽히게. */
+      /* 남음 ⟷ 사용 = 같은 수치의 다른 표현. 새로고침 옆에 붙여 보기 묶음으로 읽히게. */
       .myai-modes { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
       .myai-mode { appearance: none; background: transparent; border: 0; color: var(--text-secondary); font-size: var(--font-size-2xs); padding: 4px 11px; cursor: pointer; }
       .myai-mode + .myai-mode { border-left: 1px solid var(--border); }
@@ -340,7 +340,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-chip--stale { border-style: dashed; cursor: help; }
       .myai-chip--plan { text-transform: uppercase; letter-spacing: 0.04em; }
       .myai-card-body { display: flex; flex-direction: column; gap: 12px; }
-      /* 스냅샷은 라이브와 같은 무게로 보이면 안 된다 — 눈에 먼저 들어오는 건 라이브 쪽. */
+      /* 스냅샷은 라이브와 같은 무게로 보이면 안 된다. 눈에 먼저 들어오는 건 라이브 쪽. */
       .myai-card-body--stale { opacity: 0.82; }
       .myai-gauge { display: flex; flex-direction: column; gap: 5px; }
       .myai-gauge-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: var(--font-size-sm); }
@@ -412,7 +412,7 @@ import { t, loadNamespace } from '../lib/i18n';
       cards.innerHTML = '';
       const note = document.createElement('p');
       note.className = 'myai-note';
-      note.textContent = t('my-ai.t03', undefined, '데스크톱 앱에서만 동작한다 — 토큰과 로그가 이 컴퓨터에만 있다.');
+      note.textContent = t('my-ai.t03', undefined, '데스크톱 앱에서만 동작한다. 토큰과 로그가 이 컴퓨터에만 있다.');
       cards.appendChild(note);
       refreshBtn.disabled = true;
       modeGroup.hidden = true;
@@ -473,7 +473,7 @@ import { t, loadNamespace } from '../lib/i18n';
     paint();
     refresh();
 
-    // 자동 갱신은 **보이는 동안만** 돈다 — 숨은 탭에서 60초마다 깨우면 배터리만
+    // 자동 갱신은 **보이는 동안만** 돈다. 숨은 탭에서 60초마다 깨우면 배터리만
     // 태운다(audit:hidden-tab). 돌아오면 곧바로 한 번 읽고 다시 건다: 숨어 있던
     // 사이에 5시간 창이 리셋됐을 수 있어 낡은 숫자를 그대로 보여주면 안 된다.
     let timer = 0;
@@ -497,7 +497,7 @@ import { t, loadNamespace } from '../lib/i18n';
     document.addEventListener('visibilitychange', onVisibility);
     if (!document.hidden) startTimer();
 
-    // 핫리로드로 위젯이 갈아 끼워질 때 타이머·리스너가 쌓이면 안 된다
+    // 핫리로드로 위젯이 갈아 끼워질 때 타이머, 리스너가 쌓이면 안 된다
     // (blog CLAUDE.md § KarmoLab 화면 작업).
     Toolbox.onDispose?.(() => {
       stopTimer();
@@ -531,7 +531,7 @@ import { t, loadNamespace } from '../lib/i18n';
     `);
     const audit = document.createElement('section');
     audit.className = 'myai-environment-audit';
-    audit.textContent = t('my-ai.environment_loading', undefined, '환경을 검사하는 중…');
+    audit.textContent = t('my-ai.environment_loading', undefined, '환경을 검사하는 중...');
     const controls = document.createElement('section');
     controls.className = 'myai-environment-controls';
     container.append(audit, controls);
@@ -548,7 +548,7 @@ import { t, loadNamespace } from '../lib/i18n';
         const rows = result.features.map((feature) => {
           const cells = vendors.map((vendor) => {
             const found = feature.vendors.find((item) => item.vendor === vendor);
-            if (!found) return '<td>—</td>';
+            if (!found) return '<td>. </td>';
             const evidence = found.evidence.map(esc).join('\n');
             return `<td>
               <span class="myai-env-state myai-env-state--${found.status}">${esc(statusLabel(found.status))}</span>
@@ -583,7 +583,7 @@ import { t, loadNamespace } from '../lib/i18n';
   }
 
   function buildConnections(container: HTMLElement): void {
-    container.textContent = t('my-ai.loading_connections', undefined, '공급자 연결을 읽는 중…');
+    container.textContent = t('my-ai.loading_connections', undefined, '공급자 연결을 읽는 중...');
     void Promise.all([
       Toolbox.ensureScript?.('root/gemini') ?? Promise.resolve(),
       loadNamespace('gemini')
@@ -602,8 +602,8 @@ import { t, loadNamespace } from '../lib/i18n';
           <h3>${esc(t('my-ai.connections_title', undefined, '공유 AI 연결 상태'))}</h3>
           <p class="myai-note">${esc(t('my-ai.connections_desc', undefined, '여러 위젯이 함께 쓰는 API 키는 환경 설정에서 관리한다. 여기서는 연결 여부만 보여준다.'))}</p>
           <div class="myai-connection-grid">
-            <div class="myai-connection-card"><strong>Gemini AI Studio</strong><span class="myai-env-state myai-env-state--${geminiReady ? 'applied' : 'missing'}">${esc(state(geminiReady))}</span><small>${esc(t('my-ai.connection.gemini_consumers', undefined, '채팅·텍스트·이미지 기능에서 공유'))}</small></div>
-            <div class="myai-connection-card"><strong>Google Vertex AI</strong><span class="myai-env-state myai-env-state--${vertexReady ? 'applied' : 'missing'}">${esc(state(vertexReady))}</span><small>${esc(t('my-ai.connection.vertex_consumers', undefined, 'Vertex 텍스트·이미지 기능에서 공유'))}</small></div>
+            <div class="myai-connection-card"><strong>Gemini AI Studio</strong><span class="myai-env-state myai-env-state--${geminiReady ? 'applied' : 'missing'}">${esc(state(geminiReady))}</span><small>${esc(t('my-ai.connection.gemini_consumers', undefined, '채팅, 텍스트, 이미지 기능에서 공유'))}</small></div>
+            <div class="myai-connection-card"><strong>Google Vertex AI</strong><span class="myai-env-state myai-env-state--${vertexReady ? 'applied' : 'missing'}">${esc(state(vertexReady))}</span><small>${esc(t('my-ai.connection.vertex_consumers', undefined, 'Vertex 텍스트, 이미지 기능에서 공유'))}</small></div>
           </div>
           <button type="button" class="btn btn-primary" data-open-api-settings>${esc(t('my-ai.connection.manage', undefined, '환경 설정에서 API 관리'))}</button>
         </section>`;
@@ -621,7 +621,7 @@ import { t, loadNamespace } from '../lib/i18n';
     title: t('widgets.my-ai.title', undefined, '내 AI'),
     category: 'tool',
     desktopOnly: true,
-    desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI의 구독·환경·연결 상태를 한곳에서'),
+    desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI의 구독, 환경, 연결 상태를 한곳에서'),
     layout: 'form',
     icon: '<path d="M4 19a8 8 0 1116 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 19l4.5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
     tabs: [

@@ -2,11 +2,11 @@
  * PDF 쪽 번호가 맞는 장에만 들어가는지 확인한다 (TASK-KL-088)
  *
  * 번호는 글자를 그림으로 그려 넣는다(PDF 기본 글꼴이 한글을 못 담는다). 그래서 글자 추출로는
- * 못 잰다 — 페이지를 그려서 **잉크가 어디 있는지** 본다.
+ * 못 잰다. 페이지를 그려서 **잉크가 어디 있는지** 본다.
  *
  *  ① 건너뛰기 0일 때: 모든 장의 아래쪽에 잉크가 생기는가
  *  ② 표지 1장 건너뛸 때: 첫 장은 깨끗하고 나머지에만 생기는가
- *     — 표지에 「1」이 찍히면 대부분 문서를 다시 만들어야 한다. 여기가 진짜 시험이다.
+ *    . 표지에 1이 찍히면 대부분 문서를 다시 만들어야 한다. 여기가 진짜 시험이다.
  *  ③ 대조: 넣기 전 원본 아래쪽은 비어 있는가 (아니면 아무거나 잉크로 세고 있는 것이다)
  *
  * 사용: node scripts/test-pdfpagenum.mjs
@@ -55,7 +55,7 @@ const out = await page.evaluate(async () => {
     const marks = [];
     for (let n = 1; n <= doc.numPages; n++) {
       const p = await doc.getPage(n);
-      // 크게 그려서 잰다 — 원래 크기로는 11pt 숫자가 점 열 몇 개라 문턱을 못 세운다
+      // 크게 그려서 잰다. 원래 크기로는 11pt 숫자가 점 열 몇 개라 문턱을 못 세운다
       const vp = p.getViewport({ scale: 3 });
       const cv = document.createElement('canvas');
       cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
@@ -116,8 +116,8 @@ const out = await page.evaluate(async () => {
   return {
     ok: cleanBefore && allMarked && coverClean,
     why:
-      `넣기 전 아래쪽 ${before.join(',')} (모두 0이어야) ${cleanBefore ? '✓' : '✗'} · ` +
-      `전부 넣기 ${all.join(',')} ${allMarked ? '✓' : '✗'} · ` +
+      `넣기 전 아래쪽 ${before.join(',')} (모두 0이어야) ${cleanBefore ? '✓' : '✗'}, ` +
+      `전부 넣기 ${all.join(',')} ${allMarked ? '✓' : '✗'}, ` +
       `표지 건너뛰기 ${skipped.join(',')} (첫 장 0이어야) ${coverClean ? '✓' : '✗'}`
   };
 });

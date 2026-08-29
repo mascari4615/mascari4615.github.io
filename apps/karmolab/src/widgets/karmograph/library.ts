@@ -1,8 +1,8 @@
 /**
- * library.ts — 맵 여러 장 (TASK-KL-202 격차 H).
+ * library.ts. 맵 여러 장 (TASK-KL-202 격차 H).
  *
  * 원래 KarmoGraph 은 localStorage 키 하나(`karmograph.graph`)에 그림 한 장만 들고 있었다.
- * 그런데 이 도구의 쓰임새는 「최애 관계도」·「내 세계관」·「이번 덱 전개」처럼 **여러 장**이다 —
+ * 그런데 이 도구의 쓰임새는 최애 관계도, 내 세계관, 이번 덱 전개처럼 **여러 장**이다 . 
  * 한 장뿐이면 새 그림을 그리려면 전에 그린 걸 지워야 한다.
  *
  * 구조:
@@ -49,7 +49,7 @@ function readIndex(): LibraryIndex | null {
   }
 }
 
-/** 지운 판의 id — 「내 목록에 없다」와 「지웠다」를 가르는 유일한 표시. */
+/** 지운 판의 id. 내 목록에 없다와 지웠다를 가르는 유일한 표시. */
 const GONE_KEY = 'karmograph.gone';
 
 function goneIds(): Set<string> {
@@ -61,21 +61,21 @@ function goneIds(): Set<string> {
   }
 }
 
-/** 지웠다고 적어 둔다 — 다른 탭의 목록이 그 판을 되살리지 못하게. */
+/** 지웠다고 적어 둔다. 다른 탭의 목록이 그 판을 되살리지 못하게. */
 function markGone(id: string): void {
   try {
     const all = [...goneIds(), id].slice(-50);   // 오래된 것부터 흘려보낸다(무한히 쌓을 값이 아니다)
     localStorage.setItem(GONE_KEY, JSON.stringify(all));
-  } catch { /* 칸이 좁으면 포기 — 그때는 목록이 조금 되살아날 뿐이다 */ }
+  } catch { /* 칸이 좁으면 포기. 그때는 목록이 조금 되살아날 뿐이다 */ }
 }
 
 /**
- * 목록을 쓴다 — **남이 만든 판을 지우지 않고**.
+ * 목록을 쓴다. **남이 만든 판을 지우지 않고**.
  *
  * 탭마다 제 기억 속 목록을 통째로 쓰므로, 뒤에 쓴 탭이 앞 탭이 만든 판을 목록에서 **지웠다**
- * (자료는 남고 미아가 된다 — 사람에게는 판이 통째로 사라진 것으로 보인다. 실측 2026-08-14).
- * 그래서 쓰기 직전에 저장소를 다시 읽어, 내가 모르는 판은 **뒤에 붙여 살린다**. 「내가 지운 것」과
- * 「남이 만든 것」은 지운 표시(`karmograph.gone`)로 가른다.
+ * (자료는 남고 미아가 된다. 사람에게는 판이 통째로 사라진 것으로 보인다. 실측 2026-08-14).
+ * 그래서 쓰기 직전에 저장소를 다시 읽어, 내가 모르는 판은 **뒤에 붙여 살린다**. 내가 지운 것과
+ * 남이 만든 것은 지운 표시(`karmograph.gone`)로 가른다.
  */
 function writeIndex(index: LibraryIndex): void {
   try {
@@ -106,7 +106,7 @@ function newId(taken: Set<string>): string {
 
 /**
  * 목록을 얻는다. 없으면 만들고, 옛 단일 키가 있으면 그걸 첫 장으로 옮긴다.
- * 어떤 경우에도 **맵이 최소 한 장 있는 상태**로 돌려준다 — 「빈 목록」 분기를 위쪽에서 없애려고.
+ * 어떤 경우에도 **맵이 최소 한 장 있는 상태**로 돌려준다. 빈 목록 분기를 위쪽에서 없애려고.
  */
 export function loadLibrary(): LibraryIndex {
   const existing = readIndex();
@@ -118,7 +118,7 @@ export function loadLibrary(): LibraryIndex {
   if (legacy) {
     try {
       localStorage.setItem(mapKey(id), legacy);
-      localStorage.removeItem(LEGACY_KEY);   // 마이그레이션은 자기소멸 — 두 곳에 남기지 않는다
+      localStorage.removeItem(LEGACY_KEY);   // 마이그레이션은 자기소멸. 두 곳에 남기지 않는다
     } catch (e) {
       console.error(t('karmograph.legacy.msg'), e);
     }
@@ -168,8 +168,8 @@ export function addMap(index: LibraryIndex, name: string, specJson?: string): { 
 }
 
 /**
- * 맵을 지운다. 마지막 한 장은 지우지 않고 **비운다** — 목록이 0장이 되는 상태를 만들지 않으려고
- * (0장이면 「어느 맵을 열지」가 다시 특수 케이스가 된다).
+ * 맵을 지운다. 마지막 한 장은 지우지 않고 **비운다**. 목록이 0장이 되는 상태를 만들지 않으려고
+ * (0장이면 어느 맵을 열지가 다시 특수 케이스가 된다).
  */
 export function removeMap(index: LibraryIndex, id: string): LibraryIndex {
   markGone(id);   // 지웠다는 표시가 없으면, 다른 탭의 목록이 이 판을 도로 살린다

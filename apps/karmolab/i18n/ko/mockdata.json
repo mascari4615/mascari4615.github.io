@@ -12,9 +12,9 @@
   "mockdata.btn.run": "만들기",
   "mockdata.btn.shuffle": "다른 걸로 한 판 더",
   "mockdata.btn.copy": "복사",
-  "mockdata.hint.types": "쓸 수 있는 종류: name · email · phone · address · company · job · id · uuid · int(20,40) · float(0,1) · bool · date(2024-01-01,2026-12-31) · enum(가|나|다) · lorem(6) · url",
+  "mockdata.hint.types": "쓸 수 있는 종류: name, email, phone, address, company, job, id, uuid, int(20,40), float(0,1), bool, date(2024-01-01,2026-12-31), enum(가|나|다), lorem(6), url",
   "mockdata.status.idle": "칸을 적으면 바로 만듭니다",
   "mockdata.status.empty": "칸을 한 줄이라도 적어 주세요",
-  "mockdata.status.ok": "{n}줄 · {cols}칸 (씨앗 {seed})",
+  "mockdata.status.ok": "{n}줄, {cols}칸 (씨앗 {seed})",
   "mockdata.copy.done": "복사했습니다"
 }

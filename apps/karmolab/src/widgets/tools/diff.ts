@@ -1,8 +1,8 @@
 /**
- * 견주기 — 두 글의 다른 데를 짚는다 (TASK-KL-316 / 1)
+ * 견주기. 두 글의 다른 데를 짚는다 (TASK-KL-316 / 1)
  *
- * 붙여넣는 재료 껍데기(`devtool`·`text`) 안의 할 일 한 칸이다. 알맹이는 `core/diff`.
- * 줄로 견주기가 기본이고, JSON 은 **열쇠 경로로** 견준다 — 열쇠 하나를 위로 옮겼을 뿐인데
+ * 붙여넣는 재료 껍데기(`devtool`, `text`) 안의 할 일 한 칸이다. 알맹이는 `core/diff`.
+ * 줄로 견주기가 기본이고, JSON 은 **열쇠 경로로** 견준다. 열쇠 하나를 위로 옮겼을 뿐인데
  * 스무 줄이 빨개지는 화면을 안 만들려고.
  */
 import { diffLines, countEdits, toUnified, diffStructure, structureReport, merge3, spec } from '../../core/diff';
@@ -11,7 +11,7 @@ import { markLive } from './shared/say';
 import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace } from '../../lib/i18n';
 
-/** zip 안의 한 칸 — 우리가 쓰는 만큼만 적는다 (JSZip 타입을 통째로 들이지 않는다). */
+/** zip 안의 한 칸. 우리가 쓰는 만큼만 적는다 (JSZip 타입을 통째로 들이지 않는다). */
 interface ZipEntry {
   dir: boolean;
   async(kind: 'string'): Promise<string>;
@@ -30,7 +30,7 @@ interface ZipArchive {
     desc: t(
       'widgets-desc.diff.desc',
       undefined,
-      '두 글·코드의 다른 데를 짚습니다. JSON 은 열쇠 경로로 견주고, 바탕 하나에 고침 둘도 합칩니다'
+      '두 글, 코드의 다른 데를 짚습니다. JSON 은 열쇠 경로로 견주고, 바탕 하나에 고침 둘도 합칩니다'
     ),
     layout: 'wide',
     icon: '<path d="M8 4v11a3 3 0 0 0 3 3h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="8" cy="4" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="18" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 6h4M18 4v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -110,7 +110,7 @@ interface ZipArchive {
     const baseBox = $<HTMLTextAreaElement>('#dfBase');
     const out = $<HTMLElement>('#dfOut');
     const status = $<HTMLElement>('#dfStatus');
-    /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+    /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
     markLive(status);
 
     let lastText = '';
@@ -129,9 +129,9 @@ interface ZipArchive {
     }
 
     /**
-     * 폴더 두 개를 견준다 — 브라우저는 폴더를 못 받으니 **zip 두 개**로 받는다 (TASK-KL-316).
-     * 파일 하나하나를 열어 줄로 견주고, 「몇 줄 늘고 줄었나」만 한 줄로 적는다.
-     * 글이 아닌 파일(그림·바이너리)은 크기로만 같고 다름을 가린다 — 열어 봐야 소용이 없다.
+     * 폴더 두 개를 견준다. 브라우저는 폴더를 못 받으니 **zip 두 개**로 받는다 (TASK-KL-316).
+     * 파일 하나하나를 열어 줄로 견주고, 몇 줄 늘고 줄었나만 한 줄로 적는다.
+     * 글이 아닌 파일(그림, 바이너리)은 크기로만 같고 다름을 가린다. 열어 봐야 소용이 없다.
      */
     async function renderFolder(): Promise<void> {
       const fa = $<HTMLInputElement>('#dfZipA').files?.[0];

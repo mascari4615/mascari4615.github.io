@@ -1,10 +1,10 @@
 /**
  * 사진 자리 지도 (TASK-KL-316 / 31)
  *
- * 사진을 여럿 받아 **찍힌 자리와 때**를 보여 준다. 읽기는 `core/exif`, 묶기·투영은 `core/photomap`.
+ * 사진을 여럿 받아 **찍힌 자리와 때**를 보여 준다. 읽기는 `core/exif`, 묶기, 투영은 `core/photomap`.
  * 파일을 여럿 받고 그림으로 보여 줘야 해서 새 위젯이다(닮은 사진 찾기와 같은 이유).
  *
- * ⚠ **지도 타일을 안 받는다** — 받는 순간 「내 사진이 어디서 찍혔는지」가 남의 서버로 간다.
+ * ⚠ **지도 타일을 안 받는다**. 받는 순간 내 사진이 어디서 찍혔는지가 남의 서버로 간다.
  * 점만 그리고, 진짜 지도는 사람이 누를 때만 새 창으로 나간다.
  */
 import { dateToMs, read } from '../../core/exif';
@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.photomap.desc',
       undefined,
-      '사진에 든 위치·날짜를 읽어 어디서 언제 찍었는지 보여 줍니다. 지도 타일을 받지 않아 위치가 밖으로 안 나갑니다'
+      '사진에 든 위치, 날짜를 읽어 어디서 언제 찍었는지 보여 줍니다. 지도 타일을 받지 않아 위치가 밖으로 안 나갑니다'
     ),
     layout: 'wide',
     icon: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -98,12 +98,12 @@ import { t, loadNamespace } from '../../lib/i18n';
           const r = 5 + Math.round((p.shots.length / biggest) * 12);
           return (
             '<circle cx="' + at.x + '" cy="' + at.y + '" r="' + r + '" fill="rgba(70,140,255,.45)" stroke="rgba(70,140,255,.95)" stroke-width="1.5">' +
-            '<title>' + esc(p.shots.length + ' · ' + p.lat.toFixed(4) + ', ' + p.lon.toFixed(4)) + '</title></circle>' +
+            '<title>' + esc(p.shots.length + ', ' + p.lat.toFixed(4) + ', ' + p.lon.toFixed(4)) + '</title></circle>' +
             (p.shots.length> 1 ? '<text x="' + at.x + '" y="' + (at.y + 4) + '" text-anchor="middle" font-size="11" fill="#111">' + p.shots.length + '</text>' : '')
           );
         })
         .join('');
-      /* 눈금 대신 **얼마나 넓은 판인지** 한 줄로 적는다 — 타일이 없으니 크기 감이 필요하다. */
+      /* 눈금 대신 **얼마나 넓은 판인지** 한 줄로 적는다. 타일이 없으니 크기 감이 필요하다. */
       const spanKm = metersBetween(frame.minLat, frame.minLon, frame.minLat, frame.maxLon) / 1000;
       $<HTMLElement>('#pmDots').innerHTML =
         '<svg viewBox="0 0 ' + width + ' ' + height + '" width="100%" style="max-width:' + width + 'px" font-family="system-ui, sans-serif">' +
@@ -131,7 +131,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           )
           .join('') +
         (byDay.undated.length> 0
-          ? '<div class="tool-list-row"><span class="tool-list-key">—</span><span class="tool-list-val">' + esc(t('photomap.undated', { n: byDay.undated.length })) + '</span></div>'
+          ? '<div class="tool-list-row"><span class="tool-list-key">. </span><span class="tool-list-val">' + esc(t('photomap.undated', { n: byDay.undated.length })) + '</span></div>'
           : '');
 
       status.textContent = t('photomap.status.ok', { n: shots.length, places: grouped.length, without: noPlace });

@@ -1,11 +1,11 @@
-// 화면을 「진짜 크기로」 찍는가.
+// 화면을 진짜 크기로 찍는가.
 //
-// 98회차 실사용에서 화면 파악이 「⠂ F만 띄워져 있네」가 전부였다. 원인을 재 보니
-// 두뇌가 못 읽은 게 아니라 **못 읽을 그림을 줬다** — 찍는 과정이 DPI 를 모르는 채로 돌아
+// 98회차 실사용에서 화면 파악이 ⠂ F만 띄워져 있네가 전부였다. 원인을 재 보니
+// 두뇌가 못 읽은 게 아니라 **못 읽을 그림을 줬다**. 찍는 과정이 DPI 를 모르는 채로 돌아
 // 1920x1080 화면이 1097x617 로 찍히고 있었다(면적의 33%. 175% 배율 기준).
 // 그 크기에서 창 안의 글자는 뭉개진다.
 //
-// 그래서 여기서 재는 것은 「찍히나」가 아니라 **「진짜 화면 폭만큼 찍히나」**다.
+// 그래서 여기서 재는 것은 찍히나가 아니라 **진짜 화면 폭만큼 찍히나**다.
 
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -19,7 +19,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const script = join(here, '..', 'assets', 'capture-screen.ps1');
 const windows = process.platform === 'win32';
 
-/** PNG 머리(IHDR)에서 가로·세로. 라이브러리 없이 읽는다. */
+/** PNG 머리(IHDR)에서 가로, 세로. 라이브러리 없이 읽는다. */
 function pngSize(path) {
   const bytes = readFileSync(path);
   assert.equal(bytes.subarray(1, 4).toString('ascii'), 'PNG', 'PNG 이 아니다');
@@ -59,7 +59,7 @@ test('화면을 진짜 폭으로 찍는다 (DPI 배율에 깎이지 않는다)',
     assert.equal(
       shot.width,
       want,
-      `화면은 ${real.width}px 인데 ${shot.width}px 로 찍혔다 — 글자가 뭉개진다`,
+      `화면은 ${real.width}px 인데 ${shot.width}px 로 찍혔다. 글자가 뭉개진다`,
     );
   } finally {
     rmSync(folder, { recursive: true, force: true });

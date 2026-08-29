@@ -2,7 +2,7 @@
   "name": "daily-guess",
   "private": true,
   "version": "1.0.0",
-  "description": "오늘의 하나 맞히기 — 엔진 하나 + 주제 표 N개 (TASK-KAR-202). 의존성 0, 빌드 도구 0.",
+  "description": "오늘의 하나 맞히기. 엔진 하나 + 주제 표 N개 (TASK-KAR-202). 의존성 0, 빌드 도구 0.",
   "type": "module",
   "scripts": {
     "test": "node --test",

@@ -2,7 +2,7 @@
  * 이미지 → PDF (TASK-KL-088)
  *
  * 스캔한 사진 여러 장을 한 문서로 내야 할 때(제출 서류가 대표적) 필요한 일이다.
- * 각 장의 비율이 제각각이라 **A4 에 그냥 늘려 넣으면 찌그러진다** — 비율을 지킨 채
+ * 각 장의 비율이 제각각이라 **A4 에 그냥 늘려 넣으면 찌그러진다**. 비율을 지킨 채
  * 가운데 맞춰 넣고, 원본 크기를 그대로 쓰고 싶으면 그 선택지도 둔다.
  */
 import { statusLine } from './shared/say';
@@ -88,8 +88,8 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
           let files: File[] = [];
           let lib: PDFLib | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           async function loadLib(): Promise<PDFLib> {
@@ -101,7 +101,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
 
           let thumbUrls: string[] = [];
           function renderPreview(): void {
-            // 앞 판에서 만든 주소를 먼저 거둔다 — 안 거두면 **다시 그릴 때마다** 쌓인다.
+            // 앞 판에서 만든 주소를 먼저 거둔다. 안 거두면 **다시 그릴 때마다** 쌓인다.
             for (const u of thumbUrls) URL.revokeObjectURL(u);
             thumbUrls = files.map((f) => URL.createObjectURL(f));
             preview.innerHTML = files
@@ -150,7 +150,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(t('img2pdf.say.done', { n: files.length }), 'ok');
-              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'img2pdf' });
               Toolbox.trackUse?.('convert');
             } catch (e) {
@@ -168,7 +168,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
 
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('img2pdf', (f: File) => add([f]));
           }

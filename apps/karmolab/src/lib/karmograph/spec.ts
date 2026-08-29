@@ -1,8 +1,8 @@
 /**
- * lib/karmograph/spec.ts — 그래프 데이터 타입 정의 (TASK-KL-087 단위 0).
+ * lib/karmograph/spec.ts. 그래프 데이터 타입 정의 (TASK-KL-087 단위 0).
  *
- * 순수 타입만. 저장소(Tauri / localStorage / 서버)를 **모른다** —
- * 읽기·쓰기는 `adapter.ts` 의 `GraphPersistAdapter` 구현체가 책임진다.
+ * 순수 타입만. 저장소(Tauri / localStorage / 서버)를 **모른다** . 
+ * 읽기, 쓰기는 `adapter.ts` 의 `GraphPersistAdapter` 구현체가 책임진다.
  *
  * 원본 = `widgets/cockpit/graph-spec.ts` (TASK-KL-082). 그 파일은 타입 +
  * Tauri invoke 가 한 몸이라 cockpit 밖에서 재사용이 불가능했다. 본 파일은
@@ -23,9 +23,9 @@ export interface LiveSpec {
 }
 
 /**
- * 노드 얼굴 (TASK-KL-202 격차 B). 관계도에서 「누구인지」는 글자보다 얼굴로 읽힌다 —
+ * 노드 얼굴 (TASK-KL-202 격차 B). 관계도에서 누구인지는 글자보다 얼굴로 읽힌다 . 
  * 이모지 하나, 색 원 하나, 또는 붙여 넣은 사진. 이미지는 data URL 로 스펙 안에 들어간다
- * (서버 전송 0 · JSON 한 덩이로 옮겨짐 — 대신 큰 사진은 저장 용량을 먹는다).
+ * (서버 전송 0, JSON 한 덩이로 옮겨짐. 대신 큰 사진은 저장 용량을 먹는다).
  */
 export type NodeAvatar =
   | { kind: 'emoji'; value: string }
@@ -34,8 +34,8 @@ export type NodeAvatar =
 
 /**
  * 노드 겉모양. rect = 기본 카드, circle = 동그라미, bubble = 말풍선,
- * note = **메모** (테두리 없는 종이쪽지 — 손으로 갈겨 둔 한마디. 레퍼런스의 「書き込み」 자리),
- * photo = **사진 카드** (그림이 카드를 채우고 이름은 아래 띠에 — 팬 관계도가 실제로 생긴 모습).
+ * note = **메모** (테두리 없는 종이쪽지. 손으로 갈겨 둔 한마디. 레퍼런스의 書き込み 자리),
+ * photo = **사진 카드** (그림이 카드를 채우고 이름은 아래 띠에. 팬 관계도가 실제로 생긴 모습).
  */
 export type NodeShape = 'rect' | 'circle' | 'bubble' | 'note' | 'photo';
 
@@ -46,7 +46,7 @@ export interface GraphNode {
   /**
    * 소속 묶음. `group` = 주 소속(옛 필드, cockpit 이 아직 이 이름으로 읽는다),
    * `groups` = **여러 묶음에 동시에 들 때**의 정본 (TASK-KL-202 D-2).
-   * 둘 다 있을 때는 `groups` 가 이긴다 — 캔버스의 `isMember()` 한 곳에서만 판정한다.
+   * 둘 다 있을 때는 `groups` 가 이긴다. 캔버스의 `isMember()` 한 곳에서만 판정한다.
    */
   group: string;
   groups?: string[];
@@ -57,7 +57,7 @@ export interface GraphNode {
   ports: Port[];
   doc?: string;
   /**
-   * 이 자리가 가리키는 **공용 글**(`spec.notes`)의 id. 있으면 `doc` 대신 그쪽이 보인다 —
+   * 이 자리가 가리키는 **공용 글**(`spec.notes`)의 id. 있으면 `doc` 대신 그쪽이 보인다 . 
    * 같은 설정을 여러 인물에게 붙여 두고 한 번만 고치기 위한 것 (TASK-KL-202 노트 1급 객체).
    */
   docRef?: string;
@@ -65,41 +65,41 @@ export interface GraphNode {
   children?: string[];  // 노드 카드 안에 표시할 서브항목 레이블
   shape?: NodeShape;    // 없으면 'rect'
   avatar?: NodeAvatar;
-  note?: string;        // 이름 밑 한 줄 — 「한마디」
-  /** 기울기(도). 메모를 삐딱하게 붙여 두면 「정리된 것」과 「갈겨 둔 것」이 눈으로 갈린다. */
+  note?: string;        // 이름 밑 한 줄. 한마디
+  /** 기울기(도). 메모를 삐딱하게 붙여 두면 정리된 것과 갈겨 둔 것이 눈으로 갈린다. */
   rotate?: number;
   /**
-   * 이 노드가 가리키는 대상(노드 id 또는 선 id) — **메모의 지시선**(leader line).
-   * 관계선(`edges`)이 아니다. 관계는 세계관의 사실이고, 지시선은 「이 메모가 저것에 대한 말」
-   * 이라는 표시일 뿐이라 종류·화살표·라벨이 없다 (TASK-KL-202 E-2).
+   * 이 노드가 가리키는 대상(노드 id 또는 선 id). **메모의 지시선**(leader line).
+   * 관계선(`edges`)이 아니다. 관계는 세계관의 사실이고, 지시선은 이 메모가 저것에 대한 말
+   * 이라는 표시일 뿐이라 종류, 화살표, 라벨이 없다 (TASK-KL-202 E-2).
    */
   attachedTo?: string;
   /**
-   * 이 노드만의 **칸**들 (TASK-KL-202, Tana 슈퍼태그 계보). 「출신: 마계」·「첫 등장: 3화」처럼
-   * 종류마다 적고 싶은 것이 다르다. 스키마를 미리 정의하게 하지 않고 **쓰면서 생기게** 둔다 —
+   * 이 노드만의 **칸**들 (TASK-KL-202, Tana 슈퍼태그 계보). 출신: 마계, 첫 등장: 3화처럼
+   * 종류마다 적고 싶은 것이 다르다. 스키마를 미리 정의하게 하지 않고 **쓰면서 생기게** 둔다 . 
    * 같은 종류의 다른 노드가 쓴 칸 이름이 그대로 후보로 뜬다(이름이 곧 스키마).
    */
   fields?: Record<string, string>;
   /**
-   * 이 카드 **안**에 따로 그린 판(맵 id) — 「파고들기」 (TASK-KL-202, Muse 의 nested board 계보).
-   * 한 판에 다 그리면 곧 못 읽는다: 「마왕성」 카드를 열면 그 안에 성의 사람들이 있는 식으로 층을 나눈다.
+   * 이 카드 **안**에 따로 그린 판(맵 id). 파고들기 (TASK-KL-202, Muse 의 nested board 계보).
+   * 한 판에 다 그리면 곧 못 읽는다: 마왕성 카드를 열면 그 안에 성의 사람들이 있는 식으로 층을 나눈다.
    */
   subMap?: string;
   /**
    * 사람이 모서리를 끌어 **직접 정한 크기**. 켜져 있으면 글자 길이에 맞춘 자동 크기가 손대지 않는다
-   * — 손으로 맞춘 판이 타자 한 번에 도로 튀는 것이 가장 짜증나는 일이다 (TASK-KL-202, tldraw 계보).
+   *. 손으로 맞춘 판이 타자 한 번에 도로 튀는 것이 가장 짜증나는 일이다 (TASK-KL-202, tldraw 계보).
    */
   sized?: boolean;
   /**
    * 꼬리표 (TASK-KL-202 격차 R). 종류(`kind`)는 **하나만** 고를 수 있는 신분이고,
-   * 꼬리표는 **여럿 붙는 성질**이다 — 「영향력 큼」·「나중에 다시 볼 것」처럼.
+   * 꼬리표는 **여럿 붙는 성질**이다. 영향력 큼, 나중에 다시 볼 것처럼.
    * 둘을 한 칸에 몰아넣으면 종류가 금세 수십 개로 불어난다(Kumu 가 같은 이유로 나눠 둔다).
    */
   tags?: string[];
 }
 
 /**
- * 선 모양. `wavy`(물결) 와 `crack`(금 간 선) 은 관계도에서 「애매함」·「깨진 사이」를
+ * 선 모양. `wavy`(물결) 와 `crack`(금 간 선) 은 관계도에서 애매함, 깨진 사이를
  * 점선만으로는 못 나타내서 넣었다 (TASK-KL-202 격차 C, 레퍼런스 三角関係ジェネレーター).
  */
 export type EdgeStyle = 'solid' | 'dashed' | 'dotted' | 'wavy' | 'crack';
@@ -110,7 +110,7 @@ export interface GraphEdge {
   to: string;
   kind: string;
   label?: string;
-  /** 이 선만 따로 — 없으면 kind 정의를 따른다. */
+  /** 이 선만 따로. 없으면 kind 정의를 따른다. */
   color?: string;
   width?: number;
   style?: EdgeStyle;
@@ -121,21 +121,21 @@ export interface GraphEdge {
   /** 이름표 자리. 0 = 출발점, 0.5 = 가운데(기본), 1 = 도착점. */
   labelPos?: number;
   /**
-   * 이 관계에 대한 긴 설명 (TASK-KL-202 격차 Z). 「언제부터 라이벌인가」 같은 것은
-   * 어느 한쪽 인물의 설명이 아니라 **그 선의 이야기**다 — 노드에만 적을 곳을 두면 갈 데가 없다.
+   * 이 관계에 대한 긴 설명 (TASK-KL-202 격차 Z). 언제부터 라이벌인가 같은 것은
+   * 어느 한쪽 인물의 설명이 아니라 **그 선의 이야기**다. 노드에만 적을 곳을 두면 갈 데가 없다.
    */
   doc?: string;
-  /** 공용 글 참조 — 노드와 같은 규칙(있으면 `doc` 대신 이쪽). */
+  /** 공용 글 참조. 노드와 같은 규칙(있으면 `doc` 대신 이쪽). */
   docRef?: string;
   /**
-   * 관계는 **양쪽이 다르게 본다** (TASK-KL-202, Campfire 계보). 「욘은 링을 동생처럼 여기고,
-   * 링은 욘을 원망한다」 — 이걸 한 칸에 몰아 적으면 어느 쪽 마음인지 흐려진다.
+   * 관계는 **양쪽이 다르게 본다** (TASK-KL-202, Campfire 계보). 욘은 링을 동생처럼 여기고,
+   * 링은 욘을 원망한다. 이걸 한 칸에 몰아 적으면 어느 쪽 마음인지 흐려진다.
    * `viewFrom` = 출발 쪽이 보는 이 관계, `viewTo` = 도착 쪽이 보는 이 관계.
    */
   viewFrom?: string;
   viewTo?: string;
   /**
-   * **시점마다 다른 얼굴** (TASK-KL-271 X2). 「1부에서는 소꿉친구, 2부에서는 라이벌」 —
+   * **시점마다 다른 얼굴** (TASK-KL-271 X2). 1부에서는 소꿉친구, 2부에서는 라이벌 . 
    * 적어 둔 것이 없는 시점은 원본을 따른다(시점을 안 쓰는 판은 아무것도 안 달라진다).
    * 규칙 정본 = `widgets/karmograph/times.ts`.
    */
@@ -143,7 +143,7 @@ export interface GraphEdge {
   tags?: string[];
 }
 
-/** 저장된 보기 한 개 — 자세한 규칙은 `widgets/karmograph/views.ts`. */
+/** 저장된 보기 한 개. 자세한 규칙은 `widgets/karmograph/views.ts`. */
 export interface SavedGraphView {
   id: string;
   name: string;
@@ -164,16 +164,16 @@ export interface GroupDef {
   label: string;
   color: string;
   bbox: { x: number; y: number; w: number; h: number };
-  /** 상자를 안 그린다. 소속은 그대로 — 「지금은 이 묶음 말고 저 묶음만 보고 싶다」 (TASK-KL-202 D-3). */
+  /** 상자를 안 그린다. 소속은 그대로. 지금은 이 묶음 말고 저 묶음만 보고 싶다 (TASK-KL-202 D-3). */
   hidden?: boolean;
   /**
    * 테두리 모양. 'box' = 네모(예전 그대로), 'hull' = **멤버를 감싸는 윤곽** (TASK-KL-202 D-4).
-   * 겹치는 묶음을 네모로 그리면 서로 남의 빈 자리를 크게 물어 「누가 누구에 속하는지」가 흐려진다.
+   * 겹치는 묶음을 네모로 그리면 서로 남의 빈 자리를 크게 물어 누가 누구에 속하는지가 흐려진다.
    * Bubble Sets 계열이 말하는 문제이고, 볼록 껍질은 그 중 가장 싼 해법이다.
    */
   shape?: 'box' | 'hull';
   /**
-   * 잠금 — 끌어도 안 움직인다 (TASK-KL-202 D-6). 「배경처럼 깔아 둔 묶음」을 실수로
+   * 잠금. 끌어도 안 움직인다 (TASK-KL-202 D-6). 배경처럼 깔아 둔 묶음을 실수로
    * 통째 옮기는 사고를 막는다. 안에 든 노드는 따로 움직일 수 있다(자리만 잠근다).
    */
   locked?: boolean;
@@ -188,7 +188,7 @@ export interface EphemeralAnchor {
   /**
    * 소속 묶음. `group` = 주 소속(옛 필드, cockpit 이 아직 이 이름으로 읽는다),
    * `groups` = **여러 묶음에 동시에 들 때**의 정본 (TASK-KL-202 D-2).
-   * 둘 다 있을 때는 `groups` 가 이긴다 — 캔버스의 `isMember()` 한 곳에서만 판정한다.
+   * 둘 다 있을 때는 `groups` 가 이긴다. 캔버스의 `isMember()` 한 곳에서만 판정한다.
    */
   group: string;
   groups?: string[];
@@ -207,7 +207,7 @@ export interface EphemeralAnchor {
   highlight?: string;
 }
 
-/** save 시 보낼 좌표 패치 — kind 로 어느 컬렉션 patch 할지 분기. */
+/** save 시 보낼 좌표 패치. kind 로 어느 컬렉션 patch 할지 분기. */
 export interface CoordUpdate {
   id: string;
   x: number;
@@ -220,7 +220,7 @@ export interface EdgeKindDef {
   style: EdgeStyle;
   /** 도착 쪽 화살표. */
   arrow: boolean;
-  /** 출발 쪽에도 화살표 — 둘 다 켜면 ↔ (「서로 좋아함」·「라이벌」처럼 오가는 관계). */
+  /** 출발 쪽에도 화살표. 둘 다 켜면 ↔ (서로 좋아함, 라이벌처럼 오가는 관계). */
   arrowStart?: boolean;
   /** 선 굵기(px). 없으면 1.5. */
   width?: number;
@@ -229,7 +229,7 @@ export interface EdgeKindDef {
 
 /**
  * 발표 한 장 (TASK-KL-202 M-2). 관계도를 남에게 *설명*할 때는 전체를 한 번에 펼치면
- * 아무도 못 읽는다 — 볼 것을 몇 장으로 나눠 차례로 연다 (Kumu 의 presentation 슬라이드).
+ * 아무도 못 읽는다. 볼 것을 몇 장으로 나눠 차례로 연다 (Kumu 의 presentation 슬라이드).
  */
 export interface StoryStep {
   id: string;
@@ -240,7 +240,7 @@ export interface StoryStep {
   note?: string;
   /**
    * 장면을 **틀**로 잡은 경우의 world 사각형 (TASK-KL-202, Miro 프레임 계보).
-   * 있으면 `nodeIds` 대신 이 틀 안에 든 노드가 그 장의 주인공이 된다 — 나중에 그 자리에
+   * 있으면 `nodeIds` 대신 이 틀 안에 든 노드가 그 장의 주인공이 된다. 나중에 그 자리에
    * 새로 놓은 인물도 저절로 장에 낀다(노드 목록으로 굳히면 새 인물이 영영 안 낀다).
    */
   rect?: { x: number; y: number; w: number; h: number };
@@ -260,14 +260,14 @@ export interface GraphNote {
 }
 
 /**
- * 코멘트 — **설명과는 다른 글** (TASK-KL-202, Milanote 계보).
+ * 코멘트. **설명과는 다른 글** (TASK-KL-202, Milanote 계보).
  *
- * 설명(`doc`)은 「그것이 무엇인가」이고, 코멘트는 「보다가 든 생각」이다. 한 칸에 몰아 적으면
- * 설명이 잡담으로 더러워지거나, 잡담이 설명인 척한다. 그래서 **여러 개 · 시간순**으로 따로 쌓는다.
+ * 설명(`doc`)은 그것이 무엇인가이고, 코멘트는 보다가 든 생각이다. 한 칸에 몰아 적으면
+ * 설명이 잡담으로 더러워지거나, 잡담이 설명인 척한다. 그래서 **여러 개, 시간순**으로 따로 쌓는다.
  */
 export interface GraphComment {
   id: string;
-  /** 붙은 자리 — 노드 id 또는 선 id. */
+  /** 붙은 자리. 노드 id 또는 선 id. */
   on: string;
   text: string;
   /** 적은 시각(ms). 시간순으로 보여 주는 유일한 근거. */
@@ -275,19 +275,19 @@ export interface GraphComment {
 }
 
 /**
- * 꾸미기 규칙 — 「이런 노드는 이렇게 보여라」 (TASK-KL-202, Kumu decorations 계보).
+ * 꾸미기 규칙. 이런 노드는 이렇게 보여라 (TASK-KL-202, Kumu decorations 계보).
  *
- * 체크박스 세 개(연결수로 크게·꼬리표 색·칸 색)로는 곧 벽에 부딪힌다: 사람이 원하는 것은
- * 「**소속이 마왕성이면 빨갛게, 그리고 크게**」처럼 *조건 + 모양*이다. 조건이 겹치면 **나중 규칙이 이긴다**
+ * 체크박스 세 개(연결수로 크게, 꼬리표 색, 칸 색)로는 곧 벽에 부딪힌다: 사람이 원하는 것은
+ * **소속이 마왕성이면 빨갛게, 그리고 크게**처럼 *조건 + 모양*이다. 조건이 겹치면 **나중 규칙이 이긴다**
  * (규칙을 위에서 아래로 읽는 것이 사람에게 가장 익숙하다).
  */
 export interface DecorRule {
   id: string;
-  /** 무엇을 보고 판단하나 — 꼬리표 / 칸 / 종류. */
+  /** 무엇을 보고 판단하나. 꼬리표 / 칸 / 종류. */
   on: 'tag' | 'field' | 'kind';
   /** \`field\` 일 때 칸 이름. 다른 경우는 안 쓴다. */
   key?: string;
-  /** 맞아야 하는 값(비면 「그 칸이 있기만 하면」). */
+  /** 맞아야 하는 값(비면 그 칸이 있기만 하면). */
   value?: string;
   /** 이 규칙이 맞을 때 입힐 색. */
   color?: string;
@@ -296,8 +296,8 @@ export interface DecorRule {
 }
 
 /**
- * 가로 띠 — 「이 줄은 같은 단계」를 배경으로 말해 준다.
- * 기술 트리·로드맵처럼 **위에서 아래로 흐르는 그림**에서 단계를 읽게 하는 장치다.
+ * 가로 띠. 이 줄은 같은 단계를 배경으로 말해 준다.
+ * 기술 트리, 로드맵처럼 **위에서 아래로 흐르는 그림**에서 단계를 읽게 하는 장치다.
  * 묶음(group)과 다르다: 묶음은 어느 노드가 속하는지를 적지만, 띠는 **자리(y 범위)** 만 안다.
  */
 export interface LaneDef {
@@ -322,18 +322,18 @@ export interface GraphSpec {
   _edge_kinds: Record<string, EdgeKindDef>;
   /** 꾸미기 규칙들(위에서 아래로, 나중 규칙이 이김). */
   decorRules?: DecorRule[];
-  /** 노드·선에 달린 코멘트들(시간순). 설명과 달리 **여러 개**다. */
+  /** 노드, 선에 달린 코멘트들(시간순). 설명과 달리 **여러 개**다. */
   comments?: GraphComment[];
   /** 여러 자리가 나눠 쓰는 글들. 없으면 공용 글을 아직 안 만든 맵. */
   notes?: GraphNote[];
   /**
-   * 이름 붙여 저장한 **보기**들 (TASK-KL-271 O2). 한 판은 여러 얼굴을 가진다 —
-   * 「1부 시점」 「적대 관계만」. 없으면 아직 하나도 저장 안 한 판.
+   * 이름 붙여 저장한 **보기**들 (TASK-KL-271 O2). 한 판은 여러 얼굴을 가진다 . 
+   * 1부 시점 적대 관계만. 없으면 아직 하나도 저장 안 한 판.
    */
   views?: SavedGraphView[];
   /** 이 판의 **시점**들 (TASK-KL-271 X2). 순서가 곧 시간 순. 없으면 시점을 안 쓰는 판. */
   times?: { id: string; name: string }[];
-  /** 발표 순서. 없으면 발표 모드 버튼이 「첫 장 담기」로 시작한다. */
+  /** 발표 순서. 없으면 발표 모드 버튼이 첫 장 담기로 시작한다. */
   story?: StoryStep[];
 }
 
@@ -344,10 +344,10 @@ export interface NodeCoord {
   kind?: 'node' | 'anchor' | 'group';
 }
 
-/** 캔버스 배경 무늬 (TASK-KL-202 격차 I). 점이 기본 — 축소했을 때 눈에 덜 걸린다. */
+/** 캔버스 배경 무늬 (TASK-KL-202 격차 I). 점이 기본. 축소했을 때 눈에 덜 걸린다. */
 export type BackgroundKind = 'dots' | 'grid' | 'cross' | 'none';
 
-/** 빈 스펙 — 새 캔버스 시작점. */
+/** 빈 스펙. 새 캔버스 시작점. */
 export function emptyGraphSpec(): GraphSpec {
   return {
     version: 1,

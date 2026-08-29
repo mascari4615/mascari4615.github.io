@@ -1,8 +1,8 @@
 /**
- * 시간 더하기·빼기 (TASK-KL-088)
+ * 시간 더하기, 빼기 (TASK-KL-088)
  *
- * 「9시 40분에 시작해 1시간 25분 걸리면 몇 시?」 는 60진법이라 손으로 하면 자주 틀린다.
- * 근무시간 합계(7:45 + 8:20 + …)도 마찬가지 — 계산기에 넣으면 7.45 로 읽혀 엉뚱한 값이 나온다.
+ * 9시 40분에 시작해 1시간 25분 걸리면 몇 시? 는 60진법이라 손으로 하면 자주 틀린다.
+ * 근무시간 합계(7:45 + 8:20 + ...)도 마찬가지. 계산기에 넣으면 7.45 로 읽혀 엉뚱한 값이 나온다.
  * 시각 더하기와 시간 합계를 나눠 두 가지 실수 모두 막는다.
  */
 import { clock, dayShift as shiftOf, spec, sumTimes, toMinutes } from '../../core/timecalc';
@@ -13,7 +13,7 @@ import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
-  /* 「1시간 25분」의 단위는 **Intl 이 그 언어로 적어 준다** — 시간/분을 언어마다 적을 필요가 없다.
+  /* 1시간 25분의 단위는 **Intl 이 그 언어로 적어 준다**. 시간/분을 언어마다 적을 필요가 없다.
    * core 의 `fmt` 는 MCP 글자 출력이 그대로 쓰므로 안 건드리고 화면에서만 갈아 끼운다. */
   const unit = (n: number, u: 'hour' | 'minute'): string =>
     new Intl.NumberFormat(locale(), { style: 'unit', unit: u, unitDisplay: 'long' }).format(n);
@@ -26,7 +26,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
   Toolbox.register({
     id: 'timecalc',
-    title: t('widgets.timecalc.title', undefined, "시간 더하기·빼기"),
+    title: t('widgets.timecalc.title', undefined, "시간 더하기, 빼기"),
     category: 'tool',
     desc: t('widgets-desc.timecalc.desc', undefined, "시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다"),
     layout: 'form',
@@ -56,7 +56,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 <button type="button" class="tool-chip" data-op="sub">${esc(t('timecalc.mode.sub'))}</button>
               </div>
             </div>
-            <div class="tool-display" id="tcResult">—</div>
+            <div class="tool-display" id="tcResult">. </div>
             <div class="tool-list" id="tcOut"></div>
 
             <div class="field-group" style="margin-top:var(--space-xl);">
@@ -71,14 +71,14 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const start = $<HTMLInputElement>('#tcStart');
           const dur = $<HTMLInputElement>('#tcDur');
           const result = $<HTMLElement>('#tcResult');
-          /* 셈한 값은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297) — 눌러서 복사한다. */
+          /* 셈한 값은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297). 눌러서 복사한다. */
           copyOnClick(result, () => result.textContent || '', t('timecalc.copy', undefined, '결과 복사'));
           const out = $<HTMLElement>('#tcOut');
           const list = $<HTMLTextAreaElement>('#tcList');
           const sum = $<HTMLElement>('#tcSum');
           const status = $<HTMLElement>('#tcStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           let op = 'add';
 
@@ -92,7 +92,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             const base = (sh || 0) * 60 + (sm || 0);
             const delta = toMinutes(dur.value);
             if (delta === null) {
-              result.textContent = '—';
+              result.textContent = '. ';
               out.innerHTML = '';
               status.textContent = t('timecalc.err.dur');
               status.className = 'tool-status error';
@@ -118,7 +118,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           }
 
           function renderSum(): void {
-            /* 읽기·합산은 `src/core/timecalc.ts` 가 한다 — 「7:45 는 7.45 가 아니다」가
+            /* 읽기, 합산은 `src/core/timecalc.ts` 가 한다. 7:45 는 7.45 가 아니다가
                이 도구의 요점이고, 시험도 거기 붙어 있다 (TASK-KL-205). */
             const r = sumTimes(list.value);
             if (r.counted === 0 && r.bad === 0) {
@@ -143,7 +143,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             };
           });
 
-          // 주소로 부른 경우 (`?op=shift&start=09:40&duration=1:25` / `?op=sum&times=…`) (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=shift&start=09:40&duration=1:25` / `?op=sum&times=...`) (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'shift') {
             start.value = String(call.args.start ?? start.value);

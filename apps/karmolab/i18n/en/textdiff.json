@@ -14,6 +14,6 @@
   "textdiff.status.idle": "Put text on both sides and it compares right away.",
   "textdiff.status.none": "Nothing to show.",
   "textdiff.status.same": "The two texts are identical ({n} lines).",
-  "textdiff.status.diff": "{add} added · {del} removed · {same} unchanged",
-  "textdiff.status.truncated": " · compared the first {n} lines only"
+  "textdiff.status.diff": "{add} added, {del} removed, {same} unchanged",
+  "textdiff.status.truncated": ", compared the first {n} lines only"
 }

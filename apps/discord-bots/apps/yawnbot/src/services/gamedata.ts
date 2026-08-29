@@ -1,5 +1,5 @@
 /**
- * GameDataService — C# GameDataService → Node.js 이식
+ * GameDataService. C# GameDataService → Node.js 이식
  * JSON 파일 기반 게임 데이터 관리 (유저 데이터, 확률, 대사, 메시지)
  */
 import fs from 'fs';

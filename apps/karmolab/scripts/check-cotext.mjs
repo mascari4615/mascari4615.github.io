@@ -1,4 +1,4 @@
-// 함께 편집 규칙(RGA) 수렴 시험 — 라이브러리 없이, 진짜 무작위로 흔들어 본다.
+// 함께 편집 규칙(RGA) 수렴 시험. 라이브러리 없이, 진짜 무작위로 흔들어 본다.
 import { build } from 'esbuild';
 import { writeFileSync, mkdtempSync } from 'node:fs';
 import os from 'node:os';
@@ -71,7 +71,7 @@ for (let trial=0; trial<100; trial++) {
 if (!fail) check('3인 수렴 100회', true);
 
 // ⑥ 저장해 둔 글에서 시작해도 두 사람이 갈라지지 않는다 (TASK-KL-191 축2)
-//    예전엔 시작점을 각자 diffTo 로 집어넣어 **사람마다 다른 이름**이 붙었다 —
+//    예전엔 시작점을 각자 diffTo 로 집어넣어 **사람마다 다른 이름**이 붙었다 . 
 //    같은 글을 들고 시작했는데 한 글자만 쳐도 글이 두 벌로 갈라졌다.
 for (let trial=0; trial<200; trial++) {
   const a = new CoText('a'), b = new CoText('b');
@@ -85,7 +85,7 @@ for (let trial=0; trial<200; trial++) {
 }
 if (!fail) check('저장된 글에서 시작 200회', true);
 
-// ⑦ 시작점은 **한 번만** — 이미 글이 있으면 안 덮는다(들어올 때마다 두 배가 된다)
+// ⑦ 시작점은 **한 번만**. 이미 글이 있으면 안 덮는다(들어올 때마다 두 배가 된다)
 {
   const a = new CoText('a');
   a.diffTo('내가 쓴 것');

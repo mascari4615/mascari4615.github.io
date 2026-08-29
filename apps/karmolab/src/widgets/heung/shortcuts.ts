@@ -1,8 +1,8 @@
 /**
- * 흥 — 단축키 목록 (TASK-KL-220).
+ * 흥. 단축키 목록 (TASK-KL-220).
  *
  * 27회차 동안 단축키가 쌓였는데 어디에도 안 적혀 있었다. 여기 한 곳에 적고 화면이 이걸 그린다.
- * **적어 두기만 하면 곧 거짓말이 된다** — `keys` 는 실제 처리 코드와 대조하는 검사가 따로 있다
+ * **적어 두기만 하면 곧 거짓말이 된다**. `keys` 는 실제 처리 코드와 대조하는 검사가 따로 있다
  * (`scripts/test-heung-shortcuts.mjs`).
  */
 
@@ -15,7 +15,7 @@ export const SHORTCUTS: ShortcutGroup[] = [
   {
     title: '재생',
     items: [
-      { keys: ['Space'], what: '재생 / 멈춤 · 멈춘 채로 누르면 처음으로' },
+      { keys: ['Space'], what: '재생 / 멈춤, 멈춘 채로 누르면 처음으로' },
       { keys: ['Shift+Space'], what: '고른 클립 구간만 반복 재생' },
       { keys: ['Alt+←', 'Alt+→'], what: '앞뒤 구간 이름표로 건너뛰기' }
     ]
@@ -23,9 +23,9 @@ export const SHORTCUTS: ShortcutGroup[] = [
   {
     title: '도구',
     items: [
-      { keys: ['P'], what: '그리기 — 빈 자리를 눌러 클립·음을 만든다' },
-      { keys: ['E'], what: '고르기 — 빈 곳을 끌어 여러 개를 묶는다' },
-      { keys: ['C'], what: '자르기 — 클립을 눌러 그 자리에서 나눈다' }
+      { keys: ['P'], what: '그리기. 빈 자리를 눌러 클립, 음을 만든다' },
+      { keys: ['E'], what: '고르기. 빈 곳을 끌어 여러 개를 묶는다' },
+      { keys: ['C'], what: '자르기. 클립을 눌러 그 자리에서 나눈다' }
     ]
   },
   {
@@ -36,7 +36,7 @@ export const SHORTCUTS: ShortcutGroup[] = [
       { keys: ['Ctrl+B'], what: '고른 것 복제' },
       { keys: ['Delete', 'Backspace'], what: '고른 것 삭제 (잠긴 클립은 남는다)' },
       { keys: ['M'], what: '고른 클립 소리 끄기 / 켜기' },
-      { keys: ['Escape'], what: '끌던 것 취소 · 메뉴·큰 창 닫기' }
+      { keys: ['Escape'], what: '끌던 것 취소, 메뉴, 큰 창 닫기' }
     ]
   },
   {

@@ -1,5 +1,5 @@
 /**
- * 이미지 편집기 기반 검사 — 문서 모델 · 합성 · 되돌리기 (TASK-KL-240)
+ * 이미지 편집기 기반 검사. 문서 모델, 합성, 되돌리기 (TASK-KL-240)
  *
  * 화면을 안 띄운다. 이 세 파일이 브라우저를 모른다는 것 자체가 성질이므로, 여기서 잠근다.
  * 사용: node scripts/test-meok-doc.mjs
@@ -31,7 +31,7 @@ function load(name) {
   return module.exports;
 }
 
-/* 브라우저를 모르는지부터 — vm 안에 document·window 를 안 넣었으므로 쓰면 위에서 이미 터진다.
+/* 브라우저를 모르는지부터. vm 안에 document, window 를 안 넣었으므로 쓰면 위에서 이미 터진다.
    그래도 눈으로 못 보고 지나가는 일이 없게 글자로도 확인한다. */
 for (const file of ['doc', 'composite', 'history']) {
   const source = fs.readFileSync(path.join(dir, file + '.ts'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -61,7 +61,7 @@ const H = load('history');
   assert.equal(D.removeLayer(doc, doc.layers[0].id), false, '마지막 한 장은 안 지운다');
 }
 
-/* ===== 셀 hold — 애니메이션의 뼈대 ===== */
+/* ===== 셀 hold. 애니메이션의 뼈대 ===== */
 {
   const doc = D.createDoc(2, 2);
   D.setFrameCount(doc, 4);
@@ -128,7 +128,7 @@ const solid = (doc, layer, rgba) => {
   assert.deepEqual([...out.data.slice(0, 3)], [127, 128, 128], 'difference = 차이');
 }
 
-/* 레이어 마스크 · 클리핑 */
+/* 레이어 마스크, 클리핑 */
 {
   const doc = D.createDoc(2, 1);
   const back = doc.layers[0];
@@ -154,7 +154,7 @@ const solid = (doc, layer, rgba) => {
   assert.equal(out.data[7], 0, '밑판 밖에는 안 나온다');
 }
 
-/* 어니언스킨 · 스프라이트시트 */
+/* 어니언스킨, 스프라이트시트 */
 {
   const doc = D.createDoc(1, 1);
   D.setFrameCount(doc, 3);
@@ -207,7 +207,7 @@ const solid = (doc, layer, rgba) => {
 
   assert.equal(H.pixelPatch(cel, D.cloneSurface(cel), 'noop'), null, '안 바뀐 획은 단계를 안 늘린다');
 
-  /* 더러워진 사각형만 든다 — 점 하나면 4바이트. */
+  /* 더러워진 사각형만 든다. 점 하나면 4바이트. */
   const rect = H.dirtyRect(before, cel);
   assert.deepEqual([rect.x, rect.y, rect.w, rect.h], [1, 1, 1, 1]);
 }
@@ -230,16 +230,16 @@ const solid = (doc, layer, rgba) => {
   assert.equal(history.canRedo, false, '새 동작은 앞으로가기를 버린다');
 }
 {
-  /* 한계를 넘으면 오래된 것부터 버린다 — 메모리가 안 무한히 는다. */
+  /* 한계를 넘으면 오래된 것부터 버린다. 메모리가 안 무한히 는다. */
   const target = { v: 0 };
   const history = new H.History(3);
   for (let i = 1; i <= 5; i += 1) history.run(H.fieldChange(target, 'v', i, 'set'), i * 5000);
   assert.equal(history.depth, 3);
 }
 
-console.log('[test-meok-doc] ✓ 레이어 · 셀 hold · 블렌드 12 · 마스크 · 클리핑 · 어니언 · 시트 · 커맨드 되돌리기');
+console.log('[test-meok-doc] ✓ 레이어, 셀 hold, 블렌드 12, 마스크, 클리핑, 어니언, 시트, 커맨드 되돌리기');
 
-/* ===== 부분 갱신 — 붓질 자리만 다시 섞는다 ===== */
+/* ===== 부분 갱신. 붓질 자리만 다시 섞는다 ===== */
 {
   const doc = D.createDoc(4, 4);
   const back = doc.layers[0];
@@ -262,4 +262,4 @@ console.log('[test-meok-doc] ✓ 레이어 · 셀 hold · 블렌드 12 · 마스
   /* 판 밖으로 나간 사각형은 잘린다(터지지 않는다). */
   C.composite(doc, 0, undefined, { rect: { x: 3, y: 3, w: 99, h: 99 }, into: flat });
 }
-console.log('[test-meok-doc] ✓ 부분 갱신(rect·into)');
+console.log('[test-meok-doc] ✓ 부분 갱신(rect, into)');

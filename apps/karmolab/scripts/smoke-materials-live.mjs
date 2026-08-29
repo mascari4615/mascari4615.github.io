@@ -1,13 +1,13 @@
 /**
  * 재료 여덟 화면을 **실서비스 주소로** 한 번에 잰다 (TASK-KL-296).
  *
- * 화면 검사들은 여태 **내 자리에서 띄운 판**만 봤다. 그런데 사람이 쓰는 건 배포된 판이다 —
+ * 화면 검사들은 여태 **내 자리에서 띄운 판**만 봤다. 그런데 사람이 쓰는 건 배포된 판이다 . 
  * 빌드가 안 나갔거나, 캐시가 옛것을 물고 있거나, 배포 길에서 파일이 빠져도 로컬은 초록이다.
  * 그래서 같은 검사를 `URL=` 로 실주소에 겨눠 한 번에 돌린다.
  *
  * **빨강이 곧 고장은 아니다**: 방금 올린 판이 아직 안 나갔을 수도 있다(이 저장소는 세션이
  * 여럿이라 배포가 서로 밀린다). 그래서 실패한 검사의 이름과 사유를 그대로 보여 주고,
- * 「배포가 늦은 것인지」는 사람이 가르게 한다. 게이트에는 **안 넣는다** — 배포 시점에 따라
+ * 배포가 늦은 것인지는 사람이 가르게 한다. 게이트에는 **안 넣는다**. 배포 시점에 따라
  * 빨개지는 검사를 막는 자리에 두면 아무도 안 믿게 된다.
  *
  * 사용: node scripts/smoke-materials-live.mjs [주소]
@@ -24,12 +24,12 @@ const MATERIALS = [
   ['이미지', 'smoke-image-shell.mjs'],
   ['글', 'smoke-text-shell.mjs'],
   ['데이터', 'smoke-data-shell.mjs'],
-  ['수·돈', 'smoke-calc-shell.mjs'],
+  ['수, 돈', 'smoke-calc-shell.mjs'],
   ['때', 'smoke-time-shell.mjs'],
   ['영상', 'smoke-video-shell.mjs'],
   ['소리', 'smoke-sound-shell.mjs'],
-  /* 재료 화면 말고 **그리로 오는 길**도 함께 잰다 — 실서비스에서 제일 조용히 끊기는 자리다
-   * (검색으로 들어오는 도구 주소 · 도구끼리 결과 넘기기). */
+  /* 재료 화면 말고 **그리로 오는 길**도 함께 잰다. 실서비스에서 제일 조용히 끊기는 자리다
+   * (검색으로 들어오는 도구 주소, 도구끼리 결과 넘기기). */
   ['숨은 도구 주소', 'smoke-bundle-deeplink.mjs'],
   ['이어서 넘기기', 'smoke-handoff-bundle.mjs']
 ];
@@ -52,13 +52,13 @@ const bad = [];
 for (const [name, file] of MATERIALS) {
   const { code, out } = await run(file);
   const why = (out.match(/^ {2}- .*$/gm) || []).slice(0, 2).map((s) => s.trim());
-  console.log(`  ${code === 0 ? '✓' : '✗'} ${name}${code === 0 ? '' : ' — ' + why.join(' · ')}`);
+  console.log(`  ${code === 0 ? '✓' : '✗'} ${name}${code === 0 ? '' : '. ' + why.join(', ')}`);
   if (code !== 0) bad.push(name);
 }
 
 if (bad.length) {
   console.error(`[live] 빨강 ${bad.length}개: ${bad.join(', ')}`);
-  console.error('  ※ 방금 올린 판이 아직 안 나갔을 수 있다 — 배포가 끝난 뒤 한 번 더 돌려 보고 판정하라.');
+  console.error('  ※ 방금 올린 판이 아직 안 나갔을 수 있다. 배포가 끝난 뒤 한 번 더 돌려 보고 판정하라.');
   process.exit(1);
 }
 console.log(`[live] ${MATERIALS.length}개 전부 실서비스에서 통과 (재료 여덟 + 오는 길 둘)`);

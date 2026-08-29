@@ -64,7 +64,7 @@ host.begin({ capture: element, pointerId: 1, move: () => {}, cancel: () => log.p
 element.fire('lostpointercapture');
 assert.deepEqual(log, ['lost']);
 
-// 새 끌기가 시작되면 앞 끌기는 취소된다 — 예전엔 조용히 잊혔다
+// 새 끌기가 시작되면 앞 끌기는 취소된다. 예전엔 조용히 잊혔다
 log.length = 0;
 host.begin({ capture: element, pointerId: 2, move: () => {}, cancel: () => log.push('cancel-first') });
 host.begin({ capture: element, pointerId: 3, move: () => {}, cancel: () => log.push('cancel-second') });
@@ -77,7 +77,7 @@ assert.deepEqual(log, ['cancel-first', 'cancel-second']);
 assert.equal(host.cancel(), false, '취소할 게 없으면 false');
 assert.equal(element.total(), 0);
 
-// 취소는 한 번만 — 취소 뒤 늦게 온 pointerup 은 commit 을 안 부른다
+// 취소는 한 번만. 취소 뒤 늦게 온 pointerup 은 commit 을 안 부른다
 log.length = 0;
 host.begin({ capture: element, pointerId: 4, move: () => {}, commit: () => log.push('commit'), cancel: () => log.push('cancel') });
 host.cancel();
@@ -103,4 +103,4 @@ assert.equal(host.begin({ capture: detached, pointerId: 9, move: () => {} }), fa
 assert.deepEqual(log, ['cancel-live'], '새 시작이 실패해도 앞 끌기는 이미 정리됐다');
 assert.equal(host.active, false);
 
-console.log('[test-heung-gesture] ✓ 한 번에 하나 · 끝맺음 1회 · 취소 경로 4종 · 시작 실패 정리');
+console.log('[test-heung-gesture] ✓ 한 번에 하나, 끝맺음 1회, 취소 경로 4종, 시작 실패 정리');

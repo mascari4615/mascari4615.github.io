@@ -1,7 +1,7 @@
 /**
  * 액정으로 쓸 것을 스스로 찾는 부분.
  *
- * 여기가 이 시스템에서 제일 자주 틀릴 자리다 — 화면이 개편되면 곧바로 영향을 받는데,
+ * 여기가 이 시스템에서 제일 자주 틀릴 자리다. 화면이 개편되면 곧바로 영향을 받는데,
  * 틀려도 오류가 안 나고 그냥 아무것도 안 그린다. 그래서 눈으로 안 보고도 확인되게 순수 함수로
  * 떼어 놨다.
  */
@@ -56,18 +56,18 @@ test('몇 개 안 되면 격자로 안 친다', () => {
 	assert.equal(pickTileGroup(grid('tools', 3), { viewportArea: VIEW }).length, 0);
 });
 
-test('아무것도 없으면 빈 손으로 돌아온다 — 터지지 않는다', () => {
+test('아무것도 없으면 빈 손으로 돌아온다. 터지지 않는다', () => {
 	assert.deepEqual(pickTileGroup([], { viewportArea: VIEW }), []);
 });
 
-test('칸이 적으면 잘게, 많으면 성글게 쪼갠다 — 해상도가 비슷하게 남는다', () => {
+test('칸이 적으면 잘게, 많으면 성글게 쪼갠다. 해상도가 비슷하게 남는다', () => {
 	// 첫 화면처럼 큰 버튼 몇 개뿐일 때와 도구 목록처럼 빽빽할 때.
 	const sparse = subdivisionFor(3, 2);
 	const dense = subdivisionFor(24, 16);
 
 	assert.ok(sparse.cols > dense.cols, `적을수록 잘게 쪼개야 한다 (${sparse.cols} vs ${dense.cols})`);
 
-	// 둘 다 전체 해상도가 비슷한 자리에 떨어져야 한다 — 한쪽만 뭉개지면 실패다.
+	// 둘 다 전체 해상도가 비슷한 자리에 떨어져야 한다. 한쪽만 뭉개지면 실패다.
 	const sparseTotal = 3 * sparse.cols;
 	const denseTotal = 24 * dense.cols;
 	assert.ok(sparseTotal >= 40 && sparseTotal <= 80, `적은 쪽 해상도가 벗어났다 (${sparseTotal})`);
@@ -114,7 +114,7 @@ test('합칠 때도 껍데기와 글자 쪼가리는 안 들어온다', () => {
 });
 
 test('점수가 크게 낮은 뭉치는 안 받는다', () => {
-	// 크기가 제각각인 뭉치 — 끼면 그림이 지저분해진다.
+	// 크기가 제각각인 뭉치. 끼면 그림이 지저분해진다.
 	const ragged = [
 		{ group: 'ragged', rect: { x: 0, y: 0, width: 400, height: 300 } },
 		{ group: 'ragged', rect: { x: 0, y: 0, width: 30, height: 30 } },

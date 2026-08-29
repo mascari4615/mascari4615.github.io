@@ -3,7 +3,7 @@
  * Python이 PATH에 있으면 `http.server`를 쓰고, 없으면 Node 내장 http로 폴백.
  *
  * 포트 결정: `argv[2]` > `KARMOLAB_DEV_STATIC_PORT` env > 8899 (default).
- * KL-046 — dev 는 `8898` (KarmoLab Dev identifier `.dev`) / production 트레이 「개발 모드」 가 8899 사용.
+ * KL-046. dev 는 `8898` (KarmoLab Dev identifier `.dev`) / production 트레이 개발 모드 가 8899 사용.
  */
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
@@ -102,7 +102,7 @@ async function statSafe(p) {
 
 /* Jekyll 앞머리(--- ... ---)는 배포에서는 Jekyll 이 떼고 준다. 여기서도 떼야 화면이 같다.
    안 떼면 창 맨 위에 `--- layout: none permalink: /files/ ---` 가 글자로 뜬다
-   (2026-08-27 조수님이 KarmoLab·Files 양쪽에서 봤다). karmolab dev 서버에는 이미
+   (2026-08-27 조수님이 KarmoLab, Files 양쪽에서 봤다). karmolab dev 서버에는 이미
    같은 처리가 있는데 이쪽만 빠져 있었다. */
 function stripFrontMatter(text) {
   if (!text.startsWith('---')) return text;
@@ -116,7 +116,7 @@ function stripFrontMatter(text) {
 async function sendFile(req, res, filePath, st) {
   const isHtml = filePath.toLowerCase().endsWith('.html');
   if (isHtml) {
-    // 앞머리를 떼면 길이가 달라진다 — Content-Length 를 파일 크기로 적으면 안 된다.
+    // 앞머리를 떼면 길이가 달라진다. Content-Length 를 파일 크기로 적으면 안 된다.
     const raw = await fsPromises.readFile(filePath, 'utf8');
     const body = Buffer.from(stripFrontMatter(raw), 'utf8');
     res.writeHead(200, {
@@ -198,7 +198,7 @@ async function handleRequest(req, res) {
 
     await sendFile(req, res, filePath, st);
   } catch (err) {
-    // ERR_STREAM_PREMATURE_CLOSE: WebView 가 연결을 끊은 정상 케이스 — 무시.
+    // ERR_STREAM_PREMATURE_CLOSE: WebView 가 연결을 끊은 정상 케이스. 무시.
     if (err.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
       console.error('[dev-static]', err);
     }
@@ -223,7 +223,7 @@ function startNodeServer() {
   });
 
   server.on('error', (err) => {
-    // EADDRINUSE 는 이미 실행 중 — 조용히 종료 (호출측이 이미 listen 확인).
+    // EADDRINUSE 는 이미 실행 중. 조용히 종료 (호출측이 이미 listen 확인).
     if (err.code === 'EADDRINUSE') { process.exit(0); return; }
     console.error('[dev-static]', err.message);
     process.exit(1);

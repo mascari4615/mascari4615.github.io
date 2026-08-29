@@ -1,5 +1,5 @@
 /**
- * Adventure 위젯 settings UI — KL-032 ι 단계.
+ * Adventure 위젯 settings UI. KL-032 ι 단계.
  *
  * 사용자 prefer 박는 input 박스:
  * - provider (Claude / Vertex)  ← 메인 select 와 sync

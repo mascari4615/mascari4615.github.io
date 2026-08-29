@@ -1,17 +1,17 @@
 /**
- * 「먹」 — 저장 (TASK-KL-240 · 6단계)
+ * 먹. 저장 (TASK-KL-240, 6단계)
  *
  * 그림 도구에서 제일 아픈 구멍은 기능이 아니라 **새로고침하면 다 날아가는 것**이다.
  * 그래서 문서를 통째로 바이트로 접었다 펴는 길을 둔다. 두 곳에 쓴다:
- *   ① 자동 저장(브라우저 안 IndexedDB) — 아무것도 안 눌러도 다음에 열면 그대로
- *   ② 파일로 내보내기(`.meok`) — 다른 기기로 옮기거나 남에게 준다
+ *   ① 자동 저장(브라우저 안 IndexedDB). 아무것도 안 눌러도 다음에 열면 그대로
+ *   ② 파일로 내보내기(`.meok`). 다른 기기로 옮기거나 남에게 준다
  *
- * 픽셀은 PNG 로 굽지 않는다 — 그러면 이 파일이 캔버스(브라우저)를 알아야 하고, 화면 없이
+ * 픽셀은 PNG 로 굽지 않는다. 그러면 이 파일이 캔버스(브라우저)를 알아야 하고, 화면 없이
  * 검사할 수 없다. 대신 **같은 색이 이어지면 묶는(RLE)** 아주 단순한 방식으로 접는다.
- * 도트 그림·단색 배경에서 특히 잘 접히고(수십 배), 사진에서도 원본보다 커지지 않는다
- * (묶이지 않으면 「그대로 두기」 조각으로 흘려보낸다).
+ * 도트 그림, 단색 배경에서 특히 잘 접히고(수십 배), 사진에서도 원본보다 커지지 않는다
+ * (묶이지 않으면 그대로 두기 조각으로 흘려보낸다).
  *
- * 브라우저를 모른다 — IndexedDB 를 부르는 쪽은 화면 파일이다.
+ * 브라우저를 모른다. IndexedDB 를 부르는 쪽은 화면 파일이다.
  */
 
 import { createSurface, type BlendMode, type Doc, type Layer, type Surface } from './doc';
@@ -46,7 +46,7 @@ export function packSurface(surface: Surface): Packed {
       p += run;
       continue;
     }
-    /* 안 묶이는 구간 — 다음에 「두 개가 같아지는 자리」가 나올 때까지 그대로 흘린다. */
+    /* 안 묶이는 구간. 다음에 두 개가 같아지는 자리가 나올 때까지 그대로 흘린다. */
     let literal = 1;
     while (literal < 127 && p + literal < count && !same(p + literal, p + literal - 1)) literal += 1;
     out[at++] = 128 + literal;
@@ -96,7 +96,7 @@ export interface StoredLayer {
 }
 
 export interface StoredDoc {
-  /** 뒷날 형식을 바꾸면 이 번호로 가른다 — 옛 저장본을 못 열게 되는 사고를 막는다. */
+  /** 뒷날 형식을 바꾸면 이 번호로 가른다. 옛 저장본을 못 열게 되는 사고를 막는다. */
   version: 1;
   w: number;
   h: number;
@@ -122,7 +122,7 @@ export function packDoc(doc: Doc, now = Date.now()): StoredDoc {
       id: layer.id, name: layer.name, visible: layer.visible, locked: layer.locked,
       opacity: layer.opacity, blend: layer.blend, clip: layer.clip,
       cels: layer.cels.map(cel => (cel ? packSurface(cel) : null)),
-      /* 마스크는 알파만 있는 판으로 접는다 — 접는 길을 하나로 둔다. */
+      /* 마스크는 알파만 있는 판으로 접는다. 접는 길을 하나로 둔다. */
       mask: layer.mask ? packSurface(maskToSurface(layer.mask, doc.w, doc.h)) : null
     }))
   };
@@ -134,7 +134,7 @@ const maskToSurface = (mask: Uint8ClampedArray, w: number, h: number): Surface =
   return surface;
 };
 
-/** 저장본이 우리 것인가 — 남의 JSON 을 열어 빈 문서를 내놓지 않게. */
+/** 저장본이 우리 것인가. 남의 JSON 을 열어 빈 문서를 내놓지 않게. */
 export const isStoredDoc = (raw: unknown): boolean => {
   const value = raw as Partial<StoredDoc>;
   return !!value && value.version === 1 && Array.isArray(value.layers) && typeof value.w === 'number';
@@ -177,7 +177,7 @@ export function unpackDoc(stored: StoredDoc): Doc {
   };
 }
 
-/** JSON 을 거쳐 오면 바이트가 배열·객체로 풀려 있다 — 어떤 모양이든 바이트로 되돌린다. */
+/** JSON 을 거쳐 오면 바이트가 배열, 객체로 풀려 있다. 어떤 모양이든 바이트로 되돌린다. */
 function toBytes(value: unknown): Uint8Array {
   if (value instanceof Uint8Array) return value;
   if (Array.isArray(value)) return Uint8Array.from(value as number[]);
@@ -191,7 +191,7 @@ function toBytes(value: unknown): Uint8Array {
   return new Uint8Array(0);
 }
 
-/** 접은 문서가 대략 몇 바이트인가 — 「너무 커서 저장 못 함」을 미리 안다. */
+/** 접은 문서가 대략 몇 바이트인가. 너무 커서 저장 못 함을 미리 안다. */
 export function storedSize(stored: StoredDoc): number {
   let bytes = 256 + stored.name.length * 2;
   stored.layers.forEach(layer => {

@@ -12,12 +12,12 @@ import { usual } from '../feeling';
  * 놀이에서 이겨 신나도 늘 같은 속도, 같은 높이로 말했다.
  *
  * 결은 **네 칸**만 둔다. 스물네 칸으로 잘게 나눠 봐야 사람 귀에는 안 들리고, 칸이 자주
- * 바뀌면 그게 더 이상하다. 그리고 **평소에는 아무것도 안 건드린다** — 늘 뭔가 얹혀 있으면
+ * 바뀌면 그게 더 이상하다. 그리고 **평소에는 아무것도 안 건드린다**. 늘 뭔가 얹혀 있으면
  * 그건 결이 아니라 왜곡이다.
  */
 export type Tone = '들뜸' | 'droop' | '뾰족' | '누그러짐';
 
-/** 이 마음이 어느 결인가. 평소 언저리면 null — 아무것도 안 얹는다. */
+/** 이 마음이 어느 결인가. 평소 언저리면 null. 아무것도 안 얹는다. */
 export function toneOf(feeling: Feeling): Tone | null {
   const v = feeling.valence - usual.valence;
   const a = feeling.arousal - usual.arousal;
@@ -43,7 +43,7 @@ export const moodTone: Readonly<Record<Tone, { rate: string; pitch: string }>> =
 /**
  * 결마다 말이 얼마나 늘어지는지 (내 컴퓨터에서 만드는 목소리 쪽).
  *
- * 1 보다 크면 느려진다 — 이름과 방향이 반대라 헷갈리기 쉽다.
+ * 1 보다 크면 느려진다. 이름과 방향이 반대라 헷갈리기 쉽다.
  */
 export const moodSpeed: Readonly<Record<Tone, number>> = {
   '들뜸': 0.88,

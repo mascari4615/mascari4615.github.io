@@ -12,7 +12,7 @@
     },
     {
       "type": "note",
-      "text": "실제로는 **느림 · 간헐적 끊김 · 완전 단절**이 섞인다. `navigator.onLine` 은 「랜선이 꽂혔나」 수준이라 믿을 수 없다 — **실제 요청의 성공/실패**로 판단하라."
+      "text": "실제로는 **느림, 간헐적 끊김, 완전 단절**이 섞인다. `navigator.onLine` 은 랜선이 꽂혔나 수준이라 믿을 수 없다. **실제 요청의 성공/실패**로 판단하라."
     },
     {
       "type": "h",
@@ -22,7 +22,7 @@
       "type": "code",
       "lang": "js",
       "label": "stale-while-revalidate",
-      "text": "const cached = await store.get(key);\nif (cached) render(cached, { stale: true });     // 먼저 보여 주고\ntry {\n  const fresh = await api.get(key);\n  await store.set(key, fresh);\n  render(fresh);                                 // 오면 갱신\n} catch {\n  showBanner('오프라인 — 마지막으로 받은 내용입니다');\n}"
+      "text": "const cached = await store.get(key);\nif (cached) render(cached, { stale: true });     // 먼저 보여 주고\ntry {\n  const fresh = await api.get(key);\n  await store.set(key, fresh);\n  render(fresh);                                 // 오면 갱신\n} catch {\n  showBanner('오프라인. 마지막으로 받은 내용입니다');\n}"
     },
     {
       "type": "h",
@@ -36,7 +36,7 @@
     },
     {
       "type": "note",
-      "text": "재전송은 **멱등 열쇠**와 함께 보내라 — 같은 요청이 두 번 도착해도 서버가 한 번만 처리하게. 그리고 실패한 항목은 사용자에게 보여 줘야 한다(조용히 사라지면 신뢰가 무너진다)."
+      "text": "재전송은 **멱등 열쇠**와 함께 보내라. 같은 요청이 두 번 도착해도 서버가 한 번만 처리하게. 그리고 실패한 항목은 사용자에게 보여 줘야 한다(조용히 사라지면 신뢰가 무너진다)."
     },
     {
       "type": "h",
@@ -44,7 +44,7 @@
     },
     {
       "type": "p",
-      "text": "오프라인 편집이 겹치면 충돌은 필연이다. 규칙을 미리 정하라 — 마지막이 이김(단순) · 필드 단위 병합 · 사용자에게 선택. **정하지 않으면 조용히 데이터가 사라진다.**"
+      "text": "오프라인 편집이 겹치면 충돌은 필연이다. 규칙을 미리 정하라. 마지막이 이김(단순), 필드 단위 병합, 사용자에게 선택. **정하지 않으면 조용히 데이터가 사라진다.**"
     },
     {
       "type": "h",

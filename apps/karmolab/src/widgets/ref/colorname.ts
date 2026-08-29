@@ -1,11 +1,11 @@
 /**
- * CSS 색상 이름표 (TASK-KL-088) — 148개 표준 색상 이름 ↔ HEX.
+ * CSS 색상 이름표 (TASK-KL-088). 148개 표준 색상 이름 ↔ HEX.
  * 이름 목록만 두고 HEX 는 브라우저에게 물어본다 (캔버스가 CSS 색을 파싱하므로 표를 손으로 안 적어도 된다).
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /* 이름은 **쓸 때** 정한다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /* 이름은 **쓸 때** 정한다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const names = (): Array<[string, string]> => [
     ['red', t('colorname.t01')], ['crimson', t('colorname.t02')], ['darkred', t('colorname.t03')], ['firebrick', t('colorname.t04')], ['indianred', t('colorname.t05')],
     ['lightcoral', t('colorname.t06')], ['salmon', t('colorname.t07')], ['darksalmon', t('colorname.t08')], ['lightsalmon', t('colorname.t09')], ['tomato', t('colorname.t10')],
@@ -86,7 +86,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               return {
                 copy: name,
                 glyph: name,
-                label: `${name} · ${ko}`,
+                label: `${name}, ${ko}`,
                 sub: hex,
                 keywords: `${name} ${ko} ${hex}`,
                 group: groupOf(name),

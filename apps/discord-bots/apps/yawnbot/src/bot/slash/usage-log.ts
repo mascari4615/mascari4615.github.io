@@ -5,7 +5,7 @@ function usageLogEnabled(): boolean {
   return s === '1' || s === 'true' || s === 'yes' || s === 'on';
 }
 
-/** 콘솔 한 줄: 명령·서브커맨드·길드·채널·유저 */
+/** 콘솔 한 줄: 명령, 서브커맨드, 길드, 채널, 유저 */
 export function logSlashUsage(interaction: ChatInputCommandInteraction): void {
   if (!usageLogEnabled() || !interaction.isChatInputCommand()) return;
   let sub = '';

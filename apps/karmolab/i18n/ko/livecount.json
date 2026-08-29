@@ -6,8 +6,8 @@
   "livecount.t04": "기준 시각을 골라 주세요",
   "livecount.t05": "번",
   "livecount.seconds": "{n}초",
-  "livecount.line": "{y}년 {mo}개월 {d}일 {tail} · {days}일 · {y}년 {mo}개월 {d}일 {clock}",
+  "livecount.line": "{y}년 {mo}개월 {d}일 {tail}, {days}일, {y}년 {mo}개월 {d}일 {clock}",
   "livecount.left": "남음",
   "livecount.past": "지남",
-  "livecount.projected": "약 {n}{unit} — 어림입니다(안 한 날도 그대로 곱했습니다)"
+  "livecount.projected": "약 {n}{unit}. 어림입니다(안 한 날도 그대로 곱했습니다)"
 }

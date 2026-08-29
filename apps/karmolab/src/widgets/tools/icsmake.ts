@@ -1,14 +1,14 @@
 /**
  * 일정 파일 만들기 (TASK-KL-088)
  *
- * 모임 공지를 올릴 때 「달력에 추가」 파일 하나만 있으면 참석률이 다르다. 그런데 .ics 는
- * 손으로 쓰기엔 규칙이 까다롭다 — 줄바꿈은 CRLF 여야 하고, 쉼표·세미콜론은 앞에 역슬래시를
+ * 모임 공지를 올릴 때 달력에 추가 파일 하나만 있으면 참석률이 다르다. 그런데 .ics 는
+ * 손으로 쓰기엔 규칙이 까다롭다. 줄바꿈은 CRLF 여야 하고, 쉼표, 세미콜론은 앞에 역슬래시를
  * 붙여야 하고, 시각은 UTC 로 적어야 어느 나라에서 열어도 같은 시각이 된다.
  *
  * 신경 쓴 곳:
  *  - **시각을 UTC 로 적는다.** 한국 시간 그대로 쓰면 외국에서 연 사람에게 9시간 어긋난다.
- *    입력은 한국 시간으로 받고, 파일에는 UTC 로 넣은 뒤 「한국시간 ○○ = 파일에 ○○」로 보여 준다.
- *  - 규칙에 걸리는 글자(쉼표·세미콜론·줄바꿈)를 자동으로 처리한다. 안 하면 달력 앱이
+ *    입력은 한국 시간으로 받고, 파일에는 UTC 로 넣은 뒤 한국시간 ○○ = 파일에 ○○로 보여 준다.
+ *  - 규칙에 걸리는 글자(쉼표, 세미콜론, 줄바꿈)를 자동으로 처리한다. 안 하면 달력 앱이
  *    파일을 통째로 거부하는데, 그때 나오는 오류 메시지가 아무 도움이 안 된다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -18,17 +18,17 @@ import { statusLine } from './shared/say';
 import { download } from './shared/image';
 
 (function (): void {
-  /** .ics 규칙: 쉼표·세미콜론·역슬래시는 이스케이프, 줄바꿈은 \n 글자로.
+  /** .ics 규칙: 쉼표, 세미콜론, 역슬래시는 이스케이프, 줄바꿈은 \n 글자로.
    *
    * ★ 이름이 `esc` 였다 (2026-08-12). 아래 `draw()` 안에 **같은 이름의 HTML 이스케이프**가
    *   있어 파일을 만드는 자리(`SUMMARY:${esc(title)}`)가 조용히 그쪽을 썼다. 그 결과
-   *   「모임, 3회차; 준비물」이 이스케이프 없이 나가 달력 앱이 파일을 통째로 거부한다 —
+   *   모임, 3회차; 준비물이 이스케이프 없이 나가 달력 앱이 파일을 통째로 거부한다 . 
    *   컴파일도 통과하고 화면도 멀쩡하다. 이름을 갈라 두면 다시 안 겹친다. */
   const icsEsc = (s: string): string =>
     s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 
   /** 한국 시간 문자열 → UTC 기준 `YYYYMMDDTHHMMSSZ` */
-  /** 이 브라우저가 있는 시간대 이름 (Asia/Seoul · America/New_York …). */
+  /** 이 브라우저가 있는 시간대 이름 (Asia/Seoul, America/New_York ...). */
   function myZone(): string {
     try {
       return new Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -38,7 +38,7 @@ import { download } from './shared/image';
   }
 
   function toUtcStamp(local: string): string {
-    /* `input[type=datetime-local]` 에는 시간대가 없다 — **그 사람의 시계**로 읽는다.
+    /* `input[type=datetime-local]` 에는 시간대가 없다. **그 사람의 시계**로 읽는다.
        예전에는 `+09:00` 을 못 박고 있었다. 한국에서는 맞지만, 뉴욕 사람이 14:00 을 넣으면
        14:00 KST = 그곳 00:00 로 적혀 **일정 시각 자체가 어긋난다**. 번역보다 먼저 고칠 일이었다. */
     const d = new Date(local);
@@ -53,7 +53,7 @@ import { download } from './shared/image';
   /** 종일 일정은 날짜만 적고, 끝 날짜는 하루 뒤로 적어야 그 날까지 잡힌다 */
   function dayStamp(local: string, plusDays = 0): string {
     // 종일 일정은 규격상 **시간대가 없는 달력 날짜**다. 예전 판은 한국시간으로 파싱해 놓고
-    // 현지 게터(getFullYear/getMonth/getDate)로 뽑아, UTC 기계(CI)에서 하루가 밀렸다 —
+    // 현지 게터(getFullYear/getMonth/getDate)로 뽑아, UTC 기계(CI)에서 하루가 밀렸다 . 
     // 로컬은 통과하고 CI 만 빨간 전형(2026-08-07: DTSTART 20260831/DTEND 20260903 로 어긋남).
     // 시간대를 아예 태우지 않는다: 숫자로 읽고 UTC 로 계산해 UTC 로 출력.
     const [y, m, d] = local.slice(0, 10).split('-').map(Number);
@@ -72,7 +72,7 @@ import { download } from './shared/image';
     desc: t(
       'widgets-desc.icsmake.desc',
       undefined,
-      '모임·공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다'
+      '모임, 공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v5M9.5 15.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -91,7 +91,7 @@ import { download } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          /* 시간대는 **그 사람의 것**을 그대로 보여 준다 — 「한국 시간」이라고 적어 두면
+          /* 시간대는 **그 사람의 것**을 그대로 보여 준다. 한국 시간이라고 적어 두면
              다른 나라 사람은 자기가 넣은 값이 어떻게 읽히는지 알 수 없다. */
           const zone = myZone();
           const now = new Date(Date.now() + 24 * 3600 * 1000);
@@ -166,8 +166,8 @@ import { download } from './shared/image';
           // LF 로 바꿔 버려서, 내려받는 .ics 가 규칙(CRLF)에 안 맞게 된다 (시험이 잡았다).
           let built = '';
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function run(): void {
@@ -216,7 +216,7 @@ import { download } from './shared/image';
             }
             lines.push('END:VEVENT', 'END:VCALENDAR');
 
-            // .ics 는 줄바꿈이 CRLF 여야 한다 — LF 만 쓰면 거부하는 달력 앱이 있다
+            // .ics 는 줄바꿈이 CRLF 여야 한다. LF 만 쓰면 거부하는 달력 앱이 있다
             built = lines.join('\r\n') + '\r\n';
             out.value = built;
 
@@ -249,7 +249,7 @@ import { download } from './shared/image';
 
           function lengthOf(a: string, b: string): string {
             const m = Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000);
-            /* 「몇 시간 몇 분」은 손으로 안 적는다 — `Intl` 이 모든 언어의 단위 이름을 안다
+            /* 몇 시간 몇 분은 손으로 안 적는다. `Intl` 이 모든 언어의 단위 이름을 안다
                (복수형이 갈리는 언어도 공짜: 1 hour / 2 hours). */
             const unit = (n: number, u: 'hour' | 'minute'): string => {
               try {

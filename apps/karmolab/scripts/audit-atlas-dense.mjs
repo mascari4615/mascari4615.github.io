@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * audit-atlas-dense — **진짜로 뭉친 자리를 찾는 손이 성한가** (TASK-KAR-233).
+ * audit-atlas-dense. **진짜로 뭉친 자리를 찾는 손이 성한가** (TASK-KAR-233).
  *
- * 자 둘(실루엣·DBCV)이 「우리 층은 무리가 아니라 구획」이라 했다. 그런데 우리 나눔은
- * k-means 라 **모든 글을 억지로 어딘가에** 넣는다 — 「어디에도 안 붙는다」는 답이 없다.
+ * 자 둘(실루엣, DBCV)이 우리 층은 무리가 아니라 구획이라 했다. 그런데 우리 나눔은
+ * k-means 라 **모든 글을 억지로 어딘가에** 넣는다. 어디에도 안 붙는다는 답이 없다.
  * HDBSCAN 은 그 답을 준다: 뭉친 데만 집고 나머지는 -1.
  *
  * 이 자가 보는 것 넷 (합격선은 재기 **전에** TASK 문서에 박아 뒀다):
- *  ① **눈금** — 지어낸 자료(갈린 세 덩어리 + 흩뿌린 잡음)에서 덩어리 셋을 찾고
+ *  ① **눈금**. 지어낸 자료(갈린 세 덩어리 + 흩뿌린 잡음)에서 덩어리 셋을 찾고
  *     잡음의 90% 이상을 -1 이나 **확신 0.2 밑**으로 낸다
  *  ② 실린 나눔의 DBCV 가 k-means 층보다 **최소 0.2 높다** (밀도로 뽑았는데 밀도 자가
  *     안 낫다면 구현이 틀린 것이다)
- *  ③ **손잡이를 박지 않았나** — 실린 손잡이가 기록된 곡선의 봉우리인가
- *  ④ 화면이 「뭉친 자리 N군데 · 나머지 M편은 허허벌판」을 적고 **그 숫자를 따라가나**
+ *  ③ **손잡이를 박지 않았나**. 실린 손잡이가 기록된 곡선의 봉우리인가
+ *  ④ 화면이 뭉친 자리 N군데, 나머지 M편은 허허벌판을 적고 **그 숫자를 따라가나**
  *
- * ⚠ ①의 「확신」이 왜 필요한가: HDBSCAN 은 **일찍 떨어져 나간 점도 그 무리 식구로 센다**
- * (정본 그대로). 그래서 -1 만 세면 「잡음인데 붙어 있는 점」을 놓친다 — 시제품에서
+ * ⚠ ①의 확신이 왜 필요한가: HDBSCAN 은 **일찍 떨어져 나간 점도 그 무리 식구로 센다**
+ * (정본 그대로). 그래서 -1 만 세면 잡음인데 붙어 있는 점을 놓친다. 시제품에서
  * 그런 점 12개가 전부 확신 0.04~0.06 이었고, 진짜 식구 300개는 하나도 0.2 밑이 아니었다.
  */
 import fs from 'node:fs';
@@ -30,13 +30,13 @@ const ATLAS = atlasPath(HERE);
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 
 if (!fs.existsSync(ATLAS)) {
-  console.log('[dense] 지도가 없다 — 검사 건너뜀');
+  console.log('[dense] 지도가 없다. 검사 건너뜀');
   process.exit(0);
 }
 const atlas = JSON.parse(fs.readFileSync(ATLAS, 'utf8'));
 const bad = [];
 
-/* 굽는 쪽 함수를 그대로 부르지 않고 **여기서 따로 구현한다** — 같은 코드를 두 번 돌리는
+/* 굽는 쪽 함수를 그대로 부르지 않고 **여기서 따로 구현한다**. 같은 코드를 두 번 돌리는
    건 확인이 아니다. 정의는 같게: 뿌리는 후보에서 빼고, 확신은 λ_p/λ_max. */
 function distMatrix(vecs) {
   const n = vecs.length; const dim = vecs[0].length;
@@ -64,7 +64,7 @@ function hdbscan(vecs, minSamples, minSize) {
     row.sort((a, b) => a - b);
     core[i] = row[Math.min(minSamples, n - 1)];
   }
-  /* Prim — 상호도달거리 위의 최소신장나무 */
+  /* Prim. 상호도달거리 위의 최소신장나무 */
   const inT = new Uint8Array(n); const best = new Float64Array(n).fill(Infinity);
   const from = new Int32Array(n).fill(-1); const edges = [];
   let cur = 0; inT[0] = 1;
@@ -119,7 +119,7 @@ function hdbscan(vecs, minSamples, minSize) {
       drop(small); stack.push(big);
     }
   }
-  /* 안정성 · EOM */
+  /* 안정성, EOM */
   const birth = new Map();
   for (const [, c, lam] of tree) if (c >= n) birth.set(c, lam);
   const st = new Map();
@@ -158,7 +158,7 @@ function hdbscan(vecs, minSamples, minSize) {
   return { label: Array.from(label), prob: Array.from(prob), k: chosen.length };
 }
 
-// ── ① 눈금 (지어낸 자료 — 진짜 지도가 없어도 돈다) ────────────────────
+// ── ① 눈금 (지어낸 자료. 진짜 지도가 없어도 돈다) ────────────────────
 {
   let seed = 11;
   const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
@@ -182,8 +182,8 @@ function hdbscan(vecs, minSamples, minSize) {
   const realIdx = truth.map((t, i) => [t, i]).filter(([t]) => t >= 0).map(([, i]) => i);
   const kept = realIdx.filter((i) => r.label[i] >= 0 && r.prob[i] >= WEAK).length;
   const rate = caught / noiseIdx.length;
-  console.log(`  ① 눈금 — 덩어리 ${r.k}개(셋이어야) · 잡음 ${caught}/${noiseIdx.length} (${Math.round(rate * 100)}%, 90% 넘어야) · 진짜 ${kept}/${realIdx.length} 살아남음`);
-  if (r.k !== 3) bad.push(`지어낸 덩어리 셋을 ${r.k}개로 본다 — 뭉친 자리를 못 찾거나 쪼갠다`);
+  console.log(`  ① 눈금. 덩어리 ${r.k}개(셋이어야), 잡음 ${caught}/${noiseIdx.length} (${Math.round(rate * 100)}%, 90% 넘어야), 진짜 ${kept}/${realIdx.length} 살아남음`);
+  if (r.k !== 3) bad.push(`지어낸 덩어리 셋을 ${r.k}개로 본다. 뭉친 자리를 못 찾거나 쪼갠다`);
   if (rate < 0.9) bad.push(`흩뿌린 잡음을 ${Math.round(rate * 100)}% 밖에 못 걸러낸다`);
   if (kept < realIdx.length * 0.95) bad.push(`진짜 식구 ${realIdx.length - kept}개를 잡음 취급한다`);
 }
@@ -192,31 +192,31 @@ function hdbscan(vecs, minSamples, minSize) {
 const dn = atlas.dense;
 if (!dn) {
   if (isFake(ATLAS)) {
-    console.log('[dense] 가짜 지도다 — 뭉친 자리는 진짜 굽기에서만 나온다. ②③ 건너뜀');
+    console.log('[dense] 가짜 지도다. 뭉친 자리는 진짜 굽기에서만 나온다. ②③ 건너뜀');
   } else {
     bad.push('진짜 지도인데 **뭉친 자리가 안 실려 있다** (dense)');
   }
 } else {
   const lv = (atlas.levels || [])[0];
   const kmeans = lv && lv.dbcv != null ? lv.dbcv : null;
-  console.log(`  ② 뭉친 자리 ${dn.k}군데 · 허허벌판 ${dn.noise}편 · DBCV ${dn.dbcv}`
+  console.log(`  ② 뭉친 자리 ${dn.k}군데, 허허벌판 ${dn.noise}편, DBCV ${dn.dbcv}`
     + (kmeans == null ? '' : ` (k-means 층 ${kmeans.toFixed(3)})`));
   if (kmeans != null && dn.dbcv < kmeans + 0.2) {
     bad.push(`밀도로 뽑았는데 밀도 자가 더 낫지 않다 (${dn.dbcv} vs 층 ${kmeans.toFixed(3)})`);
   }
   const marked = atlas.docs.filter((d) => (d.dense ?? -1) >= 0).length;
   if (marked + dn.noise !== atlas.docs.filter((d) => d.dense != null).length) {
-    bad.push(`실린 수가 안 맞는다 — 붙은 글 ${marked} + 허허벌판 ${dn.noise} ≠ 자리 잡힌 글`);
+    bad.push(`실린 수가 안 맞는다. 붙은 글 ${marked} + 허허벌판 ${dn.noise} ≠ 자리 잡힌 글`);
   }
-  /* ③ 손잡이를 박지 않았나 — 기록된 곡선의 봉우리여야 한다. */
+  /* ③ 손잡이를 박지 않았나. 기록된 곡선의 봉우리여야 한다. */
   if (!Array.isArray(dn.curve) || !dn.curve.length) {
     bad.push('손잡이를 **어떻게 골랐는지**가 안 실려 있다 (curve)');
   } else {
     const ok = dn.curve.filter((c) => c.dbcv != null);
     const peak = ok.reduce((a, b) => (b.dbcv > a.dbcv ? b : a), ok[0]);
-    console.log(`  ③ 손잡이 ${dn.params.minSamples}·${dn.params.minSize} · 곡선 봉우리 ${peak.ms}·${peak.mc} (${peak.dbcv})`);
+    console.log(`  ③ 손잡이 ${dn.params.minSamples}, ${dn.params.minSize}, 곡선 봉우리 ${peak.ms}, ${peak.mc} (${peak.dbcv})`);
     if (Math.abs(peak.dbcv - dn.dbcv) > 1e-6) {
-      bad.push(`실린 손잡이가 곡선의 봉우리가 아니다 (실린 ${dn.dbcv} · 봉우리 ${peak.dbcv})`);
+      bad.push(`실린 손잡이가 곡선의 봉우리가 아니다 (실린 ${dn.dbcv}, 봉우리 ${peak.dbcv})`);
     }
   }
 }
@@ -225,7 +225,7 @@ if (!dn) {
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch { chromium = null; }
 if (!chromium || !fs.existsSync(BUNDLE) || !dn) {
-  console.log('[dense] playwright·번들·뭉친 자리 중 없는 게 있다 — ④ 건너뜀');
+  console.log('[dense] playwright, 번들, 뭉친 자리 중 없는 게 있다. ④ 건너뜀');
 } else {
   const bundle = fs.readFileSync(BUNDLE, 'utf8');
   const browser = await chromium.launch();
@@ -251,7 +251,7 @@ if (!chromium || !fs.existsSync(BUNDLE) || !dn) {
       const h = document.createElement('div');
       h.id = 'host'; h.style.width = '1200px'; h.style.height = '760px';
       document.body.appendChild(h);
-      /* **셸과 같은 길로 얹는다** — 셸은 `tabs[].build` 로만 그린다. 예전엔 여기서
+      /* **셸과 같은 길로 얹는다**. 셸은 `tabs[].build` 로만 그린다. 예전엔 여기서
          `render(h)` 를 직접 불렀는데, 그 바람에 위젯이 셸이 안 읽는 모양으로 등록해도
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
@@ -271,12 +271,12 @@ if (!chromium || !fs.existsSync(BUNDLE) || !dn) {
   const real = await screenSays(dn.noise);
   const fake = await screenSays(dn.noise + 777);
   await browser.close();
-  console.log(`  ④ 화면: 「${real.text.slice(0, 60)}」`);
-  if (!real.on) bad.push('「뭉친 자리」를 켜도 안 켜진다');
+  console.log(`  ④ 화면: ${real.text.slice(0, 60)}`);
+  if (!real.on) bad.push('뭉친 자리를 켜도 안 켜진다');
   if (!real.text.includes(String(dn.noise))) bad.push(`화면이 허허벌판 ${dn.noise}편을 안 적는다`);
   if (!real.text.includes(String(dn.k))) bad.push(`화면이 뭉친 자리 ${dn.k}군데를 안 적는다`);
   if (!fake.text.includes(String(dn.noise + 777))) {
-    bad.push('숫자를 바꿔도 화면이 그대로다 — 화면이 자료를 안 읽고 박아 둔 말을 한다');
+    bad.push('숫자를 바꿔도 화면이 그대로다. 화면이 자료를 안 읽고 박아 둔 말을 한다');
   }
   if (!real.channels.includes('초록 테두리')) bad.push('켰는데 읽는 법 띠가 초록 테두리를 설명 안 한다');
 }
@@ -284,7 +284,7 @@ if (!chromium || !fs.existsSync(BUNDLE) || !dn) {
 if (bad.length) {
   console.log('[dense] **뭉친 자리를 찾는 손이 안 선다**');
   for (const b of bad) console.log('  - ' + b);
-  console.log('  핵심거리·상호도달거리·압축 나무(뿌리 제외)나 화면이 읽는 숫자를 봐라.');
+  console.log('  핵심거리, 상호도달거리, 압축 나무(뿌리 제외)나 화면이 읽는 숫자를 봐라.');
   process.exit(1);
 }
 console.log('[dense] 눈금이 맞고, 손잡이를 재서 골랐고, 화면이 그 숫자를 따라간다');

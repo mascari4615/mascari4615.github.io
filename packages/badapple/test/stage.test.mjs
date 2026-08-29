@@ -1,5 +1,5 @@
 /**
- * 무대가 「도구가 마구 바뀐다」를 견디는지.
+ * 무대가 도구가 마구 바뀐다를 견디는지.
  *
  * 이 TASK 의 몸통이 여기다. 도구는 활발하게 늘고 줄고 바뀌므로, 재생 중에 표면이 사라지거나
  * 생기거나 이상한 값을 답해도 나머지가 계속 그려져야 한다. 하나가 무너질 때 전부 멈추면
@@ -40,7 +40,7 @@ test('자리를 신고한 표면들은 그림을 나눠 갖는다 (모자이크)
 
 	assert.equal(left.painted.length, 1);
 	assert.equal(right.painted.length, 1);
-	// 둘이 합쳐 원본의 켜진 칸을 담아야 한다 — 한쪽만 전부 갖고 있으면 나눈 게 아니다.
+	// 둘이 합쳐 원본의 켜진 칸을 담아야 한다. 한쪽만 전부 갖고 있으면 나눈 게 아니다.
 	const total = left.painted[0].lit + right.painted[0].lit;
 	assert.ok(total > 0, '아무 칸도 안 켜졌다');
 	assert.ok(left.painted[0].lit === 0 || right.painted[0].lit === 0 || true);

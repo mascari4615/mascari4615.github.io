@@ -1,16 +1,16 @@
 /**
  * 캔버스로 그리는 방송들.
  *
- * 한때 여기 다섯이 있었다 — 별밭·어항·뜰·나방·섬(@EmojiAquarium·@unicode_garden·
- * mothgenerator·Uncharted Atlas 계보). 넷은 걷어냈다: **매력적이지 않다**는 판단
+ * 한때 여기 다섯이 있었다. 별밭, 어항, 뜰, 나방, 섬(@EmojiAquarium, @unicode_garden, 
+ * mothgenerator, Uncharted Atlas 계보). 넷은 걷어냈다: **매력적이지 않다**는 판단
  * (사용자, 2026-08-09). 남긴 것은 별밭 하나다. 이 도구의 중심은 그림이 아니라 **글자**이고,
  * 별밭은 그 사이에서 숨 돌리는 자리로만 남는다.
  *
  * 눈금과 종도 여기 있다. 둘은 글자 방송인데 글자로 그리면 망가져서(블록문자는 폰트마다
- * 칸이 어긋나고, 「BONG」은 적어 봐야 소리가 안 난다) 몸통만 캔버스로 옮긴 것이다.
+ * 칸이 어긋나고, BONG은 적어 봐야 소리가 안 난다) 몸통만 캔버스로 옮긴 것이다.
  *
  * 규칙 하나: `paint` 는 **순수 함수**다. 같은 난수 수열이면 같은 그림이 나와야 한다.
- * 시각·랜덤을 안에서 새로 뽑으면 되감기가 그 자리에서 거짓말이 된다.
+ * 시각, 랜덤을 안에서 새로 뽑으면 되감기가 그 자리에서 거짓말이 된다.
  */
 import type { Channel, Ink, Paint } from './core';
 import { MINUTE, rngFor } from './core';
@@ -18,7 +18,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 /* ── 붓 몇 자루 ────────────────────────────────────────────── */
 
-/** 색을 흐리게 — 테마 색을 그대로 쓰되 농도만 바꾼다(자체 hex 를 안 박기 위해). */
+/** 색을 흐리게. 테마 색을 그대로 쓰되 농도만 바꾼다(자체 hex 를 안 박기 위해). */
 function fade(c: CanvasRenderingContext2D, color: string, alpha: number): string {
   c.save();
   c.fillStyle = color;
@@ -35,7 +35,7 @@ function between(rand: () => number, lo: number, hi: number): number {
   return lo + rand() * (hi - lo);
 }
 
-/* ── 별밭 — @tiny_star_field ────────────────────────────────── */
+/* ── 별밭. @tiny_star_field ────────────────────────────────── */
 
 const starPaint =
   (count: number, nebula: boolean): Paint =>
@@ -67,7 +67,7 @@ const starPaint =
       c.beginPath();
       c.arc(x, y, r, 0, Math.PI * 2);
       c.fill();
-      /* 밝은 별 몇 개만 십자 광채 — 다 주면 별밭이 아니라 반짝이 종이가 된다. */
+      /* 밝은 별 몇 개만 십자 광채. 다 주면 별밭이 아니라 반짝이 종이가 된다. */
       if (bright > 0.93) {
         c.strokeStyle = fade(c, ink.fg, 0.5);
         c.lineWidth = 0.6;
@@ -102,7 +102,7 @@ export const starfield: Channel = {
   }
 };
 
-/** 눈금 막대 — 글자 대신 진짜 사각형. 칸이 어긋날 여지가 없다. */
+/** 눈금 막대. 글자 대신 진짜 사각형. 칸이 어긋날 여지가 없다. */
 export const gaugePaint =
   (rows: ReadonlyArray<readonly [string, number]>): Paint =>
   (c, w, h, _rand, ink) => {
@@ -137,7 +137,7 @@ export const gaugePaint =
     });
   };
 
-/** 종 — 시각 수만큼 파문이 퍼진다. 소리를 못 듣는 사람에게도 「몇 번」이 보이게. */
+/** 종. 시각 수만큼 파문이 퍼진다. 소리를 못 듣는 사람에게도 몇 번이 보이게. */
 export const bellPaint =
   (times: number): Paint =>
   (c, w, h, _rand, ink) => {
@@ -147,7 +147,7 @@ export const bellPaint =
     const cy = h * 0.56;
     const s = Math.min(w, h) * 0.2;
 
-    // 파문 — 친 횟수만큼
+    // 파문. 친 횟수만큼
     for (let i = 0; i < times; i++) {
       const rr = s * (1.15 + i * 0.42);
       c.strokeStyle = fade(c, ink.accent, 0.55 - i * 0.035);
@@ -157,7 +157,7 @@ export const bellPaint =
       c.stroke();
     }
 
-    // 종 몸통 — 위는 좁고 아래는 벌어진다
+    // 종 몸통. 위는 좁고 아래는 벌어진다
     c.fillStyle = fade(c, ink.fg, 0.85);
     c.beginPath();
     c.moveTo(cx - s * 0.72, cy + s * 0.62);

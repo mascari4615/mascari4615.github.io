@@ -1,12 +1,12 @@
 /**
  * 정규식을 사람 말과 그림으로 (TASK-KL-316 / 11)
  *
- * 정규식은 **읽는 게 어렵지 쓰는 게 어려운 게 아니다** — 남이 준 한 줄이 무엇을 잡는지
+ * 정규식은 **읽는 게 어렵지 쓰는 게 어려운 게 아니다**. 남이 준 한 줄이 무엇을 잡는지
  * 알아내려고 한 글자씩 짚어 보는 시간이 대부분이다. 여기서는 그 한 줄을 나무로 읽어
  * ① 조각마다 무슨 뜻인지 ② 철길 그림(왼→오로 흐르는 길)로 내놓는다.
  *
- * 말은 여기서 **짓지 않는다** — `Piece.kind` 만 돌려주고 문장은 화면(i18n)이 만든다.
- * 알맹이가 한국어 문장을 들고 있으면 영어·일본어 화면에서 한국어가 새어 나온다.
+ * 말은 여기서 **짓지 않는다**. `Piece.kind` 만 돌려주고 문장은 화면(i18n)이 만든다.
+ * 알맹이가 한국어 문장을 들고 있으면 영어, 일본어 화면에서 한국어가 새어 나온다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -31,13 +31,13 @@ export const spec: ToolSpec = {
 export type NodeKind =
   | 'literal'      // 글자 그대로
   | 'any'          // .
-  | 'class'        // [a-z] · \d · \w · \s
-  | 'group'        // ( … )
+  | 'class'        // [a-z], \d, \w, \s
+  | 'group'        // ( ... )
   | 'alt'          // a|b
   | 'seq'          // 이어 붙임
   | 'anchor'       // ^ $ \b
   | 'backref'      // \1
-  | 'look';        // (?= …) (?! …) (?<= …) (?<! …)
+  | 'look';        // (?= ...) (?! ...) (?<= ...) (?<! ...)
 
 export interface Quant {
   min: number;
@@ -48,13 +48,13 @@ export interface Quant {
 
 export interface Node {
   kind: NodeKind;
-  /** literal 의 글자 · class 의 속 · anchor 의 기호 */
+  /** literal 의 글자, class 의 속, anchor 의 기호 */
   text?: string;
-  /** group·look 의 이름 */
+  /** group, look 의 이름 */
   name?: string;
   /** 잡아 두는 묶음인가 (`(?:` 는 아니다) */
   capturing?: boolean;
-  /** look 의 방향·부정 */
+  /** look 의 방향, 부정 */
   ahead?: boolean;
   negate?: boolean;
   children?: Node[];
@@ -68,7 +68,7 @@ class Reader {
 
   parse(): Node {
     const node = this.alternation();
-    if (this.at < this.src.length) throw new Error('「' + this.src[this.at] + '」 에서 막혔습니다 (' + this.at + '번째)');
+    if (this.at < this.src.length) throw new Error('' + this.src[this.at] + ' 에서 막혔습니다 (' + this.at + '번째)');
     return node;
   }
 
@@ -210,13 +210,13 @@ export function parse(pattern: string): Node {
 export interface Piece {
   depth: number;
   kind: NodeKind;
-  /** 화면이 문장을 고르는 열쇠 — `class.digit` 처럼 */
+  /** 화면이 문장을 고르는 열쇠. `class.digit` 처럼 */
   what: string;
   /** 그 조각의 글자 (있으면) */
   text?: string;
   /** 몇 번 (`1..1` 이면 없음) */
   quant?: Quant;
-  /** 묶음 번호·이름 */
+  /** 묶음 번호, 이름 */
   name?: string;
   negate?: boolean;
   ahead?: boolean;
@@ -275,7 +275,7 @@ export function pieces(node: Node, depth = 0, out: Piece[] = []): Piece[] {
   }
 }
 
-/** 이어진 글자 조각을 한 덩이로 모은다 — 「a」「b」「c」 세 줄보다 「abc」 한 줄이 읽힌다. */
+/** 이어진 글자 조각을 한 덩이로 모은다. abc 세 줄보다 abc 한 줄이 읽힌다. */
 export function merged(list: Piece[]): Piece[] {
   const out: Piece[] = [];
   for (const p of list) {
@@ -330,7 +330,7 @@ function boxesOf(node: Node): Box[] {
     case 'class':
       return [{ label: node.text ?? '', ...quantMark(node.quant) }];
     case 'any':
-      /* 그림 속 글자는 **정규식 기호 그대로** 둔다 — 말은 화면(i18n)이 맡는다. */
+      /* 그림 속 글자는 **정규식 기호 그대로** 둔다. 말은 화면(i18n)이 맡는다. */
       return [{ label: '.', ...quantMark(node.quant) }];
     case 'anchor':
       return [{ label: node.text ?? '', ...quantMark(node.quant) }];

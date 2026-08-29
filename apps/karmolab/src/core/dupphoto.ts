@@ -1,14 +1,14 @@
 /**
  * 닮은 사진 묶기 (TASK-KL-316 / 30)
  *
- * 사진첩에서 지우고 싶은 건 **똑같은 파일**만이 아니다 — 연사로 찍은 열 장, 크기만 줄인 사본,
+ * 사진첩에서 지우고 싶은 건 **똑같은 파일**만이 아니다. 연사로 찍은 열 장, 크기만 줄인 사본,
  * 메신저로 오가며 다시 압축된 것들이 진짜 짐이다. 바이트가 다르니 파일 해시로는 하나도 안 묶인다.
  *
  * 그래서 **그림의 모양**을 64비트로 줄여 견준다(dHash: 옆 칸보다 밝은가만 남긴다).
- * 크기·압축이 달라져도 이 값은 거의 안 변하고, 다른 사진이면 크게 벌어진다.
+ * 크기, 압축이 달라져도 이 값은 거의 안 변하고, 다른 사진이면 크게 벌어진다.
  *
- * 지우는 일은 **우리가 안 한다** — 브라우저는 남의 폴더를 못 지우고, 지우는 건 되돌릴 수 없다.
- * 「어느 것을 남기면 되는지」만 말한다(가장 큰 판, 즉 가장 덜 상한 것).
+ * 지우는 일은 **우리가 안 한다**. 브라우저는 남의 폴더를 못 지우고, 지우는 건 되돌릴 수 없다.
+ * 어느 것을 남기면 되는지만 말한다(가장 큰 판, 즉 가장 덜 상한 것).
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -63,7 +63,7 @@ export function distance(a: bigint, b: bigint): number {
 
 export interface Photo {
   name: string;
-  /** 파일 크기(바이트) — 어느 것을 남길지 고를 때 쓴다 */
+  /** 파일 크기(바이트). 어느 것을 남길지 고를 때 쓴다 */
   size: number;
   hash: bigint;
   /** 픽셀 수 (알면 더 나은 판단) */
@@ -84,7 +84,7 @@ export interface Group {
 }
 
 /**
- * 닮은 것끼리 묶는다. **이어짐으로 묶는다**(A~B, B~C 면 셋이 한 묶음) —
+ * 닮은 것끼리 묶는다. **이어짐으로 묶는다**(A~B, B~C 면 셋이 한 묶음) . 
  * 연사 사진은 한쪽 끝과 다른 끝이 꽤 다르지만 사람에게는 한 덩어리다.
  */
 export function group(photos: Photo[], threshold = 6): Group[] {
@@ -132,7 +132,7 @@ export function group(photos: Photo[], threshold = 6): Group[] {
     for (const one of list) for (const two of list) spread = Math.max(spread, distance(one.hash, two.hash));
     out.push({ keep, others, spread, saved: others.reduce((sum, p) => sum + p.size, 0) });
   }
-  /* 많이 줄어드는 묶음부터 — 사람이 위에서부터 지우면 된다 */
+  /* 많이 줄어드는 묶음부터. 사람이 위에서부터 지우면 된다 */
   return out.sort((a, b) => b.saved - a.saved);
 }
 
@@ -145,6 +145,6 @@ export const run: ToolRunner = (op) => {
   return [
     'Groups photos that look alike using a 64-bit difference hash, not the file bytes,',
     'so resized and re-compressed copies still land in the same group.',
-    'It never deletes anything — it only says which copy is worth keeping.'
+    'It never deletes anything. it only says which copy is worth keeping.'
   ].join('\n');
 };

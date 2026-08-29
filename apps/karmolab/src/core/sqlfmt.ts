@@ -1,12 +1,12 @@
 /**
- * SQL 을 보기 좋게 · 다른 DB 말로 (TASK-KL-316 / 8)
+ * SQL 을 보기 좋게, 다른 DB 말로 (TASK-KL-316 / 8)
  *
  * 한 줄로 눌려 온 SQL 은 **어디가 어디에 걸리는지**가 안 보인다. 여기서는 낱말로 자른 뒤
- * 「줄을 바꾸는 낱말」에서만 줄을 바꾸고 괄호 깊이만큼 들여쓴다 — 예쁘게가 아니라 **읽히게**.
+ * 줄을 바꾸는 낱말에서만 줄을 바꾸고 괄호 깊이만큼 들여쓴다. 예쁘게가 아니라 **읽히게**.
  *
- * 하나 더: 같은 뜻인데 DB 마다 다르게 쓰는 것들(따옴표·LIMIT/TOP·AUTO_INCREMENT·NOW())을
- * 옮겨 준다. **완전한 번역기가 아니다** — 옮긴 자리는 `notes` 로 돌려주고 화면에 같이 보여 준다.
- * 옮겨 놓고 말 안 하면 「됐겠지」 하고 그대로 돌리다 사고가 난다.
+ * 하나 더: 같은 뜻인데 DB 마다 다르게 쓰는 것들(따옴표, LIMIT/TOP, AUTO_INCREMENT, NOW())을
+ * 옮겨 준다. **완전한 번역기가 아니다**. 옮긴 자리는 `notes` 로 돌려주고 화면에 같이 보여 준다.
+ * 옮겨 놓고 말 안 하면 됐겠지 하고 그대로 돌리다 사고가 난다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -41,7 +41,7 @@ const KEYWORDS = new Set([
   'begin', 'commit', 'rollback', 'if', 'top', 'fetch', 'next', 'rows', 'only'
 ]);
 
-/** 이 낱말들 앞에서 줄을 바꾼다 — 절이 시작되는 자리 */
+/** 이 낱말들 앞에서 줄을 바꾼다. 절이 시작되는 자리 */
 const BREAK_BEFORE = new Set([
   'select', 'from', 'where', 'group', 'having', 'order', 'limit', 'offset', 'union', 'values', 'set',
   'join', 'inner', 'left', 'right', 'full', 'cross', 'on', 'returning'
@@ -137,7 +137,7 @@ export function format(sql: string, opts: FormatOpts = {}): string {
   const rows: string[] = [];
   let line = '';
   let depth = 0;
-  /* 괄호를 열 때의 깊이를 쌓아 둔다 — 닫을 때 그 자리로 돌아가려고 */
+  /* 괄호를 열 때의 깊이를 쌓아 둔다. 닫을 때 그 자리로 돌아가려고 */
   const opened: number[] = [];
 
   const flush = (): void => {
@@ -160,7 +160,7 @@ export function format(sql: string, opts: FormatOpts = {}): string {
     if (tk.t === 'punct' && tk.v === '(') {
       line += '(';
       opened.push(depth);
-      /* 뒤에 `SELECT` 가 오면 진짜 덩어리다 — 줄을 바꾸고 들여쓴다.
+      /* 뒤에 `SELECT` 가 오면 진짜 덩어리다. 줄을 바꾸고 들여쓴다.
          `count(...)` 같은 함수 괄호는 그대로 붙여 둔다(줄을 바꾸면 오히려 안 읽힌다). */
       if (next !== undefined && next.t === 'word' && next.v.toLowerCase() === 'select') {
         flush();
@@ -179,7 +179,7 @@ export function format(sql: string, opts: FormatOpts = {}): string {
     }
     if (tk.t === 'punct' && tk.v === ',') {
       line += ',';
-      /* 값 목록 `(1,2,3)` 은 한 줄에 둔다 — 괄호 안에서는 줄을 안 바꾼다 */
+      /* 값 목록 `(1,2,3)` 은 한 줄에 둔다. 괄호 안에서는 줄을 안 바꾼다 */
       if (opened.length === 0) flush();
       continue;
     }
@@ -210,7 +210,7 @@ export function format(sql: string, opts: FormatOpts = {}): string {
 
 export interface DialectResult {
   sql: string;
-  /** 무엇을 어떻게 옮겼나 — 화면에 그대로 보여 준다 */
+  /** 무엇을 어떻게 옮겼나. 화면에 그대로 보여 준다 */
   notes: string[];
 }
 
@@ -235,11 +235,11 @@ export function toDialect(sql: string, from: Dialect, to: Dialect): DialectResul
     const re = new RegExp('\\' + open + '([^' + (close === ']' ? '\\]' : '\\' + close) + ']+)\\' + (close === ']' ? ']' : close), 'g');
     if (re.test(out)) {
       out = out.replace(new RegExp(re.source, 'g'), (_m, name: string) => QUOTE_OPEN[to] + name + QUOTE_CLOSE[to]);
-      notes.push('이름을 감싸는 기호를 ' + open + '…' + close + ' → ' + QUOTE_OPEN[to] + '…' + QUOTE_CLOSE[to] + ' 로 바꿨습니다');
+      notes.push('이름을 감싸는 기호를 ' + open + '...' + close + ' → ' + QUOTE_OPEN[to] + '...' + QUOTE_CLOSE[to] + ' 로 바꿨습니다');
     }
   }
 
-  // ② 몇 줄만 가져오기 — LIMIT / TOP / FETCH
+  // ② 몇 줄만 가져오기. LIMIT / TOP / FETCH
   const limit = /\blimit\s+(\d+)(?:\s+offset\s+(\d+))?/i.exec(out);
   if (limit !== null && to === 'mssql') {
     out = out.replace(limit[0], '').trim();
@@ -248,7 +248,7 @@ export function toDialect(sql: string, from: Dialect, to: Dialect): DialectResul
       notes.push('LIMIT ' + limit[1] + ' → SELECT TOP ' + limit[1]);
     } else {
       out = out + ' OFFSET ' + limit[2] + ' ROWS FETCH NEXT ' + limit[1] + ' ROWS ONLY';
-      notes.push('LIMIT/OFFSET → OFFSET … FETCH NEXT (ORDER BY 가 있어야 돕니다)');
+      notes.push('LIMIT/OFFSET → OFFSET ... FETCH NEXT (ORDER BY 가 있어야 돕니다)');
     }
   }
   const top = /\bselect\s+top\s+(\d+)/i.exec(out);
@@ -285,12 +285,12 @@ export function toDialect(sql: string, from: Dialect, to: Dialect): DialectResul
     }
   }
 
-  // ⑤ 글자 잇기 연산자 — MySQL 의 || 는 「또는」이라 그대로 두면 뜻이 달라진다
+  // ⑤ 글자 잇기 연산자. MySQL 의 || 는 또는이라 그대로 두면 뜻이 달라진다
   if (from !== 'mysql' && to === 'mysql' && out.includes('||')) {
-    notes.push('⚠ `||` 는 MySQL 에서 「또는」으로 읽힙니다 — 글자를 잇는 뜻이면 CONCAT() 으로 손봐야 합니다 (그대로 뒀습니다)');
+    notes.push('⚠ `||` 는 MySQL 에서 또는으로 읽힙니다. 글자를 잇는 뜻이면 CONCAT() 으로 손봐야 합니다 (그대로 뒀습니다)');
   }
 
-  if (notes.length === 0) notes.push('바꿀 것이 없었습니다 — 두 말이 같은 표현을 씁니다');
+  if (notes.length === 0) notes.push('바꿀 것이 없었습니다. 두 말이 같은 표현을 씁니다');
   return { sql: out, notes };
 }
 

@@ -1,9 +1,9 @@
 /**
- * TASK-KL-196 E — 말로 부리기 시험.
+ * TASK-KL-196 E. 말로 부리기 시험.
  *
  * 제일 중요한 것: **모델이 지어낸 도구로 사람을 보내지 않는 것**. 그럴듯한 id 를 그대로
- * 열면 없는 화면으로 떨어지고, 그 순간 이 기능은 「가끔 엉뚱한 데로 보내는 것」이 된다.
- * 그다음이 아끼기 — 같은 물음을 두 번 묻지 않고, 「없다」도 기억한다.
+ * 열면 없는 화면으로 떨어지고, 그 순간 이 기능은 가끔 엉뚱한 데로 보내는 것이 된다.
+ * 그다음이 아끼기. 같은 물음을 두 번 묻지 않고, 없다도 기억한다.
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -18,12 +18,12 @@ import {
 } from './karmolab-route';
 
 const items = [
-  { id: 'charcount', title: 'charcount', lead: '글자수·단어·바이트' },
+  { id: 'charcount', title: 'charcount', lead: '글자수, 단어, 바이트' },
   { id: 'bgremove', title: 'bgremove', lead: '사진 배경 지우기' },
 ];
 
 describe('물음 정규화', () => {
-  it('띄어쓰기·대소문자·물음표를 같은 것으로 본다', () => {
+  it('띄어쓰기, 대소문자, 물음표를 같은 것으로 본다', () => {
     expect(normalizeQuery('  배경   지워줘? ')).toBe('배경 지워줘');
     expect(normalizeQuery('Background REMOVE!')).toBe('background remove');
   });
@@ -37,11 +37,11 @@ describe('모델 답 읽기', () => {
     });
   });
 
-  it('지어낸 id 는 버린다 — 없는 화면으로 보내지 않는다', () => {
+  it('지어낸 id 는 버린다. 없는 화면으로 보내지 않는다', () => {
     expect(parsePick('{"toolId":"magic-eraser","why":"쓱"}', items)).toBeNull();
   });
 
-  it('none 은 「못 골랐다」다', () => {
+  it('none 은 못 골랐다다', () => {
     expect(parsePick('{"toolId":"none","why":""}', items)).toBeNull();
   });
 
@@ -53,7 +53,7 @@ describe('모델 답 읽기', () => {
     expect(parsePick('bgremove 를 쓰세요', items)).toBeNull();
   });
 
-  it('이유는 잘라 담는다 — 화면 한 줄을 넘기지 않는다', () => {
+  it('이유는 잘라 담는다. 화면 한 줄을 넘기지 않는다', () => {
     const long = 'ㄱ'.repeat(200);
     expect(parsePick(`{"toolId":"charcount","why":"${long}"}`, items)?.why.length).toBe(60);
   });
@@ -69,7 +69,7 @@ describe('시키는 말', () => {
 });
 
 describe('아끼기', () => {
-  it('같은 물음은 한 번만 — 「없다」도 기억한다', () => {
+  it('같은 물음은 한 번만. 없다도 기억한다', () => {
     const memory = new RouteMemory();
     expect(memory.get('배경 지워줘').hit).toBe(false);
     memory.put('배경 지워줘', null);
@@ -89,10 +89,10 @@ describe('아끼기', () => {
   it('하루 상한이 있다', () => {
     const memory = new RouteMemory();
     /* ★ **자정 근처에만 빨개진다** (2026-08-16 23:58 KST 실측). 이 판은 65번을 3초씩 앞으로
-       밀며 센다 — 합쳐 3분 남짓이다. 그런데 상한은 **한국 날짜**로 세므로, `Date.now()` 로
+       밀며 센다. 합쳐 3분 남짓이다. 그런데 상한은 **한국 날짜**로 세므로, `Date.now()` 로
        시작하면 자정 직전에 돌릴 때 그 3분 사이에 **날이 바뀌어 세던 수가 0으로 돌아간다**.
-       그러면 막혀야 할 자리가 안 막히고 「거짓 빨강」이 난다(제품은 멀쩡).
-       재는 자가 벽시계에 흔들리면 안 된다 — **한낮으로 못 박는다**. */
+       그러면 막혀야 할 자리가 안 막히고 거짓 빨강이 난다(제품은 멀쩡).
+       재는 자가 벽시계에 흔들리면 안 된다. **한낮으로 못 박는다**. */
     let now = Date.UTC(2026, 0, 15, 3, 0, 0); // 한국 시각 정오
     for (let i = 0; i < DAILY_LIMIT + 5; i++) {
       memory.allow('b', now);
@@ -110,7 +110,7 @@ describe('아끼기', () => {
 });
 
 describe('도구 목록', () => {
-  it('못 받아 오면 빈 배열 — 이 기능만 조용히 없어진다', async () => {
+  it('못 받아 오면 빈 배열. 이 기능만 조용히 없어진다', async () => {
     setCatalogForTest(null);
     const fake = (async () => ({ ok: false })) as unknown as typeof fetch;
     expect(await loadCatalog(Date.now(), fake)).toEqual([]);

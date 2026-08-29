@@ -1,7 +1,7 @@
 {
   "pick.ph.list": "가나\\n다라\\n마바\\n사아",
   "pick.label.count": "몇 명 뽑을까요",
-  "pick.label.list": "명단 — 한 줄에 하나",
+  "pick.label.list": "명단. 한 줄에 하나",
   "pick.mode.pick": "뽑기",
   "pick.mode.team": "팀 나누기",
   "pick.mode.order": "순서 정하기",

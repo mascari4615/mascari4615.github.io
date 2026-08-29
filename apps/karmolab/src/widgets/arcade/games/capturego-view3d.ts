@@ -1,7 +1,7 @@
 /**
- * 따내기 바둑 — 입체 화면
+ * 따내기 바둑. 입체 화면
  *
- * 바둑이므로 **교차점**에 둔다(오목과 같다). 점수줄과 「넘기기」는 판 밖에 둔다 —
+ * 바둑이므로 **교차점**에 둔다(오목과 같다). 점수줄과 넘기기는 판 밖에 둔다 . 
  * 3D 판 위에 글자를 얹으면 각도 따라 읽히지 않는다.
  */
 import type { GameView } from '../views';
@@ -41,7 +41,7 @@ export const view3d: GameView<GoState, GoAction> = {
           const who = s.board[i];
           if (who) stones.push({ cell: i, who, last: i === s.last });
         }
-        /* 「둘 수 있는 자리」는 빈 곳 대부분이라 안 그린다 — 판이 온통 점이 된다.
+        /* 둘 수 있는 자리는 빈 곳 대부분이라 안 그린다. 판이 온통 점이 된다.
            못 두는 자리(자충)는 눌러도 커널이 막는다. */
         board.place(stones);
         host.classList.toggle('ac-waiting', !myTurn);
@@ -54,7 +54,7 @@ export const view3d: GameView<GoState, GoAction> = {
         .join('');
       pass.textContent = t('arcade.go.pass');
       pass.disabled = !myTurn;
-      /* 자충인지 여부는 커널만 안다 — 화면은 「내 차례인가」까지만 본다(`tryPlay` 로 미리 재지 않는다). */
+      /* 자충인지 여부는 커널만 안다. 화면은 내 차례인가까지만 본다(`tryPlay` 로 미리 재지 않는다). */
       void tryPlay;
     };
   }

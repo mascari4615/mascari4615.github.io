@@ -8,14 +8,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "네트워크가 어려운 진짜 이유는 **한 번에 다 보려 하기 때문**이다 — 전선의 전기 신호부터 HTTP 헤더까지 동시에 생각하면 머리가 터진다. **계층(layer)**은 「이번엔 이 층만 본다」는 약속이다. 각 층은 자기 일만 하고, 아래·위 층의 세부를 몰라도 된다. 이 「나눠 보기」가 네트워크를 다룰 수 있게 만든다."
+          "text": "네트워크가 어려운 진짜 이유는 **한 번에 다 보려 하기 때문**이다. 전선의 전기 신호부터 HTTP 헤더까지 동시에 생각하면 머리가 터진다. **계층(layer)**은 이번엔 이 층만 본다는 약속이다. 각 층은 자기 일만 하고, 아래, 위 층의 세부를 몰라도 된다. 이 나눠 보기가 네트워크를 다룰 수 있게 만든다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "한 번에 다 vs 한 층씩",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const layered = mode === 'layer';\n  render(layered ? '한 층씩 본다' : '한 번에 다 본다',\n    (layered\n      ? '  「지금은 HTTP 만」 — 그 아래(TCP·IP·전선)는 잘 돈다고 믿고 안 본다.\\n' +\n        '  <span class=\\\"ok\\\">한 층에 집중 — 다룰 수 있는 크기로 줄어든다.</span>'\n      : '  HTTP 헤더 + TCP 재전송 + IP 라우팅 + 이더넷 프레임 + 전기 신호 동시에\\n' +\n        '  <span class=\\\"no\\\">한 번에 다 — 인지 과부하. 어디가 문제인지도 못 짚는다.</span>'),\n    '계층은 「이번엔 이 층만 본다」는 약속. 나눠 봐야 네트워크를 다룰 수 있다.',\n    stack(layered\n      ? [['앱: HTTP (지금 이것만)', 'on'], ['전송: TCP', 'dim'], ['인터넷: IP', 'dim'], ['링크: 이더넷/와이파이', 'dim']]\n      : [['앱: HTTP', 'on'], ['전송: TCP', 'on'], ['인터넷: IP', 'on'], ['링크: 이더넷/와이파이', 'on']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const layered = mode === 'layer';\n  render(layered ? '한 층씩 본다' : '한 번에 다 본다',\n    (layered\n      ? '  지금은 HTTP 만. 그 아래(TCP, IP, 전선)는 잘 돈다고 믿고 안 본다.\\n' +\n        '  <span class=\\\"ok\\\">한 층에 집중. 다룰 수 있는 크기로 줄어든다.</span>'\n      : '  HTTP 헤더 + TCP 재전송 + IP 라우팅 + 이더넷 프레임 + 전기 신호 동시에\\n' +\n        '  <span class=\\\"no\\\">한 번에 다. 인지 과부하. 어디가 문제인지도 못 짚는다.</span>'),\n    '계층은 이번엔 이 층만 본다는 약속. 나눠 봐야 네트워크를 다룰 수 있다.',\n    stack(layered\n      ? [['앱: HTTP (지금 이것만)', 'on'], ['전송: TCP', 'dim'], ['인터넷: IP', 'dim'], ['링크: 이더넷/와이파이', 'dim']]\n      : [['앱: HTTP', 'on'], ['전송: TCP', 'on'], ['인터넷: IP', 'on'], ['링크: 이더넷/와이파이', 'on']]));\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**계층은 「관심사의 분리」의 네트워크 판이다(design-coupling·boundary).** 각 층이 한 가지 관심사(앱은 의미, 전송은 신뢰성, 인터넷은 경로, 링크는 물리 전달)만 맡고, 층 사이는 좁은 계약으로만 소통한다. 소프트웨어의 모듈 경계와 똑같은 원리 — 복잡함을 나눠, 한 조각씩 이해·교체·진단할 수 있게 한다."
+          "text": "**계층은 관심사의 분리의 네트워크 판이다(design-coupling, boundary).** 각 층이 한 가지 관심사(앱은 의미, 전송은 신뢰성, 인터넷은 경로, 링크는 물리 전달)만 맡고, 층 사이는 좁은 계약으로만 소통한다. 소프트웨어의 모듈 경계와 똑같은 원리. 복잡함을 나눠, 한 조각씩 이해, 교체, 진단할 수 있게 한다."
         },
         {
           "type": "p",
-          "text": "**모델은 여럿이지만(OSI 7계층, TCP/IP 4계층) 발상은 하나다.** 교과서의 OSI 7계층을 외울 필요는 없다 — 실무는 **앱·전송·인터넷·링크** 네 층으로 충분하다(2장). 중요한 건 층의 개수가 아니라 「각 층은 자기 일만, 아래·위는 몰라도 된다」는 **약속**이다. 그 약속이 왜 값어치 있는지(4장)를 이해하는 게 핵심이다."
+          "text": "**모델은 여럿이지만(OSI 7계층, TCP/IP 4계층) 발상은 하나다.** 교과서의 OSI 7계층을 외울 필요는 없다. 실무는 **앱, 전송, 인터넷, 링크** 네 층으로 충분하다(2장). 중요한 건 층의 개수가 아니라 각 층은 자기 일만, 아래, 위는 몰라도 된다는 **약속**이다. 그 약속이 왜 값어치 있는지(4장)를 이해하는 게 핵심이다."
         },
         {
           "type": "try",
-          "text": "최근 겪은 「연결 안 됨」 사건 하나를 떠올려, 실은 어느 한 층의 문제였는지 적어라. 그때 다른 층을 얼마나 헤맸는지도 — 층으로 나눴다면 얼마나 빨랐을지 상상하라."
+          "text": "최근 겪은 연결 안 됨 사건 하나를 떠올려, 실은 어느 한 층의 문제였는지 적어라. 그때 다른 층을 얼마나 헤맸는지도. 층으로 나눴다면 얼마나 빨랐을지 상상하라."
         }
       ],
       "quiz": [
@@ -53,7 +53,7 @@
           "q": "계층(layer)이란?",
           "choices": [
             "빠른 회선",
-            "「이번엔 이 층만 본다」는 약속(관심사 분리)",
+            "이번엔 이 층만 본다는 약속(관심사 분리)",
             "암호화",
             "포트"
           ],
@@ -64,7 +64,7 @@
           "q": "계층이 소프트웨어 설계와 통하는 점은?",
           "choices": [
             "무관",
-            "관심사의 분리·모듈 경계(coupling·boundary)와 같은 원리",
+            "관심사의 분리, 모듈 경계(coupling, boundary)와 같은 원리",
             "속도",
             "문법"
           ],
@@ -75,7 +75,7 @@
           "q": "실무에서 중요한 것은?",
           "choices": [
             "OSI 7계층 암기",
-            "층은 자기 일만·아래위 몰라도 된다는 약속",
+            "층은 자기 일만, 아래위 몰라도 된다는 약속",
             "층 개수",
             "모델 이름"
           ],
@@ -86,19 +86,19 @@
     },
     {
       "id": "2",
-      "title": "층 나누기 — 실용판 네 층",
+      "title": "층 나누기. 실용판 네 층",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "실무에 필요한 건 **네 층**이다. **앱**(HTTP·DNS·TLS — 내가 짠 코드가 사는 곳) · **전송**(TCP·UDP — 신뢰성) · **인터넷**(IP — 경로 찾기) · **링크**(이더넷·와이파이 — 옆 기계로 전달). 위로 갈수록 「의미」에, 아래로 갈수록 「전달」에 가깝다. 내 코드는 대개 맨 위 앱 층에 산다."
+          "text": "실무에 필요한 건 **네 층**이다. **앱**(HTTP, DNS, TLS. 내가 짠 코드가 사는 곳), **전송**(TCP, UDP. 신뢰성), **인터넷**(IP. 경로 찾기), **링크**(이더넷, 와이파이. 옆 기계로 전달). 위로 갈수록 의미에, 아래로 갈수록 전달에 가깝다. 내 코드는 대개 맨 위 앱 층에 산다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "각 층 — 무슨 일을 하나",
+          "label": "각 층. 무슨 일을 하나",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const l = '{{layer}}';\n  const cases = {\n    app:    ['앱', 'HTTP · DNS · TLS', '데이터의 의미 — 내가 짠 코드가 사는 곳'],\n    transport:['전송', 'TCP · UDP', '신뢰성/순서 — 빠짐없이냐 즉시냐(net-tcp-udp)'],\n    internet:['인터넷', 'IP', '수많은 네트워크를 건너 경로 찾기(라우팅)'],\n    link:   ['링크', '이더넷 · 와이파이', '바로 옆 기계로 프레임 전달(물리에 가까움)'],\n  }[l];\n  const order = ['app','transport','internet','link'];\n  render('층: ' + cases[0] + ' (' + cases[1] + ')',\n    '  하는 일: ' + cases[2] + '\\n\\n  위로 갈수록 의미, 아래로 갈수록 전달. 내 코드는 대개 앱 층.',\n    '앱(HTTP)·전송(TCP)·인터넷(IP)·링크(이더넷) — 실무는 이 네 층.',\n    stack(order.map(o => [\n      {app:'앱: HTTP·DNS·TLS', transport:'전송: TCP·UDP', internet:'인터넷: IP', link:'링크: 이더넷·와이파이'}[o],\n      o === l ? 'on' : 'dim'])));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const l = '{{layer}}';\n  const cases = {\n    app:    ['앱', 'HTTP, DNS, TLS', '데이터의 의미. 내가 짠 코드가 사는 곳'],\n    transport:['전송', 'TCP, UDP', '신뢰성/순서. 빠짐없이냐 즉시냐(net-tcp-udp)'],\n    internet:['인터넷', 'IP', '수많은 네트워크를 건너 경로 찾기(라우팅)'],\n    link:   ['링크', '이더넷, 와이파이', '바로 옆 기계로 프레임 전달(물리에 가까움)'],\n  }[l];\n  const order = ['app','transport','internet','link'];\n  render('층: ' + cases[0] + ' (' + cases[1] + ')',\n    '  하는 일: ' + cases[2] + '\\n\\n  위로 갈수록 의미, 아래로 갈수록 전달. 내 코드는 대개 앱 층.',\n    '앱(HTTP), 전송(TCP), 인터넷(IP), 링크(이더넷). 실무는 이 네 층.',\n    stack(order.map(o => [\n      {app:'앱: HTTP, DNS, TLS', transport:'전송: TCP, UDP', internet:'인터넷: IP', link:'링크: 이더넷, 와이파이'}[o],\n      o === l ? 'on' : 'dim'])));\n</script>",
           "controls": [
             {
               "id": "layer",
@@ -129,20 +129,20 @@
         {
           "type": "code",
           "lang": "text",
-          "label": "층 나누기 — 실용판",
-          "text": "앱   : HTTP · DNS · TLS      ← 내가 짠 코드가 사는 곳 (의미)\n전송 : TCP · UDP            ← 빠짐없이/순서 or 즉시 (신뢰성)\n인터넷: IP                  ← 여러 네트워크를 건너 경로 찾기\n링크 : 이더넷 · 와이파이     ← 바로 옆 기계로 전달 (물리에 가까움)\n\n=> 위로 갈수록 「무엇을」(의미), 아래로 갈수록 「어떻게 전달」."
+          "label": "층 나누기. 실용판",
+          "text": "앱   : HTTP, DNS, TLS      ← 내가 짠 코드가 사는 곳 (의미)\n전송 : TCP, UDP            ← 빠짐없이/순서 or 즉시 (신뢰성)\n인터넷: IP                  ← 여러 네트워크를 건너 경로 찾기\n링크 : 이더넷, 와이파이     ← 바로 옆 기계로 전달 (물리에 가까움)\n\n=> 위로 갈수록 무엇을(의미), 아래로 갈수록 어떻게 전달."
         },
         {
           "type": "note",
-          "text": "**층마다 「단위」의 이름이 다르다.** 앱은 메시지, 전송은 세그먼트(TCP)/데이터그램(UDP), 인터넷은 패킷, 링크는 프레임. 같은 데이터가 각 층을 지날 때 그 층의 봉투에 담기며 이름이 바뀐다(5장 캡슐화). 이름은 외울 필요 없지만, 「같은 데이터가 층마다 다른 껍질을 쓴다」는 그림은 알아 두면 진단이 쉬워진다."
+          "text": "**층마다 단위의 이름이 다르다.** 앱은 메시지, 전송은 세그먼트(TCP)/데이터그램(UDP), 인터넷은 패킷, 링크는 프레임. 같은 데이터가 각 층을 지날 때 그 층의 봉투에 담기며 이름이 바뀐다(5장 캡슐화). 이름은 외울 필요 없지만, 같은 데이터가 층마다 다른 껍질을 쓴다는 그림은 알아 두면 진단이 쉬워진다."
         },
         {
           "type": "p",
-          "text": "**앱 층 안에도 순서가 있다: 이름(DNS) → 보안(TLS) → 의미(HTTP).** 브라우저가 `https://ex.com` 을 열 때, 먼저 DNS 로 이름을 IP 로 바꾸고(net-dns), TLS 로 보안 채널을 열고(net-tls), 그 위에서 HTTP 로 대화한다. 이들이 다 앱 층에 살지만 서로 다른 관심사다 — 앱 층 하나도 다시 나눠 볼 수 있다(계층은 프랙탈처럼 겹친다)."
+          "text": "**앱 층 안에도 순서가 있다: 이름(DNS) → 보안(TLS) → 의미(HTTP).** 브라우저가 `https://ex.com` 을 열 때, 먼저 DNS 로 이름을 IP 로 바꾸고(net-dns), TLS 로 보안 채널을 열고(net-tls), 그 위에서 HTTP 로 대화한다. 이들이 다 앱 층에 살지만 서로 다른 관심사다. 앱 층 하나도 다시 나눠 볼 수 있다(계층은 프랙탈처럼 겹친다)."
         },
         {
           "type": "try",
-          "text": "네가 짠 코드가 주로 어느 층에 있는지 확인하라(대개 앱 층 — HTTP 요청·응답). 그 아래(TCP·IP·링크)는 라이브러리·OS·네트워크가 처리한다는 걸 인식하라."
+          "text": "네가 짠 코드가 주로 어느 층에 있는지 확인하라(대개 앱 층. HTTP 요청, 응답). 그 아래(TCP, IP, 링크)는 라이브러리, OS, 네트워크가 처리한다는 걸 인식하라."
         }
       ],
       "quiz": [
@@ -150,7 +150,7 @@
           "q": "실무의 네 층은?",
           "choices": [
             "7계층",
-            "앱·전송·인터넷·링크",
+            "앱, 전송, 인터넷, 링크",
             "3계층",
             "물리만"
           ],
@@ -161,7 +161,7 @@
           "q": "내가 짠 코드가 대개 사는 층은?",
           "choices": [
             "링크",
-            "앱(HTTP·DNS·TLS)",
+            "앱(HTTP, DNS, TLS)",
             "인터넷",
             "전송"
           ],
@@ -169,12 +169,12 @@
           "why": "의미를 다룬다."
         },
         {
-          "q": "위로 갈수록·아래로 갈수록?",
+          "q": "위로 갈수록, 아래로 갈수록?",
           "choices": [
-            "빠름·느림",
-            "의미·전달(위=무엇을, 아래=어떻게)",
-            "암호·평문",
-            "크다·작다"
+            "빠름, 느림",
+            "의미, 전달(위=무엇을, 아래=어떻게)",
+            "암호, 평문",
+            "크다, 작다"
           ],
           "answer": 1,
           "why": "관심사가 다르다."
@@ -188,14 +188,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "각 층은 자기만의 **주소 체계**로 「누구에게」를 정한다. 앱은 **도메인 이름**(ex.com), 전송은 **포트**(:443), 인터넷은 **IP**(203.0.113.10), 링크는 **MAC**(하드웨어 주소). 한 통신은 이 주소들이 겹겹이 쌓여 「이 기계의(IP) 이 서비스로(포트), 이름은(도메인), 바로 옆 기계는(MAC)」을 함께 표현한다."
+          "text": "각 층은 자기만의 **주소 체계**로 누구에게를 정한다. 앱은 **도메인 이름**(ex.com), 전송은 **포트**(:443), 인터넷은 **IP**(203.0.113.10), 링크는 **MAC**(하드웨어 주소). 한 통신은 이 주소들이 겹겹이 쌓여 이 기계의(IP) 이 서비스로(포트), 이름은(도메인), 바로 옆 기계는(MAC)을 함께 표현한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "주소 — 어느 층이 정하나",
+          "label": "주소. 어느 층이 정하나",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const l = '{{layer}}';\n  const cases = {\n    name: ['도메인 이름 (ex.com)', '앱', '사람이 읽는 이름 → DNS 가 IP 로 바꿈(net-dns)'],\n    port: ['포트 (:443)', '전송', '같은 기계의 어느 서비스인가(net-tcp-udp 7장)'],\n    ip:   ['IP (203.0.113.10)', '인터넷', '인터넷 상의 어느 기계인가 — 경로 찾기의 목적지'],\n    mac:  ['MAC (하드웨어 주소)', '링크', '바로 옆(같은 네트워크) 어느 장치인가'],\n  }[l];\n  render('주소: ' + cases[0],\n    '  정하는 층: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n  뜻: ' + cases[2] + '\\n\\n' +\n    '  이름(앱) → IP(인터넷) → 포트(전송) → MAC(링크) 가 겹쳐 「누구에게」를 완성한다.',\n    '층마다 주소가 다르다 — 도메인(앱)·포트(전송)·IP(인터넷)·MAC(링크).',\n    stack([\n      ['앱: 도메인 ex.com', l==='name'?'on':'dim'],\n      ['전송: 포트 :443', l==='port'?'on':'dim'],\n      ['인터넷: IP 203.0.113.10', l==='ip'?'on':'dim'],\n      ['링크: MAC aa:bb:cc:...', l==='mac'?'on':'dim']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const l = '{{layer}}';\n  const cases = {\n    name: ['도메인 이름 (ex.com)', '앱', '사람이 읽는 이름 → DNS 가 IP 로 바꿈(net-dns)'],\n    port: ['포트 (:443)', '전송', '같은 기계의 어느 서비스인가(net-tcp-udp 7장)'],\n    ip:   ['IP (203.0.113.10)', '인터넷', '인터넷 상의 어느 기계인가. 경로 찾기의 목적지'],\n    mac:  ['MAC (하드웨어 주소)', '링크', '바로 옆(같은 네트워크) 어느 장치인가'],\n  }[l];\n  render('주소: ' + cases[0],\n    '  정하는 층: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n  뜻: ' + cases[2] + '\\n\\n' +\n    '  이름(앱) → IP(인터넷) → 포트(전송) → MAC(링크) 가 겹쳐 누구에게를 완성한다.',\n    '층마다 주소가 다르다. 도메인(앱), 포트(전송), IP(인터넷), MAC(링크).',\n    stack([\n      ['앱: 도메인 ex.com', l==='name'?'on':'dim'],\n      ['전송: 포트 :443', l==='port'?'on':'dim'],\n      ['인터넷: IP 203.0.113.10', l==='ip'?'on':'dim'],\n      ['링크: MAC aa:bb:cc:...', l==='mac'?'on':'dim']]));\n</script>",
           "controls": [
             {
               "id": "layer",
@@ -225,15 +225,15 @@
         },
         {
           "type": "note",
-          "text": "**주소가 층마다 다른 덕에 각 층이 독립적으로 진화한다.** 도메인이 같아도 IP 는 바뀔 수 있고(DNS 로 갈아 끼움), IP 가 같아도 포트로 여러 서비스가 산다. MAC 은 그 기계의 물리 장치를 가리켜 같은 네트워크 안에서만 쓰인다 — 인터넷을 건널 땐 IP 로, 마지막 한 홉은 MAC 으로. 각 주소가 자기 범위에서 「누구」를 답한다."
+          "text": "**주소가 층마다 다른 덕에 각 층이 독립적으로 진화한다.** 도메인이 같아도 IP 는 바뀔 수 있고(DNS 로 갈아 끼움), IP 가 같아도 포트로 여러 서비스가 산다. MAC 은 그 기계의 물리 장치를 가리켜 같은 네트워크 안에서만 쓰인다. 인터넷을 건널 땐 IP 로, 마지막 한 홉은 MAC 으로. 각 주소가 자기 범위에서 누구를 답한다."
         },
         {
           "type": "p",
-          "text": "**이름 → IP 변환(DNS)이 앱 층의 첫 단계다.** 사람은 `ex.com` 을 기억하고 기계는 IP 로 통신하니, 그 사이를 잇는 것이 DNS(net-dns)다. 「도메인은 되는데 IP 로는 되고 안 되고」가 갈리면 DNS 문제, 「IP 로도 안 되면」 더 아래층 문제 — 주소 체계를 알면 어느 층을 의심할지 바로 좁혀진다(6장)."
+          "text": "**이름 → IP 변환(DNS)이 앱 층의 첫 단계다.** 사람은 `ex.com` 을 기억하고 기계는 IP 로 통신하니, 그 사이를 잇는 것이 DNS(net-dns)다. 도메인은 되는데 IP 로는 되고 안 되고가 갈리면 DNS 문제, IP 로도 안 되면 더 아래층 문제. 주소 체계를 알면 어느 층을 의심할지 바로 좁혀진다(6장)."
         },
         {
           "type": "try",
-          "text": "한 웹사이트에 대해 도메인·IP·포트를 각각 확인하라(`nslookup` 으로 도메인→IP, 브라우저 주소창의 :443). 각 주소가 어느 층에서 「누구」를 정하는지 연결해 보라."
+          "text": "한 웹사이트에 대해 도메인, IP, 포트를 각각 확인하라(`nslookup` 으로 도메인→IP, 브라우저 주소창의 :443). 각 주소가 어느 층에서 누구를 정하는지 연결해 보라."
         }
       ],
       "quiz": [
@@ -274,19 +274,19 @@
     },
     {
       "id": "4",
-      "title": "왜 좋은가 — 아래는 위를 모른다",
+      "title": "왜 좋은가. 아래는 위를 모른다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "계층의 힘은 **아래 층이 위 층을 몰라도 된다**는 데 있다. IP 는 자기가 나르는 게 HTTP 인지 게임 데이터인지 모른다 — 그냥 「이 패킷을 저 IP 로」 할 뿐. 그래서 **와이파이든 랜선이든 같은 코드가 돌고**, 새 앱 프로토콜을 만들어도 아래층은 그대로다. 각 층을 **독립적으로 교체**할 수 있다."
+          "text": "계층의 힘은 **아래 층이 위 층을 몰라도 된다**는 데 있다. IP 는 자기가 나르는 게 HTTP 인지 게임 데이터인지 모른다. 그냥 이 패킷을 저 IP 로 할 뿐. 그래서 **와이파이든 랜선이든 같은 코드가 돌고**, 새 앱 프로토콜을 만들어도 아래층은 그대로다. 각 층을 **독립적으로 교체**할 수 있다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "한 층을 바꿔도 — 나머지는 그대로",
+          "label": "한 층을 바꿔도. 나머지는 그대로",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const swap = '{{swap}}';\n  const cases = {\n    link:  ['링크를 와이파이→랜선', '앱·전송·인터넷은 그대로', '아래를 바꿔도 위는 모른다 — 같은 코드가 돈다'],\n    app:   ['앱을 HTTP→새 프로토콜', '전송·인터넷·링크는 그대로', '위를 바꿔도 아래는 모른다 — 그냥 실어 나른다'],\n    transport:['전송을 TCP→QUIC(UDP)', '앱은 거의 그대로·인터넷 그대로', 'HTTP/3 처럼 전송만 교체'],\n  }[swap];\n  render('교체: ' + cases[0],\n    '  영향: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  각 층이 좁은 계약으로만 소통하니, 한 층을 독립적으로 갈아 끼운다.',\n    '아래는 위를, 위는 아래를 몰라도 된다 — 그래서 각 층을 독립 교체할 수 있다.',\n    stack([\n      ['앱: HTTP' + (swap==='app'?' → 새 프로토콜':''), swap==='app'?'on':'dim'],\n      ['전송: TCP' + (swap==='transport'?' → QUIC':''), swap==='transport'?'on':'dim'],\n      ['인터넷: IP (안 바뀜)', 'dim'],\n      ['링크: 와이파이' + (swap==='link'?' → 랜선':''), swap==='link'?'on':'dim']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const swap = '{{swap}}';\n  const cases = {\n    link:  ['링크를 와이파이→랜선', '앱, 전송, 인터넷은 그대로', '아래를 바꿔도 위는 모른다. 같은 코드가 돈다'],\n    app:   ['앱을 HTTP→새 프로토콜', '전송, 인터넷, 링크는 그대로', '위를 바꿔도 아래는 모른다. 그냥 실어 나른다'],\n    transport:['전송을 TCP→QUIC(UDP)', '앱은 거의 그대로, 인터넷 그대로', 'HTTP/3 처럼 전송만 교체'],\n  }[swap];\n  render('교체: ' + cases[0],\n    '  영향: <span class=\\\"ok\\\">' + cases[1] + '</span>\\n\\n  ' + cases[2] + '\\n\\n' +\n    '  각 층이 좁은 계약으로만 소통하니, 한 층을 독립적으로 갈아 끼운다.',\n    '아래는 위를, 위는 아래를 몰라도 된다. 그래서 각 층을 독립 교체할 수 있다.',\n    stack([\n      ['앱: HTTP' + (swap==='app'?' → 새 프로토콜':''), swap==='app'?'on':'dim'],\n      ['전송: TCP' + (swap==='transport'?' → QUIC':''), swap==='transport'?'on':'dim'],\n      ['인터넷: IP (안 바뀜)', 'dim'],\n      ['링크: 와이파이' + (swap==='link'?' → 랜선':''), swap==='link'?'on':'dim']]));\n</script>",
           "controls": [
             {
               "id": "swap",
@@ -312,15 +312,15 @@
         },
         {
           "type": "note",
-          "text": "**「좁은 계약」이 독립 교체를 가능케 한다(design-boundary 의 얇은 인터페이스).** 층 사이는 「위는 데이터를 주고, 아래는 저 주소로 전달한다」 정도의 좁은 약속으로만 소통한다. 그 계약만 지키면 각 층 내부는 자유롭게 바꿀 수 있다 — 와이파이에서 5G 로 갈아타도, TCP 에서 QUIC 으로 바꿔도(HTTP/3), 위층은 계약이 그대로라 안 흔들린다."
+          "text": "**좁은 계약이 독립 교체를 가능케 한다(design-boundary 의 얇은 인터페이스).** 층 사이는 위는 데이터를 주고, 아래는 저 주소로 전달한다 정도의 좁은 약속으로만 소통한다. 그 계약만 지키면 각 층 내부는 자유롭게 바꿀 수 있다. 와이파이에서 5G 로 갈아타도, TCP 에서 QUIC 으로 바꿔도(HTTP/3), 위층은 계약이 그대로라 안 흔들린다."
         },
         {
           "type": "p",
-          "text": "**이 독립성이 인터넷을 진화시켰다.** IP 라는 좁은 허리(everything over IP, IP over everything)를 두어, 위로는 웹·메일·스트리밍·게임이 자유롭게 생기고, 아래로는 전화선·광케이블·와이파이·위성이 자유롭게 깔렸다 — 서로 몰라도 IP 계약만 지키면 맞물린다. 계층 분리가 없었다면 새 앱마다 새 물리망을 깔아야 했을 것이다."
+          "text": "**이 독립성이 인터넷을 진화시켰다.** IP 라는 좁은 허리(everything over IP, IP over everything)를 두어, 위로는 웹, 메일, 스트리밍, 게임이 자유롭게 생기고, 아래로는 전화선, 광케이블, 와이파이, 위성이 자유롭게 깔렸다. 서로 몰라도 IP 계약만 지키면 맞물린다. 계층 분리가 없었다면 새 앱마다 새 물리망을 깔아야 했을 것이다."
         },
         {
           "type": "try",
-          "text": "네 앱을 와이파이에서 모바일 데이터로 바꿔도 코드가 그대로 도는 걸 확인하라 — 링크 층이 바뀌어도 앱 층은 모른다는 계층의 힘을 체감하는 것이다."
+          "text": "네 앱을 와이파이에서 모바일 데이터로 바꿔도 코드가 그대로 도는 걸 확인하라. 링크 층이 바뀌어도 앱 층은 모른다는 계층의 힘을 체감하는 것이다."
         }
       ],
       "quiz": [
@@ -339,7 +339,7 @@
           "q": "TCP→QUIC 교체(HTTP/3)가 가능한 이유는?",
           "choices": [
             "더 빠른 회선",
-            "층 사이 좁은 계약 — 전송만 갈아 끼우면 위층 그대로",
+            "층 사이 좁은 계약. 전송만 갈아 끼우면 위층 그대로",
             "IP 삭제",
             "포트 변경"
           ],
@@ -347,7 +347,7 @@
           "why": "독립 교체."
         },
         {
-          "q": "IP 가 「좁은 허리」인 것의 효과는?",
+          "q": "IP 가 좁은 허리인 것의 효과는?",
           "choices": [
             "느림",
             "위(앱)와 아래(물리)가 서로 몰라도 IP 계약으로 맞물려 각자 진화",
@@ -361,19 +361,19 @@
     },
     {
       "id": "5",
-      "title": "캡슐화 — 봉투 안의 봉투",
+      "title": "캡슐화. 봉투 안의 봉투",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "데이터가 층을 내려가며 **봉투에 담긴다.** 내 HTTP 요청은 TCP 세그먼트에 담기고, 그게 IP 패킷에 담기고, 다시 이더넷 프레임에 담긴다 — **봉투 안의 봉투**. 각 층은 자기 헤더(주소·제어 정보)를 앞에 붙일 뿐, 안의 내용물은 안 뜯어본다. 받는 쪽은 반대로 겉봉부터 벗겨 올라간다."
+          "text": "데이터가 층을 내려가며 **봉투에 담긴다.** 내 HTTP 요청은 TCP 세그먼트에 담기고, 그게 IP 패킷에 담기고, 다시 이더넷 프레임에 담긴다. **봉투 안의 봉투**. 각 층은 자기 헤더(주소, 제어 정보)를 앞에 붙일 뿐, 안의 내용물은 안 뜯어본다. 받는 쪽은 반대로 겉봉부터 벗겨 올라간다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "캡슐화 — 층을 내려가며 봉투가 쌓인다",
+          "label": "캡슐화. 층을 내려가며 봉투가 쌓인다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const depth = {{depth}};               // 몇 층까지 담겼나\n  const layers = [\n    ['HTTP (앱): GET /index.html', ''],\n    ['TCP (전송): [포트] + 위 내용', 'l4'],\n    ['IP (인터넷): [IP 주소] + 위 봉투', 'l3'],\n    ['이더넷 (링크): [MAC] + 위 봉투', 'l2'],\n  ];\n  let html = '';\n  for (let i = 0; i <= depth; i++) {\n    const inner = layers.slice(0, i).map(x => x[0].split(':')[0]).reverse().join(' ⊃ ');\n    html = '<div class=\\\"env ' + (layers[i][1]) + '\\\"><span class=\\\"hd\\\">' + esc(layers[i][0]) + '</span>' +\n      (html ? '<div style=\\\"margin-top:5px\\\">' + html + '</div>' : '') + '</div>';\n  }\n  render('층 ' + (depth+1) + '개까지 캡슐화',\n    '  내려갈수록 봉투가 겹겹이 쌓인다 — 각 층은 자기 헤더만 붙이고 안은 안 뜯는다.\\n\\n' +\n    '  받는 쪽은 반대로: 겉봉(이더넷)부터 벗겨 HTTP 까지 올라간다.',\n    '내 데이터가 층마다 봉투에 담긴다 — 봉투 안의 봉투. 각 층은 겉봉만 본다.',\n    '<div class=\\\"caps\\\">' + html + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const depth = {{depth}};               // 몇 층까지 담겼나\n  const layers = [\n    ['HTTP (앱): GET /index.html', ''],\n    ['TCP (전송): [포트] + 위 내용', 'l4'],\n    ['IP (인터넷): [IP 주소] + 위 봉투', 'l3'],\n    ['이더넷 (링크): [MAC] + 위 봉투', 'l2'],\n  ];\n  let html = '';\n  for (let i = 0; i <= depth; i++) {\n    const inner = layers.slice(0, i).map(x => x[0].split(':')[0]).reverse().join(' ⊃ ');\n    html = '<div class=\\\"env ' + (layers[i][1]) + '\\\"><span class=\\\"hd\\\">' + esc(layers[i][0]) + '</span>' +\n      (html ? '<div style=\\\"margin-top:5px\\\">' + html + '</div>' : '') + '</div>';\n  }\n  render('층 ' + (depth+1) + '개까지 캡슐화',\n    '  내려갈수록 봉투가 겹겹이 쌓인다. 각 층은 자기 헤더만 붙이고 안은 안 뜯는다.\\n\\n' +\n    '  받는 쪽은 반대로: 겉봉(이더넷)부터 벗겨 HTTP 까지 올라간다.',\n    '내 데이터가 층마다 봉투에 담긴다. 봉투 안의 봉투. 각 층은 겉봉만 본다.',\n    '<div class=\\\"caps\\\">' + html + '</div>');\n</script>",
           "controls": [
             {
               "id": "depth",
@@ -388,15 +388,15 @@
         },
         {
           "type": "note",
-          "text": "**각 층은 「겉봉」만 보고 안은 안 뜯는다.** 라우터는 IP 헤더(주소)만 보고 다음으로 넘길 뿐, 그 안의 TCP·HTTP 는 안 열어 본다 — 그래서 빠르고, 그래서 안의 내용을 바꾸지 않는다(계층의 독립성). 이것이 TLS 가 가능한 이유이기도 하다: HTTP 를 암호화해 봉투에 넣으면, 중간 장비는 겉봉(IP·TCP)만 보고 나르며 안(HTTPS 내용)은 못 읽는다(net-tls)."
+          "text": "**각 층은 겉봉만 보고 안은 안 뜯는다.** 라우터는 IP 헤더(주소)만 보고 다음으로 넘길 뿐, 그 안의 TCP, HTTP 는 안 열어 본다. 그래서 빠르고, 그래서 안의 내용을 바꾸지 않는다(계층의 독립성). 이것이 TLS 가 가능한 이유이기도 하다: HTTP 를 암호화해 봉투에 넣으면, 중간 장비는 겉봉(IP, TCP)만 보고 나르며 안(HTTPS 내용)은 못 읽는다(net-tls)."
         },
         {
           "type": "p",
-          "text": "**헤더가 오버헤드다.** 각 층이 봉투(헤더)를 붙이니, 작은 데이터일수록 헤더 비중이 커진다 — 1바이트를 보내도 TCP·IP·이더넷 헤더 수십 바이트가 붙는다. 그래서 아주 작은 메시지를 잔뜩 보내는 것은 비효율적이고(네트워크 N+1), 모아서 보내거나(배칭) 연결을 재사용하는(keep-alive) 이유가 된다. 봉투에도 비용이 있다."
+          "text": "**헤더가 오버헤드다.** 각 층이 봉투(헤더)를 붙이니, 작은 데이터일수록 헤더 비중이 커진다. 1바이트를 보내도 TCP, IP, 이더넷 헤더 수십 바이트가 붙는다. 그래서 아주 작은 메시지를 잔뜩 보내는 것은 비효율적이고(네트워크 N+1), 모아서 보내거나(배칭) 연결을 재사용하는(keep-alive) 이유가 된다. 봉투에도 비용이 있다."
         },
         {
           "type": "try",
-          "text": "`curl -v` 나 브라우저 개발자도구로 요청을 보고, HTTP 헤더(앱 봉투)를 확인하라. 그 아래 TCP·IP·이더넷 봉투는 안 보이지만 함께 붙어 나간다는 걸 그려 보라."
+          "text": "`curl -v` 나 브라우저 개발자도구로 요청을 보고, HTTP 헤더(앱 봉투)를 확인하라. 그 아래 TCP, IP, 이더넷 봉투는 안 보이지만 함께 붙어 나간다는 걸 그려 보라."
         }
       ],
       "quiz": [
@@ -415,7 +415,7 @@
           "q": "라우터가 IP 헤더만 보고 안을 안 뜯는 것이 주는 이점은?",
           "choices": [
             "느림",
-            "빠르고 내용 불변(계층 독립·TLS 가능)",
+            "빠르고 내용 불변(계층 독립, TLS 가능)",
             "암호화",
             "포트"
           ],
@@ -431,25 +431,25 @@
             "포트 부족"
           ],
           "answer": 1,
-          "why": "배칭·keep-alive."
+          "why": "배칭, keep-alive."
         }
       ]
     },
     {
       "id": "6",
-      "title": "진단 — 아래에서 위로",
+      "title": "진단. 아래에서 위로",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "계층의 가장 실용적인 쓸모는 **진단**이다. 「연결 안 됨」을 만나면 **아래에서 위로** 올라가며 확인한다: **링크**(케이블·와이파이 연결됐나) → **인터넷**(ping 으로 IP 닿나) → **전송**(그 포트 열렸나) → **앱**(이름 해석·HTTP 응답). 한 층이 초록이면 그 아래는 대개 정상이니, 위만 보면 된다."
+          "text": "계층의 가장 실용적인 쓸모는 **진단**이다. 연결 안 됨을 만나면 **아래에서 위로** 올라가며 확인한다: **링크**(케이블, 와이파이 연결됐나) → **인터넷**(ping 으로 IP 닿나) → **전송**(그 포트 열렸나) → **앱**(이름 해석, HTTP 응답). 한 층이 초록이면 그 아래는 대개 정상이니, 위만 보면 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이 증상 — 어느 층?",
+          "label": "이 증상. 어느 층?",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{symptom}}';\n  const cases = {\n    ipworks:  ['IP 로는 되는데 도메인은 안 됨', '앱(DNS)', '이름→IP 변환 실패 — 그 아래는 정상(net-dns)'],\n    pingno:   ['ping 도 안 됨', '인터넷/링크', '패킷이 아예 못 닿음 — IP 경로·물리 연결·방화벽'],\n    pingok:   ['ping 은 되는데 접속 안 됨', '전송/앱', 'IP 는 닿음 — 그 포트에 서버가 없거나 방화벽'],\n    tlsfail:  ['접속은 되는데 HTTPS 오류', '앱(TLS)', 'TCP 는 됨 — 인증서·프로토콜 문제(net-tls)'],\n    slow:     ['되긴 되는데 느림', '여러 층', '어느 구간이 느린지 층별로 시간을 재 좁힌다'],\n  }[s];\n  render('증상: ' + cases[0],\n    '  의심 층: <span class=\\\"warn\\\">' + cases[1] + '</span>\\n  뜻: ' + cases[2] + '\\n\\n' +\n    '  아래에서 위로: 한 층이 초록이면 그 아래는 정상 — 위만 본다.',\n    '링크→인터넷(ping)→전송(포트)→앱(이름·HTTP). 아래부터 좁힌다.',\n    stack([\n      ['앱: DNS·TLS·HTTP', (cases[1].includes('앱'))?'on':'dim'],\n      ['전송: 포트 열림?', (cases[1].includes('전송'))?'on':'dim'],\n      ['인터넷: ping 닿나?', (cases[1].includes('인터넷'))?'on':'dim'],\n      ['링크: 물리 연결?', (cases[1].includes('링크'))?'on':'dim']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = '{{symptom}}';\n  const cases = {\n    ipworks:  ['IP 로는 되는데 도메인은 안 됨', '앱(DNS)', '이름→IP 변환 실패. 그 아래는 정상(net-dns)'],\n    pingno:   ['ping 도 안 됨', '인터넷/링크', '패킷이 아예 못 닿음. IP 경로, 물리 연결, 방화벽'],\n    pingok:   ['ping 은 되는데 접속 안 됨', '전송/앱', 'IP 는 닿음. 그 포트에 서버가 없거나 방화벽'],\n    tlsfail:  ['접속은 되는데 HTTPS 오류', '앱(TLS)', 'TCP 는 됨. 인증서, 프로토콜 문제(net-tls)'],\n    slow:     ['되긴 되는데 느림', '여러 층', '어느 구간이 느린지 층별로 시간을 재 좁힌다'],\n  }[s];\n  render('증상: ' + cases[0],\n    '  의심 층: <span class=\\\"warn\\\">' + cases[1] + '</span>\\n  뜻: ' + cases[2] + '\\n\\n' +\n    '  아래에서 위로: 한 층이 초록이면 그 아래는 정상. 위만 본다.',\n    '링크→인터넷(ping)→전송(포트)→앱(이름, HTTP). 아래부터 좁힌다.',\n    stack([\n      ['앱: DNS, TLS, HTTP', (cases[1].includes('앱'))?'on':'dim'],\n      ['전송: 포트 열림?', (cases[1].includes('전송'))?'on':'dim'],\n      ['인터넷: ping 닿나?', (cases[1].includes('인터넷'))?'on':'dim'],\n      ['링크: 물리 연결?', (cases[1].includes('링크'))?'on':'dim']]));\n</script>",
           "controls": [
             {
               "id": "symptom",
@@ -485,19 +485,19 @@
           "type": "code",
           "lang": "text",
           "label": "진단에서의 쓸모",
-          "text": "주소창에 도메인 넣으면 안 되고 IP 넣으면 됨  → DNS(앱 층)\nping 은 되는데 접속이 안 됨                → 그 포트/서버(전송·앱)\nping 도 안 됨                             → IP 경로·물리·방화벽(인터넷·링크)\n\n아래에서 위로: 링크 → IP(ping) → 포트 → 이름 → 앱\n한 층이 초록이면 그 아래는 더 볼 필요 없다."
+          "text": "주소창에 도메인 넣으면 안 되고 IP 넣으면 됨  → DNS(앱 층)\nping 은 되는데 접속이 안 됨                → 그 포트/서버(전송, 앱)\nping 도 안 됨                             → IP 경로, 물리, 방화벽(인터넷, 링크)\n\n아래에서 위로: 링크 → IP(ping) → 포트 → 이름 → 앱\n한 층이 초록이면 그 아래는 더 볼 필요 없다."
         },
         {
           "type": "note",
-          "text": "**아래에서 위로 올라가는 것이 정석이다.** 물리·IP 가 안 되는데 HTTP 헤더를 들여다보는 건 헛수고다. 가장 아래(링크·IP)부터 확인해, 되는 지점까지 올라가면 「문제는 그 바로 위 층」으로 좁혀진다. 이 순서가 「어디를 헤맬지」를 없앤다 — 계층이 진단의 지도가 된다(net-diag·황금의 정신: 피드백 루프)."
+          "text": "**아래에서 위로 올라가는 것이 정석이다.** 물리, IP 가 안 되는데 HTTP 헤더를 들여다보는 건 헛수고다. 가장 아래(링크, IP)부터 확인해, 되는 지점까지 올라가면 문제는 그 바로 위 층으로 좁혀진다. 이 순서가 어디를 헤맬지를 없앤다. 계층이 진단의 지도가 된다(net-diag, 황금의 정신: 피드백 루프)."
         },
         {
           "type": "p",
-          "text": "**증상이 곧 층을 가리킨다.** 「IP 로는 되는데 도메인은 안 됨」 = 그 아래(전송·인터넷·링크)는 정상이고 이름 해석(DNS, 앱 층)만 문제. 「ping 은 되는데 접속 안 됨」 = IP 는 닿으니(인터넷 OK) 포트·서버(전송·앱) 문제. 에러 메시지와 증상을 층에 대응시키면, 추측 없이 **어느 층을 볼지** 바로 안다."
+          "text": "**증상이 곧 층을 가리킨다.** IP 로는 되는데 도메인은 안 됨 = 그 아래(전송, 인터넷, 링크)는 정상이고 이름 해석(DNS, 앱 층)만 문제. ping 은 되는데 접속 안 됨 = IP 는 닿으니(인터넷 OK) 포트, 서버(전송, 앱) 문제. 에러 메시지와 증상을 층에 대응시키면, 추측 없이 **어느 층을 볼지** 바로 안다."
         },
         {
           "type": "try",
-          "text": "「연결 안 됨」을 만나면 아래부터 확인하라 — 케이블/와이파이 → `ping IP` → 포트 확인(net-tcp-udp 8장) → `nslookup 도메인` → curl. 되는 지점 바로 위가 문제다."
+          "text": "연결 안 됨을 만나면 아래부터 확인하라. 케이블/와이파이 → `ping IP` → 포트 확인(net-tcp-udp 8장) → `nslookup 도메인` → curl. 되는 지점 바로 위가 문제다."
         }
       ],
       "quiz": [
@@ -513,7 +513,7 @@
           "why": "한 층 초록이면 아래는 정상."
         },
         {
-          "q": "「IP 로는 되는데 도메인은 안 됨」은 어느 층?",
+          "q": "IP 로는 되는데 도메인은 안 됨은 어느 층?",
           "choices": [
             "링크",
             "앱(DNS 이름 해석)",
@@ -524,10 +524,10 @@
           "why": "그 아래는 정상."
         },
         {
-          "q": "「ping 은 되는데 접속 안 됨」이 뜻하는 것은?",
+          "q": "ping 은 되는데 접속 안 됨이 뜻하는 것은?",
           "choices": [
             "IP 안 닿음",
-            "IP 는 닿으나 그 포트/서버 문제(전송·앱)",
+            "IP 는 닿으나 그 포트/서버 문제(전송, 앱)",
             "DNS 문제",
             "케이블"
           ],
@@ -538,19 +538,19 @@
     },
     {
       "id": "7",
-      "title": "한 줄로 층을 본다 — curl -v",
+      "title": "한 줄로 층을 본다. curl -v",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "`curl -v` 한 줄이 요청의 **모든 층을 순서대로** 보여 준다: **DNS 해석**(이름→IP) → **TCP 연결**(손잡기) → **TLS 핸드셰이크**(HTTPS) → **HTTP 요청/응답**. 각 구간을 눈으로 보면, 어디서 느리거나 막히는지 층별로 짚인다 — 추상적 계층이 구체적 로그가 된다."
+          "text": "`curl -v` 한 줄이 요청의 **모든 층을 순서대로** 보여 준다: **DNS 해석**(이름→IP) → **TCP 연결**(손잡기) → **TLS 핸드셰이크**(HTTPS) → **HTTP 요청/응답**. 각 구간을 눈으로 보면, 어디서 느리거나 막히는지 층별로 짚인다. 추상적 계층이 구체적 로그가 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "curl -v 출력 — 네 구간",
+          "label": "curl -v 출력. 네 구간",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const seg = '{{seg}}';\n  const cases = {\n    dns:  ['DNS 해석', 'Trying 203.0.113.10...', '이름 ex.com → IP (앱 층·net-dns)'],\n    tcp:  ['TCP 연결', 'Connected to ex.com port 443', '3-way 손잡기 완료 (전송 층)'],\n    tls:  ['TLS 핸드셰이크', 'SSL connection using TLSv1.3', '보안 채널 수립 (앱 층·net-tls)'],\n    http: ['HTTP 요청/응답', '> GET / HTTP/2   < 200 OK', '실제 대화 (앱 층)'],\n  }[seg];\n  render('curl -v 구간: ' + cases[0],\n    '  출력: ' + cases[1] + '\\n  층: ' + cases[2] + '\\n\\n' +\n    '  네 구간이 순서대로 — 어디서 느리거나 막히는지 층별로 짚인다.',\n    'curl -v = DNS→TCP→TLS→HTTP 네 구간을 눈으로. 계층이 로그가 된다.',\n    steps([\n      ['① DNS: 이름 → IP', seg==='dns'?'on':(['tcp','tls','http'].includes(seg)?'good':'')],\n      ['② TCP: 연결(손잡기)', seg==='tcp'?'on':(['tls','http'].includes(seg)?'good':'')],\n      ['③ TLS: 보안 채널', seg==='tls'?'on':(seg==='http'?'good':'')],\n      ['④ HTTP: 요청/응답', seg==='http'?'on':'']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const seg = '{{seg}}';\n  const cases = {\n    dns:  ['DNS 해석', 'Trying 203.0.113.10...', '이름 ex.com → IP (앱 층, net-dns)'],\n    tcp:  ['TCP 연결', 'Connected to ex.com port 443', '3-way 손잡기 완료 (전송 층)'],\n    tls:  ['TLS 핸드셰이크', 'SSL connection using TLSv1.3', '보안 채널 수립 (앱 층, net-tls)'],\n    http: ['HTTP 요청/응답', '> GET / HTTP/2   < 200 OK', '실제 대화 (앱 층)'],\n  }[seg];\n  render('curl -v 구간: ' + cases[0],\n    '  출력: ' + cases[1] + '\\n  층: ' + cases[2] + '\\n\\n' +\n    '  네 구간이 순서대로. 어디서 느리거나 막히는지 층별로 짚인다.',\n    'curl -v = DNS→TCP→TLS→HTTP 네 구간을 눈으로. 계층이 로그가 된다.',\n    steps([\n      ['① DNS: 이름 → IP', seg==='dns'?'on':(['tcp','tls','http'].includes(seg)?'good':'')],\n      ['② TCP: 연결(손잡기)', seg==='tcp'?'on':(['tls','http'].includes(seg)?'good':'')],\n      ['③ TLS: 보안 채널', seg==='tls'?'on':(seg==='http'?'good':'')],\n      ['④ HTTP: 요청/응답', seg==='http'?'on':'']]));\n</script>",
           "controls": [
             {
               "id": "seg",
@@ -586,15 +586,15 @@
         },
         {
           "type": "note",
-          "text": "**느림도 층으로 나눠 잰다.** curl 은 `-w` 옵션으로 각 구간 시간(`time_namelookup`·`time_connect`·`time_appconnect`·`time_starttransfer`)을 찍을 수 있다. 「DNS 가 느린가, 연결이 느린가, 서버 처리가 느린가」를 숫자로 나누면, 「그냥 느리다」가 「DNS 가 2초」처럼 **한 층의 문제**로 좁혀진다(api-error·db-explain 의 측정과 같은 정신)."
+          "text": "**느림도 층으로 나눠 잰다.** curl 은 `-w` 옵션으로 각 구간 시간(`time_namelookup`, `time_connect`, `time_appconnect`, `time_starttransfer`)을 찍을 수 있다. DNS 가 느린가, 연결이 느린가, 서버 처리가 느린가를 숫자로 나누면, 그냥 느리다가 DNS 가 2초처럼 **한 층의 문제**로 좁혀진다(api-error, db-explain 의 측정과 같은 정신)."
         },
         {
           "type": "p",
-          "text": "**브라우저 개발자도구도 같은 걸 보여 준다.** 네트워크 탭의 Timing 은 DNS·연결·TLS·대기(서버 처리)·다운로드를 막대로 나눠 준다 — curl -v 의 GUI 판이다. 「이 요청이 왜 느리지?」를 그 막대에서 어느 구간이 긴지로 답한다. 계층을 알면 이 도구들의 출력이 그냥 읽힌다 — 각 항목이 어느 층인지 보이니까."
+          "text": "**브라우저 개발자도구도 같은 걸 보여 준다.** 네트워크 탭의 Timing 은 DNS, 연결, TLS, 대기(서버 처리), 다운로드를 막대로 나눠 준다. curl -v 의 GUI 판이다. 이 요청이 왜 느리지?를 그 막대에서 어느 구간이 긴지로 답한다. 계층을 알면 이 도구들의 출력이 그냥 읽힌다. 각 항목이 어느 층인지 보이니까."
         },
         {
           "type": "try",
-          "text": "`curl -v https://아무사이트` 를 실행해 DNS·TCP·TLS·HTTP 네 구간을 손으로 짚어라. 브라우저 개발자도구 Timing 과 대응시켜, 같은 층 나눔임을 확인하라."
+          "text": "`curl -v https://아무사이트` 를 실행해 DNS, TCP, TLS, HTTP 네 구간을 손으로 짚어라. 브라우저 개발자도구 Timing 과 대응시켜, 같은 층 나눔임을 확인하라."
         }
       ],
       "quiz": [
@@ -602,9 +602,9 @@
           "q": "curl -v 가 보여 주는 네 구간은?",
           "choices": [
             "앱만",
-            "DNS·TCP·TLS·HTTP",
-            "IP·MAC·포트·이름",
-            "요청·응답"
+            "DNS, TCP, TLS, HTTP",
+            "IP, MAC, 포트, 이름",
+            "요청, 응답"
           ],
           "answer": 1,
           "why": "층별 순서."
@@ -613,7 +613,7 @@
           "q": "느림을 층으로 나눠 재는 법은?",
           "choices": [
             "감으로",
-            "curl -w 로 구간별 시간(namelookup·connect·...)",
+            "curl -w 로 구간별 시간(namelookup, connect, ...)",
             "재부팅",
             "포트 변경"
           ],
@@ -624,7 +624,7 @@
           "q": "브라우저 개발자도구 Timing 은?",
           "choices": [
             "무관",
-            "DNS·연결·TLS·대기·다운로드를 나눈 curl -v 의 GUI 판",
+            "DNS, 연결, TLS, 대기, 다운로드를 나눈 curl -v 의 GUI 판",
             "암호화",
             "포트"
           ],
@@ -635,19 +635,19 @@
     },
     {
       "id": "8",
-      "title": "추상화의 누수 — 계층은 완벽하지 않다",
+      "title": "추상화의 누수. 계층은 완벽하지 않다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "계층은 세부를 감추지만 **완벽하게는 아니다.** 아래 층의 성질이 위로 새어 나온다 — **지연**(먼 서버는 앱이 아무리 좋아도 느리다), **손실**(무선은 유선보다 잘 끊긴다), **MTU**(한 번에 보낼 수 있는 크기 한계). 「아래는 몰라도 된다」는 **대개** 참이지만, 성능·신뢰성 문제는 아래 층을 알아야 풀린다."
+          "text": "계층은 세부를 감추지만 **완벽하게는 아니다.** 아래 층의 성질이 위로 새어 나온다. **지연**(먼 서버는 앱이 아무리 좋아도 느리다), **손실**(무선은 유선보다 잘 끊긴다), **MTU**(한 번에 보낼 수 있는 크기 한계). 아래는 몰라도 된다는 **대개** 참이지만, 성능, 신뢰성 문제는 아래 층을 알아야 풀린다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "아래 층이 새어 나오는 예",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const leak = '{{leak}}';\n  const cases = {\n    latency:['지연(빛의 속도)', '먼 서버는 왕복이 길다 — 앱 최적화로 못 줄임', 'CDN 으로 가까이(물리를 앱이 신경써야)'],\n    loss:   ['손실(무선)', '와이파이·모바일은 유선보다 손실↑ → TCP 재전송↑ 느려짐', '실시간은 UDP/손실 감내 설계'],\n    mtu:    ['MTU(크기 한계)', '한 패킷 최대 크기 초과 → 조각남(fragmentation)·비효율', '큰 데이터는 스트리밍·청크'],\n    congestion:['혼잡', '공유 회선이 막히면 TCP 가 속도를 낮춤 — 앱은 느려진 이유를 모름', '한 층 위에서 재시도·백오프'],\n  }[leak];\n  render('누수: ' + cases[0],\n    '  현상: ' + cases[1] + '\\n  대응: ' + cases[2] + '\\n\\n' +\n    '  「아래는 몰라도 된다」는 대개 참 — 하지만 성능·신뢰성은 아래를 알아야 푼다.',\n    '계층은 세부를 대개 감추지만 지연·손실·MTU·혼잡은 위로 샌다.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const leak = '{{leak}}';\n  const cases = {\n    latency:['지연(빛의 속도)', '먼 서버는 왕복이 길다. 앱 최적화로 못 줄임', 'CDN 으로 가까이(물리를 앱이 신경써야)'],\n    loss:   ['손실(무선)', '와이파이, 모바일은 유선보다 손실↑ → TCP 재전송↑ 느려짐', '실시간은 UDP/손실 감내 설계'],\n    mtu:    ['MTU(크기 한계)', '한 패킷 최대 크기 초과 → 조각남(fragmentation), 비효율', '큰 데이터는 스트리밍, 청크'],\n    congestion:['혼잡', '공유 회선이 막히면 TCP 가 속도를 낮춤. 앱은 느려진 이유를 모름', '한 층 위에서 재시도, 백오프'],\n  }[leak];\n  render('누수: ' + cases[0],\n    '  현상: ' + cases[1] + '\\n  대응: ' + cases[2] + '\\n\\n' +\n    '  아래는 몰라도 된다는 대개 참. 하지만 성능, 신뢰성은 아래를 알아야 푼다.',\n    '계층은 세부를 대개 감추지만 지연, 손실, MTU, 혼잡은 위로 샌다.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], 'bad'));\n</script>",
           "controls": [
             {
               "id": "leak",
@@ -677,23 +677,23 @@
         },
         {
           "type": "note",
-          "text": "**「모든 추상화는 어느 정도 샌다」(leaky abstraction).** 계층은 세부를 감추는 훌륭한 추상화지만, 물리 법칙(빛의 속도 = 지연)은 못 감춘다. 서울↔뉴욕 왕복은 아무리 앱을 최적화해도 ~200ms 다 — 이건 인터넷·물리 층의 성질이 앱으로 샌 것이다. 그래서 CDN 으로 서버를 **물리적으로 가까이** 두는 것이, 앱 개발자가 아래 층을 신경 쓰는 대표적 예다."
+          "text": "**모든 추상화는 어느 정도 샌다(leaky abstraction).** 계층은 세부를 감추는 훌륭한 추상화지만, 물리 법칙(빛의 속도 = 지연)은 못 감춘다. 서울↔뉴욕 왕복은 아무리 앱을 최적화해도 ~200ms 다. 이건 인터넷, 물리 층의 성질이 앱으로 샌 것이다. 그래서 CDN 으로 서버를 **물리적으로 가까이** 두는 것이, 앱 개발자가 아래 층을 신경 쓰는 대표적 예다."
         },
         {
           "type": "p",
-          "text": "**평소엔 감춰진 층을 성능·장애 때 꺼내 본다.** 90%의 앱 개발은 아래 층을 몰라도 된다 — 그게 계층의 값어치다. 하지만 「왜 이 지역만 느리지(지연)」, 「왜 모바일에서 자주 끊기지(손실)」, 「왜 큰 업로드가 실패하지(MTU)」 같은 문제는 **감춰진 층의 성질이 샌** 것이다. 그때 한 층 아래로 내려가 원인을 본다 — 계층은 무시하는 게 아니라 **필요할 때 여는** 것이다."
+          "text": "**평소엔 감춰진 층을 성능, 장애 때 꺼내 본다.** 90%의 앱 개발은 아래 층을 몰라도 된다. 그게 계층의 값어치다. 하지만 왜 이 지역만 느리지(지연), 왜 모바일에서 자주 끊기지(손실), 왜 큰 업로드가 실패하지(MTU) 같은 문제는 **감춰진 층의 성질이 샌** 것이다. 그때 한 층 아래로 내려가 원인을 본다. 계층은 무시하는 게 아니라 **필요할 때 여는** 것이다."
         },
         {
           "type": "try",
-          "text": "네 앱에서 「특정 지역이 느림」·「모바일에서 잘 끊김」 같은 증상이 있으면, 그것이 어느 아래 층(지연·손실)의 누수인지 짚어라. CDN·재시도·청크 같은 대응이 그 층에 맞는지 보라."
+          "text": "네 앱에서 특정 지역이 느림, 모바일에서 잘 끊김 같은 증상이 있으면, 그것이 어느 아래 층(지연, 손실)의 누수인지 짚어라. CDN, 재시도, 청크 같은 대응이 그 층에 맞는지 보라."
         }
       ],
       "quiz": [
         {
-          "q": "「추상화가 샌다」는 것은?",
+          "q": "추상화가 샌다는 것은?",
           "choices": [
             "버그",
-            "아래 층의 성질(지연·손실·MTU)이 위로 드러남",
+            "아래 층의 성질(지연, 손실, MTU)이 위로 드러남",
             "암호화 실패",
             "포트"
           ],
@@ -704,7 +704,7 @@
           "q": "먼 서버의 지연을 앱 최적화로 못 줄이는 이유는?",
           "choices": [
             "코드 문제",
-            "빛의 속도 — 물리·인터넷 층의 성질",
+            "빛의 속도. 물리, 인터넷 층의 성질",
             "포트",
             "DNS"
           ],
@@ -715,7 +715,7 @@
           "q": "계층에 대한 올바른 태도는?",
           "choices": [
             "항상 다 봄",
-            "평소 감추고 성능·장애 때 아래로 내려가 봄",
+            "평소 감추고 성능, 장애 때 아래로 내려가 봄",
             "무시",
             "항상 무시"
           ],
@@ -726,19 +726,19 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 네트워크 계층",
+      "title": "점검표. 네트워크 계층",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "네트워크를 이해하거나 연결 문제를 진단할 때 이 목록을 확인하라. 핵심은 「한 층씩·주소를 알고·아래서 위로 진단·누수를 안다」다."
+          "text": "네트워크를 이해하거나 연결 문제를 진단할 때 이 목록을 확인하라. 핵심은 한 층씩, 주소를 알고, 아래서 위로 진단, 누수를 안다다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '한 번에 다 안 보고 한 층씩 본다',\n    '네 층(앱·전송·인터넷·링크)을 안다',\n    '층마다 주소가 다름(도메인·포트·IP·MAC)',\n    '아래는 위를 몰라 각 층을 독립 교체 가능',\n    '캡슐화 — 데이터가 봉투 안 봉투로 담김',\n    '진단은 아래에서 위로(링크→IP→포트→앱)',\n    'curl -v 로 DNS·TCP·TLS·HTTP 구간을 본다',\n    '지연·손실 등 누수는 아래 층을 열어 본다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 어느 층 문제인지 바로 짚는다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '한 층씩·주소를 알고·아래서 위로 진단·누수를 안다. 계층의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .stack { margin:8px 0; }\n  .stack .layer { padding:7px 10px; margin:3px 0; border-radius:6px; font:11.5px ui-monospace, monospace;\n                  border:1px solid #334155; background:#111c33; color:#cbd5e1; }\n  .stack .layer.on { background:#0e2a3a; border-color:#22d3ee; color:#e2f5ff; }\n  .stack .layer.dim { opacity:.45; }\n  .caps { margin:8px 0; font:11px ui-monospace, monospace; }\n  .caps .env { border:1px solid #334155; border-radius:6px; padding:6px 8px; margin:0; }\n  .caps .l4 { border-color:#0e7490; } .caps .l3 { border-color:#166534; } .caps .l2 { border-color:#78350f; }\n  .caps .hd { color:#7dd3fc; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  // layers: [ [name, cls], ... ] top-to-bottom\n  const stack = (layers) => '<div class=\"stack\">' + layers.map(([name, cls]) =>\n    '<div class=\"layer ' + (cls || '') + '\">' + esc(name) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '한 번에 다 안 보고 한 층씩 본다',\n    '네 층(앱, 전송, 인터넷, 링크)을 안다',\n    '층마다 주소가 다름(도메인, 포트, IP, MAC)',\n    '아래는 위를 몰라 각 층을 독립 교체 가능',\n    '캡슐화. 데이터가 봉투 안 봉투로 담김',\n    '진단은 아래에서 위로(링크→IP→포트→앱)',\n    'curl -v 로 DNS, TCP, TLS, HTTP 구간을 본다',\n    '지연, 손실 등 누수는 아래 층을 열어 본다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인. 어느 층 문제인지 바로 짚는다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '한 층씩, 주소를 알고, 아래서 위로 진단, 누수를 안다. 계층의 네 축.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -753,15 +753,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 한 층씩 본다.** 네트워크의 복잡함은 한 번에 다 보려 할 때만 어렵다. 네 층으로 나누고(2장), 각 층의 주소·역할을 알고(3장), 진단은 아래에서 위로(6장) 하면, 「연결 안 됨」이 「이 층의 이 문제」로 좁혀진다. 계층은 무시하는 지식이 아니라, **필요할 때 여는 지도**다(8장)."
+          "text": "**한 줄 요약: 한 층씩 본다.** 네트워크의 복잡함은 한 번에 다 보려 할 때만 어렵다. 네 층으로 나누고(2장), 각 층의 주소, 역할을 알고(3장), 진단은 아래에서 위로(6장) 하면, 연결 안 됨이 이 층의 이 문제로 좁혀진다. 계층은 무시하는 지식이 아니라, **필요할 때 여는 지도**다(8장)."
         },
         {
           "type": "p",
-          "text": "**이 트랙의 뼈대.** 계층은 net 트랙 전체의 지도다 — 앱 층에 http-versions·dns·tls, 전송 층에 tcp-udp, 인터넷 층에 ip·nat, 그 위 진단에 diag 가 산다. 각 칸이 「어느 층의 무엇」인지 계층 위에 놓으면 서로 이어진다. **「지금 어느 층을 보고 있나」를 아는 것이 네트워크를 다루는 첫 능력**이다."
+          "text": "**이 트랙의 뼈대.** 계층은 net 트랙 전체의 지도다. 앱 층에 http-versions, dns, tls, 전송 층에 tcp-udp, 인터넷 층에 ip, nat, 그 위 진단에 diag 가 산다. 각 칸이 어느 층의 무엇인지 계층 위에 놓으면 서로 이어진다. **지금 어느 층을 보고 있나를 아는 것이 네트워크를 다루는 첫 능력**이다."
         },
         {
           "type": "try",
-          "text": "이 8개 항목으로 네 네트워크 이해를 점검하라. 「네 층 알기」와 「아래에서 위로 진단」 두 가지만 익혀도, 연결 문제 앞에서 헤매는 시간이 크게 준다."
+          "text": "이 8개 항목으로 네 네트워크 이해를 점검하라. 네 층 알기와 아래에서 위로 진단 두 가지만 익혀도, 연결 문제 앞에서 헤매는 시간이 크게 준다."
         }
       ],
       "quiz": [
@@ -779,9 +779,9 @@
         {
           "q": "계층의 네 축은?",
           "choices": [
-            "빠름·큼·전역·암호",
-            "한 층씩·주소를 알고·아래서 위로 진단·누수를 안다",
-            "캐시·복제·샤딩·압축",
+            "빠름, 큼, 전역, 암호",
+            "한 층씩, 주소를 알고, 아래서 위로 진단, 누수를 안다",
+            "캐시, 복제, 샤딩, 압축",
             "IP만"
           ],
           "answer": 1,
@@ -791,7 +791,7 @@
           "q": "계층이 net 트랙에서 갖는 자리는?",
           "choices": [
             "무관",
-            "http·tls·tcp·ip·diag 를 얹는 뼈대(지도)",
+            "http, tls, tcp, ip, diag 를 얹는 뼈대(지도)",
             "성능",
             "문법"
           ],

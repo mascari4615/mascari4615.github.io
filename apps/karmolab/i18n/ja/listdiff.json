@@ -16,7 +16,7 @@
   "listdiff.stat.all": "全部",
   "listdiff.copy.done": "結果をコピーしました",
   "listdiff.value.count": "{n}個",
-  "listdiff.say.counts": "A {a}行 · B {b}行 — 重複は1つとして数えます。",
+  "listdiff.say.counts": "A {a}行, B {b}行. 重複は1つとして数えます。",
   "listdiff.sample.a": "りんご\nバナナ\nぶどう\nいちご",
   "listdiff.sample.b": "バナナ\nいちご\nすいか"
 }

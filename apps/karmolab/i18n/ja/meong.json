@@ -1,5 +1,5 @@
 {
-  "meong.hint": "手を止めると操作が消えます · スペース = 一時停止 · F = 全画面",
+  "meong.hint": "手を止めると操作が消えます, スペース = 一時停止, F = 全画面",
   "meong.saved": "今の画面を PNG で保存しました",
   "meong.btn.play": "再開",
   "meong.btn.pause": "一時停止",

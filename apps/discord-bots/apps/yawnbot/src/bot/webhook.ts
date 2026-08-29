@@ -11,10 +11,10 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
   /* 몸통 읽기.
    *
    * **그림 올리는 자리만 건너뛴다** (TASK-KL-098). 기본 상한(100kb)이 여기서 먼저 걸리면
-   * 413 이 나가는데, 그 오류 응답에는 CORS 헤더가 안 붙는다 — 브라우저는 그것을 「CORS 막힘」
+   * 413 이 나가는데, 그 오류 응답에는 CORS 헤더가 안 붙는다. 브라우저는 그것을 CORS 막힘
    * 으로 보고하고, 진짜 원인(너무 큼)은 화면 어디에도 안 나온다. 실제로 그렇게 한 번 헤맸다.
    * 그 자리는 자기 상한을 스스로 건다 (karmolab-api 의 `/kl/uploads`). */
-  /* 방 라우트는 **16kb** 로 좁힌다 (change.copresence-hardening 3단계) — 커서 좌표와 편집
+  /* 방 라우트는 **16kb** 로 좁힌다 (change.copresence-hardening 3단계). 커서 좌표와 편집
      연산은 몇 백 바이트다. 기본 100kb 는 그 자리에서 상한이 아니라 여유다. */
   const roomJson = express.json({ limit: '16kb' });
   app.use((req, res, next) => {
@@ -22,7 +22,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
     return req.path.startsWith('/kl/room/') ? roomJson(req, res, next) : express.json()(req, res, next);
   });
 
-  // YB-020 Step 2 — gateway 가 살아있어도 dispatch 가 멈춘 zombie 상태 관측용.
+  // YB-020 Step 2. gateway 가 살아있어도 dispatch 가 멈춘 zombie 상태 관측용.
   // discord.js 는 op0 dispatch 마다 'raw' emit. 503 판정엔 안 쓰고 (조용한
   // 시간대 false disconnected 위험) observability 신호로만 노출.
   let lastDispatchAt: number | null = null;
@@ -55,7 +55,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
       const repoFullName: string | undefined = payload.repository?.full_name;
       const channelIds = getChannelsForRepo(repoFullName);
 
-      // TASK-KAR-092: PR merge → TASK status 자동 sync (디스코드 채널 무관 — 매핑
+      // TASK-KAR-092: PR merge → TASK status 자동 sync (디스코드 채널 무관. 매핑
       // 없는 repo 도 KAR-092 가 작동해야 자가발전 루프 폐쇄). 2026-05-22 fix:
       // 이전엔 채널 매칭 없으면 early return → KAR-092 미발동 → fake/외부 webhook
       // 검증 불가능 + 새 repo 추가 시 sync 누락.
@@ -81,7 +81,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
 
       if (channelIds.length === 0) {
         console.warn(
-          `[Webhook] ${repoFullName ?? '?'} 매칭 채널 없음 — 디스코드 전송 생략 (data/webhook-routes.json 확인)`,
+          `[Webhook] ${repoFullName ?? '?'} 매칭 채널 없음. 디스코드 전송 생략 (data/webhook-routes.json 확인)`,
         );
         res.sendStatus(200);
         return;
@@ -101,7 +101,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
           return;
         }
 
-        // TASK-YB-004 — dev-digest commit 감지: chore(digests): + digests/*.md added.
+        // TASK-YB-004. dev-digest commit 감지: chore(digests): + digests/*.md added.
         // 해당 commit 발견 시 Yawn AI 가공 후 별도 embed 전송 + regular embed skip.
         const digestCommit = payload.commits.find((c: GitHubCommit) => isDigestCommit(c));
         if (digestCommit) {
@@ -118,7 +118,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
           .join('\n');
         embed.setDescription(desc);
 
-        // TASK-WM-093 Phase F — claude-audit auto-fix push 시각 분리.
+        // TASK-WM-093 Phase F. claude-audit auto-fix push 시각 분리.
         // 모든 commit 의 subject 첫 줄이 `chore(audit-fix):` prefix 면 회색 (자동 배경 작업 톤).
         // 사람 손 push (default 초록 0x4caf50) 과 자동 fix push 디스코드 채널에서 즉시 구분.
         const isAuditFixPush = payload.commits.every((c: GitHubCommit) => {
@@ -185,7 +185,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
           )
           .setColor(release.prerelease ? 0xff9800 : 0x6f42c1);
       } else {
-        console.log(`[Webhook] 처리 안 함(디스코드 미전송): ${String(event)} — push|issues|pull_request|release|ping 만 임베드`);
+        console.log(`[Webhook] 처리 안 함(디스코드 미전송): ${String(event)}. push|issues|pull_request|release|ping 만 임베드`);
         res.sendStatus(200);
         return;
       }

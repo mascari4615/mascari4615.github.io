@@ -1,13 +1,13 @@
 /* ═══════════════════════════════════════
    실용 도구 위젯 공통 (TASK-KL-088)
-   toolbox.css 의 변수·컴포넌트 위에 얹는 레이어.
+   toolbox.css 의 변수, 컴포넌트 위에 얹는 레이어.
    여기 정의된 클래스만 tools/*.ts 위젯이 쓴다.
    ═══════════════════════════════════════ */
 
 /* ── 글꼴이 바뀌는 순간 글이 밀리지 않게 ───────────────
    웹글꼴이 오기 전에는 컴퓨터에 있는 글꼴로 먼저 보여 준다. 그런데 그 글꼴이 10.6% 더
    넓어서, 웹글꼴이 도착하는 순간 줄바꿈이 달라지며 화면이 통째로 밀렸다 (목록 실측 0.23).
-   대신 쓸 글꼴의 폭을 미리 줄여 웹글꼴과 같게 맞춘다 — 바뀌어도 자리가 그대로다.
+   대신 쓸 글꼴의 폭을 미리 줄여 웹글꼴과 같게 맞춘다. 바뀌어도 자리가 그대로다.
    비율은 실제로 재서 넣었다(같은 글에서 Noto Sans KR 699px 대 대체 글꼴 773px). */
 @font-face {
     font-family: 'KarmoSans 자리맞춤';
@@ -25,7 +25,7 @@
 /* ── 체크 상자는 손가락으로 눌러야 한다 ─────────────────
    상자 자체는 13px 이고 라벨까지 합쳐도 높이가 22px 이었다(폰 폭 375px 실측, 21장).
    손가락으로 정확히 짚기 어려운 크기다. 글자 크기는 그대로 두고 **누를 수 있는 세로 폭**만
-   넓힌다 — 이미 충분히 큰 칩 같은 것은 min-height 라 영향이 없다. */
+   넓힌다. 이미 충분히 큰 칩 같은 것은 min-height 라 영향이 없다. */
 .tool-page label:has(> input[type='checkbox']),
 .tool-page label:has(> input[type='radio']) {
     display: inline-flex;
@@ -54,23 +54,23 @@
     margin-bottom: var(--space-lg);
 }
 /* ★ **채워질 자리를 미리 맡는다** (2026-08-17 실측).
-   `.cc-stats` 는 빈 채로 그려졌다가 위젯 js 가 늦게 와서 채운다 — 그 순간 아래가 통째로 밀린다
+   `.cc-stats` 는 빈 채로 그려졌다가 위젯 js 가 늦게 와서 채운다. 그 순간 아래가 통째로 밀린다
    (도구 상세 장 밀림에서 `#loStats ↓40px`). 늦게 오는 덩이에는 자리를 미리 주는 게 정석이다.
    ⚠ 다만 **모든 도구에 주면 안 된다**: 38개 중 열 개만 첫 그림에서 채우고, 나머지는 사람이
-   파일·값을 준 뒤에 채운다(실측). 그 도구들에 자리를 주면 **빈 칸이 영영 남는다**.
-   그래서 「처음부터 채우는 도구」만 이 변형을 붙인다.
-   높이는 실측값이다 — 한 줄(타일 셋)이 데스크톱 74~77px, 좁은 화면은 두 줄. */
+   파일, 값을 준 뒤에 채운다(실측). 그 도구들에 자리를 주면 **빈 칸이 영영 남는다**.
+   그래서 처음부터 채우는 도구만 이 변형을 붙인다.
+   높이는 실측값이다. 한 줄(타일 셋)이 데스크톱 74~77px, 좁은 화면은 두 줄. */
 .cc-stats-early { min-height: 74px; }
 /* 지금 붙어 있는 열둘 (2026-08-17 실사이트 실측):
      barcode contrast datecalc* grade icsmake interest loan passgen timecalc vat workdays bmi
      (*datecalc 은 두 줄 → .cc-stats-2row)
    **고르는 법 = 브라우저로 재라. 코드를 읽어 세지 마라.**
-   「초기화에서 그리기 함수를 부르나」로 세었더니 셋이 틀렸다 —
-   subtitle·videocompress·videorotate 는 부르는데도 첫 그림에서는 0px 다(사람이 파일을 준 뒤 채운다).
+   초기화에서 그리기 함수를 부르나로 세었더니 셋이 틀렸다 . 
+   subtitle, videocompress, videorotate 는 부르는데도 첫 그림에서는 0px 다(사람이 파일을 준 뒤 채운다).
    그 셋에 자리를 줬으면 빈 칸이 영영 남았다.
    재는 법: 도구 장을 열고 1.8초 뒤 `.cc-stats` 의 높이를 본다. 0 보다 크면 이 클래스를 붙이고,
-   그 높이를 그대로 min-height 로 쓴다(짐작 금지 — 한 줄 74~77px · 두 줄 163px 도 실측값이다). */
-/* 타일이 두 줄인 도구도 있다 — 실측으로만 정한다(datecalc 163px). */
+   그 높이를 그대로 min-height 로 쓴다(짐작 금지. 한 줄 74~77px, 두 줄 163px 도 실측값이다). */
+/* 타일이 두 줄인 도구도 있다. 실측으로만 정한다(datecalc 163px). */
 .cc-stats-early.cc-stats-2row { min-height: 163px; }
 @media (max-width: 640px) {
     .cc-stats-early { min-height: 156px; }
@@ -93,7 +93,7 @@
     font-family: var(--font-mono);
     margin-bottom: 4px;
 }
-/* 큰 수가 칸을 넘으면 줄이 바뀌면서 「82,406,712」와 「원」이 위아래로 갈라졌다 — 한 값이
+/* 큰 수가 칸을 넘으면 줄이 바뀌면서 82,406,712와 원이 위아래로 갈라졌다. 한 값이
    두 덩이로 보인다(TASK-KL-128). 값은 절대 줄을 안 바꾸고, 대신 칸이 좁으면 글자가 줄어든다.
    `cqi` = 이 칸의 폭 1%. 넉넉할 때는 원래 크기 그대로다. */
 .cc-stat-value {
@@ -108,14 +108,14 @@
 
 /* ── 상태 줄 ── */
 /* ── 흐름 간격: **여백을 부모가 소유한다** (TASK-KL-257) ──────────────
-   실측: 자식이 자기 바깥 여백을 들고 있었다 — `margin-top:10px` 48곳 · `8px` 20곳 ·
+   실측: 자식이 자기 바깥 여백을 들고 있었다. `margin-top:10px` 48곳, `8px` 20곳 , 
    `var(--space-lg)` 38곳. 그래서 같은 조각을 다른 자리에 놓을 때마다 여백을 다시 정했고,
-   숫자가 뒤섞였다. 값을 통일해도 **다음 도구가 또 새 숫자를 적는다** — 원인이 소유권이라서.
+   숫자가 뒤섞였다. 값을 통일해도 **다음 도구가 또 새 숫자를 적는다**. 원인이 소유권이라서.
 
    부모가 `gap` 을 주면 자식은 여백을 아예 모른다. 값은 **역할 토큰**으로 둔다:
-   값은 척도(4·8·16·24·32·48) 안에서 고른다 — 옛 인라인은 10px 이었지만 척도 밖 숫자를
+   값은 척도(4, 8, 16, 24, 32, 48) 안에서 고른다. 옛 인라인은 10px 이었지만 척도 밖 숫자를
    토큰으로 굳히면 다음엔 11px 이 생긴다. 8px 로 재 보니 옛 화면과 가장 가까웠다(측정 아래).
-   톤을 바꾸고 싶으면 여기 한 줄만 고친다 — 그러면 도구 전부가 따라온다. */
+   톤을 바꾸고 싶으면 여기 한 줄만 고친다. 그러면 도구 전부가 따라온다. */
 :root {
     --tool-flow-gap: var(--space-sm);
 }
@@ -124,15 +124,15 @@
 .tool-page .tool-card > * + * {
     margin-top: var(--tool-flow-gap);
 }
-/* 라벨은 자기 칸에 붙어 있어야 한다 — 흐름 간격이 라벨과 입력칸 사이를 벌리면 짝이 끊긴다.
+/* 라벨은 자기 칸에 붙어 있어야 한다. 흐름 간격이 라벨과 입력칸 사이를 벌리면 짝이 끊긴다.
    (실측: 넣자마자 카드 안이 벌어져 보였다.) */
 .tool-page .field-group > .field-label + *,
 .tool-page .field-group > .tool-sublabel + * {
     margin-top: 4px;
 }
 
-/* 뜻이 있는 자리들 — 인라인 style 대신 이름으로 (TASK-KL-257).
-   흐름 간격(8px)보다 **더 크게 띄우는 자리**는 「새 구역이 시작된다」는 뜻이다.
+/* 뜻이 있는 자리들. 인라인 style 대신 이름으로 (TASK-KL-257).
+   흐름 간격(8px)보다 **더 크게 띄우는 자리**는 새 구역이 시작된다는 뜻이다.
    그 뜻을 style 에 숫자로 적으면 다음 사람이 왜 24px 인지 모른다. */
 .tool-page .tool-section {
     margin-top: var(--space-lg);
@@ -140,24 +140,24 @@
 .tool-page .tool-section-end {
     margin-bottom: var(--space-lg);
 }
-/* 칸을 가로로 꽉 채운다 (단추·입력칸) */
+/* 칸을 가로로 꽉 채운다 (단추, 입력칸) */
 .tool-page .full {
     width: 100%;
 }
-/* 코드·숫자를 고정폭으로 (입력칸이 아닌 **글**에 붙는다 — 입력칸은 .mono-input) */
+/* 코드, 숫자를 고정폭으로 (입력칸이 아닌 **글**에 붙는다. 입력칸은 .mono-input) */
 .tool-page .mono {
     font-family: var(--font-mono);
 }
 
-/* 작은 회색 글 — 도구 열넷이 같은 두 줄을 손으로 적고 있었다 (TASK-KL-257).
-   「이건 보조 설명이다」라는 뜻이 클래스 이름에 남는다. 색·크기를 바꾸려면 여기 한 곳. */
+/* 작은 회색 글. 도구 열넷이 같은 두 줄을 손으로 적고 있었다 (TASK-KL-257).
+   이건 보조 설명이다라는 뜻이 클래스 이름에 남는다. 색, 크기를 바꾸려면 여기 한 곳. */
 .tool-hint {
     font-size: var(--font-size-xs);
     color: var(--text-secondary);
 }
 
-/* 체크박스·라디오는 **넓히지 않는다** (TASK-KL-257).
-   도구 스무 곳이 `style="width:auto"` 를 손으로 붙여 막고 있었다 — 어느 규칙이 넓히는지는
+/* 체크박스, 라디오는 **넓히지 않는다** (TASK-KL-257).
+   도구 스무 곳이 `style="width:auto"` 를 손으로 붙여 막고 있었다. 어느 규칙이 넓히는지는
    도구마다 다를 수 있고, 그걸 각자 방어하면 하나가 빠졌을 때 그 도구만 이상해진다.
    여기서 한 번 못 박으면 스무 곳이 그 방어를 버릴 수 있다. */
 .tool-page input[type="checkbox"],
@@ -165,10 +165,10 @@
     width: auto;
 }
 
-/* 도구 화면의 되풀이 레이아웃 — 인라인 style 을 여기로 모은다 (TASK-KL-257).
+/* 도구 화면의 되풀이 레이아웃. 인라인 style 을 여기로 모은다 (TASK-KL-257).
    왜: 같은 뜻의 style 이 도구마다 손으로 적혀 있으면 **톤을 한 번에 못 바꾼다**.
    실측 2026-08-16: 인라인 style 이 115파일 650곳. 그중 뜻이 또렷한 둘을 먼저 올린다
-   (단추 줄 50곳 · 체크박스 한 줄 18곳). 나머지는 상태 토글(display:none 70곳)이라
+   (단추 줄 50곳, 체크박스 한 줄 18곳). 나머지는 상태 토글(display:none 70곳)이라
    JS 와 얽혀 있어 따로 본다. */
 .tool-actions {
     display: flex;
@@ -278,7 +278,7 @@
 .cc-copy-row { cursor: pointer; }
 .cc-copy-row:hover { background: var(--accent-subtle); }
 
-/* ── 큰 숫자 디스플레이 (타이머·D-Day) ── */
+/* ── 큰 숫자 디스플레이 (타이머, D-Day) ── */
 .tool-display {
     font-family: var(--font-mono);
     font-size: clamp(40px, 12vw, 84px);
@@ -308,16 +308,16 @@
 }
 .tool-drop.over { border-color: var(--accent); background: var(--accent-subtle); }
 
-/* ── 로또 · 연금복권 ──
-   연출 규율 (2026-08-20): 움직임은 **켜질 때만** 붙인다 — 기본이 정지고
-   `prefers-reduced-motion: no-preference` 일 때만 움직인다. 그래야 「끄는 걸 깜빡한」
+/* ── 로또, 연금복권 ──
+   연출 규율 (2026-08-20): 움직임은 **켜질 때만** 붙인다. 기본이 정지고
+   `prefers-reduced-motion: no-preference` 일 때만 움직인다. 그래야 끄는 걸 깜빡한
    자리가 안 생긴다. 결과(번호)는 연출 없이도 그대로 서 있다. */
 
 
 
-/* 자릿수 릴 — 통 안에서 0~9 가 네 바퀴 돌다 목표에서 멎는다.
+/* 자릿수 릴. 통 안에서 0~9 가 네 바퀴 돌다 목표에서 멎는다.
    `tabular-nums` 가 빠지면 자릿수 폭이 흔들려 릴이 덜덜 떤다. */
-/* 멎는 자리는 **연출과 무관하게** 이 한 줄이 정한다 — 연출을 꺼도 숫자는 제자리에 선다.
+/* 멎는 자리는 **연출과 무관하게** 이 한 줄이 정한다. 연출을 꺼도 숫자는 제자리에 선다.
    (`is-run` 은 그리자마자가 아니라 한 프레임 뒤에 붙는다. 그래야 미끄러질 거리가 생긴다.) */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -341,7 +341,7 @@
     40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-/* 확정 순간의 스파크. 열 조각이면 컴포지터가 공짜로 그린다 — canvas 를 세울 일이 아니다. */
+/* 확정 순간의 스파크. 열 조각이면 컴포지터가 공짜로 그린다. canvas 를 세울 일이 아니다. */
 @media (prefers-reduced-motion: no-preference) {
 }
 @keyframes lt-fling {
@@ -445,7 +445,7 @@
    크롤러가 첫 HTML 에서 읽고, 사용자에게도 그대로 보인다 (숨김 X).
    ═══════════════════════════════════════ */
 /* 검색으로 들어온 사람이 도구를 쓴 **다음에** 읽는 자리다. 그런데 도구와 이 글 사이에
-   경계가 없어, 화면 아래쪽이 회색 글씨로 흐지부지 이어졌다. 여기서부터는 「읽는 자리」임을
+   경계가 없어, 화면 아래쪽이 회색 글씨로 흐지부지 이어졌다. 여기서부터는 읽는 자리임을
    눈에 보이게 갈라 준다 (TASK-KL-133). */
 .tool-seo {
     max-width: 720px;
@@ -476,7 +476,7 @@
 .tool-seo ol, .tool-seo ul { margin: 0; padding-left: 20px; }
 .tool-seo li { margin-bottom: 8px; }
 .tool-seo .tool-seo-lead { margin-bottom: 4px; }
-/* 도구 위에 미리 박아 두는 제목 — 스크립트를 기다리지 않고 바로 읽힌다 */
+/* 도구 위에 미리 박아 두는 제목. 스크립트를 기다리지 않고 바로 읽힌다 */
 body.tool-detail .tool-head {
     max-width: 720px;
     margin: 0 auto;
@@ -496,7 +496,7 @@ body.tool-detail .tool-head p {
     line-height: 1.7;
 }
 
-/* 달리 부르는 이름 한 줄 — 본문보다 한 톤 낮게, 숨기지는 않는다 */
+/* 달리 부르는 이름 한 줄. 본문보다 한 톤 낮게, 숨기지는 않는다 */
 .tool-seo-alias {
     color: var(--text-tertiary);
     font-size: var(--font-size-2xs);
@@ -537,9 +537,9 @@ body.tool-detail .tool-head p {
 }
 .tool-seo-crumb a { color: var(--text-tertiary); text-decoration: none; }
 .tool-seo-crumb a:hover { color: var(--accent); }
-/* 「내가 넣은 것이 이 기기를 떠나는가」 (TASK-KL-352).
-   예전에는 이 자리에 한 문장이 **모든 도구에 똑같이** 붙어 「어디에도 전송되지 않습니다」라고
-   했다. 그림을 Google 로 보내는 도구에도 같은 문장이 붙어 있었다 — 안심시키는 자리가 틀리면
+/* 내가 넣은 것이 이 기기를 떠나는가 (TASK-KL-352).
+   예전에는 이 자리에 한 문장이 **모든 도구에 똑같이** 붙어 어디에도 전송되지 않습니다라고
+   했다. 그림을 Google 로 보내는 도구에도 같은 문장이 붙어 있었다. 안심시키는 자리가 틀리면
    나머지 글까지 못 믿을 글이 된다. 그래서 도구마다 다르게, 그리고 눈에 띄게 적는다. */
 .tool-privacy {
     margin-top: 36px;
@@ -565,7 +565,7 @@ body.tool-detail .tool-head p {
     font-weight: 700;
     white-space: nowrap;
 }
-/* 나가는 것과 안 나가는 것은 **색으로도** 갈린다 — 글을 다 안 읽고 지나가는 사람이 훨씬 많다.
+/* 나가는 것과 안 나가는 것은 **색으로도** 갈린다. 글을 다 안 읽고 지나가는 사람이 훨씬 많다.
    색만으로는 못 가르는 사람이 있으므로 배지 글자가 늘 같은 뜻을 이고 간다(색은 거들 뿐). */
 .tool-privacy[data-where="local"], .tool-privacy[data-where="assets"] { border-left-color: var(--success, #3fa66a); }
 .tool-privacy[data-where="ours"] { border-left-color: var(--accent); }
@@ -583,7 +583,7 @@ body.tool-detail .tool-head p {
 }
 .tool-seo-note a { color: var(--text-primary); }
 
-/* 같은 갈래 도구로 건너갈 길 (TASK-KL-089) — 본문 흐름을 끊지 않게 한 줄로 눕힌다. */
+/* 같은 갈래 도구로 건너갈 길 (TASK-KL-089). 본문 흐름을 끊지 않게 한 줄로 눕힌다. */
 .tool-seo-kin {
     margin-top: 20px;
     display: flex;
@@ -597,8 +597,8 @@ body.tool-detail .tool-head p {
 .tool-seo-kin a { color: var(--text-secondary); text-decoration: none; }
 .tool-seo-kin a:hover { color: var(--accent); }
 
-/* 후원·광고 자리 (TASK-KL-089) — 도구를 다 쓰고 읽는 자리에만 놓는다.
-   도구 본체와 헷갈리지 않게 라벨을 달고, 화면을 잡아끄는 색·움직임은 쓰지 않는다. */
+/* 후원, 광고 자리 (TASK-KL-089). 도구를 다 쓰고 읽는 자리에만 놓는다.
+   도구 본체와 헷갈리지 않게 라벨을 달고, 화면을 잡아끄는 색, 움직임은 쓰지 않는다. */
 .tool-sponsor { margin: 32px 0 0; }
 .tool-sponsor-label {
     display: block;
@@ -624,33 +624,33 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
     color: var(--text-secondary);
 }
 
-/* 허브 (/t/) — 셸 안의 한 화면이다 (TASK-KL-130).
+/* 허브 (/t/). 셸 안의 한 화면이다 (TASK-KL-130).
    예전엔 셸 밖 문서라 제 여백을 직접 들고 있었다. 이제 본문 자리(content-body) 안에
-   들어가므로 위쪽 여백은 그쪽이 준다 — 여기서 또 주면 제목이 한참 아래로 밀린다.
+   들어가므로 위쪽 여백은 그쪽이 준다. 여기서 또 주면 제목이 한참 아래로 밀린다.
    폭은 상세(720px)보다 넓게 잡는다: 여기는 읽는 글이 아니라 **훑는 격자**라
    좁히면 한 줄에 두 칸밖에 안 들어가고 스크롤만 길어진다. */
 body.tool-hub-page .tool-seo.tool-hub {
     max-width: 1120px;
     padding: 0 0 48px;
-    /* 폭을 **화면에서 받아 온다** — 안 그러면 카드 설명(한 줄로 자른 글, KL-128)의
-       「안 잘렸을 때 길이」가 폭이 돼 버린다. 폰에서 목록이 685px 로 벌어져 페이지 전체가
+    /* 폭을 **화면에서 받아 온다**. 안 그러면 카드 설명(한 줄로 자른 글, KL-128)의
+       안 잘렸을 때 길이가 폭이 돼 버린다. 폰에서 목록이 685px 로 벌어져 페이지 전체가
        옆으로 밀렸다. 폭이 정해지면 카드 설명은 제자리에서 잘린다(원래 그러라고 만든 것이다). */
     width: 100%;
     min-width: 0;
 }
-/* 목록 페이지에는 앱이 그리는 화면이 없다 — 본문 자리가 화면 높이를 잡고 있을 이유가 없다.
+/* 목록 페이지에는 앱이 그리는 화면이 없다. 본문 자리가 화면 높이를 잡고 있을 이유가 없다.
    (안 그러면 목록이 짧을 때 아래에 빈 화면 하나가 그대로 남는다.) */
 body.tool-hub-page .content-body { min-height: 0; min-width: 0; }
-/* 이동 경로 — 상세와 같은 생김새를 쓴다. 목록에서는 바로 위 여백을 본문 자리가 준다. */
+/* 이동 경로. 상세와 같은 생김새를 쓴다. 목록에서는 바로 위 여백을 본문 자리가 준다. */
 body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 /* 분류 칩 줄은 폰에서 화면 끝까지 닿으라고 좌우로 삐져나와 있었다(음수 margin, KL-128).
    셸 밖 문서일 때는 그 바깥이 그냥 여백이었지만, 셸 안에서는 삐져나온 16px 가 그대로
-   가로 넘침이 된다. 칸 안에서만 옆으로 민다 — 한 줄로 미는 동작은 그대로다. */
+   가로 넘침이 된다. 칸 안에서만 옆으로 민다. 한 줄로 미는 동작은 그대로다. */
 @media (max-width: 640px) {
     body.tool-hub-page .tool-hub-toc { margin-inline: 0; padding-inline: 0; }
 }
 
-/* 「이어서」 한 줄 (TASK-KL-133) — 방금 만든 것을 옆 도구로 넘기는 자리.
+/* 이어서 한 줄 (TASK-KL-133). 방금 만든 것을 옆 도구로 넘기는 자리.
    결과 바로 밑에 붙는다. 갈 곳이 없으면 이 줄 자체가 안 생긴다. */
 .tool-next-row {
     display: flex;
@@ -682,8 +682,8 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 }
 .tool-next-btn:hover { border-color: var(--accent); background: var(--bg-tertiary); }
 
-/* 도구 화면의 별 (TASK-KL-129) — 쓰다가 「이거 자주 쓰겠네」 싶을 때 그 자리에서 꽂는다.
-   제목 옆이 아니라 오른쪽 위 — 제목을 읽는 눈길을 가로막지 않는 자리다. */
+/* 도구 화면의 별 (TASK-KL-129). 쓰다가 이거 자주 쓰겠네 싶을 때 그 자리에서 꽂는다.
+   제목 옆이 아니라 오른쪽 위. 제목을 읽는 눈길을 가로막지 않는 자리다. */
 .tool-page-hero, body.tool-detail .tool-head { position: relative; }
 .tool-pin-star {
     position: absolute;
@@ -707,7 +707,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .tool-pin-star[aria-pressed='true'] { color: var(--accent); opacity: 1; }
 .tool-pin-star:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-/* 카드마다 별 하나 (TASK-KL-129) — 훑다가 그 자리에서 「내 것」으로.
+/* 카드마다 별 하나 (TASK-KL-129). 훑다가 그 자리에서 내 것으로.
    평소에는 흐리게 있다가 가까이 가면 또렷해진다. 켜 두면 늘 또렷하다.
    카드가 링크라서 별은 그 위에 얹되, 누르는 자리는 손가락 크기로 둔다. */
 .tool-hub-card { position: relative; }
@@ -734,11 +734,11 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .tool-hub-star:hover { color: var(--accent); opacity: 1; }
 .tool-hub-star[aria-pressed='true'] { color: var(--accent); opacity: 1; }
 .tool-hub-star:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-/* 별이 앉을 자리를 비워 둔다 — 안 그러면 설명 끝이 별 밑으로 들어가 잘린 줄 모른다. */
+/* 별이 앉을 자리를 비워 둔다. 안 그러면 설명 끝이 별 밑으로 들어가 잘린 줄 모른다. */
 .tool-hub-card strong, .tool-hub-card span { padding-right: 28px; }
 
-/* 늘 쓰는 것 — 목록 맨 위 (TASK-KL-129). 이 브라우저가 아는 사람에게만 보인다.
-   분류 묶음과 같은 생김새를 쓰되, 「내 것」이라는 표시로 왼쪽에 선 하나만 더 둔다. */
+/* 늘 쓰는 것. 목록 맨 위 (TASK-KL-129). 이 브라우저가 아는 사람에게만 보인다.
+   분류 묶음과 같은 생김새를 쓰되, 내 것이라는 표시로 왼쪽에 선 하나만 더 둔다. */
 .tool-hub-mine[hidden] { display: none; }
 .tool-hub-mine {
     margin: 18px 0 26px;
@@ -748,7 +748,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .tool-hub-mine-title { margin-top: 0; color: var(--accent); }
 .tool-hub-mine-grid { margin-top: 10px; }
 
-/* 도구 목록 소제목 — 앱에서 묶어 놓은 그대로 나눈다 */
+/* 도구 목록 소제목. 앱에서 묶어 놓은 그대로 나눈다 */
 .tool-hub-group {
     margin: 32px 0 12px;
     font-size: var(--font-size-sm);
@@ -761,20 +761,20 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .tool-hub-group a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* 목록은 **훑는 화면**이다 (TASK-KL-128). 카드 한 장이 84px 이라 폰에서 한 화면에 아홉 장쯤
-   들어갔는데, 도구는 125가지다 — 원하는 것에 닿기까지 스크롤이 너무 길었다. 한 장을 낮추고
+   들어갔는데, 도구는 125가지다. 원하는 것에 닿기까지 스크롤이 너무 길었다. 한 장을 낮추고
    칸을 좁혀 한 화면에 들어가는 수를 늘린다. 설명은 지우지 않는다(고르는 데 필요한 문장이다).
-   참고한 곳: 10015.io(아이콘+이름+한 문장), Linear·Raycast(빽빽한 목록·한 줄 자르기). */
+   참고한 곳: 10015.io(아이콘+이름+한 문장), Linear, Raycast(빽빽한 목록, 한 줄 자르기). */
 .tool-hub-grid {
     display: grid;
     /* 칸을 더 좁히면 한 화면에 더 들어가지만, 설명이 잘려 나가 고르는 데 필요한 말이 사라진다.
-       높이만 낮추고 폭은 그대로 둔다 — 줄어드는 것은 빈칸이지 정보가 아니다. */
+       높이만 낮추고 폭은 그대로 둔다. 줄어드는 것은 빈칸이지 정보가 아니다. */
     grid-template-columns: repeat(auto-fill, minmax(244px, 1fr));
     gap: 7px;
     margin-top: 14px;
 }
 .tool-hub-card {
     /* 목록에는 카드가 백 장이 넘는다. 화면 밖에 있는 것까지 처음부터 다 배치하느라
-       느린 기기에서 주 스레드가 길게 잡혔다. 화면에 가까워질 때 그리게 미룬다 —
+       느린 기기에서 주 스레드가 길게 잡혔다. 화면에 가까워질 때 그리게 미룬다 . 
        보이는 모습은 그대로다. 미룬 동안 쓸 크기를 알려 줘야 스크롤 막대가 안 튄다. */
     content-visibility: auto;
     contain-intrinsic-size: auto 56px;
@@ -806,7 +806,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 }
 
 /* ═══════════════════════════════════════
-   자료표 (ref/*) — 검색 + 칩 + 눌러 복사 (TASK-KL-088)
+   자료표 (ref/*). 검색 + 칩 + 눌러 복사 (TASK-KL-088)
    ═══════════════════════════════════════ */
 
 .rt-grid {
@@ -847,7 +847,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     word-break: keep-all;
 }
 .rt-sub {
-    /* 10px 로 박혀 있었다 — 이 사이트 글자 눈금의 가장 작은 값(12px)보다도 작아,
+    /* 10px 로 박혀 있었다. 이 사이트 글자 눈금의 가장 작은 값(12px)보다도 작아,
        폰에서 참고표 넉 장의 부제가 읽기 힘들었다. 눈금에 맞춘다. */
     font-size: var(--font-size-2xs);
     color: var(--text-tertiary);
@@ -882,9 +882,9 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .rt-row:last-child { border-bottom: none; }
 .rt-row:hover { background: var(--accent-subtle); }
 .rt-row.rt-copied { background: var(--success); }
-/* 기호 칸은 46px 로 고정돼 있었다. 그런데 「Ctrl+Shift」나 「.tar.gz」처럼 긴 것이 들어가면
+/* 기호 칸은 46px 로 고정돼 있었다. 그런데 Ctrl+Shift나 .tar.gz처럼 긴 것이 들어가면
  * 그만큼 잘려 나가고, 잘린 부분은 옆으로 굴려도 볼 수 없었다(폰 폭 375px 에서 여섯 장이 그랬다).
- * 내용만큼 늘리되 최소 46px 은 지켜 줄이 들쭉날쭉해지지 않게 한다 — 대신 옆의 이름 칸이 줄어든다. */
+ * 내용만큼 늘리되 최소 46px 은 지켜 줄이 들쭉날쭉해지지 않게 한다. 대신 옆의 이름 칸이 줄어든다. */
 .rt-row-glyph {
     flex: 0 1 auto;
     min-width: 46px;
@@ -895,7 +895,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     font-weight: 700;
     color: var(--accent);
 }
-/* 이름 칸이 자리를 내준다 — 좁은 화면에서는 190px 를 고집하지 않고 줄어든다. */
+/* 이름 칸이 자리를 내준다. 좁은 화면에서는 190px 를 고집하지 않고 줄어든다. */
 .rt-row-label {
     flex: 0 1 190px;
     min-width: 0;
@@ -940,7 +940,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 }
 
 /* 아스키 아트 결과 */
-/* 영상 미리보기 — 글자판은 캔버스로 찍는다 (칸마다 span 이면 매 프레임 수천 개가 된다) */
+/* 영상 미리보기. 글자판은 캔버스로 찍는다 (칸마다 span 이면 매 프레임 수천 개가 된다) */
 .aa-canvas {
     display: block;
     width: 100%;
@@ -979,7 +979,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .co-sample-lg { font-size: clamp(20px, 4vw, 28px); font-weight: 700; line-height: 1.4; }
 .co-sample-sm { font-size: var(--font-size-sm); line-height: 1.7; }
 
-/* PDF·이미지 미리보기 격자 */
+/* PDF, 이미지 미리보기 격자 */
 .p2-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: var(--space-lg); }
 .p2-cell { border: 1px solid var(--border); background: var(--bg-secondary); padding: 8px; text-decoration: none; display: block; }
 .p2-cell img { width: 100%; height: auto; display: block; background: #fff; }
@@ -1021,7 +1021,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     box-shadow: 0 0 10px var(--accent);
 }
 
-/* 퍼센트 계산기 — 질문 문장 안에 입력칸이 박힌다 */
+/* 퍼센트 계산기. 질문 문장 안에 입력칸이 박힌다 */
 .pc-row { margin-bottom: var(--space-md); }
 .pc-line {
     display: flex;
@@ -1083,7 +1083,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .ld-name.on { font-weight: 700; }
 .ld-prize { fill: var(--text-tertiary); }
 
-/* 텍스트 정리 — 처리 칩은 체크박스를 품는다 */
+/* 텍스트 정리. 처리 칩은 체크박스를 품는다 */
 .tool-chip input[type='checkbox'] {
     width: auto;
     margin-right: 5px;
@@ -1093,7 +1093,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 /* ═══════════════════════════════════════
    폰 (TASK-KL-088)
    내부 스크롤 영역이 화면을 거의 채우면, 손가락이 그 안에서만 놀고 페이지가 안 내려간다.
-   = 사용자에게는 「스크롤이 안 되는 화면」 으로 보인다. 폰에서는 표를 페이지와 함께 흐르게 둔다.
+   = 사용자에게는 스크롤이 안 되는 화면 으로 보인다. 폰에서는 표를 페이지와 함께 흐르게 둔다.
    ═══════════════════════════════════════ */
 @media (max-width: 768px) {
     .rt-grid, .rt-list, .tool-list, .td-out {
@@ -1107,23 +1107,23 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     .tool-seo { padding-left: 16px; padding-right: 16px; }
 }
 
-/* 도구 상세 페이지에서는 앱 히어로를 접는다 — 바로 아래 설명 블록이 같은 제목·설명을
+/* 도구 상세 페이지에서는 앱 히어로를 접는다. 바로 아래 설명 블록이 같은 제목, 설명을
    더 자세히 담고 있어 폰에서 같은 문장을 두 번 읽게 된다 (TASK-KL-088). */
 body.tool-detail .tool-page-hero { display: none; }
 
-/* 상세 페이지에서는 사용자 위젯을 싣지 않는다(TASK-KL-089) — 눌러도 아무 일 없는 단추를 숨긴다. */
+/* 상세 페이지에서는 사용자 위젯을 싣지 않는다(TASK-KL-089). 눌러도 아무 일 없는 단추를 숨긴다. */
 body.tool-detail #userPageBtn { display: none; }
 
-/* 화면을 꽉 채우는 도구(layout-full)의 상세 페이지 — TASK-KL-089.
+/* 화면을 꽉 채우는 도구(layout-full)의 상세 페이지. TASK-KL-089.
    앱에서는 이런 도구가 창을 가득 쓰도록 바깥 스크롤을 끈다. 그런데 상세 페이지에는
-   도구 아래에 설명·FAQ 가 붙으므로, 스크롤이 꺼져 있으면 그 부분이 통째로 잘려
+   도구 아래에 설명, FAQ 가 붙으므로, 스크롤이 꺼져 있으면 그 부분이 통째로 잘려
    사람에게도 크롤러에게도 안 보인다. 상세 페이지에서만 도구 몫의 높이를 정해 주고
    나머지를 아래로 흐르게 한다. */
 body.tool-detail .main-content:has(.tool-page.layout-full.active) { overflow: hidden auto; }
 body.tool-detail .content-body:has(.tool-page.layout-full.active) { flex: 0 0 auto; }
 body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px; }
 
-/* 도구 목록에서 걸러 찾기 (TASK-KL-089) — 백 가지가 넘으면 눈으로 훑기 어렵다 */
+/* 도구 목록에서 걸러 찾기 (TASK-KL-089). 백 가지가 넘으면 눈으로 훑기 어렵다 */
 /* 스크립트가 없으면 걸러 찾기가 안 되므로 칸 자체를 숨긴다.
    HTML 의 hidden 은 display 를 지정하는 순간 덮이므로 여기서 다시 눌러 준다. */
 .tool-hub-find[hidden] { display: none; }
@@ -1155,7 +1155,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
 }
 
-/* 새로 나온 도구 표 (TASK-KL-089) — 이름 옆에 작게, 읽기를 방해하지 않게 */
+/* 새로 나온 도구 표 (TASK-KL-089). 이름 옆에 작게, 읽기를 방해하지 않게 */
 .tool-hub-new {
     display: inline-block;
     margin-left: 6px;
@@ -1163,15 +1163,15 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     border-radius: 999px;
     background: var(--accent-dim);
     color: var(--accent);
-    /* 눈금의 가장 작은 값(12px)에 맞춘다 — 폰에서 읽히게. */
+    /* 눈금의 가장 작은 값(12px)에 맞춘다. 폰에서 읽히게. */
     font-size: var(--font-size-2xs);
     font-style: normal;
     font-weight: 600;
     vertical-align: middle;
 }
 
-/* 데스크톱 앱에서만 도는 도구 표 (TASK-KL-349) — 앱에서만 보이는 카드다.
-   「새로 나옴」과 같은 자리·같은 크기, 색만 조용하게 둔다(자랑이 아니라 조건이다). */
+/* 데스크톱 앱에서만 도는 도구 표 (TASK-KL-349). 앱에서만 보이는 카드다.
+   새로 나옴과 같은 자리, 같은 크기, 색만 조용하게 둔다(자랑이 아니라 조건이다). */
 .tool-hub-desktop {
     display: inline-block;
     margin-left: 6px;
@@ -1185,20 +1185,20 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     vertical-align: middle;
 }
 
-/* 분류마다 몇 개인지 (TASK-KL-089) — 훑을 때 크기를 가늠하게 */
+/* 분류마다 몇 개인지 (TASK-KL-089). 훑을 때 크기를 가늠하게 */
 .tool-hub-count {
     margin-left: 8px;
     padding: 1px 7px;
     border-radius: 999px;
     background: var(--bg-tertiary);
     color: var(--text-secondary);
-    /* 11px 로 박혀 있었다 — 글자 눈금의 가장 작은 값(12px)보다 작아 폰에서 읽기 힘들었다. */
+    /* 11px 로 박혀 있었다. 글자 눈금의 가장 작은 값(12px)보다 작아 폰에서 읽기 힘들었다. */
     font-size: var(--font-size-2xs);
     font-weight: 500;
     vertical-align: middle;
 }
 
-/* 분류 바로가기 (TASK-KL-089) — 목록이 모바일에서 열두 화면을 넘어 굴리기만으로는 멀다 */
+/* 분류 바로가기 (TASK-KL-089). 목록이 모바일에서 열두 화면을 넘어 굴리기만으로는 멀다 */
 .tool-hub-toc {
     display: flex;
     flex-wrap: wrap;
@@ -1215,7 +1215,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     text-decoration: none;
 }
 .tool-hub-toc a:hover { border-color: var(--accent); color: var(--accent); }
-/* 폰에서는 분류가 열여섯 개라 다섯 줄을 차지했다 — 목록이 시작하기도 전에 화면 절반이 없어진다.
+/* 폰에서는 분류가 열여섯 개라 다섯 줄을 차지했다. 목록이 시작하기도 전에 화면 절반이 없어진다.
    한 줄로 두고 옆으로 밀어 본다 (TASK-KL-128). 줄 끝을 흐리게 해서 더 있다는 것을 알린다. */
 @media (max-width: 640px) {
     .tool-hub-toc {
@@ -1230,7 +1230,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     .tool-hub-toc a { flex: 0 0 auto; }
 }
 
-/* 화면에 보이는 이동 경로 — 도구 한 장에 떨어진 사람이 위로 올라갈 길 (TASK-KL-089).
+/* 화면에 보이는 이동 경로. 도구 한 장에 떨어진 사람이 위로 올라갈 길 (TASK-KL-089).
    제목보다 앞서 보이면 안 되므로 작고 흐리게. 좁은 화면에서는 줄바꿈으로 흐른다. */
 .tool-crumb {
   display: flex;
@@ -1245,7 +1245,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tool-crumb a {
   color: inherit;
   text-decoration: none;
-  /* 손가락으로 누를 만한 크기 — 글씨는 작아도 누르는 자리는 작지 않게 */
+  /* 손가락으로 누를 만한 크기. 글씨는 작아도 누르는 자리는 작지 않게 */
   padding: 0.25rem 0;
   min-height: 28px;
   display: inline-flex;
@@ -1289,7 +1289,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tool-hub-quest a { color: var(--accent, #a99bf5); text-decoration: none; }
 .tool-hub-quest a:hover, .tool-hub-quest a:focus-visible { text-decoration: underline; }
 
-/* 높은 쪽 고르기 (TASK-KL-089) — 색·모서리는 KarmoLab 토큰만 쓴다. 놀이도 KarmoLab 이다. */
+/* 높은 쪽 고르기 (TASK-KL-089). 색, 모서리는 KarmoLab 토큰만 쓴다. 놀이도 KarmoLab 이다. */
 .hi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .hi-chips button {
   font: inherit; font-size: var(--font-size-2xs); min-height: 38px; padding: 0 12px; cursor: pointer;
@@ -1309,10 +1309,10 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .hi-side:hover:not(:disabled) { border-color: var(--border-hover); }
 .hi-side:disabled { cursor: default; }
-/* 그림이 카드의 8%(데스크톱 실측)밖에 안 됐다 — 누구인지 보라는 놀이인데 사람이 안 보였다.
+/* 그림이 카드의 8%(데스크톱 실측)밖에 안 됐다. 누구인지 보라는 놀이인데 사람이 안 보였다.
    카드 폭을 따라 커지되 너무 커지지도 않게 묶는다. */
 .hi-side img { width: clamp(96px, 26vw, 176px); height: auto; aspect-ratio: 1; object-fit: contain; }
-/* 포켓몬은 96px 도트다 — 매끄럽게 늘리면 뭉갠 것처럼 보인다. 도트는 각지게 늘려야 원래 모양이다. */
+/* 포켓몬은 96px 도트다. 매끄럽게 늘리면 뭉갠 것처럼 보인다. 도트는 각지게 늘려야 원래 모양이다. */
 .hi-pair[data-board='pokemon'] .hi-side img { image-rendering: pixelated; }
 .hi-nm { font-weight: 700; font-size: var(--font-size-sm); }
 .hi-vl { font-size: var(--font-size-lg); color: var(--accent); font-weight: 700; min-height: 1.4em; }
@@ -1322,7 +1322,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .hi-score b { color: var(--text-primary); font-size: var(--font-size-md); }
 @media (max-width: 380px) { .hi-side img { width: 84px; } }
 
-/* 오늘의 문제 (TASK-KL-089) — 앱 토큰만 쓴다. 커뮤니티처럼 앱 안의 한 화면이다. */
+/* 오늘의 문제 (TASK-KL-089). 앱 토큰만 쓴다. 커뮤니티처럼 앱 안의 한 화면이다. */
 .qs-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 14px; }
 .qs-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; max-width: 34rem; }
 .qs-day { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: 0.04em; }
@@ -1337,7 +1337,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .qs-tool:hover:not(:disabled) { border-color: var(--accent); }
 .qs-tool:disabled { opacity: .6; cursor: default; }
-/* 도구가 문제 밑에서 펴지는 자리 — 문제 카드 안이라 한 겹 더 들어가 보이게 한다.
+/* 도구가 문제 밑에서 펴지는 자리. 문제 카드 안이라 한 겹 더 들어가 보이게 한다.
    높이를 묶어 **제 안에서** 스크롤하게 한다: 안 묶으면 진법 도구 하나가 1,043px 로 펴져
    답 적는 칸이 화면 위로 밀려났다(폰 실측). 도구에서 답을 얻고 고개만 들면 칸이 있어야 한다. */
 .qs-slot {
@@ -1378,7 +1378,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     .pd-pair { grid-template-columns: 1fr; }
 }
 
-/* ═══ 놀이터 (TASK-KL-089) — 놀이 셋으로 갈리는 자리. 색·모서리는 KarmoLab 토큰만 쓴다. ═══ */
+/* ═══ 놀이터 (TASK-KL-089). 놀이 셋으로 갈리는 자리. 색, 모서리는 KarmoLab 토큰만 쓴다. ═══ */
 .pl-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 14px; }
 .pl-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .pl-card {
@@ -1397,7 +1397,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px;
 }
 
-/* 오늘 성적 줄 — 연습을 시작해도 이 줄은 안 사라진다 (TASK-KL-089). */
+/* 오늘 성적 줄. 연습을 시작해도 이 줄은 안 사라진다 (TASK-KL-089). */
 .qs-today {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     margin: 0 0 12px; padding: 10px 14px;
@@ -1406,10 +1406,10 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     border-radius: var(--radius-xl);
 }
 .qs-today > span { flex: 1 1 auto; }
-/* display:flex 는 hidden 속성을 이긴다 — 안 적으면 기록도 없는데 빈 줄이 떠 있다. */
+/* display:flex 는 hidden 속성을 이긴다. 안 적으면 기록도 없는데 빈 줄이 떠 있다. */
 .qs-today[hidden] { display: none; }
 
-/* 오늘의 코스 — 놀이 셋을 하루 한 줄로 묶는 자리 (TASK-KL-089). */
+/* 오늘의 코스. 놀이 셋을 하루 한 줄로 묶는 자리 (TASK-KL-089). */
 .pl-course {
     margin: 0 0 14px; padding: 14px 16px;
     background: var(--bg-secondary); border: 1px solid var(--border);
@@ -1482,7 +1482,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     .gt-share input { flex-basis: 100%; }
 }
 
-/* 한 판을 끝낸 자리에 붙는 코스 줄 (TASK-KL-089) — 그 순간이 다음 놀이로 건너갈 자리다. */
+/* 한 판을 끝낸 자리에 붙는 코스 줄 (TASK-KL-089). 그 순간이 다음 놀이로 건너갈 자리다. */
 .pc-line {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     margin: 10px 0 0; padding: 9px 12px;
@@ -1494,7 +1494,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pc-tag { padding: 1px 8px; color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px; }
 .pc-go { margin-left: auto; color: var(--accent); text-decoration: none; }
 .pc-go:hover { text-decoration: underline; }
-/* 좌우 화살표로도 고를 수 있다는 표시 — 조용히 옆에만 (TASK-KL-089). */
+/* 좌우 화살표로도 고를 수 있다는 표시. 조용히 옆에만 (TASK-KL-089). */
 .hi-keys { margin-left: 8px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 @media (pointer: coarse) { .hi-keys { display: none; } }
 
@@ -1538,7 +1538,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     .du-share input { flex-basis: 100%; }
 }
 
-/* ═══ 스무고개 (TASK-KL-089) — 방향을 뒤집은 놀이. KarmoLab 토큰만 쓴다. ═══ */
+/* ═══ 스무고개 (TASK-KL-089). 방향을 뒤집은 놀이. KarmoLab 토큰만 쓴다. ═══ */
 .tw-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 12px 0; }
 .tw-card {
     padding: 18px; background: var(--bg-secondary);
@@ -1561,7 +1561,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tw-log summary { cursor: pointer; }
 .tw-log ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.8; }
 
-/* ═══ 내 표 만들기 (TASK-KL-089) — 놀이의 재료를 사람이 만든다. ═══ */
+/* ═══ 내 표 만들기 (TASK-KL-089). 놀이의 재료를 사람이 만든다. ═══ */
 .pk-lead { color: var(--text-secondary); font-size: var(--font-size-xs); line-height: 1.7; margin: 0 0 14px; }
 .pk-card { padding: 18px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-xl); }
 .pk-card textarea { width: 100%; font-family: var(--font-mono); font-size: var(--font-size-xs); }
@@ -1576,9 +1576,9 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pk-meta { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
 .pk-meta span { color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 .pk-acts { display: flex; gap: 6px; flex-wrap: wrap; }
-/* 놀이터 안의 「내가 만든 표」 자리 (TASK-KL-089) — 놀이의 재료로 가는 문. */
+/* 놀이터 안의 내가 만든 표 자리 (TASK-KL-089). 놀이의 재료로 가는 문. */
 .pl-mine {
-    /* 이 자리는 넓게 쓴다 — 안 적으면 다른 규칙이 내용 폭에 맞춰 절반만 차지했다(실측 555px). */
+    /* 이 자리는 넓게 쓴다. 안 적으면 다른 규칙이 내용 폭에 맞춰 절반만 차지했다(실측 555px). */
     display: block; width: 100%; box-sizing: border-box;
     margin-top: 16px; padding: 14px 16px;
     background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-xl);
@@ -1590,7 +1590,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     padding: 3px 10px; font-size: var(--font-size-2xs);
     color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px;
 }
-/* 고른 칩은 바탕이 강조색이다 — 거기서도 글자를 강조색으로 칠하면 **글자가 사라진다**
+/* 고른 칩은 바탕이 강조색이다. 거기서도 글자를 강조색으로 칠하면 **글자가 사라진다**
    (대비 1.0, 실측 2026-08-12). 강조는 안 고른 칩에서만 한다. */
 .pl-chip:not(.on) b { color: var(--accent); }
 
@@ -1730,8 +1730,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wm-board-id { font-size: var(--font-size-2xs); color: var(--text-tertiary); font-family: var(--font-mono); }
 .wm-board-title { font-size: var(--font-size-sm); line-height: 1.6; word-break: keep-all; }
 
-/* 글자수 세기 — 「어디에 들어가나」 표와 안내 줄 (TASK-KL-135 후속 · 도구 품질 올리기)
-   남들은 숫자만 준다. 사람이 진짜 궁금한 건 「이 글이 그 칸에 들어가나」다. */
+/* 글자수 세기. 어디에 들어가나 표와 안내 줄 (TASK-KL-135 후속, 도구 품질 올리기)
+   남들은 숫자만 준다. 사람이 진짜 궁금한 건 이 글이 그 칸에 들어가나다. */
 .cc-fit { display: flex; flex-direction: column; gap: 4px; }
 .cc-fit-row {
     display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: baseline;
@@ -1748,7 +1748,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .cc-note-warn { color: var(--warning); }
 
-/* JSON 트리 보기 (도구 품질 올리기 — 남들은 다 있고 우리만 없던 것)
+/* JSON 트리 보기 (도구 품질 올리기. 남들은 다 있고 우리만 없던 것)
    접힌 채로 시작하고, 줄을 누르면 그 자리의 경로를 준다. */
 .jt-tree { max-height: 420px; overflow: auto; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: var(--radius-md); background: var(--bg-secondary);
@@ -1770,8 +1770,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .jf-repair { margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
     font-size: var(--font-size-xs); color: var(--text-secondary); }
 
-/* 텍스트 비교 — 줄 안에서 어디가 바뀌었나 + 나란히 보기 (도구 품질 올리기)
-   줄 통째를 칠하면 「이 줄이 바뀌었다」까지만 알고 사람이 다시 눈으로 대조해야 한다. */
+/* 텍스트 비교. 줄 안에서 어디가 바뀌었나 + 나란히 보기 (도구 품질 올리기)
+   줄 통째를 칠하면 이 줄이 바뀌었다까지만 알고 사람이 다시 눈으로 대조해야 한다. */
 .td-x { text-decoration: none; border-radius: 3px; padding: 0 1px; }
 del.td-x { background: color-mix(in srgb, var(--error) 30%, transparent); }
 ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, transparent); }
@@ -1811,15 +1811,15 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .wm-talk-title:hover { color: var(--accent); }
 .wm-talk-meta { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 
-/* 「다른 곳과 뭐가 다른가」 — 도구 페이지에서 우리만의 것을 사람이 읽게 (KL-184).
-   FAQ·HowTo 리치결과가 폐지돼 표식으로 눈에 띄는 길은 닫혔다. 남은 건 읽히는 글이다. */
+/* 다른 곳과 뭐가 다른가. 도구 페이지에서 우리만의 것을 사람이 읽게 (KL-184).
+   FAQ, HowTo 리치결과가 폐지돼 표식으로 눈에 띄는 길은 닫혔다. 남은 건 읽히는 글이다. */
 .tool-seo-edge { margin: 0 0 var(--space-lg); padding-left: 18px; }
 .tool-seo-edge li { margin: 6px 0; line-height: 1.75; }
 
-/* 퍼센트 — 풀이 식 한 줄 (남들 전부 주는 것). 「맞게 넣었나」를 눈으로 확인하는 장치. */
+/* 퍼센트. 풀이 식 한 줄 (남들 전부 주는 것). 맞게 넣었나를 눈으로 확인하는 장치. */
 .pc-formula { margin-top: 4px; font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-tertiary); }
 
-/* 체질량지수 눈금 — 「내가 어디쯤」을 한눈에 (상위 계산기는 전부 있고 우리만 없었다) */
+/* 체질량지수 눈금. 내가 어디쯤을 한눈에 (상위 계산기는 전부 있고 우리만 없었다) */
 .bmi-scale { position: relative; margin: 10px 0 18px; }
 .bmi-scale-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
 .bmi-seg { background: var(--bg-tertiary); }
@@ -1835,7 +1835,7 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .tool-page:fullscreen { padding: 4vh 4vw; background: var(--bg-primary); overflow: auto; }
 .tool-page:fullscreen .tool-display { font-size: min(22vw, 30vh); line-height: 1.05; }
 
-/* 결과를 그림으로 (TASK-KL-196 F) — 답 칸 바로 아래. 답이 있을 때만 붙는다. */
+/* 결과를 그림으로 (TASK-KL-196 F). 답 칸 바로 아래. 답이 있을 때만 붙는다. */
 .tool-card-btn { display: inline-flex; align-items: center; gap: 6px; margin: -8px 0 var(--space-lg);
     padding: 6px 12px; font: inherit; font-size: var(--font-size-xs); color: var(--text-secondary);
     background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }

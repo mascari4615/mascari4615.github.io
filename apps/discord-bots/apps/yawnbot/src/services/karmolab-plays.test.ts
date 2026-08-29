@@ -1,8 +1,8 @@
 /**
- * TASK-KL-148 — 놀이 기록 원장 시험.
+ * TASK-KL-148. 놀이 기록 원장 시험.
  *
  * 여기서 틀리면 조용히 틀린다: 순위판은 언제나 **뭔가 그럴듯한 줄**을 보여 주기 때문이다.
- * 방향이 뒤집혀도(느린 사람이 1등) 화면은 똑같이 예쁘다. 그래서 이 시험은 「돌아가나」가 아니라
+ * 방향이 뒤집혀도(느린 사람이 1등) 화면은 똑같이 예쁘다. 그래서 이 시험은 돌아가나가 아니라
  * **누가 위인가**와 **안 깼을 때 안 바뀌나**를 본다.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -27,13 +27,13 @@ function store(): KarmolabPlayStore {
   return new KarmolabPlayStore(statePath);
 }
 
-/** KST 로 그날이 되는 시각 (12:00 KST — 자정 근처 흔들림에 걸리지 않게). */
+/** KST 로 그날이 되는 시각 (12:00 KST. 자정 근처 흔들림에 걸리지 않게). */
 function at(day: string): Date {
   return new Date(`${day}T03:00:00.000Z`);
 }
 
 describe('점수 받아들이기', () => {
-  it('사람이 낼 수 없는 값은 안 받는다 — 순위판에 0ms 한 줄이면 그 판은 죽는다', () => {
+  it('사람이 낼 수 없는 값은 안 받는다. 순위판에 0ms 한 줄이면 그 판은 죽는다', () => {
     const reaction = playGame('reaction')!;
     expect(isValidScore(reaction, 0)).toBe(false);
     expect(isValidScore(reaction, 12)).toBe(false);
@@ -54,7 +54,7 @@ describe('점수 받아들이기', () => {
   });
 });
 
-describe('순위 방향 — 놀이마다 반대다', () => {
+describe('순위 방향. 놀이마다 반대다', () => {
   it('반응속도는 **작은 쪽**이 1등이다', () => {
     const s = store();
     s.record('reaction', 'yon', 320, at('2026-08-08'));
@@ -71,7 +71,7 @@ describe('순위 방향 — 놀이마다 반대다', () => {
     expect(s.board('higher', 'all', 20, at('2026-08-08'), 'pokemon').map((e) => e.handle)).toEqual(['ring', 'yon']);
   });
 
-  it('같은 점수면 먼저 낸 사람이 위다 — 뒤에 온 사람이 밀어내면 「깼다」가 거짓이 된다', () => {
+  it('같은 점수면 먼저 낸 사람이 위다. 뒤에 온 사람이 밀어내면 깼다가 거짓이 된다', () => {
     const s = store();
     s.record('reaction', 'yon', 200, at('2026-08-08'));
     s.record('reaction', 'ring', 200, at('2026-08-09'));
@@ -153,7 +153,7 @@ describe('원장이 무한히 안 는다', () => {
 });
 
 describe('저장', () => {
-  it('한 판마다 바로 쓴다 — 봇이 죽어도 방금 깬 기록이 남는다', () => {
+  it('한 판마다 바로 쓴다. 봇이 죽어도 방금 깬 기록이 남는다', () => {
     store().record('reaction', 'yon', 200, at('2026-08-08'));
     expect(fs.existsSync(statePath)).toBe(true);
     expect(store().board('reaction')[0].score).toBe(200);
@@ -191,7 +191,7 @@ describe('요약', () => {
 /**
  * 표(변형)마다 갈리는 순위판.
  *
- * 이게 없으면 조용히 불공정해진다 — 쉬운 표를 고른 사람이 어려운 표 1등을 밀어낸다.
+ * 이게 없으면 조용히 불공정해진다. 쉬운 표를 고른 사람이 어려운 표 1등을 밀어낸다.
  * 사람이 만든 표(UGC)도 같은 자리로 들어오므로, 표가 늘 때마다 서버를 고치지 않아도 된다.
  */
 describe('표마다 순위판이 갈린다', () => {
@@ -236,7 +236,7 @@ describe('표마다 순위판이 갈린다', () => {
     ]);
   });
 
-  it('요약은 표를 합쳐 「이 놀이를 몇 명이 하나」를 센다', () => {
+  it('요약은 표를 합쳐 이 놀이를 몇 명이 하나를 센다', () => {
     const s = store();
     s.record('higher', 'yon', 12, at('2026-08-08'), 'pokemon');
     s.record('higher', 'yon', 3, at('2026-08-08'), 'lol');
@@ -248,9 +248,9 @@ describe('표마다 순위판이 갈린다', () => {
 
 /** 시즌 순위 (TASK-KL-182 F2). */
 describe('시즌 순위 (KL-182 F2)', () => {
-  it('판마다 메달을 주고 메달 수로 줄 세운다 — 점수를 섞지 않는다', () => {
+  it('판마다 메달을 주고 메달 수로 줄 세운다. 점수를 섞지 않는다', () => {
     const store = new KarmolabPlayStore(statePath);
-    // reaction 은 낮을수록, speed 는 높을수록 좋다 — 실제로 있는 두 종목으로 확인한다.
+    // reaction 은 낮을수록, speed 는 높을수록 좋다. 실제로 있는 두 종목으로 확인한다.
     store.record('reaction', 'karmo', 180);
     store.record('reaction', 'ring', 260);
     store.record('speed', 'ring', 12.5);
@@ -265,7 +265,7 @@ describe('시즌 순위 (KL-182 F2)', () => {
     expect(ring.boards).toBe(2);
   });
 
-  it('아무 판에도 없는 사람은 목록에 없다 — 0 으로 줄 세우지 않는다', () => {
+  it('아무 판에도 없는 사람은 목록에 없다. 0 으로 줄 세우지 않는다', () => {
     const store = new KarmolabPlayStore(statePath);
     expect(store.seasonRanking()).toEqual([]);
     store.record('reaction', 'karmo', 200);

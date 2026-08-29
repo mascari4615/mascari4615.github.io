@@ -4,14 +4,14 @@
  * 하는 일 셋:
  *  ① `data/locales.json` → `src/lib/i18n-registry.ts` 를 찍는다 (언어 목록의 유일한 출처).
  *  ② `i18n/<언어>/<묶음>.json` → `js/i18n/<언어>/<묶음>.js` 로 내보낸다.
- *     왜 JS 로 내보내나: 이 앱의 모든 파일은 `<script>` 로 실려 온다 — 서비스 워커의 저장 규칙도,
- *     주소에 판 표식 붙이는 규칙도, 「이 주소가 진짜 있나」 검사도 전부 그 길에만 깔려 있다.
+ *     왜 JS 로 내보내나: 이 앱의 모든 파일은 `<script>` 로 실려 온다. 서비스 워커의 저장 규칙도,
+ *     주소에 판 표식 붙이는 규칙도, 이 주소가 진짜 있나 검사도 전부 그 길에만 깔려 있다.
  *     JSON 을 따로 받아오게 만들면 그 셋을 전부 다시 깔아야 하고, 하나만 빠져도 조용히 낡은 글이
- *     남는다. 글은 JSON 으로 쓰고(사람·기계가 다루기 쉬움) 나갈 때만 JS 로 감싼다.
- *  ③ 번역 상태를 잰다 — 빠진 열쇠 · 남는 열쇠 · **낡은 번역**.
+ *     남는다. 글은 JSON 으로 쓰고(사람, 기계가 다루기 쉬움) 나갈 때만 JS 로 감싼다.
+ *  ③ 번역 상태를 잰다. 빠진 열쇠, 남는 열쇠, **낡은 번역**.
  *
  * 낡은 번역이 왜 따로 필요한가: 한국어 문구를 고쳐도 영어 파일은 그대로 남는다. 파일은 다 차
- * 있으니 「빠짐 0」 으로 보이는데 뜻이 어긋난 채로 나간다 — 화면에도 검사에도 안 잡히는 종류다.
+ * 있으니 빠짐 0 으로 보이는데 뜻이 어긋난 채로 나간다. 화면에도 검사에도 안 잡히는 종류다.
  * 그래서 번역할 때 본 **원문의 지문**을 `i18n/.lock.json` 에 남기고, 원문이 바뀌면 그 열쇠를 세운다.
  *
  * 사용:
@@ -27,15 +27,15 @@ import { widgetCatalog } from './lib/widgets-meta.mjs';
 
 const CHECK = process.argv.includes('--check');
 const SEAL = process.argv.includes('--seal');
-/* ★ **굽기만 한다** — 원본은 한 글자도 안 고친다 (2026-08-28).
- *   `build.mjs` 가 매 빌드마다 이걸 부른다. 그때 원본 json·ts 까지 손보면 **내 빌드가 옆 세션의
+/* ★ **굽기만 한다**. 원본은 한 글자도 안 고친다 (2026-08-28).
+ *   `build.mjs` 가 매 빌드마다 이걸 부른다. 그때 원본 json, ts 까지 손보면 **내 빌드가 옆 세션의
  *   파일을 고치는 꼴**이라, 아무도 안 만진 파일이 dirty 로 뜬다. 그래서 빌드에서 부를 때는
- *   ④ 내보내기(`js/i18n/<언어>/<묶음>.js`)만 돌린다. 정규화·검사는 사람이 부를 때 그대로 돈다. */
+ *   ④ 내보내기(`js/i18n/<언어>/<묶음>.js`)만 돌린다. 정규화, 검사는 사람이 부를 때 그대로 돈다. */
 const EMIT_ONLY = process.argv.includes('--emit-only');
-/** 원본 파일에 쓰지 않는 판 — 검사(`--check`)와 굽기만(`--emit-only`). */
+/** 원본 파일에 쓰지 않는 판. 검사(`--check`)와 굽기만(`--emit-only`). */
 const NO_SRC_WRITE = CHECK || EMIT_ONLY;
 /* ★ **남는 열쇠를 손으로 지우지 않는다** (TASK-KAR-212).
- *   원본에서 사라진 열쇠의 번역은 파일에 그대로 남는다 — 검사는 매번 「남음 18」로 알려 주는데
+ *   원본에서 사라진 열쇠의 번역은 파일에 그대로 남는다. 검사는 매번 남음 18로 알려 주는데
  *   지우는 일은 사람 몫이라, 그 숫자가 상수처럼 굳어 아무도 안 읽게 된다. 지우는 것은 기계 일이다.
  *   기본이 아니라 **부를 때만** 지운다: 원본 쪽이 작업 중이면(개명 도중) 번역을 먼저 버릴 수 있다. */
 const PRUNE = process.argv.includes('--prune');
@@ -48,7 +48,7 @@ const fingerprint = (s) => crypto.createHash('sha1').update(s, 'utf8').digest('h
 /* ── ① 언어 등록부를 코드로 ─────────────────────────── */
 
 const registryTs = `/**
- * ⚠ 자동 생성 — 손으로 고치지 말 것 (TASK-KL-203).
+ * ⚠ 자동 생성. 손으로 고치지 말 것 (TASK-KL-203).
  * 정본은 \`data/locales.json\` 이고, \`node scripts/build-i18n.mjs\` 가 여기에 찍는다.
  * 어긋나면 \`npm run test:i18n\` 이 잡는다.
  */
@@ -58,7 +58,7 @@ export interface LocaleMeta {
   prefix: string;
   htmlLang: string;
   ogLocale: string;
-  /** 그 언어를 쓰는 사람이 부르는 이름 — 언어 단추에는 이걸 보여 준다. */
+  /** 그 언어를 쓰는 사람이 부르는 이름. 언어 단추에는 이걸 보여 준다. */
   endonym: string;
   source: boolean;
   enabled: boolean;
@@ -89,16 +89,16 @@ if (registryDrift && !NO_SRC_WRITE) fs.writeFileSync(registryPath, registryTs, '
 /* ── ①-b 지역 등록부도 같은 방식으로 ──────────────────
  *
  * 지역은 언어와 **다른 축**이다(언어=쓰는 말, 지역=사는 곳). 나라를 늘리는 자리도 파일 하나
- * (`data/regions.json`) 로 묶어 둔다 — 언어에서 배운 것 그대로다. */
+ * (`data/regions.json`) 로 묶어 둔다. 언어에서 배운 것 그대로다. */
 
 const regionsJson = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'data/regions.json'), 'utf8'));
 const regionTs = `/**
- * ⚠ 자동 생성 — 손으로 고치지 말 것 (TASK-KL-203 S10).
+ * ⚠ 자동 생성. 손으로 고치지 말 것 (TASK-KL-203 S10).
  * 정본은 \`data/regions.json\` 이고, \`node scripts/build-i18n.mjs\` 가 여기에 찍는다.
  */
 export interface RegionMeta {
   code: string;
-  /** 그 나라 사람이 부르는 이름 — 지역 단추에 보여 준다. */
+  /** 그 나라 사람이 부르는 이름. 지역 단추에 보여 준다. */
   endonym: string;
   flag: string;
   /** 이 나라로 짚어 주는 시간대들. 브라우저는 나라를 안 알려 주지만 시간대는 알려 준다. */
@@ -124,10 +124,10 @@ if (regionDrift && !NO_SRC_WRITE) fs.writeFileSync(regionPath, regionTs, 'utf8')
  *
  * 도구 129장의 설명은 `data/tools-seo.json` 에 있고, 그게 **정본이다**. 같은 글을
  * `i18n/ko/tools.json` 에 한 벌 더 적어 두면 그날부터 두 벌이 갈라진다(이 레포에서 여러 번 그랬다).
- * 그래서 원본 언어 묶음은 **적지 않고 뽑는다** — 손으로 고칠 파일은 여전히 `tools-seo.json` 하나다.
+ * 그래서 원본 언어 묶음은 **적지 않고 뽑는다**. 손으로 고칠 파일은 여전히 `tools-seo.json` 하나다.
  *
- * 지금 뽑는 것 = 검색 결과에 그대로 나가는 두 줄(`description`·`lead`). 사용법·자주 묻는 질문은
- * 4만 자가 넘어 따로 다룬다(그것까지 한 번에 걸면 「덜 찼다」가 영원히 안 풀린다).
+ * 지금 뽑는 것 = 검색 결과에 그대로 나가는 두 줄(`description`, `lead`). 사용법, 자주 묻는 질문은
+ * 4만 자가 넘어 따로 다룬다(그것까지 한 번에 걸면 덜 찼다가 영원히 안 풀린다).
  */
 const TOOL_FIELDS = ['description', 'lead'];
 const seoPath = path.join(APP_ROOT, 'data/tools-seo.json');
@@ -147,17 +147,17 @@ if (fs.existsSync(seoPath)) {
     fs.writeFileSync(koToolsPath, next, 'utf8');
   }
   if (prev !== next && CHECK) {
-    console.error('[i18n] i18n/ko/tools.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+    console.error('[i18n] i18n/ko/tools.json 이 data/tools-seo.json 과 어긋남. `npm run build:i18n` 후 커밋');
     process.exit(1);
   }
 }
 
-/* ── ①-b-2 「쓰는 법」도 뽑는다 (TASK-KL-203 S8-e) ────
+/* ── ①-b-2 쓰는 법도 뽑는다 (TASK-KL-203 S8-e) ────
  *
  * 도구 장에서 설명 다음으로 사람이 실제로 읽는 절이다. 안 옮기면 언어 장에서 그 절이 통째로
- * 사라진다 — 원본 언어 글을 영어 주소에 실을 수는 없으니 뺐던 것인데, 빠진 장은 한국어 장보다
- * 얇다(6,348자). 자주 묻는 질문(46,805자)은 훨씬 크므로 **따로 둔다** — 한 묶음에 넣으면
- * 「덜 찼다」가 영원히 안 풀린다(이름/설명을 나눈 것과 같은 규칙).
+ * 사라진다. 원본 언어 글을 영어 주소에 실을 수는 없으니 뺐던 것인데, 빠진 장은 한국어 장보다
+ * 얇다(6,348자). 자주 묻는 질문(46,805자)은 훨씬 크므로 **따로 둔다**. 한 묶음에 넣으면
+ * 덜 찼다가 영원히 안 풀린다(이름/설명을 나눈 것과 같은 규칙).
  */
 const derivedHowto = {};
 if (fs.existsSync(seoPath)) {
@@ -173,16 +173,16 @@ if (fs.existsSync(seoPath)) {
   const prev = fs.existsSync(koHowtoPath) ? fs.readFileSync(koHowtoPath, 'utf8').split('\r\n').join('\n') : '';
   if (prev !== next && !NO_SRC_WRITE) fs.writeFileSync(koHowtoPath, next, 'utf8');
   if (prev !== next && CHECK) {
-    console.error('[i18n] i18n/ko/howto.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+    console.error('[i18n] i18n/ko/howto.json 이 data/tools-seo.json 과 어긋남. `npm run build:i18n` 후 커밋');
     process.exit(1);
   }
 }
 
 /* ── ①-b-2 자주 묻는 질문도 같은 길로 ──────────────────
  *
- * `howto` 와 **따로 둔 이유**가 그대로 여기 적용된다: faq 는 훨씬 크고(47,288자 · 질문 467개)
- * 도구마다 3~5개씩 붙어 있다. 한 묶음에 넣으면 「덜 찼다」가 영원히 안 풀린다.
- * 열쇠는 `faq.<도구>.<번호>.q` / `.a` — 질문과 답을 나눠 둬야 **한 쌍이 반만 옮겨진 채**
+ * `howto` 와 **따로 둔 이유**가 그대로 여기 적용된다: faq 는 훨씬 크고(47,288자, 질문 467개)
+ * 도구마다 3~5개씩 붙어 있다. 한 묶음에 넣으면 덜 찼다가 영원히 안 풀린다.
+ * 열쇠는 `faq.<도구>.<번호>.q` / `.a`. 질문과 답을 나눠 둬야 **한 쌍이 반만 옮겨진 채**
  * 나가는 일이 없다(장에서는 쌍이 다 있을 때만 그 절을 낸다).
  */
 const derivedFaq = {};
@@ -201,18 +201,18 @@ if (fs.existsSync(seoPath)) {
   const prev = fs.existsSync(koFaqPath) ? fs.readFileSync(koFaqPath, 'utf8').split('\r\n').join('\n') : '';
   if (prev !== next && !NO_SRC_WRITE) fs.writeFileSync(koFaqPath, next, 'utf8');
   if (prev !== next && CHECK) {
-    console.error('[i18n] i18n/ko/faq.json 이 data/tools-seo.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+    console.error('[i18n] i18n/ko/faq.json 이 data/tools-seo.json 과 어긋남. `npm run build:i18n` 후 커밋');
     process.exit(1);
   }
 }
 
-/* ── ①-c 위젯 이름·설명도 등록 파일에서 뽑는다 ─────────
+/* ── ①-c 위젯 이름, 설명도 등록 파일에서 뽑는다 ─────────
  *
- * 옆줄·list·⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
- * 제일 눈에 띈다. 정본은 `src/widgets-lazy-meta.ts` — 여기서도 적지 않고 뽑는다.
+ * 옆줄, list, ⌘K 에 뜨는 도구 **이름**이다. 여기가 한국어면 영어 화면에서 이름만 한국어로 남아
+ * 제일 눈에 띈다. 정본은 `src/widgets-lazy-meta.ts`. 여기서도 적지 않고 뽑는다.
  *
  * 이름(`widgets`)과 한 줄 설명(`widgets-desc`)을 **다른 묶음으로** 나눈 이유: 이름은 165개로 짧아
- * 금방 차지만 설명은 그 몇 배다. 한 묶음에 두면 「다 찼나」가 설명에 묶여, 이름이 다 준비돼도
+ * 금방 차지만 설명은 그 몇 배다. 한 묶음에 두면 다 찼나가 설명에 묶여, 이름이 다 준비돼도
  * 영어 장을 못 찍는다. 차는 속도가 다른 것은 나눠 둔다.
  */
 const widgetsAll = widgetCatalog();
@@ -225,9 +225,9 @@ const widgetSplit = {
   )
 };
 for (const [ns, body] of Object.entries(widgetSplit)) {
-  /* 갑자기 확 줄면 등록 파일 모양이 바뀐 것이다 — 조용히 비면 영어 화면에 한국어가 되돌아온다. */
+  /* 갑자기 확 줄면 등록 파일 모양이 바뀐 것이다. 조용히 비면 영어 화면에 한국어가 되돌아온다. */
   if (Object.keys(body).length < 50) {
-    console.error(`[i18n] ${ns} 로 뽑힌 것이 ${Object.keys(body).length}개뿐 — widgets-lazy-meta.ts 모양 확인`);
+    console.error(`[i18n] ${ns} 로 뽑힌 것이 ${Object.keys(body).length}개뿐. widgets-lazy-meta.ts 모양 확인`);
     process.exit(1);
   }
   const p = path.join(I18N_DIR, SOURCE_LOCALE, ns + '.json');
@@ -235,17 +235,17 @@ for (const [ns, body] of Object.entries(widgetSplit)) {
   const prev = fs.existsSync(p) ? fs.readFileSync(p, 'utf8').split('\r\n').join('\n') : '';
   if (prev === next) continue;
   if (CHECK) {
-    console.error(`[i18n] i18n/${SOURCE_LOCALE}/${ns}.json 이 widgets-lazy-meta.ts 와 어긋남 — \`npm run build:i18n\` 후 커밋`);
+    console.error(`[i18n] i18n/${SOURCE_LOCALE}/${ns}.json 이 widgets-lazy-meta.ts 와 어긋남. \`npm run build:i18n\` 후 커밋`);
     process.exit(1);
   }
-  if (EMIT_ONLY) continue;   // 굽기만 하는 판 — 원본은 그대로 둔다
+  if (EMIT_ONLY) continue;   // 굽기만 하는 판. 원본은 그대로 둔다
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, next, 'utf8');
 }
 
 /* ── ② 글 묶음 읽기 ─────────────────────────────────── */
 
-/** `i18n/<언어>/` 안의 묶음들. 없는 언어 폴더는 「아직 번역 0」 으로 본다(오류 아님). */
+/** `i18n/<언어>/` 안의 묶음들. 없는 언어 폴더는 아직 번역 0 으로 본다(오류 아님). */
 function readLocale(code) {
   const dir = path.join(I18N_DIR, code);
   const out = {};
@@ -254,7 +254,7 @@ function readLocale(code) {
     if (!f.endsWith('.json')) continue;
     const ns = f.slice(0, -5);
     const body = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
-    /* 열쇠는 반드시 제 묶음 이름으로 시작한다 — 그래야 `t('a.b')` 만 보고 어느 파일을
+    /* 열쇠는 반드시 제 묶음 이름으로 시작한다. 그래야 `t('a.b')` 만 보고 어느 파일을
        받아와야 하는지 알 수 있다. 이 약속이 깨지면 런타임이 영영 못 찾는다(조용히). */
     for (const k of Object.keys(body)) {
       if (!k.startsWith(ns + '.')) {
@@ -301,7 +301,7 @@ for (const l of LOCALES) {
     for (const k of Object.keys(cat)) if (source[ns]?.[k] == null) extra.push(k);
   }
   if (PRUNE && extra.length) {
-    /* 남는 열쇠를 파일에서 실제로 덜어 낸다 — 빈 묶음이 되면 그 파일도 지운다. */
+    /* 남는 열쇠를 파일에서 실제로 덜어 낸다. 빈 묶음이 되면 그 파일도 지운다. */
     for (const [ns, cat] of Object.entries(mine)) {
       const toDelete = Object.keys(cat).filter((k) => source[ns]?.[k] == null);
       if (toDelete.length === 0) continue;
@@ -316,15 +316,15 @@ for (const l of LOCALES) {
   const done = total - missing.length;
   report.push({ code: l.code, total, done, missing, extra, stale });
   /* ★ **막는 것은 원본 언어(한국어)뿐이다** (2026-08-12, 사용자 결정).
-   *   화면은 한국어로 먼저 만든다 — 다른 언어는 따라오는 것이지 앞을 막을 것이 아니다.
+   *   화면은 한국어로 먼저 만든다. 다른 언어는 따라오는 것이지 앞을 막을 것이 아니다.
    *   번역이 낡았다고 배포가 서면, 글 한 줄 고칠 때마다 세 언어를 손봐야 하고 그 사이
    *   고친 한국어 화면이 사람에게 안 나간다. 그건 손해가 이득보다 크다.
-   *   그래서 다른 언어의 낡음·남음은 **경고로만** 남기고(할 일 목록에는 계속 보인다),
-   *   원본 언어가 어긋난 경우에만 막는다 — 그건 화면에 그대로 나가는 글이다. */
+   *   그래서 다른 언어의 낡음, 남음은 **경고로만** 남기고(할 일 목록에는 계속 보인다),
+   *   원본 언어가 어긋난 경우에만 막는다. 그건 화면에 그대로 나가는 글이다. */
   const isSource = l.code === SOURCE_LOCALE;
   if (stale.length || extra.length) {
     if (isSource) bad++;
-    else console.log(`         ↳ ${l.code} 는 경고만 — 배포를 막지 않는다 (한국어만 필수)`);
+    else console.log(`         ↳ ${l.code} 는 경고만. 배포를 막지 않는다 (한국어만 필수)`);
   }
 }
 
@@ -347,11 +347,11 @@ if (!CHECK) {
 
 if (SEAL) {
   /* ★ **전부에 도장을 찍는 자는 아무것도 못 지킨다** (2026-08-16, 실측). 여기는 낡은 열쇠 넉 장을
-     다시 옮기고 `--seal` 을 부르면 **13781개 전부**에 「원문과 맞다」 도장을 찍고 자물쇠를
-     통째로 덮어썼다. 그러면 여태 안 본 번역까지 한꺼번에 보증되어 「낡음」 경보가 조용히 죽는다 —
+     다시 옮기고 `--seal` 을 부르면 **13781개 전부**에 원문과 맞다 도장을 찍고 자물쇠를
+     통째로 덮어썼다. 그러면 여태 안 본 번역까지 한꺼번에 보증되어 낡음 경보가 조용히 죽는다 . 
      오늘 내가 그렇게 할 뻔했고(자물쇠 2252줄 → 27000줄) 되돌렸다.
      이제 열쇠 이름을 주면 **그것만** 찍는다: `--seal tools.calc.description ...`.
-     이름을 안 주면 전과 같이 전부 — 처음 만들 때는 그게 맞다. */
+     이름을 안 주면 전과 같이 전부. 처음 만들 때는 그게 맞다. */
   const keysToEmit = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const whole = keysToEmit.length === 0;
   const next = whole ? {} : JSON.parse(fs.existsSync(LOCK_PATH) ? fs.readFileSync(LOCK_PATH, 'utf8') : '{}');
@@ -372,51 +372,51 @@ if (SEAL) {
   fs.writeFileSync(LOCK_PATH, JSON.stringify(next, null, 2) + '\n', 'utf8');
   console.log(
     whole
-      ? '[i18n] 도장 찍음 (전부) — i18n/.lock.json 갱신'
-      : `[i18n] 도장 찍음 — 준 열쇠 ${keysToEmit.length}개 · 실제로 찍은 자리 ${emittedCount}개 (나머지는 그대로 둔다)`
+      ? '[i18n] 도장 찍음 (전부). i18n/.lock.json 갱신'
+      : `[i18n] 도장 찍음. 준 열쇠 ${keysToEmit.length}개, 실제로 찍은 자리 ${emittedCount}개 (나머지는 그대로 둔다)`
   );
 }
 
 /* ── ⑤ 보고 ─────────────────────────────────────────── */
 
 const srcKeys = Object.values(source).reduce((n, c) => n + Object.keys(c).length, 0);
-console.log(`[i18n] 원본(${SOURCE_LOCALE}) 열쇠 ${srcKeys}개 · 묶음 ${Object.keys(source).length}개`);
+console.log(`[i18n] 원본(${SOURCE_LOCALE}) 열쇠 ${srcKeys}개, 묶음 ${Object.keys(source).length}개`);
 for (const r of report) {
   const pct = r.total ? Math.round((r.done / r.total) * 100) : 100;
   console.log(
     `[i18n] ${r.code}: ${r.done}/${r.total} (${pct}%)` +
-      (r.missing.length ? ` · 빠짐 ${r.missing.length}` : '') +
-      (r.stale.length ? ` · 낡음 ${r.stale.length}` : '') +
-      (r.extra.length ? ` · 남음 ${r.extra.length}` : '')
+      (r.missing.length ? `, 빠짐 ${r.missing.length}` : '') +
+      (r.stale.length ? `, 낡음 ${r.stale.length}` : '') +
+      (r.extra.length ? `, 남음 ${r.extra.length}` : '')
   );
-  for (const k of r.stale.slice(0, 10)) console.log(`         낡음: ${k} (원문이 바뀌었다 — 다시 번역 후 --seal)`);
-  for (const k of r.extra.slice(0, 10)) console.log(`         남음: ${k} (원본에 없는 열쇠 — 지워야 한다)`);
+  for (const k of r.stale.slice(0, 10)) console.log(`         낡음: ${k} (원문이 바뀌었다. 다시 번역 후 --seal)`);
+  for (const k of r.extra.slice(0, 10)) console.log(`         남음: ${k} (원본에 없는 열쇠. 지워야 한다)`);
 }
 
 if (CHECK && registryDrift) {
-  console.error('[i18n] src/lib/i18n-registry.ts 가 data/locales.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+  console.error('[i18n] src/lib/i18n-registry.ts 가 data/locales.json 과 어긋남. `npm run build:i18n` 후 커밋');
   process.exit(1);
 }
 if (CHECK && regionDrift) {
-  console.error('[i18n] src/lib/region-registry.ts 가 data/regions.json 과 어긋남 — `npm run build:i18n` 후 커밋');
+  console.error('[i18n] src/lib/region-registry.ts 가 data/regions.json 과 어긋남. `npm run build:i18n` 후 커밋');
   process.exit(1);
 }
 /* ★ **빠진 번역은 늘지 않게 잠근다** (2026-08-14).
-   지금은 「빠짐 50」을 말만 하고 지나간다 — 그러면 새 도구가 늘 때마다 조용히 커지고,
-   영어·일본어로 보는 사람은 한국어 이름을 본다(실측: 도구 여덟이 그 상태다).
-   「지금 0으로 만들어라」가 아니라 **「여기서부터 늘지 마라」** — 줄이면 기준선을 다시 박는다.
+   지금은 빠짐 50을 말만 하고 지나간다. 그러면 새 도구가 늘 때마다 조용히 커지고,
+   영어, 일본어로 보는 사람은 한국어 이름을 본다(실측: 도구 여덟이 그 상태다).
+   지금 0으로 만들어라가 아니라 **여기서부터 늘지 마라**. 줄이면 기준선을 다시 박는다.
    `--baseline` 으로 다시 박고, 이 검사는 `--check` 일 때만 막는다. */
 {
   const baselinePath = path.join(APP_ROOT, 'data/i18n-missing-baseline.json');
   const current = Object.fromEntries(report.map((r) => [r.code, r.missing.length]));
   if (process.argv.includes('--baseline')) {
     fs.writeFileSync(baselinePath, JSON.stringify({ list: current }, null, 2) + String.fromCharCode(10), 'utf8');
-    console.log('[i18n] 빠짐 기준선을 다시 박았다 — ' + JSON.stringify(current));
+    console.log('[i18n] 빠짐 기준선을 다시 박았다. ' + JSON.stringify(current));
   } else if (CHECK && fs.existsSync(baselinePath)) {
     const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8')).list || {};
     const grown = Object.entries(current).filter(([c, n]) => n > (baseline[c] ?? 0));
     if (grown.length) {
-      console.error('[i18n] 빠진 번역이 늘었다 — 새로 만든 것에 en/ja 를 같이 넣어라:');
+      console.error('[i18n] 빠진 번역이 늘었다. 새로 만든 것에 en/ja 를 같이 넣어라:');
       for (const [c, n] of grown) console.error(`  - ${c}: ${baseline[c] ?? 0} → ${n}`);
       console.error('  줄인 뒤 기준선을 다시 박으려면: node scripts/build-i18n.mjs --baseline');
       process.exit(1);
@@ -425,26 +425,26 @@ if (CHECK && regionDrift) {
 }
 
 if (bad) {
-  console.error('[i18n] 낡거나 남는 번역이 있다 — 위 list 처리 후 다시');
+  console.error('[i18n] 낡거나 남는 번역이 있다. 위 list 처리 후 다시');
   process.exit(1);
 }
 
-/* ── ⑥ 「옮겼다더니 그대로」 잡기 ─────────────────────────────
+/* ── ⑥ 옮겼다더니 그대로 잡기 ─────────────────────────────
  * 열쇠 **수**만 세면 en 값이 한국어 그대로여도 100% 로 보인다. 그런 자리는 두 종류다:
- *   · 일부러 그대로 둔 것 — 남의 주소(링크드인), 한국어 재료(로렘 낱말), 정규식 [가-힣].
- *   · 잊고 안 옮긴 것 — 이건 잡아야 한다.
+ *  , 일부러 그대로 둔 것. 남의 주소(링크드인), 한국어 재료(로렘 낱말), 정규식 [가-힣].
+ *  , 잊고 안 옮긴 것. 이건 잡아야 한다.
  * 둘을 기계가 못 가르므로 **일부러 둔 것만 적어 두고**, 그 밖에 원본과 글자까지 같은 한국어
  * 값이 나오면 세운다. (늘 초록인 검사는 검사가 아니고, 늘 빨간 검사는 사람이 꺼 버린다.) */
 const SAME_OK = new Set([
-  'linktree.t06',             // 사람 이름이 든 진짜 주소 — 옮기면 404
+  'linktree.t06',             // 사람 이름이 든 진짜 주소. 옮기면 404
   'lorem.words.ko',           // 한국어 로렘의 재료 그 자체
   'regexref.t19',             // 정규식 [가-힣]
   'regextest.pattern.hangul', // 같은 이유
-  'regextest.sample.hangul',  // 한글 맛보기 — 한글이라야 뜻이 있다
+  'regextest.sample.hangul',  // 한글 맛보기. 한글이라야 뜻이 있다
   /* ⚠ **임시 통행증** (2026-08-14). 그림판 예시 글이다. 옮겨 놓았더니(af8c4e87) 그쪽 세션의
      일괄 i18n 훑기(abe3d23f)가 ko 값으로 도로 덮었고, 그 사이 verify 가 서서 **배포가 통째로**
-     막혔다(빨강 네 판). 같은 값을 또 옮기면 다음 훑기에 또 덮인다 — 왕복이다.
-     그래서 막힌 것부터 푼다. **이 줄은 karmograph(KL-271) 슬롯이 정하면 지운다** —
+     막혔다(빨강 네 판). 같은 값을 또 옮기면 다음 훑기에 또 덮인다. 왕복이다.
+     그래서 막힌 것부터 푼다. **이 줄은 karmograph(KL-271) 슬롯이 정하면 지운다** . 
      ① 예시를 언어별로 옮긴다(그러면 이 줄 삭제) ② 일부러 같게 둔다(그러면 이 주석만 정리).
      session-bus 2026-08-14 06:4x 에 물어 두었다. */
   'karmograph.textPanel.ph',
@@ -464,7 +464,7 @@ if (CHECK) {
     }
   }
   if (untouched.length) {
-    console.error('[i18n] 옮겼다면서 한국어 그대로인 값 ' + untouched.length + '개 —');
+    console.error('[i18n] 옮겼다면서 한국어 그대로인 값 ' + untouched.length + '개 . ');
     for (const k of untouched.slice(0, 10)) console.error('         ' + k);
     console.error('       일부러 그대로 둘 것이면 build-i18n.mjs 의 SAME_OK 에 이유와 함께 적어라.');
     process.exit(1);

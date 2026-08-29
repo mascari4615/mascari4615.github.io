@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>티메토 로우폴리 — 라이브</title>
+<title>티메토 로우폴리. 라이브</title>
 <style>
   :root { --bg-top:#96cdff; --bg-bot:#fc96cd; }
   * { box-sizing: border-box; }
@@ -31,7 +31,7 @@
     <label>회전 <input id="spin" type="range" min="0" max="100" value="35"></label>
     <label><input id="grid" type="checkbox" checked> 무대</label>
   </div>
-  <div class="row"><span>드래그 = 돌리기 · 휠 = 확대</span></div>
+  <div class="row"><span>드래그 = 돌리기, 휠 = 확대</span></div>
 </div>
 
 <script type="importmap">
@@ -47,7 +47,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from './vendor/examples/jsm/loaders/GLTFLoader.js';
 
 const stage = document.getElementById('stage');
-let RES = 512;   // 화면은 풀 해상도 — 픽셀감은 텍스처가 낸다
+let RES = 512;   // 화면은 풀 해상도. 픽셀감은 텍스처가 낸다
 
 const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
 renderer.setPixelRatio(window.devicePixelRatio || 1);

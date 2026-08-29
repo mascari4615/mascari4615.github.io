@@ -1,9 +1,9 @@
 /**
  * 인쇄해서 쓰는 종이 (TASK-KL-316 / 35)
  *
- * 「PDF」 작업대의 **만들기** 칸(들고 온 파일이 없어도 된다). 자리 셈은 `core/printkit`.
- * 화면에는 SVG 로 그대로 보여 주고, 저장은 PDF 로 한다 — 둘 다 **같은 mm 자리**를 쓰기 때문에
- * 「화면에선 맞는데 인쇄하면 어긋나는」 일이 안 생긴다.
+ * PDF 작업대의 **만들기** 칸(들고 온 파일이 없어도 된다). 자리 셈은 `core/printkit`.
+ * 화면에는 SVG 로 그대로 보여 주고, 저장은 PDF 로 한다. 둘 다 **같은 mm 자리**를 쓰기 때문에
+ * 화면에선 맞는데 인쇄하면 어긋나는 일이 안 생긴다.
  */
 import { calendar, dots, grid, labels, manuscript, staff, type Sheet } from '../../core/printkit';
 import { escapeHtml as esc } from './shared/text';
@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.printkit.desc',
       undefined,
-      '모눈·점모눈·원고지·오선지·달력·라벨을 PDF 로 만듭니다. mm 로 그려 어느 프린터에서도 자리가 맞습니다'
+      '모눈, 점모눈, 원고지, 오선지, 달력, 라벨을 PDF 로 만듭니다. mm 로 그려 어느 프린터에서도 자리가 맞습니다'
     ),
     layout: 'wide',
     icon: '<rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.3" opacity=".8"/>',
@@ -170,7 +170,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             opacity: 0
           });
         }
-        /* 글자는 숫자·영문만 넣는다 — 한글을 넣으려면 글꼴을 통째로 심어야 하고, 그건 파일이 커진다.
+        /* 글자는 숫자, 영문만 넣는다. 한글을 넣으려면 글꼴을 통째로 심어야 하고, 그건 파일이 커진다.
            요일 이름은 화면에서만 말로 보여 주고, PDF 에는 첫 글자만 넣는다. */
         for (const label of sheet.labels) {
           const text = label.text.startsWith('#weekday') ? 'SMTWTFS'[Number(label.text.slice(8))] : label.text;

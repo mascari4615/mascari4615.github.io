@@ -1,15 +1,15 @@
 /**
- * 알맹이가 브라우저 없이도 도는지 확인한다 (S1 — 흡수계획 06)
+ * 알맹이가 브라우저 없이도 도는지 확인한다 (S1. 흡수계획 06)
  *
  * 왜 있나: `src/core/` 의 값어치는 전부 **화면 밖에서도 돈다**는 한 가지 성질에서 나온다.
- * 그 성질이 깨지면 주소 호출도, AI 에이전트(MCP)도, 이 시험 자체도 함께 죽는다 — 그런데
+ * 그 성질이 깨지면 주소 호출도, AI 에이전트(MCP)도, 이 시험 자체도 함께 죽는다. 그런데
  * 화면은 멀쩡하니 아무도 모른다. 그래서 성질 자체를 여기서 잠근다.
  *
  * 세 겹으로 본다.
- *  ① **금지어** — 알맹이 파일이 document·window·Toolbox 따위를 쓰면 그 자리에서 실패.
- *     주석으로 「쓰지 마라」 적어 두는 것과 검사가 잡는 것은 다르다.
- *  ② **Node 에서 진짜 실행** — esbuild 로 묶어 불러와 답을 맞춰 본다. 브라우저를 안 띄운다.
- *  ③ **주소 규약** — `?op=…` 을 읽고 쓰는 길이 spec 과 어긋나지 않는지.
+ *  ① **금지어**. 알맹이 파일이 document, window, Toolbox 따위를 쓰면 그 자리에서 실패.
+ *     주석으로 쓰지 마라 적어 두는 것과 검사가 잡는 것은 다르다.
+ *  ② **Node 에서 진짜 실행**. esbuild 로 묶어 불러와 답을 맞춰 본다. 브라우저를 안 띄운다.
+ *  ③ **주소 규약**. `?op=...` 을 읽고 쓰는 길이 spec 과 어긋나지 않는지.
  *
  * 사용: node scripts/test-core.mjs
  */
@@ -49,9 +49,9 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 가 나왔다 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} 가 나왔다 (기대 ${want})`);
 
-/** 주석과 문자열을 지운 뒤 본다 — 설명글에 적힌 낱말까지 잡으면 검사가 성가신 것이 된다. */
+/** 주석과 문자열을 지운 뒤 본다. 설명글에 적힌 낱말까지 잡으면 검사가 성가신 것이 된다. */
 function stripCommentsAndStrings(src) {
   return src
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
@@ -74,7 +74,7 @@ for (const file of coreFiles) {
   const body = stripCommentsAndStrings(fs.readFileSync(file, 'utf8'));
   for (const word of FORBIDDEN) {
     const hit = new RegExp(`\\b${word}\\b`).test(body);
-    check(hit === false, `${path.basename(file)} 가 「${word}」 를 쓴다 — 알맹이는 Node 에서도 돌아야 한다`);
+    check(hit === false, `${path.basename(file)} 가 ${word} 를 쓴다. 알맹이는 Node 에서도 돌아야 한다`);
   }
 }
 
@@ -98,12 +98,12 @@ async function load(relative) {
 const b64 = await load('src/core/base64.ts');
 
 eq(b64.spec.id, 'base64', 'spec.id 가 파일 이름과 다르다');
-check('encode' in b64.spec.ops && 'decode' in b64.spec.ops, 'spec.ops 에 encode·decode 가 있어야 한다');
+check('encode' in b64.spec.ops && 'decode' in b64.spec.ops, 'spec.ops 에 encode, decode 가 있어야 한다');
 
 eq(b64.encode('hello'), 'aGVsbG8=', '영문 인코딩');
 eq(b64.decode('aGVsbG8='), 'hello', '영문 디코딩');
 
-// 이 도구가 있는 이유 자체 — btoa 만 쓰면 여기서 터진다.
+// 이 도구가 있는 이유 자체. btoa 만 쓰면 여기서 터진다.
 eq(b64.encode('안녕하세요'), '7JWI64WV7ZWY7IS47JqU', '한글 인코딩');
 eq(b64.decode('7JWI64WV7ZWY7IS47JqU'), '안녕하세요', '한글 디코딩');
 eq(b64.decode(b64.encode('🦴 뼈 emoji')), '🦴 뼈 emoji', '이모지 왕복');
@@ -121,12 +121,12 @@ eq(b64.byteLength('안녕'), 6, '한글 바이트 수');
 eq(b64.byteLength(''), 0, '빈 글자 바이트 수');
 
 // ── ②-2 hashgen 알맹이 ──────────────────────────────────────────────────────
-// 계산기를 밖에서 받는 구조라, 여기선 node:crypto 를 손으로 준다. 브라우저는 CryptoJS 를 준다 —
+// 계산기를 밖에서 받는 구조라, 여기선 node:crypto 를 손으로 준다. 브라우저는 CryptoJS 를 준다 . 
 // 같은 알맹이에 다른 손. 두 손이 같은 답을 내는지는 smoke-core-parity.mjs 가 본다.
 const crypto = await import('node:crypto');
 const hg = await load('src/core/hashgen.ts');
 
-// SHA3_512·KECCAK512 는 알맹이가 직접 계산하므로 이 계산기로 안 온다 (오면 던져서 알려 준다).
+// SHA3_512, KECCAK512 는 알맹이가 직접 계산하므로 이 계산기로 안 온다 (오면 던져서 알려 준다).
 const NODE_ALGO = { MD5: 'md5', SHA1: 'sha1', SHA256: 'sha256', SHA512: 'sha512', RIPEMD160: 'ripemd160' };
 const nodeBackend = (algo, text) => {
   const name = NODE_ALGO[algo];
@@ -134,25 +134,25 @@ const nodeBackend = (algo, text) => {
   return crypto.createHash(name).update(text, 'utf8').digest('hex');
 };
 
-// ── ②-1 SHA-3 을 우리가 직접 쓴 것 — 정답지(OpenSSL)와 대조 ────────────────────
-// 「암호를 직접 짜지 마라」의 예외로 삼은 근거가 이 블록이다. 눈으로 「맞겠지」 하는 자리를 없앤다.
+// ── ②-1 SHA-3 을 우리가 직접 쓴 것. 정답지(OpenSSL)와 대조 ────────────────────
+// 암호를 직접 짜지 마라의 예외로 삼은 근거가 이 블록이다. 눈으로 맞겠지 하는 자리를 없앤다.
 const s3 = await load('src/core/sha3.ts');
 
 for (const bits of [224, 256, 384, 512]) {
   for (const sample of ['', 'a', 'KarmoLab', '안녕하세요', '🦴 뼈', 'x'.repeat(200)]) {
-    eq(s3.sha3(sample, bits), crypto.createHash(`sha3-${bits}`).update(sample, 'utf8').digest('hex'), `SHA3-${bits} 「${sample.slice(0, 12)}」`);
+    eq(s3.sha3(sample, bits), crypto.createHash(`sha3-${bits}`).update(sample, 'utf8').digest('hex'), `SHA3-${bits} ${sample.slice(0, 12)}`);
   }
 }
 
-// 흡수 구간 경계(rate)에서 채움이 틀리기 쉽다 — 길이를 1바이트씩 밀며 전부 대 본다.
+// 흡수 구간 경계(rate)에서 채움이 틀리기 쉽다. 길이를 1바이트씩 밀며 전부 대 본다.
 let fuzzBad = 0;
 for (let len = 0; len < 400; len++) {
   const sample = 'z'.repeat(len);
   if (s3.sha3(sample, 512) !== crypto.createHash('sha3-512').update(sample).digest('hex')) fuzzBad++;
 }
-check(fuzzBad === 0, `길이 0~399 중 ${fuzzBad}개가 OpenSSL 과 다르다 (채움·경계 문제)`);
+check(fuzzBad === 0, `길이 0~399 중 ${fuzzBad}개가 OpenSSL 과 다르다 (채움, 경계 문제)`);
 
-// 무작위 바이트로도. 여기까지 맞으면 「우연히 맞았다」가 아니다.
+// 무작위 바이트로도. 여기까지 맞으면 우연히 맞았다가 아니다.
 let randBad = 0;
 for (let i = 0; i < 300; i++) {
   const buf = crypto.randomBytes(1 + Math.floor(Math.random() * 300));
@@ -178,8 +178,8 @@ eq(rows.find((r) => r.algo === 'SHA256').hex, crypto.createHash('sha256').update
 eq(hg.hashAll('', nodeBackend)[0].hex, '', '빈 글자는 빈 값 (0 을 해시하지 않는다)');
 eq(hg.hashAll('a', nodeBackend, true)[0].hex, nodeBackend('MD5', 'a').toUpperCase(), '대문자 표기');
 
-// 남이 준 체크섬은 지저분하게 온다 — 그걸 못 맞추면 「같은 파일인데 다르다」가 된다.
-eq(hg.normalizeExpected('  ABCDEF  '), 'abcdef', '공백·대문자 정리');
+// 남이 준 체크섬은 지저분하게 온다. 그걸 못 맞추면 같은 파일인데 다르다가 된다.
+eq(hg.normalizeExpected('  ABCDEF  '), 'abcdef', '공백, 대문자 정리');
 eq(hg.normalizeExpected('sha256:ABCdef'), 'abcdef', '머리말 떼기');
 eq(hg.normalizeExpected('ab cd\nef'), 'abcdef', '줄바꿈 섞인 값');
 const fileHashes = { 'SHA-256': 'deadbeef', 'SHA-1': 'cafe' };
@@ -209,7 +209,7 @@ eq(ep.parseTimestamp(''), null, '빈 값은 null');
 eq(ep.parseTimestamp('abc'), null, '숫자가 없으면 null');
 eq(ep.parseTimestamp('1,750,000,000').ms, SEC * 1000, '쉼표 섞여 와도 읽는다');
 
-// 「지금」을 인자로 받으므로 답이 흔들리지 않는다.
+// 지금을 인자로 받으므로 답이 흔들리지 않는다.
 const NOW = 1_750_000_000_000;
 eq(ep.humanDelta(NOW, NOW), '방금', '같은 순간');
 eq(ep.humanDelta(NOW - 3 * 86400000, NOW), '3일 전', '과거');
@@ -224,7 +224,7 @@ eq(epRows.find(([k]) => k === 'ISO 8601')[1], new Date(NOW).toISOString(), 'ISO 
 eq(ep.weekdayKo(2), '화', '요일 key → 한국어');
 eq(ep.toLocalInput(new Date(2026, 0, 2, 3, 4, 5)), '2026-01-02T03:04:05', 'datetime-local 모양 (로컬 시간대)');
 
-// ── ②-4 bizno 알맹이 (한국 규칙 — LLM 이 자릿수만 맞춰 지어내는 자리) ────────
+// ── ②-4 bizno 알맹이 (한국 규칙. LLM 이 자릿수만 맞춰 지어내는 자리) ────────
 const bz = await load('src/core/bizno.ts');
 
 eq(bz.spec.id, 'bizno', 'bizno spec.id');
@@ -247,7 +247,7 @@ check(bz.checkCorp('123456789012' + String(corpExpect)).ok === true, '법인번�
 check(bz.run('check', { number: '123-45-6789' + String(bizExpect) }).includes('Check digit: valid'), 'run 이 사람 말로 답한다');
 check(bz.run('check', { number: '1234567890' }).includes('National Tax Service'), '형식 경계를 반드시 말한다');
 
-// ── ②-5 birth 알맹이 (한국 age 3종 — 쓰는 곳마다 답이 다르다) ───────────────
+// ── ②-5 birth 알맹이 (한국 age 3종. 쓰는 곳마다 답이 다르다) ───────────────
 const bi = await load('src/core/birth.ts');
 const TODAY = new Date(2026, 7, 9); // 2026-08-09
 
@@ -256,7 +256,7 @@ const info = bi.birthInfo('1990-05-05', TODAY);
 eq(info.age, 36, '만 age (생일 지남)');
 eq(info.yearAge, 36, '연 age');
 eq(info.koreanAge, 37, '세는 age');
-eq(bi.birthInfo('1990-12-25', TODAY).age, 35, '만 age (생일 아직 — 하나 뺀다)');
+eq(bi.birthInfo('1990-12-25', TODAY).age, 35, '만 age (생일 아직. 하나 뺀다)');
 eq(bi.birthInfo('1990-08-09', TODAY).age, 36, '생일 당일은 이미 지난 것으로 센다');
 eq(bi.birthInfo('1990-08-09', TODAY).untilNext, 0, '생일 당일은 0일 남음');
 eq(bi.birthInfo('1990-08-10', TODAY).untilNext, 1, '내일 생일');
@@ -277,7 +277,7 @@ eq(bi.birthInfo('1990/05/05', TODAY), null, '형식이 다르면 null');
 check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('만 나이: 36세'), 'run 이 세 나이를 함께 낸다');
 check(bi.run('info', { date: '1990-05-05' }, { now: TODAY }).includes('세는 나이: 37세'), '세는 나이도 함께');
 
-// ── ②-6 jamo 알맹이 (한글 — 우리 말고 아무도 안 하는 것) ─────────────────────
+// ── ②-6 jamo 알맹이 (한글. 우리 말고 아무도 안 하는 것) ─────────────────────
 const jm = await load('src/core/jamo.ts');
 
 eq(jm.spec.id, 'jamo', 'jamo spec.id');
@@ -286,7 +286,7 @@ eq(jm.split('가').join('/'), 'ㄱ/ㅏ/', '받침 없으면 종성은 빈 값');
 eq(jm.split('A'), null, '한글이 아니면 null');
 eq(jm.split(' '), null, '띄어쓰기도 null');
 
-// 겹받침 — LLM 이 특히 자주 틀리는 자리 (ㄳ 을 ㄱ+ㅅ 두 개로 쪼개 버린다).
+// 겹받침. LLM 이 특히 자주 틀리는 자리 (ㄳ 을 ㄱ+ㅅ 두 개로 쪼개 버린다).
 eq(jm.split('넋')[2], 'ㄳ', '겹받침 ㄳ 은 한 덩어리');
 eq(jm.split('닭')[2], 'ㄺ', '겹받침 ㄺ');
 eq(jm.split('값')[2], 'ㅄ', '겹받침 ㅄ');
@@ -299,7 +299,7 @@ eq(jm.initials('한글 자모'), 'ㅎㄱ ㅈㅁ', '초성만 (한글 아닌 글�
 eq(jm.decompose('강'), 'ㄱㅏㅇ', '자모 나열');
 eq(jm.decompose('a강!'), 'aㄱㅏㅇ!', '섞여 있어도 한글만 쪼갠다');
 
-// 되돌리기 — 「종성이냐 다음 글자의 초성이냐」가 이 도구의 진짜 어려운 자리다.
+// 되돌리기. 종성이냐 다음 글자의 초성이냐가 이 도구의 진짜 어려운 자리다.
 eq(jm.compose('ㄱㅏㅇ'), '강', '종성으로 붙는다');
 eq(jm.compose('ㄱㅏㅁㅏ'), '가마', 'ㅁ 뒤에 모음이 오면 다음 글자의 초성이다');
 eq(jm.compose('ㄱㅏㅁ'), '감', '뒤에 모음이 없으면 종성');
@@ -317,19 +317,19 @@ const vt = await load('src/core/vat.ts');
 
 eq(vt.spec.id, 'vat', 'vat spec.id');
 
-// 이 도구가 있는 이유 자체 — 110,000 의 공급가는 100,000 이지 99,000 이 아니다.
+// 이 도구가 있는 이유 자체. 110,000 의 공급가는 100,000 이지 99,000 이 아니다.
 const ex = vt.vatExtract(110000);
 eq(ex.supply, 100000, '총액 110,000 → 공급가 100,000 (÷1.1)');
 eq(ex.tax, 10000, '총액 110,000 → 세액 10,000');
 eq(ex.total, 110000, '총액은 그대로');
-check(ex.supply !== 99000, '총액 × 10% 를 빼면 99,000 — 그 답이면 틀린 것');
+check(ex.supply !== 99000, '총액 × 10% 를 빼면 99,000. 그 답이면 틀린 것');
 
 const ad = vt.vatAdd(1000000);
 eq(ad.supply, 1000000, '공급가 그대로');
 eq(ad.tax, 100000, '부가세 10%');
 eq(ad.total, 1100000, '합계');
 
-// 세 줄이 서로 안 맞으면 세금계산서에 못 옮긴다 — 딱 떨어지지 않는 값으로 확인.
+// 세 줄이 서로 안 맞으면 세금계산서에 못 옮긴다. 딱 떨어지지 않는 값으로 확인.
 for (const amount of [12345, 99999, 1, 7, 1234567]) {
   const a = vt.vatAdd(amount);
   check(a.supply + a.tax === a.total, `더하기 ${amount}: 공급가+세액 ≠ 합계 (${a.supply}+${a.tax}≠${a.total})`);
@@ -337,8 +337,8 @@ for (const amount of [12345, 99999, 1, 7, 1234567]) {
   check(e.supply + e.tax === e.total, `빼내기 ${amount}: 공급가+세액 ≠ 합계 (${e.supply}+${e.tax}≠${e.total})`);
 }
 
-eq(vt.vatExtract(11111).supply, 10100, '절사가 기본 (실무) — 10100.909… 를 내림');
-eq(vt.vatExtract(11111, 10, 'round').supply, 10101, '반올림 선택 — 같은 값이 10101 이 된다');
+eq(vt.vatExtract(11111).supply, 10100, '절사가 기본 (실무). 10100.909... 를 내림');
+eq(vt.vatExtract(11111, 10, 'round').supply, 10101, '반올림 선택. 같은 값이 10101 이 된다');
 eq(vt.vatAdd(1000, 0).tax, 0, '세율 0% 면 세액 0');
 eq(vt.vatAdd(1000, 20).total, 1200, '세율 20%');
 eq(vt.won(1234567), '₩1,234,567', '금액 표기');
@@ -355,31 +355,31 @@ try {
 }
 check(vatThrew, '숫자가 아니면 던진다');
 
-// ── ②-8 interest 알맹이 (적금을 「총액 × 연이율」로 답하는 자리) ──────────────
+// ── ②-8 interest 알맹이 (적금을 총액 × 연이율로 답하는 자리) ──────────────
 const it = await load('src/core/interest.ts');
 
 eq(it.spec.id, 'interest', 'interest spec.id');
 
-// 예금 = 단리. 1000만원 · 연 4% · 12개월 → 40만원.
+// 예금 = 단리. 1000만원, 연 4%, 12개월 → 40만원.
 eq(it.depositInterest(10000000, 4, 12), 400000, '예금 단리 1년');
 eq(it.depositInterest(10000000, 4, 6), 200000, '예금 6개월은 절반');
 eq(it.depositInterest(10000000, 0, 12), 0, '이율 0 이면 이자 0');
 
-/* 이 도구가 있는 이유 자체 — 월 50만 × 12개월 · 연 4%.
+/* 이 도구가 있는 이유 자체. 월 50만 × 12개월, 연 4%.
    흔한 오답: 600만 × 4% = 240,000원.
-   실제: 먼저 넣은 돈만 오래 굴러서 (12+11+…+1)/12 개월치 = 130,000원. */
+   실제: 먼저 넣은 돈만 오래 굴러서 (12+11+...+1)/12 개월치 = 130,000원. */
 const savingGross = it.savingInterest(500000, 4, 12);
 eq(Math.round(savingGross), 130000, '적금 12개월 세전 이자');
-check(Math.round(savingGross) !== 240000, '「원금합계 × 연이율」(240,000)이면 틀린 것');
+check(Math.round(savingGross) !== 240000, '원금합계 × 연이율(240,000)이면 틀린 것');
 eq(Math.round(it.savingInterest(500000, 4, 1)), 1667, '1개월이면 한 번만 굴러간다 (한 달치 이자)');
 
-// 세금 — 15.4% 는 소득세 14% + 지방소득세 1.4%.
+// 세금. 15.4% 는 소득세 14% + 지방소득세 1.4%.
 const at = it.afterTax(6000000, 130000);
 eq(Math.round(at.tax), 20020, '이자소득세 15.4%');
 eq(Math.round(at.net), 109980, '세후 이자');
 eq(Math.round(at.payout), 6109980, '세후 수령액 = 원금 + 세후이자');
 
-// 대출 원리금균등 — 3천만원 · 연 5% · 60개월.
+// 대출 원리금균등. 3천만원, 연 5%, 60개월.
 const pay = it.annuityPayment(30000000, 5, 60);
 check(pay > 566000 && pay < 567000, `Monthly payment should be 566,xxx: ${Math.round(pay)}`);
 check(pay * 60 > 30000000, '총 상환액은 원금보다 크다');
@@ -407,13 +407,13 @@ eq(hk.korToEng('안녕하세요'), 'dkssudgktpdy', '반대 방향');
 eq(hk.engToKor(hk.korToEng('한글 자판')), '한글 자판', '왕복 (띄어쓰기 포함)');
 
 // 이 도구의 어려운 자리 ① 받침이 다음 글자 초성으로 넘어간다.
-eq(hk.engToKor('rksk'), '가나', 'ㄱㅏㄴㅏ — ㄴ 이 다음 글자 초성으로');
+eq(hk.engToKor('rksk'), '가나', 'ㄱㅏㄴㅏ. ㄴ 이 다음 글자 초성으로');
 eq(hk.engToKor('dkswk'), '안자', '겹받침 아니어도 넘어간다');
 // ② 겹받침이면 **뒷자음만** 넘어간다.
 eq(hk.engToKor('dkswk'), '안자', 'ㅇㅏㄴㅈㅏ');
 eq(hk.korToEng('앉'), 'dksws'.slice(0, 4), '앉 = ㅇㅏㄴㅈ');
 // ③ 겹모음
-eq(hk.engToKor('dhk'), '와', 'ㅗ+ㅏ = ㅘ (d=ㅇ · h=ㅗ · k=ㅏ)');
+eq(hk.engToKor('dhk'), '와', 'ㅗ+ㅏ = ㅘ (d=ㅇ, h=ㅗ, k=ㅏ)');
 eq(hk.engToKor('dml'), '의', 'ㅡ+ㅣ = ㅢ');
 eq(hk.korToEng('의'), 'dml', '겹모음을 두 키로 되돌린다');
 eq(hk.korToEng('와'), 'dhk', '겹모음 반대 방향');
@@ -422,12 +422,12 @@ eq(hk.engToKor('Rk'), '까', '대문자 R = ㄲ');
 eq(hk.korToEng('까'), 'Rk', '쌍자음은 대문자로 되돌린다');
 
 eq(hk.engToKor('hello world'), 'ㅗ디ㅣㅐ 재깅', '아무 영문이나 두벌식으로 읽는다');
-eq(hk.engToKor('123 !@'), '123 !@', '숫자·기호는 그대로');
+eq(hk.engToKor('123 !@'), '123 !@', '숫자, 기호는 그대로');
 eq(hk.korToEng('abc'), 'abc', '한글 아닌 것은 그대로');
 eq(hk.hasHangul('dkssud'), false, '영문만이면 false');
 eq(hk.hasHangul('안녕 hi'), true, '한글이 섞이면 true');
-eq(hk.run('auto', { text: 'dkssud' }), '안녕', 'auto — 영문이면 한글로');
-eq(hk.run('auto', { text: '안녕' }), 'dkssud', 'auto — 한글이면 영문으로');
+eq(hk.run('auto', { text: 'dkssud' }), '안녕', 'auto. 영문이면 한글로');
+eq(hk.run('auto', { text: '안녕' }), 'dkssud', 'auto. 한글이면 영문으로');
 
 // ── ②-10 loan 알맹이 (상환 방식마다 답이 다르다) ─────────────────────────────
 const ln = await load('src/core/loan.ts');
@@ -445,7 +445,7 @@ check(Math.abs(eq1[59].left) < 1, '마지막에 잔액 0');
 check(pp[0].pay > pp[59].pay, '원금균등은 상환액이 줄어든다');
 check(Math.abs(pp[0].principal - pp[59].principal) < 0.01, '원금균등은 원금 몫이 같다');
 
-// 「어느 방식이 이자가 적나」 — LLM 이 원리금균등 하나로 뭉개는 자리.
+// 어느 방식이 이자가 적나. LLM 이 원리금균등 하나로 뭉개는 자리.
 const iEq = ln.totalInterest(eq1);
 const iPp = ln.totalInterest(pp);
 const iBu = ln.totalInterest(bu);
@@ -482,7 +482,7 @@ const gr = await load('src/core/grade.ts');
 
 eq(gr.spec.id, 'grade', 'grade spec.id');
 
-/* 이 도구가 있는 이유 자체 — 3학점 A+ 와 1학점 F 는 무게가 다르다.
+/* 이 도구가 있는 이유 자체. 3학점 A+ 와 1학점 F 는 무게가 다르다.
    단순 평균: (4.5 + 0) / 2 = 2.25
    가중 평균: (3×4.5 + 1×0) / 4 = 3.375  ← 이게 평점 */
 const mixed = gr.parseCourses('3 A+\n1 F', gr.SCALE_45);
@@ -492,7 +492,7 @@ check(mixed.gpa !== mixed.simple, '둘이 같으면 이 도구가 필요 없다'
 eq(mixed.credits, 4, '이수 학점');
 eq(mixed.counted, 2, '과목 수');
 
-// 4.5 만점과 4.3 만점이 둘 다 국내에서 쓰인다 — A+ 만 다르다.
+// 4.5 만점과 4.3 만점이 둘 다 국내에서 쓰인다. A+ 만 다르다.
 eq(gr.SCALE_45['A+'], 4.5, '4.5 만점의 A+');
 eq(gr.SCALE_43['A+'], 4.3, '4.3 만점의 A+');
 eq(gr.SCALE_45['A0'], gr.SCALE_43['A0'], 'A0 는 두 기준이 같다');
@@ -500,8 +500,8 @@ eq(gr.maxOf(gr.scaleOf('43')), 4.3, 'scaleOf(43)');
 eq(gr.maxOf(gr.scaleOf(undefined)), 4.5, '기본은 4.5');
 eq(gr.parseCourses('3 A+', gr.SCALE_43).gpa, 4.3, '같은 A+ 라도 기준이 다르면 값이 다르다');
 
-// 사람이 적는 모양 — 「A」 한 글자, 쉼표, 공백 여럿.
-eq(gr.parseCourses('3 A', gr.SCALE_45).gpa, 4.0, '「A」 한 글자는 A0 로 본다');
+// 사람이 적는 모양. A 한 글자, 쉼표, 공백 여럿.
+eq(gr.parseCourses('3 A', gr.SCALE_45).gpa, 4.0, 'A 한 글자는 A0 로 본다');
 eq(gr.parseCourses('3,A+', gr.SCALE_45).gpa, 4.5, '쉼표 구분');
 eq(gr.parseCourses('3   B0', gr.SCALE_45).gpa, 3.0, '공백 여럿');
 eq(gr.parseCourses('1.5 A+', gr.SCALE_45).credits, 1.5, '소수 학점');
@@ -510,12 +510,12 @@ const withBad = gr.parseCourses('3 A+\n이건 뭐지\n3 Z+', gr.SCALE_45);
 eq(withBad.bad.length, 2, '못 읽은 줄을 모아 둔다');
 eq(withBad.counted, 1, '읽은 것만 센다');
 
-// 목표 평점 — 식을 뒤집는 자리.
+// 목표 평점. 식을 뒤집는 자리.
 const need = gr.neededAverage(3 * 4.5, 3, 4.0, 3, 4.5);
 eq(Number(need.required.toFixed(2)), 3.5, '현재 4.5(3학점) → 목표 4.0 이면 남은 3학점에 3.5 필요');
 check(need.possible, '3.5 는 만점 안이라 가능');
 check(gr.neededAverage(0, 3, 4.4, 3, 4.5).possible === false, '만점으로도 안 되는 목표는 불가능이라 말한다');
-check(gr.neededAverage(3 * 4.5, 3, 2.0, 3, 4.5).alreadyThere, '남은 학점을 0점 받아도 목표를 넘으면 「이미 넘었다」');
+check(gr.neededAverage(3 * 4.5, 3, 2.0, 3, 4.5).alreadyThere, '남은 학점을 0점 받아도 목표를 넘으면 이미 넘었다');
 
 check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('3.38'), 'run gpa 가 가중 평균을 낸다');
 check(gr.run('gpa', { courses: '3 A+\n1 F' }).includes('GPA is above'), '단순 평균과 헷갈리지 않게 말해 준다');
@@ -533,7 +533,7 @@ const tc = await load('src/core/timecalc.ts');
 
 eq(tc.spec.id, 'timecalc', 'timecalc spec.id');
 
-// 사람이 적는 모양이 여럿이다. 전부 「분」 하나로 모은다.
+// 사람이 적는 모양이 여럿이다. 전부 분 하나로 모은다.
 eq(tc.toMinutes('1:30'), 90, '시:분');
 eq(tc.toMinutes('1:05'), 65, '분이 한 자리로 붙어도');
 eq(tc.toMinutes('90m'), 90, '분 표기');
@@ -545,7 +545,7 @@ eq(tc.toMinutes('8:00'), 480, '정각');
 eq(tc.toMinutes(''), null, '빈 값은 null');
 eq(tc.toMinutes('아무거나'), null, '못 읽으면 null (0 으로 넘기면 합계가 조용히 틀린다)');
 
-// 이 도구가 있는 이유 자체 — 7:45 를 7.45 로 읽으면 틀린다.
+// 이 도구가 있는 이유 자체. 7:45 를 7.45 로 읽으면 틀린다.
 eq(tc.toMinutes('7:45'), 465, '7:45 = 465분');
 eq(Number((465 / 60).toFixed(2)), 7.75, '465분 = 7.75시간 (7.45 아님)');
 
@@ -582,18 +582,18 @@ try {
 }
 check(tcThrew, '읽을 줄이 없으면 던진다');
 
-// ── ②-13 uuidgen 알맹이 (LLM 의 「랜덤」은 랜덤이 아니다 — A등급) ──────────────
+// ── ②-13 uuidgen 알맹이 (LLM 의 랜덤은 랜덤이 아니다. A등급) ──────────────
 const uu = await load('src/core/uuidgen.ts');
 
 eq(uu.spec.id, 'uuidgen', 'uuidgen spec.id');
 
-// 모양 — RFC 자리·판 숫자.
+// 모양. RFC 자리, 판 숫자.
 const v4 = uu.uuidV4();
 check(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(v4), `v4 모양이 아니다: ${v4}`);
 const v7 = uu.uuidV7(1750000000000);
 check(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(v7), `v7 모양이 아니다: ${v7}`);
 
-// v7·ulid 의 존재 이유 = **시간순 정렬**. 늦게 만든 것이 문자열 비교에서도 뒤여야 한다.
+// v7, ulid 의 존재 이유 = **시간순 정렬**. 늦게 만든 것이 문자열 비교에서도 뒤여야 한다.
 const early = uu.uuidV7(1700000000000);
 const later = uu.uuidV7(1800000000000);
 check(early < later, `v7 은 시간순으로 정렬돼야 한다: ${early} < ${later}`);
@@ -605,10 +605,10 @@ eq(uu.nanoId(8).length, 8, 'nanoid 짧게');
 eq(uu.password(16).length, 16, 'password 길이');
 check(/^[a-zA-Z0-9]+$/.test(uu.password(40)), '기호 없이면 영숫자만');
 check(/[!@#$%^&*()\-_=+[\]{}]/.test([...Array(20)].map(() => uu.password(40, true)).join('')), '기호를 켜면 기호가 나온다');
-// 헷갈리는 글자를 뺐다 — 손으로 옮겨 적을 때 사고가 난다.
-check(/[0O1lI]/.test(uu.password(200)) === false, 'password 에 0·O·1·l·I 가 없어야 한다');
+// 헷갈리는 글자를 뺐다. 손으로 옮겨 적을 때 사고가 난다.
+check(/[0O1lI]/.test(uu.password(200)) === false, 'password 에 0, O, 1, l, I 가 없어야 한다');
 
-/* 이 도구의 값 자체 — **정말 겹치지 않는가.** LLM 이 지어낸 값은 같은 것이 반복된다.
+/* 이 도구의 값 자체. **정말 겹치지 않는가.** LLM 이 지어낸 값은 같은 것이 반복된다.
    1000개를 뽑아 하나라도 겹치면 난수원이 잘못된 것이다. */
 for (const [label, gen] of [['uuid4', () => uu.uuidV4()], ['nanoid', () => uu.nanoId(21)], ['password', () => uu.password(16)]]) {
   const seen = new Set();
@@ -630,18 +630,18 @@ try {
 }
 check(uuThrew, '모르는 종류는 던진다');
 
-// ── ②-14 csvjson 알맹이 (따옴표 안 쉼표에서 열이 밀린다 — A등급) ──────────────
+// ── ②-14 csvjson 알맹이 (따옴표 안 쉼표에서 열이 밀린다. A등급) ──────────────
 const cj = await load('src/core/csvjson.ts');
 
 eq(cj.spec.id, 'csvjson', 'csvjson spec.id');
 
-// 이 도구가 있는 이유 자체 — 쉼표로 자르면 여기서 열이 밀린다.
+// 이 도구가 있는 이유 자체. 쉼표로 자르면 여기서 열이 밀린다.
 const tricky = cj.parseCsv('이름,메모\n홍길동,"쉼표, 들어간 값"');
 eq(tricky.length, 2, '줄 수');
 eq(tricky[1].length, 2, '따옴표 안 쉼표로 열이 늘면 안 된다');
 eq(tricky[1][1], '쉼표, 들어간 값', '따옴표 안 쉼표를 그대로 보존');
 
-// 따옴표 안 줄바꿈 — 이걸 놓치면 줄 수가 늘어난다.
+// 따옴표 안 줄바꿈. 이걸 놓치면 줄 수가 늘어난다.
 const multiline = cj.parseCsv('a,b\n1,"두\n줄"');
 eq(multiline.length, 2, '따옴표 안 줄바꿈으로 줄이 늘면 안 된다');
 eq(multiline[1][1], '두\n줄', '줄바꿈 보존');
@@ -651,14 +651,14 @@ eq(cj.parseCsv('a\tb\n1\t2', '\t')[1][1], '2', '탭 구분자');
 eq(cj.parseCsv('a,b\r\n1,2')[1][0], '1', 'CRLF 도 읽는다');
 eq(cj.parseCsv('').length, 0, '빈 글자는 빈 표');
 
-// 되돌리기 — 감싸야 할 값을 안 감싸면 다음 사람이 못 읽는다.
+// 되돌리기. 감싸야 할 값을 안 감싸면 다음 사람이 못 읽는다.
 eq(cj.toCsv([{ a: '쉼표, 값' }]), 'a\n"쉼표, 값"', '쉼표가 있으면 감싼다');
 eq(cj.toCsv([{ a: '따옴표"안' }]), 'a\n"따옴표""안"', '따옴표는 겹쳐 적는다');
 eq(cj.toCsv([{ a: ' 앞뒤공백 ' }]), 'a\n" 앞뒤공백 "', '앞뒤 공백도 감싼다');
 eq(cj.toCsv([{ a: 1 }, { b: 2 }]), 'a,b\n1,\n,2', '열이 다른 객체는 합집합으로');
 eq(cj.toCsv([{ a: null }]), 'a\n', 'null 은 빈 칸');
 
-// 왕복 — 까다로운 값을 넣었다 빼도 그대로여야 한다.
+// 왕복. 까다로운 값을 넣었다 빼도 그대로여야 한다.
 const round = cj.parseCsv(cj.toCsv([{ x: '쉼표, 와 "따옴표"' }, { x: '줄\n바꿈' }]));
 eq(round[1][0], '쉼표, 와 "따옴표"', '왕복 1');
 eq(round[2][0], '줄\n바꿈', '왕복 2');
@@ -666,7 +666,7 @@ eq(round[2][0], '줄\n바꿈', '왕복 2');
 eq(cj.coerce('42'), 42, '숫자로');
 eq(cj.coerce('true'), true, '불리언으로');
 eq(cj.coerce('null'), null, 'null 로');
-eq(cj.coerce('007'), '007', '0 으로 시작하면 글자 그대로 (전화번호·우편번호)');
+eq(cj.coerce('007'), '007', '0 으로 시작하면 글자 그대로 (전화번호, 우편번호)');
 eq(cj.coerce(''), '', '빈 값');
 eq(cj.rowsToObjects(cj.parseCsv('a,b\n1,2'))[0].a, 1, '객체로 바꾸면서 타입도');
 eq(cj.rowsToObjects(cj.parseCsv('a,b\n1,2'), false)[0].a, '1', 'coerce 끄면 글자 그대로');
@@ -682,14 +682,14 @@ for (const bad of [{ op: 'toJson', args: { csv: 'a,b' } }, { op: 'toCsv', args: 
     cjThrew++;
   }
 }
-eq(cjThrew, 3, '자료 없는 CSV·깨진 JSON·배열 아닌 JSON 은 전부 던진다');
+eq(cjThrew, 3, '자료 없는 CSV, 깨진 JSON, 배열 아닌 JSON 은 전부 던진다');
 
-// ── ②-15 tableconv 알맹이 (한글은 두 칸이라 세로줄이 어긋난다 — A등급) ────────
+// ── ②-15 tableconv 알맹이 (한글은 두 칸이라 세로줄이 어긋난다. A등급) ────────
 const tv = await load('src/core/tableconv.ts');
 
 eq(tv.spec.id, 'tableconv', 'tableconv spec.id');
 
-// 들어온 꼴을 스스로 알아본다 — 셋 다 자주 온다.
+// 들어온 꼴을 스스로 알아본다. 셋 다 자주 온다.
 eq(tv.parse('a\tb\n1\t2').kind, 'Excel paste', '탭이 있으면 엑셀에서 복사한 것');
 eq(tv.parse('a,b\n1,2').kind, 'CSV', '쉼표면 CSV');
 eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').kind, 'Markdown table', '두 번째 줄이 구분선이면 마크다운');
@@ -697,8 +697,8 @@ eq(tv.parse('| a | b |\n| --- | --- |\n| 1 | 2 |').rows.length, 2, '마크다운
 eq(tv.parse('').rows.length, 0, '빈 글자는 빈 표');
 eq(tv.parse('a,"쉼표, 값"').rows[0][1], '쉼표, 값', 'CSV 따옴표 안 쉼표');
 
-/* 이 도구가 있는 이유 — **한글은 글자 하나가 두 칸**이다.
-   그걸 안 세면 「맞춰 준다」고 해 놓고 어긋난 표가 나온다. */
+/* 이 도구가 있는 이유. **한글은 글자 하나가 두 칸**이다.
+   그걸 안 세면 맞춰 준다고 해 놓고 어긋난 표가 나온다. */
 eq(tv.width('가'), 2, '한글은 두 칸');
 eq(tv.width('a'), 1, '영문은 한 칸');
 eq(tv.width('가a'), 3, '섞이면 더한다');
@@ -730,14 +730,14 @@ for (const bad of [{ table: '' }, { table: 'a\tb', to: '엉뚱' }]) {
     tvThrew++;
   }
 }
-eq(tvThrew, 2, '빈 표·모르는 꼴은 던진다');
+eq(tvThrew, 2, '빈 표, 모르는 꼴은 던진다');
 
-// ── ②-16 qrgen 알맹이 (LLM 은 QR 을 못 만든다 — A등급) ───────────────────────
+// ── ②-16 qrgen 알맹이 (LLM 은 QR 을 못 만든다. A등급) ───────────────────────
 const qg = await load('src/core/qrgen.ts');
 
 eq(qg.spec.id, 'qrgen', 'qrgen spec.id');
 
-// 문법 있는 문자열 — 여기가 조용히 깨지는 자리다.
+// 문법 있는 문자열. 여기가 조용히 깨지는 자리다.
 eq(qg.escapeWifi('a;b'), 'a\\;b', '세미콜론을 감싼다');
 eq(qg.escapeWifi('a:b,c"d\\e'), 'a\\:b\\,c\\"d\\\\e', '뜻 있는 글자 전부');
 eq(qg.escapeWifi('보통비번'), '보통비번', '평범하면 그대로');
@@ -753,14 +753,14 @@ check(vc.startsWith('BEGIN:VCARD') && vc.endsWith('END:VCARD'), 'vCard 봉투');
 check(vc.includes('ORG:카르모랩') && vc.includes('TEL:010-0000-0000'), '채운 칸만 들어간다');
 check(qg.vcardPayload('홍길동').includes('EMAIL:') === false, '안 준 칸은 빠진다');
 
-// 격자 — 같은 내용이면 같은 크기, 긴 내용이면 더 커진다.
+// 격자. 같은 내용이면 같은 크기, 긴 내용이면 더 커진다.
 const g1 = qg.makeGrid('hello');
 check(g1.count >= 21 && g1.count % 4 === 1, `QR 격자 크기가 규격을 벗어났다: ${g1.count}`);
 check(qg.makeGrid('x'.repeat(300)).count > g1.count, '내용이 길면 격자가 커진다');
 check(qg.makeGrid('안녕하세요').count >= 21, '한글도 담긴다 (UTF-8)');
 // 오류복원 수준을 올리면 같은 내용이라도 더 커진다.
 check(qg.makeGrid('hello', 'H').count >= qg.makeGrid('hello', 'L').count, 'H 가 L 보다 크거나 같다');
-// 세 모서리의 찾기 무늬 — 이게 없으면 스캔이 안 된다.
+// 세 모서리의 찾기 무늬. 이게 없으면 스캔이 안 된다.
 for (const [r, c, label] of [[0, 0, '좌상'], [0, g1.count - 7, '우상'], [g1.count - 7, 0, '좌하']]) {
   check(g1.isDark(r, c) && g1.isDark(r + 6, c + 6), `${label} 찾기 무늬가 없다`);
 }
@@ -768,7 +768,7 @@ for (const [r, c, label] of [[0, 0, '좌상'], [0, g1.count - 7, '우상'], [g1.
 const svg = qg.toSvg(qg.makeGrid('hello'), 256);
 check(svg.startsWith('<svg') && svg.endsWith('</svg>'), 'SVG 봉투');
 check(svg.includes('width="256"'), '크기가 들어간다');
-// 여백 4칸(조용한 구역)이 없으면 스캔이 안 된다 — viewBox 가 격자보다 8 커야 한다.
+// 여백 4칸(조용한 구역)이 없으면 스캔이 안 된다. viewBox 가 격자보다 8 커야 한다.
 check(svg.includes(`viewBox="0 0 ${g1.count + 8} ${g1.count + 8}"`), `여백 4칸이 빠졌다: ${svg.slice(0, 120)}`);
 check(svg.includes('<path d="M'), '검은 칸이 실제로 그려진다');
 
@@ -783,25 +783,25 @@ for (const bad of [['svg', {}], ['wifi', { ssid: '  ' }], ['contact', { name: ''
     qgThrew++;
   }
 }
-eq(qgThrew, 3, '빈 내용·빈 SSID·빈 이름은 전부 던진다');
+eq(qgThrew, 3, '빈 내용, 빈 SSID, 빈 이름은 전부 던진다');
 
-// ── ②-17 filehash 알맹이 (배포처 값은 지저분하게 온다 — A등급) ────────────────
+// ── ②-17 filehash 알맹이 (배포처 값은 지저분하게 온다. A등급) ────────────────
 const fh = await load('src/core/filehash.ts');
 
 eq(fh.spec.id, 'filehash', 'filehash spec.id');
 eq(Object.keys(fh.spec.ops).length, 1, '항상 던지는 죽은 연산을 목록에 두지 않는다');
 
-// **바이트 규약** — File 이 아니라 Uint8Array 를 받으니 Node 에서 그대로 돈다.
+// **바이트 규약**. File 이 아니라 Uint8Array 를 받으니 Node 에서 그대로 돈다.
 const bytes = new TextEncoder().encode('KarmoLab');
 const fileHashed = await fh.hashBytes(bytes);
 eq(fileHashed['SHA-256'], crypto.createHash('sha256').update('KarmoLab').digest('hex'), '바이트 SHA-256 이 OpenSSL 과 같다');
 eq(fileHashed['SHA-512'], crypto.createHash('sha512').update('KarmoLab').digest('hex'), '바이트 SHA-512');
 eq(Object.keys(fileHashed).length, 3, '세 방식이 나온다');
-// 같은 내용이면 hashgen(문자열) 과 같은 값이어야 한다 — 두 도구가 갈리면 안 된다.
+// 같은 내용이면 hashgen(문자열) 과 같은 값이어야 한다. 두 도구가 갈리면 안 된다.
 eq((await fh.hashText('KarmoLab'))['SHA-256'], hg.hashAll('KarmoLab', nodeBackend).find((r) => r.algo === 'SHA256').hex, 'filehash 와 hashgen 이 같은 값');
 eq((await fh.hashBytes(new Uint8Array(0)))['SHA-256'], crypto.createHash('sha256').digest('hex'), '빈 바이트');
 
-// 배포처가 준 값은 지저분하다 — 그대로 비교하면 「같은 파일인데 다르다」가 된다.
+// 배포처가 준 값은 지저분하다. 그대로 비교하면 같은 파일인데 다르다가 된다.
 eq(fh.verify(fileHashed, fileHashed['SHA-256'].toUpperCase()).matched, 'SHA-256', '대문자로 줘도 찾는다');
 eq(fh.verify(fileHashed, 'sha256: ' + fileHashed['SHA-256']).matched, 'SHA-256', '머리말이 붙어도');
 eq(fh.verify(fileHashed, fileHashed['SHA-1']).matched, 'SHA-1', 'SHA-1 로 준 경우');
@@ -824,12 +824,12 @@ try {
 }
 check(fhThrew, '빈 값은 던진다');
 
-// ── ②-18 workdays 알맹이 (대체공휴일 — LLM 이 거의 못 맞히는 자리) ────────────
+// ── ②-18 workdays 알맹이 (대체공휴일. LLM 이 거의 못 맞히는 자리) ────────────
 const wd = await load('src/core/workdays.ts');
 
 eq(wd.spec.id, 'workdays', 'workdays spec.id');
 
-// 주말만 빼도 되는 구간 — 기본이 맞는지 먼저.
+// 주말만 빼도 되는 구간. 기본이 맞는지 먼저.
 const plain = wd.addWorkdays(new Date(2026, 2, 2), 5); // 2026-03-02 월
 eq(plain.end.getDay(), 1, '월요일 + 영업일 5 = 다음 월요일');
 check(plain.skipped.some((s) => s.whyKey === 'weekday.saturday') && plain.skipped.some((s) => s.whyKey === 'weekday.sunday'), '주말을 건너뛴다');
@@ -839,7 +839,7 @@ const satOff = wd.addWorkdays(new Date(2026, 2, 2), 5, 'KR', false);
 const satOn = wd.addWorkdays(new Date(2026, 2, 2), 5, 'KR', true);
 check(satOn.end.getTime() < satOff.end.getTime(), '토요일도 일하면 더 빨리 끝난다');
 
-/* 이 도구의 진짜 값 — 추석이 낀 구간은 그만큼 밀린다.
+/* 이 도구의 진짜 값. 추석이 낀 구간은 그만큼 밀린다.
    2026 추석 = 9/24~26. 9/21(월)부터 영업일 5일이면 추석을 넘어간다. */
 const chuseok = wd.addWorkdays(new Date(2026, 8, 21), 5);
 check(chuseok.skipped.some((s) => s.whyKey.includes('chuseok')), `추석을 건너뛰어야 한다: ${JSON.stringify(chuseok.skipped)}`);
@@ -847,7 +847,7 @@ check(chuseok.end.getTime() > new Date(2026, 8, 26).getTime(), '추석 뒤로 �
 
 // 공휴일 표는 열쇠로 들고 있고, 부르는 쪽이 그 열쇠를 사람 말로 바꾼다.
 const names = [...wd.holidaysOf('KR', 2026).values()];
-check(names.includes('newYear'), `1/1 이 holiday key 「newYear」여야 한다: ${names.slice(0, 4)}`);
+check(names.includes('newYear'), `1/1 이 holiday key newYear여야 한다: ${names.slice(0, 4)}`);
 check(names.some((v) => /^h\d\d$/.test(v)) === false, `깨진 열쇠가 새어 나왔다: ${names.filter((v) => /^h\d\d$/.test(v))}`);
 
 // 쉬는 이유를 말한다 (결과 날짜만 주면 맞는지 확인할 방법이 없다).
@@ -862,13 +862,13 @@ eq(wd.restReason(new Date(2026, 2, 3), 'KR', false), '', '평일은 빈 문자�
 
 const btw = wd.countWorkdays(new Date(2026, 2, 2), new Date(2026, 2, 8));
 eq(btw.total, 7, '전체 7일');
-/* 5일이 아니라 **4일**이다 — 2026-03-01(삼일절)이 일요일이라 3/2 월요일이 대체공휴일이다.
+/* 5일이 아니라 **4일**이다. 2026-03-01(삼일절)이 일요일이라 3/2 월요일이 대체공휴일이다.
    이 한 칸이 이 도구가 있는 이유고, 사람도 LLM 도 여기서 틀린다. */
 eq(btw.workdays, 4, '3/2 가 삼일절 대체공휴일이라 영업일은 4일');
 check(btw.skipped.some((s) => s.whyKey === 'substitute'), `대체공휴일 key 를 말해야 한다: ${JSON.stringify(btw.skipped)}`);
 check(wd.countWorkdays(new Date(2026, 2, 8), new Date(2026, 2, 2)).workdays === 4, '거꾸로 줘도 같은 답');
 
-/* **모르는 해는 모른다고 말한다** — 이게 「조용히 틀린 날짜」를 막는 자리다.
+/* **모르는 해는 모른다고 말한다**. 이게 조용히 틀린 날짜를 막는 자리다.
    표에 없는 해가 섞이면 그 사실을 값으로 들고 나온다. */
 const far = wd.addWorkdays(new Date(2099, 0, 5), 3);
 check(far.unknownYears.includes(2099), `2099 를 모른다고 해야 한다: ${JSON.stringify(far.unknownYears)}`);
@@ -885,9 +885,9 @@ for (const bad of [['after', { start: '엉뚱', days: 3 }], ['after', { start: '
     wdThrew++;
   }
 }
-eq(wdThrew, 4, '잘못된 날짜·0일·끝날 없음·모르는 나라는 전부 던진다');
+eq(wdThrew, 4, '잘못된 날짜, 0일, 끝날 없음, 모르는 나라는 전부 던진다');
 
-// ── ②-19 worldclock 알맹이 (서머타임 — 외운 시차는 1년에 두 번 틀린다) ────────
+// ── ②-19 worldclock 알맹이 (서머타임. 외운 시차는 1년에 두 번 틀린다) ────────
 const wc = await load('src/core/worldclock.ts');
 
 eq(wc.spec.id, 'worldclock', 'worldclock spec.id');
@@ -898,20 +898,20 @@ eq(wc.offsetMinutes('Asia/Seoul', new Date(Date.UTC(2026, 6, 15))), 540, '서울
 eq(wc.offsetMinutes('UTC', new Date()), 0, 'UTC 는 0');
 eq(wc.usesDst('Asia/Seoul', 2026), false, '한국은 서머타임 안 씀');
 
-/* 이 도구가 있는 이유 자체 — 뉴욕은 계절마다 다르다.
-   겨울 UTC-5 · 여름 UTC-4. 서울과의 시차가 14시간 ↔ 13시간으로 바뀐다. */
+/* 이 도구가 있는 이유 자체. 뉴욕은 계절마다 다르다.
+   겨울 UTC-5, 여름 UTC-4. 서울과의 시차가 14시간 ↔ 13시간으로 바뀐다. */
 eq(wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 0, 15))), -300, '뉴욕 1월 = UTC-5');
 eq(wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 6, 15))), -240, '뉴욕 7월 = UTC-4 (서머타임)');
 eq(wc.usesDst('America/New_York', 2026), true, '뉴욕은 서머타임 씀');
 const winterGap = (wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 0, 15))) - 540) / 60;
 const summerGap = (wc.offsetMinutes('America/New_York', new Date(Date.UTC(2026, 6, 15))) - 540) / 60;
 eq(winterGap, -14, '서울→뉴욕 겨울 14시간');
-eq(summerGap, -13, '서울→뉴욕 여름 13시간 — 외운 숫자를 쓰면 한 시간 어긋난다');
+eq(summerGap, -13, '서울→뉴욕 여름 13시간. 외운 숫자를 쓰면 한 시간 어긋난다');
 check(winterGap !== summerGap, '두 값이 같으면 이 도구가 필요 없다');
 
 eq(wc.usesDst('Europe/London', 2026), true, '런던도 서머타임');
 eq(wc.usesDst('Asia/Tokyo', 2026), false, '일본은 안 씀');
-eq(wc.zoneErrorKo('출발', 'Asia/없는곳'), '출발 시간대를 못 찾았습니다: Asia/없는곳 (예: Asia/Seoul · America/New_York)', '시간대 오류 helper');
+eq(wc.zoneErrorKo('출발', 'Asia/없는곳'), '출발 시간대를 못 찾았습니다: Asia/없는곳 (예: Asia/Seoul, America/New_York)', '시간대 오류 helper');
 
 // 없는 시간대를 조용히 0 으로 처리하면 안 된다.
 eq(wc.isZone('Asia/Seoul'), true, '있는 시간대');
@@ -922,7 +922,7 @@ const inst = wc.wallToInstant('2026-08-09T14:00', 'Asia/Seoul');
 eq(wc.wallOf(inst, 'Asia/Seoul'), '2026-08-09 14:00', '서울 벽시계 왕복');
 eq(wc.wallOf(inst, 'UTC'), '2026-08-09 05:00', '같은 순간의 UTC');
 /* 자정은 **00:00** 이어야 한다. `hour12:false` 만 주면 24:00 을 내는 ICU 판이 있어
-   CI(리눅스)에서만 「2026-01-09 24:00」이 나와 빨개졌다 — 로컬에선 재현이 안 됐다.
+   CI(리눅스)에서만 2026-01-09 24:00이 나와 빨개졌다. 로컬에선 재현이 안 됐다.
    hourCycle 을 못 박았고, 여기서 잠근다. */
 eq(wc.wallOf(new Date(Date.UTC(2026, 0, 9, 5, 0)), 'America/New_York'), '2026-01-09 00:00', '자정은 00:00 (24:00 아님)');
 eq(wc.wallOf(new Date(Date.UTC(2026, 0, 8, 15, 0)), 'Asia/Seoul'), '2026-01-09 00:00', '서울 자정도 00:00');
@@ -935,16 +935,16 @@ const wcOff = wc.offsetView('Asia/Seoul', 'Europe/London', new Date('2026-07-01T
 eq(wcOff.diff, '-8', 'offset helper 시차');
 check(wcOff.dstRows.length > 0, 'offset helper DST 줄');
 
-/* 이 셋은 **실패해도 이유를 안 말했다** — CI 에서만 「run convert (겨울 = 14시간 차)」 한 줄이
-   뜨고, 로컬에서는 KST·UTC 어느 쪽으로도 재현이 안 됐다(2026-08-09). 그래서 며칠 동안
-   「무엇이 나왔는지」를 아무도 몰랐고, 그 사이 배포가 통째로 막혀 있었다.
-   기대와 실제를 같이 찍는다 — 다음 실패 한 번이면 원인이 보인다. 시간대·서머타임은
+/* 이 셋은 **실패해도 이유를 안 말했다**. CI 에서만 run convert (겨울 = 14시간 차) 한 줄이
+   뜨고, 로컬에서는 KST, UTC 어느 쪽으로도 재현이 안 됐다(2026-08-09). 그래서 며칠 동안
+   무엇이 나왔는지를 아무도 몰랐고, 그 사이 배포가 통째로 막혀 있었다.
+   기대와 실제를 같이 찍는다. 다음 실패 한 번이면 원인이 보인다. 시간대, 서머타임은
    기계의 tz 자료 판본에 따라 갈리므로 그 판본도 같이 남긴다. */
 const tzShow = (label, got, want) =>
   check(
     got.includes(want),
-    `${label}: 「${got.replace(/\s+/g, ' ').slice(0, 90)}」 가 나왔다 (기대 「${want}」 포함) · ` +
-      `tz=${Intl.DateTimeFormat().resolvedOptions().timeZone} · node=${process.version}`
+    `${label}: ${got.replace(/\s+/g, ' ').slice(0, 90)} 가 나왔다 (기대 ${want} 포함), ` +
+      `tz=${Intl.DateTimeFormat().resolvedOptions().timeZone}, node=${process.version}`
   );
 
 tzShow(
@@ -968,15 +968,15 @@ for (const bad of [['convert', { time: '엉뚱', from: 'Asia/Seoul', to: 'UTC' }
     wcThrew++;
   }
 }
-eq(wcThrew, 3, '잘못된 시각·없는 시간대·잘못된 날짜는 전부 던진다');
+eq(wcThrew, 3, '잘못된 시각, 없는 시간대, 잘못된 날짜는 전부 던진다');
 
-// ── ②-20 datecalc 알맹이 (「1월 31일 + 1개월」이 3월 3일이 되는 버그) ─────────
+// ── ②-20 datecalc 알맹이 (1월 31일 + 1개월이 3월 3일이 되는 버그) ─────────
 const dc = await load('src/core/datecalc.ts');
 
 eq(dc.spec.id, 'datecalc', 'datecalc spec.id');
 
-/* 이 도구가 있는 이유 자체 — 그냥 setMonth 하면 2월 31일이 3월 3일로 넘어간다.
-   기한·구독일 계산에서 매번 나오는 버그다. */
+/* 이 도구가 있는 이유 자체. 그냥 setMonth 하면 2월 31일이 3월 3일로 넘어간다.
+   기한, 구독일 계산에서 매번 나오는 버그다. */
 eq(dc.toInput(dc.addMonths(new Date(2026, 0, 31), 1)), '2026-02-28', '1/31 + 1개월 = 2/28');
 eq(dc.toInput(dc.addMonths(new Date(2024, 0, 31), 1)), '2024-02-29', '윤년이면 2/29');
 eq(dc.toInput(dc.addMonths(new Date(2026, 0, 31), 3)), '2026-04-30', '1/31 + 3개월 = 4/30');
@@ -995,15 +995,15 @@ eq(dc.toInput(dc.shift(new Date(2026, 7, 9), { days: 10 })), '2026-08-19', '일 
 eq(dc.toInput(dc.shift(new Date(2026, 7, 9), { weeks: 2 })), '2026-08-23', '주 더하기');
 eq(dc.toInput(dc.shift(new Date(2024, 1, 29), { years: 1 })), '2025-02-28', '윤년 2/29 + 1년 = 2/28');
 
-// 「며칠간」이 하루 갈리는 자리 — 둘 다 낸다.
+// 며칠간이 하루 갈리는 자리. 둘 다 낸다.
 const b = dc.between(new Date(2026, 7, 1), new Date(2026, 7, 10));
 eq(b.days, 9, '끝날 안 세면 9일');
 eq(b.inclusive, 10, '끝날까지 세면 10일');
 eq(b.weeks, 1, '1주 + 2일');
 eq(dc.weekdaysBetween(new Date(2026, 7, 3), new Date(2026, 7, 7)), 5, '월~금 = 평일 5일');
-eq(dc.weekdaysBetween(new Date(2026, 7, 8), new Date(2026, 7, 9)), 0, '토·일만이면 0');
+eq(dc.weekdaysBetween(new Date(2026, 7, 8), new Date(2026, 7, 9)), 0, '토, 일만이면 0');
 
-// D-Day 도 하루 갈린다 — 관례(시작일 1일째)와 단순 차이를 함께.
+// D-Day 도 하루 갈린다. 관례(시작일 1일째)와 단순 차이를 함께.
 eq(dc.dday(new Date(2026, 7, 19), new Date(2026, 7, 9)).tag, 'D-10', '10일 남음');
 eq(dc.dday(new Date(2026, 7, 9), new Date(2026, 7, 9)).tag, 'D-DAY', '오늘');
 eq(dc.dday(new Date(2026, 7, 1), new Date(2026, 7, 9)).tag, 'D+8', '지난 날짜');
@@ -1022,26 +1022,26 @@ for (const bad of [['shift', { date: '2026-08-09' }], ['shift', { date: '엉뚱'
     dcThrew++;
   }
 }
-eq(dcThrew, 4, '더할 값 없음·잘못된 날짜·끝날 없음·없는 날짜는 전부 던진다');
+eq(dcThrew, 4, '더할 값 없음, 잘못된 날짜, 끝날 없음, 없는 날짜는 전부 던진다');
 
-// ── ②-21 charcount 알맹이 (「몇 글자?」의 답이 기준마다 다르다) ───────────────
+// ── ②-21 charcount 알맹이 (몇 글자?의 답이 기준마다 다르다) ───────────────
 const cc = await load('src/core/charcount.ts');
 
 eq(cc.spec.id, 'charcount', 'charcount spec.id');
 
-// 이모지는 사람이 보는 대로 한 글자여야 한다 — text.length 는 2로 센다.
+// 이모지는 사람이 보는 대로 한 글자여야 한다. text.length 는 2로 센다.
 eq('🦴'.length, 2, '(자바스크립트 기본은 2로 센다)');
 eq(cc.chars('🦴').length, 1, '이모지는 한 글자');
 eq(cc.count('🦴 뼈').withSpace, 3, '이모지+공백+한글 = 3자');
 
 const c = cc.count('안녕 하세요');
 eq(c.withSpace, 6, '공백 포함 6자');
-eq(c.withoutSpace, 5, '공백 제외 5자 — 이 둘이 다른 게 요점');
+eq(c.withoutSpace, 5, '공백 제외 5자. 이 둘이 다른 게 요점');
 eq(c.words, 2, '단어 2');
 eq(c.hangul, 5, '한글 5');
 eq(c.space, 1, '공백 1');
 
-// 바이트 — 옛 시스템은 여기서 자른다. 한글은 UTF-8 3바이트, EUC-KR 2바이트.
+// 바이트. 옛 시스템은 여기서 자른다. 한글은 UTF-8 3바이트, EUC-KR 2바이트.
 eq(cc.byteLength('가', 'utf8'), 3, '한글 UTF-8 = 3바이트');
 eq(cc.byteLength('가', 'euckr'), 2, '한글 EUC-KR = 2바이트');
 eq(cc.byteLength('a', 'utf8'), 1, '영문 1바이트');
@@ -1049,7 +1049,7 @@ check(cc.byteLength('가나다', 'utf8') !== cc.byteLength('가나다', 'euckr')
 eq(cc.euckrUnsafe('🦴 뼈').length, 1, 'EUC-KR 에 못 담는 글자를 집어낸다');
 eq(cc.euckrUnsafe('안녕').length, 0, '한글은 담긴다');
 
-// 문장 — 마지막에 마침표가 없어도 문장이다 (자소서 마지막 줄).
+// 문장. 마지막에 마침표가 없어도 문장이다 (자소서 마지막 줄).
 eq(cc.sentenceCount('하나. 둘. 셋.'), 3, '마침표 3개');
 eq(cc.sentenceCount('하나. 둘. 셋'), 3, '마지막에 마침표가 없어도 3');
 eq(cc.sentenceCount(''), 0, '빈 글은 0');
@@ -1080,9 +1080,9 @@ for (const bad of [['fits', { text: 'a', limit: 0 }], ['fits', { text: 'a', limi
     ccThrew++;
   }
 }
-eq(ccThrew, 2, '0 한도·모르는 기준은 던진다');
+eq(ccThrew, 2, '0 한도, 모르는 기준은 던진다');
 
-// ── ②-22 unitconv 알맹이 (평·돈 — LLM 이 어림값으로 답하는 자리) ─────────────
+// ── ②-22 unitconv 알맹이 (평, 돈. LLM 이 어림값으로 답하는 자리) ─────────────
 const uc = await load('src/core/unitconv.ts');
 
 eq(uc.spec.id, 'unitconv', 'unitconv spec.id');
@@ -1093,7 +1093,7 @@ eq(uc.convert(1, 'inch', 'cm'), 2.54, '1인치 = 2.54cm');
 eq(uc.convert(1, 'kg', 'g'), 1000, '1kg = 1000g');
 eq(Math.round(uc.convert(1, 'mile', 'km') * 1000) / 1000, 1.609, '1마일 = 1.609km');
 
-/* 이 도구의 값 — 한국 전통 단위. LLM 은 「1평 = 3.3㎡」로 답하는데 정확히는 3.3057851 이다.
+/* 이 도구의 값. 한국 전통 단위. LLM 은 1평 = 3.3㎡로 답하는데 정확히는 3.3057851 이다.
    30평이면 0.17㎡ 차이 = 부동산에서 눈에 보이는 값. */
 eq(uc.convert(1, 'pyeong', 'm2'), 3.3057851, '1평 = 3.3057851㎡');
 check(uc.convert(1, 'pyeong', 'm2') !== 3.3, '3.3 으로 어림하면 안 된다');
@@ -1104,7 +1104,7 @@ eq(uc.convert(1, 'nyang', 'g'), 37.5, '한 냥 = 37.5g');
 eq(uc.convert(1, 'mal', 'l'), 18.039, '한 말 = 18.039L');
 eq(Math.round(uc.convert(10, 'doe', 'l') * 1000) / 1000, 18.039, '열 되 = 한 말');
 
-// 온도는 비선형 — 0 에서 안 만난다.
+// 온도는 비선형. 0 에서 안 만난다.
 eq(uc.convert(0, 'c', 'f'), 32, '0°C = 32°F');
 eq(uc.convert(100, 'c', 'f'), 212, '100°C = 212°F');
 eq(uc.convert(-40, 'c', 'f'), -40, '-40 은 두 눈금이 만나는 점');
@@ -1115,17 +1115,17 @@ eq(Math.round(uc.convert(98.6, 'f', 'c') * 10) / 10, 37, '98.6°F = 37°C');
 eq(uc.convert(1, 'gb', 'mb'), 1024, '1GB = 1024MB');
 eq(uc.convert(1, 'mb', 'b'), 1048576, '1MB = 1048576B');
 
-// 갈래를 안 줘도 찾는다. 단 겹치는 id 는 못 찾는다 — 그때는 말해야 한다.
+// 갈래를 안 줘도 찾는다. 단 겹치는 id 는 못 찾는다. 그때는 말해야 한다.
 eq(uc.categoryOf('pyeong'), 'area', 'pyeong 은 area');
 eq(uc.categoryOf('don'), 'weight', 'don 은 weight');
-eq(uc.categoryOf('ms'), null, 'ms 는 speed·time 둘 다 있어 못 고른다');
+eq(uc.categoryOf('ms'), null, 'ms 는 speed, time 둘 다 있어 못 고른다');
 eq(uc.convert(1, 'ms', 'sec', 'time'), 0.001, '갈래를 주면 된다');
 /* 1m/s = 3.6km/h 인데 부동소수점은 3.6 을 정확히 못 담는다(3.5999999999999996).
-   그래서 사람이 보는 값(`format`)으로 잰다 — 그게 이 함수가 있는 이유다. */
+   그래서 사람이 보는 값(`format`)으로 잰다. 그게 이 함수가 있는 이유다. */
 eq(uc.format(uc.convert(1, 'ms', 'kmh', 'speed')), '3.6', '같은 id 라도 갈래가 다르면 다른 답');
 eq(uc.format(uc.convert(100, 'kmh', 'ms', 'speed')), '27.7777777778', '되돌리기도 사람이 읽는 값으로');
 
-// 왕복 — 넣었다 빼면 원래대로.
+// 왕복. 넣었다 빼면 원래대로.
 for (const [v, a, b, cat] of [[7, 'pyeong', 'm2', 'area'], [3, 'don', 'g', 'weight'], [37, 'c', 'f', 'temp'], [5, 'mile', 'km', 'length']]) {
   const back = uc.convert(uc.convert(v, a, b, cat), b, a, cat);
   check(Math.abs(back - v) < 1e-9, `${a}↔${b} 왕복이 어긋난다: ${back} ≠ ${v}`);
@@ -1142,10 +1142,10 @@ for (const bad of [{ value: 1, from: '엉뚱', to: 'm', category: 'length' }, { 
     ucThrew++;
   }
 }
-eq(ucThrew, 3, '없는 단위·양쪽 다 갈래 모호·숫자 아님은 전부 던진다');
-// 한쪽만 모호하면 **다른 쪽으로 찾아 준다** — 굳이 막을 이유가 없다.
+eq(ucThrew, 3, '없는 단위, 양쪽 다 갈래 모호, 숫자 아님은 전부 던진다');
+// 한쪽만 모호하면 **다른 쪽으로 찾아 준다**. 굳이 막을 이유가 없다.
 eq(uc.convert(1, 'ms', 'sec'), 0.001, 'ms 는 모호하지만 sec 로 time 을 알아낸다');
-// 환율은 **일부러 없다** — 실시간 값이라 알맹이가 가질 수 없다.
+// 환율은 **일부러 없다**. 실시간 값이라 알맹이가 가질 수 없다.
 check('currency' in uc.FACTORS === false, '환율을 고정값으로 들고 있으면 안 된다');
 
 // ── ②-23 wordfreq 알맹이 (조사를 안 떼면 상위가 같은 말로 채워진다) ───────────
@@ -1153,27 +1153,27 @@ const wf = await load('src/core/wordfreq.ts');
 
 eq(wf.spec.id, 'wordfreq', 'wordfreq spec.id');
 
-/* 이 도구가 있는 이유 자체 — 조사를 안 떼면 「도구를·도구가·도구는」이 다 다른 낱말이다. */
+/* 이 도구가 있는 이유 자체. 조사를 안 떼면 도구를, 도구가, 도구는이 다 다른 낱말이다. */
 const sample = '도구를 만들고 도구가 좋으면 도구는 남는다';
 const withP = wf.analyze(sample, { stopwords: false });
 const noP = wf.analyze(sample, { particles: false, stopwords: false });
-eq(withP.rows[0].word, '도구', '조사를 떼면 「도구」 하나로 묶인다');
+eq(withP.rows[0].word, '도구', '조사를 떼면 도구 하나로 묶인다');
 eq(withP.rows[0].count, 3, '3회');
-check(noP.rows.some((r) => r.word === '도구를'), '안 떼면 「도구를」이 따로 남는다');
+check(noP.rows.some((r) => r.word === '도구를'), '안 떼면 도구를이 따로 남는다');
 check(noP.unique > withP.unique, `안 떼면 서로 다른 낱말이 더 많다 (${noP.unique} > ${withP.unique})`);
 
-// 긴 조사부터 떼야 한다 — 「에서는」이 「에서」+「는」으로 갈리면 안 된다.
+// 긴 조사부터 떼야 한다. 에서는이 에서+는으로 갈리면 안 된다.
 eq(wf.stripParticle('학교에서는'), '학교', '에서는 을 한 번에');
 eq(wf.stripParticle('학교에서'), '학교', '에서');
 eq(wf.stripParticle('사람으로부터'), '사람', '으로부터');
-// 너무 짧은 말은 안 건드린다 — 「나의」에서 「의」를 떼면 뜻이 달라진다.
+// 너무 짧은 말은 안 건드린다. 나의에서 의를 떼면 뜻이 달라진다.
 eq(wf.stripParticle('나의'), '나의', '두 글자는 그대로');
 eq(wf.stripParticle('바다'), '바다', '조사가 아닌 끝소리는 안 뗀다');
 eq(wf.stripParticle('가나다'), '가나다', '뗀 뒤 두 글자가 안 남으면 그대로');
 
 // 뜻 없는 말 거르기.
 const stopped = wf.analyze('그리고 그리고 바다 바다 바다');
-check(stopped.rows.some((r) => r.word === '그리고') === false, '「그리고」는 걸러진다');
+check(stopped.rows.some((r) => r.word === '그리고') === false, '그리고는 걸러진다');
 eq(stopped.rows[0].word, '바다', '남은 것 중 첫째');
 check(wf.analyze('그리고 그리고 바다', { stopwords: false }).rows.some((r) => r.word === '그리고'), '끄면 안 거른다');
 
@@ -1181,16 +1181,16 @@ check(wf.analyze('그리고 그리고 바다', { stopwords: false }).rows.some((
 check(wf.analyze('a b c 가 나 다').rows.length === 0, '한 글자는 안 센다');
 eq(wf.analyze('').rows.length, 0, '빈 글');
 
-// 붙어 나오는 두 낱말 — 반복하는 표현은 여기서 더 잘 보인다.
+// 붙어 나오는 두 낱말. 반복하는 표현은 여기서 더 잘 보인다.
 const ph = wf.analyze('좋은 하루 좋은 하루 나쁜 하루', { stopwords: false });
-check(ph.phrases.some((p) => p.word === '좋은 하루' && p.count === 2), `「좋은 하루」가 2회로 잡혀야 한다: ${JSON.stringify(ph.phrases)}`);
+check(ph.phrases.some((p) => p.word === '좋은 하루' && p.count === 2), `좋은 하루가 2회로 잡혀야 한다: ${JSON.stringify(ph.phrases)}`);
 check(ph.phrases.every((p) => p.count >= 2), '한 번만 나온 짝은 안 낸다');
 
 // 영문은 기본이 소문자 통합.
 eq(wf.analyze('Tool tool TOOL', { stopwords: false }).rows[0].count, 3, '대소문자를 묶는다');
 eq(wf.analyze('Tool tool TOOL', { stopwords: false, caseSensitive: true }).rows[0].count, 1, '켜면 따로 센다');
 
-check(wf.run('count', { text: sample }).includes('도구 — 3회'), 'run count');
+check(wf.run('count', { text: sample }).includes('도구. 3회'), 'run count');
 check(
   wf.run('count', { text: sample }).includes('particle-stripping approximation'),
   '어림이라는 한계를 적어 둔다'
@@ -1204,7 +1204,7 @@ for (const bad of [{ text: '' }, { text: '가 나 다' }]) {
     wfThrew++;
   }
 }
-eq(wfThrew, 2, '빈 글·셀 낱말 없음은 던진다');
+eq(wfThrew, 2, '빈 글, 셀 낱말 없음은 던진다');
 
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
@@ -1222,7 +1222,7 @@ eq(flag.args.urlSafe, true, 'true 를 읽는다');
 eq(url.readInvocation(b64.spec, '?op=encode&text=a&urlSafe').args.urlSafe, true, '값 없이 적은 켬 표시');
 eq(url.readInvocation(b64.spec, '?op=encode&text=a&urlSafe=0').args.urlSafe, false, '0 은 끔');
 
-// 조용히 틀리지 않는가 — 잘못된 호출은 말을 해야 한다.
+// 조용히 틀리지 않는가. 잘못된 호출은 말을 해야 한다.
 check(url.readInvocation(b64.spec, '?op=엉뚱').error !== undefined, '없는 연산은 오류를 말해야 한다');
 check(url.readInvocation(b64.spec, '?op=encode').error !== undefined, '빠진 값은 오류를 말해야 한다');
 eq(url.readInvocation(b64.spec, '?op=encode&text=a&out=raw').raw, true, 'out=raw 를 읽는다');
@@ -1231,8 +1231,8 @@ eq(url.readInvocation(b64.spec, '?op=encode&text=a&out=raw').raw, true, 'out=raw
 const link = url.buildToolUrl(b64.spec, 'encode', { text: '안녕 & 반가워', urlSafe: true });
 check(link.startsWith('/t/base64/?'), `링크 앞부분이 다르다: ${link}`);
 const back = url.readInvocation(b64.spec, link.slice(link.indexOf('?')));
-eq(back.args.text, '안녕 & 반가워', '링크 왕복 — 텍스트');
-eq(back.args.urlSafe, true, '링크 왕복 — 켬');
+eq(back.args.text, '안녕 & 반가워', '링크 왕복. 텍스트');
+eq(back.args.urlSafe, true, '링크 왕복. 켬');
 
 let threw = false;
 try {
@@ -1249,7 +1249,7 @@ eq(pg.spec.id, 'passgen', 'passgen spec.id');
 
 /*
  * 이 도구가 있는 이유 그 자체.
- * 「대·소·숫자·기호가 다 있으면 강함」 규칙은 `Password1!` 을 통과시키고
+ * 대, 소, 숫자, 기호가 다 있으면 강함 규칙은 `Password1!` 을 통과시키고
  * `correcthorsebatterystaple` 을 탈락시킨다. 우리는 반대로 나와야 한다.
  */
 const bad = pg.analyze('Password1!');
@@ -1260,12 +1260,12 @@ check(
 );
 check(bad.score <= 1, `Password1! 은 약해야 한다 (지금 ${bad.score}/4)`);
 
-// 치환을 되돌려도 같은 단어로 봐야 한다 — 여기서 못 잡으면 점수가 후해진다.
+// 치환을 되돌려도 같은 단어로 봐야 한다. 여기서 못 잡으면 점수가 후해진다.
 eq(pg.unleet('P@ssw0rd'), 'password', '치환 되돌리기');
 eq(pg.unleet('L3tM31n'), 'letmein', '치환 되돌리기 2');
 check(pg.analyze('P@ssw0rd').bits < 30, 'P@ssw0rd 는 30비트 미만이어야 한다');
 
-// 판정은 **둘 중 작은 쪽**이다 — 안전 쪽으로 틀려야 한다.
+// 판정은 **둘 중 작은 쪽**이다. 안전 쪽으로 틀려야 한다.
 for (const pw of ['qwerty123', 'abcd1234', 'aaaaaaaa', 'Tr0ub4dor&3', 'x9#Lq2!vBn']) {
   const r = pg.analyze(pw);
   check(r.bits <= r.naiveBits + 1e-9, `${pw}: 판정값이 순진한 값을 넘으면 안 된다`);
@@ -1273,7 +1273,7 @@ for (const pw of ['qwerty123', 'abcd1234', 'aaaaaaaa', 'Tr0ub4dor&3', 'x9#Lq2!vB
   eq(r.chunks.map((c) => c.text).join(''), pw, `${pw}: 덩어리를 이으면 원문이어야 한다`);
 }
 
-// 패턴은 실제로 잡혀야 한다 (안 잡히면 위 부등식은 그냥 통과한다 — 무의미한 초록).
+// 패턴은 실제로 잡혀야 한다 (안 잡히면 위 부등식은 그냥 통과한다. 무의미한 초록).
 const why = (pw) => pg.analyze(pw).chunks.map((c) => c.whyKey);
 check(why('qwertyui').includes('keyboard'), '자판 줄을 잡는다');
 check(why('abcdefgh').includes('sequence'), '연속을 잡는다');
@@ -1292,7 +1292,7 @@ const r10 = pg.analyze('x9#Lq2!vBn');
 const r20 = pg.analyze('x9#Lq2!vBnZ4$wT7&mKe');
 check(r20.bits > r10.bits * 1.7, `무작위는 길이만큼 는다 (${r10.bits.toFixed(1)} → ${r20.bits.toFixed(1)})`);
 
-// 시간 표기 — 「4.3e12초」는 아무 것도 안 알려 준다.
+// 시간 표기. 4.3e12초는 아무 것도 안 알려 준다.
 eq(pg.humanTime(0.4), '즉시', '1초 미만');
 check(/초$/.test(pg.humanTime(30)), '30초');
 check(/분$/.test(pg.humanTime(300)), '5분');
@@ -1301,7 +1301,7 @@ eq(pg.labelKo('veryWeak'), '매우 약함', '강도 key → 한국어');
 eq(pg.labelKey(4), 'veryStrong', 'score → labelKey');
 eq(pg.whyKo({ text: 'qwerty', bits: 1, kind: 'keyboard', whyKey: 'keyboard' }), '자판 줄', '약점 key → 한국어');
 
-// 빈 값은 던진다 — 0점이 아니라 「잴 게 없다」다.
+// 빈 값은 던진다. 0점이 아니라 잴 게 없다다.
 let pgThrew = false;
 try {
   pg.analyze('');
@@ -1315,19 +1315,19 @@ const pgOut = pg.run('strength', { password: 'Password1!' });
 check(pgOut.includes('약'), 'run 이 판정을 글로 낸다');
 check(pgOut.includes('흔한 단어'), 'run 이 왜 깎였는지 말한다');
 
-// ── ②-29 daily 알맹이 (하루 경계·같은 시드·정답 안 새기) ──────────────────
+// ── ②-29 daily 알맹이 (하루 경계, 같은 시드, 정답 안 새기) ──────────────────
 const dl = await load('src/core/daily.ts');
 eq(dl.spec.id, 'daily', 'daily spec.id');
 
 /*
- * 이 substrate 의 유일한 함정 — **시간대**. 기기 시계로 「오늘」을 잡으면 하와이와 서울이
+ * 이 substrate 의 유일한 함정. **시간대**. 기기 시계로 오늘을 잡으면 하와이와 서울이
  * 다른 문제를 풀고, 그러면 공유 격자를 서로 견줄 수 없다. 그래서 KST 로 못을 박았고,
  * 여기서 그 못이 진짜 박혔는지 본다. (아래 시각들은 전부 같은 순간을 다르게 적은 것이다.)
  */
 eq(dl.dateKST(new Date('2026-08-09T14:59:00Z')), '2026-08-09', 'UTC 14:59 = KST 23:59 → 아직 9일');
 eq(dl.dateKST(new Date('2026-08-09T15:00:00Z')), '2026-08-10', 'UTC 15:00 = KST 자정 → 10일');
 eq(dl.dateKST(new Date('2026-08-10T02:30:00Z')), '2026-08-10', '한국 낮');
-// 로스앤젤레스 사람이 8월 9일 저녁에 열어도 한국은 이미 10일이다 — 같은 문제를 받아야 한다.
+// 로스앤젤레스 사람이 8월 9일 저녁에 열어도 한국은 이미 10일이다. 같은 문제를 받아야 한다.
 eq(dl.dateKST(new Date('2026-08-09T23:00:00-07:00')), '2026-08-10', '기기 시간대와 무관');
 
 eq(dl.startOfDayKST('2026-08-10').toISOString(), '2026-08-09T15:00:00.000Z', 'KST 자정 = 전날 15시 UTC');
@@ -1340,7 +1340,7 @@ eq(dl.seedFor('a', '2026-08-10'), dl.seedFor('a', '2026-08-10'), '같은 입력 
 check(dl.seedFor('a', '2026-08-10') !== dl.seedFor('a', '2026-08-11'), '날짜가 다르면 시드가 다르다');
 check(dl.seedFor('a', '2026-08-10') !== dl.seedFor('b', '2026-08-10'), '게임이 다르면 시드가 다르다');
 
-/* 시드가 같으면 뽑기·섞기도 같아야 한다 — 새로고침마다 문제가 바뀌면 데일리가 아니다. */
+/* 시드가 같으면 뽑기, 섞기도 같아야 한다. 새로고침마다 문제가 바뀌면 데일리가 아니다. */
 const items = ['가', '나', '다', '라', '마', '바', '사'];
 const seed = dl.seedFor('x', '2026-08-10');
 eq(dl.pickWith(dl.rngFrom(seed), items), dl.pickWith(dl.rngFrom(seed), items), '같은 시드 같은 뽑기');
@@ -1357,14 +1357,14 @@ try {
 }
 check(emptyThrew, '고를 것이 없으면 던진다 (undefined 를 흘리지 않는다)');
 
-/* 며칠째 — 공유 글의 번호. 사람들이 이걸로 같은 판인지 안다. */
+/* 며칠째. 공유 글의 번호. 사람들이 이걸로 같은 판인지 안다. */
 eq(dl.dayNumber('2026-08-10'), 1, '첫날은 1일째');
 eq(dl.dayNumber('2026-08-11'), 2, '다음 날은 2일째');
 
 /*
- * ★ 공유 글에 **정답이 새면 안 된다.** 이 함수는 애초에 정답을 인자로 안 받는다 —
- * 받아 놓고 안 쓰면 언젠가 누가 편의로 끼워 넣는다. 그래서 「안 넣었나」가 아니라
- * 「넣을 수가 없나」를 확인한다.
+ * ★ 공유 글에 **정답이 새면 안 된다.** 이 함수는 애초에 정답을 인자로 안 받는다 . 
+ * 받아 놓고 안 쓰면 언젠가 누가 편의로 끼워 넣는다. 그래서 안 넣었나가 아니라
+ * 넣을 수가 없나를 확인한다.
  */
 const M = (s2) => s2.split('').map((c) => (c === 'H' ? 'hit' : c === 'N' ? 'near' : 'miss'));
 const shared = dl.shareText({
@@ -1385,7 +1385,7 @@ check(shareArgs === 1, '공유는 인자 하나(정답 자리 없음)');
 // 못 맞힌 판은 X 로.
 check(dl.shareText({ title: 'T', date: '2026-08-10', rows: [M('MMM')], tries: null, maxTries: 3 }).startsWith('T #1 X/3'), '실패는 X');
 
-// 저장 열쇠에 게임·날짜가 둘 다 들어간다 (섞이면 어제 기록이 오늘로 보인다).
+// 저장 열쇠에 게임, 날짜가 둘 다 들어간다 (섞이면 어제 기록이 오늘로 보인다).
 check(dl.playKey('g', '2026-08-10') !== dl.playKey('g', '2026-08-11'), '날짜가 열쇠에 들어간다');
 check(dl.playKey('g', '2026-08-10') !== dl.playKey('h', '2026-08-10'), '게임이 열쇠에 들어간다');
 
@@ -1398,7 +1398,7 @@ check(dlOut.includes('KST'), 'run 이 기준을 밝힌다');
 const ch = await load('src/core/chain.ts');
 eq(ch.spec.id, 'chain', 'chain spec.id');
 
-/* 가짜 손 하나로 판을 만든다 — 부르는 손을 밖에서 받는 설계라 시험이 쉽다. */
+/* 가짜 손 하나로 판을 만든다. 부르는 손을 밖에서 받는 설계라 시험이 쉽다. */
 const calls = [];
 const fakeCall = (tool, op, args) => {
   calls.push(`${tool}_${op}`);
@@ -1408,7 +1408,7 @@ const fakeCall = (tool, op, args) => {
   return `${tool}:${op}:${JSON.stringify(args)}`;
 };
 
-/* 이 도구가 있는 이유 자체 — 앞 결과가 뒤 인자로 들어간다. */
+/* 이 도구가 있는 이유 자체. 앞 결과가 뒤 인자로 들어간다. */
 const two = ch.runChain(
   ch.parseSteps('[{"tool":"upper","op":"go","args":{"text":"ab"}},{"tool":"wrap","op":"go","args":{"text":"$1"}}]'),
   fakeCall
@@ -1427,7 +1427,7 @@ eq(inline[1].output, '[aHIb]', '{{1}} 은 글 안에 끼운다');
 eq(ch.resolve(42, ['x'], 2), 42, '숫자는 손대지 않는다');
 eq(ch.resolve('$1', ['x'], 2), 'x', '$1 은 통째로 바뀐다');
 
-/* 아직 안 나온 결과를 가리키면 **던져야 한다** — 안 그러면 「$5」 가 그대로 도구에 들어간다. */
+/* 아직 안 나온 결과를 가리키면 **던져야 한다**. 안 그러면 $5 가 그대로 도구에 들어간다. */
 for (const [bad, why] of [
   ['[{"tool":"upper","op":"go","args":{"text":"$1"}}]', '자기 자신'],
   ['[{"tool":"upper","op":"go","args":{"text":"a"}},{"tool":"wrap","op":"go","args":{"text":"$5"}}]', '뒤 단계']
@@ -1441,7 +1441,7 @@ for (const [bad, why] of [
   check(threw, `${why} 를 가리키면 던진다`);
 }
 
-// 목록이 잘못됐을 때 — 셋 다 「무엇이 잘못됐는지」 말하고 멈춰야 한다.
+// 목록이 잘못됐을 때. 셋 다 무엇이 잘못됐는지 말하고 멈춰야 한다.
 for (const [bad, why] of [
   ['그냥글자', 'JSON 이 아님'],
   ['[]', '단계 0개'],
@@ -1457,7 +1457,7 @@ for (const [bad, why] of [
   check(threw, `${why} → 던진다`);
 }
 
-// 상한 — 끝없이 이어 붙이지 못하게.
+// 상한. 끝없이 이어 붙이지 못하게.
 const many = JSON.stringify(Array.from({ length: ch.MAX_STEPS + 1 }, () => ({ tool: 'upper', op: 'go', args: {} })));
 let overflowed = false;
 try {
@@ -1499,14 +1499,14 @@ check(text.includes('1. upper_go'), '1번 단계가 보인다');
 check(text.includes('2. wrap_go'), '2번 단계가 보인다');
 check(text.trim().endsWith('[AB]'), '마지막 줄이 결과');
 
-// ── ②-27 배선 — 알맹이가 있는데 화면이 안 쓰면 두 답이 갈린다 ─────────────────
+// ── ②-27 배선. 알맹이가 있는데 화면이 안 쓰면 두 답이 갈린다 ─────────────────
 /*
  * 2026-08-09 실제로 났던 일: `passgen` 알맹이를 만들었는데 화면 위젯에는 **옛 계산이 그대로**
- * 남아 있었다. 둘이 같은 질문에 정반대로 답했다(화면 「강함」 / MCP 「약함」). 타입 검사도,
- * 단위 검사도, 화면 검사도 전부 초록이었다 — 각자 자기 계산으로 맞기 때문이다.
+ * 남아 있었다. 둘이 같은 질문에 정반대로 답했다(화면 강함 / MCP 약함). 타입 검사도,
+ * 단위 검사도, 화면 검사도 전부 초록이었다. 각자 자기 계산으로 맞기 때문이다.
  *
  * 그래서 **같은 이름이면 붙어 있어야 한다**를 규칙으로 박는다. 알맹이 `x` 가 있고 위젯 `x` 가
- * 있으면, 그 위젯은 `core/x` 를 불러야 한다. 화면이 없는 알맹이(도우미·MCP 전용)는 안 따진다.
+ * 있으면, 그 위젯은 `core/x` 를 불러야 한다. 화면이 없는 알맹이(도우미, MCP 전용)는 안 따진다.
  */
 const widgetOf = (id) => {
   for (const rel of [`src/widgets/${id}.ts`, `src/widgets/tools/${id}.ts`]) {
@@ -1521,21 +1521,21 @@ for (const file of coreFiles) {
   const rel = widgetOf(id);
   if (rel === null) continue;
   const body = fs.readFileSync(path.join(root, rel), 'utf8');
-  /* 따옴표까지 봐야 한다 — `includes('core/vat')` 는 `core/vat2` 에도 걸려 안 문다(실측). */
+  /* 따옴표까지 봐야 한다. `includes('core/vat')` 는 `core/vat2` 에도 걸려 안 문다(실측). */
   check(
     new RegExp(`core/${id}['"\`]`).test(body),
-    `${rel} 가 core/${id} 를 안 쓴다 — 화면과 MCP 가 다른 답을 낼 수 있다`
+    `${rel} 가 core/${id} 를 안 쓴다. 화면과 MCP 가 다른 답을 낼 수 있다`
   );
   wired++;
 }
-check(wired >= 20, `배선을 확인한 도구가 ${wired}개뿐 — 찾는 경로가 틀렸을 수 있다`);
+check(wired >= 20, `배선을 확인한 도구가 ${wired}개뿐. 찾는 경로가 틀렸을 수 있다`);
 
-// ── ②-30 AI 경로 고르기 (로컬 AI 는 「추가」이지 「전제」가 아니다) ─────────────
+// ── ②-30 AI 경로 고르기 (로컬 AI 는 추가이지 전제가 아니다) ─────────────
 const ai = await load('src/lib/ai-route.ts');
 
 /*
- * 철칙부터 잠근다 — **아무 것도 안 갖춘 사람에게도 도구는 열려야 한다.**
- * 이게 깨지면 「AI 때문에 도구가 안 열린다」가 되고, 그건 기능 추가가 아니라 기능 삭제다.
+ * 철칙부터 잠근다. **아무 것도 안 갖춘 사람에게도 도구는 열려야 한다.**
+ * 이게 깨지면 AI 때문에 도구가 안 열린다가 되고, 그건 기능 추가가 아니라 기능 삭제다.
  */
 const bare = ai.chooseRoute({ hasKey: false, webgpu: false, modelCached: false });
 eq(bare.route, 'off', '아무 것도 없으면 도구만 (고장 아님)');
@@ -1545,39 +1545,39 @@ eq(ai.chooseRoute({ hasKey: true, webgpu: false, modelCached: false }).route, 'r
 eq(ai.chooseRoute({ hasKey: false, webgpu: true, modelCached: true }).route, 'local', '키 없어도 모델 있으면 로컬');
 eq(ai.chooseRoute({ hasKey: false, webgpu: true, modelCached: false }).route, 'gate', '모델 없으면 물어본다');
 
-/* 키가 있어도 「내보내기 싫다」를 골랐으면 그 뜻을 뒤집지 않는다. */
+/* 키가 있어도 내보내기 싫다를 골랐으면 그 뜻을 뒤집지 않는다. */
 eq(ai.chooseRoute({ hasKey: true, webgpu: true, modelCached: true, preferLocal: true }).route, 'local', '로컬 선호가 키보다 먼저');
 eq(ai.chooseRoute({ hasKey: true, webgpu: true, modelCached: false, preferLocal: true }).route, 'gate', '로컬 선호인데 모델 없으면 게이트');
 /* 다만 로컬이 불가능하면 뜻을 지키다 아무 것도 못 하게 두지 않는다. */
 eq(ai.chooseRoute({ hasKey: true, webgpu: false, modelCached: false, preferLocal: true }).route, 'remote', '로컬 불가면 원격으로');
 
-/* 작은 기기는 시도조차 안 한다 — 시도해서 죽는 것보다 안 하는 편이 낫다. */
+/* 작은 기기는 시도조차 안 한다. 시도해서 죽는 것보다 안 하는 편이 낫다. */
 eq(ai.chooseRoute({ hasKey: false, webgpu: true, modelCached: true, tooSmall: true }).route, 'off', '버거운 기기는 끈다');
 
 /*
- * ★ 실패는 **단계**로 가른다. 적재 실패에 「작게 해서 다시」를 권하면 안 된다 —
+ * ★ 실패는 **단계**로 가른다. 적재 실패에 작게 해서 다시를 권하면 안 된다 . 
  * 모델이 아예 안 올라간 것이라 입력 크기와 무관하고, 그 권유는 사람을 헛돌게 한다.
  */
 const loadFail = ai.explainFailure('load', 'ALLOC');
-check(loadFail.say.includes('비어 있는'), '적재 실패는 「지금 비어 있는」 메모리를 짚는다');
-check(/줄여|작게|해상도/.test(loadFail.say) === false, `적재 실패에 「줄여 보라」를 권하지 않는다: ${loadFail.say}`);
-check(loadFail.retryable === true && loadFail.suggestRemote === true, '적재 실패는 재시도·원격 둘 다 권한다');
+check(loadFail.say.includes('비어 있는'), '적재 실패는 지금 비어 있는 메모리를 짚는다');
+check(/줄여|작게|해상도/.test(loadFail.say) === false, `적재 실패에 줄여 보라를 권하지 않는다: ${loadFail.say}`);
+check(loadFail.retryable === true && loadFail.suggestRemote === true, '적재 실패는 재시도, 원격 둘 다 권한다');
 
 const run = ai.explainFailure('run');
 check(/줄여/.test(run.say), '실행 중 실패는 입력을 줄이라고 한다 (여기서는 맞는 말)');
 check(run.suggestRemote === false, '실행 실패는 원격을 권하지 않는다 (같은 입력이면 거기서도 무겁다)');
 
 const unsupported = ai.explainFailure('support');
-check(unsupported.retryable === false, '지원 안 하는 브라우저는 다시 해도 같다 — 버튼을 안 준다');
+check(unsupported.retryable === false, '지원 안 하는 브라우저는 다시 해도 같다. 버튼을 안 준다');
 check(unsupported.say.includes('그대로'), '그래도 도구는 쓸 수 있다고 말한다');
 
-/* 받기 전에 숫자를 먼저 말한다. 「잠시만 기다려 주세요」로는 아무도 못 고른다. */
+/* 받기 전에 숫자를 먼저 말한다. 잠시만 기다려 주세요로는 아무도 못 고른다. */
 const notice = ai.downloadNotice(120, 20);
 check(notice.includes('120MB'), `크기를 말한다: ${notice}`);
 check(/초|분/.test(notice), '걸리는 시간을 말한다');
 check(notice.includes('다음부터'), '두 번째부터는 빠르다는 것도 말한다');
 
-// ── ②-31 로컬 AI 엔진 데려오기 (한 번만·실패는 안 기억) ─────────────────────
+// ── ②-31 로컬 AI 엔진 데려오기 (한 번만, 실패는 안 기억) ─────────────────────
 const eng = await load('src/lib/ai-engine.ts');
 
 check(eng.ENGINE_URL.includes('@4.2.0'), `주소에 판이 박혀 있다: ${eng.ENGINE_URL}`);
@@ -1596,7 +1596,7 @@ try {
 check(noGpu !== null && noGpu.info.stage === 'support', 'WebGPU 없으면 support 단계로 막는다');
 check(noGpu.info.retryable === false, '다시 눌러도 같으니 버튼을 안 준다');
 
-/* 이제 있다고 치고 — 두 곳에서 동시에 불러도 **한 번만** 받아야 한다 (9MB 를 두 번 받지 않게). */
+/* 이제 있다고 치고. 두 곳에서 동시에 불러도 **한 번만** 받아야 한다 (9MB 를 두 번 받지 않게). */
 eng.resetEngine();
 let fetched = 0;
 const fakeLoad = async () => {
@@ -1609,7 +1609,7 @@ eq(fetched, 1, '동시에 둘이 불러도 한 번만 받는다');
 check(engA === engB, '둘이 같은 것을 받는다');
 check(eng.engineLoaded() === true, '받아 뒀다고 표시된다');
 
-/* 실패를 기억하면 새로고침 전까지 영영 못 켠다 — 버리고 다시 받을 수 있어야 한다. */
+/* 실패를 기억하면 새로고침 전까지 영영 못 켠다. 버리고 다시 받을 수 있어야 한다. */
 eng.resetEngine();
 let boom = null;
 try {
@@ -1629,7 +1629,7 @@ await eng.loadEngine(async () => {
 }, HAS_GPU);
 eq(again, 1, '실패 뒤에 다시 부르면 진짜로 다시 받는다');
 
-/* 받아지긴 했는데 모양이 다르면 — 조용히 넘기지 않는다. */
+/* 받아지긴 했는데 모양이 다르면. 조용히 넘기지 않는다. */
 eng.resetEngine();
 let odd = null;
 try {
@@ -1641,7 +1641,7 @@ check(odd !== null && odd.info.stage === 'load', '모양이 다르면 load 단�
 
 eng.resetEngine();
 
-// ── ②-32 「AI 켜기」 게이트 (취소해도 도구는 멀쩡해야 한다) ────────────────
+// ── ②-32 AI 켜기 게이트 (취소해도 도구는 멀쩡해야 한다) ────────────────
 const gate = await load('src/lib/ai-gate.ts');
 
 const makeGate = (fetchImpl) => {
@@ -1650,7 +1650,7 @@ const makeGate = (fetchImpl) => {
   return { g, seen };
 };
 
-/* 열자마자 받지 않는다 — 오늘 이 도구를 쓰러 온 사람은 대개 AI 를 원해서 온 게 아니다. */
+/* 열자마자 받지 않는다. 오늘 이 도구를 쓰러 온 사람은 대개 AI 를 원해서 온 게 아니다. */
 {
   let started = false;
   const { g } = makeGate(async () => {
@@ -1665,7 +1665,7 @@ const makeGate = (fetchImpl) => {
   check(/초|분/.test(g.view().say), '걸리는 시간도 보여 준다');
 }
 
-/* 받기 — 진행률이 오르고 끝나면 켜진다. */
+/* 받기. 진행률이 오르고 끝나면 켜진다. */
 {
   const { g, seen } = makeGate(async (onProgress) => {
     onProgress(30);
@@ -1680,7 +1680,7 @@ const makeGate = (fetchImpl) => {
 }
 
 /*
- * ★ 이 게이트의 핵심 — **취소한 뒤에도 도구가 멀쩡해야 한다.**
+ * ★ 이 게이트의 핵심. **취소한 뒤에도 도구가 멀쩡해야 한다.**
  * 받다 만 상태를 남기면 다음에 무엇이 될지 아무도 모르고, 사람들은 다시는 안 누른다.
  */
 {
@@ -1711,7 +1711,7 @@ const makeGate = (fetchImpl) => {
   eq(g.view().state, 'asking', '취소 뒤에 다시 물어볼 수 있다');
 }
 
-/* 실패 — 왜인지 말하고, 다시 해 볼 수 있는지도 말한다. */
+/* 실패. 왜인지 말하고, 다시 해 볼 수 있는지도 말한다. */
 {
   const { g } = makeGate(async () => {
     throw new Error('연결 끊김');
@@ -1724,7 +1724,7 @@ const makeGate = (fetchImpl) => {
   check(g.view().say.includes('연결 끊김') || g.view().say.includes('받다'), `왜인지 말한다: ${g.view().say}`);
 }
 
-/* 다시 눌러도 같은 실패라면(지원 안 함) 버튼을 주지 않는다 — 눌러도 같은 실패는 괴롭힘이다. */
+/* 다시 눌러도 같은 실패라면(지원 안 함) 버튼을 주지 않는다. 눌러도 같은 실패는 괴롭힘이다. */
 {
   const info = (await load('src/lib/ai-route.ts')).explainFailure('support');
   const err = Object.assign(new Error(info.say), { info });
@@ -1744,7 +1744,7 @@ const tr = await load('src/lib/ai-transcribe.ts');
 
 eq(tr.TARGET_HZ, 16000, 'Whisper 계열은 16kHz 고정');
 
-/* 여러 채널은 평균 낸다 — 한쪽만 쓰면 반대쪽에만 담긴 말이 통째로 사라진다. */
+/* 여러 채널은 평균 낸다. 한쪽만 쓰면 반대쪽에만 담긴 말이 통째로 사라진다. */
 const stereo = {
   sampleRate: 16000,
   numberOfChannels: 2,
@@ -1767,7 +1767,7 @@ const trSame = tr.resampleTo16k(new Float32Array([1, 2, 3]), 16000);
 eq(trSame.length, 3, '이미 16kHz 면 손대지 않는다');
 eq(tr.resampleTo16k(new Float32Array(32000), 32000).length, 16000, '32kHz 는 절반으로');
 
-/* 모델이 준 것을 그대로 믿지 않는다 — 판마다 모양이 다르고, 없는 것을 지어내면 자막이 겹친다. */
+/* 모델이 준 것을 그대로 믿지 않는다. 판마다 모양이 다르고, 없는 것을 지어내면 자막이 겹친다. */
 eq(tr.normalize({ text: '  안녕  ' }).text, '안녕', '앞뒤 공백을 턴다');
 eq(tr.normalize({}).text, '', '없으면 빈 글자 (undefined 를 흘리지 않는다)');
 eq(tr.normalize({ text: 'x' }).chunks.length, 0, '토막이 없으면 빈 배열');
@@ -1782,12 +1782,12 @@ const trGood = tr.normalize({
 eq(trGood.chunks.length, 1, '시각을 모르거나 빈 토막은 버린다 (0 으로 채우면 전부 첫 줄에 겹친다)');
 eq(trGood.chunks[0].text, '안녕', '토막 글자도 턴다');
 
-/* 자막으로 넘기는 모양 — 해자① 묶어 쓰기와 붙는 자리. */
+/* 자막으로 넘기는 모양. 해자① 묶어 쓰기와 붙는 자리. */
 const trSrt = tr.toSrt(trGood);
 check(trSrt.startsWith('1' + String.fromCharCode(10) + '00:00:00,000 --> 00:00:01,500'), `SRT 시각 표기: ${trSrt.split(String.fromCharCode(10))[1]}`);
 eq(tr.toSrt({ text: 'x', chunks: [] }), '', '토막이 없으면 자막도 없다 (빈 파일을 만들지 않는다)');
 
-/* 전사 — 엔진을 가짜로 넣어 규칙만 잰다 (모델 없이도 여기까지는 잴 수 있다). */
+/* 전사. 엔진을 가짜로 넣어 규칙만 잰다 (모델 없이도 여기까지는 잴 수 있다). */
 let askedModel = null;
 let askedOpts = null;
 const fakeEngine = {
@@ -1818,7 +1818,7 @@ check(emptyAudio, '빈 소리는 모델을 부르지 않고 던진다');
 const ht = await load('src/core/hangultype.ts');
 eq(ht.spec.id, 'hangultype', 'hangultype spec.id');
 
-/* 글자 하나가 자소 둘~넷이다 — 이걸 안 세면 한타가 영타의 절반으로 나온다. */
+/* 글자 하나가 자소 둘~넷이다. 이걸 안 세면 한타가 영타의 절반으로 나온다. */
 eq(ht.keystrokes('가'), 2, '가 = 초성+중성');
 eq(ht.keystrokes('강'), 3, '강 = 받침까지');
 eq(ht.keystrokes('값'), 4, '값 = 겹받침(ㅄ)이라 넷');
@@ -1827,7 +1827,7 @@ eq(ht.keystrokes('a'), 1, '영문은 한 번');
 eq(ht.keystrokes(' '), 1, '공백도 한 번');
 eq(ht.keystrokes('가a 강'), 2 + 1 + 1 + 3, '섞여도 더한다');
 
-/* 된소리는 시프트 조합이라 한 번 — 두 번으로 세면 「빨리」가 실제보다 무거워진다. */
+/* 된소리는 시프트 조합이라 한 번. 두 번으로 세면 빨리가 실제보다 무거워진다. */
 eq(ht.keystrokes('까'), 2, 'ㄲ 은 한 번');
 
 const r1 = ht.score('안녕하세요', 5);
@@ -1835,7 +1835,7 @@ eq(r1.strokes, ht.keystrokes('안녕하세요'), '타수는 같은 셈을 쓴다
 eq(r1.perMinute, Math.round((r1.strokes / 5) * 60), '타/분');
 eq(r1.accuracy, 100, '친 글을 안 주면 견줄 것이 없다');
 
-/* 정확도는 글자 단위 — 받침 하나 틀린 것도 읽는 사람에겐 틀린 글자다. */
+/* 정확도는 글자 단위. 받침 하나 틀린 것도 읽는 사람에겐 틀린 글자다. */
 const r2 = ht.score('안녕하세요', 10, '안녕하세오');
 eq(r2.wrong, 1, '한 글자 다름');
 eq(r2.accuracy, 80, '5글자 중 1개 → 80%');
@@ -1859,11 +1859,11 @@ const out = ht.run('count', { text: '값' });
 check(out.includes('타수: 4'), `run count: ${out.split(String.fromCharCode(10))[0]}`);
 check(ht.run('speed', { text: '안녕', seconds: 2, typed: '안녕' }).includes('정확도: 100%'), 'run speed 가 정확도를 낸다');
 
-// ── ②-35 한글 타자 데일리 (전원 같은 문장 · 문장은 안 새게) ────────────────
+// ── ②-35 한글 타자 데일리 (전원 같은 문장, 문장은 안 새게) ────────────────
 const dt = await load('src/core/dailytype.ts');
 eq(dt.spec.id, 'dailytype', 'dailytype spec.id');
 
-/* 데일리의 전부 — 같은 날이면 누가 열어도 같다. */
+/* 데일리의 전부. 같은 날이면 누가 열어도 같다. */
 const q1 = dt.puzzleFor('2026-08-11');
 const q1b = dt.puzzleFor('2026-08-11');
 eq(q1.lines.join('|'), q1b.lines.join('|'), '같은 날 같은 문제');
@@ -1873,12 +1873,12 @@ eq(new Set(q1.lines).size, q1.lines.length, '같은 문장이 두 번 안 나온
 check(q1.strokes > 0, '총 타수를 알려 준다');
 eq(q1.day, 2, '2026-08-11 은 2일째');
 
-/* 문장은 우리 글에서 온다 — 손으로 적은 표가 아니다. */
+/* 문장은 우리 글에서 온다. 손으로 적은 표가 아니다. */
 const dtPool = (await load('src/core/type-pool.generated.ts')).TYPE_POOL;
 check(dtPool.length >= 100, `문장 뭉치 ${dtPool.length}개`);
 check(q1.lines.every((l) => dtPool.includes(l)), '문제는 뭉치 안에서만 나온다');
 
-/* 채점 — 다 맞으면 🟩, 거의 맞으면 🟨, 아니면 ⬛. 셋이 아니면 「나아졌다」가 안 보인다. */
+/* 채점. 다 맞으면 🟩, 거의 맞으면 🟨, 아니면 ⬛. 셋이 아니면 나아졌다가 안 보인다. */
 const dtPerfect = dt.grade(q1, { seconds: 30, typed: [...q1.lines] });
 eq(dtPerfect.accuracy, 100, '그대로 치면 100%');
 check(dtPerfect.marks.every((m) => m === 'hit'), '전부 맞음');
@@ -1887,13 +1887,13 @@ check(dtPerfect.perMinute > 0, '속도가 나온다');
 const dtOneOff = [...q1.lines];
 dtOneOff[0] = q1.lines[0].slice(0, -1) + '뷁'; // 한 글자만 다르게
 const dtNear = dt.grade(q1, { seconds: 30, typed: dtOneOff });
-eq(dtNear.marks[0], 'near', '한 글자 틀림은 「거의」 (실패와 같은 칸에 넣지 않는다)');
+eq(dtNear.marks[0], 'near', '한 글자 틀림은 거의 (실패와 같은 칸에 넣지 않는다)');
 eq(dtNear.marks[1], 'hit', '나머지 줄은 그대로');
 
 const dtBad = dt.grade(q1, { seconds: 30, typed: ['아무 말', '', ''] });
 eq(dtBad.marks[1], 'miss', '안 친 줄은 틀림');
 
-/* ★ 공유 글에 **문장이 새면 안 된다** — 그날 이 놀이는 끝난다. */
+/* ★ 공유 글에 **문장이 새면 안 된다**. 그날 이 놀이는 끝난다. */
 check(/[가-힣]{4,}/.test(dtPerfect.share.split(String.fromCharCode(10)).slice(1).join('')) === false,
   `격자 줄에 문장이 없다: ${dtPerfect.share.replace(new RegExp(String.fromCharCode(10), 'g'), ' / ')}`);
 check(dtPerfect.share.startsWith('한글타자 #'), '머리줄에 번호');
@@ -1917,7 +1917,7 @@ eq(cho.puzzleFor('2026-08-11').questions[0].answer, cq.questions[0].answer, '같
 check(cho.puzzleFor('2026-08-12').questions[0].answer !== cq.questions[0].answer, '다른 날 다른 문제');
 eq(new Set(cq.questions.map((q) => q.answer)).size, cq.questions.length, '같은 낱말이 두 번 안 나온다');
 
-/* 보여 주는 것은 초성뿐 — 답 글자가 섞이면 문제가 아니다. */
+/* 보여 주는 것은 초성뿐. 답 글자가 섞이면 문제가 아니다. */
 for (const q of cq.questions) {
   eq([...q.hint].length, q.length, '초성 수 = 글자 수');
   check(/^[ㄱ-ㅎ]+$/.test(q.hint), `초성만 보여 준다: ${q.hint}`);
@@ -1925,7 +1925,7 @@ for (const q of cq.questions) {
   check(q.tool.length > 0, '맞힌 뒤 보여 줄 도구가 붙어 있다');
 }
 
-/* 채점 — 「거의」가 있어야 실력이 느는 게 보인다(초성 퀴즈는 아깝게 빗나가는 일이 잦다). */
+/* 채점. 거의가 있어야 실력이 느는 게 보인다(초성 퀴즈는 아깝게 빗나가는 일이 잦다). */
 const allRight = cho.grade(cq, cq.questions.map((q) => q.answer));
 eq(allRight.right, 5, '다 맞히면 5');
 check(allRight.marks.every((m) => m === 'hit'), '전부 hit');
@@ -1934,7 +1934,7 @@ const choFirst = cq.questions[0];
 const oneCharOff = [...choFirst.answer];
 oneCharOff[0] = oneCharOff[0] === '가' ? '나' : '가';
 const choNear = cho.grade(cq, [oneCharOff.join('')]);
-eq(choNear.marks[0], 'near', '글자 수 같고 한 글자만 다르면 「거의」');
+eq(choNear.marks[0], 'near', '글자 수 같고 한 글자만 다르면 거의');
 
 eq(cho.grade(cq, ['아']).marks[0], 'miss', '글자 수가 다르면 틀림');
 eq(cho.grade(cq, []).marks[0], 'miss', '안 쓰면 틀림');
@@ -1945,7 +1945,7 @@ const sharedCho = allRight.share;
 check(cq.questions.every((q) => sharedCho.includes(q.answer) === false), `정답이 안 담긴다: ${sharedCho.split(String.fromCharCode(10)).join(' / ')}`);
 check(sharedCho.startsWith('초성 #'), '머리줄에 번호');
 
-/* 창구 — 답을 안 주면 문제만, 주면 채점과 함께 답·도구를 알려 준다. */
+/* 창구. 답을 안 주면 문제만, 주면 채점과 함께 답, 도구를 알려 준다. */
 const choQ0 = cho.run('today', { at: '2026-08-11T02:00:00Z' });
 check(choQ0.includes('초성 #2'), 'run 이 오늘 문제를 낸다');
 check(cq.questions.every((q) => choQ0.includes(q.answer) === false), '답을 안 주면 정답도 안 보여 준다');
@@ -1958,7 +1958,7 @@ const NL_ = String.fromCharCode(10);
 const conv = await load('src/core/charconv.ts');
 eq(conv.spec.id, 'charconv', 'charconv spec.id');
 
-/* 전각·반각 — 화면에서는 폭만 다른데 다른 글자다. 검색이 0건 나오는 이유가 대개 이것. */
+/* 전각, 반각. 화면에서는 폭만 다른데 다른 글자다. 검색이 0건 나오는 이유가 대개 이것. */
 eq(conv.toHalfWidth('ＡＢ１２'), 'AB12', '전각 영숫자 → 반각');
 eq(conv.toFullWidth('AB12'), 'ＡＢ１２', '반각 → 전각');
 eq(conv.toHalfWidth('가나'), '가나', '한글은 안 건드린다');
@@ -1968,7 +1968,7 @@ eq(conv.toHalfWidth(conv.toFullWidth('Hello, World! 123')), 'Hello, World! 123',
 check(conv.hasFullWidth('ABＣ'), '섞인 것을 찾아낸다');
 check(conv.hasFullWidth('ABC') === false, '없으면 없다고');
 
-/* 로마자 — 글자 대응표. 음운 변화는 안 한다는 것을 **답에 적는지**까지 본다. */
+/* 로마자. 글자 대응표. 음운 변화는 안 한다는 것을 **답에 적는지**까지 본다. */
 eq(conv.romanize('한글'), 'hangeul', '한글 → hangeul');
 eq(conv.romanize('서울'), 'seoul', '서울');
 eq(conv.romanize('부산'), 'busan', '부산');
@@ -1976,7 +1976,7 @@ eq(conv.romanize('제주'), 'jeju', '제주');
 eq(conv.romanize('가a나'), 'gaana', '한글 아닌 글자는 그대로 둔다');
 eq(conv.romanize('a1'), 'a1', '영숫자는 그대로');
 
-/* ★ 틀린 값을 맞다고 내놓지 않는다 — 「신라」는 규정상 Silla 인데 우리는 sinla 를 낸다.
+/* ★ 틀린 값을 맞다고 내놓지 않는다. 신라는 규정상 Silla 인데 우리는 sinla 를 낸다.
  * 그 사실을 답에 적는 것이 이 도구가 믿을 만해지는 유일한 길이다. */
 eq(conv.romanize('신라'), 'sinra', '음운 변화를 적용하지 않는다 (표대로 ㄹ=r → sinra)');
 check(conv.needsSoundChange('신라'), '소리가 바뀔 자리를 알아본다');
@@ -1985,21 +1985,21 @@ check(conv.needsSoundChange('강아지') === false, '뒤가 ㅇ 이면 연음이
 const convRoman = conv.run('roman', { text: '신라' });
 check(convRoman.includes('Silla'), `규정 표기를 알려 준다: ${convRoman.split(String.fromCharCode(10)).pop()}`);
 
-/* 자모 — 이미 있는 알맹이를 부른다(두 벌로 만들지 않는다). */
+/* 자모. 이미 있는 알맹이를 부른다(두 벌로 만들지 않는다). */
 eq(conv.run('jamo', { text: '한' }), (await load('src/core/jamo.ts')).decompose('한'), 'jamo 알맹이와 같은 답');
 
 const convWidth = conv.run('width', { text: 'ＡＢ' });
 check(convWidth.startsWith('AB'), 'run width');
 check(convWidth.includes('full-width characters were mixed in'), '왜 안 되던 건지 알려 준다');
 
-/* 간체 ⟷ 번체 — 규칙이 아니라 표다(유니코드 Unihan 에서 찍었다). 표가 실제로 실렸는지부터. */
+/* 간체 ⟷ 번체. 규칙이 아니라 표다(유니코드 Unihan 에서 찍었다). 표가 실제로 실렸는지부터. */
 eq(conv.toSimplified('漢字變換'), '汉字变换', '번체 → 간체');
 eq(conv.toTraditional('汉字变换'), '漢字變換', '간체 → 번체');
 eq(conv.toSimplified('汉字'), '汉字', '이미 간체면 그대로');
-eq(conv.toSimplified('가나 abc'), '가나 abc', '한글·영문은 안 건드린다');
+eq(conv.toSimplified('가나 abc'), '가나 abc', '한글, 영문은 안 건드린다');
 eq(conv.toSimplified('這是漢字'), '这是汉字', '문장째로');
 
-/* ★ 조용히 틀리지 않는 자리 — 发 는 「보내다(發)」와 「머리카락(髮)」이 합쳐진 글자다.
+/* ★ 조용히 틀리지 않는 자리. 发 는 보내다(發)와 머리카락(髮)이 합쳐진 글자다.
  * 하나를 고르되 갈렸다는 사실을 반드시 말해야 한다. 이걸 안 하면 틀린 글이 그냥 나간다. */
 const convAmb = conv.ambiguousChars('发', true);
 eq(convAmb.length, 1, '갈리는 글자를 골라낸다');
@@ -2012,7 +2012,7 @@ const convHanAmb = conv.run('han', { text: '发', mode: 'trad' });
 check(convHanAmb.includes('need meaning/context'), '갈리는 글자는 답에 함께 적는다');
 check(convHanAmb.includes('發') && convHanAmb.includes('髮'), `후보를 다 보여 준다: ${convHanAmb.split(NL_).pop()}`);
 
-/* 병음 — 표를 **건네받는** 자리다. 표는 묶음에 없다(2만 자·167KB). */
+/* 병음. 표를 **건네받는** 자리다. 표는 묶음에 없다(2만 자, 167KB). */
 const pyRaw = JSON.parse(fs.readFileSync('data/han-pinyin.json', 'utf8'));
 const pyTable = conv.parsePinyinTable(pyRaw);
 eq(conv.pinyinOf(pyTable, '汉字'), 'hàn zì', '한자 → 병음(성조 부호)');
@@ -2023,11 +2023,11 @@ eq(conv.toneNumber('mā'), 'ma1', '평 성조 = 1');
 eq(conv.toneNumber('má'), 'ma2', '오름 = 2');
 eq(conv.toneNumber('mǎ'), 'ma3', '내렸다 오름 = 3');
 eq(conv.toneNumber('ma'), 'ma5', '부호가 없으면 경성 = 5');
-eq(conv.toneNumber('lǜ'), 'lü4', 'ü 의 두 점은 성조가 아니라 글자다 — 지우면 안 된다');
+eq(conv.toneNumber('lǜ'), 'lü4', 'ü 의 두 점은 성조가 아니라 글자다. 지우면 안 된다');
 eq(conv.stripTone('lǜ'), 'lü', '성조만 빼고 ü 는 남긴다');
 eq(conv.pinyinOf(pyTable, 'abc 123'), 'abc 123', '한자가 아니면 그대로');
 
-/* ★ 표 없이 부르면 **원문을 그대로 돌려주지 않는다** — 그러면 안 바뀐 걸 모르고 넘어간다. */
+/* ★ 표 없이 부르면 **원문을 그대로 돌려주지 않는다**. 그러면 안 바뀐 걸 모르고 넘어간다. */
 let pyThrew = false;
 try {
   conv.run('pinyin', { text: '汉' });
@@ -2054,7 +2054,7 @@ eq(lc.spec.id, 'livecount', 'livecount spec.id');
 
 const D = (s2) => new Date(s2);
 
-/* ★ 달은 달력대로 — 30일로 나누면 3월생과 2월생의 나이가 달라진다. */
+/* ★ 달은 달력대로. 30일로 나누면 3월생과 2월생의 나이가 달라진다. */
 const oneMonth = lc.elapsed(D('2026-01-31T00:00:00'), D('2026-02-28T00:00:00'));
 eq(oneMonth.months, 0, '1월 31일 → 2월 28일 은 아직 한 달이 안 됐다');
 eq(oneMonth.days, 28, '28일 지남');
@@ -2066,13 +2066,13 @@ const oneYear = lc.elapsed(D('2025-08-10T00:00:00'), D('2026-08-10T00:00:00'));
 eq(oneYear.years, 1, '1년');
 eq(oneYear.months, 0, '나머지 개월 0');
 
-/* 시·분·초가 모자라면 윗자리에서 빌린다. */
+/* 시, 분, 초가 모자라면 윗자리에서 빌린다. */
 const borrow = lc.elapsed(D('2026-08-09T23:30:00'), D('2026-08-10T00:15:00'));
 eq(borrow.days, 0, '하루가 안 됐다');
 eq(borrow.hours, 0, '0시간');
 eq(borrow.minutes, 45, '45분');
 
-/* 미래는 「-3일」이 아니라 「남음」이다. */
+/* 미래는 -3일이 아니라 남음이다. */
 const soon = lc.elapsed(D('2026-08-20T00:00:00'), D('2026-08-10T00:00:00'));
 check(soon.future === true, '미래를 알아본다');
 eq(soon.days, 10, '10일');
@@ -2081,14 +2081,14 @@ eq(lc.humanElapsedParts(soon).parts.join(' '), '10일', '미래 parts');
 check(lc.humanElapsed(soon).endsWith('남음'), `남았다고 말한다: ${lc.humanElapsed(soon)}`);
 check(lc.humanElapsed(lc.elapsed(D('2026-08-01T00:00:00'), D('2026-08-10T00:00:00'))).endsWith('지남'), '과거는 지났다고');
 
-/* 0인 앞자리는 안 읽는다 — 「0년 0개월 3일」은 읽기 나쁘다. */
+/* 0인 앞자리는 안 읽는다. 0년 0개월 3일은 읽기 나쁘다. */
 const short = lc.humanElapsed(lc.elapsed(D('2026-08-07T00:00:00'), D('2026-08-10T00:00:00')));
 eq(short, '3일 지남', `짧은 것은 짧게: ${short}`);
 const hoursOnly = lc.humanElapsed(lc.elapsed(D('2026-08-10T00:00:00'), D('2026-08-10T05:30:00')));
 check(hoursOnly.includes('시간'), `하루 미만은 시간으로: ${hoursOnly}`);
 eq(lc.detailKo(lc.elapsed(D('2026-08-10T00:00:00'), D('2026-08-10T05:30:00'))), '0년 0개월 0일 5시간 30분 0초', '자세히 helper');
 
-/* 비율 환산 — 값은 내되 「어림」은 부르는 쪽이 붙인다. */
+/* 비율 환산. 값은 내되 어림은 부르는 쪽이 붙인다. */
 const tenDays = lc.elapsed(D('2026-08-01T00:00:00'), D('2026-08-11T00:00:00'));
 eq(lc.project(tenDays, 3), 30, '하루 3번 × 10일 = 30');
 eq(lc.project(tenDays, 0), 0, '0이면 0');
@@ -2120,7 +2120,7 @@ check(badDate, '못 읽는 날짜는 던진다');
 const m3 = await load('src/core/mesh3d.ts');
 eq(m3.spec.id, 'mesh3d', 'mesh3d spec.id');
 
-/* 이진 STL 을 손으로 만든다 — 삼각형 하나. */
+/* 이진 STL 을 손으로 만든다. 삼각형 하나. */
 const makeBinStl = (count, header = 'solid something') => {
   const buf = new ArrayBuffer(84 + count * 50);
   const view = new DataView(buf);
@@ -2141,7 +2141,7 @@ const makeBinStl = (count, header = 'solid something') => {
 };
 
 /*
- * ★ 머리 80바이트에 「solid」 가 들어 있는 이진 파일이 흔하다 — 글자로 판단하면 여기서 틀린다.
+ * ★ 머리 80바이트에 solid 가 들어 있는 이진 파일이 흔하다. 글자로 판단하면 여기서 틀린다.
  * 그래서 길이(84 + 삼각형수 × 50)로 본다.
  */
 const m3Bin = makeBinStl(1);
@@ -2160,7 +2160,7 @@ const asciiMesh = m3.parseMesh(new TextEncoder().encode(asciiStl), 't.stl');
 eq(asciiMesh.triangles, 1, '글자 STL 도 1개');
 eq(asciiMesh.max[1], 6, 'y 최대 6');
 
-/* ★ OBJ 의 사각형 면 — 안 쪼개면 모델이 군데군데 뚫린다(블렌더 기본 내보내기가 사각형이다). */
+/* ★ OBJ 의 사각형 면. 안 쪼개면 모델이 군데군데 뚫린다(블렌더 기본 내보내기가 사각형이다). */
 const objQuad = ['v 0 0 0', 'v 1 0 0', 'v 1 1 0', 'v 0 1 0', 'f 1 2 3 4'].join(String.fromCharCode(10));
 const m3Quad = m3.parseObj(objQuad);
 eq(m3Quad.triangles, 2, '사각형 하나 → 삼각형 둘');
@@ -2179,7 +2179,7 @@ try {
 }
 check(objThrew, '없는 꼭짓점을 가리키면 던진다 (조용히 뚫린 모델을 내지 않는다)');
 
-/* 크기 — 인쇄 전에 보는 그 숫자. */
+/* 크기. 인쇄 전에 보는 그 숫자. */
 const m3Info = m3.describe(m3Quad);
 eq(m3Info.size[0], 1, '가로 1');
 eq(m3Info.longest, 1, '가장 긴 변');
@@ -2209,7 +2209,7 @@ eq(df.countEdits(df.diffLines('A\nb', 'a\nb', { ignoreCase: true })).added, 0, '
 eq(df.countEdits(df.diffLines('a  b', 'a b', { ignoreWs: true })).added, 0, '띄어쓰기 무시');
 check(df.toUnified(df.diffLines('a\nb\nc', 'a\nx\nc')).startsWith('@@'), 'unified 머리');
 
-/* 자리만 바뀐 것은 「옮김」이지 지우고 넣은 것이 아니다 — 이 도구의 존재 이유다. */
+/* 자리만 바뀐 것은 옮김이지 지우고 넣은 것이 아니다. 이 도구의 존재 이유다. */
 const dfMoved = df.diffStructure({ a: 1, b: 2 }, { b: 2, a: 1 });
 eq(dfMoved.length, 0, '열쇠 차례가 바뀐 것은 다름이 아니다');
 const dfArr = df.diffStructure([1, 2, 3], [3, 1, 2]);
@@ -2236,7 +2236,7 @@ eq(ckReq.headers['Content-Type'], 'application/json', 'curl 헤더');
 eq(ckReq.body, '{"name":"yon"}', 'curl 몸통');
 eq(ck.parseCurl('curl https://a.example.com').method, 'GET', '-X 없고 몸통 없으면 GET');
 eq(ck.parseCurl(`curl https://a.example.com -d 'x=1'`).method, 'POST', '몸통이 있으면 POST');
-/* 줄 끝 `\` 로 이어 붙인 여러 줄 — 사람이 복사해 오는 모양 그대로 */
+/* 줄 끝 `\` 로 이어 붙인 여러 줄. 사람이 복사해 오는 모양 그대로 */
 const ckMulti = ck.parseCurl("curl 'https://a.example.com' \\\n  -H 'A: 1' \\\n  -H 'B: 2'");
 eq(Object.keys(ckMulti.headers).length, 2, '여러 줄 curl 헤더 둘');
 
@@ -2247,24 +2247,24 @@ check(ck.toCode(ckReq, 'go').includes('http.NewRequest("POST"'), 'Go 로 옮김'
 check(ck.toCode(ckReq, 'axios').includes("method: 'post'"), 'axios 로 옮김');
 /* 되돌려 적은 curl 을 다시 읽으면 같은 것이 나와야 한다 (왕복) */
 const ckRound = ck.parseCurl(ck.toCode(ckReq, 'curl'));
-eq(ckRound.method, ckReq.method, 'curl 왕복 — 방법');
-eq(ckRound.url, ckReq.url, 'curl 왕복 — 주소');
-eq(ckRound.body, ckReq.body, 'curl 왕복 — 몸통');
+eq(ckRound.method, ckReq.method, 'curl 왕복. 방법');
+eq(ckRound.url, ckReq.url, 'curl 왕복. 주소');
+eq(ckRound.body, ckReq.body, 'curl 왕복. 몸통');
 
 // ── 설정 옮기기 (TASK-KL-316) ───────────────────────────────────────────────
 const cfg = await load('src/core/configconv.ts');
 
-eq(cfg.detect('{"a":1}'), 'json', '무엇인지 알아본다 — json');
-eq(cfg.detect('a: 1\nb:\n  c: 2'), 'yaml', '무엇인지 알아본다 — yaml');
-eq(cfg.detect('[server]\nport = 8080'), 'toml', '무엇인지 알아본다 — toml');
-eq(cfg.detect('DB_HOST=localhost\nDB_PORT=5432'), 'env', '무엇인지 알아본다 — env');
+eq(cfg.detect('{"a":1}'), 'json', '무엇인지 알아본다. json');
+eq(cfg.detect('a: 1\nb:\n  c: 2'), 'yaml', '무엇인지 알아본다. yaml');
+eq(cfg.detect('[server]\nport = 8080'), 'toml', '무엇인지 알아본다. toml');
+eq(cfg.detect('DB_HOST=localhost\nDB_PORT=5432'), 'env', '무엇인지 알아본다. env');
 
 const ccYaml = cfg.parse('name: yon\nage: 3\nlikes:\n  - acorn\n  - nap\nhome:\n  room: inside\n  warm: true', 'yaml');
 eq(ccYaml.name, 'yon', 'yaml 값');
 eq(ccYaml.age, 3, 'yaml 숫자');
 eq(ccYaml.likes.length, 2, 'yaml 목록');
 eq(ccYaml.likes[0], 'acorn', 'yaml 목록 첫 칸');
-eq(ccYaml.home.warm, true, 'yaml 중첩·참거짓');
+eq(ccYaml.home.warm, true, 'yaml 중첩, 참거짓');
 
 const ccToml = cfg.parse('title = "wm"\n\n[server]\nport = 8080\nhosts = ["a", "b"]', 'toml');
 eq(ccToml.title, 'wm', 'toml 값');
@@ -2275,19 +2275,19 @@ const ccEnv = cfg.parse('export DB_HOST=localhost\nDB_PORT=5432\n# 주석\n', 'e
 eq(ccEnv.DB_HOST, 'localhost', 'env 값 (export 도 읽는다)');
 eq(ccEnv.DB_PORT, 5432, 'env 숫자');
 
-/* 왕복 — YAML 로 찍고 다시 읽으면 같은 나무여야 한다 */
+/* 왕복. YAML 로 찍고 다시 읽으면 같은 나무여야 한다 */
 const ccTree = { name: 'yon', age: 3, home: { room: 'inside', warm: true }, likes: ['acorn', 'nap'] };
 const ccBack = cfg.parse(cfg.emit(ccTree, 'yaml'), 'yaml');
 eq(JSON.stringify(ccBack), JSON.stringify(ccTree), 'yaml 왕복');
 const ccTomlBack = cfg.parse(cfg.emit(ccTree, 'toml'), 'toml');
-eq(ccTomlBack.home.room, 'inside', 'toml 왕복 — 중첩');
+eq(ccTomlBack.home.room, 'inside', 'toml 왕복. 중첩');
 eq(cfg.emit(ccTree, 'env').includes('HOME_ROOM=inside'), true, 'env 는 평평하게 편다');
 eq(cfg.emit(ccTree, 'properties').includes('home.room=inside'), true, 'properties 는 점으로 편다');
 
 // ── 깨진 글자 되살리기 (TASK-KL-316) ────────────────────────────────────────
 const ed = await load('src/core/encdetective.ts');
 
-/* 진짜로 깨뜨려 놓고 되살아나는지 본다 — 손으로 지어낸 예시는 「되는 척」을 만든다. */
+/* 진짜로 깨뜨려 놓고 되살아나는지 본다. 손으로 지어낸 예시는 되는 척을 만든다. */
 const edPlain = '안녕하세요 반갑습니다';
 const edBytes = new TextEncoder().encode(edPlain);
 const edAsLatin1 = Array.from(edBytes).map((b) => String.fromCharCode(b)).join('');
@@ -2298,11 +2298,11 @@ check(ed.bestFix(edAsLatin1).how.includes('latin1') || ed.bestFix(edAsLatin1).ho
 const edDouble = Array.from(new TextEncoder().encode(edAsLatin1)).map((b) => String.fromCharCode(b)).join('');
 eq(ed.bestFix(edDouble).text, edPlain, '두 겹 씌운 깨짐도 되살린다');
 
-/* 멀쩡한 글은 건드리지 않는다 — 도구가 멀쩡한 것을 망가뜨리면 못 쓴다 */
+/* 멀쩡한 글은 건드리지 않는다. 도구가 멀쩡한 것을 망가뜨리면 못 쓴다 */
 eq(ed.bestFix(edPlain).text, edPlain, '안 깨진 글은 그대로 둔다');
 eq(ed.bestFix('hello world').text, 'hello world', '영문도 그대로 둔다');
 
-/* 이미 사라진 자리는 「못 되살린다」고 말한다 */
+/* 이미 사라진 자리는 못 되살린다고 말한다 */
 const edLost = '안?????요';
 check(ed.explain(edLost).includes('못 되살린다'), `사라진 자리는 사라졌다고 말한다: ${ed.explain(edLost).split('\n').pop()}`);
 eq(ed.losses('한글�글').replacement, 1, '대체 문자를 센다');
@@ -2310,9 +2310,9 @@ eq(ed.losses('한글�글').replacement, 1, '대체 문자를 센다');
 /* 감싸인 글도 같은 창구에서 푼다 */
 eq(ed.bestFix('%EC%95%88%EB%85%95').text, '안녕', '주소 인코딩을 푼다');
 eq(ed.bestFix('\\uc548\\ub155').text, '안녕', '자바스크립트 escape 를 푼다');
-check(ed.score('안녕하세요') > ed.score('ì•ˆë…•'), '한글이 깨진 라틴보다 점수가 높다');
+check(ed.score('안녕하세요') > ed.score('ì-ˆë...-'), '한글이 깨진 라틴보다 점수가 높다');
 
-// ── 안 보이는 글자·닮은 글자 (TASK-KL-316) ──────────────────────────────────
+// ── 안 보이는 글자, 닮은 글자 (TASK-KL-316) ──────────────────────────────────
 const ux = await load('src/core/unicodex.ts');
 
 const ZWSP = String.fromCodePoint(0x200b);
@@ -2328,7 +2328,7 @@ eq(ux.clean('a' + NBSP + 'b'), 'a b', 'nbsp 는 보통 공백으로');
 eq(ux.scan('a' + NBSP + 'b')[0].kind, 'space', 'nbsp 는 공백 갈래');
 eq(ux.scan('보기' + RLO + '역순')[0].kind, 'bidi', '거꾸로 보이게 하는 것을 찾는다');
 
-/* 라틴 a 자리에 키릴 а — 사칭에 쓰이는 그것 */
+/* 라틴 a 자리에 키릴 а. 사칭에 쓰이는 그것 */
 const fake = 'p' + String.fromCodePoint(0x0430) + 'ypal';
 eq(ux.scan(fake).length, 1, '닮은 글자를 하나 찾는다');
 eq(ux.scan(fake)[0].kind, 'confusable', '닮은 글자로 가른다');
@@ -2354,13 +2354,13 @@ check(mockRows.every((row) => row.age >= 20 && row.age <= 40), '숫자는 정한
 check(mockRows.every((row) => ['a', 'b', 'c'].includes(row.grade)), '고른 값 중에서만');
 check(mockRows.every((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.joinedAt) && row.joinedAt >= '2024-01-01' && row.joinedAt <= '2024-12-31'), '날짜도 범위 안');
 check(mockRows.every((row) => /@/.test(row.mail)), '메일에는 골뱅이가 있다');
-check(new Set(mockRows.map((row) => row.name)).size > 5, `이름이 「홍길동1·2」로 안 반복된다: ${mockRows.slice(0, 3).map((r) => r.name).join(',')}`);
+check(new Set(mockRows.map((row) => row.name)).size > 5, `이름이 홍길동1, 2로 안 반복된다: ${mockRows.slice(0, 3).map((r) => r.name).join(',')}`);
 
-/* 같은 씨앗이면 같은 줄 — 시험이 매번 달라지면 아무것도 못 잠근다 */
+/* 같은 씨앗이면 같은 줄. 시험이 매번 달라지면 아무것도 못 잠근다 */
 eq(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })), '씨앗이 같으면 같다');
 check(JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 7 })) !== JSON.stringify(mock.generate(mockSchema, { count: 5, seed: 8 })), '씨앗이 다르면 다르다');
 
-/* 나라마다 다른 이름 — 한국 화면을 영어 이름으로 시험하면 폭이 안 맞는다 */
+/* 나라마다 다른 이름. 한국 화면을 영어 이름으로 시험하면 폭이 안 맞는다 */
 check(/[가-힣]/.test(String(mock.generate('이름:name', { count: 1, seed: 3, locale: 'ko' })[0]['이름'])), 'ko 는 한글 이름');
 check(/^[A-Za-z ]+$/.test(String(mock.generate('name:name', { count: 1, seed: 3, locale: 'en' })[0].name)), 'en 은 영문 이름');
 
@@ -2392,14 +2392,14 @@ eq(JSON.stringify(jqOne('.users[-1].name')), '["알리사"]', '뒤에서부터�
 eq(JSON.stringify(jqOne('.users[] | .name')), '["윤","링","알리사"]', '하나씩 꺼낸다');
 eq(JSON.stringify(jqOne('.users[] | select(.age > 20) | .name')), '["윤","알리사"]', 'select 로 고른다');
 eq(JSON.stringify(jqOne('[.users[] | .age] | add')), '[72]', '모아서 더한다');
-eq(JSON.stringify(jqOne('.users | map(.name) | join("·")')), '["윤·링·알리사"]', 'map 과 join');
+eq(JSON.stringify(jqOne('.users | map(.name) | join(", ")')), '["윤, 링, 알리사"]', 'map 과 join');
 eq(JSON.stringify(jqOne('.users | sort_by(.age) | .[0].name')), '["링"]', 'sort_by');
 eq(JSON.stringify(jqOne('.users | max_by(.age) | .name')), '["알리사"]', 'max_by');
 eq(JSON.stringify(jqOne('.meta | keys')), '["count"]'.replace('"count"', '["count"]'), 'keys');
 eq(JSON.stringify(jqOne('.users[1] | {name, age: .age}')), '[{"name":"링","age":17}]', '물체를 새로 짓는다');
 eq(JSON.stringify(jqOne('.users[0].tags[0], .users[1].tags[0]')), '["a","b"]', '쉼표로 둘 다');
 eq(JSON.stringify(jqOne('.users[0] | has("name")')), '[true]', 'has');
-eq(JSON.stringify(jqOne('.users | map(.tags) | flatten | unique')), '[["a","b","c"]]', 'flatten·unique');
+eq(JSON.stringify(jqOne('.users | map(.tags) | flatten | unique')), '[["a","b","c"]]', 'flatten, unique');
 eq(JSON.stringify(jqOne('.users[] | select(.name | test("리")) | .age')), '[31]', '정규식으로 고른다');
 eq(JSON.stringify(jqOne('.users | group_by(.tags[0]) | length')), '[2]', 'group_by');
 eq(JSON.stringify(jqOne('.meta | to_entries')), '[[{"key":"count","value":3}]]', 'to_entries');
@@ -2407,13 +2407,13 @@ eq(JSON.stringify(jqOne('.users[0] | del(.tags)')), '[{"name":"윤","age":24}]',
 eq(JSON.stringify(jqOne('.users[0].nope')), '[null]', '없는 열쇠는 null');
 eq(JSON.stringify(jqOne('.')), '[' + jqDoc + ']', '점 하나는 그대로');
 
-/* 잘못 쓴 것은 **왜 틀렸는지** 말해야 한다 — 조용히 빈 답을 주면 사람이 자기 데이터를 의심한다 */
+/* 잘못 쓴 것은 **왜 틀렸는지** 말해야 한다. 조용히 빈 답을 주면 사람이 자기 데이터를 의심한다 */
 check(jqRun('.users[] | .name.first').error !== undefined, '글자에서 열쇠를 꺼내면 알려 준다');
 check(jqRun('.users | ????').error !== undefined, '못 읽는 쿼리는 알려 준다');
 check(jq.query('{못된 json', '.').error.includes('JSON'), 'JSON 이 아니면 그렇다고 한다');
 eq(jq.format([1, 'a'], true), '1\n"a"', '한 줄에 하나씩 낸다');
 
-// ── SQL 다듬기·말 바꾸기 (TASK-KL-316) ──────────────────────────────────────
+// ── SQL 다듬기, 말 바꾸기 (TASK-KL-316) ──────────────────────────────────────
 const sq = await load('src/core/sqlfmt.ts');
 
 const sqOne = 'select id, name from users where age > 20 and city = \'서울\' order by name limit 10';
@@ -2426,7 +2426,7 @@ check(sqLines.some((l) => l.startsWith('ORDER BY') || l.startsWith('ORDER')), 'O
 check(sqPretty.includes("'서울'"), '따옴표 안 한글은 안 건드린다');
 eq(sq.format('select 1').includes('select'), true, '대문자로 안 바꾸라면 그대로 둔다');
 
-/* 함수 괄호는 줄을 안 바꾼다 — 바꾸면 오히려 안 읽힌다 */
+/* 함수 괄호는 줄을 안 바꾼다. 바꾸면 오히려 안 읽힌다 */
 check(sq.format('select count(*) from t').includes('count(*)'), '함수 괄호는 붙여 둔다');
 /* 하위 질의는 들여쓴다 */
 const sqSub = sq.format('select * from (select id from t) x', { upper: true });
@@ -2500,7 +2500,7 @@ check(erdP.tables[1].columns.some((c) => c.name === 'title' && c.required !== tr
 check(erdP.links.some((l) => l.from === 'Post' && l.to === 'User' && l.by === 'authorId'), `관계 칸을 읽는다: ${JSON.stringify(erdP.links)}`);
 check(!erdP.tables[1].columns.some((c) => c.name === 'author'), '관계 칸은 보통 칸으로 안 센다');
 
-/* 없는 표를 가리키면 그렇다고 말한다 — 조용히 빠뜨리면 그림이 거짓말을 한다 */
+/* 없는 표를 가리키면 그렇다고 말한다. 조용히 빠뜨리면 그림이 거짓말을 한다 */
 const erdMiss = erd.parse('CREATE TABLE a ( id INT PRIMARY KEY, b_id INT REFERENCES b(id) );');
 check(erd.outline(erdMiss).includes('여기 없는 표'), '없는 표를 가리키면 알려 준다');
 check(!erd.toMermaid(erdMiss).includes('a }o--|| b'), '없는 표로는 선을 안 긋는다');
@@ -2521,12 +2521,12 @@ eq(mlDia.edges.length, 4, '이어짐 넷');
 eq(mlDia.edges[1].label, '응', '화살표에 붙은 글을 읽는다');
 eq(ml.parse('graph LR\n A-->B').dir, 'LR', '옆으로도 읽는다');
 
-/* 층 나누기 — 화살표를 따라 깊이가 매겨져야 한다 */
+/* 층 나누기. 화살표를 따라 깊이가 매겨져야 한다 */
 const mlRows = ml.levels(mlDia);
 eq(mlRows[0].join(','), 'A', '시작은 첫 층');
 check(mlRows.length >= 3, `층이 여러 겹: ${mlRows.length}`);
 
-/* 고리가 있어도 멈춘다 (무한히 안 돈다) — 이게 없으면 화면이 멎는다 */
+/* 고리가 있어도 멈춘다 (무한히 안 돈다). 이게 없으면 화면이 멎는다 */
 const mlLoop = ml.parse('flowchart TD\n A --> B\n B --> A');
 eq(mlLoop.nodes.length, 2, '고리도 마디를 다 센다');
 check(ml.levels(mlLoop).flat().length === 2, '고리에서도 모든 마디에 자리를 준다');
@@ -2538,21 +2538,21 @@ check(mlSvg.includes('<polygon'), '마름모를 그린다');
 check(mlSvg.includes('marker-end'), '화살표 머리를 단다');
 check(/viewBox="0 0 \d+ \d+"/.test(mlSvg), '크기를 잰다');
 check(ml.toSvg(ml.parse('erDiagram\n  users ||--o{ posts : writes\n  users {\n    INT id PK\n    TEXT email\n  }')).includes('email'), '표 관계도 그린다');
-/* 그림에 들어간 글은 이스케이프되어야 한다 — 안 그러면 SVG 가 깨진다 */
+/* 그림에 들어간 글은 이스케이프되어야 한다. 안 그러면 SVG 가 깨진다 */
 check(ml.toSvg(ml.parse('flowchart TD\n A["<b>진한</b>"] --> B')).includes('&lt;b&gt;'), '꺾쇠를 그대로 안 넣는다');
 
 check(ml.check(ml.parse('안녕')).includes('첫 줄이'), '무엇을 적어야 하는지 알려 준다');
-/* 못 읽는 줄을 숨기지 않는다 — 예전엔 `subgraph` 이 이 자리에 있었는데 이제 읽는다(TASK-KL-326).
+/* 못 읽는 줄을 숨기지 않는다. 예전엔 `subgraph` 이 이 자리에 있었는데 이제 읽는다(TASK-KL-326).
    그래서 여전히 못 읽는 것(`classDef`)으로 같은 것을 잰다. */
 check(ml.check(ml.parse('flowchart TD\n A --> B\n classDef x fill:#f00')).includes('못 읽는 줄'), '아직 못 읽는 줄은 숨기지 않는다');
 
-/* `subgraph` = 묶음 (TASK-KL-326). 버리면 「누가 어느 쪽인가」가 통째로 사라진다. */
+/* `subgraph` = 묶음 (TASK-KL-326). 버리면 누가 어느 쪽인가가 통째로 사라진다. */
 const mlGroup = ml.parse('flowchart TD\n subgraph kl [브라우저]\n  A --> B\n end\n B --> C');
 eq(mlGroup.groups.length, 1, 'subgraph 를 묶음으로 읽는다');
 eq(mlGroup.groups[0].id, 'kl', '묶음 아이디를 읽는다');
 eq(mlGroup.groups[0].label, '브라우저', '대괄호 안 보이는 이름을 읽는다');
 eq(mlGroup.groups[0].members.join(','), 'A,B', '묶음 안에 적힌 것만 그 묶음이다');
-eq(mlGroup.unknown.length, 0, 'subgraph·end 는 이제 못 읽은 줄이 아니다');
+eq(mlGroup.unknown.length, 0, 'subgraph, end 는 이제 못 읽은 줄이 아니다');
 
 // ── 정규식 풀이 (TASK-KL-316) ───────────────────────────────────────────────
 const rx = await load('src/core/regexplain.ts');
@@ -2568,7 +2568,7 @@ eq(rxP[2].what, 'literal', '그냥 글자');
 eq(rxP[2].text, '-', '글자를 그대로 들고 있다');
 eq(rxP[rxP.length - 1].what, 'anchor.end', '끝을 알아본다');
 
-/* 이어진 글자는 한 덩이로 — 「a」「b」「c」 세 줄은 안 읽힌다 */
+/* 이어진 글자는 한 덩이로. abc 세 줄은 안 읽힌다 */
 const rxWord = rx.merged(rx.pieces(rx.parse('abc\\d')));
 eq(rxWord.length, 2, '글자 셋은 한 덩이');
 eq(rxWord[0].text, 'abc', '한 덩이로 모은다');
@@ -2585,14 +2585,14 @@ eq(rx.merged(rx.pieces(rx.parse('[^가-힣]')))[0].what, 'class.noneOf', '아닌
 eq(rx.merged(rx.pieces(rx.parse('a+?')))[0].quant.lazy, true, '게으른 되풀이');
 eq(rx.merged(rx.pieces(rx.parse('a{2,}')))[0].quant.max, undefined, '위가 없는 되풀이');
 
-/* 말은 알맹이가 안 만든다 — 화면(i18n)이 만든다 */
+/* 말은 알맹이가 안 만든다. 화면(i18n)이 만든다 */
 check(!JSON.stringify(rxP).includes('숫자'), '알맹이가 한국어 문장을 들고 있지 않다');
 
 const rxSvg = rx.toRailroad(rx.parse('^(\\d{3})-\\d{4}$'));
 check(rxSvg.startsWith('<svg'), '철길 그림을 낸다');
 check(rxSvg.includes('rect'), '상자를 그린다');
 check(rxSvg.includes('\\d'), '무엇을 잡는지 상자에 적는다');
-check(rx.toRailroad(rx.parse('a*')).includes('stroke-dasharray'), '되풀이·건너뜀을 점선으로 보인다');
+check(rx.toRailroad(rx.parse('a*')).includes('stroke-dasharray'), '되풀이, 건너뜀을 점선으로 보인다');
 
 let rxThrew = false;
 try {
@@ -2609,7 +2609,7 @@ eq(gu.SCENARIOS.length, 13, '상황 열셋');
 check(gu.SCENARIOS.every((s) => s.steps.length > 0), '빈 상황이 없다');
 check(gu.SCENARIOS.every((s) => s.steps.every((x) => x.cmd.startsWith('git '))), '걸음은 전부 git 명령이다');
 
-/* 안 민 판과 민 판은 **다른 답**이 나와야 한다 — 이게 이 도구의 존재 이유다 */
+/* 안 민 판과 민 판은 **다른 답**이 나와야 한다. 이게 이 도구의 존재 이유다 */
 const guLocal = gu.stepsFor('lastMessage', { pushed: false });
 const guPushed = gu.stepsFor('lastMessage', { pushed: true });
 eq(guLocal.length, 1, '안 밀었으면 amend 한 걸음');
@@ -2648,7 +2648,7 @@ eq(sv.parse('1.2.3-beta.1').pre, 'beta.1', '미리보기 꼬리를 읽는다');
 check(sv.compare(sv.parse('1.2.3-beta'), sv.parse('1.2.3')) < 0, '미리보기는 정식보다 낮다');
 check(sv.compare(sv.parse('1.10.0'), sv.parse('1.9.0')) > 0, '10 이 9 보다 크다 (글자로 안 견준다)');
 
-/* ^ 와 ~ 를 「이상·미만」으로 펴 준다 — 이게 이 도구의 핵심 */
+/* ^ 와 ~ 를 이상, 미만으로 펴 준다. 이게 이 도구의 핵심 */
 eq(JSON.stringify(sv.edges('^1.2.3')[0]), JSON.stringify({ from: '1.2.3', fromInclusive: true, to: '2.0.0', toInclusive: false }), '^1.2.3 = 1.2.3 이상 2.0.0 미만');
 eq(sv.edges('^0.2.3')[0].to, '0.3.0', '^0.2.3 은 0.3.0 미만 (0.x 는 다르다)');
 eq(sv.edges('^0.0.3')[0].to, '0.0.4', '^0.0.3 은 0.0.4 미만');
@@ -2666,11 +2666,11 @@ eq(sv.satisfies('1.2.2', '^1.2.3'), false, '아래로도 안 들어간다');
 eq(sv.satisfies('0.3.0', '^0.2.3'), false, '0.x 에서 minor 가 오르면 안 들어간다');
 eq(sv.satisfies('1.2.3', '1.2.3'), true, '딱 그 판');
 eq(sv.satisfies('3.0.0', '*'), true, '아무거나');
-/* 미리보기는 적어 준 자리에만 들어간다 — 안 그러면 ^1.0.0 이 2.0.0-beta 를 받는다 */
+/* 미리보기는 적어 준 자리에만 들어간다. 안 그러면 ^1.0.0 이 2.0.0-beta 를 받는다 */
 eq(sv.satisfies('2.0.0-beta.1', '^1.0.0'), false, '미리보기가 몰래 안 들어온다');
 eq(sv.satisfies('1.2.4-beta.1', '>=1.2.4-beta.1'), true, '적어 준 미리보기는 들어간다');
 
-/* 겹치는 판이 없으면 미리 말한다 — 같은 꾸러미가 두 벌 깔리는 그 상황 */
+/* 겹치는 판이 없으면 미리 말한다. 같은 꾸러미가 두 벌 깔리는 그 상황 */
 eq(sv.overlaps('^1.2.0', '~1.1.0'), false, '^1.2.0 과 ~1.1.0 은 겹치는 판이 없다');
 eq(sv.overlaps('^1.2.0', '^1.5.0'), true, '^1.2.0 과 ^1.5.0 은 겹친다');
 eq(sv.overlaps('^1.0.0', '^2.0.0'), false, '메이저가 다르면 안 겹친다');
@@ -2694,7 +2694,7 @@ check(csWeak.some((f) => f.key === 'unsafeEval'), 'eval 허용을 짚는다');
 check(csWeak.some((f) => f.key === 'wildcard' && f.where === 'img-src'), '별표를 짚는다');
 check(csWeak.some((f) => f.key === 'noFrameAncestors'), '빠진 것도 짚는다');
 
-/* nonce 가 같이 있으면 브라우저가 unsafe-inline 을 무시한다 — 그걸 위험이라 하면 거짓 경보다 */
+/* nonce 가 같이 있으면 브라우저가 unsafe-inline 을 무시한다. 그걸 위험이라 하면 거짓 경보다 */
 const csNonce = cs.reviewCsp("default-src 'self'; script-src 'self' 'unsafe-inline' 'nonce-abc123'; frame-ancestors 'none'; base-uri 'self'");
 check(!csNonce.some((f) => f.key === 'unsafeInline'), 'nonce 가 있으면 인라인을 문제 삼지 않는다');
 
@@ -2714,7 +2714,7 @@ check(csBuilt.includes("img-src 'self' data: https://cdn.example.com"), '고른 
 check(csBuilt.includes("style-src 'self' 'unsafe-inline'"), '인라인 스타일은 골랐을 때만');
 check(csBuilt.includes("object-src 'none'") && csBuilt.includes("frame-ancestors 'none'"), '기본으로 잠가 둔다');
 check(!cs.build().includes('unsafe'), '아무것도 안 고르면 unsafe 가 없다');
-/* 지어 놓고 다시 읽었을 때 지적이 안 나와야 한다 — 우리가 권한 것이 우리 기준을 통과해야 한다 */
+/* 지어 놓고 다시 읽었을 때 지적이 안 나와야 한다. 우리가 권한 것이 우리 기준을 통과해야 한다 */
 eq(cs.reviewCsp(cs.build()).filter((f) => f.level === 'weak').length, 0, '우리가 지은 헤더에는 약한 자리가 없다');
 
 // ── 로그 보기 (TASK-KL-316) ─────────────────────────────────────────────────
@@ -2752,7 +2752,7 @@ eq(lvSum.lines, 6, '줄 수');
 eq(lvSum.timed, 5, '시각을 읽은 줄 수');
 eq(lvSum.levels.error, 3, '급별로 센다');
 check(lvSum.from !== undefined && lvSum.to !== undefined && lvSum.to > lvSum.from, '언제부터 언제까지');
-/* 같은 모양은 묶여야 한다 — 만 줄이 열 줄로 보이는 이유 */
+/* 같은 모양은 묶여야 한다. 만 줄이 열 줄로 보이는 이유 */
 check(lvSum.common.some((c) => c.shape.includes('<ip>') && c.count === 2), `같은 모양을 묶는다: ${JSON.stringify(lvSum.common[0])}`);
 check(!JSON.stringify(lvSum.common).includes('시각'), '자리표는 말이 아니라 기호다');
 
@@ -2804,7 +2804,7 @@ eq(apiParsed.operations.length, 2, '연산 둘');
 const apiGet = apiParsed.operations[0];
 eq(apiGet.method + ' ' + apiGet.path, 'GET /users/{id}', '메서드와 경로');
 eq(apiGet.summary, '한 사람 보기', '요약을 읽는다');
-/* 경로에 공통으로 걸린 파라미터를 각 연산이 물려받아야 한다 — 안 그러면 필수 값이 사라진다 */
+/* 경로에 공통으로 걸린 파라미터를 각 연산이 물려받아야 한다. 안 그러면 필수 값이 사라진다 */
 eq(apiGet.params.length, 2, '공통 파라미터를 물려받는다');
 check(apiGet.params.some((p) => p.name === 'id' && p.where === 'path' && p.required), 'path 파라미터는 필수다');
 
@@ -2922,7 +2922,7 @@ eq(pbAll[0].fields.length, 5, '칸 다섯');
 eq(pbAll[0].fields[2].repeated, true, 'repeated 를 읽는다');
 eq(pbAll[0].fields[3].type, 'Home', '다른 메시지를 가리키는 칸');
 
-/* 써 놓고 다시 읽어 같은지 본다 (왕복) — 이게 맞으면 둘 다 맞다 */
+/* 써 놓고 다시 읽어 같은지 본다 (왕복). 이게 맞으면 둘 다 맞다 */
 const pbBytes = pb.encode({ name: '윤', age: 24, tags: ['a', 'b'], home: { room: 'inside' }, warm: true }, pbAll[0], pbAll);
 const pbBack = pb.decode(pbBytes, pbAll[0], pbAll);
 eq(pbBack.find((p) => p.no === 1).value, '윤', '한글 문자열 왕복');
@@ -2933,7 +2933,7 @@ const pbHome = pbBack.find((p) => p.no === 4);
 check(pbHome.children !== undefined && pbHome.children[0].value === 'inside', '안에 든 메시지를 펴서 읽는다');
 check(pbBack.every((p) => p.name !== undefined), '스키마가 있으면 이름을 붙인다');
 
-/* 스키마 **없이도** 여기까지는 알 수 있어야 한다 — 이게 이 도구의 진짜 쓸모다 */
+/* 스키마 **없이도** 여기까지는 알 수 있어야 한다. 이게 이 도구의 진짜 쓸모다 */
 const pbBlind = pb.decode(pbBytes);
 eq(pbBlind[0].no, 1, '번호를 안다');
 eq(pbBlind[0].kind, 'bytes', '선 형식을 안다');
@@ -2942,12 +2942,12 @@ check(pbBlind.find((p) => p.no === 2).alternatives !== undefined, '스키마가 
 check(pbBlind.find((p) => p.no === 4).children !== undefined, '안에 메시지가 또 있으면 알아서 연다');
 check(pbBlind.every((p) => p.name === undefined), '스키마가 없으면 이름을 지어내지 않는다');
 
-/* 16진수·base64 아무거나 받는다 */
+/* 16진수, base64 아무거나 받는다 */
 eq(pb.toHex(pb.readBytes('08 96 01')), '089601', '띄어쓴 16진수를 읽는다');
 eq(pb.toHex(pb.readBytes('CJYB')), '089601', 'base64 도 읽는다');
 eq(String(pb.decode(pb.readBytes('089601'))[0].value), '150', 'varint 를 제대로 푼다');
 
-/* 음수는 sint 로 적어야 짧다 — 그 규칙(zigzag)이 왕복하는지 */
+/* 음수는 sint 로 적어야 짧다. 그 규칙(zigzag)이 왕복하는지 */
 const pbSigned = pb.parseProto('message S { sint32 delta = 1; }');
 eq(pb.decode(pb.encode({ delta: -3 }, pbSigned[0]), pbSigned[0])[0].value, '-3', 'zigzag 왕복');
 
@@ -2981,7 +2981,7 @@ const bmTop = bm.heaviest(bmTree, 2);
 eq(bmTop[0].path, 'src', '어디가 무거운지 첫 줄');
 check(bmTop.some((h) => h.path === 'src/widgets' && h.bytes === 31000), `한 겹 더 내려간다: ${JSON.stringify(bmTop.slice(0, 4))}`);
 
-/* 같은 꾸러미가 두 자리에 들어간 것 — 번들이 갑자기 커지는 흔한 이유 */
+/* 같은 꾸러미가 두 자리에 들어간 것. 번들이 갑자기 커지는 흔한 이유 */
 const bmDup = bm.duplicates(bmItems);
 eq(bmDup.length, 1, '겹친 꾸러미 하나');
 eq(bmDup[0].name, 'lodash', '이름을 댄다');
@@ -3047,7 +3047,7 @@ eq(cgGraph.externals.react, 1, '밖 꾸러미를 센다');
 eq(cgGraph.externals['@scope/pkg'], 1, '@scope 꾸러미는 두 조각까지 묶는다');
 check(cgGraph.externals['node:fs'] === undefined, '기본 꾸러미(node:)는 안 센다');
 
-/* 고리 — 고칠 때 제일 아픈 것 */
+/* 고리. 고칠 때 제일 아픈 것 */
 const cgLoops = cg.cycles(cgGraph);
 eq(cgLoops.length, 1, '고리 하나');
 eq(cgLoops[0].length, 2, '두 파일이 서로 부른다');
@@ -3075,7 +3075,7 @@ const cgBig = {};
 for (let i = 0; i < 3000; i++) cgBig['f' + i + '.ts'] = "import './f" + (i + 1) + "';\n";
 check(cg.cycles(cg.build(cgBig)).length === 0, '3천 개 사슬에서도 안 터진다');
 
-// ── CSS·HTML 펴고 누르기 (TASK-KL-316) ─────────────────────────────────────
+// ── CSS, HTML 펴고 누르기 (TASK-KL-316) ─────────────────────────────────────
 const pa = await load('src/core/prettyall.ts');
 
 eq(pa.detect('.a{color:red}'), 'css', 'CSS 를 알아본다');
@@ -3091,7 +3091,7 @@ check(paCss.includes('color: red;'), '값 앞뒤를 고른다');
 check(paCss.includes('/* 메모 */'), '주석을 안 지운다 (펼 때는)');
 eq(pa.minifyCss('.a { color : red ; }'), '.a{color:red}', '눌러서 붙인다');
 eq(pa.minifyCss('.a{color:red}/* 메모 */'), '.a{color:red}', '누를 때는 주석을 지운다');
-/* 따옴표 안의 중괄호에 무너지면 안 된다 — 이런 게 진짜 파일에 늘 있다 */
+/* 따옴표 안의 중괄호에 무너지면 안 된다. 이런 게 진짜 파일에 늘 있다 */
 check(pa.minifyCss('.a::after{content:"}"}').includes('content:"}"'), '따옴표 안은 안 건드린다');
 check(pa.formatCss('@media (max-width:600px){.a{color:red}}').includes('@media'), '중첩된 갈래도 편다');
 
@@ -3102,7 +3102,7 @@ check(paLines.some((l) => l.startsWith('  <p>')), '한 겹 들여쓴다');
 check(paLines.some((l) => l.trim() === '<br>'), '닫는 짝이 없는 것은 깊이를 안 늘린다');
 eq(pa.minifyHtml('<div>  <p> 가 </p>  </div>'), '<div><p> 가 </p></div>', 'HTML 을 누른다');
 eq(pa.minifyHtml('<div><!-- 메모 --><p>가</p></div>'), '<div><p>가</p></div>', '주석을 지운다');
-/* pre·script 안의 빈칸은 뜻이 있다 — 건드리면 화면이 바뀐다 */
+/* pre, script 안의 빈칸은 뜻이 있다. 건드리면 화면이 바뀐다 */
 check(pa.minifyHtml('<pre>  가\n  나</pre>').includes('  가\n  나'), 'pre 속은 안 건드린다');
 check(pa.formatHtml('<script>const a = 1;\n  const b = 2;</script>').includes('const b = 2;'), 'script 속도 안 건드린다');
 
@@ -3115,10 +3115,10 @@ try {
 }
 check(paThrew, '못 맡는 것은 못 맡는다고 한다');
 
-// ── PEM · ASN.1 (TASK-KL-316) ───────────────────────────────────────────────
+// ── PEM, ASN.1 (TASK-KL-316) ───────────────────────────────────────────────
 const pem = await load('src/core/pem.ts');
 
-/* base64 왕복부터 — 여기가 어긋나면 아래가 전부 거짓말이 된다 */
+/* base64 왕복부터. 여기가 어긋나면 아래가 전부 거짓말이 된다 */
 eq(pem.bytesToBase64(new Uint8Array([1, 2, 3])), 'AQID', 'base64 로 쓴다');
 eq([...pem.base64ToBytes('AQID')].join(','), '1,2,3', 'base64 를 읽는다');
 eq([...pem.base64ToBytes(pem.bytesToBase64(new Uint8Array([0, 255, 128, 7])))].join(','), '0,255,128,7', '왕복');
@@ -3144,7 +3144,7 @@ eq(pemTree[0].children[2].value, '윤', '한글 문자열도 그대로');
 eq(pem.oidName('1.2.3.4.5'), '1.2.3.4.5', '모르는 OID 는 숫자 그대로');
 eq(pem.oidName('2.5.4.3'), 'CN', '아는 것만 이름을 댄다');
 
-/* PEM 껍데기 — 여러 덩이가 이어 붙은 파일(사슬)도 다 읽어야 한다 */
+/* PEM 껍데기. 여러 덩이가 이어 붙은 파일(사슬)도 다 읽어야 한다 */
 const pemText = pem.toPem('CERTIFICATE', pemDer) + '\n' + pem.toPem('PRIVATE KEY', new Uint8Array([1, 2, 3]));
 const pemBlocks = pem.readPem(pemText);
 eq(pemBlocks.length, 2, '두 덩이를 다 읽는다');
@@ -3152,7 +3152,7 @@ eq(pemBlocks[0].label, 'CERTIFICATE', '이름표를 읽는다');
 eq([...pemBlocks[0].der].join(','), [...pemDer].join(','), 'PEM 왕복');
 check(pem.toPem('X', new Uint8Array(100)).split('\n').length > 3, '64자마다 줄을 바꾼다');
 
-/* 두 자리 해(UTCTime) — 50 이상이면 1900년대. 틀리면 만료가 50년 어긋난다 */
+/* 두 자리 해(UTCTime). 50 이상이면 1900년대. 틀리면 만료가 50년 어긋난다 */
 const pemUtc = new Uint8Array([0x17, 0x0d, ...new TextEncoder().encode('260814090000Z')]);
 eq(pem.parseDer(pemUtc)[0].value, '2026-08-14T09:00:00Z', '20xx 해');
 const pemOld = new Uint8Array([0x17, 0x0d, ...new TextEncoder().encode('960814090000Z')]);
@@ -3170,7 +3170,7 @@ check(pemThrew, '속이 잘렸으면 그렇다고 한다');
 // ── 인증서 보기 (TASK-KL-316) ───────────────────────────────────────────────
 const cv = await load('src/core/certview.ts');
 
-/* 진짜 인증서 대신 **손으로 DER 을 쌓아** 만든다 — 남의 인증서를 저장소에 넣지 않고,
+/* 진짜 인증서 대신 **손으로 DER 을 쌓아** 만든다. 남의 인증서를 저장소에 넣지 않고,
    구조가 바뀌면 시험이 먼저 깨진다. */
 const der = {
   len(n) {
@@ -3239,7 +3239,7 @@ eq(cvCert.signatureAlgorithm, 'SHA256withRSA', '서명 방식');
 eq(cvCert.isCa, true, 'CA 인지');
 eq(cvCert.selfSigned, false, '스스로 서명한 게 아니다');
 
-/* 스스로 서명한 것도 알아본다 — 「왜 브라우저가 빨간 자물쇠를 띄우나」의 첫 답 */
+/* 스스로 서명한 것도 알아본다. 왜 브라우저가 빨간 자물쇠를 띄우나의 첫 답 */
 const selfTbs = der.seq(
   der.int(1),
   der.seq(der.oid(OID_SHA256RSA)),
@@ -3251,14 +3251,14 @@ const selfTbs = der.seq(
 const selfDer = new Uint8Array(der.seq(selfTbs, der.seq(der.oid(OID_SHA256RSA)), der.node(0x03, [0x00, 0x01])));
 eq(cv.readCert(selfDer).selfSigned, true, '스스로 서명한 것을 짚는다');
 
-/* 남은 날 — 만료를 넘겼으면 음수여야 한다(0 으로 뭉개면 「아직 괜찮다」로 읽힌다) */
+/* 남은 날. 만료를 넘겼으면 음수여야 한다(0 으로 뭉개면 아직 괜찮다로 읽힌다) */
 const cvPem = pem.toPem('CERTIFICATE', certDer);
 const cvChain = cv.readChain(cvPem, Date.parse('2026-12-02T00:00:00Z'));
 eq(cvChain.certs.length, 1, '덩이 하나');
 eq(cvChain.daysLeft, 30, '남은 날을 센다');
 check(cv.readChain(cvPem, Date.parse('2027-02-01T00:00:00Z')).daysLeft < 0, '지났으면 음수');
 
-/* 사슬 — 앞 것의 발급자가 뒤 것의 주체여야 이어진다 */
+/* 사슬. 앞 것의 발급자가 뒤 것의 주체여야 이어진다 */
 const caTbs = der.seq(
   der.int(2),
   der.seq(der.oid(OID_SHA256RSA)),
@@ -3276,7 +3276,7 @@ const sk = await load('src/core/sshkey.ts');
 const nodeCrypto = await import('node:crypto');
 const sha256 = (bytes) => new Uint8Array(nodeCrypto.createHash('sha256').update(bytes).digest());
 
-/* 진짜 열쇠를 저장소에 넣지 않는다 — 선 형식대로 손으로 쌓는다 */
+/* 진짜 열쇠를 저장소에 넣지 않는다. 선 형식대로 손으로 쌓는다 */
 const skField = (bytes) => [bytes.length >>> 24 & 255, bytes.length >>> 16 & 255, bytes.length >>> 8 & 255, bytes.length & 255, ...bytes];
 const skEd = new Uint8Array([...skField([...new TextEncoder().encode('ssh-ed25519')]), ...skField(new Array(32).fill(7))]);
 const skEdB64 = pem.bytesToBase64(skEd);
@@ -3304,14 +3304,14 @@ eq(skEntries[1].comment, '서버-배포키', '한글 주석도');
 eq(skEntries[2].problem, 'badBase64', '깨진 줄은 버리지 않고 왜인지 적는다');
 eq(skEntries[3].problem, 'typeMismatch', '줄에 적힌 종류와 속이 다르면 짚는다');
 
-/* 지문 — 서버에서 지울 줄을 고르는 데 쓰는 그 값 */
+/* 지문. 서버에서 지울 줄을 고르는 데 쓰는 그 값 */
 const skPrint = sk.fingerprint(skEdB64, sha256);
 check(skPrint.startsWith('SHA256:'), `SHA256: 로 시작한다: ${skPrint}`);
 check(!skPrint.endsWith('='), '끝의 = 는 뗀다 (ssh-keygen 과 같은 모양)');
 eq(sk.fingerprint(skEdB64, sha256), skPrint, '같은 열쇠는 같은 지문');
 check(sk.fingerprint(skRsaB64, sha256) !== skPrint, '다른 열쇠는 다른 지문');
 
-/* PEM(SPKI) → OpenSSH 한 줄 — 사람이 실제로 막히는 자리 */
+/* PEM(SPKI) → OpenSSH 한 줄. 사람이 실제로 막히는 자리 */
 const skSpki = new Uint8Array(der.seq(
   der.seq(der.oid(OID_RSA), der.node(0x05, [])),
   der.node(0x03, [0x00, ...der.seq(der.node(0x02, skRsaN), der.node(0x02, [1, 0, 1]))])
@@ -3331,7 +3331,7 @@ try {
 }
 check(skThrew, '아직 못 바꾸는 종류는 못 바꾼다고 한다');
 
-// ── 대역·포트 (TASK-KL-316) ─────────────────────────────────────────────────
+// ── 대역, 포트 (TASK-KL-316) ─────────────────────────────────────────────────
 const nt = await load('src/core/nettool.ts');
 
 eq(nt.numberToIp(nt.ipToNumber('192.168.0.1')), '192.168.0.1', '주소 왕복');
@@ -3350,10 +3350,10 @@ eq(ntBlock.usable, 1022, '실제로 줄 수 있는 수');
 eq(ntBlock.private, true, '사설 대역인지');
 eq(nt.parseCidr('8.8.8.8/32').private, false, '공인 대역');
 
-/* /31 과 /32 는 규칙이 다르다 — 그냥 -2 하면 음수가 나온다 */
+/* /31 과 /32 는 규칙이 다르다. 그냥 -2 하면 음수가 나온다 */
 eq(nt.parseCidr('10.0.0.0/31').usable, 2, '/31 은 둘 다 쓴다 (점대점)');
 eq(nt.parseCidr('10.0.0.1/32').usable, 1, '/32 는 한 대');
-eq(nt.parseCidr('10.0.0.1/32').firstHost, undefined, '/32 에는 「첫 주소」가 없다');
+eq(nt.parseCidr('10.0.0.1/32').firstHost, undefined, '/32 에는 첫 주소가 없다');
 eq(nt.parseCidr('0.0.0.0/0').total, 4294967296, '/0 은 전부');
 
 eq(nt.contains('10.0.4.0/22', '10.0.7.255'), true, '끝 주소도 안에 든다');
@@ -3396,7 +3396,7 @@ check(ntBad, '없는 주소는 없다고 한다');
 // ── 배경 지우기 (TASK-KL-316) ───────────────────────────────────────────────
 const bg = await load('src/core/bgremove.ts');
 
-/** 흰 바탕 가운데에 빨간 네모, 그 네모 안에 **흰 구멍** — 안쪽 흰색이 안 뚫려야 한다. */
+/** 흰 바탕 가운데에 빨간 네모, 그 네모 안에 **흰 구멍**. 안쪽 흰색이 안 뚫려야 한다. */
 function makePicture(w, h) {
   const px = new Uint8ClampedArray(w * h * 4);
   for (let y = 0; y < h; y++) {
@@ -3422,7 +3422,7 @@ eq(bg.guessBackground(bgPx, bgW, bgH).join(','), '255,255,255', '모서리에서
 const bgAlpha = bg.maskOf(bgPx, bgW, bgH, { tolerance: 30, feather: 0 });
 eq(bgAlpha[0], 0, '모서리는 지워진다');
 eq(bgAlpha[(30 * bgW) + 30], 255, '가운데 물체는 남는다');
-/* 이어진 것만 지우는 이유 — 물체 **안쪽**의 같은 색은 남아야 한다 */
+/* 이어진 것만 지우는 이유. 물체 **안쪽**의 같은 색은 남아야 한다 */
 eq(bgAlpha[(22 * bgW) + 22], 255, '물체 안의 흰 구멍은 안 뚫린다 (전역 색 지우기가 아니다)');
 check(bg.removedRatio(bgAlpha) > 0.3 && bg.removedRatio(bgAlpha) < 0.7, `지운 넓이가 그럴듯하다: ${bg.removedRatio(bgAlpha).toFixed(2)}`);
 
@@ -3432,7 +3432,7 @@ const bgTight = bg.removedRatio(bg.maskOf(bgPx, bgW, bgH, { tolerance: 5, feathe
 check(bgLoose >= bg.removedRatio(bgAlpha), '느슨하면 더 지운다');
 check(bgTight <= bg.removedRatio(bgAlpha), '빡빡하면 덜 지운다');
 
-/* 페더 — 가장자리가 딱 잘리지 않고 사이 값이 생겨야 한다 */
+/* 페더. 가장자리가 딱 잘리지 않고 사이 값이 생겨야 한다 */
 const bgSoft = bg.maskOf(bgPx, bgW, bgH, { tolerance: 30, feather: 3 });
 let bgMiddle = 0;
 for (const a of bgSoft) if (a > 20 && a < 235) bgMiddle++;
@@ -3463,17 +3463,17 @@ const idpPlan = idp.plan(idp.findSpec('kr-passport'), 300);
 eq(idpPlan.widthPx, 413, '35mm → 413px');
 eq(idpPlan.heightPx, 531, '45mm → 531px');
 check(idpPlan.headMinPx < idpPlan.headMaxPx, '머리 크기 범위');
-/* 규정은 「아래에서부터」인데 그림은 위에서부터 — 뒤집기를 한 번만 해야 한다 */
+/* 규정은 아래에서부터인데 그림은 위에서부터. 뒤집기를 한 번만 해야 한다 */
 check(idpPlan.eyeTopPx < idpPlan.eyeBottomPx, '눈 자리는 위에서부터 센다');
 check(idpPlan.eyeTopPx > 0 && idpPlan.eyeBottomPx < idpPlan.heightPx, '눈 자리가 사진 안에 있다');
 eq(idp.plan(idp.findSpec('kr-passport'), 600).widthPx, 827, 'dpi 를 올리면 픽셀도 는다');
 
-/* 인화 배치 — 붙여 놓으면 못 자른다. 여유를 빼고 세야 한다 */
+/* 인화 배치. 붙여 놓으면 못 자른다. 여유를 빼고 세야 한다 */
 const idpSheet = idp.sheet(idp.findSpec('kr-passport'), '4x6', 300);
 eq(idpSheet.cols * idpSheet.rows, idpSheet.slots.length, '칸 수가 자리 수와 같다');
 check(idpSheet.slots.length >= 6, `4x6 인화지에 여섯 장 넘게 들어간다: ${idpSheet.slots.length}`);
 check(idpSheet.slots.every((s) => s.x >= 0 && s.y >= 0 && s.x + s.w <= idpSheet.widthPx && s.y + s.h <= idpSheet.heightPx), '자리가 종이를 안 넘는다');
-/* 자리끼리 안 겹쳐야 한다 — 겹치면 인화가 통째로 버려진다 */
+/* 자리끼리 안 겹쳐야 한다. 겹치면 인화가 통째로 버려진다 */
 let idpOverlap = false;
 for (let i = 0; i < idpSheet.slots.length; i++) {
   for (let j = i + 1; j < idpSheet.slots.length; j++) {
@@ -3485,7 +3485,7 @@ for (let i = 0; i < idpSheet.slots.length; i++) {
 check(!idpOverlap, '자리끼리 안 겹친다');
 check(idp.sheet(idp.findSpec('kr-passport'), 'a4', 300).slots.length > idpSheet.slots.length, 'A4 에는 더 많이 들어간다');
 
-/* 규격을 지키는지 봐 준다 — 무엇이 어긋났는지까지 */
+/* 규격을 지키는지 봐 준다. 무엇이 어긋났는지까지 */
 const idpOk = idp.check(idp.findSpec('kr-passport'), idpPlan, 320, 200);
 eq(idpOk.ok, true, `가운데 값은 통과: ${JSON.stringify(idpOk)}`);
 check(idp.check(idp.findSpec('kr-passport'), idpPlan, 100, 200).problems.includes('headTooSmall'), '머리가 작으면 짚는다');
@@ -3520,7 +3520,7 @@ const dsTrap = [
 ];
 eq(ds.guessSize(dsTrap).width, 100, '넓은 쪽으로 잡는다');
 
-/* 한 줄에 가까운 네 점은 못 푼다 — 조용히 이상한 그림을 내지 않는다 */
+/* 한 줄에 가까운 네 점은 못 푼다. 조용히 이상한 그림을 내지 않는다 */
 let dsThrew = false;
 try {
   ds.homography([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 20, y: 0 }, { x: 30, y: 0 }], 100, 50);
@@ -3529,7 +3529,7 @@ try {
 }
 check(dsThrew, '한 줄에 가까우면 그렇다고 말한다');
 
-/* 되돌리기 — 사다리꼴로 찍은 것을 펴면 네 귀퉁이 색이 제자리로 온다 */
+/* 되돌리기. 사다리꼴로 찍은 것을 펴면 네 귀퉁이 색이 제자리로 온다 */
 const dsW = 80;
 const dsH2 = 60;
 const dsPx = new Uint8ClampedArray(dsW * dsH2 * 4);
@@ -3553,7 +3553,7 @@ check(dsOut[dsRight] < 60, '오른위는 어둡다 (제자리)');
 const dsOutside = ds.warp(dsPx, dsW, dsH2, [{ x: -50, y: -50 }, { x: -20, y: -50 }, { x: -20, y: -20 }, { x: -50, y: -20 }], 10, 10);
 eq(dsOutside[0], 255, '사진 밖은 흰색으로 채운다');
 
-/* 스캔처럼 — 그림자가 있어도 반쪽이 통째로 까매지면 안 된다 */
+/* 스캔처럼. 그림자가 있어도 반쪽이 통째로 까매지면 안 된다 */
 const shW = 60;
 const shH = 60;
 const shPx = new Uint8ClampedArray(shW * shH * 4);
@@ -3572,7 +3572,7 @@ for (let y = 0; y < shH; y++) {
 }
 const dsScan = ds.enhance(shPx, shW, shH, 'scan');
 const black = (x, y) => dsScan[((y * shW) + x) * 4] === 0;
-check(black(10, 30) && black(50, 30), '밝은 쪽·그림자 쪽 글씨가 **둘 다** 남는다');
+check(black(10, 30) && black(50, 30), '밝은 쪽, 그림자 쪽 글씨가 **둘 다** 남는다');
 check(!black(10, 5) && !black(50, 5), '종이는 둘 다 하얗게 (그림자 쪽이 통째로 안 까매진다)');
 const dsGray = ds.enhance(shPx, shW, shH, 'gray');
 check(dsGray[0] === dsGray[1] && dsGray[1] === dsGray[2], '회색은 세 칸이 같다');
@@ -3587,7 +3587,7 @@ check(Math.abs(dsFit.widthMm / dsFit.heightMm - 2000 / 3000) < 0.02, '비율을 
 // ── 그림 속 글자 (TASK-KL-316) ──────────────────────────────────────────────
 const ocr = await load('src/core/ocr.ts');
 
-/* 갈래를 가르는 게 이 알맹이의 일 — 글자 든 PDF 를 읽기 모형에 보내면 느리고 더 틀린다 */
+/* 갈래를 가르는 게 이 알맹이의 일. 글자 든 PDF 를 읽기 모형에 보내면 느리고 더 틀린다 */
 eq(ocr.route('application/pdf', true).route, 'extract', '글자 든 PDF 는 뽑는다');
 eq(ocr.route('application/pdf', true).tool, 'pdf2text', '이미 있는 도구로 보낸다 (다시 안 만든다)');
 eq(ocr.route('application/pdf', false).route, 'recognise', '스캔 PDF 는 읽어야 한다');
@@ -3595,13 +3595,13 @@ eq(ocr.route('image/jpeg').route, 'recognise', '사진은 읽어야 한다');
 eq(ocr.route('image/jpeg').preprocess, true, '읽기 전에 다듬는다');
 eq(ocr.route('text/plain').route, 'unsupported', '모르는 것은 모른다고 한다');
 
-/* 한국어·일본어는 아직 못 읽는다 — **되는 척하지 않는다** */
+/* 한국어, 일본어는 아직 못 읽는다. **되는 척하지 않는다** */
 eq(ocr.modelFor('ko'), undefined, '한국어는 아직 없다고 한다');
 eq(ocr.modelFor('ja'), undefined, '일본어도 없다고 한다');
 check(ocr.modelFor('en').id.includes('trocr'), '영어는 모형을 댄다');
 check(ocr.modelFor('en').sizeMb > 0, '얼마나 받는지도 말한다');
 
-/* 다듬기 — 스캔에서 늘 오는 세 가지 */
+/* 다듬기. 스캔에서 늘 오는 세 가지 */
 eq(ocr.tidy('hyphen-\nated word'), 'hyphenated word', '줄 끝에서 잘린 낱말을 잇는다');
 eq(ocr.tidy('첫 줄\n둘째 줄'), '첫 줄 둘째 줄', '문장이 안 끝났으면 잇는다');
 eq(ocr.tidy('끝났다.\n새 문장'), '끝났다.\n새 문장', '문장이 끝났으면 안 잇는다');
@@ -3619,7 +3619,7 @@ eq(ocr.looksEmpty('ab'), true, '두 글자는 읽었다고 보기 어렵다');
 // ── 닮은 사진 (TASK-KL-316) ─────────────────────────────────────────────────
 const dup = await load('src/core/dupphoto.ts');
 
-/** 9×8 회색 값을 만든다 — `shift` 만큼 밝기를 통째로 올려도 지문은 안 변해야 한다 */
+/** 9×8 회색 값을 만든다. `shift` 만큼 밝기를 통째로 올려도 지문은 안 변해야 한다 */
 function grayOf(seed, shift = 0) {
   const out = [];
   for (let y = 0; y < 8; y++) {
@@ -3630,7 +3630,7 @@ function grayOf(seed, shift = 0) {
 
 const dupA = dup.dHash(grayOf(1));
 const dupBrighter = dup.dHash(grayOf(1, 40));
-/* 아주 다른 사진 — 밝기가 반대로 흐르게 만든다 */
+/* 아주 다른 사진. 밝기가 반대로 흐르게 만든다 */
 const dupOther = dup.dHash(grayOf(1).map((v, i) => (Math.floor(i / 9) % 2 === 0 ? 255 - v : v)));
 eq(dupA, dupBrighter, '사진 전체가 밝아져도 지문은 그대로 (이웃과의 차이만 본다)');
 check(dup.distance(dupA, dupOther) > 6, `다른 사진은 멀다: ${dup.distance(dupA, dupOther)}`);
@@ -3644,7 +3644,7 @@ try {
 }
 check(dupThrew, '9×8 이 아니면 그렇다고 한다');
 
-/* 묶기 — 크기만 줄인 사본이 같은 묶음에 와야 한다 */
+/* 묶기. 크기만 줄인 사본이 같은 묶음에 와야 한다 */
 const photos = [
   { name: 'IMG_1.jpg', size: 3_000_000, pixels: 12_000_000, hash: dupA },
   { name: 'IMG_1 (사본).jpg', size: 400_000, pixels: 2_000_000, hash: dupA },
@@ -3658,7 +3658,7 @@ eq(groups[0].others.length, 2, '나머지 둘은 지워도 되는 쪽');
 eq(groups[0].saved, 520_000, '지우면 얼마나 줄어드는지');
 eq(dup.totalSaved(groups), 520_000, '전체 절약');
 
-/* 이어짐으로 묶는다 — A~B, B~C 면 셋이 한 묶음(연사 사진이 그렇다) */
+/* 이어짐으로 묶는다. A~B, B~C 면 셋이 한 묶음(연사 사진이 그렇다) */
 const chain = dup.group([
   { name: 'a', size: 10, hash: 0n },
   { name: 'b', size: 10, hash: 0b111n },
@@ -3677,11 +3677,11 @@ eq(exact.length, 1, '완전히 같은 파일은 무조건 한 묶음');
 eq(dup.group([{ name: 'only', size: 1, hash: 0n }]).length, 0, '혼자면 묶음이 아니다');
 check(dup.run('describe').includes('never deletes'), '지우지 않는다고 스스로 밝힌다');
 
-// ── 사진 정보·자리 (TASK-KL-316) ────────────────────────────────────────────
+// ── 사진 정보, 자리 (TASK-KL-316) ────────────────────────────────────────────
 const exif = await load('src/core/exif.ts');
 const pmap = await load('src/core/photomap.ts');
 
-/* 진짜 사진 대신 **손으로 JPEG 를 쌓는다** — 저장소에 남의 사진을 안 넣고, 구조가 바뀌면 시험이 먼저 깨진다 */
+/* 진짜 사진 대신 **손으로 JPEG 를 쌓는다**. 저장소에 남의 사진을 안 넣고, 구조가 바뀌면 시험이 먼저 깨진다 */
 function makeJpeg({ lat, lon, date }) {
   const be = (n, size) => {
     const out = [];
@@ -3702,7 +3702,7 @@ function makeJpeg({ lat, lon, date }) {
   const ascii = (s) => [...new TextEncoder().encode(s), 0];
   addEntry(0x010f, 2, ascii('도토리카메라').length, ascii('도토리카메라'));
   addEntry(0x0132, 2, ascii(date).length, ascii(date));
-  addEntry(0x8825, 4, 1, be(0, 4)); // GPS IFD 자리 — 아래에서 채운다
+  addEntry(0x8825, 4, 1, be(0, 4)); // GPS IFD 자리. 아래에서 채운다
   const gpsEntryIndex = entries.length - 1;
 
   const rational = (value) => {
@@ -3761,7 +3761,7 @@ eq(JSON.stringify(exif.read(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]))), '{}', 'E
 eq(exif.dateToMs('2026:08:14 09:30:00'), Date.parse('2026-08-14T09:30:00'), '때를 밀리초로');
 eq(exif.dateToMs('언제인지 모름'), undefined, '못 읽으면 지어내지 않는다');
 
-/* 자리 묶기 — 한 골목 스무 장이 점 스무 개가 되면 안 된다 */
+/* 자리 묶기. 한 골목 스무 장이 점 스무 개가 되면 안 된다 */
 const shots = [
   { name: 'a', lat: 37.5665, lon: 126.978, at: 1 },
   { name: 'b', lat: 37.5666, lon: 126.9781, at: 2 },
@@ -3772,7 +3772,7 @@ const grouped = pmap.places(shots, 300);
 eq(grouped.length, 3, '가까운 둘은 한 자리, 나머지는 따로');
 eq(grouped[0].shots.length, 2, '가장 많은 자리가 먼저');
 check(Math.abs(pmap.metersBetween(37.5665, 126.978, 37.5666, 126.9781) - 14) < 5, '거리를 미터로 잰다');
-check(pmap.metersBetween(37.5665, 126.978, 35.1796, 129.0756) > 300000, '서울–부산은 멀다');
+check(pmap.metersBetween(37.5665, 126.978, 35.1796, 129.0756) > 300000, '서울-부산은 멀다');
 
 const dayed = pmap.days([
   { name: 'a', lat: 0, lon: 0, at: Date.parse('2026-08-14T09:00:00') },
@@ -3802,7 +3802,7 @@ check(pmap.run('describe').includes('No map tiles'), '타일을 안 받는다고
 const tts = await load('src/core/tts.ts');
 
 eq(tts.split('첫 문장이다. 둘째 문장이다.').length, 2, '문장 둘로 자른다');
-/* 숫자 한가운데서 끊기면 「삼 점」 「일사」로 읽힌다 — 여기가 이 알맹이의 핵심 */
+/* 숫자 한가운데서 끊기면 삼 점 일사로 읽힌다. 여기가 이 알맹이의 핵심 */
 eq(tts.split('원주율은 3.14 이다.').length, 1, '소수점에서는 안 자른다');
 check(tts.split('원주율은 3.14 이다.')[0].includes('3.14'), '점을 되돌려 놓는다 (314 가 되면 안 된다)');
 eq(tts.split('Mr. Kim went home. He slept.').length, 2, '줄임말 뒤에서는 안 자른다');
@@ -3810,7 +3810,7 @@ eq(tts.split('가나다\n\n라마바').length, 2, '빈 줄은 문단 경계');
 eq(tts.split('한 줄뿐').length, 1, '점이 없어도 한 문장');
 eq(tts.split('').length, 0, '빈 글은 빈 목록');
 
-/* 너무 긴 문장은 한 번 더 자른다 — 길수록 중간에 멎는다 */
+/* 너무 긴 문장은 한 번 더 자른다. 길수록 중간에 멎는다 */
 const longOne = '가'.repeat(500);
 const pieces = tts.split(longOne, 180);
 check(pieces.length >= 3, `긴 문장을 나눈다: ${pieces.length}조각`);
@@ -3824,17 +3824,17 @@ eq(tts.guessLanguage('こんにちは皆さん'), 'ja', '일본어를 알아본�
 eq(tts.guessLanguage('hello everyone'), 'en', '영어를 알아본다');
 eq(tts.guessLanguage('123 456'), 'en', '글자가 없으면 영어로 둔다');
 
-/* 시간 어림 — 글자 수가 아니라 소리 수로 (말이 빠르면 짧아진다) */
+/* 시간 어림. 글자 수가 아니라 소리 수로 (말이 빠르면 짧아진다) */
 const oneMinute = tts.seconds('가'.repeat(390));
 check(oneMinute > 50 && oneMinute < 70, `한국어 390자는 1분쯤: ${oneMinute}초`);
 check(tts.seconds('가'.repeat(390), 2) < oneMinute, '빠르게 읽으면 짧아진다');
 eq(tts.seconds(''), 0, '빈 글은 0초');
-eq(JSON.stringify(tts.asClock(75)), JSON.stringify({ minutes: 1, seconds: 15 }), '분·초로 나눈다');
+eq(JSON.stringify(tts.asClock(75)), JSON.stringify({ minutes: 1, seconds: 15 }), '분, 초로 나눈다');
 
 // ── 나눠 내기 (TASK-KL-316) ─────────────────────────────────────────────────
 const dp = await load('src/core/dutchpay.ts');
 
-/* 남는 1원을 버리면 총합이 안 맞는다 — 그 1원이 계산을 다시 하게 만든다 */
+/* 남는 1원을 버리면 총합이 안 맞는다. 그 1원이 계산을 다시 하게 만든다 */
 eq(dp.splitAmount(10000, 3).join(','), '3334,3333,3333', '1원까지 나눠 붙인다');
 eq(dp.splitAmount(10000, 3).reduce((a, b) => a + b, 0), 10000, '합이 딱 맞는다');
 eq(dp.splitAmount(9, 4).join(','), '3,2,2,2', '작은 돈도 딱 맞는다');
@@ -3848,7 +3848,7 @@ const lines = dp.parseExpenses([
   '잘못된 줄'
 ].join('\n'));
 eq(lines.length, 3, '주석과 이상한 줄은 뺀다');
-eq(lines[0].amount, 30000, '쉼표와 「원」을 떼고 읽는다');
+eq(lines[0].amount, 30000, '쉼표와 원을 떼고 읽는다');
 eq(lines[0].what, '저녁', '무엇에 썼는지도 읽는다');
 eq(lines[2].forWhom.join(','), '윤,링', '누구 몫인지 읽는다');
 
@@ -3867,7 +3867,7 @@ eq(transfers.reduce((sum, x) => sum + x.amount, 0), shares.filter((s) => s.balan
 check(transfers.every((x) => x.amount > 0), '0원 송금은 안 만든다');
 check(transfers.every((x) => x.from !== x.to), '자기 자신에게 보내지 않는다');
 
-/* 갚고 나면 모두 0 이 되어야 한다 — 이게 최종 검산 */
+/* 갚고 나면 모두 0 이 되어야 한다. 이게 최종 검산 */
 const after = new Map(shares.map((s) => [s.name, s.balance]));
 for (const x of transfers) {
   after.set(x.from, (after.get(x.from) ?? 0) + x.amount);
@@ -3875,7 +3875,7 @@ for (const x of transfers) {
 }
 check([...after.values()].every((v) => v === 0), `갚고 나면 모두 0: ${JSON.stringify([...after])}`);
 
-/* 송금 줄이기 — A→B, B→C 가 A→C 하나가 되는지 */
+/* 송금 줄이기. A→B, B→C 가 A→C 하나가 되는지 */
 const relay = dp.settle([
   { name: 'A', paid: 0, owed: 0, balance: -10000 },
   { name: 'B', paid: 0, owed: 0, balance: 0 },
@@ -3884,7 +3884,7 @@ const relay = dp.settle([
 eq(relay.length, 1, '가운데 사람을 안 거친다');
 eq(relay[0].from + '→' + relay[0].to, 'A→C', '한 번에 보낸다');
 
-/* 주소로 나눠 갖기 — 서버에 안 맡긴다 */
+/* 주소로 나눠 갖기. 서버에 안 맡긴다 */
 const packed = dp.encode(people, lines);
 check(!packed.includes('+') && !packed.includes('/') && !packed.includes('='), '주소에 그대로 쓸 수 있는 글자만');
 const restored = dp.decode(packed);
@@ -3901,7 +3901,7 @@ eq(s300.gross, 3000000, '세전은 그대로');
 eq(s300.taxable, 2800000, '비과세를 빼고 매긴다');
 eq(s300.pension, 126000, '국민연금 4.5%');
 check(Math.abs(s300.health - 99260) < 200, `건강보험 3.545%: ${s300.health}`);
-/* 장기요양은 **건강보험료의** 비율 — 월급의 비율로 잡으면 열 배쯤 틀린다 */
+/* 장기요양은 **건강보험료의** 비율. 월급의 비율로 잡으면 열 배쯤 틀린다 */
 check(Math.abs(s300.care - Math.floor((s300.health * 0.1295) / 10) * 10) < 20, `장기요양은 건보료 기준: ${s300.care}`);
 check(s300.care < s300.health / 5, '장기요양이 건보료보다 훨씬 작다');
 eq(s300.employment, 25200, '고용보험 0.9%');
@@ -3910,20 +3910,20 @@ eq(s300.net, s300.gross - s300.deductions, '통장에 들어오는 돈 = 세전 
 check(s300.net > 2600000 && s300.net < 2800000, `300만 원이면 260~280만 원쯤: ${s300.net}`);
 eq(s300.year, 2025, '어느 해 표인지 같이 준다');
 
-/* 국민연금 상한 — 월급이 아무리 커도 더 안 뗀다 (여기서 계산이 자주 어긋난다) */
+/* 국민연금 상한. 월급이 아무리 커도 더 안 뗀다 (여기서 계산이 자주 어긋난다) */
 const rich = slip.monthly({ monthly: 20000000 });
 eq(rich.pension, Math.floor((6170000 * 0.045) / 10) * 10, '상한을 넘으면 상한으로');
 eq(slip.monthly({ monthly: 300000 }).pension, Math.floor((390000 * 0.045) / 10) * 10, '하한 아래면 하한으로');
 check(rich.incomeTax > s300.incomeTax * 5, '많이 벌면 세금이 가파르게 는다 (누진)');
 
-/* 비과세를 늘리면 실수령이 는다 — 그게 식대가 있는 이유다 */
+/* 비과세를 늘리면 실수령이 는다. 그게 식대가 있는 이유다 */
 const noFree = slip.monthly({ monthly: 3000000, taxFree: 0 });
 check(noFree.net < s300.net, '비과세가 없으면 덜 받는다');
-/* 부양가족·자녀가 늘면 세금이 준다 */
+/* 부양가족, 자녀가 늘면 세금이 준다 */
 check(slip.monthly({ monthly: 3000000, taxFree: 200000, family: 3 }).incomeTax < s300.incomeTax, '부양가족이 늘면 세금이 준다');
 check(slip.monthly({ monthly: 3000000, taxFree: 200000, family: 3, children: 2 }).incomeTax <= slip.monthly({ monthly: 3000000, taxFree: 200000, family: 3 }).incomeTax, '자녀공제가 더 깎는다');
 
-/* 세율 구간이 이어져야 한다 — 구간 경계에서 세금이 갑자기 뛰면 안 된다 */
+/* 세율 구간이 이어져야 한다. 구간 경계에서 세금이 갑자기 뛰면 안 된다 */
 const justUnder = slip.incomeTax(14000000);
 const justOver = slip.incomeTax(14000001);
 check(justOver - justUnder < 100, `구간 경계가 이어진다: ${justUnder} → ${justOver}`);
@@ -3956,7 +3956,7 @@ const pkMs = pk.manuscript('a4', 20, 10);
 eq(pkMs.boxes.length, 200, '20×10 = 200칸');
 check(Math.abs(pkMs.boxes[0].w - pkMs.boxes[0].h) < 0.001, '칸이 정사각');
 check(pk.fits(pkMs), '원고지도 종이 안에');
-/* 가운데 정렬 — 한쪽으로 몰리면 접거나 자를 때 어긋난다 */
+/* 가운데 정렬. 한쪽으로 몰리면 접거나 자를 때 어긋난다 */
 const left = pkMs.boxes[0].x;
 const right = pkMs.widthMm - (pkMs.boxes[19].x + pkMs.boxes[19].w);
 check(Math.abs(left - right) < 0.01, '좌우 여백이 같다');
@@ -3964,12 +3964,12 @@ check(Math.abs(left - right) < 0.01, '좌우 여백이 같다');
 const pkStaff = pk.staff('a4', 10, 7);
 eq(pkStaff.lines.length, 50, '오선 10묶음 = 50줄');
 check(pk.fits(pkStaff), '오선지도 종이 안에');
-/* 묶음 사이가 오선 자체보다 넉넉해야 가사·화음을 적는다 */
+/* 묶음 사이가 오선 자체보다 넉넉해야 가사, 화음을 적는다 */
 const firstStaffBottom = pkStaff.lines[4].y1;
 const secondStaffTop = pkStaff.lines[5].y1;
 check(secondStaffTop - firstStaffBottom > 7, `묶음 사이가 넉넉하다: ${(secondStaffTop - firstStaffBottom).toFixed(1)}mm`);
 
-/* 달력 — 요일과 날짜 수가 맞아야 한다 */
+/* 달력. 요일과 날짜 수가 맞아야 한다 */
 eq(pk.daysInMonth(2026, 2), 28, '2026년 2월은 28일');
 eq(pk.daysInMonth(2028, 2), 29, '2028년 2월은 29일 (윤년)');
 eq(pk.firstWeekday(2026, 8), 6, '2026-08-01 은 토요일');
@@ -3981,7 +3981,7 @@ eq(dayLabels[0].text, '1', '1일부터');
 eq(dayLabels[30].text, '31', '31일까지');
 check(pkCal.labels.some((l) => l.text === '2026-08'), '몇 년 몇 월인지 적는다');
 check(pk.fits(pkCal), '달력도 종이 안에');
-/* 첫날이 토요일이면 첫 줄에 칸이 하나만 찬다 — 그 자리가 비어야 맞다 */
+/* 첫날이 토요일이면 첫 줄에 칸이 하나만 찬다. 그 자리가 비어야 맞다 */
 const firstRowDays = dayLabels.filter((l) => l.y < pkCal.labels.find((x) => x.text === '8')?.y ?? 0);
 check(firstRowDays.length <= 2, '첫 주는 며칠뿐이다');
 
@@ -4005,4 +4005,4 @@ if (failures.length > 0) {
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(`[test-core] 알맹이 ${coreFiles.length}개 · 검사 전부 통과`);
+console.log(`[test-core] 알맹이 ${coreFiles.length}개, 검사 전부 통과`);

@@ -1,7 +1,7 @@
 /**
- * lib/karmograph/canvas-guides.ts — **이웃 줄에 맞추기** (TASK-KL-237).
+ * lib/karmograph/canvas-guides.ts. **이웃 줄에 맞추기** (TASK-KL-237).
  *
- * 격자(8px)는 「대충 맞음」까지다. 사람이 실제로 맞추려는 것은 격자가 아니라 **옆 카드**다 —
+ * 격자(8px)는 대충 맞음까지다. 사람이 실제로 맞추려는 것은 격자가 아니라 **옆 카드**다 . 
  * 왼쪽 줄을 맞추거나, 가운데를 맞추거나, 아랫줄을 맞춘다. 격자만 있으면 카드 폭이 제각각일 때
  * 가운데는 영원히 안 맞는다(폭의 반이 4의 배수가 아니면 격자 위에 없다).
  *
@@ -31,7 +31,7 @@ export interface GuideResult {
   lines: GuideLine[];
 }
 
-/** 한 축에서 「끌리는 세 자리」 — 앞줄 · 가운데 · 뒷줄. */
+/** 한 축에서 끌리는 세 자리. 앞줄, 가운데, 뒷줄. */
 function slots(start: number, size: number): number[] {
   return [start, start + size / 2, start + size];
 }
@@ -40,8 +40,8 @@ function slots(start: number, size: number): number[] {
  * 끌고 있는 상자를 이웃들의 줄에 붙인다.
  *
  * - 축마다 **가장 가까운 한 줄**만 잡는다. 여러 줄을 동시에 잡으면 어느 줄에 붙었는지 못 읽는다.
- * - `tol` 은 판 위 거리(px)다 — 화면 거리로 주려면 부르는 쪽에서 배율로 나눠 넣는다.
- *   그래야 확대해도 「손끝에서 6px」이 유지된다.
+ * - `tol` 은 판 위 거리(px)다. 화면 거리로 주려면 부르는 쪽에서 배율로 나눠 넣는다.
+ *   그래야 확대해도 손끝에서 6px이 유지된다.
  * - 이웃이 하나도 안 가까우면 **자리를 그대로 돌려준다**(격자 결과를 안 건드린다).
  */
 export function alignGuides(
@@ -73,7 +73,7 @@ export function alignGuides(
     }
     if (!best) continue;
 
-    // 붙은 줄은 **두 상자를 함께 지나가게** 긋는다 — 어느 카드에 맞춘 건지가 선 하나로 읽힌다.
+    // 붙은 줄은 **두 상자를 함께 지나가게** 긋는다. 어느 카드에 맞춘 건지가 선 하나로 읽힌다.
     const near = best.other;
     if (vertical) {
       outX = moving.x + best.delta;
@@ -95,7 +95,7 @@ export function alignGuides(
   return { x: outX, y: outY, lines };
 }
 
-/** 줄을 맞출 상대 = **보이는 카드만**. 걸러 놓은 카드의 줄에 붙으면 「왜 여기서 멈추지」가 된다. */
+/** 줄을 맞출 상대 = **보이는 카드만**. 걸러 놓은 카드의 줄에 붙으면 왜 여기서 멈추지가 된다. */
 export function neighborBoxes<T extends { id: string }>(
   visible: T[],
   exceptId: string,
@@ -116,7 +116,7 @@ export function clearGuides(layer: SVGGElement): void {
   layer.querySelectorAll(`.${GUIDE_CLASS}`).forEach((el) => el.remove());
 }
 
-/** 줄을 다시 긋는다 — 매 프레임 통째로 지우고 새로. 두 개뿐이라 아끼는 게 더 비싸다. */
+/** 줄을 다시 긋는다. 매 프레임 통째로 지우고 새로. 두 개뿐이라 아끼는 게 더 비싸다. */
 export function drawGuides(layer: SVGGElement, lines: GuideLine[], color: string): void {
   clearGuides(layer);
   for (const g of lines) {

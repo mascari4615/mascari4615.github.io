@@ -3,8 +3,8 @@
  *
  * 비밀을 적으면 링크가 나오고, 상대가 **한 번 열면 영원히 사라진다**.
  *
- * 열쇠는 주소의 `#` 뒤에 있어 우리 서버로 오지 않는다 — 서버가 들고 있는 것은 알아볼 수 없는
- * 덩어리 하나뿐이다. 그래서 「우리도 못 본다」가 말이 아니라 구조다. 그 사실을 화면에도
+ * 열쇠는 주소의 `#` 뒤에 있어 우리 서버로 오지 않는다. 서버가 들고 있는 것은 알아볼 수 없는
+ * 덩어리 하나뿐이다. 그래서 우리도 못 본다가 말이 아니라 구조다. 그 사실을 화면에도
  * 적어 둔다: 믿음이 알맹이인 도구에서 그 근거가 안 보이면 값어치가 없다.
  */
 import { linkFor, open, packFile, parseLink, seal, unpackFile } from '../../lib/burn-note';
@@ -47,7 +47,7 @@ import { download } from './shared/image';
         <div class="field-group">
           <label class="field-label" for="bnText">${esc(t('burnnote.label.text', undefined, '건넬 것'))}</label>
           <textarea class="full" id="bnText" rows="6" spellcheck="false"
-                    placeholder="${esc(t('burnnote.ph.text', undefined, '비밀번호, 주소, 한 번만 보일 말…'))}"></textarea>
+                    placeholder="${esc(t('burnnote.ph.text', undefined, '비밀번호, 주소, 한 번만 보일 말...'))}"></textarea>
         </div>
         <div class="field-group">
           <div class="tool-sublabel">${esc(t('burnnote.label.file', undefined, '파일도 함께 (하나, 5MB 까지)'))}</div>
@@ -83,13 +83,13 @@ import { download } from './shared/image';
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
     const status = $<HTMLElement>('#bnStatus');
-    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
     const say = statusLine(status);
 
     injectStyles();
 
-    /* 받은 링크로 들어왔나 — 그러면 쓰는 화면 대신 여는 화면을 보여 준다. */
+    /* 받은 링크로 들어왔나. 그러면 쓰는 화면 대신 여는 화면을 보여 준다. */
     const incoming = parseLink(location.hash);
     if (incoming) {
       $('#bnWrite').style.display = 'none';
@@ -107,7 +107,7 @@ import { download } from './shared/image';
             $('#bnOpen').setAttribute('disabled', 'true');
             const file = unpackFile(text);
             if (file) {
-              /* 파일은 화면에 못 보여 준다 — 받는 단추 하나로 끝낸다. 이 창을 닫으면
+              /* 파일은 화면에 못 보여 준다. 받는 단추 하나로 끝낸다. 이 창을 닫으면
                  서버에도 없으므로 **지금 받지 않으면 영영 없다**. */
               const save = $<HTMLButtonElement>('#bnSave');
               save.style.display = '';
@@ -115,16 +115,16 @@ import { download } from './shared/image';
                 const blob = new Blob([file.bytes], { type: file.type || 'application/octet-stream' });
                 download(blob, file.name); // 공용 한 자리(`shared/image.download`)
               };
-              say(t('burnnote.status.openedFile', { name: file.name }, `파일 「${file.name}」 — 지금 받으세요. 창을 닫으면 없습니다`), 'ok');
+              say(t('burnnote.status.openedFile', { name: file.name }, `파일 ${file.name}. 지금 받으세요. 창을 닫으면 없습니다`), 'ok');
             } else {
               const box = $<HTMLTextAreaElement>('#bnGot');
               box.value = text;
               box.style.display = '';
-              say(t('burnnote.status.opened', undefined, '열었습니다 — 이 쪽지는 이제 없습니다'), 'ok');
+              say(t('burnnote.status.opened', undefined, '열었습니다. 이 쪽지는 이제 없습니다'), 'ok');
             }
           } catch {
-            /* 열쇠가 틀리면 조용히 넘어가면 안 된다 — 「빈 쪽지였나 보다」로 읽힌다. */
-            say(t('burnnote.status.badkey', undefined, '열쇠가 맞지 않습니다 — 링크가 잘렸을 수 있습니다'), 'warn');
+            /* 열쇠가 틀리면 조용히 넘어가면 안 된다. 빈 쪽지였나 보다로 읽힌다. */
+            say(t('burnnote.status.badkey', undefined, '열쇠가 맞지 않습니다. 링크가 잘렸을 수 있습니다'), 'warn');
           }
         })();
       };
@@ -144,8 +144,8 @@ import { download } from './shared/image';
           return;
         }
         try {
-          /* 파일을 골랐으면 파일이 앞선다 — 하나의 덩어리에 하나만 담는다(둘을 섞으면
-             받는 쪽 화면이 「글이냐 파일이냐」로 갈려 둘 다 어정쩡해진다). */
+          /* 파일을 골랐으면 파일이 앞선다. 하나의 덩어리에 하나만 담는다(둘을 섞으면
+             받는 쪽 화면이 글이냐 파일이냐로 갈려 둘 다 어정쩡해진다). */
           const payload = picked
             ? packFile(picked.name, picked.type, new Uint8Array(await picked.arrayBuffer()))
             : text;
@@ -156,7 +156,7 @@ import { download } from './shared/image';
             body: JSON.stringify({ body })
           });
           if (!res.ok) {
-            say(t('burnnote.status.failed', undefined, '맡기지 못했습니다 — 잠시 뒤 다시'), 'warn');
+            say(t('burnnote.status.failed', undefined, '맡기지 못했습니다. 잠시 뒤 다시'), 'warn');
             return;
           }
           const { id } = (await res.json()) as { id: string };
@@ -167,7 +167,7 @@ import { download } from './shared/image';
           el.select();
           say(t('burnnote.status.made', undefined, '링크를 만들었습니다'), 'ok');
         } catch {
-          say(t('burnnote.status.failed', undefined, '맡기지 못했습니다 — 잠시 뒤 다시'), 'warn');
+          say(t('burnnote.status.failed', undefined, '맡기지 못했습니다. 잠시 뒤 다시'), 'warn');
         }
       })();
     };
@@ -178,7 +178,7 @@ import { download } from './shared/image';
       void navigator.clipboard
         ?.writeText(el.value)
         .then(() => say(t('burnnote.status.copied', undefined, '복사했습니다'), 'ok'))
-        .catch(() => say(t('burnnote.status.copyfail', undefined, '복사가 막혔습니다 — 직접 골라 복사해 주세요'), 'warn'));
+        .catch(() => say(t('burnnote.status.copyfail', undefined, '복사가 막혔습니다. 직접 골라 복사해 주세요'), 'warn'));
     };
   }
 

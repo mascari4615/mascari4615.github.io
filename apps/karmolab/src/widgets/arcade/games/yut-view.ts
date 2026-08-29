@@ -1,16 +1,16 @@
 /**
  * 윷놀이 화면 (TASK-KL-242)
  *
- * 판을 격자로 그리지 않고 **칸마다 좌표를 준다** — 진짜 윷판은 네모 위에 대각선 둘이 얹힌
+ * 판을 격자로 그리지 않고 **칸마다 좌표를 준다**. 진짜 윷판은 네모 위에 대각선 둘이 얹힌
  * 모양이라, 격자에 우겨넣으면 지름길이 지름길로 안 보인다. 모서리 두 곳(지름길 입구)은
- * 굵게 그려서 「여기 딱 서면 질러간다」가 눈에 들어오게 했다.
+ * 굵게 그려서 여기 딱 서면 질러간다가 눈에 들어오게 했다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { pieceMarkup } from '../piece';
 import { HOME, OUT, type YutState, type YutAction } from './yut';
 
-/** 나온 수의 이름 — 도개걸윷모 */
+/** 나온 수의 이름. 도개걸윷모 */
 const NAMES = ['', 'do', 'gae', 'geol', 'yut', 'mo'];
 
 /** 칸 번호 → 판 위 자리(%). 네모 스무 칸 + 대각 두 줄. */
@@ -23,7 +23,7 @@ function spot(i: number): [number, number] {
     if (side === 2) return [k, 100];
     return [100, 100 - k];
   }
-  /* 대각선 — 한가운데(22·29)는 두 길이 겹치는 같은 자리다. */
+  /* 대각선. 한가운데(22, 29)는 두 길이 겹치는 같은 자리다. */
   const diag: Record<number, [number, number]> = {
     20: [16.7, 16.7], 21: [33.3, 33.3], 22: [50, 50], 23: [66.7, 66.7], 24: [83.3, 83.3],
     25: [16.7, 83.3], 26: [33.3, 66.7], 29: [50, 50], 27: [66.7, 33.3], 28: [83.3, 16.7]
@@ -81,7 +81,7 @@ export const yutView: GameView<YutState, YutAction> = {
           : s.pos[mySeat]
             .map((p, k) =>
               '<button class="btn ac-yupick" data-p="' + k + '"' + (p >= OUT ? ' disabled' : '') + '>' +
-              t('arcade.yut.piece', { n: String(k + 1) }) + ' · ' +
+              t('arcade.yut.piece', { n: String(k + 1) }) + ', ' +
               (p === HOME ? t('arcade.yut.home') : p >= OUT ? t('arcade.yut.out') : String(p)) +
               '</button>')
             .join('');

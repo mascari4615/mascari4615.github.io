@@ -1,5 +1,5 @@
 /**
- * NPC chatbot context 흡수 — KL-032 결정 3 (chatbot character 전체 컨텍스트).
+ * NPC chatbot context 흡수. KL-032 결정 3 (chatbot character 전체 컨텍스트).
  *
  * KarmoWorld.bindings.chatbot.characters 에서 slug → 컨텍스트 string 합성.
  * yaml 의 chatbot_personality / scenario / firstMes / visualDescription / userNote 모두 박음.
@@ -49,7 +49,7 @@ export function listAllCharacterSlugs(): { slug: string; name: string }[] {
   return getCharacters().map((c) => ({ slug: c.entityId || c.chatbotId, name: c.name }));
 }
 
-/** NPC 한 명의 풀 컨텍스트 string — system instruction 에 직접 박음 */
+/** NPC 한 명의 풀 컨텍스트 string. system instruction 에 직접 박음 */
 export function buildCharacterContext(char: ChatbotCharacter): string {
   const lines: string[] = [];
   lines.push(`# ${char.name} (slug: ${char.entityId || char.chatbotId})`);
@@ -62,7 +62,7 @@ export function buildCharacterContext(char: ChatbotCharacter): string {
   return lines.join('\n\n');
 }
 
-/** 여러 slug 묶음 — 모험 시작 시 cast 박을 때 */
+/** 여러 slug 묶음. 모험 시작 시 cast 박을 때 */
 export function buildCastContext(slugs: string[]): string {
   if (slugs.length === 0) return '';
   const blocks: string[] = [];

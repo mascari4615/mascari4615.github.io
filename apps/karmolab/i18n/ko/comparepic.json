@@ -10,10 +10,10 @@
   "comparepic.say.07": "저장할 그림을 못 만들었습니다",
   "comparepic.say.08": "지금 보이는 그대로 저장했습니다",
   "comparepic.say.09": "사진 두 장을 고르세요. 파일은 기기 밖으로 나가지 않습니다",
-  "comparepic.sizeDiff": "크기가 다릅니다 ({a} / {b}) — 큰 쪽에 맞춰 겹쳤습니다",
-  "comparepic.same.line": "기계 판정: {word} — 닮은 정도 {pct}% (다른 곳 {bits}칸/64). 좌우 뒤집기·회전·심한 자르기는 못 잡습니다",
+  "comparepic.sizeDiff": "크기가 다릅니다 ({a} / {b}). 큰 쪽에 맞춰 겹쳤습니다",
+  "comparepic.same.line": "기계 판정: {word}. 닮은 정도 {pct}% (다른 곳 {bits}칸/64). 좌우 뒤집기, 회전, 심한 자르기는 못 잡습니다",
   "comparepic.same.same": "같은 사진입니다",
-  "comparepic.same.likely": "거의 같은 사진입니다 (다시 저장·크기 변경 정도)",
-  "comparepic.same.maybe": "비슷합니다 — 눈으로 확인하세요",
+  "comparepic.same.likely": "거의 같은 사진입니다 (다시 저장, 크기 변경 정도)",
+  "comparepic.same.maybe": "비슷합니다. 눈으로 확인하세요",
   "comparepic.same.different": "다른 사진입니다"
 }

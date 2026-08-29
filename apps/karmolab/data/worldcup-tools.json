@@ -45,14 +45,14 @@
       }
     },
     {
-      "n": "타이머 · 스톱워치",
+      "n": "타이머, 스톱워치",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/timer.jpg",
       "v": {
         "cat": "도구"
       }
     },
     {
-      "n": "날짜 계산기 · D-Day",
+      "n": "날짜 계산기, D-Day",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/datecalc.jpg",
       "v": {
         "cat": "도구"
@@ -206,7 +206,7 @@
       }
     },
     {
-      "n": "URL 인코딩 · 분해",
+      "n": "URL 인코딩, 분해",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/urlparse.jpg",
       "v": {
         "cat": "도구"
@@ -255,7 +255,7 @@
       }
     },
     {
-      "n": "세계 시간 · 시차",
+      "n": "세계 시간, 시차",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/worldclock.jpg",
       "v": {
         "cat": "도구"
@@ -276,7 +276,7 @@
       }
     },
     {
-      "n": "추첨 · 팀 나누기",
+      "n": "추첨, 팀 나누기",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pick.jpg",
       "v": {
         "cat": "도구"
@@ -346,7 +346,7 @@
       }
     },
     {
-      "n": "Base64 인코딩 · 디코딩",
+      "n": "Base64 인코딩, 디코딩",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/base64.jpg",
       "v": {
         "cat": "도구"
@@ -402,7 +402,7 @@
       }
     },
     {
-      "n": "시간 더하기·빼기",
+      "n": "시간 더하기, 빼기",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/timecalc.jpg",
       "v": {
         "cat": "도구"
@@ -556,7 +556,7 @@
       }
     },
     {
-      "n": "ZIP 만들기·풀기",
+      "n": "ZIP 만들기, 풀기",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/ziptool.jpg",
       "v": {
         "cat": "도구"
@@ -703,7 +703,7 @@
       }
     },
     {
-      "n": "큰 파일 나누기·합치기",
+      "n": "큰 파일 나누기, 합치기",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/filesplit.jpg",
       "v": {
         "cat": "도구"
@@ -766,7 +766,7 @@
       }
     },
     {
-      "n": "비밀번호 만들기·확인",
+      "n": "비밀번호 만들기, 확인",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/passgen.jpg",
       "v": {
         "cat": "도구"
@@ -1123,7 +1123,7 @@
       }
     },
     {
-      "n": "대역·포트",
+      "n": "대역, 포트",
       "i": "https://blog.mascari4615.com/apps/karmolab/img/og/nettool.jpg",
       "v": {
         "cat": "도구"

@@ -1,12 +1,12 @@
 /**
- * 지뢰 찾기 경주 — 같은 밭을 놓고 누가 먼저 (TASK-KL-242)
+ * 지뢰 찾기 경주. 같은 밭을 놓고 누가 먼저 (TASK-KL-242)
  *
  * 조각 맞추기와 같은 수법: **혼자 하던 놀이를 같은 씨앗으로 나눠 주면 경주가 된다.**
- * 다만 이쪽은 「먼저 끝내기」가 아니라 **밟으면 죽는다** — 빠르기와 조심이 서로 반대라
+ * 다만 이쪽은 먼저 끝내기가 아니라 **밟으면 죽는다**. 빠르기와 조심이 서로 반대라
  * 서두를수록 위험하다. 그 긴장이 혼자 할 때보다 여럿일 때 훨씬 크다.
  *
  * 밟으면 그 사람만 끝난다(남의 판은 그대로). 다 죽으면 그때까지 많이 연 사람이 이긴다.
- * 첫 수는 절대 지뢰가 아니다 — 처음 누른 자리에서 밟고 끝나면 그건 놀이가 아니라 사고다.
+ * 첫 수는 절대 지뢰가 아니다. 처음 누른 자리에서 밟고 끝나면 그건 놀이가 아니라 사고다.
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
@@ -16,18 +16,18 @@ const MINES = 10;
 const LIMIT_MS = 180000;
 
 export interface SweepState {
-  /** 자리별 판 — 0 안 열림, 1 열림, 2 깃발 */
+  /** 자리별 판. 0 안 열림, 1 열림, 2 깃발 */
   seen: number[][];
   /** 지뢰 자리 (모두 같다). **`redact` 가 지운다** */
   mines: number[];
   /**
-   * 칸마다 둘레 지뢰 수. 지뢰를 지우면 손님은 숫자를 못 그리므로 **숫자를 따로 보낸다** —
+   * 칸마다 둘레 지뢰 수. 지뢰를 지우면 손님은 숫자를 못 그리므로 **숫자를 따로 보낸다** . 
    * 단 `redact` 가 **그 사람이 연 칸만** 남긴다(다 보내면 지뢰 자리를 되짚을 수 있다).
    */
   nums: number[];
   /** 자리별로 죽었나 */
   dead: boolean[];
-  /** 방금 밟은 사람 — 여럿이 동시에 파는 놀이라 매 칸마다 울리면 시끄럽다. 밟은 순간만 나른다. */
+  /** 방금 밟은 사람. 여럿이 동시에 파는 놀이라 매 칸마다 울리면 시끄럽다. 밟은 순간만 나른다. */
   boom?: number;
   /** 자리별 연 칸 수 */
   opened: number[];
@@ -57,7 +57,7 @@ export function around(mines: number[], c: number): number {
   return nbrs(c).filter((n) => mines[n]).length;
 }
 
-/** 빈 칸이면 이어서 펼친다 — 한 칸씩 누르게 하면 지뢰밭이 노동이 된다. */
+/** 빈 칸이면 이어서 펼친다. 한 칸씩 누르게 하면 지뢰밭이 노동이 된다. */
 function flood(mines: number[], seen: number[], start: number): { seen: number[]; opened: number } {
   const out = seen.slice();
   const stack = [start];
@@ -96,7 +96,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     };
   },
 
-  /** 지뢰 자리는 아무에게도 안 보낸다 — 보내면 개발자 도구로 판이 다 보인다. */
+  /** 지뢰 자리는 아무에게도 안 보낸다. 보내면 개발자 도구로 판이 다 보인다. */
   redact(s, seat) {
     const mine = s.seen[seat] ?? [];
     return {
@@ -125,7 +125,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
 
     if (mine[c] !== 0) return s;
 
-    /* 첫 수는 절대 지뢰가 아니다. 지뢰였으면 **다른 빈 칸으로 옮긴다** — 판 전체를 다시 짜면
+    /* 첫 수는 절대 지뢰가 아니다. 지뢰였으면 **다른 빈 칸으로 옮긴다**. 판 전체를 다시 짜면
        여럿이 서로 다른 밭을 보게 된다(같은 씨앗이라는 약속이 깨진다). */
     let mines = s.mines;
     if (s.opened[seat] === 0 && mines[c]) {
@@ -147,7 +147,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     const r = flood(mines, mine, c);
     const seen = s.seen.map((row, i) => (i === seat ? r.seen : row));
     const opened = s.opened.map((v, i) => (i === seat ? v + r.opened : v));
-    /* 지뢰 뺀 칸을 다 열었으면 그 사람 승 — 판이 끝난다. */
+    /* 지뢰 뺀 칸을 다 열었으면 그 사람 승. 판이 끝난다. */
     const cleared = opened[seat] >= W * H - MINES;
     return { ...s, mines, nums, seen, opened, over: cleared };
   },
@@ -159,7 +159,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
 
   outcome(s, ctx): Outcome {
     if (!s.over) {
-      /* 판이 안 끝나도 「밟았다」는 나른다 — 이 놀이에서 사람이 제일 크게 느끼는 순간이다.
+      /* 판이 안 끝나도 밟았다는 나른다. 이 놀이에서 사람이 제일 크게 느끼는 순간이다.
          뭉칠 걱정은 없다: 한 사람은 한 번만 밟는다(밟으면 그 사람 판은 끝난다). */
       if (s.boom === undefined) return { over: false };
       return {
@@ -183,7 +183,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     const closed = mine.map((v, i) => (v === 0 ? i : -1)).filter((i) => i >= 0);
     if (!closed.length) return null;
 
-    /* 봇도 지뢰 자리를 안 본다 — 열린 칸의 숫자만 보고 「안전한 칸」을 찾는다.
+    /* 봇도 지뢰 자리를 안 본다. 열린 칸의 숫자만 보고 안전한 칸을 찾는다.
        못 찾으면 아무 데나 눌러 죽기도 한다(사람과 같은 조건). */
     for (const c of mine.map((v, i) => (v === 1 ? i : -1)).filter((i) => i >= 0)) {
       const n = s.nums[c];

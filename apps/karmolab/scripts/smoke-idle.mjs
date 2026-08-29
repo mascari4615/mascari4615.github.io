@@ -2,21 +2,21 @@
  * 화면이 **가만히 있을 때 정말로 쉬는가** (TASK-KL-128 ⑯)
  *
  * 왜 있나: 같은 부류의 사고가 이 저장소에서 **두 번** 조용히 지나갔다.
- *  ① 첫 화면 배경 장식 — 무한 애니메이션이 크롬을 초당 96번 그리게 했다. 코어의 42% 를
- *     영구히 썼는데, 페인트·래스터는 0ms 라 「우리 함수가 느린가」로는 절대 안 잡혔다.
- *  ② 마스코트 — 매 프레임 요소 열 개에 transform 을 새로 쓴다. 손을 안 대도 초당 120회
+ *  ① 첫 화면 배경 장식. 무한 애니메이션이 크롬을 초당 96번 그리게 했다. 코어의 42% 를
+ *     영구히 썼는데, 페인트, 래스터는 0ms 라 우리 함수가 느린가로는 절대 안 잡혔다.
+ *  ② 마스코트. 매 프레임 요소 열 개에 transform 을 새로 쓴다. 손을 안 대도 초당 120회
  *     스타일 재계산이 돈다.
  * 둘 다 화면은 멀쩡하고 오류도 0이라 사람 눈으로는 구분이 안 된다. 그래서 기계가 본다.
  *
  * 재는 법: 화면이 다 뜨고 **손을 떼고** 4초. 그동안
  *   - `requestAnimationFrame` 이 몇 번 예약되는지 (매 프레임 도는 루프의 지문)
- *   - 짧은 `setTimeout`(<200ms)·`setInterval` 이 몇 번 걸리는지
+ *   - 짧은 `setTimeout`(<200ms), `setInterval` 이 몇 번 걸리는지
  *   - 스타일 재계산이 몇 번 도는지
- * 를 세고, **누가 걸었는지**(파일·함수)까지 같이 낸다 — 숫자만 주면 아무도 못 고친다.
+ * 를 세고, **누가 걸었는지**(파일, 함수)까지 같이 낸다. 숫자만 주면 아무도 못 고친다.
  *
  * 기준: 가만히 있는 화면은 **초당 4회 미만**이어야 한다. 사람이 안 보는 동안 매 프레임
- * 도는 것은 「부드러움」이 아니라 그냥 배터리와 반응성을 태우는 것이다.
- * 계속 움직여야 하는 것(숨쉬기 같은)은 CSS 애니메이션으로 넘겨라 — 그건 합성기가 맡는다.
+ * 도는 것은 부드러움이 아니라 그냥 배터리와 반응성을 태우는 것이다.
+ * 계속 움직여야 하는 것(숨쉬기 같은)은 CSS 애니메이션으로 넘겨라. 그건 합성기가 맡는다.
  *
  * 사용: node scripts/smoke-idle.mjs
  */
@@ -30,11 +30,11 @@ import { serveRepo } from './lib/serve-static.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 /* 서버는 **공용 한 곳**을 쓴다 (`lib/serve-static.mjs`, TASK-KL-201).
-   복사본은 앞머리만 걷고 Liquid 태그를 그대로 내보내서, 화면 맨 위에 조건문이 글자로 떴다 —
+   복사본은 앞머리만 걷고 Liquid 태그를 그대로 내보내서, 화면 맨 위에 조건문이 글자로 떴다 . 
    그만큼 자리가 밀리고 일이 늘어난다(실측: smoke-perf 의 손 안 댄 CPU 1.221s → 0.28s). */
 const { base: BASE, close: closeServer } = await serveRepo();
 
-/** 손을 뗀 채 재는 시간 · 초당 몇 회까지 봐 주나 */
+/** 손을 뗀 채 재는 시간, 초당 몇 회까지 봐 주나 */
 const WATCH_MS = 4000;
 const BUDGET_PER_SEC = 4;
 
@@ -46,7 +46,7 @@ const TARGETS = [
 
 const SPY = () => {
   window.__idle = { raf: {}, timer: {}, on: false };
-  /* 스택에서 **우리 덫이 만든 줄**은 걷어낸다 — 안 걷으면 「누가 걸었나」 자리에 이 검사
+  /* 스택에서 **우리 덫이 만든 줄**은 걷어낸다. 안 걷으면 누가 걸었나 자리에 이 검사
      자신이 찍힌다. 숫자는 맞는데 범인은 영영 안 보인다(실제로 처음에 그랬다). */
   const who = (stack) => (stack || '').split('\n')
     .map((l) => l.replace(/https?:\/\/[^/]+/g, '').replace(/\s+at\s+/g, ' ').trim())
@@ -69,7 +69,7 @@ for (const [label, url] of TARGETS) {
   const page = await ctx.newPage();
   await page.addInitScript(SPY);
   await page.goto(url, { waitUntil: 'load', timeout: 30000 });
-  /* 넉넉히 기다린다 — **정착하는 동안의 움직임까지 세면 억울한 빨간불**이 난다.
+  /* 넉넉히 기다린다. **정착하는 동안의 움직임까지 세면 억울한 빨간불**이 난다.
      배경 장식은 손을 떼고 4초 뒤 스르르 서는데, 그 서는 과정도 프레임을 쓴다(정상). */
   await page.waitForTimeout(8000);
   await page.evaluate(() => { window.__idle.on = true; });
@@ -83,7 +83,7 @@ for (const [label, url] of TARGETS) {
   const worst = [...Object.entries(seen.raf), ...Object.entries(seen.timer)]
     .sort((a, b) => b[1] - a[1]).slice(0, 3);
 
-  console.log(`  ${label.padEnd(8)} 초당 ${perSec.toFixed(1)}회` + (worst.length ? ` — ${worst[0][0].slice(0, 90)}` : ''));
+  console.log(`  ${label.padEnd(8)} 초당 ${perSec.toFixed(1)}회` + (worst.length ? `. ${worst[0][0].slice(0, 90)}` : ''));
   if (perSec >= BUDGET_PER_SEC) {
     problems.push(
       `${label}: 손을 안 댔는데 초당 ${perSec.toFixed(1)}회 돈다 (기준 ${BUDGET_PER_SEC})\n` +

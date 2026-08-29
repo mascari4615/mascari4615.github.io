@@ -1,6 +1,6 @@
 /**
- * 날짜 계산기 · D-Day (TASK-KL-088)
- * 모든 계산은 로컬 자정 기준 Date 로 정규화한다 — 시:분이 섞이면 하루가 밀린다(경계 버그의 단골).
+ * 날짜 계산기, D-Day (TASK-KL-088)
+ * 모든 계산은 로컬 자정 기준 Date 로 정규화한다. 시:분이 섞이면 하루가 밀린다(경계 버그의 단골).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -11,10 +11,10 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
 
 (function (): void {
   const DAY = 86400000;
-  /* 요일 이름은 **쓸 때** 정한다 — 파일 실릴 때 정하면 열쇠가 굳는다. */
+  /* 요일 이름은 **쓸 때** 정한다. 파일 실릴 때 정하면 열쇠가 굳는다. */
   const weekday = (i: number): string => t(`datecalc.week.${i}`);
 
-  /* 날짜 다루기는 `src/core/datecalc.ts` 가 소유한다 — 특히 `parseDate` 는 2월 30일 같은 값을
+  /* 날짜 다루기는 `src/core/datecalc.ts` 가 소유한다. 특히 `parseDate` 는 2월 30일 같은 값을
      Date 가 3월로 조용히 넘기는 것을 막는다(여기 있던 판은 그걸 통과시켰다). TASK-KL-205 */
   const today = (): Date => midnight(new Date());
   const parse = parseDate;
@@ -34,7 +34,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
 
   Toolbox.register({
     id: 'datecalc',
-    title: t('widgets.datecalc.title', undefined, '날짜 계산기 · D-Day'),
+    title: t('widgets.datecalc.title', undefined, '날짜 계산기, D-Day'),
     category: 'tool',
     desc: t('widgets-desc.datecalc.desc', undefined, '두 날짜 사이 일수, D-Day, 며칠 후 날짜, 만 나이를 계산합니다'),
     layout: 'form',
@@ -51,7 +51,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
       },
       {
         id: 'between',
-        label: t('datecalc.tab.between', undefined, '날짜 차이 · 더하기'),
+        label: t('datecalc.tab.between', undefined, '날짜 차이, 더하기'),
         build: function (container: HTMLElement): void {
           void loadNamespace('datecalc').then(function () {
             drawBetween(container);
@@ -90,7 +90,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
             </div>
             <div class="tool-display" id="ddResult">D-0</div>
             <div class="cc-stats cc-stats-early cc-stats-2row" id="ddStats"></div>
-            <!-- 기념일 표 — 커플·기념일 계산기가 앞세우는 것. 기준일만 넣으면 나온다. -->
+            <!-- 기념일 표. 커플, 기념일 계산기가 앞세우는 것. 기준일만 넣으면 나온다. -->
             <div class="tool-section field-group">
               <label class="field-label">${esc(t('datecalc.label.anniversaries'))}</label>
               <div class="tool-list" id="ddMarks"></div>
@@ -101,9 +101,9 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
           const base = $<HTMLInputElement>('#ddBase');
           const target = $<HTMLInputElement>('#ddTarget');
           const out = $<HTMLElement>('#ddResult');
-          /* 셈한 값은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297) — 눌러서 복사한다. */
+          /* 셈한 값은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297). 눌러서 복사한다. */
           copyOnClick(out, () => out.textContent || '', t('datecalc.copy', undefined, '결과 복사'));
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(out);
           const stats = $<HTMLElement>('#ddStats');
 
@@ -129,7 +129,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
               .map(([k, v]) => `<div class="cc-stat"><div class="cc-stat-label">${k}</div><div class="cc-stat-value">${v}</div></div>`)
               .join('');
 
-            /* 기념일은 **기준일을 1일째**로 센다(한국식) — 100일은 기준일+99일이다.
+            /* 기념일은 **기준일을 1일째**로 센다(한국식). 100일은 기준일+99일이다.
                이걸 틀리면 하루씩 밀려서 정작 그날 축하를 못 한다. */
             const marks: Array<[string, number]> = [
               [t('datecalc.mark.d100'), 99], [t('datecalc.mark.d200'), 199], [t('datecalc.mark.d300'), 299],

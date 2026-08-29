@@ -1,17 +1,17 @@
 /**
- * 「동반자」 위젯 — KarmoLab 안에서 말하는 봇에게 말을 걸고, 곁에 있는지 본다.
+ * 동반자 위젯. KarmoLab 안에서 말하는 봇에게 말을 걸고, 곁에 있는지 본다.
  *
- * 왜 새로 만드나(흡수 검토 결과): 서버 모니터는 「프로세스가 떠 있나」까지만 말한다 —
+ * 왜 새로 만드나(흡수 검토 결과): 서버 모니터는 프로세스가 떠 있나까지만 말한다 . 
  * 켜 놓고도 얘가 무슨 말을 했는지, 나를 뭘 안다고 생각하는지는 안 보인다. 챗봇 위젯은
- * 그 자리에서 시작해 그 자리에서 끝나는 대화(기억·기분·먼저 말 걸기가 없다)라 다른 것이다.
+ * 그 자리에서 시작해 그 자리에서 끝나는 대화(기억, 기분, 먼저 말 걸기가 없다)라 다른 것이다.
  *
- * ★ **얼굴을 여기다 다시 그리지 않는다.** 3D 몸·말풍선·목소리는 봇이 띄우는 창이 정본이고
- *   (`packages/companion` 웹 몸), 여기는 **관제**만 한다 — 살아있나 · 한 줄 던지기 ·
- *   오간 말 · 아는 것 · 첫 소리까지. 표면을 두 벌 만들면 반드시 갈라진다.
+ * ★ **얼굴을 여기다 다시 그리지 않는다.** 3D 몸, 말풍선, 목소리는 봇이 띄우는 창이 정본이고
+ *   (`packages/companion` 웹 몸), 여기는 **관제**만 한다. 살아있나, 한 줄 던지기 , 
+ *   오간 말, 아는 것, 첫 소리까지. 표면을 두 벌 만들면 반드시 갈라진다.
  *
  * 붙는 자리: 봇은 이 기계에서 도는 로컬 서버다. 배포된 https 페이지에서는 브라우저가
- * http 로컬 주소를 막으므로(mixed content) **앱이나 로컬 dev 에서만** 붙는다 —
- * 못 붙을 때 「고장」처럼 보이지 않게 화면이 그 이유를 직접 말한다.
+ * http 로컬 주소를 막으므로(mixed content) **앱이나 로컬 dev 에서만** 붙는다 . 
+ * 못 붙을 때 고장처럼 보이지 않게 화면이 그 이유를 직접 말한다.
  */
 import { t, loadNamespace } from '../lib/i18n';
 
@@ -137,7 +137,7 @@ import { t, loadNamespace } from '../lib/i18n';
           }
 
           /**
-           * 창·몸·목소리를 눈에 보이게 — 오늘(2026-08-08) 사고 셋이 전부 **조용히** 빠진
+           * 창, 몸, 목소리를 눈에 보이게. 오늘(2026-08-08) 사고 셋이 전부 **조용히** 빠진
            * 것이었다. 로컬 목소리가 목록에서 사라지고, 3D 몸이 큐브로 바뀌고, 창이 옛
            * 방식으로 떴는데 전부 기록에만 남았다. 기록은 아무도 안 본다.
            */
@@ -148,7 +148,7 @@ import { t, loadNamespace } from '../lib/i18n';
             }
             const cell: { name: string; value: string; warn?: boolean }[] = [
               { name: t('companion.t11'), value: st.windowAttached > 0 ? t('companion.attached', { n: st.windowAttached }) : t('companion.t12'), warn: st.windowAttached === 0 },
-              // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
+              // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 원래 저런가 보다가 된다.
               { name: t('companion.t13'), value: st.body ?? t('companion.t14'), warn: st.body === t('companion.t15') },
               { name: t('companion.t16'), value: st.persona ?? t('companion.t17') },
               { name: t('companion.t18'), value: st.head ?? t('companion.t14') },
@@ -169,7 +169,7 @@ import { t, loadNamespace } from '../lib/i18n';
           }
 
           async function read<T>(path: string): Promise<T> {
-            // 시간 제한이 없으면 「확인하는 중」에서 영영 멈춘다 — 꺼진 것과 구분이 안 된다.
+            // 시간 제한이 없으면 확인하는 중에서 영영 멈춘다. 꺼진 것과 구분이 안 된다.
             const res = await fetch(`${BASE}${path}`, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return (await res.json()) as T;
@@ -216,11 +216,11 @@ import { t, loadNamespace } from '../lib/i18n';
                 stats === null || stats.firstSoundMedianMs === null
                   ? t('companion.t27')
                   : t('companion.firstSound', { sec: (stats.firstSoundMedianMs / 1000).toFixed(1), n: stats.sampleCount });
-              sub.textContent = `${Date.now() - start}ms · ${initialJamo}`;
+              sub.textContent = `${Date.now() - start}ms, ${initialJamo}`;
               if (hist !== null) renderConversation(hist);
               known.textContent = kn?.known?.trim() || '아직 아는 게 없다.';
             } catch (e) {
-              // 브라우저는 「막혔다」와 「안 떠 있다」를 똑같은 오류로 준다 — 아는 척하지 않고
+              // 브라우저는 막혔다와 안 떠 있다를 똑같은 오류로 준다. 아는 척하지 않고
               // 둘 다 말한다. 하나로 단정하면 엉뚱한 데를 뒤지게 된다(실제로 그랬다).
               notAttached(
                 (e as Error).name === 'TimeoutError'
@@ -241,18 +241,18 @@ import { t, loadNamespace } from '../lib/i18n';
                 body: JSON.stringify({ text: text2 }),
                 signal: AbortSignal.timeout(4000),
               });
-              // 400 = 깨진 글이라 안 받은 것. 조용히 지나가면 「보냈는데 반응이 없다」가 된다.
+              // 400 = 깨진 글이라 안 받은 것. 조용히 지나가면 보냈는데 반응이 없다가 된다.
               if (res.status === 400) {
                 const reason = (await res.json().catch(() => ({}))) as { notAcceptedReason?: string };
-                Toolbox.showToast?.(`안 받았다 — ${reason.notAcceptedReason ?? t('companion.t30')}`, 'error', undefined);
+                Toolbox.showToast?.(`안 받았다. ${reason.notAcceptedReason ?? t('companion.t30')}`, 'error', undefined);
                 return;
               }
               if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
               input.value = '';
-              // 답은 저쪽 창에서 만들어진다 — 잠깐 뒤에 다시 읽어야 대화에 잡힌다.
+              // 답은 저쪽 창에서 만들어진다. 잠깐 뒤에 다시 읽어야 대화에 잡힌다.
               window.setTimeout(() => void confirm(), 1200);
             } catch (e) {
-              Toolbox.showToast?.(`말을 못 걸었다 — ${(e as Error).message}`, 'error', undefined);
+              Toolbox.showToast?.(`말을 못 걸었다. ${(e as Error).message}`, 'error', undefined);
             } finally {
               send.disabled = false;
             }

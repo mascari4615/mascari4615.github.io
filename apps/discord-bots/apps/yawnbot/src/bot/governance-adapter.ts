@@ -1,16 +1,16 @@
 /**
- * governance-adapter — 거버넌스 어댑터 층 (KAR-018-D slice-2).
+ * governance-adapter. 거버넌스 어댑터 층 (KAR-018-D slice-2).
  *
  * substrate⊥어댑터(parent ⓪'): governance.ts(순수) ↔ yawnbot 배선 사이.
  * 본 파일이 fs/ENV/team-room 형(form)을 알고, governance.ts 는 모름.
  *
  * slice-2 책임:
- *  · governance.reserveBudget verdict → team-room BudgetReserveFn(boolean) 매핑
- *  · trace jsonl append (KAR-003 discoveries 형식 재사용 — 평행정의 0)
- *  · !kill 전역: kill 파일 존재 시 reserve=deny (이벤트 경로도 자동 gating —
+ * , governance.reserveBudget verdict → team-room BudgetReserveFn(boolean) 매핑
+ * , trace jsonl append (KAR-003 discoveries 형식 재사용. 평행정의 0)
+ * , !kill 전역: kill 파일 존재 시 reserve=deny (이벤트 경로도 자동 gating . 
  *    사람↔디스코드 대화는 예산 비차단, 전역 kill 만 차단. agent-mission §4.1)
  *
- * 이벤트 경로 reserve 입력엔 추정치·risk-tag 가 없다(사람 직접 발화) →
+ * 이벤트 경로 reserve 입력엔 추정치, risk-tag 가 없다(사람 직접 발화) →
  * 대개 allow. 작업단위 분류(risk-tag/추정/드리프트 3-판정)는 slice-3.
  */
 import fs from 'fs';
@@ -26,13 +26,13 @@ function memoRoot(env: NodeJS.ProcessEnv): string {
   return env.MEMO_REPO_PATH?.trim() || '';
 }
 
-/** 전역 !kill 신호 파일 (agent-cadence 와 동일 경로 — 단일 채널). */
+/** 전역 !kill 신호 파일 (agent-cadence 와 동일 경로. 단일 채널). */
 export function killFilePath(env: NodeJS.ProcessEnv): string {
   const root = memoRoot(env);
   return root ? path.join(root, '.claude', 'agent-kill') : '';
 }
 
-/** 전역 정지 여부 (이벤트·cadence 공통, parent ④ Kill Switch). */
+/** 전역 정지 여부 (이벤트, cadence 공통, parent ④ Kill Switch). */
 export function isGloballyKilled(env: NodeJS.ProcessEnv): boolean {
   const f = killFilePath(env);
   return f !== '' && fs.existsSync(f);
@@ -48,7 +48,7 @@ export interface TraceEntry {
 }
 
 /**
- * trace 감사 append — `<memo>/.claude/discoveries/agent-trace.jsonl`
+ * trace 감사 append. `<memo>/.claude/discoveries/agent-trace.jsonl`
  * (discoveries jsonl 형식 재사용). best-effort: 실패해도 거버넌스 판정 불방해.
  */
 export function appendTrace(env: NodeJS.ProcessEnv, entry: TraceEntry): void {
@@ -63,7 +63,7 @@ export function appendTrace(env: NodeJS.ProcessEnv, entry: TraceEntry): void {
       'utf-8',
     );
   } catch {
-    /* 감사 실패는 silent — 판정 자체를 막지 않음 (가용성 우선) */
+    /* 감사 실패는 silent. 판정 자체를 막지 않음 (가용성 우선) */
   }
 }
 
@@ -71,7 +71,7 @@ export type NotifyFn = (msg: string) => void;
 
 // 실 #team-bus 게시 오버라이드 (setBudgetReserve 패턴, 평행정의0).
 // main.ts 가 Discord client 로 sendLocalEvent 래퍼를 주입. 미주입이면
-// trace 만 (KAR-018-W slice-3 이전 동작 보존 — graceful).
+// trace 만 (KAR-018-W slice-3 이전 동작 보존. graceful).
 let teamBusNotify: NotifyFn | null = null;
 export function setTeamBusNotify(fn: NotifyFn | null): void {
   teamBusNotify = fn;
@@ -79,7 +79,7 @@ export function setTeamBusNotify(fn: NotifyFn | null): void {
 
 /**
  * #team-bus 알림. *항상 trace 감사* + teamBusNotify 주입 시 *실 Discord 게시*.
- * 전 엔진(governance escalate / self-improve·skill reject / factory /
+ * 전 엔진(governance escalate / self-improve, skill reject / factory /
  * proposal)이 이 단일 seam 을 소비 → 한 곳 배선으로 전부 관측 가능.
  */
 export function defaultNotify(env: NodeJS.ProcessEnv): NotifyFn {
@@ -94,7 +94,7 @@ export function defaultNotify(env: NodeJS.ProcessEnv): NotifyFn {
       try {
         teamBusNotify(msg);
       } catch {
-        /* 게시 실패가 감사·판정 막지 않음 (가용성 우선) */
+        /* 게시 실패가 감사, 판정 막지 않음 (가용성 우선) */
       }
     }
   };
@@ -116,7 +116,7 @@ export function buildGovernanceReserve(
         type: 'kill',
         core,
         channelId,
-        reason: '!kill 전역 활성 — reserve deny',
+        reason: '!kill 전역 활성. reserve deny',
       });
       return false;
     }

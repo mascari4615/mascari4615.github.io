@@ -1,16 +1,16 @@
 /**
- * 「먹」 — 그림 화면 (TASK-KL-240 · 2b)
+ * 먹. 그림 화면 (TASK-KL-240, 2b)
  *
- * 문서 모델(`doc`)·합성(`composite`)·붓(`brush`)·픽셀(`pixel`)을 사람 손에 잇는 자리.
- * 여기서만 DOM 을 안다 — 아래 파일들은 계속 브라우저를 모른다.
+ * 문서 모델(`doc`), 합성(`composite`), 붓(`brush`), 픽셀(`pixel`)을 사람 손에 잇는 자리.
+ * 여기서만 DOM 을 안다. 아래 파일들은 계속 브라우저를 모른다.
  *
- * 화면은 네 칸이다: 왼쪽 도구 · 가운데 그림 · 오른쪽 레이어 · 아래 타임라인.
+ * 화면은 네 칸이다: 왼쪽 도구, 가운데 그림, 오른쪽 레이어, 아래 타임라인.
  * 그림을 다시 그리는 길은 **하나**(`repaint`)뿐이다. 붓질 중에는 더러워진 사각형만 다시 섞고,
- * 레이어를 바꾸면 전체를 다시 섞는다 — 두 경우가 같은 함수를 지나므로 화면이 어긋날 수 없다.
+ * 레이어를 바꾸면 전체를 다시 섞는다. 두 경우가 같은 함수를 지나므로 화면이 어긋날 수 없다.
  */
 
 import { loadNamespace, t } from '../../lib/i18n';
-// 내려주기·굽기는 공용 한 자리(`tools/shared/image`) — 여기 있던 지역 download 는 그것과 같은 네 줄이었다.
+// 내려주기, 굽기는 공용 한 자리(`tools/shared/image`). 여기 있던 지역 download 는 그것과 같은 네 줄이었다.
 import { download, encode } from '../tools/shared/image';
 import { intervalWhileVisible } from '../../lib/tick';
 import { Stroke, defaultBrush, pickColor, type BrushSettings } from './brush';
@@ -37,7 +37,7 @@ declare const Toolbox: {
   register(spec: unknown): void;
   getLazyWidgetPublicMeta?(id: string): unknown;
   onDispose?(fn: () => void): void;
-  /** 남이 넘긴 파일을 받는 창구 (TASK-KL-238 / 2) — 선언(`accepts`)만 하고 안 받으면 빈 화면이 뜬다. */
+  /** 남이 넘긴 파일을 받는 창구 (TASK-KL-238 / 2). 선언(`accepts`)만 하고 안 받으면 빈 화면이 뜬다. */
   onHandoff?(id: string, cb: (file: File) => void): void;
 };
 
@@ -48,7 +48,7 @@ const esc = (value: unknown): string =>
 
 const T = (key: string, fallback: string): string => t('meok.' + key, undefined, fallback);
 
-/** 도구 단추 하나 — 아이콘은 글리프가 아니라 선 그림이다(글꼴 따라 안 달라진다). */
+/** 도구 단추 하나. 아이콘은 글리프가 아니라 선 그림이다(글꼴 따라 안 달라진다). */
 const toolButton = (id: string, hotkey: string, label: string, path: string, active = false): string =>
   '<button data-tool="' + id + '"' + (active ? ' class="active"' : '') + ' title="' + esc(label + ' (' + hotkey + ')') + '">' +
   '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>' +
@@ -56,7 +56,7 @@ const toolButton = (id: string, hotkey: string, label: string, path: string, act
 
 /* ===== 판 ↔ 캔버스 ===== */
 
-/** 판을 캔버스로 — 저장·내보내기에서 쓴다. */
+/** 판을 캔버스로. 저장, 내보내기에서 쓴다. */
 function surfaceToCanvas(surface: Surface): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = surface.w;
@@ -85,7 +85,7 @@ const safeName = (name: string): string => name.trim().replace(/[^a-z0-9가-힣_
 
 /**
  * 글자를 판에 굽는다. 글꼴 그리기는 브라우저만 할 수 있으므로 여기(화면 파일)에 둔다.
- * 새 레이어로 얹으므로, 굳힌 뒤에도 위치·크기를 레이어째로 옮길 수 있다.
+ * 새 레이어로 얹으므로, 굳힌 뒤에도 위치, 크기를 레이어째로 옮길 수 있다.
  */
 function textSurface(text: string, size: number, color: string, w: number, h: number): Surface {
   const canvas = document.createElement('canvas');
@@ -97,7 +97,7 @@ function textSurface(text: string, size: number, color: string, w: number, h: nu
   ctx.font = '600 ' + size + 'px "Pretendard Variable", Pretendard, system-ui, sans-serif';
   const lines = text.split(String.fromCharCode(10));
   const lineHeight = size * 1.28;
-  /* 판 한가운데에 놓는다 — 어디에 놓을지는 레이어를 끌어 정하는 게 자연스럽다. */
+  /* 판 한가운데에 놓는다. 어디에 놓을지는 레이어를 끌어 정하는 게 자연스럽다. */
   let top = Math.max(0, (h - lines.length * lineHeight) / 2);
   lines.forEach(line => {
     const width = ctx.measureText(line).width;
@@ -113,7 +113,7 @@ function textSurface(text: string, size: number, color: string, w: number, h: nu
 /* ===== 자동 저장 창고 =====
  *
  * localStorage 는 5MB 언저리라 그림 한 장에도 넘친다. IndexedDB 에 접은 문서를 그대로 넣는다.
- * 판 하나(`last`)만 쓴다 — 「이 브라우저에서 마지막에 그리던 것」이 다음에 열 때 그대로 뜨는 것,
+ * 판 하나(`last`)만 쓴다. 이 브라우저에서 마지막에 그리던 것이 다음에 열 때 그대로 뜨는 것,
  * 그게 여기서 필요한 전부다(여러 판 관리는 파일로 내보내는 쪽이 정직하다).
  */
 
@@ -163,14 +163,14 @@ function buildMeok(container: HTMLElement): void {
   let tool: ToolId = 'brush';
   let onionBefore = 0;
   let onionAfter = 0;
-  /** 프레임 넘겨 보기를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다 — 그리기만 하는 시계다. */
+  /** 프레임 넘겨 보기를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. 그리기만 하는 시계다. */
   let stopPlaying: (() => void) | null = null;
   let stroke: Stroke | null = null;
   let strokeBase: Surface | null = null;
   let panning: { x: number; y: number } | null = null;
   let spaceDown = false;
   let selection: Selection = createSelection(doc.w, doc.h);
-  /* 고르는 중인 몸짓 — 사각형은 시작점, 올가미는 지나온 점들. */
+  /* 고르는 중인 몸짓. 사각형은 시작점, 올가미는 지나온 점들. */
   let picking: { from: { x: number; y: number }; points: Array<{ x: number; y: number }> } | null = null;
   /** 고른 자리 점선(개미) 애니메이션을 멈추는 함수 (`lib/tick`). 이것도 그리기만 한다. */
   let stopAnts: (() => void) | null = null;
@@ -182,7 +182,7 @@ function buildMeok(container: HTMLElement): void {
       '<input class="meok-name" data-name aria-label="' + esc(T('docName', '그림 이름')) + '">' +
       '<span class="meok-sep"></span>' +
       '<button data-act="new" title="' + esc(T('newHelp', '빈 그림을 새로 시작한다')) + '">' + esc(T('new', '새로')) + '</button>' +
-      '<button data-act="new-pixel" title="' + esc(T('newPixelHelp', '격자에 붙는 픽셀 그림 — 도트 애니메이션용')) + '">' + esc(T('newPixel', '픽셀')) + '</button>' +
+      '<button data-act="new-pixel" title="' + esc(T('newPixelHelp', '격자에 붙는 픽셀 그림. 도트 애니메이션용')) + '">' + esc(T('newPixel', '픽셀')) + '</button>' +
       '<label class="meok-file">' + esc(T('open', '열기')) +
         '<input data-open type="file" accept="image/*,application/json,.json,.meok,.ditherdeck.json" hidden></label>' +
       '<button data-act="add-text" title="' + esc(T('addTextHelp', '글자를 새 레이어로 얹는다')) + '">' + esc(T('addText', '글자')) + '</button>' +
@@ -194,7 +194,7 @@ function buildMeok(container: HTMLElement): void {
       '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
       '<button data-act="to-shelf" title="' + esc(T('toShelfHelp', '만든 것을 선반에 올린다 (CC0)')) + '">' + esc(T('toShelf', '선반')) + '</button>' +
       '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
-      '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어·프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
+      '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어, 프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
       '<span class="meok-status" data-status></span>' +
     '</header>' +
@@ -253,7 +253,7 @@ function buildMeok(container: HTMLElement): void {
           '<label>' + esc(T('blend', '섞기')) + '<select data-layer="blend"></select></label>' +
           '<label class="meok-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
           '<div class="meok-fix-row">' +
-            '<button data-act="mask-from-selection" data-needs-selection title="' + esc(T('maskFromSelectionHelp', '고른 자리만 보이게 가림막을 만든다 — 그림은 안 지운다')) + '">' + esc(T('maskFromSelection', '가림막')) + '</button>' +
+            '<button data-act="mask-from-selection" data-needs-selection title="' + esc(T('maskFromSelectionHelp', '고른 자리만 보이게 가림막을 만든다. 그림은 안 지운다')) + '">' + esc(T('maskFromSelection', '가림막')) + '</button>' +
             '<button data-act="mask-invert" data-needs-mask title="' + esc(T('maskInvertHelp', '보이는 자리와 가린 자리를 맞바꾼다')) + '">' + esc(T('maskInvert', '뒤집기')) + '</button>' +
             '<button data-act="mask-apply" data-needs-mask title="' + esc(T('maskApplyHelp', '가림막대로 그림을 실제로 지운다')) + '">' + esc(T('maskApply', '굳히기')) + '</button>' +
             '<button data-act="mask-clear" data-needs-mask>' + esc(T('maskClear', '없애기')) + '</button>' +
@@ -264,7 +264,7 @@ function buildMeok(container: HTMLElement): void {
           '<div class="meok-fix-row">' +
             '<button data-act="crop-selection" data-needs-selection title="' + esc(T('cropToSelection', '고른 자리로 자르기')) + '">' + esc(T('cropShort', '고른 자리')) + '</button>' +
             '<button data-act="trim" title="' + esc(T('trim', '여백 자르기')) + '">' + esc(T('trimShort', '여백')) + '</button>' +
-            '<button data-act="resize">' + esc(T('resizeDoc', '크기…')) + '</button>' +
+            '<button data-act="resize">' + esc(T('resizeDoc', '크기...')) + '</button>' +
           '</div>' +
           '<div class="meok-fix-row">' +
             '<button data-act="rot-left" title="' + esc(T('rotLeft', '왼쪽으로 90도')) + '">↺</button>' +
@@ -282,7 +282,7 @@ function buildMeok(container: HTMLElement): void {
             '<button data-act="adjust-reset">' + esc(T('resetAdjust', '되돌리기')) + '</button>' +
           '</div>' +
           '<div class="meok-fix-row">' +
-            '<button data-act="rembg" title="' + esc(T('rembgHelp', '이 레이어에서 배경을 지운다 — 기기 안에서 계산한다(처음 한 번은 모델을 받느라 느리다)')) + '">' + esc(T('rembg', '배경 지우기')) + '</button>' +
+            '<button data-act="rembg" title="' + esc(T('rembgHelp', '이 레이어에서 배경을 지운다. 기기 안에서 계산한다(처음 한 번은 모델을 받느라 느리다)')) + '">' + esc(T('rembg', '배경 지우기')) + '</button>' +
           '</div>' +
           '<div class="meok-filters" data-filters></div>' +
         '</details>' +
@@ -301,7 +301,7 @@ function buildMeok(container: HTMLElement): void {
   let flat: Surface = createSurface(doc.w, doc.h);
 
   const say = (message: string): void => { status.textContent = message; };
-  /** 확대율 표시 — 판 크기가 바뀌면 화면 맞춤도 바뀌므로 한 곳에서만 적는다. */
+  /** 확대율 표시. 판 크기가 바뀌면 화면 맞춤도 바뀌므로 한 곳에서만 적는다. */
   const syncZoom = (): void => { pick<HTMLElement>('[data-zoom]').textContent = Math.round(view.scale * 100) + '%'; };
 
   /* ===== 그리기 한 길 ===== */
@@ -319,7 +319,7 @@ function buildMeok(container: HTMLElement): void {
     view.invalidate();
   }
 
-  /** 고른 자리가 바뀌면 테두리와 개미 시계가 따라온다 — 한 길로만 지나가게 묶어 둔다. */
+  /** 고른 자리가 바뀌면 테두리와 개미 시계가 따라온다. 한 길로만 지나가게 묶어 둔다. */
   function selectionChanged(): void {
     view.setSelectionEdges(edgePixels(selection));
     if (stopAnts) { stopAnts(); stopAnts = null; }
@@ -332,7 +332,7 @@ function buildMeok(container: HTMLElement): void {
     view.invalidate();
   }
 
-  /** 가림막이 있는 레이어에서만 뒤집기·굳히기·없애기가 눌린다. */
+  /** 가림막이 있는 레이어에서만 뒤집기, 굳히기, 없애기가 눌린다. */
   function syncMaskButtons(): void {
     const layer = activeLayer(doc);
     const has = !!(layer && layer.mask);
@@ -363,7 +363,7 @@ function buildMeok(container: HTMLElement): void {
   function renderLayers(): void {
     const list = pick<HTMLElement>('[data-layers]');
     list.innerHTML = '';
-    /* 목록 뒤가 화면 위 — 사람이 보는 순서는 반대다. */
+    /* 목록 뒤가 화면 위. 사람이 보는 순서는 반대다. */
     [...doc.layers].reverse().forEach(layer => {
       const row = document.createElement('div');
       row.className = 'meok-layer' + (layer.id === doc.activeLayer ? ' active' : '');
@@ -411,9 +411,9 @@ function buildMeok(container: HTMLElement): void {
         if (moveLayer(doc, moved, to)) { renderLayers(); repaint(); }
       };
       /* ★ **끌기밖에 없으면 못 쓰는 사람이 생긴다** (2026-08-17). 레이어 순서 바꾸기가
-         끌기 하나뿐이었다 — 키보드만 쓰는 사람, 손떨림, 트랙패드에서 끌기가 힘든 사람은
-         순서를 아예 못 바꾼다(WCAG 2.2 「끌기 동작」 — 끌기에는 한 번 누름으로 되는 길이 같이 있어야 한다).
-         같은 저장소의 pdf 장 순서 바꾸기는 이미 화살표를 함께 두고 있다 — 그 꼴을 맞춘다. */
+         끌기 하나뿐이었다. 키보드만 쓰는 사람, 손떨림, 트랙패드에서 끌기가 힘든 사람은
+         순서를 아예 못 바꾼다(WCAG 2.2 끌기 동작. 끌기에는 한 번 누름으로 되는 길이 같이 있어야 한다).
+         같은 저장소의 pdf 장 순서 바꾸기는 이미 화살표를 함께 두고 있다. 그 꼴을 맞춘다. */
       row.tabIndex = 0;
       row.onkeydown = (event) => {
         const step = event.key === 'ArrowUp' ? 1 : event.key === 'ArrowDown' ? -1 : 0;
@@ -426,13 +426,13 @@ function buildMeok(container: HTMLElement): void {
           doc.activeLayer = layer.id;
           renderLayers();
           repaint();
-          /* 옮긴 줄에 초점을 다시 준다 — 안 그러면 한 번 옮기고 나서 키가 안 먹는다. */
+          /* 옮긴 줄에 초점을 다시 준다. 안 그러면 한 번 옮기고 나서 키가 안 먹는다. */
           const again = list.querySelector(`[data-layer="${layer.id}"]`);
           if (again instanceof HTMLElement) again.focus();
         }
       };
       row.dataset.layer = layer.id;
-      row.title = `${row.title || ''} · 위/아래 화살표로 순서 바꾸기`.trim();
+      row.title = `${row.title || ''}, 위/아래 화살표로 순서 바꾸기`.trim();
       list.append(row);
     });
     syncLayerProps();
@@ -467,7 +467,7 @@ function buildMeok(container: HTMLElement): void {
       const button = document.createElement('button');
       button.className = 'meok-frame' + (f === doc.activeFrame ? ' active' : '');
       const held = doc.layers.every(layer => isHold(layer, f));
-      button.innerHTML = '<canvas width="34" height="34"></canvas><small>' + (f + 1) + (held && f > 0 ? '·' : '') + '</small>';
+      button.innerHTML = '<canvas width="34" height="34"></canvas><small>' + (f + 1) + (held && f > 0 ? ', ' : '') + '</small>';
       const thumb = button.querySelector('canvas') as HTMLCanvasElement;
       const ctx = thumb.getContext('2d') as CanvasRenderingContext2D;
       ctx.drawImage(surfaceToCanvas(composite(doc, f)), 0, 0, 34, 34);
@@ -517,7 +517,7 @@ function buildMeok(container: HTMLElement): void {
       return;
     }
     if (tool === 'marquee' || tool === 'lasso') {
-      /* Shift = 더하기, Alt = 빼기 — 포토샵과 같은 손버릇. */
+      /* Shift = 더하기, Alt = 빼기. 포토샵과 같은 손버릇. */
       picking = { from: point, points: [point] };
       return;
     }
@@ -553,7 +553,7 @@ function buildMeok(container: HTMLElement): void {
       }
       return;
     }
-    /* 붓·지우개 — 획이 끝날 때 한 단계로 굳는다. */
+    /* 붓, 지우개. 획이 끝날 때 한 단계로 굳는다. */
     strokeBase = cloneSurface(cel);
     stroke = new Stroke(cel, {
       ...brush,
@@ -576,7 +576,7 @@ function buildMeok(container: HTMLElement): void {
       const point = toDoc(event);
       if (tool === 'lasso') picking.points.push(point);
       else picking.points = [point];
-      /* 끄는 동안 보이는 테두리 — 아직 확정 아니다(놓을 때 굳는다). */
+      /* 끄는 동안 보이는 테두리. 아직 확정 아니다(놓을 때 굳는다). */
       previewSelection(event);
       return;
     }
@@ -589,11 +589,11 @@ function buildMeok(container: HTMLElement): void {
     if (now) repaint(previous ? union(previous, now) : now);
   });
 
-  /** Shift = 더하기 · Alt = 빼기 · 둘 다 = 교집합. */
+  /** Shift = 더하기, Alt = 빼기, 둘 다 = 교집합. */
   const pickMode = (event: { shiftKey: boolean; altKey: boolean }): SelectMode =>
     (event.shiftKey && event.altKey) ? 'intersect' : event.shiftKey ? 'add' : event.altKey ? 'subtract' : 'replace';
 
-  /** 끄는 중 미리보기 — 확정과 같은 함수를 쓰되 되돌리기에는 안 쌓는다. */
+  /** 끄는 중 미리보기. 확정과 같은 함수를 쓰되 되돌리기에는 안 쌓는다. */
   function previewSelection(event: PointerEvent): void {
     if (!picking) return;
     const backup = selection;
@@ -618,7 +618,7 @@ function buildMeok(container: HTMLElement): void {
       x: Math.min(picking.from.x, to.x), y: Math.min(picking.from.y, to.y),
       w: Math.abs(to.x - picking.from.x), h: Math.abs(to.y - picking.from.y)
     };
-    /* 톡 누르기만 하면 선택을 푼다 — 「밖을 눌러 해제」가 몸에 배어 있다. */
+    /* 톡 누르기만 하면 선택을 푼다. 밖을 눌러 해제가 몸에 배어 있다. */
     if (rect.w < 1 || rect.h < 1) selectNone(selection);
     else selectRect(selection, rect, mode);
   }
@@ -738,7 +738,7 @@ function buildMeok(container: HTMLElement): void {
   });
 
   /* ===== 붓 담아 두기 =====
-   * 굵기·단단함·짙기·흐름·손떨림을 매번 다시 맞추는 것이 그리기에서 제일 지겨운 일이다.
+   * 굵기, 단단함, 짙기, 흐름, 손떨림을 매번 다시 맞추는 것이 그리기에서 제일 지겨운 일이다.
    * 그림은 무거워 IndexedDB 로 갔지만, 붓 설정은 작으므로 localStorage 로 충분하다.
    */
   const PRESET_KEY = 'meok:brushes:v1';
@@ -758,7 +758,7 @@ function buildMeok(container: HTMLElement): void {
     loadPresets().forEach(preset => {
       const button = document.createElement('button');
       button.textContent = preset.name;
-      button.title = T('brushApply', '이 붓으로 바꾸기 — 오래 누르면 지운다');
+      button.title = T('brushApply', '이 붓으로 바꾸기. 오래 누르면 지운다');
       button.onclick = () => {
         brush = { ...brush, ...preset.brush, color: brush.color };
         brushOut();
@@ -778,9 +778,9 @@ function buildMeok(container: HTMLElement): void {
    */
   let saveTimer = 0;
   let saving = false;
-  /* 쓰는 중에 또 바뀌었나 — 그러면 다 쓴 뒤 **한 번 더** 쓴다.
-     예전엔 이 경우를 그냥 버렸다(재시도 없음). 화면엔 「저장됨」이 떠 있는데 마지막 획만
-     빠진 판이 남아, 새로고침해야 알 수 있었다 — 실브라우저 검사가 이걸 잡았다. */
+  /* 쓰는 중에 또 바뀌었나. 그러면 다 쓴 뒤 **한 번 더** 쓴다.
+     예전엔 이 경우를 그냥 버렸다(재시도 없음). 화면엔 저장됨이 떠 있는데 마지막 획만
+     빠진 판이 남아, 새로고침해야 알 수 있었다. 실브라우저 검사가 이걸 잡았다. */
   let dirtyAgain = false;
   function writeNow(): void {
     if (saving) { dirtyAgain = true; return; }
@@ -788,7 +788,7 @@ function buildMeok(container: HTMLElement): void {
     dirtyAgain = false;
     void saveLast(packDoc(doc))
       .then(() => { savedMark(); })
-      .catch(() => { say(T('saveFailed', '자동 저장이 막혔다 — 파일로 내보내 두는 게 좋다')); })
+      .catch(() => { say(T('saveFailed', '자동 저장이 막혔다. 파일로 내보내 두는 게 좋다')); })
       .then(() => {
         saving = false;
         if (dirtyAgain) writeNow();
@@ -808,7 +808,7 @@ function buildMeok(container: HTMLElement): void {
   /* ===== 고치기 ===== */
 
   /**
-   * 크기가 바뀌는 연산은 **문서 전체**에 건다 — 레이어마다 크기가 다르면 합성이 성립하지 않는다.
+   * 크기가 바뀌는 연산은 **문서 전체**에 건다. 레이어마다 크기가 다르면 합성이 성립하지 않는다.
    * 되돌리기는 셀 배열을 통째로 들고 있는다(자르기 한 번 = 판 한 장 값. 붓질과 달리 드물다).
    */
   function transformDoc(label: string, fn: (surface: Surface) => Surface, size: (w: number, h: number) => [number, number]): void {
@@ -817,7 +817,7 @@ function buildMeok(container: HTMLElement): void {
     const before = doc.layers.map(layer => layer.cels.slice());
     const beforeMasks = doc.layers.map(layer => layer.mask);
     const after = doc.layers.map(layer => layer.cels.map(cel => (cel ? fn(cel) : null)));
-    /* 레이어 마스크도 같이 옮긴다 — 안 그러면 판만 잘리고 가림막은 옛 크기로 남아 어긋난다. */
+    /* 레이어 마스크도 같이 옮긴다. 안 그러면 판만 잘리고 가림막은 옛 크기로 남아 어긋난다. */
     const afterMasks = doc.layers.map((layer, index) => {
       if (!layer.mask) return null;
       const wrapped = createSurface(oldW, oldH);
@@ -869,7 +869,7 @@ function buildMeok(container: HTMLElement): void {
   });
   const noAdjust = (values: Adjust): boolean =>
     !values.brightness && !values.contrast && !values.saturation && !values.hue;
-  /** 미리보기 — 굳히기 전까지는 원본을 안 건드린다. */
+  /** 미리보기. 굳히기 전까지는 원본을 안 건드린다. */
   let adjustBase: { layerId: string; frame: number; surface: Surface } | null = null;
 
   function previewAdjust(): void {
@@ -980,7 +980,7 @@ function buildMeok(container: HTMLElement): void {
       const layer = canDraw();
       if (!layer || !layer.mask) return;
       const mask = layer.mask;
-      /* 가림막대로 알파를 깎고 가림막은 치운다 — 「지금 보이는 대로」가 그림이 된다. */
+      /* 가림막대로 알파를 깎고 가림막은 치운다. 지금 보이는 대로가 그림이 된다. */
       paintOp(T('maskApply', '굳히기'), surface => {
         const out = cloneSurface(surface);
         for (let p = 0; p < mask.length; p += 1) out.data[p * 4 + 3] = surface.data[p * 4 + 3] * (mask[p] / 255);
@@ -996,7 +996,7 @@ function buildMeok(container: HTMLElement): void {
       const color = pick<HTMLInputElement>('[data-color]').value;
       const layer = addLayer(doc, text.trim().slice(0, 18));
       layer.cels[doc.activeFrame] = textSurface(text, size, color, doc.w, doc.h);
-      /* 글자는 **레이어 한 장**이다 — 나중에 옮기고 지우고 섞기 위해. */
+      /* 글자는 **레이어 한 장**이다. 나중에 옮기고 지우고 섞기 위해. */
       renderLayers(); renderFrames(); repaint(); touched();
       say(T('textAdded', '글자를 새 레이어로 얹었다'));
     },
@@ -1008,7 +1008,7 @@ function buildMeok(container: HTMLElement): void {
       const degrees = Number(answer);
       if (!answer || !isFinite(degrees) || !degrees) return;
       const smooth = doc.grid <= 0;
-      /* 돌리면 판이 커진다 — 새 크기를 미리 재서 문서에 알려 준다. */
+      /* 돌리면 판이 커진다. 새 크기를 미리 재서 문서에 알려 준다. */
       const rad = (degrees * Math.PI) / 180;
       const nextW = Math.ceil(Math.abs(doc.w * Math.cos(rad)) + Math.abs(doc.h * Math.sin(rad)));
       const nextH = Math.ceil(Math.abs(doc.w * Math.sin(rad)) + Math.abs(doc.h * Math.cos(rad)));
@@ -1031,7 +1031,7 @@ function buildMeok(container: HTMLElement): void {
       const button = pick<HTMLButtonElement>('[data-act="rembg"]');
       if (button.disabled) return;
       button.disabled = true;
-      say(T('rembgStart', '배경을 지우는 중 — 처음 한 번은 모델을 받느라 오래 걸린다'));
+      say(T('rembgStart', '배경을 지우는 중. 처음 한 번은 모델을 받느라 오래 걸린다'));
       void encode(surfaceToCanvas(before), 'png').then(blob => {
         const run = removeBackground(blob, 'isnet_fp16', progress => {
           if (progress.ratio >= 0) {
@@ -1041,7 +1041,7 @@ function buildMeok(container: HTMLElement): void {
         void run.promise
           .then(result => createImageBitmap(result))
           .then(bitmap => {
-            /* 결과는 배경이 지워진 그림 한 장 — 지금 셀에 그대로 덮는다(레이어는 그대로다). */
+            /* 결과는 배경이 지워진 그림 한 장. 지금 셀에 그대로 덮는다(레이어는 그대로다). */
             const cut = imageToSurface(bitmap, doc.w, doc.h);
             cel.data.set(cut.data);
             const patch = pixelPatch(cel, before, T('rembg', '배경 지우기'));
@@ -1049,12 +1049,12 @@ function buildMeok(container: HTMLElement): void {
             renderLayers(); renderFrames(); repaint(); touched();
             say(T('rembgDone', '배경을 지웠다'));
           })
-          .catch(() => { say(T('rembgFailed', '배경을 못 지웠다 — 잠시 뒤 다시')); })
+          .catch(() => { say(T('rembgFailed', '배경을 못 지웠다. 잠시 뒤 다시')); })
           .then(() => { button.disabled = false; });
       }).catch(() => {
-        // 구우려다 실패해도 단추는 돌려준다 — 안 돌려주면 그 자리에서 영영 못 누른다.
+        // 구우려다 실패해도 단추는 돌려준다. 안 돌려주면 그 자리에서 영영 못 누른다.
         button.disabled = false;
-        say(T('rembgFailed', '배경을 못 지웠다 — 잠시 뒤 다시'));
+        say(T('rembgFailed', '배경을 못 지웠다. 잠시 뒤 다시'));
       });
     },
     'crop-selection': () => {
@@ -1064,7 +1064,7 @@ function buildMeok(container: HTMLElement): void {
     },
     'trim': () => {
       const bounds = contentBounds(flat);
-      if (!bounds) { say(T('nothingToTrim', '자를 여백이 없다 — 판이 비었다')); return; }
+      if (!bounds) { say(T('nothingToTrim', '자를 여백이 없다. 판이 비었다')); return; }
       if (bounds.w === doc.w && bounds.h === doc.h) { say(T('noMargin', '여백이 없다')); return; }
       transformDoc(T('trim', '여백 자르기'), surface => crop(surface, bounds), () => [bounds.w, bounds.h]);
     },
@@ -1074,7 +1074,7 @@ function buildMeok(container: HTMLElement): void {
       if (!answer || !isFinite(nextW) || nextW < 1 || nextW > 8000) return;
       const nextH = Math.max(1, Math.round(doc.h * (nextW / doc.w)));
       const smooth = doc.grid <= 0;   /* 픽셀 그림은 부드럽게 하면 도트가 죽는다 */
-      transformDoc(T('resizeDoc', '크기…'), surface => resize(surface, nextW, nextH, smooth), () => [nextW, nextH]);
+      transformDoc(T('resizeDoc', '크기...'), surface => resize(surface, nextW, nextH, smooth), () => [nextW, nextH]);
     },
     'rot-left': () => transformDoc(T('rotLeft', '왼쪽으로 90도'), surface => rotateQuarter(surface, 3), (w, h) => [h, w]),
     'rot-right': () => transformDoc(T('rotRight', '오른쪽으로 90도'), surface => rotateQuarter(surface, 1), (w, h) => [h, w]),
@@ -1084,7 +1084,7 @@ function buildMeok(container: HTMLElement): void {
       const values = adjustValues();
       if (noAdjust(values)) { say(T('nothingToAdjust', '움직인 손잡이가 없다')); return; }
       const base = adjustBase;
-      /* 미리보기로 이미 화면이 바뀌어 있다 — 원본을 되돌린 뒤 한 단계로 굳힌다. */
+      /* 미리보기로 이미 화면이 바뀌어 있다. 원본을 되돌린 뒤 한 단계로 굳힌다. */
       const layer = activeLayer(doc);
       if (base && layer) {
         const cel = ensureCel(doc, layer, doc.activeFrame);
@@ -1114,15 +1114,15 @@ function buildMeok(container: HTMLElement): void {
         .then(blob => download(blob, safeName(doc.name) + '.png'));
     },
     'to-shelf': () => {
-      // 선반은 남의 기계(노트북)가 받는다. 열쇠가 없으면 넣는 자리를 먼저 알려 준다 —
-      // 눌렀다가 「권한 없음」을 보는 것보다 낫다(「본」과 같은 결).
+      // 선반은 남의 기계(노트북)가 받는다. 열쇠가 없으면 넣는 자리를 먼저 알려 준다 . 
+      // 눌렀다가 권한 없음을 보는 것보다 낫다(본과 같은 결).
       if (!canUpload()) {
         const key = window.prompt(T('shelfKeyAsk', '선반 열쇠 (이 브라우저에만 남는다)'), '') ?? '';
         if (!key.trim()) return;
         setFoundryToken(key.trim());
       }
       void encode(surfaceToCanvas(composite(doc, doc.activeFrame)), 'png').then(blob => {
-        say(T('shelfSending', '선반에 올리는 중…'));
+        say(T('shelfSending', '선반에 올리는 중...'));
         void blob.arrayBuffer()
           .then(buffer => uploadToFoundry({
             tool: 'meok',
@@ -1130,7 +1130,7 @@ function buildMeok(container: HTMLElement): void {
             mime: 'image/png',
             bytes: new Uint8Array(buffer)
           }))
-          .then(item => say(T('shelfDone', '선반에 올렸다') + ' — ' + item.title))
+          .then(item => say(T('shelfDone', '선반에 올렸다') + '. ' + item.title))
           .catch(error => say(String(error instanceof Error ? error.message : error)));
       });
     },
@@ -1145,17 +1145,17 @@ function buildMeok(container: HTMLElement): void {
       say(T('savedFile', '파일로 내보냈다'));
     },
     'save-project': () => {
-      /* 픽셀 그림은 옛 Ditherdeck 형식으로도 내보낸다 — 그 도구로도 계속 열린다. */
+      /* 픽셀 그림은 옛 Ditherdeck 형식으로도 내보낸다. 그 도구로도 계속 열린다. */
       if (doc.grid > 0) {
         const project = ditherdeckFromDoc(doc, (d, f) => composite(d, f));
         download(new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' }), safeName(doc.name) + '.ditherdeck.json');
         say(T('savedProject', '프로젝트를 저장했다'));
         return;
       }
-      say(T('projectPixelOnly', '지금은 픽셀 그림만 프로젝트로 저장된다 — 그림은 PNG 로'));
+      say(T('projectPixelOnly', '지금은 픽셀 그림만 프로젝트로 저장된다. 그림은 PNG 로'));
     }
   };
-  /* 필터 — 이름만 있으면 되므로 표로 그린다. 세기는 반씩(약하게 두 번 = 사람이 쓰는 법). */
+  /* 필터. 이름만 있으면 되므로 표로 그린다. 세기는 반씩(약하게 두 번 = 사람이 쓰는 법). */
   const FILTERS: Array<[FilterName, string, string]> = [
     ['grayscale', '흑백', '1'], ['sepia', '세피아', '1'], ['invert', '반전', '1'],
     ['blur', '흐리게', '1'], ['sharpen', '선명하게', '1'], ['edge', '윤곽', '1'],
@@ -1218,14 +1218,14 @@ function buildMeok(container: HTMLElement): void {
   /**
    * 그림 한 장을 **새 레이어로** 얹는다 (TASK-KL-238 / 2 photopea).
    *
-   * 파일 고르기 말고 **다른 도구가 넘겨 준 것**도 같은 길로 들어온다 — 예전엔 이 일이 `onchange`
-   * 안에만 있어서, 「이미지 편집」이 넘긴 그림은 받을 손이 없었다(먹은 `accepts: image/*` 라고
+   * 파일 고르기 말고 **다른 도구가 넘겨 준 것**도 같은 길로 들어온다. 예전엔 이 일이 `onchange`
+   * 안에만 있어서, 이미지 편집이 넘긴 그림은 받을 손이 없었다(먹은 `accepts: image/*` 라고
    * 적어 두고도 실제로는 안 받았다 = 눌러도 빈 화면). 선언과 실물은 같아야 한다.
    */
   const placeImageFile = async (file: File): Promise<void> => {
     try {
       const bitmap = await createImageBitmap(file);
-      /* 판보다 크면 판에 맞춰 줄인다 — 붙였는데 화면 밖이면 붙인 줄도 모른다. */
+      /* 판보다 크면 판에 맞춰 줄인다. 붙였는데 화면 밖이면 붙인 줄도 모른다. */
       const scale = Math.min(1, doc.w / bitmap.width, doc.h / bitmap.height);
       const w = Math.max(1, Math.round(bitmap.width * scale));
       const h = Math.max(1, Math.round(bitmap.height * scale));
@@ -1253,12 +1253,12 @@ function buildMeok(container: HTMLElement): void {
     await placeImageFile(file);
   };
 
-  /* 남이 넘긴 그림도 같은 자리로 (TASK-KL-238 / 2). 「이어서」 줄에서 먹을 고르면 여기로 온다. */
+  /* 남이 넘긴 그림도 같은 자리로 (TASK-KL-238 / 2). 이어서 줄에서 먹을 고르면 여기로 온다. */
   Toolbox.onHandoff?.('meok', (file: File) => {
     if (file.type.startsWith('image/')) void placeImageFile(file);
   });
 
-  /* 단축키 — 입력칸에 글자를 치는 중이면 안 가로챈다. */
+  /* 단축키. 입력칸에 글자를 치는 중이면 안 가로챈다. */
   const keydown = (event: KeyboardEvent): void => {
     const target = event.target as HTMLElement;
     if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return;
@@ -1302,7 +1302,7 @@ function buildMeok(container: HTMLElement): void {
     fitViewport();
     reflowDoc();
     syncZoom();
-    /* 지난번에 그리던 것을 되살린다 — 새로고침 한 번에 다 날아가는 게 이 도구의 제일 아픈 구멍이었다. */
+    /* 지난번에 그리던 것을 되살린다. 새로고침 한 번에 다 날아가는 게 이 도구의 제일 아픈 구멍이었다. */
     void loadLast().then(stored => {
       if (!stored || !root.isConnected) return;
       try {
@@ -1312,7 +1312,7 @@ function buildMeok(container: HTMLElement): void {
         syncZoom();
         say(T('restored', '지난번에 그리던 그림을 되살렸다'));
       } catch {
-        say(T('restoreFailed', '지난 그림을 되살리지 못했다 — 새 판으로 시작한다'));
+        say(T('restoreFailed', '지난 그림을 되살리지 못했다. 새 판으로 시작한다'));
       }
     }).catch(() => undefined);
   });

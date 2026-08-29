@@ -1,8 +1,8 @@
 /**
- * Base64 인코딩 · 디코딩 — 화면 (TASK-KL-088)
+ * Base64 인코딩, 디코딩. 화면 (TASK-KL-088)
  *
  * 계산은 `src/core/base64.ts` 가 한다. 여기는 그리는 일만 한다 (`src/core/README.md`).
- * 주소로 부른 경우(`?op=encode&text=…`)도 여기서 받아 칸을 채운다 — 규약은 `lib/tool-url.ts`.
+ * 주소로 부른 경우(`?op=encode&text=...`)도 여기서 받아 칸을 채운다. 규약은 `lib/tool-url.ts`.
  */
 import { byteLength, decode, encode, spec } from '../../core/base64';
 import { escapeHtml as esc } from './shared/text';
@@ -17,7 +17,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   Toolbox.register({
     id: 'base64',
-    title: t('widgets.base64.title', undefined, "Base64 인코딩 · 디코딩"),
+    title: t('widgets.base64.title', undefined, "Base64 인코딩, 디코딩"),
     category: 'tool',
     desc: t('widgets-desc.base64.desc', undefined, "텍스트와 Base64 를 서로 바꿉니다. 한글 안 깨짐, URL-safe 표기 지원"),
     layout: 'wide',
@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const code = $<HTMLTextAreaElement>('#b6Code');
           const urlSafe = $<HTMLInputElement>('#b6Url');
           const status = $<HTMLElement>('#b6Status');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           let syncing = false;
 

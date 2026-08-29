@@ -6,8 +6,8 @@
   "livecount.t04": "基準の時刻を選んでください",
   "livecount.t05": "回",
   "livecount.seconds": "{n}秒",
-  "livecount.line": "{y}年 {mo}か月 {d}日 {tail} · {days}日 · {y}年 {mo}か月 {d}日 {clock}",
+  "livecount.line": "{y}年 {mo}か月 {d}日 {tail}, {days}日, {y}年 {mo}か月 {d}日 {clock}",
   "livecount.left": "残り",
   "livecount.past": "経過",
-  "livecount.projected": "およそ {n}{unit} — 目安です(やらなかった日もそのまま掛けています)"
+  "livecount.projected": "およそ {n}{unit}. 目安です(やらなかった日もそのまま掛けています)"
 }

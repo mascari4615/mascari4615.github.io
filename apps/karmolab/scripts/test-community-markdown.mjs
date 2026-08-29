@@ -2,7 +2,7 @@
  * 커뮤니티 글 서식 시험 (TASK-KL-098).
  *
  * 왜 있나: 이 코드는 **남이 쓴 글을 화면에 꽂는다.** 한 군데만 새면 남의 브라우저에서
- * 내 스크립트가 돈다. 그래서 「서식이 예쁘게 나오나」보다 **「위험한 것이 그대로 나가지 않나」**
+ * 내 스크립트가 돈다. 그래서 서식이 예쁘게 나오나보다 **위험한 것이 그대로 나가지 않나**
  * 를 먼저 본다.
  *
  * 사용: node scripts/test-community-markdown.mjs
@@ -15,13 +15,13 @@ import os from 'os';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
-/* 렌더러가 공용(lib/markdown + marked)으로 바뀌었다 (TASK-KL-354) — 브라우저에선 위젯이
+/* 렌더러가 공용(lib/markdown + marked)으로 바뀌었다 (TASK-KL-354). 브라우저에선 위젯이
    vendor/marked.min 을 먼저 싣는다. 여기서도 같은 상태를 만들어 **실제 경로**를 시험한다.
-   (marked 없는 화면의 폴백 = escape 만 — 그 가지는 아래 폴백 § 가 따로 본다.) */
+   (marked 없는 화면의 폴백 = escape 만. 그 가지는 아래 폴백 § 가 따로 본다.) */
 const { loadMarked } = await import(pathToFileURL(path.join(root, 'scripts/lib/markdown-node.mjs')).href);
 globalThis.marked = loadMarked();
 
-// TS 를 그 자리에서 한 번 굽는다 — 위젯 번들은 iife 라 밖에서 못 부른다.
+// TS 를 그 자리에서 한 번 굽는다. 위젯 번들은 iife 라 밖에서 못 부른다.
 const tmp = path.join(os.tmpdir(), `kl-md-${Date.now()}.mjs`);
 await esbuild.build({
   entryPoints: [path.join(root, 'src/widgets/community-markdown.ts')],
@@ -39,7 +39,7 @@ let failed = 0;
 function check(name, condition, detail = '') {
   if (condition) return;
   failed += 1;
-  console.error(`  ✗ ${name}${detail ? ` — ${detail}` : ''}`);
+  console.error(`  ✗ ${name}${detail ? `. ${detail}` : ''}`);
 }
 
 /* ── 위험한 것이 안 나가는가 (제일 중요) ───────────────────── */
@@ -68,7 +68,7 @@ check('코드 안의 별표는 굵게가 아니다', renderMarkdown('`**x**`').i
 check('바깥 링크는 새 창', renderMarkdown('[집](https://example.com)').includes('rel="noopener noreferrer"'));
 check('우리 주소는 같은 창', !renderMarkdown('[도구](/t/qrgen/)').includes('target="_blank"'));
 check('제목', renderMarkdown('## 제목').includes('<h4>제목</h4>'));
-/* 표기는 marked 관용(태그 사이 줄바꿈·<p> 감싸기)을 허용하되, 구조는 그대로 요구한다. */
+/* 표기는 marked 관용(태그 사이 줄바꿈, <p> 감싸기)을 허용하되, 구조는 그대로 요구한다. */
 check('인용', /<blockquote>[\s\S]*인용문[\s\S]*<\/blockquote>/.test(renderMarkdown('> 인용문')));
 check('목록', /<ul>\s*<li>하나<\/li>\s*<li>둘<\/li>\s*<\/ul>/.test(renderMarkdown('- 하나\n- 둘')));
 check('번호 목록', /<ol>\s*<li>하나<\/li>/.test(renderMarkdown('1. 하나\n2. 둘')));
@@ -82,14 +82,14 @@ check('한 줄 바꿈은 줄바꿈', renderMarkdown('가\n나').includes('가<br
 
 check('미리보기는 기호를 걷어낸다', !plainPreview('**굵게** `코드`').includes('*'));
 check('미리보기는 링크 글자만 남긴다', plainPreview('[이름](https://x.com)') === '이름');
-check('미리보기는 길면 자른다', plainPreview('가'.repeat(200), 10).endsWith('…'));
+check('미리보기는 길면 자른다', plainPreview('가'.repeat(200), 10).endsWith('...'));
 check('빈 글도 안 터진다', plainPreview('') === '' && renderMarkdown('') === '');
 
 if (failed) {
   console.error(`[test-community-markdown] 실패 ${failed}건`);
   process.exit(1);
 }
-console.log('[test-community-markdown] 서식·안전 검사 통과 (위험한 입력이 태그로 안 나간다)');
+console.log('[test-community-markdown] 서식, 안전 검사 통과 (위험한 입력이 태그로 안 나간다)');
 
 /* ── 그림 ─────────────────────────────────────────────── */
 

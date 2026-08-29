@@ -1,16 +1,16 @@
 /**
- * 플래너 — 구글 캘린더·할 일·연속일 (TASK-KL-321)
+ * 플래너. 구글 캘린더, 할 일, 연속일 (TASK-KL-321)
  *
  * 여기 있던 것은 원래 **React 앱을 불러다 붙이는 12줄**이었다. 화면 하나 때문에 React 19 +
  * Tailwind + 달력 라이브러리 두 벌이 따로 지어져 나갔고, 사용자 기록(`toolbox_user_data`)을
  * 본체와 섬이 **각자 다른 규칙으로** 만졌다. 섬을 걷어 내고 본체와 같은 자리로 가져왔다.
  *
  * 구성:
- *   gcal.ts         구글과 주고받기 + 모양 바꾸기 (순수 함수 — 노드에서 시험한다)
+ *   gcal.ts         구글과 주고받기 + 모양 바꾸기 (순수 함수. 노드에서 시험한다)
  *   gauth.ts        연동 토큰 한 장
  *   calendar-view   달력 (FullCalendar 틀 없는 판)
  *   kanban-view     할 일 세 칸
- *   streaks-view    연속일·레벨
+ *   streaks-view    연속일, 레벨
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { GOOGLE_CLIENT_ID, forgetToken, requestToken, storedToken } from './gauth';
@@ -43,8 +43,8 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-check { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); color: var(--text-secondary); }
 
         /* 달력 */
-        /* FullCalendar 를 이 사이트 옷으로 갈아입힌다 — 라이브러리 기본색이 남으면 혼자 튄다.
-           v6 는 색·굵기를 전부 CSS 변수로 내주므로 우리 토큰만 이어 주면 된다. */
+        /* FullCalendar 를 이 사이트 옷으로 갈아입힌다. 라이브러리 기본색이 남으면 혼자 튄다.
+           v6 는 색, 굵기를 전부 CSS 변수로 내주므로 우리 토큰만 이어 주면 된다. */
         .pl-cal-main {
             --fc-page-bg-color: transparent;
             --fc-border-color: var(--border);
@@ -64,10 +64,10 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-cal-main .fc { font-size: var(--font-size-sm); color: var(--text-primary); }
         .pl-cal-main .fc .fc-toolbar-title { font-size: var(--font-size-md); font-weight: 700; }
         .pl-cal-main .fc .fc-button { padding: 4px 10px; font-size: var(--font-size-xs); box-shadow: none; }
-        /* 켜진 단추의 글씨색을 안 정해 둬서 회색 글씨가 accent 바탕에 얹혔다 —
-           밝은 판 1.06:1 · 어두운 판 1.16:1 로 「주/일」이 사실상 안 보였다(2026-08-16 실주소가 잡음).
+        /* 켜진 단추의 글씨색을 안 정해 둬서 회색 글씨가 accent 바탕에 얹혔다 . 
+           밝은 판 1.06:1, 어두운 판 1.16:1 로 주/일이 사실상 안 보였다(2026-08-16 실주소가 잡음).
            FullCalendar 는 켜짐 상태에도 --fc-button-text-color 를 그대로 쓴다(켜짐용 토큰이 없다).
-           accent 위에 얹는 글씨는 이 저장소 토큰으로 --accent-fg 다 — 양쪽 판에서 함께 뒤집힌다. */
+           accent 위에 얹는 글씨는 이 저장소 토큰으로 --accent-fg 다. 양쪽 판에서 함께 뒤집힌다. */
         .pl-cal-main .fc .fc-button-primary:not(:disabled).fc-button-active,
         .pl-cal-main .fc .fc-button-primary:not(:disabled):active { color: var(--accent-fg, #fff); }
         .pl-cal-main .fc .fc-col-header-cell-cushion,
@@ -141,7 +141,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-diary-saved { margin: 0; min-height: 1.2em; font-size: var(--font-size-xs); color: var(--text-tertiary); }
 
         /* 달력 칸의 일기 단추 */
-        /* 단추는 **그 칸 안에서** 자리를 잡아야 한다 — 칸에 자리 기준이 없으면 표 전체를 기준으로
+        /* 단추는 **그 칸 안에서** 자리를 잡아야 한다. 칸에 자리 기준이 없으면 표 전체를 기준으로
            잡혀 모든 날의 단추가 한 자리에 겹쳐 쌓인다(실제로 그래서 옆 날 단추가 눌렸다). */
         .fc .fc-daygrid-day, .fc .fc-daygrid-day-frame { position: relative; }
         .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: 11px; line-height: 1; padding: 2px 3px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
@@ -203,7 +203,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         let token: string | null = storedToken();
         let pane: PaneId = 'calendar';
         let live: CalendarViewHandle | KanbanViewHandle | DiaryViewHandle | null = null;
-        /** 달력에서 「그 날 일기」로 건너올 때 그 날짜 */
+        /** 달력에서 그 날 일기로 건너올 때 그 날짜 */
         let diaryDate: string | undefined;
 
         const dispose = (): void => {
@@ -214,8 +214,8 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
 
         function render(): void {
             dispose();
-            /* 구글은 **선택**이다 — 연동 전에도 세 칸이 전부 돈다(이 브라우저에 적힌다).
-               연동하면 구글 캘린더·할 일이 같은 화면에 얹힌다. */
+            /* 구글은 **선택**이다. 연동 전에도 세 칸이 전부 돈다(이 브라우저에 적힌다).
+               연동하면 구글 캘린더, 할 일이 같은 화면에 얹힌다. */
             const right = !GOOGLE_CLIENT_ID
                 ? `<span title="${esc(t('planner.t02'))}">${esc(t('planner.t01'))}</span>`
                 : token
@@ -244,7 +244,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
             if (pane === 'calendar') live = buildCalendarView(paneEl, token, openDiary);
             else if (pane === 'diary') {
                 live = buildDiaryView(paneEl, diaryDate);
-                diaryDate = undefined; // 한 번 쓰고 놓는다 — 다음에 탭을 다시 열면 오늘부터
+                diaryDate = undefined; // 한 번 쓰고 놓는다. 다음에 탭을 다시 열면 오늘부터
             } else if (pane === 'kanban') live = buildKanbanView(paneEl, token);
             else buildStreaksView(paneEl, () => openDiary());
 
@@ -272,7 +272,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
             });
         }
 
-        /* 말 묶음이 오기 전에 그리면 열쇠가 그대로 화면에 뜬다 — 받은 뒤에 그린다 */
+        /* 말 묶음이 오기 전에 그리면 열쇠가 그대로 화면에 뜬다. 받은 뒤에 그린다 */
         void loadNamespace('planner').then(render);
     }
 
@@ -280,7 +280,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         id: 'planner',
         title: t('widgets.planner.title', undefined, '플래너'),
         category: 'lab',
-        desc: t('widgets-desc.planner.desc', undefined, '구글 캘린더·할 일·연속일을 한 자리에서'),
+        desc: t('widgets-desc.planner.desc', undefined, '구글 캘린더, 할 일, 연속일을 한 자리에서'),
         icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>',
         layout: 'full',
         noHero: true,

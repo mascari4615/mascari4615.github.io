@@ -4,7 +4,7 @@
      이 meta 가 유일한 자리다. 문구 정본 = scripts/lib/head-security.mjs (audit:csp-meta). -->
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>간판 방 — 구운 빛</title>
+<title>간판 방. 구운 빛</title>
 <style>
   html,body{margin:0;height:100%;background:#0a0806;overflow:hidden;
     font:13px/1.6 "IBM Plex Sans KR",system-ui,sans-serif;color:#cfc3b6}
@@ -34,17 +34,17 @@
 <body>
 <canvas id="cv"></canvas>
 <div class="hud">
-  <h1>간판 방 · 구운 빛</h1>
-  <p><b>실시간 빛 0개.</b> 방의 그림자·반사광은 Blender 에서 구워 텍스처에 박혀 있다 —
+  <h1>간판 방, 구운 빛</h1>
+  <p><b>실시간 빛 0개.</b> 방의 그림자, 반사광은 Blender 에서 구워 텍스처에 박혀 있다 . 
      GPU 가 있든 없든 <b>같은 그림</b>이다.<br>
-     <b>드래그</b> 고개 돌리기 · <b>WASD</b> 걷기 · <b>휠</b> 앞뒤로 · <b>Q/E</b> 오르내리기 · <b>Shift</b> 빠르게<br>
-     <b>더블클릭</b> 그곳 보기 · <b>Space</b> 제자리 · <b>V</b> 궤도 보기로<br>
-     간판 <b>드래그</b> 옮기기(격자 스냅) · <b>클릭</b> 껐다 켜기<br><span id="mode"></span></p>
+     <b>드래그</b> 고개 돌리기, <b>WASD</b> 걷기, <b>휠</b> 앞뒤로, <b>Q/E</b> 오르내리기, <b>Shift</b> 빠르게<br>
+     <b>더블클릭</b> 그곳 보기, <b>Space</b> 제자리, <b>V</b> 궤도 보기로<br>
+     간판 <b>드래그</b> 옮기기(격자 스냅), <b>클릭</b> 껐다 켜기<br><span id="mode"></span></p>
   <div class="row">간판 밝기 <output id="o-emis"></output><input id="emis" type="range" min="0" max="2.5" step="0.05" value="0.85"></div>
   <div class="row">노출 <output id="o-exp"></output><input id="exp" type="range" min="0.3" max="2.5" step="0.05" value="1.15"></div>
   <button class="btn" id="reset">간판 자리 초기화</button>
 </div>
-<div class="foot" id="foot">불러오는 중…</div>
+<div class="foot" id="foot">불러오는 중...</div>
 
 <script type="module">
 import * as THREE from 'three';
@@ -57,13 +57,13 @@ import { createRenderer, loop, gpuNote } from '@karmo/3d';
 const ROOM = { w:4.0, h:2.7, d:3.4 };
 const PEG  = { w:1.20, h:0.80, y:1.62, pitch:0.025, t:0.012 };
 /* ── 배지 껍데기 규격 (tools/room-bake/badge.py 에서 정지 컷으로 확정) ──────────
-   전부 **높이 대비 비율**이다 — 크기가 달라도 같은 물건으로 보이게 하는 것이 핵심.
-   앞 판은 두께가 높이의 12% 에 모서리도 각져서 「흰 라벨 카드」로 보였다. */
+   전부 **높이 대비 비율**이다. 크기가 달라도 같은 물건으로 보이게 하는 것이 핵심.
+   앞 판은 두께가 높이의 12% 에 모서리도 각져서 흰 라벨 카드로 보였다. */
 const BADGE = {
-  depth: 0.45,    /* 두께 / 높이 — 45% 는 되어야 「상자」로 읽힌다 */
+  depth: 0.45,    /* 두께 / 높이. 45% 는 되어야 상자로 읽힌다 */
   bezel: 0.055,   /* 틀 두께 / 높이 */
-  proud: 0.12,    /* 확산판이 틀보다 튀어나온 정도 / 두께 — 0.5mm 로 스티커와 갈린다 */
-  round: 0.10     /* 모서리 둥글기 / 높이 — 각지면 곧바로 「코드로 만든 것」이 된다 */
+  proud: 0.12,    /* 확산판이 틀보다 튀어나온 정도 / 두께. 0.5mm 로 스티커와 갈린다 */
+  round: 0.10     /* 모서리 둥글기 / 높이. 각지면 곧바로 코드로 만든 것이 된다 */
 };
 const pegZ  = -ROOM.d/2 + PEG.t;
 const PEG_X0 = -PEG.w/2, PEG_Y1 = PEG.y + PEG.h/2;
@@ -79,8 +79,8 @@ camera.position.set(0.72, 1.42, 1.15);
 /* ── 카메라 ──────────────────────────────────
    **궤도(OrbitControls)는 물체를 밖에서 볼 때 쓰는 것**이다. 방 **안**에 서서 쓰면
    내 머리가 도는 게 아니라 방이 나를 중심으로 휘둘려 멀미가 난다
-   (2026-08-21 제보: 「조작이 너무 이상해」). 그래서 기본은 **1인칭**이다 —
-   드래그 = 고개 돌리기, WASD = 걷기. 궤도는 「물건 하나를 뜯어볼 때」만 켠다. */
+   (2026-08-21 제보: 조작이 너무 이상해). 그래서 기본은 **1인칭**이다 . 
+   드래그 = 고개 돌리기, WASD = 걷기. 궤도는 물건 하나를 뜯어볼 때만 켠다. */
 const controls = new OrbitControls(camera, cv);
 controls.enableDamping = true; controls.dampingFactor = 0.08;
 controls.minDistance = 0.35; controls.maxDistance = 5.0;
@@ -124,7 +124,7 @@ function walk(dt) {
   clampInRoom();
 }
 
-/* 벽을 뚫고 나가지 않는다 — 나가면 방이 뒤집혀 보이고 돌아올 길을 잃는다 */
+/* 벽을 뚫고 나가지 않는다. 나가면 방이 뒤집혀 보이고 돌아올 길을 잃는다 */
 function clampInRoom() {
   const m = 0.25;
   camera.position.x = Math.min(ROOM.w/2 - m, Math.max(-ROOM.w/2 + m, camera.position.x));
@@ -139,7 +139,7 @@ function home() {
   controls.target.set(HOME.look[0], HOME.look[1], HOME.look[2]);
 }
 
-/* 고개 돌리기 — 마우스를 오른쪽으로 밀면 시야가 오른쪽으로 돌다(FPS 관례). */
+/* 고개 돌리기. 마우스를 오른쪽으로 밀면 시야가 오른쪽으로 돌다(FPS 관례). */
 let looking = null;
 cv.addEventListener('pointerdown', e => {
   if (mode !== 'fp' || held) return;
@@ -158,7 +158,7 @@ cv.addEventListener('pointermove', e => {
 });
 addEventListener('pointerup', () => { looking = null; if (!held) cv.classList.remove('grabbing'); });
 
-/* 휠 = 앞뒤로 걷기. 1인칭에서 「확대」는 뜻이 없다 — 다가가야 커진다. */
+/* 휠 = 앞뒤로 걷기. 1인칭에서 확대는 뜻이 없다. 다가가야 커진다. */
 cv.addEventListener('wheel', e => {
   if (mode !== 'fp') return;
   e.preventDefault();
@@ -167,7 +167,7 @@ cv.addEventListener('wheel', e => {
   clampInRoom();
 }, { passive: false });
 
-/* 보기 바꾸기 — 궤도로 갈 때는 지금 보는 앞 1.4m 를 중심으로 잡는다.
+/* 보기 바꾸기. 궤도로 갈 때는 지금 보는 앞 1.4m 를 중심으로 잡는다.
    안 그러면 화면이 혝 튕다(중심이 어디인지 사람이 모른다). */
 function setMode(next) {
   mode = next;
@@ -191,24 +191,24 @@ new GLTFLoader().load('room.glb', (gltf) => {
     if (!o.isMesh) return;
     const map = o.material.map;
     if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; map.flipY = false; }
-    /* 양면으로 그린다 — 방 안에서 보는 껍데기라 한 면이라도 뒤집히면 벽이 사라진다. */
+    /* 양면으로 그린다. 방 안에서 보는 껍데기라 한 면이라도 뒤집히면 벽이 사라진다. */
     o.material = new THREE.MeshBasicMaterial({ map, toneMapped: true, side: THREE.DoubleSide });
   });
-  /* 블렌더는 Z 가 위, glTF 는 Y 가 위 — 내보낼 때 **깊이가 뒤집힌다**.
+  /* 블렌더는 Z 가 위, glTF 는 Y 가 위. 내보낼 때 **깊이가 뒤집힌다**.
      블렌더의 뒷벽(y=-1.7)이 여기서는 z=+1.7 로 온다. 그대로 두면 책상이 카메라 뒤에 있고
      화면은 새까맣다 (2026-08-21 실측: 방이 안 보인 진짜 원인). 반 바퀴 돌려 맞춘다. */
   gltf.scene.rotation.y = Math.PI;
   scene.add(gltf.scene);
   makeRoomEnv();
   document.getElementById('foot').textContent =
-    '구운 빛 · 실시간 광원 0개 · 방 4.0×2.7×3.4 m' + (gpuNote() ? ' · ' + gpuNote() : '');
+    '구운 빛, 실시간 광원 0개, 방 4.0×2.7×3.4 m' + (gpuNote() ? ', ' + gpuNote() : '');
 }, undefined, (e) => {
-  document.getElementById('foot').textContent = 'room.glb 를 못 읽었다 — 먼저 구워야 한다: ' + e;
+  document.getElementById('foot').textContent = 'room.glb 를 못 읽었다. 먼저 구워야 한다: ' + e;
 });
 
 /* ── 타공판 구멍 ─────────────────────────────────────────────────
    구멍은 **굽지 않는다**. 1024px 구운 그림에 25mm 구멍을 넣으면 뭉개진다.
-   대신 판 앞에 얇은 판 한 장을 덧대고 구멍만 그려 **곱하기**로 어둡게 찍는다 —
+   대신 판 앞에 얇은 판 한 장을 덧대고 구멍만 그려 **곱하기**로 어둡게 찍는다 . 
    구운 빛은 그대로 살아 있고 구멍만 선명하다. */
 {
   const S = 16, px = Math.round(PEG.w/PEG.pitch), py = Math.round(PEG.h/PEG.pitch);
@@ -230,19 +230,19 @@ new GLTFLoader().load('room.glb', (gltf) => {
 }
 
 /* ── 간판 (여기만 실시간) ── */
-/* 간판 얼굴 — **간판 비율 그대로** 굽는다.
-   앞 판은 512×174 한 판을 크기가 제각각인 간판에 씌워 글자·아이콘이 찌그러졌다
+/* 간판 얼굴. **간판 비율 그대로** 굽는다.
+   앞 판은 512×174 한 판을 크기가 제각각인 간판에 씌워 글자, 아이콘이 찌그러졌다
    (2026-08-21 제보). 크기가 다른 건 좋지만 **글자가 늘어나면 안 된다**.
-   그래서 칸 수(cw:ch)로 캔버스 비율을 정하고, 글자·아이콘은 **높이 기준**으로 잰다. */
+   그래서 칸 수(cw:ch)로 캔버스 비율을 정하고, 글자, 아이콘은 **높이 기준**으로 잰다. */
 /* ── 방의 빛을 간판에 옮겨 담는다 (환경맵) ──────────────────────────
-   간판을 MeshBasicMaterial 로 두면 **방의 빛 속에 있지 않다** — 꺼진 간판이
-   「어두운 스티커」로 보이고, 켜진 간판은 허공에 뜬 emission 덩어리로 보인다
-   (2026-08-21 제보: 「자연스러운 느낌이 안 난다」).
+   간판을 MeshBasicMaterial 로 두면 **방의 빛 속에 있지 않다**. 꺼진 간판이
+   어두운 스티커로 보이고, 켜진 간판은 허공에 뜬 emission 덩어리로 보인다
+   (2026-08-21 제보: 자연스러운 느낌이 안 난다).
    그렇다고 실시간 광원을 켤 수는 없다(GPU 없는 기계에서 창이 멎는다).
 
    그래서 **구운 방을 딱 한 번 찍는다**. 타공판 앞에 큐브 카메라를 세우고 한 프레임
    찍으면, 그 방의 따뜻한 스탠드와 차가운 창이 그대로 담긴다. 그걸 환경 조명으로 쓰면
-   간판은 **그 방의 빛을 받는 플라스틱**이 된다 — 매 프레임 값은 0 이다(한 번만 찍으니까). */
+   간판은 **그 방의 빛을 받는 플라스틱**이 된다. 매 프레임 값은 0 이다(한 번만 찍으니까). */
 let roomEnv = null;
 function makeRoomEnv() {
   const rt = new THREE.WebGLCubeRenderTarget(soft ? 32 : 128, { type: THREE.HalfFloatType });
@@ -262,17 +262,17 @@ function makeRoomEnv() {
     scene.environment = rt.texture;                /* 못 만들면 찍은 걸 그대로 쓴다 */
   }
   pmrem.dispose();
-  /* 진단 창구 — 「환경맵이 정말 붙었나」를 눈이 아니라 값으로 본다 */
+  /* 진단 창구. 환경맵이 정말 붙었나를 눈이 아니라 값으로 본다 */
   window.__env = { environment: !!scene.environment, kind: scene.environment && scene.environment.constructor.name };
   window.__scene = scene; window.__signs = signs;
 }
 
 /* ── 간판만 비추는 빛 둘 ─────────────────────────────────────────
-   환경맵만으로는 안 됐다 — 값으로 확인했다: `scene.environment` 는 붙었고 세기를
+   환경맵만으로는 안 됐다. 값으로 확인했다: `scene.environment` 는 붙었고 세기를
    1.0 → 3.4 로 올려도 **화면이 한 픽셀도 안 바뀌었다**. 소프트웨어 렌더에서
-   PMREM 이 사실상 검게 나온 것이다. 눈으로 「좀 밝아졌나?」 하지 말고 값으로 볼 것.
+   PMREM 이 사실상 검게 나온 것이다. 눈으로 좀 밝아졌나? 하지 말고 값으로 볼 것.
 
-   그래서 빛 둘을 진짜로 켠다. **방은 MeshBasic(빛 무시)이라 이 빛을 안 받는다** —
+   그래서 빛 둘을 진짜로 켠다. **방은 MeshBasic(빛 무시)이라 이 빛을 안 받는다** . 
    받는 것은 간판 열몇 개뿐이고, 그림자도 안 만든다. 소프트웨어에서도 값이 거의 0 이다.
    구운 방과 색을 맞춘다: 스탠드(따뜻함) + 창(차가움). */
 const signLamp = new THREE.PointLight(0xffc79a, 3.2, 3.0, 2);
@@ -282,13 +282,13 @@ const signFill = new THREE.HemisphereLight(0x9fb6d8, 0x3a2a1e, 1.1);
 scene.add(signFill);
 
 /* ── 배지 얼굴 ────────────────────────────────────────────────────
-   **면 전체가 색을 띤다.** 흰 바탕에 작은 색 사각형은 「라벨 카드」로 보인다 —
-   레퍼런스(편의점 간판 자석)는 판 자체가 파랑·초록·빨강이고 글자가 흰색으로 뚫려 있다.
+   **면 전체가 색을 띤다.** 흰 바탕에 작은 색 사각형은 라벨 카드로 보인다 . 
+   레퍼런스(편의점 간판 자석)는 판 자체가 파랑, 초록, 빨강이고 글자가 흰색으로 뚫려 있다.
    여기서 색을 정하는 것은 배지 하나하나이고, 껍데기 규격(BADGE)은 전부 같다.
 
    빛이 구워진 방이라 재질 반응이 없다 → 아래 것들을 **그려 넣어야** 한다:
      ① LED 두 알 자리   ② 아크릴 모서리   ③ 튜브 끝 그을음
-     ④ 모서리 때·그레인 ⑤ 전원 표시등 */
+     ④ 모서리 때, 그레인 ⑤ 전원 표시등 */
 function faceTex(label, brand, aspect){
   const H = 256, W = Math.max(96, Math.round(H * aspect));
   const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -298,7 +298,7 @@ function faceTex(label, brand, aspect){
   x.fillStyle = `rgb(${r0},${g0},${b0})`;
   x.fillRect(0, 0, W, H);
 
-  /* ① LED 두 알 — 흰빛을 얹어 색을 **띄운다**(덮지 않는다) */
+  /* ① LED 두 알. 흰빛을 얹어 색을 **띄운다**(덮지 않는다) */
   for (const [cx, cy, rad, a] of [[0.34, 0.32, 0.70, 0.42], [0.70, 0.72, 0.60, 0.30]]) {
     const g = x.createRadialGradient(W*cx, H*cy, 0, W*cx, H*cy, H*rad*1.3);
     g.addColorStop(0, `rgba(255,255,255,${a})`);
@@ -307,7 +307,7 @@ function faceTex(label, brand, aspect){
     x.fillStyle = g; x.fillRect(0, 0, W, H);
   }
 
-  /* ③ 튜브 양 끝 그을음 — 브랜드 색의 어두운 쪽으로 */
+  /* ③ 튜브 양 끝 그을음. 브랜드 색의 어두운 쪽으로 */
   const dark = `rgba(${Math.round(r0*0.35)},${Math.round(g0*0.35)},${Math.round(b0*0.35)},`;
   const ed = x.createLinearGradient(0, 0, W, 0);
   ed.addColorStop(0, dark + '.55)'); ed.addColorStop(0.16, dark + '0)');
@@ -317,7 +317,7 @@ function faceTex(label, brand, aspect){
   lip.addColorStop(0, dark + '.45)'); lip.addColorStop(1, dark + '0)');
   x.fillStyle = lip; x.fillRect(0, 0, W, H);
 
-  /* 글자는 **흰색으로 뚫는다** — 색판 위의 흰 글자가 이 물건의 문법이다.
+  /* 글자는 **흰색으로 뚫는다**. 색판 위의 흰 글자가 이 물건의 문법이다.
      글자는 줄이기만 한다(늘리면 그게 찌그러짐). */
   const pad = H*0.13;
   let size = Math.round(H*0.40);
@@ -333,7 +333,7 @@ function faceTex(label, brand, aspect){
   gr.addColorStop(0, 'rgba(20,14,8,0)'); gr.addColorStop(1, 'rgba(20,14,8,.30)');
   x.fillStyle = gr; x.fillRect(0, 0, W, H);
 
-  /* ② 아크릴 모서리 — 두께가 있다는 유일한 단서 */
+  /* ② 아크릴 모서리. 두께가 있다는 유일한 단서 */
   x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 3;
   x.strokeRect(1.5, 1.5, W-3, H-3);
 
@@ -341,7 +341,7 @@ function faceTex(label, brand, aspect){
   x.fillStyle = 'rgba(190,255,205,.9)';
   x.beginPath(); x.arc(W - H*0.09, H - H*0.11, H*0.022, 0, 7); x.fill();
 
-  /* ④ 그레인 — 완벽하면 가짜로 보인다 */
+  /* ④ 그레인. 완벽하면 가짜로 보인다 */
   const im = x.getImageData(0, 0, W, H), d = im.data;
   for (let i = 0; i < d.length; i += 4) {
     const n = (Math.random() - 0.5) * 14;
@@ -354,7 +354,7 @@ function faceTex(label, brand, aspect){
   return t;
 }
 
-/* 프레임(ABS) 도 그려 넣는다 — 단색 상자는 3D 에서 종이로 보인다.
+/* 프레임(ABS) 도 그려 넣는다. 단색 상자는 3D 에서 종이로 보인다.
    위는 빛을 받고 아래는 그늘진다. 이 한 장을 여섯 면이 나눠 쓴다. */
 function frameTex(){
   const W = 64, H = 64;
@@ -374,7 +374,7 @@ function frameTex(){
 }
 
 /* 배지마다 **면 전체 색**. 틀 색은 FRAME_TONES 가 따로 돌린다.
-   레퍼런스의 힘은 「흰 바탕 + 작은 마크」가 아니라 **색판 + 흰 글자**에서 온다. */
+   레퍼런스의 힘은 흰 바탕 + 작은 마크가 아니라 **색판 + 흰 글자**에서 온다. */
 const SIGNS=[
   {t:'즐겨찾기', brand:[  8, 62,168], cw:9,  ch:3, cx:1,  cy:1 },
   {t:'도구 160', brand:[214, 96, 24], cw:8,  ch:3, cx:11, cy:1 },
@@ -392,8 +392,8 @@ const SAVE='roombake_pos_v2';
 let saved={}; try{ saved=JSON.parse(localStorage.getItem(SAVE)||'{}'); }catch(_){}
 
 const emisEl=document.getElementById('emis'), expEl=document.getElementById('exp');
-/* 틀 = 방의 빛을 받는 플라스틱. **배지마다 색이 다르다** — 하나로 통일하면
-   세트가 아니라 「같은 파일 복사」로 보인다 (정지 컷에서 확인). */
+/* 틀 = 방의 빛을 받는 플라스틱. **배지마다 색이 다르다**. 하나로 통일하면
+   세트가 아니라 같은 파일 복사로 보인다 (정지 컷에서 확인). */
 const FRAME_TONES = [0x0d0d0f, 0xdedcd8, 0x0d0d0f, 0x6b6e73, 0x1a1a1d];
 const frameMats = FRAME_TONES.map(c => new THREE.MeshStandardMaterial({
   map: frameTex(), color: c, roughness: 0.45, metalness: 0.10, envMapIntensity: 2.2
@@ -419,11 +419,11 @@ for(const [i, s] of SIGNS.entries()){
   });
   const frameMat = frameMats[i % frameMats.length];
 
-  /* 틀 — 모서리가 둥근 상자. 각진 상자는 3D 에서 곧바로 「코드로 만든 것」으로 읽힌다. */
+  /* 틀. 모서리가 둥근 상자. 각진 상자는 3D 에서 곧바로 코드로 만든 것으로 읽힌다. */
   const box = new THREE.Mesh(
     new RoundedBoxGeometry(w, h, d, 3, Math.min(r, d * 0.45)), frameMat);
 
-  /* 확산판 — 틀보다 **살짝 튀어나온다**. 같은 높이면 스티커, 0.5mm 나오면 박힌 아크릴. */
+  /* 확산판. 틀보다 **살짝 튀어나온다**. 같은 높이면 스티커, 0.5mm 나오면 박힌 아크릴. */
   const pd = d * BADGE.proud * 2;
   const panel = new THREE.Mesh(
     new RoundedBoxGeometry(w - bz*2, h - bz*2, pd, 3, Math.min(r*0.6, pd*0.45)), face);
@@ -436,10 +436,10 @@ for(const [i, s] of SIGNS.entries()){
 }
 
 /* ── 간판이 판에 드리우는 그림자 ────────────────────────────────
-   방의 빛은 구워져 있어 **나중에 붙인 물건은 그림자를 못 만든다** — 그래서 간판이
-   판 위에 떠 보였다 (2026-08-21 제보: 「그림자도 없네」).
+   방의 빛은 구워져 있어 **나중에 붙인 물건은 그림자를 못 만든다**. 그래서 간판이
+   판 위에 떠 보였다 (2026-08-21 제보: 그림자도 없네).
    그림자 맵을 켜면 GPU 없는 기계에서 창이 멎는다(이 방식을 고른 이유가 그거다).
-   그래서 **곱하기 한 겹**으로 직접 그린다 — 켜졌든 꺼졌든 물건이니 늘 있다.
+   그래서 **곱하기 한 겹**으로 직접 그린다. 켜졌든 꺼졌든 물건이니 늘 있다.
    빛은 책상 스탠드(오른쪽 아래)에서 오므로 그림자는 **왼쪽 위로** 짧게 눕는다. */
 const shadowTex = (() => {
   const S = 128, c = document.createElement('canvas'); c.width = c.height = S;
@@ -463,7 +463,7 @@ for (const o of signs) {
 }
 
 /* 켜진 간판이 판에 흘리는 빛.
-   앞 판은 **흰 뭉게구름**이었다 (2026-08-21 제보: 「빛 효과가 어색하다」). 실물의 번짐은
+   앞 판은 **흰 뭉게구름**이었다 (2026-08-21 제보: 빛 효과가 어색하다). 실물의 번짐은
    ① 간판 색을 띠고 ② 간판 모양을 따라 **옆으로 넓고 위아래로 좁다** ③ 아주 약하다.
    원형 흰 덩어리는 그래서 가짜로 보인다. 셋 다 고친다. */
 function glowTexFor(brand){
@@ -526,7 +526,7 @@ cv.addEventListener('pointermove', e=>{
   ghost.position.set(PEG_X0+cx*PEG.pitch+w/2, PEG_Y1-cy*PEG.pitch-h/2, pegZ+0.004);
   ghostMat.color.setHex(ok?0x5fd98a:0xe5705f);
 });
-/* 두 번 누른 곳을 바라본다 — 「저기 보고 싶다」가 한 동작이 된다 */
+/* 두 번 누른 곳을 바라본다. 저기 보고 싶다가 한 동작이 된다 */
 cv.addEventListener('dblclick', e => {
   toPtr(e); ray.setFromCamera(ptr, camera);
   const hit = ray.intersectObjects(scene.children, true)[0];

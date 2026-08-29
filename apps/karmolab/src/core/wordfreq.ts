@@ -1,14 +1,14 @@
 /**
- * 단어 빈도 — 알맹이 (TASK-KL-088 / S1)
+ * 단어 빈도. 알맹이 (TASK-KL-088 / S1)
  *
- * 글을 고칠 때 「내가 무슨 말을 반복하고 있나」는 읽어서는 잘 안 보인다. 세어 보면 바로 드러난다.
+ * 글을 고칠 때 내가 무슨 말을 반복하고 있나는 읽어서는 잘 안 보인다. 세어 보면 바로 드러난다.
  *
- * MCP 로 내놓는 이유(B등급): 한국어는 **조사가 붙어** 「도구를 / 도구가 / 도구는」이 다 다른 낱말로
+ * MCP 로 내놓는 이유(B등급): 한국어는 **조사가 붙어** 도구를 / 도구가 / 도구는이 다 다른 낱말로
  * 세진다. 그대로 세면 상위 목록이 조사 붙은 같은 말로 채워져 쓸모가 없다. LLM 에게 세라고 하면
- * 개수를 대충 어림하거나(세는 게 아니라 인상으로 답한다) 조사를 제멋대로 떼어 「도구」와 「도」를 섞는다.
- * 여기선 **긴 조사부터** 떼서 「에서는」이 「에서」+「는」으로 갈리지 않게 한다.
+ * 개수를 대충 어림하거나(세는 게 아니라 인상으로 답한다) 조사를 제멋대로 떼어 도구와 도를 섞는다.
+ * 여기선 **긴 조사부터** 떼서 에서는이 에서+는으로 갈리지 않게 한다.
  *
- * 형태소 분석은 아니다 — 그건 사전이 필요하다. 이건 「체감이 크게 달라지는」 수준의 어림이고,
+ * 형태소 분석은 아니다. 그건 사전이 필요하다. 이건 체감이 크게 달라지는 수준의 어림이고,
  * 그 한계를 답에 적어 둔다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -18,7 +18,7 @@ export const spec: ToolSpec = {
   ops: {
     count: {
       desc:
-        'Word frequency, with Korean particles (을/를/에서는…) stripped so inflected forms collapse.' +
+        'Word frequency, with Korean particles (을/를/에서는...) stripped so inflected forms collapse.' +
         ' Without that, 도구를 / 도구가 / 도구는 count as three different words and the top list is useless.' +
         ' Also returns repeated two-word phrases.' +
         ' / 낱말 빈도. 한국어 조사를 떼어 같은 말로 묶는다.',
@@ -28,7 +28,7 @@ export const spec: ToolSpec = {
   }
 };
 
-/** 자주 붙는 조사·어미. **긴 것부터** 떼야 「에서는」이 「에서」+「는」으로 안 갈린다. */
+/** 자주 붙는 조사, 어미. **긴 것부터** 떼야 에서는이 에서+는으로 안 갈린다. */
 export const PARTICLES = [
   '으로부터', '에게서', '이라고', '라고는', '에서는', '에게는', '으로는', '까지는',
   '부터는', '이라는', '에서도', '으로도', '이나마', '조차도',
@@ -37,14 +37,14 @@ export const PARTICLES = [
   '은', '는', '이', '가', '을', '를', '의', '에', '와', '과', '도', '만', '로', '나', '야', '여'
 ];
 
-/** 세어도 뜻이 없는 말. 이걸 안 빼면 상위가 「것·수·그리고」로 채워진다. */
+/** 세어도 뜻이 없는 말. 이걸 안 빼면 상위가 것, 수, 그리고로 채워진다. */
 export const STOP = new Set([
   '그리고', '그러나', '하지만', '그래서', '또한', '즉', '및', '등', '수', '것', '때', '이것', '저것', '그것',
   'the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'is', 'it', 'for', 'on', 'that', 'this', 'with'
 ]);
 
 /**
- * 조사를 뗀다. 너무 짧은 말은 건드리지 않는다 — 「나의」에서 「의」를 떼면 「나」만 남아
+ * 조사를 뗀다. 너무 짧은 말은 건드리지 않는다. 나의에서 의를 떼면 나만 남아
  * 원래 뜻과 멀어진다. 뗀 뒤에도 두 글자는 남아야 한다.
  */
 export function stripParticle(word: string): string {
@@ -89,7 +89,7 @@ export function analyze(
     kept.push(word);
   }
 
-  // 붙어 나오는 두 낱말 — 「무슨 표현을 반복하나」는 낱말 하나보다 이쪽에서 더 잘 보인다.
+  // 붙어 나오는 두 낱말. 무슨 표현을 반복하나는 낱말 하나보다 이쪽에서 더 잘 보인다.
   const pairs: Record<string, number> = {};
   for (let i = 0; i + 1 < kept.length; i++) {
     const key = `${kept[i]} ${kept[i + 1]}`;
@@ -120,14 +120,14 @@ export const run: ToolRunner = (op, args) => {
   if (r.rows.length === 0) throw new Error('No countable words found (words shorter than two letters are ignored)');
 
   const lines = [
-    `Words: ${r.total} total · ${r.unique} unique`,
+    `Words: ${r.total} total, ${r.unique} unique`,
     '',
     'Top words:',
-    ...r.rows.slice(0, top).map((x, i) => `${i + 1}. ${x.word} — ${x.count}회`)
+    ...r.rows.slice(0, top).map((x, i) => `${i + 1}. ${x.word}. ${x.count}회`)
   ];
   if (r.phrases.length > 0) {
-    lines.push('', 'Top word pairs:', ...r.phrases.slice(0, 10).map((x) => `- ${x.word} — ${x.count} times`));
+    lines.push('', 'Top word pairs:', ...r.phrases.slice(0, 10).map((x) => `- ${x.word}. ${x.count} times`));
   }
-  lines.push('', 'This is only a particle-stripping approximation, not full morphological analysis — inflected forms like 했다/하는 are counted separately.');
+  lines.push('', 'This is only a particle-stripping approximation, not full morphological analysis. inflected forms like 했다/하는 are counted separately.');
   return lines.join('\n');
 };

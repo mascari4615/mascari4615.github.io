@@ -1,8 +1,8 @@
 /**
- * lib/karmograph/canvas-lane.ts — 단계 띠(레인).
+ * lib/karmograph/canvas-lane.ts. 단계 띠(레인).
  *
- * 노드가 많아지면 「무엇 다음에 무엇」은 선으로 보이지만 「지금 몇 번째 단계인가」는 안 보인다.
- * 기술 트리·로드맵이 늘 가로 띠를 까는 이유다. 띠는 자리(y 범위)만 알고 어느 노드가 속하는지는 모른다 —
+ * 노드가 많아지면 무엇 다음에 무엇은 선으로 보이지만 지금 몇 번째 단계인가는 안 보인다.
+ * 기술 트리, 로드맵이 늘 가로 띠를 까는 이유다. 띠는 자리(y 범위)만 알고 어느 노드가 속하는지는 모른다 . 
  * 그래야 노드를 옮겨도 띠가 안 깨진다.
  */
 import type { LaneDef } from './spec';
@@ -11,7 +11,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export interface LaneRenderOptions {
   layer: SVGGElement;
-  /** 띠가 가로로 덮을 범위 — 보통 전체 노드의 x 범위 + 여백. */
+  /** 띠가 가로로 덮을 범위. 보통 전체 노드의 x 범위 + 여백. */
   x: number;
   w: number;
   defaultColor?: string;
@@ -32,7 +32,7 @@ export function renderLanes(lanes: LaneDef[], opts: LaneRenderOptions): void {
     band.setAttribute('y', String(lane.y));
     band.setAttribute('width', String(opts.w));
     band.setAttribute('height', String(lane.h));
-    /* 홀짝을 살짝 다르게 — 경계선을 긋는 것보다 눈이 덜 피로하다. */
+    /* 홀짝을 살짝 다르게. 경계선을 긋는 것보다 눈이 덜 피로하다. */
     band.setAttribute('fill', lane.color ?? (i % 2 === 0 ? color : 'transparent'));
     g.appendChild(band);
 

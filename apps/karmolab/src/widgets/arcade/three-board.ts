@@ -1,11 +1,11 @@
 /**
- * 입체 판 — **진짜 3D** (Three.js). change.arcade-redesign
+ * 입체 판. **진짜 3D** (Three.js). change.arcade-redesign
  *
- * 판 놀이(오목·오델로·체커·따내기 바둑)가 함께 쓰는 무대다. 나무판 하나와 알 몇 개,
- * 빛 두 개. 판은 **무엇을 어디에 놓을지**만 정하고 카메라·빛·재질은 여기서 한 번 정한다.
+ * 판 놀이(오목, 오델로, 체커, 따내기 바둑)가 함께 쓰는 무대다. 나무판 하나와 알 몇 개,
+ * 빛 두 개. 판은 **무엇을 어디에 놓을지**만 정하고 카메라, 빛, 재질은 여기서 한 번 정한다.
  *
- * 왜 라이브러리를 들이나: 손으로 쓴 셰이더로는 반사·그림자·부드러운 빛이 안 나온다.
- * 그 차이가 「나무판에 놓인 돌」과 「원을 칠한 그림」을 가른다.
+ * 왜 라이브러리를 들이나: 손으로 쓴 셰이더로는 반사, 그림자, 부드러운 빛이 안 나온다.
+ * 그 차이가 나무판에 놓인 돌과 원을 칠한 그림을 가른다.
  *
  * 무게: three 는 **3D 로 볼 때만** 받는다(`arcade/games3d/*.js` 조각). 2D 로 노는 사람은
  * 이 파일도, three 도 안 받는다.
@@ -32,17 +32,17 @@ import {
 } from '/packages/3d/vendor/three.module.min.js';
 import { stoneTexture, woodTexture } from './texture';
 
-/** 판 위 한 알. 색은 자리 번호(1·2…)가 정한다. */
+/** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
   /** 칸 번호 (0 ~ n*n-1) */
   cell: number;
-  /** 누구 것 (1·2·3·4) */
+  /** 누구 것 (1, 2, 3, 4) */
   who: number;
-  /** 방금 둔 자리 — 붉은 표를 얹는다 */
+  /** 방금 둔 자리. 붉은 표를 얹는다 */
   last?: boolean;
   /** 왕관 (체커) */
   king?: boolean;
-  /** 집어 든 말 — 금빛 고리 (체커) */
+  /** 집어 든 말. 금빛 고리 (체커) */
   pick?: boolean;
 }
 
@@ -52,11 +52,11 @@ export interface Board3dOpts {
   /**
    * 알을 **교차점**에 두나, **칸 안**에 두나.
    *
-   * 오목·바둑은 줄이 만나는 점에 둔다 — 칸 한가운데에 두면 그건 다른 놀이다(오델로·체커).
+   * 오목, 바둑은 줄이 만나는 점에 둔다. 칸 한가운데에 두면 그건 다른 놀이다(오델로, 체커).
    * 판마다 다르므로 판이 정한다. 기본은 칸 안(`false`).
    */
   onCross?: boolean;
-  /** 화점 자리 (판이 정한다 — 칸 수가 다르면 자리도 다르다) */
+  /** 화점 자리 (판이 정한다. 칸 수가 다르면 자리도 다르다) */
   star?: (i: number) => boolean;
   /** 어두운 칸 (체커) */
   dark?: (i: number) => boolean;
@@ -69,13 +69,13 @@ export interface Board3d {
   place(stones: Stone[], hint?: { can?: number[] }): void;
   /** 창 크기가 바뀌면 */
   resize(): void;
-  /** 판을 접는다 — 화면을 떠날 때 반드시 (WebGL 맥락은 저절로 안 사라진다) */
+  /** 판을 접는다. 화면을 떠날 때 반드시 (WebGL 맥락은 저절로 안 사라진다) */
   dispose(): void;
-  /** WebGL 을 못 얻었으면 false — 부르는 쪽이 2D 로 물러선다 */
+  /** WebGL 을 못 얻었으면 false. 부르는 쪽이 2D 로 물러선다 */
   ok: boolean;
 }
 
-/* 알 색 — 2D 화면(`--ac-stone-*`)과 같은 눈으로 고른 값. */
+/* 알 색. 2D 화면(`--ac-stone-*`)과 같은 눈으로 고른 값. */
 const STONE: Record<number, number> = { 1: 0x22201e, 2: 0xf4efe4, 3: 0xc0392b, 4: 0x2f6fb8 };
 
 const CELL = 1; /* 칸 한 변 (3D 단위) */
@@ -85,7 +85,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const cross = opts.onCross === true;
   /**
    * 줄이 덮는 거리. **교차점 판은 줄이 n 개**(칸은 n−1 개)고, 칸 판은 줄이 n+1 개다.
-   * 여기를 한 줄로 갈라 두면 아래(줄 긋기·알 자리·손 짚기)가 전부 따라온다.
+   * 여기를 한 줄로 갈라 두면 아래(줄 긋기, 알 자리, 손 짚기)가 전부 따라온다.
    */
   const span = (cross ? n - 1 : n) * CELL;
   /* 교차점 판은 가장자리 줄 밖에 나무가 조금 남아야 판처럼 보인다. */
@@ -112,7 +112,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const camera = new PerspectiveCamera(34, 1, 0.1, 100);
 
   /**
-   * 사람이 판 앞에 앉은 눈높이 — 다만 **판이 다 보이는 거리**까지 물러선다.
+   * 사람이 판 앞에 앉은 눈높이. 다만 **판이 다 보이는 거리**까지 물러선다.
    * 처음엔 가까이 붙여 뒀더니 앞뒤 줄이 화면 밖으로 잘렸다(실측). 시야각(34°)과 판 크기로
    * 필요한 거리를 계산해 두면 칸 수가 달라져도 판이 늘 화면에 들어온다.
    */
@@ -127,7 +127,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   sun.castShadow = true;
   /**
    * 그림자 틀을 **판에 딱 맞춘다**. 넉넉히 잡아 두면 남는 자리가 판 위에 각진 무늬로 남는다
-   * (실측: 판 가운데를 가로지르는 삼각형이 보였다 — 그림자가 아니라 그림자 틀의 모서리였다).
+   * (실측: 판 가운데를 가로지르는 삼각형이 보였다. 그림자가 아니라 그림자 틀의 모서리였다).
    * 알만 그림자를 지므로 틀은 판 크기면 충분하다.
    */
   sun.shadow.mapSize.set(2048, 2048);
@@ -142,7 +142,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   scene.add(sun);
 
   /* ── 판 ── 나무 상자 한 덩이. 윗면이 두께만큼 올라와 있다.
-     결은 **코드로 굽는다**(`texture.ts`) — 그림 파일 0개, 매끈한 플라스틱 면을 면한다. */
+     결은 **코드로 굽는다**(`texture.ts`). 그림 파일 0개, 매끈한 플라스틱 면을 면한다. */
   const boardTop = 0.34;
   const woodMap = new CanvasTexture(woodTexture(7));
   woodMap.colorSpace = SRGBColorSpace;
@@ -167,7 +167,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   body.castShadow = true;
   scene.add(body);
 
-  /* 줄 — 얇은 판으로 긋는다. 선 하나가 메시 하나면 9칸에 20개, 가볍다. */
+  /* 줄. 얇은 판으로 긋는다. 선 하나가 메시 하나면 9칸에 20개, 가볍다. */
   const ink = new MeshStandardMaterial({ color: 0x6b4518, roughness: 0.9 });
   const g0 = -span / 2; /* 첫 줄 자리 */
   const lineW = 0.035;
@@ -184,11 +184,11 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     scene.add(v);
   }
 
-  /* 알 자리 — **교차점이면 줄 위**, 아니면 칸 한가운데. 화점도 같은 자리를 쓴다. */
+  /* 알 자리. **교차점이면 줄 위**, 아니면 칸 한가운데. 화점도 같은 자리를 쓴다. */
   const cx = (i: number): number => g0 + (i % n) * CELL + (cross ? 0 : CELL / 2);
   const cz = (i: number): number => g0 + Math.floor(i / n) * CELL + (cross ? 0 : CELL / 2);
 
-  /* 화점 · 어두운 칸 */
+  /* 화점, 어두운 칸 */
   const dot = new MeshStandardMaterial({ color: 0x5c3d18, roughness: 0.9 });
   const darkMat = new MeshStandardMaterial({ color: 0xc08b45, roughness: 0.78 });
   for (let i = 0; i < n * n; i += 1) {
@@ -212,7 +212,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const matFor = (who: number): MeshStandardMaterial => {
     let m = mats.get(who);
     if (!m) {
-      /* 흰 돌은 조개, 검은 돌은 슬레이트 — 무늬도 코드로 굽는다(`texture.ts`). */
+      /* 흰 돌은 조개, 검은 돌은 슬레이트. 무늬도 코드로 굽는다(`texture.ts`). */
       const skin = who === 1 || who === 2 ? new CanvasTexture(stoneTexture(who === 1 ? 'black' : 'white', who * 5)) : null;
       if (skin) skin.colorSpace = SRGBColorSpace;
       m = new MeshStandardMaterial({
@@ -231,7 +231,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     let m = pool[k];
     if (!m) {
       m = new Mesh(stoneGeo, matFor(1));
-      /* 바둑돌은 공이 아니라 **눌린 알**이다 — 세로만 납작하게. */
+      /* 바둑돌은 공이 아니라 **눌린 알**이다. 세로만 납작하게. */
       m.scale.set(1, 0.46, 1);
       m.castShadow = true;
       m.visible = false;
@@ -241,21 +241,21 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return m;
   };
 
-  /* 마지막 수 표 — 붉은 고리 하나를 옮겨 쓴다. */
+  /* 마지막 수 표. 붉은 고리 하나를 옮겨 쓴다. */
   const markMat = new MeshStandardMaterial({ color: 0xe2503c, roughness: 0.5 });
   const mark = new Mesh(new CircleGeometry(CELL * 0.16, 20), markMat);
   mark.rotation.x = -Math.PI / 2;
   mark.visible = false;
   scene.add(mark);
 
-  /* 집어 든 말 — 금빛 고리 하나를 옮겨 쓴다(체커). */
+  /* 집어 든 말. 금빛 고리 하나를 옮겨 쓴다(체커). */
   const pickMat = new MeshStandardMaterial({ color: 0xe8c15a, roughness: 0.4, metalness: 0.3 });
   const pickRing = new Mesh(new RingGeometry(CELL * 0.44, CELL * 0.52, 24), pickMat);
   pickRing.rotation.x = -Math.PI / 2;
   pickRing.visible = false;
   scene.add(pickRing);
 
-  /* 둘 수 있는 자리 — 옅은 판 조각. 눌러도 되는 곳을 판 위에서 보여 준다. */
+  /* 둘 수 있는 자리. 옅은 판 조각. 눌러도 되는 곳을 판 위에서 보여 준다. */
   const hintMat = new MeshStandardMaterial({ color: 0x2a2620, roughness: 1, transparent: true, opacity: 0.22 });
   const hints: Mesh[] = [];
   const hintOf = (k: number): Mesh => {

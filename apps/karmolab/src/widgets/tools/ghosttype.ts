@@ -1,21 +1,21 @@
 /**
  * 유령 타자 대결 (TASK-KL-131)
  *
- * 타자 연습은 어디에나 있다. 없는 것은 **상대**다 — 혼자 치고 점수만 보면 한 번 하고 끝난다.
+ * 타자 연습은 어디에나 있다. 없는 것은 **상대**다. 혼자 치고 점수만 보면 한 번 하고 끝난다.
  * 여기서는 친 기록이 그대로 **유령**이 되어 주소 하나에 담긴다. 그 주소를 받은 사람은
  * 같은 글을 치면서 내 유령과 나란히 달리고, 이기면 자기 유령이 담긴 새 주소가 나온다.
- * 쓴 사람이 다음 사람을 데려오는 구조 — 계정도 서버도 없이, 주소만으로.
+ * 쓴 사람이 다음 사람을 데려오는 구조. 계정도 서버도 없이, 주소만으로.
  *
  * 레퍼런스에서 가져온 것 (2026-08 조사):
  *  - **타입레이서**의 유령(지난 판 재생과 겨루기)이 이 놀이의 원형이다. 다만 그쪽 유령 주소는
  *    만료돼서 2025년에야 안 사라지는 주소를 따로 붙였다. 여기는 **기록이 주소 안에** 들어
- *    있으므로 애초에 만료가 없다 — 서버가 없다는 게 약점이 아니라 그 반대다.
- *  - 같은 곳의 2025년 간판 기능이 「**아무 글이나 걸고 겨루기**」였다. 그래서 고정 지문만
+ *    있으므로 애초에 만료가 없다. 서버가 없다는 게 약점이 아니라 그 반대다.
+ *  - 같은 곳의 2025년 간판 기능이 **아무 글이나 걸고 겨루기**였다. 그래서 고정 지문만
  *    두지 않고, 자기 글을 붙여 넣으면 그 글이 주소에 함께 담기게 했다.
- *  - **몽키타입**의 철학은 군더더기 0 — 가입도 안내 창도 없고 치면 바로 시작한다. 여기도
+ *  - **몽키타입**의 철학은 군더더기 0. 가입도 안내 창도 없고 치면 바로 시작한다. 여기도
  *    첫 글자를 치는 순간 시작하고, 시작 단추가 없다.
  *
- * 타수는 **자소 단위**로 센다 — 한국에서 말하는 「타」는 글자 수가 아니라 누른 횟수다
+ * 타수는 **자소 단위**로 센다. 한국에서 말하는 타는 글자 수가 아니라 누른 횟수다
  * (값 = ㄱ+ㅏ+ㅄ = 4타). 글자 수로 세면 실제보다 절반 아래로 나와 다른 데서 잰 값과 안 맞는다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -23,14 +23,14 @@ import { markLive } from './shared/say';
 import { toolPage } from '../../lib/site-base';
 
 (function (): void {
-  /** 처음 온 사람에게 보여 줄 글. 겨룰 **글 자체가 내용**이라 언어마다 다시 썼다 —
+  /** 처음 온 사람에게 보여 줄 글. 겨룰 **글 자체가 내용**이라 언어마다 다시 썼다 . 
    *  번역한 한국어 문장은 그 언어 사람에게 칠 맛이 없다. 자기 글을 넣으면 그 글이 주소에
    *  담기므로 순서는 상관없다. 미리 굳히지 않고 **쓸 때 만든다**(말 묶음이 온 뒤라야 한다). */
   const PRESET_COUNT = 5;
   const presets = (): string[] => Array.from({ length: PRESET_COUNT }, (_, i) => t(`ghosttype.preset.${i}`));
 
   const NAME_KEY = 'karmolab.ghosttype.name';
-  const MAX_TEXT = 240; // 주소에 담아야 하므로 — 이보다 길면 링크가 메신저에서 잘린다
+  const MAX_TEXT = 240; // 주소에 담아야 하므로. 이보다 길면 링크가 메신저에서 잘린다
   const MAX_GAP = 4000; // 자리를 비운 구간까지 그대로 재생하면 상대는 멈춘 화면을 본다
 
   /* ── 한글 타수 (자소 단위) ────────────────────────────────────────── */
@@ -108,7 +108,7 @@ import { toolPage } from '../../lib/site-base';
     gaps: number[]; // 글자마다 앞 글자로부터 걸린 시간
   }
 
-  /** 글까지 주소에 담는다 — 목록 번호를 담으면 나중에 목록이 바뀔 때 옛 주소가 딴 글을 가리킨다. */
+  /** 글까지 주소에 담는다. 목록 번호를 담으면 나중에 목록이 바뀔 때 옛 주소가 딴 글을 가리킨다. */
   function encodeGhost(g: Ghost): string {
     const text = toBase64Url(new TextEncoder().encode(g.text.slice(0, MAX_TEXT)));
     return `1.${toBase64Url(packVarints(g.gaps))}.${encodeURIComponent(g.name.slice(0, 12))}.${text}`;
@@ -159,7 +159,7 @@ import { toolPage } from '../../lib/site-base';
     ]
   });
 
-  /** 그리기는 **말 묶음이 온 뒤**에 — 지문도 단위 이름도 전부 말 묶음에서 나온다. */
+  /** 그리기는 **말 묶음이 온 뒤**에. 지문도 단위 이름도 전부 말 묶음에서 나온다. */
   function draw(container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: t('ghosttype.mdd') });
 
@@ -224,7 +224,7 @@ import { toolPage } from '../../lib/site-base';
           const textEl = $<HTMLElement>('#gtText');
           const input = $<HTMLTextAreaElement>('#gtInput');
           const status = $<HTMLElement>('#gtStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const result = $<HTMLElement>('#gtResult');
           const meRunner = $<HTMLElement>('#gtMe');
@@ -236,7 +236,7 @@ import { toolPage } from '../../lib/site-base';
           try {
             nameInput.value = localStorage.getItem(NAME_KEY) || '';
           } catch {
-            /* 사생활 보호 모드면 이름을 기억하지 않는다 — 대결에는 지장 없다 */
+            /* 사생활 보호 모드면 이름을 기억하지 않는다. 대결에는 지장 없다 */
           }
           if (ghost) {
             $<HTMLElement>('#gtGhostName').textContent = ghost.name;
@@ -250,7 +250,7 @@ import { toolPage } from '../../lib/site-base';
           let done = false;
           let raf = 0;
 
-          /** 유령이 그 시각에 몇 글자까지 갔는지 — 기록 사이는 곧게 이어 준다(뚝뚝 끊기지 않게). */
+          /** 유령이 그 시각에 몇 글자까지 갔는지. 기록 사이는 곧게 이어 준다(뚝뚝 끊기지 않게). */
           function ghostCharsAt(ms: number): number {
             if (!ghost) return 0;
             let acc = 0;
@@ -266,7 +266,7 @@ import { toolPage } from '../../lib/site-base';
             return ghost ? ghost.gaps.reduce((s, g) => s + g, 0) : 0;
           }
 
-          /** 앞에서부터 연속으로 맞은 글자 수 — 여기까지가 달려온 거리다. */
+          /** 앞에서부터 연속으로 맞은 글자 수. 여기까지가 달려온 거리다. */
           function correctPrefix(): number {
             const typed = input.value;
             let n = 0;
@@ -279,7 +279,7 @@ import { toolPage } from '../../lib/site-base';
             let html = '';
             for (let i = 0; i < target.length; i++) {
               const ch = esc(target[i]);
-              // 유령이 지금 어디를 치고 있는지 글 안에도 표시한다 — 막대만으로는 「얼마나 뒤졌나」가 안 보인다
+              // 유령이 지금 어디를 치고 있는지 글 안에도 표시한다. 막대만으로는 얼마나 뒤졌나가 안 보인다
               const g = i === ghostAt ? ' gt-ghost-at' : '';
               if (i < typed.length) html += `<span class="${typed[i] === target[i] ? 'gt-ok' : 'gt-bad'}${g}">${ch}</span>`;
               else if (i === typed.length) html += `<span class="gt-cur${g}">${ch}</span>`;
@@ -342,9 +342,9 @@ import { toolPage } from '../../lib/site-base';
               const text2 = { name: esc(ghost.name), sec: gap.toFixed(1) };
               verdict = `<b class="${win ? 'gt-win' : 'gt-lose'}">${esc(
                 t(win ? 'ghosttype.win' : 'ghosttype.lose')
-              )}</b> — ${t(win ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', text2)}`;
+              )}</b>. ${t(win ? 'ghosttype.win.detail' : 'ghosttype.lose.detail', text2)}`;
             } else {
-              verdict = `<b>${esc(t('ghosttype.record'))}</b> — ${esc(t('ghosttype.record.detail'))}`;
+              verdict = `<b>${esc(t('ghosttype.record'))}</b>. ${esc(t('ghosttype.record.detail'))}`;
             }
 
             result.style.display = '';
@@ -390,7 +390,7 @@ import { toolPage } from '../../lib/site-base';
             paint();
           }
 
-          /** 글을 바꾸면 유령은 다른 글의 기록이라 나란히 놓을 수 없다 — 조용히 빼지 말고 말해 준다. */
+          /** 글을 바꾸면 유령은 다른 글의 기록이라 나란히 놓을 수 없다. 조용히 빼지 말고 말해 준다. */
           function setText(next: string): void {
             target = next;
             if (racing) {
@@ -445,7 +445,7 @@ import { toolPage } from '../../lib/site-base';
           };
 
           /* 이미 이 화면을 열어 둔 채로 남의 유령 주소를 열면 주소만 바뀌고 화면은 그대로다
-           * (같은 문서 안 이동이라 다시 안 짜인다) — 유령이 없는 것처럼 보인다. 그때만 새로 연다. */
+           * (같은 문서 안 이동이라 다시 안 짜인다). 유령이 없는 것처럼 보인다. 그때만 새로 연다. */
           const onHash = (): void => {
             const m = location.hash.match(/g=([^&]+)/);
             const now = m ? m[1] : '';

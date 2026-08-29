@@ -1,22 +1,22 @@
 /**
- * 타임캡슐 — 정한 날 전에는 **아무도 못 여는** 편지 (TASK-KL-134)
+ * 타임캡슐. 정한 날 전에는 **아무도 못 여는** 편지 (TASK-KL-134)
  *
  * 이미 있는 것들과 무엇이 다른가 (2026-08-07 조사):
- *  - 국내 서비스는 전부 **맡겼다가 그날 보내 주는** 방식이다(백년의 편지·슬로레터·타임버블 류).
+ *  - 국내 서비스는 전부 **맡겼다가 그날 보내 주는** 방식이다(백년의 편지, 슬로레터, 타임버블 류).
  *    회사가 문을 닫으면 편지도 사라지고, 관리자는 언제든 미리 볼 수 있다.
  *  - 여기서는 **잠긴 편지 자체가 주소**다. 우리 쪽에 아무것도 안 남는다.
  *
- * 그리고 진짜로 잠근다. 날짜로 열쇠를 만들면 시계만 바꿔도 열린다 — 그건 봉인이지 잠금이 아니다.
+ * 그리고 진짜로 잠근다. 날짜로 열쇠를 만들면 시계만 바꿔도 열린다. 그건 봉인이지 잠금이 아니다.
  * 여기서는 **공개 무작위 시계**(drand)를 쓴다. 그 시계는 정해진 시각이 되어야 그 회차의 값을
  * 세상에 내놓고, 그 값이 있어야만 열쇠가 맞춰진다. 그래서 편지를 가진 사람도, 만든 사람도,
- * 우리도 그 전에는 못 연다. 시계를 앞당겨도 소용없다 — 열쇠가 내 컴퓨터에 없기 때문이다.
+ * 우리도 그 전에는 못 연다. 시계를 앞당겨도 소용없다. 열쇠가 내 컴퓨터에 없기 때문이다.
  *
  * 대신 기댈 곳이 하나 생긴다: 그 공개 시계가 계속 돌아야 열린다. 그래서 화면에 그 사실을 적는다.
  */
 import { timelockEncrypt, timelockDecrypt, mainnetClient, roundAt, Buffer } from 'tlock-js';
 import { statusLine } from './shared/say';
 
-/* 이 라이브러리는 안쪽에서 Node 의 바이트 상자(Buffer)를 그대로 부른다 — 브라우저엔 없다.
+/* 이 라이브러리는 안쪽에서 Node 의 바이트 상자(Buffer)를 그대로 부른다. 브라우저엔 없다.
  * 라이브러리가 같이 주는 대체품을 전역에 놓아 준다(없을 때만). */
 if (!(globalThis as unknown as { Buffer?: unknown }).Buffer) {
   (globalThis as unknown as { Buffer: unknown }).Buffer = Buffer;
@@ -26,7 +26,7 @@ import { t, loadNamespace, fmtDate } from '../../lib/i18n';
 import { toolPage } from '../../lib/site-base';
 
 (function (): void {
-  const MAX_LETTER = 1200; // 주소에 담아야 하므로 — 이보다 길면 링크가 메신저에서 잘린다
+  const MAX_LETTER = 1200; // 주소에 담아야 하므로. 이보다 길면 링크가 메신저에서 잘린다
 
   function toBase64Url(bytes: Uint8Array): string {
     let bin = '';
@@ -44,7 +44,7 @@ import { toolPage } from '../../lib/site-base';
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  /** 남은 시간을 사람 말로 — 이름은 **쓸 때** 정한다(말 묶음이 온 뒤라야 그 언어로 나온다). */
+  /** 남은 시간을 사람 말로. 이름은 **쓸 때** 정한다(말 묶음이 온 뒤라야 그 언어로 나온다). */
   function remainingText(ms: number): string {
     if (ms <= 0) return t('timecapsule.left.now');
     const minutes = Math.floor(ms / 60000);
@@ -132,8 +132,8 @@ import { toolPage } from '../../lib/site-base';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const status = $<HTMLElement>('#tcStatus');
           const out = $<HTMLElement>('#tcOut');
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           let client: ReturnType<typeof mainnetClient> | null = null;
@@ -216,7 +216,7 @@ import { toolPage } from '../../lib/site-base';
                 Toolbox.trackUse?.('open');
               } catch (e) {
                 const text2 = e instanceof Error ? e.message : String(e);
-                // 아직 때가 아니면 라이브러리가 「몇 회차에 열린다」를 말해 준다 — 그걸 날짜로 바꿔 보여 준다.
+                // 아직 때가 아니면 라이브러리가 몇 회차에 열린다를 말해 준다. 그걸 날짜로 바꿔 보여 준다.
                 const m = text2.match(/round\s*(\d+)/i);
                 if (m) {
                   try {

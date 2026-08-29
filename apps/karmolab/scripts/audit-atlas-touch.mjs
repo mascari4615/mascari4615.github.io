@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * audit-atlas-touch — **폰에서 손가락으로 지도를 움직일 수 있나** (TASK-KAR-233).
+ * audit-atlas-touch. **폰에서 손가락으로 지도를 움직일 수 있나** (TASK-KAR-233).
  *
- * 폰에서 지도를 불러오는 길은 고쳐 놨는데, **불러온 다음이 없었다** — 폰 흉내로 재 보니
+ * 폰에서 지도를 불러오는 길은 고쳐 놨는데, **불러온 다음이 없었다**. 폰 흉내로 재 보니
  * 손가락으로 밀어도 자세가 **한 픽셀도 안 변했다.** 듣는 입력이 마우스뿐이었고,
  * `touch-action` 이 `auto` 라 손가락을 대면 브라우저가 페이지를 대신 스크롤했다.
  *
- * 고친 뒤 이 자가 본다 — **손가락으로**:
+ * 고친 뒤 이 자가 본다. **손가락으로**:
  *  - 하나로 밀면 자세가 바뀌나
  *  - 둘을 벌리면 배율이 오르나 (집기)
- *  - 캔버스가 브라우저에게 「이 자리는 내가 쓴다」고 말하나 (touch-action: none)
+ *  - 캔버스가 브라우저에게 이 자리는 내가 쓴다고 말하나 (touch-action: none)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,12 +22,12 @@ const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 const ATLAS = atlasPath(HERE);
 
 if (!fs.existsSync(ATLAS) || !fs.existsSync(BUNDLE)) {
-  console.log('[touch] 지도나 번들이 없다 — 검사 건너뜀');
+  console.log('[touch] 지도나 번들이 없다. 검사 건너뜀');
   process.exit(0);
 }
 let chromium; let devices;
 try { ({ chromium, devices } = await import('playwright')); } catch {
-  console.log('[touch] playwright 가 없다 — 검사 건너뜀');
+  console.log('[touch] playwright 가 없다. 검사 건너뜀');
   process.exit(0);
 }
 
@@ -52,7 +52,7 @@ await page.evaluate(() => {
   const h = document.createElement('div');
   h.id = 'host'; h.style.width = '380px'; h.style.height = '600px';
   document.body.appendChild(h);
-  /* **셸과 같은 길로 얹는다** — 셸은 `tabs[].build` 로만 그린다. 예전엔 여기서
+  /* **셸과 같은 길로 얹는다**. 셸은 `tabs[].build` 로만 그린다. 예전엔 여기서
          `render(h)` 를 직접 불렀는데, 그 바람에 위젯이 셸이 안 읽는 모양으로 등록해도
          자들은 전부 초록이었다(2026-08-21, 사람이 열어 보고서야 드러났다). */
       window.__reg['memo-atlas'].tabs[0].build(h);
@@ -66,7 +66,7 @@ const box = await (await page.$('#host .atlas-canvas')).boundingBox();
 /* 브라우저에게 이 자리를 넘겨받았나. */
 const ta = await page.evaluate(() => getComputedStyle(document.querySelector('#host .atlas-canvas')).touchAction);
 console.log(`[touch] touch-action = ${ta}`);
-if (ta !== 'none') bad.push(`touch-action 이 ${ta} — 손가락을 대면 브라우저가 페이지를 스크롤한다`);
+if (ta !== 'none') bad.push(`touch-action 이 ${ta}. 손가락을 대면 브라우저가 페이지를 스크롤한다`);
 
 /** 손가락 하나로 민다. */
 async function swipe(dx, dy) {
@@ -88,10 +88,10 @@ async function swipe(dx, dy) {
 const before = await state();
 await swipe(-120, -60);
 const after = await state();
-console.log(`[touch] 한 손가락으로 밀기 → x ${before.x.toFixed(0)}→${after.x.toFixed(0)} · y ${before.y.toFixed(0)}→${after.y.toFixed(0)}`);
+console.log(`[touch] 한 손가락으로 밀기 → x ${before.x.toFixed(0)}→${after.x.toFixed(0)}, y ${before.y.toFixed(0)}→${after.y.toFixed(0)}`);
 if (Math.abs(after.x - before.x) < 20 || Math.abs(after.y - before.y) < 10) bad.push('손가락으로 밀어도 지도가 안 움직인다');
 
-/* 두 손가락으로 벌린다 — 집기. */
+/* 두 손가락으로 벌린다. 집기. */
 const zoomBefore = (await state()).scale;
 await page.evaluate(([x, y]) => {
   const cv = document.querySelector('#host .atlas-canvas');

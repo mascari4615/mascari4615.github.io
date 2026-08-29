@@ -1,20 +1,20 @@
 /**
- * 작은 쇼기 — 잡은 말을 내 말로 다시 놓는다 (TASK-KL-242)
+ * 작은 쇼기. 잡은 말을 내 말로 다시 놓는다 (TASK-KL-242)
  *
- * 체커·오목과 같은 「차례·보드」인데 규칙 하나가 판을 완전히 바꾼다: **잡은 말이 사라지지 않고
+ * 체커, 오목과 같은 차례, 보드인데 규칙 하나가 판을 완전히 바꾼다: **잡은 말이 사라지지 않고
  * 내 손에 들어온다.** 그래서 말이 줄지 않고, 판이 좁아질수록 오히려 수가 늘어난다.
  *
- * 5×5 로 줄였다(클럽하우스의 「미니 쇼기」와 같은 크기). 승부는 **왕을 잡으면 끝** —
+ * 5×5 로 줄였다(클럽하우스의 미니 쇼기와 같은 크기). 승부는 **왕을 잡으면 끝** . 
  * 외통 판정은 처음 온 사람에게 설명하기 어렵고, 왕을 잡는 쪽이 눈에 바로 보인다.
  *
- * 말: 왕(K) 금(G) 은(S) 비(R) 각(B) 보(P). 승격은 넣지 않았다 — 규칙 하나를 더 얹으면
+ * 말: 왕(K) 금(G) 은(S) 비(R) 각(B) 보(P). 승격은 넣지 않았다. 규칙 하나를 더 얹으면
  * 첫 판에서 배울 것이 두 배가 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
 export const N = 5;
 
-/** 1~6 = 자리0의 왕·금·은·비·각·보, 음수는 자리1의 것 */
+/** 1~6 = 자리0의 왕, 금, 은, 비, 각, 보, 음수는 자리1의 것 */
 export type Piece = number;
 export const KING = 1, GOLD = 2, SILVER = 3, ROOK = 4, BISHOP = 5, PAWN = 6;
 
@@ -25,7 +25,7 @@ export interface ShogiState {
   turn: number;
   won: number;
   last: number;
-  /** 아무 일 없이 흐른 수 — 안 끝나는 판을 막는다 */
+  /** 아무 일 없이 흐른 수. 안 끝나는 판을 막는다 */
   idle: number;
 }
 
@@ -135,7 +135,7 @@ export const minishogi: GameDef<ShogiState, ShogiAction> = {
     board[from] = 0;
 
     const hand = s.hand.map((h) => h.slice());
-    /* **잡은 말은 내 손에 들어온다** — 이 한 줄이 이 놀이의 전부다. */
+    /* **잡은 말은 내 손에 들어온다**. 이 한 줄이 이 놀이의 전부다. */
     if (taken !== 0) hand[seat].push(kindOf(taken));
 
     const won = kindOf(taken) === KING ? seat : -1;
@@ -167,7 +167,7 @@ export const minishogi: GameDef<ShogiState, ShogiAction> = {
         moves.push({ a: { kind: 'move', from, to }, v: v + ctx.rng() });
       }
     });
-    /* 손에 든 말은 빈 칸 아무 데나 — 앞쪽에 두는 것을 조금 좋아한다. */
+    /* 손에 든 말은 빈 칸 아무 데나. 앞쪽에 두는 것을 조금 좋아한다. */
     (s.hand[seat] ?? []).forEach((piece) => {
       s.board.forEach((p, to) => {
         if (p !== 0) return;

@@ -1,7 +1,7 @@
 /**
  * PWA 등록 + 갱신 안내 (TASK-KL-088)
  *
- * 배경(진단) — KarmoLab 은 `/` 에 서비스되는데 자체 SW 는 `/apps/karmolab/` 스코프로
+ * 배경(진단). KarmoLab 은 `/` 에 서비스되는데 자체 SW 는 `/apps/karmolab/` 스코프로
  * 등록돼 있어 이 페이지를 전혀 제어하지 못했다. 실제로 제어하던 것은 블로그(Chirpy)의 루트 SW 이고,
  * 그 SW 는 cache-first + 새 버전이 waiting 으로 대기하는 구조인데 KarmoLab 화면에는 그것을 깨울
  * UI 가 없었다. 그래서 새로 배포한 위젯이 기존 방문자에게 계속 안 보였다.
@@ -16,7 +16,7 @@
 import { t, loadNamespace } from './lib/i18n';
 import { APP_BASE, appPath } from './lib/site-base';
 
-/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 위젯이 아니라 셸, 라이브러리. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
 if (typeof document !== 'undefined') void loadNamespace('pwa');
 
@@ -82,11 +82,11 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
     };
   }
 
-  /** 등록 하나를 감시 — 대기 중이거나 새로 설치되면 배너를 띄운다 */
+  /** 등록 하나를 감시. 대기 중이거나 새로 설치되면 배너를 띄운다 */
   function watch(registration: ServiceWorkerRegistration): void {
     const promptFor = (worker: ServiceWorker | null): void => {
       if (!worker) return;
-      // 컨트롤러가 없으면 이번이 최초 설치 — 갱신할 것이 없다.
+      // 컨트롤러가 없으면 이번이 최초 설치. 갱신할 것이 없다.
       if (!navigator.serviceWorker.controller) return;
       showBanner(() => {
         void navigator.serviceWorker.getRegistrations().then((regs) => {
@@ -119,7 +119,7 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
       });
     })
     .catch((e) => {
-      // 로컬에서 /apps/karmolab/index.html 을 직접 열면 이 경로가 없다 — 무시.
+      // 로컬에서 /apps/karmolab/index.html 을 직접 열면 이 경로가 없다. 무시.
       console.warn('[PWA] sw register fail:', e && e.message);
     });
 
@@ -137,9 +137,9 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
   /* ★ **처음 붙는 것은 갈아치우는 것이 아니다** (2026-08-13).
    *
    * 일꾼(service worker)이 처음 설치되면 그 자리에서 이 화면을 넘겨받는다(`clients.claim`).
-   * 그때도 `controllerchange` 가 울린다 — 그래서 **첫 방문마다 화면이 한 번 새로고침됐다**
+   * 그때도 `controllerchange` 가 울린다. 그래서 **첫 방문마다 화면이 한 번 새로고침됐다**
    * (실사이트 실측: 열고 242ms 뒤). 그 사이에 넣은 것은 전부 사라진다. 판본 대조가 그렇게
-   * 죽어 있었다: 파일 두 개를 넣자마자 새로고침이 들어와 「두 판본을 모두 넣어 주세요」.
+   * 죽어 있었다: 파일 두 개를 넣자마자 새로고침이 들어와 두 판본을 모두 넣어 주세요.
    *
    * 새로고침이 필요한 경우는 **이미 붙어 있던 일꾼이 새 판으로 바뀐** 때뿐이다. 처음 붙는
    * 순간에는 낡은 것이 없으므로 버릴 것도 없다. 그래서 열릴 때 붙어 있었는지를 기억해 둔다. */
@@ -147,7 +147,7 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
 
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (reloading) return;
-    if (!onOpenWasAttached) return; // 첫 설치가 넘겨받은 것 — 버릴 낡은 화면이 없다
+    if (!onOpenWasAttached) return; // 첫 설치가 넘겨받은 것. 버릴 낡은 화면이 없다
     reloading = true;
     location.reload();
   });

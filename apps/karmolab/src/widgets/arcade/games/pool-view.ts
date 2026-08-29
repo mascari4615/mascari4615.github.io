@@ -1,7 +1,7 @@
 /**
  * 당구 화면 (TASK-KL-242)
  *
- * 위에서 내려다본다 — 당구는 **각도를 재는 놀이**라 비스듬히 보면 각이 안 읽힌다.
+ * 위에서 내려다본다. 당구는 **각도를 재는 놀이**라 비스듬히 보면 각이 안 읽힌다.
  * 겨눔은 흰 공에서 뻗는 점선. 세기는 막대로 따로 받는다(끌기 하나로 둘 다 받으면 폰에서 어긋난다).
  */
 import { t } from '../../../lib/i18n';
@@ -47,12 +47,12 @@ export const poolView: GameView<PoolState, PoolAction> = {
       const k = cv.width / W;
       c.setTransform(k, 0, 0, k, 0, 0);
 
-      /* 천 · 나무 쿠션 — 공용 붓(`paint.ts`). 판마다 색을 따로 고르지 않는다. */
+      /* 천, 나무 쿠션. 공용 붓(`paint.ts`). 판마다 색을 따로 고르지 않는다. */
       felt(c, W, H);
       woodRail(c, W, H);
 
       for (const [px, py] of POCKETS) {
-        /* 구멍은 **파인 것**이다 — 안쪽이 새까맣고 가장자리에만 빛이 걸린다. */
+        /* 구멍은 **파인 것**이다. 안쪽이 새까맣고 가장자리에만 빛이 걸린다. */
         const hole = c.createRadialGradient(px, py - 1, 0.4, px, py, 5.4);
         hole.addColorStop(0, '#000000');
         hole.addColorStop(0.75, '#070a10');
@@ -79,11 +79,11 @@ export const poolView: GameView<PoolState, PoolAction> = {
 
       for (const b of s.balls) {
         if (b.in) continue;
-        /* 공 = 구슬(`orb`) — 그림자·빛·하이라이트가 한 규칙이다. */
+        /* 공 = 구슬(`orb`). 그림자, 빛, 하이라이트가 한 규칙이다. */
         orb(c, b.x, b.y, BALL_R, b.cue ? '#f4efe4' : '#f0b429', b.cue ? '#ffffff' : '#ffe680');
       }
 
-      /* 넣은 수는 **판 밖**에 적는다 — 캔버스 안에 글자를 그리면 판마다 제 글꼴·제 크기가 되고
+      /* 넣은 수는 **판 밖**에 적는다. 캔버스 안에 글자를 그리면 판마다 제 글꼴, 제 크기가 되고
          (여기선 6px sans-serif 였다) 무대가 커져도 안 따라 커진다. 판 위는 공만 있는 자리다. */
       scoreEl.innerHTML = v.seats
         .map((seat, i) =>

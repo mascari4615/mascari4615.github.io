@@ -3,19 +3,19 @@
   "parts": [
     {
       "id": "1",
-      "title": "증상에서 패널로 — 어디를 먼저 열까",
+      "title": "증상에서 패널로. 어디를 먼저 열까",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "개발자도구를 「기능 목록」으로 배우면 안 쓰게 된다. 실제로 필요한 것은 **증상에서 패널로 가는 지도**다 — 이 증상이면 저 패널을 연다, 하는 반사 신경."
+          "text": "개발자도구를 기능 목록으로 배우면 안 쓰게 된다. 실제로 필요한 것은 **증상에서 패널로 가는 지도**다. 이 증상이면 저 패널을 연다, 하는 반사 신경."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "증상을 골라 보라 — 어느 패널이 먼저인가",
+          "label": "증상을 골라 보라. 어느 패널이 먼저인가",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const s = '{{symptom}}';\n  const t = {\n    style: ['스타일이 안 먹는다', 'Elements > Styles',\n      '규칙이 취소선이면 진 것(구체성), 아예 없으면 선택자가 못 잡은 것.',\n      'Computed 탭에서 최종 값과 그 값이 어디서 왔는지를 본다'],\n    layout: ['화면이 이상하게 밀린다', 'Elements + Layout(그리드/플렉스 오버레이)',\n      '박스 모델 그림에서 margin·padding 을 눈으로 본다.',\n      'Layout 패널에서 grid/flex 선을 켜면 어느 칸이 어디까지인지 보인다'],\n    slow: ['느리다 (첫 화면)', 'Network',\n      '무엇이 몇 ms 걸렸나 · 큰 파일 · 왕복 수 · 차단 자원.',\n      '느린 네트워크로 조절해 재현하는 것이 절반이다'],\n    janky: ['버벅인다 (스크롤·애니메이션)', 'Performance',\n      '긴 작업(빨간 삼각형)과 Layout/Paint 막대를 본다.',\n      '앞 칸(렌더링 5장)의 16.7ms 예산이 여기서 보인다'],\n    leak: ['오래 켜 두면 느려진다', 'Memory (힙 스냅샷 비교)',\n      '전후 스냅샷을 비교해 안 사라진 객체를 찾는다.',\n      'Detached 로 시작하는 이름이 보이면 DOM 누수'],\n    error: ['에러가 나는데 어디서인지 모른다', 'Sources (중단점)',\n      '조건부·이벤트·XHR 중단점으로 그 순간에 멈춘다.',\n      'console.log 를 뿌리기 전에 중단점 하나가 대개 빠르다'],\n    state: ['로그인이 풀린다 · 값이 안 남는다', 'Application',\n      '쿠키·localStorage·세션·서비스워커·캐시를 직접 본다.',\n      '쿠키의 도메인·경로·SameSite·만료를 하나씩 확인'],\n  }[s];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:18px;margin-top:6px;color:#4ade80\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '기억할 순서\\n'\n     + '  1. 무엇이 이상한가 (보이는 것 / 느린 것 / 안 되는 것)\\n'\n     + '  2. 그 증상의 패널을 연다\\n'\n     + '  3. **재현부터** 한다 — 재현이 안 되면 도구도 못 본다');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const s = '{{symptom}}';\n  const t = {\n    style: ['스타일이 안 먹는다', 'Elements > Styles',\n      '규칙이 취소선이면 진 것(구체성), 아예 없으면 선택자가 못 잡은 것.',\n      'Computed 탭에서 최종 값과 그 값이 어디서 왔는지를 본다'],\n    layout: ['화면이 이상하게 밀린다', 'Elements + Layout(그리드/플렉스 오버레이)',\n      '박스 모델 그림에서 margin, padding 을 눈으로 본다.',\n      'Layout 패널에서 grid/flex 선을 켜면 어느 칸이 어디까지인지 보인다'],\n    slow: ['느리다 (첫 화면)', 'Network',\n      '무엇이 몇 ms 걸렸나, 큰 파일, 왕복 수, 차단 자원.',\n      '느린 네트워크로 조절해 재현하는 것이 절반이다'],\n    janky: ['버벅인다 (스크롤, 애니메이션)', 'Performance',\n      '긴 작업(빨간 삼각형)과 Layout/Paint 막대를 본다.',\n      '앞 칸(렌더링 5장)의 16.7ms 예산이 여기서 보인다'],\n    leak: ['오래 켜 두면 느려진다', 'Memory (힙 스냅샷 비교)',\n      '전후 스냅샷을 비교해 안 사라진 객체를 찾는다.',\n      'Detached 로 시작하는 이름이 보이면 DOM 누수'],\n    error: ['에러가 나는데 어디서인지 모른다', 'Sources (중단점)',\n      '조건부, 이벤트, XHR 중단점으로 그 순간에 멈춘다.',\n      'console.log 를 뿌리기 전에 중단점 하나가 대개 빠르다'],\n    state: ['로그인이 풀린다, 값이 안 남는다', 'Application',\n      '쿠키, localStorage, 세션, 서비스워커, 캐시를 직접 본다.',\n      '쿠키의 도메인, 경로, SameSite, 만료를 하나씩 확인'],\n  }[s];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:18px;margin-top:6px;color:#4ade80\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '기억할 순서\\n'\n     + '  1. 무엇이 이상한가 (보이는 것 / 느린 것 / 안 되는 것)\\n'\n     + '  2. 그 증상의 패널을 연다\\n'\n     + '  3. **재현부터** 한다. 재현이 안 되면 도구도 못 본다');\n</script>",
           "controls": [
             {
               "id": "symptom",
@@ -57,26 +57,26 @@
         },
         {
           "type": "note",
-          "text": "**단축키 몇 개가 체감을 바꾼다.** `F12`(열기), `Ctrl/Cmd+Shift+C`(요소 선택), `Ctrl/Cmd+Shift+P`(명령 메뉴 — 여기서 거의 모든 기능을 이름으로 찾을 수 있다), `Esc`(콘솔 서랍 열기 — 다른 패널을 보면서 콘솔을 쓴다)."
+          "text": "**단축키 몇 개가 체감을 바꾼다.** `F12`(열기), `Ctrl/Cmd+Shift+C`(요소 선택), `Ctrl/Cmd+Shift+P`(명령 메뉴. 여기서 거의 모든 기능을 이름으로 찾을 수 있다), `Esc`(콘솔 서랍 열기. 다른 패널을 보면서 콘솔을 쓴다)."
         },
         {
           "type": "p",
-          "text": "그리고 **명령 메뉴**(`Ctrl/Cmd+Shift+P`)를 익혀 두면 메뉴를 뒤질 일이 거의 없다. 「screenshot」·「coverage」·「rendering」 같은 말을 치면 그 기능이 바로 나온다 — 도구의 검색창이라고 생각하면 된다."
+          "text": "그리고 **명령 메뉴**(`Ctrl/Cmd+Shift+P`)를 익혀 두면 메뉴를 뒤질 일이 거의 없다. screenshot, coverage, rendering 같은 말을 치면 그 기능이 바로 나온다. 도구의 검색창이라고 생각하면 된다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "명령 메뉴에서 자주 쓰는 것",
-          "text": "Capture full size screenshot     전체 페이지 스크린샷\nCapture node screenshot          고른 요소만 스크린샷\nShow Coverage                    안 쓰는 CSS/JS 비율\nShow Rendering                   페인트 반짝임·FPS 미터·prefers-* 흉내\nShow Animations                  애니메이션 느리게 재생·타임라인\nDisable JavaScript               JS 없이 어떻게 보이나"
+          "text": "Capture full size screenshot     전체 페이지 스크린샷\nCapture node screenshot          고른 요소만 스크린샷\nShow Coverage                    안 쓰는 CSS/JS 비율\nShow Rendering                   페인트 반짝임, FPS 미터, prefers-* 흉내\nShow Animations                  애니메이션 느리게 재생, 타임라인\nDisable JavaScript               JS 없이 어떻게 보이나"
         },
         {
           "type": "try",
-          "text": "지금 `Ctrl/Cmd+Shift+P` 를 누르고 「rendering」을 쳐 보라. Paint flashing 을 켜고 페이지를 스크롤하면, 어디가 다시 칠해지는지 초록색으로 보인다."
+          "text": "지금 `Ctrl/Cmd+Shift+P` 를 누르고 rendering을 쳐 보라. Paint flashing 을 켜고 페이지를 스크롤하면, 어디가 다시 칠해지는지 초록색으로 보인다."
         }
       ],
       "quiz": [
         {
-          "q": "「스타일이 안 먹는다」에서 먼저 볼 곳은?",
+          "q": "스타일이 안 먹는다에서 먼저 볼 곳은?",
           "choices": [
             "Console",
             "Elements > Styles(취소선/누락)",
@@ -112,7 +112,7 @@
     },
     {
       "id": "2",
-      "title": "Elements — 화면을 손으로 만져 본다",
+      "title": "Elements. 화면을 손으로 만져 본다",
       "minutes": 9,
       "blocks": [
         {
@@ -122,9 +122,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "도구를 골라 보라 — 무엇을 알 수 있나",
+          "label": "도구를 골라 보라. 무엇을 알 수 있나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{tool}}';\n  const t = {\n    styles: ['Styles 탭', '이 요소에 걸린 규칙들이 이긴 순서대로',\n      '취소선 = 다른 규칙에 졌다 · 없음 = 선택자가 안 잡았다.\\n'\n      + '값을 직접 고쳐 보거나 체크를 꺼서 무엇이 범인인지 이분법으로 좁힌다.'],\n    computed: ['Computed 탭', '최종적으로 적용된 값',\n      '상속·기본값까지 반영된 진짜 값. 각 값을 펼치면 **어느 규칙에서 왔는지** 나온다.\\n'\n      + '「분명 16px 로 줬는데 왜 14px 이지?」의 답이 여기 있다.'],\n    box: ['박스 모델 그림', 'margin / border / padding / content',\n      '숫자를 직접 눌러 바꿀 수 있다. 여백이 어디서 오는지 눈으로 확인.\\n'\n      + '「이 빈 공간이 margin 인가 padding 인가」를 3초에 판별한다.'],\n    force: ['상태 강제(:hov)', ':hover · :focus · :active · :focus-visible',\n      '마우스를 올리지 않아도 hover 상태를 고정해 스타일을 본다.\\n'\n      + '드롭다운·툴팁처럼 「손을 떼면 사라지는」 것을 검사할 때 필수.'],\n    a11y: ['Accessibility 패널', '이름·역할·상태와 접근성 트리',\n      '앞 칸(접근성 4장)에서 말한 그 화면. 아이콘 단추의 이름이 비었는지 즉시 확인.'],\n    break: ['DOM 중단점', '이 요소가 바뀌면 멈춘다',\n      '요소 우클릭 > Break on > attribute/subtree/node removal.\\n'\n      + '「누가 이 클래스를 지우지?」를 찾는 가장 빠른 길 — 그 순간의 스택이 나온다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '기억할 두 가지\\n'\n     + '  · Styles = 규칙들의 경쟁 · Computed = 최종 결과\\n'\n     + '  · 여기서 고친 것은 새로고침하면 사라진다 (Sources 의 로컬 오버라이드로 남길 수는 있다)');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{tool}}';\n  const t = {\n    styles: ['Styles 탭', '이 요소에 걸린 규칙들이 이긴 순서대로',\n      '취소선 = 다른 규칙에 졌다, 없음 = 선택자가 안 잡았다.\\n'\n      + '값을 직접 고쳐 보거나 체크를 꺼서 무엇이 범인인지 이분법으로 좁힌다.'],\n    computed: ['Computed 탭', '최종적으로 적용된 값',\n      '상속, 기본값까지 반영된 진짜 값. 각 값을 펼치면 **어느 규칙에서 왔는지** 나온다.\\n'\n      + '분명 16px 로 줬는데 왜 14px 이지?의 답이 여기 있다.'],\n    box: ['박스 모델 그림', 'margin / border / padding / content',\n      '숫자를 직접 눌러 바꿀 수 있다. 여백이 어디서 오는지 눈으로 확인.\\n'\n      + '이 빈 공간이 margin 인가 padding 인가를 3초에 판별한다.'],\n    force: ['상태 강제(:hov)', ':hover, :focus, :active, :focus-visible',\n      '마우스를 올리지 않아도 hover 상태를 고정해 스타일을 본다.\\n'\n      + '드롭다운, 툴팁처럼 손을 떼면 사라지는 것을 검사할 때 필수.'],\n    a11y: ['Accessibility 패널', '이름, 역할, 상태와 접근성 트리',\n      '앞 칸(접근성 4장)에서 말한 그 화면. 아이콘 단추의 이름이 비었는지 즉시 확인.'],\n    break: ['DOM 중단점', '이 요소가 바뀌면 멈춘다',\n      '요소 우클릭 > Break on > attribute/subtree/node removal.\\n'\n      + '누가 이 클래스를 지우지?를 찾는 가장 빠른 길. 그 순간의 스택이 나온다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '기억할 두 가지\\n'\n     + ' , Styles = 규칙들의 경쟁, Computed = 최종 결과\\n'\n     + ' , 여기서 고친 것은 새로고침하면 사라진다 (Sources 의 로컬 오버라이드로 남길 수는 있다)');\n</script>",
           "controls": [
             {
               "id": "tool",
@@ -162,7 +162,7 @@
         },
         {
           "type": "note",
-          "text": "**DOM 중단점**은 덜 알려졌지만 강력하다. 「어떤 코드가 이 요소를 지우는지」·「누가 이 속성을 바꾸는지」를 찾을 때, 로그를 뿌리는 대신 요소에 중단점을 걸면 그 순간의 호출 스택이 그대로 나온다."
+          "text": "**DOM 중단점**은 덜 알려졌지만 강력하다. 어떤 코드가 이 요소를 지우는지, 누가 이 속성을 바꾸는지를 찾을 때, 로그를 뿌리는 대신 요소에 중단점을 걸면 그 순간의 호출 스택이 그대로 나온다."
         },
         {
           "type": "code",
@@ -172,7 +172,7 @@
         },
         {
           "type": "p",
-          "text": "그리고 **로컬 오버라이드**(Sources > Overrides)를 켜면 개발자도구에서 고친 CSS·JS 가 파일로 저장되어 새로고침해도 유지된다. 배포된 사이트에서 수정안을 실험해 볼 때 유용하다."
+          "text": "그리고 **로컬 오버라이드**(Sources > Overrides)를 켜면 개발자도구에서 고친 CSS, JS 가 파일로 저장되어 새로고침해도 유지된다. 배포된 사이트에서 수정안을 실험해 볼 때 유용하다."
         },
         {
           "type": "try",
@@ -192,7 +192,7 @@
           "why": "아예 없으면 선택자 문제."
         },
         {
-          "q": "「누가 이 요소를 지우지?」를 찾는 가장 빠른 방법은?",
+          "q": "누가 이 요소를 지우지?를 찾는 가장 빠른 방법은?",
           "choices": [
             "로그 뿌리기",
             "DOM 중단점(node removal)",
@@ -217,7 +217,7 @@
     },
     {
       "id": "3",
-      "title": "Console — log 말고도 많다",
+      "title": "Console. log 말고도 많다",
       "minutes": 9,
       "blocks": [
         {
@@ -227,9 +227,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "함수를 골라 보라 — 그 자리에서 실행 결과를 본다",
+          "label": "함수를 골라 보라. 그 자리에서 실행 결과를 본다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{fn}}';\n  const rows = [\n    { name: '사료', price: 32000, qty: 2 },\n    { name: '모래', price: 12000, qty: 3 },\n    { name: '간식', price: 4000, qty: 5 },\n  ];\n  let result = '';\n  if (k === 'table') {\n    const w = [6, 8, 4];\n    result = 'console.table(rows)\\n\\n'\n      + '  ┌─────┬──────┬────────┬─────┐\\n'\n      + '  │ idx │ name │ price  │ qty │\\n'\n      + '  ├─────┼──────┼────────┼─────┤\\n'\n      + rows.map((r, i) => '  │  ' + i + '  │ ' + r.name + ' │ ' + String(r.price).padStart(6) + ' │  ' + r.qty + '  │').join('\\n')\n      + '\\n  └─────┴──────┴────────┴─────┘\\n\\n배열·객체 목록을 표로 — 눈이 훨씬 빨리 읽는다.';\n  } else if (k === 'count') {\n    let s = '';\n    for (let i = 0; i < 5; i++) s += '  render: ' + (i + 1) + '\\n';\n    result = 'console.count(\"render\")  를 5번 부르면\\n\\n' + s + '\\n「이 함수가 몇 번 불렸지?」에 로그를 세지 않고 답한다.';\n  } else if (k === 'time') {\n    const t0 = performance.now();\n    let x = 0; for (let i = 0; i < 2e6; i++) x += i % 7;\n    const ms = performance.now() - t0;\n    result = 'console.time(\"calc\") … console.timeEnd(\"calc\")\\n\\n'\n      + '  calc: ' + ms.toFixed(2) + 'ms   <- 방금 실제로 잰 값\\n\\n'\n      + 'console.timeLog(\"calc\") 로 중간 값도 찍을 수 있다.';\n  } else if (k === 'group') {\n    result = 'console.group(\"주문 처리\")\\n'\n      + '  ▸ 주문 처리\\n      검증 통과\\n      결제 요청\\n      ▸ 재고 차감\\n          사료 -2\\n          모래 -3\\n\\n'\n      + '중첩된 흐름을 접었다 폈다 — 로그가 많을 때 구조가 보인다.\\n'\n      + '(console.groupCollapsed 로 접힌 채 시작)';\n  } else if (k === 'assert') {\n    result = 'console.assert(total > 0, \"합계가 0 이하\", { total })\\n\\n'\n      + '  Assertion failed: 합계가 0 이하 { total: 0 }\\n\\n'\n      + '조건이 거짓일 때만 찍는다 — 정상 흐름에서는 조용하다.\\n'\n      + 'console.trace() 는 지금 여기까지 온 호출 스택을 찍는다.';\n  } else {\n    result = '조건부·로그 중단점 (Sources 에서 줄 번호 우클릭)\\n\\n'\n      + '  조건: id === 42        -> 그때만 멈춘다\\n'\n      + '  로그: {id, value}       -> 멈추지 않고 찍기만 한다\\n\\n'\n      + '코드를 고치지 않고 로그를 넣는 방법 — 지우는 것을 잊을 일이 없다.';\n  }\n  app.innerHTML = '<div class=\"hint\">콘솔에서 이렇게 나온다</div>';\n  show(result);\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{fn}}';\n  const rows = [\n    { name: '사료', price: 32000, qty: 2 },\n    { name: '모래', price: 12000, qty: 3 },\n    { name: '간식', price: 4000, qty: 5 },\n  ];\n  let result = '';\n  if (k === 'table') {\n    const w = [6, 8, 4];\n    result = 'console.table(rows)\\n\\n'\n      + '  ┌─────┬──────┬────────┬─────┐\\n'\n      + '  │ idx │ name │ price  │ qty │\\n'\n      + '  ├─────┼──────┼────────┼─────┤\\n'\n      + rows.map((r, i) => '  │  ' + i + '  │ ' + r.name + ' │ ' + String(r.price).padStart(6) + ' │  ' + r.qty + '  │').join('\\n')\n      + '\\n  └─────┴──────┴────────┴─────┘\\n\\n배열, 객체 목록을 표로. 눈이 훨씬 빨리 읽는다.';\n  } else if (k === 'count') {\n    let s = '';\n    for (let i = 0; i < 5; i++) s += '  render: ' + (i + 1) + '\\n';\n    result = 'console.count(\"render\")  를 5번 부르면\\n\\n' + s + '\\n이 함수가 몇 번 불렸지?에 로그를 세지 않고 답한다.';\n  } else if (k === 'time') {\n    const t0 = performance.now();\n    let x = 0; for (let i = 0; i < 2e6; i++) x += i % 7;\n    const ms = performance.now() - t0;\n    result = 'console.time(\"calc\") ... console.timeEnd(\"calc\")\\n\\n'\n      + '  calc: ' + ms.toFixed(2) + 'ms   <- 방금 실제로 잰 값\\n\\n'\n      + 'console.timeLog(\"calc\") 로 중간 값도 찍을 수 있다.';\n  } else if (k === 'group') {\n    result = 'console.group(\"주문 처리\")\\n'\n      + '  ▸ 주문 처리\\n      검증 통과\\n      결제 요청\\n      ▸ 재고 차감\\n          사료 -2\\n          모래 -3\\n\\n'\n      + '중첩된 흐름을 접었다 폈다. 로그가 많을 때 구조가 보인다.\\n'\n      + '(console.groupCollapsed 로 접힌 채 시작)';\n  } else if (k === 'assert') {\n    result = 'console.assert(total > 0, \"합계가 0 이하\", { total })\\n\\n'\n      + '  Assertion failed: 합계가 0 이하 { total: 0 }\\n\\n'\n      + '조건이 거짓일 때만 찍는다. 정상 흐름에서는 조용하다.\\n'\n      + 'console.trace() 는 지금 여기까지 온 호출 스택을 찍는다.';\n  } else {\n    result = '조건부, 로그 중단점 (Sources 에서 줄 번호 우클릭)\\n\\n'\n      + '  조건: id === 42        -> 그때만 멈춘다\\n'\n      + '  로그: {id, value}       -> 멈추지 않고 찍기만 한다\\n\\n'\n      + '코드를 고치지 않고 로그를 넣는 방법. 지우는 것을 잊을 일이 없다.';\n  }\n  app.innerHTML = '<div class=\"hint\">콘솔에서 이렇게 나온다</div>';\n  show(result);\n</script>",
           "controls": [
             {
               "id": "fn",
@@ -267,7 +267,7 @@
         },
         {
           "type": "note",
-          "text": "**로그 중단점**(logpoint)이 특히 좋다. 코드를 고치지 않고 원하는 줄에서 값을 찍을 수 있으니, 「디버그 로그를 지우는 것을 잊어 커밋에 섞이는」 사고가 사라진다. Sources 에서 줄 번호를 우클릭하면 나온다."
+          "text": "**로그 중단점**(logpoint)이 특히 좋다. 코드를 고치지 않고 원하는 줄에서 값을 찍을 수 있으니, 디버그 로그를 지우는 것을 잊어 커밋에 섞이는 사고가 사라진다. Sources 에서 줄 번호를 우클릭하면 나온다."
         },
         {
           "type": "code",
@@ -277,11 +277,11 @@
         },
         {
           "type": "p",
-          "text": "마지막 줄이 중요하다 — **콘솔에 찍은 객체는 「나중에 펼칠 때」의 값**을 보여 준다. 반복문 안에서 같은 객체를 찍으면 전부 최종 상태로 보인다. 그 순간을 남기려면 복사해서 찍어라(`structuredClone` 이나 `JSON.parse(JSON.stringify(x))`)."
+          "text": "마지막 줄이 중요하다. **콘솔에 찍은 객체는 나중에 펼칠 때의 값**을 보여 준다. 반복문 안에서 같은 객체를 찍으면 전부 최종 상태로 보인다. 그 순간을 남기려면 복사해서 찍어라(`structuredClone` 이나 `JSON.parse(JSON.stringify(x))`)."
         },
         {
           "type": "try",
-          "text": "콘솔에서 `console.table` 로 배열을 하나 찍어 보라. 그리고 반복문 안에서 객체를 찍은 뒤 나중에 펼쳐 보라 — 값이 「그때」가 아니라 「지금」인 것을 확인하라."
+          "text": "콘솔에서 `console.table` 로 배열을 하나 찍어 보라. 그리고 반복문 안에서 객체를 찍은 뒤 나중에 펼쳐 보라. 값이 그때가 아니라 지금인 것을 확인하라."
         }
       ],
       "quiz": [
@@ -322,19 +322,19 @@
     },
     {
       "id": "4",
-      "title": "Network — 무엇이 오갔나",
+      "title": "Network. 무엇이 오갔나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "Network 패널은 앞 칸(네트워크)에서 배운 것을 **눈으로 확인하는 자리**다. 그리고 실무에서 가장 자주 쓰는 기능은 목록 자체가 아니라 **조절·차단·재현**이다."
+          "text": "Network 패널은 앞 칸(네트워크)에서 배운 것을 **눈으로 확인하는 자리**다. 그리고 실무에서 가장 자주 쓰는 기능은 목록 자체가 아니라 **조절, 차단, 재현**이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "기능을 골라 보라 — 무엇을 알아내나",
+          "label": "기능을 골라 보라. 무엇을 알아내나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{feat}}';\n  const t = {\n    waterfall: ['폭포수 읽기', '요청 하나를 눌러 Timing 탭',\n      'Queueing · Stalled · DNS · Connect · TLS · TTFB · Content Download 로 나뉜다.',\n      'TTFB 가 길면 서버, Download 가 길면 크기, Stalled 가 길면 연결 수 제한'],\n    throttle: ['조절 (Throttling)', '느린 4G · 오프라인 · 사용자 정의',\n      '내 기가랜에서는 안 보이던 문제가 여기서 보인다.',\n      'CPU 조절(4x/6x slowdown)과 함께 쓰면 저사양 기기를 흉내 낼 수 있다'],\n    block: ['요청 차단', '특정 URL/패턴을 막고 다시 불러오기',\n      '「이 스크립트가 없으면 어떻게 되나」를 코드 수정 없이 확인.',\n      '광고·분석 스크립트가 성능에 미치는 영향을 재는 데 유용'],\n    replay: ['다시 보내기 · 복사', '우클릭 > Copy as cURL / fetch',\n      '실패한 요청을 그대로 터미널에서 재현한다 — 헤더·쿠키까지 포함.',\n      '버그 리포트에 붙이면 상대가 즉시 재현할 수 있다'],\n    cache: ['캐시 확인', 'Size 열의 (disk cache) · (memory cache) · 304',\n      '캐시 헤더가 실제로 먹고 있는지 눈으로 확인.',\n      'Disable cache 를 켜면 매번 새로 받는다 — 개발 중 기본으로 켜 두는 편'],\n    har: ['HAR 로 내보내기', '기록 전체를 파일로',\n      '「내 컴퓨터에서만 느려요」를 남에게 전달하는 방법.',\n      '민감 정보(토큰·쿠키)가 들어가므로 공유 전에 확인'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '켜 두면 좋은 설정\\n'\n     + '  · Preserve log — 화면 이동에도 기록이 안 지워진다(리다이렉트 추적)\\n'\n     + '  · Disable cache — 개발 중에는 켜 둔다\\n'\n     + '  · 열 추가: Protocol(h2/h3) · Priority · Waterfall');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{feat}}';\n  const t = {\n    waterfall: ['폭포수 읽기', '요청 하나를 눌러 Timing 탭',\n      'Queueing, Stalled, DNS, Connect, TLS, TTFB, Content Download 로 나뉜다.',\n      'TTFB 가 길면 서버, Download 가 길면 크기, Stalled 가 길면 연결 수 제한'],\n    throttle: ['조절 (Throttling)', '느린 4G, 오프라인, 사용자 정의',\n      '내 기가랜에서는 안 보이던 문제가 여기서 보인다.',\n      'CPU 조절(4x/6x slowdown)과 함께 쓰면 저사양 기기를 흉내 낼 수 있다'],\n    block: ['요청 차단', '특정 URL/패턴을 막고 다시 불러오기',\n      '이 스크립트가 없으면 어떻게 되나를 코드 수정 없이 확인.',\n      '광고, 분석 스크립트가 성능에 미치는 영향을 재는 데 유용'],\n    replay: ['다시 보내기, 복사', '우클릭 > Copy as cURL / fetch',\n      '실패한 요청을 그대로 터미널에서 재현한다. 헤더, 쿠키까지 포함.',\n      '버그 리포트에 붙이면 상대가 즉시 재현할 수 있다'],\n    cache: ['캐시 확인', 'Size 열의 (disk cache), (memory cache), 304',\n      '캐시 헤더가 실제로 먹고 있는지 눈으로 확인.',\n      'Disable cache 를 켜면 매번 새로 받는다. 개발 중 기본으로 켜 두는 편'],\n    har: ['HAR 로 내보내기', '기록 전체를 파일로',\n      '내 컴퓨터에서만 느려요를 남에게 전달하는 방법.',\n      '민감 정보(토큰, 쿠키)가 들어가므로 공유 전에 확인'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '켜 두면 좋은 설정\\n'\n     + ' , Preserve log. 화면 이동에도 기록이 안 지워진다(리다이렉트 추적)\\n'\n     + ' , Disable cache. 개발 중에는 켜 둔다\\n'\n     + ' , 열 추가: Protocol(h2/h3), Priority, Waterfall');\n</script>",
           "controls": [
             {
               "id": "feat",
@@ -372,21 +372,21 @@
         },
         {
           "type": "note",
-          "text": "**「Copy as cURL」 은 버그 보고의 최강 무기다.** 실패한 요청을 우클릭해 복사하면 헤더·쿠키·본문이 전부 담긴 명령이 나온다. 상대는 붙여넣기 한 번으로 같은 요청을 재현할 수 있다 — 「제 화면에서는 안 되는데요」가 사라진다."
+          "text": "**Copy as cURL 은 버그 보고의 최강 무기다.** 실패한 요청을 우클릭해 복사하면 헤더, 쿠키, 본문이 전부 담긴 명령이 나온다. 상대는 붙여넣기 한 번으로 같은 요청을 재현할 수 있다. 제 화면에서는 안 되는데요가 사라진다."
         },
         {
           "type": "code",
           "lang": "bash",
           "label": "복사한 요청을 다듬어 재현",
-          "text": "# Copy as cURL 로 얻은 것을 파일로 저장해 두고 조건을 바꿔 가며 실험\ncurl 'https://api.example.com/orders' \\\n  -H 'authorization: Bearer …' \\\n  -H 'content-type: application/json' \\\n  --data-raw '{\"itemId\":42}' -i\n\n# -i 로 응답 헤더까지 · -w 로 시간 측정 (cs-net 1장)\n# 토큰을 남에게 줄 때는 반드시 지워라"
+          "text": "# Copy as cURL 로 얻은 것을 파일로 저장해 두고 조건을 바꿔 가며 실험\ncurl 'https://api.example.com/orders' \\\n  -H 'authorization: Bearer ...' \\\n  -H 'content-type: application/json' \\\n  --data-raw '{\"itemId\":42}' -i\n\n# -i 로 응답 헤더까지, -w 로 시간 측정 (cs-net 1장)\n# 토큰을 남에게 줄 때는 반드시 지워라"
         },
         {
           "type": "p",
-          "text": "그리고 **Preserve log** 를 켜 두면 리다이렉트·폼 전송으로 화면이 바뀌어도 기록이 남는다. 「로그인하면 화면이 넘어가서 요청을 못 봤다」는 대부분 이 설정 하나로 해결된다."
+          "text": "그리고 **Preserve log** 를 켜 두면 리다이렉트, 폼 전송으로 화면이 바뀌어도 기록이 남는다. 로그인하면 화면이 넘어가서 요청을 못 봤다는 대부분 이 설정 하나로 해결된다."
         },
         {
           "type": "try",
-          "text": "Network 에서 요청 하나를 우클릭해 「Copy as cURL」 로 복사한 뒤 터미널에 붙여 넣어 보라. 같은 응답이 오는지 확인하라."
+          "text": "Network 에서 요청 하나를 우클릭해 Copy as cURL 로 복사한 뒤 터미널에 붙여 넣어 보라. 같은 응답이 오는지 확인하라."
         }
       ],
       "quiz": [
@@ -421,25 +421,25 @@
             "코드 공유"
           ],
           "answer": 1,
-          "why": "헤더·본문까지 그대로 담긴다."
+          "why": "헤더, 본문까지 그대로 담긴다."
         }
       ]
     },
     {
       "id": "5",
-      "title": "Performance — 시간이 어디로 갔나",
+      "title": "Performance. 시간이 어디로 갔나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「느리다」를 고치려면 **어디에 시간을 썼는지** 봐야 한다. Performance 패널은 그 답을 주지만, 처음 열면 정보가 너무 많아 압도된다 — 볼 것은 사실 셋뿐이다."
+          "text": "느리다를 고치려면 **어디에 시간을 썼는지** 봐야 한다. Performance 패널은 그 답을 주지만, 처음 열면 정보가 너무 많아 압도된다. 볼 것은 사실 셋뿐이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 볼지 골라 보라 — 순서대로",
+          "label": "무엇을 볼지 골라 보라. 순서대로",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const k = '{{what}}';\n  ctx.clearRect(0, 0, 440, 190);\n  /* 가상의 프로파일을 그린다 */\n  const tasks = [\n    { x: 14, w: 40, y: 40, label: 'parse', c: '#60a5fa' },\n    { x: 58, w: 120, y: 40, label: 'evaluate script', c: '#f59e0b' },\n    { x: 62, w: 90, y: 58, label: 'render()', c: '#f59e0b' },\n    { x: 66, w: 60, y: 76, label: 'formatRows()', c: '#ef4444' },\n    { x: 182, w: 30, y: 40, label: 'Layout', c: '#a78bfa' },\n    { x: 214, w: 22, y: 40, label: 'Paint', c: '#22c55e' },\n  ];\n  tasks.forEach((t) => {\n    const hot = (k === 'flame' && t.label === 'formatRows()') || (k === 'long' && t.label === 'evaluate script');\n    ctx.fillStyle = hot ? '#fff' : t.c;\n    ctx.fillRect(t.x, t.y, t.w, 16);\n    ctx.fillStyle = hot ? '#0b1220' : '#0b1220';\n    ctx.font = '9px system-ui'; ctx.textAlign = 'left';\n    if (t.w > 30) ctx.fillText(t.label, t.x + 3, t.y + 11);\n  });\n  if (k === 'long') {\n    ctx.fillStyle = '#ef4444';\n    ctx.beginPath(); ctx.moveTo(58, 32); ctx.lineTo(66, 32); ctx.lineTo(62, 38); ctx.fill();\n    ctx.fillStyle = '#fca5a5'; ctx.font = '10px system-ui';\n    ctx.fillText('긴 작업(50ms+) 표시', 74, 30);\n  }\n  if (k === 'fps') {\n    for (let i = 0; i < 40; i++) {\n      const bad = i > 12 && i < 22;\n      ctx.fillStyle = bad ? '#ef4444' : '#22c55e';\n      ctx.fillRect(14 + i * 10, 110 + (bad ? 10 : 0), 8, bad ? 20 : 30);\n    }\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10px system-ui';\n    ctx.fillText('FPS 막대 — 빨간 구간이 끊긴 자리', 14, 156);\n  }\n  const t = {\n    long: ['① 긴 작업을 찾는다', '빨간 삼각형이 붙은 막대 (50ms 넘는 작업)',\n      '사용자 입력을 막는 자리다. 여기부터 본다.'],\n    flame: ['② 불꽃 그래프를 아래로 판다', '넓은 막대 아래에 진짜 범인이 있다',\n      '위는 부르는 쪽, 아래는 불린 쪽. **가장 아래의 넓은 막대**가 실제로 시간을 쓴 함수.'],\n    fps: ['③ 무슨 종류인지 가른다', 'Layout(보라)·Paint(초록)·Script(노랑)',\n      '노랑이 넓으면 자바스크립트, 보라가 넓으면 레이아웃 — 처방이 다르다(렌더링 3·4장).'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:2px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '읽는 순서 요약\\n'\n     + '  1. 긴 작업(빨간 삼각형) 찾기\\n'\n     + '  2. 그 안에서 가장 넓은 아래쪽 막대 = 범인 함수\\n'\n     + '  3. 색으로 종류 가르기 (노랑=JS · 보라=Layout · 초록=Paint)\\n'\n     + '  4. Bottom-Up 탭에서 「자기 시간」 기준 정렬로 확인\\n\\n'\n     + '팁: CPU 를 4x 로 조절하면 저사양 기기의 문제가 재현된다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const k = '{{what}}';\n  ctx.clearRect(0, 0, 440, 190);\n  /* 가상의 프로파일을 그린다 */\n  const tasks = [\n    { x: 14, w: 40, y: 40, label: 'parse', c: '#60a5fa' },\n    { x: 58, w: 120, y: 40, label: 'evaluate script', c: '#f59e0b' },\n    { x: 62, w: 90, y: 58, label: 'render()', c: '#f59e0b' },\n    { x: 66, w: 60, y: 76, label: 'formatRows()', c: '#ef4444' },\n    { x: 182, w: 30, y: 40, label: 'Layout', c: '#a78bfa' },\n    { x: 214, w: 22, y: 40, label: 'Paint', c: '#22c55e' },\n  ];\n  tasks.forEach((t) => {\n    const hot = (k === 'flame' && t.label === 'formatRows()') || (k === 'long' && t.label === 'evaluate script');\n    ctx.fillStyle = hot ? '#fff' : t.c;\n    ctx.fillRect(t.x, t.y, t.w, 16);\n    ctx.fillStyle = hot ? '#0b1220' : '#0b1220';\n    ctx.font = '9px system-ui'; ctx.textAlign = 'left';\n    if (t.w > 30) ctx.fillText(t.label, t.x + 3, t.y + 11);\n  });\n  if (k === 'long') {\n    ctx.fillStyle = '#ef4444';\n    ctx.beginPath(); ctx.moveTo(58, 32); ctx.lineTo(66, 32); ctx.lineTo(62, 38); ctx.fill();\n    ctx.fillStyle = '#fca5a5'; ctx.font = '10px system-ui';\n    ctx.fillText('긴 작업(50ms+) 표시', 74, 30);\n  }\n  if (k === 'fps') {\n    for (let i = 0; i < 40; i++) {\n      const bad = i > 12 && i < 22;\n      ctx.fillStyle = bad ? '#ef4444' : '#22c55e';\n      ctx.fillRect(14 + i * 10, 110 + (bad ? 10 : 0), 8, bad ? 20 : 30);\n    }\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10px system-ui';\n    ctx.fillText('FPS 막대. 빨간 구간이 끊긴 자리', 14, 156);\n  }\n  const t = {\n    long: ['① 긴 작업을 찾는다', '빨간 삼각형이 붙은 막대 (50ms 넘는 작업)',\n      '사용자 입력을 막는 자리다. 여기부터 본다.'],\n    flame: ['② 불꽃 그래프를 아래로 판다', '넓은 막대 아래에 진짜 범인이 있다',\n      '위는 부르는 쪽, 아래는 불린 쪽. **가장 아래의 넓은 막대**가 실제로 시간을 쓴 함수.'],\n    fps: ['③ 무슨 종류인지 가른다', 'Layout(보라), Paint(초록), Script(노랑)',\n      '노랑이 넓으면 자바스크립트, 보라가 넓으면 레이아웃. 처방이 다르다(렌더링 3, 4장).'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:2px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '읽는 순서 요약\\n'\n     + '  1. 긴 작업(빨간 삼각형) 찾기\\n'\n     + '  2. 그 안에서 가장 넓은 아래쪽 막대 = 범인 함수\\n'\n     + '  3. 색으로 종류 가르기 (노랑=JS, 보라=Layout, 초록=Paint)\\n'\n     + '  4. Bottom-Up 탭에서 자기 시간 기준 정렬로 확인\\n\\n'\n     + '팁: CPU 를 4x 로 조절하면 저사양 기기의 문제가 재현된다.');\n</script>",
           "controls": [
             {
               "id": "what",
@@ -465,13 +465,13 @@
         },
         {
           "type": "note",
-          "text": "**불꽃 그래프는 위가 부르는 쪽, 아래가 불린 쪽**이다(크롬 기준). 그래서 「가장 아래의 넓은 막대」가 실제로 CPU 를 쓴 함수다. 위쪽 넓은 막대는 그저 오래 걸리는 것을 부르고 있을 뿐일 수 있다."
+          "text": "**불꽃 그래프는 위가 부르는 쪽, 아래가 불린 쪽**이다(크롬 기준). 그래서 가장 아래의 넓은 막대가 실제로 CPU 를 쓴 함수다. 위쪽 넓은 막대는 그저 오래 걸리는 것을 부르고 있을 뿐일 수 있다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "코드에 표시를 남겨 두면 훨씬 읽기 쉽다",
-          "text": "performance.mark('render:start');\nrenderList(rows);\nperformance.mark('render:end');\nperformance.measure('render', 'render:start', 'render:end');\n\n// Performance 패널의 Timings 트랙에 이름이 그대로 보인다\n// React·Vue 등은 자체 프로파일러가 비슷한 것을 해 준다"
+          "text": "performance.mark('render:start');\nrenderList(rows);\nperformance.mark('render:end');\nperformance.measure('render', 'render:start', 'render:end');\n\n// Performance 패널의 Timings 트랙에 이름이 그대로 보인다\n// React, Vue 등은 자체 프로파일러가 비슷한 것을 해 준다"
         },
         {
           "type": "p",
@@ -479,7 +479,7 @@
         },
         {
           "type": "try",
-          "text": "내 화면에서 가장 느린 동작 하나를 3초만 녹화하라. 빨간 삼각형이 붙은 막대를 찾고, 그 아래 가장 넓은 함수 이름을 적어라 — 그것이 오늘의 목표다."
+          "text": "내 화면에서 가장 느린 동작 하나를 3초만 녹화하라. 빨간 삼각형이 붙은 막대를 찾고, 그 아래 가장 넓은 함수 이름을 적어라. 그것이 오늘의 목표다."
         }
       ],
       "quiz": [
@@ -520,19 +520,19 @@
     },
     {
       "id": "6",
-      "title": "Sources — 멈춰서 들여다본다",
+      "title": "Sources. 멈춰서 들여다본다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "`console.log` 를 열 줄 뿌리는 것보다 **중단점 하나**가 빠른 경우가 많다. 그 순간의 모든 변수·호출 스택·범위를 한 번에 볼 수 있기 때문이다."
+          "text": "`console.log` 를 열 줄 뿌리는 것보다 **중단점 하나**가 빠른 경우가 많다. 그 순간의 모든 변수, 호출 스택, 범위를 한 번에 볼 수 있기 때문이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "중단점 종류를 골라 보라 — 어떤 문제에 맞나",
+          "label": "중단점 종류를 골라 보라. 어떤 문제에 맞나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{bp}}';\n  const t = {\n    line: ['줄 중단점', '줄 번호 클릭',\n      '가장 기본. 그 줄에 도달하면 멈춘다.',\n      '반복문 안이면 수백 번 멈춘다 — 그때가 조건부 중단점 자리'],\n    cond: ['조건부 중단점', '줄 번호 우클릭 > Add conditional breakpoint',\n      'id === 42 처럼 조건이 참일 때만 멈춘다.',\n      '「1000개 중 하나가 이상하다」를 잡는 유일하게 현실적인 방법'],\n    log: ['로그 중단점', '줄 번호 우클릭 > Add logpoint',\n      '멈추지 않고 값만 찍는다 — 코드를 안 고치고 로그를 넣는 셈.',\n      '커밋에 디버그 로그가 섞이는 사고가 사라진다'],\n    event: ['이벤트 중단점', 'Event Listener Breakpoints 체크',\n      '「어떤 코드가 이 클릭을 처리하지?」를 코드 없이 찾는다.',\n      '남의 코드·라이브러리 안에서 벌어지는 일을 추적할 때 특히 유용'],\n    xhr: ['요청 중단점', 'XHR/fetch Breakpoints 에 URL 조각',\n      '그 주소로 요청이 나가는 순간 멈춘다 — 「누가 이 API 를 부르지?」',\n      '호출 스택을 거슬러 올라가면 부른 자리가 나온다'],\n    exception: ['예외에서 멈추기', 'Pause on exceptions (⏸ 아이콘)',\n      '오류가 나는 그 순간의 상태를 그대로 본다.',\n      'Pause on caught exceptions 까지 켜면 삼켜진 오류도 잡힌다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '멈춘 다음에 볼 것\\n'\n     + '  Scope     지금 이 자리에서 보이는 변수들 (클로저 포함 — JS 3장)\\n'\n     + '  Call Stack 여기까지 어떻게 왔나 (프레임을 눌러 그 시점으로 이동)\\n'\n     + '  Watch     보고 싶은 식을 등록해 두면 멈출 때마다 갱신\\n'\n     + '  콘솔      멈춘 상태에서 그 범위의 변수를 그대로 쓸 수 있다');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{bp}}';\n  const t = {\n    line: ['줄 중단점', '줄 번호 클릭',\n      '가장 기본. 그 줄에 도달하면 멈춘다.',\n      '반복문 안이면 수백 번 멈춘다. 그때가 조건부 중단점 자리'],\n    cond: ['조건부 중단점', '줄 번호 우클릭 > Add conditional breakpoint',\n      'id === 42 처럼 조건이 참일 때만 멈춘다.',\n      '1000개 중 하나가 이상하다를 잡는 유일하게 현실적인 방법'],\n    log: ['로그 중단점', '줄 번호 우클릭 > Add logpoint',\n      '멈추지 않고 값만 찍는다. 코드를 안 고치고 로그를 넣는 셈.',\n      '커밋에 디버그 로그가 섞이는 사고가 사라진다'],\n    event: ['이벤트 중단점', 'Event Listener Breakpoints 체크',\n      '어떤 코드가 이 클릭을 처리하지?를 코드 없이 찾는다.',\n      '남의 코드, 라이브러리 안에서 벌어지는 일을 추적할 때 특히 유용'],\n    xhr: ['요청 중단점', 'XHR/fetch Breakpoints 에 URL 조각',\n      '그 주소로 요청이 나가는 순간 멈춘다. 누가 이 API 를 부르지?',\n      '호출 스택을 거슬러 올라가면 부른 자리가 나온다'],\n    exception: ['예외에서 멈추기', 'Pause on exceptions (⏸ 아이콘)',\n      '오류가 나는 그 순간의 상태를 그대로 본다.',\n      'Pause on caught exceptions 까지 켜면 삼켜진 오류도 잡힌다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '멈춘 다음에 볼 것\\n'\n     + '  Scope     지금 이 자리에서 보이는 변수들 (클로저 포함. JS 3장)\\n'\n     + '  Call Stack 여기까지 어떻게 왔나 (프레임을 눌러 그 시점으로 이동)\\n'\n     + '  Watch     보고 싶은 식을 등록해 두면 멈출 때마다 갱신\\n'\n     + '  콘솔      멈춘 상태에서 그 범위의 변수를 그대로 쓸 수 있다');\n</script>",
           "controls": [
             {
               "id": "bp",
@@ -570,17 +570,17 @@
         },
         {
           "type": "note",
-          "text": "**소스맵이 없으면 아무것도 못 읽는다.** 압축된 배포 코드에서 `n.map is not a function` 을 만나면 소스맵을 켜야 원본 파일·줄로 이어진다(앞 칸 cs-compiler 8장). 개발 빌드는 기본으로 켜져 있지만, 배포 디버깅에는 따로 준비가 필요하다."
+          "text": "**소스맵이 없으면 아무것도 못 읽는다.** 압축된 배포 코드에서 `n.map is not a function` 을 만나면 소스맵을 켜야 원본 파일, 줄로 이어진다(앞 칸 cs-compiler 8장). 개발 빌드는 기본으로 켜져 있지만, 배포 디버깅에는 따로 준비가 필요하다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "코드로 중단점 걸기 · 스택 추적",
+          "label": "코드로 중단점 걸기, 스택 추적",
           "text": "debugger;                    // 개발자도구가 열려 있으면 여기서 멈춘다\n\nconsole.trace('여기까지 어떻게 왔나');   // 호출 스택만 찍기\n\n// 특정 함수가 불릴 때마다 로그 (크롬 콘솔 전용)\nmonitor(myFunction);\nunmonitor(myFunction);\n\n// 이벤트가 발생할 때마다 로그\nmonitorEvents(document.body, 'click');"
         },
         {
           "type": "p",
-          "text": "그리고 **비동기 스택**을 기억하라. `await` 나 콜백을 건너면 옛 브라우저에서는 스택이 끊겼는데, 요즘은 「Async」 구분선과 함께 이어서 보여 준다. 그 위쪽이 「이 비동기 작업을 시작한 자리」다."
+          "text": "그리고 **비동기 스택**을 기억하라. `await` 나 콜백을 건너면 옛 브라우저에서는 스택이 끊겼는데, 요즘은 Async 구분선과 함께 이어서 보여 준다. 그 위쪽이 이 비동기 작업을 시작한 자리다."
         },
         {
           "type": "try",
@@ -589,7 +589,7 @@
       ],
       "quiz": [
         {
-          "q": "「1000번 도는 반복문에서 특정 조건일 때만」 멈추려면?",
+          "q": "1000번 도는 반복문에서 특정 조건일 때만 멈추려면?",
           "choices": [
             "줄 중단점",
             "조건부 중단점",
@@ -600,7 +600,7 @@
           "why": "조건이 참일 때만 멈춘다."
         },
         {
-          "q": "「누가 이 API 를 부르지?」를 찾는 중단점은?",
+          "q": "누가 이 API 를 부르지?를 찾는 중단점은?",
           "choices": [
             "DOM 중단점",
             "XHR/fetch 중단점",
@@ -619,25 +619,25 @@
             "HTTPS"
           ],
           "answer": 1,
-          "why": "원본 파일·줄로 이어 준다."
+          "why": "원본 파일, 줄로 이어 준다."
         }
       ]
     },
     {
       "id": "7",
-      "title": "Memory · Application — 남는 것들",
+      "title": "Memory, Application. 남는 것들",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "두 패널은 성격이 비슷하다 — **화면에 안 보이지만 남아 있는 것**을 다룬다. Memory 는 자바스크립트가 붙잡고 있는 객체, Application 은 브라우저가 저장한 값들."
+          "text": "두 패널은 성격이 비슷하다. **화면에 안 보이지만 남아 있는 것**을 다룬다. Memory 는 자바스크립트가 붙잡고 있는 객체, Application 은 브라우저가 저장한 값들."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "무엇을 찾을지 골라 보라",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{topic}}';\n  const t = {\n    snapshot: ['힙 스냅샷 비교', 'Memory > Heap snapshot 두 번 + Comparison',\n      '① 문제 화면 열기 전 스냅샷 ② 열었다 닫기 3~5회 ③ 다시 스냅샷 -> Comparison 으로 비교',\n      '「Delta」가 양수로 쌓이는 항목이 범인. Detached HTMLDivElement 가 보이면 DOM 누수(메모리 5장)'],\n    retainer: ['누가 붙잡고 있나', '객체를 고르고 Retainers 트리',\n      '그 객체까지 이어지는 참조 사슬을 보여 준다 — 「이 Map 이 붙잡고 있다」가 나온다.',\n      '앞 칸(메모리 4장)의 도달 가능성이 바로 이 화면이다'],\n    timeline: ['메모리 추이', 'Performance 녹화 시 Memory 체크',\n      '톱니 모양(늘었다 줄었다)은 정상 — GC 가 돌고 있다는 뜻.',\n      '계단처럼 계속 올라가기만 하면 누수 신호'],\n    storage: ['저장소 확인', 'Application > Local/Session Storage · IndexedDB',\n      '값을 직접 보고 고치고 지울 수 있다.',\n      '「로그인이 안 풀려요」·「설정이 안 남아요」의 첫 확인 자리'],\n    cookie: ['쿠키 속성', 'Application > Cookies',\n      'Domain · Path · Expires · HttpOnly · Secure · SameSite 를 하나씩 확인.',\n      '쿠키가 안 붙는 문제의 90%는 SameSite·Domain·Secure 중 하나'],\n    sw: ['서비스 워커·캐시', 'Application > Service Workers · Cache Storage',\n      '「배포했는데 옛 화면이 보인다」의 단골 원인.',\n      'Update on reload · Bypass for network 를 켜고 개발하라'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '공통 원칙: **두 장을 비교하라.** 한 장만 보면 많은지 적은지 알 수 없다.\\n'\n     + '전후 스냅샷·전후 저장소 상태가 있어야 「무엇이 달라졌나」를 말할 수 있다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{topic}}';\n  const t = {\n    snapshot: ['힙 스냅샷 비교', 'Memory > Heap snapshot 두 번 + Comparison',\n      '① 문제 화면 열기 전 스냅샷 ② 열었다 닫기 3~5회 ③ 다시 스냅샷 -> Comparison 으로 비교',\n      'Delta가 양수로 쌓이는 항목이 범인. Detached HTMLDivElement 가 보이면 DOM 누수(메모리 5장)'],\n    retainer: ['누가 붙잡고 있나', '객체를 고르고 Retainers 트리',\n      '그 객체까지 이어지는 참조 사슬을 보여 준다. 이 Map 이 붙잡고 있다가 나온다.',\n      '앞 칸(메모리 4장)의 도달 가능성이 바로 이 화면이다'],\n    timeline: ['메모리 추이', 'Performance 녹화 시 Memory 체크',\n      '톱니 모양(늘었다 줄었다)은 정상. GC 가 돌고 있다는 뜻.',\n      '계단처럼 계속 올라가기만 하면 누수 신호'],\n    storage: ['저장소 확인', 'Application > Local/Session Storage, IndexedDB',\n      '값을 직접 보고 고치고 지울 수 있다.',\n      '로그인이 안 풀려요, 설정이 안 남아요의 첫 확인 자리'],\n    cookie: ['쿠키 속성', 'Application > Cookies',\n      'Domain, Path, Expires, HttpOnly, Secure, SameSite 를 하나씩 확인.',\n      '쿠키가 안 붙는 문제의 90%는 SameSite, Domain, Secure 중 하나'],\n    sw: ['서비스 워커, 캐시', 'Application > Service Workers, Cache Storage',\n      '배포했는데 옛 화면이 보인다의 단골 원인.',\n      'Update on reload, Bypass for network 를 켜고 개발하라'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '공통 원칙: **두 장을 비교하라.** 한 장만 보면 많은지 적은지 알 수 없다.\\n'\n     + '전후 스냅샷, 전후 저장소 상태가 있어야 무엇이 달라졌나를 말할 수 있다.');\n</script>",
           "controls": [
             {
               "id": "topic",
@@ -675,17 +675,17 @@
         },
         {
           "type": "note",
-          "text": "**「배포했는데 옛 화면이 보인다」의 범인은 대개 서비스 워커나 캐시다.** Application > Service Workers 에서 「Update on reload」를 켜고, Clear storage 로 한 번 비워 보면 원인이 캐시인지 코드인지 즉시 갈린다."
+          "text": "**배포했는데 옛 화면이 보인다의 범인은 대개 서비스 워커나 캐시다.** Application > Service Workers 에서 Update on reload를 켜고, Clear storage 로 한 번 비워 보면 원인이 캐시인지 코드인지 즉시 갈린다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "콘솔에서 저장소 훑기",
-          "text": "// 지금 무엇이 저장돼 있나\nObject.entries(localStorage).forEach(([k, v]) => console.log(k, v.slice(0, 80)));\n\n// 쿠키는 문서에서 보이는 것만 (HttpOnly 는 안 보인다 — Application 패널에서 확인)\ndocument.cookie.split('; ').forEach((c) => console.log(c));\n\n// 저장소 사용량\nnavigator.storage.estimate().then(console.log);"
+          "text": "// 지금 무엇이 저장돼 있나\nObject.entries(localStorage).forEach(([k, v]) => console.log(k, v.slice(0, 80)));\n\n// 쿠키는 문서에서 보이는 것만 (HttpOnly 는 안 보인다. Application 패널에서 확인)\ndocument.cookie.split('; ').forEach((c) => console.log(c));\n\n// 저장소 사용량\nnavigator.storage.estimate().then(console.log);"
         },
         {
           "type": "p",
-          "text": "그리고 **HttpOnly 쿠키는 자바스크립트에서 안 보인다** — 그것이 목적이다. 그래서 `document.cookie` 에 없다고 「쿠키가 없다」고 판단하면 안 된다. Application 패널에서 확인해야 한다."
+          "text": "그리고 **HttpOnly 쿠키는 자바스크립트에서 안 보인다**. 그것이 목적이다. 그래서 `document.cookie` 에 없다고 쿠키가 없다고 판단하면 안 된다. Application 패널에서 확인해야 한다."
         },
         {
           "type": "try",
@@ -705,15 +705,15 @@
           "why": "한 장으로는 판단할 수 없다."
         },
         {
-          "q": "「배포했는데 옛 화면이 보인다」의 단골 원인은?",
+          "q": "배포했는데 옛 화면이 보인다의 단골 원인은?",
           "choices": [
             "DNS",
-            "서비스 워커·캐시",
+            "서비스 워커, 캐시",
             "쿠키",
             "메모리"
           ],
           "answer": 1,
-          "why": "Application 에서 확인·초기화한다."
+          "why": "Application 에서 확인, 초기화한다."
         },
         {
           "q": "`document.cookie` 에 안 보이는 쿠키는?",
@@ -735,14 +735,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "디버깅의 절반은 **재현**이다(앞 칸 bisect 2장). 개발자도구에는 「내 기계에서는 안 나는」 문제를 **일부러 만들어 내는** 기능들이 있다."
+          "text": "디버깅의 절반은 **재현**이다(앞 칸 bisect 2장). 개발자도구에는 내 기계에서는 안 나는 문제를 **일부러 만들어 내는** 기능들이 있다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "무엇을 흉내 낼지 골라 보라",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{sim}}';\n  const t = {\n    device: ['기기 흉내 (Ctrl/Cmd+Shift+M)', '화면 크기·터치·픽셀 밀도·User-Agent',\n      '완전한 재현은 아니다 — 실제 기기의 CPU·메모리·브라우저 엔진은 다르다.',\n      '레이아웃 확인에는 충분하지만, 성능 판단은 실제 기기나 CPU 조절로'],\n    cpu: ['CPU 조절', 'Performance > CPU: 4x / 6x slowdown',\n      '저사양 안드로이드를 흉내 낸다. 「내 맥북에서는 빠른데」의 해독제.',\n      '네트워크 조절과 함께 쓰면 실제 사용자 환경에 훨씬 가까워진다'],\n    prefers: ['사용자 설정 흉내', 'Rendering > Emulate CSS media',\n      'prefers-color-scheme · prefers-reduced-motion · forced-colors 를 강제로 켠다.',\n      '접근성 7장에서 만든 CSS 가 실제로 도는지 확인하는 자리'],\n    offline: ['오프라인·느린 망', 'Network > Offline / Slow 4G',\n      '연결이 끊겼을 때 화면이 어떻게 되는지 — 대개 아무 안내가 없다.',\n      '오프라인 대응(서비스 워커·재시도)이 실제로 도는지 확인'],\n    coverage: ['안 쓰는 코드 찾기', '명령 메뉴 > Show Coverage',\n      '이 화면에서 실제로 실행된 CSS/JS 비율을 보여 준다.',\n      '「첫 화면에 200KB 중 20%만 쓴다」가 보이면 분할할 자리가 나온다'],\n    animation: ['애니메이션 느리게', '명령 메뉴 > Show Animations',\n      '25%·10% 속도로 재생해 어색한 구간을 찾는다.',\n      '타임라인에서 지연·길이를 직접 조절해 보며 값을 고를 수 있다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '흉내의 한계를 기억하라\\n'\n     + '  · 기기 모드는 화면 크기·터치까지 — 엔진과 성능은 다르다\\n'\n     + '  · 진짜 판단은 실제 기기 또는 실제 사용자 데이터(RUM)로\\n'\n     + '  · 그래도 재현의 90%는 여기서 만들어진다');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{sim}}';\n  const t = {\n    device: ['기기 흉내 (Ctrl/Cmd+Shift+M)', '화면 크기, 터치, 픽셀 밀도, User-Agent',\n      '완전한 재현은 아니다. 실제 기기의 CPU, 메모리, 브라우저 엔진은 다르다.',\n      '레이아웃 확인에는 충분하지만, 성능 판단은 실제 기기나 CPU 조절로'],\n    cpu: ['CPU 조절', 'Performance > CPU: 4x / 6x slowdown',\n      '저사양 안드로이드를 흉내 낸다. 내 맥북에서는 빠른데의 해독제.',\n      '네트워크 조절과 함께 쓰면 실제 사용자 환경에 훨씬 가까워진다'],\n    prefers: ['사용자 설정 흉내', 'Rendering > Emulate CSS media',\n      'prefers-color-scheme, prefers-reduced-motion, forced-colors 를 강제로 켠다.',\n      '접근성 7장에서 만든 CSS 가 실제로 도는지 확인하는 자리'],\n    offline: ['오프라인, 느린 망', 'Network > Offline / Slow 4G',\n      '연결이 끊겼을 때 화면이 어떻게 되는지. 대개 아무 안내가 없다.',\n      '오프라인 대응(서비스 워커, 재시도)이 실제로 도는지 확인'],\n    coverage: ['안 쓰는 코드 찾기', '명령 메뉴 > Show Coverage',\n      '이 화면에서 실제로 실행된 CSS/JS 비율을 보여 준다.',\n      '첫 화면에 200KB 중 20%만 쓴다가 보이면 분할할 자리가 나온다'],\n    animation: ['애니메이션 느리게', '명령 메뉴 > Show Animations',\n      '25%, 10% 속도로 재생해 어색한 구간을 찾는다.',\n      '타임라인에서 지연, 길이를 직접 조절해 보며 값을 고를 수 있다'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '흉내의 한계를 기억하라\\n'\n     + ' , 기기 모드는 화면 크기, 터치까지. 엔진과 성능은 다르다\\n'\n     + ' , 진짜 판단은 실제 기기 또는 실제 사용자 데이터(RUM)로\\n'\n     + ' , 그래도 재현의 90%는 여기서 만들어진다');\n</script>",
           "controls": [
             {
               "id": "sim",
@@ -780,21 +780,21 @@
         },
         {
           "type": "note",
-          "text": "**기기 모드는 성능 판단에 쓰면 안 된다.** 화면만 작아졌을 뿐 CPU 는 여전히 내 노트북이다. 「모바일에서 느려요」를 재현하려면 **CPU 4x + Slow 4G** 를 함께 켜거나, 실제 기기를 USB 로 연결해(원격 디버깅) 확인하라."
+          "text": "**기기 모드는 성능 판단에 쓰면 안 된다.** 화면만 작아졌을 뿐 CPU 는 여전히 내 노트북이다. 모바일에서 느려요를 재현하려면 **CPU 4x + Slow 4G** 를 함께 켜거나, 실제 기기를 USB 로 연결해(원격 디버깅) 확인하라."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "실제 기기로 확인하기",
-          "text": "안드로이드: USB 연결 + chrome://inspect 에서 기기의 탭을 그대로 디버깅\niOS:       Mac 의 Safari > 개발자용 메뉴에서 기기 선택\n\n실제 기기에서만 드러나는 것\n  · 진짜 CPU·메모리 한계\n  · 터치 이벤트의 미묘한 차이 (300ms 지연 · 스크롤 관성)\n  · 기기별 브라우저 엔진 차이 (iOS 는 전부 WebKit)"
+          "text": "안드로이드: USB 연결 + chrome://inspect 에서 기기의 탭을 그대로 디버깅\niOS:       Mac 의 Safari > 개발자용 메뉴에서 기기 선택\n\n실제 기기에서만 드러나는 것\n , 진짜 CPU, 메모리 한계\n , 터치 이벤트의 미묘한 차이 (300ms 지연, 스크롤 관성)\n , 기기별 브라우저 엔진 차이 (iOS 는 전부 WebKit)"
         },
         {
           "type": "p",
-          "text": "**Coverage** 는 저평가된 기능이다. 첫 화면에서 실제로 실행된 코드 비율을 보여 주므로, 「어떤 코드를 나중에 불러도 되나」를 데이터로 판단할 수 있다 — 감으로 코드 분할하지 않아도 된다."
+          "text": "**Coverage** 는 저평가된 기능이다. 첫 화면에서 실제로 실행된 코드 비율을 보여 주므로, 어떤 코드를 나중에 불러도 되나를 데이터로 판단할 수 있다. 감으로 코드 분할하지 않아도 된다."
         },
         {
           "type": "try",
-          "text": "명령 메뉴에서 「Show Coverage」를 켜고 페이지를 새로고침하라. 안 쓰는 코드 비율이 몇 %인지 적어 두라 — 그것이 코드 분할의 상한선이다."
+          "text": "명령 메뉴에서 Show Coverage를 켜고 페이지를 새로고침하라. 안 쓰는 코드 비율이 몇 %인지 적어 두라. 그것이 코드 분할의 상한선이다."
         }
       ],
       "quiz": [
@@ -835,7 +835,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -846,22 +846,22 @@
           "type": "code",
           "lang": "text",
           "label": "증상 -> 패널 -> 첫 동작",
-          "text": "스타일이 안 먹는다\n  -> Elements > Styles   : 취소선인가 없음인가 · Computed 에서 최종 값     (2장)\n화면이 밀린다\n  -> Elements > Layout   : 박스 모델 · grid/flex 오버레이                  (2장)\n느리다 (첫 화면)\n  -> Network             : Timing 분해 · 큰 파일 · Slow 4G 로 재현         (4장)\n버벅인다\n  -> Performance         : 긴 작업 -> 아래쪽 넓은 막대 -> 색으로 종류      (5장)\n오래 켜면 느려진다\n  -> Memory              : 전후 스냅샷 Comparison · Retainers              (7장)\n에러 위치를 모른다\n  -> Sources             : 예외에서 멈추기 · 조건부/이벤트/XHR 중단점      (6장)\n값이 안 남는다 · 옛 화면이 보인다\n  -> Application         : 쿠키 속성 · 저장소 · 서비스 워커                (7장)\n내 기계에서만 잘 된다\n  -> 기기/CPU/네트워크 조절 또는 실제 기기 원격 디버깅                     (8장)\n\n공통\n  [ ] 재현부터 만들었나\n  [ ] 전후 두 장을 비교했나 (스냅샷·프로파일·수치)\n  [ ] 고친 뒤 다시 쟀나"
+          "text": "스타일이 안 먹는다\n  -> Elements > Styles   : 취소선인가 없음인가, Computed 에서 최종 값     (2장)\n화면이 밀린다\n  -> Elements > Layout   : 박스 모델, grid/flex 오버레이                  (2장)\n느리다 (첫 화면)\n  -> Network             : Timing 분해, 큰 파일, Slow 4G 로 재현         (4장)\n버벅인다\n  -> Performance         : 긴 작업 -> 아래쪽 넓은 막대 -> 색으로 종류      (5장)\n오래 켜면 느려진다\n  -> Memory              : 전후 스냅샷 Comparison, Retainers              (7장)\n에러 위치를 모른다\n  -> Sources             : 예외에서 멈추기, 조건부/이벤트/XHR 중단점      (6장)\n값이 안 남는다, 옛 화면이 보인다\n  -> Application         : 쿠키 속성, 저장소, 서비스 워커                (7장)\n내 기계에서만 잘 된다\n  -> 기기/CPU/네트워크 조절 또는 실제 기기 원격 디버깅                     (8장)\n\n공통\n  [ ] 재현부터 만들었나\n  [ ] 전후 두 장을 비교했나 (스냅샷, 프로파일, 수치)\n  [ ] 고친 뒤 다시 쟀나"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여덟 문항",
+          "label": "스스로 채점. 여덟 문항",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const q = [\n    ['Styles 의 취소선은 다른 규칙에 졌다는 뜻이다', true],\n    ['$0 은 Elements 에서 고른 요소다', true],\n    ['불꽃 그래프에서 위쪽 막대가 시간을 쓴 함수다', false],\n    ['로그 중단점은 코드를 고치지 않고 값을 찍는다', true],\n    ['기기 모드로 모바일 성능을 판단할 수 있다', false],\n    ['HttpOnly 쿠키는 document.cookie 에 보인다', false],\n    ['Copy as cURL 로 요청을 그대로 재현할 수 있다', true],\n    ['메모리 누수는 스냅샷 한 장으로 판단한다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 2장(Styles) 5장(불꽃) 6장(중단점) 7장(쿠키·스냅샷) 8장(흉내)');\n</script>"
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  button { font: inherit; padding:5px 11px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; cursor:pointer; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const q = [\n    ['Styles 의 취소선은 다른 규칙에 졌다는 뜻이다', true],\n    ['$0 은 Elements 에서 고른 요소다', true],\n    ['불꽃 그래프에서 위쪽 막대가 시간을 쓴 함수다', false],\n    ['로그 중단점은 코드를 고치지 않고 값을 찍는다', true],\n    ['기기 모드로 모바일 성능을 판단할 수 있다', false],\n    ['HttpOnly 쿠키는 document.cookie 에 보인다', false],\n    ['Copy as cURL 로 요청을 그대로 재현할 수 있다', true],\n    ['메모리 누수는 스냅샷 한 장으로 판단한다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로. 2장(Styles) 5장(불꽃) 6장(중단점) 7장(쿠키, 스냅샷) 8장(흉내)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 TypeScript 다. 여기까지가 「돌아가는 것을 들여다보는 법」이었다면, 다음은 **돌기 전에 잡는 법**이다 — 앞 칸(cs-compiler 6장)에서 본 타입의 두 축이 실제 도구로 나온다."
+          "text": "다음 칸은 TypeScript 다. 여기까지가 돌아가는 것을 들여다보는 법이었다면, 다음은 **돌기 전에 잡는 법**이다. 앞 칸(cs-compiler 6장)에서 본 타입의 두 축이 실제 도구로 나온다."
         },
         {
           "type": "try",
-          "text": "오늘 만난 문제 하나에서 위 표의 「첫 동작」을 그대로 해 보라. 도구를 고르는 데 3초 이상 걸리지 않게 되면 이 칸은 끝난 것이다."
+          "text": "오늘 만난 문제 하나에서 위 표의 첫 동작을 그대로 해 보라. 도구를 고르는 데 3초 이상 걸리지 않게 되면 이 칸은 끝난 것이다."
         }
       ],
       "quiz": [
@@ -877,7 +877,7 @@
           "why": "재현이 없으면 도구도 못 본다."
         },
         {
-          "q": "「고쳤다」고 말하려면 필요한 것은?",
+          "q": "고쳤다고 말하려면 필요한 것은?",
           "choices": [
             "코드 리뷰",
             "고치기 전후의 측정 두 장",

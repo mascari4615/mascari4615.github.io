@@ -116,7 +116,7 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   reseed.textContent = t('garden.reseed');
   pause.textContent = t('garden.pause');
   name.textContent = t(`garden.rd.preset.${preset.id}`);
-  code.textContent = `F ${preset.feed} · K ${preset.kill}`;
+  code.textContent = `F ${preset.feed}, K ${preset.kill}`;
   hint.textContent = t('garden.rd.hint');
   line.textContent = t('garden.rd.today', { name: name.textContent });
   build();

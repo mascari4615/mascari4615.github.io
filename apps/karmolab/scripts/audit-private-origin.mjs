@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * audit-private-origin — 비공개에서 나온 파일이 공개 레포에 담기는 걸 막는다.
+ * audit-private-origin. 비공개에서 나온 파일이 공개 레포에 담기는 걸 막는다.
  *
  * 2026-08-21 에 실제로 났던 사고: 이 레포는 공개인데 지식베이스는 비공개다.
- * 거기서 구운 지도 데이터를 여기 담았고, 그 안에 글 제목·경로가 1516개 들어 있었다.
+ * 거기서 구운 지도 데이터를 여기 담았고, 그 안에 글 제목, 경로가 1516개 들어 있었다.
  * 비공개 지식베이스의 목차를 공개한 셈이다.
  *
- * 흔한 유출 방지 도구는 이걸 못 잡는다. 그것들은 열쇠·토큰처럼 **모양이 정해진**
+ * 흔한 유출 방지 도구는 이걸 못 잡는다. 그것들은 열쇠, 토큰처럼 **모양이 정해진**
  * 비밀을 찾는데, 새어 나간 건 평범한 글자였다. 그래서 모양이 아니라 **출신**을 본다:
  * 만드는 쪽이 파일 안에 도장을 찍고, 여기서 그 도장이 찍힌 파일이 git 에 담겼는지 본다.
  *
@@ -37,7 +37,7 @@ function tracked() {
 
 const files = tracked();
 if (!files) {
-  console.log('[private-origin] git 을 못 읽었다 — 검사 건너뜀');
+  console.log('[private-origin] git 을 못 읽었다. 검사 건너뜀');
   process.exit(0);
 }
 
@@ -62,9 +62,9 @@ for (const rel of files) {
 if (caught.length) {
   console.log('[private-origin] **비공개에서 나온 파일이 이 레포에 담겨 있다**');
   for (const c of caught) console.log(`  - ${c}`);
-  console.log('  이 레포는 공개다. 담긴 파일 안에 비공개 쪽 글 제목·경로가 들어 있다.');
+  console.log('  이 레포는 공개다. 담긴 파일 안에 비공개 쪽 글 제목, 경로가 들어 있다.');
   console.log('  빼는 법: git rm --cached <파일>  +  .gitignore 에 추가');
   process.exit(1);
 }
 
-console.log(`[private-origin] 데이터 파일 ${files.filter((f) => DATA_LIKE.test(f)).length}개 확인 — 비공개 출신 없음`);
+console.log(`[private-origin] 데이터 파일 ${files.filter((f) => DATA_LIKE.test(f)).length}개 확인. 비공개 출신 없음`);

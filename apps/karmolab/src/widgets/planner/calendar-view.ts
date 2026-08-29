@@ -1,12 +1,12 @@
 /**
- * 달력 — 구글 캘린더를 보고 고친다 (TASK-KL-321)
+ * 달력. 구글 캘린더를 보고 고친다 (TASK-KL-321)
  *
  * 옛 React 판(`CalendarView.tsx` 595줄)을 그대로 옮겼다. 달력 알맹이는 FullCalendar 의
- * **틀 없는 판**을 쓴다 — React 판이 쓰던 `react-big-calendar` 는 React 가 있어야만 돌아가고,
- * FullCalendar 는 같은 기능(월·주·일, 끌어 옮기기, 늘리기)을 아무 틀 없이 낸다.
+ * **틀 없는 판**을 쓴다. React 판이 쓰던 `react-big-calendar` 는 React 가 있어야만 돌아가고,
+ * FullCalendar 는 같은 기능(월, 주, 일, 끌어 옮기기, 늘리기)을 아무 틀 없이 낸다.
  *
  * 왼쪽 작은 달력과 캘린더 목록은 손으로 그린다(60줄쯤). 라이브러리로 하면 같은 달력 엔진을
- * 두 번 띄우게 되는데, 그 값에 비해 하는 일이 「달을 넘기고 날을 고른다」뿐이다.
+ * 두 번 띄우게 되는데, 그 값에 비해 하는 일이 달을 넘기고 날을 고른다뿐이다.
  */
 import { t } from '../../lib/i18n';
 import {
@@ -81,7 +81,7 @@ export interface CalendarViewHandle {
 }
 
 /**
- * 달력을 그린다. `token` 이 없으면 **이 브라우저 캘린더만** 쓴다 —
+ * 달력을 그린다. `token` 이 없으면 **이 브라우저 캘린더만** 쓴다 . 
  * 구글은 얹는 것이지 있어야 하는 것이 아니다.
  */
 export function buildCalendarView(
@@ -146,7 +146,7 @@ export function buildCalendarView(
             info.jsEvent.preventDefault();
             openPopover(info.event, info.jsEvent.clientX, info.jsEvent.clientY);
         },
-        /* 자판만 쓰는 사람도 일정을 열 수 있어야 한다 — 끌어 옮기기는 마우스만 되므로,
+        /* 자판만 쓰는 사람도 일정을 열 수 있어야 한다. 끌어 옮기기는 마우스만 되므로,
            초점을 받을 수 있게 하고 Enter/Space 로 같은 풍선을 연다(거기서 시각을 고친다). */
         eventDidMount: (info) => {
             info.el.tabIndex = 0;
@@ -158,12 +158,12 @@ export function buildCalendarView(
                 openPopover(info.event, r.left, r.bottom);
             });
         },
-        /* 끌어 옮기기·늘리기 — 화면은 이미 옮겨져 있으니 구글에만 알리면 된다.
+        /* 끌어 옮기기, 늘리기. 화면은 이미 옮겨져 있으니 구글에만 알리면 된다.
            실패하면 되돌린다(`revert`), 안 그러면 화면과 구글이 갈라진 채로 남는다. */
         eventDrop: (info) => void saveMove(info.event, info.revert),
         eventResize: (info) => void saveMove(info.event, info.revert),
-        /* 날짜 칸마다 일기 단추 하나. 쓴 날은 켜져 있고, 안 쓴 날은 마우스를 올려야 보인다 —
-           빈 날마다 표식이 켜져 있으면 「쓴 날」이 눈에 안 들어온다. */
+        /* 날짜 칸마다 일기 단추 하나. 쓴 날은 켜져 있고, 안 쓴 날은 마우스를 올려야 보인다 . 
+           빈 날마다 표식이 켜져 있으면 쓴 날이 눈에 안 들어온다. */
         dayCellDidMount: (info) => {
             if (!onOpenDiary) return;
             const date = ymd(info.date);
@@ -204,7 +204,7 @@ export function buildCalendarView(
             const local = listLocalEvents(t('planner.t50'));
             let remote: FcEvent[] = [];
             if (token) {
-                /* 보이는 구간의 앞뒤로 조금 더 받아 둔다 — 달을 넘길 때마다 빈 화면이 깜빡이지 않게 */
+                /* 보이는 구간의 앞뒤로 조금 더 받아 둔다. 달을 넘길 때마다 빈 화면이 깜빡이지 않게 */
                 const pad = 7 * 86400000;
                 const googleCals = calendars.filter((c) => c.id !== LOCAL_CALENDAR_ID);
                 remote = await fetchEvents(token, googleCals, new Date(+start - pad), new Date(+end + pad));
@@ -229,7 +229,7 @@ export function buildCalendarView(
 
     function renderMini(): void {
         const first = new Date(miniMonth.getFullYear(), miniMonth.getMonth(), 1);
-        const startDow = first.getDay(); // 일요일 시작 — 옆의 큰 달력(ko)과 같은 줄에 서야 헷갈리지 않는다
+        const startDow = first.getDay(); // 일요일 시작. 옆의 큰 달력(ko)과 같은 줄에 서야 헷갈리지 않는다
         const gridStart = new Date(first.getFullYear(), first.getMonth(), 1 - startDow);
         const today = ymd(new Date());
         const busy = new Set(visible().map((e) => e.start.slice(0, 10)));
@@ -305,7 +305,7 @@ export function buildCalendarView(
         renderMini();
     });
 
-    /* ===== 만들기·고치기 창 ===== */
+    /* ===== 만들기, 고치기 창 ===== */
 
     let modalEl: HTMLElement | null = null;
 
@@ -400,7 +400,7 @@ export function buildCalendarView(
         });
     }
 
-    /** 저장할 값 — 종일이면 날짜만, 아니면 ISO 시각 (구글·FullCalendar 와 같은 규약) */
+    /** 저장할 값. 종일이면 날짜만, 아니면 ISO 시각 (구글, FullCalendar 와 같은 규약) */
     function stored(start: Date, end: Date, allDay: boolean): { start: string; end: string } {
         if (!allDay) return { start: start.toISOString(), end: end.toISOString() };
         const s = ymd(start);
@@ -417,7 +417,7 @@ export function buildCalendarView(
         ev?: EventApi
     ): Promise<void> {
         try {
-            /* 어디에 쓸지는 **id 앞머리**가 정한다 — 이 브라우저 것과 구글 것이 한 화면에 섞여 있다 */
+            /* 어디에 쓸지는 **id 앞머리**가 정한다. 이 브라우저 것과 구글 것이 한 화면에 섞여 있다 */
             if (ev && isLocal(ev.id)) {
                 updateLocalEvent(ev.id, { title, allDay, ...stored(start, end, allDay) });
             } else if (ev) {
@@ -515,7 +515,7 @@ export function buildCalendarView(
         const day = `${start.getFullYear()}. ${start.getMonth() + 1}. ${start.getDate()}`;
         if (ev.allDay) return day;
         const hm = (d: Date): string => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        return ev.end ? `${day} ${hm(start)} – ${hm(ev.end)}` : `${day} ${hm(start)}`;
+        return ev.end ? `${day} ${hm(start)} - ${hm(ev.end)}` : `${day} ${hm(start)}`;
     }
 
     async function remove(ev: EventApi): Promise<void> {
@@ -543,7 +543,7 @@ export function buildCalendarView(
             try {
                 calendars = [localCalendar(), ...(await fetchCalendars(token))];
             } catch {
-                /* 구글이 안 되면 이 브라우저 것만으로 계속 쓴다 — 화면이 통째로 죽지 않는다 */
+                /* 구글이 안 되면 이 브라우저 것만으로 계속 쓴다. 화면이 통째로 죽지 않는다 */
                 Toolbox?.showToast?.(t('planner.t36'), 'error');
             }
         }

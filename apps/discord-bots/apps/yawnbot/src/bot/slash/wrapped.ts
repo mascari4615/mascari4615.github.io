@@ -1,8 +1,8 @@
 /**
- * `/결산` — 서버 결산 카드 (TASK-YB-042).
+ * `/결산`. 서버 결산 카드 (TASK-YB-042).
  *
  * 자랑하려고 스샷을 찍게 만드는 게 목적이라, 숫자 나열이 아니라 **칭호**로 읽히게 짠다.
- * (이미지 카드 렌더는 다음 단계 — 지금은 embed 로 루프부터 검증.)
+ * (이미지 카드 렌더는 다음 단계. 지금은 embed 로 루프부터 검증.)
  */
 import { EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -50,7 +50,7 @@ export function hourLabel(hour: number): string {
 function rankLines(entries: RankedUser[], unit: string): string {
   if (!entries.length) return '_아직 없음_';
   return entries
-    .map((entry, index) => `${MEDALS[index] ?? '　'} **${entry.name}** — ${entry.value.toLocaleString('ko-KR')}${unit}`)
+    .map((entry, index) => `${MEDALS[index] ?? '　'} **${entry.name}**. ${entry.value.toLocaleString('ko-KR')}${unit}`)
     .join('\n');
 }
 
@@ -64,20 +64,20 @@ export function buildWrappedEmbed(
   const embed = new EmbedBuilder()
     .setTitle(`🎁 ${guildName} 결산`)
     .setColor(0xffc86b)
-    .setFooter({ text: `최근 ${summary.days}일 · 기록된 날 ${summary.daysWithData}일 · 메시지 내용은 저장하지 않습니다` });
+    .setFooter({ text: `최근 ${summary.days}일, 기록된 날 ${summary.daysWithData}일, 메시지 내용은 저장하지 않습니다` });
 
   if (summary.totalMessages === 0) {
-    // 0 이 「아무도 안 떠들었다」인지 「욘이 그 채널을 못 본다」인지 여기서 갈라 준다.
+    // 0 이 아무도 안 떠들었다인지 욘이 그 채널을 못 본다인지 여기서 갈라 준다.
     embed.setDescription(
       notice
         ? [notice, '', '권한을 켜면 그때부터 세기 시작해요 (지나간 대화는 소급 X).'].join('\n')
-        : ['아직 셀 게 없어요.', '', '지금부터 세기 시작합니다 — 며칠 떠들고 다시 불러 주세요.'].join('\n'),
+        : ['아직 셀 게 없어요.', '', '지금부터 세기 시작합니다. 며칠 떠들고 다시 불러 주세요.'].join('\n'),
     );
     return embed;
   }
 
   embed.setDescription(
-    `**메시지 ${summary.totalMessages.toLocaleString('ko-KR')}개** · **${summary.activeUsers}명**이 떠들었고, ` +
+    `**메시지 ${summary.totalMessages.toLocaleString('ko-KR')}개**, **${summary.activeUsers}명**이 떠들었고, ` +
       `글자로는 **${summary.totalChars.toLocaleString('ko-KR')}자**를 썼어요.`,
   );
 
@@ -92,7 +92,7 @@ export function buildWrappedEmbed(
   if (summary.nightOwl) {
     embed.addFields({
       name: '🦉 새벽 유령',
-      value: `**${summary.nightOwl.name}** — 말한 것의 ${Math.round(summary.nightOwl.ratio * 100)}%가 새벽 0~6시`,
+      value: `**${summary.nightOwl.name}**. 말한 것의 ${Math.round(summary.nightOwl.ratio * 100)}%가 새벽 0~6시`,
       inline: false,
     });
   }
@@ -105,20 +105,20 @@ export function buildWrappedEmbed(
   }
 
   const rhythm: string[] = [];
-  if (summary.busiestHour) rhythm.push(`가장 붐빈 시각 — **${hourLabel(summary.busiestHour.hour)}**`);
-  if (summary.busiestChannel) rhythm.push(`가장 붐빈 채널 — <#${summary.busiestChannel.channelId}>`);
+  if (summary.busiestHour) rhythm.push(`가장 붐빈 시각. **${hourLabel(summary.busiestHour.hour)}**`);
+  if (summary.busiestChannel) rhythm.push(`가장 붐빈 채널. <#${summary.busiestChannel.channelId}>`);
   rhythm.push('```' + sparkline(summary.hours) + '```');
   embed.addFields({ name: '🕐 하루의 리듬 (0시 → 23시)', value: rhythm.join('\n'), inline: false });
 
-  // 숫자가 나오는 카드에도 「일부만 세고 있다」는 사실은 붙어야 한다 — 안 그러면 축소된 값을 진짜로 믿는다.
+  // 숫자가 나오는 카드에도 일부만 세고 있다는 사실은 붙어야 한다. 안 그러면 축소된 값을 진짜로 믿는다.
   if (notice) embed.addFields({ name: '🙈 안 보이는 곳', value: notice, inline: false });
 
   return embed;
 }
 
 /**
- * 원시 수치 창 — 카드가 이상할 때 "집계가 틀렸나 표시가 틀렸나"를 가른다.
- * 표시용 가공을 최소로 하고, 저장 상태(파일 존재·마지막 저장 시각)까지 같이 보여준다.
+ * 원시 수치 창. 카드가 이상할 때 "집계가 틀렸나 표시가 틀렸나"를 가른다.
+ * 표시용 가공을 최소로 하고, 저장 상태(파일 존재, 마지막 저장 시각)까지 같이 보여준다.
  */
 export function buildDebugText(
   dump: DebugDump,
@@ -126,26 +126,26 @@ export function buildDebugText(
   coverage: CoverageReport = UNKNOWN_COVERAGE,
 ): string {
   const lines: string[] = [];
-  lines.push(`■ 범위 ${days}일 · 오늘(KST) = ${dump.todayKey}`);
+  lines.push(`■ 범위 ${days}일, 오늘(KST) = ${dump.todayKey}`);
   lines.push(coverageDebugLine(coverage));
   lines.push(`■ 기록 있는 날 ${dump.dayKeys.length}개: ${dump.dayKeys.slice(0, 8).join(', ') || '(없음)'}`);
   lines.push(
     `■ 저장: ${dump.stateFileExists ? `있음 (마지막 ${dump.stateFileMtime})` : '아직 없음 (첫 저장 전)'}` +
-      ` · 미저장 변경 ${dump.dirty ? '있음' : '없음'}`,
+      `, 미저장 변경 ${dump.dirty ? '있음' : '없음'}`,
   );
   lines.push('');
 
   if (!dump.rows.length) {
-    // 「안 보이는 채널」이 있으면 그게 0 의 원인일 확률이 높다 — 엉뚱한 안내부터 하지 않는다.
+    // 안 보이는 채널이 있으면 그게 0 의 원인일 확률이 높다. 엉뚱한 안내부터 하지 않는다.
     lines.push(
       coverage.known && coverage.blind.length
-        ? `아직 잡힌 사람 없음 — 가려진 채널 ${coverage.blind.length}개부터 의심. 채널 권한에서 욘에게 「채널 보기」를 켜라.`
+        ? `아직 잡힌 사람 없음. 가려진 채널 ${coverage.blind.length}개부터 의심. 채널 권한에서 욘에게 채널 보기를 켜라.`
         : '아직 잡힌 사람 없음. 아무 채널에나 한 마디 하고 다시 쳐 보세요.',
     );
   } else {
     lines.push('사람      메시지  글자   새벽  준반응  받은반응');
     for (const row of dump.rows.slice(0, 15)) {
-      const name = row.name.length > 8 ? `${row.name.slice(0, 7)}…` : row.name;
+      const name = row.name.length > 8 ? `${row.name.slice(0, 7)}...` : row.name;
       lines.push(
         [
           name.padEnd(9),
@@ -170,14 +170,14 @@ export function buildDebugText(
 
 export async function handleWrapped(_ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   if (!interaction.guildId) {
-    await interaction.reply({ content: '서버 안에서 써 주세요 — 서버 단위 결산이에요.' });
+    await interaction.reply({ content: '서버 안에서 써 주세요. 서버 단위 결산이에요.' });
     return;
   }
 
   const days = interaction.options.getInteger('기간') ?? 7;
   const recorder = getServerStatsRecorder();
 
-  // 매주 자동으로 받을지 — 켠 사람이 명령을 친 그 채널로 간다.
+  // 매주 자동으로 받을지. 켠 사람이 명령을 친 그 채널로 간다.
   const auto = interaction.options.getBoolean('매주');
   if (auto !== null) {
     recorder.setWeekly(interaction.guildId, auto ? interaction.channelId : null);
@@ -202,7 +202,7 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
     await interaction.reply({
       content:
         '```\n' + text.slice(0, 1700) + '\n```' +
-        (devUrl ? `\n🔧 개발 콘솔 (나만 보임 · 공유 금지): ${devUrl}` : ''),
+        (devUrl ? `\n🔧 개발 콘솔 (나만 보임, 공유 금지): ${devUrl}` : ''),
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -226,7 +226,7 @@ export function wrappedUrl(shareKey: string, days: number): string | null {
   return days === 7 ? `${base}/w/${shareKey}` : `${base}/w/${shareKey}?days=${days}`;
 }
 
-/** 개발 콘솔 주소 — 공유 키가 아니라 *개발 키* 로 만든다. */
+/** 개발 콘솔 주소. 공유 키가 아니라 *개발 키* 로 만든다. */
 export function devConsoleUrl(devKey: string, days: number): string | null {
   const base = (process.env.YAWNBOT_PUBLIC_URL || '').trim().replace(/\/+$/, '');
   if (!base) return null;

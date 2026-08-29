@@ -39,13 +39,13 @@ import { markLive } from './shared/say';
       }
       setTimeout(() => ctx.close(), times * 500 + 500);
     } catch {
-      /* 사용자 제스처 없이 오디오가 막힌 경우 — 무음으로 넘어간다 */
+      /* 사용자 제스처 없이 오디오가 막힌 경우. 무음으로 넘어간다 */
     }
   }
 
   Toolbox.register({
     id: 'timer',
-    title: t('widgets.timer.title', undefined, '타이머 · 스톱워치'),
+    title: t('widgets.timer.title', undefined, '타이머, 스톱워치'),
     category: 'tool',
     desc: t(
       'widgets-desc.timer.desc',
@@ -83,7 +83,7 @@ import { markLive } from './shared/say';
           Mdd.linePreset('tool_run', { msg: t('timer.mdd') });
           container.innerHTML = `
             <div class="tool-display" id="tmDisplay">00:00</div>
-            <!-- 남은 시간을 눈으로 — 상위 타이머는 전부 링·바가 있다. -->
+            <!-- 남은 시간을 눈으로. 상위 타이머는 전부 링, 바가 있다. -->
             <div class="tm-track"><div class="tm-fill" id="tmFill"></div></div>
             <div class="field-group">
               <label class="field-label">${esc(t('timer.label.set'))}</label>
@@ -115,7 +115,7 @@ import { markLive } from './shared/say';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const display = $<HTMLElement>('#tmDisplay');
           const status = $<HTMLElement>('#tmStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           let totalMs = 0;
           let endAt = 0;
@@ -137,9 +137,9 @@ import { markLive } from './shared/say';
             if (fill && totalMs> 0) fill.style.width = ((Math.max(ms, 0) / totalMs) * 100).toFixed(1) + '%';
           }
 
-          /* 새로고침 한 번에 진행 중인 타이머가 증발했다 — 상태가 전부 메모리에만 있었기 때문이다.
+          /* 새로고침 한 번에 진행 중인 타이머가 증발했다. 상태가 전부 메모리에만 있었기 때문이다.
              **끝나는 시각(벽시계)** 을 이 기기에 적어 두면, 창을 닫았다 열어도 남은 시간이 그대로다.
-             performance.now() 는 창마다 0 부터라 복구에 못 쓴다 — 그래서 Date.now() 로 적는다. */
+             performance.now() 는 창마다 0 부터라 복구에 못 쓴다. 그래서 Date.now() 로 적는다. */
           function remember(): void {
             try {
               if (running) localStorage.setItem(KEEP, JSON.stringify({ endWall: Date.now() + remaining, totalMs }));
@@ -229,8 +229,8 @@ import { markLive } from './shared/say';
             status.className = 'tool-status';
             remember();
           };
-          /* 공부·수업·라이브에서는 크게 보이는 숫자가 사실상 기본이다(상위 타이머 전부).
-             도구 화면째 전체화면으로 던진다 — 그 안에서 시작·정지도 그대로 쓸 수 있다. */
+          /* 공부, 수업, 라이브에서는 크게 보이는 숫자가 사실상 기본이다(상위 타이머 전부).
+             도구 화면째 전체화면으로 던진다. 그 안에서 시작, 정지도 그대로 쓸 수 있다. */
           $<HTMLButtonElement>('#tmFull').onclick = () => {
             const page = (container.closest('.tool-page') || container) as HTMLElement;
             if (document.fullscreenElement) void document.exitFullscreen();
@@ -257,7 +257,7 @@ import { markLive } from './shared/say';
           });
 
           paint(0);
-          /* 창을 닫았다 열어도 돌던 타이머가 이어지게 — 화면을 다 만든 뒤 한 번 되살린다. */
+          /* 창을 닫았다 열어도 돌던 타이머가 이어지게. 화면을 다 만든 뒤 한 번 되살린다. */
           restore();
   }
 
@@ -295,7 +295,7 @@ import { markLive } from './shared/say';
           function renderLaps(): void {
             lapsEl.innerHTML = laps
               .map((at, i) => {
-                /* 이름을 `t` 로 두면 **말 갈아끼우는 `t()` 를 가린다** — 아래 줄이 조용히 깨진다. */
+                /* 이름을 `t` 로 두면 **말 갈아끼우는 `t()` 를 가린다**. 아래 줄이 조용히 깨진다. */
                 const prev = i === 0 ? 0 : laps[i - 1];
                 return `<div class="tool-list-row"><span class="tool-list-key">${esc(t('timer.lap', { n: i + 1 }))}</span><span>${fmt(at - prev, true)}</span><span class="tool-list-dim">${fmt(at, true)}</span></div>`;
               })

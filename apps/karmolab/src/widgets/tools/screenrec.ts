@@ -4,9 +4,9 @@
  * 버그를 설명하거나 사용법을 보여 줄 때 화면을 찍어 보내는 일이 잦다. 그런데 녹화 프로그램을
  * 깔라고 하면 그 자리에서 대화가 끊긴다. 브라우저가 이미 할 수 있는 일이라 여기서 끝낸다.
  *
- * 녹화된 파일은 **아무 데도 가지 않는다** — 내 화면이 담긴 파일이라 이 점이 특히 중요하다.
+ * 녹화된 파일은 **아무 데도 가지 않는다**. 내 화면이 담긴 파일이라 이 점이 특히 중요하다.
  *
- * 소리는 두 갈래다: 화면 소리(탭·시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
+ * 소리는 두 갈래다: 화면 소리(탭, 시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
  */
 import { pickRecordType, download } from './shared/video';
 import { escapeHtml as esc } from './shared/text';
@@ -79,8 +79,8 @@ import { intervalWhileVisible } from '../../lib/tick';
           let stopTicker: (() => void) | null = null;
           let startedAt = 0;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function cleanup(): void {
@@ -107,7 +107,7 @@ import { intervalWhileVisible } from '../../lib/tick';
                 audio: $<HTMLInputElement>('#srSysAudio').checked
               });
             } catch {
-              // 사용자가 창 고르기를 취소한 경우 — 잘못이 아니므로 조용히 되돌린다
+              // 사용자가 창 고르기를 취소한 경우. 잘못이 아니므로 조용히 되돌린다
               say(t('screenrec.err.notStarted'));
               return;
             }
@@ -129,7 +129,7 @@ import { intervalWhileVisible } from '../../lib/tick';
                 say(t('screenrec.warn.noMic'));
               }
             }
-            // 소리가 둘이면 섞어야 한다 — MediaRecorder 는 오디오 트랙을 하나만 담는다
+            // 소리가 둘이면 섞어야 한다. MediaRecorder 는 오디오 트랙을 하나만 담는다
             if (audioIn.length) {
               audioIn.forEach((n) => n.connect(dest));
               dest.stream.getAudioTracks().forEach((t) => out.addTrack(t));
@@ -145,7 +145,7 @@ import { intervalWhileVisible } from '../../lib/tick';
               (recorder as MediaRecorder).onstop = () => resolve(new Blob(chunks, { type: mimeType || 'video/webm' }));
             });
 
-            // 브라우저 자체의 「공유 중지」로 끝낼 수도 있다 — 그 경우도 똑같이 마무리해야 한다
+            // 브라우저 자체의 공유 중지로 끝낼 수도 있다. 그 경우도 똑같이 마무리해야 한다
             screen.getVideoTracks()[0].addEventListener('ended', () => stop());
 
             recorder.start(500);
@@ -169,12 +169,12 @@ import { intervalWhileVisible } from '../../lib/tick';
               say(t('screenrec.err.empty'), 'error');
               return;
             }
-            attachMedia(preview, made); // 공용 — 앞 주소를 거두고 물린다
+            attachMedia(preview, made); // 공용. 앞 주소를 거두고 물린다
             $<HTMLElement>('#srResult').style.display = '';
             saveBtn.disabled = false;
             const sec = (performance.now() - startedAt) / 1000;
             stats.innerHTML = statCell(t('screenrec.stat.length'), mmss(sec), true) + statCell(t('screenrec.stat.size'), size(made.size));
-            say(`${mmss(sec)} · ${size(made.size)} 로 담았어요. 확인하고 받으세요.`, 'ok');
+            say(`${mmss(sec)}, ${size(made.size)} 로 담았어요. 확인하고 받으세요.`, 'ok');
             Toolbox.trackUse?.('record');
           }
 
@@ -198,7 +198,7 @@ import { intervalWhileVisible } from '../../lib/tick';
             download(made, name);
             say(t('screenrec.say.saved'), 'ok');
             /* **녹화한 것을 이어서 쓰게 내놓는다** (TASK-KL-298).
-             * 화면을 찍고 나서 하는 일은 거의 늘 「구간 자르기」나 「GIF 로」다 —
+             * 화면을 찍고 나서 하는 일은 거의 늘 구간 자르기나 GIF 로다 . 
              * 여태는 방금 받은 파일을 다시 올려야 했다. */
             Toolbox.offerNext?.(status, { blob: made, name, from: 'screenrec' });
           };

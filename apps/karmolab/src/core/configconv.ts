@@ -1,14 +1,14 @@
 /**
- * 설정 파일을 서로 옮긴다 — .env ↔ YAML ↔ TOML ↔ JSON ↔ .properties (TASK-KL-316 / 3)
+ * 설정 파일을 서로 옮긴다. .env ↔ YAML ↔ TOML ↔ JSON ↔ .properties (TASK-KL-316 / 3)
  *
  * 같은 설정을 형식만 바꿔 다시 적는 일은 흔한데, 손으로 옮기면 **중첩과 따옴표에서 샌다**.
  * 여기서는 무엇으로 들어오든 **한 가지 나무**(`Value`)로 읽고, 거기서 다섯 모양으로 찍는다.
  * 읽기 다섯 × 쓰기 다섯을 스물다섯 벌로 적지 않기 위해서다.
  *
- * **일부러 안 하는 것**(적어 두지 않으면 「되는 줄 알고」 쓴다):
- *   YAML 의 앵커·별칭(`&a`/`*a`)·여러 문서(`---`)·복잡한 블록 스칼라 접기,
+ * **일부러 안 하는 것**(적어 두지 않으면 되는 줄 알고 쓴다):
+ *   YAML 의 앵커, 별칭(`&a`/`*a`), 여러 문서(`---`), 복잡한 블록 스칼라 접기,
  *   TOML 의 배열 표(`[[table]]`) 안 중첩 표, 날짜 형식 보존.
- *   .env 와 .properties 는 원래 **평평하다** — 중첩은 `A.B=1` 처럼 점으로 편다.
+ *   .env 와 .properties 는 원래 **평평하다**. 중첩은 `A.B=1` 처럼 점으로 편다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -40,7 +40,7 @@ export function detect(text: string): Format {
   if (body === '') return 'json';
   if (body.startsWith('{')) return 'json';
   const lines = body.split(/\r?\n/).filter((l) => l.trim() !== '' && !/^\s*[#;]/.test(l));
-  /* `[server]` 로 시작하는 TOML 도 대괄호로 열린다 — **읽어 봐야** 갈린다.
+  /* `[server]` 로 시작하는 TOML 도 대괄호로 열린다. **읽어 봐야** 갈린다.
      (예전엔 첫 글자만 보고 json 이라 했다가 TOML 표를 json 으로 잘못 짚었다.) */
   if (body.startsWith('[')) {
     try {
@@ -56,7 +56,7 @@ export function detect(text: string): Format {
   const equal = lines.filter((l) => /^\s*[\w.\-/]+\s*=/.test(l)).length;
   if (colon > equal) return 'yaml';
   if (equal > 0) {
-    // 대문자·밑줄 위주면 .env, 점 많은 소문자면 .properties 로 본다.
+    // 대문자, 밑줄 위주면 .env, 점 많은 소문자면 .properties 로 본다.
     const envish = lines.filter((l) => /^\s*(export\s+)?[A-Z0-9_]+\s*=/.test(l)).length;
     return envish >= equal / 2 ? 'env' : 'properties';
   }
@@ -95,7 +95,7 @@ function scalar(raw: string): Value {
   return v;
 }
 
-/** 괄호·따옴표 안의 쉼표는 자르지 않는다. */
+/** 괄호, 따옴표 안의 쉼표는 자르지 않는다. */
 function splitTop(text: string): string[] {
   const out: string[] = [];
   let depth = 0;
@@ -131,7 +131,7 @@ function scalarKey(raw: string): string {
   return v;
 }
 
-/** 들여쓰기로 묶는 YAML — 우리가 쓰는 만큼만. */
+/** 들여쓰기로 묶는 YAML. 우리가 쓰는 만큼만. */
 export function parseYaml(text: string): Value {
   interface Frame {
     indent: number;
@@ -183,7 +183,7 @@ export function parseYaml(text: string): Value {
     if (parent === undefined) continue;
 
     if (val === '' || val === '|' || val === '>') {
-      // 다음 줄을 보고 목록인지 묶음인지 고른다 — 여는 괄호가 없는 형식이라 이렇게밖에 못 안다.
+      // 다음 줄을 보고 목록인지 묶음인지 고른다. 여는 괄호가 없는 형식이라 이렇게밖에 못 안다.
       let j = i + 1;
       while (j < lines.length && (lines[j].trim() === '' || /^\s*#/.test(lines[j]))) j++;
       const nextIndent = j < lines.length ? lines[j].length - lines[j].replace(/^\s*/, '').length : -1;
@@ -247,7 +247,7 @@ export function parseToml(text: string): Value {
   return root;
 }
 
-/** `.env` 와 `.properties` 는 평평하다 — 점 있는 열쇠는 중첩으로 편다. */
+/** `.env` 와 `.properties` 는 평평하다. 점 있는 열쇠는 중첩으로 편다. */
 export function parseFlat(text: string): Value {
   const root: Record<string, Value> = {};
   for (const raw of text.replace(/\r\n?/g, '\n').split('\n')) {
@@ -302,7 +302,7 @@ export function toYaml(value: Value, indent = 0): string {
       .map((k) => {
         const v = value[k];
         if (isMap(v) && Object.keys(v).length > 0) return pad + k + ':\n' + toYaml(v, indent + 2);
-        /* 목록도 한 칸 더 들여쓴다 — 열쇠와 같은 자리에 두면 우리 읽기가 「빈 묶음」으로 본다(왕복이 깨진다). */
+        /* 목록도 한 칸 더 들여쓴다. 열쇠와 같은 자리에 두면 우리 읽기가 빈 묶음으로 본다(왕복이 깨진다). */
         if (Array.isArray(v) && v.length > 0) return pad + k + ':\n' + toYaml(v, indent + 2);
         return pad + k + ': ' + yamlScalar(isMap(v) ? {} : Array.isArray(v) ? [] : v).replace(/^\{\}$/, '{}');
       })
@@ -350,7 +350,7 @@ export function toToml(value: Value, prefix = ''): string {
   return [plain.join('\n'), tables.join('\n\n')].filter((s) => s !== '').join('\n\n');
 }
 
-/** 중첩을 점으로 편다 — 평평한 형식으로 나갈 때 쓴다. */
+/** 중첩을 점으로 편다. 평평한 형식으로 나갈 때 쓴다. */
 export function flatten(value: Value, prefix = ''): Array<[string, Value]> {
   const out: Array<[string, Value]> = [];
   if (isMap(value)) {

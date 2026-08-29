@@ -20,8 +20,8 @@ import { download } from './shared/video';
 import { clock, outline, parseCues, plainText } from '../../lib/videosum';
 
 (function (): void {
-  /* 자막을 읽는 일은 **한 군데**서 한다 (`lib/videosum`) — 「줄이기」 탭도 같은 파서를 쓴다.
-     두 벌로 두면 한쪽만 고쳐져 「맞추기에서는 읽히는데 줄이기에서는 안 읽히는」 자막이 생긴다. */
+  /* 자막을 읽는 일은 **한 군데**서 한다 (`lib/videosum`). 줄이기 탭도 같은 파서를 쓴다.
+     두 벌로 두면 한쪽만 고쳐져 맞추기에서는 읽히는데 줄이기에서는 안 읽히는 자막이 생긴다. */
   type Cue = { start: number; end: number; text: string };
   const parse = parseCues;
 
@@ -49,7 +49,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
     desc: t(
       'widgets-desc.subtitle.desc',
       undefined,
-      '어긋난 자막을 밀거나 늘려 맞춥니다. SRT·VTT 를 서로 바꿉니다'
+      '어긋난 자막을 밀거나 늘려 맞춥니다. SRT, VTT 를 서로 바꿉니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 14h5M13 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
@@ -65,7 +65,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
       },
       {
         /* 영상 줄이기 (TASK-KL-238 / 39 summarize.tech). 30분짜리 앞에서 사람이 알고 싶은 것은
-           줄거리가 아니라 **내가 볼 데가 몇 분인가**다 — 자막에는 시간과 말이 이미 다 있다. */
+           줄거리가 아니라 **내가 볼 데가 몇 분인가**다. 자막에는 시간과 말이 이미 다 있다. */
         id: 'sum',
         label: t('subtitle.tab.sum', undefined, '줄이기'),
         build: function (container: HTMLElement): void {
@@ -139,8 +139,8 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
           let outFmt: 'srt' | 'vtt' = 'srt';
           let baseName = t('subtitle.file.base');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function run(): void {
@@ -195,9 +195,9 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
               run();
             });
           };
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 붙여넣기가 같이 딸려 온다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void readFile(files[0]) });
-          /* 남이 넘긴 자막도 받는다 (TASK-KL-238 / 2) — 선언(`accepts`)만 하고 안 받으면 빈 화면이다. */
+          /* 남이 넘긴 자막도 받는다 (TASK-KL-238 / 2). 선언(`accepts`)만 하고 안 받으면 빈 화면이다. */
           Toolbox.onHandoff?.('subtitle', (file: File) => void readFile(file));
 
           input.addEventListener('input', run);
@@ -235,9 +235,9 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
   }
 
   /**
-   * 「줄이기」 — 자막을 **시간 붙은 목차**로 (TASK-KL-238 / 39 summarize.tech).
+   * 줄이기. 자막을 **시간 붙은 목차**로 (TASK-KL-238 / 39 summarize.tech).
    *
-   * 이름표는 그 구간에서 **실제로 나온 문장**이다. 지어낸 제목은 그럴듯해서 더 위험하다 —
+   * 이름표는 그 구간에서 **실제로 나온 문장**이다. 지어낸 제목은 그럴듯해서 더 위험하다 . 
    * 사람은 그걸 믿고 그 구간을 건너뛴다. 그래서 여기서는 고르기만 하고 만들지 않는다.
    */
   function drawSum(container: HTMLElement): void {
@@ -260,7 +260,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
         <button class="btn btn-ghost" id="svCopy">${esc(t('subtitle.sum.copy'))}</button>
         <button class="btn btn-ghost" id="svText">${esc(t('subtitle.sum.text'))}</button>
       </div>
-      <div class="tool-display" id="svMeta">—</div>
+      <div class="tool-display" id="svMeta">. </div>
       <div class="tool-list" id="svOut"></div>
       <div class="tool-status" id="svStatus">${esc(t('subtitle.sum.idle'))}</div>
     `;
@@ -277,7 +277,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
       const cues = parse(input.value);
       if (cues.length === 0) {
         out.innerHTML = '';
-        meta.textContent = '—';
+        meta.textContent = '. ';
         lines = [];
         say(input.value.trim() ? t('subtitle.err.noCues') : t('subtitle.sum.idle'), input.value.trim() ? 'error' : '');
         return;
@@ -315,7 +315,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
       if (lines.length === 0) return;
       void Toolbox.copyText?.(lines.join(String.fromCharCode(10)), { message: t('subtitle.sum.copied') });
     };
-    /* 목차 말고 **글 전체**가 필요할 때도 있다 — 읽어서 찾으려는 사람이다. */
+    /* 목차 말고 **글 전체**가 필요할 때도 있다. 읽어서 찾으려는 사람이다. */
     $<HTMLButtonElement>('#svText').onclick = () => {
       const cues = parse(input.value);
       if (cues.length === 0) return;

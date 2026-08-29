@@ -1,5 +1,5 @@
 /**
- * KarmoLab — 이미지 변환 공통 로직 (Canvas 기반, 서버 없음)
+ * KarmoLab. 이미지 변환 공통 로직 (Canvas 기반, 서버 없음)
  * 다른 스크립트에서 window.KarmoLabImageConvert 로 사용
  */
 import type { ImageConvertOptions, KarmoLabImageConvertAPI } from '../../../types/karmolab';

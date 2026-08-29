@@ -1,11 +1,11 @@
 /**
- * ASCII 코드표 (TASK-KL-088) — 0~127. 10진·16진·2진·HTML 엔티티 함께.
+ * ASCII 코드표 (TASK-KL-088). 0~127. 10진, 16진, 2진, HTML 엔티티 함께.
  * 표는 코드에서 생성한다 (128줄을 손으로 적으면 오타가 반드시 생긴다).
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /* 표는 **쓸 때** 짓는다 — 모듈이 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다.
+  /* 표는 **쓸 때** 짓는다. 모듈이 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다.
    * (제어문자 이름 32개가 통째로 `ascii.t01` 로 뜨던 자리다.) */
   let defined = false;
   function defineTable(): void {
@@ -34,7 +34,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         copy: printable ? String.fromCharCode(code) : String(code),
         glyph: printable ? String.fromCharCode(code) : String(code),
         label: nameOf(code),
-        sub: `${code} · 0x${code.toString(16).toUpperCase().padStart(2, '0')} · ${code.toString(2).padStart(8, '0')}`,
+        sub: `${code}, 0x${code.toString(16).toUpperCase().padStart(2, '0')}, ${code.toString(2).padStart(8, '0')}`,
         keywords: `${code} ${code.toString(16)} ${nameOf(code)}`,
         group
       });
@@ -53,7 +53,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'ascii',
     title: t('widgets.ascii.title', undefined, "ASCII 코드표"),
     category: 'ref',
-    desc: t('widgets-desc.ascii.desc', undefined, "0~127 ASCII 문자의 10진·16진·2진 값과 제어문자 의미를 한 표에서 봅니다"),
+    desc: t('widgets-desc.ascii.desc', undefined, "0~127 ASCII 문자의 10진, 16진, 2진 값과 제어문자 의미를 한 표에서 봅니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.4"/>',
     tabs: [
@@ -74,8 +74,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /* ★ 표를 **묶음이 실릴 때 미리** 등록해 둔다 (2026-08-12).
    *   여태는 이 도구의 탭이 열릴 때만 등록했다. 그런데 문자표(charmap)는 네 표를 한자리에
-   *   모아 보여 주는 도구라, 자기 탭을 열자마자 `RefTable.get(...)` 을 묻는다 — 아무도
-   *   안 열어 본 표는 그때 없다. 그래서 실주소 문자표가 통째로 「표를 불러오지 못했어요」였다
+   *   모아 보여 주는 도구라, 자기 탭을 열자마자 `RefTable.get(...)` 을 묻는다. 아무도
+   *   안 열어 본 표는 그때 없다. 그래서 실주소 문자표가 통째로 표를 불러오지 못했어요였다
    *   (컴파일도 통과하고 이 도구 단독 화면은 멀쩡했다). 등록은 덮어쓰기라 두 번 해도 안전하다. */
   void loadNamespace('ascii').then(defineTable);
 })();

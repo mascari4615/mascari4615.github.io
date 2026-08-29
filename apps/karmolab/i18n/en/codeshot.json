@@ -13,7 +13,7 @@
   "codeshot.status.ready": "Done",
   "codeshot.status.saved": "Saved",
   "codeshot.status.copied": "Copied to clipboard",
-  "codeshot.status.noclip": "This browser blocks image copy — use Save",
+  "codeshot.status.noclip": "This browser blocks image copy. use Save",
   "codeshot.stat.lines": "Lines",
   "codeshot.stat.size": "Image size",
   "codeshot.frame.specimen": "Lab specimen",

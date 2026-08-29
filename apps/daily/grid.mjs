@@ -1,5 +1,5 @@
 /**
- * 격자판 — 브라우저 껍데기 (TASK-KL-199).
+ * 격자판. 브라우저 껍데기 (TASK-KL-199).
  *
  * 셋째 원형. 속성판은 *하나*를 좁히고, 전부대기는 *전부*를 쏟고, 여기는 **배치**한다.
  * 규칙은 전부 engine.mjs 에 있다. 이 파일은 화면과 저장만 한다.
@@ -27,7 +27,7 @@ const topicId = root.dataset.topic;
 const stamp = root.dataset.stamp || '';
 const others = JSON.parse(root.dataset.others || '[]');
 
-/** 아홉 칸에 아홉 수. 한 칸당 한 번뿐이라 「아무거나 넣어 보기」가 안 된다. */
+/** 아홉 칸에 아홉 수. 한 칸당 한 번뿐이라 아무거나 넣어 보기가 안 된다. */
 const MAX_TRIES = 9;
 
 const el = (html) => {
@@ -81,7 +81,7 @@ const read = (key, fallback) => {
 const write = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* 사생활 모드 — 놀이는 그대로 돈다 */ }
+  } catch { /* 사생활 모드. 놀이는 그대로 돈다 */ }
 };
 
 const saved = read(storeKey, null);
@@ -107,17 +107,17 @@ if ($streak) {
   $streak.innerHTML = live > 0 ? `🔥 <b>${live}</b>일 연속` : esc(streakLine(streak, dayNumber));
 }
 if (practice) {
-  root.querySelector('.tabs')?.insertAdjacentHTML('afterbegin', `<span class="tab practice">연습 · ${dayKey}</span>`);
+  root.querySelector('.tabs')?.insertAdjacentHTML('afterbegin', `<span class="tab practice">연습, ${dayKey}</span>`);
   root.querySelector('.lede').textContent = `${dayKey} 의 문제입니다. 연습이라 기록에는 안 들어갑니다.`;
   for (const a of root.querySelectorAll('.tabs a.tab')) a.href = `${a.getAttribute('href')}?d=${dayKey}`;
 }
 const why = whyNoPractice(askedDay);
 if (why) {
   const said = { bad: '날짜를 못 읽었어요', today: '오늘 문제는 아래에서 바로 풀 수 있어요', future: '아직 안 나온 날이에요', before: '첫 문제 이전이에요' }[why];
-  root.querySelector('.lede')?.insertAdjacentElement('afterend', el(`<p class="warn">${esc(said)} — 오늘 판을 엽니다.</p>`));
+  root.querySelector('.lede')?.insertAdjacentElement('afterend', el(`<p class="warn">${esc(said)}. 오늘 판을 엽니다.</p>`));
 }
 
-/** 희귀도 — 칸의 두 조건이 곧 질문 id 라 KL-197 집계를 그대로 탄다(새 원장 X). */
+/** 희귀도. 칸의 두 조건이 곧 질문 id 라 KL-197 집계를 그대로 탄다(새 원장 X). */
 const API = 'https://yawnbot.mascari4615.com';
 const shares = new Map();
 function loadShares(row, col) {
@@ -135,7 +135,7 @@ function loadShares(row, col) {
     .catch(() => {});
 }
 
-/** 한 칸이 채워지면 그 칸의 답을 집계로 보낸다 — 다음 사람의 희귀도가 여기서 생긴다. */
+/** 한 칸이 채워지면 그 칸의 답을 집계로 보낸다. 다음 사람의 희귀도가 여기서 생긴다. */
 function report(row, col, name) {
   if (practice) return;
   fetch(`${API}/kl/daily-list/answers`, {
@@ -171,8 +171,8 @@ function paint() {
   const done = state.filled.flat().filter(Boolean).length;
   $left.textContent =
     state.status === 'playing'
-      ? `${done}칸 채움 · ${MAX_TRIES - state.tries}수 남음`
-      : `${done}칸 · ${state.tries}수`;
+      ? `${done}칸 채움, ${MAX_TRIES - state.tries}수 남음`
+      : `${done}칸, ${state.tries}수`;
   write(storeKey, state);
 }
 
@@ -184,11 +184,11 @@ function say(text, kind) {
 function submit(raw) {
   if (state.status !== 'playing') return;
   const { row, col } = picked;
-  if (state.filled[row][col]) return say('이미 채운 칸이에요 — 빈 칸을 고르세요', 'off');
+  if (state.filled[row][col]) return say('이미 채운 칸이에요. 빈 칸을 고르세요', 'off');
   const used = state.filled.flat().filter(Boolean);
   const v = gridJudge(topic, puzzle, row, col, raw, used);
-  if (v.status === 'unknown') return say(`「${v.name}」 는 표에 없어요 — 이름을 확인해 주세요`, 'off');
-  if (v.status === 'used') return say(`「${v.name}」 는 다른 칸에 이미 썼어요 — 한 항목은 한 칸만`, 'off');
+  if (v.status === 'unknown') return say(`${v.name} 는 표에 없어요. 이름을 확인해 주세요`, 'off');
+  if (v.status === 'used') return say(`${v.name} 는 다른 칸에 이미 썼어요. 한 항목은 한 칸만`, 'off');
 
   state.tries += 1;
   $input.value = '';
@@ -197,11 +197,11 @@ function submit(raw) {
     state.filled[row][col] = v.name;
     say(`⭕ ${v.name}`, 'hit');
     report(row, col, v.name);
-    // 다음 빈 칸으로 저절로 옮겨 준다 — 아홉 번 손으로 고르게 하면 그게 일이 된다.
+    // 다음 빈 칸으로 저절로 옮겨 준다. 아홉 번 손으로 고르게 하면 그게 일이 된다.
     const next = nextEmpty(row, col);
     if (next) picked = next;
   } else {
-    say(`❌ ${v.name} — 이 칸 조건이 아니에요 (한 수 씀)`, 'off');
+    say(`❌ ${v.name}. 이 칸 조건이 아니에요 (한 수 씀)`, 'off');
   }
   paint();
   if (state.tries >= MAX_TRIES || state.filled.flat().every(Boolean)) finish();
@@ -244,7 +244,7 @@ function finish() {
   $done.hidden = false;
   $done.replaceChildren(
     el(`<h2>${count === 9 ? '아홉 칸 다 채웠다' : `${count} / 9 채웠다`}</h2>`),
-    el(`<div class="tally">${state.tries}수 · 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
+    el(`<div class="tally">${state.tries}수, 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
   );
 
   // 못 채운 칸은 **답 하나만** 보여 준다. 전부 쏟으면 내일 같은 축이 나왔을 때 재미가 죽는다.

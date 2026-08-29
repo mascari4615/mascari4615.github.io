@@ -2,10 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>내 글 지형도 — 돌려 보기</title>
+<title>내 글 지형도. 돌려 보기</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<!-- 보안 한 줄은 손으로 적지 않는다 — 정본은 `scripts/lib/head-security.mjs` 의 CSP_META 다. -->
+<!-- 보안 한 줄은 손으로 적지 않는다. 정본은 `scripts/lib/head-security.mjs` 의 CSP_META 다. -->
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <!--
   **지형도를 돌려 보는 장** (change.motion-3d-cores 2단계).
@@ -15,10 +15,10 @@
     (도구 하나 때문에 라이브러리를 들이지 않는다는 mesh3d 의 결정과 같은 자리).
   - 그래서 이 저장소가 이미 쓰는 관례를 따른다: **importmap + 받아 둔 벤더**
     (`tools/timeto-3d/viewer/index.html` 이 같은 모양).
-  - 2D 판이 정본이다. 자 예순 개는 그대로 2D 를 잰다 — 이 장은 **보는 방법 하나**를 더한 것.
+  - 2D 판이 정본이다. 자 예순 개는 그대로 2D 를 잰다. 이 장은 **보는 방법 하나**를 더한 것.
 
-  자료는 **이 기계 밖으로 안 나간다** — 로컬 서버가 주는 `data/memo-atlas.json` 을 그대로 읽는다.
-  (그 파일은 gitignore 이고 배포에 안 실린다. 배포된 주소로 열면 「지도가 없다」가 뜬다.)
+  자료는 **이 기계 밖으로 안 나간다**. 로컬 서버가 주는 `data/memo-atlas.json` 을 그대로 읽는다.
+  (그 파일은 gitignore 이고 배포에 안 실린다. 배포된 주소로 열면 지도가 없다가 뜬다.)
 -->
 <style>
   :root { color-scheme: dark; }
@@ -40,11 +40,11 @@
 </style>
 </head>
 <body>
-<div class="hud" id="hud">지도를 읽는 중…</div>
+<div class="hud" id="hud">지도를 읽는 중...</div>
 <div class="legend" id="legend"></div>
 <!--
-  손 조작은 **켜는 것**이다 (연장 19MB · 켤 때만 받는다 · 안 켜면 카메라 0).
-  자세: 허공에 팔을 들지 말고 **책상에 팔을 얹고 손가락만** — 그 자세가 오래 간다.
+  손 조작은 **켜는 것**이다 (연장 19MB, 켤 때만 받는다, 안 켜면 카메라 0).
+  자세: 허공에 팔을 들지 말고 **책상에 팔을 얹고 손가락만**. 그 자세가 오래 간다.
 -->
 <div class="hand">
   <button id="handBtn" type="button">손으로 조작</button>
@@ -70,7 +70,7 @@ import { pointerSource, mergeSources } from '@karmo/pose/source.mjs';
 import { createGestures } from '@karmo/pose/gesture.mjs';
 import { createHandSource } from '@karmo/pose/hand.mjs';
 
-/* 색은 2D 판과 **같은 여덟 색**(Wong) — 두 화면을 오가며 같은 덩어리를 알아볼 수 있어야 한다. */
+/* 색은 2D 판과 **같은 여덟 색**(Wong). 두 화면을 오가며 같은 덩어리를 알아볼 수 있어야 한다. */
 const COLORS = [
   [230, 159, 0], [86, 180, 233], [0, 158, 115], [240, 228, 66],
   [0, 114, 178], [213, 94, 0], [204, 121, 167], [140, 140, 140],
@@ -85,14 +85,14 @@ try {
   atlas = await res.json();
 } catch (e) {
   document.body.innerHTML = `<div class="miss"><h1>지도가 없다</h1>
-    <p>이 장은 <b>이 기계에서 구운 지도</b>를 읽는다 — 배포본에는 그 파일이 없다(그래야 목차가 안 샌다).</p>
+    <p>이 장은 <b>이 기계에서 구운 지도</b>를 읽는다. 배포본에는 그 파일이 없다(그래야 목차가 안 샌다).</p>
     <p>구우려면: <code>cd apps/karmolab &amp;&amp; node scripts/build-memo-atlas.mjs</code></p>
     <p style="opacity:.6">(${String(e.message)})</p></div>`;
   throw e;
 }
 
 const docs = atlas.docs.filter((d) => Array.isArray(d.xy));
-if (!docs.length) { hud.textContent = '자리 잡힌 글이 없다 — 임베딩 없이 구웠나?'; }
+if (!docs.length) { hud.textContent = '자리 잡힌 글이 없다. 임베딩 없이 구웠나?'; }
 
 /* 0~1 로 편다 (2D 판의 `unit()` 과 같은 손). */
 const xs = docs.map((d) => d.xy[0]); const ys = docs.map((d) => d.xy[1]);
@@ -102,8 +102,8 @@ const ux = (v) => (v - x0) / ((x1 - x0) || 1);
 const uy = (v) => (v - y0) / ((y1 - y0) || 1);
 
 /**
- * **높이 = 몰린 정도.** 2D 판의 「지형」이 등고선으로 말하던 것을 여기서는 진짜 높이로 세운다.
- * 격자에 세고 두 번 뭉갠다(가우시안 비슷하게) — 봉우리 자리가 2D 등고선과 같아야 한다.
+ * **높이 = 몰린 정도.** 2D 판의 지형이 등고선으로 말하던 것을 여기서는 진짜 높이로 세운다.
+ * 격자에 세고 두 번 뭉갠다(가우시안 비슷하게). 봉우리 자리가 2D 등고선과 같아야 한다.
  */
 const SIDE = 64;
 const field = new Float32Array(SIDE * SIDE);
@@ -137,7 +137,7 @@ const heightAt = (u, v) => {
   return smooth[gy * SIDE + gx] / peak;
 };
 
-const HEIGHT = 0.35;   // 지형 과장 — 1 이면 절벽, 0 이면 평면. 눈으로 골랐다(값이지 결함이 아니다).
+const HEIGHT = 0.35;   // 지형 과장. 1 이면 절벽, 0 이면 평면. 눈으로 골랐다(값이지 결함이 아니다).
 const lanes = [...new Set(docs.map((d) => d.lane))].sort();
 const laneColor = (lane) => rgb255(...COLORS[lanes.indexOf(lane) % COLORS.length]);
 
@@ -146,7 +146,7 @@ const list = docs.map((d) => {
   return {
     xyz: [(u - 0.5) * 2, heightAt(u, v) * HEIGHT, (v - 0.5) * 2],
     rgb: laneColor(d.lane),
-    /* 크기 = 글 길이(로그) — 2D 판과 같은 규칙. 단위는 **세상 크기**(지도 한 변이 2).
+    /* 크기 = 글 길이(로그). 2D 판과 같은 규칙. 단위는 **세상 크기**(지도 한 변이 2).
        화면 화소로 바꾸는 일은 `pixelScale()` 이 한다. */
     size: (2 + Math.log10(1 + (d.bytes || 0)) * 1.1) * 0.0022,
   };
@@ -163,7 +163,7 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.01, 100);
 const cloud = createPointCloud(THREE, list);
 scene.add(cloud.points);
 
-/* 바닥 격자 — 없으면 「돌고 있다」가 안 읽힌다(점만 있으면 회전이 안 보인다). */
+/* 바닥 격자. 없으면 돌고 있다가 안 읽힌다(점만 있으면 회전이 안 보인다). */
 const grid = new THREE.GridHelper(2.4, 12, 0x2a3038, 0x181c22);
 grid.position.y = -0.02;
 scene.add(grid);
@@ -171,8 +171,8 @@ scene.add(grid);
 const orbit = createOrbit({ distance: 3.2, pitch: 0.55, minDistance: 0.6, maxDistance: 12 });
 
 /**
- * **조작은 KarmoPose 를 거친다** — 지금은 마우스뿐이지만, 손·폰을 붙일 때 이 아래는 안 바뀐다.
- * (손은 무겁고 팔이 지치므로 **켜는 것**이다. 안 켜면 무게 0 · 카메라 0.)
+ * **조작은 KarmoPose 를 거친다**. 지금은 마우스뿐이지만, 손, 폰을 붙일 때 이 아래는 안 바뀐다.
+ * (손은 무겁고 팔이 지치므로 **켜는 것**이다. 안 켜면 무게 0, 카메라 0.)
  */
 const mouse = pointerSource(canvas);
 const sources = [mouse];
@@ -180,18 +180,18 @@ const pose = mergeSources(sources).start();
 const gestures = createGestures({ size: () => [canvas.clientWidth, canvas.clientHeight] });
 gestures.attach(pose);
 gestures.on('drag', (dx, dy, f) => {
-  /* 손은 **연속 조작**에만 쓴다 — 고르기는 마우스·자판 몫(실측: 손으로 고르면 처리량 절반·틀림 4배). */
+  /* 손은 **연속 조작**에만 쓴다. 고르기는 마우스, 자판 몫(실측: 손으로 고르면 처리량 절반, 틀림 4배). */
   if (f.kind === 'pointer' && f.buttons && shiftDown) orbit.pan(dx, dy);
   else orbit.rotate(dx, dy);
 });
 let shiftDown = false;
 addEventListener('keydown', (e) => { if (e.key === 'Shift') shiftDown = true; });
 addEventListener('keyup', (e) => { if (e.key === 'Shift') shiftDown = false; });
-/* 당기기는 아직 굴림쇠 몫 — 손에서는 「두 손가락 사이」가 그 자리를 맡는다(붙이면 여기만 는다). */
+/* 당기기는 아직 굴림쇠 몫. 손에서는 두 손가락 사이가 그 자리를 맡는다(붙이면 여기만 는다). */
 canvas.addEventListener('wheel', (e) => { orbit.zoom(e.deltaY); if (e.cancelable) e.preventDefault(); }, { passive: false });
 
 /**
- * **손 조작 — 켜는 것.**
+ * **손 조작. 켜는 것.**
  *
  * 연장(19MB)은 저장소에 없다. `npm run fetch:hand` 로 이 기계에 받아 둔 것을 **켤 때** 불러온다.
  * 안 받았으면 그렇게 적고 아무 일도 안 한다(조용히 안 되는 것이 제일 나쁘다).
@@ -218,23 +218,23 @@ handBtn.addEventListener('click', async () => {
     handSource?.stop();
     cam.hidden = true; handOn = false;
     handBtn.classList.remove('on');
-    handSay.textContent = '껐다 — 카메라도 껐다.';
+    handSay.textContent = '껐다. 카메라도 껐다.';
     return;
   }
   handBtn.disabled = true;
-  handSay.textContent = '연장을 불러오는 중… (처음 한 번 19MB)';
+  handSay.textContent = '연장을 불러오는 중... (처음 한 번 19MB)';
   try {
     handSource = createHandSource({ video: cam, createLandmarker: makeLandmarker });
     pose.add(handSource, { start: false });
     await handSource.start();
     cam.hidden = false; handOn = true;
     handBtn.classList.add('on');
-    /* ⚠ **자세를 먼저 말한다** — 허공에 팔을 들면 곧 지친다(실측된 제약). */
+    /* ⚠ **자세를 먼저 말한다**. 허공에 팔을 들면 곧 지친다(실측된 제약). */
     handSay.innerHTML = '<b>책상에 팔을 얹고 손가락만</b> 쓰세요.'
       + ' 엄지와 검지를 붙이면 <b>쥔 것</b>, 붙인 채 움직이면 지도가 돕니다.'
-      + ' 손은 <b>돌리기·밀기</b>에만 씁니다 — 고르기는 마우스가 낫습니다(실측).';
+      + ' 손은 <b>돌리기, 밀기</b>에만 씁니다. 고르기는 마우스가 낫습니다(실측).';
   } catch (e) {
-    handSay.innerHTML = `<b>손 조작을 못 켰다</b> — ${String(e.message).slice(0, 80)}`
+    handSay.innerHTML = `<b>손 조작을 못 켰다</b>. ${String(e.message).slice(0, 80)}`
       + '<br>연장이 없으면: <code>npm run fetch:hand</code>';
   } finally {
     handBtn.disabled = false;
@@ -246,7 +246,7 @@ function resize() {
   renderer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  /* 점 크기는 **세상 크기**로 적고 화면 화소 환산은 여기서 넣는다 — 창이 바뀌면 같이 바뀐다. */
+  /* 점 크기는 **세상 크기**로 적고 화면 화소 환산은 여기서 넣는다. 창이 바뀌면 같이 바뀐다. */
   cloud.setScale(pixelScale(h * renderer.getPixelRatio(), camera.fov));
 }
 addEventListener('resize', resize);
@@ -263,31 +263,31 @@ function tick(t) {
 }
 requestAnimationFrame(tick);
 
-/* 화면이 **제 한계를 말한다** — 2D 판과 같은 규율. 안 적으면 그림이 사실처럼 읽힌다. */
+/* 화면이 **제 한계를 말한다**. 2D 판과 같은 규율. 안 적으면 그림이 사실처럼 읽힌다. */
 const leak = atlas.leak ? `제목을 가려도 갈래가 ${Math.round(atlas.leak.rate * 100)}% 드러난다` : null;
-hud.innerHTML = `<b>${docs.length}편</b> · 갈래 ${lanes.length} · 높이 = 몰린 정도`
+hud.innerHTML = `<b>${docs.length}편</b>, 갈래 ${lanes.length}, 높이 = 몰린 정도`
   + `<div class="warn">끌면 돌고, 굴리면 당기고, shift+끌면 민다.</div>`
   + `<div class="warn">⚠ 자리는 2차원으로 접은 것이라 <b>찢김이 있다</b>(고유차원 ~18).`
-  + ` 높이는 <b>밀도</b>지 중요도가 아니다.${leak ? ` 이 자료는 비공개다 — ${leak}.` : ''}</div>`;
+  + ` 높이는 <b>밀도</b>지 중요도가 아니다.${leak ? ` 이 자료는 비공개다. ${leak}.` : ''}</div>`;
 document.getElementById('legend').innerHTML = lanes
   .map((l, i) => `<div><i style="background:rgb(${COLORS[i % COLORS.length].join(',')})"></i>${l}</div>`)
   .join('');
 /**
- * 자가 쓰는 손 — **한 번 그리고 그 자리에서 화소를 센다.**
+ * 자가 쓰는 손. **한 번 그리고 그 자리에서 화소를 센다.**
  * 밖에서 `getContext` 를 새로 부르면 컨텍스트가 어긋나고, 그린 뒤 다음 틱에 읽으면
- * 그림판이 이미 비워져 있어 **늘 0** 이 나온다(그래서 「검은 화면」으로 잘못 읽힌다).
+ * 그림판이 이미 비워져 있어 **늘 0** 이 나온다(그래서 검은 화면으로 잘못 읽힌다).
  */
 window.__atlas3d = {
   docs: docs.length,
   lanes: lanes.length,
   orbit,
   peak,
-  /* 조작이 **정말 KarmoPose 를 거치는가**를 자가 잴 수 있게 — 판을 직접 먹여 보게 연다. */
+  /* 조작이 **정말 KarmoPose 를 거치는가**를 자가 잴 수 있게. 판을 직접 먹여 보게 연다. */
   pose,
   gestures,
   handOn: () => handOn,
   handBtn,
-  /** 몇 판이나 그렸나 — 자가 **첫 판이 그려진 뒤에** 재게 한다(셰이더 링크는 조금 늦는다). */
+  /** 몇 판이나 그렸나. 자가 **첫 판이 그려진 뒤에** 재게 한다(셰이더 링크는 조금 늦는다). */
   frames: () => frames,
   lit() {
     renderer.render(scene, camera);

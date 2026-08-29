@@ -2,20 +2,20 @@
  * 번개 대결이 진짜로 둘을 붙이는지 (TASK-KL-132)
  *
  * 이 도구에서 제일 위험한 조각은 미니게임이 아니라 **연결**이다. 화면이 뜨는지 보는 검사도,
- * 값을 넣으면 반응하는지 보는 검사도 전부 창 하나만 본다 — 둘이 안 붙어도 통과한다.
+ * 값을 넣으면 반응하는지 보는 검사도 전부 창 하나만 본다. 둘이 안 붙어도 통과한다.
  * 그래서 창을 둘 띄워 한 판을 끝까지 돌린다.
  *
  * 보는 것:
  *   ① 방을 만들면 링크가 나온다
  *   ② 그 링크를 다른 창에서 열면 **서로 붙는다** (공개망을 거쳐, 우리 서버 없이)
  *   ③ 다섯 판이 끝까지 굴러 승부가 난다
- *   ④ 양쪽 점수판이 **서로 뒤집힌 값으로 일치한다** — 한쪽에서만 세면 승부가 갈리지 않는다
+ *   ④ 양쪽 점수판이 **서로 뒤집힌 값으로 일치한다**. 한쪽에서만 세면 승부가 갈리지 않는다
  *
  * **자동 묶음(audit:all)에는 일부러 안 넣었다.** 바깥 공개망(짝짓기)에 기대는 검사라 망이 막힌
- * 자리에서는 늘 빨갛다 — 늘 시끄러운 경보는 꺼진 경보와 같다. `npm run test:duel` 로 손수 돌린다
+ * 자리에서는 늘 빨갛다. 늘 시끄러운 경보는 꺼진 경보와 같다. `npm run test:duel` 로 손수 돌린다
  * (연결 쪽을 건드렸으면 반드시).
  *
- * 바깥 공개망을 타므로 인터넷이 막힌 자리에서는 못 돈다. 그때는 「못 돌았다」(2)로 끝낸다 —
+ * 바깥 공개망을 타므로 인터넷이 막힌 자리에서는 못 돈다. 그때는 못 돌았다(2)로 끝낸다 . 
  * 통과도 실패도 아니다. 둘을 같은 글자로 적으면 게이트가 죽은 것을 아무도 모른다.
  */
 import { chromium } from 'playwright';
@@ -28,14 +28,14 @@ const MATCH_MS = 90000;
 
 const failures = [];
 const check = (name, cond, detail) => {
-  if (!cond) failures.push(`${name} — ${detail}`);
+  if (!cond) failures.push(`${name}. ${detail}`);
 };
 
 const browser = await chromium.launch();
 let cantRun = '';
 
 /* 검사가 **정답을 푼다.** 아무거나 찍으면 둘 다 틀린 판이 나와 점수가 0:0 이 되고,
- * 그러면 판정이 통째로 고장 나도 통과한다 — 「이긴 판이 하나는 나온다」를 못 박으려면 풀어야 한다. */
+ * 그러면 판정이 통째로 고장 나도 통과한다. 이긴 판이 하나는 나온다를 못 박으려면 풀어야 한다. */
 const palette = { '빨강': '#e0483c', '파랑': '#3b74d8', '초록': '#33a06a', '노랑': '#d8a72a', '보라': '#8a5cd0' };
 
 /** 지금 화면의 정답 자리. 못 풀면 -1. */
@@ -107,7 +107,7 @@ try {
   // ① 방을 만들면 링크가 나온다
   const res = await a.goto(TOOL, { waitUntil: 'domcontentloaded' });
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전)`);
-  // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
+  // 보인다고 손이 달린 것은 아니다. 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
   await waitHydrated(a, '#duMake');
   await a.fill('#duName', '가');
   await a.click('#duMake');
@@ -116,7 +116,7 @@ try {
   check('대결 링크', /\?r=/.test(url), `링크: ${url}`);
 
   /* ② 링크를 다른 창에서 열면 붙는다 (검사에서는 뿌리가 다를 수 있어 방 코드만 옮겨 붙인다).
-     방 이름은 **물음표 뒤**다 — 해시 뒤는 셸이 화면 이름으로 덮어쓰는 자리라 링크가 죽는다
+     방 이름은 **물음표 뒤**다. 해시 뒤는 셸이 화면 이름으로 덮어쓰는 자리라 링크가 죽는다
      (`lib/room.ts`, TASK-KL-264). 옛 링크(`#r=`)도 아직 받아 준다. */
   const query = url.slice(url.indexOf('?r='));
   await b.goto(TOOL + query, { waitUntil: 'domcontentloaded' });
@@ -128,13 +128,13 @@ try {
     .then(() => true)
     .catch(() => false);
   if (!joined) {
-    cantRun = '둘이 안 붙었다 — 이 자리에서 공개망(짝짓기)이 막혀 있을 수 있다';
+    cantRun = '둘이 안 붙었다. 이 자리에서 공개망(짝짓기)이 막혀 있을 수 있다';
     throw new Error(cantRun);
   }
 
   // ③ 다섯 판이 끝까지 굴러 승부가 난다
   const deadline = Date.now() + MATCH_MS;
-  // A 는 정답을 풀고, B 는 늘 첫 칸을 누른다 — A 가 이긴 판이 하나도 없으면 판정이 고장 난 것이다.
+  // A 는 정답을 풀고, B 는 늘 첫 칸을 누른다. A 가 이긴 판이 하나도 없으면 판정이 고장 난 것이다.
   const [endedA, endedB] = await Promise.all([playUntilEnd(a, deadline, true, palette), playUntilEnd(b, deadline, false, palette)]);
   check('A 쪽 승부', endedA, '다섯 판이 안 끝났다');
   check('B 쪽 승부', endedB, '다섯 판이 안 끝났다');
@@ -148,11 +148,11 @@ try {
     }));
   const sa = await read(a);
   const sb = await read(b);
-  check('점수 일치', sa.me === sb.foe && sa.foe === sb.me, `A ${sa.me}:${sa.foe} · B ${sb.me}:${sb.foe}`);
+  check('점수 일치', sa.me === sb.foe && sa.foe === sb.me, `A ${sa.me}:${sa.foe}, B ${sb.me}:${sb.foe}`);
   check('판정이 산다', sa.me >= 1, `푸는 쪽이 한 판도 못 이겼다 (A ${sa.me}:${sa.foe})`);
   check('판 수', sa.me + sa.foe <= 5, `이긴 판 합계 ${sa.me + sa.foe}`);
-  check('상대 이름', sa.foeName === '나' && sb.foeName === '가', `A가 본 이름 ${sa.foeName} · B가 본 이름 ${sb.foeName}`);
-  // ⑤ 「아무나랑」 — 링크 없이도 둘이 만나는가. 대기방에서 만나 **둘만의 방으로 옮겨** 붙어야 한다.
+  check('상대 이름', sa.foeName === '나' && sb.foeName === '가', `A가 본 이름 ${sa.foeName}, B가 본 이름 ${sb.foeName}`);
+  // ⑤ 아무나랑. 링크 없이도 둘이 만나는가. 대기방에서 만나 **둘만의 방으로 옮겨** 붙어야 한다.
   const c = await browser.newPage();
   const d = await browser.newPage();
   for (const [who, p] of [
@@ -175,17 +175,17 @@ try {
         .catch(() => false)
     )
   );
-  check('아무나랑 · 만남', met[0] && met[1], `C ${met[0]} · D ${met[1]}`);
+  check('아무나랑, 만남', met[0] && met[1], `C ${met[0]}, D ${met[1]}`);
   const room = await Promise.all([c, d].map((p) => p.evaluate(() => location.hash)));
-  check('대기방에 안 남음', room.every((h) => !/lobby/.test(h)), `주소: ${room.join(' · ')}`);
-  // ⑥ 유령과 — 혼자 와도 논다. 상대 없이 다섯 판이 끝나고 승부가 나야 한다.
+  check('대기방에 안 남음', room.every((h) => !/lobby/.test(h)), `주소: ${room.join(', ')}`);
+  // ⑥ 유령과. 혼자 와도 논다. 상대 없이 다섯 판이 끝나고 승부가 나야 한다.
   const e1 = await browser.newPage();
   e1.on('pageerror', (err) => failures.push(`E 쪽 페이지 오류: ${err.message}`));
   await e1.goto(TOOL, { waitUntil: 'domcontentloaded' });
   await e1.waitForSelector('#duGhost', { timeout: 30000 });
   await e1.click('#duGhost');
   const aloneEnd = await playUntilEnd(e1, Date.now() + 60000, true, palette);
-  check('유령과 · 승부', aloneEnd, '혼자서 다섯 판이 안 끝났다');
+  check('유령과, 승부', aloneEnd, '혼자서 다섯 판이 안 끝났다');
   const se = await e1.evaluate(() => ({
     me: Number(document.querySelector('#duMeScore')?.textContent || -1),
     foe: Number(document.querySelector('#duFoeScore')?.textContent || -1),
@@ -200,7 +200,7 @@ try {
 }
 
 if (cantRun) {
-  console.log(`[smoke-duel] 못 돌았다 — ${cantRun} (통과 아님)`);
+  console.log(`[smoke-duel] 못 돌았다. ${cantRun} (통과 아님)`);
   process.exit(2);
 }
 if (failures.length > 0) {
@@ -208,4 +208,4 @@ if (failures.length > 0) {
   for (const f of failures) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('[smoke-duel] 창 둘이 붙어 한 판을 끝냈다 — 링크 · 연결 · 다섯 판 · 점수 일치 · 아무나랑 · 유령');
+console.log('[smoke-duel] 창 둘이 붙어 한 판을 끝냈다. 링크, 연결, 다섯 판, 점수 일치, 아무나랑, 유령');

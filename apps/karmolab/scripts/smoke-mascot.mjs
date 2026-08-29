@@ -1,7 +1,7 @@
 /**
- * 마스코트 — 진짜로 살아 있나 (TASK-KL-134)
+ * 마스코트. 진짜로 살아 있나 (TASK-KL-134)
  *
- * 마스코트는 「부위 그림 + 값」으로 만들어진다. 그래서 조용히 죽는 길이 많다 —
+ * 마스코트는 부위 그림 + 값으로 만들어진다. 그래서 조용히 죽는 길이 많다 . 
  * 아틀라스 좌표가 틀어져도 칸은 그대로 있고, 조각 이름을 오타 내도 화면은
  * 멀쩡해 보이고(그냥 표정이 안 바뀔 뿐), 설정 값이 저장만 되고 안 먹어도
  * 아무도 안 알려 준다. 이 검사는 그 조용한 실패들을 실제 화면에서 찔러 본다:
@@ -10,7 +10,7 @@
  *   ② 부위마다 아틀라스의 다른 칸을 가리킨다 (좌표가 죽으면 전부 같은 칸)
  *   ③ 표정을 바꾸면 조각이 갈리고, 그 자리 기본 부품은 숨는다 (안 그러면 눈이 넷)
  *   ④ 환호하면 두 팔이 올라간다
- *   ⑤ 설정(크기·프레이밍·끄기·움직임)이 화면에 실제로 반영된다
+ *   ⑤ 설정(크기, 프레이밍, 끄기, 움직임)이 화면에 실제로 반영된다
  *   ⑥ 움직임을 끄면 눈이 멈춘다 (보간이 끝난 뒤 흔들림으로 판정)
  *   ⑦ 끌어다 놓으면 가까운 벽에 붙고, 새로고침해도 그 벽이다
  *
@@ -37,10 +37,10 @@ page.on('request', (r) => {
 const res = await page.goto(URL_TARGET, { waitUntil: 'domcontentloaded', timeout: 30000 });
 if (!res || res.status() !== 200) problems.push(`첫 화면이 안 열린다 (http ${res && res.status()})`);
 
-// 기본이 꺼짐이라 「보일 때까지」 기다리면 영영 안 온다 — 붙었는지만 본다
+// 기본이 꺼짐이라 보일 때까지 기다리면 영영 안 온다. 붙었는지만 본다
 await page.waitForSelector('.mdd-av-part', { state: 'attached', timeout: 20000 });
-// 마스코트는 기본이 「꺼짐」이다(그림을 다 다듬을 때까지). 검사는 켜 놓고 본다 —
-// 꺼져 있으면 크기·자리·드래그를 잴 수가 없다.
+// 마스코트는 기본이 꺼짐이다(그림을 다 다듬을 때까지). 검사는 켜 놓고 본다 . 
+// 꺼져 있으면 크기, 자리, 드래그를 잴 수가 없다.
 await page.evaluate('Mdd.setPrefs({ enabled: true })');
 await page.waitForTimeout(1500);
 
@@ -68,26 +68,26 @@ const shown = () => page.evaluate(() => {
 });
 
 // 화면의 다른 위젯이 제 사정으로 기분을 바꾼다(성공 알림 등). 검사가 그것 때문에
-// 빨개지면 「제품 고장」과 「검사 고장」을 못 가른다 — 촬영 동안 그 경로를 막는다.
+// 빨개지면 제품 고장과 검사 고장을 못 가른다. 촬영 동안 그 경로를 막는다.
 await page.evaluate('Mdd.linePreset = () => false');
 const setMood = async (m) => { await page.evaluate(`Mdd.setMood('${m}')`); await page.waitForTimeout(700); };
 
 /* ③ 표정 교체 + 기본 부품 숨김 */
 await setMood('idle');
 let v = await shown();
-note(v.mouth === true && v.eyewhite === true, '평소인데 기본 눈·입이 숨어 있다');
+note(v.mouth === true && v.eyewhite === true, '평소인데 기본 눈, 입이 숨어 있다');
 note(v['mouth-open'] === false && v['eyes-happy'] === false, '평소인데 표정 조각이 켜져 있다');
 
 await setMood('happy');
 v = await shown();
 note(v['eyes-happy'] === true && v['mouth-open'] === true, 'happy 인데 표정 조각이 안 켜졌다');
 note(v.eyewhite === false && v.mouth === false,
-  'happy 에서 기본 눈·입이 안 숨었다 — 조각과 겹쳐 눈이 넷으로 보인다');
+  'happy 에서 기본 눈, 입이 안 숨었다. 조각과 겹쳐 눈이 넷으로 보인다');
 
 await setMood('shock');
 v = await shown();
 note(v['mouth-wide'] === true, 'shock 인데 크게 벌린 입이 안 켜졌다');
-// 놀란 눈은 조각이 아니라 값이다 — 눈동자가 실제로 작아졌는지 본다
+// 놀란 눈은 조각이 아니라 값이다. 눈동자가 실제로 작아졌는지 본다
 const irisScale = await page.evaluate(() => {
   const el = document.querySelector('.mdd-av-iris');
   const m = /scale\(([\d.]+)/.exec(el && el.style.transform || '');
@@ -99,7 +99,7 @@ note(irisScale !== null && irisScale < 0.9, `shock 인데 눈동자가 안 작�
 await setMood('cheer');
 v = await shown();
 if (!/rotate\(-?[\d.]+deg\)/.test(v.__armR) || Math.abs(parseFloat((v.__armR.match(/rotate\((-?[\d.]+)deg\)/) || [])[1] || '0')) < 25) {
-  await setMood('cheer');            // 한 번 더 — 기분이 덮였을 수 있다
+  await setMood('cheer');            // 한 번 더. 기분이 덮였을 수 있다
   v = await shown();
 }
 const deg = parseFloat((v.__armR.match(/rotate\((-?[\d.]+)deg\)/) || [])[1] || '0');
@@ -136,8 +136,8 @@ await page.waitForTimeout(300);
 await page.evaluate('Mdd.setPrefs({ motion: false })');
 const eye = await page.evaluate(async () => {
   Mdd.setMood('idle');
-  // 값은 목표로 「점점 가까워지는」 방식이라 곧바로 재면 수렴 꼬리를 흔들림으로 읽는다
-  // (1.2초에 0.010, 2.5초에 0.00001 이었다 — 재는 시점이 판정을 바꿨다).
+  // 값은 목표로 점점 가까워지는 방식이라 곧바로 재면 수렴 꼬리를 흔들림으로 읽는다
+  // (1.2초에 0.010, 2.5초에 0.00001 이었다. 재는 시점이 판정을 바꿨다).
   await new Promise((r) => setTimeout(r, 2500));
   const el = document.querySelector('.mdd-av-part[data-part="eyewhite"]');
   const vals = [];
@@ -172,7 +172,7 @@ note(gap.left === 16, `왼쪽으로 끌었는데 왼쪽 벽과 ${gap.left}px 떨
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForSelector('.mdd-av-part', { timeout: 20000 });
 await page.waitForTimeout(1200);
-// 설정은 브라우저에 남으므로 다시 켤 필요는 없다 — 켜져 있는지만 확인한다
+// 설정은 브라우저에 남으므로 다시 켤 필요는 없다. 켜져 있는지만 확인한다
 note(await page.evaluate('Mdd.getPrefs().enabled'), '새로고침했더니 켜 둔 설정이 사라졌다');
 gap = await wallGap();
 note(Math.abs(gap.left - 16) <= 2, `새로고침했더니 왼쪽 벽과 ${gap.left}px 로 벌어졌다`);
@@ -184,4 +184,4 @@ if (problems.length) {
   for (const p of problems) console.error('  - ' + p);
   process.exit(1);
 }
-console.log('[smoke-mascot] OK — 부위 ' + partCount + '개 · 그림 요청 1건 · 표정/팔/설정/자리 전부 반응');
+console.log('[smoke-mascot] OK. 부위 ' + partCount + '개, 그림 요청 1건, 표정/팔/설정/자리 전부 반응');

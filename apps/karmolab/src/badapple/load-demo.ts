@@ -5,8 +5,8 @@
  * 실제로 얼마나 바빴는지를 되재서 나온 값이다. 그림과 선이 닮았다면, 그건 하드웨어가 그림을
  * 따라갔다는 뜻이다. 그게 이 화면의 전부다.
  *
- * 왜 일꾼(Worker)에서 태우나 — 화면 쪽에서 태우면 그리는 일 자체가 멈춰서, 그림이 안 나오는
- * 이유가 「부하 때문」인지 「그리기가 막혀서」인지 구별이 안 된다. 태우는 곳과 그리는 곳을 나눠야
+ * 왜 일꾼(Worker)에서 태우나. 화면 쪽에서 태우면 그리는 일 자체가 멈춰서, 그림이 안 나오는
+ * 이유가 부하 때문인지 그리기가 막혀서인지 구별이 안 된다. 태우는 곳과 그리는 곳을 나눠야
  * 선이 진짜 부하를 뜻한다.
  *
  * 재는 값 = 일꾼이 한 조각 시간 중 실제로 바빴던 비율. 의도한 값이 아니라 **된 값**이다.
@@ -15,7 +15,7 @@ import { decode, LoadSurface, Player } from 'badapple';
 
 /**
  * 일꾼이 하는 일: 시킨 비율만큼 바쁘게 돌고, **실제로** 얼마나 바빴는지 되재서 보고한다.
- * 조각의 끝을 절대 시각으로 못 박는다 — 안 그러면 타이머가 늦게 깨어난 만큼 비율이 묽어져서
+ * 조각의 끝을 절대 시각으로 못 박는다. 안 그러면 타이머가 늦게 깨어난 만큼 비율이 묽어져서
  * 선이 통째로 아래로 눌린다.
  */
 const WORKER_SOURCE = `
@@ -100,10 +100,10 @@ self.onmessage = (event) => {
 		if (measured.length > HISTORY) measured.shift();
 		drawGraph();
 
-		$('blReadout').textContent = `시킨 값 ${(intent * 100).toFixed(0)}% · 실제 ${(real * 100).toFixed(0)}%`;
+		$('blReadout').textContent = `시킨 값 ${(intent * 100).toFixed(0)}%, 실제 ${(real * 100).toFixed(0)}%`;
 	}
 
-	/** 시킨 값. 보고가 돌아왔을 때 「무엇을 시켰었나」와 짝지으려면 들고 있어야 한다. */
+	/** 시킨 값. 보고가 돌아왔을 때 무엇을 시켰었나와 짝지으려면 들고 있어야 한다. */
 	let lastIntent = 0;
 
 	function burnNext(): void {
@@ -123,7 +123,7 @@ self.onmessage = (event) => {
 		}
 		const clip = decode(new Uint8Array(await response.arrayBuffer()));
 
-		// 재생기는 그림을 계속 갈아 준다. 태우는 쪽은 자기 박자로 한 줄씩 읽어 간다 —
+		// 재생기는 그림을 계속 갈아 준다. 태우는 쪽은 자기 박자로 한 줄씩 읽어 간다 . 
 		// 초당 15장과 한 조각 220ms 는 서로 다른 박자라, 한 시계에 묶으면 반드시 어긋난다.
 		const player = new Player(clip, { loop: true });
 		player.stage.add(surface);

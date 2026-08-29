@@ -1,5 +1,5 @@
 /**
- * Quest Log — 관측실(observatory) 미감의 프로젝트·인생 항목 트리. Tauri 데스크톱 전용 (category: 'desktop').
+ * Quest Log. 관측실(observatory) 미감의 프로젝트, 인생 항목 트리. Tauri 데스크톱 전용 (category: 'desktop').
  *
  * **데이터 = memo 정본** (TASK-KL-009 Phase F): hardcoded `QUEST_DATA` 폐기,
  * Rust 명령 `get_quest_tree` (apps/karmolab-tauri/src-tauri/src/quest_index.rs) 가
@@ -8,13 +8,13 @@
  * (projects[].children[].leaf{checks} + sealed[]) 로 변환.
  *
  * status 매핑: memo (seed/ready/active/hold/done/sealed) → 옛 (seed/fire/sleep/sealed):
- *   seed/ready → seed · active → fire · hold → sleep · done/sealed → sealed.
+ *   seed/ready → seed, active → fire, hold → sleep, done/sealed → sealed.
  *   status='sealed' 인 TASK 만 sealed[] 로 분리.
  *
- * 시각/인터랙션 (옛 standalone `apps/karmolab/quest-log/` — 폐기됨, 시각만 위젯에 흡수):
+ * 시각/인터랙션 (옛 standalone `apps/karmolab/quest-log/`. 폐기됨, 시각만 위젯에 흡수):
  * - 진행도: leaf = checked/total, 부모 = 자식 평균
- * - 영속화: localStorage `quest-log-state-v1` (위젯 내부 working state — 폴링/재진입 시 memo 정본으로 갱신)
- * - CSS·DOM `.kl-quest-log` 스코프. drawer/sleep prompt fixed 모달은 위젯 컨테이너 자식.
+ * - 영속화: localStorage `quest-log-state-v1` (위젯 내부 working state. 폴링/재진입 시 memo 정본으로 갱신)
+ * - CSS, DOM `.kl-quest-log` 스코프. drawer/sleep prompt fixed 모달은 위젯 컨테이너 자식.
  *
  * v1 = read-only (memo 정본 우선). v2 (TASK-KL-010): 위젯 토글 → memo write back. v3: 인라인 에디터.
  */
@@ -29,7 +29,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  // ── DATA — memo 정본 view ─────────────────────────────────────────────
+  // ── DATA. memo 정본 view ─────────────────────────────────────────────
   // hardcoded QUEST_DATA 폐기. Rust 명령 `get_quest_tree` 가 6 도메인 walk
   // → 위젯이 invoke 후 옛 트리 구조 (projects/children/leaf + sealed[]) 로 변환.
 
@@ -102,10 +102,10 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
   }
 
-  // KL-045 — memo status drift 보정. memo TASK 들에 schema X 값 (`in_progress` / `in_review`
+  // KL-045. memo status drift 보정. memo TASK 들에 schema X 값 (`in_progress` / `in_review`
   // / `seeded` / `in-progress` / `suspended` / `closed` / `medium` / `critical` 등) 가
-  // 다수 존재 (실측 50+ 케이스). 정렬·필터·overview 통계 모두 canonical 6 값으로 정규화 후 동작.
-  // 정본 fix = `node memo/scripts/sync-task-status.mjs --apply` 별도 (race 위험 — 본 frontend 는 방어).
+  // 다수 존재 (실측 50+ 케이스). 정렬, 필터, overview 통계 모두 canonical 6 값으로 정규화 후 동작.
+  // 정본 fix = `node memo/scripts/sync-task-status.mjs --apply` 별도 (race 위험. 본 frontend 는 방어).
   function canonicalStatus(s: string): string {
     switch (s) {
       case 'active': case 'in_progress': case 'in-progress': return 'active';
@@ -151,7 +151,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   // + sealed[])로 변환한다. 그 *구성된* 모양을 정밀 타입으로 고정하고,
   // 휴리스틱 순회/렌더 (findNode/allLeaves/progressOf/openDrawer)는 세
   // 모양을 구조적으로 함께 다루므로 넓은 supertype `QuestNode` 를 쓴다.
-  // (`@ts-nocheck` 제거 — tsc 가 실제로 검증. `: any` → 정의된 타입.)
+  // (`@ts-nocheck` 제거. tsc 가 실제로 검증. `: any` → 정의된 타입.)
   interface QuestCheck {
     t: string;
     done: boolean;
@@ -166,7 +166,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     parentId: string | null;
     filePath: string;
     checks: QuestCheck[];
-    note?: string;        // taskNodeToLeaf 미생성 — drawer 가 node.note 읽음 (방어)
+    note?: string;        // taskNodeToLeaf 미생성. drawer 가 node.note 읽음 (방어)
   }
   interface QuestCategory {
     id: string;
@@ -211,7 +211,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     children?: QuestNode[];
     checks?: QuestCheck[];
   }
-  // get_questlog_hub (questlog_hub.rs QuestlogHub/CommitInfo) — 위젯은 commits 만 사용.
+  // get_questlog_hub (questlog_hub.rs QuestlogHub/CommitInfo). 위젯은 commits 만 사용.
   interface HubCommit { hash: string; date: string; subject: string; }
   interface HubState { commits?: Record<string, HubCommit[]>; }
 
@@ -220,9 +220,9 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       id: t.id,
       title: t.title,
       status: mapMemoStatus(t.status),
-      memoStatus: t.status, // KL-018 — write-back 시 expected_status 로 사용
-      memoPriority: t.priority, // KL-021 — priority write-back expected
-      parentId: t.parent, // KL-048 — sub-task hierarchy (트리 라인 / sort 묶음)
+      memoStatus: t.status, // KL-018. write-back 시 expected_status 로 사용
+      memoPriority: t.priority, // KL-021. priority write-back expected
+      parentId: t.parent, // KL-048. sub-task hierarchy (트리 라인 / sort 묶음)
       filePath: t.filePath,
       checks: t.checks.map((c) => ({ t: c.text, done: c.done, lineNumber: c.lineNumber })),
     };
@@ -303,7 +303,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     return { projects, sealed };
   }
 
-  // ── 「프로젝트 개요」 데이터 모델 + 렌더 (KL-044) ──────────────────────
+  // ── 프로젝트 개요 데이터 모델 + 렌더 (KL-044) ──────────────────────
   // App 트리 위 최상단. PM 뷰 = 도메인 진척 / 다음 할 것 / 7d commit / hold.
   // 데이터 = fetchMemoTree() (raw 6 status) + get_questlog_hub (commits).
   // commits 분류 = subject scope regex (`feat(wm):` / `chore(kl):`) + repo fallback.
@@ -311,8 +311,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   interface DomainStat {
     domain: string; label: string; icon: string;
     fire: number; ready: number; seed: number; hold: number; done: number; sealed: number;
-    workingTotal: number;  // fire + ready + hold + done — seed/sealed 제외
-    progress: number;      // done / workingTotal · 0~1
+    workingTotal: number;  // fire + ready + hold + done. seed/sealed 제외
+    progress: number;      // done / workingTotal, 0~1
   }
   interface TopNextItem {
     id: string; title: string; domain: string; domainIcon: string;
@@ -367,7 +367,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     for (const t of tree.tasks) {
       const domain = t.path[0] ?? 'unknown';
       const c = ensure(domain);
-      // KL-045 — canonical 정규화 (memo 안 schema X 값 `in_progress` / `in_review` 등 흡수).
+      // KL-045. canonical 정규화 (memo 안 schema X 값 `in_progress` / `in_review` 등 흡수).
       switch (canonicalStatus(t.status)) {
         case 'active': c.fire++; break;
         case 'ready': c.ready++; break;
@@ -397,7 +397,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
     const topNext: TopNextItem[] = tree.tasks
       .filter((t) => {
-        // KL-045 — canonical 정규화 후 비교. priority `medium` / `critical` 도 흡수.
+        // KL-045. canonical 정규화 후 비교. priority `medium` / `critical` 도 흡수.
         const cs = canonicalStatus(t.status);
         const cp = canonicalPriority(t.priority);
         return cp === 'high' && (cs === 'active' || cs === 'ready');
@@ -414,7 +414,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         title: t.title,
         domain: t.path[0] ?? 'unknown',
         domainIcon: DOMAIN_ICON[t.path[0] ?? ''] ?? '📦',
-        status: canonicalStatus(t.status),  // KL-045 — render data-status="active|ready" CSS 매치
+        status: canonicalStatus(t.status),  // KL-045. render data-status="active|ready" CSS 매치
       }));
 
     const sevenDayMs = 7 * 24 * 60 * 60 * 1000;
@@ -537,23 +537,23 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     overviewWrap.innerHTML = `
       <section class="overview">
         <div class="overview-head">
-          <h1>PROJECT OVERVIEW <em>— at a glance</em></h1>
-          <div class="meta">생성 ${escOverview(dt)} · 폴링 10s · 7d commits ${ov.commitsLast7dTotal} · hold ${ov.holdsTotal}</div>
+          <h1>PROJECT OVERVIEW <em>.  at a glance</em></h1>
+          <div class="meta">생성 ${escOverview(dt)}, 폴링 10s, 7d commits ${ov.commitsLast7dTotal}, hold ${ov.holdsTotal}</div>
         </div>
         <div class="overview-section">
-          <h2>${esc(t('quest-log.t06'))} <small>${ov.domainStats.length}개 · DONE / 작업집합(FIRE+READY+HOLD+DONE)</small></h2>
+          <h2>${esc(t('quest-log.t06'))} <small>${ov.domainStats.length}개, DONE / 작업집합(FIRE+READY+HOLD+DONE)</small></h2>
           <div class="overview-domains">${domainsHtml}</div>
         </div>
         <div class="overview-section">
-          <h2>${esc(t('quest-log.t07'))} <small>priority=high · ready/active</small></h2>
+          <h2>${esc(t('quest-log.t07'))} <small>priority=high, ready/active</small></h2>
           <ul class="overview-next-list">${topNextHtml}</ul>
         </div>
         <div class="overview-section">
-          <h2>${esc(t('quest-log.t08'))} <small>commit ${ov.commitsLast7dTotal}건 · 도메인 묶음</small></h2>
+          <h2>${esc(t('quest-log.t08'))} <small>commit ${ov.commitsLast7dTotal}건, 도메인 묶음</small></h2>
           ${commitsHtml}
         </div>
         <div class="overview-section">
-          <h2>${esc(t('quest-log.t09'))} <small>status=hold · 합산 ${ov.holdsTotal}</small></h2>
+          <h2>${esc(t('quest-log.t09'))} <small>status=hold, 합산 ${ov.holdsTotal}</small></h2>
           ${holdHtml}
         </div>
       </section>
@@ -592,7 +592,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   const CSS = `
 .kl-quest-log {
   /* 앱 테마 토큰의 별명. 예전엔 다크 색을 직접 박아 라이트에서 이 판만 까맣게 남았다.
-     --accent 는 일부러 안 덮는다 — 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
+     --accent 는 일부러 안 덮는다. 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
   --bg: var(--bg-void);
   --bg-2: var(--bg-primary);
   --paper: var(--bg-secondary);
@@ -614,14 +614,14 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   position: relative;
   color: var(--ink);
   font-family: 'KarmoSans', system-ui, sans-serif;
-  /* 외부 body backdrop(observatory) 통과 — 자체 background/그리드는 KarmoLab 안에서 중복이므로 제거 */
+  /* 외부 body backdrop(observatory) 통과. 자체 background/그리드는 KarmoLab 안에서 중복이므로 제거 */
   background: transparent;
   /* layout-full 안에서 화면 전체를 채우고 자체 스크롤 */
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  /* contain: paint 금지 — drawer/sleep-prompt overlay가 fixed인데 contain이 fixed positioning containment block을 만들어 viewport 추적이 깨짐 */
+  /* contain: paint 금지. drawer/sleep-prompt overlay가 fixed인데 contain이 fixed positioning containment block을 만들어 viewport 추적이 깨짐 */
 }
 .kl-quest-log *, .kl-quest-log *::before, .kl-quest-log *::after { box-sizing: border-box; margin: 0; padding: 0; }
 .kl-quest-log .serif { font-family: 'KarmoSerif', serif; }
@@ -792,8 +792,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; text-transform: uppercase;
 }
-.kl-quest-log .empty::before, .kl-quest-log .empty::after { content: '— '; opacity: 0.6; }
-.kl-quest-log .empty::after { content: ' —'; }
+.kl-quest-log .empty::before, .kl-quest-log .empty::after { content: '.  '; opacity: 0.6; }
+.kl-quest-log .empty::after { content: ' . '; }
 
 /* ── DRAWER ── */
 .kl-quest-log .drawer {
@@ -1094,7 +1094,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   .kl-quest-log header.hd { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 
-/* ═══ OVERVIEW (KL-044) — 페이지 최상단. PM 뷰. App 트리 위 ═══ */
+/* ═══ OVERVIEW (KL-044). 페이지 최상단. PM 뷰. App 트리 위 ═══ */
 .kl-quest-log .overview {
   padding: 24px 28px 22px;
   border-bottom: 1px solid var(--line-2);
@@ -1246,7 +1246,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   font-size: 13px; color: var(--ink-3);
 }
 
-/* ═══ APP TREE CONTROLS (KL-045) — 상태 / 도메인 / 밀도 칩 ═══ */
+/* ═══ APP TREE CONTROLS (KL-045). 상태 / 도메인 / 밀도 칩 ═══ */
 .kl-quest-log .ql-controls {
   margin-bottom: 18px;
   padding: 12px 0; border-top: 1px dashed var(--line-2); border-bottom: 1px dashed var(--line-2);
@@ -1294,7 +1294,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .pri--low  { color: var(--ink-3); border-style: dashed; }
 .kl-quest-log .pri--blank { visibility: hidden; }
 
-/* ═══ obs sub-task hierarchy (KL-048) — 트리 라인 (├── / └──) + 좌측 indent ═══ */
+/* ═══ obs sub-task hierarchy (KL-048). 트리 라인 (├── / └──) + 좌측 indent ═══ */
 .kl-quest-log .obs--sub-mid, .kl-quest-log .obs--sub-last {
   padding-left: 32px; position: relative;
 }
@@ -1322,7 +1322,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     style.textContent = CSS;
     document.head.appendChild(style);
 
-    // Observatory 폰트 — 페이지 어디든 같은 url을 여러 번 import해도 브라우저가 중복 다운로드 안 함
+    // Observatory 폰트. 페이지 어디든 같은 url을 여러 번 import해도 브라우저가 중복 다운로드 안 함
     if (!document.getElementById('kl-quest-log-fonts')) {
       const link = document.createElement('link');
       link.id = 'kl-quest-log-fonts';
@@ -1358,19 +1358,19 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       return;
     }
 
-    // KL-024 — 이전 마운트의 file-watcher unlisten 이 있으면 정리.
+    // KL-024. 이전 마운트의 file-watcher unlisten 이 있으면 정리.
     const prevUnlisten = _questUnlisten.get(container);
     if (typeof prevUnlisten === 'function') {
       try { prevUnlisten(); } catch (e) { console.error(t('quest-log.t32'), e); }
       _questUnlisten.delete(container);
     }
 
-    // KL-035 — `.kl-quest-log` 한 컨테이너가 자체 스크롤 (CSS: flex:1; min-height:0; overflow-y:auto).
+    // KL-035. `.kl-quest-log` 한 컨테이너가 자체 스크롤 (CSS: flex:1; min-height:0; overflow-y:auto).
     // layout-full tab-panel 이 flex column 이므로 스크롤 wrapper 는 단일이어야 chain 안 깨짐.
-    // KL-044 — [overview, app] 2 layer (KL-035 의 hub 6 섹션 통째로 폐기).
-    //   overview = PM 뷰 — 도메인 진척 / top-5 / 7d commits / hold (사람 인터페이스).
+    // KL-044. [overview, app] 2 layer (KL-035 의 hub 6 섹션 통째로 폐기).
+    //   overview = PM 뷰. 도메인 진척 / top-5 / 7d commits / hold (사람 인터페이스).
     //   app = 도메인 TASK 트리 (renderOnce 갱신).
-    //   ※ hub (활성세션/commit/도구/룰/그래프) 는 Claude infra 데이터라 사용자에 X — 폐기.
+    //   ※ hub (활성세션/commit/도구/룰/그래프) 는 Claude infra 데이터라 사용자에 X. 폐기.
     if (!container.querySelector('.kl-quest-log')) {
       container.innerHTML = '';
       const klRoot = document.createElement('div');
@@ -1394,7 +1394,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       appWrap.innerHTML = `
         <div class="wrap">
           <header class="hd">
-            <h1 class="serif">QUEST LOG <em>— in progress</em></h1>
+            <h1 class="serif">QUEST LOG <em>.  in progress</em></h1>
           </header>
 
           <div class="stats" data-kl-ql="stats"></div>
@@ -1409,7 +1409,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         <div class="drawer-backdrop" data-kl-ql="backdrop"></div>
         <aside class="drawer" data-kl-ql="drawer">
           <div class="drawer-head">
-            <div class="crumb" data-kl-ql="crumb">KMLB-QST / <b>—</b></div>
+            <div class="crumb" data-kl-ql="crumb">KMLB-QST / <b>. </b></div>
             <button class="drawer-close" data-kl-ql="drawer-close" aria-label="Close">✕</button>
           </div>
           <div class="drawer-body" data-kl-ql="drawer-body"></div>
@@ -1434,11 +1434,11 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
     renderOnce();
 
-    // KL-044 — 「프로젝트 개요」 폴링 시작 (10s 자체 폴링).
+    // KL-044. 프로젝트 개요 폴링 시작 (10s 자체 폴링).
     startOverviewPolling(overviewWrap);
 
-    // KL-024 — Tauri file watcher 가 emit 하는 'quest-tree-changed' 이벤트 listen.
-    // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침. KL-044 — overview 도 즉시 갱신.
+    // KL-024. Tauri file watcher 가 emit 하는 'quest-tree-changed' 이벤트 listen.
+    // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침. KL-044. overview 도 즉시 갱신.
     // TASK-KL-062 slice3c: 로컬 tauriEvent 캡처+가드 폐기 → seam listen
     // (웹=no-op unlisten). isDesktop() 게이트로 비-데스크톱 설치 skip 보존.
     if (isDesktop()) {
@@ -1458,7 +1458,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
   // ── runQuestLog: 원본 IIFE 로직 (document → root, ID → data-kl-ql) ──────
   function runQuestLog(root: HTMLElement, src: QuestData): void {
-    // KL-048 — v2: leaf 에 parentId 필드 추가. 이전 v1 캐시는 자동 폐기 (sub-task hierarchy 정합).
+    // KL-048. v2: leaf 에 parentId 필드 추가. 이전 v1 캐시는 자동 폐기 (sub-task hierarchy 정합).
     const STORAGE_KEY = 'quest-log-state-v2';
     const SRC = src;
 
@@ -1478,7 +1478,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       sealed: stored?.sealed ?? SRC.sealed,
     };
 
-    // KL-045 — UI prefs (status 필터 / 도메인 토글 / 행 밀도 / 다중 키 정렬). 별도 키 (DATA 캐시와 분리).
+    // KL-045. UI prefs (status 필터 / 도메인 토글 / 행 밀도 / 다중 키 정렬). 별도 키 (DATA 캐시와 분리).
     const UI_PREFS_KEY = 'quest-log-ui-prefs-v1';
     type SortKey = 'status' | 'id-asc' | 'id-desc' | 'priority';
     interface UIPrefs { statusOff: string[]; domainOff: string[]; density: 'full' | 'compact'; sortKeys: SortKey[]; expandedParents: string[]; }
@@ -1578,14 +1578,14 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       prefs: loadPrefs(),
     };
 
-    // KL-045 — 필터 헬퍼 (canonical status 기반 — 'active' / 'ready' / 'seed' / 'hold' / 'done' / 'sealed').
+    // KL-045. 필터 헬퍼 (canonical status 기반. 'active' / 'ready' / 'seed' / 'hold' / 'done' / 'sealed').
     function isStatusOn(memoStatus: string): boolean {
       return !state.prefs.statusOff.includes(canonicalStatus(memoStatus));
     }
     function isDomainOn(domainId: string): boolean {
       return !state.prefs.domainOff.includes(domainId);
     }
-    // KL-045 — 다중 키 정렬 헬퍼. state.prefs.sortKeys 순서대로 비교, tie 시 다음 키, 최종 tie = id asc.
+    // KL-045. 다중 키 정렬 헬퍼. state.prefs.sortKeys 순서대로 비교, tie 시 다음 키, 최종 tie = id asc.
     const STATUS_RANK: Record<string, number> = { active: 0, ready: 1, seed: 2, hold: 3, done: 4, sealed: 5 };
     const PRIORITY_RANK: Record<string, number> = { high: 0, normal: 1, low: 2 };
     function compareByKey(a: QuestLeaf, b: QuestLeaf, key: SortKey): number {
@@ -1621,7 +1621,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       return sorted;
     }
 
-    // KL-048 — sub-task hierarchy. project.children 안 카테고리 노드 (부모+subs) 풀어 hier item 으로.
+    // KL-048. sub-task hierarchy. project.children 안 카테고리 노드 (부모+subs) 풀어 hier item 으로.
     interface HierItem { leaf: QuestLeaf; isSub: boolean; isLast: boolean; }
     function flattenWithHier(project: QuestProject): HierItem[] {
       const out: HierItem[] = [];
@@ -1686,7 +1686,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       return out;
     }
 
-    // KL-048 — TASK ID 의 도메인 prefix 떼고 번호만 (`TASK-WM-091-A` → `091-A`). 도메인은 그룹으로 이미 분리됨.
+    // KL-048. TASK ID 의 도메인 prefix 떼고 번호만 (`TASK-WM-091-A` → `091-A`). 도메인은 그룹으로 이미 분리됨.
     function shortId(id: string): string {
       return String(id).replace(/^TASK-[A-Z]+-/, '');
     }
@@ -1720,7 +1720,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       el.innerHTML = `
         <div class="stat"><div class="k">COVERAGE</div><div class="v">${coverage}<small>%</small></div></div>
         <button class="stat stat-toggle ${trophyOn ? 'on' : ''}" data-kl-ql="trophy-toggle" type="button">
-          <div class="k">SEALED${trophyOn ? ' · OPEN' : ''}</div>
+          <div class="k">SEALED${trophyOn ? ', OPEN' : ''}</div>
           <div class="v">${sealed}<small>${trophyOn ? '← back to log' : 'open trophy'}</small></div>
         </button>
       `;
@@ -1734,7 +1734,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       }
     }
 
-    // KL-045 — 컨트롤 row (상태 칩 / 도메인 토글 / 행 밀도). state.prefs ↔ localStorage `quest-log-ui-prefs-v1`.
+    // KL-045. 컨트롤 row (상태 칩 / 도메인 토글 / 행 밀도). state.prefs ↔ localStorage `quest-log-ui-prefs-v1`.
     function renderControls() {
       const el = byKey('ql-controls');
       if (!el) return;
@@ -1876,7 +1876,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
 
     // 모든 호출부가 HierItem 을 넘긴다 (groupedObsRows). 옛 bare-leaf 방어 분기는
-    // 사문(死文)이라 KL-071 에서 제거 — 동작 동일, 타입만 정밀.
+    // 사문(死文)이라 KL-071 에서 제거. 동작 동일, 타입만 정밀.
     function obsRow(hierOrLeaf: HierItem, projectId: string, hasSubs?: boolean, isExpanded?: boolean) {
       const leaf = hierOrLeaf.leaf;
       const isSub: boolean = !!hierOrLeaf.isSub;
@@ -1911,7 +1911,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       `;
     }
 
-    // sub-task 접기/펼치기 — parent+subs 를 .obs-group 으로 묶어 반환.
+    // sub-task 접기/펼치기. parent+subs 를 .obs-group 으로 묶어 반환.
     function groupedObsRows(items: HierItem[], projectId: string): string {
       const html: string[] = [];
       let i = 0;
@@ -1950,9 +1950,9 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       const fw = byKey('featured-wrap');
       if (!fw) return;
       if (wm && isDomainOn('wm')) {
-        // KL-045 — WM featured 의 TASK 일렬 = 상태 필터 + 정렬 적용. 통계 (FIRE/SEALED/COVERAGE) 는 전체 기준 (필터 무관).
+        // KL-045. WM featured 의 TASK 일렬 = 상태 필터 + 정렬 적용. 통계 (FIRE/SEALED/COVERAGE) 는 전체 기준 (필터 무관).
         const wmAllRaw = allLeaves(wm);
-        // KL-048 — sub-task hierarchy 보존 정렬. parent + subs 묶음으로 sort 진행.
+        // KL-048. sub-task hierarchy 보존 정렬. parent + subs 묶음으로 sort 진행.
         const wmHierAll = flattenWithHier(wm).filter((h) => isStatusOn(h.leaf.memoStatus));
         const wmAll = sortHierItems(wmHierAll);
         const wmFire = wmAllRaw.filter(l => l.status === 'fire').length;
@@ -1970,14 +1970,14 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                 <div class="coord"><span class="k">RA</span> ${rah}<sup>h</sup> ${ram}<sup>m</sup><br><span class="k">DEC</span> +${decd}° ${decm}'<br><span class="k">MAG</span> ${cst.mag}</div>
                 <div class="tag">★ MAIN PROJECT</div>
                 <div class="overlay-title">
-                  <div class="cst">✓ ${esc(cst.name.toUpperCase())} · ${esc(cst.sub)}</div>
+                  <div class="cst">✓ ${esc(cst.name.toUpperCase())}, ${esc(cst.sub)}</div>
                   <div class="name">${esc(wm.title)}</div>
                 </div>
               </div>
               <div class="f-meta">
-                <div class="eye">№ 00 · PRIMARY TARGET</div>
+                <div class="eye">№ 00, PRIMARY TARGET</div>
                 <h2 class="serif">${esc(wm.title)}<em>${esc(wm.subtitle || '')}</em></h2>
-                <div class="dek">${wm.children.length}개 영역. 채광, 전투, 농사, 마을 경영, 인형 부리기, 수집, 낚시, 스토리 — 기초 시스템들이 하나씩 자리를 잡으면 게임의 재미가 드러난다.</div>
+                <div class="dek">${wm.children.length}개 영역. 채광, 전투, 농사, 마을 경영, 인형 부리기, 수집, 낚시, 스토리. 기초 시스템들이 하나씩 자리를 잡으면 게임의 재미가 드러난다.</div>
                 <div class="bar-line"><div class="fill" style="width:${wmProg}%"></div></div>
                 <div class="mini-stats">
                   <div class="s accent"><div class="k">FIRE</div><div class="v">${wmFire}</div></div>
@@ -2002,7 +2002,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
       const subEl = byKey('sub-columns');
       if (!subEl) return;
-      // KL-045 — sub-grid: 도메인 토글 = `others` 가 이미 isDomainOn 필터됨 (위). 행은 상태 필터 + 정렬 적용.
+      // KL-045. sub-grid: 도메인 토글 = `others` 가 이미 isDomainOn 필터됨 (위). 행은 상태 필터 + 정렬 적용.
       subEl.innerHTML = others.map((p, subIdx: number) => {
         const idx = subIdx + 1;
         const allRaw = allLeaves(p);
@@ -2010,17 +2010,17 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         const all = sortHierItems(hierAll);
         const totalP = allRaw.length ? Math.round(allRaw.reduce((s, l) => s + progressOf(l), 0) / allRaw.length * 100) : 0;
         const fireCount = allRaw.filter(l => l.status === 'fire').length;
-        const cst = CONST_BY_PROJECT[p.id] || { name: p.title, sub: p.subtitle || '', mag: '—' };
+        const cst = CONST_BY_PROJECT[p.id] || { name: p.title, sub: p.subtitle || '', mag: '. ' };
 
         return `
           <div class="col" data-proj="${p.id}">
             <div class="col-head">
               <h3 class="serif"><span class="idx">№ ${String(idx + 1).padStart(2, '0')}</span>${esc(p.title)}</h3>
-              <div class="sub">${esc(cst.name)} · <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(cst.sub)}</span></div>
+              <div class="sub">${esc(cst.name)}, <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(cst.sub)}</span></div>
               <div class="bar-line"><div class="fill" style="width:${totalP}%"></div></div>
               <div class="bar-meta">
                 <b>${all.length} TASKS${all.length !== allRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">${t('quest-log.outOf', { n: allRaw.length })}</small>` : ''}</b>
-                <span>${fireCount} FIRE · ${totalP}% COVERAGE · MAG ${cst.mag}</span>
+                <span>${fireCount} FIRE, ${totalP}% COVERAGE, MAG ${cst.mag}</span>
               </div>
             </div>
             ${skyHTML(idx, true)}
@@ -2069,7 +2069,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         <div class="col" style="grid-column: 1 / -1;">
           <div class="col-head">
             <h3 class="serif"><span class="idx">◆</span>TROPHY ROOM</h3>
-            <div class="sub">SEALED · <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(t('quest-log.t19'))}</span></div>
+            <div class="sub">SEALED, <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(t('quest-log.t19'))}</span></div>
             <div class="bar-line"><div class="fill" style="width:100%;background:var(--accent);"></div></div>
             <div class="bar-meta"><b>${DATA.sealed.length} ENTRIES</b><span>ARCHIVED</span></div>
           </div>
@@ -2115,7 +2115,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       const body = byKey('drawer-body');
       if (!body) return;
       body.innerHTML = `
-        <div class="lane-pill"><span class="sw" style="background: var(--accent);"></span>${esc(project ? project.title : '')}${area ? ' · ' + esc(area.title) : ''}</div>
+        <div class="lane-pill"><span class="sw" style="background: var(--accent);"></span>${esc(project ? project.title : '')}${area ? ', ' + esc(area.title) : ''}</div>
         <h2 class="serif">${esc(node.title)} <em>${status.toUpperCase()}</em></h2>
         ${node.note ? `<p class="lede">${esc(node.note)}</p>` : ''}
 
@@ -2130,13 +2130,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         <div class="priority-switcher" style="display:flex; gap:1px; margin-top:8px; background:var(--line-2); border:1px solid var(--line-2); width:fit-content;">
           ${['low', 'normal', 'high'].map(p => `
             <button class="chip priority-toggle ${node.memoPriority === p ? 'on' : ''}" data-set-priority="${p}" style="border:none; padding:7px 14px; font-size:12px;">
-              ${p === 'high' ? '! HIGH' : p === 'low' ? '· LOW' : '○ NORMAL'}
+              ${p === 'high' ? '! HIGH' : p === 'low' ? ',  LOW' : '○ NORMAL'}
             </button>
           `).join('')}
         </div>
 
         <div class="progress-wrap">
-          <div class="lbl"><span>PROGRESS · ${starsHTML(progress / 100, false)}</span><b>${progress}%</b></div>
+          <div class="lbl"><span>PROGRESS, ${starsHTML(progress / 100, false)}</span><b>${progress}%</b></div>
           <div class="bar"><div class="f" style="width:${progress}%; background:${statusColor};"></div></div>
           <div class="ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
         </div>
@@ -2144,7 +2144,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         ${isLeaf(node) ? `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
             <div style="font-family:'KarmoMono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
-              CHECKLIST · ${node.checks.filter((c) => c.done).length} / ${node.checks.length}
+              CHECKLIST, ${node.checks.filter((c) => c.done).length} / ${node.checks.length}
             </div>
             <div class="checklist">
               ${node.checks.map((c, i: number) => `
@@ -2165,7 +2165,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         ` : `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
             <div style="font-family:'KarmoMono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
-              SUB-AREAS · ${node.children!.length}
+              SUB-AREAS, ${node.children!.length}
             </div>
             <div class="children-list">
               ${node.children!.map((c) => {
@@ -2191,12 +2191,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       $$('[data-check-idx]').forEach(el => {
         el.addEventListener('click', async (e) => {
           e.preventDefault();
-          // 삭제·편집 버튼 클릭은 별도 핸들러에서 처리 — 토글 안 함
+          // 삭제, 편집 버튼 클릭은 별도 핸들러에서 처리. 토글 안 함
           if ((e.target as HTMLElement).matches('[data-check-del]')) return;
           if ((e.target as HTMLElement).matches('[data-check-edit]')) return;
 
           const i = Number(el.dataset.checkIdx);
-          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
+          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착. checks 보장
 
           // 메모 정본 write-back (TASK-KL-017). filePath/lineNumber 가 있는 경우만.
           // 없으면 (옛 localStorage 데이터) 시각만 토글.
@@ -2231,7 +2231,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           e.preventDefault();
           e.stopPropagation();
           const i = Number(el.dataset.checkDel);
-          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
+          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착. checks 보장
           if (!confirm(t('quest-log.confirmDelete', { text: check.t }))) return;
 
           // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
@@ -2270,7 +2270,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           e.preventDefault();
           e.stopPropagation();
           const i = Number(el.dataset.checkEdit);
-          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
+          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착. checks 보장
           const labelEl = el.previousElementSibling as HTMLElement | null;
           if (!labelEl || !labelEl.classList.contains('check-label')) return;
 
@@ -2296,7 +2296,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
             committed = true;
             const newText = input.value.trim();
             if (!newText || newText === check.t) {
-              // 변경 없음 — 원복만
+              // 변경 없음. 원복만
               restoreLabel(check.t);
               return;
             }
@@ -2483,7 +2483,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
     backdrop.addEventListener('click', closeDrawer);
 
-    // Esc 닫기 — 위젯이 DOM에 살아있는 동안만 (탭 전환·재빌드 시 자연 정리)
+    // Esc 닫기. 위젯이 DOM에 살아있는 동안만 (탭 전환, 재빌드 시 자연 정리)
     function onEsc(e: KeyboardEvent) {
       if (!root.isConnected) {
         window.removeEventListener('keydown', onEsc);

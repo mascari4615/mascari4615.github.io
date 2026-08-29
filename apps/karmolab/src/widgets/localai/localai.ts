@@ -1,14 +1,14 @@
 /**
- * 브라우저 안에서 도는 AI — 번역 · 요약 (TASK-KL-209).
+ * 브라우저 안에서 도는 AI. 번역, 요약 (TASK-KL-209).
  *
  * 왜 있나: KarmoLab 의 AI 는 전부 집 노트북 서버로 나간다. 그 한 대가 자면 AI 도구가 통째로
- * 쉰다. 브라우저에 모델이 들어오면서 **서버 없이·공짜로·오프라인** 도는 길이 생겼다.
- * 이 도구는 그 길만 쓴다 — 서버를 한 번도 안 부른다.
+ * 쉰다. 브라우저에 모델이 들어오면서 **서버 없이, 공짜로, 오프라인** 도는 길이 생겼다.
+ * 이 도구는 그 길만 쓴다. 서버를 한 번도 안 부른다.
  *
- * 무엇을 **안 하나**: 서버 쓰는 AI 도구들을 이쪽으로 바꾸지 않는다. 내장 모델은 「똑똑한
- * 자동완성」 급이라 그림·긴 글·캐릭터 대화는 여전히 서버 몫이다. 없던 자리를 만들 뿐이다.
+ * 무엇을 **안 하나**: 서버 쓰는 AI 도구들을 이쪽으로 바꾸지 않는다. 내장 모델은 똑똑한
+ * 자동완성 급이라 그림, 긴 글, 캐릭터 대화는 여전히 서버 몫이다. 없던 자리를 만들 뿐이다.
  *
- * 없는 브라우저에서: **없는 척하지 않는다.** 「이 브라우저는 아직」이라고 적고, 어디서 되는지
+ * 없는 브라우저에서: **없는 척하지 않는다.** 이 브라우저는 아직이라고 적고, 어디서 되는지
  * 알려 준다. 조용히 빈 화면을 두면 사람은 고장으로 읽는다.
  *
  * 모델은 처음 쓸 때 내려받는다(무료, 수십 MB). 그동안 화면이 멈춘 것처럼 보이는 것이 이
@@ -82,7 +82,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   ];
 
 
-  /** 안 되는 브라우저에 놓는 안내 — 빈 화면 대신 **왜 안 되는지**를 적는다. */
+  /** 안 되는 브라우저에 놓는 안내. 빈 화면 대신 **왜 안 되는지**를 적는다. */
   function unsupported(what: string): string {
     return `<div class="lai-note">
         <strong>이 브라우저에서는 ${esc(what)}을 아직 못 씁니다.</strong><br>
@@ -116,8 +116,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   /**
    * **영원히 기다리지 않는다** (실측으로 얻음).
    *
-   * 모델을 못 받는 환경이 있다(정책·저장공간·기기). 그때 `create()` 는 오류도 안 내고 그냥
-   * 안 돌아온다 — 화면은 「준비 중…」에 멈춘 채고, 사람은 그것을 **고장으로 읽는다**.
+   * 모델을 못 받는 환경이 있다(정책, 저장공간, 기기). 그때 `create()` 는 오류도 안 내고 그냥
+   * 안 돌아온다. 화면은 준비 중...에 멈춘 채고, 사람은 그것을 **고장으로 읽는다**.
    * 그래서 시간을 재고, 넘으면 왜 못 했는지 적고 끝낸다. 멈춘 화면보다 솔직한 실패가 낫다.
    */
   function withLimit<T>(work: Promise<T>, seconds: number, what: string): Promise<T> {
@@ -129,7 +129,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     ]);
   }
 
-  /** 가용성 값을 사람 말로. 「downloadable」 같은 낱말을 그대로 보여 주지 않는다. */
+  /** 가용성 값을 사람 말로. downloadable 같은 낱말을 그대로 보여 주지 않는다. */
   function sayAvailability(state: string): string {
     if (state === 'available') return t('localai.t20');
     if (state === 'downloadable') return t('localai.t21');
@@ -137,7 +137,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     return t('localai.t23');
   }
 
-  /** 모델 내려받기 진행률을 그대로 보여 준다 — 안 보여 주면 「멈췄다」로 읽힌다. */
+  /** 모델 내려받기 진행률을 그대로 보여 준다. 안 보여 주면 멈췄다로 읽힌다. */
   function progressWatcher(bar: HTMLElement, state: HTMLElement) {
     return (m: DownloadMonitor): void => {
       m.addEventListener('downloadprogress', (e) => {
@@ -191,7 +191,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         const guesses = await withLimit(detector.detect(text.slice(0, 400)), 15, t('localai.t25'));
         return guesses?.[0]?.detectedLanguage || null;
       } catch {
-        return null; // 감지가 안 되면 사람에게 고르라고 한다 — 틀린 언어로 번역하는 것보다 낫다
+        return null; // 감지가 안 되면 사람에게 고르라고 한다. 틀린 언어로 번역하는 것보다 낫다
       }
     }
 
@@ -223,7 +223,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         }
         const pair = { sourceLanguage: source, targetLanguage: to.value };
         /* 물어보는 것조차 안 돌아오는 환경이 있다(실측: 헤드리스에서 여기서 멈췄다).
-           그래서 **첫 단계부터** 시간을 잰다 — 안 그러면 「준비 중…」에서 영영 멈춘다. */
+           그래서 **첫 단계부터** 시간을 잰다. 안 그러면 준비 중...에서 영영 멈춘다. */
         const can = await withLimit(g.Translator!.availability(pair), 15, t('localai.t30'));
         state.textContent = sayAvailability(can);
         if (can === 'unavailable') {
@@ -240,7 +240,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         state.textContent = t('localai.t33');
         Toolbox.trackUse?.('localai-translate');
       } catch (err) {
-        /* 실패해도 **왜인지** 적는다 — 빈 화면은 고장으로 읽힌다. */
+        /* 실패해도 **왜인지** 적는다. 빈 화면은 고장으로 읽힌다. */
         state.textContent = t('localai.failTranslate', { why: String(err).split('\n')[0].slice(0, 110) });
       } finally {
         run.disabled = false;
@@ -323,10 +323,10 @@ import { t, loadNamespace } from '../../lib/i18n';
   }
 
   /**
-   * 짧은 생성 — 「똑똑한 자동완성」 급이라 **그렇게 쓴다** (TASK-KL-209 ③).
+   * 짧은 생성. 똑똑한 자동완성 급이라 **그렇게 쓴다** (TASK-KL-209 ③).
    *
-   * 무거운 것(긴 글·사실 확인·캐릭터 대화)은 서버 몫이다. 여기서는 다듬기·이름 짓기처럼
-   * 짧고 틀려도 되는 일만 시킨다 — 그게 이 모델이 잘하는 자리다.
+   * 무거운 것(긴 글, 사실 확인, 캐릭터 대화)은 서버 몫이다. 여기서는 다듬기, 이름 짓기처럼
+   * 짧고 틀려도 되는 일만 시킨다. 그게 이 모델이 잘하는 자리다.
    */
   function buildPrompt(container: HTMLElement): void {
     if (!g.LanguageModel) {
@@ -391,7 +391,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       {
         id: 'localai-translate',
         label: t('localai.tab.translate', undefined, '번역'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 그 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('localai').then(function () {
             buildTranslate(container);
@@ -401,7 +401,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       {
         id: 'localai-summarize',
         label: t('localai.tab.summarize', undefined, '요약'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 그 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('localai').then(function () {
             buildSummarize(container);
@@ -411,7 +411,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       {
         id: 'localai-prompt',
         label: t('localai.tab.prompt', undefined, '짧은 생성'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 그 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('localai').then(function () {
             buildPrompt(container);

@@ -1,6 +1,6 @@
 {
   "cron.tab": "読む",
-  "cron.label.expr": "クロン式 — 分 時 日 月 曜日",
+  "cron.label.expr": "クロン式. 分 時 日 月 曜日",
   "cron.ex.everyMinute": "毎分",
   "cron.ex.every10": "10分ごと",
   "cron.ex.hourly": "毎時ちょうど",
@@ -15,7 +15,7 @@
   "cron.day.thu": "木",
   "cron.day.fri": "金",
   "cron.day.sat": "土",
-  "cron.err.fields": "フィールドは5つ必要です — 分 時 日 月 曜日。（@daily・@hourly などの別名も使えます）",
+  "cron.err.fields": "フィールドは5つ必要です. 分 時 日 月 曜日。（@daily・@hourly などの別名も使えます）",
   "cron.err.parse": "読めないフィールドがあります。数字・*・範囲(1-5)・間隔(*/10)・並び(1,3)・名前(MON・JAN)だけ使えます。",
   "cron.unit.weekday": "曜日",
   "cron.unit.hour": "時",

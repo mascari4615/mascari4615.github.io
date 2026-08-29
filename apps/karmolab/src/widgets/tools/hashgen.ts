@@ -1,11 +1,11 @@
 /**
- * 해시 생성기 · 파일 체크섬 — 화면 (TASK-KL-088)
+ * 해시 생성기, 파일 체크섬. 화면 (TASK-KL-088)
  * - 텍스트 = crypto-js (MD5/SHA-1/SHA-256/SHA-512/SHA-3/RIPEMD-160)
- * - 파일 = WebCrypto subtle.digest (스트리밍 대신 ArrayBuffer 1회 — 브라우저 메모리 한도 안에서만 씀)
+ * - 파일 = WebCrypto subtle.digest (스트리밍 대신 ArrayBuffer 1회. 브라우저 메모리 한도 안에서만 씀)
  * 어느 쪽도 네트워크로 나가지 않는다.
  *
- * 알고리즘 목록·16진수 표기·체크섬 대조는 `src/core/hashgen.ts` 가 정한다. 여기는 CryptoJS 라는
- * **손**만 빌려 준다 — Node 쪽은 같은 알맹이에 `node:crypto` 를 준다 (`src/core/README.md`).
+ * 알고리즘 목록, 16진수 표기, 체크섬 대조는 `src/core/hashgen.ts` 가 정한다. 여기는 CryptoJS 라는
+ * **손**만 빌려 준다. Node 쪽은 같은 알맹이에 `node:crypto` 를 준다 (`src/core/README.md`).
  */
 import { type Algo, bufToHex, FILE_ALGOS, findMatch, hashAll, type HashBackend, spec } from '../../core/hashgen';
 import { escapeHtml as esc } from './shared/text';
@@ -16,8 +16,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /**
-   * CryptoJS 를 알맹이가 아는 모양으로 감싼다. 없으면 던진다 — 조용히 빈 값을 내면 원인이 안 보인다.
-   * SHA3-512·Keccak-512 는 여기 안 온다 — 알맹이가 `core/sha3.ts` 로 직접 계산한다.
+   * CryptoJS 를 알맹이가 아는 모양으로 감싼다. 없으면 던진다. 조용히 빈 값을 내면 원인이 안 보인다.
+   * SHA3-512, Keccak-512 는 여기 안 온다. 알맹이가 `core/sha3.ts` 로 직접 계산한다.
    */
   const cryptoJsBackend: HashBackend = (algo: Algo, text: string): string => {
     if (typeof CryptoJS === 'undefined' || !CryptoJS) throw new Error('lib-missing');
@@ -34,7 +34,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.hashgen.desc',
       undefined,
-      '텍스트나 파일의 MD5·SHA-1·SHA-256·SHA-512 해시(체크섬)를 브라우저에서 바로 계산합니다'
+      '텍스트나 파일의 MD5, SHA-1, SHA-256, SHA-512 해시(체크섬)를 브라우저에서 바로 계산합니다'
     ),
     layout: 'form',
     icon: '<path d="M9 3L7 21M17 3l-2 18M4 8h16M3 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -83,7 +83,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const input = $<HTMLTextAreaElement>('#hgInput');
           const out = $<HTMLElement>('#hgOut');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(out);
           const upper = $<HTMLInputElement>('#hgUpper');
 
@@ -116,9 +116,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
           input.addEventListener('input', render);
           upper.addEventListener('change', render);
-          /* 빈 칸으로 시작하면 무엇이 나오는 도구인지 안 보인다 — 예시 한 줄을 넣어
+          /* 빈 칸으로 시작하면 무엇이 나오는 도구인지 안 보인다. 예시 한 줄을 넣어
              결과를 먼저 보여 준다. 치는 순간 그 값으로 바뀐다 (TASK-KL-133).
-             주소로 불렀으면(`?op=text&text=…`) 그 값이 예시를 대신한다 (TASK-KL-205). */
+             주소로 불렀으면(`?op=text&text=...`) 그 값이 예시를 대신한다 (TASK-KL-205). */
           const call = readInvocation(spec);
           input.value = 'KarmoLab';
           if (call !== null && call.error === undefined && call.op === 'text') {

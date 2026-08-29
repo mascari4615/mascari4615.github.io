@@ -4,7 +4,7 @@ import test from 'node:test';
 import { isThisMachine } from '../dist/index.js';
 
 /* 곁에서 붙는 화면(KarmoLab 앱)을 들여보내려고 문을 열었다. 이 시험은 **정상 경로부터**
-   찌른다 — 막는 것만 시험하면 「아무도 못 들어오는 문」이 통과해 버린다. */
+   찌른다. 막는 것만 시험하면 아무도 못 들어오는 문이 통과해 버린다. */
 
 test('이 기계의 다른 창은 들어온다', () => {
   assert.equal(isThisMachine('http://127.0.0.1:8813'), true);
@@ -23,7 +23,7 @@ test('밖은 못 들어온다', () => {
 });
 
 test('이름만 흉내 낸 곳은 못 들어온다', () => {
-  // 문자열로 「localhost 가 들어 있나」만 봤으면 전부 통과했을 것들이다.
+  // 문자열로 localhost 가 들어 있나만 봤으면 전부 통과했을 것들이다.
   assert.equal(isThisMachine('http://localhost.evil.com'), false);
   assert.equal(isThisMachine('http://127.0.0.1.evil.com'), false);
   assert.equal(isThisMachine('http://evil.com/#localhost'), false);

@@ -2,7 +2,7 @@ import { normalizeProject, projectJson, type StudioProject } from './model';
 import type { StudioAssetRuntime } from './audio-engine';
 
 const PROJECT_KEY = 'karmolab_heung_project_v1';
-/** 이름을 「흥」으로 바꾸기 전 열쇠. 남의 곡을 잃게 할 수는 없다 — 한 번 옮기고 옛 것을 지운다. */
+/** 이름을 흥으로 바꾸기 전 열쇠. 남의 곡을 잃게 할 수는 없다. 한 번 옮기고 옛 것을 지운다. */
 const LEGACY_PROJECT_KEY = 'karmolab_karmo_studio_project_v1';
 
 function migrateLegacy(): void {

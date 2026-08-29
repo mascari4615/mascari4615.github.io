@@ -5,37 +5,37 @@ import type { Hand } from '../hands';
 import { searchWeb, readIn } from './web';
 
 /**
- * 파일로 손 늘리기 — 코드를 안 고치고 할 수 있는 일을 더한다.
+ * 파일로 손 늘리기. 코드를 안 고치고 할 수 있는 일을 더한다.
  *
  * 레퍼런스 쪽 얼개에서 배운 것: **곁가지 확장.** 알맹이(core)를 손대지 않고 옆에서 능력을
  * 더할 수 있어야 한다. 그래야 만든 사람이 아니어도 늘릴 수 있다.
  *
  * 우리는 인격을 이미 파일로 갈아끼운다(`characters/*.md`). 그런데 **손은 코드에 박혀
- * 있었다** — 새 손을 하나 더하려면 데모 파일을 고쳐야 했다. 인격은 파일이고 손은 코드인
+ * 있었다**. 새 손을 하나 더하려면 데모 파일을 고쳐야 했다. 인격은 파일이고 손은 코드인
  * 이유가 없다.
  *
  * **다만 아무거나 실행하게 열지 않는다.** 손이 위험한 건 처음부터 알고 있었고(그래서 지금껏
  * 할 수 있는 일을 하나씩 쥐여줬다), 파일로 늘린다고 그 원칙이 바뀌지는 않는다. 파일로 만들 수
- * 있는 건 **정해진 몇 가지 갈래**뿐이고, 전부 **읽기만** 한다. 「이 명령을 실행해라」 같은
- * 갈래는 두지 않았다 — 그건 파일 하나로 아무 프로그램이나 돌릴 수 있다는 뜻이고, 그 문은
+ * 있는 건 **정해진 몇 가지 갈래**뿐이고, 전부 **읽기만** 한다. 이 명령을 실행해라 같은
+ * 갈래는 두지 않았다. 그건 파일 하나로 아무 프로그램이나 돌릴 수 있다는 뜻이고, 그 문은
  * 사람이 직접 열어야 한다.
  */
-/* `web-search` / `read-web` 는 **밖을 읽는** 갈래다. 여전히 읽기만 한다 — 밖에 무언가를
-   보내거나 바꾸지 않는다. 「이 명령을 실행해라」 갈래를 안 두는 원칙은 그대로다. */
+/* `web-search` / `read-web` 는 **밖을 읽는** 갈래다. 여전히 읽기만 한다. 밖에 무언가를
+   보내거나 바꾸지 않는다. 이 명령을 실행해라 갈래를 안 두는 원칙은 그대로다. */
 export type HandKind = 'read-file' | 'read-dir' | 'web-search' | 'read-web';
 
-/** 지금 파일로 만들 수 있는 손은 **전부 읽기**다 — 그래서 기본은 「되돌릴 수 있다」. */
+/** 지금 파일로 만들 수 있는 손은 **전부 읽기**다. 그래서 기본은 되돌릴 수 있다. */
 const readOnlyKinds: readonly HandKind[] = ['read-file', 'read-dir', 'web-search', 'read-web'];
 
 export interface HandSpec {
   name: string;
-  /** 무슨 일인지 — 그대로 두뇌에 간다. */
+  /** 무슨 일인지. 그대로 두뇌에 간다. */
   what: string;
   /** 무엇을 넘겨야 하는지. */
   needs?: string;
   kind: HandKind;
   /**
-   * 되돌릴 수 있나. 안 적으면 **갈래로 정한다** — 읽기·찾기는 되돌릴 수 있고,
+   * 되돌릴 수 있나. 안 적으면 **갈래로 정한다**. 읽기, 찾기는 되돌릴 수 있고,
    * 그 밖은 못 되돌리는 것으로 친다(모르면 안전 쪽).
    */
   undoable?: boolean;
@@ -46,14 +46,14 @@ export interface HandSpec {
   /** 얼마나 읽을지 (글자 수 / 파일 개수). */
   limit?: number;
   /**
-   * **언제 쓸지** — 이 말들이 나오면 미리 써 둔다.
+   * **언제 쓸지**. 이 말들이 나오면 미리 써 둔다.
    *
-   * 43회차에 손을 두뇌가 아니라 우리가 미리 쓰도록 바꿨는데, 그 「언제 쓸지」가 **코드에
-   * 박혀 있었다.** 그래서 파일로 손을 더해도 자동으로는 영영 안 쓰였다 — 능력만 있고
+   * 43회차에 손을 두뇌가 아니라 우리가 미리 쓰도록 바꿨는데, 그 언제 쓸지가 **코드에
+   * 박혀 있었다.** 그래서 파일로 손을 더해도 자동으로는 영영 안 쓰였다. 능력만 있고
    * 쓰임이 없으면 없는 것과 같다.
    *
-   * 도구 명세에 「어떤 말이 나오면 이걸 쓴다」를 같이 적는 건 도구 라우팅 쪽의 흔한
-   * 방식이다. 정규식이 아니라 **낱말·구절 목록**으로 둔다 — 사람이 적을 것이니 쉬워야 한다.
+   * 도구 명세에 어떤 말이 나오면 이걸 쓴다를 같이 적는 건 도구 라우팅 쪽의 흔한
+   * 방식이다. 정규식이 아니라 **낱말, 구절 목록**으로 둔다. 사람이 적을 것이니 쉬워야 한다.
    */
   when?: string[];
 }
@@ -117,7 +117,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
   }
 
   if (insideFence(spec.path, options.within) === false) {
-    options.log?.(`「${spec.name}」 은 울타리 밖이라 안 만든다: ${spec.path}`);
+    options.log?.(`${spec.name} 은 울타리 밖이라 안 만든다: ${spec.path}`);
     return null;
   }
 
@@ -133,7 +133,7 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
           if (existsSync(spec.path) === false) return `${spec.path} 가 없다.`;
           const content = readFileSync(spec.path, 'utf8');
           const charCount = spec.limit ?? 2000;
-          // 넘긴 말이 있으면 그 말이 든 줄만 — 파일이 크면 통째로 주는 게 오히려 방해다.
+          // 넘긴 말이 있으면 그 말이 든 줄만. 파일이 크면 통째로 주는 게 오히려 방해다.
           const picked = argument.trim() === ''
             ? content
             : content.split('\n').filter((l) => l.includes(argument.trim())).join('\n');
@@ -163,9 +163,9 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
 }
 
 /**
- * 명세에 적힌 「언제 쓸지」를 힌트로 바꾼다. 안 적었으면 null.
+ * 명세에 적힌 언제 쓸지를 힌트로 바꾼다. 안 적었으면 null.
  *
- * 낱말을 그대로 찾는다 — 사람이 적은 말에 정규식 특수문자가 있어도 터지지 않게 막아 둔다.
+ * 낱말을 그대로 찾는다. 사람이 적은 말에 정규식 특수문자가 있어도 터지지 않게 막아 둔다.
  */
 export function hintFrom(
   spec: HandSpec,
@@ -179,10 +179,10 @@ export function hintFrom(
  * 이 손에 **무엇을 넘길지** 뽑는 법.
  *
  * 여태 파일로 만든 손은 늘 빈손으로 불렸다. 파일을 읽는 손은 인자가 없으면 통째로 읽으니
- * 안 드러났는데, **밖에서 찾는 손은 그러면 아무것도 못 한다** — 실측으로 「찾아보기(없음)」
- * 이 찍히고 「무엇을 찾을지 안 왔다」가 돌아왔다. 능력만 있고 쓰임이 없으면 없는 것과 같다.
+ * 안 드러났는데, **밖에서 찾는 손은 그러면 아무것도 못 한다**. 실측으로 찾아보기(없음)
+ * 이 찍히고 무엇을 찾을지 안 왔다가 돌아왔다. 능력만 있고 쓰임이 없으면 없는 것과 같다.
  *
- * 사람에게 정규식을 적게 하지 않는다(파일로 손을 만드는 취지가 「쉬움」이다). 갈래를 보고
+ * 사람에게 정규식을 적게 하지 않는다(파일로 손을 만드는 취지가 쉬움이다). 갈래를 보고
  * 우리가 뽑는다.
  */
 function toSkip(spec: HandSpec): ((said: string) => string) | undefined {
@@ -196,7 +196,7 @@ function toSkip(spec: HandSpec): ((said: string) => string) | undefined {
   return undefined;
 }
 
-/** 부르는 말·군더더기를 걷어낸 나머지 = 찾을 말. 남는 게 없으면 온 말 그대로. */
+/** 부르는 말, 군더더기를 걷어낸 나머지 = 찾을 말. 남는 게 없으면 온 말 그대로. */
 export function questionsOnly(said: string, callWords: readonly string[]): string {
   let content2 = said.trim();
   for (const w of [...callWords].sort((a, b) => b.length - a.length)) {
@@ -214,7 +214,7 @@ export function questionsOnly(said: string, callWords: readonly string[]): strin
  * 폴더 안의 손 명세들을 읽어 손으로 만든다.
  *
  * **못 읽은 것은 조용히 넘기지 않는다.** 오타 하나로 손이 사라지면 왜 안 되는지 알 길이
- * 없다 — 무엇이 왜 빠졌는지 남긴다.
+ * 없다. 무엇이 왜 빠졌는지 남긴다.
  */
 export function loadHands(dir: string, options: FromFileOptions = {}): { hands: Hand[]; hints: { hand: string; when: RegExp }[] } {
   if (existsSync(dir) === false) return { hands: [], hints: [] };
@@ -236,11 +236,11 @@ export function loadHands(dir: string, options: FromFileOptions = {}): { hands: 
 
     const spec = readSpec(raw);
     if (spec === null) {
-      options.log?.(`${file} 은 손 명세로 안 보인다 (name·설명·갈래·경로가 있어야 한다)`);
+      options.log?.(`${file} 은 손 명세로 안 보인다 (name, 설명, 갈래, 경로가 있어야 한다)`);
       continue;
     }
     if (names.has(spec.name)) {
-      options.log?.(`${file} 의 「${spec.name}」 은 이름이 겹쳐 건너뛴다`);
+      options.log?.(`${file} 의 ${spec.name} 은 이름이 겹쳐 건너뛴다`);
       continue;
     }
 
@@ -251,7 +251,7 @@ export function loadHands(dir: string, options: FromFileOptions = {}): { hands: 
 
     const hint = hintFrom(spec);
     if (hint !== null) hints2.push(hint);
-    else options.log?.(`「${spec.name}」 은 언제 쓸지를 안 적어서 저절로는 안 쓰인다`);
+    else options.log?.(`${spec.name} 은 언제 쓸지를 안 적어서 저절로는 안 쓰인다`);
   }
 
   if (hands2.length > 0) options.log?.(`파일에서 손 ${hands2.length}개를 더했다: ${hands2.map((h) => h.name).join(', ')}`);

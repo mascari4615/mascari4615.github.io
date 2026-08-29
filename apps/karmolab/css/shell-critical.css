@@ -1,5 +1,5 @@
-/* 이 파일은 `scripts/split-css.mjs` 가 `css/toolbox.css` 에서 뽑아 만든다 — 손으로 고치지 마라.
-   고칠 곳은 `css/toolbox.css` 다 (TASK-KL-128). 이 벌: 첫 그림에 필요한 것 — 화면 그리기를 막고 기다린다 */
+/* 이 파일은 `scripts/split-css.mjs` 가 `css/toolbox.css` 에서 뽑아 만든다. 손으로 고치지 마라.
+   고칠 곳은 `css/toolbox.css` 다 (TASK-KL-128). 이 벌: 첫 그림에 필요한 것. 화면 그리기를 막고 기다린다 */
 :root {
 
     color-scheme: dark;

@@ -1,7 +1,7 @@
 /**
  * 음성 재생 명령 응답 정책(요약)
- * - 성공 알림: 채널에 보이게(public) — `/music queue`·`/music skip`·`/music stop`·`/music play`·`/music shuffle`·`/music remove`·`/music loop` 완료
- * - 조용한 거절: ephemeral — 길드 밖, skip/stop 무동작
+ * - 성공 알림: 채널에 보이게(public). `/music queue`, `/music skip`, `/music stop`, `/music play`, `/music shuffle`, `/music remove`, `/music loop` 완료
+ * - 조용한 거절: ephemeral. 길드 밖, skip/stop 무동작
  * - 재생 실패: 로그 + 슬래시 친 텍스트 채널에 짧은 한 줄(약 15초 쿨다운)
  */
 import {
@@ -54,8 +54,8 @@ function buildQueuePayload(guildId: string, page: number) {
   if (q.totalWaiting === 0) {
     parts.push(q.nowPlaying ? '대기열이 비어 있습니다.' : '재생 중인 곡과 대기열이 없습니다.');
   } else {
-    parts.push(`**대기열** ${q.page}/${q.totalPages}페이지 · 총 ${q.totalWaiting}곡`);
-    parts.push(q.lines.join('\n') || '…');
+    parts.push(`**대기열** ${q.page}/${q.totalPages}페이지, 총 ${q.totalWaiting}곡`);
+    parts.push(q.lines.join('\n') || '...');
   }
   const content = parts.join('\n\n').slice(0, 1900);
   const components: ActionRowBuilder<ButtonBuilder>[] = [];
@@ -105,7 +105,7 @@ export async function tryHandleMusicQueueButton(interaction: Interaction): Promi
 }
 
 /**
- * `playlist?list=` / `watch?…&list=` / `youtu.be/…?list=` → 정규화된 playlist URL.
+ * `playlist?list=` / `watch?...&list=` / `youtu.be/...?list=` → 정규화된 playlist URL.
  * 그 외 `yt_validate === 'playlist'` 인 입력은 그대로 반환.
  */
 function tryYoutubePlaylistPageUrl(query: string): string | null {
@@ -200,7 +200,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
     const code = e && typeof e === 'object' && 'code' in e ? (e as { code: unknown }).code : undefined;
     if (code === 10062) {
       console.warn(
-        '[play] deferReply 10062 (Unknown interaction): 인터랙션 만료 — 게이트웨이/회선 지연이 크거나 봇이 바쁩니다. 같은 명령을 다시 시도하거나 네트워크·호스트를 바꿔 보세요.',
+        '[play] deferReply 10062 (Unknown interaction): 인터랙션 만료. 게이트웨이/회선 지연이 크거나 봇이 바쁩니다. 같은 명령을 다시 시도하거나 네트워크, 호스트를 바꿔 보세요.',
       );
       return;
     }
@@ -226,13 +226,13 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
   const perms = vc.permissionsFor(botMember);
   if (!perms?.has([PermissionFlagsBits.Connect, PermissionFlagsBits.Speak, PermissionFlagsBits.ViewChannel])) {
     await interaction.editReply({
-      content: '봇에게 해당 음성 채널 **보기·연결·말하기(Speak)** 권한이 필요합니다.',
+      content: '봇에게 해당 음성 채널 **보기, 연결, 말하기(Speak)** 권한이 필요합니다.',
     });
     return;
   }
 
   const query = interaction.options.getString('query') ?? '';
-  await interaction.editReply({ content: 'YouTube에서 곡 정보를 확인하는 중…' });
+  await interaction.editReply({ content: 'YouTube에서 곡 정보를 확인하는 중...' });
   console.log('[play] deferred, query=', query.slice(0, 120));
 
   let resolved;
@@ -253,7 +253,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
   if (resolved.error === 'playlist_unavailable') {
     await interaction.editReply({
       content:
-        '플레이리스트를 불러오지 못했습니다. 공개 목록인지, `youtube.com/playlist?list=` 링크인지 확인해 주세요. (비공개·삭제된 목록은 불가)',
+        '플레이리스트를 불러오지 못했습니다. 공개 목록인지, `youtube.com/playlist?list=` 링크인지 확인해 주세요. (비공개, 삭제된 목록은 불가)',
     });
     return;
   }
@@ -268,7 +268,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
     const cap = getYoutubePlaylistMaxTracks();
     const policy = Number.isFinite(cap) ? `상한 ${cap}곡` : '무제한(목록 끝까지)';
     await interaction.editReply({
-      content: `**${pt}** — ${n}곡을 대기열에 넣는 중… (${policy})`,
+      content: `**${pt}**. ${n}곡을 대기열에 넣는 중... (${policy})`,
     });
     console.log('[play] enqueue playlist 시작...', n);
     let tick = 0;
@@ -276,7 +276,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
       tick += 15;
       void interaction
         .editReply({
-          content: `**${pt}** — 음성 연결·대기열 추가 중… (${tick}초 경과)`,
+          content: `**${pt}**. 음성 연결, 대기열 추가 중... (${tick}초 경과)`,
         })
         .catch(() => {});
     }, 15_000);
@@ -291,7 +291,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
             lastEnqueueProgAt = now;
             void interaction
               .editReply({
-                content: `**${pt}** — 대기열에 **${done}/${total}**곡 반영 중… (${policy})`.slice(0, 2000),
+                content: `**${pt}**. 대기열에 **${done}/${total}**곡 반영 중... (${policy})`.slice(0, 2000),
               })
               .catch(() => {});
           },
@@ -308,7 +308,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
       return;
     }
     const tl = result.totalListed;
-    const summary = `목록 **${tl}곡** 중 대기열 추가 **${result.added}곡** · URL·형식 제외 **${result.skipped}곡**`;
+    const summary = `목록 **${tl}곡** 중 대기열 추가 **${result.added}곡**, URL, 형식 제외 **${result.skipped}곡**`;
     const action = result.started ? '첫 곡 재생을 시작했습니다.' : '대기열에 반영했습니다.';
     await interaction.editReply({
       content: `**${resolved.playlistTitle.slice(0, 80)}**\n${summary}\n${action}`.slice(0, 2000),
@@ -317,7 +317,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
   }
 
   await interaction.editReply({
-    content: `**${resolved.title.slice(0, 80)}** — 음성 채널에 연결하는 중…`,
+    content: `**${resolved.title.slice(0, 80)}**. 음성 채널에 연결하는 중...`,
   });
   console.log('[play] enqueue 시작...');
   let tick = 0;
@@ -325,7 +325,7 @@ export async function handlePlay(_ctx: BotContext, interaction: ChatInputCommand
     tick += 15;
     void interaction
       .editReply({
-        content: `**${resolved.title.slice(0, 80)}** — 음성 연결 중… (${tick}초 경과)`,
+        content: `**${resolved.title.slice(0, 80)}**. 음성 연결 중... (${tick}초 경과)`,
       })
       .catch(() => {});
   }, 15_000);

@@ -1,14 +1,14 @@
 /**
- * 방문·동작 계측 (TASK-KAR-202).
+ * 방문, 동작 계측 (TASK-KAR-202).
  *
- * 왜: 이 물건의 목적은 「사람이 오게 하는 것」인데, 정작 **얼마나 오는지 볼 수단이 없었다.**
+ * 왜: 이 물건의 목적은 사람이 오게 하는 것인데, 정작 **얼마나 오는지 볼 수단이 없었다.**
  * 무엇을 고칠지가 전부 이 숫자에 달려 있으니 계기부터 단다.
  *
- * 원칙 (블로그·KarmoLab 이 쓰는 것과 같다):
- *  - GoatCounter — 쿠키도 개인 식별자도 없다. 사이트가 이미 쓰는 계정을 그대로 쓴다.
- *  - **보내는 것은 판 이름과 동작뿐.** 무엇을 추측했는지·정답이 무엇인지는 절대 안 보낸다
+ * 원칙 (블로그, KarmoLab 이 쓰는 것과 같다):
+ *  - GoatCounter. 쿠키도 개인 식별자도 없다. 사이트가 이미 쓰는 계정을 그대로 쓴다.
+ *  - **보내는 것은 판 이름과 동작뿐.** 무엇을 추측했는지, 정답이 무엇인지는 절대 안 보낸다
  *    (정답이 계측에 실리면 그걸 보고 그날 답을 알 수 있다).
- *  - 내 기계(localhost·파일 열기)에서는 아예 안 보낸다 — 내가 통계를 덮는다.
+ *  - 내 기계(localhost, 파일 열기)에서는 아예 안 보낸다. 내가 통계를 덮는다.
  */
 const SITE = 'https://mascari4615.goatcounter.com/count';
 
@@ -19,7 +19,7 @@ const disabled =
 
 let loading = null;
 
-/** GoatCounter 스크립트는 필요할 때 한 번만 부른다 — 첫 화면을 늦추지 않는다. */
+/** GoatCounter 스크립트는 필요할 때 한 번만 부른다. 첫 화면을 늦추지 않는다. */
 function ready() {
   if (disabled) return Promise.resolve(null);
   if (window.goatcounter?.count) return Promise.resolve(window.goatcounter.count.bind(window.goatcounter));
@@ -42,8 +42,8 @@ function ready() {
 
 /**
  * 페이지 하나를 봤다.
- * 연습 판은 주소가 물음표 뒤로 갈려서 그냥 두면 오늘 판 방문과 합산된다 —
- * 그러면 「몇 명이 오늘 판을 열었나」가 부풀어 깔때기를 못 믿는다. 따로 센다.
+ * 연습 판은 주소가 물음표 뒤로 갈려서 그냥 두면 오늘 판 방문과 합산된다 . 
+ * 그러면 몇 명이 오늘 판을 열었나가 부풀어 깔때기를 못 믿는다. 따로 센다.
  */
 export async function countPage(path) {
   const count = await ready();
@@ -51,8 +51,8 @@ export async function countPage(path) {
 }
 
 /**
- * 무슨 일이 일어났다 — `끝남/포켓몬/속성/맞힘` 같은 이름표만 보낸다.
- * 추측한 이름·정답은 **절대 넣지 않는다**.
+ * 무슨 일이 일어났다. `끝남/포켓몬/속성/맞힘` 같은 이름표만 보낸다.
+ * 추측한 이름, 정답은 **절대 넣지 않는다**.
  */
 export async function countEvent(name) {
   const count = await ready();

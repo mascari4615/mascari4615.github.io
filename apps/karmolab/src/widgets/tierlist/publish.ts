@@ -10,9 +10,9 @@ import { isAppPath } from '../../lib/site-base';
     const publishedJsonCache = new Map<string, TlPublishedData>();
 
     /**
-     * 티어리스트 JSON(index·카탈로그)이 놓인 디렉터리 URL(끝에 슬래시 없음).
+     * 티어리스트 JSON(index, 카탈로그)이 놓인 디렉터리 URL(끝에 슬래시 없음).
      * Jekyll: 앱은 permalink로 / 이지만 data 는 /apps/karmolab/data/ 에 그대로 출력됨.
-     * 로컬 file://·/apps/karmolab/index.html 은 현재 문서 기준 디렉터리로 폴백.
+     * 로컬 file://, /apps/karmolab/index.html 은 현재 문서 기준 디렉터리로 폴백.
      */
     function karmolabPublishedDataRoot(): string {
         const { origin, pathname } = location;
@@ -59,7 +59,7 @@ import { isAppPath } from '../../lib/site-base';
         return data;
     }
 
-    /** 가져오기·동기화 시 디스크에 갱신된 풀 JSON이 캐시에 남지 않게 */
+    /** 가져오기, 동기화 시 디스크에 갱신된 풀 JSON이 캐시에 남지 않게 */
     function clearPublishedFetchCache() {
         publishedIndexCache = null;
         publishedJsonCache.clear();
@@ -101,7 +101,7 @@ import { isAppPath } from '../../lib/site-base';
             && (merged.imageKey ?? null) !== (base.imageKey ?? null);
         const baseForLabels: TlItem = { id, name: base.name, imageKey: base.imageKey };
         const labelCh = hasOvr && normUserLabelIds(merged) !== normUserLabelIds(baseForLabels);
-        /** 풀 대비 이름·이미지·라벨이 다르면 수정 뱃지(슬림에선 prune가 정본과 동일한 필드만 제거) */
+        /** 풀 대비 이름, 이미지, 라벨이 다르면 수정 뱃지(슬림에선 prune가 정본과 동일한 필드만 제거) */
         if (ovr?.tlEdited === true || nameCh || imgCh || labelCh) merged.tlEdited = true;
         else delete merged.tlEdited;
         return merged;
@@ -109,8 +109,8 @@ import { isAppPath } from '../../lib/site-base';
 
     /**
      * 현재 카탈로그 기준으로 슬림 JSON을 정리.
-     * 1) 풀에 없는 id의 override·순위 제거(custom 출처만 예외)
-     * 2) tlEdited 없을 때: name·imageKey는 풀 정본과 같을 때만 제거(중복). 다르면 인스턴스 표시 유지.
+     * 1) 풀에 없는 id의 override, 순위 제거(custom 출처만 예외)
+     * 2) tlEdited 없을 때: name, imageKey는 풀 정본과 같을 때만 제거(중복). 다르면 인스턴스 표시 유지.
      */
     function pruneSlimPayloadAgainstCatalog(data: TlPublishedData, catalogItems: Record<string, TlItem>) {
         const catIds = new Set(Object.keys(catalogItems || {}));
@@ -215,7 +215,7 @@ import { isAppPath } from '../../lib/site-base';
                     if (T.state.isCatalogPayload(cat)) poolN = Object.keys(cat.items || {}).length;
                 } catch (_) { /* 풀 URL 실패 */ }
                 const ranked = collectRankingItemIds(data.list as TlListInstance).size;
-                if (poolN != null) return `후보 풀 총 ${poolN}개 · 판 ${ranked}개`;
+                if (poolN != null) return `후보 풀 총 ${poolN}개, 판 ${ranked}개`;
                 return ranked ? t('tierlist.boardCount', { n: ranked }) : '';
             }
             if (data?.list) {
@@ -665,7 +665,7 @@ import { isAppPath } from '../../lib/site-base';
 
     /**
      * 로컬 순위 편집 시: 연결된 카탈로그와 동기화하고,
-     * 풀에서 사라진 id는 후보 출처 카드·override 잔여를 걷어낸다(직접 추가 custom 만 유지).
+     * 풀에서 사라진 id는 후보 출처 카드, override 잔여를 걷어낸다(직접 추가 custom 만 유지).
      */
     async function syncInstanceItemOriginsWithCatalogIfNeeded(): Promise<boolean> {
         if (T.state.isPublishedMode()) return false;
@@ -690,7 +690,7 @@ import { isAppPath } from '../../lib/site-base';
                     if (syncCatalogItemEditedFlags(list, catItems)) changed = true;
                 }
             } catch (_) {
-                /* 오프라인 등 — 건너뜀 */
+                /* 오프라인 등. 건너뜀 */
             }
         }
         if (changed) T.state.persistList(list);

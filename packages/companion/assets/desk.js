@@ -1,6 +1,6 @@
 /**
- * page 표면 — 벤더 세션을 한 단 위에서 보는 방.
- * 말·SSE 는 face.html 이 그대로 가진다. 여기는 레인·설정만.
+ * page 표면. 벤더 세션을 한 단 위에서 보는 방.
+ * 말, SSE 는 face.html 이 그대로 가진다. 여기는 레인, 설정만.
  */
 export async function mountDesk() {
   const lanesEl = document.getElementById('lanes');
@@ -64,10 +64,10 @@ export async function mountDesk() {
     if (current) {
       barWho.textContent = current.kind === 'room' ? current.title : current.title;
       barSub.textContent = current.kind === 'room'
-        ? `${desk.character || '동반자'} · ${current.id === 'work' ? '코딩 CLI' : '곁에'} · ${desk.brain}`
+        ? `${desk.character || '동반자'}, ${current.id === 'work' ? '코딩 CLI' : '곁에'}, ${desk.brain}`
         : current.here
-          ? `${current.detail} · 지금 이 창`
-          : `${current.detail} · 내려다보기`;
+          ? `${current.detail}, 지금 이 창`
+          : `${current.detail}, 내려다보기`;
     }
 
     if (setBrain) setBrain.textContent = String(desk.brain ?? '');
@@ -89,8 +89,8 @@ export async function mountDesk() {
     if (text) {
       const inRoom = current?.kind === 'room';
       text.placeholder = inRoom
-        ? (current.id === 'work' ? '이 일에 말하기…' : '곁에서 말하기…')
-        : '내려다보는 중 · 일/말 방을 눌러';
+        ? (current.id === 'work' ? '이 일에 말하기...' : '곁에서 말하기...')
+        : '내려다보는 중, 일/말 방을 눌러';
       text.disabled = !inRoom;
     }
     if (peek) {

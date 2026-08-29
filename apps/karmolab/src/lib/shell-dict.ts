@@ -1,8 +1,8 @@
 /**
- * 명령·옵션 사전 (TASK-KL-250)
+ * 명령, 옵션 사전 (TASK-KL-250)
  *
- * explainshell 은 man 페이지를 통째로 긁어 붙인다 — 정확하지만 **길고 어렵다**.
- * 여기서는 한 줄로 말한다. 「이거 실행해도 되나」를 묻는 사람에게 필요한 건 설명서가 아니라
+ * explainshell 은 man 페이지를 통째로 긁어 붙인다. 정확하지만 **길고 어렵다**.
+ * 여기서는 한 줄로 말한다. 이거 실행해도 되나를 묻는 사람에게 필요한 건 설명서가 아니라
  * 한 문장이다.
  *
  * 사전을 넓히는 일 = 이 표에 줄 더하기. 그게 이 구조의 요점이다.
@@ -12,7 +12,7 @@ export interface CommandDoc {
   what: string;
   /** 옵션 한 줄 설명. 열쇠는 `-x` 또는 `--long`. */
   flags?: Record<string, string>;
-  /** 하위 명령(`git commit`) — 있으면 첫 낱말을 여기서 찾는다. */
+  /** 하위 명령(`git commit`). 있으면 첫 낱말을 여기서 찾는다. */
   subs?: Record<string, string>;
   /** 하위 명령별 옵션 (`git commit -m`). */
   subFlags?: Record<string, Record<string, string>>;
@@ -22,7 +22,7 @@ export const COMMANDS: Record<string, CommandDoc> = {
   ls: {
     what: '이 폴더에 뭐가 있는지 보여 준다',
     flags: {
-      '-l': '한 줄에 하나씩, 크기·날짜·권한까지',
+      '-l': '한 줄에 하나씩, 크기, 날짜, 권한까지',
       '-a': '숨긴 것(점으로 시작하는 것)까지 전부',
       '-h': '크기를 사람이 읽는 단위로 (1.2K, 3.4M)',
       '-t': '최근에 바뀐 것부터',
@@ -37,12 +37,12 @@ export const COMMANDS: Record<string, CommandDoc> = {
   head: { what: '파일 앞부분만', flags: { '-n': '몇 줄을 볼지' } },
   tail: {
     what: '파일 뒷부분만',
-    flags: { '-n': '몇 줄을 볼지', '-f': '**계속 지켜본다** — 새 줄이 붙으면 바로 보여 준다' }
+    flags: { '-n': '몇 줄을 볼지', '-f': '**계속 지켜본다**. 새 줄이 붙으면 바로 보여 준다' }
   },
   grep: {
     what: '글자를 찾는다',
     flags: {
-      '-i': '대문자·소문자 구분 없이',
+      '-i': '대문자, 소문자 구분 없이',
       '-r': '폴더 안까지 뒤져서',
       '-n': '몇째 줄인지 같이',
       '-v': '**안 맞는** 줄만',
@@ -56,7 +56,7 @@ export const COMMANDS: Record<string, CommandDoc> = {
     flags: {
       '-name': '이름으로',
       '-type': '종류로 (f=파일, d=폴더)',
-      '-delete': '**찾은 것을 지운다** — 되돌릴 수 없다',
+      '-delete': '**찾은 것을 지운다**. 되돌릴 수 없다',
       '-exec': '찾은 것마다 명령을 실행한다'
     }
   },
@@ -68,7 +68,7 @@ export const COMMANDS: Record<string, CommandDoc> = {
       '-i': '하나씩 물어본다'
     }
   },
-  cp: { what: '복사한다', flags: { '-r': '폴더까지 통째로', '-a': '권한·날짜까지 그대로' } },
+  cp: { what: '복사한다', flags: { '-r': '폴더까지 통째로', '-a': '권한, 날짜까지 그대로' } },
   mv: { what: '옮기거나 이름을 바꾼다', flags: { '-f': '묻지 않고 덮어쓴다' } },
   mkdir: { what: '폴더를 만든다', flags: { '-p': '중간 폴더도 필요하면 같이 만든다' } },
   chmod: { what: '누가 읽고 쓰고 실행할 수 있는지 바꾼다', flags: { '-R': '폴더 안까지 전부' } },
@@ -94,7 +94,7 @@ export const COMMANDS: Record<string, CommandDoc> = {
       '-O': '원래 이름 그대로 저장한다',
       '-s': '진행 상황을 안 보여 준다',
       '-L': '주소가 옮겨졌으면 따라간다',
-      '-X': '어떤 방식으로 부를지 (GET/POST…)',
+      '-X': '어떤 방식으로 부를지 (GET/POST...)',
       '-H': '머리말을 붙여서',
       '-d': '보낼 내용',
       '-I': '머리말만 받아 본다',
@@ -109,11 +109,11 @@ export const COMMANDS: Record<string, CommandDoc> = {
   df: { what: '디스크가 얼마나 찼는지', flags: { '-h': '사람이 읽는 단위로' } },
   du: { what: '이 폴더가 얼마나 차지하는지', flags: { '-h': '사람이 읽는 단위로', '-s': '합계만' } },
   echo: { what: '글자를 그대로 내보낸다', flags: { '-n': '줄바꿈 없이' } },
-  sed: { what: '글자를 바꾸거나 골라낸다', flags: { '-i': '**파일을 직접 고친다** — 원본이 바뀐다', '-n': '시킨 것만 내보낸다' } },
+  sed: { what: '글자를 바꾸거나 골라낸다', flags: { '-i': '**파일을 직접 고친다**. 원본이 바뀐다', '-n': '시킨 것만 내보낸다' } },
   awk: { what: '줄을 칸으로 나눠 다룬다' },
   sort: { what: '줄을 순서대로', flags: { '-r': '거꾸로', '-n': '숫자로', '-u': '같은 줄은 하나만' } },
   uniq: { what: '이어진 같은 줄을 하나로', flags: { '-c': '몇 번 나왔는지 세서' } },
-  wc: { what: '줄·낱말·글자 수를 센다', flags: { '-l': '줄 수만', '-w': '낱말 수만', '-c': '바이트 수만' } },
+  wc: { what: '줄, 낱말, 글자 수를 센다', flags: { '-l': '줄 수만', '-w': '낱말 수만', '-c': '바이트 수만' } },
   xargs: { what: '앞에서 받은 것을 뒤 명령의 인자로 넘긴다' },
   git: {
     what: '코드의 역사를 다룬다',
@@ -132,13 +132,13 @@ export const COMMANDS: Record<string, CommandDoc> = {
       rebase: '내 커밋을 다른 곳 위에 다시 얹는다',
       log: '역사를 훑어본다',
       diff: '뭐가 달라졌는지',
-      reset: '**역사를 되돌린다** — 안 올린 것은 사라질 수 있다',
+      reset: '**역사를 되돌린다**. 안 올린 것은 사라질 수 있다',
       stash: '하던 것을 잠깐 치워 둔다',
       restore: '파일을 되돌린다'
     },
     subFlags: {
       commit: { '-m': '메시지를 여기서 바로', '-a': '고친 파일을 알아서 담아서', '--amend': '**앞 커밋을 고쳐 쓴다**' },
-      push: { '-f': '**원격 역사를 덮어쓴다** — 남의 커밋이 사라질 수 있다', '--force-with-lease': '남이 안 올렸을 때만 덮어쓴다', '-u': '이 가지의 짝을 정해 둔다' },
+      push: { '-f': '**원격 역사를 덮어쓴다**. 남의 커밋이 사라질 수 있다', '--force-with-lease': '남이 안 올렸을 때만 덮어쓴다', '-u': '이 가지의 짝을 정해 둔다' },
       log: { '--oneline': '한 줄씩', '--graph': '가지 모양까지 그려서' },
       reset: { '--hard': '**고치던 것까지 전부 버린다**', '--soft': '커밋만 되돌리고 파일은 그대로' },
       checkout: { '-b': '새 가지를 만들면서' },
@@ -172,7 +172,7 @@ export const COMMANDS: Record<string, CommandDoc> = {
       i: '필요한 것을 받아 온다',
       run: 'package.json 에 적어 둔 일을 시킨다',
       test: '검사를 돌린다',
-      publish: '**세상에 내놓는다** — 되돌리기 어렵다',
+      publish: '**세상에 내놓는다**. 되돌리기 어렵다',
       ci: '자물쇠 파일 그대로 깨끗이 받아 온다'
     },
     subFlags: {
@@ -180,7 +180,7 @@ export const COMMANDS: Record<string, CommandDoc> = {
     }
   },
   systemctl: { what: '서비스를 켜고 끈다', subs: { start: '켠다', stop: '끈다', restart: '껐다 켠다', status: '지금 상태', enable: '부팅 때 자동으로 켜지게' } },
-  dd: { what: '**디스크를 통째로 복사한다** — 자리를 잘못 적으면 다 날아간다', flags: { if: '어디서', of: '어디로' } },
+  dd: { what: '**디스크를 통째로 복사한다**. 자리를 잘못 적으면 다 날아간다', flags: { if: '어디서', of: '어디로' } },
   sudo: { what: '**관리자 권한으로** 실행한다', flags: { '-i': '관리자로 들어간다' } },
   ping: { what: '저기까지 닿는지 두드려 본다', flags: { '-c': '몇 번 두드릴지' } },
   which: { what: '그 명령이 어디 있는지 알려 준다' },
@@ -200,8 +200,8 @@ export const DANGERS: Array<{ match: RegExp; why: string }> = [
   { match: /git\s+push.*\s-f\b|git\s+push.*--force(?!-with-lease)/, why: '**원격 역사를 덮어씁니다.** 남이 올린 커밋이 사라질 수 있습니다' },
   { match: /git\s+reset.*--hard/, why: '**고치던 것까지 전부 버립니다.** 커밋 안 한 것은 되돌릴 수 없습니다' },
   { match: /\bkill\b.*-9/, why: '프로그램을 **저장할 틈도 없이** 죽입니다' },
-  { match: /\bsudo\b/, why: '관리자 권한으로 돕니다 — 무엇이든 바꿀 수 있습니다' },
-  { match: /:\(\)\s*\{.*\}\s*;?\s*:/, why: '**포크 폭탄** — 컴퓨터가 멈춥니다' },
+  { match: /\bsudo\b/, why: '관리자 권한으로 돕니다. 무엇이든 바꿀 수 있습니다' },
+  { match: /:\(\)\s*\{.*\}\s*;?\s*:/, why: '**포크 폭탄**. 컴퓨터가 멈춥니다' },
   { match: />\s*\/dev\/sd[a-z]/, why: '**디스크 장치에 직접 씁니다.** 그 디스크가 통째로 망가집니다' }
 ];
 

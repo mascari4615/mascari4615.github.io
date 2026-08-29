@@ -1,10 +1,10 @@
 /**
- * 사진에 붙어 오는 정보 읽기 (TASK-KL-316 / 31 · `exifclean` 과 공용)
+ * 사진에 붙어 오는 정보 읽기 (TASK-KL-316 / 31, `exifclean` 과 공용)
  *
  * 이 셈은 원래 `exifclean` 위젯 **안에** 있었다. 사진 위치를 쓰는 도구가 하나 더 생기는 순간
  * 같은 파서가 두 벌이 되고, 한쪽만 고쳐지면 **같은 사진에 두 답**이 나온다. 그래서 여기로 뺀다.
  *
- * 읽는 것만 한다 — 지우는 일(`strip`)은 그림 데이터를 다시 잇는 일이라 그쪽 도구에 남긴다.
+ * 읽는 것만 한다. 지우는 일(`strip`)은 그림 데이터를 다시 잇는 일이라 그쪽 도구에 남긴다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -64,13 +64,13 @@ export function read(bytes: Uint8Array): ExifInfo {
   const base = app1.start + 4 + 6; // 구획 머리 + 'Exif\0\0'
   if (base + 8 > bytes.length) return info;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  /* 바이트 순서가 파일마다 다르다 — 여기서 안 정하면 숫자가 전부 엉뚱해진다. */
+  /* 바이트 순서가 파일마다 다르다. 여기서 안 정하면 숫자가 전부 엉뚱해진다. */
   const little = view.getUint16(base) === 0x4949;
   const first = view.getUint32(base + 4, little);
 
   /*
-   * 규격은 ASCII 라고 하지만 **카메라·프로그램이 UTF-8 을 그냥 쓴다** (한글 이름이 그렇게 들어온다).
-   * 한 글자씩 코드로 읽으면 그게 깨진다 — UTF-8 로 읽어 보고, 아니면 있는 그대로 둔다.
+   * 규격은 ASCII 라고 하지만 **카메라, 프로그램이 UTF-8 을 그냥 쓴다** (한글 이름이 그렇게 들어온다).
+   * 한 글자씩 코드로 읽으면 그게 깨진다. UTF-8 로 읽어 보고, 아니면 있는 그대로 둔다.
    */
   const ascii = (off: number, count: number): string => {
     const slice = bytes.slice(off, off + Math.max(0, count - 1));

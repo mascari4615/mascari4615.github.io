@@ -1,8 +1,8 @@
 /**
  * Hacker News 상위 스토리 소스 (구 geeknews.ts 의 fetch+embed 이전, TASK-YB-036).
  *
- * 순수 데이터/포맷 — discord 채널·env 비의존. 스케줄 news notifier
- * (`notifiers/news.ts`)가 2번째 소스로 폴링·게시한다. standalone geeknews
+ * 순수 데이터/포맷. discord 채널, env 비의존. 스케줄 news notifier
+ * (`notifiers/news.ts`)가 2번째 소스로 폴링, 게시한다. standalone geeknews
  * 채널/슬래시(/atkup news)는 폐기 (미사용 수동기능 → 자동 news 흡수).
  *
  * - 공개 Firebase API → topstories.json
@@ -13,7 +13,7 @@ import { EmbedBuilder } from 'discord.js';
 const HN_COLOR = 0xff6600;
 
 export interface HnStoryLine {
-  /** HN item id — 안정 식별자(제목 변경에도 불변). */
+  /** HN item id. 안정 식별자(제목 변경에도 불변). */
   id: number;
   title: string;
   href: string;
@@ -47,7 +47,7 @@ function hostLabel(it: HnItem): string {
 function truncateTitle(s: string, max = 120): string {
   const t = s.trim();
   if (t.length <= max) return t;
-  return `${t.slice(0, max - 1)}…`;
+  return `${t.slice(0, max - 1)}...`;
 }
 
 /** 마크다운 링크용: 제목에 [ ] 가 있으면 깨지므로 제거 */
@@ -82,7 +82,7 @@ export async function fetchHnTopStories(limit: number): Promise<HnStoryLine[]> {
       title: truncateTitle(it.title),
       href: storyHref(it),
       score: typeof it.score === 'number' ? it.score : 0,
-      by: it.by || '—',
+      by: it.by || '. ',
       host: hostLabel(it),
     });
   }
@@ -95,7 +95,7 @@ export function buildHnEmbed(s: HnStoryLine): EmbedBuilder {
   return new EmbedBuilder()
     .setTitle(`📰 ${t.slice(0, 250)}`)
     .setURL(s.href)
-    .setDescription(`${s.score}pt · ${s.host} · ${s.by}`)
+    .setDescription(`${s.score}pt, ${s.host}, ${s.by}`)
     .setColor(HN_COLOR)
-    .setFooter({ text: 'YawnBot · Hacker News' });
+    .setFooter({ text: 'YawnBot, Hacker News' });
 }

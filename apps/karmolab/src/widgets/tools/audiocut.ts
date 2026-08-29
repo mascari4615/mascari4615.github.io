@@ -78,15 +78,15 @@ import { t, loadNamespace } from '../../lib/i18n';
           const stats = $<HTMLElement>('#acStats');
           const status = $<HTMLElement>('#acStatus');
           let buffer: AudioBuffer | null = null;
-          /* 파일이 원래 몇 번 잰 소리인가 — 재생 장치 값(`buffer.sampleRate`)과 다르다 */
+          /* 파일이 원래 몇 번 잰 소리인가. 재생 장치 값(`buffer.sampleRate`)과 다르다 */
           let rate = 0;
           let fileName = 'audio';
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 파형은 최댓값만 훑어 그린다 — 전 샘플을 그리면 긴 곡에서 멈춘다. */
+          /** 파형은 최댓값만 훑어 그린다. 전 샘플을 그리면 긴 곡에서 멈춘다. */
           function drawWave(): void {
             if (!buffer) return;
             const w = (canvas.width = canvas.clientWidth * 2);
@@ -148,7 +148,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('audiocut.err.format'), 'error');
               return;
             }
-            attachAudio(player, file); // 공용 — 앞 주소를 거두고 물린다
+            attachAudio(player, file); // 공용. 앞 주소를 거두고 물린다
             panel.style.display = '';
             startEl.value = '0';
             endEl.value = '100';
@@ -171,7 +171,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               const dst = out.getChannelData(c);
               for (let i = 0; i < len; i++) {
                 let v = src[from + i] || 0;
-                // 자른 자리에서 파형이 뚝 끊기면 딸깍 소리가 난다 — 앞뒤를 짧게 눕힌다
+                // 자른 자리에서 파형이 뚝 끊기면 딸깍 소리가 난다. 앞뒤를 짧게 눕힌다
                 if (fade) {
                   if (i < fade) v *= i / fade;
                   else if (i> len - fade) v *= (len - i) / fade;
@@ -183,12 +183,12 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다.
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다.
            * (2026-08-13: 파일 자리를 공용으로 옮기다 이 덩이를 같이 지웠다가 게이트가 잡았다.) */
           {
             Toolbox.onHandoff?.('audiocut', (f: File) => void load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 키보드로 열기·붙여넣기가 딸려 온다. */
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 키보드로 열기, 붙여넣기가 딸려 온다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           drop.addEventListener('dragleave', () => drop.classList.remove('over'));
           drop.addEventListener('drop', (e) => {
@@ -222,7 +222,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               .then((blob) => {
                 const aName = `${fileName}${t('audiocut.file.suffix')}.${format}`;
                 download(blob, aName);
-                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'audiocut' });
                 say(t('audiocut.say.done', { len: mmss(out.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('cut');

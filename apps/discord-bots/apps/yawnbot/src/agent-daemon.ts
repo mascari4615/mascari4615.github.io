@@ -1,20 +1,20 @@
 /**
- * agent-daemon — 코어 1개 = 독립 process 의 ambient listener
+ * agent-daemon. 코어 1개 = 독립 process 의 ambient listener
  * (KAR-018-LT-DIVERSITY D-3+D-4+D-5+D-6, 2026-05-23).
  *
  * 사용자 비전: "사람처럼 그냥 채팅보고 자기가 스스로 판단해서 읽씹하든
- * 대답하든". 단일 봇 process 의존 폐기 — 코어가 자기 process 로 살아있음.
+ * 대답하든". 단일 봇 process 의존 폐기. 코어가 자기 process 로 살아있음.
  *
  * 책임:
  *  - agent-bus subscribe → channel-msg 받음
- *  - 단일 LLM 호출 (JSON 출력: {react, text?}) — silence default
+ *  - 단일 LLM 호출 (JSON 출력: {react, text?}). silence default
  *  - react=true 면 core-utter publish (Discord 표면 post 는 adapter 가 처리)
  *  - rate limit (per-core 5분 ≤ 2 발화)
- *  - mem write (work-memory append, 자기 발화·skip 사유 기록)
+ *  - mem write (work-memory append, 자기 발화, skip 사유 기록)
  *
  * 비-책임:
- *  - Discord client X — daemon 은 메신저 무관. bus 만 안다.
- *  - 자기 발화 echo skip — bus event 의 source=core:<self> 면 무시.
+ *  - Discord client X. daemon 은 메신저 무관. bus 만 안다.
+ *  - 자기 발화 echo skip. bus event 의 source=core:<self> 면 무시.
  *
  * 진입: `node dist/src/agent-daemon.js --core-id <id> --channel-id <id>`.
  * env:
@@ -61,7 +61,7 @@ function parseArgs(argv: string[]): DaemonArgs {
   return out as DaemonArgs;
 }
 
-/** channelId resolve — args/env 없으면 yawnbot provisioned file 통해. */
+/** channelId resolve. args/env 없으면 yawnbot provisioned file 통해. */
 async function resolveChannelId(args: DaemonArgs): Promise<string | null> {
   if (args.channelId) return args.channelId;
   try {
@@ -106,20 +106,20 @@ export async function decideUtterance(
       : `[${trigger.refs?.author || trigger.source}]`;
 
   const prompt = [
-    `당신은 "${core.displayName}" (id=${core.id}) — ${core.role}.`,
+    `당신은 "${core.displayName}" (id=${core.id}). ${core.role}.`,
     '',
-    '## 당신의 직무·경계 (core.md 본문)',
+    '## 당신의 직무, 경계 (core.md 본문)',
     core.body.slice(0, 1500),
     '',
     '## 채팅방 상황',
     '#team-bus 채널을 *듣고 있는* 동료 N명 중 한 명입니다.',
     '아래 = 직전 N분 채팅 흐름. 당신은 *답할 수도 있고 읽씹할 수도* 있습니다.',
-    '사람 채팅방처럼 — 시각이 *있을 때만* 끼어들고, 없으면 듣기만 하세요.',
+    '사람 채팅방처럼. 시각이 *있을 때만* 끼어들고, 없으면 듣기만 하세요.',
     '',
     '## 침묵 우선 원칙 (중요)',
     '확실히 *내 시각에서 의미 있는 한 마디* 가 떠오를 때만 답하세요.',
     '- 다른 동료가 더 잘 답할 주제 = SKIP',
-    '- 단순 인사·맞장구·페르소나 발화로 빈자리 채우기 = SKIP',
+    '- 단순 인사, 맞장구, 페르소나 발화로 빈자리 채우기 = SKIP',
     '- "내 역할이니까 답해야 한다" 강박 = SKIP (역할 정의는 *권한* 이지 *의무* 아님)',
     '- 직전 흐름에 이미 같은 얘기 나옴 = SKIP',
     '',
@@ -144,7 +144,7 @@ export async function decideUtterance(
   return parseDecision(raw);
 }
 
-/** JSON 추출 robust — code fence·앞뒤 공백 허용. */
+/** JSON 추출 robust. code fence, 앞뒤 공백 허용. */
 export function parseDecision(raw: string): PrefilterDecision {
   const stripped = raw
     .replace(/```(?:json)?/gi, '')
@@ -183,11 +183,11 @@ export function countRecentSelfUtterances(
 }
 
 /**
- * P-4 LLM 호출 카운터 (sliding 1h window) — orchestrator governance reserve 의
+ * P-4 LLM 호출 카운터 (sliding 1h window). orchestrator governance reserve 의
  * ambient daemon 시대 대안. peer-only 정합: 각 daemon 자기 cap 자율 적용,
  * 중앙 reserve 없음. 한 daemon 이 폭주해도 다른 daemon 영향 0.
  *
- * cap 초과 = LLM 호출 skip (prefilter·발화·self-tick 전부 차단).
+ * cap 초과 = LLM 호출 skip (prefilter, 발화, self-tick 전부 차단).
  * window=1h, cap default 60 (env AGENT_DAEMON_LLM_BUDGET_HOURLY override).
  */
 class LlmCallBudget {
@@ -238,7 +238,7 @@ function appendCoreMem(memoRoot: string, coreId: string, entry: Record<string, u
   }
 }
 
-/** 한 트리거에 대한 daemon 의 평가·발화 사이클 (test 가능 단위). */
+/** 한 트리거에 대한 daemon 의 평가, 발화 사이클 (test 가능 단위). */
 export async function handleTrigger(deps: {
   core: CoreDef;
   llm: GenerativeTextClient;
@@ -287,7 +287,7 @@ export async function handleTrigger(deps: {
     return;
   }
 
-  // P-4 LLM budget cap — sliding 1h window. peer-only 정합 (자기 자율 cap).
+  // P-4 LLM budget cap. sliding 1h window. peer-only 정합 (자기 자율 cap).
   if (deps.budget && !deps.budget.canCall()) {
     appendCoreMem(deps.memoRoot, deps.core.id, {
       kind: 'skip',
@@ -358,7 +358,7 @@ async function main(): Promise<void> {
   const ratePer5min = Number.parseInt(process.env.AGENT_DAEMON_RATE_PER_5MIN || '2', 10);
   const contextMinutes = Number.parseInt(process.env.AGENT_DAEMON_CONTEXT_MINUTES || '5', 10);
 
-  // channelId resolve — boot 시점에 yawnbot 이 아직 provision 안 했을 수 있음 → retry.
+  // channelId resolve. boot 시점에 yawnbot 이 아직 provision 안 했을 수 있음 → retry.
   let channelId: string | null = await resolveChannelId(args);
   let waited = 0;
   while (!channelId && waited < 600) {  // 최대 10분 대기
@@ -366,7 +366,7 @@ async function main(): Promise<void> {
     waited += 5;
     channelId = await resolveChannelId(args);
     if (waited % 60 === 0) {
-      console.log(`[agent-daemon] channelId 대기 중 (${waited}s) — yawnbot provisioning 대기`);
+      console.log(`[agent-daemon] channelId 대기 중 (${waited}s). yawnbot provisioning 대기`);
     }
   }
   if (!channelId) {
@@ -410,7 +410,7 @@ async function main(): Promise<void> {
       .finally(() => { inFlight -= 1; });
   }, { intervalMs: 500, onError: (e) => console.error('[agent-daemon] tail error', e.message) });
 
-  // KAR-018-LT-PEER-ONLY P-3: self-tick — 사용자 발화 0 시간에도 자기 cadence
+  // KAR-018-LT-PEER-ONLY P-3: self-tick. 사용자 발화 0 시간에도 자기 cadence
   // 로 자율 발의. orchestrator 폐기 후 producer 책임을 daemon 이 흡수.
   // jitter ±20% (모든 daemon 동시 tick 폭주 방지). silence default 그대로
   // 적용 = 의미 없으면 skip, 시각 있을 때만 publish.
@@ -442,7 +442,7 @@ async function main(): Promise<void> {
           type: 'channel-msg',
           channelId: channelId!,
           source: 'self-tick',
-          text: `(자율 cadence — ${core.displayName} 자기 시점·직무 안에서 박을 게 있나)`,
+          text: `(자율 cadence. ${core.displayName} 자기 시점, 직무 안에서 박을 게 있나)`,
         };
         const decision = await decideUtterance(llm, core, ctx, selfTrigger);
         if (decision.decision === 'answer') {
@@ -468,7 +468,7 @@ async function main(): Promise<void> {
   let selfTickTimer = scheduleSelfTick();
 
   const shutdown = (sig: string): void => {
-    console.log(`[agent-daemon] ${sig} 수신 — shutdown`);
+    console.log(`[agent-daemon] ${sig} 수신. shutdown`);
     sub.stop();
     clearTimeout(selfTickTimer);
     setTimeout(() => process.exit(0), 200);
@@ -482,19 +482,19 @@ async function main(): Promise<void> {
   }, 5 * 60 * 1000).unref();
 
   // KAR-018-LT-PEER-ONLY P-5: !kill watcher. memo/.claude/agent-kill 파일 존재
-  // = 모든 daemon 즉시 graceful exit. 30s polling — 진짜 비상 차단 (사용자 panic
+  // = 모든 daemon 즉시 graceful exit. 30s polling. 진짜 비상 차단 (사용자 panic
   // button). peer-only 정합: 각 daemon 자율 watch, 중앙 broadcast 없음.
   const killFile = path.join(memoRoot, '.claude', 'agent-kill');
   // 시작 시 1회 즉시 확인
   if (fs.existsSync(killFile)) {
-    console.log(`[agent-daemon] !kill 파일 존재 (${killFile}) — 시작 거부, 즉시 exit`);
+    console.log(`[agent-daemon] !kill 파일 존재 (${killFile}). 시작 거부, 즉시 exit`);
     sub.stop();
     process.exit(7);
   }
   setInterval(() => {
     try {
       if (fs.existsSync(killFile)) {
-        console.log(`[agent-daemon] !kill 감지 (${killFile}) — graceful exit coreId=${core.id}`);
+        console.log(`[agent-daemon] !kill 감지 (${killFile}). graceful exit coreId=${core.id}`);
         sub.stop();
         clearTimeout(selfTickTimer);
         setTimeout(() => process.exit(7), 200);
@@ -506,7 +506,7 @@ async function main(): Promise<void> {
 }
 
 // entry: node ... agent-daemon.js
-// (vitest 로 직접 import 시 main() 안 돔 — process.argv 가 vitest 본인)
+// (vitest 로 직접 import 시 main() 안 돔. process.argv 가 vitest 본인)
 if (process.argv[1] && /agent-daemon\.[jt]s$/.test(process.argv[1])) {
   main().catch((e) => {
     console.error('[agent-daemon] fatal', e);

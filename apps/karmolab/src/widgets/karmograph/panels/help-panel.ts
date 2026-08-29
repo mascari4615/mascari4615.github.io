@@ -1,7 +1,7 @@
 /**
- * panels/help-panel.ts — 「무엇을 할 수 있나」 (TASK-KL-202 개편 2, 첫 이사).
+ * panels/help-panel.ts. 무엇을 할 수 있나 (TASK-KL-202 개편 2, 첫 이사).
  *
- * 의존이 가장 적은 패널이라 여기부터 옮겼다 — 목록(`help.ts`)과 그릴 자리만 있으면 된다.
+ * 의존이 가장 적은 패널이라 여기부터 옮겼다. 목록(`help.ts`)과 그릴 자리만 있으면 된다.
  */
 import { help } from '../help';
 import { t } from '../../../lib/i18n';

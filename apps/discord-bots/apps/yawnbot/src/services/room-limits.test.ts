@@ -1,7 +1,7 @@
 /**
  * 상한이 **세는 것**과 **거르는 것** (change.copresence-hardening 3단계).
  *
- * 시간을 실제로 흘려보내지 않는다 — 1초를 기다리는 시험은 검사가 아니라 지연이다.
+ * 시간을 실제로 흘려보내지 않는다. 1초를 기다리는 시험은 검사가 아니라 지연이다.
  */
 import { describe, expect, it } from 'vitest';
 import { MOVE_LIMIT, OP_MAX_BYTES, RoomLimiter, opTooBig, MOVE_IP_LIMIT } from './room-limits';
@@ -23,7 +23,7 @@ describe('RoomLimiter', () => {
     expect(limiter.take('a', now + 100)).toBe(false);
   });
 
-  it('참가자마다 따로 센다 — 한 사람의 폭주가 옆자리를 안 벌한다', () => {
+  it('참가자마다 따로 센다. 한 사람의 폭주가 옆자리를 안 벌한다', () => {
     const limiter = new RoomLimiter({ rate: 1, burst: 1 });
     const now = 1_000_000;
     expect(limiter.take('room:a', now)).toBe(true);
@@ -31,7 +31,7 @@ describe('RoomLimiter', () => {
     expect(limiter.take('room:b', now)).toBe(true);
   });
 
-  it('오래 안 쓴 물통은 버린다 — 방문자 수만큼 쌓이면 그게 새는 자리다', () => {
+  it('오래 안 쓴 물통은 버린다. 방문자 수만큼 쌓이면 그게 새는 자리다', () => {
     const limiter = new RoomLimiter({ rate: 1, burst: 1 });
     limiter.take('a', 1_000_000);
     limiter.sweep(1_000_000 + 61_000);
@@ -48,7 +48,7 @@ describe('opTooBig', () => {
     expect(opTooBig({ text: 'x'.repeat(OP_MAX_BYTES + 1) })).toBe('size');
   });
 
-  it('너무 깊은 것은 깊이로 막는다 — 받는 쪽 브라우저가 먼저 죽는다', () => {
+  it('너무 깊은 것은 깊이로 막는다. 받는 쪽 브라우저가 먼저 죽는다', () => {
     let deep: unknown = 'bottom';
     for (let i = 0; i < 20; i += 1) deep = { deep };
     expect(opTooBig(deep)).toBe('depth');

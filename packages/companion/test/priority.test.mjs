@@ -46,7 +46,7 @@ test('사람 말은 화면 보기보다 먼저 처리된다', async () => {
   assert.ok(person < second, `사람 말이 먼저 나와야 한다 (실제 순서: ${order.join(' → ')})`);
 });
 
-test('사람 말끼리는 온 순서를 지킨다 — 나중 말이 앞지르지 않게', async () => {
+test('사람 말끼리는 온 순서를 지킨다. 나중 말이 앞지르지 않게', async () => {
   const { bodies, order } = watcher();
   const companion = new Companion({
     bodies, brain: slowBrain(30), memory: new InMemoryMemory(),

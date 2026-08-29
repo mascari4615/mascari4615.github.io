@@ -1,12 +1,12 @@
 // 두뇌가 죽으면 **사람이 알아야 한다.**
 //
 // 102회차에 `COMPANION_BRAIN=assistant` 로 띄우니 대답이 없었다. 103회차에 재 보니
-// 두뇌가 던지고 있었다 — 「AI Studio API: .env에 GEMINI_API_KEY가 필요합니다」.
+// 두뇌가 던지고 있었다. AI Studio API: .env에 GEMINI_API_KEY가 필요합니다.
 // 코어는 그 오류를 `onCycle.error` 로 성실히 넘겼는데 **받는 쪽에서 아무도 안 봤다.**
-// 밖에서는 「가끔 말을 안 한다」로만 보인다. 이 프로젝트가 되풀이해 데인 모양이다
-// (97·98회차: 조용히 안 붙으면 「왜 아무 말도 없지」가 된다).
+// 밖에서는 가끔 말을 안 한다로만 보인다. 이 프로젝트가 되풀이해 데인 모양이다
+// (97, 98회차: 조용히 안 붙으면 왜 아무 말도 없지가 된다).
 //
-// 여기서 재는 것은 「코어가 오류를 넘기나」 + 「그 오류에 사람이 읽을 말이 들어 있나」다.
+// 여기서 재는 것은 코어가 오류를 넘기나 + 그 오류에 사람이 읽을 말이 들어 있나다.
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -18,7 +18,7 @@ function bareMemory() {
   return { async remember(e) { rows.push(e); }, async recent() { return rows; } };
 }
 
-test('두뇌가 터지면 그 사연이 밖으로 나온다 — 조용히 삼키지 않는다', async () => {
+test('두뇌가 터지면 그 사연이 밖으로 나온다. 조용히 삼키지 않는다', async () => {
   const reports = [];
   const companion = new Companion({
     brain: {

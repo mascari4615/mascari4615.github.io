@@ -1,5 +1,5 @@
 /**
- * cards-tab.ts — 에이전트 카드 피드 (Cockpit 탭, TASK-KL-082 병합).
+ * cards-tab.ts. 에이전트 카드 피드 (Cockpit 탭, TASK-KL-082 병합).
  * agent-team.ts buildCanvas() 로직 이식. Toolbox.register X.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
@@ -125,7 +125,7 @@ export function buildCardsTab(container: HTMLElement): void {
   searchInput.addEventListener('input', render);
   refreshBtn.addEventListener('click', () => void load());
   void load();
-  // 보이는 동안만 받아 온다 (`lib/tick`) — 덮어 둔 탭에서 망을 계속 두드릴 이유가 없다.
-  // (전에는 멈추는 손잡이조차 안 들고 있었다 — 화면을 떠나도 계속 돌던 자리다.)
+  // 보이는 동안만 받아 온다 (`lib/tick`). 덮어 둔 탭에서 망을 계속 두드릴 이유가 없다.
+  // (전에는 멈추는 손잡이조차 안 들고 있었다. 화면을 떠나도 계속 돌던 자리다.)
   Toolbox.onDispose?.(intervalWhileVisible(() => void load(), REFRESH_MS));
 }

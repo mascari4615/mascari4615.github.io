@@ -1,8 +1,8 @@
 /**
- * 언어 등록부 읽기 — 생성기·검사가 공유하는 한 벌 (TASK-KL-203)
+ * 언어 등록부 읽기. 생성기, 검사가 공유하는 한 벌 (TASK-KL-203)
  *
  * 정본은 `data/locales.json` 하나다. 여기에 없는 언어는 어디에도 없다.
- * 「언어 목록」을 두 군데 적어 두면 반드시 갈라진다 — 실제로 그랬던 파일이 이 레포에 여럿 있다.
+ * 언어 목록을 두 군데 적어 두면 반드시 갈라진다. 실제로 그랬던 파일이 이 레포에 여럿 있다.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +14,7 @@ const raw = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'data/locales.json'),
 
 /** 등록된 전부 (아직 안 켠 것 포함). */
 export const ALL_LOCALES = raw.locales;
-/** 실제로 화면에 나가는 것 — 페이지를 찍는 쪽은 이것만 돈다. */
+/** 실제로 화면에 나가는 것. 페이지를 찍는 쪽은 이것만 돈다. */
 export const LOCALES = raw.locales.filter((l) => l.enabled);
 export const DEFAULT_LOCALE = raw.default;
 /** 글의 원본이 되는 언어 (번역이 비면 여기로 떨어진다). */
@@ -22,7 +22,7 @@ export const SOURCE_LOCALE = (raw.locales.find((l) => l.source) || { code: raw.d
 
 export function meta(code) {
   const hit = raw.locales.find((l) => l.code === code);
-  if (!hit) throw new Error(`[locales] 등록에 없는 언어: ${code} — data/locales.json 확인`);
+  if (!hit) throw new Error(`[locales] 등록에 없는 언어: ${code}. data/locales.json 확인`);
   return hit;
 }
 
@@ -32,7 +32,7 @@ export function localizedPath(bare, code) {
   return p ? p + bare : bare;
 }
 
-/** 한 화면의 모든 언어 주소 — hreflang·사이트맵이 쓴다. */
+/** 한 화면의 모든 언어 주소. hreflang, 사이트맵이 쓴다. */
 export function alternates(bare) {
   return LOCALES.map((l) => ({ code: l.code, hreflang: l.htmlLang, path: localizedPath(bare, l.code) }));
 }
@@ -65,9 +65,9 @@ export function tr(code, key, vars) {
 /**
  * 이 언어에서 그 묶음이 **제 말로** 다 차 있는가 (원본 폴백이 아니라).
  *
- * 왜 필요한가: 번역이 덜 된 채로 `/en/…` 을 찍으면, 영어라고 표시된 주소에 한국어가 실린 장이
+ * 왜 필요한가: 번역이 덜 된 채로 `/en/...` 을 찍으면, 영어라고 표시된 주소에 한국어가 실린 장이
  * 검색엔진에 올라간다. 그건 안 만든 것보다 나쁘다(잘못된 언어 표시는 순위에 직접 해가 된다).
- * 그래서 **다 찬 언어의 장만 찍는다** — 번역이 늘면 그 다음 배포에 저절로 늘어난다.
+ * 그래서 **다 찬 언어의 장만 찍는다**. 번역이 늘면 그 다음 배포에 저절로 늘어난다.
  */
 export function translated(code, ns) {
   return coverage(code, ns) >= 1;
@@ -84,20 +84,20 @@ export function coverage(code, ns) {
 }
 
 /**
- * 이 장을 그 언어로 낼 수 있나 — **절벽을 없앤 판정** (TASK-KL-203 S8-b).
+ * 이 장을 그 언어로 낼 수 있나. **절벽을 없앤 판정** (TASK-KL-203 S8-b).
  *
- * 처음에는 「쓰는 묶음이 전부 100%」였다. 그런데 다른 사람이 위젯을 **하나** 등록하자마자
+ * 처음에는 쓰는 묶음이 전부 100%였다. 그런데 다른 사람이 위젯을 **하나** 등록하자마자
  * 영어 장이 통째로 사라졌다(실측 676개 중 2개 부족). 도구가 계속 느는 저장소에서 그 규칙은
- * 「누군가 뭔가 만들면 영어 사이트가 내려간다」와 같은 말이다 — 그건 지킬 수 없는 규칙이고,
+ * 누군가 뭔가 만들면 영어 사이트가 내려간다와 같은 말이다. 그건 지킬 수 없는 규칙이고,
  * 지킬 수 없는 규칙은 결국 꺼진다.
  *
  * 그래서 둘로 나눈다:
- *  - **틀(chrome)** = 머리띠·옆줄·머리말처럼 **장마다 똑같이 나오는 글**. 여기 구멍이 나면
+ *  - **틀(chrome)** = 머리띠, 옆줄, 머리말처럼 **장마다 똑같이 나오는 글**. 여기 구멍이 나면
  *    화면 전체가 반쯤 다른 말로 보인다 → **100% 아니면 안 낸다.** 개수가 적어 지킬 수 있다.
- *  - **항목(item)** = 도구 이름·설명처럼 **줄마다 따로인 글**. 하나 빠지면 그 줄만 원본 언어로
+ *  - **항목(item)** = 도구 이름, 설명처럼 **줄마다 따로인 글**. 하나 빠지면 그 줄만 원본 언어로
  *    보인다(옆줄 하나가 한국어). 나머지 수백 줄을 못 보게 만들 이유가 없다 → **거의 다 차면 낸다.**
  *
- * 「거의」의 값(95%)은 임의가 아니라 **새 도구 하나가 못 넘어뜨리는 선**이다: 항목 186개에서
+ * 거의의 값(95%)은 임의가 아니라 **새 도구 하나가 못 넘어뜨리는 선**이다: 항목 186개에서
  * 하나 빠짐 = 99.5%. 반대로 언어를 새로 켠 직후(0%)는 당연히 못 넘는다.
  */
 export const ITEM_COVERAGE_MIN = 0.95;
@@ -110,13 +110,13 @@ export function pageAvailable(code, { namespaces = [], itemNamespaces = [] }) {
 /**
  * head 에 넣을 hreflang 줄들.
  *
- * `x-default` 를 반드시 같이 넣는다 — 어느 언어도 안 맞는 사람에게 무엇을 보여 줄지 정하는
+ * `x-default` 를 반드시 같이 넣는다. 어느 언어도 안 맞는 사람에게 무엇을 보여 줄지 정하는
  * 줄이고, 이게 빠지면 검색엔진이 임의로 고른다. 그리고 **모든 언어 판이 서로를 다 가리켜야**
- * 한다(왕복 표시). 한쪽만 가리키면 통째로 무시된다 — 다국어 사이트가 제일 흔하게 틀리는 곳이다.
+ * 한다(왕복 표시). 한쪽만 가리키면 통째로 무시된다. 다국어 사이트가 제일 흔하게 틀리는 곳이다.
  */
 export function hreflangTags(bare, site, codes) {
   /* **실제로 찍은 장만** 적는다. 없는 주소를 가리키는 hreflang 은 그 페이지의 표시 전체를
-     무효로 만든다 — 번역이 덜 된 언어를 미리 적어 두면 다 적은 것보다 나쁘다. */
+     무효로 만든다. 번역이 덜 된 언어를 미리 적어 두면 다 적은 것보다 나쁘다. */
   const rows = alternates(bare)
     .filter((a) => !codes || codes.includes(a.code))
     .map((a) => `    <link rel="alternate" hreflang="${a.hreflang}" href="${site}${a.path}">`);
@@ -128,12 +128,12 @@ export function hreflangTags(bare, site, codes) {
  *
  * 여기 있던 `langLinksHtml`/`withLangLinks` 는 언어 판으로 가는 `<a>` 한 벌을 옆줄에 따로
  * 찍어 두는 장치였다(TASK-KL-244). 그게 필요했던 이유는 화면의 언어 단추가 `<button>` +
- * JS 라 주소가 아예 없었기 때문이다 — 즉 **UI 가 링크가 아니라서 링크를 한 벌 더 만든 것**이다.
+ * JS 라 주소가 아예 없었기 때문이다. 즉 **UI 가 링크가 아니라서 링크를 한 벌 더 만든 것**이다.
  *
- * 그런데 「이 장의 다른 말 판은 저기」를 알리는 표준 수단은 머리말의
+ * 그런데 이 장의 다른 말 판은 저기를 알리는 표준 수단은 머리말의
  * `<link rel="alternate" hreflang>` 이고, 그건 `hreflangTags()` 가 장마다 이미 박는다.
  * 보험으로 둔 두 번째 벌이 값을 하기는커녕, 칸이 없으면 **빌드를 통째로 죽이는**
- * throw 까지 달고 있었다(장식 하나가 배포를 막았다 — 2026-08-13 에 한 번, 2026-08-20 에 또).
+ * throw 까지 달고 있었다(장식 하나가 배포를 막았다. 2026-08-13 에 한 번, 2026-08-20 에 또).
  *
  * 그래서 계통을 지운다. 남는 단일 출처 = `hreflangTags()`. 화면 단추는 사람 몫으로 그대로.
  */

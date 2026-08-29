@@ -1,5 +1,5 @@
 /**
- * digest-webhook 순수부 회귀 (KAR-004 — Discord digest 전달 근본).
+ * digest-webhook 순수부 회귀 (KAR-004. Discord digest 전달 근본).
  * 핵심 잠금: ① isDigestCommit 판별 ② fetchRepoFile 토큰 분기
  * (private memo = 인증 GitHub API / 무토큰 = raw fallback).
  * 송신0 진짜 근본 = memo private 무인증 raw 404 → 본 테스트가 회귀 차단.
@@ -29,7 +29,7 @@ describe('isDigestCommit', () => {
     ).toBe('digests/2026-05-17.md');
   });
 
-  it('비-digest 메시지 / INDEX·README 만 → null', () => {
+  it('비-digest 메시지 / INDEX, README 만 → null', () => {
     expect(
       isDigestCommit({ message: 'feat: x', added: ['digests/2026-05-17.md'] }),
     ).toBeNull();
@@ -43,7 +43,7 @@ describe('isDigestCommit', () => {
   });
 });
 
-describe('fetchRepoFile — private memo 인증 분기 (송신0 근본 fix)', () => {
+describe('fetchRepoFile. private memo 인증 분기 (송신0 근본 fix)', () => {
   it('토큰 있으면 GitHub API contents + Bearer + raw Accept (private OK)', async () => {
     const calls: Array<{ url: string; opts: RequestInit }> = [];
     vi.stubGlobal('fetch', async (url: string, opts: RequestInit) => {
@@ -71,7 +71,7 @@ describe('fetchRepoFile — private memo 인증 분기 (송신0 근본 fix)', ()
     expect(calls[0]).toBe('https://raw.githubusercontent.com/mascari4615/x/sha1/a.md');
   });
 
-  it('!ok = throw (caller graceful return) — private 무토큰 404 가 송신0 근본', async () => {
+  it('!ok = throw (caller graceful return). private 무토큰 404 가 송신0 근본', async () => {
     vi.stubGlobal('fetch', async () => ({ ok: false, status: 404 }) as unknown as Response);
     await expect(
       fetchRepoFile('mascari4615/memo', 's', 'd.md', {} as unknown as NodeJS.ProcessEnv),

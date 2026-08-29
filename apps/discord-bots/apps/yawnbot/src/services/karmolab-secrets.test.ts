@@ -1,5 +1,5 @@
 /**
- * TASK-KL-196 D — 숨긴 것 원장 시험.
+ * TASK-KL-196 D. 숨긴 것 원장 시험.
  *
  * 중요한 것: **처음 찾은 순서가 기록**이라는 것과, 목록의 정본이 브라우저인데도
  * 아무 글자나 쌓이지는 않는다는 것.
@@ -38,7 +38,7 @@ describe('찾은 목록', () => {
     expect(store.of('yon')).toEqual(['konami', 'owl']);
   });
 
-  it('같은 것을 또 찾아도 순서가 안 바뀐다 — 처음 찾은 순서가 기록이다', () => {
+  it('같은 것을 또 찾아도 순서가 안 바뀐다. 처음 찾은 순서가 기록이다', () => {
     const store = new KarmolabSecretStore(file);
     store.found('yon', 'konami');
     store.found('yon', 'owl');

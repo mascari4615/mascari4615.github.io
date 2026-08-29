@@ -1,12 +1,12 @@
 /**
- * 판이 되살아나는가 — 51개 전부, 창 없이 (TASK-KL-264 코어)
+ * 판이 되살아나는가. 51개 전부, 창 없이 (TASK-KL-264 코어)
  *
- * 「씨앗 + 누른 것」만으로 판이 다시 만들어져야 한다. 이게 참이 아니면 고스트도, 버그 재현도,
- * 되감기 관전도, 비동기 턴제도 전부 못 선다 — 그래서 이 검사가 그 넷의 받침이다.
+ * 씨앗 + 누른 것만으로 판이 다시 만들어져야 한다. 이게 참이 아니면 고스트도, 버그 재현도,
+ * 되감기 관전도, 비동기 턴제도 전부 못 선다. 그래서 이 검사가 그 넷의 받침이다.
  *
  * 방법: 게임마다 ① 사람 자리 하나를 **아무렇게나 눌러 가며** 끝까지 굴리고 ② 그 기록으로
- * 되살려 ③ 끝 상태·점수가 같은지 본다. 아무렇게나 누르는 것이 중요하다 — 아무도 안 누르면
- * 사람 수가 0줄이라 「봇만 다시 굴린 것」과 구별이 안 된다.
+ * 되살려 ③ 끝 상태, 점수가 같은지 본다. 아무렇게나 누르는 것이 중요하다. 아무도 안 누르면
+ * 사람 수가 0줄이라 봇만 다시 굴린 것과 구별이 안 된다.
  */
 import { build } from 'esbuild';
 import { mkdtempSync } from 'node:fs';
@@ -25,10 +25,10 @@ const { record, playback, sameAs } = await import(pathToFileURL(rp).href);
 
 let bad = 0;
 const ok = (cond, name, detail = '') => {
-  if (!cond) { console.log(`  [X] ${name}${detail ? ' — ' + detail : ''}`); bad++; }
+  if (!cond) { console.log(`  [X] ${name}${detail ? '. ' + detail : ''}`); bad++; }
 };
 
-/** 씨앗에서 나오는 난수 — 「아무렇게나」도 다시 돌릴 수 있어야 검사가 흔들리지 않는다. */
+/** 씨앗에서 나오는 난수. 아무렇게나도 다시 돌릴 수 있어야 검사가 흔들리지 않는다. */
 function lcg(seed) {
   let x = seed >>> 0;
   return () => ((x = (Math.imul(x, 1664525) + 1013904223) >>> 0) / 4294967296);
@@ -52,7 +52,7 @@ function playHuman(g, seed) {
   return { m, seats };
 }
 
-console.log(`[replay] 게임 ${GAMES.length}개 — 굴리고, 되살리고, 견준다`);
+console.log(`[replay] 게임 ${GAMES.length}개. 굴리고, 되살리고, 견준다`);
 let moves = 0;
 for (const g of GAMES) {
   const { m, seats } = playHuman(g, 31337);
@@ -60,8 +60,8 @@ for (const g of GAMES) {
   moves += tape.moves.length;
   const again = playback(g, tape);
   ok(sameAs(m, again), `${g.id}: 되살린 판이 원래 판과 같다`,
-    `수 ${tape.moves.length}줄 · 끝 ${tape.end}ms`);
+    `수 ${tape.moves.length}줄, 끝 ${tape.end}ms`);
 }
 
 if (bad) { console.error(`[replay] 실패 ${bad}건`); process.exit(1); }
-console.log(`[replay] 통과 — 51판이 씨앗 하나와 ${moves}줄로 되살아난다`);
+console.log(`[replay] 통과. 51판이 씨앗 하나와 ${moves}줄로 되살아난다`);

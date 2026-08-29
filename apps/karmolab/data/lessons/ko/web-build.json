@@ -3,7 +3,7 @@
   "parts": [
     {
       "id": "1",
-      "title": "왜 묶어야 했나 — 모듈의 역사",
+      "title": "왜 묶어야 했나. 모듈의 역사",
       "minutes": 8,
       "blocks": [
         {
@@ -13,9 +13,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "시대를 골라 보라 — 무엇이 문제였나",
+          "label": "시대를 골라 보라. 무엇이 문제였나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{era}}';\n  const t = {\n    global: ['전역 시대 (~2010)', '<script src=\"a.js\"><\\/script> x 20',\n      '· 이름이 충돌한다 (같은 변수명을 쓰면 덮어쓴다)\\n'\n      + '· 순서가 곧 의존성이다 — 하나 옮기면 깨진다\\n'\n      + '· 무엇이 무엇을 쓰는지 코드로는 알 수 없다',\n      'IIFE·네임스페이스 객체로 버텼다. 규모가 커지면 무너진다.'],\n    commonjs: ['CommonJS (Node)', 'const x = require(\"./x\"); module.exports = y;',\n      '· 동기 로딩 — 서버에서는 괜찮지만 브라우저에서는 못 쓴다\\n'\n      + '· 그래서 브라우저용으로 「미리 묶어 두는」 도구가 필요해졌다',\n      '이것이 browserify·webpack 이 태어난 이유다.'],\n    esm: ['ES 모듈 (표준)', 'import x from \"./x\"; export default y;',\n      '· 언어 표준 — 브라우저와 Node 둘 다 지원\\n'\n      + '· **정적 구조** — 무엇을 가져오는지 실행 전에 알 수 있다\\n'\n      + '· 그 덕분에 트리 셰이킹·코드 분할이 가능해졌다(4·5장)',\n      '지금 새로 쓰는 코드는 전부 이것. 다만 옛 패키지가 CJS 인 경우가 많아 섞여 산다.'],\n    bundleless: ['번들 없이도?', '<script type=\"module\"> 로 그대로',\n      '· 브라우저가 ESM 을 직접 이해한다 — 작은 프로젝트는 번들 없이 가능\\n'\n      + '· 다만 파일이 수백 개면 요청도 수백 개 (cs-net 8장의 왕복 비용)\\n'\n      + '· HTTP/2 로 완화되지만 여전히 묶는 편이 빠르다',\n      '그래서 개발 중에는 안 묶고(6장), 배포할 때는 묶는다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"code\" style=\"margin-top:6px\">' + esc(t[1]) + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '기억할 한 줄: **번들러는 「모듈이 없던 시절」의 해법이었고,\\n'\n     + '지금은 「많은 파일을 효율적으로 나르는 도구」로 남았다.**');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{era}}';\n  const t = {\n    global: ['전역 시대 (~2010)', '<script src=\"a.js\"><\\/script> x 20',\n      ',  이름이 충돌한다 (같은 변수명을 쓰면 덮어쓴다)\\n'\n      + ',  순서가 곧 의존성이다. 하나 옮기면 깨진다\\n'\n      + ',  무엇이 무엇을 쓰는지 코드로는 알 수 없다',\n      'IIFE, 네임스페이스 객체로 버텼다. 규모가 커지면 무너진다.'],\n    commonjs: ['CommonJS (Node)', 'const x = require(\"./x\"); module.exports = y;',\n      ',  동기 로딩. 서버에서는 괜찮지만 브라우저에서는 못 쓴다\\n'\n      + ',  그래서 브라우저용으로 미리 묶어 두는 도구가 필요해졌다',\n      '이것이 browserify, webpack 이 태어난 이유다.'],\n    esm: ['ES 모듈 (표준)', 'import x from \"./x\"; export default y;',\n      ',  언어 표준. 브라우저와 Node 둘 다 지원\\n'\n      + ',  **정적 구조**. 무엇을 가져오는지 실행 전에 알 수 있다\\n'\n      + ',  그 덕분에 트리 셰이킹, 코드 분할이 가능해졌다(4, 5장)',\n      '지금 새로 쓰는 코드는 전부 이것. 다만 옛 패키지가 CJS 인 경우가 많아 섞여 산다.'],\n    bundleless: ['번들 없이도?', '<script type=\"module\"> 로 그대로',\n      ',  브라우저가 ESM 을 직접 이해한다. 작은 프로젝트는 번들 없이 가능\\n'\n      + ',  다만 파일이 수백 개면 요청도 수백 개 (cs-net 8장의 왕복 비용)\\n'\n      + ',  HTTP/2 로 완화되지만 여전히 묶는 편이 빠르다',\n      '그래서 개발 중에는 안 묶고(6장), 배포할 때는 묶는다.'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"code\" style=\"margin-top:6px\">' + esc(t[1]) + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '기억할 한 줄: **번들러는 모듈이 없던 시절의 해법이었고,\\n'\n     + '지금은 많은 파일을 효율적으로 나르는 도구로 남았다.**');\n</script>",
           "controls": [
             {
               "id": "era",
@@ -45,21 +45,21 @@
         },
         {
           "type": "note",
-          "text": "**ESM 이 정적이라는 것이 핵심이다.** `import` 는 파일 맨 위에만 올 수 있고 조건문 안에 넣을 수 없다 — 그래서 도구가 실행하지 않고도 의존 그래프를 알 수 있고, 안 쓰는 코드를 지울 수 있다(5장). CommonJS 의 `require` 는 함수라 그게 안 된다."
+          "text": "**ESM 이 정적이라는 것이 핵심이다.** `import` 는 파일 맨 위에만 올 수 있고 조건문 안에 넣을 수 없다. 그래서 도구가 실행하지 않고도 의존 그래프를 알 수 있고, 안 쓰는 코드를 지울 수 있다(5장). CommonJS 의 `require` 는 함수라 그게 안 된다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "두 방식의 결정적 차이",
-          "text": "// CommonJS — 실행해 봐야 안다\nif (isDev) { const debug = require('./debug'); }   // 조건부 가능\n\n// ESM — 실행 전에 알 수 있다\nimport debug from './debug';        // 항상 맨 위, 항상 실행\nconst debug = await import('./debug');   // 동적 import 는 따로 있다 (4장)"
+          "text": "// CommonJS. 실행해 봐야 안다\nif (isDev) { const debug = require('./debug'); }   // 조건부 가능\n\n// ESM. 실행 전에 알 수 있다\nimport debug from './debug';        // 항상 맨 위, 항상 실행\nconst debug = await import('./debug');   // 동적 import 는 따로 있다 (4장)"
         },
         {
           "type": "p",
-          "text": "이 차이가 **CJS/ESM 혼용 문제**의 뿌리이기도 하다. 「`require() of ES Module is not supported`」 같은 오류를 만나면, 그 패키지가 어느 쪽인지·내 프로젝트가 어느 쪽인지(`\"type\": \"module\"`)를 먼저 확인하라."
+          "text": "이 차이가 **CJS/ESM 혼용 문제**의 뿌리이기도 하다. `require() of ES Module is not supported` 같은 오류를 만나면, 그 패키지가 어느 쪽인지, 내 프로젝트가 어느 쪽인지(`\"type\": \"module\"`)를 먼저 확인하라."
         },
         {
           "type": "try",
-          "text": "`package.json` 에 `\"type\": \"module\"` 이 있는지 보라. 없으면 `.js` 파일이 CommonJS 로 해석된다 — 그래서 `import` 를 쓰려면 `.mjs` 이거나 이 설정이 필요하다."
+          "text": "`package.json` 에 `\"type\": \"module\"` 이 있는지 보라. 없으면 `.js` 파일이 CommonJS 로 해석된다. 그래서 `import` 를 쓰려면 `.mjs` 이거나 이 설정이 필요하다."
         }
       ],
       "quiz": [
@@ -105,14 +105,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "번들러의 일은 셋으로 나뉜다 — **그래프 만들기**(누가 누구를 부르나), **변환하기**(TS·JSX·CSS 를 브라우저가 아는 것으로), **내보내기**(묶고 나누고 이름 붙이기)."
+          "text": "번들러의 일은 셋으로 나뉜다. **그래프 만들기**(누가 누구를 부르나), **변환하기**(TS, JSX, CSS 를 브라우저가 아는 것으로), **내보내기**(묶고 나누고 이름 붙이기)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 무엇이 일어나나",
+          "label": "단계를 밀어 보라. 무엇이 일어나나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const step = {{step}};\n  ctx.clearRect(0, 0, 440, 190);\n  const files = [['main.ts', 200, 30], ['App.tsx', 120, 70], ['utils.ts', 280, 70], ['style.css', 200, 110]];\n  if (step >= 0) {\n    files.forEach(([n, x, y]) => box(x - 45, y, 90, 24, n, '', '#111c33', '#60a5fa'));\n    if (step >= 1) {\n      arrow(200, 54, 130, 70); arrow(200, 54, 270, 70); arrow(155, 94, 195, 110);\n    }\n  }\n  if (step >= 2) {\n    box(20, 148, 120, 30, 'TS -> JS', 'esbuild/swc', '#14351f', '#22c55e');\n    box(160, 148, 120, 30, 'JSX -> JS', '', '#14351f', '#22c55e');\n    box(300, 148, 120, 30, 'CSS 처리', 'postcss', '#14351f', '#22c55e');\n  }\n  if (step >= 3) {\n    ctx.fillStyle = '#f59e0b'; ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'right';\n    ctx.fillText('app.a1b2c3.js', 424, 24);\n    ctx.fillText('vendor.d4e5.js', 424, 40);\n    ctx.fillText('app.f6a7.css', 424, 56);\n  }\n  const t = [\n    ['① 진입점에서 시작', 'main.ts 하나(또는 몇 개)를 입구로 삼는다'],\n    ['② 의존 그래프 만들기', 'import 를 따라가며 필요한 파일을 모은다 — 안 닿는 파일은 아예 안 들어간다'],\n    ['③ 변환', 'TS·JSX·CSS·이미지를 브라우저가 아는 형태로 (로더/플러그인)'],\n    ['④ 내보내기', '묶고 · 나누고(4장) · 압축하고 · 내용 해시를 붙인다(7장)'],\n  ][step];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>';\n  show(t[1] + '\\n\\n'\n     + '중요한 성질\\n'\n     + '  · **진입점에서 닿지 않는 파일은 결과물에 없다** — 그래서 그래프가 전부다\\n'\n     + '  · 변환은 플러그인이 한다 — 번들러 자체는 그래프와 출력을 담당\\n'\n     + '  · CSS·이미지도 모듈로 다룬다 (import \"./a.css\" 가 되는 이유)');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const step = {{step}};\n  ctx.clearRect(0, 0, 440, 190);\n  const files = [['main.ts', 200, 30], ['App.tsx', 120, 70], ['utils.ts', 280, 70], ['style.css', 200, 110]];\n  if (step >= 0) {\n    files.forEach(([n, x, y]) => box(x - 45, y, 90, 24, n, '', '#111c33', '#60a5fa'));\n    if (step >= 1) {\n      arrow(200, 54, 130, 70); arrow(200, 54, 270, 70); arrow(155, 94, 195, 110);\n    }\n  }\n  if (step >= 2) {\n    box(20, 148, 120, 30, 'TS -> JS', 'esbuild/swc', '#14351f', '#22c55e');\n    box(160, 148, 120, 30, 'JSX -> JS', '', '#14351f', '#22c55e');\n    box(300, 148, 120, 30, 'CSS 처리', 'postcss', '#14351f', '#22c55e');\n  }\n  if (step >= 3) {\n    ctx.fillStyle = '#f59e0b'; ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'right';\n    ctx.fillText('app.a1b2c3.js', 424, 24);\n    ctx.fillText('vendor.d4e5.js', 424, 40);\n    ctx.fillText('app.f6a7.css', 424, 56);\n  }\n  const t = [\n    ['① 진입점에서 시작', 'main.ts 하나(또는 몇 개)를 입구로 삼는다'],\n    ['② 의존 그래프 만들기', 'import 를 따라가며 필요한 파일을 모은다. 안 닿는 파일은 아예 안 들어간다'],\n    ['③ 변환', 'TS, JSX, CSS, 이미지를 브라우저가 아는 형태로 (로더/플러그인)'],\n    ['④ 내보내기', '묶고, 나누고(4장), 압축하고, 내용 해시를 붙인다(7장)'],\n  ][step];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>';\n  show(t[1] + '\\n\\n'\n     + '중요한 성질\\n'\n     + ' , **진입점에서 닿지 않는 파일은 결과물에 없다**. 그래서 그래프가 전부다\\n'\n     + ' , 변환은 플러그인이 한다. 번들러 자체는 그래프와 출력을 담당\\n'\n     + ' , CSS, 이미지도 모듈로 다룬다 (import \"./a.css\" 가 되는 이유)');\n</script>",
           "controls": [
             {
               "id": "step",
@@ -129,19 +129,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "설정은 대개 이 정도면 시작된다",
-          "text": "// vite.config.js\nimport { defineConfig } from 'vite';\nexport default defineConfig({\n  build: {\n    target: 'es2022',          // 어느 문법까지 그대로 둘까 (7장)\n    sourcemap: true,           // 배포 디버깅에 필요 (cs-compiler 8장)\n  },\n});\n\n// 요즘 도구들은 「설정 없이 시작」을 지향한다 —\n// 설정이 길어진다면 대개 특수한 요구가 있다는 뜻"
+          "text": "// vite.config.js\nimport { defineConfig } from 'vite';\nexport default defineConfig({\n  build: {\n    target: 'es2022',          // 어느 문법까지 그대로 둘까 (7장)\n    sourcemap: true,           // 배포 디버깅에 필요 (cs-compiler 8장)\n  },\n});\n\n// 요즘 도구들은 설정 없이 시작을 지향한다. // 설정이 길어진다면 대개 특수한 요구가 있다는 뜻"
         },
         {
           "type": "note",
-          "text": "**도구 이름이 많지만 역할은 겹친다** — webpack·Vite·Rollup·esbuild·Parcel·Turbopack. 요즘 흐름은 「개발은 esbuild/SWC 처럼 빠른 것으로, 배포 번들은 Rollup 계열로」이고, Vite 가 그 조합을 대표한다."
+          "text": "**도구 이름이 많지만 역할은 겹친다**. webpack, Vite, Rollup, esbuild, Parcel, Turbopack. 요즘 흐름은 개발은 esbuild/SWC 처럼 빠른 것으로, 배포 번들은 Rollup 계열로이고, Vite 가 그 조합을 대표한다."
         },
         {
           "type": "p",
-          "text": "그리고 **번들러는 타입을 검사하지 않는다**(TS 7장). esbuild·SWC 는 타입을 **지우기만** 한다 — 빠른 대신 검사를 안 하는 것이다. 그래서 `tsc --noEmit` 이 CI 에 따로 있어야 한다."
+          "text": "그리고 **번들러는 타입을 검사하지 않는다**(TS 7장). esbuild, SWC 는 타입을 **지우기만** 한다. 빠른 대신 검사를 안 하는 것이다. 그래서 `tsc --noEmit` 이 CI 에 따로 있어야 한다."
         },
         {
           "type": "try",
-          "text": "내 프로젝트의 빌드 설정 파일을 열어 몇 줄인지 세어 보라. 100줄이 넘으면 그중 절반은 「예전 문제를 위한 설정」일 가능성이 높다."
+          "text": "내 프로젝트의 빌드 설정 파일을 열어 몇 줄인지 세어 보라. 100줄이 넘으면 그중 절반은 예전 문제를 위한 설정일 가능성이 높다."
         }
       ],
       "quiz": [
@@ -157,7 +157,7 @@
           "why": "그래프가 전부다."
         },
         {
-          "q": "esbuild·SWC 가 타입을 다루는 방식은?",
+          "q": "esbuild, SWC 가 타입을 다루는 방식은?",
           "choices": [
             "검사한다",
             "지우기만 한다",
@@ -182,19 +182,19 @@
     },
     {
       "id": "3",
-      "title": "코드 분할 — 필요할 때 받기",
+      "title": "코드 분할. 필요할 때 받기",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "번들 하나가 커지면 첫 화면이 늦어진다(렌더링 2장). **지금 안 쓰는 코드는 나중에 받으면 된다** — 그것이 코드 분할이고, ESM 의 동적 `import()` 가 그 신호다."
+          "text": "번들 하나가 커지면 첫 화면이 늦어진다(렌더링 2장). **지금 안 쓰는 코드는 나중에 받으면 된다**. 그것이 코드 분할이고, ESM 의 동적 `import()` 가 그 신호다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "분할을 켜 보라 — 첫 화면에 얼마나 받나",
+          "label": "분할을 켜 보라. 첫 화면에 얼마나 받나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const SPLIT = '{{split}}', TOTAL = {{total}};\n  /* 화면 구성: 첫 화면 필수 / 나중에 쓰는 것들 */\n  const parts = [\n    ['첫 화면 코드', 0.25],\n    ['차트 라이브러리', 0.3],\n    ['에디터', 0.25],\n    ['관리자 화면', 0.2],\n  ];\n  const initial = SPLIT === 'none' ? TOTAL\n    : SPLIT === 'route' ? TOTAL * 0.55\n    : TOTAL * 0.25;\n  ctx.clearRect(0, 0, 440, 190);\n  let x = 14;\n  parts.forEach(([name, ratio], i) => {\n    const w = 410 * ratio;\n    const inInitial = SPLIT === 'none' || (SPLIT === 'route' && i <= 1) || (SPLIT === 'lazy' && i === 0);\n    ctx.fillStyle = inInitial ? '#f59e0b' : '#334155';\n    ctx.fillRect(x, 40, w - 2, 34);\n    ctx.fillStyle = inInitial ? '#0b1220' : '#94a3b8'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';\n    if (w > 50) ctx.fillText(name, x + w / 2, 61);\n    x += w;\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('주황 = 첫 화면에서 받는 것 · 회색 = 필요할 때', 14, 92);\n  const sec = (initial * 8 / (10 * 1000)).toFixed(2);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('첫 화면 ' + Math.round(initial) + 'KB · 10Mbps 에서 약 ' + sec + '초', 14, 120);\n  app.innerHTML = '<div class=\"hint\">전체 ' + TOTAL + 'KB · ' +\n    { none: '분할 없음', route: '화면(라우트)별 분할', lazy: '라우트 + 무거운 것 지연' }[SPLIT] + '</div>';\n  show('첫 화면에 받는 양 ' + Math.round(initial) + 'KB (' + Math.round(initial / TOTAL * 100) + '%)\\n\\n'\n     + { none: '한 덩어리 — 관리자 화면 코드까지 모든 사용자가 받는다.',\n         route: '라우트별로 나눴다 — 그 화면에 들어갈 때 받는다. 가장 기본적인 분할.',\n         lazy: '거기에 무거운 라이브러리(차트·에디터)를 쓰는 순간까지 미뤘다.' }[SPLIT] + '\\n\\n'\n     + '분할할 자리 찾기: 개발자도구 Coverage 로 「안 쓰는 코드 비율」을 재라(개발자도구 8장).');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const SPLIT = '{{split}}', TOTAL = {{total}};\n  /* 화면 구성: 첫 화면 필수 / 나중에 쓰는 것들 */\n  const parts = [\n    ['첫 화면 코드', 0.25],\n    ['차트 라이브러리', 0.3],\n    ['에디터', 0.25],\n    ['관리자 화면', 0.2],\n  ];\n  const initial = SPLIT === 'none' ? TOTAL\n    : SPLIT === 'route' ? TOTAL * 0.55\n    : TOTAL * 0.25;\n  ctx.clearRect(0, 0, 440, 190);\n  let x = 14;\n  parts.forEach(([name, ratio], i) => {\n    const w = 410 * ratio;\n    const inInitial = SPLIT === 'none' || (SPLIT === 'route' && i <= 1) || (SPLIT === 'lazy' && i === 0);\n    ctx.fillStyle = inInitial ? '#f59e0b' : '#334155';\n    ctx.fillRect(x, 40, w - 2, 34);\n    ctx.fillStyle = inInitial ? '#0b1220' : '#94a3b8'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';\n    if (w > 50) ctx.fillText(name, x + w / 2, 61);\n    x += w;\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('주황 = 첫 화면에서 받는 것, 회색 = 필요할 때', 14, 92);\n  const sec = (initial * 8 / (10 * 1000)).toFixed(2);\n  ctx.fillStyle = '#e2e8f0'; ctx.font = '13px system-ui';\n  ctx.fillText('첫 화면 ' + Math.round(initial) + 'KB, 10Mbps 에서 약 ' + sec + '초', 14, 120);\n  app.innerHTML = '<div class=\"hint\">전체 ' + TOTAL + 'KB, ' +\n    { none: '분할 없음', route: '화면(라우트)별 분할', lazy: '라우트 + 무거운 것 지연' }[SPLIT] + '</div>';\n  show('첫 화면에 받는 양 ' + Math.round(initial) + 'KB (' + Math.round(initial / TOTAL * 100) + '%)\\n\\n'\n     + { none: '한 덩어리. 관리자 화면 코드까지 모든 사용자가 받는다.',\n         route: '라우트별로 나눴다. 그 화면에 들어갈 때 받는다. 가장 기본적인 분할.',\n         lazy: '거기에 무거운 라이브러리(차트, 에디터)를 쓰는 순간까지 미뤘다.' }[SPLIT] + '\\n\\n'\n     + '분할할 자리 찾기: 개발자도구 Coverage 로 안 쓰는 코드 비율을 재라(개발자도구 8장).');\n</script>",
           "controls": [
             {
               "id": "split",
@@ -231,11 +231,11 @@
           "type": "code",
           "lang": "javascript",
           "label": "분할하는 세 가지 자리",
-          "text": "// ① 라우트 — 가장 기본\nconst Admin = lazy(() => import('./routes/Admin'));\n\n// ② 무거운 라이브러리를 쓰는 순간까지\nasync function exportPdf() {\n  const { jsPDF } = await import('jspdf');   // 누를 때 받는다\n  …\n}\n\n// ③ 조건부 기능 (관리자·실험 기능)\nif (user.isAdmin) { const m = await import('./admin-tools'); m.init(); }"
+          "text": "// ① 라우트. 가장 기본\nconst Admin = lazy(() => import('./routes/Admin'));\n\n// ② 무거운 라이브러리를 쓰는 순간까지\nasync function exportPdf() {\n  const { jsPDF } = await import('jspdf');   // 누를 때 받는다\n  ...\n}\n\n// ③ 조건부 기능 (관리자, 실험 기능)\nif (user.isAdmin) { const m = await import('./admin-tools'); m.init(); }"
         },
         {
           "type": "note",
-          "text": "**너무 잘게 쪼개지 마라.** 조각이 많아지면 요청 수가 늘고(cs-net 8장), 각 조각의 캐시 효율도 떨어진다. 「첫 화면에 안 필요한 큰 덩어리」부터 떼는 것이 실속 있다 — 대개 라우트 단위 + 무거운 라이브러리 몇 개면 충분하다."
+          "text": "**너무 잘게 쪼개지 마라.** 조각이 많아지면 요청 수가 늘고(cs-net 8장), 각 조각의 캐시 효율도 떨어진다. 첫 화면에 안 필요한 큰 덩어리부터 떼는 것이 실속 있다. 대개 라우트 단위 + 무거운 라이브러리 몇 개면 충분하다."
         },
         {
           "type": "p",
@@ -267,7 +267,7 @@
             "컴포넌트마다"
           ],
           "answer": 1,
-          "why": "잘게 쪼개면 요청·캐시 효율이 나빠진다."
+          "why": "잘게 쪼개면 요청, 캐시 효율이 나빠진다."
         },
         {
           "q": "분할할 자리를 데이터로 찾는 방법은?",
@@ -284,19 +284,19 @@
     },
     {
       "id": "4",
-      "title": "트리 셰이킹 — 왜 안 지워지나",
+      "title": "트리 셰이킹. 왜 안 지워지나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「안 쓰는 코드는 지워진다」는 조건부로만 참이다. 번들러가 **확실히 안전할 때만** 지우기 때문이고, 그 확신을 깨는 것들이 있다 — 대표적으로 **부수효과**."
+          "text": "안 쓰는 코드는 지워진다는 조건부로만 참이다. 번들러가 **확실히 안전할 때만** 지우기 때문이고, 그 확신을 깨는 것들이 있다. 대표적으로 **부수효과**."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "코드를 골라 보라 — 지워지나",
+          "label": "코드를 골라 보라. 지워지나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    named: ['import { debounce } from \"lodash-es\";', true,\n      '이름 있는 import + ESM 패키지 -> 필요한 것만 남는다',\n      'lodash-es 처럼 ESM 으로 제공되는 패키지는 쓰는 함수만 들어간다.'],\n    default: ['import _ from \"lodash\";   // CJS 전체', false,\n      'CommonJS 는 정적 분석이 어려워 통째로 들어간다',\n      '해법: lodash-es 를 쓰거나 lodash/debounce 처럼 개별 경로로 가져온다.'],\n    sideeffect: ['import \"./analytics\";   // 부수효과만 있는 import', false,\n      '내보내는 것을 안 써도 지울 수 없다 — 실행 자체가 목적일 수 있어서',\n      'package.json 의 sideEffects 필드로 「이 패키지는 부수효과가 없다」고 알려 줄 수 있다.'],\n    toplevel: ['// utils.js\\nconsole.log(\"loaded\");\\nexport const add = (a, b) => a + b;', false,\n      '모듈 최상위에 부수효과가 있으면 그 모듈은 통째로 남는다',\n      '라이브러리를 만들 때 최상위에서 무언가 실행하지 마라 — 쓰는 쪽이 지울 수 없게 된다.'],\n    reexport: ['export * from \"./everything\";   // 배럴 파일', false,\n      '배럴(index.ts)로 전부 다시 내보내면 그래프가 넓어진다',\n      '도구가 좋아지고 있지만, 큰 배럴은 여전히 빌드도 느리고 셰이킹도 나빠진다.'],\n  }[k];\n  app.innerHTML = '<div class=\"code\">' + esc(t[0]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:15px;color:' + (t[1] ? '#4ade80' : '#fca5a5') + '\">' +\n    (t[1] ? '✓ 안 쓰는 부분이 지워진다' : '✗ 통째로 남는다') + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '트리 셰이킹이 되려면\\n'\n     + '  1. ESM 이어야 한다 (정적 분석 가능)\\n'\n     + '  2. 부수효과가 없어야 한다 (또는 없다고 표시돼야)\\n'\n     + '  3. 실제로 안 써야 한다 (동적 접근은 분석 못 한다)');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    named: ['import { debounce } from \"lodash-es\";', true,\n      '이름 있는 import + ESM 패키지 -> 필요한 것만 남는다',\n      'lodash-es 처럼 ESM 으로 제공되는 패키지는 쓰는 함수만 들어간다.'],\n    default: ['import _ from \"lodash\";   // CJS 전체', false,\n      'CommonJS 는 정적 분석이 어려워 통째로 들어간다',\n      '해법: lodash-es 를 쓰거나 lodash/debounce 처럼 개별 경로로 가져온다.'],\n    sideeffect: ['import \"./analytics\";   // 부수효과만 있는 import', false,\n      '내보내는 것을 안 써도 지울 수 없다. 실행 자체가 목적일 수 있어서',\n      'package.json 의 sideEffects 필드로 이 패키지는 부수효과가 없다고 알려 줄 수 있다.'],\n    toplevel: ['// utils.js\\nconsole.log(\"loaded\");\\nexport const add = (a, b) => a + b;', false,\n      '모듈 최상위에 부수효과가 있으면 그 모듈은 통째로 남는다',\n      '라이브러리를 만들 때 최상위에서 무언가 실행하지 마라. 쓰는 쪽이 지울 수 없게 된다.'],\n    reexport: ['export * from \"./everything\";   // 배럴 파일', false,\n      '배럴(index.ts)로 전부 다시 내보내면 그래프가 넓어진다',\n      '도구가 좋아지고 있지만, 큰 배럴은 여전히 빌드도 느리고 셰이킹도 나빠진다.'],\n  }[k];\n  app.innerHTML = '<div class=\"code\">' + esc(t[0]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:15px;color:' + (t[1] ? '#4ade80' : '#fca5a5') + '\">' +\n    (t[1] ? '✓ 안 쓰는 부분이 지워진다' : '✗ 통째로 남는다') + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '트리 셰이킹이 되려면\\n'\n     + '  1. ESM 이어야 한다 (정적 분석 가능)\\n'\n     + '  2. 부수효과가 없어야 한다 (또는 없다고 표시돼야)\\n'\n     + '  3. 실제로 안 써야 한다 (동적 접근은 분석 못 한다)');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -336,15 +336,15 @@
         },
         {
           "type": "note",
-          "text": "**「번들이 왜 이렇게 크지?」의 답은 대개 분석기에서 나온다.** `rollup-plugin-visualizer`·`webpack-bundle-analyzer`·`vite-bundle-visualizer` 로 지도를 그리면, 예상 못 한 큰 덩어리(moment 의 전 세계 로케일, 아이콘 세트 전체)가 바로 보인다."
+          "text": "**번들이 왜 이렇게 크지?의 답은 대개 분석기에서 나온다.** `rollup-plugin-visualizer`, `webpack-bundle-analyzer`, `vite-bundle-visualizer` 로 지도를 그리면, 예상 못 한 큰 덩어리(moment 의 전 세계 로케일, 아이콘 세트 전체)가 바로 보인다."
         },
         {
           "type": "p",
-          "text": "그리고 **같은 일을 하는 작은 대안**을 아는 것이 실제로 가장 큰 절감이다 — 날짜는 `date-fns`·`dayjs`·`Intl`, 아이콘은 필요한 것만 개별 import. 라이브러리를 지우는 것이 셰이킹보다 확실하다."
+          "text": "그리고 **같은 일을 하는 작은 대안**을 아는 것이 실제로 가장 큰 절감이다. 날짜는 `date-fns`, `dayjs`, `Intl`, 아이콘은 필요한 것만 개별 import. 라이브러리를 지우는 것이 셰이킹보다 확실하다."
         },
         {
           "type": "try",
-          "text": "번들 분석기를 한 번 돌려 가장 큰 세 덩어리를 적어라. 그중 「전부 쓰고 있나?」를 물어보면 대개 하나는 줄일 수 있다."
+          "text": "번들 분석기를 한 번 돌려 가장 큰 세 덩어리를 적어라. 그중 전부 쓰고 있나?를 물어보면 대개 하나는 줄일 수 있다."
         }
       ],
       "quiz": [
@@ -385,19 +385,19 @@
     },
     {
       "id": "5",
-      "title": "개발 서버 — 왜 이렇게 빨라졌나",
+      "title": "개발 서버. 왜 이렇게 빨라졌나",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "예전에는 코드를 고치면 **전부 다시 묶느라** 몇 초씩 기다렸다. 지금은 즉시 반영된다 — 브라우저가 ESM 을 직접 이해하게 되면서 **개발 중에는 묶지 않는** 방식이 가능해졌기 때문이다."
+          "text": "예전에는 코드를 고치면 **전부 다시 묶느라** 몇 초씩 기다렸다. 지금은 즉시 반영된다. 브라우저가 ESM 을 직접 이해하게 되면서 **개발 중에는 묶지 않는** 방식이 가능해졌기 때문이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "파일 수를 늘려 보라 — 방식별로 얼마나 걸리나",
+          "label": "파일 수를 늘려 보라. 방식별로 얼마나 걸리나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const N = {{files}}, MODE = '{{mode}}';\n  const cold = MODE === 'bundle' ? N * 3 + 400 : 300;\n  const hot = MODE === 'bundle' ? Math.max(80, N * 0.9) : 40;\n  ctx.clearRect(0, 0, 440, 190);\n  [['첫 시작', cold, 4000], ['파일 하나 고쳤을 때', hot, 1200]].forEach(([label, v, max], i) => {\n    const y = 30 + i * 70;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label, 14, y - 6);\n    ctx.fillStyle = '#334155'; ctx.fillRect(14, y, 410, 26);\n    ctx.fillStyle = v > max * 0.5 ? '#ef4444' : v > max * 0.15 ? '#f59e0b' : '#22c55e';\n    ctx.fillRect(14, y, Math.min(410, 410 * (v / max)), 26);\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(Math.round(v) + 'ms', 20, y + 18);\n  });\n  app.innerHTML = '<div class=\"hint\">파일 ' + N + '개 · ' +\n    (MODE === 'bundle' ? '전부 묶고 시작 (옛 방식)' : '네이티브 ESM (요즘 방식)') + '</div>';\n  show({ bundle: '옛 방식: 개발 서버도 전체를 묶는다.\\n'\n           + '  파일이 늘수록 시작도 갱신도 선형으로 느려진다 — 큰 프로젝트에서 30초씩 기다리던 시절.',\n         esm: '요즘 방식: 브라우저가 요청한 파일만 그때그때 변환해 준다.\\n'\n           + '  프로젝트 크기와 거의 무관하게 시작이 빠르다.' }[MODE] + '\\n\\n'\n     + 'HMR(고친 것만 갈아 끼우기)\\n'\n     + '  · 화면을 새로고침하지 않고 바뀐 모듈만 교체한다\\n'\n     + '  · 그래서 입력하던 값·열어 둔 탭이 유지된다\\n'\n     + '  · 상태가 이상해지면 그때만 새로고침하면 된다\\n\\n'\n     + '주의: 개발 서버와 배포 빌드는 **다른 경로**다.\\n'\n     + '개발에서만 되는 것/배포에서만 깨지는 것이 생기므로, 배포 빌드도 가끔 로컬에서 돌려 보라.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const N = {{files}}, MODE = '{{mode}}';\n  const cold = MODE === 'bundle' ? N * 3 + 400 : 300;\n  const hot = MODE === 'bundle' ? Math.max(80, N * 0.9) : 40;\n  ctx.clearRect(0, 0, 440, 190);\n  [['첫 시작', cold, 4000], ['파일 하나 고쳤을 때', hot, 1200]].forEach(([label, v, max], i) => {\n    const y = 30 + i * 70;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label, 14, y - 6);\n    ctx.fillStyle = '#334155'; ctx.fillRect(14, y, 410, 26);\n    ctx.fillStyle = v > max * 0.5 ? '#ef4444' : v > max * 0.15 ? '#f59e0b' : '#22c55e';\n    ctx.fillRect(14, y, Math.min(410, 410 * (v / max)), 26);\n    ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(Math.round(v) + 'ms', 20, y + 18);\n  });\n  app.innerHTML = '<div class=\"hint\">파일 ' + N + '개, ' +\n    (MODE === 'bundle' ? '전부 묶고 시작 (옛 방식)' : '네이티브 ESM (요즘 방식)') + '</div>';\n  show({ bundle: '옛 방식: 개발 서버도 전체를 묶는다.\\n'\n           + '  파일이 늘수록 시작도 갱신도 선형으로 느려진다. 큰 프로젝트에서 30초씩 기다리던 시절.',\n         esm: '요즘 방식: 브라우저가 요청한 파일만 그때그때 변환해 준다.\\n'\n           + '  프로젝트 크기와 거의 무관하게 시작이 빠르다.' }[MODE] + '\\n\\n'\n     + 'HMR(고친 것만 갈아 끼우기)\\n'\n     + ' , 화면을 새로고침하지 않고 바뀐 모듈만 교체한다\\n'\n     + ' , 그래서 입력하던 값, 열어 둔 탭이 유지된다\\n'\n     + ' , 상태가 이상해지면 그때만 새로고침하면 된다\\n\\n'\n     + '주의: 개발 서버와 배포 빌드는 **다른 경로**다.\\n'\n     + '개발에서만 되는 것/배포에서만 깨지는 것이 생기므로, 배포 빌드도 가끔 로컬에서 돌려 보라.');\n</script>",
           "controls": [
             {
               "id": "files",
@@ -428,17 +428,17 @@
         },
         {
           "type": "note",
-          "text": "**개발에서 잘 되는데 배포에서 깨지는** 일이 여기서 나온다. 개발 서버는 안 묶고, 배포는 묶고 압축한다 — 경로가 다르다. 그래서 `npm run build && npm run preview` 로 **배포 빌드를 로컬에서 확인**하는 습관이 필요하다."
+          "text": "**개발에서 잘 되는데 배포에서 깨지는** 일이 여기서 나온다. 개발 서버는 안 묶고, 배포는 묶고 압축한다. 경로가 다르다. 그래서 `npm run build && npm run preview` 로 **배포 빌드를 로컬에서 확인**하는 습관이 필요하다."
         },
         {
           "type": "code",
           "lang": "bash",
           "label": "배포 빌드를 로컬에서 확인",
-          "text": "npm run build       # 실제 배포와 같은 결과물\nnpm run preview     # 그 결과물을 그대로 띄운다\n\n# 자주 잡히는 것\n#   · 환경변수 접두사 (VITE_ 없이 쓴 값이 undefined)\n#   · 동적 import 경로 (변수로 만든 경로는 번들러가 못 찾는다)\n#   · 대소문자 (맥은 통과, 리눅스 서버에서 실패)"
+          "text": "npm run build       # 실제 배포와 같은 결과물\nnpm run preview     # 그 결과물을 그대로 띄운다\n\n# 자주 잡히는 것\n#  , 환경변수 접두사 (VITE_ 없이 쓴 값이 undefined)\n#  , 동적 import 경로 (변수로 만든 경로는 번들러가 못 찾는다)\n#  , 대소문자 (맥은 통과, 리눅스 서버에서 실패)"
         },
         {
           "type": "p",
-          "text": "특히 **대소문자 문제**는 맥·윈도우에서 안 잡히고 리눅스 배포에서만 터진다. `import './Button'` 과 실제 파일 `button.tsx` 가 다르면, 로컬에서는 되고 CI 에서만 깨진다 — 「내 컴퓨터에서는 되는데」의 대표 사례다."
+          "text": "특히 **대소문자 문제**는 맥, 윈도우에서 안 잡히고 리눅스 배포에서만 터진다. `import './Button'` 과 실제 파일 `button.tsx` 가 다르면, 로컬에서는 되고 CI 에서만 깨진다. 내 컴퓨터에서는 되는데의 대표 사례다."
         },
         {
           "type": "try",
@@ -458,7 +458,7 @@
           "why": "프로젝트 크기와 거의 무관해진다."
         },
         {
-          "q": "「개발은 되는데 배포가 깨진다」를 미리 잡는 방법은?",
+          "q": "개발은 되는데 배포가 깨진다를 미리 잡는 방법은?",
           "choices": [
             "로그 추가",
             "로컬에서 build + preview 돌려 보기",
@@ -477,13 +477,13 @@
             "노드 버전"
           ],
           "answer": 1,
-          "why": "맥·윈도우는 대소문자를 구분하지 않는다."
+          "why": "맥, 윈도우는 대소문자를 구분하지 않는다."
         }
       ]
     },
     {
       "id": "6",
-      "title": "결과물 다듬기 — 압축 · 해시 · 타깃",
+      "title": "결과물 다듬기. 압축, 해시, 타깃",
       "minutes": 9,
       "blocks": [
         {
@@ -493,9 +493,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "설정을 바꿔 보라 — 크기와 캐시가 어떻게 되나",
+          "label": "설정을 바꿔 보라. 크기와 캐시가 어떻게 되나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const MIN = {{minify}}, GZIP = '{{compress}}', HASH = {{hash}};\n  const raw = 1000;\n  const afterMin = MIN ? raw * 0.55 : raw;\n  const factor = { none: 1, gzip: 0.32, br: 0.26 }[GZIP];\n  const wire = afterMin * factor;\n  ctx.clearRect(0, 0, 440, 190);\n  const bars = [['원본', raw, '#334155'], ['압축(minify) 후', afterMin, '#60a5fa'], ['전송 크기', wire, '#22c55e']];\n  bars.forEach(([label, v, color], i) => {\n    const y = 20 + i * 42;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label, 14, y - 4);\n    ctx.fillStyle = color;\n    ctx.fillRect(14, y, 410 * (v / raw), 24);\n    ctx.fillStyle = '#0b1220'; ctx.font = '11px system-ui';\n    ctx.fillText(Math.round(v) + 'KB', 20, y + 16);\n  });\n  ctx.fillStyle = HASH ? '#22c55e' : '#ef4444'; ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'left';\n  ctx.fillText(HASH ? 'app.a1b2c3.js  (내용 해시 O)' : 'app.js  (해시 X)', 14, 168);\n  app.innerHTML = '';\n  show('원본 ' + raw + 'KB -> 전송 ' + Math.round(wire) + 'KB (' + Math.round(wire / raw * 100) + '%)\\n\\n'\n     + '압축(minify): 이름 줄이기·공백 제거·죽은 코드 제거 — 대략 40~50% 감소\\n'\n     + '전송 압축: gzip 은 널리 쓰이고, brotli 가 보통 10~20% 더 줄인다 (서버 설정)\\n\\n'\n     + (HASH ? '내용 해시가 있으므로 「1년 immutable」 캐시가 안전하다 (cs-net 6장).'\n             : '해시가 없으면 캐시를 길게 걸 수 없다 — 바뀌어도 옛 파일이 그대로 쓰인다.') + '\\n\\n'\n     + '참고: 압축은 **전송 크기**만 줄인다. 파싱·실행 비용은 원본 크기에 가깝다 —\\n'\n     + '그래서 저사양 기기에서는 「작게 만드는 것」이 여전히 중요하다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const MIN = {{minify}}, GZIP = '{{compress}}', HASH = {{hash}};\n  const raw = 1000;\n  const afterMin = MIN ? raw * 0.55 : raw;\n  const factor = { none: 1, gzip: 0.32, br: 0.26 }[GZIP];\n  const wire = afterMin * factor;\n  ctx.clearRect(0, 0, 440, 190);\n  const bars = [['원본', raw, '#334155'], ['압축(minify) 후', afterMin, '#60a5fa'], ['전송 크기', wire, '#22c55e']];\n  bars.forEach(([label, v, color], i) => {\n    const y = 20 + i * 42;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label, 14, y - 4);\n    ctx.fillStyle = color;\n    ctx.fillRect(14, y, 410 * (v / raw), 24);\n    ctx.fillStyle = '#0b1220'; ctx.font = '11px system-ui';\n    ctx.fillText(Math.round(v) + 'KB', 20, y + 16);\n  });\n  ctx.fillStyle = HASH ? '#22c55e' : '#ef4444'; ctx.font = '11px ui-monospace, monospace'; ctx.textAlign = 'left';\n  ctx.fillText(HASH ? 'app.a1b2c3.js  (내용 해시 O)' : 'app.js  (해시 X)', 14, 168);\n  app.innerHTML = '';\n  show('원본 ' + raw + 'KB -> 전송 ' + Math.round(wire) + 'KB (' + Math.round(wire / raw * 100) + '%)\\n\\n'\n     + '압축(minify): 이름 줄이기, 공백 제거, 죽은 코드 제거. 대략 40~50% 감소\\n'\n     + '전송 압축: gzip 은 널리 쓰이고, brotli 가 보통 10~20% 더 줄인다 (서버 설정)\\n\\n'\n     + (HASH ? '내용 해시가 있으므로 1년 immutable 캐시가 안전하다 (cs-net 6장).'\n             : '해시가 없으면 캐시를 길게 걸 수 없다. 바뀌어도 옛 파일이 그대로 쓰인다.') + '\\n\\n'\n     + '참고: 압축은 **전송 크기**만 줄인다. 파싱, 실행 비용은 원본 크기에 가깝다 . \\n'\n     + '그래서 저사양 기기에서는 작게 만드는 것이 여전히 중요하다.');\n</script>",
           "controls": [
             {
               "id": "minify",
@@ -533,13 +533,13 @@
         },
         {
           "type": "note",
-          "text": "**압축은 전송만 줄인다.** gzip 으로 300KB 가 90KB 가 되어도, 브라우저는 압축을 푼 300KB 를 파싱하고 실행한다. 저사양 기기에서 병목은 대개 다운로드가 아니라 **파싱·실행**이다 — 그래서 코드를 실제로 줄이는 것(3·4장)이 여전히 중요하다."
+          "text": "**압축은 전송만 줄인다.** gzip 으로 300KB 가 90KB 가 되어도, 브라우저는 압축을 푼 300KB 를 파싱하고 실행한다. 저사양 기기에서 병목은 대개 다운로드가 아니라 **파싱, 실행**이다. 그래서 코드를 실제로 줄이는 것(3, 4장)이 여전히 중요하다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "타깃 — 어디까지 받쳐 줄까",
-          "text": "// 오래된 브라우저를 받치면 문법이 옛것으로 변환되어 코드가 커진다\nbuild: { target: 'es2015' }    // 크고 안전\nbuild: { target: 'es2022' }    // 작고 빠름 (요즘 브라우저 대상)\n\n// browserslist 로 한 곳에서 관리\n// package.json\n\"browserslist\": [\"> 0.5%\", \"last 2 versions\", \"not dead\"]\n\n// 실제 사용자 통계를 보고 정하라 — 「혹시 몰라서」 옛 브라우저를 받치면 모두가 비용을 낸다"
+          "label": "타깃. 어디까지 받쳐 줄까",
+          "text": "// 오래된 브라우저를 받치면 문법이 옛것으로 변환되어 코드가 커진다\nbuild: { target: 'es2015' }    // 크고 안전\nbuild: { target: 'es2022' }    // 작고 빠름 (요즘 브라우저 대상)\n\n// browserslist 로 한 곳에서 관리\n// package.json\n\"browserslist\": [\"> 0.5%\", \"last 2 versions\", \"not dead\"]\n\n// 실제 사용자 통계를 보고 정하라. 혹시 몰라서 옛 브라우저를 받치면 모두가 비용을 낸다"
         },
         {
           "type": "p",
@@ -588,19 +588,19 @@
     },
     {
       "id": "7",
-      "title": "의존성 — 남의 코드를 들이는 비용",
+      "title": "의존성. 남의 코드를 들이는 비용",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "`npm install` 한 줄이 프로젝트에 **수백 개의 파일과 남의 결정**을 들인다. 편하지만 공짜가 아니다 — 크기, 보안, 유지보수, 빌드 시간이 전부 따라온다."
+          "text": "`npm install` 한 줄이 프로젝트에 **수백 개의 파일과 남의 결정**을 들인다. 편하지만 공짜가 아니다. 크기, 보안, 유지보수, 빌드 시간이 전부 따라온다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "의존성을 늘려 보라 — 무엇이 함께 오나",
+          "label": "의존성을 늘려 보라. 무엇이 함께 오나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const N = {{deps}};\n  const transitive = Math.round(N * 6.5);\n  const size = Math.round(N * 45);\n  const risk = Math.min(95, N * 3.2);\n  ctx.clearRect(0, 0, 440, 190);\n  const rows = [['직접 의존성', N, 40, '#60a5fa'], ['함께 딸려 오는 것', transitive, 260, '#f59e0b'],\n                ['대략 크기(KB)', size, 1800, '#a78bfa']];\n  rows.forEach(([label, v, max, color], i) => {\n    const y = 22 + i * 44;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label + '  ' + v, 14, y - 4);\n    ctx.fillStyle = '#334155'; ctx.fillRect(14, y, 410, 22);\n    ctx.fillStyle = color; ctx.fillRect(14, y, Math.min(410, 410 * (v / max)), 22);\n  });\n  ctx.fillStyle = risk > 60 ? '#ef4444' : risk > 30 ? '#f59e0b' : '#22c55e';\n  ctx.font = '12px system-ui';\n  ctx.fillText('공급망 위험 · 유지보수 부담(추정) ' + risk.toFixed(0) + '%', 14, 172);\n  app.innerHTML = '<div class=\"hint\">직접 의존성 ' + N + '개</div>';\n  show('직접 ' + N + '개 -> 실제로는 약 ' + transitive + '개의 패키지가 설치된다\\n\\n'\n     + '따라오는 것들\\n'\n     + '  · 번들 크기 (안 쓰는 부분까지 딸려 올 수 있다 — 4장)\\n'\n     + '  · 보안 위험 (하나가 뚫리면 내 앱도)\\n'\n     + '  · 유지보수 (버전 올리기·호환 깨짐·유기된 패키지)\\n'\n     + '  · 설치·빌드 시간\\n\\n'\n     + '들이기 전 질문 셋\\n'\n     + '  1. 표준 API 로 되나? (날짜 -> Intl · 요청 -> fetch)\\n'\n     + '  2. 20줄로 직접 쓸 수 있나? (아주 작은 유틸)\\n'\n     + '  3. 이 패키지는 관리되고 있나? (최근 릴리스·이슈 응답·유지자 수)');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const N = {{deps}};\n  const transitive = Math.round(N * 6.5);\n  const size = Math.round(N * 45);\n  const risk = Math.min(95, N * 3.2);\n  ctx.clearRect(0, 0, 440, 190);\n  const rows = [['직접 의존성', N, 40, '#60a5fa'], ['함께 딸려 오는 것', transitive, 260, '#f59e0b'],\n                ['대략 크기(KB)', size, 1800, '#a78bfa']];\n  rows.forEach(([label, v, max, color], i) => {\n    const y = 22 + i * 44;\n    ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(label + '  ' + v, 14, y - 4);\n    ctx.fillStyle = '#334155'; ctx.fillRect(14, y, 410, 22);\n    ctx.fillStyle = color; ctx.fillRect(14, y, Math.min(410, 410 * (v / max)), 22);\n  });\n  ctx.fillStyle = risk > 60 ? '#ef4444' : risk > 30 ? '#f59e0b' : '#22c55e';\n  ctx.font = '12px system-ui';\n  ctx.fillText('공급망 위험, 유지보수 부담(추정) ' + risk.toFixed(0) + '%', 14, 172);\n  app.innerHTML = '<div class=\"hint\">직접 의존성 ' + N + '개</div>';\n  show('직접 ' + N + '개 -> 실제로는 약 ' + transitive + '개의 패키지가 설치된다\\n\\n'\n     + '따라오는 것들\\n'\n     + ' , 번들 크기 (안 쓰는 부분까지 딸려 올 수 있다. 4장)\\n'\n     + ' , 보안 위험 (하나가 뚫리면 내 앱도)\\n'\n     + ' , 유지보수 (버전 올리기, 호환 깨짐, 유기된 패키지)\\n'\n     + ' , 설치, 빌드 시간\\n\\n'\n     + '들이기 전 질문 셋\\n'\n     + '  1. 표준 API 로 되나? (날짜 -> Intl, 요청 -> fetch)\\n'\n     + '  2. 20줄로 직접 쓸 수 있나? (아주 작은 유틸)\\n'\n     + '  3. 이 패키지는 관리되고 있나? (최근 릴리스, 이슈 응답, 유지자 수)');\n</script>",
           "controls": [
             {
               "id": "deps",
@@ -621,15 +621,15 @@
         },
         {
           "type": "note",
-          "text": "**잠금 파일(`package-lock.json`·`pnpm-lock.yaml`)을 반드시 커밋하라.** 그것이 「모두가 정확히 같은 버전을 쓴다」를 보장한다. 그리고 CI 에서는 `npm ci` 를 써라 — `npm install` 은 잠금 파일을 고칠 수 있어서, 「CI 에서만 다른 버전」이 생긴다."
+          "text": "**잠금 파일(`package-lock.json`, `pnpm-lock.yaml`)을 반드시 커밋하라.** 그것이 모두가 정확히 같은 버전을 쓴다를 보장한다. 그리고 CI 에서는 `npm ci` 를 써라. `npm install` 은 잠금 파일을 고칠 수 있어서, CI 에서만 다른 버전이 생긴다."
         },
         {
           "type": "p",
-          "text": "버전 범위 표기도 알아 두면 좋다 — `^1.2.3` 은 MINOR·PATCH 를 허용하고, `~1.2.3` 은 PATCH 만, `1.2.3` 은 고정이다(git-flow 3장의 SemVer). 잠금 파일이 있으면 실제 설치는 고정되지만, **범위는 「업데이트할 때 어디까지 자동으로 갈지」를 정한다.**"
+          "text": "버전 범위 표기도 알아 두면 좋다. `^1.2.3` 은 MINOR, PATCH 를 허용하고, `~1.2.3` 은 PATCH 만, `1.2.3` 은 고정이다(git-flow 3장의 SemVer). 잠금 파일이 있으면 실제 설치는 고정되지만, **범위는 업데이트할 때 어디까지 자동으로 갈지를 정한다.**"
         },
         {
           "type": "try",
-          "text": "`npx depcheck` 를 돌려 안 쓰는 의존성을 찾아라. 하나라도 나오면 지워라 — 가장 확실한 번들 절감이다."
+          "text": "`npx depcheck` 를 돌려 안 쓰는 의존성을 찾아라. 하나라도 나오면 지워라. 가장 확실한 번들 절감이다."
         }
       ],
       "quiz": [
@@ -653,13 +653,13 @@
             "타입이 있나"
           ],
           "answer": 1,
-          "why": "Intl·fetch 로 되는 일이 많다."
+          "why": "Intl, fetch 로 되는 일이 많다."
         },
         {
           "q": "`^1.2.3` 이 허용하는 것은?",
           "choices": [
             "아무 버전",
-            "MINOR·PATCH 업데이트",
+            "MINOR, PATCH 업데이트",
             "PATCH 만",
             "고정"
           ],
@@ -680,9 +680,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "증상을 골라 보라 — 어디를 볼까",
+          "label": "증상을 골라 보라. 어디를 볼까",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{symptom}}';\n  const t = {\n    slow: ['빌드가 느리다', '무엇이 오래 걸리는지부터 측정',\n      '· 큰 배럴 파일(export * )이 그래프를 넓히고 있나 (4장)\\n'\n      + '· 소스맵 생성이 켜져 있나 (개발 중에는 가벼운 모드로)\\n'\n      + '· 타입 검사가 빌드에 섞여 있나 -> 병렬로 분리 (2장)\\n'\n      + '· 캐시가 CI 에서 안 먹고 있나 (node_modules·빌드 캐시)'],\n    huge: ['번들이 크다', '분석기로 지도부터',\n      '· 예상 못 한 큰 패키지가 있나 (moment 로케일·아이콘 전체)\\n'\n      + '· 라우트 분할이 되고 있나 (3장)\\n'\n      + '· 같은 라이브러리가 두 버전 들어 있나 (npm ls <패키지>)\\n'\n      + '· 이미지·폰트가 번들에 인라인되고 있나'],\n    notfound: ['Cannot find module', '경로·확장자·조건',\n      '· 대소문자가 실제 파일과 같나 (5장)\\n'\n      + '· ESM 에서는 확장자가 필요할 수 있다 (\"./a.js\")\\n'\n      + '· 패키지의 exports 필드가 그 경로를 막고 있나\\n'\n      + '· tsconfig 의 paths 를 번들러도 알고 있나 (별도 설정 필요)'],\n    cjs: ['require of ES Module 오류', 'CJS/ESM 경계',\n      '· 그 패키지가 ESM 전용인가 (최근 패키지에 많다)\\n'\n      + '· 내 프로젝트에 \"type\": \"module\" 이 있나 (1장)\\n'\n      + '· 서버 코드라면 동적 import() 로 우회할 수 있다'],\n    env: ['환경변수가 undefined', '접두사와 시점',\n      '· 번들러의 노출 규칙을 지켰나 (VITE_ · NEXT_PUBLIC_ 등)\\n'\n      + '· 빌드 **시점**에 박히는 값이다 — 실행 시점에 바꿀 수 없다\\n'\n      + '· 비밀은 브라우저 번들에 절대 넣지 마라 (누구나 본다)'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2]);\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{symptom}}';\n  const t = {\n    slow: ['빌드가 느리다', '무엇이 오래 걸리는지부터 측정',\n      ',  큰 배럴 파일(export * )이 그래프를 넓히고 있나 (4장)\\n'\n      + ',  소스맵 생성이 켜져 있나 (개발 중에는 가벼운 모드로)\\n'\n      + ',  타입 검사가 빌드에 섞여 있나 -> 병렬로 분리 (2장)\\n'\n      + ',  캐시가 CI 에서 안 먹고 있나 (node_modules, 빌드 캐시)'],\n    huge: ['번들이 크다', '분석기로 지도부터',\n      ',  예상 못 한 큰 패키지가 있나 (moment 로케일, 아이콘 전체)\\n'\n      + ',  라우트 분할이 되고 있나 (3장)\\n'\n      + ',  같은 라이브러리가 두 버전 들어 있나 (npm ls <패키지>)\\n'\n      + ',  이미지, 폰트가 번들에 인라인되고 있나'],\n    notfound: ['Cannot find module', '경로, 확장자, 조건',\n      ',  대소문자가 실제 파일과 같나 (5장)\\n'\n      + ',  ESM 에서는 확장자가 필요할 수 있다 (\"./a.js\")\\n'\n      + ',  패키지의 exports 필드가 그 경로를 막고 있나\\n'\n      + ',  tsconfig 의 paths 를 번들러도 알고 있나 (별도 설정 필요)'],\n    cjs: ['require of ES Module 오류', 'CJS/ESM 경계',\n      ',  그 패키지가 ESM 전용인가 (최근 패키지에 많다)\\n'\n      + ',  내 프로젝트에 \"type\": \"module\" 이 있나 (1장)\\n'\n      + ',  서버 코드라면 동적 import() 로 우회할 수 있다'],\n    env: ['환경변수가 undefined', '접두사와 시점',\n      ',  번들러의 노출 규칙을 지켰나 (VITE_, NEXT_PUBLIC_ 등)\\n'\n      + ',  빌드 **시점**에 박히는 값이다. 실행 시점에 바꿀 수 없다\\n'\n      + ',  비밀은 브라우저 번들에 절대 넣지 마라 (누구나 본다)'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2]);\n</script>",
           "controls": [
             {
               "id": "symptom",
@@ -716,17 +716,17 @@
         },
         {
           "type": "note",
-          "text": "**브라우저 번들에 비밀을 넣지 마라.** 환경변수라도 번들에 들어가면 누구나 볼 수 있다. `VITE_`·`NEXT_PUBLIC_` 같은 접두사 규칙은 「이건 공개된다」는 표시이지 보호 장치가 아니다 — 진짜 비밀은 서버에만 둔다(git-remote 8장)."
+          "text": "**브라우저 번들에 비밀을 넣지 마라.** 환경변수라도 번들에 들어가면 누구나 볼 수 있다. `VITE_`, `NEXT_PUBLIC_` 같은 접두사 규칙은 이건 공개된다는 표시이지 보호 장치가 아니다. 진짜 비밀은 서버에만 둔다(git-remote 8장)."
         },
         {
           "type": "code",
           "lang": "bash",
           "label": "빌드 시간 재고 캐시 확인",
-          "text": "# 무엇이 오래 걸리나\nnpx vite build --profile\nnpx webpack --profile --json > stats.json\n\n# CI 캐시 (GitHub Actions)\n- uses: actions/setup-node@v4\n  with:\n    node-version: 22\n    cache: 'npm'          # node_modules 설치 캐시\n\n# 빌드 산출물 캐시는 도구별 설정 (turbo·nx·vite cacheDir)"
+          "text": "# 무엇이 오래 걸리나\nnpx vite build --profile\nnpx webpack --profile --json > stats.json\n\n# CI 캐시 (GitHub Actions)\n- uses: actions/setup-node@v4\n  with:\n    node-version: 22\n    cache: 'npm'          # node_modules 설치 캐시\n\n# 빌드 산출물 캐시는 도구별 설정 (turbo, nx, vite cacheDir)"
         },
         {
           "type": "p",
-          "text": "그리고 **같은 라이브러리의 두 버전**이 들어가는 문제는 은근히 흔하다. `npm ls react` 처럼 확인하면 중복이 보이고, 대개 `overrides`(npm)·`resolutions`(yarn) 로 한 버전으로 모을 수 있다."
+          "text": "그리고 **같은 라이브러리의 두 버전**이 들어가는 문제는 은근히 흔하다. `npm ls react` 처럼 확인하면 중복이 보이고, 대개 `overrides`(npm), `resolutions`(yarn) 로 한 버전으로 모을 수 있다."
         },
         {
           "type": "try",
@@ -746,7 +746,7 @@
           "why": "접두사 규칙은 표시일 뿐이다."
         },
         {
-          "q": "「Cannot find module」에서 리눅스 CI 만 실패하면?",
+          "q": "Cannot find module에서 리눅스 CI 만 실패하면?",
           "choices": [
             "권한",
             "파일 이름 대소문자",
@@ -771,29 +771,29 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "빌드 도구는 자주 바뀌지만 **원리는 그대로**다 — 그래프를 만들고, 변환하고, 나눠서 내보낸다. 이 셋으로 대부분의 문제가 설명된다."
+          "text": "빌드 도구는 자주 바뀌지만 **원리는 그대로**다. 그래프를 만들고, 변환하고, 나눠서 내보낸다. 이 셋으로 대부분의 문제가 설명된다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "빌드 점검표",
-          "text": "크기\n  [ ] 번들 분석기를 한 번이라도 돌려 봤나                       (4장)\n  [ ] 라우트 분할이 되고 있나                                   (3장)\n  [ ] Coverage 로 미사용 비율을 재 봤나                         (3장)\n  [ ] 안 쓰는 의존성이 없나 (depcheck)                          (7장)\n  [ ] 같은 라이브러리가 두 버전 들어 있지 않나                  (8장)\n\n캐시·배포\n  [ ] 파일 이름에 내용 해시가 있나                              (6장)\n  [ ] 소스맵을 만들고, 공개 서버에는 안 올리나                  (6장)\n  [ ] 타깃(browserslist)을 실제 사용자 기준으로 정했나          (6장)\n\n안전\n  [ ] 잠금 파일을 커밋하나 · CI 에서 npm ci 를 쓰나             (7장)\n  [ ] 브라우저 번들에 비밀이 없나                               (8장)\n\n개발 경험\n  [ ] 배포 빌드를 로컬에서 확인하나 (build + preview)           (5장)\n  [ ] 타입 검사가 빌드와 분리돼 CI 에서 도나                    (2장)"
+          "text": "크기\n  [ ] 번들 분석기를 한 번이라도 돌려 봤나                       (4장)\n  [ ] 라우트 분할이 되고 있나                                   (3장)\n  [ ] Coverage 로 미사용 비율을 재 봤나                         (3장)\n  [ ] 안 쓰는 의존성이 없나 (depcheck)                          (7장)\n  [ ] 같은 라이브러리가 두 버전 들어 있지 않나                  (8장)\n\n캐시, 배포\n  [ ] 파일 이름에 내용 해시가 있나                              (6장)\n  [ ] 소스맵을 만들고, 공개 서버에는 안 올리나                  (6장)\n  [ ] 타깃(browserslist)을 실제 사용자 기준으로 정했나          (6장)\n\n안전\n  [ ] 잠금 파일을 커밋하나, CI 에서 npm ci 를 쓰나             (7장)\n  [ ] 브라우저 번들에 비밀이 없나                               (8장)\n\n개발 경험\n  [ ] 배포 빌드를 로컬에서 확인하나 (build + preview)           (5장)\n  [ ] 타입 검사가 빌드와 분리돼 CI 에서 도나                    (2장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여덟 문항",
+          "label": "스스로 채점. 여덟 문항",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const q = [\n    ['ESM 은 정적이라 트리 셰이킹이 가능하다', true],\n    ['진입점에서 안 닿는 파일도 번들에 들어간다', false],\n    ['import 부수효과가 있는 모듈은 지워지지 않는다', true],\n    ['gzip 은 파싱 시간도 줄여 준다', false],\n    ['내용 해시가 있어야 영구 캐시가 안전하다', true],\n    ['esbuild 가 타입 검사를 해 준다', false],\n    ['CI 에서는 npm ci 를 쓰는 편이 좋다', true],\n    ['환경변수는 번들에 들어가도 안전하다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(ESM) 2장(그래프) 4장(셰이킹) 6장(압축·해시) 7장(의존성)');\n</script>"
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n  function arrow(x1, y1, x2, y2, color) {\n    ctx.strokeStyle = color || '#334155'; ctx.lineWidth = 1.6;\n    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();\n    const a = Math.atan2(y2 - y1, x2 - x1);\n    ctx.beginPath(); ctx.moveTo(x2, y2);\n    ctx.lineTo(x2 - 6 * Math.cos(a - 0.4), y2 - 6 * Math.sin(a - 0.4));\n    ctx.lineTo(x2 - 6 * Math.cos(a + 0.4), y2 - 6 * Math.sin(a + 0.4));\n    ctx.fillStyle = color || '#334155'; ctx.fill();\n  }\n</script>\n<script>\n  const q = [\n    ['ESM 은 정적이라 트리 셰이킹이 가능하다', true],\n    ['진입점에서 안 닿는 파일도 번들에 들어간다', false],\n    ['import 부수효과가 있는 모듈은 지워지지 않는다', true],\n    ['gzip 은 파싱 시간도 줄여 준다', false],\n    ['내용 해시가 있어야 영구 캐시가 안전하다', true],\n    ['esbuild 가 타입 검사를 해 준다', false],\n    ['CI 에서는 npm ci 를 쓰는 편이 좋다', true],\n    ['환경변수는 번들에 들어가도 안전하다', false],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로. 1장(ESM) 2장(그래프) 4장(셰이킹) 6장(압축, 해시) 7장(의존성)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 테스트다. 여기까지가 「코드를 브라우저에 나르는 법」이었다면, 다음은 **그 코드가 맞는지 확인하는 법**이다 — 지금까지 여러 칸에서 「테스트를 먼저 쓰라」고 말한 그 테스트."
+          "text": "다음 칸은 테스트다. 여기까지가 코드를 브라우저에 나르는 법이었다면, 다음은 **그 코드가 맞는지 확인하는 법**이다. 지금까지 여러 칸에서 테스트를 먼저 쓰라고 말한 그 테스트."
         },
         {
           "type": "try",
@@ -816,7 +816,7 @@
           "q": "개발 서버와 배포 빌드의 관계는?",
           "choices": [
             "같은 경로",
-            "다른 경로 — 배포 빌드를 따로 확인해야 한다",
+            "다른 경로. 배포 빌드를 따로 확인해야 한다",
             "배포가 더 느슨하다",
             "무관하다"
           ],

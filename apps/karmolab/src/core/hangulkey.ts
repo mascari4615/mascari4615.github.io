@@ -1,12 +1,12 @@
 /**
- * 한/영 타자 변환 — 알맹이 (TASK-KL-088 / S1) — 「dkssud」 ↔ 「안녕」.
+ * 한/영 타자 변환. 알맹이 (TASK-KL-088 / S1). dkssud ↔ 안녕.
  *
  * 두벌식 자판 기준. 영→한은 **조합 오토마타**(초/중/종 + 겹자모)로 실제 타이핑을 재현한다.
- * 단순 글자 치환이 아니다 — 받침을 넣었다가 다음 글자가 모음이면 그 받침이 **다음 글자의
- * 초성으로 넘어가야** 한다(「ㄱㅏㄴㅏ」 → 가나). 겹받침이면 뒷자음만 넘어간다(앉+ㅏ → 안자).
+ * 단순 글자 치환이 아니다. 받침을 넣었다가 다음 글자가 모음이면 그 받침이 **다음 글자의
+ * 초성으로 넘어가야** 한다(ㄱㅏㄴㅏ → 가나). 겹받침이면 뒷자음만 넘어간다(앉+ㅏ → 안자).
  *
  * MCP 로 내놓는 이유(B등급): 한국 사람이 매일 겪는 실수인데 LLM 은 자판 배열을 외워 답하다
- * 겹모음(ㅘ·ㅢ)과 받침 넘김에서 어긋난다. 게다가 이건 **자판 배열이라 지역 지식**이라,
+ * 겹모음(ㅘ, ㅢ)과 받침 넘김에서 어긋난다. 게다가 이건 **자판 배열이라 지역 지식**이라,
  * 우리 말고 이걸 정확히 내놓는 MCP 서버가 없다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -17,7 +17,7 @@ export const spec: ToolSpec = {
     toKorean: {
       desc:
         'Recover Hangul typed without switching the IME (2-beolsik layout). dkssudgktpdy → 안녕하세요.' +
-        ' Not a substitution table — it replays the composition automata (final consonants move to the' +
+        ' Not a substitution table. it replays the composition automata (final consonants move to the' +
         ' next syllable when a vowel follows).' +
         ' / 한영키를 안 누르고 친 영문을 한글로 되돌린다.',
       in: { text: 'string' },
@@ -208,5 +208,5 @@ export const run: ToolRunner = (op, args) => {
   if (op === 'toKorean') return engToKor(text);
   if (op === 'toEnglish') return korToEng(text);
   if (op === 'auto') return hasHangul(text) ? korToEng(text) : engToKor(text);
-  throw new Error(`hangulkey 에 「${op}」 는 없습니다`);
+  throw new Error(`hangulkey 에 ${op} 는 없습니다`);
 };

@@ -1,5 +1,5 @@
 /**
- * BotContext — dispatchSlashCommand 등에 전달되는 서비스 묶음.
+ * BotContext. dispatchSlashCommand 등에 전달되는 서비스 묶음.
  * main.ts의 buildCtx() 반환값과 일치해야 함.
  */
 import type { Client } from 'discord.js';

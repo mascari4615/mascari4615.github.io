@@ -1,10 +1,10 @@
 /**
  * 번들 지도 (TASK-KL-316 / 19)
  *
- * 파일을 받아 넓이로 그린다 — 이건 로그 보기와 같은 이유로 **새 위젯**이다:
+ * 파일을 받아 넓이로 그린다. 이건 로그 보기와 같은 이유로 **새 위젯**이다:
  * `stats.json` 은 수 MB 라 붙여넣는 자리가 아니고, 보는 방식(그림)이 글 도구와 다르다.
  *
- * 알맹이는 `core/bundlemap`. 그림은 우리가 직접 그린다(칸 나누기까지 알맹이에 있다) —
+ * 알맹이는 `core/bundlemap`. 그림은 우리가 직접 그린다(칸 나누기까지 알맹이에 있다) . 
  * 차트 꾸러미를 들이면 그 무게가 화면으로 따라 나간다(번들 예산, KL-128). 이 도구가 그 얘기를 하는데
  * 자기가 무거우면 앞뒤가 안 맞는다.
  */
@@ -63,7 +63,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). */
     markLive(status);
 
-    /** 깊이마다 다른 색 — 같은 폴더가 같은 색이라야 눈이 묶는다. */
+    /** 깊이마다 다른 색. 같은 폴더가 같은 색이라야 눈이 묶는다. */
     function color(name: string, depth: number): string {
       let hash = 0;
       for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) % 360;
@@ -81,12 +81,12 @@ import { t, loadNamespace } from '../../lib/i18n';
       for (const r of rects) {
         svg.push(
           '<rect x="' + r.x + '" y="' + r.y + '" width="' + Math.max(0, r.w) + '" height="' + Math.max(0, r.h) + '" fill="' + color(r.name, r.depth) +
-            '" stroke="rgba(0,0,0,.35)" stroke-width="0.8"><title>' + esc(r.name + ' · ' + human(r.bytes)) + '</title></rect>'
+            '" stroke="rgba(0,0,0,.35)" stroke-width="0.8"><title>' + esc(r.name + ', ' + human(r.bytes)) + '</title></rect>'
         );
         if (r.w> 60 && r.h> 16) {
           svg.push(
             '<text x="' + (r.x + 5) + '" y="' + (r.y + 12) + '" fill="#111" style="pointer-events:none">' +
-              esc(r.name.length> Math.floor(r.w / 6) ? r.name.slice(0, Math.floor(r.w / 6)) + '…' : r.name) +
+              esc(r.name.length> Math.floor(r.w / 6) ? r.name.slice(0, Math.floor(r.w / 6)) + '...' : r.name) +
               (r.w> 140 ? ' <tspan opacity=".6">' + esc(human(r.bytes)) + '</tspan>' : '') +
               '</text>'
           );
@@ -115,7 +115,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 (d) =>
                   '<div class="tool-list-row"><span class="tool-list-key">' + esc(human(d.bytes)) + '</span>' +
                   '<span class="tool-list-val">' + esc(d.name) + '</span>' +
-                  '<span class="tool-list-dim">' + esc(d.places.join('  ·  ')) + '</span></div>'
+                  '<span class="tool-list-dim">' + esc(d.places.join(' ,  ')) + '</span></div>'
               )
               .join('');
 

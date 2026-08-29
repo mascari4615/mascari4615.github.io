@@ -1,8 +1,8 @@
 /**
- * 우주 데이터 중계 (TASK-KL-241 follow-up) — **자기 파일에 산다**.
+ * 우주 데이터 중계 (TASK-KL-241 follow-up). **자기 파일에 산다**.
  *
  * 왜 생겼나 (2026-08-12 실측):
- *   - `celestrak.org` 가 **403** 을 준다. 브라우저만 막힌 게 아니다 — 우리 서버에서 curl 로
+ *   - `celestrak.org` 가 **403** 을 준다. 브라우저만 막힌 게 아니다. 우리 서버에서 curl 로
  *     쳐도 403 이다. 자동 접근을 아예 잠갔다.
  *   - `ll.thespacedevs.com` 은 **429**. 여기는 IP 당 한도라, 화면을 여는 사람마다 각자 부르는
  *     구조 자체가 문제였다. 사람이 늘수록 반드시 넘긴다.
@@ -10,15 +10,15 @@
  * 그래서 **화면이 바깥에 직접 붙는 구조를 걷어낸다.** 여기가 대신 받아서:
  *   ① 한 번 받은 것을 **여럿이 나눠 쓴다** (한도는 사람 수가 아니라 이 서버 하나에만 걸린다)
  *   ② 원천이 죽으면 **다음 원천**으로 간다 (한 곳이 문을 닫아도 화면은 산다)
- *   ③ 전부 죽으면 **낡은 값이라도 준다** — 궤도 요소는 하루 지나도 쓸 만하고,
+ *   ③ 전부 죽으면 **낡은 값이라도 준다**. 궤도 요소는 하루 지나도 쓸 만하고,
  *      발사 일정은 어제 것이라도 빈 화면보다 낫다
  *
- * 붙는 자리: `main.ts` 가 `registerKarmolabApi(app)` **다음에** 부른다 — `/kl` CORS 미들웨어가
+ * 붙는 자리: `main.ts` 가 `registerKarmolabApi(app)` **다음에** 부른다. `/kl` CORS 미들웨어가
  * 거기서 달리고 Express 는 먼저 달린 것부터 태운다.
  */
 import type { Application, Request, Response } from 'express';
 
-/** CelesTrak 이 주던 것과 **같은 모양** — 화면 코드를 고치지 않으려고 이 형식을 지킨다. */
+/** CelesTrak 이 주던 것과 **같은 모양**. 화면 코드를 고치지 않으려고 이 형식을 지킨다. */
 export interface Omm {
   OBJECT_NAME: string;
   NORAD_CAT_ID: number;
@@ -32,7 +32,7 @@ export interface Omm {
 }
 
 /* ── TLE 두 줄을 궤도 요소로 ──────────────────────────────────────────────
-   자리로 잘라 읽는 옛 형식이다. 칸이 정해져 있으므로 **자리로 자른다** — 공백으로 나누면
+   자리로 잘라 읽는 옛 형식이다. 칸이 정해져 있으므로 **자리로 자른다**. 공백으로 나누면
    값이 붙어 나오는 줄(부호가 바로 붙는 자리)에서 조용히 어긋난다. */
 
 /** `26224.11681231` → 2026-08-12T02:48:12Z 같은 시각. 앞 두 자리가 연도다. */
@@ -40,7 +40,7 @@ export function epochFromTle(raw: string): string {
   const yy = Number(raw.slice(0, 2));
   const doy = Number(raw.slice(2));
   if (!Number.isFinite(yy) || !Number.isFinite(doy)) return new Date().toISOString();
-  // 57 보다 작으면 2000 년대 — 이 형식이 정한 규칙이다(위성 시대가 1957 년에 시작했다)
+  // 57 보다 작으면 2000 년대. 이 형식이 정한 규칙이다(위성 시대가 1957 년에 시작했다)
   const year = yy < 57 ? 2000 + yy : 1900 + yy;
   const ms = Date.UTC(year, 0, 1) + (doy - 1) * 86400000;
   return new Date(ms).toISOString();
@@ -75,8 +75,8 @@ interface Box<T> {
 /**
  * 값 하나를 여럿이 나눠 쓰는 곳간.
  *
- * 세 가지를 한다: **때가 안 됐으면 그대로 준다** · 같은 순간에 여럿이 물어도 **바깥에는 한 번만
- * 묻는다**(안 그러면 첫 손님 열 명이 열 번 부른다) · 바깥이 죽으면 **낡은 값이라도 준다**.
+ * 세 가지를 한다: **때가 안 됐으면 그대로 준다**, 같은 순간에 여럿이 물어도 **바깥에는 한 번만
+ * 묻는다**(안 그러면 첫 손님 열 명이 열 번 부른다), 바깥이 죽으면 **낡은 값이라도 준다**.
  */
 export class SharedCache<T> {
   private box: Box<T> | null = null;
@@ -84,7 +84,7 @@ export class SharedCache<T> {
 
   constructor(
     private readonly ttlMs: number,
-    /** 이만큼까지는 낡은 값도 준다 — 빈 화면보다 어제 값이 낫다. */
+    /** 이만큼까지는 낡은 값도 준다. 빈 화면보다 어제 값이 낫다. */
     private readonly staleMs: number,
     private readonly load: () => Promise<T | null>,
     private readonly now: () => number = Date.now,
@@ -110,7 +110,7 @@ export class SharedCache<T> {
     }
     const got = await this.inflight;
     if (got !== null && got !== undefined) return { value: got, fresh: true, ageMs: 0 };
-    // 바깥이 죽었다 — 곳간에 뭔가 있으면 그거라도
+    // 바깥이 죽었다. 곳간에 뭔가 있으면 그거라도
     const a2 = this.age;
     if (this.box && a2 !== null && a2 < this.staleMs) {
       return { value: this.box.value, fresh: false, ageMs: a2 };
@@ -148,7 +148,7 @@ export async function firstOf<T>(sources: Array<() => Promise<T | null>>): Promi
 
 async function loadIss(): Promise<Omm[] | null> {
   return firstOf<Omm[]>([
-    // ① TLE 를 그대로 주는 곳 (2026-08-12 실측: 200 · 열려 있음)
+    // ① TLE 를 그대로 주는 곳 (2026-08-12 실측: 200, 열려 있음)
     async () => {
       const d = await getJson<{ name?: string; line1?: string; line2?: string }>(
         'https://tle.ivanstanojevic.me/api/tle/25544',
@@ -156,7 +156,7 @@ async function loadIss(): Promise<Omm[] | null> {
       const o = d && d.line1 && d.line2 ? ommFromTle(d.name || 'ISS (ZARYA)', d.line1, d.line2) : null;
       return o ? [o] : null;
     },
-    // ② 원래 자리 — 다시 열리면 이쪽이 가장 정확하다
+    // ② 원래 자리. 다시 열리면 이쪽이 가장 정확하다
     async () => {
       const rows = await getJson<Omm[]>('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=json');
       return Array.isArray(rows) && rows.length ? rows : null;
@@ -184,7 +184,7 @@ async function loadLaunches(): Promise<LaunchFeed | null> {
 }
 
 /**
- * 위성 무리 목록. 여기만은 **대신할 곳이 없다** — 무리 단위로 주는 데는 CelesTrak 뿐이다.
+ * 위성 무리 목록. 여기만은 **대신할 곳이 없다**. 무리 단위로 주는 데는 CelesTrak 뿐이다.
  * 그래서 더더욱 여기서 받아 나눠 써야 한다: 화면마다 부르면 두 시간 창에 걸려 서로를 막는다.
  */
 const GROUPS = new Set(['active', 'visual', 'stations', 'starlink']);
@@ -200,7 +200,7 @@ async function loadGroup(name: string): Promise<Omm[] | null> {
 /* ── 라우트 ───────────────────────────────────────────────────────────── */
 
 export function registerSpaceRoutes(app: Application): void {
-  /* 궤도 요소는 하루가 지나도 쓸 만하다 — 두 시간에 한 번이면 넉넉하고, 못 받으면 이틀까지 버틴다. */
+  /* 궤도 요소는 하루가 지나도 쓸 만하다. 두 시간에 한 번이면 넉넉하고, 못 받으면 이틀까지 버틴다. */
   const iss = new SharedCache<Omm[]>(2 * 60 * 60 * 1000, 48 * 60 * 60 * 1000, loadIss);
   /* 발사 일정은 자주 바뀌지만 분 단위로 바뀌진 않는다. */
   const launches = new SharedCache<LaunchFeed>(30 * 60 * 1000, 24 * 60 * 60 * 1000, loadLaunches);
@@ -212,12 +212,12 @@ export function registerSpaceRoutes(app: Application): void {
     empty: unknown,
   ): Promise<void> => {
     const { value, fresh, ageMs } = await cache.get();
-    /* 중간 캐시도 함께 쉬게 한다 — 이 서버가 한 번 받은 것을 다시 묻는 일까지 줄인다. */
+    /* 중간 캐시도 함께 쉬게 한다. 이 서버가 한 번 받은 것을 다시 묻는 일까지 줄인다. */
     res.setHeader('Cache-Control', `public, max-age=${maxAgeSec}`);
     if (ageMs !== null) res.setHeader('X-KL-Age', String(Math.round(ageMs / 1000)));
     if (!value) {
-      /* 아무 데서도 못 받았다. **200 으로 빈 값**을 준다 — 화면 입장에서 「우주 소식이 없다」와
-         「우리 서버가 고장」은 다르게 보여야 하지만, 여기서는 겹 하나가 조용히 비는 게 맞다. */
+      /* 아무 데서도 못 받았다. **200 으로 빈 값**을 준다. 화면 입장에서 우주 소식이 없다와
+         우리 서버가 고장은 다르게 보여야 하지만, 여기서는 겹 하나가 조용히 비는 게 맞다. */
       res.json(empty);
       return;
     }
@@ -225,21 +225,21 @@ export function registerSpaceRoutes(app: Application): void {
     res.json(value);
   };
 
-  /** ISS 궤도 요소 — CelesTrak 이 주던 것과 같은 모양(배열). */
+  /** ISS 궤도 요소. CelesTrak 이 주던 것과 같은 모양(배열). */
   app.get('/kl/space/iss', (_req: Request, res: Response) => {
     void serve(res, iss as SharedCache<unknown>, 1800, []);
   });
 
-  /** 다가오는 발사 — TheSpaceDevs 형식 그대로. */
+  /** 다가오는 발사. TheSpaceDevs 형식 그대로. */
   app.get('/kl/space/launches', (_req: Request, res: Response) => {
     void serve(res, launches as SharedCache<unknown>, 600, { results: [] });
   });
 
-  /* 무리는 크고(수 MB) 자주 안 바뀐다 — 여섯 시간에 한 번, 못 받으면 이틀까지 버틴다. */
+  /* 무리는 크고(수 MB) 자주 안 바뀐다. 여섯 시간에 한 번, 못 받으면 이틀까지 버틴다. */
   const groups = new Map<string, SharedCache<Omm[]>>();
   app.get('/kl/space/group/:name', (req: Request, res: Response) => {
     const name = String(req.params.name || '');
-    /* 아는 이름만 — 아무 주소나 대신 받아 주는 문이 되면 그건 중계가 아니라 우회로다. */
+    /* 아는 이름만. 아무 주소나 대신 받아 주는 문이 되면 그건 중계가 아니라 우회로다. */
     if (!GROUPS.has(name)) {
       res.status(404).json({ error: 'unknown group' });
       return;

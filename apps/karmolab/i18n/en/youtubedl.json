@@ -11,7 +11,7 @@
   "youtubedl.t07": "or",
   "youtubedl.t08": "click Download → it comes through our server",
   "youtubedl.t09": "Note",
-  "youtubedl.t10": "Downloading uses the server’s traffic. yt-api must be running on the deployed server.",
+  "youtubedl.t10": "Downloading uses the server's traffic. yt-api must be running on the deployed server.",
   "youtubedl.t11": "Please put in a valid YouTube URL.",
   "youtubedl.t12": "(the title could not be fetched)",
   "youtubedl.t13": "Please put in a URL.",
@@ -19,7 +19,7 @@
   "youtubedl.t15": "The video details are in.",
   "youtubedl.t16": "Fetching the details failed",
   "youtubedl.t17": "Please put in the yt-api server URL.",
-  "youtubedl.t18": "Requesting the download… (it can take a while if the server is busy)",
+  "youtubedl.t18": "Requesting the download... (it can take a while if the server is busy)",
   "youtubedl.t19": "The download request has been sent. Check the new tab.",
   "youtubedl.requested": "{fmt} download requested",
   "youtubedl.tab.main": "Download"

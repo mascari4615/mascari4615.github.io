@@ -1,30 +1,30 @@
 /**
- * agent-bus — 코어 daemon ↔ adapter 간 publish/subscribe substrate
+ * agent-bus. 코어 daemon ↔ adapter 간 publish/subscribe substrate
  * (KAR-018-LT-DIVERSITY D-1, 2026-05-23).
  *
  * 사용자 비전 (의역 X): "디코 Client 가 바뀌어도 에이전트는 살아잇을 수
  * 잇잖아" + "사람처럼 그냥 채팅보고 자기가 스스로 판단해서 읽씹하든
- * 대답하든". 단일 봇 process 의존 폐기 — 코어 = 독립 daemon, adapter =
+ * 대답하든". 단일 봇 process 의존 폐기. 코어 = 독립 daemon, adapter =
  * thin bridge. 본 모듈 = 그 분리를 가능케 하는 *공유 메시지 채널*.
  *
  * 헌장 §2.7 substrate⊥어댑터 의 첫 first-use. 지금까지 *벡터만* 있었음.
  *
- * 설계 (가설 X — 실증된 패턴 재사용):
+ * 설계 (가설 X. 실증된 패턴 재사용):
  *  - **파일 jsonl append-only** = race-free (Linux O_APPEND atomic, Windows
- *    fs.appendFile 64KB 이하 atomic). 외부 broker(Redis/Kafka) X — infra 0,
+ *    fs.appendFile 64KB 이하 atomic). 외부 broker(Redis/Kafka) X. infra 0,
  *    operational simplicity, 이미 mem/proposals/discoveries 패턴 정합.
- *  - **외부 경로 (yawnbot deploy clean 무관)** — `LAPTOP_AGENT_BUS_ROOT` env
+ *  - **외부 경로 (yawnbot deploy clean 무관)**. `LAPTOP_AGENT_BUS_ROOT` env
  *    또는 default `~/.karmoddrine/agent-bus`. yawnbot deploy 의 `git clean
  *    -fd` 가 절대 안 닿음 ([[feedback_yawnbot_runtime_state_gitignore_clean_trap]]).
  *  - **channel scoping** = `<root>/<channelId>/<yyyy-mm-dd>.jsonl`. 일 단위
  *    rotate, 채널별 분리 → tail reader 가 자기 채널만 follow.
- *  - **tail = polling-based** (fs.watch 가 Windows·WSL flaky). interval=500ms
- *    default. 미세 latency↑ 대신 race·놓침 0.
+ *  - **tail = polling-based** (fs.watch 가 Windows, WSL flaky). interval=500ms
+ *    default. 미세 latency↑ 대신 race, 놓침 0.
  *
  * 비-목표 (현재 슬라이스):
  *  - cross-machine bus (single 노트북 daemon = 사용자 현 vision)
  *  - persistent ack/retry (event-sourced, idempotent read 가 default)
- *  - 보안·암호화 (로컬 디스크 안)
+ *  - 보안, 암호화 (로컬 디스크 안)
  */
 import { promises as fsp } from 'node:fs';
 import { existsSync, readFileSync, statSync } from 'node:fs';
@@ -35,33 +35,33 @@ export type BusEventType =
   | 'channel-msg'      // Discord (또는 다른 adapter) 채널 메시지 → bus
   | 'core-utter'       // daemon 발화 결정 → adapter post
   | 'core-react-skip'  // daemon "읽씹" 판단 (관측용, prefilter 통과 시각화)
-  | 'system-tick';     // cadence tick 등 시스템 이벤트 (heartbeat·worker poll)
+  | 'system-tick';     // cadence tick 등 시스템 이벤트 (heartbeat, worker poll)
 
 export interface BusEvent {
-  /** ISO8601 (KST 권장 — 룰: 시간 표기는 KST). */
+  /** ISO8601 (KST 권장. 룰: 시간 표기는 KST). */
   ts: string;
   type: BusEventType;
   /** adapter scope (Discord channel id, 또는 'cli', 'web' 등). */
   channelId: string;
   /** 'discord' | 'core:<id>' | 'cli' | 'system' ... 발신 출처. */
   source: string;
-  /** core-utter / core-react-skip 시 발화·판단 코어 id. */
+  /** core-utter / core-react-skip 시 발화, 판단 코어 id. */
   coreId?: string;
   /** 메시지 본문. channel-msg=원문, core-utter=발화, react-skip=빈 문자열. */
   text: string;
-  /** 참조·메타. */
+  /** 참조, 메타. */
   refs?: {
     /** Discord message id (channel-msg 트리거 / 답글 reference). */
     messageId?: string;
     /** 참조 BusEvent ts (직전 발의 reply 체인). */
     parentTs?: string;
-    /** Discord 트리거 메시지 id — core-utter 발화 시 reply 대상. */
+    /** Discord 트리거 메시지 id. core-utter 발화 시 reply 대상. */
     parentMessageId?: string;
-    /** 트리거 메시지의 author (사용자명 또는 코어 display) — daemon prompt context 용. */
+    /** 트리거 메시지의 author (사용자명 또는 코어 display). daemon prompt context 용. */
     parentAuthor?: string;
-    /** 트리거 메시지 본문 snippet (앞 200자) — daemon prompt context 용. */
+    /** 트리거 메시지 본문 snippet (앞 200자). daemon prompt context 용. */
     parentSnippet?: string;
-    /** react-skip 사유 (prefilter 출력 — 관측 가시화). */
+    /** react-skip 사유 (prefilter 출력. 관측 가시화). */
     skipReason?: string;
     /** channel-msg author (Discord username 또는 코어 id). */
     author?: string;
@@ -70,7 +70,7 @@ export interface BusEvent {
 
 const SAFE_CHANNEL_ID = /^[a-zA-Z0-9_:.-]{1,128}$/;
 
-/** bus root 디렉토리 결정 — env override → default home dir. */
+/** bus root 디렉토리 결정. env override → default home dir. */
 export function resolveBusRoot(env: NodeJS.ProcessEnv = process.env): string {
   const override = (env.LAPTOP_AGENT_BUS_ROOT || '').trim();
   if (override) return override;
@@ -94,7 +94,7 @@ export function busFilePath(
 }
 
 /**
- * publish — append-only fs.appendFile. race-safe (O_APPEND atomic 보장).
+ * publish. append-only fs.appendFile. race-safe (O_APPEND atomic 보장).
  * 디렉토리 부재 시 자동 생성.
  */
 export async function publishBusEvent(
@@ -117,7 +117,7 @@ export async function publishBusEvent(
 }
 
 /**
- * recent — 직전 N분 슬라이딩 윈도우 read. 오늘 + 어제 파일 둘 다 읽고
+ * recent. 직전 N분 슬라이딩 윈도우 read. 오늘 + 어제 파일 둘 다 읽고
  * ts >= cutoff 만 반환 (자정 경계 누락 방지).
  */
 export async function readRecentBusEvents(
@@ -151,20 +151,20 @@ export async function readRecentBusEvents(
   return out;
 }
 
-/** tail subscriber 핸들 — stop() 호출로 polling 종료. */
+/** tail subscriber 핸들. stop() 호출로 polling 종료. */
 export interface BusSubscription {
   stop(): void;
 }
 
 /**
- * subscribe — polling 기반 tail. fs.watch 회피 (Windows·WSL flaky).
+ * subscribe. polling 기반 tail. fs.watch 회피 (Windows, WSL flaky).
  *
  * 동작:
- *   1. 시작 시 *이미 적힌* 줄은 skip (offset=현재 파일 크기) — 새 이벤트만.
+ *   1. 시작 시 *이미 적힌* 줄은 skip (offset=현재 파일 크기). 새 이벤트만.
  *   2. interval 마다 stat → size 증가분 read → 라인 파싱 → onEvent.
  *   3. 자정 넘김 = busFilePath 가 새 파일 가리킴 → offset 재시작.
  *
- * 손상·partial-line 안전: \n 없는 마지막 partial 은 다음 cycle 까지 보류.
+ * 손상, partial-line 안전: \n 없는 마지막 partial 은 다음 cycle 까지 보류.
  */
 export function subscribeBusEvents(
   root: string,
@@ -205,7 +205,7 @@ export function subscribeBusEvents(
           const e = JSON.parse(line) as BusEvent;
           onEvent(e);
         } catch {
-          // partial / corrupt line — skip
+          // partial / corrupt line. skip
         }
       }
     } catch (e) {

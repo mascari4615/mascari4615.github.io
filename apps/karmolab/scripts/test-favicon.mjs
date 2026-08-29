@@ -1,10 +1,10 @@
 /**
- * 파비콘 만들기 — 크기와 ico 규격을 확인한다 (TASK-KL-088)
+ * 파비콘 만들기. 크기와 ico 규격을 확인한다 (TASK-KL-088)
  *
  * ico 는 머리말을 손으로 엮는다. 숫자 하나만 틀려도 **오류 없이** 안 열리는 파일이 나온다.
  * 브라우저는 ico 를 그림으로 열어 주므로, 만든 것을 되열어 크기를 재면 진짜인지 갈린다.
  *
- * PNG 쪽은 「몇 픽셀로 나왔나」가 전부다 — 크기가 틀리면 탭에서 뭉개진다.
+ * PNG 쪽은 몇 픽셀로 나왔나가 전부다. 크기가 틀리면 탭에서 뭉개진다.
  *
  * 사용: node scripts/test-favicon.mjs
  */
@@ -61,7 +61,7 @@ const result = await page.evaluate(async () => {
     });
   await wait(() => host.querySelector('#fvEditor').style.display !== 'none', 10000, '그림을 읽지 못했다');
 
-  // ico 만 받기 — 결과를 가로챈다
+  // ico 만 받기. 결과를 가로챈다
   let ico = null;
   const orig = URL.createObjectURL;
   URL.createObjectURL = (b) => { if (b && b.type === 'image/x-icon') ico = b; return orig(b); };
@@ -76,7 +76,7 @@ const result = await page.evaluate(async () => {
   const type = view.getUint16(2, true);
   const count = view.getUint16(4, true);
 
-  // 브라우저가 실제로 여는지 — 규격이 틀리면 여기서 크기가 0 이 된다
+  // 브라우저가 실제로 여는지. 규격이 틀리면 여기서 크기가 0 이 된다
   const opened = await new Promise((r) => {
     const im = new Image();
     im.onload = () => r([im.naturalWidth, im.naturalHeight]);
@@ -96,7 +96,7 @@ const result = await page.evaluate(async () => {
       shown.includes(16) &&
       shown.includes(32) &&
       shown.includes(180),
-    why: `ico 머리말 ${reserved}/${type}/${count}장 · 브라우저가 연 크기 ${opened.join('x')} · 미리보기 ${shown.join(',')}`
+    why: `ico 머리말 ${reserved}/${type}/${count}장, 브라우저가 연 크기 ${opened.join('x')}, 미리보기 ${shown.join(',')}`
   };
 });
 

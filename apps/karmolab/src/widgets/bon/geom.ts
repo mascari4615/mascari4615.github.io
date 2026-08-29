@@ -1,11 +1,11 @@
 /**
- * 「본」 — 고르기·끌기의 셈 (TASK-KL-254 · 2단계)
+ * 본. 고르기, 끌기의 셈 (TASK-KL-254, 2단계)
  *
- * 「어느 도형을 눌렀나」, 「손잡이를 이만큼 끌면 도형이 어떻게 되나」는 화면 없이도 답할 수 있는
- * 물음이다. 그래서 여기 모은다 — 브라우저를 모르고, 검사가 이 파일을 직접 찌른다.
+ * 어느 도형을 눌렀나, 손잡이를 이만큼 끌면 도형이 어떻게 되나는 화면 없이도 답할 수 있는
+ * 물음이다. 그래서 여기 모은다. 브라우저를 모르고, 검사가 이 파일을 직접 찌른다.
  * 화면(`view.ts`)은 포인터 좌표를 문서 좌표로 옮겨 여기에 물어보기만 한다.
  *
- * 좌표는 전부 문서 좌표(px)다. 확대·이동은 화면 쪽 일이다.
+ * 좌표는 전부 문서 좌표(px)다. 확대, 이동은 화면 쪽 일이다.
  */
 
 import type { Doc, Node } from './model';
@@ -20,7 +20,7 @@ export function bounds(node: Node): Box {
     case 'ellipse':
       return { x: node.cx - node.rx, y: node.cy - node.ry, w: node.rx * 2, h: node.ry * 2 };
     case 'path': {
-      // 경로는 숫자만 훑어 대충 감싼다 — 곡선의 정확한 끝은 화면이 알려 주면 그때 좁힌다.
+      // 경로는 숫자만 훑어 대충 감싼다. 곡선의 정확한 끝은 화면이 알려 주면 그때 좁힌다.
       const nums = (node.d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
       if (nums.length < 2) return { x: 0, y: 0, w: 0, h: 0 };
       const xs: number[] = [];
@@ -44,7 +44,7 @@ export function bounds(node: Node): Box {
 export const inBox = (b: Box, x: number, y: number): boolean =>
   x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
 
-/** 어느 도형을 눌렀나. **위에 그려진 것이 먼저** — 뒤에서부터 훑는다. 없으면 null. */
+/** 어느 도형을 눌렀나. **위에 그려진 것이 먼저**. 뒤에서부터 훑는다. 없으면 null. */
 export function hitTest(doc: Doc, x: number, y: number): { layer: number; index: number } | null {
   for (let li = doc.layers.length - 1; li >= 0; li -= 1) {
     const layer = doc.layers[li];
@@ -69,7 +69,7 @@ export function handlePoints(b: Box): Record<Exclude<Handle, 'move'>, { x: numbe
   };
 }
 
-/** 손잡이를 잡았나. `slop` 은 손가락 굵기(문서 좌표) — 화면 확대율에 맞춰 넘긴다. */
+/** 손잡이를 잡았나. `slop` 은 손가락 굵기(문서 좌표). 화면 확대율에 맞춰 넘긴다. */
 export function handleAt(b: Box, x: number, y: number, slop: number): Handle | null {
   const pts = handlePoints(b);
   for (const [name, p] of Object.entries(pts)) {
@@ -79,7 +79,7 @@ export function handleAt(b: Box, x: number, y: number, slop: number): Handle | n
 }
 
 /**
- * 손잡이를 끌었을 때의 새 네모. **뒤집히지 않는다** — 왼쪽 손잡이를 오른쪽 끝 너머로 끌면
+ * 손잡이를 끌었을 때의 새 네모. **뒤집히지 않는다**. 왼쪽 손잡이를 오른쪽 끝 너머로 끌면
  * 크기가 음수가 되는데, 그러면 그린 것이 사라지거나 뒤집혀 보인다. 0 에서 멈춘다.
  * `snap` 을 주면 그 간격 격자에 붙는다(픽셀에 딱 맞는 부품을 만들 때).
  */
@@ -96,9 +96,9 @@ export function resizeBox(b: Box, handle: Handle, dx: number, dy: number, snap =
 
 
 /**
- * 경로·무리를 통째로 민다. 네모를 적어 넣는 `applyBox` 로는 못 옮기는 것들 —
+ * 경로, 무리를 통째로 민다. 네모를 적어 넣는 `applyBox` 로는 못 옮기는 것들 . 
  * 경로는 점이 여럿이고, 무리는 자식이 각자 자리를 들고 있다.
- * 「끌어서 옮기기」가 이 둘에서만 안 먹던 것을 여기서 닫는다.
+ * 끌어서 옮기기가 이 둘에서만 안 먹던 것을 여기서 닫는다.
  */
 export function translate(node: Node, dx: number, dy: number): void {
   if (dx === 0 && dy === 0) return;
@@ -110,7 +110,7 @@ export function translate(node: Node, dx: number, dy: number): void {
       node.cx += dx; node.cy += dy;
       break;
     case 'path':
-      // 숫자쌍을 x·y 로 번갈아 읽어 민다. 명령 글자(M·L·C…)는 그대로 둔다.
+      // 숫자쌍을 x, y 로 번갈아 읽어 민다. 명령 글자(M, L, C...)는 그대로 둔다.
       {
         let isX = true;
         node.d = node.d.replace(/-?\d+(\.\d+)?/g, (raw) => {
@@ -127,12 +127,12 @@ export function translate(node: Node, dx: number, dy: number): void {
 }
 
 
-/** 판 기준으로 어디에 붙일까. 「가운데」가 제일 많이 쓰이므로 한 번에 되게 둔다. */
+/** 판 기준으로 어디에 붙일까. 가운데가 제일 많이 쓰이므로 한 번에 되게 둔다. */
 export type Align = 'left' | 'hcenter' | 'right' | 'top' | 'vcenter' | 'bottom';
 
 /**
- * 도형을 판 기준으로 민다. **크기는 안 건드린다** — 정렬은 자리 옮기기지 늘이기가 아니다.
- * (늘여 버리면 애써 맞춘 모서리 둥글기·테두리가 같이 일그러진다.)
+ * 도형을 판 기준으로 민다. **크기는 안 건드린다**. 정렬은 자리 옮기기지 늘이기가 아니다.
+ * (늘여 버리면 애써 맞춘 모서리 둥글기, 테두리가 같이 일그러진다.)
  */
 export function alignTo(node: Node, docW: number, docH: number, how: Align): void {
   const b = bounds(node);
@@ -147,7 +147,7 @@ export function alignTo(node: Node, docW: number, docH: number, how: Align): voi
   translate(node, Math.round(dx), Math.round(dy));
 }
 
-/** 판에 꽉 채우기 — 여백을 남길 수 있다. 부품은 대개 판이 곧 부품 크기다. */
+/** 판에 꽉 채우기. 여백을 남길 수 있다. 부품은 대개 판이 곧 부품 크기다. */
 export function fitToDoc(node: Node, docW: number, docH: number, margin = 0): void {
   const inner = { x: margin, y: margin, w: Math.max(0, docW - margin * 2), h: Math.max(0, docH - margin * 2) };
   applyBox(node, inner);
@@ -155,7 +155,7 @@ export function fitToDoc(node: Node, docW: number, docH: number, margin = 0): vo
 
 
 /**
- * 경로의 점들 — 「M12 8L20 30Z」 같은 글에서 좌표만 뽑는다.
+ * 경로의 점들. M12 8L20 30Z 같은 글에서 좌표만 뽑는다.
  * 점을 하나씩 잡아 옮기려면 먼저 어디에 몇 개가 있는지 알아야 한다.
  */
 export function pathPoints(d: string): { x: number; y: number }[] {
@@ -165,7 +165,7 @@ export function pathPoints(d: string): { x: number; y: number }[] {
   return out;
 }
 
-/** 점들을 다시 글로. 닫힌 것(Z)은 닫힌 채로 둔다 — 편집하다 열리면 채우기가 사라진다. */
+/** 점들을 다시 글로. 닫힌 것(Z)은 닫힌 채로 둔다. 편집하다 열리면 채우기가 사라진다. */
 export function pathFrom(points: { x: number; y: number }[], closed: boolean): string {
   if (points.length === 0) return '';
   const round = (v: number): number => Math.round(v * 1000) / 1000;
@@ -188,7 +188,7 @@ export function pointAt(d: string, x: number, y: number, slop: number): number {
   return best;
 }
 
-/** 점 하나를 옮긴다. 나머지는 그대로 — 이게 「모양을 고친다」와 「통째로 민다」의 차이다. */
+/** 점 하나를 옮긴다. 나머지는 그대로. 이게 모양을 고친다와 통째로 민다의 차이다. */
 export function movePoint(d: string, index: number, x: number, y: number): string {
   const points = pathPoints(d);
   if (index < 0 || index >= points.length) return d;
@@ -196,7 +196,7 @@ export function movePoint(d: string, index: number, x: number, y: number): strin
   return pathFrom(points, isClosedPath(d));
 }
 
-/** 새 네모를 도형에 적는다 — 도형 종류마다 담는 자리가 다르다. */
+/** 새 네모를 도형에 적는다. 도형 종류마다 담는 자리가 다르다. */
 export function applyBox(node: Node, box: Box): void {
   if (node.kind === 'rect') {
     node.x = box.x; node.y = box.y; node.w = box.w; node.h = box.h;
@@ -205,7 +205,7 @@ export function applyBox(node: Node, box: Box): void {
     node.rx = box.w / 2; node.ry = box.h / 2;
     node.cx = box.x + node.rx; node.cy = box.y + node.ry;
   } else {
-    // 경로·무리는 늘이지 않고 **민다**. 점마다 배율을 먹이면 선 굵기·모서리가 같이 일그러진다.
+    // 경로, 무리는 늘이지 않고 **민다**. 점마다 배율을 먹이면 선 굵기, 모서리가 같이 일그러진다.
     const b = bounds(node);
     translate(node, box.x - b.x, box.y - b.y);
   }

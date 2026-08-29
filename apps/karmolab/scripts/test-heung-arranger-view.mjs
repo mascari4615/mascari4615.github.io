@@ -8,7 +8,7 @@ const sourcePath = path.resolve('src/widgets/heung/arranger-view.ts');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
-/* model 은 값 범위 상수만 쓴다 — 뷰가 모델 전체를 안 끌어오는지도 여기서 드러난다. */
+/* model 은 값 범위 상수만 쓴다. 뷰가 모델 전체를 안 끌어오는지도 여기서 드러난다. */
 const modelStub = { AUTOMATION_RANGE: { volume: { min: 0, max: 1.2 }, pan: { min: -1, max: 1 }, reverb: { min: 0, max: 1 } } };
 vm.runInNewContext(`(function(exports,module,require){${compiled}
 })(module.exports,module,()=>modelStub);`, { module, console, Math, modelStub });
@@ -18,7 +18,7 @@ const esc = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, 
 const track = { id: 't1', kind: 'midi', name: 'Inst', color: '#8b7cf6', volume: 0.8, pan: 0, mute: false, solo: false, eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0, reverb: 0, instrument: 'saw', clips: [], automation: { volume: [], pan: [] }, folded: false };
 const clip = (notes = [], extra = {}) => ({ id: 'c1', trackId: 't1', kind: 'midi', name: 'A', start: 2, duration: 4, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, notes, ...extra });
 
-// 자동화 y 좌표 — 항목마다 범위가 다르다
+// 자동화 y 좌표. 항목마다 범위가 다르다
 assert.equal(automationY(1.2, 'volume'), 0, '볼륨 최대는 맨 위');
 assert.equal(automationY(0, 'volume'), AUTOMATION_GEOMETRY.height, '볼륨 0 은 맨 아래');
 assert.equal(automationY(99, 'volume'), 0, '범위를 넘어도 화면 밖으로 안 나간다');
@@ -32,7 +32,7 @@ for (const [param, value] of [['volume', 0.6], ['pan', -0.4]]) {
   assert.ok(Math.abs(back - value) < 1e-9, `${param} 왕복`);
 }
 
-// 파형 — 표본이 없으면 빈 문자열, 있으면 96칸
+// 파형. 표본이 없으면 빈 문자열, 있으면 96칸
 assert.equal(waveformPath({ data: [], start: 0, end: 0 }), '', '빈 구간은 빈 path');
 assert.equal(waveformPath({ data: [1, -1], start: 5, end: 2 }), '', '거꾸로 된 구간도 빈 path');
 const wave = new Float32Array(480);
@@ -49,7 +49,7 @@ assert.ok(waveformSvg('M0 0', 'name', 'hu-wave-large').includes('hu-wave-large')
 assert.ok(waveMissing(true).includes('DECODING'), '아직 읽는 중');
 assert.ok(waveMissing(false).includes('MISSING'), '원본이 없다');
 
-// 클립 — MIDI 는 음을 깔고, 오디오는 주입받은 속 그림을 쓴다
+// 클립. MIDI 는 음을 깔고, 오디오는 주입받은 속 그림을 쓴다
 const midi = clipHtml({ track, clip: clip([{ id: 'n1', beat: 0, duration: 1, pitch: 60, velocity: 0.8 }, { id: 'n2', beat: 1, duration: 1, pitch: 67, velocity: 0.8 }]), pxPerBeat: 72, selected: false, audioBody: () => 'AUDIO', esc });
 assert.equal((midi.match(/class="hu-midi-note"/g) || []).length, 2);
 assert.ok(!midi.includes('AUDIO'), 'MIDI 클립은 오디오 속 그림을 안 부른다');
@@ -69,7 +69,7 @@ assert.ok(!/NaN/.test(single), '음이 하나여도 좌표가 NaN 이 안 된다
 const evil = clipHtml({ track, clip: clip([], { name: '<script>x</script>' }), pxPerBeat: 72, selected: false, audioBody: () => '', esc });
 assert.ok(!evil.includes('<script>'), '클립 이름의 태그가 살아 나가지 않는다');
 
-// 자동화 줄 — 점이 없으면 평평한 선 하나
+// 자동화 줄. 점이 없으면 평평한 선 하나
 const flat = automationHtml({ trackId: 't1', param: 'volume', points: [], fallback: 0.6, pxPerBeat: 72, width: 900, projectBeats: 16, beatLabel: (beat) => `b${beat}` });
 assert.ok(flat.includes('점 없음'), '점이 없으면 그렇게 말한다');
 assert.equal((flat.match(/data-auto-point/g) || []).length, 0);
@@ -80,10 +80,10 @@ const ramped = automationHtml({ trackId: 't1', param: 'volume', points: [{ id: '
 assert.equal((ramped.match(/data-auto-point/g) || []).length, 2);
 assert.ok(ramped.indexOf('L72,') < ramped.indexOf('L288,'), '점을 시간순으로 잇는다');
 assert.ok(ramped.includes('L900,'), '마지막 점 뒤로 끝까지 연장');
-assert.ok(ramped.includes('· 2점'));
+assert.ok(ramped.includes(',  2점'));
 assert.ok(ramped.includes('b1') && ramped.includes('b4'), '점 설명에 위치를 쓴다');
 
-// 화면에 걸리는 클립만 고른다 — 큰 곡에서 편집 한 번이 통째로 멈추던 원인
+// 화면에 걸리는 클립만 고른다. 큰 곡에서 편집 한 번이 통째로 멈추던 원인
 const many = Array.from({ length: 40 }, (_, index) => ({ start: index * 4, duration: 4 }));
 assert.equal(visibleClips(many, 0, 20).length, 5, '0~20박이면 5개');
 assert.equal(visibleClips(many, 0, 20, 20).length, 10, '여유 20박이면 양옆까지 10개');
@@ -96,7 +96,7 @@ assert.equal(visibleClips([{ start: 20, duration: 4 }], 10, 20).length, 0, '딱 
 assert.equal(visibleClips([{ start: 6, duration: 4 }], 10, 20).length, 0, '딱 끝나면 밖');
 assert.equal(visibleClips(many, 0, Number.POSITIVE_INFINITY).length, 40, '한계가 없으면 전부');
 
-// 미리보기 음 솎기 — 폭에 맞춰 고르게
+// 미리보기 음 솎기. 폭에 맞춰 고르게
 assert.equal(previewNotes([1, 2, 3], 288).length, 3, '적으면 그대로');
 assert.equal(previewNotes(Array.from({ length: 400 }, (_, i) => i), 288).length, 64, '넓어도 상한 64');
 assert.equal(previewNotes(Array.from({ length: 400 }, (_, i) => i), 8).length, 8, '아주 좁아도 하한 8');
@@ -112,14 +112,14 @@ assert.ok(panLane.includes('>PAN'), '이름이 PAN');
 assert.ok(panLane.includes('L50'), '왼쪽 값은 L 로 읽는다');
 assert.ok(panLane.includes('가운데'), '0 은 가운데');
 assert.ok(panLane.includes('data-auto-kind="pan"'), '어느 항목인지 DOM 에 남긴다');
-assert.ok(!panLane.includes('data-auto-param'), '항목 단추는 lane 안에 없다 — 점을 덮는다');
+assert.ok(!panLane.includes('data-auto-param'), '항목 단추는 lane 안에 없다. 점을 덮는다');
 const picker = automationPickerHtml('t1', 'pan');
 assert.equal((picker.match(/data-auto-param=/g) || []).length, 3, '고를 항목이 셋');
 assert.ok(picker.includes('data-auto-param="pan" data-track="t1"'), '어느 트랙인지 들고 있다');
 assert.equal((picker.match(/is-on/g) || []).length, 1, '지금 항목 하나만 켜져 보인다');
 assert.ok(automationPickerHtml('t1', 'reverb').includes('data-auto-param="reverb" data-track="t1"'));
 
-// 리버브 줄 — 0~1 이라 볼륨과 눈금이 다르다
+// 리버브 줄. 0~1 이라 볼륨과 눈금이 다르다
 assert.equal(automationY(1, 'reverb'), 0, '리버브 최대는 맨 위');
 assert.equal(automationY(0, 'reverb'), AUTOMATION_GEOMETRY.height);
 assert.ok(automationY(0.5, 'reverb') !== automationY(0.5, 'volume'), '볼륨과 눈금이 다르다');
@@ -140,4 +140,4 @@ for (const tool of ['draw', 'select', 'slice']) {
   }
 }
 
-console.log('[test-heung-arranger-view] ✓ 자동화 좌표 · 파형 96칸 · 클립 본문 분기 · 이스케이프 · 자동화 선 · 화면 밖 걸러내기 · 빈 줄 안내');
+console.log('[test-heung-arranger-view] ✓ 자동화 좌표, 파형 96칸, 클립 본문 분기, 이스케이프, 자동화 선, 화면 밖 걸러내기, 빈 줄 안내');

@@ -1,7 +1,7 @@
 /**
- * 그라데이션의 「가운데가 안 죽는다」가 진짜인지 확인한다 (TASK-KL-088)
+ * 그라데이션의 가운데가 안 죽는다가 진짜인지 확인한다 (TASK-KL-088)
  *
- * 이 도구의 주장은 하나다 — 그냥 섞으면 가운데가 탁해지고, 눈에 맞춰 섞으면 안 그렇다.
+ * 이 도구의 주장은 하나다. 그냥 섞으면 가운데가 탁해지고, 눈에 맞춰 섞으면 안 그렇다.
  * 주장을 화면에 적기는 쉽고, 계산이 틀려도 그림은 그럴듯하게 나온다.
  *
  * 그래서 파랑↔노랑의 **가운데 색 밝기**를 재서, 눈에 맞춘 쪽이 실제로 더 밝은지 본다.
@@ -43,7 +43,7 @@ const result = await page.evaluate(async () => {
     host.querySelector('#grTo').dispatchEvent(new Event('input'));
   };
 
-  // 파랑 ↔ 노랑 — 그냥 섞으면 가운데가 회색으로 죽는 대표적인 조합
+  // 파랑 ↔ 노랑. 그냥 섞으면 가운데가 회색으로 죽는 대표적인 조합
   set('#0000ff', '#ffff00');
   const msg = host.querySelector('#grStatus').textContent;
 
@@ -70,7 +70,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: perceptual > plain * 1.3 && css.startsWith('background:') && css.includes('linear-gradient') && moreStops,
-    why: `가운데 밝기 그냥 ${plain.toFixed(3)} → 눈에 맞춤 ${perceptual.toFixed(3)} (1.3배 이상 밝아야 함) · CSS ${css.slice(0, 28)}… · 단계 늘어남 ${moreStops}`
+    why: `가운데 밝기 그냥 ${plain.toFixed(3)} → 눈에 맞춤 ${perceptual.toFixed(3)} (1.3배 이상 밝아야 함), CSS ${css.slice(0, 28)}..., 단계 늘어남 ${moreStops}`
   };
 });
 

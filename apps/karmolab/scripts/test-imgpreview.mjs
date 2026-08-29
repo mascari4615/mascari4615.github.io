@@ -1,8 +1,8 @@
 /**
- * 미리보기 자르기·판정 — **거짓 숫자를 안 내는가** (TASK-KL-238 / 17 squoosh).
+ * 미리보기 자르기, 판정. **거짓 숫자를 안 내는가** (TASK-KL-238 / 17 squoosh).
  *
- * 「눌러 보기 전에 알려 준다」는 도구는 잘못 알려 주면 그냥 해롭다. 여기서 지키는 것 둘:
- *   ① 줄어든 비율은 **늘 양수**이고 방향은 따로 말한다 (「-559% 줄었다」가 나오면 안 된다)
+ * 눌러 보기 전에 알려 준다는 도구는 잘못 알려 주면 그냥 해롭다. 여기서 지키는 것 둘:
+ *   ① 줄어든 비율은 **늘 양수**이고 방향은 따로 말한다 (-559% 줄었다가 나오면 안 된다)
  *   ② 원본보다 큰 자리를 떼어 달라고 하지 않는다 (검은 띠를 압축 자국으로 오해한다)
  *
  * 사용: node scripts/test-imgpreview.mjs   (npm run test:ipreview)
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const stamp = Date.now();
@@ -60,7 +60,7 @@ const P = await load();
   check(c.sw >= 1 && c.sh >= 1, '아무리 확대해도 0칸을 떼지 않는다');
 }
 
-/* 얼마나 줄었나 — 방향은 kind, 크기는 늘 양수 */
+/* 얼마나 줄었나. 방향은 kind, 크기는 늘 양수 */
 {
   const s = P.saving(1000, 400);
   eq(s.kind, 'smaller', '작아지면 smaller');
@@ -69,10 +69,10 @@ const P = await load();
 {
   const s = P.saving(1000, 6590);
   eq(s.kind, 'bigger', '커지면 bigger');
-  check(s.pct > 0, '커져도 비율은 양수 (「-559% 줄었다」 금지)');
+  check(s.pct > 0, '커져도 비율은 양수 (-559% 줄었다 금지)');
 }
 eq(P.saving(1000, 1000).kind, 'same', '그대로면 same');
-eq(P.saving(0, 100).kind, 'same', '0 바이트 원본은 나눌 수 없다 — 지어내지 않는다');
+eq(P.saving(0, 100).kind, 'same', '0 바이트 원본은 나눌 수 없다. 지어내지 않는다');
 eq(P.saving(1000, 999).kind, 'same', '반올림해서 0% 면 같다고 말한다');
 
 /* 여러 장 어림 */
@@ -82,8 +82,8 @@ eq(P.estimateTotal(10000, 0, 400), null, '표본이 0 이면 어림하지 않는
 
 process.stdout.write('\n');
 if (failures.length) {
-  console.error(`\n미리보기 — ${failures.length}건 실패:`);
+  console.error(`\n미리보기. ${failures.length}건 실패:`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('미리보기 — 전부 통과');
+console.log('미리보기. 전부 통과');

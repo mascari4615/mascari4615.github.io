@@ -24,7 +24,7 @@ test('같은 걸 두 번 담지 않는다', () => {
   assert.equal(store.size(), 1);
 });
 
-test('오래 담아 둔 것부터 꺼낸다 — 새 궁금증이 옛것을 덮지 않게', () => {
+test('오래 담아 둔 것부터 꺼낸다. 새 궁금증이 옛것을 덮지 않게', () => {
   const store = tempStore();
   store.wonder('첫 번째');
   store.wonder('두 번째');
@@ -41,7 +41,7 @@ test('물어본 것은 다시 안 묻는다', () => {
   assert.equal(store.size(), 1, '이미 물어본 건 도로 담기지 않는다');
 });
 
-test('껐다 켜도 궁금증은 남는다 — 어제 궁금했던 걸 오늘 묻는다', () => {
+test('껐다 켜도 궁금증은 남는다. 어제 궁금했던 걸 오늘 묻는다', () => {
   const path = join(mkdtempSync(join(tmpdir(), 'companion-wonder-')), '궁금한-것.md');
   fileCuriosity(path).wonder('그 고양이 name');
   assert.equal(fileCuriosity(path).next(), '그 고양이 name');
@@ -71,7 +71,7 @@ test('손으로 담으면 실제로 들어간다', async () => {
   assert.equal(store.next(), '왜 마녀 게임인지');
 });
 
-test('가끔만 꺼낸다 — 매번 꺼내면 취조가 된다', () => {
+test('가끔만 꺼낸다. 매번 꺼내면 취조가 된다', () => {
   const store = tempStore();
   store.wonder('뭐 하나 궁금한 게');
   assert.equal(maybeAsk(store, { chance: 0.25, roll: () => 0.9 }), '', '운이 아니면 안 꺼낸다');
@@ -99,7 +99,7 @@ test('사람이 꺼낸 새 얘기를 자동으로 담아 둔다', () => {
   assert.match(store.next(), /마녀|게임|만드는/);
 });
 
-test('씨앗은 짧게 담는다 — 문장째 담으면 꺼낼 때 그 문장을 읊는다 (31회차에 뒤집었다)', () => {
+test('씨앗은 짧게 담는다. 문장째 담으면 꺼낼 때 그 문장을 읊는다 (31회차에 뒤집었다)', () => {
   const place = [];
   const store = { wonder: (x) => place.push(x), next: () => place[0] ?? null, asked: () => {}, size: () => place.length };
   const seed = noticeCuriosity('어제 그 셰이더 결국 못 고쳤어', null, store);

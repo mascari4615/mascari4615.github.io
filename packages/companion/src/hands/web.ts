@@ -1,15 +1,15 @@
 /**
- * 밖에서 찾아보는 손 — **모르는 걸 그 자리에서 찾아본다.**
+ * 밖에서 찾아보는 손. **모르는 걸 그 자리에서 찾아본다.**
  *
  * 뉴로사마가 매 방송에서 쓰는 게 이것이다(검색 기록이 만든 사람 로그에 남을 만큼 자주).
- * 우리 얘는 손이 하나뿐이었고(적어 둔 것 보기), 모르는 게 나오면 「나도 잘 모르는데…」로
- * 넘겼다 — 14회차에 회피로 잡아냈던 그 벽의 절반은 **알 방법이 없어서**였다.
+ * 우리 얘는 손이 하나뿐이었고(적어 둔 것 보기), 모르는 게 나오면 나도 잘 모르는데...로
+ * 넘겼다. 14회차에 회피로 잡아냈던 그 벽의 절반은 **알 방법이 없어서**였다.
  *
  * 규칙 셋:
  * - **읽기만 한다.** 검색과 페이지 읽기뿐이다. 밖에 뭔가를 보내거나 바꾸지 않는다.
  * - **열쇠가 필요 없어야 한다.** 키를 받아 두면 그게 만료되는 날 조용히 손이 죽는다.
  *   DuckDuckGo 의 html 판은 키 없이 답한다.
- * - **못 찾으면 못 찾았다고 한다.** 빈손으로 돌아오면 두뇌가 지어낸다(「made-up」에서
+ * - **못 찾으면 못 찾았다고 한다.** 빈손으로 돌아오면 두뇌가 지어낸다(made-up에서
  *   이미 본 실패다).
  */
 
@@ -23,7 +23,7 @@ export interface SearchHit {
 export interface WebSearchOptions {
   /** 몇 개까지. */
   count?: number;
-  /** 이 시간 안에 못 받으면 포기 — 곁에 있는 존재가 검색 때문에 굳으면 안 된다. */
+  /** 이 시간 안에 못 받으면 포기. 곁에 있는 존재가 검색 때문에 굳으면 안 된다. */
   waitMs?: number;
   /** 시험에서 갈아끼운다. */
   fetch?: (url: string, signal: AbortSignal) => Promise<string>;
@@ -61,7 +61,7 @@ export function textOnly(html: string): string {
  * DuckDuckGo html 판에서 결과를 뽑는다.
  *
  * 남의 화면 생김새에 기대는 일이라 언젠가 어긋난다. 그래서 **못 뽑으면 빈 배열**이고,
- * 부르는 쪽이 「못 찾았다」고 말한다 — 조용히 그럴듯한 걸 지어내는 것보다 낫다.
+ * 부르는 쪽이 못 찾았다고 말한다. 조용히 그럴듯한 걸 지어내는 것보다 낫다.
  */
 export function extractResults(html: string, count = 5): SearchHit[] {
   const produced: SearchHit[] = [];
@@ -108,14 +108,14 @@ export async function searchWeb(what: string, options: WebSearchOptions = {}): P
     );
     const items = extractResults(html, count2);
     if (items.length === 0) {
-      options.log?.(`「${question}」 — 찾은 게 없다 (결과를 못 뽑았을 수도)`);
-      return `「${question}」 으로는 못 찾았다.`;
+      options.log?.(`${question}. 찾은 게 없다 (결과를 못 뽑았을 수도)`);
+      return `${question} 으로는 못 찾았다.`;
     }
-    options.log?.(`「${question}」 — ${items.length}개 찾았다`);
+    options.log?.(`${question}. ${items.length}개 찾았다`);
     return items.map((r, i) => `${i + 1}. ${r.title}\n   ${r.summary}\n   ${r.url}`).join('\n');
   } catch (e) {
     const why = e instanceof Error && e.name === 'AbortError' ? `${waited / 1000}초 안에 답이 없었다` : String(e);
-    options.log?.(`「${question}」 — 못 찾았다: ${why}`);
+    options.log?.(`${question}. 못 찾았다: ${why}`);
     return `못 찾았다 (${why}).`;
   } finally {
     clearTimeout(clock);
@@ -133,7 +133,7 @@ export async function readIn(url2: string, options: WebSearchOptions & { charCou
   const clock2 = setTimeout(() => controller.abort(), waited2);
   try {
     const html = await fetch3(place, controller.signal);
-    // 대본·모양자는 글이 아니다 — 걷어내야 읽을 게 남는다.
+    // 대본, 모양자는 글이 아니다. 걷어내야 읽을 게 남는다.
     const body = html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ');

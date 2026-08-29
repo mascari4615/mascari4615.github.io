@@ -2,14 +2,14 @@
  * protobuf 를 눈으로 (TASK-KL-316 / 18)
  *
  * protobuf 바이너리는 **스키마가 없으면 아무것도 아니다**. 그런데 문제가 터지는 자리는 대개
- * 「이 바이트가 뭔지 모르겠다」이다 — 로그에 찍힌 base64 한 덩이, 캡처한 요청 몸통 같은 것.
+ * 이 바이트가 뭔지 모르겠다이다. 로그에 찍힌 base64 한 덩이, 캡처한 요청 몸통 같은 것.
  *
  * 그래서 두 갈래로 읽는다:
- *   ① **스키마 없이** — 선 형식(wire format)만으로 「번호 3번, 문자열, 길이 12」까지는 늘 알 수 있다.
- *   ② **`.proto` 를 주면** — 번호에 이름·타입을 붙여 사람 말로 만든다.
+ *   ① **스키마 없이**. 선 형식(wire format)만으로 번호 3번, 문자열, 길이 12까지는 늘 알 수 있다.
+ *   ② **`.proto` 를 주면**. 번호에 이름, 타입을 붙여 사람 말로 만든다.
  *
  * 되짚어 쓰기(encode)도 있다: 스키마와 JSON 을 주면 바이트로 만든다.
- * 다만 **모르는 것은 모른다고 적는다** — 64비트 실수·zigzag 여부처럼 스키마 없이 못 가르는 자리는
+ * 다만 **모르는 것은 모른다고 적는다**. 64비트 실수, zigzag 여부처럼 스키마 없이 못 가르는 자리는
  * 후보를 같이 돌려준다. 짐작해서 하나만 보여 주면 사람이 그걸 믿는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -91,7 +91,7 @@ export function fromBase64(text: string): Uint8Array {
   throw new Error('base64 를 읽을 수 없습니다');
 }
 
-/** 16진수처럼 보이나 base64 처럼 보이나 — 사람은 아무거나 붙여넣는다. */
+/** 16진수처럼 보이나 base64 처럼 보이나. 사람은 아무거나 붙여넣는다. */
 export function readBytes(text: string): Uint8Array {
   const body = text.trim();
   if (/^[0-9a-f\s,x]+$/i.test(body) && body.replace(/[^0-9a-f]/gi, '').length % 2 === 0) return fromHex(body);
@@ -103,7 +103,7 @@ export type WireKind = 'varint' | 'i64' | 'bytes' | 'i32' | 'unknown';
 export interface Piece {
   no: number;
   kind: WireKind;
-  /** 스키마가 있으면 붙는 이름·타입 */
+  /** 스키마가 있으면 붙는 이름, 타입 */
   name?: string;
   declared?: string;
   /** 사람이 볼 값 (스키마가 없으면 후보를 함께) */
@@ -160,7 +160,7 @@ export function decode(bytes: Uint8Array, schema?: Message, all: Message[] = [],
       else if (declared.startsWith('sint')) piece.value = String(zigzag(v.value));
       else piece.value = String(v.value);
       if (field === undefined) {
-        /* 스키마가 없으면 **여러 읽기가 다 맞다** — 하나만 보여 주면 그걸 믿는다. */
+        /* 스키마가 없으면 **여러 읽기가 다 맞다**. 하나만 보여 주면 그걸 믿는다. */
         piece.alternatives = { signed: String(zigzag(v.value)), bool: v.value !== 0n };
       }
     } else if (wire === 1) {
@@ -181,9 +181,9 @@ export function decode(bytes: Uint8Array, schema?: Message, all: Message[] = [],
       const nested = all.find((m) => m.name === declared);
       if (nested !== undefined && depth < 8) {
         piece.children = decode(slice, nested, all, depth + 1);
-        piece.value = '{…}';
+        piece.value = '{...}';
       } else if (declared === 'string' || declared === 'bytes' || field === undefined) {
-        /* 스키마가 없으면 **안에 메시지가 또 있는지** 열어 본다 — 되면 그게 대개 맞다. */
+        /* 스키마가 없으면 **안에 메시지가 또 있는지** 열어 본다. 되면 그게 대개 맞다. */
         let child: Piece[] | undefined;
         if (depth < 8 && slice.length > 0 && declared !== 'string') {
           try {
@@ -198,7 +198,7 @@ export function decode(bytes: Uint8Array, schema?: Message, all: Message[] = [],
           if (child !== undefined) piece.alternatives = { message: child.length + ' fields' };
         } else if (child !== undefined) {
           piece.children = child;
-          piece.value = '{…}';
+          piece.value = '{...}';
         } else {
           piece.value = toHex(slice);
         }
@@ -292,7 +292,7 @@ export function show(pieces: Piece[], indent = 0): string {
   return pieces
     .map((p) => {
       const head = pad + '#' + p.no + (p.name === undefined ? '' : ' ' + p.name) + ' (' + (p.declared ?? p.kind) + ')';
-      const alt = p.alternatives === undefined ? '' : '   ~ ' + Object.entries(p.alternatives).map(([k, v]) => k + '=' + String(v)).join(' · ');
+      const alt = p.alternatives === undefined ? '' : '   ~ ' + Object.entries(p.alternatives).map(([k, v]) => k + '=' + String(v)).join(', ');
       if (p.children !== undefined) return head + '\n' + show(p.children, indent + 1);
       return head + ': ' + String(p.value) + alt;
     })

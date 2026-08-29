@@ -1,5 +1,5 @@
 /**
- * /게임 슬래시 빌더 — 검 강화, 미니게임, 주식, 레이드 통합
+ * /게임 슬래시 빌더. 검 강화, 미니게임, 주식, 레이드 통합
  *
  * 서브커맨드 그룹 구조:
  *   /게임 검   → 강화, 판매, 정보, 돈, 랭킹, 출첵, 돈내놔
@@ -23,8 +23,8 @@ const STOCK_SYMBOLS = [
 export const gameCommandGroup = () =>
   new SlashCommandBuilder()
     .setName('게임')
-    .setDescription('검 강화 · 미니게임 · 주식 · 레이드')
-    .setDescriptionLocalizations(enUS('Sword · Minigames · Stocks · Raid'))
+    .setDescription('검 강화, 미니게임, 주식, 레이드')
+    .setDescriptionLocalizations(enUS('Sword, Minigames, Stocks, Raid'))
 
     // ── 검 강화 ──────────────────────────────────────────────
     .addSubcommandGroup((g) =>

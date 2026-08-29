@@ -17,7 +17,7 @@ export type SearchSystem<T> = {
   refresh(providerId?: string): void;
   replace(documents: Iterable<SearchDocument<T>>): void;
   search(query: string, limit?: number): SearchResult<T>[];
-  /** 한가할 때 미리 다듬어 둔다 — 첫 글자만 굼뜬 것을 없앤다. */
+  /** 한가할 때 미리 다듬어 둔다. 첫 글자만 굼뜬 것을 없앤다. */
   warm(): void;
   size(): number;
   providerIds(): string[];
@@ -71,7 +71,7 @@ export function createSearchSystem<T>(initial: Iterable<SearchDocument<T>> = [])
         .localeCompare(String((b.value as { title?: string }).title || ''), 'ko-KR'));
       return typeof limit === 'number' ? results.slice(0, Math.max(0, limit)) : results;
     },
-    /** 한가할 때 미리 다듬어 둔다 — 첫 글자의 굼뜸을 없앤다. */
+    /** 한가할 때 미리 다듬어 둔다. 첫 글자의 굼뜸을 없앤다. */
     warm() {
       for (const documents of snapshots.values()) for (const document of documents) warmSearchable(document);
     },

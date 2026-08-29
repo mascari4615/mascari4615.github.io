@@ -1,10 +1,10 @@
 /**
- * panels/notes-panel.ts — 공용 글 목록 (TASK-KL-202 노트 1급 객체 3회차).
+ * panels/notes-panel.ts. 공용 글 목록 (TASK-KL-202 노트 1급 객체 3회차).
  *
- * 글을 승격시킬 수만 있고 **어디에도 목록이 없으면** 금세 「누가 뭘 쓰는지 모르는 글 더미」가 된다.
+ * 글을 승격시킬 수만 있고 **어디에도 목록이 없으면** 금세 누가 뭘 쓰는지 모르는 글 더미가 된다.
  * 여기서 보이는 것 셋: ① 제목(목록에서 고를 때 쓰는 유일한 단서) ② 몇 곳이 쓰는지 ③ 첫 줄 미리보기.
  *
- * 「가기」는 **그 글을 쓰는 첫 자리**로 데려간다 — 글만 봐서는 어느 인물 이야기인지 알 수 없다.
+ * 가기는 **그 글을 쓰는 첫 자리**로 데려간다. 글만 봐서는 어느 인물 이야기인지 알 수 없다.
  * 안 쓰는 글은 자동으로 안 지운다(방금 떼어 낸 것일 수 있다). 사람이 버튼을 눌러야 치운다.
  */
 import { notesOf, noteUsers, pruneNotes, deleteNote } from '../../../lib/karmograph/notes';
@@ -19,7 +19,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
   const spec = ctx.spec();
   const notes = notesOf(spec);
   const orphans = notes.filter((n) => noteUsers(spec, n.id) === 0).length;
-  // 이 맵에 아직 없는 창고 글 — 여기서 데려오면 쪽지로 놓거나 카드에 붙일 수 있다.
+  // 이 맵에 아직 없는 창고 글. 여기서 데려오면 쪽지로 놓거나 카드에 붙일 수 있다.
   const foreign = ctx.foreignNotes();
 
   side.innerHTML = `
@@ -80,7 +80,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       if (owner) ctx.focusNode(owner.id);
     };
   });
-  // 「가기」는 한 곳만 보여 준다. 같은 글을 **여럿이 나눠 쓴다**는 사실 자체가 이 기능의 값이라,
+  // 가기는 한 곳만 보여 준다. 같은 글을 **여럿이 나눠 쓴다**는 사실 자체가 이 기능의 값이라,
   // 쓰는 자리를 한 화면에 모아 또렷하게 만드는 손이 따로 있어야 한다.
   side.querySelectorAll('[data-km="note-show"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => {
@@ -91,8 +91,8 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       ctx.canvas()?.fitToNodes(ids, 160);
     };
   });
-  // 「흩기」 = 공용을 그만두고 **쓰던 자리마다 사본으로 남긴다**. 빈칸으로 만들면 글이 증발한 것처럼
-  // 보인다 — 이 도구에서 가장 무서운 사고다. 되돌리려면 아무 자리에서 다시 승격하면 된다.
+  // 흩기 = 공용을 그만두고 **쓰던 자리마다 사본으로 남긴다**. 빈칸으로 만들면 글이 증발한 것처럼
+  // 보인다. 이 도구에서 가장 무서운 사고다. 되돌리려면 아무 자리에서 다시 승격하면 된다.
   side.querySelectorAll('[data-km="note-split"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => {
       const id = (el as HTMLElement).dataset.key ?? '';
@@ -101,7 +101,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       ctx.refresh();
     };
   });
-  // 「쪽지로 놓기」 = 글을 캔버스에 펼쳐 둔다. 사본이 아니라 **창**이라 쪽지에서 고치면 다 바뀐다.
+  // 쪽지로 놓기 = 글을 캔버스에 펼쳐 둔다. 사본이 아니라 **창**이라 쪽지에서 고치면 다 바뀐다.
   side.querySelectorAll('[data-km="note-card"]').forEach((el) => {
     (el as HTMLButtonElement).onclick = () => {
       const id = (el as HTMLElement).dataset.key ?? '';
@@ -113,7 +113,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       const id = (el as HTMLElement).dataset.key ?? '';
       if (!id) return;
       ctx.adoptNote(id);
-      // 데려오기만 하면 아무도 안 쓰는 글이라 「치우기」 대상이 된다 — 바로 쪽지로 놓아 자리를 준다.
+      // 데려오기만 하면 아무도 안 쓰는 글이라 치우기 대상이 된다. 바로 쪽지로 놓아 자리를 준다.
       ctx.spawnNoteCard(id);
     };
   });

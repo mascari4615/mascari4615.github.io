@@ -8,10 +8,10 @@
   "workdays.label.to": "끝나는 날",
   "workdays.opt.saturday": "토요일도 영업일",
   "workdays.opt.includeStart": "시작일도 하루로 셈",
-  "workdays.status.idle": "기한은 주말만 빼서는 안 맞습니다 — 공휴일과 대체공휴일까지 뺍니다.",
+  "workdays.status.idle": "기한은 주말만 빼서는 안 맞습니다. 공휴일과 대체공휴일까지 뺍니다.",
   "workdays.day.sunday": "일요일",
   "workdays.day.saturday": "토요일",
-  "workdays.warn.lunar": "{years}년은 음력 명절 날짜를 담고 있지 않습니다. 설·추석·부처님오신날이 빠져 결과가 며칠 어긋날 수 있습니다.",
+  "workdays.warn.lunar": "{years}년은 음력 명절 날짜를 담고 있지 않습니다. 설, 추석, 부처님오신날이 빠져 결과가 며칠 어긋날 수 있습니다.",
   "workdays.value.days": "{n}일",
   "workdays.stat.business": "영업일",
   "workdays.stat.actual": "실제 걸리는 날",
@@ -20,7 +20,7 @@
   "workdays.error.endBeforeStart": "끝나는 날이 시작일보다 빠릅니다.",
   "workdays.out.business": "영업일 {n}일",
   "workdays.list.none": "뺀 날이 없습니다.",
-  "workdays.status.listed": "쉬는 날을 아래에 모두 적었습니다 — 확인해 보세요.",
+  "workdays.status.listed": "쉬는 날을 아래에 모두 적었습니다. 확인해 보세요.",
   "workdays.week.0": "일",
   "workdays.week.1": "월",
   "workdays.week.2": "화",
@@ -70,5 +70,5 @@
   "workdays.holiday.usVeterans": "재향군인의 날",
   "workdays.holiday.usThanksgiving": "추수감사절",
   "workdays.holiday.usObserved": "대체 휴무",
-  "workdays.warn.noCalendar": "이 나라의 공휴일 표는 아직 없습니다 — 주말만 빼고 셉니다. (머리띠 단추에서 지역을 바꿀 수 있습니다)"
+  "workdays.warn.noCalendar": "이 나라의 공휴일 표는 아직 없습니다. 주말만 빼고 셉니다. (머리띠 단추에서 지역을 바꿀 수 있습니다)"
 }

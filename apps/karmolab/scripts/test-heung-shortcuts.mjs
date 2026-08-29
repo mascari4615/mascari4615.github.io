@@ -1,7 +1,7 @@
 /**
  * 단축키 목록이 **실제 코드와 어긋나지 않는지** 본다 (TASK-KL-220).
  *
- * 도움말은 적어 두기만 하면 곧 거짓말이 된다 — 키를 바꾸거나 지웠는데 목록만 남으면
+ * 도움말은 적어 두기만 하면 곧 거짓말이 된다. 키를 바꾸거나 지웠는데 목록만 남으면
  * 사용자는 안 되는 걸 계속 누른다. 그래서 목록의 키가 처리 코드 어딘가에 실제로 있는지 센다.
  */
 import assert from 'node:assert/strict';
@@ -30,7 +30,7 @@ for (const group of SHORTCUTS) {
   assert.ok(group.items.length, `${group.title} 이 비어 있다`);
   for (const item of group.items) {
     assert.ok(item.keys.length, `${group.title} 에 키 없는 줄이 있다`);
-    assert.ok(item.what.trim().length > 4, `${group.title} · ${item.keys.join()} 설명이 너무 짧다`);
+    assert.ok(item.what.trim().length > 4, `${group.title}, ${item.keys.join()} 설명이 너무 짧다`);
   }
 }
 
@@ -42,7 +42,7 @@ for (const key of keys) {
   seen.add(key);
 }
 
-/** 「Ctrl+Shift+Z」 같은 표기를 코드에서 찾을 실마리로 바꾼다. */
+/** Ctrl+Shift+Z 같은 표기를 코드에서 찾을 실마리로 바꾼다. */
 const clues = (key) => {
   const last = key.split('+').pop();
   if (last === 'Space') return [`'Space'`];
@@ -77,4 +77,4 @@ assert.ok(html.includes('data-help-act="close"'), '닫기 단추가 있다');
 const evil = shortcutsHtml((value) => esc(value));
 assert.ok(!evil.includes('<script>'), '설명에 태그가 살아 나가지 않는다');
 
-console.log(`[test-heung-shortcuts] ✓ ${keys.length}개 단축키가 목록·코드·화면에서 일치`);
+console.log(`[test-heung-shortcuts] ✓ ${keys.length}개 단축키가 목록, 코드, 화면에서 일치`);

@@ -1,8 +1,8 @@
 /**
- * lib/karmograph/canvas-badges.ts — 카드 모서리의 **작은 표식들** (TASK-KL-202 방향① 해체 8조각).
+ * lib/karmograph/canvas-badges.ts. 카드 모서리의 **작은 표식들** (TASK-KL-202 방향① 해체 8조각).
  *
  * 카드만 보고 알아야 하는 세 가지:
- *  - 📄 여기 적어 둔 글이 있다 (없으면 「어디에 써 뒀더라」가 된다)
+ *  - 📄 여기 적어 둔 글이 있다 (없으면 어디에 써 뒀더라가 된다)
  *  - 🔗N **남과 나눠 쓰는 글**이다 → 여기서 고치면 저기도 바뀐다(모르고 고치는 사고 방지)
  *  - 💬N 말이 오갔다 (함께 보는 판에서 말이 묻히지 않게)
  *
@@ -38,7 +38,7 @@ export function nodeBadges(spec: GraphSpec | null, node: GraphNode, effH: number
     out.push(badge(node.w - (sharedUsers > 1 ? 14 : 9), 12, mark, '0.75'));
   }
 
-  // 안에 따로 그린 판이 있으면 ⤵ — 카드만 보고 「더 있다」를 알아야 파고들 생각이 난다.
+  // 안에 따로 그린 판이 있으면 ⤵. 카드만 보고 더 있다를 알아야 파고들 생각이 난다.
   if (node.subMap) out.push(badge(12, effH - 6, '⤵', '0.8'));
 
   const comments = (spec?.comments ?? []).filter((c) => c.on === node.id).length;

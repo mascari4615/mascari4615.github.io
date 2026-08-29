@@ -21,7 +21,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const KARMOLAB_ROOT = path.resolve(__dirname, '..');
 const REPO_ROOT = path.resolve(KARMOLAB_ROOT, '../..');
 
-// memo path: 환경변수 / 기본 사용자 경로 / repo 외부 — sync 는 dev/CI 환경 모두 대응.
+// memo path: 환경변수 / 기본 사용자 경로 / repo 외부. sync 는 dev/CI 환경 모두 대응.
 const MEMO_PATH = process.env.KARMODDRINE_MEMO_PATH
   || path.resolve(REPO_ROOT, '../memo');
 
@@ -115,7 +115,7 @@ function parseYamlSimple(yaml) {
 // ── yaml 직렬화 (parseYamlSimple 의 역. 부분집합) ────────────────────────────────────────────
 function isMultilineBlock(value) {
   // newline 있을 때만 block scalar (|). single-line 은 길어도 single-line.
-  // sync round-trip 일관성 우선 — parser 가 |/single 둘 다 같은 string 으로 파싱.
+  // sync round-trip 일관성 우선. parser 가 |/single 둘 다 같은 string 으로 파싱.
   return typeof value === 'string' && value.includes('\n');
 }
 
@@ -194,7 +194,7 @@ async function walkCharacters() {
     const mdFile = path.join(dir, 'wiki.md');
     if (!fs.existsSync(yamlFile)) continue;  // KarmoLab entity 가 아닌 캐릭터는 skip (yawnbot 만 사용)
     if (!fs.existsSync(mdFile)) {
-      console.warn(`[character] ${entry.name}: karmolab.yaml 있지만 wiki.md 없음 — skip`);
+      console.warn(`[character] ${entry.name}: karmolab.yaml 있지만 wiki.md 없음. skip`);
       continue;
     }
     const yamlText = await fsp.readFile(yamlFile, 'utf8');
@@ -219,23 +219,23 @@ async function walkSingleType(type, memoSubpath) {
     const text = await fsp.readFile(filePath, 'utf8');
     const { fm, body } = splitFrontmatter(text);
     if (!fm) {
-      console.warn(`[${type}] ${entry.name}: frontmatter 없음 — skip`);
+      console.warn(`[${type}] ${entry.name}: frontmatter 없음. skip`);
       continue;
     }
     const meta = parseYamlSimple(fm);
     if (meta.type && meta.type !== type) {
-      console.warn(`[${type}] ${entry.name}: type 불일치 (${meta.type}) — skip`);
+      console.warn(`[${type}] ${entry.name}: type 불일치 (${meta.type}). skip`);
       continue;
     }
     if (!meta.type) meta.type = type;  // 디렉토리 위치로 type 추론
     /* 별 **같은 폴더에 두 가지 글이 산다** (2026-08-17 실측). `memo/systems/` 에는 위키 항목
-       (title·slug·entityId 를 단 것)과 **주제 기획서**(SPEC-SCHEMA — status·updated·tags 만 단 것)가
-       같이 있다. 기획서를 위키 항목으로 읽으려다 「필수 필드 누락」으로 **빌드 전체가 죽었다**.
+       (title, slug, entityId 를 단 것)과 **주제 기획서**(SPEC-SCHEMA. status, updated, tags 만 단 것)가
+       같이 있다. 기획서를 위키 항목으로 읽으려다 필수 필드 누락으로 **빌드 전체가 죽었다**.
        CI 는 memo 를 안 받아 이 단계를 통째로 건너뛰므로 초록이었고, 그래서 **내 자리에서만
        몇 판이고 죽었다**(오늘 라이브 점검이 여기서 멈췄다).
-       가르는 표는 이미 있다 — 위키 항목은 slug/entityId 를 단다. 없으면 기획서다. 건너뛴다. */
+       가르는 표는 이미 있다. 위키 항목은 slug/entityId 를 단다. 없으면 기획서다. 건너뛴다. */
     if (!meta.slug || !meta.entityId) {
-      console.warn(`[${type}] ${entry.name}: 위키 항목이 아니다(slug/entityId 없음 — 주제 기획서로 본다) — skip`);
+      console.warn(`[${type}] ${entry.name}: 위키 항목이 아니다(slug/entityId 없음. 주제 기획서로 본다). skip`);
       continue;
     }
     out.push(await writeEntity(meta, body, `${memoSubpath}/${entry.name}`));
@@ -243,7 +243,7 @@ async function walkSingleType(type, memoSubpath) {
   return out;
 }
 
-// ── manifest 생성 — entity 타입별 항목 리스트 + view 데이터 (사이드바 walk + sub-C 카드/그래프 용) ─
+// ── manifest 생성. entity 타입별 항목 리스트 + view 데이터 (사이드바 walk + sub-C 카드/그래프 용) ─
 async function buildManifest() {
   const manifest = { characters: [], systems: [], concepts: [], lore: [] };
   for (const [type, dir] of Object.entries(TYPE_OUT_DIR)) {
@@ -261,14 +261,14 @@ async function buildManifest() {
         oneLine: meta.oneLine || '',
         tags: Array.isArray(meta.tags) ? meta.tags : [],
       };
-      // 타입별 view 데이터 (sub-C 카드/그래프 용) — 있으면 포함, 없으면 생략.
+      // 타입별 view 데이터 (sub-C 카드/그래프 용). 있으면 포함, 없으면 생략.
       if (type === 'character') {
         if (meta.imagegen_icon) item.icon = meta.imagegen_icon;
         if (meta.imagegen_label) item.subLabel = meta.imagegen_label;
         if (Array.isArray(meta.aliases) && meta.aliases.length > 0) item.aliases = meta.aliases;
         // relationships: ["alisa", "ling"] 또는 [{target:"alisa",label:"동거"}, ...]
         if (meta.relationships !== undefined) item.relationships = meta.relationships;
-        // stages: ["wm", "karmolab"] — entity 가 등장하는 무대. KarmoLab UI 는 stages.includes('karmolab') 만 노출.
+        // stages: ["wm", "karmolab"]. entity 가 등장하는 무대. KarmoLab UI 는 stages.includes('karmolab') 만 노출.
         if (Array.isArray(meta.stages) && meta.stages.length > 0) item.stages = meta.stages;
       }
       if (type === 'system') {
@@ -289,7 +289,7 @@ async function main() {
   if (!fs.existsSync(MEMO_PATH)) {
     // memo 정본은 사용자 로컬에만 있음 (private). CI 등 memo 가 없는 환경에선
     // sync 를 skip 하고 git 에 커밋된 entities/manifest.json 을 그대로 사용한다.
-    console.warn(`[sync-wiki] memo path 없음 — sync skip: ${MEMO_PATH}`);
+    console.warn(`[sync-wiki] memo path 없음. sync skip: ${MEMO_PATH}`);
     console.warn('[sync-wiki] 로컬에서 sync 하려면 KARMODDRINE_MEMO_PATH 로 명시 가능.');
     return;
   }
@@ -300,7 +300,7 @@ async function main() {
   results.push(...await walkSingleType('concept', 'wm/design/concepts'));
   results.push(...await walkSingleType('lore', 'wm/design/lore'));
 
-  // manifest.json — docs 위젯이 사이드바 entity 그룹 walk 용으로 사용 (TASK-KL-015-B).
+  // manifest.json. docs 위젯이 사이드바 entity 그룹 walk 용으로 사용 (TASK-KL-015-B).
   const manifest = await buildManifest();
   const manifestPath = path.join(KARMOLAB_ROOT, 'world/wiki/manifest.json');
   await fsp.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');

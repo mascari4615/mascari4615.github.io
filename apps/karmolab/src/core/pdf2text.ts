@@ -1,4 +1,4 @@
-/** PDF 글자 추출 — 좌표 복원은 backend가 맡고 코어는 바이트 계약만 소유한다. */
+/** PDF 글자 추출. 좌표 복원은 backend가 맡고 코어는 바이트 계약만 소유한다. */
 import type { ToolRunner, ToolSpec } from './types';
 
 interface PdfTextBackend { extract(data: string, maxPages?: number): Promise<string>; }
@@ -41,7 +41,7 @@ export const spec: ToolSpec = {
 };
 
 export const run: ToolRunner = async (op, args, deps) => {
-  if (op !== 'extract') throw new Error(`pdf2text 에 「${op}」 는 없습니다`);
+  if (op !== 'extract') throw new Error(`pdf2text 에 ${op} 는 없습니다`);
   const backend = deps?.pdfText as PdfTextBackend | undefined;
   if (!backend) throw new Error('PDF 글자 계산기가 없습니다 (deps.pdfText)');
   const data = String(args.data ?? '');

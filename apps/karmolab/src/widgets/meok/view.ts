@@ -1,13 +1,13 @@
 /**
- * 「먹」 — 보기 (TASK-KL-240 · 2b)
+ * 먹. 보기 (TASK-KL-240, 2b)
  *
  * 화면에 닿는 첫 파일. 하는 일은 셋뿐이다:
- *  ① 문서 크기의 **속판**(buffer canvas)을 들고, 합성 결과를 그 위에 얹는다 — 붓질마다
+ *  ① 문서 크기의 **속판**(buffer canvas)을 들고, 합성 결과를 그 위에 얹는다. 붓질마다
  *     더러워진 사각형만 얹으므로 4000×3000 짜리도 손이 안 끊긴다.
  *  ② 속판을 확대/이동해서 큰 캔버스에 그린다. 확대할 때는 뭉개지 않는다(픽셀 아트가 흐려지면 끝).
  *  ③ 화면 좌표 ↔ 그림 좌표를 옮긴다. 붓은 그림 좌표만 안다.
  *
- * 격자·투명 바탕(체크무늬)도 여기서 그린다 — 그림 데이터에 섞이면 안 되는 것들이다.
+ * 격자, 투명 바탕(체크무늬)도 여기서 그린다. 그림 데이터에 섞이면 안 되는 것들이다.
  */
 
 import { type Surface } from './doc';
@@ -29,7 +29,7 @@ export class CanvasView {
   grid = 0;
   private dpr = 1;
   private frame = 0;
-  /** 고른 자리의 경계 픽셀 — 「달리는 개미」 테두리를 그린다. */
+  /** 고른 자리의 경계 픽셀. 달리는 개미 테두리를 그린다. */
   private selectionEdges: Array<[number, number]> = [];
   /** 개미가 흐르는 위치. 올릴 때마다 점선이 한 칸씩 움직인다. */
   antPhase = 0;
@@ -88,7 +88,7 @@ export class CanvasView {
     this.offsetY = (this.viewH - this.docH * this.scale) / 2;
   }
 
-  /** 화면의 한 점을 붙잡은 채 확대한다 — 커서 밑 그림이 안 미끄러진다. */
+  /** 화면의 한 점을 붙잡은 채 확대한다. 커서 밑 그림이 안 미끄러진다. */
   zoomAt(viewX: number, viewY: number, factor: number): void {
     const before = this.toDoc(viewX, viewY);
     this.scale = Math.max(0.02, Math.min(64, this.scale * factor));
@@ -139,7 +139,7 @@ export class CanvasView {
     const w = this.docW * this.scale;
     const h = this.docH * this.scale;
 
-    /* 투명한 자리 — 체크무늬. 그림에 섞이지 않는 화면만의 것. */
+    /* 투명한 자리. 체크무늬. 그림에 섞이지 않는 화면만의 것. */
     ctx.save();
     ctx.beginPath();
     ctx.rect(this.offsetX, this.offsetY, w, h);
@@ -157,11 +157,11 @@ export class CanvasView {
     }
     ctx.restore();
 
-    /* 그림. 크게 볼 때는 **뭉개지 않는다** — 픽셀 아트가 흐려지면 도구로서 끝이다. */
+    /* 그림. 크게 볼 때는 **뭉개지 않는다**. 픽셀 아트가 흐려지면 도구로서 끝이다. */
     ctx.imageSmoothingEnabled = this.scale < 1;
     ctx.drawImage(this.buffer, this.offsetX, this.offsetY, w, h);
 
-    /* 격자 — 칸이 8px 보다 좁아지면 그물처럼 보여 그림을 가리므로 안 그린다. */
+    /* 격자. 칸이 8px 보다 좁아지면 그물처럼 보여 그림을 가리므로 안 그린다. */
     if (this.grid > 0 && this.grid * this.scale >= 8) {
       ctx.save();
       ctx.strokeStyle = 'rgba(120,140,170,.28)';
@@ -181,8 +181,8 @@ export class CanvasView {
       ctx.restore();
     }
 
-    /* 고른 자리 테두리 — 「달리는 개미」. 점선이 흐르는 것 자체가 「여기까지만 손댄다」는 신호다.
-       경계 픽셀만 그린다(안쪽은 안 칠한다 — 그림이 가려지면 고른 의미가 없다). */
+    /* 고른 자리 테두리. 달리는 개미. 점선이 흐르는 것 자체가 여기까지만 손댄다는 신호다.
+       경계 픽셀만 그린다(안쪽은 안 칠한다. 그림이 가려지면 고른 의미가 없다). */
     if (this.selectionEdges.length) {
       const step = Math.max(1, Math.ceil(this.selectionEdges.length / 30000));
       const size = Math.max(1, this.scale);
@@ -195,7 +195,7 @@ export class CanvasView {
       }
     }
 
-    /* 그림 테두리 — 흰 배경 위 흰 그림도 어디까지가 판인지 보이게. */
+    /* 그림 테두리. 흰 배경 위 흰 그림도 어디까지가 판인지 보이게. */
     ctx.strokeStyle = 'rgba(90,110,140,.55)';
     ctx.lineWidth = 1;
     ctx.strokeRect(Math.round(this.offsetX) + 0.5, Math.round(this.offsetY) + 0.5, Math.round(w), Math.round(h));

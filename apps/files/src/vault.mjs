@@ -1,10 +1,10 @@
 /**
- * Files 클라우드 v1 — 청크 AES-GCM + 암호화 목록.
+ * Files 클라우드 v1. 청크 AES-GCM + 암호화 목록.
  *
  * 왜 위젯 crypto.ts 를 안 쓰나: 그쪽은 CryptoJS AES-CBC 텍스트 메모다. 인증 태그가 없고
- * 파일·이름을 담는 규격이 아니다. 연산은 WebCrypto 만 (알고리즘 자작 금지).
+ * 파일, 이름을 담는 규격이 아니다. 연산은 WebCrypto 만 (알고리즘 자작 금지).
  *
- * 저장 키에는 평문 경로를 넣지 않는다. 이름·목록은 idx 암호문 안에만 있다.
+ * 저장 키에는 평문 경로를 넣지 않는다. 이름, 목록은 idx 암호문 안에만 있다.
  */
 const MAGIC = new TextEncoder().encode('KARMVLT1');
 const KDF_PBKDF2 = 1;
@@ -259,7 +259,7 @@ export async function putFile(session, path, bytes, opts = {}) {
   });
 }
 
-/** 파일별 청크 키. 열람 저장에 **암호문을 그대로 옮길 때**만 쓴다 — 복호가 필요 없는 일이다. */
+/** 파일별 청크 키. 열람 저장에 **암호문을 그대로 옮길 때**만 쓴다. 복호가 필요 없는 일이다. */
 export async function fileChunkKeys(session) {
   const index = await loadIndex(session);
   return index.files.map((f) => ({
@@ -304,7 +304,7 @@ export async function getFile(session, path) {
   return { bytes: out, entry };
 }
 
-/** 브라우저·원격 읽기 전용. 올리기는 PC rclone. */
+/** 브라우저, 원격 읽기 전용. 올리기는 PC rclone. */
 export function fetchStore(base, fetchFn = globalThis.fetch) {
   const prefix = String(base).replace(/\/+$/, '');
   return {

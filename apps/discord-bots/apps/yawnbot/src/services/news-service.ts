@@ -1,5 +1,5 @@
 /**
- * NewsService — 관심사 키워드 기반 Google News RSS 뉴스 조회
+ * NewsService. 관심사 키워드 기반 Google News RSS 뉴스 조회
  *
  * - 키워드 저장: {characterDir}/news-keywords.json
  * - Google News RSS (https://news.google.com/rss/search?q=...) 무료, 키 불필요

@@ -1,7 +1,7 @@
 {
   "videotrim.tab": "Trim",
   "videotrim.drop": "Drop a video here or click to choose one",
-  "videotrim.label.range": "Section —",
+  "videotrim.label.range": "Section . ",
   "videotrim.value.range": "0:00.0 ~ 0:00.0 (0.0s)",
   "videotrim.aria.start": "Section start",
   "videotrim.aria.end": "Section end",
@@ -12,8 +12,8 @@
   "videotrim.btn.run": "Cut out this section",
   "videotrim.btn.stop": "Stop",
   "videotrim.btn.save": "Download",
-  "videotrim.label.result": "The cut — check it, then download",
-  "videotrim.status.idle": "The video only ever opens inside your browser — nothing is uploaded.",
+  "videotrim.label.result": "The cut. check it, then download",
+  "videotrim.status.idle": "The video only ever opens inside your browser. nothing is uploaded.",
   "videotrim.stat.cut": "Length to cut",
   "videotrim.stat.total": "Full length",
   "videotrim.stat.eta": "Time it takes",
@@ -27,7 +27,7 @@
   "videotrim.value.rangeOf": "{from} ~ {to} ({sec}s)",
   "videotrim.value.sec": "{n}s",
   "videotrim.value.about": "about {n}s",
-  "videotrim.say.loaded": "{name} · {len} — pick the section and hit cut.",
-  "videotrim.say.recording": "Capturing… {left}s left (the section is actually played while capturing)",
-  "videotrim.say.done": "Cut {sec}s · {size}. Check it and download."
+  "videotrim.say.loaded": "{name}, {len}. pick the section and hit cut.",
+  "videotrim.say.recording": "Capturing... {left}s left (the section is actually played while capturing)",
+  "videotrim.say.done": "Cut {sec}s, {size}. Check it and download."
 }

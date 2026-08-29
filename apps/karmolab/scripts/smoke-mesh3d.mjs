@@ -1,14 +1,14 @@
 /**
  * 3D 뷰어가 **진짜 여는가** (흡수 ⓑ)
  *
- * `test-core` 는 읽는 계산만 본다 — 문자열을 주고 삼각형 수를 확인한다. 그건 「셈이 맞다」까지다.
+ * `test-core` 는 읽는 계산만 본다. 문자열을 주고 삼각형 수를 확인한다. 그건 셈이 맞다까지다.
  * 화면은 다르다: 파일을 고르는 칸이 있어야 하고, 그 파일이 알맹이로 흘러가야 하고, WebGL 이
  * 실제로 **픽셀을 칠해야** 한다. 그 사슬 중 하나만 끊겨도 알맹이 시험은 전부 초록이고,
  * 사람 화면에는 까만 네모만 남는다.
  *
  * 그래서 진짜 번들을 브라우저에 실어 **파일을 골라 본다.** 정육면체(삼각형 12개)를 넣고
  * ① 삼각형 수가 화면 글로 나오는지 ② 캔버스에 칠해진 점이 있는지를 함께 본다.
- * ②가 없으면 「읽기는 됐는데 안 그려진다」를 못 잡는다 — 그게 이 도구의 유일한 값이다.
+ * ②가 없으면 읽기는 됐는데 안 그려진다를 못 잡는다. 그게 이 도구의 유일한 값이다.
  *
  * 사용: node scripts/smoke-mesh3d.mjs
  */
@@ -21,14 +21,14 @@ import { chromium } from 'playwright';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BUNDLE = 'js/widgets/tools/mesh3d.js';
 
-/* 볼 대상이 아직 없으면 「못 돌렸다」다 — 배포 길목에서 이걸 실패로 세면 안 된다. */
+/* 볼 대상이 아직 없으면 못 돌렸다다. 배포 길목에서 이걸 실패로 세면 안 된다. */
 if (fs.existsSync(path.join(root, BUNDLE)) === false) {
-  console.log(`[mesh3d-smoke] CANNOT-RUN(건너뜀) — 번들이 아직 없다: ${BUNDLE}`);
+  console.log(`[mesh3d-smoke] CANNOT-RUN(건너뜀). 번들이 아직 없다: ${BUNDLE}`);
   console.log('  `node build.mjs` 뒤에 돌려라.');
   process.exit(0);
 }
 
-/* 정육면체 OBJ — 면이 사각형 6개다. 뷰어가 삼각형으로 쪼개야 12개가 된다(안 쪼개면 6개). */
+/* 정육면체 OBJ. 면이 사각형 6개다. 뷰어가 삼각형으로 쪼개야 12개가 된다(안 쪼개면 6개). */
 const NL = String.fromCharCode(10);
 const CUBE = [
   'v -10 -10 -10',
@@ -53,13 +53,13 @@ fs.writeFileSync(objPath, CUBE);
 let browser;
 try {
   /*
-   * 화면 없는 기계에서도 WebGL 을 쓰게 한다. `--use-gl=swiftshader` 는 **넣으면 안 된다** —
-   * 실측으로 그 조합에서 컨텍스트가 곧바로 죽었다(CONTEXT_LOST_WEBGL). 그러면 「제품이 안
-   * 그린다」로 보이는데 실제로는 검사 쪽이 GPU 를 부순 것이다.
+   * 화면 없는 기계에서도 WebGL 을 쓰게 한다. `--use-gl=swiftshader` 는 **넣으면 안 된다** . 
+   * 실측으로 그 조합에서 컨텍스트가 곧바로 죽었다(CONTEXT_LOST_WEBGL). 그러면 제품이 안
+   * 그린다로 보이는데 실제로는 검사 쪽이 GPU 를 부순 것이다.
    */
   browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] });
 } catch (error) {
-  console.error('[mesh3d-smoke] CANNOT-RUN — 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
+  console.error('[mesh3d-smoke] CANNOT-RUN. 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
   console.error(String(error?.message ?? error).split(NL)[0]);
   process.exit(1);
 }
@@ -68,9 +68,9 @@ const page = await browser.newPage();
 await page.route('**/*', (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8">' }));
 await page.goto('http://localhost/');
 /*
- * 말 묶음을 미리 박는다 — **진짜 페이지가 하는 그대로**(`window.__KARMO_I18N`, 머리말에 박힘).
+ * 말 묶음을 미리 박는다. **진짜 페이지가 하는 그대로**(`window.__KARMO_I18N`, 머리말에 박힘).
  * 안 박으면 화면이 `dailycho.score` 같은 열쇠를 그대로 뱉거나 아예 안 그려진다. 그건 하네스가
- * 만든 상태지 제품의 상태가 아니다 — 검사가 제품을 헐뜯게 된다(실측: CI 배포 빨강).
+ * 만든 상태지 제품의 상태가 아니다. 검사가 제품을 헐뜯게 된다(실측: CI 배포 빨강).
  */
 const catalogs = { mesh3d: JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/mesh3d.json'), 'utf8')) };
 await page.evaluate((cat) => {
@@ -105,10 +105,10 @@ const mount = await page.evaluate(() => {
 });
 
 /*
- * 위젯은 **말 묶음을 받은 뒤에** 그린다 — `build()` 는 바로 돌아오고 화면은 조금 뒤에 채워진다.
- * 부르자마자 읽으면 「칸이 없다」로 헛보인다(실측: CI 배포 빨강). 그려질 때까지 기다린다.
+ * 위젯은 **말 묶음을 받은 뒤에** 그린다. `build()` 는 바로 돌아오고 화면은 조금 뒤에 채워진다.
+ * 부르자마자 읽으면 칸이 없다로 헛보인다(실측: CI 배포 빨강). 그려질 때까지 기다린다.
  */
-/* 파일 칸은 hidden 이다(꾸민 라벨이 대신 보인다) — 기본값인 「보일 때까지」로 기다리면 영영 안 온다. */
+/* 파일 칸은 hidden 이다(꾸민 라벨이 대신 보인다). 기본값인 보일 때까지로 기다리면 영영 안 온다. */
 const drawn = await page.waitForSelector('#m3File', { state: 'attached', timeout: 8000 }).catch(() => null);
 const built = drawn === null ? { hasInput: false, note: '' } : await page.evaluate(() => ({
   hasInput: true,
@@ -118,10 +118,10 @@ const built = drawn === null ? { hasInput: false, note: '' } : await page.evalua
 if (mount.missing === true) {
   fails.push('번들을 실어도 mesh3d 가 등록되지 않는다');
 } else {
-  if (built.hasInput !== true) fails.push('파일 고르는 칸이 없다 — 아무것도 열 수 없다');
+  if (built.hasInput !== true) fails.push('파일 고르는 칸이 없다. 아무것도 열 수 없다');
   if (/WebGL/.test(built.note)) {
-    /* 그릴 수단이 없는 기계다. 「못 돌렸다」지 「제품이 고장」이 아니다. */
-    console.log(`[mesh3d-smoke] CANNOT-RUN — 이 기계의 브라우저가 WebGL 을 못 준다: ${built.note}`);
+    /* 그릴 수단이 없는 기계다. 못 돌렸다지 제품이 고장이 아니다. */
+    console.log(`[mesh3d-smoke] CANNOT-RUN. 이 기계의 브라우저가 WebGL 을 못 준다: ${built.note}`);
     await browser.close();
     process.exit(0);
   }
@@ -161,11 +161,11 @@ if (mount.missing === true) {
     return { lit, total: px.length / 4 };
   });
   if (painted.lost === true) {
-    console.log('[mesh3d-smoke] CANNOT-RUN — 그리는 도중 이 기계의 WebGL 컨텍스트가 죽었다 (제품 판정 아님)');
+    console.log('[mesh3d-smoke] CANNOT-RUN. 그리는 도중 이 기계의 WebGL 컨텍스트가 죽었다 (제품 판정 아님)');
     process.exit(0);
   }
-  if (painted.lit === 0) fails.push('캔버스가 통째로 비었다 — 읽기는 됐는데 안 그려진다');
-  else if (painted.lit > painted.total * 0.9) fails.push('캔버스가 통째로 칠해졌다 — 모델이 아니라 배경만 칠한 것 같다');
+  if (painted.lit === 0) fails.push('캔버스가 통째로 비었다. 읽기는 됐는데 안 그려진다');
+  else if (painted.lit > painted.total * 0.9) fails.push('캔버스가 통째로 칠해졌다. 모델이 아니라 배경만 칠한 것 같다');
 }
 
 await browser.close();
@@ -176,4 +176,4 @@ if (fails.length > 0) {
   for (const f of fails) console.error('  - ' + f);
   process.exit(1);
 }
-console.log('[mesh3d-smoke] 화면에서 정육면체 OBJ 를 열었다 — 삼각형 12개·20×20×20, 캔버스에 실제로 칠해짐');
+console.log('[mesh3d-smoke] 화면에서 정육면체 OBJ 를 열었다. 삼각형 12개, 20×20×20, 캔버스에 실제로 칠해짐');

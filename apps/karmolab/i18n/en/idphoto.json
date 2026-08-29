@@ -32,10 +32,10 @@
   "idphoto.guide.eyeBand": "line your eyes up inside the blue band",
   "idphoto.guide.sheets": " photos",
   "idphoto.status.idle": "Pick a photo, then drag so your eyes sit in the blue band",
-  "idphoto.status.ready": "Drag to move, use the slider to resize — eyes inside the blue band",
+  "idphoto.status.ready": "Drag to move, use the slider to resize. eyes inside the blue band",
   "idphoto.status.badImage": "Could not read that as an image",
   "idphoto.status.saved": "Saved one photo",
   "idphoto.status.sheet": "Saved a sheet with {n} photos (cut lines included)",
-  "idphoto.note.rules": "Faces are not detected automatically — the required position is drawn as guides and you line the photo up. Rules differ slightly between offices, so check their guidance too. The photo never leaves your browser.",
-  "idphoto.a11y.canvas": "Photo position — arrow keys to move it inside the guides"
+  "idphoto.note.rules": "Faces are not detected automatically. the required position is drawn as guides and you line the photo up. Rules differ slightly between offices, so check their guidance too. The photo never leaves your browser.",
+  "idphoto.a11y.canvas": "Photo position. arrow keys to move it inside the guides"
 }

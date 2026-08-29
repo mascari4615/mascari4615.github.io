@@ -1,5 +1,5 @@
 {
-  "time.part.datecalc": "Dates · D-Day",
+  "time.part.datecalc": "Dates, D-Day",
   "time.part.timer": "Timer",
   "time.part.worldclock": "World clock",
   "time.part.epoch": "Timestamp",
@@ -9,7 +9,7 @@
   "time.part.pace": "Running pace",
   "time.tab": "When",
   "time.drop.title": "Say when, in your own words",
-  "time.drop.hint": "tomorrow 3pm · 2026-09-01 · in 3 weeks · next monday · 1755043200",
+  "time.drop.hint": "tomorrow 3pm, 2026-09-01, in 3 weeks, next monday, 1755043200",
   "time.btn.change": "Write again",
   "time.btn.back": "Pick a job",
   "time.btn.chain": "Continue with this result",
@@ -17,7 +17,7 @@
   "time.pasted": "Chosen moment",
   "time.sample": "tomorrow 3pm",
   "time.how": "Read as \"{how}\"",
-  "time.none": "Couldn't work out when that is — try “tomorrow 3pm”",
+  "time.none": "Couldn't work out when that is. try \"tomorrow 3pm\"",
   "time.meta.none": "not understood",
   "time.group.date": "Date math",
   "time.group.count": "Timing",
@@ -27,7 +27,7 @@
   "time.part.cron": "Cron",
   "time.part.icsmake": "Calendar file",
   "time.grid.ok": "Green = everyone at work",
-  "time.grid.meh": "No perfect slot — the marked hours are the workable ones",
-  "time.grid.least": "No slot where everyone is awake — the marked hours hurt least",
+  "time.grid.meh": "No perfect slot. the marked hours are the workable ones",
+  "time.grid.least": "No slot where everyone is awake. the marked hours hurt least",
   "time.btn.recent": "Recent"
 }

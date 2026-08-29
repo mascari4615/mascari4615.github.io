@@ -7,7 +7,7 @@
   "enc.how.cp949asUtf8": "cp949(EUC-KR)로 적힌 것을 UTF-8 로 읽은 것을 되짚음",
   "enc.how.sjisAsUtf8": "shift_jis 로 적힌 것을 UTF-8 로 읽은 것을 되짚음",
   "enc.how.double": "UTF-8 을 두 겹 씌운 것을 되짚음",
-  "enc.how.percent": "주소 인코딩(%EC%95%88…)을 푼 것",
+  "enc.how.percent": "주소 인코딩(%EC%95%88...)을 푼 것",
   "enc.how.htmlRef": "HTML 숫자 문자 참조(&#xAC00;)를 푼 것",
   "enc.how.jsEscape": "자바스크립트 escape(가)를 푼 것"
 }

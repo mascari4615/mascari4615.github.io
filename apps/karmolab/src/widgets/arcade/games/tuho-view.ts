@@ -1,11 +1,11 @@
 /**
  * 투호 화면 (TASK-KL-242)
  *
- * 던지는 사람 뒤에서 낮게 본다 — 이 놀이가 겨루는 것은 **멀고 가까움**이라, 위에서 내려다보면
+ * 던지는 사람 뒤에서 낮게 본다. 이 놀이가 겨루는 것은 **멀고 가까움**이라, 위에서 내려다보면
  * 세게 던졌는지 약하게 던졌는지가 화면에서 사라진다(볼링을 3D 로 그린 것과 같은 이유).
  *
  * 항아리는 서 있는 원기둥, 귀는 그 옆에 낮은 원기둥 둘, 꽂힌 화살은 서 있는 가는 막대.
- * 날아가는 동안 화살을 **점점 낮아지는 막대**로 그려서 「내려앉는 중」이 보이게 했다.
+ * 날아가는 동안 화살을 **점점 낮아지는 막대**로 그려서 내려앉는 중이 보이게 했다.
  * WebGL 이 없는 기기에서는 위에서 보는 2D 로 물러선다.
  */
 import { t } from '../../../lib/i18n';
@@ -46,7 +46,7 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
       const myTurn = !s.over && !s.fly && s.turn === mySeat && s.left[mySeat] > 0;
       if (!tried) { tried = true; gl = createGl(cv); }
 
-      /* 날아가는 화살 — 시작점에서 떨어질 자리까지, 위로 솟았다 내려온다. */
+      /* 날아가는 화살. 시작점에서 떨어질 자리까지, 위로 솟았다 내려온다. */
       let air: { x: number; y: number; up: number } | null = null;
       if (s.fly) {
         const p = Math.min(1, Math.max(0, 1 - (s.fly.at - now) / 900));
@@ -112,7 +112,7 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
         .map((seat, i) =>
           '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + (i === s.turn ? ' ac-now' : '') + '">' +
           '<i style="background:' + CSS_COLOR[i % 6] + '"></i> ' + seat.name +
-          ' <b>' + s.score[i] + '</b> · ' + t('arcade.tuho.left', { n: String(s.left[i]) }) + '</span>')
+          ' <b>' + s.score[i] + '</b>, ' + t('arcade.tuho.left', { n: String(s.left[i]) }) + '</span>')
         .join('');
 
       (el.querySelector('#acThAimL') as HTMLElement).textContent = t('arcade.tuho.aim');

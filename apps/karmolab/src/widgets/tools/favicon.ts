@@ -2,10 +2,10 @@
  * 파비콘 만들기 (TASK-KL-088)
  *
  * 사이트 아이콘은 한 장이 아니라 **여러 크기**가 필요하다. 브라우저 탭은 32px, 폰 홈 화면은 180px,
- * 안드로이드는 192·512px 을 본다. 하나만 넣으면 어딘가에서 뭉개지거나 안 보인다.
+ * 안드로이드는 192, 512px 을 본다. 하나만 넣으면 어딘가에서 뭉개지거나 안 보인다.
  *
  * 그런데 그걸 만들자고 로고를 낯선 사이트에 올린다. 여기서는 브라우저가 다시 그려 한 번에 낸다.
- * `.ico` 도 함께 만든다 — 옛 브라우저와 일부 도구가 아직 그것만 찾는다.
+ * `.ico` 도 함께 만든다. 옛 브라우저와 일부 도구가 아직 그것만 찾는다.
  *
  * 그리고 **붙일 코드까지 준다**. 파일만 받아서는 어디에 어떻게 넣는지가 또 막힌다.
  */
@@ -18,13 +18,13 @@ import { download, encode, loadImage } from './shared/image';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  // 왜 이 크기들인지: 탭·북마크(16·32), 윈도우 타일(48), 애플 홈 화면(180), 안드로이드(192·512)
-  /* 쓰임 이름은 **찾을 때** 정한다 — 표를 만들 때 정하면 그 시점엔 말 묶음이 아직 안 와서
+  // 왜 이 크기들인지: 탭, 북마크(16, 32), 윈도우 타일(48), 애플 홈 화면(180), 안드로이드(192, 512)
+  /* 쓰임 이름은 **찾을 때** 정한다. 표를 만들 때 정하면 그 시점엔 말 묶음이 아직 안 와서
      열쇠가 그대로 굳는다. */
   const SIZE_PX = [16, 32, 48, 180, 192, 512];
   const sizes = (): Array<[number, string]> => SIZE_PX.map((px) => [px, t(`favicon.use.${px}`)]);
 
-  /** PNG 몇 장을 .ico 한 파일로 담는다 — ico 는 사실 PNG 를 품을 수 있는 껍데기다. */
+  /** PNG 몇 장을 .ico 한 파일로 담는다. ico 는 사실 PNG 를 품을 수 있는 껍데기다. */
   function buildIco(pngs: Array<{ size: number; bytes: Uint8Array }>): Blob {
     const count = pngs.length;
     const header = 6 + count * 16;
@@ -136,8 +136,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           let source: HTMLImageElement | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function render(px: number): HTMLCanvasElement {
@@ -168,7 +168,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }
             const pad = (parseInt(padEl.value, 10) / 100) * px;
             const inner = px - pad * 2;
-            // 원본 비율을 지켜 가운데에 — 늘리면 로고가 찌그러진다
+            // 원본 비율을 지켜 가운데에. 늘리면 로고가 찌그러진다
             const scale = Math.min(inner / source.naturalWidth, inner / source.naturalHeight);
             const w = source.naturalWidth * scale;
             const h = source.naturalHeight * scale;
@@ -191,7 +191,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               const cap = document.createElement('div');
               cap.className = 'tool-list-dim';
               cap.style.paddingTop = '4px';
-              cap.textContent = `${px}px · ${why}`;
+              cap.textContent = `${px}px, ${why}`;
               box.appendChild(cap);
               previewEl.appendChild(box);
             }
@@ -204,10 +204,10 @@ import { t, loadNamespace } from '../../lib/i18n';
             ].join('\n');
           }
 
-          // 공용 한 자리(`shared/image.encode`) — 여기 있던 지역 헬퍼와 같은 일이다.
+          // 공용 한 자리(`shared/image.encode`). 여기 있던 지역 헬퍼와 같은 일이다.
           const toBlob = (cv: HTMLCanvasElement): Promise<Blob> => encode(cv, 'png');
 
-          /** 공용 `loadImage` 로 (TASK-KL-280) — 주소를 여기서 만들고 안 거두던 자리였다. */
+          /** 공용 `loadImage` 로 (TASK-KL-280). 주소를 여기서 만들고 안 거두던 자리였다. */
           async function load(f: File): Promise<void> {
             let img: HTMLImageElement;
             try {
@@ -223,7 +223,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               const square = Math.abs(img.naturalWidth - img.naturalHeight) < Math.max(img.naturalWidth, img.naturalHeight) * 0.05;
               say(
                 square
-                  ? `${img.naturalWidth}×${img.naturalHeight} — 설정을 맞추고 받으세요.`
+                  ? `${img.naturalWidth}×${img.naturalHeight}. 설정을 맞추고 받으세요.`
                   : `${img.naturalWidth}×${img.naturalHeight} 은 정사각형이 아닙니다. 가운데에 맞춰 넣지만, 정사각형 그림이 가장 깔끔합니다.`,
                 square ? 'ok' : ''
               );
@@ -246,7 +246,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               }
               const blob = buildIco(parts);
               download(blob, 'favicon.ico');
-              say(`favicon.ico 를 받았어요 (16·32·48 세 크기가 한 파일에 들어 있습니다, ${size(blob.size)}).`, 'ok');
+              say(`favicon.ico 를 받았어요 (16, 32, 48 세 크기가 한 파일에 들어 있습니다, ${size(blob.size)}).`, 'ok');
               Toolbox.trackUse?.('ico');
             })().catch((err: Error) => say(t('favicon.err.making', { msg: err.message }), 'error'));
           };

@@ -1,7 +1,7 @@
 /**
  * 지역이 언어와 **따로 논다**는 것을 실제로 열어서 본다 (TASK-KL-203 S10)
  *
- * 이 검사가 없으면 되돌아가기 쉬운 자리다 — 「한국 것」을 `언어 == 한국어` 로 판정하는 코드는
+ * 이 검사가 없으면 되돌아가기 쉬운 자리다. 한국 것을 `언어 == 한국어` 로 판정하는 코드는
  * 한국어 화면에서 멀쩡히 동작하고, 깨진 건 **영어로 읽는 한국 거주자**뿐이라 아무도 안 본다.
  *
  * 세 가지를 본다:
@@ -24,13 +24,13 @@ const repoRoot = path.dirname(path.dirname(appRoot));
    `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 쥐고 있어도
    <b>부딪히지 않고 성공한다</b>. 그리고 `127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
    작은 판으로 재현했다: ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 = 먼저 잡은 쪽.
-   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다 — `smoke-region` 을 그렇게 재 보니
-   <b>멀쩡한 판이 「페이스 단위가 그 나라 것이 아니다」로 빨개졌다</b>(거짓 빨강).
-   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다. `smoke-region` 을 그렇게 재 보니
+   <b>멀쩡한 판이 페이스 단위가 그 나라 것이 아니다로 빨개졌다</b>(거짓 빨강).
+   0 을 주면 운영체제가 빈 자리를 준다. 충돌 자체가 없어진다. */
 const PORT = Number(process.env.PORT || 0);
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 
-/** 지역이 정하는 항목 한 개를 골라 그것만 본다 — 「보인다/안 보인다」가 뚜렷한 줄. */
+/** 지역이 정하는 항목 한 개를 골라 그것만 본다. 보인다/안 보인다가 뚜렷한 줄. */
 const CASES = [
   { locale: 'en', region: 'KR', page: 'apps/blog/en/t/birth/index.html', expect: true },
   { locale: 'en', region: 'US', page: 'apps/blog/en/t/birth/index.html', expect: false },
@@ -40,8 +40,8 @@ const CASES = [
 
 const missing = CASES.filter((c) => !fs.existsSync(path.join(repoRoot, c.page)));
 if (missing.length) {
-  /* 장이 아직 안 찍혔다 = 이 검사의 **대상이 없다**. 「못 돈다」와 「실패」는 다르다. */
-  console.log(`[region] 도구 장이 아직 없다 (${missing[0].page}) — 건너뜀`);
+  /* 장이 아직 안 찍혔다 = 이 검사의 **대상이 없다**. 못 돈다와 실패는 다르다. */
+  console.log(`[region] 도구 장이 아직 없다 (${missing[0].page}). 건너뜀`);
   process.exit(2);
 }
 
@@ -70,7 +70,7 @@ for (const c of CASES) {
     try {
       localStorage.setItem('karmolab_region', r);
     } catch {
-      /* 저장을 막아 둔 환경 — 이 검사에서는 안 일어난다. */
+      /* 저장을 막아 둔 환경. 이 검사에서는 안 일어난다. */
     }
   }, c.region);
 
@@ -80,8 +80,8 @@ for (const c of CASES) {
   const label = catalog(c.locale, 'birth')['birth.row.school'];
 
   /* **그려진 자리 안**에서만 본다. 장에는 말 묶음 전체가 글자로 박혀 있어서(그래야 기다림 없이
-     그린다), `body.innerHTML` 로 재면 그 묶음에 든 낱말이 늘 잡힌다 — 처음에 그래서 네 경우가
-     모두 「보인다」로 나왔다. 도구는 멀쩡했고 검사가 틀린 것이었다. */
+     그린다), `body.innerHTML` 로 재면 그 묶음에 든 낱말이 늘 잡힌다. 처음에 그래서 네 경우가
+     모두 보인다로 나왔다. 도구는 멀쩡했고 검사가 틀린 것이었다. */
   const shown = async () =>
     await tab.evaluate(() => {
       const host = document.querySelector('#tool-pages');
@@ -105,10 +105,10 @@ for (const c of CASES) {
     )
     .then(() => true)
     .catch(async () => {
-      /* 못 봤다면 **도구가 그려지긴 했는지** 확인한다 — 아무것도 안 그려졌는데 「안 보인다」로
+      /* 못 봤다면 **도구가 그려지긴 했는지** 확인한다. 아무것도 안 그려졌는데 안 보인다로
          통과하면, 이 검사는 도구가 죽어도 초록이다. */
       const body = await shown();
-      if (!body.trim()) fail.push(`${c.locale}/${c.region}: 도구가 아예 안 그려졌다 — 검사 자체가 못 돈다`);
+      if (!body.trim()) fail.push(`${c.locale}/${c.region}: 도구가 아예 안 그려졌다. 검사 자체가 못 돈다`);
       return false;
     });
 
@@ -116,7 +116,7 @@ for (const c of CASES) {
   if (seen !== c.expect) {
     fail.push(
       c.expect
-        ? `${where}: 그 지역 항목이 안 보인다 (${label}) — 지역이 아니라 언어로 가르고 있을 수 있다`
+        ? `${where}: 그 지역 항목이 안 보인다 (${label}). 지역이 아니라 언어로 가르고 있을 수 있다`
         : `${where}: 그 지역이 아닌데 한국 항목이 보인다 (${label})`
     );
   }
@@ -125,13 +125,13 @@ for (const c of CASES) {
 
 /* ── 그 나라 공휴일이 **실제로 빠지는가** (S13) ────────
  *
- * 달력 표가 맞는지는 따로 검산했지만, 그건 「표가 맞다」까지다. 도구가 그 표를 **쓰는지**는
- * 화면에서만 보인다 — 지역을 바꿔도 도구가 옛 표를 그대로 쓰면 표는 맞고 답은 틀린다.
+ * 달력 표가 맞는지는 따로 검산했지만, 그건 표가 맞다까지다. 도구가 그 표를 **쓰는지**는
+ * 화면에서만 보인다. 지역을 바꿔도 도구가 옛 표를 그대로 쓰면 표는 맞고 답은 틀린다.
  * 그래서 나라를 바꿔 놓고 **쉰 날 목록에 그 나라 공휴일 이름이 뜨는지** 본다. */
 const HOLIDAY_CASES = [
-  /* 평일에 걸린 날로 고른다 — 주말에 걸리면 「토요일」이 이겨서 이름이 안 뜬다(그건 맞는 동작). */
+  /* 평일에 걸린 날로 고른다. 주말에 걸리면 토요일이 이겨서 이름이 안 뜬다(그건 맞는 동작). */
   { locale: 'en', region: 'US', from: '2026-11-23', to: '2026-11-28', want: 'Thanksgiving' },
-  { locale: 'en', region: 'JP', from: '2026-05-01', to: '2026-05-08', want: 'Children’s Day' },
+  { locale: 'en', region: 'JP', from: '2026-05-01', to: '2026-05-08', want: 'Children's Day' },
   { locale: 'en', region: 'KR', from: '2026-02-14', to: '2026-02-20', want: 'Seollal' }
 ];
 
@@ -149,14 +149,14 @@ if (fs.existsSync(path.join(repoRoot, wdPage))) {
     const tab = await ctx.newPage();
     await tab.goto(`http://127.0.0.1:${PORT_IN_USE}/${wdPage}`, { waitUntil: 'domcontentloaded' });
 
-    /* 「두 날짜 사이」로 바꾸고 그 나라 공휴일이 든 주를 넣는다. 값을 넣는 것으로는 도구가
+    /* 두 날짜 사이로 바꾸고 그 나라 공휴일이 든 주를 넣는다. 값을 넣는 것으로는 도구가
        안 움직이므로(사람이 친 것만 듣는다) 바뀌었다고 알려 준다. */
     const ok = await tab
       .waitForFunction(() => !!document.querySelector('#wdModeBetween'), undefined, { timeout: 8000 })
       .then(() => true)
       .catch(() => false);
     if (!ok) {
-      fail.push(`${c.region}: 영업일 도구가 안 그려졌다 — 검사가 못 돈다`);
+      fail.push(`${c.region}: 영업일 도구가 안 그려졌다. 검사가 못 돈다`);
       await ctx.close();
       continue;
     }
@@ -183,16 +183,16 @@ if (fs.existsSync(path.join(repoRoot, wdPage))) {
       .catch(() => false);
     if (!seen) {
       const got = await tab.evaluate(() => (document.querySelector('#wdSkipped')?.textContent || '').trim());
-      fail.push(`${c.region}: 쉰 날 목록에 「${c.want}」 가 없다 — 도구가 그 나라 달력을 안 쓴다 (본 것: ${got.slice(0, 80)})`);
+      fail.push(`${c.region}: 쉰 날 목록에 ${c.want} 가 없다. 도구가 그 나라 달력을 안 쓴다 (본 것: ${got.slice(0, 80)})`);
     }
     await ctx.close();
   }
 } else {
-  console.log('[region] 영업일 도구 장이 아직 없다 — 공휴일 확인은 건너뜀');
+  console.log('[region] 영업일 도구 장이 아직 없다. 공휴일 확인은 건너뜀');
 }
 
-/* ── 도량형 (S14) — 미국은 피트·파운드로 넣는다 ────────
- * 「kg 을 넣으세요」는 미국 사람에게 못 쓰는 도구다. 단위 칸이 지역을 따르는지 화면에서 본다. */
+/* ── 도량형 (S14). 미국은 피트, 파운드로 넣는다 ────────
+ * kg 을 넣으세요는 미국 사람에게 못 쓰는 도구다. 단위 칸이 지역을 따르는지 화면에서 본다. */
 const bmiPage = 'apps/blog/en/t/bmi/index.html';
 if (fs.existsSync(path.join(repoRoot, bmiPage))) {
   for (const c of [
@@ -220,15 +220,15 @@ if (fs.existsSync(path.join(repoRoot, bmiPage))) {
       () => [...document.querySelectorAll('#tool-pages .tool-sublabel')].map((e) => e.textContent).join(' | ')
     );
     if (!all.includes(c.want) || all.includes(c.notWant)) {
-      fail.push(`${c.region}: 재는 단위가 그 나라 것이 아니다 — 「${c.want}」 를 기대했는데 「${all}」 (첫 칸 ${label})`);
+      fail.push(`${c.region}: 재는 단위가 그 나라 것이 아니다. ${c.want} 를 기대했는데 ${all} (첫 칸 ${label})`);
     }
     await ctx.close();
   }
 }
 
 /* ── 단위 변환의 **처음 놓인 짝** (S14-b) ─────────────
- * 미터법 나라는 「cm → 인치」, 미국은 그 반대가 궁금하다. 처음 놓인 자리가 틀리면 매번 손이
- * 한 번 더 가고, 그 한 번이 「이 도구는 내 것이 아니구나」를 만든다. */
+ * 미터법 나라는 cm → 인치, 미국은 그 반대가 궁금하다. 처음 놓인 자리가 틀리면 매번 손이
+ * 한 번 더 가고, 그 한 번이 이 도구는 내 것이 아니구나를 만든다. */
 const ucPage = 'apps/blog/en/t/unitconv/index.html';
 if (fs.existsSync(path.join(repoRoot, ucPage))) {
   for (const c of [
@@ -256,15 +256,15 @@ if (fs.existsSync(path.join(repoRoot, ucPage))) {
       )
       .then((h) => h.jsonValue())
       .catch(() => null);
-    if (!picked) fail.push(`${c.region}: 단위 변환 도구가 안 그려졌다 — 검사가 못 돈다`);
+    if (!picked) fail.push(`${c.region}: 단위 변환 도구가 안 그려졌다. 검사가 못 돈다`);
     else if (picked.from !== c.from || picked.to !== c.to) {
-      fail.push(`${c.region}: 처음 놓인 단위가 그 나라 것이 아니다 — ${picked.from}→${picked.to} (기대 ${c.from}→${c.to})`);
+      fail.push(`${c.region}: 처음 놓인 단위가 그 나라 것이 아니다. ${picked.from}→${picked.to} (기대 ${c.from}→${c.to})`);
     }
     await ctx.close();
   }
 }
 
-/* 러닝 페이스 — 미국은 「1마일에 몇 분」으로 말한다 (S14-b). */
+/* 러닝 페이스. 미국은 1마일에 몇 분으로 말한다 (S14-b). */
 const pacePage = 'apps/blog/en/t/pace/index.html';
 if (fs.existsSync(path.join(repoRoot, pacePage))) {
   for (const c of [
@@ -289,7 +289,7 @@ if (fs.existsSync(path.join(repoRoot, pacePage))) {
       .then((h) => h.jsonValue())
       .catch(() => '');
     if (!String(label).includes(c.want)) {
-      fail.push(`${c.region}: 페이스 단위가 그 나라 것이 아니다 — 「${c.want}」 를 기대했는데 「${label}」`);
+      fail.push(`${c.region}: 페이스 단위가 그 나라 것이 아니다. ${c.want} 를 기대했는데 ${label}`);
     }
     await ctx.close();
   }
@@ -303,6 +303,6 @@ if (fail.length) {
   process.exit(1);
 }
 console.log(
-  `[region] 지역·언어 따로 놀기 ${CASES.length}건 정상 — ${CASES.map((c) => `${c.locale}/${c.region}`).join(', ')}` +
-    ` · 나라별 공휴일 ${HOLIDAY_CASES.length}건 정상 — ${HOLIDAY_CASES.map((c) => `${c.region}:${c.want}`).join(', ')}`
+  `[region] 지역, 언어 따로 놀기 ${CASES.length}건 정상. ${CASES.map((c) => `${c.locale}/${c.region}`).join(', ')}` +
+    `, 나라별 공휴일 ${HOLIDAY_CASES.length}건 정상. ${HOLIDAY_CASES.map((c) => `${c.region}:${c.want}`).join(', ')}`
 );

@@ -137,7 +137,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
     let state: TurnLoopState | null = null;
 
-    // turn 진행 중 페이지 이탈 경고 — panel.isConnected 로 위젯 unload 시 자동 무효화
+    // turn 진행 중 페이지 이탈 경고. panel.isConnected 로 위젯 unload 시 자동 무효화
     function handleBeforeUnload(e: BeforeUnloadEvent) {
       if (state?.busy && panel.isConnected) {
         e.preventDefault();
@@ -340,7 +340,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         state = createInitialState(session);
         void saveSession(session);
         renderTurnUI();
-        // 첫 turn — 사용자 입력 없이 GM 이 도입부 시작
+        // 첫 turn. 사용자 입력 없이 GM 이 도입부 시작
         void doTurn(t('adventure.t11'), true);
       });
       stage.appendChild(startBtn);
@@ -455,7 +455,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         void (async () => {
           try {
             const result = await generateAdventureImage(narrative);
-            // 실시간 표시는 dataUrl (메모리), 영구 저장은 path (KL-037 — Tauri 시 별 PNG).
+            // 실시간 표시는 dataUrl (메모리), 영구 저장은 path (KL-037. Tauri 시 별 PNG).
             await attachImageRef(state!.session, result.dataUrl);
             const img = el('img', {
               src: result.dataUrl,
@@ -501,7 +501,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         void (async () => {
           const committed = await showEndModal(state!.session);
           if (committed) {
-            // wiki 갱신 — 다음 위젯 진입 시 bindings.adventure 자동 fetch (페이지 새로고침 권장)
+            // wiki 갱신. 다음 위젯 진입 시 bindings.adventure 자동 fetch (페이지 새로고침 권장)
             state = null;
             renderCastPicker();
           }
@@ -625,7 +625,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       const ul = el('ul', { style: { margin: '0', paddingLeft: '18px' } });
       for (const adv of adventures) {
         const li = el('li');
-        li.textContent = `${adv.title || adv.slug}${adv.oneLine ? ' — ' + adv.oneLine : ''}`;
+        li.textContent = `${adv.title || adv.slug}${adv.oneLine ? '. ' + adv.oneLine : ''}`;
         ul.appendChild(li);
       }
       advList.appendChild(ul);
@@ -634,7 +634,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
     panel.appendChild(wrap);
 
-    /* 첫 진입 — cast picker 표시 */
+    /* 첫 진입. cast picker 표시 */
     renderCastPicker();
 
     void parseTurnResponse;
@@ -646,7 +646,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       {
         id: 'adventure-main',
         label: t('adventure.tab.main', undefined, '모험'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('adventure').then(function () {
             buildAdventure(container);

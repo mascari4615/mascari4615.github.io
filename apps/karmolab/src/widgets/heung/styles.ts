@@ -1,4 +1,4 @@
-/** 흥 화면 규칙 — 위젯 본체에서 떼어 낸 문자열 하나 (TASK-KL-220). 동작은 없다. */
+/** 흥 화면 규칙. 위젯 본체에서 떼어 낸 문자열 하나 (TASK-KL-220). 동작은 없다. */
 export const HEUNG_CSS = `
     .hu-root { --hu-head:172px; --hu-beat:72px; display:flex; flex-direction:column; width:100%; user-select:none;
       height:calc(100dvh - 150px); min-height:620px; overflow:hidden; background:var(--bg-primary); color:var(--text-primary); }
@@ -94,11 +94,11 @@ export const HEUNG_CSS = `
     .hu-clip.is-locked .hu-handle { display:none; }
     .hu-clip.is-muted .hu-clip-name::before { content:'🔇 '; }
     .hu-btn, .hu-mini { white-space:nowrap; }
-    /* 셸이 상태줄 옆에 붙이는 「이어서」 줄. 다섯 단추가 390px 를 넘겨 화면 밖으로 나갔다 —
+    /* 셸이 상태줄 옆에 붙이는 이어서 줄. 다섯 단추가 390px 를 넘겨 화면 밖으로 나갔다 . 
        내 판 안에 들어온 것이니 여기서 접거나 굴러가게 한다. */
     .hu-root .tool-next-row { max-width:100%; overflow-x:auto; flex-wrap:nowrap; }
     .hu-root .tool-next-btn { flex:none; }
-    /* 트랙 이름칸은 좁은 머리에서 늘 길다 — 최소폭을 풀어 머리 안에 들어오게 한다. */
+    /* 트랙 이름칸은 좁은 머리에서 늘 길다. 최소폭을 풀어 머리 안에 들어오게 한다. */
     .hu-track-title { min-width:0; }
     .hu-track-title input { min-width:0; width:100%; }
     .hu-auto-pick { display:flex; gap:3px; margin-top:4px; }

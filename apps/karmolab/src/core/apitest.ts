@@ -1,14 +1,14 @@
 /**
  * OpenAPI 를 읽어 **눌러 볼 수 있게** (TASK-KL-316 / 16)
  *
- * 스펙 파일은 사람이 읽으라고 만든 게 아니다 — 「이 API 를 한 번 찔러 보고 싶다」가 대부분인데
- * 그러려면 경로·파라미터·본문 예시를 손으로 조립해야 한다. 여기서 그 조립을 대신한다.
+ * 스펙 파일은 사람이 읽으라고 만든 게 아니다. 이 API 를 한 번 찔러 보고 싶다가 대부분인데
+ * 그러려면 경로, 파라미터, 본문 예시를 손으로 조립해야 한다. 여기서 그 조립을 대신한다.
  *
- * **목 서버는 안 만든다** (원래 계획에서 바꾼 것 — 이유를 적어 둔다):
+ * **목 서버는 안 만든다** (원래 계획에서 바꾼 것. 이유를 적어 둔다):
  * 브라우저에서 가짜 서버를 세우려면 Service Worker 를 등록해야 하는데, 이 사이트에는 **이미
- * 자기 Service Worker 가 있다**. 도구가 두 번째 것을 등록하면 사이트 전체의 요청을 가로챌 수 있다 —
+ * 자기 Service Worker 가 있다**. 도구가 두 번째 것을 등록하면 사이트 전체의 요청을 가로챌 수 있다 . 
  * 도구 하나 쓰자고 앱을 망가뜨릴 위험을 질 수는 없다. 대신 **스키마에서 예시 응답을 만들어 준다**:
- * 그 JSON 을 자기 목 서버(msw·json-server 등)에 그대로 붙이면 된다.
+ * 그 JSON 을 자기 목 서버(msw, json-server 등)에 그대로 붙이면 된다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 import { parseYaml } from './configconv';
@@ -46,7 +46,7 @@ export interface Operation {
   params: Param[];
   /** 보낼 몸통의 예시 (있으면) */
   body?: Json;
-  /** 답의 예시 — 코드별 */
+  /** 답의 예시. 코드별 */
   responses: Array<{ code: string; example?: Json; description?: string }>;
 }
 
@@ -129,7 +129,7 @@ export function parse(text: string): Doc {
   for (const [path, itemRaw] of Object.entries(paths)) {
     const item = deref(root, itemRaw);
     if (!isObj(item)) continue;
-    /* 경로에 공통으로 걸린 파라미터는 각 연산이 물려받는다 — 안 물려받으면 필수 값이 사라진다. */
+    /* 경로에 공통으로 걸린 파라미터는 각 연산이 물려받는다. 안 물려받으면 필수 값이 사라진다. */
     const shared = Array.isArray(item.parameters) ? item.parameters : [];
     for (const method of METHODS) {
       const opRaw = item[method];
@@ -214,7 +214,7 @@ export function fill(op: Operation, server: string, values: Record<string, strin
   return out;
 }
 
-/** 목 서버에 그대로 붙일 수 있는 「경로 → 답」 표 */
+/** 목 서버에 그대로 붙일 수 있는 경로 → 답 표 */
 export function mockTable(doc: Doc): Record<string, Json> {
   const out: Record<string, Json> = {};
   for (const op of doc.operations) {
@@ -228,7 +228,7 @@ export function mockTable(doc: Doc): Record<string, Json> {
 export const run: ToolRunner = (op, args) => {
   const doc = parse(String(args.doc ?? ''));
   if (op === 'list') {
-    return doc.operations.map((o) => o.method + ' ' + o.path + (o.summary === undefined ? '' : '  — ' + o.summary)).join('\n');
+    return doc.operations.map((o) => o.method + ' ' + o.path + (o.summary === undefined ? '' : ' . ' + o.summary)).join('\n');
   }
   if (op === 'example') {
     const found = doc.operations.find((o) => o.method === String(args.method ?? '').toUpperCase() && o.path === String(args.path ?? ''));

@@ -1,6 +1,6 @@
 {
   "caseconv.tab": "Convert",
-  "caseconv.label.in": "Names — one conversion per line",
+  "caseconv.label.in": "Names. one conversion per line",
   "caseconv.status.idle": "Whatever style you write in, it splits into words by itself.",
   "caseconv.copy.done": "Copied",
   "caseconv.note.camel": "JavaScript variables and functions",
@@ -11,5 +11,5 @@
   "caseconv.note.dot": "Config keys, namespaces",
   "caseconv.note.title": "Headings and labels",
   "caseconv.note.lower": "Sentences",
-  "caseconv.say.lines": "{n} lines · click a line to copy it."
+  "caseconv.say.lines": "{n} lines, click a line to copy it."
 }

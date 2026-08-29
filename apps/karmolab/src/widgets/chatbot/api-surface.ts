@@ -1,6 +1,6 @@
 /**
  * 챗봇 UI의 API 표면(`studio` | `vertex`)과 `@karmo/ai`의 `GoogleGenerativeSurface` 정렬.
- * 저장 키·옵션 value는 HTML/Toolbox 프리픽과 동일하게 유지합니다.
+ * 저장 키, 옵션 value는 HTML/Toolbox 프리픽과 동일하게 유지합니다.
  */
 import type { GoogleGenerativeSurface } from '@karmo/ai';
 
@@ -28,7 +28,7 @@ export function getChatbotApiSurfaceUi(): ChatbotApiSurfaceUiValue {
   return v === ChatbotApiSurfaceUi.vertex ? ChatbotApiSurfaceUi.vertex : ChatbotApiSurfaceUi.studio;
 }
 
-/** 패키지 계약(`aiStudio` | `vertex`) — 로그·분기 일관용 */
+/** 패키지 계약(`aiStudio` | `vertex`). 로그, 분기 일관용 */
 export function chatbotUiSurfaceToPackage(surface: ChatbotApiSurfaceUiValue): GoogleGenerativeSurface {
   return surface === ChatbotApiSurfaceUi.vertex ? 'vertex' : 'aiStudio';
 }

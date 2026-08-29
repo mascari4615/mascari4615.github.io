@@ -104,8 +104,8 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
           let results: Result[] = [];
           let lastFails: BatchFail[] = [];
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function render(): void {
@@ -132,7 +132,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
                 (el as HTMLElement).onclick = () => {
                   const r = results[i];
                   download(r.blob, r.name);
-                  /* 바꾼 그림은 대개 **또 손본다**(크기·가리개·PDF 로) — 이어서 쓰게 내놓는다 (TASK-KL-298). */
+                  /* 바꾼 그림은 대개 **또 손본다**(크기, 가리개, PDF 로). 이어서 쓰게 내놓는다 (TASK-KL-298). */
                   Toolbox.offerNext?.(status, { blob: r.blob, name: r.name, from: 'imgbatch' });
                 };
               });
@@ -148,7 +148,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
            *
            * 화질 다이얼은 있었지만 그 숫자가 뭘 뜻하는지는 스무 장을 다 바꾼 뒤에야 알았다.
            * 그래서 첫 장으로 지금 설정 그대로 한 번 눌러 보고, **용량**과 **확대한 그림**을 같이 낸다.
-           * 겹쳐 보기는 `comparepic` 의 일이다 — 압축 자국은 **확대해야** 보이므로 여기선 나란히.
+           * 겹쳐 보기는 `comparepic` 의 일이다. 압축 자국은 **확대해야** 보이므로 여기선 나란히.
            */
           const PREVIEW_BOX = 320;
           const PREVIEW_ZOOM = 2;
@@ -169,10 +169,10 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               img = await loadImage(first);
               result = await convert(first);
             } catch {
-              box.hidden = true; // 미리보기는 **거들 뿐**이다 — 못 하면 조용히 접는다
+              box.hidden = true; // 미리보기는 **거들 뿐**이다. 못 하면 조용히 접는다
               return;
             }
-            if (mine !== previewToken) return; // 그 사이 다이얼이 또 움직였다 — 낡은 그림을 덮어쓰지 않는다
+            if (mine !== previewToken) return; // 그 사이 다이얼이 또 움직였다. 낡은 그림을 덮어쓰지 않는다
 
             const after = await loadImage(new File([result.blob], result.name, { type: result.blob.type }));
             if (mine !== previewToken) return;
@@ -202,29 +202,29 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
             });
           }
 
-          /** 같은 자리를 같은 배율로 — 자르는 자리는 `lib/imgpreview` 가 정한다(검사가 그 자리를 본다). */
+          /** 같은 자리를 같은 배율로. 자르는 자리는 `lib/imgpreview` 가 정한다(검사가 그 자리를 본다). */
           function paintCrop(canvas: HTMLCanvasElement, img: HTMLImageElement): void {
             const c = centerCrop(img.naturalWidth, img.naturalHeight, PREVIEW_BOX, PREVIEW_BOX, PREVIEW_ZOOM);
             canvas.width = PREVIEW_BOX;
             canvas.height = PREVIEW_BOX;
             const ctx = canvas.getContext('2d');
             if (ctx === null) return;
-            ctx.imageSmoothingEnabled = false; // 자국을 보려고 확대하는 것이다 — 문질러 놓으면 볼 것이 없다
+            ctx.imageSmoothingEnabled = false; // 자국을 보려고 확대하는 것이다. 문질러 놓으면 볼 것이 없다
             ctx.clearRect(0, 0, PREVIEW_BOX, PREVIEW_BOX);
             ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, 0, 0, PREVIEW_BOX, PREVIEW_BOX);
           }
 
-          /** 다이얼은 잡고 움직인다 — 뗄 때마다 누르면 큰 사진에서 화면이 멎는다. */
+          /** 다이얼은 잡고 움직인다. 뗄 때마다 누르면 큰 사진에서 화면이 멎는다. */
           function previewSoon(): void {
             clearTimeout(previewTimer);
             previewTimer = window.setTimeout(() => void preview(), 350);
           }
 
           /**
-           * 한 장을 바꾼다. 읽기·줄이기·내보내기를 **전부 공용 것으로** (TASK-KL-280).
+           * 한 장을 바꾼다. 읽기, 줄이기, 내보내기를 **전부 공용 것으로** (TASK-KL-280).
            *
-           * 흰 바탕 깔기도 공용 `encode` 가 한다 — 여기 손으로 적어 두면 다음 도구가 또 잊는다
-           * (실제로 「사진 크기 맞추기」가 잊어서 투명한 데가 검게 나왔다, [[TASK-KL-272]]).
+           * 흰 바탕 깔기도 공용 `encode` 가 한다. 여기 손으로 적어 두면 다음 도구가 또 잊는다
+           * (실제로 사진 크기 맞추기가 잊어서 투명한 데가 검게 나왔다, [[TASK-KL-272]]).
            */
           async function convert(file: File): Promise<Result> {
             const img = await loadImage(file);
@@ -250,12 +250,12 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               return;
             }
             results = [];
-            /* 도는 자리는 **공용 하나**를 쓴다 (TASK-KL-302) — 몇째인지 말하는 것과
+            /* 도는 자리는 **공용 하나**를 쓴다 (TASK-KL-302). 몇째인지 말하는 것과
              * 실패를 남기는 것이 여기 붙어 있다. 전에는 한 장이 깨지면 그 말이 끝말에
              * 덮여서, 스무 장 중 둘이 빠져도 사람은 숫자 하나만 봤다. */
             const batch = await runBatch(todo, (f) => convert(f), {
               say,
-              progress: (i, total, f) => t('imgbatch.say.one', { i, total, name: f.name }, `${i}/${total} — ${f.name}`),
+              progress: (i, total, f) => t('imgbatch.say.one', { i, total, name: f.name }, `${i}/${total}. ${f.name}`),
               done: () => '',
               partly: (ok, bad) =>
                 t(
@@ -271,7 +271,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
             if (batch.failed.length) return;
             const before = files.reduce((a, f) => a + f.size, 0);
             const after = results.reduce((a, r) => a + r.blob.size, 0);
-            // 작은 PNG 를 JPG 로 바꾸면 오히려 커진다 — 「-559% 줄었어요」 같은 말이 나오면 안 된다
+            // 작은 PNG 를 JPG 로 바꾸면 오히려 커진다. -559% 줄었어요 같은 말이 나오면 안 된다
             const pct = Math.round(Math.abs(1 - after / before) * 100);
             const verdict =
               after < before
@@ -320,7 +320,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               );
           }
 
-          /** 실패한 것만 다시 — 스무 장을 통째로 다시 넣게 하지 않는다. */
+          /** 실패한 것만 다시. 스무 장을 통째로 다시 넣게 하지 않는다. */
           function paintFails(): void {
             retryBar(
               $<HTMLElement>('#ibFails'),

@@ -1,8 +1,8 @@
 /**
- * 환경 설정 (TASK-KL-139) — 「내 정보」에서 떼어 낸 화면.
+ * 환경 설정 (TASK-KL-139). 내 정보에서 떼어 낸 화면.
  *
- * 왜 떼었나: 테마·API 키·저장소는 **이 브라우저의 설정**이고, 도전과제·계정은 **나**다.
- * 한 위젯 안에 있으면 로그인한 사람의 신원 옆에 코드 하이라이트 고르는 칸이 붙는다 —
+ * 왜 떼었나: 테마, API 키, 저장소는 **이 브라우저의 설정**이고, 도전과제, 계정은 **나**다.
+ * 한 위젯 안에 있으면 로그인한 사람의 신원 옆에 코드 하이라이트 고르는 칸이 붙는다 . 
  * 어느 쪽도 자기 자리처럼 보이지 않는다. 이 화면은 로그인과 무관하고, 서버가 죽어도 멀쩡하다.
  */
 import { t, loadNamespace } from '../lib/i18n';
@@ -51,7 +51,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
             .replace(/"/g, '&quot;');
     }
 
-    /* ===== 표시 · API ===== */
+    /* ===== 표시, API ===== */
 
     function buildDisplay(container: HTMLElement): void {
         Mdd.linePreset('tool_run', { msg: t('settings.t21') });
@@ -103,7 +103,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     <div class="settings-row settings-row-stack">
                         <label>${esc(t('settings.aria.setBgTheme'))}</label>
                         <!-- 이름만 늘어놓으면 무엇을 고르는지 알 수 없다. 견본은 진짜 배경과
-                             **같은 스타일 규칙**을 물려받아 그려진다 — 테마를 손보면 견본도 같이
+                             **같은 스타일 규칙**을 물려받아 그려진다. 테마를 손보면 견본도 같이
                              바뀐다 (값을 두 벌 적지 않는다). -->
                         <div class="settings-bg-picker" id="setBgTheme" role="group" aria-label="${esc(t('settings.aria.setBgTheme'))}">
                             ${bgThemes.map((t) => `
@@ -335,7 +335,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
 
     /* ===== 마스코트 =====
      * 화면 위에 늘 떠 있는 물건이라 취향이 제일 크게 갈린다. 끄는 것부터 움직임
-     * 하나하나까지 여기서 정한다 — 값은 `Mdd` 가 들고 있고 이 화면은 그 값을
+     * 하나하나까지 여기서 정한다. 값은 `Mdd` 가 들고 있고 이 화면은 그 값을
      * 보여 주고 바꾸기만 한다(두 벌로 적지 않는다). */
 
     function buildMascot(container: HTMLElement): void {
@@ -347,7 +347,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
      *
      * 원래는 첫 화면 HTML 안의 임시 스텁이 들고 있었는데, 그건 **부팅 때 받는
      * JS** 라 천장(39KB)을 넘겨 배포가 멈췄다. 이 값이 필요한 건 설정 화면
-     * 하나뿐이고 이 파일은 열 때 받아 온다 — 여기가 제자리다. */
+     * 하나뿐이고 이 파일은 열 때 받아 온다. 여기가 제자리다. */
     const MASCOT_FALLBACK = {
         enabled: false, width: 300, framing: 'bust', showOnMobile: false, opacity: 0.85,
         blink: true, gaze: true, breathe: true, motion: true, hologram: true,
@@ -355,7 +355,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
     };
 
     function renderMascot(container: HTMLElement): void {
-        // 마스코트가 아직 안 왔으면 임시 스텁이라 값을 못 준다 — 기본값으로 그린다
+        // 마스코트가 아직 안 왔으면 임시 스텁이라 값을 못 준다. 기본값으로 그린다
         const p = { ...MASCOT_FALLBACK, ...(Mdd.getPrefs ? Mdd.getPrefs() : {}) } as ReturnType<typeof Mdd.getPrefs>;
         const sel = (v: boolean): string => (v ? 'selected' : '');
         const maxW = Mdd.widthMax ? Mdd.widthMax() : 640;
@@ -491,7 +491,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
             container.querySelector<HTMLSelectElement>('#' + id)?.addEventListener('change', (e) => {
                 const t = e.target as HTMLSelectElement;
                 Mdd.setPrefs({ [key]: t.value === '1' } as never);
-                // 「전부 끄기」는 아래 세 칸을 잠그므로 화면을 다시 그린다
+                // 전부 끄기는 아래 세 칸을 잠그므로 화면을 다시 그린다
                 if (key === 'motion') renderMascot(container);
             });
         };
@@ -548,18 +548,18 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
     }
 
     /**
-     * 「이 컴퓨터」 — 데스크톱 앱에서만 쓰는 값들. 지금은 작업 폴더 하나다 (TASK-KL-332).
+     * 이 컴퓨터. 데스크톱 앱에서만 쓰는 값들. 지금은 작업 폴더 하나다 (TASK-KL-332).
      *
-     * 여기가 그 값의 **정본**이다. 서버 모니터·설치는 읽기만 한다 — 값 하나를 두 화면이
-     * 각자 들고 있으면 반드시 한쪽이 모르는 상태가 되고, 그게 「설치를 눌렀더니 저장소
-     * 루트를 먼저 설정하세요」였다.
+     * 여기가 그 값의 **정본**이다. 서버 모니터, 설치는 읽기만 한다. 값 하나를 두 화면이
+     * 각자 들고 있으면 반드시 한쪽이 모르는 상태가 되고, 그게 설치를 눌렀더니 저장소
+     * 루트를 먼저 설정하세요였다.
      */
     function buildMachine(container: HTMLElement): void {
         const wrap = document.createElement('div');
         wrap.className = 'settings-layout';
 
         if (!isDesktop()) {
-            wrap.innerHTML = `<p>${esc(t('settings.machine.webonly', undefined, '이 칸은 데스크톱 앱에서만 쓴다 — 브라우저에는 이 컴퓨터의 폴더가 없다.'))}</p>`;
+            wrap.innerHTML = `<p>${esc(t('settings.machine.webonly', undefined, '이 칸은 데스크톱 앱에서만 쓴다. 브라우저에는 이 컴퓨터의 폴더가 없다.'))}</p>`;
             container.appendChild(wrap);
             return;
         }
@@ -581,36 +581,36 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         const note = wrap.querySelector('#work-folder-note') as HTMLElement;
         input.value = savedWorkFolder();
 
-        /* 이미 쓸 수 있는 값이 있으면 그걸 보여 준다 — 적어 둔 것과 실제로 잡힌 것이
+        /* 이미 쓸 수 있는 값이 있으면 그걸 보여 준다. 적어 둔 것과 실제로 잡힌 것이
            다를 수 있고, 사람이 봐야 하는 것은 **실제로 잡힌 쪽**이다. */
         void currentWorkFolder().then((now) => {
             if (now) {
                 input.value = now;
-                note.textContent = t('settings.machine.ok', undefined, '확인됨 — 부품 굽기·개발 서버가 이 폴더를 쓴다.');
+                note.textContent = t('settings.machine.ok', undefined, '확인됨. 부품 굽기, 개발 서버가 이 폴더를 쓴다.');
                 return;
             }
-            /* 빈 칸이면 기계가 짐작한 값을 채운다 — 물어볼 필요 없는 것을 묻지 않는다.
+            /* 빈 칸이면 기계가 짐작한 값을 채운다. 물어볼 필요 없는 것을 묻지 않는다.
                채우기만 하고 정하지는 않는다: 맞는지는 사람이 보고 누른다. */
             if (input.value) return;
             void guessWorkFolder().then((guess) => {
                 if (!guess || input.value) return;
                 input.value = guess;
-                note.textContent = t('settings.machine.guessed', undefined, '이 자리로 짐작했다 — 맞으면 저장을 눌러라.');
+                note.textContent = t('settings.machine.guessed', undefined, '이 자리로 짐작했다. 맞으면 저장을 눌러라.');
             });
         });
 
         (wrap.querySelector('#work-folder-pick') as HTMLButtonElement).addEventListener('click', () => {
             void pickWorkFolder().then((picked) => {
                 if (picked) input.value = picked;
-                else note.textContent = t('settings.machine.nopick', undefined, '폴더 고르기 창을 못 열었다 — 경로를 손으로 적어라.');
+                else note.textContent = t('settings.machine.nopick', undefined, '폴더 고르기 창을 못 열었다. 경로를 손으로 적어라.');
             });
         });
 
         (wrap.querySelector('#work-folder-save') as HTMLButtonElement).addEventListener('click', () => {
-            note.textContent = t('settings.machine.saving', undefined, '확인하는 중…');
+            note.textContent = t('settings.machine.saving', undefined, '확인하는 중...');
             void setWorkFolder(input.value).then((r) => {
                 note.textContent = r.ok
-                    ? t('settings.machine.ok', undefined, '확인됨 — 부품 굽기·개발 서버가 이 폴더를 쓴다.')
+                    ? t('settings.machine.ok', undefined, '확인됨. 부품 굽기, 개발 서버가 이 폴더를 쓴다.')
                     : `${t('settings.machine.bad', undefined, '이 폴더는 아니다')}: ${r.why}`;
             });
         });
@@ -619,11 +619,11 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('settings'),
         tabs: [
-            /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다.
+            /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 그 안에서 만들어진다.
              * 탭 이름만은 **등록하는 순간** 쓰이므로 기본값을 함께 준다 (S9-b). */
             {
                 id: 'settings-display',
-                label: t('settings.tab.display', undefined, '표시 · API'),
+                label: t('settings.tab.display', undefined, '표시, API'),
                 build: function (container: HTMLElement): void {
                     void loadNamespace('settings').then(function () {
                         buildDisplay(container);

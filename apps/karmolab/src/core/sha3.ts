@@ -1,20 +1,20 @@
 /**
- * SHA-3 (FIPS-202) — 우리가 직접 (TASK-KL-205)
+ * SHA-3 (FIPS-202). 우리가 직접 (TASK-KL-205)
  *
- * 왜 직접 쓰나: 우리한테 있던 「SHA-3」은 CryptoJS 의 `SHA3` 였는데, 그건 **표준화 이전 Keccak**
+ * 왜 직접 쓰나: 우리한테 있던 SHA-3은 CryptoJS 의 `SHA3` 였는데, 그건 **표준화 이전 Keccak**
  * 이라 값이 다르다. 진짜 SHA-3 을 주려면 ① 남의 라이브러리를 들이거나 ② 직접 쓰거나인데,
- * 남의 것을 `js/vendor/` 로 들이면 **브라우저에서만 돈다** — 그러면 Node 쪽엔 또 없어서
- * 「두 손이 달라 값이 갈리는」 문제가 그대로 남는다. 여기 두면 **한 벌을 양쪽이 같이 쓴다.**
+ * 남의 것을 `js/vendor/` 로 들이면 **브라우저에서만 돈다**. 그러면 Node 쪽엔 또 없어서
+ * 두 손이 달라 값이 갈리는 문제가 그대로 남는다. 여기 두면 **한 벌을 양쪽이 같이 쓴다.**
  *
- * 「암호는 직접 짜지 마라」가 보통 맞지만 이건 예외다:
+ * 암호는 직접 짜지 마라가 보통 맞지만 이건 예외다:
  *  - 비밀이 안 들어간다(열쇠 없음). 타이밍 공격 같은 게 성립하지 않는다.
  *  - 규격(FIPS-202)이 완전히 공개돼 있고 짧다.
- *  - **정답지가 있다** — Node 의 OpenSSL. 무작위 입력 수천 개를 기계로 대조한다
- *    (`scripts/test-core.mjs`). 눈으로 「맞겠지」 하는 자리가 없다.
+ *  - **정답지가 있다**. Node 의 OpenSSL. 무작위 입력 수천 개를 기계로 대조한다
+ *    (`scripts/test-core.mjs`). 눈으로 맞겠지 하는 자리가 없다.
  *
- * Keccak 과 SHA-3 의 차이는 딱 한 바이트다 — 메시지 끝에 붙이는 표시(domain separation).
+ * Keccak 과 SHA-3 의 차이는 딱 한 바이트다. 메시지 끝에 붙이는 표시(domain separation).
  * Keccak 은 `0x01`, SHA-3 은 `0x06`. 그거 하나로 값 전체가 달라진다.
- * 그래서 두 개를 같은 코드로 내고 표시만 갈아 끼운다 — 우리 화면이 둘 다 보여 주므로.
+ * 그래서 두 개를 같은 코드로 내고 표시만 갈아 끼운다. 우리 화면이 둘 다 보여 주므로.
  */
 
 /** 64비트를 32비트 두 개로 나눠 다룬다. BigInt 는 느리고, 이 계산은 사람이 타이핑하는 속도로 돈다. */
@@ -33,7 +33,7 @@ const RC_LO = new Uint32Array([
  * ρ 단계의 회전량. **자리 번호 = x + 5y** (y 가 바깥, 다섯 개씩 한 줄).
  * 이 표와 아래 π 의 자리 번호 규약이 **서로 같아야** 한다. 한쪽만 전치돼 있으면
  * 값이 통째로 달라지는데 결과는 여전히 그럴듯한 16진수라 눈으로는 못 잡는다
- * (실제로 그렇게 넣었다가 Node 대조에서 즉시 걸렸다 — 그래서 정답지를 먼저 놓고 짰다).
+ * (실제로 그렇게 넣었다가 Node 대조에서 즉시 걸렸다. 그래서 정답지를 먼저 놓고 짰다).
  */
 const ROT = [
   0, 1, 62, 28, 27,
@@ -59,7 +59,7 @@ function keccakF(sLo: Uint32Array, sHi: Uint32Array): void {
   const tHi = new Uint32Array(25);
 
   for (let round = 0; round < 24; round++) {
-    // θ — 열끼리 XOR 한 뒤 이웃 열을 한 칸 굴려 되먹인다.
+    // θ. 열끼리 XOR 한 뒤 이웃 열을 한 칸 굴려 되먹인다.
     for (let x = 0; x < 5; x++) {
       cLo[x] = sLo[x] ^ sLo[x + 5] ^ sLo[x + 10] ^ sLo[x + 15] ^ sLo[x + 20];
       cHi[x] = sHi[x] ^ sHi[x + 5] ^ sHi[x + 10] ^ sHi[x + 15] ^ sHi[x + 20];
@@ -75,7 +75,7 @@ function keccakF(sLo: Uint32Array, sHi: Uint32Array): void {
       }
     }
 
-    // ρ + π — 각 자리를 정해진 만큼 굴리고 자리를 바꾼다.
+    // ρ + π. 각 자리를 정해진 만큼 굴리고 자리를 바꾼다.
     for (let i = 0; i < 25; i++) {
       const r = ROT[i];
       const lo = sLo[i];
@@ -100,7 +100,7 @@ function keccakF(sLo: Uint32Array, sHi: Uint32Array): void {
       tHi[PI[i]] = rHi;
     }
 
-    // χ — 같은 줄의 다음 둘을 보고 자기를 고친다. 여기만 비선형이다.
+    // χ. 같은 줄의 다음 둘을 보고 자기를 고친다. 여기만 비선형이다.
     for (let y = 0; y < 25; y += 5) {
       for (let x = 0; x < 5; x++) {
         sLo[y + x] = tLo[y + x] ^ (~tLo[y + ((x + 1) % 5)] & tLo[y + ((x + 2) % 5)]);
@@ -108,7 +108,7 @@ function keccakF(sLo: Uint32Array, sHi: Uint32Array): void {
       }
     }
 
-    // ι — 회차마다 다른 상수를 첫 자리에 섞는다. 이게 없으면 모든 회차가 똑같아진다.
+    // ι. 회차마다 다른 상수를 첫 자리에 섞는다. 이게 없으면 모든 회차가 똑같아진다.
     sLo[0] ^= RC_LO[round];
     sHi[0] ^= RC_HI[round];
   }
@@ -118,8 +118,8 @@ const HEX = '0123456789abcdef';
 
 /**
  * @param bytes 입력
- * @param outBits 128 · 224 · 256 · 384 · 512 중 하나 (내보낼 비트 수)
- * @param pad `0x06` = SHA-3 표준 · `0x01` = 옛 Keccak. **이 한 바이트가 둘을 가른다.**
+ * @param outBits 128, 224, 256, 384, 512 중 하나 (내보낼 비트 수)
+ * @param pad `0x06` = SHA-3 표준, `0x01` = 옛 Keccak. **이 한 바이트가 둘을 가른다.**
  */
 export function keccakHex(bytes: Uint8Array, outBits: number, pad: number): string {
   const rate = 200 - outBits / 4; // 흡수 구간 크기(바이트). 512비트면 72바이트.
@@ -150,7 +150,7 @@ export function keccakHex(bytes: Uint8Array, outBits: number, pad: number): stri
   block[rate - 1] ^= 0x80;
   absorb();
 
-  // 짜내기 — 512비트까지는 한 번에 나온다(rate 가 더 크다).
+  // 짜내기. 512비트까지는 한 번에 나온다(rate 가 더 크다).
   let out = '';
   const outBytes = outBits / 8;
   for (let i = 0; i < outBytes; i++) {
@@ -165,7 +165,7 @@ export function keccakHex(bytes: Uint8Array, outBits: number, pad: number): stri
 
 const enc = new TextEncoder();
 
-/** FIPS-202 SHA-3. `sha3sum` · `openssl dgst -sha3-512` 와 같은 값이 나온다. */
+/** FIPS-202 SHA-3. `sha3sum`, `openssl dgst -sha3-512` 와 같은 값이 나온다. */
 export function sha3(text: string, bits: 224 | 256 | 384 | 512 = 512): string {
   return keccakHex(enc.encode(text), bits, 0x06);
 }

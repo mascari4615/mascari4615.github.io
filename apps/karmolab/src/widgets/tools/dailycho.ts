@@ -1,13 +1,13 @@
 /**
- * 초성 맞히기 데일리 — 화면 (해자③ 둘째 게임)
+ * 초성 맞히기 데일리. 화면 (해자③ 둘째 게임)
  *
- * 골격만이다. 놀이 느낌(색·움직임·소리·캐릭터)은 사용자 몫이라 손대지 않았다.
+ * 골격만이다. 놀이 느낌(색, 움직임, 소리, 캐릭터)은 사용자 몫이라 손대지 않았다.
  *
- * 계산·정답은 전부 `core/dailycho.ts` 다. 여기서 정답을 다시 만들면 화면과 공유 격자가
+ * 계산, 정답은 전부 `core/dailycho.ts` 다. 여기서 정답을 다시 만들면 화면과 공유 격자가
  * 서로 다른 말을 하게 된다.
  *
- * ★ 이 화면에서 절대 하면 안 되는 것 — **정답을 미리 DOM 에 넣는 것.**
- * 「맞히면 보여 준다」를 하려고 답을 숨겨 두면, 개발자 도구를 여는 순간 놀이가 끝난다.
+ * ★ 이 화면에서 절대 하면 안 되는 것. **정답을 미리 DOM 에 넣는 것.**
+ * 맞히면 보여 준다를 하려고 답을 숨겨 두면, 개발자 도구를 여는 순간 놀이가 끝난다.
  * 그래서 답은 자바스크립트 변수로만 들고 있고, 맞힌 칸에만 글자로 그린다.
  */
 import { dateKST, humanLeft, msUntilNextKST, playKey } from '../../core/daily';
@@ -55,7 +55,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
 
-          /* 초성과 글자 수만 그린다 — 답도, 어떤 도구인지도 아직 안 그린다. */
+          /* 초성과 글자 수만 그린다. 답도, 어떤 도구인지도 아직 안 그린다. */
           $('#chList').innerHTML = puzzle.questions
             .map(
               (q, i) => `
@@ -81,7 +81,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             puzzle.questions.forEach((q, i) => {
               const mark = $(`#chMark${i}`);
               if (report.marks[i] === 'hit') {
-                /* 맞힌 칸에만 도구를 알려 준다 — 이게 이 놀이가 사이트를 가르치는 자리다. */
+                /* 맞힌 칸에만 도구를 알려 준다. 이게 이 놀이가 사이트를 가르치는 자리다. */
                 mark.textContent = `🟩 ${q.tool}`;
               } else {
                 mark.textContent = report.marks[i] === 'near' ? t('dailycho.t05') : '⬛';

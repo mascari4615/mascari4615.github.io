@@ -1,7 +1,7 @@
 /**
- * PC 활동 트래커 위젯 — 데스크톱 앱 전용.
+ * PC 활동 트래커 위젯. 데스크톱 앱 전용.
  * Tauri Rust collector(activity.rs)가 매 5초마다 포그라운드 윈도우를 샘플링해 JSONL로 저장한다.
- * 이 위젯은 그 데이터를 일자별로 조회·집계해 보여줌. 외부 전송 없음.
+ * 이 위젯은 그 데이터를 일자별로 조회, 집계해 보여줌. 외부 전송 없음.
  */
 import { invoke as tauriInvoke } from '../tauri-bridge';
 import { t, loadNamespace } from '../lib/i18n';
@@ -77,8 +77,8 @@ import { download } from './tools/shared/image';
     'karmolab-desktop.exe': 'KarmoLab'
   });
 
-  /// 매핑 테이블을 lowercase 키로 미리 정규화 — Windows가 GetModuleBaseName으로 반환하는
-  /// 실행파일명 케이스가 OS·드라이버에 따라 들쑥날쑥(예: explorer.exe vs Explorer.EXE).
+  /// 매핑 테이블을 lowercase 키로 미리 정규화. Windows가 GetModuleBaseName으로 반환하는
+  /// 실행파일명 케이스가 OS, 드라이버에 따라 들쑥날쑥(예: explorer.exe vs Explorer.EXE).
   let lowerTable: Record<string, string> | null = null;
   const processLabelsLower = (): Record<string, string> => {
     if (lowerTable) return lowerTable;
@@ -199,7 +199,7 @@ import { download } from './tools/shared/image';
   }
 
   /// active 샘플을 7행(월~일) × 24열(0시~23시) 매트릭스로 누적 (단위: 초).
-  /// idle 샘플은 제외 — "내가 실제로 활동한 시간대" 패턴 시각화가 목적.
+  /// idle 샘플은 제외. "내가 실제로 활동한 시간대" 패턴 시각화가 목적.
   function buildHeatmapMatrix(samples: ActivitySample[]): {
     matrix: number[][];
     max: number;
@@ -268,8 +268,8 @@ import { download } from './tools/shared/image';
     return '﻿' + lines.join('\n');
   }
 
-  /// CSV 텍스트를 파일로 저장. 내려주기·거두기는 **공용 한 자리**(`tools/shared/image.download`)다 —
-  /// 그림 전용이 아니라 「Blob 을 파일로 내려준다」는 같은 일이라 여기서도 그걸 쓴다.
+  /// CSV 텍스트를 파일로 저장. 내려주기, 거두기는 **공용 한 자리**(`tools/shared/image.download`)다 . 
+  /// 그림 전용이 아니라 Blob 을 파일로 내려준다는 같은 일이라 여기서도 그걸 쓴다.
   function downloadCsv(filename: string, csv: string): void {
     download(new Blob([csv], { type: 'text/csv;charset=utf-8' }), filename);
   }
@@ -335,7 +335,7 @@ import { download } from './tools/shared/image';
             .activity-empty { padding: 30px 20px; text-align: center; color: var(--text-tertiary); }
             .activity-disabled-note { color: var(--text-tertiary); font-size: var(--font-size-sm); padding: 30px 20px; text-align: center; }
 
-            /* 시간대 히트맵 — 주 단위 모드 전용. 7행(월~일) × 24열(0~23시), accent 색 alpha 로 강도 표시. */
+            /* 시간대 히트맵. 주 단위 모드 전용. 7행(월~일) × 24열(0~23시), accent 색 alpha 로 강도 표시. */
             .activity-heatmap-wrap { margin: 0 0 18px 0; }
             .activity-heatmap-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 6px 0; }
             .activity-heatmap-hint { font-size: 10px; color: var(--text-tertiary); margin: 0 0 8px 0; }
@@ -362,7 +362,7 @@ import { download } from './tools/shared/image';
             }
             .activity-heatmap-cell--empty { background: var(--bg-tertiary); }
 
-            /* 일자별 막대 — 주/월 모드 전용. flex row, 각 막대는 height = active / max. */
+            /* 일자별 막대. 주/월 모드 전용. flex row, 각 막대는 height = active / max. */
             .activity-bars-wrap { margin: 0 0 18px 0; }
             .activity-bars-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 6px 0; }
             .activity-bars-hint { font-size: 10px; color: var(--text-tertiary); margin: 0 0 8px 0; }
@@ -515,11 +515,11 @@ import { download } from './tools/shared/image';
     summary.innerHTML = `
             <div class="activity-stat">
                 <div class="activity-stat-label">${esc(t('activity.t01'))}</div>
-                <div class="activity-stat-value" data-active>—</div>
+                <div class="activity-stat-value" data-active>. </div>
             </div>
             <div class="activity-stat">
                 <div class="activity-stat-label">${esc(t('activity.t02'))}</div>
-                <div class="activity-stat-value" data-idle>—</div>
+                <div class="activity-stat-value" data-idle>. </div>
             </div>
         `;
     root.appendChild(summary);
@@ -616,7 +616,7 @@ import { download } from './tools/shared/image';
           label: t('activity.range.month', { ym: first.slice(0, 7) })
         };
       }
-      // 'all' — placeholder; 실제 범위는 listDays 결과 기반으로 호출 측에서 결정
+      // 'all'. placeholder; 실제 범위는 listDays 결과 기반으로 호출 측에서 결정
       return { startEpoch: 0, endEpoch: Number.MAX_SAFE_INTEGER, label: t('activity.t13') };
     }
 
@@ -666,7 +666,7 @@ import { download } from './tools/shared/image';
       for (let h = 0; h < 24; h++) {
         const isMajor = h % 6 === 0;
         parts.push(
-          `<div class="activity-heatmap-hour${isMajor ? ' activity-heatmap-hour--major' : ''}">${isMajor ? h : '·'}</div>`
+          `<div class="activity-heatmap-hour${isMajor ? ' activity-heatmap-hour--major' : ''}">${isMajor ? h : ', '}</div>`
         );
       }
       for (let d = 0; d < 7; d++) {
@@ -677,7 +677,7 @@ import { download } from './tools/shared/image';
             parts.push('<div class="activity-heatmap-cell activity-heatmap-cell--empty"></div>');
             continue;
           }
-          // 0 보다 큰 값은 최소 18% 강도부터 — 안 그러면 1~2 샘플 칸이 안 보임.
+          // 0 보다 큰 값은 최소 18% 강도부터. 안 그러면 1~2 샘플 칸이 안 보임.
           const ratio = v / max;
           const pct = Math.round(18 + ratio * 82);
           const mins = Math.round(v / 60);
@@ -745,13 +745,13 @@ import { download } from './tools/shared/image';
         const colCls = ['activity-bars-col'];
         if (v === 0) colCls.push('activity-bars-col--empty');
         if (k === today) colCls.push('activity-bars-col--today');
-        const tooltip = v > 0 ? `${k} — ${formatDuration(v)}` : `${k} — 활동 없음`;
+        const tooltip = v > 0 ? `${k}. ${formatDuration(v)}` : `${k}. 활동 없음`;
         parts.push(
           `<div class="${colCls.join(' ')}" title="${escapeHtml(tooltip)}"><div class="activity-bars-col-bar" style="height:${heightPct}%"></div></div>`
         );
       }
       parts.push('</div>');
-      // 라벨 — 주: 월~일, 월: 1/8/15/22/말일 만 major (가독성).
+      // 라벨. 주: 월~일, 월: 1/8/15/22/말일 만 major (가독성).
       parts.push('<div class="activity-bars-labels">');
       for (let i = 0; i < keys.length; i++) {
         const k = keys[i];
@@ -763,7 +763,7 @@ import { download } from './tools/shared/image';
           major = true;
         } else {
           const isMajor = dom === 1 || dom % 7 === 0 || i === keys.length - 1;
-          text = isMajor ? String(dom) : '·';
+          text = isMajor ? String(dom) : ', ';
           major = isMajor;
         }
         const cls = 'activity-bars-label' + (major ? ' activity-bars-label--major' : '');
@@ -775,13 +775,13 @@ import { download } from './tools/shared/image';
 
     const render = (data: DayActivity): void => {
       const { apps, activeSecs, idleSecs } = aggregate(data.samples);
-      activeEl.textContent = activeSecs > 0 ? formatDuration(activeSecs) : '—';
-      idleEl.textContent = idleSecs > 0 ? formatDuration(idleSecs) : '—';
+      activeEl.textContent = activeSecs > 0 ? formatDuration(activeSecs) : '. ';
+      idleEl.textContent = idleSecs > 0 ? formatDuration(idleSecs) : '. ';
 
       const totalSamples = data.samples.length;
       const total = activeSecs + idleSecs;
       const idlePct = total > 0 ? Math.round((idleSecs / total) * 100) : 0;
-      meta.textContent = `${data.day} · 샘플 ${totalSamples}건 · idle ${idlePct}% · 마지막 갱신 ${formatNow()}`;
+      meta.textContent = `${data.day}, 샘플 ${totalSamples}건, idle ${idlePct}%, 마지막 갱신 ${formatNow()}`;
 
       renderHeatmap(data.samples);
       renderDailyBars(data.samples);
@@ -807,7 +807,7 @@ import { download } from './tools/shared/image';
         } else if (apps.length === 0) {
           empty.textContent = t('activity.t32');
         } else {
-          empty.textContent = `"${currentFilter}"에 매칭되는 앱·창이 없습니다.`;
+          empty.textContent = `"${currentFilter}"에 매칭되는 앱, 창이 없습니다.`;
         }
         listWrap.appendChild(empty);
         return;
@@ -879,8 +879,8 @@ import { download } from './tools/shared/image';
 
     const load = (silent = false): void => {
       if (!silent) {
-        activeEl.textContent = '…';
-        idleEl.textContent = '…';
+        activeEl.textContent = '...';
+        idleEl.textContent = '...';
         listWrap.innerHTML = '';
       }
 
@@ -911,8 +911,8 @@ import { download } from './tools/shared/image';
           empty.className = 'activity-empty';
           empty.textContent = `조회 실패: ${errMsg}`;
           listWrap.appendChild(empty);
-          activeEl.textContent = '—';
-          idleEl.textContent = '—';
+          activeEl.textContent = '. ';
+          idleEl.textContent = '. ';
         });
     };
 
@@ -1045,7 +1045,7 @@ import { download } from './tools/shared/image';
       {
         id: 'activity-main',
         label: t('activity.tab.today', undefined, '오늘'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('activity').then(function () {
             build(container);

@@ -1,12 +1,12 @@
 /**
- * **녹음·녹화한 것이 다음 도구로 이어지는가** (TASK-KL-298).
+ * **녹음, 녹화한 것이 다음 도구로 이어지는가** (TASK-KL-298).
  *
- * 녹음 다음에 하는 일은 거의 늘 「앞뒤 자르기」, 화면 녹화 다음은 「구간 자르기·GIF」다.
- * 그런데 두 도구가 결과를 **「이어서」에 안 내놓고** 있어서, 방금 받은 파일을 다시 올려야 했다 —
+ * 녹음 다음에 하는 일은 거의 늘 앞뒤 자르기, 화면 녹화 다음은 구간 자르기, GIF다.
+ * 그런데 두 도구가 결과를 **이어서에 안 내놓고** 있어서, 방금 받은 파일을 다시 올려야 했다 . 
  * 재료 화면을 만들어 둔 값어치가 거기서 반쯤 사라진다.
  *
  * 여기서 재는 것: 만든 결과가 `Toolbox.offerNext` 로 **실제로 놓이는가**.
- * (녹음이 대표다 — 같은 배선을 화면 녹화·사진 뽑기·가리개·글 뽑기·자막·바꾸기·코드 사진·
+ * (녹음이 대표다. 같은 배선을 화면 녹화, 사진 뽑기, 가리개, 글 뽑기, 자막, 바꾸기, 코드 사진, 
  *  바코드에도 넣었다. 하나가 서면 나머지도 같은 모양이라 함께 산다.)
  *
  * 사용: node scripts/test-chain-record.mjs
@@ -64,8 +64,8 @@ const out = await page.evaluate(async () => {
   }
   const save = host.querySelector('#vrSave');
   if (!save) return { ok: false, why: '저장 단추가 없다' };
-  /* MP3 압축기는 바깥 파일을 받아 와야 해서 이 검사판에는 없다 — 재려는 건 「이어지는가」이지
-   * 압축이 아니므로 WAV 로 맞춘다(첫 판에 「MP3 압축기를 불러오지 못했습니다」로 빨갰다). */
+  /* MP3 압축기는 바깥 파일을 받아 와야 해서 이 검사판에는 없다. 재려는 건 이어지는가이지
+   * 압축이 아니므로 WAV 로 맞춘다(첫 판에 MP3 압축기를 불러오지 못했습니다로 빨갰다). */
   const fmt = host.querySelector('#vrFormat');
   if (fmt) {
     fmt.value = 'wav';
@@ -83,7 +83,7 @@ const out = await page.evaluate(async () => {
 await browser.close();
 
 check(out.ok, `녹음 화면이 도는가 (${out.why || ''})`);
-check(out.offered?.length === 1, `녹음한 것을 「이어서」에 내놓는다 (지금 ${JSON.stringify(out.offered)})`);
+check(out.offered?.length === 1, `녹음한 것을 이어서에 내놓는다 (지금 ${JSON.stringify(out.offered)})`);
 check(out.offered?.[0]?.from === 'voicerec', '어느 도구가 만든 것인지 밝힌다');
 check((out.offered?.[0]?.size || 0) > 0, '빈 것이 아니라 실제 소리가 놓인다');
 

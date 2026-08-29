@@ -1,19 +1,19 @@
 /**
- * 오늘의 판 원장 (TASK-KL-194) — **연속일을 계정에 붙인다**.
+ * 오늘의 판 원장 (TASK-KL-194). **연속일을 계정에 붙인다**.
  *
- * 왜 있나: 「오늘의 코스」(KL-089)는 이미 돌고 있었다. 놀이 다섯 중 오늘 뭘 했는지 세고,
- * 다 하면 며칠 연속인지도 말한다. 그런데 그 셈이 **이 브라우저 안에만** 있었다 —
- * 폰으로 열면 0일, 브라우저 기록을 지우면 0일. 「내가 쌓은 것」이 한 번의 청소로 사라지는
+ * 왜 있나: 오늘의 코스(KL-089)는 이미 돌고 있었다. 놀이 다섯 중 오늘 뭘 했는지 세고,
+ * 다 하면 며칠 연속인지도 말한다. 그런데 그 셈이 **이 브라우저 안에만** 있었다 . 
+ * 폰으로 열면 0일, 브라우저 기록을 지우면 0일. 내가 쌓은 것이 한 번의 청소로 사라지는
  * 자리는 아무도 안 쌓는다. 그래서 연속일이 돌아올 이유가 되지 못했다.
  *
- * 여기는 그 셈을 **계정에** 옮긴다. 새 판정 기준은 만들지 않는다 — 「오늘 완주했나」는
+ * 여기는 그 셈을 **계정에** 옮긴다. 새 판정 기준은 만들지 않는다. 오늘 완주했나는
  * 여전히 브라우저가 판정하고(각 놀이의 저장을 읽는 쪽이 정본), 서버는 그 날짜만 받아 적는다.
  * 판정을 서버로 옮기려면 놀이 다섯의 저장 모양을 서버가 다 알아야 하고, 그 순간 같은 규칙이
  * 두 벌이 된다.
  *
- * 못 믿을 값이 들어오면? 이 원장은 **순위가 아니다** — 연속일은 나에게만 보이는 수고,
- * 순위·기록은 이미 놀이 기록 원장(`karmolab-plays`)이 따로 지킨다. 그래서 여기서는
- * 「하루에 한 번」과 「사람이 보냈나」만 본다.
+ * 못 믿을 값이 들어오면? 이 원장은 **순위가 아니다**. 연속일은 나에게만 보이는 수고,
+ * 순위, 기록은 이미 놀이 기록 원장(`karmolab-plays`)이 따로 지킨다. 그래서 여기서는
+ * 하루에 한 번과 사람이 보냈나만 본다.
  *
  * 저장 = `data/karmolab-today-state.json` (`.gitignore` 의 `data/*-state.json`).
  */
@@ -27,9 +27,9 @@ const STATE_FILE = 'karmolab-today-state.json';
 export const KEEP_DAYS = 400;
 
 /**
- * 코스가 셀 줄 아는 놀이 — **판정은 브라우저가 한다**. 여기 있는 목록은 「아무 글자나 받지
- * 않는다」는 문지기일 뿐이다. 브라우저 쪽 정본은 `play-course.ts` 의 `COUNTED`.
- * 둘이 갈리면 어떻게 되나: 여기 없는 id 는 조용히 버려지고 완주가 안 찍힌다 —
+ * 코스가 셀 줄 아는 놀이. **판정은 브라우저가 한다**. 여기 있는 목록은 아무 글자나 받지
+ * 않는다는 문지기일 뿐이다. 브라우저 쪽 정본은 `play-course.ts` 의 `COUNTED`.
+ * 둘이 갈리면 어떻게 되나: 여기 없는 id 는 조용히 버려지고 완주가 안 찍힌다 . 
  * 그래서 새 놀이를 코스에 넣는 날은 이 줄도 같이 는다.
  */
 export const COURSE_GAMES = ['daily', 'higher', 'quest', 'twenty', 'worldcup'];
@@ -39,7 +39,7 @@ export interface TodayRecord {
   days: string[];
   /** 역대 최고 연속일. 날짜를 버려도 이 수는 남는다. */
   best: number;
-  /** 오늘 어느 칸을 끝냈나 — 날이 바뀌면 비운다. 「몇 개 남았나」를 기기 사이에서 잇는 자리. */
+  /** 오늘 어느 칸을 끝냈나. 날이 바뀌면 비운다. 몇 개 남았나를 기기 사이에서 잇는 자리. */
   day: string | null;
   slots: string[];
 }
@@ -50,7 +50,7 @@ interface TodayState {
   people: Record<string, TodayRecord>;
 }
 
-/** 오늘(KST). 놀이 원장·우물과 같은 모양을 쓴다 — 여기서 갈리면 하루가 어긋난다. */
+/** 오늘(KST). 놀이 원장, 우물과 같은 모양을 쓴다. 여기서 갈리면 하루가 어긋난다. */
 export function kstDay(at: Date = new Date()): string {
   return new Date(at.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
 }
@@ -62,8 +62,8 @@ function dayBefore(day: string): string {
 }
 
 /**
- * 오늘 기준 연속일. **어제까지 이어졌으면 아직 안 끊긴 것**으로 본다 —
- * 오늘 아직 안 논 사람에게 아침부터 「0일」이라고 하면, 그 사람은 이미 잃은 줄 알고 안 온다.
+ * 오늘 기준 연속일. **어제까지 이어졌으면 아직 안 끊긴 것**으로 본다 . 
+ * 오늘 아직 안 논 사람에게 아침부터 0일이라고 하면, 그 사람은 이미 잃은 줄 알고 안 온다.
  * 오늘 것이 없고 어제 것도 없으면 0.
  */
 export function runOf(days: string[], today: string): number {
@@ -96,7 +96,7 @@ export class KarmolabTodayStore {
         return { version: 1, people: parsed.people ?? {} };
       }
     } catch (error) {
-      console.error('[karmolab-today] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
+      console.error('[karmolab-today] 상태 파일을 못 읽었다. 빈 원장으로 시작한다:', error);
     }
     return { version: 1, people: {} };
   }
@@ -121,7 +121,7 @@ export class KarmolabTodayStore {
     }
     if (row.slots.indexOf(slot) < 0) row.slots.push(slot);
 
-    /* 완주 도장은 **여기서만** 찍는다. 브라우저가 「완주했다」고 말해 주는 길을 두면,
+    /* 완주 도장은 **여기서만** 찍는다. 브라우저가 완주했다고 말해 주는 길을 두면,
        한 칸만 하고 완주를 보내는 것과 구분할 방법이 없다. */
     if (row.slots.length >= COURSE_GAMES.length && row.days[row.days.length - 1] !== today) {
       row.days.push(today);
@@ -133,14 +133,14 @@ export class KarmolabTodayStore {
     return row;
   }
 
-  /** 내 기록. 없으면 빈 기록 — 「아직 없다」와 「못 읽었다」를 화면이 구분할 필요가 없게. */
+  /** 내 기록. 없으면 빈 기록. 아직 없다와 못 읽었다를 화면이 구분할 필요가 없게. */
   of(handle: string, at: Date = new Date()): TodayRecord {
     const today = kstDay(at);
     const row = this.state.people[handle] ?? emptyRecord();
     return row.day === today ? row : { ...row, day: today, slots: [] };
   }
 
-  /** 오늘 완주한 사람 수. 아무도 없으면 0 — 화면은 0이면 그 줄을 안 그린다. */
+  /** 오늘 완주한 사람 수. 아무도 없으면 0. 화면은 0이면 그 줄을 안 그린다. */
   finishedOn(day: string): number {
     let count = 0;
     for (const row of Object.values(this.state.people)) if (row.days.indexOf(day) >= 0) count++;
@@ -148,7 +148,7 @@ export class KarmolabTodayStore {
   }
 
   /**
-   * 연속일 순위. **오늘 기준으로 살아 있는 줄만** — 3년 전에 40일 하고 떠난 사람이 맨 위에
+   * 연속일 순위. **오늘 기준으로 살아 있는 줄만**. 3년 전에 40일 하고 떠난 사람이 맨 위에
    * 박혀 있으면 그 순위판은 아무도 안 본다.
    */
   ranking(limit = 10, at: Date = new Date()): Array<{ handle: string; run: number; best: number }> {

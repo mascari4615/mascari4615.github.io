@@ -3,7 +3,7 @@
  *
  * **왜 프록시가 없나** (2026-08-20 실측): 동행복권 신규 `.do` 엔드포인트는 요청 Origin 을
  * 그대로 되비춘다 (`Access-Control-Allow-Origin: <내 주소>`). 그래서 정적 사이트에서 바로
- * 부를 수 있다 — 서버를 하나 더 세울 이유가 없다.
+ * 부를 수 있다. 서버를 하나 더 세울 이유가 없다.
  *
  * **대신 지켜야 할 것 하나**: 헤더를 붙이지 마라. `Content-Type` 같은 걸 얹는 순간
  * 예비 요청(OPTIONS)이 나가는데 그쪽은 400 을 준다. 그래서 아래 fetch 는 **주소만** 넘긴다.
@@ -11,7 +11,7 @@
  * 인터넷에 도는 `common.do?method=getLottoNumber` 는 **죽었다** (302 로 첫 화면으로 튕긴다).
  * 그걸 쓰는 글이 아직 많으니, 되살릴 생각이 들면 이 줄을 먼저 읽어라.
  *
- * 못 받아도 도구는 그대로 돈다 — 번호 뽑기는 인터넷이 필요 없다. 채점 칸만 접힌다.
+ * 못 받아도 도구는 그대로 돈다. 번호 뽑기는 인터넷이 필요 없다. 채점 칸만 접힌다.
  */
 
 const HOST = 'https://www.dhlottery.co.kr';
@@ -24,7 +24,7 @@ export interface Draw645 {
   date: string;
   nums: number[];
   bonus: number;
-  /** 1등 당첨자 수 · 1인당 금액 — 「이번 주엔 23명이 12억씩」 같은 실감용 */
+  /** 1등 당첨자 수, 1인당 금액. 이번 주엔 23명이 12억씩 같은 실감용 */
   firstCount: number;
   firstAmount: number;
 }
@@ -48,7 +48,7 @@ const ymd = (s: string): string =>
  * 지금쯤 몇 회차인지 날짜로 짐작한다.
  *
  * 회차 목록을 주는 창구가 없어서(커서 없이 `latest` 를 부르면 빈 배열이 온다) **가운데를
- * 찍어** 창을 받는다. 창은 찍은 수의 +4 회차까지 온다 — 그래서 짐작보다 4 를 빼서 찍으면
+ * 찍어** 창을 받는다. 창은 찍은 수의 +4 회차까지 온다. 그래서 짐작보다 4 를 빼서 찍으면
  * 짐작이 하루 이틀 어긋나도 최신 회차가 창 안에 들어온다.
  */
 function guessRound645(now: number): number {
@@ -70,7 +70,7 @@ export async function latest645(): Promise<Draw645> {
     )) as { data?: { list?: Record<string, number | string>[] } };
     const list = raw?.data?.list || [];
     if (!list.length) continue;
-    /* 창은 내림차순으로 오지만 믿지 않는다 — 가장 큰 회차를 직접 고른다. */
+    /* 창은 내림차순으로 오지만 믿지 않는다. 가장 큰 회차를 직접 고른다. */
     const top = list.reduce((a, b) => (Number(b.ltEpsd) > Number(a.ltEpsd) ? b : a));
     return {
       round: Number(top.ltEpsd),
@@ -103,7 +103,7 @@ export async function latestPension(): Promise<DrawPension> {
 }
 
 /* ── 채점 ─────────────────────────────────────────────
-   등위 0 = 꽝. 문자열이 아니라 수로 돌려준다 — 화면 말은 부르는 쪽이 붙인다. */
+   등위 0 = 꽝. 문자열이 아니라 수로 돌려준다. 화면 말은 부르는 쪽이 붙인다. */
 
 export interface Score {
   /** 1~5 (로또) / 1~7 (연금), 0 = 꽝 */
@@ -140,7 +140,7 @@ export function scorePension(bnd: number, digits: string, win: DrawPension): Sco
   if (digits === win.bonus) return { rank: 0, hit: 6, bonus: true };
   const hit = tailMatch(digits, win.digits);
   if (hit === 6) return { rank: bnd === win.bnd ? 1 : 2, hit, bonus: false };
-  /* 3등부터는 조를 안 본다 — 뒤 5·4·3·2·1 자리만 맞으면 된다. */
+  /* 3등부터는 조를 안 본다. 뒤 5, 4, 3, 2, 1 자리만 맞으면 된다. */
   const rank = hit >= 1 ? 8 - hit : 0;
   return { rank, hit, bonus: false };
 }

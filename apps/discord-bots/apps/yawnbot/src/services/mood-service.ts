@@ -1,5 +1,5 @@
 /**
- * MoodService — 캐릭터별 기분/상태 관리
+ * MoodService. 캐릭터별 기분/상태 관리
  *
  * 저장 위치: characters/<slug>/memory/mood.json
  * 구조: { mood: string, updatedAt: string }

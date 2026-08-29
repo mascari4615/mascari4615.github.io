@@ -1,12 +1,12 @@
 /**
- * 어제의 나가 어제처럼 두는가 — 창 없이 (TASK-KL-264 A3)
+ * 어제의 나가 어제처럼 두는가. 창 없이 (TASK-KL-264 A3)
  *
  * 고스트는 **봇의 한 종류**로 만들었다. 그러니 검사도 봇을 재듯 재면 된다:
  *   ① 기록대로 판을 굴리면 그 자리가 **같은 점수**를 낸다 (어제의 나가 맞다)
  *   ② 기록이 떨어지면 그 자리는 **가만히 있는다** (아무 수나 지어내지 않는다)
  *   ③ 나머지 자리의 봇은 **안 건드려진다** (한 자리만 갈아 끼운 것이다)
  *
- * 점수형 놀이로 잰다 — 자리끼리 영향을 안 주므로 「같은 수 = 같은 점수」가 성립한다.
+ * 점수형 놀이로 잰다. 자리끼리 영향을 안 주므로 같은 수 = 같은 점수가 성립한다.
  * 차례 놀이는 남의 수가 내 수의 뜻을 바꾸므로 여기서 재는 것이 아니다.
  */
 import { build } from 'esbuild';
@@ -25,15 +25,15 @@ const { withGhost, GHOST_NAME } = await import(pathToFileURL(gh).href);
 
 let bad = 0;
 const ok = (cond, name, detail = '') => {
-  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : ' — ' + detail}`);
+  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : '. ' + detail}`);
   if (!cond) bad++;
 };
 
 /**
- * 점수형 놀이 — 자리끼리 서로를 안 막는다.
+ * 점수형 놀이. 자리끼리 서로를 안 막는다.
  *
- * `reflex` 를 꼭 넣는다. 앞의 셋은 **몇 번 눌렀나**만 세서 시각이 틀려도 점수가 같다 —
- * 그것만 재면 「어제와 같은 점수」는 맞아도 「어제처럼 둔다」는 못 본다(되돌려 보고 알았다:
+ * `reflex` 를 꼭 넣는다. 앞의 셋은 **몇 번 눌렀나**만 세서 시각이 틀려도 점수가 같다 . 
+ * 그것만 재면 어제와 같은 점수는 맞아도 어제처럼 둔다는 못 본다(되돌려 보고 알았다:
  * 고스트의 수를 0.5초씩 밀어도 안 빨개졌다). 반응 측정은 **빠르기가 곧 점수**라 시각이 틀리면
  * 바로 드러난다.
  */
@@ -67,11 +67,11 @@ for (const id of SCORED) {
     if (m2.view().finished) break;
   }
   const ghostScore = m2.view().seats[gseat].score;
-  ok(ghostScore === myScore, `${id}: 어제의 나가 어제와 같은 점수를 낸다`, `어제 ${myScore} · 오늘 ${ghostScore}`);
-  ok(m2.view().seats[gseat].name === GHOST_NAME, `${id}: 그 자리 이름이 「${GHOST_NAME}」`);
+  ok(ghostScore === myScore, `${id}: 어제의 나가 어제와 같은 점수를 낸다`, `어제 ${myScore}, 오늘 ${ghostScore}`);
+  ok(m2.view().seats[gseat].name === GHOST_NAME, `${id}: 그 자리 이름이 ${GHOST_NAME}`);
 }
 
-/* ③ 기록이 없으면 가만히 있는다 — 아무 수나 지어내면 그건 어제의 내가 아니다 */
+/* ③ 기록이 없으면 가만히 있는다. 아무 수나 지어내면 그건 어제의 내가 아니다 */
 {
   const g = gameById('jegi');
   const quiet = withGhost(g, 1, { score: 0, at: 0, moves: [] });
@@ -82,4 +82,4 @@ for (const id of SCORED) {
 }
 
 if (bad) { console.error(`[ghost] 실패 ${bad}건`); process.exit(1); }
-console.log('[ghost] 통과 — 고스트는 봇의 한 종류로 붙는다');
+console.log('[ghost] 통과. 고스트는 봇의 한 종류로 붙는다');

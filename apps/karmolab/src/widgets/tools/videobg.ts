@@ -1,10 +1,10 @@
 /**
  * 영상 배경 빼기 (흡혈 원장 16 unscreen / TASK-KL-337)
  *
- * 「영상」 작업대의 할 일 한 칸. 셈은 `lib/ai-cutout` — **14 와 같은 바닥**이다.
+ * 영상 작업대의 할 일 한 칸. 셈은 `lib/ai-cutout`. **14 와 같은 바닥**이다.
  * 프레임을 하나씩 꺼내 오려내고 다시 묶는다. 그뿐이다.
  *
- * ★ 「투명 영상 나옵니다」라고 안 적는다 — 브라우저가 못 만든다.
+ * ★ 투명 영상 나옵니다라고 안 적는다. 브라우저가 못 만든다.
  * WebM 은 형식상 알파를 담을 수 있지만 `MediaRecorder` 는 알파를 담아 주지 않는다. 그래서
  * 내보내기를 둘로 가른다: **새 바탕 위에 얹은 영상**(바로 올릴 때)과 **투명 PNG 연속**
  * (편집 프로그램으로 가져갈 때). 못 하는 것을 되는 척하면 그게 제일 나쁘다.
@@ -110,15 +110,15 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
     const video = $<HTMLVideoElement>('#vbVideo');
     const canvas = $<HTMLCanvasElement>('#vbCanvas');
     const status = $<HTMLElement>('#vbStatus');
-    /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 긴 작업이라 더욱. */
+    /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 긴 작업이라 더욱. */
     markLive(status);
 
     let duration = 0;
     let outW = 0;
     let outH = 0;
-    /** 오려낸 장면들. **PNG 덩어리로** 들고 있는다 — 날 픽셀로 쥐면 백 장에 60MB 가 넘는다. */
+    /** 오려낸 장면들. **PNG 덩어리로** 들고 있는다. 날 픽셀로 쥐면 백 장에 60MB 가 넘는다. */
     let frames: Blob[] = [];
-    /** 취소 깃발. 누른 뒤에도 도구가 멀쩡해야 한다 — 안 그러면 아무도 다시 안 누른다. */
+    /** 취소 깃발. 누른 뒤에도 도구가 멀쩡해야 한다. 안 그러면 아무도 다시 안 누른다. */
     let cancelled = false;
     let working = false;
     let gate: AiGate | null = null;
@@ -127,7 +127,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
     const startSec = (): number => (num('#vbStart') / 1000) * Math.max(0, duration);
     const kind = (): CutoutKind => 'person';
 
-    /** 몇 장을 돌리게 되나 — **누르기 전에** 숫자로 보여 준다. 셈은 `lib/ai-cutout` (검사됨). */
+    /** 몇 장을 돌리게 되나. **누르기 전에** 숫자로 보여 준다. 셈은 `lib/ai-cutout` (검사됨). */
     function plan(): { count: number; fps: number; len: number } {
       const fps = num('#vbFps');
       const got = planFrames(duration - startSec(), num('#vbLen'), fps, MAX_FRAMES);
@@ -186,7 +186,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
     }
 
     /**
-     * 한 장을 오려낸다. **색은 원본에서, 모양만 모델에서** — 14 에서 세운 규율 그대로.
+     * 한 장을 오려낸다. **색은 원본에서, 모양만 모델에서**. 14 에서 세운 규율 그대로.
      * 돌려주는 것은 투명 PNG 한 덩어리다.
      */
     async function cutFrame(engine: Parameters<typeof cutout>[0], time: number): Promise<Blob> {
@@ -200,11 +200,11 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
       const shown = ctx.createImageData(outW, outH);
       shown.data.set(out);
       ctx.putImageData(shown, 0, 0);
-      /* 내보내기는 `shared/image` 를 거친다 — 형식별 규칙(JPG 흰 바탕 등)이 거기 한 곳에 있다. */
+      /* 내보내기는 `shared/image` 를 거친다. 형식별 규칙(JPG 흰 바탕 등)이 거기 한 곳에 있다. */
       return await encode(plate, 'png');
     }
 
-    /** 한 장을 화면에 — 바탕을 깔지 말지는 「투명 그대로」 손잡이가 정한다. */
+    /** 한 장을 화면에. 바탕을 깔지 말지는 투명 그대로 손잡이가 정한다. */
     async function paint(blob: Blob, transparent: boolean): Promise<void> {
       const bmp = await createImageBitmap(blob);
       const ctx = canvas.getContext('2d');
@@ -218,7 +218,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
       bmp.close();
     }
 
-    /** 모델을 데려온다 — 「AI 켜기」 게이트는 14 와 같은 것을 쓴다. */
+    /** 모델을 데려온다. AI 켜기 게이트는 14 와 같은 것을 쓴다. */
     async function withEngine(run: (engine: Parameters<typeof cutout>[0]) => Promise<void>): Promise<boolean> {
       gate ??= new AiGate({
         sizeMb: sizeMbFor(CUTOUT_MODELS[kind()], webgpuAvailable()),
@@ -263,7 +263,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
           await paint(blob, $<HTMLInputElement>('#vbKeep').checked);
           status.textContent = t('videobg.status.working', { i: i + 1, n: p.count });
         }
-        /* 취소는 실패가 아니다 — 여태 오려낸 것은 그대로 쓸 수 있게 둔다. */
+        /* 취소는 실패가 아니다. 여태 오려낸 것은 그대로 쓸 수 있게 둔다. */
         status.textContent = cancelled
           ? t('videobg.status.stopped', { n: frames.length })
           : t('videobg.status.done', { n: frames.length });
@@ -280,8 +280,8 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
     };
 
     /**
-     * 내보내기. 「투명 그대로」면 PNG 연속을 묶어 주고, 아니면 **제 속도로 다시 틀면서** 담는다.
-     * 담기가 오려내기와 갈라져 있는 이유가 여기다 — 벽시계로 재는 담기에 느린 오려내기를
+     * 내보내기. 투명 그대로면 PNG 연속을 묶어 주고, 아니면 **제 속도로 다시 틀면서** 담는다.
+     * 담기가 오려내기와 갈라져 있는 이유가 여기다. 벽시계로 재는 담기에 느린 오려내기를
      * 물리면 길이가 늘어난다.
      */
     $<HTMLButtonElement>('#vbSave').onclick = (): void => {
@@ -320,7 +320,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
       try {
         const ctx = canvas.getContext('2d');
         if (ctx === null) throw new Error(t('videobg.err.canvas'));
-        /* 0 = 「내가 밀어 넣을 때만 한 장」. 그래야 장 수가 정확히 맞는다. */
+        /* 0 = 내가 밀어 넣을 때만 한 장. 그래야 장 수가 정확히 맞는다. */
         const stream = canvas.captureStream(0);
         const track = stream.getVideoTracks()[0] as MediaStreamTrack & { requestFrame?: () => void };
         const type = pickRecordType();

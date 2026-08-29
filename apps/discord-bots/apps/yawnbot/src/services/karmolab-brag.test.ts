@@ -1,5 +1,5 @@
 /**
- * TASK-KL-195 — 자랑 카드 유입 원장 시험.
+ * TASK-KL-195. 자랑 카드 유입 원장 시험.
  *
  * 여기서 중요한 것: **0 을 늘어놓지 않는 것**과 날이 바뀌면 다른 줄이 되는 것.
  * 아무 일 없던 날에 0 을 채워 넣으면 표가 0 으로 덮여 진짜 움직인 날이 안 보인다.
@@ -45,7 +45,7 @@ describe('자랑 유입 셈', () => {
     expect(store.recent(14, at('2026-08-08')).length).toBe(2);
   });
 
-  it('파일로 이어진다 — 서버가 재시작해도 수가 안 사라진다', () => {
+  it('파일로 이어진다. 서버가 재시작해도 수가 안 사라진다', () => {
     new KarmolabBragStore(file).view(at('2026-08-08'));
     expect(new KarmolabBragStore(file).total().views).toBe(1);
   });

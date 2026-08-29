@@ -1,8 +1,8 @@
 /**
  * 색 대비 검사 (TASK-KL-088)
  *
- * 「연한 회색 글씨가 예쁘다」 로 정한 색이 밝은 곳에서는 안 읽힌다.
- * 감으로는 못 가리므로 웹 접근성 기준(WCAG)의 대비비를 계산해 **통과/실패로 못 박는다** —
+ * 연한 회색 글씨가 예쁘다 로 정한 색이 밝은 곳에서는 안 읽힌다.
+ * 감으로는 못 가리므로 웹 접근성 기준(WCAG)의 대비비를 계산해 **통과/실패로 못 박는다** . 
  * 본문 4.5:1, 큰 글씨 3:1 이 최소선이다.
  * 통과하는 가장 가까운 색까지 제안해서, 실패했을 때 무엇을 고칠지 바로 알 수 있게 한다.
  */
@@ -26,7 +26,7 @@ import { markLive } from './shared/say';
 
   const hex = (c: RGB): string => '#' + c.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
 
-  /** 상대 휘도 — 사람 눈이 초록에 민감한 것을 반영한 가중치 */
+  /** 상대 휘도. 사람 눈이 초록에 민감한 것을 반영한 가중치 */
   function luminance(c: RGB): number {
     const [r, g, b] = c.map((v) => {
       const s = v / 255;
@@ -103,8 +103,8 @@ import { markLive } from './shared/say';
           const stats = $<HTMLElement>('#coStats');
           const out = $<HTMLElement>('#coOut');
           const status = $<HTMLElement>('#coStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
 
           const stat = (label: string, v: string, primary = false): string =>

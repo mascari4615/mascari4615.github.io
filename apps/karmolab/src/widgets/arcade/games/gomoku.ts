@@ -1,10 +1,10 @@
 /**
- * 오목 — 차례가 있는 보드 (TASK-KL-242)
+ * 오목. 차례가 있는 보드 (TASK-KL-242)
  *
- * 반응 측정이 「동시·짧게·여럿」이라면 이쪽은 「차례·길게·둘」이다. 커널 하나가 이 둘을 다
- * 담으면 나머지 49개는 그 사이 어딘가다 — 그래서 첫 사이클의 게임 둘은 일부러 정반대로 골랐다.
+ * 반응 측정이 동시, 짧게, 여럿이라면 이쪽은 차례, 길게, 둘이다. 커널 하나가 이 둘을 다
+ * 담으면 나머지 49개는 그 사이 어딘가다. 그래서 첫 사이클의 게임 둘은 일부러 정반대로 골랐다.
  *
- * 9×9 · 5개. 정식 오목의 금수(삼삼 등)는 없다 — 규칙을 외워야 하는 게임은 오락실 첫 판에 안 맞는다.
+ * 9×9, 5개. 정식 오목의 금수(삼삼 등)는 없다. 규칙을 외워야 하는 게임은 오락실 첫 판에 안 맞는다.
  */
 import { bestOf } from '../pick-best';
 import type { GameDef, BotMove } from '../types';
@@ -43,7 +43,7 @@ function wins(b: number[], cell: number, who: number): boolean {
   return false;
 }
 
-/** 이 칸의 값어치 — 내 줄을 길게 만들수록, 남의 줄을 끊을수록 크다. */
+/** 이 칸의 값어치. 내 줄을 길게 만들수록, 남의 줄을 끊을수록 크다. */
 function score(b: number[], cell: number, who: number): number {
   const x = cell % N;
   const y = Math.floor(cell / N);
@@ -58,18 +58,18 @@ function score(b: number[], cell: number, who: number): number {
         if (at(b, x + dx * k * sgn, y + dy * k * sgn) === 0) open++;
       }
       /**
-       * **이번 수로 끝나는 것이 먼저다.** 「막는 값을 살짝 낮게 두어 먼저 이기러 간다」로 두었더니
-       * 두 봇이 같은 함수를 쓰는 바람에 **선수가 한 수 차이로 늘 이겼다** — 200판 전부(저울 실측).
+       * **이번 수로 끝나는 것이 먼저다.** 막는 값을 살짝 낮게 두어 먼저 이기러 간다로 두었더니
+       * 두 봇이 같은 함수를 쓰는 바람에 **선수가 한 수 차이로 늘 이겼다**. 200판 전부(저울 실측).
        * 후수는 막을 수 있는 자리에서도 제 줄을 이으러 가고, 그 다음 수에 진다.
        *
        * 그래서 값을 셋으로 못 박는다: ① 지금 내가 이긴다 ② 안 막으면 지금 진다 ③ 나머지.
-       * ②를 ③ 어디보다도 크게 둔다 — 「이기는 수」와 「지지 않는 수」는 다른 종류의 수다.
+       * ②를 ③ 어디보다도 크게 둔다. 이기는 수와 지지 않는 수는 다른 종류의 수다.
        */
       if (n + 1 >= NEED) {
         total += target === who ? 1e9 : 1e8;
         continue;
       }
-      /* 남의 줄을 막는 값은 내 줄을 잇는 값보다 살짝 낮게 — 그래야 먼저 이기러 간다. */
+      /* 남의 줄을 막는 값은 내 줄을 잇는 값보다 살짝 낮게. 그래야 먼저 이기러 간다. */
       const w = target === who ? 1 : 0.9;
       total += w * (Math.pow(10, n) + open * 2);
     }
@@ -115,13 +115,13 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
   bot(s, seat, ctx): BotMove<GomokuAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const who = seat + 1;
-    /* 동점이면 아무거나 — 늘 앞칸을 고르면 후수가 매번 같은 자리로 끌려가 100% 진다
+    /* 동점이면 아무거나. 늘 앞칸을 고르면 후수가 매번 같은 자리로 끌려가 100% 진다
        (저울 실측, `pick-best.ts`). */
     const open: number[] = [];
     for (let c = 0; c < N * N; c++) if (s.board[c] === 0) open.push(c);
     const best = bestOf(open, (c) => score(s.board, c, who), ctx.rng);
     if (best === undefined) return null;
-    /* 생각하는 척 — 즉답하면 사람이 아니라 벽에 두는 느낌이 든다. */
+    /* 생각하는 척. 즉답하면 사람이 아니라 벽에 두는 느낌이 든다. */
     return { action: { cell: best }, delayMs: 600 + ctx.rng() * 700 };
   }
 };

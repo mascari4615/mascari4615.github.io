@@ -11,5 +11,5 @@
   "jqplay.status.ok": "答え {n} 件",
   "jqplay.copy.done": "コピーしました",
   "jqplay.help.title": "使える書き方",
-  "jqplay.help.limits": "jq 全部ではなく、よく使う分だけです — 変数($x)・def・reduce・try/catch はまだありません。"
+  "jqplay.help.limits": "jq 全部ではなく、よく使う分だけです. 変数($x)・def・reduce・try/catch はまだありません。"
 }

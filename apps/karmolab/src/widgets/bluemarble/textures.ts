@@ -5,17 +5,17 @@
  *   day / night = 우리가 담아 둔 것(`data/earth/`). 인터넷 없이도 지구는 뜬다.
  *   cloud       = **오늘의 진짜 구름**. NASA GIBS 가 위성 사진을 한 장으로 이어 붙여 준다.
  *
- * 구름은 「오늘」을 먼저 부른다. 다만 오늘 판은 위성이 아직 지구를 다 돌지 않았으면 **반쪽**이다
- * (아침 UTC 에 받으면 태평양만 있고 나머지는 검다 — 실측). 그래서 얼마나 찼는지 세어 보고,
+ * 구름은 오늘을 먼저 부른다. 다만 오늘 판은 위성이 아직 지구를 다 돌지 않았으면 **반쪽**이다
+ * (아침 UTC 에 받으면 태평양만 있고 나머지는 검다. 실측). 그래서 얼마나 찼는지 세어 보고,
  * 덜 찼으면 어제 판을 밑에 깔고 오늘 것을 그 위에 얹는다. 결과 = **있는 곳은 오늘, 없는 곳은 어제**.
- * 「최신이지만 절반이 빈 지구」와 「하루 늦었지만 온전한 지구」 중 하나를 고르지 않아도 된다.
+ * 최신이지만 절반이 빈 지구와 하루 늦었지만 온전한 지구 중 하나를 고르지 않아도 된다.
  */
 import { cloudMaskFrom, type Tex } from './surface';
 
 const SNAPSHOT = 'https://wvs.earthdata.nasa.gov/api/v1/snapshot';
 
 /**
- * 그날 하늘을 찍은 위성이 무엇이었나. 시간을 되감으면 위성도 되감아야 한다 —
+ * 그날 하늘을 찍은 위성이 무엇이었나. 시간을 되감으면 위성도 되감아야 한다 . 
  * NOAA-20 은 2018년에 올라갔고, 그 전 하늘은 Terra(2000년~)가 찍었다.
  * 없는 위성에게 그날을 물으면 검은 그림이 온다.
  */
@@ -46,7 +46,7 @@ function pixelsOf(img: HTMLImageElement, w: number, h: number): ImageData | null
   try {
     return c.getImageData(0, 0, w, h);
   } catch (_) {
-    return null; // 오염된 캔버스 — 그림 없이 간다
+    return null; // 오염된 캔버스. 그림 없이 간다
   }
 }
 
@@ -94,8 +94,8 @@ function coverage(d: Uint8ClampedArray): number {
 }
 
 /**
- * 그날의 구름. `day` 를 주면 그날 것만 받는다(시간을 되감았을 때 —
- * 「오늘이 반쪽이면 어제로 메운다」는 규칙은 *오늘*에만 쓴다. 과거는 이미 다 차 있다).
+ * 그날의 구름. `day` 를 주면 그날 것만 받는다(시간을 되감았을 때 . 
+ * 오늘이 반쪽이면 어제로 메운다는 규칙은 *오늘*에만 쓴다. 과거는 이미 다 차 있다).
  */
 export async function loadCloudsOn(day: string): Promise<{ w: number; h: number; a: Uint8ClampedArray } | null> {
   const px = await loadOne(day);
@@ -110,7 +110,7 @@ export async function loadClouds(): Promise<{ w: number; h: number; a: Uint8Clam
   if (!yday) return today ? cloudMaskFrom(today.data, CW, CH) : null;
   if (!today) return cloudMaskFrom(yday.data, CW, CH);
 
-  // 어제 위에 오늘을 얹는다 — 오늘 그림에서 검지 않은 자리만
+  // 어제 위에 오늘을 얹는다. 오늘 그림에서 검지 않은 자리만
   const base = yday.data;
   const fresh = today.data;
   for (let k = 0; k < base.length; k += 4) {

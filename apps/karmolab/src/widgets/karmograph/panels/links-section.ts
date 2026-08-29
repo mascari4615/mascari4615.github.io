@@ -1,8 +1,8 @@
 /**
- * panels/links-section.ts — 설명 속 [[이름]] 묶음 (TASK-KL-202 개편 2, 마지막 조각의 첫 걸음).
+ * panels/links-section.ts. 설명 속 [[이름]] 묶음 (TASK-KL-202 개편 2, 마지막 조각의 첫 걸음).
  *
  * 노드 패널은 위젯 상태와 가장 깊게 얽혀 있어 통째로 옮기기 어렵다. 그래서 **독립적인 조각부터**
- * 떼어낸다 — 이 부분은 설명 글과 노드 목록만 있으면 되므로 가장 먼저 나올 수 있었다.
+ * 떼어낸다. 이 부분은 설명 글과 노드 목록만 있으면 되므로 가장 먼저 나올 수 있었다.
  */
 import type { GraphNode } from '../../../lib/karmograph/spec';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from '../links';
@@ -14,11 +14,11 @@ const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /**
- * 설명 속 연결 — 가리키는 것 / 나를 가리키는 것 / 이름만 나온 곳 (격차 Q).
+ * 설명 속 연결. 가리키는 것 / 나를 가리키는 것 / 이름만 나온 곳 (격차 Q).
  * 마지막 것이 이 도구의 값이다: 사람이 링크 문법을 몰라도 그물이 자란다.
  */
 export function renderLinkSections(ctx: PanelCtx, node: GraphNode): string {
-  // 글이 공용 글(`docRef`)에 살면 `node.doc` 은 비어 있다 — **보이는 글**로 훑지 않으면
+  // 글이 공용 글(`docRef`)에 살면 `node.doc` 은 비어 있다. **보이는 글**로 훑지 않으면
   // 공용 글 안의 [[이름]] 은 영영 안 보인다. 그래서 훑기 전에 한 번 풀어 둔다.
   const spec = ctx.spec();
   const view = (n: GraphNode): { id: string; label: string; doc: string } =>
@@ -67,7 +67,7 @@ export function bindLinkSections(ctx: PanelCtx, selectedId: string | null): void
       const other = ctx.spec().nodes.find((n) => n.id === id);
       const me = ctx.spec().nodes.find((n) => n.id === selectedId);
       if (!other || !me) return;
-      // 공용 글이면 공용 글에 써야 한다 — `other.doc` 에 쓰면 아무도 안 보는 자리에 남는다.
+      // 공용 글이면 공용 글에 써야 한다. `other.doc` 에 쓰면 아무도 안 보는 자리에 남는다.
       setDocText(ctx.spec(), other, linkFirstMention(resolveDoc(ctx.spec(), other), me.label));
       ctx.canvas()?.render();
       ctx.canvas()?.setSelectedNode(me.id);

@@ -31,7 +31,7 @@ test('새벽까지 안 자면 그걸 알아챈다', () => {
   assert.match(readMood({ hour: 3, sinceTalkedMs: 1 * minutes, recentTurns: 4 }).note, /이 시간까지/);
 });
 
-test('기분은 늘 한 줄로 나온다 — 빈 채로 두뇌에 가지 않게', () => {
+test('기분은 늘 한 줄로 나온다. 빈 채로 두뇌에 가지 않게', () => {
   for (const hour of [0, 7, 13, 20, 23]) {
     const note = readMood({ hour, sinceTalkedMs: 30 * minutes, recentTurns: 2 }).note;
     assert.ok(note.length > 10, `${hour}시 기분이 비었다`);
@@ -40,17 +40,17 @@ test('기분은 늘 한 줄로 나온다 — 빈 채로 두뇌에 가지 않게'
 
 test('최근에 말을 연 방식을 다시 쓰지 말라고 일러 준다', () => {
   const recent = [
-    { role: 'said', channel: 'web', text: '응… 그러게 말이야', at: 1 },
+    { role: 'said', channel: 'web', text: '응... 그러게 말이야', at: 1 },
     { role: 'sensed', channel: 'web', text: '나 왔어', at: 2 },
-    { role: 'said', channel: 'web', text: '음… 오늘도 늦었네', at: 3 },
+    { role: 'said', channel: 'web', text: '음... 오늘도 늦었네', at: 3 },
   ];
   const note = avoidRepeats(recent);
-  assert.match(note, /응…/);
-  assert.match(note, /음…/);
+  assert.match(note, /응.../);
+  assert.match(note, /음.../);
   assert.match(note, /또 시작하지 마라/);
 });
 
-test('한 말이 없으면 반복 주의도 없다 — 빈 잔소리를 안 붙인다', () => {
+test('한 말이 없으면 반복 주의도 없다. 빈 잔소리를 안 붙인다', () => {
   assert.equal(avoidRepeats([{ role: 'sensed', channel: 'web', text: '안녕', at: 1 }]), '');
 });
 

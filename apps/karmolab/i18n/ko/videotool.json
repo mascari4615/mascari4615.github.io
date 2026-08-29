@@ -7,7 +7,7 @@
   "videotool.part.video2audio": "소리 추출",
   "videotool.part.screenrec": "화면 녹화",
   "videotool.tab": "영상",
-  "videotool.group.cut": "자르기·줄이기",
+  "videotool.group.cut": "자르기, 줄이기",
   "videotool.group.out": "뽑아내기",
   "videotool.group.make": "만들기",
   "videotool.drop.title": "영상을 여기에 놓거나 눌러서 고르세요",
@@ -16,7 +16,7 @@
   "videotool.btn.back": "할 일 고르기",
   "videotool.btn.chain": "이 결과로 이어서",
   "videotool.preview.fail": "이 영상은 미리 못 봅니다",
-  "videotool.meta": "{time} · {w}×{h} · {size}",
+  "videotool.meta": "{time}, {w}×{h}, {size}",
   "videotool.part.subtitle": "자막",
   "videotool.btn.recent": "방금 하던 것"
 }

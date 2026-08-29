@@ -18,7 +18,7 @@ function seeded() {
     guildId: 'g1', giverId: 'u2', giverName: '링', authorId: 'u1', authorName: '카르모',
     emojiName: '👍', at: new Date('2026-08-05T05:00:00Z'),
   });
-  // 지난 주 (직전 같은 길이 기간) — 비교 대상
+  // 지난 주 (직전 같은 길이 기간). 비교 대상
   say('u1', '카르모', 5, '2026-07-28T05:00:00Z');
   return state;
 }
@@ -103,7 +103,7 @@ describe('대시보드 페이지', () => {
   });
 
   it('셀마다 읽을 수 있는 설명이 붙는다 (색만으로 읽히지 않게)', () => {
-    expect(render()).toContain('aria-label="수요일 오후 2시 · 10개"');
+    expect(render()).toContain('aria-label="수요일 오후 2시, 10개"');
   });
 
   it('채널을 이름으로 보여준다', () => {
@@ -112,7 +112,7 @@ describe('대시보드 페이지', () => {
     expect(html).toContain('#작업로그');
   });
 
-  it('날짜별 표는 접혀 있다 — 30일이면 페이지를 삼킨다', () => {
+  it('날짜별 표는 접혀 있다. 30일이면 페이지를 삼킨다', () => {
     const html = render(seeded(), 30);
     expect(html).toContain('날짜별 표 펼치기');
     expect(html).not.toContain('<details open');

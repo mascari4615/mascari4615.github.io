@@ -2,7 +2,7 @@
  * 초월 틱택토 화면 (TASK-KL-242)
  *
  * 이 놀이는 **어디에 둘 수 있는지가 규칙의 전부**다. 그래서 지금 열린 작은 판을 테두리로
- * 또렷하게 표시한다 — 안 그러면 「왜 안 눌리지」가 된다.
+ * 또렷하게 표시한다. 안 그러면 왜 안 눌리지가 된다.
  */
 import type { GameView } from '../views';
 import { playable, type UltimateState, type UltimateAction } from './ultimate';

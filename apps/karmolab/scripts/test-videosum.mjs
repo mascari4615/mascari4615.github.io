@@ -1,7 +1,7 @@
 /**
- * 영상 줄이기 — **없는 말을 만들지 않는가** (TASK-KL-238 / 39 summarize.tech).
+ * 영상 줄이기. **없는 말을 만들지 않는가** (TASK-KL-238 / 39 summarize.tech).
  *
- * 목차의 이름표는 「그럴듯하면」 위험하다 — 사람은 그걸 믿고 그 구간을 건너뛴다. 그래서 여기서
+ * 목차의 이름표는 그럴듯하면 위험하다. 사람은 그걸 믿고 그 구간을 건너뛴다. 그래서 여기서
  * 재는 것은 예쁨이 아니라 **이름표가 자막에 실제로 있는 문장인가**, 그리고 시간이 어긋나지 않는가다.
  *
  * 사용: node scripts/test-videosum.mjs   (npm run test:vidsum)
@@ -22,7 +22,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const stamp = Date.now();
@@ -63,7 +63,7 @@ const SRT = [
 }
 {
   const vtt = 'WEBVTT\n\n00:00.000 --> 00:02.000\nhello there friend\n';
-  eq(V.parseCues(vtt).length, 1, 'VTT 도 읽는다 (머리말·짧은 시각 표기)');
+  eq(V.parseCues(vtt).length, 1, 'VTT 도 읽는다 (머리말, 짧은 시각 표기)');
 }
 eq(V.parseCues('').length, 0, '빈 글은 빈 목록');
 eq(V.parseCues('그냥 글, 시각 없음').length, 0, '시각이 없으면 자막이 아니다');
@@ -112,15 +112,15 @@ eq(V.outline([], 300), null, '자막이 없으면 목차도 없다');
   eq(o.chapters[0].label, '짧은 영상 하나 있습니다', '한 칸짜리 이름표도 원문 그대로');
 }
 {
-  // 맞장구만 있으면 이름표가 없다 — 지어내지 않는다
+  // 맞장구만 있으면 이름표가 없다. 지어내지 않는다
   const nod = V.parseCues('00:00:00,000 --> 00:00:02,000\n네\n\n00:00:02,000 --> 00:00:04,000\n음\n');
   eq(V.labelOf(nod), '', '맞장구뿐이면 이름표를 비운다 (지어내기 금지)');
 }
 
 process.stdout.write('\n');
 if (failures.length) {
-  console.error(`\n영상 줄이기 — ${failures.length}건 실패:`);
+  console.error(`\n영상 줄이기. ${failures.length}건 실패:`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('영상 줄이기 — 전부 통과');
+console.log('영상 줄이기. 전부 통과');

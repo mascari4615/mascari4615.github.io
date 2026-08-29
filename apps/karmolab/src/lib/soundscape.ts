@@ -1,14 +1,14 @@
 /**
- * 소리 풍경 — 그 자리에서 만드는 배경음 (TASK-KL-248)
+ * 소리 풍경. 그 자리에서 만드는 배경음 (TASK-KL-248)
  *
- * **내려받는 음원이 0바이트다.** 잡음을 만들어 거르고, 몇 개의 진동을 겹치는 것으로 비·파도·
+ * **내려받는 음원이 0바이트다.** 잡음을 만들어 거르고, 몇 개의 진동을 겹치는 것으로 비, 파도, 
  * 모닥불이 된다. 그래서 용량이 안 늘고, 같은 소리가 두 번 반복되지 않는다(녹음은 반드시
- * 이음매가 들린다 — 오래 틀어 두는 소리에서 그 이음매가 가장 거슬리는 부분이다).
+ * 이음매가 들린다. 오래 틀어 두는 소리에서 그 이음매가 가장 거슬리는 부분이다).
  *
  * 이 장치는 **화면도 지구본도 모른다.** 겹을 만들고 크기를 받을 뿐이다. 그래서 손잡이를
  * 누가 잡느냐만 다른 두 자리가 같은 엔진을 쓴다:
- *   - 지구본(`widgets/bluemarble/sound.ts`) — **자리**가 크기를 정한다(바다 위면 파도 크게)
- *   - 소리 풍경 도구(`widgets/tools/soundscape.ts`) — **사람**이 슬라이더로 정한다
+ *   - 지구본(`widgets/bluemarble/sound.ts`). **자리**가 크기를 정한다(바다 위면 파도 크게)
+ *   - 소리 풍경 도구(`widgets/tools/soundscape.ts`). **사람**이 슬라이더로 정한다
  *
  * 규율 하나: 겹은 **늘 돌려 두고 크기만** 바꾼다. 껐다 켜면 이음매가 들린다.
  */
@@ -63,7 +63,7 @@ function filter(ctx: AudioContext, type: BiquadFilterType, freq: number, q?: num
 
 export const LAYERS: LayerSpec[] = [
   {
-    /** 낮은 울림 — 55Hz 와 55.35Hz. 0.35Hz 차이라 3초에 한 번 부풀었다 줄어든다(맥놀이). */
+    /** 낮은 울림. 55Hz 와 55.35Hz. 0.35Hz 차이라 3초에 한 번 부풀었다 줄어든다(맥놀이). */
     id: 'drone',
     max: 0.09,
     build(ctx, out, keep) {
@@ -83,7 +83,7 @@ export const LAYERS: LayerSpec[] = [
     }
   },
   {
-    /** 사람 기척 — 잡음을 620Hz 좁게 걸러 목소리 대역만 남긴다. 말은 안 들리고 기척만 남는다. */
+    /** 사람 기척. 잡음을 620Hz 좁게 걸러 목소리 대역만 남긴다. 말은 안 들리고 기척만 남는다. */
     id: 'murmur',
     max: 0.06,
     build(ctx, out, keep) {
@@ -93,7 +93,7 @@ export const LAYERS: LayerSpec[] = [
     }
   },
   {
-    /** 얇은 화음 — 220·277·330Hz 삼각파. 하늘이 흔들리는 느낌. */
+    /** 얇은 화음. 220, 277, 330Hz 삼각파. 하늘이 흔들리는 느낌. */
     id: 'pad',
     max: 0.05,
     build(ctx, out, keep) {
@@ -112,7 +112,7 @@ export const LAYERS: LayerSpec[] = [
     }
   },
   {
-    /** 파도 — 저역 잡음이 8초에 한 번 밀려왔다 나간다. 그 숨이 없으면 그냥 소음이다. */
+    /** 파도. 저역 잡음이 8초에 한 번 밀려왔다 나간다. 그 숨이 없으면 그냥 소음이다. */
     id: 'wave',
     max: 0.07,
     build(ctx, out, keep) {
@@ -129,7 +129,7 @@ export const LAYERS: LayerSpec[] = [
     }
   },
   {
-    /** 바람 — 900Hz 언저리만. 마른 땅 위에서 나는 소리. */
+    /** 바람. 900Hz 언저리만. 마른 땅 위에서 나는 소리. */
     id: 'wind',
     max: 0.05,
     build(ctx, out, keep) {
@@ -139,7 +139,7 @@ export const LAYERS: LayerSpec[] = [
     }
   },
   {
-    /** 비 — 고역 잡음. 굵기를 바꾸려면 자르는 자리를 옮긴다. */
+    /** 비. 고역 잡음. 굵기를 바꾸려면 자르는 자리를 옮긴다. */
     id: 'rain',
     max: 0.06,
     build(ctx, out, keep) {
@@ -150,7 +150,7 @@ export const LAYERS: LayerSpec[] = [
   },
   {
     /**
-     * 모닥불 — 낮게 거른 잡음(불길) 위에 **무작위로 탁탁**(장작 튀는 소리)을 얹는다.
+     * 모닥불. 낮게 거른 잡음(불길) 위에 **무작위로 탁탁**(장작 튀는 소리)을 얹는다.
      * 규칙적으로 튀면 불이 아니라 시계다. 그래서 다음 소리까지의 사이를 매번 새로 뽑는다.
      */
     id: 'fire',
@@ -174,7 +174,7 @@ export const LAYERS: LayerSpec[] = [
         o.start(t);
         o.stop(t + 0.2);
       };
-      /* 타이머 하나가 스스로 다음 약속을 잡는다 — `setInterval` 이면 간격이 고정돼 불이 안 된다. */
+      /* 타이머 하나가 스스로 다음 약속을 잡는다. `setInterval` 이면 간격이 고정돼 불이 안 된다. */
       let timer = 0;
       const schedule = (): void => {
         timer = setTimeout(() => {
@@ -183,13 +183,13 @@ export const LAYERS: LayerSpec[] = [
         }, 90 + Math.random() * 700) as unknown as number;
       };
       schedule();
-      /* 이 겹이 사라질 때 타이머도 같이 죽어야 한다 — 마디인 척하는 그릇에 담아 보낸다. */
+      /* 이 겹이 사라질 때 타이머도 같이 죽어야 한다. 마디인 척하는 그릇에 담아 보낸다. */
       keep({ disconnect: () => clearTimeout(timer) } as unknown as AudioNode);
       return g;
     }
   },
   {
-    /** 시냇물 — 중고역 잡음이 느리게 흔들린다. 비와 파도 사이가 비어 있었다. */
+    /** 시냇물. 중고역 잡음이 느리게 흔들린다. 비와 파도 사이가 비어 있었다. */
     id: 'brook',
     max: 0.055,
     build(ctx, out, keep) {
@@ -207,7 +207,7 @@ export const LAYERS: LayerSpec[] = [
     }
   },
   {
-    /** 기계 웅웅 — 낮은 톱니를 깎아 낸 소리. 「방 안에 있다」는 느낌(카페·비행기). */
+    /** 기계 웅웅. 낮은 톱니를 깎아 낸 소리. 방 안에 있다는 느낌(카페, 비행기). */
     id: 'hum',
     max: 0.05,
     build(ctx, out, keep) {
@@ -236,7 +236,7 @@ export function levelToGain(id: LayerId, level: number): number {
   const spec = LAYERS.find((l) => l.id === id);
   if (!spec) return 0;
   const v = Math.max(0, Math.min(1, level));
-  /* 귀는 크기를 곱셈으로 느낀다 — 슬라이더를 반으로 내렸을 때 반만큼 작아지게 하려면 제곱이 필요하다. */
+  /* 귀는 크기를 곱셈으로 느낀다. 슬라이더를 반으로 내렸을 때 반만큼 작아지게 하려면 제곱이 필요하다. */
   return spec.max * v * v;
 }
 
@@ -276,7 +276,7 @@ export class Soundscape {
     master.gain.value = 0;
     master.connect(ctx.destination);
     this.master = master;
-    // 켜지자마자 최대로 나오면 놀란다 — 천천히 올라온다
+    // 켜지자마자 최대로 나오면 놀란다. 천천히 올라온다
     master.gain.linearRampToValueAtTime(0.85, ctx.currentTime + 3);
 
     const keep = (n: AudioNode): void => {
@@ -296,9 +296,9 @@ export class Soundscape {
    * 겹 하나의 크기 (0~1). 꺼져 있어도 기억해 두었다가 켤 때 쓴다.
    *
    * **안 고른 겹은 받지 않는다** (TASK-KL-279). 이 소리풍경은 만들 때 쓸 겹을 골라서 만든다
-   * (지구본은 여섯 겹만 쓴다 — 모닥불은 이 별의 소리가 아니다). 그런데 여기서 아무 이름이나
-   * 받아 두면, 소리는 안 나면서 **「지금 울리는 겹」 목록에는 들어간다** — 화면이 그 목록을 보고
-   * 「모닥불이 켜져 있다」고 말하게 된다. 검사에 「또는」이 붙어 있어 여태 안 걸렸다.
+   * (지구본은 여섯 겹만 쓴다. 모닥불은 이 별의 소리가 아니다). 그런데 여기서 아무 이름이나
+   * 받아 두면, 소리는 안 나면서 **지금 울리는 겹 목록에는 들어간다**. 화면이 그 목록을 보고
+   * 모닥불이 켜져 있다고 말하게 된다. 검사에 또는이 붙어 있어 여태 안 걸렸다.
    */
   set(id: LayerId, level: number): void {
     if (!this.which.includes(id)) return;
@@ -306,7 +306,7 @@ export class Soundscape {
     const g = this.gains.get(id);
     const ctx = this.ctx;
     if (!g || !ctx) return;
-    // 확 바뀌면 툭 소리가 난다 — 1.4초에 걸쳐 옮긴다
+    // 확 바뀌면 툭 소리가 난다. 1.4초에 걸쳐 옮긴다
     g.gain.setTargetAtTime(levelToGain(id, level), ctx.currentTime, 1.4);
   }
 
@@ -332,7 +332,7 @@ export class Soundscape {
   }
 
   /**
-   * 한 번 울리고 사라지는 낮은 소리 — 지진처럼 **일이 일어난 순간**을 알리는 것.
+   * 한 번 울리고 사라지는 낮은 소리. 지진처럼 **일이 일어난 순간**을 알리는 것.
    * 겹(늘 도는 것)과 성격이 달라 따로 둔다.
    */
   impulse(freq: number, dur: number, level: number): void {
@@ -352,7 +352,7 @@ export class Soundscape {
     o.stop(t + dur + 0.05);
   }
 
-  /** 한 번에 여러 겹 — 프리셋을 얹을 때. */
+  /** 한 번에 여러 겹. 프리셋을 얹을 때. */
   apply(mix: Partial<Record<LayerId, number>>): void {
     for (const [k, v] of Object.entries(mix)) this.set(k as LayerId, v as number);
   }
@@ -371,7 +371,7 @@ export class Soundscape {
     this.master = null;
     this.gains.clear();
     this.nodes = [];
-    // 잦아들 시간을 준 뒤 정리한다 — 바로 끊으면 툭 소리가 난다
+    // 잦아들 시간을 준 뒤 정리한다. 바로 끊으면 툭 소리가 난다
     setTimeout(() => {
       for (const n of dying) {
         try {
@@ -397,7 +397,7 @@ export interface Preset {
   mix: Partial<Record<LayerId, number>>;
 }
 
-/** 손으로 섞기 전에 「그럴싸한 자리」부터 주는 편이 낫다 — 아홉 개 슬라이더는 시작점이 아니다. */
+/** 손으로 섞기 전에 그럴싸한 자리부터 주는 편이 낫다. 아홉 개 슬라이더는 시작점이 아니다. */
 export const PRESETS: Preset[] = [
   { id: 'rainynight', mix: { rain: 0.55, drone: 0.35, hum: 0.2 } },
   { id: 'seaside', mix: { wave: 0.7, wind: 0.3, murmur: 0.08 } },

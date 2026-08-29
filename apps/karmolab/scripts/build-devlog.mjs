@@ -1,14 +1,14 @@
 /**
  * build-devlog: WitchMendokusai 저장소의 커밋 → apps/karmolab/data/devlog.json (TASK-KL-164)
  *
- * 왜: 「지금 뭘 만들고 있나」가 웹에 없으면, 보러 온 사람은 이 게임이 살아 있는지 알 수 없다.
- * 그런데 개발 소식을 사람이 따로 쓰면 반드시 밀린다 — 그래서 **이미 쓰고 있는 것**(커밋 메시지)을
- * 쓴다. 이 저장소의 커밋은 원래 사람말로 쓰여 있다("선택지에 「무슨 질문이었나」가 딸려 간다").
+ * 왜: 지금 뭘 만들고 있나가 웹에 없으면, 보러 온 사람은 이 게임이 살아 있는지 알 수 없다.
+ * 그런데 개발 소식을 사람이 따로 쓰면 반드시 밀린다. 그래서 **이미 쓰고 있는 것**(커밋 메시지)을
+ * 쓴다. 이 저장소의 커밋은 원래 사람말로 쓰여 있다("선택지에 무슨 질문이었나가 딸려 간다").
  *
- * 무엇을 싣나: 사람이 보는 변화(feat · fix)만 앞에 세운다. 나머지(test · chore · ci · docs)는
- * 그날의 「손질 N건」으로 접는다 — 목록이 잡일로 덮이면 아무도 안 읽는다.
+ * 무엇을 싣나: 사람이 보는 변화(feat, fix)만 앞에 세운다. 나머지(test, chore, ci, docs)는
+ * 그날의 손질 N건으로 접는다. 목록이 잡일로 덮이면 아무도 안 읽는다.
  *
- * 못 찾으면(다른 컴퓨터·CI) 커밋된 산출을 그대로 쓴다 — 게임 저장소는 여기 없을 수 있다.
+ * 못 찾으면(다른 컴퓨터, CI) 커밋된 산출을 그대로 쓴다. 게임 저장소는 여기 없을 수 있다.
  *
  * 사용: node scripts/build-devlog.mjs
  */
@@ -23,10 +23,10 @@ const REPO_ROOT = path.resolve(KARMOLAB_ROOT, '../..');
 const OUT_PATH = path.join(KARMOLAB_ROOT, 'data/devlog.json');
 const DAYS = 120;
 const MAX_ENTRIES = 60;
-/** 하루에 몇 줄까지 — 몰아친 하루가 목록 전체를 먹으면 「살아 있다」가 안 보인다. */
+/** 하루에 몇 줄까지. 몰아친 하루가 목록 전체를 먹으면 살아 있다가 안 보인다. */
 const MAX_PER_DAY = 6;
 
-/** 게임 저장소 자리 — 환경변수가 1순위, 그다음 이웃 폴더들. */
+/** 게임 저장소 자리. 환경변수가 1순위, 그다음 이웃 폴더들. */
 function findWmRepo() {
   const candidates = [
     process.env.KARMODDRINE_WM_PATH,
@@ -52,7 +52,7 @@ const TYPE_LABEL = {
   build: '빌드',
   revert: '되돌림',
 };
-/** 앞에 세우는 종류 — 나머지는 그날의 「손질 N건」으로 접는다. */
+/** 앞에 세우는 종류. 나머지는 그날의 손질 N건으로 접는다. */
 const HEADLINE = new Set(['feat', 'fix', 'perf', 'revert']);
 
 function parseSubject(subject) {
@@ -65,11 +65,11 @@ async function main() {
   const wm = findWmRepo();
   if (!wm) {
     if (!fs.existsSync(OUT_PATH)) {
-      console.error('[devlog] 게임 저장소도 없고 커밋된 산출도 없다 — data/devlog.json');
+      console.error('[devlog] 게임 저장소도 없고 커밋된 산출도 없다. data/devlog.json');
       process.exit(1);
     }
     const prev = JSON.parse(await fsp.readFile(OUT_PATH, 'utf8'));
-    console.log(`[devlog] 게임 저장소 없음 — 커밋된 산출 사용 (${prev.entries?.length ?? '?'}건)`);
+    console.log(`[devlog] 게임 저장소 없음. 커밋된 산출 사용 (${prev.entries?.length ?? '?'}건)`);
     return;
   }
 
@@ -96,7 +96,7 @@ async function main() {
     }
   }
 
-  // 앞에 세울 게 하나도 없는 날은 접는다 — 「손질 3건」만 있는 날짜 줄은 읽을 게 없다.
+  // 앞에 세울 게 하나도 없는 날은 접는다. 손질 3건만 있는 날짜 줄은 읽을 게 없다.
   const list = [...days.values()]
     .filter((d) => d.entries.length > 0)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -112,7 +112,7 @@ async function main() {
   }
 
   if (trimmed.length === 0) {
-    console.error(`[devlog] 최근 ${DAYS}일 동안 보여 줄 변화가 0건 — 수집이 깨진 것 아닌지 확인 (커밋 ${total}개 읽음)`);
+    console.error(`[devlog] 최근 ${DAYS}일 동안 보여 줄 변화가 0건. 수집이 깨진 것 아닌지 확인 (커밋 ${total}개 읽음)`);
     process.exit(1);
   }
 
@@ -127,12 +127,12 @@ async function main() {
   const next = JSON.stringify(out, null, 2) + '\n';
   const prevText = fs.existsSync(OUT_PATH) ? await fsp.readFile(OUT_PATH, 'utf8') : '';
   if (prevText === next) {
-    console.log(`[devlog] 그대로 — 변화 ${kept}건 / ${trimmed.length}일`);
+    console.log(`[devlog] 그대로. 변화 ${kept}건 / ${trimmed.length}일`);
     return;
   }
   await fsp.mkdir(path.dirname(OUT_PATH), { recursive: true });
   await fsp.writeFile(OUT_PATH, next, 'utf8');
-  console.log(`[devlog] 씀: data/devlog.json — 변화 ${kept}건 / ${trimmed.length}일 (커밋 ${total}개 중)`);
+  console.log(`[devlog] 씀: data/devlog.json. 변화 ${kept}건 / ${trimmed.length}일 (커밋 ${total}개 중)`);
 }
 
 main().catch((err) => {

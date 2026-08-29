@@ -1,14 +1,14 @@
 /**
- * PDF 가리개 — 문서에서 개인정보 지우기 (TASK-KL-088)
+ * PDF 가리개. 문서에서 개인정보 지우기 (TASK-KL-088)
  *
  * PDF 에 검은 네모를 그려 가리는 방법이 널리 쓰이는데, **그건 가려지지 않는다.** 네모는 글자
- * 위에 얹힌 그림일 뿐이고 글자는 파일 안에 그대로 남는다. 복사·붙여넣기 한 번이면 다 나온다.
+ * 위에 얹힌 그림일 뿐이고 글자는 파일 안에 그대로 남는다. 복사, 붙여넣기 한 번이면 다 나온다.
  * 기관들이 문서를 유출한 사고 상당수가 이 방식이었다.
  *
- * 그래서 이 도구는 다르게 한다 — **페이지를 그림으로 다시 굽는다.**
+ * 그래서 이 도구는 다르게 한다. **페이지를 그림으로 다시 굽는다.**
  *  - 각 페이지를 그려 낸 뒤 가릴 자리를 지우고, 그 그림으로 PDF 를 새로 만든다.
  *  - 그 결과 글자를 고를 수 없게 된다. 그게 안전한 이유이므로 미리 분명히 말해 준다.
- *  - 가린 자리뿐 아니라 그 페이지의 **모든 글자 데이터**가 사라진다 — 숨은 메모·주석 포함.
+ *  - 가린 자리뿐 아니라 그 페이지의 **모든 글자 데이터**가 사라진다. 숨은 메모, 주석 포함.
  */
 import { fileSize as size } from './shared/media';
 import { escapeHtml as esc } from './shared/text';
@@ -108,13 +108,13 @@ import { encode } from './shared/image';
           let baseName = t('pdfredact.file.base');
           let drag: { x: number; y: number } | null = null;
           let dragNow: { x: number; y: number } | null = null;
-          /* 자판으로 고르는 네모 (0~1 비율 — 상자와 같은 단위). 끌기만 있으면 이 도구가
-           * 통째로 막힌 사람이 생기고, 가리개는 「못 가림」이 곧 사고다. */
+          /* 자판으로 고르는 네모 (0~1 비율. 상자와 같은 단위). 끌기만 있으면 이 도구가
+           * 통째로 막힌 사람이 생기고, 가리개는 못 가림이 곧 사고다. */
           let caret: { x: number; y: number; w: number; h: number } | null = null;
           let rendering = false;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           /**
@@ -136,7 +136,7 @@ import { encode } from './shared/image';
             ctx.fillStyle = '#000000';
             for (const b of boxes) {
               if (b.page !== n) continue;
-              // 상자는 0~1 비율로 갖고 있다 — 선명도를 바꿔도 같은 자리를 가리게 하려고
+              // 상자는 0~1 비율로 갖고 있다. 선명도를 바꿔도 같은 자리를 가리게 하려고
               ctx.fillRect(b.x * target.width, b.y * target.height, b.w * target.width, b.h * target.height);
             }
 
@@ -239,7 +239,7 @@ import { encode } from './shared/image';
             };
             drag = null;
             dragNow = null;
-            // 잘못 누른 것을 「가렸다」고 착각하게 두면 안 된다
+            // 잘못 누른 것을 가렸다고 착각하게 두면 안 된다
             if (b.w < 0.005 || b.h < 0.005) {
               void refresh();
               say(t('pdfredact.err.tooSmall'), 'error');
@@ -250,9 +250,9 @@ import { encode } from './shared/image';
             say(t('pdfredact.say.added', { n: boxes.length }), 'ok');
           });
 
-          /* 자판 길 — 끌기와 **같은 일**을 자판으로 (2026-08-14, `audit:mouse-only` 가 잡은 자리).
-           * 화살표=옮기기 · Shift+화살표=크기 · Enter=가리기 · Backspace=되돌리기 · Esc=그만.
-           * 단위는 쪽 크기의 2% 다 — 상자를 비율로 갖고 있어 선명도를 바꿔도 같은 자리다. */
+          /* 자판 길. 끌기와 **같은 일**을 자판으로 (2026-08-14, `audit:mouse-only` 가 잡은 자리).
+           * 화살표=옮기기, Shift+화살표=크기, Enter=가리기, Backspace=되돌리기, Esc=그만.
+           * 단위는 쪽 크기의 2% 다. 상자를 비율로 갖고 있어 선명도를 바꿔도 같은 자리다. */
           canvas.tabIndex = 0;
           canvas.setAttribute('role', 'application');
           canvas.setAttribute('aria-label', t('pdfredact.kb.label'));
@@ -312,7 +312,7 @@ import { encode } from './shared/image';
           {
             Toolbox.onHandoff?.('pdfredact', (f: File) => void load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 붙여넣기가 같이 딸려 온다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
           pageEl.addEventListener('input', () => {
@@ -349,12 +349,12 @@ import { encode } from './shared/image';
               const scale = parseFloat(scaleEl.value);
               const tmp = document.createElement('canvas');
               for (let n = 1; n <= doc.numPages; n++) {
-                say(`페이지를 그림으로 다시 굽는 중… ${n} / ${doc.numPages}`);
+                say(`페이지를 그림으로 다시 굽는 중... ${n} / ${doc.numPages}`);
                 await renderPage(tmp, n, scale, false);
-                // 공용 한 자리(`shared/image.encode`) — 못 구우면 스스로 던진다.
+                // 공용 한 자리(`shared/image.encode`). 못 구우면 스스로 던진다.
                 const blob = await encode(tmp, 'png');
                 const png = await outDoc.embedPng(await blob.arrayBuffer());
-                // 원래 종이 크기로 되돌린다 — 선명도는 그림 쪽에만 반영한다
+                // 원래 종이 크기로 되돌린다. 선명도는 그림 쪽에만 반영한다
                 const pw = png.width / scale;
                 const ph = png.height / scale;
                 const page = outDoc.addPage([pw, ph]);
@@ -365,7 +365,7 @@ import { encode } from './shared/image';
               // 공용 한 자리(`shared/pdf.download`).
               const outName = baseName + t('pdfredact.file.suffix') + '.pdf';
               download(blob, outName);
-              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'pdfredact' });
               say(
                 t('pdfredact.say.done', { pages: doc.numPages, size: size(blob.size) }),

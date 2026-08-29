@@ -10,7 +10,7 @@ const SITE = 'https://blog.mascari4615.com';
 const CDN = 'https://img.mascari4615.com';
 
 /* 글 머리 표지 속성은 커뮤니티 글과 **같은 함수**가 만든다 (`src/lib/markdown/frontmatter.ts`).
-   여기 따로 적으면 같은 모양을 두 곳이 정하게 된다 — 렌더러를 한 벌로 모은 이유와 같다. */
+   여기 따로 적으면 같은 모양을 두 곳이 정하게 된다. 렌더러를 한 벌로 모은 이유와 같다. */
 const { coverAttrs } = await loadFrontMatterLib();
 
 const esc = (s) =>
@@ -20,7 +20,7 @@ const esc = (s) =>
 const jsonLd = (value) =>
     JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
-/** 이미지 주소에 CDN 을 입힌다 — Chirpy `_config.yml cdn:` 이 하던 일 (글 사진은 R2 가 서빙). */
+/** 이미지 주소에 CDN 을 입힌다. Chirpy `_config.yml cdn:` 이 하던 일 (글 사진은 R2 가 서빙). */
 export function applyCdn(html) {
     return html.replace(/(src|href)="(\/assets\/img\/[^"]+)"/g, (_m, attr, p) => `${attr}="${CDN}${p}"`);
 }
@@ -30,7 +30,7 @@ export function applyCdn(html) {
 /**
  * 글 **목록 장은 없다** (change.karmolab-at-root ②).
  *
- * 목록의 집은 앱 안 커뮤니티 「글」 판이다 (`/?board=blog#community`,
+ * 목록의 집은 앱 안 커뮤니티 글 판이다 (`/?board=blog#community`,
  * change.board-unify ①). 정적 목록 장을 따로 찍으면 같은 목록이 두 군데가 되고
  * 검색 신호도 갈라진다. 여기서는 **글 한 장씩**(`/posts/<slug>/`)만 찍는다.
  * 목록 데이터 정본 = `data/posts-index.json` (빌드 산출, 공개 글만).
@@ -38,16 +38,16 @@ export function applyCdn(html) {
 
 /**
  * `/404.html` 의 **본문 조각** (change.blog-surfaces-as-widgets).
- * 바깥 셸은 다른 장과 같이 `shell-page.mjs` 가 씌운다 — 이 장만 제 CSS 를 들고 다니지 않는다.
+ * 바깥 셸은 다른 장과 같이 `shell-page.mjs` 가 씌운다. 이 장만 제 CSS 를 들고 다니지 않는다.
  */
 export function notFoundBody() {
     return `    <div style="text-align:center;padding-top:80px">
         <h1>여기엔 아무것도 없다</h1>
         <p style="color:var(--text-secondary)">주소가 바뀌었거나, 처음부터 없던 곳이다.</p>
-        <p><a href="/?board=blog#community">글 목록</a> · <a href="/">KarmoLab</a></p>
+        <p><a href="/?board=blog#community">글 목록</a>, <a href="/">KarmoLab</a></p>
         <!-- 도구 주소로 잘못 들어온 사람 건지기 (TASK-KL-089 승계).
              도구가 이름을 바꾸거나 사라지면 옛 링크와 옛 검색 결과가 전부 그 주소로 온다.
-             그냥 두면 여기서 통째로 버려진다 — 이름이 닮은 것을 찾아 그 자리에서 보여 준다.
+             그냥 두면 여기서 통째로 버려진다. 이름이 닮은 것을 찾아 그 자리에서 보여 준다.
              도구 주소로 온 게 아니면 아무것도 하지 않는다. -->
         <div id="karmolab-rescue" hidden style="margin-top:32px">
             <p><strong id="karmolab-rescue-head"></strong></p>
@@ -57,9 +57,9 @@ export function notFoundBody() {
     </div>
     <script>
     (function(){
-        /* ★ 이 조각은 템플릿 문자열 안이다 — 백슬래시 하나는 여기서 먹힌다. 그래서 두 개로 적는다.
+        /* ★ 이 조각은 템플릿 문자열 안이다. 백슬래시 하나는 여기서 먹힌다. 그래서 두 개로 적는다.
            하나로 적혀 있던 동안 찍힌 404 에서는 정규식의 빗금 이스케이프가 통째로 사라져,
-           브라우저가 「정규식 깃발이 잘못됐다」로 죽였다. 도구 주소로 잘못 온 사람 건지기가
+           브라우저가 정규식 깃발이 잘못됐다로 죽였다. 도구 주소로 잘못 온 사람 건지기가
            그동안 아예 안 돌았다 (2026-08-28 실측). */
         var m = location.pathname.match(/^\\/t\\/([^\\/]+)\\/?$/);
         if (!m) return;
@@ -69,7 +69,7 @@ export function notFoundBody() {
             .then(function(r){ return r.ok ? r.json() : null; })
             .then(function(rows){
                 if (!rows) return;
-                /* 얼마나 닮았는지 — 서로의 글자가 겹치는 정도로 센다(짧은 이름이 유리하지 않게 나눈다). */
+                /* 얼마나 닮았는지. 서로의 글자가 겹치는 정도로 센다(짧은 이름이 유리하지 않게 나눈다). */
                 function score(a, b){
                     if (!b) return 0;
                     if (b.indexOf(a) !== -1 || a.indexOf(b) !== -1) return 1;
@@ -101,7 +101,7 @@ export function notFoundBody() {
     </script>`;
 }
 
-/** RSS 2.0 — `gen-feeds.mjs`(changes.xml) 손조립 패턴 승계. 컷오버 때 /feed.xml 자리로 간다. */
+/** RSS 2.0. `gen-feeds.mjs`(changes.xml) 손조립 패턴 승계. 컷오버 때 /feed.xml 자리로 간다. */
 export function feedXml(posts) {
     const items = posts
         .slice(0, 20)
@@ -133,9 +133,9 @@ export function feedXml(posts) {
 export function postBody(meta, bodyHtml, nav) {
     const dateHuman = meta.date.slice(0, 10);
     /* 커뮤니티 글 상세와 **같은 클래스**를 쓴다 (change.board-unify ②, 사용자 확정 2026-08-23:
-       「겉모습이 같으면 된다 — 기능은 달라도」). 규칙은 `css/community.css` 한 곳이 정본이고
-       앱과 이 장이 그 파일을 각자 링크한다 — 여기에 스타일을 적으면 두 집이 갈라진다.
-       안 그리는 것: 좋아요·조회수·글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험). */
+       겉모습이 같으면 된다. 기능은 달라도). 규칙은 `css/community.css` 한 곳이 정본이고
+       앱과 이 장이 그 파일을 각자 링크한다. 여기에 스타일을 적으면 두 집이 갈라진다.
+       안 그리는 것: 좋아요, 조회수, 글쓴이 얼굴(눌러도 아무 일 없는 단추는 나쁜 경험). */
     const cover = meta.image ? (meta.image.startsWith('/') ? `${CDN}${meta.image}` : meta.image) : '';
     return `<div class="c-wrap">
     <div class="c-crumb"><a class="c-linkbtn" href="/?board=blog#community">← 글</a></div>
@@ -157,12 +157,12 @@ ${bodyHtml}
     </article>
     <h3 class="c-section">답글</h3>
     <div id="comments" data-blog-comments data-slug="${esc(meta.slug)}" data-title="${esc(meta.title)}">
-        <div class="c-empty">답글을 불러오는 중…</div>
+        <div class="c-empty">답글을 불러오는 중...</div>
     </div>
 </div>${nav.toc ? `<aside class="post-toc" aria-label="목차">${nav.toc}</aside>` : ''}`;
 }
 
-/** 글 장에만 필요한 몇 줄 — 목차·앞뒤 글. 커뮤니티에 없는 조각이라 여기 둔다(겹치지 않는다). */
+/** 글 장에만 필요한 몇 줄. 목차, 앞뒤 글. 커뮤니티에 없는 조각이라 여기 둔다(겹치지 않는다). */
 export const POST_EXTRA_CSS = `<style>
 .post-adjacent{display:flex;justify-content:space-between;gap:16px;margin:32px 0 8px;padding-top:16px;border-top:1px solid var(--border);font-size:var(--font-size-xs)}
 .post-toc{position:fixed;top:110px;left:calc(50% + 500px);width:200px;font-size:13px;line-height:1.6}
@@ -170,7 +170,7 @@ export const POST_EXTRA_CSS = `<style>
 @media(max-width:1400px){.post-toc{display:none}}
 </style>`;
 
-/** 글 장 머리에 들어가는 것 — 구조화 데이터·게시판 시트. 셸이 나머지를 다 준다. */
+/** 글 장 머리에 들어가는 것. 구조화 데이터, 게시판 시트. 셸이 나머지를 다 준다. */
 export function postHead(meta, { mathCss = false } = {}) {
     const url = `${SITE}/posts/${meta.slug}/`;
     const image = meta.image ? (meta.image.startsWith('/') ? `${CDN}${meta.image}` : meta.image) : '';
@@ -187,8 +187,8 @@ export function postHead(meta, { mathCss = false } = {}) {
         mainEntityOfPage: url,
         inLanguage: 'ko',
     };
-    /* 겉모습 정본 한 곳을 **링크**한다 — 규칙을 여기 베끼지 않는다 (사용자 확정 2026-08-23:
-       「한쪽에서 SSOT 되는 구조여야 한다」). 앱은 위젯이 같은 파일을 붙인다. */
+    /* 겉모습 정본 한 곳을 **링크**한다. 규칙을 여기 베끼지 않는다 (사용자 확정 2026-08-23:
+       한쪽에서 SSOT 되는 구조여야 한다). 앱은 위젯이 같은 파일을 붙인다. */
     return `<link rel="stylesheet" href="/apps/karmolab/css/community.css">
     <link rel="canonical" href="${esc(url)}">
     ${image ? `<meta property="og:image" content="${esc(image)}">\n    ` : ''}<meta property="og:type" content="article">

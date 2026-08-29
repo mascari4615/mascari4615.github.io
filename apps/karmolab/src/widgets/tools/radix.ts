@@ -1,7 +1,7 @@
 /**
- * 진법 변환 (TASK-KL-088) — 2·8·10·16 + 임의 진법(2~36).
+ * 진법 변환 (TASK-KL-088). 2, 8, 10, 16 + 임의 진법(2~36).
  *
- * 한 칸에 치면 나머지 칸이 동시에 갱신되는 형태. 「입력 → 변환 → 출력」 왕복이 없어야
+ * 한 칸에 치면 나머지 칸이 동시에 갱신되는 형태. 입력 → 변환 → 출력 왕복이 없어야
  * 진법 사이를 오가며 확인하는 실제 쓰임에 맞는다. 큰 수는 BigInt 라 자릿수 손실이 없다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -54,7 +54,7 @@ import { markLive } from './shared/say';
     id: 'radix',
     title: t('widgets.radix.title', undefined, "진법 변환"),
     category: 'tool',
-    desc: t('widgets-desc.radix.desc', undefined, "2·8·10·16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께"),
+    desc: t('widgets-desc.radix.desc', undefined, "2, 8, 10, 16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께"),
     layout: 'form',
     icon: '<path d="M4 6h4v4H4zM4 14h4v4H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8h8M12 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 4v4M16 16v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
@@ -115,7 +115,7 @@ import { markLive } from './shared/say';
           const binGroup = $<HTMLElement>('#rxBinGroup');
           const facts = $<HTMLElement>('#rxFacts');
           const status = $<HTMLElement>('#rxStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const customInput = inputs[inputs.length - 1];
 
@@ -131,7 +131,7 @@ import { markLive } from './shared/say';
             const bin = format(value, 2);
             binGroup.textContent = bin.replace('-', '').length> 4 ? groupBin(bin) : '';
 
-            // 실제로 궁금해지는 것 = 자릿수·바이트·부호 없는 표현. 표 하나로 붙여 둔다.
+            // 실제로 궁금해지는 것 = 자릿수, 바이트, 부호 없는 표현. 표 하나로 붙여 둔다.
             const bits = value < 0n ? format(-value, 2).length : bin.length;
             facts.innerHTML = [
               [t('radix.row.bits'), `${bits} bit`],

@@ -44,7 +44,7 @@ test('깨진 줄이 하나 있어도 나머지 기억은 읽힌다', () => {
   assert.deepEqual(reread.recent(10).map((e) => e.text), ['멀쩡한 줄', '그 뒤 줄']);
 });
 
-test('쌓이면 접어서 「아는 것」을 남기고 파일에도 쓴다', async () => {
+test('쌓이면 접어서 아는 것을 남기고 파일에도 쓴다', async () => {
   const notePath = tempPath('아는-것.md');
   let calls = 0;
   const memory = new DistillingMemory({
@@ -79,7 +79,7 @@ test('접기가 실패해도 대화는 멀쩡하다', async () => {
   assert.deepEqual(memory.recent(10).map((e) => e.text), ['하나', '둘'], '대화는 남아 있다');
 });
 
-test('접었던 「아는 것」이 다음에 두뇌까지 전달된다', async () => {
+test('접었던 아는 것이 다음에 두뇌까지 전달된다', async () => {
   const memory = new DistillingMemory({
     inner: new InMemoryMemory(),
     distill: async () => '이 사람은 큐브를 만들고 있다.',

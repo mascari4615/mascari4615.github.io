@@ -1,11 +1,11 @@
 /**
  * 표 바꾸기가 내용을 지키는지 확인한다 (TASK-KL-088)
  *
- * 이 도구는 **틀려도 결과가 그럴듯하다** — 칸이 밀리거나 따옴표 안의 쉼표에서 쪼개져도
+ * 이 도구는 **틀려도 결과가 그럴듯하다**. 칸이 밀리거나 따옴표 안의 쉼표에서 쪼개져도
  * 표 모양은 나온다. 그래서 왕복을 재는 게 유일하게 확실하다:
  * 엑셀 붙여넣기 → 마크다운 → 다시 넣기 → CSV 로, 내용이 그대로여야 한다.
  *
- * 한글 세로줄 맞추기도 본다 — 한글을 한 칸으로 세면 줄이 어긋난다.
+ * 한글 세로줄 맞추기도 본다. 한글을 한 칸으로 세면 줄이 어긋난다.
  *
  * 사용: node scripts/test-tableconv.mjs
  */
@@ -44,13 +44,13 @@ const result = await page.evaluate(async () => {
     return { out: host.querySelector('#tcOut').value, stats: host.querySelector('#tcStats').textContent };
   };
 
-  // 엑셀에서 복사한 모양 (탭 구분) — 한글과 쉼표 포함
+  // 엑셀에서 복사한 모양 (탭 구분). 한글과 쉼표 포함
   const excel = ['이름\t설명\t값', '가나다\t쉼표, 포함\t10', '라마\t짧음\t20'].join('\n');
 
   const md = convert(excel, 'md');
   const excelSeen = md.stats.includes('엑셀');
 
-  // 마크다운을 다시 넣어 CSV 로 — 내용이 그대로여야 한다
+  // 마크다운을 다시 넣어 CSV 로. 내용이 그대로여야 한다
   const csv = convert(md.out, 'csv');
   const mdSeen = csv.stats.includes('마크다운');
   const lines = csv.out.split('\n');
@@ -59,7 +59,7 @@ const result = await page.evaluate(async () => {
     lines[1] === '가나다,"쉼표, 포함",10' &&
     lines[2] === '라마,짧음,20';
 
-  // 세로줄 맞추기 — 한글을 두 칸으로 세야 각 줄 길이가 같아진다
+  // 세로줄 맞추기. 한글을 두 칸으로 세야 각 줄 길이가 같아진다
   const mdLines = md.out.split('\n');
   const same = mdLines.every((l) => [...l].reduce((w, c) => w + (/[가-힣]/.test(c) ? 2 : 1), 0) === [...mdLines[0]].reduce((w, c) => w + (/[가-힣]/.test(c) ? 2 : 1), 0));
 
@@ -69,7 +69,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: excelSeen && mdSeen && roundTrip && same && warned,
-    why: `엑셀 인식 ${excelSeen} · 마크다운 인식 ${mdSeen} · 왕복 보존 ${roundTrip} · 세로줄 맞음 ${same} · 칸 어긋남 경고 ${warned}`
+    why: `엑셀 인식 ${excelSeen}, 마크다운 인식 ${mdSeen}, 왕복 보존 ${roundTrip}, 세로줄 맞음 ${same}, 칸 어긋남 경고 ${warned}`
   };
 });
 

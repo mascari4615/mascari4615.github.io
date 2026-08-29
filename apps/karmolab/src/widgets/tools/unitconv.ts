@@ -1,6 +1,6 @@
 /**
  * 단위 변환기 (TASK-KL-088)
- * 온도만 비선형이라 factor 대신 to/from 함수 쌍으로 둔다 — 나머지는 기준단위 배수 하나로 끝난다.
+ * 온도만 비선형이라 factor 대신 to/from 함수 쌍으로 둔다. 나머지는 기준단위 배수 하나로 끝난다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -30,17 +30,17 @@ import { readInvocation } from '../../lib/tool-url';
    * 단위 이름은 **그릴 때** 정해진다 (TASK-KL-203).
    *
    * 예전에는 이 표를 파일이 실려 오자마자 만들었다. 그 시점에는 말 묶음이 아직 안 왔으므로
-   * 이름 자리에 열쇠가 그대로 굳는다 — 나중에 말이 와도 표는 이미 만들어진 뒤다.
+   * 이름 자리에 열쇠가 그대로 굳는다. 나중에 말이 와도 표는 이미 만들어진 뒤다.
    * 그래서 함수로 두고 그릴 때 부른다.
    */
   /**
-   * 어느 단위에서 어느 단위로 **처음 놓아 둘까** — 사는 곳이 정한다 (TASK-KL-203 S14-b).
+   * 어느 단위에서 어느 단위로 **처음 놓아 둘까**. 사는 곳이 정한다 (TASK-KL-203 S14-b).
    *
-   * 미터법 나라 사람은 「cm 를 인치로」가 궁금하고, 미국 사람은 정확히 그 **반대**가 궁금하다.
-   * 어느 쪽이든 두 칸을 바꿔 넣으면 되지만, 처음 놓인 자리가 틀리면 매번 손이 한 번 더 간다 —
-   * 그리고 그 한 번이 「이 도구는 내 것이 아니구나」를 만든다.
+   * 미터법 나라 사람은 cm 를 인치로가 궁금하고, 미국 사람은 정확히 그 **반대**가 궁금하다.
+   * 어느 쪽이든 두 칸을 바꿔 넣으면 되지만, 처음 놓인 자리가 틀리면 매번 손이 한 번 더 간다 . 
+   * 그리고 그 한 번이 이 도구는 내 것이 아니구나를 만든다.
    *
-   * 넓이는 나라마다 **쓰는 단위 자체가 다르다**: 한국 평 · 일본 坪(같은 크기) · 미국 제곱피트.
+   * 넓이는 나라마다 **쓰는 단위 자체가 다르다**: 한국 평, 일본 坪(같은 크기), 미국 제곱피트.
    */
   const REGION_DEFAULTS: Record<string, Record<string, [string, string]>> = {
     US: {
@@ -199,11 +199,11 @@ import { readInvocation } from '../../lib/tool-url';
 
   Toolbox.register({
     id: 'unitconv',
-    /* 도구 큰제목이 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    /* 도구 큰제목이 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     title: t('widgets.unitconv.title', undefined, '단위 변환'),
     category: 'tool',
-    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
-    desc: t('widgets-desc.unitconv.desc', undefined, '길이·무게·넓이(평)·부피·온도·데이터·속도·시간을 서로 변환합니다'),
+    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
+    desc: t('widgets-desc.unitconv.desc', undefined, '길이, 무게, 넓이(평), 부피, 온도, 데이터, 속도, 시간을 서로 변환합니다'),
     layout: 'form',
     icon: '<path d="M3 8h13l-3-3M21 16H8l3 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
@@ -220,7 +220,7 @@ import { readInvocation } from '../../lib/tool-url';
   });
 
   function draw(container: HTMLElement): void {
-    /* 번역 글에 꺾쇠·따옴표가 들어와도 화면이 안 깨지게. */
+    /* 번역 글에 꺾쇠, 따옴표가 들어와도 화면이 안 깨지게. */
     const CATS = buildCategories();
           Mdd.linePreset('tool_run', { msg: t('unitconv.mdd') });
           container.innerHTML = `
@@ -257,7 +257,7 @@ import { readInvocation } from '../../lib/tool-url';
                 </div>
                 <div>
                   <div class="tool-sublabel">넓이는 위에 넣은 값을 씁니다</div>
-                  <div id="ucPriceOut" class="tool-status">총액을 넣으면 평당·㎡당 가격이 나옵니다.</div>
+                  <div id="ucPriceOut" class="tool-status">총액을 넣으면 평당, ㎡당 가격이 나옵니다.</div>
                 </div>
               </div>
             </div>
@@ -287,30 +287,30 @@ import { readInvocation } from '../../lib/tool-url';
             toSel.value = cat.defaultTo;
           }
           /**
-           * 평당 가격 (넓이일 때만) — 한국에서 넓이를 재는 이유의 절반이 이것이다.
+           * 평당 가격 (넓이일 때만). 한국에서 넓이를 재는 이유의 절반이 이것이다.
            *
            * 남들 단위 변환기는 평↔㎡ 까지만 하고 끝난다. 그런데 실제로 평수를 재는 사람은
            * **평당 얼마인지**를 알려는 것이다(집을 보러 다닐 때 유일하게 비교되는 숫자다).
-           * 그래서 위에서 넣은 넓이를 그대로 써서 총액만 받으면 평당·㎡당을 같이 낸다.
+           * 그래서 위에서 넣은 넓이를 그대로 써서 총액만 받으면 평당, ㎡당을 같이 낸다.
            */
           function renderPrice(baseSquareMeters: number): void {
             const wrap = $<HTMLElement>('#ucPriceWrap');
             /* **평당 가격은 한국에서만 뜻이 있는 계산이다** (TASK-KL-203).
-               평이라는 단위도, 「만원/억원」이라는 금액 단위도, 「평당 얼마」로 집을 비교하는
-               습관도 한국 것이다. 이걸 영어·일본어로 옮기면 말은 되지만 아무도 안 쓰는 칸이
-               하나 늘 뿐이다 — 옮기는 것보다 **안 보이는 게 맞다**. 그 언어에 맞는 계산이
+               평이라는 단위도, 만원/억원이라는 금액 단위도, 평당 얼마로 집을 비교하는
+               습관도 한국 것이다. 이걸 영어, 일본어로 옮기면 말은 되지만 아무도 안 쓰는 칸이
+               하나 늘 뿐이다. 옮기는 것보다 **안 보이는 게 맞다**. 그 언어에 맞는 계산이
                따로 생기면 그때 그 언어에 맞게 넣는다. */
-            /* 「평당 얼마」로 집을 비교하는 습관은 한국 것이다 — 한국어를 읽느냐가 아니라
+            /* 평당 얼마로 집을 비교하는 습관은 한국 것이다. 한국어를 읽느냐가 아니라
                **한국에서 집을 보느냐**가 기준이라 지역으로 가른다(영어로 읽는 한국 거주자도 쓴다). */
             const forKorea = inRegion('KR');
             wrap.style.display = forKorea && cat.id === 'area' ? '' : 'none';
             if (!forKorea || cat.id !== 'area') return;
             const out = $<HTMLElement>('#ucPriceOut');
-            /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+            /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
             markLive(out);
             const manwon = parseFloat(($<HTMLInputElement>('#ucPrice').value || '').replace(/,/g, ''));
             if (!isFinite(manwon) || manwon <= 0 || !isFinite(baseSquareMeters) || baseSquareMeters <= 0) {
-              out.textContent = '총액을 넣으면 평당·㎡당 가격이 나옵니다.';
+              out.textContent = '총액을 넣으면 평당, ㎡당 가격이 나옵니다.';
               out.className = 'tool-status';
               return;
             }
@@ -319,7 +319,7 @@ import { readInvocation } from '../../lib/tool-url';
             const perSquare = manwon / baseSquareMeters;
             const manwonText = (n: number): string =>
               n>= 10000 ? `${(n / 10000).toFixed(2)}억원` : `${Math.round(n).toLocaleString('ko-KR')}만원`;
-            out.textContent = `${pyeong2.toFixed(2)}평 · 평당 ${manwonText(perPyeong)} · ㎡당 ${manwonText(perSquare)}`;
+            out.textContent = `${pyeong2.toFixed(2)}평, 평당 ${manwonText(perPyeong)}, ㎡당 ${manwonText(perSquare)}`;
             out.className = 'tool-status ok';
           }
 
@@ -369,7 +369,7 @@ import { readInvocation } from '../../lib/tool-url';
 
           fillUnits();
 
-          // 주소로 부른 경우 — ?op=convert&value=30&from=pyeong&to=m2 (TASK-KL-205)
+          // 주소로 부른 경우. ?op=convert&value=30&from=pyeong&to=m2 (TASK-KL-205)
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'convert') {
             const wanted = String(call.args.category ?? '');

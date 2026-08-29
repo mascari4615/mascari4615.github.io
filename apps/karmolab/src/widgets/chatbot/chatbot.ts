@@ -346,7 +346,7 @@ import {
                                 <img id="cbCharProfileAvatar" class="cb-char-profile-avatar" alt="" width="72" height="72" decoding="async" style="display:none">
                                 <span id="cbCharProfilePlaceholder" class="cb-char-profile-placeholder">👤</span>
                             </button>
-                            <p class="cb-char-profile-name" id="cbCharProfileName">—</p>
+                            <p class="cb-char-profile-name" id="cbCharProfileName">. </p>
                         </div>
                     </div>
                     <div class="cb-sysprompt">
@@ -1234,7 +1234,7 @@ import {
                 blob = new Blob([lines.join('\n\n')], { type: 'text/plain;charset=utf-8' });
                 filename = `chat-export-${date}.txt`;
             }
-            // 공용 한 자리(`shared/image.download`) — 즉시 `revoke` 는 위험한 자리였다.
+            // 공용 한 자리(`shared/image.download`). 즉시 `revoke` 는 위험한 자리였다.
             download(blob, filename);
             Toolbox.showToast(t('chatbot.exported', { format: format.toUpperCase() }));
         }
@@ -1247,7 +1247,7 @@ import {
             {
                 id: 'chatbot-main',
                 label: t('chatbot.tab.main', undefined, '채팅'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('chatbot').then(function () {
                         buildChat(container);

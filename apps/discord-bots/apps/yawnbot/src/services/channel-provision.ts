@@ -1,8 +1,8 @@
 /**
- * 채널 자동 프로비저닝 — 선언적 desired-state + 부팅 reconcile.
+ * 채널 자동 프로비저닝. 선언적 desired-state + 부팅 reconcile.
  *
- * 문제: 채널 ID 가 config/*.txt · GitHub secret 에 하드코딩 → 새 서버·채널 교체마다
- *       사람이 우클릭→ID복사→편집→재배포. (사용자: "봇이 직접 카테고리·채널을 만들 수 없나")
+ * 문제: 채널 ID 가 config/*.txt, GitHub secret 에 하드코딩 → 새 서버, 채널 교체마다
+ *       사람이 우클릭→ID복사→편집→재배포. (사용자: "봇이 직접 카테고리, 채널을 만들 수 없나")
  *
  * 근본: ID 를 *유지* 하지 말고 *선언에서 파생*. 정본 = `data/channel-spec.json`
  *       (원하는 구조만, 커밋). ID = 길드별 런타임 캐시
@@ -14,7 +14,7 @@
  * 범위 게이트 (사용자 결정 2026-05-17 "dev 서버만 먼저"): YAWNBOT_ENV==='prod' 면 OFF.
  *   prod 는 env *_CHANNEL_ID 가 그대로 우선 → 본 모듈은 prod 동작 무영향.
  *
- * 정합: process.md § Ops 인터페이스 사람·AI 공용 / active-sessions 보드 = live 파생 투영
+ * 정합: process.md § Ops 인터페이스 사람, AI 공용 / active-sessions 보드 = live 파생 투영
  *       (유지하지 말고 파생하라) / code-style.md § Deep Modules (좁은 seam).
  */
 import fs from 'fs';
@@ -38,7 +38,7 @@ function pkgRoot(): string {
 }
 const PKG_ROOT = pkgRoot();
 
-/** spec 의 forum 태그 (JSON 친화 — emoji = unicode 단일 문자). */
+/** spec 의 forum 태그 (JSON 친화. emoji = unicode 단일 문자). */
 export interface ForumTag {
   name: string;
   emoji?: string;
@@ -53,7 +53,7 @@ export interface ForumConfig {
 }
 
 export interface ChannelSpecEntry {
-  /** 논리 키 (코드·env 매핑 안정 식별자, 절대 안 바뀜). */
+  /** 논리 키 (코드, env 매핑 안정 식별자, 절대 안 바뀜). */
   key: string;
   /** 디스코드에 만들 채널 이름 (사용자가 바꿔도 저장 ID 로 추적). */
   name: string;
@@ -91,7 +91,7 @@ function entryChannelType(entry: ChannelSpecEntry): number {
   return entry.type === 'GuildForum' ? ChannelType.GuildForum : ChannelType.GuildText;
 }
 
-/** 논리 키 → 기존 env 키. prod 우선·dev 폴백 매핑의 단일 정본 (평행정의 0). */
+/** 논리 키 → 기존 env 키. prod 우선, dev 폴백 매핑의 단일 정본 (평행정의 0). */
 export const ENV_KEY_BY_LOGICAL: Record<string, string> = {
   'github-webhook': 'GITHUB_WEBHOOK_CHANNEL_ID',
   'ops-report': 'YAWNBOT_OPS_REPORT_CHANNEL_ID',
@@ -119,7 +119,7 @@ export function getChannelSpec(): ChannelSpec {
     specCache = { categoryName: String(raw.categoryName ?? '욘봇'), channels };
   } catch (e: unknown) {
     console.warn(
-      `[ChannelProvision] ${SPEC_PATH} 로드 실패 — 프로비저닝 비활성:`,
+      `[ChannelProvision] ${SPEC_PATH} 로드 실패. 프로비저닝 비활성:`,
       e instanceof Error ? e.message : String(e),
     );
     specCache = { categoryName: '욘봇', channels: [] };
@@ -132,9 +132,9 @@ export function getChannelSpec(): ChannelSpec {
  * 명시 on(YAWNBOT_CHANNEL_PROVISION=1) 이면 prod 여도 강제 활성 (수동 마이그레이션용).
  */
 export function isProvisioningEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  // 기본 ON (dev·prod 무관) — 사용자 「기존 채팅방 안 쓰고 싶다」(2026-05-17,
+  // 기본 ON (dev, prod 무관). 사용자 기존 채팅방 안 쓰고 싶다(2026-05-17,
   // "dev 먼저" 철회). 옛 하드코딩 채널을 prod 포함 전부 폐기. 안전성은
-  // shouldProvisionGuild(허용 길드 한정)이 담보 — 봇이 초대된 아무 서버에나
+  // shouldProvisionGuild(허용 길드 한정)이 담보. 봇이 초대된 아무 서버에나
   // 채널을 만들지 않음. YAWNBOT_CHANNEL_PROVISION=0/off 로 비상 비활성.
   const flag = env.YAWNBOT_CHANNEL_PROVISION?.trim().toLowerCase();
   if (flag === '0' || flag === 'off' || flag === 'false') return false;
@@ -143,7 +143,7 @@ export function isProvisioningEnabled(env: NodeJS.ProcessEnv = process.env): boo
 
 /**
  * 프로비저닝 *대상 길드* 화이트리스트. 봇이 초대된 모든 길드(친구 서버 등)에
- * 카테고리·채널을 만드는 사고 방지 = 근본 안전 가드.
+ * 카테고리, 채널을 만드는 사고 방지 = 근본 안전 가드.
  * 우선순위: YAWNBOT_ALLOWED_GUILD_IDS → DISCORD_GUILD_ID → (없으면 빈=아무데도 X).
  */
 export function allowedGuildIds(env: NodeJS.ProcessEnv = process.env): string[] {
@@ -166,8 +166,8 @@ export function shouldProvisionGuild(
 }
 
 /**
- * 인스턴스 라벨 = 같은 길드에 prod·dev 봇이 공존할 때의 격리 축.
- * 욘봇(prod)·욘봇Dev(dev)가 같은 서버를 쓰므로 카테고리·맵을 라벨로 분리한다.
+ * 인스턴스 라벨 = 같은 길드에 prod, dev 봇이 공존할 때의 격리 축.
+ * 욘봇(prod), 욘봇Dev(dev)가 같은 서버를 쓰므로 카테고리, 맵을 라벨로 분리한다.
  */
 export function provisionInstanceLabel(env: NodeJS.ProcessEnv = process.env): string {
   return env.YAWNBOT_ENV?.trim().toLowerCase() || 'dev';
@@ -253,12 +253,12 @@ export interface ReconcileResult {
 
 /**
  * 기존 forum 채널 (reused/claimed) 의 availableTags 를 spec 정합 동기.
- * 신규 생성은 create 옵션이 직접 박혀 호출 불요. best-effort — setAvailableTags
+ * 신규 생성은 create 옵션이 직접 박혀 호출 불요. best-effort. setAvailableTags
  * 미지원 채널/페이크는 silent skip (드리프트만 잡으면 됨, 신규 채널엔 안전).
  *
  * ID 보존: 이름 집합이 이미 일치하면 setAvailableTags 자체를 skip (Discord 가
  * 호출마다 새 ID 를 발급해 기존 포스트 appliedTags 를 무효화하는 것 방지).
- * 이름이 다를 때만 동기 — 동명 기존 태그는 ID 재사용해 파괴 최소화.
+ * 이름이 다를 때만 동기. 동명 기존 태그는 ID 재사용해 파괴 최소화.
  */
 async function syncForumTagsIfNeeded(
   channel: ChannelLike,
@@ -278,7 +278,7 @@ async function syncForumTagsIfNeeded(
     specNames.every((n) => currentNameSet.has(n));
   if (namesMatch) return;
 
-  // 변경 필요 — 동명 기존 태그 ID 보존해 appliedTags 파괴 최소화.
+  // 변경 필요. 동명 기존 태그 ID 보존해 appliedTags 파괴 최소화.
   const existingIdByName = new Map(
     currentTags.filter((t) => t.id !== undefined).map((t) => [t.name, t.id!]),
   );
@@ -291,7 +291,7 @@ async function syncForumTagsIfNeeded(
 }
 
 /**
- * 한 길드의 채널 구조를 spec 에 맞춰 reconcile. 멱등 — 두 번 돌려도 생성 0.
+ * 한 길드의 채널 구조를 spec 에 맞춰 reconcile. 멱등. 두 번 돌려도 생성 0.
  * 우선순위: 저장 ID 생존 → 이름으로 기존 claim → 생성.
  */
 export async function reconcileGuildChannels(
@@ -304,13 +304,13 @@ export async function reconcileGuildChannels(
   const claimed: string[] = [];
   const reused: string[] = [];
 
-  // 인스턴스별 카테고리명 — prod·dev 가 같은 길드를 써도 분리.
+  // 인스턴스별 카테고리명. prod, dev 가 같은 길드를 써도 분리.
   const categoryName = effectiveCategoryName(spec, env);
 
   const byId = (id: string | undefined): ChannelLike | undefined =>
     id ? guild.channels.cache.find((c) => c.id === id) : undefined;
 
-  // 1) 카테고리 (인스턴스 전용 이름으로만 claim — 남의 인스턴스 것 안 뺏음)
+  // 1) 카테고리 (인스턴스 전용 이름으로만 claim. 남의 인스턴스 것 안 뺏음)
   let categoryId = map[CATEGORY_MAP_KEY];
   let category = byId(categoryId);
   if (category && category.type === ChannelType.GuildCategory) {
@@ -332,7 +332,7 @@ export async function reconcileGuildChannels(
     map[CATEGORY_MAP_KEY] = categoryId;
   }
 
-  // 2) 채널 — 이름 claim 을 *이 카테고리 하위로* 스코프 (다른 인스턴스의
+  // 2) 채널. 이름 claim 을 *이 카테고리 하위로* 스코프 (다른 인스턴스의
   //    동일 이름 채널을 가로채지 않음 = prod↔dev 교차오염 차단).
   for (const entry of spec.channels) {
     const wantType = entryChannelType(entry);
@@ -401,7 +401,7 @@ export function rememberMap(
 export function primaryGuildId(env: NodeJS.ProcessEnv = process.env): string | null {
   // 허용 길드 우선 → reconcile 가 프로비저닝한 길드와 resolver 가 동일 길드를
   // 가리키게 함 (prod DISCORD_GUILD_ID 는 친구방 포함 다중이라 first 가 어긋날
-  // 수 있음 — 허용 길드[0] 가 정답).
+  // 수 있음. 허용 길드[0] 가 정답).
   const ids = allowedGuildIds(env);
   return ids[0] ?? null;
 }

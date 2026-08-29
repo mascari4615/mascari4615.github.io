@@ -5,7 +5,7 @@
   "works.viewShelf": "陳列",
   "works.viewMap": "地図",
   "works.ongoing": "今も制作中",
-  "works.minor": "その他の参加 — 記事のない {n} 件",
+  "works.minor": "その他の参加. 記事のない {n} 件",
   "works.mapHint": "点やバーに触れるとここに出ます。",
   "works.none": "該当なし"
 }

@@ -1,5 +1,5 @@
 /**
- * 기본 즐겨찾기 데이터 — URL·그룹만 편집하면 됨 (위젯 로직은 favorites.ts)
+ * 기본 즐겨찾기 데이터. URL, 그룹만 편집하면 됨 (위젯 로직은 favorites.ts)
  */
 import { t } from '../lib/i18n';
 
@@ -9,11 +9,11 @@ export type FavoriteItem = {
     icon?: string | null;
     type?: 'tool' | 'app';
     toolId?: string;
-    /** type:'app' — 열 URI 스킴(`discord`). 브라우저가 쓸 수 있는 유일한 통로. */
+    /** type:'app'. 열 URI 스킴(`discord`). 브라우저가 쓸 수 있는 유일한 통로. */
     scheme?: string;
-    /** type:'app' — 실행 파일 경로/이름. 스킴이 없는 앱용 (데스크톱에서만 쓴다). */
+    /** type:'app'. 실행 파일 경로/이름. 스킴이 없는 앱용 (데스크톱에서만 쓴다). */
     exec?: string;
-    /** type:'app' — exec 인자. */
+    /** type:'app'. exec 인자. */
     args?: string[];
     isCustom?: boolean;
 };
@@ -57,7 +57,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://www.nexon-tutorial.com', label: '넥토리얼', icon: 'https://cdn.simpleicons.org/nexon' },
         { url: 'https://www.gamejob.co.kr/User/resumemng/portfolio', label: '게임잡 포트폴리오', icon: null },
         { url: 'https://inditor.co.kr', label: '인디터웹', icon: null },
-        { url: 'https://kmong.com/category/6', label: '크몽 - IT·프로그래밍', icon: FAVICON_FALLBACK },
+        { url: 'https://kmong.com/category/6', label: '크몽 - IT, 프로그래밍', icon: FAVICON_FALLBACK },
     ]},
     { get group() { return t('favorites.group.maple'); }, items: [
         { url: 'https://blog.maplestory.nexon.com/Tech', label: '메이플 테크 블로그', icon: 'https://cdn.simpleicons.org/nexon' },

@@ -1,8 +1,8 @@
 /**
  * 경매 화면 (TASK-KL-242)
  *
- * 부르는 값은 **미끄럼 막대**로 고른다 — 숫자를 타이핑하게 하면 손이 느린 사람이 지고,
- * 그건 이 놀이가 겨루려는 것이 아니다. 남의 칸에는 「불렀다」만 뜨고 숫자는 안 뜬다(애초에
+ * 부르는 값은 **미끄럼 막대**로 고른다. 숫자를 타이핑하게 하면 손이 느린 사람이 지고,
+ * 그건 이 놀이가 겨루려는 것이 아니다. 남의 칸에는 불렀다만 뜨고 숫자는 안 뜬다(애초에
  * 그 숫자가 화면까지 오지 않는다). 낙찰되는 순간에만 다 같이 열린다.
  */
 import { t } from '../../../lib/i18n';
@@ -60,8 +60,8 @@ export const auctionView: GameView<AuctionState, AuctionAction> = {
       who.innerHTML = v.seats
         .map((seat, i) => {
           const b = s.bids[i];
-          /* 부른 값은 낙찰 순간에만 열린다 — 그전엔 「불렀다」 표시뿐. */
-          const shown = s.phase === 'show' && b !== null ? String(b) : b === null ? '·' : '✓';
+          /* 부른 값은 낙찰 순간에만 열린다. 그전엔 불렀다 표시뿐. */
+          const shown = s.phase === 'show' && b !== null ? String(b) : b === null ? ', ' : '✓';
           return '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + '">' +
             seat.name + ' ' + t('arcade.auction.tally', { p: String(s.points[i]), m: String(s.money[i]) }) +
             ' <i>' + shown + '</i></span>';

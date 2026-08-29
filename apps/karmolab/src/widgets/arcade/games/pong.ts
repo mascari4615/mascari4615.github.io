@@ -1,8 +1,8 @@
 /**
- * 탁구 — 라켓 한 줄, 공 하나 (TASK-KL-242)
+ * 탁구. 라켓 한 줄, 공 하나 (TASK-KL-242)
  *
- * 에어하키와 같은 「동시 실시간」인데 몸이 훨씬 좁다: 라켓은 **한 줄 위에서만** 움직인다.
- * 그래서 수가 「어디로 갈까」가 아니라 **「공을 어느 지점으로 받을까」**가 된다 — 가장자리로
+ * 에어하키와 같은 동시 실시간인데 몸이 훨씬 좁다: 라켓은 **한 줄 위에서만** 움직인다.
+ * 그래서 수가 어디로 갈까가 아니라 **공을 어느 지점으로 받을까**가 된다. 가장자리로
  * 받으면 크게 꺾이고 가운데로 받으면 곧게 간다. 그 한 줄이 이 놀이의 전부다.
  *
  * 랠리가 길어질수록 공이 빨라진다. 안 그러면 잘하는 둘이 붙었을 때 판이 안 끝난다.
@@ -19,7 +19,7 @@ const MAX_V = 2.6;
 /**
  * 판 시간 상한.
  *
- * 랠리가 길수록 공을 빠르게 했는데 **상한에 걸리면 거기서 평형**이 된다 — 잘 받는 둘이 붙으면
+ * 랠리가 길수록 공을 빠르게 했는데 **상한에 걸리면 거기서 평형**이 된다. 잘 받는 둘이 붙으면
  * 영영 주고받는다(봇끼리 붙였더니 안 끝났다). 시간이 다 되면 점수가 앞선 쪽이 이긴다.
  */
 const LIMIT_MS = 150000;
@@ -34,7 +34,7 @@ export interface PongState {
   over: boolean;
 }
 
-/** 「라켓을 여기로」 — 에어하키와 같은 결(누름이 아니라 자리). 다만 x 하나뿐이다. */
+/** 라켓을 여기로. 에어하키와 같은 결(누름이 아니라 자리). 다만 x 하나뿐이다. */
 export type PongAction = { x: number };
 
 function serve(dir: number, rng: () => number): PongState['ball'] {
@@ -77,13 +77,13 @@ export const pong: GameDef<PongState, PongAction> = {
     if (b.x < BALL) { b.x = BALL; b.vx = Math.abs(b.vx); }
     if (b.x > W - BALL) { b.x = W - BALL; b.vx = -Math.abs(b.vx); }
 
-    /* 라켓 — 자리0은 아래(y 큼), 자리1은 위. */
+    /* 라켓. 자리0은 아래(y 큼), 자리1은 위. */
     const check = (seat: number, lineY: number, dir: number): boolean => {
       const near = dir > 0 ? b.y >= lineY - PAD_T : b.y <= lineY + PAD_T;
       if (!near) return false;
       const dx = b.x - s.pad[seat];
       if (Math.abs(dx) > PAD / 2 + BALL) return false;
-      /* **맞은 지점이 각도를 정한다** — 가장자리일수록 크게 꺾인다. 그게 이 놀이의 수다. */
+      /* **맞은 지점이 각도를 정한다**. 가장자리일수록 크게 꺾인다. 그게 이 놀이의 수다. */
       b.y = lineY - dir * (PAD_T + BALL);
       const speed = Math.min(MAX_V, Math.hypot(b.vx, b.vy) * 1.05);
       const angle = (dx / (PAD / 2 + BALL)) * 0.9;

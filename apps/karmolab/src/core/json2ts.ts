@@ -1,13 +1,13 @@
 /**
- * JSON 에서 TypeScript 선언을 만든다 (TASK-KL-257 — 화면 안에 있던 알맹이를 밖으로)
+ * JSON 에서 TypeScript 선언을 만든다 (TASK-KL-257. 화면 안에 있던 알맹이를 밖으로)
  *
- * 이 로직은 원래 위젯 파일 안에 있었다. 화면 안에 있으면 **주소로도, 에이전트로도 못 부른다** —
+ * 이 로직은 원래 위젯 파일 안에 있었다. 화면 안에 있으면 **주소로도, 에이전트로도 못 부른다** . 
  * 그게 `src/core/` 가 존재하는 이유다. 작업대로 옮기면서 알맹이를 여기로 내린다.
  *
  * 배열은 **모든 원소를 합쳐** 본다: 한쪽에만 있는 칸은 옵셔널(`?`)이 된다. 그래야 표본 한 줄만
  * 보고 만든 타입이 실제 자료에서 터지지 않는다.
  *
- * 일부러 안 하는 것: 유니온(`string | number`)은 `unknown` 으로 접는다 — 섞인 배열에서
+ * 일부러 안 하는 것: 유니온(`string | number`)은 `unknown` 으로 접는다. 섞인 배열에서
  * 조합을 다 펼치면 사람이 못 읽는 타입이 나온다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -41,7 +41,7 @@ function shapeOf(value: unknown): Shape {
   return { kind: typeof value };
 }
 
-/** 두 모양을 합친다 — 한쪽에만 있는 칸은 옵셔널이 된다. */
+/** 두 모양을 합친다. 한쪽에만 있는 칸은 옵셔널이 된다. */
 function merge(a: Shape, b: Shape): Shape {
   if (a.kind === 'null') return b.kind === 'null' ? a : { ...b, kind: b.kind };
   if (b.kind === 'null') return a;
@@ -84,7 +84,7 @@ function render(shape: Shape, name: string, out: string[], seen: Set<string>): s
   return shape.kind;
 }
 
-/** 몇 개를 만들었는지까지 돌려준다 — 상태 줄이 「인터페이스 3개」라고 말할 수 있어야 한다. */
+/** 몇 개를 만들었는지까지 돌려준다. 상태 줄이 인터페이스 3개라고 말할 수 있어야 한다. */
 export function toTypes(json: string, name = 'Root'): { code: string; interfaces: number } {
   const data: unknown = JSON.parse(json);
   const safeName = (name || 'Root').replace(/[^\w]/g, '') || 'Root';

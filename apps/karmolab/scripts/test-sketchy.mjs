@@ -1,9 +1,9 @@
 /**
- * 손그림 질감 — **화면이 춤추지 않는가** (TASK-KL-238 / 18 excalidraw).
+ * 손그림 질감. **화면이 춤추지 않는가** (TASK-KL-238 / 18 excalidraw).
  *
- * 삐뚤빼뚤은 예쁘라고 넣는 것이지만, 매번 새로 흔들리면 **끌 때마다 상자가 살아 움직인다** —
+ * 삐뚤빼뚤은 예쁘라고 넣는 것이지만, 매번 새로 흔들리면 **끌 때마다 상자가 살아 움직인다** . 
  * 어지럽고, 같은 그림을 두 번 저장하면 다른 그림이 나온다. 그래서 여기서 가장 크게 지키는 것은
- * 「같은 씨앗 = 같은 획」이다. 그다음이 「상자 크기가 안 변한다」(선 잇는 셈법이 상자만 본다).
+ * 같은 씨앗 = 같은 획이다. 그다음이 상자 크기가 안 변한다(선 잇는 셈법이 상자만 본다).
  *
  * 사용: node scripts/test-sketchy.mjs   (npm run test:sketchy)
  */
@@ -47,7 +47,7 @@ const pts = (d) =>
     .filter(Boolean)
     .map((pair) => pair.split(',').map(Number));
 
-/* ★ 같은 씨앗이면 늘 같은 획 — 이게 깨지면 화면이 춤춘다 */
+/* ★ 같은 씨앗이면 늘 같은 획. 이게 깨지면 화면이 춤춘다 */
 check(S.sketchyRect(200, 80, 7) === S.sketchyRect(200, 80, 7), '같은 씨앗 = 같은 네모');
 check(S.sketchyEllipse(120, 60, 3) === S.sketchyEllipse(120, 60, 3), '같은 씨앗 = 같은 동그라미');
 check(S.sketchyRect(200, 80, 7) !== S.sketchyRect(200, 80, 8), '씨앗이 다르면 다르게 흔들린다');
@@ -65,7 +65,7 @@ check(S.seedFrom('node-a') !== S.seedFrom('node-b'), '다른 이름 = 다른 씨
   check(p.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)), '좌표에 NaN 이 없다');
 }
 
-/* 모서리는 거의 제자리 — 안 그러면 상자가 안 닫혀 보인다 */
+/* 모서리는 거의 제자리. 안 그러면 상자가 안 닫혀 보인다 */
 {
   const p = pts(S.sketchyRect(200, 80, 5));
   const [x0, y0] = p[0];
@@ -76,7 +76,7 @@ check(S.seedFrom('node-a') !== S.seedFrom('node-b'), '다른 이름 = 다른 씨
 check((S.sketchyRect(200, 80, 5).match(/Z/g) || []).length === 2, '네모는 두 겹');
 check((S.sketchyEllipse(100, 100, 5).match(/Z/g) || []).length === 2, '동그라미는 두 겹');
 
-/* 잇는 선 — 한 겹이고, 양 끝이 제자리 근처 */
+/* 잇는 선. 한 겹이고, 양 끝이 제자리 근처 */
 {
   const g = { p1: { x: 0, y: 0 }, c1: { x: 50, y: 0 }, c2: { x: 50, y: 100 }, p2: { x: 100, y: 100 } };
   const d = S.sketchyCubic(g, 9);
@@ -102,8 +102,8 @@ check(pts(S.sketchyEllipse(2, 2, 2)).length > 0, '아주 작은 동그라미도 
 
 process.stdout.write('\n');
 if (failures.length) {
-  console.error(`\n손그림 — ${failures.length}건 실패:`);
+  console.error(`\n손그림. ${failures.length}건 실패:`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('손그림 — 전부 통과');
+console.log('손그림. 전부 통과');

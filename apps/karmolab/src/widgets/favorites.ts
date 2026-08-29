@@ -1,6 +1,6 @@
 /**
- * 즐겨찾기 모음 — 사이트 파비콘/아이콘으로 빠른 접속
- * - icon 미지정: 공개 URL은 Google s2/favicons / 로컬·사설은 지구본만(요청 없음)
+ * 즐겨찾기 모음. 사이트 파비콘/아이콘으로 빠른 접속
+ * - icon 미지정: 공개 URL은 Google s2/favicons / 로컬, 사설은 지구본만(요청 없음)
  * - icon에 지구본 data URL(FAVICON_FALLBACK): Google이 404만 내는 항목만 수동 지정
  * - 그 외 명시 icon(Simple Icons 등): 그대로 사용
  * - 사용자 추가/삭제 (localStorage)
@@ -48,7 +48,7 @@ import { t, loadNamespace } from '../lib/i18n';
     const STORAGE_KEY = 'toolbox_favorites';
     /** 즐겨찾기에 **직접 담은** 도구 id 목록. 없으면 도구는 한 칸도 안 뜬다 (기본 = 빈 목록). */
     const TOOLS_KEY = 'toolbox_fav_tools';
-    /** 즐겨찾기에 담은 **프로그램**. 사이트와 따로 둔다 — 그룹 이름이 언어 따라 바뀌는
+    /** 즐겨찾기에 담은 **프로그램**. 사이트와 따로 둔다. 그룹 이름이 언어 따라 바뀌는
      *  자리에 섞으면 언어를 바꿨을 때 담은 것이 다른 칸으로 흩어진다 (도구가 이미 그래서
      *  따로 산다). */
     const APPS_KEY = 'toolbox_fav_apps';
@@ -75,16 +75,16 @@ import { t, loadNamespace } from '../lib/i18n';
     /**
      * 도구를 **주제별로** 나눈다 (TASK-KL-096).
      *
-     * 예전에는 백 개가 넘는 도구를 「Toolbox」 한 덩어리에 통째로 쏟아 놨다. 이름을 이미 아는
-     * 사람만 쓸 수 있는 화면이다 — 도구 전체 목록(/t/)은 같은 도구를 열다섯 주제로
+     * 예전에는 백 개가 넘는 도구를 Toolbox 한 덩어리에 통째로 쏟아 놨다. 이름을 이미 아는
+     * 사람만 쓸 수 있는 화면이다. 도구 전체 목록(/t/)은 같은 도구를 열다섯 주제로
      * 나눠 보여 주는데 즐겨찾기만 안 나뉘어 있었다.
      *
      * **분류를 여기서 새로 적지 않는다.** 목록 페이지가 쓰는 것과 같은 두 곳에서 읽는다:
-     *   ① 묶음 위젯 소속 (지연 메타의 `bundle`) — 「PDF 도구」·「소리 도구」 같은 주제
+     *   ① 묶음 위젯 소속 (지연 메타의 `bundle`). PDF 도구, 소리 도구 같은 주제
      *   ② 묶음이 없으면 도구가 등록할 때 밝힌 갈래 (`category` → Toolbox.getCategories 의 이름)
      * 손으로 한 벌 더 적어 두면 그날부터 목록과 즐겨찾기가 서로 다른 분류를 말하게 된다.
      *
-     * 묶음 자신(예: `pdf`)은 항목에서 뺀다 — 소제목이 그 자리이고, 부분을 누르면 어차피
+     * 묶음 자신(예: `pdf`)은 항목에서 뺀다. 소제목이 그 자리이고, 부분을 누르면 어차피
      * 묶음이 그 탭으로 열린다. 남겨 두면 같은 것이 제목과 항목에 두 번 나온다.
      */
     function getToolboxToolGroups(picked: Set<string>): FavoriteGroup[] {
@@ -93,8 +93,8 @@ import { t, loadNamespace } from '../lib/i18n';
             .filter((tool) => picked.has(tool.id));
         const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
         /* 묶음 소속은 **지연 메타**에서 직접 읽는다. Toolbox.findBundleFor 는 그 묶음이 이미
-         * 로드됐을 때만 답하는데, 즐겨찾기는 첫 화면이라 대부분 아직 안 로드돼 있다 —
-         * 그걸 쓰면 거의 다 「그 밖에」로 떨어져 나뉜 척만 하는 화면이 된다. */
+         * 로드됐을 때만 답하는데, 즐겨찾기는 첫 화면이라 대부분 아직 안 로드돼 있다 . 
+         * 그걸 쓰면 거의 다 그 밖에로 떨어져 나뉜 척만 하는 화면이 된다. */
         const bundleOf = (id: string): string | null => meta[id]?.bundle || null;
         const isBundleParent = new Set(
             Object.keys(meta)
@@ -139,7 +139,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 bucket.items.push({ type: 'tool' as const, toolId: tool.id, label: tool.title || tool.id, icon: tool.icon || '' });
             });
 
-        // 순서: 주제 묶음이 먼저(큰 것부터 — 목록 페이지와 같은 규칙), 그다음 갈래, 「그 밖에」는 맨 끝.
+        // 순서: 주제 묶음이 먼저(큰 것부터. 목록 페이지와 같은 규칙), 그다음 갈래, 그 밖에는 맨 끝.
         return [...buckets.values()]
             .sort((a, b) => {
                 if (a.fromBundle !== b.fromBundle) return a.fromBundle ? -1 : 1;
@@ -154,8 +154,8 @@ import { t, loadNamespace } from '../lib/i18n';
     type PickableTool = { id: string; title: string; icon: string; desc: string; group: string };
 
     /**
-     * 「도구 담기」 고르는 칸에 뿌릴 목록. 화면에 뜨는 규칙은 위 그룹 만들기와 **같은 필터**를
-     * 쓴다 — 여기서만 보이고 담으면 안 뜨는 도구가 생기지 않게.
+     * 도구 담기 고르는 칸에 뿌릴 목록. 화면에 뜨는 규칙은 위 그룹 만들기와 **같은 필터**를
+     * 쓴다. 여기서만 보이고 담으면 안 뜨는 도구가 생기지 않게.
      */
     function listPickableTools(): PickableTool[] {
         const tools = typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [];
@@ -191,7 +191,7 @@ import { t, loadNamespace } from '../lib/i18n';
             .sort((a, b) => a.group.localeCompare(b.group, 'ko') || a.title.localeCompare(b.title, 'ko'));
     }
 
-    /** 담아 둔 프로그램 한 칸. scheme·exec 중 최소 하나는 있다. */
+    /** 담아 둔 프로그램 한 칸. scheme, exec 중 최소 하나는 있다. */
     type FavApp = { scheme?: string; exec?: string; args?: string[]; label: string };
 
     /** 이 칸을 다른 칸과 구분하는 열쇠. 스킴이 있으면 스킴, 없으면 실행 파일 경로. */
@@ -223,7 +223,7 @@ import { t, loadNamespace } from '../lib/i18n';
         return { scheme: a.scheme, exec: a.exec, args: a.args };
     }
 
-    /** 담은 프로그램을 한 칸(「앱」)으로 묶는다. 없으면 칸 자체를 안 만든다. */
+    /** 담은 프로그램을 한 칸(앱)으로 묶는다. 없으면 칸 자체를 안 만든다. */
     function getAppGroups(apps: FavApp[]): FavoriteGroup[] {
         if (!apps.length) return [];
         return [
@@ -288,19 +288,19 @@ import { t, loadNamespace } from '../lib/i18n';
         } catch (_) {}
     }
 
-    /* 보기는 **세 축**이다 (사용자 결정 2026-08-19) — 레이아웃 2 · 살결 4 · 크기 슬라이더.
+    /* 보기는 **세 축**이다 (사용자 결정 2026-08-19). 레이아웃 2, 살결 4, 크기 슬라이더.
      * 정본은 favorites-deck.ts (옛 `toolbox_fav_view` 는 거기서 한 번 옮기고 지운다). */
 
     function buildGroups(defaultGroups: FavoriteGroup[], customGroups: FavoriteGroup[] | null): FavoriteGroup[] {
         const merged: FavoriteGroup[] = [];
         /* 도구는 **담은 것만** 뜬다 (TASK-KL-147). 예전엔 등록된 도구 전부를 자동으로 부어
-         * 넣어서, 「자주 가는 곳」이 도구 127개 밑으로 밀려 있었다. 즐겨찾기 = 고른 것.
+         * 넣어서, 자주 가는 곳이 도구 127개 밑으로 밀려 있었다. 즐겨찾기 = 고른 것.
          * (TASK-KL-147) */
-        /* 프로그램이 맨 앞이다 — 손이 제일 자주 가는 칸이고, 도구·사이트와 달리
+        /* 프로그램이 맨 앞이다. 손이 제일 자주 가는 칸이고, 도구, 사이트와 달리
          * 담은 개수가 적어 위에 둬도 화면을 안 밀어낸다. */
         merged.push(...getAppGroups(loadApps()));
         merged.push(...getToolboxToolGroups(loadPickedTools()));
-        /* 같은 이름이면 한 칸에 합친다. 도구 갈래 이름(「도구」)과 즐겨찾기 기본 그룹 이름이
+        /* 같은 이름이면 한 칸에 합친다. 도구 갈래 이름(도구)과 즐겨찾기 기본 그룹 이름이
          * 겹치는데, 그냥 밀어 넣으면 같은 제목의 칸이 화면에 두 번 뜬다 (TASK-KL-096). */
         const into = (name: string, items: FavoriteItem[]): void => {
             const existing = merged.find((m) => m.group === name);
@@ -344,15 +344,15 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-view-toggle-btn .fav-view-icon-grid { display:block; }
         .fav-view-toggle-btn[data-view="card"] .fav-view-icon-card { display:block; }
         .fav-view-toggle-btn[data-view="card"] .fav-view-icon-grid { display:none; }
-        /* 한 줄 툴바 — 좁아지면 줄바꿈만 하고, 순서는 그대로 (검색 → 담기 → 배치 → 살결 → 크기). */
+        /* 한 줄 툴바. 좁아지면 줄바꿈만 하고, 순서는 그대로 (검색 → 담기 → 배치 → 살결 → 크기). */
         .fav-bar { display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:var(--space-md); }
         .fav-bar .landing-search-wrap { flex:0 1 240px; min-width:150px; margin:0; position:relative; }
         .fav-bar-sep { width:1px; height:20px; background:var(--border); flex:none; }
-        /* 담기 칸 — **크기는 다른 칸과 같게**, 대신 옅게. 눈에 먼저 들어오면 안 되지만
+        /* 담기 칸. **크기는 다른 칸과 같게**, 대신 옅게. 눈에 먼저 들어오면 안 되지만
            자리는 격자를 흐트러뜨리지 않아야 한다 (사용자 결정 2026-08-19). */
         .fav-add-tile {
             display:flex; align-items:center; justify-content:center; width:100%; height:100%;
-            /* 바탕은 **옅게라도 있어야** 한다 — 완전히 비우면 칸이 아니라 빈틈으로 읽힌다. */
+            /* 바탕은 **옅게라도 있어야** 한다. 완전히 비우면 칸이 아니라 빈틈으로 읽힌다. */
             background:var(--bg-tertiary); border:1px dashed var(--border-hover); border-radius:var(--radius-md);
             color:var(--text-tertiary); cursor:pointer; padding:12px 8px; opacity:0.55;
             transition:var(--transition);
@@ -380,7 +380,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-add-kind .fav-kind-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
         .fav-add-kind .fav-kind-btn.active { background:var(--accent-subtle); border-color:var(--accent); color:var(--accent); }
         .fav-add-pane[data-pane="tool"] { display:flex; flex-direction:column; gap:10px; }
-        /* display:flex 는 hidden 속성을 이긴다 — 안 적으면 두 갈래가 동시에 뜬다 */
+        /* display:flex 는 hidden 속성을 이긴다. 안 적으면 두 갈래가 동시에 뜬다 */
         .fav-add-modal [data-pane][hidden] { display:none; }
         .fav-tool-search { width:100%; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
         .fav-tool-list { display:flex; flex-direction:column; gap:4px; max-height:min(46vh, 340px); overflow-y:auto; }
@@ -395,7 +395,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-tool-mark { font-size:var(--font-size-sm); color:var(--text-tertiary); flex-shrink:0; }
         .fav-tool-row.on .fav-tool-mark { color:var(--accent); }
         .fav-tool-empty { padding:16px; text-align:center; font-size:var(--font-size-xs); color:var(--text-tertiary); }
-        /* 「이 PC 에 있나」 표시. **데스크톱에서만 단다** — 브라우저는 설치 여부를 알
+        /* 이 PC 에 있나 표시. **데스크톱에서만 단다**. 브라우저는 설치 여부를 알
            방법이 없어서, 웹에서 회색 점을 달면 그냥 거짓말이 된다. */
         .fav-app-badge { position:absolute; left:6px; top:6px; width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px var(--bg-tertiary); pointer-events:none; }
         .fav-app-badge.off { background:var(--text-tertiary); }
@@ -419,19 +419,19 @@ import { t, loadNamespace } from '../lib/i18n';
     function buildFavorites(container: HTMLElement): void {
         Mdd.linePreset('home_hub', { msg: t('favorites.t09') });
 
-        /* 도구를 담고 빼면 화면을 통째로 다시 그린다 — 그리면 열려 있던 창이 같이 사라지므로,
-         * 「어느 갈래를 보고 있었나 · 뭘 치고 있었나」를 여기 적어 뒀다가 그린 뒤 되돌린다. */
+        /* 도구를 담고 빼면 화면을 통째로 다시 그린다. 그리면 열려 있던 창이 같이 사라지므로,
+         * 어느 갈래를 보고 있었나, 뭘 치고 있었나를 여기 적어 뒀다가 그린 뒤 되돌린다. */
         let pendingOpen: { kind: FavKind; q: string } | null = null;
         /** 덱 배선을 되돌리는 함수. 다시 그리기 전에 꼭 부른다. */
         let disposeDeck: (() => void) | null = null;
-        /** 키 배선(손 닿음·상태점)을 되돌리는 함수. 살결이 「기존」이 아니면 늘 쓴다. */
+        /** 키 배선(손 닿음, 상태점)을 되돌리는 함수. 살결이 기존이 아니면 늘 쓴다. */
         let disposeKeys: (() => void) | null = null;
         registerDeckProps();
         Toolbox.onDispose?.(() => {
             disposeDeck?.(); disposeDeck = null;
             disposeKeys?.(); disposeKeys = null;
         });
-        /** 담기 칸이 「앱」일 때 뿌릴 목록. 데스크톱은 레지스트리 실물, 웹은 카탈로그. */
+        /** 담기 칸이 앱일 때 뿌릴 목록. 데스크톱은 레지스트리 실물, 웹은 카탈로그. */
         let appChoices: InstalledApp[] | null = null;
 
         function renderToolPicker(query: string): string {
@@ -459,9 +459,9 @@ import { t, loadNamespace } from '../lib/i18n';
         }
 
         /**
-         * 「앱 담기」 목록. 데스크톱이면 이 PC 에 **실제로 등록된 것**(`appChoices`),
-         * 웹이면 고를 수 있는 카탈로그를 뿌린다 — 웹은 설치 여부를 못 보므로 카탈로그가
-         * 최선이고, 없는 앱은 아래 「직접 넣기」로 담는다.
+         * 앱 담기 목록. 데스크톱이면 이 PC 에 **실제로 등록된 것**(`appChoices`),
+         * 웹이면 고를 수 있는 카탈로그를 뿌린다. 웹은 설치 여부를 못 보므로 카탈로그가
+         * 최선이고, 없는 앱은 아래 직접 넣기로 담는다.
          */
         function renderAppPicker(query: string): string {
             const esc = Toolbox.escapeHtml ?? ((s: string) => s);
@@ -492,11 +492,11 @@ import { t, loadNamespace } from '../lib/i18n';
         }
 
         /**
-         * 이 칸을 「즐겨찾기에서 빼기」로 지울 수 있으면 지우는 일을, 아니면 `null`.
+         * 이 칸을 즐겨찾기에서 빼기로 지울 수 있으면 지우는 일을, 아니면 `null`.
          *
-         * 뺄 수 없는 칸이 있다 — 기본으로 깔린 사이트다. 그건 담은 적이 없어 뺄 것도 없다
+         * 뺄 수 없는 칸이 있다. 기본으로 깔린 사이트다. 그건 담은 적이 없어 뺄 것도 없다
          * (그 칸에는 × 단추도 원래 안 달린다). 메뉴에 회색으로 남겨 두지 않고 아예 빼는 이유 =
-         * 「왜 안 눌리지」를 설명할 자리가 우클릭 메뉴에는 없다.
+         * 왜 안 눌리지를 설명할 자리가 우클릭 메뉴에는 없다.
          */
         function removerFor(hit: { toolId: string; appKey: string; url: string }): (() => void) | null {
             if (hit.toolId) {
@@ -553,7 +553,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
             container.innerHTML = `
                 <div class="fav-layout skin-${skin}" style="--fk-size:${keySize}px">
-                    <!-- 툴바 한 줄 — 검색·담기·배치·살결·크기가 **한 자리**에 있다.
+                    <!-- 툴바 한 줄. 검색, 담기, 배치, 살결, 크기가 **한 자리**에 있다.
                          전에는 검색줄과 살결/크기가 두 줄로 갈려, 크기 조절이 어디 있는지
                          찾게 됐다 (사용자 결정 2026-08-19). -->
                     <div class="fav-bar">
@@ -588,7 +588,7 @@ import { t, loadNamespace } from '../lib/i18n';
                             <div class="fav-group-title">${esc(g.group)}</div>
                             <div class="fav-grid">
                                 ${arrange(g.items, g.group, slotsNow, 0).filter((x): x is FavoriteItem => !!x).map((it) => {
-                                    /* 살결이 「기존」이 아니면 **덱과 같은 키**를 목록 배치에도 쓴다 —
+                                    /* 살결이 기존이 아니면 **덱과 같은 키**를 목록 배치에도 쓴다 . 
                                      * 살결은 배치와 다른 축이라, 어디에 놓든 같은 얼굴이어야 한다. */
                                     if (skin !== 'plain') {
                                         return keyHtml(
@@ -616,17 +616,17 @@ import { t, loadNamespace } from '../lib/i18n';
                                         /* 로고 CDN 에 없는 앱(레지스트리에서 주운 것들)이 X 표시로
                                          * 남지 않게 첫 글자 동그라미로 떨어뜨린다. */
                                         ? `<img class="fav-icon" src="${esc(it.icon || '')}" alt="" decoding="async" onerror="this.onerror=null;this.src=${esc(JSON.stringify(letterIcon(it.label)))}">`
-                                        // 늦은 로딩(lazy)을 쓰지 않는다. 아이콘은 52px 짜리 70장 —
-                                        // 미뤄서 아낄 게 없는데, 브라우저가 「미뤘다」며 자리표시자로
+                                        // 늦은 로딩(lazy)을 쓰지 않는다. 아이콘은 52px 짜리 70장 . 
+                                        // 미뤄서 아낄 게 없는데, 브라우저가 미뤘다며 자리표시자로
                                         // 바꿔 놓으면 아이콘이 통째로 빈칸으로 보인다 (2026-08-08 제보).
                                         /* width/height 를 **속성으로** 박는다. CSS 가 아직
                                          * 안 붙은 순간에도 브라우저가 이 크기로 자리를 잡아,
                                          * 파비콘이 화면을 꽉 채우는 첫 깜빡임이 안 생긴다. */
                                         : `<img class="fav-icon" width="52" height="52" src="${esc(getFaviconUrl(it))}" alt="" decoding="async" onerror="${FAVICON_IMG_ONERROR.replace(/"/g, '&quot;')}">`;
-                                    /* 앱 칸의 href 에도 스킴을 적는다 — 눌러서 여는 것은
-                                     * 아래 클릭 처리가 맡지만, 가운데 클릭·마우스 올렸을 때
+                                    /* 앱 칸의 href 에도 스킴을 적는다. 눌러서 여는 것은
+                                     * 아래 클릭 처리가 맡지만, 가운데 클릭, 마우스 올렸을 때
                                      * 뜨는 주소 같은 브라우저 기본 동작이 살아 있어야 한다.
-                                     * `target=_blank` 는 안 쓴다 — 프로토콜로 넘어가는 데
+                                     * `target=_blank` 는 안 쓴다. 프로토콜로 넘어가는 데
                                      * 새 탭이 필요 없고, 쓰면 빈 탭이 하나 남는다. */
                                     const linkAttrs = isTool
                                         ? `href="#" class="fav-item" title="${esc(it.label)}" data-tool-id="${esc(it.toolId || '')}"`
@@ -643,7 +643,7 @@ import { t, loadNamespace } from '../lib/i18n';
                                         </a>
                                     </div>`;
                                 }).join('')}
-                                ${/* 그룹 끝에 담기 칸 — 덱 배치는 빈 칸이 이미 그 일을 하므로
+                                ${/* 그룹 끝에 담기 칸. 덱 배치는 빈 칸이 이미 그 일을 하므로
                                       목록 배치에만 붙인다 (사용자 결정 2026-08-19). */
                                   skin === 'plain'
                                     ? `<div class="fav-item-wrap">
@@ -695,11 +695,11 @@ import { t, loadNamespace } from '../lib/i18n';
                                 <label for="fav-group">${esc(t('favorites.label.favgroup'))}</label>
                                 <select id="fav-group" class="input">
                                     <option value="개발">${esc(t('favorites.group.dev'))}</option>
-                                    <option value="채용·커리어">${esc(t('favorites.group.career'))}</option>
+                                    <option value="채용, 커리어">${esc(t('favorites.group.career'))}</option>
                                     <option value="메이플">${esc(t('favorites.group.maple'))}</option>
-                                    <option value="검색·AI">${esc(t('favorites.group.searchAi'))}</option>
+                                    <option value="검색, AI">${esc(t('favorites.group.searchAi'))}</option>
                                     <option value="AI 아트">${esc(t('favorites.group.aiArt'))}</option>
-                                    <option value="소셜·미디어">${esc(t('favorites.group.social'))}</option>
+                                    <option value="소셜, 미디어">${esc(t('favorites.group.social'))}</option>
                                     <option value="서로이웃">${esc(t('favorites.group.neighbours'))}</option>
                                     <option value="짝이웃">${esc(t('favorites.group.friends'))}</option>
                                     <option value="도구">${esc(t('favorites.group.tools'))}</option>
@@ -794,7 +794,7 @@ import { t, loadNamespace } from '../lib/i18n';
             if (appSearch) appSearch.oninput = redrawAppList;
 
             /* 데스크톱에서는 담기 칸을 **레지스트리 실물**로 바꾼다. 한 번 읽어 두고
-             * (`appChoices`) 다시 그릴 때는 재사용한다 — 창을 여닫을 때마다 수천 칸을
+             * (`appChoices`) 다시 그릴 때는 재사용한다. 창을 여닫을 때마다 수천 칸을
              * 훑을 이유가 없다. */
             if (isDesktop() && appChoices === null) {
                 void listInstalled().then((list) => {
@@ -811,17 +811,17 @@ import { t, loadNamespace } from '../lib/i18n';
                     const raw = customInput.value.trim();
                     if (!raw) return;
                     /* **스킴인지 먼저 본다.** `discord://` 에도 슬래시가 들어 있어서
-                     * 「슬래시가 있으면 경로」로 판정하면 스킴이 전부 경로로 잡힌다
+                     * 슬래시가 있으면 경로로 판정하면 스킴이 전부 경로로 잡힌다
                      * (그래서 웹에서 스킴을 못 담던 버그). 스킴 = `이름:` 으로 시작하는 것,
-                     * 그 밖에 구분자·확장자가 있는 것만 실행 파일로 본다. */
+                     * 그 밖에 구분자, 확장자가 있는 것만 실행 파일로 본다. */
                     /* 스킴 이름은 **두 글자 이상**만 인정한다. 한 글자를 허용하면
                      * `C:\GoogleDrive\...\ScreenToGif.exe` 의 `C:` 가 스킴으로 잡혀
-                     * 「c://」 라는 열 수 없는 칸이 담긴다 (2026-08-20 제보).
+                     * c:// 라는 열 수 없는 칸이 담긴다 (2026-08-20 제보).
                      * 윈도우 드라이브 문자와 겹치는 한 글자 스킴은 실제로 쓰이지 않는다. */
                     const schemeMatch = /^([a-z][a-z0-9+.-]+):/i.exec(raw);
                     const looksPath =
                         !schemeMatch && (/[\\/]/.test(raw) || /\.(exe|cmd|bat|app|sh)$/i.test(raw));
-                    /* 웹에서는 실행 파일을 못 켠다 — 담기 전에 막는다. 담아 두고 눌러야
+                    /* 웹에서는 실행 파일을 못 켠다. 담기 전에 막는다. 담아 두고 눌러야
                      * 안 되는 것을 알게 하면 그게 더 나쁘다. */
                     if (looksPath && !isDesktop()) {
                         Toolbox.showToast?.(t('favorites.app.pathWebOnly'), 'error');
@@ -928,8 +928,8 @@ import { t, loadNamespace } from '../lib/i18n';
                     const key = a.dataset.appKey;
                     const app = loadApps().find((x) => appKey(x) === key);
                     if (!app) return;
-                    /* 웹에서는 「열렸나」를 확실히 알 수 없다. 그래서 *누르기 전에* 지켜보기를
-                     * 걸어 둔다 — 창이 흐려지면 열린 것, 그대로면 안 열린 것으로 본다.
+                    /* 웹에서는 열렸나를 확실히 알 수 없다. 그래서 *누르기 전에* 지켜보기를
+                     * 걸어 둔다. 창이 흐려지면 열린 것, 그대로면 안 열린 것으로 본다.
                      * 미등록 스킴은 브라우저가 아무 말 없이 삼키므로, 이 짐작이라도 없으면
                      * 사용자는 자기가 잘못 눌렀다고 생각한다. */
                     const watching = watchLaunch();
@@ -950,16 +950,16 @@ import { t, loadNamespace } from '../lib/i18n';
                 };
             });
 
-            /* 칸 우클릭 메뉴 — 데스크톱 앱에서만 뜬다(웹은 브라우저 메뉴가 그대로 산다).
-             * 지금까지 마우스를 올려야 나타나는 작은 × 하나에 「빼기」를 우겨넣고 있었는데,
+            /* 칸 우클릭 메뉴. 데스크톱 앱에서만 뜬다(웹은 브라우저 메뉴가 그대로 산다).
+             * 지금까지 마우스를 올려야 나타나는 작은 × 하나에 빼기를 우겨넣고 있었는데,
              * 그건 손가락이 굵은 날이나 덱 살결에서는 사실상 못 누르는 단추였다.
-             * 선택자로 걸므로 다시 그려도 살아 있다 — 같은 선택자 재등록은 덮어쓴다. */
+             * 선택자로 걸므로 다시 그려도 살아 있다. 같은 선택자 재등록은 덮어쓴다. */
             registerContextMenu('.fav-item', (el): MenuEntry[] | null => {
                 const a = el as HTMLAnchorElement;
                 const toolId = a.dataset.toolId || '';
                 const appK = a.dataset.appKey || '';
                 const href = a.getAttribute('href') || '';
-                /* 사이트 칸만 「주소」가 뜻이 있다. 도구는 화면 전환, 앱은 스킴이라 복사해도 쓸 데가 없다. */
+                /* 사이트 칸만 주소가 뜻이 있다. 도구는 화면 전환, 앱은 스킴이라 복사해도 쓸 데가 없다. */
                 const url = !toolId && !appK && href && href !== '#' ? href : '';
                 const entries: MenuEntry[] = [
                     { label: t('ctxmenu.open'), onSelect: () => a.click() }
@@ -968,7 +968,7 @@ import { t, loadNamespace } from '../lib/i18n';
                     entries.push({
                         label: t('ctxmenu.copyUrl'),
                         onSelect: () => {
-                            /* 상대 주소로 담은 칸(도구 장 등)이 있어 절대 주소로 펴서 준다 — 붙여 넣은 곳에서 열려야 한다. */
+                            /* 상대 주소로 담은 칸(도구 장 등)이 있어 절대 주소로 펴서 준다. 붙여 넣은 곳에서 열려야 한다. */
                             const abs = (() => { try { return new URL(url, location.href).href; } catch (_) { return url; } })();
                             void navigator.clipboard?.writeText(abs).catch(() => {});
                         }
@@ -979,8 +979,8 @@ import { t, loadNamespace } from '../lib/i18n';
                 return entries;
             });
 
-            /* 뱃지 = 「이 PC 에 있나」. 데스크톱만 답할 수 있으므로 웹에서는 아예 안 단다
-             * (회색 점 = 「없음」이라는 뜻인데, 웹은 그걸 모른다 — 달면 거짓말이 된다). */
+            /* 뱃지 = 이 PC 에 있나. 데스크톱만 답할 수 있으므로 웹에서는 아예 안 단다
+             * (회색 점 = 없음이라는 뜻인데, 웹은 그걸 모른다. 달면 거짓말이 된다). */
             if (isDesktop()) {
                 container.querySelectorAll<HTMLElement>('[data-app-badge]').forEach((dot) => {
                     const app = loadApps().find((x) => appKey(x) === dot.dataset.appBadge);
@@ -1024,8 +1024,8 @@ import { t, loadNamespace } from '../lib/i18n';
                 btn.onclick = () => {
                     modal?.classList.add('open');
                     showKind('site');
-                    /* 누른 칸이 속한 그룹을 미리 골라 둔다 — 어디에 담을지 다시 고르게 하면
-                     * 「그 자리에 담는다」는 뜻이 흐려진다. */
+                    /* 누른 칸이 속한 그룹을 미리 골라 둔다. 어디에 담을지 다시 고르게 하면
+                     * 그 자리에 담는다는 뜻이 흐려진다. */
                     const g = btn.dataset.addGroup;
                     const sel = container.querySelector<HTMLSelectElement>('#fav-group');
                     if (g && sel && [...sel.options].some((o) => o.value === g)) sel.value = g;
@@ -1041,7 +1041,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 };
             }
 
-            /* 살결 — 뼈대는 그대로, 겉만 갈린다. 그래도 항목 마크업이 갈래별로 달라
+            /* 살결. 뼈대는 그대로, 겉만 갈린다. 그래도 항목 마크업이 갈래별로 달라
              * (기존 살결은 옛 마크업) 다시 그린다. */
             container.querySelectorAll<HTMLButtonElement>('.fav-skin').forEach((b) => {
                 b.onclick = () => {
@@ -1050,7 +1050,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 };
             });
 
-            /* 크기 — 다시 그리지 않는다. 뿌리의 값 하나만 바꾸면 격자가 따라온다. */
+            /* 크기. 다시 그리지 않는다. 뿌리의 값 하나만 바꾸면 격자가 따라온다. */
             const sizeInput = container.querySelector<HTMLInputElement>('#fav-size');
             const sizeOut = container.querySelector<HTMLElement>('#fav-size-out');
             const root = container.querySelector<HTMLElement>('.fav-layout');
@@ -1063,9 +1063,9 @@ import { t, loadNamespace } from '../lib/i18n';
                 };
             }
 
-            /* 덱은 그린 뒤에 배선한다. 되돌리는 함수를 받아 다음 그림 전에 푼다 —
+            /* 덱은 그린 뒤에 배선한다. 되돌리는 함수를 받아 다음 그림 전에 푼다 . 
              * 안 풀면 다시 그릴 때마다 리스너가 쌓인다. */
-            /* 키 배선은 **배치와 무관**하다 — 살결이 「기존」이 아니면 목록에서도 키를 쓴다. */
+            /* 키 배선은 **배치와 무관**하다. 살결이 기존이 아니면 목록에서도 키를 쓴다. */
             disposeKeys?.();
             disposeKeys = skin === 'plain' ? null : wireKeys(container);
 
@@ -1076,16 +1076,16 @@ import { t, loadNamespace } from '../lib/i18n';
         render();
     }
 
-    /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
+    /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다. 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('favorites'),
         tabs: [
             {
                 id: 'fav-main',
                 label: t('favorites.tab.main', undefined, '즐겨찾기'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
-                    /* 우클릭 메뉴 글도 같이 받는다 — 칸 메뉴 항목(열기·주소 복사·빼기)이
+                    /* 우클릭 메뉴 글도 같이 받는다. 칸 메뉴 항목(열기, 주소 복사, 빼기)이
                      * `ctxmenu` 열쇠를 쓴다. 안 받으면 열쇠 이름이 그대로 뜬다. */
                     void Promise.all([loadNamespace('favorites'), loadNamespace('ctxmenu')]).then(function () {
                         buildFavorites(container);

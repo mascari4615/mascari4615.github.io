@@ -16,7 +16,7 @@ interface TrackGraph {
   pan: StereoPannerNode;
   output: GainNode;
   reverbSend: GainNode;
-  /** 미터용 — 실제 소리 길에 끼지 않고 output 을 엿듣는다. */
+  /** 미터용. 실제 소리 길에 끼지 않고 output 을 엿듣는다. */
   analyser: AnalyserNode | null;
 }
 
@@ -49,7 +49,7 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
   const reverbSend = context.createGain(); reverbSend.gain.value = track.reverb;
   input.connect(low).connect(mid).connect(high).connect(compressor).connect(pan).connect(output).connect(destination);
   pan.connect(reverbSend).connect(reverb);
-  /* 오프라인 렌더에는 미터가 필요 없다 — 표본을 읽는 노드를 달면 렌더만 느려진다. */
+  /* 오프라인 렌더에는 미터가 필요 없다. 표본을 읽는 노드를 달면 렌더만 느려진다. */
   let analyser: AnalyserNode | null = null;
   if (typeof (context as AudioContext).createAnalyser === 'function' && !('startRendering' in context)) {
     analyser = (context as AudioContext).createAnalyser();
@@ -61,7 +61,7 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
 
 /**
  * 볼륨 자동화를 그래프에 그린다. 구간 안의 점마다 직선으로 잇고, 구간 시작값은 보간으로 채운다.
- * 점이 없으면 아무것도 안 한다 — 트랙 볼륨이 그대로 산다.
+ * 점이 없으면 아무것도 안 한다. 트랙 볼륨이 그대로 산다.
  */
 function scheduleAutomation(graph: TrackGraph, track: StudioTrack, fromBeat: number, toBeat: number, fromTime: number, secondsPerBeat: number, muted: boolean): void {
   const draw = (points: AutomationPoint[], param: AudioParam, fallback: number): void => {
@@ -79,7 +79,7 @@ function scheduleAutomation(graph: TrackGraph, track: StudioTrack, fromBeat: num
 }
 
 function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean, at: number): void {
-  /* 자동화가 있는 트랙의 출력 볼륨은 scheduleAutomation 이 쥐고 있다 — 여기서 덮으면 자동화가 죽는다. */
+  /* 자동화가 있는 트랙의 출력 볼륨은 scheduleAutomation 이 쥐고 있다. 여기서 덮으면 자동화가 죽는다. */
   graph.low.gain.setTargetAtTime(track.eqLow, at, 0.015);
   graph.mid.gain.setTargetAtTime(track.eqMid, at, 0.015);
   graph.high.gain.setTargetAtTime(track.eqHigh, at, 0.015);
@@ -93,7 +93,7 @@ function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean,
 function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0): void {
   for (const note of clip.notes) {
     if (note.muted === true) continue;
-    /* 스윙은 **소리 낼 때만** 민다 — 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
+    /* 스윙은 **소리 낼 때만** 민다. 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
     const absoluteBeat = swingBeat(clip.start + note.beat, swing);
     if (absoluteBeat + note.duration <= fromBeat || absoluteBeat >= toBeat) continue;
     const audibleStart = Math.max(absoluteBeat, fromBeat);
@@ -101,7 +101,7 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     const at = startTime + (audibleStart - fromBeat) * secondsPerBeat;
     const end = startTime + (audibleEnd - fromBeat) * secondsPerBeat;
     const gain = context.createGain();
-    /* 저역 통과 — 음을 칠 때 잠깐 열렸다 닫히면서 「띵」 하는 결이 생긴다. */
+    /* 저역 통과. 음을 칠 때 잠깐 열렸다 닫히면서 띵 하는 결이 생긴다. */
     const filter = context.createBiquadFilter();
     filter.type = 'lowpass';
     filter.Q.value = 0.9;
@@ -109,7 +109,7 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     const open = Math.max(120, Math.min(18000, base * (1 + track.filter.envelope * note.velocity)));
     filter.frequency.setValueAtTime(open, at);
     filter.frequency.exponentialRampToValueAtTime(base, at + Math.max(0.02, track.envelope.decay));
-    /* 두툼하게 — 살짝 어긋난 두 목소리. 0 이면 하나만 쓴다(옛 소리 그대로). */
+    /* 두툼하게. 살짝 어긋난 두 목소리. 0 이면 하나만 쓴다(옛 소리 그대로). */
     const voices: OscillatorNode[] = [];
     for (const cents of track.detune > 0 ? [-track.detune, track.detune] : [0]) {
       const oscillator = context.createOscillator();
@@ -195,11 +195,11 @@ export class HeungEngine {
   private assets = new Map<string, StudioAssetRuntime>();
   private scheduled = new Set<string>();
   onEnded: (() => void) | null = null;
-  /** 박자 소리 — 녹음·연습용. 마디 첫 박은 높게 친다. */
+  /** 박자 소리. 녹음, 연습용. 마디 첫 박은 높게 친다. */
   metronome = false;
 
   setAssets(assets: Map<string, StudioAssetRuntime>): void { this.assets = assets; }
-  /** 트랙별 지금 소리 크기 — 0~1 의 peak/rms. 재생 중이 아니면 빈 값. */
+  /** 트랙별 지금 소리 크기. 0~1 의 peak/rms. 재생 중이 아니면 빈 값. */
   levels(): Map<string, { peak: number; rms: number }> {
     const out = new Map<string, { peak: number; rms: number }>();
     if (!this.playing) return out;
@@ -267,7 +267,7 @@ export class HeungEngine {
     this.scheduledThroughBeat=horizonBeat;
   }
 
-  /** 짧은 딸깍 — 트랙 그래프를 안 거치고 마스터로 바로 간다 (믹서에 안 섞인다). */
+  /** 짧은 딸깍. 트랙 그래프를 안 거치고 마스터로 바로 간다 (믹서에 안 섞인다). */
   private click(context: AudioContext, when: number, accent: boolean): void {
     const osc=context.createOscillator();const gain=context.createGain();
     osc.type='square';osc.frequency.value=accent?1600:1000;

@@ -2,7 +2,7 @@
  * 자막 시간 맞추기가 시각을 정확히 옮기는지 확인한다 (TASK-KL-088)
  *
  * 자막은 눈으로 확인할 방법이 영상을 틀어 보는 것뿐이라, 어긋나도 한참 뒤에 안다.
- * 그래서 **결과의 시각을 글자 그대로** 잰다 — 반올림이 한 번만 어긋나도 잡힌다.
+ * 그래서 **결과의 시각을 글자 그대로** 잰다. 반올림이 한 번만 어긋나도 잡힌다.
  *
  *  ① 2.5초 밀면 모든 줄이 정확히 2.5초 뒤로 가는가
  *  ② VTT 로 바꾸면 머리말이 붙고 쉼표가 점으로 바뀌는가 (웹 플레이어는 이걸 봐야 튼다)
@@ -64,7 +64,7 @@ const out = await page.evaluate(async () => {
   const vtt = set(0, 1, 'vtt');
   const vttOk = vtt.startsWith('WEBVTT') && vtt.includes('00:00:01.000 --> 00:00:03.000') && !vtt.includes(',000 -->');
 
-  // ③ 비율로 늘리기 — 뒤로 갈수록 더 벌어져야 한다
+  // ③ 비율로 늘리기. 뒤로 갈수록 더 벌어져야 한다
   const scaled = set(0, 1.0427, 'srt');
   const firstAt = scaled.match(/00:00:0(\d),(\d{3})/);
   const lateAt = scaled.match(/00:(\d\d):(\d\d),(\d{3}) -->/g);
@@ -77,8 +77,8 @@ const out = await page.evaluate(async () => {
   return {
     ok: shiftOk && vttOk && scaleOk && clipOk,
     why:
-      `2.5초 밀기 ${shiftOk ? '✓' : '✗'} · VTT 변환 ${vttOk ? '✓' : '✗'} · ` +
-      `비율 늘리기 ${scaleOk ? '✓' : '✗'} · 음수는 0에 붙이고 알림 ${clipOk ? '✓' : '✗'}`
+      `2.5초 밀기 ${shiftOk ? '✓' : '✗'}, VTT 변환 ${vttOk ? '✓' : '✗'}, ` +
+      `비율 늘리기 ${scaleOk ? '✓' : '✗'}, 음수는 0에 붙이고 알림 ${clipOk ? '✓' : '✗'}`
   };
 });
 
@@ -89,4 +89,4 @@ if (!out.ok) {
   console.error('[test-subtitle] 자막 시각이 어긋났다');
   process.exit(1);
 }
-console.log('[test-subtitle] 밀기·늘리기·형식 변환·음수 처리까지 확인');
+console.log('[test-subtitle] 밀기, 늘리기, 형식 변환, 음수 처리까지 확인');

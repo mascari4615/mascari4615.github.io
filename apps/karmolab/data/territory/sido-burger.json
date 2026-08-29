@@ -1,1 +1,451 @@
-{"industry":"burger","source":"OpenStreetMap (ODbL) — 표본","sample":true,"cell":0.0075,"brands":[{"id":"mcdonalds","label":"맥도날드","color":"#ffc72c"},{"id":"lotteria","label":"롯데리아","color":"#e60012"},{"id":"burgerking","label":"버거킹","color":"#d62300"},{"id":"momstouch","label":"맘스터치","color":"#f04e23"},{"id":"kfc","label":"KFC","color":"#a8101a"},{"id":"nobrand","label":"노브랜드버거","color":"#111111"},{"id":"frank","label":"프랭크버거","color":"#0057b8"},{"id":"shake","label":"쉐이크쉑","color":"#84c443"}],"rows":[{"code":"11","name":"서울특별시","areaKm2":602,"covered":100,"stores":{"lotteria":82,"mcdonalds":67,"burgerking":58,"momstouch":51,"kfc":47,"nobrand":14,"frank":11,"shake":10},"share":{"lotteria":28.2,"mcdonalds":20.7,"burgerking":16.3,"momstouch":15.1,"kfc":13.1,"frank":3.4,"nobrand":2.2,"shake":1}},{"code":"21","name":"부산광역시","areaKm2":763,"covered":100,"stores":{"mcdonalds":26,"lotteria":18,"momstouch":15,"burgerking":7,"kfc":3,"frank":3,"nobrand":1},"share":{"lotteria":39.4,"mcdonalds":36.7,"momstouch":18.7,"burgerking":4,"frank":0.9,"kfc":0.4}},{"code":"22","name":"대구광역시","areaKm2":879,"covered":100,"stores":{"lotteria":19,"momstouch":13,"mcdonalds":9,"burgerking":8,"kfc":3,"nobrand":3,"frank":2,"shake":1},"share":{"momstouch":38.8,"lotteria":36.5,"burgerking":10.2,"mcdonalds":9.6,"kfc":2.4,"nobrand":1.4,"frank":0.7,"shake":0.3}},{"code":"23","name":"인천광역시","areaKm2":1002,"covered":76.8,"stores":{"lotteria":26,"burgerking":16,"mcdonalds":16,"momstouch":13,"kfc":5,"nobrand":4,"frank":3,"shake":1},"share":{"lotteria":49.3,"momstouch":27.9,"burgerking":10.7,"mcdonalds":6.5,"nobrand":2.9,"kfc":1.4,"frank":1.1}},{"code":"24","name":"광주광역시","areaKm2":497,"covered":100,"stores":{"lotteria":19,"burgerking":10,"mcdonalds":9,"momstouch":5,"frank":4,"kfc":2,"nobrand":1},"share":{"lotteria":32.1,"frank":22,"burgerking":20.3,"mcdonalds":15.8,"momstouch":9.5,"nobrand":0.2}},{"code":"25","name":"대전광역시","areaKm2":544,"covered":100,"stores":{"lotteria":16,"mcdonalds":11,"momstouch":11,"burgerking":8,"kfc":3,"nobrand":1},"share":{"lotteria":52.7,"momstouch":19.8,"mcdonalds":13.1,"burgerking":12.5,"kfc":1,"nobrand":0.8}},{"code":"26","name":"울산광역시","areaKm2":1063,"covered":100,"stores":{"lotteria":8,"momstouch":8,"burgerking":3,"mcdonalds":3,"kfc":2,"nobrand":1,"frank":1},"share":{"momstouch":57.9,"lotteria":27.1,"mcdonalds":11.4,"burgerking":2.1,"kfc":1.2,"frank":0.1,"nobrand":0.1}},{"code":"29","name":"세종특별자치시","areaKm2":464,"covered":100,"stores":{"lotteria":9,"momstouch":8,"burgerking":5,"nobrand":2,"kfc":1,"frank":1},"share":{"momstouch":44.3,"lotteria":36,"burgerking":19.3,"kfc":0.1,"nobrand":0.1,"frank":0.1}},{"code":"31","name":"경기도","areaKm2":10268,"covered":99.4,"stores":{"lotteria":131,"mcdonalds":73,"burgerking":67,"momstouch":64,"kfc":35,"frank":17,"nobrand":6,"shake":1},"share":{"lotteria":46.4,"momstouch":17.7,"burgerking":16.1,"mcdonalds":10.9,"frank":6.4,"kfc":1.8,"nobrand":0.6,"shake":0.1}},{"code":"32","name":"강원도","areaKm2":16853,"covered":65.6,"stores":{"lotteria":19,"momstouch":17,"burgerking":6,"mcdonalds":5,"kfc":5,"nobrand":2,"frank":2},"share":{"lotteria":49.1,"momstouch":32,"mcdonalds":7.5,"burgerking":6.9,"frank":2.5,"kfc":1.9,"nobrand":0}},{"code":"33","name":"충청북도","areaKm2":7431,"covered":90.9,"stores":{"lotteria":12,"momstouch":12,"burgerking":9,"mcdonalds":4,"kfc":3,"nobrand":2,"frank":1},"share":{"momstouch":32.6,"lotteria":26.4,"burgerking":20.7,"mcdonalds":14.4,"frank":4.4,"kfc":1.6,"nobrand":0}},{"code":"34","name":"충청남도","areaKm2":8235,"covered":91.2,"stores":{"lotteria":26,"momstouch":20,"mcdonalds":9,"burgerking":8,"kfc":3,"shake":1},"share":{"lotteria":54.8,"momstouch":30.2,"burgerking":7.6,"mcdonalds":4.7,"kfc":1.7,"nobrand":0.9}},{"code":"35","name":"전라북도","areaKm2":8077,"covered":71.3,"stores":{"lotteria":18,"mcdonalds":9,"burgerking":6,"momstouch":6,"kfc":1},"share":{"lotteria":44.1,"momstouch":37.5,"burgerking":11.4,"mcdonalds":6.9,"kfc":0.1}},{"code":"36","name":"전라남도","areaKm2":11987,"covered":77.6,"stores":{"lotteria":23,"momstouch":18,"mcdonalds":6,"frank":4,"burgerking":3,"kfc":2,"nobrand":1},"share":{"lotteria":52.9,"momstouch":34.2,"mcdonalds":5.5,"burgerking":5.2,"frank":2,"kfc":0.1,"nobrand":0}},{"code":"37","name":"경상북도","areaKm2":19083,"covered":75.8,"stores":{"lotteria":29,"momstouch":19,"burgerking":14,"mcdonalds":10,"kfc":2,"nobrand":2,"frank":2},"share":{"lotteria":37,"momstouch":35,"burgerking":14.6,"mcdonalds":7.5,"frank":5.3,"nobrand":0.5,"kfc":0.1}},{"code":"38","name":"경상남도","areaKm2":10446,"covered":87,"stores":{"lotteria":29,"mcdonalds":22,"momstouch":20,"burgerking":7,"kfc":2,"nobrand":1,"frank":1},"share":{"lotteria":47.5,"momstouch":29.6,"mcdonalds":18.7,"burgerking":3.6,"nobrand":0.6,"kfc":0.1,"frank":0}},{"code":"39","name":"제주특별자치도","areaKm2":1850,"covered":94.6,"stores":{"mcdonalds":10,"lotteria":8,"momstouch":6,"kfc":3,"burgerking":2,"frank":1},"share":{"momstouch":37.7,"lotteria":24.8,"kfc":19,"burgerking":9.8,"mcdonalds":8.2,"frank":0.3}}]}
+{
+  "industry": "burger",
+  "source": "OpenStreetMap (ODbL). 표본",
+  "sample": true,
+  "cell": 0.0075,
+  "brands": [
+    {
+      "id": "mcdonalds",
+      "label": "맥도날드",
+      "color": "#ffc72c"
+    },
+    {
+      "id": "lotteria",
+      "label": "롯데리아",
+      "color": "#e60012"
+    },
+    {
+      "id": "burgerking",
+      "label": "버거킹",
+      "color": "#d62300"
+    },
+    {
+      "id": "momstouch",
+      "label": "맘스터치",
+      "color": "#f04e23"
+    },
+    {
+      "id": "kfc",
+      "label": "KFC",
+      "color": "#a8101a"
+    },
+    {
+      "id": "nobrand",
+      "label": "노브랜드버거",
+      "color": "#111111"
+    },
+    {
+      "id": "frank",
+      "label": "프랭크버거",
+      "color": "#0057b8"
+    },
+    {
+      "id": "shake",
+      "label": "쉐이크쉑",
+      "color": "#84c443"
+    }
+  ],
+  "rows": [
+    {
+      "code": "11",
+      "name": "서울특별시",
+      "areaKm2": 602,
+      "covered": 100,
+      "stores": {
+        "lotteria": 82,
+        "mcdonalds": 67,
+        "burgerking": 58,
+        "momstouch": 51,
+        "kfc": 47,
+        "nobrand": 14,
+        "frank": 11,
+        "shake": 10
+      },
+      "share": {
+        "lotteria": 28.2,
+        "mcdonalds": 20.7,
+        "burgerking": 16.3,
+        "momstouch": 15.1,
+        "kfc": 13.1,
+        "frank": 3.4,
+        "nobrand": 2.2,
+        "shake": 1
+      }
+    },
+    {
+      "code": "21",
+      "name": "부산광역시",
+      "areaKm2": 763,
+      "covered": 100,
+      "stores": {
+        "mcdonalds": 26,
+        "lotteria": 18,
+        "momstouch": 15,
+        "burgerking": 7,
+        "kfc": 3,
+        "frank": 3,
+        "nobrand": 1
+      },
+      "share": {
+        "lotteria": 39.4,
+        "mcdonalds": 36.7,
+        "momstouch": 18.7,
+        "burgerking": 4,
+        "frank": 0.9,
+        "kfc": 0.4
+      }
+    },
+    {
+      "code": "22",
+      "name": "대구광역시",
+      "areaKm2": 879,
+      "covered": 100,
+      "stores": {
+        "lotteria": 19,
+        "momstouch": 13,
+        "mcdonalds": 9,
+        "burgerking": 8,
+        "kfc": 3,
+        "nobrand": 3,
+        "frank": 2,
+        "shake": 1
+      },
+      "share": {
+        "momstouch": 38.8,
+        "lotteria": 36.5,
+        "burgerking": 10.2,
+        "mcdonalds": 9.6,
+        "kfc": 2.4,
+        "nobrand": 1.4,
+        "frank": 0.7,
+        "shake": 0.3
+      }
+    },
+    {
+      "code": "23",
+      "name": "인천광역시",
+      "areaKm2": 1002,
+      "covered": 76.8,
+      "stores": {
+        "lotteria": 26,
+        "burgerking": 16,
+        "mcdonalds": 16,
+        "momstouch": 13,
+        "kfc": 5,
+        "nobrand": 4,
+        "frank": 3,
+        "shake": 1
+      },
+      "share": {
+        "lotteria": 49.3,
+        "momstouch": 27.9,
+        "burgerking": 10.7,
+        "mcdonalds": 6.5,
+        "nobrand": 2.9,
+        "kfc": 1.4,
+        "frank": 1.1
+      }
+    },
+    {
+      "code": "24",
+      "name": "광주광역시",
+      "areaKm2": 497,
+      "covered": 100,
+      "stores": {
+        "lotteria": 19,
+        "burgerking": 10,
+        "mcdonalds": 9,
+        "momstouch": 5,
+        "frank": 4,
+        "kfc": 2,
+        "nobrand": 1
+      },
+      "share": {
+        "lotteria": 32.1,
+        "frank": 22,
+        "burgerking": 20.3,
+        "mcdonalds": 15.8,
+        "momstouch": 9.5,
+        "nobrand": 0.2
+      }
+    },
+    {
+      "code": "25",
+      "name": "대전광역시",
+      "areaKm2": 544,
+      "covered": 100,
+      "stores": {
+        "lotteria": 16,
+        "mcdonalds": 11,
+        "momstouch": 11,
+        "burgerking": 8,
+        "kfc": 3,
+        "nobrand": 1
+      },
+      "share": {
+        "lotteria": 52.7,
+        "momstouch": 19.8,
+        "mcdonalds": 13.1,
+        "burgerking": 12.5,
+        "kfc": 1,
+        "nobrand": 0.8
+      }
+    },
+    {
+      "code": "26",
+      "name": "울산광역시",
+      "areaKm2": 1063,
+      "covered": 100,
+      "stores": {
+        "lotteria": 8,
+        "momstouch": 8,
+        "burgerking": 3,
+        "mcdonalds": 3,
+        "kfc": 2,
+        "nobrand": 1,
+        "frank": 1
+      },
+      "share": {
+        "momstouch": 57.9,
+        "lotteria": 27.1,
+        "mcdonalds": 11.4,
+        "burgerking": 2.1,
+        "kfc": 1.2,
+        "frank": 0.1,
+        "nobrand": 0.1
+      }
+    },
+    {
+      "code": "29",
+      "name": "세종특별자치시",
+      "areaKm2": 464,
+      "covered": 100,
+      "stores": {
+        "lotteria": 9,
+        "momstouch": 8,
+        "burgerking": 5,
+        "nobrand": 2,
+        "kfc": 1,
+        "frank": 1
+      },
+      "share": {
+        "momstouch": 44.3,
+        "lotteria": 36,
+        "burgerking": 19.3,
+        "kfc": 0.1,
+        "nobrand": 0.1,
+        "frank": 0.1
+      }
+    },
+    {
+      "code": "31",
+      "name": "경기도",
+      "areaKm2": 10268,
+      "covered": 99.4,
+      "stores": {
+        "lotteria": 131,
+        "mcdonalds": 73,
+        "burgerking": 67,
+        "momstouch": 64,
+        "kfc": 35,
+        "frank": 17,
+        "nobrand": 6,
+        "shake": 1
+      },
+      "share": {
+        "lotteria": 46.4,
+        "momstouch": 17.7,
+        "burgerking": 16.1,
+        "mcdonalds": 10.9,
+        "frank": 6.4,
+        "kfc": 1.8,
+        "nobrand": 0.6,
+        "shake": 0.1
+      }
+    },
+    {
+      "code": "32",
+      "name": "강원도",
+      "areaKm2": 16853,
+      "covered": 65.6,
+      "stores": {
+        "lotteria": 19,
+        "momstouch": 17,
+        "burgerking": 6,
+        "mcdonalds": 5,
+        "kfc": 5,
+        "nobrand": 2,
+        "frank": 2
+      },
+      "share": {
+        "lotteria": 49.1,
+        "momstouch": 32,
+        "mcdonalds": 7.5,
+        "burgerking": 6.9,
+        "frank": 2.5,
+        "kfc": 1.9,
+        "nobrand": 0
+      }
+    },
+    {
+      "code": "33",
+      "name": "충청북도",
+      "areaKm2": 7431,
+      "covered": 90.9,
+      "stores": {
+        "lotteria": 12,
+        "momstouch": 12,
+        "burgerking": 9,
+        "mcdonalds": 4,
+        "kfc": 3,
+        "nobrand": 2,
+        "frank": 1
+      },
+      "share": {
+        "momstouch": 32.6,
+        "lotteria": 26.4,
+        "burgerking": 20.7,
+        "mcdonalds": 14.4,
+        "frank": 4.4,
+        "kfc": 1.6,
+        "nobrand": 0
+      }
+    },
+    {
+      "code": "34",
+      "name": "충청남도",
+      "areaKm2": 8235,
+      "covered": 91.2,
+      "stores": {
+        "lotteria": 26,
+        "momstouch": 20,
+        "mcdonalds": 9,
+        "burgerking": 8,
+        "kfc": 3,
+        "shake": 1
+      },
+      "share": {
+        "lotteria": 54.8,
+        "momstouch": 30.2,
+        "burgerking": 7.6,
+        "mcdonalds": 4.7,
+        "kfc": 1.7,
+        "nobrand": 0.9
+      }
+    },
+    {
+      "code": "35",
+      "name": "전라북도",
+      "areaKm2": 8077,
+      "covered": 71.3,
+      "stores": {
+        "lotteria": 18,
+        "mcdonalds": 9,
+        "burgerking": 6,
+        "momstouch": 6,
+        "kfc": 1
+      },
+      "share": {
+        "lotteria": 44.1,
+        "momstouch": 37.5,
+        "burgerking": 11.4,
+        "mcdonalds": 6.9,
+        "kfc": 0.1
+      }
+    },
+    {
+      "code": "36",
+      "name": "전라남도",
+      "areaKm2": 11987,
+      "covered": 77.6,
+      "stores": {
+        "lotteria": 23,
+        "momstouch": 18,
+        "mcdonalds": 6,
+        "frank": 4,
+        "burgerking": 3,
+        "kfc": 2,
+        "nobrand": 1
+      },
+      "share": {
+        "lotteria": 52.9,
+        "momstouch": 34.2,
+        "mcdonalds": 5.5,
+        "burgerking": 5.2,
+        "frank": 2,
+        "kfc": 0.1,
+        "nobrand": 0
+      }
+    },
+    {
+      "code": "37",
+      "name": "경상북도",
+      "areaKm2": 19083,
+      "covered": 75.8,
+      "stores": {
+        "lotteria": 29,
+        "momstouch": 19,
+        "burgerking": 14,
+        "mcdonalds": 10,
+        "kfc": 2,
+        "nobrand": 2,
+        "frank": 2
+      },
+      "share": {
+        "lotteria": 37,
+        "momstouch": 35,
+        "burgerking": 14.6,
+        "mcdonalds": 7.5,
+        "frank": 5.3,
+        "nobrand": 0.5,
+        "kfc": 0.1
+      }
+    },
+    {
+      "code": "38",
+      "name": "경상남도",
+      "areaKm2": 10446,
+      "covered": 87,
+      "stores": {
+        "lotteria": 29,
+        "mcdonalds": 22,
+        "momstouch": 20,
+        "burgerking": 7,
+        "kfc": 2,
+        "nobrand": 1,
+        "frank": 1
+      },
+      "share": {
+        "lotteria": 47.5,
+        "momstouch": 29.6,
+        "mcdonalds": 18.7,
+        "burgerking": 3.6,
+        "nobrand": 0.6,
+        "kfc": 0.1,
+        "frank": 0
+      }
+    },
+    {
+      "code": "39",
+      "name": "제주특별자치도",
+      "areaKm2": 1850,
+      "covered": 94.6,
+      "stores": {
+        "mcdonalds": 10,
+        "lotteria": 8,
+        "momstouch": 6,
+        "kfc": 3,
+        "burgerking": 2,
+        "frank": 1
+      },
+      "share": {
+        "momstouch": 37.7,
+        "lotteria": 24.8,
+        "kfc": 19,
+        "burgerking": 9.8,
+        "mcdonalds": 8.2,
+        "frank": 0.3
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 /**
  * 대출 상환 계산기 (TASK-KL-088)
  *
- * 이자 계산기에는 월 상환액만 있다. 실제로 궁금한 건 그 다음이다 —
+ * 이자 계산기에는 월 상환액만 있다. 실제로 궁금한 건 그 다음이다 . 
  * **원금과 이자가 달마다 어떻게 갈리는지**, 중도상환하면 얼마나 줄어드는지.
  * 초반 상환액이 거의 이자라는 사실은 표를 봐야 실감이 나므로 상환표를 편다.
  */
@@ -21,7 +21,7 @@ import { download } from './shared/image';
     desc: t(
       'widgets-desc.loan.desc',
       undefined,
-      '원리금균등·원금균등·만기일시 상환을 비교하고 달별 원금·이자를 봅니다'
+      '원리금균등, 원금균등, 만기일시 상환을 비교하고 달별 원금, 이자를 봅니다'
     ),
     layout: 'wide',
     icon: '<path d="M3 20h18M6 20V10M11 20V6M16 20v-8M21 20v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
@@ -40,8 +40,8 @@ import { download } from './shared/image';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          /* 돈은 **사는 곳**의 통화로 적는다 — 알맹이의 `won()` 은 「원」이 박혀 있어
-             글로 답하는 쪽(MCP)에만 쓴다. 화면은 그 나라 돈으로 (₩ · ¥ · $). */
+          /* 돈은 **사는 곳**의 통화로 적는다. 알맹이의 `won()` 은 원이 박혀 있어
+             글로 답하는 쪽(MCP)에만 쓴다. 화면은 그 나라 돈으로 (₩, ¥, $). */
           const money = (n: number): string => {
             try {
               return new Intl.NumberFormat(locale(), {
@@ -124,7 +124,7 @@ import { download } from './shared/image';
 
             const build = type === 'pp' ? equalPrincipal : type === 'bu' ? bullet : equalPayment;
             const base = withGrace(P, rate, grace, build(P, rate, months));
-            /* 만기일시는 매달 갚는 원금이 없어서 「더 갚기」의 뜻이 다르다 — 그 방식엔 안 태운다. */
+            /* 만기일시는 매달 갚는 원금이 없어서 더 갚기의 뜻이 다르다. 그 방식엔 안 태운다. */
             const rows = type === 'bu' ? base : withExtra(base, rate, extra);
             const totalInterest = rows.reduce((a, r) => a + r.interest, 0);
             const originalInterest = base.reduce((a, r) => a + r.interest, 0);
@@ -139,7 +139,7 @@ import { download } from './shared/image';
               (savedInterest> 0 ? statCell(t('loan.stat.saved'), money(savedInterest), true) : '') +
               (monthsSaved> 0 ? statCell(t('loan.stat.faster'), t('loan.value.months', { n: monthsSaved })) : '');
 
-            // 세 방식을 나란히 놓아야 「총이자가 적은 대신 초반이 무겁다」 는 맞바꿈이 보인다
+            // 세 방식을 나란히 놓아야 총이자가 적은 대신 초반이 무겁다 는 맞바꿈이 보인다
             const alts: Array<[string, Row[]]> = [
               [t('loan.name.ep'), equalPayment(P, rate, months)],
               [t('loan.name.pp'), equalPrincipal(P, rate, months)],
@@ -155,7 +155,7 @@ import { download } from './shared/image';
             lastMark = rows;
             const show = showAll ? rows : [...rows.slice(0, 12), ...(rows.length> 12 ? [rows[rows.length - 1]] : [])];
             $<HTMLElement>('#loTableHead').textContent = showAll
-              ? `달별 상환표 — ${rows.length}개월 전부`
+              ? `달별 상환표. ${rows.length}개월 전부`
               : t('loan.table.head');
             table.innerHTML = show
               .map(
@@ -187,8 +187,8 @@ import { download } from './shared/image';
             Toolbox.trackUse?.(type);
           }
 
-          /* 표를 접어 두는 것이 기본이다 — 360개월을 다 펴면 화면이 통째로 표가 된다.
-             그래도 「전부 보고 싶다」는 사람이 있어서 한 번 누르면 편다. */
+          /* 표를 접어 두는 것이 기본이다. 360개월을 다 펴면 화면이 통째로 표가 된다.
+             그래도 전부 보고 싶다는 사람이 있어서 한 번 누르면 편다. */
           let showAll = false;
           let lastMark: Row[] = [];
 
@@ -197,7 +197,7 @@ import { download } from './shared/image';
             $<HTMLButtonElement>('#loAll').textContent = t(showAll ? 'loan.btn.fold' : 'loan.btn.all');
             run();
           };
-          /* 표는 옮겨 붙여 쓰는 물건이다 — 엑셀에서 열리는 모양으로 준다.
+          /* 표는 옮겨 붙여 쓰는 물건이다. 엑셀에서 열리는 모양으로 준다.
              한글이 깨지지 않게 앞머리 표식(BOM)을 붙인다. */
           $<HTMLButtonElement>('#loCsv').onclick = () => {
             if (!lastMark.length) return;
@@ -218,7 +218,7 @@ import { download } from './shared/image';
             el.addEventListener('change', run);
           });
 
-          // 주소로 부른 경우 (`?op=schedule&amount=…&rate=…&months=…&method=principal`) (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=schedule&amount=...&rate=...&months=...&method=principal`) (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined) {
             $<HTMLInputElement>('#loP').value = String(call.args.amount ?? $<HTMLInputElement>('#loP').value);

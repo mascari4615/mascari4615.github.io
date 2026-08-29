@@ -1,10 +1,10 @@
 /**
- * /atkup 슬래시 빌더 — Unity 무료 에셋 (atkup-bot 흡수, TASK-YB-003).
+ * /atkup 슬래시 빌더. Unity 무료 에셋 (atkup-bot 흡수, TASK-YB-003).
  *
  * 서브커맨드:
- *   /atkup unity [force]  — Unity Publisher Sale 무료 에셋 즉시 전송
+ *   /atkup unity [force] . Unity Publisher Sale 무료 에셋 즉시 전송
  *
- * (구 /atkup news = Hacker News 수동 — YB-036 에서 스케줄 news notifier 로 흡수·폐기.)
+ * (구 /atkup news = Hacker News 수동. YB-036 에서 스케줄 news notifier 로 흡수, 폐기.)
  */
 import { SlashCommandBuilder, Locale } from 'discord.js';
 

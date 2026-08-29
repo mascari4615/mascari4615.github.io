@@ -4,19 +4,19 @@ import { dirname } from 'node:path';
 import type { MemoryEntry } from '../types';
 
 /**
- * 뜻으로 찾는 기억 — **낱말이 안 겹쳐도 찾는다.**
+ * 뜻으로 찾는 기억. **낱말이 안 겹쳐도 찾는다.**
  *
- * 3회차에 옛 기억 회상을 만들 때 낱말로 찾게 했다. 한국어 어미 때문에 「먹는다고」로는
- * 「먹어」가 안 걸려서, 낱말을 뒤에서부터 깎아 가며 찾는 수를 얹었다. 그래도 **낱말이
- * 하나도 안 겹치면 영영 못 찾는다** — 「매운 거 싫어」와 「마라탕은 못 먹어」가 서로를
+ * 3회차에 옛 기억 회상을 만들 때 낱말로 찾게 했다. 한국어 어미 때문에 먹는다고로는
+ * 먹어가 안 걸려서, 낱말을 뒤에서부터 깎아 가며 찾는 수를 얹었다. 그래도 **낱말이
+ * 하나도 안 겹치면 영영 못 찾는다**. 매운 거 싫어와 마라탕은 못 먹어가 서로를
  * 못 부른다.
  *
- * 뉴로 쪽이 오래된 것을 꺼내 쓰는 방식이 벡터다. 실측(2026-08-08): 「마라탕은 매워서 못
- * 먹어」 ↔ 「매운 음식 싫어함」 = **0.78**, 딴 얘기 = 0.39. 낱말은 하나도 안 겹친다.
+ * 뉴로 쪽이 오래된 것을 꺼내 쓰는 방식이 벡터다. 실측(2026-08-08): 마라탕은 매워서 못
+ * 먹어 ↔ 매운 음식 싫어함 = **0.78**, 딴 얘기 = 0.39. 낱말은 하나도 안 겹친다.
  *
  * 규율 둘:
  * - **기다리게 하지 않는다.** 모델은 처음 뜰 때 수십 초가 걸린다. 준비 안 됐으면 이번
- *   turn 은 낱말 회상만 쓰고 넘어간다 — 첫 소리까지가 이 프로젝트의 핵심 지표다(7·65회차).
+ *   turn 은 낱말 회상만 쓰고 넘어간다. 첫 소리까지가 이 프로젝트의 핵심 지표다(7, 65회차).
  * - **없어도 굴러간다.** 모델을 못 불러오면 뜻 회상만 빠지고 나머지는 그대로다.
  */
 export interface MeaningMeasure {
@@ -78,7 +78,7 @@ export class meaningMemory {
         }
       }
     } catch {
-      // 깨진 색인 하나 때문에 얘가 못 뜨면 안 된다 — 없는 셈 치고 다시 담는다.
+      // 깨진 색인 하나 때문에 얘가 못 뜨면 안 된다. 없는 셈 치고 다시 담는다.
     }
   }
 
@@ -99,7 +99,7 @@ export class meaningMemory {
   }
 
   /**
-   * 오간 말을 색인에 담는다. **뒤에서 돈다** — 부르는 쪽은 기다리지 않는다.
+   * 오간 말을 색인에 담는다. **뒤에서 돈다**. 부르는 쪽은 기다리지 않는다.
    *
    * 이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 안 든다.
    */
@@ -110,10 +110,10 @@ export class meaningMemory {
     try {
       for (const e of entries) {
         const content2 = (e.text ?? '').trim();
-        // 아주 짧은 말은 뜻이 없다 — 「응」 「뭐」가 색인을 채우면 아무거나 닮아 보인다.
+        // 아주 짧은 말은 뜻이 없다. 응 뭐가 색인을 채우면 아무거나 닮아 보인다.
         if (content2.length < 6 || this.has(content2)) continue;
         const v = await this.options.measure.measure(content2);
-        if (v === null) break; // 재는 쪽이 아직 준비 안 됐다 — 다음에 다시.
+        if (v === null) break; // 재는 쪽이 아직 준비 안 됐다. 다음에 다시.
         this.stored.push({ text: content2, at: e.at, v: [...v] });
         storedCount += 1;
       }
@@ -131,7 +131,7 @@ export class meaningMemory {
   /**
    * 뜻이 닮은 옛 말을 꺼낸다. 준비 안 됐거나 닮은 게 없으면 빈 목록.
    *
-   * 방금 나눈 말은 뺀다 — 두뇌가 이미 보고 있는 걸 또 붙이면 자리만 먹는다.
+   * 방금 나눈 말은 뺀다. 두뇌가 이미 보고 있는 걸 또 붙이면 자리만 먹는다.
    */
   async find(
     question: string,
@@ -156,7 +156,7 @@ export class meaningMemory {
  * 옆에 깔린 작은 모델로 뜻을 재는 자리.
  *
  * **처음 뜰 때 수십 초 걸린다**(실측 54초, 모델을 받아 오는 시간 포함). 그래서 부르는 쪽을
- * 기다리게 하지 않는다 — 준비될 때까지는 `null` 을 돌려주고, 준비되면 그때부터 잰다.
+ * 기다리게 하지 않는다. 준비될 때까지는 `null` 을 돌려주고, 준비되면 그때부터 잰다.
  * 91회차에서 목소리에 쓴 규율과 같다: 무거운 건 뒤에서 켜고, 그 사이엔 하던 대로 한다.
  */
 export function measureWithSmallModel(options: { model?: string; log?: (m: string) => void } = {}): MeaningMeasure {
@@ -178,7 +178,7 @@ export function measureWithSmallModel(options: { model?: string; log?: (m: strin
       })
       .catch((e) => {
         unavailable = true;
-        log(`뜻을 못 재게 됐다 — 낱말로만 찾는다: ${e instanceof Error ? e.message : String(e)}`);
+        log(`뜻을 못 재게 됐다. 낱말로만 찾는다: ${e instanceof Error ? e.message : String(e)}`);
       })
       .finally(() => {
         preparing = false;

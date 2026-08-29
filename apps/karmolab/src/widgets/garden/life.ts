@@ -4,10 +4,10 @@
  * 규칙은 **9칸**만 본다: 자기 자신과 둘러싼 여덟. 그 한 줄이 세계 전부다.
  *
  * 가장자리는 **이어 붙인다**(토러스). 벽을 세우면 거기서만 이상한 일이 생겨, 규칙이 만든 것과
- * 벽이 만든 것을 구별할 수 없게 된다 — 관찰물로서는 그게 제일 나쁘다.
+ * 벽이 만든 것을 구별할 수 없게 된다. 관찰물로서는 그게 제일 나쁘다.
  *
  * 나이(`age`)를 따로 센다. 색을 나이로 칠하면 **방금 태어난 것과 오래 버틴 것이 구별되고**,
- * 그 순간 화면이 「점의 무리」에서 「살고 있는 것」으로 바뀐다.
+ * 그 순간 화면이 점의 무리에서 살고 있는 것으로 바뀐다.
  */
 
 export interface Stats {
@@ -18,7 +18,7 @@ export interface Stats {
   /** 살아있는 칸들의 무게중심 (0~1). 무리가 흘러가는지 보는 데 쓴다. */
   cx: number;
   cy: number;
-  /** 이 판의 지문 — 같은 모습으로 돌아왔는지 알아채는 데 쓴다. */
+  /** 이 판의 지문. 같은 모습으로 돌아왔는지 알아채는 데 쓴다. */
   hash: number;
 }
 
@@ -50,7 +50,7 @@ export class Life {
     }
   }
 
-  /** 가운데 한 점에서 키우기 — 퍼져 나가는 것 자체가 볼거리인 규칙들을 위해. */
+  /** 가운데 한 점에서 키우기. 퍼져 나가는 것 자체가 볼거리인 규칙들을 위해. */
   seedPoint(rand: () => number, density = 0.5, radius = 9): void {
     this.gen = 0;
     this.cells.fill(0);
@@ -129,9 +129,9 @@ export class Life {
 /**
  * 지금 화면이 **볼만한가**를 재는 두 수.
  *
- * 규칙마다 「자라는 동안」이 볼거리고, 그 뒤엔 판을 다 채우고 잡음이 된다. 그 시점을 규칙마다
+ * 규칙마다 자라는 동안이 볼거리고, 그 뒤엔 판을 다 채우고 잡음이 된다. 그 시점을 규칙마다
  * 상수로 박아 두면 규칙을 하나 더할 때마다 다시 재야 한다. 그래서 **화면 자체를 잰다**:
- *   structure = 오래 버틴 칸의 비율 (무엇이 「살고 있는지」 보이나)
+ *   structure = 오래 버틴 칸의 비율 (무엇이 살고 있는지 보이나)
  *   crowd     = 판을 얼마나 채웠나
  * 구조가 사라졌는데 계속 바쁘면 그건 잡음이고, 판을 꽉 채웠으면 볼 것이 없다.
  */
@@ -171,9 +171,9 @@ export interface Event {
 /**
  * 사건 판정기.
  *
- * 개체수·지문·무게중심만 보고 판정한다 — 「글라이더를 찾아내라」 같은 건 하지 않는다.
+ * 개체수, 지문, 무게중심만 보고 판정한다. 글라이더를 찾아내라 같은 건 하지 않는다.
  * 그건 패턴 인식이고, 우리가 하려는 건 **관찰자가 느끼는 것을 말로 옮기는 일**이다:
- * 「멈췄다」 「돌아왔다」 「흘러간다」 「갑자기 불어났다」.
+ * 멈췄다 돌아왔다 흘러간다 갑자기 불어났다.
  */
 export class Watcher {
   private seen = new Map<number, number>(); // 지문 → 그때의 세대
@@ -186,7 +186,7 @@ export class Watcher {
   private badRuns = 0;
 
   /**
-   * 몇십 세대에 한 번 화면 상태를 먹인다. 잡음·포화가 **이어질 때만** 사건으로 올린다 —
+   * 몇십 세대에 한 번 화면 상태를 먹인다. 잡음, 포화가 **이어질 때만** 사건으로 올린다 . 
    * 한 번 튄 값으로 판을 갈아엎으면 그건 관찰이 아니다.
    */
   judge(q: { structure: number; crowd: number }, gen: number): Event | null {
@@ -214,10 +214,10 @@ export class Watcher {
       }
     }
 
-    // 무게중심이 한 방향으로 계속 밀리면 「흘러간다」
+    // 무게중심이 한 방향으로 계속 밀리면 흘러간다
     const dx = s.cx - this.lastCx;
     const dy = s.cy - this.lastCy;
-    // 토러스라 한 바퀴 돌면 좌표가 튄다 — 튄 프레임은 흐름으로 안 센다
+    // 토러스라 한 바퀴 돌면 좌표가 튄다. 튄 프레임은 흐름으로 안 센다
     if (Math.abs(dx) < 0.2 && Math.abs(dy) < 0.2) this.driftAcc += Math.hypot(dx, dy);
     this.lastCx = s.cx;
     this.lastCy = s.cy;
@@ -236,7 +236,7 @@ export class Watcher {
     if (this.seen.size > 4096) this.seen.clear();
 
     if (!ev) return null;
-    // 같은 말을 연달아 하지 않는다 — 관찰 일지지 경보기가 아니다
+    // 같은 말을 연달아 하지 않는다. 관찰 일지지 경보기가 아니다
     if (ev.kind === this.lastKind && s.gen - this.lastEventGen < 90) return null;
     if (s.gen - this.lastEventGen < 12) return null;
     this.lastEventGen = s.gen;

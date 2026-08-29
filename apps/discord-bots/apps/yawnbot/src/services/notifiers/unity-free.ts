@@ -3,7 +3,7 @@
  *
  * - 외부 사이트 폴링 → coupon code / asset name / asset url / og:image 파싱
  * - 동일 쿠폰 코드 dedup (force 옵션 시 무시)
- * - main.ts clientReady 에서 startUnityFreeNotifier(client) 호출 — interval poll 시작
+ * - main.ts clientReady 에서 startUnityFreeNotifier(client) 호출. interval poll 시작
  * - 슬래시 `/atkup unity [force]` 도 동일 send 흐름 사용
  */
 import {
@@ -172,7 +172,7 @@ function buildPublisherSaleEmbed(info: PublisherSaleAssetInfo, imageFromAttachme
     .setTitle(title)
     .setDescription(lines.join('\n') || ' ')
     .setColor(EMBED_COLOR)
-    .setFooter({ text: 'YawnBot · Unity Publisher Sale' });
+    .setFooter({ text: 'YawnBot, Unity Publisher Sale' });
   if (info.assetUrl) embed.setURL(info.assetUrl);
   if (imageFromAttachment) {
     embed.setImage(`attachment://${EMBED_IMAGE_ATTACHMENT}`);
@@ -197,7 +197,7 @@ export async function sendPublisherSaleToChannel(
     await channel.send({ content, embeds: [embed], files });
   } catch (err: unknown) {
     if (ogAttach && files.length > 0) {
-      console.warn('[UnityFree] 이미지 첨부 전송 실패(권한·용량 등), 외부 URL 이미지로 재시도:', err);
+      console.warn('[UnityFree] 이미지 첨부 전송 실패(권한, 용량 등), 외부 URL 이미지로 재시도:', err);
       const fallback = buildPublisherSaleEmbed(info, false);
       await channel.send({ content, embeds: [fallback] });
       return;
@@ -208,8 +208,8 @@ export async function sendPublisherSaleToChannel(
 
 let timer: ReturnType<typeof setInterval> | null = null;
 
-// 봇 재시작·재배포 후에도 dedup 유지. 쿠폰 없는 주는 assetUrl 으로 fallback.
-// TASK-YB-007 — module-level let lastSentCoupon (TASK-YB-003) 휘발 + couponCode null 주 skip 두 케이스 fix.
+// 봇 재시작, 재배포 후에도 dedup 유지. 쿠폰 없는 주는 assetUrl 으로 fallback.
+// TASK-YB-007. module-level let lastSentCoupon (TASK-YB-003) 휘발 + couponCode null 주 skip 두 케이스 fix.
 interface UnityFreeState {
   lastCoupon: string | null;
   lastAssetUrl: string | null;
@@ -276,15 +276,15 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
 
 /**
  * 환경변수:
- * - YAWNBOT_UNITY_FREE_CHANNEL_ID — 알림 채널 (미설정 시 폴링 비활성)
- * - YAWNBOT_UNITY_FREE_INTERVAL_MIN — 폴링 간격 (분, 기본 60, 최소 5)
+ * - YAWNBOT_UNITY_FREE_CHANNEL_ID. 알림 채널 (미설정 시 폴링 비활성)
+ * - YAWNBOT_UNITY_FREE_INTERVAL_MIN. 폴링 간격 (분, 기본 60, 최소 5)
  */
 export function startUnityFreeNotifier(client: Client): void {
   stopUnityFreeNotifier();
 
   const channelId = channelIdFor('unity-free');
   if (!channelId) {
-    console.warn('[UnityFree] YAWNBOT_UNITY_FREE_CHANNEL_ID 미설정 — Unity 무료 에셋 알림 비활성');
+    console.warn('[UnityFree] YAWNBOT_UNITY_FREE_CHANNEL_ID 미설정. Unity 무료 에셋 알림 비활성');
     return;
   }
 

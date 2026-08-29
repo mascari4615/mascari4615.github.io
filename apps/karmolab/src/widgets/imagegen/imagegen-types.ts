@@ -1,4 +1,4 @@
-/** imagegen 위젯 전용 도메인 타입 — imagegen.ts / core.ts 공용 */
+/** imagegen 위젯 전용 도메인 타입. imagegen.ts / core.ts 공용 */
 
 export type IgQueueStatus = 'pending' | 'running' | 'done' | 'error' | 'cancelled';
 

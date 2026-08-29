@@ -1,6 +1,6 @@
 {
   "gemini.t01": "プロフィール名",
-  "gemini.t02": "🔑 Google AI Studio (Gemini API) — プロフィール",
+  "gemini.t02": "🔑 Google AI Studio (Gemini API). プロフィール",
   "gemini.btn.idPrefixApiAdd": "+ プロフィールを追加",
   "gemini.t03": "複数のキーを保存しておき、場面に応じて有効なプロフィールを選べます。",
   "gemini.t04": "Google AI Studio で発行:",
@@ -14,7 +14,7 @@
   "gemini.btn.idPrefixVertexKeyEdit": "キーを変更",
   "gemini.btn.idPrefixVertexKeyClear": "削除",
   "gemini.t12": "案内:",
-  "gemini.t13": "Vertex AI — API キー",
+  "gemini.t13": "Vertex AI. API キー",
   "gemini.label.idPrefixVertexProjectId": "GCP プロジェクト ID",
   "gemini.label.idPrefixVertexLocation": "リージョン",
   "gemini.t14": "Vertex の呼び出し(画像生成など)に共通で使われます。画像生成ウィジェットの入力欄と同じ値を共有します。",

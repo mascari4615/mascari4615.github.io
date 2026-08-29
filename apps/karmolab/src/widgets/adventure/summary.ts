@@ -1,5 +1,5 @@
 /**
- * 모험 종료 시 정수 추출 — KL-032 θ 단계.
+ * 모험 종료 시 정수 추출. KL-032 θ 단계.
  *
  * provider 호출 → yaml + md fence 추출 → AdventureSummary.
  * yaml = chatbot 호환 frontmatter (entityId/slug/title/oneLine/tags/npcs/places/events).
@@ -26,24 +26,24 @@ const SUMMARY_SYSTEM_INSTRUCTION = `
 
 조수님의 모험 history 를 읽고 KarmoWorld wiki entity 형식으로 정수를 추출하세요.
 
-출력 형식 (정확히 두 fence — yaml 먼저, md 다음):
+출력 형식 (정확히 두 fence. yaml 먼저, md 다음):
 
 \`\`\`yaml
 entityId: adv-{slug-kebab-case-3단어이내}
 slug: {slug 동일}
-title: {짧은 모험 제목 — 한국어, 5단어 이내}
-oneLine: {한 줄 요약 — 한국어}
+title: {짧은 모험 제목. 한국어, 5단어 이내}
+oneLine: {한 줄 요약. 한국어}
 tags:
   - adventure
   - {분위기 / 장르 태그}
 npcs:
-  - {등장한 NPC slug — alisa / ling / timeto / yon / fourth 등}
+  - {등장한 NPC slug. alisa / ling / timeto / yon / fourth 등}
 places:
   - {등장한 장소 이름}
 events:
-  - {주요 사건 — 짧은 라벨}
+  - {주요 사건. 짧은 라벨}
 startedAt: {ISO timestamp}
-endedAt: {ISO timestamp — 지금}
+endedAt: {ISO timestamp. 지금}
 \`\`\`
 
 \`\`\`md

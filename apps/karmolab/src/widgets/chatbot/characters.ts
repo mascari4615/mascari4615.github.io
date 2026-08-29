@@ -1,7 +1,7 @@
 import { t } from '../../lib/i18n';
 import { download } from '../tools/shared/image';
 
-/** 캐릭터 저장소·폼·모달 (chatbot.js에서 세션·전송과 연동) */
+/** 캐릭터 저장소, 폼, 모달 (chatbot.js에서 세션, 전송과 연동) */
 (function () {
     type Char = ChatbotCharacter & {
         name?: string;
@@ -125,7 +125,7 @@ import { download } from '../tools/shared/image';
         };
         const safe = (ch.name || 'character').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 60);
         const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json;charset=utf-8' });
-        // 공용 한 자리(`shared/image.download`) — 여기 있던 즉시 `revoke` 는
+        // 공용 한 자리(`shared/image.download`). 여기 있던 즉시 `revoke` 는
         // 브라우저가 아직 안 읽었을 수 있는 자리였다(공용은 2초 뒤).
         download(blob, `karmochat-${safe}-${new Date().toISOString().slice(0, 10)}.json`);
         Toolbox.showToast!(t('chatbot.t76'));
@@ -216,7 +216,7 @@ import { download } from '../tools/shared/image';
         }
     }
 
-    /** imagegen CHARACTER_PRESETS(witch / alisa / ling)와 동일 컨셉 — id 기준으로 없을 때만 병합 */
+    /** imagegen CHARACTER_PRESETS(witch / alisa / ling)와 동일 컨셉. id 기준으로 없을 때만 병합 */
     function getBuiltinMascotCharacters(): Char[] {
         try {
             const b = window.KarmoWorld?.bindings?.chatbot?.characters as Array<Record<string, unknown>> | undefined;
@@ -384,7 +384,7 @@ import { download } from '../tools/shared/image';
         const nameEl = byId('cbCharProfileName');
         let refUrl = ch?.referenceImageDataUrl || '';
         if (refThumb && refThumb.getAttribute('src') && refThumb.style.display !== 'none') refUrl = refThumb.src || refUrl;
-        if (nameEl) nameEl.textContent = ch ? (ch.name || '이름 없음') : '—';
+        if (nameEl) nameEl.textContent = ch ? (ch.name || '이름 없음') : '. ';
         if (av && ph) {
             if (refUrl) {
                 av.src = refUrl;

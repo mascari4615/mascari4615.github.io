@@ -12,7 +12,7 @@
   "palette.err.open": "画像を開けませんでした。",
   "palette.copy.hex": "HEX をコピーしました",
   "palette.copy.css": "CSS 変数をコピーしました",
-  "palette.say.done": "{n}色を取り出しました · 色を押すと HEX がコピーされます。",
+  "palette.say.done": "{n}色を取り出しました, 色を押すと HEX がコピーされます。",
   "palette.copy.one": "コピー: {v}",
   "palette.value.colors": "{n}色"
 }

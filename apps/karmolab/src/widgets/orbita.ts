@@ -1,16 +1,16 @@
 /**
- * ORBITA — MIDI COLOR SEQUENCER (TASK-KL-193)
+ * ORBITA. MIDI COLOR SEQUENCER (TASK-KL-193)
  *
  * 순서를 **줄**이 아니라 **궤도**로 적는다. 고리마다 자기 속도로 행성이 돌고,
  * 12시 방향의 자오선(meridian)을 지나는 순간 소리가 난다. 고리마다 칸 수와 속도가
- * 다르므로 폴리리듬이 그냥 나온다 — 박자를 세지 않아도 어긋난 박자가 만들어진다.
+ * 다르므로 폴리리듬이 그냥 나온다. 박자를 세지 않아도 어긋난 박자가 만들어진다.
  *
  * **색이 곧 음高**다. 팔레트에서 색을 집어 궤도에 찍으면 그 색의 음이 난다.
  * 그래서 화면을 보면 무슨 소리가 날지 읽힌다 (악보를 못 읽어도).
  *
  * 소리는 두 군데로 나간다:
- *   ① 브라우저 자체 신시사이저 (WebAudio) — 아무 장비 없이 바로 들린다
- *   ② Web MIDI 출력 — 장비/DAW 를 붙이면 그쪽이 연주한다 (고리 = MIDI 채널)
+ *   ① 브라우저 자체 신시사이저 (WebAudio). 아무 장비 없이 바로 들린다
+ *   ② Web MIDI 출력. 장비/DAW 를 붙이면 그쪽이 연주한다 (고리 = MIDI 채널)
  *
  * 시간은 **오디오 시계**로 잡는다 (setInterval 로 소리를 내면 흔들린다).
  * 25ms 마다 깨어나 100ms 앞을 미리 예약하는 lookahead 스케줄러다.
@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../lib/i18n';
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  /* ── Web MIDI — lib.dom 의 타입을 쓴다. `requestMIDIAccess` 는 없는 브라우저가 있어
+  /* ── Web MIDI. lib.dom 의 타입을 쓴다. `requestMIDIAccess` 는 없는 브라우저가 있어
    *    Navigator 에서 optional 로 받아 존재를 먼저 확인한다. ───────────────── */
   type MidiPortLike = MIDIOutput;
   type MidiAccessLike = MIDIAccess;
@@ -85,7 +85,7 @@ import { t, loadNamespace } from '../lib/i18n';
         ring(6, 0.5, 3, 'sawtooth', 4)
       ]
     };
-    // 빈 화면으로 시작하지 않는다 — 열자마자 뭔가 돌고 있어야 「해보고 싶다」가 된다.
+    // 빈 화면으로 시작하지 않는다. 열자마자 뭔가 돌고 있어야 해보고 싶다가 된다.
     s.rings[0].slots[0] = { deg: 0, vel: 0.9 };
     s.rings[0].slots[3] = { deg: 2, vel: 0.6 };
     s.rings[0].slots[6] = { deg: 4, vel: 0.7 };
@@ -126,7 +126,7 @@ import { t, loadNamespace } from '../lib/i18n';
     }
     .orbita-panel label { font-size:var(--font-size-2xs); color:var(--text-tertiary); letter-spacing:.06em; text-transform:uppercase; }
     /* 셸의 폼 스타일이 select 를 100% 로 늘린다 (form 화면 기준). 여기는 한 줄에 여럿을
-       놓는 계기판이라 폭을 되찾아야 한다 — 안 그러면 컨트롤 하나가 한 줄을 차지한다. */
+       놓는 계기판이라 폭을 되찾아야 한다. 안 그러면 컨트롤 하나가 한 줄을 차지한다. */
     .orbita-panel select, .orbita-panel input[type=number],
     .orbita-ring-row select {
       width:auto; min-width:0; flex:0 0 auto; margin:0;
@@ -170,10 +170,10 @@ import { t, loadNamespace } from '../lib/i18n';
     id: 'orbita',
     title: 'ORBITA',
     category: 'lab',
-    desc: t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력"),
+    desc: t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서. 브라우저 신스 + MIDI 출력"),
     /* `full` 이 아니라 `form` 이다. `full` 은 패널을 화면 높이에 가두고(`flex:1`) 내부에서
        스스로 스크롤하는 위젯(cockpit 등)용이다. 이건 위에서 아래로 흐르는 계기판이라
-       가두면 아래 절반이 패널 밖으로 삐져나와 「여기도 있어요」와 겹친다(실측 1018 > 688). */
+       가두면 아래 절반이 패널 밖으로 삐져나와 여기도 있어요와 겹친다(실측 1018 > 688). */
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".8"/><circle cx="12" cy="3" r="1.8" fill="currentColor"/><circle cx="17" cy="12" r="1.4" fill="currentColor"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/>',
     tabs: [
@@ -189,7 +189,7 @@ import { t, loadNamespace } from '../lib/i18n';
             const raw = localStorage.getItem(STORE_KEY);
             if (raw) {
               const parsed = JSON.parse(raw) as Song;
-              // 저장본을 그대로 믿지 않는다 — 칸 수와 배열 길이가 어긋나면 그리다 죽는다.
+              // 저장본을 그대로 믿지 않는다. 칸 수와 배열 길이가 어긋나면 그리다 죽는다.
               if (parsed && Array.isArray(parsed.rings) && parsed.rings.length) {
                 for (const r of parsed.rings) {
                   if (!Array.isArray(r.slots)) r.slots = [];
@@ -200,7 +200,7 @@ import { t, loadNamespace } from '../lib/i18n';
               }
             }
           } catch (_) {
-            /* 저장본이 깨졌으면 기본곡으로 간다 — 여기서 멈추면 도구가 안 열린다 */
+            /* 저장본이 깨졌으면 기본곡으로 간다. 여기서 멈추면 도구가 안 열린다 */
           }
 
           let scaleSteps = (scaleList().find((s) => s.id === song.scale) || scaleList()[0]).steps;
@@ -212,7 +212,7 @@ import { t, loadNamespace } from '../lib/i18n';
             try {
               localStorage.setItem(STORE_KEY, JSON.stringify(song));
             } catch (_) {
-              /* 사생활 모드 등 — 저장 못 해도 연주는 계속된다 */
+              /* 사생활 모드 등. 저장 못 해도 연주는 계속된다 */
             }
           };
 
@@ -229,7 +229,7 @@ import { t, loadNamespace } from '../lib/i18n';
               <div class="orbita-stage">
                 <canvas id="orbitaCanvas"></canvas>
                 <div class="orbita-hint">${esc(t('orbita.t01'))}</div>
-                <!-- 자판으로 고른 자리를 말로도 알린다 — 화면낭독기가 읽도록 aria-live. -->
+                <!-- 자판으로 고른 자리를 말로도 알린다. 화면낭독기가 읽도록 aria-live. -->
                 <div class="orbita-hint" id="orbitaKb" aria-live="polite"></div>
               </div>
 
@@ -346,7 +346,7 @@ import { t, loadNamespace } from '../lib/i18n';
             const a = new AC();
             const g = a.createGain();
             g.gain.value = 0.22;
-            // 공간감 — 궤도라는 말에 맞게 소리도 넓게 번지게 둔다 (짧은 피드백 딜레이)
+            // 공간감. 궤도라는 말에 맞게 소리도 넓게 번지게 둔다 (짧은 피드백 딜레이)
             const delay = a.createDelay(1.5);
             delay.delayTime.value = 0.28;
             const fb = a.createGain();
@@ -435,7 +435,7 @@ import { t, loadNamespace } from '../lib/i18n';
               midiOut.send([0x90 | ch, note, v], ms);
               midiOut.send([0x80 | ch, note, 0], ms + Math.min(600, 120 + vel * 400));
             } catch (_) {
-              /* 장비가 뽑히는 순간 send 가 던진다 — 연주를 세울 이유는 아니다 */
+              /* 장비가 뽑히는 순간 send 가 던진다. 연주를 세울 이유는 아니다 */
             }
           }
 
@@ -469,7 +469,7 @@ import { t, loadNamespace } from '../lib/i18n';
               while (counters[ri] * sd < horizon && guard++ < 256) {
                 const m = counters[ri]++;
                 const t = m * sd;
-                // 12시를 지나는 칸: 각도 A_i(t) = i/steps + t·rate/bar 가 0 이 되는 i
+                // 12시를 지나는 칸: 각도 A_i(t) = i/steps + t, rate/bar 가 0 이 되는 i
                 const idx = ((r.steps - (m % r.steps)) % r.steps + r.steps) % r.steps;
                 const slot = r.slots[idx];
                 if (!slot || r.muted) continue;
@@ -506,7 +506,7 @@ import { t, loadNamespace } from '../lib/i18n';
             playBtn.classList.remove('is-on');
           }
 
-          /** 템포·칸 수·속도가 바뀌면 예약해 둔 미래가 틀어진다 — 지금 시점으로 다시 건다. */
+          /** 템포, 칸 수, 속도가 바뀌면 예약해 둔 미래가 틀어진다. 지금 시점으로 다시 건다. */
           function reflow(): void {
             if (!playing || !audio) return;
             songTime = audio.currentTime - originAudioTime;
@@ -556,7 +556,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
             ctx2d.clearRect(0, 0, cw, chh);
 
-            // 자오선 — 여기를 지나면 소리가 난다
+            // 자오선. 여기를 지나면 소리가 난다
             const rOuter = ringRadius(0) + 22;
             const grad = ctx2d.createLinearGradient(cx, cy - rOuter, cx, cy);
             grad.addColorStop(0, 'rgba(255,255,252,0.95)');
@@ -575,7 +575,7 @@ import { t, loadNamespace } from '../lib/i18n';
               const rad = ringRadius(ri);
               if (rad < 6) return;
 
-              /* 궤도 선 — 처음엔 0.11 이었는데 **안 보인다**는 말을 들었다(실측: 배경과
+              /* 궤도 선. 처음엔 0.11 이었는데 **안 보인다**는 말을 들었다(실측: 배경과
                  명도차가 3 미만). 궤도가 안 보이면 어디에 찍을 수 있는지도 안 보인다 =
                  이 도구의 뼈대가 없는 것과 같다. 선 자체를 올리고, 안쪽에 아주 옅은
                  채움을 깔아 고리 사이의 층도 눈에 들어오게 한다. */
@@ -585,13 +585,13 @@ import { t, loadNamespace } from '../lib/i18n';
               ctx2d.arc(cx, cy, rad, 0, Math.PI * 2);
               ctx2d.stroke();
 
-              // 빈 칸 표시 — 어디에 찍을 수 있는지 보인다
+              // 빈 칸 표시. 어디에 찍을 수 있는지 보인다
               for (let i = 0; i < r.steps; i++) {
                 const ang = slotAngle(r, i, t);
                 const x = cx + Math.cos(ang) * rad;
                 const y = cy + Math.sin(ang) * rad;
                 if (cursor && cursor.ring === ri && cursor.slot === i) {
-                  // 자판으로 고른 자리 — 돌아가는 중에도 눈에 띄게 테두리로 표시한다.
+                  // 자판으로 고른 자리. 돌아가는 중에도 눈에 띄게 테두리로 표시한다.
                   ctx2d.save();
                   ctx2d.strokeStyle = 'rgba(255,255,255,0.95)';
                   ctx2d.lineWidth = 2;
@@ -603,7 +603,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
                 const slot = r.slots[i];
                 if (!slot) {
-                  // 마디 첫 칸은 크게 — 「어디가 처음인가」가 돌아가는 중에도 읽힌다
+                  // 마디 첫 칸은 크게. 어디가 처음인가가 돌아가는 중에도 읽힌다
                   const head = i === 0;
                   ctx2d.fillStyle = head ? 'rgba(233,229,255,0.68)' : 'rgba(214,208,255,0.36)';
                   ctx2d.beginPath();
@@ -641,7 +641,7 @@ import { t, loadNamespace } from '../lib/i18n';
               }
             });
 
-            // 가운데 — 지금 무슨 박인지
+            // 가운데. 지금 무슨 박인지
             const beat = ((t / (60 / song.bpm)) % BEATS_PER_BAR + BEATS_PER_BAR) % BEATS_PER_BAR;
             ctx2d.fillStyle = 'rgba(242,242,238,0.35)';
             ctx2d.font = '600 11px var(--font-mono, monospace)';
@@ -691,7 +691,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
           let drag: { ring: number; slot: number; startY: number; startDeg: number } | null = null;
           /* 자판으로 고르는 자리 (2026-08-14, `audit:mouse-only`). 누르기만 있으면 자판 쓰는 사람은
-           * **음 하나도 못 찍는다** — 만드는 도구에서 그건 도구가 없는 것과 같다. */
+           * **음 하나도 못 찍는다**. 만드는 도구에서 그건 도구가 없는 것과 같다. */
           let cursor: { ring: number; slot: number } | null = null;
 
           canvas.addEventListener('pointerdown', (e: PointerEvent) => {
@@ -717,7 +717,7 @@ import { t, loadNamespace } from '../lib/i18n';
             }
             r.slots[h.slot] = { deg: brushDeg, vel: brushVel };
             save();
-            // 찍는 순간 그 음을 한 번 들려준다 — 안 그러면 색만 보고 찍게 된다
+            // 찍는 순간 그 음을 한 번 들려준다. 안 그러면 색만 보고 찍게 된다
             const a = ensureAudio();
             if (a.state === 'suspended') void a.resume();
             synth(r, midiNote(r, brushDeg), brushVel, a.currentTime + 0.01);
@@ -725,7 +725,7 @@ import { t, loadNamespace } from '../lib/i18n';
             canvas.setPointerCapture(e.pointerId);
           });
 
-          /* 자판 길 — 좌우=칸, 위아래=고리, Enter=찍기·지우기, PageUp/Down=음 높이.
+          /* 자판 길. 좌우=칸, 위아래=고리, Enter=찍기, 지우기, PageUp/Down=음 높이.
            * 찍을 때 그 음을 한 번 들려주는 것도 누를 때와 **같은 길**을 쓴다(소리가 갈리면 안 된다). */
           canvas.tabIndex = 0;
           canvas.setAttribute('role', 'application');
@@ -767,7 +767,7 @@ import { t, loadNamespace } from '../lib/i18n';
               }
               default: return;
             }
-            // 고리를 옮기면 칸 수가 달라진다 — 넘치면 마지막 칸으로 당긴다.
+            // 고리를 옮기면 칸 수가 달라진다. 넘치면 마지막 칸으로 당긴다.
             cursor.slot = Math.min(cursor.slot, song.rings[cursor.ring].steps - 1);
             e.preventDefault();
             sayCursor();

@@ -101,7 +101,7 @@ const esc = (v: unknown): string =>
                 <span class="ig-q-status">${statusIcon}</span>
                 <div class="ig-q-body">
                     <div class="ig-q-prompt" title="${escapeHtml(q.prompt)}">${escapeHtml(shortPrompt)}</div>
-                    <div class="ig-q-meta">${escapeHtml(modelName)}${infoText ? ' · ' + escapeHtml(infoText) : ''}</div>
+                    <div class="ig-q-meta">${escapeHtml(modelName)}${infoText ? ', ' + escapeHtml(infoText) : ''}</div>
                 </div>
                 ${q.status === 'pending' || q.status === 'running'
                     ? `<button class="ig-q-cancel" data-qid="${q.id}" title="${esc(t('imagegen.t01'))}">✕</button>`
@@ -133,7 +133,7 @@ const esc = (v: unknown): string =>
         const metaEl = row.querySelector('.ig-q-meta');
         if (metaEl) {
             const modelName = getModelDisplayName(q.options.modelId);
-            metaEl.textContent = modelName + (infoText ? ' · ' + infoText : '');
+            metaEl.textContent = modelName + (infoText ? ', ' + infoText : '');
         }
     }
 
@@ -166,7 +166,7 @@ const esc = (v: unknown): string =>
         if (downloadBtn) downloadBtn.style.display = '';
                     { const shelfBtn = document.getElementById('igShelfBtn') as HTMLButtonElement | null; if (shelfBtn) shelfBtn.style.display = ''; }
         if (item.tokens && tokenDisplay) {
-            tokenDisplay.textContent = `${item.tokens.toLocaleString()} tokens · ${item.elapsed}s`;
+            tokenDisplay.textContent = `${item.tokens.toLocaleString()} tokens, ${item.elapsed}s`;
         }
         updateMetaDisplay();
     }
@@ -185,7 +185,7 @@ const esc = (v: unknown): string =>
         const model = state.currentItem.modelName || state.currentItem.model || '';
         const prompt = state.currentItem.prompt || '';
         const truncated = prompt.length > 60 ? prompt.slice(0, 60) + '...' : prompt;
-        el.textContent = model ? `${model}  ·  ${truncated}` : truncated;
+        el.textContent = model ? `${model} ,  ${truncated}` : truncated;
         el.title = `${model}\n${prompt}`;
     }
 
@@ -693,21 +693,21 @@ const esc = (v: unknown): string =>
     }
 
     /**
-     * 선반에 올리기 (TASK-KL-254) — 만든 그림이 내려받기 폴더에서 끝나지 않게 하는 고리.
-     * 그림만 올리지 않는다. **어떤 말로 뽑았는지**를 함께 담아야 남이 「이대로 다시」를 할 수 있다.
+     * 선반에 올리기 (TASK-KL-254). 만든 그림이 내려받기 폴더에서 끝나지 않게 하는 고리.
+     * 그림만 올리지 않는다. **어떤 말로 뽑았는지**를 함께 담아야 남이 이대로 다시를 할 수 있다.
      */
     async function toShelf() {
         const item = state.currentItem;
         if (!item?.url) return;
         const { canUpload, setFoundryToken, uploadToFoundry } = await import('../../lib/foundry');
         if (!canUpload()) {
-            // 열쇠가 없으면 먼저 물어본다 — 눌렀다가 「권한 없음」을 보는 것보다 낫다(먹·본과 같은 결).
+            // 열쇠가 없으면 먼저 물어본다. 눌렀다가 권한 없음을 보는 것보다 낫다(먹, 본과 같은 결).
             const key = window.prompt(t('imagegen.shelfKeyAsk', undefined, '선반 열쇠 (이 브라우저에만 남는다)') as string, '') ?? '';
             if (!key.trim()) return;
             setFoundryToken(key.trim());
         }
         try {
-            Toolbox.showToast?.(t('imagegen.shelfSending', undefined, '선반에 올리는 중…') as string);
+            Toolbox.showToast?.(t('imagegen.shelfSending', undefined, '선반에 올리는 중...') as string);
             const response = await fetch(item.url);
             const bytes = new Uint8Array(await response.arrayBuffer());
             const uploaded = await uploadToFoundry({
@@ -717,7 +717,7 @@ const esc = (v: unknown): string =>
                 bytes,
                 recipe: { prompt: item.prompt, model: item.model }
             });
-            Toolbox.showToast?.((t('imagegen.shelfDone', undefined, '선반에 올렸다') as string) + ' — ' + uploaded.title);
+            Toolbox.showToast?.((t('imagegen.shelfDone', undefined, '선반에 올렸다') as string) + '. ' + uploaded.title);
         } catch (error) {
             Toolbox.showToast?.(String(error instanceof Error ? error.message : error), 'error');
         }
@@ -850,7 +850,7 @@ const esc = (v: unknown): string =>
                     <div class="field-group" id="igVertexImagenGroup" style="display:none">
                         <label class="field-label">☁️ Vertex Imagen (GCP)</label>
                         <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 8px 0;line-height:1.4;">
-                            <code>projects/…/locations/…/publishers/google/models/…:predict</code> ${esc(t('imagegen.t20'))} <code>PROJECT_ID</code>, <code>LOCATION</code>)
+                            <code>projects/.../locations/.../publishers/google/models/...:predict</code> ${esc(t('imagegen.t20'))} <code>PROJECT_ID</code>, <code>LOCATION</code>)
                         </p>
                         <div style="display:flex;flex-direction:column;gap:8px;">
                             <div>
@@ -1066,7 +1066,7 @@ const esc = (v: unknown): string =>
             {
                 id: 'imagegen-main',
                 label: t('imagegen.tab.main', undefined, '생성'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('imagegen').then(function () {
                         buildMain(container);

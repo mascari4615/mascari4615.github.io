@@ -1,7 +1,7 @@
 /**
- * 사진 정보 읽기·지우기가 진짜로 도는지 확인한다 (TASK-KL-088)
+ * 사진 정보 읽기, 지우기가 진짜로 도는지 확인한다 (TASK-KL-088)
  *
- * 이 도구에서 가장 나쁜 실패는 **위치가 들어 있는데 「없다」고 말하는 것**이다.
+ * 이 도구에서 가장 나쁜 실패는 **위치가 들어 있는데 없다고 말하는 것**이다.
  * 사용자는 안심하고 사진을 올린다. 오류도 안 나고 파일도 멀쩡히 나온다.
  *
  * 그래서 좌표를 아는 사진을 직접 만들어 넣고 ① 그 좌표를 읽어 내는지
@@ -18,7 +18,7 @@ import { serveAppAssets } from './lib/widget-harness.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
-/** 좌표가 든 JPEG 을 만든다 — 최소한의 EXIF(APP1)를 손으로 엮는다. */
+/** 좌표가 든 JPEG 을 만든다. 최소한의 EXIF(APP1)를 손으로 엮는다. */
 function buildJpegWithGps(baseJpeg, lat, lon) {
   const be = (n, size) => {
     const b = [];
@@ -135,7 +135,7 @@ const result = await page.evaluate(async (b64) => {
     i += 2 + ((outBytes[i + 2] << 8) | outBytes[i + 3]);
   }
 
-  // 그림이 그대로인지 — 다시 열어 색을 본다
+  // 그림이 그대로인지. 다시 열어 색을 본다
   const px = await new Promise((r) => {
     const img = new Image();
     img.onload = () => {
@@ -153,7 +153,7 @@ const result = await page.evaluate(async (b64) => {
 
   return {
     ok: foundGps && !hasApp1 && sameImage,
-    why: `좌표 읽음=${foundGps} · 지운 뒤 정보구획 남음=${hasApp1} · 그림 그대로=${sameImage} (${px.join(',')})`
+    why: `좌표 읽음=${foundGps}, 지운 뒤 정보구획 남음=${hasApp1}, 그림 그대로=${sameImage} (${px.join(',')})`
   };
 }, withGpsB64);
 
@@ -161,7 +161,7 @@ await browser.close();
 
 console.log(`${result.ok ? '  OK' : '  X '} ${result.why}`);
 if (!result.ok) {
-  console.error('[test-exifclean] 사진 정보 읽기·지우기가 제대로 돌지 않는다');
+  console.error('[test-exifclean] 사진 정보 읽기, 지우기가 제대로 돌지 않는다');
   process.exit(1);
 }
 console.log('[test-exifclean] 좌표를 읽고, 지우고, 그림은 그대로인 것까지 확인');

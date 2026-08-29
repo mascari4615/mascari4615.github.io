@@ -3,19 +3,19 @@
   "parts": [
     {
       "id": "1",
-      "title": "DB 에게 물어라 — EXPLAIN",
+      "title": "DB 에게 물어라. EXPLAIN",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「이 쿼리 왜 느리지?」의 답은 추측할 필요가 없다. **DB 에게 물어보면 된다.** `EXPLAIN` 은 DB 가 이 쿼리를 어떻게 실행할지 짠 **계획**을 보여 준다. `EXPLAIN ANALYZE` 는 실제로 돌려 본 **실측**까지 준다 — 어디서 시간이 새는지 눈으로 본다."
+          "text": "이 쿼리 왜 느리지?의 답은 추측할 필요가 없다. **DB 에게 물어보면 된다.** `EXPLAIN` 은 DB 가 이 쿼리를 어떻게 실행할지 짠 **계획**을 보여 준다. `EXPLAIN ANALYZE` 는 실제로 돌려 본 **실측**까지 준다. 어디서 시간이 새는지 눈으로 본다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "EXPLAIN 과 EXPLAIN ANALYZE — 추정 vs 실측",
+          "label": "EXPLAIN 과 EXPLAIN ANALYZE. 추정 vs 실측",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const analyze = mode === 'analyze';\n  render('EXPLAIN' + (analyze ? ' ANALYZE' : '') + ' SELECT * FROM orders WHERE user_id = 42',\n    (analyze\n      ? '  실제로 실행하고 시간·행 수를 잰다:\\n\\n'\n      : '  실행하지 않고 계획과 추정치만 낸다(빠르고 안전):\\n\\n'),\n    analyze\n      ? 'ANALYZE 는 쿼리를 진짜 돌린다 — INSERT/UPDATE/DELETE 엔 트랜잭션+ROLLBACK 으로 감싸라.'\n      : 'EXPLAIN 만이면 추정 행 수만 나온다 — 실제와 다를 수 있다(7장).',\n    plan(analyze\n      ? [[0, 'Index Scan on orders  (cost=0.4..8.4 rows=12)', 'on'],\n         [1, '  (actual time=0.03..0.09 rows=12 loops=1)', 'on'],\n         [0, 'Planning Time: 0.1 ms   Execution Time: 0.12 ms', '']]\n      : [[0, 'Index Scan on orders  (cost=0.4..8.4 rows=12 width=64)', ''],\n         [1, '  Index Cond: (user_id = 42)', 'dim']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const analyze = mode === 'analyze';\n  render('EXPLAIN' + (analyze ? ' ANALYZE' : '') + ' SELECT * FROM orders WHERE user_id = 42',\n    (analyze\n      ? '  실제로 실행하고 시간, 행 수를 잰다:\\n\\n'\n      : '  실행하지 않고 계획과 추정치만 낸다(빠르고 안전):\\n\\n'),\n    analyze\n      ? 'ANALYZE 는 쿼리를 진짜 돌린다. INSERT/UPDATE/DELETE 엔 트랜잭션+ROLLBACK 으로 감싸라.'\n      : 'EXPLAIN 만이면 추정 행 수만 나온다. 실제와 다를 수 있다(7장).',\n    plan(analyze\n      ? [[0, 'Index Scan on orders  (cost=0.4..8.4 rows=12)', 'on'],\n         [1, '  (actual time=0.03..0.09 rows=12 loops=1)', 'on'],\n         [0, 'Planning Time: 0.1 ms   Execution Time: 0.12 ms', '']]\n      : [[0, 'Index Scan on orders  (cost=0.4..8.4 rows=12 width=64)', ''],\n         [1, '  Index Cond: (user_id = 42)', 'dim']]));\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -39,7 +39,7 @@
           "type": "code",
           "lang": "sql",
           "label": "두 가지 EXPLAIN",
-          "text": "EXPLAIN SELECT ...;              -- 계획만 (실행 안 함, 추정 rows)\nEXPLAIN ANALYZE SELECT ...;      -- 실제 실행 (actual time·actual rows)\n\n-- ANALYZE 는 쓰기 쿼리를 진짜 실행한다. 안전하게:\nBEGIN;\nEXPLAIN ANALYZE UPDATE orders SET ... WHERE ...;\nROLLBACK;                        -- 되돌린다"
+          "text": "EXPLAIN SELECT ...;              -- 계획만 (실행 안 함, 추정 rows)\nEXPLAIN ANALYZE SELECT ...;      -- 실제 실행 (actual time, actual rows)\n\n-- ANALYZE 는 쓰기 쿼리를 진짜 실행한다. 안전하게:\nBEGIN;\nEXPLAIN ANALYZE UPDATE orders SET ... WHERE ...;\nROLLBACK;                        -- 되돌린다"
         },
         {
           "type": "note",
@@ -47,7 +47,7 @@
         },
         {
           "type": "p",
-          "text": "**EXPLAIN ANALYZE 는 실제로 쿼리를 실행한다.** SELECT 는 안전하지만 INSERT·UPDATE·DELETE 는 진짜로 데이터를 바꾼다. 쓰기 쿼리를 분석할 땐 `BEGIN … ROLLBACK` 으로 감싸 되돌려라 — 안 그러면 「계획만 보려다」 데이터를 고친다."
+          "text": "**EXPLAIN ANALYZE 는 실제로 쿼리를 실행한다.** SELECT 는 안전하지만 INSERT, UPDATE, DELETE 는 진짜로 데이터를 바꾼다. 쓰기 쿼리를 분석할 땐 `BEGIN ... ROLLBACK` 으로 감싸 되돌려라. 안 그러면 계획만 보려다 데이터를 고친다."
         },
         {
           "type": "try",
@@ -70,7 +70,7 @@
           "q": "UPDATE 를 EXPLAIN ANALYZE 할 때 안전 장치는?",
           "choices": [
             "그냥 실행",
-            "BEGIN … ROLLBACK 으로 감싸기",
+            "BEGIN ... ROLLBACK 으로 감싸기",
             "인덱스 삭제",
             "백업"
           ],
@@ -92,19 +92,19 @@
     },
     {
       "id": "2",
-      "title": "계획 트리 읽는 법 — 안쪽부터",
+      "title": "계획 트리 읽는 법. 안쪽부터",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "실행 계획은 **트리**다. 들여쓰기가 깊은 **안쪽(자식)이 먼저** 실행되고, 그 결과가 바깥(부모)으로 올라간다. 각 노드엔 `cost`(추정 비용)와 `rows`(행 수)가 붙는다. 읽는 순서를 알면 「어느 단계에서 폭발하는지」가 보인다."
+          "text": "실행 계획은 **트리**다. 들여쓰기가 깊은 **안쪽(자식)이 먼저** 실행되고, 그 결과가 바깥(부모)으로 올라간다. 각 노드엔 `cost`(추정 비용)와 `rows`(행 수)가 붙는다. 읽는 순서를 알면 어느 단계에서 폭발하는지가 보인다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "실행 순서 — 안쪽 노드부터 밖으로",
+          "label": "실행 순서. 안쪽 노드부터 밖으로",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const nodes = [\n    [0, 'Sort  (ORDER BY created_at)'],\n    [1, 'Hash Join  (orders x users)'],\n    [2, 'Seq Scan on orders'],\n    [2, 'Hash -> Seq Scan on users'],\n  ];\n  // 실행 순서: 가장 안쪽(깊은 들여쓰기)부터\n  const order = [2, 3, 1, 0];   // nodes 인덱스의 실행 순서\n  const activeIdx = order[Math.min(s, 3)];\n  const rows = nodes.map(([ind, txt], i) => [ind, (order.indexOf(i) <= s ? '[' + (order.indexOf(i) + 1) + '] ' : '[ ] ') + txt,\n    i === activeIdx ? 'on' : '']);\n  render('실행 순서 — 단계 ' + (s + 1) + '/4',\n    '  지금 실행: <span class=\\\"ok\\\">' + nodes[activeIdx][1].trim() + '</span>\\n\\n' +\n    '  안쪽(자식)이 먼저 데이터를 만들고, 바깥(부모)이 그것을 받아 처리한다.\\n' +\n    '  맨 위 Sort 는 마지막에 — 모든 행이 모여야 정렬할 수 있으니까.',\n    '들여쓰기가 깊을수록 먼저 실행된다. 위에서 아래로 읽지 말고 안에서 밖으로 읽어라.',\n    plan(rows));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const s = {{step}};\n  const nodes = [\n    [0, 'Sort  (ORDER BY created_at)'],\n    [1, 'Hash Join  (orders x users)'],\n    [2, 'Seq Scan on orders'],\n    [2, 'Hash -> Seq Scan on users'],\n  ];\n  // 실행 순서: 가장 안쪽(깊은 들여쓰기)부터\n  const order = [2, 3, 1, 0];   // nodes 인덱스의 실행 순서\n  const activeIdx = order[Math.min(s, 3)];\n  const rows = nodes.map(([ind, txt], i) => [ind, (order.indexOf(i) <= s ? '[' + (order.indexOf(i) + 1) + '] ' : '[ ] ') + txt,\n    i === activeIdx ? 'on' : '']);\n  render('실행 순서. 단계 ' + (s + 1) + '/4',\n    '  지금 실행: <span class=\\\"ok\\\">' + nodes[activeIdx][1].trim() + '</span>\\n\\n' +\n    '  안쪽(자식)이 먼저 데이터를 만들고, 바깥(부모)이 그것을 받아 처리한다.\\n' +\n    '  맨 위 Sort 는 마지막에. 모든 행이 모여야 정렬할 수 있으니까.',\n    '들여쓰기가 깊을수록 먼저 실행된다. 위에서 아래로 읽지 말고 안에서 밖으로 읽어라.',\n    plan(rows));\n</script>",
           "controls": [
             {
               "id": "step",
@@ -125,7 +125,7 @@
         },
         {
           "type": "note",
-          "text": "**cost 는 밀리초가 아니다.** 옵티마이저 내부의 임의 단위이며, 계획들끼리·노드들끼리 **상대 비교**하는 용도다. 실제 시간은 `EXPLAIN ANALYZE` 의 `actual time` 을 봐야 한다. cost 절대값에 집착하지 말고, 어느 노드가 유독 큰지를 보라."
+          "text": "**cost 는 밀리초가 아니다.** 옵티마이저 내부의 임의 단위이며, 계획들끼리, 노드들끼리 **상대 비교**하는 용도다. 실제 시간은 `EXPLAIN ANALYZE` 의 `actual time` 을 봐야 한다. cost 절대값에 집착하지 말고, 어느 노드가 유독 큰지를 보라."
         },
         {
           "type": "p",
@@ -133,7 +133,7 @@
         },
         {
           "type": "try",
-          "text": "느린 쿼리의 계획을 출력해, 가장 안쪽 노드부터 실행 순서대로 번호를 매겨 보라. 어느 노드의 cost·actual time 이 가장 큰가."
+          "text": "느린 쿼리의 계획을 출력해, 가장 안쪽 노드부터 실행 순서대로 번호를 매겨 보라. 어느 노드의 cost, actual time 이 가장 큰가."
         }
       ],
       "quiz": [
@@ -174,7 +174,7 @@
     },
     {
       "id": "3",
-      "title": "무엇부터 볼까 — Seq Scan 과 추정 오차",
+      "title": "무엇부터 볼까. Seq Scan 과 추정 오차",
       "minutes": 9,
       "blocks": [
         {
@@ -184,9 +184,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "추정과 실제의 괴리 — 옵티마이저가 속았다",
+          "label": "추정과 실제의 괴리. 옵티마이저가 속았다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const est = {{est}};                   // 추정 행 수\n  const actual = 50000;                  // 실제 행 수\n  const ratio = actual / est;\n  const misled = ratio >= 10 || ratio <= 0.1;\n  render('추정 rows=' + est.toLocaleString() + '  vs  actual rows=' + actual.toLocaleString(),\n    '  괴리 배수 = <span class=\\\"' + (misled ? 'no' : 'ok') + '\\\">' + ratio.toFixed(1) + '배</span>\\n\\n' +\n    (misled\n      ? '  옵티마이저가 ' + est.toLocaleString() + '행만 나올 줄 알고 Nested Loop·인덱스를 골랐는데\\n' +\n        '  실제로 ' + actual.toLocaleString() + '행이 나오면 계획이 재앙이 된다 -> 통계 갱신(ANALYZE) 필요.'\n      : '  추정이 실제와 가깝다 -> 옵티마이저가 옳은 계획을 골랐을 가능성이 높다.'),\n    '추정과 실제가 10배 이상 벌어지면 통계가 낡았다는 강한 신호다.',\n    bars([['추정', Math.min(100, est / 1000), est.toLocaleString(), '#38bdf8'],\n          ['실제', Math.min(100, actual / 1000), actual.toLocaleString(), misled ? '#fca5a5' : '#4ade80']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const est = {{est}};                   // 추정 행 수\n  const actual = 50000;                  // 실제 행 수\n  const ratio = actual / est;\n  const misled = ratio >= 10 || ratio <= 0.1;\n  render('추정 rows=' + est.toLocaleString() + '  vs  actual rows=' + actual.toLocaleString(),\n    '  괴리 배수 = <span class=\\\"' + (misled ? 'no' : 'ok') + '\\\">' + ratio.toFixed(1) + '배</span>\\n\\n' +\n    (misled\n      ? '  옵티마이저가 ' + est.toLocaleString() + '행만 나올 줄 알고 Nested Loop, 인덱스를 골랐는데\\n' +\n        '  실제로 ' + actual.toLocaleString() + '행이 나오면 계획이 재앙이 된다 -> 통계 갱신(ANALYZE) 필요.'\n      : '  추정이 실제와 가깝다 -> 옵티마이저가 옳은 계획을 골랐을 가능성이 높다.'),\n    '추정과 실제가 10배 이상 벌어지면 통계가 낡았다는 강한 신호다.',\n    bars([['추정', Math.min(100, est / 1000), est.toLocaleString(), '#38bdf8'],\n          ['실제', Math.min(100, actual / 1000), actual.toLocaleString(), misled ? '#fca5a5' : '#4ade80']]));\n</script>",
           "controls": [
             {
               "id": "est",
@@ -203,15 +203,15 @@
           "type": "code",
           "lang": "text",
           "label": "무엇부터 볼 것인가",
-          "text": "① Seq Scan (전체 훑기) 이 큰 테이블에 있나\n     작은 테이블이면 정상 — 오히려 인덱스보다 빠르다\n② 추정 rows 와 actual rows 가 10배 이상 벌어졌나\n     -> 통계가 낡음. ANALYZE <table> 로 갱신\n③ 가장 큰 actual time 을 먹는 노드가 어디인가\n     -> 그 노드가 병목. 거기부터 고친다"
+          "text": "① Seq Scan (전체 훑기) 이 큰 테이블에 있나\n     작은 테이블이면 정상. 오히려 인덱스보다 빠르다\n② 추정 rows 와 actual rows 가 10배 이상 벌어졌나\n     -> 통계가 낡음. ANALYZE <table> 로 갱신\n③ 가장 큰 actual time 을 먹는 노드가 어디인가\n     -> 그 노드가 병목. 거기부터 고친다"
         },
         {
           "type": "note",
-          "text": "**작은 테이블의 Seq Scan 은 고칠 게 아니다.** 수백 행짜리 테이블은 인덱스를 타고 왔다 갔다 하느니 통째로 읽는 게 빠르다 — 옵티마이저가 일부러 그렇게 고른 것이다. Seq Scan 을 무조건 나쁘게 보지 말고, **큰 테이블**의 Seq Scan 만 의심하라."
+          "text": "**작은 테이블의 Seq Scan 은 고칠 게 아니다.** 수백 행짜리 테이블은 인덱스를 타고 왔다 갔다 하느니 통째로 읽는 게 빠르다. 옵티마이저가 일부러 그렇게 고른 것이다. Seq Scan 을 무조건 나쁘게 보지 말고, **큰 테이블**의 Seq Scan 만 의심하라."
         },
         {
           "type": "p",
-          "text": "**추정이 크게 빗나가면 통계를 먼저 의심하라.** DB 는 각 컬럼 값의 분포 통계로 행 수를 추정한다. 대량 INSERT·DELETE 후 통계가 낡으면 추정이 빗나가고, 옵티마이저가 엉뚱한 조인·인덱스를 고른다. `ANALYZE <table>` 로 통계를 갱신하는 것이 첫 수다."
+          "text": "**추정이 크게 빗나가면 통계를 먼저 의심하라.** DB 는 각 컬럼 값의 분포 통계로 행 수를 추정한다. 대량 INSERT, DELETE 후 통계가 낡으면 추정이 빗나가고, 옵티마이저가 엉뚱한 조인, 인덱스를 고른다. `ANALYZE <table>` 로 통계를 갱신하는 것이 첫 수다."
         },
         {
           "type": "try",
@@ -222,10 +222,10 @@
         {
           "q": "계획에서 가장 먼저 볼 두 가지는?",
           "choices": [
-            "컬럼 수·타입",
-            "큰 테이블 Seq Scan·추정 vs 실제 괴리",
-            "쿼리 길이·주석",
-            "인덱스 이름·크기"
+            "컬럼 수, 타입",
+            "큰 테이블 Seq Scan, 추정 vs 실제 괴리",
+            "쿼리 길이, 주석",
+            "인덱스 이름, 크기"
           ],
           "answer": 1,
           "why": "대부분의 느림을 설명."
@@ -234,7 +234,7 @@
           "q": "작은 테이블의 Seq Scan 은?",
           "choices": [
             "항상 버그",
-            "정상 — 인덱스보다 빠를 수 있다",
+            "정상. 인덱스보다 빠를 수 있다",
             "즉시 인덱스 추가",
             "락 유발"
           ],
@@ -256,19 +256,19 @@
     },
     {
       "id": "4",
-      "title": "Rows Removed by Filter — 읽고 버리기",
+      "title": "Rows Removed by Filter. 읽고 버리기",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "**「Rows Removed by Filter」가 크면 거의 항상 인덱스 문제다.** DB 가 많은 행을 읽어 놓고 대부분을 조건으로 버리고 있다는 뜻이다 — 읽는 일 자체가 낭비다. 필요한 행만 골라 읽도록(인덱스로) 바꾸면 이 낭비가 사라진다."
+          "text": "**Rows Removed by Filter가 크면 거의 항상 인덱스 문제다.** DB 가 많은 행을 읽어 놓고 대부분을 조건으로 버리고 있다는 뜻이다. 읽는 일 자체가 낭비다. 필요한 행만 골라 읽도록(인덱스로) 바꾸면 이 낭비가 사라진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "읽은 행 대비 반환 행 — 낭비율",
+          "label": "읽은 행 대비 반환 행. 낭비율",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const read = {{read}};                 // 읽은 행\n  const kept = 40;                       // 실제 반환(조건 통과)\n  const removed = read - kept;\n  const waste = removed / read;\n  render('Seq Scan on orders   Rows Removed by Filter: ' + removed.toLocaleString(),\n    '  읽은 행 ' + read.toLocaleString() + ' 중 ' + kept + '행만 반환 — 나머지 ' +\n      removed.toLocaleString() + '행은 읽고 버림\\n\\n' +\n    '  낭비율 = <span class=\\\"' + (waste > 0.9 ? 'no' : waste > 0.5 ? 'warn' : 'ok') + '\\\">' +\n      (waste * 100).toFixed(1) + '%</span>' +\n    (waste > 0.9 ? '  -> 인덱스로 「골라 읽기」로 바꿔야 한다.' : ''),\n    '읽고 버리는 비율이 높을수록 인덱스가 필요하다는 강한 신호.',\n    bars([['반환(kept)', Math.min(100, kept / read * 100 * 2), kept + '행', '#4ade80'],\n          ['버림(removed)', Math.min(100, waste * 100), removed.toLocaleString() + '행', '#fca5a5']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const read = {{read}};                 // 읽은 행\n  const kept = 40;                       // 실제 반환(조건 통과)\n  const removed = read - kept;\n  const waste = removed / read;\n  render('Seq Scan on orders   Rows Removed by Filter: ' + removed.toLocaleString(),\n    '  읽은 행 ' + read.toLocaleString() + ' 중 ' + kept + '행만 반환. 나머지 ' +\n      removed.toLocaleString() + '행은 읽고 버림\\n\\n' +\n    '  낭비율 = <span class=\\\"' + (waste > 0.9 ? 'no' : waste > 0.5 ? 'warn' : 'ok') + '\\\">' +\n      (waste * 100).toFixed(1) + '%</span>' +\n    (waste > 0.9 ? '  -> 인덱스로 골라 읽기로 바꿔야 한다.' : ''),\n    '읽고 버리는 비율이 높을수록 인덱스가 필요하다는 강한 신호.',\n    bars([['반환(kept)', Math.min(100, kept / read * 100 * 2), kept + '행', '#4ade80'],\n          ['버림(removed)', Math.min(100, waste * 100), removed.toLocaleString() + '행', '#fca5a5']]));\n</script>",
           "controls": [
             {
               "id": "read",
@@ -283,11 +283,11 @@
         },
         {
           "type": "note",
-          "text": "**필터(Filter)와 인덱스 조건(Index Cond)은 다르다.** `Index Cond` 는 인덱스로 **골라서** 읽은 것 — 낭비가 없다. `Filter` 는 읽은 뒤 **버린** 것이다. 계획에서 `Filter` 밑의 `Rows Removed` 가 크면, 그 조건을 인덱스가 `Index Cond` 로 처리하게 만드는 것이 목표다."
+          "text": "**필터(Filter)와 인덱스 조건(Index Cond)은 다르다.** `Index Cond` 는 인덱스로 **골라서** 읽은 것. 낭비가 없다. `Filter` 는 읽은 뒤 **버린** 것이다. 계획에서 `Filter` 밑의 `Rows Removed` 가 크면, 그 조건을 인덱스가 `Index Cond` 로 처리하게 만드는 것이 목표다."
         },
         {
           "type": "p",
-          "text": "**이것이 db-index 의 「선택도」와 이어진다.** 읽고 버리는 비율이 높다 = 조건의 선택도가 높은데 인덱스가 없다는 뜻. 반대로 대부분을 반환한다면(낮은 선택도) 인덱스를 붙여도 옵티마이저가 안 쓴다 — 애초에 인덱스로 이득 볼 조회가 아니다."
+          "text": "**이것이 db-index 의 선택도와 이어진다.** 읽고 버리는 비율이 높다 = 조건의 선택도가 높은데 인덱스가 없다는 뜻. 반대로 대부분을 반환한다면(낮은 선택도) 인덱스를 붙여도 옵티마이저가 안 쓴다. 애초에 인덱스로 이득 볼 조회가 아니다."
         },
         {
           "type": "try",
@@ -299,7 +299,7 @@
           "q": "`Rows Removed by Filter` 가 크다는 것은?",
           "choices": [
             "정상",
-            "많이 읽고 대부분 버림 — 인덱스 필요 신호",
+            "많이 읽고 대부분 버림. 인덱스 필요 신호",
             "메모리 부족",
             "락 경합"
           ],
@@ -332,19 +332,19 @@
     },
     {
       "id": "5",
-      "title": "조인 방식 — Nested Loop·Hash·Merge",
+      "title": "조인 방식. Nested Loop, Hash, Merge",
       "minutes": 10,
       "blocks": [
         {
           "type": "p",
-          "text": "테이블을 이을 때 DB 는 세 가지 조인 중 하나를 고른다. **Nested Loop**(한쪽이 작을 때), **Hash Join**(큰 것끼리 등호 조인), **Merge Join**(양쪽이 정렬돼 있을 때). 옵티마이저가 잘못 고르면 — 특히 큰 테이블끼리 Nested Loop 를 고르면 — 재앙이 된다."
+          "text": "테이블을 이을 때 DB 는 세 가지 조인 중 하나를 고른다. **Nested Loop**(한쪽이 작을 때), **Hash Join**(큰 것끼리 등호 조인), **Merge Join**(양쪽이 정렬돼 있을 때). 옵티마이저가 잘못 고르면. 특히 큰 테이블끼리 Nested Loop 를 고르면. 재앙이 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "어느 조인이 맞나 — 테이블 크기로 갈린다",
+          "label": "어느 조인이 맞나. 테이블 크기로 갈린다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const cases = {\n    nl_ok:  ['작은 테이블(10) x 인덱스 있는 큰 테이블', 'Nested Loop', true,\n      '바깥 10행마다 인덱스로 안쪽을 조회 -> 10 x logN. 작은 쪽이 작으면 최고.'],\n    nl_bad: ['큰 테이블(50만) x 큰 테이블(50만)', 'Nested Loop', false,\n      '바깥 50만행마다 안쪽을 훑으면 50만 x 50만 = 재앙. 통계 오류로 이걸 골랐을 때 최악.'],\n    hash:   ['큰 테이블 x 큰 테이블, 등호 조인', 'Hash Join', true,\n      '한쪽으로 해시 테이블을 만들고 다른 쪽을 훑는다 -> 각 한 번씩. 메모리가 필요.'],\n    merge:  ['양쪽 다 조인 키로 정렬돼 있음', 'Merge Join', true,\n      '정렬된 두 목록을 지퍼처럼 맞춰 나간다 -> 정렬만 돼 있으면 매우 효율적.'],\n  }[kind];\n  render('JOIN: ' + cases[0],\n    '  옵티마이저 선택: <span class=\\\"' + (cases[2] ? 'ok' : 'no') + '\\\">' + cases[1] +\n      (cases[2] ? ' (적절)' : ' (재앙!)') + '</span>\\n\\n  ' + cases[3],\n    '조인 방식은 테이블 크기·인덱스·정렬 상태로 갈린다. 큰 것끼리 Nested Loop 를 보면 경보.',\n    box(cases[1], cases[2]\n      ? '적절한 선택 — 이 상황에 맞는 조인이다.'\n      : '큰 테이블끼리 Nested Loop = 곱셈으로 폭발.\\n대개 추정 행 수 오류(7장)가 원인 -> ANALYZE 후 재확인.',\n      cases[2] ? 'good' : 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const cases = {\n    nl_ok:  ['작은 테이블(10) x 인덱스 있는 큰 테이블', 'Nested Loop', true,\n      '바깥 10행마다 인덱스로 안쪽을 조회 -> 10 x logN. 작은 쪽이 작으면 최고.'],\n    nl_bad: ['큰 테이블(50만) x 큰 테이블(50만)', 'Nested Loop', false,\n      '바깥 50만행마다 안쪽을 훑으면 50만 x 50만 = 재앙. 통계 오류로 이걸 골랐을 때 최악.'],\n    hash:   ['큰 테이블 x 큰 테이블, 등호 조인', 'Hash Join', true,\n      '한쪽으로 해시 테이블을 만들고 다른 쪽을 훑는다 -> 각 한 번씩. 메모리가 필요.'],\n    merge:  ['양쪽 다 조인 키로 정렬돼 있음', 'Merge Join', true,\n      '정렬된 두 목록을 지퍼처럼 맞춰 나간다 -> 정렬만 돼 있으면 매우 효율적.'],\n  }[kind];\n  render('JOIN: ' + cases[0],\n    '  옵티마이저 선택: <span class=\\\"' + (cases[2] ? 'ok' : 'no') + '\\\">' + cases[1] +\n      (cases[2] ? ' (적절)' : ' (재앙!)') + '</span>\\n\\n  ' + cases[3],\n    '조인 방식은 테이블 크기, 인덱스, 정렬 상태로 갈린다. 큰 것끼리 Nested Loop 를 보면 경보.',\n    box(cases[1], cases[2]\n      ? '적절한 선택. 이 상황에 맞는 조인이다.'\n      : '큰 테이블끼리 Nested Loop = 곱셈으로 폭발.\\n대개 추정 행 수 오류(7장)가 원인 -> ANALYZE 후 재확인.',\n      cases[2] ? 'good' : 'bad'));\n</script>",
           "controls": [
             {
               "id": "kind",
@@ -374,7 +374,7 @@
         },
         {
           "type": "note",
-          "text": "**큰 테이블끼리 Nested Loop 는 경보다.** Nested Loop 는 바깥 행 하나하나마다 안쪽을 조회하므로, 바깥이 크면 곱셈으로 폭발한다. 이걸 골랐다면 대개 옵티마이저가 바깥 행 수를 **적게 추정**한 것 — 통계를 갱신하면 Hash Join 으로 바뀌곤 한다."
+          "text": "**큰 테이블끼리 Nested Loop 는 경보다.** Nested Loop 는 바깥 행 하나하나마다 안쪽을 조회하므로, 바깥이 크면 곱셈으로 폭발한다. 이걸 골랐다면 대개 옵티마이저가 바깥 행 수를 **적게 추정**한 것. 통계를 갱신하면 Hash Join 으로 바뀌곤 한다."
         },
         {
           "type": "p",
@@ -423,19 +423,19 @@
     },
     {
       "id": "6",
-      "title": "정렬·집계의 숨은 비용",
+      "title": "정렬, 집계의 숨은 비용",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "`ORDER BY`·`GROUP BY`·`DISTINCT` 는 공짜가 아니다. 계획에 **Sort** 노드가 뜨고, 정렬할 데이터가 작업 메모리를 넘으면 **디스크로 흘러넘쳐**(external merge) 급격히 느려진다. 인덱스가 이 정렬을 **미리** 해 두면 Sort 노드 자체가 사라진다(db-index 6장의 정렬 흡수)."
+          "text": "`ORDER BY`, `GROUP BY`, `DISTINCT` 는 공짜가 아니다. 계획에 **Sort** 노드가 뜨고, 정렬할 데이터가 작업 메모리를 넘으면 **디스크로 흘러넘쳐**(external merge) 급격히 느려진다. 인덱스가 이 정렬을 **미리** 해 두면 Sort 노드 자체가 사라진다(db-index 6장의 정렬 흡수)."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "정렬 데이터가 메모리를 넘으면",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mb = {{data}};                   // 정렬할 데이터 크기(MB)\n  const workMem = 4;                     // work_mem 4MB 가정\n  const spill = mb > workMem;\n  render('Sort  (ORDER BY created_at)   정렬 대상 ' + mb + 'MB · work_mem ' + workMem + 'MB',\n    '  ' + (spill\n      ? '<span class=\\\"no\\\">Sort Method: external merge  Disk: ' + Math.round((mb - workMem) * 1024) +\n        'kB</span>\\n  메모리를 넘겨 디스크로 흘러넘침 -> 몇 배 느려진다.'\n      : '<span class=\\\"ok\\\">Sort Method: quicksort  Memory: ' + Math.round(mb * 1024) +\n        'kB</span>\\n  메모리 안에서 정렬 -> 빠르다.') + '\\n\\n' +\n    '  처방: ① 인덱스로 정렬을 흡수하거나 ② 반환 행/컬럼을 줄이거나 ③ work_mem 을 올린다.',\n    '정렬 대상이 클수록 디스크로 넘칠 위험. 인덱스 정렬 흡수가 근본 처방.',\n    bars([['work_mem', workMem * 8, workMem + 'MB', '#64748b'],\n          ['정렬 대상', Math.min(100, mb * 8), mb + 'MB', spill ? '#fca5a5' : '#4ade80']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mb = {{data}};                   // 정렬할 데이터 크기(MB)\n  const workMem = 4;                     // work_mem 4MB 가정\n  const spill = mb > workMem;\n  render('Sort  (ORDER BY created_at)   정렬 대상 ' + mb + 'MB, work_mem ' + workMem + 'MB',\n    '  ' + (spill\n      ? '<span class=\\\"no\\\">Sort Method: external merge  Disk: ' + Math.round((mb - workMem) * 1024) +\n        'kB</span>\\n  메모리를 넘겨 디스크로 흘러넘침 -> 몇 배 느려진다.'\n      : '<span class=\\\"ok\\\">Sort Method: quicksort  Memory: ' + Math.round(mb * 1024) +\n        'kB</span>\\n  메모리 안에서 정렬 -> 빠르다.') + '\\n\\n' +\n    '  처방: ① 인덱스로 정렬을 흡수하거나 ② 반환 행/컬럼을 줄이거나 ③ work_mem 을 올린다.',\n    '정렬 대상이 클수록 디스크로 넘칠 위험. 인덱스 정렬 흡수가 근본 처방.',\n    bars([['work_mem', workMem * 8, workMem + 'MB', '#64748b'],\n          ['정렬 대상', Math.min(100, mb * 8), mb + 'MB', spill ? '#fca5a5' : '#4ade80']]));\n</script>",
           "controls": [
             {
               "id": "data",
@@ -450,11 +450,11 @@
         },
         {
           "type": "note",
-          "text": "**계획의 `Sort Method` 를 보라.** `quicksort ... Memory` 면 메모리 안에서 끝난 것이고, `external merge ... Disk` 면 디스크로 넘친 것이다. 후자가 보이면 정렬 대상을 줄이거나(필요 컬럼만·LIMIT), 인덱스로 정렬을 없애거나, 세션 `work_mem` 을 올린다."
+          "text": "**계획의 `Sort Method` 를 보라.** `quicksort ... Memory` 면 메모리 안에서 끝난 것이고, `external merge ... Disk` 면 디스크로 넘친 것이다. 후자가 보이면 정렬 대상을 줄이거나(필요 컬럼만, LIMIT), 인덱스로 정렬을 없애거나, 세션 `work_mem` 을 올린다."
         },
         {
           "type": "p",
-          "text": "**인덱스가 정렬을 없애는 것이 가장 근본적이다.** `(user_id, created_at)` 인덱스가 있으면 `WHERE user_id=? ORDER BY created_at` 은 이미 정렬된 순서로 읽어 Sort 노드가 통째로 사라진다. work_mem 을 올리는 건 대증요법 — 데이터가 더 커지면 다시 넘친다."
+          "text": "**인덱스가 정렬을 없애는 것이 가장 근본적이다.** `(user_id, created_at)` 인덱스가 있으면 `WHERE user_id=? ORDER BY created_at` 은 이미 정렬된 순서로 읽어 Sort 노드가 통째로 사라진다. work_mem 을 올리는 건 대증요법. 데이터가 더 커지면 다시 넘친다."
         },
         {
           "type": "try",
@@ -504,14 +504,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "옵티마이저의 계획은 **추정 행 수**에 전적으로 달렸다. 추정이 맞으면 좋은 계획, 틀리면 나쁜 계획이다. 추정이 빗나가는 흔한 이유: **낡은 통계**, **컬럼 간 상관관계**, **함수·표현식 조건**. 왜 틀렸는지 알면 어디를 고칠지 안다."
+          "text": "옵티마이저의 계획은 **추정 행 수**에 전적으로 달렸다. 추정이 맞으면 좋은 계획, 틀리면 나쁜 계획이다. 추정이 빗나가는 흔한 이유: **낡은 통계**, **컬럼 간 상관관계**, **함수, 표현식 조건**. 왜 틀렸는지 알면 어디를 고칠지 안다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "추정이 빗나가는 세 가지 원인",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{cause}}';\n  const cases = {\n    stale:  ['낡은 통계', 'ANALYZE 를 안 돌려 분포가 옛날 것',\n      '대량 INSERT/DELETE 후 통계 미갱신 -> ANALYZE <table>', '가장 흔함 · 가장 쉬움'],\n    corr:   ['컬럼 상관관계', 'city=서울 AND district=강남 을 독립으로 곱해 과소추정',\n      '두 컬럼이 상관인데 독립 가정 -> 확장 통계(CREATE STATISTICS)', '조인 폭발의 흔한 원인'],\n    expr:   ['표현식 조건', 'WHERE lower(email)=... 는 컬럼 통계를 못 쓴다',\n      '표현식 인덱스를 만들면 그 표현식의 통계가 생김', '함수로 감싼 조건'],\n  }[c];\n  render('추정 오차 원인: ' + cases[0],\n    '  증상: ' + cases[1] + '\\n\\n  처방: <span class=\\\"ok\\\">' + cases[2] + '</span>\\n\\n  메모: ' + cases[3],\n    '추정이 빗나가면 계획 전체가 무너진다. 원인별 처방이 다르다.',\n    box('원인 -> 처방', cases[0] + '\\n  ' + cases[1] + '\\n  => ' + cases[2], 'good'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{cause}}';\n  const cases = {\n    stale:  ['낡은 통계', 'ANALYZE 를 안 돌려 분포가 옛날 것',\n      '대량 INSERT/DELETE 후 통계 미갱신 -> ANALYZE <table>', '가장 흔함, 가장 쉬움'],\n    corr:   ['컬럼 상관관계', 'city=서울 AND district=강남 을 독립으로 곱해 과소추정',\n      '두 컬럼이 상관인데 독립 가정 -> 확장 통계(CREATE STATISTICS)', '조인 폭발의 흔한 원인'],\n    expr:   ['표현식 조건', 'WHERE lower(email)=... 는 컬럼 통계를 못 쓴다',\n      '표현식 인덱스를 만들면 그 표현식의 통계가 생김', '함수로 감싼 조건'],\n  }[c];\n  render('추정 오차 원인: ' + cases[0],\n    '  증상: ' + cases[1] + '\\n\\n  처방: <span class=\\\"ok\\\">' + cases[2] + '</span>\\n\\n  메모: ' + cases[3],\n    '추정이 빗나가면 계획 전체가 무너진다. 원인별 처방이 다르다.',\n    box('원인 -> 처방', cases[0] + '\\n  ' + cases[1] + '\\n  => ' + cases[2], 'good'));\n</script>",
           "controls": [
             {
               "id": "cause",
@@ -550,12 +550,12 @@
       ],
       "quiz": [
         {
-          "q": "추정 행 수가 빗나가는 가장 흔하고 쉬운 원인·처방은?",
+          "q": "추정 행 수가 빗나가는 가장 흔하고 쉬운 원인, 처방은?",
           "choices": [
-            "디스크 고장·교체",
-            "낡은 통계·ANALYZE",
-            "네트워크·재시작",
-            "락·재시도"
+            "디스크 고장, 교체",
+            "낡은 통계, ANALYZE",
+            "네트워크, 재시작",
+            "락, 재시도"
           ],
           "answer": 1,
           "why": "대량 변경 후 통계 미갱신."
@@ -575,7 +575,7 @@
           "q": "계획 힌트로 강제하는 것은 언제?",
           "choices": [
             "항상 먼저",
-            "통계·조건·확장통계로 안 될 때 최후의 수단",
+            "통계, 조건, 확장통계로 안 될 때 최후의 수단",
             "매 쿼리",
             "쓰면 안 됨"
           ],
@@ -586,7 +586,7 @@
     },
     {
       "id": "8",
-      "title": "느린 쿼리 찾기 — 운영에서",
+      "title": "느린 쿼리 찾기. 운영에서",
       "minutes": 9,
       "blocks": [
         {
@@ -596,9 +596,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "총 시간 = 호출 수 x 평균 — 진짜 범인",
+          "label": "총 시간 = 호출 수 x 평균. 진짜 범인",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{sort}}';\n  const q = [\n    ['리포트 집계', 1, 2500, 2500],\n    ['상품 목록',  100000, 20, 2000000],\n    ['로그인 조회', 500000, 4, 2000000],\n    ['관리자 검색', 3, 1800, 5400],\n  ];\n  const sorted = [...q].sort((a, b) => view === 'mean' ? b[2] - a[2] : b[3] - a[3]);\n  const rows = sorted.map(x => [0,\n    x[0].padEnd(7) + '  calls=' + String(x[1]).padStart(7) + '  mean=' + String(x[2]).padStart(5) +\n    'ms  total=' + (x[3] / 1000).toFixed(0) + 's',\n    view === 'total' && (x === sorted[0]) ? 'bad' : view === 'mean' && (x === sorted[0]) ? 'warn' : '']);\n  render('ORDER BY ' + (view === 'mean' ? 'mean_exec_time' : 'total_exec_time') + ' DESC',\n    (view === 'mean'\n      ? '  평균으로 정렬하면 「리포트 집계(2.5초)」가 1위 — 하지만 하루 1번 부른다.\\n' +\n        '  이걸 고쳐도 시스템 전체는 거의 안 빨라진다.'\n      : '  총 시간으로 정렬하면 「상품 목록·로그인」이 1위 — 개당 20ms 인데 수십만 번.\\n' +\n        '  <span class=\\\"ok\\\">여기를 5ms 로 줄이면 시스템 전체가 가벼워진다 — 이게 진짜 우선순위.</span>'),\n    '개당 느린 것(mean)이 아니라 합계가 큰 것(total)이 대개 진짜 병목이다.',\n    plan(rows));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{sort}}';\n  const q = [\n    ['리포트 집계', 1, 2500, 2500],\n    ['상품 목록',  100000, 20, 2000000],\n    ['로그인 조회', 500000, 4, 2000000],\n    ['관리자 검색', 3, 1800, 5400],\n  ];\n  const sorted = [...q].sort((a, b) => view === 'mean' ? b[2] - a[2] : b[3] - a[3]);\n  const rows = sorted.map(x => [0,\n    x[0].padEnd(7) + '  calls=' + String(x[1]).padStart(7) + '  mean=' + String(x[2]).padStart(5) +\n    'ms  total=' + (x[3] / 1000).toFixed(0) + 's',\n    view === 'total' && (x === sorted[0]) ? 'bad' : view === 'mean' && (x === sorted[0]) ? 'warn' : '']);\n  render('ORDER BY ' + (view === 'mean' ? 'mean_exec_time' : 'total_exec_time') + ' DESC',\n    (view === 'mean'\n      ? '  평균으로 정렬하면 리포트 집계(2.5초)가 1위. 하지만 하루 1번 부른다.\\n' +\n        '  이걸 고쳐도 시스템 전체는 거의 안 빨라진다.'\n      : '  총 시간으로 정렬하면 상품 목록, 로그인이 1위. 개당 20ms 인데 수십만 번.\\n' +\n        '  <span class=\\\"ok\\\">여기를 5ms 로 줄이면 시스템 전체가 가벼워진다. 이게 진짜 우선순위.</span>'),\n    '개당 느린 것(mean)이 아니라 합계가 큰 것(total)이 대개 진짜 병목이다.',\n    plan(rows));\n</script>",
           "controls": [
             {
               "id": "sort",
@@ -634,7 +634,7 @@
         },
         {
           "type": "try",
-          "text": "총 소모 시간 상위 10개를 뽑고, 1위가 「가끔 느린 것(mean 큼)」인지 「자주 부르는 것(calls 큼)」인지 판정하라. 후자부터 EXPLAIN 으로 파라."
+          "text": "총 소모 시간 상위 10개를 뽑고, 1위가 가끔 느린 것(mean 큼)인지 자주 부르는 것(calls 큼)인지 판정하라. 후자부터 EXPLAIN 으로 파라."
         }
       ],
       "quiz": [
@@ -653,7 +653,7 @@
           "q": "느린 쿼리 로그에 문턱(예: 500ms)을 두는 이유는?",
           "choices": [
             "보안",
-            "모든 쿼리 기록은 로그 폭주·부하 -> 넘긴 것만",
+            "모든 쿼리 기록은 로그 폭주, 부하 -> 넘긴 것만",
             "정렬 때문",
             "권한"
           ],
@@ -664,7 +664,7 @@
           "q": "배포 후 총 시간 상위에 새 쿼리가 올라왔다면?",
           "choices": [
             "정상",
-            "이번 배포의 성능 회귀 신호(N+1·인덱스 무력화)",
+            "이번 배포의 성능 회귀 신호(N+1, 인덱스 무력화)",
             "통계 갱신",
             "무시"
           ],
@@ -675,7 +675,7 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 계획 읽고 고치기",
+      "title": "점검표. 계획 읽고 고치기",
       "minutes": 7,
       "blocks": [
         {
@@ -685,9 +685,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    'EXPLAIN ANALYZE 로 추정과 실측을 함께 본다',\n    '가장 큰 actual time 을 먹는 노드를 찾는다',\n    '큰 테이블에 Seq Scan 이 있는지 본다',\n    '추정 rows 와 actual rows 괴리가 10배 넘나 본다',\n    'Rows Removed by Filter 가 크면 인덱스를 설계한다',\n    '조인 방식이 크기에 맞나(큰 x 큰 NL 경보) 본다',\n    'Sort 가 디스크로 넘치면 인덱스·컬럼 축소로 줄인다',\n    '운영은 total 시간 상위부터, 로그는 문턱을 둔다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 추측이 아니라 계획으로 고친다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '계획은 DB 가 주는 답지다. 감으로 인덱스를 붙이지 말고 계획을 읽어라.',\n    '<div>' + rows + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:140px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .plan { font:11.5px/1.6 ui-monospace, monospace; margin:8px 0; }\n  .plan .n { padding:3px 8px; margin:2px 0; border-radius:4px; background:#111c33; border-left:3px solid #334155; }\n  .plan .n.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .plan .n.warn { border-left-color:#f59e0b; } .plan .n.bad { border-left-color:#ef4444; background:#2a1414; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const plan = (nodes) => '<div class=\"plan\">' + nodes.map(([indent, txt, cls]) =>\n    '<div class=\"n ' + (cls || '') + '\" style=\"margin-left:' + (indent * 18) + 'px\">' + esc(txt) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    'EXPLAIN ANALYZE 로 추정과 실측을 함께 본다',\n    '가장 큰 actual time 을 먹는 노드를 찾는다',\n    '큰 테이블에 Seq Scan 이 있는지 본다',\n    '추정 rows 와 actual rows 괴리가 10배 넘나 본다',\n    'Rows Removed by Filter 가 크면 인덱스를 설계한다',\n    '조인 방식이 크기에 맞나(큰 x 큰 NL 경보) 본다',\n    'Sort 가 디스크로 넘치면 인덱스, 컬럼 축소로 줄인다',\n    '운영은 total 시간 상위부터, 로그는 문턱을 둔다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인. 추측이 아니라 계획으로 고친다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '계획은 DB 가 주는 답지다. 감으로 인덱스를 붙이지 말고 계획을 읽어라.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -702,7 +702,7 @@
         },
         {
           "type": "note",
-          "text": "**순서가 곧 진단 흐름이다.** 실측을 켜고(1) → 병목 노드를 찾고(2) → 스캔·추정·필터·조인·정렬을 차례로 의심하고(3~7) → 운영에서 우선순위를 잡는다(8). 이 흐름을 따르면 「왜 느린지 모르겠다」가 「이 노드의 이 문제」로 좁혀진다."
+          "text": "**순서가 곧 진단 흐름이다.** 실측을 켜고(1) → 병목 노드를 찾고(2) → 스캔, 추정, 필터, 조인, 정렬을 차례로 의심하고(3~7) → 운영에서 우선순위를 잡는다(8). 이 흐름을 따르면 왜 느린지 모르겠다가 이 노드의 이 문제로 좁혀진다."
         },
         {
           "type": "p",
@@ -718,7 +718,7 @@
           "q": "느린 쿼리 진단의 첫 단계는?",
           "choices": [
             "인덱스 추가",
-            "EXPLAIN ANALYZE 로 추정·실측 함께 보기",
+            "EXPLAIN ANALYZE 로 추정, 실측 함께 보기",
             "테이블 분할",
             "캐시"
           ],
@@ -729,7 +729,7 @@
           "q": "계획 읽기가 DB 성능 작업에서 갖는 위치는?",
           "choices": [
             "부차적",
-            "인덱스·락·N+1·풀 모두의 출발점",
+            "인덱스, 락, N+1, 풀 모두의 출발점",
             "쓰기 전용",
             "무관"
           ],
@@ -737,10 +737,10 @@
           "why": "무엇을 고칠지 계획이 알려준다."
         },
         {
-          "q": "「왜 느린지 모르겠다」를 좁히는 방법은?",
+          "q": "왜 느린지 모르겠다를 좁히는 방법은?",
           "choices": [
             "감으로 인덱스",
-            "순서대로 스캔·추정·필터·조인·정렬 의심",
+            "순서대로 스캔, 추정, 필터, 조인, 정렬 의심",
             "재시작",
             "장비 증설"
           ],

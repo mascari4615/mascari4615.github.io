@@ -4,7 +4,7 @@ import test from 'node:test';
 import { Companion, InMemoryMemory, alwaysRespond, discordBody } from '../dist/index.js';
 
 /* 디스코드 몸 = 관객이 있는 자리. 토큰은 이 기계에 없으므로(prod 는 노트북) **붙는 물건을
-   갈아끼워** 전 경로를 시험한다 — 「접속이 되나」와 「몸이 제대로 붙나」는 다른 물음이다. */
+   갈아끼워** 전 경로를 시험한다. 접속이 되나와 몸이 제대로 붙나는 다른 물음이다. */
 
 const attachFake = () => {
   const sent = [];
@@ -55,7 +55,7 @@ test('말이 그 방으로 돌아간다', async () => {
   assert.deepEqual(g.sent, [{ channel: '방1', content: '(대답) 안녕' }]);
 });
 
-test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 데 대고 말하면 안 된다', async () => {
+test('여러 방이면 마지막으로 말이 온 방으로 답한다. 딴 데 대고 말하면 안 된다', async () => {
   const g = attachFake();
   const { companion } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
@@ -68,7 +68,7 @@ test('여러 방이면 마지막으로 말이 온 방으로 답한다 — 딴 �
   assert.deepEqual(g.sent.map((x) => x.channel), ['방1', '방2']);
 });
 
-test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => {
+test('제 말은 안 듣는다. 안 그러면 끝없이 돈다', async () => {
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach }));
   await companion.start();
@@ -79,7 +79,7 @@ test('제 말은 안 듣는다 — 안 그러면 끝없이 돈다', async () => 
   assert.deepEqual(memory.all(), []);
 });
 
-test('정한 방 밖에서는 안 듣는다 — 남의 방에 끼어들면 안 된다', async () => {
+test('정한 방 밖에서는 안 듣는다. 남의 방에 끼어들면 안 된다', async () => {
   const g = attachFake();
   const { companion, memory } = makeCompanion(discordBody({ attach: g.attach, channels: ['방1'] }));
   await companion.start();
@@ -114,7 +114,7 @@ test('방을 못 잡아도 얘는 안 죽는다', async () => {
   assert.ok(leftText.some((m) => m.includes('못 잡았다')), `남긴 말: ${leftText.join(' / ')}`);
 });
 
-test('코어 하나에 몸 둘 — 곁(웹)과 관객(디스코드)이 같은 기억을 나눠 쓴다', async () => {
+test('코어 하나에 몸 둘. 곁(웹)과 관객(디스코드)이 같은 기억을 나눠 쓴다', async () => {
   const g = attachFake();
   const webText = [];
   const webBody = {
@@ -141,7 +141,7 @@ test('코어 하나에 몸 둘 — 곁(웹)과 관객(디스코드)이 같은 �
   // 각자 제 몸으로 답이 나갔다.
   assert.deepEqual(g.sent.map((x) => x.content), ['(대답) 다들 안녕']);
   assert.deepEqual(webText, ['(대답) 나도 있어']);
-  // 기억은 하나다 — 누가 어디서 한 말인지 함께.
+  // 기억은 하나다. 누가 어디서 한 말인지 함께.
   assert.deepEqual(
     memory.all().filter((e) => e.role === 'sensed').map((e) => `${e.channel}/${e.who ?? '-'}`),
     ['discord/민수', 'web/-'],

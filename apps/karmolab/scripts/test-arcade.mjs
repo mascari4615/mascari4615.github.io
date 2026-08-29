@@ -2,7 +2,7 @@
  * 오락실 커널 검증 (TASK-KL-242)
  *
  * 커널이 화면도 그물망도 안 쓰기 때문에 **창을 안 띄우고** 판을 끝까지 돌려 볼 수 있다.
- * 시계는 이 스크립트가 직접 민다 — 4초짜리 판 다섯을 진짜로 기다리면 51개는 못 돌린다.
+ * 시계는 이 스크립트가 직접 민다. 4초짜리 판 다섯을 진짜로 기다리면 51개는 못 돌린다.
  *
  * 여기서 지키는 것:
  *  - 같은 씨앗 = 같은 판 (안 그러면 여럿이 딴 문제를 본다)
@@ -30,10 +30,10 @@ const VIEWS = CATALOG.map((e) => e.view);
 let fails = 0;
 const ok = (cond, name, detail = '') => {
   if (cond) console.log(`  [O] ${name}`);
-  else { console.log(`  [X] ${name}${detail ? ' — ' + detail : ''}`); fails++; }
+  else { console.log(`  [X] ${name}${detail ? '. ' + detail : ''}`); fails++; }
 };
 
-console.log('[arcade] 판 위 말 — 네 판이 같은 표현 부품을 쓴다');
+console.log('[arcade] 판 위 말. 네 판이 같은 표현 부품을 쓴다');
 {
   const piecePath = 'src/widgets/arcade/piece.ts';
   const views = ['minishogi', 'yut', 'foxhounds', 'checkers'];
@@ -61,11 +61,11 @@ function run(game, seed, seats, play, maxMs = 200000) {
 
 console.log('[arcade] 명부');
 ok(GAMES.length >= 2, `게임 ${GAMES.length}개 등록`);
-ok(GAMES.every((g) => g.id && g.seats[0] >= 1 && g.rounds >= 1), '모든 게임이 id·자리수·판수를 갖췄다');
+ok(GAMES.every((g) => g.id && g.seats[0] >= 1 && g.rounds >= 1), '모든 게임이 id, 자리수, 판수를 갖췄다');
 ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않는다');
 {
   /* 갈래 명패가 빠진 게임은 **로비에서 통째로 사라진다**(갈래별로 묶어 그리기 때문).
-     타입은 안 잡아 주고 화면 검사도 「없는 것」은 못 본다 — 그래서 여기서 센다. */
+     타입은 안 잡아 주고 화면 검사도 없는 것은 못 본다. 그래서 여기서 센다. */
   const metaIds = new Set(META.map((m) => m.id));
   const missing = GAMES.map((g) => g.id).filter((id) => !metaIds.has(id));
   ok(missing.length === 0, '모든 게임이 갈래 명패를 갖는다', missing.join(', '));
@@ -74,11 +74,11 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
 }
 
 /**
- * **모든 게임이 지켜야 하는 것.** 게임을 51개까지 늘려도 여기에 자동으로 걸린다 —
+ * **모든 게임이 지켜야 하는 것.** 게임을 51개까지 늘려도 여기에 자동으로 걸린다 . 
  * 새 게임을 넣을 때 검사를 새로 짤 필요가 없다는 뜻이고, 그게 51개가 가능한 이유다.
  */
-/* 로비의 「길이」 태그는 저울(`bench:arcade`)이 잰 수에서 나온다. 새 게임을 넣고 저울을 안
-   돌리면 그 게임만 조용히 「보통」이 된다 — 틀린 태그는 없는 태그보다 나쁘다. */
+/* 로비의 길이 태그는 저울(`bench:arcade`)이 잰 수에서 나온다. 새 게임을 넣고 저울을 안
+   돌리면 그 게임만 조용히 보통이 된다. 틀린 태그는 없는 태그보다 나쁘다. */
 {
   const measured = new Set(
     JSON.parse(readFileSync('data/arcade-balance.json', 'utf8')).game.map((r) => r.id)
@@ -87,13 +87,13 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
   ok(missing.length === 0, '모든 게임이 저울에 재여 있다 (npm run bench:arcade)', missing.join(', '));
 }
 
-/* **자리 번호로 봇의 버릇·실력을 정하지 마라** (TASK-KL-264 G2 실측).
+/* **자리 번호로 봇의 버릇, 실력을 정하지 마라** (TASK-KL-264 G2 실측).
  *
- * 제기·눈치·투호가 그렇게 짜여 있었다: `((seat % 3) - 1) * 20`, `260 + seat * 190`,
- * `0.05 + (seat % 4) * 0.028`. 「봇마다 성격을 준다」는 뜻이었는데 성격이 **자리에 붙는 바람에**
+ * 제기, 눈치, 투호가 그렇게 짜여 있었다: `((seat % 3) - 1) * 20`, `260 + seat * 190`,
+ * `0.05 + (seat % 4) * 0.028`. 봇마다 성격을 준다는 뜻이었는데 성격이 **자리에 붙는 바람에**
  * 0번 자리가 제기에서 97% 이겼다. 뒷자리에 앉은 사람은 이유도 모르고 진다.
  *
- * `seat + 1`(돌 색 같은 것)과 `s.x[seat]`(자기 몫 읽기)은 정상이다 — 여기서 잡는 것은
+ * `seat + 1`(돌 색 같은 것)과 `s.x[seat]`(자기 몫 읽기)은 정상이다. 여기서 잡는 것은
  * **자리 번호로 셈을 하는 것**뿐이다. 흩고 싶으면 `ctx.rng` 를 써라(그건 자리에 안 붙는다). */
 {
   const rulesDir = 'src/widgets/arcade/games';
@@ -104,31 +104,31 @@ ok(new Set(GAMES.map((g) => g.id)).size === GAMES.length, 'id 가 겹치지 않�
     if (at < 0) continue;
     const end = src.slice(at + 1).search(/^  \}/m);
     const body = end < 0 ? src.slice(at) : src.slice(at, at + 1 + end);
-    /* 주석은 뺀다 — 「전에는 이랬다」고 적어 둔 설명까지 잡으면 고친 자리가 되레 빨개진다. */
+    /* 주석은 뺀다. 전에는 이랬다고 적어 둔 설명까지 잡으면 고친 자리가 되레 빨개진다. */
     const code = body.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
     for (const m of code.matchAll(/seat\s*[%*]\s*\d|\d\s*\*\s*seat|seat\s*\*\s*\d/g)) {
       bad.push(`${file.replace('.ts', '')}: ${m[0]}`);
     }
   }
-  ok(bad.length === 0, '자리 번호로 봇의 버릇을 정하지 않는다', bad.join(' · '));
+  ok(bad.length === 0, '자리 번호로 봇의 버릇을 정하지 않는다', bad.join(', '));
 }
 
-console.log('[arcade] 계약 — 모든 게임 공통');
+console.log('[arcade] 계약. 모든 게임 공통');
 /* **몇 명으로 보는가** = 오락실이 실제로 앉히는 수(`seating.ts` 정본). 최소 인원으로만 보면
-   「1명부터」인 판 17개가 아무와도 안 겨루는 채로 통과한다. */
+   1명부터인 판 17개가 아무와도 안 겨루는 채로 통과한다. */
 
 for (const g of GAMES) {
   const seats = Array.from({ length: partySize(g) }, (_, i) => ({ name: `b${i}`, bot: true }));
 
-  /* ① 봇만으로 반드시 끝난다 — 안 끝나면 혼자 하는 사람이 영영 갇힌다.
+  /* ① 봇만으로 반드시 끝난다. 안 끝나면 혼자 하는 사람이 영영 갇힌다.
    *
    * 안 끝났을 때 **판이 그때 어떤 모양이었는지**를 같이 적는다. 이 검사에 네 번 걸렸는데
-   * (조각 맞추기·체커·당구·볼링) 매번 「안 끝난다」만 보고 원인을 손으로 파야 했다.
-   * 마지막 상태를 보면 대개 한눈에 보인다 — 칠 공이 없다거나, 아무도 못 두는 자리라거나.
+   * (조각 맞추기, 체커, 당구, 볼링) 매번 안 끝난다만 보고 원인을 손으로 파야 했다.
+   * 마지막 상태를 보면 대개 한눈에 보인다. 칠 공이 없다거나, 아무도 못 두는 자리라거나.
    *
-   * **씨앗 하나로 보면 안 된다.** 등불과 기억순서는 이 검사가 초록인 채로 200판 중 115판·47판이
+   * **씨앗 하나로 보면 안 된다.** 등불과 기억순서는 이 검사가 초록인 채로 200판 중 115판, 47판이
    * 멈춰 있었다(TASK-KL-264 F1 실측). 씨앗 하나가 운 좋게 끝났을 뿐이었다. 그리고 **최소
-   * 인원이 아니라 실제로 앉는 인원**으로 본다 — 「1명부터」인 판을 1명으로 돌리면 아무도
+   * 인원이 아니라 실제로 앉는 인원**으로 본다. 1명부터인 판을 1명으로 돌리면 아무도
    * 서로를 막지 않아 멈출 일 자체가 없다. 멈춤은 늘 자리가 여럿일 때 생긴다. */
   let unfinished = null;
   for (const seed of [12345, 1000, 8919, 16838, 24757, 32676, 40595, 48514]) {
@@ -142,14 +142,14 @@ for (const g of GAMES) {
     const brief = Object.fromEntries(
       Object.entries(st).slice(0, 8).map(([k, val]) => [
         k,
-        Array.isArray(val) ? `[${val.length}]` : typeof val === 'object' && val ? '{…}' : val
+        Array.isArray(val) ? `[${val.length}]` : typeof val === 'object' && val ? '{...}' : val
       ])
     );
-    return `판 ${v.round + 1}/${v.rounds} · ${JSON.stringify(brief)}`;
+    return `판 ${v.round + 1}/${v.rounds}, ${JSON.stringify(brief)}`;
   };
-  ok(!unfinished, `${g.id}: 봇만으로 끝까지 간다 (씨앗 8개)`, unfinished ? `씨앗 ${unfinished.seed} · ${dump()}` : '');
+  ok(!unfinished, `${g.id}: 봇만으로 끝까지 간다 (씨앗 8개)`, unfinished ? `씨앗 ${unfinished.seed}, ${dump()}` : '');
 
-  /* ② 쓰레기 수를 던져도 안 죽는다 — 남의 창에서 오는 수는 못 믿는다. */
+  /* ② 쓰레기 수를 던져도 안 죽는다. 남의 창에서 오는 수는 못 믿는다. */
   const junk = new Match(g, 7, seats);
   let threw = '';
   for (const bad of [null, undefined, {}, { cell: -1 }, { cell: 1e9 }, { col: -5 }, { choice: 99 }, 'x', 42]) {
@@ -160,11 +160,11 @@ for (const g of GAMES) {
   try { junk.step(50); junk.step(100); } catch (e) { threw = `step → ${e.message}`; }
   ok(!threw, `${g.id}: 이상한 수에도 안 죽는다`, threw);
 
-  /* ③-0 같은 씨앗이면 **판 전체**가 같다 — 첫 판만 보면 거의 아무것도 안 본 것이다.
+  /* ③-0 같은 씨앗이면 **판 전체**가 같다. 첫 판만 보면 거의 아무것도 안 본 것이다.
    *
    * 전에는 첫 상태만 비교했다. 그 사이 게임 49개의 `bot()` 이 `Math.random` 을 부르고 있었고,
    * 검사는 내내 초록이었다. 그래서 봇끼리 돌릴 때마다 다른 판이 나왔고 판을 되살릴 수도 없었다.
-   * 끝까지 두 번 굴려 **끝 상태·점수·걸린 칸 수**가 같은지 본다. */
+   * 끝까지 두 번 굴려 **끝 상태, 점수, 걸린 칸 수**가 같은지 본다. */
   {
     const seatsA = Array.from({ length: partySize(g) }, (_, i) => ({ name: `b${i}`, bot: true }));
     const runTwice = () => {
@@ -189,7 +189,7 @@ for (const g of GAMES) {
     `${g.id}: 같은 씨앗이면 첫 판이 같다`
   );
 
-  /* ④ 판이 그물망을 건널 수 있다 — 함수나 Map 이 섞이면 손님 화면이 비어 버린다. */
+  /* ④ 판이 그물망을 건널 수 있다. 함수나 Map 이 섞이면 손님 화면이 비어 버린다. */
   let jsonOk = true;
   try {
     const round = JSON.parse(JSON.stringify(a1.view().state));
@@ -201,11 +201,11 @@ for (const g of GAMES) {
 
   /* ⑤ 감출 것이 있는 게임은 **손님에게 갈 판에 그것이 없어야** 한다. 화면이 안 그려도 값은 간다.
    *
-   * 판을 좀 굴린 뒤에 본다 — 시작하자마자는 아직 감출 것이 없는 게임이 있다(아무도 안 냈으니까).
-   * 첫 판만 보고 「안 지운다」고 하면 검사가 이름값을 못 한다. */
+   * 판을 좀 굴린 뒤에 본다. 시작하자마자는 아직 감출 것이 없는 게임이 있다(아무도 안 냈으니까).
+   * 첫 판만 보고 안 지운다고 하면 검사가 이름값을 못 한다. */
   if (g.redact) {
     /* **자리를 다 본다.** 어떤 게임은 특정 자리에 가릴 것이 없다(스무고개의 답 쥔 사람은
-       제 답을 봐야 한다). 자리 하나만 보고 「안 지운다」고 하면 그건 검사가 틀린 것이다. */
+       제 답을 봐야 한다). 자리 하나만 보고 안 지운다고 하면 그건 검사가 틀린 것이다. */
     const hides = (st) =>
       seats.some((_, i) => JSON.stringify(g.redact(st, i)) !== JSON.stringify(st));
     const warm = new Match(g, 999, seats);
@@ -221,7 +221,7 @@ for (const g of GAMES) {
   ok(g.seats[0] >= 1 && g.seats[0] <= g.seats[1], `${g.id}: 자리 수가 말이 된다 (${g.seats.join('~')})`);
 }
 
-console.log('[arcade] 씨앗 — 같은 방은 같은 판');
+console.log('[arcade] 씨앗. 같은 방은 같은 판');
 {
   const a = new Match(gameById('reflex'), seedFrom('KRM7'), [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
   const b = new Match(gameById('reflex'), seedFrom('KRM7'), [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
@@ -231,7 +231,7 @@ console.log('[arcade] 씨앗 — 같은 방은 같은 판');
   ok(c.view().state.order !== va.order || JSON.stringify(c.view().state.choices) !== JSON.stringify(va.choices), '다른 씨앗 → 다른 문제');
 }
 
-console.log('[arcade] 난수 — 판 중에 굴려도 값이 바뀐다');
+console.log('[arcade] 난수. 판 중에 굴려도 값이 바뀐다');
 {
   /* 주사위처럼 판 중에 뽑는 게임이 있으므로, 같은 판 안에서 rng 를 두 번 부르면 달라야 한다.
      예전에는 부를 때마다 새로 만들어 늘 같은 값이 나왔다(굴리는 게임이 아예 불가능했다). */
@@ -256,7 +256,7 @@ console.log('[arcade] 난수 — 판 중에 굴려도 값이 바뀐다');
   );
 }
 
-console.log('[arcade] 반응 측정 — 실시간·동시');
+console.log('[arcade] 반응 측정. 실시간, 동시');
 {
   /* 아무도 손을 안 뻗어도 제한시간이 지나면 판이 넘어가고, 다섯 판 뒤 끝난다. */
   const m = run(gameById('reflex'), 1, [{ name: 'a', bot: false }, { name: 'b', bot: false }], null, 60000);
@@ -272,7 +272,7 @@ console.log('[arcade] 반응 측정 — 실시간·동시');
   ok(m.seats[0].score === 5, `늘 먼저 맞히면 5점 (실제 ${m.seats[0].score})`);
 }
 {
-  /* 사람이 하나도 없는 방 — 봇만으로도 판이 끝난다. 싱글이 멀티와 같은 코드라는 증거. */
+  /* 사람이 하나도 없는 방. 봇만으로도 판이 끝난다. 싱글이 멀티와 같은 코드라는 증거. */
   const m = run(gameById('reflex'), 3, [{ name: 'b1', bot: true }, { name: 'b2', bot: true }, { name: 'b3', bot: true }], null, 60000);
   ok(m.view().finished, '봇만 셋이어도 끝난다');
   ok(m.seats.length === 3, '자리 셋이 유지된다');
@@ -292,7 +292,7 @@ console.log('[arcade] 반응 측정 — 실시간·동시');
   ok(limits.length >= 4 && limits.every((l, i) => i === 0 || l < limits[i - 1]), `판마다 짧아진다 (${limits.join(' → ')})`);
 }
 
-console.log('[arcade] 컬링 — 물리가 커널 안에서 돈다');
+console.log('[arcade] 컬링. 물리가 커널 안에서 돈다');
 {
   const g = gameById('curling');
   const seats = [{ name: '나', bot: false }, { name: '봇', bot: true }];
@@ -315,7 +315,7 @@ console.log('[arcade] 컬링 — 물리가 커널 안에서 돈다');
     const st = mm.view().state.stones[0];
     return st ? `${st.x.toFixed(3)},${st.y.toFixed(3)}` : 'none';
   };
-  ok(run(16) === run(50), `한 걸음이 프레임이 아니라 시간이다 (16ms=${run(16)} · 50ms=${run(50)})`);
+  ok(run(16) === run(50), `한 걸음이 프레임이 아니라 시간이다 (16ms=${run(16)}, 50ms=${run(50)})`);
 
   /* ③ 판 밖으로 나간 돌은 사라진다. */
   const hard = new Match(g, 5, [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
@@ -325,7 +325,7 @@ console.log('[arcade] 컬링 — 물리가 커널 안에서 돈다');
   ok(inField, '판 밖으로 나간 돌은 남지 않는다');
 }
 
-console.log('[arcade] 오목 — 차례·보드');
+console.log('[arcade] 오목. 차례, 보드');
 {
   const g = gameById('gomoku');
   const m = new Match(g, 1, [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
@@ -354,23 +354,23 @@ console.log('[arcade] 오목 — 차례·보드');
   ok(m.winners().map((s) => s.name).join() === 'a', '이긴 사람이 나온다');
 }
 {
-  /* 봇 대 봇 — 멈추지 않고 끝난다(무승부든 승부든) */
+  /* 봇 대 봇. 멈추지 않고 끝난다(무승부든 승부든) */
   const m = run(gameById('gomoku'), 11, [{ name: 'b1', bot: true }, { name: 'b2', bot: true }], null, 300000);
   ok(m.view().finished, '봇끼리 두면 반드시 끝난다');
   ok(m.view().state.won !== -1, `승부가 난다 (won=${m.view().state.won})`);
 }
 {
-  /* 사람이 하나면 남은 자리는 봇이 앉는다 — 「싱글 모드」 없이 혼자 놀 수 있다 */
+  /* 사람이 하나면 남은 자리는 봇이 앉는다. 싱글 모드 없이 혼자 놀 수 있다 */
   const m = new Match(gameById('gomoku'), 2, [{ name: '나', bot: false }]);
   ok(m.seats.length === 2 && m.seats[1].bot, '모자란 자리는 봇이 채운다');
 }
 
 {
   /* ── 단일 정본(SSOT) 검사 (TASK-KL-264) ─────────────────────────
-     명부가 세 곳이던 시절엔 「규칙은 있는데 로비에 안 뜨는 게임」이 조용히 생겼다.
-     이제 정본은 `catalog.ts` 하나 — 그러니 **규칙 파일이 있는데 카탈로그에 없는 것**과
+     명부가 세 곳이던 시절엔 규칙은 있는데 로비에 안 뜨는 게임이 조용히 생겼다.
+     이제 정본은 `catalog.ts` 하나. 그러니 **규칙 파일이 있는데 카탈로그에 없는 것**과
      **말 묶음이 빠진 것**만 막으면 갈라질 자리가 없다. */
-  /* 한 규칙에 화면이 여럿이다(2D·3D) — `-view.ts`·`-view3d.ts` 는 **표현**이라 규칙이 아니다. */
+  /* 한 규칙에 화면이 여럿이다(2D, 3D). `-view.ts`, `-view3d.ts` 는 **표현**이라 규칙이 아니다. */
   const files = readdirSync('src/widgets/arcade/games')
     .filter((f) => f.endsWith('.ts') && !/-view(3d)?\.ts$/.test(f))
     .map((f) => f.replace(/\.ts$/, ''));
@@ -380,7 +380,7 @@ console.log('[arcade] 오목 — 차례·보드');
   const orphans = files.filter((f) => !listed.has(fileAlias[f] ?? f));
   ok(orphans.length === 0, '규칙 파일이 전부 카탈로그에 있다', orphans.join(', '));
   ok(GAMES.length === VIEWS.length && GAMES.length === META.length,
-    '규칙·화면·명패 수가 같다', `${GAMES.length}/${VIEWS.length}/${META.length}`);
+    '규칙, 화면, 명패 수가 같다', `${GAMES.length}/${VIEWS.length}/${META.length}`);
   const mismatched = GAMES.filter((g, i) => VIEWS[i].id !== g.id).map((g) => g.id);
   ok(mismatched.length === 0, '같은 줄의 규칙과 화면이 같은 게임이다', mismatched.join(', '));
 
@@ -395,14 +395,14 @@ console.log('[arcade] 오목 — 차례·보드');
 /*
  * 쪼갠 조각이 **진짜 그 게임을 등록하나** (TASK-KL-242 쪼개기).
  *
- * 로비는 이제 게임 코드를 안 들고 있다 — 누르면 `arcade/games/<조각>.js` 를 받아 붙인다.
+ * 로비는 이제 게임 코드를 안 들고 있다. 누르면 `arcade/games/<조각>.js` 를 받아 붙인다.
  * 그 조각이 없거나 딴 이름으로 등록하면 **누르기 전까지 아무 검사도 안 잡는다**(로비는 멀쩡히
  * 51칸을 그린다). 그래서 여기서 조각을 진짜 돌려 보고 등록되는 이름까지 맞춰 본다.
  *
- * [빨강-확인] 2026-08-14 — 세 항목을 다 빨개지는 것을 보고 남겼다:
- *   · `arcade/games/pong.js` 를 치웠다 → 「게임마다 조각 파일이 하나씩 있다 — pong」
- *   · 그 파일의 `pong` 을 `pongX` 로 바꿨다 → 「자기 이름으로 … 등록한다 — pong」
- *   · 파일 앞에 `throw` 를 넣었다 → 「받자마자 터지지 않는다 — pong: 일부러」
+ * [빨강-확인] 2026-08-14. 세 항목을 다 빨개지는 것을 보고 남겼다:
+ *  , `arcade/games/pong.js` 를 치웠다 → 게임마다 조각 파일이 하나씩 있다. pong
+ *  , 그 파일의 `pong` 을 `pongX` 로 바꿨다 → 자기 이름으로 ... 등록한다. pong
+ *  , 파일 앞에 `throw` 를 넣었다 → 받자마자 터지지 않는다. pong: 일부러
  */
 {
   const cards = JSON.parse(readFileSync('src/widgets/arcade/chunks.generated.json', 'utf8'));
@@ -413,13 +413,13 @@ console.log('[arcade] 오목 — 차례·보드');
   const builtDir = 'arcade/games';
   const built = existsSync(builtDir) ? readdirSync(builtDir).filter((f) => f.endsWith('.js')) : [];
   if (!built.length) {
-    /* 아직 안 구웠으면 **모른다** — 없는 것을 빨강으로 세면 짓기 전 검사가 늘 빨갛다. */
-    console.log('  [-] 조각을 아직 안 구웠다 — 이 항목은 못 쟀다 (npm run build 뒤에 잰다)');
+    /* 아직 안 구웠으면 **모른다**. 없는 것을 빨강으로 세면 짓기 전 검사가 늘 빨갛다. */
+    console.log('  [-] 조각을 아직 안 구웠다. 이 항목은 못 쟀다 (npm run build 뒤에 잰다)');
   } else {
     const missing2 = cards.filter((c) => !built.includes(c.chunk + '.js')).map((c) => c.id);
     ok(missing2.length === 0, '게임마다 조각 파일이 하나씩 있다', missing2.join(', '));
 
-    /* 돌려 본다. 조각은 창에서 도는 물건이라 창 흉내를 조금 내 준다 — 게임 규칙은 창을
+    /* 돌려 본다. 조각은 창에서 도는 물건이라 창 흉내를 조금 내 준다. 게임 규칙은 창을
        안 쓰지만 화면 파일은 붙을 자리를 물어볼 수 있다. */
     const alive = { __ARCADE_GAMES: {} };
     const mimic = {
@@ -439,7 +439,7 @@ console.log('[arcade] 오목 — 차례·보드');
         crashed.push(`${c.id}: ${String(e.message).split(String.fromCharCode(10))[0]}`);
       }
     }
-    ok(crashed.length === 0, '조각이 받자마자 터지지 않는다', crashed.slice(0, 3).join(' · '));
+    ok(crashed.length === 0, '조각이 받자마자 터지지 않는다', crashed.slice(0, 3).join(', '));
     const notAttached = cards
       .filter((c) => built.includes(c.chunk + '.js'))
       .filter((c) => {
@@ -451,6 +451,6 @@ console.log('[arcade] 오목 — 차례·보드');
   }
 }
 
-console.log(fails ? `[arcade] 실패 ${fails}건` : '[arcade] 커널 통과 — 씨앗·실시간·차례·봇·못 두는 수');
+console.log(fails ? `[arcade] 실패 ${fails}건` : '[arcade] 커널 통과. 씨앗, 실시간, 차례, 봇, 못 두는 수');
 rmSync(dir, { recursive: true, force: true });
 process.exit(fails ? 1 : 0);

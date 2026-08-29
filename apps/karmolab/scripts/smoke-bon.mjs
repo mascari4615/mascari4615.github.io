@@ -1,5 +1,5 @@
 /**
- * 「본」 실브라우저 검사 — 진짜로 그어서 도형이 생기는지 (TASK-KL-254)
+ * 본 실브라우저 검사. 진짜로 그어서 도형이 생기는지 (TASK-KL-254)
  *
  * 단위 검사(`test-bon.mjs`)는 셈이 맞는지만 본다. 화면이 죽어 있어도 초록일 수 있다.
  * 여기서는 실제로 끌어서 도형을 만들고, 골라서 옮기고, 되돌려서 사라지는지까지 본다.
@@ -50,17 +50,17 @@ page.on('console', (message) => {
 
 const problems = [];
 const check = (label, ok, extra = '') => {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok ? '' : ' — ' + extra}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok ? '' : '. ' + extra}`);
   if (!ok) problems.push(label);
 };
 
 /* ★ **잴 것이 아예 없을 수 있다** (2026-08-17 실측). 이 도구는 소스는 있는데
-   위젯 매니페스트(`src/widgets-lazy-meta.ts`)에 **등록돼 있지 않다** — `#bon` 을 열어도
+   위젯 매니페스트(`src/widgets-lazy-meta.ts`)에 **등록돼 있지 않다**. `#bon` 을 열어도
    아무것도 안 뜬다. 그때 `.bon-wrap` 을 20초 기다리다 raw TimeoutError 로 터지면
-   「이 도구가 깨졌다」로 읽힌다. 실제로는 **못 재는 것**이다 — 그렇게 말한다(rc 2). */
+   이 도구가 깨졌다로 읽힌다. 실제로는 **못 재는 것**이다. 그렇게 말한다(rc 2). */
 const manifest = fs.readFileSync(new URL('../src/widgets-lazy-meta.ts', import.meta.url), 'utf8');
 if (!/id: 'bon'/.test(manifest)) {
-  console.log('[smoke-bon] 못 돌림 — 이 도구가 위젯 매니페스트에 없다(등록되면 그때 잰다). 통과가 아니다.');
+  console.log('[smoke-bon] 못 돌림. 이 도구가 위젯 매니페스트에 없다(등록되면 그때 잰다). 통과가 아니다.');
   await browser.close();
   process.exit(2);
 }
@@ -74,13 +74,13 @@ try {
 }
 await page.waitForTimeout(500);
 
-/** 그림 안에 도형이 몇 개나 그려졌나 — 안내선(덧그림)은 따로 있으니 안 섞인다. */
+/** 그림 안에 도형이 몇 개나 그려졌나. 안내선(덧그림)은 따로 있으니 안 섞인다. */
 const shapes = () => page.evaluate(() => document.querySelectorAll('.bon-art svg rect, .bon-art svg ellipse').length);
 const handles = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-handle').length);
 
 check('빈 판에서 시작한다', (await shapes()) === 0, String(await shapes()));
 
-/** 판 위 상대 위치를 화면 좌표로. 판 밖을 누르면 「아무 일도 안 일어남」이 고장으로 잘못 읽힌다. */
+/** 판 위 상대 위치를 화면 좌표로. 판 밖을 누르면 아무 일도 안 일어남이 고장으로 잘못 읽힌다. */
 const stage = await page.locator('.bon-stage').boundingBox();
 const at = (fx, fy) => ({ x: stage.x + stage.width * fx, y: stage.y + stage.height * fy });
 
@@ -160,7 +160,7 @@ await page.mouse.move(r1.x, r1.y);
 await page.mouse.down();
 await page.mouse.move(r2.x, r2.y, { steps: 6 });
 await page.mouse.up();
-/* 재우지 말고 **셈이 멎을 때까지** — 바쁜 기계에서는 200ms 안에 겹 셈이 안 붙어 옛 값을 읽는다. */
+/* 재우지 말고 **셈이 멎을 때까지**. 바쁜 기계에서는 200ms 안에 겹 셈이 안 붙어 옛 값을 읽는다. */
 const counts = await untilSettled(page, () => page.evaluate(() => [...document.querySelectorAll('.bon-layers .bon-layer-count')].map((n) => Number(n.textContent))));
 check('새 도형은 고른 겹에 들어간다', counts[0] === 1, JSON.stringify(counts));
 
@@ -182,12 +182,12 @@ check('아래에 합치면 겹이 줄고 그림은 그대로', (await layerRows(
 
 // ── 9-slice ───────────────────────────────
 await page.keyboard.press('s');
-/* 선 넷이 **생길 때까지** 기다린다 — 무엇을 기다리는지 아는 자리다. */
+/* 선 넷이 **생길 때까지** 기다린다. 무엇을 기다리는지 아는 자리다. */
 await untilTrue(page, () => document.querySelectorAll('.bon-guides .bon-slice').length === 4, { max: 3000 });
 const sliceLines = () => page.evaluate(() => document.querySelectorAll('.bon-guides .bon-slice').length);
 check('9-slice 를 켜면 선 넷이 뜬다', (await sliceLines()) === 4, String(await sliceLines()));
 
-// 왼쪽 선을 잡아 오른쪽으로 끈다 — 선이 실제로 움직여야 한다
+// 왼쪽 선을 잡아 오른쪽으로 끈다. 선이 실제로 움직여야 한다
 const lineX = () => page.evaluate(() => {
   const d = document.querySelector('.bon-guides .bon-slice').getAttribute('d');
   return Number(d.match(/M([\d.]+)/)[1]);
@@ -212,7 +212,7 @@ await page.keyboard.press('l');
 await page.waitForTimeout(100);
 const paths = () => page.evaluate(() => document.querySelectorAll('.bon-art svg path').length);
 const p0 = at(0.15, 0.15);
-const p1 = at(0.6, 0.15);   // 곧은 가로선 — 높이 0 이라 「크기 0」 판정에 걸리면 안 된다
+const p1 = at(0.6, 0.15);   // 곧은 가로선. 높이 0 이라 크기 0 판정에 걸리면 안 된다
 await page.mouse.move(p0.x, p0.y);
 await page.mouse.down();
 await page.mouse.move(p1.x, p1.y, { steps: 6 });
@@ -220,7 +220,7 @@ await page.mouse.up();
 await page.waitForTimeout(200);
 check('곧은 가로선이 살아남는다', (await paths()) === 1, String(await paths()));
 
-// 그 선을 끌어서 옮긴다 — 경로는 네모로 못 옮기므로 따로 민다
+// 그 선을 끌어서 옮긴다. 경로는 네모로 못 옮기므로 따로 민다
 await page.keyboard.press('v');
 await page.waitForTimeout(100);
 const lineMid = at(0.375, 0.15);
@@ -263,7 +263,7 @@ await page.evaluate(() => { const s = document.querySelector('.bon-shelf'); if (
 
 
 // ── 정렬 ──────────────────────────────────
-// 선반이 열린 채면 판을 눌러도 도형이 안 생긴다(선반이 위를 덮는다) — 먼저 확실히 닫는다.
+// 선반이 열린 채면 판을 눌러도 도형이 안 생긴다(선반이 위를 덮는다). 먼저 확실히 닫는다.
 await page.evaluate(() => { const shelf = document.querySelector('.bon-shelf'); if (shelf) shelf.hidden = true; });
 await page.keyboard.press('r');
 const a1 = at(0.1, 0.1);
@@ -298,7 +298,7 @@ await page.waitForTimeout(200);
 box = await readBox();
 check('여백 8 로 꽉 채운다', box.x === 8 && box.w === docW - 16, JSON.stringify(box));
 
-// 되돌리면 고른 것이 풀려 오른쪽 패널이 빈다 — 그림 쪽에서 확인한다.
+// 되돌리면 고른 것이 풀려 오른쪽 패널이 빈다. 그림 쪽에서 확인한다.
 const lastRectWidth = () => page.evaluate(() => {
   const rects = [...document.querySelectorAll('.bon-art svg rect')];
   return rects.length ? Number(rects[rects.length - 1].getAttribute('width')) : -1;
@@ -327,7 +327,7 @@ const dLen = await page.evaluate(() => {
 });
 check('점 셋이면 이음선이 둘', dLen === 2, String(dLen));
 
-// Enter 로 마치기 — 열린 채로
+// Enter 로 마치기. 열린 채로
 await page.keyboard.press('Enter');
 await page.waitForTimeout(200);
 check('Enter 로 마치면 도형이 남는다', (await pathCount()) === beforePen + 1, String(await pathCount()));
@@ -342,7 +342,7 @@ await page.locator('.bon-bar [data-act="undo"]').click();
 await page.waitForTimeout(200);
 check('되돌리기 한 번에 통째로 사라진다', (await pathCount()) === beforePen, String(await pathCount()));
 
-// Esc 취소 — 짓던 것이 남지 않는다
+// Esc 취소. 짓던 것이 남지 않는다
 await page.keyboard.press('p');
 for (const [fx, fy] of [[0.7, 0.3], [0.8, 0.4]]) {
   const pt = at(fx, fy);
@@ -407,5 +407,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기 · 고르기 · 옮기기 · 숫자 반영 · 되돌리기 · 안내선 분리 · 레이어 · 9-slice · 선 · 펜 · 시작점 · 정렬 · 점 고치기 · 선반');
+console.log(problems.length ? `\n[smoke-bon] 실패 ${problems.length}건` : '\n[smoke-bon] ✓ 그리기, 고르기, 옮기기, 숫자 반영, 되돌리기, 안내선 분리, 레이어, 9-slice, 선, 펜, 시작점, 정렬, 점 고치기, 선반');
 process.exit(problems.length ? 1 : 0);

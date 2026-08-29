@@ -1,5 +1,5 @@
 /**
- * PC 올리기 — 파일을 청크 단위로 읽어 바로 store.put 한다.
+ * PC 올리기. 파일을 청크 단위로 읽어 바로 store.put 한다.
  * 디스크에 암호문 통째 사본을 만들지 않는다. 해시는 node:crypto (브라우저 올리기 없음).
  */
 import { createHash } from 'node:crypto';

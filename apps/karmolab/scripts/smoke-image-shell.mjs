@@ -1,8 +1,8 @@
 /**
- * 이미지 껍데기 — 사진 하나로 여러 일을 하는가 (TASK-KL-261).
+ * 이미지 껍데기. 사진 하나로 여러 일을 하는가 (TASK-KL-261).
  *
- * PDF 와 **같은 껍데기**(`shared/material-shell`)를 쓴다. 그래서 여기서 볼 것은 「같은 껍데기가
- * 다른 재료에서도 도는가」다: 사진을 한 번 올리면 할 일을 옮겨도 따라가는가, 결과를 이어받는가.
+ * PDF 와 **같은 껍데기**(`shared/material-shell`)를 쓴다. 그래서 여기서 볼 것은 같은 껍데기가
+ * 다른 재료에서도 도는가다: 사진을 한 번 올리면 할 일을 옮겨도 따라가는가, 결과를 이어받는가.
  * 도구 열셋은 손대지 않았으므로, 사진이 그쪽 칸에 실제로 들어갔는지도 함께 본다.
  *
  * 사용: node scripts/smoke-image-shell.mjs
@@ -24,7 +24,7 @@ const check = (ok, why) => {
   }
 };
 
-/** 3×2 PNG — 라이브러리 없이 손으로 짠다(검사가 남의 파일에 기대지 않게). */
+/** 3×2 PNG. 라이브러리 없이 손으로 짠다(검사가 남의 파일에 기대지 않게). */
 function tinyPng() {
   const crc = (buf) => {
     let c = ~0;
@@ -66,13 +66,13 @@ await page.waitForSelector('#pfDrop', { timeout: 20000 });
 
 /* 아직 안 보이는 것도 잰다 (KL-283) */
 check(!(await page.locator('#pfFileBar').isVisible()), '사진을 올리기 전엔 파일 줄이 안 보인다');
-check(!(await page.locator('#pfChain').isVisible()), '결과가 없으면 「이어서」 줄도 안 보인다');
+check(!(await page.locator('#pfChain').isVisible()), '결과가 없으면 이어서 줄도 안 보인다');
 
-/* ① 탭 줄이 없다 — 할 일은 격자로 */
+/* ① 탭 줄이 없다. 할 일은 격자로 */
 const tabs = await page.locator('.tool-page.active .tool-tabs button, .tool-page.active [role=tab]').count();
 check(tabs <= 1, `할 일이 탭 줄로 늘어서 있으면 안 된다 (지금 ${tabs}개)`);
-/* 수로 자르지 않는다 (2026-08-16) — 도구가 늘 때마다 이 줄이 빨개졌고 그건 「깨졌다」가
-   아니라 「늘었다」였다. 모양을 본다: 이름이 붙어 있고 · 겹치지 않고 · 갈래마다 하나는 있다. */
+/* 수로 자르지 않는다 (2026-08-16). 도구가 늘 때마다 이 줄이 빨개졌고 그건 깨졌다가
+   아니라 늘었다였다. 모양을 본다: 이름이 붙어 있고, 겹치지 않고, 갈래마다 하나는 있다. */
 const jobIds = await page.locator('.pf-job').evaluateAll((bs) => bs.map((b) => b.dataset.job || ''));
 const perGroup = await page.locator('.pf-group').evaluateAll((gs) => gs.map((g) => g.querySelectorAll('.pf-job').length));
 check(jobIds.length > 0 && jobIds.every(Boolean), `카드마다 일 이름이 붙어 있다 (${jobIds.length}개)`);
@@ -81,37 +81,37 @@ check(perGroup.length > 0 && perGroup.every((n) => n > 0), `갈래마다 카드�
 const groups = await page.locator('.pf-group-label').count();
 check(groups === 5, `갈래는 다섯 (지금 ${groups})`);
 
-/* ② 사진을 올리면 이름·치수·그림이 뜬다 */
+/* ② 사진을 올리면 이름, 치수, 그림이 뜬다 */
 await page.setInputFiles('#pfFile', { name: '사진.png', mimeType: 'image/png', buffer: png });
 await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
 check((await page.locator('#pfName').innerText()) === '사진.png', '사진 이름이 위에 뜬다');
 await page.waitForFunction(() => !!document.querySelector('#imShot img'), undefined, { timeout: 15000 }).catch(() => {});
 check((await page.locator('#imShot img').count()) === 1, '사진이 그려진다');
 const meta = await page.locator('#pfMeta').innerText();
-check(/3×2/.test(meta), `치수를 읽어야 한다 — 이미지 판단의 기준 (지금 「${meta}」)`);
+check(/3×2/.test(meta), `치수를 읽어야 한다. 이미지 판단의 기준 (지금 ${meta})`);
 
 /* ③ 눌러서 크게 본다 */
 await page.click('#imShot');
 await page.waitForSelector('#imZoom img', { timeout: 10000 }).catch(() => {});
 check((await page.locator('#imZoom img').count()) === 1, '누르면 크게 뜬다');
 await page.click('#imZoom');
-/* 재우지 말고 **닫힐 때까지** — 무엇을 기다리는지 아는 자리다(느린 기계에서 200ms 는 모자란다). */
+/* 재우지 말고 **닫힐 때까지**. 무엇을 기다리는지 아는 자리다(느린 기계에서 200ms 는 모자란다). */
 await untilTrue(page, () => !document.querySelector('#imZoom'), { max: 3000 });
 check((await page.locator('#imZoom').count()) === 0, '다시 누르면 닫힌다');
 
-/* ④ 할 일을 고르면 그 자리에서 열린다 — 사진은 안 사라진다 */
+/* ④ 할 일을 고르면 그 자리에서 열린다. 사진은 안 사라진다 */
 await page.locator('.pf-job[data-job="imgresize"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
 check(!(await page.locator('#pfJobs').isVisible()), '고르면 격자는 접힌다');
 check(await page.locator('#pfFileBar').isVisible(), '**사진 줄은 그대로 남는다**');
 
-/* ⑤ 그리고 그 도구가 사진을 이미 받았다 — 다시 올릴 일이 없다 */
+/* ⑤ 그리고 그 도구가 사진을 이미 받았다. 다시 올릴 일이 없다 */
 await page.waitForTimeout(900);
 const got = await page.evaluate(() => {
   const input = document.querySelector('#pfHost input[type=file]');
   return input && input.files && input.files.length ? input.files[0].name : '';
 });
-check(got === '사진.png', `할 일 쪽에도 사진이 들어가 있어야 한다 (지금 「${got}」)`);
+check(got === '사진.png', `할 일 쪽에도 사진이 들어가 있어야 한다 (지금 ${got})`);
 
 /* ⑥ 돌아가서 다른 할 일을 골라도 같다 */
 await page.click('#pfBack');
@@ -123,9 +123,9 @@ const got2 = await page.evaluate(() => {
   const input = document.querySelector('#pfHost input[type=file]');
   return input && input.files && input.files.length ? input.files[0].name : '';
 });
-check(got2 === '사진.png', `다른 할 일로 옮겨도 사진이 따라간다 (지금 「${got2}」)`);
+check(got2 === '사진.png', `다른 할 일로 옮겨도 사진이 따라간다 (지금 ${got2})`);
 
-/* ⑦ 결과 이어받기 — 도구가 내놓은 것이 다음 판의 입력이 된다 */
+/* ⑦ 결과 이어받기. 도구가 내놓은 것이 다음 판의 입력이 된다 */
 await page.evaluate(() => {
   const blob = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' });
   Toolbox.offerResult({ blob, name: '사진-작게.png', from: 'imgresize' });
@@ -136,20 +136,20 @@ await page.evaluate(() => {
   );
 });
 await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
-check(await page.locator('#pfChain').isVisible(), '결과가 나오면 「이어서」 줄이 뜬다');
+check(await page.locator('#pfChain').isVisible(), '결과가 나오면 이어서 줄이 뜬다');
 
-/* ⑦-나 **전/후 손잡이** (TASK-KL-285 — Squoosh)
- * 「이어받아도 되나」를 눈으로 재는 자리다. 결과가 나온 순간에만 뜬다. */
+/* ⑦-나 **전/후 손잡이** (TASK-KL-285. Squoosh)
+ * 이어받아도 되나를 눈으로 재는 자리다. 결과가 나온 순간에만 뜬다. */
 await page.waitForSelector('#imCmp', { timeout: 10000 }).catch(() => {});
 check((await page.locator('#imCmp').count()) === 1, '결과가 나오면 전/후로 겹쳐 보여 준다');
-check((await page.locator('#imCmp img').count()) === 2, '두 장이 겹쳐 있다(전·후)');
+check((await page.locator('#imCmp img').count()) === 2, '두 장이 겹쳐 있다(전, 후)');
 const tags = await page.locator('#imCmp .im-cmp-tag').allInnerTexts();
-check(tags.length === 2 && /전|before/.test(tags[0]), `전·후 표가 붙는다 (지금 ${JSON.stringify(tags)})`);
+check(tags.length === 2 && /전|before/.test(tags[0]), `전, 후 표가 붙는다 (지금 ${JSON.stringify(tags)})`);
 
 /* 손잡이를 왼쪽으로 옮기면 잘리는 폭이 실제로 줄어든다 */
 const box = await page.locator('#imCmp').boundingBox();
 await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
-/* 잘리는 폭이 **멎을 때까지** — 끌기 반응이 늦으면 옛 폭을 읽는다. */
+/* 잘리는 폭이 **멎을 때까지**. 끌기 반응이 늦으면 옛 폭을 읽는다. */
 const narrow = await untilSettled(page, () => page.locator('#imCmpClip').evaluate((e) => e.style.width));
 await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
 await page.waitForTimeout(150);
@@ -184,7 +184,7 @@ await page.click('#pfChainUse');
 await page.waitForTimeout(500);
 check(
   (await page.locator('#pfName').innerText()) === '사진-작게.png',
-  '누르면 **그 결과가 손에 든 사진이 된다** — 다시 안 올린다'
+  '누르면 **그 결과가 손에 든 사진이 된다**. 다시 안 올린다'
 );
 check(await page.locator('#pfJobs').isVisible(), '이어서 다음 할 일을 고르는 자리로 돌아온다');
 

@@ -1,10 +1,10 @@
 /**
  * 비밀번호 도구가 제대로 재고 만드는지 확인한다 (TASK-KL-088)
  *
- * 「강함」이라고 말해 주기는 쉽다. 틀려도 아무도 모른다 — 그래서 다음을 실제로 잰다:
- *  ① 약한 것을 약하다고 하는가 (password123 이 「강함」이면 그 도구는 해롭다)
+ * 강함이라고 말해 주기는 쉽다. 틀려도 아무도 모른다. 그래서 다음을 실제로 잰다:
+ *  ① 약한 것을 약하다고 하는가 (password123 이 강함이면 그 도구는 해롭다)
  *  ② 긴 무작위를 강하다고 하는가
- *  ③ 만든 비밀번호가 **매번 다르고** 고른 길이·글자 종류를 지키는가
+ *  ③ 만든 비밀번호가 **매번 다르고** 고른 길이, 글자 종류를 지키는가
  *  ④ 헷갈리는 글자 빼기가 실제로 빠지는가
  *
  * 사용: node scripts/test-passgen.mjs
@@ -80,7 +80,7 @@ const result = await page.evaluate(async () => {
       weak.why.includes('흔한 낱말') &&
       weak2.why.includes('자판') &&
       (strong.label.includes('강함') || strong.label.includes('아주 강함')),
-    why: `길이 ${lengthOk} · 매번 다름 ${differs} · 헷갈리는 글자 없음 ${noAmbig} · password123 → ${weak.label.slice(0, 12)} · qwerty2024 약점 [${weak2.why.slice(0, 20)}] · 긴 무작위 → ${strong.label.slice(0, 14)}`
+    why: `길이 ${lengthOk}, 매번 다름 ${differs}, 헷갈리는 글자 없음 ${noAmbig}, password123 → ${weak.label.slice(0, 12)}, qwerty2024 약점 [${weak2.why.slice(0, 20)}], 긴 무작위 → ${strong.label.slice(0, 14)}`
   };
 });
 

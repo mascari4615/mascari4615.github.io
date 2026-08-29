@@ -1,14 +1,14 @@
 /**
  * 파일 확장자표 (TASK-KL-088)
  *
- * 「이 파일 뭐로 열지」 가 진짜 질문이라 확장자 이름만으로는 답이 안 된다.
+ * 이 파일 뭐로 열지 가 진짜 질문이라 확장자 이름만으로는 답이 안 된다.
  * 그래서 항목마다 **무엇이고 무엇으로 여는지**를 붙인다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /** [확장자, 이름, 설명·여는 방법] */
-  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /** [확장자, 이름, 설명, 여는 방법] */
+  /* 표는 **쓸 때** 짓는다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const ft = (): Record<string, Array<[string, string, string]>> => ({
     image: [
       ['.jpg', t('filetype.t01'), t('filetype.t02')],
@@ -82,7 +82,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'filetype',
     title: t('widgets.filetype.title', undefined, "파일 확장자표"),
     category: 'ref',
-    desc: t('widgets-desc.filetype.desc', undefined, "확장자가 무슨 파일이고 무엇으로 여는지 찾아봅니다. 이미지·문서·압축·코드 등"),
+    desc: t('widgets-desc.filetype.desc', undefined, "확장자가 무슨 파일이고 무엇으로 여는지 찾아봅니다. 이미지, 문서, 압축, 코드 등"),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 15h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [

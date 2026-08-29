@@ -2,9 +2,9 @@
  * 도구별 공유 카드 이미지 생성 (TASK-KL-089)
  *
  * 왜 필요한가: 도구 상세 페이지는 `og:image` 로 앱 파비콘(.ico)을 가리키고 있었다.
- * 대부분의 메신저·SNS 는 .ico 를 카드 이미지로 쓰지 않으므로, 64개 도구 링크를 어디에 붙여도
- * 카드가 **그림 없이** 뜬다 — 검색 밖 유입(공유·커뮤니티)의 첫 관문이 닫혀 있던 셈이다.
- * → 도구마다 1200×630 카드를 찍어 제목·설명·아이콘이 링크에 그대로 실리게 한다.
+ * 대부분의 메신저, SNS 는 .ico 를 카드 이미지로 쓰지 않으므로, 64개 도구 링크를 어디에 붙여도
+ * 카드가 **그림 없이** 뜬다. 검색 밖 유입(공유, 커뮤니티)의 첫 관문이 닫혀 있던 셈이다.
+ * → 도구마다 1200×630 카드를 찍어 제목, 설명, 아이콘이 링크에 그대로 실리게 한다.
  *
  * 왜 커밋하는가: 배포 러너(ubuntu)에는 한글 폰트가 없어 거기서 그리면 글자가 두부(□)가 된다.
  * 폰트가 있는 개발 머신에서 찍어 산출물을 저장소에 넣고, 배포는 복사만 한다.
@@ -37,7 +37,7 @@ const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), '
 
 const lazyMetaPath = path.join(root, 'js/widgets-lazy-meta.js');
 if (!fs.existsSync(lazyMetaPath)) {
-  console.error('[gen-og-images] js/widgets-lazy-meta.js 없음 — `npm run build` 를 먼저 돌려야 합니다.');
+  console.error('[gen-og-images] js/widgets-lazy-meta.js 없음. `npm run build` 를 먼저 돌려야 합니다.');
   process.exit(1);
 }
 const fakeWindow = {};
@@ -45,17 +45,17 @@ new Function('window', fs.readFileSync(lazyMetaPath, 'utf8'))(fakeWindow);
 const widgetById = Object.fromEntries((fakeWindow.KARMOLAB_LAZY_META || []).map((w) => [w.id, w]));
 
 /** 도구가 아닌 카드들. 문구는 앱이 쓰는 것과 같은 정본이며, 도구 수처럼 자주 바뀌는 값은
- *  일부러 안 넣는다 — 넣으면 도구가 하나 늘 때마다 카드를 다시 그려야 한다. */
+ *  일부러 안 넣는다. 넣으면 도구가 하나 늘 때마다 카드를 다시 그려야 한다. */
 const SPECIAL_CARDS = {
   hub: {
     title: '도구 전체',
-    lead: '텍스트 · 이미지 · 계산 · 개발 — 한 곳에서',
+    lead: '텍스트, 이미지, 계산, 개발. 한 곳에서',
     icon: '<path d="M4 6h6v6H4zM14 6h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/>'
   },
   /* 놀이 화면들 (TASK-KL-195). 여기 손으로 적는 것은 **놀이가 아닌 두 장**뿐이고,
-     놀이는 `data/games.json` 에서 그대로 읽는다(수를 여기 적지 않는다 — 늘어난다) — 목록을 두 벌 적으면 그날부터 갈라진다. */
-  play: { title: '놀이터', lead: '하루 한 판씩 — 오늘의 판 다섯', emoji: '🎲' },
-  today: { title: '오늘의 판', lead: '매일 자정에 새로 — 다섯 판을 끝내면 연속일이 쌓인다', emoji: '🔥' }
+     놀이는 `data/games.json` 에서 그대로 읽는다(수를 여기 적지 않는다. 늘어난다). 목록을 두 벌 적으면 그날부터 갈라진다. */
+  play: { title: '놀이터', lead: '하루 한 판씩. 오늘의 판 다섯', emoji: '🎲' },
+  today: { title: '오늘의 판', lead: '매일 자정에 새로. 다섯 판을 끝내면 연속일이 쌓인다', emoji: '🔥' }
 };
 
 /* 놀이 카드는 놀이 목록에서 파생한다 (`apps/play/games.json` → 이 앱의 data/ 로 실려 온다). */
@@ -67,9 +67,9 @@ for (const game of games) {
 /**
  * 오락실 51장 (TASK-KL-264 D1).
  *
- * 방 링크를 디스코드·카카오에 붙였을 때 **무슨 놀이인지가 그림으로** 보여야 한다. 「7CCMN」만
+ * 방 링크를 디스코드, 카카오에 붙였을 때 **무슨 놀이인지가 그림으로** 보여야 한다. 7CCMN만
  * 뜨는 링크는 아무도 안 누른다. 방 코드는 판마다 달라 미리 못 찍지만 **놀이는 51개로 정해져
- * 있으므로** 여기서 찍어 두고, 방 코드는 카드의 *글자*(제목)에 얹는다 — 그림 51장으로 끝난다.
+ * 있으므로** 여기서 찍어 두고, 방 코드는 카드의 *글자*(제목)에 얹는다. 그림 51장으로 끝난다.
  *
  * 목록을 손으로 안 적는다. 이름은 말 묶음(`i18n/ko/arcade.json`), 그림은 명부(`catalog.ts`)가
  * 정본이다. 게임을 하나 넣으면 카드도 저절로 하나 는다.
@@ -78,7 +78,7 @@ const arcadeIds = [];
 {
   /* **명부를 글자로 긁지 않는다.** 처음엔 `catalog.ts` 를 정규식으로 훑어 그림을 순서대로
      가져왔는데, 말 묶음의 열쇠 순서와 명부 순서가 달라 아이콘이 통째로 어긋났다.
-     명부를 그대로 불러 쓰면 그런 어긋남이 아예 없다 — 다른 검사들이 하는 방식과 같다. */
+     명부를 그대로 불러 쓰면 그런 어긋남이 아예 없다. 다른 검사들이 하는 방식과 같다. */
   const { build } = await import('esbuild');
   const tmp = path.join(os.tmpdir(), `og-arcade-${process.pid}.mjs`);
   await build({ entryPoints: ['src/widgets/arcade/index.ts'], bundle: true, format: 'esm', platform: 'node', outfile: tmp, logLevel: 'silent' });
@@ -100,23 +100,23 @@ const arcadeIds = [];
 /**
  * 화풍은 **무엇의 카드인가**로 갈린다 (TASK-KL-195, 사용자 선택 = 셋 다 쓰기).
  *
- * - `lab` (어두운 판 + 계측 격자) = 도구. 「믿고 쓸 것」 쪽 얼굴.
- * - `aurora` (첫 화면의 보라·청록 번짐 + 별) = 놀이·오늘의 판·첫 화면. 「세계」 쪽 얼굴.
+ * - `lab` (어두운 판 + 계측 격자) = 도구. 믿고 쓸 것 쪽 얼굴.
+ * - `aurora` (첫 화면의 보라, 청록 번짐 + 별) = 놀이, 오늘의 판, 첫 화면. 세계 쪽 얼굴.
  * - `poster` (밝은 바탕 + 거대 세리프) = 자랑 카드. **서버가 그린다**(내 숫자가 박히므로
- *   미리 찍어 둘 수 없다) — 그래서 이 파일에는 없다. 정본 = yawnbot 의 자랑 카드 라우트.
+ *   미리 찍어 둘 수 없다). 그래서 이 파일에는 없다. 정본 = yawnbot 의 자랑 카드 라우트.
  *
  * 도구 카드를 오로라로 찍지 않는 이유: 도구 133장이 전부 같은 번짐을 쓰면 피드에서 서로
- * 구분이 안 된다. 놀이는 여덟 장뿐이라 같은 얼굴이어도 「그 세계」로 읽힌다.
+ * 구분이 안 된다. 놀이는 여덟 장뿐이라 같은 얼굴이어도 그 세계로 읽힌다.
  */
 const AURORA = new Set(['default', 'play', 'today', ...games.map((g) => g.id), ...arcadeIds]);
 const styleOf = (id) => (AURORA.has(id) ? 'aurora' : 'lab');
 
 
-/* 놀이·오늘의 판 카드도 여기 들어와야 그려진다 (TASK-KL-195). 예전에는 `hub` 만 손으로
-   적혀 있어서, 새 특별 카드를 표에 넣어도 **아무도 안 그렸다** — 넣은 사람은 넣은 줄 안다. */
+/* 놀이, 오늘의 판 카드도 여기 들어와야 그려진다 (TASK-KL-195). 예전에는 `hub` 만 손으로
+   적혀 있어서, 새 특별 카드를 표에 넣어도 **아무도 안 그렸다**. 넣은 사람은 넣은 줄 안다. */
 const ids = (argIds.length ? argIds : ['default', ...Object.keys(SPECIAL_CARDS), ...withoutRetired(Object.keys(seo))]).filter((id) => {
   if (id === 'default' || SPECIAL_CARDS[id] || (seo[id] && widgetById[id])) return true;
-  /* 작업대로 흡수된 옛 도구는 낱개 위젯이 없다 — 카드도 안 그린다(주소만 원장에 남아 있다) */
+  /* 작업대로 흡수된 옛 도구는 낱개 위젯이 없다. 카드도 안 그린다(주소만 원장에 남아 있다) */
   if (RETIRED_OPERATION_IDS.has(id)) return false;
   console.error(`[gen-og-images] 알 수 없는 도구 id: ${id}`);
   process.exit(1);
@@ -127,7 +127,7 @@ const ids = (argIds.length ? argIds : ['default', ...Object.keys(SPECIAL_CARDS),
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** 카드 한 장의 정체성 — 이 값이 그대로면 다시 그릴 이유가 없다. */
+/** 카드 한 장의 정체성. 이 값이 그대로면 다시 그릴 이유가 없다. */
 /* 카드에 그릴 글자는 앞뒤 공백을 털고 사이 공백도 하나로 모은다.
  * 안 그러면 데이터에 공백 한 칸이 늘어난 것만으로 카드가 다시 그려져, 보이는 것은 그대로인데
  * 30KB 짜리 그림이 저장소에 새로 쌓인다(실제로 그런 커밋이 있었다). */
@@ -138,14 +138,14 @@ function fingerprint(id) {
   const lead = id === 'default' ? DEFAULT_CARD.lead : SPECIAL_CARDS[id] ? SPECIAL_CARDS[id].lead : seo[id].lead;
   return crypto
     .createHash('sha1')
-    /* `v` 는 **그림이 달라지는 변경**마다 올린다 — 문구가 그대로여도 화풍을 바꾸면 옛 그림이
+    /* `v` 는 **그림이 달라지는 변경**마다 올린다. 문구가 그대로여도 화풍을 바꾸면 옛 그림이
        그대로 나간다. v3 = 화풍 둘로 갈림 (TASK-KL-195). */
     .update(JSON.stringify({ v: 3, style: styleOf(id), title: tidy(w.title), icon: w.icon, emoji: w.emoji, lead: tidy(lead) }))
     .digest('hex')
     .slice(0, 12);
 }
 
-/** 아직 자기 카드가 없는 도구가 기대는 공용 카드 — 문구는 앱이 쓰는 것과 같은 정본. */
+/** 아직 자기 카드가 없는 도구가 기대는 공용 카드. 문구는 앱이 쓰는 것과 같은 정본. */
 const DEFAULT_CARD = {
   title: '삶을 섞고 술을 바꿀 시간',
   lead: '손에 잡히는 도구들이 있는 작업실',
@@ -159,10 +159,10 @@ const FACES = `
   @font-face { font-family: 'KarmoSans'; src: url('${new URL(`file:///${path.join(root, 'fonts/sans-ko.woff2')}`).href}') format('woff2'); }
 `;
 
-/** 브랜드 글자 — 앱 머리띠와 같은 세리프. 두 화풍이 공유한다. */
+/** 브랜드 글자. 앱 머리띠와 같은 세리프. 두 화풍이 공유한다. */
 const LOGO = `Karmo<b>Lab</b>`;
 
-/** ① 실험실 격자 — 도구 카드. 계측 격자 + 왼쪽 띠. */
+/** ① 실험실 격자. 도구 카드. 계측 격자 + 왼쪽 띠. */
 function labHtml(title, lead, icon) {
   return `<style>${FACES}
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -197,7 +197,7 @@ function labHtml(title, lead, icon) {
 </div>`;
 }
 
-/** ② 오로라 — 놀이·첫 화면 카드. 첫 화면의 번짐과 별을 그대로. */
+/** ② 오로라. 놀이, 첫 화면 카드. 첫 화면의 번짐과 별을 그대로. */
 function auroraHtml(title, lead, icon, emoji, kicker) {
   const mark = emoji
     ? `<div class="emoji">${esc(emoji)}</div>`
@@ -263,9 +263,9 @@ const todo = ids.filter((id) => {
   return !(fresh && fs.existsSync(path.join(outDir, `${id}.jpg`)));
 });
 
-// `--check` = 그리지 않고 「지금 문구와 어긋난 카드」만 알려 준다 (TASK-KL-089).
+// `--check` = 그리지 않고 지금 문구와 어긋난 카드만 알려 준다 (TASK-KL-089).
 // 카드에는 제목과 소개가 그려져 있어서, 문구를 고치고 다시 안 찍으면 옛 글이 그대로 나간다.
-// 파일이 있는지만 보는 검사로는 이걸 못 잡는다 — 실제로 다섯 장이 옛 문구인 채 남아 있었다.
+// 파일이 있는지만 보는 검사로는 이걸 못 잡는다. 실제로 다섯 장이 옛 문구인 채 남아 있었다.
 // 브라우저가 필요 없는 파일 비교라 어디서든 돌릴 수 있다.
 if (check) {
   const missing = todo.filter((id) => !fs.existsSync(path.join(outDir, `${id}.jpg`)));
@@ -281,7 +281,7 @@ if (check) {
 }
 
 if (!todo.length) {
-  console.log(`[gen-og-images] 최신 상태 — ${ids.length}장 모두 그대로 (다시 그릴 것 없음)`);
+  console.log(`[gen-og-images] 최신 상태. ${ids.length}장 모두 그대로 (다시 그릴 것 없음)`);
   process.exit(0);
 }
 
@@ -305,7 +305,7 @@ for (const id of todo) {
     return p ? p.scrollHeight > p.clientHeight + 2 : false;
   });
   if (clipped) overflowed.push(id);
-  // 부드러운 그라데이션 배경이라 PNG 는 한 장에 270KB 가 나온다 — 도구 수만큼 저장소에 쌓이므로
+  // 부드러운 그라데이션 배경이라 PNG 는 한 장에 270KB 가 나온다. 도구 수만큼 저장소에 쌓이므로
   // 같은 화질에서 1/5 무게인 JPEG 로 찍는다 (카드 이미지는 투명도가 필요 없다).
   await page.screenshot({ path: path.join(outDir, `${id}.jpg`), type: 'jpeg', quality: 90 });
   manifest[id] = fingerprint(id);
@@ -315,7 +315,7 @@ await browser.close();
 
 // 사라진 도구의 카드는 남겨 두지 않는다 (죽은 링크의 그림이 계속 배포되는 것을 막는다).
 if (!argIds.length) {
-  // 도구가 아닌 카드(목록 등)도 「아는 것」에 넣어야 한다 — 안 그러면 그릴 때마다 다시 지운다.
+  // 도구가 아닌 카드(목록 등)도 아는 것에 넣어야 한다. 안 그러면 그릴 때마다 다시 지운다.
   const known = new Set(['default', ...Object.keys(SPECIAL_CARDS), ...Object.keys(seo)]);
   for (const file of fs.readdirSync(outDir)) {
     const id = file.endsWith('.jpg') ? file.slice(0, -4) : null;

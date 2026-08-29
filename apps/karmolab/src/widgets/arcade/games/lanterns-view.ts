@@ -1,7 +1,7 @@
 /**
  * 등불 잇기 화면 (TASK-KL-242)
  *
- * **내 패는 뒷면**으로, 남의 패는 앞면으로 그린다 — 이 놀이의 전부가 그 뒤집힘이다.
+ * **내 패는 뒷면**으로, 남의 패는 앞면으로 그린다. 이 놀이의 전부가 그 뒤집힘이다.
  * 남의 카드를 누르면 그 숫자를 알려 준다. 내 카드를 고르면 내거나 버린다.
  */
 import { t } from '../../../lib/i18n';
@@ -11,9 +11,9 @@ import type { LanternsState, LanternsAction } from './lanterns';
 
 const HUE = ['#ef4444', '#22c55e', '#3b82f6'];
 /**
- * **색이 이 놀이의 규칙 그 자체다** — 빨강 줄·초록 줄·파랑 줄을 따로 쌓는다. 그래서 색만으로
+ * **색이 이 놀이의 규칙 그 자체다**. 빨강 줄, 초록 줄, 파랑 줄을 따로 쌓는다. 그래서 색만으로
  * 그리면 색을 못 가르는 사람은 이 놀이를 **아예 못 한다**(적록색약은 스무 명에 하나꼴이다).
- * 색마다 모양을 같이 준다 — 모양은 아무나 읽는다. 색을 없애는 것이 아니라 **하나 더** 주는 것이다.
+ * 색마다 모양을 같이 준다. 모양은 아무나 읽는다. 색을 없애는 것이 아니라 **하나 더** 주는 것이다.
  */
 const MARK = ['◆', '▲', '●'];
 
@@ -43,16 +43,16 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
         .map(
           (n, c) =>
             '<span class="ac-hbp" style="border-color:' + HUE[c] + ';color:' + HUE[c] + '">' +
-            MARK[c] + (n || '·') +
+            MARK[c] + (n || ', ') +
             '</span>'
         )
         .join('');
 
       metaEl.textContent =
         t('arcade.lanterns.hints', { n: String(s.hints) }) +
-        ' · ' +
+        ', ' +
         t('arcade.lanterns.fuses', { n: String(s.fuses) }) +
-        ' · ' +
+        ', ' +
         t('arcade.lanterns.deck', { n: String(s.deck.length) });
 
       othersEl.innerHTML = v.seats
@@ -64,8 +64,8 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
               return cardMark(MARK[c.color] + c.rank, {
                 can: myTurn && s.hints > 0,
                 hue: HUE[c.color],
-                /* 이미 일러 준 패에는 표를 남긴다 — 같은 말을 두 번 하지 않게. */
-                note: told && (told.color || told.rank) ? '•' : undefined,
+                /* 이미 일러 준 패에는 표를 남긴다. 같은 말을 두 번 하지 않게. */
+                note: told && (told.color || told.rank) ? '-' : undefined,
                 data: { o: i, j }
               });
             })
@@ -79,7 +79,7 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
         (s.hands[mySeat] ?? [])
           .map((_, j) => {
             const told = s.told[mySeat]?.[j];
-            /* 내 패는 언제나 뒷면 — 들은 것이 있는지는 읽어 주는 이름으로만 갈린다. */
+            /* 내 패는 언제나 뒷면. 들은 것이 있는지는 읽어 주는 이름으로만 갈린다. */
             return cardBack({
               can: myTurn,
               pick: j === picked,
@@ -90,7 +90,7 @@ export const lanternsView: GameView<LanternsState, LanternsAction> = {
           .join('') +
         '</div>';
 
-      /* 누를 수 있는지는 종이를 만들 때 정해졌다(`can`) — 여기서는 무슨 일이 일어나는지만. */
+      /* 누를 수 있는지는 종이를 만들 때 정해졌다(`can`). 여기서는 무슨 일이 일어나는지만. */
       mineEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
         b.onclick = () => {
           const i = Number(b.dataset.i);

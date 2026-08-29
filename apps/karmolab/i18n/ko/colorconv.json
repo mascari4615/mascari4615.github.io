@@ -5,7 +5,7 @@
   "colorconv.btn.random": "랜덤",
   "colorconv.label.formats": "표기",
   "colorconv.label.contrast": "가독성 (WCAG 대비비)",
-  "colorconv.label.harmony": "조화 팔레트 — 클릭하면 그 색으로 이동",
+  "colorconv.label.harmony": "조화 팔레트. 클릭하면 그 색으로 이동",
   "colorconv.label.shades": "밝기 단계",
   "colorconv.btn.copy": "복사",
   "colorconv.tab": "색상",

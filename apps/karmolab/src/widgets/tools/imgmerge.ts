@@ -1,7 +1,7 @@
 /**
  * 사진 이어 붙이기 (TASK-KL-088)
  *
- * 대화 캡처 세 장, 영수증 두 장, 긴 페이지를 나눠 찍은 것 — 한 장으로 합쳐야 보내기 편한데
+ * 대화 캡처 세 장, 영수증 두 장, 긴 페이지를 나눠 찍은 것. 한 장으로 합쳐야 보내기 편한데
  * 그러자고 편집 프로그램을 켜거나 사진을 낯선 사이트에 올린다.
  *
  * 신경 쓴 곳: 폭이 다른 캡처를 그냥 붙이면 **들쭉날쭉한 계단**이 된다. 그래서 기준 폭을 정해
@@ -102,11 +102,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           let shots: Shot[] = [];
           let made: Blob | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 이어 붙인 크기를 미리 계산한다 — 만들기 전에 「너무 큰가」를 알 수 있어야 한다. */
+          /** 이어 붙인 크기를 미리 계산한다. 만들기 전에 너무 큰가를 알 수 있어야 한다. */
           function plan(): { w: number; h: number; base: number } {
             const dir = $<HTMLSelectElement>('#imDir').value;
             const fit = $<HTMLSelectElement>('#imFit').value;
@@ -151,7 +151,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             stats.innerHTML =
               statCell(t('imgmerge.stat.size'), `${w}×${h}`, true) +
               statCell(t('imgmerge.stat.count'), t('imgmerge.value.shots', { n: shots.length })) +
-              // 브라우저가 감당 못 하는 크기가 있다 — 미리 알려 준다
+              // 브라우저가 감당 못 하는 크기가 있다. 미리 알려 준다
               statCell(t('imgmerge.stat.state'), w * h> 60_000_000 ? t('imgmerge.verdict.tooBig') : t('imgmerge.verdict.ok'));
           }
 
@@ -177,7 +177,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 const scale = base ? base / iw : 1;
                 const dw = Math.round(iw * scale);
                 const dh = Math.round(ih * scale);
-                // 폭이 다르면 가운데로 — 왼쪽에 붙이면 계단처럼 보인다
+                // 폭이 다르면 가운데로. 왼쪽에 붙이면 계단처럼 보인다
                 ctx.drawImage(s.img, Math.round((w - dw) / 2), at, dw, dh);
                 at += dh + gap;
               } else {
@@ -194,7 +194,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           async function add(list: FileList | File[]): Promise<void> {
             for (const f of Array.from(list)) {
               if (!f.type.startsWith('image/')) continue;
-              /* 공용 `loadImage` 로 (TASK-KL-280) — 주소 만들고 거두는 자리를 한 곳으로. */
+              /* 공용 `loadImage` 로 (TASK-KL-280). 주소 만들고 거두는 자리를 한 곳으로. */
               try {
                 const img = await loadImage(f);
                 if (img.naturalWidth) shots.push({ name: f.name, img });
@@ -208,7 +208,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('imgmerge', (f: File) => void add([f]));
           }
@@ -236,7 +236,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             // 공용 한 자리(`shared/image.encode`)
             void encode(cv, 'png').then((blob) => {
               made = blob;
-              attachImage($<HTMLImageElement>('#imPreview'), blob); // 공용 — 앞 주소를 거두고 물린다
+              attachImage($<HTMLImageElement>('#imPreview'), blob); // 공용. 앞 주소를 거두고 물린다
               $<HTMLElement>('#imResult').style.display = '';
               const aName = t('imgmerge.file.name');
               download(blob, aName);
@@ -249,7 +249,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }),
             'ok'
           );
-              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'imgmerge' });
               Toolbox.trackUse?.('merge');
             });

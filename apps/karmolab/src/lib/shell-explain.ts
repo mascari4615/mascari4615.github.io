@@ -1,5 +1,5 @@
 /**
- * 명령줄 뜯어보기 — 자르는 일 (TASK-KL-250)
+ * 명령줄 뜯어보기. 자르는 일 (TASK-KL-250)
  *
  * 이 조각은 **화면을 모른다.** 줄 하나를 받아 조각으로 자르고 뜻을 붙일 뿐이다.
  *
@@ -10,7 +10,7 @@
  * 그래서 ① 따옴표를 살려 자르고 ② 이음말(`|` `&&` `;`)로 명령을 나누고
  * ③ 붙은 짧은 옵션을 펴고 ④ 그다음에 사전을 본다.
  *
- * 바깥으로 아무것도 안 보낸다 — 명령줄에는 서버 주소·사용자 이름·토큰이 섞여 있다.
+ * 바깥으로 아무것도 안 보낸다. 명령줄에는 서버 주소, 사용자 이름, 토큰이 섞여 있다.
  */
 import { DANGERS, lookupCommand, lookupFlag, type CommandDoc } from './shell-dict';
 
@@ -22,14 +22,14 @@ export interface Part {
   kind: PartKind;
   /** 한 줄 설명. 모르면 빈 문자열 */
   what: string;
-  /** 이 조각이 속한 명령 (`git`, `tar` …) */
+  /** 이 조각이 속한 명령 (`git`, `tar` ...) */
   of?: string;
   /** 되돌릴 수 없거나 위험한 것 */
   danger?: string;
 }
 
 export interface Segment {
-  /** 이 도막을 앞 도막과 잇는 말 (`|`, `&&`, `;`) — 첫 도막은 없다 */
+  /** 이 도막을 앞 도막과 잇는 말 (`|`, `&&`, `;`). 첫 도막은 없다 */
   join?: string;
   /** 이음말이 무슨 뜻인가 */
   joinWhat?: string;
@@ -45,7 +45,7 @@ export interface Segment {
 /**
  * 따옴표와 이스케이프를 살려 낱말로 자른다.
  *
- * 따옴표 안의 공백은 자르지 않고, 따옴표 자체는 **지우지 않는다** — 화면에 원래 모습
+ * 따옴표 안의 공백은 자르지 않고, 따옴표 자체는 **지우지 않는다**. 화면에 원래 모습
  * 그대로 보여야 사람이 자기가 붙여넣은 줄을 알아본다.
  */
 export function tokenize(line: string): string[] {
@@ -74,7 +74,7 @@ export function tokenize(line: string): string[] {
       cur = '';
       continue;
     }
-    /* 이음말과 방향 바꾸기는 붙어 있어도 낱말이다 — `ls|grep` 처럼 띄어쓰기 없이 쓴다. */
+    /* 이음말과 방향 바꾸기는 붙어 있어도 낱말이다. `ls|grep` 처럼 띄어쓰기 없이 쓴다. */
     const two = line.slice(i, i + 2);
     if (two === '&&' || two === '||' || two === '>>' || two === '2>') {
       if (cur) out.push(cur);
@@ -112,8 +112,8 @@ const REDIRECTS: Record<string, string> = {
 /**
  * 붙어 있는 짧은 옵션을 편다. `-xzvf` → `-x -z -v -f`.
  *
- * 다만 **긴 옵션(`--all`)과 음수·경로처럼 보이는 것은 건드리지 않는다** — `-1` 은 옵션이지만
- * `-2.5` 는 값이고, `--` 는 「여기부터는 옵션이 아니다」라는 뜻이다.
+ * 다만 **긴 옵션(`--all`)과 음수, 경로처럼 보이는 것은 건드리지 않는다**. `-1` 은 옵션이지만
+ * `-2.5` 는 값이고, `--` 는 여기부터는 옵션이 아니다라는 뜻이다.
  */
 export function expandFlags(token: string): string[] {
   if (!token.startsWith('-') || token.startsWith('--') || token === '-' || token === '--') return [token];
@@ -164,7 +164,7 @@ function explainSegment(tokens: string[], join?: string): Segment {
       continue;
     }
 
-    /* 첫 낱말이 하위 명령인 경우(`git commit`, `docker run`) — 사전이 그렇게 적어 두었을 때만. */
+    /* 첫 낱말이 하위 명령인 경우(`git commit`, `docker run`). 사전이 그렇게 적어 두었을 때만. */
     if (!sub && doc?.subs && doc.subs[tk]) {
       sub = tk;
       parts.push({ text: tk, kind: 'command', what: doc.subs[tk], of: name });
@@ -186,8 +186,8 @@ function explainSegment(tokens: string[], join?: string): Segment {
 /**
  * 줄 하나를 도막들로 뜯는다.
  *
- * 도막이 여럿이면 그건 **명령이 여럿**이라는 뜻이다 — 그 사실 자체가 설명의 절반이다
- * (`curl … | sh` 가 왜 위험한지는 「둘로 나뉜다」를 봐야 보인다).
+ * 도막이 여럿이면 그건 **명령이 여럿**이라는 뜻이다. 그 사실 자체가 설명의 절반이다
+ * (`curl ... | sh` 가 왜 위험한지는 둘로 나뉜다를 봐야 보인다).
  */
 export function explain(line: string): Segment[] {
   const tokens = tokenize(line.trim());
@@ -216,7 +216,7 @@ export function dangersOf(segs: Segment[]): string[] {
       if (p.danger && !out.includes(p.danger)) out.push(p.danger);
     }
   }
-  /* 「받아서 바로 실행」은 도막 둘이 만나야 생기는 위험이라 조각 하나만 봐선 안 보인다. */
+  /* 받아서 바로 실행은 도막 둘이 만나야 생기는 위험이라 조각 하나만 봐선 안 보인다. */
   const names = segs.map((s) => s.name);
   const fetches = names.some((n) => /^(curl|wget)$/.test(n));
   const runs = names.some((n) => /^(sh|bash|zsh|python|node|powershell|pwsh)$/.test(n));

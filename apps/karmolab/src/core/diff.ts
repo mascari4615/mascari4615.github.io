@@ -1,10 +1,10 @@
 /**
  * 두 글을 견주는 알맹이 (TASK-KL-316 / 1)
  *
- * 줄 단위로만 견주면 JSON·YAML 에서 **줄이 밀린 것**과 **값이 바뀐 것**이 같아 보인다.
+ * 줄 단위로만 견주면 JSON, YAML 에서 **줄이 밀린 것**과 **값이 바뀐 것**이 같아 보인다.
  * 열쇠 하나를 위로 옮겼을 뿐인데 스무 줄이 빨갛게 되는 화면이 그래서 나온다.
- * 그래서 여기엔 둘이 있다 — 줄 견주기(`diffLines`)와 **구조 견주기**(`diffStructure`).
- * 구조 쪽은 열쇠 경로로 짝을 지어서, 자리만 바뀐 것은 「옮김」이라고 말한다.
+ * 그래서 여기엔 둘이 있다. 줄 견주기(`diffLines`)와 **구조 견주기**(`diffStructure`).
+ * 구조 쪽은 열쇠 경로로 짝을 지어서, 자리만 바뀐 것은 옮김이라고 말한다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -56,7 +56,7 @@ export interface LineOpts {
 function splitLines(text: string): string[] {
   const body = text.replace(/\r\n?/g, '\n');
   const rows = body.split('\n');
-  // 끝의 개행 하나는 줄이 아니다 — 이걸 세면 모든 파일에 빈 줄이 하나씩 더 있다고 나온다.
+  // 끝의 개행 하나는 줄이 아니다. 이걸 세면 모든 파일에 빈 줄이 하나씩 더 있다고 나온다.
   if (rows.length > 1 && rows[rows.length - 1] === '') rows.pop();
   return rows;
 }
@@ -95,7 +95,7 @@ export function diffLines(aText: string, bText: string, opts: LineOpts = {}): Ed
   const midA = na.slice(head, na.length - tail);
   const midB = nb.slice(head, nb.length - tail);
 
-  // 표 크기 보호막 — 너무 크면 가운데는 통째로 지우고 넣은 것으로 본다 (화면이 멎는 것보다 낫다).
+  // 표 크기 보호막. 너무 크면 가운데는 통째로 지우고 넣은 것으로 본다 (화면이 멎는 것보다 낫다).
   const CELL_CAP = 4000000;
   if (midA.length * midB.length > CELL_CAP) {
     for (let i = 0; i < midA.length; i++) out.push({ kind: 'del', aLine: head + i + 1, text: a[head + i] });
@@ -185,7 +185,7 @@ export function diffWords(a: string, b: string): { left: Span[]; right: Span[] }
   return { left, right };
 }
 
-/** `git diff` 와 같은 모양 — 붙여서 쓰라고 낸다. */
+/** `git diff` 와 같은 모양. 붙여서 쓰라고 낸다. */
 export function toUnified(edits: Edit[], context = 3): string {
   const rows: string[] = [];
   const keep = new Set<number>();
@@ -245,7 +245,7 @@ function join(path: string, key: string | number): string {
 }
 
 /**
- * 열쇠 경로로 짝을 지어 견준다. **자리만 바뀐 것은 「옮김」**이다 —
+ * 열쇠 경로로 짝을 지어 견준다. **자리만 바뀐 것은 옮김**이다 . 
  * 배열 안의 같은 값이 다른 자리로 갔으면 지우고 넣은 두 줄이 아니라 옮김 한 줄로 말한다.
  */
 export function diffStructure(a: Json, b: Json, path = ''): Change[] {

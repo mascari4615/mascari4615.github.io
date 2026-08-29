@@ -15,35 +15,35 @@
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "idle",
-          "text": "실조사 P0 3건 — 머리 위 체력바·웨이브 무리·코스트 속도 (TASK-WM-406)"
+          "text": "실조사 P0 3건. 머리 위 체력바, 웨이브 무리, 코스트 속도 (TASK-WM-406)"
         },
         {
           "sha": "57fe3cae",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "idle",
-          "text": "부대 전투 — 적 반격·쓰러짐·부활·실패·반복 + 창 3종 (V2, TASK-WM-406)"
+          "text": "부대 전투. 적 반격, 쓰러짐, 부활, 실패, 반복 + 창 3종 (V2, TASK-WM-406)"
         },
         {
           "sha": "75e9ea55",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "idle",
-          "text": "무대가 나아간다 — 웨이브 줄 + 보스 + 가챠 인형만 선다 (V2, TASK-WM-406)"
+          "text": "무대가 나아간다. 웨이브 줄 + 보스 + 가챠 인형만 선다 (V2, TASK-WM-406)"
         },
         {
           "sha": "d914288a",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "idle",
-          "text": "V2 작전 씬 — 쿼터뷰 무대 + 카드 HUD (concept-v2 2A, TASK-WM-406)"
+          "text": "V2 작전 씬. 쿼터뷰 무대 + 카드 HUD (concept-v2 2A, TASK-WM-406)"
         },
         {
           "sha": "e4233b56",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "idle",
-          "text": "카드·코스트 코어 — V2 개입층 1단계 (concept-v2, TASK-WM-406)"
+          "text": "카드, 코스트 코어. V2 개입층 1단계 (concept-v2, TASK-WM-406)"
         },
         {
           "sha": "4d512a4f",
@@ -64,14 +64,14 @@
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "tests",
-          "text": "저장소 뿌리를 에디터 설치 폴더에서 찾고 있었다 — 실패 5건이 한 원인 (TASK-WM-416)"
+          "text": "저장소 뿌리를 에디터 설치 폴더에서 찾고 있었다. 실패 5건이 한 원인 (TASK-WM-416)"
         },
         {
           "sha": "410fcf12",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "versus",
-          "text": "P2P 호스트를 TcpListener + 직접 악수로 다시 짓는다 — 처음으로 붙는다 (TASK-WM-415)"
+          "text": "P2P 호스트를 TcpListener + 직접 악수로 다시 짓는다. 처음으로 붙는다 (TASK-WM-415)"
         },
         {
           "sha": "d6ca5fc3",
@@ -92,42 +92,42 @@
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "ci",
-          "text": "asmdef 관문이 초록도 빨강도 아닌 <b>취소</b>로 죽었다 — 예산이 일보다 작다"
+          "text": "asmdef 관문이 초록도 빨강도 아닌 <b>취소</b>로 죽었다. 예산이 일보다 작다"
         },
         {
           "sha": "380647a4",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "ci",
-          "text": "배포가 없는 프로젝트를 굽고 있었다 — csproj 를 .gitignore 가 삼켰다"
+          "text": "배포가 없는 프로젝트를 굽고 있었다. csproj 를 .gitignore 가 삼켰다"
         },
         {
           "sha": "f3d563db",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "tooling",
-          "text": "CoplayDev Unity-MCP 제거 — 공식 Unity CLI 통로로 단일화 (TASK-WM-412)"
+          "text": "CoplayDev Unity-MCP 제거. 공식 Unity CLI 통로로 단일화 (TASK-WM-412)"
         },
         {
           "sha": "1aeaf107",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "WM-413",
-          "text": "솥이 서기도 전에 젓고, 12초에 포기했다 — 둘 다 없앤다"
+          "text": "솥이 서기도 전에 젓고, 12초에 포기했다. 둘 다 없앤다"
         },
         {
           "sha": "d80cec02",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "WM-413",
-          "text": "이유를 짐작하지 말고 재게 한다 — 사다리에 「솥」 칸이 없었다"
+          "text": "이유를 짐작하지 말고 재게 한다. 사다리에 솥 칸이 없었다"
         },
         {
           "sha": "cc8b940e",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "WM-413",
-          "text": "파수꾼이 솥을 짓기도 전에 「남이 가져갔다」며 끝냈다"
+          "text": "파수꾼이 솥을 짓기도 전에 남이 가져갔다며 끝냈다"
         }
       ],
       "quiet": 1,
@@ -148,21 +148,21 @@
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "wm",
-          "text": "안내가 「앉혀라」를 안 말해 점만 찍혀 있었다 (TASK-WM-406)"
+          "text": "안내가 앉혀라를 안 말해 점만 찍혀 있었다 (TASK-WM-406)"
         },
         {
           "sha": "64439084",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "wm",
-          "text": "「남의 서버 안 부른다」 감시가 잠들어 있었다 (TASK-WM-406)"
+          "text": "남의 서버 안 부른다 감시가 잠들어 있었다 (TASK-WM-406)"
         },
         {
           "sha": "ce56491b",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "wm",
-          "text": "그리는 자리가 시간을 흘리고 있었다 — 누를수록 장식이 빨라졌다 (TASK-WM-406)"
+          "text": "그리는 자리가 시간을 흘리고 있었다. 누를수록 장식이 빨라졌다 (TASK-WM-406)"
         },
         {
           "sha": "9d1895ce",
@@ -176,7 +176,7 @@
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "wm",
-          "text": "「어디서 파는 게 빠른가」도 판을 건드리며 찾고 있었다 (TASK-WM-406)"
+          "text": "어디서 파는 게 빠른가도 판을 건드리며 찾고 있었다 (TASK-WM-406)"
         }
       ],
       "quiet": 25,
@@ -190,14 +190,14 @@
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "ci",
-          "text": "「검사를 못 돌렸다」를 「게임이 깨졌다」와 안 섞는다 (TASK-WM-406)"
+          "text": "검사를 못 돌렸다를 게임이 깨졌다와 안 섞는다 (TASK-WM-406)"
         },
         {
           "sha": "4e5ad5fd",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "wm",
-          "text": "컴파일러 쉼 층(Compat)은 부를 이름이 없다 — 미배선 감사에 사유와 함께 적는다"
+          "text": "컴파일러 쉼 층(Compat)은 부를 이름이 없다. 미배선 감사에 사유와 함께 적는다"
         },
         {
           "sha": "4d75e0d1",
@@ -211,21 +211,21 @@
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "wm",
-          "text": "실황 셋 + 영웅 개성 · 못 사는 다음 것도 보이게 (TASK-WM-406)"
+          "text": "실황 셋 + 영웅 개성, 못 사는 다음 것도 보이게 (TASK-WM-406)"
         },
         {
           "sha": "4917ff75",
           "type": "revert",
           "typeLabel": "되돌림",
           "scope": "wm",
-          "text": "패키지 7종 제거를 되돌린다 — 전역 변경이라 본편까지 잘렸다"
+          "text": "패키지 7종 제거를 되돌린다. 전역 변경이라 본편까지 잘렸다"
         },
         {
           "sha": "8166a7be",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "wm",
-          "text": "바닥 격자 + 생산자 맥동 — 게임필 마감 (TASK-WM-406)"
+          "text": "바닥 격자 + 생산자 맥동. 게임필 마감 (TASK-WM-406)"
         }
       ],
       "quiet": 8,
@@ -239,7 +239,7 @@
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "쫓기 무대는 아직 <b>자</b>다 — 이름을 그렇게 바꾼다 (TASK-WM-405)"
+          "text": "쫓기 무대는 아직 <b>자</b>다. 이름을 그렇게 바꾼다 (TASK-WM-405)"
         },
         {
           "sha": "dd27111a",
@@ -274,7 +274,7 @@
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "때리기 공평 관문 — 표본을 키우고, 빨강을 <b>왜 못 걸었는지</b>를 적는다 (TASK-WM-404)"
+          "text": "때리기 공평 관문. 표본을 키우고, 빨강을 <b>왜 못 걸었는지</b>를 적는다 (TASK-WM-404)"
         }
       ],
       "quiet": 0,
@@ -323,7 +323,7 @@
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "「못 쟀다」를 빨강으로 안 치는 자리를 하나로 (TASK-WM-324)"
+          "text": "못 쟀다를 빨강으로 안 치는 자리를 하나로 (TASK-WM-324)"
         }
       ],
       "quiet": 14,
@@ -337,42 +337,42 @@
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "server",
-          "text": "국경을 넘을 때 들고 가는 통행증 — 도장이 찍혀 있다 (WM-253)"
+          "text": "국경을 넘을 때 들고 가는 통행증. 도장이 찍혀 있다 (WM-253)"
         },
         {
           "sha": "71d4a96e",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "server",
-          "text": "세계가 자기 땅을 안다 — 구역 나누기 1단계 (WM-252)"
+          "text": "세계가 자기 땅을 안다. 구역 나누기 1단계 (WM-252)"
         },
         {
           "sha": "a07b677c",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "server",
-          "text": "싸움도 세계가 판정한다 — 몸·때리기·다시 세우기 (WM-251)"
+          "text": "싸움도 세계가 판정한다. 몸, 때리기, 다시 세우기 (WM-251)"
         },
         {
           "sha": "2e897c49",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "server",
-          "text": "말이 오간다 — 같이 노는 세계의 최소 조건 (WM-250)"
+          "text": "말이 오간다. 같이 노는 세계의 최소 조건 (WM-250)"
         },
         {
           "sha": "e65ae39c",
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "web",
-          "text": "엔진이 영영 안 와도 지도만으로 논다 — 걷고 <b>줍는다</b> (WM-249)"
+          "text": "엔진이 영영 안 와도 지도만으로 논다. 걷고 <b>줍는다</b> (WM-249)"
         },
         {
           "sha": "957cc5aa",
           "type": "perf",
           "typeLabel": "빨라진 것",
           "scope": "gate",
-          "text": "관문이 무조건 자던 시간을 걷어낸다 — 우르르 관문 30초 → 10초 (WM-248)"
+          "text": "관문이 무조건 자던 시간을 걷어낸다. 우르르 관문 30초 → 10초 (WM-248)"
         }
       ],
       "quiet": 11,
@@ -449,7 +449,7 @@
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "관문: 만든 것이 다음 재료가 된다 — 사슬 (TASK-WM-217)"
+          "text": "관문: 만든 것이 다음 재료가 된다. 사슬 (TASK-WM-217)"
         },
         {
           "sha": "a376dd56",
@@ -463,14 +463,14 @@
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "관문: 솥도 <게임이 쓰는 길>로 — 이제 전부 그 길이다 (TASK-WM-217)"
+          "text": "관문: 솥도 <게임이 쓰는 길>로. 이제 전부 그 길이다 (TASK-WM-217)"
         },
         {
           "sha": "0a9e207c",
           "type": "",
           "typeLabel": "",
           "scope": "",
-          "text": "관문: 짓기·부수기·이름도 <게임이 쓰는 길>로 (TASK-WM-217)"
+          "text": "관문: 짓기, 부수기, 이름도 <게임이 쓰는 길>로 (TASK-WM-217)"
         }
       ],
       "quiet": 11,
@@ -491,7 +491,7 @@
           "type": "feat",
           "typeLabel": "새로 생긴 것",
           "scope": "WM-218",
-          "text": "/health 가 세계 상태를 말한다 — 「떠 있는데 멈춘 세계」를 알아보게"
+          "text": "/health 가 세계 상태를 말한다. 떠 있는데 멈춘 세계를 알아보게"
         },
         {
           "sha": "45993cc5",

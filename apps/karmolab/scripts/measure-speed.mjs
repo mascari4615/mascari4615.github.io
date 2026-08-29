@@ -28,7 +28,7 @@ const TARGETS = [
 
 const probe = await fetch(`${BASE}/t/`).catch(() => null);
 if (!probe?.ok) {
-  console.error(`[measure-speed] 목록을 못 받는다 — ${BASE}`);
+  console.error(`[measure-speed] 목록을 못 받는다. ${BASE}`);
   console.error('  → 다른 창에서 `npm run serve:gzip` 을 먼저 띄워라 (압축을 해야 실제와 같은 값이 나온다).');
   process.exit(1);
 }
@@ -81,10 +81,10 @@ for (const [path, label] of TARGETS) {
     continue;
   }
   console.log(
-    `${label.padEnd(10)} 첫 그림 ${String(mid(fcp)).padStart(4)}ms · 막힘 ${String(mid(blocked)).padStart(4)}ms · 밀림 ${mid(shift)}` +
+    `${label.padEnd(10)} 첫 그림 ${String(mid(fcp)).padStart(4)}ms, 막힘 ${String(mid(blocked)).padStart(4)}ms, 밀림 ${mid(shift)}` +
       `   (${fcp.length}회, 첫 그림 ${Math.min(...fcp)}~${Math.max(...fcp)})`
   );
 }
 
 await browser.close();
-console.log('[measure-speed] 느린 회선 1.6Mbps · 느린 기기 4배 · 폰 폭 375px 기준');
+console.log('[measure-speed] 느린 회선 1.6Mbps, 느린 기기 4배, 폰 폭 375px 기준');

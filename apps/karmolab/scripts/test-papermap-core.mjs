@@ -1,9 +1,9 @@
 /**
- * 논문 지도 알맹이 — 자리와 크기 (TASK-KL-253).
+ * 논문 지도 알맹이. 자리와 크기 (TASK-KL-253).
  *
  * 이 도구가 목록과 갈리는 지점은 **자리와 크기**뿐이다: 큰 것이 이 분야의 바닥이고,
  * 왼쪽이 옛것. 그 셈이 틀리면 그림은 예쁘지만 아무 말도 안 하는 그림이 된다.
- * 인용 수는 28 과 60,000 이 한 화면에 있으므로, 그대로 크기에 쓰면 하나만 거대해진다 —
+ * 인용 수는 28 과 60,000 이 한 화면에 있으므로, 그대로 크기에 쓰면 하나만 거대해진다 . 
  * 자릿수로 눌러 담는지도 여기서 지킨다.
  *
  * 사용: node scripts/test-papermap-core.mjs   (npm run test:papermap)
@@ -24,7 +24,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const entry = path.join(os.tmpdir(), `pm-core-${Date.now()}.ts`);
@@ -83,7 +83,7 @@ const P = (id, year, cited) => ({ id, title: `논문 ${id}`, year, cited, author
 }
 
 {
-  /* **가로 자리 = 연도.** 옛것이 왼쪽에 있어야 「어디서 왔나」가 자리로 읽힌다. */
+  /* **가로 자리 = 연도.** 옛것이 왼쪽에 있어야 어디서 왔나가 자리로 읽힌다. */
   const map = A.buildMap(P('root', 2020, 10), [P('old', 1980, 50), P('new', 2019, 50)]);
   const old = map.nodes.find((n) => n.paper.id === 'old');
   const neo = map.nodes.find((n) => n.paper.id === 'new');
@@ -91,7 +91,7 @@ const P = (id, year, cited) => ({ id, title: `논문 ${id}`, year, cited, author
 }
 
 {
-  /* **크기 = 인용 수.** 다만 자릿수로 눌러 담는다 — 안 그러면 하나만 거대해지고 나머지는 점이다. */
+  /* **크기 = 인용 수.** 다만 자릿수로 눌러 담는다. 안 그러면 하나만 거대해지고 나머지는 점이다. */
   const map = A.buildMap(P('root', 2020, 10), [P('small', 2000, 10), P('huge', 2000, 60000)]);
   const s = map.nodes.find((n) => n.paper.id === 'small');
   const h = map.nodes.find((n) => n.paper.id === 'huge');
@@ -100,7 +100,7 @@ const P = (id, year, cited) => ({ id, title: `논문 ${id}`, year, cited, author
 }
 
 {
-  /* 같은 해가 여럿이면 가로 자리가 겹친다 — 가로는 연도가 정하므로 **세로로** 쌓아야 한다. */
+  /* 같은 해가 여럿이면 가로 자리가 겹친다. 가로는 연도가 정하므로 **세로로** 쌓아야 한다. */
   const same = Array.from({ length: 4 }, (_, i) => P('s' + i, 2015, 10));
   const map = A.buildMap(P('root', 2020, 10), same);
   const ys = map.nodes.filter((n) => !n.root).map((n) => n.y);

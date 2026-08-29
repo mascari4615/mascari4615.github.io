@@ -2,7 +2,7 @@
  * 팔레트가 바로 내놓는 답이 **도구의 답과 같은지** (TASK-KL-110)
  *
  * 왜 있나: 팔레트가 답을 내려면 그 계산을 제 안에 한 벌 더 갖게 된다. 도구 쪽 규칙이
- * 바뀌면 두 답이 갈라지는데, 그때 사용자는 **같은 질문에 두 답**을 받는다 — 아무 답도
+ * 바뀌면 두 답이 갈라지는데, 그때 사용자는 **같은 질문에 두 답**을 받는다. 아무 답도
  * 안 주는 것보다 나쁘다. 그래서 두 곳을 실제로 굴려 값을 맞대 본다.
  *
  * 하는 일: 제 서버를 띄우고 같은 입력을 ① 팔레트에 치고 ② 그 도구를 열어 넣어 본 뒤,
@@ -42,7 +42,7 @@ const server = http.createServer((req, res) => {
   }
   let body = fs.readFileSync(file);
   const ext = path.extname(file);
-  // Liquid 태그까지 걷는다 — 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
+  // Liquid 태그까지 걷는다. 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
   if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
   res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
 });
@@ -54,7 +54,7 @@ const problems = [];
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
 
-/** 팔레트에 치고 「답」 칸에 나온 값들을 읽는다. */
+/** 팔레트에 치고 답 칸에 나온 값들을 읽는다. */
 async function askPalette(q) {
   await page.goto(`${BASE}/`, { waitUntil: 'load', timeout: 30000 });
   await page.evaluate(() => Toolbox.switchPage('home'));
@@ -67,25 +67,25 @@ async function askPalette(q) {
 /** 그 도구를 열어 값을 넣고 화면에 나온 글을 통째로 읽는다. */
 async function askTool(toolId, fills) {
   await page.goto(`${BASE}/t/${toolId}/`, { waitUntil: 'networkidle', timeout: 30000 });
-  /* ★ 고정 900ms 로는 부족하다 (2026-08-12). 위젯은 말 묶음(i18n)을 받아 온 **뒤에** 그린다 —
+  /* ★ 고정 900ms 로는 부족하다 (2026-08-12). 위젯은 말 묶음(i18n)을 받아 온 **뒤에** 그린다 . 
    *   느린 판에서는 그 사이에 값을 넣게 되고, `.catch(() => {})` 가 그 실패를 삼켜
-   *   「도구 화면에 그 값이 없다」로 팔레트를 탓했다(실주소 CI 에서만 빨갰다).
+   *   도구 화면에 그 값이 없다로 팔레트를 탓했다(실주소 CI 에서만 빨갰다).
    *   칸이 생길 때까지 기다리고, 그래도 없으면 삼키지 말고 말한다. */
-  /* ★ **남의 기계는 내 기계보다 느리다** (2026-08-13). 이 15초는 내 컴퓨터 기준이었다 —
+  /* ★ **남의 기계는 내 기계보다 느리다** (2026-08-13). 이 15초는 내 컴퓨터 기준이었다 . 
      CI 의 찬 러너에서는 도구 하나가 말 묶음까지 받아 그리는 데 그보다 오래 걸려,
-     도구는 멀쩡한데 검사만 「칸이 없다」로 죽었다(실측: 같은 자리를 손으로 열면 곧바로 뜬다).
+     도구는 멀쩡한데 검사만 칸이 없다로 죽었다(실측: 같은 자리를 손으로 열면 곧바로 뜬다).
      기다림은 **못 기다려서 나는 거짓 빨강**보다 싸다. */
   for (const [sel] of fills) {
     await page.waitForSelector(sel, { timeout: 45000 }).catch(async (error) => {
-      /* CI 에서만 이 칸을 못 찾는다 — 기다림을 45초로 늘려도 같았다(느려서가 아니다).
-         그러니 **무엇이 안 왔는지** 화면에 물어 남긴다: 셸이 섰나 · 그 도구 자리가 생겼나 ·
+      /* CI 에서만 이 칸을 못 찾는다. 기다림을 45초로 늘려도 같았다(느려서가 아니다).
+         그러니 **무엇이 안 왔는지** 화면에 물어 남긴다: 셸이 섰나, 그 도구 자리가 생겼나 , 
          페이지가 죽었나 (실측 2026-08-13, 세 판 연속 같은 자리). */
       const why = await page.evaluate((id) => ({
         shell: typeof Toolbox !== 'undefined',
         slot: !!document.getElementById(`page-${id}`),
         body: document.body.innerText.replace(/\s+/g, ' ').slice(0, 80)
       }), toolId).catch(() => null);
-      throw new Error(`${toolId}: ${String(error.message).slice(0, 60)} — ${JSON.stringify(why)}`);
+      throw new Error(`${toolId}: ${String(error.message).slice(0, 60)}. ${JSON.stringify(why)}`);
     });
   }
   for (const [sel, val] of fills) {
@@ -98,12 +98,12 @@ async function askTool(toolId, fills) {
 /* ── px → rem ────────────────────────────────────────────── */
 {
   const answers = await askPalette('24px to rem');
-  if (!answers.length) problems.push('「24px to rem」 을 쳤는데 답이 안 나온다');
+  if (!answers.length) problems.push('24px to rem 을 쳤는데 답이 안 나온다');
   else {
     const mine = answers[0];
     const tool = await askTool('cssunit', [['#cuRoot', '16'], ['#cuValue', '24']]);
     if (!tool.includes(mine.replace(/\s/g, ''))) {
-      problems.push(`px→rem 답이 도구와 다르다 — 팔레트 「${mine}」 인데 도구 화면에 그 값이 없다`);
+      problems.push(`px→rem 답이 도구와 다르다. 팔레트 ${mine} 인데 도구 화면에 그 값이 없다`);
     }
   }
 }
@@ -111,13 +111,13 @@ async function askTool(toolId, fills) {
 /* ── 바이트 ──────────────────────────────────────────────── */
 {
   const answers = await askPalette('1024kb');
-  if (!answers.length) problems.push('「1024kb」 를 쳤는데 답이 안 나온다');
+  if (!answers.length) problems.push('1024kb 를 쳤는데 답이 안 나온다');
   else {
     const tool = await askTool('bytesize', [['#bsValue', '1024']]);
-    // 도구는 단위를 골라야 하므로 값만 견준다 (1024KB = 1.024MB · 1000000 바이트 계열)
+    // 도구는 단위를 골라야 하므로 값만 견준다 (1024KB = 1.024MB, 1000000 바이트 계열)
     const nums = answers.map((a) => a.replace(/[^\d.]/g, '')).filter(Boolean);
     if (!nums.some((n) => tool.includes(n))) {
-      problems.push(`바이트 답이 도구와 다르다 — 팔레트 「${answers.join(', ')}」 중 어느 값도 도구 화면에 없다`);
+      problems.push(`바이트 답이 도구와 다르다. 팔레트 ${answers.join(', ')} 중 어느 값도 도구 화면에 없다`);
     }
   }
 }
@@ -125,9 +125,9 @@ async function askTool(toolId, fills) {
 /* ── 색 ──────────────────────────────────────────────────── */
 {
   const answers = await askPalette('#7dd3fc');
-  if (!answers.length) problems.push('「#7dd3fc」 를 쳤는데 답이 안 나온다');
+  if (!answers.length) problems.push('#7dd3fc 를 쳤는데 답이 안 나온다');
   else if (!/rgb\(125, 211, 252\)/.test(answers[0])) {
-    problems.push(`색 답이 틀렸다 — 「${answers[0]}」 (rgb(125, 211, 252) 여야 한다)`);
+    problems.push(`색 답이 틀렸다. ${answers[0]} (rgb(125, 211, 252) 여야 한다)`);
   }
 }
 
@@ -135,16 +135,16 @@ async function askTool(toolId, fills) {
 {
   await askPalette('24px to rem');
   const sections = await page.$$eval('.kp-inline .kp-section', (els) => els.map((e) => e.textContent.trim()));
-  if (!sections.includes('답')) problems.push('「답」 칸 이름표가 없다');
+  if (!sections.includes('답')) problems.push('답 칸 이름표가 없다');
   const rows = await page.$$eval('.kp-inline .kp-row', (els) => els.length);
   const answerRows = await page.$$eval('.kp-inline .kp-row-answer', (els) => els.length);
-  if (rows <= answerRows) problems.push('답만 있고 도구 줄이 사라졌다 — 더 손보러 갈 길이 막힌다');
+  if (rows <= answerRows) problems.push('답만 있고 도구 줄이 사라졌다. 더 손보러 갈 길이 막힌다');
 }
 
 /* ── 평범한 낱말은 답을 만들지 않는다 (오탐 방지) ────────── */
 {
   const answers = await askPalette('이미지');
-  if (answers.length) problems.push(`평범한 말에 엉뚱한 답이 붙었다 — 「이미지」 → ${answers.join(', ')}`);
+  if (answers.length) problems.push(`평범한 말에 엉뚱한 답이 붙었다. 이미지 → ${answers.join(', ')}`);
 }
 
 await browser.close();
@@ -155,4 +155,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
-console.log('[smoke-palette-answers] 답 3종(길이·용량·색) 도구와 일치 · 도구 줄 유지 · 오탐 0');
+console.log('[smoke-palette-answers] 답 3종(길이, 용량, 색) 도구와 일치, 도구 줄 유지, 오탐 0');

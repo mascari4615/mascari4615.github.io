@@ -1,19 +1,19 @@
 /**
- * 영업일 계산 — 알맹이 (TASK-KL-088 / S1)
+ * 영업일 계산. 알맹이 (TASK-KL-088 / S1)
  *
- * 「접수일로부터 영업일 7일 이내」 같은 기한은 **주말만 빼서는 안 맞는다.** 공휴일과 대체공휴일까지
+ * 접수일로부터 영업일 7일 이내 같은 기한은 **주말만 빼서는 안 맞는다.** 공휴일과 대체공휴일까지
  * 빼야 진짜 날짜가 나온다.
  *
- * MCP 로 내놓는 이유(B등급 — 우리 해자): LLM 은 대체공휴일을 거의 못 맞힌다. 설·추석이 주말과
+ * MCP 로 내놓는 이유(B등급. 우리 해자): LLM 은 대체공휴일을 거의 못 맞힌다. 설, 추석이 주말과
  * 겹쳐 밀리는 규칙, 2025-01-27 처럼 **그 해에만 있는 임시공휴일** 같은 건 규칙으로 안 나오고
- * 표에 있어야 안다. 게다가 모르는 해까지 그럴듯한 날짜를 지어낸다 — 사람은 그 날짜로 기한을 잡는다.
- * 그래서 여기선 **담지 않은 해는 「모른다」고 말한다.**
+ * 표에 있어야 안다. 게다가 모르는 해까지 그럴듯한 날짜를 지어낸다. 사람은 그 날짜로 기한을 잡는다.
+ * 그래서 여기선 **담지 않은 해는 모른다고 말한다.**
  *
- * 쉬는 날 표는 `src/lib/holidays.ts` 가 소유한다(나라별, TASK-KL-203). 여기서 베끼지 않는다 —
+ * 쉬는 날 표는 `src/lib/holidays.ts` 가 소유한다(나라별, TASK-KL-203). 여기서 베끼지 않는다 . 
  * 두 벌이 되면 어느 날 한쪽만 갱신돼 조용히 갈린다. 이름은 열쇠로 오므로 MCP 답에는
  * 아래 `HOLIDAY_KO` 로 한국어를 붙인다(화면은 자기 말로 붙인다).
  *
- * 「오늘」과 지역은 인자로 받는다 — 알맹이가 시계·설정을 직접 보면 같은 입력에 답이 달라진다.
+ * 오늘과 지역은 인자로 받는다. 알맹이가 시계, 설정을 직접 보면 같은 입력에 답이 달라진다.
  */
 import { hasCalendar, holidayKeys, knowsYear } from '../lib/holidays';
 import type { ToolRunner, ToolSpec } from './types';
@@ -23,7 +23,7 @@ export const spec: ToolSpec = {
   ops: {
     after: {
       desc:
-        'N business days after a start date — excluding weekends, public holidays AND substitute holidays.' +
+        'N business days after a start date. excluding weekends, public holidays AND substitute holidays.' +
         ' Substitute holidays are a table, not a rule (2025-01-27 was a one-off). Years not in the table are' +
         ' reported as unknown instead of guessed. region defaults to KR (JP/US also available).' +
         ' / 영업일 N일 뒤. 주말 + 공휴일 + 대체공휴일 제외.',
@@ -138,7 +138,7 @@ export interface AfterResult {
   unknownYears: number[];
 }
 
-/** 시작일 **다음 날부터** 세어 영업일 N일 뒤. (「7영업일 이내」의 관례) */
+/** 시작일 **다음 날부터** 세어 영업일 N일 뒤. (7영업일 이내의 관례) */
 export function addWorkdays(start: Date, days: number, regionCode = 'KR', saturdayWorks = false): AfterResult {
   const skipped: Skipped[] = [];
   const years = new Set<number>([start.getFullYear()]);
@@ -191,7 +191,7 @@ const label = (d: Date): string => `${iso(d)} (${WEEKDAYS[d.getDay()]})`;
 const warn = (regionCode: string, unknown: number[]): string =>
   unknown.length === 0
     ? ''
-    : `\n⚠ ${unknown.join('·')}년 공휴일은 아직 안 담겨 있습니다 — 그 구간은 주말만 뺐습니다. 답을 그대로 믿지 마세요.`;
+    : `\n⚠ ${unknown.join(', ')}년 공휴일은 아직 안 담겨 있습니다. 그 구간은 주말만 뺐습니다. 답을 그대로 믿지 마세요.`;
 
 export const run: ToolRunner = (op, args, deps) => {
   const regionCode = String(args.region ?? 'KR').toUpperCase();
@@ -211,7 +211,7 @@ export const run: ToolRunner = (op, args, deps) => {
     const r = addWorkdays(start, days, regionCode, saturday);
     const lines = [
       `${label(start)} 로부터 영업일 ${days}일 뒤 → ${label(r.end)}`,
-      `건너뛴 날 ${r.skipped.length}일: ${r.skipped.map((s) => `${s.date}(${renderReason(s.whyKey)})`).join(' · ') || '없음'}`
+      `건너뛴 날 ${r.skipped.length}일: ${r.skipped.map((s) => `${s.date}(${renderReason(s.whyKey)})`).join(', ') || '없음'}`
     ];
     return lines.join('\n') + warn(regionCode, r.unknownYears);
   }
@@ -223,10 +223,10 @@ export const run: ToolRunner = (op, args, deps) => {
     const lines = [
       `${label(start)} ~ ${label(end)}`,
       `영업일 ${r.workdays}일 (전체 ${r.total}일 중 ${r.skipped.length}일 쉼)`,
-      `쉰 날: ${r.skipped.map((s) => `${s.date}(${renderReason(s.whyKey)})`).join(' · ') || '없음'}`
+      `쉰 날: ${r.skipped.map((s) => `${s.date}(${renderReason(s.whyKey)})`).join(', ') || '없음'}`
     ];
     return lines.join('\n') + warn(regionCode, r.unknownYears);
   }
 
-  throw new Error(`workdays 에 「${op}」 는 없습니다`);
+  throw new Error(`workdays 에 ${op} 는 없습니다`);
 };

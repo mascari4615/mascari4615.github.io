@@ -1,11 +1,11 @@
 /**
- * 만든 것을 **작업실에 건다** — 누를 때 데려오는 조각 (TASK-KL-191 축3·8).
+ * 만든 것을 **작업실에 건다**. 누를 때 데려오는 조각 (TASK-KL-191 축3, 8).
  *
  * 왜 셸에서 떼어 냈나: 갈래를 가르고, PDF 첫 장을 그리고, 미리보기를 올리는 이 일은
  * **결과가 나온 뒤 단추를 눌러야** 시작된다. 그런데 셸에 두면 첫 화면을 그리기도 전에
- * 모두가 그 무게를 내려받는다 — 실제로 첫 화면 예산(JS 39KB)을 1.3KB 넘겼고 배포가 빨갛게 섰다.
+ * 모두가 그 무게를 내려받는다. 실제로 첫 화면 예산(JS 39KB)을 1.3KB 넘겼고 배포가 빨갛게 섰다.
  *
- * 셸에는 「단추를 만들고 이 조각을 데려온다」만 남는다. 여기가 그 조각이다.
+ * 셸에는 단추를 만들고 이 조각을 데려온다만 남는다. 여기가 그 조각이다.
  */
 type HangItem = { blob: Blob; name?: string; from?: string | null };
 
@@ -21,7 +21,7 @@ type PdfJsLike = {
     };
 };
 
-/** 무엇을 만든 것인가. 모르는 것은 「그 밖」이다 — 지어낸 갈래를 붙이지 않는다. */
+/** 무엇을 만든 것인가. 모르는 것은 그 밖이다. 지어낸 갈래를 붙이지 않는다. */
 function kindOf(mime: string): string {
     if (mime.startsWith('image/')) return 'image';
     if (mime === 'application/pdf') return 'pdf';
@@ -46,7 +46,7 @@ function readDataUrl(blob: Blob): Promise<string> {
     });
 }
 
-/** 미리보기 한 장을 올리고 그 열쇠를 준다. 못 올리면 null — 없는 그림을 가리키지 않는다. */
+/** 미리보기 한 장을 올리고 그 열쇠를 준다. 못 올리면 null. 없는 그림을 가리키지 않는다. */
 async function uploadPreview(base: string, dataUrl: string): Promise<string | null> {
     try {
         const up = await fetch(`${base}/kl/uploads`, {
@@ -65,7 +65,7 @@ async function uploadPreview(base: string, dataUrl: string): Promise<string | nu
 
 /**
  * PDF 는 **첫 장을 그려서** 미리보기로 쓴다. 그리는 도구는 이 앱이 이미 들고 있고,
- * 여기서 처음 필요해질 때만 받는다. 못 그리면 미리보기 없이 건다 —
+ * 여기서 처음 필요해질 때만 받는다. 못 그리면 미리보기 없이 건다 . 
  * 거는 것 자체가 실패하면 만든 것이 사라진다.
  */
 async function pdfThumb(blob: Blob): Promise<string | null> {
@@ -105,7 +105,7 @@ async function hang(item: HangItem): Promise<boolean> {
         const thumb = await pdfThumb(item.blob);
         if (thumb) uploadId = await uploadPreview(base, thumb);
     } else if (kind === 'text') {
-        // 글은 앞머리 한 줄이 미리보기다 — 통째로 올리면 그건 걸기가 아니라 업로드다.
+        // 글은 앞머리 한 줄이 미리보기다. 통째로 올리면 그건 걸기가 아니라 업로드다.
         note = (await item.blob.slice(0, 400).text()).replace(/\s+/g, ' ').trim().slice(0, 80) || note;
     }
 

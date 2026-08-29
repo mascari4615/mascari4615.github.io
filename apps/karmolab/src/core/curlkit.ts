@@ -8,8 +8,8 @@
 import type { ToolRunner, ToolSpec } from './types';
 
 /*
- * 따옴표 자체를 정규식·문자열 안에 적지 않는다 (TASK-KL-316).
- * 알맹이 검사는 「따옴표 안을 지우고」 금지어를 찾는데, 쌍따옴표 안의 홑따옴표 하나가
+ * 따옴표 자체를 정규식, 문자열 안에 적지 않는다 (TASK-KL-316).
+ * 알맹이 검사는 따옴표 안을 지우고 금지어를 찾는데, 쌍따옴표 안의 홑따옴표 하나가
  * 그 지우기를 어긋나게 만들어 **멀쩡한 파일이 fetch 를 쓴다고 잡혔다**. 문자 코드로 적으면 안 어긋난다.
  */
 const APOS = String.fromCharCode(39);
@@ -41,12 +41,12 @@ export interface Request {
   body?: string;
   /** `-u user:pass` */
   auth?: string;
-  /** `-k` — 인증서를 안 따진다 */
+  /** `-k`. 인증서를 안 따진다 */
   insecure?: boolean;
 }
 
 /**
- * 셸이 하듯 낱말로 자른다 — 따옴표 안의 빈칸은 자르지 않고, 줄 끝 `\` 는 이어 붙인다.
+ * 셸이 하듯 낱말로 자른다. 따옴표 안의 빈칸은 자르지 않고, 줄 끝 `\` 는 이어 붙인다.
  * (셸을 부르지 않는다. 붙여넣은 줄을 실행할 생각이 없기 때문이다.)
  */
 export function tokenize(line: string): string[] {
@@ -97,7 +97,7 @@ const BODY_FLAGS = new Set(['-d', '--data', '--data-raw', '--data-binary', '--da
 export function parseCurl(line: string): Request {
   const tokens = tokenize(line);
   if (tokens.length === 0 || tokens[0] !== 'curl') {
-    // `curl` 을 빼고 붙여넣는 사람도 많다 — 앞이 주소면 그대로 받아 준다.
+    // `curl` 을 빼고 붙여넣는 사람도 많다. 앞이 주소면 그대로 받아 준다.
     if (tokens.length > 0 && /^https?:\/\//i.test(tokens[0])) tokens.unshift('curl');
     else throw new Error('curl 명령이 아닙니다');
   }
@@ -152,7 +152,7 @@ export function parseCurl(line: string): Request {
       if (tk === '-b' || tk === '--cookie') req.headers.Cookie = val;
       continue;
     }
-    if (tk.startsWith('-')) continue; // 나머지 깃발(-s, -L, -v …)은 옮길 것이 없다
+    if (tk.startsWith('-')) continue; // 나머지 깃발(-s, -L, -v ...)은 옮길 것이 없다
     if (req.url === '') req.url = tk;
   }
   if (req.url === '') throw new Error('주소가 없습니다');
@@ -184,7 +184,7 @@ export function toCode(req: Request, target: Target): string {
   const entries = Object.entries(headers);
 
   if (target === 'fetch') {
-    /* 홑따옴표로 적는다 — 알맹이 검사(test-core 금지어)는 따옴표 안을 지우고 보는데 백틱은 못 지운다. */
+    /* 홑따옴표로 적는다. 알맹이 검사(test-core 금지어)는 따옴표 안을 지우고 보는데 백틱은 못 지운다. */
     const rows = ['const res = await fetch(' + q(req.url) + ', {', '  method: ' + q(req.method) + ','];
     if (entries.length > 0) rows.push('  headers: {', ...entries.map(([k, v]) => `    ${q(k)}: ${q(v)},`), '  },');
     if (req.body !== undefined) rows.push(`  body: ${q(req.body)},`);
@@ -247,7 +247,7 @@ export function toCode(req: Request, target: Target): string {
     return rows.join('\n');
   }
 
-  // curl 로 되돌리기 — 읽은 것을 그대로 다시 적는다(정규화 겸 왕복 검사).
+  // curl 로 되돌리기. 읽은 것을 그대로 다시 적는다(정규화 겸 왕복 검사).
   const parts = ['curl'];
   if (req.method !== 'GET') parts.push('-X ' + req.method);
   parts.push(q(req.url));

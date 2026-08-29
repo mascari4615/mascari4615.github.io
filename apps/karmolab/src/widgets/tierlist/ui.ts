@@ -20,7 +20,7 @@ interface TlDialogApi {
 
     function showContextMenu(x: number, y: number, actions: Array<TlCtxAction | 'sep'>) {
         hideContextMenu();
-        /* 자판으로 고른 항목이 무엇이었는지, 그리고 메뉴를 연 자리가 어디였는지 —
+        /* 자판으로 고른 항목이 무엇이었는지, 그리고 메뉴를 연 자리가 어디였는지 . 
            닫은 뒤 초점을 원래 자리로 돌려놔야 자판 사용자가 길을 잃지 않는다. */
         const pick = new Map<HTMLButtonElement, () => void>();
         const opener = document.activeElement as HTMLElement | null;
@@ -28,7 +28,7 @@ interface TlDialogApi {
         ctxMenu = menu;
         menu.className = 'tl-ctx';
         /* 자판만 쓰는 사람도 여기를 지나갈 수 있어야 한다 (2026-08-17). 전에는 단추들이
-           pointerdown 에만 반응해 Enter·Space 가 아무 일도 안 했고, Esc 로 닫히지도 않았다. */
+           pointerdown 에만 반응해 Enter, Space 가 아무 일도 안 했고, Esc 로 닫히지도 않았다. */
         menu.setAttribute('role', 'menu');
         menu.addEventListener('pointerdown', (ev) => ev.stopPropagation());
 
@@ -51,7 +51,7 @@ interface TlDialogApi {
             menu.appendChild(btn);
         });
 
-        /* Esc = 닫기 · 위아래 = 항목 옮기기 · Enter/Space = 고르기. 열 때 첫 항목에 초점을 준다. */
+        /* Esc = 닫기, 위아래 = 항목 옮기기, Enter/Space = 고르기. 열 때 첫 항목에 초점을 준다. */
         menu.addEventListener('keydown', (ev: KeyboardEvent) => {
             const items = Array.from(menu.querySelectorAll<HTMLButtonElement>('.tl-ctx-item'));
             const at = items.indexOf(document.activeElement as HTMLButtonElement);
@@ -100,7 +100,7 @@ interface TlDialogApi {
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
         overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-        /* 바깥을 「눌러서」만 닫히면 자판 사용자는 갇힌다 — Esc 로도 닫고, 열 때 안으로 초점을 넣는다. */
+        /* 바깥을 눌러서만 닫히면 자판 사용자는 갇힌다. Esc 로도 닫고, 열 때 안으로 초점을 넣는다. */
         const opener = document.activeElement as HTMLElement | null;
         overlay.tabIndex = -1;
         overlay.addEventListener('keydown', (e: KeyboardEvent) => {

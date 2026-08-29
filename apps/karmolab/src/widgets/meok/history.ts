@@ -1,12 +1,12 @@
 /**
- * 「먹」 — 되돌리기 중 **그림에만 있는 부분** (TASK-KL-240 · 1단계 / KL-254 에서 분리)
+ * 먹. 되돌리기 중 **그림에만 있는 부분** (TASK-KL-240, 1단계 / KL-254 에서 분리)
  *
- * 커맨드 스택 자체는 `lib/history` 로 옮겼다 — 그림이든 도형이든 똑같은 일이기 때문이다.
+ * 커맨드 스택 자체는 `lib/history` 로 옮겼다. 그림이든 도형이든 똑같은 일이기 때문이다.
  * 여기 남은 것은 픽셀 판을 알아야만 할 수 있는 것: **더러워진 사각형만** 담기(`pixelPatch`).
  * 1024² 판에 점 하나를 찍으면 4MB 가 아니라 4바이트다. 획이 끝날 때 딱 한 번 굳히므로
  * 붓질 중에는 아무것도 안 쌓인다.
  *
- * 브라우저를 모른다 — 화면 없이 검사한다.
+ * 브라우저를 모른다. 화면 없이 검사한다.
  */
 
 import { type Surface } from './doc';
@@ -59,7 +59,7 @@ export function pasteRect(surface: Surface, rect: Rect, pixels: Uint8ClampedArra
 /**
  * 획 하나를 커맨드로 굳힌다.
  * `before` = 손대기 **전** 판의 사본, `surface` = 지금(이미 그려진) 판.
- * 달라진 데가 없으면 `null` — 빈 획으로 되돌리기 단계를 늘리지 않는다.
+ * 달라진 데가 없으면 `null`. 빈 획으로 되돌리기 단계를 늘리지 않는다.
  */
 export function pixelPatch(
   surface: Surface,

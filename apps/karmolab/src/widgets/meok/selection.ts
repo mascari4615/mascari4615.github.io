@@ -1,12 +1,12 @@
 /**
- * 「먹」 — 선택영역 (TASK-KL-240 · 5단계)
+ * 먹. 선택영역 (TASK-KL-240, 5단계)
  *
- * 「어디까지 손댈지」를 정하는 것. 이게 없으면 모든 도구가 판 전체에만 걸리고, 그러면
- * 하늘만 어둡게 · 얼굴만 흐리게 같은 실제 작업이 통째로 불가능하다. 포토샵에서 선택영역이
- * 도구가 아니라 **바탕**인 이유다 — 붓·채우기·필터·지우기가 전부 이것을 곱해서 쓴다.
+ * 어디까지 손댈지를 정하는 것. 이게 없으면 모든 도구가 판 전체에만 걸리고, 그러면
+ * 하늘만 어둡게, 얼굴만 흐리게 같은 실제 작업이 통째로 불가능하다. 포토샵에서 선택영역이
+ * 도구가 아니라 **바탕**인 이유다. 붓, 채우기, 필터, 지우기가 전부 이것을 곱해서 쓴다.
  *
  * 모양은 하나뿐이다: 픽셀당 0..255 의 **가림 정도**(feather 를 주면 가장자리가 부드럽다).
- * 사각형·올가미·마술봉은 전부 이 한 장을 만드는 서로 다른 길일 뿐이다 — 그래서 뒤에 오는
+ * 사각형, 올가미, 마술봉은 전부 이 한 장을 만드는 서로 다른 길일 뿐이다. 그래서 뒤에 오는
  * 도구는 어떤 방법으로 골랐는지 알 필요가 없다.
  */
 
@@ -105,8 +105,8 @@ export function selectEllipse(selection: Selection, rect: Rect, mode: SelectMode
 }
 
 /**
- * 올가미 — 점을 이어 만든 다각형 안쪽. 짝수-홀수 규칙으로 채운다(스스로 겹쳐도 뚫린다).
- * 점이 3개 미만이면 아무 일도 안 한다 — 실수로 톡 눌렀을 때 선택이 통째로 날아가지 않게.
+ * 올가미. 점을 이어 만든 다각형 안쪽. 짝수-홀수 규칙으로 채운다(스스로 겹쳐도 뚫린다).
+ * 점이 3개 미만이면 아무 일도 안 한다. 실수로 톡 눌렀을 때 선택이 통째로 날아가지 않게.
  */
 export function selectPolygon(selection: Selection, points: Array<{ x: number; y: number }>, mode: SelectMode = 'replace'): void {
   if (points.length < 3) return;
@@ -121,7 +121,7 @@ export function selectPolygon(selection: Selection, points: Array<{ x: number; y
     for (let i = 0, j = points.length - 1; i < points.length; j = i, i += 1) {
       const a = points[j];
       const b = points[i];
-      /* 가로줄이 이 변을 지나가나 — 위 끝은 포함, 아래 끝은 제외(꼭짓점 이중 계산 방지). */
+      /* 가로줄이 이 변을 지나가나. 위 끝은 포함, 아래 끝은 제외(꼭짓점 이중 계산 방지). */
       if ((a.y > y + 0.5) !== (b.y > y + 0.5)) {
         crossings.push(a.x + ((y + 0.5 - a.y) / (b.y - a.y)) * (b.x - a.x));
       }
@@ -136,7 +136,7 @@ export function selectPolygon(selection: Selection, points: Array<{ x: number; y
   combine(selection, next, mode);
 }
 
-/** 마술봉 — 누른 자리와 비슷한 색을 고른다. 채우기와 같은 눈으로 본다. */
+/** 마술봉. 누른 자리와 비슷한 색을 고른다. 채우기와 같은 눈으로 본다. */
 export function magicWand(
   selection: Selection,
   surface: Surface,
@@ -179,7 +179,7 @@ export function magicWand(
 }
 
 /**
- * 가장자리를 부드럽게(feather). 상자 흐림을 두 번 지나 대충 가우시안처럼 만든다 —
+ * 가장자리를 부드럽게(feather). 상자 흐림을 두 번 지나 대충 가우시안처럼 만든다 . 
  * 딱 떨어지는 선택으로 오려 내면 종이 오린 자국이 남는다.
  */
 export function feather(selection: Selection, radius: number): void {
@@ -216,7 +216,7 @@ export function feather(selection: Selection, radius: number): void {
   recomputeBounds(selection);
 }
 
-/** 선택 밖을 지운다 — 「골라서 오려 내기」. */
+/** 선택 밖을 지운다. 골라서 오려 내기. */
 export function clearOutside(surface: Surface, selection: Selection): void {
   if (isEmpty(selection)) return;
   for (let p = 0; p < selection.mask.length; p += 1) {
@@ -225,7 +225,7 @@ export function clearOutside(surface: Surface, selection: Selection): void {
   }
 }
 
-/** 선택 안을 지운다 — Delete. */
+/** 선택 안을 지운다. Delete. */
 export function clearInside(surface: Surface, selection: Selection): void {
   if (isEmpty(selection)) {
     surface.data.fill(0);
@@ -238,7 +238,7 @@ export function clearInside(surface: Surface, selection: Selection): void {
 }
 
 /**
- * 「달리는 개미」 테두리를 그릴 선 — 선택된 자리와 아닌 자리의 경계 픽셀만 모은다.
+ * 달리는 개미 테두리를 그릴 선. 선택된 자리와 아닌 자리의 경계 픽셀만 모은다.
  * 화면에 점선을 그리는 쪽(view)이 이걸 받아 쓴다.
  */
 export function edgePixels(selection: Selection): Array<[number, number]> {

@@ -1,9 +1,9 @@
 /**
- * 예금·적금·대출 이자 계산기 (TASK-KL-088)
+ * 예금, 적금, 대출 이자 계산기 (TASK-KL-088)
  *
- * 광고 문구의 「연 4%」 와 손에 들어오는 금액이 다른 이유는 두 가지다 —
+ * 광고 문구의 연 4% 와 손에 들어오는 금액이 다른 이유는 두 가지다 . 
  * ① 적금은 매달 넣은 돈이 각각 다른 기간만 굴러간다 ② 이자소득세 15.4% 가 떼인다.
- * 그래서 세전·세후를 나란히 보여주고, 대출은 원리금균등 상환표까지 펼친다.
+ * 그래서 세전, 세후를 나란히 보여주고, 대출은 원리금균등 상환표까지 펼친다.
  */
 import { annuityPayment, depositInterest, savingInterest, spec, TAX_RATE } from '../../core/interest';
 import { escapeHtml as esc } from './shared/text';
@@ -12,7 +12,7 @@ import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
-  /* 돈은 **보는 사람의 언어로** 적는다. 다만 통화는 KRW 그대로다 — 한국 상품의 금액이라
+  /* 돈은 **보는 사람의 언어로** 적는다. 다만 통화는 KRW 그대로다. 한국 상품의 금액이라
    * 달러로 바꿔 적으면 거짓말이 된다. core 의 `won` 은 MCP 글자 출력이 그대로 쓰므로 안 건드린다. */
   const money = (n: number): string =>
     new Intl.NumberFormat(locale(), { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(
@@ -29,7 +29,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     id: 'interest',
     title: t('widgets.interest.title', undefined, "이자 계산기"),
     category: 'tool',
-    desc: t('widgets-desc.interest.desc', undefined, "예금·적금 만기 금액과 대출 월 상환액을 계산합니다. 이자소득세 15.4% 반영"),
+    desc: t('widgets-desc.interest.desc', undefined, "예금, 적금 만기 금액과 대출 월 상환액을 계산합니다. 이자소득세 15.4% 반영"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.4V13m0 2.5v.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: [
@@ -77,13 +77,13 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const stats = $<HTMLElement>('#itStats');
           const detail = $<HTMLElement>('#itDetail');
           const status = $<HTMLElement>('#itStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const amountLabel = $<HTMLElement>('#itAmountLabel');
           let mode = 'saving';
 
-          /* 라벨 문구는 **한 곳에서만** 적는다. 두 군데(칩 누를 때·주소로 열 때)에 같은 글을
-             복사해 두면 다국어로 뺄 때 하나가 남는다 — 검사가 그걸 잡는다(KL-203). */
+          /* 라벨 문구는 **한 곳에서만** 적는다. 두 군데(칩 누를 때, 주소로 열 때)에 같은 글을
+             복사해 두면 다국어로 뺄 때 하나가 남는다. 검사가 그걸 잡는다(KL-203). */
           function applyMode(): void {
             amountLabel.textContent =
               mode === 'saving' ? t('interest.label.savings') : mode === 'deposit' ? t('interest.label.deposit') : t('interest.label.loan');

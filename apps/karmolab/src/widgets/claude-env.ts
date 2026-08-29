@@ -1,5 +1,5 @@
 /**
- * Claude 환경 컨트롤 위젯 — TASK-KL-056.
+ * Claude 환경 컨트롤 위젯. TASK-KL-056.
  *
  * v1 = read + write/sync + 미리듣기 + 파일 선택 다이얼로그.
  * Stop/Notification hook 각각 mode (system/beep/wav) + system sound + sound file
@@ -8,12 +8,12 @@
  *
  * wav 모드: .wav = SoundPlayer / .mp3 = WPF MediaPlayer (KL-059).
  * .wav/.mp3 drag-drop (TASK-KL-059): 카드 전체 drop → path 자동입력 +
- *   mode=wav 전환. 드롭 파일 *원위치* 경로만 set (memo git 자동복사 X —
+ *   mode=wav 전환. 드롭 파일 *원위치* 경로만 set (memo git 자동복사 X . 
  *   임의 바이너리 history bloat 비가역; canon-mirror 는 별 follow-up).
  *
  * Stop 과 Notification 의 차이:
- *   Stop = Claude 응답 끝날 때마다 — 일반 알림 (Asterisk 기본)
- *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시 — 강조 (Exclamation 기본)
+ *   Stop = Claude 응답 끝날 때마다. 일반 알림 (Asterisk 기본)
+ *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시. 강조 (Exclamation 기본)
  */
 import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
 import { t, loadNamespace } from '../lib/i18n';
@@ -51,11 +51,11 @@ import { t, loadNamespace } from '../lib/i18n';
     getWavPath: () => string;
     snapshot: () => NotifyHookConfig;
     populate: (hook: NotifyHookConfig) => void;
-    /** KL-059 — 드롭된 .wav/.mp3 경로를 path 입력에 반영 + mode=wav 전환. */
+    /** KL-059. 드롭된 .wav/.mp3 경로를 path 입력에 반영 + mode=wav 전환. */
     acceptDroppedSound: (path: string) => void;
   };
 
-  /** KL-059 — drag-drop 허용 사운드 확장자 (mp3 = WPF MediaPlayer 확장 정합). */
+  /** KL-059. drag-drop 허용 사운드 확장자 (mp3 = WPF MediaPlayer 확장 정합). */
   const DROP_SOUND_EXTS: ReadonlyArray<string> = ['.wav', '.mp3'];
 
   function hasSoundExt(path: string): boolean {
@@ -63,7 +63,7 @@ import { t, loadNamespace } from '../lib/i18n';
     return DROP_SOUND_EXTS.some((e) => lower.endsWith(e));
   }
 
-  /** KL-059 — 위젯 재진입(build 재호출) 시 직전 drag-drop 리스너 정리 (누수·stale DOM 방지). */
+  /** KL-059. 위젯 재진입(build 재호출) 시 직전 drag-drop 리스너 정리 (누수, stale DOM 방지). */
   let dragTeardown: (() => void) | null = null;
 
   type DragPayload = {
@@ -147,7 +147,7 @@ import { t, loadNamespace } from '../lib/i18n';
     sysRow.appendChild(sysControl);
     sec.appendChild(sysRow);
 
-    // beep row (▶ only — 톤은 정본 .ps1 의 hook 별 값으로 고정)
+    // beep row (▶ only. 톤은 정본 .ps1 의 hook 별 값으로 고정)
     const beepRow = document.createElement('div');
     beepRow.className = 'claude-env-row';
     const beepLabel = document.createElement('span');
@@ -158,7 +158,7 @@ import { t, loadNamespace } from '../lib/i18n';
     beepControl.className = 'claude-env-input-row';
     const beepHint = document.createElement('span');
     beepHint.className = 'claude-env-hint';
-    beepHint.textContent = name === 'stop' ? '880 Hz · 150 ms' : '1200 Hz · 100 ms ×2';
+    beepHint.textContent = name === 'stop' ? '880 Hz, 150 ms' : '1200 Hz, 100 ms ×2';
     beepControl.appendChild(beepHint);
     const beepPlay = document.createElement('button');
     beepPlay.type = 'button';
@@ -181,7 +181,7 @@ import { t, loadNamespace } from '../lib/i18n';
     const wavInput = document.createElement('input');
     wavInput.type = 'text';
     wavInput.className = 'claude-env-input';
-    wavInput.placeholder = 'C:\\…\\sound.wav 또는 .mp3  (드래그도 가능)';
+    wavInput.placeholder = 'C:\\...\\sound.wav 또는 .mp3  (드래그도 가능)';
     wavInput.spellcheck = false;
     wavControl.appendChild(wavInput);
     const wavBrowse = document.createElement('button');
@@ -223,7 +223,7 @@ import { t, loadNamespace } from '../lib/i18n';
       acceptDroppedSound: applyPickedPath
     };
 
-    // 「찾아보기」(파일 다이얼로그) 와 drag-drop(KL-059) 공용 — 경로 반영 +
+    // 찾아보기(파일 다이얼로그) 와 drag-drop(KL-059) 공용. 경로 반영 +
     // mode=wav 자동 전환 + 짧은 시각 피드백. 단일 정의(평행 X).
     function applyPickedPath(path: string): void {
       wavInput.value = path;
@@ -235,7 +235,7 @@ import { t, loadNamespace } from '../lib/i18n';
       setLog(`${name} wav path ← ${path}`, false);
     }
 
-    // 미리듣기 버튼들 — 클릭 시 입력 즉시 invoke (저장 안 함).
+    // 미리듣기 버튼들. 클릭 시 입력 즉시 invoke (저장 안 함).
     function preview(mode: NotifyMode): void {
       const snap = form.snapshot();
       // 미리듣기 인자: 호출 시점 mode 가 클릭 출처 (▶ 버튼 위치).
@@ -255,7 +255,7 @@ import { t, loadNamespace } from '../lib/i18n';
     beepPlay.addEventListener('click', () => preview('beep'));
     wavPlay.addEventListener('click', () => preview('wav'));
 
-    // 「찾아보기」 — OS 파일 다이얼로그로 .wav 선택. 선택 시 path 입력 + mode=wav 자동 전환.
+    // 찾아보기. OS 파일 다이얼로그로 .wav 선택. 선택 시 path 입력 + mode=wav 자동 전환.
     wavBrowse.addEventListener('click', function () {
       const dialog = (window as unknown as { __TAURI__?: { dialog?: { open?: unknown } } })
         .__TAURI__?.dialog;
@@ -340,7 +340,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
     const log = document.createElement('div');
     log.className = 'claude-env-log';
-    log.textContent = 'loading…';
+    log.textContent = 'loading...';
     function setLog(text: string, isErr: boolean): void {
       log.className = 'claude-env-log' + (isErr ? ' claude-env-log-err' : '');
       log.textContent = text;
@@ -375,9 +375,9 @@ import { t, loadNamespace } from '../lib/i18n';
       return;
     }
 
-    // ── KL-059: .wav/.mp3 drag-drop — 카드 전체가 drop 타겟 ──
+    // ── KL-059: .wav/.mp3 drag-drop. 카드 전체가 drop 타겟 ──
     // 위임 UX 결정: drop=카드전체+mode자동wav / 저장=드롭 원위치 경로만 set
-    // (memo git 자동복사 X — 비가역 history bloat; canon-mirror=별 follow-up).
+    // (memo git 자동복사 X. 비가역 history bloat; canon-mirror=별 follow-up).
     if (dragTeardown) {
       dragTeardown();
       dragTeardown = null;
@@ -414,7 +414,7 @@ import { t, loadNamespace } from '../lib/i18n';
         );
         if (!path) return;
         const hit = cardAt(pl?.position);
-        if (!hit) return; // 카드 밖 드롭 — 무시
+        if (!hit) return; // 카드 밖 드롭. 무시
         if (!hasSoundExt(path)) {
           setLog(t('claude-env.dropIgnored', { name: hit.form.name, path }), true);
           Toolbox.showToast?.(t('claude-env.t16'), 'error', undefined);
@@ -439,7 +439,7 @@ import { t, loadNamespace } from '../lib/i18n';
     function loadConfig(): void {
       saveBtn.disabled = true;
       saveBtn.textContent = t('claude-env.t17');
-      setLog('loading…', false);
+      setLog('loading...', false);
       void tauriInvoke('claude_env_read_notify_config')
         .then(function (res) {
           const config = res as NotifyConfigDto;
@@ -474,11 +474,11 @@ import { t, loadNamespace } from '../lib/i18n';
           const lines: string[] = [
             'write + sync OK.',
             '',
-            '— sync stdout —',
+            '.  sync stdout . ',
             result.sync_stdout.trim() || '(empty)'
           ];
           if (result.sync_stderr.trim().length > 0) {
-            lines.push('', '— sync stderr —', result.sync_stderr.trim());
+            lines.push('', '.  sync stderr . ', result.sync_stderr.trim());
           }
           lines.push('', t('claude-env.t24'));
           setLog(lines.join('\n'), false);

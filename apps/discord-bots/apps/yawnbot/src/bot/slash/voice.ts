@@ -37,21 +37,21 @@ export async function handleVoiceJoin(ctx: BotContext, interaction: ChatInputCom
   const perms = voiceChannel.permissionsFor(botMember);
   if (!perms?.has([PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel])) {
     await interaction.reply({
-      content: '봇에게 해당 채널의 **보기**·**연결** 권한이 필요합니다.',
+      content: '봇에게 해당 채널의 **보기**, **연결** 권한이 필요합니다.',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   await interaction.editReply({
-    content: '음성 서버에 연결하는 중입니다. 잠시만 기다려 주세요…',
+    content: '음성 서버에 연결하는 중입니다. 잠시만 기다려 주세요...',
   });
   /** Ready 대기가 길면 슬래시 응답이 멈춘 것처럼 보이므로 주기적으로 갱신 */
   let tick = 0;
   const progress = setInterval(() => {
     tick += 15;
     void interaction
-      .editReply({ content: `음성 서버에 연결하는 중입니다… (${tick}초 경과)` })
+      .editReply({ content: `음성 서버에 연결하는 중입니다... (${tick}초 경과)` })
       .catch(() => {});
   }, 15_000);
   let result;

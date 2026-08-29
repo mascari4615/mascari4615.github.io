@@ -2,10 +2,10 @@
  * 보안 헤더 읽고 짓기 (TASK-KL-316 / 14)
  *
  * CSP 는 **한 줄이 길어서 눈으로 못 읽는다**. 그래서 붙여넣으면 갈래별로 펴고,
- * 「이건 사실상 꺼 둔 것」인 자리(`'unsafe-inline'` · `*` · `data:` 스크립트)를 짚는다.
+ * 이건 사실상 꺼 둔 것인 자리(`'unsafe-inline'`, `*`, `data:` 스크립트)를 짚는다.
  * 반대로 몇 가지만 고르면 헤더 한 줄을 지어 준다.
  *
- * **점수를 매기지 않는다** — 「A 등급」 같은 것은 안심만 주고 무엇이 위험한지는 안 알려 준다.
+ * **점수를 매기지 않는다**. A 등급 같은 것은 안심만 주고 무엇이 위험한지는 안 알려 준다.
  * 대신 발견마다 *무엇이 왜 위험한지*를 열쇠로 돌려주고, 문장은 화면(i18n)이 만든다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -38,7 +38,7 @@ export const spec: ToolSpec = {
 export type Level = 'weak' | 'missing' | 'note';
 
 export interface Finding {
-  /** 어느 헤더·갈래에서 */
+  /** 어느 헤더, 갈래에서 */
   where: string;
   /** i18n 열쇠 (`csp.find.<key>`) */
   key: string;
@@ -85,7 +85,7 @@ export function reviewCsp(header: string): Finding[] {
     if (values.length === 0) continue;
     if (values.includes('*')) out.push({ where: dir, key: 'wildcard', level: 'weak', value: '*' });
     if (values.includes("'unsafe-inline'")) {
-      /* nonce·해시가 같이 있으면 최신 브라우저는 `'unsafe-inline'` 을 무시한다 — 그건 위험이 아니다. */
+      /* nonce, 해시가 같이 있으면 최신 브라우저는 `'unsafe-inline'` 을 무시한다. 그건 위험이 아니다. */
       const guarded = values.some((v) => v.startsWith("'nonce-") || v.startsWith("'sha256-") || v.includes("'strict-dynamic'"));
       if (!guarded) out.push({ where: dir, key: 'unsafeInline', level: 'weak', value: "'unsafe-inline'" });
     }
@@ -130,7 +130,7 @@ export function reviewHeaders(text: string): Finding[] {
 }
 
 export interface BuildOpts {
-  /** 그림·글꼴·연결을 어디까지 받나 (빈 값이면 자기 자신만) */
+  /** 그림, 글꼴, 연결을 어디까지 받나 (빈 값이면 자기 자신만) */
   images?: string;
   connect?: string;
   fonts?: string;
@@ -140,7 +140,7 @@ export interface BuildOpts {
   frames?: boolean;
 }
 
-/** 기본은 **가장 좁게** — 넓히는 건 사람이 고르게 한다. */
+/** 기본은 **가장 좁게**. 넓히는 건 사람이 고르게 한다. */
 export function build(opts: BuildOpts = {}): string {
   const add = (base: string, extra?: string): string => (extra === undefined || extra.trim() === '' ? base : base + ' ' + extra.trim());
   const rows = [

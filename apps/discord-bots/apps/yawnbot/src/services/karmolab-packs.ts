@@ -1,16 +1,16 @@
 /**
- * 사람이 만든 표 — 공용 원장 (TASK-KL-150, 게임 커스텀/UGC).
+ * 사람이 만든 표. 공용 원장 (TASK-KL-150, 게임 커스텀/UGC).
  *
- * 왜 있나: 「내 표 만들기」(KL-089)로 표는 만들 수 있었지만 **그 표는 만든 사람 브라우저 안에서
+ * 왜 있나: 내 표 만들기(KL-089)로 표는 만들 수 있었지만 **그 표는 만든 사람 브라우저 안에서
  * 끝났다.** 남에게 주려면 표 전체를 주소에 실어 보내야 했고(길이 수 KB), 받은 사람은 사본을
  * 갖게 되니 원본이 고쳐져도 모르고, 같은 표로 논 사람끼리 겨룰 수도 없었다.
- * 표가 **주소를 갖는 순간** 이 셋이 한꺼번에 풀린다 — 공유·갱신·순위.
+ * 표가 **주소를 갖는 순간** 이 셋이 한꺼번에 풀린다. 공유, 갱신, 순위.
  *
  * 표의 모양은 브라우저 쪽(`pack-store.ts`)과 **똑같다**. 새 모양을 만들면 그날부터 갈라진다.
- * 여기서 하는 일은 모양을 바꾸는 게 아니라 **믿을 수 없는 입력을 다듬는 것**이다 —
+ * 여기서 하는 일은 모양을 바꾸는 게 아니라 **믿을 수 없는 입력을 다듬는 것**이다 . 
  * 이 원장은 아무나 글을 보낼 수 있는 자리다.
  *
- * 순위와의 관계: 놀이 기록 원장(`karmolab-plays`)이 이미 「표마다 순위판이 갈린다」를 안다.
+ * 순위와의 관계: 놀이 기록 원장(`karmolab-plays`)이 이미 표마다 순위판이 갈린다를 안다.
  * 그래서 여기서 만든 표 id 를 그대로 `pack:<id>` 로 넘기면 **서버를 안 고치고** 순위판이 생긴다.
  *
  * 저장 = `data/karmolab-packs-state.json` (`.gitignore` 의 `data/*-state.json`).
@@ -61,12 +61,12 @@ export interface SharedPack {
    *
    * 왜 필요한가: 씨앗 표는 디스코드 쪽 원장을 살리려고 심는 것이지 **사이트 목록을 늘리려는 게
    * 아니다.** 표시가 없으면 사이트가 붙박이 3판 + 같은 표의 봇 사본 3개를 나란히 그려
-   * 「포켓몬」이 두 번 선다(실제로 그렇게 보였다). 사이트는 이 표시가 붙은 표를 목록에서 뺀다.
+   * 포켓몬이 두 번 선다(실제로 그렇게 보였다). 사이트는 이 표시가 붙은 표를 목록에서 뺀다.
    */
   siteBoard?: string | null;
 }
 
-/** 목록에 실어 보내는 요약 — 표 전체(수백 KB)를 목록마다 실어 보내지 않는다. */
+/** 목록에 실어 보내는 요약. 표 전체(수백 KB)를 목록마다 실어 보내지 않는다. */
 export interface PackSummary {
   id: string;
   ownerHandle: string;
@@ -74,15 +74,15 @@ export interface PackSummary {
   emoji: string;
   items: number;
   fields: number;
-  /** 겨룰 수 있는 숫자 칸이 있나 — 없으면 「높은 쪽 고르기」에 못 건다. */
+  /** 겨룰 수 있는 숫자 칸이 있나. 없으면 높은 쪽 고르기에 못 건다. */
   numberFields: number;
-  /** 그림이 붙은 항목 수 — 월드컵처럼 그림이 주인공인 놀이가 이걸 본다. */
+  /** 그림이 붙은 항목 수. 월드컵처럼 그림이 주인공인 놀이가 이걸 본다. */
   images: number;
   opens: number;
   createdAt: string;
   updatedAt: string;
   forkOf: string | null;
-  /** 사이트 붙박이 판의 사본인가 — 사이트 목록은 이걸 뺀다(중복 방지). 아니면 null. */
+  /** 사이트 붙박이 판의 사본인가. 사이트 목록은 이걸 뺀다(중복 방지). 아니면 null. */
   siteBoard: string | null;
 }
 
@@ -92,8 +92,8 @@ interface PacksState {
   /**
    * 표별 항목 집계 (TASK-KL-151 월드컵).
    *
-   * 표 id → 항목 이름 → 「몇 번 마주쳤고 몇 번 골라졌나」. 승률이 여기서 나온다.
-   * **실제로 붙은 판만** 센다 — 안 마주친 항목은 칸 자체가 안 생긴다(0승 0패 줄이 늘어서면
+   * 표 id → 항목 이름 → 몇 번 마주쳤고 몇 번 골라졌나. 승률이 여기서 나온다.
+   * **실제로 붙은 판만** 센다. 안 마주친 항목은 칸 자체가 안 생긴다(0승 0패 줄이 늘어서면
    * 그 표는 죽어 보인다).
    */
   tallies?: Record<string, Record<string, { seen: number; wins: number }>>;
@@ -103,7 +103,7 @@ interface PacksState {
    * 이미 심어 본 씨앗 표 **파일 이름들**.
    *
    * 처음엔 `seeded: true` 하나로 뒀는데, 그러면 씨앗을 하나 더 늘려도 **영영 안 심긴다**
-   * (봇은 「심었음」만 보고 지나간다 — 실제로 네 번째 표가 그렇게 안 들어갔다).
+   * (봇은 심었음만 보고 지나간다. 실제로 네 번째 표가 그렇게 안 들어갔다).
    * 파일 단위로 적어야 새 표가 합류한다. 지운 표를 다시 안 세우는 성질은 그대로다.
    */
   seededFiles?: string[];
@@ -135,7 +135,7 @@ export class PackError extends Error {
 }
 
 function text(raw: unknown, max: number): string {
-  // 눈에 안 보이는 글자·줄바꿈·글자 방향을 뒤집는 표식을 지운다 — 한 줄이 목록을 밀어내거나
+  // 눈에 안 보이는 글자, 줄바꿈, 글자 방향을 뒤집는 표식을 지운다. 한 줄이 목록을 밀어내거나
   // 이름이 거꾸로 보이게 만드는 장난을 막는다.
   return String(raw ?? '')
     .replace(/[\u0000-\u001F\u007F\u200B-\u200F\u202A-\u202E\u2066-\u2069\u2028\u2029\uFEFF]/g, '')
@@ -146,7 +146,7 @@ function text(raw: unknown, max: number): string {
 /**
  * 그림 주소. **`https:` 만** 받는다.
  *
- * `javascript:`·`data:` 를 그대로 두면 그림 자리에 스크립트를 실어 남의 화면에서 돌릴 수 있다.
+ * `javascript:`, `data:` 를 그대로 두면 그림 자리에 스크립트를 실어 남의 화면에서 돌릴 수 있다.
  * 허용 목록을 굳이 안 두는 이유: 사람이 어디에 그림을 올려 둘지는 우리가 정할 일이 아니다.
  */
 function imageUrl(raw: unknown): string | undefined {
@@ -163,7 +163,7 @@ function imageUrl(raw: unknown): string | undefined {
 /**
  * 아무나 보내는 몸통을 표 모양으로 다듬는다.
  *
- * **버리지 않고 다듬는다** — 칸 하나가 이상하다고 표 전체를 거절하면, 스프레드시트에서
+ * **버리지 않고 다듬는다**. 칸 하나가 이상하다고 표 전체를 거절하면, 스프레드시트에서
  * 긁어 온 사람은 뭐가 문제인지 영영 모른다. 다만 표가 성립 자체를 못 하면(항목이 넷 미만 등)
  * 그때는 이유를 달아 거절한다.
  */
@@ -174,7 +174,7 @@ export function sanitizePack(raw: unknown): { title: string; emoji: string; fiel
 
   const title = text(body.title, PACK_TITLE_MAX);
   if (!title) throw new PackError('bad_title', { max: PACK_TITLE_MAX });
-  // 이모지는 한두 글자면 된다. 없으면 주사위 — 목록에서 빈자리가 안 생기게.
+  // 이모지는 한두 글자면 된다. 없으면 주사위. 목록에서 빈자리가 안 생기게.
   const emoji = text(body.emoji, 4) || '🎲';
 
   const rawFields = Array.isArray(body.fields) ? body.fields : [];
@@ -210,7 +210,7 @@ export function sanitizePack(raw: unknown): { title: string; emoji: string; fiel
         const num = Number(value);
         if (Number.isFinite(num)) item[field.key] = num;
       } else if (field.kind === 'set') {
-        const list = (Array.isArray(value) ? value : String(value).split(/[,·]/))
+        const list = (Array.isArray(value) ? value : String(value).split(/[,, ]/))
           .map((v) => text(v, PACK_TEXT_MAX))
           .filter(Boolean)
           .slice(0, 16);
@@ -263,10 +263,10 @@ export function isValidPackId(raw: unknown): raw is string {
  * 처음부터 서 있는 표 (TASK-KL-151 ④).
  *
  * 왜 심나: 표 원장이 **비어 있으면** 둘러보기도, 순위판도, 승률도 전부 0 이다. 처음 온 사람에게
- * 그건 「아직 아무도 없다」가 아니라 「죽은 곳」으로 읽힌다. 이미 사이트가 쓰고 있는 표 셋을
- * 그대로 주인장 이름으로 세워 두면, 그 자리에서 **이어받기·승률·순위판이 한꺼번에 살아난다**.
+ * 그건 아직 아무도 없다가 아니라 죽은 곳으로 읽힌다. 이미 사이트가 쓰고 있는 표 셋을
+ * 그대로 주인장 이름으로 세워 두면, 그 자리에서 **이어받기, 승률, 순위판이 한꺼번에 살아난다**.
  *
- * 지어낸 수는 안 넣는다 — 심는 것은 **표**뿐이고, 열린 횟수·승률은 여전히 0 에서 시작한다.
+ * 지어낸 수는 안 넣는다. 심는 것은 **표**뿐이고, 열린 횟수, 승률은 여전히 0 에서 시작한다.
  *
  * 어디서 읽나: 같은 저장소의 사이트 데이터(`apps/karmolab/data/higher-*.json`). 못 찾으면
  * 조용히 안 심는다(봇이 그 파일 없이도 떠야 한다).
@@ -274,11 +274,11 @@ export function isValidPackId(raw: unknown): raw is string {
 export const SEED_OWNER = 'karmolab';
 
 const SEED_TABLES: Array<{ file: string; fallbackTitle: string; emoji: string; siteBoard: string | null }> = [
-  /* 앞 셋은 사이트에 **붙박이로도** 있는 판이다 — `siteBoard` 로 표시해 사이트 목록에서 빠지게 한다. */
+  /* 앞 셋은 사이트에 **붙박이로도** 있는 판이다. `siteBoard` 로 표시해 사이트 목록에서 빠지게 한다. */
   { file: 'higher-pokemon.json', fallbackTitle: '포켓몬', emoji: '🔴', siteBoard: 'pokemon' },
   { file: 'higher-lol.json', fallbackTitle: '롤 챔피언', emoji: '⚔️', siteBoard: 'lol' },
   { file: 'higher-genshin.json', fallbackTitle: '원신 캐릭터', emoji: '🌠', siteBoard: 'genshin' },
-  // 남의 그림을 퍼다 심을 수는 없다 — 이건 **우리가 구운** 도구 공유 카드로 만든 표다.
+  // 남의 그림을 퍼다 심을 수는 없다. 이건 **우리가 구운** 도구 공유 카드로 만든 표다.
   { file: 'worldcup-tools.json', fallbackTitle: 'KarmoLab 도구 월드컵', emoji: '🧰', siteBoard: null },
 ];
 
@@ -293,7 +293,7 @@ function fromSiteTable(raw: unknown): { title: string; emoji: string; fields: Pa
     const f = (one ?? {}) as Record<string, unknown>;
     const unit = String(f.unit ?? '').trim();
     /* 사이트 표는 원래 숫자 칸만 있었다(높은 쪽 고르기용). 이제 갈래 같은 글자 칸도 오므로
-       **적혀 있으면 그대로 믿는다** — 안 그러면 「도구」가 숫자로 읽혀 값이 통째로 빠진다. */
+       **적혀 있으면 그대로 믿는다**. 안 그러면 도구가 숫자로 읽혀 값이 통째로 빠진다. */
     const kind = f.kind === 'category' || f.kind === 'set' ? f.kind : 'number';
     return { key: String(f.key ?? ''), label: String(f.label ?? ''), kind, ...(unit ? { unit } : {}) };
   });
@@ -310,7 +310,7 @@ function fromSiteTable(raw: unknown): { title: string; emoji: string; fields: Pa
         const value = Number(raw);
         if (Number.isFinite(value)) item[field.key] = value;
       } else if (field.kind === 'set') {
-        const list = (Array.isArray(raw) ? raw : String(raw).split(/[,·]/)).map((v) => String(v).trim()).filter(Boolean);
+        const list = (Array.isArray(raw) ? raw : String(raw).split(/[,, ]/)).map((v) => String(v).trim()).filter(Boolean);
         if (list.length) item[field.key] = list;
       } else {
         const text = String(raw).trim();
@@ -352,18 +352,18 @@ export class KarmolabPackStore {
   /**
    * 처음부터 있는 표를 한 번만 심는다.
    *
-   * 이미 심어 둔 것은 다시 안 만든다(제목으로 알아본다) — 봇이 다시 뜰 때마다 같은 표가
+   * 이미 심어 둔 것은 다시 안 만든다(제목으로 알아본다). 봇이 다시 뜰 때마다 같은 표가
    * 쌓이면 둘러보기가 곧 쓰레기가 된다. 사람이 지웠으면 다시 안 심는다(지운 뜻을 존중).
    */
   private seed(): void {
-    /* 옛 표시(`seeded: true`)를 파일 단위로 옮긴다 — 그때 심은 것은 처음 셋뿐이다. */
+    /* 옛 표시(`seeded: true`)를 파일 단위로 옮긴다. 그때 심은 것은 처음 셋뿐이다. */
     if (!this.state.seededFiles) {
       this.state.seededFiles = this.state.seeded ? SEED_TABLES.slice(0, 3).map((t) => t.file) : [];
     }
     const already = new Set(this.state.seededFiles);
 
     /* 이미 심어 둔 씨앗에 `siteBoard` 표시를 뒤늦게 채운다 (KL 중복 판 고침).
-       표시가 붙기 전에 심은 원장이 이미 돌고 있으므로, 다시 심는 게 아니라 **표시만** 붙인다 —
+       표시가 붙기 전에 심은 원장이 이미 돌고 있으므로, 다시 심는 게 아니라 **표시만** 붙인다 . 
        그래야 사이트 목록에서 붙박이와 겹친 3판이 그날로 사라진다. */
     let marked = 0;
     for (const table of SEED_TABLES) {
@@ -380,10 +380,10 @@ export class KarmolabPackStore {
 
     let planted = 0;
     for (const table of SEED_TABLES) {
-      if (already.has(table.file)) continue; // 심어 봤다 — 사람이 지웠어도 다시 안 세운다
+      if (already.has(table.file)) continue; // 심어 봤다. 사람이 지웠어도 다시 안 세운다
       try {
         const file = path.join(this.seedDir, table.file);
-        if (!fs.existsSync(file)) continue; // 아직 없다 — 다음에 생기면 그때 심는다
+        if (!fs.existsSync(file)) continue; // 아직 없다. 다음에 생기면 그때 심는다
         const shaped = fromSiteTable(JSON.parse(fs.readFileSync(file, 'utf-8')));
         if (!shaped) continue;
         const title = shaped.title || table.fallbackTitle;
@@ -427,7 +427,7 @@ export class KarmolabPackStore {
         };
       }
     } catch (error) {
-      console.error('[karmolab-packs] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
+      console.error('[karmolab-packs] 상태 파일을 못 읽었다. 빈 원장으로 시작한다:', error);
     }
     return { version: 1, packs: [], tallies: {}, champions: {} };
   }
@@ -455,7 +455,7 @@ export class KarmolabPackStore {
     if (mine.length >= PACK_DAILY_LIMIT) throw new PackError('daily_limit', { limit: PACK_DAILY_LIMIT });
 
     const clean = sanitizePack(raw);
-    // 이어받기는 **있는 표**에서만 갈라진다 — 없는 주소를 적어 족보를 지어내지 못하게.
+    // 이어받기는 **있는 표**에서만 갈라진다. 없는 주소를 적어 족보를 지어내지 못하게.
     const parent = forkOf && this.get(forkOf) ? forkOf : null;
     const pack: SharedPack = {
       id: newId(),
@@ -471,7 +471,7 @@ export class KarmolabPackStore {
     return pack;
   }
 
-  /** 고친다 — 주인만. 남의 표는 고치는 게 아니라 **이어받는다**(fork). */
+  /** 고친다. 주인만. 남의 표는 고치는 게 아니라 **이어받는다**(fork). */
   update(handle: string, id: string, raw: unknown, now: Date = new Date()): SharedPack {
     const pack = this.get(id);
     if (!pack) throw new PackError('not_found');
@@ -482,7 +482,7 @@ export class KarmolabPackStore {
     return pack;
   }
 
-  /** 내린다 — 주인만. 순위 기록은 안 지운다(그 사람들이 실제로 논 것이다). */
+  /** 내린다. 주인만. 순위 기록은 안 지운다(그 사람들이 실제로 논 것이다). */
   remove(handle: string, id: string, isAdmin = false): boolean {
     const pack = this.get(id);
     if (!pack) return false;
@@ -493,8 +493,8 @@ export class KarmolabPackStore {
   }
 
   /**
-   * 열렸다고 센다. 같은 사람이 새로고침한 건 30분 안에는 안 센다 —
-   * 「몇 번 열렸나」가 새로고침 횟수면 그 수는 아무 말도 안 하는 수가 된다.
+   * 열렸다고 센다. 같은 사람이 새로고침한 건 30분 안에는 안 센다 . 
+   * 몇 번 열렸나가 새로고침 횟수면 그 수는 아무 말도 안 하는 수가 된다.
    */
   noteOpen(id: string, visitorKey: string, now: Date = new Date()): boolean {
     const pack = this.get(id);
@@ -512,7 +512,7 @@ export class KarmolabPackStore {
    * 목록.
    *
    * `popular` 는 **연 횟수**로 세운다(만든 사람이 아무리 자랑해도 안 열리면 안 오른다).
-   * `needsNumber`/`needsImage` 는 놀이가 「내가 걸 수 있는 표」만 달라고 할 때 쓴다 —
+   * `needsNumber`/`needsImage` 는 놀이가 내가 걸 수 있는 표만 달라고 할 때 쓴다 . 
    * 못 거는 표가 목록에 서면 눌러 보고서야 안 된다는 걸 알게 된다.
    */
   list(options: {
@@ -541,11 +541,11 @@ export class KarmolabPackStore {
   /**
    * 월드컵 한 판의 결과를 적는다 (TASK-KL-151).
    *
-   * 무엇을 세나: **마주친 횟수**와 **골라진 횟수**. 이 둘이 있어야 「인기」가 공정해진다 —
+   * 무엇을 세나: **마주친 횟수**와 **골라진 횟수**. 이 둘이 있어야 인기가 공정해진다 . 
    * 골라진 횟수만 세면 대진운 좋게 여러 번 올라온 항목이 무조건 이긴다.
    *
-   * 믿을 수 없는 입력이다: 표에 없는 이름 · 자기 자신과의 대결 · 너무 많은 판은 버린다.
-   * 같은 사람이 연달아 보내는 것도 안 센다(10분) — 한 사람이 순위를 만들 수 있으면 그 순위는
+   * 믿을 수 없는 입력이다: 표에 없는 이름, 자기 자신과의 대결, 너무 많은 판은 버린다.
+   * 같은 사람이 연달아 보내는 것도 안 센다(10분). 한 사람이 순위를 만들 수 있으면 그 순위는
    * 아무 말도 안 하는 수가 된다.
    *
    * @returns 실제로 센 대결 수. 0 이면 아무것도 안 셌다.
@@ -593,7 +593,7 @@ export class KarmolabPackStore {
   }
 
   /**
-   * 항목 순위. **마주친 적 있는 항목만** — 안 나온 것을 0% 로 줄 세우면 그 표는 죽어 보인다.
+   * 항목 순위. **마주친 적 있는 항목만**. 안 나온 것을 0% 로 줄 세우면 그 표는 죽어 보인다.
    * 같은 승률이면 많이 마주친 쪽이 위다(한 번 이겨 100% 인 항목이 1등이 되면 안 된다).
    */
   tally(packId: string, limit = 50): TallyRow[] {

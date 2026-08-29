@@ -1,1 +1,517 @@
-{"industry":"cafe","source":"OpenStreetMap (ODbL) — 표본","sample":true,"cell":0.0075,"brands":[{"id":"starbucks","label":"스타벅스","color":"#00704a"},{"id":"mega","label":"메가커피","color":"#f7c600"},{"id":"compose","label":"컴포즈커피","color":"#2b2b2b"},{"id":"ediya","label":"이디야","color":"#1a3a8f"},{"id":"twosome","label":"투썸플레이스","color":"#c8102e"},{"id":"paik","label":"빽다방","color":"#ffd400"},{"id":"hollys","label":"할리스","color":"#a4262c"},{"id":"coffeebean","label":"커피빈","color":"#4b2e2b"},{"id":"venti","label":"더벤티","color":"#00a4a6"},{"id":"mammoth","label":"매머드커피","color":"#6b4423"}],"rows":[{"code":"11","name":"서울특별시","areaKm2":602,"covered":100,"stores":{"starbucks":353,"ediya":116,"mega":115,"twosome":108,"compose":59,"coffeebean":55,"hollys":48,"paik":48,"mammoth":27,"venti":9},"share":{"starbucks":40.1,"ediya":15.1,"twosome":12.5,"mega":12.1,"compose":6.6,"paik":4.1,"coffeebean":3.6,"mammoth":2.5,"hollys":2.5,"venti":0.8}},{"code":"21","name":"부산광역시","areaKm2":763,"covered":100,"stores":{"starbucks":55,"ediya":17,"compose":9,"twosome":7,"mega":6,"hollys":5,"coffeebean":2,"venti":1,"paik":1},"share":{"starbucks":58.9,"compose":9.8,"twosome":8.9,"ediya":8.4,"hollys":7.6,"mega":5.8,"paik":0.2,"coffeebean":0.2,"venti":0.1}},{"code":"22","name":"대구광역시","areaKm2":879,"covered":100,"stores":{"starbucks":35,"twosome":10,"ediya":9,"paik":5,"mega":4,"venti":3,"compose":3,"hollys":1},"share":{"starbucks":44.1,"ediya":30,"twosome":15.2,"paik":6.7,"venti":1.9,"mega":1,"compose":0.8,"hollys":0.1}},{"code":"23","name":"인천광역시","areaKm2":1002,"covered":82.9,"stores":{"starbucks":43,"mega":36,"ediya":23,"paik":20,"compose":20,"twosome":19,"venti":12,"hollys":6,"coffeebean":3,"mammoth":2},"share":{"starbucks":31.6,"compose":30.8,"ediya":12.6,"mega":11.7,"paik":4.5,"venti":3.2,"twosome":3,"hollys":1.5,"coffeebean":0.7,"mammoth":0.4}},{"code":"24","name":"광주광역시","areaKm2":497,"covered":100,"stores":{"starbucks":46,"mega":22,"ediya":20,"compose":16,"twosome":13,"hollys":8,"venti":6,"paik":5,"mammoth":1},"share":{"starbucks":50.8,"compose":19.5,"ediya":10.4,"mega":5.6,"hollys":5.6,"twosome":5.4,"paik":1.6,"venti":0.9,"mammoth":0.1}},{"code":"25","name":"대전광역시","areaKm2":544,"covered":100,"stores":{"starbucks":17,"twosome":12,"paik":8,"mega":7,"ediya":5,"compose":5,"hollys":3},"share":{"starbucks":55.7,"paik":14.5,"ediya":8.3,"twosome":6.6,"compose":6.2,"mega":5.9,"hollys":2.9}},{"code":"26","name":"울산광역시","areaKm2":1063,"covered":100,"stores":{"starbucks":7,"ediya":5,"twosome":4,"venti":2,"hollys":2,"compose":2,"paik":1},"share":{"starbucks":47.7,"twosome":25.5,"compose":11.6,"ediya":7,"hollys":5.3,"venti":1.9,"paik":1.1}},{"code":"29","name":"세종특별자치시","areaKm2":464,"covered":100,"stores":{"paik":18,"mega":17,"twosome":13,"starbucks":13,"ediya":11,"compose":5,"venti":2,"hollys":2},"share":{"twosome":36.8,"ediya":19.1,"paik":18.6,"mega":15.7,"starbucks":8.5,"compose":1.1,"venti":0.1,"hollys":0.1}},{"code":"31","name":"경기도","areaKm2":10268,"covered":98.8,"stores":{"starbucks":217,"mega":167,"ediya":114,"twosome":92,"compose":66,"paik":43,"hollys":28,"venti":21,"coffeebean":10,"mammoth":7},"share":{"ediya":27,"starbucks":22.3,"mega":21.2,"twosome":10.8,"compose":10.6,"paik":3.1,"hollys":2.7,"venti":1.8,"coffeebean":0.3,"mammoth":0.2}},{"code":"32","name":"강원도","areaKm2":16853,"covered":61.1,"stores":{"starbucks":17,"twosome":14,"ediya":13,"mega":13,"paik":12,"compose":10,"hollys":3},"share":{"paik":24.8,"twosome":24,"ediya":13.1,"mega":11.7,"starbucks":9.8,"hollys":9.4,"compose":7,"venti":0.2}},{"code":"33","name":"충청북도","areaKm2":7431,"covered":70.1,"stores":{"starbucks":25,"ediya":13,"twosome":9,"mega":7,"paik":5,"venti":2,"hollys":2,"compose":1},"share":{"ediya":42.8,"starbucks":35.7,"twosome":6.6,"paik":5.1,"venti":4.7,"hollys":3.1,"mega":1.8,"compose":0.2}},{"code":"34","name":"충청남도","areaKm2":8235,"covered":96,"stores":{"starbucks":23,"ediya":21,"mega":15,"twosome":12,"paik":10,"compose":5,"hollys":3},"share":{"ediya":29.3,"starbucks":24.2,"mega":21.2,"twosome":13.7,"paik":7.9,"compose":1.8,"venti":1.1,"hollys":0.7}},{"code":"35","name":"전라북도","areaKm2":8077,"covered":72.9,"stores":{"starbucks":18,"ediya":12,"twosome":5,"hollys":5,"venti":4,"mega":4,"paik":4},"share":{"paik":25.7,"hollys":20.6,"ediya":17.6,"venti":9.3,"starbucks":8.2,"compose":7.4,"twosome":6,"mega":5.1}},{"code":"36","name":"전라남도","areaKm2":11987,"covered":83.6,"stores":{"ediya":42,"venti":25,"mega":24,"starbucks":23,"twosome":21,"compose":17,"paik":14,"hollys":3},"share":{"ediya":30.1,"compose":16.8,"starbucks":11.2,"mega":10.7,"paik":9.2,"hollys":8.7,"twosome":8.6,"venti":4.7}},{"code":"37","name":"경상북도","areaKm2":19083,"covered":71.4,"stores":{"starbucks":32,"ediya":14,"twosome":10,"mega":8,"compose":8,"venti":3,"paik":3,"hollys":1,"mammoth":1},"share":{"ediya":32.8,"starbucks":27.6,"twosome":17.3,"mega":10.5,"compose":7.8,"venti":3.3,"paik":0.6,"hollys":0.1,"mammoth":0}},{"code":"38","name":"경상남도","areaKm2":10446,"covered":87.6,"stores":{"starbucks":31,"compose":25,"ediya":22,"twosome":17,"mega":10,"hollys":8,"venti":6,"paik":3,"mammoth":1,"coffeebean":1},"share":{"ediya":24,"twosome":21.9,"starbucks":20,"compose":13.7,"hollys":10,"mega":5.8,"venti":4.1,"coffeebean":0.3,"paik":0.2,"mammoth":0}},{"code":"39","name":"제주특별자치도","areaKm2":1850,"covered":94.9,"stores":{"starbucks":29,"ediya":6,"twosome":6,"mega":6,"paik":6,"compose":5,"venti":2,"coffeebean":1},"share":{"starbucks":63,"twosome":14.8,"paik":13.6,"mega":4,"ediya":4,"venti":0.3,"compose":0.2,"coffeebean":0}}]}
+{
+  "industry": "cafe",
+  "source": "OpenStreetMap (ODbL). 표본",
+  "sample": true,
+  "cell": 0.0075,
+  "brands": [
+    {
+      "id": "starbucks",
+      "label": "스타벅스",
+      "color": "#00704a"
+    },
+    {
+      "id": "mega",
+      "label": "메가커피",
+      "color": "#f7c600"
+    },
+    {
+      "id": "compose",
+      "label": "컴포즈커피",
+      "color": "#2b2b2b"
+    },
+    {
+      "id": "ediya",
+      "label": "이디야",
+      "color": "#1a3a8f"
+    },
+    {
+      "id": "twosome",
+      "label": "투썸플레이스",
+      "color": "#c8102e"
+    },
+    {
+      "id": "paik",
+      "label": "빽다방",
+      "color": "#ffd400"
+    },
+    {
+      "id": "hollys",
+      "label": "할리스",
+      "color": "#a4262c"
+    },
+    {
+      "id": "coffeebean",
+      "label": "커피빈",
+      "color": "#4b2e2b"
+    },
+    {
+      "id": "venti",
+      "label": "더벤티",
+      "color": "#00a4a6"
+    },
+    {
+      "id": "mammoth",
+      "label": "매머드커피",
+      "color": "#6b4423"
+    }
+  ],
+  "rows": [
+    {
+      "code": "11",
+      "name": "서울특별시",
+      "areaKm2": 602,
+      "covered": 100,
+      "stores": {
+        "starbucks": 353,
+        "ediya": 116,
+        "mega": 115,
+        "twosome": 108,
+        "compose": 59,
+        "coffeebean": 55,
+        "hollys": 48,
+        "paik": 48,
+        "mammoth": 27,
+        "venti": 9
+      },
+      "share": {
+        "starbucks": 40.1,
+        "ediya": 15.1,
+        "twosome": 12.5,
+        "mega": 12.1,
+        "compose": 6.6,
+        "paik": 4.1,
+        "coffeebean": 3.6,
+        "mammoth": 2.5,
+        "hollys": 2.5,
+        "venti": 0.8
+      }
+    },
+    {
+      "code": "21",
+      "name": "부산광역시",
+      "areaKm2": 763,
+      "covered": 100,
+      "stores": {
+        "starbucks": 55,
+        "ediya": 17,
+        "compose": 9,
+        "twosome": 7,
+        "mega": 6,
+        "hollys": 5,
+        "coffeebean": 2,
+        "venti": 1,
+        "paik": 1
+      },
+      "share": {
+        "starbucks": 58.9,
+        "compose": 9.8,
+        "twosome": 8.9,
+        "ediya": 8.4,
+        "hollys": 7.6,
+        "mega": 5.8,
+        "paik": 0.2,
+        "coffeebean": 0.2,
+        "venti": 0.1
+      }
+    },
+    {
+      "code": "22",
+      "name": "대구광역시",
+      "areaKm2": 879,
+      "covered": 100,
+      "stores": {
+        "starbucks": 35,
+        "twosome": 10,
+        "ediya": 9,
+        "paik": 5,
+        "mega": 4,
+        "venti": 3,
+        "compose": 3,
+        "hollys": 1
+      },
+      "share": {
+        "starbucks": 44.1,
+        "ediya": 30,
+        "twosome": 15.2,
+        "paik": 6.7,
+        "venti": 1.9,
+        "mega": 1,
+        "compose": 0.8,
+        "hollys": 0.1
+      }
+    },
+    {
+      "code": "23",
+      "name": "인천광역시",
+      "areaKm2": 1002,
+      "covered": 82.9,
+      "stores": {
+        "starbucks": 43,
+        "mega": 36,
+        "ediya": 23,
+        "paik": 20,
+        "compose": 20,
+        "twosome": 19,
+        "venti": 12,
+        "hollys": 6,
+        "coffeebean": 3,
+        "mammoth": 2
+      },
+      "share": {
+        "starbucks": 31.6,
+        "compose": 30.8,
+        "ediya": 12.6,
+        "mega": 11.7,
+        "paik": 4.5,
+        "venti": 3.2,
+        "twosome": 3,
+        "hollys": 1.5,
+        "coffeebean": 0.7,
+        "mammoth": 0.4
+      }
+    },
+    {
+      "code": "24",
+      "name": "광주광역시",
+      "areaKm2": 497,
+      "covered": 100,
+      "stores": {
+        "starbucks": 46,
+        "mega": 22,
+        "ediya": 20,
+        "compose": 16,
+        "twosome": 13,
+        "hollys": 8,
+        "venti": 6,
+        "paik": 5,
+        "mammoth": 1
+      },
+      "share": {
+        "starbucks": 50.8,
+        "compose": 19.5,
+        "ediya": 10.4,
+        "mega": 5.6,
+        "hollys": 5.6,
+        "twosome": 5.4,
+        "paik": 1.6,
+        "venti": 0.9,
+        "mammoth": 0.1
+      }
+    },
+    {
+      "code": "25",
+      "name": "대전광역시",
+      "areaKm2": 544,
+      "covered": 100,
+      "stores": {
+        "starbucks": 17,
+        "twosome": 12,
+        "paik": 8,
+        "mega": 7,
+        "ediya": 5,
+        "compose": 5,
+        "hollys": 3
+      },
+      "share": {
+        "starbucks": 55.7,
+        "paik": 14.5,
+        "ediya": 8.3,
+        "twosome": 6.6,
+        "compose": 6.2,
+        "mega": 5.9,
+        "hollys": 2.9
+      }
+    },
+    {
+      "code": "26",
+      "name": "울산광역시",
+      "areaKm2": 1063,
+      "covered": 100,
+      "stores": {
+        "starbucks": 7,
+        "ediya": 5,
+        "twosome": 4,
+        "venti": 2,
+        "hollys": 2,
+        "compose": 2,
+        "paik": 1
+      },
+      "share": {
+        "starbucks": 47.7,
+        "twosome": 25.5,
+        "compose": 11.6,
+        "ediya": 7,
+        "hollys": 5.3,
+        "venti": 1.9,
+        "paik": 1.1
+      }
+    },
+    {
+      "code": "29",
+      "name": "세종특별자치시",
+      "areaKm2": 464,
+      "covered": 100,
+      "stores": {
+        "paik": 18,
+        "mega": 17,
+        "twosome": 13,
+        "starbucks": 13,
+        "ediya": 11,
+        "compose": 5,
+        "venti": 2,
+        "hollys": 2
+      },
+      "share": {
+        "twosome": 36.8,
+        "ediya": 19.1,
+        "paik": 18.6,
+        "mega": 15.7,
+        "starbucks": 8.5,
+        "compose": 1.1,
+        "venti": 0.1,
+        "hollys": 0.1
+      }
+    },
+    {
+      "code": "31",
+      "name": "경기도",
+      "areaKm2": 10268,
+      "covered": 98.8,
+      "stores": {
+        "starbucks": 217,
+        "mega": 167,
+        "ediya": 114,
+        "twosome": 92,
+        "compose": 66,
+        "paik": 43,
+        "hollys": 28,
+        "venti": 21,
+        "coffeebean": 10,
+        "mammoth": 7
+      },
+      "share": {
+        "ediya": 27,
+        "starbucks": 22.3,
+        "mega": 21.2,
+        "twosome": 10.8,
+        "compose": 10.6,
+        "paik": 3.1,
+        "hollys": 2.7,
+        "venti": 1.8,
+        "coffeebean": 0.3,
+        "mammoth": 0.2
+      }
+    },
+    {
+      "code": "32",
+      "name": "강원도",
+      "areaKm2": 16853,
+      "covered": 61.1,
+      "stores": {
+        "starbucks": 17,
+        "twosome": 14,
+        "ediya": 13,
+        "mega": 13,
+        "paik": 12,
+        "compose": 10,
+        "hollys": 3
+      },
+      "share": {
+        "paik": 24.8,
+        "twosome": 24,
+        "ediya": 13.1,
+        "mega": 11.7,
+        "starbucks": 9.8,
+        "hollys": 9.4,
+        "compose": 7,
+        "venti": 0.2
+      }
+    },
+    {
+      "code": "33",
+      "name": "충청북도",
+      "areaKm2": 7431,
+      "covered": 70.1,
+      "stores": {
+        "starbucks": 25,
+        "ediya": 13,
+        "twosome": 9,
+        "mega": 7,
+        "paik": 5,
+        "venti": 2,
+        "hollys": 2,
+        "compose": 1
+      },
+      "share": {
+        "ediya": 42.8,
+        "starbucks": 35.7,
+        "twosome": 6.6,
+        "paik": 5.1,
+        "venti": 4.7,
+        "hollys": 3.1,
+        "mega": 1.8,
+        "compose": 0.2
+      }
+    },
+    {
+      "code": "34",
+      "name": "충청남도",
+      "areaKm2": 8235,
+      "covered": 96,
+      "stores": {
+        "starbucks": 23,
+        "ediya": 21,
+        "mega": 15,
+        "twosome": 12,
+        "paik": 10,
+        "compose": 5,
+        "hollys": 3
+      },
+      "share": {
+        "ediya": 29.3,
+        "starbucks": 24.2,
+        "mega": 21.2,
+        "twosome": 13.7,
+        "paik": 7.9,
+        "compose": 1.8,
+        "venti": 1.1,
+        "hollys": 0.7
+      }
+    },
+    {
+      "code": "35",
+      "name": "전라북도",
+      "areaKm2": 8077,
+      "covered": 72.9,
+      "stores": {
+        "starbucks": 18,
+        "ediya": 12,
+        "twosome": 5,
+        "hollys": 5,
+        "venti": 4,
+        "mega": 4,
+        "paik": 4
+      },
+      "share": {
+        "paik": 25.7,
+        "hollys": 20.6,
+        "ediya": 17.6,
+        "venti": 9.3,
+        "starbucks": 8.2,
+        "compose": 7.4,
+        "twosome": 6,
+        "mega": 5.1
+      }
+    },
+    {
+      "code": "36",
+      "name": "전라남도",
+      "areaKm2": 11987,
+      "covered": 83.6,
+      "stores": {
+        "ediya": 42,
+        "venti": 25,
+        "mega": 24,
+        "starbucks": 23,
+        "twosome": 21,
+        "compose": 17,
+        "paik": 14,
+        "hollys": 3
+      },
+      "share": {
+        "ediya": 30.1,
+        "compose": 16.8,
+        "starbucks": 11.2,
+        "mega": 10.7,
+        "paik": 9.2,
+        "hollys": 8.7,
+        "twosome": 8.6,
+        "venti": 4.7
+      }
+    },
+    {
+      "code": "37",
+      "name": "경상북도",
+      "areaKm2": 19083,
+      "covered": 71.4,
+      "stores": {
+        "starbucks": 32,
+        "ediya": 14,
+        "twosome": 10,
+        "mega": 8,
+        "compose": 8,
+        "venti": 3,
+        "paik": 3,
+        "hollys": 1,
+        "mammoth": 1
+      },
+      "share": {
+        "ediya": 32.8,
+        "starbucks": 27.6,
+        "twosome": 17.3,
+        "mega": 10.5,
+        "compose": 7.8,
+        "venti": 3.3,
+        "paik": 0.6,
+        "hollys": 0.1,
+        "mammoth": 0
+      }
+    },
+    {
+      "code": "38",
+      "name": "경상남도",
+      "areaKm2": 10446,
+      "covered": 87.6,
+      "stores": {
+        "starbucks": 31,
+        "compose": 25,
+        "ediya": 22,
+        "twosome": 17,
+        "mega": 10,
+        "hollys": 8,
+        "venti": 6,
+        "paik": 3,
+        "mammoth": 1,
+        "coffeebean": 1
+      },
+      "share": {
+        "ediya": 24,
+        "twosome": 21.9,
+        "starbucks": 20,
+        "compose": 13.7,
+        "hollys": 10,
+        "mega": 5.8,
+        "venti": 4.1,
+        "coffeebean": 0.3,
+        "paik": 0.2,
+        "mammoth": 0
+      }
+    },
+    {
+      "code": "39",
+      "name": "제주특별자치도",
+      "areaKm2": 1850,
+      "covered": 94.9,
+      "stores": {
+        "starbucks": 29,
+        "ediya": 6,
+        "twosome": 6,
+        "mega": 6,
+        "paik": 6,
+        "compose": 5,
+        "venti": 2,
+        "coffeebean": 1
+      },
+      "share": {
+        "starbucks": 63,
+        "twosome": 14.8,
+        "paik": 13.6,
+        "mega": 4,
+        "ediya": 4,
+        "venti": 0.3,
+        "compose": 0.2,
+        "coffeebean": 0
+      }
+    }
+  ]
+}

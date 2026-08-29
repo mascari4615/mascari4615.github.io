@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildDiscoveryArgs } from '@karmo/ai/node';
 
-describe('buildDiscoveryArgs — 비-agentic 하드 보장', () => {
+describe('buildDiscoveryArgs. 비-agentic 하드 보장', () => {
   const args = buildDiscoveryArgs();
   const joined = args.join(' ');
 
@@ -28,7 +28,7 @@ describe('buildDiscoveryArgs — 비-agentic 하드 보장', () => {
     expect(args).toContain('--no-session-persistence');
   });
 
-  it('--disallowedTools 로 쓰기·실행 도구 명시 거부', () => {
+  it('--disallowedTools 로 쓰기, 실행 도구 명시 거부', () => {
     const i = args.indexOf('--disallowedTools');
     expect(i).toBeGreaterThanOrEqual(0);
     const denied = args[i + 1] ?? '';
@@ -44,7 +44,7 @@ describe('buildDiscoveryArgs — 비-agentic 하드 보장', () => {
     expect(args).not.toContain('--add-dir');
   });
 
-  it('세션 재개·이름 고정 X (무상태 단발 — 공유 세션 비오염)', () => {
+  it('세션 재개, 이름 고정 X (무상태 단발. 공유 세션 비오염)', () => {
     for (const flag of [
       '--continue',
       '-c',

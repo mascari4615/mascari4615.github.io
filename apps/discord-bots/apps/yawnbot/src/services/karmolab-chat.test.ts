@@ -2,9 +2,9 @@
  * 채팅방 시험 (TASK-KL-149).
  *
  * 여기서 지키려는 것은 세 가지다:
- *  ① **이름표가 하루를 간다** — 한낮에 이름이 바뀌면 대화가 통째로 끊긴다.
- *  ② **도배가 실제로 막힌다** — 상한을 적어 두기만 하고 안 걸리는 일이 흔하다.
- *  ③ **다시 켜도 방이 남는다** — 배포가 하루에 몇 번씩 서비스를 재시작한다.
+ *  ① **이름표가 하루를 간다**. 한낮에 이름이 바뀌면 대화가 통째로 끊긴다.
+ *  ② **도배가 실제로 막힌다**. 상한을 적어 두기만 하고 안 걸리는 일이 흔하다.
+ *  ③ **다시 켜도 방이 남는다**. 배포가 하루에 몇 번씩 서비스를 재시작한다.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
@@ -22,9 +22,9 @@ function makeStore(): KarmolabChatStore {
 /**
  * 이 시험들이 서 있는 **오늘**. 여기 적힌 날짜를 지나면 줄의 수명(하루)이 끝나므로,
  * 시계를 이 순간에 못 박아 둔다. 안 그러면 시험은 **쓴 날에만 초록**이고 며칠 뒤 저절로
- * 빨강이 된다 — 실제로 그렇게 4건이 몇 달 동안 조용히 빨강이었다 (TASK-YB-045).
+ * 빨강이 된다. 실제로 그렇게 4건이 몇 달 동안 조용히 빨강이었다 (TASK-YB-045).
  *
- * `Date` 만 가짜로 바꾼다. `setTimeout` 은 진짜여야 한다 — 접속 유예(`hereCount`) 시험이
+ * `Date` 만 가짜로 바꾼다. `setTimeout` 은 진짜여야 한다. 접속 유예(`hereCount`) 시험이
  * 실제 타이머로 기다린다.
  */
 const today = new Date('2026-08-08T12:00:00Z');
@@ -41,7 +41,7 @@ afterEach(() => {
 });
 
 describe('이름표', () => {
-    it('같은 사람이면 하루 종일 같은 이름·색이다', () => {
+    it('같은 사람이면 하루 종일 같은 이름, 색이다', () => {
         const store = makeStore();
         const morning = store.identityFor('visitor-a', new Date('2026-08-08T00:10:00+09:00'));
         const night = store.identityFor('visitor-a', new Date('2026-08-08T23:50:00+09:00'));
@@ -52,7 +52,7 @@ describe('이름표', () => {
 
     it('날이 바뀌면 이름이 갈린다 (한국 자정 기준)', () => {
         const store = makeStore();
-        // 한국 시간 23:59 와 00:01 — UTC 로 보면 같은 날이라 서버 시간대로 자르면 이 시험이 통과해 버린다.
+        // 한국 시간 23:59 와 00:01. UTC 로 보면 같은 날이라 서버 시간대로 자르면 이 시험이 통과해 버린다.
         const before = store.identityFor('visitor-a', new Date('2026-08-08T23:59:00+09:00'));
         const after = store.identityFor('visitor-a', new Date('2026-08-09T00:01:00+09:00'));
         expect(kstDate(new Date('2026-08-08T23:59:00+09:00'))).toBe('2026-08-08');
@@ -65,7 +65,7 @@ describe('이름표', () => {
         const a = store.identityFor('visitor-a');
         const b = store.identityFor('visitor-b');
         expect(a.who).not.toBe(b.who);
-        // 공개 번호는 열쇠의 앞 조각일 뿐 — 열쇠 전체가 새면 익명이 아니다.
+        // 공개 번호는 열쇠의 앞 조각일 뿐. 열쇠 전체가 새면 익명이 아니다.
         expect(a.key.length).toBeGreaterThan(a.who.length);
     });
 });
@@ -77,7 +77,7 @@ describe('보내기', () => {
         expect(store.post('v', 'x'.repeat(TEXT_MAX + 1)).error).toBe('too_long');
     });
 
-    it('연달아 치면 막고, 왜·언제까지인지 같이 준다', () => {
+    it('연달아 치면 막고, 왜, 언제까지인지 같이 준다', () => {
         const store = makeStore();
         const now = new Date('2026-08-08T12:00:00Z');
         expect(store.post('v', '하나', {}, now).ok).toBe(true);
@@ -85,7 +85,7 @@ describe('보내기', () => {
         expect(second.ok).toBe(false);
         expect(second.error).toBe('too_fast');
         expect(second.retryAfterMs).toBeGreaterThan(0);
-        // 간격을 채우면 통과한다 — 영영 막히는 게 아니다.
+        // 간격을 채우면 통과한다. 영영 막히는 게 아니다.
         expect(store.post('v', '둘', {}, new Date(now.getTime() + MIN_INTERVAL_MS + 1)).ok).toBe(true);
     });
 
@@ -146,7 +146,7 @@ describe('방 유지', () => {
 
         const second = makeStore();
         expect(second.recent(MAX_MESSAGES, now).map((m) => m.text)).toEqual(['남아 있어야 한다']);
-        // 소금을 새로 만들면 한낮에 모두의 이름이 바뀐다 — 그 함정을 여기서 잡는다.
+        // 소금을 새로 만들면 한낮에 모두의 이름이 바뀐다. 그 함정을 여기서 잡는다.
         expect(second.identityFor('v', now).who).toBe(before.who);
     });
 
@@ -170,13 +170,13 @@ describe('흐르는 쪽', () => {
         expect(seen).toEqual(['들리나']);
         expect(store.hereCount()).toBe(1);
         off();
-        // 끊긴 사람에게는 안 간다 — 안 그러면 죽은 연결에 계속 쓴다.
+        // 끊긴 사람에게는 안 간다. 안 그러면 죽은 연결에 계속 쓴다.
         store.post('w', '이건 안 들린다');
         expect(seen).toEqual(['들리나']);
         expect(store.hereCount()).toBe(0);
     });
 
-    /* 「지금 여기」가 왜 흔들렸나 (사용자 신고 2026-08-08 — 숫자가 계속 왔다갔다).
+    /* 지금 여기가 왜 흔들렸나 (사용자 신고 2026-08-08. 숫자가 계속 왔다갔다).
      *
      * 세던 것이 **사람이 아니라 열린 연결**이었다. 도구 화면은 진짜 페이지 이동이라 옮길
      * 때마다 끊었다 다시 붙고, 탭을 둘 열면 한 사람이 둘이 되고, SSE 는 잠깐 끊기면 스스로
@@ -191,17 +191,17 @@ describe('흐르는 쪽', () => {
         const watcher = store.subscribe((e) => { if (e.type === 'here') heres.push(e.here); }, 'watcher');
         expect(store.hereCount()).toBe(1);
 
-        // 같은 사람의 두 번째 탭 — 수도 그대로, 알림도 없다
+        // 같은 사람의 두 번째 탭. 수도 그대로, 알림도 없다
         const tab2 = store.subscribe(() => {}, 'watcher');
         expect(store.hereCount()).toBe(1);
         expect(heres).toEqual([]);
 
-        // 다른 사람 입장 — 여기서만 알림 한 번
+        // 다른 사람 입장. 여기서만 알림 한 번
         const other = store.subscribe(() => {}, 'other');
         expect(store.hereCount()).toBe(2);
         expect(heres).toEqual([2]);
 
-        // 화면 이동 = 끊고 유예 안에 다시 붙기 — 아무 일도 없어야 한다
+        // 화면 이동 = 끊고 유예 안에 다시 붙기. 아무 일도 없어야 한다
         other();
         await new Promise((r) => setTimeout(r, grace / 3));
         const otherAgain = store.subscribe(() => {}, 'other');
@@ -209,7 +209,7 @@ describe('흐르는 쪽', () => {
         expect(store.hereCount()).toBe(2);
         expect(heres).toEqual([2]);
 
-        // 진짜 나감 — 유예가 지나야 줄어든다
+        // 진짜 나감. 유예가 지나야 줄어든다
         otherAgain();
         expect(store.hereCount()).toBe(2);
         await new Promise((r) => setTimeout(r, grace * 2));
@@ -290,7 +290,7 @@ describe('지키기 (KL-158)', () => {
     });
 });
 
-describe('답하기·신고 표시·보여 줄 모양 (KL-159)', () => {
+describe('답하기, 신고 표시, 보여 줄 모양 (KL-159)', () => {
     it('답한 줄은 상대의 말을 그때 모습대로 데리고 다닌다', () => {
         const store = makeStore();
         const now = new Date('2026-08-08T12:00:00Z');
@@ -320,7 +320,7 @@ describe('답하기·신고 표시·보여 줄 모양 (KL-159)', () => {
         expect(store.markReported('없는-id', 'who-a')).toBe(null);
     });
 
-    it('보여 줄 모양에는 **목록이 안 들어간다** — 내가 눌렀나만 나간다', () => {
+    it('보여 줄 모양에는 **목록이 안 들어간다**. 내가 눌렀나만 나간다', () => {
         const store = makeStore();
         const posted = store.post('v', '지키고 신고한 말');
         store.toggleKeep(posted.message!.id, 'who-a');
@@ -337,14 +337,14 @@ describe('답하기·신고 표시·보여 줄 모양 (KL-159)', () => {
         expect(asC.keptByMe).toBe(false);
         expect(asC.reportedByMe).toBe(false);
 
-        // 남이 누른 목록은 어느 쪽에서도 안 보인다 — 보이면 익명이 샌다.
+        // 남이 누른 목록은 어느 쪽에서도 안 보인다. 보이면 익명이 샌다.
         expect(JSON.stringify(asC)).not.toContain('who-a');
         expect(JSON.stringify(asC)).not.toContain('who-b');
     });
 });
 
 describe('지킨 사람이 하루를 넘긴다 (KL-160)', () => {
-    it('로그인한 사람은 계정 열쇠로 적혀, 이름표가 갈려도 「내가 지킨 것」이 남는다', () => {
+    it('로그인한 사람은 계정 열쇠로 적혀, 이름표가 갈려도 내가 지킨 것이 남는다', () => {
         const store = makeStore();
         const day1 = new Date('2026-08-08T12:00:00Z');
         const day2 = new Date('2026-08-09T12:00:00Z');
@@ -358,12 +358,12 @@ describe('지킨 사람이 하루를 넘긴다 (KL-160)', () => {
         const keeper = KarmolabChatStore.keeperKey(whoDay1, 'acct-1');
         store.toggleKeep(posted.message!.id, keeper, day1);
 
-        // 다음 날, 이름표는 갈렸지만 계정은 그대로다 — 여전히 내가 지킨 것으로 보인다.
+        // 다음 날, 이름표는 갈렸지만 계정은 그대로다. 여전히 내가 지킨 것으로 보인다.
         const keeperNextDay = KarmolabChatStore.keeperKey(whoDay2, 'acct-1');
         expect(store.publicMessages(keeperNextDay, day2)[0].keptByMe).toBe(true);
     });
 
-    it('익명은 오늘 이름표로만 적힌다 — 그 이상 남는 표식을 안 갖는다', () => {
+    it('익명은 오늘 이름표로만 적힌다. 그 이상 남는 표식을 안 갖는다', () => {
         const store = makeStore();
         const day1 = new Date('2026-08-08T12:00:00Z');
         const day2 = new Date('2026-08-09T12:00:00Z');
@@ -373,7 +373,7 @@ describe('지킨 사람이 하루를 넘긴다 (KL-160)', () => {
         store.toggleKeep(posted.message!.id, KarmolabChatStore.keeperKey(whoDay1, null), day1);
         const whoDay2 = store.identityFor('visitor', day2).who;
         expect(store.publicMessages(KarmolabChatStore.keeperKey(whoDay2, null), day2)[0].keptByMe).toBe(false);
-        // 줄 자체는 지켜져 있으므로 남아 있다 — 「누가」만 하루짜리다.
+        // 줄 자체는 지켜져 있으므로 남아 있다. 누가만 하루짜리다.
         expect(store.publicMessages(whoDay2, day2)[0].kept).toBe(1);
     });
 
@@ -381,7 +381,7 @@ describe('지킨 사람이 하루를 넘긴다 (KL-160)', () => {
         const store = makeStore();
         const spoken = store.post('v', '내 말', { accountId: 'acct-9' });
         expect(store.accountOfMessage(spoken.message!.id)).toBe('acct-9');
-        // 익명이면 알릴 곳이 없다 — 그건 고장이 아니다.
+        // 익명이면 알릴 곳이 없다. 그건 고장이 아니다.
         const anon = store.post('w', '익명 말');
         expect(store.accountOfMessage(anon.message!.id)).toBe(null);
         // 보여 줄 모양에는 계정이 절대 안 실린다.

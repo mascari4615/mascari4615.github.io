@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { encode, decode } from '../dist/format.js';
 import { Player } from '../dist/player.js';
 
-/** 프레임마다 켜진 칸 수가 다른 클립 — 몇 번째 프레임이 나왔는지 세어서 알 수 있게. */
+/** 프레임마다 켜진 칸 수가 다른 클립. 몇 번째 프레임이 나왔는지 세어서 알 수 있게. */
 function clipOf(count) {
 	const frames = [];
 	for (let i = 0; i < count; i++) {

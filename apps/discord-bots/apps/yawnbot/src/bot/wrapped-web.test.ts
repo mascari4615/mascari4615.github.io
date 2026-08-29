@@ -50,7 +50,7 @@ describe('공유 키', () => {
     expect(guildIdForShareKey(state, '아무키나')).toBeNull();
   });
 
-  it('짧지 않다 — 무작위로 못 맞힌다', () => {
+  it('짧지 않다. 무작위로 못 맞힌다', () => {
     expect(getOrCreateShareKey(emptyState(), 'g1').length).toBeGreaterThanOrEqual(20);
   });
 });
@@ -94,7 +94,7 @@ describe('자세히 절', () => {
     expect(html).not.toContain('<details open');
   });
 
-  it('전원·채널·날짜·시각·이모지 표가 다 있다', () => {
+  it('전원, 채널, 날짜, 시각, 이모지 표가 다 있다', () => {
     const html = page(true);
     for (const heading of ['사람별', '채널별', '날짜별', '시각별', '이모지', '집계 상태']) {
       expect(html).toContain(heading);
@@ -108,7 +108,7 @@ describe('자세히 절', () => {
   });
 
   it('카드에 안 나오던 사람도 표에는 나온다', () => {
-    // 카드는 top3 만 — 표는 전원이라야 "자세히"다.
+    // 카드는 top3 만. 표는 전원이라야 "자세히"다.
     expect(page(true)).toContain('링');
   });
 

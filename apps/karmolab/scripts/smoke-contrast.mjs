@@ -1,11 +1,11 @@
 /**
- * 테마별 「글씨가 안 보이는 자리」 전수 검사 (TASK-KL-090)
+ * 테마별 글씨가 안 보이는 자리 전수 검사 (TASK-KL-090)
  *
  * 색을 손으로 박아 둔 자리는 테마를 바꾸는 순간 흰 바탕에 흰 글씨, 검은 판에 검은
  * 글씨가 된다. 실제로 라이트 모드에서 카드가 통째로 안 보이고, 위젯 몇 개는 자기
  * 안에서 다크 색 한 벌을 따로 선언해 그 판만 까맣게 남아 있었다. 화면을 사람이
  * 하나씩 볼 수 없으니, 브라우저로 전 도구를 돌며 글자색과 **실제로 뒤에 깔린 배경**의
- * 대비를 잰다. 뒤 배경은 부모로 거슬러 올라가며 반투명을 차례로 합성해야 나온다 —
+ * 대비를 잰다. 뒤 배경은 부모로 거슬러 올라가며 반투명을 차례로 합성해야 나온다 . 
  * 그래야 흰 반투명이 흰 바탕 위에서 무엇이 되는지 드러난다.
  *
  * 사용: node scripts/smoke-contrast.mjs [id ...]     (기본 = 매니페스트 전 도구)
@@ -24,17 +24,17 @@ const repoRoot = path.dirname(path.dirname(root));
    `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 잡고 있어도
    <b>부딪히지 않고 성공한다</b>. 그리고 `localhost`/`127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
    오류도 안 나고 로그도 안 남는다. 실측(작은 판으로 재현):
-       ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 로 물으니 「먼저 잡은 쪽」
+       ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 로 물으니 먼저 잡은 쪽
    ⚠ 이 검사는 <b>문제 0건이 곧 합격</b>이라, 남의 화면을 보고도 초록이 된다.
-      같은 병으로 `smoke-shell-i18n` 이 실제로 남의 저장소를 보며 「정상」이라 답해 왔다.
-   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+      같은 병으로 `smoke-shell-i18n` 이 실제로 남의 저장소를 보며 정상이라 답해 왔다.
+   0 을 주면 운영체제가 빈 자리를 준다. 충돌 자체가 없어진다. */
 const PORT = Number(process.env.PORT || 0);
 const THEMES = (process.env.THEMES || 'light,dark').split(',');
-/* ★ 2.2 는 실수가 아니라 **이 검사의 목적**이다: 「글씨가 안 보이나」(흰 바탕에 흰 글씨).
+/* ★ 2.2 는 실수가 아니라 **이 검사의 목적**이다: 글씨가 안 보이나(흰 바탕에 흰 글씨).
    전 도구 × 양쪽 판 234장을 도는 넓고 얕은 검사라 바를 낮게 잡았다.
-   표준(WCAG AA 4.5:1)은 여기서 안 잰다 — 그건 `smoke-a11y`(axe, 핵심 3장, 좁고 깊은 검사)가
+   표준(WCAG AA 4.5:1)은 여기서 안 잰다. 그건 `smoke-a11y`(axe, 핵심 3장, 좁고 깊은 검사)가
    맡는다. 둘을 한 검사로 합치면 234장 × 전 규칙이 되어 아무도 안 돌린다.
-   2026-08-16 에 이 구분이 없어서 3.16:1 짜리 글자가 「초록」인 채로 남아 있었다. */
+   2026-08-16 에 이 구분이 없어서 3.16:1 짜리 글자가 초록인 채로 남아 있었다. */
 const MIN_RATIO = Number(process.env.MIN_RATIO || 2.2);
 
 const MIME = {
@@ -45,7 +45,7 @@ const MIME = {
 };
 
 const lazyMeta = fs.readFileSync(path.join(root, 'src/widgets-lazy-meta.ts'), 'utf8');
-// desktopOnly 위젯은 Tauri 앱에서만 뜬다 — 브라우저에선 홈으로 튕겨 검사 의미가 없다.
+// desktopOnly 위젯은 Tauri 앱에서만 뜬다. 브라우저에선 홈으로 튕겨 검사 의미가 없다.
 const ids = process.argv.slice(2).length
   ? process.argv.slice(2)
   : [...lazyMeta.matchAll(/id: '([a-z0-9-]+)'([\s\S]*?)(?=\n  \{|\n\];)/g)]
@@ -73,15 +73,15 @@ const CHECK = (minRatio) => {
   for (const el of document.querySelectorAll('*')) {
     const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('').trim();
     if (!own) continue;
-    // 이모지·기호만 있는 칸은 글자색과 무관하게 그려진다 (달 🌕 이 매번 걸렸다).
+    // 이모지, 기호만 있는 칸은 글자색과 무관하게 그려진다 (달 🌕 이 매번 걸렸다).
     if (!/[a-zA-Z0-9가-힣]/.test(own)) continue;
 
     const rect = el.getBoundingClientRect();
     if (rect.width < 4 || rect.height < 4) continue;
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < 0.15) continue;
-    // 꺼 둔 단추는 **일부러 흐리다** — 「지금은 못 누른다」가 흐림 그 자체로 보이는 것이라,
-    // 여기서 잡으면 고치는 방법이 「꺼진 티를 없애라」가 된다(막는 자리가 답을 더 나쁘게 만든다).
+    // 꺼 둔 단추는 **일부러 흐리다**. 지금은 못 누른다가 흐림 그 자체로 보이는 것이라,
+    // 여기서 잡으면 고치는 방법이 꺼진 티를 없애라가 된다(막는 자리가 답을 더 나쁘게 만든다).
     // 접근성 기준(WCAG 1.4.3)도 못 쓰는 컨트롤은 대비 대상에서 뺀다.
     if (el.closest('[disabled], [aria-disabled="true"]')) continue;
     const fg = parse(cs.color);
@@ -125,7 +125,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(404); res.end('404'); return;
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
-  /* ★ Jekyll 앞머리는 **떼고** 낸다 — 안 떼면 브라우저가 그 줄들을 본문 글자로 읽고
+  /* ★ Jekyll 앞머리는 **떼고** 낸다. 안 떼면 브라우저가 그 줄들을 본문 글자로 읽고
      `<head>` 가 닫힌 것으로 친다. 그러면 이 검사가 **배포와 다른 화면**을 재게 된다. */
   if (path.extname(file) === '.html') {
     res.end(stripFrontMatter(fs.readFileSync(file, 'utf8')));
@@ -144,22 +144,22 @@ for (const theme of THEMES) {
   await page.addInitScript((t) => { localStorage.setItem('toolbox_theme', t); }, theme);
   for (const id of ids) {
     const res = await page.goto(`http://localhost:${PORT_IN_USE}/apps/karmolab/#${id}`, { waitUntil: 'networkidle' });
-    /* ★ **여기서 「문제 0건」은 「안 봤다」일 수 있다** (2026-08-21).
+    /* ★ **여기서 문제 0건은 안 봤다일 수 있다** (2026-08-21).
      * 이 검사의 합격 조건이 <b>문제 0건</b>이라, 장이 안 열려 화면이 비면 그대로 초록이 된다.
-     * 실측으로 밟았다 — 남이 같은 자리 번호를 잡고 있을 때 <b>남의 서버를 보고도 초록</b>이었다
+     * 실측으로 밟았다. 남이 같은 자리 번호를 잡고 있을 때 <b>남의 서버를 보고도 초록</b>이었다
      * (`listen(포트)` 는 IPv6 로 잡혀 IPv4 를 남이 쥐고 있어도 안 부딪힌다).
-     * 그래서 잰 것이 있는지부터 본다 — 없으면 초록·빨강 어느 쪽으로도 적지 않는다. */
-    /* ⚠ `res` 가 <b>null 일 수 있다</b> — 해시(`#id`)만 바뀌는 이동은 새 응답이 없다.
-     *   처음엔 `!res` 를 실패로 셌다가 멀쩡한 판이 「못 돌림」이 됐다(실측 글 808자).
+     * 그래서 잰 것이 있는지부터 본다. 없으면 초록, 빨강 어느 쪽으로도 적지 않는다. */
+    /* ⚠ `res` 가 <b>null 일 수 있다</b>. 해시(`#id`)만 바뀌는 이동은 새 응답이 없다.
+     *   처음엔 `!res` 를 실패로 셌다가 멀쩡한 판이 못 돌림이 됐다(실측 글 808자).
      *   응답이 <b>있는데</b> 200 이 아닐 때만 실패로 센다.
-     * ⚠ 「부팅했나」는 글자 수로 재면 안 된다 (2026-08-23 실측): flow 처럼 서버(집 노트북)에
-     *   못 닿으면 대체 문구만 남아 128자다 — 화면은 멀쩡히 떠 있다. 대신 **JS 가 채우는
+     * ⚠ 부팅했나는 글자 수로 재면 안 된다 (2026-08-23 실측): flow 처럼 서버(집 노트북)에
+     *   못 닿으면 대체 문구만 남아 128자다. 화면은 멀쩡히 떠 있다. 대신 **JS 가 채우는
      *   셸 표식**(#header-nav 의 카테고리 버튼)을 본다. js/ 산출물이 없어 셸이 통째로 안 뜨면
-     *   저 nav 는 빈 채로 남는다 — 그때가 진짜 「아무것도 안 봤다」다. */
+     *   저 nav 는 빈 채로 남는다. 그때가 진짜 아무것도 안 봤다다. */
     const navChildren = await page.evaluate(() => document.querySelector('#header-nav')?.children.length || 0);
     if ((res && res.status() !== 200) || navChildren === 0) {
-      console.error(`[smoke-contrast] CANNOT-RUN: #${id} 장을 못 열었다 (http ${res && res.status()} · 셸 nav ${navChildren}개).`);
-      console.error('  이건 「문제 없음」이 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
+      console.error(`[smoke-contrast] CANNOT-RUN: #${id} 장을 못 열었다 (http ${res && res.status()}, 셸 nav ${navChildren}개).`);
+      console.error('  이건 문제 없음이 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
       process.exit(2);
     }
     await page.waitForTimeout(700);

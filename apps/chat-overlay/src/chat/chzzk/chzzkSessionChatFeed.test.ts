@@ -24,7 +24,7 @@ describe("extractSessionKeyFromSystemPayload", () => {
 });
 
 describe("mapChzzkChatPayloadToLine", () => {
-  it("nickname·content·messageTime을 ChatLine으로 매핑한다", () => {
+  it("nickname, content, messageTime을 ChatLine으로 매핑한다", () => {
     const line = mapChzzkChatPayloadToLine({
       channelId: "ch1",
       content: "hello",

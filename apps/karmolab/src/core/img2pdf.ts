@@ -1,4 +1,4 @@
-/** PNG/JPEG 여러 장을 PDF로 — 입력은 JSON 배열의 base64 바이트다. */
+/** PNG/JPEG 여러 장을 PDF로. 입력은 JSON 배열의 base64 바이트다. */
 import type { ToolRunner, ToolSpec } from './types';
 
 interface Backend { create(images: Array<{ data: string; type?: string }>, page: string): Promise<string>; }
@@ -9,7 +9,7 @@ export const spec: ToolSpec = { id: 'img2pdf', ops: { create: {
 } } };
 
 export const run: ToolRunner = async (op, args, deps) => {
-  if (op !== 'create') throw new Error(`img2pdf 에 「${op}」 는 없습니다`);
+  if (op !== 'create') throw new Error(`img2pdf 에 ${op} 는 없습니다`);
   const backend = deps?.imagePdf as Backend | undefined;
   if (!backend) throw new Error('이미지 PDF 계산기가 없습니다 (deps.imagePdf)');
   let images: unknown;

@@ -1,7 +1,7 @@
 /**
  * 목소리 녹음 위젯을 가짜 마이크로 끝까지 돌려 본다 (TASK-KL-088)
  *
- * 녹음은 「버튼이 눌리고 시간이 흐르는」 것만으로는 아무것도 증명되지 않는다.
+ * 녹음은 버튼이 눌리고 시간이 흐르는 것만으로는 아무것도 증명되지 않는다.
  * 진짜 사고는 **아무 소리도 안 담겼는데 성공처럼 보이는 것**이다.
  * 그래서 브라우저에 가짜 마이크(소리가 나오는)를 물리고, 결과가
  * ① WAV 로 나오는지 ② 길이가 있는지 ③ **실제로 소리가 담겼는지**(무음 아님) 를 본다.
@@ -64,7 +64,7 @@ const result = await page.evaluate(async () => {
   const bytes = new Uint8Array(await blob.arrayBuffer());
   const tag = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]) + String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11]);
 
-  // 진짜 소리가 담겼는지 — 표본을 해독해 가장 큰 값을 본다. 무음이면 0 에 가깝다.
+  // 진짜 소리가 담겼는지. 표본을 해독해 가장 큰 값을 본다. 무음이면 0 에 가깝다.
   const AC = window.AudioContext;
   const ctx = new AC();
   const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
@@ -75,7 +75,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: tag === 'RIFFWAVE' && buf.duration > 0.5 && peak > 0.02,
-    why: `형식 ${tag} · 길이 ${buf.duration.toFixed(2)}초 · 가장 큰 소리 ${(peak * 100).toFixed(0)}% (RIFFWAVE·0.5초 초과·2% 초과여야 함)`
+    why: `형식 ${tag}, 길이 ${buf.duration.toFixed(2)}초, 가장 큰 소리 ${(peak * 100).toFixed(0)}% (RIFFWAVE, 0.5초 초과, 2% 초과여야 함)`
   };
 });
 

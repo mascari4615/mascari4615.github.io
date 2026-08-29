@@ -3,19 +3,19 @@
   "parts": [
     {
       "id": "1",
-      "title": "「누가 이걸 바꿨나」 — 안 바꾸면 사라진다",
+      "title": "누가 이걸 바꿨나. 안 바꾸면 사라진다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "버그의 큰 덩어리는 「누가 이 값을 바꿨나」다 — 여러 곳에서 같은 객체를 고치면, 예상 못 한 변경이 멀리서 터진다(공유 가변 상태). **안 바꾸면** 그 질문 자체가 사라진다. 함수형 프로그래밍의 핵심은 어려운 수학이 아니라 이 단순한 규율이다: **값을 바꾸지 말고(불변) 새 값을 만들고, 함수는 밖을 안 건드리게(순수) 한다.** 그러면 「누가 언제 바꿨나」를 추적할 일이 없어진다."
+          "text": "버그의 큰 덩어리는 누가 이 값을 바꿨나다. 여러 곳에서 같은 객체를 고치면, 예상 못 한 변경이 멀리서 터진다(공유 가변 상태). **안 바꾸면** 그 질문 자체가 사라진다. 함수형 프로그래밍의 핵심은 어려운 수학이 아니라 이 단순한 규율이다: **값을 바꾸지 말고(불변) 새 값을 만들고, 함수는 밖을 안 건드리게(순수) 한다.** 그러면 누가 언제 바꿨나를 추적할 일이 없어진다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "공유 가변 vs 불변",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'mutable') {\n    render('공유 객체를 여기저기서 바꿈',\n      '  같은 user 객체를 A·B·C 가 각자 수정\\n' +\n      '  <span class=\\\"no\\\">C 에서 터진 버그의 원인이 A 의 수정 → \"누가 바꿨나\" 추적 지옥.</span>',\n      '공유 가변 상태 = 예상 못 한 곳에서 바뀜 → 추적이 어렵다.',\n      steps([['user 객체 하나를 공유', 'on'],['A 가 user.role 수정', 'bad'],['B 가 user.name 수정', 'bad'],['C 에서 버그 → 원인은 A? B? 추적', 'bad']]));\n  } else {\n    render('안 바꾸고 새 값을 만듦(불변)',\n      '  각자 원본은 그대로 두고 새 값을 반환\\n' +\n      '  <span class=\\\"ok\\\">원본이 안 바뀌니 \"누가 바꿨나\" 질문 자체가 사라진다.</span>',\n      '불변 = 원본 그대로, 새 값 반환 → 추적할 변경이 없다.',\n      steps([['user (불변)', 'on'],['A: {...user, role} 새 값', 'good'],['B: {...user, name} 새 값', 'good'],['원본 그대로 → 버그 원인 명확', 'good']]));\n  }\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'mutable') {\n    render('공유 객체를 여기저기서 바꿈',\n      '  같은 user 객체를 A, B, C 가 각자 수정\\n' +\n      '  <span class=\\\"no\\\">C 에서 터진 버그의 원인이 A 의 수정 → \"누가 바꿨나\" 추적 지옥.</span>',\n      '공유 가변 상태 = 예상 못 한 곳에서 바뀜 → 추적이 어렵다.',\n      steps([['user 객체 하나를 공유', 'on'],['A 가 user.role 수정', 'bad'],['B 가 user.name 수정', 'bad'],['C 에서 버그 → 원인은 A? B? 추적', 'bad']]));\n  } else {\n    render('안 바꾸고 새 값을 만듦(불변)',\n      '  각자 원본은 그대로 두고 새 값을 반환\\n' +\n      '  <span class=\\\"ok\\\">원본이 안 바뀌니 \"누가 바꿨나\" 질문 자체가 사라진다.</span>',\n      '불변 = 원본 그대로, 새 값 반환 → 추적할 변경이 없다.',\n      steps([['user (불변)', 'on'],['A: {...user, role} 새 값', 'good'],['B: {...user, name} 새 값', 'good'],['원본 그대로 → 버그 원인 명확', 'good']]));\n  }\n</script>",
           "controls": [
             {
               "id": "kind",
@@ -37,15 +37,15 @@
         },
         {
           "type": "note",
-          "text": "**함수형의 실용적 핵심은 「불변 + 순수 함수」 두 가지다 — 나머지는 부록이다.** 모나드·펑터 같은 어려운 용어 없이도, ① **값을 바꾸지 않고 새 값을 만들고**(불변, 3장) ② **함수가 밖을 안 건드리고 입력만으로 결과를 내면**(순수, 2장) 코드가 크게 안전해진다. 「누가 바꿨나」·「이 함수가 뭘 또 건드리나」·「순서를 바꾸면 깨지나」 같은 질문이 사라지기 때문이다. 이 두 규율만 몸에 익혀도 함수형의 이득 대부분을 얻는다 — 언어가 함수형이 아니어도(JS·파이썬) 적용된다."
+          "text": "**함수형의 실용적 핵심은 불변 + 순수 함수 두 가지다. 나머지는 부록이다.** 모나드, 펑터 같은 어려운 용어 없이도, ① **값을 바꾸지 않고 새 값을 만들고**(불변, 3장) ② **함수가 밖을 안 건드리고 입력만으로 결과를 내면**(순수, 2장) 코드가 크게 안전해진다. 누가 바꿨나, 이 함수가 뭘 또 건드리나, 순서를 바꾸면 깨지나 같은 질문이 사라지기 때문이다. 이 두 규율만 몸에 익혀도 함수형의 이득 대부분을 얻는다. 언어가 함수형이 아니어도(JS, 파이썬) 적용된다."
         },
         {
           "type": "p",
-          "text": "**공유 가변 상태는 버그·동시성·테스트를 동시에 어렵게 한다.** 한 값을 여러 곳이 바꾸면 ① 버그: 먼 곳의 수정이 여기서 터짐 ② 동시성: 두 스레드가 같은 값을 동시에 바꿔 경합(sys-process·db-lock) ③ 테스트: 함수 결과가 숨은 상태에 의존해 재현 안 됨. 이 셋의 공통 뿌리가 「가변 공유」다. 불변·순수로 가면 셋이 한꺼번에 완화된다 — 바뀌는 게 없으니 추적할 것도, 경합할 것도, 숨은 의존도 없다. 그래서 함수형은 「학문적 취향」이 아니라 이 실전 문제들에 대한 답이다."
+          "text": "**공유 가변 상태는 버그, 동시성, 테스트를 동시에 어렵게 한다.** 한 값을 여러 곳이 바꾸면 ① 버그: 먼 곳의 수정이 여기서 터짐 ② 동시성: 두 스레드가 같은 값을 동시에 바꿔 경합(sys-process, db-lock) ③ 테스트: 함수 결과가 숨은 상태에 의존해 재현 안 됨. 이 셋의 공통 뿌리가 가변 공유다. 불변, 순수로 가면 셋이 한꺼번에 완화된다. 바뀌는 게 없으니 추적할 것도, 경합할 것도, 숨은 의존도 없다. 그래서 함수형은 학문적 취향이 아니라 이 실전 문제들에 대한 답이다."
         },
         {
           "type": "try",
-          "text": "네 코드에서 여러 곳이 같은 객체·배열을 수정하는 곳을 찾아라. 그 「누가 바꿨나」 버그의 가능성을 적고, 불변(새 값 반환)으로 바꾸면 그 질문이 사라지는지 생각해 보라."
+          "text": "네 코드에서 여러 곳이 같은 객체, 배열을 수정하는 곳을 찾아라. 그 누가 바꿨나 버그의 가능성을 적고, 불변(새 값 반환)으로 바꾸면 그 질문이 사라지는지 생각해 보라."
         }
       ],
       "quiz": [
@@ -53,7 +53,7 @@
           "q": "함수형이 없애는 버그의 큰 덩어리는?",
           "choices": [
             "문법 오류",
-            "「누가 이 값을 바꿨나」(공유 가변 상태)",
+            "누가 이 값을 바꿨나(공유 가변 상태)",
             "느림",
             "오타"
           ],
@@ -63,10 +63,10 @@
         {
           "q": "함수형의 실용적 핵심 두 가지는?",
           "choices": [
-            "모나드·펑터",
+            "모나드, 펑터",
             "불변 + 순수 함수",
-            "상속·다형성",
-            "클래스·인터페이스"
+            "상속, 다형성",
+            "클래스, 인터페이스"
           ],
           "answer": 1,
           "why": "나머지는 부록."
@@ -75,7 +75,7 @@
           "q": "공유 가변 상태가 동시에 어렵게 하는 것은?",
           "choices": [
             "속도만",
-            "버그·동시성·테스트(공통 뿌리)",
+            "버그, 동시성, 테스트(공통 뿌리)",
             "문법",
             "배포"
           ],
@@ -91,14 +91,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**순수 함수**는 두 조건을 만족한다: ① **같은 입력이면 항상 같은 출력**(시간·외부 상태에 안 의존) ② **부수효과가 없다**(밖을 안 바꿈 — 전역 변수·파일·화면·네트워크). 순수 함수는 **입력만 보면 결과를 안다** — 그래서 테스트가 쉽고(입력→기대 출력), 캐싱·병렬화가 안전하고, 어디서 불러도 똑같이 동작한다. 불순 함수는 숨은 입력(전역)·숨은 출력(부수효과)이 있어 예측이 어렵다."
+          "text": "**순수 함수**는 두 조건을 만족한다: ① **같은 입력이면 항상 같은 출력**(시간, 외부 상태에 안 의존) ② **부수효과가 없다**(밖을 안 바꿈. 전역 변수, 파일, 화면, 네트워크). 순수 함수는 **입력만 보면 결과를 안다**. 그래서 테스트가 쉽고(입력→기대 출력), 캐싱, 병렬화가 안전하고, 어디서 불러도 똑같이 동작한다. 불순 함수는 숨은 입력(전역), 숨은 출력(부수효과)이 있어 예측이 어렵다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "순수 vs 불순",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'impure') {\n    render('불순 함수',\n      'let total = 0;\\nfunction add(x) { total += x; return total; }\\n\\n' +\n      '  add(5) 의 결과 = 그때 total 에 따라 달라짐(숨은 입력)\\n' +\n      '  <span class=\\\"no\\\">밖의 total 을 바꿈(숨은 출력) → 호출마다 결과 다름·테스트 어려움.</span>',\n      '불순: 숨은 입력(전역)·숨은 출력(부수효과) → 예측·테스트 어려움.',\n      cmp('불순', 'let total=0;\\nfunction add(x){\\n  total += x;  // 밖 변경\\n  return total; // 시점 의존\\n}', '문제', 'add(5) 결과가\\n호출 시점마다 다름\\n→ 재현 불가'));\n  } else {\n    render('순수 함수',\n      'function add(a, b) { return a + b; }\\n\\n' +\n      '  add(2,3) 은 언제 어디서 불러도 5\\n' +\n      '  <span class=\\\"ok\\\">입력만으로 결과 결정 · 밖을 안 건드림 → 테스트·캐싱·병렬 안전.</span>',\n      '순수: 같은 입력→같은 출력, 부수효과 없음 → 예측·테스트 쉬움.',\n      cmp('순수', 'function add(a,b){\\n  return a + b;\\n}', '이점', 'add(2,3)===5 (항상)\\n→ 테스트: 입력→출력\\n→ 캐싱·병렬 안전'));\n  }\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  if (kind === 'impure') {\n    render('불순 함수',\n      'let total = 0;\\nfunction add(x) { total += x; return total; }\\n\\n' +\n      '  add(5) 의 결과 = 그때 total 에 따라 달라짐(숨은 입력)\\n' +\n      '  <span class=\\\"no\\\">밖의 total 을 바꿈(숨은 출력) → 호출마다 결과 다름, 테스트 어려움.</span>',\n      '불순: 숨은 입력(전역), 숨은 출력(부수효과) → 예측, 테스트 어려움.',\n      cmp('불순', 'let total=0;\\nfunction add(x){\\n  total += x;  // 밖 변경\\n  return total; // 시점 의존\\n}', '문제', 'add(5) 결과가\\n호출 시점마다 다름\\n→ 재현 불가'));\n  } else {\n    render('순수 함수',\n      'function add(a, b) { return a + b; }\\n\\n' +\n      '  add(2,3) 은 언제 어디서 불러도 5\\n' +\n      '  <span class=\\\"ok\\\">입력만으로 결과 결정, 밖을 안 건드림 → 테스트, 캐싱, 병렬 안전.</span>',\n      '순수: 같은 입력→같은 출력, 부수효과 없음 → 예측, 테스트 쉬움.',\n      cmp('순수', 'function add(a,b){\\n  return a + b;\\n}', '이점', 'add(2,3)===5 (항상)\\n→ 테스트: 입력→출력\\n→ 캐싱, 병렬 안전'));\n  }\n</script>",
           "controls": [
             {
               "id": "kind",
@@ -126,11 +126,11 @@
         },
         {
           "type": "note",
-          "text": "**순수 함수는 「입력만 보면 되는」 함수라 추론이 쉽다.** 불순 함수를 이해하려면 그 함수가 읽는 **숨은 입력**(전역·현재 시각·DB)과 바꾸는 **숨은 출력**(전역·파일·화면)을 전부 알아야 하지만, 순수 함수는 시그니처(입력→출력)가 전부다 — 「이 함수가 또 뭘 하지?」를 걱정할 필요가 없다. 그래서 순수 함수는 **테스트**(입력 주고 출력 확인, 목·셋업 불필요)·**캐싱**(같은 입력=같은 출력이니 메모이제이션 안전)·**병렬화**(서로 독립이라 순서·경합 무관)가 전부 쉬워진다. 코드의 큰 부분을 순수하게 유지하는 게 함수형의 실전 이득이다."
+          "text": "**순수 함수는 입력만 보면 되는 함수라 추론이 쉽다.** 불순 함수를 이해하려면 그 함수가 읽는 **숨은 입력**(전역, 현재 시각, DB)과 바꾸는 **숨은 출력**(전역, 파일, 화면)을 전부 알아야 하지만, 순수 함수는 시그니처(입력→출력)가 전부다. 이 함수가 또 뭘 하지?를 걱정할 필요가 없다. 그래서 순수 함수는 **테스트**(입력 주고 출력 확인, 목, 셋업 불필요), **캐싱**(같은 입력=같은 출력이니 메모이제이션 안전), **병렬화**(서로 독립이라 순서, 경합 무관)가 전부 쉬워진다. 코드의 큰 부분을 순수하게 유지하는 게 함수형의 실전 이득이다."
         },
         {
           "type": "p",
-          "text": "**참조 투명성 — 순수 함수 호출은 그 결과값으로 바꿔도 된다.** `add(2,3)` 이 순수하면 코드 어디서든 `add(2,3)` 을 `5` 로 치환해도 프로그램이 똑같이 동작한다(참조 투명성). 이 성질 덕에 컴파일러·런타임이 안전하게 최적화(공통 부분식 제거·메모이제이션·재배치)하고, 사람도 코드를 「값처럼」 대수적으로 추론한다. 반대로 불순 함수는 호출마다 세상을 바꾸니 치환이 불가능하다 — 그래서 순수한 부분이 많을수록 코드가 「계산」에 가까워져 예측·최적화·테스트가 쉬워진다. 순수성은 추상적 미덕이 아니라 이런 구체적 능력을 준다."
+          "text": "**참조 투명성. 순수 함수 호출은 그 결과값으로 바꿔도 된다.** `add(2,3)` 이 순수하면 코드 어디서든 `add(2,3)` 을 `5` 로 치환해도 프로그램이 똑같이 동작한다(참조 투명성). 이 성질 덕에 컴파일러, 런타임이 안전하게 최적화(공통 부분식 제거, 메모이제이션, 재배치)하고, 사람도 코드를 값처럼 대수적으로 추론한다. 반대로 불순 함수는 호출마다 세상을 바꾸니 치환이 불가능하다. 그래서 순수한 부분이 많을수록 코드가 계산에 가까워져 예측, 최적화, 테스트가 쉬워진다. 순수성은 추상적 미덕이 아니라 이런 구체적 능력을 준다."
         },
         {
           "type": "try",
@@ -143,14 +143,14 @@
           "choices": [
             "빠르고 짧음",
             "같은 입력→같은 출력 + 부수효과 없음",
-            "클래스·상속",
+            "클래스, 상속",
             "async"
           ],
           "answer": 1,
           "why": "입력만 보면 됨."
         },
         {
-          "q": "순수 함수가 테스트·캐싱·병렬에 쉬운 이유는?",
+          "q": "순수 함수가 테스트, 캐싱, 병렬에 쉬운 이유는?",
           "choices": [
             "짧아서",
             "입력만으로 결과 결정 + 밖을 안 건드림",
@@ -180,14 +180,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "**불변**은 값을 제자리에서 바꾸지 않고 **새 값을 만들어** 반환하는 것이다 — `list.push(x)`(원본 변경) 대신 `[...list, x]`(새 배열), `user.role = 'admin'` 대신 `{...user, role: 'admin'}`(새 객체). 원본이 안 바뀌니 ① **되돌리기**(이전 값이 그대로 있음) ② **비교**(값이 바뀌었나 = 참조가 다른가) ③ **동시성**(공유해도 안 바뀌니 안전)이 전부 쉬워진다. React 가 이전 값과 비교해 다시 그리는 것도 이 덕분이다."
+          "text": "**불변**은 값을 제자리에서 바꾸지 않고 **새 값을 만들어** 반환하는 것이다. `list.push(x)`(원본 변경) 대신 `[...list, x]`(새 배열), `user.role = 'admin'` 대신 `{...user, role: 'admin'}`(새 객체). 원본이 안 바뀌니 ① **되돌리기**(이전 값이 그대로 있음) ② **비교**(값이 바뀌었나 = 참조가 다른가) ③ **동시성**(공유해도 안 바뀌니 안전)이 전부 쉬워진다. React 가 이전 값과 비교해 다시 그리는 것도 이 덕분이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "불변이 주는 것 — 되돌리기·비교·동시성",
+          "label": "불변이 주는 것. 되돌리기, 비교, 동시성",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const benefit = '{{benefit}}';\n  const cases = {\n    undo: ['되돌리기', '이전 값이 그대로 남아 있음(원본 안 바뀜)', '히스토리·undo/redo·시간 여행 디버깅이 쉬움'],\n    compare:['비교', '바뀌었나 = 참조가 다른가(얕은 비교로 충분)', 'React 가 이전 값과 === 로 비교해 다시 그림'],\n    concur:['동시성', '공유해도 아무도 못 바꾸니 락 불필요', '여러 스레드가 안전하게 읽음(sys-process 경합 없음)'],\n  }[benefit];\n  render('불변의 이점: ' + cases[0],\n    '  이유: ' + cases[1] + '\\n  효과: ' + cases[2],\n    '불변이면 되돌리기·비교·동시성이 쉬워진다 — 원본이 안 바뀌니까.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], 'good'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const benefit = '{{benefit}}';\n  const cases = {\n    undo: ['되돌리기', '이전 값이 그대로 남아 있음(원본 안 바뀜)', '히스토리, undo/redo, 시간 여행 디버깅이 쉬움'],\n    compare:['비교', '바뀌었나 = 참조가 다른가(얕은 비교로 충분)', 'React 가 이전 값과 === 로 비교해 다시 그림'],\n    concur:['동시성', '공유해도 아무도 못 바꾸니 락 불필요', '여러 스레드가 안전하게 읽음(sys-process 경합 없음)'],\n  }[benefit];\n  render('불변의 이점: ' + cases[0],\n    '  이유: ' + cases[1] + '\\n  효과: ' + cases[2],\n    '불변이면 되돌리기, 비교, 동시성이 쉬워진다. 원본이 안 바뀌니까.',\n    box(cases[0], cases[1] + '\\n→ ' + cases[2], 'good'));\n</script>",
           "controls": [
             {
               "id": "benefit",
@@ -215,19 +215,19 @@
           "type": "code",
           "lang": "javascript",
           "label": "불변으로 다루기",
-          "text": "const next = [...items, item];               // push 대신 새 배열\nconst updated = { ...user, role: 'admin' };  // 직접 수정 대신 새 객체\nconst removed = items.filter((x) => x.id !== id);  // splice 대신\n\n// 이전 값이 그대로 → 되돌리기 쉬움\n// 바뀜 = 참조가 다름 → 얕은 비교로 변경 감지(React)\n// 아무도 못 바꿈 → 공유·동시성 안전"
+          "text": "const next = [...items, item];               // push 대신 새 배열\nconst updated = { ...user, role: 'admin' };  // 직접 수정 대신 새 객체\nconst removed = items.filter((x) => x.id !== id);  // splice 대신\n\n// 이전 값이 그대로 → 되돌리기 쉬움\n// 바뀜 = 참조가 다름 → 얕은 비교로 변경 감지(React)\n// 아무도 못 바꿈 → 공유, 동시성 안전"
         },
         {
           "type": "note",
-          "text": "**불변이면 「바뀌었나?」를 참조 비교로 안다 — 이게 React·상태 관리의 토대다.** 가변이면 「이 객체가 바뀌었나」를 알려면 필드를 하나하나 깊게 비교해야 하지만, 불변이면 **변경 시 새 참조**가 되니 `prev === next`(얕은 비교) 한 번으로 안다. React 가 리렌더를 결정하고(props 비교), Redux·상태 관리가 변화를 추적하고, 메모이제이션이 동작하는 게 전부 이 덕분이다. 그래서 프런트엔드에서 「불변을 지켜라」가 규칙인 것 — 가변으로 바꾸면 이 비교가 깨져 화면이 안 갱신되거나 잘못 갱신된다. 불변은 성능·정확성의 기반이다."
+          "text": "**불변이면 바뀌었나?를 참조 비교로 안다. 이게 React, 상태 관리의 토대다.** 가변이면 이 객체가 바뀌었나를 알려면 필드를 하나하나 깊게 비교해야 하지만, 불변이면 **변경 시 새 참조**가 되니 `prev === next`(얕은 비교) 한 번으로 안다. React 가 리렌더를 결정하고(props 비교), Redux, 상태 관리가 변화를 추적하고, 메모이제이션이 동작하는 게 전부 이 덕분이다. 그래서 프런트엔드에서 불변을 지켜라가 규칙인 것. 가변으로 바꾸면 이 비교가 깨져 화면이 안 갱신되거나 잘못 갱신된다. 불변은 성능, 정확성의 기반이다."
         },
         {
           "type": "p",
-          "text": "**불변의 비용은 「복사」지만, 구조 공유로 완화된다.** 매번 새 값을 만들면 복사 비용이 걱정되지만, 실제론 **바뀐 부분만 새로 만들고 나머진 공유**한다(구조 공유, structural sharing) — `{...user, role}` 은 role 만 새로 쓰고 다른 필드는 같은 참조를 재사용한다. Immutable.js·Immer 같은 라이브러리나 영속 자료구조(persistent data structure)는 이걸 더 효율적으로 한다. 그래서 대부분의 앱에서 불변의 복사 비용은 문제가 안 되고, 얻는 이점(되돌리기·비교·동시성·추적 가능성)이 훨씬 크다. 성능이 정말 중요한 뜨거운 루프에서만 가변을 국소적으로 쓴다(8장)."
+          "text": "**불변의 비용은 복사지만, 구조 공유로 완화된다.** 매번 새 값을 만들면 복사 비용이 걱정되지만, 실제론 **바뀐 부분만 새로 만들고 나머진 공유**한다(구조 공유, structural sharing). `{...user, role}` 은 role 만 새로 쓰고 다른 필드는 같은 참조를 재사용한다. Immutable.js, Immer 같은 라이브러리나 영속 자료구조(persistent data structure)는 이걸 더 효율적으로 한다. 그래서 대부분의 앱에서 불변의 복사 비용은 문제가 안 되고, 얻는 이점(되돌리기, 비교, 동시성, 추적 가능성)이 훨씬 크다. 성능이 정말 중요한 뜨거운 루프에서만 가변을 국소적으로 쓴다(8장)."
         },
         {
           "type": "try",
-          "text": "객체를 직접 수정하던 함수를 새 객체를 반환하도록(`{...obj, field}`) 바꾸고, 호출부에서 무엇이 달라지는지 확인하라 — 이전 값이 남아 되돌리기가 되는지, 변경 감지가 참조 비교로 되는지 보라."
+          "text": "객체를 직접 수정하던 함수를 새 객체를 반환하도록(`{...obj, field}`) 바꾸고, 호출부에서 무엇이 달라지는지 확인하라. 이전 값이 남아 되돌리기가 되는지, 변경 감지가 참조 비교로 되는지 보라."
         }
       ],
       "quiz": [
@@ -246,7 +246,7 @@
           "q": "React 가 리렌더를 참조 비교로 결정할 수 있는 이유는?",
           "choices": [
             "빠른 CPU",
-            "불변 — 변경 시 새 참조가 되어 얕은 비교로 감지",
+            "불변. 변경 시 새 참조가 되어 얕은 비교로 감지",
             "캐시",
             "타입"
           ],
@@ -257,7 +257,7 @@
           "q": "불변의 복사 비용이 대개 문제 안 되는 이유는?",
           "choices": [
             "복사 안 함",
-            "구조 공유 — 바뀐 부분만 새로, 나머진 공유",
+            "구조 공유. 바뀐 부분만 새로, 나머진 공유",
             "느려도 됨",
             "메모리 무한"
           ],
@@ -268,19 +268,19 @@
     },
     {
       "id": "4",
-      "title": "세 가지 도구 — map · filter · reduce",
+      "title": "세 가지 도구. map, filter, reduce",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "함수형의 일상 도구 셋: **map**(각 원소를 변환 — N개→N개) · **filter**(조건에 맞는 것만 남김 — N개→M개) · **reduce**(전체를 하나로 접음 — N개→1개). 반복문 + 가변 누적 변수 대신 이 셋을 **이어 붙이면**, 「무엇을 하는지」가 선언적으로 드러난다 — `orders.filter(paid).map(amount).reduce(sum)` 은 「결제된 것의 금액을 합한다」로 읽힌다. 각 단계가 순수하고 불변이라 안전하다."
+          "text": "함수형의 일상 도구 셋: **map**(각 원소를 변환. N개→N개), **filter**(조건에 맞는 것만 남김. N개→M개), **reduce**(전체를 하나로 접음. N개→1개). 반복문 + 가변 누적 변수 대신 이 셋을 **이어 붙이면**, 무엇을 하는지가 선언적으로 드러난다. `orders.filter(paid).map(amount).reduce(sum)` 은 결제된 것의 금액을 합한다로 읽힌다. 각 단계가 순수하고 불변이라 안전하다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "map·filter·reduce — 파이프라인",
+          "label": "map, filter, reduce. 파이프라인",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = '{{step}}';\n  const data = [{s:'paid',a:30},{s:'pending',a:10},{s:'paid',a:20},{s:'paid',a:15}];\n  let shown, desc;\n  if (step === 'all') { shown = '[30(paid),10(pending),20(paid),15(paid)]'; desc = '원본 주문 4개'; }\n  else if (step === 'filter') { shown = '[30(paid),20(paid),15(paid)]'; desc = 'filter(paid): 결제된 것만 3개 (10 제외)'; }\n  else if (step === 'map') { shown = '[30,20,15]'; desc = 'map(amount): 금액만 뽑음'; }\n  else { shown = '65'; desc = 'reduce(+): 하나로 합침'; }\n  render('단계: ' + step,\n    '  orders.filter(paid).map(amount).reduce(sum)\\n\\n' +\n    '  현재: ' + shown + '\\n  ' + desc + '\\n\\n' +\n    '  <span class=\\\"ok\\\">「결제된 것의 금액을 합한다」가 코드로 그대로 읽힌다.</span>',\n    'map=변환, filter=거르기, reduce=접기. 이어 붙이면 의도가 선언적으로 드러난다.',\n    pipe([['orders','data'],['filter(paid)','op'],['map(amount)','op'],['reduce(+)','op'],[step==='reduce'?'65':'…','data']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const step = '{{step}}';\n  const data = [{s:'paid',a:30},{s:'pending',a:10},{s:'paid',a:20},{s:'paid',a:15}];\n  let shown, desc;\n  if (step === 'all') { shown = '[30(paid),10(pending),20(paid),15(paid)]'; desc = '원본 주문 4개'; }\n  else if (step === 'filter') { shown = '[30(paid),20(paid),15(paid)]'; desc = 'filter(paid): 결제된 것만 3개 (10 제외)'; }\n  else if (step === 'map') { shown = '[30,20,15]'; desc = 'map(amount): 금액만 뽑음'; }\n  else { shown = '65'; desc = 'reduce(+): 하나로 합침'; }\n  render('단계: ' + step,\n    '  orders.filter(paid).map(amount).reduce(sum)\\n\\n' +\n    '  현재: ' + shown + '\\n  ' + desc + '\\n\\n' +\n    '  <span class=\\\"ok\\\">결제된 것의 금액을 합한다가 코드로 그대로 읽힌다.</span>',\n    'map=변환, filter=거르기, reduce=접기. 이어 붙이면 의도가 선언적으로 드러난다.',\n    pipe([['orders','data'],['filter(paid)','op'],['map(amount)','op'],['reduce(+)','op'],[step==='reduce'?'65':'...','data']]));\n</script>",
           "controls": [
             {
               "id": "step",
@@ -311,29 +311,29 @@
         {
           "type": "code",
           "lang": "javascript",
-          "label": "map·filter·reduce",
-          "text": "const total = orders\n  .filter((o) => o.status === 'paid')   // 결제된 것만 (N→M)\n  .map((o) => o.amount)                 // 금액만 (변환)\n  .reduce((sum, a) => sum + a, 0);      // 합 (접기 N→1)\n\n// vs 명령형: let total=0; for(...) { if(paid) total+=amount; }\n// 함수형 쪽이 \"무엇을\" 하는지 선언적으로 드러남 · 각 단계 순수·불변"
+          "label": "map, filter, reduce",
+          "text": "const total = orders\n  .filter((o) => o.status === 'paid')   // 결제된 것만 (N→M)\n  .map((o) => o.amount)                 // 금액만 (변환)\n  .reduce((sum, a) => sum + a, 0);      // 합 (접기 N→1)\n\n// vs 명령형: let total=0; for(...) { if(paid) total+=amount; }\n// 함수형 쪽이 \"무엇을\" 하는지 선언적으로 드러남, 각 단계 순수, 불변"
         },
         {
           "type": "note",
-          "text": "**map·filter·reduce 는 「무엇을」에 집중하게 한다(선언적).** 명령형 반복문은 「인덱스를 0 부터 돌려 조건 검사하고 누적 변수에 더하라」는 **어떻게(how)**를 쓰지만, `filter().map().reduce()` 는 「결제된 것의 금액을 합한다」는 **무엇을(what)**을 쓴다 — 가변 누적 변수·인덱스·경계 조건 같은 실수 지점이 사라진다. 셋의 역할이 고정(map=1:1 변환, filter=거르기, reduce=하나로)이라 읽는 사람이 의도를 빨리 잡는다. 대부분의 「반복 + 누적」 코드는 이 셋의 조합으로 더 명확해진다 — reduce 는 map·filter 로 안 되는 임의의 접기(합·최대·그룹핑)를 맡는다."
+          "text": "**map, filter, reduce 는 무엇을에 집중하게 한다(선언적).** 명령형 반복문은 인덱스를 0 부터 돌려 조건 검사하고 누적 변수에 더하라는 **어떻게(how)**를 쓰지만, `filter().map().reduce()` 는 결제된 것의 금액을 합한다는 **무엇을(what)**을 쓴다. 가변 누적 변수, 인덱스, 경계 조건 같은 실수 지점이 사라진다. 셋의 역할이 고정(map=1:1 변환, filter=거르기, reduce=하나로)이라 읽는 사람이 의도를 빨리 잡는다. 대부분의 반복 + 누적 코드는 이 셋의 조합으로 더 명확해진다. reduce 는 map, filter 로 안 되는 임의의 접기(합, 최대, 그룹핑)를 맡는다."
         },
         {
           "type": "p",
-          "text": "**reduce 가 가장 강력하고, 가장 남용되기 쉽다.** reduce 는 「여러 개를 하나로 접는」 범용 도구라 map·filter 도 reduce 로 표현할 수 있지만, **읽기 쉬움**이 우선이다 — 단순 변환은 map, 거르기는 filter 로 쓰고, reduce 는 합계·최댓값·그룹핑처럼 **정말 접어야 할 때만** 쓴다. 복잡한 로직을 한 reduce 에 욱여넣으면 오히려 읽기 어려워진다(그럴 땐 명령형이 나을 수도, 8장). 「이 단계가 1:1 변환인가(map)·거르기인가(filter)·접기인가(reduce)」를 구분해 맞는 도구를 쓰면, 파이프라인이 문장처럼 읽힌다. 도구의 의미를 살리는 게 가독성의 핵심이다."
+          "text": "**reduce 가 가장 강력하고, 가장 남용되기 쉽다.** reduce 는 여러 개를 하나로 접는 범용 도구라 map, filter 도 reduce 로 표현할 수 있지만, **읽기 쉬움**이 우선이다. 단순 변환은 map, 거르기는 filter 로 쓰고, reduce 는 합계, 최댓값, 그룹핑처럼 **정말 접어야 할 때만** 쓴다. 복잡한 로직을 한 reduce 에 욱여넣으면 오히려 읽기 어려워진다(그럴 땐 명령형이 나을 수도, 8장). 이 단계가 1:1 변환인가(map), 거르기인가(filter), 접기인가(reduce)를 구분해 맞는 도구를 쓰면, 파이프라인이 문장처럼 읽힌다. 도구의 의미를 살리는 게 가독성의 핵심이다."
         },
         {
           "type": "try",
-          "text": "가변 누적 변수를 쓰는 반복문 하나를 map·filter·reduce 로 다시 쓰고, 어느 쪽이 읽기 쉬운지 팀원에게 물어라. 각 단계가 map(변환)·filter(거르기)·reduce(접기) 중 무엇인지 구분해 맞는 도구를 썼는지 확인하라."
+          "text": "가변 누적 변수를 쓰는 반복문 하나를 map, filter, reduce 로 다시 쓰고, 어느 쪽이 읽기 쉬운지 팀원에게 물어라. 각 단계가 map(변환), filter(거르기), reduce(접기) 중 무엇인지 구분해 맞는 도구를 썼는지 확인하라."
         }
       ],
       "quiz": [
         {
-          "q": "map·filter·reduce 의 역할은?",
+          "q": "map, filter, reduce 의 역할은?",
           "choices": [
             "다 같음",
             "map=변환(N→N), filter=거르기(N→M), reduce=접기(N→1)",
-            "정렬·검색·삭제",
+            "정렬, 검색, 삭제",
             "async"
           ],
           "answer": 1,
@@ -343,7 +343,7 @@
           "q": "map/filter/reduce 가 명령형 반복문보다 나은 점은?",
           "choices": [
             "항상 빠름",
-            "「무엇을」이 선언적으로 드러남(가변 누적·인덱스 실수 제거)",
+            "무엇을이 선언적으로 드러남(가변 누적, 인덱스 실수 제거)",
             "짧음만",
             "타입"
           ],
@@ -354,7 +354,7 @@
           "q": "reduce 를 언제 쓰나?",
           "choices": [
             "모든 변환",
-            "합계·최대·그룹핑 등 정말 접어야 할 때(남용 주의)",
+            "합계, 최대, 그룹핑 등 정말 접어야 할 때(남용 주의)",
             "거르기",
             "정렬"
           ],
@@ -365,19 +365,19 @@
     },
     {
       "id": "5",
-      "title": "함수 조합 — 작은 것을 잇는다",
+      "title": "함수 조합. 작은 것을 잇는다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "함수형은 **작은 순수 함수**를 만들어 **조합**한다 — 큰 함수 하나 대신, 한 가지만 하는 작은 함수들을 이어 붙인다. `pipe(parse, validate, normalize, save)` 처럼. 작은 함수는 이름이 곧 설명이고, 따로 테스트·재사용되고, 순서를 바꾸거나 갈아 끼우기 쉽다. 이것이 함수형이 「데이터가 함수들을 통과하며 변환되는」 파이프라인으로 코드를 보는 방식이다."
+          "text": "함수형은 **작은 순수 함수**를 만들어 **조합**한다. 큰 함수 하나 대신, 한 가지만 하는 작은 함수들을 이어 붙인다. `pipe(parse, validate, normalize, save)` 처럼. 작은 함수는 이름이 곧 설명이고, 따로 테스트, 재사용되고, 순서를 바꾸거나 갈아 끼우기 쉽다. 이것이 함수형이 데이터가 함수들을 통과하며 변환되는 파이프라인으로 코드를 보는 방식이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "조합 — 작은 함수를 잇기",
+          "label": "조합. 작은 함수를 잇기",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'big') {\n    render('큰 함수 하나',\n      'function process(raw) {\\n  // 파싱·검증·정규화·저장이 한 덩어리\\n  ...50줄...\\n}',\n      '한 함수가 여러 일 → 테스트·재사용·수정이 어렵다.',\n      box('큰 함수', '파싱+검증+정규화+저장 한 덩어리\\n→ 일부만 테스트·재사용 불가', 'bad'));\n  } else {\n    render('작은 함수를 조합',\n      'const process = pipe(parse, validate, normalize, save);\\n\\n' +\n      '  각 함수는 한 가지만 · 이름이 설명 · 따로 테스트·재사용\\n' +\n      '  <span class=\\\"ok\\\">순서 바꾸기·갈아 끼우기 쉬움.</span>',\n      '작은 순수 함수를 조합 — 데이터가 파이프를 통과하며 변환된다.',\n      pipe([['raw','data'],['parse','op'],['validate','op'],['normalize','op'],['save','op'],['done','data']]));\n  }\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'big') {\n    render('큰 함수 하나',\n      'function process(raw) {\\n  // 파싱, 검증, 정규화, 저장이 한 덩어리\\n  ...50줄...\\n}',\n      '한 함수가 여러 일 → 테스트, 재사용, 수정이 어렵다.',\n      box('큰 함수', '파싱+검증+정규화+저장 한 덩어리\\n→ 일부만 테스트, 재사용 불가', 'bad'));\n  } else {\n    render('작은 함수를 조합',\n      'const process = pipe(parse, validate, normalize, save);\\n\\n' +\n      '  각 함수는 한 가지만, 이름이 설명, 따로 테스트, 재사용\\n' +\n      '  <span class=\\\"ok\\\">순서 바꾸기, 갈아 끼우기 쉬움.</span>',\n      '작은 순수 함수를 조합. 데이터가 파이프를 통과하며 변환된다.',\n      pipe([['raw','data'],['parse','op'],['validate','op'],['normalize','op'],['save','op'],['done','data']]));\n  }\n</script>",
           "controls": [
             {
               "id": "view",
@@ -399,11 +399,11 @@
         },
         {
           "type": "note",
-          "text": "**작은 순수 함수는 「레고 블록」처럼 조합된다.** 한 가지만 하는 함수는 ① 이름이 곧 문서(`validateEmail`) ② 단위 테스트가 간단(입력→출력) ③ 다른 곳에서 재사용 ④ 파이프라인에서 순서 변경·교체가 쉽다. 큰 함수 하나는 이 모든 게 어렵다 — 일부만 테스트할 수 없고, 재사용도 안 되고, 고치면 다른 부분이 깨진다. 그래서 함수형은 **분해와 조합**을 강조한다: 문제를 작은 순수 변환들로 쪼개고, 그것들을 이어 전체를 만든다. 이건 함수형만의 것이 아니라 좋은 설계의 일반 원리(design 트랙의 단일 책임·조합)와 통한다 — 함수형은 그걸 함수 단위로 밀어붙인다."
+          "text": "**작은 순수 함수는 레고 블록처럼 조합된다.** 한 가지만 하는 함수는 ① 이름이 곧 문서(`validateEmail`) ② 단위 테스트가 간단(입력→출력) ③ 다른 곳에서 재사용 ④ 파이프라인에서 순서 변경, 교체가 쉽다. 큰 함수 하나는 이 모든 게 어렵다. 일부만 테스트할 수 없고, 재사용도 안 되고, 고치면 다른 부분이 깨진다. 그래서 함수형은 **분해와 조합**을 강조한다: 문제를 작은 순수 변환들로 쪼개고, 그것들을 이어 전체를 만든다. 이건 함수형만의 것이 아니라 좋은 설계의 일반 원리(design 트랙의 단일 책임, 조합)와 통한다. 함수형은 그걸 함수 단위로 밀어붙인다."
         },
         {
           "type": "p",
-          "text": "**고차 함수가 조합의 접착제다.** map·filter 가 「함수를 인자로 받는」 것처럼, 함수를 **받고 반환하는** 고차 함수로 동작을 조립한다 — `pipe`/`compose`(함수들을 하나로), `withRetry(fn)`(재시도를 입힌 새 함수), `memoize(fn)`(캐싱을 입힌 함수). 이렇게 하면 공통 관심사(재시도·로깅·캐싱)를 **함수를 감싸** 재사용하고, 핵심 로직은 순수하게 둔다(7장). 데코레이터·미들웨어·파이프라인이 다 이 고차 함수 패턴이다. 「함수를 값처럼 다루는」 능력이 작은 함수들을 유연하게 잇는 힘이다 — 함수형의 조합성이 여기서 나온다."
+          "text": "**고차 함수가 조합의 접착제다.** map, filter 가 함수를 인자로 받는 것처럼, 함수를 **받고 반환하는** 고차 함수로 동작을 조립한다. `pipe`/`compose`(함수들을 하나로), `withRetry(fn)`(재시도를 입힌 새 함수), `memoize(fn)`(캐싱을 입힌 함수). 이렇게 하면 공통 관심사(재시도, 로깅, 캐싱)를 **함수를 감싸** 재사용하고, 핵심 로직은 순수하게 둔다(7장). 데코레이터, 미들웨어, 파이프라인이 다 이 고차 함수 패턴이다. 함수를 값처럼 다루는 능력이 작은 함수들을 유연하게 잇는 힘이다. 함수형의 조합성이 여기서 나온다."
         },
         {
           "type": "try",
@@ -426,12 +426,12 @@
           "q": "작은 순수 함수의 이점이 아닌 것은?",
           "choices": [
             "따로 테스트",
-            "재사용·교체 쉬움",
+            "재사용, 교체 쉬움",
             "이름이 설명",
             "항상 더 빠름"
           ],
           "answer": 3,
-          "why": "이점은 구조·가독성."
+          "why": "이점은 구조, 가독성."
         },
         {
           "q": "고차 함수란?",
@@ -453,14 +453,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "함수형이라고 IO 를 안 하는 게 아니다 — 파일·네트워크·화면 없이는 프로그램이 쓸모없다. 핵심은 **계산은 안쪽(순수), 부수효과는 바깥쪽(가장자리)**으로 몰아 두는 것이다. 이 구조를 **함수형 코어, 명령형 셸**(functional core, imperative shell)이라 부른다: 순수한 계산 로직을 가운데 두고, IO·상태 변경은 얇은 바깥층에서만 한다. 그러면 핵심 로직이 순수해져 테스트가 쉽고, 부수효과는 한곳에 모여 관리된다."
+          "text": "함수형이라고 IO 를 안 하는 게 아니다. 파일, 네트워크, 화면 없이는 프로그램이 쓸모없다. 핵심은 **계산은 안쪽(순수), 부수효과는 바깥쪽(가장자리)**으로 몰아 두는 것이다. 이 구조를 **함수형 코어, 명령형 셸**(functional core, imperative shell)이라 부른다: 순수한 계산 로직을 가운데 두고, IO, 상태 변경은 얇은 바깥층에서만 한다. 그러면 핵심 로직이 순수해져 테스트가 쉽고, 부수효과는 한곳에 모여 관리된다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "함수형 코어, 명령형 셸",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'mixed') {\n    render('섞임: 계산과 IO 가 뒤엉킴',\n      '  함수 안에서 DB 읽고·계산하고·화면 그리고·저장\\n' +\n      '  <span class=\\\"no\\\">핵심 로직을 테스트하려면 DB·화면을 다 목(mock) 해야 함.</span>',\n      'IO 와 계산이 섞이면 순수한 부분이 없어 테스트가 어렵다.',\n      layer([['계산+IO 뒤엉킴 (전부 불순)', 'shell']]));\n  } else {\n    render('분리: 코어(순수) + 셸(IO)',\n      '  바깥: 입력 읽기(IO) → 안쪽: 순수 계산 → 바깥: 결과 저장(IO)\\n' +\n      '  <span class=\\\"ok\\\">코어는 입력→출력이라 목 없이 테스트. IO 는 얇은 셸에 모임.</span>',\n      '계산은 순수 코어, IO 는 얇은 명령형 셸 — 핵심이 테스트 가능해진다.',\n      layer([['명령형 셸: 입력 IO(파일·DB·요청)', 'shell'],['함수형 코어: 순수 계산(테스트 쉬움)', 'core'],['명령형 셸: 출력 IO(저장·응답·화면)', 'shell']]));\n  }\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const view = '{{view}}';\n  if (view === 'mixed') {\n    render('섞임: 계산과 IO 가 뒤엉킴',\n      '  함수 안에서 DB 읽고, 계산하고, 화면 그리고, 저장\\n' +\n      '  <span class=\\\"no\\\">핵심 로직을 테스트하려면 DB, 화면을 다 목(mock) 해야 함.</span>',\n      'IO 와 계산이 섞이면 순수한 부분이 없어 테스트가 어렵다.',\n      layer([['계산+IO 뒤엉킴 (전부 불순)', 'shell']]));\n  } else {\n    render('분리: 코어(순수) + 셸(IO)',\n      '  바깥: 입력 읽기(IO) → 안쪽: 순수 계산 → 바깥: 결과 저장(IO)\\n' +\n      '  <span class=\\\"ok\\\">코어는 입력→출력이라 목 없이 테스트. IO 는 얇은 셸에 모임.</span>',\n      '계산은 순수 코어, IO 는 얇은 명령형 셸. 핵심이 테스트 가능해진다.',\n      layer([['명령형 셸: 입력 IO(파일, DB, 요청)', 'shell'],['함수형 코어: 순수 계산(테스트 쉬움)', 'core'],['명령형 셸: 출력 IO(저장, 응답, 화면)', 'shell']]));\n  }\n</script>",
           "controls": [
             {
               "id": "view",
@@ -488,11 +488,11 @@
         },
         {
           "type": "note",
-          "text": "**계산을 순수 코어로 빼면 핵심 로직을 목(mock) 없이 테스트한다.** 계산과 IO 가 섞인 함수는 테스트하려면 DB·네트워크·화면을 전부 가짜로 만들어야(무겁고 깨지기 쉬움) 하지만, 순수 코어(`bonus(user)`)는 **입력 주고 출력 확인**이면 끝이다 — 대부분의 버그가 있는 「계산 로직」을 가장 쉽게 테스트한다. IO 는 얇은 셸로 밀려나 종류가 적고 단순해지니, 통합 테스트도 그 얇은 층만 보면 된다. 「테스트하기 어렵다」는 대개 계산과 부수효과가 엉켜서인데, 코어/셸 분리가 그 매듭을 푼다(quality 의 테스트 용이성). 함수형의 실전 이득이 여기서 가장 크게 나온다."
+          "text": "**계산을 순수 코어로 빼면 핵심 로직을 목(mock) 없이 테스트한다.** 계산과 IO 가 섞인 함수는 테스트하려면 DB, 네트워크, 화면을 전부 가짜로 만들어야(무겁고 깨지기 쉬움) 하지만, 순수 코어(`bonus(user)`)는 **입력 주고 출력 확인**이면 끝이다. 대부분의 버그가 있는 계산 로직을 가장 쉽게 테스트한다. IO 는 얇은 셸로 밀려나 종류가 적고 단순해지니, 통합 테스트도 그 얇은 층만 보면 된다. 테스트하기 어렵다는 대개 계산과 부수효과가 엉켜서인데, 코어/셸 분리가 그 매듭을 푼다(quality 의 테스트 용이성). 함수형의 실전 이득이 여기서 가장 크게 나온다."
         },
         {
           "type": "p",
-          "text": "**부수효과를 가장자리로 몰면 「무슨 일이 일어나는지」가 한곳에 모인다.** IO 가 코드 곳곳에 흩어져 있으면 「이 함수가 또 뭘 건드리나」를 늘 걱정해야 하지만, 셸에 모으면 부수효과의 **목록과 순서**가 한눈에 보인다 — 어디서 읽고 어디서 쓰는지가 명확해 디버깅·감사·변경이 쉽다. 순수 코어는 「무엇을 계산하나」, 명령형 셸은 「세상과 어떻게 주고받나」로 관심사가 갈린다(design 의 관심사 분리). 이 구조는 함수형 언어가 아니어도(JS·파이썬·자바) 그대로 적용되는 설계 원칙이다 — 함수형의 가장 실용적인 교훈이 바로 이 「코어/셸」이다."
+          "text": "**부수효과를 가장자리로 몰면 무슨 일이 일어나는지가 한곳에 모인다.** IO 가 코드 곳곳에 흩어져 있으면 이 함수가 또 뭘 건드리나를 늘 걱정해야 하지만, 셸에 모으면 부수효과의 **목록과 순서**가 한눈에 보인다. 어디서 읽고 어디서 쓰는지가 명확해 디버깅, 감사, 변경이 쉽다. 순수 코어는 무엇을 계산하나, 명령형 셸은 세상과 어떻게 주고받나로 관심사가 갈린다(design 의 관심사 분리). 이 구조는 함수형 언어가 아니어도(JS, 파이썬, 자바) 그대로 적용되는 설계 원칙이다. 함수형의 가장 실용적인 교훈이 바로 이 코어/셸이다."
         },
         {
           "type": "try",
@@ -526,7 +526,7 @@
           "q": "부수효과를 셸에 모으면?",
           "choices": [
             "느려짐",
-            "무슨 일이 일어나는지 한곳에 모여 디버깅·변경 쉬움",
+            "무슨 일이 일어나는지 한곳에 모여 디버깅, 변경 쉬움",
             "보안 약화",
             "무의미"
           ],
@@ -542,14 +542,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "실무에서 만나는 함수형 개념 몇 가지: **고차 함수**(함수를 받고/반환 — map·데코레이터) · **클로저**(함수가 만들어진 환경의 변수를 기억) · **부분 적용·커링**(인자 일부를 미리 채운 새 함수) · **Option/Result**(null·예외 대신 「값이 없을 수/실패할 수 있음」을 타입으로). 이 개념들은 어려운 이론이 아니라, 코드를 더 조합 가능하고 안전하게 만드는 실용 도구다."
+          "text": "실무에서 만나는 함수형 개념 몇 가지: **고차 함수**(함수를 받고/반환. map, 데코레이터), **클로저**(함수가 만들어진 환경의 변수를 기억), **부분 적용, 커링**(인자 일부를 미리 채운 새 함수), **Option/Result**(null, 예외 대신 값이 없을 수/실패할 수 있음을 타입으로). 이 개념들은 어려운 이론이 아니라, 코드를 더 조합 가능하고 안전하게 만드는 실용 도구다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "함수형 개념 — 무엇이고 왜",
+          "label": "함수형 개념. 무엇이고 왜",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{c}}';\n  const cases = {\n    hof:  ['고차 함수', 'const withLog = (fn) => (...a) => { log(a); return fn(...a); }', '동작을 감싸 재사용(로깅·재시도·캐싱) — 핵심은 순수하게'],\n    closure:['클로저', 'const counter = () => { let n=0; return () => ++n; }', '함수가 만들어진 환경의 변수를 기억 — 상태를 캡슐화'],\n    curry:['부분 적용/커링', 'const add = (a) => (b) => a+b; const add5 = add(5);', '인자 일부를 미리 채운 새 함수 → 조합·재사용'],\n    option:['Option/Result', 'find(): User | null → 호출자가 없음을 반드시 다룸', 'null·예외 대신 「없을 수/실패할 수」를 타입으로(lang-types)'],\n  }[c];\n  render('개념: ' + cases[0],\n    '  예: ' + cases[1] + '\\n  쓸모: ' + cases[2],\n    '고차함수·클로저·커링·Option — 조합 가능·안전하게 만드는 실용 도구.',\n    box(cases[0], cases[1]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{c}}';\n  const cases = {\n    hof:  ['고차 함수', 'const withLog = (fn) => (...a) => { log(a); return fn(...a); }', '동작을 감싸 재사용(로깅, 재시도, 캐싱). 핵심은 순수하게'],\n    closure:['클로저', 'const counter = () => { let n=0; return () => ++n; }', '함수가 만들어진 환경의 변수를 기억. 상태를 캡슐화'],\n    curry:['부분 적용/커링', 'const add = (a) => (b) => a+b; const add5 = add(5);', '인자 일부를 미리 채운 새 함수 → 조합, 재사용'],\n    option:['Option/Result', 'find(): User | null → 호출자가 없음을 반드시 다룸', 'null, 예외 대신 없을 수/실패할 수를 타입으로(lang-types)'],\n  }[c];\n  render('개념: ' + cases[0],\n    '  예: ' + cases[1] + '\\n  쓸모: ' + cases[2],\n    '고차함수, 클로저, 커링, Option. 조합 가능, 안전하게 만드는 실용 도구.',\n    box(cases[0], cases[1]));\n</script>",
           "controls": [
             {
               "id": "c",
@@ -579,15 +579,15 @@
         },
         {
           "type": "note",
-          "text": "**Option/Result 는 「없음·실패」를 타입으로 만들어 잊지 못하게 한다.** `null` 을 반환하면 호출자가 검사를 깜빡해 `Cannot read property of null` 이 나지만, `Option<User>`(또는 `User | null` 을 타입이 강제)로 반환하면 **컴파일러가 「없는 경우를 다뤄라」**고 요구한다(lang-types 의 판별 유니온). 마찬가지로 예외 대신 `Result<T, E>`(성공/실패를 값으로)를 쓰면 오류 처리가 흐름에 드러나 빠뜨릴 수 없다(Go/Rust 방식, api-error). 이건 「없음·실패」를 **숨은 상태에서 명시적 값으로** 끌어올리는 함수형의 방식 — 런타임 폭발을 컴파일·타입 단계로 당긴다. 순수·불변과 함께 이게 함수형이 안전한 이유다."
+          "text": "**Option/Result 는 없음, 실패를 타입으로 만들어 잊지 못하게 한다.** `null` 을 반환하면 호출자가 검사를 깜빡해 `Cannot read property of null` 이 나지만, `Option<User>`(또는 `User | null` 을 타입이 강제)로 반환하면 **컴파일러가 없는 경우를 다뤄라**고 요구한다(lang-types 의 판별 유니온). 마찬가지로 예외 대신 `Result<T, E>`(성공/실패를 값으로)를 쓰면 오류 처리가 흐름에 드러나 빠뜨릴 수 없다(Go/Rust 방식, api-error). 이건 없음, 실패를 **숨은 상태에서 명시적 값으로** 끌어올리는 함수형의 방식. 런타임 폭발을 컴파일, 타입 단계로 당긴다. 순수, 불변과 함께 이게 함수형이 안전한 이유다."
         },
         {
           "type": "p",
-          "text": "**클로저는 이미 매일 쓰고 있다 — 이름을 붙이면 보인다.** 이벤트 핸들러가 바깥 변수를 참조하거나, `setTimeout` 콜백이 지역 변수를 기억하거나, 팩토리 함수가 설정을 품은 함수를 반환하는 게 전부 클로저다 — 함수가 **만들어진 환경**을 기억하는 것. 이걸 알면 「왜 이 콜백이 옛 값을 보나(stale closure)」 같은 버그가 이해되고, 상태를 클래스 없이 캡슐화하는 법(counter 예시)이 보인다. 고차 함수·커링도 마찬가지로 특별한 게 아니라, JS·파이썬에서 함수가 값이라 자연스럽게 쓰는 것이다. 함수형 개념은 새 문법이 아니라 **이미 하던 것에 이름과 의도를 부여**하는 것 — 이름을 알면 더 의식적으로 쓴다."
+          "text": "**클로저는 이미 매일 쓰고 있다. 이름을 붙이면 보인다.** 이벤트 핸들러가 바깥 변수를 참조하거나, `setTimeout` 콜백이 지역 변수를 기억하거나, 팩토리 함수가 설정을 품은 함수를 반환하는 게 전부 클로저다. 함수가 **만들어진 환경**을 기억하는 것. 이걸 알면 왜 이 콜백이 옛 값을 보나(stale closure) 같은 버그가 이해되고, 상태를 클래스 없이 캡슐화하는 법(counter 예시)이 보인다. 고차 함수, 커링도 마찬가지로 특별한 게 아니라, JS, 파이썬에서 함수가 값이라 자연스럽게 쓰는 것이다. 함수형 개념은 새 문법이 아니라 **이미 하던 것에 이름과 의도를 부여**하는 것. 이름을 알면 더 의식적으로 쓴다."
         },
         {
           "type": "try",
-          "text": "네 코드에서 클로저를 쓰는 곳(콜백·팩토리)을 찾아 「무엇을 기억하는지」 짚어라. null 을 반환하는 함수 하나를 Option/판별 유니온이나 명시적 검사로 바꿔, 호출자가 「없음」을 반드시 다루게 해 보라."
+          "text": "네 코드에서 클로저를 쓰는 곳(콜백, 팩토리)을 찾아 무엇을 기억하는지 짚어라. null 을 반환하는 함수 하나를 Option/판별 유니온이나 명시적 검사로 바꿔, 호출자가 없음을 반드시 다루게 해 보라."
         }
       ],
       "quiz": [
@@ -606,7 +606,7 @@
           "q": "Option/Result 가 주는 안전은?",
           "choices": [
             "속도",
-            "「없음·실패」를 타입으로 → 호출자가 반드시 다룸(런타임 폭발 방지)",
+            "없음, 실패를 타입으로 → 호출자가 반드시 다룸(런타임 폭발 방지)",
             "메모리",
             "압축"
           ],
@@ -628,19 +628,19 @@
     },
     {
       "id": "8",
-      "title": "어디까지 — 트레이드오프",
+      "title": "어디까지. 트레이드오프",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "모든 것을 함수형으로 만들 필요는 없다. **성능이 중요한 뜨거운 반복문**에서는 가변이 빠르고(불변 복사 비용 회피), **팀이 못 읽는 추상화**(과한 커링·포인트프리·모나드 곡예)는 비용이다. 실용적 지침: **불변과 순수 함수 두 가지**를 기본으로 하되, 필요한 곳에서 국소적으로 가변을 쓴다. 함수형은 목적이 아니라 도구다 — 「누가 바꿨나」를 줄이는 만큼만 쓰고, 이득보다 비용이 크면 멈춘다."
+          "text": "모든 것을 함수형으로 만들 필요는 없다. **성능이 중요한 뜨거운 반복문**에서는 가변이 빠르고(불변 복사 비용 회피), **팀이 못 읽는 추상화**(과한 커링, 포인트프리, 모나드 곡예)는 비용이다. 실용적 지침: **불변과 순수 함수 두 가지**를 기본으로 하되, 필요한 곳에서 국소적으로 가변을 쓴다. 함수형은 목적이 아니라 도구다. 누가 바꿨나를 줄이는 만큼만 쓰고, 이득보다 비용이 크면 멈춘다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "어디까지 — 이득과 비용",
+          "label": "어디까지. 이득과 비용",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const case_ = '{{case}}';\n  const cases = {\n    default:['기본: 불변 + 순수', '대부분의 비즈니스 로직·상태 관리', 'good', '「누가 바꿨나」 제거 — 이득 큼'],\n    hot:  ['뜨거운 루프: 국소 가변', '성능 임계 반복문(수백만 회)', 'warn', '불변 복사 비용 회피 — 국소적으로 가변 OK'],\n    over: ['과한 추상화', '읽기 어려운 커링·포인트프리·모나드 곡예', 'bad', '팀이 못 읽으면 비용 > 이득 → 멈춰라'],\n  }[case_];\n  render('상황: ' + cases[0],\n    '  적용: ' + cases[1] + '\\n  판단: <span class=\\\"' + (cases[2]==='good'?'ok':cases[2]==='warn'?'warn':'no') + '\\\">' + cases[3] + '</span>',\n    '불변·순수는 기본, 뜨거운 루프는 국소 가변, 과한 추상화는 멈춘다.',\n    box(cases[0], cases[3], cases[2]==='good'?'good':cases[2]==='bad'?'bad':''));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const case_ = '{{case}}';\n  const cases = {\n    default:['기본: 불변 + 순수', '대부분의 비즈니스 로직, 상태 관리', 'good', '누가 바꿨나 제거. 이득 큼'],\n    hot:  ['뜨거운 루프: 국소 가변', '성능 임계 반복문(수백만 회)', 'warn', '불변 복사 비용 회피. 국소적으로 가변 OK'],\n    over: ['과한 추상화', '읽기 어려운 커링, 포인트프리, 모나드 곡예', 'bad', '팀이 못 읽으면 비용 > 이득 → 멈춰라'],\n  }[case_];\n  render('상황: ' + cases[0],\n    '  적용: ' + cases[1] + '\\n  판단: <span class=\\\"' + (cases[2]==='good'?'ok':cases[2]==='warn'?'warn':'no') + '\\\">' + cases[3] + '</span>',\n    '불변, 순수는 기본, 뜨거운 루프는 국소 가변, 과한 추상화는 멈춘다.',\n    box(cases[0], cases[3], cases[2]==='good'?'good':cases[2]==='bad'?'bad':''));\n</script>",
           "controls": [
             {
               "id": "case",
@@ -650,7 +650,7 @@
               "options": [
                 {
                   "value": "default",
-                  "label": "기본(불변·순수)"
+                  "label": "기본(불변, 순수)"
                 },
                 {
                   "value": "hot",
@@ -666,15 +666,15 @@
         },
         {
           "type": "note",
-          "text": "**불변·순수를 기본으로, 뜨거운 루프와 못 읽는 추상화는 예외로 둬라.** 함수형은 대부분의 코드(비즈니스 로직·상태·변환)에서 이득이 크지만, 두 곳에서 비용이 이득을 넘는다: ① **성능 임계 경로** — 수백만 번 도는 루프에서 매번 새 배열을 만들면 GC·복사 비용이 크니, 그 국소에서만 가변 누적을 쓴다(측정으로 확인, sys-profile) ② **가독성** — 팀이 못 읽는 과한 추상화(포인트프리·깊은 커링·모나드 변환)는 「멋있지만」 비용이다. 「불변과 순수 두 가지」의 실용 이득을 취하고, 학문적 순수성을 좇지 않는 게 실전 함수형이다. 규율이지 종교가 아니다."
+          "text": "**불변, 순수를 기본으로, 뜨거운 루프와 못 읽는 추상화는 예외로 둬라.** 함수형은 대부분의 코드(비즈니스 로직, 상태, 변환)에서 이득이 크지만, 두 곳에서 비용이 이득을 넘는다: ① **성능 임계 경로**. 수백만 번 도는 루프에서 매번 새 배열을 만들면 GC, 복사 비용이 크니, 그 국소에서만 가변 누적을 쓴다(측정으로 확인, sys-profile) ② **가독성**. 팀이 못 읽는 과한 추상화(포인트프리, 깊은 커링, 모나드 변환)는 멋있지만 비용이다. 불변과 순수 두 가지의 실용 이득을 취하고, 학문적 순수성을 좇지 않는 게 실전 함수형이다. 규율이지 종교가 아니다."
         },
         {
           "type": "p",
-          "text": "**멀티패러다임이 현실이다 — 함수형을 스타일로 섞어 쓴다.** JS·파이썬·자바·C#·Rust 같은 언어는 순수 함수형이 아니라, 함수형 **스타일**을 명령형·객체지향과 섞어 쓴다 — 계산은 순수·불변으로(함수형), IO·상태는 필요한 곳에서(명령형), 큰 구조는 객체·모듈로(design). 「전부 함수형」이나 「전부 명령형」이 아니라, **문제의 각 부분에 맞는 스타일**을 고르는 것이다(lang-second 7장의 「연장통」). 함수형에서 가져올 것은 「불변·순수·조합」이라는 실용 규율이지, 특정 언어의 순수주의가 아니다. 다른 패러다임과 마찬가지로, 함수형도 목적이 아니라 더 나은 코드를 위한 수단이다."
+          "text": "**멀티패러다임이 현실이다. 함수형을 스타일로 섞어 쓴다.** JS, 파이썬, 자바, C#, Rust 같은 언어는 순수 함수형이 아니라, 함수형 **스타일**을 명령형, 객체지향과 섞어 쓴다. 계산은 순수, 불변으로(함수형), IO, 상태는 필요한 곳에서(명령형), 큰 구조는 객체, 모듈로(design). 전부 함수형이나 전부 명령형이 아니라, **문제의 각 부분에 맞는 스타일**을 고르는 것이다(lang-second 7장의 연장통). 함수형에서 가져올 것은 불변, 순수, 조합이라는 실용 규율이지, 특정 언어의 순수주의가 아니다. 다른 패러다임과 마찬가지로, 함수형도 목적이 아니라 더 나은 코드를 위한 수단이다."
         },
         {
           "type": "try",
-          "text": "네 코드에 함수형(불변·순수)이 이득인 곳과 과한 곳을 각각 하나씩 찾아라 — 상태 관리는 불변으로 이득, 성능 임계 루프나 팀이 못 읽는 추상화는 과함. 「두 가지(불변·순수)만」 기준으로 어디까지 적용할지 정하라."
+          "text": "네 코드에 함수형(불변, 순수)이 이득인 곳과 과한 곳을 각각 하나씩 찾아라. 상태 관리는 불변으로 이득, 성능 임계 루프나 팀이 못 읽는 추상화는 과함. 두 가지(불변, 순수)만 기준으로 어디까지 적용할지 정하라."
         }
       ],
       "quiz": [
@@ -682,7 +682,7 @@
           "q": "함수형을 어디까지 적용해야 하나?",
           "choices": [
             "전부",
-            "불변·순수 기본, 뜨거운 루프·못 읽는 추상화는 예외",
+            "불변, 순수 기본, 뜨거운 루프, 못 읽는 추상화는 예외",
             "안 씀",
             "IO 만"
           ],
@@ -693,7 +693,7 @@
           "q": "뜨거운 반복문에서 가변이 나은 이유는?",
           "choices": [
             "항상 나음",
-            "불변 복사·GC 비용 회피(국소적으로)",
+            "불변 복사, GC 비용 회피(국소적으로)",
             "보안",
             "타입"
           ],
@@ -704,7 +704,7 @@
           "q": "실전 함수형의 태도는?",
           "choices": [
             "학문적 순수성 추구",
-            "불변·순수의 실용 이득만 취하고 멀티패러다임으로 섞음",
+            "불변, 순수의 실용 이득만 취하고 멀티패러다임으로 섞음",
             "전부 모나드",
             "명령형 금지"
           ],
@@ -715,19 +715,19 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 함수형",
+      "title": "점검표. 함수형",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "함수형 스타일을 적용하거나 「누가 바꿨나」 버그를 줄일 때 이 목록을 확인하라. 핵심은 「안 바꾸고(불변) 순수하게 — 계산은 코어, IO 는 셸, 과하지 않게」다."
+          "text": "함수형 스타일을 적용하거나 누가 바꿨나 버그를 줄일 때 이 목록을 확인하라. 핵심은 안 바꾸고(불변) 순수하게. 계산은 코어, IO 는 셸, 과하지 않게다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '「누가 바꿨나」 버그를 불변으로 없앤다',\n    '순수 함수(같은 입력→같은 출력, 부수효과 없음)를 쓴다',\n    '불변으로 새 값을 만든다(되돌리기·비교·동시성)',\n    'map·filter·reduce 로 선언적으로 쓴다',\n    '작은 순수 함수를 조합한다(고차 함수)',\n    '계산은 코어, IO 는 얇은 셸로 분리한다',\n    'null·예외 대신 Option/Result 로 없음·실패를 명시',\n    '뜨거운 루프·과한 추상화는 예외로 둔다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 불변·순수로 「누가 바꿨나」를 없애고 테스트가 쉬워진다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '안 바꾸고(불변) 순수하게 — 계산은 코어, IO 는 셸, 과하지 않게.',\n    '<div>' + rows + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; background:#132a1c; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .cmp { display:flex; gap:8px; margin:8px 0; }\n  .cmp .col { flex:1; background:#111c33; border-radius:6px; padding:8px; }\n  .cmp .col h6 { margin:0 0 4px; font:11px system-ui; color:#7dd3fc; }\n  .cmp .col.b h6 { color:#c4b5fd; }\n  .cmp pre { margin:0; font:10.5px/1.5 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .pipe { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:8px 0; font:11px ui-monospace, monospace; }\n  .pipe .st { padding:5px 8px; border-radius:5px; }\n  .pipe .data { background:#14263a; color:#7dd3fc; } .pipe .op { background:#1e2a3a; color:#fdba74; }\n  .pipe .arr { color:#64748b; }\n  .layer { margin:8px 0; }\n  .layer .lr { padding:6px 10px; margin:2px 0; border-radius:6px; font:11px ui-monospace, monospace; }\n  .layer .shell { background:#3a2a14; color:#fcd34d; } .layer .core { background:#132a1c; color:#86efac; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const cmp = (aTitle, aBody, bTitle, bBody) =>\n    '<div class=\"cmp\"><div class=\"col\"><h6>' + esc(aTitle) + '</h6><pre>' + esc(aBody) + '</pre></div>' +\n    '<div class=\"col b\"><h6>' + esc(bTitle) + '</h6><pre>' + esc(bBody) + '</pre></div></div>';\n  const pipe = (nodes) => '<div class=\"pipe\">' + nodes.map((n, i) =>\n    (i ? '<span class=\"arr\">→</span>' : '') + '<span class=\"st ' + n[1] + '\">' + esc(n[0]) + '</span>').join('') + '</div>';\n  const layer = (rows) => '<div class=\"layer\">' + rows.map(([lab, cls]) =>\n    '<div class=\"lr ' + cls + '\">' + esc(lab) + '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '누가 바꿨나 버그를 불변으로 없앤다',\n    '순수 함수(같은 입력→같은 출력, 부수효과 없음)를 쓴다',\n    '불변으로 새 값을 만든다(되돌리기, 비교, 동시성)',\n    'map, filter, reduce 로 선언적으로 쓴다',\n    '작은 순수 함수를 조합한다(고차 함수)',\n    '계산은 코어, IO 는 얇은 셸로 분리한다',\n    'null, 예외 대신 Option/Result 로 없음, 실패를 명시',\n    '뜨거운 루프, 과한 추상화는 예외로 둔다',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인. 불변, 순수로 누가 바꿨나를 없애고 테스트가 쉬워진다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '안 바꾸고(불변) 순수하게. 계산은 코어, IO 는 셸, 과하지 않게.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -742,15 +742,15 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 안 바꾸면 「누가 바꿨나」가 사라진다.** 불변으로 새 값을 만들고(3장) 순수 함수로 밖을 안 건드리면(2장), 버그·동시성·테스트가 한꺼번에 쉬워진다(1장). map·filter·reduce 로 선언적으로 쓰고(4장), 작은 함수를 조합하고(5장), 계산은 코어·IO 는 셸로 나누고(6장), 없음·실패는 타입으로 명시한다(7장). 단 불변·순수 두 가지만 기본으로 취하고 과하지 않게(8장). 함수형은 어려운 수학이 아니라 이 규율이다."
+          "text": "**한 줄 요약: 안 바꾸면 누가 바꿨나가 사라진다.** 불변으로 새 값을 만들고(3장) 순수 함수로 밖을 안 건드리면(2장), 버그, 동시성, 테스트가 한꺼번에 쉬워진다(1장). map, filter, reduce 로 선언적으로 쓰고(4장), 작은 함수를 조합하고(5장), 계산은 코어, IO 는 셸로 나누고(6장), 없음, 실패는 타입으로 명시한다(7장). 단 불변, 순수 두 가지만 기본으로 취하고 과하지 않게(8장). 함수형은 어려운 수학이 아니라 이 규율이다."
         },
         {
           "type": "p",
-          "text": "**이 칸의 연결.** 불변·비교는 web-js·상태 관리(React), 순수·테스트는 quality, Option/Result 는 lang-types·api-error, 조합·코어셸은 design(관심사 분리), 불변과 동시성은 lang-concurrency·sys-process, 성능 트레이드오프는 sys-profile 로 이어진다. **「안 바꾸고 순수하게 — 계산과 부수효과를 나누는 규율」이 언어·설계·테스트를 관통하는 함수형의 핵심 교훈**이다."
+          "text": "**이 칸의 연결.** 불변, 비교는 web-js, 상태 관리(React), 순수, 테스트는 quality, Option/Result 는 lang-types, api-error, 조합, 코어셸은 design(관심사 분리), 불변과 동시성은 lang-concurrency, sys-process, 성능 트레이드오프는 sys-profile 로 이어진다. **안 바꾸고 순수하게. 계산과 부수효과를 나누는 규율이 언어, 설계, 테스트를 관통하는 함수형의 핵심 교훈**이다."
         },
         {
           "type": "try",
-          "text": "이 8개로 네 코드에 함수형을 적용하라. 「불변으로 새 값 만들기」와 「계산을 순수 코어로 빼기」 두 가지만 지켜도, 「누가 바꿨나」 버그가 줄고 테스트가 쉬워진다."
+          "text": "이 8개로 네 코드에 함수형을 적용하라. 불변으로 새 값 만들기와 계산을 순수 코어로 빼기 두 가지만 지켜도, 누가 바꿨나 버그가 줄고 테스트가 쉬워진다."
         }
       ],
       "quiz": [
@@ -758,29 +758,29 @@
           "q": "함수형 장의 한 줄 요약은?",
           "choices": [
             "전부 함수형으로",
-            "안 바꾸면(불변) 「누가 바꿨나」가 사라진다",
+            "안 바꾸면(불변) 누가 바꿨나가 사라진다",
             "빠르게",
             "무시"
           ],
           "answer": 1,
-          "why": "불변·순수의 규율."
+          "why": "불변, 순수의 규율."
         },
         {
           "q": "먼저 지킬 두 가지는?",
           "choices": [
-            "모나드·펑터",
+            "모나드, 펑터",
             "불변으로 새 값 만들기 + 계산을 순수 코어로 빼기",
-            "커링·포인트프리",
+            "커링, 포인트프리",
             "무시"
           ],
           "answer": 1,
-          "why": "버그↓·테스트 쉬움."
+          "why": "버그↓, 테스트 쉬움."
         },
         {
           "q": "함수형이 이어지는 주제는?",
           "choices": [
             "없음",
-            "web-js·lang-types·quality·design·lang-concurrency",
+            "web-js, lang-types, quality, design, lang-concurrency",
             "문법",
             "속도"
           ],

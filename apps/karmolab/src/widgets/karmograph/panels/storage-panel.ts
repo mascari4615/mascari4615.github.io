@@ -1,8 +1,8 @@
 /**
- * panels/storage-panel.ts — 저장 상태 (TASK-KL-202 개편 2, 세 번째 이사).
+ * panels/storage-panel.ts. 저장 상태 (TASK-KL-202 개편 2, 세 번째 이사).
  *
- * 이 패널은 앞의 둘과 달리 **위젯의 손**이 여럿 필요하다(맵 목록·파일 내려받기·직전 판 되살리기).
- * 그래서 `PanelCtx` 에 그만큼을 더 담았다 — 패널이 위젯 안을 뒤지지 않고 **빌린 것만** 쓰게.
+ * 이 패널은 앞의 둘과 달리 **위젯의 손**이 여럿 필요하다(맵 목록, 파일 내려받기, 직전 판 되살리기).
+ * 그래서 `PanelCtx` 에 그만큼을 더 담았다. 패널이 위젯 안을 뒤지지 않고 **빌린 것만** 쓰게.
  */
 import { measureStorage, humanBytes } from '../storage-health';
 import type { PanelCtx } from './context';

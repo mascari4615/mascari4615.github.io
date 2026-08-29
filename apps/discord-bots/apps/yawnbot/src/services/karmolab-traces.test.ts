@@ -1,8 +1,8 @@
 /**
- * TASK-KL-098 Cycle 2 — 흔적 원장 시험.
+ * TASK-KL-098 Cycle 2. 흔적 원장 시험.
  *
  * 여기서 틀리면 사이트에 **거짓 숫자**가 뜬다. 지어낸 수는 안 넣는다는 약속이 코드로
- * 지켜지는지 보는 자리다 — 같은 사람이 새로고침한 것을 여러 명으로 세지 않는가,
+ * 지켜지는지 보는 자리다. 같은 사람이 새로고침한 것을 여러 명으로 세지 않는가,
  * 한 사람이 표를 두 번 던질 수 있는가.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 describe('kstDay', () => {
-  it('한국 시간 기준으로 날짜를 가른다 — 자정 넘김이 9시간 어긋나면 안 된다', () => {
+  it('한국 시간 기준으로 날짜를 가른다. 자정 넘김이 9시간 어긋나면 안 된다', () => {
     // 2026-08-07 15:30 UTC = 2026-08-08 00:30 KST → 한국에선 이미 8일이다.
     expect(kstDay(new Date('2026-08-07T15:30:00Z'))).toBe('2026-08-08');
     expect(kstDay(new Date('2026-08-07T14:30:00Z'))).toBe('2026-08-07');
@@ -45,7 +45,7 @@ describe('isValidToolId', () => {
 });
 
 describe('도구 열림 세기', () => {
-  it('같은 사람이 계속 눌러도 한 번만 센다 — 새로고침이 방문자가 되면 안 된다', () => {
+  it('같은 사람이 계속 눌러도 한 번만 센다. 새로고침이 방문자가 되면 안 된다', () => {
     expect(store.recordToolOpen('charcount', 'visitor-a')).toBe(true);
     expect(store.recordToolOpen('charcount', 'visitor-a')).toBe(false);
     expect(store.recordToolOpen('charcount', 'visitor-a')).toBe(false);
@@ -92,7 +92,7 @@ describe('도구 열림 세기', () => {
     expect(new KarmolabTraceStore(statePath).pulse().opensTotal).toBe(1);
   });
 
-  it('상태 파일이 깨져도 기동한다 — 숫자 하나 때문에 사이트가 멈추면 안 된다', () => {
+  it('상태 파일이 깨져도 기동한다. 숫자 하나 때문에 사이트가 멈추면 안 된다', () => {
     fs.writeFileSync(statePath, 'not json at all', 'utf-8');
     const reopened = new KarmolabTraceStore(statePath);
     expect(reopened.pulse().opensTotal).toBe(0);
@@ -101,17 +101,17 @@ describe('도구 열림 세기', () => {
 });
 
 describe('사람들 기기의 성능 분포 (TASK-KL-201)', () => {
-  it('칸에 세고, 되돌려서 한 사람을 못 찾는다 — 개별 기록은 안 남긴다', () => {
+  it('칸에 세고, 되돌려서 한 사람을 못 찾는다. 개별 기록은 안 남긴다', () => {
     store.recordPerf({ ready: 120, lcp: 900, cls: 0.02 });
     store.recordPerf({ ready: 3000, lcp: 5000, cls: 0.2 });
     const stats = store.perfStats();
     expect(stats.metrics.ready.n).toBe(2);
-    // 칸으로 세므로 정확한 ms 가 아니라 「칸의 위 경계」다 — 그 성질을 그대로 지킨다.
+    // 칸으로 세므로 정확한 ms 가 아니라 칸의 위 경계다. 그 성질을 그대로 지킨다.
     expect(stats.metrics.ready.p50).toBeLessThanOrEqual(250);
     expect(stats.metrics.ready.p75).toBeGreaterThanOrEqual(2000);
   });
 
-  it('값이 없거나 말이 안 되면 그 지표만 건너뛴다 — 0 으로 채우면 아주 빠른 판이 하나 생긴다', () => {
+  it('값이 없거나 말이 안 되면 그 지표만 건너뛴다. 0 으로 채우면 아주 빠른 판이 하나 생긴다', () => {
     store.recordPerf({ ready: -1, lcp: Number.NaN, inp: 'x' as unknown as number, cls: 0.01 });
     const stats = store.perfStats();
     expect(stats.metrics.ready.n).toBe(0);
@@ -120,7 +120,7 @@ describe('사람들 기기의 성능 분포 (TASK-KL-201)', () => {
     expect(stats.metrics.cls.n).toBe(1);
   });
 
-  it('아무도 안 보냈으면 0 이 아니라 「표본 없음」으로 읽히게 — 중앙값이 null 이다', () => {
+  it('아무도 안 보냈으면 0 이 아니라 표본 없음으로 읽히게. 중앙값이 null 이다', () => {
     const stats = store.perfStats();
     expect(stats.samples).toBe(0);
     expect(stats.metrics.lcp.p50).toBeNull();
@@ -128,7 +128,7 @@ describe('사람들 기기의 성능 분포 (TASK-KL-201)', () => {
 });
 
 describe('방문 세기 (Total / Today)', () => {
-  it('같은 사람이 화면을 옮겨 다녀도 한 번만 센다 — 안 그러면 수가 「내가 링크를 잘 걸었다」만 말한다', () => {
+  it('같은 사람이 화면을 옮겨 다녀도 한 번만 센다. 안 그러면 수가 내가 링크를 잘 걸었다만 말한다', () => {
     expect(store.recordVisit('visitor-a')).toBe(true);
     expect(store.recordVisit('visitor-a')).toBe(false);
     const stats = store.visitStats();
@@ -145,7 +145,7 @@ describe('방문 세기 (Total / Today)', () => {
     expect(stats.peopleToday).toBe(2);
   });
 
-  it('30분이 지나면 방문은 다시 세지만 「오늘 다녀간 사람」은 그대로다 — 한 사람은 하루 한 명이다', () => {
+  it('30분이 지나면 방문은 다시 세지만 오늘 다녀간 사람은 그대로다. 한 사람은 하루 한 명이다', () => {
     const first = new Date('2026-08-08T01:00:00Z');
     const later = new Date('2026-08-08T02:00:00Z');
     expect(store.recordVisit('visitor-a', 'human', first)).toBe(true);
@@ -166,11 +166,11 @@ describe('방문 세기 (Total / Today)', () => {
     expect(stats.peopleToday).toBe(1);
   });
 
-  it('봇이 다시 떠도 오늘 사람 수가 두 배가 되지 않는다 — 열쇠를 저장하기 때문', () => {
+  it('봇이 다시 떠도 오늘 사람 수가 두 배가 되지 않는다. 열쇠를 저장하기 때문', () => {
     const now = new Date('2026-08-08T05:00:00Z');
     store.recordVisit('visitor-a', 'human', now);
     store.flush();
-    // 재시작 = 30분 창(메모리)은 사라진다. 그래도 「오늘 이미 센 사람」은 파일에 남아 있어야 한다.
+    // 재시작 = 30분 창(메모리)은 사라진다. 그래도 오늘 이미 센 사람은 파일에 남아 있어야 한다.
     const reopened = new KarmolabTraceStore(statePath);
     expect(reopened.recordVisit('visitor-a', 'human', now)).toBe(true);
     expect(reopened.visitStats(now).peopleToday).toBe(1);
@@ -184,7 +184,7 @@ describe('방문 세기 (Total / Today)', () => {
     expect(() => reopened.recordVisit('v1')).not.toThrow();
   });
 
-  it('최근 14일을 오래된 날부터 오늘까지 빠짐없이 준다 — 빈 날도 0으로 있어야 그래프가 안 찌그러진다', () => {
+  it('최근 14일을 오래된 날부터 오늘까지 빠짐없이 준다. 빈 날도 0으로 있어야 그래프가 안 찌그러진다', () => {
     const now = new Date('2026-08-08T05:00:00Z');
     store.recordVisit('visitor-a', 'human', now);
     const days = store.visitStats(now).recentDays;
@@ -195,8 +195,8 @@ describe('방문 세기 (Total / Today)', () => {
   });
 });
 
-describe('누가 왔나 나눠 세기 · 지금 보는 사람', () => {
-  it('검색봇·AI 는 「사람」 수에 안 들어간다 — 공개한 수가 거짓말이 되면 안 된다', () => {
+describe('누가 왔나 나눠 세기, 지금 보는 사람', () => {
+  it('검색봇, AI 는 사람 수에 안 들어간다. 공개한 수가 거짓말이 되면 안 된다', () => {
     const now = new Date('2026-08-08T05:00:00Z');
     store.recordVisit('사람1', 'human', now);
     store.recordVisit('구글봇', 'search', now);
@@ -208,7 +208,7 @@ describe('누가 왔나 나눠 세기 · 지금 보는 사람', () => {
     expect(stats.peopleToday).toBe(1);
   });
 
-  it('그렇다고 버리지도 않는다 — 종류별로 그대로 공개된다', () => {
+  it('그렇다고 버리지도 않는다. 종류별로 그대로 공개된다', () => {
     const now = new Date('2026-08-08T05:00:00Z');
     store.recordVisit('사람1', 'human', now);
     store.recordVisit('구글봇', 'search', now);
@@ -240,7 +240,7 @@ describe('누가 왔나 나눠 세기 · 지금 보는 사람', () => {
     expect(reopened.visitStats().kinds.total).toEqual({ human: 0, search: 0, ai: 0, unknown: 0 });
   });
 
-  it('지금 보는 사람은 시간이 지나면 빠진다 — 「지금」이 과거를 끌고 다니면 안 된다', () => {
+  it('지금 보는 사람은 시간이 지나면 빠진다. 지금이 과거를 끌고 다니면 안 된다', () => {
     const t0 = new Date('2026-08-08T05:00:00Z');
     expect(store.touchPresence('사람1', t0)).toBe(1);
     expect(store.touchPresence('사람2', t0)).toBe(2);
@@ -251,7 +251,7 @@ describe('누가 왔나 나눠 세기 · 지금 보는 사람', () => {
     expect(store.presenceCount(new Date(t0.getTime() + 7 * 60_000))).toBe(0);
   });
 
-  it('지금 보는 사람은 저장하지 않는다 — 다시 켜면 0이 맞다', () => {
+  it('지금 보는 사람은 저장하지 않는다. 다시 켜면 0이 맞다', () => {
     const now = new Date('2026-08-08T05:00:00Z');
     store.touchPresence('사람1', now);
     store.flush();
@@ -259,15 +259,15 @@ describe('누가 왔나 나눠 세기 · 지금 보는 사람', () => {
   });
 });
 
-describe('이슈식 갤러리 — 번호와 상태', () => {
-  it('갤러리마다 1번부터 매긴다 — 다른 갤러리와 안 섞인다', () => {
+describe('이슈식 갤러리. 번호와 상태', () => {
+  it('갤러리마다 1번부터 매긴다. 다른 갤러리와 안 섞인다', () => {
     const a = store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
     const b = store.addPost({ board: 'free', title: '나', text: '2', accountId: 'acc-1', handle: 'kim' });
     const c = store.addPost({ board: 'qna', title: '다', text: '3', accountId: 'acc-1', handle: 'kim' });
     expect([a.seq, b.seq, c.seq]).toEqual([1, 2, 1]);
   });
 
-  it('글을 지워도 번호는 안 당겨 온다 — 어제 남긴 「#2 참고」가 다른 글을 가리키면 안 된다', () => {
+  it('글을 지워도 번호는 안 당겨 온다. 어제 남긴 #2 참고가 다른 글을 가리키면 안 된다', () => {
     store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
     const second = store.addPost({ board: 'free', title: '나', text: '2', accountId: 'acc-1', handle: 'kim' });
     store.deletePost(second.id, 'acc-1', false);
@@ -295,7 +295,7 @@ describe('이슈식 갤러리 — 번호와 상태', () => {
     expect(reopened.post('p3')?.seq).toBe(3);
   });
 
-  it('다시 켠 뒤에 쓴 글도 남의 번호를 다시 받지 않는다 — 카운터가 옛 글보다 뒤에 있으면 안 된다', () => {
+  it('다시 켠 뒤에 쓴 글도 남의 번호를 다시 받지 않는다. 카운터가 옛 글보다 뒤에 있으면 안 된다', () => {
     store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
     store.addPost({ board: 'free', title: '나', text: '2', accountId: 'acc-1', handle: 'kim' });
     store.flush();
@@ -304,7 +304,7 @@ describe('이슈식 갤러리 — 번호와 상태', () => {
     expect(next.seq).toBe(3);
   });
 
-  it('상태를 바꾸면 언제·누가가 남는다 — 없으면 닫힌 글이 사라진 글처럼 읽힌다', () => {
+  it('상태를 바꾸면 언제, 누가가 남는다. 없으면 닫힌 글이 사라진 글처럼 읽힌다', () => {
     const post = store.addPost({ board: 'request', text: '엑셀 도구', accountId: 'acc-1', handle: 'kim' });
     const at = new Date('2026-08-08T05:00:00Z');
     store.updatePost(post.id, { status: 'done', statusNote: '만들었어요', by: 'owner' }, at);
@@ -316,7 +316,7 @@ describe('이슈식 갤러리 — 번호와 상태', () => {
     expect(updated.statusAt).toBe(at.toISOString());
   });
 
-  it('같은 상태로 다시 바꿔도 시각을 새로 찍지 않는다 — 안 일어난 일이다', () => {
+  it('같은 상태로 다시 바꿔도 시각을 새로 찍지 않는다. 안 일어난 일이다', () => {
     const post = store.addPost({ board: 'request', text: '요청', accountId: 'acc-1', handle: 'kim' });
     store.updatePost(post.id, { status: 'done', by: 'owner' }, new Date('2026-08-08T05:00:00Z'));
     store.updatePost(post.id, { status: 'done', by: 'other' }, new Date('2026-08-09T05:00:00Z'));
@@ -324,7 +324,7 @@ describe('이슈식 갤러리 — 번호와 상태', () => {
     expect(store.post(post.id)?.statusBy).toBe('owner');
   });
 
-  it('이슈식은 껐다 켜도 글이 안 다친다 — 보여줄지만 정하는 스위치다', () => {
+  it('이슈식은 껐다 켜도 글이 안 다친다. 보여줄지만 정하는 스위치다', () => {
     const post = store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
     store.updatePost(post.id, { status: 'planned', by: 'owner' });
     expect(store.setGalleryStyle('free', { issueStyle: true })?.issueStyle).toBe(true);
@@ -333,7 +333,7 @@ describe('이슈식 갤러리 — 번호와 상태', () => {
     expect(store.post(post.id)?.seq).toBe(1);
   });
 
-  it('도구 요청판은 처음부터 이슈식이다 — 원래 「열림 → 만들어짐」으로 살아 왔다', () => {
+  it('도구 요청판은 처음부터 이슈식이다. 원래 열림 → 만들어짐으로 살아 왔다', () => {
     expect(store.gallery('request')?.issueStyle).toBe(true);
     expect(store.gallery('free')?.issueStyle).toBe(false);
   });
@@ -343,7 +343,7 @@ describe('주간 결산', () => {
   const now = new Date('2026-08-08T05:00:00Z');
   const daysAgo = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000);
 
-  it('지난 7일과 그 전 7일을 나란히 준다 — 비교값 없는 수는 뜻이 없다', () => {
+  it('지난 7일과 그 전 7일을 나란히 준다. 비교값 없는 수는 뜻이 없다', () => {
     store.recordVisit('a', 'human', daysAgo(1));
     store.recordVisit('b', 'human', daysAgo(2));
     store.recordVisit('c', 'human', daysAgo(9));
@@ -357,7 +357,7 @@ describe('주간 결산', () => {
     store.recordToolOpen('charcount', 'v1', daysAgo(1));
     store.recordToolOpen('charcount', 'v2', daysAgo(2));
     store.recordToolOpen('qrgen', 'v1', daysAgo(3));
-    // 지난주에도 있었던 도구는 「새로」가 아니다
+    // 지난주에도 있었던 도구는 새로가 아니다
     store.recordToolOpen('qrgen', 'v9', daysAgo(9));
 
     const recap = store.weeklyRecap(now);
@@ -366,7 +366,7 @@ describe('주간 결산', () => {
     expect(recap.newTools).not.toContain('qrgen');
   });
 
-  it('이번 주 글·답글 수와 가장 표를 많이 받은 글을 준다', () => {
+  it('이번 주 글, 답글 수와 가장 표를 많이 받은 글을 준다', () => {
     const post = store.addPost({ board: 'request', text: '이번 주 요청', accountId: 'acc-1', handle: 'kim' });
     store.toggleVote(post.id, 'acc-2');
     store.addReply(post.id, { text: '좋아요', accountId: 'acc-2', handle: 'lee', byOwner: false });
@@ -377,7 +377,7 @@ describe('주간 결산', () => {
     expect(recap.topPost?.votes).toBe(2);
   });
 
-  it('아무 일도 없던 주에는 0 과 null 을 준다 — 지어내지 않는다', () => {
+  it('아무 일도 없던 주에는 0 과 null 을 준다. 지어내지 않는다', () => {
     const recap = store.weeklyRecap(now);
     expect(recap.visits.now).toBe(0);
     expect(recap.topTools).toEqual([]);
@@ -385,8 +385,8 @@ describe('주간 결산', () => {
   });
 });
 
-describe('글판 — 이야기·도구 요청', () => {
-  it('올린 사람의 첫 표가 이미 들어가 있다 — 자기 요청이 0표로 시작하면 어색하다', () => {
+describe('글판. 이야기, 도구 요청', () => {
+  it('올린 사람의 첫 표가 이미 들어가 있다. 자기 요청이 0표로 시작하면 어색하다', () => {
     store.addPost({ board: 'request', text: '엑셀을 CSV 로 바꾸는 도구', accountId: 'acc-1', handle: 'kim' });
     const list = store.publicPosts('request', 'acc-1');
     expect(list[0].votes).toBe(1);
@@ -394,7 +394,7 @@ describe('글판 — 이야기·도구 요청', () => {
     expect(list[0].status).toBe('open');
   });
 
-  it('한 사람은 한 표뿐 — 두 번 누르면 취소된다', () => {
+  it('한 사람은 한 표뿐. 두 번 누르면 취소된다', () => {
     const request = store.addPost({ board: 'request', text: '테스트', accountId: 'acc-1', handle: 'kim' });
     expect(store.toggleVote(request.id, 'acc-2')).toBe(true);
     expect(store.publicPosts('request', null)[0].votes).toBe(2);
@@ -418,12 +418,12 @@ describe('글판 — 이야기·도구 요청', () => {
     expect(store.publicPosts('request', null).map((r) => r.text)).toEqual(['A', 'B']);
   });
 
-  it('로그인 안 한 사람에게는 「내가 눌렀나」가 전부 거짓', () => {
+  it('로그인 안 한 사람에게는 내가 눌렀나가 전부 거짓', () => {
     store.addPost({ board: 'request', text: 'A', accountId: 'acc-1', handle: 'kim' });
     expect(store.publicPosts('request', null)[0].votedByMe).toBe(false);
   });
 
-  it('하루에 올린 개수를 센다 — 도배 막는 근거', () => {
+  it('하루에 올린 개수를 센다. 도배 막는 근거', () => {
     const day = new Date('2026-08-07T01:00:00Z');
     store.addPost({ board: 'request', text: 'A', accountId: 'acc-1', handle: 'kim' }, day);
     store.addPost({ board: 'request', text: 'B', accountId: 'acc-1', handle: 'kim' }, day);
@@ -433,7 +433,7 @@ describe('글판 — 이야기·도구 요청', () => {
     expect(store.postsTodayBy('acc-1', 'request', new Date('2026-08-09T01:00:00Z'))).toBe(0);
   });
 
-  it('주인은 요청 상태를 바꾼다 — 이상한 값은 무시', () => {
+  it('주인은 요청 상태를 바꾼다. 이상한 값은 무시', () => {
     const request = store.addPost({ board: 'request', text: 'A', accountId: 'acc-1', handle: 'kim' });
     store.updatePost(request.id, { status: 'planned' });
     expect(store.publicPosts('request', null)[0].status).toBe('planned');
@@ -448,12 +448,12 @@ describe('글판 — 이야기·도구 요청', () => {
     expect(store.publicPosts('request', null).map((p) => p.text)).toEqual(['도구 하나만']);
   });
 
-  it('이야기는 표가 0 에서 시작한다 — 글은 요청이 아니다', () => {
+  it('이야기는 표가 0 에서 시작한다. 글은 요청이 아니다', () => {
     store.addPost({ board: 'free', title: '제목', text: '본문', accountId: 'acc-1', handle: 'kim' });
     expect(store.publicPosts('free', 'acc-1')[0].votes).toBe(0);
   });
 
-  it('답글이 달리면 그 글이 목록 위로 올라온다 — 대화가 가라앉으면 아무도 안 본다', () => {
+  it('답글이 달리면 그 글이 목록 위로 올라온다. 대화가 가라앉으면 아무도 안 본다', () => {
     const first = store.addPost(
       { board: 'free', title: '먼저', text: 'x', accountId: 'acc-1', handle: 'kim' },
       new Date('2026-08-01T00:00:00Z'),
@@ -530,7 +530,7 @@ describe('판(게시판)', () => {
     expect(store.addGallery({ id: 'my-gal', label: '또', desc: '', handle: 'lee' })).toBeNull();
   });
 
-  it('빈 갤러리만 지운다 — 글이 있으면 그 글들이 갈 곳을 잃는다', () => {
+  it('빈 갤러리만 지운다. 글이 있으면 그 글들이 갈 곳을 잃는다', () => {
     store.addGallery({ id: 'my-gal', label: '내 갤', desc: '', handle: 'kim' });
     expect(store.deleteGallery('my-gal', 'lee', false)).toBe('not_allowed'); // 남
     store.addPost({ board: 'my-gal', title: 'a', text: 'x', accountId: 'u1', handle: 'kim' });
@@ -553,7 +553,7 @@ describe('판(게시판)', () => {
     expect(new KarmolabTraceStore(statePath).gallery('keep-me')?.label).toBe('남아라');
   });
 
-  it('판마다 글 수를 센다 — 판 고르는 줄에 실제 수를 띄우려고', () => {
+  it('판마다 글 수를 센다. 판 고르는 줄에 실제 수를 띄우려고', () => {
     store.addPost({ board: 'free', title: 'a', text: 'x', accountId: 'u1', handle: 'kim' });
     store.addPost({ board: 'free', title: 'b', text: 'y', accountId: 'u1', handle: 'kim' });
     store.addPost({ board: 'qna', title: 'c', text: 'z', accountId: 'u2', handle: 'lee' });
@@ -581,7 +581,7 @@ describe('판(게시판)', () => {
     void quiet;
   });
 
-  it('좋아요와 표는 따로 센다 — 뜻이 다르다', () => {
+  it('좋아요와 표는 따로 센다. 뜻이 다르다', () => {
     const post = store.addPost({ board: 'request', text: '엑셀 변환', accountId: 'u1', handle: 'kim' });
     store.toggleLike(post.id, 'u2');
     const shown = store.publicPosts('request', 'u2')[0];
@@ -599,7 +599,7 @@ describe('판(게시판)', () => {
     expect(store.publicPost(post.id, null)?.views).toBe(2);
   });
 
-  it('대댓글은 한 단만 접는다 — 더 깊으면 누가 누구에게 하는 말인지 못 읽는다', () => {
+  it('대댓글은 한 단만 접는다. 더 깊으면 누가 누구에게 하는 말인지 못 읽는다', () => {
     const post = store.addPost({ board: 'free', title: 'a', text: 'x', accountId: 'u1', handle: 'kim' });
     const top = store.addReply(post.id, { text: '첫 답글', accountId: 'u2', handle: 'lee', byOwner: false })!;
     const child = store.addReply(post.id, { text: '답글의 답글', accountId: 'u3', handle: 'park', byOwner: false, parentId: top.id })!;
@@ -624,7 +624,7 @@ describe('판(게시판)', () => {
     expect(store.deleteReply(post.id, reply.id, 'u9', true)).toBe(true); // 주인은 된다
   });
 
-  it('옛 글도 그대로 읽힌다 — 판·조회수 칸이 없던 시절 것', () => {
+  it('옛 글도 그대로 읽힌다. 판, 조회수 칸이 없던 시절 것', () => {
     fs.writeFileSync(
       statePath,
       JSON.stringify({
@@ -646,7 +646,7 @@ describe('판(게시판)', () => {
     expect(reopened.publicPost('old-1', null)?.likes).toBe(0);
   });
 
-  it('사람마다 활동을 센다 — 공개 프로필에 실린다', () => {
+  it('사람마다 활동을 센다. 공개 프로필에 실린다', () => {
     const post = store.addPost({ board: 'free', title: 'a', text: 'x', accountId: 'u1', handle: 'kim' });
     store.addReply(post.id, { text: 'r1', accountId: 'u2', handle: 'lee', byOwner: false });
     store.addReply(post.id, { text: 'r2', accountId: 'u2', handle: 'lee', byOwner: false });

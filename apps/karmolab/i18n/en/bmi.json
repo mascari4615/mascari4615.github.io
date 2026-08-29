@@ -20,7 +20,7 @@
   "bmi.row.formula": "Formula",
   "bmi.formula": "BMI = weight(kg) ÷ height(m)²",
   "bmi.status.empty": "Enter your height and weight.",
-  "bmi.status.note": "BMI cannot tell muscle from fat. If you train a lot or have a different build, the number may not match your actual state — check with a professional before drawing conclusions.",
+  "bmi.status.note": "BMI cannot tell muscle from fat. If you train a lot or have a different build, the number may not match your actual state. check with a professional before drawing conclusions.",
   "bmi.class.under": "Underweight",
   "bmi.class.normal": "Normal",
   "bmi.class.preObese": "Pre-obese (overweight)",

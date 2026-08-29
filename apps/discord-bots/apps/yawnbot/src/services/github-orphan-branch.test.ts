@@ -1,6 +1,6 @@
 /**
  * GitHub orphan 브랜치 자동 부트스트랩 단위 (TASK-KAR-CHARSTATE follow-up).
- * 실 네트워크 0 — fetch/timeout 주입(heartbeat.test 패턴 정합).
+ * 실 네트워크 0. fetch/timeout 주입(heartbeat.test 패턴 정합).
  * 핵심 잠금:
  *  ① ref 200 → no-op 'exists', commit/refs POST 0
  *  ② ref 404 → empty-tree orphan 커밋(parents=[]) + refs POST 'created'

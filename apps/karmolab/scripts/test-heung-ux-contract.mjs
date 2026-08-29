@@ -1,4 +1,4 @@
-/** KL-246의 첫 사용·건반 audition·모바일 편집 계약이 소스에서 사라지지 않는지 빠르게 막는다. */
+/** KL-246의 첫 사용, 건반 audition, 모바일 편집 계약이 소스에서 사라지지 않는지 빠르게 막는다. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -36,15 +36,15 @@ expect(studio.includes("editorListenMode==='clip'") && studio.includes('playEdit
 expect(studio.includes('현재 위치 유지') && studio.includes('playhead=clip.start'), '일시정지와 정지의 의미가 구분되지 않았다');
 expect(studio.includes('void engine.preview(track,note.pitch,note.velocity)'), '음표 선택/편집 audition이 없다');
 expect(piano.includes('zoom-time-in') && piano.includes('zoom-pitch-in') && piano.includes('fit-selection'), '시간/음높이 확대와 맞춤 보기가 없다');
-expect(piano.includes('data-time-range') && piano.includes('range-copy') && piano.includes('range-right'), '시간 범위 선택·복사·이동 도구가 없다');
+expect(piano.includes('data-time-range') && piano.includes('range-copy') && piano.includes('range-right'), '시간 범위 선택, 복사, 이동 도구가 없다');
 expect(piano.includes('time-insert') && piano.includes('time-delete'), '시간 삽입/당겨 삭제가 없다');
 expect(piano.includes('loop-half') && piano.includes('loop-double') && piano.includes('loop-duplicate'), '루프 절반/두 배/복제가 없다');
 expect(studio.includes('moveEvent.altKey?raw:snapBeat') && studio.includes('event.altKey?rawBeat:snapBeat'), 'Alt 임시 snap 해제가 없다');
 expect(piano.includes('--hu-piano-grid') && piano.includes('격자 ${input.gridBeat'), '적응형 grid와 현재 격자 표시가 없다');
 expect(studio.includes('lastNoteDuration=anchor.note.duration') && studio.includes('Math.min(lastNoteDuration'), '마지막 음표 길이 기억이 없다');
 expect(piano.includes('data-overlap-mode') && piano.includes('is-overlap'), '겹친 음 정책/표시가 없다');
-expect(model.includes('muted?: boolean') && audio.includes('note.muted===true') && piano.includes('is-muted'), '음표 mute가 모델·엔진·화면을 관통하지 않는다');
-expect(studio.includes('MIDI NOTES · ${chosenNotes.length}개 (차이 적용)') || studio.includes('MIDI NOTE${chosenNotes.length>1'), '다중 음표 inspector가 없다');
+expect(model.includes('muted?: boolean') && audio.includes('note.muted===true') && piano.includes('is-muted'), '음표 mute가 모델, 엔진, 화면을 관통하지 않는다');
+expect(studio.includes('MIDI NOTES, ${chosenNotes.length}개 (차이 적용)') || studio.includes('MIDI NOTE${chosenNotes.length>1'), '다중 음표 inspector가 없다');
 expect(studio.includes("event.key==='Home'||event.key==='End'") && studio.includes("event.key==='Enter'"), '음표 키보드 이동/audition이 없다');
 expect(styles.includes('.hu-drag-feedback') && studio.includes('feedback.textContent='), 'drag 수치 feedback이 없다');
 expect(studio.includes('if(gestures.cancel())return'), 'Escape가 편집 preview만 취소하지 않는다');
@@ -55,4 +55,4 @@ if (failures.length) {
   console.error(`[test-heung-ux-contract] ✗\n  - ${failures.join('\n  - ')}`);
   process.exit(1);
 }
-console.log('[test-heung-ux-contract] ✓ 첫 사용 · 건반 audition · 모바일 편집 · 큰 창 transport/정밀 편집/MIDI 계약 35개');
+console.log('[test-heung-ux-contract] ✓ 첫 사용, 건반 audition, 모바일 편집, 큰 창 transport/정밀 편집/MIDI 계약 35개');

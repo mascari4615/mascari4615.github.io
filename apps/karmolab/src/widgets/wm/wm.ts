@@ -1,12 +1,12 @@
 /**
- * 세계 도감 (TASK-KL-158) — WM 의 설정을 웹에서 읽는 자리.
+ * 세계 도감 (TASK-KL-158). WM 의 설정을 웹에서 읽는 자리.
  *
  * 이 화면은 **WM 문서의 모양을 모른다.** 수집기(`scripts/build-worldbook.mjs`)가 개발 노트의
  * 머리말(frontmatter)에 있는 키를 그대로 실어 주고, 여기서는 있는 것을 순서대로 그린다.
- * 그래서 WM 이 칸을 하나 늘려도 이 파일은 고칠 게 없다 — 다음 배포에 새 칸이 그냥 뜬다.
+ * 그래서 WM 이 칸을 하나 늘려도 이 파일은 고칠 게 없다. 다음 배포에 새 칸이 그냥 뜬다.
  * 없는 칸은 조용히 빠진다(문서 하나가 미완성이어도 도감 전체는 산다).
  *
- * 종류(탭)도 열린 집합이다 — 새 폴더가 생기면 새 탭이 자동으로 생긴다.
+ * 종류(탭)도 열린 집합이다. 새 폴더가 생기면 새 탭이 자동으로 생긴다.
  *
  * 무엇이 공개되는지는 memo/wm/design/web-policy.json 이 정한다(여기서는 못 정한다).
  */
@@ -61,7 +61,7 @@ interface WorldBook {
    *
    * **읽는 순간에 말을 읽지 않는다** (2026-08-14). 예전엔 이 표를 파일이 실리는 순간 만들었는데,
    * 그때 `wm` 말 묶음이 아직 안 왔으면 `t()` 가 던지고 **화면이 통째로 안 열렸다**
-   * (「이 화면을 못 열었어요」). 그리는 순간에 읽으면 그 사이 말 묶음이 도착해 있다.
+   * (이 화면을 못 열었어요). 그리는 순간에 읽으면 그 사이 말 묶음이 도착해 있다.
    */
   const fieldLabel = (key: string): string => {
     const table: Record<string, string> = {
@@ -110,10 +110,10 @@ interface WorldBook {
     return devlog;
   }
 
-  /** 소식 — 게임 저장소의 커밋이 그대로 「오늘 뭐가 달라졌나」가 된다. */
+  /** 소식. 게임 저장소의 커밋이 그대로 오늘 뭐가 달라졌나가 된다. */
   function newsHtml(log: Devlog): string {
     return `
-      <p class="wb-lead">개발 저장소에 올라간 변화입니다 — 최근 ${log.counts.days}일 · ${log.counts.shown}건.</p>
+      <p class="wb-lead">개발 저장소에 올라간 변화입니다. 최근 ${log.counts.days}일, ${log.counts.shown}건.</p>
       <div class="wm-news">${log.days
         .map(
           (d) => `<section class="wm-news-day">
@@ -125,7 +125,7 @@ interface WorldBook {
               )
               .join('')}</ul>
             ${d.more > 0 || d.quiet > 0
-              ? `<p class="wm-news-quiet">그 밖에 ${d.more > 0 ? `변화 ${d.more}건 · ` : ''}${t('wm.quietFixes', { n: d.quiet })}</p>`
+              ? `<p class="wm-news-quiet">그 밖에 ${d.more > 0 ? `변화 ${d.more}건, ` : ''}${t('wm.quietFixes', { n: d.quiet })}</p>`
               : ''}
           </section>`
         )
@@ -161,10 +161,10 @@ interface WorldBook {
     return board;
   }
 
-  /** 만드는 중 — 개발 노트의 TASK 머리말이 그대로 공개 보드가 된다(본문은 안 나간다). */
+  /** 만드는 중. 개발 노트의 TASK 머리말이 그대로 공개 보드가 된다(본문은 안 나간다). */
   function boardHtml(b: TaskBoard): string {
     return `
-      <p class="wb-lead">지금 만들고 있는 것들입니다 — ${b.counts.shown}건.</p>
+      <p class="wb-lead">지금 만들고 있는 것들입니다. ${b.counts.shown}건.</p>
       <div class="wm-board">${b.groups
         .map(
           (g) => `<section class="wm-board-group">
@@ -181,7 +181,7 @@ interface WorldBook {
   }
 
   /* ── 공간 지도 (TASK-KL-159) ─────────────────────────────────────────────────────────
-   * 정본은 문서 안의 **표**다(`world/spaces.md`). 표의 칸 이름을 모른 채 읽는다 —
+   * 정본은 문서 안의 **표**다(`world/spaces.md`). 표의 칸 이름을 모른 채 읽는다 . 
    * 첫 칸을 이름으로 쓰고 나머지는 있는 대로 붙인다. 표 모양이 바뀌어 못 읽으면
    * 지도 자리에 그 문서로 가는 길만 남긴다(빈 화면 대신).
    */
@@ -258,7 +258,7 @@ interface WorldBook {
   const DAY_KEY = 'wm_day_state';
   const DAYS_PER_SEASON = 30;
 
-  /** 「- **이름** - 설명」 목록을 읽는다. 못 읽으면 빈 배열(그 칸만 빠진다). */
+  /** - **이름** - 설명 목록을 읽는다. 못 읽으면 빈 배열(그 칸만 빠진다). */
   function dashList(body: string, headingRe: RegExp): Array<{ name: string; desc: string }> {
     const lines = body.split(/\r?\n/);
     let on = false;
@@ -267,7 +267,7 @@ interface WorldBook {
       const h = /^#{2,4}\s+(.+)$/.exec(line);
       if (h) { if (on) break; on = headingRe.test(h[1]); continue; }
       if (!on) continue;
-      const m = /^-\s*\*\*(.+?)\*\*\s*[—-]\s*(.+)$/.exec(line.trim());
+      const m = /^-\s*\*\*(.+?)\*\*\s*[. -]\s*(.+)$/.exec(line.trim());
       if (m) out.push({ name: m[1].trim(), desc: m[2].trim() });
     }
     return out;
@@ -349,18 +349,18 @@ interface WorldBook {
           ? `<div class="wm-day-end">${event ? `<p class="wm-day-event">${escapeHtml(event.desc)}</p>` : ''}<button type="button" class="btn btn-primary" data-day="next">${esc(t('wm.t08'))}</button></div>`
           : ''}
         <p class="wb-source">
-          <a href="${appQuery('wb=gameplay%2Fcondition', 'wm')}">${esc(t('wm.t09'))}</a> ·
-          <a href="${appQuery('wb=gameplay%2Ftime-seasons', 'wm')}">${esc(t('wm.t10'))}</a> ·
+          <a href="${appQuery('wb=gameplay%2Fcondition', 'wm')}">${esc(t('wm.t09'))}</a> , 
+          <a href="${appQuery('wb=gameplay%2Ftime-seasons', 'wm')}">${esc(t('wm.t10'))}</a> , 
           <button type="button" class="wm-day-reset" data-day="reset">${esc(t('wm.t11'))}</button>
         </p>
       </section>`;
   }
 
   /* -- 이야기 (TASK-KL-165) ------------------------------------------------------------
-   * 커뮤니티의 「마녀 이야기」 갤러리를 WM 페이지 안에서 그대로 읽는다.
-   * 글판을 새로 만들지 않는다 — 같은 것을 두 곳에 두면 한쪽은 반드시 낡는다.
-   * 쓰기·답글·좋아요는 커뮤니티 화면이 이미 하는 일이라 그리로 보낸다.
-   * 서버(봇)가 자고 있으면 그 자리만 「지금은 못 불러왔다」로 남는다 — 페이지는 산다.
+   * 커뮤니티의 마녀 이야기 갤러리를 WM 페이지 안에서 그대로 읽는다.
+   * 글판을 새로 만들지 않는다. 같은 것을 두 곳에 두면 한쪽은 반드시 낡는다.
+   * 쓰기, 답글, 좋아요는 커뮤니티 화면이 이미 하는 일이라 그리로 보낸다.
+   * 서버(봇)가 자고 있으면 그 자리만 지금은 못 불러왔다로 남는다. 페이지는 산다.
    */
   const TALK_BOARD = 'wm';
 
@@ -381,7 +381,7 @@ interface WorldBook {
     return Math.floor(min / 1440) + t('wm.t49');
   }
 
-  /** 갤러리가 가진 꼬리표 — 서버가 알려 주는 대로 쓴다(우리가 목록을 박지 않는다). */
+  /** 갤러리가 가진 꼬리표. 서버가 알려 주는 대로 쓴다(우리가 목록을 박지 않는다). */
   let talkTags: string[] = [];
   let talkTag = '';
 
@@ -422,8 +422,8 @@ interface WorldBook {
       .map(
         (talk) => `<li class="wm-talk-row">
           <a class="wm-talk-title" href="${appQuery(`p=${encodeURIComponent(talk.id)}`, 'community')}">${escapeHtml(talk.title || '(제목 없음)')}</a>
-          <span class="wm-talk-meta">${escapeHtml(talk.handle || '익명')} · ${escapeHtml(whenText(talk.createdAt))}
-            ${talk.replyCount > 0 ? ` · ${t('wm.replies', { n: talk.replyCount })}` : ''}${talk.likes > 0 ? ` · ${t('wm.likes', { n: talk.likes })}` : ''}</span>
+          <span class="wm-talk-meta">${escapeHtml(talk.handle || '익명')}, ${escapeHtml(whenText(talk.createdAt))}
+            ${talk.replyCount > 0 ? `, ${t('wm.replies', { n: talk.replyCount })}` : ''}${talk.likes > 0 ? `, ${t('wm.likes', { n: talk.likes })}` : ''}</span>
         </li>`
       )
       .join('')}</ul>`;
@@ -447,7 +447,7 @@ interface WorldBook {
           `<div class="wb-field"><dt>${escapeHtml(fieldLabel(k))}</dt><dd>${fieldValueHtml(v)}</dd></div>`
       )
       .join('');
-    // 문서의 첫 큰제목은 곧 이 문서의 제목이다 — 위에 이미 걸었으니 본문에서는 뺀다(두 번 안 보이게).
+    // 문서의 첫 큰제목은 곧 이 문서의 제목이다. 위에 이미 걸었으니 본문에서는 뺀다(두 번 안 보이게).
     const body = doc.body ? doc.body.replace(/^#\s+.+\n+/, '') : '';
     const bodyHtml = body
       ? renderMarkdown(body)
@@ -482,7 +482,7 @@ interface WorldBook {
     return hay.includes(q);
   }
 
-  /** 소개 탭 — 이야기에 들어오는 순서대로. 없는 인물은 그 칸만 빠진다. */
+  /** 소개 탭. 이야기에 들어오는 순서대로. 없는 인물은 그 칸만 빠진다. */
   const CAST_ORDER = ['characters/yawn', 'characters/ring', 'characters/alisa', 'characters/fourth'];
 
   function sectionOf(doc: WorldDoc | undefined, headingRe: RegExp): string {
@@ -530,7 +530,7 @@ interface WorldBook {
           )
           .join('')}</div>
       </section>
-      <p class="wb-source">문서 ${loaded.counts.docs}건 · 개발 노트(<code>memo/wm/design</code>${esc(t('wm.t29'))}</p>`;
+      <p class="wb-source">문서 ${loaded.counts.docs}건, 개발 노트(<code>memo/wm/design</code>${esc(t('wm.t29'))}</p>`;
   }
 
   /* ── 이 페이지 자체 ───────────────────────────────────────────────────────────────────
@@ -602,7 +602,7 @@ interface WorldBook {
         : t('wm.t50');
       status!.textContent =
         t('wm.counts', { shown: shown.length, docs: loaded.counts.docs, kinds: loaded.counts.kinds }) +
-        (loaded.counts.privateSkipped > 0 ? ` · ${t('wm.privateSkipped', { n: loaded.counts.privateSkipped })}` : '');
+        (loaded.counts.privateSkipped > 0 ? `, ${t('wm.privateSkipped', { n: loaded.counts.privateSkipped })}` : '');
     }
 
     kindsBox.innerHTML =
@@ -739,9 +739,9 @@ interface WorldBook {
     id: 'wm',
     title: 'Witch-Mendokusai',
     category: 'tool',
-    desc: t('widgets-desc.wm.desc', undefined, "만들고 있는 게임 — 소개 · 세계 도감(인물 · 세계 · 규칙). 개발 노트에서 바로 옵니다"),
-    // 커뮤니티와 같은 자리다 — 「위젯이 아닐 뿐」. 넓게 쓰고 위젯 제목 카드·탭 줄을 안 그린다.
-    // 화면 구조는 이 페이지가 제 것으로 갖는다(아래 nav · 섹션 · 주소).
+    desc: t('widgets-desc.wm.desc', undefined, "만들고 있는 게임. 소개, 세계 도감(인물, 세계, 규칙). 개발 노트에서 바로 옵니다"),
+    // 커뮤니티와 같은 자리다. 위젯이 아닐 뿐. 넓게 쓰고 위젯 제목 카드, 탭 줄을 안 그린다.
+    // 화면 구조는 이 페이지가 제 것으로 갖는다(아래 nav, 섹션, 주소).
     layout: 'wide',
     noHero: true,
     icon:
@@ -750,7 +750,7 @@ interface WorldBook {
       {
         id: 'wm-main',
         label: 'WM',
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('wm').then(function () {
             build(container);

@@ -1,18 +1,18 @@
 /**
- * PDF 도구 — **파일 하나, 할 일은 골라서** (KL-088 → KL-259 화면 갈아엎음 → KL-260 레퍼런스 → KL-261 공용화)
+ * PDF 도구. **파일 하나, 할 일은 골라서** (KL-088 → KL-259 화면 갈아엎음 → KL-260 레퍼런스 → KL-261 공용화)
  *
  * 전에는 할 일 열하나가 **탭으로 나란히** 있었다. 두 가지가 나빴다(2026-08-13 사용자):
- *   ① 탭 열한 개가 한 줄에 늘어서 「이쁘지도 않고 가독성도 안 좋다」 — 고르려면 다 읽어야 한다.
+ *   ① 탭 열한 개가 한 줄에 늘어서 이쁘지도 않고 가독성도 안 좋다. 고르려면 다 읽어야 한다.
  *   ② 탭을 옮기면 **파일을 다시 올려야** 했다. 자르고 나서 쪽번호를 넣으려면 두 번 올린다.
  *
  * 그래서 순서를 뒤집었다: **손에 든 것(파일)이 먼저, 할 일은 그다음.**
- * 사람은 「PDF 를 어쩌지」를 들고 오지 「여백 자르기를 하고 싶다」를 들고 오지 않는다.
+ * 사람은 PDF 를 어쩌지를 들고 오지 여백 자르기를 하고 싶다를 들고 오지 않는다.
  *
- * 그 껍데기는 이제 `shared/material-shell` 에 있다 — 이미지·영상·소리도 같은 화면을 쓴다.
- * **이 파일에 남은 것은 「PDF 다움」뿐이다**: 무엇을 받나 · 왼쪽에 무엇을 그리나 · 할 일 목록.
+ * 그 껍데기는 이제 `shared/material-shell` 에 있다. 이미지, 영상, 소리도 같은 화면을 쓴다.
+ * **이 파일에 남은 것은 PDF 다움뿐이다**: 무엇을 받나, 왼쪽에 무엇을 그리나, 할 일 목록.
  *
  * 왼쪽에 그리는 것 = **쪽 격자** (Sejda Organize 를 보고 바꿨다, [[TASK-KL-260]]).
- * 「1 / 12 ◀ ▶」 로 한 장씩 넘기는 건 문서를 **모르는 채로** 다루게 한다. 어디를 자를지,
+ * 1 / 12 ◀ ▶ 로 한 장씩 넘기는 건 문서를 **모르는 채로** 다루게 한다. 어디를 자를지,
  * 어느 쪽에 서명할지는 전 쪽이 한눈에 보일 때 정해진다.
  */
 import { openForRead, openForEdit, createPdf, loadPdfLib, pdfBlob, renderPage, suffixName } from './shared/pdf';
@@ -22,12 +22,12 @@ import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /** 할 일 — 갈래별로 묶어 격자에 놓는다. 새 도구는 여기 한 줄. */
+  /** 할 일. 갈래별로 묶어 격자에 놓는다. 새 도구는 여기 한 줄. */
   const GROUPS = (): MaterialGroup[] => [
     {
       label: t('pdf.group.pages', undefined, '쪽 다루기'),
       jobs: [
-        ['pdftool', t('pdf.part.pdftool', undefined, '합치기·나누기')],
+        ['pdftool', t('pdf.part.pdftool', undefined, '합치기, 나누기')],
         ['pdfcrop', t('pdf.part.pdfcrop', undefined, '여백 자르기')],
         ['pdfcompress', t('pdf.part.pdfcompress', undefined, '용량 줄이기')]
       ]
@@ -56,10 +56,10 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
   ];
 
-  /** 파일을 안 들고 와도 되는 할 일 — 다른 것에서 PDF 를 **만드는** 쪽. */
+  /** 파일을 안 들고 와도 되는 할 일. 다른 것에서 PDF 를 **만드는** 쪽. */
   const NO_PDF_NEEDED = new Set(['text2pdf', 'img2pdf', 'printkit']);
 
-  /** 한 번에 그릴 쪽 수. 나머지는 「더 보기」로 잇는다 — 200쪽을 한꺼번에 그리면 화면이 멎는다. */
+  /** 한 번에 그릴 쪽 수. 나머지는 더 보기로 잇는다. 200쪽을 한꺼번에 그리면 화면이 멎는다. */
   const CHUNK = 24;
 
   Toolbox.register({
@@ -69,7 +69,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.pdf.desc',
       undefined,
-      'PDF 를 합치고 나누고 줄이고, 서명·워터마크를 넣습니다. 문서가 브라우저를 벗어나지 않습니다'
+      'PDF 를 합치고 나누고 줄이고, 서명, 워터마크를 넣습니다. 문서가 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 13h7M8.5 16.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -114,8 +114,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   /* ── 쪽 위에서 바로 고치기 (TASK-KL-282) ─────────────────────────
    *
    * Sejda Organize 가 하는 것 중 우리에게 없던 것: **격자 위에서 돌리고 빼기**.
-   * 고친 것은 화면에만 쌓아 두었다가 「바뀐 대로 만들기」를 누를 때 한 번에 새 PDF 로 만든다.
-   * 그리고 그 결과를 **손에 든 파일로 갈아 끼운다** — 이어서 쪽번호를 넣든 압축하든 그대로 이어진다.
+   * 고친 것은 화면에만 쌓아 두었다가 바뀐 대로 만들기를 누를 때 한 번에 새 PDF 로 만든다.
+   * 그리고 그 결과를 **손에 든 파일로 갈아 끼운다**. 이어서 쪽번호를 넣든 압축하든 그대로 이어진다.
    */
   let turns = new Map<number, number>();
   let tossed = new Set<number>();
@@ -131,7 +131,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     const b = order.indexOf(to);
     if (a < 0 || b < 0) return;
     order.splice(b, 0, ...order.splice(a, 1));
-    /* 화면도 같은 순서로 — 다시 그리지 않고 **자리만 옮긴다**(다시 그리면 스크롤이 튄다). */
+    /* 화면도 같은 순서로. 다시 그리지 않고 **자리만 옮긴다**(다시 그리면 스크롤이 튄다). */
     const cells = new Map<number, HTMLElement>();
     pages.querySelectorAll<HTMLElement>('.pf-thumb').forEach((c) => cells.set(Number(c.dataset.page), c));
     order.forEach((n) => {
@@ -142,7 +142,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     refreshEditBar();
   }
 
-  /** 늘어놓은 자리대로 번호를 다시 붙인다 — 원래 번호를 그대로 두면 「3 1 2」 가 되어 헷갈린다. */
+  /** 늘어놓은 자리대로 번호를 다시 붙인다. 원래 번호를 그대로 두면 3 1 2 가 되어 헷갈린다. */
   function renumber(pages: HTMLElement): void {
     let i = 0;
     order.forEach((n) => {
@@ -150,7 +150,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       if (!c) return;
       if (!tossed.has(n)) i += 1;
       const tag = c.querySelector('.pf-no');
-      if (tag) tag.textContent = tossed.has(n) ? '—' : String(i);
+      if (tag) tag.textContent = tossed.has(n) ? '. ' : String(i);
     });
   }
 
@@ -161,11 +161,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     editBar.hidden = n === 0;
     const label = editBar.querySelector('span');
     if (label) {
-      /* 말 묶음은 단순 치환이라 「있으면 덧붙이는 말」을 한 문장에 못 넣는다 — 따로 이어 붙인다.
-       * (한 문장에 넣으면 한국어 판에서 그 조각이 조용히 사라진다 — 실제로 그랬다.) */
+      /* 말 묶음은 단순 치환이라 있으면 덧붙이는 말을 한 문장에 못 넣는다. 따로 이어 붙인다.
+       * (한 문장에 넣으면 한국어 판에서 그 조각이 조용히 사라진다. 실제로 그랬다.) */
       label.textContent =
-        t('pdf.edit.count', { turn: turns.size, drop: tossed.size }, `돌린 쪽 ${turns.size} · 뺀 쪽 ${tossed.size}`) +
-        (moved ? ' · ' + t('pdf.edit.moved', undefined, '순서 바뀜') : '');
+        t('pdf.edit.count', { turn: turns.size, drop: tossed.size }, `돌린 쪽 ${turns.size}, 뺀 쪽 ${tossed.size}`) +
+        (moved ? ', ' + t('pdf.edit.moved', undefined, '순서 바뀜') : '');
     }
   }
 
@@ -174,13 +174,13 @@ import { t, loadNamespace } from '../../lib/i18n';
     const deg = ((turns.get(n) || 0) + 90) % 360;
     if (deg === 0) turns.delete(n);
     else turns.set(n, deg);
-    /* 돌리면 가로세로가 바뀐다 — 칸 안에 들어가게 줄여 준다(안 그러면 옆칸을 덮는다). */
+    /* 돌리면 가로세로가 바뀐다. 칸 안에 들어가게 줄여 준다(안 그러면 옆칸을 덮는다). */
     const side = deg % 180 === 90;
     canvas.style.transform = `rotate(${deg}deg)${side ? ' scale(0.72)' : ''}`;
     refreshEditBar();
   }
 
-  /** 뺄 쪽은 **지우지 않고 표시만** 한다 — 한 번 더 누르면 되살아난다. */
+  /** 뺄 쪽은 **지우지 않고 표시만** 한다. 한 번 더 누르면 되살아난다. */
   function toss(n: number, cell: HTMLElement): void {
     if (tossed.has(n)) tossed.delete(n);
     else tossed.add(n);
@@ -199,7 +199,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const src = await openForEdit(file);
       /* **늘어놓은 순서대로 새 문서에 옮겨 담는다.**
        * 원본에서 빼고 돌리는 방식은 순서 바꾸기를 못 담는다(그리고 뒤에서부터 빼야 하는 함정도 있다).
-       * 새로 담으면 빼기·돌리기·순서가 **한 규칙**으로 끝난다 — 담을 것만 담고, 담을 때 돌린다. */
+       * 새로 담으면 빼기, 돌리기, 순서가 **한 규칙**으로 끝난다. 담을 것만 담고, 담을 때 돌린다. */
       const keep = order.filter((n) => !tossed.has(n));
       const doc = await createPdf();
       const copied = (await doc.copyPages(src, keep.map((n) => n - 1))) as unknown[];
@@ -211,7 +211,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const bytes = await doc.save();
       const blob = pdfBlob(bytes);
       const name = suffixName(file.name, t('pdf.edit.suffix', undefined, '-정리'));
-      /* 내려주지 않는다 — **손에 든 파일로 갈아 끼운다**. 사람이 원하면 다음 할 일에서 받는다. */
+      /* 내려주지 않는다. **손에 든 파일로 갈아 끼운다**. 사람이 원하면 다음 할 일에서 받는다. */
       Toolbox.offerResult?.({ blob, name, from: 'pdf' });
       window.dispatchEvent(
         new CustomEvent('karmolab-result', { detail: { type: 'application/pdf', name, size: blob.size, from: 'pdf' } })
@@ -238,7 +238,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     pages.className = 'pf-pages';
     pages.id = 'pfPages';
     pages.setAttribute('role', 'list');
-    pages.setAttribute('aria-label', t('pdf.grid.aria', undefined, '쪽 목록 — 화살표로 옮겨 다니고 Ctrl+화살표로 순서를 바꿉니다'));
+    pages.setAttribute('aria-label', t('pdf.grid.aria', undefined, '쪽 목록. 화살표로 옮겨 다니고 Ctrl+화살표로 순서를 바꿉니다'));
     const more = document.createElement('button');
     more.type = 'button';
     more.className = 'btn pf-more';
@@ -247,14 +247,14 @@ import { t, loadNamespace } from '../../lib/i18n';
     box.appendChild(pages);
     box.appendChild(more);
 
-    /* 고친 것은 **아직 파일이 아니다** — 다 고르고 나서 한 번에 새 PDF 로 만든다.
+    /* 고친 것은 **아직 파일이 아니다**. 다 고르고 나서 한 번에 새 PDF 로 만든다.
      * 쪽마다 곧바로 파일을 다시 쓰면 200쪽짜리에서 화면이 멎는다. */
     turns = new Map();
     tossed = new Set();
     editBar = document.createElement('div');
     editBar.className = 'pf-editbar';
     editBar.id = 'pfEditBar';
-    /* 몇 쪽을 돌리고 뺐는지는 **읽혀야** 한다 — 화면만 바뀌면 낭독기 쓰는 사람은 모른다 */
+    /* 몇 쪽을 돌리고 뺐는지는 **읽혀야** 한다. 화면만 바뀌면 낭독기 쓰는 사람은 모른다 */
     markLive(editBar);
     editBar.hidden = true;
     const apply = document.createElement('button');
@@ -293,7 +293,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     async function drawMore(): Promise<void> {
       const end = Math.min(doc.numPages, drawn + CHUNK);
       for (let n = drawn + 1; n <= end; n++) {
-        if (!alive()) return; // 파일이 바뀌었다 — 옛 그림을 붙이지 않는다
+        if (!alive()) return; // 파일이 바뀌었다. 옛 그림을 붙이지 않는다
         try {
           const page = await doc.getPage(n);
           const { canvas } = await renderPage(page, 0.34);
@@ -301,8 +301,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const cell = document.createElement('div');
           cell.className = 'pf-thumb';
           cell.dataset.page = String(n);
-          /* **끌어서 순서 바꾸기** (TASK-KL-284 — Sejda Organize 의 마지막 조각).
-           * 쪽을 옮기려고 「합치기·나누기」로 가서 번호를 손으로 적는 일이 없어진다. */
+          /* **끌어서 순서 바꾸기** (TASK-KL-284. Sejda Organize 의 마지막 조각).
+           * 쪽을 옮기려고 합치기, 나누기로 가서 번호를 손으로 적는 일이 없어진다. */
           cell.draggable = true;
           /* **끌기만 되면 키보드로는 못 옮긴다** (TASK-KL-293). 끌어 놓기는 마우스가 있어야 하는
            * 조작이라, 그것만 두면 순서 바꾸기가 통째로 막힌다(내가 [[TASK-KL-284]] 에서 낸 구멍).
@@ -362,17 +362,17 @@ import { t, loadNamespace } from '../../lib/i18n';
           tag.textContent = String(n);
           cell.appendChild(tag);
 
-          /* **쪽 위에서 바로 돌리고 지운다** (TASK-KL-282 — Sejda Organize 를 보고).
+          /* **쪽 위에서 바로 돌리고 지운다** (TASK-KL-282. Sejda Organize 를 보고).
            * 여태 격자는 보기만 했다. 그런데 사람이 쪽을 들여다보는 이유의 태반이
-           * 「이 쪽 뒤집혔네」·「이 쪽 빼야지」다 — 그걸 하려고 다른 도구로 옮겨 가야 했다. */
+           * 이 쪽 뒤집혔네, 이 쪽 빼야지다. 그걸 하려고 다른 도구로 옮겨 가야 했다. */
           const bar = document.createElement('div');
           bar.className = 'pf-acts';
           const spin = document.createElement('button');
           spin.type = 'button';
           spin.className = 'pf-act';
           spin.dataset.act = 'rotate';
-          /* 그림만 있는 단추는 **이름을 따로 준다** (TASK-KL-292) — `title` 은 마우스를 올려야
-           * 뜨는 것이고, 화면낭독기에는 「단추」로만 읽히는 판이 있다. `aria-label` 이 이름이다. */
+          /* 그림만 있는 단추는 **이름을 따로 준다** (TASK-KL-292). `title` 은 마우스를 올려야
+           * 뜨는 것이고, 화면낭독기에는 단추로만 읽히는 판이 있다. `aria-label` 이 이름이다. */
           spin.title = t('pdf.thumb.rotate', undefined, '오른쪽으로 90° 돌리기');
           spin.setAttribute('aria-label', `${n}${t('pdf.thumb.rotateAria', undefined, '쪽 오른쪽으로 90° 돌리기')}`);
           spin.textContent = '⟳';
@@ -401,10 +401,10 @@ import { t, loadNamespace } from '../../lib/i18n';
     await drawMore();
     order = Array.from({ length: doc.numPages }, (_, i) => i + 1);
 
-    return t('pdf.meta', { n: doc.numPages, size: fileSize(file.size) }, `${doc.numPages}쪽 · ${fileSize(file.size)}`);
+    return t('pdf.meta', { n: doc.numPages, size: fileSize(file.size) }, `${doc.numPages}쪽, ${fileSize(file.size)}`);
   }
 
-  /** 눌러서 크게 — 작은 격자만 있으면 「이 쪽이 맞나」를 확인할 수가 없다. */
+  /** 눌러서 크게. 작은 격자만 있으면 이 쪽이 맞나를 확인할 수가 없다. */
   async function zoom(file: File, n: number, total: number): Promise<void> {
     const back = document.createElement('div');
     back.className = 'pf-zoom';

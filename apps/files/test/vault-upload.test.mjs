@@ -29,7 +29,7 @@ async function withTree(build) {
   }
 }
 
-test('디스크에서 읽어 왕복 — 암호문 파일을 뿌리에 안 남김', async () => {
+test('디스크에서 읽어 왕복. 암호문 파일을 뿌리에 안 남김', async () => {
   const pack = await withTree(async (root) => {
     await mkdir(join(root, 'dir'));
     await writeFile(join(root, 'dir', 'needle.bin'), 'stream-body-xyz');
@@ -78,7 +78,7 @@ test('walk 는 node_modules 를 건너뛰고 상대 경로만 준다', async () 
   }
 });
 
-test('모의 rclone 으로 헤더·청크가 원격 키로만 간다', async () => {
+test('모의 rclone 으로 헤더, 청크가 원격 키로만 간다', async () => {
   const remote = new Map();
   const run = async (args, stdin) => {
     const [cmd, path] = args;

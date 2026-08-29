@@ -1,16 +1,16 @@
 /**
  * 나는 지금 지구 어디에 있나 (TASK-KL-206 단위 4)
  *
- * 이 지구본의 주제는 「자취방에서 고독할 때, 지구는 살아있다」다. 그러려면 **내가 화면 안에
- * 있어야** 한다 — 내 자리가 지금 밤인지, 저 구름이 내 머리 위 구름인지, ISS 가 언제 내 위를
+ * 이 지구본의 주제는 자취방에서 고독할 때, 지구는 살아있다다. 그러려면 **내가 화면 안에
+ * 있어야** 한다. 내 자리가 지금 밤인지, 저 구름이 내 머리 위 구름인지, ISS 가 언제 내 위를
  * 지나가는지.
  *
  * 자리를 어떻게 아나. 순서가 있다:
- *   ① 브라우저 위치 권한 — 정확하지만 **묻는 창이 뜬다**. 켜자마자 창을 띄우지 않는다.
+ *   ① 브라우저 위치 권한. 정확하지만 **묻는 창이 뜬다**. 켜자마자 창을 띄우지 않는다.
  *      창문 하나 열었을 뿐인데 권한을 요구받는 건 무례하다. 사용자가 단추를 누를 때만 묻는다.
- *   ② 시간대(IANA) — 아무것도 안 물어보고 알 수 있다. `Asia/Seoul` 이면 서울 어딘가다.
+ *   ② 시간대(IANA). 아무것도 안 물어보고 알 수 있다. `Asia/Seoul` 이면 서울 어딘가다.
  *      도시 하나 정도의 오차는 지구본에서 1px 도 안 되고, ISS 통과 시각도 몇 초 안 바뀐다.
- *   ③ 그것도 없으면 표준시 오프셋으로 경도만 (위도는 0) — 없는 것보다 낫다.
+ *   ③ 그것도 없으면 표준시 오프셋으로 경도만 (위도는 0). 없는 것보다 낫다.
  */
 
 export interface Me {
@@ -23,7 +23,7 @@ export interface Me {
 
 /**
  * 시간대 → 그 시간대를 대표하는 자리.
- * 전부 적지 않는다 — 사람이 실제로 사는 시간대 위주로, 없으면 오프셋으로 떨어진다.
+ * 전부 적지 않는다. 사람이 실제로 사는 시간대 위주로, 없으면 오프셋으로 떨어진다.
  */
 const TZ: Record<string, [number, number]> = {
   'Asia/Seoul': [37.57, 126.98],
@@ -97,14 +97,14 @@ export function fromTimezone(): Me | null {
   const hit = TZ[tz];
   if (hit) return { lat: hit[0], lon: hit[1], label: tzLabel(tz), precise: false };
 
-  // 모르는 시간대 — 표준시 차이로 경도만 되짚는다 (한 시간 = 15°)
+  // 모르는 시간대. 표준시 차이로 경도만 되짚는다 (한 시간 = 15°)
   const offsetMin = -new Date().getTimezoneOffset();
   if (!Number.isFinite(offsetMin)) return null;
   const lon = Math.max(-180, Math.min(180, (offsetMin / 60) * 15));
   return { lat: 0, lon, label: tz ? tzLabel(tz) : '', precise: false };
 }
 
-/** 사용자가 단추를 눌렀을 때만 부른다 — 여기서 브라우저 권한 창이 뜬다. */
+/** 사용자가 단추를 눌렀을 때만 부른다. 여기서 브라우저 권한 창이 뜬다. */
 export function askPrecise(): Promise<Me | null> {
   return new Promise((resolve) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve(null);

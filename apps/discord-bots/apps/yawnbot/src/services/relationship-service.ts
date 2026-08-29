@@ -1,5 +1,5 @@
 /**
- * RelationshipService — 대화 횟수/감정 누적으로 친밀도 수치화
+ * RelationshipService. 대화 횟수/감정 누적으로 친밀도 수치화
  *
  * - 대화할 때마다 conversationCount 증가 → level 자동 갱신
  * - 리액션 이모지로 moodScore 누적 (긍정 +, 부정 -)

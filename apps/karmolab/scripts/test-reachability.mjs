@@ -1,7 +1,7 @@
 /**
- * 「나만 안 되나?」 판정 — **모르는 것을 모른다고 하는가** (TASK-KL-238 / 45 downdetector).
+ * 나만 안 되나? 판정. **모르는 것을 모른다고 하는가** (TASK-KL-238 / 45 downdetector).
  *
- * 이런 도구가 가장 크게 해를 끼치는 방식은 「안 된다」를 자신 있게 잘못 말하는 것이다.
+ * 이런 도구가 가장 크게 해를 끼치는 방식은 안 된다를 자신 있게 잘못 말하는 것이다.
  * 대조군이 반반이면 판정을 **보류**해야 하고, 대조군을 안 쟀으면 아무 말도 하면 안 된다.
  * 그래서 여기서 지키는 것은 맞히는 능력이 아니라 **함부로 말하지 않는 규율**이다.
  *
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const stamp = Date.now();
@@ -56,7 +56,7 @@ eq(R.verdict({ target: no('t'), controls: [] }), 'unclear', '대조군이 없으
 
 /* 주소 만들기 */
 eq(R.toUrl('naver.com'), 'https://naver.com', '스킴이 없으면 https 를 붙인다');
-eq(R.toUrl('  https://a.com/b  '), 'https://a.com/b', '앞뒤 공백·경로를 지킨다');
+eq(R.toUrl('  https://a.com/b  '), 'https://a.com/b', '앞뒤 공백, 경로를 지킨다');
 eq(R.toUrl('http://a.com/'), 'http://a.com', '끝의 빗금 하나는 지운다');
 eq(R.toUrl('localhost:8813'), 'https://localhost:8813', 'localhost 는 점이 없어도 받는다');
 eq(R.toUrl('사이트'), null, '점 없는 이름은 오타로 본다');
@@ -69,8 +69,8 @@ eq(R.hostOf('그냥 글자'), '그냥 글자', '주소가 아니면 그대로 �
 
 process.stdout.write('\n');
 if (failures.length) {
-  console.error(`\n나만 안 되나 — ${failures.length}건 실패:`);
+  console.error(`\n나만 안 되나. ${failures.length}건 실패:`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('나만 안 되나 — 전부 통과');
+console.log('나만 안 되나. 전부 통과');

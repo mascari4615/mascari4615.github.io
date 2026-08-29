@@ -1,5 +1,5 @@
 {
-  "printkit.mdd": "That paper you never have when you need it — here it is.",
+  "printkit.mdd": "That paper you never have when you need it. here it is.",
   "printkit.tab": "Paper",
   "printkit.label.kind": "What kind",
   "printkit.label.paper": "Paper size",
@@ -22,8 +22,8 @@
   "printkit.weekday.sat": "Sat",
   "printkit.status.idle": "Pick the kind of paper you need",
   "printkit.status.ok": "Drawn at {w}×{h} mm",
-  "printkit.status.making": "Building the PDF…",
+  "printkit.status.making": "Building the PDF...",
   "printkit.status.saved": "Saved as PDF",
   "printkit.err.pdfLib": "Could not load the PDF library",
-  "printkit.note.margin": "Everything is drawn in millimetres with an 8 mm edge left clear — printers cannot reach it, and anything drawn there gets cut off. Print at actual size (100%). Weekdays in the PDF are single Latin letters (embedding a full font would make the file large)."
+  "printkit.note.margin": "Everything is drawn in millimetres with an 8 mm edge left clear. printers cannot reach it, and anything drawn there gets cut off. Print at actual size (100%). Weekdays in the PDF are single Latin letters (embedding a full font would make the file large)."
 }

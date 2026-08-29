@@ -27,7 +27,7 @@
   </aside>
   <div class="peek" id="peek" hidden></div>
 
-  <!-- 물어보는 자리 — 되돌리기 어려운 일을 하기 전 -->
+  <!-- 물어보는 자리. 되돌리기 어려운 일을 하기 전 -->
   <div class="ask" id="ask" hidden>
     <div class="ask-what" id="askWhat"></div>
     <div class="ask-row">
@@ -38,13 +38,13 @@
 
   <!-- 얘를 우클릭하면 나오는 것. 평소엔 없다. -->
   <div class="menu" id="menu" hidden>
-    <!-- 닫는 길이 Esc 와 「바깥 누르기」뿐이었다. 뚫린 창에서는 바깥이 클릭을 안 받고,
-         창에 초점이 없으면 Esc 도 안 먹는다 — 열면 못 닫는 설정창이었다. 그래서 ✕. -->
+    <!-- 닫는 길이 Esc 와 바깥 누르기뿐이었다. 뚫린 창에서는 바깥이 클릭을 안 받고,
+         창에 초점이 없으면 Esc 도 안 먹는다. 열면 못 닫는 설정창이었다. 그래서 ✕. -->
     <div class="menu-head"><span>설정</span><button class="menu-x" id="menuClose" title="닫기 (Esc)" aria-label="닫기">✕</button></div>
     <label>누구<select id="whoPick"></select></label>
     <label>머리<select id="brainPick"></select></label>
     <label>목소리<select id="voicePick"></select></label>
-    <!-- 소리 조절. 곁에 두는 존재라 「지금 좀 작게」가 자주 필요하다. -->
+    <!-- 소리 조절. 곁에 두는 존재라 지금 좀 작게가 자주 필요하다. -->
     <label>소리 크기<input id="volPick" type="range" min="0" max="100" step="5" /></label>
     <label>말 빠르기<input id="ratePick" type="range" min="60" max="160" step="5" /></label>
     <label>몸 크기<input id="sizePick" type="range" min="60" max="200" step="5" /></label>
@@ -55,7 +55,7 @@
       <option value="toggle">한 번 눌러 켜고 끄기</option>
       <option value="push">누르고 있는 동안만</option>
     </select></label>
-    <!-- 지금 소리가 들어오는지 **눈으로** 보이게. 이게 없으면 「안 들린다」의 원인이
+    <!-- 지금 소리가 들어오는지 **눈으로** 보이게. 이게 없으면 안 들린다의 원인이
          마이크인지 문턱인지 사람이 알 길이 없다. 가는 세로선 = 문이 열리는 문턱. -->
     <div class="level" id="micLevel" title="지금 들어오는 소리"><i></i><b></b></div>
     <button class="item" id="alwaysEarsBtn" hidden>늘 듣기</button>
@@ -89,14 +89,14 @@
     </div>
     <div class="shadow"></div>
 
-    <!-- 지금 뭐 하는 중인지 — 아이콘 하나로. 얘는 계속 떠 있는데 뭘 하는지 알 길이 없었다. -->
-    <div class="doing" id="doing" title="지금 뭐 하는 중"><span class="ico" id="doingIco">·</span><span class="lab" id="doingLab"></span></div>
+    <!-- 지금 뭐 하는 중인지. 아이콘 하나로. 얘는 계속 떠 있는데 뭘 하는지 알 길이 없었다. -->
+    <div class="doing" id="doing" title="지금 뭐 하는 중"><span class="ico" id="doingIco">, </span><span class="lab" id="doingLab"></span></div>
 
-    <!-- 말 걸기 — 얘를 누르면 열린다 -->
+    <!-- 말 걸기. 얘를 누르면 열린다 -->
     <div class="talk" id="talk">
       <div class="log" id="log"><div class="empty">말해 봐. 코드면 그대로.</div></div>
       <form id="form" autocomplete="off">
-        <input id="text" placeholder="말해 봐…" autofocus />
+        <input id="text" placeholder="말해 봐..." autofocus />
         <button id="mic" type="button" title="눌러서 말하기">🎤</button>
         <button id="send" type="submit">↵</button>
       </form>
@@ -112,10 +112,10 @@
 }
 </script>
 <script>
-  /** 창 안에서 벌어진 일을 밖으로 흘린다 — 조용히 사라지는 실패를 없애려고.
+  /** 창 안에서 벌어진 일을 밖으로 흘린다. 조용히 사라지는 실패를 없애려고.
    *
-   * **그리고 대화창에도 띄운다.** 여태 이건 터미널로만 나갔다 — 얘가 뭘 알아챘는지
-   * 조수님은 볼 길이 없었고, 「듣고는 있나? 보고는 있나?」를 물어볼 수밖에 없었다.
+   * **그리고 대화창에도 띄운다.** 여태 이건 터미널로만 나갔다. 얘가 뭘 알아챘는지
+   * 조수님은 볼 길이 없었고, 듣고는 있나? 보고는 있나?를 물어볼 수밖에 없었다.
    * 알아챈 것은 말이 아니므로 소리는 안 낸다. 흐리게, 대화 사이에 끼워 둔다. */
   function tell(message) {
     try { window.알아챈것?.(String(message)); } catch { /* 화면에 못 띄워도 기록은 남긴다 */ }
@@ -127,7 +127,7 @@
       }).catch(() => {});
     } catch { /* 기록 못 남겨도 하던 일은 계속 */ }
   }
-  /** 지금 몸이 무엇인지 서버에 알린다 — 못 알려도 하던 일은 계속. */
+  /** 지금 몸이 무엇인지 서버에 알린다. 못 알려도 하던 일은 계속. */
   function 몸알리기(무엇) {
     try {
       fetch('/window-state', {
@@ -142,8 +142,8 @@
   window.addEventListener('unhandledrejection', (e) => tell(`처리 안 된 실패: ${e.reason}`));
 
   /* ── 바탕은 칠하지 않는다 ─────────────────────────────────────
-     한때 「한 색을 칠하고 그 색을 뚫는」 수법으로 평범한 창을 투명하게 흉내 냈다. **그건
-     원리상 안 먹는다** — 그림을 GPU 가 그리는 창에서는 뚫리지 않는다. 그래서 나온 화면이
+     한때 한 색을 칠하고 그 색을 뚫는 수법으로 평범한 창을 투명하게 흉내 냈다. **그건
+     원리상 안 먹는다**. 그림을 GPU 가 그리는 창에서는 뚫리지 않는다. 그래서 나온 화면이
      형광 분홍 바탕 + 창틀이었다(실측). 투명은 제 창(`companion-window.exe`)이 창 설정으로
      그냥 지원한다. 흉내는 폐기했고, 이 자리는 **다시 칠하지 말라는 표시**로 남긴다. */
 
@@ -155,7 +155,7 @@
       try {
         await window.__TAURI__.window.getCurrentWindow().close();
       } catch (e) {
-        console.warn('창을 못 닫았다 — 그냥 끈다:', e);
+        console.warn('창을 못 닫았다. 그냥 끈다:', e);
       }
       try {
         await window.__TAURI__.core.invoke('quit');
@@ -165,7 +165,7 @@
 
   /* ── 화면 전체로 편 창 ─────────────────────────────────────
      창을 화면만큼 키웠으니, 얘가 사는 자리를 화면 안에서 옮겨 다니게 한다.
-     끌면 창이 아니라 **얘가** 움직인다 — 잘릴 테두리가 없으니 애초에 잘릴 것도 없다. */
+     끌면 창이 아니라 **얘가** 움직인다. 잘릴 테두리가 없으니 애초에 잘릴 것도 없다. */
   const 전체화면 = new URLSearchParams(location.search).get('full') === '1';
   if (전체화면) document.body.classList.add('full');
   const pageSurface = new URLSearchParams(location.search).get('surface') === 'page';
@@ -179,7 +179,7 @@
   };
   function 방자리적용() {
     if (전체화면 === false) return;
-    // 처음엔 오른쪽 아래 — 늘 그 자리에 있던 대로.
+    // 처음엔 오른쪽 아래. 늘 그 자리에 있던 대로.
     const x = 방자리.x ?? innerWidth - 240;
     const y = 방자리.y ?? Math.max(0, innerHeight - 660);
     // 화면 밖으로 도망가지 못하게 붙잡는다.
@@ -190,19 +190,19 @@
   }
   방자리적용();
   addEventListener('resize', 방자리적용);
-  /* 차지하는 자리 보기 — 투명한 창은 무엇이 어디를 먹는지 눈으로 볼 수가 없다.
-     「보기엔 그대로인데」를 각자 짐작으로 따지지 않으려면 눈에 보여야 한다. */
+  /* 차지하는 자리 보기. 투명한 창은 무엇이 어디를 먹는지 눈으로 볼 수가 없다.
+     보기엔 그대로인데를 각자 짐작으로 따지지 않으려면 눈에 보여야 한다. */
   if (localStorage.getItem('companion.showBoxes') === '1') document.body.classList.add('showboxes');
   document.getElementById('boxesBtn')?.addEventListener('click', () => {
     const 켬 = document.body.classList.toggle('showboxes');
     localStorage.setItem('companion.showBoxes', 켬 ? '1' : '0');
   });
-  // **실제로 어떻게 떴는지 창이 직접 말한다.** 띄우는 쪽이 「이렇게 해 달라」고 한 값은
-  // 됐다는 증거가 아니다 — 요청과 결과를 같은 것으로 셌다가 「된 것 같은데?」를 들었다.
+  // **실제로 어떻게 떴는지 창이 직접 말한다.** 띄우는 쪽이 이렇게 해 달라고 한 값은
+  // 됐다는 증거가 아니다. 요청과 결과를 같은 것으로 셌다가 된 것 같은데?를 들었다.
   if (pageSurface === false) {
-    tell(`창 ${innerWidth}×${innerHeight} · 전체화면 ${전체화면 ? 'O' : 'X'} · 화면 ${screen.width}×${screen.height}`);
+    tell(`창 ${innerWidth}×${innerHeight}, 전체화면 ${전체화면 ? 'O' : 'X'}, 화면 ${screen.width}×${screen.height}`);
   }
-  // 얘가 사는 자리가 실제로 어디에 얼마만 하게 놓였는지도 같이 말한다 — 창만 커지고
+  // 얘가 사는 자리가 실제로 어디에 얼마만 하게 놓였는지도 같이 말한다. 창만 커지고
   // 안쪽 배치가 그대로면 보이는 건 하나도 안 달라진다.
   setTimeout(() => {
     const r = document.querySelector('.room')?.getBoundingClientRect();
@@ -210,7 +210,7 @@
   }, 800);
 
   /* 어디까지 왔을 때 소리를 낼지 정하는 규칙. 화면 안에 박아 두면 시험을 못 해서
-     따로 뺐다 — 「언제 입을 여나」는 조용히 틀리면 아무도 모르는 자리다.
+     따로 뺐다. 언제 입을 여나는 조용히 틀리면 아무도 모르는 자리다.
      못 불러오면 예전처럼 문장 끝까지 기다린다(늦을 뿐 안 깨진다). */
   let 읽을토막 = null;
   let 표정떼기 = (t) => t;
@@ -219,7 +219,7 @@
     .catch((e) => tell(`그림 가르기를 못 불렀다: ${e}`));
   import('/say-chunks.js')
     .then((m) => { 읽을토막 = m.읽을토막; 표정떼기 = m.표정떼기; tell('말 끊는 규칙을 불렀다'); })
-    .catch((e) => tell(`말 끊는 규칙을 못 불렀다 — 문장 끝까지 기다리게 된다: ${e}`));
+    .catch((e) => tell(`말 끊는 규칙을 못 불렀다. 문장 끝까지 기다리게 된다: ${e}`));
 
   /** 긴 말을 읽기 좋은 토막들로. 규칙이 없으면 통째로 하나. */
   function 토막내기(message) {
@@ -251,10 +251,10 @@
   let idleTimer = null;
 
   /* ── 목소리 ─────────────────────────────────────────────
-     브라우저에 내장된 음성을 쓴다 — 키도, 서버도, 네트워크도 필요 없다.
+     브라우저에 내장된 음성을 쓴다. 키도, 서버도, 네트워크도 필요 없다.
      소리는 기본으로 꺼둔다: 소리가 갑자기 나오는 건 무례하다. */
   const mute = document.getElementById('mute');
-  // 얘가 하는 말은 전부 소리로 나온다 — 혼잣말도, 화면 보고 하는 말도. 예외 없다.
+  // 얘가 하는 말은 전부 소리로 나온다. 혼잣말도, 화면 보고 하는 말도. 예외 없다.
   const voiceOn = pageSurface === false;
   let koVoice = null;
 
@@ -265,7 +265,7 @@
   pickVoice();
   speechSynthesis.onvoiceschanged = pickVoice;
 
-  // 소리를 끄는 자리는 없앴다. 말은 하는데 안 들리는 상태가 「조용한 고장」이었다.
+  // 소리를 끄는 자리는 없앴다. 말은 하는데 안 들리는 상태가 조용한 고장이었다.
   mute.hidden = true;
 
   /* 서버가 만들어 준 자연스러운 목소리를 먼저 쓰고, 안 되면 브라우저 내장으로 물러선다.
@@ -274,7 +274,7 @@
   const voicePick = document.getElementById('voicePick');
 
   /* ── 소리 조절 ───────────────────────────────────────────
-     크기와 빠르기는 **창 안에서** 바뀐다. 서버에 다시 만들어 달라고 하지 않는다 —
+     크기와 빠르기는 **창 안에서** 바뀐다. 서버에 다시 만들어 달라고 하지 않는다 . 
      이미 받아 둔 소리에 그대로 먹으므로 즉시 반영되고, 말하는 중에 바꿔도 끊기지 않는다.
      끄고 켜도 남는다: 매번 다시 맞추게 하면 조절 기능이 없는 것과 비슷하다. */
   const volPick = document.getElementById('volPick');
@@ -301,11 +301,11 @@
   });
   소리적용();
 
-  /* 몸 크기 — 창이 작고 얘가 늘 거기 있으니 「좀 더 크게/작게」가 자주 필요하다.
+  /* 몸 크기. 창이 작고 얘가 늘 거기 있으니 좀 더 크게/작게가 자주 필요하다.
      3D 몸이 아직 안 섰을 수도 있으므로 값만 들고 있다가, 서면 그때 먹인다. */
   const sizePick = document.getElementById('sizePick');
   let 몸크기 = Number(localStorage.getItem('companion.bodySize') ?? '100');
-  // 막대 위치는 지금 바로 맞춰 둔다. 몸은 나중에 서므로 그건 설 때 먹인다 —
+  // 막대 위치는 지금 바로 맞춰 둔다. 몸은 나중에 서므로 그건 설 때 먹인다 . 
   // 여기서 몸을 건드리면 아직 만들어지지도 않은 것을 부르게 된다.
   sizePick.value = String(몸크기);
   /** 얘가 사는 상자를 몸 크기만큼. 화면보다 커지지는 않게. */
@@ -318,8 +318,8 @@
   /**
    * 몸 크기 = **얘가 사는 상자 크기**.
    *
-   * 처음엔 카메라를 당겨 크게 만들었는데, 당기면 크게 보이는 대신 **화면 밖으로 잘린다** —
-   * 확대는 곧 잘라내기다(실측: 「여전히 모델은 짤려」). 상자가 커지면 그 안의 그림판도
+   * 처음엔 카메라를 당겨 크게 만들었는데, 당기면 크게 보이는 대신 **화면 밖으로 잘린다** . 
+   * 확대는 곧 잘라내기다(실측: 여전히 모델은 짤려). 상자가 커지면 그 안의 그림판도
    * 같이 커지고, 카메라는 늘 하던 대로 몸 전체를 담으므로 **커지되 안 잘린다.**
    */
   function 몸크기적용() {
@@ -332,17 +332,17 @@
     localStorage.setItem('companion.bodySize', String(몸크기));
     몸크기적용();
   });
-  // 몸이 서기 전에도 상자는 먼저 잡아 둔다 — 이제 몸에 기대지 않는다.
+  // 몸이 서기 전에도 상자는 먼저 잡아 둔다. 이제 몸에 기대지 않는다.
   몸크기적용();
   addEventListener('resize', 상자크기);
   let serverVoices = [];
-  /* 골라 둔 목소리. **자리 이름에 판을 붙인다** — 기본 목소리를 바꿔도 예전에 골라 둔
+  /* 골라 둔 목소리. **자리 이름에 판을 붙인다**. 기본 목소리를 바꿔도 예전에 골라 둔
      값이 남아 있으면 바뀐 기본이 영영 안 먹는다. 판을 올리면 한 번은 새 기본으로 선다. */
   let chosenVoice = localStorage.getItem('companion.voiceId2') || '';
 
   function speakBuiltIn(message) {
-    // 물러설 자리 자체가 없을 수도 있다. 조용히 돌아가면 「소리가 없다」만 남는다.
-    if (!('speechSynthesis' in window)) { tell('물러설 목소리도 없다 — 이 창엔 내장 목소리가 없다'); return; }
+    // 물러설 자리 자체가 없을 수도 있다. 조용히 돌아가면 소리가 없다만 남는다.
+    if (!('speechSynthesis' in window)) { tell('물러설 목소리도 없다. 이 창엔 내장 목소리가 없다'); return; }
     speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(message);
     if (koVoice) utter.voice = koVoice;
@@ -351,18 +351,18 @@
     speechSynthesis.speak(utter);
   }
 
-  /* 문장이 여러 개 이어질 수 있으므로 줄 세워 차례로 읽는다 — 뒤 문장이 앞 문장을
+  /* 문장이 여러 개 이어질 수 있으므로 줄 세워 차례로 읽는다. 뒤 문장이 앞 문장을
      끊어버리면 말이 뚝뚝 끊긴다. */
   let speechQueue = Promise.resolve();
 
-  /* 말한 횟수와 소리 낸 횟수. 어긋나면 「어떤 말은 자막으로만」 상태다.
+  /* 말한 횟수와 소리 낸 횟수. 어긋나면 어떤 말은 자막으로만 상태다.
      이번에 흘러나오지 않은 말이 통째로 소리 없이 지나가고 있었는데, 아무 표시가
      없어서 사람이 눈치챌 때까지 몰랐다. 세면 안다. */
   const 발화 = { 말함: 0, 소리냄: 0 };
 
   /* 지금이 몇 번째 말인가.
      한 번의 대답 안에서 문장이 여러 개면 차례로 읽는 게 맞다. 그런데 **새 대답이
-     오면** 앞 대답의 남은 문장들은 이미 지난 말이다 — 그걸 다 읽고 나서야 새 말을
+     오면** 앞 대답의 남은 문장들은 이미 지난 말이다. 그걸 다 읽고 나서야 새 말을
      하니 대화가 몇 초씩 밀렸다. 새 말이 오면 세대를 올리고, 지난 세대의 줄 선
      문장은 제 차례가 와도 그냥 지나간다. */
   let 세대 = 0;
@@ -370,7 +370,7 @@
     세대 += 1;
     speechQueue = Promise.resolve();
     try { player.pause(); } catch { /* 이미 멈췄으면 그만 */ }
-    입알림(false); // 끊겼어도 입은 닫힌 것이다 — 안 알리면 귀가 영영 막힌다
+    입알림(false); // 끊겼어도 입은 닫힌 것이다. 안 알리면 귀가 영영 막힌다
     speechSynthesis.cancel();
   }
 
@@ -378,7 +378,7 @@
     발화.소리냄 += 1;
     if (voiceOn === false) return;
     // **얼굴 표는 소리로 읽지 않는다.** 화면 쪽은 떼고 그리는데 소리 쪽엔 떼는 자리가
-    // 없어서, 얘가 「대괄호 졸림 대괄호」를 읽고 있었다(실측).
+    // 없어서, 얘가 대괄호 졸림 대괄호를 읽고 있었다(실측).
     message = 표정떼기(message);
     if (message === '') return;
     const 내세대 = 세대;
@@ -398,9 +398,9 @@
       if (player.src) URL.revokeObjectURL(player.src);
       player.src = URL.createObjectURL(blob);
       소리적용(); // src 를 갈면 빠르기가 되돌아가는 브라우저가 있다
-      입알림(true); // 귀를 막는다 — 안 그러면 제 목소리를 제가 받아쓴다
+      입알림(true); // 귀를 막는다. 안 그러면 제 목소리를 제가 받아쓴다
       await player.play();
-      // **소리가 실제로 나기 시작한 때를 알린다.** 서버는 만들어 보낸 것까지만 안다 —
+      // **소리가 실제로 나기 시작한 때를 알린다.** 서버는 만들어 보낸 것까지만 안다 . 
       // 재생이 막히거나 앞 소리가 아직 나가는 중이면 여기까지 한참 걸린다. 그 시간이
       // 사람이 실제로 기다린 시간이다.
       fetch('/played', { method: 'POST' }).catch(() => {});
@@ -418,8 +418,8 @@
       // **왜 소리가 안 나는지 밖에서 알 수 있어야 한다.**
       //
       // 예전엔 여기서 조용히 내장 목소리로 물러섰다. 내장 목소리에 한국어가 없으면
-      // 아무 소리도 안 나는데, 기록에는 아무것도 안 남아서 「말은 하는데 소리가 없다」로만
-      // 보였다. 창을 브라우저에서 제 창으로 옮기면 소리 정책이 달라진다 — 그때 이 자리가
+      // 아무 소리도 안 나는데, 기록에는 아무것도 안 남아서 말은 하는데 소리가 없다로만
+      // 보였다. 창을 브라우저에서 제 창으로 옮기면 소리 정책이 달라진다. 그때 이 자리가
       // 조용하면 원인을 못 찾는다.
       tell(`소리를 못 냈다: ${e && e.name ? e.name : ''} ${e && e.message ? e.message : String(e)}`);
       speakBuiltIn(message);
@@ -439,7 +439,7 @@
     for (const v of serverVoices) {
       const option = document.createElement('option');
       option.value = v.id;
-      option.textContent = v.label + ' · ' + v.gender;
+      option.textContent = v.label + ', ' + v.gender;
       if (v.id === chosenVoice) option.selected = true;
       voicePick.append(option);
     }
@@ -448,20 +448,20 @@
   voicePick.addEventListener('change', () => {
     chosenVoice = voicePick.value;
     localStorage.setItem('companion.voiceId2', chosenVoice);
-    // 고른 즉시 한 번 들려준다 — 안 들어보고는 못 고른다.
+    // 고른 즉시 한 번 들려준다. 안 들어보고는 못 고른다.
     speakAloud('응, 이 목소리로 할게.');
   });
 
-  /** 뭔가 안 되고 있다는 말인가 — 그건 가만히 있는 것과 절대 같아 보이면 안 된다. */
+  /** 뭔가 안 되고 있다는 말인가. 그건 가만히 있는 것과 절대 같아 보이면 안 된다. */
   const 탈났나 = (말) => /끊겼|막혀|못 |안 들렸|실패|없다|안 됐|에러/.test(말 ?? '');
 
   /* ── 안 된 건 대화창에 빨갛게 ───────────────────────────
-     조수님: 「실패했으면 대화창에 실패했다는 걸 빨간색 등으로 강하게 알려줘야 할 듯.」
-     맞다 — 여태 실패는 얼굴 발밑의 옅은 한 줄뿐이었고, 그건 3.5초 뒤 사라졌다.
+     조수님: 실패했으면 대화창에 실패했다는 걸 빨간색 등으로 강하게 알려줘야 할 듯.
+     맞다. 여태 실패는 얼굴 발밑의 옅은 한 줄뿐이었고, 그건 3.5초 뒤 사라졌다.
      보낸 말이 400 으로 거절돼도 화면상으로는 그냥 조용한 얘였다.
      실패는 **대화 기록에 남는다.** 스크롤을 올려도 그 자리에 있어야 나중에 안다. */
   let 마지막탈 = '';
-  /** 초 세는 꼬리(「(3초)」)만 다른 같은 실패를 도배하지 않으려고 벗겨서 비교한다. */
+  /** 초 세는 꼬리((3초))만 다른 같은 실패를 도배하지 않으려고 벗겨서 비교한다. */
   const 탈의뼈대 = (글) => String(글 ?? '').replace(/\s*\([^)]*\)\s*$/, '').trim();
   function 안됐다(글) {
     const 뼈 = 탈의뼈대(글);
@@ -469,28 +469,28 @@
     마지막탈 = 뼈;
     append('안 됨', 글, 'fail');
   }
-  /** 다시 되면 다음 실패는 또 크게 뜬다 — 한 번 뜬 실패에 영영 묻히지 않게. */
+  /** 다시 되면 다음 실패는 또 크게 뜬다. 한 번 뜬 실패에 영영 묻히지 않게. */
   function 다시된다() { 마지막탈 = ''; }
   window.안됐다 = 안됐다;
 
   /* ── 알아챈 것 ─────────────────────────────────────────
-     조수님 요청(77회차): 「얘가 뭔갈 인식할 땐 채팅창에 무조건 떴으면 좋겠음.」
-     귀가 열린 것, 창이 바뀐 것, 받아쓴 글을 막은 것, 사건을 담은 것 — 전부 여태
+     조수님 요청(77회차): 얘가 뭔갈 인식할 땐 채팅창에 무조건 떴으면 좋겠음.
+     귀가 열린 것, 창이 바뀐 것, 받아쓴 글을 막은 것, 사건을 담은 것. 전부 여태
      터미널에만 있었다. 밖에서만 보이는 인식은 없는 인식이나 마찬가지다. */
   const glob되새김 = (글) => 글.startsWith('되새겼다') || 글.includes('자리인지');
-  /** 아이콘 옆에 붙일 짧은 말 — 긴 건 대화창에서 읽으면 된다. */
-  const 짧은말 = (글) => 글.split(' — ')[0].slice(0, 14);
+  /** 아이콘 옆에 붙일 짧은 말. 긴 건 대화창에서 읽으면 된다. */
+  const 짧은말 = (글) => 글.split('. ')[0].slice(0, 14);
   let 마지막알아챔 = '';
   function 알아챈것(무엇) {
     const 글 = String(무엇 ?? '').trim();
     if (글 === '' || 글 === 마지막알아챔) return; // 같은 걸 연달아 도배하지 않는다
     마지막알아챔 = 글;
-    /* 알아챔 중에도 **안 된 것**은 옅게 스치면 안 된다 — 「마이크가 막혀 있다」가
+    /* 알아챔 중에도 **안 된 것**은 옅게 스치면 안 된다. 마이크가 막혀 있다가
        회색 한 줄로 지나가면 조수님 눈엔 아무 일도 없는 얘다. 빨간 줄로 보낸다. */
     if (탈났나(글)) { 안됐다(글); return; }
     /* **말 방(page)에서도 채팅창에 남긴다.** 여기서 통째로 빠져나가는 바람에
-       「들었다: …」도 「기억에 담았다」도 긴 채팅 화면에는 한 줄도 안 떴다 —
-       조수님이 「인식할 땐 무조건 떴으면」이라 한 그 자리가 정작 page 에서만
+       들었다: ...도 기억에 담았다도 긴 채팅 화면에는 한 줄도 안 떴다 . 
+       조수님이 인식할 땐 무조건 떴으면이라 한 그 자리가 정작 page 에서만
        비어 있었다. 발밑 뱃지(잠깐)는 desk 전용이라 거기서만 그린다. */
     append('알아챔', 글, 'notice');
     if (pageSurface) return;
@@ -562,17 +562,17 @@
     await loadHistory();
   };
 
-  // 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다.
+  // 상태 글씨는 안 쓴다. 얘 움직임이 곧 상태다.
   /* ── 지금 뭐 하는 중 ───────────────────────────────────
-     조수님: 「얘 계속 떠 있긴 한데, 뭐하는지 솔직히 모르겠음.」 맞는 말이었다 —
+     조수님: 얘 계속 떠 있긴 한데, 뭐하는지 솔직히 모르겠음. 맞는 말이었다 . 
      **이 함수는 받은 글을 그대로 버리고 있었다.** 3D 기분만 넘기고 끝. 게다가 글을
      띄우던 자리(.status)는 전체화면에서 통째로 숨겨져 있었다. 부르는 데는 열 군데가
      넘는데 보이는 데가 없었으니, 만들어 놓고 안 붙인 것과 같다.
 
-     아이콘 하나로 얘 발밑에 늘 띄운다. 글자는 작게 곁들인다 — 아이콘만으로는
-     「👀 가 화면 보는 건가 나를 보는 건가」가 안 갈린다. */
+     아이콘 하나로 얘 발밑에 늘 띄운다. 글자는 작게 곁들인다. 아이콘만으로는
+     👀 가 화면 보는 건가 나를 보는 건가가 안 갈린다. */
   const 하는일아이콘 = {
-    listening: '🎧', thinking: '💭', speaking: '💬', looking: '👀', '': '·',
+    listening: '🎧', thinking: '💭', speaking: '💬', looking: '👀', '': ', ',
   };
   let 되돌릴때 = null;
   /** 3D 몸. 뜨기 전에도 setState 가 돌기 때문에 여기서 미리 잡아 둔다. */
@@ -580,7 +580,7 @@
 
   function setState(state, 말) {
     body3d?.setMood(state);
-    그리기(하는일아이콘[state] ?? '·', 말 ?? '');
+    그리기(하는일아이콘[state] ?? ', ', 말 ?? '');
   }
 
 
@@ -589,24 +589,24 @@
     const lab = document.getElementById('doingLab');
     if (ico === null || lab === null) return;
     const 글 = 말 ?? '';
-    /* **탈난 것을 가만히 있는 것처럼 그리면 안 된다.** 「연결이 끊겼다」가 옅은 점으로
-       뜨면 조수님 눈에는 그냥 조용한 얘로 보인다 — 지금 이 회차가 고치려는 바로 그
+    /* **탈난 것을 가만히 있는 것처럼 그리면 안 된다.** 연결이 끊겼다가 옅은 점으로
+       뜨면 조수님 눈에는 그냥 조용한 얘로 보인다. 지금 이 회차가 고치려는 바로 그
        문제를 새로 만드는 셈이다. */
     const 탈 = 탈났나(글);
-    // 실패는 발밑에서 3.5초 뒤 사라진다 — 대화창에도 남겨야 뒤늦게 볼 수 있다.
+    // 실패는 발밑에서 3.5초 뒤 사라진다. 대화창에도 남겨야 뒤늦게 볼 수 있다.
     if (탈) 안됐다(글);
     else if (글 !== '') 다시된다();
     ico.textContent = 탈 ? '⚠' : 아이콘;
     lab.textContent = 글;
-    // 정말 아무 일도 없을 때만 옅게. 그래야 「멈춘 건가」와 「가만히 있는 중」이 갈린다.
-    document.getElementById('doing')?.classList.toggle('idle', 탈 === false && 아이콘 === '·' && (글 === '' || 글 === '가만히 있다'));
+    // 정말 아무 일도 없을 때만 옅게. 그래야 멈춘 건가와 가만히 있는 중이 갈린다.
+    document.getElementById('doing')?.classList.toggle('idle', 탈 === false && 아이콘 === ', ' && (글 === '' || 글 === '가만히 있다'));
   }
 
-  /** 잠깐 하고 지나가는 일 — 몇 초 띄웠다가 하던 표시로 돌아간다. */
+  /** 잠깐 하고 지나가는 일. 몇 초 띄웠다가 하던 표시로 돌아간다. */
   function 잠깐(아이콘, 말, ms = 3500) {
     그리기(아이콘, 말);
     clearTimeout(되돌릴때);
-    되돌릴때 = setTimeout(() => 그리기('·', ''), ms);
+    되돌릴때 = setTimeout(() => 그리기(', ', ''), ms);
   }
 
   /* ── 말이 만들어지는 대로 ─────────────────────────────────
@@ -630,22 +630,22 @@
       streamLine.append(label, body);
       log.append(streamLine);
       spokenUpTo = 0;
-      새말(); // 새 대답이 흘러나오기 시작했다 — 앞 대답의 남은 문장은 버린다
+      새말(); // 새 대답이 흘러나오기 시작했다. 앞 대답의 남은 문장은 버린다
     }
     fillWhat(streamLine.querySelector('.what'), soFar);
     bubble.textContent = soFar;
     bubble.classList.add('on');
     // **새로 나온 글자를 따라간다.** 안 그러면 말풍선이 첫 줄에 멈춰 있고 뒷말은
-    // 잘린 채로 안 보인다 — 막대를 숨겨 놔서 잘린 줄도 몰랐다.
+    // 잘린 채로 안 보인다. 막대를 숨겨 놔서 잘린 줄도 몰랐다.
     bubble.scrollTop = bubble.scrollHeight;
     setState('speaking', '말하는 중');
     const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 160;
     if (nearBottom) log.scrollTop = log.scrollHeight;
 
-    /* 읽어도 되는 데까지 읽는다 — **문장 끝만 기다리지 않는다.**
-       한국어는 「어, 그거 나도 봤는데,」처럼 쉼표가 먼저 오는 일이 잦아서, 마침표만
+    /* 읽어도 되는 데까지 읽는다. **문장 끝만 기다리지 않는다.**
+       한국어는 어, 그거 나도 봤는데,처럼 쉼표가 먼저 오는 일이 잦아서, 마침표만
        기다리면 첫 소리가 통째로 늦어진다. 규칙은 따로 뺀 파일에 있다(시험 가능하게).
-       못 불러왔으면 예전처럼 문장 끝까지 기다린다 — 늦을 뿐 안 깨진다. */
+       못 불러왔으면 예전처럼 문장 끝까지 기다린다. 늦을 뿐 안 깨진다. */
     const 토막 = 읽을토막 === null
       ? null
       : 읽을토막(soFar.slice(spokenUpTo), { 남길것: 1, 첫토막: spokenUpTo === 0 });
@@ -673,17 +673,17 @@
     }
     // **여기서 소리를 안 내고 있었다.**
     //
-    // 흘러나오지 *않은* 말은 화면에만 뜨고 입은 다물었다 — 반사 대답, 혼잣말, 화면을
+    // 흘러나오지 *않은* 말은 화면에만 뜨고 입은 다물었다. 반사 대답, 혼잣말, 화면을
     // 보고 하는 말이 전부 이 길이다. 곁에 있는 존재가 어떤 말은 소리로 하고 어떤 말은
     // 자막으로만 하면 그건 반쪽이다. **모든 말은 소리로 나간다.**
     /* **긴 말은 토막 내서 차례로 만든다.**
-       한 번에 만들면 첫 소리가 그만큼 늦다 — 실측에서 한 대답에 8.2초가 찍혔다.
+       한 번에 만들면 첫 소리가 그만큼 늦다. 실측에서 한 대답에 8.2초가 찍혔다.
        앞 토막이 나가는 동안 뒤 토막이 만들어지므로, 기다리는 시간은 첫 토막 것만 든다.
        규칙을 못 불러왔으면 예전처럼 통째로 (늦을 뿐 안 깨진다). */
     for (const 조각 of 토막내기(message)) speakAloud(조각, true);
     spokenUpTo = 0;
     clearTimeout(idleTimer);
-    // 말이 길수록 오래 떠 있는다 — 읽을 시간을 준다.
+    // 말이 길수록 오래 떠 있는다. 읽을 시간을 준다.
     const holdMs = Math.min(20000, 2500 + message.length * 90);
     idleTimer = setTimeout(() => {
       bubble.classList.remove('on');
@@ -691,12 +691,12 @@
     }, holdMs);
   }
 
-  /* **서버가 죽어도 창은 살아 있다** — 그러면 창은 고아가 된다.
-     여태 「연결이 끊겼다 — 서버 확인」 한 줄만 띄우고 가만히 있었다. 사람 눈에는 창이
-     멀쩡히 떠 있으니 「말해도 안 먹힌다」로만 보인다(실측: 조수님이 그 상태를 겪었다).
-     봇을 껐다 켜는 건 흔한 일이므로(배포·설정 바꾸기) **스스로 다시 붙어야 한다.**
+  /* **서버가 죽어도 창은 살아 있다**. 그러면 창은 고아가 된다.
+     여태 연결이 끊겼다. 서버 확인 한 줄만 띄우고 가만히 있었다. 사람 눈에는 창이
+     멀쩡히 떠 있으니 말해도 안 먹힌다로만 보인다(실측: 조수님이 그 상태를 겪었다).
+     봇을 껐다 켜는 건 흔한 일이므로(배포, 설정 바꾸기) **스스로 다시 붙어야 한다.**
 
-     다시 붙는 간격은 늘려 간다 — 서버가 아주 꺼져 있는데 1초마다 두드리면 그건 그것대로
+     다시 붙는 간격은 늘려 간다. 서버가 아주 꺼져 있는데 1초마다 두드리면 그건 그것대로
      기계를 괴롭힌다. 붙으면 곧바로 원래 간격으로 되돌린다. */
   let events = null;
   let 다시붙기ms = 1000;
@@ -714,8 +714,8 @@
       const 몇초 = Math.round((Date.now() - 끊긴때) / 1000);
       tell(`서버에 다시 붙었다 (${몇초}초 만에)`);
       setState('', '');
-      // 끊긴 동안 오간 말을 놓쳤다 — 화면을 기억에게 다시 물어 맞춘다.
-      // 끊긴 동안 오간 말을 놓쳤다 — 화면을 기억에게 다시 물어 맞춘다.
+      // 끊긴 동안 오간 말을 놓쳤다. 화면을 기억에게 다시 물어 맞춘다.
+      // 끊긴 동안 오간 말을 놓쳤다. 화면을 기억에게 다시 물어 맞춘다.
       void loadHistory();
       끊긴때 = 0;
     }
@@ -727,9 +727,9 @@
       알아챈것(data.text);
     } else if (data.type === 'heard') {
       알아챈것(`들었다: ${data.text ?? ''}`);
-      setState('thinking', '생각하는 중…');
+      setState('thinking', '생각하는 중...');
     } else if (data.type === 'looking') {
-      setState('looking', '내 화면을 보는 중…');
+      setState('looking', '내 화면을 보는 중...');
     } else if (data.type === 'hush') {
       // 내가 말을 걸었으니 하던 말은 그만. 소리도 말풍선도 바로 멈춘다.
       새말();
@@ -741,7 +741,7 @@
       // 소리가 나는 중에 끼어들면 말을 자르는 꼴이다. 서버는 소리가 나는지 모르므로
       // 여기서 가른다.
       if (player.paused === false) return;
-      // 답이 늦을 때 나는 뜸. 말풍선에 흐리게 띄우고 바로 소리 낸다 — 대화엔 안 남긴다.
+      // 답이 늦을 때 나는 뜸. 말풍선에 흐리게 띄우고 바로 소리 낸다. 대화엔 안 남긴다.
       bubble.textContent = data.text;
       bubble.classList.add('on', 'aside');
       setState('thinking', '');
@@ -749,7 +749,7 @@
     } else if (data.type === 'partial') {
       streamInto(data.soFar, data.channel);
     } else if (data.type === 'face') {
-      /* 얼굴 신호. 생김새(3D 모델)는 다른 세션 몫이라 여기서는 **받아 두기만** 한다 —
+      /* 얼굴 신호. 생김새(3D 모델)는 다른 세션 몫이라 여기서는 **받아 두기만** 한다 . 
          모델 쪽이 window.onCompanionFace 를 달면 그대로 이어진다. 화면에는 아주 옅게만. */
       document.body.dataset.face = data.expression;
       try { window.onCompanionFace?.(data.expression); } catch (e) { /* 얼굴 때문에 말이 막히면 안 된다 */ }
@@ -761,7 +761,7 @@
       if (streamLine === null) 새말();
       const alone = data.channel !== 'web';
       const who = data.channel === 'screen' ? '동반자 (화면을 보고)' : alone ? '동반자 (혼잣말)' : '동반자';
-      // 흘러나오는 중이었다면 그 줄이 이미 화면에 있다 — 또 붙이지 않는다.
+      // 흘러나오는 중이었다면 그 줄이 이미 화면에 있다. 또 붙이지 않는다.
       if (streamLine === null) append(who, data.text, alone ? 'them alone' : 'them');
       else streamLine.querySelector('.what').textContent = data.text;
       say(data.text);
@@ -770,10 +770,10 @@
   events.onerror = () => {
     if (끊긴때 === 0) 끊긴때 = Date.now();
     const 몇초 = Math.round((Date.now() - 끊긴때) / 1000);
-    setState('', `서버가 끊겼다 — 다시 붙는 중 (${몇초}초)`);
+    setState('', `서버가 끊겼다. 다시 붙는 중 (${몇초}초)`);
     try { events.close(); } catch { /* 이미 닫혔으면 그만 */ }
     setTimeout(신호받기, 다시붙기ms);
-    // 1초 → 2 → 4 … 10초까지만. 아주 꺼져 있어도 10초마다 한 번은 두드린다.
+    // 1초 → 2 → 4 ... 10초까지만. 아주 꺼져 있어도 10초마다 한 번은 두드린다.
     다시붙기ms = Math.min(10000, 다시붙기ms * 2);
   };
   }
@@ -793,11 +793,11 @@
     text.value = '';
     send.disabled = true;
     append('나', message, 'me');
-    setState('thinking', '생각하는 중…');
+    setState('thinking', '생각하는 중...');
     try {
       /* **거절을 조용히 삼키면 안 된다.** 서버는 깨진 글을 400 + `notAcceptedReason` 로
-         돌려보내는데 여기서 답을 아예 안 봤다 — 화면에는 내 말풍선이 멀쩡히 뜨고
-         얘는 영영 대답을 안 한다. 「못 알아듣는 것 같다」의 정체가 이것이다. */
+         돌려보내는데 여기서 답을 아예 안 봤다. 화면에는 내 말풍선이 멀쩡히 뜨고
+         얘는 영영 대답을 안 한다. 못 알아듣는 것 같다의 정체가 이것이다. */
       const res = await fetch('/say', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -807,14 +807,14 @@
         let 이유 = `서버가 안 받았다 (${res.status})`;
         try {
           const 온것 = await res.json();
-          if (온것?.notAcceptedReason) 이유 = `안 받았다 — ${온것.notAcceptedReason}`;
+          if (온것?.notAcceptedReason) 이유 = `안 받았다. ${온것.notAcceptedReason}`;
         } catch { /* 본문이 없으면 상태 숫자만으로도 충분하다 */ }
         안됐다(`보낸 말이 ${이유}`);
         setState('', 이유);
       }
     } catch (err) {
-      // 서버가 아주 죽었으면 fetch 자체가 터진다 — 이것도 화면에 남아야 한다.
-      안됐다(`말을 못 보냈다 — 서버가 안 받는다: ${err}`);
+      // 서버가 아주 죽었으면 fetch 자체가 터진다. 이것도 화면에 남아야 한다.
+      안됐다(`말을 못 보냈다. 서버가 안 받는다: ${err}`);
       setState('', '말을 못 보냈다');
     } finally {
       send.disabled = false;
@@ -865,7 +865,7 @@
   knownBtn.addEventListener('click', async () => {
     if (sheet.hidden === false) { sheet.hidden = true; return; }
     sheet.hidden = false;
-    knownBody.textContent = '읽는 중…';
+    knownBody.textContent = '읽는 중...';
     try {
       const { known } = await (await fetch('/known')).json();
       renderKnown(known);
@@ -878,7 +878,7 @@
     if (e.key === 'Escape') sheet.hidden = true;
   });
 
-  // 딴 데를 건드리면 닫힌다 — 열어둔 걸 잊고 얘를 가리고 있는 일이 없게.
+  // 딴 데를 건드리면 닫힌다. 열어둔 걸 잊고 얘를 가리고 있는 일이 없게.
   document.addEventListener('pointerdown', (e) => {
     if (sheet.hidden) return;
     if (sheet.contains(e.target) || knownBtn.contains(e.target)) return;
@@ -887,7 +887,7 @@
 
   /* ── 귀 ────────────────────────────────────────────────
      브라우저에 있는 받아쓰기를 쓴다. 얼굴과 입만 있고 귀가 없으면 대화가 아니다.
-     말을 마치면 알아서 보낸다 — 다 말하고 버튼을 또 누르게 만들지 않는다. */
+     말을 마치면 알아서 보낸다. 다 말하고 버튼을 또 누르게 만들지 않는다. */
   const mic = document.getElementById('mic');
   const Recognizer = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognizer = null;
@@ -900,7 +900,7 @@
 
   if (Recognizer === undefined) {
     mic.disabled = true;
-    mic.title = '받아쓰기를 준비하는 중…';
+    mic.title = '받아쓰기를 준비하는 중...';
   } else {
     recognizer = new Recognizer();
     recognizer.lang = 'ko-KR';
@@ -929,8 +929,8 @@
   }
 
   /* 버튼 동작은 **고른 방식**을 따른다.
-       push   — 누르고 있는 동안만 (떼면 바로 받아적는다)
-       그 외  — 눌러서 켜고, 다시 눌러 끈다 (늘 듣기일 때도 손으로 끼어들 수 있게) */
+       push  . 누르고 있는 동안만 (떼면 바로 받아적는다)
+       그 외 . 눌러서 켜고, 다시 눌러 끈다 (늘 듣기일 때도 손으로 끼어들 수 있게) */
   mic.addEventListener('click', () => {
     if (듣기방식 === 'push') return; // 누르는 동안 방식은 아래 pointer 로 돈다
     void toggleListening();
@@ -945,11 +945,11 @@
     if (offlineListening) void toggleListening();
   };
   mic.addEventListener('pointerup', 떼면멈춤);
-  // 버튼 밖에서 손을 떼도 멈춰야 한다 — 안 그러면 계속 듣는 채로 남는다.
+  // 버튼 밖에서 손을 떼도 멈춰야 한다. 안 그러면 계속 듣는 채로 남는다.
   mic.addEventListener('pointercancel', 떼면멈춤);
   window.addEventListener('pointerup', 떼면멈춤);
 
-  /* 오프라인 받아쓰기가 있으면 그쪽을 쓴다 — 인터넷도 필요 없고 창이 앞에 없어도 된다.
+  /* 오프라인 받아쓰기가 있으면 그쪽을 쓴다. 인터넷도 필요 없고 창이 앞에 없어도 된다.
      없으면 브라우저 받아쓰기로 물러선다. */
   let offlineEars = false;
   let offlineListening = false;
@@ -966,7 +966,7 @@
     const starting = offlineListening === false;
     offlineListening = starting;
     mic.classList.toggle('listening', starting);
-    setState(starting ? 'listening' : 'thinking', starting ? '듣는 중' : '받아적는 중…');
+    setState(starting ? 'listening' : 'thinking', starting ? '듣는 중' : '받아적는 중...');
     try {
       const res = await fetch(where, { method: 'POST' });
       if (res.ok === false) throw new Error('실패');
@@ -982,40 +982,40 @@
   }
 
   /* ── 늘 듣기 ────────────────────────────────────────────
-     버튼을 눌러야 듣는 건 반쪽이다 — 얘만 말하고 사람은 버튼을 누른다. 곁에 있는 존재는
+     버튼을 눌러야 듣는 건 반쪽이다. 얘만 말하고 사람은 버튼을 누른다. 곁에 있는 존재는
      부르면 돌아본다. 그래서 마이크를 계속 열어 두고 **소리 크기**만 지켜보다가, 사람이
      말하기 시작하면 알아서 받아쓰기를 켠다.
 
-     언제 열고 닫을지는 따로 뺐다(`/listen-gate.js`) — 소리 장치 없이 시험할 수 있어야
+     언제 열고 닫을지는 따로 뺐다(`/listen-gate.js`). 소리 장치 없이 시험할 수 있어야
      한다. 여기는 **소리를 재서 그 규칙에 먹이는 일**만 한다. */
   let 듣는문만들기 = null;
   import('/listen-gate.js')
     .then((m) => { 듣는문만들기 = () => new m.listenGate(); tell('늘 듣기 규칙을 불렀다'); })
-    .catch((e) => tell(`늘 듣기 규칙을 못 불렀다 — 버튼으로만 말할 수 있다: ${e}`));
+    .catch((e) => tell(`늘 듣기 규칙을 못 불렀다. 버튼으로만 말할 수 있다: ${e}`));
 
   /* 듣는 방식은 셋이다 (사용자 요청 2026-08-08):
-       always — 마이크를 열어 두고 부르면 돌아본다
-       toggle — 한 번 눌러 켜고, 다시 눌러 끈다
-       push   — 누르고 있는 동안만 (옛 기본)
-     옛 설정(alwaysEars=0/1)도 읽어 준다 — 쓰던 사람이 갑자기 딴 방식으로 바뀌면 안 된다. */
+       always. 마이크를 열어 두고 부르면 돌아본다
+       toggle. 한 번 눌러 켜고, 다시 눌러 끈다
+       push  . 누르고 있는 동안만 (옛 기본)
+     옛 설정(alwaysEars=0/1)도 읽어 준다. 쓰던 사람이 갑자기 딴 방식으로 바뀌면 안 된다. */
   const 옛늘듣기 = localStorage.getItem('companion.alwaysEars');
   let 듣기방식 = localStorage.getItem('companion.earMode') ?? (옛늘듣기 === '0' ? 'push' : 'always');
   let 늘듣기 = 듣기방식 === 'always';
   let 문 = null;
   let 소리재기 = null;
   let 말한ms = 0;
-  /* 말소리가 난 동안의 **크기 합** — 서버가 「평소보다 크게/조용히」를 알려면 이게 있어야
+  /* 말소리가 난 동안의 **크기 합**. 서버가 평소보다 크게/조용히를 알려면 이게 있어야
      한다(135회차). 여태 창만 알고 버리던 값이다. 절대 크기는 기계마다 다르므로 서버가
      평소값과 견준다. */
   let 크기합 = 0;
   let 크기샘 = 0;
 
-  /** 얘가 말하는 중인지 문에 알려 준다 — 제 목소리를 제가 받아쓰면 혼자 떠든다. */
+  /** 얘가 말하는 중인지 문에 알려 준다. 제 목소리를 제가 받아쓰면 혼자 떠든다. */
   function 입알림(말하는중) {
     문?.mouth(말하는중, performance.now());
   }
 
-  /** 지금 들어오는 소리를 막대로. 문턱 선도 함께 — 왜 안 열리는지 눈으로 보이게. */
+  /** 지금 들어오는 소리를 막대로. 문턱 선도 함께. 왜 안 열리는지 눈으로 보이게. */
   const 레벨칸 = document.getElementById('micLevel');
   const 레벨바 = 레벨칸?.querySelector('i');
   const 문턱선 = 레벨칸?.querySelector('b');
@@ -1028,7 +1028,7 @@
     if (문턱선) 문턱선.style.left = `${Math.min(99, Math.round((문턱 / 0.25) * 100))}%`;
   }
 
-  /** 어떤 마이크들이 있나 — 고른 것은 기억해 둔다. */
+  /** 어떤 마이크들이 있나. 고른 것은 기억해 둔다. */
   async function 마이크목록채우기() {
     const pick = document.getElementById('micPick');
     if (pick === null) return;
@@ -1049,8 +1049,8 @@
     let stream;
     try {
       /* **어느 마이크인지 사람이 고른다.** 여태 기본 장치만 잡았는데, 기본이 엉뚱한 것이면
-       (가상 케이블·웹캠 마이크) 아무리 말해도 영영 안 들어온다 — 그런데 화면에는 「늘 듣기를
-       켰다」만 뜬다. 조용히 안 들리는 것이 제일 나쁘다. */
+       (가상 케이블, 웹캠 마이크) 아무리 말해도 영영 안 들어온다. 그런데 화면에는 늘 듣기를
+       켰다만 뜬다. 조용히 안 들리는 것이 제일 나쁘다. */
     const 고른마이크 = localStorage.getItem('companion.micId');
     stream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -1062,7 +1062,7 @@
     마이크목록채우기();
     } catch (e) {
       // **조용히 안 넘어간다.** 마이크가 막히면 늘 듣기는 통째로 없는 기능이 된다.
-      tell(`늘 듣기를 못 켰다 — 마이크가 막혀 있다: ${e?.name ?? e}`);
+      tell(`늘 듣기를 못 켰다. 마이크가 막혀 있다: ${e?.name ?? e}`);
       늘듣기 = false;
       return;
     }
@@ -1081,30 +1081,30 @@
       레벨그리기(크기, 문.options?.threshold ?? 0.045);
       const 지금 = performance.now();
       // 문이 열린 동안 **말소리가 실제로 난 시간**을 센다. 서버는 이 값으로 받아쓰기가
-      // 지어낸 글을 막는다 — 글자만 보고는 못 막는다(조용한 3초에 「안녕하세요」가 나왔다).
+      // 지어낸 글을 막는다. 글자만 보고는 못 막는다(조용한 3초에 안녕하세요가 나왔다).
       if (문.open && 크기 >= (문.options?.threshold ?? 0.045)) { 말한ms += 50; 크기합 += 크기; 크기샘 += 1; }
       const 바뀜 = 문.heard(크기, 지금);
       if (바뀜 === '열림') { 말한ms = 0; 크기합 = 0; 크기샘 = 0; void 저절로듣기(true); }
       else if (바뀜 === '닫힘') { void 저절로듣기(false); }
       else if (바뀜 === '끼어듦') {
-        /* 사람이 하던 말을 끊었다. **곧바로 입을 닫는다** — 여기서 늦으면 「말했는데도
-           계속 떠든다」가 되고, 그건 안 듣는 것보다 나쁘다. 입이 닫히면 다음 재기부터
+        /* 사람이 하던 말을 끊었다. **곧바로 입을 닫는다**. 여기서 늦으면 말했는데도
+           계속 떠든다가 되고, 그건 안 듣는 것보다 나쁘다. 입이 닫히면 다음 재기부터
            평소 규칙대로 문이 열려 사람 말을 받는다. */
         새말();
         입알림(false);
-        tell(`말 도중에 끊고 들어왔다 — 메아리 바닥 ${문.echoFloor.toFixed(3)} · 문턱 ${문.bargeThreshold.toFixed(3)}`);
+        tell(`말 도중에 끊고 들어왔다. 메아리 바닥 ${문.echoFloor.toFixed(3)}, 문턱 ${문.bargeThreshold.toFixed(3)}`);
         setState('listening', '듣는 중');
       }
     }, 50);
-    tell('늘 듣기를 켰다 — 부르면 돌아본다');
+    tell('늘 듣기를 켰다. 부르면 돌아본다');
     /* 얘가 몇 번 말하고 나면 메아리 바닥이 잡힌다. 그때 끼어들기가 되는지 안 되는지를
-       **한 번 알린다** — 안 되는데 조용히 안 되면 「끊어도 안 멈춘다」로만 보인다. */
+       **한 번 알린다**. 안 되는데 조용히 안 되면 끊어도 안 멈춘다로만 보인다. */
     setTimeout(() => {
       if (문 === null) return;
-      if (문.echoSamples === 0) { tell('아직 얘가 말한 적이 없어 메아리를 못 쟀다 — 끼어들기는 그 뒤에 정해진다'); return; }
+      if (문.echoSamples === 0) { tell('아직 얘가 말한 적이 없어 메아리를 못 쟀다. 끼어들기는 그 뒤에 정해진다'); return; }
       tell(문.bargeGiveUpMs
-        ? `끼어들기를 못 켠다 — 메아리 바닥이 ${문.echoFloor.toFixed(3)} 이라 켜면 제 소리에 제가 끊긴다`
-        : `끼어들기 준비됐다 — 메아리 바닥 ${문.echoFloor.toFixed(3)} · 이보다 큰 소리가 ${문.options.toBarge}ms 이어지면 멈춘다`);
+        ? `끼어들기를 못 켠다. 메아리 바닥이 ${문.echoFloor.toFixed(3)} 이라 켜면 제 소리에 제가 끊긴다`
+        : `끼어들기 준비됐다. 메아리 바닥 ${문.echoFloor.toFixed(3)}, 이보다 큰 소리가 ${문.options.toBarge}ms 이어지면 멈춘다`);
     }, 120000);
   }
 
@@ -1113,7 +1113,7 @@
     if (offlineListening === 시작) return;
     offlineListening = 시작;
     mic.classList.toggle('listening', 시작);
-    setState(시작 ? 'listening' : 'thinking', 시작 ? '듣는 중' : '받아적는 중…');
+    setState(시작 ? 'listening' : 'thinking', 시작 ? '듣는 중' : '받아적는 중...');
     try {
       const 크기평균 = 크기샘 > 0 ? 크기합 / 크기샘 : 0;
       const 어디 = 시작
@@ -1129,7 +1129,7 @@
     }
   }
 
-  /* 듣는 방식 고르기 — 마이크를 계속 열어 두는 건 사람이 정할 일이다. */
+  /* 듣는 방식 고르기. 마이크를 계속 열어 두는 건 사람이 정할 일이다. */
   const earMode = document.getElementById('earMode');
   const micPick = document.getElementById('micPick');
   const alwaysEarsBtn = document.getElementById('alwaysEarsBtn');
@@ -1138,7 +1138,7 @@
     alwaysEarsBtn.textContent = `늘 듣기: ${늘듣기 ? '켬' : '끔'}`;
   }
   micPick?.addEventListener('change', () => {
-    // 마이크를 바꾸면 열어 둔 것을 닫고 새로 연다 — 안 그러면 옛 마이크를 계속 듣는다.
+    // 마이크를 바꾸면 열어 둔 것을 닫고 새로 연다. 안 그러면 옛 마이크를 계속 듣는다.
     localStorage.setItem('companion.micId', micPick.value);
     tell(`마이크를 바꿨다: ${micPick.options[micPick.selectedIndex]?.text ?? '기본'}`);
     귀닫기();
@@ -1171,7 +1171,7 @@
       if (소리재기 !== null) { clearInterval(소리재기); 소리재기 = null; }
       문 = null;
       void 저절로듣기(false);
-      tell('늘 듣기를 껐다 — 이제 버튼을 눌러야 듣는다');
+      tell('늘 듣기를 껐다. 이제 버튼을 눌러야 듣는다');
     }
   });
   늘듣기표시();
@@ -1182,7 +1182,7 @@
       offlineEars = offline === true;
       if (offlineEars) {
         mic.disabled = false;
-        mic.title = '눌러서 말하기 — 오프라인 받아쓰기' + (inDesktopWindow ? ' (어디서든 Ctrl+Alt+Space)' : '');
+        mic.title = '눌러서 말하기. 오프라인 받아쓰기' + (inDesktopWindow ? ' (어디서든 Ctrl+Alt+Space)' : '');
       }
       void 늘듣기켜기();
     } catch {
@@ -1208,7 +1208,7 @@
         whoPick.append(option);
       }
     } catch {
-      // 못 읽으면 고르는 자리를 안 띄운다 — 지금 인격 그대로 간다.
+      // 못 읽으면 고르는 자리를 안 띄운다. 지금 인격 그대로 간다.
     }
   }
 
@@ -1224,7 +1224,7 @@
 
   /* ── 3D 몸 ─────────────────────────────────────────────
      모델이 뜨면 큐브를 물리고, 못 뜨면 큐브가 그대로 남는다.
-     그릇(body3d)은 **맨 위에서** 잡는다 — 여기서 잡으면 그 전에 도는 setState 가
+     그릇(body3d)은 **맨 위에서** 잡는다. 여기서 잡으면 그 전에 도는 setState 가
      TDZ 로 터진다(실측: 창을 열자마자 `text.focus()` 가 그 길을 밟았다). */
 
   async function loadBody() {
@@ -1233,12 +1233,12 @@
       const canvas = document.getElementById('body3d');
       canvas.hidden = false;
       body3d = await mountModel(canvas, '욘', (e) => {
-        // **밖에서 알아야 한다.** 몸이 안 서면 조절 막대도 전부 헛돈다 —
-        // 「몸 크기 적용 안 돼」의 원인이 크기 쪽이 아니라 여기일 수 있다.
+        // **밖에서 알아야 한다.** 몸이 안 서면 조절 막대도 전부 헛돈다 . 
+        // 몸 크기 적용 안 돼의 원인이 크기 쪽이 아니라 여기일 수 있다.
         tell(`3D 몸을 못 세웠다: ${e && e.message ? e.message : String(e)}`);
         canvas.hidden = true;
       });
-      tell(body3d === null ? '3D 몸이 안 섰다 — 큐브로 지낸다' : '3D 몸이 섰다');
+      tell(body3d === null ? '3D 몸이 안 섰다. 큐브로 지낸다' : '3D 몸이 섰다');
       /* **밖에서도 보이게 알린다.** 여태 이건 기록(로그)에만 남아서, 큐브로 물러선 걸
          사람이 화면을 들여다보기 전에는 몰랐다. 곁눈질하는 자리(KarmoLab 위젯)가
          읽어 간다. */
@@ -1246,13 +1246,13 @@
       if (body3d !== null) {
         몸크기적용(); // 껐다 켜도 아까 맞춰 둔 크기로 선다
         cube.classList.add('retired');
-        // 3D 몸은 제 그림자를 발밑에 직접 깐다 — 큐브 시절의 그림자를 남겨 두면 둘이 겹친다.
+        // 3D 몸은 제 그림자를 발밑에 직접 깐다. 큐브 시절의 그림자를 남겨 두면 둘이 겹친다.
         document.querySelector('.shadow')?.remove();
       }
       else canvas.hidden = true;
     } catch (e) {
       // **삼키지 않는다.** 여기 `console.warn` 만 있어서, 몸 크기 코드가 엉뚱한 자리에
-      // 들어가 함수가 안 보이던 것을 아무도 몰랐다 — 창은 멀쩡했고 기록도 조용했다.
+      // 들어가 함수가 안 보이던 것을 아무도 몰랐다. 창은 멀쩡했고 기록도 조용했다.
       // 이 자리는 몸 세우기 전체를 감싸므로, 조용하면 실패가 통째로 사라진다.
       tell(`3D 몸을 못 불렀다: ${e && e.message ? e.message : String(e)}`);
     }
@@ -1280,7 +1280,7 @@
         brainPick.append(option);
       }
     } catch {
-      // 못 읽으면 고르는 자리를 안 띄운다 — 지금 머리 그대로 간다.
+      // 못 읽으면 고르는 자리를 안 띄운다. 지금 머리 그대로 간다.
     }
   }
 
@@ -1308,7 +1308,7 @@
       }
       if (pending.id === askingId) return;
       askingId = pending.id;
-      askWhat.textContent = `이거 해도 될까? — ${pending.what}`;
+      askWhat.textContent = `이거 해도 될까?. ${pending.what}`;
       ask.hidden = false;
     } catch {
       // 못 물어보면 조용히 넘어간다.
@@ -1365,7 +1365,7 @@
       const body = card.querySelector('.what');
       const name = part.name || '도구';
       const st = part.status === 'done' ? '끝' : '하는 중';
-      body.textContent = part.detail ? `${name} · ${st} · ${part.detail}` : `${name} · ${st}`;
+      body.textContent = part.detail ? `${name}, ${st}, ${part.detail}` : `${name}, ${st}`;
       card.classList.toggle('done', part.status === 'done');
     } else if (part.kind === 'image' && part.src) {
       const line = document.createElement('div');
@@ -1406,7 +1406,7 @@
   // 설정창을 여는 길은 하나(우클릭)인데 닫는 길이 없으면, 한 번 열면 화면을 덮은 채 남는다.
   document.getElementById('menuClose')?.addEventListener('click', closeMenu);
 
-  /* 어디를 눌러야 하는지 창에게 알려준다. 알려준 자리 밖은 클릭이 그대로 뒤로 지나간다 —
+  /* 어디를 눌러야 하는지 창에게 알려준다. 알려준 자리 밖은 클릭이 그대로 뒤로 지나간다 . 
      안 그러면 보이지도 않는 창이 화면 한 구석의 클릭을 통째로 삼킨다. */
   let hitAreaComplained = false;
   function reportHitAreas() {
@@ -1417,7 +1417,7 @@
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) areas.push([r.x, r.y, r.width, r.height]);
     };
-    // 얘 자신은 늘 눌린다 — 그림판이 아니라 얘가 실제로 차지하는 자리만.
+    // 얘 자신은 늘 눌린다. 그림판이 아니라 얘가 실제로 차지하는 자리만.
     const body = body3d?.screenBox?.();
     if (body) areas.push([body.x, body.y, body.width, body.height]);
     if (chatOpen) add(talk);
@@ -1429,7 +1429,7 @@
         hitAreaComplained = true;
         // **화면 전체로 편 창에서는 이게 치명적이다.** 누를 자리를 못 알려주면 창이
         // 화면 전체의 클릭을 삼켜 컴퓨터를 못 쓰게 된다. 조용히 넘길 실패가 아니다.
-        tell(`누를 자리를 못 알려줬다 — 클릭이 막힐 수 있다: ${e && e.message ? e.message : String(e)}`);
+        tell(`누를 자리를 못 알려줬다. 클릭이 막힐 수 있다: ${e && e.message ? e.message : String(e)}`);
       }
     });
   }
@@ -1442,7 +1442,7 @@
     const 벌어짐 = 발화.말함 - 발화.소리냄;
     if (벌어짐 <= 0 || 벌어짐 === 마지막어긋남) return;
     마지막어긋남 = 벌어짐;
-    tell(`소리 없이 지나간 말이 있다 — 말함 ${발화.말함} · 소리 ${발화.소리냄}`);
+    tell(`소리 없이 지나간 말이 있다. 말함 ${발화.말함}, 소리 ${발화.소리냄}`);
   }, 5000);
 
   const stage = document.querySelector('.stage');
@@ -1465,7 +1465,7 @@
       grabbed.moved = true;
       document.body.classList.add('dragging');
       // 화면 전체로 편 창에서는 **창을 끌지 않는다.** 창은 화면을 다 덮고 있으니
-      // 끌어봐야 갈 데가 없다 — 대신 얘가 화면 안에서 옮겨 다닌다.
+      // 끌어봐야 갈 데가 없다. 대신 얘가 화면 안에서 옮겨 다닌다.
       if (전체화면 === false) {
         if (appWindow !== null) appWindow.startDragging().catch((err) => tell(`끌기 실패: ${err}`));
         return;

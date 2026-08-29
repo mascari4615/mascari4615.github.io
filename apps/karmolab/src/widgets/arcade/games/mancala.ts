@@ -1,10 +1,10 @@
 /**
- * 만칼라 — 씨를 한 알씩 뿌리며 돈다 (TASK-KL-242)
+ * 만칼라. 씨를 한 알씩 뿌리며 돈다 (TASK-KL-242)
  *
  * 규칙이 세 줄인데 깊이는 바둑 쪽에 가까운 고전. **마지막 한 알이 어디에 떨어지느냐**가
- * 모든 것을 정한다 — 내 창고면 한 번 더, 내 빈 구덩이면 맞은편 것까지 다 가져온다.
+ * 모든 것을 정한다. 내 창고면 한 번 더, 내 빈 구덩이면 맞은편 것까지 다 가져온다.
  *
- * 그래서 이 놀이의 수는 「어디를 집을까」가 아니라 **「마지막 알이 어디서 멎을까」**다.
+ * 그래서 이 놀이의 수는 어디를 집을까가 아니라 **마지막 알이 어디서 멎을까**다.
  * 화면이 그 자리를 미리 보여 주면 셈이 눈으로 되고, 안 보여 주면 손가락으로 세게 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
@@ -31,7 +31,7 @@ export type MancalaAction = { pit: number };
 export const ownsPit = (seat: number, i: number): boolean =>
   seat === 0 ? i >= 0 && i < PITS : i > PITS && i < PITS * 2 + 1;
 
-/** 씨를 뿌린 결과. 화면도 봇도 같은 함수를 봐야 「멎는 자리」가 어긋나지 않는다. */
+/** 씨를 뿌린 결과. 화면도 봇도 같은 함수를 봐야 멎는 자리가 어긋나지 않는다. */
 export function sow(board: number[], seat: number, pit: number): { board: number[]; last: number; again: boolean } {
   const b = board.slice();
   let n = b[pit];

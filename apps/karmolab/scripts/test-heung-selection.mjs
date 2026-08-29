@@ -18,7 +18,7 @@ assert.equal(markMode({ ctrlKey: true }), 'toggle');
 assert.equal(markMode({ metaKey: true }), 'toggle', 'mac Cmd 도 toggle');
 assert.equal(markMode({ shiftKey: true, ctrlKey: true }), 'toggle', 'ctrl 이 shift 를 이긴다');
 
-// clip 묶음 — replace / add / toggle
+// clip 묶음. replace / add / toggle
 const clips = clipMarks();
 const a = { trackId: 't1', clipId: 'c1' };
 const b = { trackId: 't1', clipId: 'c2' };
@@ -46,7 +46,7 @@ const twin = clipMarks();
 twin.replace([{ trackId: 't1', clipId: 'same' }, { trackId: 't2', clipId: 'same' }]);
 assert.equal(twin.size, 2, 'trackId 가 key 에 포함된다');
 
-// prune — 삭제·undo 후 사라진 참조가 남지 않는다
+// prune. 삭제, undo 후 사라진 참조가 남지 않는다
 const alive = new Set(['t1 c1']);
 twin.replace([a, b, c]);
 twin.prune((ref) => alive.has(`${ref.trackId} ${ref.clipId}`));
@@ -62,7 +62,7 @@ assert.equal(notes.size, 1);
 notes.clear();
 assert.equal(notes.size, 0);
 
-// box selection 기하 — 역방향 drag 도 같은 사각형
+// box selection 기하. 역방향 drag 도 같은 사각형
 const forward = dragRect(10, 10, 60, 40);
 const backward = dragRect(60, 40, 10, 10);
 assert.equal(JSON.stringify(forward), JSON.stringify(backward), '역방향 drag 도 정규화된다');
@@ -80,4 +80,4 @@ assert.equal(isBoxDrag(dragRect(10, 10, 12, 11)), false);
 assert.equal(isBoxDrag(dragRect(10, 10, 40, 11)), true, '가로로만 끌어도 box');
 assert.equal(isBoxDrag(dragRect(10, 10, 11, 40)), true, '세로로만 끌어도 box');
 
-console.log('[test-heung-selection] ✓ mark mode · 묶음 유지 · prune · box 기하');
+console.log('[test-heung-selection] ✓ mark mode, 묶음 유지, prune, box 기하');

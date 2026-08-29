@@ -21,7 +21,7 @@
   "icsmake.label.out": "できたファイルの中身",
   "icsmake.btn.save": ".ics でダウンロード",
   "icsmake.btn.copy": "コピー",
-  "icsmake.status.idle": "予定はブラウザの中だけで扱われます — どこにも送りません。",
+  "icsmake.status.idle": "予定はブラウザの中だけで扱われます. どこにも送りません。",
   "icsmake.err.needTime": "開始と終了の時刻を入れてください。",
   "icsmake.err.order": "終了が開始より前か同じです。",
   "icsmake.stat.event": "予定",
@@ -34,7 +34,7 @@
   "icsmake.row.dateAllDay": "{date}（終日）",
   "icsmake.row.localTime": "{tz} 基準",
   "icsmake.row.inFile": "ファイルに書かれる値",
-  "icsmake.row.inFileNote": "{stamp} — 世界標準時なので、どの国で開いても同じ時刻です",
+  "icsmake.row.inFileNote": "{stamp}. 世界標準時なので、どの国で開いても同じ時刻です",
   "icsmake.status.ready": "ダウンロードしてカレンダーに入れるか、お知らせに添付してください。",
   "icsmake.status.saved": "ダウンロードしました。開いて予定に入れるか、そのまま添付してください。"
 }

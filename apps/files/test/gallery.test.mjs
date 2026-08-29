@@ -9,8 +9,8 @@ test('그림이 하나도 없으면 액자 보기를 권하지 않는다', () =>
     assert.equal(worthGallery([{ path: 'a.zip' }, { path: 'p/c.png' }], kind), true);
 });
 
-/* mountGallery 는 브라우저 것을 쓴다 — 필요한 만큼만 흉내 낸다.
-   여기서 재는 것은 「동시에 몇 개나 부르나」와 「뜰 때 되돌려 주나」 둘이다. */
+/* mountGallery 는 브라우저 것을 쓴다. 필요한 만큼만 흉내 낸다.
+   여기서 재는 것은 동시에 몇 개나 부르나와 뜰 때 되돌려 주나 둘이다. */
 function fakeDom() {
     const made = [];
     class El {
@@ -28,7 +28,7 @@ function fakeDom() {
         }
         replaceChildren() {}
         set innerHTML(html) {
-            /* 칸 하나에 data-path·data-kind 가 있다는 계약만 흉내 낸다. */
+            /* 칸 하나에 data-path, data-kind 가 있다는 계약만 흉내 낸다. */
             made.length = 0;
             for (const m of html.matchAll(/data-path="([^"]+)" data-kind="([^"]+)"/g)) {
                 const el = new El();
@@ -48,7 +48,7 @@ function fakeDom() {
             observed.push(this);
         }
         observe(el) {
-            /* 곧바로 「보인다」로 친다 — 지연 자체가 아니라 동시 개수를 재는 시험이다. */
+            /* 곧바로 보인다로 친다. 지연 자체가 아니라 동시 개수를 재는 시험이다. */
             this.cb([{ isIntersecting: true, target: el }]);
         }
         unobserve() {}

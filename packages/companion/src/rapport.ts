@@ -1,12 +1,12 @@
 import type { MemoryEntry } from './types';
 
 /**
- * 사이 — 얼마나 가까워졌나.
+ * 사이. 얼마나 가까워졌나.
  *
  * 뉴로사마와 만든 사람의 결은 고정이 아니다. 쌓이면서 변했다(친근한 농담에서
- * 티격태격으로). 우리 얘는 첫날이나 백일째나 거리가 똑같았다 — 그건 관계가 아니라 설정이다.
+ * 티격태격으로). 우리 얘는 첫날이나 백일째나 거리가 똑같았다. 그건 관계가 아니라 설정이다.
  *
- * 새로 저장하는 것은 없다. 이미 쌓인 대화에서 읽어낸다 — **며칠에 걸쳐 몇 번 만났나**.
+ * 새로 저장하는 것은 없다. 이미 쌓인 대화에서 읽어낸다. **며칠에 걸쳐 몇 번 만났나**.
  * 하루에 몰아서 백 마디 한 것과 백 일 동안 하루 한 마디씩 한 것은 다르다.
  */
 export interface Rapport {
@@ -21,7 +21,7 @@ export interface Rapport {
 }
 
 export interface RapportOptions {
-  /** 이 날 수쯤 지나면 「오래 봤다」로 본다. */
+  /** 이 날 수쯤 지나면 오래 봤다로 본다. */
   matureDays?: number;
   /** 이만큼 오래 안 보면 다시 서먹해진다(ms). */
   coolAfterMs?: number;
@@ -31,7 +31,7 @@ export interface RapportOptions {
 /**
  * 쌓인 대화에서 사이를 읽는다.
  *
- * 날 수를 주로 본다 — 함께 지낸 시간은 말수로 사는 게 아니다.
+ * 날 수를 주로 본다. 함께 지낸 시간은 말수로 사는 게 아니다.
  * 오래 안 보면 조금 식는다. 다시 만나면 처음부터는 아니지만 살짝 서먹하다.
  */
 export function readRapport(entries: readonly MemoryEntry[], options: RapportOptions = {}): Rapport {
@@ -51,7 +51,7 @@ export function readRapport(entries: readonly MemoryEntry[], options: RapportOpt
   const byTurns = Math.min(1, turns / (matureDays * 8));
   let level = byDays * 0.75 + byTurns * 0.25;
 
-  // 오래 안 보면 식는다. 다만 밑바닥까지 가지는 않는다 — 함께 지낸 시간이 없던 일이 되진 않는다.
+  // 오래 안 보면 식는다. 다만 밑바닥까지 가지는 않는다. 함께 지낸 시간이 없던 일이 되진 않는다.
   if (away > coolAfterMs) level *= 0.6;
 
   return { days, turns, level, note: describe(level, days, away > coolAfterMs) };
@@ -74,7 +74,7 @@ function describe(level: number, days: number, cooled: boolean): string {
     bits.push('아주 오래 본 사이다. 말 안 해도 아는 것들이 있다는 듯이 굴어도 된다');
   }
 
-  if (cooled) bits.push('다만 한참 못 봤다 — 반가움 반, 어색함 반');
+  if (cooled) bits.push('다만 한참 못 봤다. 반가움 반, 어색함 반');
 
-  return `${bits.join('. ')}. 사이를 말로 설명하지는 마라 — 말투에만 배게.`;
+  return `${bits.join('. ')}. 사이를 말로 설명하지는 마라. 말투에만 배게.`;
 }

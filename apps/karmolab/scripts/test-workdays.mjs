@@ -4,7 +4,7 @@
  * 이 도구의 최악은 **틀린 날짜를 자신 있게 내놓는 것**이다. 사용자는 그 날짜로 기한을 잡는다.
  * 그래서 답을 아는 구간으로 잰다:
  *  ① 2026 추석(9/24~26)이 낀 구간에서 그만큼 밀리는가
- *  ② 담지 않은 해는 「모른다」고 말하는가 (조용히 틀리지 않는가)
+ *  ② 담지 않은 해는 모른다고 말하는가 (조용히 틀리지 않는가)
  *  ③ 토요일 근무를 켜면 결과가 달라지는가
  *
  * 사용: node scripts/test-workdays.mjs
@@ -69,7 +69,7 @@ const result = await page.evaluate(async () => {
   const chuseok = readOut();
   const skippedChuseok = chuseok.skipped.includes('9/24') && chuseok.skipped.includes('9/25');
 
-  // ② 담지 않은 해 — 2030 은 표에 없다
+  // ② 담지 않은 해. 2030 은 표에 없다
   set('#wdFrom', '2030-01-05');
   const unknown = readOut();
 
@@ -83,7 +83,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: skippedChuseok && unknown.error && weekdayOnly !== withSat,
-    why: `추석 뺌 ${skippedChuseok} · 모르는 해 경고 ${unknown.error} (${unknown.status}) · 토요일 켜면 달라짐 ${weekdayOnly !== withSat} (${weekdayOnly} → ${withSat})`
+    why: `추석 뺌 ${skippedChuseok}, 모르는 해 경고 ${unknown.error} (${unknown.status}), 토요일 켜면 달라짐 ${weekdayOnly !== withSat} (${weekdayOnly} → ${withSat})`
   };
 });
 

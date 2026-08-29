@@ -40,7 +40,7 @@
             flex-shrink:0;
             border:1px solid var(--border);
         }
-        /* 뷰포트 하단 리모컨 — 스크롤해도 미배치에서 티어로 드롭 가능 */
+        /* 뷰포트 하단 리모컨. 스크롤해도 미배치에서 티어로 드롭 가능 */
         .tl-toc--dock {
             position:fixed;
             left:50%;

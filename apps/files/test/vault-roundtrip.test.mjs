@@ -74,7 +74,7 @@ test('위변조 1바이트에 복호 실패', async () => {
   await assert.rejects(() => getFile(session, 'x.bin'), VaultCorruptError);
 });
 
-test('이름·본문이 암호문에 평문으로 안 남음', async () => {
+test('이름, 본문이 암호문에 평문으로 안 남음', async () => {
   const { store, session } = await fresh();
   await putFile(session, NEEDLE_PATH, new TextEncoder().encode(NEEDLE_BODY));
   const dump = latin1(store);
@@ -104,7 +104,7 @@ test('경로 탈출은 거절', async () => {
   await assert.rejects(() => putFile(session, 'a\\b', bytes), VaultPathError);
 });
 
-test('청크는 하나씩 바로 저장 — 암호문 통째 배열을 안 만든다', async () => {
+test('청크는 하나씩 바로 저장. 암호문 통째 배열을 안 만든다', async () => {
   const { session } = await fresh();
   let puts = 0;
   const inner = session.store.put.bind(session.store);

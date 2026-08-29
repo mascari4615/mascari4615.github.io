@@ -8,14 +8,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "앞 칸(DOM 5장)에서 **상태 → 화면, 한 방향**을 손으로 만들었다. 프레임워크가 파는 것은 정확히 그것의 자동화다 — 「상태가 바뀌면 화면을 알아서 맞춰 준다」."
+          "text": "앞 칸(DOM 5장)에서 **상태 → 화면, 한 방향**을 손으로 만들었다. 프레임워크가 파는 것은 정확히 그것의 자동화다. 상태가 바뀌면 화면을 알아서 맞춰 준다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 대신해 주나 — 항목을 켜 보라",
+          "label": "무엇을 대신해 주나. 항목을 켜 보라",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const n = {{items}};\n  const items = [\n    ['상태 -> 화면 자동 갱신', '손으로 render() 를 부르지 않아도 된다'],\n    ['달라진 곳만 고치기', '전체를 다시 그리는 대신 필요한 DOM 만'],\n    ['컴포넌트 단위 재사용', '화면 조각을 이름 붙여 나누고 조합'],\n    ['생명주기·정리', '붙이고 떼는 시점을 규칙으로 (리스너·타이머)'],\n    ['생태계', '라우팅·폼·서버 자료·테스트 도구가 함께 온다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  items.forEach(([t, d], i) => {\n    const on = i < n;\n    box(14, 8 + i * 36, 412, 30, (on ? '✓ ' : '   ') + t, '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n    ctx.fillStyle = on ? '#94a3b8' : '#334155'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(d, 210, 27 + i * 36);\n  });\n  app.innerHTML = '';\n  show('프레임워크가 대신하는 것 ' + n + ' / 5\\n\\n'\n     + '핵심은 첫 줄이다 — 나머지는 그것을 편하게 만드는 부속이다.\\n\\n'\n     + '대가로 치르는 것\\n'\n     + '  · 배울 것이 는다 (그 프레임워크의 규칙과 관례)\\n'\n     + '  · 번들이 커지고 첫 화면이 늦어질 수 있다 (8장)\\n'\n     + '  · 「왜 이게 다시 그려지지?」를 디버깅하게 된다 (4장)\\n\\n'\n     + '그래서 화면이 아주 단순하면 프레임워크 없이도 충분하다 —\\n'\n     + '앞 칸(DOM)에서 만든 render() 하나면 되는 화면도 많다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const n = {{items}};\n  const items = [\n    ['상태 -> 화면 자동 갱신', '손으로 render() 를 부르지 않아도 된다'],\n    ['달라진 곳만 고치기', '전체를 다시 그리는 대신 필요한 DOM 만'],\n    ['컴포넌트 단위 재사용', '화면 조각을 이름 붙여 나누고 조합'],\n    ['생명주기, 정리', '붙이고 떼는 시점을 규칙으로 (리스너, 타이머)'],\n    ['생태계', '라우팅, 폼, 서버 자료, 테스트 도구가 함께 온다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  items.forEach(([t, d], i) => {\n    const on = i < n;\n    box(14, 8 + i * 36, 412, 30, (on ? '✓ ' : '   ') + t, '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n    ctx.fillStyle = on ? '#94a3b8' : '#334155'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(d, 210, 27 + i * 36);\n  });\n  app.innerHTML = '';\n  show('프레임워크가 대신하는 것 ' + n + ' / 5\\n\\n'\n     + '핵심은 첫 줄이다. 나머지는 그것을 편하게 만드는 부속이다.\\n\\n'\n     + '대가로 치르는 것\\n'\n     + ' , 배울 것이 는다 (그 프레임워크의 규칙과 관례)\\n'\n     + ' , 번들이 커지고 첫 화면이 늦어질 수 있다 (8장)\\n'\n     + ' , 왜 이게 다시 그려지지?를 디버깅하게 된다 (4장)\\n\\n'\n     + '그래서 화면이 아주 단순하면 프레임워크 없이도 충분하다 . \\n'\n     + '앞 칸(DOM)에서 만든 render() 하나면 되는 화면도 많다.');\n</script>",
           "controls": [
             {
               "id": "items",
@@ -30,21 +30,21 @@
         },
         {
           "type": "p",
-          "text": "**어느 프레임워크를 배울까**는 생각보다 덜 중요하다. React·Vue·Svelte·Solid 는 세부가 다르지만 **모형이 같다** — 상태를 선언하고, 화면을 상태의 함수로 적고, 프레임워크가 맞춰 준다. 하나를 제대로 익히면 나머지는 문법 문제로 줄어든다."
+          "text": "**어느 프레임워크를 배울까**는 생각보다 덜 중요하다. React, Vue, Svelte, Solid 는 세부가 다르지만 **모형이 같다**. 상태를 선언하고, 화면을 상태의 함수로 적고, 프레임워크가 맞춰 준다. 하나를 제대로 익히면 나머지는 문법 문제로 줄어든다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "같은 것을 세 가지 문법으로",
-          "text": "// React\nconst [count, setCount] = useState(0);\nreturn <button onClick={() => setCount(count + 1)}>{count}</button>;\n\n// Vue (script setup)\nconst count = ref(0);\n// <button @click=\"count++\">{{ count }}</button>\n\n// Svelte\nlet count = $state(0);\n// <button onclick={() => count++}>{count}</button>\n\n// 문법은 다르지만 하는 말은 같다: 「이 값이 바뀌면 저 화면을 고쳐라」"
+          "text": "// React\nconst [count, setCount] = useState(0);\nreturn <button onClick={() => setCount(count + 1)}>{count}</button>;\n\n// Vue (script setup)\nconst count = ref(0);\n// <button @click=\"count++\">{{ count }}</button>\n\n// Svelte\nlet count = $state(0);\n// <button onclick={() => count++}>{count}</button>\n\n// 문법은 다르지만 하는 말은 같다: 이 값이 바뀌면 저 화면을 고쳐라"
         },
         {
           "type": "note",
-          "text": "**고르는 기준은 기술보다 상황이다** — 팀이 아는 것, 채용, 생태계, 우리 서비스의 요구(SEO·초기 로딩·앱 규모). 「무엇이 더 빠른가」로 고르는 것은 대개 잘못된 질문이다. 이 칸은 그래서 특정 프레임워크가 아니라 **공통 모형**을 다룬다."
+          "text": "**고르는 기준은 기술보다 상황이다**. 팀이 아는 것, 채용, 생태계, 우리 서비스의 요구(SEO, 초기 로딩, 앱 규모). 무엇이 더 빠른가로 고르는 것은 대개 잘못된 질문이다. 이 칸은 그래서 특정 프레임워크가 아니라 **공통 모형**을 다룬다."
         },
         {
           "type": "try",
-          "text": "지금 쓰는(또는 배우려는) 프레임워크에서 「상태가 바뀌면 화면이 갱신되는」 가장 작은 예제를 하나 써 보라. 그 다섯 줄이 이 칸 전체의 뼈대다."
+          "text": "지금 쓰는(또는 배우려는) 프레임워크에서 상태가 바뀌면 화면이 갱신되는 가장 작은 예제를 하나 써 보라. 그 다섯 줄이 이 칸 전체의 뼈대다."
         }
       ],
       "quiz": [
@@ -60,7 +60,7 @@
           "why": "나머지는 부속이다."
         },
         {
-          "q": "React·Vue·Svelte 의 공통점은?",
+          "q": "React, Vue, Svelte 의 공통점은?",
           "choices": [
             "같은 문법",
             "상태 선언 + 화면은 상태의 함수라는 모형",
@@ -76,7 +76,7 @@
             "팀 역량",
             "생태계",
             "벤치마크 속도만",
-            "서비스 요구(SEO·로딩)"
+            "서비스 요구(SEO, 로딩)"
           ],
           "answer": 2,
           "why": "대부분의 앱에서 차이가 병목이 아니다."
@@ -85,19 +85,19 @@
     },
     {
       "id": "2",
-      "title": "컴포넌트 — 어디서 자를 것인가",
+      "title": "컴포넌트. 어디서 자를 것인가",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "컴포넌트를 「화면 조각」으로만 이해하면 곧 300줄짜리 파일이 된다. 자르는 기준은 겉모습이 아니라 **바뀌는 이유**다 — 함께 바뀌는 것은 함께 두고, 따로 바뀌는 것은 나눈다."
+          "text": "컴포넌트를 화면 조각으로만 이해하면 곧 300줄짜리 파일이 된다. 자르는 기준은 겉모습이 아니라 **바뀌는 이유**다. 함께 바뀌는 것은 함께 두고, 따로 바뀌는 것은 나눈다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "기준을 골라 보라 — 어떻게 나뉘나",
+          "label": "기준을 골라 보라. 어떻게 나뉘나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{rule}}';\n  const t = {\n    reason: ['바뀌는 이유로 나눈다', '한 컴포넌트는 한 가지 이유로만 바뀐다',\n      '「상품 카드」와 「장바구니 담기 로직」은 바뀌는 이유가 다르다.\\n'\n      + '디자인이 바뀔 때와 정책이 바뀔 때 고쳐야 하는 파일이 갈리면 잘 나눈 것이다.'],\n    reuse: ['재사용으로 나눈다', '두 곳 이상에서 쓰일 때 뺀다',\n      '한 곳에서만 쓰는데 미리 빼면 오히려 읽기 어려워진다.\\n'\n      + '「세 번째로 같은 것을 쓸 때 뺀다」 정도가 실용적이다.'],\n    size: ['길이로 나눈다', '150줄 넘으면 의심',\n      '길이 자체는 기준이 아니지만 **신호**는 된다.\\n'\n      + '길어졌다면 대개 두 가지 이상의 일을 하고 있다.'],\n    state: ['상태 경계로 나눈다', '상태를 가진 것과 안 가진 것',\n      '상태 없는 표현 전용 컴포넌트는 테스트도 재사용도 쉽다.\\n'\n      + '상태는 위쪽 몇 곳에 모으고, 아래는 받은 값만 그린다(3장).'],\n    perf: ['성능으로 나눈다', '자주 바뀌는 부분을 떼어 낸다',\n      '큰 화면에서 한 값만 자주 바뀌면 그 부분만 컴포넌트로 떼어\\n'\n      + '재렌더 범위를 좁힌다 — 다만 **재고 나서** 할 일이다(4장).'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '자주 하는 실수\\n'\n     + '  · 너무 일찍 쪼갠다 — 재사용도 안 되는데 파일만 늘어난다\\n'\n     + '  · 화면 모양대로만 쪼갠다 — Header/Body/Footer 는 뜻이 아니라 위치다\\n'\n     + '  · props 를 10개씩 넘긴다 — 그건 나눌 자리가 틀렸다는 신호');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{rule}}';\n  const t = {\n    reason: ['바뀌는 이유로 나눈다', '한 컴포넌트는 한 가지 이유로만 바뀐다',\n      '상품 카드와 장바구니 담기 로직은 바뀌는 이유가 다르다.\\n'\n      + '디자인이 바뀔 때와 정책이 바뀔 때 고쳐야 하는 파일이 갈리면 잘 나눈 것이다.'],\n    reuse: ['재사용으로 나눈다', '두 곳 이상에서 쓰일 때 뺀다',\n      '한 곳에서만 쓰는데 미리 빼면 오히려 읽기 어려워진다.\\n'\n      + '세 번째로 같은 것을 쓸 때 뺀다 정도가 실용적이다.'],\n    size: ['길이로 나눈다', '150줄 넘으면 의심',\n      '길이 자체는 기준이 아니지만 **신호**는 된다.\\n'\n      + '길어졌다면 대개 두 가지 이상의 일을 하고 있다.'],\n    state: ['상태 경계로 나눈다', '상태를 가진 것과 안 가진 것',\n      '상태 없는 표현 전용 컴포넌트는 테스트도 재사용도 쉽다.\\n'\n      + '상태는 위쪽 몇 곳에 모으고, 아래는 받은 값만 그린다(3장).'],\n    perf: ['성능으로 나눈다', '자주 바뀌는 부분을 떼어 낸다',\n      '큰 화면에서 한 값만 자주 바뀌면 그 부분만 컴포넌트로 떼어\\n'\n      + '재렌더 범위를 좁힌다. 다만 **재고 나서** 할 일이다(4장).'],\n  }[k];\n  app.innerHTML = '<div style=\"font-size:16px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\" style=\"margin-top:4px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '자주 하는 실수\\n'\n     + ' , 너무 일찍 쪼갠다. 재사용도 안 되는데 파일만 늘어난다\\n'\n     + ' , 화면 모양대로만 쪼갠다. Header/Body/Footer 는 뜻이 아니라 위치다\\n'\n     + ' , props 를 10개씩 넘긴다. 그건 나눌 자리가 틀렸다는 신호');\n</script>",
           "controls": [
             {
               "id": "rule",
@@ -131,21 +131,21 @@
         },
         {
           "type": "note",
-          "text": "**props 가 10개를 넘으면 나눈 자리가 틀린 것**이다. 그 컴포넌트가 너무 많은 것을 알고 있다는 뜻이다. 관련된 props 를 객체 하나로 묶거나, 자식으로 넘기는 구조(슬롯·children)를 쓰면 대개 풀린다."
+          "text": "**props 가 10개를 넘으면 나눈 자리가 틀린 것**이다. 그 컴포넌트가 너무 많은 것을 알고 있다는 뜻이다. 관련된 props 를 객체 하나로 묶거나, 자식으로 넘기는 구조(슬롯, children)를 쓰면 대개 풀린다."
         },
         {
           "type": "code",
           "lang": "jsx",
           "label": "props 폭발을 푸는 방법",
-          "text": "// 나쁨 — 이 카드는 너무 많은 것을 안다\n<Card title={t} desc={d} img={i} badge={b} onLike={f} liked={l} author={a} date={dt} />\n\n// 좋음 ① 관련된 것을 묶는다\n<Card post={post} onLike={handleLike} />\n\n// 좋음 ② 자리를 내주고 내용은 부르는 쪽이 채운다 (합성)\n<Card>\n  <Card.Media src={post.img} />\n  <Card.Title>{post.title}</Card.Title>\n  <Card.Actions><LikeButton id={post.id} /></Card.Actions>\n</Card>"
+          "text": "// 나쁨. 이 카드는 너무 많은 것을 안다\n<Card title={t} desc={d} img={i} badge={b} onLike={f} liked={l} author={a} date={dt} />\n\n// 좋음 ① 관련된 것을 묶는다\n<Card post={post} onLike={handleLike} />\n\n// 좋음 ② 자리를 내주고 내용은 부르는 쪽이 채운다 (합성)\n<Card>\n  <Card.Media src={post.img} />\n  <Card.Title>{post.title}</Card.Title>\n  <Card.Actions><LikeButton id={post.id} /></Card.Actions>\n</Card>"
         },
         {
           "type": "p",
-          "text": "**합성(composition)** 은 프레임워크마다 이름이 다르지만(children·slot·snippet) 같은 생각이다 — 「구조는 내가, 내용은 네가」. 옵션을 계속 늘리는 대신 자리를 내주면, 새 요구가 생겨도 컴포넌트를 안 고쳐도 된다."
+          "text": "**합성(composition)** 은 프레임워크마다 이름이 다르지만(children, slot, snippet) 같은 생각이다. 구조는 내가, 내용은 네가. 옵션을 계속 늘리는 대신 자리를 내주면, 새 요구가 생겨도 컴포넌트를 안 고쳐도 된다."
         },
         {
           "type": "try",
-          "text": "내 프로젝트에서 props 가 가장 많은 컴포넌트를 찾아라. 그중 몇 개가 「함께 다니는」 값인지 보고 객체로 묶어 보라."
+          "text": "내 프로젝트에서 props 가 가장 많은 컴포넌트를 찾아라. 그중 몇 개가 함께 다니는 값인지 보고 객체로 묶어 보라."
         }
       ],
       "quiz": [
@@ -186,7 +186,7 @@
     },
     {
       "id": "3",
-      "title": "상태 — 어디에 둘 것인가",
+      "title": "상태. 어디에 둘 것인가",
       "minutes": 9,
       "blocks": [
         {
@@ -196,9 +196,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "상태 종류를 골라 보라 — 어디에 두나",
+          "label": "상태 종류를 골라 보라. 어디에 두나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{kind}}';\n  const t = {\n    local: ['입력칸 값 · 열림/닫힘', '그 컴포넌트 안 (지역 상태)',\n      '한 곳에서만 쓰면 거기 둔다. 가장 흔하고 가장 좋은 기본값.',\n      '「혹시 나중에 필요할까 봐」 위로 올리지 마라 — 필요해질 때 올리면 된다.'],\n    lift: ['두 형제가 함께 쓰는 값', '공통 부모로 올린다',\n      '가장 가까운 공통 조상까지만 올린다 — 그 이상은 낭비다.',\n      '올린 뒤 props 가 여러 층을 뚫고 내려가면(prop drilling) 문맥(context)을 고려한다.'],\n    global: ['로그인 사용자 · 테마 · 언어', '전역 (context·store)',\n      '앱 어디서나 필요하고 자주 안 바뀌는 값.',\n      '주의: 전역에 자주 바뀌는 값을 두면 관계없는 화면까지 다시 그려진다.'],\n    server: ['서버에서 가져온 목록·상세', '서버 상태 (전용 도구)',\n      '이건 사실 「내 상태」가 아니라 **서버 자료의 사본**이다.',\n      '캐시·재검증·중복 요청 제거가 필요하다 — useState 로 다루면 곧 무너진다(7장).'],\n    url: ['탭 · 필터 · 페이지 번호', 'URL',\n      '새로고침·뒤로가기·공유가 되어야 하는 값은 URL 에 두는 것이 맞다.',\n      '「이 화면을 링크로 보낼 수 있나?」가 판단 기준.'],\n    derived: ['합계 · 필터된 목록', '아예 두지 않는다 (파생)',\n      '다른 상태에서 계산할 수 있으면 저장하지 마라.',\n      '저장하는 순간 「원본과 어긋날 수 있는 두 번째 진실」이 생긴다(DOM 5장).'],\n  }[k];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:17px;margin-top:6px;color:#4ade80\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '판단 순서\\n'\n     + '  1. 계산할 수 있나 -> 저장하지 마라 (파생)\\n'\n     + '  2. URL 에 있어야 하나 -> 링크·뒤로가기 기준\\n'\n     + '  3. 서버 자료인가 -> 서버 상태 도구\\n'\n     + '  4. 여럿이 쓰나 -> 가장 가까운 공통 부모까지만\\n'\n     + '  5. 아니면 -> 그 자리에 둔다');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{kind}}';\n  const t = {\n    local: ['입력칸 값, 열림/닫힘', '그 컴포넌트 안 (지역 상태)',\n      '한 곳에서만 쓰면 거기 둔다. 가장 흔하고 가장 좋은 기본값.',\n      '혹시 나중에 필요할까 봐 위로 올리지 마라. 필요해질 때 올리면 된다.'],\n    lift: ['두 형제가 함께 쓰는 값', '공통 부모로 올린다',\n      '가장 가까운 공통 조상까지만 올린다. 그 이상은 낭비다.',\n      '올린 뒤 props 가 여러 층을 뚫고 내려가면(prop drilling) 문맥(context)을 고려한다.'],\n    global: ['로그인 사용자, 테마, 언어', '전역 (context, store)',\n      '앱 어디서나 필요하고 자주 안 바뀌는 값.',\n      '주의: 전역에 자주 바뀌는 값을 두면 관계없는 화면까지 다시 그려진다.'],\n    server: ['서버에서 가져온 목록, 상세', '서버 상태 (전용 도구)',\n      '이건 사실 내 상태가 아니라 **서버 자료의 사본**이다.',\n      '캐시, 재검증, 중복 요청 제거가 필요하다. useState 로 다루면 곧 무너진다(7장).'],\n    url: ['탭, 필터, 페이지 번호', 'URL',\n      '새로고침, 뒤로가기, 공유가 되어야 하는 값은 URL 에 두는 것이 맞다.',\n      '이 화면을 링크로 보낼 수 있나?가 판단 기준.'],\n    derived: ['합계, 필터된 목록', '아예 두지 않는다 (파생)',\n      '다른 상태에서 계산할 수 있으면 저장하지 마라.',\n      '저장하는 순간 원본과 어긋날 수 있는 두 번째 진실이 생긴다(DOM 5장).'],\n  }[k];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:17px;margin-top:6px;color:#4ade80\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n' + t[3] + '\\n\\n'\n     + '판단 순서\\n'\n     + '  1. 계산할 수 있나 -> 저장하지 마라 (파생)\\n'\n     + '  2. URL 에 있어야 하나 -> 링크, 뒤로가기 기준\\n'\n     + '  3. 서버 자료인가 -> 서버 상태 도구\\n'\n     + '  4. 여럿이 쓰나 -> 가장 가까운 공통 부모까지만\\n'\n     + '  5. 아니면 -> 그 자리에 둔다');\n</script>",
           "controls": [
             {
               "id": "kind",
@@ -208,7 +208,7 @@
               "options": [
                 {
                   "value": "local",
-                  "label": "입력칸·열림닫힘"
+                  "label": "입력칸, 열림닫힘"
                 },
                 {
                   "value": "lift",
@@ -216,7 +216,7 @@
                 },
                 {
                   "value": "global",
-                  "label": "로그인·테마"
+                  "label": "로그인, 테마"
                 },
                 {
                   "value": "server",
@@ -224,11 +224,11 @@
                 },
                 {
                   "value": "url",
-                  "label": "탭·필터"
+                  "label": "탭, 필터"
                 },
                 {
                   "value": "derived",
-                  "label": "합계·필터 결과"
+                  "label": "합계, 필터 결과"
                 }
               ]
             }
@@ -236,17 +236,17 @@
         },
         {
           "type": "note",
-          "text": "**파생 상태를 저장하지 마라.** `items` 와 `total` 을 둘 다 상태로 두면 언젠가 어긋난다. `total` 은 렌더할 때 계산하면 된다 — 앞 칸(DOM 5장)의 「진실은 한 곳」이 여기서도 그대로다."
+          "text": "**파생 상태를 저장하지 마라.** `items` 와 `total` 을 둘 다 상태로 두면 언젠가 어긋난다. `total` 은 렌더할 때 계산하면 된다. 앞 칸(DOM 5장)의 진실은 한 곳이 여기서도 그대로다."
         },
         {
           "type": "code",
           "lang": "jsx",
           "label": "가장 흔한 실수 세 가지",
-          "text": "// ① 파생을 상태로\nconst [items, setItems] = useState([]);\nconst [total, setTotal] = useState(0);        // 나쁨 — 어긋난다\nconst total = items.reduce((s, i) => s + i.price, 0);   // 좋음\n\n// ② props 를 상태로 복사 (초기값 이후 갱신이 안 된다)\nconst [name, setName] = useState(props.name);  // 주의: props 가 바뀌어도 그대로\n\n// ③ 서버 자료를 손으로 관리\nconst [posts, setPosts] = useState([]);\nuseEffect(() => { fetch('/posts').then(r => r.json()).then(setPosts); }, []);\n// 로딩·오류·재요청·중복 제거·캐시를 전부 손으로 → 7장의 도구로"
+          "text": "// ① 파생을 상태로\nconst [items, setItems] = useState([]);\nconst [total, setTotal] = useState(0);        // 나쁨. 어긋난다\nconst total = items.reduce((s, i) => s + i.price, 0);   // 좋음\n\n// ② props 를 상태로 복사 (초기값 이후 갱신이 안 된다)\nconst [name, setName] = useState(props.name);  // 주의: props 가 바뀌어도 그대로\n\n// ③ 서버 자료를 손으로 관리\nconst [posts, setPosts] = useState([]);\nuseEffect(() => { fetch('/posts').then(r => r.json()).then(setPosts); }, []);\n// 로딩, 오류, 재요청, 중복 제거, 캐시를 전부 손으로 → 7장의 도구로"
         },
         {
           "type": "p",
-          "text": "**URL 도 상태 저장소다.** 필터·정렬·페이지·탭을 URL 에 두면 새로고침·뒤로가기·링크 공유가 공짜로 따라온다. 「이 화면을 그대로 남에게 보낼 수 있나?」를 물어보면 어디에 둘지 대개 정해진다."
+          "text": "**URL 도 상태 저장소다.** 필터, 정렬, 페이지, 탭을 URL 에 두면 새로고침, 뒤로가기, 링크 공유가 공짜로 따라온다. 이 화면을 그대로 남에게 보낼 수 있나?를 물어보면 어디에 둘지 대개 정해진다."
         },
         {
           "type": "try",
@@ -266,7 +266,7 @@
           "why": "저장하면 원본과 어긋난다."
         },
         {
-          "q": "새로고침·공유가 되어야 하는 값은 어디에?",
+          "q": "새로고침, 공유가 되어야 하는 값은 어디에?",
           "choices": [
             "지역 상태",
             "URL",
@@ -280,7 +280,7 @@
           "q": "서버에서 가져온 목록을 useState 로 관리하면?",
           "choices": [
             "문제 없다",
-            "캐시·중복 요청·재검증을 전부 손으로 하게 된다",
+            "캐시, 중복 요청, 재검증을 전부 손으로 하게 된다",
             "더 빠르다",
             "타입이 안전하다"
           ],
@@ -291,19 +291,19 @@
     },
     {
       "id": "4",
-      "title": "왜 다시 그려지나 — 반응성 모델",
+      "title": "왜 다시 그려지나. 반응성 모델",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "「이게 왜 다시 그려지지?」는 프레임워크를 쓰면 반드시 만나는 질문이다. 답은 **그 프레임워크가 변경을 어떻게 알아채는가**에 달려 있고, 크게 세 갈래다."
+          "text": "이게 왜 다시 그려지지?는 프레임워크를 쓰면 반드시 만나는 질문이다. 답은 **그 프레임워크가 변경을 어떻게 알아채는가**에 달려 있고, 크게 세 갈래다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "모델을 골라 보라 — 무엇이 다시 도나",
+          "label": "모델을 골라 보라. 무엇이 다시 도나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const m = '{{model}}';\n  ctx.clearRect(0, 0, 440, 190);\n  /* 컴포넌트 나무를 그리고, 다시 도는 범위를 칠한다 */\n  const nodes = [\n    { id: 'App', x: 200, y: 20, lv: 0 },\n    { id: 'Header', x: 90, y: 70, lv: 1 },\n    { id: 'List', x: 200, y: 70, lv: 1 },\n    { id: 'Footer', x: 320, y: 70, lv: 1 },\n    { id: 'Item1', x: 150, y: 125, lv: 2 },\n    { id: 'Item2', x: 250, y: 125, lv: 2 },\n  ];\n  const rerun = { vdom: ['App', 'Header', 'List', 'Footer', 'Item1', 'Item2'],\n                  memo: ['App', 'List', 'Item1', 'Item2'],\n                  signal: ['Item2'],\n                  compile: ['Item2'] }[m];\n  nodes.forEach((n) => {\n    const on = rerun.includes(n.id);\n    ctx.fillStyle = on ? '#7c2d12' : '#111c33';\n    ctx.strokeStyle = on ? '#f59e0b' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(n.x - 38, n.y, 76, 26, 6); ctx.fill(); ctx.stroke();\n    ctx.fillStyle = on ? '#fed7aa' : '#64748b'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';\n    ctx.fillText(n.id, n.x, n.y + 17);\n  });\n  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5;\n  [[200, 46, 90, 70], [200, 46, 200, 70], [200, 46, 320, 70], [200, 96, 150, 125], [200, 96, 250, 125]]\n    .forEach(([a, b2, c2, d]) => { ctx.beginPath(); ctx.moveTo(a, b2); ctx.lineTo(c2, d); ctx.stroke(); });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('Item2 안의 값 하나가 바뀌었다 — 주황색이 다시 도는 범위', 14, 175);\n  const t = {\n    vdom: ['가상 DOM (기본)', 'React 등 — 상태가 바뀐 컴포넌트부터 아래로 다시 실행',\n      '컴포넌트 함수를 다시 부르고, 결과를 이전과 비교해 달라진 DOM 만 고친다.\\n'\n      + '「다시 실행」과 「DOM 갱신」은 다르다 — 실행은 많이 해도 DOM 은 조금만 바뀐다.'],\n    memo: ['가상 DOM + 메모이제이션', 'memo/useMemo 로 범위를 줄인 상태',\n      '바뀌지 않은 가지를 건너뛴다. 대신 비교 비용과 코드 복잡도가 는다.\\n'\n      + '**재고 나서** 필요한 곳에만 — 미리 다 감싸면 손해다.'],\n    signal: ['시그널 (세밀한 반응성)', 'Solid · Vue · Svelte 5 등',\n      '값 하나하나가 「누가 나를 쓰는지」를 안다. 그래서 그 자리만 갱신된다.\\n'\n      + '컴포넌트 함수는 처음 한 번만 실행되는 경우가 많다.'],\n    compile: ['컴파일 기반', 'Svelte 등 — 빌드 때 갱신 코드를 만든다',\n      '무엇이 무엇에 의존하는지 컴파일러가 분석해, 필요한 갱신 코드만 생성한다.\\n'\n      + '런타임이 작고 빠르지만, 마법처럼 보여 디버깅 감각이 다르다.'],\n  }[m];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '어느 모델이든 실무 규칙은 같다\\n'\n     + '  · 상태를 필요한 만큼 아래에 둔다 (3장) — 범위가 저절로 좁아진다\\n'\n     + '  · 렌더 중에 새 객체·함수를 만들면 비교가 늘 실패한다\\n'\n     + '  · 최적화는 프로파일러로 재고 나서 (개발자도구 5장)');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const m = '{{model}}';\n  ctx.clearRect(0, 0, 440, 190);\n  /* 컴포넌트 나무를 그리고, 다시 도는 범위를 칠한다 */\n  const nodes = [\n    { id: 'App', x: 200, y: 20, lv: 0 },\n    { id: 'Header', x: 90, y: 70, lv: 1 },\n    { id: 'List', x: 200, y: 70, lv: 1 },\n    { id: 'Footer', x: 320, y: 70, lv: 1 },\n    { id: 'Item1', x: 150, y: 125, lv: 2 },\n    { id: 'Item2', x: 250, y: 125, lv: 2 },\n  ];\n  const rerun = { vdom: ['App', 'Header', 'List', 'Footer', 'Item1', 'Item2'],\n                  memo: ['App', 'List', 'Item1', 'Item2'],\n                  signal: ['Item2'],\n                  compile: ['Item2'] }[m];\n  nodes.forEach((n) => {\n    const on = rerun.includes(n.id);\n    ctx.fillStyle = on ? '#7c2d12' : '#111c33';\n    ctx.strokeStyle = on ? '#f59e0b' : '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(n.x - 38, n.y, 76, 26, 6); ctx.fill(); ctx.stroke();\n    ctx.fillStyle = on ? '#fed7aa' : '#64748b'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';\n    ctx.fillText(n.id, n.x, n.y + 17);\n  });\n  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5;\n  [[200, 46, 90, 70], [200, 46, 200, 70], [200, 46, 320, 70], [200, 96, 150, 125], [200, 96, 250, 125]]\n    .forEach(([a, b2, c2, d]) => { ctx.beginPath(); ctx.moveTo(a, b2); ctx.lineTo(c2, d); ctx.stroke(); });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('Item2 안의 값 하나가 바뀌었다. 주황색이 다시 도는 범위', 14, 175);\n  const t = {\n    vdom: ['가상 DOM (기본)', 'React 등. 상태가 바뀐 컴포넌트부터 아래로 다시 실행',\n      '컴포넌트 함수를 다시 부르고, 결과를 이전과 비교해 달라진 DOM 만 고친다.\\n'\n      + '다시 실행과 DOM 갱신은 다르다. 실행은 많이 해도 DOM 은 조금만 바뀐다.'],\n    memo: ['가상 DOM + 메모이제이션', 'memo/useMemo 로 범위를 줄인 상태',\n      '바뀌지 않은 가지를 건너뛴다. 대신 비교 비용과 코드 복잡도가 는다.\\n'\n      + '**재고 나서** 필요한 곳에만. 미리 다 감싸면 손해다.'],\n    signal: ['시그널 (세밀한 반응성)', 'Solid, Vue, Svelte 5 등',\n      '값 하나하나가 누가 나를 쓰는지를 안다. 그래서 그 자리만 갱신된다.\\n'\n      + '컴포넌트 함수는 처음 한 번만 실행되는 경우가 많다.'],\n    compile: ['컴파일 기반', 'Svelte 등. 빌드 때 갱신 코드를 만든다',\n      '무엇이 무엇에 의존하는지 컴파일러가 분석해, 필요한 갱신 코드만 생성한다.\\n'\n      + '런타임이 작고 빠르지만, 마법처럼 보여 디버깅 감각이 다르다.'],\n  }[m];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t[0] + '</div>' +\n    '<div class=\"hint\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '어느 모델이든 실무 규칙은 같다\\n'\n     + ' , 상태를 필요한 만큼 아래에 둔다 (3장). 범위가 저절로 좁아진다\\n'\n     + ' , 렌더 중에 새 객체, 함수를 만들면 비교가 늘 실패한다\\n'\n     + ' , 최적화는 프로파일러로 재고 나서 (개발자도구 5장)');\n</script>",
           "controls": [
             {
               "id": "model",
@@ -333,21 +333,21 @@
         },
         {
           "type": "note",
-          "text": "**「다시 실행」과 「DOM 갱신」을 구분하라.** 가상 DOM 모델에서 컴포넌트 함수가 다시 도는 것은 대개 싸다 — 진짜 비용은 그 안에서 무거운 계산을 하거나, 결과적으로 DOM 이 많이 바뀔 때다. 「재렌더 = 느림」이 아니다."
+          "text": "**다시 실행과 DOM 갱신을 구분하라.** 가상 DOM 모델에서 컴포넌트 함수가 다시 도는 것은 대개 싸다. 진짜 비용은 그 안에서 무거운 계산을 하거나, 결과적으로 DOM 이 많이 바뀔 때다. 재렌더 = 느림이 아니다."
         },
         {
           "type": "code",
           "lang": "jsx",
           "label": "비교를 깨뜨리는 흔한 코드",
-          "text": "// 렌더마다 새 객체·새 함수 → 자식의 비교가 늘 실패한다\n<Child style={{ margin: 8 }} onSave={() => save(id)} items={items.filter(Boolean)} />\n\n// 고치는 방향\nconst style = { margin: 8 };                 // 렌더 밖으로\nconst onSave = useCallback(() => save(id), [id]);\nconst visible = useMemo(() => items.filter(Boolean), [items]);\n\n// 다만: 이것도 비용이다. 프로파일러로 문제를 확인한 뒤에 하라"
+          "text": "// 렌더마다 새 객체, 새 함수 → 자식의 비교가 늘 실패한다\n<Child style={{ margin: 8 }} onSave={() => save(id)} items={items.filter(Boolean)} />\n\n// 고치는 방향\nconst style = { margin: 8 };                 // 렌더 밖으로\nconst onSave = useCallback(() => save(id), [id]);\nconst visible = useMemo(() => items.filter(Boolean), [items]);\n\n// 다만: 이것도 비용이다. 프로파일러로 문제를 확인한 뒤에 하라"
         },
         {
           "type": "p",
-          "text": "그리고 **최근 흐름은 이 수고를 줄이는 쪽**이다 — React 컴파일러처럼 메모이제이션을 자동으로 넣어 주거나, 시그널처럼 애초에 범위가 좁은 모델. 손으로 감싸는 코드가 줄어드는 방향으로 가고 있다."
+          "text": "그리고 **최근 흐름은 이 수고를 줄이는 쪽**이다. React 컴파일러처럼 메모이제이션을 자동으로 넣어 주거나, 시그널처럼 애초에 범위가 좁은 모델. 손으로 감싸는 코드가 줄어드는 방향으로 가고 있다."
         },
         {
           "type": "try",
-          "text": "프레임워크의 개발자도구(React DevTools 등)에서 「왜 다시 그려졌나」 기능을 켜고 화면을 조작해 보라. 예상과 다른 곳이 다시 그려지면 3장의 상태 위치를 의심하라."
+          "text": "프레임워크의 개발자도구(React DevTools 등)에서 왜 다시 그려졌나 기능을 켜고 화면을 조작해 보라. 예상과 다른 곳이 다시 그려지면 3장의 상태 위치를 의심하라."
         }
       ],
       "quiz": [
@@ -366,7 +366,7 @@
           "q": "자식의 비교를 늘 실패하게 만드는 것은?",
           "choices": [
             "문자열 props",
-            "렌더마다 새로 만드는 객체·함수",
+            "렌더마다 새로 만드는 객체, 함수",
             "숫자 props",
             "children"
           ],
@@ -388,19 +388,19 @@
     },
     {
       "id": "5",
-      "title": "목록과 key — index 가 위험한 이유",
+      "title": "목록과 key. index 가 위험한 이유",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "목록을 그릴 때 프레임워크는 「이전의 어느 항목이 지금의 어느 항목인가」를 알아야 한다. 그 짝을 알려 주는 것이 **key** 이고, 잘못 주면 **상태가 엉뚱한 항목에 남는다.**"
+          "text": "목록을 그릴 때 프레임워크는 이전의 어느 항목이 지금의 어느 항목인가를 알아야 한다. 그 짝을 알려 주는 것이 **key** 이고, 잘못 주면 **상태가 엉뚱한 항목에 남는다.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "key 를 바꿔 보라 — 입력값이 어떻게 되나",
+          "label": "key 를 바꿔 보라. 입력값이 어떻게 되나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const USE_INDEX = {{idx}};\n  app.innerHTML = '<div class=\"hint\">칸에 글자를 넣고 「맨 앞에 추가」를 눌러 보라 · key = ' +\n    (USE_INDEX ? 'index (위험)' : 'id (안전)') + '</div>' +\n    '<div style=\"margin:8px 0\"><button id=\"add\">맨 앞에 추가</button></div><ul id=\"list\" style=\"list-style:none;padding:0\"></ul>';\n  let items = [{ id: 2, name: '모래' }, { id: 3, name: '간식' }];\n  let nextId = 4;\n  const list = document.getElementById('list');\n  /* 프레임워크의 짝짓기를 흉내 낸다: key 가 같으면 DOM 을 재사용(=입력값 유지) */\n  const nodes = new Map();\n  function render() {\n    const frag = document.createDocumentFragment();\n    items.forEach((it, i) => {\n      const key = USE_INDEX ? 'i' + i : 'id' + it.id;\n      let li = nodes.get(key);\n      if (!li) {\n        li = document.createElement('li');\n        li.style.cssText = 'display:flex;gap:8px;align-items:center;padding:4px 0';\n        li.innerHTML = '<span style=\"width:60px\"></span><input placeholder=\"메모\" style=\"padding:4px 8px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:#e2e8f0\">';\n        nodes.set(key, li);\n      }\n      li.querySelector('span').textContent = it.name;      /* 이름은 새로 그린다 */\n      frag.appendChild(li);                                  /* 입력값은 DOM 에 남는다 */\n    });\n    list.replaceChildren(frag);\n  }\n  document.getElementById('add').onclick = () => {\n    items = [{ id: nextId, name: '새 항목 ' + nextId }, ...items];\n    nextId++;\n    render();\n    show((USE_INDEX\n      ? '입력값이 **한 칸씩 밀려** 엉뚱한 항목에 붙었다.\\n'\n        + 'key=index 이면 「0번은 0번」이라고만 알려 준 셈이라, 앞에 끼워 넣으면 전부 어긋난다.'\n      : '입력값이 원래 항목을 따라갔다.\\n'\n        + 'key=id 이면 「이 DOM 은 이 자료의 것」이라는 짝이 유지된다.')\n      + '\\n\\n항목 ' + items.length + '개 · 맨 앞에 추가함');\n  };\n  render();\n  show('칸에 글자를 넣고 「맨 앞에 추가」를 눌러 보라.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const USE_INDEX = {{idx}};\n  app.innerHTML = '<div class=\"hint\">칸에 글자를 넣고 맨 앞에 추가를 눌러 보라, key = ' +\n    (USE_INDEX ? 'index (위험)' : 'id (안전)') + '</div>' +\n    '<div style=\"margin:8px 0\"><button id=\"add\">맨 앞에 추가</button></div><ul id=\"list\" style=\"list-style:none;padding:0\"></ul>';\n  let items = [{ id: 2, name: '모래' }, { id: 3, name: '간식' }];\n  let nextId = 4;\n  const list = document.getElementById('list');\n  /* 프레임워크의 짝짓기를 흉내 낸다: key 가 같으면 DOM 을 재사용(=입력값 유지) */\n  const nodes = new Map();\n  function render() {\n    const frag = document.createDocumentFragment();\n    items.forEach((it, i) => {\n      const key = USE_INDEX ? 'i' + i : 'id' + it.id;\n      let li = nodes.get(key);\n      if (!li) {\n        li = document.createElement('li');\n        li.style.cssText = 'display:flex;gap:8px;align-items:center;padding:4px 0';\n        li.innerHTML = '<span style=\"width:60px\"></span><input placeholder=\"메모\" style=\"padding:4px 8px;border-radius:6px;border:1px solid #334155;background:#0f172a;color:#e2e8f0\">';\n        nodes.set(key, li);\n      }\n      li.querySelector('span').textContent = it.name;      /* 이름은 새로 그린다 */\n      frag.appendChild(li);                                  /* 입력값은 DOM 에 남는다 */\n    });\n    list.replaceChildren(frag);\n  }\n  document.getElementById('add').onclick = () => {\n    items = [{ id: nextId, name: '새 항목 ' + nextId }, ...items];\n    nextId++;\n    render();\n    show((USE_INDEX\n      ? '입력값이 **한 칸씩 밀려** 엉뚱한 항목에 붙었다.\\n'\n        + 'key=index 이면 0번은 0번이라고만 알려 준 셈이라, 앞에 끼워 넣으면 전부 어긋난다.'\n      : '입력값이 원래 항목을 따라갔다.\\n'\n        + 'key=id 이면 이 DOM 은 이 자료의 것이라는 짝이 유지된다.')\n      + '\\n\\n항목 ' + items.length + '개, 맨 앞에 추가함');\n  };\n  render();\n  show('칸에 글자를 넣고 맨 앞에 추가를 눌러 보라.');\n</script>",
           "controls": [
             {
               "id": "idx",
@@ -412,21 +412,21 @@
         },
         {
           "type": "note",
-          "text": "**key 는 형제들 사이에서만 유일하면 된다.** 전역 유일일 필요는 없다. 그리고 `Math.random()` 을 key 로 쓰면 매 렌더마다 전부 새로 만들어져 최악이다 — 입력·초점·애니메이션이 전부 날아간다."
+          "text": "**key 는 형제들 사이에서만 유일하면 된다.** 전역 유일일 필요는 없다. 그리고 `Math.random()` 을 key 로 쓰면 매 렌더마다 전부 새로 만들어져 최악이다. 입력, 초점, 애니메이션이 전부 날아간다."
         },
         {
           "type": "code",
           "lang": "jsx",
           "label": "index 를 써도 되는 조건",
-          "text": "// 안전한 경우: 목록이 절대 바뀌지 않는다 (순서 변경·삽입·삭제 없음)\n{STATIC_TABS.map((t, i) => <Tab key={i} {...t} />)}\n\n// 위험한 경우: 정렬·필터·삽입·삭제가 있다\n{todos.map((t, i) => <Row key={i} todo={t} />)}     // 나쁨\n{todos.map((t) => <Row key={t.id} todo={t} />)}     // 좋음\n\n// id 가 없으면? 만들어라 (crypto.randomUUID() 를 자료 생성 시점에 한 번)"
+          "text": "// 안전한 경우: 목록이 절대 바뀌지 않는다 (순서 변경, 삽입, 삭제 없음)\n{STATIC_TABS.map((t, i) => <Tab key={i} {...t} />)}\n\n// 위험한 경우: 정렬, 필터, 삽입, 삭제가 있다\n{todos.map((t, i) => <Row key={i} todo={t} />)}     // 나쁨\n{todos.map((t) => <Row key={t.id} todo={t} />)}     // 좋음\n\n// id 가 없으면? 만들어라 (crypto.randomUUID() 를 자료 생성 시점에 한 번)"
         },
         {
           "type": "p",
-          "text": "**key 는 「같은 것을 다시 만들라」는 신호로도 쓸 수 있다.** 컴포넌트에 `key={userId}` 를 주면 사용자가 바뀔 때 그 컴포넌트가 통째로 새로 만들어져 내부 상태가 초기화된다 — 「props 가 바뀌면 상태를 초기화」를 우아하게 표현하는 방법이다."
+          "text": "**key 는 같은 것을 다시 만들라는 신호로도 쓸 수 있다.** 컴포넌트에 `key={userId}` 를 주면 사용자가 바뀔 때 그 컴포넌트가 통째로 새로 만들어져 내부 상태가 초기화된다. props 가 바뀌면 상태를 초기화를 우아하게 표현하는 방법이다."
         },
         {
           "type": "try",
-          "text": "위 데모에서 index 를 켠 채 칸에 글자를 넣고 추가해 보라. 그리고 끄고 다시 해 보라 — 이 차이가 실제 서비스에서 「가끔 남의 값이 보이는」 버그가 된다."
+          "text": "위 데모에서 index 를 켠 채 칸에 글자를 넣고 추가해 보라. 그리고 끄고 다시 해 보라. 이 차이가 실제 서비스에서 가끔 남의 값이 보이는 버그가 된다."
         }
       ],
       "quiz": [
@@ -434,7 +434,7 @@
           "q": "key 에 index 를 쓰면 위험한 경우는?",
           "choices": [
             "목록이 고정일 때",
-            "삽입·삭제·정렬이 있을 때",
+            "삽입, 삭제, 정렬이 있을 때",
             "항목이 적을 때",
             "서버 자료일 때"
           ],
@@ -450,7 +450,7 @@
             "차이 없다"
           ],
           "answer": 1,
-          "why": "입력·초점·애니메이션이 날아간다."
+          "why": "입력, 초점, 애니메이션이 날아간다."
         },
         {
           "q": "컴포넌트 상태를 초기화하는 우아한 방법은?",
@@ -461,25 +461,25 @@
             "unmount 호출"
           ],
           "answer": 1,
-          "why": "key 는 「같은 것인가」의 표시다."
+          "why": "key 는 같은 것인가의 표시다."
         }
       ]
     },
     {
       "id": "6",
-      "title": "부수효과 — 붙이고 떼기",
+      "title": "부수효과. 붙이고 떼기",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "화면을 그리는 것 외의 일 — 요청 보내기, 타이머 걸기, 리스너 붙이기, 외부 라이브러리 붙이기 — 을 부수효과라 부른다. 규칙은 하나다: **붙였으면 뗀다.**"
+          "text": "화면을 그리는 것 외의 일. 요청 보내기, 타이머 걸기, 리스너 붙이기, 외부 라이브러리 붙이기. 을 부수효과라 부른다. 규칙은 하나다: **붙였으면 뗀다.**"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "경우를 골라 보라 — 무엇이 새는가",
+          "label": "경우를 골라 보라. 무엇이 새는가",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    nocleanup: ['정리를 안 함',\n      'useEffect(() => {\\n'\n      + '  const id = setInterval(tick, 1000);\\n'\n      + '}, []);   // 정리 함수 없음',\n      false,\n      '화면을 떠나도 타이머가 계속 돈다. 오갈 때마다 하나씩 쌓인다.\\n'\n      + '메모리 칸 5장의 그 누수 — 프레임워크에서 가장 흔한 형태.'],\n    cleanup: ['정리 함수 반환',\n      'useEffect(() => {\\n'\n      + '  const id = setInterval(tick, 1000);\\n'\n      + '  return () => clearInterval(id);\\n'\n      + '}, []);',\n      true,\n      '떠날 때(그리고 다시 실행되기 전에) 정리된다.\\n'\n      + '리스너·타이머·구독·AbortController 가 전부 같은 모양이다.'],\n    deps: ['의존성을 빠뜨림',\n      'useEffect(() => {\\n'\n      + '  load(userId);\\n'\n      + '}, []);   // userId 가 빠졌다',\n      false,\n      '사용자가 바뀌어도 다시 불러오지 않는다 — 옛 사용자의 자료가 남는다.\\n'\n      + '린트 규칙(exhaustive-deps)이 잡아 주므로 켜 두라.'],\n    race: ['경합을 안 다룸',\n      'useEffect(() => {\\n'\n      + '  fetch(`/u/${id}`).then(r => r.json()).then(setUser);\\n'\n      + '}, [id]);',\n      false,\n      'id 가 빠르게 바뀌면 **늦게 온 옛 응답**이 최신 값을 덮는다.\\n'\n      + '동시성 칸 5장의 그 문제 — AbortController 나 무시 플래그가 필요하다.'],\n    derived2: ['상태 동기화용 effect',\n      'useEffect(() => {\\n'\n      + '  setTotal(items.reduce(...));\\n'\n      + '}, [items]);',\n      false,\n      '계산으로 될 일을 effect 로 했다 — 렌더가 두 번 돌고 어긋날 틈이 생긴다.\\n'\n      + '3장의 파생 상태 규칙: 저장하지 말고 계산하라.'],\n  }[k];\n  app.innerHTML = '<div class=\"code\">' + esc(t[1]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:15px;color:' + (t[2] ? '#4ade80' : '#fca5a5') + '\">' +\n    (t[2] ? '✓ 안전' : '✗ ' + t[0]) + '</div>';\n  show(t[3] + '\\n\\n'\n     + 'effect 를 쓰기 전에 물어라\\n'\n     + '  1. 계산으로 되나 -> 파생 (3장)\\n'\n     + '  2. 이벤트에 반응하는 것인가 -> 핸들러 안에서 하면 된다\\n'\n     + '  3. 정말 「바깥 세계와 동기화」인가 -> 그때가 effect 자리\\n'\n     + '     (구독·타이머·직접 DOM 조작·외부 라이브러리 붙이기)');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  hideCanvas();\n  const k = '{{case}}';\n  const t = {\n    nocleanup: ['정리를 안 함',\n      'useEffect(() => {\\n'\n      + '  const id = setInterval(tick, 1000);\\n'\n      + '}, []);   // 정리 함수 없음',\n      false,\n      '화면을 떠나도 타이머가 계속 돈다. 오갈 때마다 하나씩 쌓인다.\\n'\n      + '메모리 칸 5장의 그 누수. 프레임워크에서 가장 흔한 형태.'],\n    cleanup: ['정리 함수 반환',\n      'useEffect(() => {\\n'\n      + '  const id = setInterval(tick, 1000);\\n'\n      + '  return () => clearInterval(id);\\n'\n      + '}, []);',\n      true,\n      '떠날 때(그리고 다시 실행되기 전에) 정리된다.\\n'\n      + '리스너, 타이머, 구독, AbortController 가 전부 같은 모양이다.'],\n    deps: ['의존성을 빠뜨림',\n      'useEffect(() => {\\n'\n      + '  load(userId);\\n'\n      + '}, []);   // userId 가 빠졌다',\n      false,\n      '사용자가 바뀌어도 다시 불러오지 않는다. 옛 사용자의 자료가 남는다.\\n'\n      + '린트 규칙(exhaustive-deps)이 잡아 주므로 켜 두라.'],\n    race: ['경합을 안 다룸',\n      'useEffect(() => {\\n'\n      + '  fetch(`/u/${id}`).then(r => r.json()).then(setUser);\\n'\n      + '}, [id]);',\n      false,\n      'id 가 빠르게 바뀌면 **늦게 온 옛 응답**이 최신 값을 덮는다.\\n'\n      + '동시성 칸 5장의 그 문제. AbortController 나 무시 플래그가 필요하다.'],\n    derived2: ['상태 동기화용 effect',\n      'useEffect(() => {\\n'\n      + '  setTotal(items.reduce(...));\\n'\n      + '}, [items]);',\n      false,\n      '계산으로 될 일을 effect 로 했다. 렌더가 두 번 돌고 어긋날 틈이 생긴다.\\n'\n      + '3장의 파생 상태 규칙: 저장하지 말고 계산하라.'],\n  }[k];\n  app.innerHTML = '<div class=\"code\">' + esc(t[1]) + '</div>' +\n    '<div style=\"margin-top:8px;font-size:15px;color:' + (t[2] ? '#4ade80' : '#fca5a5') + '\">' +\n    (t[2] ? '✓ 안전' : '✗ ' + t[0]) + '</div>';\n  show(t[3] + '\\n\\n'\n     + 'effect 를 쓰기 전에 물어라\\n'\n     + '  1. 계산으로 되나 -> 파생 (3장)\\n'\n     + '  2. 이벤트에 반응하는 것인가 -> 핸들러 안에서 하면 된다\\n'\n     + '  3. 정말 바깥 세계와 동기화인가 -> 그때가 effect 자리\\n'\n     + '     (구독, 타이머, 직접 DOM 조작, 외부 라이브러리 붙이기)');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -519,15 +519,15 @@
         },
         {
           "type": "note",
-          "text": "**「effect 로 상태를 동기화」는 대개 잘못된 신호다.** 계산할 수 있으면 계산하고, 이벤트에 반응하는 것이면 핸들러에서 하라. effect 는 **바깥 세계와 맞추는** 일에만 쓰는 것이 좋은 기준이다."
+          "text": "**effect 로 상태를 동기화는 대개 잘못된 신호다.** 계산할 수 있으면 계산하고, 이벤트에 반응하는 것이면 핸들러에서 하라. effect 는 **바깥 세계와 맞추는** 일에만 쓰는 것이 좋은 기준이다."
         },
         {
           "type": "p",
-          "text": "그리고 개발 모드에서 effect 가 **두 번 실행되는** 프레임워크가 있다(React StrictMode). 이것은 버그가 아니라 「정리가 제대로 되는가」를 시험하는 장치다 — 두 번 돌아서 깨진다면 실제로 정리가 빠진 것이다."
+          "text": "그리고 개발 모드에서 effect 가 **두 번 실행되는** 프레임워크가 있다(React StrictMode). 이것은 버그가 아니라 정리가 제대로 되는가를 시험하는 장치다. 두 번 돌아서 깨진다면 실제로 정리가 빠진 것이다."
         },
         {
           "type": "try",
-          "text": "내 코드의 effect 를 훑어 정리 함수가 없는 것을 찾아라. 타이머·리스너·구독이 있는데 정리가 없으면 그것이 누수다."
+          "text": "내 코드의 effect 를 훑어 정리 함수가 없는 것을 찾아라. 타이머, 리스너, 구독이 있는데 정리가 없으면 그것이 누수다."
         }
       ],
       "quiz": [
@@ -554,7 +554,7 @@
           "why": "늦게 온 옛 응답이 덮는다."
         },
         {
-          "q": "「상태를 동기화하는 effect」가 신호하는 것은?",
+          "q": "상태를 동기화하는 effect가 신호하는 것은?",
           "choices": [
             "잘 짠 코드",
             "계산으로 될 일을 effect 로 하고 있다",
@@ -568,19 +568,19 @@
     },
     {
       "id": "7",
-      "title": "서버 자료 — 내 상태가 아니다",
+      "title": "서버 자료. 내 상태가 아니다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "목록·상세처럼 서버에서 온 값은 **내 상태가 아니라 서버 자료의 사본**이다. 그래서 필요한 것이 캐시·재검증·중복 제거·경합 처리이고, 이것을 손으로 만들면 곧 무너진다."
+          "text": "목록, 상세처럼 서버에서 온 값은 **내 상태가 아니라 서버 자료의 사본**이다. 그래서 필요한 것이 캐시, 재검증, 중복 제거, 경합 처리이고, 이것을 손으로 만들면 곧 무너진다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 만들었을 때 필요한 것들 — 켜 보라",
+          "label": "직접 만들었을 때 필요한 것들. 켜 보라",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const n = {{needs}};\n  const needs = [\n    ['로딩·오류 상태', '화면마다 useState 세 개'],\n    ['중복 요청 제거', '같은 자료를 두 컴포넌트가 동시에 요청'],\n    ['캐시와 재검증', '뒤로 갔다 오면 또 부르나 · 언제 다시 받나'],\n    ['경합 처리', '늦게 온 옛 응답이 덮지 않게 (6장)'],\n    ['낙관적 갱신', '누르자마자 화면 반영, 실패하면 되돌리기'],\n    ['무효화', '글을 쓰면 목록도 새로 받아야 한다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  needs.forEach(([t, d], i) => {\n    const on = i < n;\n    box(14, 6 + i * 30, 412, 26, (on ? '✓ ' : '   ') + t, '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n    ctx.fillStyle = on ? '#94a3b8' : '#334155'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(d, 190, 23 + i * 30);\n  });\n  const lines = [0, 25, 60, 120, 200, 300, 420][n] || 0;\n  app.innerHTML = '<div class=\"hint\">직접 구현한 항목 ' + n + ' / 6 · 대략 ' + lines + '줄의 공통 코드</div>';\n  show('여섯 항목을 다 만들면 그것이 곧 서버 상태 라이브러리다.\\n'\n     + '(TanStack Query · SWR · RTK Query · 프레임워크 내장 로더)\\n\\n'\n     + '도구가 주는 것\\n'\n     + '  · 같은 키의 요청은 한 번만 (중복 제거)\\n'\n     + '  · 캐시에서 즉시 보여 주고 뒤에서 갱신 (stale-while-revalidate)\\n'\n     + '  · 창에 다시 들어오면 자동 재검증\\n'\n     + '  · 변경 후 관련 키 무효화\\n'\n     + '  · 낙관적 갱신과 롤백\\n\\n'\n     + '판단: 서버 자료를 다루는 화면이 셋을 넘으면 도구를 쓰는 편이 거의 항상 이득이다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const n = {{needs}};\n  const needs = [\n    ['로딩, 오류 상태', '화면마다 useState 세 개'],\n    ['중복 요청 제거', '같은 자료를 두 컴포넌트가 동시에 요청'],\n    ['캐시와 재검증', '뒤로 갔다 오면 또 부르나, 언제 다시 받나'],\n    ['경합 처리', '늦게 온 옛 응답이 덮지 않게 (6장)'],\n    ['낙관적 갱신', '누르자마자 화면 반영, 실패하면 되돌리기'],\n    ['무효화', '글을 쓰면 목록도 새로 받아야 한다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  needs.forEach(([t, d], i) => {\n    const on = i < n;\n    box(14, 6 + i * 30, 412, 26, (on ? '✓ ' : '   ') + t, '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n    ctx.fillStyle = on ? '#94a3b8' : '#334155'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(d, 190, 23 + i * 30);\n  });\n  const lines = [0, 25, 60, 120, 200, 300, 420][n] || 0;\n  app.innerHTML = '<div class=\"hint\">직접 구현한 항목 ' + n + ' / 6, 대략 ' + lines + '줄의 공통 코드</div>';\n  show('여섯 항목을 다 만들면 그것이 곧 서버 상태 라이브러리다.\\n'\n     + '(TanStack Query, SWR, RTK Query, 프레임워크 내장 로더)\\n\\n'\n     + '도구가 주는 것\\n'\n     + ' , 같은 키의 요청은 한 번만 (중복 제거)\\n'\n     + ' , 캐시에서 즉시 보여 주고 뒤에서 갱신 (stale-while-revalidate)\\n'\n     + ' , 창에 다시 들어오면 자동 재검증\\n'\n     + ' , 변경 후 관련 키 무효화\\n'\n     + ' , 낙관적 갱신과 롤백\\n\\n'\n     + '판단: 서버 자료를 다루는 화면이 셋을 넘으면 도구를 쓰는 편이 거의 항상 이득이다.');\n</script>",
           "controls": [
             {
               "id": "needs",
@@ -597,11 +597,11 @@
           "type": "code",
           "lang": "jsx",
           "label": "도구를 쓰면 이 정도로 줄어든다",
-          "text": "// 읽기 — 캐시·중복 제거·재검증이 기본으로 따라온다\nconst { data, isPending, error } = useQuery({\n  queryKey: ['posts', page],\n  queryFn: () => api(`/posts?page=${page}`, PostList),   // TS 5장의 검증과 함께\n});\n\n// 쓰기 — 성공하면 관련 목록을 무효화\nconst mutate = useMutation({\n  mutationFn: createPost,\n  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),\n});"
+          "text": "// 읽기. 캐시, 중복 제거, 재검증이 기본으로 따라온다\nconst { data, isPending, error } = useQuery({\n  queryKey: ['posts', page],\n  queryFn: () => api(`/posts?page=${page}`, PostList),   // TS 5장의 검증과 함께\n});\n\n// 쓰기. 성공하면 관련 목록을 무효화\nconst mutate = useMutation({\n  mutationFn: createPost,\n  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),\n});"
         },
         {
           "type": "note",
-          "text": "**낙관적 갱신은 되돌릴 준비가 있을 때만 하라.** 「좋아요」처럼 실패해도 큰일이 아닌 것은 즉시 반영이 좋지만, 결제·삭제처럼 되돌리기 어려운 것은 서버 응답을 기다리는 편이 낫다 — 사용자를 속이면 안 된다."
+          "text": "**낙관적 갱신은 되돌릴 준비가 있을 때만 하라.** 좋아요처럼 실패해도 큰일이 아닌 것은 즉시 반영이 좋지만, 결제, 삭제처럼 되돌리기 어려운 것은 서버 응답을 기다리는 편이 낫다. 사용자를 속이면 안 된다."
         },
         {
           "type": "p",
@@ -622,13 +622,13 @@
             "전역 상태"
           ],
           "answer": 1,
-          "why": "그래서 재검증·무효화가 필요하다."
+          "why": "그래서 재검증, 무효화가 필요하다."
         },
         {
           "q": "서버 상태 도구가 기본으로 주는 것이 아닌 것은?",
           "choices": [
             "중복 요청 제거",
-            "캐시·재검증",
+            "캐시, 재검증",
             "폼 검증",
             "무효화"
           ],
@@ -640,7 +640,7 @@
           "choices": [
             "좋아요",
             "즐겨찾기",
-            "결제·삭제처럼 되돌리기 어려운 것",
+            "결제, 삭제처럼 되돌리기 어려운 것",
             "목록 정렬"
           ],
           "answer": 2,
@@ -650,19 +650,19 @@
     },
     {
       "id": "8",
-      "title": "어디서 그릴 것인가 — CSR · SSR · SSG",
+      "title": "어디서 그릴 것인가. CSR, SSR, SSG",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "같은 컴포넌트라도 **어디서 HTML 을 만드느냐**에 따라 첫 화면 속도·SEO·서버 비용이 달라진다. 갈래는 셋이고, 요즘은 화면 단위로 섞어 쓴다."
+          "text": "같은 컴포넌트라도 **어디서 HTML 을 만드느냐**에 따라 첫 화면 속도, SEO, 서버 비용이 달라진다. 갈래는 셋이고, 요즘은 화면 단위로 섞어 쓴다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "방식을 골라 보라 — 첫 화면이 언제 보이나",
+          "label": "방식을 골라 보라. 첫 화면이 언제 보이나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const m = '{{mode}}';\n  const RTT = 40;\n  const rows = [];\n  let t = 0;\n  const add = (name, len, color) => { rows.push({ name, start: t, len, color }); t += len; };\n  let firstPaint = 0, interactive = 0;\n  if (m === 'csr') {\n    add('빈 HTML', RTT, '#60a5fa'); add('JS 번들 받기', RTT + 120, '#f59e0b');\n    add('JS 실행 · 화면 만들기', 90, '#a78bfa');\n    firstPaint = t; add('API 요청', RTT + 40, '#22c55e'); add('내용 그리기', 40, '#22c55e');\n    interactive = t;\n  } else if (m === 'ssr') {\n    add('서버에서 HTML 만들기', RTT + 80, '#f472b6');\n    firstPaint = t; add('JS 번들 받기', RTT + 120, '#f59e0b'); add('하이드레이션', 70, '#a78bfa');\n    interactive = t;\n  } else if (m === 'ssg') {\n    add('미리 만든 HTML (CDN)', RTT, '#22c55e');\n    firstPaint = t; add('JS 번들 받기', RTT + 120, '#f59e0b'); add('하이드레이션', 70, '#a78bfa');\n    interactive = t;\n  } else {\n    add('HTML 껍데기 (즉시)', RTT, '#22c55e');\n    firstPaint = t; add('내용 스트리밍', 90, '#f472b6'); add('부분 하이드레이션', 40, '#a78bfa');\n    interactive = t;\n  }\n  ctx.clearRect(0, 0, 440, 190);\n  const total = t * 1.05;\n  rows.forEach((r, i) => {\n    const y = 20 + i * 26;\n    ctx.fillStyle = r.color;\n    ctx.fillRect(14 + (r.start / total) * 270, y, Math.max(3, (r.len / total) * 270), 17);\n    ctx.fillStyle = '#cbd5e1'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(r.name, 292, y + 12);\n  });\n  [[firstPaint, '#22c55e', '첫 화면'], [interactive, '#f59e0b', '조작 가능']].forEach(([v, c, label], i) => {\n    const x = 14 + (v / total) * 270;\n    ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.setLineDash([3, 3]);\n    ctx.beginPath(); ctx.moveTo(x, 12); ctx.lineTo(x, 150); ctx.stroke(); ctx.setLineDash([]);\n    ctx.fillStyle = c; ctx.font = '10px system-ui';\n    ctx.fillText(label + ' ' + Math.round(v) + 'ms', x + 3, 166 + i * 13);\n  });\n  const t2 = { csr: ['CSR (클라이언트 렌더링)', 'JS 가 다 와야 화면이 생긴다',\n                 '+ 서버가 단순 · 앱 같은 경험\\n- 첫 화면이 늦고 SEO·저사양 기기에 불리'],\n               ssr: ['SSR (서버 렌더링)', '서버가 HTML 을 만들어 보낸다',\n                 '+ 첫 화면이 빠르고 SEO 에 유리\\n- 서버 비용 · 하이드레이션 비용이 남는다'],\n               ssg: ['SSG (미리 만들기)', '빌드 때 HTML 을 만들어 CDN 에',\n                 '+ 가장 빠르고 가장 싸다\\n- 자주 바뀌는 내용에는 안 맞는다 (ISR 로 절충)'],\n               stream: ['스트리밍 · 부분 하이드레이션', '껍데기를 먼저, 내용은 흘려보낸다',\n                 '+ 첫 화면과 조작 가능 시점을 함께 당긴다\\n- 구조가 복잡하고 프레임워크 의존이 크다'] }[m];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t2[0] + '</div>' +\n    '<div class=\"hint\">' + t2[1] + '</div>';\n  show(t2[2] + '\\n\\n'\n     + '고르는 기준\\n'\n     + '  · 검색 노출·공유가 중요한가 -> SSR/SSG\\n'\n     + '  · 내용이 자주 바뀌나 -> SSR (아니면 SSG)\\n'\n     + '  · 로그인 뒤 대시보드처럼 개인화된 앱인가 -> CSR 로 충분한 경우가 많다\\n'\n     + '  · 요즘은 화면 단위로 섞는다 — 목록은 SSG, 대시보드는 CSR');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const m = '{{mode}}';\n  const RTT = 40;\n  const rows = [];\n  let t = 0;\n  const add = (name, len, color) => { rows.push({ name, start: t, len, color }); t += len; };\n  let firstPaint = 0, interactive = 0;\n  if (m === 'csr') {\n    add('빈 HTML', RTT, '#60a5fa'); add('JS 번들 받기', RTT + 120, '#f59e0b');\n    add('JS 실행, 화면 만들기', 90, '#a78bfa');\n    firstPaint = t; add('API 요청', RTT + 40, '#22c55e'); add('내용 그리기', 40, '#22c55e');\n    interactive = t;\n  } else if (m === 'ssr') {\n    add('서버에서 HTML 만들기', RTT + 80, '#f472b6');\n    firstPaint = t; add('JS 번들 받기', RTT + 120, '#f59e0b'); add('하이드레이션', 70, '#a78bfa');\n    interactive = t;\n  } else if (m === 'ssg') {\n    add('미리 만든 HTML (CDN)', RTT, '#22c55e');\n    firstPaint = t; add('JS 번들 받기', RTT + 120, '#f59e0b'); add('하이드레이션', 70, '#a78bfa');\n    interactive = t;\n  } else {\n    add('HTML 껍데기 (즉시)', RTT, '#22c55e');\n    firstPaint = t; add('내용 스트리밍', 90, '#f472b6'); add('부분 하이드레이션', 40, '#a78bfa');\n    interactive = t;\n  }\n  ctx.clearRect(0, 0, 440, 190);\n  const total = t * 1.05;\n  rows.forEach((r, i) => {\n    const y = 20 + i * 26;\n    ctx.fillStyle = r.color;\n    ctx.fillRect(14 + (r.start / total) * 270, y, Math.max(3, (r.len / total) * 270), 17);\n    ctx.fillStyle = '#cbd5e1'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';\n    ctx.fillText(r.name, 292, y + 12);\n  });\n  [[firstPaint, '#22c55e', '첫 화면'], [interactive, '#f59e0b', '조작 가능']].forEach(([v, c, label], i) => {\n    const x = 14 + (v / total) * 270;\n    ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.setLineDash([3, 3]);\n    ctx.beginPath(); ctx.moveTo(x, 12); ctx.lineTo(x, 150); ctx.stroke(); ctx.setLineDash([]);\n    ctx.fillStyle = c; ctx.font = '10px system-ui';\n    ctx.fillText(label + ' ' + Math.round(v) + 'ms', x + 3, 166 + i * 13);\n  });\n  const t2 = { csr: ['CSR (클라이언트 렌더링)', 'JS 가 다 와야 화면이 생긴다',\n                 '+ 서버가 단순, 앱 같은 경험\\n- 첫 화면이 늦고 SEO, 저사양 기기에 불리'],\n               ssr: ['SSR (서버 렌더링)', '서버가 HTML 을 만들어 보낸다',\n                 '+ 첫 화면이 빠르고 SEO 에 유리\\n- 서버 비용, 하이드레이션 비용이 남는다'],\n               ssg: ['SSG (미리 만들기)', '빌드 때 HTML 을 만들어 CDN 에',\n                 '+ 가장 빠르고 가장 싸다\\n- 자주 바뀌는 내용에는 안 맞는다 (ISR 로 절충)'],\n               stream: ['스트리밍, 부분 하이드레이션', '껍데기를 먼저, 내용은 흘려보낸다',\n                 '+ 첫 화면과 조작 가능 시점을 함께 당긴다\\n- 구조가 복잡하고 프레임워크 의존이 크다'] }[m];\n  app.innerHTML = '<div style=\"font-size:15px;color:#4ade80\">' + t2[0] + '</div>' +\n    '<div class=\"hint\">' + t2[1] + '</div>';\n  show(t2[2] + '\\n\\n'\n     + '고르는 기준\\n'\n     + ' , 검색 노출, 공유가 중요한가 -> SSR/SSG\\n'\n     + ' , 내용이 자주 바뀌나 -> SSR (아니면 SSG)\\n'\n     + ' , 로그인 뒤 대시보드처럼 개인화된 앱인가 -> CSR 로 충분한 경우가 많다\\n'\n     + ' , 요즘은 화면 단위로 섞는다. 목록은 SSG, 대시보드는 CSR');\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -692,26 +692,26 @@
         },
         {
           "type": "note",
-          "text": "**하이드레이션이 공짜가 아니다.** SSR 로 HTML 을 빨리 보여 줘도, JS 가 와서 이벤트를 붙이기 전까지는 눌러도 반응하지 않는다 — 「보이는데 안 눌리는」 구간이다. 부분/점진 하이드레이션과 섬 구조(islands)가 그 구간을 줄이려는 시도다."
+          "text": "**하이드레이션이 공짜가 아니다.** SSR 로 HTML 을 빨리 보여 줘도, JS 가 와서 이벤트를 붙이기 전까지는 눌러도 반응하지 않는다. 보이는데 안 눌리는 구간이다. 부분/점진 하이드레이션과 섬 구조(islands)가 그 구간을 줄이려는 시도다."
         },
         {
           "type": "p",
-          "text": "그리고 **서버에서 도는 코드와 브라우저에서 도는 코드를 구분**해야 한다. 서버 렌더링 중에는 `window`·`document` 가 없고, 브라우저에는 DB 접속 정보가 있으면 안 된다. 이 경계를 흐리면 「빌드는 되는데 실행이 안 되는」 문제가 생긴다."
+          "text": "그리고 **서버에서 도는 코드와 브라우저에서 도는 코드를 구분**해야 한다. 서버 렌더링 중에는 `window`, `document` 가 없고, 브라우저에는 DB 접속 정보가 있으면 안 된다. 이 경계를 흐리면 빌드는 되는데 실행이 안 되는 문제가 생긴다."
         },
         {
           "type": "code",
           "lang": "jsx",
           "label": "환경 경계 다루기",
-          "text": "// 서버에는 window 가 없다\nif (typeof window !== 'undefined') { /* 브라우저 전용 */ }\n\n// 브라우저에서만 필요한 무거운 것은 나중에 불러온다\nconst Chart = lazy(() => import('./Chart'));\n\n// 서버 전용 값이 번들에 새지 않게 (환경변수 접두사 규칙을 지켜라)\nprocess.env.DATABASE_URL          // 서버 전용\nimport.meta.env.VITE_API_URL      // 브라우저에 노출됨 — 비밀 금지"
+          "text": "// 서버에는 window 가 없다\nif (typeof window !== 'undefined') { /* 브라우저 전용 */ }\n\n// 브라우저에서만 필요한 무거운 것은 나중에 불러온다\nconst Chart = lazy(() => import('./Chart'));\n\n// 서버 전용 값이 번들에 새지 않게 (환경변수 접두사 규칙을 지켜라)\nprocess.env.DATABASE_URL          // 서버 전용\nimport.meta.env.VITE_API_URL      // 브라우저에 노출됨. 비밀 금지"
         },
         {
           "type": "try",
-          "text": "내 서비스의 첫 화면을 「JavaScript 사용 안 함」으로 열어 보라(개발자도구 명령 메뉴 > Disable JavaScript). 아무것도 안 보이면 CSR 이고, 내용이 보이면 서버 렌더링이 되고 있는 것이다."
+          "text": "내 서비스의 첫 화면을 JavaScript 사용 안 함으로 열어 보라(개발자도구 명령 메뉴 > Disable JavaScript). 아무것도 안 보이면 CSR 이고, 내용이 보이면 서버 렌더링이 되고 있는 것이다."
         }
       ],
       "quiz": [
         {
-          "q": "SSR 의 「보이는데 안 눌리는」 구간의 원인은?",
+          "q": "SSR 의 보이는데 안 눌리는 구간의 원인은?",
           "choices": [
             "네트워크",
             "하이드레이션 전이라 이벤트가 안 붙음",
@@ -736,7 +736,7 @@
           "q": "서버 렌더링 중에 쓸 수 없는 것은?",
           "choices": [
             "fetch",
-            "window·document",
+            "window, document",
             "환경변수",
             "JSON"
           ],
@@ -747,7 +747,7 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
@@ -758,18 +758,18 @@
           "type": "code",
           "lang": "text",
           "label": "코드를 훑을 때",
-          "text": "상태\n  [ ] 계산할 수 있는 값을 상태로 저장하고 있지 않나            (3장)\n  [ ] 필터·탭·페이지가 URL 에 있나                             (3장)\n  [ ] 서버 자료를 useState 로 손수 관리하고 있지 않나          (7장)\n  [ ] 전역에 자주 바뀌는 값을 두지 않았나                      (3·4장)\n\n컴포넌트\n  [ ] props 가 10개를 넘는 곳이 있나 -> 묶기·합성              (2장)\n  [ ] 목록의 key 가 index 나 random 이 아닌가                  (5장)\n  [ ] 한 컴포넌트가 두 가지 이유로 바뀌고 있지 않나            (2장)\n\n효과\n  [ ] 타이머·리스너·구독에 정리 함수가 있나                    (6장)\n  [ ] effect 안의 fetch 에 취소·무시 처리가 있나               (6장)\n  [ ] 「상태 동기화용」 effect 를 계산으로 바꿀 수 있나         (6장)\n\n성능·렌더링\n  [ ] 메모이제이션을 재 보고 넣었나                            (4장)\n  [ ] 첫 화면에 필요 없는 코드를 나중에 불러오나               (8장)\n  [ ] 렌더링 방식(CSR/SSR/SSG)이 그 화면의 요구와 맞나         (8장)"
+          "text": "상태\n  [ ] 계산할 수 있는 값을 상태로 저장하고 있지 않나            (3장)\n  [ ] 필터, 탭, 페이지가 URL 에 있나                             (3장)\n  [ ] 서버 자료를 useState 로 손수 관리하고 있지 않나          (7장)\n  [ ] 전역에 자주 바뀌는 값을 두지 않았나                      (3, 4장)\n\n컴포넌트\n  [ ] props 가 10개를 넘는 곳이 있나 -> 묶기, 합성              (2장)\n  [ ] 목록의 key 가 index 나 random 이 아닌가                  (5장)\n  [ ] 한 컴포넌트가 두 가지 이유로 바뀌고 있지 않나            (2장)\n\n효과\n  [ ] 타이머, 리스너, 구독에 정리 함수가 있나                    (6장)\n  [ ] effect 안의 fetch 에 취소, 무시 처리가 있나               (6장)\n  [ ] 상태 동기화용 effect 를 계산으로 바꿀 수 있나         (6장)\n\n성능, 렌더링\n  [ ] 메모이제이션을 재 보고 넣었나                            (4장)\n  [ ] 첫 화면에 필요 없는 코드를 나중에 불러오나               (8장)\n  [ ] 렌더링 방식(CSR/SSR/SSG)이 그 화면의 요구와 맞나         (8장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여덟 문항",
+          "label": "스스로 채점. 여덟 문항",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const q = [\n    ['프레임워크의 핵심은 상태->화면 자동 갱신이다', true],\n    ['합계 같은 파생 값도 상태로 저장하는 게 좋다', false],\n    ['목록 key 에 index 를 써도 항상 안전하다', false],\n    ['재렌더는 곧 DOM 전체 갱신이다', false],\n    ['effect 에 정리 함수가 없으면 누수가 생길 수 있다', true],\n    ['서버에서 온 목록은 캐시로 다뤄야 한다', true],\n    ['SSR 이면 하이드레이션 없이 바로 조작된다', false],\n    ['필터·탭 상태는 URL 에 두면 좋다', true],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 3장(상태) 4장(재렌더) 5장(key) 6장(effect) 8장(SSR)');\n</script>"
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .code { font:12.5px/1.65 ui-monospace, monospace; background:#111c33; border-radius:8px; padding:10px; white-space:pre-wrap; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '11.5px system-ui';\n    ctx.fillText(label, x + 8, y + 16);\n    if (sub) {\n      ctx.fillStyle = '#94a3b8'; ctx.font = '10px ui-monospace, monospace';\n      String(sub).split('\\n').forEach((l, i) => ctx.fillText(l, x + 8, y + 30 + i * 12));\n    }\n  }\n</script>\n<script>\n  const q = [\n    ['프레임워크의 핵심은 상태->화면 자동 갱신이다', true],\n    ['합계 같은 파생 값도 상태로 저장하는 게 좋다', false],\n    ['목록 key 에 index 를 써도 항상 안전하다', false],\n    ['재렌더는 곧 DOM 전체 갱신이다', false],\n    ['effect 에 정리 함수가 없으면 누수가 생길 수 있다', true],\n    ['서버에서 온 목록은 캐시로 다뤄야 한다', true],\n    ['SSR 이면 하이드레이션 없이 바로 조작된다', false],\n    ['필터, 탭 상태는 URL 에 두면 좋다', true],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로. 3장(상태) 4장(재렌더) 5장(key) 6장(effect) 8장(SSR)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 번들러·모듈이다. 여기까지가 「화면을 만드는 구조」였다면, 다음은 **그 코드가 브라우저에 도착하는 과정**이다 — 8장에서 본 「번들 받기」 막대의 정체."
+          "text": "다음 칸은 번들러, 모듈이다. 여기까지가 화면을 만드는 구조였다면, 다음은 **그 코드가 브라우저에 도착하는 과정**이다. 8장에서 본 번들 받기 막대의 정체."
         },
         {
           "type": "try",

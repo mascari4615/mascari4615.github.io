@@ -8,14 +8,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "성공은 한 가지 모양이면 되지만 **실패는 여러 종류**다 — 입력이 틀림, 로그인 안 됨, 권한 없음, 없는 자원, 충돌, 서버 고장. 이걸 구분해 주지 않으면 쓰는 쪽은 **메시지 문자열을 정규식으로 뜯어** 분기하게 된다. 좋은 에러 설계의 출발은 「실패를 종류별로 구분해 주는 것」이다."
+          "text": "성공은 한 가지 모양이면 되지만 **실패는 여러 종류**다. 입력이 틀림, 로그인 안 됨, 권한 없음, 없는 자원, 충돌, 서버 고장. 이걸 구분해 주지 않으면 쓰는 쪽은 **메시지 문자열을 정규식으로 뜯어** 분기하게 된다. 좋은 에러 설계의 출발은 실패를 종류별로 구분해 주는 것이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "에러를 어떻게 구분하나 — 문자열 파싱 vs 코드",
+          "label": "에러를 어떻게 구분하나. 문자열 파싱 vs 코드",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const structured = mode === 'code';\n  render(structured ? '기계가 읽을 code 로 구분' : '메시지 문자열로 구분',\n    (structured\n      ? '  if (err.code === \\'insufficient_funds\\') showTopup();\\n' +\n        '  <span class=\\\"ok\\\">안정적 — 문구가 바뀌어도, 다국어여도 code 는 그대로.</span>'\n      : '  if (err.message.includes(\\'잔액\\')) showTopup();\\n' +\n        '  <span class=\\\"no\\\">깨지기 쉽다 — 「잔액이 부족」을 「금액이 모자라」로 다듬는 순간 클라이언트가 못 잡는다.</span>'),\n    '실패를 종류로 구분해 주지 않으면 클라이언트가 메시지를 정규식으로 뜯는다.',\n    box(structured ? '안정적 계약' : '깨지기 쉬움',\n      structured\n        ? '{ \"code\": \"insufficient_funds\", \"message\": \"...(사람용)\" }\\n-> code 로 분기'\n        : '{ \"message\": \"잔액이 부족합니다\" }\\n-> 문구 수정 = 클라이언트 깨짐',\n      structured ? 'good' : 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const structured = mode === 'code';\n  render(structured ? '기계가 읽을 code 로 구분' : '메시지 문자열로 구분',\n    (structured\n      ? '  if (err.code === \\'insufficient_funds\\') showTopup();\\n' +\n        '  <span class=\\\"ok\\\">안정적. 문구가 바뀌어도, 다국어여도 code 는 그대로.</span>'\n      : '  if (err.message.includes(\\'잔액\\')) showTopup();\\n' +\n        '  <span class=\\\"no\\\">깨지기 쉽다. 잔액이 부족을 금액이 모자라로 다듬는 순간 클라이언트가 못 잡는다.</span>'),\n    '실패를 종류로 구분해 주지 않으면 클라이언트가 메시지를 정규식으로 뜯는다.',\n    box(structured ? '안정적 계약' : '깨지기 쉬움',\n      structured\n        ? '{ \"code\": \"insufficient_funds\", \"message\": \"...(사람용)\" }\\n-> code 로 분기'\n        : '{ \"message\": \"잔액이 부족합니다\" }\\n-> 문구 수정 = 클라이언트 깨짐',\n      structured ? 'good' : 'bad'));\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -37,11 +37,11 @@
         },
         {
           "type": "note",
-          "text": "**에러도 API 의 일부다 — 설계 대상이다.** 성공 응답만 신경 쓰고 에러는 프레임워크 기본값에 맡기면, 클라이언트는 제각각인 실패 앞에서 방어적 추측을 하게 된다. **어떤 실패가 있고, 각각을 어떻게 알릴지**를 성공만큼 설계해야 한다."
+          "text": "**에러도 API 의 일부다. 설계 대상이다.** 성공 응답만 신경 쓰고 에러는 프레임워크 기본값에 맡기면, 클라이언트는 제각각인 실패 앞에서 방어적 추측을 하게 된다. **어떤 실패가 있고, 각각을 어떻게 알릴지**를 성공만큼 설계해야 한다."
         },
         {
           "type": "p",
-          "text": "**세 층으로 나눠 생각하라: 상태 코드·기계용 code·사람용 message.** HTTP 상태 코드로 큰 분류(2장), 본문의 `code` 로 정확한 종류(3장), `message` 로 사람이 읽을 설명. 이 세 층이 각자 역할을 하면, 클라이언트는 코드로 분기하고 사람은 메시지를 읽는다 — 다음 장들이 이 층을 하나씩 다룬다."
+          "text": "**세 층으로 나눠 생각하라: 상태 코드, 기계용 code, 사람용 message.** HTTP 상태 코드로 큰 분류(2장), 본문의 `code` 로 정확한 종류(3장), `message` 로 사람이 읽을 설명. 이 세 층이 각자 역할을 하면, 클라이언트는 코드로 분기하고 사람은 메시지를 읽는다. 다음 장들이 이 층을 하나씩 다룬다."
         },
         {
           "type": "try",
@@ -53,7 +53,7 @@
           "q": "에러를 메시지 문자열로 구분하면 안 되는 이유는?",
           "choices": [
             "느려서",
-            "문구·다국어가 바뀌면 클라이언트가 깨짐",
+            "문구, 다국어가 바뀌면 클라이언트가 깨짐",
             "길어서",
             "보안"
           ],
@@ -63,10 +63,10 @@
         {
           "q": "에러 응답의 세 층은?",
           "choices": [
-            "헤더·본문·쿠키",
-            "상태 코드·기계용 code·사람용 message",
-            "요청·응답·로그",
-            "url·메서드·본문"
+            "헤더, 본문, 쿠키",
+            "상태 코드, 기계용 code, 사람용 message",
+            "요청, 응답, 로그",
+            "url, 메서드, 본문"
           ],
           "answer": 1,
           "why": "각자 역할."
@@ -91,14 +91,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "HTTP 상태 코드는 실패의 **가장 큰 분류**다. 핵심: **4xx 는 「네 요청이 문제」**(고쳐서 다시), **5xx 는 「서버가 문제」**(재시도 가능). 이 둘을 뒤섞으면 클라이언트·프록시·모니터링이 전부 오작동한다. 특히 **실패를 200 으로 돌려주면** 모든 자동화가 「성공」으로 오해한다."
+          "text": "HTTP 상태 코드는 실패의 **가장 큰 분류**다. 핵심: **4xx 는 네 요청이 문제**(고쳐서 다시), **5xx 는 서버가 문제**(재시도 가능). 이 둘을 뒤섞으면 클라이언트, 프록시, 모니터링이 전부 오작동한다. 특히 **실패를 200 으로 돌려주면** 모든 자동화가 성공으로 오해한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이 상황엔 어떤 코드 — 골라 보라",
+          "label": "이 상황엔 어떤 코드. 골라 보라",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{code}}';\n  const cases = {\n    c400: ['400 Bad Request', '요청 형식·값이 틀림', '4xx', '고쳐서 재요청'],\n    c401: ['401 Unauthorized', '누군지 모름 — 로그인 필요', '4xx', '인증하고 재시도'],\n    c403: ['403 Forbidden', '누군지 알지만 권한 없음', '4xx', '재시도 무의미'],\n    c404: ['404 Not Found', '그 자원이 없음', '4xx', '재시도 무의미'],\n    c409: ['409 Conflict', '현재 상태와 충돌(중복·버전)', '4xx', '상태 확인 후'],\n    c422: ['422 Unprocessable', '형식은 맞지만 의미상 안 됨', '4xx', '입력 고쳐서'],\n    c429: ['429 Too Many Requests', '속도 제한 초과', '4xx', 'Retry-After 후 재시도'],\n    c500: ['500 Internal Error', '서버 버그·예외', '5xx', '재시도 가능(백오프)'],\n    c503: ['503 Unavailable', '일시적 과부하·점검', '5xx', 'Retry-After 후 재시도'],\n  }[c];\n  const is5xx = cases[2] === '5xx';\n  render(cases[0],\n    '  뜻: ' + cases[1] + '\\n  분류: <span class=\\\"' + (is5xx ? 'no' : 'warn') + '\\\">' + cases[2] +\n      (is5xx ? ' (서버 문제)' : ' (요청 문제)') + '</span>\\n  클라이언트: ' + cases[3],\n    '4xx=네 요청을 고쳐라, 5xx=서버 문제니 재시도 가능. 이 분류가 자동화를 좌우한다.',\n    box(cases[0], cases[1] + '\\n-> ' + cases[3], is5xx ? 'bad' : ''));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{code}}';\n  const cases = {\n    c400: ['400 Bad Request', '요청 형식, 값이 틀림', '4xx', '고쳐서 재요청'],\n    c401: ['401 Unauthorized', '누군지 모름. 로그인 필요', '4xx', '인증하고 재시도'],\n    c403: ['403 Forbidden', '누군지 알지만 권한 없음', '4xx', '재시도 무의미'],\n    c404: ['404 Not Found', '그 자원이 없음', '4xx', '재시도 무의미'],\n    c409: ['409 Conflict', '현재 상태와 충돌(중복, 버전)', '4xx', '상태 확인 후'],\n    c422: ['422 Unprocessable', '형식은 맞지만 의미상 안 됨', '4xx', '입력 고쳐서'],\n    c429: ['429 Too Many Requests', '속도 제한 초과', '4xx', 'Retry-After 후 재시도'],\n    c500: ['500 Internal Error', '서버 버그, 예외', '5xx', '재시도 가능(백오프)'],\n    c503: ['503 Unavailable', '일시적 과부하, 점검', '5xx', 'Retry-After 후 재시도'],\n  }[c];\n  const is5xx = cases[2] === '5xx';\n  render(cases[0],\n    '  뜻: ' + cases[1] + '\\n  분류: <span class=\\\"' + (is5xx ? 'no' : 'warn') + '\\\">' + cases[2] +\n      (is5xx ? ' (서버 문제)' : ' (요청 문제)') + '</span>\\n  클라이언트: ' + cases[3],\n    '4xx=네 요청을 고쳐라, 5xx=서버 문제니 재시도 가능. 이 분류가 자동화를 좌우한다.',\n    box(cases[0], cases[1] + '\\n-> ' + cases[3], is5xx ? 'bad' : ''));\n</script>",
           "controls": [
             {
               "id": "code",
@@ -150,19 +150,19 @@
           "type": "code",
           "lang": "text",
           "label": "자주 쓰는 코드",
-          "text": "400  요청이 틀렸다 (형식·파싱)\n401  누군지 모르겠다        ← 로그인/토큰 필요\n403  누군지는 알지만 권한 없다\n404  그 자원이 없다\n409  현재 상태와 충돌 (중복 생성·버전 불일치)\n422  형식은 맞지만 의미상 처리 불가 (검증 실패)\n429  너무 많이 불렀다 (Retry-After 와 함께)\n500  서버 버그/예외      ← 5xx 는 재시도 가능\n503  일시적 과부하·점검  ← Retry-After 와 함께"
+          "text": "400  요청이 틀렸다 (형식, 파싱)\n401  누군지 모르겠다        ← 로그인/토큰 필요\n403  누군지는 알지만 권한 없다\n404  그 자원이 없다\n409  현재 상태와 충돌 (중복 생성, 버전 불일치)\n422  형식은 맞지만 의미상 처리 불가 (검증 실패)\n429  너무 많이 불렀다 (Retry-After 와 함께)\n500  서버 버그/예외      ← 5xx 는 재시도 가능\n503  일시적 과부하, 점검  ← Retry-After 와 함께"
         },
         {
           "type": "note",
-          "text": "**401 과 403 은 다르다.** 401 은 「누군지 모름」(인증 안 됨 → 로그인하라), 403 은 「누군지는 알지만 권한 없음」(로그인해도 소용없음). 이 둘을 섞으면 클라이언트가 「로그인 화면」과 「권한 안내」 중 뭘 띄울지 못 정한다. 400(형식)과 422(의미)도 비슷하게 구분한다."
+          "text": "**401 과 403 은 다르다.** 401 은 누군지 모름(인증 안 됨 → 로그인하라), 403 은 누군지는 알지만 권한 없음(로그인해도 소용없음). 이 둘을 섞으면 클라이언트가 로그인 화면과 권한 안내 중 뭘 띄울지 못 정한다. 400(형식)과 422(의미)도 비슷하게 구분한다."
         },
         {
           "type": "p",
-          "text": "**실패를 200 으로 돌려주지 마라.** `200 { \"success\": false }` 는 최악이다 — HTTP 캐시·로드밸런서·모니터링·재시도 로직이 전부 상태 코드를 보므로, 200 이면 「성공」으로 처리해 실패가 조용히 묻힌다(quality 트랙의 무음 실패). 실패는 반드시 4xx·5xx 로 표현한다."
+          "text": "**실패를 200 으로 돌려주지 마라.** `200 { \"success\": false }` 는 최악이다. HTTP 캐시, 로드밸런서, 모니터링, 재시도 로직이 전부 상태 코드를 보므로, 200 이면 성공으로 처리해 실패가 조용히 묻힌다(quality 트랙의 무음 실패). 실패는 반드시 4xx, 5xx 로 표현한다."
         },
         {
           "type": "try",
-          "text": "네 API 가 실패를 200 으로 돌려주는 곳이 있는지 찾아 4xx·5xx 로 바로잡아라. 401/403, 400/422 를 상황에 맞게 구분해 쓰는지 점검하라."
+          "text": "네 API 가 실패를 200 으로 돌려주는 곳이 있는지 찾아 4xx, 5xx 로 바로잡아라. 401/403, 400/422 를 상황에 맞게 구분해 쓰는지 점검하라."
         }
       ],
       "quiz": [
@@ -192,7 +192,7 @@
           "q": "실패를 200 으로 돌려주면?",
           "choices": [
             "안전",
-            "캐시·모니터·재시도가 성공으로 오해 — 무음 실패",
+            "캐시, 모니터, 재시도가 성공으로 오해. 무음 실패",
             "빠름",
             "표준"
           ],
@@ -203,19 +203,19 @@
     },
     {
       "id": "3",
-      "title": "본문 형식 — 기계가 읽을 코드",
+      "title": "본문 형식. 기계가 읽을 코드",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "상태 코드는 큰 분류일 뿐, 같은 400 안에도 여러 원인이 있다. 본문에 **기계용 `code`**(정확한 종류)와 **사람용 `message`**(설명)를 나눠 담아라. 표준으로 **`application/problem+json`(RFC 7807)** 형식이 있다 — `type`·`title`·`detail`·`status` 에 커스텀 필드를 더한다."
+          "text": "상태 코드는 큰 분류일 뿐, 같은 400 안에도 여러 원인이 있다. 본문에 **기계용 `code`**(정확한 종류)와 **사람용 `message`**(설명)를 나눠 담아라. 표준으로 **`application/problem+json`(RFC 7807)** 형식이 있다. `type`, `title`, `detail`, `status` 에 커스텀 필드를 더한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "에러 봉투 — 무엇이 들어가나",
+          "label": "에러 봉투. 무엇이 들어가나",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{level}}';\n  const rich = has === 'rich';\n  render(rich ? '구조화된 에러 봉투' : '빈약한 에러',\n    (rich\n      ? '  code 로 분기 · message 로 표시 · fields 로 어느 입력이 왜 틀렸는지 · traceId 로 추적\\n' +\n        '  <span class=\\\"ok\\\">클라이언트가 정확히 대응하고, 폼에 필드별 오류를 표시할 수 있다.</span>'\n      : '  { \"error\": \"Bad Request\" } — 무엇이 왜 틀렸는지 알 수 없다.\\n' +\n        '  <span class=\\\"no\\\">클라이언트는 「뭔가 틀렸다」만 안다. 사용자에게 안내 불가.</span>'),\n    '상태 코드 + 기계용 code + 사람용 message + 필드 오류 + traceId 의 봉투.',\n    box(rich ? 'problem+json (권장)' : '빈약한 에러',\n      rich\n        ? '{\\n  \"type\": \".../insufficient-funds\",\\n  \"code\": \"insufficient_funds\",\\n  \"message\": \"잔액이 부족합니다\",\\n  \"fields\": { \"amount\": \"최대 500\" },\\n  \"traceId\": \"a1b2c3\"\\n}'\n        : '{ \"error\": \"Bad Request\" }',\n      rich ? 'good' : 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{level}}';\n  const rich = has === 'rich';\n  render(rich ? '구조화된 에러 봉투' : '빈약한 에러',\n    (rich\n      ? '  code 로 분기, message 로 표시, fields 로 어느 입력이 왜 틀렸는지, traceId 로 추적\\n' +\n        '  <span class=\\\"ok\\\">클라이언트가 정확히 대응하고, 폼에 필드별 오류를 표시할 수 있다.</span>'\n      : '  { \"error\": \"Bad Request\" }. 무엇이 왜 틀렸는지 알 수 없다.\\n' +\n        '  <span class=\\\"no\\\">클라이언트는 뭔가 틀렸다만 안다. 사용자에게 안내 불가.</span>'),\n    '상태 코드 + 기계용 code + 사람용 message + 필드 오류 + traceId 의 봉투.',\n    box(rich ? 'problem+json (권장)' : '빈약한 에러',\n      rich\n        ? '{\\n  \"type\": \".../insufficient-funds\",\\n  \"code\": \"insufficient_funds\",\\n  \"message\": \"잔액이 부족합니다\",\\n  \"fields\": { \"amount\": \"최대 500\" },\\n  \"traceId\": \"a1b2c3\"\\n}'\n        : '{ \"error\": \"Bad Request\" }',\n      rich ? 'good' : 'bad'));\n</script>",
           "controls": [
             {
               "id": "level",
@@ -237,11 +237,11 @@
         },
         {
           "type": "note",
-          "text": "**사람용 메시지와 기계용 코드를 분리하라.** 메시지를 보고 분기하면 문구를 다듬는 순간 클라이언트가 깨진다. 다국어를 넣으면 메시지는 언어마다 달라지지만 `code` 는 그대로다. `code` 로 분기하고, `message` 는 표시용으로만 쓴다 — 이 분리가 1장의 핵심을 형식으로 굳힌 것이다."
+          "text": "**사람용 메시지와 기계용 코드를 분리하라.** 메시지를 보고 분기하면 문구를 다듬는 순간 클라이언트가 깨진다. 다국어를 넣으면 메시지는 언어마다 달라지지만 `code` 는 그대로다. `code` 로 분기하고, `message` 는 표시용으로만 쓴다. 이 분리가 1장의 핵심을 형식으로 굳힌 것이다."
         },
         {
           "type": "p",
-          "text": "**검증 오류엔 필드별 정보를 담아라.** 폼 하나에 여러 필드가 틀렸다면, 「요청이 틀렸다」가 아니라 **어느 필드가 왜 틀렸는지**를 `fields`(또는 `errors[]`)에 배열로 담는다. 그래야 클라이언트가 각 입력칸 옆에 오류를 표시한다. 한 번에 모든 오류를 주면 사용자가 왕복 없이 다 고친다."
+          "text": "**검증 오류엔 필드별 정보를 담아라.** 폼 하나에 여러 필드가 틀렸다면, 요청이 틀렸다가 아니라 **어느 필드가 왜 틀렸는지**를 `fields`(또는 `errors[]`)에 배열로 담는다. 그래야 클라이언트가 각 입력칸 옆에 오류를 표시한다. 한 번에 모든 오류를 주면 사용자가 왕복 없이 다 고친다."
         },
         {
           "type": "try",
@@ -253,7 +253,7 @@
           "q": "에러 본문에 code 와 message 를 나누는 이유는?",
           "choices": [
             "길이",
-            "code 로 분기·message 로 표시 — 문구/다국어 바뀌어도 안전",
+            "code 로 분기, message 로 표시. 문구/다국어 바뀌어도 안전",
             "압축",
             "보안"
           ],
@@ -269,7 +269,7 @@
             "숨김"
           ],
           "answer": 1,
-          "why": "필드별 표시·한 번에 수정."
+          "why": "필드별 표시, 한 번에 수정."
         },
         {
           "q": "에러 본문 표준 형식은?",
@@ -280,7 +280,7 @@
             "없음"
           ],
           "answer": 1,
-          "why": "type·title·detail+커스텀."
+          "why": "type, title, detail+커스텀."
         }
       ]
     },
@@ -291,14 +291,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "에러는 **도움이 되면서도 안전해야** 한다. 클라이언트가 고칠 수 있게 **충분히** 알리되, 공격자에게 시스템 내부를 **누출하지 않아야** 한다. 스택 트레이스·SQL·내부 경로·라이브러리 버전을 그대로 내보내면, 그것이 공격의 지도가 된다(sec 트랙)."
+          "text": "에러는 **도움이 되면서도 안전해야** 한다. 클라이언트가 고칠 수 있게 **충분히** 알리되, 공격자에게 시스템 내부를 **누출하지 않아야** 한다. 스택 트레이스, SQL, 내부 경로, 라이브러리 버전을 그대로 내보내면, 그것이 공격의 지도가 된다(sec 트랙)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "이 정보 — 알려도 되나 감춰야 하나",
+          "label": "이 정보. 알려도 되나 감춰야 하나",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const info = '{{info}}';\n  const cases = {\n    field:  ['어느 필드가 왜 틀렸는지', true, '클라이언트가 고치는 데 필요 — 알려 준다'],\n    retry:  ['재시도 가능 여부·시점', true, '클라이언트 행동을 정하는 데 필요 — 알려 준다'],\n    trace:  ['traceId(추적용 무작위 id)', true, '지원 문의·로그 대조에 유용 — 내부 정보는 아님'],\n    stack:  ['스택 트레이스', false, '내부 구조·파일 경로 노출 -> 공격 지도. 로그에만.'],\n    sql:    ['SQL 문·DB 오류 원문', false, '스키마·인젝션 힌트 노출 -> 절대 감춤'],\n    exists: ['\\'그 이메일은 없음\\' vs \\'비번 틀림\\'', false, '계정 존재 여부 누출 -> 로그인은 뭉뚱그린다'],\n  }[info];\n  render('정보: ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">알려도 됨 — 클라이언트가 대응하는 데 필요</span>'\n      : '<span class=\\\"no\\\">감춰야 함 — ' + cases[2].split(' -> ')[1] + '</span>') +\n    '\\n\\n  ' + cases[2],\n    '고치는 데 필요한 것은 알리고, 내부 구조·존재 여부는 감춘다(로그에만 남긴다).',\n    box(cases[1] ? '응답에 담아도 됨' : '응답에서 감춤(로그에만)',\n      cases[0] + '\\n' + cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const info = '{{info}}';\n  const cases = {\n    field:  ['어느 필드가 왜 틀렸는지', true, '클라이언트가 고치는 데 필요. 알려 준다'],\n    retry:  ['재시도 가능 여부, 시점', true, '클라이언트 행동을 정하는 데 필요. 알려 준다'],\n    trace:  ['traceId(추적용 무작위 id)', true, '지원 문의, 로그 대조에 유용. 내부 정보는 아님'],\n    stack:  ['스택 트레이스', false, '내부 구조, 파일 경로 노출 -> 공격 지도. 로그에만.'],\n    sql:    ['SQL 문, DB 오류 원문', false, '스키마, 인젝션 힌트 노출 -> 절대 감춤'],\n    exists: ['\\'그 이메일은 없음\\' vs \\'비번 틀림\\'', false, '계정 존재 여부 누출 -> 로그인은 뭉뚱그린다'],\n  }[info];\n  render('정보: ' + cases[0],\n    '  ' + (cases[1]\n      ? '<span class=\\\"ok\\\">알려도 됨. 클라이언트가 대응하는 데 필요</span>'\n      : '<span class=\\\"no\\\">감춰야 함. ' + cases[2].split(' -> ')[1] + '</span>') +\n    '\\n\\n  ' + cases[2],\n    '고치는 데 필요한 것은 알리고, 내부 구조, 존재 여부는 감춘다(로그에만 남긴다).',\n    box(cases[1] ? '응답에 담아도 됨' : '응답에서 감춤(로그에만)',\n      cases[0] + '\\n' + cases[2], cases[1] ? 'good' : 'bad'));\n</script>",
           "controls": [
             {
               "id": "info",
@@ -336,15 +336,15 @@
         },
         {
           "type": "note",
-          "text": "**내부 정보는 응답이 아니라 로그로.** 스택 트레이스·SQL·예외 상세는 디버깅에 꼭 필요하지만, **서버 로그에** `traceId` 와 함께 남긴다. 응답에는 `traceId` 만 주고, 지원팀이 그 id 로 로그를 찾게 한다 — 클라이언트엔 안전하고, 디버깅 정보는 보존된다(8장)."
+          "text": "**내부 정보는 응답이 아니라 로그로.** 스택 트레이스, SQL, 예외 상세는 디버깅에 꼭 필요하지만, **서버 로그에** `traceId` 와 함께 남긴다. 응답에는 `traceId` 만 주고, 지원팀이 그 id 로 로그를 찾게 한다. 클라이언트엔 안전하고, 디버깅 정보는 보존된다(8장)."
         },
         {
           "type": "p",
-          "text": "**존재 여부 누출에 주의하라.** 로그인에서 「그 이메일은 없습니다」와 「비밀번호가 틀렸습니다」를 구분해 주면, 공격자가 어떤 이메일이 가입돼 있는지 알아낸다(계정 열거). 인증 실패는 「이메일 또는 비밀번호가 틀렸습니다」로 **뭉뚱그린다**. 도움과 보안이 충돌할 땐 민감한 곳에서 보안을 택한다(sec-authn)."
+          "text": "**존재 여부 누출에 주의하라.** 로그인에서 그 이메일은 없습니다와 비밀번호가 틀렸습니다를 구분해 주면, 공격자가 어떤 이메일이 가입돼 있는지 알아낸다(계정 열거). 인증 실패는 이메일 또는 비밀번호가 틀렸습니다로 **뭉뚱그린다**. 도움과 보안이 충돌할 땐 민감한 곳에서 보안을 택한다(sec-authn)."
         },
         {
           "type": "try",
-          "text": "네 5xx 응답이 스택 트레이스·SQL 을 노출하는지 확인하라(특히 운영). 노출된다면 응답에선 traceId 만 주고 상세는 로그로 옮겨라. 로그인 실패 메시지가 계정 존재를 누출하지 않는지도 보라."
+          "text": "네 5xx 응답이 스택 트레이스, SQL 을 노출하는지 확인하라(특히 운영). 노출된다면 응답에선 traceId 만 주고 상세는 로그로 옮겨라. 로그인 실패 메시지가 계정 존재를 누출하지 않는지도 보라."
         }
       ],
       "quiz": [
@@ -352,7 +352,7 @@
           "q": "에러 응답에서 감춰야 할 것은?",
           "choices": [
             "필드 오류",
-            "스택 트레이스·SQL·내부 경로",
+            "스택 트레이스, SQL, 내부 경로",
             "재시도 가능성",
             "traceId"
           ],
@@ -390,14 +390,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "좋은 에러는 「무엇이 틀렸나」뿐 아니라 **「이제 뭘 해야 하나」**를 알려 준다. 재시도하면 되나, 기다려야 하나, 입력을 고쳐야 하나, 로그인해야 하나. 이 **행동 지시**가 있으면 클라이언트가 자동으로 올바르게 대응한다 — 특히 **`Retry-After`** 헤더가 핵심이다."
+          "text": "좋은 에러는 무엇이 틀렸나뿐 아니라 **이제 뭘 해야 하나**를 알려 준다. 재시도하면 되나, 기다려야 하나, 입력을 고쳐야 하나, 로그인해야 하나. 이 **행동 지시**가 있으면 클라이언트가 자동으로 올바르게 대응한다. 특히 **`Retry-After`** 헤더가 핵심이다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "코드별 클라이언트 행동",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{code}}';\n  const cases = {\n    c429: ['429 + Retry-After: 30', '기다렸다 재시도', 'wait', '30초 후 자동 재시도 — 백오프의 근거'],\n    c503: ['503 + Retry-After: 60', '기다렸다 재시도', 'wait', '점검·과부하 — 잠시 후 다시'],\n    c500: ['500', '재시도 가능(백오프)', 'retry', '서버 일시 오류 — 지수 백오프로 몇 번'],\n    c400: ['400/422', '재시도 무의미 — 입력 고쳐라', 'fix', '같은 요청은 또 실패. 사용자에게 수정 요청'],\n    c401: ['401', '인증하고 재시도', 'auth', '토큰 갱신·로그인 후 같은 요청'],\n    c403: ['403', '재시도 무의미 — 권한 없음', 'stop', '로그인해도 안 됨. 안내만'],\n  }[c];\n  const colorMap = { wait: '#fbbf24', retry: '#38bdf8', fix: '#fca5a5', auth: '#a78bfa', stop: '#fca5a5' };\n  render(cases[0],\n    '  클라이언트가 할 일 = <span style=\\\"color:' + colorMap[cases[2]] + '\\\">' + cases[1] + '</span>\\n\\n  ' + cases[3],\n    '에러가 「다음 행동」을 지시하면 클라이언트가 자동으로 올바르게 대응한다.',\n    box('행동', cases[0] + '\\n-> ' + cases[1] + '\\n   ' + cases[3],\n      cases[2] === 'fix' || cases[2] === 'stop' ? 'bad' : 'good'));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const c = '{{code}}';\n  const cases = {\n    c429: ['429 + Retry-After: 30', '기다렸다 재시도', 'wait', '30초 후 자동 재시도. 백오프의 근거'],\n    c503: ['503 + Retry-After: 60', '기다렸다 재시도', 'wait', '점검, 과부하. 잠시 후 다시'],\n    c500: ['500', '재시도 가능(백오프)', 'retry', '서버 일시 오류. 지수 백오프로 몇 번'],\n    c400: ['400/422', '재시도 무의미. 입력 고쳐라', 'fix', '같은 요청은 또 실패. 사용자에게 수정 요청'],\n    c401: ['401', '인증하고 재시도', 'auth', '토큰 갱신, 로그인 후 같은 요청'],\n    c403: ['403', '재시도 무의미. 권한 없음', 'stop', '로그인해도 안 됨. 안내만'],\n  }[c];\n  const colorMap = { wait: '#fbbf24', retry: '#38bdf8', fix: '#fca5a5', auth: '#a78bfa', stop: '#fca5a5' };\n  render(cases[0],\n    '  클라이언트가 할 일 = <span style=\\\"color:' + colorMap[cases[2]] + '\\\">' + cases[1] + '</span>\\n\\n  ' + cases[3],\n    '에러가 다음 행동을 지시하면 클라이언트가 자동으로 올바르게 대응한다.',\n    box('행동', cases[0] + '\\n-> ' + cases[1] + '\\n   ' + cases[3],\n      cases[2] === 'fix' || cases[2] === 'stop' ? 'bad' : 'good'));\n</script>",
           "controls": [
             {
               "id": "code",
@@ -437,19 +437,19 @@
           "type": "code",
           "lang": "text",
           "label": "행동을 알려 주는 신호",
-          "text": "429 · 503  → Retry-After: 30        (기다렸다 재시도 — 값은 초 또는 시각)\n400 · 422  → 재시도 무의미 (입력을 고쳐야 함)\n401        → 인증 갱신 후 재시도\n403 · 404  → 재시도 무의미\n5xx        → 지수 백오프로 재시도 (6장)\n\n본문에 retriable: true/false 를 명시하면 더 분명하다."
+          "text": "429, 503  → Retry-After: 30        (기다렸다 재시도. 값은 초 또는 시각)\n400, 422  → 재시도 무의미 (입력을 고쳐야 함)\n401        → 인증 갱신 후 재시도\n403, 404  → 재시도 무의미\n5xx        → 지수 백오프로 재시도 (6장)\n\n본문에 retriable: true/false 를 명시하면 더 분명하다."
         },
         {
           "type": "note",
-          "text": "**`Retry-After` 는 서버가 클라이언트의 재시도를 조율하는 손잡이다.** 과부하(503)·속도 제한(429) 때 이 헤더로 「N 초 뒤에 와라」라고 말하면, 모든 클라이언트가 그만큼 기다려 **몰림(thundering herd)**을 막는다. 이 값 없이 즉시 재시도하면 쓰러진 서버에 재시도가 몰려 회복을 방해한다."
+          "text": "**`Retry-After` 는 서버가 클라이언트의 재시도를 조율하는 손잡이다.** 과부하(503), 속도 제한(429) 때 이 헤더로 N 초 뒤에 와라라고 말하면, 모든 클라이언트가 그만큼 기다려 **몰림(thundering herd)**을 막는다. 이 값 없이 즉시 재시도하면 쓰러진 서버에 재시도가 몰려 회복을 방해한다."
         },
         {
           "type": "p",
-          "text": "**재시도 가능 여부를 명시하라.** 같은 4xx 라도 429 는 재시도 가능, 400 은 무의미다. 본문에 `retriable: true/false` 를 넣거나 상태 코드로 명확히 구분하면, 클라이언트의 재시도 로직(6장)이 「재시도해도 되는 것만」 재시도한다 — 무의미한 재시도로 서버를 괴롭히지 않는다."
+          "text": "**재시도 가능 여부를 명시하라.** 같은 4xx 라도 429 는 재시도 가능, 400 은 무의미다. 본문에 `retriable: true/false` 를 넣거나 상태 코드로 명확히 구분하면, 클라이언트의 재시도 로직(6장)이 재시도해도 되는 것만 재시도한다. 무의미한 재시도로 서버를 괴롭히지 않는다."
         },
         {
           "type": "try",
-          "text": "네 API 의 429·503 응답에 `Retry-After` 가 있는지 확인하라. 없으면 추가하고, 클라이언트가 그 값을 존중해 대기 후 재시도하는지 점검하라."
+          "text": "네 API 의 429, 503 응답에 `Retry-After` 가 있는지 확인하라. 없으면 추가하고, 클라이언트가 그 값을 존중해 대기 후 재시도하는지 점검하라."
         }
       ],
       "quiz": [
@@ -468,7 +468,7 @@
           "q": "재시도가 무의미한 응답은?",
           "choices": [
             "429",
-            "400/422(입력 오류)·403",
+            "400/422(입력 오류), 403",
             "503",
             "500"
           ],
@@ -490,19 +490,19 @@
     },
     {
       "id": "6",
-      "title": "재시도와 백오프 — 멱등과 함께",
+      "title": "재시도와 백오프. 멱등과 함께",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "5xx·네트워크 오류는 **재시도**로 대개 해결된다 — 일시적이니까. 하지만 **즉시·무한** 재시도는 쓰러진 서버를 더 밟는다. **지수 백오프 + 지터**(점점 길게, 무작위 간격)로 재시도하고, **재시도 가능한 것만**(5xx·429·네트워크) 재시도한다. 그리고 **멱등**이 아니면 재시도가 위험하다."
+          "text": "5xx, 네트워크 오류는 **재시도**로 대개 해결된다. 일시적이니까. 하지만 **즉시, 무한** 재시도는 쓰러진 서버를 더 밟는다. **지수 백오프 + 지터**(점점 길게, 무작위 간격)로 재시도하고, **재시도 가능한 것만**(5xx, 429, 네트워크) 재시도한다. 그리고 **멱등**이 아니면 재시도가 위험하다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "지수 백오프 — 재시도 간격이 늘어난다",
+          "label": "지수 백오프. 재시도 간격이 늘어난다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const attempt = {{attempt}};\n  const base = 200;\n  const delay = base * Math.pow(2, attempt);\n  const withJitter = Math.round(delay * (0.5 + 0.5));\n  render('재시도 ' + (attempt + 1) + '회차 — 지수 백오프',\n    '  대기 = base(' + base + 'ms) x 2^' + attempt + ' = ' + delay + 'ms  (+지터로 분산)\\n\\n' +\n    '  간격을 점점 늘려 쓰러진 서버에 여유를 준다. 지터로 여러 클라이언트가 동시에 안 몰리게.',\n    '즉시·규칙적 재시도는 몰림을 만든다. 점점 길게 + 무작위 지터로 분산.',\n    bars([0,1,2,3,4].map(a => ['재시도 ' + (a+1), Math.min(100, base*Math.pow(2,a)/60),\n      (base*Math.pow(2,a)) + 'ms', a === attempt ? '#4ade80' : '#334155'])));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const attempt = {{attempt}};\n  const base = 200;\n  const delay = base * Math.pow(2, attempt);\n  const withJitter = Math.round(delay * (0.5 + 0.5));\n  render('재시도 ' + (attempt + 1) + '회차. 지수 백오프',\n    '  대기 = base(' + base + 'ms) x 2^' + attempt + ' = ' + delay + 'ms  (+지터로 분산)\\n\\n' +\n    '  간격을 점점 늘려 쓰러진 서버에 여유를 준다. 지터로 여러 클라이언트가 동시에 안 몰리게.',\n    '즉시, 규칙적 재시도는 몰림을 만든다. 점점 길게 + 무작위 지터로 분산.',\n    bars([0,1,2,3,4].map(a => ['재시도 ' + (a+1), Math.min(100, base*Math.pow(2,a)/60),\n      (base*Math.pow(2,a)) + 'ms', a === attempt ? '#4ade80' : '#334155'])));\n</script>",
           "controls": [
             {
               "id": "attempt",
@@ -517,15 +517,15 @@
         },
         {
           "type": "note",
-          "text": "**멱등하지 않은 요청의 재시도는 중복을 만든다.** `POST /payments` 를 재시도하면 두 번 결제될 수 있다 — 첫 응답이 네트워크에서 사라졌을 뿐 서버는 처리했을지 모른다. 그래서 재시도할 쓰기는 **멱등 키**로 보호해야 한다(api-idempotent 칸). GET·PUT·DELETE 는 본래 멱등이라 안전하다(2장)."
+          "text": "**멱등하지 않은 요청의 재시도는 중복을 만든다.** `POST /payments` 를 재시도하면 두 번 결제될 수 있다. 첫 응답이 네트워크에서 사라졌을 뿐 서버는 처리했을지 모른다. 그래서 재시도할 쓰기는 **멱등 키**로 보호해야 한다(api-idempotent 칸). GET, PUT, DELETE 는 본래 멱등이라 안전하다(2장)."
         },
         {
           "type": "p",
-          "text": "**재시도 상한과 서킷 브레이커를 둬라.** 무한 재시도는 장애를 길게 끈다 — 몇 회로 제한하고, 그 뒤엔 사용자에게 실패를 알린다. 특정 대상이 계속 실패하면 **서킷 브레이커**로 잠시 아예 안 부르고 빠르게 실패시켜(회복할 틈을 주고) 연쇄 장애를 막는다(scale 트랙)."
+          "text": "**재시도 상한과 서킷 브레이커를 둬라.** 무한 재시도는 장애를 길게 끈다. 몇 회로 제한하고, 그 뒤엔 사용자에게 실패를 알린다. 특정 대상이 계속 실패하면 **서킷 브레이커**로 잠시 아예 안 부르고 빠르게 실패시켜(회복할 틈을 주고) 연쇄 장애를 막는다(scale 트랙)."
         },
         {
           "type": "try",
-          "text": "네 클라이언트의 재시도 로직을 보라. 지수 백오프+지터를 쓰는지, 재시도 가능한 코드(5xx·429)만 재시도하는지, 상한이 있는지 확인하라. 재시도하는 쓰기가 멱등한지도 점검하라."
+          "text": "네 클라이언트의 재시도 로직을 보라. 지수 백오프+지터를 쓰는지, 재시도 가능한 코드(5xx, 429)만 재시도하는지, 상한이 있는지 확인하라. 재시도하는 쓰기가 멱등한지도 점검하라."
         }
       ],
       "quiz": [
@@ -538,13 +538,13 @@
             "캐시"
           ],
           "answer": 1,
-          "why": "즉시·규칙적 재시도는 몰림."
+          "why": "즉시, 규칙적 재시도는 몰림."
         },
         {
           "q": "재시도하면 위험한 요청은?",
           "choices": [
             "GET",
-            "멱등하지 않은 쓰기(POST) — 중복 생성",
+            "멱등하지 않은 쓰기(POST). 중복 생성",
             "PUT",
             "DELETE"
           ],
@@ -555,7 +555,7 @@
           "q": "재시도해도 되는 응답은?",
           "choices": [
             "400",
-            "5xx·429·네트워크 오류",
+            "5xx, 429, 네트워크 오류",
             "403",
             "404"
           ],
@@ -566,19 +566,19 @@
     },
     {
       "id": "7",
-      "title": "부분 실패 — 배치의 애매함",
+      "title": "부분 실패. 배치의 애매함",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "여러 건을 한 번에 처리하는 API(`POST /batch`)는 반드시 정해야 한다: **전부 성공/전부 실패(all-or-nothing)** 인가, **항목별 결과**인가. 애매하게 두면 「5개 중 3개만 됐는데 200 인지 500 인지」를 호출자가 알 수 없어, 재시도가 중복을 만들거나 성공분을 날린다."
+          "text": "여러 건을 한 번에 처리하는 API(`POST /batch`)는 반드시 정해야 한다: **전부 성공/전부 실패(all-or-nothing)** 인가, **항목별 결과**인가. 애매하게 두면 5개 중 3개만 됐는데 200 인지 500 인지를 호출자가 알 수 없어, 재시도가 중복을 만들거나 성공분을 날린다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "배치 실패 — all-or-nothing vs 항목별",
+          "label": "배치 실패. all-or-nothing vs 항목별",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const atomic = mode === 'atomic';\n  render(atomic ? '전부 성공 / 전부 실패 (트랜잭션)' : '항목별 결과 (부분 성공 허용)',\n    (atomic\n      ? '  5건 중 1건 실패 -> 전체 롤백, 아무것도 안 됨(4xx/5xx).\\n' +\n        '  <span class=\\\"ok\\\">단순·안전 — 재시도하면 전체를 다시. 중복 걱정 적다.</span>\\n' +\n        '  단, 큰 배치에서 한 건 때문에 전부 실패는 비효율일 수 있다.'\n      : '  5건 각각 성공/실패를 배열로 반환(207 Multi-Status 등).\\n' +\n        '  <span class=\\\"ok\\\">유연 — 성공분은 남고 실패분만 재시도.</span>\\n' +\n        '  단, 클라이언트가 항목별 결과를 해석·재시도하는 로직이 필요.'),\n    '배치는 「전부냐 항목별이냐」를 반드시 명시. 애매하면 호출자가 중복·손실을 만든다.',\n    steps(atomic\n      ? [['1 OK', 'good'], ['2 OK', 'good'], ['3 FAIL -> 전체 롤백', 'bad'], ['4 (취소)', ''], ['5 (취소)', '']]\n      : [['1 OK', 'good'], ['2 OK', 'good'], ['3 FAIL (이것만 재시도)', 'bad'], ['4 OK', 'good'], ['5 OK', 'good']]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const mode = '{{mode}}';\n  const atomic = mode === 'atomic';\n  render(atomic ? '전부 성공 / 전부 실패 (트랜잭션)' : '항목별 결과 (부분 성공 허용)',\n    (atomic\n      ? '  5건 중 1건 실패 -> 전체 롤백, 아무것도 안 됨(4xx/5xx).\\n' +\n        '  <span class=\\\"ok\\\">단순, 안전. 재시도하면 전체를 다시. 중복 걱정 적다.</span>\\n' +\n        '  단, 큰 배치에서 한 건 때문에 전부 실패는 비효율일 수 있다.'\n      : '  5건 각각 성공/실패를 배열로 반환(207 Multi-Status 등).\\n' +\n        '  <span class=\\\"ok\\\">유연. 성공분은 남고 실패분만 재시도.</span>\\n' +\n        '  단, 클라이언트가 항목별 결과를 해석, 재시도하는 로직이 필요.'),\n    '배치는 전부냐 항목별이냐를 반드시 명시. 애매하면 호출자가 중복, 손실을 만든다.',\n    steps(atomic\n      ? [['1 OK', 'good'], ['2 OK', 'good'], ['3 FAIL -> 전체 롤백', 'bad'], ['4 (취소)', ''], ['5 (취소)', '']]\n      : [['1 OK', 'good'], ['2 OK', 'good'], ['3 FAIL (이것만 재시도)', 'bad'], ['4 OK', 'good'], ['5 OK', 'good']]));\n</script>",
           "controls": [
             {
               "id": "mode",
@@ -600,15 +600,15 @@
         },
         {
           "type": "note",
-          "text": "**항목별 결과를 택하면 각 항목에 식별자와 상태를 담아라.** `[{id, status, error?}]` 처럼 어느 항목이 성공·실패했는지 명확히 주면, 클라이언트가 **실패한 것만** 골라 재시도한다. 그리고 각 항목이 멱등하면(idempotent), 전체 재시도해도 성공분이 중복되지 않아 가장 안전하다."
+          "text": "**항목별 결과를 택하면 각 항목에 식별자와 상태를 담아라.** `[{id, status, error?}]` 처럼 어느 항목이 성공, 실패했는지 명확히 주면, 클라이언트가 **실패한 것만** 골라 재시도한다. 그리고 각 항목이 멱등하면(idempotent), 전체 재시도해도 성공분이 중복되지 않아 가장 안전하다."
         },
         {
           "type": "p",
-          "text": "**애매한 부분 성공이 최악이다.** 「일부 됐는데 상태 코드가 200」이면 클라이언트는 전체 성공으로 알고 넘어가 실패분을 잃는다. 「일부 됐는데 500」이면 전체 재시도해 성공분이 중복된다. 정책을 **명시**하고 응답에 항목별 결과를 담는 것이 이 애매함을 없앤다."
+          "text": "**애매한 부분 성공이 최악이다.** 일부 됐는데 상태 코드가 200이면 클라이언트는 전체 성공으로 알고 넘어가 실패분을 잃는다. 일부 됐는데 500이면 전체 재시도해 성공분이 중복된다. 정책을 **명시**하고 응답에 항목별 결과를 담는 것이 이 애매함을 없앤다."
         },
         {
           "type": "try",
-          "text": "네 배치·다건 API 가 부분 실패를 어떻게 다루는지 확인하라. 정책이 불명확하면 「전부/전부」나 「항목별 결과」로 명시하고, 항목별이면 각 항목에 id·status 를 담아라."
+          "text": "네 배치, 다건 API 가 부분 실패를 어떻게 다루는지 확인하라. 정책이 불명확하면 전부/전부나 항목별 결과로 명시하고, 항목별이면 각 항목에 id, status 를 담아라."
         }
       ],
       "quiz": [
@@ -621,13 +621,13 @@
             "인증"
           ],
           "answer": 1,
-          "why": "애매하면 중복·손실."
+          "why": "애매하면 중복, 손실."
         },
         {
           "q": "항목별 결과를 택할 때 각 항목에 담을 것은?",
           "choices": [
             "없음",
-            "id·status·error(실패한 것만 재시도 가능하게)",
+            "id, status, error(실패한 것만 재시도 가능하게)",
             "전체 롤백",
             "메시지 하나"
           ],
@@ -643,25 +643,25 @@
             "항목별"
           ],
           "answer": 1,
-          "why": "중복·손실 유발."
+          "why": "중복, 손실 유발."
         }
       ]
     },
     {
       "id": "8",
-      "title": "추적 — traceId 로 잇는다",
+      "title": "추적. traceId 로 잇는다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「어제 3시에 결제가 실패했대요」 — 로그가 수백만 줄인데 어느 것인지? 모든 요청·응답·로그에 **`traceId`**(요청마다 부여하는 무작위 id)를 실으면, 사용자가 본 에러를 서버 로그의 정확한 그 줄과 **한 번에 잇는다**. 에러 응답에 traceId 를 주는 것이 지원·디버깅의 핵심이다."
+          "text": "어제 3시에 결제가 실패했대요. 로그가 수백만 줄인데 어느 것인지? 모든 요청, 응답, 로그에 **`traceId`**(요청마다 부여하는 무작위 id)를 실으면, 사용자가 본 에러를 서버 로그의 정확한 그 줄과 **한 번에 잇는다**. 에러 응답에 traceId 를 주는 것이 지원, 디버깅의 핵심이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "traceId — 사용자 화면과 서버 로그를 잇는다",
+          "label": "traceId. 사용자 화면과 서버 로그를 잇는다",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{trace}}' === 'on';\n  render(has ? 'traceId 있음' : 'traceId 없음',\n    (has\n      ? '  사용자: \\'오류가 났어요 (코드 a1b2c3)\\'\\n' +\n        '  지원: 로그에서 traceId=a1b2c3 검색 -> 그 요청의 전 과정을 즉시 본다\\n' +\n        '  <span class=\\\"ok\\\">화면의 에러 = 로그의 그 줄. 1분 만에 원인 도달.</span>'\n      : '  사용자: \\'그냥 오류가 났어요\\'\\n' +\n        '  지원: 시각·계정으로 수백만 줄을 뒤진다 -> 못 찾거나 몇 시간\\n' +\n        '  <span class=\\\"no\\\">화면과 로그가 안 이어져 재현·추적이 지옥.</span>'),\n    '요청마다 traceId 를 부여해 응답·로그·다운스트림에 전파하면 추적이 즉시.',\n    timeline(has\n      ? [['요청', [[1,'work','traceId 생성 a1b2c3']]],\n         ['서비스', [[1,'work','a1b2c3'],[1,'work','a1b2c3'],[1,'bad2','실패 a1b2c3']]],\n         ['응답', [[1,'warn2','에러+traceId a1b2c3']]]]\n      : [['요청', [[1,'work','(id 없음)']]],\n         ['서비스', [[1,'work',''],[1,'work',''],[1,'bad2','실패']]],\n         ['응답', [[1,'warn2','에러만']]]]));\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const has = '{{trace}}' === 'on';\n  render(has ? 'traceId 있음' : 'traceId 없음',\n    (has\n      ? '  사용자: \\'오류가 났어요 (코드 a1b2c3)\\'\\n' +\n        '  지원: 로그에서 traceId=a1b2c3 검색 -> 그 요청의 전 과정을 즉시 본다\\n' +\n        '  <span class=\\\"ok\\\">화면의 에러 = 로그의 그 줄. 1분 만에 원인 도달.</span>'\n      : '  사용자: \\'그냥 오류가 났어요\\'\\n' +\n        '  지원: 시각, 계정으로 수백만 줄을 뒤진다 -> 못 찾거나 몇 시간\\n' +\n        '  <span class=\\\"no\\\">화면과 로그가 안 이어져 재현, 추적이 지옥.</span>'),\n    '요청마다 traceId 를 부여해 응답, 로그, 다운스트림에 전파하면 추적이 즉시.',\n    timeline(has\n      ? [['요청', [[1,'work','traceId 생성 a1b2c3']]],\n         ['서비스', [[1,'work','a1b2c3'],[1,'work','a1b2c3'],[1,'bad2','실패 a1b2c3']]],\n         ['응답', [[1,'warn2','에러+traceId a1b2c3']]]]\n      : [['요청', [[1,'work','(id 없음)']]],\n         ['서비스', [[1,'work',''],[1,'work',''],[1,'bad2','실패']]],\n         ['응답', [[1,'warn2','에러만']]]]));\n</script>",
           "controls": [
             {
               "id": "trace",
@@ -673,15 +673,15 @@
         },
         {
           "type": "note",
-          "text": "**traceId 는 요청 입구에서 만들어 끝까지 전파한다.** 게이트웨이·첫 서비스가 없으면 생성하고, 있으면(헤더) 이어받아, 호출하는 모든 다운스트림 서비스·로그에 같은 id 를 단다. 그러면 여러 서비스에 걸친 한 요청의 여정이 하나의 id 로 꿰어진다(분산 추적 — obs/devops 트랙)."
+          "text": "**traceId 는 요청 입구에서 만들어 끝까지 전파한다.** 게이트웨이, 첫 서비스가 없으면 생성하고, 있으면(헤더) 이어받아, 호출하는 모든 다운스트림 서비스, 로그에 같은 id 를 단다. 그러면 여러 서비스에 걸친 한 요청의 여정이 하나의 id 로 꿰어진다(분산 추적. obs/devops 트랙)."
         },
         {
           "type": "p",
-          "text": "**응답의 traceId 와 로그의 상세를 짝지어라.** 4장에서 스택·SQL 을 응답에서 감췄다 — 대신 그것들을 traceId 와 함께 **로그에** 남긴다. 사용자·클라이언트는 traceId 만 받고, 지원팀이 그 id 로 로그의 민감한 상세를 찾는다. 안전(감춤)과 디버깅(보존)을 traceId 가 잇는다."
+          "text": "**응답의 traceId 와 로그의 상세를 짝지어라.** 4장에서 스택, SQL 을 응답에서 감췄다. 대신 그것들을 traceId 와 함께 **로그에** 남긴다. 사용자, 클라이언트는 traceId 만 받고, 지원팀이 그 id 로 로그의 민감한 상세를 찾는다. 안전(감춤)과 디버깅(보존)을 traceId 가 잇는다."
         },
         {
           "type": "try",
-          "text": "네 API 가 요청마다 traceId 를 부여해 에러 응답·로그에 싣는지 확인하라. 없으면 미들웨어로 생성·전파하고, 5xx 응답에 traceId 를 담아 지원이 로그를 찾게 하라."
+          "text": "네 API 가 요청마다 traceId 를 부여해 에러 응답, 로그에 싣는지 확인하라. 없으면 미들웨어로 생성, 전파하고, 5xx 응답에 traceId 를 담아 지원이 로그를 찾게 하라."
         }
       ],
       "quiz": [
@@ -694,13 +694,13 @@
             "속도 제한"
           ],
           "answer": 1,
-          "why": "추적·지원의 핵심."
+          "why": "추적, 지원의 핵심."
         },
         {
           "q": "traceId 는 어디서 만들어 어디까지 전파하나?",
           "choices": [
             "응답에서만",
-            "요청 입구에서 생성해 모든 다운스트림·로그에",
+            "요청 입구에서 생성해 모든 다운스트림, 로그에",
             "DB 에서",
             "클라이언트만"
           ],
@@ -708,7 +708,7 @@
           "why": "분산 추적."
         },
         {
-          "q": "감춘 스택·SQL 을 디버깅에 쓰려면?",
+          "q": "감춘 스택, SQL 을 디버깅에 쓰려면?",
           "choices": [
             "응답에 노출",
             "traceId 와 함께 로그에 남겨 짝짓기",
@@ -722,19 +722,19 @@
     },
     {
       "id": "9",
-      "title": "점검표 — 에러 설계",
+      "title": "점검표. 에러 설계",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "API 에러를 설계하거나 다듬을 때 이 목록을 확인하라. 핵심은 「종류를 구분·행동을 지시·안전하게·추적 가능하게」다."
+          "text": "API 에러를 설계하거나 다듬을 때 이 목록을 확인하라. 핵심은 종류를 구분, 행동을 지시, 안전하게, 추적 가능하게다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "점검표 — 하나씩 켜 보라",
+          "label": "점검표. 하나씩 켜 보라",
           "height": "360px",
-          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '실패를 4xx/5xx 로 구분(200으로 실패 X)',\n    '401/403·400/422 를 상황에 맞게 쓴다',\n    '기계용 code 와 사람용 message 를 분리',\n    '검증 오류는 필드별로 담는다',\n    '스택·SQL·존재여부를 응답에서 감춘다(로그로)',\n    'Retry-After·재시도 가능성으로 행동을 지시',\n    '재시도는 백오프+지터, 쓰기는 멱등으로 보호',\n    '배치는 전부/항목별을 명시 · traceId 로 추적',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인 — 실패가 명확하고, 안전하고, 추적된다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '종류를 구분·행동을 지시·안전하게·추적 가능하게. 에러도 성공만큼 설계한다.',\n    '<div>' + rows + '</div>');\n</script>",
+          "text": "<style>\n  body { font: 13px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .cmd { font:12.5px/1.7 ui-monospace, monospace; color:#7dd3fc; white-space:pre-wrap; }\n  .box { background:#111c33; border-radius:8px; padding:8px 10px; margin:6px 0;\n         font:12px/1.7 ui-monospace, monospace; white-space:pre-wrap; }\n  .box.bad { background:#2a1414; border:1px solid #7f1d1d; }\n  .box.good { background:#132a1c; border:1px solid #166534; }\n  .box h5 { margin:0 0 4px; font:11px system-ui; color:#94a3b8; font-weight:600; }\n  .bars { margin:8px 0; }\n  .bars .row { display:flex; align-items:center; gap:8px; margin:3px 0; font:11.5px ui-monospace, monospace; }\n  .bars .lab { width:150px; color:#94a3b8; text-align:right; flex:0 0 auto; }\n  .bars .bar { height:14px; border-radius:3px; background:#38bdf8; flex:0 0 auto; min-width:2px; }\n  .bars .val { color:#e2e8f0; flex:0 0 auto; }\n  .steps { margin:8px 0; }\n  .steps .s { padding:5px 9px; margin:3px 0; border-radius:5px; background:#111c33; border-left:3px solid #334155;\n              font:11.5px/1.5 ui-monospace, monospace; }\n  .steps .s.on { background:#0e2a3a; border-left-color:#22d3ee; color:#e2f5ff; }\n  .steps .s.good { border-left-color:#22c55e; } .steps .s.bad { border-left-color:#ef4444; background:#2a1414; }\n  .tl { margin:8px 0; font:11px/1.4 ui-monospace, monospace; }\n  .tl .lane { display:flex; align-items:center; gap:6px; margin:4px 0; }\n  .tl .who { width:52px; color:#94a3b8; flex:0 0 auto; }\n  .tl .seg { height:16px; border-radius:3px; display:flex; align-items:center; padding:0 5px;\n             color:#0b1220; font-size:10px; white-space:nowrap; flex:0 0 auto; }\n  .tl .ok2 { background:#4ade80; } .tl .work { background:#38bdf8; } .tl .bad2 { background:#ef4444; color:#fff; }\n  .tl .warn2 { background:#f59e0b; }\n  pre { margin:8px 0 0; font:12px/1.65 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12px; color:#94a3b8; margin-top:6px; }\n  .ok { color:#4ade80; } .no { color:#fca5a5; } .warn { color:#fbbf24; } .dim { color:#64748b; }\n</style>\n<div class=\"wrap\">\n  <div class=\"cmd\" id=\"cmd\"></div>\n  <div id=\"viz\"></div>\n  <pre id=\"app\"></pre>\n  <div class=\"hint\" id=\"hint\"></div>\n</div>\n<script>\n  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');\n  const box = (title, body, cls) =>\n    '<div class=\"box ' + (cls || '') + '\"><h5>' + esc(title) + '</h5>' + esc(body) + '</div>';\n  const bars = (rows) => '<div class=\"bars\">' + rows.map(([lab, pct, val, col]) =>\n    '<div class=\"row\"><span class=\"lab\">' + esc(lab) + '</span>' +\n    '<span class=\"bar\" style=\"width:' + Math.max(2, pct * 1.9) + 'px;background:' + (col || '#38bdf8') + '\"></span>' +\n    '<span class=\"val\">' + esc(val) + '</span></div>').join('') + '</div>';\n  const steps = (rows) => '<div class=\"steps\">' + rows.map(([txt, cls]) =>\n    '<div class=\"s ' + (cls || '') + '\">' + esc(txt) + '</div>').join('') + '</div>';\n  const timeline = (lanes) => '<div class=\"tl\">' + lanes.map(([who, segs]) =>\n    '<div class=\"lane\"><span class=\"who\">' + esc(who) + '</span>' + segs.map(([w, cls, label]) =>\n      '<span class=\"seg ' + cls + '\" style=\"width:' + (w * 20) + 'px\">' + esc(label || '') + '</span>').join('') +\n    '</div>').join('') + '</div>';\n  function render(cmd, body, hint, viz) {\n    document.getElementById('cmd').textContent = cmd || '';\n    document.getElementById('viz').innerHTML = viz || '';\n    document.getElementById('app').innerHTML = body;\n    document.getElementById('hint').textContent = hint || '';\n  }\n</script>\n<script>\n  const on = {{n}};\n  const items = [\n    '실패를 4xx/5xx 로 구분(200으로 실패 X)',\n    '401/403, 400/422 를 상황에 맞게 쓴다',\n    '기계용 code 와 사람용 message 를 분리',\n    '검증 오류는 필드별로 담는다',\n    '스택, SQL, 존재여부를 응답에서 감춘다(로그로)',\n    'Retry-After, 재시도 가능성으로 행동을 지시',\n    '재시도는 백오프+지터, 쓰기는 멱등으로 보호',\n    '배치는 전부/항목별을 명시, traceId 로 추적',\n  ];\n  const rows = items.map((t, i) => '<div style=\\\"font:12px/1.9 ui-monospace;color:' +\n    (i < on ? '#4ade80' : '#475569') + '\\\">' + (i < on ? '[v] ' : '[ ] ') + esc(t) + '</div>').join('');\n  render('checklist ' + on + '/8',\n    '  ' + (on >= 8\n      ? '<span class=\\\"ok\\\">전부 확인. 실패가 명확하고, 안전하고, 추적된다.</span>'\n      : '<span class=\\\"warn\\\">' + (8 - on) + '개 남음.</span>'),\n    '종류를 구분, 행동을 지시, 안전하게, 추적 가능하게. 에러도 성공만큼 설계한다.',\n    '<div>' + rows + '</div>');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -749,24 +749,24 @@
         },
         {
           "type": "note",
-          "text": "**한 줄 요약: 에러도 성공만큼 설계하라.** 상태 코드로 큰 분류(2장), code 로 정확한 종류(3장), 필요한 것은 알리고 위험한 것은 감추고(4장), 다음 행동을 지시하고(5·6장), traceId 로 잇는다(8장). 이 층들이 맞물리면 클라이언트가 실패에 자동으로 올바르게 대응한다."
+          "text": "**한 줄 요약: 에러도 성공만큼 설계하라.** 상태 코드로 큰 분류(2장), code 로 정확한 종류(3장), 필요한 것은 알리고 위험한 것은 감추고(4장), 다음 행동을 지시하고(5, 6장), traceId 로 잇는다(8장). 이 층들이 맞물리면 클라이언트가 실패에 자동으로 올바르게 대응한다."
         },
         {
           "type": "p",
-          "text": "**이 트랙의 연결.** 에러 설계는 자원 응답 봉투(api-resource) 안에 살고, 재시도는 멱등(api-idempotent)의 계약에 기대며, 429 는 속도 제한(api-limit)과, 401/403 은 인증·권한(api-authz)과, 형식 문서화는 api-doc 과 이어진다. **실패를 일급으로 다루는 것이 신뢰받는 API 의 조건**이다."
+          "text": "**이 트랙의 연결.** 에러 설계는 자원 응답 봉투(api-resource) 안에 살고, 재시도는 멱등(api-idempotent)의 계약에 기대며, 429 는 속도 제한(api-limit)과, 401/403 은 인증, 권한(api-authz)과, 형식 문서화는 api-doc 과 이어진다. **실패를 일급으로 다루는 것이 신뢰받는 API 의 조건**이다."
         },
         {
           "type": "try",
-          "text": "네 API 의 에러들에 이 8개 항목을 채점하라. 「200으로 실패」와 「code 분리」 두 가지부터 잡으면 클라이언트의 방어적 추측이 크게 준다."
+          "text": "네 API 의 에러들에 이 8개 항목을 채점하라. 200으로 실패와 code 분리 두 가지부터 잡으면 클라이언트의 방어적 추측이 크게 준다."
         }
       ],
       "quiz": [
         {
           "q": "에러 설계의 네 축은?",
           "choices": [
-            "빠름·짧음·숨김·200",
-            "종류 구분·행동 지시·안전·추적",
-            "캐시·압축·복제·샤딩",
+            "빠름, 짧음, 숨김, 200",
+            "종류 구분, 행동 지시, 안전, 추적",
+            "캐시, 압축, 복제, 샤딩",
             "인증만"
           ],
           "answer": 1,
@@ -786,10 +786,10 @@
         {
           "q": "가장 먼저 잡을 두 가지는?",
           "choices": [
-            "캐시·압축",
+            "캐시, 압축",
             "200으로 실패 금지 + code 분리",
-            "GraphQL·샤딩",
-            "URL·헤더"
+            "GraphQL, 샤딩",
+            "URL, 헤더"
           ],
           "answer": 1,
           "why": "방어적 추측을 없앤다."

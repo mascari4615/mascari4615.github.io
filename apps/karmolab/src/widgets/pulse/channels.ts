@@ -1,18 +1,18 @@
 /**
  * 박동의 방송 목록.
  *
- * 봇 아트 씬(Botwiki 가 「art bot = 봇이기 위한 봇」이라 부르는 갈래)을 다섯 갈래로 갈라
+ * 봇 아트 씬(Botwiki 가 art bot = 봇이기 위한 봇이라 부르는 갈래)을 다섯 갈래로 갈라
  * 한 갈래에 하나씩 세웠다. 갈래를 채우는 게 목적이라 서로 안 닮게 골랐다:
  *
- *   글자형 — 뜻 없는 글자가 흐르다 **가끔 진짜 낱말**  → `letters.ts` (이 도구의 중심)
- *   박동형 — 고정 주기로 무의미한 신호            → 종(소리)
- *   눈금형 — 세상이 얼마나 지나갔는지 계속 알려줌   → 눈금
- *   소진형 — 유한한 목록을 끝까지 다 뱉고 **끝남**  → 낱말(넉 달) · 음절(7년 8개월)
- *   말뭉치형 — 재료 + 규칙 = 무한 변주             → 한 줄
- *   주술형 — 보는 사람이 제 의미를 갖다 붙임        → 점 (+ 세 글자의 「나만의 것」)
- *   그림형 — 그리지 않으면 흉내가 안 나는 것        → `art.ts` (별밭 하나만 남음)
+ *   글자형. 뜻 없는 글자가 흐르다 **가끔 진짜 낱말**  → `letters.ts` (이 도구의 중심)
+ *   박동형. 고정 주기로 무의미한 신호            → 종(소리)
+ *   눈금형. 세상이 얼마나 지나갔는지 계속 알려줌   → 눈금
+ *   소진형. 유한한 목록을 끝까지 다 뱉고 **끝남**  → 낱말(넉 달), 음절(7년 8개월)
+ *   말뭉치형. 재료 + 규칙 = 무한 변주             → 한 줄
+ *   주술형. 보는 사람이 제 의미를 갖다 붙임        → 점 (+ 세 글자의 나만의 것)
+ *   그림형. 그리지 않으면 흉내가 안 나는 것        → `art.ts` (별밭 하나만 남음)
  *
- * 전부 `beat(tick)` 하나로 끝난다 — 저장도, 통신도, 서버도 없다.
+ * 전부 `beat(tick)` 하나로 끝난다. 저장도, 통신도, 서버도 없다.
  */
 import type { Beat, Channel } from './core';
 import { t } from '../../lib/i18n';
@@ -23,15 +23,15 @@ import { DAY, HOUR, MINUTE, dateOf, pick, rngFor, tickOf, tickStart } from './co
 /* ── 박동형 ②: 종 ──────────────────────────────────────────────
    `@big_ben_clock` 은 2009년부터 정각마다 BONG 을 시각 수만큼 쳤다. 48만 명이 그걸 본다.
 
-   **여기서 본체는 소리다.** 「BONG」이라고 적힌 글자에는 아무 뜻이 없다 —
+   **여기서 본체는 소리다.** BONG이라고 적힌 글자에는 아무 뜻이 없다 . 
    트위터에서 그게 통한 건 읽는 사람 머릿속에서 소리가 났기 때문이다. 화면에서는 그게 안 된다.
    그래서 진짜로 친다(사용자 지적, 2026-08-09). 글자는 자막으로 강등. */
 
-/** 종 한 번. 배음이 정수배가 아닌 것이 종소리의 정체다 — 정수배로 쌓으면 오르간이 된다. */
+/** 종 한 번. 배음이 정수배가 아닌 것이 종소리의 정체다. 정수배로 쌓으면 오르간이 된다. */
 function strike(ac: AudioContext, at: number, base: number, gain: number): void {
   const partials: Array<[number, number, number]> = [
     // [배음비, 크기, 길이(초)]
-    [0.5, 0.6, 5.5], // 험(hum) — 낮게 오래 남는 것
+    [0.5, 0.6, 5.5], // 험(hum). 낮게 오래 남는 것
     [1.0, 1.0, 4.2],
     [1.19, 0.5, 3.0],
     [1.56, 0.4, 2.2],
@@ -73,7 +73,7 @@ const bell: Channel = {
       sub: t('pulse.bell.sub'),
       paint: bellPaint(h12),
       sound(ac, when) {
-        /* 낮의 종은 높고 밤의 종은 낮다 — 같은 소리를 스물네 번 들으면 시각을 잃는다. */
+        /* 낮의 종은 높고 밤의 종은 낮다. 같은 소리를 스물네 번 들으면 시각을 잃는다. */
         const base = 262 - (h24 / 24) * 70;
         for (let i = 0; i < h12; i++) strike(ac, when + i * 1.15, base, 0.16);
       }
@@ -83,7 +83,7 @@ const bell: Channel = {
 
 /* ── 눈금형: 눈금 ──────────────────────────────────────────────
    `@year_progress` 는 한 해가 1% 갈 때마다 막대 하나를 올린다. 그것만 한다.
-   여기서는 시·일·달·해를 한 번에 본다 — 지금이 어디쯤인지가 통째로 보인다. */
+   여기서는 시, 일, 달, 해를 한 번에 본다. 지금이 어디쯤인지가 통째로 보인다. */
 
 function spanRatio(now: Date, unit: 'hour' | 'day' | 'month' | 'year'): number {
   const t = now.getTime();
@@ -113,7 +113,7 @@ const gauge: Channel = {
   get lineage() { return t('pulse.ch.gauge.lineage'); },
   beat(tick) {
     const at = new Date(tickStart(gauge, tick));
-    /* 막대를 블록문자(▓░)로 찍었다가 캔버스로 옮겼다 — 한글 이름표와 블록문자는 폰트마다
+    /* 막대를 블록문자(▓░)로 찍었다가 캔버스로 옮겼다. 한글 이름표와 블록문자는 폰트마다
        칸 폭이 달라서, 어떻게 맞춰도 어느 기계에선가 어긋나 뭉갠다(사용자 지적, 2026-08-09). */
     const rows: Array<[string, 'hour' | 'day' | 'month' | 'year']> = [
       [t('pulse.gauge.hour'), 'hour'],
@@ -123,7 +123,7 @@ const gauge: Channel = {
     ];
     const measured = rows.map(([label, unit]) => [label, spanRatio(at, unit)] as const);
     return {
-      line: measured.map(([label, r]) => `${label} ${(r * 100).toFixed(1)}%`).join(' · '),
+      line: measured.map(([label, r]) => `${label} ${(r * 100).toFixed(1)}%`).join(', '),
       sub: t('pulse.gauge.sub'),
       paint: gaugePaint(measured)
     };
@@ -133,11 +133,11 @@ const gauge: Channel = {
 /* ── 소진형: 낱말 ──────────────────────────────────────────────
    `@everyword` 는 영어 사전을 7년에 걸쳐 한 단어씩 다 뱉고 **끝났다**. 끝난 것이 사건이었다.
    여기서 도는 것은 순우리말이다. 하루 두 번, 목록이 떨어지면 이 방송도 끝난다.
-   끝나는 날짜가 지금 계산된다 — 그게 이 갈래의 전부다. */
+   끝나는 날짜가 지금 계산된다. 그게 이 갈래의 전부다. */
 
-/* 낱말은 여기 남고, **뜻풀이는 말 묶음으로 나갔다**(`pulse.w.1` …).
-   낱말 자체가 이 방송의 알맹이라 옮길 것이 아니고, 뜻풀이는 읽는 사람의 말이어야 한다 —
-   영어로 보는 사람에게 「미리내 :: 은하수」는 아무것도 아니고 「미리내 :: the Milky Way」는 뜻이 선다. */
+/* 낱말은 여기 남고, **뜻풀이는 말 묶음으로 나갔다**(`pulse.w.1` ...).
+   낱말 자체가 이 방송의 알맹이라 옮길 것이 아니고, 뜻풀이는 읽는 사람의 말이어야 한다 . 
+   영어로 보는 사람에게 미리내 :: 은하수는 아무것도 아니고 미리내 :: the Milky Way는 뜻이 선다. */
 const WORDS: readonly string[] = [
   '가람', '가온누리', '가시버시', '그루잠', '그린내', '그느르다', '곰비임비', '구슬비',
   '나비잠', '나린', '노고지리', '노루잠', '높새바람', '늘품', '늦사리', '다솜',
@@ -191,7 +191,7 @@ const word: Channel = {
     const first = tickOf(word, WORD_EPOCH);
     const idx = tick - first;
     const endsAt = tickStart(word, first + WORDS.length);
-    if (idx < 0) return { line: '…', sub: t('pulse.word.before', { date: dateOf(WORD_EPOCH) }) };
+    if (idx < 0) return { line: '...', sub: t('pulse.word.before', { date: dateOf(WORD_EPOCH) }) };
     if (idx >= WORDS.length) {
       return { line: t('pulse.word.overLine'), sub: t('pulse.word.over', { n: WORDS.length, date: dateOf(endsAt) }) };
     }
@@ -209,14 +209,14 @@ const word: Channel = {
 
 /* ── 소진형 ②: 음절 ────────────────────────────────────────────
    낱말 목록은 아무리 늘려도 사람이 손으로 적는 한 유한하고, 몇 달이면 끝난다.
-   `@everyword` 의 진짜 무게는 **7년**에 있었다 — 끝이 보이지 않을 만큼 길다는 것.
+   `@everyword` 의 진짜 무게는 **7년**에 있었다. 끝이 보이지 않을 만큼 길다는 것.
 
-   그래서 손으로 안 적는 목록을 하나 둔다: **현대 한글 음절 11,172자 전부** (가 … 힣).
-   유니코드가 정해 놓은 순서 그대로, 여섯 시간에 하나씩. 다 뱉는 데 **7년 8개월**이 걸린다 —
+   그래서 손으로 안 적는 목록을 하나 둔다: **현대 한글 음절 11,172자 전부** (가 ... 힣).
+   유니코드가 정해 놓은 순서 그대로, 여섯 시간에 하나씩. 다 뱉는 데 **7년 8개월**이 걸린다 . 
    `@everyword` 가 실제로 걸린 7년과 같은 무게로 맞춘 것이다.
 
-   주기를 30분으로 잡았다가 고쳤다. 그러면 233일 만에 끝나는데, 처음엔 그걸 「638년」이라고
-   적어 뒀었다(산수를 틀렸다). 검사가 잡았다 — 이 방송의 값어치는 **길이**라서, 길이를
+   주기를 30분으로 잡았다가 고쳤다. 그러면 233일 만에 끝나는데, 처음엔 그걸 638년이라고
+   적어 뒀었다(산수를 틀렸다). 검사가 잡았다. 이 방송의 값어치는 **길이**라서, 길이를
    틀리면 방송 자체가 거짓말이 된다. */
 
 const SYLLABLE_BASE = 0xac00;
@@ -238,7 +238,7 @@ const syllable: Channel = {
   get lineage() { return t('pulse.ch.syllable.lineage'); },
   beat(tick) {
     const idx = tick - tickOf(syllable, SYLLABLE_EPOCH);
-    if (idx < 0 || idx >= SYLLABLE_COUNT) return { line: '…', sub: t('pulse.syllable.outside') };
+    if (idx < 0 || idx >= SYLLABLE_COUNT) return { line: '...', sub: t('pulse.syllable.outside') };
     const ch = String.fromCharCode(SYLLABLE_BASE + idx);
     const lead = LEAD[Math.floor(idx / (21 * 28))];
     const vowel = VOWEL[Math.floor(idx / 28) % 21];
@@ -259,17 +259,17 @@ const syllable: Channel = {
 /* ── 말뭉치형 ①: 한 줄 ─────────────────────────────────────────
    재료를 규칙에 꽂아 무한히 만든다. 뜻이 통할 때가 있는데, 그건 순전히 사고다. */
 
-/* 말뭉치를 **말 묶음에서 받는다** — 낱말만 옮겨서는 안 되는 자리다.
-   한국어는 「임자말 + 조사」로 서고, 영어는 관사가 앞에 붙고, 일본어는 「が」가 뒤에 붙는다.
+/* 말뭉치를 **말 묶음에서 받는다**. 낱말만 옮겨서는 안 되는 자리다.
+   한국어는 임자말 + 조사로 서고, 영어는 관사가 앞에 붙고, 일본어는 が가 뒤에 붙는다.
    그래서 낱말 통(`|` 로 이은 한 줄)과 **문장 틀**을 언어마다 따로 둔다. */
 const bag = (key: string): readonly string[] => t(key).split('|');
 
-/* 검사용으로 낱말 통을 내보낸다 — 관형어·부사에 띄어쓰기가 있어서("아주 작은", "정확히 세 번")
+/* 검사용으로 낱말 통을 내보낸다. 관형어, 부사에 띄어쓰기가 있어서("아주 작은", "정확히 세 번")
    완성된 문장만 보고는 어디까지가 임자말인지 되짚을 수가 없다. 조사 규칙 자체는 검사기가
    따로 다시 구현한다(같은 함수를 나눠 쓰면 둘이 같이 틀려도 초록이 뜬다). */
 export const sentenceNouns = (): readonly string[] => bag('pulse.sent.noun');
 
-/** 받침이 있으면 「이」, 없으면 「가」. 이걸 안 하면 「트램펄린가」 같은 게 나온다. */
+/** 받침이 있으면 이, 없으면 가. 이걸 안 하면 트램펄린가 같은 게 나온다. */
 function subjectParticle(noun: string): string {
   const last = noun.charCodeAt(noun.length - 1);
   const isHangul = last >= 0xac00 && last <= 0xd7a3;
@@ -311,13 +311,13 @@ const sentence: Channel = {
   }
 };
 
-/* 「무늬」(블록문자 ░▒▓ 로 접어 만든 대칭 격자)가 여기 있었다. 걷어냈다 —
+/* 무늬(블록문자 ░▒▓ 로 접어 만든 대칭 격자)가 여기 있었다. 걷어냈다 . 
    뭘 그린 건지 안 보였고, 글자 폭이 폰트마다 달라 칸이 어긋났다(사용자 지적, 2026-08-09).
-   그 자리는 `art.ts` 의 진짜 그림 다섯(별밭·어항·뜰·나방·섬)이 대신한다. */
+   그 자리는 `art.ts` 의 진짜 그림 다섯(별밭, 어항, 뜰, 나방, 섬)이 대신한다. */
 
 /* ── 주술형: 점 ────────────────────────────────────────────────
-   15분마다 지구 표면의 한 점. 열에 일곱은 바다다 — 그게 정직한 결과다.
-   보는 사람이 「거기 지금 뭐가 있을까」를 갖다 붙이는 순간 이 방송은 완성된다. */
+   15분마다 지구 표면의 한 점. 열에 일곱은 바다다. 그게 정직한 결과다.
+   보는 사람이 거기 지금 뭐가 있을까를 갖다 붙이는 순간 이 방송은 완성된다. */
 
 function hemisphere(lat: number, lon: number): string {
   const ns = lat >= 0 ? t('pulse.spot.north') : t('pulse.spot.south');
@@ -347,17 +347,17 @@ const spot: Channel = {
   }
 };
 
-/* 순서 = 벤토에 놓이는 순서. 그림과 신호를 번갈아 둔다 — 그림끼리 몰아 두면
+/* 순서 = 벤토에 놓이는 순서. 그림과 신호를 번갈아 둔다. 그림끼리 몰아 두면
    한쪽은 화보가 되고 반대쪽은 계기판이 된다. */
 export const CHANNELS: readonly Channel[] = [
-  ...LETTER_CHANNELS, // 세 글자(영)·세 글자(한)·네 글자(영)·네 글자(한)·기호 — 이 도구의 중심
+  ...LETTER_CHANNELS, // 세 글자(영), 세 글자(한), 네 글자(영), 네 글자(한), 기호. 이 도구의 중심
   bell,
   gauge,
   syllable,
   word,
   sentence,
   spot,
-  ...ART_CHANNELS // 별밭 하나 — 글자 사이에서 숨 돌리는 자리
+  ...ART_CHANNELS // 별밭 하나. 글자 사이에서 숨 돌리는 자리
 ];
 
 export type { Beat, Channel };

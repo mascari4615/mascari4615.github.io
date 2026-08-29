@@ -1,9 +1,9 @@
 /**
  * SSH 열쇠 줄 보기 (TASK-KL-316 / 24)
  *
- * 「개발 도구」 작업대의 **뜯어보기** 칸. 알맹이는 `core/sshkey`.
- * `authorized_keys` 를 붙여넣으면 줄마다 **누구 것 · 어떤 종류 · 지문**을 낸다.
- * 지문은 서버에서 그 줄을 지울 때 쓰는 그 값이다 — 여기서는 **열쇠가 브라우저를 안 벗어난다.**
+ * 개발 도구 작업대의 **뜯어보기** 칸. 알맹이는 `core/sshkey`.
+ * `authorized_keys` 를 붙여넣으면 줄마다 **누구 것, 어떤 종류, 지문**을 낸다.
+ * 지문은 서버에서 그 줄을 지울 때 쓰는 그 값이다. 여기서는 **열쇠가 브라우저를 안 벗어난다.**
  */
 import { fingerprint, parseAuthorized, toOpenSsh, spec, type Entry } from '../../core/sshkey';
 import { escapeHtml as esc } from './shared/text';
@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.sshkey.desc',
       undefined,
-      'authorized_keys 를 붙여넣으면 줄마다 종류·길이·주석·지문을 냅니다. 공개키 PEM 을 OpenSSH 줄로도 바꿉니다'
+      'authorized_keys 를 붙여넣으면 줄마다 종류, 길이, 주석, 지문을 냅니다. 공개키 PEM 을 OpenSSH 줄로도 바꿉니다'
     ),
     layout: 'wide',
     icon: '<circle cx="8" cy="12" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 12h9M18 12v3M15 12v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -68,9 +68,9 @@ import { t, loadNamespace } from '../../lib/i18n';
     /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). */
     markLive(status);
 
-    /** 지문은 브라우저의 해시로 낸다 — 알맹이는 해시를 직접 못 쓴다(core 규약). */
+    /** 지문은 브라우저의 해시로 낸다. 알맹이는 해시를 직접 못 쓴다(core 규약). */
     async function digest(bytes: Uint8Array): Promise<Uint8Array> {
-      /* 새 판 타입은 `Uint8Array<ArrayBufferLike>` 라 그대로는 안 받는다 — 바탕 버퍼를 새로 뜬다. */
+      /* 새 판 타입은 `Uint8Array<ArrayBufferLike>` 라 그대로는 안 받는다. 바탕 버퍼를 새로 뜬다. */
       const buffer = new ArrayBuffer(bytes.length);
       new Uint8Array(buffer).set(bytes);
       return new Uint8Array(await crypto.subtle.digest('SHA-256', buffer));
@@ -78,8 +78,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     function row(entry: Entry, print: string): string {
       const bad = entry.problem !== undefined;
-      const head = entry.type + (entry.bits === undefined ? '' : ' · ' + entry.bits);
-      const tail = [entry.comment ?? '', entry.options === undefined ? '' : t('sshkey.hasOptions')].filter((s) => s !== '').join(' · ');
+      const head = entry.type + (entry.bits === undefined ? '' : ', ' + entry.bits);
+      const tail = [entry.comment ?? '', entry.options === undefined ? '' : t('sshkey.hasOptions')].filter((s) => s !== '').join(', ');
       return (
         '<div class="tool-list-row"><span class="tool-list-key" style="color:' + (bad ? 'var(--error)' : 'inherit') + '">' + esc(head) + '</span>' +
         '<span class="mono tool-list-val">' + esc(bad ? t('sshkey.problem.' + entry.problem) : print) + '</span>' +

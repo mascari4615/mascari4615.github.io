@@ -1,8 +1,8 @@
 /**
  * 사다리타기 (TASK-KL-088)
  *
- * 결과만 뽑아 주면 「짜고 친 것 아니냐」 는 말이 나온다. 그래서 사다리를 **먼저 그려 보여주고**,
- * 누른 사람의 경로를 실제로 따라 내려가게 만든다 — 눈으로 검증되는 무작위.
+ * 결과만 뽑아 주면 짜고 친 것 아니냐 는 말이 나온다. 그래서 사다리를 **먼저 그려 보여주고**,
+ * 누른 사람의 경로를 실제로 따라 내려가게 만든다. 눈으로 검증되는 무작위.
  * 가로줄은 같은 높이에서 겹치지 않게 놓는다 (겹치면 경로가 정의되지 않는다).
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -32,7 +32,7 @@ import { markLive } from './shared/say';
       }
       rungs.push(row);
     }
-    // 모든 기둥이 최소 한 번은 섞이도록 보정 — 안 그러면 「그대로 내려오는」 열이 생긴다.
+    // 모든 기둥이 최소 한 번은 섞이도록 보정. 안 그러면 그대로 내려오는 열이 생긴다.
     for (let c = 0; c < cols - 1; c++) {
       const touched = rungs.some((row) => row.indexOf(c)>= 0);
       if (!touched) {
@@ -107,7 +107,7 @@ import { markLive } from './shared/say';
           const svg = container.querySelector('#ldSvg') as SVGSVGElement;
           const resultEl = $<HTMLElement>('#ldResult');
           const status = $<HTMLElement>('#ldStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
           let ladder: Ladder | null = null;

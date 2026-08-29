@@ -21,18 +21,18 @@ test('아무것도 없으면 함께한 시간도 없다', () => {
   assert.deepEqual(readTogether([]), { firstAt: null, dayNumber: 0, daysTalked: 0 });
 });
 
-test('처음 만난 날부터 며칠째인지 센다 — 그날이 1일째다', () => {
+test('처음 만난 날부터 며칠째인지 센다. 그날이 1일째다', () => {
   const first = dateStr(2026, 5, 1);
   assert.equal(readTogether([person(first)], first).dayNumber, 1);
   assert.equal(readTogether([person(first)], first + 9 * day).dayNumber, 10);
 });
 
-test('파일 순서를 믿지 않고 가장 이른 것을 찾는다 — 옛 기록을 들여오면 순서가 섞인다', () => {
+test('파일 순서를 믿지 않고 가장 이른 것을 찾는다. 옛 기록을 들여오면 순서가 섞인다', () => {
   const shuffled = [person(dateStr(2026, 8, 6)), person(dateStr(2026, 5, 10)), person(dateStr(2026, 8, 7))];
   assert.equal(readTogether(shuffled).firstAt, dateStr(2026, 5, 10));
 });
 
-test('며칠째와 며칠 얘기했나를 따로 센다 — 매일 만난 백일과 띄엄띄엄 백일은 다르다', () => {
+test('며칠째와 며칠 얘기했나를 따로 센다. 매일 만난 백일과 띄엄띄엄 백일은 다르다', () => {
   const first2 = dateStr(2026, 5, 1);
   const sparse = [person(first2), person(first2 + 50 * day), person(first2 + 99 * day)];
   const t = readTogether(sparse, first2 + 99 * day);
@@ -45,7 +45,7 @@ test('같은 날 여러 번 얘기해도 하루로 센다', () => {
   assert.equal(readTogether([person(today, 'web'), person(today + 1000), person(today + 2000)], today).daysTalked, 1);
 });
 
-test('화면에서 주워 온 것은 만난 것이 아니다 — 곁눈질로 사이가 깊어지지 않는다', () => {
+test('화면에서 주워 온 것은 만난 것이 아니다. 곁눈질로 사이가 깊어지지 않는다', () => {
   const first3 = dateStr(2026, 5, 1);
   const es = [person(first3 - 30 * day, 'screen'), person(first3)];
   assert.equal(readTogether(es, first3).firstAt, first3);
@@ -69,7 +69,7 @@ test('아무 날도 아니면 null', () => {
   assert.equal(milestoneToday([person(first5)], first5 + 40 * day), null);
 });
 
-test('지나간 이정표는 안 챙긴다 — 「사흘 전이 백일이었어」는 계산이지 챙김이 아니다', () => {
+test('지나간 이정표는 안 챙긴다. 사흘 전이 백일이었어는 계산이지 챙김이 아니다', () => {
   const first6 = dateStr(2026, 5, 1);
   assert.equal(milestoneToday([person(first6)], first6 + 102 * day), null);
 });
@@ -92,7 +92,7 @@ test('이정표인 날에만 한 줄이 나온다', () => {
   assert.notEqual(milestoneNote([person(first8)], first8 + 99 * day), '');
 });
 
-test('자랑하지 말라고 못 박는다 — 축하 알림처럼 굴면 앱이지 곁이 아니다', () => {
+test('자랑하지 말라고 못 박는다. 축하 알림처럼 굴면 앱이지 곁이 아니다', () => {
   const first9 = dateStr(2026, 5, 1);
   const note = milestoneNote([person(first9)], first9 + 99 * day);
   assert.match(note, /백일/);

@@ -14,7 +14,7 @@ test('본 것을 시간과 함께 쌓는다', () => {
   assert.equal(w.now.at, 0);
 });
 
-test('이어지는 같은 것은 안 쌓는다 — 안 묶으면 몇 번 쳐다봤는지를 세게 된다', () => {
+test('이어지는 같은 것은 안 쌓는다. 안 묶으면 몇 번 쳐다봤는지를 세게 된다', () => {
   const w = new Watching();
   for (let i = 0; i < 10; i += 1) w.saw('유니티', i * 2 * minutes);
   assert.equal(w.recent.length, 1);
@@ -77,7 +77,7 @@ test('두 창을 되풀이해 오가면 왔다갔다다', () => {
   assert.equal(w.isFlipping(5 * minutes), true);
 });
 
-test('서로 다른 것을 죽 훑는 건 왔다갔다가 아니다 — 그냥 이것저것 보는 것이다', () => {
+test('서로 다른 것을 죽 훑는 건 왔다갔다가 아니다. 그냥 이것저것 보는 것이다', () => {
   const w = new Watching({ flipWindowMs: 10 * minutes, flipsAtLeast: 4 });
   ['가', '나', '다', '라', '마'].forEach((t, i) => w.saw(t, i * minutes));
   assert.equal(w.isFlipping(5 * minutes), false);
@@ -100,7 +100,7 @@ test('오래전 일은 왔다갔다로 안 센다', () => {
 
 test('창 제목에서 부를 만한 이름만 남긴다', () => {
   assert.equal(shortTitle('WitchMendokusai - Stage_Home - Unity 6000'), 'WitchMendokusai');
-  assert.equal(shortTitle('보고서.docx — Word'), '보고서.docx');
+  assert.equal(shortTitle('보고서.docx. Word'), '보고서.docx');
 });
 
 test('너무 길면 자른다', () => {
@@ -128,7 +128,7 @@ test('오래 붙들고 있으면 알려 주되 함부로 끊지 말라고 한다
   assert.match(note, /함부로 끊지 마라/);
 });
 
-test('왔다갔다는 붙들고 있는 것과 다르게 말한다 — 몰두한 사람한테 막혔냐고 하면 방해다', () => {
+test('왔다갔다는 붙들고 있는 것과 다르게 말한다. 몰두한 사람한테 막혔냐고 하면 방해다', () => {
   const w = new Watching({ flipWindowMs: 10 * minutes, flipsAtLeast: 4, stuckAfterMs: 40 * minutes });
   ['유니티', '브라우저', '유니티', '브라우저', '유니티'].forEach((t, i) => w.saw(t, i * minutes));
   const note = watchNote(w, 5 * minutes);
@@ -146,7 +146,7 @@ test('본 게 없으면 아무 말도 안 얹는다', () => {
   assert.equal(watchNote(new Watching(), 999 * minutes), '');
 });
 
-test('씬 이름만 바뀐 건 같은 것으로 본다 — 안 그러면 두 시간을 붙들어도 안 잡힌다', () => {
+test('씬 이름만 바뀐 건 같은 것으로 본다. 안 그러면 두 시간을 붙들어도 안 잡힌다', () => {
   const w = new Watching({ stuckAfterMs: 40 * minutes });
   w.saw('WitchMendokusai - Stage_Home - Unity', 0);
   w.saw('WitchMendokusai - World - Unity', 20 * minutes);
@@ -155,7 +155,7 @@ test('씬 이름만 바뀐 건 같은 것으로 본다 — 안 그러면 두 시
   assert.equal(w.isStuck(50 * minutes), true);
 });
 
-test('왔다갔다도 같은 기준으로 센다 — 묶는 기준과 세는 기준이 다르면 안 된다', () => {
+test('왔다갔다도 같은 기준으로 센다. 묶는 기준과 세는 기준이 다르면 안 된다', () => {
   const w = new Watching({ flipWindowMs: 10 * minutes, flipsAtLeast: 4 });
   const order2 = ['유니티 - A - Unity', '브라우저 - 탭1', '유니티 - B - Unity', '브라우저 - 탭2', '유니티 - C - Unity'];
   order2.forEach((t, i) => w.saw(t, i * minutes));

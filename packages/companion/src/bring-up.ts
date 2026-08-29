@@ -1,18 +1,18 @@
 import type { Ingredient } from './budget';
 
 /**
- * 먼저 꺼내기 — **참기만 하다 끝나면 그건 생각이 아니다.**
+ * 먼저 꺼내기. **참기만 하다 끝나면 그건 생각이 아니다.**
  *
- * 72회차에 「밀린 생각은 사라지지 않고 쌓인다」를 만들었다. 못 실린 재료가 다음 turn 에 더
- * 세게 겨룬다. 그런데 거기서 멈춰 있었다 — 쌓인 것이 **말이 되는 자리**가 없었다. 아무리
+ * 72회차에 밀린 생각은 사라지지 않고 쌓인다를 만들었다. 못 실린 재료가 다음 turn 에 더
+ * 세게 겨룬다. 그런데 거기서 멈춰 있었다. 쌓인 것이 **말이 되는 자리**가 없었다. 아무리
  * 세게 눌려도 결국 여섯 줄 안에 드느냐 마느냐일 뿐이고, 들어가도 그건 여전히 **조수님이
  * 꺼낸 얘기에 붙는 곁가지**다.
  *
  * 얘는 대화 중에 100% 반응만 한다. 먼저 말 거는 자리는 있지만 **십 분 조용해야** 돈다.
- * 곁에 있는 존재는 얘기하다 말고 「아 맞다, 그거」 한다.
+ * 곁에 있는 존재는 얘기하다 말고 아 맞다, 그거 한다.
  *
  * 레퍼런스가 두 가지를 짚는다. 하나는 **가만두면 대화가 말라 죽는다**는 것(StalemateBreaker:
- * 멈춘 자리에 새 얘깃거리를 넣는다). 다른 하나는 **아무 때나 바꾸면 안 된다**는 것 —
+ * 멈춘 자리에 새 얘깃거리를 넣는다). 다른 하나는 **아무 때나 바꾸면 안 된다**는 것 . 
  * 화제 전환은 서로 동의가 있어야 하고, 지금 하던 얘기와의 관련을 재야 한다.
  *
  * 그래서 좁게 연다.
@@ -23,7 +23,7 @@ import type { Ingredient } from './budget';
  */
 
 export interface TopicInput {
-  /** 재료들 — 이 중에서 고른다. */
+  /** 재료들. 이 중에서 고른다. */
   material: readonly Ingredient[];
   /** 그 재료가 몇 번이나 밀렸나. */
   heldFor: (name2: string) => number;
@@ -50,7 +50,7 @@ export function topicFirst(input: TopicInput): TopicPick | null {
 /**
  * 왜 안 꺼내나. 꺼낼 자리면 null.
  *
- * **「안 꺼냈다」만 남기면 못 고친다.** 오늘까지 같은 벽에 네 번 부딪혔다(71·81·82회차).
+ * **안 꺼냈다만 남기면 못 고친다.** 오늘까지 같은 벽에 네 번 부딪혔다(71, 81, 82회차).
  * 처음부터 이유를 말하게 만든다.
  */
 export function topicSkipReason(input: TopicInput): string | null {
@@ -68,7 +68,7 @@ export function topicSkipReason(input: TopicInput): string | null {
 function choose(input: TopicInput): TopicPick | null {
   const threshold2 = input.threshold3 ?? 3;
   const candidates = input.material
-    // 할 말이 실제로 있는 것만 — 빈 재료를 꺼내라고 하면 얘는 지어낸다.
+    // 할 말이 실제로 있는 것만. 빈 재료를 꺼내라고 하면 얘는 지어낸다.
     .filter((x) => x.when !== false && x.text.trim() !== '')
     .map((x) => ({ x, heldCount: input.heldFor(x.name) }))
     .filter((r) => r.heldCount >= threshold2)
@@ -78,16 +78,16 @@ function choose(input: TopicInput): TopicPick | null {
     name: candidates.x.name,
     heldCount: candidates.heldCount,
     text:
-      '대화가 식어 간다. **네가 먼저 꺼내라** — 아래 것을 지금 화제로 삼아라. ' +
+      '대화가 식어 간다. **네가 먼저 꺼내라**. 아래 것을 지금 화제로 삼아라. ' +
       '조수님이 꺼낸 얘기에 곁가지로 붙이지 말고, 네가 하고 싶어서 꺼내는 것처럼. 짧아도 된다.\n' +
       candidates.x.text.trim(),
   };
 }
 
 /**
- * 먼저 꺼내라고 시켰는데 실제로 꺼냈나 — **재는 자리.**
+ * 먼저 꺼내라고 시켰는데 실제로 꺼냈나. **재는 자리.**
  *
- * 「시켰다」는 만든 사람 말이고 **꺼냈나**가 결과다. 오늘까지 시켜 놓고 안 센 자리를
+ * 시켰다는 만든 사람 말이고 **꺼냈나**가 결과다. 오늘까지 시켜 놓고 안 센 자리를
  * 다섯 찾았다.
  */
 export function notRaised(said: string, shouldRaise: boolean, clue: readonly string[]): string | null {

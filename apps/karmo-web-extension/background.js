@@ -1,7 +1,7 @@
 /**
- * MV3 service worker — 배지·알림·메시지 중계 등은 여기에 추가.
+ * MV3 service worker. 배지, 알림, 메시지 중계 등은 여기에 추가.
  *
- * 즐겨찾기 원격 조작: `externally_connectable` 에 허용된 페이지(블로그·로컬호스트)에서
+ * 즐겨찾기 원격 조작: `externally_connectable` 에 허용된 페이지(블로그, 로컬호스트)에서
  *   chrome.runtime.sendMessage("<확장ID>", { type: "bookmarks.list" }, cb)
  * 로 부른다. 확장 페이지를 직접 못 여는 자동화(예: Claude in Chrome)에서 쓰라고 뚫어 둔 통로다.
  */

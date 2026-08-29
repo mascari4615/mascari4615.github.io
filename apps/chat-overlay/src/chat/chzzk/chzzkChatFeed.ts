@@ -1,7 +1,7 @@
 import type { ChatFeedSource, ChatLine, Unsubscribe } from "../types";
 
 /**
- * 토큰·`VITE_CHZZK_SESSION` 없이 `chzzk` 피드를 켰을 때의 안내용 피드.
+ * 토큰, `VITE_CHZZK_SESSION` 없이 `chzzk` 피드를 켰을 때의 안내용 피드.
  *
  * 실시간 수신은 공식 Session API(https://chzzk.gitbook.io/chzzk/chzzk-api/session)로:
  * 세션 URL → Socket.IO → `SYSTEM` connected의 sessionKey → POST 구독 → `CHAT`.

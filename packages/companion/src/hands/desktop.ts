@@ -10,20 +10,20 @@ import type { Hand } from '../hands';
  * 이 컴퓨터에서 실제로 뭔가 하는 손들.
  *
  * 손은 위험하다. 그래서 **아무거나 실행하게 열어두지 않고 할 수 있는 일을 하나씩
- * 쥐여준다.** 되돌릴 수 없는 일은 사람에게 먼저 묻는다 — 물어보는 자리는 코드가 아니라
- * 화면이고, 여기서는 「물어봐야 한다」는 표시만 붙인다.
+ * 쥐여준다.** 되돌릴 수 없는 일은 사람에게 먼저 묻는다. 물어보는 자리는 코드가 아니라
+ * 화면이고, 여기서는 물어봐야 한다는 표시만 붙인다.
  */
 
 /*
  * 되돌릴 수 없는 손을 감싸던 `needsPermission` 은 여기서 사라졌다 (109회차).
  *
- * 그건 손을 만들 때 사람이 **기억해서** 감싸는 방식이었다 — 잊으면 조용히 열린다.
+ * 그건 손을 만들 때 사람이 **기억해서** 감싸는 방식이었다. 잊으면 조용히 열린다.
  * 지금은 손이 `undoable: false` 라고 **표시만** 하고, 묻는 일은 코어의 관문
  * (`CompanionOptions.askBeforeRisky`)이 한 자리에서 한다. 확인 자리가 둘이면
  * 하나만 고쳐지고 다른 하나가 조용히 낡는다.
  */
 
-/** 파일 찾기 — name 조각으로 내 폴더들을 뒤진다. 읽기만 하므로 물어볼 것도 없다. */
+/** 파일 찾기. name 조각으로 내 폴더들을 뒤진다. 읽기만 하므로 물어볼 것도 없다. */
 export function findFileHand(roots?: readonly string[]): Hand {
   const places = roots ?? [
     join(homedir(), 'Desktop'),
@@ -59,13 +59,13 @@ export function findFileHand(roots?: readonly string[]): Hand {
       };
 
       for (const place of places) if (existsSync(place)) walk(place, 0);
-      return hits.length === 0 ? `「${argument}」 는 못 찾았다` : `찾았다:\n${hits.join('\n')}`;
+      return hits.length === 0 ? `${argument} 는 못 찾았다` : `찾았다:\n${hits.join('\n')}`;
     },
   };
 }
 
 /**
- * 열기 — 파일이나 폴더, 주소를 연다.
+ * 열기. 파일이나 폴더, 주소를 연다.
  *
  * 여는 것은 되돌릴 수 있지만(닫으면 된다) 화면을 가로채는 일이라 승낙을 받는 쪽이 낫다.
  * 감싸는 건 부르는 쪽의 몫이다.
@@ -75,7 +75,7 @@ export function openHand(): Hand {
     name: '열기',
     /* **남의 프로그램을 실제로 띄운다.** 뜬 창은 우리가 못 닫는다 */
     undoable: false,
-    what: '파일·폴더·웹주소를 연다',
+    what: '파일, 폴더, 웹주소를 연다',
     needs: '열 것 (경로 또는 주소)',
     async run(argument: string): Promise<string> {
       const target = argument.trim();
@@ -94,7 +94,7 @@ export function openHand(): Hand {
   };
 }
 
-/** 지금 무슨 창들이 떠 있나 — 보기만 한다. */
+/** 지금 무슨 창들이 떠 있나. 보기만 한다. */
 export function windowsHand(): Hand {
   return {
     name: '창목록',
@@ -120,7 +120,7 @@ export function windowsHand(): Hand {
   };
 }
 
-/** 지금 몇 시고 무슨 요일인가 — 두뇌는 시계가 없다. */
+/** 지금 몇 시고 무슨 요일인가. 두뇌는 시계가 없다. */
 export function clockHand(): Hand {
   return {
     name: '시계',
@@ -135,7 +135,7 @@ export function clockHand(): Hand {
   };
 }
 
-/** 적어 둔 것 읽기 — 쓰기만 하고 못 읽으면 반쪽이다. */
+/** 적어 둔 것 읽기. 쓰기만 하고 못 읽으면 반쪽이다. */
 export function readNotesHand(path: string): Hand {
   return {
     name: '적어둔것보기',
@@ -146,7 +146,7 @@ export function readNotesHand(path: string): Hand {
     async run(): Promise<string> {
       if (existsSync(path) === false) return '아직 적어 둔 게 없다';
       // **파일은 그냥 읽는다.** PowerShell 을 거치면 그 출력이 UTF-8 이 아니라서(콘솔
-      // 코드페이지) 한글이 통째로 깨져 온다 — 실측(43회차)에서 손은 제대로 쓰였는데
+      // 코드페이지) 한글이 통째로 깨져 온다. 실측(43회차)에서 손은 제대로 쓰였는데
       // 결과가 쓰레기라 두뇌가 820자 영어를 뱉었다. 남의 프로그램을 부를 이유가 없다.
       const body = readFileSync(path, 'utf8').split(/\r?\n/).slice(-15).join('\n').trim();
       return body === '' ? '아직 적어 둔 게 없다' : `적어 둔 것:\n${body}`;
@@ -154,7 +154,7 @@ export function readNotesHand(path: string): Hand {
   };
 }
 
-/** 파일 크기·수정 시각 같은 것. */
+/** 파일 크기, 수정 시각 같은 것. */
 export function fileInfoHand(): Hand {
   return {
     name: '파일정보',
@@ -169,7 +169,7 @@ export function fileInfoHand(): Hand {
       const size = info.size < 1024 * 1024
         ? `${Math.round(info.size / 1024)}KB`
         : `${(info.size / 1024 / 1024).toFixed(1)}MB`;
-      return `${target}\n크기 ${size} · 마지막 수정 ${info.mtime.toLocaleString('ko-KR')}`;
+      return `${target}\n크기 ${size}, 마지막 수정 ${info.mtime.toLocaleString('ko-KR')}`;
     },
   };
 }

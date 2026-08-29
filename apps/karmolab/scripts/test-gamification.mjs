@@ -1,13 +1,13 @@
 /**
- * 연속일·경험치 셈이 맞나 (TASK-KL-321).
+ * 연속일, 경험치 셈이 맞나 (TASK-KL-321).
  *
  * 이 셈은 그동안 React 섬 안에만 있었고 **한 번도 시험된 적이 없다.** 옮기면서 제일 먼저
- * 한 일이 이 파일이다 — 옮긴 코드가 옛날과 같은 답을 내는지 여기서 본다.
+ * 한 일이 이 파일이다. 옮긴 코드가 옛날과 같은 답을 내는지 여기서 본다.
  *
  * 특히 지키는 것 셋:
  *   ① 하루에 한 번만 는다 (같은 날 두 번 눌러도 2일이 안 된다)
  *   ② 하루 건너뛰면 1 로 돌아가되 **최장 기록은 안 깎인다**
- *   ③ 달·해가 바뀌는 자리(1/31 → 2/1, 12/31 → 1/1)도 「어제」다
+ *   ③ 달, 해가 바뀌는 자리(1/31 → 2/1, 12/31 → 1/1)도 어제다
  *
  * 사용: node scripts/test-gamification.mjs   (npm run test:gamification)
  */
@@ -27,7 +27,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const stamp = Date.now();
@@ -83,7 +83,7 @@ const G = await load();
   eq(d.streaks.daily_review.longest, 3, '끊겨도 최장은 3 유지');
 }
 
-/* ── ③ 달·해 넘어가기 ── */
+/* ── ③ 달, 해 넘어가기 ── */
 {
   let d = G.recordActivity(G.emptyUserData(), 'exercise', '2026-01-31').data;
   d = G.recordActivity(d, 'exercise', '2026-02-01').data;
@@ -158,7 +158,7 @@ const G = await load();
 
 /* ── 로컬 날짜 문자열 ── */
 {
-  eq(G.localDateString(new Date(2026, 0, 5)), '2026-01-05', '한 자리 달·날은 0 을 채운다');
+  eq(G.localDateString(new Date(2026, 0, 5)), '2026-01-05', '한 자리 달, 날은 0 을 채운다');
   eq(G.localDateString(new Date(2026, 11, 31, 23, 59)), '2026-12-31', '밤 늦은 시각도 그날');
 }
 

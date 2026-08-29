@@ -1,19 +1,19 @@
 /**
- * XML 을 사람이 읽게 · 기계가 먹게 (TASK-KL-238 / 42 codebeautify)
+ * XML 을 사람이 읽게, 기계가 먹게 (TASK-KL-238 / 42 codebeautify)
  *
- * 우리에겐 JSON(`jsonfmt`)·SQL(`sqlfmt`)·설정 다섯(`configconv`)이 있는데 **XML 만 없었다.**
- * 그런데 밖에서 오는 것 중 XML 이 여전히 많다 — RSS·사이트맵·SVG·안드로이드 레이아웃·
+ * 우리에겐 JSON(`jsonfmt`), SQL(`sqlfmt`), 설정 다섯(`configconv`)이 있는데 **XML 만 없었다.**
+ * 그런데 밖에서 오는 것 중 XML 이 여전히 많다. RSS, 사이트맵, SVG, 안드로이드 레이아웃, 
  * 은행/공공 API 응답. 한 줄로 뭉쳐 온 그것을 읽으려고 매번 남의 사이트에 **본문을 붙여넣는다.**
  *
- * 그래서 여기서 셋을 한다: **펴기 · 뭉치기 · JSON 으로**. 그리고 안 되는 것은 *어디서* 안 되는지
- * 줄·칸으로 짚는다 — 「Invalid XML」 한 마디는 아무 것도 알려 주지 않는다.
+ * 그래서 여기서 셋을 한다: **펴기, 뭉치기, JSON 으로**. 그리고 안 되는 것은 *어디서* 안 되는지
+ * 줄, 칸으로 짚는다. Invalid XML 한 마디는 아무 것도 알려 주지 않는다.
  *
- * ★ 브라우저의 `DOMParser` 를 안 쓴다. 알맹이는 화면·MCP·Node 세 곳에서 같은 답을 내야 하는데
+ * ★ 브라우저의 `DOMParser` 를 안 쓴다. 알맹이는 화면, MCP, Node 세 곳에서 같은 답을 내야 하는데
  *   `DOMParser` 는 브라우저에만 있고, 오류 문구도 브라우저마다 다르다(그 차이를 흡수하려다
  *   `jsonfmt` 가 이미 한 번 데었다). 그래서 여기서 직접 읽는다.
  *
- * **일부러 안 하는 것**: DTD 해석·이름공간 검사·스키마(XSD) 검증·엔티티 정의. 여기서 「맞다」는
- * *모양이 맞다*(well-formed)는 뜻이지 *규격에 맞다*(valid)가 아니다 — 답에도 그렇게 적는다.
+ * **일부러 안 하는 것**: DTD 해석, 이름공간 검사, 스키마(XSD) 검증, 엔티티 정의. 여기서 맞다는
+ * *모양이 맞다*(well-formed)는 뜻이지 *규격에 맞다*(valid)가 아니다. 답에도 그렇게 적는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -23,7 +23,7 @@ export const spec: ToolSpec = {
     format: {
       desc:
         'Pretty-print XML with indentation. Reports the line and column of the first problem instead of' +
-        ' a bare "invalid XML". / XML 을 들여쓰기로 편다. 틀린 자리는 줄·칸으로 짚는다.',
+        ' a bare "invalid XML". / XML 을 들여쓰기로 편다. 틀린 자리는 줄, 칸으로 짚는다.',
       in: { text: 'string', indent: 'number?' },
       out: 'string'
     },
@@ -51,12 +51,12 @@ export interface XmlElement {
   name: string;
   attrs: Array<[string, string]>;
   children: XmlNode[];
-  /** 스스로 닫은 태그(`<br/>`)인가 — 다시 찍을 때 그 모양을 지킨다. */
+  /** 스스로 닫은 태그(`<br/>`)인가. 다시 찍을 때 그 모양을 지킨다. */
   selfClose: boolean;
 }
 export type XmlNode = XmlElement | XmlText;
 
-/** 어디서 틀렸나. 「Invalid XML」 대신 이걸 던진다. */
+/** 어디서 틀렸나. Invalid XML 대신 이걸 던진다. */
 export class XmlError extends Error {
   line: number;
   col: number;
@@ -78,7 +78,7 @@ const fail = (src: string, i: number, msg: string): never => {
   throw new XmlError(msg, p.line, p.col);
 };
 
-/** 이름에 쓸 수 있는 글자. 이름공간 접두사(`ns:tag`)와 점·밑줄·붙임표까지만 받는다. */
+/** 이름에 쓸 수 있는 글자. 이름공간 접두사(`ns:tag`)와 점, 밑줄, 붙임표까지만 받는다. */
 const NAME = /[A-Za-z_:][\w.:-]*/y;
 
 export function parse(src: string): XmlNode[] {
@@ -99,7 +99,7 @@ export function parse(src: string): XmlNode[] {
       continue;
     }
 
-    // 주석 · CDATA · 선언(`<?xml ?>`, `<!DOCTYPE >`)
+    // 주석, CDATA, 선언(`<?xml ?>`, `<!DOCTYPE >`)
     if (src.startsWith('<!--', i)) {
       const end = src.indexOf('-->', i + 4);
       if (end === -1) fail(src, i, '주석이 안 닫혔습니다');
@@ -116,14 +116,14 @@ export function parse(src: string): XmlNode[] {
     }
     if (src.startsWith('<?', i)) {
       const end = src.indexOf('?>', i + 2);
-      if (end === -1) fail(src, i, '<? … ?> 가 안 닫혔습니다');
+      if (end === -1) fail(src, i, '<? ... ?> 가 안 닫혔습니다');
       push({ kind: 'decl', value: src.slice(i, end + 2) });
       i = end + 2;
       continue;
     }
     if (src.startsWith('<!', i)) {
       const end = src.indexOf('>', i + 2);
-      if (end === -1) fail(src, i, '<! … > 가 안 닫혔습니다');
+      if (end === -1) fail(src, i, '<! ... > 가 안 닫혔습니다');
       push({ kind: 'decl', value: src.slice(i, end + 1) });
       i = end + 1;
       continue;
@@ -171,7 +171,7 @@ export function parse(src: string): XmlNode[] {
       i = NAME.lastIndex;
       while (i < src.length && /\s/.test(src[i])) i++;
       if (src[i] !== '=') {
-        // 값 없는 속성(HTML 버릇). XML 에선 틀렸지만 읽기는 한다 — 빈 값으로 둔다.
+        // 값 없는 속성(HTML 버릇). XML 에선 틀렸지만 읽기는 한다. 빈 값으로 둔다.
         el.attrs.push([aname, '']);
         continue;
       }
@@ -209,7 +209,7 @@ const raw = (n: XmlText): string =>
   n.kind === 'comment' ? `<!--${n.value}-->` : n.kind === 'cdata' ? `<![CDATA[${n.value}]]>` : n.value;
 
 /**
- * 편다. **글자만 든 칸은 한 줄에 둔다** — `<title>\n  제목\n</title>` 은 보기에도 나쁘고,
+ * 편다. **글자만 든 칸은 한 줄에 둔다**. `<title>\n  제목\n</title>` 은 보기에도 나쁘고,
  * 그 사이 공백이 값의 일부인지 아닌지 사람이 헷갈린다.
  */
 export function format(nodes: XmlNode[], indent = 2, depth = 0): string {
@@ -262,7 +262,7 @@ export function minify(nodes: XmlNode[]): string {
 }
 
 /**
- * JSON 으로. 속성은 `@이름`, 글자는 `#text`, 같은 이름이 여럿이면 배열 — 널리 쓰이는 약속이다.
+ * JSON 으로. 속성은 `@이름`, 글자는 `#text`, 같은 이름이 여럿이면 배열. 널리 쓰이는 약속이다.
  * 우리가 새 약속을 만들면 받는 쪽에서 또 옮겨야 한다.
  */
 export function toJson(nodes: XmlNode[]): unknown {
@@ -285,7 +285,7 @@ export function toJson(nodes: XmlNode[]): unknown {
       }
     }
     if (texts.length > 0) {
-      // 속성도 자식도 없으면 **값 그 자체**로 둔다 — `{"#text":"제목"}` 은 쓸 때마다 거슬린다.
+      // 속성도 자식도 없으면 **값 그 자체**로 둔다. `{"#text":"제목"}` 은 쓸 때마다 거슬린다.
       if (Object.keys(obj).length === 0) return texts.join(' ');
       obj['#text'] = texts.join(' ');
     }
@@ -309,5 +309,5 @@ export const run: ToolRunner = (op, args) => {
   }
   if (op === 'minify') return minify(nodes);
   if (op === 'toJson') return JSON.stringify(toJson(nodes), null, 2);
-  throw new Error(`xmlfmt 에 「${op}」 는 없습니다`);
+  throw new Error(`xmlfmt 에 ${op} 는 없습니다`);
 };

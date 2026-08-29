@@ -1,13 +1,13 @@
 /**
- * 한글 타자 데일리 — 화면 (해자③ 첫 게임)
+ * 한글 타자 데일리. 화면 (해자③ 첫 게임)
  *
- * 골격만이다. 「게임 느낌」(색·움직임·소리·캐릭터 등장)은 사용자 몫이라 손대지 않았다 —
+ * 골격만이다. 게임 느낌(색, 움직임, 소리, 캐릭터 등장)은 사용자 몫이라 손대지 않았다 . 
  * 여기서는 **돌아가는 것**까지만 만든다: 오늘 문장 세 줄, 치는 칸, 끝나면 점수와 공유 격자.
  *
  * 계산은 전부 `core/dailytype.ts` 다. 화면은 시간을 재고 글자를 모아 넘길 뿐이다.
- * 그래야 「화면에서는 320타인데 공유 글에는 250타」 같은 일이 안 생긴다.
+ * 그래야 화면에서는 320타인데 공유 글에는 250타 같은 일이 안 생긴다.
  *
- * ★ 하루 한 판을 **막지 않는다** (11 § 3-3). 다 친 사람에게 「내일 오세요」라고 하면
+ * ★ 하루 한 판을 **막지 않는다** (11 § 3-3). 다 친 사람에게 내일 오세요라고 하면
  * 그 사람은 내일도 안 온다. 대신 오늘 기록을 남겨 두고 연습은 계속 열어 둔다.
  */
 import { dateKST, humanLeft, msUntilNextKST, playKey } from '../../core/daily';
@@ -75,7 +75,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             el.className = `tool-note${tone === '' ? '' : ' ' + tone}`;
           };
 
-          /* 첫 글자를 치는 순간부터 잰다 — 화면을 연 시각부터 재면 읽는 시간까지 벌점이 된다. */
+          /* 첫 글자를 치는 순간부터 잰다. 화면을 연 시각부터 재면 읽는 시간까지 벌점이 된다. */
           for (const input of inputs) {
             input.addEventListener('input', () => {
               if (startedAt === 0) startedAt = Date.now();
@@ -96,7 +96,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             $<HTMLButtonElement>('#dtCopy').onclick = () =>
               void Toolbox.copyText?.(report.share, { message: t('dailytype.t06') });
 
-            /* 오늘 했다는 것만 남긴다. 막지는 않는다 — 막으면 내일도 안 온다. */
+            /* 오늘 했다는 것만 남긴다. 막지는 않는다. 막으면 내일도 안 온다. */
             try {
               localStorage.setItem(playKey('hangul-type', today), String(report.perMinute));
             } catch {

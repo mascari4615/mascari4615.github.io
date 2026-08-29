@@ -2,12 +2,12 @@
  * 로컬 AI 엔진을 **브라우저가 실제로 데려올 수 있는가** (해자④)
  *
  * 우리 번들은 IIFE(고전 스크립트)다. 거기서 `import()` 가 도는지는 **이론이 아니라 사실**의
- * 문제다 — 안 돌면 로컬 AI 는 첫걸음도 못 뗀다. 그런데 단위 검사는 가짜 loader 를 넣으므로
+ * 문제다. 안 돌면 로컬 AI 는 첫걸음도 못 뗀다. 그런데 단위 검사는 가짜 loader 를 넣으므로
  * 이 자리를 절대 안 본다(그쪽은 늘 초록이다).
  *
- * 그래서 진짜 브라우저에서 진짜 `import()` 를 시킨다. 다만 **망에는 안 나간다** —
- * `data:` 주소로 작은 모듈을 만들어 넣는다. 확인하려는 것은 「엔진이 좋은가」가 아니라
- * 「이 자리에서 데려오기가 되는가」이고, 그건 망 없이도 답이 나온다.
+ * 그래서 진짜 브라우저에서 진짜 `import()` 를 시킨다. 다만 **망에는 안 나간다** . 
+ * `data:` 주소로 작은 모듈을 만들어 넣는다. 확인하려는 것은 엔진이 좋은가가 아니라
+ * 이 자리에서 데려오기가 되는가이고, 그건 망 없이도 답이 나온다.
  *
  * 사용: node scripts/smoke-ai-import.mjs
  */
@@ -43,15 +43,15 @@ const check = (ok, why) => {
   if (ok === false) failures.push(why);
 };
 
-/* 번들에 CDN 주소가 **글자로** 남아야 한다 — 통째로 말려 들어가면 초기 번들이 9MB 가 된다. */
+/* 번들에 CDN 주소가 **글자로** 남아야 한다. 통째로 말려 들어가면 초기 번들이 9MB 가 된다. */
 check(code.includes('cdn.jsdelivr.net'), '엔진 주소가 번들에 글자로 남아 있다 (안 말려 들어갔다)');
-check(code.length < 20000, `이 조각이 작다 (${code.length}바이트) — 엔진이 딸려 오지 않았다`);
+check(code.length < 20000, `이 조각이 작다 (${code.length}바이트). 엔진이 딸려 오지 않았다`);
 
 let browser;
 try {
   browser = await chromium.launch();
 } catch (error) {
-  console.error('[ai-import] CANNOT-RUN — 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
+  console.error('[ai-import] CANNOT-RUN. 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
   console.error(String(error?.message ?? error).split(String.fromCharCode(10))[0]);
   process.exit(1);
 }
@@ -75,7 +75,7 @@ const result = await page.evaluate(async () => {
   if (!ai) return { missing: true };
   const fakeNav = { gpu: {} };
   ai.resetEngine();
-  // 진짜 동적 import — 망에는 안 나가고 data: 로 만든 작은 모듈을 데려온다.
+  // 진짜 동적 import. 망에는 안 나가고 data: 로 만든 작은 모듈을 데려온다.
   let ok = null;
   let err = null;
   try {
@@ -107,4 +107,4 @@ if (failures.length > 0) {
   for (const f of failures) console.error('  - ' + f);
   process.exit(1);
 }
-console.log('[ai-import] IIFE 번들에서 동적 import 가 실제로 돈다 · 엔진은 안 딸려 왔다 · GPU 없으면 안 받는다');
+console.log('[ai-import] IIFE 번들에서 동적 import 가 실제로 돈다, 엔진은 안 딸려 왔다, GPU 없으면 안 받는다');

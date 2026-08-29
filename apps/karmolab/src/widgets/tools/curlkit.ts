@@ -1,8 +1,8 @@
 /**
- * curl 옮기기 — 붙여넣으면 내 언어로 (TASK-KL-316 / 2)
+ * curl 옮기기. 붙여넣으면 내 언어로 (TASK-KL-316 / 2)
  *
- * 「개발 도구」 작업대의 할 일 한 칸이다. 알맹이는 `core/curlkit`.
- * 여기서 **보내 볼 수도 있다** — 다만 브라우저가 남의 집 문을 두드리는 일이라
+ * 개발 도구 작업대의 할 일 한 칸이다. 알맹이는 `core/curlkit`.
+ * 여기서 **보내 볼 수도 있다**. 다만 브라우저가 남의 집 문을 두드리는 일이라
  * 상대가 문을 안 열어 주면(CORS) 그 사실을 그대로 적는다. 감추면 도구를 의심하게 된다.
  */
 import { parseCurl, toCode, describe, spec, type Request, type Target } from '../../core/curlkit';
@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.curlkit.desc',
       undefined,
-      'curl 명령을 fetch·axios·파이썬·Go 코드로 옮기고, 그 자리에서 보내 봅니다'
+      'curl 명령을 fetch, axios, 파이썬, Go 코드로 옮기고, 그 자리에서 보내 봅니다'
     ),
     layout: 'wide',
     icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 15l3 2-3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -47,7 +47,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       <div class="field-group">
         <label class="field-label" for="ckTo">${esc(t('curlkit.label.to'))}</label>
         <select id="ckTo" name="to" aria-label="${esc(t('curlkit.label.to'))}">
-          <option value="fetch">fetch (브라우저·Node 18+)</option>
+          <option value="fetch">fetch (브라우저, Node 18+)</option>
           <option value="axios">axios</option>
           <option value="python">Python requests</option>
           <option value="go">Go net/http</option>

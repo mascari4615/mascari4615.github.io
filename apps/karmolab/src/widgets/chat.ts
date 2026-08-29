@@ -1,9 +1,9 @@
 /**
- * 실시간 익명 채팅창 (TASK-KL-149) — 사이트 어디에 있든 **옆에 늘 떠 있는 한 방**.
+ * 실시간 익명 채팅창 (TASK-KL-149). 사이트 어디에 있든 **옆에 늘 떠 있는 한 방**.
  *
  * 왜 위젯이 아닌가: 도구 하나로 만들면 그 도구를 연 사람만 방에 있다. 그러면 방은 늘 비어 있다.
- * 채팅은 「보러 가는 곳」이 아니라 「켜 둔 채로 딴짓하는 곳」이다 — 그래서 셸에 상주시킨다.
- * 광장이 「지금 N명」을 세기만 하던 자리에, 이제 그 N명이 서로 말을 건다.
+ * 채팅은 보러 가는 곳이 아니라 켜 둔 채로 딴짓하는 곳이다. 그래서 셸에 상주시킨다.
+ * 광장이 지금 N명을 세기만 하던 자리에, 이제 그 N명이 서로 말을 건다.
  *
  * 왜 트위치식 한 줄인가 (`이름: 말`): 말풍선은 한 화면에 대여섯 줄밖에 못 담는다. 좁고 긴 창에
  * 대화가 흘러야 하므로 줄 밀도가 곧 쓸모다. 이름은 **각자 색으로** 칠해 누가 말하는지 색으로 먼저
@@ -11,11 +11,11 @@
  *
  * 왜 헤더인가 (2026-08-22, 사용자 요청): 예전엔 왼쪽 아래 붙박이였다. 접어 둬도 단추가 본문 위에
  * 떠 있어 **도구 화면 왼쪽 구석을 늘 가렸고**, 펴면 화면 절반이 덮였다. 이제 단추는 헤더 안
- * (`#headerChat`, 종·계정 옆)에 살고 판은 그 단추 아래로 내려온다 — 접혀 있으면 본문 점유가 0이다.
+ * (`#headerChat`, 종, 계정 옆)에 살고 판은 그 단추 아래로 내려온다. 접혀 있으면 본문 점유가 0이다.
  * 마스코트(`mdd.ts`, 오른쪽 아래 z-index 900)와도 이제 안 겹친다.
  *
  * 연결은 SSE 하나 (`/kl/chat/stream`). 끊기면 브라우저가 알아서 다시 붙고, 그래도 안 되면
- * 잠깐씩 되물어보는 길(`/kl/chat/recent`)로 내려간다. 서버가 아예 없으면 **채팅만 조용히 사라진다** —
+ * 잠깐씩 되물어보는 길(`/kl/chat/recent`)로 내려간다. 서버가 아예 없으면 **채팅만 조용히 사라진다** . 
  * 도구는 그대로 돈다.
  */
 import { t, loadNamespace } from '../lib/i18n';
@@ -23,7 +23,7 @@ import { t, loadNamespace } from '../lib/i18n';
 void (async function (): Promise<void> {
     'use strict';
 
-    /* 채팅창은 셸에 상주하므로 **아무도 안 불러 준다** — 스스로 말 묶음을 받고서 몸을 세운다.
+    /* 채팅창은 셸에 상주하므로 **아무도 안 불러 준다**. 스스로 말 묶음을 받고서 몸을 세운다.
        먼저 세우고 나중에 글자를 갈아 끼우면, 한국어로 한 번 뜬 뒤 영어로 바뀌는 게 눈에 보인다. */
     await loadNamespace('chat');
 
@@ -40,11 +40,11 @@ void (async function (): Promise<void> {
         who: string;
         byOwner: boolean;
         at: string;
-        /** 지킨 사람 수와 「내가 지켰나」 (TASK-KL-158/159). 누가 지켰는지는 안 내려온다. */
+        /** 지킨 사람 수와 내가 지켰나 (TASK-KL-158/159). 누가 지켰는지는 안 내려온다. */
         kept?: number;
         keptByMe?: boolean;
         reportedByMe?: boolean;
-        /** 어느 줄에 답하는가 — 그때 모습 그대로 베껴 온다 (TASK-KL-159). */
+        /** 어느 줄에 답하는가. 그때 모습 그대로 베껴 온다 (TASK-KL-159). */
         replyTo?: { id: string; name: string; text: string } | null;
     }
     interface Hello {
@@ -75,7 +75,7 @@ void (async function (): Promise<void> {
     let unread = 0;
     let connected = false;
     const messages: Message[] = [];
-    /** 마지막으로 그린 로그의 서명 — 같은 내용을 다시 그려 hover 를 깨뜨리지 않으려고 둔다. */
+    /** 마지막으로 그린 로그의 서명. 같은 내용을 다시 그려 hover 를 깨뜨리지 않으려고 둔다. */
     let lastLogSignature = '';
 
     let source: EventSource | null = null;
@@ -85,7 +85,7 @@ void (async function (): Promise<void> {
      * 서버 주소.
      *
      * 예전에는 계정 스크립트(`account.js`)가 창에 얹어 주는 값만 봤다. 그런데 **도구 화면
-     * 129장은 그 스크립트를 안 싣는다**(무게 때문에 일부러 뺐다) — 그래서 채팅은 사람이 제일
+     * 129장은 그 스크립트를 안 싣는다**(무게 때문에 일부러 뺐다). 그래서 채팅은 사람이 제일
      * 많이 있는 자리에서 조용히 자기 자신을 지우고 있었다. 채팅은 익명으로도 도는데 계정에
      * 매달려 있었던 것이다 (TASK-KL-161).
      *
@@ -116,7 +116,7 @@ void (async function (): Promise<void> {
         try {
             localStorage.setItem(key, value);
         } catch {
-            /* 사파리 비공개 모드 등 — 기억을 못 할 뿐, 채팅은 돈다 */
+            /* 사파리 비공개 모드 등. 기억을 못 할 뿐, 채팅은 돈다 */
         }
     }
 
@@ -131,14 +131,14 @@ void (async function (): Promise<void> {
     Mdd.injectCSS(
         'kl-chat',
         `
-        /* 판은 헤더(52px) 바로 아래 오른쪽에 매단다. 단추는 이 상자 밖 — 헤더 안에 산다. */
+        /* 판은 헤더(52px) 바로 아래 오른쪽에 매단다. 단추는 이 상자 밖. 헤더 안에 산다. */
         .klchat { position:fixed; top:58px; right:12px; z-index:940; display:flex; flex-direction:column; align-items:flex-end; gap:10px; font-family:var(--font-sans,'Inter',sans-serif); pointer-events:none; }
         .klchat > * { pointer-events:auto; }
-        /* 헤더가 없는 화면에서는 옛 자리로 돌아간다 — 단추가 갈 곳이 없으면 이 상자가 데리고 있다. */
+        /* 헤더가 없는 화면에서는 옛 자리로 돌아간다. 단추가 갈 곳이 없으면 이 상자가 데리고 있다. */
         .klchat.loose { top:auto; right:auto; left:16px; bottom:16px; align-items:flex-start; }
         .header-chat { display:flex; align-items:center; position:relative; }
         .header-chat:empty { display:none; }
-        /* 헤더 캡슐 — 계정 단추(.header-account-btn)와 같은 몸피여야 한 줄로 읽힌다. */
+        /* 헤더 캡슐. 계정 단추(.header-account-btn)와 같은 몸피여야 한 줄로 읽힌다. */
         .klchat-dock { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 11px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:transparent; color:var(--text-secondary,#9aa7bd); border-radius:999px; font-size:var(--font-size-xs,12px); font-weight:600; font-family:inherit; white-space:nowrap; cursor:pointer; transition:color .12s ease, border-color .12s ease, background .12s ease; }
         .klchat-dock:hover { color:var(--text-primary,#e4eaf6); border-color:var(--accent,#00e5ff); }
         .klchat-dock[aria-expanded="true"] { color:var(--accent,#00e5ff); border-color:var(--accent,#00e5ff); background:var(--accent-dim,rgba(0,229,255,0.12)); }
@@ -147,14 +147,14 @@ void (async function (): Promise<void> {
         .klchat-dot { position:relative; }
         /* 맥박은 **평소에 안 돈다** (TASK-KL-128 25 → 2026-08-08 재측정으로 정정).
            처음엔 box-shadow 키프레임이었고(스타일 재계산 초당 137회 중 24%가 이 점),
-           그걸 고리 하나의 transform+opacity 로 바꾸며 「이제 주 스레드는 0」이라고 적어 뒀다.
+           그걸 고리 하나의 transform+opacity 로 바꾸며 이제 주 스레드는 0이라고 적어 뒀다.
            **틀렸다.** 라이브에서 손을 안 댄 채로 재니 스타일 재계산이 초당 48~60회였고,
            이 고리 애니메이션만 끄면 **그 자리에서 0** 이 됐다(다른 후보를 하나씩 떼며 확인:
-           배경 장식·마스코트·나머지 애니메이션은 전부 0이었다). will-change 를 적어 둬도
-           합성기에 올라간다는 보장이 아니다 — 재 보기 전에는 모른다.
-           점이 켜져 있다는 사실만으로 「붙어 있다」는 다 말한다. 고리는 **새 줄이 왔을 때
-           한 번** 돌면 된다 — 그때가 실제로 뭔가 일어난 순간이다.
-           (이 글은 템플릿 문자열 **안**이다 — 백틱을 쓰면 문자열이 끊긴다. 실제로 끊었다.) */
+           배경 장식, 마스코트, 나머지 애니메이션은 전부 0이었다). will-change 를 적어 둬도
+           합성기에 올라간다는 보장이 아니다. 재 보기 전에는 모른다.
+           점이 켜져 있다는 사실만으로 붙어 있다는 다 말한다. 고리는 **새 줄이 왔을 때
+           한 번** 돌면 된다. 그때가 실제로 뭔가 일어난 순간이다.
+           (이 글은 템플릿 문자열 **안**이다. 백틱을 쓰면 문자열이 끊긴다. 실제로 끊었다.) */
         .klchat-dot.on { background:#5fd3b2; }
         .klchat-dot.ping::after { content:''; position:absolute; inset:0; border-radius:50%;
           background:rgba(95,211,178,0.5); animation:klchat-pulse .9s ease-out 1; }
@@ -196,13 +196,13 @@ void (async function (): Promise<void> {
         .klchat-status.warn { color:#ef8b8b; }
         .klchat-alone { border:none; color:var(--text-secondary,#9aa7bd); }
         @media (max-width:900px) {
-            /* 좁아지면 글자를 접고 점만 남긴다 — 헤더는 도구 링크부터 사라지는 자리다. */
+            /* 좁아지면 글자를 접고 점만 남긴다. 헤더는 도구 링크부터 사라지는 자리다. */
             .klchat-dock-label { display:none; }
             .klchat-dock { padding:0 9px; }
         }
         @media (max-width:640px) {
             .klchat { top:56px; left:8px; right:8px; align-items:stretch; }
-            /* 폰에서는 **화면에 실제로 보이는 높이**(dvh)로 잡는다. vh 는 주소창·키보드가
+            /* 폰에서는 **화면에 실제로 보이는 높이**(dvh)로 잡는다. vh 는 주소창, 키보드가
                올라와도 안 줄어서, 키보드가 뜨면 입력칸이 화면 밖으로 밀려난다.
                dvh 를 모르는 브라우저를 위해 vh 를 먼저 적어 둔다(뒤가 이긴다). */
             .klchat-panel { width:100%; height:min(70vh,460px); height:min(60dvh,460px); }
@@ -213,7 +213,7 @@ void (async function (): Promise<void> {
         `,
     );
 
-    // 핫 교체(개발 중 저장)로 이 파일이 다시 돌면 앞의 껍데기가 남는다 — 먼저 걷어낸다.
+    // 핫 교체(개발 중 저장)로 이 파일이 다시 돌면 앞의 껍데기가 남는다. 먼저 걷어낸다.
     document.getElementById('klChat')?.remove();
 
     const root = document.createElement('div');
@@ -221,16 +221,16 @@ void (async function (): Promise<void> {
     root.className = 'klchat';
     /* 자리는 **여기서 못 박는다** (TASK-KL-128 F-4).
        이 껍데기의 스타일은 `Mdd.injectCSS` 를 지나는데, 마스코트는 화면을 다 그린 뒤에야
-       온다 — 그동안 이 상자가 **흐름 안에 낀 채로** 서서 아래 것들을 통째로 밀었다.
+       온다. 그동안 이 상자가 **흐름 안에 낀 채로** 서서 아래 것들을 통째로 밀었다.
        첫 화면 밀림 0.178 중 0.174 가 이것 하나였다(실측). 뜨는 자리만 인라인으로 박아 두면
        스타일이 늦게 와도 아무것도 안 밀린다. 나머지 생김새는 그대로 그 CSS 가 맡는다. */
     root.style.position = 'fixed';
     root.style.top = '58px';
     root.style.right = '12px';
     root.style.zIndex = '940';
-    /* ★ **자리뿐 아니라 「접혀 있음」도 인라인으로 박는다** (2026-08-17, 도구 장 실측).
+    /* ★ **자리뿐 아니라 접혀 있음도 인라인으로 박는다** (2026-08-17, 도구 장 실측).
        위에서 자리를 못 박아 첫 화면 밀림은 잡혔는데, **도구 상세 장**에서는 아직 0.0929 가
-       이 상자 하나였다(`#klChat ↑144px` · `klchat-foot ↓144px`, 243ms). 까닭:
+       이 상자 하나였다(`#klChat ↑144px`, `klchat-foot ↓144px`, 243ms). 까닭:
        판 자체를 감추는 규칙(`.klchat-panel{display:none}`)이 **늦게 오는 CSS** 안에 있어서,
        그 CSS 가 닿기 전까지 판이 제 내용대로 펼쳐져 있다가 규칙이 오면 접힌다.
        그래서 접힘도 인라인으로 준다. 펼 때는 `setOpen` 이 인라인을 직접 지운다
@@ -240,7 +240,7 @@ void (async function (): Promise<void> {
             <div class="klchat-head">
                 <span class="klchat-dot" id="klChatDot"></span>
                 <b>${t('chat.here')}</b>
-                <span id="klChatHere">·</span>
+                <span id="klChatHere">, </span>
                 <span class="klchat-spacer"></span>
                 <button type="button" class="klchat-filter" id="klChatOnlyKept" title="${t('chat.onlyKept')}">⭐</button>
                 <span id="klChatMe" title="${t('chat.myLabel')}"></span>
@@ -259,15 +259,15 @@ void (async function (): Promise<void> {
     `;
     document.body.appendChild(root);
 
-    /* 단추는 **헤더 안**에 산다 (2026-08-22). 종(`#headerBell`)·계정 캡슐과 한 줄이다.
+    /* 단추는 **헤더 안**에 산다 (2026-08-22). 종(`#headerBell`), 계정 캡슐과 한 줄이다.
        헤더가 없는 화면이면 갈 곳이 없으므로 이 상자가 도로 데리고 있고, 상자는 옛 자리
-       (왼쪽 아래)로 돌아간다 — 채팅이 통째로 사라지느니 예전처럼이라도 떠 있는 게 낫다. */
+       (왼쪽 아래)로 돌아간다. 채팅이 통째로 사라지느니 예전처럼이라도 떠 있는 게 낫다. */
     const dock = document.createElement('button');
     dock.type = 'button';
     dock.className = 'klchat-dock';
     dock.id = 'klChatDock';
     dock.setAttribute('aria-expanded', 'false');
-    /* 좁은 화면에서는 글자를 접어 점만 남긴다 — 그러면 **이름이 없는 단추**가 된다.
+    /* 좁은 화면에서는 글자를 접어 점만 남긴다. 그러면 **이름이 없는 단추**가 된다.
        읽어 주는 기계에게는 접힌 글자가 안 보이므로 이름을 따로 붙여 둔다. */
     dock.setAttribute('aria-label', t('chat.dock'));
     dock.title = t('chat.dock');
@@ -314,7 +314,7 @@ void (async function (): Promise<void> {
     }
 
     function renderHeader(): void {
-        el.here.textContent = here > 0 ? t('chat.hereCount', { n: here }) : '·';
+        el.here.textContent = here > 0 ? t('chat.hereCount', { n: here }) : ', ';
         el.dockCount.textContent = here > 0 ? String(here) : '';
         el.dot.className = `klchat-dot${connected ? ' on' : ''}`;
         el.dockDot.className = `klchat-dot${connected ? ' on' : ''}`;
@@ -327,30 +327,30 @@ void (async function (): Promise<void> {
     }
 
     function lineHtml(m: Message, previous: Message | null): string {
-        /* 같은 사람이 연달아 말하면 이름을 다시 안 적는다 — 좁은 창에서 이름이 되풀이되면
+        /* 같은 사람이 연달아 말하면 이름을 다시 안 적는다. 좁은 창에서 이름이 되풀이되면
          * 화면 절반이 이름이 된다. 다만 5분이 벌어졌으면 다시 적는다(딴 대화로 읽히게). */
         const sameSpeaker =
             previous !== null &&
             previous.who === m.who &&
             Date.parse(m.at) - Date.parse(previous.at) < 5 * 60 * 1000;
         const owner = m.byOwner ? `<span class="klchat-owner">${t('chat.owner')}</span>` : '';
-        // 지킨 줄은 목록에서도 표가 나야 한다 — 안 그러면 왜 안 사라지는지 아무도 모른다.
+        // 지킨 줄은 목록에서도 표가 나야 한다. 안 그러면 왜 안 사라지는지 아무도 모른다.
         const keptMark = (m.kept ?? 0) > 0 ? '<span class="klchat-kept">⭐</span>' : '';
         const head = sameSpeaker
             ? ''
             : `${owner}<span class="klchat-who" style="color:${m.color}">${escapeHtml(m.name)}</span><span style="color:var(--text-tertiary,#6b7688)">: </span>`;
-        /* 「글로 옮기기」가 왜 여기 있나 (TASK-KL-157): 채팅에서 나온 좋은 말은 24시간 뒤 사라진다.
+        /* 글로 옮기기가 왜 여기 있나 (TASK-KL-157): 채팅에서 나온 좋은 말은 24시간 뒤 사라진다.
          * 남길 가치가 있다고 느낀 그 순간에 옮길 길이 없으면, 옮기자고 마음먹을 일도 없다. */
         const keptCount = m.kept ?? 0;
         const mineKept = m.keptByMe === true;
-        /* ⭐ 지키기 — 누른 줄은 **하루가 지나도 안 사라진다**.
-         * 「사라지기 전에 알려 주기」보다 이쪽이 근본이다: 알림은 그 순간 보고 있어야 하지만,
+        /* ⭐ 지키기. 누른 줄은 **하루가 지나도 안 사라진다**.
+         * 사라지기 전에 알려 주기보다 이쪽이 근본이다: 알림은 그 순간 보고 있어야 하지만,
          * 지키기는 한 번 누르면 끝난다. 📌 는 커뮤니티로 옮기는 것이라 하는 일이 다르다. */
         const star = `<button data-act="star" data-id="${m.id}" data-on="${mineKept ? '1' : '0'}" title="${
             mineKept ? t('chat.keepingTitle') : t('chat.keepTitle')
         }">${mineKept ? '⭐' : '☆'}${keptCount > 1 ? keptCount : ''}</button>`;
         const keep = `${star}<button data-act="keep" data-id="${m.id}" title="${t('chat.toPost')}">📌</button>`;
-        // 답하기 — 여럿이 동시에 말하면 「누구한테 하는 말이지?」가 안 보인다.
+        // 답하기. 여럿이 동시에 말하면 누구한테 하는 말이지?가 안 보인다.
         const answer = `<button data-act="answer" data-id="${m.id}" title="${t('chat.reply')}">↩</button>`;
         /* 이미 신고한 줄은 눌린 채로 둔다. 안 그러면 눌렀는지 몰라 또 누르고,
            또 눌러도 아무 일이 안 일어나니 고장으로 읽힌다. */
@@ -376,7 +376,7 @@ void (async function (): Promise<void> {
         );
     }
 
-    /** 「지금 그려져 있는 것과 같은 내용인가」 판별용 한 줄. 서명이 같으면 다시 안 그린다. */
+    /** 지금 그려져 있는 것과 같은 내용인가 판별용 한 줄. 서명이 같으면 다시 안 그린다. */
     function logSignature(): string {
         return (
             `${onlyKept ? 'k' : 'a'}|${here <= 1 ? 'alone' : 'with'}|` +
@@ -405,7 +405,7 @@ void (async function (): Promise<void> {
         /* 혼자 있을 때 이 창은 **죽은 방으로 읽힌다** (TASK-KL-157).
          * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안
          * 남기고 → 영영 빈다. 그래서 남긴 말이 **나중에 닿는다**는 사실을 그 자리에서 말해 준다.
-         * 지어낸 수는 안 쓴다 — 오늘 실제로 말한 사람 수만 적는다. */
+         * 지어낸 수는 안 쓴다. 오늘 실제로 말한 사람 수만 적는다. */
         if (!onlyKept && here <= 1) {
             const others = todayVoices > 1 ? t('chat.aloneToday', { n: todayVoices }) + ' ' : '';
             html += `<div class="klchat-note klchat-alone">${t('chat.alone', { others })}</div>`;
@@ -414,7 +414,7 @@ void (async function (): Promise<void> {
         if (stick) el.log.scrollTop = el.log.scrollHeight;
     }
 
-    /** 「지금 누구에게 답하는 중인가」를 입력칸 바로 위에 적는다. 안 적으면 실수로 딴 줄에 붙는다. */
+    /** 지금 누구에게 답하는 중인가를 입력칸 바로 위에 적는다. 안 적으면 실수로 딴 줄에 붙는다. */
     function renderReplying(): void {
         if (!replyTo) {
             el.replying.hidden = true;
@@ -445,7 +445,7 @@ void (async function (): Promise<void> {
 
     function setOpen(open: boolean): void {
         root.classList.toggle('open', open);
-        /* 처음에 인라인으로 접어 뒀다(위 § 밀림). 인라인은 클래스 규칙을 이기므로 여기서 치운다 —
+        /* 처음에 인라인으로 접어 뒀다(위 § 밀림). 인라인은 클래스 규칙을 이기므로 여기서 치운다 . 
            한 번 치우면 그다음부터는 `.klchat.open` 규칙이 맡는다. */
         const panelEl = root.querySelector('.klchat-panel');
         if (panelEl instanceof HTMLElement && panelEl.style.display) panelEl.style.removeProperty('display');
@@ -493,14 +493,14 @@ void (async function (): Promise<void> {
         el.input.maxLength = maxLength;
         messages.length = 0;
         for (const m of data.messages || []) messages.push(m);
-        /* 안 본 줄 세기 — 마지막으로 본 줄 **뒤**의 것만 센다.
+        /* 안 본 줄 세기. 마지막으로 본 줄 **뒤**의 것만 센다.
          * 이게 없으면 새로 들어올 때마다 200개가 안 읽음으로 뜬다(그러면 배지가 의미를 잃는다). */
         const seen = pref(SEEN_KEY, '');
         const index = messages.findIndex((m) => m.id === seen);
         unread = isOpen() ? 0 : index >= 0 ? messages.length - index - 1 : Math.min(messages.length, 99);
         /* 되돌아갈 길(5초 폴링)은 **바뀐 게 없어도** 통째로 다시 받는다. 그때마다 다시 그리면
          * 5초마다 hover 가 풀려 날짜가 깜빡이고, 누르려던 버튼이 손 밑에서 사라진다.
-         * 내용이 같으면 그리지 않는다 — 서명 한 줄로 판별한다. */
+         * 내용이 같으면 그리지 않는다. 서명 한 줄로 판별한다. */
         if (logSignature() !== lastLogSignature) renderLog();
         renderHeader();
         if (isOpen()) markSeen();
@@ -513,7 +513,7 @@ void (async function (): Promise<void> {
 
     /**
      * SSE 가 안 되는 자리를 위한 되돌아갈 길.
-     * 실시간은 아니지만 **죽은 창보다는 낫다** — 5초마다 통째로 다시 받는다.
+     * 실시간은 아니지만 **죽은 창보다는 낫다**. 5초마다 통째로 다시 받는다.
      */
     function startPolling(base: string): void {
         if (pollTimer) return;
@@ -560,16 +560,16 @@ void (async function (): Promise<void> {
             const data = JSON.parse((event as MessageEvent).data) as { id: string; kept: number };
             const found = messages.find((m) => m.id === data.id);
             if (!found) return;
-            /* 서버는 **몇 명이 지켰나**만 흘린다 — 누가 지켰는지를 뿌리면 익명이 샌다.
+            /* 서버는 **몇 명이 지켰나**만 흘린다. 누가 지켰는지를 뿌리면 익명이 샌다.
                내가 눌렀는지는 내 화면이 이미 안다. 여기서는 수만 맞춘다. */
             found.kept = data.kept;
             renderLog();
         });
         source.addEventListener('here', (event) => {
             /* 사람 수만 바뀐 것으로 **로그를 다시 그리면 안 된다** (사용자 신고 2026-08-08).
-             * `el.log.innerHTML = …` 는 줄을 통째로 새로 만든다 — 그 순간 마우스가 얹혀 있던
+             * `el.log.innerHTML = ...` 는 줄을 통째로 새로 만든다. 그 순간 마우스가 얹혀 있던
              * 줄이 사라졌다 다시 생기므로 `:hover` 가 풀리고, hover 로만 뜨는 날짜가 깜빡인다.
-             * 사람 수가 로그에 미치는 영향은 「지금은 혼자다」 안내 하나뿐이니, **그 경계를
+             * 사람 수가 로그에 미치는 영향은 지금은 혼자다 안내 하나뿐이니, **그 경계를
              * 넘을 때만** 다시 그린다. */
             const was = here;
             here = (JSON.parse((event as MessageEvent).data) as { here: number }).here;
@@ -577,7 +577,7 @@ void (async function (): Promise<void> {
             if ((was <= 1) !== (here <= 1)) renderLog();
         });
         source.onerror = () => {
-            /* EventSource 는 스스로 다시 붙는다 — 여기서 닫으면 그 기능을 우리가 꺼 버린다.
+            /* EventSource 는 스스로 다시 붙는다. 여기서 닫으면 그 기능을 우리가 꺼 버린다.
              * 다만 완전히 닫힌 상태(CLOSED)면 브라우저도 포기한 것이므로 그때만 되물어보기로 내려간다. */
             connected = false;
             renderHeader();
@@ -589,7 +589,7 @@ void (async function (): Promise<void> {
 
     // ── 보내기 ────────────────────────────────────────────────────────────────
 
-    /** 못 보낸 까닭. **쓸 때 정한다** — 모듈이 뜨는 순간에 굳으면 한국어로 굳는다. */
+    /** 못 보낸 까닭. **쓸 때 정한다**. 모듈이 뜨는 순간에 굳으면 한국어로 굳는다. */
     const failureText = (): Record<string, string> => ({
         empty: t('chat.err.empty'),
         too_long: t('chat.err.tooLong', { n: maxLength }),
@@ -618,7 +618,7 @@ void (async function (): Promise<void> {
                 el.input.style.height = '34px';
                 el.status.textContent = '';
                 el.status.classList.remove('warn');
-                /* 되물어보기로 도는 중이면 내 줄도 바로 안 보인다 — 그 자리만 즉시 당겨 온다.
+                /* 되물어보기로 도는 중이면 내 줄도 바로 안 보인다. 그 자리만 즉시 당겨 온다.
                  * 흐르는 연결이 살아 있으면 서버가 알아서 밀어 주므로 아무것도 안 한다. */
                 if (!connected) startPolling(base);
                 return;
@@ -652,9 +652,9 @@ void (async function (): Promise<void> {
     /**
      * 이 줄을 커뮤니티 글로 옮긴다 (TASK-KL-157).
      *
-     * 여기서 글을 **대신 올리지 않는다.** 옮길지 말지·어떻게 다듬을지는 사람이 정할 일이고,
+     * 여기서 글을 **대신 올리지 않는다.** 옮길지 말지, 어떻게 다듬을지는 사람이 정할 일이고,
      * 한 번 누르면 글이 올라가 버리는 단추는 무섭다. 대신 인용을 초안에 넣고 작성기를 열어 준다.
-     * 초안은 커뮤니티가 이미 쓰는 자리(`kl_draft:<판>`)에 넣는다 — 새 통로를 안 만든다.
+     * 초안은 커뮤니티가 이미 쓰는 자리(`kl_draft:<판>`)에 넣는다. 새 통로를 안 만든다.
      */
     function keep(id: string): void {
         const line = messages.find((m) => m.id === id);
@@ -672,13 +672,13 @@ void (async function (): Promise<void> {
                     text: `${quoted}\n\n${t('chat.fromChat', { name: line.name })}\n\n`,
                 }),
             );
-            // 「글쓰기 칸을 펴 둔 채로 도착해라」 한 번만 쓰이는 표식.
+            // 글쓰기 칸을 펴 둔 채로 도착해라 한 번만 쓰이는 표식.
             localStorage.setItem('karmolab_community_open_writer', '1');
         } catch {
-            /* 기억을 못 해도 화면은 열어 준다 — 붙여 쓰면 된다 */
+            /* 기억을 못 해도 화면은 열어 준다. 붙여 쓰면 된다 */
         }
         setOpen(false);
-        // 자유 판으로 도착하게 주소를 먼저 맞춘다 — 커뮤니티는 주소에서 판을 읽는다.
+        // 자유 판으로 도착하게 주소를 먼저 맞춘다. 커뮤니티는 주소에서 판을 읽는다.
         const search = new URLSearchParams(location.search);
         search.set('board', 'free');
         search.delete('p');
@@ -702,7 +702,7 @@ void (async function (): Promise<void> {
     };
 
     /* 예전에는 폰에서 칸을 누르면 키보드가 창을 덮어, 창을 보이는 자리로 끌어와야 했다
-     * (TASK-KL-157). 판이 화면 **위쪽**에 고정된 지금은 키보드가 덮지 못한다 —
+     * (TASK-KL-157). 판이 화면 **위쪽**에 고정된 지금은 키보드가 덮지 못한다 . 
      * 끌어오는 대신 마지막 줄만 보이게 해 둔다. */
     el.input.onfocus = () => {
         setTimeout(() => {
@@ -711,7 +711,7 @@ void (async function (): Promise<void> {
     };
 
     el.input.onkeydown = (event) => {
-        // 엔터로 보내고, 시프트+엔터로 줄을 바꾼다 — 채팅에서는 이게 기본값이다.
+        // 엔터로 보내고, 시프트+엔터로 줄을 바꾼다. 채팅에서는 이게 기본값이다.
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             void send();
@@ -748,7 +748,7 @@ void (async function (): Promise<void> {
             const id = button.dataset.id ?? '';
             const line = messages.find((m) => m.id === id);
             if (line) {
-                // 누른 자리에서 바로 바뀐다 — 서버 확인은 뒤에서 (흐르는 연결이 수를 맞춰 준다).
+                // 누른 자리에서 바로 바뀐다. 서버 확인은 뒤에서 (흐르는 연결이 수를 맞춰 준다).
                 line.keptByMe = !line.keptByMe;
                 line.kept = Math.max(0, (line.kept ?? 0) + (line.keptByMe ? 1 : -1));
                 renderLog();
@@ -760,7 +760,7 @@ void (async function (): Promise<void> {
     if (pref(OPEN_KEY, '0') === '1') setOpen(true);
     renderHeader();
 
-    /* 계정 스크립트가 늦게 올 수 있다 — 오면 그쪽 주소가 이긴다(검사가 갈아 끼우는 자리).
+    /* 계정 스크립트가 늦게 올 수 있다. 오면 그쪽 주소가 이긴다(검사가 갈아 끼우는 자리).
      * 하지만 **기다리지는 않는다.** 기다리면 계정 스크립트가 아예 없는 화면(도구 129장)에서
      * 채팅이 영영 안 뜬다. 제 주소로 먼저 붙고, 필요하면 그때 다시 붙는다. */
     connect();

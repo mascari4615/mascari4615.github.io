@@ -1,10 +1,10 @@
 /**
- * 소개 — 한 장 (change.blog-surfaces-as-widgets).
+ * 소개. 한 장 (change.blog-surfaces-as-widgets).
  *
  * 그리는 쪽은 이 위젯 하나고, `/about/` 장은 셸이 이 위젯을 부팅한 자리다.
  * 원료 = `data/about.json` (배포 산출, `gen-post-pages.mjs` 가 `content/about.md` 를 렌더한 것).
  *
- * 겉모습은 글 장·커뮤니티 글과 **같은 집**을 쓴다 — `css/community.css` 의 `.c-post-body md`.
+ * 겉모습은 글 장, 커뮤니티 글과 **같은 집**을 쓴다. `css/community.css` 의 `.c-post-body md`.
  * 여기서 본문 스타일을 새로 정하면 세 곳이 갈라진다 (change.board-unify ② 규율).
  */
 import { t, loadNamespace } from '../lib/i18n';
@@ -13,7 +13,7 @@ import { t, loadNamespace } from '../lib/i18n';
     const esc = (v: unknown): string =>
         String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-    /* 커뮤니티 위젯과 같은 시트를 같은 방식으로 붙인다 — 눌렀을 때 받으므로 첫 화면 무게 0. */
+    /* 커뮤니티 위젯과 같은 시트를 같은 방식으로 붙인다. 눌렀을 때 받으므로 첫 화면 무게 0. */
     function ensureCommunityStylesheet(): void {
         const href = '/apps/karmolab/css/community.css';
         if (document.querySelector(`link[href="${href}"]`)) return;
@@ -54,7 +54,7 @@ import { t, loadNamespace } from '../lib/i18n';
                             )}</div>`;
                             return;
                         }
-                        /* 원료는 우리 저장소의 마크다운을 우리가 렌더한 것이다 — 바깥 입력이 아니다. */
+                        /* 원료는 우리 저장소의 마크다운을 우리가 렌더한 것이다. 바깥 입력이 아니다. */
                         container.innerHTML = `<div class="c-wrap"><article class="c-post">
     <div class="c-post-body md">${body}</div>
 </article></div>`;

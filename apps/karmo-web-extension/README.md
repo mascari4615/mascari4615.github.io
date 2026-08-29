@@ -1,6 +1,6 @@
 # KarmoWebExtension (Chrome MV3)
 
-로컬 앱(`chat-overlay` 등)과 브라우저 방송·시청 페이지를 잇는 **KarmoWebExtension**입니다.
+로컬 앱(`chat-overlay` 등)과 브라우저 방송, 시청 페이지를 잇는 **KarmoWebExtension**입니다.
 
 ## 개발용 로드
 
@@ -20,7 +20,7 @@
 확장 아이콘 → **즐겨찾기 정리 열기**. `chrome.bookmarks` API 로 읽고 지운다.
 
 - **내보내기**: TSV / Markdown / JSON 클립보드 복사 (문서화용)
-- **붙여넣기 일괄 삭제**: id·URL 을 줄 단위로 붙여넣기 → 미리보기 → 삭제
+- **붙여넣기 일괄 삭제**: id, URL 을 줄 단위로 붙여넣기 → 미리보기 → 삭제
 - **목록에서 고르기**: 검색 + 체크 선택 삭제
 
 `Bookmarks` JSON 파일을 직접 고치는 방법은 **동기화가 되살린다** (2026-08-28 실측: 3건 삭제 → 새 id 로 부활).
@@ -28,7 +28,7 @@
 
 ## 원격 호출 (externally_connectable)
 
-허용 도메인(`blog`·`127.0.0.1`·`localhost`) 페이지에서:
+허용 도메인(`blog`, `127.0.0.1`, `localhost`) 페이지에서:
 
 ```js
 chrome.runtime.sendMessage("<확장ID>", { type: "bookmarks.list" }, console.log);
@@ -52,4 +52,4 @@ chrome.runtime.sendMessage("<확장ID>", { type: "bookmarks.list" }, console.log
 
 ## 주의
 
-각 방송 플랫폼 약관·정책은 직접 확인하세요.
+각 방송 플랫폼 약관, 정책은 직접 확인하세요.

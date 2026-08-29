@@ -1,11 +1,11 @@
 /**
- * lib/karmograph/canvas-ephemeral.ts — **흘러가는 카드** (TASK-KL-202 방향① 그리기 조각).
+ * lib/karmograph/canvas-ephemeral.ts. **흘러가는 카드** (TASK-KL-202 방향① 그리기 조각).
  *
  * 사람이 놓은 카드가 아니라 바깥(라이브 데이터)에서 잠깐 들어와 붙는 카드다. 그래서 생김새가
- * 다르다 — 점선 테두리 · 살짝 투명 · 고정폭 글꼴. **사람 것과 헷갈리면 지우기가 무서워진다.**
+ * 다르다. 점선 테두리, 살짝 투명, 고정폭 글꼴. **사람 것과 헷갈리면 지우기가 무서워진다.**
  *
- * 이름이 상자보다 길면 잘라서 `…` 로 접고, 잘린 이름은 마우스를 얹으면 통째로 보인다
- * (잘린 채로 두면 「이름이 저게 전부인 줄」 안다).
+ * 이름이 상자보다 길면 잘라서 `...` 로 접고, 잘린 이름은 마우스를 얹으면 통째로 보인다
+ * (잘린 채로 두면 이름이 저게 전부인 줄 안다).
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -17,7 +17,7 @@ export const EPH_PADDING = 16;
 /** 상자 폭에 들어갈 만큼만 남기고 접는다. */
 export function foldEphemeralLabel(label: string, width: number): string {
   const maxChars = Math.max(4, Math.floor((width - EPH_PADDING) / EPH_CHAR_W));
-  return label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label;
+  return label.length > maxChars ? `${label.slice(0, maxChars - 1)}...` : label;
 }
 
 export interface EphemeralTheme {

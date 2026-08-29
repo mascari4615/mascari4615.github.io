@@ -62,7 +62,7 @@ function load(): WebhookRoutes {
     };
   } catch (e: unknown) {
     console.warn(
-      `[WebhookRoutes] ${ROUTES_PATH} 로드 실패 — 빈 라우팅으로 시작:`,
+      `[WebhookRoutes] ${ROUTES_PATH} 로드 실패. 빈 라우팅으로 시작:`,
       e instanceof Error ? e.message : String(e),
     );
     cached = { default: [], routes: {}, localRoutes: {}, localDefault: [] };
@@ -99,7 +99,7 @@ export function hasAnyRoute(): boolean {
 }
 
 /**
- * 로컬 webhook (POST /webhook/local) — kind 매칭 채널 → localDefault → default 순.
+ * 로컬 webhook (POST /webhook/local). kind 매칭 채널 → localDefault → default 순.
  * TASK-WM-087.
  */
 export function getLocalChannels(kind: string | null | undefined): string[] {

@@ -1,8 +1,8 @@
 /**
  * 버전 범위 보기 (TASK-KL-316 / 13)
  *
- * 「개발 도구」 작업대의 **살펴보기** 칸. 알맹이는 `core/semver`.
- * `^1.2.3` 을 **「1.2.3 이상 2.0.0 미만」**으로 펴서 보여 준다 — 다툴 일이 없어진다.
+ * 개발 도구 작업대의 **살펴보기** 칸. 알맹이는 `core/semver`.
+ * `^1.2.3` 을 **1.2.3 이상 2.0.0 미만**으로 펴서 보여 준다. 다툴 일이 없어진다.
  * 두 번째 칸에 다른 범위를 적으면 **겹치는 판이 있는지**(꾸러미가 두 벌 깔릴 상황) 말해 준다.
  */
 import { edges, overlaps, satisfies, maxSatisfying, spec } from '../../core/semver';
@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     desc: t(
       'widgets-desc.semver.desc',
       undefined,
-      '^1.2.3 이 실제로 어디까지 받는지 이상·미만으로 펴 주고, 두 범위가 겹치는지 봅니다'
+      '^1.2.3 이 실제로 어디까지 받는지 이상, 미만으로 펴 주고, 두 범위가 겹치는지 봅니다'
     ),
     layout: 'wide',
     icon: '<path d="M4 12h4l3-7 3 14 3-7h3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -88,7 +88,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const high = e.to === undefined ? t('semver.noUpper') : t(e.toInclusive ? 'semver.atMost' : 'semver.below', { v: e.to });
             return (
               '<div class="tool-list-row"><span class="tool-list-key">' + esc(t('semver.gets')) + '</span>' +
-              '<span class="tool-list-val">' + esc(low) + '  ·  ' + esc(high) + '</span></div>'
+              '<span class="tool-list-val">' + esc(low) + ' ,  ' + esc(high) + '</span></div>'
             );
           })
           .join('');

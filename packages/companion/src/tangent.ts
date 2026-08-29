@@ -2,11 +2,11 @@ import { brainSaid } from './rut';
 import type { MemoryEntry } from './types';
 
 /**
- * 화제 틀기 — 답만 하지 않고 제 얘기를 꺼내는 것.
+ * 화제 틀기. 답만 하지 않고 제 얘기를 꺼내는 것.
  *
  * 레퍼런스에서 저쪽이 살아 있어 보이는 큰 이유 하나는 **가만히 답만 하지 않는다**는 것이다.
  * 묻지도 않은 얘기를 꺼내고, 하던 얘기에서 옆으로 새고, 그러다 제가 뭘 말하던 중이었는지
- * 잊는다. 만든 사람이 농담 삼아 「AI판 주의력 결핍」이라고 부를 만큼 자주 샌다. 그런데
+ * 잊는다. 만든 사람이 농담 삼아 AI판 주의력 결핍이라고 부를 만큼 자주 샌다. 그런데
  * **그게 사람처럼 보이는 자리**다.
  *
  * 우리 얘는 **끝까지 반응만 한다.** 실측(30회차): 두뇌가 지은 말 평균 8.5자, 되물은 비율
@@ -32,7 +32,7 @@ export interface DryOptions {
 /**
  * 대화가 말라 가나.
  *
- * 짧은 답이 이어지고 **되묻지도 않으면** 마른 것이다. 짧아도 되묻고 있으면 대화는 살아 있다 —
+ * 짧은 답이 이어지고 **되묻지도 않으면** 마른 것이다. 짧아도 되묻고 있으면 대화는 살아 있다 . 
  * 길이만 보면 이 얘의 인격(원래 짧게 말한다)을 병으로 오진한다.
  */
 export function isDrying(entries: readonly MemoryEntry[], options: DryOptions = {}): boolean {
@@ -70,13 +70,13 @@ export interface TangentSources {
 /**
  * 꺼낼 거리 하나를 고른다. 없으면 null.
  *
- * 순서가 곧 우선순위다. **궁금한 것이 먼저** — 조수님한테서 나온 얘기라 가장 자연스럽다.
+ * 순서가 곧 우선순위다. **궁금한 것이 먼저**. 조수님한테서 나온 얘기라 가장 자연스럽다.
  * 화면에서 본 것은 그 다음, 사람과 바람은 마지막이다(자칫 뜬금없다).
  */
 export function tangentSeed(sources: TangentSources, pickNth = 0): TangentSeed | null {
   const candidates: TangentSeed[] = [];
   if (sources.wondering) candidates.push({ from: '궁금한 것', what: sources.wondering });
-  if (sources.sawWindow) candidates.push({ from: '아까 본 것', what: `아까 조수님 화면에 「${sources.sawWindow}」 가 떠 있었다` });
+  if (sources.sawWindow) candidates.push({ from: '아까 본 것', what: `아까 조수님 화면에 ${sources.sawWindow} 가 떠 있었다` });
   if (sources.quietPerson) candidates.push({ from: '곁의 사람', what: `${sources.quietPerson} 얘기가 요즘 안 나온다` });
   if (sources.wish) candidates.push({ from: '오늘 바람', what: sources.wish });
   if (candidates.length === 0) return null;
@@ -87,14 +87,14 @@ export function tangentSeed(sources: TangentSources, pickNth = 0): TangentSeed |
  * 두뇌에 넘길 한 줄.
  *
  * **답을 하지 말라는 게 아니다.** 먼저 답하고, 그 다음에 한 조각 얹으라고 한다. 그리고
- * 억지로 이어 붙이지 말라고 못 박는다 — 「그건 그렇고」로 시작하는 말은 대화가 아니라
+ * 억지로 이어 붙이지 말라고 못 박는다. 그건 그렇고로 시작하는 말은 대화가 아니라
  * 화제 전환 장치다.
  */
 export function tangentNote(seed: TangentSeed | null): string {
   if (seed === null) return '';
   return (
     `대화가 말라 간다. 물어본 것엔 답하고, 그 다음에 네 얘기를 **한 조각만** 꺼내라: ` +
-    `「${seed.what}」. 억지로 이어 붙이지 말고, 안 어울리면 그냥 넘겨라.`
+    `${seed.what}. 억지로 이어 붙이지 말고, 안 어울리면 그냥 넘겨라.`
   );
 }
 

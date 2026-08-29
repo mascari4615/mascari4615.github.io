@@ -1,21 +1,21 @@
 /**
- * KAR-018-PUSH-CLOSURE Phase 1 — 봇 산출물 git push 일반화 함수.
+ * KAR-018-PUSH-CLOSURE Phase 1. 봇 산출물 git push 일반화 함수.
  *
  * 근본: 봇이 자율 생산한 산출물(자기수술 시드 / 워커 outcome / evolution
  * ledger / core memory)이 prod 노트북 memo 워킹트리 untracked 로만 누적 →
- * 데스크톱·다른 Claude 세션·origin 미도달 substrate-split. 본 모듈 = 그
+ * 데스크톱, 다른 Claude 세션, origin 미도달 substrate-split. 본 모듈 = 그
  * substrate→surface 다리. memo-sync.ts (fetch+reset 소비-only) 의 push
  * 방향 보완.
  *
  * 안전 envelope:
- *  - **race 회피** — fetch + (local != FETCH_HEAD 면 rebase) + abort-on-conflict.
+ *  - **race 회피**. fetch + (local != FETCH_HEAD 면 rebase) + abort-on-conflict.
  *    충돌 시 'skipped:race' 반환 (다음 cadence tick 재시도).
- *  - **pathspec 만** — `git add -- <file>` + `git commit -- <file>` (KAR-025
+ *  - **pathspec 만**. `git add -- <file>` + `git commit -- <file>` (KAR-025
  *    intra-file foreign session 격리 정합). 다른 dirty 휩쓸기 0.
- *  - **비차단** — 호출부가 try/catch 로 감싸 tick 비차단.
- *  - **author 명시** — `git -c user.name -c user.email` 봇 식별 (yawnbot).
- *  - **dryRun mode** — 테스트 / 출시 검증용 (commit 만, push 안 함).
- *  - **토큰 masking** — error 메시지에서 PAT 가 새지 않도록.
+ *  - **비차단**. 호출부가 try/catch 로 감싸 tick 비차단.
+ *  - **author 명시**. `git -c user.name -c user.email` 봇 식별 (yawnbot).
+ *  - **dryRun mode**. 테스트 / 출시 검증용 (commit 만, push 안 함).
+ *  - **토큰 masking**. error 메시지에서 PAT 가 새지 않도록.
  *
  * pre-flight scope check: 호출 측에서 startup 1회 (별도 함수).
  */
@@ -57,11 +57,11 @@ export interface MemoPushConfig {
 }
 
 export interface MemoPushGitRunner {
-  /** `git status --porcelain -- <relPath>` — 빈 출력=변경 0. */
+  /** `git status --porcelain -- <relPath>`. 빈 출력=변경 0. */
   statusFile(cfg: MemoPushConfig, relPath: string): Promise<string>;
-  /** `git add -- <relPath>` — pathspec 만. */
+  /** `git add -- <relPath>`. pathspec 만. */
   add(cfg: MemoPushConfig, relPath: string): Promise<void>;
-  /** `git commit -c user.name/email -- <relPath> -F <messageFile>` — pathspec commit. */
+  /** `git commit -c user.name/email -- <relPath> -F <messageFile>`. pathspec commit. */
   commit(cfg: MemoPushConfig, relPath: string, message: string): Promise<string>;
   /** `git fetch <authUrl> <branch>`. */
   fetch(cfg: MemoPushConfig): Promise<void>;
@@ -69,9 +69,9 @@ export interface MemoPushGitRunner {
   headSha(cfg: MemoPushConfig): Promise<string>;
   /** `git rev-parse FETCH_HEAD`. */
   fetchHeadSha(cfg: MemoPushConfig): Promise<string>;
-  /** `git rebase FETCH_HEAD` — conflict 시 throw. */
+  /** `git rebase FETCH_HEAD`. conflict 시 throw. */
   rebase(cfg: MemoPushConfig): Promise<void>;
-  /** `git rebase --abort` — conflict 보류. */
+  /** `git rebase --abort`. conflict 보류. */
   rebaseAbort(cfg: MemoPushConfig): Promise<void>;
   /** `git push <authUrl> HEAD:<branch>`. */
   push(cfg: MemoPushConfig): Promise<void>;
@@ -100,7 +100,7 @@ export function resolveConfig(env: NodeJS.ProcessEnv, deps: MemoPushDeps): MemoP
     token,
     memoRepoPath,
     repoSlug: deps.repoSlug || env.YAWNBOT_MEMOSYNC_REPO_SLUG?.trim() || DEFAULT_REPO_SLUG,
-    // 같은 패턴 (defaults.txt 빈 문자열 line) — ?? 는 nullish 만 fallback 이라
+    // 같은 패턴 (defaults.txt 빈 문자열 line). ?? 는 nullish 만 fallback 이라
     // empty string 통과 → "" 로 깨짐 (KAR-018-PUSH-CLOSURE 2026-05-20).
     branch: deps.branch || env.YAWNBOT_MEMOSYNC_BRANCH?.trim() || DEFAULT_BRANCH,
     authorName: deps.authorName || env.YAWNBOT_PUSH_AUTHOR_NAME?.trim() || DEFAULT_AUTHOR_NAME,
@@ -118,7 +118,7 @@ function maskToken(msg: string, token: string): string {
 }
 
 /**
- * 실 git GitRunner — child_process.execFile 기반. memo-sync.ts createGitRunner
+ * 실 git GitRunner. child_process.execFile 기반. memo-sync.ts createGitRunner
  * 와 동형이되 push 방향에 필요한 명령 추가 (status / add / commit / rebase /
  * rebaseAbort / push).
  */
@@ -192,7 +192,7 @@ export function createMemoPushGitRunner(): MemoPushGitRunner {
 }
 
 /**
- * KAR-018-PUSH-CLOSURE 후속 — startup pre-flight: MEMO_GITHUB_PAT 가 memo
+ * KAR-018-PUSH-CLOSURE 후속. startup pre-flight: MEMO_GITHUB_PAT 가 memo
  * repo 에 push 권한 가졌는지 GitHub API 로 검증. push fail 의 KL-073 동형
  * silent 패턴 (token 있으나 scope 부족 → 매 cadence tick 'error') 회피.
  *
@@ -201,7 +201,7 @@ export function createMemoPushGitRunner(): MemoPushGitRunner {
  * - GET /repos/<slug> 성공 + permissions.push=true → canPush=true (GREEN)
  * - permissions.push=false → canPush=false (read scope만, push 부족)
  *
- * `x-oauth-scopes` 헤더는 classic PAT 에만 — fine-grained PAT 는 빈 출력
+ * `x-oauth-scopes` 헤더는 classic PAT 에만. fine-grained PAT 는 빈 출력
  * 이라 `permissions.push` 가 정본 판단 기준. (fine-grained 의 Pull requests:
  * Write + Contents: Write 가 push 권한.)
  */
@@ -270,7 +270,7 @@ function toRelPath(memoRoot: string, absPath: string): string | null {
  *  7. dryRun? → 'skipped:dryrun'.
  *  8. push HEAD:branch → 'pushed' (or 'error' on push fail).
  *
- * 어느 단계 실패도 caller try/catch 비차단 — error 메시지는 토큰 mask.
+ * 어느 단계 실패도 caller try/catch 비차단. error 메시지는 토큰 mask.
  */
 export async function commitAndPushMemoFile(
   env: NodeJS.ProcessEnv,
@@ -305,7 +305,7 @@ export async function commitAndPushMemoFile(
         } catch {
           /* abort 실패 = working tree 가 이미 clean 일 수도. 다음 cadence tick 재시도 */
         }
-        logger.warn(`[memo-push] rebase conflict — skip: ${rmsg.slice(0, 240)}`);
+        logger.warn(`[memo-push] rebase conflict. skip: ${rmsg.slice(0, 240)}`);
         return { outcome: 'skipped:race', detail: `rebase conflict: ${rmsg.slice(0, 240)}` };
       }
     }
@@ -318,7 +318,7 @@ export async function commitAndPushMemoFile(
       // 첫 worker 가 commit 하면 나머지는 "nothing to commit" 로 fail.
       // race 결과 = 이미 박힘 → silent skip (error log 아님).
       if (cmsg.toLowerCase().includes('nothing to commit')) {
-        logger.log(`[memo-push] skipped:no-change (race — another worker already committed ${rel})`);
+        logger.log(`[memo-push] skipped:no-change (race. another worker already committed ${rel})`);
         return { outcome: 'skipped:no-change', detail: 'nothing to commit (race with another worker)' };
       }
       throw commitErr;

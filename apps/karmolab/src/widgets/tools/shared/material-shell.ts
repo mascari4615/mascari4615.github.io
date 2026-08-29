@@ -1,10 +1,10 @@
 /**
- * **재료 먼저** 껍데기 (TASK-KL-261) — PDF·이미지·영상·소리·글이 같은 화면을 쓴다.
+ * **재료 먼저** 껍데기 (TASK-KL-261). PDF, 이미지, 영상, 소리, 글이 같은 화면을 쓴다.
  *
- * [[TASK-KL-259]] 에서 PDF 화면을 「할 일 탭 열한 개」에서 「파일 먼저, 할 일은 그다음」으로
+ * [[TASK-KL-259]] 에서 PDF 화면을 할 일 탭 열한 개에서 파일 먼저, 할 일은 그다음으로
  * 뒤집었고 [[TASK-KL-260]] 에서 쪽 격자와 결과 이어받기를 얹었다. 그 결과가 좋았는데,
  * **이미지도 영상도 소리도 똑같은 화면이 필요하다**. 재료마다 한 벌씩 다시 쓰면 다섯 벌이
- * 서로 다르게 낡는다 — PDF 에만 「이어받기」가 있고 이미지에는 없는 식으로.
+ * 서로 다르게 낡는다. PDF 에만 이어받기가 있고 이미지에는 없는 식으로.
  *
  * 그래서 껍데기를 여기 하나 둔다. 재료마다 다른 것은 셋뿐이다:
  *   ① 무엇을 받나(`accept`) ② 왼쪽 칸에 무엇을 그리나(`preview`) ③ 할 일 목록(`groups`)
@@ -12,7 +12,7 @@
  * 도구는 **한 줄도 안 고친다**. 껍데기가 하는 일:
  *   - 파일을 한 자리에 받아 두고 미리보기를 그린다
  *   - 고른 할 일을 `Toolbox.mountTool` 로 그 자리에 그린다
- *   - 그 도구의 파일 칸에 **들고 있던 파일을 넣어 준다**(`DataTransfer`) — 그래서 다시 안 올린다
+ *   - 그 도구의 파일 칸에 **들고 있던 파일을 넣어 준다**(`DataTransfer`). 그래서 다시 안 올린다
  *   - 도구가 결과를 내놓으면 그것을 **손에 든 파일로 갈아 끼운다**(iLovePDF Workflows)
  */
 import { fileSize } from './media';
@@ -27,45 +27,45 @@ export interface MaterialShellOpts {
   /**
    * 무엇을 들고 오나 (TASK-KL-262).
    *
-   * `file` = 파일을 놓는다(PDF·이미지·영상·소리). `text` = **붙여넣는다**(글).
-   * 글은 파일로 오지 않는다 — 사람은 글을 복사해서 온다. 그래서 받는 칸이 다르고,
+   * `file` = 파일을 놓는다(PDF, 이미지, 영상, 소리). `text` = **붙여넣는다**(글).
+   * 글은 파일로 오지 않는다. 사람은 글을 복사해서 온다. 그래서 받는 칸이 다르고,
    * 도구에 건네는 자리도 다르다(파일 칸이 아니라 글 칸).
    */
-  /** 이 재료의 이름 — 「방금 하던 것」을 재료별로 따로 기억하려고 쓴다 (TASK-KL-300) */
+  /** 이 재료의 이름. 방금 하던 것을 재료별로 따로 기억하려고 쓴다 (TASK-KL-300) */
   id?: string;
   intake?: 'file' | 'text';
   /**
-   * 쓰는 대로 곧바로 (TASK-KL-264). 셈 공책은 **치는 동안** 답이 서야 한다 —
+   * 쓰는 대로 곧바로 (TASK-KL-264). 셈 공책은 **치는 동안** 답이 서야 한다 . 
    * 0.4초를 기다리면 계산기가 아니라 제출 양식이 된다. 칸도 더 크게 연다.
    */
   live?: boolean;
-  /** `<input accept>` — 무엇을 받나 (`intake: 'file'` 일 때) */
+  /** `<input accept>`. 무엇을 받나 (`intake: 'file'` 일 때) */
   accept: string;
   /**
-   * 여러 개를 한 번에 받나 (TASK-KL-289 — Stirling 의 파일 관리자를 우리 크기로).
+   * 여러 개를 한 번에 받나 (TASK-KL-289. Stirling 의 파일 관리자를 우리 크기로).
    *
-   * 합치기·잇기는 **원래 여러 개가 필요하다**. 하나만 들 수 있으면 그 도구들은 재료 화면을
-   * 지나쳐 자기 화면에서 다시 올려야 한다 — 껍데기를 만든 이유가 없어진다.
+   * 합치기, 잇기는 **원래 여러 개가 필요하다**. 하나만 들 수 있으면 그 도구들은 재료 화면을
+   * 지나쳐 자기 화면에서 다시 올려야 한다. 껍데기를 만든 이유가 없어진다.
    */
   multiple?: boolean;
-  /** 할 일 — 갈래별로 묶어 격자에 놓는다 */
+  /** 할 일. 갈래별로 묶어 격자에 놓는다 */
   groups: () => MaterialGroup[];
   /** 파일을 안 들고 와도 되는 할 일(다른 것에서 이 재료를 **만드는** 쪽) */
   noInputNeeded?: Set<string>;
-  /** 이어받을 결과의 형식 — 이 재료로 못 받는 결과는 무시한다 */
+  /** 이어받을 결과의 형식. 이 재료로 못 받는 결과는 무시한다 */
   accepts: RegExp;
   drop: { title: string; hint: string };
   labels: { change: string; back: string; chain: string; fail: string; pasted?: string; more?: string; recent?: string };
   /**
    * 왼쪽 칸을 그린다. **이 함수만 재료를 안다.**
-   * @param alive 파일이 그새 바뀌었으면 `false` — 옛 그림을 붙이지 않게 매번 확인한다
-   * @returns 파일 줄에 쓸 한 마디(「12쪽 · 2.4MB」 · 「1920×1080 · 340KB」)
+   * @param alive 파일이 그새 바뀌었으면 `false`. 옛 그림을 붙이지 않게 매번 확인한다
+   * @returns 파일 줄에 쓸 한 마디(12쪽, 2.4MB, 1920×1080, 340KB)
    */
   preview: (file: File, box: HTMLElement, alive: () => boolean) => Promise<string>;
   /**
-   * **들고 온 것을 보고 할 일을 짚어 준다** (TASK-KL-263 — JSON Crack·JSON Hero 를 보고).
+   * **들고 온 것을 보고 할 일을 짚어 준다** (TASK-KL-263. JSON Crack, JSON Hero 를 보고).
    *
-   * 붙여넣은 것이 JSON 이면 「보기 좋게」·「타입 뽑기」가, JWT 면 「뜯어보기」가 맞다.
+   * 붙여넣은 것이 JSON 이면 보기 좋게, 타입 뽑기가, JWT 면 뜯어보기가 맞다.
    * 열여섯 개를 다 읽게 하지 말고 **맞는 것을 앞에 띄운다**. 짚는 것뿐이라 나머지도 그대로 눌린다.
    */
   suggest?: (file: File) => Promise<{ ids: string[]; why: string }>;
@@ -73,13 +73,13 @@ export interface MaterialShellOpts {
   mountOperation?: (id: string, host: HTMLElement, input: string) => boolean;
 }
 
-/** 「{name} 외 {n}개」 같은 한 줄 — 말 묶음은 껍데기 밖에서 준다(재료마다 말이 다르다). */
+/** {name} 외 {n}개 같은 한 줄. 말 묶음은 껍데기 밖에서 준다(재료마다 말이 다르다). */
 function t2(tpl: string | undefined, vars: Record<string, string | number>): string {
   const base = tpl || '{name} 외 {n}개';
   return base.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 }
 
-/** 도구의 글 칸 — 읽기 전용(결과 칸)은 건너뛴다. 첫 칸이 늘 입력이다. */
+/** 도구의 글 칸. 읽기 전용(결과 칸)은 건너뛴다. 첫 칸이 늘 입력이다. */
 function textBoxIn(host: HTMLElement): HTMLTextAreaElement | null {
   const all = Array.from(host.querySelectorAll('textarea'));
   return all.find((x) => !x.readOnly && !x.disabled) || all[0] || null;
@@ -157,15 +157,15 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   const host = $<HTMLElement>('#pfHost');
 
   let file: File | null = null;
-  /** 같이 들고 있는 나머지 — 합치기 같은 할 일에 통째로 넘긴다 */
+  /** 같이 들고 있는 나머지. 합치기 같은 할 일에 통째로 넘긴다 */
   let bag: File[] = [];
-  /** 이 파일을 그리는 중이라는 표 — 파일이 바뀌면 앞의 그리기는 버린다 */
+  /** 이 파일을 그리는 중이라는 표. 파일이 바뀌면 앞의 그리기는 버린다 */
   let token = 0;
   let openJob: string | null = null;
 
   async function setFile(f: File): Promise<void> {
     file = f;
-    /* 셈 공책은 쓰는 칸이 **계속 보여야** 한다 — 한 줄 치고 칸이 사라지면 이어 쓸 수가 없다 */
+    /* 셈 공책은 쓰는 칸이 **계속 보여야** 한다. 한 줄 치고 칸이 사라지면 이어 쓸 수가 없다 */
     $('#pfDrop').hidden = !o.live;
     $('#pfFileBar').hidden = false;
     $('#pfName').textContent = asText
@@ -197,13 +197,13 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       $('#pfMeta').textContent = fileSize(f.size);
       preview.innerHTML = `<div class="pf-empty">${esc(o.labels.fail)}</div>`;
     }
-    /* 열어 둔 할 일이 있으면 **거기에도** 새 파일을 넣어 준다 — 이게 이 화면의 요점이다 */
+    /* 열어 둔 할 일이 있으면 **거기에도** 새 파일을 넣어 준다. 이게 이 화면의 요점이다 */
     if (openJob) handOver();
   }
 
   if (asText) {
-    /* 글은 **붙여넣기**가 기본이다 (TASK-KL-262). 파일 줄에 이름 대신 「붙여넣은 글」이 서고,
-     * 「바꾸기」를 누르면 다시 붙여넣는 칸으로 돌아간다. 타이핑마다 다시 재면 시끄러우니
+    /* 글은 **붙여넣기**가 기본이다 (TASK-KL-262). 파일 줄에 이름 대신 붙여넣은 글이 서고,
+     * 바꾸기를 누르면 다시 붙여넣는 칸으로 돌아간다. 타이핑마다 다시 재면 시끄러우니
      * 0.4초 쉬면 그때 센다. */
     const box = $<HTMLTextAreaElement>('#pfText');
     let timer = 0;
@@ -246,7 +246,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     bag = list;
     void setFile(list[0]);
   });
-  /* 글 모드에서 파일을 떨어뜨렸으면 **읽어서 칸에 넣는다** — 글은 파일로도 온다(로그·csv) */
+  /* 글 모드에서 파일을 떨어뜨렸으면 **읽어서 칸에 넣는다**. 글은 파일로도 온다(로그, csv) */
   if (asText) {
     head.addEventListener('drop', (e) => {
       const f = (e as DragEvent).dataTransfer?.files?.[0];
@@ -262,7 +262,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
    * 들고 있는 파일을 **그 도구의 파일 칸에 넣어 준다.**
    *
    * 도구를 고치지 않으려고 이렇게 한다: 도구가 이미 갖고 있는 `input[type=file]` 에 파일을 담고
-   * `change` 를 울려 주면, 도구는 사람이 고른 것과 똑같이 받아들인다. 도구마다 「파일 받는 함수」를
+   * `change` 를 울려 주면, 도구는 사람이 고른 것과 똑같이 받아들인다. 도구마다 파일 받는 함수를
    * 새로 노출하게 만들면 재료 다섯 곳에서 도구 예순 개를 고쳐야 한다.
    */
   function handOver(tries = 12): void {
@@ -287,7 +287,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
          * (정규식 도구가 예제 문장을 넣는 식). 우리가 먼저 넣어도 그 뒤에 지워졌다.
          *
          * 한 번만 확인했더니 **덮어쓰는 시점이 기계마다 달라** 어떤 판에서는 늦어서 놓쳤다
-         * (검사가 간헐로 빨개졌다 — 잡음이 아니라 진짜 경합이다). 그래서 세 번 본다.
+         * (검사가 간헐로 빨개졌다. 잡음이 아니라 진짜 경합이다). 그래서 세 번 본다.
          * 사람이 0.7초 안에 고쳐 쓸 일은 없으니 사람 입력을 덮을 걱정은 없다. */
         for (const at of [140, 350, 700]) {
           window.setTimeout(() => {
@@ -299,15 +299,15 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     }
     const input = host.querySelector<HTMLInputElement>('input[type=file]');
     if (!input) {
-      /* 아직 안 그려졌다 — 묶음 밖 도구는 스크립트를 **받아 온 다음** 그려진다(KL-261).
-       * 한 번 찔러 보고 포기하면 「색 뽑기」 같은 것에 파일이 영영 안 들어간다. */
+      /* 아직 안 그려졌다. 묶음 밖 도구는 스크립트를 **받아 온 다음** 그려진다(KL-261).
+       * 한 번 찔러 보고 포기하면 색 뽑기 같은 것에 파일이 영영 안 들어간다. */
       if (tries > 0) setTimeout(() => handOver(tries - 1), 120);
       return;
     }
     try {
       const dt = new DataTransfer();
       /* **받는 쪽이 여러 개를 받으면 통째로 넘긴다** (TASK-KL-289).
-       * 합치기·잇기는 원래 여러 개가 필요한데, 하나만 넘기면 그 도구에서 다시 올려야 했다. */
+       * 합치기, 잇기는 원래 여러 개가 필요한데, 하나만 넘기면 그 도구에서 다시 올려야 했다. */
       if (input.multiple && bag.length > 1) bag.forEach((x) => dt.items.add(x));
       else dt.items.add(file);
       input.files = dt.files;
@@ -317,8 +317,8 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     }
   }
 
-  /** 방금 하던 것 — 되풀이가 잦은 판(정산·자막·압축)에서는 같은 서너 개를 계속 쓴다.
-   * iLovePDF 의 「저장한 흐름」을 우리 크기로 줄인 것: 자동으로 돌리진 않고 **앞에 꺼내 둔다**. */
+  /** 방금 하던 것. 되풀이가 잦은 판(정산, 자막, 압축)에서는 같은 서너 개를 계속 쓴다.
+   * iLovePDF 의 저장한 흐름을 우리 크기로 줄인 것: 자동으로 돌리진 않고 **앞에 꺼내 둔다**. */
   const RECENT_KEY = `mat_recent_${o.id || 'x'}`;
   const readRecent = (): string[] =>
     (Toolbox.getPref?.(RECENT_KEY, '') || '').split(',').filter(Boolean);
@@ -344,8 +344,8 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       const src = container.querySelector<HTMLElement>(`.pf-job[data-job="${id}"]`);
       const b = document.createElement('button');
       b.type = 'button';
-      /* **`pf-job` 을 다시 쓰지 않는다** — 이 자리는 「할 일 목록」이 아니라 **지름길**이다.
-       * 같은 클래스를 쓰면 「할 일이 몇 개인가」를 세는 자리가 전부 흔들린다(검사가 잡았다). */
+      /* **`pf-job` 을 다시 쓰지 않는다**. 이 자리는 할 일 목록이 아니라 **지름길**이다.
+       * 같은 클래스를 쓰면 할 일이 몇 개인가를 세는 자리가 전부 흔들린다(검사가 잡았다). */
       b.className = 'pf-recent-job';
       b.dataset.job = id;
       b.textContent = src?.textContent || id;
@@ -374,7 +374,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
       host.innerHTML = `<div class="tool-status error">${esc(o.labels.fail)}</div>`;
       return;
     }
-    /* 도구가 다 그려진 뒤에 넣어야 한다 — 그리는 중에는 파일 칸이 아직 없다 */
+    /* 도구가 다 그려진 뒤에 넣어야 한다. 그리는 중에는 파일 칸이 아직 없다 */
     if (!o.noInputNeeded?.has(id)) setTimeout(() => handOver(), 60);
   }
 
@@ -387,7 +387,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
    *
    * 도구들은 재료 묶음 안으로 들어갔지만 **자기 주소는 살아 있다**(검색으로 들어오는 길).
    * 예전엔 묶음이 탭이라 `switchTab(도구id)` 로 열렸는데, 재료 화면을 한 판으로 바꾸면서
-   * 그 길이 끊겼다 — 찾아온 사람이 재료 첫 화면만 봤다. 껍데기가 직접 집어서 연다.
+   * 그 길이 끊겼다. 찾아온 사람이 재료 첫 화면만 봤다. 껍데기가 직접 집어서 연다.
    */
   const jobIds = new Set(o.groups().flatMap((g) => g.jobs.map(([id]) => id)));
   const openIfMine = (id: string | null | undefined): void => {
@@ -396,17 +396,17 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   openIfMine(Toolbox.takeBundleRequest?.());
   /* ★ **도구 한 장짜리 주소로 와도 열어 준다** (2026-08-14 실측).
      앱 안에서 `#charcount` 로 오면 열리는데, **도구 상세 페이지**(`/t/text/#charcount`)
-     로 오면 「할 일 고르기」 목록만 떴다 — 그 자리에는 묶음이 없어 `takeBundleRequest` 가 비기
+     로 오면 할 일 고르기 목록만 떴다. 그 자리에는 묶음이 없어 `takeBundleRequest` 가 비기
      때문이다. 그런데 접은 도구 열여섯의 넘김판이 **바로 그 주소**로 보낸다(언어마다 하나씩,
      48장). 찾아온 사람이 자기가 부른 도구 대신 목록을 보는 것은 데려다준 게 아니다.
-     묶음이 없으면 주소의 뒷조각을 그대로 본다 — 이 묶음의 할 일 이름일 때만. */
+     묶음이 없으면 주소의 뒷조각을 그대로 본다. 이 묶음의 할 일 이름일 때만. */
   if (typeof location !== 'undefined') {
     const tailChunk = (location.hash || '').replace(/^#/, '');
     openIfMine(tailChunk);
   }
   const onBundleOpen = (e: Event): void => {
     const d = (e as CustomEvent).detail as { tool?: string } | undefined;
-    /* 이미 집어 갔으면 `take` 가 비어 있다 — 그래도 알림에 실린 이름으로 연다 */
+    /* 이미 집어 갔으면 `take` 가 비어 있다. 그래도 알림에 실린 이름으로 연다 */
     openIfMine(d?.tool);
   };
   window.addEventListener('karmolab-open-in-bundle', onBundleOpen);
@@ -420,10 +420,10 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
   }
   $('#pfBack').onclick = backToJobs;
 
-  /* ── 결과 이어받기 (iLovePDF Workflows 의 「한 번 올리면 끝까지」) ─────────
+  /* ── 결과 이어받기 (iLovePDF Workflows 의 한 번 올리면 끝까지) ─────────
    *
    * 도구가 결과를 낼 때 `offerNext` 를 부르면 `karmolab-result` 가 울리고 결과물이
-   * `peekResult()` 에 놓인다. 껍데기는 그것을 **줍기만** 한다 — 새 규약을 만들지 않는다.
+   * `peekResult()` 에 놓인다. 껍데기는 그것을 **줍기만** 한다. 새 규약을 만들지 않는다.
    * 자동으로 갈아 끼우지는 않는다: 사람이 결과를 확인하기 전에 원본이 사라지면 안 된다.
    */
   const onResult = (e: Event): void => {
@@ -431,7 +431,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     const d = (e as CustomEvent).detail as { type?: string; name?: string } | undefined;
     if (!d || !o.accepts.test(d.type || '')) return;
     $('#pfChain').hidden = false;
-    $('#pfChainName').textContent = `「${d.name || ''}」`;
+    $('#pfChainName').textContent = `${d.name || ''}`;
   };
   window.addEventListener('karmolab-result', onResult);
   Toolbox.onDispose?.(() => window.removeEventListener('karmolab-result', onResult));
@@ -441,7 +441,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     if (!item || !item.blob) return;
     bag = [];
     void setFile(new File([item.blob], item.name || 'result', { type: item.blob.type }));
-    /* 이어서 **다른** 할 일을 고르러 간다 — 방금 한 일을 또 하려고 여기 온 게 아니다 */
+    /* 이어서 **다른** 할 일을 고르러 간다. 방금 한 일을 또 하려고 여기 온 게 아니다 */
     backToJobs();
   };
 }
@@ -490,7 +490,7 @@ function injectStyles(): void {
 .pf-back{appearance:none;background:transparent;border:0;cursor:pointer;padding:4px 0;
   font-size:13px;opacity:.7;margin-bottom:10px;}
 .pf-back:hover{opacity:1;}
-/* display:flex 는 hidden 속성을 이긴다 — 이 한 줄이 없으면 「이어서」 줄이 결과도 없는데
+/* display:flex 는 hidden 속성을 이긴다. 이 한 줄이 없으면 이어서 줄이 결과도 없는데
    늘 서 있다 (2026-08-13 검사가 잡았다, TASK-KL-282). 숨김이 필요한 칸마다 짝으로 적는다.
    (여기는 템플릿 문자열 안이라 홑따옴표 기울임표를 쓰면 문자열이 끊긴다.) */
 .pf-chain[hidden]{display:none;}

@@ -5,7 +5,7 @@
  *  ① 각 위젯이 Toolbox.register 를 호출하는지 (등록 자체가 죽으면 사이드바에서 통째로 사라진다)
  *  ② 메타(id/title/tabs)가 lazy-meta 와 어긋나지 않는지
  *  ③ 순수 로직(한영타 변환)이 기대값을 내는지
- * 를 확인한다. DOM 이 필요한 build() 는 호출하지 않는다 — 여기서 잡으려는 건 「로드조차 안 되는」 부류.
+ * 를 확인한다. DOM 이 필요한 build() 는 호출하지 않는다. 여기서 잡으려는 건 로드조차 안 되는 부류.
  *
  * 사용: node scripts/smoke-tools.mjs
  */
@@ -27,9 +27,9 @@ const metaById = Object.fromEntries((metaWindow.KARMOLAB_LAZY_META || []).map((m
 
 /* SEO 정본에 실린 도구 = 스모크 대상 */
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-/* 작업대로 **흡수된** 옛 도구는 낱개 위젯이 없다 — 주소만 원장에 남겨 둔 것이라 여기서 세면
-   「명부에 없다」로 열여섯 건이 뜬다(2026-08-13 실측: 그 상태로 한 시간 넘게 master 가 빨갰다).
-   목록은 `lib/retired-operations.mjs` 한 곳 — 생성기도 같은 것을 읽는다. */
+/* 작업대로 **흡수된** 옛 도구는 낱개 위젯이 없다. 주소만 원장에 남겨 둔 것이라 여기서 세면
+   명부에 없다로 열여섯 건이 뜬다(2026-08-13 실측: 그 상태로 한 시간 넘게 master 가 빨갰다).
+   목록은 `lib/retired-operations.mjs` 한 곳. 생성기도 같은 것을 읽는다. */
 const ids = withoutRetired(Object.keys(seo));
 
 const registered = {};
@@ -43,7 +43,7 @@ for (const id of ids) {
 
   const rel = (meta.lazyScriptPaths || [])[meta.lazyScriptPaths.length - 1];
   const file = path.join(root, 'js/widgets', rel + '.js');
-  check(fs.existsSync(file), `${id}: 번들 없음 (${rel}.js) — npm run build 필요`);
+  check(fs.existsSync(file), `${id}: 번들 없음 (${rel}.js). npm run build 필요`);
   if (!fs.existsSync(file)) continue;
 
   const win = {};
@@ -57,7 +57,7 @@ for (const id of ids) {
       incrementProgress: () => 0,
       // 앱에서는 위젯이 매니페스트의 공개 필드를 그대로 펴서 등록에 쓴다.
       // 하네스가 이것을 흉내내지 않으면, 이 함수를 (물음표 없이) 부르는 멀쩡한 위젯이
-      // 여기서만 죽어 도구 결함처럼 보인다 — 실제 구현과 같은 값을 돌려준다.
+      // 여기서만 죽어 도구 결함처럼 보인다. 실제 구현과 같은 값을 돌려준다.
       getLazyWidgetPublicMeta: (wid) => {
         const m = metaById[wid];
         if (!m) return { id: wid };
@@ -100,13 +100,13 @@ for (const id of ids) {
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'x' },
     /* 진짜 브라우저의 `location` 에는 **항상** 이만큼이 있다. 반쪽으로 두면 이 검사만의 세상이
        되고, 거기서 난 실패는 제품 고장이 아니라 **검사 고장**이다(실측: `pathname` 이 없어
-       언어 고르기가 터지면서 도구 9개가 통째로 빨강이었다 — 브라우저에서는 멀쩡했다). */
+       언어 고르기가 터지면서 도구 9개가 통째로 빨강이었다. 브라우저에서는 멀쩡했다). */
     location: { hash: '', pathname: '/', search: '', href: 'https://mascari4615.github.io/' }
   };
   try {
     new Function(...Object.keys(sandbox), fs.readFileSync(file, 'utf8'))(...Object.values(sandbox));
   } catch (e) {
-    failures.push(`${id}: 번들 실행 실패 — ${e.message}`);
+    failures.push(`${id}: 번들 실행 실패. ${e.message}`);
     continue;
   }
 
@@ -117,7 +117,7 @@ for (const id of ids) {
   check(cfg.category === meta.category, `${id}: category 불일치`);
   check(
     cfg.layout === meta.layout,
-    `${id}: layout 불일치 (위젯 "${cfg.layout}" vs 메타 "${meta.layout}") — 두 곳을 함께 고쳐야 한다`
+    `${id}: layout 불일치 (위젯 "${cfg.layout}" vs 메타 "${meta.layout}"). 두 곳을 함께 고쳐야 한다`
   );
   check(Array.isArray(cfg.tabs) && cfg.tabs.length > 0, `${id}: tabs 없음`);
   check(
@@ -128,7 +128,7 @@ for (const id of ids) {
   if (id === 'morse') morse = win.KarmoMorse;
 }
 
-/* 한영타 변환 — 조합 오토마타가 도구의 존재 이유라 값으로 확인한다.
+/* 한영타 변환. 조합 오토마타가 도구의 존재 이유라 값으로 확인한다.
    단 그 도구가 **작업대로 흡수됐으면** 낱개 위젯이 없으니 여기서 잴 것도 없다
    (조합 규칙 자체는 작업대 쪽 검사가 본다). */
 if (!RETIRED_OPERATION_IDS.has('hangulkey')) {
@@ -154,7 +154,7 @@ if (!RETIRED_OPERATION_IDS.has('hangulkey')) {
 }
 
 
-/* 모스 부호 — 부호표와 자모 조립이 도구의 존재 이유라 값으로 확인한다 */
+/* 모스 부호. 부호표와 자모 조립이 도구의 존재 이유라 값으로 확인한다 */
 if (!morse) {
   failures.push('morse: window.KarmoMorse 미노출');
 } else {
@@ -170,7 +170,7 @@ if (!morse) {
     check(back === text, `morse: decode("${code}") = "${back}" (기대 "${text}")`);
   }
   /* 한글은 자모 단위로 찍히므로, 되읽을 때 완성형으로 조립되는지가 핵심.
-     단, 겹받침·된소리는 자모열이 같아 원리적으로 중의적이라(어쓰 ↔ 엇스) 왕복을 강제하지 않는다.
+     단, 겹받침, 된소리는 자모열이 같아 원리적으로 중의적이라(어쓰 ↔ 엇스) 왕복을 강제하지 않는다.
      여기 목록은 갈래가 하나뿐인 낱말만 둔다. */
   const ko = ['안녕', '한글', '모스', '값', '의사', '뷁', '학교', '읽다', '앉다', '왜', '뭐', '고맙습니다'];
   for (const word of ko) {

@@ -45,7 +45,7 @@ export async function handleAdminNewsTick(
     return;
   }
   if (!getNews || !characterService) {
-    await interaction.reply({ content: '⚠ MEMO_REPO_PATH 미설정 — 뉴스 서비스 비활성', flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: '⚠ MEMO_REPO_PATH 미설정. 뉴스 서비스 비활성', flags: MessageFlags.Ephemeral });
     return;
   }
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -60,10 +60,10 @@ export async function handleAdminNewsTick(
       r.google > 0 && `google ${r.google}건`,
       r.gn > 0 && `gn ${r.gn}건`,
       r.hn > 0 && `hn ${r.hn}건`,
-    ].filter(Boolean).join(' · ');
+    ].filter(Boolean).join(', ');
     await interaction.editReply({
       content: total > 0
-        ? `📰 뉴스 ${total}건 게시 완료 — ${detail}`
+        ? `📰 뉴스 ${total}건 게시 완료. ${detail}`
         : '📭 새 기사 없음 (전부 dedup 또는 소스 응답 0건)',
     }).catch(() => {});
   } catch (e) {
@@ -71,7 +71,7 @@ export async function handleAdminNewsTick(
   }
 }
 
-/** 공통 폴백 — 트리거 함수 1개 호출 + 결과 ephemeral 응답 (YB-038 패턴). */
+/** 공통 폴백. 트리거 함수 1개 호출 + 결과 ephemeral 응답 (YB-038 패턴). */
 async function handleManualTrigger(
   ctx: BotContext,
   interaction: ChatInputCommandInteraction,
@@ -89,7 +89,7 @@ async function handleManualTrigger(
   try {
     const r = await trigger();
     if (r.status === 'inactive') {
-      await interaction.editReply({ content: `⚠ ${label} 비활성 — ${inactiveReason}` }).catch(() => {});
+      await interaction.editReply({ content: `⚠ ${label} 비활성. ${inactiveReason}` }).catch(() => {});
       return;
     }
     await interaction.editReply({ content: `✅ ${label} 1회 완료` }).catch(() => {});

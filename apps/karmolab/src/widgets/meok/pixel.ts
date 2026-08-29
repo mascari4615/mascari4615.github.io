@@ -1,13 +1,13 @@
 /**
- * 「먹」 — 픽셀 모드 · Ditherdeck 흡수 (TASK-KL-240 · 4단계 준비)
+ * 먹. 픽셀 모드, Ditherdeck 흡수 (TASK-KL-240, 4단계 준비)
  *
- * Ditherdeck 은 별도 도구였다. 하지만 그 안에 있던 것 — 프레임 목록 · 어니언스킨 · 팔레트 ·
- * 채우기 · 스프라이트시트 내보내기 — 은 전부 **레이어 문서의 특수한 경우**다.
- * 따로 두면 붓·되돌리기·저장을 두 벌 짓게 되므로, 여기서 문서 모델 쪽으로 끌어온다.
+ * Ditherdeck 은 별도 도구였다. 하지만 그 안에 있던 것. 프레임 목록, 어니언스킨, 팔레트 , 
+ * 채우기, 스프라이트시트 내보내기. 은 전부 **레이어 문서의 특수한 경우**다.
+ * 따로 두면 붓, 되돌리기, 저장을 두 벌 짓게 되므로, 여기서 문서 모델 쪽으로 끌어온다.
  *
  * 남길 것은 두 가지다:
- *  ① **격자** — 낮은 해상도로 그리되 화면은 크게 본다. 문서는 `doc.grid` 한 값으로 안다.
- *  ② **옛 파일** — 이미 저장해 둔 `.ditherdeck.json` 이 그대로 열려야 한다. 흡수는 삭제가 아니다.
+ *  ① **격자**. 낮은 해상도로 그리되 화면은 크게 본다. 문서는 `doc.grid` 한 값으로 안다.
+ *  ② **옛 파일**. 이미 저장해 둔 `.ditherdeck.json` 이 그대로 열려야 한다. 흡수는 삭제가 아니다.
  *
  * 브라우저를 모른다.
  */
@@ -16,7 +16,7 @@ import { celAt, createDoc, createSurface, type Doc, type Surface } from './doc';
 
 /* ===== 색 ===== */
 
-/** `#rgb` · `#rrggbb` · `#rrggbbaa` → RGBA. 못 읽으면 null. */
+/** `#rgb`, `#rrggbb`, `#rrggbbaa` → RGBA. 못 읽으면 null. */
 export function parseHex(value: string): [number, number, number, number] | null {
   const hex = String(value || '').trim().replace(/^#/, '');
   if (/^[0-9a-f]{3}$/i.test(hex)) {
@@ -62,7 +62,7 @@ export interface FillOptions {
 
 /**
  * 페인트통. 바뀐 픽셀 수를 돌려준다(0 = 아무것도 안 바뀜 = 되돌리기 단계 안 늘림).
- * 칠할 자리를 먼저 다 표시하고 **나중에 한꺼번에** 칠한다 — 칠하면서 번지면 자기 색을 따라가
+ * 칠할 자리를 먼저 다 표시하고 **나중에 한꺼번에** 칠한다. 칠하면서 번지면 자기 색을 따라가
  * 판 전체가 새는 고전 버그가 난다.
  */
 export function floodFill(
@@ -86,7 +86,7 @@ export function floodFill(
   if (options.contiguous === false) {
     for (let p = 0; p < hit.length; p += 1) if (same(p)) hit[p] = 1;
   } else {
-    /* 칸(격자) 단위로 번진다 — 픽셀 모드에서 한 칸이 반쪽만 칠해지지 않게. */
+    /* 칸(격자) 단위로 번진다. 픽셀 모드에서 한 칸이 반쪽만 칠해지지 않게. */
     const stack: Array<[number, number]> = [[startX, startY]];
     const seen = new Set<number>();
     while (stack.length) {
@@ -130,7 +130,7 @@ export interface DitherdeckProject {
 
 const DITHER_SIZES = [8, 12, 16, 24, 32];
 
-/** 옛 파일이 맞나 — 얼렁뚱땅 열어서 빈 문서를 내놓지 않게. */
+/** 옛 파일이 맞나. 얼렁뚱땅 열어서 빈 문서를 내놓지 않게. */
 export const isDitherdeckProject = (raw: unknown): boolean => {
   const value = raw as Partial<DitherdeckProject>;
   return !!value && Array.isArray(value.frames) && typeof value.size === 'number';
@@ -154,7 +154,7 @@ export function docFromDitherdeck(raw: Partial<DitherdeckProject>, cell = 32): D
   layer.cels = new Array(frames.length).fill(null);
 
   frames.forEach((frame, index) => {
-    /* 옛 파일의 프레임은 서로 독립이다 — `ensureCel` 로 만들면 앞 프레임을 물려받아(hold)
+    /* 옛 파일의 프레임은 서로 독립이다. `ensureCel` 로 만들면 앞 프레임을 물려받아(hold)
        빈 칸이 앞 그림으로 메워진다. 그래서 빈 판을 직접 깐다. */
     const surface = createSurface(doc.w, doc.h);
     layer.cels[index] = surface;
@@ -203,7 +203,7 @@ export function ditherdeckFromDoc(doc: Doc, composite: (doc: Doc, frame: number)
   };
 }
 
-/** 새 픽셀 문서 — 칸 수로 만든다(px 가 아니라). */
+/** 새 픽셀 문서. 칸 수로 만든다(px 가 아니라). */
 export function createPixelDoc(cells = 32, cell = 16, name = 'sprite'): Doc {
   const doc = createDoc(cells * cell, cells * cell, name);
   doc.grid = cell;

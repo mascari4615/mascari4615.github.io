@@ -25,7 +25,7 @@ export function buildDeferProgressEmbed(
     const parts: string[] = [];
     if (reqSnippet) parts.push(`**요청** ${reqSnippet}`);
     if (liveSnippet) parts.push(`**스트림** ${liveSnippet}`);
-    const desc = parts.length ? parts.join('\n') : '처리 중…';
+    const desc = parts.length ? parts.join('\n') : '처리 중...';
     return new EmbedBuilder()
       .setTitle(`${s.spinner} Cursor (${mode})`)
       .setDescription(desc)
@@ -37,7 +37,7 @@ export function buildDeferProgressEmbed(
       .setFooter({ text: '완료 시 이 메시지가 결과로 바뀝니다' });
   }
 
-  const desc = reqSnippet ? `**질문** ${reqSnippet}` : 'Gemini 호출 중…';
+  const desc = reqSnippet ? `**질문** ${reqSnippet}` : 'Gemini 호출 중...';
   return new EmbedBuilder()
     .setTitle(`${s.spinner} Gemini`)
     .setDescription(desc)

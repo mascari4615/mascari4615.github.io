@@ -8,14 +8,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "「인터넷은 어떻게 도나」를 한 번에 배우려 하면 안 는다. 대신 **주소창에 한 줄 치고 화면이 뜨기까지**를 순서대로 따라가면, 필요한 것이 저절로 다 나온다. 이 칸은 그 순서다."
+          "text": "인터넷은 어떻게 도나를 한 번에 배우려 하면 안 는다. 대신 **주소창에 한 줄 치고 화면이 뜨기까지**를 순서대로 따라가면, 필요한 것이 저절로 다 나온다. 이 칸은 그 순서다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "거리를 바꿔 보라 — 어느 단계가 늘어나나",
+          "label": "거리를 바꿔 보라. 어느 단계가 늘어나나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const RTT = {{rtt}}, CACHE = {{cache}};\n  const rows = [];\n  let t = 0;\n  const add = (name, len, color) => { rows.push({ name, start: t, len, color }); t += len; };\n  if (CACHE) {\n    add('브라우저 캐시에서 찾음', 2, '#22c55e');\n    add('그리기', 30, '#a78bfa');\n  } else {\n    add('DNS (이름 -> 주소)', RTT, '#60a5fa');\n    add('TCP 연결 (악수 1왕복)', RTT, '#f59e0b');\n    add('TLS (1~2왕복)', RTT, '#f472b6');\n    add('요청 -> 응답 첫 바이트', RTT, '#22c55e');\n    add('본문 받기', 40, '#22c55e');\n    add('HTML 파싱 · CSS · JS', 80, '#a78bfa');\n    add('그리기', 30, '#a78bfa');\n  }\n  waterfall(rows, t);\n  app.innerHTML = '<div class=\"hint\">왕복 시간(RTT) ' + RTT + 'ms' + (CACHE ? ' · 캐시 적중' : '') + '</div>';\n  show('전체 ' + Math.round(t) + 'ms\\n\\n'\n     + (CACHE\n        ? '캐시에 있으면 네트워크를 아예 안 탄다 — 가장 빠른 요청은 보내지 않는 요청이다.'\n        : '앞의 네 줄이 전부 「왕복」이다. 서버가 아무리 빨라도 이 시간은 안 준다.\\n'\n          + 'RTT 를 ' + RTT + 'ms 에서 두 배로 올려 보라 — 앞 네 줄이 통째로 두 배가 된다.\\n\\n'\n          + '그래서 최적화의 순서는 ① 요청을 없애고(캐시) ② 왕복을 줄이고 ③ 그다음 크기를 줄인다.'));\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const RTT = {{rtt}}, CACHE = {{cache}};\n  const rows = [];\n  let t = 0;\n  const add = (name, len, color) => { rows.push({ name, start: t, len, color }); t += len; };\n  if (CACHE) {\n    add('브라우저 캐시에서 찾음', 2, '#22c55e');\n    add('그리기', 30, '#a78bfa');\n  } else {\n    add('DNS (이름 -> 주소)', RTT, '#60a5fa');\n    add('TCP 연결 (악수 1왕복)', RTT, '#f59e0b');\n    add('TLS (1~2왕복)', RTT, '#f472b6');\n    add('요청 -> 응답 첫 바이트', RTT, '#22c55e');\n    add('본문 받기', 40, '#22c55e');\n    add('HTML 파싱, CSS, JS', 80, '#a78bfa');\n    add('그리기', 30, '#a78bfa');\n  }\n  waterfall(rows, t);\n  app.innerHTML = '<div class=\"hint\">왕복 시간(RTT) ' + RTT + 'ms' + (CACHE ? ', 캐시 적중' : '') + '</div>';\n  show('전체 ' + Math.round(t) + 'ms\\n\\n'\n     + (CACHE\n        ? '캐시에 있으면 네트워크를 아예 안 탄다. 가장 빠른 요청은 보내지 않는 요청이다.'\n        : '앞의 네 줄이 전부 왕복이다. 서버가 아무리 빨라도 이 시간은 안 준다.\\n'\n          + 'RTT 를 ' + RTT + 'ms 에서 두 배로 올려 보라. 앞 네 줄이 통째로 두 배가 된다.\\n\\n'\n          + '그래서 최적화의 순서는 ① 요청을 없애고(캐시) ② 왕복을 줄이고 ③ 그다음 크기를 줄인다.'));\n</script>",
           "controls": [
             {
               "id": "rtt",
@@ -36,11 +36,11 @@
         },
         {
           "type": "p",
-          "text": "이 순서를 층으로 정리한 것이 **계층 모델**이다. 아래에서 위로 — 선(물리) → 이웃까지(이더넷/와이파이) → 어느 기계까지(IP) → 어느 프로그램까지 믿을 만하게(TCP) → 무슨 말을 주고받나(HTTP). 층마다 아래를 신경 쓰지 않아도 된다는 것이 이 설계의 값이다."
+          "text": "이 순서를 층으로 정리한 것이 **계층 모델**이다. 아래에서 위로. 선(물리) → 이웃까지(이더넷/와이파이) → 어느 기계까지(IP) → 어느 프로그램까지 믿을 만하게(TCP) → 무슨 말을 주고받나(HTTP). 층마다 아래를 신경 쓰지 않아도 된다는 것이 이 설계의 값이다."
         },
         {
           "type": "note",
-          "text": "「인터넷이 느리다」에는 두 가지가 섞여 있다 — **지연**(왕복 시간, 거리와 홉 수)과 **대역폭**(초당 몇 바이트). 대역폭은 돈으로 늘릴 수 있지만 지연은 **빛의 속도**에 걸려 있다. 서울↔뉴욕은 물리적으로 왕복 최소 60ms 언저리다."
+          "text": "인터넷이 느리다에는 두 가지가 섞여 있다. **지연**(왕복 시간, 거리와 홉 수)과 **대역폭**(초당 몇 바이트). 대역폭은 돈으로 늘릴 수 있지만 지연은 **빛의 속도**에 걸려 있다. 서울↔뉴욕은 물리적으로 왕복 최소 60ms 언저리다."
         },
         {
           "type": "code",
@@ -50,7 +50,7 @@
         },
         {
           "type": "try",
-          "text": "개발자도구 Network 탭에서 아무 요청이나 클릭해 Timing 을 보라. DNS·Connect·TLS·TTFB 로 나뉜 그 그림이 위 데모와 같은 것이다."
+          "text": "개발자도구 Network 탭에서 아무 요청이나 클릭해 Timing 을 보라. DNS, Connect, TLS, TTFB 로 나뉜 그 그림이 위 데모와 같은 것이다."
         }
       ],
       "quiz": [
@@ -91,7 +91,7 @@
     },
     {
       "id": "2",
-      "title": "DNS — 이름을 주소로",
+      "title": "DNS. 이름을 주소로",
       "minutes": 8,
       "blocks": [
         {
@@ -101,9 +101,9 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "어디까지 캐시가 있나 — 단계마다 시간이 다르다",
+          "label": "어디까지 캐시가 있나. 단계마다 시간이 다르다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const hit = '{{hit}}', RTT = 30;\n  const steps = { browser: 0, os: 0, resolver: 1, root: 4 }[hit];\n  const names = ['브라우저 캐시', '운영체제 캐시', '통신사 리졸버', '루트 -> .com -> 권한 서버'];\n  ctx.clearRect(0, 0, 440, 190);\n  names.forEach((n, i) => {\n    const on = i <= { browser: 0, os: 1, resolver: 2, root: 3 }[hit];\n    box(14, 14 + i * 42, 412, 34, n, i === { browser: 0, os: 1, resolver: 2, root: 3 }[hit] ? '<- 여기서 찾았다' : '',\n        on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n  });\n  const ms = { browser: 0, os: 1, resolver: RTT, root: RTT * 4 }[hit];\n  app.innerHTML = '';\n  show('걸린 시간 ' + ms + 'ms\\n\\n'\n     + { browser: '브라우저가 이미 알고 있다 — 공짜.',\n         os: '운영체제 캐시. 거의 공짜.',\n         resolver: '통신사(또는 8.8.8.8) 리졸버가 알고 있다 — 한 왕복.',\n         root: '아무도 몰라서 루트부터 물어 내려간다 — 왕복 서너 번.' }[hit] + '\\n\\n'\n     + 'TTL 이 캐시 수명을 정한다. 짧으면 바꾸기 쉽고, 길면 빠르다.\\n'\n     + '서버를 옮길 때 TTL 을 미리 낮춰 두는 것이 그래서다 — 바꾸기 하루 전에 60초로.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const hit = '{{hit}}', RTT = 30;\n  const steps = { browser: 0, os: 0, resolver: 1, root: 4 }[hit];\n  const names = ['브라우저 캐시', '운영체제 캐시', '통신사 리졸버', '루트 -> .com -> 권한 서버'];\n  ctx.clearRect(0, 0, 440, 190);\n  names.forEach((n, i) => {\n    const on = i <= { browser: 0, os: 1, resolver: 2, root: 3 }[hit];\n    box(14, 14 + i * 42, 412, 34, n, i === { browser: 0, os: 1, resolver: 2, root: 3 }[hit] ? '<- 여기서 찾았다' : '',\n        on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n  });\n  const ms = { browser: 0, os: 1, resolver: RTT, root: RTT * 4 }[hit];\n  app.innerHTML = '';\n  show('걸린 시간 ' + ms + 'ms\\n\\n'\n     + { browser: '브라우저가 이미 알고 있다. 공짜.',\n         os: '운영체제 캐시. 거의 공짜.',\n         resolver: '통신사(또는 8.8.8.8) 리졸버가 알고 있다. 한 왕복.',\n         root: '아무도 몰라서 루트부터 물어 내려간다. 왕복 서너 번.' }[hit] + '\\n\\n'\n     + 'TTL 이 캐시 수명을 정한다. 짧으면 바꾸기 쉽고, 길면 빠르다.\\n'\n     + '서버를 옮길 때 TTL 을 미리 낮춰 두는 것이 그래서다. 바꾸기 하루 전에 60초로.');\n</script>",
           "controls": [
             {
               "id": "hit",
@@ -135,15 +135,15 @@
           "type": "code",
           "lang": "bash",
           "label": "직접 물어보기",
-          "text": "dig example.com                # 답과 TTL 을 보여 준다\ndig +trace example.com         # 루트부터 내려가는 과정 전부\nnslookup example.com 8.8.8.8   # 특정 리졸버에게 물어보기\n\n# 자주 쓰는 레코드\n# A / AAAA  : 이름 -> IPv4 / IPv6\n# CNAME     : 이름 -> 다른 이름 (별명)\n# MX        : 메일 서버\n# TXT       : 소유 확인 · SPF 같은 메타 정보"
+          "text": "dig example.com                # 답과 TTL 을 보여 준다\ndig +trace example.com         # 루트부터 내려가는 과정 전부\nnslookup example.com 8.8.8.8   # 특정 리졸버에게 물어보기\n\n# 자주 쓰는 레코드\n# A / AAAA  : 이름 -> IPv4 / IPv6\n# CNAME     : 이름 -> 다른 이름 (별명)\n# MX        : 메일 서버\n# TXT       : 소유 확인, SPF 같은 메타 정보"
         },
         {
           "type": "note",
-          "text": "배포 사고의 단골이 **TTL** 이다. 「DNS 를 바꿨는데 아직 옛 서버로 간다」는 대개 캐시가 남아 있는 것이다. 옮기기 전날 TTL 을 60초로 낮추고, 옮긴 뒤 되돌리는 것이 표준 순서다."
+          "text": "배포 사고의 단골이 **TTL** 이다. DNS 를 바꿨는데 아직 옛 서버로 간다는 대개 캐시가 남아 있는 것이다. 옮기기 전날 TTL 을 60초로 낮추고, 옮긴 뒤 되돌리는 것이 표준 순서다."
         },
         {
           "type": "p",
-          "text": "첫 방문의 DNS 지연을 줄이는 브라우저 장치도 있다 — `<link rel=\"dns-prefetch\">` 로 미리 물어보고, `preconnect` 로 연결(TCP+TLS)까지 미리 열어 둔다. **곧 쓸 게 확실한 도메인**에만 써라(아니면 낭비다)."
+          "text": "첫 방문의 DNS 지연을 줄이는 브라우저 장치도 있다. `<link rel=\"dns-prefetch\">` 로 미리 물어보고, `preconnect` 로 연결(TCP+TLS)까지 미리 열어 둔다. **곧 쓸 게 확실한 도메인**에만 써라(아니면 낭비다)."
         },
         {
           "type": "try",
@@ -188,19 +188,19 @@
     },
     {
       "id": "3",
-      "title": "TCP — 믿을 만한 통로를 만드는 값",
+      "title": "TCP. 믿을 만한 통로를 만드는 값",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "인터넷의 밑바닥(IP)은 **아무것도 보장하지 않는다** — 잃어버릴 수도, 순서가 뒤바뀔 수도, 두 번 올 수도 있다. TCP 는 그 위에서 「순서대로, 빠짐없이」를 만들어 준다. 그 대가가 **왕복**이다."
+          "text": "인터넷의 밑바닥(IP)은 **아무것도 보장하지 않는다**. 잃어버릴 수도, 순서가 뒤바뀔 수도, 두 번 올 수도 있다. TCP 는 그 위에서 순서대로, 빠짐없이를 만들어 준다. 그 대가가 **왕복**이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "잃어버림과 왕복을 바꿔 보라 — 전송 시간이 어떻게 되나",
+          "label": "잃어버림과 왕복을 바꿔 보라. 전송 시간이 어떻게 되나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const RTT = {{rtt}}, LOSS = {{loss}};\n  /* 느린 시작: 창이 1,2,4,8… 로 는다. 손실이 나면 반으로 줄인다 */\n  const NEED = 64;                       /* 보낼 조각 수 */\n  let sent = 0, win = 1, rounds = 0, lost = 0;\n  const wins = [];\n  while (sent < NEED && rounds < 40) {\n    rounds++;\n    const drop = Math.random() * 100 < LOSS;\n    wins.push(win);\n    if (drop) { lost++; win = Math.max(1, Math.floor(win / 2)); }\n    else { sent += win; win = win * 2; }\n  }\n  ctx.clearRect(0, 0, 440, 190);\n  const maxW = Math.max(...wins, 1);\n  wins.forEach((w, i) => {\n    const h = (w / maxW) * 130;\n    ctx.fillStyle = COLORS[0];\n    ctx.fillRect(14 + i * Math.min(24, 410 / wins.length), 150 - h, Math.min(20, 410 / wins.length - 2), Math.max(2, h));\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('왕복마다 보낼 수 있는 양(창 크기)', 14, 170);\n  app.innerHTML = '<div class=\"hint\">조각 ' + NEED + '개를 보낸다 · RTT ' + RTT + 'ms · 손실률 ' + LOSS + '%</div>';\n  show('걸린 왕복 수 ' + rounds + ' -> 약 ' + (rounds * RTT) + 'ms\\n'\n     + '손실로 창이 줄어든 횟수 ' + lost + '\\n\\n'\n     + '느린 시작: 처음에는 조금만 보내고, 잘 가면 두 배씩 늘린다.\\n'\n     + '그래서 **작은 파일도 왕복 몇 번**이 필요하고, 연결을 새로 열 때마다 처음부터 다시 시작한다.\\n'\n     + '-> 연결을 재사용하는 것(keep-alive·HTTP/2)이 그래서 중요하다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const RTT = {{rtt}}, LOSS = {{loss}};\n  /* 느린 시작: 창이 1,2,4,8... 로 는다. 손실이 나면 반으로 줄인다 */\n  const NEED = 64;                       /* 보낼 조각 수 */\n  let sent = 0, win = 1, rounds = 0, lost = 0;\n  const wins = [];\n  while (sent < NEED && rounds < 40) {\n    rounds++;\n    const drop = Math.random() * 100 < LOSS;\n    wins.push(win);\n    if (drop) { lost++; win = Math.max(1, Math.floor(win / 2)); }\n    else { sent += win; win = win * 2; }\n  }\n  ctx.clearRect(0, 0, 440, 190);\n  const maxW = Math.max(...wins, 1);\n  wins.forEach((w, i) => {\n    const h = (w / maxW) * 130;\n    ctx.fillStyle = COLORS[0];\n    ctx.fillRect(14 + i * Math.min(24, 410 / wins.length), 150 - h, Math.min(20, 410 / wins.length - 2), Math.max(2, h));\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';\n  ctx.fillText('왕복마다 보낼 수 있는 양(창 크기)', 14, 170);\n  app.innerHTML = '<div class=\"hint\">조각 ' + NEED + '개를 보낸다, RTT ' + RTT + 'ms, 손실률 ' + LOSS + '%</div>';\n  show('걸린 왕복 수 ' + rounds + ' -> 약 ' + (rounds * RTT) + 'ms\\n'\n     + '손실로 창이 줄어든 횟수 ' + lost + '\\n\\n'\n     + '느린 시작: 처음에는 조금만 보내고, 잘 가면 두 배씩 늘린다.\\n'\n     + '그래서 **작은 파일도 왕복 몇 번**이 필요하고, 연결을 새로 열 때마다 처음부터 다시 시작한다.\\n'\n     + '-> 연결을 재사용하는 것(keep-alive, HTTP/2)이 그래서 중요하다.');\n</script>",
           "controls": [
             {
               "id": "rtt",
@@ -224,17 +224,17 @@
         },
         {
           "type": "p",
-          "text": "TCP 가 하는 일은 셋이다 — **연결 세우기**(세 번 악수), **빠짐없이**(번호 + 확인 응답 + 재전송), **너무 몰아치지 않기**(혼잡 제어). 특히 마지막이 중요하다: 네트워크가 막히면 스스로 속도를 줄인다. 모두가 그렇게 하기로 한 덕분에 인터넷이 무너지지 않는다."
+          "text": "TCP 가 하는 일은 셋이다. **연결 세우기**(세 번 악수), **빠짐없이**(번호 + 확인 응답 + 재전송), **너무 몰아치지 않기**(혼잡 제어). 특히 마지막이 중요하다: 네트워크가 막히면 스스로 속도를 줄인다. 모두가 그렇게 하기로 한 덕분에 인터넷이 무너지지 않는다."
         },
         {
           "type": "note",
-          "text": "손실률이 조금만 올라도 속도가 크게 떨어진다. TCP 는 **손실을 「길이 막혔다」는 신호로 읽기** 때문이다 — 무선처럼 「그냥 잘못 도착한」 경우에도 속도를 줄인다. 모바일에서 신호가 나쁠 때 유난히 느려지는 이유다."
+          "text": "손실률이 조금만 올라도 속도가 크게 떨어진다. TCP 는 **손실을 길이 막혔다는 신호로 읽기** 때문이다. 무선처럼 그냥 잘못 도착한 경우에도 속도를 줄인다. 모바일에서 신호가 나쁠 때 유난히 느려지는 이유다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "UDP 는 그 반대를 고른다",
-          "text": "TCP : 순서·재전송·혼잡 제어 O  -> 웹·파일·메일 (틀리면 안 되는 것)\nUDP : 아무 보장 없음           -> 화상통화·게임·DNS (늦은 것보다 없는 게 나은 것)\n\n영상통화에서 0.5초 전 프레임을 재전송받아 봐야 소용없다.\n그래서 필요한 보장만 애플리케이션이 직접 만든다 — QUIC 이 그렇게 태어났다(7장)."
+          "text": "TCP : 순서, 재전송, 혼잡 제어 O  -> 웹, 파일, 메일 (틀리면 안 되는 것)\nUDP : 아무 보장 없음           -> 화상통화, 게임, DNS (늦은 것보다 없는 게 나은 것)\n\n영상통화에서 0.5초 전 프레임을 재전송받아 봐야 소용없다.\n그래서 필요한 보장만 애플리케이션이 직접 만든다. QUIC 이 그렇게 태어났다(7장)."
         },
         {
           "type": "try",
@@ -257,7 +257,7 @@
           "q": "TCP 가 손실을 어떻게 해석하나?",
           "choices": [
             "무시",
-            "길이 막혔다는 신호 — 속도를 줄인다",
+            "길이 막혔다는 신호. 속도를 줄인다",
             "재연결",
             "오류"
           ],
@@ -279,19 +279,19 @@
     },
     {
       "id": "4",
-      "title": "TLS — 무엇을 어떻게 지키나",
+      "title": "TLS. 무엇을 어떻게 지키나",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "`https` 의 `s` 가 지키는 것은 셋이다 — **엿듣기 방지**(암호화), **위조 방지**(무결성), **상대 확인**(인증서). 셋 중 하나만 빠져도 안전하지 않다. 「암호화만 되면 된다」가 아니다."
+          "text": "`https` 의 `s` 가 지키는 것은 셋이다. **엿듣기 방지**(암호화), **위조 방지**(무결성), **상대 확인**(인증서). 셋 중 하나만 빠져도 안전하지 않다. 암호화만 되면 된다가 아니다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "단계를 밀어 보라 — 악수에서 무슨 일이 일어나나",
+          "label": "단계를 밀어 보라. 악수에서 무슨 일이 일어나나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['ClientHello', '내가 쓸 수 있는 암호 목록 · 랜덤값 · 도메인 이름(SNI)'],\n    ['ServerHello + 인증서', '고른 암호 · 서버 랜덤값 · 인증서(공개키 + 서명)'],\n    ['인증서 검증', '이 인증서를 믿는 기관이 서명했나 · 도메인이 맞나 · 기간이 남았나'],\n    ['키 합의', '서로의 랜덤값으로 같은 비밀키를 만든다 (키 자체는 안 보낸다)'],\n    ['암호화 통신 시작', '이제부터 주고받는 내용은 그 키로 잠긴다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  steps.forEach(([t, d], i) => {\n    const on = i <= step;\n    box(14, 8 + i * 36, 412, 30, (i + 1) + '. ' + t, on ? d : '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n  });\n  app.innerHTML = '';\n  show(steps[step][0] + '\\n  ' + steps[step][1] + '\\n\\n'\n     + (step >= 2\n        ? '핵심은 3번이다. 암호화만으로는 「누구와」 암호화했는지 모른다 —\\n'\n          + '중간에 낀 사람과 안전하게 대화하고 있을 수도 있다. 인증서가 그것을 막는다.'\n        : 'TLS 1.3 은 이 악수를 1왕복으로 줄였다(1.2 는 2왕복). 재연결이면 0왕복도 가능하다.'));\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const step = {{step}};\n  const steps = [\n    ['ClientHello', '내가 쓸 수 있는 암호 목록, 랜덤값, 도메인 이름(SNI)'],\n    ['ServerHello + 인증서', '고른 암호, 서버 랜덤값, 인증서(공개키 + 서명)'],\n    ['인증서 검증', '이 인증서를 믿는 기관이 서명했나, 도메인이 맞나, 기간이 남았나'],\n    ['키 합의', '서로의 랜덤값으로 같은 비밀키를 만든다 (키 자체는 안 보낸다)'],\n    ['암호화 통신 시작', '이제부터 주고받는 내용은 그 키로 잠긴다'],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  steps.forEach(([t, d], i) => {\n    const on = i <= step;\n    box(14, 8 + i * 36, 412, 30, (i + 1) + '. ' + t, on ? d : '', on ? '#14351f' : '#111c33', on ? '#22c55e' : '#334155');\n  });\n  app.innerHTML = '';\n  show(steps[step][0] + '\\n  ' + steps[step][1] + '\\n\\n'\n     + (step >= 2\n        ? '핵심은 3번이다. 암호화만으로는 누구와 암호화했는지 모른다 . \\n'\n          + '중간에 낀 사람과 안전하게 대화하고 있을 수도 있다. 인증서가 그것을 막는다.'\n        : 'TLS 1.3 은 이 악수를 1왕복으로 줄였다(1.2 는 2왕복). 재연결이면 0왕복도 가능하다.'));\n</script>",
           "controls": [
             {
               "id": "step",
@@ -310,7 +310,7 @@
         },
         {
           "type": "note",
-          "text": "**인증서 만료는 가장 흔한 장애 원인 중 하나다.** 자동 갱신(Let's Encrypt + certbot)을 걸어 두고, **만료 감시**를 따로 두라 — 갱신 스크립트가 조용히 실패하는 것이 진짜 사고다."
+          "text": "**인증서 만료는 가장 흔한 장애 원인 중 하나다.** 자동 갱신(Let's Encrypt + certbot)을 걸어 두고, **만료 감시**를 따로 두라. 갱신 스크립트가 조용히 실패하는 것이 진짜 사고다."
         },
         {
           "type": "code",
@@ -320,11 +320,11 @@
         },
         {
           "type": "p",
-          "text": "**HTTPS 는 이제 기본값**이다. 그냥 안전해서가 아니라, HTTP/2·서비스 워커·클립보드·위치 같은 최신 기능이 전부 보안 컨텍스트를 요구하기 때문이다. `localhost` 는 예외로 안전하다고 쳐 준다."
+          "text": "**HTTPS 는 이제 기본값**이다. 그냥 안전해서가 아니라, HTTP/2, 서비스 워커, 클립보드, 위치 같은 최신 기능이 전부 보안 컨텍스트를 요구하기 때문이다. `localhost` 는 예외로 안전하다고 쳐 준다."
         },
         {
           "type": "try",
-          "text": "브라우저 주소창의 자물쇠를 눌러 인증서를 보라. 발급자·유효기간·사슬을 확인하고, 만료가 언제인지 적어 두라."
+          "text": "브라우저 주소창의 자물쇠를 눌러 인증서를 보라. 발급자, 유효기간, 사슬을 확인하고, 만료가 언제인지 적어 두라."
         }
       ],
       "quiz": [
@@ -348,7 +348,7 @@
             "차이 없다"
           ],
           "answer": 1,
-          "why": "「누구와」가 빠진다."
+          "why": "누구와가 빠진다."
         },
         {
           "q": "인증서 자동 갱신에서 진짜 위험한 것은?",
@@ -365,19 +365,19 @@
     },
     {
       "id": "5",
-      "title": "HTTP — 무슨 말을 주고받나",
+      "title": "HTTP. 무슨 말을 주고받나",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "HTTP 는 **요청 한 줄 + 헤더 + 본문**이 전부인 단순한 약속이다. 어려워 보이는 것은 문법이 아니라 **규약** — 어떤 메서드를 쓰고 어떤 상태 코드를 돌려줄지에 대한 합의다."
+          "text": "HTTP 는 **요청 한 줄 + 헤더 + 본문**이 전부인 단순한 약속이다. 어려워 보이는 것은 문법이 아니라 **규약**. 어떤 메서드를 쓰고 어떤 상태 코드를 돌려줄지에 대한 합의다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 무엇을 돌려줘야 하나",
+          "label": "상황을 골라 보라. 무엇을 돌려줘야 하나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  hideCanvas();\n  const c = '{{case}}';\n  const t = {\n    ok: ['자료를 잘 줬다', '200 OK', '가장 흔한 답.'],\n    created: ['새 자료를 만들었다', '201 Created + Location 헤더', '만들어진 자리를 알려 준다.'],\n    nocontent: ['지웠다 / 돌려줄 게 없다', '204 No Content', '본문이 없다는 뜻. 200 + 빈 본문보다 명확하다.'],\n    badreq: ['입력이 잘못됐다', '400 Bad Request', '다시 보내도 똑같다 — 재시도하면 안 된다.'],\n    unauth: ['누군지 모르겠다', '401 Unauthorized', '로그인이 필요하다는 뜻.'],\n    forbid: ['누군지는 알지만 권한이 없다', '403 Forbidden', '401 과 헷갈리기 쉽다 — 인증 vs 인가.'],\n    notfound: ['그런 자료가 없다', '404 Not Found', '주소가 틀렸거나 자료가 없다.'],\n    conflict: ['남이 먼저 바꿨다', '409 Conflict', '낙관적 잠금에서 쓴다 — 클라이언트가 다시 읽고 재시도.'],\n    ratelimit: ['너무 자주 부른다', '429 Too Many Requests + Retry-After', '언제 다시 오라고 알려 줘야 한다.'],\n    server: ['서버가 터졌다', '500 Internal Server Error', '클라이언트 잘못이 아니다 — 재시도할 수 있다.'],\n    unavail: ['잠시 못 받는다', '503 Service Unavailable + Retry-After', '점검·과부하. 재시도 대상.'],\n  }[c];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:20px;color:#4ade80;margin-top:6px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '외우는 요령\\n'\n     + '  2xx 됐다   ·  3xx 다른 데로 가라\\n'\n     + '  4xx 네 잘못  ·  5xx 내 잘못\\n\\n'\n     + '재시도 판단이 여기서 갈린다: 4xx 는 대개 다시 해도 같다(429 제외), 5xx 는 재시도 대상.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  hideCanvas();\n  const c = '{{case}}';\n  const t = {\n    ok: ['자료를 잘 줬다', '200 OK', '가장 흔한 답.'],\n    created: ['새 자료를 만들었다', '201 Created + Location 헤더', '만들어진 자리를 알려 준다.'],\n    nocontent: ['지웠다 / 돌려줄 게 없다', '204 No Content', '본문이 없다는 뜻. 200 + 빈 본문보다 명확하다.'],\n    badreq: ['입력이 잘못됐다', '400 Bad Request', '다시 보내도 똑같다. 재시도하면 안 된다.'],\n    unauth: ['누군지 모르겠다', '401 Unauthorized', '로그인이 필요하다는 뜻.'],\n    forbid: ['누군지는 알지만 권한이 없다', '403 Forbidden', '401 과 헷갈리기 쉽다. 인증 vs 인가.'],\n    notfound: ['그런 자료가 없다', '404 Not Found', '주소가 틀렸거나 자료가 없다.'],\n    conflict: ['남이 먼저 바꿨다', '409 Conflict', '낙관적 잠금에서 쓴다. 클라이언트가 다시 읽고 재시도.'],\n    ratelimit: ['너무 자주 부른다', '429 Too Many Requests + Retry-After', '언제 다시 오라고 알려 줘야 한다.'],\n    server: ['서버가 터졌다', '500 Internal Server Error', '클라이언트 잘못이 아니다. 재시도할 수 있다.'],\n    unavail: ['잠시 못 받는다', '503 Service Unavailable + Retry-After', '점검, 과부하. 재시도 대상.'],\n  }[c];\n  app.innerHTML = '<div class=\"hint\">' + t[0] + '</div>' +\n    '<div style=\"font-size:20px;color:#4ade80;margin-top:6px\">' + t[1] + '</div>';\n  show(t[2] + '\\n\\n'\n     + '외우는 요령\\n'\n     + '  2xx 됐다  ,  3xx 다른 데로 가라\\n'\n     + '  4xx 네 잘못 ,  5xx 내 잘못\\n\\n'\n     + '재시도 판단이 여기서 갈린다: 4xx 는 대개 다시 해도 같다(429 제외), 5xx 는 재시도 대상.');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -435,17 +435,17 @@
         },
         {
           "type": "p",
-          "text": "메서드도 규약이다. **GET 은 아무것도 바꾸지 않아야** 하고(안전), **PUT·DELETE 는 여러 번 해도 같아야** 한다(멱등). 이 약속 덕분에 브라우저·프록시·CDN 이 마음 놓고 캐시하고 재시도할 수 있다 — 어기면 그것들이 대신 사고를 낸다."
+          "text": "메서드도 규약이다. **GET 은 아무것도 바꾸지 않아야** 하고(안전), **PUT, DELETE 는 여러 번 해도 같아야** 한다(멱등). 이 약속 덕분에 브라우저, 프록시, CDN 이 마음 놓고 캐시하고 재시도할 수 있다. 어기면 그것들이 대신 사고를 낸다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "메서드의 성질",
-          "text": "        안전(바꾸지 않음)   멱등(여러 번 = 한 번)   캐시 가능\nGET          O                  O                  O\nHEAD         O                  O                  O\nPUT          X                  O                  X\nDELETE       X                  O                  X\nPOST         X                  X                  조건부\nPATCH        X                  X(설계에 따라)      X\n\n※ GET 으로 「삭제」를 만들면 크롤러가 자료를 지운다 — 실제로 있었던 사고다."
+          "text": "        안전(바꾸지 않음)   멱등(여러 번 = 한 번)   캐시 가능\nGET          O                  O                  O\nHEAD         O                  O                  O\nPUT          X                  O                  X\nDELETE       X                  O                  X\nPOST         X                  X                  조건부\nPATCH        X                  X(설계에 따라)      X\n\n※ GET 으로 삭제를 만들면 크롤러가 자료를 지운다. 실제로 있었던 사고다."
         },
         {
           "type": "note",
-          "text": "헤더는 「본문 말고 부수 정보」다. 자주 쓰는 것만 알면 된다 — `Content-Type`(무엇인가), `Authorization`(누구인가), `Cache-Control`(어떻게 캐시할까), `ETag`/`If-None-Match`(바뀌었나), `Retry-After`(언제 다시 올까)."
+          "text": "헤더는 본문 말고 부수 정보다. 자주 쓰는 것만 알면 된다. `Content-Type`(무엇인가), `Authorization`(누구인가), `Cache-Control`(어떻게 캐시할까), `ETag`/`If-None-Match`(바뀌었나), `Retry-After`(언제 다시 올까)."
         },
         {
           "type": "try",
@@ -457,7 +457,7 @@
           "q": "GET 으로 자료를 바꾸면 생기는 일은?",
           "choices": [
             "문제 없다",
-            "크롤러·프리페치가 실제로 그 동작을 실행한다",
+            "크롤러, 프리페치가 실제로 그 동작을 실행한다",
             "느려진다",
             "캐시가 안 된다"
           ],
@@ -465,7 +465,7 @@
           "why": "안전하다고 약속돼 있기 때문."
         },
         {
-          "q": "「입력이 잘못됨」에 500 을 주면?",
+          "q": "입력이 잘못됨에 500 을 주면?",
           "choices": [
             "괜찮다",
             "클라이언트가 재시도 대상으로 오해한다",
@@ -490,19 +490,19 @@
     },
     {
       "id": "6",
-      "title": "캐시 — 보내지 않는 것이 가장 빠르다",
+      "title": "캐시. 보내지 않는 것이 가장 빠르다",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "성능 개선의 가장 큰 한 방은 **요청을 아예 없애는 것**이다. 그리고 캐시의 어려움은 저장이 아니라 **언제 버릴지**에 있다 — 오래 두면 낡은 것이 보이고, 짧게 두면 소용이 없다."
+          "text": "성능 개선의 가장 큰 한 방은 **요청을 아예 없애는 것**이다. 그리고 캐시의 어려움은 저장이 아니라 **언제 버릴지**에 있다. 오래 두면 낡은 것이 보이고, 짧게 두면 소용이 없다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "전략을 골라 보라 — 두 번째 방문이 어떻게 되나",
+          "label": "전략을 골라 보라. 두 번째 방문이 어떻게 되나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const s = '{{strategy}}';\n  const rows = [];\n  let t = 0;\n  const add = (name, len, color) => { rows.push({ name, start: t, len, color }); t += len; };\n  if (s === 'none') {\n    add('요청 -> 응답 (40ms)', 40, '#f59e0b'); add('본문 200KB 받기', 120, '#f59e0b'); add('그리기', 30, '#a78bfa');\n  } else if (s === 'revalidate') {\n    add('조건부 요청 (If-None-Match)', 40, '#60a5fa'); add('304 Not Modified (본문 없음)', 4, '#22c55e'); add('그리기', 30, '#a78bfa');\n  } else if (s === 'maxage') {\n    add('캐시에서 바로 (네트워크 X)', 2, '#22c55e'); add('그리기', 30, '#a78bfa');\n  } else {\n    add('캐시에서 바로 (immutable)', 1, '#22c55e'); add('그리기', 30, '#a78bfa');\n  }\n  waterfall(rows, Math.max(t, 200));\n  const t2 = { none: ['캐시 없음', 'Cache-Control: no-store', '매번 전부 다시 받는다.'],\n               revalidate: ['재검증', 'Cache-Control: no-cache + ETag', '왕복은 하지만 안 바뀌었으면 본문은 안 받는다(304).'],\n               maxage: ['일정 시간 그대로 쓰기', 'Cache-Control: max-age=3600', '한 시간 동안 네트워크를 아예 안 탄다. 그동안 바꿔도 안 보인다.'],\n               immutable: ['내용 해시 파일명', 'app.a1b2c3.js + max-age=31536000, immutable', '영원히 캐시하고, 바뀌면 파일 이름이 바뀐다 — 정답에 가장 가깝다.'] }[s];\n  app.innerHTML = '<div class=\"hint\">' + t2[0] + ' · ' + t2[1] + '</div>';\n  show('두 번째 방문에 걸리는 시간 ' + Math.round(t) + 'ms\\n\\n' + t2[2] + '\\n\\n'\n     + '실무 조합\\n'\n     + '  HTML         : no-cache (늘 확인 — 여기서 새 파일 이름을 알려 준다)\\n'\n     + '  JS/CSS/이미지 : 내용 해시 파일명 + 1년 immutable\\n'\n     + '  API 응답      : 짧은 max-age 또는 ETag 재검증');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const s = '{{strategy}}';\n  const rows = [];\n  let t = 0;\n  const add = (name, len, color) => { rows.push({ name, start: t, len, color }); t += len; };\n  if (s === 'none') {\n    add('요청 -> 응답 (40ms)', 40, '#f59e0b'); add('본문 200KB 받기', 120, '#f59e0b'); add('그리기', 30, '#a78bfa');\n  } else if (s === 'revalidate') {\n    add('조건부 요청 (If-None-Match)', 40, '#60a5fa'); add('304 Not Modified (본문 없음)', 4, '#22c55e'); add('그리기', 30, '#a78bfa');\n  } else if (s === 'maxage') {\n    add('캐시에서 바로 (네트워크 X)', 2, '#22c55e'); add('그리기', 30, '#a78bfa');\n  } else {\n    add('캐시에서 바로 (immutable)', 1, '#22c55e'); add('그리기', 30, '#a78bfa');\n  }\n  waterfall(rows, Math.max(t, 200));\n  const t2 = { none: ['캐시 없음', 'Cache-Control: no-store', '매번 전부 다시 받는다.'],\n               revalidate: ['재검증', 'Cache-Control: no-cache + ETag', '왕복은 하지만 안 바뀌었으면 본문은 안 받는다(304).'],\n               maxage: ['일정 시간 그대로 쓰기', 'Cache-Control: max-age=3600', '한 시간 동안 네트워크를 아예 안 탄다. 그동안 바꿔도 안 보인다.'],\n               immutable: ['내용 해시 파일명', 'app.a1b2c3.js + max-age=31536000, immutable', '영원히 캐시하고, 바뀌면 파일 이름이 바뀐다. 정답에 가장 가깝다.'] }[s];\n  app.innerHTML = '<div class=\"hint\">' + t2[0] + ', ' + t2[1] + '</div>';\n  show('두 번째 방문에 걸리는 시간 ' + Math.round(t) + 'ms\\n\\n' + t2[2] + '\\n\\n'\n     + '실무 조합\\n'\n     + '  HTML         : no-cache (늘 확인. 여기서 새 파일 이름을 알려 준다)\\n'\n     + '  JS/CSS/이미지 : 내용 해시 파일명 + 1년 immutable\\n'\n     + '  API 응답      : 짧은 max-age 또는 ETag 재검증');\n</script>",
           "controls": [
             {
               "id": "strategy",
@@ -536,17 +536,17 @@
         },
         {
           "type": "p",
-          "text": "CDN 은 이 캐시를 **사용자 가까이**로 옮긴 것이다. 서울 사용자가 미국 서버까지 갈 필요 없이 근처 노드에서 받는다 — 1장의 「지연은 거리에 걸려 있다」를 돈으로 푸는 방법이다. 그리고 배포할 때는 **무효화**(purge)를 잊지 마라."
+          "text": "CDN 은 이 캐시를 **사용자 가까이**로 옮긴 것이다. 서울 사용자가 미국 서버까지 갈 필요 없이 근처 노드에서 받는다. 1장의 지연은 거리에 걸려 있다를 돈으로 푸는 방법이다. 그리고 배포할 때는 **무효화**(purge)를 잊지 마라."
         },
         {
           "type": "code",
           "lang": "http",
           "label": "헤더 조합",
-          "text": "# 절대 안 바뀌는 파일 (이름에 해시가 있다)\nCache-Control: public, max-age=31536000, immutable\n\n# 늘 확인하되 안 바뀌었으면 본문은 받지 않기\nCache-Control: no-cache\nETag: \"a1b2c3\"\n\n# 개인 정보가 든 응답 — 공용 캐시에 두면 안 된다\nCache-Control: private, no-store"
+          "text": "# 절대 안 바뀌는 파일 (이름에 해시가 있다)\nCache-Control: public, max-age=31536000, immutable\n\n# 늘 확인하되 안 바뀌었으면 본문은 받지 않기\nCache-Control: no-cache\nETag: \"a1b2c3\"\n\n# 개인 정보가 든 응답. 공용 캐시에 두면 안 된다\nCache-Control: private, no-store"
         },
         {
           "type": "try",
-          "text": "개발자도구 Network 에서 새로고침해 보라. `(disk cache)`·`304`·`200` 이 각각 몇 개인지 세어라. 정적 파일이 매번 200 이면 캐시 헤더가 빠진 것이다."
+          "text": "개발자도구 Network 에서 새로고침해 보라. `(disk cache)`, `304`, `200` 이 각각 몇 개인지 세어라. 정적 파일이 매번 200 이면 캐시 헤더가 빠진 것이다."
         }
       ],
       "quiz": [
@@ -587,19 +587,19 @@
     },
     {
       "id": "7",
-      "title": "HTTP/2 · HTTP/3 — 무엇이 바뀌었나",
+      "title": "HTTP/2, HTTP/3. 무엇이 바뀌었나",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "HTTP/1.1 의 문제는 하나였다 — **연결 하나에 요청 하나**. 그래서 브라우저는 도메인당 6개쯤 연결을 열었고, 그 이상은 줄을 서야 했다. 이미지 50장짜리 페이지가 느렸던 이유다."
+          "text": "HTTP/1.1 의 문제는 하나였다. **연결 하나에 요청 하나**. 그래서 브라우저는 도메인당 6개쯤 연결을 열었고, 그 이상은 줄을 서야 했다. 이미지 50장짜리 페이지가 느렸던 이유다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "버전을 바꿔 보라 — 파일 여러 개가 어떻게 흐르나",
+          "label": "버전을 바꿔 보라. 파일 여러 개가 어떻게 흐르나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const ver = '{{ver}}', FILES = {{files}};\n  const RTT = 40, per = 30;\n  const rows = [];\n  if (ver === 'h1') {\n    const LANES = 6;\n    const laneEnd = new Array(LANES).fill(RTT * 2);      /* 연결 세우기 */\n    for (let i = 0; i < FILES; i++) {\n      const l = laneEnd.indexOf(Math.min(...laneEnd));\n      rows.push({ name: '파일 ' + (i + 1), start: laneEnd[l], len: per, color: COLORS[l % 5] });\n      laneEnd[l] += per;\n    }\n  } else {\n    const start = ver === 'h3' ? RTT : RTT * 2;          /* h3 = 0~1왕복, h2 = TCP+TLS */\n    for (let i = 0; i < FILES; i++) rows.push({ name: '파일 ' + (i + 1), start, len: per * 1.6, color: COLORS[i % 5] });\n  }\n  const total = Math.max(...rows.map((r) => r.start + r.len));\n  waterfall(rows.slice(0, 8), total);\n  app.innerHTML = '<div class=\"hint\">파일 ' + FILES + '개 · 위쪽 8개만 그림</div>';\n  show({ h1: 'HTTP/1.1 — 연결 6개에 나눠 줄을 선다',\n         h2: 'HTTP/2 — 연결 하나에 여러 요청을 섞어 보낸다(멀티플렉싱)',\n         h3: 'HTTP/3 — QUIC(UDP) 위에서, 연결도 더 빨리 세운다' }[ver] + '\\n'\n     + '전체 ' + Math.round(total) + 'ms\\n\\n'\n     + { h1: '연결 수만큼만 동시에 갈 수 있다. 그래서 파일을 합치고(번들) 스프라이트를 만들던 시절이 있었다.',\n         h2: '한 연결로 다 보낸다 -> 파일을 잘게 나눠도 괜찮아졌다. 다만 TCP 라서, 한 조각이 늦으면\\n'\n           + '그 뒤가 전부 기다린다(head-of-line blocking).',\n         h3: 'QUIC 은 스트림마다 독립이라 한 조각의 손실이 다른 스트림을 안 막는다.\\n'\n           + '연결 세우기도 1왕복(재방문은 0왕복), 네트워크가 바뀌어도 연결이 유지된다(와이파이->LTE).' }[ver]);\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const ver = '{{ver}}', FILES = {{files}};\n  const RTT = 40, per = 30;\n  const rows = [];\n  if (ver === 'h1') {\n    const LANES = 6;\n    const laneEnd = new Array(LANES).fill(RTT * 2);      /* 연결 세우기 */\n    for (let i = 0; i < FILES; i++) {\n      const l = laneEnd.indexOf(Math.min(...laneEnd));\n      rows.push({ name: '파일 ' + (i + 1), start: laneEnd[l], len: per, color: COLORS[l % 5] });\n      laneEnd[l] += per;\n    }\n  } else {\n    const start = ver === 'h3' ? RTT : RTT * 2;          /* h3 = 0~1왕복, h2 = TCP+TLS */\n    for (let i = 0; i < FILES; i++) rows.push({ name: '파일 ' + (i + 1), start, len: per * 1.6, color: COLORS[i % 5] });\n  }\n  const total = Math.max(...rows.map((r) => r.start + r.len));\n  waterfall(rows.slice(0, 8), total);\n  app.innerHTML = '<div class=\"hint\">파일 ' + FILES + '개, 위쪽 8개만 그림</div>';\n  show({ h1: 'HTTP/1.1. 연결 6개에 나눠 줄을 선다',\n         h2: 'HTTP/2. 연결 하나에 여러 요청을 섞어 보낸다(멀티플렉싱)',\n         h3: 'HTTP/3. QUIC(UDP) 위에서, 연결도 더 빨리 세운다' }[ver] + '\\n'\n     + '전체 ' + Math.round(total) + 'ms\\n\\n'\n     + { h1: '연결 수만큼만 동시에 갈 수 있다. 그래서 파일을 합치고(번들) 스프라이트를 만들던 시절이 있었다.',\n         h2: '한 연결로 다 보낸다 -> 파일을 잘게 나눠도 괜찮아졌다. 다만 TCP 라서, 한 조각이 늦으면\\n'\n           + '그 뒤가 전부 기다린다(head-of-line blocking).',\n         h3: 'QUIC 은 스트림마다 독립이라 한 조각의 손실이 다른 스트림을 안 막는다.\\n'\n           + '연결 세우기도 1왕복(재방문은 0왕복), 네트워크가 바뀌어도 연결이 유지된다(와이파이->LTE).' }[ver]);\n</script>",
           "controls": [
             {
               "id": "ver",
@@ -634,7 +634,7 @@
         },
         {
           "type": "note",
-          "text": "그래서 **옛 최적화가 지금은 손해**가 되기도 한다. HTTP/1.1 시절의 「파일을 하나로 합치기」는 HTTP/2 에서는 캐시 효율만 떨어뜨린다 — 한 글자 고쳐도 거대한 번들 전체를 다시 받아야 하니까. **환경이 바뀌면 정답도 바뀐다.**"
+          "text": "그래서 **옛 최적화가 지금은 손해**가 되기도 한다. HTTP/1.1 시절의 파일을 하나로 합치기는 HTTP/2 에서는 캐시 효율만 떨어뜨린다. 한 글자 고쳐도 거대한 번들 전체를 다시 받아야 하니까. **환경이 바뀌면 정답도 바뀐다.**"
         },
         {
           "type": "p",
@@ -675,7 +675,7 @@
           "why": "QUIC 이 그것을 푼다."
         },
         {
-          "q": "HTTP/2 이후 「파일 하나로 합치기」가 손해인 이유는?",
+          "q": "HTTP/2 이후 파일 하나로 합치기가 손해인 이유는?",
           "choices": [
             "느려서",
             "한 글자만 바뀌어도 전체를 다시 받아야 해서",
@@ -689,19 +689,19 @@
     },
     {
       "id": "8",
-      "title": "느릴 때 어디를 보나 — 지연 vs 대역폭 vs 서버",
+      "title": "느릴 때 어디를 보나. 지연 vs 대역폭 vs 서버",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「느리다」를 셋으로 갈라야 고칠 수 있다 — **왕복이 많은가**(지연), **덩어리가 큰가**(대역폭), **서버가 오래 걸리나**(TTFB). 각각 처방이 완전히 다르다."
+          "text": "느리다를 셋으로 갈라야 고칠 수 있다. **왕복이 많은가**(지연), **덩어리가 큰가**(대역폭), **서버가 오래 걸리나**(TTFB). 각각 처방이 완전히 다르다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇이 병목인지 골라 보라 — 처방이 달라진다",
+          "label": "무엇이 병목인지 골라 보라. 처방이 달라진다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const RTT = {{rtt}}, KB = {{kb}}, SERVER = {{server}};\n  const MBPS = 20;\n  const setup = RTT * 3;                          /* DNS+TCP+TLS 어림 */\n  const transfer = (KB * 8) / (MBPS * 1000) * 1000;\n  const rows = [\n    { name: '연결 세우기(왕복 3)', start: 0, len: setup, color: '#60a5fa' },\n    { name: '서버 처리', start: setup, len: SERVER, color: '#f59e0b' },\n    { name: '본문 받기 ' + KB + 'KB', start: setup + SERVER, len: transfer, color: '#22c55e' },\n  ];\n  const total = setup + SERVER + transfer;\n  waterfall(rows, total);\n  const worst = [['지연(왕복)', setup, '연결 재사용 · preconnect · CDN 으로 거리 줄이기 · 요청 수 줄이기'],\n                 ['서버 처리', SERVER, '느린 질의·인덱스·캐시 — 서버 프로파일링 (앞 칸의 방법)'],\n                 ['본문 크기', transfer, '압축(br/gzip) · 이미지 포맷 · 코드 분할 · 필요한 것만 보내기']]\n                .sort((a, b) => b[1] - a[1])[0];\n  app.innerHTML = '<div class=\"hint\">RTT ' + RTT + 'ms · 본문 ' + KB + 'KB · 서버 ' + SERVER + 'ms (대역폭 20Mbps 가정)</div>';\n  show('전체 ' + Math.round(total) + 'ms\\n'\n     + '  연결 세우기 ' + Math.round(setup) + 'ms\\n'\n     + '  서버 처리   ' + SERVER + 'ms\\n'\n     + '  본문 받기   ' + Math.round(transfer) + 'ms\\n\\n'\n     + '가장 큰 조각: ' + worst[0] + ' (' + Math.round(worst[1]) + 'ms)\\n'\n     + '처방: ' + worst[2] + '\\n\\n'\n     + '손잡이 셋을 극단으로 밀어 보라 — 병목이 바뀌면 처방도 바뀐다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const RTT = {{rtt}}, KB = {{kb}}, SERVER = {{server}};\n  const MBPS = 20;\n  const setup = RTT * 3;                          /* DNS+TCP+TLS 어림 */\n  const transfer = (KB * 8) / (MBPS * 1000) * 1000;\n  const rows = [\n    { name: '연결 세우기(왕복 3)', start: 0, len: setup, color: '#60a5fa' },\n    { name: '서버 처리', start: setup, len: SERVER, color: '#f59e0b' },\n    { name: '본문 받기 ' + KB + 'KB', start: setup + SERVER, len: transfer, color: '#22c55e' },\n  ];\n  const total = setup + SERVER + transfer;\n  waterfall(rows, total);\n  const worst = [['지연(왕복)', setup, '연결 재사용, preconnect, CDN 으로 거리 줄이기, 요청 수 줄이기'],\n                 ['서버 처리', SERVER, '느린 질의, 인덱스, 캐시. 서버 프로파일링 (앞 칸의 방법)'],\n                 ['본문 크기', transfer, '압축(br/gzip), 이미지 포맷, 코드 분할, 필요한 것만 보내기']]\n                .sort((a, b) => b[1] - a[1])[0];\n  app.innerHTML = '<div class=\"hint\">RTT ' + RTT + 'ms, 본문 ' + KB + 'KB, 서버 ' + SERVER + 'ms (대역폭 20Mbps 가정)</div>';\n  show('전체 ' + Math.round(total) + 'ms\\n'\n     + '  연결 세우기 ' + Math.round(setup) + 'ms\\n'\n     + '  서버 처리   ' + SERVER + 'ms\\n'\n     + '  본문 받기   ' + Math.round(transfer) + 'ms\\n\\n'\n     + '가장 큰 조각: ' + worst[0] + ' (' + Math.round(worst[1]) + 'ms)\\n'\n     + '처방: ' + worst[2] + '\\n\\n'\n     + '손잡이 셋을 극단으로 밀어 보라. 병목이 바뀌면 처방도 바뀐다.');\n</script>",
           "controls": [
             {
               "id": "rtt",
@@ -734,21 +734,21 @@
         },
         {
           "type": "note",
-          "text": "**모바일에서는 지연이 지배한다.** LTE 의 RTT 는 50~100ms, 상황이 나쁘면 그 이상이다. 데스크톱 와이파이에서 잰 숫자로 판단하면 실제 사용자의 경험을 놓친다 — 개발자도구의 네트워크 조절(throttling)로 반드시 확인하라."
+          "text": "**모바일에서는 지연이 지배한다.** LTE 의 RTT 는 50~100ms, 상황이 나쁘면 그 이상이다. 데스크톱 와이파이에서 잰 숫자로 판단하면 실제 사용자의 경험을 놓친다. 개발자도구의 네트워크 조절(throttling)로 반드시 확인하라."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "브라우저가 알려 주는 실제 숫자",
-          "text": "const [nav] = performance.getEntriesByType('navigation');\nconsole.log({\n  dns:  nav.domainLookupEnd - nav.domainLookupStart,\n  tcp:  nav.connectEnd - nav.connectStart,\n  ttfb: nav.responseStart - nav.requestStart,   // 서버 처리 + 왕복\n  body: nav.responseEnd - nav.responseStart,    // 본문 받기\n});\n\n// 실제 사용자에게서 걷기 (RUM) — 내 기계 숫자는 표본 1이다"
+          "text": "const [nav] = performance.getEntriesByType('navigation');\nconsole.log({\n  dns:  nav.domainLookupEnd - nav.domainLookupStart,\n  tcp:  nav.connectEnd - nav.connectStart,\n  ttfb: nav.responseStart - nav.requestStart,   // 서버 처리 + 왕복\n  body: nav.responseEnd - nav.responseStart,    // 본문 받기\n});\n\n// 실제 사용자에게서 걷기 (RUM). 내 기계 숫자는 표본 1이다"
         },
         {
           "type": "p",
-          "text": "그리고 **요청 수 자체**가 지연을 곱한다. 왕복 40ms 짜리 요청 10개를 순서대로 하면 400ms 다 — 이건 서버를 아무리 빠르게 해도 안 줄어든다. 병렬로 보내거나(`Promise.all`), 한 번에 필요한 것을 다 주거나, 애초에 안 보내야(캐시) 한다."
+          "text": "그리고 **요청 수 자체**가 지연을 곱한다. 왕복 40ms 짜리 요청 10개를 순서대로 하면 400ms 다. 이건 서버를 아무리 빠르게 해도 안 줄어든다. 병렬로 보내거나(`Promise.all`), 한 번에 필요한 것을 다 주거나, 애초에 안 보내야(캐시) 한다."
         },
         {
           "type": "try",
-          "text": "개발자도구에서 「Slow 4G」로 조절하고 내 화면을 열어 보라. 어느 조각이 제일 길게 늘어나는지 — 그것이 실제 사용자에게 보이는 병목이다."
+          "text": "개발자도구에서 Slow 4G로 조절하고 내 화면을 열어 보라. 어느 조각이 제일 길게 늘어나는지. 그것이 실제 사용자에게 보이는 병목이다."
         }
       ],
       "quiz": [
@@ -778,7 +778,7 @@
           "q": "TTFB 가 크면 먼저 볼 곳은?",
           "choices": [
             "이미지 크기",
-            "서버 처리(질의·캐시)",
+            "서버 처리(질의, 캐시)",
             "압축",
             "폰트"
           ],
@@ -789,33 +789,33 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "네트워크 문제는 「어느 조각이 긴가」만 알면 절반이 풀린다. Network 탭을 열고 이 순서로 훑어라."
+          "text": "네트워크 문제는 어느 조각이 긴가만 알면 절반이 풀린다. Network 탭을 열고 이 순서로 훑어라."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "느릴 때 점검 순서",
-          "text": "1. 안 보낼 수 있나?           캐시 헤더 · 해시 파일명 · 이미 받은 자료 재사용 (6장)\n2. 왕복이 많나?               요청 수 · preconnect · 연결 재사용 · CDN (1·8장)\n3. 서버가 느린가? (TTFB)      질의·인덱스·서버 캐시 (8장)\n4. 본문이 큰가?               압축(br) · 이미지 포맷 · 코드 분할 (8장)\n5. 순서대로 기다리나?          Promise.all · 병렬 요청 (8장)\n6. 프로토콜이 옛것인가?        h2/h3 인지 확인 (7장)\n\n안 될 때 점검 순서\n  [ ] DNS 가 맞나 (dig · TTL 남아 있나)                (2장)\n  [ ] 인증서가 유효한가 (만료·도메인·사슬)              (4장)\n  [ ] 상태 코드가 뜻대로인가 (400 vs 500 · 429 재시도)  (5장)\n  [ ] CORS·쿠키 설정 때문인가 (브라우저 콘솔이 알려 준다)\n  [ ] 캐시가 옛 자료를 주고 있나 (강력 새로고침으로 확인) (6장)"
+          "text": "1. 안 보낼 수 있나?           캐시 헤더, 해시 파일명, 이미 받은 자료 재사용 (6장)\n2. 왕복이 많나?               요청 수, preconnect, 연결 재사용, CDN (1, 8장)\n3. 서버가 느린가? (TTFB)      질의, 인덱스, 서버 캐시 (8장)\n4. 본문이 큰가?               압축(br), 이미지 포맷, 코드 분할 (8장)\n5. 순서대로 기다리나?          Promise.all, 병렬 요청 (8장)\n6. 프로토콜이 옛것인가?        h2/h3 인지 확인 (7장)\n\n안 될 때 점검 순서\n  [ ] DNS 가 맞나 (dig, TTL 남아 있나)                (2장)\n  [ ] 인증서가 유효한가 (만료, 도메인, 사슬)              (4장)\n  [ ] 상태 코드가 뜻대로인가 (400 vs 500, 429 재시도)  (5장)\n  [ ] CORS, 쿠키 설정 때문인가 (브라우저 콘솔이 알려 준다)\n  [ ] 캐시가 옛 자료를 주고 있나 (강력 새로고침으로 확인) (6장)"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 여덟 문항",
+          "label": "스스로 채점. 여덟 문항",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개 — 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const q = [\n    ['가장 빠른 요청은 보내지 않는 요청이다', true],\n    ['지연은 돈으로 쉽게 줄일 수 있다', false],\n    ['TCP 는 손실을 혼잡 신호로 읽는다', true],\n    ['암호화만 되면 안전하다', false],\n    ['GET 으로 자료를 바꿔도 된다', false],\n    ['304 는 본문 없이 캐시를 쓰라는 뜻이다', true],\n    ['HTTP/2 에서는 파일을 하나로 합치는 게 늘 이득이다', false],\n    ['모바일에서는 지연이 대역폭보다 자주 병목이다', true],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로 — 1장(지연) 3장(TCP) 4장(TLS) 5장(메서드) 6장(캐시) 7장(h2)');\n</script>"
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:190px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"380\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  const COLORS = ['#60a5fa', '#f59e0b', '#22c55e', '#a78bfa', '#f472b6'];\n  /** 시간 막대 여러 개. 폭포수(waterfall) 그림에 쓴다. */\n  function waterfall(rows, total) {\n    ctx.clearRect(0, 0, 440, 190);\n    const H = 20;\n    rows.forEach((r, i) => {\n      const y = 14 + i * (H + 6);\n      const x = 14 + (r.start / total) * 300;\n      const w = Math.max(2, (r.len / total) * 300);\n      ctx.fillStyle = r.color || COLORS[i % COLORS.length];\n      ctx.fillRect(x, y, w, H - 4);\n      ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px system-ui'; ctx.textAlign = 'left';\n      ctx.fillText(r.name, 322, y + 12);\n    });\n    ctx.fillStyle = '#475569'; ctx.font = '10px system-ui';\n    ctx.fillText('0', 14, 186); ctx.fillText(Math.round(total) + 'ms', 290, 186);\n  }\n  function box(x, y, w, h, label, sub, fill, stroke) {\n    ctx.fillStyle = fill || '#111c33';\n    ctx.strokeStyle = stroke || '#334155'; ctx.lineWidth = 2;\n    ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill(); ctx.stroke();\n    ctx.textAlign = 'left'; ctx.fillStyle = '#e2e8f0'; ctx.font = '12px system-ui';\n    ctx.fillText(label, x + 9, y + 17);\n    if (sub) { ctx.fillStyle = '#94a3b8'; ctx.font = '10.5px ui-monospace, monospace'; ctx.fillText(sub, x + 9, y + 31); }\n  }\n</script>\n<script>\n  const q = [\n    ['가장 빠른 요청은 보내지 않는 요청이다', true],\n    ['지연은 돈으로 쉽게 줄일 수 있다', false],\n    ['TCP 는 손실을 혼잡 신호로 읽는다', true],\n    ['암호화만 되면 안전하다', false],\n    ['GET 으로 자료를 바꿔도 된다', false],\n    ['304 는 본문 없이 캐시를 쓰라는 뜻이다', true],\n    ['HTTP/2 에서는 파일을 하나로 합치는 게 늘 이득이다', false],\n    ['모바일에서는 지연이 대역폭보다 자주 병목이다', true],\n  ];\n  ctx.clearRect(0, 0, 440, 190);\n  ctx.textAlign = 'left'; ctx.font = '12px system-ui';\n  q.forEach(([t, a], i) => {\n    const y = 16 + i * 22;\n    ctx.fillStyle = a ? '#22c55e' : '#ef4444';\n    ctx.fillText(a ? 'O' : 'X', 16, y + 4);\n    ctx.fillStyle = '#cbd5e1';\n    ctx.fillText(t, 36, y + 4);\n  });\n  app.innerHTML = '';\n  show('틀린 것이 있으면 그 장으로. 1장(지연) 3장(TCP) 4장(TLS) 5장(메서드) 6장(캐시) 7장(h2)');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 데이터베이스다. 여기까지가 「기계 사이에서 자료를 옮기는 법」이었다면, 다음은 **그 자료를 어디에 어떻게 두는가**다 — 인덱스·트랜잭션·일관성."
+          "text": "다음 칸은 데이터베이스다. 여기까지가 기계 사이에서 자료를 옮기는 법이었다면, 다음은 **그 자료를 어디에 어떻게 두는가**다. 인덱스, 트랜잭션, 일관성."
         },
         {
           "type": "try",
-          "text": "내 사이트를 Network 탭 + Slow 4G 로 열고 위 여섯 줄을 순서대로 답해 보라. 1·2번에서 이미 고칠 것이 나오는 경우가 대부분이다."
+          "text": "내 사이트를 Network 탭 + Slow 4G 로 열고 위 여섯 줄을 순서대로 답해 보라. 1, 2번에서 이미 고칠 것이 나오는 경우가 대부분이다."
         }
       ],
       "quiz": [
@@ -831,7 +831,7 @@
           "why": "보내지 않는 요청이 가장 빠르다."
         },
         {
-          "q": "「가끔 옛 화면이 보인다」에서 볼 곳은?",
+          "q": "가끔 옛 화면이 보인다에서 볼 곳은?",
           "choices": [
             "TCP",
             "캐시 헤더와 CDN 무효화",
@@ -839,7 +839,7 @@
             "TLS"
           ],
           "answer": 1,
-          "why": "캐시 수명·무효화 문제다."
+          "why": "캐시 수명, 무효화 문제다."
         }
       ]
     }

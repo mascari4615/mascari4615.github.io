@@ -5,8 +5,8 @@ import { Companion, InMemoryMemory, alwaysRespond, isRealBargeIn, shouldBargeIn 
 
 // ── 맞장구인가 끼어들기인가 ─────────────────────────────────────────
 
-test('맞장구는 끼어들기가 아니다 — 듣고 있다는 신호다', () => {
-  for (const t of ['응', '어…', '음', 'ㅋㅋㅋ', 'ㅎㅎ', '그래', '맞아', '오케이', '그렇구나']) {
+test('맞장구는 끼어들기가 아니다. 듣고 있다는 신호다', () => {
+  for (const t of ['응', '어...', '음', 'ㅋㅋㅋ', 'ㅎㅎ', '그래', '맞아', '오케이', '그렇구나']) {
     assert.equal(isRealBargeIn(t), false, `${t} 는 맞장구다`);
   }
 });
@@ -23,9 +23,9 @@ test('멈추라는 뜻이 뚜렷하면 끼어들기다', () => {
   }
 });
 
-test('「아니」는 맞장구처럼 짧아도 끼어들기다 — 뒤집겠다는 신호다', () => {
+test('아니는 맞장구처럼 짧아도 끼어들기다. 뒤집겠다는 신호다', () => {
   assert.equal(isRealBargeIn('아니'), true);
-  assert.equal(isRealBargeIn('아'), false, '「아」는 그냥 소리다');
+  assert.equal(isRealBargeIn('아'), false, '아는 그냥 소리다');
 });
 
 test('빈 말은 끼어들기가 아니다', () => {
@@ -36,8 +36,8 @@ test('빈 말은 끼어들기가 아니다', () => {
 
 const sense2 = (channel, text) => ({ channel, kind: 'text', text, at: 1 });
 
-test('끊는 통로가 아니면 내용과 상관없이 안 끊는다 — 곁눈질이 말을 끊으면 안 된다', () => {
-  assert.equal(shouldBargeIn(sense2('screen', '화면을 봤다. 창은 「유니티」'), ['web']), false);
+test('끊는 통로가 아니면 내용과 상관없이 안 끊는다. 곁눈질이 말을 끊으면 안 된다', () => {
+  assert.equal(shouldBargeIn(sense2('screen', '화면을 봤다. 창은 유니티'), ['web']), false);
 });
 
 test('끊는 통로여도 맞장구면 안 끊는다', () => {
@@ -55,7 +55,7 @@ const slowBrain = (ms) => ({
   async think() { await new Promise((r) => setTimeout(r, ms)); return '길게 하던 말'; },
 });
 
-test('내용을 안 보면 맞장구에도 말이 잘린다 — 지금까지 그랬다', async () => {
+test('내용을 안 보면 맞장구에도 말이 잘린다. 지금까지 그랬다', async () => {
   const halt = [];
   const companion = new Companion({
     bodies: [{
@@ -120,7 +120,7 @@ test('진짜 끼어들기에는 여전히 멈춘다', async () => {
   assert.ok(halt3.length > 0);
 });
 
-test('안 주면 예전 그대로 — 통로만 본다', async () => {
+test('안 주면 예전 그대로. 통로만 본다', async () => {
   const halt4 = [];
   const companion = new Companion({
     bodies: [{

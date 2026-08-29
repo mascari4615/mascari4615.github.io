@@ -1,23 +1,23 @@
 /**
- * 말 갈아끼우기 — KarmoLab 다국어 바탕 (TASK-KL-203)
+ * 말 갈아끼우기. KarmoLab 다국어 바탕 (TASK-KL-203)
  *
  * 왜 있나: 화면에 나가는 글이 전부 코드 안에 한국어로 박혀 있었다. 그 상태로는 언어를 하나
- * 늘릴 때마다 300개 파일을 다시 뒤져야 한다. 그래서 **글을 코드 밖으로 뺀다** — 열쇠(key)로
+ * 늘릴 때마다 300개 파일을 다시 뒤져야 한다. 그래서 **글을 코드 밖으로 뺀다**. 열쇠(key)로
  * 부르고, 실제 글은 `i18n/<언어>/<묶음>.json` 이 들고 있다.
  *
  * 설계에서 지킨 것 세 가지:
  *
- * ① **기본 언어에 요청을 더 얹지 않는다.** 한국어가 대부분인데 「번역 파일 받아오기」가
+ * ① **기본 언어에 요청을 더 얹지 않는다.** 한국어가 대부분인데 번역 파일 받아오기가
  *    첫 그림 앞에 하나 더 붙으면 그건 손해다. 그래서 페이지를 찍을 때 그 화면이 쓸 묶음을
  *    머리말에 **미리 박아** 둔다(`window.__KARMO_I18N`). 받아오기는 *나중에 켜는 위젯*이나
  *    *언어를 바꾼 사람*에게만 일어난다.
  *
  * ② **없으면 조용히 죽지 않는다.** 열쇠가 그 언어에 없으면 원본 언어(한국어)로 떨어지고,
  *    그것도 없으면 열쇠 자체를 돌려준다. 화면에 빈칸이 뜨는 일은 없다. 대신 개발 중에는
- *    콘솔에 크게 남긴다 — 조용한 누락이 제일 나쁘다.
+ *    콘솔에 크게 남긴다. 조용한 누락이 제일 나쁘다.
  *
  * ③ **언어 목록은 한 곳에서만 는다.** `data/locales.json` 이 정본이고, 아래 `i18n-registry.ts`
- *    는 그걸로 찍어 낸 것이다(손으로 고치지 말 것 — 검사가 잡는다).
+ *    는 그걸로 찍어 낸 것이다(손으로 고치지 말 것. 검사가 잡는다).
  *
  * 쓰는 법:
  *   import { t, loadNamespace } from '../lib/i18n';
@@ -42,7 +42,7 @@ type Store = Record<string, Record<string, Catalog>>;
 declare global {
   interface Window {
     __KARMO_I18N?: Store;
-    /** 페이지를 찍을 때 박아 두는 값 — 없으면 주소·저장값·브라우저 순으로 정한다. */
+    /** 페이지를 찍을 때 박아 두는 값. 없으면 주소, 저장값, 브라우저 순으로 정한다. */
     __KARMO_LOCALE?: string;
     KARMOLAB_BUILD_PRINT?: string;
     __KARMO_LOAD_NAMESPACE?: (ns: string) => Promise<void>;
@@ -54,9 +54,9 @@ const store: Store = (typeof window !== 'undefined' && (window.__KARMO_I18N ||= 
 /* ── 지금 언어 ──────────────────────────────────────── */
 
 function fromPath(pathname: string): string | null {
-  /* 주소가 **글자가 아닐 수도** 있다 — 브라우저 아닌 자리(찍어 내기·검사 하네스·워커)에서는
+  /* 주소가 **글자가 아닐 수도** 있다. 브라우저 아닌 자리(찍어 내기, 검사 하네스, 워커)에서는
      `location` 이 반쪽이다. 여기서 안 막으면 도구 전체가 실릴 때 터진다(실측: 검사 하네스의
-     `location` 에 `pathname` 이 없어 옮긴 도구 9개가 통째로 「번들 실행 실패」). */
+     `location` 에 `pathname` 이 없어 옮긴 도구 9개가 통째로 번들 실행 실패). */
   if (typeof pathname !== 'string') return null;
   for (const l of ENABLED_LOCALES) {
     if (!l.prefix) continue;
@@ -69,12 +69,12 @@ function fromPath(pathname: string): string | null {
  * **이 문서가 스스로 밝힌 언어** (`<html lang>`).
  *
  * 주소에 앞머리가 없는 장(= 기본 언어 장)에서 여기서 안 잡으면 브라우저 취향까지 흘러간다.
- * 그러면 영어 브라우저로 한국어 장을 열었을 때 **글은 한국어인데 껍데기만 영어**가 된다 —
- * 머리띠는 「EN」이라 적고, 밑의 글은 전부 한국어다. 게다가 「영어로 보시겠어요?」 안내 띠는
+ * 그러면 영어 브라우저로 한국어 장을 열었을 때 **글은 한국어인데 껍데기만 영어**가 된다 . 
+ * 머리띠는 EN이라 적고, 밑의 글은 전부 한국어다. 게다가 영어로 보시겠어요? 안내 띠는
  * 지금 언어와 원하는 언어가 같아져 버려 **안 뜬다**. 물어보고 옮기려던 설계가 통째로 죽는다.
  * (2026-08-09 실측: CI 브라우저가 영어라 이 상태가 그대로 잡혔다.)
  *
- * 장의 언어는 취향이 아니라 **사실**이다. 찍어 낸 장마다 `lang` 이 박혀 있고, 짝 표시·목록·
+ * 장의 언어는 취향이 아니라 **사실**이다. 찍어 낸 장마다 `lang` 이 박혀 있고, 짝 표시, 목록, 
  * 검사가 전부 그걸 기준으로 돈다. 읽는 쪽도 같은 것을 봐야 한 벌로 맞는다.
  */
 function fromDocument(): string | null {
@@ -87,7 +87,7 @@ function fromDocument(): string | null {
 
 /**
  * 브라우저가 원하는 언어 중 **우리가 켠 것** 첫 번째.
- * `ja-JP` 처럼 지역이 붙어 와도 앞부분으로 맞춘다 — 지역별로 글을 따로 두지 않기 때문이다.
+ * `ja-JP` 처럼 지역이 붙어 와도 앞부분으로 맞춘다. 지역별로 글을 따로 두지 않기 때문이다.
  */
 function fromNavigator(): string | null {
   const wanted = (typeof navigator !== 'undefined' && navigator.languages) || [];
@@ -104,7 +104,7 @@ let current: string | null = null;
 /**
  * 지금 언어. 순서 = **주소 > 이 문서가 밝힌 것 > 고른 값 > 브라우저 > 기본**.
  *
- * 주소가 제일 세다: `/en/…` 을 공유받은 사람은 자기 브라우저가 한국어여도 영어를 봐야 한다
+ * 주소가 제일 세다: `/en/...` 을 공유받은 사람은 자기 브라우저가 한국어여도 영어를 봐야 한다
  * (그 주소가 검색엔진에 영어 문서로 올라가 있다).
  */
 export function locale(): string {
@@ -144,7 +144,7 @@ export function stripPrefix(pathname: string): string {
   return rest.startsWith('/') ? rest : '/' + rest;
 }
 
-/** 같은 화면의 다른 언어 주소. 사이트맵·hreflang·언어 단추가 전부 이걸 쓴다. */
+/** 같은 화면의 다른 언어 주소. 사이트맵, hreflang, 언어 단추가 전부 이걸 쓴다. */
 export function localizedPath(pathname: string, code: string): string {
   const bare = stripPrefix(pathname);
   const meta = localeMeta(code);
@@ -152,16 +152,16 @@ export function localizedPath(pathname: string, code: string): string {
 }
 
 /**
- * 언어를 바꾼다 — 고른 값을 적어 두고 **그 언어의 같은 화면**으로 옮긴다.
+ * 언어를 바꾼다. 고른 값을 적어 두고 **그 언어의 같은 화면**으로 옮긴다.
  *
- * 화면만 다시 그리지 않고 주소까지 옮기는 이유: 그래야 새로고침·공유·뒤로가기가 전부 맞고,
+ * 화면만 다시 그리지 않고 주소까지 옮기는 이유: 그래야 새로고침, 공유, 뒤로가기가 전부 맞고,
  * 검색엔진이 보는 문서와 사람이 보는 화면이 같아진다(한쪽만 바꾸면 그 둘이 갈라진다).
  */
 export function setLocale(code: string): void {
   try {
     localStorage.setItem(PREF_KEY, code);
   } catch {
-    /* 저장을 막아 둔 브라우저 — 주소로만 간다 */
+    /* 저장을 막아 둔 브라우저. 주소로만 간다 */
   }
   location.href = localizedPath(location.pathname, code) + location.search + location.hash;
 }
@@ -221,9 +221,9 @@ function inject(code: string, ns: string): Promise<void> {
   const already = pending.get(key);
   if (already) return already;
   /* ★ **한 번 놓쳤다고 도구가 죽지는 않게** (2026-08-13).
-     말 묶음은 그냥 파일 하나인데, 그 한 번의 실패(서버 503·잠깐 끊긴 회선)로 도구 화면이
-     통째로 오류가 됐다 — 실측: `ko/color.js` 503 한 번에 색 도구가 안 떴다. 사람은 그저
-     새로고침하면 되는 것을 「고장」으로 겪는다. 짧게 두 번 더 받아 본다(그래도 안 오면 그때 오류). */
+     말 묶음은 그냥 파일 하나인데, 그 한 번의 실패(서버 503, 잠깐 끊긴 회선)로 도구 화면이
+     통째로 오류가 됐다. 실측: `ko/color.js` 503 한 번에 색 도구가 안 떴다. 사람은 그저
+     새로고침하면 되는 것을 고장으로 겪는다. 짧게 두 번 더 받아 본다(그래도 안 오면 그때 오류). */
   const p = fetchOnce(code, ns, 0)
     .catch(() => new Promise<void>((r) => setTimeout(r, 400)).then(() => fetchOnce(code, ns, 1)))
     .catch(() => new Promise<void>((r) => setTimeout(r, 1200)).then(() => fetchOnce(code, ns, 2)));
@@ -236,7 +236,7 @@ function inject(code: string, ns: string): Promise<void> {
  * 이 묶음의 글을 쓸 수 있게 만든다.
  *
  * 이미 머리말에 박혀 있으면 **아무 일도 안 하고 바로 끝난다**(기본 언어의 보통 경우).
- * 원본 언어 묶음도 같이 챙긴다 — 번역이 아직 덜 된 열쇠가 있으면 그쪽으로 떨어져야 하는데,
+ * 원본 언어 묶음도 같이 챙긴다. 번역이 아직 덜 된 열쇠가 있으면 그쪽으로 떨어져야 하는데,
  * 떨어질 곳이 없으면 열쇠가 그대로 화면에 나온다.
  */
 export async function loadNamespace(ns: string): Promise<void> {
@@ -252,10 +252,10 @@ export async function loadNamespace(ns: string): Promise<void> {
 if (typeof window !== 'undefined') window.__KARMO_LOAD_NAMESPACE = loadNamespace;
 
 /**
- * **다른 언어**의 묶음을 받아온다 — 지금 언어가 아니라 지정한 언어.
+ * **다른 언어**의 묶음을 받아온다. 지금 언어가 아니라 지정한 언어.
  *
- * 왜 필요한가: 「English version available」 안내는 **영어로** 떠야 한다. 한국어 화면에 한국어로
- * 「영어 판이 있습니다」라고 띄우면, 정작 그 안내가 필요한 사람(한국어를 못 읽는 사람)이 못 읽는다.
+ * 왜 필요한가: English version available 안내는 **영어로** 떠야 한다. 한국어 화면에 한국어로
+ * 영어 판이 있습니다라고 띄우면, 정작 그 안내가 필요한 사람(한국어를 못 읽는 사람)이 못 읽는다.
  */
 export async function loadFor(code: string, ns: string): Promise<void> {
   if (!have(code, ns)) await inject(code, ns);
@@ -270,7 +270,7 @@ export function tFor(code: string, key: string, vars?: Record<string, string | n
   return raw.replace(/\{(\w+)\}/g, (whole, name: string) => (name in vars ? String(vars[name]) : whole));
 }
 
-/** 브라우저가 원하는 언어 중 우리가 켠 것 — 안내를 띄울지 정하는 데 쓴다. */
+/** 브라우저가 원하는 언어 중 우리가 켠 것. 안내를 띄울지 정하는 데 쓴다. */
 export function preferredLocale(): string | null {
   return fromNavigator();
 }
@@ -295,7 +295,7 @@ function split(key: string): [string, string] {
 
 const warned = new Set<string>();
 
-/** `{이름}` 자리를 채운다 — 글을 찾은 경우와 기본값을 쓰는 경우가 같은 규칙이어야 한다. */
+/** `{이름}` 자리를 채운다. 글을 찾은 경우와 기본값을 쓰는 경우가 같은 규칙이어야 한다. */
 function fill(raw: string, vars: Record<string, string | number>): string {
   return raw.replace(/\{(\w+)\}/g, (whole, name: string) => (name in vars ? String(vars[name]) : whole));
 }
@@ -320,7 +320,7 @@ function lookup(key: string): string | null {
  * 글 하나. `{이름}` 자리는 `vars` 로 채운다.
  *
  * 자리 채우기를 문자열 이어붙이기로 안 하는 이유: 언어마다 **말의 순서가 다르다**.
- * 「3개 남음」과 「3 left」는 순서가 같지만, 「방금 전」·「3 minutes ago」처럼 조각을 앞뒤로
+ * 3개 남음과 3 left는 순서가 같지만, 방금 전, 3 minutes ago처럼 조각을 앞뒤로
  * 옮겨야 하는 말이 많다. 한 문장을 통째로 열쇠 하나에 두고 자리만 뚫어야 번역이 가능해진다.
  */
 export function t(key: string, vars?: Record<string, string | number>, fallback?: string): string {
@@ -329,13 +329,13 @@ export function t(key: string, vars?: Record<string, string | number>, fallback?
     /**
      * **아직 안 받아온 자리를 위한 대비책** (TASK-KL-203 S9-b).
      *
-     * 대부분의 글은 「받아온 뒤에 그린다」로 해결된다. 그런데 **도구를 등록하는 순간** 쓰이는
-     * 글이 하나 있다 — 탭 이름이다. 등록은 파일이 실려 오자마자 일어나므로 기다릴 자리가 없다.
+     * 대부분의 글은 받아온 뒤에 그린다로 해결된다. 그런데 **도구를 등록하는 순간** 쓰이는
+     * 글이 하나 있다. 탭 이름이다. 등록은 파일이 실려 오자마자 일어나므로 기다릴 자리가 없다.
      * 그 언어 장에는 말이 머리말에 박혀 있어 바로 찾지만, 한국어 화면에는 아무것도 안 박는다
-     * (원본 언어라 박을 이유가 없다) — 그래서 그 자리만 열쇠 이름이 뜬다.
+     * (원본 언어라 박을 이유가 없다). 그래서 그 자리만 열쇠 이름이 뜬다.
      *
      * 부르는 쪽이 원본 글을 함께 주면 그 문제가 사라진다. 열쇠는 이미 묶음에 있으므로
-     * 「안 빼낸 글」이 아니다 — 기다릴 수 없는 자리의 **기본값**이다.
+     * 안 빼낸 글이 아니다. 기다릴 수 없는 자리의 **기본값**이다.
      */
     if (fallback != null) return vars ? fill(fallback, vars) : fallback;
     if (!warned.has(key)) {
@@ -348,10 +348,10 @@ export function t(key: string, vars?: Record<string, string | number>, fallback?
 }
 
 /**
- * 개수에 따라 말이 갈리는 글. 열쇠 뒤에 `.one` · `.other` 를 붙여 둔다.
+ * 개수에 따라 말이 갈리는 글. 열쇠 뒤에 `.one`, `.other` 를 붙여 둔다.
  *
  * 한국어는 갈리지 않지만 영어는 갈리고(1 item / 2 items), 언어마다 갈리는 가짓수도 다르다
- * (러시아어는 셋). 그래서 우리가 세지 않고 브라우저의 `Intl.PluralRules` 에 묻는다 —
+ * (러시아어는 셋). 그래서 우리가 세지 않고 브라우저의 `Intl.PluralRules` 에 묻는다 . 
  * 언어를 늘릴 때 규칙을 새로 짤 일이 없다.
  */
 export function tn(key: string, n: number, vars?: Record<string, string | number>): string {
@@ -359,15 +359,15 @@ export function tn(key: string, n: number, vars?: Record<string, string | number
   try {
     form = new Intl.PluralRules(locale()).select(n);
   } catch {
-    /* 아주 오래된 브라우저 — other 로 간다 */
+    /* 아주 오래된 브라우저. other 로 간다 */
   }
   const withForm = lookup(`${key}.${form}`) != null ? `${key}.${form}` : `${key}.other`;
   return t(withForm, { n, ...vars });
 }
 
-/* ── 숫자·날짜·목록 ─────────────────────────────────── */
+/* ── 숫자, 날짜, 목록 ─────────────────────────────────── */
 
-/* 이것들도 언어마다 다르다 — 1,234.5 / 1.234,5 / 2026년 8월 9일 / August 9, 2026.
+/* 이것들도 언어마다 다르다. 1,234.5 / 1.234,5 / 2026년 8월 9일 / August 9, 2026.
    손으로 찍지 말고 브라우저에 맡긴다. 표준 도구라 새 언어에 공짜로 따라온다. */
 
 export function fmtNumber(n: number, opts?: Intl.NumberFormatOptions): string {
@@ -379,7 +379,7 @@ export function fmtDate(d: Date | number, opts?: Intl.DateTimeFormatOptions): st
 }
 
 export function fmtList(items: string[], type: 'conjunction' | 'disjunction' = 'conjunction'): string {
-  /* `Intl.ListFormat` 은 우리가 세운 TS 목표(ES2020)의 타입에 아직 없다. 브라우저에는 다 있다 —
+  /* `Intl.ListFormat` 은 우리가 세운 TS 목표(ES2020)의 타입에 아직 없다. 브라우저에는 다 있다 . 
      목표를 통째로 올리면 다른 파일 300개가 같이 흔들리므로 여기서만 있다고 알려 준다.
      없는 브라우저면 아래 catch 가 받는다. */
   const LF = (Intl as unknown as { ListFormat?: new (l: string, o: unknown) => { format(x: string[]): string } })
@@ -392,7 +392,7 @@ export function fmtList(items: string[], type: 'conjunction' | 'disjunction' = '
   return items.join(', ');
 }
 
-/** 「3분 전」 같은 상대 시각. 기준 시각과의 차이로 알아서 단위를 고른다. */
+/** 3분 전 같은 상대 시각. 기준 시각과의 차이로 알아서 단위를 고른다. */
 export function fmtRelative(from: Date | number, now: Date | number = Date.now()): string {
   const diff = (new Date(from).getTime() - new Date(now).getTime()) / 1000;
   const units: [Intl.RelativeTimeFormatUnit, number][] = [

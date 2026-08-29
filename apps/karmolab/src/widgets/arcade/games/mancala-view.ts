@@ -1,8 +1,8 @@
 /**
  * 만칼라 화면 (TASK-KL-242)
  *
- * 구덩이에 손을 얹으면 **마지막 알이 멎을 자리**를 표시한다 — 이 놀이의 수는 「어디를 집을까」가
- * 아니라 「마지막 알이 어디서 멎을까」라, 안 보여 주면 손가락으로 세게 된다.
+ * 구덩이에 손을 얹으면 **마지막 알이 멎을 자리**를 표시한다. 이 놀이의 수는 어디를 집을까가
+ * 아니라 마지막 알이 어디서 멎을까라, 안 보여 주면 손가락으로 세게 된다.
  */
 import type { GameView } from '../views';
 import { PITS, STORE, ownsPit, sow, type MancalaState, type MancalaAction } from './mancala';
@@ -37,7 +37,7 @@ export const mancalaView: GameView<MancalaState, MancalaAction> = {
         (i === s.last ? ' ac-last' : '') +
         '" data-i="' + i + '"><b>' + s.board[i] + '</b></button>';
 
-      /* 내 줄이 아래로 오게 그린다 — 남의 줄이 앞에 있으면 매번 헷갈린다. */
+      /* 내 줄이 아래로 오게 그린다. 남의 줄이 앞에 있으면 매번 헷갈린다. */
       const mineRow = Array.from({ length: PITS }, (_, k) => (mySeat === 0 ? k : PITS + 1 + k));
       const foeRow = Array.from({ length: PITS }, (_, k) => (mySeat === 0 ? PITS + 1 + k : k)).reverse();
 

@@ -2,13 +2,13 @@
  * SSH 열쇠 줄을 읽고, 지문을 내고, PEM 을 OpenSSH 줄로 (TASK-KL-316 / 24)
  *
  * `authorized_keys` 는 **한 줄이 곧 출입증**인데, 눈으로는 어느 줄이 누구 것인지 안 보인다.
- * 서버에서 지우려면 지문(`SHA256:…`)이 필요하고, 그 지문은 보통 서버에 들어가야 볼 수 있다.
- * 여기서는 줄만 붙여넣으면 종류·길이·주석·지문을 낸다 — **열쇠가 브라우저를 안 벗어난다.**
+ * 서버에서 지우려면 지문(`SHA256:...`)이 필요하고, 그 지문은 보통 서버에 들어가야 볼 수 있다.
+ * 여기서는 줄만 붙여넣으면 종류, 길이, 주석, 지문을 낸다. **열쇠가 브라우저를 안 벗어난다.**
  *
- * 만드는 쪽은 **안 만든다**: 열쇠쌍은 이미 「암호화 도구」의 열쇠 탭이 WebCrypto 로 만든다.
- * 대신 그 PEM(SPKI)을 **OpenSSH 한 줄로 바꿔 준다** — 사람이 실제로 막히는 자리가 거기다.
+ * 만드는 쪽은 **안 만든다**: 열쇠쌍은 이미 암호화 도구의 열쇠 탭이 WebCrypto 로 만든다.
+ * 대신 그 PEM(SPKI)을 **OpenSSH 한 줄로 바꿔 준다**. 사람이 실제로 막히는 자리가 거기다.
  *
- * 해시는 밖에서 받는다(`deps.sha256`) — 알맹이는 브라우저 것을 직접 못 쓴다(`core` 규약).
+ * 해시는 밖에서 받는다(`deps.sha256`). 알맹이는 브라우저 것을 직접 못 쓴다(`core` 규약).
  */
 import type { ToolRunner, ToolSpec } from './types';
 import { bytesToBase64, base64ToBytes, parseDer, readPem, type Asn1 } from './pem';
@@ -30,7 +30,7 @@ export const spec: ToolSpec = {
 };
 
 export interface Entry {
-  /** `command="…",no-pty` 같은 앞머리 */
+  /** `command="...",no-pty` 같은 앞머리 */
   options?: string;
   type: string;
   base64: string;
@@ -73,7 +73,7 @@ function writeFields(parts: Uint8Array[]): Uint8Array {
   return out;
 }
 
-/** 열쇠 크기 — RSA 는 계수(modulus) 비트, ed25519 는 늘 256. */
+/** 열쇠 크기. RSA 는 계수(modulus) 비트, ed25519 는 늘 256. */
 export function bitsOf(type: string, blob: Uint8Array): number | undefined {
   try {
     const fields = readFields(blob);
@@ -91,14 +91,14 @@ export function bitsOf(type: string, blob: Uint8Array): number | undefined {
   }
 }
 
-/** `authorized_keys` 한 뭉치. **이상한 줄도 버리지 않는다** — 왜 이상한지 적어서 돌려준다. */
+/** `authorized_keys` 한 뭉치. **이상한 줄도 버리지 않는다**. 왜 이상한지 적어서 돌려준다. */
 export function parseAuthorized(text: string): Entry[] {
   const out: Entry[] = [];
   for (const raw of text.replace(/\r\n?/g, '\n').split('\n')) {
     const line = raw.trim();
     if (line === '' || line.startsWith('#')) continue;
 
-    /* 앞에 옵션이 붙을 수 있다 — 종류 낱말이 나올 때까지가 옵션이다. */
+    /* 앞에 옵션이 붙을 수 있다. 종류 낱말이 나올 때까지가 옵션이다. */
     let rest = line;
     let options: string | undefined;
     const first = line.split(/\s+/)[0];
@@ -122,8 +122,8 @@ export function parseAuthorized(text: string): Entry[] {
       out.push(entry);
       continue;
     }
-    /* base64 가 아닌 글자가 섞였으면 **그것부터** 말한다 — 조용히 걸러 읽으면
-       「종류가 안 맞는다」 같은 엉뚱한 이유가 나온다(실측). */
+    /* base64 가 아닌 글자가 섞였으면 **그것부터** 말한다. 조용히 걸러 읽으면
+       종류가 안 맞는다 같은 엉뚱한 이유가 나온다(실측). */
     if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) {
       entry.problem = 'badBase64';
       out.push(entry);
@@ -156,7 +156,7 @@ function bigIntBytes(node: Asn1): Uint8Array {
   return node.bytes;
 }
 
-/** 공개키 PEM 을 OpenSSH 줄로. RSA 와 Ed25519 만 — 나머지는 그렇다고 말한다. */
+/** 공개키 PEM 을 OpenSSH 줄로. RSA 와 Ed25519 만. 나머지는 그렇다고 말한다. */
 export function toOpenSsh(pemText: string, comment = ''): string {
   const blocks = readPem(pemText);
   if (blocks.length === 0) throw new Error('PEM 덩이를 못 찾았습니다');

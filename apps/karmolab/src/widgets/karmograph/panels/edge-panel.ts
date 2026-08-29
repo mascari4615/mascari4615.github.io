@@ -1,8 +1,8 @@
 /**
- * panels/edge-panel.ts — 관계 하나 (TASK-KL-202 개편 2, 아홉 번째 이사 = 마지막).
+ * panels/edge-panel.ts. 관계 하나 (TASK-KL-202 개편 2, 아홉 번째 이사 = 마지막).
  *
- * 「언제부터 라이벌인가」는 어느 한쪽 인물의 설명이 아니라 **그 선의 것**이다.
- * 종류·선 위에 쓸 말·긴 이야기·꼬리표·화살표 방향을 여기서 고친다.
+ * 언제부터 라이벌인가는 어느 한쪽 인물의 설명이 아니라 **그 선의 것**이다.
+ * 종류, 선 위에 쓸 말, 긴 이야기, 꼬리표, 화살표 방향을 여기서 고친다.
  */
 import type { PanelCtx } from './context';
 import { docFieldHtml, bindDocField, edgeDocSkin } from './doc-section';
@@ -10,8 +10,8 @@ import { t, loadNamespace } from '../../../lib/i18n';
 import { setFace, edgeAt } from '../times';
 
 /**
- * 선 패널 — 관계 자체에 붙는 이야기 (격차 Z).
- * 「언제부터 라이벌인가」는 어느 한쪽 인물의 설명이 아니다. 노드에만 적을 곳을 두면 갈 데가 없다.
+ * 선 패널. 관계 자체에 붙는 이야기 (격차 Z).
+ * 언제부터 라이벌인가는 어느 한쪽 인물의 설명이 아니다. 노드에만 적을 곳을 두면 갈 데가 없다.
  */
 export function renderEdgePanel(ctx: PanelCtx): void {
   const { side, esc } = ctx;
@@ -44,7 +44,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     </div>
     ${(() => {
       /* ★ **이 시점에서는** (TASK-KL-271 X2). 시점을 안 쓰는 판에는 아예 안 나온다.
-         비우면 원래대로 — 그래야 「1부는 원본, 2부만 다르게」가 손에 붙는다. */
+         비우면 원래대로. 그래야 1부는 원본, 2부만 다르게가 손에 붙는다. */
       const times = ctx.spec().times ?? [];
       if (times.length === 0) return '';
       const nowId = ctx.spec()._meta?.time || times[0].id;
@@ -86,12 +86,12 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     edge.label = (ev.target as HTMLInputElement).value;
     save();
   };
-  // 글의 집이 둘(제자리·공용)이라 노드 패널과 **같은 조각**을 쓴다 — 규칙이 갈리면 한쪽만 고쳐진다.
+  // 글의 집이 둘(제자리, 공용)이라 노드 패널과 **같은 조각**을 쓴다. 규칙이 갈리면 한쪽만 고쳐진다.
   bindDocField(ctx, edge, (redrawSide) => {
     ctx.persist();
     if (redrawSide) ctx.refresh();
   }, () => {}, edgeDocSkin());
-  // 두 마음은 이제 **선 위에도 그려진다**(KL-271 X1) — 적는 즉시 판이 따라가야 한다.
+  // 두 마음은 이제 **선 위에도 그려진다**(KL-271 X1). 적는 즉시 판이 따라가야 한다.
   // 예전엔 여기 적어도 화면이 그대로라, 적어 둔 사람만 아는 이야기가 됐다.
   (side.querySelector('[data-km="ed-view-from"]') as HTMLInputElement).oninput = (ev) => {
     edge.viewFrom = (ev.target as HTMLInputElement).value.trim() || undefined;
@@ -101,7 +101,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     edge.viewTo = (ev.target as HTMLInputElement).value.trim() || undefined;
     save();
   };
-  /* 이 시점의 얼굴 — 비우면 자리째 지운다(빈 껍데기가 쌓이면 「시점 이야기를 한다」가 거짓이 된다). */
+  /* 이 시점의 얼굴. 비우면 자리째 지운다(빈 껍데기가 쌓이면 시점 이야기를 한다가 거짓이 된다). */
   const faceBox = side.querySelector('[data-km="ed-face-label"]') as HTMLInputElement | null;
   if (faceBox) {
     const times = ctx.spec().times ?? [];
@@ -131,7 +131,7 @@ export function renderEdgePanel(ctx: PanelCtx): void {
     save();
   };
   (side.querySelector('[data-km="ed-del"]') as HTMLButtonElement).onclick = () => {
-    // 지우기는 위젯이 한다 — ctx.spec() 은 읽기용이라 여기서 배열을 갈아 끼워도 안 먹는다.
+    // 지우기는 위젯이 한다. ctx.spec() 은 읽기용이라 여기서 배열을 갈아 끼워도 안 먹는다.
     ctx.removeEdge(edge.id);
     ctx.applySpec();
     ctx.persist();

@@ -24,7 +24,7 @@ const seen = changed('data/tools-seen.json');
 
 /* 아직 커밋 안 된 내 변경도 함께 짚는다.
  * 여러 세션이 같은 브랜치에 커밋하다 **내 커밋이 통째로 사라진 일이 두 번** 있었다.
- * 그때 디스크에는 최신본이 남아 있어 겉으로는 멀쩡했고, 저장소만 옛것이었다 — 검사 열 개와
+ * 그때 디스크에는 최신본이 남아 있어 겉으로는 멀쩡했고, 저장소만 옛것이었다. 검사 열 개와
  * 앱 아이콘 셋이 배포에서 빠진 채였다. 도구를 손볼 때마다 도는 이 자리에서 알리면 그날 안에 안다. */
 function listChanged(pathspec) {
   try {
@@ -40,18 +40,18 @@ const pending = ['scripts', 'css', 'data', 'index.html', 'manifest.json'].flatMa
 const notCards = pending.filter((l) => !/img\/og|tools-seen\.json/.test(l));
 
 if (!cards && !seen) {
-  console.log('[after-sync] 새로 커밋할 것 없음 — 카드와 기록이 이미 맞는다');
+  console.log('[after-sync] 새로 커밋할 것 없음. 카드와 기록이 이미 맞는다');
 } else {
   const parts = [];
   if (cards) parts.push(`공유 카드 ${cards}건`);
   if (seen) parts.push('처음 본 날 기록');
-  console.log(`[after-sync] 커밋해야 할 것: ${parts.join(' · ')}`);
+  console.log(`[after-sync] 커밋해야 할 것: ${parts.join(', ')}`);
   console.log('  git add -- apps/karmolab/img/og apps/karmolab/data/tools-seen.json');
   console.log('  (도구 페이지는 배포 때 다시 찍으므로 커밋하지 않는다)');
 }
 
 if (notCards.length) {
-  console.log(`[after-sync] 아직 커밋 안 된 변경 ${notCards.length}건 — 저장소에 안 들어가면 배포에도 없다`);
+  console.log(`[after-sync] 아직 커밋 안 된 변경 ${notCards.length}건. 저장소에 안 들어가면 배포에도 없다`);
   notCards.slice(0, 8).forEach((l) => console.log('  ' + l));
-  if (notCards.length > 8) console.log(`  … 외 ${notCards.length - 8}건`);
+  if (notCards.length > 8) console.log(`  ... 외 ${notCards.length - 8}건`);
 }

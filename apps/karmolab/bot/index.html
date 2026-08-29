@@ -5,14 +5,14 @@
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f0f12">
-<title>욘 — KarmoLab</title>
+<title>욘. KarmoLab</title>
 <meta name="description" content="작업실에 사는 디스코드 봇. 서버가 한 주 동안 무슨 이야기를 했는지 한 장으로 돌려준다.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="욘 — 작업실에 사는 디스코드 봇">
+<meta property="og:title" content="욘. 작업실에 사는 디스코드 봇">
 <meta property="og:description" content="서버가 한 주 동안 무슨 이야기를 했는지 한 장으로 돌려준다.">
 <meta property="og:url" content="https://mascari4615.github.io/bot/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="욘 — 작업실에 사는 디스코드 봇">
+<meta name="twitter:title" content="욘. 작업실에 사는 디스코드 봇">
 <meta name="twitter:description" content="서버가 한 주 동안 무슨 이야기를 했는지 한 장으로 돌려준다.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,7 +69,7 @@
     font-family: 'Noto Serif KR', serif; font-weight: 900;
     font-size: clamp(31px, 5.4vw, 50px); line-height: 1.3; letter-spacing: -0.02em;
     margin: 0 0 22px; max-width: 20em;
-    /* 한글은 단어 중간에서도 끊긴다 — 어절 단위로만 넘기게 한다. */
+    /* 한글은 단어 중간에서도 끊긴다. 어절 단위로만 넘기게 한다. */
     word-break: keep-all;
   }
   .hero h1 em { font-style: normal; color: var(--accent); }
@@ -101,7 +101,7 @@
   .beats b { display: block; font-size: 15px; font-weight: 600; margin-bottom: 2px; }
   .beats span { color: var(--text-secondary); font-size: 14.5px; }
 
-  /* 카드 미리보기 — 실제 결산 카드의 축소판 */
+  /* 카드 미리보기. 실제 결산 카드의 축소판 */
   .preview {
     background: linear-gradient(168deg, #241d33, #16131f 62%);
     border: 1px solid var(--line-strong); border-radius: 16px; padding: 22px 22px 20px;
@@ -159,37 +159,37 @@
   <p class="eyebrow">Discord Bot</p>
   <h1>서버가 한 주 동안 나눈 이야기를,<br><em>한 장으로 돌려준다.</em></h1>
   <p class="lede">
-    작업실에 사는 디스코드 봇 · 누가 제일 떠들었나 · 새벽에 깨어 있는 건 누군가 ·
-    이 방의 표정 — 흘려보내던 것들을 카드 한 장과 대시보드로
+    작업실에 사는 디스코드 봇, 누가 제일 떠들었나, 새벽에 깨어 있는 건 누군가 , 
+    이 방의 표정. 흘려보내던 것들을 카드 한 장과 대시보드로
   </p>
   <div class="actions">
     <a class="btn btn-primary" id="invite-top" href="#" rel="noopener">서버에 부르기</a>
     <a class="btn btn-ghost" href="#wrapped">결산이 뭔지 보기</a>
   </div>
-  <p class="note">부르면 <code class="cmd">/결산</code> 생성 · 그때부터 집계 시작</p>
+  <p class="note">부르면 <code class="cmd">/결산</code> 생성, 그때부터 집계 시작</p>
 </div></header>
 
 <section id="wrapped"><div class="wrap">
   <p class="kicker">이번 달의 기능</p>
   <h2>서버 결산</h2>
   <p class="section-lede">
-    연말 음악 결산 카드의 서버판 · 개인 결산과 달리 한 장에 여러 사람 · 그래서 방 전체가 같이 떠든다
+    연말 음악 결산 카드의 서버판, 개인 결산과 달리 한 장에 여러 사람, 그래서 방 전체가 같이 떠든다
   </p>
   <div class="showcase">
     <ul class="beats">
-      <li><b>칭호</b><span>수다왕 · 인기상 · 리액션 요정 · 새벽 유령</span></li>
-      <li><b>웹 주소</b><span>디스코드 밖에서 열람 · 서버마다 다른 비밀 주소</span></li>
-      <li><b>대시보드</b><span>요일×시각 격자 · 날짜별 추이 · 사람·채널별 표 · 지난 기간 대비 증감</span></li>
-      <li><b>기간</b><span>오늘 · 7일 · 30일 · 올해</span></li>
+      <li><b>칭호</b><span>수다왕, 인기상, 리액션 요정, 새벽 유령</span></li>
+      <li><b>웹 주소</b><span>디스코드 밖에서 열람, 서버마다 다른 비밀 주소</span></li>
+      <li><b>대시보드</b><span>요일×시각 격자, 날짜별 추이, 사람, 채널별 표, 지난 기간 대비 증감</span></li>
+      <li><b>기간</b><span>오늘, 7일, 30일, 올해</span></li>
     </ul>
     <div class="preview" aria-label="결산 카드 미리보기">
-      <p class="preview-title">🎁 우리 서버 결산 · 최근 7일</p>
+      <p class="preview-title">🎁 우리 서버 결산, 최근 7일</p>
       <div class="preview-big">284</div>
       <p class="preview-big-sub">5명이 2,820자를 썼어요</p>
       <div class="prow"><span>🥇</span><span class="who">카르모</span><span class="val">112개</span></div>
       <div class="prow"><span>🥈</span><span class="who">링</span><span class="val">78개</span></div>
       <div class="prow"><span>🥉</span><span class="who">알리사</span><span class="val">43개</span></div>
-      <div class="prow"><span>🦉</span><span class="who">욘 — 말한 것의 61%가 새벽</span><span class="val"></span></div>
+      <div class="prow"><span>🦉</span><span class="who">욘. 말한 것의 61%가 새벽</span><span class="val"></span></div>
       <div class="spark" aria-hidden="true"></div>
     </div>
   </div>
@@ -198,7 +198,7 @@
 <section id="features"><div class="wrap">
   <p class="kicker">그 밖에</p>
   <h2>작업실이 하는 일들</h2>
-  <p class="section-lede">지금 살아 있는 것들 · 서버에 따라 쓰는 것만</p>
+  <p class="section-lede">지금 살아 있는 것들, 서버에 따라 쓰는 것만</p>
   <div class="grid" id="feature-grid"></div>
 </div></section>
 
@@ -206,19 +206,19 @@
   <p class="kicker">약속</p>
   <h2>무엇을 세고, 무엇을 안 세는가</h2>
   <p class="plain">
-    필요한 건 <b>누가 얼마나</b> · 필요 없는 건 <b>뭐라고</b> — 메시지 내용은 저장하지 않는다
+    필요한 건 <b>누가 얼마나</b>, 필요 없는 건 <b>뭐라고</b>. 메시지 내용은 저장하지 않는다
   </p>
   <ul class="rules">
-    <li><span class="mark">세는 것</span><span>메시지 개수 · 글자 수 · 보낸 시각 · 채널 · 이모지 이름 · 반응 수</span></li>
-    <li><span class="mark">안 세는 것</span><span>메시지 본문 · 첨부 파일 · DM · 음성 대화</span></li>
-    <li><span class="mark">주소</span><span>서버마다 다른 비밀 키 · 서버 ID 로는 열람 불가</span></li>
+    <li><span class="mark">세는 것</span><span>메시지 개수, 글자 수, 보낸 시각, 채널, 이모지 이름, 반응 수</span></li>
+    <li><span class="mark">안 세는 것</span><span>메시지 본문, 첨부 파일, DM, 음성 대화</span></li>
+    <li><span class="mark">주소</span><span>서버마다 다른 비밀 키, 서버 ID 로는 열람 불가</span></li>
   </ul>
 </div></section>
 
 <section class="close" id="invite"><div class="wrap">
   <h2>불러서 며칠 두면 된다</h2>
   <p class="section-lede" style="margin-inline:auto">
-    부른 날부터 집계 · 며칠 뒤 <code class="cmd">/결산</code> · 그동안의 이야기 한 장
+    부른 날부터 집계, 며칠 뒤 <code class="cmd">/결산</code>, 그동안의 이야기 한 장
   </p>
   <div class="actions">
     <a class="btn btn-primary" id="invite-main" href="#" rel="noopener">서버에 부르기</a>
@@ -228,8 +228,8 @@
 </div></section>
 
 <footer><div class="wrap">
-  <span>KarmoLab · 욘 (yawnbot)</span>
-  <span><a href="/">작업실</a> · <a href="https://github.com/Mascari4615/Mascari4615.github.io">GitHub</a></span>
+  <span>KarmoLab, 욘 (yawnbot)</span>
+  <span><a href="/">작업실</a>, <a href="https://github.com/Mascari4615/Mascari4615.github.io">GitHub</a></span>
 </div></footer>
 
 <script>
@@ -237,7 +237,7 @@
   // 권한은 "결산이 실제로 돌아가는 최소치" 로 잡는다. 채널 관리 같은 큰 권한을 처음부터
   // 달라고 하면 대부분 거기서 닫는다. 더 필요한 기능은 그 서버가 원할 때 따로 준다.
   var CLIENT_ID = '825793713749622816';
-  var PERMISSIONS = '3525696'; // 채널 보기·메시지 보내기·링크/파일·기록 읽기·반응·외부 이모지·음성 연결/말하기
+  var PERMISSIONS = '3525696'; // 채널 보기, 메시지 보내기, 링크/파일, 기록 읽기, 반응, 외부 이모지, 음성 연결/말하기
   var INVITE = 'https://discord.com/oauth2/authorize?client_id=' + CLIENT_ID +
     '&permissions=' + PERMISSIONS + '&scope=bot%20applications.commands';
   ['invite-top', 'invite-main'].forEach(function (id) {
@@ -251,47 +251,47 @@
     {
       title: '서버 결산',
       featured: true,
-      blurb: '주간·월간·연간 요약 · 카드 + 대시보드',
+      blurb: '주간, 월간, 연간 요약, 카드 + 대시보드',
       commands: ['/결산']
     },
     {
       title: '음악',
-      blurb: '음성 채널 재생 · 대기열 · 건너뛰기 · 반복',
+      blurb: '음성 채널 재생, 대기열, 건너뛰기, 반복',
       commands: ['/music play', '/music queue', '/music loop']
     },
     {
       title: '말 걸기',
-      blurb: '멘션·DM 응답 · 캐릭터 교체',
+      blurb: '멘션, DM 응답, 캐릭터 교체',
       commands: ['/yawn', '/캐릭터']
     },
     {
       title: '그림',
-      blurb: '설명 → 그림 생성 · 갤러리 보관',
+      blurb: '설명 → 그림 생성, 갤러리 보관',
       commands: ['/이미지', '/갤러리']
     },
     {
       title: '읽어 주기',
-      blurb: '글자 → 음성 · 효과음',
+      blurb: '글자 → 음성, 효과음',
       commands: ['/말해', '/사운드']
     },
     {
       title: '알림',
-      blurb: '키워드 소식 · 무료 배포 소식',
+      blurb: '키워드 소식, 무료 배포 소식',
       commands: ['/뉴스키워드']
     },
     {
       title: '미니게임',
-      blurb: '검 강화 · 주식 · 사다리 · 슬롯 · 레이드',
+      blurb: '검 강화, 주식, 사다리, 슬롯, 레이드',
       commands: ['/게임', '/주식', '/레이드']
     },
     {
       title: '기억',
-      blurb: '기념일 · 일정 · 당일 알림',
+      blurb: '기념일, 일정, 당일 알림',
       commands: ['/일정', '/기념일', '/프로필']
     },
     {
       title: '길 안내',
-      blurb: '기능 목록 · 서버 안에서 조회',
+      blurb: '기능 목록, 서버 안에서 조회',
       commands: ['/도움말']
     }
   ];
@@ -305,7 +305,7 @@
       '<div class="cmds">' + cmds + '</div></article>';
   }).join('');
 
-  // 미리보기 카드의 하루 리듬 — 낮에 몰리고 새벽에 잦아드는 모양.
+  // 미리보기 카드의 하루 리듬. 낮에 몰리고 새벽에 잦아드는 모양.
   var SHAPE = [3, 2, 2, 1, 1, 1, 2, 4, 6, 9, 11, 13, 16, 18, 15, 13, 14, 16, 19, 17, 14, 11, 8, 5];
   var peak = Math.max.apply(null, SHAPE);
   document.querySelector('.spark').innerHTML = SHAPE.map(function (v) {

@@ -2,16 +2,16 @@
 /**
  * 위젯 하나를 **말 묶음 쓰는 구조**로 갈아 끼운다 (TASK-KL-203).
  *
- * 왜 있나: 도구 129개 중 남은 60여 개를 손으로 옮기고 있었다. 회차마다 하는 일이 똑같다 —
+ * 왜 있나: 도구 129개 중 남은 60여 개를 손으로 옮기고 있었다. 회차마다 하는 일이 똑같다 . 
  * ① 화면에 나가는 한국어를 찾아 열쇠로 바꾸고 ② `i18n/ko/<id>.json` 을 만들고
- * ③ `build` 를 「말 묶음 받은 뒤 그린다」로 감싼다. 셋 다 기계가 할 수 있는 일이고,
+ * ③ `build` 를 말 묶음 받은 뒤 그린다로 감싼다. 셋 다 기계가 할 수 있는 일이고,
  * 사람이 해야 하는 건 **en/ja 를 뭐라고 쓸지**뿐이다. 그 둘을 갈라 놓는 것이 이 대본이다.
  *
  * 안 하는 것 (일부러):
  *  - **모르는 건 손대지 않는다.** `${}` 가 섞인 한국어 문장처럼 자리표시가 필요한 것은
- *    바꾸지 않고 「남은 것」으로 적어 낸다. 어설프게 바꾸면 조용히 깨진 글이 나간다 —
+ *    바꾸지 않고 남은 것으로 적어 낸다. 어설프게 바꾸면 조용히 깨진 글이 나간다 . 
  *    이 대본에서 제일 나쁜 결과다.
- *  - 주석·`import` 경로·`console` 문구는 화면에 안 나가므로 건드리지 않는다.
+ *  - 주석, `import` 경로, `console` 문구는 화면에 안 나가므로 건드리지 않는다.
  *
  * 쓰는 법:
  *   node scripts/i18n-widgetize.mjs ziptool            # 미리보기 (파일 안 건드림)
@@ -31,9 +31,9 @@ if (!id || id.startsWith('--')) {
   process.exit(2);
 }
 
-/* 도구 위젯이 `src/widgets/tools/` 밖에 있는 경우가 있다 — 찾아보기표(ref/…)·이미지 편집 등
+/* 도구 위젯이 `src/widgets/tools/` 밖에 있는 경우가 있다. 찾아보기표(ref/...), 이미지 편집 등
  * **19개가 그렇다.** 장(en/ja)은 다 찍히는데 위젯 화면만 한국어로 남아 있었고, 여기서
- * `tools/` 만 보느라 「남은 것 없음」으로 세어졌다. id 로 못 찾으면 **src 전체에서 찾는다.** */
+ * `tools/` 만 보느라 남은 것 없음으로 세어졌다. id 로 못 찾으면 **src 전체에서 찾는다.** */
 function findWidget(id) {
   const direct = path.join(ROOT, 'src/widgets/tools', `${id}.ts`);
   if (fs.existsSync(direct)) return direct;
@@ -44,7 +44,7 @@ function findWidget(id) {
       if (e.isDirectory()) walk(f);
       else if (e.name.endsWith('.ts')) {
         const body = fs.readFileSync(f, 'utf8');
-        /* 등록하는 이름은 두 가지 꼴로 적힌다 — 직접 적거나(`id: 'moon'`), 미리 박아 둔 것을
+        /* 등록하는 이름은 두 가지 꼴로 적힌다. 직접 적거나(`id: 'moon'`), 미리 박아 둔 것을
          * 꺼내 쓰거나(`getLazyWidgetPublicMeta?.('memo')`). 뒤엣것을 못 알아보면 파일을 못 찾고,
          * 그러면 `tools/` 로 넘어가 엉뚱한 곳을 만진다. */
         if (body.includes(`id: '${id}'`) || body.includes(`getLazyWidgetPublicMeta('${id}')`) || body.includes(`getLazyWidgetPublicMeta!('${id}')`) || body.includes(`getLazyWidgetPublicMeta?.('${id}')`) || body.includes(`const ID = '${id}'`)) hit.push(f);
@@ -53,14 +53,14 @@ function findWidget(id) {
   })(path.join(ROOT, 'src/widgets'));
   if (hit.length === 1) return hit[0];
   if (hit.length > 1) {
-    console.error(`id '${id}' 를 여러 곳에서 찾았다 — 경로를 직접 줘라:`);
+    console.error(`id '${id}' 를 여러 곳에서 찾았다. 경로를 직접 줘라:`);
     for (const f of hit) console.error('  ' + path.relative(ROOT, f).split(path.sep).join('/'));
     process.exit(2);
   }
   return direct;
 }
 
-/* 같은 이름의 위젯이 두 곳에 있는 판이 있다 — `tools/higher.ts`(놀이판)와 `higher.ts`(고르기).
+/* 같은 이름의 위젯이 두 곳에 있는 판이 있다. `tools/higher.ts`(놀이판)와 `higher.ts`(고르기).
  * 그때는 **경로 + `--ns <말묶음이름>`** 으로 부른다. 이름만으로는 어느 쪽인지 정할 수 없다. */
 const nsAt = process.argv.indexOf('--ns');
 const ns = nsAt > 0 ? process.argv[nsAt + 1] : id;
@@ -70,31 +70,31 @@ if (!fs.existsSync(file)) {
   process.exit(2);
 }
 let src = fs.readFileSync(file, 'utf8');
-/* **반쯤 옮긴 파일**이 있다. 먼저 build 만 감싸 두고 글자는 뒤에 훑는 판(karmograph) —
+/* **반쯤 옮긴 파일**이 있다. 먼저 build 만 감싸 두고 글자는 뒤에 훑는 판(karmograph) . 
  * `loadNamespace` 가 있다고 무조건 물러서면 그 파일은 영영 못 훑는다.
- * 그래서 「이미 t() 로 바꾼 글이 많은가」로 본다. 그래도 다시 돌리고 싶으면 `--again`. */
+ * 그래서 이미 t() 로 바꾼 글이 많은가로 본다. 그래도 다시 돌리고 싶으면 `--again`. */
 const AGAIN = process.argv.includes('--again');
 const alreadyMoved = (src.match(/\bt\('/g) || []).length;
 if (src.includes('loadNamespace') && alreadyMoved > 5 && !AGAIN) {
-  console.error(`${id} 은 이미 말 묶음을 쓴다 (t() ${alreadyMoved}곳) — 손대지 않는다. 다시 돌리려면 --again`);
+  console.error(`${id} 은 이미 말 묶음을 쓴다 (t() ${alreadyMoved}곳). 손대지 않는다. 다시 돌리려면 --again`);
   process.exit(0);
 }
 
 /**
  * 글자마다 **여기가 무엇인지** 적어 둔 자(尺)를 만든다.
  *
- * 왜 이렇게까지: 처음엔 `>…<` 를 그냥 찾았다. 그러자 `files.reduce((s, f) => s + f.size, 0)` 의
- * `=>` 와 뒤쪽 `<` 사이가 「화면 글자」로 잡혀 코드가 통째로 깨졌다. 정규식만으로는
- * *생김새가 같은 두 가지*(HTML 마디 · 화살표 함수)를 가를 수 없다. 그래서 한 번 훑으며
+ * 왜 이렇게까지: 처음엔 `>...<` 를 그냥 찾았다. 그러자 `files.reduce((s, f) => s + f.size, 0)` 의
+ * `=>` 와 뒤쪽 `<` 사이가 화면 글자로 잡혀 코드가 통째로 깨졌다. 정규식만으로는
+ * *생김새가 같은 두 가지*(HTML 마디, 화살표 함수)를 가를 수 없다. 그래서 한 번 훑으며
  * 자리를 표시한다:
- *   H = 템플릿 안 HTML 글자 · J = 그냥 코드 · S/D = 홑·겹따옴표 글월 · C = 주석
- * `${…}` 안은 다시 코드(J)다 — 거기 든 `>` 는 화면 글자가 아니다.
+ *   H = 템플릿 안 HTML 글자, J = 그냥 코드, S/D = 홑, 겹따옴표 글월, C = 주석
+ * `${...}` 안은 다시 코드(J)다. 거기 든 `>` 는 화면 글자가 아니다.
  */
 let mark = '';
 function scan() {
   const m = new Array(src.length).fill('J');
-  /* 쌓아 두고 본다. `${ … }` 안은 **다시 코드**이고, 그 코드 안에서 또 템플릿이 열릴 수 있다
-   * (`items.map((x) => `<li>…</li>`).join('')` — 이 모양이 실제로 제일 흔하다).
+  /* 쌓아 두고 본다. `${ ... }` 안은 **다시 코드**이고, 그 코드 안에서 또 템플릿이 열릴 수 있다
+   * (`items.map((x) => `<li>...</li>`).join('')`. 이 모양이 실제로 제일 흔하다).
    * 앞선 판은 그 자리에서 훑기를 그만두는 바람에, 거기서부터 자가 통째로 어긋났다.
    * 그래서 **스스로를 되부르는 대신 쌓기(stack)** 로 끝까지 따라간다. */
   const stack = [{ kind: 'code', brace: 0 }];
@@ -152,9 +152,9 @@ function scan() {
       stack.push({ kind: 'tpl' });
       continue;
     }
-    /* 정규식 리터럴. **꼭 필요하다** — `.replace(/['"`]/g, '')` 처럼 따옴표를 *담고 있는* 정규식이
+    /* 정규식 리터럴. **꼭 필요하다**. `.replace(/['"`]/g, '')` 처럼 따옴표를 *담고 있는* 정규식이
      * 흔한데, 그걸 글월 시작으로 읽으면 거기서부터 자가 통째로 어긋난다(slug 에서 실제로
-     * 그래서 뽑힌 열쇠가 0개였다 — 조용히 아무것도 안 한 것이라 더 나빴다).
+     * 그래서 뽑힌 열쇠가 0개였다. 조용히 아무것도 안 한 것이라 더 나빴다).
      * `/` 가 나눗셈인지 정규식인지는 **앞의 뜻 있는 글자**로 가른다(자바스크립트의 오랜 방법). */
     if (c === '/') {
       let k = i - 1;
@@ -178,10 +178,10 @@ function scan() {
           else if (ch === '/' && !inClass) {
             m[i++] = 'J';
             break;
-          } else if (ch === '\n') break; // 정규식이 아니었다 — 더 삼키지 않는다
+          } else if (ch === '\n') break; // 정규식이 아니었다. 더 삼키지 않는다
           m[i++] = 'J';
         }
-        while (i < src.length && /[a-z]/.test(src[i])) m[i++] = 'J'; // 뒤에 붙는 g·i·m…
+        while (i < src.length && /[a-z]/.test(src[i])) m[i++] = 'J'; // 뒤에 붙는 g, i, m...
         continue;
       }
     }
@@ -193,7 +193,7 @@ function scan() {
     if (c === '}') {
       if (here.brace === 0 && here.inTpl) {
         m[i++] = 'J';
-        stack.pop(); // `${ … }` 가 닫혔다 — 다시 템플릿 글자
+        stack.pop(); // `${ ... }` 가 닫혔다. 다시 템플릿 글자
         continue;
       }
       if (here.brace > 0) here.brace--;
@@ -205,13 +205,13 @@ function scan() {
   mark = m.join('');
 }
 scan();
-/** 앞 단계가 글자를 바꾸면 자리가 밀린다 — 단계마다 자를 다시 댄다. */
+/** 앞 단계가 글자를 바꾸면 자리가 밀린다. 단계마다 자를 다시 댄다. */
 const reblank = () => scan();
 
 const catalog = {};
 /* **이미 있는 말 묶음에 얹을 때는 번호를 이어서 매긴다.**
  * 한 묶음을 파일 여러 개가 나눠 쓰는 판이 있다(`chatbot.ts` + `chatbot/characters.ts`).
- * 그때 `t01` 부터 다시 매기면 **앞 파일의 열쇠를 덮어쓴다** — ko 만 바뀌고 en/ja 는 옛 뜻이라
+ * 그때 `t01` 부터 다시 매기면 **앞 파일의 열쇠를 덮어쓴다**. ko 만 바뀌고 en/ja 는 옛 뜻이라
  * 세 언어가 서로 다른 말을 하게 된다(실제로 그렇게 깨졌다). 그래서 기존 최대 번호 다음부터. */
 const usedFile = path.join(ROOT, 'i18n/ko', `${ns}.json`);
 const existing = fs.existsSync(usedFile) ? JSON.parse(fs.readFileSync(usedFile, 'utf8')) : {};
@@ -222,7 +222,7 @@ let seq = Object.keys(existing).reduce((max, k) => {
   return m ? Math.max(max, Number(m[1])) : max;
 }, 0);
 
-/** 같은 글은 같은 열쇠를 쓴다 — 안 그러면 번역을 두 번 쓰게 된다. */
+/** 같은 글은 같은 열쇠를 쓴다. 안 그러면 번역을 두 번 쓰게 된다. */
 const byText = new Map();
 function keyFor(text, hint) {
   if (byText.has(text)) return byText.get(text);
@@ -242,18 +242,18 @@ const slug = (v) =>
     .replace(/^./, (c) => c.toLowerCase()) || null;
 
 /** 한 마디가 **통째로** 그 자리인지 본다. 앞 글자만 보면, 문자열이 끝난 자리에서 시작한 짝이
- *  다음 문자열까지 삼켜 코드를 먹는다 — `'ko-KR')}개 매치` : '` 가 실제로 그렇게 잡혔다. */
+ *  다음 문자열까지 삼켜 코드를 먹는다. `'ko-KR')}개 매치` : '` 가 실제로 그렇게 잡혔다. */
 const allMark = (offset, len, kind) => {
   for (let i = offset; i < offset + len; i++) if (mark[i] !== kind) return false;
   return true;
 };
 
-/* ── ① 템플릿 속성값: placeholder="…" / aria-label="…" / title="…" / alt="…" ── */
+/* ── ① 템플릿 속성값: placeholder="..." / aria-label="..." / title="..." / alt="..." ── */
 src = src.replace(
   /\b(placeholder|aria-label|title|alt)="([^"$`<>]*)"/g,
   (whole, attr, text, offset) => {
     if (!HANGUL.test(text) || !allMark(offset, whole.length, 'H')) return whole;
-    // 같은 태그 안의 id 를 힌트로 쓴다 — `<input id="zpName" placeholder="…">` → zip.ph.name
+    // 같은 태그 안의 id 를 힌트로 쓴다. `<input id="zpName" placeholder="...">` → zip.ph.name
     const tagStart = src.lastIndexOf('<', offset);
     const idm = /\sid="([^"]+)"/.exec(src.slice(tagStart, offset + whole.length));
     const kind = attr === 'placeholder' ? 'ph' : attr === 'aria-label' ? 'aria' : attr;
@@ -288,11 +288,11 @@ src = src.replace(/>([^<>`${}]*[가-힣][^<>`${}]*)</g, (whole, raw, offset) => 
 });
 
 reblank();
-/* ── ③ 그냥 홑따옴표 글월: say('…') · throw new Error('…') · 그 밖 ── */
+/* ── ③ 그냥 홑따옴표 글월: say('...'), throw new Error('...'), 그 밖 ── */
 src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
   if (!allMark(offset, whole.length, 'S')) return whole;
   /* 여는 따옴표가 **이스케이프된 따옴표**(') 면 그건 글월의 시작이 아니라 글월 *안*이다.
-   * 그 자리에서 시작하면 남은 절반만 잘라 먹어 코드가 깨진다 — imageedit 1044줄이 그랬다. */
+   * 그 자리에서 시작하면 남은 절반만 잘라 먹어 코드가 깨진다. imageedit 1044줄이 그랬다. */
   if (src[offset - 1] === String.fromCharCode(92)) return whole;
   /* **타입 자리는 글이 아니다.** `몸: '3D' | '2D' | null` 처럼 글월이 타입으로 쓰이는 곳이 있는데,
    * 거기를 t() 로 바꾸면 그 파일 문법이 깨진다(companion 실측). 앞뒤에 `|` 가 붙어 있으면 건드리지 않는다. */
@@ -307,7 +307,7 @@ src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
       : /\btitle:\s*$/.test(before)
         ? null // 등록 title 은 아래에서 따로 (기본값 딸린 t)
         : null;
-  /* 객체의 **열쇠 자리**면 계산된 열쇠로 감싼다 — `t(x): [` 는 문법 오류라 그 파일만 컴파일이
+  /* 객체의 **열쇠 자리**면 계산된 열쇠로 감싼다. `t(x): [` 는 문법 오류라 그 파일만 컴파일이
    * 깨진다(markdown 문법표의 묶음 이름 8개가 그랬다). 삼항(`x ? '가' : '나'`)도 뒤에 `:` 가
    * 오므로, **앞이 `{` 나 `,` 일 때만** 열쇠 자리로 본다. */
   const after = src.slice(offset + whole.length, offset + whole.length + 3);
@@ -318,7 +318,7 @@ src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
 
 /* ── ④ 등록 title/desc/label 은 **기본값 딸린 t()** 로 (묶음이 늦게 와도 이름이 빈칸이 안 되게) ── */
 /* `title`/`desc` 는 **등록 한 곳**에만 있다고 보고 이름을 정한다(`widgets.<id>.title`).
- * 그런데 같은 이름의 자리가 파일 안에 여러 개일 수 있다 — karmograph 의 도움말은 갈래 다섯이
+ * 그런데 같은 이름의 자리가 파일 안에 여러 개일 수 있다. karmograph 의 도움말은 갈래 다섯이
  * 저마다 `title:` 을 갖는데, 그것들이 **전부 한 열쇠로 뭉개져** 다섯 갈래 이름이 하나가 됐다.
  * 그래서 등록 근처(= `Toolbox.register` 뒤 2,000자)에 있는 첫 자리만 바꾼다. */
 const registerAt = src.indexOf('Toolbox.register');
@@ -335,19 +335,19 @@ for (const field of ['title', 'desc', 'label']) {
     const named =
       field === 'title' ? `widgets.${ns}.title` : field === 'desc' ? `widgets-desc.${ns}.desc` : key;
     /* ★ 지우지 않는다. 같은 글이 탭 이름으로도 쓰이면(같은 글 = 같은 열쇠) 여기서 지운 순간
-     *   그쪽이 「없는 열쇠」가 되고, 기본값 자리에 `undefined` 가 박힌다 — 실제로 그렇게 깨졌다
-     *   (replace.t05 · tableconv.t01). 안 쓰이게 된 열쇠는 맨 끝에서 한꺼번에 턴다. */
+     *   그쪽이 없는 열쇠가 되고, 기본값 자리에 `undefined` 가 박힌다. 실제로 그렇게 깨졌다
+     *   (replace.t05, tableconv.t01). 안 쓰이게 된 열쇠는 맨 끝에서 한꺼번에 턴다. */
     return `${head}t('${named}', undefined, ${JSON.stringify(ko)})`;
   });
 }
 
-/* ── ⑤ build 를 「말 묶음 받은 뒤 그린다」로 감싼다 ──
+/* ── ⑤ build 를 말 묶음 받은 뒤 그린다로 감싼다 ──
  * 몸통을 밖으로 끌어내지 않고 **감싸기만** 한다. 끌어내면 닫는 괄호 개수를 사람이 다시 세야 하고,
  * 실제로 그 자리에서 매번 깨졌다. 감싸기는 여는 줄 하나 + 닫는 줄 하나로 끝난다. */
 /* 여는 줄의 **모양이 하나가 아니다.** 처음에는 `build: function (container: HTMLElement)` 한 줄만
- * 글자 그대로 찾았는데, 인자 이름이 `root` 인 파일(packwell)에서 조용히 **0곳 감쌈**으로 지나갔다 —
+ * 글자 그대로 찾았는데, 인자 이름이 `root` 인 파일(packwell)에서 조용히 **0곳 감쌈**으로 지나갔다 . 
  * 열쇠는 다 박히고 말 묶음은 안 받는 상태라, 미리보기 줄을 안 읽었으면 그대로 커밋됐다.
- * 그래서 인자 이름·선언 꼴을 다 받아 준다. 뒤에서부터 감싸야 앞쪽 자리가 안 밀린다. */
+ * 그래서 인자 이름, 선언 꼴을 다 받아 준다. 뒤에서부터 감싸야 앞쪽 자리가 안 밀린다. */
 const BUILD_RE = /(?:build: function ?\(|build\(|build: ?\([^)]*\): void => ?\{|build: async function ?\()[^)]*\)?(?:: void)? ?\{/g;
 const opens = [...src.matchAll(BUILD_RE)].filter((m) => m[0].includes('HTMLElement'));
 let wrapped = 0;
@@ -376,26 +376,26 @@ for (const m of opens.reverse()) {
 
 /* ── ⑥ esc / import 를 심는다 ──
  * 위젯 안에 이미 있던 `const esc` 는 **지운다.** 남겨 두면 안쪽에서 바깥 것을 가려(shadow),
- * 그 위에서 부른 `esc(t(...))` 가 「선언 전에 썼다」로 죽는다 — 실제로 그렇게 깨졌다.
+ * 그 위에서 부른 `esc(t(...))` 가 선언 전에 썼다로 죽는다. 실제로 그렇게 깨졌다.
  * 하는 일은 같은 글자 막기이므로 바깥 하나로 합친다. */
-/* 이어지는 줄이 늘 `.replace(` 로 시작하지는 않는다 — `String(s).replace(…)` 처럼 시작하는 판이 있다.
+/* 이어지는 줄이 늘 `.replace(` 로 시작하지는 않는다. `String(s).replace(...)` 처럼 시작하는 판이 있다.
  * 점으로 시작하는 줄만 먹으면 **첫 줄만 지워지고 반쪽이 남아** 그 파일 컴파일이 깨진다(worldcup 실측).
  * 첫 `;` 까지 먹는 방법도 **틀렸다**: 본문에 `'&amp;'` 가 있으면 그 안의 `;` 에서 멈춘다
- * (twenty·status 에서 안 지워져 이름이 겹쳤다). 여는 줄보다 **더 들여쓴 줄**을 이어서 먹는다. */
+ * (twenty, status 에서 안 지워져 이름이 겹쳤다). 여는 줄보다 **더 들여쓴 줄**을 이어서 먹는다. */
 src = src.replace(/^([ \t]*)const esc = \(s: string\): string =>[^\n]*\n(?:\1[ \t]+[^\n]*\n)*/gm, '');
-/* `function esc(s) { … }` 꼴도 같은 이유로 지운다 (이름만 다르고 하는 일은 같다).
- * 인자 이름·타입이 늘 `(s: string)` 은 아니고(`(value: unknown)`), 본문도 두 줄이 아닐 수 있다
+/* `function esc(s) { ... }` 꼴도 같은 이유로 지운다 (이름만 다르고 하는 일은 같다).
+ * 인자 이름, 타입이 늘 `(s: string)` 은 아니고(`(value: unknown)`), 본문도 두 줄이 아닐 수 있다
  * (`.replace` 를 줄마다 나눠 쓰는 판). 여는 줄부터 **같은 들여쓰기의 닫는 `}`** 까지 먹는다. */
 src = src.replace(/^([ \t]*)function esc\([^)]*\): string \{\n[\s\S]*?\n\1\}\n/gm, '');
 if (!/const esc = /.test(src) && src.includes('esc(t(')) {
   src = src.replace(
     /^\(function \(\): void \{/m,
     /* 인자는 **unknown** 으로 받는다. 원래 있던 `esc` 가 `unknown` 을 받고 있었는데 `string` 짜리로
-       갈아 끼우면, 숫자·널을 넘기던 자리가 전부 컴파일 오류가 된다(perf 에서 30곳 넘게 깨졌다). */
+       갈아 끼우면, 숫자, 널을 넘기던 자리가 전부 컴파일 오류가 된다(perf 에서 30곳 넘게 깨졌다). */
     `(function (): void {\n  const esc = (v: unknown): string =>\n    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');\n`
   );
 }
-/* 위젯이 `tools/` 밖에 있으면 깊이가 다르다 — `../../lib/i18n` 을 박으면 그 파일만 컴파일이 깨진다. */
+/* 위젯이 `tools/` 밖에 있으면 깊이가 다르다. `../../lib/i18n` 을 박으면 그 파일만 컴파일이 깨진다. */
 const i18nSpec = (() => {
   const rel = path
     .relative(path.dirname(file), path.join(ROOT, 'src/lib/i18n'))
@@ -406,7 +406,7 @@ const i18nSpec = (() => {
 if (!src.includes(`from '${i18nSpec}'`)) {
   const line = `import { t, loadNamespace } from '${i18nSpec}';`;
   /* 마지막 `import` **줄** 다음이 아니라 마지막 import **문장**이 끝난 다음에 넣는다.
-   * 여러 줄로 펼친 import(`import {\n  a,\n  b\n} from '…'`) 의 여는 줄이 마지막이면,
+   * 여러 줄로 펼친 import(`import {\n  a,\n  b\n} from '...'`) 의 여는 줄이 마지막이면,
    * 줄 기준으로 넣을 때 **그 중괄호 안**에 박혀 파일이 통째로 안 읽힌다(packs 실측). */
   const lastImport = src.lastIndexOf('\nimport ');
   if (lastImport >= 0) {
@@ -421,11 +421,11 @@ if (!src.includes(`from '${i18nSpec}'`)) {
 
 /* ── ⑦ 남은 것: 자리표시가 낀 한국어. 손이 필요하다고 적어 낸다. ── */
 /* **자를 다시 댄다.** 앞 단계들이 글자를 바꿔 놓아 자리가 밀려 있다. 안 대면 백틱 짝이
- * 엉뚱하게 맞아 **주석 덩어리가 「남은 글」로 나온다** — community.ts 에서 보고 54개 중
+ * 엉뚱하게 맞아 **주석 덩어리가 남은 글로 나온다**. community.ts 에서 보고 54개 중
  * 대부분이 주석이었다. 못 믿을 보고는 없느니만 못하다(사람이 그 파일을 통째로 미룬다). */
 reblank();
 for (const m of src.matchAll(/`[^`]*[가-힣][^`]*`/g)) {
-  /* 진짜 템플릿 글월인지 본다. 통째로 'H' 를 요구하면 안 된다 — `${…}` 안은 다시 코드(J)라
+  /* 진짜 템플릿 글월인지 본다. 통째로 'H' 를 요구하면 안 된다. `${...}` 안은 다시 코드(J)라
    * 자리표시가 낀 글이 전부 걸러진다(그게 바로 적어 내야 할 것들이다). 양 끝이 템플릿이고
    * **주석이 안 섞였으면** 진짜다. 백틱 *사이*(코드 자리)는 주석을 물고 있어 여기서 걸린다. */
   const span = mark.slice(m.index, m.index + m[0].length);
@@ -434,7 +434,7 @@ for (const m of src.matchAll(/`[^`]*[가-힣][^`]*`/g)) {
   if (HANGUL.test(m[0].replace(/\$\{[^}]*\}/g, ''))) leftovers.push(m[0].replace(/\s+/g, ' ').slice(0, 90));
 }
 
-/* ── ⑧ 「표가 먼저 굳는 자리」 경고 ──
+/* ── ⑧ 표가 먼저 굳는 자리 경고 ──
  * `Toolbox.register(` 앞에서 `t(` 를 부르면, 그건 위젯이 그려지기 전(= 말 묶음이 오기 전)에
  * 값이 정해진다는 뜻이다. 그 자리는 영원히 한국어로 남는다. 기계가 고칠 수는 없지만
  * (표를 함수로 바꾸는 건 사람 판단), **있다는 사실은 반드시 알려야 한다.** */
@@ -447,55 +447,55 @@ for (const key of Object.keys(catalog)) {
 }
 
 const rel = path.relative(ROOT, file).replace(/\\/g, '/');
-console.log(`[widgetize] ${rel} · build ${wrapped}곳 감쌈 · 열쇠 ${Object.keys(catalog).length}개`);
+console.log(`[widgetize] ${rel}, build ${wrapped}곳 감쌈, 열쇠 ${Object.keys(catalog).length}개`);
 /* 아무것도 못 뽑았는데 화면에 나갈 법한 한국어가 남아 있으면, 그건 **자가 어긋났다는 뜻**이다.
- * 조용히 0개로 끝나는 게 제일 나쁘다 — 사람이 「이 도구는 원래 한국어가 없나 보다」로 읽는다. */
+ * 조용히 0개로 끝나는 게 제일 나쁘다. 사람이 이 도구는 원래 한국어가 없나 보다로 읽는다. */
 const stillKo = (src.match(/[가-힣]/g) || []).length;
 /* 열쇠는 박혔는데 **한 곳도 못 감쌌다** = 말 묶음을 안 받고 그린다 = 화면에 열쇠 이름이 그대로 뜬다.
  * 이건 조용히 지나가면 안 된다 (packwell 에서 실제로 그럴 뻔했다). */
 if (wrapped === 0 && Object.keys(catalog).length > 0) {
-  console.log('[widgetize] ⚠ 열쇠는 뽑았는데 build 를 한 곳도 못 감쌌다 — 이대로면 말 묶음 없이 그린다.');
+  console.log('[widgetize] ⚠ 열쇠는 뽑았는데 build 를 한 곳도 못 감쌌다. 이대로면 말 묶음 없이 그린다.');
   console.log('   여는 줄 모양을 확인하고, 손으로 loadNamespace 뒤에 넣어라.');
 }
 if (Object.keys(catalog).length === 0 && stillKo > 20) {
-  console.log(`[widgetize] ⚠ 뽑은 열쇠가 0개인데 한국어가 ${stillKo}자 남아 있다 — 훑기가 어긋났을 수 있다.`);
-  console.log('   정규식 리터럴·특이한 따옴표를 의심하고, --write 없이 다시 보라.');
+  console.log(`[widgetize] ⚠ 뽑은 열쇠가 0개인데 한국어가 ${stillKo}자 남아 있다. 훑기가 어긋났을 수 있다.`);
+  console.log('   정규식 리터럴, 특이한 따옴표를 의심하고, --write 없이 다시 보라.');
 }
 if (early) {
-  console.log(`[widgetize] ⚠ 등록보다 먼저 t() 를 ${early}곳에서 부른다 — 그 표는 말 묶음이 오기 전에 굳는다.`);
+  console.log(`[widgetize] ⚠ 등록보다 먼저 t() 를 ${early}곳에서 부른다. 그 표는 말 묶음이 오기 전에 굳는다.`);
   console.log('   쓸 때 만드는 함수로 바꿔야 한다 (사람 판단).');
 }
-/* **`t` 라는 이름의 지역 변수**가 있으면 그 안에서는 말 묶음 함수를 못 부른다 — 그 파일만
+/* **`t` 라는 이름의 지역 변수**가 있으면 그 안에서는 말 묶음 함수를 못 부른다. 그 파일만
  * 컴파일이 깨지거나(호출 불가), 더 나쁘게는 엉뚱한 값이 화면에 나간다.
- * percent · pick · worldcup · quest-log 에서 **네 번** 밟았다. 이제 먼저 말한다. */
+ * percent, pick, worldcup, quest-log 에서 **네 번** 밟았다. 이제 먼저 말한다. */
 const shadows = [...src.matchAll(/(?:const|let|var)\s+t\s*=|\(\s*t\s*(?:,|:)|\(\s*t\s*\)\s*=>/g)].filter(
-  (m) => mark[m.index] === 'J' // 글월·주석 속에 든 것은 이름이 아니다
+  (m) => mark[m.index] === 'J' // 글월, 주석 속에 든 것은 이름이 아니다
 );
 if (shadows.length) {
   const lines = shadows.map(
     (m) => `${src.slice(0, m.index).split('\n').length}:${m[0].replace(/\s+/g, ' ')}`
   );
-  console.log(`[widgetize] ⚠ \`t\` 를 지역 이름으로 쓰는 곳 ${shadows.length}개 (줄 ${lines.slice(0, 6).join(', ')}…)`);
-  console.log('   그 안에서는 말 묶음 t() 를 못 부른다 — 이름을 바꾸고 다시 돌려라 (사람 판단).');
-  console.log('   ⚠ 바꿀 때 `data-t="…"` 같은 **속성 이름**까지 같이 바뀌지 않게 (pulse 에서 실제로 그랬다).');
+  console.log(`[widgetize] ⚠ \`t\` 를 지역 이름으로 쓰는 곳 ${shadows.length}개 (줄 ${lines.slice(0, 6).join(', ')}...)`);
+  console.log('   그 안에서는 말 묶음 t() 를 못 부른다. 이름을 바꾸고 다시 돌려라 (사람 판단).');
+  console.log('   ⚠ 바꿀 때 `data-t="..."` 같은 **속성 이름**까지 같이 바뀌지 않게 (pulse 에서 실제로 그랬다).');
 }
 if (leftovers.length) {
-  console.log(`[widgetize] 손이 필요한 곳 ${leftovers.length}개 (자리표시가 낀 글) —`);
+  console.log(`[widgetize] 손이 필요한 곳 ${leftovers.length}개 (자리표시가 낀 글) . `);
   for (const l of leftovers.slice(0, 12)) console.log('   ' + l);
 }
 if (!WRITE) {
-  console.log('[widgetize] 미리보기다 — 고치려면 --write');
+  console.log('[widgetize] 미리보기다. 고치려면 --write');
   process.exit(0);
 }
 
 /* **위젯만 고치고 말 묶음을 안 쓰면 화면에 열쇠가 그대로 나간다.** 경로로 부르면 `id` 가
- * 경로 문자열이라 `i18n/ko/src/widgets/memo.ts.json` 같은 데를 가리킨다 — 그 전에 세운다. */
+ * 경로 문자열이라 `i18n/ko/src/widgets/memo.ts.json` 같은 데를 가리킨다. 그 전에 세운다. */
 if ((/[/\\]/.test(id) || id.endsWith('.ts')) && ns === id) {
-  console.error(`경로로 부를 땐 이름을 못 정한다 — 등록 이름으로 불러라 (예: 그 파일의 Toolbox.register id).`);
+  console.error(`경로로 부를 땐 이름을 못 정한다. 등록 이름으로 불러라 (예: 그 파일의 Toolbox.register id).`);
   process.exit(2);
 }
 fs.writeFileSync(file, src);
 const koPath = path.join(ROOT, 'i18n/ko', `${ns}.json`);
 const merged = fs.existsSync(koPath) ? JSON.parse(fs.readFileSync(koPath, 'utf8')) : {};
 fs.writeFileSync(koPath, JSON.stringify({ ...merged, ...catalog }, null, 2) + '\n');
-console.log(`[widgetize] 썼다 → ${rel} · i18n/ko/${ns}.json`);
+console.log(`[widgetize] 썼다 → ${rel}, i18n/ko/${ns}.json`);

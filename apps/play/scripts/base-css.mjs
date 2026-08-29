@@ -1,12 +1,12 @@
 /**
- * 놀이 공용 스타일 만들기 — 색·글씨 크기는 KarmoLab 이 정본 (TASK-KL-089)
+ * 놀이 공용 스타일 만들기. 색, 글씨 크기는 KarmoLab 이 정본 (TASK-KL-089)
  *
  * 놀이 셋이 저마다 색을 손으로 박고 있었다. KarmoLab 은 연보라에 각진 모서리인데 놀이들은
- * 금색에 둥근 모서리였다 — 같은 사이트로 안 보인다. 그렇다고 여기에 값을 베껴 적으면
+ * 금색에 둥근 모서리였다. 같은 사이트로 안 보인다. 그렇다고 여기에 값을 베껴 적으면
  * 정본이 바뀔 때 조용히 갈라진다.
  *
  * 그래서 **KarmoLab 스타일에서 토큰 덩어리를 그대로 떠 온다.** 브랜드 색이 바뀌면 놀이도 같이 바뀐다.
- * 여기서 새로 정하는 것은 놀이에만 있는 부품(놀이 전환 줄·카드·판 고르는 칩)뿐이다.
+ * 여기서 새로 정하는 것은 놀이에만 있는 부품(놀이 전환 줄, 카드, 판 고르는 칩)뿐이다.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,13 +18,13 @@ const CANON = path.join(here, '../karmolab/css/toolbox.css');
 export function tokens() {
   const css = fs.readFileSync(CANON, 'utf8');
   const m = css.match(/:root\s*\{[\s\S]*?\n\}/);
-  if (!m) throw new Error('KarmoLab 스타일에서 토큰 덩어리(:root)를 못 찾았다 — css/toolbox.css 확인');
+  if (!m) throw new Error('KarmoLab 스타일에서 토큰 덩어리(:root)를 못 찾았다. css/toolbox.css 확인');
   return m[0];
 }
 
 export function baseCss() {
-  return `/* 이 파일은 만들어진 것이다 — 손으로 고치지 마라 (apps/play/scripts/base-css.mjs).
-   색·글씨 크기는 KarmoLab(css/toolbox.css)에서 그대로 떠 온다. */
+  return `/* 이 파일은 만들어진 것이다. 손으로 고치지 마라 (apps/play/scripts/base-css.mjs).
+   색, 글씨 크기는 KarmoLab(css/toolbox.css)에서 그대로 떠 온다. */
 
 ${tokens()}
 
@@ -48,10 +48,10 @@ a { color: var(--accent); }
 h1 { font-size: var(--font-size-lg); margin: 0 0 0.2rem; letter-spacing: -0.01em; }
 .play-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 1.2rem; }
 
-/* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json */
+/* 놀이끼리 오가는 줄. 목록 정본은 apps/play/games.json */
 .play-strip {
   display: flex; gap: 0.35rem; margin: 0 0 1rem; font-size: var(--font-size-2xs);
-  /* 놀이가 늘면 줄이 두 줄로 흘러 화면 위를 먹는다 — 한 줄로 두고 넘치면 옆으로 굴린다. */
+  /* 놀이가 늘면 줄이 두 줄로 흘러 화면 위를 먹는다. 한 줄로 두고 넘치면 옆으로 굴린다. */
   flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
 }
 .play-strip::-webkit-scrollbar { display: none; }
@@ -65,7 +65,7 @@ h1 { font-size: var(--font-size-lg); margin: 0 0 0.2rem; letter-spacing: -0.01em
 .play-strip-now { background: var(--accent-dim); color: var(--accent); border-color: var(--border-strong); font-weight: 700; }
 .play-strip-all { background: transparent; }
 
-/* 판·주제를 고르는 칩 */
+/* 판, 주제를 고르는 칩 */
 .play-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.1rem; }
 .play-chips button {
   font: inherit; font-size: var(--font-size-2xs); min-height: 38px; padding: 0 0.85rem; cursor: pointer;

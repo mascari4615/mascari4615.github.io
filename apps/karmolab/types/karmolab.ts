@@ -40,7 +40,7 @@ export interface RandomGenTopic {
 
 /** Lazy-load widget stub; paths are under `widgets/` without `.js` */
 export interface KarmoLabLazyWidgetStub {
-  /** 이 도구가 탭으로 들어간 묶음 위젯 id — 이름으로 부르면 묶음의 그 탭으로 간다 (KL-088) */
+  /** 이 도구가 탭으로 들어간 묶음 위젯 id. 이름으로 부르면 묶음의 그 탭으로 간다 (KL-088) */
   bundle?: string;
   id: string;
   title: string;
@@ -49,21 +49,21 @@ export interface KarmoLabLazyWidgetStub {
   layout: string;
   icon: string;
   lazyScriptPaths?: string[];
-  /** 도구 화면 맨 아래 안내(제목·설명·방문수)를 끈다. 창문형 위젯이 쓴다. */
+  /** 도구 화면 맨 아래 안내(제목, 설명, 방문수)를 끈다. 창문형 위젯이 쓴다. */
   noHero?: boolean;
   /**
-   * 도구 화면 맨 아래 「여기도 있어요」(커뮤니티·광장·도구 전체)를 붙일지.
-   * **기본은 끔** — 대부분의 도구에서는 군더더기다. 다 쓰고 나가는 흐름이 자연스러운 위젯만 켠다.
+   * 도구 화면 맨 아래 여기도 있어요(커뮤니티, 광장, 도구 전체)를 붙일지.
+   * **기본은 끔**. 대부분의 도구에서는 군더더기다. 다 쓰고 나가는 흐름이 자연스러운 위젯만 켠다.
    */
   nextLinks?: boolean;
   /**
    * 이 화면은 **상세 페이지가 없어야 맞다** (TASK-KL-349).
    *
-   * 도구 목록·주소(`/t/<id>/`)는 `data/tools-seo.json` 이 만든다. 「거기 없는 위젯」을
-   * 검사가 전부 빨강으로 세우면, 설정·즐겨찾기·설치처럼 **원래 페이지가 없어야 맞는 화면**
+   * 도구 목록, 주소(`/t/<id>/`)는 `data/tools-seo.json` 이 만든다. 거기 없는 위젯을
+   * 검사가 전부 빨강으로 세우면, 설정, 즐겨찾기, 설치처럼 **원래 페이지가 없어야 맞는 화면**
    * 열몇 개가 같이 걸려 아무도 못 고치는 빨간불이 된다(2026-08-10 에 그렇게 써 보고 되돌렸다).
-   * 그때는 「알맹이(src/core) 가 있나」로 갈랐는데, 그 그물은 알맹이 없는 위젯(my-ai·terminal…)을
-   * 통째로 놓쳤다 — 만들어 놓고 **문이 안 생긴 채** 배포됐다.
+   * 그때는 알맹이(src/core) 가 있나로 갈랐는데, 그 그물은 알맹이 없는 위젯(my-ai, terminal...)을
+   * 통째로 놓쳤다. 만들어 놓고 **문이 안 생긴 채** 배포됐다.
    *
    * 그래서 예외를 **위젯이 스스로 밝힌다.** 여기 `true` 면 페이지가 없어도 정상, 안 적었으면
    * `tools-seo.json` 에 자리가 있어야 한다(`npm run audit:tool-data`).
@@ -82,7 +82,7 @@ export interface KarmoLabImageBatchHooks {
   onItemError?: (i: number, file: File, err: Error, total: number) => void;
 }
 
-/** KarmoWorld — `world.js` / `parse-md.js` / `load-characters-from-wiki.js` */
+/** KarmoWorld. `world.js` / `parse-md.js` / `load-characters-from-wiki.js` */
 export interface KarmoWorldParseMdAPI {
   splitFrontmatter: (md: string) => { frontmatter: string; body: string };
   parseYamlSimple: (yaml: string) => Record<string, unknown>;
@@ -146,7 +146,7 @@ export interface KarmoLabImageBatchAPI {
   ) => Promise<void>;
 }
 
-/** 챗봇 캐릭터 — `chatbot/characters.ts` 가 노출. 타입드 소비자에서 쓰는 필드만 명시(나머지는 인덱스). */
+/** 챗봇 캐릭터. `chatbot/characters.ts` 가 노출. 타입드 소비자에서 쓰는 필드만 명시(나머지는 인덱스). */
 export interface ChatbotCharacter {
   id: string;
   name?: string;
@@ -174,7 +174,7 @@ export interface GeminiImageResult {
   [key: string]: unknown;
 }
 
-/** `gemini.ts` MODEL_CATALOG 재노출 — 위젯에서 `Gemini.MODELS.gemini` 등으로 사용 */
+/** `gemini.ts` MODEL_CATALOG 재노출. 위젯에서 `Gemini.MODELS.gemini` 등으로 사용 */
 export interface GeminiModelEntry {
   id: string;
   name: string;
@@ -182,7 +182,7 @@ export interface GeminiModelEntry {
 }
 export type GeminiModelsCatalog = Record<'gemini' | 'geminiImage' | 'imagen' | 'embedding', GeminiModelEntry[]>;
 
-/** `gemini.ts` ImageDB — IndexedDB 이미지 라이브러리 공유 모듈 */
+/** `gemini.ts` ImageDB. IndexedDB 이미지 라이브러리 공유 모듈 */
 export interface ImageDBItem {
   id: string;
   url: string;
@@ -245,7 +245,7 @@ export interface ChatbotKarmoImageAPI {
   ) => Promise<void>;
 }
 
-/** `imagegen/*` 공용 네임스페이스 백 — config.ts 가 세션/히스토리 키를 채움 */
+/** `imagegen/*` 공용 네임스페이스 백. config.ts 가 세션/히스토리 키를 채움 */
 export interface KarmoLabImageGenNamespace {
   GALLERY_SESSION_KEY?: string;
   GALLERY_SESSION_MAX?: number;
@@ -254,11 +254,11 @@ export interface KarmoLabImageGenNamespace {
   CHARACTER_PRESETS?: {
     char?: Array<{ id: string; label: string; icon?: string; prompt: string; shortLabel?: string }>;
   };
-  /** imagegen/* 위젯 (config/presets/queue/utils) 이 동적으로 채우는 면 — narrow 미완 (KL-078). */
+  /** imagegen/* 위젯 (config/presets/queue/utils) 이 동적으로 채우는 면. narrow 미완 (KL-078). */
   [key: string]: any;
 }
 
-/** 자료표(ref/*) 공용 렌더러 — `widgets/ref/reftable.ts` (TASK-KL-088) */
+/** 자료표(ref/*) 공용 렌더러. `widgets/ref/reftable.ts` (TASK-KL-088) */
 export interface RefTableItem {
   copy: string;
   glyph: string;
@@ -279,7 +279,7 @@ export interface RefTableSpec {
 
 export interface RefTableAPI {
   build: (container: HTMLElement, spec: RefTableSpec) => void;
-  /** 표 정의를 이름표로 보관 — 문자표 탭과 개별 페이지가 같은 정의를 나눠 쓴다 */
+  /** 표 정의를 이름표로 보관. 문자표 탭과 개별 페이지가 같은 정의를 나눠 쓴다 */
   define: (id: string, spec: RefTableSpec) => void;
   get: (id: string) => RefTableSpec | undefined;
 }

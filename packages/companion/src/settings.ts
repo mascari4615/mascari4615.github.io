@@ -2,11 +2,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 /**
- * 손댈 수 있는 설정 — 재시작 없이 바꾸는 것들.
+ * 손댈 수 있는 설정. 재시작 없이 바꾸는 것들.
  *
- * 레퍼런스 쪽은 「먼저 말하기」 같은 걸 **설정에서 켜고 끈다.** 우리도 인격·목소리·두뇌는
- * 창에서 갈아끼울 수 있게 해 뒀는데, **조용한 시간·먼저 말 거는 간격·화면 보기 간격은
- * 환경변수뿐**이었다. 바꾸려면 껐다 켜야 한다 — 곁에 있는 것을 껐다 켜는 건 이상한 일이다.
+ * 레퍼런스 쪽은 먼저 말하기 같은 걸 **설정에서 켜고 끈다.** 우리도 인격, 목소리, 두뇌는
+ * 창에서 갈아끼울 수 있게 해 뒀는데, **조용한 시간, 먼저 말 거는 간격, 화면 보기 간격은
+ * 환경변수뿐**이었다. 바꾸려면 껐다 켜야 한다. 곁에 있는 것을 껐다 켜는 건 이상한 일이다.
  *
  * 몇 가지 원칙을 뒀다.
  * - **아는 항목만 받는다.** 모르는 걸 그대로 받아 두면 오타가 조용히 쌓인다.
@@ -33,7 +33,7 @@ export const toConfigure: Readonly<Record<string, SettingSpec>> = {
   quietHourEnd: { what: '이 시각까지 조용 (시)', value: 7, min: 0, max: 23 },
   '놀리기': { what: '가끔 놀려도 되나', value: true },
   /* 흉내 낸 목소리(무거운 프로그램)를 **쓸 때 켜고 안 쓰면 끈다.**
-     끄는 길을 남긴다 — 자동을 꺼 두면 손으로 띄운 것만 쓴다. */
+     끄는 길을 남긴다. 자동을 꺼 두면 손으로 띄운 것만 쓴다. */
   animeVoiceAuto: { what: '흉내 낸 목소리를 필요할 때 자동으로 켜나', value: true },
   animeVoiceRestMin: { what: '이만큼 말이 없으면 흉내 낸 목소리를 끈다 (0 = 안 끔)', value: 30, min: 0, max: 720 },
 };
@@ -67,7 +67,7 @@ export class Settings {
     return this.values[name];
   }
 
-  /** 숫자로 본다 — 밀리초가 필요한 자리가 많다. */
+  /** 숫자로 본다. 밀리초가 필요한 자리가 많다. */
   ms(name: string): number {
     const v = this.values[name];
     return typeof v === 'number' ? v * 1000 : 0;
@@ -86,7 +86,7 @@ export class Settings {
   /**
    * 바꾼다. **아는 항목만, 범위 안에서만** 받는다.
    *
-   * 무엇이 왜 안 받아들여졌는지 돌려준다 — 조용히 무시하면 왜 안 바뀌는지 모른다.
+   * 무엇이 왜 안 받아들여졌는지 돌려준다. 조용히 무시하면 왜 안 바뀌는지 모른다.
    */
   put(next: unknown, options: { quiet?: boolean } = {}): string[] {
     if (typeof next !== 'object' || next === null) return ['설정 꼴이 아니다'];
@@ -95,18 +95,18 @@ export class Settings {
     for (const [k, raw] of Object.entries(next as Record<string, unknown>)) {
       const spec = toConfigure[k];
       if (spec === undefined) {
-        failed.push(`「${k}」 는 모르는 항목이다`);
+        failed.push(`${k} 는 모르는 항목이다`);
         continue;
       }
       if (typeof spec.value === 'boolean') {
-        if (typeof raw !== 'boolean') { failed.push(`「${k}」 는 참/거짓이어야 한다`); continue; }
+        if (typeof raw !== 'boolean') { failed.push(`${k} 는 참/거짓이어야 한다`); continue; }
         this.values[k] = raw;
         continue;
       }
       const n = typeof raw === 'number' ? raw : Number(raw);
-      if (Number.isFinite(n) === false) { failed.push(`「${k}」 는 숫자여야 한다`); continue; }
+      if (Number.isFinite(n) === false) { failed.push(`${k} 는 숫자여야 한다`); continue; }
       const grouped = Math.min(spec.max ?? n, Math.max(spec.min ?? n, Math.round(n)));
-      if (grouped !== n) failed.push(`「${k}」 는 ${spec.min}~${spec.max} 안이어야 해서 ${grouped} 로 뒀다`);
+      if (grouped !== n) failed.push(`${k} 는 ${spec.min}~${spec.max} 안이어야 해서 ${grouped} 로 뒀다`);
       this.values[k] = grouped;
     }
 
@@ -123,13 +123,13 @@ export class Settings {
   }
 }
 
-/** 사람이 읽는 표 — 무엇을 바꿀 수 있는지 그대로 보여 준다. */
+/** 사람이 읽는 표. 무엇을 바꿀 수 있는지 그대로 보여 준다. */
 export function settingsReport(settings: Settings): string {
   return Object.entries(toConfigure)
     .map(([k, spec]) => {
       const value2 = settings.get(k);
       const range = typeof spec.value === 'number' ? ` (${spec.min}~${spec.max})` : '';
-      return `${k.padEnd(16)} ${String(value2).padEnd(6)} — ${spec.what}${range}`;
+      return `${k.padEnd(16)} ${String(value2).padEnd(6)}. ${spec.what}${range}`;
     })
     .join('\n');
 }

@@ -8,9 +8,9 @@
   "xmlfmt.btn.copy": "Copy",
   "xmlfmt.copy.done": "Result copied",
   "xmlfmt.status.idle": "It formats as you paste. The text never leaves your device",
-  "xmlfmt.status.format": "Formatted — {lines} lines",
+  "xmlfmt.status.format": "Formatted. {lines} lines",
   "xmlfmt.status.minify": "Minified",
-  "xmlfmt.status.toJson": "Converted to JSON — {lines} lines",
+  "xmlfmt.status.toJson": "Converted to JSON. {lines} lines",
   "xmlfmt.status.bad": "{msg}",
-  "xmlfmt.note.limits": "Only well-formedness is checked — no DTD, XSD or namespace validation. In JSON, attributes become @name and text becomes #text"
+  "xmlfmt.note.limits": "Only well-formedness is checked. no DTD, XSD or namespace validation. In JSON, attributes become @name and text becomes #text"
 }

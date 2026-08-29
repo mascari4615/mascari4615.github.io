@@ -1,8 +1,8 @@
 /**
  * 대부호 화면 (TASK-KL-242)
  *
- * 한 수가 여러 장이라 **「무엇을 몇 장」**을 골라야 한다. 카드를 누르면 그 수로 낼 수 있는
- * 장수들이 단추로 뜬다 — 장수를 먼저 고르게 하면 낼 수 없는 조합을 고르고 헤맨다.
+ * 한 수가 여러 장이라 **무엇을 몇 장**을 골라야 한다. 카드를 누르면 그 수로 낼 수 있는
+ * 장수들이 단추로 뜬다. 장수를 먼저 고르게 하면 낼 수 없는 조합을 고르고 헤맨다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
@@ -35,7 +35,7 @@ export const presidentView: GameView<PresidentState, PresidentAction> = {
       const hand = s.hands[mySeat] ?? [];
       const opts = myTurn ? options(s, mySeat) : [];
 
-      /* 카드는 공용 한 벌(`card.ts`)로 그린다 — 이 판만의 치수·모양을 따로 두지 않는다. */
+      /* 카드는 공용 한 벌(`card.ts`)로 그린다. 이 판만의 치수, 모양을 따로 두지 않는다. */
       pileEl.innerHTML = s.pile
         ? Array.from({ length: s.pile.count }, (_, i) =>
             cardMark(label(s.pile!.rank), { tilt: (i - (s.pile!.count - 1) / 2) * 7 })
@@ -47,7 +47,7 @@ export const presidentView: GameView<PresidentState, PresidentAction> = {
         .map((r) => {
           const n = hand.filter((c) => c === r).length;
           const can = opts.some((o) => o.rank === r);
-          /* 같은 수가 여러 장이면 장수를 **아래 제 줄**에 적는다 — 끗수와 겹치면 둘 다 안 읽힌다. */
+          /* 같은 수가 여러 장이면 장수를 **아래 제 줄**에 적는다. 끗수와 겹치면 둘 다 안 읽힌다. */
           return cardMark(label(r), {
             can,
             pick: r === picked,

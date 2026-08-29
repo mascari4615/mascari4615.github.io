@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { searchWeb, readIn, extractResults, textOnly, resolveUrl, readSpec, handFrom, hintFrom } from '../dist/index.js';
 
-/* 밖에서 찾아보는 손. 진짜 인터넷은 시험에서 안 쓴다 — 남의 화면이 바뀌면 우리 시험이
+/* 밖에서 찾아보는 손. 진짜 인터넷은 시험에서 안 쓴다. 남의 화면이 바뀌면 우리 시험이
    빨개지는 건 우리 고장이 아니다. 대신 **뽑아내는 규칙**과 **못 찾았을 때**를 잠근다. */
 
 const fakeResult = `
@@ -29,7 +29,7 @@ test('찾아서 사람이 읽는 글로 준다', async () => {
   assert.match(content, /https:\/\/ko\.wikipedia\.org/);
 });
 
-test('못 찾으면 못 찾았다고 한다 — 지어내는 것보다 낫다', async () => {
+test('못 찾으면 못 찾았다고 한다. 지어내는 것보다 낫다', async () => {
   const content2 = await searchWeb('없는것', { fetch: async () => '<html>아무것도 없음</html>' });
   assert.match(content2, /못 찾았다/);
 });
@@ -44,7 +44,7 @@ test('저쪽이 죽어도 얘는 안 죽는다', async () => {
   assert.match(content3, /503/);
 });
 
-test('오래 걸리면 포기한다 — 검색 때문에 곁의 존재가 굳으면 안 된다', async () => {
+test('오래 걸리면 포기한다. 검색 때문에 곁의 존재가 굳으면 안 된다', async () => {
   const content4 = await searchWeb('느린것', {
     waitMs: 60,
     fetch: (url, signal) =>
@@ -72,7 +72,7 @@ test('빈 물음은 밖에 안 나간다', async () => {
   assert.match(content5, /무엇을 찾을지/);
 });
 
-test('페이지를 열면 대본·모양자를 걷어내고 textOnly 준다', async () => {
+test('페이지를 열면 대본, 모양자를 걷어내고 textOnly 준다', async () => {
   const content6 = await readIn('https://example.com', {
     fetch: async () => '<html><script>var x=1;</script><style>a{}</style><p>도토리는 맛있다</p></html>',
   });
@@ -88,11 +88,11 @@ test('태그와 기호를 사람이 읽는 글로 바꾼다', () => {
   assert.equal(textOnly('<b>가&amp;나</b>  다&nbsp;라'), '가&나 다 라');
 });
 
-test('밖을 읽는 손은 경로 없이도 만들어진다 — 읽을 자리가 그때그때 온다', () => {
+test('밖을 읽는 손은 경로 없이도 만들어진다. 읽을 자리가 그때그때 온다', () => {
   const spec = readSpec({ name: '찾아보기', what: '밖에서 찾는다', kind: 'web-search', when: ['찾아봐'] });
   assert.notEqual(spec, null);
   const hand = handFrom(spec, { within: 'C:\\어딘가' });
-  assert.notEqual(hand, null, '울타리 때문에 막히면 안 된다 — 파일을 읽는 손이 아니다');
+  assert.notEqual(hand, null, '울타리 때문에 막히면 안 된다. 파일을 읽는 손이 아니다');
   assert.equal(hand.name, '찾아보기');
 });
 
@@ -105,7 +105,7 @@ test('찾는 손은 말에서 **찾을 말**을 뽑는다 (실제 사고: 늘 �
   const hint = hintFrom(spec);
   assert.notEqual(hint.argument, undefined, '넘길 말을 뽑는 자리가 없다');
   assert.equal(hint.argument('GPT-SoVITS 가 뭐야? 찾아봐'), 'GPT-SoVITS 가');
-  // 부르는 말만 있으면 온 말 그대로 — 빈손으로 보내는 것보다 낫다.
+  // 부르는 말만 있으면 온 말 그대로. 빈손으로 보내는 것보다 낫다.
   assert.equal(hint.argument('찾아봐'), '찾아봐');
 });
 
@@ -115,7 +115,7 @@ test('주소 읽는 손은 말에서 주소만 집는다', () => {
   assert.equal(hint.argument('이거 봐 https://example.com/a?b=1 재밌음'), 'https://example.com/a?b=1');
 });
 
-test('파일 읽는 손은 예전처럼 빈손이어도 된다 — 통째로 읽는 게 맞는 자리다', () => {
+test('파일 읽는 손은 예전처럼 빈손이어도 된다. 통째로 읽는 게 맞는 자리다', () => {
   const spec = readSpec({ name: '할일보기', what: '본다', kind: 'read-file', path: 'C:/x.md', when: ['할 일'] });
   assert.equal(hintFrom(spec).argument, undefined);
 });

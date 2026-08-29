@@ -4,7 +4,7 @@
  * 필요한 건 대개 2분짜리 영상의 10초다. 그 10초를 잘라 보내려고 영상 전체를 올리는 건 앞뒤가 안 맞는다.
  *
  * 브라우저에는 영상을 다시 엮는 기능이 없다. 대신 **재생하면서 그 화면과 소리를 그대로 녹화**할 수 있다.
- * 그래서 이 도구는 고른 구간을 실제로 재생하며 담는다 — 즉 **자르는 데 그 구간만큼 시간이 걸린다**.
+ * 그래서 이 도구는 고른 구간을 실제로 재생하며 담는다. 즉 **자르는 데 그 구간만큼 시간이 걸린다**.
  * 이건 우회가 아니라 브라우저에서 가능한 유일한 길이라, 숨기지 않고 남은 시간을 보여 준다.
  */
 import { seekTo, pickRecordType, download, attachVideo } from './shared/video';
@@ -108,8 +108,8 @@ import { attachMedia } from './shared/media';
           let recorder: MediaRecorder | null = null;
           let rangeTimer = 0;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           const startSec = (): number => (parseInt(startEl.value, 10) / 1000) * duration;
@@ -127,7 +127,7 @@ import { attachMedia } from './shared/media';
             stats.innerHTML =
               statCell(t('videotrim.stat.cut'), t('videotrim.value.sec', { n: span.toFixed(1) }), true) +
               statCell(t('videotrim.stat.total'), mmss(duration)) +
-              // 실시간 녹화라 걸리는 시간이 구간 길이와 같다. 미리 알려 줘야 「멈춘 건가」 오해가 없다.
+              // 실시간 녹화라 걸리는 시간이 구간 길이와 같다. 미리 알려 줘야 멈춘 건가 오해가 없다.
               statCell(t('videotrim.stat.eta'), t('videotrim.value.about', { n: Math.ceil(span) }));
           }
 
@@ -136,7 +136,7 @@ import { attachMedia } from './shared/media';
             made = null;
             saveBtn.disabled = true;
             $<HTMLElement>('#vtResult').style.display = 'none';
-            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+            /* 공용 `attachVideo` 로 (TASK-KL-281). 녹화한 webm 은 길이가 안 적혀 있어
              * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
             void attachVideo(video, f).then(() => {
               duration = video.duration;
@@ -210,7 +210,7 @@ import { attachMedia } from './shared/media';
               say(t('videotrim.err.empty'), 'error');
               return;
             }
-            attachMedia(preview, made); // 공용 — 앞 주소를 거두고 물린다
+            attachMedia(preview, made); // 공용. 앞 주소를 거두고 물린다
             $<HTMLElement>('#vtResult').style.display = '';
             saveBtn.disabled = false;
             say(t('videotrim.say.done', { sec: span.toFixed(1), size: size(made.size) }), 'ok');
@@ -219,7 +219,7 @@ import { attachMedia } from './shared/media';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('videotrim', (f: File) => load(f));
           }
@@ -256,7 +256,7 @@ import { attachMedia } from './shared/media';
             if (!made) return;
             const aName = fileName.replace(/\.[^.]+$/, '') + t('videotrim.file.suffix');
             download(made, aName);
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'videotrim' });
             say(t('videotrim.say.saved'), 'ok');
           };

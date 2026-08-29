@@ -1,5 +1,5 @@
 {
-  "cron.label.expr": "크론 표현식 — 분 시 일 월 요일",
+  "cron.label.expr": "크론 표현식. 분 시 일 월 요일",
   "cron.ex.everyMinute": "1분마다",
   "cron.ex.every10": "10분마다",
   "cron.ex.hourly": "매시 정각",
@@ -15,8 +15,8 @@
   "cron.day.fri": "금",
   "cron.day.sat": "토",
   "cron.tab": "읽기",
-  "cron.err.fields": "칸이 5개여야 합니다 — 분 시 일 월 요일. (@daily·@hourly 같은 별칭도 됩니다)",
-  "cron.err.parse": "읽을 수 없는 칸이 있어요. 숫자·*·범위(1-5)·간격(*/10)·목록(1,3)·이름(MON·JAN)만 됩니다.",
+  "cron.err.fields": "칸이 5개여야 합니다. 분 시 일 월 요일. (@daily, @hourly 같은 별칭도 됩니다)",
+  "cron.err.parse": "읽을 수 없는 칸이 있어요. 숫자, *, 범위(1-5), 간격(*/10), 목록(1,3), 이름(MON, JAN)만 됩니다.",
   "cron.unit.weekday": "요일",
   "cron.unit.hour": "시",
   "cron.unit.minute": "분",

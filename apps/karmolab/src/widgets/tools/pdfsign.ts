@@ -7,7 +7,7 @@
  * 여기서는 쪽을 그림으로 그려 보여 주고, **그 위에서 자리를 잡아** 서명을 얹는다.
  * 계약서는 브라우저 밖으로 나가지 않는다.
  *
- * 자리 잡기가 핵심이다 — 좌표를 숫자로 입력하게 하면 아무도 못 쓴다. 미리보기 위를 눌러
+ * 자리 잡기가 핵심이다. 좌표를 숫자로 입력하게 하면 아무도 못 쓴다. 미리보기 위를 눌러
  * 옮기고 크기를 조절하며, 화면에서 본 그대로 들어간다(화면 배율을 실제 쪽 크기로 되돌려 얹는다).
  */
 import { statusLine } from './shared/say';
@@ -27,7 +27,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
     desc: t(
       'widgets-desc.pdfsign.desc',
       undefined,
-      '계약서에 손으로 그린 서명을 얹습니다. 인쇄·스캔 없이, 문서가 브라우저를 벗어나지 않습니다'
+      '계약서에 손으로 그린 서명을 얹습니다. 인쇄, 스캔 없이, 문서가 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16c1.5-3 2.5 1 4-1s2 .5 3-1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
@@ -104,11 +104,11 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           let pdfjs: PdfJs | null = null;
           let doc: PdfJsDoc | null = null;
           let signature: string | null = null; // data URL
-          // 놓을 자리를 「쪽 크기 대비 비율」로 갖는다 — 미리보기 배율이 바뀌어도 자리가 안 틀어진다
+          // 놓을 자리를 쪽 크기 대비 비율로 갖는다. 미리보기 배율이 바뀌어도 자리가 안 틀어진다
           let spot: { x: number; y: number } | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           /* ---- 서명 그리기 ---- */
@@ -159,7 +159,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           pad.addEventListener('pointerup', endStroke);
           pad.addEventListener('pointercancel', endStroke);
 
-          /** 빈 여백을 잘라 낸다 — 안 자르면 서명이 실제보다 작게 얹힌다. */
+          /** 빈 여백을 잘라 낸다. 안 자르면 서명이 실제보다 작게 얹힌다. */
           function trimmed(): string {
             if (!padCtx) return pad.toDataURL('image/png');
             const d = padCtx.getImageData(0, 0, pad.width, pad.height).data;
@@ -212,7 +212,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             updateGhost();
           }
 
-          /** 놓을 자리에 서명을 반투명으로 겹쳐 보여 준다 — 넣기 전에 눈으로 확인하게. */
+          /** 놓을 자리에 서명을 반투명으로 겹쳐 보여 준다. 넣기 전에 눈으로 확인하게. */
           function updateGhost(): void {
             if (!signature || !spot) {
               ghost.style.display = 'none';
@@ -236,10 +236,10 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
           });
 
           /* 자판 길 (2026-08-14, `audit:mouse-only`). 누르는 자리만 있으면 자판 쓰는 사람은
-           * **서명 자리를 아예 못 고른다.** 화살표로 옮기고 Enter 로 놓는다 — 걸음은 쪽의 2%.
+           * **서명 자리를 아예 못 고른다.** 화살표로 옮기고 Enter 로 놓는다. 걸음은 쪽의 2%.
            *
-           * 손글씨 판(`pad`)은 자판으로 대신할 수 없다. 대신 **「그림 넣기」**가 같은 자리에 있어
-           * 서명 그림 파일을 올리면 된다 — 그쪽이 자판·화면낭독기로 닿는 길이다. */
+           * 손글씨 판(`pad`)은 자판으로 대신할 수 없다. 대신 **그림 넣기**가 같은 자리에 있어
+           * 서명 그림 파일을 올리면 된다. 그쪽이 자판, 화면낭독기로 닿는 길이다. */
           view.tabIndex = 0;
           view.setAttribute('role', 'application');
           view.setAttribute('aria-label', t('pdfsign.kb.label'));
@@ -312,7 +312,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             const img = await out.embedPng(bytes);
             const w = width * (parseInt(sizeEl.value, 10) / 100);
             const h = (img.height / img.width) * w;
-            // PDF 의 y 는 아래에서 위로 커진다 — 화면 좌표를 그대로 쓰면 위아래가 뒤집힌다
+            // PDF 의 y 는 아래에서 위로 커진다. 화면 좌표를 그대로 쓰면 위아래가 뒤집힌다
             page.drawImage(img, {
               x: spot.x * width - w / 2,
               y: (1 - spot.y) * height - h / 2,
@@ -325,14 +325,14 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
             const outName = file.name.replace(/\.pdf$/i, '') + t('pdfsign.file.suffix') + '.pdf';
             download(blob, outName);
             say(t('pdfsign.say.done', { n: pageNo }), 'ok');
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'pdfsign' });
             Toolbox.trackUse?.('sign');
           }
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
           {
             Toolbox.onHandoff?.('pdfsign', (f: File) => void load(f));
           }

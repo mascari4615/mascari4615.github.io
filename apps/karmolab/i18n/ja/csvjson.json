@@ -6,8 +6,8 @@
   "csvjson.delim.pipe": "パイプ (|)",
   "csvjson.label.coerce": "数値・真偽の自動判別",
   "csvjson.opt.on": "オン",
-  "csvjson.label.csv": "CSV — 1行目が列名",
-  "csvjson.label.json": "JSON — オブジェクトの配列",
+  "csvjson.label.csv": "CSV. 1行目が列名",
+  "csvjson.label.json": "JSON. オブジェクトの配列",
   "csvjson.ph.csv": "名前,年齢&#10;山田,30",
   "csvjson.aria.json": "JSON 入力",
   "csvjson.ph.json": "[{\"名前\":\"山田\",\"年齢\":30}]",
@@ -18,7 +18,7 @@
   "csvjson.err.notArray": "オブジェクトの入った配列である必要があります。例) [{\"名前\":\"山田\"}]",
   "csvjson.copy.done": "JSON をコピーしました",
   "csvjson.value.col": "列{n}",
-  "csvjson.say.toJson": "{rows}行 · {cols}列 を JSON に変換しました。",
+  "csvjson.say.toJson": "{rows}行, {cols}列 を JSON に変換しました。",
   "csvjson.say.toCsv": "{rows}行を CSV に変換しました。",
   "csvjson.sample.csv": "名前,年齢,メモ\n山田,30,\"カンマ, の入った値\"\n鈴木,25,ふつう"
 }

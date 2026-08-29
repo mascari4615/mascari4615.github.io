@@ -3,23 +3,23 @@
   "parts": [
     {
       "id": "1",
-      "title": "배열 — 자리가 이어져 있다는 것의 값",
+      "title": "배열. 자리가 이어져 있다는 것의 값",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "자료구조를 「종류 외우기」로 배우면 남는 게 없다. 실제로 정해지는 것은 하나다 — **무엇이 빠르고 무엇이 느린가**, 그리고 그건 대개 **자리가 어떻게 놓였나**에서 나온다."
+          "text": "자료구조를 종류 외우기로 배우면 남는 게 없다. 실제로 정해지는 것은 하나다. **무엇이 빠르고 무엇이 느린가**, 그리고 그건 대개 **자리가 어떻게 놓였나**에서 나온다."
         },
         {
           "type": "p",
-          "text": "배열은 값들이 메모리에 **줄줄이 붙어** 있다. 그래서 `arr[9999]` 를 찾는 데 앞에서부터 셀 필요가 없다 — 시작 주소 + 9999×크기를 계산하면 끝이다. 이것이 O(1) 접근의 정체다."
+          "text": "배열은 값들이 메모리에 **줄줄이 붙어** 있다. 그래서 `arr[9999]` 를 찾는 데 앞에서부터 셀 필요가 없다. 시작 주소 + 9999×크기를 계산하면 끝이다. 이것이 O(1) 접근의 정체다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 재 보라 — 무엇이 싸고 무엇이 비싼가",
+          "label": "직접 재 보라. 무엇이 싸고 무엇이 비싼가",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}}, op = '{{op}}';\n  const arr = Array.from({ length: N }, (_, i) => i);\n  let ms, label, why;\n  if (op === 'get') {\n    ms = bench(() => { let s = 0; for (let i = 0; i < 100000; i++) s += arr[i % N]; });\n    label = '임의 접근 10만 번'; why = '주소 계산 한 번 — 길이와 상관없다. O(1)';\n  } else if (op === 'push') {\n    ms = bench(() => { const a = []; for (let i = 0; i < N; i++) a.push(i); });\n    label = '끝에 push ' + N + '번'; why = '끝은 자리를 안 밀어도 된다. 평균 O(1)';\n  } else if (op === 'unshift') {\n    ms = bench(() => { const a = []; for (let i = 0; i < Math.min(N, 20000); i++) a.unshift(i); }, 3);\n    label = '앞에 unshift ' + Math.min(N, 20000) + '번'; why = '넣을 때마다 뒤를 전부 한 칸씩 민다. O(n) — 그래서 N배 느려진다';\n  } else {\n    ms = bench(() => { for (let i = 0; i < 200; i++) arr.indexOf(N - 1); }, 3);\n    label = '값으로 찾기(indexOf) 200번'; why = '앞에서부터 다 본다. O(n)';\n  }\n  app.innerHTML = '<div class=\"hint\">길이 ' + N + ' 짜리 배열</div>' +\n    '<div class=\"cells\">' + [0,1,2,3,4].map((i) => '<div class=\"cell' + (op === 'get' && i === 3 ? ' hot' : '') + '\">' + i + '</div>').join('') +\n    '<div class=\"cell dim\">…</div></div>';\n  show(label + '\\n걸린 시간(중앙값): ' + ms.toFixed(2) + 'ms\\n\\n' + why);\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}}, op = '{{op}}';\n  const arr = Array.from({ length: N }, (_, i) => i);\n  let ms, label, why;\n  if (op === 'get') {\n    ms = bench(() => { let s = 0; for (let i = 0; i < 100000; i++) s += arr[i % N]; });\n    label = '임의 접근 10만 번'; why = '주소 계산 한 번. 길이와 상관없다. O(1)';\n  } else if (op === 'push') {\n    ms = bench(() => { const a = []; for (let i = 0; i < N; i++) a.push(i); });\n    label = '끝에 push ' + N + '번'; why = '끝은 자리를 안 밀어도 된다. 평균 O(1)';\n  } else if (op === 'unshift') {\n    ms = bench(() => { const a = []; for (let i = 0; i < Math.min(N, 20000); i++) a.unshift(i); }, 3);\n    label = '앞에 unshift ' + Math.min(N, 20000) + '번'; why = '넣을 때마다 뒤를 전부 한 칸씩 민다. O(n). 그래서 N배 느려진다';\n  } else {\n    ms = bench(() => { for (let i = 0; i < 200; i++) arr.indexOf(N - 1); }, 3);\n    label = '값으로 찾기(indexOf) 200번'; why = '앞에서부터 다 본다. O(n)';\n  }\n  app.innerHTML = '<div class=\"hint\">길이 ' + N + ' 짜리 배열</div>' +\n    '<div class=\"cells\">' + [0,1,2,3,4].map((i) => '<div class=\"cell' + (op === 'get' && i === 3 ? ' hot' : '') + '\">' + i + '</div>').join('') +\n    '<div class=\"cell dim\">...</div></div>';\n  show(label + '\\n걸린 시간(중앙값): ' + ms.toFixed(2) + 'ms\\n\\n' + why);\n</script>",
           "controls": [
             {
               "id": "op",
@@ -58,17 +58,17 @@
         },
         {
           "type": "note",
-          "text": "**앞에 넣기가 비싼 이유**는 「자리를 밀어야 해서」다. 목록 앞에 자주 넣어야 하면 배열을 뒤집어 쓰거나(끝에 넣고 나중에 reverse), 덱(deque)을 쓴다. 「자료구조를 바꾼다」는 대개 이런 순간을 말한다."
+          "text": "**앞에 넣기가 비싼 이유**는 자리를 밀어야 해서다. 목록 앞에 자주 넣어야 하면 배열을 뒤집어 쓰거나(끝에 넣고 나중에 reverse), 덱(deque)을 쓴다. 자료구조를 바꾼다는 대개 이런 순간을 말한다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "JavaScript 배열은 사실 배열이 아니다",
-          "text": "const a = [1, 2, 3];\na[1000] = 5;        // 구멍이 뚫린 배열 — 엔진이 해시 모드로 바꾼다(느려진다)\ndelete a[1];        // 마찬가지. 지울 때는 splice 를 쓴다\n\n// 숫자만 쓸 거면 형식화 배열이 진짜 연속 메모리다\nconst t = new Float64Array(1000);"
+          "text": "const a = [1, 2, 3];\na[1000] = 5;        // 구멍이 뚫린 배열. 엔진이 해시 모드로 바꾼다(느려진다)\ndelete a[1];        // 마찬가지. 지울 때는 splice 를 쓴다\n\n// 숫자만 쓸 거면 형식화 배열이 진짜 연속 메모리다\nconst t = new Float64Array(1000);"
         },
         {
           "type": "try",
-          "text": "위 데모에서 `앞에 넣기` 를 고르고 길이를 두 배로 올려 보라. 시간이 두 배가 아니라 **네 배**가 되는지 보라 — 반복 자체가 n번이고 그 안이 또 O(n) 이라 n² 이 된다."
+          "text": "위 데모에서 `앞에 넣기` 를 고르고 길이를 두 배로 올려 보라. 시간이 두 배가 아니라 **네 배**가 되는지 보라. 반복 자체가 n번이고 그 안이 또 O(n) 이라 n² 이 된다."
         }
       ],
       "quiz": [
@@ -88,7 +88,7 @@
           "choices": [
             "O(1)",
             "O(log n)",
-            "O(n) — 뒤를 전부 민다",
+            "O(n). 뒤를 전부 민다",
             "O(n log n)"
           ],
           "answer": 2,
@@ -109,19 +109,19 @@
     },
     {
       "id": "2",
-      "title": "연결 리스트 — 자리 대신 손가락",
+      "title": "연결 리스트. 자리 대신 손가락",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "연결 리스트는 값마다 **다음 것을 가리키는 손가락**을 들려 준다. 자리가 이어져 있을 필요가 없으니 중간에 끼워 넣는 것이 싸다 — 손가락 두 개만 고치면 된다."
+          "text": "연결 리스트는 값마다 **다음 것을 가리키는 손가락**을 들려 준다. 자리가 이어져 있을 필요가 없으니 중간에 끼워 넣는 것이 싸다. 손가락 두 개만 고치면 된다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "무엇을 하려는지 골라 보라 — 이길 때와 질 때가 갈린다",
+          "label": "무엇을 하려는지 골라 보라. 이길 때와 질 때가 갈린다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const op = '{{op}}', N = 30000;\n  hideCanvas();\n  /* 최소 연결 리스트 */\n  function buildList(n) {\n    let head = null, tail = null;\n    for (let i = 0; i < n; i++) {\n      const node = { v: i, next: null };\n      if (!head) head = node; else tail.next = node;\n      tail = node;\n    }\n    return head;\n  }\n  const arr = Array.from({ length: N }, (_, i) => i);\n  const head = buildList(N);\n  let a, l, why;\n  if (op === 'index') {\n    a = bench(() => { let s = 0; for (let i = 0; i < 20000; i++) s += arr[i]; });\n    l = bench(() => { let s = 0, n = head, i = 0; while (n && i < 20000) { s += n.v; n = n.next; i++; } });\n    why = '앞에서부터 순서대로 읽는 것은 둘 다 O(n). 그런데 배열이 대개 빠르다 — 메모리가 붙어 있어 캐시에 통째로 올라오기 때문(참조 지역성).';\n  } else if (op === 'random') {\n    a = bench(() => { let s = 0; for (let i = 0; i < 2000; i++) s += arr[(i * 7919) % N]; });\n    l = bench(() => { let s = 0; for (let i = 0; i < 2000; i++) { let n = head, k = (i * 7919) % 2000; while (k-- > 0 && n) n = n.next; s += n ? n.v : 0; } }, 3);\n    why = '임의 접근은 배열의 압승 — O(1) 대 O(n). 리스트는 손가락을 하나씩 따라가야 한다.';\n  } else {\n    a = bench(() => { const c = arr.slice(0, 5000); for (let i = 0; i < 2000; i++) c.splice(0, 0, i); }, 3);\n    l = bench(() => { let h = { v: -1, next: head }; for (let i = 0; i < 2000; i++) h = { v: i, next: h }; }, 3);\n    why = '앞에 끼워 넣기는 리스트의 압승 — 손가락 하나만 고친다. 배열은 매번 뒤를 민다.';\n  }\n  app.innerHTML = '<div class=\"hint\">배열 vs 연결 리스트 — 같은 일을 시켜 시간을 잰다</div>';\n  show('배열        ' + a.toFixed(2) + 'ms\\n연결 리스트  ' + l.toFixed(2) + 'ms\\n\\n' + why);\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const op = '{{op}}', N = 30000;\n  hideCanvas();\n  /* 최소 연결 리스트 */\n  function buildList(n) {\n    let head = null, tail = null;\n    for (let i = 0; i < n; i++) {\n      const node = { v: i, next: null };\n      if (!head) head = node; else tail.next = node;\n      tail = node;\n    }\n    return head;\n  }\n  const arr = Array.from({ length: N }, (_, i) => i);\n  const head = buildList(N);\n  let a, l, why;\n  if (op === 'index') {\n    a = bench(() => { let s = 0; for (let i = 0; i < 20000; i++) s += arr[i]; });\n    l = bench(() => { let s = 0, n = head, i = 0; while (n && i < 20000) { s += n.v; n = n.next; i++; } });\n    why = '앞에서부터 순서대로 읽는 것은 둘 다 O(n). 그런데 배열이 대개 빠르다. 메모리가 붙어 있어 캐시에 통째로 올라오기 때문(참조 지역성).';\n  } else if (op === 'random') {\n    a = bench(() => { let s = 0; for (let i = 0; i < 2000; i++) s += arr[(i * 7919) % N]; });\n    l = bench(() => { let s = 0; for (let i = 0; i < 2000; i++) { let n = head, k = (i * 7919) % 2000; while (k-- > 0 && n) n = n.next; s += n ? n.v : 0; } }, 3);\n    why = '임의 접근은 배열의 압승. O(1) 대 O(n). 리스트는 손가락을 하나씩 따라가야 한다.';\n  } else {\n    a = bench(() => { const c = arr.slice(0, 5000); for (let i = 0; i < 2000; i++) c.splice(0, 0, i); }, 3);\n    l = bench(() => { let h = { v: -1, next: head }; for (let i = 0; i < 2000; i++) h = { v: i, next: h }; }, 3);\n    why = '앞에 끼워 넣기는 리스트의 압승. 손가락 하나만 고친다. 배열은 매번 뒤를 민다.';\n  }\n  app.innerHTML = '<div class=\"hint\">배열 vs 연결 리스트. 같은 일을 시켜 시간을 잰다</div>';\n  show('배열        ' + a.toFixed(2) + 'ms\\n연결 리스트  ' + l.toFixed(2) + 'ms\\n\\n' + why);\n</script>",
           "controls": [
             {
               "id": "op",
@@ -147,21 +147,21 @@
         },
         {
           "type": "note",
-          "text": "교과서는 「중간 삽입이 O(1)」이라고 하지만, **그 자리를 찾는 데 O(n)** 이 든다. 이미 그 노드를 손에 쥐고 있을 때만 O(1) 이다 — LRU 캐시처럼 「노드를 따로 들고 있는」 구조에서 연결 리스트가 진짜로 이긴다."
+          "text": "교과서는 중간 삽입이 O(1)이라고 하지만, **그 자리를 찾는 데 O(n)** 이 든다. 이미 그 노드를 손에 쥐고 있을 때만 O(1) 이다. LRU 캐시처럼 노드를 따로 들고 있는 구조에서 연결 리스트가 진짜로 이긴다."
         },
         {
           "type": "p",
-          "text": "그리고 현실에서는 **캐시**가 교과서 표를 뒤집는다. 값 하나를 읽을 때 CPU 는 그 주변 64바이트를 통째로 가져온다. 배열은 다음 값이 이미 그 안에 있고, 연결 리스트는 매번 엉뚱한 주소로 뛴다. 그래서 「순회만 하는」 용도라면 대개 배열이 빠르다."
+          "text": "그리고 현실에서는 **캐시**가 교과서 표를 뒤집는다. 값 하나를 읽을 때 CPU 는 그 주변 64바이트를 통째로 가져온다. 배열은 다음 값이 이미 그 안에 있고, 연결 리스트는 매번 엉뚱한 주소로 뛴다. 그래서 순회만 하는 용도라면 대개 배열이 빠르다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "실제로 쓰는 자리 — LRU 캐시",
+          "label": "실제로 쓰는 자리. LRU 캐시",
           "text": "// Map 은 삽입 순서를 지킨다 → 그것만으로 LRU 가 된다\nclass LRU {\n  constructor(max) { this.max = max; this.m = new Map(); }\n  get(k) {\n    if (!this.m.has(k)) return undefined;\n    const v = this.m.get(k);\n    this.m.delete(k); this.m.set(k, v);   // 맨 뒤로 옮긴다\n    return v;\n  }\n  set(k, v) {\n    if (this.m.has(k)) this.m.delete(k);\n    this.m.set(k, v);\n    if (this.m.size > this.max) this.m.delete(this.m.keys().next().value);\n  }\n}"
         },
         {
           "type": "try",
-          "text": "위 데모의 세 갈래를 모두 눌러 보고, 「연결 리스트가 이기는 경우」가 하나뿐임을 확인하라. 실무에서 연결 리스트를 직접 쓸 일이 드문 이유가 그 표에 있다."
+          "text": "위 데모의 세 갈래를 모두 눌러 보고, 연결 리스트가 이기는 경우가 하나뿐임을 확인하라. 실무에서 연결 리스트를 직접 쓸 일이 드문 이유가 그 표에 있다."
         }
       ],
       "quiz": [
@@ -188,7 +188,7 @@
           "why": "참조 지역성."
         },
         {
-          "q": "「중간 삽입 O(1)」의 숨은 조건은?",
+          "q": "중간 삽입 O(1)의 숨은 조건은?",
           "choices": [
             "정렬돼 있어야 한다",
             "그 노드를 이미 들고 있어야 한다",
@@ -202,19 +202,19 @@
     },
     {
       "id": "3",
-      "title": "스택과 큐 — 순서를 정하는 두 가지 규칙",
+      "title": "스택과 큐. 순서를 정하는 두 가지 규칙",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "스택은 **마지막에 넣은 것을 먼저**(LIFO), 큐는 **먼저 넣은 것을 먼저**(FIFO) 꺼낸다. 규칙 한 줄 차이인데 쓰이는 자리가 완전히 갈린다 — 되돌리기·괄호 검사·호출 스택은 스택, 작업 대기열·너비 우선 탐색은 큐."
+          "text": "스택은 **마지막에 넣은 것을 먼저**(LIFO), 큐는 **먼저 넣은 것을 먼저**(FIFO) 꺼낸다. 규칙 한 줄 차이인데 쓰이는 자리가 완전히 갈린다. 되돌리기, 괄호 검사, 호출 스택은 스택, 작업 대기열, 너비 우선 탐색은 큐."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "괄호를 검사해 보라 — 스택이 하는 일이 눈에 보인다",
+          "label": "괄호를 검사해 보라. 스택이 하는 일이 눈에 보인다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const src = '{{src}}';\n  const pairs = { ')': '(', ']': '[', '}': '{' };\n  const stack = [];\n  let bad = -1;\n  const steps = [];\n  for (let i = 0; i < src.length; i++) {\n    const c = src[i];\n    if ('([{'.includes(c)) { stack.push(c); steps.push(i + ': ' + c + ' 넣음   -> [' + stack.join('') + ']'); }\n    else if (c in pairs) {\n      const top = stack.pop();\n      if (top !== pairs[c]) { bad = i; steps.push(i + ': ' + c + ' 인데 top 은 ' + (top || '없음') + ' -> 불일치'); break; }\n      steps.push(i + ': ' + c + ' 짝맞음 -> [' + stack.join('') + ']');\n    }\n  }\n  const okAll = bad < 0 && stack.length === 0;\n  app.innerHTML = '<div class=\"cells\">' + [...src].map((c, i) =>\n    '<div class=\"cell' + (i === bad ? ' hot' : '') + '\">' + c + '</div>').join('') + '</div>';\n  show(steps.join('\\n') + '\\n\\n결과: ' + (okAll ? '균형이 맞다' : bad >= 0 ? bad + '번째에서 어긋났다' : '닫히지 않은 괄호가 ' + stack.length + '개 남았다'));\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const src = '{{src}}';\n  const pairs = { ')': '(', ']': '[', '}': '{' };\n  const stack = [];\n  let bad = -1;\n  const steps = [];\n  for (let i = 0; i < src.length; i++) {\n    const c = src[i];\n    if ('([{'.includes(c)) { stack.push(c); steps.push(i + ': ' + c + ' 넣음   -> [' + stack.join('') + ']'); }\n    else if (c in pairs) {\n      const top = stack.pop();\n      if (top !== pairs[c]) { bad = i; steps.push(i + ': ' + c + ' 인데 top 은 ' + (top || '없음') + ' -> 불일치'); break; }\n      steps.push(i + ': ' + c + ' 짝맞음 -> [' + stack.join('') + ']');\n    }\n  }\n  const okAll = bad < 0 && stack.length === 0;\n  app.innerHTML = '<div class=\"cells\">' + [...src].map((c, i) =>\n    '<div class=\"cell' + (i === bad ? ' hot' : '') + '\">' + c + '</div>').join('') + '</div>';\n  show(steps.join('\\n') + '\\n\\n결과: ' + (okAll ? '균형이 맞다' : bad >= 0 ? bad + '번째에서 어긋났다' : '닫히지 않은 괄호가 ' + stack.length + '개 남았다'));\n</script>",
           "controls": [
             {
               "id": "src",
@@ -224,15 +224,15 @@
               "options": [
                 {
                   "value": "f(a[0]){}",
-                  "label": "f(a[0]){}  — 정상"
+                  "label": "f(a[0]){} . 정상"
                 },
                 {
                   "value": "f(a[0)]",
-                  "label": "f(a[0)]  — 엇갈림"
+                  "label": "f(a[0)] . 엇갈림"
                 },
                 {
                   "value": "((()",
-                  "label": "((()  — 안 닫힘"
+                  "label": "((() . 안 닫힘"
                 }
               ]
             }
@@ -240,21 +240,21 @@
         },
         {
           "type": "p",
-          "text": "큐가 필요한 대표 자리는 **너비 우선 탐색(BFS)** 이다. 「가까운 것부터」 보려면 먼저 발견한 것을 먼저 꺼내야 한다. 스택으로 바꾸면 그대로 깊이 우선(DFS)이 된다 — **자료구조 하나를 바꾸면 알고리즘이 바뀐다.**"
+          "text": "큐가 필요한 대표 자리는 **너비 우선 탐색(BFS)** 이다. 가까운 것부터 보려면 먼저 발견한 것을 먼저 꺼내야 한다. 스택으로 바꾸면 그대로 깊이 우선(DFS)이 된다. **자료구조 하나를 바꾸면 알고리즘이 바뀐다.**"
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "JavaScript 에서 주의할 점",
-          "text": "// 스택: push / pop — 둘 다 끝이라 빠르다\nconst st = []; st.push(1); st.pop();\n\n// 큐: push / shift — shift 는 O(n)! 앞을 빼면 전부 밀린다\nconst q = []; q.push(1); q.shift();      // 짧으면 괜찮지만 수만 개면 느려진다\n\n// 큰 큐는 머리 인덱스를 들고 다니면 O(1)\nlet head = 0; const buf = [];\nconst enq = (v) => buf.push(v);\nconst deq = () => buf[head++];"
+          "text": "// 스택: push / pop. 둘 다 끝이라 빠르다\nconst st = []; st.push(1); st.pop();\n\n// 큐: push / shift. shift 는 O(n)! 앞을 빼면 전부 밀린다\nconst q = []; q.push(1); q.shift();      // 짧으면 괜찮지만 수만 개면 느려진다\n\n// 큰 큐는 머리 인덱스를 들고 다니면 O(1)\nlet head = 0; const buf = [];\nconst enq = (v) => buf.push(v);\nconst deq = () => buf[head++];"
         },
         {
           "type": "note",
-          "text": "호출 스택도 같은 물건이다. 재귀가 너무 깊으면 「stack overflow」가 나는 것은 이 스택에 프레임이 쌓여서다. 재귀를 반복문 + 명시적 스택으로 바꾸면 그 한계를 피할 수 있다."
+          "text": "호출 스택도 같은 물건이다. 재귀가 너무 깊으면 stack overflow가 나는 것은 이 스택에 프레임이 쌓여서다. 재귀를 반복문 + 명시적 스택으로 바꾸면 그 한계를 피할 수 있다."
         },
         {
           "type": "try",
-          "text": "편집기의 「되돌리기」가 왜 스택인지 설명해 보라. 그리고 「다시 실행」까지 있으려면 스택이 몇 개 필요한가?"
+          "text": "편집기의 되돌리기가 왜 스택인지 설명해 보라. 그리고 다시 실행까지 있으려면 스택이 몇 개 필요한가?"
         }
       ],
       "quiz": [
@@ -273,7 +273,7 @@
           "q": "JavaScript 배열의 `shift()` 비용은?",
           "choices": [
             "O(1)",
-            "O(n) — 앞을 빼면 전부 밀린다",
+            "O(n). 앞을 빼면 전부 밀린다",
             "O(log n)",
             "상수"
           ],
@@ -295,19 +295,19 @@
     },
     {
       "id": "4",
-      "title": "해시 테이블 — 평균 O(1) 의 조건",
+      "title": "해시 테이블. 평균 O(1) 의 조건",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "해시 테이블은 **키를 숫자로 바꿔 그 자리에 바로 넣는다.** 그래서 찾는 데 평균 O(1). 다만 「평균」이라는 단어가 붙은 이유가 있다 — 서로 다른 키가 같은 자리로 갈 수 있다(충돌)."
+          "text": "해시 테이블은 **키를 숫자로 바꿔 그 자리에 바로 넣는다.** 그래서 찾는 데 평균 O(1). 다만 평균이라는 단어가 붙은 이유가 있다. 서로 다른 키가 같은 자리로 갈 수 있다(충돌)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "칸 수를 바꿔 보라 — 충돌이 어떻게 늘어나나",
+          "label": "칸 수를 바꿔 보라. 충돌이 어떻게 늘어나나",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const BUCKETS = {{buckets}}, KEYS = {{keys}};\n  const h = (s) => { let x = 0; for (const ch of s) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return x % BUCKETS; };\n  const table = Array.from({ length: BUCKETS }, () => []);\n  for (let i = 0; i < KEYS; i++) table[h('key' + i)].push(i);\n  const sizes = table.map((b) => b.length);\n  const worst = Math.max(...sizes), empty = sizes.filter((s) => s === 0).length;\n  ctx.clearRect(0, 0, 440, 180);\n  const w = Math.max(3, Math.min(26, 420 / BUCKETS - 2));\n  sizes.forEach((s, i) => {\n    const x = 12 + i * (w + 2), hgt = s * 16;\n    ctx.fillStyle = s > 1 ? '#ef4444' : s === 1 ? '#2563eb' : '#1e293b';\n    ctx.fillRect(x, 150 - hgt, w, Math.max(4, hgt));\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('칸마다 쌓인 개수 (빨강 = 충돌)', 12, 170);\n  app.innerHTML = '<div class=\"hint\">키 ' + KEYS + '개를 칸 ' + BUCKETS + '개에 나눠 담는다</div>';\n  show('부하율(키/칸)  ' + (KEYS / BUCKETS).toFixed(2) + '\\n'\n     + '가장 긴 줄     ' + worst + '개   <- 최악의 경우 이만큼 비교한다\\n'\n     + '빈 칸          ' + empty + '개\\n\\n'\n     + '부하율이 1 을 넘어가면 줄이 길어진다. 실제 구현은 이 값이 0.7~0.75 쯤 되면\\n'\n     + '칸 수를 두 배로 늘리고 전부 다시 담는다(리해싱) — 그때 그 한 번만 O(n).');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const BUCKETS = {{buckets}}, KEYS = {{keys}};\n  const h = (s) => { let x = 0; for (const ch of s) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return x % BUCKETS; };\n  const table = Array.from({ length: BUCKETS }, () => []);\n  for (let i = 0; i < KEYS; i++) table[h('key' + i)].push(i);\n  const sizes = table.map((b) => b.length);\n  const worst = Math.max(...sizes), empty = sizes.filter((s) => s === 0).length;\n  ctx.clearRect(0, 0, 440, 180);\n  const w = Math.max(3, Math.min(26, 420 / BUCKETS - 2));\n  sizes.forEach((s, i) => {\n    const x = 12 + i * (w + 2), hgt = s * 16;\n    ctx.fillStyle = s > 1 ? '#ef4444' : s === 1 ? '#2563eb' : '#1e293b';\n    ctx.fillRect(x, 150 - hgt, w, Math.max(4, hgt));\n  });\n  ctx.fillStyle = '#94a3b8'; ctx.font = '11px system-ui';\n  ctx.fillText('칸마다 쌓인 개수 (빨강 = 충돌)', 12, 170);\n  app.innerHTML = '<div class=\"hint\">키 ' + KEYS + '개를 칸 ' + BUCKETS + '개에 나눠 담는다</div>';\n  show('부하율(키/칸)  ' + (KEYS / BUCKETS).toFixed(2) + '\\n'\n     + '가장 긴 줄     ' + worst + '개   <- 최악의 경우 이만큼 비교한다\\n'\n     + '빈 칸          ' + empty + '개\\n\\n'\n     + '부하율이 1 을 넘어가면 줄이 길어진다. 실제 구현은 이 값이 0.7~0.75 쯤 되면\\n'\n     + '칸 수를 두 배로 늘리고 전부 다시 담는다(리해싱). 그때 그 한 번만 O(n).');\n</script>",
           "controls": [
             {
               "id": "buckets",
@@ -331,7 +331,7 @@
         },
         {
           "type": "p",
-          "text": "충돌을 다루는 방법은 둘이다 — 그 칸에 **목록을 매다는** 방식(체이닝)과, **다음 빈 칸으로 밀어 넣는** 방식(개방 주소법). 어느 쪽이든 부하율이 높아지면 느려지므로, 실제 구현은 일정 선을 넘으면 칸을 늘려 다시 담는다."
+          "text": "충돌을 다루는 방법은 둘이다. 그 칸에 **목록을 매다는** 방식(체이닝)과, **다음 빈 칸으로 밀어 넣는** 방식(개방 주소법). 어느 쪽이든 부하율이 높아지면 느려지므로, 실제 구현은 일정 선을 넘으면 칸을 늘려 다시 담는다."
         },
         {
           "type": "note",
@@ -341,11 +341,11 @@
           "type": "code",
           "lang": "javascript",
           "label": "쓸 때 기억할 것",
-          "text": "// 객체 키는 문자열로 강제된다 — 1 과 '1' 이 같은 칸이 된다\nconst o = {}; o[1] = 'a'; o['1'] = 'b';   // o[1] === 'b'\n\n// Map 은 아무 값이나 키로 쓴다(참조 동일성)\nconst m = new Map(); m.set({ id: 1 }, 'x');\n\n// 있는지만 볼 거면 Set — 배열 includes 는 O(n)\nconst seen = new Set(list);\nseen.has(x);   // 평균 O(1)"
+          "text": "// 객체 키는 문자열로 강제된다. 1 과 '1' 이 같은 칸이 된다\nconst o = {}; o[1] = 'a'; o['1'] = 'b';   // o[1] === 'b'\n\n// Map 은 아무 값이나 키로 쓴다(참조 동일성)\nconst m = new Map(); m.set({ id: 1 }, 'x');\n\n// 있는지만 볼 거면 Set. 배열 includes 는 O(n)\nconst seen = new Set(list);\nseen.has(x);   // 평균 O(1)"
         },
         {
           "type": "try",
-          "text": "칸 수를 4로, 키 수를 80으로 놓아 보라. 「평균 O(1)」이 어떻게 무너지는지 그림으로 보인다. 그다음 칸 수를 64로 올려 회복되는 것을 보라."
+          "text": "칸 수를 4로, 키 수를 80으로 놓아 보라. 평균 O(1)이 어떻게 무너지는지 그림으로 보인다. 그다음 칸 수를 64로 올려 회복되는 것을 보라."
         }
       ],
       "quiz": [
@@ -386,19 +386,19 @@
     },
     {
       "id": "5",
-      "title": "Map · Set · 객체 — 무엇을 언제",
+      "title": "Map, Set, 객체. 무엇을 언제",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "셋 다 「키로 찾기」를 하지만 성질이 다르다. 고르는 기준은 **키가 무엇인가**, **순서가 필요한가**, **자주 지우는가** 셋이다."
+          "text": "셋 다 키로 찾기를 하지만 성질이 다르다. 고르는 기준은 **키가 무엇인가**, **순서가 필요한가**, **자주 지우는가** 셋이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "규모를 바꿔 보라 — 배열 검색과 Set 이 갈리는 지점",
+          "label": "규모를 바꿔 보라. 배열 검색과 Set 이 갈리는 지점",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}};\n  const list = Array.from({ length: N }, (_, i) => 'id-' + i);\n  const set = new Set(list);\n  const probes = Array.from({ length: 2000 }, (_, i) => 'id-' + ((i * 7919) % N));\n  const arrMs = bench(() => { let c = 0; for (const p of probes) if (list.includes(p)) c++; }, 3);\n  const setMs = bench(() => { let c = 0; for (const p of probes) if (set.has(p)) c++; }, 3);\n  app.innerHTML = '<div class=\"hint\">' + N + '개 중에서 2000번 찾아본다</div>';\n  show('배열 includes   ' + arrMs.toFixed(2) + 'ms   (O(n) x 2000)\\n'\n     + 'Set  has        ' + setMs.toFixed(2) + 'ms   (평균 O(1) x 2000)\\n'\n     + '배수            ' + (setMs > 0 ? (arrMs / setMs).toFixed(1) : '—') + '배\\n\\n'\n     + '작을 때는 차이가 안 보인다. 이 지점이 「나중에 느려지는 코드」가 태어나는 자리다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = {{n}};\n  const list = Array.from({ length: N }, (_, i) => 'id-' + i);\n  const set = new Set(list);\n  const probes = Array.from({ length: 2000 }, (_, i) => 'id-' + ((i * 7919) % N));\n  const arrMs = bench(() => { let c = 0; for (const p of probes) if (list.includes(p)) c++; }, 3);\n  const setMs = bench(() => { let c = 0; for (const p of probes) if (set.has(p)) c++; }, 3);\n  app.innerHTML = '<div class=\"hint\">' + N + '개 중에서 2000번 찾아본다</div>';\n  show('배열 includes   ' + arrMs.toFixed(2) + 'ms   (O(n) x 2000)\\n'\n     + 'Set  has        ' + setMs.toFixed(2) + 'ms   (평균 O(1) x 2000)\\n'\n     + '배수            ' + (setMs > 0 ? (arrMs / setMs).toFixed(1) : '. ') + '배\\n\\n'\n     + '작을 때는 차이가 안 보인다. 이 지점이 나중에 느려지는 코드가 태어나는 자리다.');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -415,15 +415,15 @@
           "type": "code",
           "lang": "javascript",
           "label": "고르는 표",
-          "text": "// 키가 문자열이고 모양이 고정 → 객체\nconst config = { host: 'x', port: 80 };\n\n// 키가 아무 값 · 자주 넣고 지움 · 순서 필요 → Map\nconst byId = new Map();  byId.set(1, user);  byId.size;\n\n// 있는지만 확인 · 중복 제거 → Set\nconst unique = [...new Set(list)];\n\n// 키가 객체이고, 그 객체가 사라지면 같이 사라져야 함 → WeakMap\nconst meta = new WeakMap();  meta.set(domNode, { seen: true });"
+          "text": "// 키가 문자열이고 모양이 고정 → 객체\nconst config = { host: 'x', port: 80 };\n\n// 키가 아무 값, 자주 넣고 지움, 순서 필요 → Map\nconst byId = new Map();  byId.set(1, user);  byId.size;\n\n// 있는지만 확인, 중복 제거 → Set\nconst unique = [...new Set(list)];\n\n// 키가 객체이고, 그 객체가 사라지면 같이 사라져야 함 → WeakMap\nconst meta = new WeakMap();  meta.set(domNode, { seen: true });"
         },
         {
           "type": "note",
-          "text": "`Map` 은 **넣은 순서**를 지킨다. 그래서 2장의 LRU 캐시가 열 줄로 끝났다. 객체도 요즘은 순서를 지키지만 규칙이 복잡하다 — **정수처럼 생긴 키가 먼저, 오름차순으로** 온다. 순서에 기대야 하면 Map 을 써라."
+          "text": "`Map` 은 **넣은 순서**를 지킨다. 그래서 2장의 LRU 캐시가 열 줄로 끝났다. 객체도 요즘은 순서를 지키지만 규칙이 복잡하다. **정수처럼 생긴 키가 먼저, 오름차순으로** 온다. 순서에 기대야 하면 Map 을 써라."
         },
         {
           "type": "p",
-          "text": "`WeakMap`·`WeakSet` 은 키를 **붙잡지 않는다.** DOM 요소에 부가 정보를 달아 둘 때 일반 Map 을 쓰면, 그 요소가 화면에서 사라져도 Map 이 붙잡고 있어 메모리가 안 풀린다. WeakMap 은 그 문제가 없다."
+          "text": "`WeakMap`, `WeakSet` 은 키를 **붙잡지 않는다.** DOM 요소에 부가 정보를 달아 둘 때 일반 Map 을 쓰면, 그 요소가 화면에서 사라져도 Map 이 붙잡고 있어 메모리가 안 풀린다. WeakMap 은 그 문제가 없다."
         },
         {
           "type": "try",
@@ -468,19 +468,19 @@
     },
     {
       "id": "6",
-      "title": "트리 — 반씩 줄이기와 그 대가",
+      "title": "트리. 반씩 줄이기와 그 대가",
       "minutes": 9,
       "blocks": [
         {
           "type": "p",
-          "text": "정렬된 자료에서 찾을 때 **매번 절반을 버릴 수 있으면** 100만 개도 20번이면 닿는다(log₂ 1,000,000 ≈ 20). 이진 탐색 트리는 그 성질을 자료구조로 만든 것이다 — 왼쪽은 작고 오른쪽은 크다."
+          "text": "정렬된 자료에서 찾을 때 **매번 절반을 버릴 수 있으면** 100만 개도 20번이면 닿는다(log₂ 1,000,000 ≈ 20). 이진 탐색 트리는 그 성질을 자료구조로 만든 것이다. 왼쪽은 작고 오른쪽은 크다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "넣는 순서를 바꿔 보라 — 트리가 목록으로 무너진다",
+          "label": "넣는 순서를 바꿔 보라. 트리가 목록으로 무너진다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  const vals = order === 'sorted' ? [1,2,3,4,5,6,7] : order === 'random' ? [4,2,6,1,3,5,7] : [4,6,2,7,1,5,3];\n  let root = null;\n  const insert = (n, v) => n ? (v < n.v ? (n.l = insert(n.l, v)) : (n.r = insert(n.r, v)), n) : { v, l: null, r: null };\n  for (const v of vals) root = insert(root, v);\n  const depth = (n) => (n ? 1 + Math.max(depth(n.l), depth(n.r)) : 0);\n  ctx.clearRect(0, 0, 440, 180);\n  const place = (n, x, y, dx) => {\n    if (!n) return;\n    if (n.l) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - dx, y + 34); ctx.stroke(); place(n.l, x - dx, y + 34, dx / 2); }\n    if (n.r) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dx, y + 34); ctx.stroke(); place(n.r, x + dx, y + 34, dx / 2); }\n    ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2);\n    ctx.fillStyle = '#1e40af'; ctx.fill();\n    ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n    ctx.fillStyle = '#fff'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';\n    ctx.fillText(n.v, x, y + 4);\n  };\n  place(root, 220, 22, 100);\n  const d = depth(root);\n  app.innerHTML = '<div class=\"hint\">넣은 순서: ' + vals.join(', ') + '</div>';\n  show('높이 ' + d + '  (가장 나쁜 경우 이만큼 비교한다)\\n'\n     + '이상적인 높이 = ceil(log2(8)) = 3\\n\\n'\n     + (d > 4 ? '정렬된 순서로 넣으면 한쪽으로만 자란다 — 사실상 연결 리스트다. O(n).'\n              : '균형이 잡혔다. 찾기·넣기·지우기 모두 O(log n).'));\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const order = '{{order}}';\n  const vals = order === 'sorted' ? [1,2,3,4,5,6,7] : order === 'random' ? [4,2,6,1,3,5,7] : [4,6,2,7,1,5,3];\n  let root = null;\n  const insert = (n, v) => n ? (v < n.v ? (n.l = insert(n.l, v)) : (n.r = insert(n.r, v)), n) : { v, l: null, r: null };\n  for (const v of vals) root = insert(root, v);\n  const depth = (n) => (n ? 1 + Math.max(depth(n.l), depth(n.r)) : 0);\n  ctx.clearRect(0, 0, 440, 180);\n  const place = (n, x, y, dx) => {\n    if (!n) return;\n    if (n.l) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - dx, y + 34); ctx.stroke(); place(n.l, x - dx, y + 34, dx / 2); }\n    if (n.r) { ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dx, y + 34); ctx.stroke(); place(n.r, x + dx, y + 34, dx / 2); }\n    ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2);\n    ctx.fillStyle = '#1e40af'; ctx.fill();\n    ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n    ctx.fillStyle = '#fff'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';\n    ctx.fillText(n.v, x, y + 4);\n  };\n  place(root, 220, 22, 100);\n  const d = depth(root);\n  app.innerHTML = '<div class=\"hint\">넣은 순서: ' + vals.join(', ') + '</div>';\n  show('높이 ' + d + '  (가장 나쁜 경우 이만큼 비교한다)\\n'\n     + '이상적인 높이 = ceil(log2(8)) = 3\\n\\n'\n     + (d > 4 ? '정렬된 순서로 넣으면 한쪽으로만 자란다. 사실상 연결 리스트다. O(n).'\n              : '균형이 잡혔다. 찾기, 넣기, 지우기 모두 O(log n).'));\n</script>",
           "controls": [
             {
               "id": "order",
@@ -506,11 +506,11 @@
         },
         {
           "type": "note",
-          "text": "**정렬된 자료를 그대로 넣으면 트리가 무너진다.** 이 문제 때문에 실제 구현은 스스로 균형을 잡는다 — 레드-블랙 트리, AVL. 데이터베이스 인덱스는 여기에 디스크 사정을 더해 **B-트리**를 쓴다(한 노드에 값을 수백 개 담아 읽기 횟수를 줄인다)."
+          "text": "**정렬된 자료를 그대로 넣으면 트리가 무너진다.** 이 문제 때문에 실제 구현은 스스로 균형을 잡는다. 레드-블랙 트리, AVL. 데이터베이스 인덱스는 여기에 디스크 사정을 더해 **B-트리**를 쓴다(한 노드에 값을 수백 개 담아 읽기 횟수를 줄인다)."
         },
         {
           "type": "p",
-          "text": "그래서 「해시가 O(1)인데 왜 트리를 쓰나」의 답이 나온다 — **순서**다. 해시는 순서를 잃어버리지만 트리는 정렬을 유지한다. 그래서 「10과 20 사이 전부」, 「가장 작은 것부터」 같은 질문에 답할 수 있다. DB 인덱스가 트리인 이유다."
+          "text": "그래서 해시가 O(1)인데 왜 트리를 쓰나의 답이 나온다. **순서**다. 해시는 순서를 잃어버리지만 트리는 정렬을 유지한다. 그래서 10과 20 사이 전부, 가장 작은 것부터 같은 질문에 답할 수 있다. DB 인덱스가 트리인 이유다."
         },
         {
           "type": "code",
@@ -520,7 +520,7 @@
         },
         {
           "type": "try",
-          "text": "위 데모에서 「정렬된 채로」를 고르고 높이를 보라. 그리고 DB 에 데이터를 넣을 때 왜 자동 증가 ID 가 인덱스에 유리한지 생각해 보라(끝에만 붙어 페이지 분할이 적다)."
+          "text": "위 데모에서 정렬된 채로를 고르고 높이를 보라. 그리고 DB 에 데이터를 넣을 때 왜 자동 증가 ID 가 인덱스에 유리한지 생각해 보라(끝에만 붙어 페이지 분할이 적다)."
         }
       ],
       "quiz": [
@@ -539,7 +539,7 @@
           "q": "해시 대신 트리를 쓰는 이유는?",
           "choices": [
             "더 빨라서",
-            "순서(범위·정렬)를 유지해서",
+            "순서(범위, 정렬)를 유지해서",
             "메모리가 적어서",
             "충돌이 없어서"
           ],
@@ -561,19 +561,19 @@
     },
     {
       "id": "7",
-      "title": "힙 — 「가장 급한 것」만 빨리",
+      "title": "힙. 가장 급한 것만 빨리",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "우선순위 큐가 필요할 때가 있다 — 작업 스케줄러, 다익스트라 최단 경로, 상위 K개 뽑기. 매번 정렬하면 O(n log n)이 반복되지만, **최솟값 하나만** 빨리 꺼내면 되는 구조가 힙이다."
+          "text": "우선순위 큐가 필요할 때가 있다. 작업 스케줄러, 다익스트라 최단 경로, 상위 K개 뽑기. 매번 정렬하면 O(n log n)이 반복되지만, **최솟값 하나만** 빨리 꺼내면 되는 구조가 힙이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "값을 넣어 보라 — 배열 하나가 트리처럼 움직인다",
+          "label": "값을 넣어 보라. 배열 하나가 트리처럼 움직인다",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const N = {{n}};\n  const seed = [9, 4, 7, 1, 8, 2, 6, 3, 5, 10, 12, 11];\n  const heap = [];\n  const up = (i) => { while (i > 0) { const p = (i - 1) >> 1; if (heap[p] <= heap[i]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };\n  for (let k = 0; k < N; k++) { heap.push(seed[k]); up(heap.length - 1); }\n  ctx.clearRect(0, 0, 440, 180);\n  const draw = (i, x, y, dx) => {\n    if (i >= heap.length) return;\n    const l = 2 * i + 1, r = 2 * i + 2;\n    [l, r].forEach((c, k) => {\n      if (c < heap.length) {\n        ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;\n        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (k ? dx : -dx), y + 36); ctx.stroke();\n        draw(c, x + (k ? dx : -dx), y + 36, dx / 2);\n      }\n    });\n    ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2);\n    ctx.fillStyle = i === 0 ? '#22c55e' : '#1e40af'; ctx.fill();\n    ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n    ctx.fillStyle = '#fff'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';\n    ctx.fillText(heap[i], x, y + 4);\n  };\n  draw(0, 220, 20, 100);\n  app.innerHTML = '<div class=\"hint\">배열 그대로: [' + heap.join(', ') + ']  · 초록 = 언제나 최솟값</div>';\n  show('규칙 하나: 부모 <= 자식   (전체 정렬이 아니다)\\n'\n     + '자식 자리 = 2i+1, 2i+2  ·  부모 자리 = (i-1)>>1   <- 포인터가 필요 없다\\n\\n'\n     + '최솟값 보기   O(1)      맨 앞\\n'\n     + '넣기         O(log n)  끝에 넣고 위로 올린다\\n'\n     + '꺼내기       O(log n)  맨 앞을 빼고 끝을 올린 뒤 아래로 내린다');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  const N = {{n}};\n  const seed = [9, 4, 7, 1, 8, 2, 6, 3, 5, 10, 12, 11];\n  const heap = [];\n  const up = (i) => { while (i > 0) { const p = (i - 1) >> 1; if (heap[p] <= heap[i]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };\n  for (let k = 0; k < N; k++) { heap.push(seed[k]); up(heap.length - 1); }\n  ctx.clearRect(0, 0, 440, 180);\n  const draw = (i, x, y, dx) => {\n    if (i >= heap.length) return;\n    const l = 2 * i + 1, r = 2 * i + 2;\n    [l, r].forEach((c, k) => {\n      if (c < heap.length) {\n        ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;\n        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (k ? dx : -dx), y + 36); ctx.stroke();\n        draw(c, x + (k ? dx : -dx), y + 36, dx / 2);\n      }\n    });\n    ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2);\n    ctx.fillStyle = i === 0 ? '#22c55e' : '#1e40af'; ctx.fill();\n    ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.stroke();\n    ctx.fillStyle = '#fff'; ctx.font = '12px ui-monospace, monospace'; ctx.textAlign = 'center';\n    ctx.fillText(heap[i], x, y + 4);\n  };\n  draw(0, 220, 20, 100);\n  app.innerHTML = '<div class=\"hint\">배열 그대로: [' + heap.join(', ') + '] , 초록 = 언제나 최솟값</div>';\n  show('규칙 하나: 부모 <= 자식   (전체 정렬이 아니다)\\n'\n     + '자식 자리 = 2i+1, 2i+2 ,  부모 자리 = (i-1)>>1   <- 포인터가 필요 없다\\n\\n'\n     + '최솟값 보기   O(1)      맨 앞\\n'\n     + '넣기         O(log n)  끝에 넣고 위로 올린다\\n'\n     + '꺼내기       O(log n)  맨 앞을 빼고 끝을 올린 뒤 아래로 내린다');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -588,21 +588,21 @@
         },
         {
           "type": "p",
-          "text": "힙은 **완전히 정렬돼 있지 않다.** 「부모가 자식보다 작다」만 지킨다. 정렬을 포기한 대신 넣기·꺼내기가 O(log n)으로 싸졌다 — **필요한 만큼만 정렬한다**는 발상이 자료구조 설계의 핵심 감각이다."
+          "text": "힙은 **완전히 정렬돼 있지 않다.** 부모가 자식보다 작다만 지킨다. 정렬을 포기한 대신 넣기, 꺼내기가 O(log n)으로 싸졌다. **필요한 만큼만 정렬한다**는 발상이 자료구조 설계의 핵심 감각이다."
         },
         {
           "type": "code",
           "lang": "javascript",
-          "label": "상위 K개 — 전부 정렬할 필요가 없다",
+          "label": "상위 K개. 전부 정렬할 필요가 없다",
           "text": "// 나쁨: 100만 개를 정렬해 10개만 쓴다  → O(n log n)\nconst top10 = all.sort((a, b) => b.score - a.score).slice(0, 10);\n\n// 좋음: 크기 10짜리 최소 힙을 유지한다  → O(n log k)\n// 힙이 꽉 차면 가장 작은 것과 비교해, 더 크면 갈아 끼운다"
         },
         {
           "type": "note",
-          "text": "다익스트라·A* 같은 경로 탐색이 힙 없이는 성립하지 않는다. 「지금까지 가장 가까운 후보」를 매 단계 꺼내야 하는데, 그게 정확히 힙이 잘하는 한 가지다."
+          "text": "다익스트라, A* 같은 경로 탐색이 힙 없이는 성립하지 않는다. 지금까지 가장 가까운 후보를 매 단계 꺼내야 하는데, 그게 정확히 힙이 잘하는 한 가지다."
         },
         {
           "type": "try",
-          "text": "위 데모에서 개수를 늘리며 배열과 그림을 함께 보라. 배열 인덱스만으로 부모·자식을 찾는다는 것이 눈에 들어오면 이 장은 끝난 것이다."
+          "text": "위 데모에서 개수를 늘리며 배열과 그림을 함께 보라. 배열 인덱스만으로 부모, 자식을 찾는다는 것이 눈에 들어오면 이 장은 끝난 것이다."
         }
       ],
       "quiz": [
@@ -643,19 +643,19 @@
     },
     {
       "id": "8",
-      "title": "고르기 — 접근 패턴이 자료구조를 정한다",
+      "title": "고르기. 접근 패턴이 자료구조를 정한다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「어떤 자료구조가 제일 좋나」라는 질문에는 답이 없다. 답이 있는 질문은 이것이다 — **이 자료로 무엇을 가장 자주 하나.** 그 한 가지 연산이 자료구조를 정한다."
+          "text": "어떤 자료구조가 제일 좋나라는 질문에는 답이 없다. 답이 있는 질문은 이것이다. **이 자료로 무엇을 가장 자주 하나.** 그 한 가지 연산이 자료구조를 정한다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "상황을 골라 보라 — 무엇을 쓰고 왜 그런가",
+          "label": "상황을 골라 보라. 무엇을 쓰고 왜 그런가",
           "height": "330px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const s = '{{case}}';\n  const table = {\n    lookup: ['id 로 하나 찾기 (수만 건)', 'Map / Set',\n      '평균 O(1). 배열 find 는 O(n) — 건수가 늘면 그대로 느려진다.'],\n    range: ['날짜 범위로 목록 뽑기', '정렬 유지 구조 (B-트리 인덱스)',\n      '해시는 순서를 잃는다. 범위·정렬은 트리 계열만 답할 수 있다.'],\n    topk: ['점수 상위 20명 계속 유지', '크기 20짜리 힙',\n      '전부 정렬하면 O(n log n). 힙이면 O(n log k) 이고 메모리도 k 만큼만.'],\n    order: ['최근 본 항목 50개 (오래된 것부터 버림)', 'Map (또는 덱)',\n      'Map 은 넣은 순서를 지킨다 — delete 후 set 으로 맨 뒤로 옮기면 LRU 가 공짜.'],\n    queue: ['작업을 넣은 순서대로 처리', '큐 (머리 인덱스 방식)',\n      '배열 shift 는 O(n). 큐가 커질 수 있으면 머리 인덱스나 덱을 써라.'],\n    dedupe: ['중복 제거', 'Set',\n      '[...new Set(list)] 한 줄. includes 로 거르면 O(n^2).'],\n  }[s];\n  app.innerHTML = '<div class=\"hint\">상황</div><div style=\"font-size:15px;margin:4px 0 10px\">' + table[0] + '</div>' +\n    '<div class=\"hint\">고를 것</div><div style=\"font-size:17px;color:#4ade80\">' + table[1] + '</div>';\n  show('이유: ' + table[2] + '\\n\\n'\n     + '판단 순서\\n'\n     + '  1. 가장 자주 하는 연산이 무엇인가\\n'\n     + '  2. 순서가 필요한가 (범위·정렬·최근성)\\n'\n     + '  3. 규모가 얼마나 커질 수 있나  <- 작으면 배열이 정답인 경우가 많다');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const s = '{{case}}';\n  const table = {\n    lookup: ['id 로 하나 찾기 (수만 건)', 'Map / Set',\n      '평균 O(1). 배열 find 는 O(n). 건수가 늘면 그대로 느려진다.'],\n    range: ['날짜 범위로 목록 뽑기', '정렬 유지 구조 (B-트리 인덱스)',\n      '해시는 순서를 잃는다. 범위, 정렬은 트리 계열만 답할 수 있다.'],\n    topk: ['점수 상위 20명 계속 유지', '크기 20짜리 힙',\n      '전부 정렬하면 O(n log n). 힙이면 O(n log k) 이고 메모리도 k 만큼만.'],\n    order: ['최근 본 항목 50개 (오래된 것부터 버림)', 'Map (또는 덱)',\n      'Map 은 넣은 순서를 지킨다. delete 후 set 으로 맨 뒤로 옮기면 LRU 가 공짜.'],\n    queue: ['작업을 넣은 순서대로 처리', '큐 (머리 인덱스 방식)',\n      '배열 shift 는 O(n). 큐가 커질 수 있으면 머리 인덱스나 덱을 써라.'],\n    dedupe: ['중복 제거', 'Set',\n      '[...new Set(list)] 한 줄. includes 로 거르면 O(n^2).'],\n  }[s];\n  app.innerHTML = '<div class=\"hint\">상황</div><div style=\"font-size:15px;margin:4px 0 10px\">' + table[0] + '</div>' +\n    '<div class=\"hint\">고를 것</div><div style=\"font-size:17px;color:#4ade80\">' + table[1] + '</div>';\n  show('이유: ' + table[2] + '\\n\\n'\n     + '판단 순서\\n'\n     + '  1. 가장 자주 하는 연산이 무엇인가\\n'\n     + '  2. 순서가 필요한가 (범위, 정렬, 최근성)\\n'\n     + '  3. 규모가 얼마나 커질 수 있나  <- 작으면 배열이 정답인 경우가 많다');\n</script>",
           "controls": [
             {
               "id": "case",
@@ -693,17 +693,17 @@
         },
         {
           "type": "note",
-          "text": "**작으면 배열이 정답이다.** 항목이 수십 개인데 Map 으로 바꾸는 것은 대개 손해다(코드가 길어지고, 캐시 효율은 배열이 낫다). 자료구조를 바꾸는 이유는 언제나 「규모가 커질 때 어떻게 되나」여야 한다."
+          "text": "**작으면 배열이 정답이다.** 항목이 수십 개인데 Map 으로 바꾸는 것은 대개 손해다(코드가 길어지고, 캐시 효율은 배열이 낫다). 자료구조를 바꾸는 이유는 언제나 규모가 커질 때 어떻게 되나여야 한다."
         },
         {
           "type": "code",
           "lang": "text",
-          "label": "평균 시간 요약 — 외우지 말고 이유를 기억하라",
+          "label": "평균 시간 요약. 외우지 말고 이유를 기억하라",
           "text": "                찾기      앞에 넣기   끝에 넣기   순서 유지\n배열            O(n)      O(n)       O(1)*      O (인덱스)\nMap/객체        O(1)      O(1)       O(1)       Map 만 (넣은 순서)\nSet             O(1)      O(1)       O(1)       Map 과 같음\n연결 리스트      O(n)      O(1)**     O(1)**     O\n이진 탐색 트리   O(log n)  O(log n)   O(log n)   O (정렬 순서)\n힙              O(n)      O(log n)   O(log n)   최솟값만\n\n*  가끔 재할당이 일어나 그때만 O(n)\n** 그 자리를 이미 손에 쥐고 있을 때"
         },
         {
           "type": "try",
-          "text": "지금 만들고 있는 화면에서 자료를 담는 자리를 하나 골라, 위 세 질문에 답해 보라. 답이 「배열 그대로 둔다」여도 좋다 — 이유를 댈 수 있으면 된 것이다."
+          "text": "지금 만들고 있는 화면에서 자료를 담는 자리를 하나 골라, 위 세 질문에 답해 보라. 답이 배열 그대로 둔다여도 좋다. 이유를 댈 수 있으면 된 것이다."
         }
       ],
       "quiz": [
@@ -744,29 +744,29 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 손으로 훑는 점검표",
+      "title": "마무리. 손으로 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "자료구조 지식은 「이름을 아는 것」이 아니라 **느려질 자리를 미리 보는 눈**이다. 코드를 읽을 때 이 목록을 훑어라."
+          "text": "자료구조 지식은 이름을 아는 것이 아니라 **느려질 자리를 미리 보는 눈**이다. 코드를 읽을 때 이 목록을 훑어라."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "느려질 자리 점검표",
-          "text": "[ ] 반복문 안에서 includes / indexOf / find 를 쓰고 있나   -> Set/Map (O(n^2) 신호)\n[ ] 반복문 안에서 unshift / splice(0,…) / shift 를 쓰나   -> 끝에서 쓰거나 덱\n[ ] 전부 정렬해 놓고 앞의 몇 개만 쓰나                     -> 힙 (상위 K)\n[ ] 객체를 맵으로 쓰면서 숫자 키를 넣고 있나              -> Map (키가 문자열로 바뀐다)\n[ ] 범위·정렬 질의를 해시로 풀려 하나                      -> 트리/인덱스\n[ ] DOM·큰 객체를 Map 에 담아 두고 안 지우나              -> WeakMap (누수)\n[ ] 큐를 배열 shift 로 돌리나 (수만 건)                    -> 머리 인덱스\n[ ] 정렬된 데이터를 이진 탐색 트리에 순서대로 넣나         -> 균형 트리"
+          "text": "[ ] 반복문 안에서 includes / indexOf / find 를 쓰고 있나   -> Set/Map (O(n^2) 신호)\n[ ] 반복문 안에서 unshift / splice(0,...) / shift 를 쓰나   -> 끝에서 쓰거나 덱\n[ ] 전부 정렬해 놓고 앞의 몇 개만 쓰나                     -> 힙 (상위 K)\n[ ] 객체를 맵으로 쓰면서 숫자 키를 넣고 있나              -> Map (키가 문자열로 바뀐다)\n[ ] 범위, 정렬 질의를 해시로 풀려 하나                      -> 트리/인덱스\n[ ] DOM, 큰 객체를 Map 에 담아 두고 안 지우나              -> WeakMap (누수)\n[ ] 큐를 배열 shift 로 돌리나 (수만 건)                    -> 머리 인덱스\n[ ] 정렬된 데이터를 이진 탐색 트리에 순서대로 넣나         -> 균형 트리"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "스스로 채점 — 실제로 재서 확인한다",
+          "label": "스스로 채점. 실제로 재서 확인한다",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기 — 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = 8000;\n  const list = Array.from({ length: N }, (_, i) => i);\n  const set = new Set(list);\n  const probe = Array.from({ length: 1500 }, (_, i) => (i * 7919) % N);\n  const a = bench(() => { let c = 0; for (const p of probe) if (list.includes(p)) c++; }, 3);\n  const b = bench(() => { let c = 0; for (const p of probe) if (set.has(p)) c++; }, 3);\n  const c1 = bench(() => { const x = []; for (let i = 0; i < 8000; i++) x.push(i); }, 3);\n  const c2 = bench(() => { const x = []; for (let i = 0; i < 8000; i++) x.unshift(i); }, 3);\n  app.innerHTML = '<div class=\"hint\">이 기계에서 방금 잰 값이다 (N = ' + N + ')</div>';\n  show('배열 includes x1500   ' + a.toFixed(2) + 'ms\\n'\n     + 'Set  has      x1500   ' + b.toFixed(2) + 'ms      -> ' + (b > 0 ? (a / b).toFixed(0) : '—') + '배\\n\\n'\n     + 'push  8000회          ' + c1.toFixed(2) + 'ms\\n'\n     + 'unshift 8000회        ' + c2.toFixed(2) + 'ms      -> ' + (c1 > 0 ? (c2 / c1).toFixed(0) : '—') + '배\\n\\n'\n     + '이 두 배수가 이 칸의 요약이다 — 같은 일, 다른 자료구조.');\n</script>"
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  canvas { width:100%; height:180px; display:block; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n  .cells { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .cell { min-width:30px; padding:7px 6px; text-align:center; border-radius:6px;\n          background:#1e293b; font:12.5px/1 ui-monospace, monospace; }\n  .cell.hot { background:#2563eb; color:#fff; }\n  .cell.dim { background:#111c33; color:#475569; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><canvas id=\"c\" width=\"880\" height=\"360\"></canvas><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const cv = document.getElementById('c');\n  const ctx = cv.getContext('2d');\n  ctx.scale(2, 2);\n  const show = (s) => { out.textContent = s; };\n  const hideCanvas = () => { cv.style.display = 'none'; };\n  /** 시간 재기. 한 번은 못 믿는다. 여러 판 돌려 중앙값을 쓴다. */\n  function bench(fn, rounds) {\n    const ts = [];\n    for (let r = 0; r < (rounds || 5); r++) {\n      const t0 = performance.now();\n      fn();\n      ts.push(performance.now() - t0);\n    }\n    ts.sort((a, b) => a - b);\n    return ts[Math.floor(ts.length / 2)];\n  }\n</script>\n<script>\n  hideCanvas();\n  const N = 8000;\n  const list = Array.from({ length: N }, (_, i) => i);\n  const set = new Set(list);\n  const probe = Array.from({ length: 1500 }, (_, i) => (i * 7919) % N);\n  const a = bench(() => { let c = 0; for (const p of probe) if (list.includes(p)) c++; }, 3);\n  const b = bench(() => { let c = 0; for (const p of probe) if (set.has(p)) c++; }, 3);\n  const c1 = bench(() => { const x = []; for (let i = 0; i < 8000; i++) x.push(i); }, 3);\n  const c2 = bench(() => { const x = []; for (let i = 0; i < 8000; i++) x.unshift(i); }, 3);\n  app.innerHTML = '<div class=\"hint\">이 기계에서 방금 잰 값이다 (N = ' + N + ')</div>';\n  show('배열 includes x1500   ' + a.toFixed(2) + 'ms\\n'\n     + 'Set  has      x1500   ' + b.toFixed(2) + 'ms      -> ' + (b > 0 ? (a / b).toFixed(0) : '. ') + '배\\n\\n'\n     + 'push  8000회          ' + c1.toFixed(2) + 'ms\\n'\n     + 'unshift 8000회        ' + c2.toFixed(2) + 'ms      -> ' + (c1 > 0 ? (c2 / c1).toFixed(0) : '. ') + '배\\n\\n'\n     + '이 두 배수가 이 칸의 요약이다. 같은 일, 다른 자료구조.');\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 알고리즘·복잡도다. 여기까지가 「자료를 어떻게 놓나」였다면, 다음은 **놓인 자료를 어떤 순서로 훑나**다. 둘은 늘 같이 움직인다 — 자료구조를 바꾸면 알고리즘의 복잡도가 바뀐다."
+          "text": "다음 칸은 알고리즘, 복잡도다. 여기까지가 자료를 어떻게 놓나였다면, 다음은 **놓인 자료를 어떤 순서로 훑나**다. 둘은 늘 같이 움직인다. 자료구조를 바꾸면 알고리즘의 복잡도가 바뀐다."
         },
         {
           "type": "try",

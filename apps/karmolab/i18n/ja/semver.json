@@ -13,10 +13,10 @@
   "semver.noUpper": "上限なし",
   "semver.in": "入る",
   "semver.out": "入らない",
-  "semver.overlap.yes": "ふたつの範囲は重なります — 1つのバージョンで足ります",
-  "semver.overlap.no": "重なるバージョンがありません — 同じパッケージが2つ入ります",
+  "semver.overlap.yes": "ふたつの範囲は重なります. 1つのバージョンで足ります",
+  "semver.overlap.no": "重なるバージョンがありません. 同じパッケージが2つ入ります",
   "semver.status.idle": "範囲を書いてください",
   "semver.status.best": "この中で最も高いもの: {v}",
   "semver.status.none": "書いたバージョンで入るものはありません",
-  "semver.status.bad": "読めませんでした — {msg}"
+  "semver.status.bad": "読めませんでした. {msg}"
 }

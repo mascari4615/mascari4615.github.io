@@ -59,9 +59,9 @@ import { t, loadNamespace } from '../lib/i18n';
             draggingWin = null;
           });
 
-          /* 자판 길 (2026-08-14, `audit:mouse-only`) — 제목 줄에 초점을 주고 화살표로 옮긴다.
+          /* 자판 길 (2026-08-14, `audit:mouse-only`). 제목 줄에 초점을 주고 화살표로 옮긴다.
            * 끌기만 있으면 창이 겹쳐 놓인 자리를 자판 쓰는 사람은 **영영 못 헤친다.**
-           * 옮기는 계산은 끌기와 같은 것(왼쪽·위 px)이라 두 길이 갈리지 않는다. */
+           * 옮기는 계산은 끌기와 같은 것(왼쪽, 위 px)이라 두 길이 갈리지 않는다. */
           desktop.addEventListener('keydown', (e: KeyboardEvent) => {
             const title = (e.target as Element).closest('.win-title');
             const win = title?.parentElement;

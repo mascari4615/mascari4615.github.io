@@ -1,4 +1,4 @@
-# Adventure Widget — 무한 텍스트 어드벤처
+# Adventure Widget. 무한 텍스트 어드벤처
 
 KarmoLab 내 텍스트 RPG 위젯. 출처 TASK: `TASK-KL-032-infinite-text-adventure.md`.
 
@@ -7,11 +7,11 @@ KarmoLab 내 텍스트 RPG 위젯. 출처 TASK: `TASK-KL-032-infinite-text-adven
 ## 사용자 흐름
 
 1. **설정** (⚙ 아이콘): Vertex API key + Project ID 입력 (Vertex 사용 시)
-2. **Cast 선택**: 동행할 NPC 슬러그 선택 (alisa / ling / yon / timeto / fourth / …)
+2. **Cast 선택**: 동행할 NPC 슬러그 선택 (alisa / ling / yon / timeto / fourth / ...)
 3. **모험 시작**: `시작` 버튼 → 내레이터(Timeto) 오프닝 + 선택지
-4. **턴 진행**: 선택지 클릭 or 자유 텍스트 입력 → LLM 응답 + 이미지 생성 (η — Imagen 4)
+4. **턴 진행**: 선택지 클릭 or 자유 텍스트 입력 → LLM 응답 + 이미지 생성 (η. Imagen 4)
 5. **종료**: `[END]` 토큰 또는 수동 종료 → 요약 다이얼로그
-6. **저장**: ζ — Tauri `adventure_save_raw` → `memo/projects/raw/adventures/{slug}.json`
+6. **저장**: ζ. Tauri `adventure_save_raw` → `memo/projects/raw/adventures/{slug}.json`
    - 브라우저 fallback: `localStorage` (`kl_adventure_session_{slug}`)
 7. **정수 추출** (θ, 미구현): 정수(精髓) → wiki public 커밋 흐름
 
@@ -26,18 +26,18 @@ KarmoLab 내 텍스트 RPG 위젯. 출처 TASK: `TASK-KL-032-infinite-text-adven
 
 선택 저장: `Toolbox.setPref('adv_provider_id')`. 코드: `src/widgets/adventure/provider/factory.ts`.
 
-> **Vertex 우선 룰 예외 (KL-036)**: 이 위젯은 사용자 발화 「Max x20 활용」 시드 → Claude (Max OAuth) default.
+> **Vertex 우선 룰 예외 (KL-036)**: 이 위젯은 사용자 발화 Max x20 활용 시드 → Claude (Max OAuth) default.
 > Vertex도 toggle 가능 (provider abstraction). `CLAUDE.md` §11 참고.
 
 ---
 
 ## NPC 토큰
 
-LLM 출력 내 토큰을 파서가 추출·처리:
+LLM 출력 내 토큰을 파서가 추출, 처리:
 
 | 토큰 | 동작 |
 |---|---|
-| `[NPC:slug]` | 해당 캐릭터 이름·초상화 표시 |
+| `[NPC:slug]` | 해당 캐릭터 이름, 초상화 표시 |
 | `[SCENE:title]` | 장면 제목 오버레이 |
 | `[END]` | 모험 종료 → 요약 다이얼로그 |
 
@@ -73,7 +73,7 @@ LLM 응답
 
 ## 개발 페이즈 레이블
 
-`α` provider 추상화 · `β` wiki 연동 · `γ` UI 개선 · `δ` 턴 루프 · `ε` NPC chatbot · `ζ` Tauri save · `η` imagegen · `θ` 정수 추출 · `κ` sampling
+`α` provider 추상화, `β` wiki 연동, `γ` UI 개선, `δ` 턴 루프, `ε` NPC chatbot, `ζ` Tauri save, `η` imagegen, `θ` 정수 추출, `κ` sampling
 
 ---
 
@@ -81,8 +81,8 @@ LLM 응답
 
 | 파일 | 역할 |
 |---|---|
-| `adventure.ts` | 진입점 — UI shell, cast picker, provider toggle |
-| `turn-loop.ts` | 턴 state machine — history + runTurn() |
+| `adventure.ts` | 진입점. UI shell, cast picker, provider toggle |
+| `turn-loop.ts` | 턴 state machine. history + runTurn() |
 | `prompt.ts` | system instruction 빌더 + LLM 응답 파서 |
 | `storage.ts` | 세션 저장/불러오기 (Tauri / localStorage) |
 | `npc-context.ts` | NPC 캐릭터 컨텍스트 로더 |

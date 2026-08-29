@@ -1,8 +1,8 @@
 /**
- * 「본」 단위 검사 — 화면 없이 (TASK-KL-254)
+ * 본 단위 검사. 화면 없이 (TASK-KL-254)
  *
- * 보는 것: 숫자를 돌리면 모양이 정말 달라지는가 · SVG 가 말이 되는가 ·
- * 극단값(0·음수·1 초과)에서 조용히 이상한 것을 뱉지 않는가 · 되돌리기가 공용 것을 쓰는가.
+ * 보는 것: 숫자를 돌리면 모양이 정말 달라지는가, SVG 가 말이 되는가 , 
+ * 극단값(0, 음수, 1 초과)에서 조용히 이상한 것을 뱉지 않는가, 되돌리기가 공용 것을 쓰는가.
  */
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -24,7 +24,7 @@ const { createDoc, addLayer, countNodes, toSvg, PARTS, defaultKnobs, variants } 
 
 let failed = 0;
 const check = (label, cond, extra = '') => {
-  console.log(`${cond ? 'PASS' : 'FAIL'}  ${label}${cond ? '' : ' — ' + extra}`);
+  console.log(`${cond ? 'PASS' : 'FAIL'}  ${label}${cond ? '' : '. ' + extra}`);
   if (!cond) failed += 1;
 };
 
@@ -75,7 +75,7 @@ const hidden = toSvg({ w: 10, h: 10, layers: [{ id: 'h', name: 'h', visible: fal
 check('숨긴 레이어는 안 나온다', !hidden.includes('<rect'));
 
 
-/* ── 고르기·끌기의 셈 (2단계) ─────────────── */
+/* ── 고르기, 끌기의 셈 (2단계) ─────────────── */
 const { bounds, hitTest, handleAt, resizeBox, applyBox } = mod;
 
 const grouped = PARTS.button(k);                 // 무리(group)
@@ -97,7 +97,7 @@ check('가운데는 손잡이가 아니다', handleAt(box, 35, 35, 4) === null);
 check('옮기면 크기는 그대로', (() => { const n = resizeBox(box, 'move', 5, -5); return n.x === 15 && n.y === 5 && n.w === 50 && n.h === 50; })());
 check('오른쪽 아래를 끌면 커진다', resizeBox(box, 'se', 10, 10).w === 60);
 check('왼쪽을 오른쪽 끝 너머로 끌어도 안 뒤집힌다', (() => { const n = resizeBox(box, 'w', 200, 0); return n.w === 0 && n.h === 50; })(), JSON.stringify(resizeBox(box, 'w', 200, 0)));
-// 격자에 붙는 것은 **모서리 좌표**다(폭이 아니다) — 왼쪽이 10 이면 폭은 8 의 배수가 아니게 된다.
+// 격자에 붙는 것은 **모서리 좌표**다(폭이 아니다). 왼쪽이 10 이면 폭은 8 의 배수가 아니게 된다.
 {
   const snapped = resizeBox(box, 'se', 7, 7, 8);
   check('오른쪽 끝이 격자에 붙는다', (snapped.x + snapped.w) % 8 === 0, JSON.stringify(snapped));
@@ -110,7 +110,7 @@ applyBox(rect, { x: 5, y: 5, w: 20, h: 20 });
 check('작아지면 둥글기도 따라 줄어든다', rect.radius <= 10, String(rect.radius));
 const el = { kind: 'ellipse', cx: 0, cy: 0, rx: 1, ry: 1 };
 applyBox(el, { x: 10, y: 20, w: 40, h: 60 });
-check('타원은 가운데·반지름으로 옮겨 담는다', el.cx === 30 && el.cy === 50 && el.rx === 20 && el.ry === 30);
+check('타원은 가운데, 반지름으로 옮겨 담는다', el.cx === 30 && el.cy === 50 && el.rx === 20 && el.ry === 30);
 
 
 /* ── 레이어 다루기 (3단계) ─────────────────── */
@@ -156,7 +156,7 @@ const { defaultSlice, clampSlice, slicePieces, stretch, sliceMeta } = mod;
   const negative = clampSlice({ left: -10, right: 5, top: -1, bottom: 3 }, 100, 40);
   check('음수는 0 으로 잡는다', negative.left === 0 && negative.top === 0);
 
-  // 늘렸을 때 — 이 도구의 존재 이유
+  // 늘렸을 때. 이 도구의 존재 이유
   const pieces = stretch(sl, 100, 40, 300, 40);
   const corners = pieces.filter((x) => (x.sx === 0 || x.sx === 100 - 12) && (x.sy === 0 || x.sy === 40 - 8));
   check('모서리 넷이 있다', corners.length === 4, String(corners.length));
@@ -166,19 +166,19 @@ const { defaultSlice, clampSlice, slicePieces, stretch, sliceMeta } = mod;
   const total = pieces.filter((x) => x.sy === 0).reduce((sum, x) => sum + x.dw, 0);
   check('늘린 폭이 딱 맞는다', total === 300, String(total));
 
-  // 원래보다 작게 — 가운데가 0 으로 줄 뿐, 뒤집히지 않는다
+  // 원래보다 작게. 가운데가 0 으로 줄 뿐, 뒤집히지 않는다
   const tiny = stretch(sl, 100, 40, 10, 40);
   check('작게 줄여도 음수 크기가 없다', tiny.every((x) => x.dw >= 0 && x.dh >= 0), JSON.stringify(tiny.map((x) => x.dw)));
 
   const meta = sliceMeta(sl, 100, 40);
-  check('유니티 순서(왼·아래·오른·위)로 적는다', JSON.stringify(meta.unityBorder) === JSON.stringify([12, 8, 12, 8]), JSON.stringify(meta.unityBorder));
+  check('유니티 순서(왼, 아래, 오른, 위)로 적는다', JSON.stringify(meta.unityBorder) === JSON.stringify([12, 8, 12, 8]), JSON.stringify(meta.unityBorder));
 
   const d = defaultSlice(100, 40);
   check('처음 값은 판 안에 있다', d.left + d.right <= 100 && d.top + d.bottom <= 40);
 }
 
 
-/* ── 정렬·맞추기 (9단계) ────────────────────── */
+/* ── 정렬, 맞추기 (9단계) ────────────────────── */
 const { alignTo, fitToDoc } = mod;
 {
   const mk = () => ({ kind: 'rect', x: 5, y: 7, w: 40, h: 20, radius: 6 });
@@ -239,5 +239,5 @@ const { pathPoints, pathFrom, isClosedPath, pointAt, movePoint } = mod;
 }
 
 rmSync(out, { recursive: true, force: true });
-console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서 · 부품 3종 · 손잡이 반응 · 변형 묶음 · SVG 정합 · 극단값');
+console.log(failed ? `\n[test-bon] 실패 ${failed}건` : '\n[test-bon] ✓ 문서, 부품 3종, 손잡이 반응, 변형 묶음, SVG 정합, 극단값');
 process.exit(failed ? 1 : 0);

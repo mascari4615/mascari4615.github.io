@@ -1,7 +1,7 @@
-/** **구운 파일이다 — 손으로 고치지 마라.** 정본 = `catalog.ts`, 굽는 놈 = `scripts/gen-arcade-catalog.mjs`.
+/** **구운 파일이다. 손으로 고치지 마라.** 정본 = `catalog.ts`, 굽는 놈 = `scripts/gen-arcade-catalog.mjs`.
  *
- * 로비가 목록을 그리는 데 필요한 것만 담았다(그림·갈래·자리 수·실시간 여부).
- * 규칙과 화면은 여기 없다 — 누를 때 `arcade/games/<chunk>.js` 로 받는다.
+ * 로비가 목록을 그리는 데 필요한 것만 담았다(그림, 갈래, 자리 수, 실시간 여부).
+ * 규칙과 화면은 여기 없다. 누를 때 `arcade/games/<chunk>.js` 로 받는다.
  */
 import type { Kind } from './meta';
 
@@ -11,9 +11,9 @@ export interface GameCard {
   kind: Kind;
   seats: [min: number, max: number];
   realtime: boolean;
-  /** 이 게임 조각 파일 이름 — `arcade/games/<chunk>.js` */
+  /** 이 게임 조각 파일 이름. `arcade/games/<chunk>.js` */
   chunk: string;
-  /** 입체 화면이 있나 (`games/<chunk>-view3d.ts` 실재) — 있으면 2D/3D 를 사람이 고른다 */
+  /** 입체 화면이 있나 (`games/<chunk>-view3d.ts` 실재). 있으면 2D/3D 를 사람이 고른다 */
   d3?: boolean;
 }
 

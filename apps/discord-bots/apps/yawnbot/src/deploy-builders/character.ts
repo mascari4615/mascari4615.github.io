@@ -1,5 +1,5 @@
 /**
- * /character 슬래시 빌더 — 캐릭터 관리 + 기억 관리 통합
+ * /character 슬래시 빌더. 캐릭터 관리 + 기억 관리 통합
  *
  * 서브커맨드 그룹 구조:
  *   /character 카드 → list, switch, info, reset, image, history
@@ -13,7 +13,7 @@ const enUS = (s: string): Record<string, string> => ({ [EN]: s });
 export const characterCommand = () =>
   new SlashCommandBuilder()
     .setName('character')
-    .setDescription('캐릭터 · 기억 관리')
+    .setDescription('캐릭터, 기억 관리')
     .setDescriptionLocalizations(enUS('Character & memory management'))
 
     // ── 캐릭터 카드 관리 ─────────────────────────────────────
@@ -69,7 +69,7 @@ export const characterCommand = () =>
               opt
                 .setName('상황')
                 .setNameLocalizations(enUS('scene'))
-                .setDescription('상황 · 포즈 · 배경 (비우면 외형만, 영어 권장)')
+                .setDescription('상황, 포즈, 배경 (비우면 외형만, 영어 권장)')
                 .setDescriptionLocalizations(enUS('Scene/pose/background (empty = appearance only)'))
                 .setMaxLength(1500),
             )
@@ -119,7 +119,7 @@ export const characterCommand = () =>
         .addSubcommand((sub) =>
           sub
             .setName('core')
-            .setDescription('이 DM/채널의 에이전트 코어 설정·조회·해제 (스킨과 독립, KAR-018-A)')
+            .setDescription('이 DM/채널의 에이전트 코어 설정, 조회, 해제 (스킨과 독립, KAR-018-A)')
             .setDescriptionLocalizations(enUS('Set/view/clear agent core for this DM/channel (independent of skin)'))
             .addStringOption((opt) =>
               opt
@@ -139,7 +139,7 @@ export const characterCommand = () =>
           sub
             .setName('친밀도')
             .setNameLocalizations(enUS('relationship'))
-            .setDescription('현재 캐릭터와의 친밀도 레벨 · 대화 횟수 · 호감도 확인')
+            .setDescription('현재 캐릭터와의 친밀도 레벨, 대화 횟수, 호감도 확인')
             .setDescriptionLocalizations(enUS('Check intimacy level, conversation count, and mood score')),
         ),
     )
@@ -148,7 +148,7 @@ export const characterCommand = () =>
     .addSubcommandGroup((g) =>
       g
         .setName('기억')
-        .setDescription('캐릭터별 메모리 확인 · 저장 · 수정')
+        .setDescription('캐릭터별 메모리 확인, 저장, 수정')
         .setDescriptionLocalizations(enUS('View, save, and edit character memory'))
         .addSubcommand((sub) =>
           sub

@@ -146,7 +146,7 @@ import { t } from '../../lib/i18n';
                     const next = nameInput?.value.trim() ?? '';
                     const it = cur.items[itemId];
                     it.name = next;
-                    /** 직접 추가(custom)만 제외 — tlOrigin 누락·레거시 풀 카드도 이름 바꾸면 「수정」 */
+                    /** 직접 추가(custom)만 제외. tlOrigin 누락, 레거시 풀 카드도 이름 바꾸면 수정 */
                     if (next !== origName && it.tlOrigin !== 'custom') it.tlEdited = true;
                     cur.updatedAt = Date.now();
                     T.state.saveState();
@@ -300,7 +300,7 @@ import { t } from '../../lib/i18n';
         }
 
         T.ui.openDialog({
-            title: t('widgets.tierlist.title', undefined, "티어 설정 (S A B … 이름·색·순서)"),
+            title: t('widgets.tierlist.title', undefined, "티어 설정 (S A B ... 이름, 색, 순서)"),
             wide: true,
             bodyHtml: `
                 <p class="tl-tier-hint">${t('tierlist.tierHint', { unplaced: `<strong>${esc(t('tierlist.t90'))}</strong>` })}</p>
@@ -402,7 +402,7 @@ import { t } from '../../lib/i18n';
         T.state.ensureListUserLabels(list0);
 
         T.ui.openDialog({
-            title: t('widgets.tierlist.title', undefined, "카드 라벨 · 뱃지 (이름·색)"),
+            title: t('widgets.tierlist.title', undefined, "카드 라벨, 뱃지 (이름, 색)"),
             wide: true,
             bodyHtml: `
                 <p class="tl-tier-hint">${t('tierlist.labelHint', { path: `<strong>${esc(t('tierlist.t93'))}</strong>` })}</p>

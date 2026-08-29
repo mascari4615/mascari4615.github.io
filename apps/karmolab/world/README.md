@@ -1,14 +1,14 @@
 ## KarmoWorld (세계관 SSoT)
 
-캐릭터 등 개체는 **메타는 `*.yaml`**, 사람이 읽는 본문은 **같은 슬러그의 `*.md`(front matter 없음)**에 둡니다. 이미지 생성·챗봇은 앱이 로드할 때 `load-characters-from-wiki.js`가 YAML·MD를 가져와 파싱해 `KarmoWorld.bindings`에 채웁니다.
+캐릭터 등 개체는 **메타는 `*.yaml`**, 사람이 읽는 본문은 **같은 슬러그의 `*.md`(front matter 없음)**에 둡니다. 이미지 생성, 챗봇은 앱이 로드할 때 `load-characters-from-wiki.js`가 YAML, MD를 가져와 파싱해 `KarmoWorld.bindings`에 채웁니다.
 
 ### 구조
 
-- `wiki/entities/characters/{slug}.yaml` — 도구용 필드(이미지·챗봇·엔티티 메타)
-- `wiki/entities/characters/{slug}.md` — 위키 본문만 (YAML `---` 블록 없음)
-- `parse-md.js` — 제한된 YAML 파싱, 단일 MD front matter 또는 yaml+md 분리
-- `load-characters-from-wiki.js` — `{slug}.yaml` + `{slug}.md` fetch → `entities.characters`, `bindings.imagegen`, `bindings.chatbot` 구성
-- `artifacts/` — 향후 아이템·문헌 등 (위키 경로 `wiki/artifacts/...` 예정)
+- `wiki/entities/characters/{slug}.yaml`. 도구용 필드(이미지, 챗봇, 엔티티 메타)
+- `wiki/entities/characters/{slug}.md`. 위키 본문만 (YAML `---` 블록 없음)
+- `parse-md.js`. 제한된 YAML 파싱, 단일 MD front matter 또는 yaml+md 분리
+- `load-characters-from-wiki.js`. `{slug}.yaml` + `{slug}.md` fetch → `entities.characters`, `bindings.imagegen`, `bindings.chatbot` 구성
+- `artifacts/`. 향후 아이템, 문헌 등 (위키 경로 `wiki/artifacts/...` 예정)
 
 ### YAML 키 (캐릭터)
 
@@ -24,4 +24,4 @@
 
 ### Jekyll 배포
 
-`bundle exec jekyll build` 한 번이면 `apps/karmolab/world/wiki/` 아래 `.yaml`·본문만 `.md`가 `_site`에 포함됩니다.
+`bundle exec jekyll build` 한 번이면 `apps/karmolab/world/wiki/` 아래 `.yaml`, 본문만 `.md`가 `_site`에 포함됩니다.

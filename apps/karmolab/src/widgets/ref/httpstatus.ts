@@ -1,11 +1,11 @@
 /**
- * HTTP 상태 코드 (TASK-KL-088) — 번호·이름·언제 쓰는지 한 줄.
- * 「이 코드 뭐였더라」 를 검색으로 나가지 않고 끝내는 표.
+ * HTTP 상태 코드 (TASK-KL-088). 번호, 이름, 언제 쓰는지 한 줄.
+ * 이 코드 뭐였더라 를 검색으로 나가지 않고 끝내는 표.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /* 표는 **쓸 때** 짓는다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const codes = (): Array<[number, string, string]> => [
     [100, 'Continue', t('httpstatus.t01')],
     [101, 'Switching Protocols', t('httpstatus.t02')],
@@ -54,7 +54,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'httpstatus',
     title: t('widgets.httpstatus.title', undefined, "HTTP 상태 코드"),
     category: 'ref',
-    desc: t('widgets-desc.httpstatus.desc', undefined, "200·301·403·404·500 등 HTTP 응답 코드의 뜻과 쓰는 상황을 정리한 표"),
+    desc: t('widgets-desc.httpstatus.desc', undefined, "200, 301, 403, 404, 500 등 HTTP 응답 코드의 뜻과 쓰는 상황을 정리한 표"),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v6M12 16v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     tabs: [

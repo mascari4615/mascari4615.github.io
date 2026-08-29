@@ -1,16 +1,16 @@
 /**
- * 「먹」 — 그림 연산 (TASK-KL-240 · 3단계)
+ * 먹. 그림 연산 (TASK-KL-240, 3단계)
  *
- * 옛 편집 도구(4,714줄)는 **캔버스 한 장**에 자르기·크기·회전·보정·필터를 덮어썼다.
- * 그래서 「하늘만 어둡게」도, 「이 레이어만 흐리게」도 안 됐다. 여기서는 전부
- * **판(Surface) 하나를 받아 새 판을 내놓는 함수**로 다시 쓴다 — 그러면 세 가지가 공짜다:
+ * 옛 편집 도구(4,714줄)는 **캔버스 한 장**에 자르기, 크기, 회전, 보정, 필터를 덮어썼다.
+ * 그래서 하늘만 어둡게도, 이 레이어만 흐리게도 안 됐다. 여기서는 전부
+ * **판(Surface) 하나를 받아 새 판을 내놓는 함수**로 다시 쓴다. 그러면 세 가지가 공짜다:
  *
  *   ① 레이어별 적용   ② 선택영역 안에서만 적용   ③ 되돌리기(옛 판을 그대로 들고 있으므로)
  *
- * 크기가 바뀌는 연산(자르기·크기·회전)은 **문서 전체**에 걸린다 — 레이어마다 크기가 다르면
- * 합성이 성립하지 않기 때문이다. 색을 바꾸는 연산(보정·필터)만 레이어 하나에 건다.
+ * 크기가 바뀌는 연산(자르기, 크기, 회전)은 **문서 전체**에 걸린다. 레이어마다 크기가 다르면
+ * 합성이 성립하지 않기 때문이다. 색을 바꾸는 연산(보정, 필터)만 레이어 하나에 건다.
  *
- * 브라우저를 모른다 — 보간·컨볼루션까지 직접 한다(그래야 화면·저장·검사가 같은 답을 낸다).
+ * 브라우저를 모른다. 보간, 컨볼루션까지 직접 한다(그래야 화면, 저장, 검사가 같은 답을 낸다).
  */
 
 import { createSurface, type Surface } from './doc';
@@ -45,7 +45,7 @@ export function crop(surface: Surface, rect: Rect): Surface {
 
 /**
  * 크기 바꾸기.
- * `smooth` = 쌍선형(사진용). 픽셀 아트는 꺼야 한다 — 부드럽게 하면 도트가 죽는다.
+ * `smooth` = 쌍선형(사진용). 픽셀 아트는 꺼야 한다. 부드럽게 하면 도트가 죽는다.
  * 알파는 **미리 곱해서** 섞는다. 안 그러면 투명한 자리의 색(보통 검정)이 가장자리로 배어난다.
  */
 export function resize(surface: Surface, w: number, h: number, smooth = true): Surface {
@@ -98,7 +98,7 @@ export function resize(surface: Surface, w: number, h: number, smooth = true): S
   return out;
 }
 
-/** 90·180·270도 돌리기. 픽셀을 옮기기만 하므로 화질이 안 상한다. */
+/** 90, 180, 270도 돌리기. 픽셀을 옮기기만 하므로 화질이 안 상한다. */
 export function rotateQuarter(surface: Surface, turns: number): Surface {
   const t = ((turns % 4) + 4) % 4;
   if (t === 0) return crop(surface, { x: 0, y: 0, w: surface.w, h: surface.h });
@@ -200,7 +200,7 @@ export function rotateFree(surface: Surface, degrees: number, smooth = true): Su
   return out;
 }
 
-/* ===== 색을 바꾸는 연산 — 자리는 그대로 ===== */
+/* ===== 색을 바꾸는 연산. 자리는 그대로 ===== */
 
 export interface Adjust {
   /** -1..1 */
@@ -215,12 +215,12 @@ export interface Adjust {
   gamma?: number;
 }
 
-/** 사람 눈이 느끼는 밝기 — 초록에 가장 민감하다. */
+/** 사람 눈이 느끼는 밝기. 초록에 가장 민감하다. */
 const luma = (r: number, g: number, b: number): number => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
 /**
- * 밝기·대비·채도·색조·감마를 **한 번에** 건다.
- * 따로따로 돌리면 8비트 반올림이 겹겹이 쌓여 색이 뭉갠다 — 한 번에 계산하고 마지막에 한 번만 굳힌다.
+ * 밝기, 대비, 채도, 색조, 감마를 **한 번에** 건다.
+ * 따로따로 돌리면 8비트 반올림이 겹겹이 쌓여 색이 뭉갠다. 한 번에 계산하고 마지막에 한 번만 굳힌다.
  */
 export function adjust(surface: Surface, values: Adjust, selection?: Uint8Array | null): Surface {
   const out = createSurface(surface.w, surface.h);
@@ -230,7 +230,7 @@ export function adjust(surface: Surface, values: Adjust, selection?: Uint8Array 
   const saturation = values.saturation == null ? 0 : values.saturation;
   const hue = ((values.hue || 0) * Math.PI) / 180;
   const gamma = values.gamma && values.gamma > 0 ? values.gamma : 1;
-  /* 대비 계수 — 흔히 쓰는 (259·(c+255))/(255·(259−c)) 꼴. */
+  /* 대비 계수. 흔히 쓰는 (259, (c+255))/(255, (259−c)) 꼴. */
   const c = contrast * 255;
   const contrastK = (259 * (c + 255)) / (255 * (259 - c));
   const cosH = Math.cos(hue);
@@ -253,7 +253,7 @@ export function adjust(surface: Surface, values: Adjust, selection?: Uint8Array 
       r = grey + (r - grey) * k; g = grey + (g - grey) * k; b = grey + (b - grey) * k;
     }
     if (hue) {
-      /* YIQ 색 공간에서 색상환만 돌린다 — 밝기를 안 건드린다. */
+      /* YIQ 색 공간에서 색상환만 돌린다. 밝기를 안 건드린다. */
       const y = 0.299 * r + 0.587 * g + 0.114 * b;
       const iq1 = 0.596 * r - 0.274 * g - 0.322 * b;
       const iq2 = 0.211 * r - 0.523 * g + 0.312 * b;
@@ -269,7 +269,7 @@ export function adjust(surface: Surface, values: Adjust, selection?: Uint8Array 
       b = 255 * Math.pow(Math.max(0, b) / 255, 1 / gamma);
     }
 
-    /* 선택영역 가장자리에서는 원래 색과 섞는다 — 자른 자국이 안 나게. */
+    /* 선택영역 가장자리에서는 원래 색과 섞는다. 자른 자국이 안 나게. */
     out.data[i] = clamp255(surface.data[i] + (clamp255(r) - surface.data[i]) * weight);
     out.data[i + 1] = clamp255(surface.data[i + 1] + (clamp255(g) - surface.data[i + 1]) * weight);
     out.data[i + 2] = clamp255(surface.data[i + 2] + (clamp255(b) - surface.data[i + 2]) * weight);
@@ -348,7 +348,7 @@ export function filter(surface: Surface, name: FilterName, amount = 1, selection
   return out;
 }
 
-/** 그림이 실제로 차지한 사각형 — 「빈 여백 잘라내기」의 근거. 전부 투명하면 null. */
+/** 그림이 실제로 차지한 사각형. 빈 여백 잘라내기의 근거. 전부 투명하면 null. */
 export function contentBounds(surface: Surface, threshold = 4): Rect | null {
   let minX = surface.w; let minY = surface.h; let maxX = -1; let maxY = -1;
   for (let y = 0; y < surface.h; y += 1) {

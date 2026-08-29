@@ -1,5 +1,5 @@
 /**
- * reactions.ts — messageReactionAdd 이벤트 핸들러
+ * reactions.ts. messageReactionAdd 이벤트 핸들러
  *
  * 지원 이모지:
  *   🔄  봇 이미지 메시지 → 같은 프롬프트로 재생성

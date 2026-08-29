@@ -1,10 +1,10 @@
 /**
  * 영업일 계산 (TASK-KL-088)
  *
- * 「접수일로부터 영업일 7일 이내」 같은 기한은 주말만 빼서는 안 맞는다. 공휴일과 대체공휴일까지
- * 빼야 진짜 날짜가 나온다. 그런데 달력을 세어 보다 보면 설·추석이 며칠인지부터 막힌다.
+ * 접수일로부터 영업일 7일 이내 같은 기한은 주말만 빼서는 안 맞는다. 공휴일과 대체공휴일까지
+ * 빼야 진짜 날짜가 나온다. 그런데 달력을 세어 보다 보면 설, 추석이 며칠인지부터 막힌다.
  *
- * 그래서 한국 공휴일을 담아 두고 **어떤 날을 뺐는지 보여 준다** — 결과 날짜만 던지면
+ * 그래서 한국 공휴일을 담아 두고 **어떤 날을 뺐는지 보여 준다**. 결과 날짜만 던지면
  * 맞는지 확인할 방법이 없다. 음력 명절은 해마다 날짜가 달라 표로 담는다(계산으로는 못 낸다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -18,7 +18,7 @@ import { readInvocation } from '../../lib/tool-url';
 
 (function (): void {
   /* 쉬는 날 표는 **나라별로** `src/lib/holidays.ts` 에 있다 (TASK-KL-203 S13).
-     여기 두면 「한국에서만 쓰는 도구」가 되고, 그건 이 도구가 하는 일(영업일 세기)의 잘못이
+     여기 두면 한국에서만 쓰는 도구가 되고, 그건 이 도구가 하는 일(영업일 세기)의 잘못이
      아니라 우리가 한 나라만 담았기 때문이다. */
   const key = (d: Date): string => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 
@@ -42,7 +42,7 @@ import { readInvocation } from '../../lib/tool-url';
       {
         id: 'app',
         label: t('workdays.tab', undefined, '영업일'),
-        /* 말을 받아온 뒤에 그린다 — 안 기다리면 화면에 열쇠 이름이 뜬다. */
+        /* 말을 받아온 뒤에 그린다. 안 기다리면 화면에 열쇠 이름이 뜬다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('workdays').then(function () {
             draw(container);
@@ -85,7 +85,7 @@ import { readInvocation } from '../../lib/tool-url';
               </div>
             </div>
 
-            <div class="tool-display" id="wdOut">—</div>
+            <div class="tool-display" id="wdOut">. </div>
             <div class="cc-stats cc-stats-early" id="wdStats"></div>
             <div class="tool-list" id="wdSkipped"></div>
 
@@ -103,11 +103,11 @@ import { readInvocation } from '../../lib/tool-url';
 
           let mode: 'after' | 'between' = 'after';
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
           const WEEK = [0, 1, 2, 3, 4, 5, 6].map((i) => t(`workdays.week.${i}`));
-          /* 날짜 적는 법은 언어마다 다르다 — 손으로 「년 월 일」을 붙이지 않고 브라우저에 맡긴다. */
+          /* 날짜 적는 법은 언어마다 다르다. 손으로 년 월 일을 붙이지 않고 브라우저에 맡긴다. */
           const fmt = (d: Date): string =>
             `${new Intl.DateTimeFormat(locale(), { dateStyle: 'long' }).format(d)} (${WEEK[d.getDay()]})`;
 
@@ -121,15 +121,15 @@ import { readInvocation } from '../../lib/tool-url';
           }
 
           function warnUnknown(years: number[]): void {
-            /* 두 가지를 말해 준다 — ① 그 나라 달력이 아예 없다 ② 있는데 그 해를 모른다.
-               둘을 뭉뚱그리면 「왜 공휴일이 안 빠지지」를 알 수 없다. 모르면 **모른다고 말한다**. */
+            /* 두 가지를 말해 준다. ① 그 나라 달력이 아예 없다 ② 있는데 그 해를 모른다.
+               둘을 뭉뚱그리면 왜 공휴일이 안 빠지지를 알 수 없다. 모르면 **모른다고 말한다**. */
             if (!hasCalendar(region())) {
               say(t('workdays.warn.noCalendar'), 'error');
               return;
             }
             const unknown = [...new Set(years)].filter((y) => !knowsYear(region(), y));
             if (unknown.length) {
-              say(t('workdays.warn.lunar', { years: unknown.join('·') }), 'error');
+              say(t('workdays.warn.lunar', { years: unknown.join(', ') }), 'error');
             }
           }
 
@@ -162,7 +162,7 @@ import { readInvocation } from '../../lib/tool-url';
             } else {
               const to = new Date(toEl.value + 'T00:00:00');
               if (isNaN(to.getTime()) || to < from) {
-                out.textContent = '—';
+                out.textContent = '. ';
                 say(t('workdays.error.endBeforeStart'), 'error');
                 return;
               }
@@ -184,7 +184,7 @@ import { readInvocation } from '../../lib/tool-url';
               warnUnknown([from.getFullYear(), to.getFullYear()]);
             }
 
-            // 어떤 날을 뺐는지 보여 준다 — 결과만 던지면 맞는지 확인할 방법이 없다
+            // 어떤 날을 뺐는지 보여 준다. 결과만 던지면 맞는지 확인할 방법이 없다
             skippedEl.innerHTML = skipped.length
               ? skipped
                   .map(
@@ -211,7 +211,7 @@ import { readInvocation } from '../../lib/tool-url';
           $<HTMLElement>('#wdModeAfter').onclick = () => setMode('after');
           $<HTMLElement>('#wdModeBetween').onclick = () => setMode('between');
 
-          // 주소로 부른 경우 — ?op=after&start=2026-09-21&days=5 (TASK-KL-205)
+          // 주소로 부른 경우. ?op=after&start=2026-09-21&days=5 (TASK-KL-205)
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined) {
             if (call.args.start !== undefined) fromEl.value = String(call.args.start);

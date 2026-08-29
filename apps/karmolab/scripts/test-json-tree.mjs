@@ -1,8 +1,8 @@
 /**
  * JSON 펴기 알맹이 검사 (TASK-KL-286).
  *
- * 사람이 JSON 을 여는 이유의 태반은 「여기 뭐가 들어 있나」다. 그러니 재는 것도 그것이다:
- * 갈래를 맞게 가르는가 · 길(`a.b[0].c`)이 **그대로 코드에 붙일 수 있는가** ·
+ * 사람이 JSON 을 여는 이유의 태반은 여기 뭐가 들어 있나다. 그러니 재는 것도 그것이다:
+ * 갈래를 맞게 가르는가, 길(`a.b[0].c`)이 **그대로 코드에 붙일 수 있는가** , 
  * 큰 것을 만나도 멈추고 그 사실을 말하는가.
  *
  * 사용: node scripts/test-json-tree.mjs
@@ -25,7 +25,7 @@ const eq = (got, want, why) => {
   if (a === b) process.stdout.write('.');
   else {
     process.stdout.write('x');
-    failures.push(`${why} — 기대 ${b}, 나온 것 ${a}`);
+    failures.push(`${why}. 기대 ${b}, 나온 것 ${a}`);
   }
 };
 
@@ -38,7 +38,7 @@ const eq = (got, want, why) => {
   eq(rows[0].preview, '{ 4 }', '가지는 자식 수를 보여 준다');
 }
 
-/* 길 — 그대로 코드에 붙일 수 있어야 한다 */
+/* 길. 그대로 코드에 붙일 수 있어야 한다 */
 {
   const { rows } = flatten({ user: { tags: ['a', 'b'] } });
   const paths = rows.map((r) => r.path);
@@ -58,10 +58,10 @@ const eq = (got, want, why) => {
   const { rows } = flatten({ s: 'x'.repeat(200) });
   const p = rows[1].preview;
   eq(p.length < 80, true, '긴 글은 자른다');
-  eq(p.endsWith('…"'), true, `잘랐다고 표시한다 (지금 「${p.slice(-6)}」)`);
+  eq(p.endsWith('..."'), true, `잘랐다고 표시한다 (지금 ${p.slice(-6)})`);
 }
 
-/* 큰 것 — 멈추고 그 사실을 말한다 */
+/* 큰 것. 멈추고 그 사실을 말한다 */
 {
   const big = Array.from({ length: 5000 }, (_, i) => i);
   const { rows, cut } = flatten(big, 100);

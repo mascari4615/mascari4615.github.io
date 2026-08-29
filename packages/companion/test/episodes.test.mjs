@@ -24,7 +24,7 @@ test('물음표만 잔뜩인 건 감정이 아니라 질문이다', () => {
   assert.equal(measureEnergy('이거 어떻게 하는 거야??'), 0);
 });
 
-test('사람이 한 말만 사건으로 센다 — 얘가 흥분한 걸 사람 일로 기억하면 안 된다', () => {
+test('사람이 한 말만 사건으로 센다. 얘가 흥분한 걸 사람 일로 기억하면 안 된다', () => {
   const s = new EpisodeStore();
   s.learn([companion('진짜 너무 신난다 완전 좋아!')]);
   assert.equal(s.all.length, 0);
@@ -43,7 +43,7 @@ test('같은 말은 두 번 안 담는다', () => {
   assert.equal(s.all.length, 1);
 });
 
-test('자리가 모자라면 기운 약한 것부터 버린다 — 오래된 큰일이 먼저 사라지면 안 된다', () => {
+test('자리가 모자라면 기운 약한 것부터 버린다. 오래된 큰일이 먼저 사라지면 안 된다', () => {
   const s = new EpisodeStore({ keep: 2 });
   s.learn([person('진짜 너무 속상하고 억울하고 화나서 미치겠어 완전 망했어', 1)]);
   s.learn([person('오늘 좀 짜증났어 진짜', 2)]);
@@ -58,7 +58,7 @@ test('말이 겹치면 그때 일을 찾아낸다', () => {
   assert.notEqual(s.related('그 발표 결과 나왔어 속상하다'), null);
 });
 
-test('안 겹치면 안 꺼낸다 — 늘 붙이면 기억하는 척이 된다', () => {
+test('안 겹치면 안 꺼낸다. 늘 붙이면 기억하는 척이 된다', () => {
   const s = new EpisodeStore();
   s.learn([person('오늘 발표 진짜 망했어 너무 속상해')]);
   assert.equal(s.related('저녁 뭐 먹을까'), null);

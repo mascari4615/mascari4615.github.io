@@ -1,16 +1,16 @@
 /**
- * 상태 · 변경 기록 (TASK-KL-098).
+ * 상태, 변경 기록 (TASK-KL-098).
  *
- * 왜 있나: 「전문적인 사이트」와 「누가 취미로 만든 것」을 가르는 건 색이 아니라 **책임의 표시**다.
- * 지금 잘 돌고 있는지, 무엇이 언제 바뀌었는지, 안 되는 게 있으면 어디에 말하는지 — 이 셋을
+ * 왜 있나: 전문적인 사이트와 누가 취미로 만든 것을 가르는 건 색이 아니라 **책임의 표시**다.
+ * 지금 잘 돌고 있는지, 무엇이 언제 바뀌었는지, 안 되는 게 있으면 어디에 말하는지. 이 셋을
  * 밝히는 곳은 관리되는 서비스로 읽히고, 안 밝히는 곳은 언제 조용히 죽어도 모르는 곳으로 읽힌다.
  *
  * 두 자리 다 **실측**이다. 상태는 지금 서버에 직접 물어보고, 변경 기록은 배포할 때 진짜 커밋에서
- * 뽑는다(`scripts/gen-changelog.mjs`). 손으로 적는 「모든 시스템 정상」 배지는 안 만든다 —
+ * 뽑는다(`scripts/gen-changelog.mjs`). 손으로 적는 모든 시스템 정상 배지는 안 만든다 . 
  * 그건 서버가 죽어도 초록으로 남아서, 있는 편이 없는 편보다 나쁘다.
  *
- * 서버에 못 닿는 것 자체가 답이다. 그때는 자리를 숨기지 않고 **못 닿았다고 적는다** —
- * 여기는 「지금 어떤가」를 보러 오는 자리라, 여기서까지 조용하면 볼 곳이 없다.
+ * 서버에 못 닿는 것 자체가 답이다. 그때는 자리를 숨기지 않고 **못 닿았다고 적는다** . 
+ * 여기는 지금 어떤가를 보러 오는 자리라, 여기서까지 조용하면 볼 곳이 없다.
  */
 import { t, loadNamespace, locale } from '../lib/i18n';
 import { appPath } from '../lib/site-base';
@@ -37,7 +37,7 @@ import { appPath } from '../lib/site-base';
 
     const API_BASE = 'https://yawnbot.mascari4615.com';
 
-    /** 여기서 오래 기다리면 「상태 보는 화면」 자체가 멈춘 것처럼 보인다. */
+    /** 여기서 오래 기다리면 상태 보는 화면 자체가 멈춘 것처럼 보인다. */
     const TIMEOUT_MS = 6000;
 
 
@@ -45,7 +45,7 @@ import { appPath } from '../lib/site-base';
         return Number(value || 0).toLocaleString(locale());
     }
 
-    /** 언제였나 — 「2026-08-08 00:12」 보다 「3시간 전」이 사람에게 먼저 읽힌다. */
+    /** 언제였나. 2026-08-08 00:12 보다 3시간 전이 사람에게 먼저 읽힌다. */
     function ago(iso: string | null): string {
         if (!iso) return t('status.t18');
         const then = new Date(iso).getTime();
@@ -93,9 +93,9 @@ import { appPath } from '../lib/site-base';
         .st-tag { flex:0 0 auto; padding:1px 8px; border-radius:999px; font-size:10px; font-weight:700;
             border:1px solid var(--border); color:var(--text-tertiary); }
         /* 이 세 색은 어두운 판을 보고 고른 파스텔이었는데 테마와 상관없이 늘 쓰였다.
-           흰 바탕에서는 대비가 1.4~1.9 밖에 안 돼 「새로 생김」·「고침」·「빨라짐」이
+           흰 바탕에서는 대비가 1.4~1.9 밖에 안 돼 새로 생김, 고침, 빨라짐이
            사실상 안 읽혔다(기준 2.2). 밝은 쪽을 기본으로 두고, 어두운 판에서만 원래
-           파스텔로 돌린다 — 두 테마가 각자 자기 바탕에 맞는 색을 갖는다. */
+           파스텔로 돌린다. 두 테마가 각자 자기 바탕에 맞는 색을 갖는다. */
         .st-tag[data-tone="new"] { color:#0369a1; border-color:rgba(3,105,161,.35); }
         .st-tag[data-tone="fix"] { color:#b91c1c; border-color:rgba(185,28,28,.35); }
         .st-tag[data-tone="perf"] { color:#a16207; border-color:rgba(161,98,7,.35); }
@@ -132,7 +132,7 @@ import { appPath } from '../lib/site-base';
         }
         const backup = health.backup || { lastAt: null, count: 0 };
         const visits = health.visits || { total: 0, today: 0 };
-        // 방문·도구 숫자의 **정본은 광장**이다. 여기에는 오늘치 한 줄만 두고 그리로 보낸다 —
+        // 방문, 도구 숫자의 **정본은 광장**이다. 여기에는 오늘치 한 줄만 두고 그리로 보낸다 . 
         // 같은 수를 두 곳에서 따로 그리면 언제든 한쪽이 낡는다.
         slot.innerHTML = `
             <div class="st-cards">
@@ -152,8 +152,8 @@ import { appPath } from '../lib/site-base';
                     <div class="st-card-note">보관 중인 사본 ${num(backup.count)}벌</div>
                 </div>
                 ${
-                    // 서버가 아직 방문을 안 세는 판본이면 이 칸을 아예 안 만든다 —
-                    // 「오늘 방문 0」은 사실이 아니라 「못 물어봤다」이고, 둘은 다르다.
+                    // 서버가 아직 방문을 안 세는 판본이면 이 칸을 아예 안 만든다 . 
+                    // 오늘 방문 0은 사실이 아니라 못 물어봤다이고, 둘은 다르다.
                     health.visits
                         ? `<div class="st-card">
                                <div class="st-card-name">${esc(t('status.t11'))}</div>
@@ -173,7 +173,7 @@ import { appPath } from '../lib/site-base';
             slot.innerHTML = t('status.t23');
             return;
         }
-        // 날짜별로 묶는다 — 같은 날 고친 것 여섯 개가 날짜 여섯 줄로 뜨면 읽히지 않는다.
+        // 날짜별로 묶는다. 같은 날 고친 것 여섯 개가 날짜 여섯 줄로 뜨면 읽히지 않는다.
         const days: { day: string; rows: ChangeEntry[] }[] = [];
         for (const entry of entries) {
             const last = days[days.length - 1];
@@ -253,7 +253,7 @@ import { appPath } from '../lib/site-base';
             {
                 id: 'status-main',
                 label: t('status.tab.main', undefined, '상태'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('status').then(function () {
                         build(container);

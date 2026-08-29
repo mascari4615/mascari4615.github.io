@@ -1,5 +1,5 @@
 /**
- * CharacterService — 캐릭터 카드 로드 및 활성 매핑 관리
+ * CharacterService. 캐릭터 카드 로드 및 활성 매핑 관리
  *
  * memo/characters/<slug>/card.md : YAML frontmatter + 시스템 프롬프트 본문
  * memo/characters/.active.json   : { default, channels: { [channelKey]: slug } }
@@ -55,7 +55,7 @@ function parseFrontmatter(raw: string): { data: Record<string, string>; body: st
 }
 
 export class CharacterService {
-  // 경로 순회 공격 방지: 소문자·숫자·-·_ 조합, 첫 글자는 알파벳/숫자
+  // 경로 순회 공격 방지: 소문자, 숫자, -, _ 조합, 첫 글자는 알파벳/숫자
   private static readonly SLUG_RE = /^[a-z0-9][a-z0-9_-]*$/;
 
   private memoRepoPath: string;
@@ -96,7 +96,7 @@ export class CharacterService {
   private static assertSlug(slug: string): void {
     if (!CharacterService.SLUG_RE.test(slug)) {
       throw new Error(
-        `유효하지 않은 슬러그: "${slug}" (소문자·숫자·-·_ 조합, 알파벳/숫자로 시작)`,
+        `유효하지 않은 슬러그: "${slug}" (소문자, 숫자, -, _ 조합, 알파벳/숫자로 시작)`,
       );
     }
   }
@@ -230,7 +230,7 @@ export class CharacterService {
   /**
    * 영속화 마커 리셋. _writeActive 가 .active.json 을 fs 로 *즉시* 디스크
    * 반영하므로 별도 flush 없음. git 커밋 안 함 (TASK-KAR-MEMOSYNC):
-   * characters/.active.json 은 .gitignore 런타임 산출 — 봇 커밋이 곧 prod
+   * characters/.active.json 은 .gitignore 런타임 산출. 봇 커밋이 곧 prod
    * memo origin divergence 엔진이었다(deploy memo-sync 영구 동결 근본).
    * 클린 클론 부팅 시 initialize() 가 {default,channels:{}} 재생성 +
    * 부팅 provisioning 이 현 라벨 채널에 재바인딩(KAR-018-V) → 무손실.
@@ -251,7 +251,7 @@ export class CharacterService {
     return cfg.default.skin;
   }
 
-  /** channelKey 의 코어 id (채널 미지정 시 default.core, 없으면 null) — KAR-018-A */
+  /** channelKey 의 코어 id (채널 미지정 시 default.core, 없으면 null). KAR-018-A */
   resolveCore(channelKey: string | null | undefined): string | null {
     const cfg = this._readActive();
     if (channelKey && cfg.channels[channelKey]) return cfg.channels[channelKey].core;
@@ -281,7 +281,7 @@ export class CharacterService {
 
   /**
    * channelKey 에 코어+스킨 동시 바인딩 (KAR-018-V 라벨 추종 근본).
-   * setChannelCore 와 달리 스킨도 명시 — 프로비저닝이 채널 id 를 바꿔도
+   * setChannelCore 와 달리 스킨도 명시. 프로비저닝이 채널 id 를 바꿔도
    * 부팅 시 *현 provisioned 라벨 채널*에 atlas 를 다시 박아 "에이전트
    * 사라짐" 영구 차단. 동일 바인딩이면 write 생략(불필요 git 변경 X).
    */

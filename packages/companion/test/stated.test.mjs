@@ -14,13 +14,13 @@ test('자기에 대해 대놓고 말한 것을 뽑는다', () => {
   assert.match(chosen[0].said, /커피/);
 });
 
-test('묻는 말은 사실이 아니다 — 안 빼면 물어본 것이 그대로 사실이 된다', () => {
+test('묻는 말은 사실이 아니다. 안 빼면 물어본 것이 그대로 사실이 된다', () => {
   for (const t of ['내가 커피 좋아해 싫어해?', '나 그거 좋아하나?', '내가 자주 그러나요?']) {
     assert.deepEqual(statedFacts([person(t)]), [], `${t}`);
   }
 });
 
-test('그때뿐인 말은 사실이 아니다 — 「오늘 피곤해」가 영구 사실로 굳으면 안 된다', () => {
+test('그때뿐인 말은 사실이 아니다. 오늘 피곤해가 영구 사실로 굳으면 안 된다', () => {
   for (const t of ['오늘 나 진짜 힘들어해', '지금 나 커피 마셔']) {
     assert.deepEqual(statedFacts([person(t)]), [], `${t}`);
   }
@@ -30,7 +30,7 @@ test('자기 얘기가 아니면 안 센다', () => {
   assert.deepEqual(statedFacts([person('박 대리는 커피 좋아해')]), []);
 });
 
-test('취향·상태가 아니면 안 센다', () => {
+test('취향, 상태가 아니면 안 센다', () => {
   assert.deepEqual(statedFacts([person('나 어제 거기 갔어')]), []);
 });
 
@@ -63,7 +63,7 @@ test('같은 말은 두 번 안 쌓는다', () => {
   assert.equal(s.all.length, 1);
 });
 
-test('덮어쓰지 않는다 — 바뀐 것과 처음 것이 둘 다 보여야 어긋남을 안다', () => {
+test('덮어쓰지 않는다. 바뀐 것과 처음 것이 둘 다 보여야 어긋남을 안다', () => {
   const s = new StatedStore();
   s.learn([person('나 커피 진짜 좋아해', 1)]);
   s.learn([person('나 이제 커피 싫어해', 2)]);
@@ -101,7 +101,7 @@ test('아는 게 없으면 어긋날 것도 없다', () => {
   assert.deepEqual(findConflicts([{ said: '나 커피 좋아해', at: 1 }], ''), []);
 });
 
-test('좋다/싫다가 안 드러난 말은 못 가린다 — 아는 척하지 않는다', () => {
+test('좋다/싫다가 안 드러난 말은 못 가린다. 아는 척하지 않는다', () => {
   assert.deepEqual(findConflicts([{ said: '나 매일 커피 마셔', at: 1 }], '- 커피를 싫어함'), []);
 });
 
@@ -129,7 +129,7 @@ test('너무 많이 늘어놓지 않는다', () => {
   assert.equal((statedNote(many, [], 2).match(/번 좋아해/g) ?? []).length, 2);
 });
 
-test('가장 최근 것을 보여 준다 — 사람은 바뀐다', () => {
+test('가장 최근 것을 보여 준다. 사람은 바뀐다', () => {
   const facts = [{ said: '나 옛날 것 좋아해', at: 1 }, { said: '나 요즘 것 좋아해', at: 2 }];
   assert.match(statedNote(facts, [], 1), /요즘 것/);
 });

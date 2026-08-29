@@ -1,15 +1,15 @@
 /**
- * 때 — **한 순간을 정하면, 나머지는 그 순간의 얼굴** (TASK-KL-088 → TASK-KL-267)
+ * 때. **한 순간을 정하면, 나머지는 그 순간의 얼굴** (TASK-KL-088 → TASK-KL-267)
  *
  * 때 도구는 여덟이었고 전부 칸 채우는 양식이었다(D-Day 는 D-Day 칸에, 시차는 시차 칸에).
- * 그런데 사람이 들고 오는 건 늘 하나다 — **「그 때」**. 「내일 오후 3시」·「2026-09-01」·
- * 「1755043200」·「3주 뒤」 는 전부 **같은 것을 가리키는 다른 말**이다.
+ * 그런데 사람이 들고 오는 건 늘 하나다. **그 때**. 내일 오후 3시, 2026-09-01, 
+ * 1755043200, 3주 뒤 는 전부 **같은 것을 가리키는 다른 말**이다.
  *
  * 그래서 이 화면은 말 한 줄을 받아 순간을 정하고(`shared/when`), 그 순간의 얼굴을 **한꺼번에**
- * 보여 준다: 날짜·요일 / 시각 / D-Day / 몇 주차 / 유닉스 초 / ISO / 다른 도시의 시각.
+ * 보여 준다: 날짜, 요일 / 시각 / D-Day / 몇 주차 / 유닉스 초 / ISO / 다른 도시의 시각.
  * 전에는 이 일곱을 보려면 탭을 일곱 번 옮기며 같은 날짜를 일곱 번 적어야 했다.
  *
- * 도시 표는 World Time Buddy·timeanddate 의 회의 계획표를 보고 들여왔다 — 여러 도시를
+ * 도시 표는 World Time Buddy, timeanddate 의 회의 계획표를 보고 들여왔다. 여러 도시를
  * 한 줄에 늘어놓고 **일하는 시간인지 색으로** 가른다. 다만 우리는 바깥에 안 기댄다:
  * 시간대는 브라우저가 가진 표(`Intl`)로 낸다(서머타임까지 그쪽이 안다).
  */
@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     {
       label: t('time.group.date', undefined, '날짜 셈'),
       jobs: [
-        ['datecalc', t('time.part.datecalc', undefined, '날짜 · D-Day')],
+        ['datecalc', t('time.part.datecalc', undefined, '날짜, D-Day')],
         ['workdays', t('time.part.workdays', undefined, '영업일')],
         ['timecalc', t('time.part.timecalc', undefined, '시간 더하기')],
         ['birth', t('time.part.birth', undefined, '생일')]
@@ -48,7 +48,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
   ];
 
-  /* 때 도구는 전부 자기 칸에 날짜를 받는 양식이라 글을 넘겨줄 자리가 없다 — 안 넘긴다. */
+  /* 때 도구는 전부 자기 칸에 날짜를 받는 양식이라 글을 넘겨줄 자리가 없다. 안 넘긴다. */
   const NO_INPUT_NEEDED = new Set(GROUPS().flatMap((g) => g.jobs.map(([id]) => id)));
 
   /** 여기 사는 사람이 실제로 볼 도시들. 늘어놓는 게 아니라 **골라 둔다**. */
@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'time',
     title: t('widgets.time.title', undefined, '시간'),
     category: 'tool',
-    desc: t('widgets-desc.time.desc', undefined, '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서'),
+    desc: t('widgets-desc.time.desc', undefined, '날짜 계산, D-Day, 타이머, 스톱워치, 세계 시차를 한 곳에서'),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: [
@@ -86,7 +86,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       accepts: /^text\//i,
       drop: {
         title: t('time.drop.title', undefined, '언제인지 말로 적으세요'),
-        hint: t('time.drop.hint', undefined, '내일 오후 3시 · 2026-09-01 · 3주 뒤 · 다음 주 월요일 · 1755043200')
+        hint: t('time.drop.hint', undefined, '내일 오후 3시, 2026-09-01, 3주 뒤, 다음 주 월요일, 1755043200')
       },
       labels: {
         change: t('time.btn.change', undefined, '다시 적기'),
@@ -112,14 +112,14 @@ import { t, loadNamespace } from '../../lib/i18n';
     if (!alive()) return '';
     const p = parseWhen(raw);
     if (!p.at) {
-      box.innerHTML = `<div class="pf-empty" id="tmNone">${t('time.none', undefined, '언제인지 못 알아들었습니다 — 「내일 오후 3시」 처럼 적어 보세요')}</div>`;
+      box.innerHTML = `<div class="pf-empty" id="tmNone">${t('time.none', undefined, '언제인지 못 알아들었습니다. 내일 오후 3시 처럼 적어 보세요')}</div>`;
       return t('time.meta.none', undefined, '못 알아들음');
     }
 
     const how = document.createElement('div');
     how.className = 'tm-how';
     how.id = 'tmHow';
-    how.textContent = t('time.how', { how: p.how }, `「${p.how}」 로 읽었습니다`);
+    how.textContent = t('time.how', { how: p.how }, `${p.how} 로 읽었습니다`);
     box.appendChild(how);
 
     const faces = document.createElement('div');
@@ -133,7 +133,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       k.textContent = f.label;
       const v = document.createElement('strong');
       v.textContent = f.value;
-      /* 눌러서 복사 — 유닉스 초·ISO 는 **다른 데 옮겨 적으려고** 보는 것이다 */
+      /* 눌러서 복사. 유닉스 초, ISO 는 **다른 데 옮겨 적으려고** 보는 것이다 */
       row.onclick = (): void => {
         void navigator.clipboard?.writeText(f.value);
         row.classList.add('tm-copied');
@@ -151,7 +151,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     for (const z of inZones(p.at, ZONES)) {
       const row = document.createElement('div');
       row.className = 'tm-city';
-      /* 일하는 시간인지 색으로 가른다(timeanddate 회의 계획표) — 09~18시면 편한 때다 */
+      /* 일하는 시간인지 색으로 가른다(timeanddate 회의 계획표). 09~18시면 편한 때다 */
       const hour = Number(z.value.match(/(\d{1,2}):/)?.[1] ?? -1);
       if (hour>= 9 && hour < 18) row.classList.add('tm-ok');
       else if (hour>= 7 && hour < 22) row.classList.add('tm-meh');
@@ -166,8 +166,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
     box.appendChild(cities);
 
-    /* **시간 격자** (TASK-KL-287 — World Time Buddy·timeanddate 회의 계획표).
-     * 「지금 저기가 몇 시」와 「언제 다 같이 깨어 있나」는 다른 물음이다. 뒤엣것에는 하루가 통째로
+    /* **시간 격자** (TASK-KL-287. World Time Buddy, timeanddate 회의 계획표).
+     * 지금 저기가 몇 시와 언제 다 같이 깨어 있나는 다른 물음이다. 뒤엣것에는 하루가 통째로
      * 필요해서, 24칸을 늘어놓고 **다 같이 편한 칸**을 짚어 준다. 누르면 그 시각으로 옮겨 간다. */
     const rows = hourGrid(p.at, ZONES);
     const best = bestHours(rows);
@@ -200,7 +200,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         cell.dataset.hour = String(i);
         cell.textContent = String(c.hour);
         cell.title = `${row.label} ${c.hour}시${c.dayShift ? (c.dayShift> 0 ? ' (다음 날)' : ' (전날)') : ''}`;
-        /* 누르면 **그 시각으로 옮겨 간다** — 격자는 보는 것만이 아니라 고르는 자리다.
+        /* 누르면 **그 시각으로 옮겨 간다**. 격자는 보는 것만이 아니라 고르는 자리다.
          * 적어 둔 글을 그 시각으로 바꿔 주면 나머지 화면(얼굴들)이 저절로 따라온다. */
         cell.onclick = (): void => {
           const box = document.getElementById('pfText') as HTMLTextAreaElement | null;
@@ -215,7 +215,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       });
       grid.appendChild(line);
     }
-    /* **다 편한 때가 없으면 없다고 말한다.** 짚어만 주고 말이 없으면 「이때가 좋다」로 읽힌다 —
+    /* **다 편한 때가 없으면 없다고 말한다.** 짚어만 주고 말이 없으면 이때가 좋다로 읽힌다 . 
      * 서울↔로스앤젤레스처럼 반대편이면 누군가는 늘 이른 아침이거나 늦은 밤이다. */
     const note = document.createElement('div');
     note.className = 'tm-grid-note';
@@ -225,13 +225,13 @@ import { t, loadNamespace } from '../../lib/i18n';
       best.level === 'ok'
         ? t('time.grid.ok', undefined, '초록 칸 = 다들 일하는 때')
         : best.level === 'meh'
-          ? t('time.grid.meh', undefined, '다 편한 때는 없습니다 — 짚은 칸이 그나마 무난합니다')
-          : t('time.grid.least', undefined, '다 깨어 있는 때가 없습니다 — 짚은 칸이 가장 덜 힘듭니다');
+          ? t('time.grid.meh', undefined, '다 편한 때는 없습니다. 짚은 칸이 그나마 무난합니다')
+          : t('time.grid.least', undefined, '다 깨어 있는 때가 없습니다. 짚은 칸이 가장 덜 힘듭니다');
     grid.appendChild(note);
     box.appendChild(grid);
 
     const f = facesOf(p.at);
-    return `${f[0].value}${p.hasTime ? ' ' + f[1].value : ''} · ${f[2].value}`;
+    return `${f[0].value}${p.hasTime ? ' ' + f[1].value : ''}, ${f[2].value}`;
   }
 
   let styled = false;

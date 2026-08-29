@@ -1,8 +1,8 @@
 /**
- * 가짜 접지 그림자 — 물건이 바닥에 **닿아 있다**는 것만 알려 주는 어두운 원.
+ * 가짜 접지 그림자. 물건이 바닥에 **닿아 있다**는 것만 알려 주는 어두운 원.
  *
  * 실시간 그림자 없이 화면을 살리는 가장 싼 수. GPU 가 없는 기계에서도 값이 0 에 가깝고,
- * 있어도 그림자 맵 한 장을 아낀다. 물건마다 하나씩 깔면 「떠 있는 느낌」이 사라진다.
+ * 있어도 그림자 맵 한 장을 아낀다. 물건마다 하나씩 깔면 떠 있는 느낌이 사라진다.
  */
 import * as THREE from '../vendor/three.module.min.js';
 
@@ -39,7 +39,7 @@ export function contactShadow(size, opacity = 0.5) {
     return m;
 }
 
-/** 벽에 붙는 세로판 그림자 (간판·액자 밑). */
+/** 벽에 붙는 세로판 그림자 (간판, 액자 밑). */
 export function wallShadow(w, h, opacity = 0.45) {
     const m = new THREE.Mesh(
         new THREE.PlaneGeometry(w, h),

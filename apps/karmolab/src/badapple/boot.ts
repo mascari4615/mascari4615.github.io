@@ -2,12 +2,12 @@
  * 홈 화면 스위치 (TASK-KL-131).
  *
  * 화면을 바꾸지 않는다. 평소엔 아무 흔적도 없고, 켜면 **지금 화면에 있는 것들이 그대로 액정이 된다.**
- * 어떤 칸을 쓸지는 이름으로 안 찾는다 — 모양으로 스스로 고른다. 그래서 도구가 늘거나 줄거나
+ * 어떤 칸을 쓸지는 이름으로 안 찾는다. 모양으로 스스로 고른다. 그래서 도구가 늘거나 줄거나
  * 화면을 개편해도 이 파일은 손댈 일이 없다.
  *
  * 켜는 법 두 가지:
- *   - 주소 뒤에 `?badapple` — 남에게 보여 줄 때
- *   - 위·위·아래·아래·왼·오·왼·오·B·A — 아는 사람만
+ *   - 주소 뒤에 `?badapple`. 남에게 보여 줄 때
+ *   - 위, 위, 아래, 아래, 왼, 오, 왼, 오, B, A. 아는 사람만
  * 끄는 법: Esc, 또는 같은 순서를 다시.
  *
  * 트는 영상: 굽는 화면에서 구운 게 있으면 **그것**, 없으면 기본 도형 클립.
@@ -17,12 +17,12 @@ import { decode, DomTilesSurface, Player, Registry, TextSurface, type Surface } 
 import { clearClip, loadClip as loadStoredClip } from './shared';
 
 /**
- * 도구가 「나도 그릴게」 하고 신고하는 창구.
+ * 도구가 나도 그릴게 하고 신고하는 창구.
  *
- * 도구 쪽에는 재생 관련 코드가 한 줄도 안 남는 게 요점이다 — 재생이 도는지 안 도는지,
+ * 도구 쪽에는 재생 관련 코드가 한 줄도 안 남는 게 요점이다. 재생이 도는지 안 도는지,
  * 껐다 켰는지 도구는 몰라도 된다. 신고하고, 닫힐 때 돌려받은 함수 하나 부르면 끝.
  *
- *   const stop = window.KarmoLabBadApple?.add({ measure: …, paint: … });
+ *   const stop = window.KarmoLabBadApple?.add({ measure: ..., paint: ... });
  *   Toolbox.onDispose(() => stop?.());
  */
 declare global {
@@ -68,7 +68,7 @@ const KONAMI = [
 	function stop(): void {
 		if (raf) cancelAnimationFrame(raf);
 		raf = 0;
-		// 무대에서만 떼고 신고는 남긴다 — 다시 켜면 도구가 재신고 없이 그대로 그린다.
+		// 무대에서만 떼고 신고는 남긴다. 다시 켜면 도구가 재신고 없이 그대로 그린다.
 		registry.unbind();
 		player?.dispose();
 		player = null;
@@ -84,16 +84,16 @@ const KONAMI = [
 		try {
 			clip = decode(bytes);
 		} catch {
-			// 저장된 것이 깨졌으면 지우고 만다 — 다음엔 기본 클립이 뜬다.
+			// 저장된 것이 깨졌으면 지우고 만다. 다음엔 기본 클립이 뜬다.
 			void clearClip();
 			return;
 		}
 
 		player = new Player(clip, { loop: true });
 		// 화면에 실제로 있는 것들을 액정으로 (모양으로 스스로 고른다).
-		// 쪼갬을 안 준다 — 화면마다 칸 수가 달라서, 놓인 칸 수를 보고 알아서 정하는 편이 낫다.
+		// 쪼갬을 안 준다. 화면마다 칸 수가 달라서, 놓인 칸 수를 보고 알아서 정하는 편이 낫다.
 		player.stage.add(new DomTilesSurface({}));
-		// 탭 제목도 같은 그림을 받는다. 한 줄뿐이라 칸마다 「얼마나 찼나」를 글자 굵기로 낸다 —
+		// 탭 제목도 같은 그림을 받는다. 한 줄뿐이라 칸마다 얼마나 찼나를 글자 굵기로 낸다 . 
 		// 켜짐/꺼짐으로 누르면 아래가 꽉 찬 영상에서 제목이 아예 안 움직인다.
 		player.stage.add(
 			new TextSurface({
@@ -140,13 +140,13 @@ const KONAMI = [
 				toggle();
 			}
 		} else {
-			// 첫 글자부터 다시 — 틀린 그 키가 시작일 수도 있다.
+			// 첫 글자부터 다시. 틀린 그 키가 시작일 수도 있다.
 			progress = KONAMI[0] && event.key.toLowerCase() === KONAMI[0].toLowerCase() ? 1 : 0;
 		}
 	});
 
 	/* 바깥에서 켤 수 있게 손잡이를 낸다 (TASK-KL-128 ⑱).
-	   이 파일은 이제 **신호가 왔을 때** 온다 — 그래서 켜는 그 순간에는 이미 이 파일이
+	   이 파일은 이제 **신호가 왔을 때** 온다. 그래서 켜는 그 순간에는 이미 이 파일이
 	   막 도착한 참이라, 화면의 키 감지가 놓친 그 한 번을 여기서 이어받아야 한다. */
 	window.KarmoLabBadApple = Object.assign(window.KarmoLabBadApple || {}, {
 		add: (surface: Surface) => registry.add(surface),

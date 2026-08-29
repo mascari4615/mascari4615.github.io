@@ -1,11 +1,11 @@
 /**
- * ImageCacheService — 자동 이미지 생성 캐시
+ * ImageCacheService. 자동 이미지 생성 캐시
  *
  * 구조:
  *   {characterDir}/image-cache/
- *     index.json        — 씬 메타데이터 목록 (embedding 포함)
- *     image-log.jsonl   — 생성/히트 로그 (JSON Lines)
- *     {id}.png          — 실제 이미지 파일
+ *     index.json       . 씬 메타데이터 목록 (embedding 포함)
+ *     image-log.jsonl  . 생성/히트 로그 (JSON Lines)
+ *     {id}.png         . 실제 이미지 파일
  *
  * 유사도: Gemini 임베딩 코사인 유사도 (@karmo/ai generateEmbedding)
  *   KARMO_AI_SURFACE=vertex → Vertex text-embedding-004
@@ -22,7 +22,7 @@ const DEFAULT_COSINE_THRESHOLD = 0.75;
 
 export interface CacheEntry {
   id: string;
-  /** 영어 씬 묘사 (Imagen 프롬프트의 Scene 부분, 임베딩·표시 공통 소스) */
+  /** 영어 씬 묘사 (Imagen 프롬프트의 Scene 부분, 임베딩, 표시 공통 소스) */
   sceneDesc: string;
   prompt: string;
   filePath: string;
@@ -271,13 +271,13 @@ export class ImageCacheService {
   }
 
   /**
-   * No-op (TASK-KAR-MEMOSYNC). image-cache/ 는 .gitignore 런타임 산출 —
-   * index.json·image-log.jsonl·*.png 는 writeLog/writeIndex 가 fs 로 이미
+   * No-op (TASK-KAR-MEMOSYNC). image-cache/ 는 .gitignore 런타임 산출 . 
+   * index.json, image-log.jsonl, *.png 는 writeLog/writeIndex 가 fs 로 이미
    * 디스크 영속화. 봇 git 커밋이 곧 prod memo origin divergence 엔진이었다
    * (deploy memo-sync 영구 동결 근본). 캐시는 미스 시 재생성되므로 클린
    * 클론서 무손실. 호출부 시그니처 보존 = Grey Box seam 불변.
    */
   private commitToGit(_entry: CacheEntry): void {
-    /* git 비커밋 — 런타임 캐시 산출 */
+    /* git 비커밋. 런타임 캐시 산출 */
   }
 }

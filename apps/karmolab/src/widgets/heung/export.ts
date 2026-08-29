@@ -1,7 +1,7 @@
 /**
- * 흥 — 내보내기 계산 (TASK-KL-220).
+ * 흥. 내보내기 계산 (TASK-KL-220).
  *
- * 렌더된 표본을 두고 하는 판단(피크·클리핑·정규화·모노 합치기)과 「어디부터 어디까지」 계산.
+ * 렌더된 표본을 두고 하는 판단(피크, 클리핑, 정규화, 모노 합치기)과 어디부터 어디까지 계산.
  * AudioBuffer 를 직접 만들지 않고 최소 모양(`PcmLike`)만 요구하므로 단위 테스트로 닫힌다.
  */
 
@@ -76,7 +76,7 @@ export function clampBuffer(buffer: PcmLike): number {
 
 /**
  * 내보낼 구간. `selection` 은 고른 클립들이 덮는 범위이고, 고른 게 없으면 곡 전체로 접힌다.
- * 언제나 최소 한 박은 나오게 한다 — 길이 0 짜리 파일을 내보내지 않는다.
+ * 언제나 최소 한 박은 나오게 한다. 길이 0 짜리 파일을 내보내지 않는다.
  */
 export function exportRange(
   mode: ExportRangeMode,
@@ -106,7 +106,7 @@ export function stemFileName(trackName: string, index: number): string {
   return `${String(index + 1).padStart(2, '0')}-${clean || 'track'}.wav`;
 }
 
-/** 같은 이름이 겹치면 뒤에 번호를 붙인다 — ZIP 안에서 덮어써지면 트랙이 조용히 사라진다. */
+/** 같은 이름이 겹치면 뒤에 번호를 붙인다. ZIP 안에서 덮어써지면 트랙이 조용히 사라진다. */
 export function uniqueNames(names: string[]): string[] {
   const used = new Map<string, number>();
   return names.map((name) => {

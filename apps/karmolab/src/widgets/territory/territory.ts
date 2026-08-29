@@ -1,16 +1,16 @@
 /**
- * 영토 — 이 땅의 주인은 누구인가 (TASK-KL-334)
+ * 영토. 이 땅의 주인은 누구인가 (TASK-KL-334)
  *
  * 사용자: "편의점 뿐만아니라 카페나 햄버거가게 같이 여러 좋류의 영토 점령을 보고 싶어잉"
  *
  * 화면 픽셀마다 **가장 가까운 가게**를 묻고 그 브랜드 색으로 칠한다. 그러면 지도 위에
- * 「여기부터 저 골목까지는 GS25 땅」이 눈으로 보인다. 계산은 `core/territory` 에 있고
+ * 여기부터 저 골목까지는 GS25 땅이 눈으로 보인다. 계산은 `core/territory` 에 있고
  * (화면 없이 돌고 MCP 로도 나간다), 지도판은 `geomap.ts` 다. 여기는 그 둘을 붙이는 껍데기다.
  *
  * ## 폴리곤을 안 만든다
  *
  * 원본(conbini.kikkia.dev)은 보로노이 폴리곤을 미리 만들어 geojson 으로 8MB 를 보낸다.
- * 우리는 **점만 보내고 칠하기는 화면에서** 한다 — 자료가 126KB 로 줄고, 업종을 바꿔도 즉시고,
+ * 우리는 **점만 보내고 칠하기는 화면에서** 한다. 자료가 126KB 로 줄고, 업종을 바꿔도 즉시고,
  * 무엇보다 **면적 점유율이 픽셀을 세는 것만으로 나온다**(원본에 없는 수다).
  *
  * 다만 픽셀마다 묻는 것은 공짜가 아니다. 그래서 ① 실제로는 몇 픽셀에 한 번만 묻고(`step`)
@@ -25,7 +25,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
   const NS = 'territory';
 
-  /** 자료 파일 주소 — Tauri 에서도 같은 출처로 풀리게 위젯 스크립트 자리에서 되짚는다. */
+  /** 자료 파일 주소. Tauri 에서도 같은 출처로 풀리게 위젯 스크립트 자리에서 되짚는다. */
   function dataUrl(name: string): string {
     const w = window as unknown as { KARMOLAB_WIDGET_SCRIPT_BASE?: string };
     if (w.KARMOLAB_WIDGET_SCRIPT_BASE) return new URL('../../data/' + name, w.KARMOLAB_WIDGET_SCRIPT_BASE).href;
@@ -48,7 +48,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     points: Record<string, number[]>;
   }
 
-  /** 시군구 하나 — 화면에 그릴 (단순화한) 경계와 미리 잰 점유율. */
+  /** 시군구 하나. 화면에 그릴 (단순화한) 경계와 미리 잰 점유율. */
   interface District {
     code: string;
     name: string;
@@ -69,7 +69,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     meta: Dataset;
     grid: Grid;
     color: Map<string, string>;
-    /** 색을 RGB 로 미리 풀어 둔다 — 픽셀 수만큼 문자열을 파싱할 수는 없다. */
+    /** 색을 RGB 로 미리 풀어 둔다. 픽셀 수만큼 문자열을 파싱할 수는 없다. */
     rgb: Map<string, [number, number, number]>;
   }
 
@@ -79,7 +79,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     { id: 'burger', label: () => t('territory.industry.burger', undefined, '햄버거') }
   ];
 
-  /** 접어 둔 좌표를 되편다 — 만든 자리는 `scripts/gen-territory-data.mjs`. */
+  /** 접어 둔 좌표를 되편다. 만든 자리는 `scripts/gen-territory-data.mjs`. */
   function unpack(meta: Dataset): Store[] {
     const out: Store[] = [];
     for (const [brand, flat] of Object.entries(meta.points)) {
@@ -106,7 +106,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     id: 'territory',
     title: t('widgets.territory.title', undefined, '영토'),
     category: 'lab',
-    desc: t('widgets-desc.territory.desc', undefined, '우리 동네 땅 주인은 CU 인가 GS25 인가 — 편의점·카페·햄버거 브랜드 점령도'),
+    desc: t('widgets-desc.territory.desc', undefined, '우리 동네 땅 주인은 CU 인가 GS25 인가. 편의점, 카페, 햄버거 브랜드 점령도'),
     layout: 'full',
     icon:
       '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
@@ -125,8 +125,8 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
   });
 
   /**
-   * 화면 옷. 블루마블이 먼저 푼 문제를 그대로 쓴다 — 위젯 상자 안에 지도를 가두면
-   * 「창문」이 아니라 「계기판 안의 썸네일」이 된다. 머리띠 높이만큼 음수 여백으로 올라타
+   * 화면 옷. 블루마블이 먼저 푼 문제를 그대로 쓴다. 위젯 상자 안에 지도를 가두면
+   * 창문이 아니라 계기판 안의 썸네일이 된다. 머리띠 높이만큼 음수 여백으로 올라타
    * 화면을 통째로 쓰고, 조작부는 전부 지도 **위에** 떠 있는다.
    */
   const CSS = `
@@ -137,8 +137,8 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 .terr-wrap:fullscreen{--terr-head:0px;--terr-side:16px;margin-top:0;height:100%;max-height:none;border-radius:0;}
 .terr-map{position:absolute;inset:0;}
 /* --terr-side = 왼쪽 셸 난간이 지도 위를 덮는 폭. 지도는 화면 끝까지 그리되(그게 목적이다)
-   **조작부와 범례는 난간 오른쪽부터** 놓는다 — 안 그러면 첫 칩과 순위표 왼쪽이 잘린다. */
-/* 위아래 그늘 — 글자가 지도 위에서 묻히지 않게. 지도는 그대로 비친다. */
+   **조작부와 범례는 난간 오른쪽부터** 놓는다. 안 그러면 첫 칩과 순위표 왼쪽이 잘린다. */
+/* 위아래 그늘. 글자가 지도 위에서 묻히지 않게. 지도는 그대로 비친다. */
 .terr-scrim-top{position:absolute;top:0;left:0;right:0;height:calc(var(--terr-head) + 74px);z-index:1;
   pointer-events:none;background:linear-gradient(to bottom,rgba(6,8,12,.72),rgba(6,8,12,0));}
 .terr-scrim-bottom{position:absolute;left:0;right:0;bottom:0;height:120px;z-index:1;
@@ -151,7 +151,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 .terr-chip:hover{border-color:rgba(255,255,255,.4);}
 .terr-chip[aria-pressed="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);background:rgba(30,52,96,.55);}
 .terr-right{margin-inline-start:auto;display:flex;gap:6px;}
-/* 범례 = 순위표. 색 · 이름 · 땅 넓이 막대 · 퍼센트. 원본에 없던 「면적」이 주인공이다. */
+/* 범례 = 순위표. 색, 이름, 땅 넓이 막대, 퍼센트. 원본에 없던 면적이 주인공이다. */
 .terr-legend{position:absolute;left:var(--terr-side);bottom:18px;z-index:3;min-width:216px;max-width:min(52%,280px);
   background:rgba(10,14,22,.62);backdrop-filter:blur(7px);border:1px solid rgba(255,255,255,.09);
   border-radius:var(--radius-md,12px);padding:10px 12px;pointer-events:none;}
@@ -163,7 +163,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 .terr-pct{font-family:var(--font-mono,ui-monospace,monospace);font-size:11px;color:rgba(255,255,255,.72);
   font-variant-numeric:tabular-nums;}
 .terr-name{font-size:11px;color:rgba(255,255,255,.82);margin-bottom:2px;}
-/* 아래 한 줄 — 숫자를 늘어놓지 않고 문장으로 말한다. */
+/* 아래 한 줄. 숫자를 늘어놓지 않고 문장으로 말한다. */
 .terr-note{position:absolute;left:var(--terr-side);right:16px;bottom:0;z-index:3;padding:0 2px 12px;
   font-size:13px;line-height:1.55;color:#dbe3f0;pointer-events:none;text-shadow:0 1px 10px rgba(0,0,0,.8);}
 .terr-warn{color:#ffc98a;}
@@ -181,8 +181,8 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       document.head.appendChild(style);
     }
 
-    /* ★ 조작부·범례는 전부 지도 **위에** 얹는다(absolute). 흐름으로 지도 아래에 두었더니
-       「글이 길어짐 → 지도 높이 바뀜 → 화면 범위 바뀜 → 통계 다시 셈 → 글 길어짐」이
+    /* ★ 조작부, 범례는 전부 지도 **위에** 얹는다(absolute). 흐름으로 지도 아래에 두었더니
+       글이 길어짐 → 지도 높이 바뀜 → 화면 범위 바뀜 → 통계 다시 셈 → 글 길어짐이
        끝없이 돌아 브라우저가 멎었다 (2026-08-20 실측). 칠하는 값이 제 크기에 되먹임되면 안 된다. */
     container.innerHTML = `
       <div class="terr-wrap">
@@ -198,9 +198,9 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           </div>
           <div class="terr-right">
             <button type="button" class="terr-chip terr-dots" aria-pressed="false">${esc(t('territory.label.dots', undefined, '가게 점 보기'))}</button>
-            <!-- ★ 글자(⛶)로 그리지 않는다 (사용자 제보 2026-08-21: 「뭘 누르라는건지 문자가 깨져서
-                 안보이는데」). 그 기호는 흔한 글꼴에 없어 두부 네모로 뜬다 — 재 봤다: 이 기계의
-                 Arial 에서 그 기호의 폭이 「없는 글자」와 똑같았다(= 대체 글리프). 그러면 무슨
+            <!-- ★ 글자(⛶)로 그리지 않는다 (사용자 제보 2026-08-21: 뭘 누르라는건지 문자가 깨져서
+                 안보이는데). 그 기호는 흔한 글꼴에 없어 두부 네모로 뜬다. 재 봤다: 이 기계의
+                 Arial 에서 그 기호의 폭이 없는 글자와 똑같았다(= 대체 글리프). 그러면 무슨
                  단추인지 알 길이 없다. 그림(svg)은 글꼴을 안 탄다. 이름은 aria-label 로 말한다. -->
             <button type="button" class="terr-chip terr-full" title="${esc(t('territory.label.full', undefined, '전체 화면'))}" aria-label="${esc(t('territory.label.full', undefined, '전체 화면'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
           </div>
@@ -220,11 +220,11 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     /**
      * 보기 방식.
      *
-     * - `auto` — **보는 거리에 따라 말하는 단위가 달라진다.** 전국을 보면 시도 17개, 당겨 오면
+     * - `auto`. **보는 거리에 따라 말하는 단위가 달라진다.** 전국을 보면 시도 17개, 당겨 오면
      *   시군구 250개, 더 당기면 가게마다 제 땅을 칠하는 얼룩. 원본(conbini)도 도도부현↔셀
-     *   두 단계였다 — 멀리서 250개는 이미 모래알이고, 가까이서 17개는 아무 말도 안 한다.
-     * - `area` — 늘 단색(1등이 통째로). 판세만 보고 싶을 때.
-     * - `store` — 늘 얼룩. 사실에 가장 가깝다.
+     *   두 단계였다. 멀리서 250개는 이미 모래알이고, 가까이서 17개는 아무 말도 안 한다.
+     * - `area`. 늘 단색(1등이 통째로). 판세만 보고 싶을 때.
+     * - `store`. 늘 얼룩. 사실에 가장 가깝다.
      */
     type Mode = 'auto' | 'area' | 'store';
     type Unit = 'sido' | 'sgg' | 'store';
@@ -233,9 +233,9 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     /**
      * 지금 무엇으로 말할 것인가.
      *
-     * ★ 문턱을 **확대율 숫자가 아니라 「보이는 폭(km)」** 으로 잡는다. 같은 z 라도 4K 모니터는
-     * 전국이 다 보이고 폰은 시 하나만 보인다 — 숫자로 자르면 화면 크기에 따라 말이 달라진다.
-     * 폭으로 자르면 「전국이 보이면 시도, 시 몇 개면 시군구, 동네가 보이면 가게」가 늘 같다.
+     * ★ 문턱을 **확대율 숫자가 아니라 보이는 폭(km)** 으로 잡는다. 같은 z 라도 4K 모니터는
+     * 전국이 다 보이고 폰은 시 하나만 보인다. 숫자로 자르면 화면 크기에 따라 말이 달라진다.
+     * 폭으로 자르면 전국이 보이면 시도, 시 몇 개면 시군구, 동네가 보이면 가게가 늘 같다.
      */
     function unitNow(): Unit {
       if (mode === 'store') return 'store';
@@ -255,7 +255,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       };
     }
 
-    /** 단위가 바뀌면 필요한 것만 다시 준비한다 — 얼룩은 계산이 있고, 단색은 미리 잰 값이라 공짜다. */
+    /** 단위가 바뀌면 필요한 것만 다시 준비한다. 얼룩은 계산이 있고, 단색은 미리 잰 값이라 공짜다. */
     let lastUnit: Unit | null = null;
     function syncUnit(): void {
       const u = unitNow();
@@ -288,7 +288,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       minZoom: 6,
       maxZoom: 17,
       attribution: '© OpenStreetMap',
-      /* 바탕을 회색으로 깎고 살짝 어둡게 — 그 위의 브랜드 색만 살아난다.
+      /* 바탕을 회색으로 깎고 살짝 어둡게. 그 위의 브랜드 색만 살아난다.
          원본(conbini)이 기본 OSM 위에 색을 얹어 서로 싸우던 것이 안 예뻤던 진짜 이유다. */
       tileFilter: 'grayscale(1) brightness(.72) contrast(.88)',
       background: '#0c0e12'
@@ -297,7 +297,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
     let loaded: Loaded | null = null;
     let current: Industry = 'convenience';
-    /* 끌고 있는 동안에는 성기게 칠한다. 손을 떼면 촘촘하게 한 번 더 — 그래야 안 끊긴다. */
+    /* 끌고 있는 동안에는 성기게 칠한다. 손을 떼면 촘촘하게 한 번 더. 그래야 안 끊긴다. */
     let settle = 0;
 
     const cache = new Map<Industry, Loaded>();
@@ -340,15 +340,15 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     }
 
     /* ── 시군구 ──
-       「지금 보이는 만큼」이 아니라 **행정구역** 단위로 묻는 것이 사람의 진짜 질문이다 —
-       「우리 구는 누구 땅인가」. 그 답은 화면과 무관하게 고정이라 `scripts/gen-territory-sgg.mjs`
+       지금 보이는 만큼이 아니라 **행정구역** 단위로 묻는 것이 사람의 진짜 질문이다 . 
+       우리 구는 누구 땅인가. 그 답은 화면과 무관하게 고정이라 `scripts/gen-territory-sgg.mjs`
        가 미리 재 두었다(방문자 계산 0). 여기서는 받아서 경계를 그리고, 짚은 구를 찾을 뿐이다. */
-    /** 단위별 경계·점유율. `sgg` = 시군구 250, `sido` = 시도 17. */
+    /** 단위별 경계, 점유율. `sgg` = 시군구 250, `sido` = 시도 17. */
     const areas = new Map<string, District[]>();
     let hovered: District | null = null;
     let sggWanted = false;
 
-    /** 지금 단위의 구역들 — 얼룩 단위면 없다. */
+    /** 지금 단위의 구역들. 얼룩 단위면 없다. */
     function areasNow(): District[] | null {
       const u = unitNow();
       if (u === 'store') return null;
@@ -397,7 +397,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       areas.set(level + ':' + industry, list);
     }
 
-    /** 광선 교차 — 링 안인가. */
+    /** 광선 교차. 링 안인가. */
     function inRing(ring: number[][], x: number, y: number): boolean {
       let inside = false;
       for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -434,7 +434,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     async function select(industry: Industry): Promise<void> {
       current = industry;
       markTabs();
-      noteEl.textContent = t('territory.msg.loading', undefined, '자료를 받는 중…');
+      noteEl.textContent = t('territory.msg.loading', undefined, '자료를 받는 중...');
       try {
         loaded = await load(industry);
       } catch (e) {
@@ -444,7 +444,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       stopJob();
       raster = null;
       hovered = null;
-      /* 구 자료는 곁들이다 — 못 받아도 지도는 그대로 돈다. */
+      /* 구 자료는 곁들이다. 못 받아도 지도는 그대로 돈다. */
       sggWanted = true;
       void Promise.all([loadAreas('sido', industry), loadAreas('sgg', industry)])
         .then(() => {
@@ -452,20 +452,20 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           syncUnit();
         })
         .catch(() => undefined);
-      /* 통계는 칠하기와 무관하게 바로 낼 수 있다(12ms) — 범례가 빈 채로 기다리지 않게 먼저 채운다. */
+      /* 통계는 칠하기와 무관하게 바로 낼 수 있다(12ms). 범례가 빈 채로 기다리지 않게 먼저 채운다. */
       updateSide();
       startJob(map);
     }
 
     /* ── 칠하기 ──
-       화면 픽셀마다 「가장 가까운 가게」를 묻는 일은 전국 한 장에 수십만 번이다. 이걸 한 프레임에
-       다 하면 그 동안 브라우저가 통째로 멎는다 — 끌지도, 누르지도, 스크롤하지도 못한다.
-       (2026-08-20: 그렇게 짰다가 「너무 느려서 쓸 수가 없다」는 말을 들었다.)
+       화면 픽셀마다 가장 가까운 가게를 묻는 일은 전국 한 장에 수십만 번이다. 이걸 한 프레임에
+       다 하면 그 동안 브라우저가 통째로 멎는다. 끌지도, 누르지도, 스크롤하지도 못한다.
+       (2026-08-20: 그렇게 짰다가 너무 느려서 쓸 수가 없다는 말을 들었다.)
 
        그래서 둘로 나눈다.
 
        ① **움직이는 동안에는 계산하지 않는다.** 이미 칠해 둔 그림에는 그때의 위경도 두 귀퉁이가
-          붙어 있다. 지금 화면에 그 두 점을 다시 찍으면 어디에 얼마 크기로 얹을지가 나온다 —
+          붙어 있다. 지금 화면에 그 두 점을 다시 찍으면 어디에 얼마 크기로 얹을지가 나온다 . 
           끌면 따라 움직이고 확대하면 같이 커진다. 살짝 뭉개질 뿐 즉시 반응한다.
        ② **멈추면 조금씩 다시 칠한다.** 한 프레임에 6ms 어치 줄만 계산하고 다음 프레임에 이어서
           한다. 위에서 아래로 채워지는 게 보이고, 그 사이에도 지도는 계속 끌린다.
@@ -503,7 +503,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     /** 마지막으로 칠하기 시작한 화면. 같은 화면이면 다시 칠하지 않는다. */
     let lastView = '';
 
-    /** 지금 화면을 한 줄로 — 중심·확대율·크기가 같으면 칠할 이유가 없다. */
+    /** 지금 화면을 한 줄로. 중심, 확대율, 크기가 같으면 칠할 이유가 없다. */
     function viewKey(m: GeoMap): string {
       const c = m.getCenter();
       return [current, m.size.width, m.size.height, m.getZoom().toFixed(3), c.lat.toFixed(5), c.lng.toFixed(5)].join('|');
@@ -516,14 +516,14 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       const { width, height } = m.size;
       if (width < 2 || height < 2) return;
       /* ★ 화면보다 **넓게** 칠한다. 딱 화면만 칠하면 조금만 끌어도 가장자리가 빈 채로 따라온다
-         (사용자: 「화면 바깥 나가면 사라지는데 정상인가요?」 — 정상 아니었다).
+         (사용자: 화면 바깥 나가면 사라지는데 정상인가요?. 정상 아니었다).
          사방으로 20% 씩(가로세로 각 1.4배) 더 물어 두면 어지간히 끌어도 채운 자리가 따라온다. */
       const PAD = 0.2;
       const padX = Math.round(width * PAD);
       const padY = Math.round(height * PAD);
       const owidth = width + padX * 2;
       const oheight = height + padY * 2;
-      /* 간격은 화면 크기에 맞춘다 — 큰 창일수록 성기게 물어야 전체 시간이 안 늘어난다. */
+      /* 간격은 화면 크기에 맞춘다. 큰 창일수록 성기게 물어야 전체 시간이 안 늘어난다. */
       let step = 3;
       while ((owidth / step) * (oheight / step) > 130000) step += 1;
       const cols = Math.max(1, Math.ceil(owidth / step));
@@ -531,7 +531,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       /* 새로 칠하는 동안 화면이 비지 않게, **있던 그림을 밑그림으로 깔고** 그 위에 덮어쓴다.
          안 그러면 멈출 때마다 영토가 사라졌다가 위에서부터 다시 채워진다(깜빡임).
 
-         ★ 순서가 전부다. `canvas.width` 는 **같은 값을 넣어도 지운다** — 먼저 크기를 맞추면
+         ★ 순서가 전부다. `canvas.width` 는 **같은 값을 넣어도 지운다**. 먼저 크기를 맞추면
          베낄 그림이 이미 지워진 뒤다(그렇게 짰다가 밑그림이 늘 빈 채였다). 베끼고, 맞추고, 얹는다. */
       const hadRaster = raster !== null && prevCtx !== null && off.width > 0 && off.height > 0;
       let a = { x: 0, y: 0 };
@@ -556,10 +556,10 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         cols,
         rows,
         step,
-        /* 「주인 없음」선 — **보이는 폭에 맞춘다.**
+        /* 주인 없음선. **보이는 폭에 맞춘다.**
            칸 간격(step)에 맞췄더니 확대할수록 선이 좁아져(2km) 시골에서는 화면이 통째로 비었다
-           (2026-08-20 실측: 강화 교동면에서 색이 하나도 안 남았다 — 가게가 2km 밖이라서).
-           보고 있는 폭의 60% 까지는 「그 땅의 주인」이라 부를 만하다. 20km 에서 끊는 것은 그대로 —
+           (2026-08-20 실측: 강화 교동면에서 색이 하나도 안 남았다. 가게가 2km 밖이라서).
+           보고 있는 폭의 60% 까지는 그 땅의 주인이라 부를 만하다. 20km 에서 끊는 것은 그대로 . 
            그 밖 가게를 주인이라 하는 건 어차피 거짓말이고, 이 값이 곧 걸리는 시간이다. */
         maxKm: Math.min(20, Math.max(2, m.kmPerPixel() * m.size.width * 0.6)),
         tl: m.unproject(-padX, -padY),
@@ -614,7 +614,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       raster = { tl: j.tl, br: j.br, industry: j.industry };
       job = null;
       map.redraw();
-      /* ★ 여기서 범례를 갱신하지 않는다. 갱신 → DOM 바뀜 → 크기 알림 → 다시 칠하기 → 또 갱신 …
+      /* ★ 여기서 범례를 갱신하지 않는다. 갱신 → DOM 바뀜 → 크기 알림 → 다시 칠하기 → 또 갱신 ...
          이 고리가 이 위젯을 세 번 멎게 했다 (2026-08-20). 범례는 **칠하기 전에** 한 번만 낸다. */
     }
 
@@ -628,7 +628,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     map.addPainter((ctx, m) => {
       const { width, height } = m.size;
       if (unitNow() === 'store' && raster !== null && off.width > 0) {
-        /* 칠할 때의 두 귀퉁이를 지금 화면에 다시 찍는다 — 그게 얹을 자리와 크기다. */
+        /* 칠할 때의 두 귀퉁이를 지금 화면에 다시 찍는다. 그게 얹을 자리와 크기다. */
         const a = m.project(raster.tl.lat, raster.tl.lng);
         const b = m.project(raster.br.lat, raster.br.lng);
         const w = b.x - a.x;
@@ -642,7 +642,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       paintDots(ctx, m, width, height);
     });
 
-    /** 구 경계는 **아주 옅게** 깐다 — 영토 색이 주인공이고 이건 그 위의 눈금이다.
+    /** 구 경계는 **아주 옅게** 깐다. 영토 색이 주인공이고 이건 그 위의 눈금이다.
         짚은 구만 밝은 테두리 + 살짝 밝힘. */
     function paintDistricts(ctx: CanvasRenderingContext2D, m: GeoMap): void {
       const list = areasNow();
@@ -662,9 +662,9 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         }
       };
       /* ── 개표 칠하기 ──
-         「선거 결과 지도」의 문법을 그대로 쓴다: **1등이 구 전체를 가져가고**, 진하기가 격차다.
-         압도적인 곳은 진하고 접전인 곳은 옅어서, 색만 봐도 「여긴 확실한 CU 땅, 저긴 반반」이 읽힌다.
-         얼룩(가게 단위) 지도는 사실에 가깝지만 전국을 볼 때는 모래알이라 판세가 안 보인다 —
+         선거 결과 지도의 문법을 그대로 쓴다: **1등이 구 전체를 가져가고**, 진하기가 격차다.
+         압도적인 곳은 진하고 접전인 곳은 옅어서, 색만 봐도 여긴 확실한 CU 땅, 저긴 반반이 읽힌다.
+         얼룩(가게 단위) 지도는 사실에 가깝지만 전국을 볼 때는 모래알이라 판세가 안 보인다 . 
          두 그림은 서로 다른 질문에 답한다. */
       if (mode !== 'store' && loaded !== null) {
         for (const d of list) {
@@ -676,7 +676,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
           const rgb = loaded.rgb.get(win[0]);
           if (rgb === undefined) continue;
           trace(d);
-          /* 진하기 = 격차. 다만 **바탕 지도가 비쳐야** 어디인지 읽힌다 — 가까이 볼수록(구 단위)
+          /* 진하기 = 격차. 다만 **바탕 지도가 비쳐야** 어디인지 읽힌다. 가까이 볼수록(구 단위)
              지명이 중요해지므로 한 겹 더 옅게 깐다. */
           const base = unitNow() === 'sido' ? 0.2 : 0.15;
           const span = unitNow() === 'sido' ? 0.32 : 0.28;
@@ -705,7 +705,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       }
     }
 
-    /* 마우스가 짚은 구를 따라간다 — 바뀔 때만 다시 그리고 순위표를 갈아 끼운다. */
+    /* 마우스가 짚은 구를 따라간다. 바뀔 때만 다시 그리고 순위표를 갈아 끼운다. */
     map.canvas.addEventListener('pointermove', (e) => {
       if (areasNow() === null) return;
       const rect = map.canvas.getBoundingClientRect();
@@ -740,14 +740,14 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 
 
     /* 움직이는 동안 성기게 → 멈추면 촘촘하게. */
-    /* 움직이는 동안에는 칠하지 않는다 — 있던 그림을 늘려 얹어 즉시 따라오게만 한다.
+    /* 움직이는 동안에는 칠하지 않는다. 있던 그림을 늘려 얹어 즉시 따라오게만 한다.
        손을 떼고 180ms 가 지나면 그때부터 조금씩 다시 칠한다. */
     map.onView(() => {
       window.clearTimeout(settle);
       settle = window.setTimeout(() => {
         /* ★ 화면이 실제로 달라졌을 때만 다시 칠한다.
            범례를 갱신하면 레이아웃이 흔들리고, 그게 크기 알림으로 돌아와 다시 칠하기를 부르고,
-           그 끝에서 또 범례를 갱신한다 — 칠하기가 첫 줄에서 영영 못 벗어난다 (2026-08-20 실측:
+           그 끝에서 또 범례를 갱신한다. 칠하기가 첫 줄에서 영영 못 벗어난다 (2026-08-20 실측:
            위쪽 몇 줄만 칠해진 채 멈춰 있었다). 같은 화면이면 아무것도 하지 않는 것이 답이다. */
         /* 확대율이 단위 문턱을 넘었으면 말하는 단위부터 갈아 끼운다. */
         const u = unitNow();
@@ -770,7 +770,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
     function updateSide(): void {
       if (loaded === null) return;
 
-      /* 구를 짚고 있으면 **그 구의 미리 잰 값**을 보여 준다 — 화면 기준 수와 달리 어제와 오늘이 같다.
+      /* 구를 짚고 있으면 **그 구의 미리 잰 값**을 보여 준다. 화면 기준 수와 달리 어제와 오늘이 같다.
          짚지 않았으면 지금 보이는 만큼을 즉석에서 센다. */
       const d = hovered;
       let title = d !== null ? d.name : t('territory.msg.owner', undefined, '지금 보이는 땅의 주인');
@@ -781,7 +781,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         countOf = (id) => d.stores[id] ?? 0;
       } else if (unitNow() !== 'store' && areasNow() !== null) {
         const list = areasNow() as District[];
-        /* 개표 모드의 순위표는 「몇 개 구에서 1등을 했나」다 — 선거에서 의석 수를 세는 것과 같다.
+        /* 개표 모드의 순위표는 몇 개 구에서 1등을 했나다. 선거에서 의석 수를 세는 것과 같다.
            땅 넓이 %(가게 단위)와는 다른 수라, 같은 자리에 다른 뜻을 넣지 않게 제목도 바꾼다. */
         const won = new Map<string, number>();
         let seen = 0;
@@ -805,13 +805,13 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
         countOf = (id) => byBrand.get(id)?.stores ?? 0;
       }
 
-      /* 순위표 — 색·이름·점포 수·**땅 넓이 막대**·%. 주인공은 면적이다.
+      /* 순위표. 색, 이름, 점포 수, **땅 넓이 막대**, %. 주인공은 면적이다.
          0% 인 브랜드는 여기 땅이 없다는 뜻이라 흐리게 남겨 둔다(사라지면 순위가 요동친다). */
       const brands = [...loaded.meta.brands].sort((a, b) => pctOf(b.id) - pctOf(a.id));
       const top = pctOf(brands[0]?.id ?? '') || 0;
 
-      /* 아무도 땅이 없으면 「전부 0.0%」를 늘어놓지 않는다 — 그건 순위표가 아니라 소음이고,
-         읽는 사람은 「고장났나」로 읽는다. 바다·산으로 나가면 실제로 이렇게 된다. */
+      /* 아무도 땅이 없으면 전부 0.0%를 늘어놓지 않는다. 그건 순위표가 아니라 소음이고,
+         읽는 사람은 고장났나로 읽는다. 바다, 산으로 나가면 실제로 이렇게 된다. */
       if (top <= 0) {
         legendEl.innerHTML =
           '<div class="terr-name">' + esc(title) + '</div>' +
@@ -846,17 +846,17 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
       noteEl.innerHTML =
         '<div>' +
         (d !== null
-          ? esc(t('territory.msg.districtHint', undefined, '구 하나를 짚고 있다 — 미리 재 둔 값이다. 지도를 벗어나면 화면 기준으로 돌아간다.'))
+          ? esc(t('territory.msg.districtHint', undefined, '구 하나를 짚고 있다. 미리 재 둔 값이다. 지도를 벗어나면 화면 기준으로 돌아간다.'))
           : unitNow() !== 'store'
             ? esc(t('territory.msg.electionHint', undefined, '구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다.'))
             : esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.'))) +
         '</div>' +
         '<div style="opacity:.62;font-size:11px;margin-top:2px">' +
-        esc(loaded.meta.source) + ' · ' + total.toLocaleString('ko-KR') + esc(t('territory.msg.stores', undefined, '곳')) +
-        ' · ' + esc(t('territory.msg.boundary', undefined, '경계: 통계청 시군구(2018)')) +
+        esc(loaded.meta.source) + ', ' + total.toLocaleString('ko-KR') + esc(t('territory.msg.stores', undefined, '곳')) +
+        ', ' + esc(t('territory.msg.boundary', undefined, '경계: 통계청 시군구(2018)')) +
         (loaded.meta.sample
-          ? ' · <span class="terr-warn">' +
-            esc(t('territory.msg.sample', undefined, '표본 주의 — OSM 에 등록된 가게만이라 실제의 3분의 1 수준이다. 동네 단위로는 빠진 가게가 있다.')) +
+          ? ', <span class="terr-warn">' +
+            esc(t('territory.msg.sample', undefined, '표본 주의. OSM 에 등록된 가게만이라 실제의 3분의 1 수준이다. 동네 단위로는 빠진 가게가 있다.')) +
             '</span>'
           : '') +
         '</div>';

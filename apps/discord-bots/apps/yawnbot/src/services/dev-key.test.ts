@@ -15,7 +15,7 @@ describe('열쇠 두 개 (카드 / 개발 콘솔)', () => {
   });
 
   it('카드 키로는 개발 콘솔이 안 열린다', () => {
-    // 이게 이 분리의 전부다 — 카드를 남에게 줘도 속은 안 보여야 한다.
+    // 이게 이 분리의 전부다. 카드를 남에게 줘도 속은 안 보여야 한다.
     const state = emptyState();
     const share = getOrCreateShareKey(state, 'g1');
     getOrCreateDevKey(state, 'g1');

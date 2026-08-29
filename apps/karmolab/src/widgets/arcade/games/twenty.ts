@@ -1,8 +1,8 @@
 /**
- * 스무고개 — 예/아니오로 좁힌다 (TASK-KL-242)
+ * 스무고개. 예/아니오로 좁힌다 (TASK-KL-242)
  *
- * 지금까지는 **모두가 같은 판을 봤다**(감춘 것이 있어도 「어디에 있나」는 대칭이었다).
- * 이건 다르다: 한 사람이 답을 쥐고, 나머지가 묻는다 — **역할이 비대칭인 첫 놀이**다.
+ * 지금까지는 **모두가 같은 판을 봤다**(감춘 것이 있어도 어디에 있나는 대칭이었다).
+ * 이건 다르다: 한 사람이 답을 쥐고, 나머지가 묻는다. **역할이 비대칭인 첫 놀이**다.
  *
  * 커널이 이걸 감당하는 법: 답 쥔 자리를 상태에 두고 `redact` 로 **그 사람만** 답을 보게 한다.
  * 자리마다 다른 판을 보내는 구조라 여기서도 새 기능이 필요 없었다.
@@ -16,7 +16,7 @@ const MAX_ASKS = 20;
 export interface TwentyState {
   /** 정답 번호 (말 묶음의 낱말 차례). **답 쥔 사람만 본다** */
   answer: number;
-  /** 후보 개수 — 화면이 넣어 준다 */
+  /** 후보 개수. 화면이 넣어 준다 */
   pool: number;
   /** 답을 쥔 자리 */
   keeper: number;
@@ -37,11 +37,11 @@ export type TwentyAction =
   | { kind: 'guess'; pick: number };
 
 /**
- * 낱말·질문·**사실표**를 화면(말 묶음)이 넣어 준다.
+ * 낱말, 질문, **사실표**를 화면(말 묶음)이 넣어 준다.
  *
  * 사실표가 왜 여기 있어야 하나: 봇이 답을 쥐면 예/아니오를 **진짜로** 내야 한다. 대충 지어내면
- * 「살아 있나요?」에 아무 답이나 나오고, 그러면 좁혀 갈 수가 없어 놀이가 성립하지 않는다.
- * 낱말이 말마다 다르니 사실도 말 묶음에 있어야 한다 — 규칙 파일은 무엇이 참인지 모른다.
+ * 살아 있나요?에 아무 답이나 나오고, 그러면 좁혀 갈 수가 없어 놀이가 성립하지 않는다.
+ * 낱말이 말마다 다르니 사실도 말 묶음에 있어야 한다. 규칙 파일은 무엇이 참인지 모른다.
  */
 let POOL = 12;
 let QUESTIONS = 10;
@@ -65,7 +65,7 @@ export const twenty: GameDef<TwentyState, TwentyAction> = {
   rounds: 2,
 
   init(ctx) {
-    /* 판마다 답 쥔 사람이 바뀐다 — 한 사람만 계속 답을 쥐면 나머지는 늘 같은 일만 한다. */
+    /* 판마다 답 쥔 사람이 바뀐다. 한 사람만 계속 답을 쥐면 나머지는 늘 같은 일만 한다. */
     const keeper = ctx.round % ctx.seats.length;
     return {
       answer: Math.floor(ctx.rng() * POOL),
@@ -147,7 +147,7 @@ export const twenty: GameDef<TwentyState, TwentyAction> = {
 
     if (s.pending >= 0) {
       if (seat !== s.keeper) return null;
-      /* 봇이 답을 쥐었다 — **사실표대로** 답한다. 지어내면 좁혀 갈 수가 없어 놀이가 안 된다. */
+      /* 봇이 답을 쥐었다. **사실표대로** 답한다. 지어내면 좁혀 갈 수가 없어 놀이가 안 된다. */
       const yes = factOf(s.answer, s.pending);
       return { action: { kind: 'answer', yes }, delayMs: 700 + ctx.rng() * 500 };
     }

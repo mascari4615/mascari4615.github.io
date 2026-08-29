@@ -2,7 +2,7 @@
   "name": "@karmo/pose",
   "version": "0.1.0",
   "private": true,
-  "description": "KarmoPose — 손·폰·마우스를 한 그릇으로. 자리(pose)와 사건(pinch·grab)을 같은 모양으로 낸다.",
+  "description": "KarmoPose. 손, 폰, 마우스를 한 그릇으로. 자리(pose)와 사건(pinch, grab)을 같은 모양으로 낸다.",
   "type": "module",
   "main": "src/index.mjs",
   "exports": {

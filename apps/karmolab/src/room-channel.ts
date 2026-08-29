@@ -1,20 +1,20 @@
 /**
- * 방으로 가는 관 하나 (change.copresence-hardening 1·2단계).
+ * 방으로 가는 관 하나 (change.copresence-hardening 1, 2단계).
  *
- * 여기는 **커서를 모른다.** 아는 것은 셋뿐이다: 지금 어느 방인가 · 그 방으로 무엇을 보내는가 ·
+ * 여기는 **커서를 모른다.** 아는 것은 셋뿐이다: 지금 어느 방인가, 그 방으로 무엇을 보내는가 , 
  * 그 방에서 무엇이 오는가. 커서든 지구본이든 함께 편집이든 이 관의 손님이다.
  *
- * 왜 갈랐나: 「같이 쓰기 끔」이 관까지 끄고 있었다. 그건 프라이버시 스위치가 아니라
- * 남의 기능을 끄는 스위치다 — 커서를 껐다고 같이 보던 지구본이 멈출 이유가 없다.
+ * 왜 갈랐나: 같이 쓰기 끔이 관까지 끄고 있었다. 그건 프라이버시 스위치가 아니라
+ * 남의 기능을 끄는 스위치다. 커서를 껐다고 같이 보던 지구본이 멈출 이유가 없다.
  *
  * ── 한 사람 = 한 연결 ─────────────────────────────────────────────
  *
- * 탭을 셋 열면 서버에는 세 사람이 있었다. 그 셋은 같은 이름·같은 색이고, 앞에 있는 하나
- * 말고는 전부 얼어붙어 있다 — 남이 보기엔 **유령 둘**이고, 「지금 N명」은 그만큼 부풀었다.
+ * 탭을 셋 열면 서버에는 세 사람이 있었다. 그 셋은 같은 이름, 같은 색이고, 앞에 있는 하나
+ * 말고는 전부 얼어붙어 있다. 남이 보기엔 **유령 둘**이고, 지금 N명은 그만큼 부풀었다.
  *
  * 그래서 같은 브라우저의 같은 방 탭들끼리 **대표 하나**를 뽑는다. 대표만 연결을 열고,
  * 받은 것을 다른 탭에 그대로 넘긴다. 보내는 것도 대표를 거친다.
- * 대표는 **보고 있는 탭** 우선 — 안 보는 화면의 좌표는 소식이 아니라 소음이라서다.
+ * 대표는 **보고 있는 탭** 우선. 안 보는 화면의 좌표는 소식이 아니라 소음이라서다.
  */
 
 import { toolIdFromPath } from './lib/site-base';
@@ -22,7 +22,7 @@ import { deviceId } from './identity';
 
 /**
  * 어디에 붙을까. 기본은 노트북의 그 서버다.
- * `window.KARMOLAB_API_BASE` 를 두면 그쪽으로 — 로컬 봇에 붙여 확인하는 길이다.
+ * `window.KARMOLAB_API_BASE` 를 두면 그쪽으로. 로컬 봇에 붙여 확인하는 길이다.
  */
 export const API_BASE =
     (typeof window !== 'undefined' && (window as { KARMOLAB_API_BASE?: string }).KARMOLAB_API_BASE) ||
@@ -40,13 +40,13 @@ const SEND_MS = 50;
  */
 const KEEPALIVE_MS = 10 * 1000;
 
-/** 다시 들어가기를 이보다 자주는 안 한다 — 서버가 계속 「없다」고 하면 붙었다 떨어졌다 하게 된다. */
+/** 다시 들어가기를 이보다 자주는 안 한다. 서버가 계속 없다고 하면 붙었다 떨어졌다 하게 된다. */
 const REJOIN_MIN_MS = 3 * 1000;
 
-/** 탭끼리 서로 「나 여기 있다」를 말하는 주기. */
+/** 탭끼리 서로 나 여기 있다를 말하는 주기. */
 const PEER_PING_MS = 1000;
 
-/** 이만큼 조용한 탭은 닫힌 것으로 본다 — 대표가 사라져도 3초 안에 다음 대표가 선다. */
+/** 이만큼 조용한 탭은 닫힌 것으로 본다. 대표가 사라져도 3초 안에 다음 대표가 선다. */
 const PEER_IDLE_MS = 3 * PEER_PING_MS;
 
 export interface RoomMember {
@@ -56,7 +56,7 @@ export interface RoomMember {
     handle: string | null;
     x: number;
     y: number;
-    /** 글 기준 자리 — 없을 수도 있다(옛 화면·잴 수 없는 경우). */
+    /** 글 기준 자리. 없을 수도 있다(옛 화면, 잴 수 없는 경우). */
     dx?: number | null;
     dy?: number | null;
     active: boolean;
@@ -76,10 +76,10 @@ const roomListeners = new Set<RoomListener>();
 let source: EventSource | null = null;
 let roomId: string | null = null;
 interface Spot {
-    /** 화면 기준 비율 — 언제나 있다(옛 화면도 이걸로 그린다). */
+    /** 화면 기준 비율. 언제나 있다(옛 화면도 이걸로 그린다). */
     x: number;
     y: number;
-    /** 글 기준 비율 — 스크롤이 달라도 같은 문단을 가리키게 한다. 잴 수 없으면 null. */
+    /** 글 기준 비율. 스크롤이 달라도 같은 문단을 가리키게 한다. 잴 수 없으면 null. */
     dx: number | null;
     dy: number | null;
     active: boolean;
@@ -135,7 +135,7 @@ function onPeerMessage(message: PeerMessage): void {
         electLeader();
         return;
     }
-    // 아래 둘은 **같은 방**일 때만 뜻이 있다 — 다른 도구를 연 탭의 소식은 남의 방 소식이다.
+    // 아래 둘은 **같은 방**일 때만 뜻이 있다. 다른 도구를 연 탭의 소식은 남의 방 소식이다.
     if (message.room !== roomId) return;
     if (message.kind === 'event') {
         for (const fn of eventListeners) fn(message.event, message.data);
@@ -145,12 +145,12 @@ function onPeerMessage(message: PeerMessage): void {
         for (const fn of opListeners) fn(message.op, message.from);
         return;
     }
-    // 대표가 아닌 탭이 보내 달라고 넘긴 것 — 대표만 실어 나른다.
+    // 대표가 아닌 탭이 보내 달라고 넘긴 것. 대표만 실어 나른다.
     if (message.kind === 'op-out' && leader) postOp(message.op);
 }
 
 /**
- * 대표 뽑기 — **보고 있는 탭 우선**, 같으면 이름이 작은 탭.
+ * 대표 뽑기. **보고 있는 탭 우선**, 같으면 이름이 작은 탭.
  * 규칙이 모든 탭에서 같으므로 서로 합의할 필요가 없다(투표도, 잠금도 없다).
  */
 function electLeader(): void {
@@ -191,14 +191,14 @@ export function isRoomLeader(): boolean {
 
 function emit(kind: RoomEventKind, data: unknown): void {
     for (const fn of eventListeners) fn(kind, data);
-    // 대표가 본 것은 같은 방 다른 탭도 봐야 한다 — 그 탭들에는 연결이 없다.
+    // 대표가 본 것은 같은 방 다른 탭도 봐야 한다. 그 탭들에는 연결이 없다.
     if (leader) post({ kind: 'event', tab: TAB_ID, room: roomId ?? '', event: kind, data });
 }
 
 function connect(): void {
     if (!roomId || source || !leader) return;
     const room = roomId;
-    /* 기기 id 를 **주소에 싣는다** — 흐르는 연결(EventSource)에는 머리를 못 단다.
+    /* 기기 id 를 **주소에 싣는다**. 흐르는 연결(EventSource)에는 머리를 못 단다.
        쿠키에 기대면 다른 도메인이라 브라우저가 막을 수 있고, 그러면 방 인원이 다시
        창 수를 세게 된다 (change.identity-one). */
     const stream = `${API_BASE}/kl/room/${encodeURIComponent(room)}/stream?tab=${TAB_ID}&dev=${encodeURIComponent(deviceId())}`;
@@ -234,7 +234,7 @@ function disconnect(kind: RoomEventKind | null): void {
 
 function flush(): void {
     if (!roomId || !leader) return;
-    // 안 움직여도 가끔은 말한다 — 침묵이 곧 나감으로 읽히기 때문이다.
+    // 안 움직여도 가끔은 말한다. 침묵이 곧 나감으로 읽히기 때문이다.
     if (!pending && document.visibilityState === 'visible' && Date.now() - lastSentAt >= KEEPALIVE_MS) {
         pending = { ...last };
     }
@@ -250,11 +250,11 @@ function flush(): void {
     })
         .then((res) => (res.ok ? res.json() : null))
         .then((data: { moved?: boolean } | null) => {
-            // 「그런 사람 없다」 = 이미 내보내진 것이다. 다시 들어간다.
+            // 그런 사람 없다 = 이미 내보내진 것이다. 다시 들어간다.
             if (data && data.moved === false) rejoin();
         })
         .catch(() => {
-            /* 한 번 못 보낸 좌표는 버린다 — 다음 좌표가 곧 온다 */
+            /* 한 번 못 보낸 좌표는 버린다. 다음 좌표가 곧 온다 */
         });
 }
 
@@ -277,13 +277,13 @@ export function joinRoom(next: string): void {
     connect();
 }
 
-/** 내 자리를 알린다. 대표가 아니면 안 보낸다 — 한 사람이 커서 셋일 이유가 없다. */
+/** 내 자리를 알린다. 대표가 아니면 안 보낸다. 한 사람이 커서 셋일 이유가 없다. */
 export function sendMove(x: number, y: number, active: boolean, doc?: { dx: number | null; dy: number | null }): void {
     last = { x, y, dx: doc?.dx ?? null, dy: doc?.dy ?? null, active };
     if (leader) pending = { ...last };
 }
 
-/** 「이제 안 보인다」 — 보낼 것이 비어 있어도 새로 만든다(안 그러면 유령 커서가 남는다). */
+/** 이제 안 보인다. 보낼 것이 비어 있어도 새로 만든다(안 그러면 유령 커서가 남는다). */
 export function sendInactive(): void {
     last = { ...last, active: false };
     if (leader) pending = { ...last };
@@ -314,13 +314,13 @@ export function onRoomOp(fn: OpListener): () => void {
     return () => opListeners.delete(fn);
 }
 
-/** 방 사람들의 소식(들어옴·움직임·나감)을 듣는다. */
+/** 방 사람들의 소식(들어옴, 움직임, 나감)을 듣는다. */
 export function onRoomEvent(fn: EventListener): () => void {
     eventListeners.add(fn);
     return () => eventListeners.delete(fn);
 }
 
-/** 방이 바뀌는 순간을 듣는다 — 방마다 따로 사는 것(함께 쓰는 글 같은 것)이 있다. */
+/** 방이 바뀌는 순간을 듣는다. 방마다 따로 사는 것(함께 쓰는 글 같은 것)이 있다. */
 export function onRoomChange(fn: RoomListener): () => void {
     roomListeners.add(fn);
     return () => roomListeners.delete(fn);
@@ -330,7 +330,7 @@ export function onRoomChange(fn: RoomListener): () => void {
  * 화면이 바뀌면 방도 바뀐다.
  *
  * 예전엔 `hashchange` 만 들었다. 셸이 `pushState` 로 옮기는 자리(도구 상세 주소)는 그 신호가
- * 안 와서 **옛 방에 남아 있었다** — 다른 도구를 보면서 남의 커서는 이전 도구 것을 보는 상태다.
+ * 안 와서 **옛 방에 남아 있었다**. 다른 도구를 보면서 남의 커서는 이전 도구 것을 보는 상태다.
  */
 function watchRoute(): void {
     const bump = (): void => joinRoom(currentRoom());
@@ -350,7 +350,7 @@ function start(): void {
     joinRoom(currentRoom());
     watchRoute();
     document.addEventListener('visibilitychange', () => {
-        // 보이는 탭이 대표가 되는 것이 옳다 — 사람은 그 탭을 보고 있다.
+        // 보이는 탭이 대표가 되는 것이 옳다. 사람은 그 탭을 보고 있다.
         post({ kind: 'alive', tab: TAB_ID, room: roomId ?? '', visible: document.visibilityState === 'visible' });
         electLeader();
         if (document.visibilityState === 'visible') lastSentAt = 0;

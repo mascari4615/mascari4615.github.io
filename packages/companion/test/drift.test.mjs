@@ -4,7 +4,7 @@ import test from 'node:test';
 import { checkDrift, driftWarning } from '../dist/index.js';
 
 test('반말로 짧게 말하면 안 샌 것이다', () => {
-  assert.equal(checkDrift('응… 그러게. 오늘은 그만해도 돼.').drifted, false);
+  assert.equal(checkDrift('응... 그러게. 오늘은 그만해도 돼.').drifted, false);
 });
 
 test('존댓말이 끼면 샌 것으로 본다', () => {
@@ -53,7 +53,7 @@ test('샌 적이 있으면 다음 번에 짚어 준다', () => {
 });
 
 test('안 샜으면 잔소리도 없다', () => {
-  const recent = [{ role: 'said', channel: 'web', text: '응… 그러게.', at: 1 }];
+  const recent = [{ role: 'said', channel: 'web', text: '응... 그러게.', at: 1 }];
   assert.equal(driftWarning(recent), '');
 });
 
@@ -61,7 +61,7 @@ test('한 말이 없으면 짚을 것도 없다', () => {
   assert.equal(driftWarning([{ role: 'sensed', channel: 'web', text: '안녕', at: 1 }]), '');
 });
 
-test('가장 최근 것 하나만 짚는다 — 잔소리가 길면 그게 또 다른 표류가 된다', () => {
+test('가장 최근 것 하나만 짚는다. 잔소리가 길면 그게 또 다른 표류가 된다', () => {
   const recent = [
     { role: 'said', channel: 'web', text: '도와드리겠습니다', at: 1 },
     { role: 'said', channel: 'web', text: '말씀해 주세요', at: 2 },
@@ -77,14 +77,14 @@ import { avoidanceWarning } from '../dist/index.js';
 
 const text2 = (text, at) => ({ role: 'said', channel: 'web', text, at });
 
-test('한 번 모른다고 한 건 솔직한 것이다 — 짚지 않는다', () => {
-  assert.equal(avoidanceWarning([text2('음… 그건 잘 모르겠어', 1), text2('소파에서 잤어', 2)]), '');
+test('한 번 모른다고 한 건 솔직한 것이다. 짚지 않는다', () => {
+  assert.equal(avoidanceWarning([text2('음... 그건 잘 모르겠어', 1), text2('소파에서 잤어', 2)]), '');
 });
 
-test('연달아 모른다고만 하면 벽이다 — 짚는다', () => {
+test('연달아 모른다고만 하면 벽이다. 짚는다', () => {
   const note = avoidanceWarning([
-    text2('음… 잘 모르는데', 1),
-    text2('그것도 모르겠어…', 2),
+    text2('음... 잘 모르는데', 1),
+    text2('그것도 모르겠어...', 2),
     text2('게임은 정말 모르는데', 3),
   ]);
   assert.match(note, /넘겼다/);
@@ -103,12 +103,12 @@ test('한 마디밖에 안 했으면 판단하지 않는다', () => {
   assert.equal(avoidanceWarning([text2('모르겠어', 1)]), '');
 });
 
-test('「그렇구나」 만 하는 것도 회피로 본다', () => {
+test('그렇구나 만 하는 것도 회피로 본다', () => {
   const note = avoidanceWarning([text2('그렇구나', 1), text2('그렇군', 2)]);
   assert.match(note, /넘겼다/);
 });
 
-test('사람이 한 말은 세지 않는다 — 얘가 회피했는지를 보는 것이다', () => {
+test('사람이 한 말은 세지 않는다. 얘가 회피했는지를 보는 것이다', () => {
   assert.equal(avoidanceWarning([
     { role: 'sensed', channel: 'web', text: '나도 모르겠어', at: 1 },
     { role: 'sensed', channel: 'web', text: '진짜 모르겠다', at: 2 },
@@ -118,7 +118,7 @@ test('사람이 한 말은 세지 않는다 — 얘가 회피했는지를 보는
 
 // ── 높임말은 끝에서 난다 (87회차) ──────────────────────────────────
 
-test('해요체를 놓치지 않는다 — 「해요」만 막아 놓으니 예요·어요·세요가 다 빠져나갔다', () => {
+test('해요체를 놓치지 않는다. 해요만 막아 놓으니 예요, 어요, 세요가 다 빠져나갔다', () => {
   // 실측: 라이브에서 얘가 이렇게 말하는데 검사가 조용했다
   for (const text3 of [
     '지금까지 대화 기록에 내용이 없는 상태예요',
@@ -133,8 +133,8 @@ test('해요체를 놓치지 않는다 — 「해요」만 막아 놓으니 예�
   }
 });
 
-test('넓혔어도 얘 결은 안 걸린다 — 반말엔 「요」가 안 붙는다', () => {
-  for (const text4 of ['또야… 오늘따라 걔가 너 싫어하나 보다.', '그거 아직 붙잡고 있어?', '응…', '뭐가 재밌었는데.', '오늘 좀 힘들었겠네', '같이 볼까', '그래.']) {
+test('넓혔어도 얘 결은 안 걸린다. 반말엔 요가 안 붙는다', () => {
+  for (const text4 of ['또야... 오늘따라 걔가 너 싫어하나 보다.', '그거 아직 붙잡고 있어?', '응...', '뭐가 재밌었는데.', '오늘 좀 힘들었겠네', '같이 볼까', '그래.']) {
     assert.equal(checkDrift(text4).drifted, false, `헛잡았다: ${text4}`);
   }
 });

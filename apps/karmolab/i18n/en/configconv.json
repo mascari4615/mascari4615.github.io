@@ -9,8 +9,8 @@
   "configconv.btn.copy": "Copy",
   "configconv.status.idle": "Paste a config file",
   "configconv.status.ok": "Converted {from} to {to}",
-  "configconv.status.same": "Already {kind} — pick a different target",
-  "configconv.status.bad": "Could not convert — {msg}",
+  "configconv.status.same": "Already {kind}. pick a different target",
+  "configconv.status.bad": "Could not convert. {msg}",
   "configconv.copy.done": "Copied",
   "configconv.note.limits": "Deliberately not handled: YAML anchors/aliases and multi-document files, TOML date formats. .env and .properties are flat, so nesting is written with dots (a.b)."
 }

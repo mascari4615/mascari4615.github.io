@@ -10,6 +10,6 @@
   "reference.t02": "検索結果がありません。",
   "reference.tapToCopy": "項目を押すとクリップボードにコピーされます。",
   "reference.copiedItem": "{noun}をコピー: {value}",
-  "reference.countNote": "{n}件 · {note}",
+  "reference.countNote": "{n}件, {note}",
   "reference.tapCopies": "押すとコピーされます。"
 }

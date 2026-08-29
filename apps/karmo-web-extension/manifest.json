@@ -3,8 +3,11 @@
   "name": "KarmoWebExtension",
   "short_name": "Karmo",
   "version": "0.5.1",
-  "description": "방송·시청 페이지와 로컬 앱(chat-overlay 등) 연결 + 즐겨찾기 일괄 정리.",
-  "permissions": ["storage", "bookmarks"],
+  "description": "방송, 시청 페이지와 로컬 앱(chat-overlay 등) 연결 + 즐겨찾기 일괄 정리.",
+  "permissions": [
+    "storage",
+    "bookmarks"
+  ],
   "host_permissions": [
     "https://chzzk.naver.com/*",
     "https://*.chzzk.naver.com/*",
@@ -20,7 +23,9 @@
         "https://chzzk.naver.com/*",
         "https://*.chzzk.naver.com/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],

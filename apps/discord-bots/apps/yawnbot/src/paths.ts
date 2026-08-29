@@ -9,7 +9,7 @@ import os from 'os';
 import path from 'path';
 
 /**
- * `.env`의 CURSOR_LOCAL_REPO_DIR — `~`·`%NAME%`(Windows)만 풀어서 절대 경로로 만듭니다.
+ * `.env`의 CURSOR_LOCAL_REPO_DIR. `~`, `%NAME%`(Windows)만 풀어서 절대 경로로 만듭니다.
  */
 export function resolveCursorRepoDir(raw: string | undefined | null): string {
   if (raw == null) return '';
@@ -28,7 +28,7 @@ export function resolveCursorRepoDir(raw: string | undefined | null): string {
 export const PKG_ROOT = path.resolve(__dirname, '..', '..');
 
 /**
- * 이 패키지가 `…/apps/discord-bots/apps/yawnbot`에 있다고 가정할 때의 git 워크스페이스 루트(레포 최상위).
+ * 이 패키지가 `.../apps/discord-bots/apps/yawnbot`에 있다고 가정할 때의 git 워크스페이스 루트(레포 최상위).
  * 클론을 어디에 두었는지(`source\repos` 등)와 무관합니다.
  */
 export function defaultCursorRepoRoot(): string {
@@ -63,7 +63,7 @@ export function memeImgDir(): string {
   return path.join(PKG_ROOT, 'resources', 'img', 'meme');
 }
 
-/** `/music sound clip:` — 이 폴더 안의 파일명만 허용 (경로 조작 방지) */
+/** `/music sound clip:`. 이 폴더 안의 파일명만 허용 (경로 조작 방지) */
 export function packagedAudioDir(): string {
   return path.join(PKG_ROOT, 'resources', 'audio');
 }

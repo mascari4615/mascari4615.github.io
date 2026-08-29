@@ -11,7 +11,7 @@
   "mermaidlite.status.ok": "ノード {nodes} 個・つながり {edges} 個を描きました",
   "mermaidlite.status.savedSvg": "SVG で保存しました",
   "mermaidlite.status.savedPng": "PNG で保存しました",
-  "mermaidlite.status.pngFail": "PNG にできませんでした — SVG で保存してください",
+  "mermaidlite.status.pngFail": "PNG にできませんでした. SVG で保存してください",
   "mermaidlite.copy.done": "SVG をコピーしました",
   "mermaidlite.note.subset": "mermaid 全部ではなく、フローチャート(flowchart・graph)と表の関係(erDiagram)だけです。subgraph・class・style はまだ読みません。読めなかった行は編集欄の下にそのまま出します。"
 }

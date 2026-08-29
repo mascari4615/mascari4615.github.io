@@ -4,7 +4,7 @@
   "blocks": [
     {
       "type": "p",
-      "text": "서명 없는 앱은 **「알 수 없는 개발자」 경고**를 만나고, 대부분의 사용자는 거기서 닫는다."
+      "text": "서명 없는 앱은 **알 수 없는 개발자 경고**를 만나고, 대부분의 사용자는 거기서 닫는다."
     },
     {
       "type": "h",
@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "text",
       "label": "대략의 요구",
-      "text": "macOS   : Apple Developer 계정 → 코드 서명 → 공증(notarize) → 스테이플\nWindows : 코드 서명 인증서(OV/EV) → signtool. EV 는 SmartScreen 경고를 빨리 없앤다\nLinux   : AppImage · deb · rpm · Flatpak — 서명보다 배포 채널이 문제"
+      "text": "macOS   : Apple Developer 계정 → 코드 서명 → 공증(notarize) → 스테이플\nWindows : 코드 서명 인증서(OV/EV) → signtool. EV 는 SmartScreen 경고를 빨리 없앤다\nLinux   : AppImage, deb, rpm, Flatpak. 서명보다 배포 채널이 문제"
     },
     {
       "type": "note",
@@ -36,7 +36,7 @@
     },
     {
       "type": "p",
-      "text": "설치본 크기·설치 시간·기본 설치 경로·바로가기 생성 여부. macOS 는 「드래그해서 Applications 로」가 관례고, Windows 는 설치 마법사가 흔하다. **관례를 따르는 것**이 가장 친절하다."
+      "text": "설치본 크기, 설치 시간, 기본 설치 경로, 바로가기 생성 여부. macOS 는 드래그해서 Applications 로가 관례고, Windows 는 설치 마법사가 흔하다. **관례를 따르는 것**이 가장 친절하다."
     },
     {
       "type": "h",
@@ -44,7 +44,7 @@
     },
     {
       "type": "note",
-      "text": "설치 직후 첫 실행이 가장 중요한 순간이다 — 권한 요청은 **필요할 때** 하고, 온보딩은 짧게, 그리고 **바로 쓸 수 있는 상태**로 시작하라(빈 화면 금지)."
+      "text": "설치 직후 첫 실행이 가장 중요한 순간이다. 권한 요청은 **필요할 때** 하고, 온보딩은 짧게, 그리고 **바로 쓸 수 있는 상태**로 시작하라(빈 화면 금지)."
     },
     {
       "type": "h",
@@ -52,7 +52,7 @@
     },
     {
       "type": "p",
-      "text": "Mac App Store·Microsoft Store 는 발견성과 신뢰를 주지만 **샌드박스 제약**과 심사가 따라온다. 파일 접근이 핵심인 앱은 직접 배포가 나은 경우가 많다."
+      "text": "Mac App Store, Microsoft Store 는 발견성과 신뢰를 주지만 **샌드박스 제약**과 심사가 따라온다. 파일 접근이 핵심인 앱은 직접 배포가 나은 경우가 많다."
     },
     {
       "type": "h",

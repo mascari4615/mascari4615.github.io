@@ -46,7 +46,7 @@
         },
         {
           "id": "TASK-WM-056",
-          "title": "TASK-QUALITY-OK 시리즈 통합 인덱스 (TASK-KAR-156 Phase2) — 발화인용은 부모 KAR-156",
+          "title": "TASK-QUALITY-OK 시리즈 통합 인덱스 (TASK-KAR-156 Phase2). 발화인용은 부모 KAR-156",
           "status": "in_progress",
           "statusLabel": "하는 중",
           "priority": "medium",
@@ -238,7 +238,7 @@
         },
         {
           "id": "TASK-WM-406",
-          "title": "방치형 곡선 MVP-0 — 업그레이드 누르는 맛이 있나",
+          "title": "방치형 곡선 MVP-0. 업그레이드 누르는 맛이 있나",
           "status": "in_progress",
           "statusLabel": "하는 중",
           "priority": "high",
@@ -246,7 +246,7 @@
         },
         {
           "id": "TASK-WM-407",
-          "title": "DomainSDK 32개 도메인을 각자 조각으로 — 순환이 0이라 지금 할 수 있다",
+          "title": "DomainSDK 32개 도메인을 각자 조각으로. 순환이 0이라 지금 할 수 있다",
           "status": "in_progress",
           "statusLabel": "하는 중",
           "priority": "high",
@@ -262,7 +262,7 @@
         },
         {
           "id": "TASK-WM-409",
-          "title": "제품 경계 — Resources 탈피와 빌드 예산",
+          "title": "제품 경계. Resources 탈피와 빌드 예산",
           "status": "in_progress",
           "statusLabel": "하는 중",
           "priority": "high",
@@ -404,7 +404,7 @@
         },
         {
           "id": "TASK-WM-161",
-          "title": "TASK-WM-161 — 카메라 가림 판정 (component-based, layer 슬롯 무점유)",
+          "title": "TASK-WM-161. 카메라 가림 판정 (component-based, layer 슬롯 무점유)",
           "status": "hold",
           "statusLabel": "멈춤",
           "priority": "medium",
@@ -522,7 +522,7 @@
       "items": [
         {
           "id": "TASK-WM-209-HANDOFF",
-          "title": "이 문서는 <b>끝난 세션의 스냅샷</b>이다 — 되살아날 일이 없으므로 봉인(sealed).",
+          "title": "이 문서는 <b>끝난 세션의 스냅샷</b>이다. 되살아날 일이 없으므로 봉인(sealed).",
           "status": "sealed",
           "statusLabel": "닫힘",
           "priority": "high",
@@ -530,7 +530,7 @@
         },
         {
           "id": "TASK-WM-191",
-          "title": "네트워크 플레이어 아바타 — 풀 인형 (A: MC/Stardew식)",
+          "title": "네트워크 플레이어 아바타. 풀 인형 (A: MC/Stardew식)",
           "status": "sealed",
           "statusLabel": "닫힘",
           "priority": "normal",
@@ -586,7 +586,7 @@
         },
         {
           "id": "TASK-WM-104",
-          "title": "TASK-QUALITY-OK parent(TASK-WM-085 Phase E) 파생 인프라 sub-TASK — 직접 사용자 발화 없음(origin 발화 = 상위 WM-085 + 6-동기 「퀄리티」 canon). slot-C /loop 자율 스카우트로 진입.",
+          "title": "TASK-QUALITY-OK parent(TASK-WM-085 Phase E) 파생 인프라 sub-TASK. 직접 사용자 발화 없음(origin 발화 = 상위 WM-085 + 6-동기 퀄리티 canon). slot-C /loop 자율 스카우트로 진입.",
           "status": "sealed",
           "statusLabel": "닫힘",
           "priority": "low",
@@ -680,7 +680,7 @@
         },
         {
           "id": "TASK-WM-208",
-          "title": "TASK-QUALITY-OK 사용자 발화가 아니라 quality-loop 자동 감지로 시드된 건 — 인용할 원본 발화가 없다 (본문 § 왜 에 사용자 실증 인용은 있음)",
+          "title": "TASK-QUALITY-OK 사용자 발화가 아니라 quality-loop 자동 감지로 시드된 건. 인용할 원본 발화가 없다 (본문 § 왜 에 사용자 실증 인용은 있음)",
           "status": "in_review",
           "statusLabel": "in_review",
           "priority": "normal",
@@ -688,7 +688,7 @@
         },
         {
           "id": "TASK-WM-209",
-          "title": "TASK-QUALITY-OK 사용자 발화가 아니라 사고(2026-08-07 대량 삭제)에서 나온 건 — 인용할 원본 발화가 없다. 사고 실측은 본문 § 왜 에 있다.",
+          "title": "TASK-QUALITY-OK 사용자 발화가 아니라 사고(2026-08-07 대량 삭제)에서 나온 건. 인용할 원본 발화가 없다. 사고 실측은 본문 § 왜 에 있다.",
           "status": "in_review",
           "statusLabel": "in_review",
           "priority": "high",

@@ -1,8 +1,8 @@
 /**
- * 보안 헤더 — 읽고, 짓고 (TASK-KL-316 / 14)
+ * 보안 헤더. 읽고, 짓고 (TASK-KL-316 / 14)
  *
- * 「개발 도구」 작업대의 **만들기** 칸(들고 온 것이 없어도 된다). 알맹이는 `core/csp`.
- * 점수는 안 매긴다 — 「A 등급」은 안심만 주고 무엇이 위험한지는 안 알려 준다.
+ * 개발 도구 작업대의 **만들기** 칸(들고 온 것이 없어도 된다). 알맹이는 `core/csp`.
+ * 점수는 안 매긴다. A 등급은 안심만 주고 무엇이 위험한지는 안 알려 준다.
  * 대신 **어느 갈래의 무엇이 왜 위험한지**를 한 줄씩 적는다.
  */
 import { build, reviewHeaders, reviewCsp, parseCsp, spec, type Finding } from '../../core/csp';
@@ -95,7 +95,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const color = f.level === 'weak' ? 'var(--error)' : f.level === 'missing' ? 'var(--warning)' : 'var(--text-tertiary)';
       return (
         '<div class="tool-list-row"><span class="tool-list-key" style="color:' + color + '">' + esc(t('csp.level.' + f.level)) + '</span>' +
-        '<span class="tool-list-val">' + esc(f.where) + (f.value === undefined ? '' : ' — ' + esc(f.value)) + '</span>' +
+        '<span class="tool-list-val">' + esc(f.where) + (f.value === undefined ? '' : '. ' + esc(f.value)) + '</span>' +
         '<span class="tool-list-dim">' + esc(t('csp.find.' + f.key)) + '</span></div>'
       );
     }
@@ -108,7 +108,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         status.textContent = t('csp.status.idle');
         return;
       }
-      /* 헤더 뭉치로 왔나, CSP 한 줄만 왔나 — 둘 다 받는다(사람은 아무거나 붙여넣는다). */
+      /* 헤더 뭉치로 왔나, CSP 한 줄만 왔나. 둘 다 받는다(사람은 아무거나 붙여넣는다). */
       const looksHeaders = /^[\w-]+\s*:/m.test(text) && /\n/.test(text.trim());
       const findings = looksHeaders ? reviewHeaders(text) : reviewCsp(text);
       const dirs = parseCsp(looksHeaders ? (text.split('\n').find((l) => /^content-security-policy\s*:/i.test(l)) ?? '') : text);

@@ -1,8 +1,8 @@
 /**
- * TASK-KL-098 — 백업 시험.
+ * TASK-KL-098. 백업 시험.
  *
  * 왜 있나: 실서비스에서 **사본은 쌓이는데 하나도 안 세어지고 있었다.** 만드는 이름과 찾는
- * 모양이 어긋났는데, 로그도 오류도 안 났다 — 「백업 0벌」이라는 숫자만 조용히 틀렸다.
+ * 모양이 어긋났는데, 로그도 오류도 안 났다. 백업 0벌이라는 숫자만 조용히 틀렸다.
  * 그러면 정작 되돌려야 할 때 아무것도 없다.
  *
  * 그래서 여기서는 **만든 것을 도로 찾을 수 있는가**를 먼저 본다.
@@ -17,7 +17,7 @@ let tmpRoot: string;
 beforeEach(() => {
   tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kl098-backup-'));
   fs.mkdirSync(path.join(tmpRoot, 'data'), { recursive: true });
-  // 백업은 패키지 루트 밑의 `data/` 를 본다 — 시험에서는 임시 폴더를 가리키게 한다.
+  // 백업은 패키지 루트 밑의 `data/` 를 본다. 시험에서는 임시 폴더를 가리키게 한다.
   vi.doMock('../paths', () => ({ PKG_ROOT: tmpRoot }));
 });
 
@@ -35,7 +35,7 @@ function writeState(name: string, body: string): void {
 }
 
 describe('백업', () => {
-  it('만든 사본을 도로 찾는다 — 이 시험이 없어서 0벌로 보였다', async () => {
+  it('만든 사본을 도로 찾는다. 이 시험이 없어서 0벌로 보였다', async () => {
     const { runBackup, backupInfo } = await load();
     writeState('karmolab-accounts-state.json', '{"a":1}');
 
@@ -64,7 +64,7 @@ describe('백업', () => {
     expect(backupInfo().count).toBe(2);
   });
 
-  it('사본 안에 진짜 내용이 들어 있다 — 빈 폴더만 만들면 되돌릴 수 없다', async () => {
+  it('사본 안에 진짜 내용이 들어 있다. 빈 폴더만 만들면 되돌릴 수 없다', async () => {
     const { runBackup } = await load();
     writeState('karmolab-traces-state.json', '{"posts":["글"]}');
     const made = runBackup(new Date('2026-08-07T01:00:00Z'))!;
@@ -81,7 +81,7 @@ describe('백업', () => {
     expect(backupInfo()).toEqual({ lastAt: null, count: 0 });
   });
 
-  it('손으로도 바로 뜬다 — 주기를 기다리지 않고 확인할 수 있어야 한다', async () => {
+  it('손으로도 바로 뜬다. 주기를 기다리지 않고 확인할 수 있어야 한다', async () => {
     const { triggerBackupNow } = await load();
     writeState('karmolab-accounts-state.json', '{"a":1}');
     const outcome = triggerBackupNow();

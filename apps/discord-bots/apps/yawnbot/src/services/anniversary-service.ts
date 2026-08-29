@@ -1,5 +1,5 @@
 /**
- * AnniversaryService — 캐릭터별 기념일 관리
+ * AnniversaryService. 캐릭터별 기념일 관리
  *
  * 저장 위치: characters/<slug>/memory/anniversaries.json
  * 형식: [{ id, label, month, day, year? }]
@@ -7,7 +7,7 @@
  *   - year 없으면 매년 반복 기념일
  *
  * 봇이 자동 추가하는 항목:
- *   - "첫 대화" — 캐릭터와 처음 대화한 날 (첫 로그 파일 날짜 기준)
+ *   - "첫 대화". 캐릭터와 처음 대화한 날 (첫 로그 파일 날짜 기준)
  */
 import fs from 'fs';
 import path from 'path';

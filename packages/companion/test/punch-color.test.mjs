@@ -7,13 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { ownWindowExe } from '../dist/index.js';
 
 /**
- * 색 뚫기는 **폐기됐다** — 되살아나지 않는지 지킨다.
+ * 색 뚫기는 **폐기됐다**. 되살아나지 않는지 지킨다.
  *
  * 옛 수법: 페이지가 형광색 한 가지를 칠하고, 창 띄우는 스크립트가 그 색을 뚫어 투명한
  * 척한다. 그림을 GPU 가 그리는 창에서는 그 색이 안 뚫린다. 그래서 실제로 나온 화면이
- * **형광 분홍 바탕 + 최소화·최대화·닫기 막대 + 그 위에 시커먼 몸**이었다(사용자 실측).
+ * **형광 분홍 바탕 + 최소화, 최대화, 닫기 막대 + 그 위에 시커먼 몸**이었다(사용자 실측).
  *
- * 「없는 것보다 나은 차선」이 아니라 결과를 더 나쁘게 만드는 길이라 걷어냈다. 투명은
+ * 없는 것보다 나은 차선이 아니라 결과를 더 나쁘게 만드는 길이라 걷어냈다. 투명은
  * 제 창(`companion-window.exe`)이 창 설정으로 그냥 지원한다.
  */
 
@@ -26,7 +26,7 @@ test('창 띄우는 쪽은 뚫을 색을 더 이상 안 넘긴다', () => {
   assert.equal(/-KeyColor/.test(web), false, '색을 뚫는 스크립트를 다시 부르고 있다');
 });
 
-test('페이지는 바탕을 칠하지 않는다 — 안 뚫리면 그게 그냥 형광 분홍 화면이다', () => {
+test('페이지는 바탕을 칠하지 않는다. 안 뚫리면 그게 그냥 형광 분홍 화면이다', () => {
   const page = read('assets', 'face.html');
   assert.equal(/document\.body\.style\.background\s*=/.test(page), false, '바탕을 다시 칠하고 있다');
   assert.equal(/URLSearchParams\(location\.search\)\.get\('t'\)/.test(page), false, '색을 다시 받고 있다');
@@ -36,10 +36,10 @@ test('색을 뚫던 스크립트 자체가 없다', () => {
   assert.equal(existsSync(join(root, 'assets', 'pin-window.ps1')), false);
 });
 
-test('제 창은 저장소 위치에 안 묶인다 — 밖에서 알려 주면 그걸 쓴다', () => {
+test('제 창은 저장소 위치에 안 묶인다. 밖에서 알려 주면 그걸 쓴다', () => {
   const original = process.env.COMPANION_WINDOW_EXE;
   try {
-    // 이 파일은 반드시 있다. 실제로 있는 파일이어야 「찾았다」가 의미를 갖는다.
+    // 이 파일은 반드시 있다. 실제로 있는 파일이어야 찾았다가 의미를 갖는다.
     const presentFiles = join(root, 'package.json');
     process.env.COMPANION_WINDOW_EXE = presentFiles;
     assert.equal(ownWindowExe(), process.platform === 'win32' ? presentFiles : null);

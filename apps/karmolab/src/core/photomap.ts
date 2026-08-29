@@ -1,11 +1,11 @@
 /**
  * 사진이 찍힌 자리와 때 (TASK-KL-316 / 31)
  *
- * 사진첩에서 「그때 그 여행」을 찾는 가장 빠른 길은 **자리와 때**다. 그 값은 사진 안에 이미 있다
- * (`core/exif`). 여기서는 그걸 **모으고·묶고·그릴 수 있게** 만든다.
+ * 사진첩에서 그때 그 여행을 찾는 가장 빠른 길은 **자리와 때**다. 그 값은 사진 안에 이미 있다
+ * (`core/exif`). 여기서는 그걸 **모으고, 묶고, 그릴 수 있게** 만든다.
  *
- * ⚠ 지도 타일은 **안 불러온다.** 타일을 받으면 「내 사진이 어디서 찍혔는지」를 남의 서버에 알리게 된다.
- * 이 도구가 지키려는 것이 바로 그거라 앞뒤가 안 맞는다. 그래서 **점만 그린다** —
+ * ⚠ 지도 타일은 **안 불러온다.** 타일을 받으면 내 사진이 어디서 찍혔는지를 남의 서버에 알리게 된다.
+ * 이 도구가 지키려는 것이 바로 그거라 앞뒤가 안 맞는다. 그래서 **점만 그린다** . 
  * 진짜 지도가 필요하면 사람이 눌러서 지도 사이트로 나간다(그 순간은 사람이 고른 것이다).
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -43,7 +43,7 @@ export interface Place {
   lat: number;
   lon: number;
   shots: Shot[];
-  /** 이 자리에서 가장 이른·늦은 때 */
+  /** 이 자리에서 가장 이른, 늦은 때 */
   from?: number;
   to?: number;
 }
@@ -61,7 +61,7 @@ export function places(shots: Shot[], meters = 300): Place[] {
       continue;
     }
     near.shots.push(shot);
-    /* 자리는 **평균**으로 조금씩 옮긴다 — 첫 장이 어긋나 있어도 여러 장이 바로잡는다. */
+    /* 자리는 **평균**으로 조금씩 옮긴다. 첫 장이 어긋나 있어도 여러 장이 바로잡는다. */
     near.lat = near.shots.reduce((sum, s) => sum + s.lat, 0) / near.shots.length;
     near.lon = near.shots.reduce((sum, s) => sum + s.lon, 0) / near.shots.length;
     if (shot.at !== undefined) {
@@ -78,7 +78,7 @@ export interface Day {
   shots: Shot[];
 }
 
-/** 날짜별로 — 때를 모르는 사진은 **버리지 않고** 따로 모은다. */
+/** 날짜별로. 때를 모르는 사진은 **버리지 않고** 따로 모은다. */
 export function days(shots: Shot[]): { days: Day[]; undated: Shot[] } {
   const map = new Map<string, Shot[]>();
   const undated: Shot[] = [];
@@ -118,7 +118,7 @@ export function frameOf(shots: Shot[], pad = 0.15): Frame {
     minLon = Math.min(minLon, s.lon);
     maxLon = Math.max(maxLon, s.lon);
   }
-  /* 한 자리뿐이면 넓이가 0 이라 그릴 수 없다 — 눈에 보이게 조금 벌린다. */
+  /* 한 자리뿐이면 넓이가 0 이라 그릴 수 없다. 눈에 보이게 조금 벌린다. */
   const spanLat = Math.max(0.002, (maxLat - minLat) * (1 + pad));
   const spanLon = Math.max(0.002, (maxLon - minLon) * (1 + pad));
   const midLat = (minLat + maxLat) / 2;
@@ -132,7 +132,7 @@ export function frameOf(shots: Shot[], pad = 0.15): Frame {
 }
 
 /**
- * 위도·경도를 그림 자리로. **위도에 따라 가로를 줄인다**(메르카토르의 코사인 보정) —
+ * 위도, 경도를 그림 자리로. **위도에 따라 가로를 줄인다**(메르카토르의 코사인 보정) . 
  * 안 그러면 서울 같은 위도에서 동서가 실제보다 넓어 보인다.
  */
 export function project(shot: { lat: number; lon: number }, frame: Frame, width: number, height: number): { x: number; y: number } {
@@ -145,7 +145,7 @@ export function project(shot: { lat: number; lon: number }, frame: Frame, width:
   return { x: Math.round(x * width), y: Math.round(y * height) };
 }
 
-/** 사람이 눌러서 나갈 지도 주소 — **누르기 전에는 아무 데도 안 알린다.** */
+/** 사람이 눌러서 나갈 지도 주소. **누르기 전에는 아무 데도 안 알린다.** */
 export function mapLink(lat: number, lon: number): string {
   return 'https://www.openstreetmap.org/?mlat=' + lat.toFixed(6) + '&mlon=' + lon.toFixed(6) + '#map=15/' + lat.toFixed(4) + '/' + lon.toFixed(4);
 }

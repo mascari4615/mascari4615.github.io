@@ -1,7 +1,7 @@
 /**
- * panels/many-panel.ts — 여럿 고름 (TASK-KL-202 개편 2, 일곱 번째 이사).
+ * panels/many-panel.ts. 여럿 고름 (TASK-KL-202 개편 2, 일곱 번째 이사).
  *
- * 고른 개수를 먼저 말하고(«N개 골랐음»), 지우기는 확인을 받는다 — 한 번에 여럿을 바꾸는
+ * 고른 개수를 먼저 말하고(«N개 골랐음»), 지우기는 확인을 받는다. 한 번에 여럿을 바꾸는
  * 자리에서 되돌릴 수 없는 일은 반드시 한 번 물어야 한다.
  */
 import type { PanelCtx } from './context';
@@ -11,7 +11,7 @@ import { resolveEdges } from '../times';
 import { t, loadNamespace } from '../../../lib/i18n';
 
 /**
- * **두 장을 골랐을 때만** — 「이 둘은 무슨 사이야?」에 답한다 (TASK-KL-271 X6).
+ * **두 장을 골랐을 때만**. 이 둘은 무슨 사이야?에 답한다 (TASK-KL-271 X6).
  * 관계도 앞에서 가장 자주 나오는 질문인데 지금까지 답하는 자리가 없었다(눈으로 선을 따라가야 했다).
  */
 function betweenHtml(ctx: PanelCtx): string {
@@ -19,7 +19,7 @@ function betweenHtml(ctx: PanelCtx): string {
   if (ids.length !== 2) return '';
   const spec = ctx.spec();
   const name = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
-  /* 길찾기도 **지금 시점**의 선으로 한다 (KL-271 X2) — 2부에는 없는 선을 밟고 「세 다리」라고
+  /* 길찾기도 **지금 시점**의 선으로 한다 (KL-271 X2). 2부에는 없는 선을 밟고 세 다리라고
      하면, 화면에는 그 길이 안 보인다(사람은 도구가 틀렸다고 읽는다). */
   const { path, shared } = between(
     resolveEdges(spec.edges, spec._meta?.time ?? ''), ids[0], ids[1]);
@@ -29,7 +29,7 @@ function betweenHtml(ctx: PanelCtx): string {
     : path.map((id) => esc(name(id))).join(' → ');
   const hops = path.length === 0 ? '' : ` <span class="km-group-count">${path.length - 1}</span>`;
   const both = shared.length === 0 ? '' :
-    `<div class="km-hint">${esc(t('karmograph.between.shared'))} ${shared.map((id) => esc(name(id))).join(' · ')}</div>`;
+    `<div class="km-hint">${esc(t('karmograph.between.shared'))} ${shared.map((id) => esc(name(id))).join(', ')}</div>`;
   return `<div class="km-field">
       <label>${esc(t('karmograph.between.label'))}${hops}</label>
       <div class="km-hint">${line}</div>
@@ -93,7 +93,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
           return `<div class="km-trow" data-key="${esc(id)}">
             <input type="text" data-km="many-name" value="${esc(n.label)}" title="${esc(t('karmograph.manyName.title'))}" />
             <span class="km-tcell">${ctx.kindIcon(n.kind)} ${esc(ctx.kindLabel(n.kind))}</span>
-            <span class="km-tcell km-tdim" title="${esc(tags)}">${tags ? esc(tags) : '—'}</span>
+            <span class="km-tcell km-tdim" title="${esc(tags)}">${tags ? esc(tags) : '. '}</span>
             <button class="btn btn-ghost" data-km="many-go" title="${esc(t('karmograph.manyGo.title'))}">→</button>
           </div>`;
         }).join('')}
@@ -103,7 +103,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
     <button class="btn btn-danger" data-km="many-del">${esc(t('karmograph.many.delAll', { n: String(ctx.selectedMany().length) }))}</button>
 `;
 
-  /* 나란히 놓기 · 고르게 벌리기 — 셈은 `tidy.ts` 가 하고 여기서는 결과를 얹기만 한다.
+  /* 나란히 놓기, 고르게 벌리기. 셈은 `tidy.ts` 가 하고 여기서는 결과를 얹기만 한다.
      좌표를 바꾸면 캔버스가 들고 있던 자리(nodeCoords)도 같이 갈려야 하므로 통째로 다시 그린다. */
   const applyMove = (moved: Map<string, { x: number; y: number }>): void => {
     if (moved.size === 0) return;
@@ -131,7 +131,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
     };
   });
 
-  // 표 = 「이 무리가 뭐였지」에 즉답. 이름은 그 자리에서 고친다(yEd 의 tabular view 자리).
+  // 표 = 이 무리가 뭐였지에 즉답. 이름은 그 자리에서 고친다(yEd 의 tabular view 자리).
   side.querySelectorAll('.km-trow').forEach((rowEl) => {
     const row = rowEl as HTMLElement;
     const id = row.dataset.key ?? '';
@@ -174,7 +174,7 @@ export function renderManyPanel(ctx: PanelCtx): void {
 
   (side.querySelector('[data-km="many-del"]') as HTMLButtonElement).onclick = () => {
     if (!confirm(t('karmograph.confirmDeleteMany', { n: ctx.selectedMany().length }))) return;
-    // 지우기는 위젯에게 맡긴다 — ctx.spec() 은 읽기용이라 여기서 배열을 갈아 끼워도 안 먹는다.
+    // 지우기는 위젯에게 맡긴다. ctx.spec() 은 읽기용이라 여기서 배열을 갈아 끼워도 안 먹는다.
     ctx.removeNodes(ctx.selectedMany());
     ctx.clearMany();
     ctx.applySpec();

@@ -1,17 +1,17 @@
 /**
- * 이상형 월드컵 (TASK-KL-151) — 둘 중 하나만 고르고, 이긴 쪽만 올라간다.
+ * 이상형 월드컵 (TASK-KL-151). 둘 중 하나만 고르고, 이긴 쪽만 올라간다.
  *
- * 왜 이 놀이인가: 있던 놀이는 전부 **정답이 있는** 것이었다(빠른가·큰가·맞혔나).
- * 이건 정답이 없다 — 고르는 사람이 곧 답이다. 그래서 표만 있으면 무한히 늘어나고,
+ * 왜 이 놀이인가: 있던 놀이는 전부 **정답이 있는** 것이었다(빠른가, 큰가, 맞혔나).
+ * 이건 정답이 없다. 고르는 사람이 곧 답이다. 그래서 표만 있으면 무한히 늘어나고,
  * 표를 만드는 사람이 놀이를 만드는 사람이 된다(KL-150).
  *
- * 무엇을 베꼈나(PIKU): 라운드 수를 **노는 사람이 고른다** · 끝나면 순위와 승률을 본다 ·
+ * 무엇을 베꼈나(PIKU): 라운드 수를 **노는 사람이 고른다**, 끝나면 순위와 승률을 본다 , 
  * 만든 표가 목록에 서고 열린 만큼 오른다.
  *
  * 무엇을 더 하나:
- *  ① **내가 고른 길**이 남는다 — 우승만이 아니라 8강·4강에서 누구를 버렸는지.
- *  ② 승률은 **마주친 판**으로 나눈다 — 골라진 횟수만 세면 대진운 좋은 항목이 무조건 이긴다.
- *  ③ 표가 사본이 아니라 **주소**다 — 만든 사람이 고치면 다음 판부터 반영된다.
+ *  ① **내가 고른 길**이 남는다. 우승만이 아니라 8강, 4강에서 누구를 버렸는지.
+ *  ② 승률은 **마주친 판**으로 나눈다. 골라진 횟수만 세면 대진운 좋은 항목이 무조건 이긴다.
+ *  ③ 표가 사본이 아니라 **주소**다. 만든 사람이 고치면 다음 판부터 반영된다.
  *
  * fail-open: 서버에 못 닿으면 통계만 없다. 놀이는 이 브라우저 표로 끝까지 돈다.
  */
@@ -24,20 +24,20 @@ import { copyResultCard } from '../lib/result-card';
 import { t, loadNamespace, locale } from '../lib/i18n';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
-/** 이 브라우저에 남기는 지난 판 (「작년의 나는 누구를 골랐나」). */
+/** 이 브라우저에 남기는 지난 판 (작년의 나는 누구를 골랐나). */
 const HISTORY_KEY = 'karmolab_worldcup_history';
 
 /**
  * 처음부터 있는 표 (TASK-KL-151).
  *
  * 왜 필요한가: 사람이 만든 표만 쓰게 두면 **처음 온 사람에게는 빈 화면**이 뜬다.
- * 「표를 먼저 만드세요」는 놀러 온 사람에게 숙제를 내미는 것이다 — 일단 한 판 해 보고
- * 재밌으면 자기 표를 만든다. 표는 「높은 쪽 고르기」가 쓰던 것을 그대로 쓴다(그림이 다 있다).
+ * 표를 먼저 만드세요는 놀러 온 사람에게 숙제를 내미는 것이다. 일단 한 판 해 보고
+ * 재밌으면 자기 표를 만든다. 표는 높은 쪽 고르기가 쓰던 것을 그대로 쓴다(그림이 다 있다).
  */
 /** 지난 우승자들끼리 붙이는 판 (TASK-KL-151 심화). 표가 아니라 **내 기록**이 재료다. */
 const CHAMPIONS_KEY = 'champions';
 
-/** 오늘의 월드컵 (TASK-KL-151 ⑥) — 날짜가 표를 고른다. 모두가 같은 판을 돈다. */
+/** 오늘의 월드컵 (TASK-KL-151 ⑥). 날짜가 표를 고른다. 모두가 같은 판을 돈다. */
 const TODAY_KEY = 'today';
 
 /** KST 기준 며칠째인가. 서버 없이도 모두가 같은 답을 얻는 유일한 방법이다. */
@@ -57,7 +57,7 @@ const BUILTIN = [
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 
-  /** 그림이 있는 항목만 달린다 — 그림 없는 칸이 섞이면 고르는 재미가 통째로 죽는다. */
+  /** 그림이 있는 항목만 달린다. 그림 없는 칸이 섞이면 고르는 재미가 통째로 죽는다. */
   function runnersOf(items: PackItem[]): Runner[] {
     return items
       .filter((i) => typeof i.img === 'string' && i.img)
@@ -78,7 +78,7 @@ const BUILTIN = [
       const list = [entry, ...readHistory()].slice(0, 30);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
     } catch {
-      /* 사생활 모드 — 이번 판 화면은 그대로 맞다 */
+      /* 사생활 모드. 이번 판 화면은 그대로 맞다 */
     }
   }
 
@@ -150,7 +150,7 @@ const BUILTIN = [
 
           const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
 
-          /** 고를 수 있는 표 — 이 브라우저 것 + 남이 올린 것. 그림 넷 이상인 것만. */
+          /** 고를 수 있는 표. 이 브라우저 것 + 남이 올린 것. 그림 넷 이상인 것만. */
           let choices: Array<{
             key: string;
             title: string;
@@ -158,7 +158,7 @@ const BUILTIN = [
             runners: number;
             sharedId?: string;
             local?: Pack;
-            /** 처음부터 있는 표면 그 이름 (`pokemon` …). 항목은 그때 받아 온다. */
+            /** 처음부터 있는 표면 그 이름 (`pokemon` ...). 항목은 그때 받아 온다. */
             builtin?: string;
           }> = [];
           let picked: (typeof choices)[number] | null = null;
@@ -197,9 +197,9 @@ const BUILTIN = [
           function paintRounds(): void {
             if (!picked) return;
             const options = roundChoices(picked.runners);
-            // 처음 고르는 값은 **가장 큰 것이 아니라 16강**이다 — 128강은 첫 판에 백 번을 누르게 한다.
+            // 처음 고르는 값은 **가장 큰 것이 아니라 16강**이다. 128강은 첫 판에 백 번을 누르게 한다.
             size = options.indexOf(16) >= 0 ? 16 : options[options.length - 1];
-            /* 오늘의 월드컵은 라운드도 같아야 한다 — 8강 우승과 64강 우승을 같은 통계에 넣으면
+            /* 오늘의 월드컵은 라운드도 같아야 한다. 8강 우승과 64강 우승을 같은 통계에 넣으면
                그 수는 아무 말도 안 하는 수가 된다. */
             if (picked.builtin === TODAY_KEY) {
               $('wcRoundBox').hidden = true;
@@ -227,15 +227,15 @@ const BUILTIN = [
           /**
            * 고를 수 있는 표를 모은다.
            *
-           * 이 브라우저 표를 **먼저** 그린다 — 서버를 기다리는 동안 화면이 비면 「할 게 없는 곳」이
+           * 이 브라우저 표를 **먼저** 그린다. 서버를 기다리는 동안 화면이 비면 할 게 없는 곳이
            * 된다. 남의 표는 도착하는 대로 뒤에 붙는다.
            */
           function loadChoices(): void {
-            // 처음부터 있는 표를 **맨 앞에** 둔다 — 처음 온 사람이 바로 한 판 할 수 있어야 한다.
+            // 처음부터 있는 표를 **맨 앞에** 둔다. 처음 온 사람이 바로 한 판 할 수 있어야 한다.
             /* 지난 우승자들끼리 (TASK-KL-151 심화).
                왜: 표를 여러 번 돌리면 우승자가 쌓이는데, 그것들끼리 붙여 보고 싶어지는 게
                이 놀이의 자연스러운 다음 수다. 재료가 이미 이 브라우저에 있으니 새로 받을 것이 없다.
-               넷은 모여야 판이 선다 — 둘로는 「토너먼트」가 아니다. */
+               넷은 모여야 판이 선다. 둘로는 토너먼트가 아니다. */
             const champions = readHistory();
             const uniqueChampions = champions.filter(
               (h, i) => h.img && champions.findIndex((x) => x.champion === h.champion) === i
@@ -245,7 +245,7 @@ const BUILTIN = [
               key: `builtin:${b.id}`,
               title: b.title,
               emoji: b.emoji,
-              /* 항목 수는 파일을 받아 봐야 안다. 여기서는 「128강까지 열어 둔다」는 뜻으로만 쓴다 —
+              /* 항목 수는 파일을 받아 봐야 안다. 여기서는 128강까지 열어 둔다는 뜻으로만 쓴다 . 
                  실제로 받은 뒤 그보다 적으면 그만큼만 달린다(`start`). */
               runners: 128,
               builtin: b.id,
@@ -274,9 +274,9 @@ const BUILTIN = [
               if (!container.isConnected || !got) return;
               const mineShared = new Set(choices.map((c) => c.sharedId).filter(Boolean));
               /* 오늘의 월드컵 (TASK-KL-151 ⑥).
-                 왜: 각자 다른 표를 돌리면 승률·순위가 영영 안 모인다. 하루에 하나를 정하면
-                 그날 통계가 통째로 살아나고, 「오늘 건 뭐야」로 다시 올 이유가 생긴다.
-                 서버가 정하지 않는다 — 날짜로 고르면 모두가 서버 없이 같은 답을 얻는다. */
+                 왜: 각자 다른 표를 돌리면 승률, 순위가 영영 안 모인다. 하루에 하나를 정하면
+                 그날 통계가 통째로 살아나고, 오늘 건 뭐야로 다시 올 이유가 생긴다.
+                 서버가 정하지 않는다. 날짜로 고르면 모두가 서버 없이 같은 답을 얻는다. */
               const pool = got.packs
                 .filter((r: SharedPackSummary) => !r.siteBoard)
                 .slice()
@@ -296,7 +296,7 @@ const BUILTIN = [
                 choices = todayChoice.concat(choices);
               }
               const extra = got.packs
-                /* 붙박이 판의 봇 사본(`siteBoard`)은 뺀다 — 위 `builtins` 로 이미 서 있다. */
+                /* 붙박이 판의 봇 사본(`siteBoard`)은 뺀다. 위 `builtins` 로 이미 서 있다. */
                 .filter((r: SharedPackSummary) => !r.siteBoard && !mineShared.has(r.id))
                 .map((r: SharedPackSummary) => ({
                   key: `shared:${r.id}`,
@@ -337,7 +337,7 @@ const BUILTIN = [
             if (!current) return;
             const left = current[0];
             const right = current[1];
-            $('wcAsk').textContent = `${roundOf === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: roundOf })} · ${winners.length + 1} / ${roundOf / 2}`;
+            $('wcAsk').textContent = `${roundOf === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: roundOf })}, ${winners.length + 1} / ${roundOf / 2}`;
             const face = (r: Runner): string =>
               `<img src="${esc(r.img)}" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:10px">` +
               `<span class="hi-nm" style="display:block;margin-top:8px;font-weight:700">${esc(r.name)}</span>`;
@@ -351,7 +351,7 @@ const BUILTIN = [
               paintCurrent();
               return;
             }
-            // 홀수로 남으면 부전승 — 다음 판으로 그냥 올린다(대결이 아니므로 안 센다).
+            // 홀수로 남으면 부전승. 다음 판으로 그냥 올린다(대결이 아니므로 안 센다).
             if (queue.length === 1) winners.push(queue.shift()!);
             if (winners.length === 1) {
               finish(winners[0]);
@@ -382,19 +382,19 @@ const BUILTIN = [
               `<img src="${esc(champion.img)}" alt="" style="max-width:320px;max-height:320px;object-fit:contain;border-radius:12px">` +
               `<div style="font-size:20px;font-weight:800;margin-top:8px">${esc(champion.name)}</div></div>`;
 
-            // 내가 고른 길 — 마지막 판부터 거슬러. 우승만 남기면 「누구를 버렸나」가 사라진다.
+            // 내가 고른 길. 마지막 판부터 거슬러. 우승만 남기면 누구를 버렸나가 사라진다.
             const path = matches
               .slice()
               .reverse()
               .filter((m) => m.round <= 8)
-              .map((m) => `<li>${m.round === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: m.round })} — ${esc(m.win)} <span style="color:var(--text-tertiary)">▸ ${esc(m.lose)}</span></li>`)
+              .map((m) => `<li>${m.round === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: m.round })}. ${esc(m.win)} <span style="color:var(--text-tertiary)">▸ ${esc(m.lose)}</span></li>`)
               .join('');
             $('wcPath').innerHTML = path
               ? `<div class="tool-sublabel">${esc(t('worldcup.t05'))}</div><ol style="list-style:none;padding:0;margin:6px 0 0;line-height:1.8">${path}</ol>`
               : '';
 
             pushHistory({ at: new Date().toISOString(), title: picked?.title ?? '', champion: champion.name, img: champion.img });
-            // 같이 하는 판이면 내 길을 보낸다 — 상대가 도착하면 그때 견준다.
+            // 같이 하는 판이면 내 길을 보낸다. 상대가 도착하면 그때 견준다.
             myPath = matches.slice();
             myChampion = champion.name;
             const send = sendResult;
@@ -424,7 +424,7 @@ const BUILTIN = [
               .then((r) => (r.ok ? r.json() : null))
               .then((body: { tally?: Array<{ name: string; rate: number; seen: number; champion: number }> } | null) => {
                 if (!container.isConnected || !body || !body.tally || !body.tally.length) return;
-                /* 나 vs 남 (TASK-KL-151 심화) — 「내 우승이 남들과 같나 다르나」가 이 놀이의
+                /* 나 vs 남 (TASK-KL-151 심화). 내 우승이 남들과 같나 다르나가 이 놀이의
                    진짜 재미다. 우승 횟수 합이 곧 지금까지 돌린 판 수다(따로 안 센다). */
                 const totalRuns = body.tally.reduce((sum, t) => sum + (t.champion ?? 0), 0);
                 const mine = body.tally.filter((t) => t.name === champion.name)[0];
@@ -432,7 +432,7 @@ const BUILTIN = [
                   totalRuns >= 2 && mine
                     ? `<p class="tool-status">지금까지 ${totalRuns}판 중 <b>${Math.round(
                         ((mine.champion ?? 0) / totalRuns) * 100
-                      )}%</b> 가 ${esc(champion.name)} 를 뽑았습니다 — ${
+                      )}%</b> 가 ${esc(champion.name)} 를 뽑았습니다. ${
                         (mine.champion ?? 0) * 2 >= totalRuns ? t('worldcup.t20') : t('worldcup.t21')
                       }</p>`
                     : '';
@@ -443,11 +443,11 @@ const BUILTIN = [
                   body.tally
                     .slice(0, 10)
                     .map(
-                      /* `t` 는 말 묶음 함수 이름이다 — 여기서 가리면 이 안에서 t() 를 못 부른다. */
+                      /* `t` 는 말 묶음 함수 이름이다. 여기서 가리면 이 안에서 t() 를 못 부른다. */
                       (row, i) =>
                         `<li style="display:flex;justify-content:space-between;gap:12px;padding:4px 0">` +
                         `<span>${i + 1}. ${esc(row.name)}</span>` +
-                        `<span style="color:var(--text-secondary)">${Math.round(row.rate * 100)}% · ${t('worldcup.seen', { n: row.seen })}${row.champion ? ` · ${t('worldcup.wonCount', { n: row.champion })}` : ''}</span></li>`,
+                        `<span style="color:var(--text-secondary)">${Math.round(row.rate * 100)}%, ${t('worldcup.seen', { n: row.seen })}${row.champion ? `, ${t('worldcup.wonCount', { n: row.champion })}` : ''}</span></li>`,
                     )
                     .join('') +
                   `</ol>`;
@@ -481,10 +481,10 @@ const BUILTIN = [
           async function start(): Promise<void> {
             if (!picked) return;
             /* ★ **받는 동안 아무 말이 없으면 고장으로 보인다** (2026-08-13).
-               표(1025장짜리도 있다)를 받아 오는 사이 화면은 그대로고 단추만 눌리지 않는다 —
-               실측으로 「시작을 눌렀는데 아무 일도 안 난다」가 됐다. 받는 중이라고 말해 준다. */
+               표(1025장짜리도 있다)를 받아 오는 사이 화면은 그대로고 단추만 눌리지 않는다 . 
+               실측으로 시작을 눌렀는데 아무 일도 안 난다가 됐다. 받는 중이라고 말해 준다. */
             $('wcStart').setAttribute('disabled', 'true');
-            $('wcPackMsg').textContent = t('worldcup.loading', undefined, '표를 받는 중입니다…');
+            $('wcPackMsg').textContent = t('worldcup.loading', undefined, '표를 받는 중입니다...');
             const all = await runnersFor(picked);
             $('wcPackMsg').textContent = '';
             $('wcStart').removeAttribute('disabled');
@@ -492,7 +492,7 @@ const BUILTIN = [
               $('wcPackMsg').textContent = t('worldcup.t22');
               return;
             }
-            /* 같이 하는 판이면 **같은 씨앗**으로 섞는다 — 그래야 라운드끼리 맞댈 수 있다. */
+            /* 같이 하는 판이면 **같은 씨앗**으로 섞는다. 그래야 라운드끼리 맞댈 수 있다. */
             runners = shuffled(all, together ? seededRandom(together.seed) : Math.random).slice(
               0,
               Math.min(size, all.length)
@@ -509,9 +509,9 @@ const BUILTIN = [
 
           /* ── 같이 하기 (TASK-KL-151 ⑧) ───────────────────────────────────
            *
-           * 왜 「기다렸다 같이 누르기」가 아닌가: 한 명이 고민하면 다른 한 명은 그냥 멈춰 있다.
-           * 몇십 판을 그렇게 하면 지친다. 그래서 **대진만 맞추고 각자 돌린다** —
-           * 재미는 「같이 누르기」가 아니라 **끝나고 갈리는 데** 있다.
+           * 왜 기다렸다 같이 누르기가 아닌가: 한 명이 고민하면 다른 한 명은 그냥 멈춰 있다.
+           * 몇십 판을 그렇게 하면 지친다. 그래서 **대진만 맞추고 각자 돌린다** . 
+           * 재미는 같이 누르기가 아니라 **끝나고 갈리는 데** 있다.
            *
            * 서버는 없다(트리스테로). 우리 쪽에 방도 기록도 안 남는다.
            */
@@ -533,7 +533,7 @@ const BUILTIN = [
           }
           Toolbox.onDispose?.(closeRoom);
 
-          /** 둘의 결과를 견준다 — 같은 대진이라 라운드끼리 그대로 맞댈 수 있다. */
+          /** 둘의 결과를 견준다. 같은 대진이라 라운드끼리 그대로 맞댈 수 있다. */
           function compare(theirs: { champion: string; path: Array<{ win: string; lose: string; round: number }> }): void {
             const { rate } = agreement(myPath ?? [], theirs.path);
             $('wcTogetherMsg').innerHTML =
@@ -544,8 +544,8 @@ const BUILTIN = [
 
           function connect(code: string, host: boolean): void {
             closeRoom();
-            /* 방 열기·이름 알리기·사람 들고 남은 `lib/room.ts` 한 곳에 있다 (TASK-KL-264).
-               여기 남는 것은 이 놀이만의 통로 둘 — 대진(setup)·결과(result). */
+            /* 방 열기, 이름 알리기, 사람 들고 남은 `lib/room.ts` 한 곳에 있다 (TASK-KL-264).
+               여기 남는 것은 이 놀이만의 통로 둘. 대진(setup), 결과(result). */
             let started = false;
             const r = openRoom({
               appId: APP_ID,
@@ -627,7 +627,7 @@ const BUILTIN = [
             $('wcSetup').hidden = false;
           });
           /* 자랑은 **그림**으로 나간다 (TASK-KL-151 ②).
-             글만 복사하면 아무도 안 붙여넣는다 — 사람이 자랑하는 자리는 그림이 먼저 보인다.
+             글만 복사하면 아무도 안 붙여넣는다. 사람이 자랑하는 자리는 그림이 먼저 보인다.
              그림을 못 얹거나 복사가 막히면 카드가 글자만으로 서거나 파일로 내려간다. */
           $('wcShare').addEventListener('click', () => {
             const last = readHistory()[0];
@@ -636,7 +636,7 @@ const BUILTIN = [
             $('wcMsg').textContent = t('worldcup.t32');
             void copyResultCard(
               {
-                kicker: `이상형 월드컵 · ${last.title}`,
+                kicker: `이상형 월드컵, ${last.title}`,
                 headline: last.champion,
                 lines: [
                   `${runners.length}강`,
@@ -648,7 +648,7 @@ const BUILTIN = [
               `karmolab-worldcup-${last.champion}.png`
             ).then((msg) => {
               /* 그림만 주면 **받은 사람이 같은 판을 할 수가 없다**. 올라간 표면 그 주소도 같이
-                 남긴다(미리보기가 뜨는 주소다 — 봇이 제목·그림을 내준다). */
+                 남긴다(미리보기가 뜨는 주소다. 봇이 제목, 그림을 내준다). */
               const shared = picked?.sharedId;
               if (shared) {
                 void navigator.clipboard
@@ -661,7 +661,7 @@ const BUILTIN = [
             });
           });
 
-          /* 왼쪽·오른쪽 화살표로도 고른다 — 몇십 번을 누르는 놀이라 손이 마우스에 묶이면 지친다. */
+          /* 왼쪽, 오른쪽 화살표로도 고른다. 몇십 번을 누르는 놀이라 손이 마우스에 묶이면 지친다. */
           const keys = (e: KeyboardEvent): void => {
             const page = container.closest('.tool-page');
             if (!container.isConnected || !page || !page.classList.contains('active')) return;
@@ -679,10 +679,10 @@ const BUILTIN = [
           addEventListener('keydown', keys);
           Toolbox.onDispose?.(() => removeEventListener('keydown', keys));
 
-          /* 「내 표」에서 밀어 준 표가 있으면 그것부터 골라 둔다 (TASK-KL-089 와 같은 문).
-             화면이 다시 보일 때마다 확인한다 — 앱은 한 번 그린 화면을 그대로 다시 보여 주므로,
+          /* 내 표에서 밀어 준 표가 있으면 그것부터 골라 둔다 (TASK-KL-089 와 같은 문).
+             화면이 다시 보일 때마다 확인한다. 앱은 한 번 그린 화면을 그대로 다시 보여 주므로,
              나중에 밀어 넣은 표는 이 갱신이 없으면 영영 안 뜬다. */
-          /** 자랑 주소(`?wc=<표>`)로 들어왔나 — 그 표를 바로 골라 준다 (TASK-KL-151 ⑤). */
+          /** 자랑 주소(`?wc=<표>`)로 들어왔나. 그 표를 바로 골라 준다 (TASK-KL-151 ⑤). */
           function wantedShared(): string | null {
             const got = new URLSearchParams(location.search).get('wc');
             return got && /^[a-z0-9]{4,16}$/.test(got) ? got : null;
@@ -703,7 +703,7 @@ const BUILTIN = [
                 picked = found;
                 paintPacks();
                 paintRounds();
-                $('wcPackMsg').textContent = `「${pack.title}」 로 놀러 오셨네요 — 몇 강으로 할지 고르고 시작하세요.`;
+                $('wcPackMsg').textContent = `${pack.title} 로 놀러 오셨네요. 몇 강으로 할지 고르고 시작하세요.`;
               });
               return;
             }

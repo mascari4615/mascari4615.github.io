@@ -19,7 +19,7 @@ export const spec: ToolSpec = {
     },
     sum: {
       desc:
-        'Sum durations (timesheets). One per line; "7:45", "8h" and "90m" can be mixed —' +
+        'Sum durations (timesheets). One per line; "7:45", "8h" and "90m" can be mixed . ' +
         ' base-60 addition is where hand-tallied hours go wrong.',
       in: { times: 'string' },
       out: 'string'
@@ -28,8 +28,8 @@ export const spec: ToolSpec = {
 };
 
 /**
- * `"1:30"` · `"90m"` · `"1h30"` · `"1.5h"` · `"90"` 을 **분**으로.
- * 읽을 수 없으면 null — 0 으로 넘기면 합계가 조용히 틀린다.
+ * `"1:30"`, `"90m"`, `"1h30"`, `"1.5h"`, `"90"` 을 **분**으로.
+ * 읽을 수 없으면 null. 0 으로 넘기면 합계가 조용히 틀린다.
  */
 export function toMinutes(raw: string): number | null {
   const s = raw.trim().toLowerCase();
@@ -104,7 +104,7 @@ export const run: ToolRunner = (op, args) => {
     const lines = [
       `Total: ${fmt(r.total)}`,
       `Decimal hours: ${(r.total / 60).toFixed(2)}h  <- payroll uses this (7:45 is 7.75, not 7.45)`,
-      `Lines: ${r.counted}  ·  Average: ${fmt(Math.round(r.total / r.counted))}`
+      `Lines: ${r.counted} ,  Average: ${fmt(Math.round(r.total / r.counted))}`
     ];
     if (r.bad > 0) lines.push(`Unreadable lines: ${r.bad}`);
     return lines.join('\n');

@@ -1,19 +1,19 @@
 /**
- * help.ts — 무엇을 할 수 있는지 (TASK-KL-202 격차 AA).
+ * help.ts. 무엇을 할 수 있는지 (TASK-KL-202 격차 AA).
  *
  * 기능이 서른 개 가까이 쌓이는 동안 안내는 빈 화면의 두 줄이 전부였다. **못 찾는 기능은
- * 없는 것과 같다** — 도달성 문제다.
+ * 없는 것과 같다**. 도달성 문제다.
  *
- * 여기 목록은 「메뉴가 곧 배우는 자리」라는 오래된 규칙을 따른다: 할 수 있는 일과 그 단축키를
+ * 여기 목록은 메뉴가 곧 배우는 자리라는 오래된 규칙을 따른다: 할 수 있는 일과 그 단축키를
  * 한자리에 나란히 둔다. 새 기능을 넣을 때 **이 파일에 한 줄 안 늘면 그 기능은 숨은 것**이다.
  */
 import { t } from '../../lib/i18n';
 
 
 export interface HelpItem {
-  /** 무엇을 하나 — 사람 말로. */
+  /** 무엇을 하나. 사람 말로. */
   what: string;
-  /** 어떻게 — 어디를 누르나 / 어떤 키인가. */
+  /** 어떻게. 어디를 누르나 / 어떤 키인가. */
   how: string;
 }
 
@@ -22,7 +22,7 @@ export interface HelpSection {
   items: HelpItem[];
 }
 
-/* 목록은 **읽을 때 만든다** — 이 파일은 화면보다 먼저 뜨므로 값으로 두면 한국어로 굳는다. */
+/* 목록은 **읽을 때 만든다**. 이 파일은 화면보다 먼저 뜨므로 값으로 두면 한국어로 굳는다. */
 export const help = (): HelpSection[] => [
   {
     title: t('karmograph.help.sec.draw'),
@@ -97,7 +97,7 @@ export const help = (): HelpSection[] => [
       { what: t('karmograph.help.txt82'), how: t('karmograph.help.txt83') },
       { what: t('karmograph.help.txt84'), how: '⋯ → ✒ / 🗂 / 📄' },
       { what: t('karmograph.help.txt85'), how: t('karmograph.help.txt86') },
-      /* 이번 작업(KL-271)에 는 것들 — **못 찾는 기능은 없는 것과 같다**.
+      /* 이번 작업(KL-271)에 는 것들. **못 찾는 기능은 없는 것과 같다**.
          새 기능을 넣고 여기 한 줄 안 늘면 그 기능은 숨은 것이다(그래서 검사가 이 짝을 지킨다). */
       { what: t('karmograph.help.print'), how: t('karmograph.help.printHow') },
       { what: t('karmograph.help.embed'), how: t('karmograph.help.embedHow') },

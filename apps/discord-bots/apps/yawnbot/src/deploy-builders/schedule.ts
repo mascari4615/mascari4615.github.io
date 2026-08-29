@@ -1,5 +1,5 @@
 /**
- * /일정 슬래시 빌더 — 일정·기념일·뉴스키워드 통합
+ * /일정 슬래시 빌더. 일정, 기념일, 뉴스키워드 통합
  *
  * 서브커맨드 그룹 구조:
  *   /일정 일정  → 추가, 목록, 삭제
@@ -14,14 +14,14 @@ const enUS = (s: string): Record<string, string> => ({ [EN]: s });
 export const scheduleCommand = () =>
   new SlashCommandBuilder()
     .setName('일정')
-    .setDescription('일정 · 기념일 · 뉴스 키워드 관리')
+    .setDescription('일정, 기념일, 뉴스 키워드 관리')
     .setDescriptionLocalizations(enUS('Manage schedules, anniversaries, and news keywords'))
 
     // ── 일정 ─────────────────────────────────────────────────
     .addSubcommandGroup((g) =>
       g
         .setName('일정')
-        .setDescription('예정된 일정 추가·조회·삭제')
+        .setDescription('예정된 일정 추가, 조회, 삭제')
         .setDescriptionLocalizations(enUS('Add, view, and delete schedule entries'))
         .addSubcommand((sub) =>
           sub
@@ -82,7 +82,7 @@ export const scheduleCommand = () =>
     .addSubcommandGroup((g) =>
       g
         .setName('기념일')
-        .setDescription('기념일 추가·조회·삭제')
+        .setDescription('기념일 추가, 조회, 삭제')
         .setDescriptionLocalizations(enUS('Add, view, and delete anniversaries'))
         .addSubcommand((sub) =>
           sub
@@ -153,7 +153,7 @@ export const scheduleCommand = () =>
     .addSubcommandGroup((g) =>
       g
         .setName('키워드')
-        .setDescription('뉴스 관심사 키워드 추가·조회·삭제')
+        .setDescription('뉴스 관심사 키워드 추가, 조회, 삭제')
         .setDescriptionLocalizations(enUS('Add, view, and delete news interest keywords'))
         .addSubcommand((sub) =>
           sub

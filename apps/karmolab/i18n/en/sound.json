@@ -15,11 +15,11 @@
   "sound.btn.back": "Pick a job",
   "sound.btn.chain": "Continue with this result",
   "sound.preview.fail": "This audio can't be previewed",
-  "sound.meta": "{time} · {ch}ch · {khz}kHz · {size}",
+  "sound.meta": "{time}, {ch}ch, {khz}kHz, {size}",
   "sound.part.video2audio": "Pull sound from video",
   "sound.part.soundscape": "Ambience",
   "sound.part.morse": "Morse",
   "sound.more": "{name} and {n} more",
-  "sound.wave.aria": "Waveform — arrows to seek, space to play",
+  "sound.wave.aria": "Waveform. arrows to seek, space to play",
   "sound.btn.recent": "Recent"
 }

@@ -1,21 +1,21 @@
 /**
- * 행정구역별 영토 점유율 — 시도 17개 · 시군구 250개 — 「우리 구는 누구 땅인가」 (TASK-KL-334)
+ * 행정구역별 영토 점유율. 시도 17개, 시군구 250개. 우리 구는 누구 땅인가 (TASK-KL-334)
  *
- * 화면 기준 통계는 「지금 보이는 만큼」이라 어제와 오늘이 다르다. 사람이 진짜 묻는 것은
- * **행정구역** 단위다 — 「강남구는 GS25 땅이고 관악구는 CU 땅」. 그건 화면과 무관한 고정된 답이라
+ * 화면 기준 통계는 지금 보이는 만큼이라 어제와 오늘이 다르다. 사람이 진짜 묻는 것은
+ * **행정구역** 단위다. 강남구는 GS25 땅이고 관악구는 CU 땅. 그건 화면과 무관한 고정된 답이라
  * 미리 재 두는 것이 맞다(방문자 계산 0, 정확도는 오히려 더 촘촘하게 잴 수 있다).
  *
  * ## 재는 법
  *
  * 구 하나의 경계 안을 **격자로 훑어** 칸마다 가장 가까운 가게의 브랜드를 묻고, 그 칸의 넓이를 더한다.
  * 칸 넓이는 위도마다 다르므로(경도 한 칸이 북쪽에서 짧다) 칸 수가 아니라 **넓이**를 더한다.
- * 폴리곤 안인지는 광선 교차(ray casting)로 본다 — 구멍(내부 링)은 짝수 번 교차로 저절로 빠진다.
+ * 폴리곤 안인지는 광선 교차(ray casting)로 본다. 구멍(내부 링)은 짝수 번 교차로 저절로 빠진다.
  *
  * ## 경계는 왜 따로 단순화하나
  *
- * 원본 경계는 꼭짓점 44만 개 · 18MB 다. 계산에는 그대로 쓰지만(정확도가 공짜다),
- * **화면에 보낼 것은 단순화한 사본**이다 — 지도에서 구 경계선은 1px 짜리 실선이라
- * 원본 해상도가 아무 값도 하지 않는다. Douglas–Peucker 로 깎는다.
+ * 원본 경계는 꼭짓점 44만 개, 18MB 다. 계산에는 그대로 쓰지만(정확도가 공짜다),
+ * **화면에 보낼 것은 단순화한 사본**이다. 지도에서 구 경계선은 1px 짜리 실선이라
+ * 원본 해상도가 아무 값도 하지 않는다. Douglas-Peucker 로 깎는다.
  *
  * ## 쓰는 법
  *
@@ -23,9 +23,9 @@
  *
  * 경계 원본 = southkorea-maps (kostat 2018) `skorea-municipalities-2018-geo.json`.
  * 내는 것:
- *   data/territory/sgg.json          단순화한 시군구 경계 + 이름·코드 (화면용)
+ *   data/territory/sgg.json          단순화한 시군구 경계 + 이름, 코드 (화면용)
  *   data/territory/sgg-<업종>.json   구별 브랜드 점유율 (미리 잰 값)
- *   data/territory/sido.json         시도 경계 (더 세게 깎는다 — 멀리서만 보므로)
+ *   data/territory/sido.json         시도 경계 (더 세게 깎는다. 멀리서만 보므로)
  *   data/territory/sido-<업종>.json  시도별 점유율
  *
  * 왜 두 단계인가: 전국을 볼 때 250개는 이미 모래알이고, 확대하면 17개는 너무 성기다.
@@ -39,11 +39,11 @@ import { buildGrid, nearest, BRANDS } from '../src/core/territory.ts';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DIR = path.join(root, 'data/territory');
 
-/** 격자 한 칸의 크기(도). 0.0025도 ≈ 280m — 구 하나가 수천~수만 칸이 된다. */
+/** 격자 한 칸의 크기(도). 0.0025도 ≈ 280m. 구 하나가 수천~수만 칸이 된다. */
 const CELL = 0.0025;
-/** 「주인 없음」선 — 위젯과 같은 값이어야 화면과 표가 안 어긋난다. */
+/** 주인 없음선. 위젯과 같은 값이어야 화면과 표가 안 어긋난다. */
 const MAX_KM = 20;
-/** 화면용 경계 단순화 세기(도). 0.002 ≈ 200m — 실측: 1259KB→573KB(gzip 149KB), 꼭짓점 6.7만→3만.
+/** 화면용 경계 단순화 세기(도). 0.002 ≈ 200m. 실측: 1259KB→573KB(gzip 149KB), 꼭짓점 6.7만→3만.
     더 깎으면(0.004) 84KB 까지 가지만 시가지에서 선이 각져 보인다. */
 const EPS = 0.002;
 
@@ -52,7 +52,7 @@ const rad = (d) => (d * Math.PI) / 180;
 
 /* ── 폴리곤 ── */
 
-/** 광선 교차 — 링 하나 안인가. 구멍은 바깥 링과 함께 홀짝으로 처리한다. */
+/** 광선 교차. 링 하나 안인가. 구멍은 바깥 링과 함께 홀짝으로 처리한다. */
 function inRing(ring, x, y) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -101,7 +101,7 @@ function bboxOf(geom) {
   return { minLat, minLng, maxLat, maxLng };
 }
 
-/* ── 단순화 (Douglas–Peucker) ── */
+/* ── 단순화 (Douglas-Peucker) ── */
 
 function perpDist(p, a, b) {
   const dx = b[0] - a[0];
@@ -130,7 +130,7 @@ function simplify(points, eps) {
   return left.slice(0, -1).concat(right);
 }
 
-/** 링을 깎되 최소 4점은 남긴다 — 삼각형보다 적으면 면이 아니다. */
+/** 링을 깎되 최소 4점은 남긴다. 삼각형보다 적으면 면이 아니다. */
 function simplifyRing(ring, eps) {
   let out = simplify(ring, eps);
   if (out.length < 4) out = ring.filter((_, i) => i % Math.ceil(ring.length / 8) === 0).concat([ring[0]]);
@@ -223,7 +223,7 @@ function measure(features, name, industry, cell) {
       code: f.properties.code,
       name: f.properties.name,
       areaKm2: Math.round(total),
-      /** 주인 있는 땅이 이 구의 몇 %인가 — 낮으면 가게가 드문 곳이다 */
+      /** 주인 있는 땅이 이 구의 몇 %인가. 낮으면 가게가 드문 곳이다 */
       covered: Math.round((owned / (total || 1)) * 1000) / 10,
       stores: Object.fromEntries([...counts.entries()].sort((a, b) => b[1] - a[1])),
       share
@@ -245,15 +245,15 @@ function measure(features, name, industry, cell) {
   console.log(
     (name + ' ' + industry).padEnd(20) +
       rows.length +
-      '곳 · ' +
+      '곳, ' +
       (fs.statSync(out).size / 1024).toFixed(0) +
-      'KB · 예: ' +
+      'KB, 예: ' +
       rows
         .slice(0, 3)
-        .map((r) => r.name + ' ' + (Object.keys(r.share)[0] ?? '—') + ' ' + (Object.values(r.share)[0] ?? 0) + '%')
+        .map((r) => r.name + ' ' + (Object.keys(r.share)[0] ?? '. ') + ' ' + (Object.values(r.share)[0] ?? 0) + '%')
         .join(', ') +
-      ' · 가장 확실한 곳: ' +
-      (top[0] ? top[0].name + ' ' + Object.keys(top[0].share)[0] + ' ' + Object.values(top[0].share)[0] + '%' : '—')
+      ', 가장 확실한 곳: ' +
+      (top[0] ? top[0].name + ' ' + Object.keys(top[0].share)[0] + ' ' + Object.values(top[0].share)[0] + '%' : '. ')
   );
 }
 
@@ -262,7 +262,7 @@ const INDUSTRIES = ['convenience', 'cafe', 'burger'];
 writeShapes(geo.features, 'sgg', EPS);
 for (const industry of INDUSTRIES) measure(geo.features, 'sgg', industry, CELL);
 
-/* 시도 — 멀리서만 보는 단위라 경계를 더 세게 깎고, 격자도 성기게 잡는다(넓이가 250배다). */
+/* 시도. 멀리서만 보는 단위라 경계를 더 세게 깎고, 격자도 성기게 잡는다(넓이가 250배다). */
 const sidoArg = process.argv.indexOf('--geo-sido');
 if (sidoArg >= 0) {
   const sido = JSON.parse(fs.readFileSync(process.argv[sidoArg + 1], 'utf8'));

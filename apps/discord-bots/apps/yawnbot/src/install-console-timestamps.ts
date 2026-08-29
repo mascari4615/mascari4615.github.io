@@ -1,6 +1,6 @@
 /**
  * 터미널 로그 앞에 KST(Asia/Seoul) 타임스탬프를 붙입니다.
- * 형식: `2026-05-16 18:37:51.526 KST` (코드베이스 KST idiom 정합 — proactive/
+ * 형식: `2026-05-16 18:37:51.526 KST` (코드베이스 KST idiom 정합. proactive/
  * anniversary-service 와 동일 `Asia/Seoul` toLocaleString 사용).
  * 끄려면 환경 변수 `YAWNBOT_CONSOLE_TIMESTAMPS=0` (또는 `false` / `off`).
  */

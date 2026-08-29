@@ -27,14 +27,14 @@ test('시들하면 나쁜 쪽으로 움직인다', () => {
   assert.ok(heart.felt('시들함').valence < usual.valence);
 });
 
-test('쿡 찔리면 기분은 별로인데 깬다 — 두 축이 따로 논다', () => {
+test('쿡 찔리면 기분은 별로인데 깬다. 두 축이 따로 논다', () => {
   const { heart } = mood();
   const after2 = heart.felt('쿡찔림');
   assert.ok(after2.arousal > usual.arousal, '깨긴 한다');
   assert.ok(after2.valence < usual.valence, '좋진 않다');
 });
 
-test('쓰다듬으면 좋으면서 가라앉는다 — 찔리는 것과 반대 방향이다', () => {
+test('쓰다듬으면 좋으면서 가라앉는다. 찔리는 것과 반대 방향이다', () => {
   const { heart } = mood();
   const after3 = heart.felt('쓰다듬김');
   assert.ok(after3.valence > usual.valence);
@@ -70,7 +70,7 @@ test('아무리 나쁜 일이 쌓여도 바닥은 있다', () => {
 
 // ── 되돌아오기 ──────────────────────────────────────────────────────
 
-test('시간이 지나면 제자리로 돌아온다 — 안 돌아오면 기분이 아니라 고장이다', () => {
+test('시간이 지나면 제자리로 돌아온다. 안 돌아오면 기분이 아니라 고장이다', () => {
   const { heart, flow: flow } = mood();
   heart.felt('웃어줌');
   const justAfter = heart.state.valence;
@@ -103,7 +103,7 @@ test('물어보는 것만으로 마음이 달라지지 않는다', () => {
   assert.deepEqual(heart.state, heart.state);
 });
 
-test('나쁜 쪽으로 밀린 것도 제자리로 돌아온다 — 한 번 삐치면 영영 삐치는 건 고장이다', () => {
+test('나쁜 쪽으로 밀린 것도 제자리로 돌아온다. 한 번 삐치면 영영 삐치는 건 고장이다', () => {
   const { heart, flow: flow } = mood();
   for (let i = 0; i < 5; i += 1) heart.felt('무시당함');
   flow(120_000);
@@ -133,11 +133,11 @@ test('얹어도 0과 1 밖으로 안 나간다', () => {
 
 // ── 두뇌에 넘길 한 줄 ────────────────────────────────────────────────
 
-test('평소에는 아무 말도 안 얹는다 — 늘 기분 얘기를 하면 그게 소음이다', () => {
+test('평소에는 아무 말도 안 얹는다. 늘 기분 얘기를 하면 그게 소음이다', () => {
   assert.equal(feelingNote(usual), '');
 });
 
-test('감정 이름을 붙이지 않는다 — 이름을 주면 그 감정을 연기한다', () => {
+test('감정 이름을 붙이지 않는다. 이름을 주면 그 감정을 연기한다', () => {
   const note = feelingNote({ valence: 0.6, arousal: 0.5 });
   assert.notEqual(note, '');
   for (const name of ['기쁨', '슬픔', '분노', '행복', '우울']) {

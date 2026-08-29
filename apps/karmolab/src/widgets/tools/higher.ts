@@ -1,11 +1,11 @@
 /**
- * 높은 쪽 고르기 (TASK-KL-089) — 둘 중 큰 쪽만 고르는 연승 놀이.
+ * 높은 쪽 고르기 (TASK-KL-089). 둘 중 큰 쪽만 고르는 연승 놀이.
  *
  * 왜 여기 있나: 처음에는 KarmoLab 바깥에 따로 만든 페이지였다. 그러니 색도 글씨도 제각각이라
- * 같은 사이트로 보이지 않았다. 놀이도 KarmoLab 이다 — 다른 도구와 똑같이 위젯으로 둔다.
- * 그러면 머리·이동 경로·검색용 정보·방문 기록이 전부 공짜로 따라온다.
+ * 같은 사이트로 보이지 않았다. 놀이도 KarmoLab 이다. 다른 도구와 똑같이 위젯으로 둔다.
+ * 그러면 머리, 이동 경로, 검색용 정보, 방문 기록이 전부 공짜로 따라온다.
  *
- * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
+ * 표는 오늘의 하나 맞히기가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -30,7 +30,7 @@ import { appHost } from '../../lib/site-base';
     items: Item[];
   }
 
-  /* 판 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  /* 판 이름은 **쓸 때** 붙인다. 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const boards = (): Array<{ id: string; title: string; emoji: string }> => [
     { id: 'pokemon', title: t('higher.board.pokemon'), emoji: '🔴' },
     { id: 'lol', title: t('higher.board.lol'), emoji: '⚔️' },
@@ -42,7 +42,7 @@ import { appHost } from '../../lib/site-base';
     id: 'higher',
     title: t('widgets.higher.title', undefined, "높은 쪽 고르기"),
     category: 'tool',
-    desc: t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬·롤·원신 표로 겨룹니다"),
+    desc: t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬, 롤, 원신 표로 겨룹니다"),
     layout: 'wide',
     icon:
       '<path d="M4 18l5-6 4 3 7-9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -102,7 +102,7 @@ import { appHost } from '../../lib/site-base';
           const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
           const fmt = (v: number): string => String(v) + (field && field.unit ? ' ' + field.unit : '');
 
-          /* 값을 0 부터 세어 올린다 — 「넘을까 말까」를 눈으로 보게 하는 것이 이 놀이의 재미다. */
+          /* 값을 0 부터 세어 올린다. 넘을까 말까를 눈으로 보게 하는 것이 이 놀이의 재미다. */
           function countUp(el: HTMLElement, target: number): void {
             if (calm) {
               el.textContent = fmt(target);
@@ -129,7 +129,7 @@ import { appHost } from '../../lib/site-base';
             }</span>`;
           }
 
-          /* 이긴 쪽은 자리에 남는다 — 방금 본 값과 계속 견주게 되는 것이 이 놀이의 문법이다. */
+          /* 이긴 쪽은 자리에 남는다. 방금 본 값과 계속 견주게 되는 것이 이 놀이의 문법이다. */
           function nextRound(keepLeft?: boolean): void {
             if (!board || !field) return;
             locked = false;

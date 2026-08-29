@@ -1,18 +1,18 @@
 /**
- * 당구 — 흰 공으로 쳐서 구멍에 넣는다 (TASK-KL-242)
+ * 당구. 흰 공으로 쳐서 구멍에 넣는다 (TASK-KL-242)
  *
- * 컬링·볼링과 같은 물리를 쓰지만 판이 다르다: **네 벽이 다 튕기고, 구멍 여섯 개가 공을 삼킨다.**
- * 그리고 처음으로 **친 사람이 계속 친다** — 넣으면 한 번 더, 못 넣으면 넘긴다.
+ * 컬링, 볼링과 같은 물리를 쓰지만 판이 다르다: **네 벽이 다 튕기고, 구멍 여섯 개가 공을 삼킨다.**
+ * 그리고 처음으로 **친 사람이 계속 친다**. 넣으면 한 번 더, 못 넣으면 넘긴다.
  *
  * 규칙은 줄였다: 번호도 색도 없이 **먼저 다섯 개를 넣는 쪽**이 이긴다. 흰 공을 빠뜨리면
- * 다시 놓고 차례를 넘긴다(원래 놀이의 「파울」 자리). 처음 온 사람이 규칙을 안 배워도 되게.
+ * 다시 놓고 차례를 넘긴다(원래 놀이의 파울 자리). 처음 온 사람이 규칙을 안 배워도 되게.
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
 export const W = 100;
 export const H = 180;
 export const BALL_R = 3.4;
-/** 구멍 — 네 모서리와 긴 변 가운데 둘 */
+/** 구멍. 네 모서리와 긴 변 가운데 둘 */
 export const POCKETS: Array<[number, number]> = [
   [4, 4], [W - 4, 4], [4, H - 4], [W - 4, H - 4], [3, H / 2], [W - 3, H / 2]
 ];
@@ -24,8 +24,8 @@ const TARGET = 5;
 /**
  * 판 전체가 이만큼 치면 끝난다.
  *
- * **끝나는 조건이 「다 넣기」뿐이면 안 끝나는 판이 생긴다** — 공이 서로 막고 앉으면 아무도 못
- * 넣고 무한히 친다(봇끼리 붙였더니 실제로 안 끝났다). 조각 맞추기·체커에서 겪은 것과 같은 자리다.
+ * **끝나는 조건이 다 넣기뿐이면 안 끝나는 판이 생긴다**. 공이 서로 막고 앉으면 아무도 못
+ * 넣고 무한히 친다(봇끼리 붙였더니 실제로 안 끝났다). 조각 맞추기, 체커에서 겪은 것과 같은 자리다.
  */
 const MAX_SHOTS = 40;
 
@@ -72,7 +72,7 @@ function rack(ctx: GameCtx): Ball[] {
   return out;
 }
 
-/** 한 걸음. 컬링과 같은 규율 — 고정 시간, 순수 함수. */
+/** 한 걸음. 컬링과 같은 규율. 고정 시간, 순수 함수. */
 export function stepPhysics(balls: Ball[]): { balls: Ball[]; moving: boolean; pocketed: Ball[] } {
   const out = balls.map((b) => ({ ...b }));
   const pocketed: Ball[] = [];
@@ -170,11 +170,11 @@ export const pool: GameDef<PoolState, PoolAction> = {
     const potted = gained ? s.potted.map((v, i) => (i === s.turn ? v + gained : v)) : s.potted;
     if (moving) return { ...s, balls, potted };
 
-    /* 흰 공이 빠졌으면 다시 놓고 넘긴다 — 원래 놀이의 파울 자리.
+    /* 흰 공이 빠졌으면 다시 놓고 넘긴다. 원래 놀이의 파울 자리.
      *
      * `scratch` 플래그만 보지 않고 **판 위에 흰 공이 있나**로 판단한다. 한 tick 안에서 여러 걸음을
      * 밟기 때문에 빠진 사실이 플래그에 안 남는 경우가 있고, 그러면 칠 공이 없어 판이 영영 안 끝난다
-     * (봇 단독 검사에서 가끔 안 끝났다 — 「가끔」이 곧 이 자리였다). */
+     * (봇 단독 검사에서 가끔 안 끝났다. 가끔이 곧 이 자리였다). */
     const cueGone = !balls.some((b) => b.cue && !b.in);
     let next = balls;
     if (scratch || cueGone) {

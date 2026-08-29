@@ -1,10 +1,10 @@
 /**
- * 모험 종료 modal — KL-032 θ 단계.
+ * 모험 종료 modal. KL-032 θ 단계.
  *
  * 흐름: 종료 버튼 클릭 → modal overlay
- *   1. 「정수 추출 진행 중...」
+ *   1. 정수 추출 진행 중...
  *   2. summary 도착 → yaml + md textarea 박음 (사용자 편집 가능)
- *   3. 「commit + push」 / 「취소」 버튼
+ *   3. commit + push / 취소 버튼
  *   4. commit → adventure_commit_summary Tauri command → 결과 토스트
  */
 import type { AdventureSession } from './storage';
@@ -210,7 +210,7 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
               md: mdArea.value,
             },
           });
-          status.textContent = `완료 — wiki: ${result.karmolab_pushed ? '✅ push' : '✗'}, memo raw: ${result.memo_pushed ? '✅ push' : t('adventure.t35')}`;
+          status.textContent = `완료. wiki: ${result.karmolab_pushed ? '✅ push' : '✗'}, memo raw: ${result.memo_pushed ? '✅ push' : t('adventure.t35')}`;
           status.style.color = STYLE.accent;
           setTimeout(() => {
             overlay.remove();

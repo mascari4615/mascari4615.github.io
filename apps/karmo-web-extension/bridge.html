@@ -46,11 +46,11 @@
       통로 노릇을 한다. <code>externally_connectable</code> 허용 도메인(<code>127.0.0.1</code>)이라 여기서만 말이 통한다.
     </p>
     <p>
-      콘솔/자동화에서: <code>await bm.list()</code> · <code>await bm.listAll()</code> ·
-      <code>await bm.remove(ids)</code> · <code>await bm.removeTree(ids)</code> ·
-      <code>await bm.pruneEmptyFolders()</code> · <code>await bm.version()</code> · <code>await bm.reload()</code>
+      콘솔/자동화에서: <code>await bm.list()</code>, <code>await bm.listAll()</code> , 
+      <code>await bm.remove(ids)</code>, <code>await bm.removeTree(ids)</code> , 
+      <code>await bm.pruneEmptyFolders()</code>, <code>await bm.version()</code>, <code>await bm.reload()</code>
     </p>
-    <pre id="out">확인 중…</pre>
+    <pre id="out">확인 중...</pre>
 
     <script>
       const EXT = "oghekfjnfgdaoipbdpecioohoolffbbi";
@@ -97,7 +97,7 @@
         }
         const list = await bm.list();
         out.className = "ok";
-        out.textContent = `연결 OK — ${v.name} v${v.version} · 즐겨찾기 ${list.items ? list.items.length : "?"}건`;
+        out.textContent = `연결 OK. ${v.name} v${v.version}, 즐겨찾기 ${list.items ? list.items.length : "?"}건`;
       })();
     </script>
   </body>

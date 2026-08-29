@@ -10,11 +10,11 @@ export interface ClockBodyOptions {
 }
 
 /**
- * 시계 몸 — 아무도 말을 걸지 않아도 스스로 주기적으로 느낀다.
+ * 시계 몸. 아무도 말을 걸지 않아도 스스로 주기적으로 느낀다.
  *
  * 이 몸이 존재하는 이유는 기능이 아니라 **증명**이다. 터미널 몸과 성격이 정반대인데도
  * (사람이 말을 거는 게 아니라 스스로 깨어남) 코어 코드를 한 줄도 안 고치고 붙는다.
- * 나중에 화면 감시·디스코드 몸이 들어올 자리의 모양이 바로 이것이다.
+ * 나중에 화면 감시, 디스코드 몸이 들어올 자리의 모양이 바로 이것이다.
  */
 export function clockBody(options: ClockBodyOptions): Body {
   const channel = options.channel ?? 'clock';

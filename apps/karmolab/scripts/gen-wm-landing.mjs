@@ -2,11 +2,11 @@
  * gen-wm-landing: data/worldbook.json → wm/index.html (WM 소개 한 장, TASK-KL-162)
  *
  * 왜: KarmoLab 이 WM 의 메인 웹이 된다(정본 memo/projects/wm-hub.md § A1).
- * 그 첫 장은 **손으로 쓴 소개문이면 안 된다** — WM 은 개발 중이라 설정이 자주 바뀌고,
+ * 그 첫 장은 **손으로 쓴 소개문이면 안 된다**. WM 은 개발 중이라 설정이 자주 바뀌고,
  * 손글씨는 조용히 낡는다(사이트만 옛말을 한다). 그래서 이 페이지의 모든 문장은
  * memo 정본에서 온다. 문서가 바뀌면 다음 배포에 페이지가 따라 바뀐다.
  *
- * 못 찾은 조각은 **그 자리만 빠진다** — 페이지는 산다. 대신 무엇이 빠졌는지 찍는다.
+ * 못 찾은 조각은 **그 자리만 빠진다**. 페이지는 산다. 대신 무엇이 빠졌는지 찍는다.
  * (조용한 백지 금지: 인물이 0명이면 실패로 세운다.)
  *
  * 나온 파일은 gen-shell-pages.mjs 가 셸에 얹어 /wm/ 로 낸다.
@@ -26,14 +26,14 @@ const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 if (!fs.existsSync(BOOK_PATH)) {
-  console.error(`[wm-landing] 도감 데이터가 없다: ${BOOK_PATH} — 먼저 npm run build:worldbook`);
+  console.error(`[wm-landing] 도감 데이터가 없다: ${BOOK_PATH}. 먼저 npm run build:worldbook`);
   process.exit(1);
 }
 const book = JSON.parse(fs.readFileSync(BOOK_PATH, 'utf8'));
 const byId = new Map(book.docs.map((d) => [d.id, d]));
 const missing = [];
 
-/** 본문에서 「## 제목」 아래 덩어리 하나. 없으면 빈 문자열(그 자리만 빠진다). */
+/** 본문에서 ## 제목 아래 덩어리 하나. 없으면 빈 문자열(그 자리만 빠진다). */
 function section(doc, headingRe) {
   if (!doc || !doc.body) return '';
   const lines = doc.body.split('\n');
@@ -48,7 +48,7 @@ function section(doc, headingRe) {
   return start >= 0 ? lines.slice(start).join('\n').trim() : '';
 }
 
-/** 「**이름:**」 굵은 이름표 아래 목록 덩어리. 제목(##)이 아닌 이름표도 정본에서 흔히 쓴다. */
+/** **이름:** 굵은 이름표 아래 목록 덩어리. 제목(##)이 아닌 이름표도 정본에서 흔히 쓴다. */
 function labeledBlock(doc, labelRe) {
   if (!doc || !doc.body) return '';
   const lines = doc.body.split('\n');
@@ -67,20 +67,20 @@ function labeledBlock(doc, labelRe) {
   return '';
 }
 
-/** 「- **이름** → 뜻」 목록 → [{term, gloss}]. 형식이 달라지면 빈 배열(그 칸만 빠진다). */
+/** - **이름** → 뜻 목록 → [{term, gloss}]. 형식이 달라지면 빈 배열(그 칸만 빠진다). */
 function glossaryList(text) {
   const out = [];
   for (const line of text.split('\n')) {
     const m = /^-\s*"?\*{0,2}(.+?)\*{0,2}"?\s*(?:→|->|:)\s*(.+)$/.exec(line.trim());
     if (!m) continue;
-    const term = m[1].replace(/^["“]|["”]$/g, '').trim();
+    const term = m[1].replace(/^[""]|[""]$/g, '').trim();
     const gloss = m[2].replace(/\*\*/g, '').trim();
     if (term && gloss) out.push({ term, gloss });
   }
   return out;
 }
 
-/** 첫 인용(>) 한 줄 — 핵심 테마처럼 크게 걸 문장. */
+/** 첫 인용(>) 한 줄. 핵심 테마처럼 크게 걸 문장. */
 function firstQuote(doc) {
   if (!doc || !doc.body) return '';
   const m = doc.body.match(/^>\s*(.+)$/m);
@@ -100,9 +100,9 @@ const coreLoop = need('vision/core-loop');
 
 const tagline = section(oneLiner, /한 줄 정의/) || (oneLiner ? oneLiner.summary : '');
 const theme = firstQuote(oneLiner);
-// 타이틀 절의 **첫 문장만** — 뒤따르는 설명까지 큰제목에 걸면 문장이 제목 행세를 한다(실측).
+// 타이틀 절의 **첫 문장만**. 뒤따르는 설명까지 큰제목에 걸면 문장이 제목 행세를 한다(실측).
 const titleLine = (section(branding, /^타이틀/) || '').split('\n')[0].replace(/\*\*/g, '').trim();
-const title = (titleLine.split(/(?<=[.。])\s/)[0] || titleLine).replace(/["“”]/g, '').replace(/\.$/, '').trim();
+const title = (titleLine.split(/(?<=[.。])\s/)[0] || titleLine).replace(/["""]/g, '').replace(/\.$/, '').trim();
 const forWhom = glossaryList(labeledBlock(branding, /공유 언어/) || section(branding, /공유 언어/));
 const audience = section(branding, /팬 100명/)
   .split('\n')
@@ -110,7 +110,7 @@ const audience = section(branding, /팬 100명/)
   .map((l) => l.trim().replace(/^-\s*/, '').replace(/\*\*/g, ''))
   .slice(0, 4);
 
-/** 인물 — 정본에 있는 순서가 아니라 「이야기에 들어오는 순서」로 세운다. */
+/** 인물. 정본에 있는 순서가 아니라 이야기에 들어오는 순서로 세운다. */
 const CAST_ORDER = ['characters/yawn', 'characters/ring', 'characters/alisa', 'characters/fourth'];
 const cast = CAST_ORDER.map((id) => byId.get(id)).filter(Boolean);
 const extraCast = book.docs
@@ -118,7 +118,7 @@ const extraCast = book.docs
   .slice(0, 4);
 
 if (cast.length === 0) {
-  console.error('[wm-landing] 인물이 0명 — 소개 페이지가 백지가 된다');
+  console.error('[wm-landing] 인물이 0명. 소개 페이지가 백지가 된다');
   process.exit(1);
 }
 
@@ -168,7 +168,7 @@ const body = `<section class="wm-hero">
         ${cast.map(castCard).join('\n        ')}
       </div>
       ${extraCast.length > 0
-        ? `<p class="wm-more-cast">그리고 ${extraCast.map((d) => `<a href="/?wb=${encodeURIComponent(d.id)}#wm">${esc(d.title.replace(/\s*\(.*$/, ''))}</a>`).join(' · ')}</p>`
+        ? `<p class="wm-more-cast">그리고 ${extraCast.map((d) => `<a href="/?wb=${encodeURIComponent(d.id)}#wm">${esc(d.title.replace(/\s*\(.*$/, ''))}</a>`).join(', ')}</p>`
         : ''}
     </section>
 
@@ -185,8 +185,8 @@ const body = `<section class="wm-hero">
     </section>` : ''}
 
     <section class="wm-block wm-foot">
-      <p>이 페이지의 모든 문장은 개발 노트(<code>memo/wm/design</code>)에서 자동으로 옵니다 — 설정이 바뀌면 여기도 바뀝니다.</p>
-      <p class="wm-stamp">문서 ${book.counts.docs}건 기준 · ${book.generatedAt.slice(0, 10)}</p>
+      <p>이 페이지의 모든 문장은 개발 노트(<code>memo/wm/design</code>)에서 자동으로 옵니다. 설정이 바뀌면 여기도 바뀝니다.</p>
+      <p class="wm-stamp">문서 ${book.counts.docs}건 기준, ${book.generatedAt.slice(0, 10)}</p>
     </section>`;
 
 const style = `
@@ -221,14 +221,14 @@ const style = `
       .wm-stamp { opacity: .7; }
 `;
 
-const description = (tagline || 'Witch-Mendokusai — 귀찮은 마녀').slice(0, 150);
+const description = (tagline || 'Witch-Mendokusai. 귀찮은 마녀').slice(0, 150);
 const html = `<!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="utf-8">
-    <title>Witch-Mendokusai — 귀찮은 마녀</title>
+    <title>Witch-Mendokusai. 귀찮은 마녀</title>
     <meta name="description" content="${esc(description)}">
-    <meta property="og:title" content="Witch-Mendokusai — 귀찮은 마녀">
+    <meta property="og:title" content="Witch-Mendokusai. 귀찮은 마녀">
     <meta property="og:description" content="${esc(description)}">
     <style>${style}    </style>
   </head>
@@ -241,5 +241,5 @@ const html = `<!DOCTYPE html>
 fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
 fs.writeFileSync(OUT_PATH, html, 'utf8');
 
-for (const m of missing) console.warn(`[wm-landing] ⚠ 못 찾은 조각: ${m} — 그 자리는 비워 둔다`);
-console.log(`[wm-landing] 씀: wm/index.html (인물 ${cast.length}명 · 말 ${forWhom.length}개 · 루프 ${loopSteps.length}단계)`);
+for (const m of missing) console.warn(`[wm-landing] ⚠ 못 찾은 조각: ${m}. 그 자리는 비워 둔다`);
+console.log(`[wm-landing] 씀: wm/index.html (인물 ${cast.length}명, 말 ${forWhom.length}개, 루프 ${loopSteps.length}단계)`);

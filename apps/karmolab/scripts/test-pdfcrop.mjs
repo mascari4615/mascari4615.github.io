@@ -1,12 +1,12 @@
 /**
  * PDF 여백 자르기가 제대로 잘라내는지 확인한다 (TASK-KL-088)
  *
- * 「잘랐다」는 페이지가 작아졌다는 뜻이지만, 작아지기만 하면 안 된다 — **내용이 남아 있어야**
+ * 잘랐다는 페이지가 작아졌다는 뜻이지만, 작아지기만 하면 안 된다. **내용이 남아 있어야**
  * 한다. 너무 바짝 자르면 글자가 잘리고, 그건 눈으로 열어 보기 전엔 모른다.
  *
  *  ① 넓은 여백에 작은 글씨만 있는 문서를 잘랐을 때 페이지가 실제로 작아지는가
  *  ② 자른 뒤에도 글자가 그대로 뽑히는가 (그림으로 굽지 않았다는 뜻이기도 하다)
- *  ③ 대조: 이미 꽉 찬 문서는 거의 안 자르는가 — 아니면 아무 문서나 깎고 있는 것이다
+ *  ③ 대조: 이미 꽉 찬 문서는 거의 안 자르는가. 아니면 아무 문서나 깎고 있는 것이다
  *
  * 사용: node scripts/test-pdfcrop.mjs
  */
@@ -51,7 +51,7 @@ const out = await page.evaluate(async () => {
     const font = await d.embedFont(window.PDFLib.StandardFonts.Helvetica);
     const p = d.addPage([400, 500]);
     if (full) {
-      // 진짜로 가장자리까지 채운다. 글줄만 쌓으면 폭이 100pt 뿐이라 「꽉 찬 문서」가 아니다 —
+      // 진짜로 가장자리까지 채운다. 글줄만 쌓으면 폭이 100pt 뿐이라 꽉 찬 문서가 아니다 . 
       // 처음에 그렇게 만들어 놓고 도구가 제대로 자른 것을 실패로 읽었다.
       p.drawRectangle({ x: 6, y: 6, width: 388, height: 488, borderWidth: 2, borderColor: window.PDFLib.rgb(0, 0, 0) });
       for (let y = 20; y < 480; y += 20) p.drawText(MARK, { x: 12, y, size: 10, font });
@@ -100,8 +100,8 @@ const out = await page.evaluate(async () => {
   return {
     ok: shrank && keptText && fullKept,
     why:
-      `여백 넓은 문서 400x500 → ${sparse.w}x${sparse.h} ${shrank ? '✓' : '✗'} · ` +
-      `자른 뒤 글자 ${keptText ? '그대로 뽑힘 ✓' : '사라짐 ✗'} · ` +
+      `여백 넓은 문서 400x500 → ${sparse.w}x${sparse.h} ${shrank ? '✓' : '✗'}, ` +
+      `자른 뒤 글자 ${keptText ? '그대로 뽑힘 ✓' : '사라짐 ✗'}, ` +
       `대조(꽉 찬 문서) → ${full.w}x${full.h} ${fullKept ? '✓' : '✗'}`
   };
 });

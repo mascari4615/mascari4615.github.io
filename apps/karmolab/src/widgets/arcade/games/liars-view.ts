@@ -1,7 +1,7 @@
 /**
  * 거짓말 주사위 화면 (TASK-KL-242)
  *
- * 부를 수 있는 말만 단추로 낸다 — 「앞말보다 세야 한다」를 글로 적어 두면 아무도 안 읽고
+ * 부를 수 있는 말만 단추로 낸다. 앞말보다 세야 한다를 글로 적어 두면 아무도 안 읽고
  * 안 되는 말을 고르고 헤맨다. 규칙을 설명하는 대신 **못 고르게** 한다.
  */
 import { t } from '../../../lib/i18n';
@@ -35,7 +35,7 @@ export const liarsView: GameView<LiarsState, LiarsAction> = {
 
       diceEl.innerHTML =
         '<small>' + t('arcade.liars.mine') + '</small><div>' +
-        /* 내 주사위 — 점으로 그린다(`die.ts`). 굴리는 것이 아니라 보는 것이라 단추가 아니다. */
+        /* 내 주사위. 점으로 그린다(`die.ts`). 굴리는 것이 아니라 보는 것이라 단추가 아니다. */
         (s.dice[mySeat] ?? []).map((d) => die(d)).join('') +
         '</div>';
 

@@ -12,7 +12,7 @@ export async function handlePing(ctx: BotContext, interaction: ChatInputCommandI
   await interaction.reply({ embeds: [embed] });
 }
 
-/** `/도움말` 주제: 개요 | music | game(페이지 임베드) | utility — 채널 스팸을 줄이려고 기본은 ephemeral */
+/** `/도움말` 주제: 개요 | music | game(페이지 임베드) | utility. 채널 스팸을 줄이려고 기본은 ephemeral */
 export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   const topic = interaction.options.getString('주제');
 
@@ -28,7 +28,7 @@ export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandI
           name: '🎮 게임',
           value:
             '주제: **game**\n' +
-            '검, 미니게임(슬롯·홀짝·가위바위보), 주식, 레이드, 출석 등\n' +
+            '검, 미니게임(슬롯, 홀짝, 가위바위보), 주식, 레이드, 출석 등\n' +
             '각 게임의 규칙, 아이템, 경제 시스템 설명',
         },
         {
@@ -42,8 +42,8 @@ export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandI
           name: '🧠 기억 & AI',
           value:
             '주제: **memory**\n' +
-            '`/기억 확인` / `저장` / `수정` / `핫로그` — 대화 기록 및 프로필 관리\n' +
-            '주제: **utility** — `/yawn` (AI 질문), `/ping` (봇 상태)',
+            '`/기억 확인` / `저장` / `수정` / `핫로그`. 대화 기록 및 프로필 관리\n' +
+            '주제: **utility**. `/yawn` (AI 질문), `/ping` (봇 상태)',
         },
         {
           name: '🎧 음성 & 관리',
@@ -60,16 +60,16 @@ export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandI
 
   if (topic === 'music') {
     const embed = new EmbedBuilder()
-      .setTitle('/music — 음악 플레이어')
+      .setTitle('/music. 음악 플레이어')
       .setDescription('한 **대기열**을 공유합니다. 명령을 친 사람이 **음성(또는 스테이지) 채널**에 있어야 해요.')
       .addFields(
         {
           name: '▶️ play',
-          value: 'YouTube URL 또는 검색어로 노래 재생\n`query` 필수 — URL, 플레이리스트, 검색어 모두 지원',
+          value: 'YouTube URL 또는 검색어로 노래 재생\n`query` 필수. URL, 플레이리스트, 검색어 모두 지원',
         },
         {
           name: '🎤 speak',
-          value: 'Edge TTS로 텍스트 음성 변환 재생\n`text` 선택 — 입력 안 하면 질문을 음성으로 읽음',
+          value: 'Edge TTS로 텍스트 음성 변환 재생\n`text` 선택. 입력 안 하면 질문을 음성으로 읽음',
         },
         {
           name: '🔊 sound',
@@ -113,16 +113,16 @@ export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandI
 
   if (topic === 'utility') {
     const embed = new EmbedBuilder()
-      .setTitle('🤖 AI · 유틸 · 음성')
+      .setTitle('🤖 AI, 유틸, 음성')
       .addFields(
         {
-          name: '/yawn — AI에 질문',
+          name: '/yawn. AI에 질문',
           value:
             '`질문` (필수) + 선택 `api` (기본 / AI Studio / Vertex) + 선택 `model`\n' +
             '→ Gemini 또는 Claude CLI로 응답 (env ASSISTANT_AI_PROVIDER 설정)',
         },
         {
-          name: '/ping — 봇 상태',
+          name: '/ping. 봇 상태',
           value: '디스코드 웹소켓 지연시간(ms) 표시 (낮을수록 빠름)',
         },
         {
@@ -158,7 +158,7 @@ export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandI
 
   if (topic === 'memory') {
     const embed = new EmbedBuilder()
-      .setTitle('🧠 기억 커맨드 — AI 비서 메모리 관리')
+      .setTitle('🧠 기억 커맨드. AI 비서 메모리 관리')
       .setDescription(
         '대화 기록 및 프로필을 관리합니다.\n' +
           '모든 정보는 MEMO_REPO_PATH에 자동으로 git commit됩니다.',
@@ -192,11 +192,11 @@ export async function handleHelp(ctx: BotContext, interaction: ChatInputCommandI
         {
           name: '📚 메모리 계층 구조',
           value:
-            '`logs/` — 일일 대화 원본 (즉시 기록)\n' +
-            '`daily/` — 어제 대화 요약 (매일 생성)\n' +
-            '`weekly/` — 주간 요약 (매주 생성)\n' +
-            '`user.md` — 나에 대한 누적 정보\n' +
-            '`self.md` — 봇 자신에 대한 누적 정보',
+            '`logs/`. 일일 대화 원본 (즉시 기록)\n' +
+            '`daily/`. 어제 대화 요약 (매일 생성)\n' +
+            '`weekly/`. 주간 요약 (매주 생성)\n' +
+            '`user.md`. 나에 대한 누적 정보\n' +
+            '`self.md`. 봇 자신에 대한 누적 정보',
         },
       )
       .setColor(0x7c4dff);

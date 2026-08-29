@@ -1,15 +1,15 @@
 /**
- * **리눅스에서 재 본다** — 「CI 에서만 빨간」 자리 재현용 (2026-08-16, TASK-KAR-216).
+ * **리눅스에서 재 본다**. CI 에서만 빨간 자리 재현용 (2026-08-16, TASK-KAR-216).
  *
  * 왜 있나: 우리 화면 검사는 이 PC(윈도우)에서 돌고, **판정은 ubuntu-latest 에서 난다.**
  * 글꼴 폭이 달라 위쪽 요소가 다르게 접히고 그만큼 아래가 밀리는데, 그 차이는 윈도우에서
- * 아무리 돌려도 안 보인다. 그래서 며칠 동안 「밀어 보고 기다렸다 읽기」를 반복했다 —
+ * 아무리 돌려도 안 보인다. 그래서 며칠 동안 밀어 보고 기다렸다 읽기를 반복했다 . 
  * 빨강 하나에 배포 왕복 한 번이 들었다.
  *
  * 이 파일은 그 왕복을 없앤다. CI 와 **같은 리눅스 이미지** 안에서 같은 페이지를 열고
- * 자리를 재서, 윈도우 값과 나란히 볼 수 있게 한다. 앱의 node_modules 는 안 쓴다 —
+ * 자리를 재서, 윈도우 값과 나란히 볼 수 있게 한다. 앱의 node_modules 는 안 쓴다 . 
  * 공식 playwright 이미지에 브라우저가 이미 들어 있고, 서버는 여기서 직접 띄운다
- * (리눅스용 의존성 설치 0 · 몇 초면 뜬다).
+ * (리눅스용 의존성 설치 0, 몇 초면 뜬다).
  *
  * 쓰는 법 (윈도우에서):
  *   npm run repro:linux
@@ -34,7 +34,7 @@ const MIME = {
   '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.webp': 'image/webp',
 };
 
-/** Jekyll 앞머리(`---` 블록)를 걷는다 — 안 걷으면 그 글자가 화면 맨 위에 뜬다. */
+/** Jekyll 앞머리(`---` 블록)를 걷는다. 안 걷으면 그 글자가 화면 맨 위에 뜬다. */
 const stripFrontMatter = (s) => (s.startsWith('---') ? s.replace(/^---[\s\S]*?\n---\s*\n/, '') : s);
 
 const server = http.createServer((req, res) => {
@@ -56,7 +56,7 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
 
 const toMeasure = [
   {
-    name: 'karmograph 폰 — 시점 줄과 도구 줄 사이',
+    name: 'karmograph 폰. 시점 줄과 도구 줄 사이',
     hash: '#karmograph',
     viewport: { width: 390, height: 844 },
     phone: true,
@@ -92,7 +92,7 @@ const toMeasure = [
     },
   },
   {
-    name: 'bluemarble — 제목이 화면 폭의 몇 %',
+    name: 'bluemarble. 제목이 화면 폭의 몇 %',
     hash: '#bluemarble',
     viewport: { width: 1280, height: 900 },
     prepare: async (p) => {
@@ -116,7 +116,7 @@ const toMeasure = [
           lit += 1;
         }
       }
-      /* 글꼴이 **정말 쓰였나**는 「있나」가 아니라 **폭을 재서** 안다 — 대체 글꼴은 폭이 다르다. */
+      /* 글꼴이 **정말 쓰였나**는 있나가 아니라 **폭을 재서** 안다. 대체 글꼴은 폭이 다르다. */
       const FACE = 'KarmoSans, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif';
       const label = '지구촌';
       c.save();
@@ -131,7 +131,7 @@ const toMeasure = [
         ourFont: document.fonts.check('900 100px KarmoSans', '지구촌'),
         '100px폭_우리': ourWidth, '100px폭_기본': defaultWidth,
         maxHeight: Math.round(cv.height * 0.34), wantedWidth: Math.round(cv.width * 0.92),
-        /* 5px 띠 대신 **글자가 놓인 구역 전체**를 훑으면 글꼴 모양에 안 흔들린다 — 그 값도 같이 잰다. */
+        /* 5px 띠 대신 **글자가 놓인 구역 전체**를 훑으면 글꼴 모양에 안 흔들린다. 그 값도 같이 잰다. */
         wideWidthPercent: (() => {
           const top = Math.round(cv.height * 0.30);
           const hgt = Math.round(cv.height * 0.40);
@@ -153,7 +153,7 @@ const toMeasure = [
 ];
 
 const browser = await chromium.launch();
-console.log(`[linux-repro] ${process.platform} · playwright 컨테이너 안`);
+console.log(`[linux-repro] ${process.platform}, playwright 컨테이너 안`);
 for (const item of toMeasure) {
   const ctx = await browser.newContext({
     serviceWorkers: 'block', viewport: item.viewport,

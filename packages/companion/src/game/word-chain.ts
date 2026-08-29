@@ -1,13 +1,13 @@
 /**
- * 끝말잇기 — 얘와 주고받는 첫 놀이.
+ * 끝말잇기. 얘와 주고받는 첫 놀이.
  *
  * 레퍼런스에서 배운 것: 저쪽은 **말만 하지 않는다.** 같이 게임하고 노래하고 본다. 곁에
  * 있는 것과 대화창에 앉아 있는 것의 차이가 거기서 갈린다. 우리 얘와 조수님 사이엔 놀이가
- * 하나도 없었다 — 오직 묻고 답하기뿐.
+ * 하나도 없었다. 오직 묻고 답하기뿐.
  *
- * 왜 하필 끝말잇기인가. **판정이 기계로 딱 떨어진다.** 두뇌한테 「이거 맞아?」를 맡기면
+ * 왜 하필 끝말잇기인가. **판정이 기계로 딱 떨어진다.** 두뇌한테 이거 맞아?를 맡기면
  * 헛소리를 하고, 헛소리로 이기는 놀이는 재미가 없다. 규칙은 여기서 판정하고 두뇌는
- * 아예 부르지 않는다 — 놀이는 즉답이어야 한다. 3초 뒤에 오는 「사과!」는 놀이가 아니다.
+ * 아예 부르지 않는다. 놀이는 즉답이어야 한다. 3초 뒤에 오는 사과!는 놀이가 아니다.
  *
  * 그리고 **얘도 진다.** 낼 말이 떨어지면 순순히 진다. 안 지는 상대와 하는 놀이는 놀이가
  * 아니다.
@@ -34,7 +34,7 @@ export interface Judgement {
 const hangulOnly = /^[가-힣]+$/;
 
 /**
- * 두음법칙 — 「라면」의 「라」로 이을 때 「나」로도 이을 수 있다.
+ * 두음법칙. 라면의 라로 이을 때 나로도 이을 수 있다.
  *
  * 이걸 빼면 놀이가 억지스러워진다. 사람은 실제로 이렇게 논다.
  */
@@ -62,7 +62,7 @@ export function judge(chain: WordChain, word: string): Judgement {
   if (w.length < 2) return { ok: false, why: '한 글자는 안 돼.' };
   if (chain.used.includes(w)) return { ok: false, why: '그건 아까 나왔잖아.' };
   if (chain.next !== null && canFollow(chain.next).includes(w[0]) === false) {
-    return { ok: false, why: `「${chain.next}」로 시작해야지.` };
+    return { ok: false, why: `${chain.next}로 시작해야지.` };
   }
   return { ok: true, why: '' };
 }
@@ -93,10 +93,10 @@ export function play(chain: WordChain, word: string, by: '조수님' | '나'): {
 }
 
 /**
- * 얘가 낼 말을 고른다. 없으면 null — 그러면 진다.
+ * 얘가 낼 말을 고른다. 없으면 null. 그러면 진다.
  *
  * 두뇌를 안 쓰는 이유는 놀이가 **즉답**이어야 해서다. 아는 말이 적어 자주 지는 건
- * 흠이 아니다 — 지는 상대라야 이길 맛이 난다.
+ * 흠이 아니다. 지는 상대라야 이길 맛이 난다.
  */
 export function pickWord(chain: WordChain, words: readonly string[], roll: () => number = Math.random): string | null {
   const possible = words.filter((w) => judge(chain, w).ok);
@@ -109,7 +109,7 @@ export function pickWord(chain: WordChain, words: readonly string[], roll: () =>
  *
  * 처음엔 일흔 개쯤이었는데 살아 있는 얘로 놀아 보니 **한두 수 만에 졌다.** 지는 게 흠은
  * 아니지만 한 수 만에 끝나면 그건 놀이가 아니라 버튼이다. 흔히 나오는 끝 글자를 메워
- * 몇 수는 주고받게 늘렸다. 여전히 끝은 있다 — 언젠가는 진다.
+ * 몇 수는 주고받게 늘렸다. 여전히 끝은 있다. 언젠가는 진다.
  */
 export const knownWords: readonly string[] = [
   '사과', '과일', '일기', '기차', '차표', '표지', '지도', '도시', '시계', '계단',
@@ -121,7 +121,7 @@ export const knownWords: readonly string[] = [
   '고양이', '이름', '바다', '다리', '리무진', '진주', '주머니', '니트', '트럭',
   '컴퓨터', '터널', '널빤지', '지붕', '붕어', '어깨', '깨알', '알사탕', '탕수육', '육개장',
 
-  // 자주 걸리는 끝 글자를 메우는 말들 — 라이브에서 한두 수 만에 지길래 보탰다.
+  // 자주 걸리는 끝 글자를 메우는 말들. 라이브에서 한두 수 만에 지길래 보탰다.
   '무지개', '개미', '미소', '소나무', '무늬', '나무', '목련', '연필', '필통', '통조림',
   '림프', '프라이', '이슬', '슬리퍼', '퍼즐', '즐거움', '움직임', '임금', '금요일', '일요일',
   '석고', '고구마', '마늘', '보물', '물고기', '기와', '와인', '인형', '형광펜',
@@ -139,7 +139,7 @@ export const knownWords: readonly string[] = [
 
 /** 판이 어떻게 됐는지 한마디로. */
 export function saySomething(chain: WordChain, judged: Judgement, played: string | null): string {
-  if (chain.winner === '조수님') return `…${judged.why} 내가 졌네.`;
+  if (chain.winner === '조수님') return `...${judged.why} 내가 졌네.`;
   if (chain.winner === '나') return `${judged.why} 내가 이겼다.`;
-  return played ?? '…';
+  return played ?? '...';
 }

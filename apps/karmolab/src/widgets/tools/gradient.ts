@@ -5,7 +5,7 @@
  * 여기서는 **바로 보면서** 색과 방향을 잡고 CSS 를 그대로 가져간다.
  *
  * 신경 쓴 곳: 두 색을 그냥 섞으면 가운데가 **탁하게 죽는다**(파랑→노랑이 회색을 지난다).
- * 사람 눈에 맞는 공간에서 섞으면 그 일이 없다 — 그 차이를 나란히 보여 준다.
+ * 사람 눈에 맞는 공간에서 섞으면 그 일이 없다. 그 차이를 나란히 보여 준다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -108,11 +108,11 @@ import { statusLine } from './shared/say';
           const angleEl = $<HTMLInputElement>('#grAngle');
           const status = $<HTMLElement>('#grStatus');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 중간 색을 여러 개 끼워 넣는다 — 브라우저 기본 섞기의 탁함을 줄이는 흔한 방법이다. */
+          /** 중간 색을 여러 개 끼워 넣는다. 브라우저 기본 섞기의 탁함을 줄이는 흔한 방법이다. */
           function stops(perceptual: boolean, count: number): string[] {
             const a = fromEl.value;
             const b = toEl.value;
@@ -135,7 +135,7 @@ import { statusLine } from './shared/say';
             const perceptual = $<HTMLInputElement>('#grPerc').checked;
             const value = css(perceptual);
             $<HTMLElement>('#grPreview').style.background = value;
-            // 비교 줄은 늘 같은 조건(직선·8단계)으로 보여 줘야 차이가 드러난다
+            // 비교 줄은 늘 같은 조건(직선, 8단계)으로 보여 줘야 차이가 드러난다
             const list = (p: boolean): string => `linear-gradient(90deg, ${stops(p, 8).join(', ')})`;
             $<HTMLElement>('#grPlain').style.background = list(false);
             $<HTMLElement>('#grPerceptual').style.background = list(true);

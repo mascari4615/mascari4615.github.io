@@ -1,7 +1,7 @@
 /**
- * 추천 여섯 칸의 규율 — 창 없이 (TASK-KL-264 F4)
+ * 추천 여섯 칸의 규율. 창 없이 (TASK-KL-264 F4)
  *
- * 「추천」은 근거가 있을 때만 추천이다. 근거가 코드에만 있고 검사에 없으면 다음 사람이 규칙을
+ * 추천은 근거가 있을 때만 추천이다. 근거가 코드에만 있고 검사에 없으면 다음 사람이 규칙을
  * 한 줄 고칠 때 무엇이 깨지는지 모른다. 여기서 지키는 것 넷:
  *   ① 안 해 본 것이 먼저 온다   ② 한 갈래가 둘을 안 넘는다
  *   ③ 긴 판은 많아야 하나        ④ 짧은 판이 최소 둘
@@ -13,7 +13,7 @@ const { pick6, matches, SLOTS } = await import('data:text/javascript;base64,' + 
 
 let bad = 0;
 const ok = (cond, name, detail = '') => {
-  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : ' — ' + detail}`);
+  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : '. ' + detail}`);
   if (!cond) bad++;
 };
 
@@ -36,7 +36,7 @@ const lens = fresh.map((id) => all.find((g) => g.id === id).length);
 ok(lens.filter((l) => l === 'long').length <= 1, '긴 판은 많아야 하나', lens.join(','));
 ok(lens.filter((l) => l === 'short').length >= 2, '짧은 판이 최소 둘', lens.join(','));
 
-/* ① 안 해 본 것 먼저 — 절반을 「해 봤다」로 적으면 안 해 본 쪽만 떠야 한다. */
+/* ① 안 해 본 것 먼저. 절반을 해 봤다로 적으면 안 해 본 쪽만 떠야 한다. */
 const played = {};
 for (let i = 0; i < 40; i++) played['g' + i] = { n: 1, at: 1000 + i };
 const after = pick6(all, played);
@@ -60,4 +60,4 @@ ok(matches(['오목'], '   '), '빈 검색어면 다 보인다');
 ok(!matches(['오목'], '체스'), '안 걸리는 것은 안 걸린다');
 
 if (bad) { console.error(`[pick6] 실패 ${bad}건`); process.exit(1); }
-console.log('[pick6] 통과 — 안 해 본 것 먼저 · 갈래·길이 섞임 · 같은 상태면 같은 여섯');
+console.log('[pick6] 통과. 안 해 본 것 먼저, 갈래, 길이 섞임, 같은 상태면 같은 여섯');

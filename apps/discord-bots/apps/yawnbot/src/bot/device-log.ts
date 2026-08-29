@@ -1,5 +1,5 @@
 /**
- * 기기(폰) 실행 로그 수신·조회 HTTP (TASK-WM-201).
+ * 기기(폰) 실행 로그 수신, 조회 HTTP (TASK-WM-201).
  *
  * 폰의 WM 이 `POST /device-log` 로 배치를 밀어 넣으면
  *   ① NDJSON 파일로 쌓고 (services/device-log-store)
@@ -7,11 +7,11 @@
  *   ③ 사람은 `GET /device-log` 웹 화면, AI 는 `GET /device-log/tail` 평문으로 읽는다.
  *
  * 인증: `DEVICE_LOG_TOKEN` (없으면 `LOCAL_WEBHOOK_SECRET` 재사용). 헤더
- * `X-Yawnbot-Secret` 또는 쿼리 `?t=` — 쿼리를 허용하는 이유는 *폰 브라우저 북마크*
+ * `X-Yawnbot-Secret` 또는 쿼리 `?t=`. 쿼리를 허용하는 이유는 *폰 브라우저 북마크*
  * 하나로 로그를 볼 수 있어야 하기 때문(사용자 작업량 최소화). 토큰 미설정 시엔
  * dev 모드로 열되 경고를 남긴다 (local-webhook 과 같은 신뢰 모델).
  *
- * 저장 위치: `data/device-logs/` (런타임 산출물 — gitignore 대상).
+ * 저장 위치: `data/device-logs/` (런타임 산출물. gitignore 대상).
  */
 import fs from 'fs';
 import path from 'path';
@@ -34,7 +34,7 @@ import {
   type DeviceLogLine,
 } from '../services/device-log-store';
 
-/** 알림·하트비트 주기 (전부 env 로 조절 가능 — 하드코딩 금지). */
+/** 알림, 하트비트 주기 (전부 env 로 조절 가능. 하드코딩 금지). */
 const NOTIFY_KIND = 'wm-device-log';
 const FINGERPRINT_COOLDOWN_MS = numEnv('DEVICE_LOG_NOTIFY_COOLDOWN_MS', 10 * 60 * 1000);
 const NOTIFY_MAX_PER_WINDOW = numEnv('DEVICE_LOG_NOTIFY_MAX_PER_WINDOW', 6);
@@ -68,14 +68,14 @@ function authorized(req: Request): boolean {
   return typeof query === 'string' && query === token;
 }
 
-/** 알림 접기 상태 — 프로세스 수명 동안만 (재시작하면 다시 알린다 = 의도). */
+/** 알림 접기 상태. 프로세스 수명 동안만 (재시작하면 다시 알린다 = 의도). */
 interface NotifyState {
   lastByFingerprint: Map<string, number>;
   windowStart: number;
   sentInWindow: number;
 }
 
-/** 하트비트용 누적 (조용해도 살아있음을 로그로 증명 — no-news is bad-news 룰). */
+/** 하트비트용 누적 (조용해도 살아있음을 로그로 증명. no-news is bad-news 룰). */
 interface Counters {
   batches: number;
   lines: number;
@@ -109,13 +109,13 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
       counters.lines += result.written;
       counters.lastAt = Date.now();
 
-      // 기기가 *처음* 붙는 순간은 한 번뿐이라 놓치면 다시 안 온다 — 그때만 알린다.
+      // 기기가 *처음* 붙는 순간은 한 번뿐이라 놓치면 다시 안 온다. 그때만 알린다.
       if (client && result.created) {
         void sendLocalEvent(client, {
           kind: NOTIFY_KIND,
           source: 'wm/device-log-relay',
           level: 'info',
-          title: `📱 기기가 붙었다 — ${parsed.batch.session}`,
+          title: `📱 기기가 붙었다. ${parsed.batch.session}`,
           summary: '폰이 로그를 보내기 시작했다. 웹 화면은 이 실행으로 자동으로 넘어간다.',
           fields: [
             { name: '기기', value: parsed.batch.device || '?', inline: true },
@@ -137,7 +137,7 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
         accepted: result.written,
         dropped: parsed.dropped,
         full: result.full,
-        // 폰이 「그만 보내라」를 알 수 있게 (세션 파일 상한 도달 시).
+        // 폰이 그만 보내라를 알 수 있게 (세션 파일 상한 도달 시).
         stop: result.full,
       });
     } catch (e: unknown) {
@@ -161,7 +161,7 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
     }
     const session = resolveSession(dir, typeof req.query.session === 'string' ? req.query.session : 'latest');
     if (!session) {
-      res.status(404).type('text/plain; charset=utf-8').send('세션 없음 — 아직 아무 기기도 로그를 보내지 않았다.\n');
+      res.status(404).type('text/plain; charset=utf-8').send('세션 없음. 아직 아무 기기도 로그를 보내지 않았다.\n');
       return;
     }
     const limit = Math.min(TAIL_MAX, Math.max(1, Number(req.query.n) || TAIL_DEFAULT));
@@ -185,8 +185,8 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
       .send(`# session=${session} lines=${lines.length}${levels ? ` level=${levels.join(',')}` : ''}\n${body}\n`);
   });
 
-  // 시험용 세션 청소 — 스모크로 넣은 줄이 목록 맨 위를 계속 차지하면
-  // 「최근 = 진짜 폰」 이라는 읽기가 깨진다.
+  // 시험용 세션 청소. 스모크로 넣은 줄이 목록 맨 위를 계속 차지하면
+  // 최근 = 진짜 폰 이라는 읽기가 깨진다.
   app.delete('/device-log/session/:name', (req: Request, res: Response) => {
     if (!authorized(req)) {
       res.sendStatus(401);
@@ -212,8 +212,8 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
   const heartbeat = setInterval(() => {
     const quiet = counters.lastAt ? `${Math.round((Date.now() - counters.lastAt) / 1000)}s 전` : '수신 이력 없음';
     console.log(
-      `[DeviceLog] 살아있음 — 배치 ${counters.batches} · 줄 ${counters.lines} · 에러 ${counters.errors} · ` +
-        `거절 ${counters.rejected} · 마지막 수신 ${quiet} · 세션 ${listSessions(dir).length}개`,
+      `[DeviceLog] 살아있음. 배치 ${counters.batches}, 줄 ${counters.lines}, 에러 ${counters.errors}, ` +
+        `거절 ${counters.rejected}, 마지막 수신 ${quiet}, 세션 ${listSessions(dir).length}개`,
     );
   }, HEARTBEAT_MS);
   heartbeat.unref?.();
@@ -222,7 +222,7 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
     try {
       const result = pruneSessions(dir, DEFAULT_LIMITS);
       if (result.removed.length > 0) {
-        console.log(`[DeviceLog] 정리 — 세션 ${result.removed.length}개 삭제 (${Math.round(result.bytesFreed / 1024)}KB)`);
+        console.log(`[DeviceLog] 정리. 세션 ${result.removed.length}개 삭제 (${Math.round(result.bytesFreed / 1024)}KB)`);
       }
     } catch (e: unknown) {
       console.warn('[DeviceLog] 정리 실패:', e instanceof Error ? e.message : String(e));
@@ -232,10 +232,10 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
 
   if (!expectedToken()) {
     console.warn(
-      '[DeviceLog] DEVICE_LOG_TOKEN·LOCAL_WEBHOOK_SECRET 미설정 — 인증 없이 열림(dev). prod 는 NSSM AppEnvironmentExtra 로 박을 것.',
+      '[DeviceLog] DEVICE_LOG_TOKEN, LOCAL_WEBHOOK_SECRET 미설정. 인증 없이 열림(dev). prod 는 NSSM AppEnvironmentExtra 로 박을 것.',
     );
   }
-  console.log(`[DeviceLog] 기기 로그 수신 준비 — ${dir}`);
+  console.log(`[DeviceLog] 기기 로그 수신 준비. ${dir}`);
 }
 
 function formatPlain(line: DeviceLogLine): string {
@@ -271,7 +271,7 @@ async function notifyErrors(
       kind: NOTIFY_KIND,
       source: 'wm/device-log-relay',
       level: 'error',
-      title: `📱 기기 에러 — ${firstLine}`,
+      title: `📱 기기 에러. ${firstLine}`,
       summary: summaryParts.join('\n'),
       fields: [
         { name: '세션', value: session, inline: true },
@@ -282,7 +282,7 @@ async function notifyErrors(
   }
 }
 
-/** 폰·PC 겸용 로그 뷰어. 외부 자원 0 (터널 뒤에서 CDN 못 씀). */
+/** 폰, PC 겸용 로그 뷰어. 외부 자원 0 (터널 뒤에서 CDN 못 씀). */
 function viewerHtml(token: string): string {
   const tokenJson = JSON.stringify(token);
   return `<!doctype html>
@@ -318,9 +318,9 @@ function viewerHtml(token: string): string {
   <button id="auto" class="on">자동 갱신</button>
   <button id="latest">최신으로</button>
   <span id="build"></span>
-  <span id="meta">…</span>
+  <span id="meta">...</span>
 </header>
-<div id="log">불러오는 중…</div>
+<div id="log">불러오는 중...</div>
 <script>
 const TOKEN = ${tokenJson};
 const qs = (p) => { const u = new URLSearchParams(p); if (TOKEN) u.set('t', TOKEN); return u.toString(); };
@@ -339,11 +339,11 @@ async function loadSessions() {
   if (!res.ok) { el.meta.textContent = '세션 조회 실패 ' + res.status; return; }
   const data = await res.json();
   const current = pinned ? el.session.value : '';
-  // 세션 이름만으론 「어느 빌드였나」를 모른다 — 폰에 여러 빌드를 깔아 비교하는 게 목적이므로
+  // 세션 이름만으론 어느 빌드였나를 모른다. 폰에 여러 빌드를 깔아 비교하는 게 목적이므로
   // 빌드 라벨을 목록에 함께 띄운다 (WM-201: 화면 구석 표시기와 같은 글자).
   el.session.innerHTML = data.sessions.map(s =>
     '<option value="' + s.session + '">' + s.session +
-    (s.build ? ' · ' + s.build : '') + (s.device ? ' · ' + s.device : '') + '</option>').join('');
+    (s.build ? ', ' + s.build : '') + (s.device ? ', ' + s.device : '') + '</option>').join('');
   if (current) el.session.value = current;
   const picked = data.sessions.find(s => s.session === (el.session.value || ''));
   el.build.textContent = picked && picked.build ? picked.build : '';
@@ -363,7 +363,7 @@ async function load() {
     return '<div class="l ' + line.level + '"><span class="t">' + time + '</span><span class="lv">' +
       line.level.toUpperCase() + '</span>' + esc(line.msg) + stack + '</div>';
   }).join('') || '<em>줄 없음</em>';
-  el.meta.textContent = data.session + ' · ' + data.count + '줄 · ' + new Date().toTimeString().slice(0, 8);
+  el.meta.textContent = data.session + ', ' + data.count + '줄, ' + new Date().toTimeString().slice(0, 8);
   window.scrollTo(0, document.body.scrollHeight);
 }
 

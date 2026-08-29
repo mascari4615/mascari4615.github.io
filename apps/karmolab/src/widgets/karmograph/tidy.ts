@@ -1,17 +1,17 @@
 /**
- * tidy.ts — 가지런히 놓기 (TASK-KL-202 격차 T).
+ * tidy.ts. 가지런히 놓기 (TASK-KL-202 격차 T).
  *
  * 사람은 캔버스에 마구 던져 놓고 나중에 정리한다. 그런데 손으로 정리하는 건 지루하고,
- * 그렇다고 「자동 배치」로 통째로 흩어 놓으면 **사람이 잡아 둔 뜻**(왼쪽은 과거, 오른쪽은 현재
+ * 그렇다고 자동 배치로 통째로 흩어 놓으면 **사람이 잡아 둔 뜻**(왼쪽은 과거, 오른쪽은 현재
  * 같은 것)이 날아간다.
  *
- * 그래서 두 가지만 한다 — 둘 다 **결정적**이고, 사람이 잡아 둔 순서를 존중한다:
+ * 그래서 두 가지만 한다. 둘 다 **결정적**이고, 사람이 잡아 둔 순서를 존중한다:
  *
- * 1. `snapToGrid` — 격자에 맞춰 살짝 당긴다. 위치의 뜻은 그대로 두고 줄만 맞춘다.
- * 2. `unoverlap` — 겹친 것만 민다. 겹치지 않은 것은 **손대지 않는다**.
+ * 1. `snapToGrid`. 격자에 맞춰 살짝 당긴다. 위치의 뜻은 그대로 두고 줄만 맞춘다.
+ * 2. `unoverlap`. 겹친 것만 민다. 겹치지 않은 것은 **손대지 않는다**.
  *
  * 일반 그래프 자동 배치(force-directed 등)는 여기 없다. 그건 매번 다른 그림을 내놓아
- * 「어제 본 그 자리」를 잃게 만든다.
+ * 어제 본 그 자리를 잃게 만든다.
  */
 
 export interface Boxish {
@@ -68,13 +68,13 @@ export function unoverlap(boxes: Boxish[], gap: number): Map<string, { x: number
 }
 
 /**
- * 원형 배치 — 관계 구조를 **한눈에** 보이게 (TASK-KL-202, yEd 계보).
+ * 원형 배치. 관계 구조를 **한눈에** 보이게 (TASK-KL-202, yEd 계보).
  *
- * 「가지런히」는 있던 자리를 존중해 줄만 맞춘다. 그런데 자리가 이미 엉킨 그림에서는 그것으로
- * 안 풀린다 — 그럴 때 쓰는 것이 *구조를 살리는* 배치다. 원형은 그 중 가장 정직하다:
+ * 가지런히는 있던 자리를 존중해 줄만 맞춘다. 그런데 자리가 이미 엉킨 그림에서는 그것으로
+ * 안 풀린다. 그럴 때 쓰는 것이 *구조를 살리는* 배치다. 원형은 그 중 가장 정직하다:
  * 누가 가운데인지 우기지 않고, **모두를 똑같이 두고 선만 보게** 한다.
  *
- * 이어진 것이 많은 노드부터 시계 방향으로 놓는다 — 그래야 이웃끼리 가까이 앉아 선이 덜 꼬인다.
+ * 이어진 것이 많은 노드부터 시계 방향으로 놓는다. 그래야 이웃끼리 가까이 앉아 선이 덜 꼬인다.
  */
 export function layoutCircle(
   boxes: Boxish[],
@@ -86,7 +86,7 @@ export function layoutCircle(
   const sorted = [...boxes].sort((a, b) => degree(b.id) - degree(a.id) || a.id.localeCompare(b.id));
   const maxW = Math.max(...boxes.map((b) => b.w));
   const maxH = Math.max(...boxes.map((b) => b.h));
-  // 카드가 서로 안 닿을 만큼의 반지름 — 개수가 적으면 최소값으로 받쳐 준다(둘이 붙어 버리지 않게).
+  // 카드가 서로 안 닿을 만큼의 반지름. 개수가 적으면 최소값으로 받쳐 준다(둘이 붙어 버리지 않게).
   const r = Math.max(180, (Math.max(maxW, maxH) + 40) * sorted.length / (2 * Math.PI));
   sorted.forEach((b, i) => {
     const a = (i / sorted.length) * Math.PI * 2 - Math.PI / 2;
@@ -99,11 +99,11 @@ export function layoutCircle(
 }
 
 /**
- * 계층 배치 — **흐름이 있는 그림**(누가 누구에게서 나왔나)에 쓴다.
+ * 계층 배치. **흐름이 있는 그림**(누가 누구에게서 나왔나)에 쓴다.
  *
  * 들어오는 선이 없는 노드를 맨 윗줄에 두고, 거기서 한 다리씩 내려간다(BFS). 고리가 있어
- * 아무도 첫 줄이 못 되면 이어진 것이 가장 많은 노드를 첫 줄로 삼는다 — 「배치가 아무것도
- * 안 했다」로 끝나는 것보다 낫다.
+ * 아무도 첫 줄이 못 되면 이어진 것이 가장 많은 노드를 첫 줄로 삼는다. 배치가 아무것도
+ * 안 했다로 끝나는 것보다 낫다.
  */
 export function layoutHierarchy(
   boxes: Boxish[],
@@ -144,7 +144,7 @@ export function layoutHierarchy(
     frontier = [...next].sort();
     depth += 1;
   }
-  // 어디에도 안 걸린 것(외딴 섬)은 맨 아랫줄에 모은다 — 사라지면 안 된다.
+  // 어디에도 안 걸린 것(외딴 섬)은 맨 아랫줄에 모은다. 사라지면 안 된다.
   for (const id of ids) if (!level.has(id)) level.set(id, depth);
 
   const byLevel = new Map<number, string[]>();
@@ -167,14 +167,14 @@ export function layoutHierarchy(
 }
 
 /**
- * 연표 배치 — 「언제」가 적힌 칸을 시간축으로 삼아 **왼쪽에서 오른쪽으로** 늘어놓는다
+ * 연표 배치. 언제가 적힌 칸을 시간축으로 삼아 **왼쪽에서 오른쪽으로** 늘어놓는다
  * (TASK-KL-202, Aeon Timeline 계보).
  *
- * 세계관에서 인물·사건은 관계만큼이나 **순서**로 읽힌다. 그런데 지금 칸 값은 전부 그냥 글자라
- * 「1024년」과 「3화」가 나란히 있어도 도구가 아무것도 못 한다. 여기서는 값에서 **첫 숫자 덩이**만
- * 뽑아 순서를 만든다 — 완전한 날짜 해석은 형식을 강요하게 되고, 사람은 형식을 안 지킨다.
+ * 세계관에서 인물, 사건은 관계만큼이나 **순서**로 읽힌다. 그런데 지금 칸 값은 전부 그냥 글자라
+ * 1024년과 3화가 나란히 있어도 도구가 아무것도 못 한다. 여기서는 값에서 **첫 숫자 덩이**만
+ * 뽑아 순서를 만든다. 완전한 날짜 해석은 형식을 강요하게 되고, 사람은 형식을 안 지킨다.
  *
- * 같은 시점은 세로로 쌓는다(겹치면 「같은 때 일이 여럿」이라는 사실 자체가 안 보인다).
+ * 같은 시점은 세로로 쌓는다(겹치면 같은 때 일이 여럿이라는 사실 자체가 안 보인다).
  */
 export function layoutTimeline(
   boxes: Boxish[],
@@ -206,7 +206,7 @@ export function layoutTimeline(
   return out;
 }
 
-/** 어느 칸이 시간축으로 쓸 만한가 — **숫자로 읽히는 값이 가장 많은** 칸. 없으면 null. */
+/** 어느 칸이 시간축으로 쓸 만한가. **숫자로 읽히는 값이 가장 많은** 칸. 없으면 null. */
 export function bestTimeField(
   nodes: { fields?: Record<string, string> }[],
 ): string | null {
@@ -223,10 +223,10 @@ export function bestTimeField(
   return top >= 2 ? best : null;   // 하나뿐이면 축이 아니라 우연이다
 }
 
-/* ── 나란히 놓기 · 고르게 벌리기 (2026-08-12) ──────────────────────────────────
+/* ── 나란히 놓기, 고르게 벌리기 (2026-08-12) ──────────────────────────────────
  *
  * 캔버스 도구의 기본기인데 여기 없었다. 손으로 픽셀을 맞추면 늘 1~2px 씩 어긋나고,
- * 그 어긋남이 쌓이면 그림이 「대충 그린 것」으로 보인다. 고른 것들만 다룬다 —
+ * 그 어긋남이 쌓이면 그림이 대충 그린 것으로 보인다. 고른 것들만 다룬다 . 
  * 판 전체를 흩는 자동 배치와는 다른 일이다(위 머리말 참고).
  */
 
@@ -256,7 +256,7 @@ export function alignBoxes(boxes: Boxish[], how: AlignHow): Map<string, { x: num
 }
 
 /**
- * 고른 것들 **사이 간격을 고르게** 한다. 양끝은 그대로 두고 가운데만 옮긴다 —
+ * 고른 것들 **사이 간격을 고르게** 한다. 양끝은 그대로 두고 가운데만 옮긴다 . 
  * 사람이 잡아 둔 범위는 건드리지 않는 것이 이 파일의 규칙이다.
  */
 export function spreadBoxes(boxes: Boxish[], axis: 'x' | 'y'): Map<string, { x: number; y: number }> {
@@ -269,7 +269,7 @@ export function spreadBoxes(boxes: Boxish[], axis: 'x' | 'y'): Map<string, { x: 
   const last = sorted[sorted.length - 1];
   const span = pos(last) + size(last) - pos(first);
   const used = sorted.reduce((sum, b) => sum + size(b), 0);
-  // 남는 자리를 사이 수만큼 똑같이 나눈다. 겹쳐 있어 남는 자리가 없으면 0 — 그때는 줄만 맞춘다.
+  // 남는 자리를 사이 수만큼 똑같이 나눈다. 겹쳐 있어 남는 자리가 없으면 0. 그때는 줄만 맞춘다.
   const gap = Math.max(0, (span - used) / (sorted.length - 1));
   let cursor = pos(first);
   for (const b of sorted) {

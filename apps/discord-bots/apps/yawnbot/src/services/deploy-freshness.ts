@@ -1,42 +1,42 @@
 /**
- * 배포 파수꾼 — 「사이트가 며칠째 옛 판인데 아무도 모른다」를 없앤다 (TASK-KL-210)
+ * 배포 파수꾼. 사이트가 며칠째 옛 판인데 아무도 모른다를 없앤다 (TASK-KL-210)
  *
  * 2026-08-09 실측: 배포 실행이 **성공**으로 찍히는 동안 사이트는 21시간째 전날 판이었다.
- * 그 전에도 며칠 그랬다. 아무도 몰랐다 — 아무 데서도 빨간 게 안 떴기 때문이다.
+ * 그 전에도 며칠 그랬다. 아무도 몰랐다. 아무 데서도 빨간 게 안 떴기 때문이다.
  *
  * ## 왜 실행 상태(gh run)를 안 보나
  *
  * 실행이 초록이어도 올라간 게 없을 수 있다. 실제로 그랬다:
  *  - 잡이 통째로 `skipped` 인데 워크플로 결론은 `success`
  *  - 배포 잡이 `needs` 로 매달린 앞 잡이 비켜서, 뒤가 전부 건너뛰어짐
- *  - 빌드가 옛 산출물을 그대로 다시 올려서 「성공」
+ *  - 빌드가 옛 산출물을 그대로 다시 올려서 성공
  *
- * 그래서 **사이트가 스스로 밝힌 판**만 본다. 앱은 빌드 때 `build.json` 에 커밋·시각을 굽는다:
+ * 그래서 **사이트가 스스로 밝힌 판**만 본다. 앱은 빌드 때 `build.json` 에 커밋, 시각을 굽는다:
  *
- *   { "stamp": "20260808144710", "commit": "a373a033…", "builtAt": "2026-08-08T14:47:10Z" }
+ *   { "stamp": "20260808144710", "commit": "a373a033...", "builtAt": "2026-08-08T14:47:10Z" }
  *
  * 이건 실행 로그가 아니라 **사람이 지금 받는 그 파일**이다. 여기 적힌 것이 곧 진실이다.
  *
- * ## 무엇을 「낡음」이라 하나
+ * ## 무엇을 낡음이라 하나
  *
  *   낡음 = (사이트 커밋 ≠ main 끝) **그리고** (사이트가 구워진 지 N분 초과)
  *
  * 두 조건을 **함께** 봐야 하는 이유:
- *  - 커밋만 보면 — 배포는 몇 분 걸린다. 방금 민 것은 아직 안 올라간 게 정상인데 매번 빨개진다.
- *  - 시각만 보면 — 아무도 안 밀면 사이트는 당연히 어제 것이다. 그건 고장이 아니다.
- * 둘을 함께 보면 「밀 것이 있는데 몇 시간째 안 올라갔다」만 남는다 — 그것만이 사고다.
+ *  - 커밋만 보면. 배포는 몇 분 걸린다. 방금 민 것은 아직 안 올라간 게 정상인데 매번 빨개진다.
+ *  - 시각만 보면. 아무도 안 밀면 사이트는 당연히 어제 것이다. 그건 고장이 아니다.
+ * 둘을 함께 보면 밀 것이 있는데 몇 시간째 안 올라갔다만 남는다. 그것만이 사고다.
  *
  * ## 조용한 실패를 말하게
  *
- * `build.json` 을 아예 못 받는 경우(사이트 죽음·DNS·인증서)는 낡음보다 나쁘다. 별도 상태
- * (`unreachable`)로 구분해 알린다 — 「낡았다」와 「없다」를 같은 말로 뭉치면 손이 엉뚱한 데 간다.
+ * `build.json` 을 아예 못 받는 경우(사이트 죽음, DNS, 인증서)는 낡음보다 나쁘다. 별도 상태
+ * (`unreachable`)로 구분해 알린다. 낡았다와 없다를 같은 말로 뭉치면 손이 엉뚱한 데 간다.
  *
  * ## 알림 규율
  *
  * 상태가 **바뀔 때만** 한 번 (heartbeat 와 동형). 다만 낡음이 계속되면 잊히므로 `REMIND_MIN`
- * 마다 한 번씩 다시 찌른다 — 조용해지는 것이 이 사고의 본체라서 그렇다.
+ * 마다 한 번씩 다시 찌른다. 조용해지는 것이 이 사고의 본체라서 그렇다.
  *
- * 순수부(`evaluateFreshness`)는 시각·응답을 인자로 받는다 — 실 네트워크 없이 시험한다.
+ * 순수부(`evaluateFreshness`)는 시각, 응답을 인자로 받는다. 실 네트워크 없이 시험한다.
  */
 
 export type FreshnessState = 'fresh' | 'stale' | 'unreachable';
@@ -51,7 +51,7 @@ export interface FreshnessInput {
   site: SiteBuild | null;
   /** 못 받은 사유 (site 가 null 일 때). */
   unreachableReason?: string;
-  /** main 끝 커밋 sha. 못 받았으면 null — 그때는 판단을 미룬다(남의 고장으로 우릴 깨우지 않는다). */
+  /** main 끝 커밋 sha. 못 받았으면 null. 그때는 판단을 미룬다(남의 고장으로 우릴 깨우지 않는다). */
   headSha: string | null;
   now: Date;
   /** 이 시간을 넘게 안 올라갔으면 낡음. */
@@ -66,7 +66,7 @@ export interface FreshnessVerdict {
   ageMin: number | null;
 }
 
-/** 사이트가 스스로 밝힌 판 vs main 끝 — 둘을 견줘 한 줄로 답한다. */
+/** 사이트가 스스로 밝힌 판 vs main 끝. 둘을 견줘 한 줄로 답한다. */
 export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
   const { site, headSha, now, staleAfterMin } = input;
 
@@ -74,7 +74,7 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     return {
       state: 'unreachable',
       ageMin: null,
-      reason: `사이트가 자기 판을 못 밝힌다 — ${input.unreachableReason || '알 수 없음'}`,
+      reason: `사이트가 자기 판을 못 밝힌다. ${input.unreachableReason || '알 수 없음'}`,
     };
   }
 
@@ -87,17 +87,17 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     return {
       state: 'unreachable',
       ageMin: null,
-      reason: `사이트가 밝힌 시각을 못 읽는다 — builtAt=${JSON.stringify(site.builtAt)}`,
+      reason: `사이트가 밝힌 시각을 못 읽는다. builtAt=${JSON.stringify(site.builtAt)}`,
     };
   }
 
-  /* main 끝을 못 물어봤으면 판단하지 않는다. GitHub 이 흔들릴 때 「사이트가 낡았다」고
-     외치면 애먼 데를 파게 된다 — 모르는 것은 모른다고 두는 편이 낫다. */
+  /* main 끝을 못 물어봤으면 판단하지 않는다. GitHub 이 흔들릴 때 사이트가 낡았다고
+     외치면 애먼 데를 파게 된다. 모르는 것은 모른다고 두는 편이 낫다. */
   if (!headSha) {
     return {
       state: 'fresh',
       ageMin,
-      reason: `main 끝을 못 물어봐 판단을 미룬다 (사이트 판 ${short(site.commit)} · ${humanAge(ageMin)} 전)`,
+      reason: `main 끝을 못 물어봐 판단을 미룬다 (사이트 판 ${short(site.commit)}, ${humanAge(ageMin)} 전)`,
     };
   }
 
@@ -114,7 +114,7 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     return {
       state: 'fresh',
       ageMin,
-      reason: `올라가는 중 — 사이트 ${short(site.commit)} / main ${short(headSha)} (${humanAge(ageMin)} 전 판, 아직 ${staleAfterMin}분 안)`,
+      reason: `올라가는 중. 사이트 ${short(site.commit)} / main ${short(headSha)} (${humanAge(ageMin)} 전 판, 아직 ${staleAfterMin}분 안)`,
     };
   }
 
@@ -122,7 +122,7 @@ export function evaluateFreshness(input: FreshnessInput): FreshnessVerdict {
     state: 'stale',
     ageMin,
     reason:
-      `사이트가 ${humanAge(ageMin)}째 옛 판이다 — 사이트 ${short(site.commit)} / main ${short(headSha)}. ` +
+      `사이트가 ${humanAge(ageMin)}째 옛 판이다. 사이트 ${short(site.commit)} / main ${short(headSha)}. ` +
       `배포 실행이 초록이어도 올라간 것은 없다.`,
   };
 }
@@ -154,9 +154,9 @@ export interface AlertDecision {
 }
 
 /**
- * 알릴까 — **상태가 바뀐 순간** 한 번, 그리고 나쁜 상태가 이어지면 `remindMin` 마다 한 번.
+ * 알릴까. **상태가 바뀐 순간** 한 번, 그리고 나쁜 상태가 이어지면 `remindMin` 마다 한 번.
  *
- * 매 tick 외치면 사람이 끄고, 한 번만 외치면 잊는다. 이 사고의 본체가 「조용해지는 것」이라
+ * 매 tick 외치면 사람이 끄고, 한 번만 외치면 잊는다. 이 사고의 본체가 조용해지는 것이라
  * 나쁜 쪽만 되풀이해 찌른다. 좋은 쪽(복구)은 한 번이면 충분하다.
  */
 export function decideAlert(
@@ -169,7 +169,7 @@ export function decideAlert(
   const changed = memory.last !== verdict.state;
 
   if (changed) {
-    /* 첫 tick 에 이미 건강하면 굳이 「복구」라고 외치지 않는다 — 아무 일도 없었다. */
+    /* 첫 tick 에 이미 건강하면 굳이 복구라고 외치지 않는다. 아무 일도 없었다. */
     if (memory.last === null && healthy) return { send: false, healthy, reason: verdict.reason };
     return { send: true, healthy, reason: verdict.reason };
   }
@@ -189,9 +189,9 @@ export interface DeployFreshnessDeps {
   buildUrl?: string;
   /** `owner/repo`. 기본 'Mascari4615/Mascari4615.github.io'. */
   repo?: string;
-  /** 배포 워크플로 파일 이름 — 「왜 안 올라갔나」를 물을 때 쓴다. */
+  /** 배포 워크플로 파일 이름. 왜 안 올라갔나를 물을 때 쓴다. */
   workflow?: string;
-  /** main 끝을 물을 때 쓸 토큰 (없으면 익명 — 시간당 60회라 10분 간격이면 충분하다). */
+  /** main 끝을 물을 때 쓸 토큰 (없으면 익명. 시간당 60회라 10분 간격이면 충분하다). */
   token?: string;
   /** 확인 간격(분). 기본 10, 최소 2. */
   intervalMin?: number;
@@ -231,7 +231,7 @@ async function getJson(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    /* 캐시를 타면 **옛 판을 보고 「올라갔다」고 말한다** — 파수꾼이 캐시에 속으면 파수꾼이 아니다. */
+    /* 캐시를 타면 **옛 판을 보고 올라갔다고 말한다**. 파수꾼이 캐시에 속으면 파수꾼이 아니다. */
     const res = await fetchImpl(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`, {
       headers: { 'Cache-Control': 'no-cache', ...headers },
       signal: controller.signal,
@@ -244,11 +244,11 @@ async function getJson(
 }
 
 /**
- * 왜 안 올라갔나 — **마지막 배포 실행 한 줄**.
+ * 왜 안 올라갔나. **마지막 배포 실행 한 줄**.
  *
- * 「사이트가 낡았다」만 오는 알림은 사람을 다시 처음부터 파게 만든다. 오늘 그 파기를 여섯 번 했다.
- * Sentry 의 release health 가 「이 판이 나쁘다」와 함께 *무엇이* 나쁜지를 붙여 주는 것과 같은 이유로,
- * 알림에 **마지막 실행의 결론과 죽은 잡 이름**을 붙인다. 못 물어보면 아무 말도 안 붙인다 —
+ * 사이트가 낡았다만 오는 알림은 사람을 다시 처음부터 파게 만든다. 오늘 그 파기를 여섯 번 했다.
+ * Sentry 의 release health 가 이 판이 나쁘다와 함께 *무엇이* 나쁜지를 붙여 주는 것과 같은 이유로,
+ * 알림에 **마지막 실행의 결론과 죽은 잡 이름**을 붙인다. 못 물어보면 아무 말도 안 붙인다 . 
  * 모르는 것을 지어내면 알림 자체를 못 믿게 된다.
  */
 export async function lastDeployNote(
@@ -271,12 +271,12 @@ export async function lastDeployNote(
       headers,
     )) as { workflow_runs?: Array<{ id: number; status: string; conclusion: string | null; jobs_url?: string }> };
     const list = runs.workflow_runs || [];
-    /* 취소된 판은 「밀린 것이 겹쳐 비켰다」는 뜻이라 원인이 아니다 — 실제로 끝까지 간 판을 본다. */
+    /* 취소된 판은 밀린 것이 겹쳐 비켰다는 뜻이라 원인이 아니다. 실제로 끝까지 간 판을 본다. */
     const done = list.find((r) => r.conclusion && r.conclusion !== 'cancelled');
     const running = list.find((r) => r.status === 'in_progress' || r.status === 'queued');
-    if (!done) return running ? ' · 지금 도는 판이 있다' : '';
+    if (!done) return running ? ', 지금 도는 판이 있다' : '';
     if (done.conclusion === 'success') {
-      return ` · 마지막 실행은 **초록인데** 사이트는 안 바뀌었다 — 잡이 통째로 건너뛰어졌을 수 있다`;
+      return `, 마지막 실행은 **초록인데** 사이트는 안 바뀌었다. 잡이 통째로 건너뛰어졌을 수 있다`;
     }
     let where = '';
     try {
@@ -292,7 +292,7 @@ export async function lastDeployNote(
     } catch {
       /* 잡까지는 못 물어봐도 결론은 붙일 수 있다 */
     }
-    return ` · 마지막 실행 **${done.conclusion}**${where}${running ? ' · 지금 또 도는 중' : ''}`;
+    return `, 마지막 실행 **${done.conclusion}**${where}${running ? ', 지금 또 도는 중' : ''}`;
   } catch {
     return '';
   }
@@ -340,7 +340,7 @@ export async function runFreshnessTick(
     )) as { sha?: string };
     if (body && typeof body.sha === 'string') headSha = body.sha;
   } catch (err) {
-    logger.warn(`[DeployFreshness] main 끝을 못 물어봤다 — ${String(err).slice(0, 100)}`);
+    logger.warn(`[DeployFreshness] main 끝을 못 물어봤다. ${String(err).slice(0, 100)}`);
   }
 
   const verdict = evaluateFreshness({
@@ -351,7 +351,7 @@ export async function runFreshnessTick(
     staleAfterMin: deps.staleAfterMin,
   });
 
-  /* 나쁜 판정일 때만 한 줄 더 물어본다 — 초록일 때 매번 물으면 그냥 낭비다. */
+  /* 나쁜 판정일 때만 한 줄 더 물어본다. 초록일 때 매번 물으면 그냥 낭비다. */
   if (verdict.state !== 'fresh') {
     const note = await lastDeployNote(deps.repo, deps.workflow, fetchImpl, timeoutMs, deps.token);
     if (note) verdict.reason += note;
@@ -364,7 +364,7 @@ export async function runFreshnessTick(
     deps.alert?.({ healthy: decision.healthy, reason: decision.reason });
     logger.warn(`[DeployFreshness] ${decision.reason}`);
   } else {
-    logger.log(`[DeployFreshness] ${verdict.state} — ${verdict.reason}`);
+    logger.log(`[DeployFreshness] ${verdict.state}. ${verdict.reason}`);
   }
   return verdict;
 }
@@ -372,9 +372,9 @@ export async function runFreshnessTick(
 /**
  * 다음 확인까지 몇 분 (Datadog deployment tracking 의 adaptive polling 을 따랐다).
  *
- * 판이 **갈려 있는 동안**은 무슨 일이 벌어지는 중이다 — 올라가는 중이거나, 안 올라가는 중이거나.
- * 그때 10분 간격이면 「올라갔다」도 「멈췄다」도 10분 늦게 안다. 갈려 있을 때만 촘촘히 본다.
- * 같아지면 볼 것이 없으므로 느슨하게 — 조용한 새벽에 GitHub 을 6배로 두드릴 이유가 없다.
+ * 판이 **갈려 있는 동안**은 무슨 일이 벌어지는 중이다. 올라가는 중이거나, 안 올라가는 중이거나.
+ * 그때 10분 간격이면 올라갔다도 멈췄다도 10분 늦게 안다. 갈려 있을 때만 촘촘히 본다.
+ * 같아지면 볼 것이 없으므로 느슨하게. 조용한 새벽에 GitHub 을 6배로 두드릴 이유가 없다.
  */
 export function nextDelayMin(verdict: FreshnessVerdict, baseMin: number, busyMin: number): number {
   if (verdict.state === 'fresh' && verdict.reason.includes('올라가는 중')) return busyMin;
@@ -407,11 +407,11 @@ export function startDeployFreshness(deps: DeployFreshnessDeps = {}): DeployFres
 
   const tickNow = () =>
     runFreshnessTick(resolved, memory).catch((err) => {
-      resolved.logger.error(`[DeployFreshness] tick 실패 — ${String(err).slice(0, 200)}`);
+      resolved.logger.error(`[DeployFreshness] tick 실패. ${String(err).slice(0, 200)}`);
       return { state: 'unreachable' as const, reason: String(err).slice(0, 200), ageMin: null };
     });
 
-  /* 되풀이는 setInterval 이 아니라 **끝난 뒤 다음을 잡는** 방식이다 — 간격이 판정에 따라
+  /* 되풀이는 setInterval 이 아니라 **끝난 뒤 다음을 잡는** 방식이다. 간격이 판정에 따라
      달라지고, 느린 tick 이 겹쳐 쌓이지도 않는다. */
   const schedule = (min: number) => {
     timer = setTimeout(() => {
@@ -422,7 +422,7 @@ export function startDeployFreshness(deps: DeployFreshnessDeps = {}): DeployFres
 
   void tickNow().then((v) => schedule(nextDelayMin(v, intervalMin, busyMin)));
   resolved.logger.log(
-    `[DeployFreshness] 배포 파수꾼 켬 — 평소 ${intervalMin}분 · 판이 갈렸으면 ${busyMin}분 · ${resolved.buildUrl}`,
+    `[DeployFreshness] 배포 파수꾼 켬. 평소 ${intervalMin}분, 판이 갈렸으면 ${busyMin}분, ${resolved.buildUrl}`,
   );
   return { tickNow, stop: stopDeployFreshness };
 }

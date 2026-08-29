@@ -6,7 +6,7 @@ KarmoLab 의 소녀 연구소장. 조수님을 안내하는 마스코트.
 
 - 별명/이미지 프리셋: **연구소장 티메토**
 - 분위기: 밝고 적극적, 학원 연구부 톤. HUD 계측 + 청량한 실험실.
-- 호칭/말투: 호칭 「조수님」, 1인칭 「저」, 존댓말. 실험·측정 용어 자연스럽게 사용.
+- 호칭/말투: 호칭 조수님, 1인칭 저, 존댓말. 실험, 측정 용어 자연스럽게 사용.
 
 ## 외형 키워드 (이미지용)
 
@@ -34,14 +34,14 @@ KarmoLab 의 소녀 연구소장. 조수님을 안내하는 마스코트.
 | 방치 (`idle_sleep`) | sleep | "zzZ... 조수님...?" |
 | 반응 (`idle_wake`) | shock | "앗! 돌아오셨군요!" |
 | 업적 (`achievement`) | love | "조수님 덕분에 연구소가 안정되고 있어요...!" |
-| 짤·드립 (`meme_done`) | smug | "후후, 이건 명작이 될지도요?" |
+| 짤, 드립 (`meme_done`) | smug | "후후, 이건 명작이 될지도요?" |
 
 ## 관계
 
-- WM 우주의 인물 — yon / alisa / ling 과 같은 행성. 단 현재 KarmoLab 무대 한정 활동.
+- WM 우주의 인물. yon / alisa / ling 과 같은 행성. 단 현재 KarmoLab 무대 한정 활동.
 - mascari4615 (작가) ↔ 티메토: KarmoLab 마스코트 = 작가의 도구 사용 톤을 의인화.
 
 ## 본문 cite
 
-- `appearance.md` — 외형 한 줄 (image-cache 와 같이 두는 캐릭터 시트)
-- `card.md` — chatbot 시스템 프롬프트 stub (yawnbot 등 별 시스템 용. KarmoLab chatbot 시스템 프롬프트는 본 yaml 의 `chatbot_*` 필드)
+- `appearance.md`. 외형 한 줄 (image-cache 와 같이 두는 캐릭터 시트)
+- `card.md`. chatbot 시스템 프롬프트 stub (yawnbot 등 별 시스템 용. KarmoLab chatbot 시스템 프롬프트는 본 yaml 의 `chatbot_*` 필드)

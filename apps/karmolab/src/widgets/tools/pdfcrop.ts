@@ -4,9 +4,9 @@
  * 스캔한 문서나 논문 PDF 는 여백이 넓어, 폰이나 전자책 화면에서 글씨가 손톱만하게 보인다.
  * 여백만 걷어내면 같은 화면에서 글씨가 훨씬 커진다.
  *
- * 신경 쓴 곳 — **글자를 살린 채로 자른다.**
+ * 신경 쓴 곳. **글자를 살린 채로 자른다.**
  *  - 페이지를 그림으로 다시 굽지 않는다. 보이는 범위(CropBox)만 좁힌다. 그래서 글자를 그대로
- *    고르고 찾을 수 있고, 파일도 커지지 않는다. 내용은 하나도 지워지지 않는다 — 가려질 뿐이다.
+ *    고르고 찾을 수 있고, 파일도 커지지 않는다. 내용은 하나도 지워지지 않는다. 가려질 뿐이다.
  *  - **모든 장을 같은 크기로** 자를 수 있다. 장마다 다르게 자르면 넘길 때 화면이 들썩인다.
  *  - 스캔 얼룩 한 점 때문에 여백이 안 잘리는 일이 많아, 옅은 점은 무시하고 본다.
  */
@@ -27,7 +27,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const i = (y * w + x) * 4;
-        // 옅은 점은 무시한다 — 스캔 얼룩 하나 때문에 여백이 통째로 안 잘리는 일이 잦다
+        // 옅은 점은 무시한다. 스캔 얼룩 하나 때문에 여백이 통째로 안 잘리는 일이 잦다
         if (d[i] < tolerance && d[i + 1] < tolerance && d[i + 2] < tolerance) {
           if (x < l) l = x;
           if (x> r) r = x;
@@ -36,7 +36,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
         }
       }
     }
-    if (r < 0) return null; // 빈 장 — 자르지 않는다
+    if (r < 0) return null; // 빈 장. 자르지 않는다
     return { l: l / w, t: t / h, r: r / w, b: b / h };
   }
 
@@ -49,7 +49,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
     desc: t(
       'widgets-desc.pdfcrop.desc',
       undefined,
-      '스캔본·논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다'
+      '스캔본, 논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다'
     ),
     layout: 'wide',
     icon: '<path d="M7 3v14h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 7h14v14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -116,11 +116,11 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
           let doc: PdfJsDoc | null = null;
           let bounds: Array<{ l: number; t: number; r: number; b: number } | null> = [];
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 모든 장을 감싸는 하나의 범위 — 장마다 다르게 자르면 넘길 때 화면이 들썩인다 */
+          /** 모든 장을 감싸는 하나의 범위. 장마다 다르게 자르면 넘길 때 화면이 들썩인다 */
           function unioned(): { l: number; t: number; r: number; b: number } | null {
             const real = bounds.filter(Boolean) as Array<{ l: number; t: number; r: number; b: number }>;
             if (!real.length) return null;
@@ -155,7 +155,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
             for (let n = 1; n <= doc.numPages; n++) {
               say(t('pdfcrop.say.scanning', { i: n, n: doc.numPages }));
               const page = await doc.getPage(n);
-              // 작게 그려도 여백 경계는 충분히 잡힌다 — 크게 그리면 오래 걸린다
+              // 작게 그려도 여백 경계는 충분히 잡힌다. 크게 그리면 오래 걸린다
               const vp = page.getViewport({ scale: 0.5 });
               tmp.width = Math.max(1, Math.round(vp.width));
               tmp.height = Math.max(1, Math.round(vp.height));
@@ -217,7 +217,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
 
           async function load(f: File): Promise<void> {
             // 새 문서를 훑는 동안은 못 누르게 한다. 안 그러면 앞 문서에서 잰 범위로 잘린다
-            // (시험이 잡았다 — 둘째 문서가 첫째 문서 크기로 나왔다).
+            // (시험이 잡았다. 둘째 문서가 첫째 문서 크기로 나왔다).
             runBtn.disabled = true;
             bounds = [];
             say(t('pdfcrop.say.opening'));
@@ -243,7 +243,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
                 const box = finalBox(i);
                 if (!box) return;
                 const { width, height } = page.getSize();
-                // PDF 는 아래에서 위로 센다 — 화면 좌표(위에서 아래)를 뒤집어야 한다
+                // PDF 는 아래에서 위로 센다. 화면 좌표(위에서 아래)를 뒤집어야 한다
                 const x = box.l * width;
                 const w = (box.r - box.l) * width;
                 const h = (box.b - box.t) * height;
@@ -257,7 +257,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
                 t('pdfcrop.file.suffix').replace(/^-|\.pdf$/gi, '')
               );
               download(blob, name);
-              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name, from: 'pdfcrop' });
               say(t('pdfcrop.say.done', { n: cropped, size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('crop');
@@ -275,7 +275,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
           {
             Toolbox.onHandoff?.('pdfcrop', (f: File) => void load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 여기 손으로 적던 열두 줄이
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 여기 손으로 적던 열두 줄이
            * 서른한 도구에 있었고, 그중 여덟은 **붙여넣기가 빠져 있었다**. 이제 안 빠진다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
           $<HTMLInputElement>('#pcPad').addEventListener('input', () => {

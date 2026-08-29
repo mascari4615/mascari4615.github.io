@@ -1,16 +1,16 @@
 /**
- * views.ts — **보기를 이름 붙여 저장** (TASK-KL-271 O2, Kumu 계보).
+ * views.ts. **보기를 이름 붙여 저장** (TASK-KL-271 O2, Kumu 계보).
  *
- * 한 판은 여러 얼굴을 가진다. 「1부 시점」 「적대 관계만」 「인물만」 — 볼 때마다 거르기를 다시
+ * 한 판은 여러 얼굴을 가진다. 1부 시점 적대 관계만 인물만. 볼 때마다 거르기를 다시
  * 맞추는 것은 **매번 같은 일을 손으로 하는 것**이고, 그러다 보면 결국 아무도 안 거른다.
  * Kumu 가 스토리텔링 맵으로 파는 자리가 이것이다: 같은 자료의 **여러 관점을 저장해 두고 넘긴다.**
  *
- * 여기서는 **무엇을 저장하고 어떻게 되살리나**만 정한다(칸·단추는 부르는 쪽).
- * 저장하는 것 = 「무엇을 보이게 하느냐」 뿐이다 — 카메라(어디를 보고 있나)는 넣지 않는다:
- * 판을 고치면 자리는 곧 달라지는데, 그때 옛 카메라로 끌려가면 「내가 보던 데가 아니다」가 된다.
+ * 여기서는 **무엇을 저장하고 어떻게 되살리나**만 정한다(칸, 단추는 부르는 쪽).
+ * 저장하는 것 = 무엇을 보이게 하느냐 뿐이다. 카메라(어디를 보고 있나)는 넣지 않는다:
+ * 판을 고치면 자리는 곧 달라지는데, 그때 옛 카메라로 끌려가면 내가 보던 데가 아니다가 된다.
  */
 
-/** 저장된 보기 — 거르기 상태를 **글로 적을 수 있는 꼴**로만 담는다(Set 은 그대로 못 적는다). */
+/** 저장된 보기. 거르기 상태를 **글로 적을 수 있는 꼴**로만 담는다(Set 은 그대로 못 적는다). */
 export interface SavedView {
   id: string;
   name: string;
@@ -22,7 +22,7 @@ export interface SavedView {
   minDegree: number;
   fieldName: string;
   fieldValue: string;
-  /** 「고른 것 둘레 N다리만」 — 빈 문자열이면 전부 보기. */
+  /** 고른 것 둘레 N다리만. 빈 문자열이면 전부 보기. */
   focus: string;
   /** 어느 **시점**을 보고 있었나 (KL-271 X2). 시점을 안 쓰는 판이면 빈 문자열. */
   time?: string;
@@ -59,7 +59,7 @@ export function captureView(
 
 /**
  * 저장한 꼴 → 지금 화면 상태. **빌려 온 것을 제자리에서 고친다**(거르기 칸이 같은 객체를 쥐고 있다).
- * 옛 저장본에 없는 값은 「안 거른 상태」로 되살린다 — 없는 값을 참으로 읽으면 카드가 말없이 사라진다.
+ * 옛 저장본에 없는 값은 안 거른 상태로 되살린다. 없는 값을 참으로 읽으면 카드가 말없이 사라진다.
  */
 export function applyView(view: SavedView, filter: LiveFilter): string {
   filter.nodeKinds.clear();
@@ -77,7 +77,7 @@ export function applyView(view: SavedView, filter: LiveFilter): string {
 
 /**
  * 이름이 겹치면 **덮어쓴다**(같은 이름 둘은 고를 때 구분이 안 된다).
- * 새 이름이면 뒤에 붙인다 — 만든 순서가 곧 사람이 기억하는 순서다.
+ * 새 이름이면 뒤에 붙인다. 만든 순서가 곧 사람이 기억하는 순서다.
  */
 export function upsertView(views: SavedView[], view: SavedView): SavedView[] {
   const at = views.findIndex((v) => v.name === view.name);
@@ -87,7 +87,7 @@ export function upsertView(views: SavedView[], view: SavedView): SavedView[] {
   return out;
 }
 
-/** 이름이 비면 저장하지 않는다 — 「이름 없는 보기」는 목록에서 고를 수가 없다. */
+/** 이름이 비면 저장하지 않는다. 이름 없는 보기는 목록에서 고를 수가 없다. */
 export function isNameUsable(name: string): boolean {
   return name.trim().length > 0;
 }

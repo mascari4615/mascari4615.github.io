@@ -1,14 +1,14 @@
 /**
- * 후원·제휴 자리가 규칙대로 뜨는지 (TASK-KL-089)
+ * 후원, 제휴 자리가 규칙대로 뜨는지 (TASK-KL-089)
  *
  * 왜 있나: 이 자리는 평소 **비어 있어서 코드가 한 번도 안 돈다.** 그런데 채우는 순간이 하필
- * 돈이 걸린 순간이다 — 그때 처음 굴러가서 도구 위를 가리거나, 후원임을 안 밝히거나, 한 장에
+ * 돈이 걸린 순간이다. 그때 처음 굴러가서 도구 위를 가리거나, 후원임을 안 밝히거나, 한 장에
  * 둘씩 뜨면 늦다. 그래서 검사가 **스스로 가짜 자리를 하나 넣어** 매번 실제로 굴려 본다.
  *
  * 지키는 규칙 (data/sponsor.json 머리말의 약속과 같다):
- *   ① 도구 본체 위에 놓지 않는다 — 설명 블록 안, 다 쓰고 읽는 자리
+ *   ① 도구 본체 위에 놓지 않는다. 설명 블록 안, 다 쓰고 읽는 자리
  *   ② 한 장에 하나
- *   ③ 후원·광고임을 글로 밝힌다
+ *   ③ 후원, 광고임을 글로 밝힌다
  *   ④ 바깥 링크는 rel="sponsored" 를 단다 (검색엔진에 광고 링크임을 알린다)
  *   ⑤ 좁은 화면에서 옆으로 넘치지 않는다
  *
@@ -33,7 +33,7 @@ const SAMPLE = 'loan';
  * **자기가 찍은 것을 본다** (TASK-KL-106).
  *
  * 예전에는 가짜 자리를 내 컴퓨터에 찍어 놓고 확인은 실사이트를 봤다. 실사이트에는 그 가짜가
- * 있을 리 없으니 늘 「자리 자체가 죽었다」로 빨갰다 — 자리는 멀쩡한데. 검사가 스스로 일으킨
+ * 있을 리 없으니 늘 자리 자체가 죽었다로 빨갰다. 자리는 멀쩡한데. 검사가 스스로 일으킨
  * 사건을 다른 데서 찾고 있었던 셈이다. 그래서 주소를 밖에서 못 바꾸게 했다: 이 검사는
  * 방금 찍은 그 파일만 본다.
  */
@@ -51,7 +51,7 @@ const MIME = {
 function serveBuilt() {
   const server = http.createServer((req, res) => {
     let url = decodeURIComponent(req.url.split('?')[0]);
-    // 배포된 주소 모양(`/t/…`)과 디스크 모양이 다르다 — 여기서 이어 준다.
+    // 배포된 주소 모양(`/t/...`)과 디스크 모양이 다르다. 여기서 이어 준다.
     if (url.startsWith('/t/')) url = '/apps/blog/t/' + url.slice('/t/'.length);
     if (url.endsWith('/')) url += 'index.html';
     const file = path.join(blogRoot, url.replace(/^\//, ''));
@@ -61,8 +61,8 @@ function serveBuilt() {
     }
     let body = fs.readFileSync(file);
     const ext = path.extname(file);
-    // Jekyll 앞머리는 배포 때 걷힌다 — 여기서도 걷어야 같은 화면이 된다.
-    // Liquid 태그까지 걷는다 — 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
+    // Jekyll 앞머리는 배포 때 걷힌다. 여기서도 걷어야 같은 화면이 된다.
+    // Liquid 태그까지 걷는다. 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
     if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
     res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
   });
@@ -106,12 +106,12 @@ try {
     };
   }, SAMPLE);
 
-  if (seen.none) problems.push('가짜 자리를 켰는데 화면에 안 뜬다 — 자리 자체가 죽었다');
+  if (seen.none) problems.push('가짜 자리를 켰는데 화면에 안 뜬다. 자리 자체가 죽었다');
   else {
-    if (seen.count !== 1) problems.push(`한 장에 ${seen.count}개가 떴다 — 하나여야 한다`);
-    if (!seen.belowTool) problems.push('도구 본체 위에 떴다 — 도구를 쓰러 온 사람을 가린다');
-    if (!seen.insideDescBlock) problems.push('설명 블록 밖에 떴다 — 다 쓰고 읽는 자리에만 놓기로 했다');
-    if (!seen.reveal) problems.push('후원·광고임을 밝히는 글이 없다');
+    if (seen.count !== 1) problems.push(`한 장에 ${seen.count}개가 떴다. 하나여야 한다`);
+    if (!seen.belowTool) problems.push('도구 본체 위에 떴다. 도구를 쓰러 온 사람을 가린다');
+    if (!seen.insideDescBlock) problems.push('설명 블록 밖에 떴다. 다 쓰고 읽는 자리에만 놓기로 했다');
+    if (!seen.reveal) problems.push('후원, 광고임을 밝히는 글이 없다');
     if (seen.rel !== null && !/sponsored/.test(seen.rel)) problems.push(`바깥 링크에 sponsored 표시가 없다 (rel="${seen.rel}")`);
     if (seen.overflow) problems.push('좁은 화면에서 옆으로 넘친다');
     if (!seen.visible) problems.push('자리가 만들어졌는데 보이지 않는다');
@@ -127,4 +127,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
-console.log('[audit-sponsor-slot] 후원 자리 — 도구 아래·설명 안·한 장에 하나·reveal·sponsored·안 overflow 전부 OK');
+console.log('[audit-sponsor-slot] 후원 자리. 도구 아래, 설명 안, 한 장에 하나, reveal, sponsored, 안 overflow 전부 OK');

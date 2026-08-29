@@ -1,12 +1,12 @@
 /**
- * 모험 raw 진행 storage — KL-032 결정 8 (세이브/로드 자율 결정).
+ * 모험 raw 진행 storage. KL-032 결정 8 (세이브/로드 자율 결정).
  *
  * Tauri 환경: Tauri command 'adventure_save_raw' 가 memo/projects/raw/adventures/{slug}.json 박음 (ζ 단계).
  * 브라우저: localStorage 임시 (Tauri 미가용 시 fallback).
  *
  * raw = turn 마다 user/assistant message + parsed (선택지 / NPC / scene) + image refs 누적.
  *
- * KL-037: 이미지 (η Vertex Imagen) 는 dataUrl 인라인 X — `adventure_save_image` 가
+ * KL-037: 이미지 (η Vertex Imagen) 는 dataUrl 인라인 X. `adventure_save_image` 가
  * 별 PNG 로 박고 path 만 imageRef 에 박힘. raw JSON 사이즈 폭주 방지 + git diff/push 비용 ↓.
  */
 import { t } from '../../lib/i18n';
@@ -93,11 +93,11 @@ export async function saveImage(
       console.warn(t('adventure.t42'), err);
     }
   }
-  // 브라우저 fallback — dataUrl 직접 박지만 size limit 강제 (KL-037 raw JSON 폭주 방지).
+  // 브라우저 fallback. dataUrl 직접 박지만 size limit 강제 (KL-037 raw JSON 폭주 방지).
   const SIZE_LIMIT = 256 * 1024; // 256KB
   if (dataUrl.length > SIZE_LIMIT) {
     console.warn(
-      `[adventure] dataUrl 크기 ${dataUrl.length} > ${SIZE_LIMIT} — 인라인 박지 않음`,
+      `[adventure] dataUrl 크기 ${dataUrl.length} > ${SIZE_LIMIT}. 인라인 박지 않음`,
     );
     return null;
   }
@@ -111,7 +111,7 @@ export async function saveSession(session: AdventureSession): Promise<void> {
       await invoke('adventure_save_raw', { session });
       return;
     } catch (err) {
-      // Tauri command 미구현 (ζ 단계 전) — fallback localStorage
+      // Tauri command 미구현 (ζ 단계 전). fallback localStorage
       console.warn(t('adventure.t43'), err);
     }
   }

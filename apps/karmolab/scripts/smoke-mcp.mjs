@@ -1,9 +1,9 @@
 /**
  * MCP 서버가 **진짜로 대답하는지** 확인한다 (TASK-KL-205 / S1 P3)
  *
- * 「만들었다」로 끝내면 안 되는 자리다. 서버를 진짜 띄우고, 에이전트가 하는 것과 같은 순서로
+ * 만들었다로 끝내면 안 되는 자리다. 서버를 진짜 띄우고, 에이전트가 하는 것과 같은 순서로
  * 말을 걸어(initialize → tools/list → tools/call) **돌아온 값이 맞는지** 본다.
- * 값은 OpenSSL 과 대 본다 — 서버가 그럴듯한 문자열을 지어내는 경우까지 잡는다.
+ * 값은 OpenSSL 과 대 본다. 서버가 그럴듯한 문자열을 지어내는 경우까지 잡는다.
  *
  * 사용: node scripts/smoke-mcp.mjs
  */
@@ -24,7 +24,7 @@ const check = (okv, why) => {
   process.stdout.write(okv ? '.' : 'x');
   if (okv === false) failures.push(why);
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 const child = spawn(process.execPath, [serverPath], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
 let stderr = '';
@@ -64,7 +64,7 @@ const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabiliti
 eq(init.result?.serverInfo?.name, 'karmolab', 'initialize 가 서버 이름을 준다');
 check(init.result?.capabilities?.tools !== undefined, 'tools 능력을 알린다');
 
-// 알림에는 답하지 않아야 한다 (답하면 규약 위반) — 보내 보고 다음 요청이 멀쩡한지로 확인한다.
+// 알림에는 답하지 않아야 한다 (답하면 규약 위반). 보내 보고 다음 요청이 멀쩡한지로 확인한다.
 child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
 
 const list = (await rpc('tools/list')).result;
@@ -85,7 +85,7 @@ eq((await callTool('base64_decode', { code: '7JWI64WV7ZWY7IS47JqU' })).content[0
 const safe = await callTool('base64_encode', { text: '~~~???', urlSafe: true });
 check(/[+/=]/.test(safe.content[0].text) === false, `urlSafe 가 먹어야 한다: ${safe.content[0].text}`);
 
-// LLM 이 지어내는 대표 항목 — OpenSSL 과 글자 단위로 같아야 한다.
+// LLM 이 지어내는 대표 항목. OpenSSL 과 글자 단위로 같아야 한다.
 const sha256 = await callTool('hashgen_text', { text: 'KarmoLab', algo: 'SHA256' });
 eq(sha256.content[0].text, crypto.createHash('sha256').update('KarmoLab').digest('hex'), 'hashgen SHA-256');
 const sha3 = await callTool('hashgen_text', { text: 'KarmoLab', algo: 'SHA3-512' });
@@ -93,13 +93,13 @@ eq(sha3.content[0].text, crypto.createHash('sha3-512').update('KarmoLab').digest
 const all = await callTool('hashgen_text', { text: 'KarmoLab' });
 eq(all.content[0].text.split('\n').length, 7, 'algo 를 안 주면 7종 전부');
 
-// 시간대·자릿수 — 여기도 LLM 이 자주 틀린다.
+// 시간대, 자릿수. 여기도 LLM 이 자주 틀린다.
 const toDate = await callTool('epoch_toDate', { ts: '1750000000000000000' });
 check(toDate.content[0].text.startsWith('나노초'), `자릿수를 나노초로 읽어야 한다: ${toDate.content[0].text.split('\n')[0]}`);
 check(toDate.content[0].text.includes('2025-06-15'), `2025-06-15 가 나와야 한다 (5만 년 X): ${toDate.content[0].text}`);
 eq((await callTool('epoch_toStamp', { date: '2025-06-15T15:06:40.000Z' })).content[0].text, '1750000000', 'epoch_toStamp');
 
-// 한국 규칙 — 우리 무기. LLM 이 자릿수만 맞춰 지어내거나 옛 나이 규칙으로 답하는 자리다.
+// 한국 규칙. 우리 무기. LLM 이 자릿수만 맞춰 지어내거나 옛 나이 규칙으로 답하는 자리다.
 const biz = await callTool('bizno_check', { number: '123-45-67890' });
 check(biz.content[0].text.includes('business registration number'), `종류를 말해야 한다: ${biz.content[0].text}`);
 check(biz.content[0].text.includes('National Tax Service'), '형식 경계를 반드시 말한다');
@@ -119,7 +119,7 @@ check(bad.content[0].text.includes('모르는 알고리즘'), `이유를 말해�
 const missing = await callTool('epoch_toDate', { ts: 'abc' });
 check(missing.isError === true, '못 읽는 값이면 isError');
 
-// 파일 바이트 세로 관통 — JSON/base64 → ZIP → 목록 → 원본 바이트.
+// 파일 바이트 세로 관통. JSON/base64 → ZIP → 목록 → 원본 바이트.
 const zipMade = await callTool('ziptool_create', {
   files: JSON.stringify([
     { name: 'hello.txt', data: Buffer.from('안녕 KarmoLab').toString('base64') },
@@ -134,7 +134,7 @@ eq(zipEntries.map((entry) => entry.name).join(','), 'hello.txt,nested/value.txt'
 const zipExtracted = await callTool('ziptool_extract', { data: zipMade.content[0].text, name: 'hello.txt' });
 eq(Buffer.from(zipExtracted.content[0].text, 'base64').toString(), '안녕 KarmoLab', 'ZIP 추출 왕복');
 
-// PDF도 같은 바이트 계약으로 왕복한다. 두 판을 만들고 합친 뒤 쪽 수·추출·회전·글자를 확인한다.
+// PDF도 같은 바이트 계약으로 왕복한다. 두 판을 만들고 합친 뒤 쪽 수, 추출, 회전, 글자를 확인한다.
 async function samplePdf(text) {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
@@ -144,7 +144,7 @@ async function samplePdf(text) {
 const pdfA = await samplePdf('KarmoLab Alpha');
 const pdfB = await samplePdf('KarmoLab Beta');
 const pdfMerged = await callTool('pdftool_merge', { files: JSON.stringify([pdfA, pdfB]) });
-eq((await callTool('pdftool_pages', { data: pdfMerged.content[0].text })).content[0].text, '2', 'PDF 합치기·쪽 수');
+eq((await callTool('pdftool_pages', { data: pdfMerged.content[0].text })).content[0].text, '2', 'PDF 합치기, 쪽 수');
 const pdfExtracted = await callTool('pdftool_extract', { data: pdfMerged.content[0].text, pages: '2' });
 eq((await callTool('pdftool_pages', { data: pdfExtracted.content[0].text })).content[0].text, '1', 'PDF 쪽 추출');
 const pdfRotated = await callTool('pdftool_rotate', { data: pdfExtracted.content[0].text, pages: '1', degrees: 90 });
@@ -173,4 +173,4 @@ if (failures.length > 0) {
   if (stderr) console.error('서버 stderr:\n' + stderr);
   process.exit(1);
 }
-console.log(`[smoke-mcp] MCP 서버 — 도구 ${names.length}개, 실제 호출·값 대조 전부 통과`);
+console.log(`[smoke-mcp] MCP 서버. 도구 ${names.length}개, 실제 호출, 값 대조 전부 통과`);

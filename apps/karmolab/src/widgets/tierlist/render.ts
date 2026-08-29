@@ -238,7 +238,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 ? `<img src="${imgData}" alt="${esc(item.name || '')}">`
                 : `<div class="tl-item-text">${esc(item.name || '?')}</div>`;
             const nameTag = item.name ? `<div class="tl-item-name">${esc(item.name)}</div>` : '';
-            /* 자판으로도 잡을 수 있어야 옮길 수 있다 — 초점 받을 자리를 준다(2026-08-17). */
+            /* 자판으로도 잡을 수 있어야 옮길 수 있다. 초점 받을 자리를 준다(2026-08-17). */
             return `<div class="tl-item" data-item-id="${itemId}" tabindex="0" role="listitem">${itemOriginBadge(item)}${itemUserLabelsHtml(item)}${inner}${nameTag}</div>`;
         }
 
@@ -303,7 +303,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         function toastTierlistDrop(itemId: string, tierId: string | undefined, insertIdx: number) {
             const item = list!.items[itemId];
             const raw = String(item?.name || '').trim();
-            const disp = raw.length > 30 ? raw.slice(0, 27) + '…' : (raw || '이름 없음');
+            const disp = raw.length > 30 ? raw.slice(0, 27) + '...' : (raw || '이름 없음');
             const tocAppend = Number(insertIdx) >= 999999;
             let dest: string;
             if (tierId === '_pool') {
@@ -485,8 +485,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 try { countLine = await T.publish.getPublishedPreviewCountLine(rel); } catch (_) { /* 무시 */ }
             }
             const metaLine = countLine
-                ? `${esc(countLine)} · ${esc(it.updatedAt || '—')}`
-                : `index.json · ${esc(it.updatedAt || '—')}`;
+                ? `${esc(countLine)}, ${esc(it.updatedAt || '. ')}`
+                : `index.json, ${esc(it.updatedAt || '. ')}`;
             const pillClass = grp === 'karmo' ? 'tl-pill-karmo' : 'tl-pill-catalog';
             const pillLabel = grp === 'karmo' ? t('tierlist.t15') : t('tierlist.t13');
             const karmoCls = grp === 'karmo' ? ' tl-list-card-embed--karmo' : '';
@@ -536,7 +536,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 catHtml += `<div class="tl-list-card tl-list-card-catalog" data-catalog-id="${esc(c.id)}">
                     <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">${esc(t('tierlist.t18'))}</span></div>
                     <div class="tl-list-card-title">${esc(c.title || '(이름 없음)')}</div>
-                    <div class="tl-list-card-meta">총 ${n}개 · ${date.toLocaleDateString()} · 클릭 시 새 순위 생성</div>
+                    <div class="tl-list-card-meta">총 ${n}개, ${date.toLocaleDateString()}, 클릭 시 새 순위 생성</div>
                 </div>`;
             });
 
@@ -564,12 +564,12 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 instHtml += `<div class="tl-list-card tl-list-card-instance${active ? ' active' : ''}" data-instance-id="${esc(inst.id)}">
                     <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">${esc(t('tierlist.t24'))}</span></div>
                     <div class="tl-list-card-title">${esc(inst.title || '(제목 없음)')}</div>
-                    <div class="tl-list-card-meta">아이템 ${ic} · 배치 ${rc} · ${date.toLocaleDateString()}</div>
+                    <div class="tl-list-card-meta">아이템 ${ic}, 배치 ${rc}, ${date.toLocaleDateString()}</div>
                 </div>`;
             });
 
             if (instGrid) {
-                instHtml = instHtml || '<div class="tl-list-empty" style="grid-column:1/-1;"><div style="font-size:28px;margin-bottom:8px;">📋</div><div>로컬 순위가 없습니다. 후보 풀 카드를 누르거나 「빈 순위 만들기」를 쓰세요.</div></div>';
+                instHtml = instHtml || '<div class="tl-list-empty" style="grid-column:1/-1;"><div style="font-size:28px;margin-bottom:8px;">📋</div><div>로컬 순위가 없습니다. 후보 풀 카드를 누르거나 빈 순위 만들기를 쓰세요.</div></div>';
                 instGrid.innerHTML = instHtml;
             }
 

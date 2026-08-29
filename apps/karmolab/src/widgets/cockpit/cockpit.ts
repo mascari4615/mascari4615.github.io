@@ -1,6 +1,6 @@
 import { loadNamespace, locale } from '../../lib/i18n';
 /**
- * cockpit.ts — Cockpit 위젯 엔트리 (TASK-KL-082 단위 J).
+ * cockpit.ts. Cockpit 위젯 엔트리 (TASK-KL-082 단위 J).
  *
  * 탭 라우터: 탭1=노드 그래프 / 탭2=TASK 목록.
  * Toolbox.register 로 등록. IIFE (Toolbox = lexical).
@@ -56,7 +56,7 @@ import { buildCardsTab } from './cards-tab';
     // 상태 표시
     statusEl = document.createElement('div');
     statusEl.className = 'ck-status-bar';
-    statusEl.textContent = '로딩 중…';
+    statusEl.textContent = '로딩 중...';
     graphPanel.appendChild(statusEl);
 
     // 캔버스 컨테이너
@@ -72,18 +72,18 @@ import { buildCardsTab } from './cards-tab';
     // 로딩 오버레이 박기 (graph.json + activity 첫 페치 동안)
     const loadingEl = document.createElement('div');
     loadingEl.className = 'ck-loading';
-    loadingEl.textContent = '⏳ 로딩 중 …';
+    loadingEl.textContent = '⏳ 로딩 중 ...';
     canvasWrap.appendChild(loadingEl);
 
     const ok = await ensureRepoRoot();
     if (!ok) {
-      if (statusEl) statusEl.textContent = 'repo_root 없음 — Server Monitor 에서 저장소 루트 설정 후 재오픈';
+      if (statusEl) statusEl.textContent = 'repo_root 없음. Server Monitor 에서 저장소 루트 설정 후 재오픈';
       loadingEl.textContent = '❌ repo_root 없음';
       return;
     }
 
     // graph spec 로드
-    loadingEl.textContent = '⏳ graph.json 로드 중 …';
+    loadingEl.textContent = '⏳ graph.json 로드 중 ...';
     const spec = await cockpitGraphAdapter.load();
     if (!spec) {
       if (statusEl) statusEl.textContent = 'graph.json 로드 실패';
@@ -92,7 +92,7 @@ import { buildCardsTab } from './cards-tab';
     }
     canvas.setSpec(spec);
     canvas.fitView();
-    loadingEl.textContent = '⏳ 활성 신호 첫 수집 …';
+    loadingEl.textContent = '⏳ 활성 신호 첫 수집 ...';
 
     // activity collector
     collector = new ActivityCollector(({ snapshot, activeSets, ephemeralNodes }) => {
@@ -122,7 +122,7 @@ import { buildCardsTab } from './cards-tab';
 
   async function reloadGraph(): Promise<void> {
     if (!canvas) return;
-    if (statusEl) statusEl.textContent = '새로고침 중…';
+    if (statusEl) statusEl.textContent = '새로고침 중...';
     const spec = await cockpitGraphAdapter.load();
     if (!spec) { if (statusEl) statusEl.textContent = '재로드 실패'; return; }
     canvas.setSpec(spec);
@@ -180,7 +180,7 @@ import { buildCardsTab } from './cards-tab';
 
     const graphPanel = makePanel(true);
     graphPanel.style.cssText = 'position:relative;width:100%;height:100%;';
-    // Task 탭 패널 — TASK·팀·카드 섹션 세로 쌓기
+    // Task 탭 패널. TASK, 팀, 카드 섹션 세로 쌓기
     const taskPanel = makePanel();
     taskPanel.style.cssText = 'width:100%;height:100%;overflow-y:auto;';
 
@@ -222,7 +222,7 @@ import { buildCardsTab } from './cards-tab';
         id: 'cockpit-main',
         label: 'Cockpit',
         build(container: HTMLElement) {
-          /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+          /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
           void loadNamespace('cockpit').then(() => render(container));
         },
       },

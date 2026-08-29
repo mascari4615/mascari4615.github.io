@@ -12,7 +12,7 @@ const PREVIEW_IMAGE =
 /**
  * 창을 띄워 채팅 칸을 눈으로 확인하는 두뇌.
  *
- * 바깥 모델을 안 부른다. 말 조각·도구 카드·그림을 같은 길로 흘린다.
+ * 바깥 모델을 안 부른다. 말 조각, 도구 카드, 그림을 같은 길로 흘린다.
  */
 export function previewBrain(): Brain {
   return {

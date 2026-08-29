@@ -13,7 +13,7 @@ const { quantizeNotes, transposeNotes, setNoteVelocity, legatoNotes, splitClip, 
 
 const note = (beat, pitch = 60, duration = 0.5, velocity = 0.8) => ({ id: `n${beat}-${pitch}`, beat, duration, pitch, velocity });
 
-// quantize — 완전히 붙이기
+// quantize. 완전히 붙이기
 const loose = [note(0.07), note(0.98), note(2.26)];
 assert.equal(quantizeNotes(loose, 0.25), 3, '어긋난 3음 전부 움직인다');
 assert.deepEqual(loose.map((item) => Number(item.beat.toFixed(4))), [0, 1, 2.25]);
@@ -32,13 +32,13 @@ const guarded = [note(0.3)];
 quantizeNotes(guarded, 0);
 assert.equal(Number(guarded[0].beat.toFixed(4)), 0.25);
 
-// transpose — 묶음 모양을 지킨 채 옮긴다
+// transpose. 묶음 모양을 지킨 채 옮긴다
 const chord = [note(0, 60), note(0, 64), note(0, 67)];
 assert.equal(transposeNotes(chord, 12), 12);
 assert.deepEqual(chord.map((item) => item.pitch), [72, 76, 79]);
 assert.equal(transposeNotes(chord, -12), -12);
 assert.deepEqual(chord.map((item) => item.pitch), [60, 64, 67]);
-// 천장에 닿으면 닿는 만큼만 — 화음 간격이 뭉개지지 않는다
+// 천장에 닿으면 닿는 만큼만. 화음 간격이 뭉개지지 않는다
 const high = [note(0, 80), note(0, 84)];
 assert.equal(transposeNotes(high, 12, 36, 84), 0, '이미 천장이면 아무도 안 움직인다');
 assert.deepEqual(high.map((item) => item.pitch), [80, 84]);
@@ -51,14 +51,14 @@ assert.deepEqual(nearBottom.map((item) => item.pitch), [36, 40]);
 assert.equal(transposeNotes([], 12), 0, '빈 묶음은 무시');
 assert.equal(transposeNotes([note(0, 60)], 0), 0, '0 반음은 무시');
 
-// velocity — 범위를 벗어난 값도 안전하게 접는다
+// velocity. 범위를 벗어난 값도 안전하게 접는다
 const soft = [note(0), note(1)];
 setNoteVelocity(soft, 1.8);
 assert.deepEqual(soft.map((item) => item.velocity), [1, 1]);
 setNoteVelocity(soft, -3);
 assert.deepEqual(soft.map((item) => item.velocity), [0.05, 0.05], '0 으로 죽여 버리지 않는다');
 
-// legato — 앞 음의 끝이 다음 음 시작에 닿는다
+// legato. 앞 음의 끝이 다음 음 시작에 닿는다
 const line = [note(0, 60, 0.2), note(1, 62, 0.2), note(2, 64, 0.2)];
 assert.equal(legatoNotes(line, 4), 3);
 assert.deepEqual(line.map((item) => item.duration), [1, 1, 2], '마지막 음은 클립 끝까지');
@@ -67,7 +67,7 @@ const shuffled = [note(2, 64, 0.1), note(0, 60, 0.1), note(1, 62, 0.1)];
 legatoNotes(shuffled, 3);
 assert.deepEqual(shuffled.map((item) => [item.beat, item.duration]), [[2, 1], [0, 1], [1, 1]]);
 
-// splitClip — 자른 뒤 양쪽 음이 각자 클립 안에 남는다
+// splitClip. 자른 뒤 양쪽 음이 각자 클립 안에 남는다
 const clip = { id: 'c1', trackId: 't1', kind: 'midi', name: 'A', start: 0, duration: 4, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, notes: [note(0), note(1), note(3)] };
 const right = splitClip(clip, 2);
 assert.equal(clip.duration, 2);
@@ -79,7 +79,7 @@ assert.equal(splitClip(clip, 0), null, '클립 끝에서는 안 잘린다');
 
 assert.equal(snapBeat(-5, 0.25), 0, '음수 위치는 0 으로 접힌다');
 
-// 자동화 — 점 사이는 직선, 양 끝은 유지
+// 자동화. 점 사이는 직선, 양 끝은 유지
 const flat = [];
 assert.equal(automationValueAt(flat, 3, 0.82), 0.82, '점이 없으면 트랙 볼륨 그대로');
 const ramp = [{ id: 'a', beat: 4, value: 0.2 }, { id: 'b', beat: 0, value: 1 }];
@@ -91,7 +91,7 @@ assert.equal(sortAutomation(ramp).map((p) => p.beat).join(','), '0,4', '읽기 �
 const doubled = [{ id: 'a', beat: 2, value: 0.3 }, { id: 'b', beat: 2, value: 0.9 }];
 assert.ok(automationValueAt(doubled, 2, 0.5) >= 0.3, '겹친 점에서 0 으로 나누지 않는다');
 
-// 점 놓기 — 가까우면 값만 바꾼다
+// 점 놓기. 가까우면 값만 바꾼다
 let points = [];
 points = putAutomationPoint(points, 1, 0.5);
 points = putAutomationPoint(points, 1.02, 0.9);
@@ -103,7 +103,7 @@ points = putAutomationPoint(points, -5, -1);
 assert.equal(points[0].beat, 0, '음수 위치는 0');
 assert.equal(points[0].value, 0);
 
-// 저장 왕복 — 자동화가 살아남는다
+// 저장 왕복. 자동화가 살아남는다
 const project = newProject();
 project.tracks[0].automation.volume = putAutomationPoint([], 2, 0.4, 'volume');
 project.tracks[0].automation.pan = putAutomationPoint([], 1, -0.7, 'pan');
@@ -168,7 +168,7 @@ assert.equal(marks[0].name, 'Verse 1', '이름만 바뀐다');
 marks = putMarker(marks, -3, 'Intro');
 assert.equal(marks[0].beat, 0, '음수 위치는 0');
 
-// 앞뒤로 건너뛰기 — 없으면 null (곡 끝으로 튕기지 않는다)
+// 앞뒤로 건너뛰기. 없으면 null (곡 끝으로 튕기지 않는다)
 assert.equal(stepMarker(marks, 0, 1).name, 'Verse 1');
 assert.equal(stepMarker(marks, 4, 1).name, 'Chorus');
 assert.equal(stepMarker(marks, 8, 1), null, '뒤에 없으면 null');
@@ -176,7 +176,7 @@ assert.equal(stepMarker(marks, 8, -1).name, 'Verse 1', '바로 그 자리 이름
 assert.equal(stepMarker(marks, 0, -1), null, '앞에 없으면 null');
 assert.equal(stepMarker([], 4, 1), null, '이름표가 없으면 null');
 
-// 저장 왕복 · 옛 저장본 · 깨진 값
+// 저장 왕복, 옛 저장본, 깨진 값
 const withMarks = newProject();
 withMarks.markers = putMarker([], 6, 'Bridge');
 const rounded = normalizeProject(JSON.parse(JSON.stringify(withMarks)));
@@ -192,7 +192,7 @@ assert.equal(fixed.length, 2, '숫자가 아닌 위치는 버린다');
 assert.ok(fixed.every((m) => m.name.trim()), '이름이 비면 기본값을 준다');
 assert.equal(sortMarkers(fixed).map((m) => m.beat).join(','), '1,2');
 
-// 줄 높이 — 쓸 수 있는 범위로 접는다
+// 줄 높이. 쓸 수 있는 범위로 접는다
 assert.equal(clampTrackHeight(120), 120);
 assert.equal(clampTrackHeight(5), TRACK_HEIGHT.min, '너무 낮으면 하한');
 assert.equal(clampTrackHeight(9999), TRACK_HEIGHT.max, '너무 높으면 상한');
@@ -207,13 +207,13 @@ const legacyHeight = JSON.parse(JSON.stringify(tall));
 delete legacyHeight.tracks[0].height;
 assert.equal(normalizeProject(legacyHeight).tracks[0].height, TRACK_HEIGHT.default, '옛 저장본은 기본 높이');
 
-// 클립 색 — 한 칸씩 돌다가 트랙 색으로 되돌아온다
+// 클립 색. 한 칸씩 돌다가 트랙 색으로 되돌아온다
 assert.equal(nextClipColor(undefined), CLIP_COLORS[0], '트랙 색을 따르던 것은 첫 색부터');
 assert.equal(nextClipColor(CLIP_COLORS[0]), CLIP_COLORS[1]);
 assert.equal(nextClipColor(CLIP_COLORS[CLIP_COLORS.length - 1]), undefined, '한 바퀴 돌면 트랙 색으로');
 assert.equal(nextClipColor('#nope'), CLIP_COLORS[0], '모르는 색은 첫 색부터');
 
-// 잠금·색이 저장 왕복에서 산다
+// 잠금, 색이 저장 왕복에서 산다
 const locked = newProject();
 locked.tracks[0].clips[0].locked = true;
 locked.tracks[0].clips[0].color = CLIP_COLORS[2];
@@ -229,7 +229,7 @@ assert.equal(old.locked, false, '옛 저장본은 안 잠김');
 assert.equal(old.mute, false, '옛 저장본은 소리 켜짐');
 assert.equal(old.color, undefined, '옛 저장본은 트랙 색');
 
-// 두드려서 BPM — 한 번은 셀 수 없다
+// 두드려서 BPM. 한 번은 셀 수 없다
 assert.equal(tapTempo([]), null);
 assert.equal(tapTempo([1000]), null, '한 번은 못 센다');
 assert.equal(tapTempo([0, 500, 1000, 1500]), 120, '0.5초 간격 = 120');
@@ -252,7 +252,7 @@ const negative = selectionRange([{ start: -3, duration: 2 }]);
 assert.equal(negative.from, 0, '음수 시작은 0 으로');
 assert.ok(negative.to > negative.from, '끝이 시작보다 앞설 수 없다');
 
-// 스윙 — 뒷칸만 민다
+// 스윙. 뒷칸만 민다
 assert.equal(swingBeat(0, 0.3), 0, '앞칸은 그대로');
 assert.equal(swingBeat(1, 0.3), 1, '다음 앞칸도 그대로');
 assert.equal(Number(swingBeat(0.5, 0.3).toFixed(4)), 0.65, '뒷칸은 뒤로');
@@ -280,7 +280,7 @@ const legacySwing = JSON.parse(JSON.stringify(swung));
 delete legacySwing.swing;
 assert.equal(normalizeProject(legacySwing).swing, 0, '옛 저장본은 정박');
 
-// 셋잇단·점음표 격자에서도 붙이기가 맞는다
+// 셋잇단, 점음표 격자에서도 붙이기가 맞는다
 const third = 1 / 3;
 assert.equal(Number(snapBeat(0.3, third).toFixed(6)), Number(third.toFixed(6)), '0.3 은 1/3 로');
 assert.equal(Number(snapBeat(0.7, third).toFixed(6)), Number((third * 2).toFixed(6)), '0.7 은 2/3 로');
@@ -293,7 +293,7 @@ assert.deepEqual(triplets.map((item) => Number(item.beat.toFixed(4))), [0.3333, 
 // 격자가 아무리 작아도 0 으로 안 나눈다
 assert.equal(snapBeat(1.2, 0), 1.25, '0 격자는 기본 1/4');
 
-// 자판 건반 — 트래커 배열
+// 자판 건반. 트래커 배열
 assert.equal(keyToPitch('z', 4), 60, 'z = C4');
 assert.equal(keyToPitch('Z', 4), 60, '대문자도 같다');
 assert.equal(keyToPitch('s', 4), 61, 's = C#4');
@@ -302,18 +302,18 @@ assert.equal(keyToPitch('q', 4), 72, '윗줄은 한 옥타브 위');
 assert.equal(keyToPitch('z', 3), 48, '옥타브를 내리면 12 낮다');
 assert.equal(keyToPitch('1', 4), null, '없는 자판은 null');
 assert.equal(keyToPitch('', 4), null);
-// 음역 밖은 null — 화면에 없는 음을 만들지 않는다
+// 음역 밖은 null. 화면에 없는 음을 만들지 않는다
 assert.equal(keyToPitch('z', 4, 62, 84), null, '아래 음역 밖');
 assert.equal(keyToPitch('i', 8, 36, 84), null, '위 음역 밖');
 assert.equal(keyToPitch('z', 4, 36, 84), 60, '음역 안이면 그대로');
 // 도구 단축키와 겹치는 키를 미리 안다
-assert.equal(isPianoKey('e'), true, 'e 는 건반이기도 하다 — 그래서 모드가 필요하다');
+assert.equal(isPianoKey('e'), true, 'e 는 건반이기도 하다. 그래서 모드가 필요하다');
 assert.equal(isPianoKey('c'), true);
 assert.equal(isPianoKey('m'), true);
 assert.equal(isPianoKey('p'), false, 'p 는 안 겹친다');
 assert.equal(isPianoKey('9'), false);
 
-// 소리 모양(ADSR·필터·두툼함) — 저장 왕복과 이상한 값 방어
+// 소리 모양(ADSR, 필터, 두툼함). 저장 왕복과 이상한 값 방어
 const shaped = newProject();
 shaped.tracks[0].envelope = { attack: 0.3, decay: 0.4, sustain: 0.2, release: 1.1 };
 shaped.tracks[0].filter = { cutoff: 900, envelope: 3 };
@@ -328,7 +328,7 @@ delete plain.tracks[0].envelope; delete plain.tracks[0].filter; delete plain.tra
 const plainBack = normalizeProject(plain).tracks[0];
 assert.ok(plainBack.envelope.attack > 0 && plainBack.envelope.sustain > 0, '옛 저장본도 소리가 난다');
 assert.ok(plainBack.filter.cutoff > 1000);
-// 말도 안 되는 값은 접는다 — 0 으로 나누거나 안 들리는 소리를 만들지 않는다
+// 말도 안 되는 값은 접는다. 0 으로 나누거나 안 들리는 소리를 만들지 않는다
 const wild = JSON.parse(JSON.stringify(shaped));
 wild.tracks[0].envelope = { attack: -5, decay: 99, sustain: 9, release: 0 };
 wild.tracks[0].filter = { cutoff: 999999, envelope: -3 };
@@ -343,4 +343,4 @@ const notNumber = JSON.parse(JSON.stringify(shaped));
 notNumber.tracks[0].envelope = { attack: 'x' };
 assert.ok(normalizeProject(notNumber).tracks[0].envelope.attack >= 0, '숫자가 아니면 기본값');
 
-console.log('[test-heung-model] ✓ quantize · transpose 천장 · velocity · legato · split · 자동화 보간/저장 · 트랙 순서·접힘 · 구간 이름표 · 줄 높이 · 클립 잠금·색 · TAP·선택구간 · 스윙 · 셋잇단/점음표 격자 · 자판 건반 · 소리 모양');
+console.log('[test-heung-model] ✓ quantize, transpose 천장, velocity, legato, split, 자동화 보간/저장, 트랙 순서, 접힘, 구간 이름표, 줄 높이, 클립 잠금, 색, TAP, 선택구간, 스윙, 셋잇단/점음표 격자, 자판 건반, 소리 모양');

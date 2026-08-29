@@ -1,9 +1,9 @@
 /**
- * TASK-KL-098 — 계정 API 를 **실제 HTTP 로** 찔러 본다.
+ * TASK-KL-098. 계정 API 를 **실제 HTTP 로** 찔러 본다.
  *
- * 유닛 시험은 저장소가 맞는지만 본다. 여기서 보는 것은 그 위의 배선이다 —
+ * 유닛 시험은 저장소가 맞는지만 본다. 여기서 보는 것은 그 위의 배선이다 . 
  * 쿠키가 실제로 오가는가, 다른 도메인에서 부를 수 있는가, 로그인 없이 남의 기록을 못 쓰는가.
- * 이 층이 없으면 「함수는 맞는데 브라우저에서는 안 되는」 상태를 배포까지 못 잡는다.
+ * 이 층이 없으면 함수는 맞는데 브라우저에서는 안 되는 상태를 배포까지 못 잡는다.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import express from 'express';
@@ -36,8 +36,8 @@ beforeEach(async () => {
   const app = express();
   app.use(express.json());
   registerKarmolabApi(app, store, traces, undefined, plays, undefined, packs);
-  /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
-     `fetch` 가 「bad port」로 죽는다 — 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
+  /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000, 6665 등)가 걸려서
+     `fetch` 가 bad port로 죽는다. 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
   let port = 0;
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -50,10 +50,10 @@ beforeEach(async () => {
     if (ok) {
       /* ★ **서버가 놀고 있는 연결을 먼저 끊으면 시험이 헛빨개진다** (2026-08-17 실측).
          노드는 기본으로 5초 논 연결을 닫는데, `fetch`(undici)는 그 연결을 아직 쓸 수 있다고
-         보고 다시 쓴다 — 그 틈에 걸리면 `SocketError: other side closed` 로 죽는다.
+         보고 다시 쓴다. 그 틈에 걸리면 `SocketError: other side closed` 로 죽는다.
          코드가 틀린 게 아니라 **연결이 끊긴 것**인데 verify 가 통째로 서고 뒤 여섯 단계가 안 돈다
          (실제로 그렇게 한 판 섰다: karmolab-api.test.ts:1382).
-         시험 서버는 놀아도 안 끊는다 — 어차피 시험 하나가 끝나면 통째로 닫는다. */
+         시험 서버는 놀아도 안 끊는다. 어차피 시험 하나가 끝나면 통째로 닫는다. */
       server.keepAliveTimeout = 0;
       port = candidate;
       break;
@@ -79,8 +79,8 @@ function signIn(): { cookie: string; handle: string } {
   return { cookie: `kl_session=${encodeURIComponent(token)}`, handle: account.handle };
 }
 
-describe('계정 API — HTTP', () => {
-  it('로그인 안 한 사람에게도 200 으로 답한다 — 화면이 오류로 깨지면 안 된다', async () => {
+describe('계정 API. HTTP', () => {
+  it('로그인 안 한 사람에게도 200 으로 답한다. 화면이 오류로 깨지면 안 된다', async () => {
     const res = await fetch(`${baseUrl}/kl/me`);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ account: null });
@@ -133,7 +133,7 @@ describe('계정 API — HTTP', () => {
     expect(body.records.achievements).toEqual(['first_chat', 'pet_100']);
   });
 
-  it('말도 안 되는 값은 걸러진다 — 남이 아무거나 보낼 수 있는 자리다', async () => {
+  it('말도 안 되는 값은 걸러진다. 남이 아무거나 보낼 수 있는 자리다', async () => {
     const { cookie } = signIn();
     const res = await fetch(`${baseUrl}/kl/me/records`, {
       method: 'PUT',
@@ -196,11 +196,11 @@ describe('계정 API — HTTP', () => {
     }
   });
 
-  // 사람 브라우저가 스스로 밝히는 이름. 「kl-test」 같은 이름은 이제 사람으로 안 센다.
+  // 사람 브라우저가 스스로 밝히는 이름. kl-test 같은 이름은 이제 사람으로 안 센다.
   const HUMAN_UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
-  it('흔적 — 도구 열림은 로그인 없이 세고, 같은 사람 새로고침은 안 센다', async () => {
+  it('흔적. 도구 열림은 로그인 없이 세고, 같은 사람 새로고침은 안 센다', async () => {
     const headers = { 'Content-Type': 'application/json', 'User-Agent': HUMAN_UA };
     const body = JSON.stringify({ toolId: 'charcount' });
     const first = await fetch(`${baseUrl}/kl/trace/tool`, { method: 'POST', headers, body });
@@ -215,11 +215,11 @@ describe('계정 API — HTTP', () => {
   });
 
   /**
-   * 이 수는 첫 화면에 「이번 주에 많이 쓴 도구」로 **공개된다.** 로봇이 만든 순위를 사람에게
+   * 이 수는 첫 화면에 이번 주에 많이 쓴 도구로 **공개된다.** 로봇이 만든 순위를 사람에게
    * 보여 주면 자랑이 아니라 거짓말이다. 실제로 우리 점검이 도구를 한 바퀴 돌 때마다 전부
    * +1 이 되어, 도구 130개가 똑같이 48번씩 열린 것으로 찍혀 있었다 (TASK-KL-112).
    */
-  it('흔적 — 로봇이 연 것은 도구 사용 수에 안 들어간다', async () => {
+  it('흔적. 로봇이 연 것은 도구 사용 수에 안 들어간다', async () => {
     const body = JSON.stringify({ toolId: 'jsonfmt' });
     const bots = [
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/126.0 Safari/537.36',
@@ -242,7 +242,7 @@ describe('계정 API — HTTP', () => {
     expect(data.tools.some((t) => t.toolId === 'jsonfmt'), '로봇만 연 도구가 순위에 올라왔다').toBe(false);
   });
 
-  it('흔적 — 이상한 도구 이름은 400', async () => {
+  it('흔적. 이상한 도구 이름은 400', async () => {
     const res = await fetch(`${baseUrl}/kl/trace/tool`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -251,7 +251,7 @@ describe('계정 API — HTTP', () => {
     expect(res.status).toBe(400);
   });
 
-  it('글판 — 보는 건 로그인 없이, 쓰는 건 로그인해야', async () => {
+  it('글판. 보는 건 로그인 없이, 쓰는 건 로그인해야', async () => {
     const anon = await fetch(`${baseUrl}/kl/posts?board=request`);
     const anonBody = (await anon.json()) as { posts: unknown[]; signedIn: boolean; board: string };
     expect(anon.status).toBe(200);
@@ -278,7 +278,7 @@ describe('계정 API — HTTP', () => {
     expect(list.posts[0].votes).toBe(1);
   });
 
-  it('게시판 — 이야기는 제목이 있어야 올라간다', async () => {
+  it('게시판. 이야기는 제목이 있어야 올라간다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
 
@@ -301,7 +301,7 @@ describe('계정 API — HTTP', () => {
     expect(body.posts[0].votes).toBe(0);
   });
 
-  it('게시판 — 답글을 달면 그 글이 위로 올라온다', async () => {
+  it('게시판. 답글을 달면 그 글이 위로 올라온다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     await fetch(`${baseUrl}/kl/posts`, {
@@ -333,7 +333,7 @@ describe('계정 API — HTTP', () => {
     expect(listBody.posts[0].replies).toHaveLength(1);
   });
 
-  it('게시판 — 답글도 로그인해야 달린다', async () => {
+  it('게시판. 답글도 로그인해야 달린다', async () => {
     const { cookie } = signIn();
     const created = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
@@ -349,7 +349,7 @@ describe('계정 API — HTTP', () => {
     expect(denied.status).toBe(401);
   });
 
-  it('블로그 답글 — 빈 묶음은 200이고 익명 첫 답글이 커뮤니티 글 목록을 오염시키지 않는다', async () => {
+  it('블로그 답글. 빈 묶음은 200이고 익명 첫 답글이 커뮤니티 글 목록을 오염시키지 않는다', async () => {
     const empty = await fetch(`${baseUrl}/kl/blog/unity-optimization/comments`);
     expect(empty.status).toBe(200);
     expect((await empty.json()) as { replies: unknown[] }).toMatchObject({ replies: [] });
@@ -375,7 +375,7 @@ describe('계정 API — HTTP', () => {
     expect(community.posts).toHaveLength(0);
   });
 
-  it('블로그 답글 — 대댓글·좋아요·삭제가 게시판 답글과 같은 권한으로 돈다', async () => {
+  it('블로그 답글. 대댓글, 좋아요, 삭제가 게시판 답글과 같은 권한으로 돈다', async () => {
     const me = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: me.cookie };
     const top = await fetch(`${baseUrl}/kl/blog/a-post/comments`, {
@@ -412,7 +412,7 @@ describe('계정 API — HTTP', () => {
     expect(afterDelete.replies).toHaveLength(0);
   });
 
-  it('글판 — 빈 글·너무 긴 글은 안 들어간다', async () => {
+  it('글판. 빈 글, 너무 긴 글은 안 들어간다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     expect(
@@ -435,7 +435,7 @@ describe('계정 API — HTTP', () => {
     ).toBe(400);
   });
 
-  it('글판 — 하루 상한을 넘기면 왜 막혔는지 말해 준다', async () => {
+  it('글판. 하루 상한을 넘기면 왜 막혔는지 말해 준다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     for (let i = 0; i < 5; i += 1) {
@@ -454,7 +454,7 @@ describe('계정 API — HTTP', () => {
     expect(blocked.status).toBe(429);
     expect((await blocked.json()) as { error: string }).toMatchObject({ error: 'daily_limit' });
 
-    // 이야기는 따로 센다 — 요청 상한에 걸렸다고 글도 못 쓰면 안 된다.
+    // 이야기는 따로 센다. 요청 상한에 걸렸다고 글도 못 쓰면 안 된다.
     const talk = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers,
@@ -463,7 +463,7 @@ describe('계정 API — HTTP', () => {
     expect(talk.status).toBe(200);
   });
 
-  it('글판 — 투표는 로그인 필요하고, 두 번 누르면 취소된다', async () => {
+  it('글판. 투표는 로그인 필요하고, 두 번 누르면 취소된다', async () => {
     const { cookie } = signIn();
     const posted = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
@@ -484,7 +484,7 @@ describe('계정 API — HTTP', () => {
     ).toBe(404);
   });
 
-  it('글판 — 남의 글은 못 지운다', async () => {
+  it('글판. 남의 글은 못 지운다', async () => {
     const { cookie } = signIn();
     const posted = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
@@ -504,7 +504,7 @@ describe('계정 API — HTTP', () => {
     );
   });
 
-  it('글판 — 주인이 아니면 요청 상태를 못 바꾼다', async () => {
+  it('글판. 주인이 아니면 요청 상태를 못 바꾼다', async () => {
     const { cookie } = signIn();
     const posted = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
@@ -539,7 +539,7 @@ describe('계정 API — HTTP', () => {
     }
   });
 
-  it('데스크톱 앱이 되돌아올 자리(집 안 loopback)는 통과시킨다 — 앱 로그인이 여기 걸려 죽었다', async () => {
+  it('데스크톱 앱이 되돌아올 자리(집 안 loopback)는 통과시킨다. 앱 로그인이 여기 걸려 죽었다', async () => {
     const before = process.env.DISCORD_CLIENT_SECRET;
     delete process.env.DISCORD_CLIENT_SECRET;
     try {
@@ -574,7 +574,7 @@ describe('계정 API — HTTP', () => {
     }
   });
 
-  it('로그인 후 돌아갈 주소는 아는 곳만 — 아무 데로나 튕겨 보낼 수 없다', async () => {
+  it('로그인 후 돌아갈 주소는 아는 곳만. 아무 데로나 튕겨 보낼 수 없다', async () => {
     process.env.CLIENT_ID = 'test-client';
     process.env.DISCORD_CLIENT_SECRET = 'test-secret';
     try {
@@ -591,7 +591,7 @@ describe('계정 API — HTTP', () => {
   });
 });
 
-describe('글 하나 — 커뮤니티 상세', () => {
+describe('글 하나. 커뮤니티 상세', () => {
   it('주소로 바로 열리고, 로그인 없이 보이며, 답글이 함께 온다', async () => {
     const { cookie } = signIn();
     const created = await fetch(`${baseUrl}/kl/posts`, {
@@ -617,12 +617,12 @@ describe('글 하나 — 커뮤니티 상세', () => {
     expect(body.signedIn).toBe(false);
   });
 
-  it('없는 글은 404 — 「서버가 죽음」과 구별되어야 한다', async () => {
+  it('없는 글은 404. 서버가 죽음과 구별되어야 한다', async () => {
     expect((await fetch(`${baseUrl}/kl/posts/없는글`)).status).toBe(404);
   });
 });
 
-describe('판·좋아요·조회 — HTTP', () => {
+describe('판, 좋아요, 조회. HTTP', () => {
   it('판 목록과 각 판의 글 수를 준다', async () => {
     const res = await fetch(`${baseUrl}/kl/boards`);
     const body = (await res.json()) as { boards: Array<{ id: string; label: string; count: number }> };
@@ -630,7 +630,7 @@ describe('판·좋아요·조회 — HTTP', () => {
     expect(body.boards.every((b) => typeof b.count === 'number')).toBe(true);
   });
 
-  it('공지는 주인만 쓴다 — 화면에서 숨기는 것은 잠금이 아니다', async () => {
+  it('공지는 주인만 쓴다. 화면에서 숨기는 것은 잠금이 아니다', async () => {
     const { cookie } = signIn();
     const denied = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
@@ -664,7 +664,7 @@ describe('판·좋아요·조회 — HTTP', () => {
       body: JSON.stringify({ board: 'free', title: 'a', text: 'x' }),
     });
     const id = ((await created.json()) as { id: string }).id;
-    // 사람 브라우저 둘. 「probe-1」 같은 이름은 이제 사람으로 안 센다 (TASK-KL-113).
+    // 사람 브라우저 둘. probe-1 같은 이름은 이제 사람으로 안 센다 (TASK-KL-113).
     await fetch(`${baseUrl}/kl/posts/${id}`, {
       headers: {
         'User-Agent':
@@ -679,7 +679,7 @@ describe('판·좋아요·조회 — HTTP', () => {
   });
 
   /**
-   * 조회수는 글쓴이가 보는 숫자다. 검색봇이 훑고 간 것을 「사람이 읽었다」로 보여 주면
+   * 조회수는 글쓴이가 보는 숫자다. 검색봇이 훑고 간 것을 사람이 읽었다로 보여 주면
    * 아무도 안 읽었는데 읽혔다고 믿게 만든다 (TASK-KL-113).
    */
   it('로봇이 연 것은 조회수에 안 들어간다', async () => {
@@ -719,8 +719,8 @@ describe('판·좋아요·조회 — HTTP', () => {
   });
 });
 
-describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
-  /** 두 번째 사람 — 갤러리 주인과 글쓴이가 달라야 알림이 뜻을 갖는다. */
+describe('이슈식 갤러리. 닫기 권한과 알림', () => {
+  /** 두 번째 사람. 갤러리 주인과 글쓴이가 달라야 알림이 뜻을 갖는다. */
   function signInOther(): { cookie: string; handle: string } {
     const account = store.upsertFromDiscord({
       discordId: '99',
@@ -732,7 +732,7 @@ describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
     return { cookie: `kl_session=${encodeURIComponent(token)}`, handle: account.handle };
   }
 
-  it('갤러리를 만든 사람은 자기 갤러리 글을 닫을 수 있다 — 아무도 못 닫으면 열린 글만 쌓인다', async () => {
+  it('갤러리를 만든 사람은 자기 갤러리 글을 닫을 수 있다. 아무도 못 닫으면 열린 글만 쌓인다', async () => {
     const owner = signIn();
     const made = await fetch(`${baseUrl}/kl/boards`, {
       method: 'POST',
@@ -765,7 +765,7 @@ describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
     });
     expect(closed.status).toBe(200);
 
-    // 글쓴이에게 알림이 가 있어야 한다 — 안 가면 요청한 사람은 영영 모른다
+    // 글쓴이에게 알림이 가 있어야 한다. 안 가면 요청한 사람은 영영 모른다
     const bell = await fetch(`${baseUrl}/kl/notifications`, { headers: { Cookie: writer.cookie } });
     const inbox = (await bell.json()) as { items: Array<{ title: string; body: string | null }> };
     expect(inbox.items.length).toBeGreaterThan(0);
@@ -788,7 +788,7 @@ describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
     });
     const id = ((await posted.json()) as { id: string }).id;
 
-    // 자기 글이어도 상태는 못 바꾼다 — 상태는 갤러리를 맡은 사람의 판단이다
+    // 자기 글이어도 상태는 못 바꾼다. 상태는 갤러리를 맡은 사람의 판단이다
     const denied = await fetch(`${baseUrl}/kl/posts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Cookie: stranger.cookie },
@@ -798,7 +798,7 @@ describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
   });
 });
 
-describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => {
+describe('다른 길로 들어오기. 복구 코드, 기기 코드', () => {
   it('복구 코드는 만들 때 딱 한 번 보이고, 서버에는 원문이 안 남는다', async () => {
     const { cookie } = signIn();
     const made = await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } });
@@ -835,7 +835,7 @@ describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => 
     expect(((await left.json()) as { left: number }).left).toBe(7);
   });
 
-  it('대소문자·붙임표가 달라도 같은 코드로 본다 — 사람이 옮겨 적는 것이다', async () => {
+  it('대소문자, 붙임표가 달라도 같은 코드로 본다. 사람이 옮겨 적는 것이다', async () => {
     const { cookie } = signIn();
     const made = await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } });
     const { codes } = (await made.json()) as { codes: string[] };
@@ -893,7 +893,7 @@ describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => 
     expect(again.status).toBe(401);
   });
 
-  it('게임(WM)이 같은 코드로 「누구 거냐」를 묻고, 한 번 쓰면 사라진다', async () => {
+  it('게임(WM)이 같은 코드로 누구 거냐를 묻고, 한 번 쓰면 사라진다', async () => {
     const { cookie } = signIn();
     const made = await fetch(`${baseUrl}/kl/me/link-code`, { method: 'POST', headers: { Cookie: cookie } });
     const { code } = (await made.json()) as { code: string };
@@ -903,7 +903,7 @@ describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => 
     const who = (await asked.json()) as { handle: string };
     expect(who.handle).toBeTruthy();
 
-    // 세션은 안 만든다 — 브라우저 로그인이 아니라 게임이 묻는 것이다.
+    // 세션은 안 만든다. 브라우저 로그인이 아니라 게임이 묻는 것이다.
     expect(asked.headers.get('set-cookie')).toBeNull();
 
     // 한 번 쓰면 사라진다.
@@ -920,14 +920,14 @@ describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => 
   });
 });
 
-describe('계정 — 이름·내려받기·지우기', () => {
+describe('계정. 이름, 내려받기, 지우기', () => {
   function signInOther2(): { cookie: string; handle: string } {
     const account = store.upsertFromDiscord({ discordId: '77', username: 'nam', displayName: '남', avatarUrl: null });
     const { token } = store.createSession(account.id);
     return { cookie: `kl_session=${encodeURIComponent(token)}`, handle: account.handle };
   }
 
-  it('보이는 이름을 바꿀 수 있다 — 주소는 그대로 (남이 걸어 둔 링크가 깨지면 안 된다)', async () => {
+  it('보이는 이름을 바꿀 수 있다. 주소는 그대로 (남이 걸어 둔 링크가 깨지면 안 된다)', async () => {
     const { cookie, handle } = signIn();
     const res = await fetch(`${baseUrl}/kl/me`, {
       method: 'PATCH',
@@ -992,14 +992,14 @@ describe('계정 — 이름·내려받기·지우기', () => {
     expect(body.post.replies[0].text).toBe('남의 답글');
   });
 
-  it('로그인 안 하면 이 자리들은 전부 401 — 남의 것을 못 만진다', async () => {
+  it('로그인 안 하면 이 자리들은 전부 401. 남의 것을 못 만진다', async () => {
     expect((await fetch(`${baseUrl}/kl/me/export`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/kl/me/sessions`)).status).toBe(401);
     expect((await fetch(`${baseUrl}/kl/me`, { method: 'DELETE' })).status).toBe(401);
   });
 });
 
-describe('갤러리 만들기 — HTTP', () => {
+describe('갤러리 만들기. HTTP', () => {
   it('로그인해야 만든다', async () => {
     const res = await fetch(`${baseUrl}/kl/boards`, {
       method: 'POST',
@@ -1051,7 +1051,7 @@ describe('갤러리 만들기 — HTTP', () => {
     expect(again.status).toBe(409);
   });
 
-  it('없는 갤러리의 글 목록은 404 — 조용히 자유 갤러리를 보여 주지 않는다', async () => {
+  it('없는 갤러리의 글 목록은 404. 조용히 자유 갤러리를 보여 주지 않는다', async () => {
     expect((await fetch(`${baseUrl}/kl/posts?board=nope-nope`)).status).toBe(404);
   });
 
@@ -1080,8 +1080,8 @@ describe('갤러리 만들기 — HTTP', () => {
   });
 });
 
-describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
-  it('갤러리를 가리지 않고 찾는다 — 답글에 적힌 말도', async () => {
+describe('검색, 활동, 신고, 그림. HTTP', () => {
+  it('갤러리를 가리지 않고 찾는다. 답글에 적힌 말도', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     const created = await fetch(`${baseUrl}/kl/posts`, {
@@ -1109,7 +1109,7 @@ describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
     expect(body.posts).toHaveLength(0);
   });
 
-  it('사람마다 쓴 글·답글을 모아 준다', async () => {
+  it('사람마다 쓴 글, 답글을 모아 준다', async () => {
     const { cookie, handle } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     const created = await fetch(`${baseUrl}/kl/posts`, {
@@ -1132,7 +1132,7 @@ describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
     expect((await fetch(`${baseUrl}/kl/u/없는사람/activity`)).status).toBe(404);
   });
 
-  it('신고는 글을 안 지운다 — 주인 목록에만 올린다', async () => {
+  it('신고는 글을 안 지운다. 주인 목록에만 올린다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     const created = await fetch(`${baseUrl}/kl/posts`, {
@@ -1175,7 +1175,7 @@ describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
     }
   });
 
-  it('그림이 아닌 것은 안 받는다 — 확장자가 아니라 바이트로 본다', async () => {
+  it('그림이 아닌 것은 안 받는다. 확장자가 아니라 바이트로 본다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     const notImage = Buffer.from('<script>alert(1)</script>').toString('base64');
@@ -1214,11 +1214,11 @@ describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
 /**
  * 놀이 기록 (TASK-KL-148).
  *
- * 유닛 시험이 원장을 보고, 여기서는 **브라우저에서 실제로 되는가**를 본다 — 로그인 없이 못 적고,
+ * 유닛 시험이 원장을 보고, 여기서는 **브라우저에서 실제로 되는가**를 본다. 로그인 없이 못 적고,
  * 로봇이 순위판에 못 올라가고, 서버가 순위 방향을 쥐고 있는가.
  */
-describe('놀이 기록 API — HTTP', () => {
-  /** 사람 브라우저 표식. 이게 없으면 서버가 「알 수 없음」으로 보고 안 센다. */
+describe('놀이 기록 API. HTTP', () => {
+  /** 사람 브라우저 표식. 이게 없으면 서버가 알 수 없음으로 보고 안 센다. */
   const HUMAN = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36';
 
   async function play(cookie: string | null, body: unknown, ua = HUMAN): Promise<Response> {
@@ -1233,7 +1233,7 @@ describe('놀이 기록 API — HTTP', () => {
     expect(plays.board('reaction')).toHaveLength(0);
   });
 
-  it('한 판을 적으면 최고·순위·오늘이 함께 돌아온다', async () => {
+  it('한 판을 적으면 최고, 순위, 오늘이 함께 돌아온다', async () => {
     const { cookie, handle } = signIn();
     const res = await play(cookie, { game: 'reaction', score: 205 });
     expect(res.status).toBe(200);
@@ -1259,13 +1259,13 @@ describe('놀이 기록 API — HTTP', () => {
     expect(await res.json()).toMatchObject({ error: 'bad_score', unit: 'ms' });
   });
 
-  it('모르는 놀이는 400 — 아무 이름이나 받으면 원장이 쓰레기로 찬다', async () => {
+  it('모르는 놀이는 400. 아무 이름이나 받으면 원장이 쓰레기로 찬다', async () => {
     const { cookie } = signIn();
     expect((await play(cookie, { game: '없는놀이', score: 200 })).status).toBe(400);
     expect((await fetch(`${baseUrl}/kl/play/board?game=없는놀이`)).status).toBe(400);
   });
 
-  it('순위 방향은 서버가 쥔다 — 반응속도 순위판에 느린 사람이 위로 오지 않는다', async () => {
+  it('순위 방향은 서버가 쥔다. 반응속도 순위판에 느린 사람이 위로 오지 않는다', async () => {
     const fast = signIn();
     plays.record('reaction', fast.handle, 150);
     plays.record('reaction', 'slowpoke', 800);
@@ -1286,7 +1286,7 @@ describe('놀이 기록 API — HTTP', () => {
     expect(body.entries).toEqual([]);
   });
 
-  it('겨룰 수 있는 놀이 목록은 아무나 본다 — 아무도 안 논 놀이는 0 으로 정직하게 나온다', async () => {
+  it('겨룰 수 있는 놀이 목록은 아무나 본다. 아무도 안 논 놀이는 0 으로 정직하게 나온다', async () => {
     const res = await fetch(`${baseUrl}/kl/play/games`);
     const body = (await res.json()) as any;
     expect(body.games.map((g: any) => g.game)).toContain('reaction');
@@ -1302,7 +1302,7 @@ describe('놀이 기록 API — HTTP', () => {
     expect(body.records[0]).toMatchObject({ game: 'speed', best: 12, better: 'high' });
   });
 
-  it('표가 갈리는 놀이는 표 없이 못 적는다 — 섞이면 쉬운 표를 고른 사람이 1등이 된다', async () => {
+  it('표가 갈리는 놀이는 표 없이 못 적는다. 섞이면 쉬운 표를 고른 사람이 1등이 된다', async () => {
     const { cookie } = signIn();
     const bad = await play(cookie, { game: 'higher', score: 5 });
     expect(bad.status).toBe(400);
@@ -1323,10 +1323,10 @@ describe('놀이 기록 API — HTTP', () => {
 });
 
 /**
- * 사람이 만든 표 (TASK-KL-150) — 브라우저에서 실제로 되는가.
+ * 사람이 만든 표 (TASK-KL-150). 브라우저에서 실제로 되는가.
  * 여기서 보는 것: 로그인 없이 못 올리고, 남의 표를 못 고치고, 이유가 답에 실려 오는가.
  */
-describe('표 API — HTTP', () => {
+describe('표 API. HTTP', () => {
   const HUMAN = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36';
 
   const body = (extra: Record<string, unknown> = {}): unknown => ({
@@ -1418,11 +1418,11 @@ describe('표 API — HTTP', () => {
 /**
  * 계정 도메인 8사이클 배선 (TASK-KL-152).
  *
- * 저장소 시험은 함수가 맞는지만 본다. 여기서 보는 것은 **브라우저가 실제로 받는 답**이다 —
+ * 저장소 시험은 함수가 맞는지만 본다. 여기서 보는 것은 **브라우저가 실제로 받는 답**이다 . 
  * 가렸다고 믿는 것이 정말 안 나가는지는 이 층에서만 확인된다.
  */
 describe('계정 도메인 (KL-152)', () => {
-  it('가린 프로필은 남에게 403 · 본인에게는 보인다', async () => {
+  it('가린 프로필은 남에게 403, 본인에게는 보인다', async () => {
     const me = signIn();
     const account = store.byHandle(me.handle)!;
     store.setVisibility(account.id, { profile: false });
@@ -1494,10 +1494,10 @@ describe('계정 도메인 (KL-152)', () => {
     expect(self.status).toBe(400);
   });
 
-  it('로그인 목록에 토큰이 안 나간다 · 하나만 끊을 수 있다', async () => {
+  it('로그인 목록에 토큰이 안 나간다, 하나만 끊을 수 있다', async () => {
     const me = signIn();
     const account = store.byHandle(me.handle)!;
-    store.createSession(account.id, 'Android · Firefox');
+    store.createSession(account.id, 'Android, Firefox');
 
     const body = await (await fetch(`${baseUrl}/kl/me/sessions`, { headers: { cookie: me.cookie } })).json();
     expect(body.sessions).toHaveLength(2);

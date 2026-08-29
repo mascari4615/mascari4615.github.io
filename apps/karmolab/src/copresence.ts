@@ -1,18 +1,18 @@
 /**
- * 같이 쓰기 — 남의 커서가 내 화면에 보인다 (TASK-KL-180).
+ * 같이 쓰기. 남의 커서가 내 화면에 보인다 (TASK-KL-180).
  *
- * 이 사이트는 「지금 N명」이라는 숫자까지 와 있었다. 숫자는 사람이 있다는 **소문**이고,
+ * 이 사이트는 지금 N명이라는 숫자까지 와 있었다. 숫자는 사람이 있다는 **소문**이고,
  * 움직이는 커서는 **증거**다. 도구든 게임이든 화면을 옮기면 그 화면의 방으로 따라 들어간다.
  *
  * 규율:
  *  ① **아무것도 저장하지 않는다.** 좌표는 비율(0~1)로 보내고 서버는 흘려보내기만 한다.
- *  ② 내 커서는 **안 그린다** — 브라우저가 이미 그리고 있다. 두 개로 보이면 이상하다.
+ *  ② 내 커서는 **안 그린다**. 브라우저가 이미 그리고 있다. 두 개로 보이면 이상하다.
  *  ③ 끄면 내 좌표를 안 보내고 남의 커서도 안 그린다. 켜고 끄는 것은 이 브라우저에만 남는다.
- *     **관은 안 끈다** — 같이 보던 지구본이나 같이 쓰던 글까지 멈출 이유가 없다
+ *     **관은 안 끈다**. 같이 보던 지구본이나 같이 쓰던 글까지 멈출 이유가 없다
  *     (change.copresence-hardening 1단계).
- *  ④ 창이 뒤에 있으면 안 보낸다 — 안 보고 있는 화면의 커서는 소식이 아니라 소음이다.
+ *  ④ 창이 뒤에 있으면 안 보낸다. 안 보고 있는 화면의 커서는 소식이 아니라 소음이다.
  *
- * 방·연결·탭 대표 뽑기는 여기 없다. 전부 `room-channel.ts` 가 한다.
+ * 방, 연결, 탭 대표 뽑기는 여기 없다. 전부 `room-channel.ts` 가 한다.
  */
 import {
     onRoomEvent,
@@ -24,7 +24,7 @@ import {
 } from './room-channel';
 import { shareField } from './cotext-share';
 
-/** 켜짐/꺼짐. 기본은 켜짐 — 「사람이 있다」가 이 기능의 전부라 꺼 두면 없는 것과 같다. */
+/** 켜짐/꺼짐. 기본은 켜짐. 사람이 있다가 이 기능의 전부라 꺼 두면 없는 것과 같다. */
 const PREF_KEY = 'karmolab_copresence';
 
 let layer: HTMLElement | null = null;
@@ -85,8 +85,8 @@ function ensureLayer(): HTMLElement {
     layer.className = 'kl-cursors';
     /* ★ **화면낭독기에는 안 보이게 한다** (2026-08-17, axe 로 재서 잡았다). 이 층은 남의 마우스가
        어디 있는지 **눈으로** 보여 주는 장식이다. 접근성 나무에 남겨 두면 두 가지가 나쁘다:
-       ① 이름표가 랜드마크 밖에 떠 있어 「모든 내용은 랜드마크 안에」 규칙을 어긴다(실측 5건, 세 장 전부)
-       ② 커서가 움직일 때마다 낭독기가 이름을 읽는다 — 도움이 아니라 소음이다.
+       ① 이름표가 랜드마크 밖에 떠 있어 모든 내용은 랜드마크 안에 규칙을 어긴다(실측 5건, 세 장 전부)
+       ② 커서가 움직일 때마다 낭독기가 이름을 읽는다. 도움이 아니라 소음이다.
        누가 와 있는지는 사람 목록이 따로 말한다. */
     layer.setAttribute('aria-hidden', 'true');
     document.body.appendChild(layer);
@@ -94,7 +94,7 @@ function ensureLayer(): HTMLElement {
         const style = document.createElement('style');
         style.id = 'kl-cursor-style';
         style.textContent = [
-            /* 남의 커서는 **위에 떠 있되 아무것도 막지 않는다** — 클릭이 이 층에 걸리면
+            /* 남의 커서는 **위에 떠 있되 아무것도 막지 않는다**. 클릭이 이 층에 걸리면
                같이 쓰는 것이 아니라 방해하는 것이 된다. */
             '.kl-cursors { position:fixed; inset:0; pointer-events:none; z-index:70; overflow:hidden; }',
             '.kl-cursor { position:absolute; top:0; left:0; will-change:transform;',
@@ -102,8 +102,8 @@ function ensureLayer(): HTMLElement {
             '.kl-cursor[data-active="0"], .kl-cursor[data-offscreen="1"] { opacity:0; }',
             '.kl-cursor svg { filter:drop-shadow(0 1px 2px rgba(0,0,0,.45)); flex:0 0 auto; }',
             '.kl-cursor-name { transform:translateY(14px); padding:2px 7px; border-radius:999px;',
-            /* 12px 아래로 내리지 않는다 — 폰에서 읽히는 최소선이고, 관문 검사가 그 선을 지킨다
-               (실측 2026-08-12: 11px 이라 첫 화면·도구 목록이 빨갰다). */
+            /* 12px 아래로 내리지 않는다. 폰에서 읽히는 최소선이고, 관문 검사가 그 선을 지킨다
+               (실측 2026-08-12: 11px 이라 첫 화면, 도구 목록이 빨갰다). */
             '  font-size:12px; line-height:1.5; white-space:nowrap; color:#0f0f12; font-weight:600;',
             '  box-shadow:0 1px 3px rgba(0,0,0,.35); }',
         ].join('\n');
@@ -136,7 +136,7 @@ function drawMember(member: RoomMember): void {
 
 function moveMember(data: { id: string; x: number; y: number; dx?: number | null; dy?: number | null; active: boolean }): void {
     const node = cursors.get(data.id);
-    if (!node) return; // 아직 못 본 사람의 움직임은 버린다 — join 이 오면 그때 그린다.
+    if (!node) return; // 아직 못 본 사람의 움직임은 버린다. join 이 오면 그때 그린다.
     node.dataset.active = data.active ? '1' : '0';
     const spot = { x: data.x, y: data.y, dx: data.dx ?? null, dy: data.dy ?? null };
     spots.set(data.id, spot);
@@ -194,12 +194,12 @@ function watchPointer(): void {
         });
     };
     window.addEventListener('pointermove', (event) => note(event.clientX, event.clientY, true), { passive: true });
-    // 손가락도 커서다 — 폰에서 같이 쓰는 사람이 안 보이면 그건 반쪽이다.
+    // 손가락도 커서다. 폰에서 같이 쓰는 사람이 안 보이면 그건 반쪽이다.
     window.addEventListener('touchmove', (event) => {
         const touch = event.touches[0];
         if (touch) note(touch.clientX, touch.clientY, true);
     }, { passive: true });
-    // 직전에 보내 버려 보낼 것이 비어 있어도 「나갔다」는 나가야 한다 — 안 그러면 남의 화면에
+    // 직전에 보내 버려 보낼 것이 비어 있어도 나갔다는 나가야 한다. 안 그러면 남의 화면에
     // 30초 동안 멈춘 커서가 남았다(2026-08-29 정독).
     window.addEventListener('pointerleave', () => sendInactive());
     document.addEventListener('visibilitychange', () => {
@@ -220,7 +220,7 @@ declare global {
             isOn: typeof isCopresenceOn;
             set: typeof setCopresence;
             share: typeof shareField;
-            /** 뜻을 서버가 안 정하는 관 — 위젯이 자기 규칙으로 쓴다 (TASK-KL-206) */
+            /** 뜻을 서버가 안 정하는 관. 위젯이 자기 규칙으로 쓴다 (TASK-KL-206) */
             sendOp: typeof sendRoomOp;
             onOp: typeof onRoomOp;
         };

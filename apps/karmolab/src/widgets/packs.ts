@@ -1,10 +1,10 @@
 /**
- * 내 표 만들기 (TASK-KL-089) — 놀이의 재료를 사람이 만드는 자리.
+ * 내 표 만들기 (TASK-KL-089). 놀이의 재료를 사람이 만드는 자리.
  *
  * 만드는 길은 하나다: **붙여넣기**. 스프레드시트에서 긁어 오면 그대로 표가 된다.
  * 칸을 하나하나 만드는 화면을 붙일 수도 있었지만, 그건 사람이 이미 가진 표를 다시 치게 한다.
  *
- * 여기서 만든 표는 놀이들이 그대로 먹는다(스무고개 · 높은 쪽 고르기 …) — 표의 모양이
+ * 여기서 만든 표는 놀이들이 그대로 먹는다(스무고개, 높은 쪽 고르기 ...). 표의 모양이
  * 우리 표와 같기 때문이다(`pack-store`).
  */
 import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type Pack } from './pack-store';
@@ -25,15 +25,15 @@ import { appQuery } from '../lib/site-base';
   const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-  /* 보기 표는 **쓸 때 정한다** — 모듈이 뜨는 순간에 굳으면 한국어 표가 그대로 붙는다.
-     칸 이름·값이 다 그 언어여야 「내 표를 이렇게 붙이면 되는구나」가 읽힌다. */
+  /* 보기 표는 **쓸 때 정한다**. 모듈이 뜨는 순간에 굳으면 한국어 표가 그대로 붙는다.
+     칸 이름, 값이 다 그 언어여야 내 표를 이렇게 붙이면 되는구나가 읽힌다. */
   const sample = (): string => t('packs.sample');
 
   Toolbox.register({
     id: 'packs',
     title: t('widgets.packs.title', undefined, "내 표 만들기"),
     category: 'tool',
-    desc: t('widgets-desc.packs.desc', undefined, "놀이에 쓸 표를 직접 만듭니다 — 붙여넣기 한 판이면 됩니다"),
+    desc: t('widgets-desc.packs.desc', undefined, "놀이에 쓸 표를 직접 만듭니다. 붙여넣기 한 판이면 됩니다"),
     layout: 'wide',
     noHero: true,
     icon:
@@ -91,8 +91,8 @@ import { appQuery } from '../lib/site-base';
                   `<div class="pk-item" data-id="${esc(p.id)}">` +
                   `<span class="pk-emoji">${esc(p.emoji)}</span>` +
                   `<div class="pk-meta"><strong>${esc(p.title)}</strong>` +
-                  `<span>${t('packs.packLine', { n: p.items.length, fields: p.fields.map((f) => esc(f.label)).join('·') })}` +
-                  (p.sharedId ? ` · <b>${esc(t('packs.t03'))}</b>${p.sharedBy ? ` (${esc(p.sharedBy)})` : ''}` : '') +
+                  `<span>${t('packs.packLine', { n: p.items.length, fields: p.fields.map((f) => esc(f.label)).join(', ') })}` +
+                  (p.sharedId ? `, <b>${esc(t('packs.t03'))}</b>${p.sharedBy ? ` (${esc(p.sharedBy)})` : ''}` : '') +
                   `</span></div>` +
                   `<div class="pk-acts">` +
                   `<button type="button" class="btn btn-ghost" data-up="1">${p.sharedId ? t('packs.t19') : t('packs.t20')}</button>` +
@@ -139,7 +139,7 @@ import { appQuery } from '../lib/site-base';
               void (p.sharedId ? updateShared(p.sharedId, p) : uploadPack(p)).then((res) => {
                 btn.removeAttribute('disabled');
                 if (res.error === 'not_signed_in') {
-                  /* 「로그인하세요」로 끝내면 대부분 거기서 나간다 — 붙여넣고 다듬어 만든 표를
+                  /* 로그인하세요로 끝내면 대부분 거기서 나간다. 붙여넣고 다듬어 만든 표를
                      두고 왕복을 다녀오라는 뜻이기 때문이다. 올리려던 표를 적어 두고 보낸다:
                      돌아오면 저절로 올라간다 (TASK-KL-151 ⑦). */
                   queueUpload(p.id);
@@ -158,11 +158,11 @@ import { appQuery } from '../lib/site-base';
               return;
             }
             if (btn.dataset.go) {
-              // 놀이가 어느 표로 놀지는 이 한 줄로 정한다 — 놀이 쪽은 이것만 읽는다.
+              // 놀이가 어느 표로 놀지는 이 한 줄로 정한다. 놀이 쪽은 이것만 읽는다.
               try {
                 localStorage.setItem('karmolab_pack_pick', p.id);
               } catch {
-                /* 사생활 모드 — 그래도 기본 표로는 놀 수 있다 */
+                /* 사생활 모드. 그래도 기본 표로는 놀 수 있다 */
               }
               Toolbox.switchPage(btn.dataset.go);
             }
@@ -214,7 +214,7 @@ import { appQuery } from '../lib/site-base';
             $('pkMsg').textContent = t('packs.msg.imported', { title: p.title });
           });
 
-          /* 주소로 받은 표는 **열자마자** 들어와야 한다 — 「가져오기를 누르세요」는 한 단계 더다. */
+          /* 주소로 받은 표는 **열자마자** 들어와야 한다. 가져오기를 누르세요는 한 단계 더다. */
           const got = new URLSearchParams(location.search).get('pack');
           if (got) {
             const p = codeToPack(got);
@@ -223,8 +223,8 @@ import { appQuery } from '../lib/site-base';
           }
 
           /* 로그인하고 돌아왔으면 적어 둔 표를 올린다 (TASK-KL-151 ⑦).
-             로그인 상태가 늦게 도착하므로 상태가 바뀔 때마다 본다 — 화면을 그릴 때 한 번만
-             보면 「로그인 직후 첫 화면」에서는 아직 로그인 전으로 보인다. */
+             로그인 상태가 늦게 도착하므로 상태가 바뀔 때마다 본다. 화면을 그릴 때 한 번만
+             보면 로그인 직후 첫 화면에서는 아직 로그인 전으로 보인다. */
           const stopWatch = window.KarmoAccount?.subscribe((st: { account?: unknown } | null) => {
             if (!st || !st.account) return;
             void flushQueuedUploads().then((done) => {
@@ -248,11 +248,11 @@ import { appQuery } from '../lib/site-base';
         /**
          * 남들이 올린 표 (TASK-KL-150).
          *
-         * 왜 별도 탭인가: 「내 표」는 만드는 자리라 입력칸이 화면을 먹는다. 둘러보기는 **고르는**
-         * 자리다 — 목록이 주인공이어야 한다.
+         * 왜 별도 탭인가: 내 표는 만드는 자리라 입력칸이 화면을 먹는다. 둘러보기는 **고르는**
+         * 자리다. 목록이 주인공이어야 한다.
          *
-         * 서버에 못 닿으면 「지금 못 불러왔다」 한 줄만 남긴다. 빈 목록을 그리면 「아무도 안 만든
-         * 곳」으로 읽히는데, 그건 사실이 아니다.
+         * 서버에 못 닿으면 지금 못 불러왔다 한 줄만 남긴다. 빈 목록을 그리면 아무도 안 만든
+         * 곳으로 읽히는데, 그건 사실이 아니다.
          */
         build: function (container: HTMLElement): void {
           void loadNamespace('packs').then(function () {
@@ -280,7 +280,7 @@ import { appQuery } from '../lib/site-base';
                   `<span class="pk-emoji">${esc(r.emoji)}</span>` +
                   `<div class="pk-meta"><strong>${esc(r.title)}</strong>` +
                   `<span>${t('packs.sharedLine', { n: r.items, who: esc(r.ownerHandle) })}` +
-                  (r.opens ? ' · ' + t('packs.opens', { n: r.opens }) : '') +
+                  (r.opens ? ', ' + t('packs.opens', { n: r.opens }) : '') +
                   (r.forkOf ? t('packs.t32') : '') +
                   `</span></div>` +
                   `<div class="pk-acts">` +
@@ -296,7 +296,7 @@ import { appQuery } from '../lib/site-base';
             void listShared({ sort, q, limit: 30 }).then((got) => {
               if (!container.isConnected) return;
               if (!got) {
-                // 서버에 못 닿았다 — 없는 것과 다르다. 그 둘을 같은 화면으로 말하지 않는다.
+                // 서버에 못 닿았다. 없는 것과 다르다. 그 둘을 같은 화면으로 말하지 않는다.
                 $('pkBrowseMsg').textContent = t('packs.t33');
                 $('pkShared').innerHTML = '';
                 return;
@@ -308,7 +308,7 @@ import { appQuery } from '../lib/site-base';
                 $('pkShared').innerHTML = '';
                 return;
               }
-              $('pkBrowseMsg').textContent = `표 ${got.total.packs}개 · 만든 사람 ${got.total.makers}명`;
+              $('pkBrowseMsg').textContent = `표 ${got.total.packs}개, 만든 사람 ${got.total.makers}명`;
               paint(got.packs);
             });
           }
@@ -321,7 +321,7 @@ import { appQuery } from '../lib/site-base';
             void adoptShared(box.dataset.shared ?? '').then((pack) => {
               btn.removeAttribute('disabled');
               $('pkBrowseMsg').textContent = pack
-                ? `「${pack.title}」 를 이어받았습니다 — 「내 표」에서 놀이로 보내세요.`
+                ? `${pack.title} 를 이어받았습니다. 내 표에서 놀이로 보내세요.`
                 : t('packs.t36');
             });
           });

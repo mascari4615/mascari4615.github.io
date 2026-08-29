@@ -1,8 +1,8 @@
 /**
- * 플래너 — 구글이 주는 모양 ↔ 달력이 쓰는 모양 (TASK-KL-321).
+ * 플래너. 구글이 주는 모양 ↔ 달력이 쓰는 모양 (TASK-KL-321).
  *
  * 여기서 크게 지키는 것은 **종일 일정의 끝나는 날**이다. 구글도 FullCalendar 도 끝을
- * 「다음 날」로 쓰는데, 옛 React 판은 달력 라이브러리가 달라서 받을 때 하루 빼고 보낼 때
+ * 다음 날로 쓰는데, 옛 React 판은 달력 라이브러리가 달라서 받을 때 하루 빼고 보낼 때
  * 하루 더하고 있었다. 옮기면서 그 맞바꿈을 없앴으니 **한 칸도 안 밀리는지** 여기서 못 박는다.
  *
  * 사용: node scripts/test-planner-core.mjs   (npm run test:planner)
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load(rel, tag) {
   const stamp = `${tag}-${Date.now()}`;
@@ -37,8 +37,8 @@ async function load(rel, tag) {
   return mod;
 }
 
-/* 이 브라우저 저장소는 localStorage 를 쓴다 — 노드에는 없으니 가장 작은 것으로 대신 둔다.
-   여기서 보는 것은 「어디에 쓰이나·어느 칸인가」지 브라우저 구현이 아니다. */
+/* 이 브라우저 저장소는 localStorage 를 쓴다. 노드에는 없으니 가장 작은 것으로 대신 둔다.
+   여기서 보는 것은 어디에 쓰이나, 어느 칸인가지 브라우저 구현이 아니다. */
 globalThis.localStorage = (() => {
   const box = new Map();
   return {
@@ -61,7 +61,7 @@ const CAL = { id: 'me@example.com', summary: '내 캘린더', backgroundColor: '
   );
   eq(ev.allDay, true, '종일로 읽는다');
   eq(ev.start, '2026-08-16', '시작 그대로');
-  eq(ev.end, '2026-08-17', '끝도 그대로 — 하루 빼지 않는다');
+  eq(ev.end, '2026-08-17', '끝도 그대로. 하루 빼지 않는다');
   eq(ev.title, '휴가', '제목');
   eq(ev.backgroundColor, '#123456', '캘린더 색');
   eq(ev.extendedProps.googleId, 'e1', '구글 쪽 id 를 따로 들고 있다');
@@ -106,9 +106,9 @@ const CAL = { id: 'me@example.com', summary: '내 캘린더', backgroundColor: '
   eq(P.eventColor({ id: 'x', colorId: '999', start: {}, end: {} }, '#000'), '#000', '모르는 번호는 캘린더 색');
   eq(P.calendarColor('abc', '#fff'), '#fff', '캘린더가 준 색 우선');
   eq(P.calendarColor('abc'), P.calendarColor('abc'), '같은 id 는 늘 같은 색');
-  /* 색은 8개뿐이라 두 id 가 같은 색일 수 있다 — 「다르다」가 아니라 **골고루 퍼지나**를 본다 */
+  /* 색은 8개뿐이라 두 id 가 같은 색일 수 있다. 다르다가 아니라 **골고루 퍼지나**를 본다 */
   const spread = new Set(Array.from({ length: 40 }, (_, i) => P.calendarColor(`cal-${i}@x.com`)));
-  check(spread.size >= 5, `40개 캘린더가 색 ${spread.size}종 — 한두 색으로 몰리면 구분이 안 된다`);
+  check(spread.size >= 5, `40개 캘린더가 색 ${spread.size}종. 한두 색으로 몰리면 구분이 안 된다`);
 }
 
 /* ── 보낼 때: 종일 ── */
@@ -120,7 +120,7 @@ const CAL = { id: 'me@example.com', summary: '내 캘린더', backgroundColor: '
     allDay: true
   });
   eq(body.start.date, '2026-08-16', '시작 날짜');
-  eq(body.end.date, '2026-08-17', '끝 날짜 그대로 — 하루 더하지 않는다');
+  eq(body.end.date, '2026-08-17', '끝 날짜 그대로. 하루 더하지 않는다');
   eq(body.summary, '휴가', '제목');
   eq(body.start.dateTime, undefined, '종일에는 시각을 안 보낸다');
 }
@@ -151,7 +151,7 @@ const CAL = { id: 'me@example.com', summary: '내 캘린더', backgroundColor: '
     allDay: true
   });
   eq(body.start.date, '2026-09-28', '왕복해도 시작 그대로');
-  eq(body.end.date, '2026-10-02', '왕복해도 끝 그대로 — 한 칸도 안 민다');
+  eq(body.end.date, '2026-10-02', '왕복해도 끝 그대로. 한 칸도 안 민다');
 }
 
 /* ── 로컬 날짜 문자열 ── */
@@ -209,14 +209,14 @@ const CAL = { id: 'me@example.com', summary: '내 캘린더', backgroundColor: '
   eq(L.listEvents(NAME).length, 0, '처음엔 비어 있다');
 
   const id = L.createEvent({ title: '일기 쓰기', start: '2026-08-16', end: '2026-08-17', allDay: true });
-  check(L.isLocal(id), '여기서 만든 id 는 local__ 로 시작한다 — 이 앞머리가 어디에 쓸지 정한다');
+  check(L.isLocal(id), '여기서 만든 id 는 local__ 로 시작한다. 이 앞머리가 어디에 쓸지 정한다');
   check(!L.isLocal('me@example.com__abc'), '구글 것은 local 이 아니다');
 
   const list = L.listEvents(NAME);
   eq(list.length, 1, '만든 것이 목록에 있다');
   eq(list[0].title, '일기 쓰기', '제목');
   eq(list[0].allDay, true, '종일');
-  eq(list[0].end, '2026-08-17', '끝은 다음 날 — 구글 것과 같은 규약');
+  eq(list[0].end, '2026-08-17', '끝은 다음 날. 구글 것과 같은 규약');
   eq(list[0].extendedProps.calendarId, 'local', '이 브라우저 캘린더로 표시된다');
   check(!!list[0].backgroundColor, '색이 붙는다');
 
@@ -234,14 +234,14 @@ const CAL = { id: 'me@example.com', summary: '내 캘린더', backgroundColor: '
   localStorage.clear();
   const id = L.createTask('장 보기');
   let cols = L.listTasks();
-  eq(cols.todo.length, 1, '새 할 일은 「해야 할 일」 칸');
+  eq(cols.todo.length, 1, '새 할 일은 해야 할 일 칸');
   eq(cols.todo[0].status, 'needsAction', '아직 안 끝난 것');
 
   L.moveTask(id, 'done');
   cols = L.listTasks();
   eq(cols.todo.length, 0, '옮기면 원래 칸에서 빠진다');
   eq(cols.done.length, 1, '완료 칸으로');
-  eq(cols.done[0].status, 'completed', '완료로 보인다 — 구글 것과 같은 모양');
+  eq(cols.done[0].status, 'completed', '완료로 보인다. 구글 것과 같은 모양');
 
   L.deleteTask(id);
   eq(L.listTasks().done.length, 0, '지워진다');

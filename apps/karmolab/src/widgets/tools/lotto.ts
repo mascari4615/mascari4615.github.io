@@ -1,20 +1,20 @@
 /**
- * 로또 · 연금복권 번호 뽑기 (TASK-KL-088)
+ * 로또, 연금복권 번호 뽑기 (TASK-KL-088)
  *
- * 두 가지를 한 화면에서 뽑는다 — 탭이 아니라 **모드 단추**다. 이 도구는 「뽑기」 묶음의
+ * 두 가지를 한 화면에서 뽑는다. 탭이 아니라 **모드 단추**다. 이 도구는 뽑기 묶음의
  * 한 탭으로 들어가 있어서(`draw.ts` → `Toolbox.mountTool`), 여기서 탭을 늘리면 묶음 쪽엔
  * 첫 탭만 그려진다. 그래서 모드는 화면 안에서 가른다.
- *   - 로또 6/45 : 1~45 중 6개 + 보너스. 제외수·고정수·홀짝 조건.
+ *   - 로또 6/45 : 1~45 중 6개 + 보너스. 제외수, 고정수, 홀짝 조건.
  *   - 연금복권720+ : 1~5조 + 6자리. 끝자리부터 맞은 개수가 등위다.
  *
  * 세 가지를 더 붙였다:
- *   ① **연출** — 공이 위에서 떨어져 눌렸다 펴진다(squash&stretch), 연금은 자릿수가 순서대로
- *      멎는다. 마지막 공과 보너스에만 파티클·흔들림을 준다 (전부 화려하면 전부 평범해진다).
- *      `prefers-reduced-motion` 이면 연출은 통째로 빠지고 **번호는 그대로 나온다** —
+ *   ① **연출**. 공이 위에서 떨어져 눌렸다 펴진다(squash&stretch), 연금은 자릿수가 순서대로
+ *      멎는다. 마지막 공과 보너스에만 파티클, 흔들림을 준다 (전부 화려하면 전부 평범해진다).
+ *      `prefers-reduced-motion` 이면 연출은 통째로 빠지고 **번호는 그대로 나온다** . 
  *      연출은 결과를 만들지 않는다(Swink 의 polish 원칙). 눌러서 건너뛰기도 된다.
- *   ② **당첨 확률** — 조합수에서 직접 센 값(`shared/lotto-odds.ts`). 뽑은 판 수만큼 환산해
- *      「5게임이면 1/1,629,012」까지 보여 준다.
- *   ③ **최신 회차 자동 채점** — 동행복권이 CORS 를 열어 둬서 프록시 없이 바로 받는다
+ *   ② **당첨 확률**. 조합수에서 직접 센 값(`shared/lotto-odds.ts`). 뽑은 판 수만큼 환산해
+ *      5게임이면 1/1,629,012까지 보여 준다.
+ *   ③ **최신 회차 자동 채점**. 동행복권이 CORS 를 열어 둬서 프록시 없이 바로 받는다
  *      (`shared/dhlottery.ts`). 못 받아도 뽑기는 그대로 된다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -36,7 +36,7 @@ import {
 
   type Mode = '645' | 'pension';
 
-  /** 동행복권 실제 공 색 — 이 다섯 구간이 「진짜처럼」 보이게 하는 거의 전부다. */
+  /** 동행복권 실제 공 색. 이 다섯 구간이 진짜처럼 보이게 하는 거의 전부다. */
   const BALL_COLOR = (n: number): string => {
     if (n <= 10) return '#fbc400';
     if (n <= 20) return '#69c8f2';
@@ -45,7 +45,7 @@ import {
     return '#b0d840';
   };
 
-  /** 연출 예산. 판을 20 개 뽑아도 이 안에서 끝난다 — 반복해 쓰는 도구라 연출이 곧 대기시간이다. */
+  /** 연출 예산. 판을 20 개 뽑아도 이 안에서 끝난다. 반복해 쓰는 도구라 연출이 곧 대기시간이다. */
   const REVEAL_BUDGET = 2000;
 
   /* ── 뽑기 ─────────────────────────────────────────── */
@@ -61,7 +61,7 @@ import {
   }
 
   /**
-   * 치우침 없는 난수. `Math.random() * n` 은 큰 범위에서 미세하게 기운다 —
+   * 치우침 없는 난수. `Math.random() * n` 은 큰 범위에서 미세하게 기운다 . 
    * 500 만 분의 1 을 말하는 도구가 그 편은 안 드는 게 맞다. 못 쓰면 조용히 예전 방식으로 돈다.
    */
   function rnd(n: number): number {
@@ -223,14 +223,14 @@ import {
           const result = $<HTMLElement>('#ltResult');
           const status = $<HTMLElement>('#ltStatus');
           const checkBox = $<HTMLElement>('#ltCheck');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
           let mode: Mode = (Toolbox.getPref?.('lotto.mode', '645') as Mode) || '645';
           const systemCalm = matchMedia('(prefers-reduced-motion: reduce)').matches;
           let motionOn = !systemCalm && Toolbox.getPref?.('lotto.motion', 'on') !== 'off';
 
-          /* 뽑을 때마다 소리 시각표를 새로 깐다 — 남은 것은 반드시 거둔다(도구를 닫아도). */
+          /* 뽑을 때마다 소리 시각표를 새로 깐다. 남은 것은 반드시 거둔다(도구를 닫아도). */
           const timers = new Set<number>();
           const clearTimers = (): void => {
             timers.forEach((id) => clearTimeout(id));
@@ -292,7 +292,7 @@ import {
 
           /* ── 연출 ── */
 
-          /** 눌러서 건너뛰기 — 돌고 있는 것을 전부 끝으로 보낸다 (Web Animations, 라이브러리 0). */
+          /** 눌러서 건너뛰기. 돌고 있는 것을 전부 끝으로 보낸다 (Web Animations, 라이브러리 0). */
           function skipReveal(): void {
             clearTimers();
             result.querySelectorAll<HTMLElement>('*').forEach((el) => {
@@ -375,13 +375,13 @@ import {
 
             result.innerHTML = rows.join('');
             if (!motionOn) {
-              /* 연출을 껐어도 릴은 제 숫자를 들어야 한다 — 연출은 결과를 만들지 않는다. */
+              /* 연출을 껐어도 릴은 제 숫자를 들어야 한다. 연출은 결과를 만들지 않는다. */
               result.classList.add('is-run');
               return;
             }
 
             result.classList.add('is-revealing');
-            /* 릴은 「지금 값」에서 「목표」로 미끄러져야 한다 — 처음부터 목표를 들고 있으면
+            /* 릴은 지금 값에서 목표로 미끄러져야 한다. 처음부터 목표를 들고 있으면
                움직일 곳이 없다. 한 프레임 뒤에 켠다. */
             requestAnimationFrame(() => requestAnimationFrame(() => result.classList.add('is-run')));
 
@@ -473,7 +473,7 @@ import {
           let lastPension: DrawPension | null = null;
           let netDead = false;
 
-          /** 등위를 「좋은 순서」로 바꾼다 — 1등이 가장 크다. 꽝 = 0. */
+          /** 등위를 좋은 순서로 바꾼다. 1등이 가장 크다. 꽝 = 0. */
           const winScore = (s: Score): number => (s.bonus && mode === 'pension' ? 7 : s.rank > 0 ? 9 - s.rank : 0);
 
 

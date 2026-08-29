@@ -1,12 +1,12 @@
 /**
- * 배경 지우기 — 단색·비슷한 배경 (TASK-KL-316 / 26)
+ * 배경 지우기. 단색, 비슷한 배경 (TASK-KL-316 / 26)
  *
  * **무엇을 하는지 이름부터 정확히 적는다.** 사람 형태를 알아보는 배경 제거는 학습 모형이 필요하고,
- * 그건 40MB 를 받아야 한다 — 이 사이트는 그런 걸 안 받는다(로컬 원칙·번들 예산).
- * 그래서 여기서는 **단색이나 비슷한 색 배경**만 지운다. 증명사진·상품 사진·스캔이 그 자리다.
+ * 그건 40MB 를 받아야 한다. 이 사이트는 그런 걸 안 받는다(로컬 원칙, 번들 예산).
+ * 그래서 여기서는 **단색이나 비슷한 색 배경**만 지운다. 증명사진, 상품 사진, 스캔이 그 자리다.
  *
  * 어떻게: 가장자리에서 시작해 **이어진 비슷한 색만** 지운다(전역 색 지우기가 아니다).
- * 옷 색이 배경과 같아도 안쪽은 안 뚫린다 — 그 차이가 이 도구의 값어치다.
+ * 옷 색이 배경과 같아도 안쪽은 안 뚫린다. 그 차이가 이 도구의 값어치다.
  * 그다음 가장자리를 부드럽게(페더) 하고, 배경색이 머리카락에 묻은 것을 걷어낸다(디스필).
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -28,7 +28,7 @@ export interface Options {
   tolerance?: number;
   /** 가장자리를 몇 픽셀 부드럽게 (기본 2) */
   feather?: number;
-  /** 배경색을 어디서 잡나 — 안 주면 네 모서리에서 */
+  /** 배경색을 어디서 잡나. 안 주면 네 모서리에서 */
   pick?: { x: number; y: number };
   /** 배경색이 남긴 물듦을 걷어낼까 */
   despill?: boolean;
@@ -37,7 +37,7 @@ export interface Options {
 const dist = (r1: number, g1: number, b1: number, r2: number, g2: number, b2: number): number =>
   Math.sqrt((r1 - r2) * (r1 - r2) + (g1 - g2) * (g1 - g2) + (b1 - b2) * (b1 - b2));
 
-/** 네 모서리에서 배경색을 짐작한다 — 가장 자주 나오는 색을 고른다(한 점만 보면 잡티에 속는다). */
+/** 네 모서리에서 배경색을 짐작한다. 가장 자주 나오는 색을 고른다(한 점만 보면 잡티에 속는다). */
 export function guessBackground(pixels: Uint8ClampedArray, width: number, height: number): [number, number, number] {
   const votes = new Map<string, { n: number; r: number; g: number; b: number }>();
   const look = (x: number, y: number): void => {
@@ -88,7 +88,7 @@ export function maskOf(pixels: Uint8ClampedArray, width: number, height: number,
     const d = dist(pixels[at], pixels[at + 1], pixels[at + 2], br, bg, bb);
     if (d > tolerance) return;
     seen[index] = 1;
-    /* 딱 자르지 않고 **가까울수록 더 지운다** — 그래야 머리카락 언저리가 톱니가 안 된다. */
+    /* 딱 자르지 않고 **가까울수록 더 지운다**. 그래야 머리카락 언저리가 톱니가 안 된다. */
     alpha[index] = Math.round(Math.min(255, (d / Math.max(1, tolerance)) * 255));
     stack.push(index);
   };
@@ -118,7 +118,7 @@ export function maskOf(pixels: Uint8ClampedArray, width: number, height: number,
 
 /** 알파만 부드럽게 (상자 흐림 두 번 = 거의 가우시안). 색은 안 건드린다. */
 export function blur(alpha: Uint8ClampedArray, width: number, height: number, radius: number): Uint8ClampedArray {
-  /* 받은 것을 그대로 쓰지 않고 **한 벌 뜬다** — 부르는 쪽의 배열을 우리가 흐리게 만들면 안 된다
+  /* 받은 것을 그대로 쓰지 않고 **한 벌 뜬다**. 부르는 쪽의 배열을 우리가 흐리게 만들면 안 된다
      (타입도 그래야 맞는다: 받은 배열의 바탕 버퍼가 무엇인지 우리는 모른다). */
   let src = new Uint8ClampedArray(alpha);
   let dst = new Uint8ClampedArray(alpha.length);
@@ -167,7 +167,7 @@ export function apply(pixels: Uint8ClampedArray, alpha: Uint8ClampedArray, optio
     const at = i * 4;
     out[at + 3] = alpha[i];
     if (options.despill === true && bg !== undefined && alpha[i] > 0 && alpha[i] < 255) {
-      /* 반투명한 자리는 배경색이 섞여 들어온 자리다 — 섞인 만큼 빼야 테두리에 색이 안 남는다. */
+      /* 반투명한 자리는 배경색이 섞여 들어온 자리다. 섞인 만큼 빼야 테두리에 색이 안 남는다. */
       const mix = 1 - alpha[i] / 255;
       out[at] = Math.round((pixels[at] - bg[0] * mix) / Math.max(0.15, 1 - mix));
       out[at + 1] = Math.round((pixels[at + 1] - bg[1] * mix) / Math.max(0.15, 1 - mix));
@@ -177,7 +177,7 @@ export function apply(pixels: Uint8ClampedArray, alpha: Uint8ClampedArray, optio
   return out;
 }
 
-/** 지운 넓이 — 「아무 일도 안 일어난 것 같다」를 수치로 말해 준다. */
+/** 지운 넓이. 아무 일도 안 일어난 것 같다를 수치로 말해 준다. */
 export function removedRatio(alpha: Uint8ClampedArray): number {
   let gone = 0;
   for (const a of alpha) if (a < 128) gone++;
@@ -189,6 +189,6 @@ export const run: ToolRunner = (op) => {
   return [
     'Removes solid or near-solid backgrounds in the browser.',
     'It flood-fills from the edges, so a subject the same colour as the background is not punched through.',
-    'It does NOT understand people or objects — that needs a machine-learning model this site does not ship.'
+    'It does NOT understand people or objects. that needs a machine-learning model this site does not ship.'
   ].join('\n');
 };

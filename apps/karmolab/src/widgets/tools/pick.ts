@@ -1,11 +1,11 @@
 /**
- * 추첨 · 팀 나누기 (TASK-KL-088)
+ * 추첨, 팀 나누기 (TASK-KL-088)
  *
- * 「한 명 뽑기」 와 「팀 나누기」 와 「순서 정하기」 는 결국 같은 요구다 — 목록을 공정하게 섞는 것.
+ * 한 명 뽑기 와 팀 나누기 와 순서 정하기 는 결국 같은 요구다. 목록을 공정하게 섞는 것.
  * 셋을 따로 만들면 명단을 세 번 붙여 넣어야 하니 한 화면에 둔다.
  *
  * 섞기는 Fisher-Yates 를 쓴다. `sort(() => Math.random() - 0.5)` 은 흔히 쓰이지만
- * 비교 함수가 일관되지 않아 자리마다 확률이 치우친다 — 공정함이 이 도구의 존재 이유라 안 쓴다.
+ * 비교 함수가 일관되지 않아 자리마다 확률이 치우친다. 공정함이 이 도구의 존재 이유라 안 쓴다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -24,7 +24,7 @@ import { markLive } from './shared/say';
 
   Toolbox.register({
     id: 'pick',
-    title: t('widgets.pick.title', undefined, "추첨 · 팀 나누기"),
+    title: t('widgets.pick.title', undefined, "추첨, 팀 나누기"),
     category: 'tool',
     desc: t('widgets-desc.pick.desc', undefined, "명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게"),
     layout: 'form',
@@ -72,7 +72,7 @@ import { markLive } from './shared/say';
           const countLabel = $<HTMLElement>('#pkCountLabel');
           const result = $<HTMLElement>('#pkResult');
           const status = $<HTMLElement>('#pkStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           let mode = 'one';
 

@@ -3,12 +3,12 @@
   "parts": [
     {
       "id": "1",
-      "title": "박스 — 요소 하나가 차지하는 자리",
+      "title": "박스. 요소 하나가 차지하는 자리",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "레이아웃이 안 맞을 때 값을 이리저리 바꿔 보는 사람과, 어디를 볼지 아는 사람의 차이는 딱 두 가지 그림에서 갈린다 — **박스**와 **흐름**. 이 장은 박스다."
+          "text": "레이아웃이 안 맞을 때 값을 이리저리 바꿔 보는 사람과, 어디를 볼지 아는 사람의 차이는 딱 두 가지 그림에서 갈린다. **박스**와 **흐름**. 이 장은 박스다."
         },
         {
           "type": "p",
@@ -17,7 +17,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "손잡이를 밀어 보라 — 같은 width 인데 크기가 달라진다",
+          "label": "손잡이를 밀어 보라. 같은 width 인데 크기가 달라진다",
           "height": "260px",
           "controls": [
             {
@@ -59,7 +59,7 @@
         },
         {
           "type": "p",
-          "text": "`content-box`(기본값)에서 `width` 는 **내용만**의 폭이다. padding 과 border 는 그 위에 더해진다 — 그래서 240px 짜리 상자가 288px 이 된다. `border-box` 는 width 를 **테두리까지 포함한 폭**으로 읽는다. 사람이 자로 재는 방식과 같다."
+          "text": "`content-box`(기본값)에서 `width` 는 **내용만**의 폭이다. padding 과 border 는 그 위에 더해진다. 그래서 240px 짜리 상자가 288px 이 된다. `border-box` 는 width 를 **테두리까지 포함한 폭**으로 읽는다. 사람이 자로 재는 방식과 같다."
         },
         {
           "type": "code",
@@ -69,7 +69,7 @@
         },
         {
           "type": "note",
-          "text": "margin 은 위아래가 **겹친다**(margin collapse). 24px 아래 여백과 16px 위 여백이 만나면 40px 이 아니라 24px 이다. 겹침이 싫으면 그 자리를 flex·grid 로 만들어라 — flex/grid 안에서는 겹치지 않는다."
+          "text": "margin 은 위아래가 **겹친다**(margin collapse). 24px 아래 여백과 16px 위 여백이 만나면 40px 이 아니라 24px 이다. 겹침이 싫으면 그 자리를 flex, grid 로 만들어라. flex/grid 안에서는 겹치지 않는다."
         },
         {
           "type": "try",
@@ -92,7 +92,7 @@
           "q": "margin collapse 가 일어나지 않는 곳은?",
           "choices": [
             "일반 흐름의 위아래 여백",
-            "flex·grid 컨테이너 안",
+            "flex, grid 컨테이너 안",
             "문단 사이",
             "제목 아래"
           ],
@@ -114,7 +114,7 @@
     },
     {
       "id": "2",
-      "title": "흐름 — 자식을 밀지 말고 부모에게 규칙을 줘라",
+      "title": "흐름. 자식을 밀지 말고 부모에게 규칙을 줘라",
       "minutes": 8,
       "blocks": [
         {
@@ -123,12 +123,12 @@
         },
         {
           "type": "p",
-          "text": "아무 규칙도 안 주면 요소는 **일반 흐름**에 따라 놓인다 — 블록(div·p·h1)은 위에서 아래로 한 줄씩 쌓이고 폭을 가득 채우며, 인라인(span·a)은 글자처럼 옆으로 이어진다. `display` 는 이 규칙을 바꾸는 손잡이다."
+          "text": "아무 규칙도 안 주면 요소는 **일반 흐름**에 따라 놓인다. 블록(div, p, h1)은 위에서 아래로 한 줄씩 쌓이고 폭을 가득 채우며, 인라인(span, a)은 글자처럼 옆으로 이어진다. `display` 는 이 규칙을 바꾸는 손잡이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "display 를 바꿔 보라 — 자식은 그대로인데 배치가 달라진다",
+          "label": "display 를 바꿔 보라. 자식은 그대로인데 배치가 달라진다",
           "height": "250px",
           "controls": [
             {
@@ -169,11 +169,11 @@
         },
         {
           "type": "note",
-          "text": "`gap` 은 flex·grid 둘 다에서 쓴다. 예전처럼 자식마다 `margin-right` 를 주고 마지막 자식만 `:last-child` 로 지우는 수법은 이제 안 쓴다 — 마지막을 지우는 것을 잊는 순간 오른쪽만 삐뚤어진다."
+          "text": "`gap` 은 flex, grid 둘 다에서 쓴다. 예전처럼 자식마다 `margin-right` 를 주고 마지막 자식만 `:last-child` 로 지우는 수법은 이제 안 쓴다. 마지막을 지우는 것을 잊는 순간 오른쪽만 삐뚤어진다."
         },
         {
           "type": "p",
-          "text": "고르는 기준은 한 줄이다 — **한 방향으로 흐르면 flex, 행과 열이 둘 다 뜻이 있으면 grid.** 메뉴 줄·버튼 묶음은 flex, 카드 격자·화면 전체 뼈대는 grid."
+          "text": "고르는 기준은 한 줄이다. **한 방향으로 흐르면 flex, 행과 열이 둘 다 뜻이 있으면 grid.** 메뉴 줄, 버튼 묶음은 flex, 카드 격자, 화면 전체 뼈대는 grid."
         },
         {
           "type": "try",
@@ -182,7 +182,7 @@
       ],
       "quiz": [
         {
-          "q": "「한 방향으로 흐르는 메뉴 줄」에 알맞은 것은?",
+          "q": "한 방향으로 흐르는 메뉴 줄에 알맞은 것은?",
           "choices": [
             "flex",
             "grid",
@@ -218,7 +218,7 @@
     },
     {
       "id": "3",
-      "title": "Flexbox — 한 축으로 나누는 법",
+      "title": "Flexbox. 한 축으로 나누는 법",
       "minutes": 9,
       "blocks": [
         {
@@ -228,7 +228,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "네 손잡이를 밀어 보라 — flex 의 거의 전부다",
+          "label": "네 손잡이를 밀어 보라. flex 의 거의 전부다",
           "height": "300px",
           "controls": [
             {
@@ -305,7 +305,7 @@
         },
         {
           "type": "p",
-          "text": "자식 쪽 속성은 `flex` 한 줄로 줄여 쓴다. `flex: 1` 은 `flex: 1 1 0%` 의 줄임 — **남는 공간을 1의 비율로 받고, 모자라면 1의 비율로 줄고, 기본 크기는 0** 이라는 뜻이다."
+          "text": "자식 쪽 속성은 `flex` 한 줄로 줄여 쓴다. `flex: 1` 은 `flex: 1 1 0%` 의 줄임. **남는 공간을 1의 비율로 받고, 모자라면 1의 비율로 줄고, 기본 크기는 0** 이라는 뜻이다."
         },
         {
           "type": "code",
@@ -319,7 +319,7 @@
         },
         {
           "type": "try",
-          "text": "위 데모에서 방향을 column 으로 바꾼 뒤 `justify-content` 를 만져 보라. 같은 값이 이번엔 위아래로 작동한다 — 주축이 바뀌었기 때문이다."
+          "text": "위 데모에서 방향을 column 으로 바꾼 뒤 `justify-content` 를 만져 보라. 같은 값이 이번엔 위아래로 작동한다. 주축이 바뀌었기 때문이다."
         }
       ],
       "quiz": [
@@ -360,7 +360,7 @@
     },
     {
       "id": "4",
-      "title": "Grid — 두 축으로 짜는 법",
+      "title": "Grid. 두 축으로 짜는 법",
       "minutes": 9,
       "blocks": [
         {
@@ -370,7 +370,7 @@
         {
           "type": "demo",
           "kind": "html",
-          "label": "칸 최소 너비를 밀어 보라 — 줄바꿈이 저절로 일어난다",
+          "label": "칸 최소 너비를 밀어 보라. 줄바꿈이 저절로 일어난다",
           "height": "300px",
           "controls": [
             {
@@ -396,7 +396,7 @@
         },
         {
           "type": "p",
-          "text": "`repeat(auto-fill, minmax(150px, 1fr))` 한 줄을 뜯어 보면 — 「칸 하나는 최소 150px, 남으면 똑같이 나눠 갖고(1fr), 들어갈 수 있는 만큼 칸을 만들어라」다. 화면 폭이 줄면 칸 수가 저절로 줄어든다. **반응형 카드 목록에 미디어 쿼리가 필요 없는 이유**가 이것이다."
+          "text": "`repeat(auto-fill, minmax(150px, 1fr))` 한 줄을 뜯어 보면. 칸 하나는 최소 150px, 남으면 똑같이 나눠 갖고(1fr), 들어갈 수 있는 만큼 칸을 만들어라다. 화면 폭이 줄면 칸 수가 저절로 줄어든다. **반응형 카드 목록에 미디어 쿼리가 필요 없는 이유**가 이것이다."
         },
         {
           "type": "code",
@@ -406,7 +406,7 @@
         },
         {
           "type": "note",
-          "text": "`fr` 은 **남은 공간의 비율**이지 전체의 비율이 아니다. `1fr 1fr` 사이에 gap 이 있으면 gap 을 뺀 나머지를 반씩 나눈다 — 그래서 `50% 50%` 와 달리 넘치지 않는다."
+          "text": "`fr` 은 **남은 공간의 비율**이지 전체의 비율이 아니다. `1fr 1fr` 사이에 gap 이 있으면 gap 을 뺀 나머지를 반씩 나눈다. 그래서 `50% 50%` 와 달리 넘치지 않는다."
         },
         {
           "type": "try",
@@ -451,17 +451,17 @@
     },
     {
       "id": "5",
-      "title": "위치 — position 은 흐름에서 빼내는 도구",
+      "title": "위치. position 은 흐름에서 빼내는 도구",
       "minutes": 7,
       "blocks": [
         {
           "type": "p",
-          "text": "`position` 은 배치 도구가 아니라 **흐름에서 빼내는** 도구다. 겹쳐야 할 때만 쓴다 — 배지, 툴팁, 고정 헤더, 모달."
+          "text": "`position` 은 배치 도구가 아니라 **흐름에서 빼내는** 도구다. 겹쳐야 할 때만 쓴다. 배지, 툴팁, 고정 헤더, 모달."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "position 을 바꿔 보라 — 무엇을 기준으로 움직이는가",
+          "label": "position 을 바꿔 보라. 무엇을 기준으로 움직이는가",
           "height": "300px",
           "controls": [
             {
@@ -498,19 +498,19 @@
               "value": -8
             }
           ],
-          "text": "<style>\n  .card { position: relative; width: 220px; margin: 40px auto; padding: 20px;\n          background:#dbeafe; color:#0b1220; border-radius:10px; }\n  .badge { position: {{pos}}; top: {{top}}px; right: -8px;\n           background:#ef4444; color:#fff; padding:4px 10px; border-radius:999px; font-size:12px; }\n</style>\n<div class=\"card\">카드 내용<span class=\"badge\">NEW</span></div>\n<p style=\"font-size:13px;color:#888\">absolute 의 기준은 「position 이 static 이 아닌 가장 가까운 조상」 — 여기서는 .card 다.</p>"
+          "text": "<style>\n  .card { position: relative; width: 220px; margin: 40px auto; padding: 20px;\n          background:#dbeafe; color:#0b1220; border-radius:10px; }\n  .badge { position: {{pos}}; top: {{top}}px; right: -8px;\n           background:#ef4444; color:#fff; padding:4px 10px; border-radius:999px; font-size:12px; }\n</style>\n<div class=\"card\">카드 내용<span class=\"badge\">NEW</span></div>\n<p style=\"font-size:13px;color:#888\">absolute 의 기준은 position 이 static 이 아닌 가장 가까운 조상. 여기서는 .card 다.</p>"
         },
         {
           "type": "p",
-          "text": "`absolute` 는 **가장 가까운 위치 기준 조상**을 기준으로 움직인다. 기준이 하나도 없으면 문서 전체가 기준이 되어 엉뚱한 곳으로 날아간다 — 그래서 `position: relative` 한 줄을 부모에 먼저 박는 것이 관례다."
+          "text": "`absolute` 는 **가장 가까운 위치 기준 조상**을 기준으로 움직인다. 기준이 하나도 없으면 문서 전체가 기준이 되어 엉뚱한 곳으로 날아간다. 그래서 `position: relative` 한 줄을 부모에 먼저 박는 것이 관례다."
         },
         {
           "type": "note",
-          "text": "`z-index` 는 아무 데서나 안 먹는다. `position` 이 static 이 아니거나 flex/grid 아이템이어야 한다. 그리고 `transform`·`opacity`·`filter` 는 **쌓임 맥락**을 새로 만들어서, 그 안의 z-index 999 가 바깥의 1 을 못 이긴다 — 「z-index 를 아무리 올려도 안 올라오는」 사고의 범인이 대개 이것이다."
+          "text": "`z-index` 는 아무 데서나 안 먹는다. `position` 이 static 이 아니거나 flex/grid 아이템이어야 한다. 그리고 `transform`, `opacity`, `filter` 는 **쌓임 맥락**을 새로 만들어서, 그 안의 z-index 999 가 바깥의 1 을 못 이긴다. z-index 를 아무리 올려도 안 올라오는 사고의 범인이 대개 이것이다."
         },
         {
           "type": "try",
-          "text": "안 올라오는 요소를 만나면 개발자도구에서 조상들을 훑으며 `transform`·`filter`·`opacity < 1` 을 찾아라. 그 조상이 유리 천장이다."
+          "text": "안 올라오는 요소를 만나면 개발자도구에서 조상들을 훑으며 `transform`, `filter`, `opacity < 1` 을 찾아라. 그 조상이 유리 천장이다."
         }
       ],
       "quiz": [
@@ -551,17 +551,17 @@
     },
     {
       "id": "6",
-      "title": "값이 오는 길 — 캐스케이드 · 상속 · 구체성",
+      "title": "값이 오는 길. 캐스케이드, 상속, 구체성",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "「스타일이 안 먹는다」는 대부분 오타가 아니다. **다른 규칙이 이기고 있다.** 브라우저는 한 속성의 값을 정할 때 세 가지를 순서대로 본다: 어디서 왔나(출처) → 얼마나 구체적인가(구체성) → 누가 나중에 쓰였나(순서)."
+          "text": "스타일이 안 먹는다는 대부분 오타가 아니다. **다른 규칙이 이기고 있다.** 브라우저는 한 속성의 값을 정할 때 세 가지를 순서대로 본다: 어디서 왔나(출처) → 얼마나 구체적인가(구체성) → 누가 나중에 쓰였나(순서)."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "선택자를 바꿔 보라 — 어느 색이 이기나",
+          "label": "선택자를 바꿔 보라. 어느 색이 이기나",
           "height": "280px",
           "controls": [
             {
@@ -595,17 +595,17 @@
         },
         {
           "type": "p",
-          "text": "구체성은 세 자리 숫자다 — **(id, class·속성·가상클래스, 태그)**. `#x` 는 (1,0,0), `.note` 는 (0,1,0), `p` 는 (0,0,1). 앞자리가 하나라도 크면 뒷자리를 아무리 쌓아도 못 이긴다. `!important` 는 이 겨룸 자체를 건너뛴다 — 그래서 쓰기 시작하면 다음 사람도 써야 한다."
+          "text": "구체성은 세 자리 숫자다. **(id, class, 속성, 가상클래스, 태그)**. `#x` 는 (1,0,0), `.note` 는 (0,1,0), `p` 는 (0,0,1). 앞자리가 하나라도 크면 뒷자리를 아무리 쌓아도 못 이긴다. `!important` 는 이 겨룸 자체를 건너뛴다. 그래서 쓰기 시작하면 다음 사람도 써야 한다."
         },
         {
           "type": "note",
-          "text": "상속되는 속성과 아닌 속성이 갈린다. `color`·`font`·`line-height` 는 자식에게 내려가고, `border`·`padding`·`background` 는 안 내려간다. 「부모에 줬는데 왜 안 되지」의 절반이 이 목록이다."
+          "text": "상속되는 속성과 아닌 속성이 갈린다. `color`, `font`, `line-height` 는 자식에게 내려가고, `border`, `padding`, `background` 는 안 내려간다. 부모에 줬는데 왜 안 되지의 절반이 이 목록이다."
         },
         {
           "type": "code",
           "lang": "css",
           "label": "구체성을 낮게 유지하는 요즘 방법",
-          "text": "/* 이기려고 선택자를 길게 쓰는 대신, 층을 나눈다 */\n@layer base, components, utilities;\n\n@layer base       { p { color: #333 } }\n@layer utilities  { .muted { color: #888 } }   /* 층이 늦으면 이긴다 — 구체성과 무관 */"
+          "text": "/* 이기려고 선택자를 길게 쓰는 대신, 층을 나눈다 */\n@layer base, components, utilities;\n\n@layer base       { p { color: #333 } }\n@layer utilities  { .muted { color: #888 } }   /* 층이 늦으면 이긴다. 구체성과 무관 */"
         },
         {
           "type": "try",
@@ -616,8 +616,8 @@
         {
           "q": "`#x`(id 하나) 와 `.a.b.c.d`(클래스 넷) 중 이기는 쪽은?",
           "choices": [
-            ".a.b.c.d — 개수가 많다",
-            "#x — 앞자리가 크다",
+            ".a.b.c.d. 개수가 많다",
+            "#x. 앞자리가 크다",
             "나중에 쓴 쪽",
             "무승부"
           ],
@@ -650,17 +650,17 @@
     },
     {
       "id": "7",
-      "title": "단위와 변수 — 크기를 손으로 적지 않기",
+      "title": "단위와 변수. 크기를 손으로 적지 않기",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "`px` 는 고정, `rem` 은 **사용자가 정한 기본 글자 크기**의 배수다. 접근성 설정에서 글자를 키운 사람에게, px 로 박은 화면은 아무 반응이 없다. 그래서 **글자·여백은 rem, 테두리처럼 진짜 1px 이어야 하는 것만 px** 이 기본 감각이다."
+          "text": "`px` 는 고정, `rem` 은 **사용자가 정한 기본 글자 크기**의 배수다. 접근성 설정에서 글자를 키운 사람에게, px 로 박은 화면은 아무 반응이 없다. 그래서 **글자, 여백은 rem, 테두리처럼 진짜 1px 이어야 하는 것만 px** 이 기본 감각이다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "기본 글자 크기를 바꿔 보라 — rem 만 따라온다",
+          "label": "기본 글자 크기를 바꿔 보라. rem 만 따라온다",
           "height": "270px",
           "controls": [
             {
@@ -682,11 +682,11 @@
               "value": 600
             }
           ],
-          "text": "<style>\n  html { font-size: {{root}}px; }\n  .frame { width: {{w}}px; max-width: 100%; border:1px dashed #888; padding: 12px; }\n  .rem { font-size: 1.25rem; padding: 0.75rem; background:#dbeafe; color:#0b1220; border-radius:6px; }\n  .px  { font-size: 20px;    padding: 12px;   background:#fde68a; color:#0b1220; border-radius:6px; margin-top:8px; }\n  .fluid { font-size: clamp(1rem, 3vw, 2rem); margin-top:8px; }\n</style>\n<div class=\"frame\">\n  <div class=\"rem\">rem 으로 적은 글 (1.25rem)</div>\n  <div class=\"px\">px 로 박은 글 (20px)</div>\n  <div class=\"fluid\">clamp(1rem, 3vw, 2rem) — 폭을 따라 자란다</div>\n</div>"
+          "text": "<style>\n  html { font-size: {{root}}px; }\n  .frame { width: {{w}}px; max-width: 100%; border:1px dashed #888; padding: 12px; }\n  .rem { font-size: 1.25rem; padding: 0.75rem; background:#dbeafe; color:#0b1220; border-radius:6px; }\n  .px  { font-size: 20px;    padding: 12px;   background:#fde68a; color:#0b1220; border-radius:6px; margin-top:8px; }\n  .fluid { font-size: clamp(1rem, 3vw, 2rem); margin-top:8px; }\n</style>\n<div class=\"frame\">\n  <div class=\"rem\">rem 으로 적은 글 (1.25rem)</div>\n  <div class=\"px\">px 로 박은 글 (20px)</div>\n  <div class=\"fluid\">clamp(1rem, 3vw, 2rem). 폭을 따라 자란다</div>\n</div>"
         },
         {
           "type": "p",
-          "text": "`clamp(최소, 원하는 값, 최대)` 는 미디어 쿼리 없이 「작아지되 너무 작지 않게」를 적는 방법이다. 가운데 자리에 `vw`(화면 폭의 1%)를 넣으면 폭을 따라 자라고, 양옆의 두 값이 울타리가 된다."
+          "text": "`clamp(최소, 원하는 값, 최대)` 는 미디어 쿼리 없이 작아지되 너무 작지 않게를 적는 방법이다. 가운데 자리에 `vw`(화면 폭의 1%)를 넣으면 폭을 따라 자라고, 양옆의 두 값이 울타리가 된다."
         },
         {
           "type": "code",
@@ -696,7 +696,7 @@
         },
         {
           "type": "note",
-          "text": "CSS 변수는 **상속된다**. 그래서 어떤 덩어리 안에서만 값을 바꾸고 싶으면 그 덩어리에 변수를 다시 정의하면 된다 — 자식 전부가 따라온다. Sass 변수와 가장 크게 다른 점이 이것(그쪽은 컴파일 때 사라진다)."
+          "text": "CSS 변수는 **상속된다**. 그래서 어떤 덩어리 안에서만 값을 바꾸고 싶으면 그 덩어리에 변수를 다시 정의하면 된다. 자식 전부가 따라온다. Sass 변수와 가장 크게 다른 점이 이것(그쪽은 컴파일 때 사라진다)."
         },
         {
           "type": "try",
@@ -735,23 +735,23 @@
             "함수를 쓸 수 있다"
           ],
           "answer": 1,
-          "why": "브라우저에 살아 있으므로 테마 전환·JS 조작이 된다."
+          "why": "브라우저에 살아 있으므로 테마 전환, JS 조작이 된다."
         }
       ]
     },
     {
       "id": "8",
-      "title": "반응형 — 화면이 아니라 내용에 맞춘다",
+      "title": "반응형. 화면이 아니라 내용에 맞춘다",
       "minutes": 8,
       "blocks": [
         {
           "type": "p",
-          "text": "반응형의 절반은 미디어 쿼리를 쓰기 전에 끝난다. `max-width`·`minmax`·`flex-wrap`·`clamp` 는 폭을 물어보지 않고도 알아서 접힌다. 미디어 쿼리는 **배치가 통째로 달라져야 할 때**만 꺼낸다."
+          "text": "반응형의 절반은 미디어 쿼리를 쓰기 전에 끝난다. `max-width`, `minmax`, `flex-wrap`, `clamp` 는 폭을 물어보지 않고도 알아서 접힌다. 미디어 쿼리는 **배치가 통째로 달라져야 할 때**만 꺼낸다."
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "폭을 밀어 보라 — 어디서 접히나",
+          "label": "폭을 밀어 보라. 어디서 접히나",
           "height": "300px",
           "controls": [
             {
@@ -773,7 +773,7 @@
               "value": 560
             }
           ],
-          "text": "<style>\n  .frame { width: {{w}}px; max-width: 100%; border:1px dashed #888; padding:10px; container-type: inline-size; }\n  .page { display: grid; gap: 10px; grid-template-columns: 200px 1fr; }\n  .page > div { background:#dbeafe; color:#0b1220; padding:14px; border-radius:8px; }\n  @container (max-width: {{bp}}px) {\n    .page { grid-template-columns: 1fr; }\n  }\n</style>\n<div class=\"frame\">\n  <div class=\"page\"><div>옆 칸</div><div>본문</div></div>\n</div>\n<p style=\"font-size:13px;color:#888\">@container 를 썼다 — 화면이 아니라 <b>담긴 상자</b>의 폭을 본다.</p>"
+          "text": "<style>\n  .frame { width: {{w}}px; max-width: 100%; border:1px dashed #888; padding:10px; container-type: inline-size; }\n  .page { display: grid; gap: 10px; grid-template-columns: 200px 1fr; }\n  .page > div { background:#dbeafe; color:#0b1220; padding:14px; border-radius:8px; }\n  @container (max-width: {{bp}}px) {\n    .page { grid-template-columns: 1fr; }\n  }\n</style>\n<div class=\"frame\">\n  <div class=\"page\"><div>옆 칸</div><div>본문</div></div>\n</div>\n<p style=\"font-size:13px;color:#888\">@container 를 썼다. 화면이 아니라 <b>담긴 상자</b>의 폭을 본다.</p>"
         },
         {
           "type": "p",
@@ -787,11 +787,11 @@
           "type": "code",
           "lang": "css",
           "label": "쓸 때는 좁은 화면부터",
-          "text": "/* 기본 = 좁은 화면 */\n.page { display: grid; gap: 1rem; }\n\n/* 넓어지면 더한다 — 빼는 게 아니라 */\n@media (min-width: 48rem) {\n  .page { grid-template-columns: 240px 1fr; }\n}"
+          "text": "/* 기본 = 좁은 화면 */\n.page { display: grid; gap: 1rem; }\n\n/* 넓어지면 더한다. 빼는 게 아니라 */\n@media (min-width: 48rem) {\n  .page { grid-template-columns: 240px 1fr; }\n}"
         },
         {
           "type": "try",
-          "text": "내 화면을 320px 폭으로 좁혀 보라(개발자도구 기기 모드). 가로 스크롤이 생기면 그 자리를 찾아라 — 대개 고정 width, 긴 코드 블록, `min-width: 0` 이 빠진 flex 아이템 중 하나다."
+          "text": "내 화면을 320px 폭으로 좁혀 보라(개발자도구 기기 모드). 가로 스크롤이 생기면 그 자리를 찾아라. 대개 고정 width, 긴 코드 블록, `min-width: 0` 이 빠진 flex 아이템 중 하나다."
         }
       ],
       "quiz": [
@@ -832,23 +832,23 @@
     },
     {
       "id": "9",
-      "title": "마무리 — 안 될 때 훑는 점검표",
+      "title": "마무리. 안 될 때 훑는 점검표",
       "minutes": 6,
       "blocks": [
         {
           "type": "p",
-          "text": "CSS 가 막히는 자리는 놀랄 만큼 반복된다. 새로 짜기 전에 이 순서로 훑어라 — 대부분 여기서 끝난다."
+          "text": "CSS 가 막히는 자리는 놀랄 만큼 반복된다. 새로 짜기 전에 이 순서로 훑어라. 대부분 여기서 끝난다."
         },
         {
           "type": "code",
           "lang": "text",
-          "label": "「스타일이 안 먹는다」 점검 순서",
-          "text": "1. 개발자도구 Styles 에 규칙이 보이나?\n   안 보임 -> 선택자가 요소를 못 잡았다(오타·범위)\n   취소선  -> 다른 규칙이 이겼다(구체성·순서·!important)\n2. 상속되는 속성인가? (color/font 는 O, padding/border 는 X)\n3. 부모에 display 가 걸려 있나? (flex/grid 안에서는 규칙이 다르다)\n4. 겹침 문제인가? -> position 기준 조상과 쌓임 맥락(transform/opacity)을 확인\n5. 크기 문제인가? -> box-sizing, min-width: auto, 고정 width\n6. 좁은 화면에서만인가? -> 320px 로 좁혀 가로 스크롤 유발 요소를 찾아라"
+          "label": "스타일이 안 먹는다 점검 순서",
+          "text": "1. 개발자도구 Styles 에 규칙이 보이나?\n   안 보임 -> 선택자가 요소를 못 잡았다(오타, 범위)\n   취소선  -> 다른 규칙이 이겼다(구체성, 순서, !important)\n2. 상속되는 속성인가? (color/font 는 O, padding/border 는 X)\n3. 부모에 display 가 걸려 있나? (flex/grid 안에서는 규칙이 다르다)\n4. 겹침 문제인가? -> position 기준 조상과 쌓임 맥락(transform/opacity)을 확인\n5. 크기 문제인가? -> box-sizing, min-width: auto, 고정 width\n6. 좁은 화면에서만인가? -> 320px 로 좁혀 가로 스크롤 유발 요소를 찾아라"
         },
         {
           "type": "demo",
           "kind": "html",
-          "label": "직접 겪어 보라 — 가로 스크롤을 만드는 흔한 범인",
+          "label": "직접 겪어 보라. 가로 스크롤을 만드는 흔한 범인",
           "height": "260px",
           "controls": [
             {
@@ -858,11 +858,11 @@
               "value": false
             }
           ],
-          "text": "<style>\n  .frame { width: 320px; border:1px dashed #888; overflow-x: auto; }\n  .row { display:flex; gap:8px; padding:8px; }\n  .row > div { background:#dbeafe; color:#0b1220; padding:10px; border-radius:6px; }\n  .long { white-space: nowrap; }\n</style>\n<div class=\"frame\"><div class=\"row\">\n  <div>고정</div>\n  <div class=\"long\" style=\"overflow:hidden;text-overflow:ellipsis\">아주아주아주아주아주 긴 제목이 들어 있는 칸</div>\n</div></div>\n<p id=\"o\" style=\"font-size:13px;color:#888\"></p>\n<script>\n  const fix = {{fix}};\n  const el = document.querySelector('.long');\n  el.style.minWidth = fix ? '0' : 'auto';\n  document.getElementById('o').textContent = fix ? 'min-width: 0 — 칸이 줄어 넘치지 않는다' : 'min-width: auto(기본) — 내용 폭 아래로 안 줄어 넘친다';\n</script>"
+          "text": "<style>\n  .frame { width: 320px; border:1px dashed #888; overflow-x: auto; }\n  .row { display:flex; gap:8px; padding:8px; }\n  .row > div { background:#dbeafe; color:#0b1220; padding:10px; border-radius:6px; }\n  .long { white-space: nowrap; }\n</style>\n<div class=\"frame\"><div class=\"row\">\n  <div>고정</div>\n  <div class=\"long\" style=\"overflow:hidden;text-overflow:ellipsis\">아주아주아주아주아주 긴 제목이 들어 있는 칸</div>\n</div></div>\n<p id=\"o\" style=\"font-size:13px;color:#888\"></p>\n<script>\n  const fix = {{fix}};\n  const el = document.querySelector('.long');\n  el.style.minWidth = fix ? '0' : 'auto';\n  document.getElementById('o').textContent = fix ? 'min-width: 0. 칸이 줄어 넘치지 않는다' : 'min-width: auto(기본). 내용 폭 아래로 안 줄어 넘친다';\n</script>"
         },
         {
           "type": "note",
-          "text": "다음 칸은 JavaScript 다. 여기까지가 「무엇을 어떻게 보여줄까」였다면, 다음은 「무슨 일이 일어날까」다. 배치를 JS 로 계산하고 싶어질 때마다 이 장으로 돌아와라 — 대개 CSS 한 줄이 있다."
+          "text": "다음 칸은 JavaScript 다. 여기까지가 무엇을 어떻게 보여줄까였다면, 다음은 무슨 일이 일어날까다. 배치를 JS 로 계산하고 싶어질 때마다 이 장으로 돌아와라. 대개 CSS 한 줄이 있다."
         },
         {
           "type": "try",
@@ -890,7 +890,7 @@
             "position: absolute"
           ],
           "answer": 1,
-          "why": "CSS 한 줄로 끝나는 일을 JS 로 옮기면 창 크기·글꼴 변화마다 다시 계산해야 한다."
+          "why": "CSS 한 줄로 끝나는 일을 JS 로 옮기면 창 크기, 글꼴 변화마다 다시 계산해야 한다."
         }
       ]
     }

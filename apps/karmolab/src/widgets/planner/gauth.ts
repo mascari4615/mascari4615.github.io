@@ -1,13 +1,13 @@
 /**
- * 구글 연동 — 토큰 한 장 받아 오기 (TASK-KL-321)
+ * 구글 연동. 토큰 한 장 받아 오기 (TASK-KL-321)
  *
  * React 판은 `@react-oauth/google` 이 하던 일이다. 그 꾸러미가 실제로 하는 것은
  * 구글이 주는 `gsi/client` 스크립트를 불러 `initTokenClient` 를 부르는 것뿐이라,
- * React 를 걷어 내면서 여기로 옮겼다 — 받아 오는 코드가 오히려 줄었다.
+ * React 를 걷어 내면서 여기로 옮겼다. 받아 오는 코드가 오히려 줄었다.
  *
  * 알아 둘 것: 브라우저만으로는 **갱신 토큰을 받을 수 없다**. 구글이 주는 것은 한 시간짜리
  * 접근 토큰 한 장이고, 그래서 한 시간 뒤에는 다시 눌러야 한다. 새로고침만으로 안 풀리는
- * 문제가 아니라 규약이 그렇다 — 진짜로 계속 유지하려면 서버가 갱신 토큰을 들고 있어야 한다
+ * 문제가 아니라 규약이 그렇다. 진짜로 계속 유지하려면 서버가 갱신 토큰을 들고 있어야 한다
  * (`kl/auth/*` 에 얹는 별도 작업). 지금은 **한 시간 안에는 새로고침해도 유지**된다.
  */
 
@@ -52,7 +52,7 @@ function gis(): GisNamespace | undefined {
     return (window as unknown as { google?: GisNamespace }).google;
 }
 
-/** 남은 시간이 5분보다 적으면 없는 것으로 친다 — 쓰다가 중간에 끊기는 게 더 나쁘다. */
+/** 남은 시간이 5분보다 적으면 없는 것으로 친다. 쓰다가 중간에 끊기는 게 더 나쁘다. */
 export function storedToken(): string | null {
     try {
         const raw = localStorage.getItem(TOKEN_KEY);
@@ -82,7 +82,7 @@ export function forgetToken(): void {
     } catch {
         /* 무시 */
     }
-    /* 구글 쪽 허가도 같이 거둔다 — 안 그러면 「로그아웃」이 이 브라우저에서만 참이다 */
+    /* 구글 쪽 허가도 같이 거둔다. 안 그러면 로그아웃이 이 브라우저에서만 참이다 */
     if (token) gis()?.accounts.oauth2.revoke?.(token);
 }
 
@@ -111,7 +111,7 @@ function loadGis(): Promise<void> {
 
 /**
  * 연동 창을 띄우고 토큰을 받는다. 이미 유효한 토큰이 있으면 그걸 그대로 준다.
- * 사용자가 창을 닫으면 `null` — 그건 오류가 아니라 「안 하겠다」다.
+ * 사용자가 창을 닫으면 `null`. 그건 오류가 아니라 안 하겠다다.
  */
 export async function requestToken(): Promise<string | null> {
     if (!GOOGLE_CLIENT_ID) throw new Error('no-client-id');

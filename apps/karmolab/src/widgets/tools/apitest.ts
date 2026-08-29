@@ -1,11 +1,11 @@
 /**
  * OpenAPI 눌러 보기 (TASK-KL-316 / 16)
  *
- * 「개발 도구」 작업대의 **살펴보기** 칸. 알맹이는 `core/apitest`.
+ * 개발 도구 작업대의 **살펴보기** 칸. 알맹이는 `core/apitest`.
  * 스펙을 붙여넣으면 연산 목록이 서고, 하나 고르면 **보낼 수 있는 요청**이 완성된다.
- * 보내는 것은 브라우저가 직접 한다 — 남의 집 문이 안 열리면(CORS) 그 사실을 그대로 적는다.
+ * 보내는 것은 브라우저가 직접 한다. 남의 집 문이 안 열리면(CORS) 그 사실을 그대로 적는다.
  *
- * 목 서버는 안 만든다(사이트에 이미 Service Worker 가 있다 — `core/apitest` 머리말).
+ * 목 서버는 안 만든다(사이트에 이미 Service Worker 가 있다. `core/apitest` 머리말).
  * 대신 **목 응답 표**를 만들어 준다: 그대로 자기 목 서버에 붙이면 된다.
  */
 import { fill, mockTable, parse, spec, type Doc, type Operation } from '../../core/apitest';
@@ -42,7 +42,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       {
         /*
          * 두 판 견주기 (TASK-KL-316 / 17). 같은 위젯의 탭인 이유: **같은 문서를 놓고 하는 다른 질문**이다
-         * — 「이거 눌러 보자」와 「이거 바뀌면 우리 깨지나」. 도구를 둘로 나누면 스펙을 두 번 붙여넣게 된다.
+         *. 이거 눌러 보자와 이거 바뀌면 우리 깨지나. 도구를 둘로 나누면 스펙을 두 번 붙여넣게 된다.
          */
         id: 'diff',
         label: t('apidiff.tab', undefined, '두 판 견주기'),
@@ -82,11 +82,11 @@ import { t, loadNamespace } from '../../lib/i18n';
         $<HTMLElement>('#adOut').innerHTML = changes
           .map((c) => {
             const color = c.breaking ? 'var(--error)' : 'var(--text-tertiary)';
-            const tail = [c.what, c.from === undefined ? '' : c.from + ' → ' + String(c.to)].filter((s) => s !== undefined && s !== '').join(' · ');
+            const tail = [c.what, c.from === undefined ? '' : c.from + ' → ' + String(c.to)].filter((s) => s !== undefined && s !== '').join(', ');
             return (
               '<div class="tool-list-row"><span class="tool-list-key" style="color:' + color + '">' +
               esc(c.breaking ? t('apidiff.breaking') : t('apidiff.safe')) + '</span>' +
-              '<span class="tool-list-val">' + esc(t('apidiff.what.' + c.key)) + ' — ' + esc(c.where) + '</span>' +
+              '<span class="tool-list-val">' + esc(t('apidiff.what.' + c.key)) + '. ' + esc(c.where) + '</span>' +
               '<span class="tool-list-dim">' + esc(tail) + '</span></div>'
             );
           })
@@ -206,7 +206,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       try {
         doc = parse(text);
         opBox.innerHTML = doc.operations
-          .map((o, i) => '<option value="' + i + '">' + esc(o.method + ' ' + o.path + (o.summary === undefined ? '' : '  — ' + o.summary)) + '</option>')
+          .map((o, i) => '<option value="' + i + '">' + esc(o.method + ' ' + o.path + (o.summary === undefined ? '' : ' . ' + o.summary)) + '</option>')
           .join('');
         if (server.value === '' && doc.servers.length> 0) server.value = doc.servers[0];
         renderParams();

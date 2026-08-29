@@ -3,14 +3,14 @@
   "isitdown.label.url": "つながらない住所を書いてください",
   "isitdown.btn.run": "測ってみる",
   "isitdown.status.idle": "対象と、いつも生きている三つを同時に測ります",
-  "isitdown.status.badUrl": "住所ではなさそうです — 例: example.com",
-  "isitdown.status.working": "{host} と対照を測っています…",
-  "isitdown.verdict.up": "{host} は今答えています — 向こうは生きています",
+  "isitdown.status.badUrl": "住所ではなさそうです. 例: example.com",
+  "isitdown.status.working": "{host} と対照を測っています...",
+  "isitdown.verdict.up": "{host} は今答えています. 向こうは生きています",
   "isitdown.verdict.slow": "{host} は答えますが遅いです",
-  "isitdown.verdict.mine": "こちら側の問題のようです — 対照も全部だめです（回線・Wi-Fi・DNS）",
-  "isitdown.verdict.theirs": "{host} だけだめです — 向こう側の問題のようです",
-  "isitdown.verdict.unclear": "見分けられません — 対照が半々です。少し後でもう一度",
-  "isitdown.row.ok": "応答 · {ms}ms",
+  "isitdown.verdict.mine": "こちら側の問題のようです. 対照も全部だめです（回線・Wi-Fi・DNS）",
+  "isitdown.verdict.theirs": "{host} だけだめです. 向こう側の問題のようです",
+  "isitdown.verdict.unclear": "見分けられません. 対照が半々です。少し後でもう一度",
+  "isitdown.row.ok": "応答, {ms}ms",
   "isitdown.row.no": "応答なし",
-  "isitdown.note.limits": "ブラウザは他所の応答の中身を見られません（不透明）— ここでの「答える」はサーバーが生きている意味で、サービスが正常という意味ではありません"
+  "isitdown.note.limits": "ブラウザは他所の応答の中身を見られません（不透明）.  ここでの答えるはサーバーが生きている意味で、サービスが正常という意味ではありません"
 }

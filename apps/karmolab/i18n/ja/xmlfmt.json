@@ -8,9 +8,9 @@
   "xmlfmt.btn.copy": "コピー",
   "xmlfmt.copy.done": "結果をコピーしました",
   "xmlfmt.status.idle": "貼り付けるとすぐ整えます。文字は端末の外に出ません",
-  "xmlfmt.status.format": "整えました — {lines}行",
+  "xmlfmt.status.format": "整えました. {lines}行",
   "xmlfmt.status.minify": "まとめました",
-  "xmlfmt.status.toJson": "JSON にしました — {lines}行",
+  "xmlfmt.status.toJson": "JSON にしました. {lines}行",
   "xmlfmt.status.bad": "{msg}",
-  "xmlfmt.note.limits": "形が正しいか(well-formed)だけを見ます — DTD・スキーマ(XSD)・名前空間の検証はしません。JSON では属性が @名前、文字が #text になります"
+  "xmlfmt.note.limits": "形が正しいか(well-formed)だけを見ます. DTD・スキーマ(XSD)・名前空間の検証はしません。JSON では属性が @名前、文字が #text になります"
 }

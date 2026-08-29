@@ -14,6 +14,6 @@
   "linebreak.btn.swap": "Result becomes the original",
   "linebreak.status.idle": "Blank lines between paragraphs stay; only lines inside a paragraph get joined.",
   "linebreak.copy.done": "Result copied",
-  "linebreak.say.done": "{before} lines → {after} lines · blank lines between paragraphs are left alone.",
+  "linebreak.say.done": "{before} lines → {after} lines, blank lines between paragraphs are left alone.",
   "linebreak.sample": "This sentence was cut to fit\nthe screen width. Pasted as is,\nit reads awkwardly.\n\nThis is the second paragraph. The blank\nline between paragraphs must survive."
 }

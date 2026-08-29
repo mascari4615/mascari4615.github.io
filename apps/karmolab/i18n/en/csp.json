@@ -1,5 +1,5 @@
 {
-  "csp.mdd": "One long line — let me lay it out.",
+  "csp.mdd": "One long line. let me lay it out.",
   "csp.tab": "Headers",
   "csp.mode.read": "Read",
   "csp.mode.make": "Build",
@@ -31,10 +31,10 @@
   "csp.find.noBaseUri": "without base-uri, a base tag can redirect every relative URL",
   "csp.find.noFormAction": "without form-action, a form can post to someone else",
   "csp.find.noCsp": "there is no CSP at all",
-  "csp.find.noHsts": "no HSTS — the first visit can go over http",
+  "csp.find.noHsts": "no HSTS. the first visit can go over http",
   "csp.find.shortHsts": "the HSTS max-age is short (180 days or more is usual)",
   "csp.find.noSniff": "X-Content-Type-Options: nosniff is missing",
-  "csp.find.noReferrer": "no Referrer-Policy — URLs can leak to other sites",
+  "csp.find.noReferrer": "no Referrer-Policy. URLs can leak to other sites",
   "csp.find.noFrameOptions": "neither framing protection header is set",
   "csp.find.noPermissions": "Permissions-Policy can switch off camera, mic and friends"
 }

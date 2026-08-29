@@ -1,19 +1,19 @@
 /**
- * 짝 맞추기 — 뒤집어 기억한다 (TASK-KL-242)
+ * 짝 맞추기. 뒤집어 기억한다 (TASK-KL-242)
  *
- * 커널의 세 번째 모서리다. 반응 측정은 「동시·실시간」, 오목·사목은 「차례·정적」인데
- * 이것은 **차례가 있으면서 시간도 흐른다** — 두 장을 뒤집고 나면 잠깐 보여 준 뒤 도로 덮인다.
- * 그 「잠깐」이 `tick` 이고, 그동안은 아무도 손을 못 댄다.
+ * 커널의 세 번째 모서리다. 반응 측정은 동시, 실시간, 오목, 사목은 차례, 정적인데
+ * 이것은 **차례가 있으면서 시간도 흐른다**. 두 장을 뒤집고 나면 잠깐 보여 준 뒤 도로 덮인다.
+ * 그 잠깐이 `tick` 이고, 그동안은 아무도 손을 못 댄다.
  *
  * 맞히면 **한 번 더** 둔다(맞힌 사람이 계속 가져가는 것이 이 놀이의 리듬이다).
- * 그래서 차례가 자동으로 넘어가지 않는다 — 커널이 차례를 안 갖고 게임이 갖는 이유가 여기 있다.
+ * 그래서 차례가 자동으로 넘어가지 않는다. 커널이 차례를 안 갖고 게임이 갖는 이유가 여기 있다.
  *
  * 2~4인. 사람이 하나면 나머지는 봇이 앉는다.
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
 
-/** 짝의 수. 8쌍 = 16장 — 4×4 로 떨어져 폰에서도 한 화면에 들어간다. */
+/** 짝의 수. 8쌍 = 16장. 4×4 로 떨어져 폰에서도 한 화면에 들어간다. */
 const PAIRS = 8;
 /** 못 맞힌 두 장을 얼마나 보여 주고 덮나. 너무 짧으면 기억할 틈이 없다. */
 const PEEK_MS = 900;
@@ -21,12 +21,12 @@ const PEEK_MS = 900;
 export interface MemoryState {
   /** 카드에 적힌 값 (같은 값 둘이 한 짝) */
   cards: number[];
-  /** 이미 가져간 카드 — 0 = 아직 판 위, 그 외 = 가져간 자리 번호+1 */
+  /** 이미 가져간 카드. 0 = 아직 판 위, 그 외 = 가져간 자리 번호+1 */
   taken: number[];
   /** 지금 뒤집혀 있는 카드 자리 (0~2장) */
   up: number[];
   turn: number;
-  /** 방금 무슨 일이 있었나 — 판이 도는 중에도 할 말(과 소리)이 있어야 한다. */
+  /** 방금 무슨 일이 있었나. 판이 도는 중에도 할 말(과 소리)이 있어야 한다. */
   last?: { by: number; hit: boolean; at: number };
   /** 이 시각이 지나면 못 맞힌 두 장을 덮는다. 없으면 0 */
   hideAt: number;
@@ -52,7 +52,7 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
     };
   },
 
-  /** 덮이기를 기다리는 동안은 아무도 못 둔다 — 그때 누르면 남의 차례를 훔치게 된다. */
+  /** 덮이기를 기다리는 동안은 아무도 못 둔다. 그때 누르면 남의 차례를 훔치게 된다. */
   canAct(s, seat) {
     return s.hideAt === 0 && s.turn === seat && s.up.length < 2;
   },
@@ -67,31 +67,31 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
 
     const [x, y] = up;
     if (s.cards[x] === s.cards[y]) {
-      /* 맞혔다 — 가져가고 **한 번 더** 둔다. */
+      /* 맞혔다. 가져가고 **한 번 더** 둔다. */
       const taken = s.taken.slice();
       taken[x] = seat + 1;
       taken[y] = seat + 1;
       return { ...s, taken, up: [], last: { by: seat, hit: true, at: x } };
     }
-    /* 틀렸다 — 잠깐 보여 준 뒤 덮는다. 덮는 일은 `tick` 이 한다. */
+    /* 틀렸다. 잠깐 보여 준 뒤 덮는다. 덮는 일은 `tick` 이 한다. */
     return { ...s, up, hideAt: ctx.now + PEEK_MS, last: { by: seat, hit: false, at: x } };
   },
 
   tick(s, ctx) {
     if (s.hideAt === 0 || ctx.now < s.hideAt) return s;
-    /* 사람이 몇이든 다음 자리로 — 두 명이면 번갈이, 넷이면 돌아간다. */
+    /* 사람이 몇이든 다음 자리로. 두 명이면 번갈이, 넷이면 돌아간다. */
     return { ...s, up: [], hideAt: 0, turn: (s.turn + 1) % ctx.seats.length };
   },
 
   outcome(s, ctx): Outcome {
     if (s.taken.some((v) => v === 0)) {
-      /* 판이 안 끝나도 방금 일은 나른다 — 맞힌 소리와 헛짚은 소리가 다르다. */
+      /* 판이 안 끝나도 방금 일은 나른다. 맞힌 소리와 헛짚은 소리가 다르다. */
       if (!s.last) return { over: false };
       const who = ctx.seats[s.last.by]?.name ?? '';
       return {
         over: false,
         note: s.last.hit
-          /* `at` 은 글에 안 쓴다 — **같은 사람이 연달아 맞혀도 다른 순간**임을 나르려고 있다
+          /* `at` 은 글에 안 쓴다. **같은 사람이 연달아 맞혀도 다른 순간**임을 나르려고 있다
              (함대와 같은 이유). 이게 없으면 연속 사건이 하나로 뭉쳐 소리가 빠진다. */
           ? { key: 'arcade.memory.hit', params: { who, at: String(s.last.at) }, sound: 'good' }
           : { key: 'arcade.memory.miss', params: { who, at: String(s.last.at) }, sound: 'bad' }
@@ -117,11 +117,11 @@ export const memory: GameDef<MemoryState, MemoryAction> = {
     if (!hidden.length) return null;
 
     /* 봇의 기억은 **지금 화면에 보이는 것까지**다. 판을 통째로 훔쳐보면 사람이 한 판도 못 이긴다.
-     * 한 장을 뒤집어 둔 상태에서 그 짝이 이미 뒤집혀 있으면 그것을 집는다 — 그 이상은 안 본다. */
+     * 한 장을 뒤집어 둔 상태에서 그 짝이 이미 뒤집혀 있으면 그것을 집는다. 그 이상은 안 본다. */
     if (s.up.length === 1) {
       const want = s.cards[s.up[0]];
       const mate = hidden.find((i) => s.cards[i] === want);
-      /* 열에 세 번쯤은 「기억해 냈다」. 늘 기억하면 봇이 아니라 벽이다. */
+      /* 열에 세 번쯤은 기억해 냈다. 늘 기억하면 봇이 아니라 벽이다. */
       if (mate !== undefined && ctx.rng() < 0.35) {
         return { action: { cell: mate }, delayMs: 700 + ctx.rng() * 500 };
       }

@@ -1,4 +1,4 @@
-/** PDF 여백 자르기 — 바이트 알맹이 (TASK-KL-205 P4). */
+/** PDF 여백 자르기. 바이트 알맹이 (TASK-KL-205 P4). */
 import type { ToolRunner, ToolSpec } from './types';
 
 interface Backend { crop(data: string, margins: { top: number; right: number; bottom: number; left: number }): Promise<string>; }
@@ -9,7 +9,7 @@ export const spec: ToolSpec = { id: 'pdfcrop', ops: { crop: {
 } } };
 
 export const run: ToolRunner = async (op, args, deps) => {
-  if (op !== 'crop') throw new Error(`pdfcrop 에 「${op}」 는 없습니다`);
+  if (op !== 'crop') throw new Error(`pdfcrop 에 ${op} 는 없습니다`);
   const backend = deps?.pdfCrop as Backend | undefined;
   if (!backend) throw new Error('PDF 자르기 계산기가 없습니다 (deps.pdfCrop)');
   const data = String(args.data ?? '');

@@ -20,7 +20,7 @@ const items = playableGenshin(list)
     img: `https://gi.yatta.moe/assets/UI/${c.icon}.png`,
     element: ELEMENT[c.element],
     weapon: WEAPON[c.weaponType],
-    // 표에 없는 소속(파투스 분파 등)은 「기타」로 모은다 — 힌트가 뜻을 잃지 않게.
+    // 표에 없는 소속(파투스 분파 등)은 기타로 모은다. 힌트가 뜻을 잃지 않게.
     region: REGION[c.region] ?? '기타',
     rank: c.rank,
     body: BODY[c.bodyType] ?? '기타',
@@ -35,7 +35,7 @@ const topic = {
   emoji: '🌠',
   source: 'yatta.moe (ambr)',
   maxGuesses: 8,
-  // 표가 언제 만들어졌는지 — 빌드가 이걸 보고 「너무 오래됐다」를 말한다.
+  // 표가 언제 만들어졌는지. 빌드가 이걸 보고 너무 오래됐다를 말한다.
   fetchedAt: new Date().toISOString().slice(0, 10),
   fields: [
     { key: 'element', label: '원소', kind: 'category' },

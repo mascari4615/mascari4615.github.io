@@ -1,5 +1,5 @@
 /**
- * 편 갈라 — 창을 열어 실측 (TASK-KL-264 E1)
+ * 편 갈라. 창을 열어 실측 (TASK-KL-264 E1)
  *
  * 창 없는 검사(`test:teams`)는 셈만 본다. 여기서 보는 것은 **화면이 편으로 보이는가**다:
  * 넷이 앉고, 이웃이 서로 다른 편이고, 결과가 개인이 아니라 편으로 뜨는가.
@@ -8,14 +8,14 @@ import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
-   CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
-/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+   CI 에서는 늘 못 돌림이었다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
+/* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
 const server = await smokeBase();
 const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
-  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : ' — ' + detail}`);
+  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : '. ' + detail}`);
   if (!cond) fails.push(name);
 };
 
@@ -28,13 +28,13 @@ try {
   const res = await p.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 45000 });
   if (!res || !res.ok()) cantRun = `dev 서버가 안 뜬다 (${PAGE})`;
 } catch (e) {
-  cantRun = `dev 서버에 못 닿았다 — ${e.message}`;
+  cantRun = `dev 서버에 못 닿았다. ${e.message}`;
 }
 
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
-  /* 진열장에는 단추가 없다 — 물건을 집어야 「편 갈라」가 선다. 넷 이상 앉는 놀이로 확인한다. */
+  /* 진열장에는 단추가 없다. 물건을 집어야 편 갈라가 선다. 넷 이상 앉는 놀이로 확인한다. */
   await p.waitForSelector('[data-obj="reflex"]', { timeout: 60000 });
   await p.click('[data-obj="reflex"]');
   await p.waitForSelector('[data-team="reflex"]', { timeout: 60000 });
@@ -47,7 +47,7 @@ if (!cantRun) {
   check('넷이 앉는다', seats.length === 4, JSON.stringify(seats));
   const blue = await p.locator('.ac-seat.ac-team0').count();
   const red = await p.locator('.ac-seat.ac-team1').count();
-  check('둘씩 갈린다', blue === 2 && red === 2, `청 ${blue} · 홍 ${red}`);
+  check('둘씩 갈린다', blue === 2 && red === 2, `청 ${blue}, 홍 ${red}`);
   /* 이웃이 같은 편이면 차례가 도는 놀이에서 한 편이 연달아 둔다. */
   check('이웃한 자리는 서로 다른 편', /청/.test(seats[0] || '') && /홍/.test(seats[1] || ''), JSON.stringify(seats));
 
@@ -64,6 +64,6 @@ if (!cantRun) {
 
 await br.close();
 if (server) await server.close();
-if (cantRun) { console.log(`[arcade-teams] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
+if (cantRun) { console.log(`[arcade-teams] 못 돌았다. ${cantRun} (통과 아님)`); process.exit(2); }
 if (fails.length) { console.log(`[arcade-teams] 실패 ${fails.length}건`); process.exit(1); }
-console.log('[arcade-teams] 통과 — 화면이 편으로 보인다');
+console.log('[arcade-teams] 통과. 화면이 편으로 보인다');

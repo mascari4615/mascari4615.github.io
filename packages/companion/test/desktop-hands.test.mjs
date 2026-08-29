@@ -27,7 +27,7 @@ test('파일찾기는 name 조각으로 아래 폴더까지 뒤진다', async ()
   assert.match(found, /영수증-2026\.txt/);
 });
 
-test('없는 걸 찾으면 없다고 한다 — 지어내지 않는다', async () => {
+test('없는 걸 찾으면 없다고 한다. 지어내지 않는다', async () => {
   const root = tempTree();
   assert.match(await findFileHand([root]).run('없는것'), /못 찾았다/);
 });
@@ -57,7 +57,7 @@ test('시계는 지금 날짜를 돌려준다', async () => {
   assert.match(now, new RegExp(String(new Date().getFullYear())));
 });
 
-test('열기는 되돌릴 수 없는 손으로 표시돼 있다 — 표시가 관문을 세운다', () => {
+test('열기는 되돌릴 수 없는 손으로 표시돼 있다. 표시가 관문을 세운다', () => {
   assert.equal(openHand().undoable, false);
 });
 
@@ -76,7 +76,7 @@ test('아니라고 하면 아무 일도 안 한다', async () => {
     async allow() { return false; },
   });
   assert.equal(ran, false);
-  /* 123회차부터 **못 한 것도 결과로 돌아온다** — 빈손이면 두뇌가 막힌 줄도 모른다. */
+  /* 123회차부터 **못 한 것도 결과로 돌아온다**. 빈손이면 두뇌가 막힌 줄도 모른다. */
   assert.equal(done.length, 1);
   assert.match(done[0], /안 된다고 해서 안 했다/);
 });

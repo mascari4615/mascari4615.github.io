@@ -1,31 +1,31 @@
 /**
- * yawnbot outbound heartbeat (TASK-YB-021 — 자체 구현, 제3자 의존 0)
+ * yawnbot outbound heartbeat (TASK-YB-021. 자체 구현, 제3자 의존 0)
  *
- * 봇이 *스스로* N분 간격으로 「나 살아있음 + 시각」을 *노트북 밖* GitHub 에
+ * 봇이 *스스로* N분 간격으로 나 살아있음 + 시각을 *노트북 밖* GitHub 에
  * 기록한다. inbound HTTP / cloudflared 터널 의존을 제거한 push 모델:
  * 터널이 죽어도 봇 프로세스가 살아 egress 가능하면 기록이 갱신된다.
  *
- * 「감시 주체 ≠ 감시 대상」 — 기록을 *읽고 신선도를 판정*하는 watcher 는
+ * 감시 주체 ≠ 감시 대상. 기록을 *읽고 신선도를 판정*하는 watcher 는
  * github-hosted runner(노트북 밖) = `yawnbot-health.yml` 의 heartbeat job.
  * 본 모듈은 *sender* (노트북, 봇 안) 만 담당: memo repo 의 orphan 브랜치
  * `yawnbot-heartbeat` 파일을 GitHub Contents API (GET sha → PUT) 로 갱신.
- * 인증 = 기존 `MEMO_GITHUB_PAT` (digest-webhook 이 쓰는 그 토큰·패턴 재사용).
+ * 인증 = 기존 `MEMO_GITHUB_PAT` (digest-webhook 이 쓰는 그 토큰, 패턴 재사용).
  * 로컬 git 무관 = 다세션 인덱스 race 0, main 히스토리 무관.
  *
  * 추가로, 기록 자체가 막힌 경우(네트워크/DNS/인증 단절로 PUT 실패)는
- * inbound watcher 도 외부 watcher 도 즉시 볼 수 없으므로 — 기록 실패를
+ * inbound watcher 도 외부 watcher 도 즉시 볼 수 없으므로. 기록 실패를
  * ops-report 채널로 직접 alert 한다. 단 *상태 전이*(healthy↔unhealthy)
- * 에서만 1회 — 매 tick spam 방지.
+ * 에서만 1회. 매 tick spam 방지.
  *
  * 환경:
- *  - MEMO_GITHUB_PAT (또는 GITHUB_TOKEN)  — memo repo write 토큰 (미설정 시 비활성)
- *  - YAWNBOT_HEARTBEAT_REPO               — 기본 'mascari4615/memo'
- *  - YAWNBOT_HEARTBEAT_BRANCH             — 기본 'yawnbot-heartbeat'
- *  - YAWNBOT_HEARTBEAT_PATH               — 기본 '.heartbeat/yawnbot.json'
- *  - YAWNBOT_HEARTBEAT_INTERVAL_MIN       — 간격(분, 기본 5, 최소 1)
+ *  - MEMO_GITHUB_PAT (또는 GITHUB_TOKEN) . memo repo write 토큰 (미설정 시 비활성)
+ *  - YAWNBOT_HEARTBEAT_REPO              . 기본 'mascari4615/memo'
+ *  - YAWNBOT_HEARTBEAT_BRANCH            . 기본 'yawnbot-heartbeat'
+ *  - YAWNBOT_HEARTBEAT_PATH              . 기본 '.heartbeat/yawnbot.json'
+ *  - YAWNBOT_HEARTBEAT_INTERVAL_MIN      . 간격(분, 기본 5, 최소 1)
  *
  * 순수부(writeHeartbeatOnce / runHeartbeatTick)는 fetch/clock 주입으로
- * 단위 테스트 가능 (Discord client·실 네트워크·실 GitHub 무관).
+ * 단위 테스트 가능 (Discord client, 실 네트워크, 실 GitHub 무관).
  */
 
 import { ensureOrphanBranch } from './github-orphan-branch';
@@ -70,7 +70,7 @@ export interface HeartbeatAlert {
 }
 
 export interface HeartbeatHandle {
-  /** 즉시 1회 tick (테스트·수동 트리거용). */
+  /** 즉시 1회 tick (테스트, 수동 트리거용). */
   tickNow: () => Promise<void>;
   /** interval 해제. */
   stop: () => void;
@@ -206,7 +206,7 @@ export async function runHeartbeatTick(
     if (prevHealthy === null && healthy) {
       // 첫 tick 정상 → alert 없음
     } else if (healthy) {
-      alert?.({ healthy: true, reason: `heartbeat 복구 — ${reason}` });
+      alert?.({ healthy: true, reason: `heartbeat 복구. ${reason}` });
     } else {
       alert?.({ healthy: false, reason });
     }
@@ -219,7 +219,7 @@ let activeTickNow: (() => Promise<void>) | null = null;
 
 /**
  * heartbeat 시작. token 미설정 시 경고 후 no-op (다른 notifier 와 동일 정책).
- * 즉시 1회 기록 후 interval 등록. 반환 handle 로 수동 tick·stop.
+ * 즉시 1회 기록 후 interval 등록. 반환 handle 로 수동 tick, stop.
  */
 export function startHeartbeat(deps: HeartbeatDeps): HeartbeatHandle | null {
   stopHeartbeat();
@@ -227,7 +227,7 @@ export function startHeartbeat(deps: HeartbeatDeps): HeartbeatHandle | null {
   const token = deps.token?.trim();
   const logger = deps.logger ?? console;
   if (!token) {
-    logger.warn('[Heartbeat] MEMO_GITHUB_PAT 미설정 — outbound heartbeat 비활성');
+    logger.warn('[Heartbeat] MEMO_GITHUB_PAT 미설정. outbound heartbeat 비활성');
     return null;
   }
 
@@ -281,7 +281,7 @@ export function stopHeartbeat(): void {
 }
 
 /**
- * 수동 트리거 — 현재 실행 중인 heartbeat 의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
+ * 수동 트리거. 현재 실행 중인 heartbeat 의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
  * 비활성(token 미설정 등) 시 `inactive` 반환.
  */
 export async function triggerHeartbeatNow(): Promise<{ status: 'ok' | 'inactive' }> {

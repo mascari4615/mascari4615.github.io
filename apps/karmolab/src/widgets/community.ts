@@ -1,19 +1,19 @@
 /**
- * 커뮤니티 (TASK-KL-098) — KarmoLab 의 정식 화면 하나.
+ * 커뮤니티 (TASK-KL-098). KarmoLab 의 정식 화면 하나.
  *
  * 왜 이 자리인가 (사용자 발화):
  *   "KarmoLab에서 도구도 쓰고 커뮤니티도 하는거지" / "위젯이 아닐뿐인거야"
- * 그래서 앱 바깥의 딴 페이지가 아니라 **앱 안의 화면**으로 등록한다 —
- * 머리띠·사이드바·검색·계정·토스트를 그대로 물려받는다. 껍데기를 복제하지 않는다.
- * 「위젯이 아닐 뿐」은 `layout: 'wide'` + `noHero` 로 지킨다 (위젯 제목 카드·탭 줄 없음).
+ * 그래서 앱 바깥의 딴 페이지가 아니라 **앱 안의 화면**으로 등록한다 . 
+ * 머리띠, 사이드바, 검색, 계정, 토스트를 그대로 물려받는다. 껍데기를 복제하지 않는다.
+ * 위젯이 아닐 뿐은 `layout: 'wide'` + `noHero` 로 지킨다 (위젯 제목 카드, 탭 줄 없음).
  *
  * 왜 이 모양인가 (사용자 발화: "좀 커뮤니티 사이트 같은 커뮤니티를 원해. 지금은 그냥 뭐 댓글만
- * 다는 수준"). 요즘 커뮤니티(Discourse·Flarum·NodeBB)와 국내 게시판이 공통으로 갖는 것을 따랐다:
- *   ① 판(게시판)을 먼저 고른다 — 어디에 쓰는 글인지가 먼저 정해진다
- *   ② 목록 한 줄에 판단 재료가 다 있다 — 제목·글쓴이 얼굴·답글 수·조회·좋아요·마지막 움직임
+ * 다는 수준"). 요즘 커뮤니티(Discourse, Flarum, NodeBB)와 국내 게시판이 공통으로 갖는 것을 따랐다:
+ *   ① 판(게시판)을 먼저 고른다. 어디에 쓰는 글인지가 먼저 정해진다
+ *   ② 목록 한 줄에 판단 재료가 다 있다. 제목, 글쓴이 얼굴, 답글 수, 조회, 좋아요, 마지막 움직임
  *   ③ 정렬을 고른다 (최신 / 인기)
- *   ④ 글마다 주소가 있고, 그 안에서 좋아요·답글·대댓글이 오간다
- *   ⑤ 주인은 고정·진행 상태를 만진다
+ *   ④ 글마다 주소가 있고, 그 안에서 좋아요, 답글, 대댓글이 오간다
+ *   ⑤ 주인은 고정, 진행 상태를 만진다
  *
  * 글 주소 = `/?p=<글id>#community`. 앱이 한 페이지라 물음표로 글을 가리킨다.
  * 뒤로 가기로 목록↔글을 오간다.
@@ -29,7 +29,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         label: string;
         desc: string;
         count: number;
-        /** 마지막 글 제목·시각 — 갤러리가 살아 있는지 보여 주는 값. */
+        /** 마지막 글 제목, 시각. 갤러리가 살아 있는지 보여 주는 값. */
         lastTitle: string | null;
         lastAt: string | null;
         builtin: boolean;
@@ -39,7 +39,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         titled: boolean;
         canDelete: boolean;
         tags: string[];
-        /** 이슈식 갤러리 — 글마다 번호와 상태가 있고 언젠가 닫힌다 (깃허브 이슈처럼). */
+        /** 이슈식 갤러리. 글마다 번호와 상태가 있고 언젠가 닫힌다 (깃허브 이슈처럼). */
         issueStyle?: boolean;
     }
 
@@ -50,7 +50,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         descMaxLength: number;
     }
 
-    /** 익명으로 남긴 글의 얼굴 — 채팅과 같은 하루짜리 이름표다 (TASK-KL-157). */
+    /** 익명으로 남긴 글의 얼굴. 채팅과 같은 하루짜리 이름표다 (TASK-KL-157). */
     interface AnonFace {
         name: string;
         color: string;
@@ -105,7 +105,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         signedIn: boolean;
         isAdmin: boolean;
         myHandle: string | null;
-        /** 오늘의 내 이름표 — 익명으로 올릴 때 어떤 이름이 나갈지 미리 보여 준다 (KL-157). */
+        /** 오늘의 내 이름표. 익명으로 올릴 때 어떤 이름이 나갈지 미리 보여 준다 (KL-157). */
         myAnon: AnonFace | null;
         canWrite: boolean;
         maxLength: number;
@@ -124,8 +124,8 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /**
      * 상태 이름은 **갤러리 성격에 따라 다르게 부른다.**
-     * 도구 요청판에서 「열림」은 어색하고, 남이 만든 이슈 갤러리에서 「만들었음」은 안 맞는다.
-     * 값은 같고 부르는 말만 다르다 — 저장은 한 벌이다.
+     * 도구 요청판에서 열림은 어색하고, 남이 만든 이슈 갤러리에서 만들었음은 안 맞는다.
+     * 값은 같고 부르는 말만 다르다. 저장은 한 벌이다.
      */
     /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
        파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
@@ -148,13 +148,13 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     function statusLabels(gallery: { voteStyle: boolean }): Record<Post['status'], string> {
         return gallery.voteStyle ? statusLabelRequest() : statusLabelIssue();
     }
-    /** 닫힌 글인가 — 「열림만 보기」의 기준. */
+    /** 닫힌 글인가. 열림만 보기의 기준. */
     function isClosed(status: Post['status']): boolean {
         return status === 'done' || status === 'declined';
     }
 
     /* 겉모습은 `css/community.css` 한 곳이 정본이다 (change.board-unify ②).
-       앱(여기)과 글 장(`scripts/lib/shell-page.mjs`)이 **같은 파일을 각자 링크**한다 —
+       앱(여기)과 글 장(`scripts/lib/shell-page.mjs`)이 **같은 파일을 각자 링크**한다 . 
        디자인은 자주 바뀌므로 사본을 두면 그날부터 두 집이 갈라진다(사용자 확정 2026-08-23).
        커뮤니티는 눌렀을 때 받는 위젯이라 시트도 그때 붙인다(첫 화면 무게 0). */
     (function ensureCommunityStylesheet(): void {
@@ -183,7 +183,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     const preview = plainPreview;
 
-    /** 글쓴이 얼굴. 없으면 빈 동그라미 — 이름만 늘어선 목록은 사람이 안 보인다. */
+    /** 글쓴이 얼굴. 없으면 빈 동그라미. 이름만 늘어선 목록은 사람이 안 보인다. */
     function face(handle: string): string {
         const base = window.KarmoAccount?.apiBase ?? '';
         if (!base) return '<span class="c-face-blank"></span>';
@@ -192,9 +192,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     /**
-     * 「누가 썼나」를 **한 자리에서** 그린다 (TASK-KL-157).
+     * 누가 썼나를 **한 자리에서** 그린다 (TASK-KL-157).
      *
-     * 익명이면 얼굴도 손잡이도 없다 — 채팅에서 쓰던 그 이름표를 그 색으로 그대로 쓴다.
+     * 익명이면 얼굴도 손잡이도 없다. 채팅에서 쓰던 그 이름표를 그 색으로 그대로 쓴다.
      * 두 곳이 같은 이름으로 보여야 채팅과 게시판이 한 커뮤니티로 읽힌다.
      * 실명이면 예전 그대로(얼굴 + @손잡이).
      */
@@ -208,9 +208,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /**
      * 마지막으로 실패한 부름.
      *
-     * 「안 돼요」만 보여 주면 사용자도 나도 못 고친다 (레퍼런스: 오류 메시지는 *무엇이·왜·이제
+     * 안 돼요만 보여 주면 사용자도 나도 못 고친다 (레퍼런스: 오류 메시지는 *무엇이, 왜, 이제
      * 무엇을* 을 줘야 한다). 그래서 실패할 때마다 그 자리에서 무슨 일이 있었는지 붙잡아 두고,
-     * 화면이 그것을 사람 말로 풀어서 보여 준다. 기술 정보는 접어 두되 **버리지는 않는다** —
+     * 화면이 그것을 사람 말로 풀어서 보여 준다. 기술 정보는 접어 두되 **버리지는 않는다** . 
      * 요청 번호 하나면 서버 로그에서 그 요청을 바로 집을 수 있다.
      */
     interface Failure {
@@ -261,7 +261,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             lastFailure = null;
             return await response.json();
         } catch {
-            // 여기까지 오면 답 자체를 못 받았다 — 서버가 죽었거나, 터널이 끊겼거나, 내가 오프라인.
+            // 여기까지 오면 답 자체를 못 받았다. 서버가 죽었거나, 터널이 끊겼거나, 내가 오프라인.
             lastFailure = {
                 kind: navigator.onLine === false ? 'offline' : 'unreachable',
                 status: 0,
@@ -274,9 +274,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         }
     }
 
-    /** 무엇이 · 왜 · 이제 무엇을. 종류마다 다르게 말한다 — 「안 돼요」 하나로 뭉치지 않는다. */
-    /* ★ 위와 같은 이유로 **부를 때 만든다** — 파일 읽는 순간 `t()` 를 부르면 던진다
-       (실측: 동무·소라고둥 화면이 `community.t78` 로 죽어 있었다). */
+    /** 무엇이, 왜, 이제 무엇을. 종류마다 다르게 말한다. 안 돼요 하나로 뭉치지 않는다. */
+    /* ★ 위와 같은 이유로 **부를 때 만든다**. 파일 읽는 순간 `t()` 를 부르면 던진다
+       (실측: 동무, 소라고둥 화면이 `community.t78` 로 죽어 있었다). */
     const failureText = (): Record<Failure['kind'], { title: string; why: string; todo: string }> => ({
         offline: {
             title: t('widgets.community-main.title', undefined, "인터넷이 끊겨 있어요"),
@@ -315,7 +315,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         },
     });
 
-    /** 오류 화면 — 다시 시도 단추가 있고, 기술 정보는 접어 두되 버리지 않는다. */
+    /** 오류 화면. 다시 시도 단추가 있고, 기술 정보는 접어 두되 버리지 않는다. */
     function failureHtml(fallbackTitle: string): string {
         const failure = lastFailure ?? {
             kind: 'unreachable' as const,
@@ -331,7 +331,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             dateStyle: 'short',
             timeStyle: 'medium',
         }).format(new Date(failure.at));
-        const detail = `${failure.code} · HTTP ${failure.status || t('community.t98')} · ${t('community.fail.request', { id: failure.requestId })} · ${failure.path} · ${stamp} (KST)`;
+        const detail = `${failure.code}, HTTP ${failure.status || t('community.t98')}, ${t('community.fail.request', { id: failure.requestId })}, ${failure.path}, ${stamp} (KST)`;
 
         return `<div class="c-empty">
             <h3>${esc(text.title || fallbackTitle)}</h3>
@@ -360,21 +360,21 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         });
     }
 
-    /** 커뮤니티를 못 여는 화면. 서버가 죽은 것과 「아무 글도 없다」는 다르다 — 섞어서 말하지 않는다. */
+    /** 커뮤니티를 못 여는 화면. 서버가 죽은 것과 아무 글도 없다는 다르다. 섞어서 말하지 않는다. */
     function offline(): void {
         if (!host) return;
         host.innerHTML = `<div class="c-wrap">${failureHtml(t('community.t101'))}</div>`;
         wireFailure();
     }
 
-    /** 짧은 알림에도 까닭을 한 마디 붙인다 — 「안 돼요」만으로는 다시 눌러야 할지도 모른다. */
+    /** 짧은 알림에도 까닭을 한 마디 붙인다. 안 돼요만으로는 다시 눌러야 할지도 모른다. */
     function toastFor(prefix: string): string {
         if (!lastFailure) return t('community.fail.retry', { prefix });
         const text = failureText()[lastFailure.kind];
-        return `${prefix} — ${text.todo} (${lastFailure.code}·${lastFailure.requestId})`;
+        return `${prefix}. ${text.todo} (${lastFailure.code}, ${lastFailure.requestId})`;
     }
 
-    /* ===== 주소가 정본 — 새로고침·뒤로 가기가 그대로 산다 ===== */
+    /* ===== 주소가 정본. 새로고침, 뒤로 가기가 그대로 산다 ===== */
 
     function param(name: string): string | null {
         return new URLSearchParams(location.search).get(name);
@@ -400,19 +400,19 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     let host: HTMLElement | null = null;
     let boards: Board[] = [];
-    /** 「글」 판(블로그) 요약 — 서버 판이 아니라 git 색인이 정본이다 (change.board-unify ①). */
+    /** 글 판(블로그) 요약. 서버 판이 아니라 git 색인이 정본이다 (change.board-unify ①). */
     let blogSummary: BlogBoardSummary | null = null;
-    /** 글쓰기 칸을 펼쳐 두었나 — 다시 그려도 접히지 않게 밖에 둔다. */
+    /** 글쓰기 칸을 펼쳐 두었나. 다시 그려도 접히지 않게 밖에 둔다. */
     let writerOpen = false;
 
-    /** 블로그 판의 고정 id — 서버 갤러리 id 와 충돌하지 않는 예약어. */
+    /** 블로그 판의 고정 id. 서버 갤러리 id 와 충돌하지 않는 예약어. */
     const BLOG_BOARD_ID = 'blog';
     const blogLabel = (): string => t('community.tab.blog', undefined, '글');
 
     /**
      * 채팅에서 줄을 옮겨 오면 **글쓰기 칸이 펴진 채로** 도착해야 한다 (TASK-KL-157).
      * 초안만 넣어 두고 접힌 화면을 주면, 옮겨 온 사람은 아무 일도 안 일어난 줄 안다.
-     * 표식은 한 번 쓰고 지운다 — 안 지우면 다음에 커뮤니티를 열 때마다 칸이 펴진다.
+     * 표식은 한 번 쓰고 지운다. 안 지우면 다음에 커뮤니티를 열 때마다 칸이 펴진다.
      */
     function takeWriterHandoff(): void {
         try {
@@ -428,7 +428,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     function signInBlock(text: string): string {
         /* 들어오는 길이 디스코드 하나뿐이면, 그 계정을 잃은 사람은 **영영 못 들어온다**.
-           복구 코드·기기 코드로 들어오는 길을 같은 자리에 둔다 (TASK-KL-098). */
+           복구 코드, 기기 코드로 들어오는 길을 같은 자리에 둔다 (TASK-KL-098). */
         return `<div class="c-signin"><p>${text}</p>
             <button type="button" class="btn btn-primary" data-signin>${esc(t('community.t27'))}</button>
             <button type="button" class="c-linkbtn" data-code-open>${esc(t('community.t28'))}</button>
@@ -458,7 +458,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 const value = form.querySelector<HTMLInputElement>('[data-code-input]')?.value ?? '';
                 const base = window.KarmoAccount?.apiBase;
                 if (!base || !value.trim()) return;
-                /* 어느 쪽 코드인지 사람에게 고르게 하지 않는다 — 받은 사람은 그게 무슨 종류인지
+                /* 어느 쪽 코드인지 사람에게 고르게 하지 않는다. 받은 사람은 그게 무슨 종류인지
                    모른다. 짧은 것(기기)부터 대 보고, 아니면 복구 코드로 대 본다. */
                 for (const path of ['/kl/auth/link', '/kl/auth/recovery']) {
                     try {
@@ -484,10 +484,10 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /* ===== 목록 ===== */
 
     /**
-     * 갤러리 목록 — 커뮤니티의 첫 화면.
+     * 갤러리 목록. 커뮤니티의 첫 화면.
      *
-     * 디시·아카가 그렇듯 **갤러리를 고르고 들어가는 것**이 커뮤니티의 첫 동작이다.
-     * 글 목록부터 들이밀면 「어디에 뭐가 있는지」를 영영 모른다.
+     * 디시, 아카가 그렇듯 **갤러리를 고르고 들어가는 것**이 커뮤니티의 첫 동작이다.
+     * 글 목록부터 들이밀면 어디에 뭐가 있는지를 영영 모른다.
      */
     /** 갤러리 만들기 칸을 펼쳐 두었나. */
     let galleryFormOpen = false;
@@ -500,9 +500,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /**
      * 주인이 볼 신고함 (TASK-KL-157).
      *
-     * 서버에는 `/kl/reports` 가 있었는데 **화면이 없었다** — 신고는 알림 한 줄로만 오고,
+     * 서버에는 `/kl/reports` 가 있었는데 **화면이 없었다**. 신고는 알림 한 줄로만 오고,
      * 그 알림을 놓치면 어디서도 다시 볼 수 없었다. 신고 단추만 있고 처리하는 자리가 없는 것은
-     * 「신고를 받는다」고 말만 하는 것이다.
+     * 신고를 받는다고 말만 하는 것이다.
      */
     interface OpenReport {
         id: string;
@@ -524,16 +524,16 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /** 아직 아무 글도 없는 판을 펴 두었나 (TASK-KL-161). */
     let emptyBoardsOpen = false;
 
-    /** 홈의 「글」 판 카드 — 다른 갤러리 카드와 같은 옷, 데이터만 git 색인 (색인을 못 받았으면 자리를 안 만든다). */
+    /** 홈의 글 판 카드. 다른 갤러리 카드와 같은 옷, 데이터만 git 색인 (색인을 못 받았으면 자리를 안 만든다). */
     function blogHomeCard(): string {
         if (!blogSummary) return '';
         return `<div class="c-gal-wrap">
             <button type="button" class="c-gal" data-gal="${BLOG_BOARD_ID}">
                 <span class="c-gal-name"><b>${esc(blogLabel())}</b><em>${blogSummary.count}</em></span>
-                <span class="c-gal-desc">${esc(t('community.blog.board-desc', undefined, '주인장의 글 — 목록은 여기, 읽기는 글 장에서'))}</span>
+                <span class="c-gal-desc">${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}</span>
                 <span class="c-gal-last ${blogSummary.lastTitle ? '' : 'c-gal-quiet'}">${
                     blogSummary.lastTitle
-                        ? `${esc(plainPreview(blogSummary.lastTitle, 28))} · ${relativeTime(blogSummary.lastAt ?? '')}`
+                        ? `${esc(plainPreview(blogSummary.lastTitle, 28))}, ${relativeTime(blogSummary.lastAt ?? '')}`
                         : t('community.t104')
                 }</span>
             </button>
@@ -544,8 +544,8 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         if (!host) return;
         /* **빈 판은 접는다** (TASK-KL-161).
          *
-         * 판 여섯 중 넷이 글 0개였다. 빈 판이 줄줄이 늘어선 목록은 「조용하다」가 아니라
-         * 「죽었다」로 읽힌다 — 처음 온 사람은 그 화면을 보고 아무것도 안 쓰고 나간다.
+         * 판 여섯 중 넷이 글 0개였다. 빈 판이 줄줄이 늘어선 목록은 조용하다가 아니라
+         * 죽었다로 읽힌다. 처음 온 사람은 그 화면을 보고 아무것도 안 쓰고 나간다.
          * 지우지는 않는다(그건 주인이 정할 일이고, 글이 생기면 저절로 살아난다).
          * 첫 글이 붙는 순간 그 판은 스스로 위로 올라온다. */
         const live = boards.filter((b) => b.count > 0 || b.lastTitle);
@@ -560,7 +560,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                         }</span>
                         <span class="c-gal-desc">${esc(b.desc || (b.createdByHandle ? t('community.board.madeBy', { handle: b.createdByHandle }) : ''))}</span>
                         <span class="c-gal-last ${b.lastTitle ? '' : 'c-gal-quiet'}">${
-                            b.lastTitle ? `${esc(plainPreview(b.lastTitle, 28))} · ${relativeTime(b.lastAt ?? '')}` : t('community.t104')
+                            b.lastTitle ? `${esc(plainPreview(b.lastTitle, 28))}, ${relativeTime(b.lastAt ?? '')}` : t('community.t104')
                         }</span>
                     </button>
                     ${b.canDelete ? `<button type="button" class="c-gal-del" data-gal-del="${esc(b.id)}" title="${esc(t('community.t03'))}">×</button>` : ''}
@@ -590,9 +590,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         /** 신고함. 주인이 아니거나 들어온 신고가 없으면 **자리 자체를 안 만든다.** */
         function renderReportBox(): string {
-            /* 주인인지 따로 안 묻는다 — `/kl/reports` 는 주인에게만 답한다(그 외엔 403).
+            /* 주인인지 따로 안 묻는다. `/kl/reports` 는 주인에게만 답한다(그 외엔 403).
                답이 온 것 자체가 주인이라는 뜻이라, 새 칸을 만들 필요가 없다.
-               들어온 신고가 없으면 자리 자체를 안 만든다 — 빈 「신고 0」이 늘 떠 있으면 안 읽힌다. */
+               들어온 신고가 없으면 자리 자체를 안 만든다. 빈 신고 0이 늘 떠 있으면 안 읽힌다. */
             if (reports.length === 0) return '';
             const rows = reports
                 .map(
@@ -606,7 +606,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                         <div class="c-report-foot">
                             ${
                                 /* 신고함에서 **바로 처리한다** (TASK-KL-158).
-                                   예전에는 「확인함」과 「글 보기」뿐이라, 지우려면 그 글로 건너가서
+                                   예전에는 확인함과 글 보기뿐이라, 지우려면 그 글로 건너가서
                                    다시 찾아야 했다. 처리하는 데 두 화면이 필요하면 안 처리한다. */
                                 r.kind === 'post'
                                     ? `<button type="button" class="c-linkbtn" data-report-open="${esc(r.postId)}">${esc(t('community.t33'))}</button>` +
@@ -636,7 +636,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                               ${p.tag ? `<span class="c-feed-tag">${esc(p.tag)}</span>` : ''}
                               <span class="c-feed-title">${esc(heading)}</span>
                               ${p.replyCount ? `<span class="c-cmt">[${p.replyCount}]</span>` : ''}
-                              <span class="c-feed-meta">${p.likes ? `♥ ${p.likes} · ` : ''}${relativeTime(p.bumpedAt)}</span>
+                              <span class="c-feed-meta">${p.likes ? `♥ ${p.likes}, ` : ''}${relativeTime(p.bumpedAt)}</span>
                           </button>`;
                       })
                       .join('')
@@ -651,7 +651,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             </form>
             ${
                 param('q')
-                    ? `<section class="c-feed"><h3>「${esc(param('q') ?? '')}」 찾은 글 ${searchHits.length}</h3>
+                    ? `<section class="c-feed"><h3>${esc(param('q') ?? '')} 찾은 글 ${searchHits.length}</h3>
                         <div class="c-feed-rows">${feedRows(searchHits, t('community.t108'))}</div></section>`
                     : ''
             }
@@ -667,7 +667,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             </div>
             ${renderReportBox()}
             <div class="c-bar"><h3 class="c-gal-title">갤러리 ${live.length}${
-                empty.length ? ` <button type="button" class="c-linkbtn" data-empty-toggle>· ${t('community.emptyBoards', { n: empty.length })}${emptyBoardsOpen ? t('community.t111') : t('community.t112')}</button>` : ''
+                empty.length ? ` <button type="button" class="c-linkbtn" data-empty-toggle>,  ${t('community.emptyBoards', { n: empty.length })}${emptyBoardsOpen ? t('community.t111') : t('community.t112')}</button>` : ''
             }</h3>${
                 boardsMeta.signedIn && !galleryFormOpen ? t('community.t113') : '<span></span>'
             }</div>
@@ -698,7 +698,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         host.querySelectorAll<HTMLButtonElement>('[data-report-open]').forEach((b) =>
             b.addEventListener('click', () => go({ p: b.dataset.reportOpen ?? null, board: null, q: null })),
         );
-        /** 처리하고 나면 그 신고는 이미 본 것이다 — 따로 「확인함」을 또 누르게 하지 않는다. */
+        /** 처리하고 나면 그 신고는 이미 본 것이다. 따로 확인함을 또 누르게 하지 않는다. */
         const resolveAfter = async (button: HTMLButtonElement, run: () => Promise<unknown>): Promise<void> => {
             button.disabled = true;
             const ok = await run();
@@ -792,24 +792,24 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             })) as { id?: string } | null;
             if (button) button.disabled = false;
             if (!created?.id) {
-                // 한글 이름이면 주소를 못 만든다 — 그 경우를 콕 집어 말해 준다.
+                // 한글 이름이면 주소를 못 만든다. 그 경우를 콕 집어 말해 준다.
                 const why = lastFailure?.code === 'bad_id' ? t('community.t118') : null;
                 Toolbox.showToast?.(why ?? toastFor(t('community.t119')));
                 return;
             }
             galleryFormOpen = false;
             boards = [];
-            // 만들었으면 바로 그 갤러리로 — 만들고 목록만 보면 어디 생겼나 찾게 된다.
+            // 만들었으면 바로 그 갤러리로. 만들고 목록만 보면 어디 생겼나 찾게 된다.
             go({ board: created.id, p: null, page: null, q: null, tag: null });
         });
     }
 
     function renderBoards(active: string): string {
-        // 무엇을 고르는 줄인지 안 적으면 말머리 줄과 헷갈린다 — 둘 다 동그란 칩이라 똑같아 보인다.
-        /* 「글」(블로그) 판은 서버 목록에 없는 붙박이다 — 데이터가 git 색인이라 서버가 모른다.
+        // 무엇을 고르는 줄인지 안 적으면 말머리 줄과 헷갈린다. 둘 다 동그란 칩이라 똑같아 보인다.
+        /* 글(블로그) 판은 서버 목록에 없는 붙박이다. 데이터가 git 색인이라 서버가 모른다.
            칩 줄에서는 다른 판과 똑같이 선다 (겉보기엔 다 게시판, change.board-unify ①). */
         const blogChip = `<button type="button" class="c-board" data-board="${BLOG_BOARD_ID}" data-on="${active === BLOG_BOARD_ID ? '1' : '0'}"
-                    title="${esc(t('community.blog.board-desc', undefined, '주인장의 글 — 목록은 여기, 읽기는 글 장에서'))}">${esc(blogLabel())}${
+                    title="${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}">${esc(blogLabel())}${
                         blogSummary ? `<span class="c-board-count">${blogSummary.count}</span>` : ''
                     }</button>`;
         return `<div class="c-picker"><span class="c-picker-label">${esc(t('community.t43'))}</span><div class="c-boards">${blogChip}${boards
@@ -822,8 +822,8 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     /* ===== 글쓰기 =====
      *
-     * 요즘 작성기가 공통으로 갖는 것을 따랐다 (레퍼런스: GitHub·Discourse 계열 편집기 조사):
-     * 서식 단추 · 쓰기/미리보기 · 초안 자동 저장 · 단축키 · 남은 글자 수 · 칸이 글에 맞춰 늘어남.
+     * 요즘 작성기가 공통으로 갖는 것을 따랐다 (레퍼런스: GitHub, Discourse 계열 편집기 조사):
+     * 서식 단추, 쓰기/미리보기, 초안 자동 저장, 단축키, 남은 글자 수, 칸이 글에 맞춰 늘어남.
      * 기억해야 쓸 수 있는 편집기는 안 쓰이므로, 기호를 몰라도 단추로 다 되게 했다.
      */
 
@@ -846,11 +846,11 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             if (!draft.title && !draft.text) localStorage.removeItem(draftKey(board));
             else localStorage.setItem(draftKey(board), JSON.stringify(draft));
         } catch {
-            /* 저장 공간이 꽉 찼으면 넘긴다 — 글쓰기를 막을 이유는 없다 */
+            /* 저장 공간이 꽉 찼으면 넘긴다. 글쓰기를 막을 이유는 없다 */
         }
     }
 
-    /** 서식 단추 — [이름, 앞에 붙일 것, 뒤에 붙일 것, 도움말, 단축키] */
+    /** 서식 단추. [이름, 앞에 붙일 것, 뒤에 붙일 것, 도움말, 단축키] */
     /* ★ 위와 같은 이유로 **부를 때 만든다** (2026-08-14). */
     const formatButtons = (): Array<[string, string, string, string, string]> => [
         [t('community.t120'), '**', '**', t('community.t121'), 'b'],
@@ -898,11 +898,11 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 <span class="c-write-hint">
                     <span data-count>0</span>/${data.maxLength}
                     ${nameLine(data)}
-                    · Ctrl+Enter 로 올리기
+                   , Ctrl+Enter 로 올리기
                     <!-- 어디에 쓰는 것이 얼마나 남는지 (TASK-KL-161).
-                         채팅은 하루 뒤 사라지고 글은 남는다 — 그 경계를 아무 데서도 안 알려 줘서,
+                         채팅은 하루 뒤 사라지고 글은 남는다. 그 경계를 아무 데서도 안 알려 줘서,
                          남기고 싶은 말을 채팅에 쓰고 잃는 일이 생긴다. -->
-                    · <b>${esc(t('community.t49'))}</b> ${esc(t('community.t50'))}
+                   , <b>${esc(t('community.t49'))}</b> ${esc(t('community.t50'))}
                 </span>
                 <span>
                     <button type="button" class="c-act" data-cancel>${esc(t('community.t31'))}</button>
@@ -913,9 +913,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     /**
-     * 「어떤 이름으로 올라가는가」를 올리기 **전에** 적는다 (TASK-KL-157).
+     * 어떤 이름으로 올라가는가를 올리기 **전에** 적는다 (TASK-KL-157).
      *
-     * 올리고 나서야 알게 되면 되돌릴 수가 없다 — 익명은 특히 그렇다. 로그인한 사람에게는
+     * 올리고 나서야 알게 되면 되돌릴 수가 없다. 익명은 특히 그렇다. 로그인한 사람에게는
      * 고를 칸을, 로그인 안 한 사람에게는 오늘의 이름표를 **그 색 그대로** 보여 준다.
      */
     function nameLine(data: { myHandle: string | null; myAnon: AnonFace | null }): string {
@@ -923,14 +923,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             ? `<span class="c-anon" style="color:${esc(data.myAnon.color)}">${esc(data.myAnon.name)}</span>`
             : t('community.t134');
         if (!data.myHandle) return t('community.anonNotice', { name: anonLabel });
-        return `· <label class="c-anonpick"><input type="checkbox" data-anon> ${esc(t('community.t52'))}</label>
+        return `,  <label class="c-anonpick"><input type="checkbox" data-anon> ${esc(t('community.t52'))}</label>
                 <span data-asname data-mine="@${esc(data.myHandle)}">@${esc(data.myHandle)}</span> ${esc(t('community.t53'))}
                 <template data-anonname>${anonLabel}</template>`;
     }
 
     /**
      * 익명 칸을 켜고 끌 때 **발밑 문구가 같이 바뀐다.**
-     * 칸만 있고 문구가 그대로면 「켠 게 먹혔나」를 올려 보기 전에는 알 수 없다.
+     * 칸만 있고 문구가 그대로면 켠 게 먹혔나를 올려 보기 전에는 알 수 없다.
      */
     function wireNameLine(scope: ParentNode): void {
         scope.querySelectorAll<HTMLInputElement>('[data-anon]').forEach((box) => {
@@ -951,7 +951,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         return box ? box.checked : true;
     }
 
-    /** 작성기 안의 손놀림 — 서식 단추·미리보기·초안·단축키·칸 높이. */
+    /** 작성기 안의 손놀림. 서식 단추, 미리보기, 초안, 단축키, 칸 높이. */
     function wireComposer(form: HTMLFormElement, board: string, submit: () => void): void {
         const title = form.querySelector<HTMLInputElement>('[data-title]');
         const text = form.querySelector<HTMLTextAreaElement>('[data-text]');
@@ -959,7 +959,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         const counter = form.querySelector<HTMLElement>('[data-count]');
         if (!text) return;
 
-        /** 칸이 글에 맞춰 늘어난다 — 긴 글을 좁은 창으로 들여다보게 하지 않는다. */
+        /** 칸이 글에 맞춰 늘어난다. 긴 글을 좁은 창으로 들여다보게 하지 않는다. */
         const grow = (): void => {
             text.style.height = 'auto';
             text.style.height = `${Math.min(text.scrollHeight + 2, 520)}px`;
@@ -1008,7 +1008,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             });
         });
 
-        /* 그림 — 「자랑」 갤러리인데 그림을 못 올리면 반쪽이다.
+        /* 그림. 자랑 갤러리인데 그림을 못 올리면 반쪽이다.
            올린 뒤에는 글 안에 마크다운 그림 줄을 끼워 넣는다 (본문과 같은 자리에 산다). */
         const uploadImage = async (file: File): Promise<void> => {
             const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -1019,7 +1019,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             }).catch(() => '');
             if (!dataUrl) return;
 
-            const mark = `\n![올리는 중…]()\n`;
+            const mark = `\n![올리는 중...]()\n`;
             const at = text.selectionStart ?? text.value.length;
             text.setRangeText(mark, at, at, 'end');
             sync();
@@ -1081,9 +1081,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /**
      * 빈 갤러리에 무엇을 띄울까 (TASK-KL-098).
      *
-     * 「아직 글이 없습니다」로 끝내면 읽는 사람은 **닫힌 곳**이라고 이해하고 나간다.
+     * 아직 글이 없습니다로 끝내면 읽는 사람은 **닫힌 곳**이라고 이해하고 나간다.
      * 빈 게시판의 진짜 문제는 글이 없는 것이 아니라 **무엇을 써야 할지 모르는 것**이다.
-     * 그래서 그 갤러리에서 실제로 쓸 만한 말을 예시로 보여 준다. 지어낸 글을 심지는 않는다 —
+     * 그래서 그 갤러리에서 실제로 쓸 만한 말을 예시로 보여 준다. 지어낸 글을 심지는 않는다 . 
      * 가짜 활동은 숫자를 지어내는 것과 같은 종류의 거짓말이다.
      */
     function emptyInvite(data: ListResponse, isRequest: boolean): string {
@@ -1108,15 +1108,15 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     function renderList(data: ListResponse): void {
         if (!host) return;
         const isRequest = data.gallery.voteStyle;
-        /* 이슈식 갤러리 — 글마다 번호와 상태가 늘 보인다 (깃허브 이슈처럼).
+        /* 이슈식 갤러리. 글마다 번호와 상태가 늘 보인다 (깃허브 이슈처럼).
            도구 요청판은 원래부터 그렇게 살아 왔으므로 같이 묶는다. */
         const isIssue = data.gallery.issueStyle === true || isRequest;
         const labels = statusLabels(data.gallery);
-        /* 「열림만 보기」 — 이슈 갤러리의 목록은 닫힌 글이 쌓이면 금세 안 읽힌다.
-           기본은 열림만이다: 이슈판을 여는 사람이 보고 싶은 것은 「아직 남은 것」이다. */
+        /* 열림만 보기. 이슈 갤러리의 목록은 닫힌 글이 쌓이면 금세 안 읽힌다.
+           기본은 열림만이다: 이슈판을 여는 사람이 보고 싶은 것은 아직 남은 것이다. */
         const closedFilter = param('closed');
         const showClosed = closedFilter === '1';
-        // 말머리는 **갤러리를 만든 사람**과 주인이 정한다 (디시·아카의 갤주 자리).
+        // 말머리는 **갤러리를 만든 사람**과 주인이 정한다 (디시, 아카의 갤주 자리).
         const canEditTags = data.isAdmin || (data.myHandle !== null && data.myHandle === data.gallery.createdByHandle);
 
         const sorts = isRequest
@@ -1126,30 +1126,30 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                    <button type="button" class="c-sort" data-sort="top" data-on="${data.sort === 'top' ? '1' : '0'}">${esc(t('community.t56'))}</button>
                </div>`;
 
-        /* 로그인은 이제 **글쓰기의 조건이 아니다** (KL-157) — 익명으로 쓸 수 있다.
-           로그인은 「내 글로 남기기·좋아요·알림」을 위한 것이고, 그건 권유지 문턱이 아니다. */
+        /* 로그인은 이제 **글쓰기의 조건이 아니다** (KL-157). 익명으로 쓸 수 있다.
+           로그인은 내 글로 남기기, 좋아요, 알림을 위한 것이고, 그건 권유지 문턱이 아니다. */
         let writer = '';
         if (!data.canWrite) writer = t('community.t150');
         else if (writerOpen) writer = composerHtml(data, isRequest);
         else if (!data.signedIn) writer = signInBlock(t('community.t151'));
 
-        // 검색·페이지는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
+        // 검색, 페이지는 주소에 남는다. 뒤로 가기로 보던 자리에 돌아온다.
         // 이 갤러리 안에서만 거른다. 갤러리를 가리지 않는 검색은 홈의 검색칸이 맡는다.
         const query = (param('q') ?? '').trim().toLowerCase();
         const filtered = query
             ? data.posts.filter((p) =>
                   /* 찾을 거리는 **서버가 만든 한 벌**을 쓴다 (KL-159). 예전엔 같은 규칙을
-                     여기에 또 적어 뒀는데, 그러면 한쪽만 고쳤을 때 「서버에선 찾히는데
-                     화면에선 안 찾히는」 상태가 된다 — 검색이 거짓말을 하게 된다.
+                     여기에 또 적어 뒀는데, 그러면 한쪽만 고쳤을 때 서버에선 찾히는데
+                     화면에선 안 찾히는 상태가 된다. 검색이 거짓말을 하게 된다.
                      옛 서버가 이 칸을 안 줄 수도 있으니 그때만 최소한으로 되돌아간다. */
                   (p.searchable ?? `${p.title ?? ''} ${p.text} ${p.anon?.name ?? ''}`.toLowerCase()).includes(query),
               )
             : data.posts;
 
         /* 이슈 갤러리는 **열린 것만** 먼저 보여준다. 닫힌 글까지 섞으면 목록은 금세
-           「지난 일 더미」가 되고, 정작 남은 일이 안 보인다. 닫힌 것은 눌러서 편다. */
+           지난 일 더미가 되고, 정작 남은 일이 안 보인다. 닫힌 것은 눌러서 편다. */
         const closedCount = isIssue ? filtered.filter((p) => isClosed(p.status)).length : 0;
-        /* 「무엇을 보고 있나」는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
+        /* 무엇을 보고 있나는 주소에 남는다. 뒤로 가기로 보던 자리에 돌아온다.
            기본은 열린 것: 이슈 갤러리를 여는 사람이 보고 싶은 건 아직 남은 것이다. */
         const stateParam = showClosed ? 'all' : (param('state') ?? 'open');
         const inState = (post: Post): boolean =>
@@ -1168,7 +1168,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 count: countOf(key),
                 on: stateParam === key,
             }))
-            // 한 건도 없는 상태는 고를 이유가 없다 (「안 함 0」이 늘 떠 있으면 줄만 길어진다).
+            // 한 건도 없는 상태는 고를 이유가 없다 (안 함 0이 늘 떠 있으면 줄만 길어진다).
             .filter((f) => f.count > 0 || f.on);
 
         const PER_PAGE = 30;
@@ -1176,7 +1176,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         const page = Math.min(Math.max(1, Number(param('page') ?? '1') || 1), pageCount);
         const shown = visible.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-        /** 오늘 글은 시각, 지난 글은 날짜 — 국내 게시판이 다 이렇게 한다 (한눈에 오늘 것이 보인다). */
+        /** 오늘 글은 시각, 지난 글은 날짜. 국내 게시판이 다 이렇게 한다 (한눈에 오늘 것이 보인다). */
         const stamp = (iso: string): string => {
             const at = new Date(iso);
             if (Number.isNaN(at.getTime())) return '';
@@ -1246,15 +1246,15 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             pages.push(`<button type="button" class="c-page" data-page="${page + 1}" ${page === pageCount ? 'disabled' : ''}>›</button>`);
         }
 
-        // 어느 갤러리에 들어와 있는지가 제일 크게 보여야 한다 — 안 그러면 여기가 어딘지 모른다.
+        // 어느 갤러리에 들어와 있는지가 제일 크게 보여야 한다. 안 그러면 여기가 어딘지 모른다.
         const gallery = data.gallery;
         host.innerHTML = `<div class="c-wrap">
             <div class="c-gal-head">
                 <button type="button" class="c-linkbtn" data-board-home>${esc(t('community.t57'))}</button>
                 <h2>${esc(gallery.label)}</h2>
                 <p>${esc(gallery.desc)}${
-                    gallery.createdByHandle ? ` · ${t('community.gallery.madeBy', { handle: esc(gallery.createdByHandle) })}` : ''
-                } · 글 ${gallery.count ?? data.posts.length}</p>
+                    gallery.createdByHandle ? `, ${t('community.gallery.madeBy', { handle: esc(gallery.createdByHandle) })}` : ''
+                }, 글 ${gallery.count ?? data.posts.length}</p>
             </div>
             ${renderBoards(data.board)}
             ${
@@ -1295,8 +1295,8 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                     : ''
             }
             ${
-                // 상태별 개수 — 깃허브 이슈의 「Open 3 / Closed 12」 줄. 개수가 같이 보여야
-                // 「이 갤러리가 밀려 있나」를 한눈에 안다. 닫힌 글이 없으면 고를 것도 없다.
+                // 상태별 개수. 깃허브 이슈의 Open 3 / Closed 12 줄. 개수가 같이 보여야
+                // 이 갤러리가 밀려 있나를 한눈에 안다. 닫힌 글이 없으면 고를 것도 없다.
                 isIssue && closedCount > 0
                     ? `<div class="c-picker">
                            <span class="c-picker-label">${esc(t('community.t21'))}</span>
@@ -1313,7 +1313,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             }
             ${
                 // 갤러리를 만든 사람은 이 갤러리를 이슈식으로 쓸지 고를 수 있다 (사용자 요청).
-                // 요청판처럼 원래 이슈로 사는 갤러리는 끌 수 없다 — 그 갤러리의 뜻 자체가 그것이다.
+                // 요청판처럼 원래 이슈로 사는 갤러리는 끌 수 없다. 그 갤러리의 뜻 자체가 그것이다.
                 canEditTags && !data.gallery.voteStyle
                     ? `<div class="c-picker">
                            <span class="c-picker-label">${esc(t('community.t61'))}</span>
@@ -1460,14 +1460,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 })) as { id?: string } | null;
                 if (button) button.disabled = false;
                 if (!created?.id) {
-                    // 하루 상한에 걸린 경우도 여기로 온다 — 왜 막혔는지 사람 말로 알린다.
+                    // 하루 상한에 걸린 경우도 여기로 온다. 왜 막혔는지 사람 말로 알린다.
                     Toolbox.showToast?.(toastFor(t('community.t166')));
                     return;
                 }
                 // 올라갔으니 초안은 지운다. 안 지우면 다음에 열 때 이미 올린 글이 또 들어 있다.
                 saveDraft(data.board, { title: '', text: '' });
                 writerOpen = false;
-                // 방금 쓴 글로 바로 들어간다 — 올리고 목록만 보면 내 글이 어디 갔나 찾게 된다.
+                // 방금 쓴 글로 바로 들어간다. 올리고 목록만 보면 내 글이 어디 갔나 찾게 된다.
                 go({ p: created.id });
             };
             writeForm.addEventListener('submit', (event) => {
@@ -1482,7 +1482,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /* ===== 글 하나 ===== */
 
     function renderReply(reply: Reply, data: DetailResponse): string {
-        // 익명 답글은 손잡이가 비어 있다 — 「빈 손잡이끼리 같다」로 남의 글이 지워지면 안 된다.
+        // 익명 답글은 손잡이가 비어 있다. 빈 손잡이끼리 같다로 남의 글이 지워지면 안 된다.
         const canDelete =
             data.isAdmin || (reply.anon === null && data.myHandle !== null && data.myHandle === reply.authorHandle);
         return `<li class="c-reply" data-child="${reply.parentId ? '1' : '0'}" data-owner="${reply.byOwner ? '1' : '0'}">
@@ -1512,12 +1512,12 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     }
 
     /**
-     * 「글」 판 화면 — 다른 판과 같은 머리·칩 줄·표 골격, 다만 글쓰기 칸이 없다
+     * 글 판 화면. 다른 판과 같은 머리, 칩 줄, 표 골격, 다만 글쓰기 칸이 없다
      * (이 판의 글쓰기 = git 커밋). 줄을 누르면 정적 장으로 간다 (change.board-unify ①).
      */
     async function renderBlogBoard(): Promise<void> {
         if (!host) return;
-        /* 다른 판 칩도 같이 세우고 싶을 뿐이다 — 못 받으면 「글」 칩만 선다 (막지 않는다). */
+        /* 다른 판 칩도 같이 세우고 싶을 뿐이다. 못 받으면 글 칩만 선다 (막지 않는다). */
         if (boards.length === 0) {
             const raw = (await api('/kl/boards')) as BoardsResponse | null;
             if (raw?.boards) {
@@ -1527,7 +1527,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         }
         const posts = await loadPostsIndex();
         if (!posts) {
-            host.innerHTML = `<div class="c-wrap">${failureHtml(t('community.blog.offline', undefined, '글 색인을 못 받았다 — 잠시 뒤 다시 열어 보라.'))}</div>`;
+            host.innerHTML = `<div class="c-wrap">${failureHtml(t('community.blog.offline', undefined, '글 색인을 못 받았다. 잠시 뒤 다시 열어 보라.'))}</div>`;
             wireFailure();
             return;
         }
@@ -1537,7 +1537,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             <div class="c-gal-head">
                 <button type="button" class="c-linkbtn" data-board-home>${esc(t('community.t57'))}</button>
                 <h2>${esc(blogLabel())}</h2>
-                <p>${esc(t('community.blog.board-desc', undefined, '주인장의 글 — 목록은 여기, 읽기는 글 장에서'))} · 글 ${posts.length}</p>
+                <p>${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}, 글 ${posts.length}</p>
             </div>
             ${renderBoards(BLOG_BOARD_ID)}
             <div data-blog-body></div>
@@ -1572,7 +1572,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                   .join('')
             : t('community.t168');
 
-        /* 답글도 익명으로 단다 (KL-157). 예전엔 로그인해야만 이 칸이 떴다 — 채팅에서 넘어온
+        /* 답글도 익명으로 단다 (KL-157). 예전엔 로그인해야만 이 칸이 떴다. 채팅에서 넘어온
            사람이 대화에 못 끼는 자리가 바로 여기였다. */
         const replyForm = `<form class="c-write" data-reply-form>
                    <textarea name="cReply" data-reply-text maxlength="${data.replyMaxLength}" placeholder="${esc(t('community.t19'))}" aria-label="${esc(t('community.t20'))}" required></textarea>
@@ -1605,12 +1605,12 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                     ${data.isAdmin ? `<button type="button" class="c-act" data-pin>${post.pinned ? t('community.t175') : t('community.t176')}</button>` : ''}
                 </div>
                 ${
-                    // 닫힌 글은 「언제·누가·왜」가 같이 보여야 한다. 그게 없으면 그냥 사라진 글로 읽힌다.
+                    // 닫힌 글은 언제, 누가, 왜가 같이 보여야 한다. 그게 없으면 그냥 사라진 글로 읽힌다.
                     detailIsIssue && post.status !== 'open'
                         ? `<div class="c-closed" data-status="${esc(post.status)}">
                                <b>${detailLabels[post.status]}</b>
                                ${post.statusNote ? `<span>${esc(post.statusNote)}</span>` : ''}
-                               ${post.statusAt ? `<span class="c-closed-when">${esc(relativeTime(post.statusAt))}${post.statusBy ? ` · @${esc(post.statusBy)}` : ''}</span>` : ''}
+                               ${post.statusAt ? `<span class="c-closed-when">${esc(relativeTime(post.statusAt))}${post.statusBy ? `, @${esc(post.statusBy)}` : ''}</span>` : ''}
                            </div>`
                         : ''
                 }
@@ -1645,7 +1645,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
          * 누르면 **그 자리에서 바로** 바뀐다. 서버 확인은 뒤에서 한다.
          *
          * 좋아요 같은 것은 눌렀는데 반응이 없으면 두 번 누르게 된다. 그래서 숫자와 눌림 표시를
-         * 먼저 바꾸고 요청을 보낸다. 실패하면 되돌리고 그때만 알린다 — 잘 되는 흔한 경우에
+         * 먼저 바꾸고 요청을 보낸다. 실패하면 되돌리고 그때만 알린다. 잘 되는 흔한 경우에
          * 아무 소리도 안 나는 것이 맞다.
          */
         const optimisticToggle = async (button: HTMLElement, path: string, label: (n: number) => string): Promise<void> => {
@@ -1706,7 +1706,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         });
 
         host.querySelector('[data-report]')?.addEventListener('click', async () => {
-            // 신고해도 글은 안 사라진다. 그 사실을 먼저 말해 준다 — 안 그러면 「지우기」로 오해한다.
+            // 신고해도 글은 안 사라진다. 그 사실을 먼저 말해 준다. 안 그러면 지우기로 오해한다.
             const reason = prompt(t('community.t179'));
             if (reason === null) return;
             const ok = await api('/kl/reports', {
@@ -1743,7 +1743,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             }),
         );
 
-        // 「답글」을 누르면 아래 입력칸이 그 답글에 달리는 답글이 된다.
+        // 답글을 누르면 아래 입력칸이 그 답글에 달리는 답글이 된다.
         let replyTo: string | null = null;
         const target = host.querySelector<HTMLElement>('[data-reply-target]');
         const textarea = host.querySelector<HTMLTextAreaElement>('[data-reply-text]');
@@ -1755,7 +1755,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             }),
         );
 
-        // 답글도 Ctrl+Enter 로 보낸다 — 짧은 말을 쓰려고 마우스를 잡게 하지 않는다.
+        // 답글도 Ctrl+Enter 로 보낸다. 짧은 말을 쓰려고 마우스를 잡게 하지 않는다.
         textarea?.addEventListener('keydown', (event) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                 event.preventDefault();
@@ -1792,17 +1792,17 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     /**
      * 화면을 다시 그린다.
      *
-     * **지우고 시작하지 않는다.** 예전에는 누를 때마다 「불러오는 중」으로 비웠다가 다시 채워서
+     * **지우고 시작하지 않는다.** 예전에는 누를 때마다 불러오는 중으로 비웠다가 다시 채워서
      * 화면이 번쩍였다 (사용자: "뭐 누를떄 마다 '불러오는 중' 하고 ui 깜빡이는거 마음에 안들어").
      * 이미 뭔가 그려져 있으면 그대로 두고, 새 내용이 준비됐을 때 한 번에 갈아 끼운다.
-     * 「불러오는 중」은 **아무것도 없는 첫 순간에만** 나온다.
+     * 불러오는 중은 **아무것도 없는 첫 순간에만** 나온다.
      */
     async function render(): Promise<void> {
         if (!host) return;
         takeWriterHandoff();
         if (host.childElementCount === 0) host.innerHTML = t('community.t187');
 
-        /* 「글」 판은 **서버보다 먼저** 갈라진다 — 데이터가 git 색인이라 봇이 꺼져 있어도
+        /* 글 판은 **서버보다 먼저** 갈라진다. 데이터가 git 색인이라 봇이 꺼져 있어도
            이 판만은 열린다 (change.board-unify ①: fail-open, 서버 죽어도 글은 읽힌다). */
         if (param('board') === BLOG_BOARD_ID) {
             await renderBlogBoard();
@@ -1837,9 +1837,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 api('/kl/boards') as Promise<BoardsResponse | null>,
                 api('/kl/recent?kind=best&limit=6') as Promise<{ posts?: Post[] } | null>,
                 api('/kl/recent?limit=6') as Promise<{ posts?: Post[] } | null>,
-                // 주인이 아니면 403 이 오고 `null` 이 된다 — 그대로 빈 신고함이 된다.
+                // 주인이 아니면 403 이 오고 `null` 이 된다. 그대로 빈 신고함이 된다.
                 api('/kl/reports') as Promise<{ reports?: OpenReport[] } | null>,
-                // 「글」 판 요약 — 색인을 못 받아도 홈은 산다 (카드만 안 선다).
+                // 글 판 요약. 색인을 못 받아도 홈은 산다 (카드만 안 선다).
                 loadPostsIndex(),
             ]);
             if (blogPosts) blogSummary = blogBoardSummary(blogPosts);
@@ -1890,17 +1890,17 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         if (host?.isConnected) void render();
     });
 
-    /* 메타(이름·분류·아이콘)는 `widgets-lazy-meta.ts` 한 곳에 산다 — 여기서 또 적으면
+    /* 메타(이름, 분류, 아이콘)는 `widgets-lazy-meta.ts` 한 곳에 산다. 여기서 또 적으면
        목록에 뜨는 이름과 열었을 때 이름이 갈라진다. 넓게 쓰고 제목 카드는 안 그린다(noHero). */
-    /* 「글」은 더 이상 별도 탭이 아니다 — 판 목록의 한 판이다 (change.board-unify ①,
-       사용자 확정: 「겉보기엔 다 게시판, 블로그만 예외 처리」). 탭이 하나면 탭 줄은 안 그려진다. */
+    /* 글은 더 이상 별도 탭이 아니다. 판 목록의 한 판이다 (change.board-unify ①,
+       사용자 확정: 겉보기엔 다 게시판, 블로그만 예외 처리). 탭이 하나면 탭 줄은 안 그려진다. */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta('community'),
         tabs: [
             {
                 id: 'community-main',
                 label: t('community.tab.main', undefined, '커뮤니티'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('community').then(function () {
                         build(container);

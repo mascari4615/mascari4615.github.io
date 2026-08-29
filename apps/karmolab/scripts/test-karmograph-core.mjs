@@ -1,11 +1,11 @@
 /**
- * KarmoGraph 알맹이 — 브라우저 없이 도는 규칙들 (TASK-KL-202).
+ * KarmoGraph 알맹이. 브라우저 없이 도는 규칙들 (TASK-KL-202).
  *
  * 왜 있나: 지금까지 이 위젯을 지켜 온 것은 **화면검사 60항목 하나뿐**이었다. 그건 한 번 도는 데
- * 100초가 걸리고, 「글 안의 고리를 끊는가」·「연표가 작은 값을 왼쪽에 두는가」 같은 **순수한 셈법**까지
+ * 100초가 걸리고, 글 안의 고리를 끊는가, 연표가 작은 값을 왼쪽에 두는가 같은 **순수한 셈법**까지
  * 브라우저를 띄워 확인해 왔다. 셈법이 깨졌는데 화면 어딘가가 가려 초록으로 보일 위험도 함께다.
  *
- * 그래서 순수 모듈(`lib/karmograph/notes` · `tidy` · `from-text` · `json-canvas` · `mermaid` · `sna`)만
+ * 그래서 순수 모듈(`lib/karmograph/notes`, `tidy`, `from-text`, `json-canvas`, `mermaid`, `sna`)만
  * esbuild 로 묶어 Node 에서 직접 돌린다. 1초 안에 끝나므로 canvas 해체 같은 큰 수술의 **안전망**이 된다.
  *
  * 사용: node scripts/test-karmograph-core.mjs   (npm run test:karmograph)
@@ -26,9 +26,9 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
-/** 여러 모듈을 한 번에 묶어 불러온다 — 각각 따로 묶으면 시작 비용이 검사 시간을 먹는다. */
+/** 여러 모듈을 한 번에 묶어 불러온다. 각각 따로 묶으면 시작 비용이 검사 시간을 먹는다. */
 async function loadModules() {
   const entry = path.join(os.tmpdir(), `km-core-${Date.now()}.ts`);
   fs.writeFileSync(entry, `
@@ -107,7 +107,7 @@ const M = await loadModules();
   notes.unlinkNote(spec, b);
   check(b.docRef === undefined && b.doc === '고쳐 쓴 글', '떼어 내면 사본이 그 자리에 남는다');
 
-  // 없애기 — 기본은 「자리마다 사본으로」. 빈칸이 되면 글이 증발한 것처럼 보인다.
+  // 없애기. 기본은 자리마다 사본으로. 빈칸이 되면 글이 증발한 것처럼 보인다.
   notes.deleteNote(spec, id, true);
   eq(notes.resolveDoc(spec, a), '고쳐 쓴 글', '흩어도 글자는 남는다');
   eq(notes.notesOf(spec).length, 0, '창고에서는 빠진다');
@@ -123,7 +123,7 @@ const M = await loadModules();
     { id: 'loop', title: '고리', text: '나: {{note:loop}}' },
   ];
   eq(M.notes.expandNoteText(spec, '{{note:n2}}'), '앞: 대가를 치른다', '끼운 글이 두 겹까지 펴진다');
-  // 말은 화면이 얹는다(setNoteWords) — 자료 층의 기본값은 중립적인 영어다.
+  // 말은 화면이 얹는다(setNoteWords). 자료 층의 기본값은 중립적인 영어다.
   check(notes.expandNoteText(spec, '{{note:loop}}').includes(notes.DEFAULT_NOTE_WORDS.loop),
     '자기를 부르는 고리는 끊긴다');
   check(notes.expandNoteText(spec, '{{note:없음}}').includes(notes.DEFAULT_NOTE_WORDS.missing),
@@ -141,7 +141,7 @@ const M = await loadModules();
   eq(notes.expandNoteText(spec, '{{note:rule#이름}}'), '이름을 잃는다', '그 대목만 실린다');
   check(notes.expandNoteText(spec, '{{note:rule#없음}}').includes(notes.DEFAULT_NOTE_WORDS.missingBlock),
     '없는 대목은 그렇게 적힌다');
-  // 화면이 제 말을 얹으면 그 말이 나온다 — 다리가 실제로 이어졌나.
+  // 화면이 제 말을 얹으면 그 말이 나온다. 다리가 실제로 이어졌나.
   notes.setNoteWords({ loop: '[L]', missing: '[M]', missingBlock: '[B]' });
   check(notes.expandNoteText(spec, '{{note:없음}}').includes('[M]'), '화면이 얹은 말이 실제로 쓰인다');
   notes.setNoteWords(notes.DEFAULT_NOTE_WORDS);
@@ -164,7 +164,7 @@ const M = await loadModules();
   const tree = tidy.layoutHierarchy(boxes, [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }], { x: 0, y: 0 });
   check(tree.get('a').y < tree.get('b').y && tree.get('b').y < tree.get('c').y, '계층은 흐름대로 내려간다');
 
-  // 고리뿐이면 첫 줄이 없다 — 그래도 「아무것도 안 함」으로 끝나면 안 된다.
+  // 고리뿐이면 첫 줄이 없다. 그래도 아무것도 안 함으로 끝나면 안 된다.
   const cyc = tidy.layoutHierarchy(boxes, [{ from: 'a', to: 'b' }, { from: 'b', to: 'a' }], { x: 0, y: 0 });
   eq(cyc.size, 3, '고리만 있어도 전부 놓는다');
 
@@ -174,7 +174,7 @@ const M = await loadModules();
   eq(tidy.bestTimeField([{ fields: { firstSeenAt: '3화' } }, { fields: { firstSeenAt: '9화' } }]), 'firstSeenAt', '숫자가 많은 칸이 시간축');
   eq(tidy.bestTimeField([{ fields: { memo: '3' } }]), null, '한 곳뿐이면 축이 아니다');
 
-  // 멱등 — 이미 안 겹치는 배치에서는 아무것도 안 바뀌어야 한다.
+  // 멱등. 이미 안 겹치는 배치에서는 아무것도 안 바뀌어야 한다.
   const spread = [{ id: 'a', x: 0, y: 0, w: 50, h: 20 }, { id: 'b', x: 400, y: 400, w: 50, h: 20 }];
   eq(tidy.unoverlap(spread, 24).size, 0, '안 겹치면 손대지 않는다');
 }
@@ -282,7 +282,7 @@ const M = await loadModules();
   const at = { x: 100, y: 50 };
   const z = cmath.zoomAt(v, 2, at);
   eq(z.scale, 2, '배율이 곱해진다');
-  // 그 자리의 **세계 좌표**가 확대 전후로 같아야 한다 — 아니면 보던 것이 옆으로 흐른다.
+  // 그 자리의 **세계 좌표**가 확대 전후로 같아야 한다. 아니면 보던 것이 옆으로 흐른다.
   const before = (at.x - v.tx) / v.scale;
   const after = (at.x - z.tx) / z.scale;
   check(Math.abs(before - after) < 0.001, '가리킨 자리는 제자리에 남는다');
@@ -308,7 +308,7 @@ const M = await loadModules();
   eq(b.minY, 0, '가장 위');
   eq(b.w, 140, '폭은 오른끝 - 왼끝');
   const empty = cmath.boundsOf([]);
-  check(empty.w > 0 && empty.h > 0, '빈 세계는 **기본 크기** — 0 을 주면 맞춤 보기가 배율을 무한대로 잡아 화면이 날아간다');
+  check(empty.w > 0 && empty.h > 0, '빈 세계는 **기본 크기**. 0 을 주면 맞춤 보기가 배율을 무한대로 잡아 화면이 날아간다');
 }
 
 // ── 미니맵 투영 ─────────────────────────────────────────────────────────────
@@ -325,11 +325,11 @@ const M = await loadModules();
   check(Math.abs((tl.x + br.x) / 2 - size.w / 2) < 0.001, '가운데 맞춰진다');
   eq(cmath.fitProjection({ minX: 0, minY: 0, w: 0, h: 0 }, size).scale, 0, '빈 세계는 배율 0');
 
-  // 「지금 보는 곳」 상자는 판 밖으로 안 나간다.
+  // 지금 보는 곳 상자는 판 밖으로 안 나간다.
   const vp = cmath.viewportRectOnMap(bounds, proj,
     { tx: 400, ty: 300, scale: 0.5, w: 4000, h: 3000 }, size);
-  check(vp.x >= 0 && vp.y >= 0, '판 왼쪽·위로 안 삐져나간다');
-  check(vp.x + vp.w <= size.w + 0.001 && vp.y + vp.h <= size.h + 0.001, '판 오른쪽·아래로도 안 나간다');
+  check(vp.x >= 0 && vp.y >= 0, '판 왼쪽, 위로 안 삐져나간다');
+  check(vp.x + vp.w <= size.w + 0.001 && vp.y + vp.h <= size.h + 0.001, '판 오른쪽, 아래로도 안 나간다');
 }
 
 // ── 관계망 셈법 ─────────────────────────────────────────────────────────────
@@ -341,7 +341,7 @@ const M = await loadModules();
   });
   const top = sna.topBy(r.betweenness, 1)[0];
 
-  // 「이어질 법한데 안 이어진 자리」 — 공통 이웃이 둘 이상인데 서로는 안 이어진 쌍.
+  // 이어질 법한데 안 이어진 자리. 공통 이웃이 둘 이상인데 서로는 안 이어진 쌍.
   const gaps = sna.structuralGaps({
     nodes: [nodeOf('a'), nodeOf('b'), nodeOf('c'), nodeOf('d')],
     edges: [
@@ -349,7 +349,7 @@ const M = await loadModules();
       { from: 'a', to: 'd' }, { from: 'b', to: 'd' },
     ],
   });
-  // a-b 도 c-d 도 서로 안 이어졌고 겹치는 이웃이 둘씩이다 — **둘 다** 자리다(한쪽만 세면 놓친다).
+  // a-b 도 c-d 도 서로 안 이어졌고 겹치는 이웃이 둘씩이다. **둘 다** 자리다(한쪽만 세면 놓친다).
   eq(gaps.length, 2, '안 이어진 쌍 둘 다 잡힌다');
   eq(gaps[0].shared, 2, '겹치는 사이 수를 센다');
   const pairs = gaps.map((g0) => [g0.a, g0.b].sort().join('')).sort().join('/');
@@ -370,7 +370,7 @@ const M = await loadModules();
   const byField = decor.nodeColor(node, [], flags, kindColor);
   check(byField !== '#kind', '칸 색이 종류 색을 이긴다');
   eq(decor.nodeColor(nodeOf('b'), [], flags, kindColor), '#kind', '아무 근거 없으면 종류 색');
-  // 뒤 규칙이 앞 규칙을 덮는다 — 목록을 위에서 아래로 읽는 것이 사람에게 익숙하다.
+  // 뒤 규칙이 앞 규칙을 덮는다. 목록을 위에서 아래로 읽는 것이 사람에게 익숙하다.
   eq(decor.nodeColor(node, [
     { id: '1', on: 'tag', value: '주인공', color: '#one' },
     { id: '2', on: 'tag', value: '주인공', color: '#two' },
@@ -392,7 +392,7 @@ const M = await loadModules();
   eq(filter.visibleNodes(nodes, edges, { ...base, fieldName: '출신' }, refOf).length, 1, '그 칸이 있는 것만');
   eq(filter.visibleNodes(nodes, edges, { ...base, fieldName: '출신', fieldValue: '천계' }, refOf).length, 0, '값까지 맞아야');
   eq(filter.visibleNodes(nodes, edges, { ...base, hideOrphans: true }, refOf).length, 2, '아무 선도 안 닿은 것은 빠진다');
-  // 되풀이 확인: a-b-c 사슬에서 「선 2개 이상」이면 **전부** 빠진다(한 번만 걸러내면 b 가 남는다).
+  // 되풀이 확인: a-b-c 사슬에서 선 2개 이상이면 **전부** 빠진다(한 번만 걸러내면 b 가 남는다).
   const chain = [nodeOf('a'), nodeOf('b'), nodeOf('c')];
   const chainEdges = [{ id: 'e1', from: 'a', to: 'b', kind: 'r' }, { id: 'e2', from: 'b', to: 'c', kind: 'r' }];
   eq(filter.visibleNodes(chain, chainEdges, { ...base, minDegree: 2 }, refOf).length, 0, '이웃이 빠지면 그 여파로 또 빠진다');
@@ -414,20 +414,20 @@ const M = await loadModules();
   eq(pending.size, 0, '보낸 뒤 대기열은 빈다');
 }
 // 안내가 **거짓말하지 않게**: ⌫(Backspace)는 고른 카드를 *지운다*. 되돌리기는 Ctrl+Z 다.
-// 토스트가 「⌫ 로 되돌립니다」라고 하면 사람은 그걸 눌러 카드를 지운다 — 가장 나쁜 안내다.
+// 토스트가 ⌫ 로 되돌립니다라고 하면 사람은 그걸 눌러 카드를 지운다. 가장 나쁜 안내다.
 {
   const widget = fs.readFileSync(path.join(root, 'src/widgets/karmograph/karmograph.ts'), 'utf8');
   const wrong = widget.includes(String.fromCharCode(0x232B) + ' 로 되돌');
-  check(!wrong, '「⌫ 로 되돌립니다」 안내가 남아 있다 — ⌫ 는 지우기다(되돌리기는 Ctrl+Z)');
+  check(!wrong, '⌫ 로 되돌립니다 안내가 남아 있다. ⌫ 는 지우기다(되돌리기는 Ctrl+Z)');
 }
 // 도움말이 **낡지 않게**: 기능은 느는데 도움말은 그대로면 발견성이 그만큼 준다.
 // 정확한 개수를 박으면 매번 고쳐야 하니 **하한**만 잠근다(줄어들면 누가 지운 것이다).
 {
   const help = fs.readFileSync(path.join(root, 'src/widgets/karmograph/help.ts'), 'utf8');
   const items = (help.match(/what:/g) ?? []).length;
-  check(items >= 40, `도움말 항목이 ${items}개 — 40개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
+  check(items >= 40, `도움말 항목이 ${items}개. 40개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
 }
-// ---- 누르면 무슨 뜻인가 (canvas-press) — 우선순위가 곧 규칙이라 여기서 잠근다
+// ---- 누르면 무슨 뜻인가 (canvas-press). 우선순위가 곧 규칙이라 여기서 잠근다
 {
   const { pressIntent } = M.press;
   const all = { canRewire: true, canMoveGroup: true, canEditEdge: true, canLink: true, canSelectMany: true };
@@ -436,7 +436,7 @@ const M = await loadModules();
   check(pressIntent({}, { ...all, canSelectMany: false }, { shiftKey: true }).kind === 'pan',
     '범위 고르기를 안 받는 캔버스면 Shift 를 쥐어도 밀기');
   check(pressIntent({ node: 'n1' }, all).kind === 'node-drag', '카드를 누르면 카드 끌기');
-  // 이 한 줄이 이 파일의 존재 이유다 — 손잡이가 카드보다 먼저 이겨야 선을 뽑을 수 있다.
+  // 이 한 줄이 이 파일의 존재 이유다. 손잡이가 카드보다 먼저 이겨야 선을 뽑을 수 있다.
   check(pressIntent({ node: 'n1', linkHandle: 'n1' }, all).kind === 'link',
     '손잡이가 카드보다 먼저다(뒤집히면 선을 영영 못 뽑는다)');
   check(pressIntent({ node: 'n1', linkHandle: 'n1' }, { ...all, canLink: false }).kind === 'node-drag',
@@ -463,7 +463,7 @@ const M = await loadModules();
   check(releaseIntent({ ...o, nodeId: 'n1' }, { x: 101, y: 100 }, { pressEdgeId: 'e1' }).kind === 'click-node',
     '카드가 그 밑을 지나는 선보다 먼저');
   check(releaseIntent(o, { x: 101, y: 100 }, { pressEdgeId: 'e1' }).kind === 'click-edge', '카드가 없으면 선 클릭');
-  // 손가락은 마우스보다 훨씬 흔들린다 — 같은 8px 이 마우스면 「끌기」, 손가락이면 「눌렀다 뗌」.
+  // 손가락은 마우스보다 훨씬 흔들린다. 같은 8px 이 마우스면 끌기, 손가락이면 눌렀다 뗌.
   check(releaseIntent(o, { x: 108, y: 100 }, { panning: true }).kind === 'drag-end', '마우스 8px = 끌기');
   check(releaseIntent(o, { x: 108, y: 100, pointerType: 'touch' }, { panning: true }).kind === 'click-background',
     '손가락 8px 은 그냥 누른 것(안 그러면 폰에서 탭이 자꾸 씹힌다)');
@@ -476,7 +476,7 @@ const M = await loadModules();
   check(isDropOnNode('n1', 'n2', 2) === false, '누른 것뿐이면 떨어뜨린 게 아니다');
 }
 
-// ---- 선 휘기 · 이름표 옮기기 (canvas-edgedrag)
+// ---- 선 휘기, 이름표 옮기기 (canvas-edgedrag)
 {
   const { curveFromPointer, labelPosFromPointer, CURVE_LIMIT } = M.edgedrag;
   const a = { x: 0, y: 0 }, b = { x: 100, y: 0 };
@@ -486,7 +486,7 @@ const M = await loadModules();
   const down = curveFromPointer(a, b, { x: 50, y: -20 });
   check(up > 0 && down < 0 && Math.abs(up + down) < 1e-9, '위로 끌면 위로, 아래로 끌면 아래로 같은 크기');
   check(Math.abs(curveFromPointer(a, b, { x: 50, y: 9999 })) <= CURVE_LIMIT, '아무리 끌어도 한계에서 멈춘다');
-  // 선 길이가 달라도 손을 「같은 비율」로 움직이면 같은 만큼 휜다 — 안 그러면 짧은 선이 미쳐 날뛴다.
+  // 선 길이가 달라도 손을 같은 비율로 움직이면 같은 만큼 휜다. 안 그러면 짧은 선이 미쳐 날뛴다.
   const long = curveFromPointer({ x: 0, y: 0 }, { x: 400, y: 0 }, { x: 200, y: 80 });
   check(Math.abs(long - curveFromPointer(a, b, { x: 50, y: 20 })) < 1e-9, '선 길이가 달라도 휘는 비율은 같다');
   check(labelPosFromPointer(a, b, { x: 50, y: 30 }) === 0.5, '가운데로 끌면 이름표도 가운데');
@@ -518,14 +518,14 @@ const M = await loadModules();
   const r2 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 }, 1);
   check(r2.w === 233 && r2.h === 111, 'Alt(격자 없음)면 1px 단위로 정수로 떨어진다');
   const r3 = resizedBox(200, 100, { dx: 33.4, dy: 10.6 });
-  check(r3.w === 232 && r3.h === 112, '크기가 8px 격자에 붙는다 — 자리와 같은 격자');
+  check(r3.w === 232 && r3.h === 112, '크기가 8px 격자에 붙는다. 자리와 같은 격자');
   const r4 = resizedBox(203, 100, { dx: 0, dy: 0 });
   check(r4.w % 8 === 0, '격자 밖에 있던 카드도 손대는 순간 줄에 붙는다');
   check(MIN_NODE_W % 8 === 0 && MIN_NODE_H % 8 === 0,
-    '최소 크기도 격자의 배수 — 제일 작은 카드만 줄이 어긋나면 안 된다');
+    '최소 크기도 격자의 배수. 제일 작은 카드만 줄이 어긋나면 안 된다');
 }
 
-/* 이웃 줄에 맞추기 (canvas-guides) — 격자가 못 맞추는 것을 맞춘다. */
+/* 이웃 줄에 맞추기 (canvas-guides). 격자가 못 맞추는 것을 맞춘다. */
 {
   const { alignGuides, neighborBoxes } = M.guides;
   const other = { id: 'b', x: 100, y: 300, w: 120, h: 40 };
@@ -537,12 +537,12 @@ const M = await loadModules();
   const far = alignGuides({ id: 'a', x: 40, y: 0, w: 30, h: 40 }, [other], 7);
   check(far.x === 40 && far.lines.length === 0, '멀면 안 붙고 줄도 안 뜬다(격자 결과를 안 건드린다)');
 
-  // 폭이 제각각이면 가운데는 **격자 위에 없다** — 격자만으로는 영원히 못 맞추는 자리.
+  // 폭이 제각각이면 가운데는 **격자 위에 없다**. 격자만으로는 영원히 못 맞추는 자리.
   const mid = alignGuides({ id: 'a', x: 121, y: 0, w: 78, h: 40 }, [other], 7);
   check(mid.x + 39 === 160, '가운데 줄에도 붙는다 (160 = 이웃의 가운데)');
 
   const two = alignGuides({ id: 'a', x: 96, y: 296, w: 80, h: 40 }, [other], 7);
-  check(two.lines.length === 2, '가로·세로 각각 한 줄씩 — 축마다 하나만 잡는다');
+  check(two.lines.length === 2, '가로, 세로 각각 한 줄씩. 축마다 하나만 잡는다');
 
   const self = alignGuides({ id: 'b', x: 102, y: 300, w: 120, h: 40 }, [other], 7);
   check(self.x === 102, '자기 자신에게는 안 붙는다');
@@ -554,7 +554,7 @@ const M = await loadModules();
 
 // ---- 손바닥만 한 판 (canvas-minimap)
 {
-  /* 나란히 놓기 · 고르게 벌리기 (2026-08-12) — 셈만 여기서 못 박는다. */
+  /* 나란히 놓기, 고르게 벌리기 (2026-08-12). 셈만 여기서 못 박는다. */
   {
     const { alignBoxes, spreadBoxes } = M.tidy;
     const boxes = [
@@ -563,17 +563,17 @@ const M = await loadModules();
       { id: 'c', x: 200, y: 200, w: 80, h: 40 },
     ];
     const left = alignBoxes(boxes, 'left');
-    check(left.get('b').x === 10 && left.get('c').x === 10, '왼쪽 맞춤 — 가장 왼쪽에 선다');
+    check(left.get('b').x === 10 && left.get('c').x === 10, '왼쪽 맞춤. 가장 왼쪽에 선다');
     check(left.has('a') === false, '이미 맞은 것은 결과에 안 넣는다');
     const right = alignBoxes(boxes, 'right');
-    check(right.get('a').x === 280 - 100, '오른쪽 맞춤 — 오른끝이 같아진다');
+    check(right.get('a').x === 280 - 100, '오른쪽 맞춤. 오른끝이 같아진다');
     const mid = alignBoxes(boxes, 'hcenter');
     check(mid.get('c').x === Math.round((10 + 280) / 2 - 40), '가로 가운데 맞춤');
     check(alignBoxes([boxes[0]], 'left').size === 0, '한 장만 골랐으면 아무것도 안 한다');
 
     const spread = spreadBoxes(boxes, 'x');
     const xs = [10, spread.get('b') ? spread.get('b').x : 50, 200];
-    check(xs[1] > 10 && xs[1] < 200, '고르게 벌리기 — 가운데 것이 사이로 간다');
+    check(xs[1] > 10 && xs[1] < 200, '고르게 벌리기. 가운데 것이 사이로 간다');
     check(spread.has('c') === false || spread.get('c').x === 200, '양끝은 그대로 둔다');
     check(spreadBoxes(boxes.slice(0, 2), 'x').size === 0, '두 장은 벌릴 사이가 없다');
   }
@@ -590,10 +590,10 @@ const M = await loadModules();
     nodes: [{ x: 0, y: 0, w: 180, h: 60, color: '#00ff00' }, { x: 3800, y: 2900, w: 180, h: 60, color: '#00ff00' }],
     ephemeral: [{ x: 100, y: 100, w: 120, h: 40 }],
   }, bounds, proj);
-  check(rects.length === 4, '묶음·카드·임시 카드가 모두 그려진다');
+  check(rects.length === 4, '묶음, 카드, 임시 카드가 모두 그려진다');
   check(rects[0].stroke === '#ff000030', '묶음이 맨 밑에 깔린다(그리는 순서 = 겹치는 순서)');
   check(rects[3].fill === EPHEMERAL_FILL, '흘러가는 카드는 늘 같은 물색');
-  // 4000px 판을 160px 로 줄이면 카드는 7px 이 된다 — 더 큰 판에서도 점이 사라지면 안 된다.
+  // 4000px 판을 160px 로 줄이면 카드는 7px 이 된다. 더 큰 판에서도 점이 사라지면 안 된다.
   const tiny = minimapRects({ groups: [], nodes: [{ x: 0, y: 0, w: 4, h: 4, color: '#000000' }], ephemeral: [] }, bounds, proj);
   check(tiny[0].w >= MINIMAP_MIN_PX && tiny[0].h >= MINIMAP_MIN_PX, '아무리 줄여도 안 보일 만큼 작아지지 않는다');
   const far = rects[2];
@@ -606,7 +606,7 @@ const M = await loadModules();
   check(nextOverlapping([], null) === null, '아무것도 없으면 고를 것도 없다');
   check(nextOverlapping(['e1', 'e2', 'e3'], null) === 'e1', '처음 누르면 맨 위 선');
   check(nextOverlapping(['e1', 'e2', 'e3'], 'e1') === 'e2', 'Shift 를 누를 때마다 아래로 내려간다');
-  // 끝에서 멈추면 사람은 그게 끝인지 고장인지 모른다 — 돌아온다.
+  // 끝에서 멈추면 사람은 그게 끝인지 고장인지 모른다. 돌아온다.
   check(nextOverlapping(['e1', 'e2', 'e3'], 'e3') === 'e1', '마지막 다음은 처음으로 돌아온다');
   check(nextOverlapping(['e1', 'e2'], 'e9') === 'e1', '직전에 고른 선이 이 자리에 없으면 맨 위부터');
   check(nextOverlapping(['e1', 'e1', 'e2'], 'e1') === 'e2', '같은 선이 두 번 잡혀도 한 번으로 센다');
@@ -618,7 +618,7 @@ const M = await loadModules();
   const { foldEphemeralLabel } = M.eph;
   check(foldEphemeralLabel('짧음', 200) === '짧음', '들어가면 그대로 둔다');
   const cut = foldEphemeralLabel('가나다라마바사아자차카타파하', 60);
-  check(cut.endsWith('…'), '넘치면 잘리고 …가 붙는다(안 붙이면 이름이 저게 전부인 줄 안다)');
+  check(cut.endsWith('...'), '넘치면 잘리고 ...가 붙는다(안 붙이면 이름이 저게 전부인 줄 안다)');
   check(cut.length < '가나다라마바사아자차카타파하'.length, '잘린 이름이 원래보다 짧다');
   check(foldEphemeralLabel('가나다라마바사', 0).length >= 4, '상자가 아무리 좁아도 네 글자는 남긴다');
 }
@@ -634,7 +634,7 @@ const M = await loadModules();
   const out = stripImages(spec0);
   check(out.removed === 1, '사진을 붙인 카드 수를 센다');
   check(out.spec.nodes[0].avatar === undefined, '사진은 빠진다(첫 글자 얼굴로 뜬다)');
-  // 사진 없는 「사진 카드」는 빈 상자로 보인다 — 보통 카드로 되돌려 보낸다.
+  // 사진 없는 사진 카드는 빈 상자로 보인다. 보통 카드로 되돌려 보낸다.
   check(out.spec.nodes[0].shape === 'rect', '사진 카드는 보통 카드로 되돌린다');
   check(out.spec.nodes[1].avatar.kind === 'emoji', '이모지 얼굴은 그대로(무게가 없다)');
   check(spec0.nodes[0].avatar.kind === 'image', '원본은 안 건드린다(사본을 만든다)');
@@ -647,34 +647,34 @@ const M = await loadModules();
   eq(target.tx, -200, '장면 카메라는 world 중심을 화면 중심에 둔다(x)');
   eq(target.ty, 0, '장면 카메라는 world 중심을 화면 중심에 둔다(y)');
   eq(M.camera.cameraForRect({ x: 0, y: 0, w: 10000, h: 10000 }, 100, 100).scale, 0.1, '카메라 최소 배율');
-  // 「전체 보기」는 1 을 넘겨 키우지 않는다 — 작은 판을 2배로 부풀리면 확대경이 된다.
+  // 전체 보기는 1 을 넘겨 키우지 않는다. 작은 판을 2배로 부풀리면 확대경이 된다.
   eq(M.camera.cameraForRect({ x: 0, y: 0, w: 100, h: 100 }, 800, 800, 0, 1).scale, 1, '맞춤은 100% 를 안 넘는다');
   check(M.camera.cameraForRect({ x: 0, y: 0, w: 100, h: 100 }, 800, 800).scale === 2, '발표 카메라는 그대로 당긴다');
-  /* 「전체 보기」는 곧 **가운데 놓기**다. 옆으로 넓은 판(가로에 배율이 걸려 세로가 남는 판)에서
-     남는 자리를 한쪽에 몰아 두면 그림이 화면 위쪽에만 붙는다 — 실측 2026-08-12, 40장짜리 판에서
+  /* 전체 보기는 곧 **가운데 놓기**다. 옆으로 넓은 판(가로에 배율이 걸려 세로가 남는 판)에서
+     남는 자리를 한쪽에 몰아 두면 그림이 화면 위쪽에만 붙는다. 실측 2026-08-12, 40장짜리 판에서
      아래 636px 이 텅 비었다. 셈이 여기 있으므로 여기서 못 박는다(TASK-KL-234 계열). */
   {
     const wide = M.camera.cameraForRect({ x: 0, y: 0, w: 3000, h: 200 }, 900, 800, 60);
     const top = wide.ty;                       // 화면 위끝 ~ 그림 위끝
     const bottom = 800 - (wide.ty + 200 * wide.scale);
-    check(Math.abs(top - bottom) < 1, `옆으로 넓은 판도 위아래 가운데 (위 ${Math.round(top)} · 아래 ${Math.round(bottom)})`);
+    check(Math.abs(top - bottom) < 1, `옆으로 넓은 판도 위아래 가운데 (위 ${Math.round(top)}, 아래 ${Math.round(bottom)})`);
     const left = wide.tx;
     const right = 900 - (wide.tx + 3000 * wide.scale);
-    check(Math.abs(left - right) < 1, `좌우도 가운데 (왼 ${Math.round(left)} · 오른 ${Math.round(right)})`);
+    check(Math.abs(left - right) < 1, `좌우도 가운데 (왼 ${Math.round(left)}, 오른 ${Math.round(right)})`);
   }
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
-// 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
+// 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 . 
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
 {
   const CAP = 1900;
   const file = path.join(root, 'src/lib/karmograph/canvas.ts');
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
-  check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);
+  check(lines <= CAP, `canvas.ts 가 ${lines}줄. 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);
 }
 // ── 할 수 있는 일 등록부 ⟷ 실제 손잡이 (TASK-KL-271 R4 / C5) ────────────────
-// 「새 기능은 여기 한 줄 늘려라」 같은 **사람 규율에 기댄 목록은 반드시 드리프트한다** —
+// 새 기능은 여기 한 줄 늘려라 같은 **사람 규율에 기댄 목록은 반드시 드리프트한다** . 
 // 실제로 판 이름 바꾸기가 두 자리에 살아 있었다. 등록만 하고 안 이은 것, 손으로 적은 HTML 로
 // 되돌아간 것을 기계가 잡는다.
 {
@@ -682,7 +682,7 @@ const M = await loadModules();
   const listed = [...reg.matchAll(/key: '([\w-]+)'/g)].map((m) => m[1]);
   const wid = fs.readFileSync(path.join(root, 'src/widgets/karmograph/karmograph.ts'), 'utf8');
   const wired = new Set([...wid.matchAll(/q<HTML\w+Element>\('([\w-]+)'\)\.onclick/g)].map((m) => m[1]));
-  check(listed.length > 0, '등록부가 비었다 — commands.ts 를 못 읽었다');
+  check(listed.length > 0, '등록부가 비었다. commands.ts 를 못 읽었다');
   const dead = listed.filter((k) => !wired.has(k));
   check(dead.length === 0, `등록만 되고 손잡이가 없는 것: ${dead.join(', ')}`);
   const dupes = listed.filter((k, i) => listed.indexOf(k) !== i);
@@ -691,7 +691,7 @@ const M = await loadModules();
 }
 
 // ── 손잡이를 놓은 자리 (TASK-KL-271 R1) ──────────────────────────────────────
-// 「빈 곳에 놓으면 새 카드」가 붙으면서 규칙이 셋이 됐다 — 규칙이 느는 자리는 눈으로 볼 수 있는
+// 빈 곳에 놓으면 새 카드가 붙으면서 규칙이 셋이 됐다. 규칙이 느는 자리는 눈으로 볼 수 있는
 // 순수 함수여야 검사로 잠근다(캔버스 본체 안 if 세 겹이면 손으로 끌어 보는 수밖에 없다).
 {
   const fake = (id) => ({ closest: () => (id ? { dataset: { id } } : null) });
@@ -703,24 +703,24 @@ const M = await loadModules();
 }
 
 // ── 되돌리기 더미의 무게 (TASK-KL-271 M4) ───────────────────────────────────
-// 판 하나가 커지면 그대로 예순 배다 — 사진이 붙는 순간 탭이 죽는다. 수가 아니라 무게로 자른다.
+// 판 하나가 커지면 그대로 예순 배다. 사진이 붙는 순간 탭이 죽는다. 수가 아니라 무게로 자른다.
 {
   const { dropFromFront, HISTORY_MAX_STEPS, HISTORY_MAX_BYTES } = M.history;
   eq(dropFromFront([100, 100, 100]), 0, '가벼우면 아무것도 안 버린다');
   eq(dropFromFront(new Array(HISTORY_MAX_STEPS + 3).fill(10)), 3, '수가 넘치면 넘친 만큼만 버린다');
   const heavy = new Array(6).fill(HISTORY_MAX_BYTES / 2);
   check(dropFromFront(heavy) >= 4, `무거운 판은 앞에서 버린다 (버린 수 ${dropFromFront(heavy)})`);
-  eq(dropFromFront([HISTORY_MAX_BYTES * 3]), 0, '한 판뿐이면 그 판은 안 버린다 — 방금 한 일은 되돌아가야 한다');
+  eq(dropFromFront([HISTORY_MAX_BYTES * 3]), 0, '한 판뿐이면 그 판은 안 버린다. 방금 한 일은 되돌아가야 한다');
   const after = (sizes) => sizes.slice(dropFromFront(sizes)).reduce((a, b) => a + b, 0);
   check(after(new Array(60).fill(HISTORY_MAX_BYTES / 4)) <= HISTORY_MAX_BYTES,
     '버리고 나면 더미 전체가 상한 아래다');
 }
 
 // ── 같은 말이 두 열쇠에 (TASK-KL-271) ────────────────────────────────────────
-// 이 작업의 발원 병이 그것이었다: 「이름 바꾸기」를 새로 만들면서 옛 자리를 못 지웠고, 같은 말이
+// 이 작업의 발원 병이 그것이었다: 이름 바꾸기를 새로 만들면서 옛 자리를 못 지웠고, 같은 말이
 // 두 곳에 살아 있다는 것을 **아무도 몰랐다**. 사람 눈 대신 기계가 본다.
-// 짧은 말(이름·종류·메모)은 자리마다 같아도 되고, 도움말 목록과 어휘 팩은 이름을 그대로 비추는
-// 것이 일이라 뺀다 — 걸러 낼 것은 **문장급으로 긴 말이 두 번 적힌 것**이다.
+// 짧은 말(이름, 종류, 메모)은 자리마다 같아도 되고, 도움말 목록과 어휘 팩은 이름을 그대로 비추는
+// 것이 일이라 뺀다. 걸러 낼 것은 **문장급으로 긴 말이 두 번 적힌 것**이다.
 {
   const cat = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/karmograph.json'), 'utf8'));
   const seen = new Map();
@@ -733,11 +733,11 @@ const M = await loadModules();
     if (seen.has(t)) dups.push(`${seen.get(t)} = ${k}`);
     else seen.set(t, k);
   }
-  check(dups.length === 0, `같은 말이 두 열쇠에 있다(문 둘이 될 자리): ${dups.join(' · ')}`);
+  check(dups.length === 0, `같은 말이 두 열쇠에 있다(문 둘이 될 자리): ${dups.join(', ')}`);
 }
 
 // ── 두 카드 사이 (TASK-KL-271 X6) ───────────────────────────────────────────
-// 관계도 앞에서 가장 자주 나오는 질문. 길찾기는 눈으로 못 보는 셈법이라(고리·끊긴 그래프) 여기서 잠근다.
+// 관계도 앞에서 가장 자주 나오는 질문. 길찾기는 눈으로 못 보는 셈법이라(고리, 끊긴 그래프) 여기서 잠근다.
 {
   const E = [
     { from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'c', to: 'd' },
@@ -756,20 +756,20 @@ const M = await loadModules();
 }
 
 // ── 관계망을 말로 (TASK-KL-271 L2) ──────────────────────────────────────────
-// 숫자만 주면 「그래서 뭐?」로 끝난다. 무슨 말을 할지는 여기서 정하고, 여기서 잠근다.
+// 숫자만 주면 그래서 뭐?로 끝난다. 무슨 말을 할지는 여기서 정하고, 여기서 잠근다.
 {
   const { snaLines, islandCount } = M.snaWords;
   const kinds = (f) => snaLines(f).map((l) => l.kind).join(',');
   eq(kinds({ nodes: 0, edges: 0, lonely: [], islands: 0 }), 'empty', '아무것도 없으면 그렇게 말한다');
   eq(kinds({ nodes: 5, edges: 0, lonely: [], islands: 5 }), 'empty', '선이 없으면 순위 말은 뜻이 없다');
   eq(kinds({ nodes: 6, edges: 4, lonely: ['가'], islands: 2, hub: { name: 'ㄱ', count: 3 } }),
-    'islands,lonely,hub', '놀라운 것 먼저 — 끊긴 조각 · 혼자 · 중심');
+    'islands,lonely,hub', '놀라운 것 먼저. 끊긴 조각, 혼자, 중심');
   eq(kinds({ nodes: 3, edges: 2, lonely: [], islands: 1, bridge: { name: 'ㄴ', score: 0.5 }, hub: { name: 'ㄱ', count: 2 } }),
     'hub', '셋 이하에서는 누구나 다리라 다리 말을 안 한다');
   eq(kinds({ nodes: 4, edges: 6, lonely: [], islands: 1, hub: { name: 'ㄱ', count: 1 } }),
-    'dense', '할 말이 없으면 「고르게 이어져 있다」도 말이다');
+    'dense', '할 말이 없으면 고르게 이어져 있다도 말이다');
   check(snaLines({ nodes: 9, edges: 9, lonely: ['a', 'b'], islands: 3, bridge: { name: 'x', score: 1 }, hub: { name: 'y', count: 4 } }).length <= 3,
-    '말은 많아야 셋 — 넉 줄부터는 아무도 안 읽는다');
+    '말은 많아야 셋. 넉 줄부터는 아무도 안 읽는다');
 
   eq(islandCount(['a', 'b', 'c'], [{ from: 'a', to: 'b' }]), 2, '안 이어진 카드는 제 조각이 된다');
   eq(islandCount(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }]), 1, '다 이어지면 한 조각');
@@ -810,13 +810,13 @@ const M = await loadModules();
   eq(r.nodes.length, 3, '판에 쓰인 카드 종류만 센다');
   eq(r.nodes[0].label, '인물', '많이 쓰인 종류가 앞에 선다');
   eq(r.nodes[0].count, 2, '몇 개인지도 같이 준다');
-  eq(r.nodes[1].label + r.nodes[2].label, '물건장소', '수가 같으면 이름순 — 두 번 뽑아도 같은 그림');
+  eq(r.nodes[1].label + r.nodes[2].label, '물건장소', '수가 같으면 이름순. 두 번 뽑아도 같은 그림');
   eq(r.edges[0].label, '관련', '관계도 같은 규칙');
   eq(r.edges[0].of, 'edge', '카드 줄과 관계 줄을 나눠 세운다');
   eq(posterLegend({ nodes: [{ kind: 'x' }], edges: [] }, L, E).edges.length, 0, '없는 것은 안 적는다');
   const many = { nodes: Array.from({ length: 12 }, (_, n) => ({ kind: `k${n}` })), edges: [] };
   const cut = posterLegend(many, L, E, 3);
-  eq(cut.nodes.length, 3, '상한을 넘으면 자른다 — 범례가 그림을 잡아먹으면 안 된다');
+  eq(cut.nodes.length, 3, '상한을 넘으면 자른다. 범례가 그림을 잡아먹으면 안 된다');
   eq(cut.moreNodes, 9, '접힌 가짓수를 알려 준다');
   check(!legendWorthShowing(posterLegend({ nodes: [{ kind: 'person' }], edges: [] }, L, E)),
     '종류가 하나뿐이면 범례가 설명할 것이 없다');
@@ -839,7 +839,7 @@ const M = await loadModules();
   check(h > 300 + HEAD_H, '제목줄과 범례줄만큼 세로가 는다');
   check(out.includes(`<svg x="0" y="${HEAD_H}"`), '그림은 그대로 안쪽에 앉는다(안 건드린다)');
   eq(wrapPoster('<div/>', { title: 'x', legend: [], skin }), '<div/>',
-    '크기를 못 읽으면 틀을 안 씌운다 — 잘못 씌우느니 안 씌운다');
+    '크기를 못 읽으면 틀을 안 씌운다. 잘못 씌우느니 안 씌운다');
   const bare = wrapPoster(art, { title: 'x', legend: [], skin });
   eq(Number(/height="(\d+)"/.exec(bare)[1]), 300 + HEAD_H, '범례가 없으면 아래 틀도 없다');
   const many = Array.from({ length: 9 }, (_, n) => ({ kind: `k${n}`, label: `종류${n}`, count: 1, of: 'node' }));
@@ -860,7 +860,7 @@ const M = await loadModules();
     card('place', { '넓이': '' }),
   ];
   const g = fieldGaps(board);
-  eq(g[0].field, '첫 등장', '아무도 안 적은 칸이 먼저 — 놀랍고, 대개 그 칸이 쓸모없다는 신호');
+  eq(g[0].field, '첫 등장', '아무도 안 적은 칸이 먼저. 놀랍고, 대개 그 칸이 쓸모없다는 신호');
   check(g[0].none, '다 비었으면 none');
   eq(g[0].missing, 3, '세 장 다 안 적었다');
   eq(g[0].total, 3, '그 종류가 몇 장인지도 같이 준다');
@@ -871,7 +871,7 @@ const M = await loadModules();
     '다 적었으면 할 말이 없다');
   eq(fieldGaps([]).length, 0, '빈 판은 할 말이 없다');
   const many = Array.from({ length: 9 }, (_, n) => card('person', { [`칸${n}`]: '' }));
-  eq(fieldGaps(many).length, 3, '많아야 셋 — 넉 줄부터는 안 읽는다');
+  eq(fieldGaps(many).length, 3, '많아야 셋. 넉 줄부터는 안 읽는다');
   // 같은 판은 두 번 봐도 같은 순서여야 한다(이름순 되풀이 확인).
   const tie = [card('p', { 'ㄴ': '', 'ㄱ': '' }), card('p', { 'ㄴ': '', 'ㄱ': '' })];
   eq(fieldGaps(tie).map((x) => x.field).join(''), 'ㄱㄴ', '수가 같으면 이름순');
@@ -883,7 +883,7 @@ const M = await loadModules();
   const E = (a, b) => ({ from: a, to: b });
   eq(findClusters([], []).length, 0, '빈 판은 무리가 없다');
   eq(findClusters(['a'], []).length, 1, '혼자인 카드도 한 무리로 센다');
-  // 삼각형 둘이 다리 하나로 이어진 판 — 눈으로는 두 패인데 다 이어져 있다.
+  // 삼각형 둘이 다리 하나로 이어진 판. 눈으로는 두 패인데 다 이어져 있다.
   const ids = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3'];
   const es = [E('a1', 'a2'), E('a2', 'a3'), E('a3', 'a1'), E('b1', 'b2'), E('b2', 'b3'), E('b3', 'b1'), E('a1', 'b1')];
   const cs = findClusters(ids, es);
@@ -892,10 +892,10 @@ const M = await loadModules();
   check(cs.every((c) => c.members.length === 3), '삼각형 둘이니 셋씩');
   const same = ['a1', 'a2', 'a3'].every((x) => cs.some((c) => c.members.includes(x) && c.members.includes('a2')));
   check(same, '같은 삼각형은 한 무리에 든다');
-  // 같은 판을 두 번 돌려도 같은 답 — 이게 안 되면 「어제 본 무리」와 달라져 아무도 안 믿는다.
+  // 같은 판을 두 번 돌려도 같은 답. 이게 안 되면 어제 본 무리와 달라져 아무도 안 믿는다.
   const a = JSON.stringify(findClusters(ids, es));
   const b2 = JSON.stringify(findClusters([...ids].reverse(), [...es].reverse()));
-  eq(a, b2, '카드·선 순서를 뒤집어도 같은 답');
+  eq(a, b2, '카드, 선 순서를 뒤집어도 같은 답');
   check(cs[0].members.join('') < cs[1].members.join('') || cs[0].members.length >= cs[1].members.length,
     '큰 무리부터, 같으면 이름 순');
   eq(findClusters(['x', 'y'], [E('x', 'x')]).length, 2, '제자리 선은 아무도 안 잇는다');
@@ -911,7 +911,7 @@ const M = await loadModules();
   const base = { hasImage: true, selectedId: 'n1', typing: false, visible: true };
   eq(pasteIntent(base), 'avatar', '카드를 골라 두고 그림을 붙이면 그 카드의 얼굴');
   eq(pasteIntent({ ...base, selectedId: null }), 'need-card', '고른 카드가 없으면 먼저 고르라고 한다');
-  // 이 한 줄이 이 조각의 존재 이유다 — 이름 칸에 글을 붙이다 얼굴이 바뀌면 「내가 뭘 눌렀지」가 된다.
+  // 이 한 줄이 이 조각의 존재 이유다. 이름 칸에 글을 붙이다 얼굴이 바뀌면 내가 뭘 눌렀지가 된다.
   eq(pasteIntent({ ...base, typing: true }), 'ignore', '글을 치는 중이면 절대 안 가로챈다');
   eq(pasteIntent({ ...base, hasImage: false }), 'ignore', '그림이 아니면 우리 일이 아니다');
   eq(pasteIntent({ ...base, visible: false }), 'ignore', '다른 도구를 보는 중이면 남의 붙여넣기다');
@@ -922,11 +922,11 @@ const M = await loadModules();
 // -- 판이 커지면 둘레만 보자고 권한다 (TASK-KL-271 L1) --------------------------
 {
   const { shouldOfferFocus, CROWD_AT } = M.bigBoard;
-  check(!shouldOfferFocus(10, false, true), '작은 판에서는 안 권한다 — 다 보이는데 덜 보라는 건 잔소리');
+  check(!shouldOfferFocus(10, false, true), '작은 판에서는 안 권한다. 다 보이는데 덜 보라는 건 잔소리');
   check(shouldOfferFocus(CROWD_AT + 1, false, true), '넘으면 권한다');
   check(!shouldOfferFocus(CROWD_AT, false, true), '경계값에서는 아직 안 권한다');
   check(!shouldOfferFocus(999, true, true), '이미 둘레만 보는 중이면 또 안 권한다');
-  check(!shouldOfferFocus(999, false, false), '고른 카드가 없으면 「무엇의 둘레」인지가 없다');
+  check(!shouldOfferFocus(999, false, false), '고른 카드가 없으면 무엇의 둘레인지가 없다');
 }
 
 // -- 보기를 이름 붙여 저장 (TASK-KL-271 O2) ------------------------------------
@@ -947,7 +947,7 @@ const M = await loadModules();
   eq([...target.nodeKinds].join(','), 'place', '옛 거르기는 지우고 저장본으로 갈아 끼운다');
   eq([...target.edgeKinds].length, 0, '저장본에 없던 것은 남기지 않는다');
   eq(target.minDegree, 2, '숫자도 그대로');
-  // 옛 저장본(없는 값)을 「참」으로 읽으면 카드가 말없이 사라진다 — 안 거른 상태로 되살린다.
+  // 옛 저장본(없는 값)을 참으로 읽으면 카드가 말없이 사라진다. 안 거른 상태로 되살린다.
   const bare = applyView({ id: 'x', name: 'x' }, target);
   eq(bare, '', '없는 값은 전부 보기로');
   eq(target.hideOrphans, false, '없는 값은 거짓으로');
@@ -955,7 +955,7 @@ const M = await loadModules();
   const one = upsertView([], v);
   eq(one.length, 1, '새 이름은 뒤에 붙는다');
   const same = upsertView(one, captureView('1부 시점', live(), '', 'v2'));
-  eq(same.length, 1, '같은 이름은 덮어쓴다 — 둘이면 고를 때 구분이 안 된다');
+  eq(same.length, 1, '같은 이름은 덮어쓴다. 둘이면 고를 때 구분이 안 된다');
   eq(same[0].id, 'v1', '덮어써도 그 자리의 id 는 지킨다');
   eq(same[0].focus, '', '덮어쓴 내용은 새것');
   check(!isNameUsable('   '), '이름이 비면 저장하지 않는다');
@@ -973,21 +973,21 @@ const M = await loadModules();
   ];
   const cols = tableColumns(ns);
   eq(cols[0], '출신', '많이 쓰인 칸이 앞 열');
-  check(cols.includes('첫 등장'), '아무도 안 적은 칸도 열로 세운다 — 비어 있다는 것이 곧 보여 줄 것이다');
-  eq(tableColumns(ns, 1).length, 1, '열은 상한까지만 — 표가 옆으로 새면 못 읽는다');
+  check(cols.includes('첫 등장'), '아무도 안 적은 칸도 열로 세운다. 비어 있다는 것이 곧 보여 줄 것이다');
+  eq(tableColumns(ns, 1).length, 1, '열은 상한까지만. 표가 옆으로 새면 못 읽는다');
   const rows = tableRows(ns, cols);
   eq(rows.length, 3, '카드마다 한 줄');
   eq(rows[0].cells['출신'], '마계', '칸 값을 담는다');
   const narrow = tableRows(ns, ['출신']);
-  eq(narrow[0].cells['넓이'] ?? 'x', 'x', '열에 없는 칸은 안 담는다 — 표가 옆으로 새는 것을 막는다');
+  eq(narrow[0].cells['넓이'] ?? 'x', 'x', '열에 없는 칸은 안 담는다. 표가 옆으로 새는 것을 막는다');
   const byName = sortRows(rows, { by: '', dir: 'up' }, KL);
   eq(byName.map((r) => r.label).join(','), '가운데,가장먼저,나중', '이름순');
   const down = sortRows(rows, { by: '', dir: 'down' }, KL);
   eq(down[0].label, '나중', '거꾸로도 된다');
   const byField = sortRows(rows, { by: '출신', dir: 'up' }, KL);
-  eq(byField[byField.length - 1].label, '가운데', '빈 칸은 언제나 뒤 — 오름차순');
+  eq(byField[byField.length - 1].label, '가운데', '빈 칸은 언제나 뒤. 오름차순');
   const byFieldDown = sortRows(rows, { by: '출신', dir: 'down' }, KL);
-  eq(byFieldDown[byFieldDown.length - 1].label, '가운데', '빈 칸은 언제나 뒤 — 내림차순에서도');
+  eq(byFieldDown[byFieldDown.length - 1].label, '가운데', '빈 칸은 언제나 뒤. 내림차순에서도');
   const byKind = sortRows(rows, { by: 'kind', dir: 'up' }, KL);
   eq(byKind[0].kind, 'person', '종류는 사람이 읽는 이름으로 줄 세운다');
   // 같은 판을 두 번 열면 같은 표여야 한다.
@@ -1023,8 +1023,8 @@ const M = await loadModules();
   check(html.includes('@page { size: A4 landscape'), 'A4 로 눕혀 찍는다');
   check(html.includes('<title>나의 세계관</title>'), '창 이름 = PDF 파일 이름');
   check(html.includes(svg), '뽑을 그림이 그대로 실린다');
-  check(/background:#fff/.test(html), '종이는 흰 바탕 — 어두운 판 색을 실으면 잉크를 다 먹는다');
-  check(/max-width:100%/.test(html), '넘치면 줄인다 — 자르면 오른쪽 인물이 통째로 사라진다');
+  check(/background:#fff/.test(html), '종이는 흰 바탕. 어두운 판 색을 실으면 잉크를 다 먹는다');
+  check(/max-width:100%/.test(html), '넘치면 줄인다. 자르면 오른쪽 인물이 통째로 사라진다');
   check(!/print\(\)/.test(html), '인쇄창을 여기서 띄우지 않는다(부르는 쪽 일)');
   const risky = printSheetHtml({ title: '<b>&', svg });
   check(risky.includes('&lt;b&gt;&amp;'), '제목에 꺾쇠가 있어도 문서가 안 깨진다');
@@ -1035,23 +1035,23 @@ const M = await loadModules();
 {
   const { edgeAt, isTimed, stepTime, nextTimeName, forgetTime } = M.times;
   const plain = { label: '소꿉친구', kind: 'rel' };
-  // 1. 원본이 기본값 — 시점을 안 쓰는 판은 아무것도 안 달라진다(옛 판을 건드리면 그건 고장이다).
+  // 1. 원본이 기본값. 시점을 안 쓰는 판은 아무것도 안 달라진다(옛 판을 건드리면 그건 고장이다).
   eq(edgeAt(plain, '').label, '소꿉친구', '시점이 없으면 원래 모습');
   eq(edgeAt(plain, 't2').label, '소꿉친구', '적어 둔 것이 없는 시점도 원래 모습');
   const timed = { label: '소꿉친구', kind: 'rel', at: { t2: { label: '라이벌', kind: 'foe' } } };
   eq(edgeAt(timed, 't1').label, '소꿉친구', '1부에서는 원래대로');
   eq(edgeAt(timed, 't2').label, '라이벌', '2부에서는 다른 이름');
   eq(edgeAt(timed, 't2').kind, 'foe', '2부에서는 다른 색');
-  // 2. 덮어쓰기는 부분 — 이름만 바뀌었으면 색은 원본을 따른다.
+  // 2. 덮어쓰기는 부분. 이름만 바뀌었으면 색은 원본을 따른다.
   const partial = { label: '동료', kind: 'rel', at: { t2: { label: '앙숙' } } };
   eq(edgeAt(partial, 't2').kind, 'rel', '이름만 바꿨으면 색은 그대로');
   eq(edgeAt(partial, 't2').label, '앙숙', '바꾼 이름은 바뀐다');
-  // 3. 사라짐도 하나의 상태 — 빈 이름으로 두면 이름 없는 선이 그려진다.
+  // 3. 사라짐도 하나의 상태. 빈 이름으로 두면 이름 없는 선이 그려진다.
   const later = { label: '연인', kind: 'rel', at: { t1: { gone: true } } };
   eq(edgeAt(later, 't1'), null, '아직 안 만난 사이는 그리지 않는다');
   check(edgeAt(later, 't2') !== null, '그 뒤에는 그린다');
   check(isTimed(timed) && !isTimed(plain), '시점 이야기를 하는 선만 골라낼 수 있다');
-  // 시점 옮기기 — 끝에서 더 가면 제자리(돌아 나오면 「처음으로 왔나」를 못 읽는다).
+  // 시점 옮기기. 끝에서 더 가면 제자리(돌아 나오면 처음으로 왔나를 못 읽는다).
   const ts = [{ id: 'a', name: '1부' }, { id: 'b', name: '2부' }, { id: 'c', name: '3부' }];
   eq(stepTime(ts, 'a', 1), 'b', '다음 시점');
   eq(stepTime(ts, 'c', 1), 'c', '마지막에서 더 가도 제자리');
@@ -1059,7 +1059,7 @@ const M = await loadModules();
   eq(stepTime(ts, '', 1), 'b', '지금 시점을 모르면 첫 시점에서 센다');
   eq(stepTime([], 'a', 1), '', '시점이 없으면 갈 데도 없다');
   eq(nextTimeName(ts, (n) => `${n}부`), '4부', '새 시점은 번호를 달고 나온다');
-  // 시점을 지우면 그 시점 얼굴도 함께 — 안 지우면 아무도 못 보는 자료가 남는다.
+  // 시점을 지우면 그 시점 얼굴도 함께. 안 지우면 아무도 못 보는 자료가 남는다.
   const cleaned = forgetTime([timed, partial, plain], 't2');
   eq(cleaned[0].at, undefined, '마지막 얼굴을 지우면 자리도 없앤다');
   eq(cleaned[2].label, '소꿉친구', '상관없는 선은 안 건드린다');
@@ -1074,7 +1074,7 @@ const M = await loadModules();
   eq(edgeAt(named, 't2').label, '라이벌', '이 시점의 이름을 적는다');
   eq(edgeAt(named, 't1').label, '소꿉친구', '다른 시점은 그대로');
   const back = setFace(named, 't2', { label: '   ' });
-  check(!isTimed(back), '이름을 비우면 자리째 지운다 — 빈 껍데기가 쌓이면 표시가 거짓이 된다');
+  check(!isTimed(back), '이름을 비우면 자리째 지운다. 빈 껍데기가 쌓이면 표시가 거짓이 된다');
   eq(edgeAt(back, 't2').label, '소꿉친구', '지우면 원래대로');
   const gone = setFace(base, 't1', { gone: true });
   eq(edgeAt(gone, 't1'), null, '이 시점에는 없음');
@@ -1087,7 +1087,7 @@ const M = await loadModules();
   eq(Object.keys(setFace(two, 't1', {}).at).length, 1, '한 시점만 지워도 나머지는 남는다');
 }
 
-// -- 지금 시점의 선들 (TASK-KL-271 X2 — 읽어 세는 곳도 시점을 따른다) -----------
+// -- 지금 시점의 선들 (TASK-KL-271 X2. 읽어 세는 곳도 시점을 따른다) -----------
 {
   const { resolveEdges } = M.times;
   const es = [
@@ -1105,7 +1105,7 @@ const M = await loadModules();
   check(t2[1] === es[2], '안 바뀐 선은 사본을 안 만든다(쓸데없이 새 물건을 찍지 않는다)');
 }
 
-// -- 보기에 「언제를 보고 있었나」까지 (TASK-KL-271 X2) -------------------------
+// -- 보기에 언제를 보고 있었나까지 (TASK-KL-271 X2) -------------------------
 {
   const { captureView, applyView } = M.views;
   const live = { nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(),
@@ -1120,7 +1120,7 @@ const M = await loadModules();
 }
 
 // -- 새로 넣은 기능이 도움말에도 있나 (TASK-KL-271 C5) --------------------------
-// 「못 찾는 기능은 없는 것과 같다」 — 사람 규율 대신 짝을 기계가 지킨다.
+// 못 찾는 기능은 없는 것과 같다. 사람 규율 대신 짝을 기계가 지킨다.
 {
   const help = fs.readFileSync(path.join(root, 'src/widgets/karmograph/help.ts'), 'utf8');
   const ko = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/karmograph.json'), 'utf8'));
@@ -1128,14 +1128,14 @@ const M = await loadModules();
     .filter(([k]) => k.startsWith('karmograph.help.'))
     .map(([, v]) => String(v)).join(' ');
   const must = ['시점', '저장한 보기', '인쇄', '블로그', '두 사람 사이', '안 적은 칸', 'Ctrl+V'];
-  /* ★ **자리를 가리키는 말은 화면 크기에 따라 거짓이 된다** (2026-08-14): 「판 아래에서 오갑니다」가
+  /* ★ **자리를 가리키는 말은 화면 크기에 따라 거짓이 된다** (2026-08-14): 판 아래에서 오갑니다가
      폰에서는 틀린 말이 됐다(거기서는 판 위에 있다). 자리 대신 **이름**으로 가리킨다. */
-  check(!said.includes('판 아래'), '도움말이 「판 아래」처럼 자리로 가리킨다 — 폰에서는 거짓이 된다');
+  check(!said.includes('판 아래'), '도움말이 판 아래처럼 자리로 가리킨다. 폰에서는 거짓이 된다');
   for (const word of must) {
-    check(said.includes(word), `도움말에 「${word}」 이야기가 없다 — 넣고 안 적으면 숨은 기능이다`);
+    check(said.includes(word), `도움말에 ${word} 이야기가 없다. 넣고 안 적으면 숨은 기능이다`);
   }
   const items = (help.match(/what:/g) ?? []).length;
-  check(items >= 55, `도움말 항목이 ${items}개 — 55개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
+  check(items >= 55, `도움말 항목이 ${items}개. 55개 밑으로 줄었다(기능은 느는데 도움말이 낡는 중)`);
 }
 
 // -- 고른 것이 패널을 정한다 (TASK-KL-271 R2/R6) --------------------------------
@@ -1143,7 +1143,7 @@ const M = await loadModules();
   const { panelFor, shouldSwitch } = M.ui;
   eq(panelFor({ nodes: 0, edge: false }), 'node', '아무것도 안 골랐으면 카드 칸(거기에 시작 갈래가 산다)');
   eq(panelFor({ nodes: 1, edge: false }), 'node', '한 장이면 카드 칸');
-  eq(panelFor({ nodes: 3, edge: false }), 'many', '여럿이면 자리 칸 — 그때 할 일은 낱장 고치기가 아니다');
+  eq(panelFor({ nodes: 3, edge: false }), 'many', '여럿이면 자리 칸. 그때 할 일은 낱장 고치기가 아니다');
   eq(panelFor({ nodes: 0, edge: true }), 'edge', '선을 골랐으면 선 칸');
   eq(panelFor({ nodes: 5, edge: true }), 'many', '여럿이 선보다 세다');
   // 지금 규칙 = 고른 것이 언제나 이긴다(그 자리에서 바로 고치려는 손). 취향 문제라 여기서 안 정한다.
@@ -1156,12 +1156,12 @@ const M = await loadModules();
 }
 
 {
-  /* 영상 각본 (KL-271 O5) — 초는 눈으로만 보이는 값이라 글자로 잠근다. */
+  /* 영상 각본 (KL-271 O5). 초는 눈으로만 보이는 값이라 글자로 잠근다. */
   const { filmPlan, holdFor, frameAt, lerpRect, fitRect, filmFileName, ease } = M.film;
   const scene = (title, note, rect) => ({ title, note, rect });
   const r = (x, y, w, h) => ({ x, y, w, h });
 
-  eq(filmPlan([]).shots.length, 0, '장이 없으면 각본도 없다 — 검은 화면 영상을 굽지 않는다');
+  eq(filmPlan([]).shots.length, 0, '장이 없으면 각본도 없다. 검은 화면 영상을 굽지 않는다');
   eq(filmPlan([]).totalMs, 0, '빈 각본의 길이는 0');
 
   const short = scene('가', '', r(0, 0, 100, 100));
@@ -1180,12 +1180,12 @@ const M = await loadModules();
   const many = Array.from({ length: 40 }, () => long);
   const capped = filmPlan(many, { maxMs: 30000, moveMs: 600, minHoldMs: 300 });
   check(capped.totalMs < filmPlan(many, { moveMs: 600 }).totalMs, '천장이 있으면 고르게 줄인다');
-  // 장이 아주 많으면 **천장을 못 지킨다** — 최소 머무름 아래로 내리는 순간 아무도 못 읽는 영상이 된다.
-  // 그때는 줄이는 시늉 대신 길어진 채로 두고, 부르는 쪽이 「몇 초짜리가 됩니다」라고 말한다.
+  // 장이 아주 많으면 **천장을 못 지킨다**. 최소 머무름 아래로 내리는 순간 아무도 못 읽는 영상이 된다.
+  // 그때는 줄이는 시늉 대신 길어진 채로 두고, 부르는 쪽이 몇 초짜리가 됩니다라고 말한다.
   check(capped.totalMs > 30000, '못 지킬 때는 읽히는 쪽을 고른다(부르는 쪽이 길이를 알린다)');
   const fits = filmPlan([long, long, long], { maxMs: 30000, moveMs: 600 });
   check(fits.totalMs <= 30000, '지킬 수 있으면 천장을 지킨다: ' + fits.totalMs);
-  eq(capped.shots.length, 40, '줄일 때 뒷장을 잘라 내지 않는다 — 이야기가 끝을 잃는다');
+  eq(capped.shots.length, 40, '줄일 때 뒷장을 잘라 내지 않는다. 이야기가 끝을 잃는다');
   check(capped.shots.every((s) => s.holdMs >= 300), '최소 머무름 아래로는 안 내려간다');
 
   eq(ease(0), 0, '시작은 0');
@@ -1202,7 +1202,7 @@ const M = await loadModules();
   const mid = frameAt(p2, [a, bb], p2.shots[1].startMs + 500);
   check(mid.rect.x > 0 && mid.rect.x < 500, '건너는 중에는 두 자리 사이에 있다: ' + mid.rect.x);
   eq(mid.title, '둘', '건너는 동안 이미 다음 장의 말을 얹는다');
-  eq(frameAt(p2, [a, bb], 999999).scene, 1, '끝을 넘어도 마지막 장에 멈춘다 — 검은 화면으로 안 끝난다');
+  eq(frameAt(p2, [a, bb], 999999).scene, 1, '끝을 넘어도 마지막 장에 멈춘다. 검은 화면으로 안 끝난다');
   eq(frameAt({ shots: [], totalMs: 0 }, [], 0), null, '각본이 비면 그릴 것도 없다');
 
   const wide = fitRect(r(0, 0, 1600, 400), 1280, 720);
@@ -1220,14 +1220,14 @@ const M = await loadModules();
 
 {
   /* 화면에 나갈 **한국어가 코드에 박혀 있지 않은가** (KL-271, 2026-08-14).
-     실측으로 다섯 개가 남아 있었다 — 「맵 N개를 되돌렸습니다」 「겹친 N개를 밀었습니다」
-     판 지우기 되물음 둘 … 영어·일본어로 쓰는 사람에게는 갑자기 한국어가 튀어나온다.
+     실측으로 다섯 개가 남아 있었다. 맵 N개를 되돌렸습니다 겹친 N개를 밀었습니다
+     판 지우기 되물음 둘 ... 영어, 일본어로 쓰는 사람에게는 갑자기 한국어가 튀어나온다.
      i18n 열쇠 검사(test:i18n:keys)는 **부른 열쇠가 있나**만 보지, 안 부른 글은 못 본다.
      `data-` 에 넣는 계측값(kmPan)은 사람이 읽는 글이 아니라 셈에서 뺀다. */
   /* 위젯 본체만 보다가 **패널 여덟 곳**에 스물아홉 줄이 남아 있는 걸 놓쳤다 (2026-08-14).
-     한 폴더를 통째로 본다 — 새 조각이 늘어도 저절로 걸린다. */
+     한 폴더를 통째로 본다. 새 조각이 늘어도 저절로 걸린다. */
   const dir = path.join(root, 'src/widgets/karmograph');
-  /* 판을 그리는 자료 층(`lib/karmograph`)도 함께 본다 — 거기 박힌 「(없는 글)」이 남의 글 속에
+  /* 판을 그리는 자료 층(`lib/karmograph`)도 함께 본다. 거기 박힌 (없는 글)이 남의 글 속에
      그대로 튀어나왔다 (2026-08-14). 그 층은 말 묶음을 안 쓰므로 **부르는 쪽이 말을 얹는다**. */
   const libDir = path.join(root, 'src/lib/karmograph');
   const kmFiles = [
@@ -1241,7 +1241,7 @@ const M = await loadModules();
     .map((l) => `${path.basename(f)}|${l}`).join(String.fromCharCode(10))).join(String.fromCharCode(10));
   const hangul = /[가-힣]/;
   const leaks = [];
-  /* 주석은 **상태로** 좇는다 — 여러 줄 주석의 가운데 줄은 `*` 로 시작하지 않을 때가 많아서,
+  /* 주석은 **상태로** 좇는다. 여러 줄 주석의 가운데 줄은 `*` 로 시작하지 않을 때가 많아서,
      줄머리만 보면 주석 본문을 코드로 착각한다(실측 2026-08-14: 244줄이 거짓 빨강). */
   let inBlock = false;
   let inHtml = false;
@@ -1262,7 +1262,7 @@ const M = await loadModules();
       line = line.slice(0, open) + line.slice(close + 2);
     }
     if (line.includes('//') && !line.includes('://')) line = line.slice(0, line.indexOf('//'));
-    /* HTML 주석(<!-- -->)도 같은 대접 — 화면 글이 아니라 사람에게 남기는 말이다. */
+    /* HTML 주석(<!-- -->)도 같은 대접. 화면 글이 아니라 사람에게 남기는 말이다. */
     if (inHtml) {
       const close = line.indexOf('-->');
       if (close < 0) return;
@@ -1279,8 +1279,8 @@ const M = await loadModules();
     if (line.includes('panned(') || line.includes('dataset.kmPan')) return;
     // 사람이 읽는 글이 아니라고 **적어 둔** 자리(한글 글자 범위를 받는 정규식 등)는 뺀다.
     if (raw.includes('i18n-ok')) return;
-    /* ★ 따옴표 **안**만 보면 새는 자리가 있다 — 템플릿 글 안의 HTML 은 따옴표 없이 글자를
-       그대로 쓴다(실측 2026-08-14: 「이 {종류}에 대해 적어 두는 것」이 영어 화면에 한국어로 떴다).
+    /* ★ 따옴표 **안**만 보면 새는 자리가 있다. 템플릿 글 안의 HTML 은 따옴표 없이 글자를
+       그대로 쓴다(실측 2026-08-14: 이 {종류}에 대해 적어 두는 것이 영어 화면에 한국어로 떴다).
        코드의 이름은 다 로마자라, **남은 줄에 한글이 있으면 사람이 읽을 글**이라는 뜻이다. */
     if (hangul.test(line)) leaks.push(`${where}: ${line.trim().slice(0, 50)}`);
   });
@@ -1288,8 +1288,8 @@ const M = await loadModules();
 }
 
 {
-  /* 묶음 상자 — **자료가 조금 모자란 것과 못 읽는 것은 다르다** (KL-271, 2026-08-14).
-     네모(bbox)가 없는 묶음 하나 때문에 판 **전체 불러오기**가 「JSON 을 읽지 못했습니다」로
+  /* 묶음 상자. **자료가 조금 모자란 것과 못 읽는 것은 다르다** (KL-271, 2026-08-14).
+     네모(bbox)가 없는 묶음 하나 때문에 판 **전체 불러오기**가 JSON 을 읽지 못했습니다로
      끝났다(카드도 선도 멀쩡했는데). 모자라면 있는 것으로 짓는다. */
   const { computeGroupBox } = M.groupBox;
   const box = { x: 10, y: 20, w: 100, h: 50 };
@@ -1307,7 +1307,7 @@ const M = await loadModules();
   eq(noBox.x, -12, '왼쪽 여백도 붙는다');
 
   const nothing = computeGroupBox({ id: 'g', label: '', color: '#fff' }, []);
-  eq(nothing.w, 0, '네모도 없고 든 것도 없으면 0 — 그리는 쪽이 건너뛴다');
+  eq(nothing.w, 0, '네모도 없고 든 것도 없으면 0. 그리는 쪽이 건너뛴다');
   eq(nothing.h, 0, '높이도 0');
   check(Number.isFinite(nothing.x), '0 자리라도 숫자여야 한다(NaN 이면 SVG 가 통째로 깨진다)');
 }
@@ -1322,37 +1322,37 @@ const M = await loadModules();
     edges: [{ id: 'e1', from: 'n1', to: '없음', label: '?', kind: 'default' }],
   };
   const out = toJsonCanvas(rough);
-  eq(out.nodes.filter((n) => n.type === 'group').length, 0, '네모 없는 묶음은 안 내보낸다 — 놓을 자리가 없다');
+  eq(out.nodes.filter((n) => n.type === 'group').length, 0, '네모 없는 묶음은 안 내보낸다. 놓을 자리가 없다');
   eq(out.nodes.length, 1, '카드는 그대로 나간다');
   const card = out.nodes[0];
   check([card.x, card.y, card.width, card.height].every((v) => Number.isFinite(v)),
-    '자리·크기가 없어도 숫자다 — NaN 이 든 파일은 여는 쪽에서 조용히 깨진다');
+    '자리, 크기가 없어도 숫자다. NaN 이 든 파일은 여는 쪽에서 조용히 깨진다');
   eq(card.width, 160, '너비는 기본값으로 채운다');
   eq(out.edges.length, 1, '없는 카드를 가리키는 선도 그대로 나간다(여는 쪽이 판단할 일)');
 }
 
 {
-  /* 판을 **글로도** 알린다 (KL-271) — 그림 판은 읽어 주는 도구에 아무 말도 안 했다. */
+  /* 판을 **글로도** 알린다 (KL-271). 그림 판은 읽어 주는 도구에 아무 말도 안 했다. */
   const { boardLabel, setBoardWords, DEFAULT_BOARD_WORDS } = M.boardA11y;
   check(boardLabel(3, 2).includes('3'), '카드 수가 말에 든다');
   check(boardLabel(3, 2).includes('2'), '선 수도 든다');
   eq(boardLabel(-1, Number.NaN), DEFAULT_BOARD_WORDS.label(0, 0),
-    '숫자가 이상하면 0 으로 읽는다 — 이름이 깨지면 아예 안 들린다');
-  /* 고른 것도 한 줄로 — 고르는 일은 초점이 안 움직여 **읽어 주는 도구에는 아무 일도 안 일어난다**. */
+    '숫자가 이상하면 0 으로 읽는다. 이름이 깨지면 아예 안 들린다');
+  /* 고른 것도 한 줄로. 고르는 일은 초점이 안 움직여 **읽어 주는 도구에는 아무 일도 안 일어난다**. */
   const { pickedLabel } = M.boardA11y;
   check(pickedLabel('가', 3).includes('가'), '고른 카드의 이름이 든다');
   check(pickedLabel('가', 3).includes('3'), '이어진 수도 든다');
-  check(pickedLabel('  ', 0).length > 0, '이름 없는 카드도 말은 한다 — 그런 카드가 있다는 것도 정보다');
+  check(pickedLabel('  ', 0).length > 0, '이름 없는 카드도 말은 한다. 그런 카드가 있다는 것도 정보다');
   eq(pickedLabel('가', -2), pickedLabel('가', 0), '이상한 숫자는 0 으로 읽는다');
 
-  /* 선·여럿도 말한다 — 카드만 말하면 절반만 들린다. */
+  /* 선, 여럿도 말한다. 카드만 말하면 절반만 들린다. */
   const { pickedEdgeLabel, pickedManyLabel } = M.boardA11y;
   const line = pickedEdgeLabel('가', '나', '친구');
   check(line.includes('가') && line.includes('나'), '선은 양 끝을 말한다');
   check(line.includes('친구'), '선 이름도 말한다');
   check(!pickedEdgeLabel('가', '나', '').endsWith(':'), '이름 없는 선은 콜론만 남기지 않는다');
 
-  /* ★ 판에 **자판으로 들어올 문**이 있나 — 판 안 Tab 훑기는 초점이 판에 있을 때만 열린다. */
+  /* ★ 판에 **자판으로 들어올 문**이 있나. 판 안 Tab 훑기는 초점이 판에 있을 때만 열린다. */
   const { describeBoard } = M.boardA11y;
   const fakeSvg = (() => {
     const at = new Map();
@@ -1363,7 +1363,7 @@ const M = await loadModules();
     };
   })();
   describeBoard(fakeSvg, 3, 2);
-  eq(fakeSvg.getAttribute('tabindex'), '0', '판은 자판 순회에 든다 — 없으면 마우스로만 들어갈 수 있다');
+  eq(fakeSvg.getAttribute('tabindex'), '0', '판은 자판 순회에 든다. 없으면 마우스로만 들어갈 수 있다');
   check((fakeSvg.getAttribute('aria-label') || '').includes('3'), '판 이름도 함께 붙는다');
   fakeSvg.setAttribute('tabindex', '-1');
   describeBoard(fakeSvg, 3, 2);
@@ -1382,4 +1382,4 @@ if (failures.length > 0) {
   console.error(`\nRESULT: FAIL (${failures.length})\n - ` + failures.join('\n - '));
   process.exit(1);
 }
-console.log('RESULT: PASS — KarmoGraph 알맹이가 브라우저 없이 돈다');
+console.log('RESULT: PASS. KarmoGraph 알맹이가 브라우저 없이 돈다');

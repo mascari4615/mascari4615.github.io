@@ -1,4 +1,4 @@
-/** PDF 쪽 번호 — 기본 라틴 글꼴로 숫자·ASCII 표기만 보장한다. */
+/** PDF 쪽 번호. 기본 라틴 글꼴로 숫자, ASCII 표기만 보장한다. */
 import type { ToolRunner, ToolSpec } from './types';
 
 interface Backend { number(data: string, options: Record<string, unknown>): Promise<string>; }
@@ -9,7 +9,7 @@ export const spec: ToolSpec = { id: 'pdfpagenum', ops: { add: {
 } } };
 
 export const run: ToolRunner = async (op, args, deps) => {
-  if (op !== 'add') throw new Error(`pdfpagenum 에 「${op}」 는 없습니다`);
+  if (op !== 'add') throw new Error(`pdfpagenum 에 ${op} 는 없습니다`);
   const backend = deps?.pdfPageNumber as Backend | undefined;
   if (!backend) throw new Error('PDF 쪽 번호 계산기가 없습니다 (deps.pdfPageNumber)');
   const data = String(args.data ?? '');

@@ -4,7 +4,7 @@ import { dirname } from 'node:path';
 import type { Memory, MemoryEntry } from '../types';
 
 /**
- * 파일에 한 줄씩 쌓는 기억 — 프로세스를 껐다 켜도 이어진다.
+ * 파일에 한 줄씩 쌓는 기억. 프로세스를 껐다 켜도 이어진다.
  *
  * 형식이 JSONL 인 이유: 이어붙이기만 하면 되므로 여러 몸이 동시에 써도 서로를 덮지 않는다.
  */
@@ -30,7 +30,7 @@ export class JsonlFileMemory implements Memory {
   /**
    * 낱말이 든 옛 대화를 찾는다. 최신 것부터.
    *
-   * 대단한 검색은 아니다 — 낱말이 들어 있으면 걸린다. 그래도 「저번에 그거」에
+   * 대단한 검색은 아니다. 낱말이 들어 있으면 걸린다. 그래도 저번에 그거에
    * 답하려면 이게 있어야 한다. 없으면 최근 몇 마디 밖은 영영 모른다.
    */
   search(keyword: string, limit = 6): MemoryEntry[] {
@@ -48,7 +48,7 @@ export class JsonlFileMemory implements Memory {
   /**
    * 그 낱말이 든 대화를 **지운다**. 몇 줄 지웠는지 돌려준다.
    *
-   * 잘못 알게 된 것, 하지 말았어야 할 말, 남기고 싶지 않은 것 — 사람이 지울 수 없는
+   * 잘못 알게 된 것, 하지 말았어야 할 말, 남기고 싶지 않은 것. 사람이 지울 수 없는
    * 기억은 기억이 아니라 기록이다. 뉴로사마가 들은 걸 그대로 삼켜 굳은 뒤에야 고쳤던
    * 일이 보여주듯, 지우는 길은 나중에 만들면 늦다.
    */
@@ -79,7 +79,7 @@ export class JsonlFileMemory implements Memory {
       try {
         parsed.push(JSON.parse(trimmed) as MemoryEntry);
       } catch {
-        // 깨진 줄 하나가 기억 전체를 못 읽게 만들지 않는다 — 건너뛴다.
+        // 깨진 줄 하나가 기억 전체를 못 읽게 만들지 않는다. 건너뛴다.
       }
     }
     this.cache = parsed;

@@ -10,10 +10,10 @@
   "curlkit.aria.out": "옮겨진 코드",
   "curlkit.label.read": "읽은 내용",
   "curlkit.status.idle": "curl 명령을 붙여넣으세요",
-  "curlkit.status.ok": "{method} 요청 · 헤더 {n}개를 읽었습니다",
-  "curlkit.status.bad": "못 읽었습니다 — {msg}",
-  "curlkit.status.sending": "보내는 중…",
-  "curlkit.status.sent": "{code} · {ms}ms 만에 답이 왔습니다",
-  "curlkit.status.blocked": "상대가 브라우저의 요청을 안 받습니다 (CORS) — 코드는 서버·터미널에서 그대로 됩니다",
+  "curlkit.status.ok": "{method} 요청, 헤더 {n}개를 읽었습니다",
+  "curlkit.status.bad": "못 읽었습니다. {msg}",
+  "curlkit.status.sending": "보내는 중...",
+  "curlkit.status.sent": "{code}, {ms}ms 만에 답이 왔습니다",
+  "curlkit.status.blocked": "상대가 브라우저의 요청을 안 받습니다 (CORS). 코드는 서버, 터미널에서 그대로 됩니다",
   "curlkit.copy.done": "코드를 복사했습니다"
 }

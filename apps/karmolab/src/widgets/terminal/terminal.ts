@@ -1,5 +1,5 @@
 /**
- * terminal — Tauri 데스크톱 전용 (category: 'desktop' 자동 게이팅).
+ * terminal. Tauri 데스크톱 전용 (category: 'desktop' 자동 게이팅).
  *
  * KarmoLab 안 단일 PowerShell IO 셸 (TASK-KL-006 옵션 A).
  * stdin form + 출력 패널 + cwd indicator + start/stop. 5000 라인 cap.
@@ -89,8 +89,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           <span class="kt-status-dot"></span>
           <button data-kt="btn-start" type="button">${esc(t('terminal.t03'))}</button>
           <button data-kt="btn-stop" class="kt-btn-stop" type="button" disabled>${esc(t('terminal.t04'))}</button>
-          <span class="kt-shell" data-kt="shell">—</span>
-          <span class="kt-cwd" data-kt="cwd">cwd: —</span>
+          <span class="kt-shell" data-kt="shell">. </span>
+          <span class="kt-cwd" data-kt="cwd">cwd: . </span>
         </div>
         <div class="kt-out" data-kt="out"></div>
         <form class="kt-form" data-kt="form">
@@ -113,7 +113,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     const cwdLabel = container.querySelector('[data-kt="cwd"]') as HTMLElement | null;
     if (!out || !bar || !btnStart || !btnStop || !btnSend || !input || !form || !shellLabel || !cwdLabel) return;
 
-    // boot 진입은 이미 isDesktop() 게이트(line 45). 방어적 재확인 —
+    // boot 진입은 이미 isDesktop() 게이트(line 45). 방어적 재확인 . 
     // 데스크톱 플래그 true 인데 Tauri 미주입(깨진 빌드)이면 seam invoke 가
     // 각 호출 site 에서 명확한 reject 메시지로 진단(아래 try/catch 가 표시).
     if (!isDesktop()) {
@@ -136,7 +136,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     };
 
     const wireEvents = async (): Promise<void> => {
-      // seam listen 은 Tauri 미주입 시 no-op unlisten 반환 — 콜러 분기 불요.
+      // seam listen 은 Tauri 미주입 시 no-op unlisten 반환. 콜러 분기 불요.
       try {
         unlistenLine = await listen('karmolab://terminal-line', (e: { payload: unknown }) => {
           const p = (e.payload || {}) as TerminalLineEvt;
@@ -209,7 +209,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
     });
 
-    // 위젯 unmount 자동 감지 — container 가 DOM 에서 떨어질 때 stop + listener 정리.
+    // 위젯 unmount 자동 감지. container 가 DOM 에서 떨어질 때 stop + listener 정리.
     const observer = new MutationObserver(() => {
       if (!document.body.contains(container)) {
         observer.disconnect();
@@ -225,7 +225,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 첫 진입 안내.
     appendMeta(out, t('terminal.t10'));
 
-    // 이미 실행 중인 셸이 있을 수 있음 — status 체크 후 자동 reattach.
+    // 이미 실행 중인 셸이 있을 수 있음. status 체크 후 자동 reattach.
     try {
       const s = await invoke('terminal_status') as { running: boolean };
       if (s.running) {

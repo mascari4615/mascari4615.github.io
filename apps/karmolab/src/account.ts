@@ -1,12 +1,12 @@
 /**
- * KarmoLab 계정 — 브라우저 쪽 (TASK-KL-098 Cycle 1).
+ * KarmoLab 계정. 브라우저 쪽 (TASK-KL-098 Cycle 1).
  *
  * 무엇을 하나: 지금까지 브라우저 안에만 있던 기록(`toolbox_user_data`)을 우리 서버와 **합친다**.
  * 그래서 기기를 바꿔도 남고, 공개 프로필로 남에게 보인다.
  *
  * 제일 중요한 성질 = **fail-open**. 서버가 죽든 느리든 로그인을 안 했든, 이 파일은 아무것도
  * 막지 않는다. 실패하면 조용히 지금까지와 100% 같은 동작으로 돌아간다. 도구 사이트의 본체는
- * 도구지 계정이 아니다 — 노트북 한 대에 도구 124개의 생사를 걸지 않는다.
+ * 도구지 계정이 아니다. 노트북 한 대에 도구 124개의 생사를 걸지 않는다.
  *
  * toolbox.ts 를 안 건드리는 이유: 저장 자리는 localStorage 키 하나뿐이라 바깥에서 합쳐도
  * 충분하고, 그 파일은 다른 작업이 동시에 만지고 있다.
@@ -39,7 +39,7 @@ interface AccountSummary {
 /**
  * 어디에 붙을까. 기본은 노트북의 그 서버다.
  *
- * `window.KARMOLAB_API_BASE` 를 두면 그쪽으로 붙는다 — 로컬에서 봇을 띄워 놓고 이 화면을 그
+ * `window.KARMOLAB_API_BASE` 를 두면 그쪽으로 붙는다. 로컬에서 봇을 띄워 놓고 이 화면을 그
  * 봇에 붙이는 길이다(TASK-KL-181). 이게 없으면 계정이 걸린 기능은 **배포해야만** 확인할 수
  * 있고, 그건 확인 루프가 없는 것과 같다. 같이 쓰기(copresence)도 같은 손잡이를 쓴다.
  */
@@ -76,16 +76,16 @@ function readLocal(): Records {
 
 function writeLocal(records: Records): void {
     try {
-        // 다른 열쇠(테마·즐겨찾기 등)는 이 키에 없다. 이 키는 통째로 기록이다.
+        // 다른 열쇠(테마, 즐겨찾기 등)는 이 키에 없다. 이 키는 통째로 기록이다.
         localStorage.setItem(USER_DATA_KEY, JSON.stringify(records));
     } catch {
-        /* 저장 공간이 꽉 찼으면 그냥 넘긴다 — 여기서 던지면 페이지가 멈춘다. */
+        /* 저장 공간이 꽉 찼으면 그냥 넘긴다. 여기서 던지면 페이지가 멈춘다. */
     }
 }
 
 /**
  * 서버 쪽 `mergeRecords` 와 **같은 규칙**. 한쪽이라도 다르면 왕복할 때마다 값이 흔들린다.
- * 도전과제·뱃지는 합집합, 누적값은 큰 쪽, 연속기록은 최장·최신.
+ * 도전과제, 뱃지는 합집합, 누적값은 큰 쪽, 연속기록은 최장, 최신.
  */
 function mergeRecords(a: Records, b: Records): Records {
     const merged = emptyRecords();
@@ -145,11 +145,11 @@ function noteStale(response: Response): void {
  * 서버에 못 닿은 채 열렸다 (TASK-KL-191 축8).
  *
  * 도구는 전부 브라우저 안에서 도니까 **끊겨도 대부분 그대로 쓴다**. 그런데 아무 말이 없으면
- * 사람은 로그인·광장이 안 뜨는 것을 고장으로 읽고 창을 닫는다. 무엇이 되고 무엇이 안 되는지를
- * 한 줄로 말해 주는 것이 「오프라인 지원」의 절반이다.
+ * 사람은 로그인, 광장이 안 뜨는 것을 고장으로 읽고 창을 닫는다. 무엇이 되고 무엇이 안 되는지를
+ * 한 줄로 말해 주는 것이 오프라인 지원의 절반이다.
  *
- * **`navigator.onLine` 은 안 믿는다** — 실측(2026-08-08): 회선을 끊어 놓고도 `true` 였다.
- * 원래 그 값은 「그물에 꽂혀 있나」지 「닿을 수 있나」가 아니다(공유기만 살아 있어도 참이다).
+ * **`navigator.onLine` 은 안 믿는다**. 실측(2026-08-08): 회선을 끊어 놓고도 `true` 였다.
+ * 원래 그 값은 그물에 꽂혀 있나지 닿을 수 있나가 아니다(공유기만 살아 있어도 참이다).
  * 우리가 아는 유일한 진실은 **실제로 못 닿았다**는 사실뿐이라, 그것을 신호로 쓴다.
  */
 function offlineNote(show: boolean): void {
@@ -163,18 +163,18 @@ function offlineNote(show: boolean): void {
         if (existing) return;
         const note = document.createElement('div');
         note.id = ID;
-        /* 이건 **상태 알림**이다 — 사람이 뭘 하지 않아도 스스로 떴다 사라진다.
+        /* 이건 **상태 알림**이다. 사람이 뭘 하지 않아도 스스로 떴다 사라진다.
            역할을 안 주면 ① 화면낭독기가 뜬 줄도 모르고 ② 랜드마크 밖에 떠 있는
            떠돌이 글로 잡힌다(axe `region`, 2026-08-16 실측 6곳). 둘 다 같은 한 줄로 풀린다. */
         note.setAttribute('role', 'status');
         note.setAttribute('aria-live', 'polite');
         /* ★ **말 묶음이 없어도 떠야 한다** (2026-08-14). 이 쪽지가 뜨는 상황이 바로
-           「그물이 끊겼다」다 — 그런데 `t()` 는 묶음이 안 실렸으면 **던진다**. 대비 문장이
+           그물이 끊겼다다. 그런데 `t()` 는 묶음이 안 실렸으면 **던진다**. 대비 문장이
            없으면 쪽지를 그리다 말고 죽는다(끊긴 순간에만 죽으니 아무도 못 봤다). */
         note.textContent = t(
             'account.t05',
             undefined,
-            '서버에 못 닿고 있어요 — 도구는 그대로 씁니다. 로그인·광장·저장만 잠시 쉽니다.'
+            '서버에 못 닿고 있어요. 도구는 그대로 씁니다. 로그인, 광장, 저장만 잠시 쉽니다.'
         );
         note.style.cssText =
             'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
@@ -200,7 +200,7 @@ async function call(path: string, init: RequestInit = {}): Promise<Response | nu
         noteStale(response);
         return response;
     } catch {
-        // 서버가 없다·느리다·터널이 끊겼다 — 전부 「계정 기능이 지금 없다」로만 취급한다.
+        // 서버가 없다, 느리다, 터널이 끊겼다. 전부 계정 기능이 지금 없다로만 취급한다.
         return null;
     } finally {
         clearTimeout(timer);
@@ -212,7 +212,7 @@ type Listener = (state: AccountState) => void;
 interface AccountState {
     /** 로그인했으면 계정, 아니면 null. 서버에 못 닿은 것도 null (구별은 `reachable`). */
     account: AccountSummary | null;
-    /** 서버에 닿았나. false 면 화면에서 계정 자리를 아예 안 보여준다 — 눌러도 안 되는 단추가 제일 나쁘다. */
+    /** 서버에 닿았나. false 면 화면에서 계정 자리를 아예 안 보여준다. 눌러도 안 되는 단추가 제일 나쁘다. */
     reachable: boolean;
     /** 아직 처음 확인 중인가. */
     loading: boolean;
@@ -272,7 +272,7 @@ function scheduleSync(): void {
 
 /**
  * 기록이 바뀌었는지 지켜본다.
- * `storage` 이벤트는 **다른 탭**의 변경만 알려 준다 — 같은 탭에서 도전과제를 딴 것은 안 온다.
+ * `storage` 이벤트는 **다른 탭**의 변경만 알려 준다. 같은 탭에서 도전과제를 딴 것은 안 온다.
  * 그래서 같은 탭은 값을 주기적으로 비교한다 (문자열 비교 한 번, 비용 무시할 수준).
  */
 function watchLocalChanges(): void {
@@ -287,9 +287,9 @@ function watchLocalChanges(): void {
 }
 
 async function refresh(): Promise<void> {
-    /* 머리띠의 계정 자리도 첫 화면이다 — 스스로 말 묶음을 받고 그린다.
+    /* 머리띠의 계정 자리도 첫 화면이다. 스스로 말 묶음을 받고 그린다.
        ★ **못 받아도 계속 간다** (2026-08-14). 끊긴 채 열면 이 받기가 실패하는데, 그러면
-          여기서 함수가 통째로 죽어 **「서버에 못 닿는다」 쪽지가 영영 안 떴다** — 정작 그
+          여기서 함수가 통째로 죽어 **서버에 못 닿는다 쪽지가 영영 안 떴다**. 정작 그
           쪽지가 필요한 유일한 순간에. 말이 없으면 대비 문장으로 그린다(위 `offlineNote`). */
     await loadNamespace('account').catch(() => {});
     const response = await call('/kl/me');
@@ -315,11 +315,11 @@ async function refresh(): Promise<void> {
 }
 
 /**
- * 데스크톱 앱 로그인 (RFC 8252 — 시스템 브라우저 + 집 안 되돌아오기).
+ * 데스크톱 앱 로그인 (RFC 8252. 시스템 브라우저 + 집 안 되돌아오기).
  *
  * 앱 창 안에서 디스코드 비밀번호를 받지 않는다. 브라우저에서 로그인이 끝나면 앱이 그
  * 순간만 열어 둔 127.0.0.1 문으로 **한 번 쓰는 코드**가 돌아오고, 그 코드를 여기서
- * 내밀어 세션을 받는다 — 쿠키가 이 웹뷰 통에 앉는다(그래야 앱이 로그인된다).
+ * 내밀어 세션을 받는다. 쿠키가 이 웹뷰 통에 앉는다(그래야 앱이 로그인된다).
  *
  * 이 길이 없으면 브라우저만 로그인되고 앱은 영영 남남으로 남는다(실측된 증상).
  */
@@ -352,7 +352,7 @@ async function redeemLoginCode(code: string): Promise<boolean> {
         body: JSON.stringify({ code }),
     });
     if (!response || !response.ok) {
-        loginNote(t('account.t06', undefined, '로그인을 못 받았어요 — 다시 눌러 주세요.'));
+        loginNote(t('account.t06', undefined, '로그인을 못 받았어요. 다시 눌러 주세요.'));
         setTimeout(() => loginNote(null), 6000);
         return false;
     }
@@ -362,7 +362,7 @@ async function redeemLoginCode(code: string): Promise<boolean> {
 }
 
 function startDesktopSignIn(): void {
-    loginNote(t('account.t07', undefined, '브라우저에서 로그인하세요 — 끝나면 이 창이 알아서 붙습니다.'));
+    loginNote(t('account.t07', undefined, '브라우저에서 로그인하세요. 끝나면 이 창이 알아서 붙습니다.'));
     void invoke('desktop_login_start', { apiBase: API_BASE }).catch(() => {
         // 앱 쪽 문이 안 열렸다 = 브라우저도 안 떴다. 예전 길(창 넘김)로 물러선다.
         loginNote(null);
@@ -388,7 +388,7 @@ const KarmoAccount = {
     },
     /** 디스코드로 로그인. 돌아올 자리를 같이 넘겨 원래 보던 화면으로 복귀한다. */
     signIn(): void {
-        // 데스크톱 앱은 창을 넘기면 안 된다 — 로그인이 브라우저에서 끝나고 앱은 남남이 된다.
+        // 데스크톱 앱은 창을 넘기면 안 된다. 로그인이 브라우저에서 끝나고 앱은 남남이 된다.
         if (isDesktop()) {
             startDesktopSignIn();
             return;
@@ -399,7 +399,7 @@ const KarmoAccount = {
     /**
      * 패스키로 로그인 (TASK-KL-156 D7).
      *
-     * 누구인지 먼저 안 묻는다 — 기기가 자기가 가진 열쇠를 고르고, 서버가 그 열쇠로 계정을 찾는다.
+     * 누구인지 먼저 안 묻는다. 기기가 자기가 가진 열쇠를 고르고, 서버가 그 열쇠로 계정을 찾는다.
      * 이 브라우저가 패스키를 모르면 애초에 이 단추가 안 그려진다.
      */
     async signInWithPasskey(): Promise<boolean> {
@@ -409,7 +409,7 @@ const KarmoAccount = {
             const options = (await start.json()) as { key: string; challenge: string; rpId: string };
             /* 반환형을 `Uint8Array<ArrayBuffer>` 로 못 박는다.
              * 기본형(`Uint8Array<ArrayBufferLike>`)은 공유 버퍼일 수도 있다고 보여서
-             * `BufferSource` 자리에 못 넣는다 — 타입 검사가 통째로 빨개진다(TS 5.7+). */
+             * `BufferSource` 자리에 못 넣는다. 타입 검사가 통째로 빨개진다(TS 5.7+). */
             const toBytes = (value: string): Uint8Array<ArrayBuffer> => {
                 const padded = value.replace(/-/g, '+').replace(/_/g, '/');
                 const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
@@ -461,7 +461,7 @@ const KarmoAccount = {
     sync(): void {
         void syncNow();
     },
-    /** 공개 프로필 그림 주소 — 서버가 대신 받아 보내는 자리. */
+    /** 공개 프로필 그림 주소. 서버가 대신 받아 보내는 자리. */
     avatarUrl(path: string | null): string | null {
         return path ? `${API_BASE}${path}` : null;
     },
@@ -470,8 +470,8 @@ const KarmoAccount = {
 
 /* ===== 흔적 남기기 (TASK-KL-098 Cycle 2) =====
  *
- * 도구가 열렸다는 것을 서버에 알린다. 로그인과 무관하다 — 그냥 지나간 사람의 자국도
- * 사이트의 자국이다. 이게 있어야 「어느 도구가 실제로 쓰이는가」를 사이트가 스스로 말한다.
+ * 도구가 열렸다는 것을 서버에 알린다. 로그인과 무관하다. 그냥 지나간 사람의 자국도
+ * 사이트의 자국이다. 이게 있어야 어느 도구가 실제로 쓰이는가를 사이트가 스스로 말한다.
  *
  * 실패하면 아무 일도 안 한다. 숫자 하나 못 센 것과 도구가 안 되는 것은 전혀 다른 무게다.
  */
@@ -482,7 +482,7 @@ function currentToolId(): string | null {
     const detail = toolIdFromPath(location.pathname);
     if (detail) return detail;
 
-    // 앱 안: #<도구id>. 홈·계정 화면 등은 도구가 아니다.
+    // 앱 안: #<도구id>. 홈, 계정 화면 등은 도구가 아니다.
     const hash = location.hash.replace(/^#/, '');
     if (!/^[a-z0-9][a-z0-9-]*$/.test(hash)) return null;
     if (hash === 'home' || hash === 'user' || hash === 'settings' || hash === 'linktree' || hash === 'plaza') return null;
@@ -493,13 +493,13 @@ function currentToolId(): string | null {
  * 다녀갔다고 한 번 알린다 (블로그의 Total / Today 와 같은 것).
  *
  * 도구 열림과 따로 세는 이유: 첫 화면만 보고 나간 사람도 다녀간 사람이다. 도구 열림만 세면
- * 첫 화면은 영원히 아무도 안 온 곳이 된다. 화면을 옮길 때마다 보내지 않고 **한 번만** 보낸다 —
+ * 첫 화면은 영원히 아무도 안 온 곳이 된다. 화면을 옮길 때마다 보내지 않고 **한 번만** 보낸다 . 
  * 서버도 30분에 한 번만 세지만, 안 보내는 편이 낫다.
  */
 /**
  * 숫자를 실어 보낼 **자격**이 되나 (TASK-KL-201 후속).
  *
- * 방문 알림은 화면이 뜨자마자 한 번 나간다 — 그때는 「첫 그림」도 「큰 그림」도 아직 없다.
+ * 방문 알림은 화면이 뜨자마자 한 번 나간다. 그때는 첫 그림도 큰 그림도 아직 없다.
  * 그 반쪽 판까지 서버에 세면 분포가 **실제보다 좋아 보인다**(빈 칸은 안 세이니 남는 건 빠른
  * 값뿐이다). 실측으로 그 반쪽이 먼저 나가는 것을 보고 막았다.
  * 그래서 숫자는 **큰 그림이 정해진 뒤**에만 싣는다. 그 전 알림은 지금까지처럼 빈 몸으로 간다.
@@ -512,12 +512,12 @@ function traceVisit(): void {
     /* 다녀갔다고 알리는 김에 **이 기기에서 잰 숫자**를 같이 보낸다 (TASK-KL-201 후속).
      *
      * 왜: 지금까지 성능은 전부 **만든 사람 기계**에서만 쟀다. 진짜 사람이 자기 폰으로 열 때
-     * 몇 초인지는 아무도 모른다 — 추측으로 고쳐 왔다. 계기판이 이미 재 둔 값이 있으니,
+     * 몇 초인지는 아무도 모른다. 추측으로 고쳐 왔다. 계기판이 이미 재 둔 값이 있으니,
      * 이미 보내는 이 한 번에 얹으면 **새 요청 0**으로 현실을 알 수 있다.
      *
-     * 무엇을 안 보내나: 누구인지·무엇을 봤는지·글자 한 자도 안 보낸다. 시간과 크기, 그리고
-     * 기기 성격(코어 수·화면 폭·회선 종류)뿐이다. 못 잰 값은 **0 이 아니라 빠진 채**로 간다.
-     * 못 믿을 판(안 보이는 탭에서 열림 등)은 아예 안 보낸다 — 섞이면 분포가 거짓이 된다.
+     * 무엇을 안 보내나: 누구인지, 무엇을 봤는지, 글자 한 자도 안 보낸다. 시간과 크기, 그리고
+     * 기기 성격(코어 수, 화면 폭, 회선 종류)뿐이다. 못 잰 값은 **0 이 아니라 빠진 채**로 간다.
+     * 못 믿을 판(안 보이는 탭에서 열림 등)은 아예 안 보낸다. 섞이면 분포가 거짓이 된다.
      *
      * 계측기가 없거나(옛 판) 아직 준비 전이면 그냥 지금까지처럼 빈 몸으로 간다. */
     let body: string | undefined;
@@ -545,7 +545,7 @@ function traceVisit(): void {
             });
         }
     } catch {
-        /* 숫자를 못 만들어도 **방문 알림은 그대로 간다** — 곁다리가 본래 일을 막으면 안 된다. */
+        /* 숫자를 못 만들어도 **방문 알림은 그대로 간다**. 곁다리가 본래 일을 막으면 안 된다. */
     }
     void call('/kl/trace/visit', {
         method: 'POST',
@@ -556,10 +556,10 @@ function traceVisit(): void {
 /**
  * 숫자를 **한 박자 뒤에** 보낸다 (TASK-KL-201 후속).
  *
- * 방문 알림은 화면이 뜨자마자 나간다. 그런데 그 시점엔 「제일 큰 그림」도 「제일 굼뜬 조작」도
- * 아직 안 정해져 있다 — 그대로 보내면 그 두 칸이 영원히 빈 분포가 쌓인다.
+ * 방문 알림은 화면이 뜨자마자 나간다. 그런데 그 시점엔 제일 큰 그림도 제일 굼뜬 조작도
+ * 아직 안 정해져 있다. 그대로 보내면 그 두 칸이 영원히 빈 분포가 쌓인다.
  * 그래서 방문 세는 일은 지금 그대로 두고, **숫자만** 한가해진 뒤에 한 번 더 얹어 보낸다.
- * 사람이 그새 창을 닫으면 그 판은 안 온다 — 그건 정상이다(억지로 붙잡지 않는다).
+ * 사람이 그새 창을 닫으면 그 판은 안 온다. 그건 정상이다(억지로 붙잡지 않는다).
  */
 function traceVisitPerfLater(): void {
     const send = (): void => {
@@ -580,16 +580,16 @@ function traceVisitPerfLater(): void {
     else run();
 }
 
-/** 「지금 보고 있어요」를 얼마나 자주 알릴지. 서버는 5분 창으로 센다. */
+/** 지금 보고 있어요를 얼마나 자주 알릴지. 서버는 5분 창으로 센다. */
 const PRESENCE_PING_MS = 90_000;
 
 /**
  * 지금 이 화면을 보고 있다고 알린다.
  *
- * 누적 방문 수는 과거를 말하고, 이것만이 **지금**을 말한다 — 「나 말고도 누가 있다」는
+ * 누적 방문 수는 과거를 말하고, 이것만이 **지금**을 말한다. 나 말고도 누가 있다는
  * 그 수 하나로 전해진다.
  *
- * 탭이 뒤로 가 있으면 안 보낸다. 열어 두고 잊은 창까지 「보고 있는 사람」으로 세면
+ * 탭이 뒤로 가 있으면 안 보낸다. 열어 두고 잊은 창까지 보고 있는 사람으로 세면
  * 그 수는 곧 아무 뜻이 없어진다.
  */
 function startPresence(): void {
@@ -599,7 +599,7 @@ function startPresence(): void {
     };
     ping();
     setInterval(ping, PRESENCE_PING_MS);
-    // 다시 앞으로 오면 바로 한 번 — 5분 창 밖으로 밀려나 있었을 수 있다.
+    // 다시 앞으로 오면 바로 한 번. 5분 창 밖으로 밀려나 있었을 수 있다.
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') ping();
     });
@@ -612,7 +612,7 @@ function traceCurrentTool(): void {
     const toolId = currentToolId();
     if (!toolId || tracedTools.has(toolId)) return;
     tracedTools.add(toolId);
-    /* 도감 도장도 여기서 찍는다 (TASK-KL-196) — 「도구를 열었다」의 판정은 이 함수 하나뿐이다.
+    /* 도감 도장도 여기서 찍는다 (TASK-KL-196). 도구를 열었다의 판정은 이 함수 하나뿐이다.
        도감이 따로 세기 시작하면 그날부터 서버 발자국과 도감이 다른 말을 한다. */
     stampToday(toolId);
     void call('/kl/trace/tool', {
@@ -624,33 +624,33 @@ function traceCurrentTool(): void {
 
 /* ===== 헤더의 계정 자리 (TASK-KL-098 Cycle 3) =====
  *
- * 로그인 상태가 화면 어디에도 안 보이면 「내 정보」를 아는 사람만 로그인한다.
+ * 로그인 상태가 화면 어디에도 안 보이면 내 정보를 아는 사람만 로그인한다.
  * 헤더는 모든 화면에 있으므로 여기 붙인다.
  *
- * 서버에 못 닿으면 **아무것도 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+ * 서버에 못 닿으면 **아무것도 안 그린다**. 눌러도 아무 일 없는 단추가 제일 나쁘다.
  */
 function mountHeaderAccount(): void {
     const slot = document.getElementById('headerAccount');
     if (!slot) return;
 
-    /* 이 캡슐의 모양은 셸 CSS(css/toolbox.css § 계정 캡슐)에 있다 — 화면(index.html)에
+    /* 이 캡슐의 모양은 셸 CSS(css/toolbox.css § 계정 캡슐)에 있다. 화면(index.html)에
      * 기본 캡슐이 박혀 있어서, 스타일이 이 파일에 있으면 account.js 가 오기 전까지 맨몸으로 보인다. */
 
     /* 아바타를 누르면 메뉴가 열린다 (TASK-KL-139).
      *
-     * 예전에는 누르면 곧장 「내 정보」로 갔다. 그래서 **로그아웃하는 길이 화면 안쪽 한 곳뿐**이었다 —
-     * 계정이 있는 사이트에서 로그아웃은 어느 화면에서든 두 번 눌러 닿아야 한다(GitHub·Discord 둘 다
-     * 아바타 메뉴에 둔다). 환경 설정도 여기 둔다: 「나」에서 떼어 낸 화면이라 갈 길이 있어야 한다. */
+     * 예전에는 누르면 곧장 내 정보로 갔다. 그래서 **로그아웃하는 길이 화면 안쪽 한 곳뿐**이었다 . 
+     * 계정이 있는 사이트에서 로그아웃은 어느 화면에서든 두 번 눌러 닿아야 한다(GitHub, Discord 둘 다
+     * 아바타 메뉴에 둔다). 환경 설정도 여기 둔다: 나에서 떼어 낸 화면이라 갈 길이 있어야 한다. */
     let menuOpen = false;
 
-    /** 로그인 전에도 쓰는 얼굴 자리 — 화면(index.html)에 박아 둔 것과 같은 모양이어야 한다. */
+    /** 로그인 전에도 쓰는 얼굴 자리. 화면(index.html)에 박아 둔 것과 같은 모양이어야 한다. */
     const BLANK_FACE =
         '<span class="header-account-blank">' +
         '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" ' +
         'stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/>' +
         '<path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>';
 
-    /** 지금 보고 있는 화면이 「내 정보」면 캡슐을 켠다 — 다시 그릴 때마다 도로 꺼지지 않게 여기서도 건다. */
+    /** 지금 보고 있는 화면이 내 정보면 캡슐을 켠다. 다시 그릴 때마다 도로 꺼지지 않게 여기서도 건다. */
     const markActivePage = (): void => {
         const button = slot.querySelector('.header-account-btn');
         if (!button) return;
@@ -658,9 +658,9 @@ function mountHeaderAccount(): void {
     };
 
     const paint = (state: AccountState): void => {
-        /* 서버에 못 닿아도 **단추는 남는다** (사용자 요청 「통합」).
-         * 이 캡슐이 곧 「내 정보」 단추라, 비우면 내 정보로 가는 길이 통째로 사라진다.
-         * 계정과 무관한 것(내 정보·환경 설정)만 메뉴에 남기고, 계정 것은 안 그린다 —
+        /* 서버에 못 닿아도 **단추는 남는다** (사용자 요청 통합).
+         * 이 캡슐이 곧 내 정보 단추라, 비우면 내 정보로 가는 길이 통째로 사라진다.
+         * 계정과 무관한 것(내 정보, 환경 설정)만 메뉴에 남기고, 계정 것은 안 그린다 . 
          * 눌러도 아무 일 없는 단추를 안 만든다는 원칙은 그대로다. */
         const me = state.loading ? null : state.account;
         const canAccount = !state.loading && state.reachable;
@@ -692,8 +692,8 @@ function mountHeaderAccount(): void {
         markActivePage();
 
         slot.querySelector('#klHeaderMe')?.addEventListener('click', (event) => {
-            /* 이 클릭이 문서까지 올라가면 **바로 아래 「바깥 클릭이면 닫는다」가 자기 자신을 닫는다**.
-             * 다시 그리면서 눌린 단추가 문서에서 떨어져 나가, 그 검사에는 「바깥」으로 보이기 때문이다.
+            /* 이 클릭이 문서까지 올라가면 **바로 아래 바깥 클릭이면 닫는다가 자기 자신을 닫는다**.
+             * 다시 그리면서 눌린 단추가 문서에서 떨어져 나가, 그 검사에는 바깥으로 보이기 때문이다.
              * (실측: 메뉴가 열렸다가 같은 클릭에 도로 닫혀 영영 안 보였다.) */
             event.stopPropagation();
             menuOpen = !menuOpen;
@@ -712,7 +712,7 @@ function mountHeaderAccount(): void {
         });
     };
 
-    // 바깥을 누르면 닫힌다 — 열어 둔 채로 다른 걸 누르면 방해가 된다.
+    // 바깥을 누르면 닫힌다. 열어 둔 채로 다른 걸 누르면 방해가 된다.
     document.addEventListener('click', (event) => {
         if (!menuOpen) return;
         if (slot.contains(event.target as Node)) return;
@@ -726,8 +726,8 @@ function mountHeaderAccount(): void {
 /* ===== 알림 종 (공용) =====
  *
  * 알림은 커뮤니티의 기능이 아니라 **플랫폼의 기능**이다 (사용자: "다른 기능도 함께 쓸 수 있도록
- * Common하게"). 그래서 커뮤니티 위젯이 아니라 머리띠에 산다 — 어느 화면에 있든 보이고,
- * 도구·계정·봇이 보낸 알림도 같은 자리에 뜬다.
+ * Common하게"). 그래서 커뮤니티 위젯이 아니라 머리띠에 산다. 어느 화면에 있든 보이고,
+ * 도구, 계정, 봇이 보낸 알림도 같은 자리에 뜬다.
  *
  * 서버에 못 닿거나 로그인 안 했으면 **아무것도 안 그린다**. 눌러도 아무 일 없는 종이 제일 나쁘다.
  */
@@ -792,7 +792,7 @@ function bellStyle(): void {
         '.kl-bell-body { display:block; margin-top:2px; font-size:11px; color:var(--text-tertiary);',
         '  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
         '.kl-bell-empty { padding:22px 12px; text-align:center; font-size:12px; color:var(--text-tertiary); }',
-        // 「어디로 받을 것인가」 (KL-157). 목록 아래에 붙여 알림을 볼 때마다 눈에 들어오게.
+        // 어디로 받을 것인가 (KL-157). 목록 아래에 붙여 알림을 볼 때마다 눈에 들어오게.
         '.kl-bell-dm { display:block; width:100%; padding:9px 12px; border:none; border-top:1px solid var(--border);',
         '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:12px; text-align:left; cursor:pointer; }',
         '.kl-bell-dm:hover { color:var(--text-primary); }',
@@ -821,8 +821,8 @@ function mountBell(): void {
     let discordOn = false;
     let discordAvailable = false;
 
-    /* 받은함 (TASK-KL-191 축7) — 갈래로 걸러 보고, 지난 것도 볼 수 있다.
-     * 서른 개만 보이던 시절엔 그 앞의 알림이 **없는 것**이 됐다. 「나중에 볼게」가 안 되면
+    /* 받은함 (TASK-KL-191 축7). 갈래로 걸러 보고, 지난 것도 볼 수 있다.
+     * 서른 개만 보이던 시절엔 그 앞의 알림이 **없는 것**이 됐다. 나중에 볼게가 안 되면
      * 그건 받은함이 아니라 종소리다. */
     let bucket = '';
     let limit = 30;
@@ -863,22 +863,22 @@ function mountBell(): void {
                       (n) =>
                           `<button type="button" class="kl-bell-item" data-note="${bellSafe(n.id)}" data-unread="${n.readAt ? '0' : '1'}">` +
                           `<span class="kl-bell-title">${bellSafe(n.title)}${n.count > 1 ? ` (${n.count})` : ''}</span>` +
-                          `<span class="kl-bell-body">${bellSafe(n.body ?? '')} · ${relativeTimeShort(n.updatedAt)}</span>` +
+                          `<span class="kl-bell-body">${bellSafe(n.body ?? '')}, ${relativeTimeShort(n.updatedAt)}</span>` +
                           `</button>`,
                   )
                   .join('')
             : t('account.t12');
 
-        /* 「어디로 받을 것인가」를 알림을 보는 자리에 둔다 (TASK-KL-157).
-           종은 사이트 안에서만 울린다 — 사이트를 안 열고 있으면 그 알림은 없는 것과 같다.
+        /* 어디로 받을 것인가를 알림을 보는 자리에 둔다 (TASK-KL-157).
+           종은 사이트 안에서만 울린다. 사이트를 안 열고 있으면 그 알림은 없는 것과 같다.
            설정 화면 깊숙이 두면 이 스위치가 있다는 것 자체를 아무도 모른다. */
         const discordRow = discordAvailable
             ? `<button type="button" class="kl-bell-dm" id="klBellDm" data-on="${discordOn ? '1' : '0'}">` +
               `${discordOn ? '☑' : '☐'} ${esc(t('account.alsoDiscord'))}</button>`
             : '';
 
-        /* 갈래 줄 — 사람이 켜고 끄는 갈래와 **같은 이름**이어야 한다. 여기만 다른 말을 쓰면
-         * 「community 를 껐는데 왜 커뮤니티 알림이 오지」가 된다. */
+        /* 갈래 줄. 사람이 켜고 끄는 갈래와 **같은 이름**이어야 한다. 여기만 다른 말을 쓰면
+         * community 를 껐는데 왜 커뮤니티 알림이 오지가 된다. */
         const TABS: Array<[string, string]> = [
             ['', t('account.t13')],
             ['community', t('account.t14')],
@@ -894,7 +894,7 @@ function mountBell(): void {
                   );
               }).join('')}</div>`
             : '';
-        /* 「더 보기」는 **받은 만큼 찼을 때만** 뜬다 — 다 보여 준 뒤에도 뜨면 눌러도 아무 일이 없다. */
+        /* 더 보기는 **받은 만큼 찼을 때만** 뜬다. 다 보여 준 뒤에도 뜨면 눌러도 아무 일이 없다. */
         const more = items.length >= limit && limit < 100
             ? t('account.t17')
             : '';
@@ -914,7 +914,7 @@ function mountBell(): void {
             `</button>${panel}`;
 
         slot!.querySelector('#klBell')?.addEventListener('click', (event) => {
-            // 같은 이유로 여기서도 막는다 — 안 막으면 아래 「바깥 클릭이면 닫는다」가 이 클릭을
+            // 같은 이유로 여기서도 막는다. 안 막으면 아래 바깥 클릭이면 닫는다가 이 클릭을
             // 바깥으로 보고 방금 연 것을 도로 닫는다 (다시 그리면서 눌린 단추가 떨어져 나가므로).
             event.stopPropagation();
             open = !open;
@@ -925,7 +925,7 @@ function mountBell(): void {
             // 종 패널 안의 클릭이므로 바깥 클릭으로 새어 나가면 방금 연 패널이 닫힌다.
             event.stopPropagation();
             const next = !discordOn;
-            discordOn = next; // 누른 자리에서 바로 바뀐다 — 서버 확인은 뒤에서.
+            discordOn = next; // 누른 자리에서 바로 바뀐다. 서버 확인은 뒤에서.
             paint();
             void call('/kl/notifications/discord', {
                 method: 'POST',
@@ -939,10 +939,10 @@ function mountBell(): void {
         });
         slot!.querySelectorAll<HTMLButtonElement>('.kl-bell-tab').forEach((button) => {
             button.addEventListener('click', (event) => {
-                // 패널 안의 클릭이다 — 안 막으면 「바깥 클릭이면 닫는다」가 패널을 닫는다.
+                // 패널 안의 클릭이다. 안 막으면 바깥 클릭이면 닫는다가 패널을 닫는다.
                 event.stopPropagation();
                 bucket = button.dataset.bucket ?? '';
-                limit = 30; // 갈래를 바꾸면 처음부터 — 앞 갈래에서 늘려 둔 수가 따라오면 안 된다
+                limit = 30; // 갈래를 바꾸면 처음부터. 앞 갈래에서 늘려 둔 수가 따라오면 안 된다
                 void load();
             });
         });
@@ -975,7 +975,7 @@ function mountBell(): void {
         });
     }
 
-    // 바깥을 누르면 닫힌다 — 열어 둔 채로 다른 걸 누르면 방해가 된다.
+    // 바깥을 누르면 닫힌다. 열어 둔 채로 다른 걸 누르면 방해가 된다.
     document.addEventListener('click', (event) => {
         if (!open) return;
         if (slot.contains(event.target as Node)) return;
@@ -1001,7 +1001,7 @@ declare global {
 }
 
 window.KarmoAccount = KarmoAccount;
-/* 앱이 언제 부를지 모른다(사람이 브라우저에서 얼마나 꾸물대는지에 달렸다) — 그래서
+/* 앱이 언제 부를지 모른다(사람이 브라우저에서 얼마나 꾸물대는지에 달렸다). 그래서
    이 손잡이는 **항상 먼저** 걸어 둔다. 웹 브라우저에서는 아무도 안 부른다. */
 window.__karmolabDesktopLogin = (code: string): void => {
     void redeemLoginCode(String(code ?? ''));
@@ -1009,13 +1009,13 @@ window.__karmolabDesktopLogin = (code: string): void => {
 
 watchLocalChanges();
 window.addEventListener('hashchange', traceCurrentTool);
-// 첫 화면 그리기와 겨루지 않게 뒤로 미룬다 — 계정은 급하지 않고 도구가 먼저다.
+// 첫 화면 그리기와 겨루지 않게 뒤로 미룬다. 계정은 급하지 않고 도구가 먼저다.
 async function start(): Promise<void> {
     /* ★ **여기서 죽으면 계정 자리가 통째로 안 산다** (2026-08-14). 끊긴 채 열면 이 받기가
-       실패하는데, 그러면 `start()` 가 통째로 죽어 아래가 하나도 안 돈다 — 그중에
-       `refresh()` 가 있고, **「서버에 못 닿는다」 쪽지는 그 안에서 뜬다.** 그래서 그 쪽지가
+       실패하는데, 그러면 `start()` 가 통째로 죽어 아래가 하나도 안 돈다. 그중에
+       `refresh()` 가 있고, **서버에 못 닿는다 쪽지는 그 안에서 뜬다.** 그래서 그 쪽지가
        필요한 유일한 순간에만 안 떴다(실측: 끊고 12초를 기다려도 없음).
-       말이 없으면 대비 문장으로 그린다 — 못 받았다고 멈추지 않는다. */
+       말이 없으면 대비 문장으로 그린다. 못 받았다고 멈추지 않는다. */
     await loadNamespace('account').catch(() => {});
     mountHeaderAccount();
     mountBell();

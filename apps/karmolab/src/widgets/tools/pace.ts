@@ -9,8 +9,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { isMetric } from '../../lib/region';
 
 (function (): void {
-  /* 대회 거리는 **어디서나 미터법**이다(미국 대회도 5K·10K·마라톤 42.195km). 그래서 거리 표는
-     나라를 안 탄다 — 나라를 타는 것은 **페이스와 속도를 어느 단위로 말하느냐**뿐이다.
+  /* 대회 거리는 **어디서나 미터법**이다(미국 대회도 5K, 10K, 마라톤 42.195km). 그래서 거리 표는
+     나라를 안 탄다. 나라를 타는 것은 **페이스와 속도를 어느 단위로 말하느냐**뿐이다.
      이름은 찾을 때 정한다(표를 만들 때 정하면 열쇠가 굳는다). */
   const distances = (): Array<[string, number]> => [
     ['5K', 5],
@@ -60,7 +60,7 @@ import { isMetric } from '../../lib/region';
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
           const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          /* 미국은 「1마일에 몇 분」으로 말한다 — km 로만 주면 그 사람은 매번 암산해야 한다.
+          /* 미국은 1마일에 몇 분으로 말한다. km 로만 주면 그 사람은 매번 암산해야 한다.
              계산은 km 로 하고 **말하는 단위만** 바꾼다. */
           const perMile = !isMetric();
           const unit = t(perMile ? 'pace.unit.mile' : 'pace.unit.km');

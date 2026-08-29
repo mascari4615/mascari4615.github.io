@@ -13,7 +13,7 @@
  * - 이미지: https://ai.google.dev/gemini-api/docs/image-generation
  * - Imagen: https://ai.google.dev/gemini-api/docs/imagen
  *
- * 모델·URL·Vertex 기본값 SSOT: packages/ai (KarmoLabAI — AI Studio + Vertex)
+ * 모델, URL, Vertex 기본값 SSOT: packages/ai (KarmoLabAI. AI Studio + Vertex)
  */
 import {
   MODEL_CATALOG as MODELS,
@@ -32,7 +32,7 @@ import {
 } from '@karmo/ai';
 import { t, loadNamespace } from './lib/i18n';
 
-/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 이 파일은 위젯이 아니라 **셸, 라이브러리**다. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
 if (typeof document !== 'undefined') void loadNamespace('gemini');
 
@@ -163,16 +163,16 @@ interface ImagenPrediction {
 const Gemini = (() => {
     const STORAGE_KEY = 'toolbox_gemini_api_key'; // legacy single-key
     const KEYS_STORE_KEY = 'toolbox_gemini_api_keys_v2';
-    /** Vertex AI (Google Cloud API 키 / Express 모드 등) — AI Studio 키와 별도 */
+    /** Vertex AI (Google Cloud API 키 / Express 모드 등). AI Studio 키와 별도 */
     const VERTEX_API_KEY_STORAGE = 'toolbox_vertex_api_key';
 
     /* ===== API 키 관리 (다중 프로필) =====
      *
-     * ★ 여기 이름들은 원본 글(기본·무료·유료)을 함께 준다 (2026-08-12).
+     * ★ 여기 이름들은 원본 글(기본, 무료, 유료)을 함께 준다 (2026-08-12).
      *   이 함수는 **동기**라 말 묶음을 기다릴 자리가 없는데, 위쪽 `loadNamespace('gemini')` 는
-     *   기다리지 않고 던져 두는 부름이다. 먼저 불리면 `t()` 가 「없는 열쇠」로 죽어
+     *   기다리지 않고 던져 두는 부름이다. 먼저 불리면 `t()` 가 없는 열쇠로 죽어
      *   `test:i18n:lazy` 가 들쭉날쭉 빨개졌다(같은 판에서 한 번은 통과, 한 번은 실패).
-     *   묶음이 오면 그 글이 이기고, 아직이면 원본 글이 나간다 — 열쇠 이름이 화면에 뜨는 일은 없다. */
+     *   묶음이 오면 그 글이 이기고, 아직이면 원본 글이 나간다. 열쇠 이름이 화면에 뜨는 일은 없다. */
     function getKeyStore(): ApiKeyStore {
         // 1) 최신 구조: { activeId, profiles: [{id,name,key}] }
         try {
@@ -304,7 +304,7 @@ const Gemini = (() => {
         return getDefaultModelId(provider);
     }
 
-    /** 이미지 위젯·챗봇 Vertex 경로와 동일 prefs */
+    /** 이미지 위젯, 챗봇 Vertex 경로와 동일 prefs */
     const VERTEX_CHAT_PROJECT_PREF = 'ig_vertex_project_id';
     const VERTEX_CHAT_LOCATION_PREF = 'ig_vertex_location';
 
@@ -372,7 +372,7 @@ const Gemini = (() => {
 
     /* ===== HTTP 헬퍼 ===== */
     function maskKey(key: string): string {
-        if (!key || key.length < 8) return '••••';
+        if (!key || key.length < 8) return '----';
         return key.slice(0, 6) + '...' + key.slice(-4);
     }
 
@@ -382,7 +382,7 @@ const Gemini = (() => {
             const k = u.searchParams.get('key');
             if (k) u.searchParams.set('key', maskKey(k));
             return u.toString();
-        } catch (_) { return url.replace(/key=[^&]+/, 'key=••••'); }
+        } catch (_) { return url.replace(/key=[^&]+/, 'key=----'); }
     }
 
     async function fetchWithRetry(url: string, body: unknown, options: RequestInit = {}): Promise<Response> {
@@ -558,7 +558,7 @@ const Gemini = (() => {
         };
     }
 
-    /* ===== Vertex — 텍스트 / 채팅 / 스트리밍 (generateContent·streamGenerateContent) ===== */
+    /* ===== Vertex. 텍스트 / 채팅 / 스트리밍 (generateContent, streamGenerateContent) ===== */
     async function callVertexText(userText: string, systemPrompt: string, modelId: string | undefined, options: VertexChatOptions = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
@@ -717,7 +717,7 @@ const Gemini = (() => {
      * options: { signal, aspectRatio, safetyThreshold, referenceImage, referenceMimeType }
      * - aspectRatio: '1:1', '16:9', '9:16', '3:4', '4:3' 등
      * - safetyThreshold: 'OFF' | 'BLOCK_NONE' | 'BLOCK_ONLY_HIGH' | 'BLOCK_MEDIUM_AND_ABOVE' | 'BLOCK_LOW_AND_ABOVE'
-     * - referenceImage: data URL 또는 순수 base64(편집·업스케일 등 입력 이미지)
+     * - referenceImage: data URL 또는 순수 base64(편집, 업스케일 등 입력 이미지)
      * - referenceMimeType: 기본 image/png
      */
     async function callGeminiImage(prompt: string, modelId: string | undefined, options: GeminiImageOptions = {}) {
@@ -963,7 +963,7 @@ const Gemini = (() => {
     }
 
     /**
-     * Vertex AI Imagen — Prediction API `:predict` (scripts/generate-image.cjs 와 동일 계열)
+     * Vertex AI Imagen. Prediction API `:predict` (scripts/generate-image.cjs 와 동일 계열)
      * - 인증: Vertex용 Google Cloud API 키
      * - 엔드포인트: https://{location}-aiplatform.googleapis.com/v1/projects/.../models/...:predict?key=...
      * options: { signal, projectId, location, aspectRatio, safetyFilterLevel, negativePrompt, personGeneration }
@@ -1147,11 +1147,11 @@ const Gemini = (() => {
                         const current = getVertexApiKey();
                         const val = prompt(
                             t('gemini.t56'),
-                            current ? '••••••••••' : ''
+                            current ? '----------' : ''
                         );
                         if (val === null) return;
                         const trimmed = val.trim();
-                        if (!trimmed || trimmed === '••••••••••') {
+                        if (!trimmed || trimmed === '----------') {
                             if (!current) return;
                             setVertexApiKey('');
                             Toolbox.showToast(t('gemini.t57'));
@@ -1225,10 +1225,10 @@ const Gemini = (() => {
                             render();
                         } else if (role === 'edit') {
                             const current = profiles[idx];
-                            const val = prompt(t('gemini.t62'), current.key ? '••••••••••' : '');
+                            const val = prompt(t('gemini.t62'), current.key ? '----------' : '');
                             if (val === null) return;
                             const trimmed = val.trim();
-                            if (!trimmed || trimmed === '••••••••••') {
+                            if (!trimmed || trimmed === '----------') {
                                 profiles[idx].key = '';
                                 saveKeyStore(store);
                                 Toolbox.showToast(t('gemini.t63'));
@@ -1294,7 +1294,7 @@ Reply ONLY with the enhanced prompt in English, nothing else. Do not add any exp
 })();
 
 /**
- * ImageDB — IndexedDB 기반 이미지 라이브러리 공유 모듈.
+ * ImageDB. IndexedDB 기반 이미지 라이브러리 공유 모듈.
  * imagegen, imagelib 등 여러 위젯에서 공통으로 사용.
  */
 const ImageDB = (() => {

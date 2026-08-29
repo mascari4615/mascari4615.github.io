@@ -1,8 +1,8 @@
 /**
- * 흥 — 끌기 한 판을 맡는 자리 (TASK-KL-220 분리 4단).
+ * 흥. 끌기 한 판을 맡는 자리 (TASK-KL-220 분리 4단).
  *
- * 전에는 끌기마다(클립·피아노 box·note·자동화 점·세기 막대) 각자 리스너를 달고 각자
- * 「지금 취소할 것」을 덮어썼다. 두 끌기가 겹치면 앞의 것은 취소할 방법을 잃었다.
+ * 전에는 끌기마다(클립, 피아노 box, note, 자동화 점, 세기 막대) 각자 리스너를 달고 각자
+ * 지금 취소할 것을 덮어썼다. 두 끌기가 겹치면 앞의 것은 취소할 방법을 잃었다.
  * 여기서 한 번에 하나만 살아 있게 하고, 끝맺음(성공/취소)을 정확히 한 번만 부른다.
  */
 
@@ -18,7 +18,7 @@ export interface DragHandlers {
   move(event: PointerEvent): void;
   /** 손을 뗐을 때. */
   commit?(event: PointerEvent): void;
-  /** 취소 — pointercancel · 포인터 뺏김 · Escape · 새 끌기가 시작될 때. */
+  /** 취소. pointercancel, 포인터 뺏김, Escape, 새 끌기가 시작될 때. */
   cancel?(): void;
 }
 
@@ -84,7 +84,7 @@ export class GestureHost {
     return true;
   }
 
-  /** 리스너만 뗀다 — 끝맺음 호출은 부르는 쪽이 한다. */
+  /** 리스너만 뗀다. 끝맺음 호출은 부르는 쪽이 한다. */
   private release(): void {
     const live = this.live;
     if (!live) return;

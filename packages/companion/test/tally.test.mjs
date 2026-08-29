@@ -21,7 +21,7 @@ test('한 번도 안 센 것은 0 이다', () => {
   assert.deepEqual(new Tally().get('없는것'), { loaded: 0, queued: 0, off: 0, blank: 0, lastAt: 0 });
 });
 
-test('마지막으로 실린 때를 남긴다 — 실릴 때만', () => {
+test('마지막으로 실린 때를 남긴다. 실릴 때만', () => {
   let now2 = 100;
   const t = new Tally({ now: () => now2 });
   t.mark('기분', 'off');
@@ -32,21 +32,21 @@ test('마지막으로 실린 때를 남긴다 — 실릴 때만', () => {
 
 // ── 죽은 기능 찾기 ──────────────────────────────────────────────────
 
-test('여러 번 지나갔는데 한 번도 안 실린 것을 찾는다 — 이게 이걸 만든 이유다', () => {
+test('여러 번 지나갔는데 한 번도 안 실린 것을 찾는다. 이게 이걸 만든 이유다', () => {
   const t = new Tally();
   for (let i = 0; i < 12; i += 1) t.mark('화제', 'off');
   for (let i = 0; i < 12; i += 1) t.mark('기분', 'loaded');
   assert.deepEqual(t.neverUsed(10), ['화제']);
 });
 
-test('몇 번 안 지나간 건 아직 죽었다고 안 한다 — 조급하게 판단하지 않는다', () => {
+test('몇 번 안 지나간 건 아직 죽었다고 안 한다. 조급하게 판단하지 않는다', () => {
   const t = new Tally();
   t.mark('화제', 'off');
   t.mark('화제', 'off');
   assert.deepEqual(t.neverUsed(10), []);
 });
 
-test('밀리기만 한 것도 죽은 것으로 본다 — 켜져도 두뇌에 안 가면 없는 것과 같다', () => {
+test('밀리기만 한 것도 죽은 것으로 본다. 켜져도 두뇌에 안 가면 없는 것과 같다', () => {
   const t = new Tally();
   for (let i = 0; i < 12; i += 1) t.mark('통한말', 'queued');
   assert.deepEqual(t.neverUsed(10), ['통한말']);
@@ -60,7 +60,7 @@ test('몇 번 지나가야 판단할지 정할 수 있다', () => {
 
 // ── 고르는 자리에서 저절로 세기 ─────────────────────────────────────
 
-test('재료를 고를 때 넷으로 갈라 센다 — 여기가 모두 지나가는 유일한 길목이다', () => {
+test('재료를 고를 때 넷으로 갈라 센다. 여기가 모두 지나가는 유일한 길목이다', () => {
   const counted = [];
   pickIngredients(
     [
@@ -74,7 +74,7 @@ test('재료를 고를 때 넷으로 갈라 센다 — 여기가 모두 지나�
   assert.deepEqual(counted.sort(), ['꺼진것:off', '밀릴것:queued', '빈것:blank', '실릴것:loaded'].sort());
 });
 
-test('줄 수에 밀린 것도 밀림으로 센다 — 조용히 사라지면 안 된다', () => {
+test('줄 수에 밀린 것도 밀림으로 센다. 조용히 사라지면 안 된다', () => {
   const counted2 = [];
   pickIngredients(
     Array.from({ length: 6 }, (_, i) => material(`${i}`, '짧다', 10 - i)),
@@ -88,7 +88,7 @@ test('세는 걸 안 달아도 고르기는 그대로 돈다', () => {
   assert.deepEqual(picked.map((x) => x.name), ['가', '나']);
 });
 
-test('큰 게 밀려도 뒤의 작은 건 실린다 — 하나 못 넣었다고 멈추지 않는다', () => {
+test('큰 게 밀려도 뒤의 작은 건 실린다. 하나 못 넣었다고 멈추지 않는다', () => {
   const picked2 = pickIngredients(
     [material('큰것', '가'.repeat(200), 9), material('작은것', '짧다', 8)],
     { maxChars: 50 },
@@ -98,7 +98,7 @@ test('큰 게 밀려도 뒤의 작은 건 실린다 — 하나 못 넣었다고 
 
 // ── 사람이 읽는 표 ──────────────────────────────────────────────────
 
-test('한 번도 안 실린 것을 맨 위에 둔다 — 잘 도는 걸 위에 놓으면 아무것도 안 보인다', () => {
+test('한 번도 안 실린 것을 맨 위에 둔다. 잘 도는 걸 위에 놓으면 아무것도 안 보인다', () => {
   const t = new Tally();
   for (let i = 0; i < 20; i += 1) t.mark('기분', 'loaded');
   for (let i = 0; i < 20; i += 1) t.mark('화제', 'off');
@@ -113,7 +113,7 @@ test('센 게 없으면 그렇다고 말한다', () => {
 
 // ── 껐다 켜기 ───────────────────────────────────────────────────────
 
-test('파일에 남겨 두면 껐다 켜도 이어진다 — 하루 이틀 봐야 죽었는지 안다', async () => {
+test('파일에 남겨 두면 껐다 켜도 이어진다. 하루 이틀 봐야 죽었는지 안다', async () => {
   const { mkdtempSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');

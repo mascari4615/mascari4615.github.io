@@ -1,5 +1,5 @@
 /**
- * 개발·디버그용 패널 (Tauri 전용 기능 등). 항목은 섹션 단위로 추가.
+ * 개발, 디버그용 패널 (Tauri 전용 기능 등). 항목은 섹션 단위로 추가.
  */
 import { invoke as tauriInvoke } from '../tauri-bridge';
 import { t, loadNamespace } from '../lib/i18n';
@@ -163,7 +163,7 @@ import { t, loadNamespace } from '../lib/i18n';
         window.__karmolabSetNotifyInvokeDebug(payload);
       }
       status.className = 'devtools-log';
-      status.textContent = '요청 중…\n\n' + JSON.stringify(payload, null, 2);
+      status.textContent = '요청 중...\n\n' + JSON.stringify(payload, null, 2);
       void tauriInvoke('desktop_notify', payload)
         .then(function () {
           status.className = 'devtools-log devtools-log-ok';
@@ -348,7 +348,7 @@ import { t, loadNamespace } from '../lib/i18n';
       {
         id: 'devtools-main',
         label: t('devtools.tab.panel', undefined, '패널'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('devtools').then(function () {
             build(container);

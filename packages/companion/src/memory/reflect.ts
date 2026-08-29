@@ -4,29 +4,29 @@ import { dirname } from 'node:path';
 import type { MemoryEntry } from '../types';
 
 /**
- * 되새김 — 오간 말에서 **바로 안 보이는 것**을 스스로 짚는다.
+ * 되새김. 오간 말에서 **바로 안 보이는 것**을 스스로 짚는다.
  *
- * 기억을 세 겹으로 쌓아 왔다. 최근 몇 마디 · 졸여 만든 **사실 목록** · 감정이 실린
- * **그때 그 일**. 셋 다 **일어난 일**이다. 없는 건 그 위에 얹히는 것 — 「그래서 뭐가
- * 보이나」다.
+ * 기억을 세 겹으로 쌓아 왔다. 최근 몇 마디, 졸여 만든 **사실 목록**, 감정이 실린
+ * **그때 그 일**. 셋 다 **일어난 일**이다. 없는 건 그 위에 얹히는 것. 그래서 뭐가
+ * 보이나다.
  *
- * 레퍼런스(Generative Agents)가 기억을 셋으로 나누는데(담기·꺼내기·**되새김**) 우리는 앞의
- * 둘만 했다(73·74회차). 되새김은 요약이 아니다. 요약은 있던 걸 줄이지만, 되새김은 **없던
- * 문장을 만든다** — 「요즘 조수님은 막힌 얘기를 밤에만 꺼낸다」 같은 것. 사실 목록을 아무리
+ * 레퍼런스(Generative Agents)가 기억을 셋으로 나누는데(담기, 꺼내기, **되새김**) 우리는 앞의
+ * 둘만 했다(73, 74회차). 되새김은 요약이 아니다. 요약은 있던 걸 줄이지만, 되새김은 **없던
+ * 문장을 만든다**. 요즘 조수님은 막힌 얘기를 밤에만 꺼낸다 같은 것. 사실 목록을 아무리
  * 잘 졸여도 저 문장은 안 나온다.
  *
  * 곁에 오래 있는 존재와 그냥 잘 받아 적는 도구를 가르는 게 이 자리다.
  *
- * **지어내지 못하게 묶는다.** 되새김은 헛것이 나오기 가장 쉬운 자리다 — 그럴듯하고,
+ * **지어내지 못하게 묶는다.** 되새김은 헛것이 나오기 가장 쉬운 자리다. 그럴듯하고,
  * 틀려도 티가 안 나고, 한 번 적히면 계속 재료로 실린다. 그래서 셋을 요구한다:
- * **근거로 삼은 말을 같이 대라** · 못 대면 버린다 · 조수님에 대한 것만(얘 자신의 성향을
+ * **근거로 삼은 말을 같이 대라**, 못 대면 버린다, 조수님에 대한 것만(얘 자신의 성향을
  * 조수님 것으로 적는 사고를 이미 네 번 밟았다).
  */
 
 export interface Insight {
   /** 짚어 낸 것. */
   what: string;
-  /** 어디서 봤나 — 근거로 삼은 말 조각들. */
+  /** 어디서 봤나. 근거로 삼은 말 조각들. */
   evidence: readonly string[];
   at: number;
 }
@@ -73,7 +73,7 @@ export class reflection {
   }
 
   /**
-   * 되새긴다. **말하는 길에서 부르지 않는다** — 오래 걸리고, 늦어도 아무도 안 아프다.
+   * 되새긴다. **말하는 길에서 부르지 않는다**. 오래 걸리고, 늦어도 아무도 안 아프다.
    *
    * 이미 짚은 것은 다시 짚지 않게 넘겨 준다. 안 넘기면 같은 말을 여러 번 적어 놓고
    * 그게 재료 자리를 다 먹는다.
@@ -88,7 +88,7 @@ export class reflection {
     try {
       produced = await ask2(exchange3, this.list.map((x) => x.what));
     } catch (err) {
-      this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
+      this.options.log?.(`되새기다 실패. ${(err as Error)?.message ?? err}`);
       return 0;
     }
     if (produced === null) return 0;
@@ -99,7 +99,7 @@ export class reflection {
       const evidence = (x?.evidence ?? []).map((s) => String(s).trim()).filter((s) => s !== '');
       // **근거를 못 대면 버린다.** 되새김은 헛것이 가장 잘 나오는 자리다.
       if (what === '' || evidence.length === 0) {
-        if (what !== '') this.options.log?.(`근거가 없어 버렸다 — 「${what.slice(0, 40)}」`);
+        if (what !== '') this.options.log?.(`근거가 없어 버렸다. ${what.slice(0, 40)}`);
         continue;
       }
       if (this.has(what)) continue;
@@ -109,11 +109,11 @@ export class reflection {
     if (storedCount === 0) return 0;
     if (this.list.length > this.options.keep) this.list = this.list.slice(-this.options.keep);
     this.save();
-    this.options.log?.(`${storedCount}가지를 새로 짚었다 — ${this.list.slice(-storedCount).map((x) => x.what).join(' / ')}`);
+    this.options.log?.(`${storedCount}가지를 새로 짚었다. ${this.list.slice(-storedCount).map((x) => x.what).join(' / ')}`);
     return storedCount;
   }
 
-  /** 이미 같은 걸 짚었나 — 글자 그대로가 아니라 **겹치는 낱말**로 본다. */
+  /** 이미 같은 걸 짚었나. 글자 그대로가 아니라 **겹치는 낱말**로 본다. */
   private has(what2: string): boolean {
     const fresh = new Set(word(what2));
     if (fresh.size === 0) return false;
@@ -147,7 +147,7 @@ function word(text: string): string[] {
 }
 
 /**
- * 두뇌에 얹을 한 줄 — **지금 얘기와 이어질 때만.**
+ * 두뇌에 얹을 한 줄. **지금 얘기와 이어질 때만.**
  *
  * 늘 붙이면 얘가 사람을 계속 분석하는 꼴이 된다. 그건 곁에 있는 게 아니라 지켜보는 것이다.
  */
@@ -161,11 +161,11 @@ export function reflectionNote(store: reflection, currentText: string): string {
   if (flagged === undefined) return '';
   return (
     `여태 보아 온 것 하나: ${flagged.x.what} ` +
-    '지금 얘기와 이어지면 아는 티를 조금만 내라 — 짚어 주듯 말하지 말고, 캐묻지도 마라.'
+    '지금 얘기와 이어지면 아는 티를 조금만 내라. 짚어 주듯 말하지 말고, 캐묻지도 마라.'
   );
 }
 
-/** 두뇌에게 「바로 안 보이는 것 하나를 짚어라」를 묻는 자리. */
+/** 두뇌에게 바로 안 보이는 것 하나를 짚어라를 묻는 자리. */
 export function askReflection(ask: (prompt: string) => Promise<string | null>) {
   return async (exchange4: readonly MemoryEntry[], alreadyKnown2: readonly string[]) => {
     const conversation = exchange4
@@ -179,10 +179,10 @@ export function askReflection(ask: (prompt: string) => Promise<string | null>) {
       `${already}최근에 오간 말:\n${conversation}\n\n` +
         '위를 읽고 **한 마디만 봐서는 안 보이는 것**을 한두 가지 짚어라. 규칙:\n' +
         '- 요약하지 마라. 여러 마디에 걸쳐야 보이는 것만.\n' +
-        '- **조수님에 대한 것만.** 「나(동반자)」가 한 말은 단서로만 써라 — 거기 드러난 내 성향을 조수님 것으로 적지 마라.\n' +
+        '- **조수님에 대한 것만.** 나(동반자)가 한 말은 단서로만 써라. 거기 드러난 내 성향을 조수님 것으로 적지 마라.\n' +
         '- 짚을 게 없으면 아무것도 내지 마라. 억지로 만들지 마라.\n' +
         '- 각 줄은 `짚은 것 || 근거가 된 말 조각 ; 또 다른 조각` 꼴로. 근거는 위 대화에 실제로 있는 말이어야 한다.\n' +
-        '- 설명·머리말 없이 그 줄들만. 많아야 두 줄.',
+        '- 설명, 머리말 없이 그 줄들만. 많아야 두 줄.',
     );
     if (answer === null) return null;
     const produced2: Insight[] = [];

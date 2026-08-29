@@ -4,7 +4,7 @@
  * `Math.random` 을 쓰면 같은 방에 있는 두 사람이 다른 문제를 본다. 씨앗 하나에서 뽑으면
  * 같은 판이 되고, 터진 판을 씨앗만 적어 두고 그대로 되살릴 수 있다.
  *
- * mulberry32 — 32비트 하나로 상태가 끝나서 그물망에 씨앗만 흘려보내면 된다.
+ * mulberry32. 32비트 하나로 상태가 끝나서 그물망에 씨앗만 흘려보내면 된다.
  */
 
 export function mulberry32(seed: number): () => number {
@@ -18,7 +18,7 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** 방 이름 같은 글자에서 씨앗을 만든다 — 같은 방 = 같은 판. */
+/** 방 이름 같은 글자에서 씨앗을 만든다. 같은 방 = 같은 판. */
 export function seedFrom(text: string): number {
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) {

@@ -1,11 +1,11 @@
 /**
- * 두더지 잡기 — 나오는 대로 두드린다 (TASK-KL-242)
+ * 두더지 잡기. 나오는 대로 두드린다 (TASK-KL-242)
  *
- * 반응 측정이 「고르는」 놀이였다면 이건 **때리는** 놀이다. 고를 것이 없고, 나온 자리를
- * 나오는 동안 누르면 된다 — 그래서 판이 시끄럽고 여럿이 붙으면 서로 먼저 치려고 싸운다.
+ * 반응 측정이 고르는 놀이였다면 이건 **때리는** 놀이다. 고를 것이 없고, 나온 자리를
+ * 나오는 동안 누르면 된다. 그래서 판이 시끄럽고 여럿이 붙으면 서로 먼저 치려고 싸운다.
  *
  * 언제 어디서 나올지는 **씨앗으로 미리 정해 둔다.** 그때그때 뽑으면 창마다 다른 곳에서
- * 튀어나와 「내가 친 것」과 「맞은 것」이 갈린다(다트·낚시에서 배운 자리).
+ * 튀어나와 내가 친 것과 맞은 것이 갈린다(다트, 낚시에서 배운 자리).
  *
  * 가끔 **때리면 안 되는 것**이 섞인다. 안 그러면 아무 데나 마구 두드리는 게 최선이 된다.
  */
@@ -54,7 +54,7 @@ function makeMoles(ctx: GameCtx, n: number): Mole[] {
   return out;
 }
 
-/** 지금 나와 있는 두더지 번호들. 화면·봇·규칙이 같은 함수를 본다. */
+/** 지금 나와 있는 두더지 번호들. 화면, 봇, 규칙이 같은 함수를 본다. */
 export function upNow(s: WhackState, now: number): number[] {
   const t = now - s.since;
   return s.moles
@@ -95,7 +95,7 @@ export const whack: GameDef<WhackState, WhackAction> = {
 
     const hit = s.hit.slice();
     hit[i] = seat;
-    /* 때리면 안 되는 것을 치면 깎인다 — 마구 두드리는 게 최선이 되면 안 된다. */
+    /* 때리면 안 되는 것을 치면 깎인다. 마구 두드리는 게 최선이 되면 안 된다. */
     const gain = s.moles[i].bad ? -2 : 1;
     const score = s.score.map((v, k) => (k === seat ? v + gain : v));
     return { ...s, hit, score };
@@ -104,7 +104,7 @@ export const whack: GameDef<WhackState, WhackAction> = {
   tick(s, ctx) {
     if (s.over) return s;
     const t = ctx.now - s.since;
-    /* 지나간 것은 「놓침」으로 닫는다 — 안 닫으면 늦게 눌러도 맞는다. */
+    /* 지나간 것은 놓침으로 닫는다. 안 닫으면 늦게 눌러도 맞는다. */
     let hit = s.hit;
     s.moles.forEach((m, i) => {
       if (hit[i] === undefined && t > m.at + UP_MS) {
@@ -131,7 +131,7 @@ export const whack: GameDef<WhackState, WhackAction> = {
   bot(s, seat, ctx): BotMove<WhackAction> | null {
     if (s.over) return null;
     const up = upNow(s, ctx.now);
-    /* 나와 있는 게 없으면 다음 것을 기다린다 — 아무 데나 치지 않는다(사람과 같은 조건). */
+    /* 나와 있는 게 없으면 다음 것을 기다린다. 아무 데나 치지 않는다(사람과 같은 조건). */
     if (!up.length) return null;
     const pick = up[0];
     /* 때리면 안 되는 것도 가끔 친다. 늘 알아보면 사람이 못 이긴다. */

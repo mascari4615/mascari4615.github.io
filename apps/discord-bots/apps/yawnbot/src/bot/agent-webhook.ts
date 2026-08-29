@@ -1,13 +1,13 @@
 /**
- * agent-webhook — 스킨별 Discord Webhook identity (KAR-018-A sub-A-1, slice-4).
+ * agent-webhook. 스킨별 Discord Webhook identity (KAR-018-A sub-A-1, slice-4).
  *
  * 그릴-락 결정 1: 봇 1개 유지(gateway/slash/수신), *출력만* 방당 webhook 으로
- * username=스킨 displayName / avatar=스킨 frontmatter avatar_url(있을 때만 — 시각 날조 X).
- * 봇이 channel.createWebhook() 로 자동 생성·캐시·재사용 (채널별 수동 0).
+ * username=스킨 displayName / avatar=스킨 frontmatter avatar_url(있을 때만. 시각 날조 X).
+ * 봇이 channel.createWebhook() 로 자동 생성, 캐시, 재사용 (채널별 수동 0).
  *
  * 권한 미부여(Manage Webhooks 없음) = graceful: WebhookPermissionError throw →
  * caller 가 일반 message.reply 로 fallback (봇은 계속 응답, identity 만 미적용).
- * 권한 부여 즉시 자동 업그레이드 (재배포 불요 — 캐시 miss 시 createWebhook 재시도).
+ * 권한 부여 즉시 자동 업그레이드 (재배포 불요. 캐시 miss 시 createWebhook 재시도).
  */
 import { TextChannel, Webhook } from 'discord.js';
 import type { CharacterCard } from '../services/character-service';
@@ -16,7 +16,7 @@ import { registerOwnWebhookMessage } from './team-room';
 /** 봇이 만든 webhook 식별 마커 (재사용 키). */
 const AGENT_WEBHOOK_NAME = 'yawnbot-agent';
 
-/** Manage Webhooks 권한 부재 등으로 webhook 경로 불가 — caller 가 fallback. */
+/** Manage Webhooks 권한 부재 등으로 webhook 경로 불가. caller 가 fallback. */
 export class WebhookPermissionError extends Error {
   constructor(message: string) {
     super(message);
@@ -24,11 +24,11 @@ export class WebhookPermissionError extends Error {
   }
 }
 
-// channelId → Webhook 캐시 (생성·fetch 비용 회피, per-channel rate limit 정합)
+// channelId → Webhook 캐시 (생성, fetch 비용 회피, per-channel rate limit 정합)
 const webhookCache = new Map<string, Webhook>();
 
 // 우리(봇)가 만든/소유한 agent webhook 의 id 집합.
-// webhook id 는 *생성·fetch 시점에 확정* → per-message-id 추적의
+// webhook id 는 *생성, fetch 시점에 확정* → per-message-id 추적의
 // register-after-send race 가 원천 부재 (KAR-018-A 루프 회귀 근본 fix).
 // 봇=채널당 webhook 1개를 모든 스킨이 공유 + agent↔agent 는 dispatcher(sub-B)
 // 가 내부 구동 → inbound webhookId ∈ 본 집합이면 *항상* 우리 발화 → drop 안전.
@@ -67,7 +67,7 @@ async function getOrCreateWebhook(channel: TextChannel): Promise<Webhook> {
   } catch (err: unknown) {
     if (isMissingPermission(err)) {
       throw new WebhookPermissionError(
-        `채널 ${channel.id}: Manage Webhooks 권한 없음 — 봇 역할에 권한 1회 부여 필요. 일반 응답으로 fallback.`,
+        `채널 ${channel.id}: Manage Webhooks 권한 없음. 봇 역할에 권한 1회 부여 필요. 일반 응답으로 fallback.`,
       );
     }
     throw err;
@@ -106,7 +106,7 @@ export async function sendAsSkin(
     embeds: payload.embeds as never,
     threadId: opts?.threadId,
   });
-  // hook.send 는 message(id 포함) 반환 — 카드 정체통일(R-5)이 이 id 로
+  // hook.send 는 message(id 포함) 반환. 카드 정체통일(R-5)이 이 id 로
   // channel.messages.fetch→react/startThread (APIMessage↔Message 우회).
   if (sent?.id) {
     registerOwnWebhookMessage(sent.id);
@@ -115,7 +115,7 @@ export async function sendAsSkin(
   return null;
 }
 
-/** 채널 webhook 캐시 무효화 (webhook 삭제·갱신 시). */
+/** 채널 webhook 캐시 무효화 (webhook 삭제, 갱신 시). */
 export function invalidateWebhookCache(channelId: string): void {
   webhookCache.delete(channelId);
 }

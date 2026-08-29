@@ -44,16 +44,16 @@ export async function handleSpeak(ctx: BotContext, interaction: ChatInputCommand
   const perms = vc.permissionsFor(botMember);
   if (!perms?.has([PermissionFlagsBits.Connect, PermissionFlagsBits.Speak, PermissionFlagsBits.ViewChannel])) {
     await interaction.editReply({
-      content: '봇에게 해당 음성 채널 **보기·연결·말하기(Speak)** 권한이 필요합니다.',
+      content: '봇에게 해당 음성 채널 **보기, 연결, 말하기(Speak)** 권한이 필요합니다.',
     });
     return;
   }
 
   const raw = interaction.options.getString('text');
   const text = (raw?.trim() || DEFAULT_LINE).slice(0, SPEAK_MAX_CHARS);
-  const queueTitle = `TTS: ${text.slice(0, 80)}${text.length > 80 ? '…' : ''}`;
+  const queueTitle = `TTS: ${text.slice(0, 80)}${text.length > 80 ? '...' : ''}`;
 
-  await interaction.editReply({ content: '음성 합성 중… (Microsoft Edge TTS)' });
+  await interaction.editReply({ content: '음성 합성 중... (Microsoft Edge TTS)' });
 
   let result;
   try {
@@ -62,7 +62,7 @@ export async function handleSpeak(ctx: BotContext, interaction: ChatInputCommand
         notifyTextChannelId: interaction.channelId ?? undefined,
       }),
       SYNTH_TIMEOUT_MS,
-      'TTS 합성·재생 준비',
+      'TTS 합성, 재생 준비',
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

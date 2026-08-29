@@ -1,8 +1,8 @@
 /**
- * 「본」 — 찍어내는 부품 (TASK-KL-254 · 1단계)
+ * 본. 찍어내는 부품 (TASK-KL-254, 1단계)
  *
  * 이 파일이 이 도구의 알맹이다. **손으로 그리지 않고 숫자를 돌려 모양을 얻는다.**
- * 버튼 하나를 만들 때 붓을 잡는 대신 손잡이를 돌린다 — 모서리 둥글기, 테두리 두께, 색,
+ * 버튼 하나를 만들 때 붓을 잡는 대신 손잡이를 돌린다. 모서리 둥글기, 테두리 두께, 색,
  * 결의 각도, 도드라짐. 돌릴 때마다 다른 버튼이 나오고, 조합만 바꾸면 백 장이 나온다.
  * 참고한 곳(freegameui.net)이 에셋 2,209 장을 뽑은 방법도 이것이다.
  *
@@ -28,11 +28,11 @@ export interface Knobs {
   angle: number;
   /** 테두리 색 */
   borderColor: string;
-  /** 도드라짐 0..1 — 위쪽에 옅은 빛, 아래쪽에 그늘을 넣는 정도 */
+  /** 도드라짐 0..1. 위쪽에 옅은 빛, 아래쪽에 그늘을 넣는 정도 */
   bevel: number;
-  /** 안쪽 여백(px) — 패널의 속틀, 게이지의 막대가 이만큼 물러난다 */
+  /** 안쪽 여백(px). 패널의 속틀, 게이지의 막대가 이만큼 물러난다 */
   padding: number;
-  /** 채운 정도 0..1 — 게이지에서만 쓴다 */
+  /** 채운 정도 0..1. 게이지에서만 쓴다 */
   value: number;
 }
 
@@ -44,7 +44,7 @@ export const defaultKnobs = (): Knobs => ({
 const paintOf = (k: Knobs): Paint =>
   k.fillTo ? { kind: 'linear', from: k.fill, to: k.fillTo, angle: k.angle } : { kind: 'solid', color: k.fill };
 
-/** 위쪽 빛 · 아래쪽 그늘. 도드라짐이 0 이면 아예 안 만든다(빈 도형을 남기지 않는다). */
+/** 위쪽 빛, 아래쪽 그늘. 도드라짐이 0 이면 아예 안 만든다(빈 도형을 남기지 않는다). */
 function bevelNodes(k: Knobs): Node[] {
   if (k.bevel <= 0) return [];
   const inset = Math.max(1, k.border);
@@ -67,7 +67,7 @@ const shell = (k: Knobs): Node => ({
 /** 누르는 것. 겉틀 + 도드라짐. */
 export const button = (k: Knobs): Node => ({ kind: 'group', children: [shell(k), ...bevelNodes(k)] });
 
-/** 무엇을 담는 것. 겉틀 + 한 겹 안쪽 틀 — 창·상자에 쓴다. */
+/** 무엇을 담는 것. 겉틀 + 한 겹 안쪽 틀. 창, 상자에 쓴다. */
 export const panel = (k: Knobs): Node => {
   const p = Math.max(0, k.padding);
   return {

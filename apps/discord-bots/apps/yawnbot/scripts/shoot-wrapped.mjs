@@ -1,8 +1,8 @@
 /**
- * 결산 카드·대시보드를 실제 브라우저로 찍는다 (TASK-YB-042).
+ * 결산 카드, 대시보드를 실제 브라우저로 찍는다 (TASK-YB-042).
  *
  * 왜 있나: HTML 을 고치고 "됐겠지" 로 넘기면 화면이 깨진 걸 아무도 못 본다.
- * 단위 테스트는 문자열만 본다 — 배치·잘림·빈칸은 눈으로만 잡힌다.
+ * 단위 테스트는 문자열만 본다. 배치, 잘림, 빈칸은 눈으로만 잡힌다.
  * 실제로 이 루프가 잡아낸 것: 30일 표가 페이지를 삼킴, 비중 막대가 점이 됨,
  * 타일 설명이 두 줄로 접힘, 스크롤 그림자가 마지막 열을 덮음.
  *
@@ -19,7 +19,7 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 
-// ★ 반드시 비동기 — execFileSync 는 이벤트 루프를 막아 같은 프로세스의 express 가
+// ★ 반드시 비동기. execFileSync 는 이벤트 루프를 막아 같은 프로세스의 express 가
 //   응답을 못 하고, 브라우저는 영원히 기다리다 죽는다(브라우저 탓으로 오해하기 쉽다).
 const run = promisify(execFile);
 const require = createRequire(import.meta.url);
@@ -35,11 +35,11 @@ const EDGE_CANDIDATES = [
 ];
 const browser = EDGE_CANDIDATES.find((p) => existsSync(p));
 if (!browser) {
-  console.error('[shoot] Edge/Chrome 을 못 찾았다 — 스크린샷 생략. 페이지 자체는 npm test 가 본다.');
+  console.error('[shoot] Edge/Chrome 을 못 찾았다. 스크린샷 생략. 페이지 자체는 npm test 가 본다.');
   process.exit(0);
 }
 if (!existsSync(join(DIST, 'bot', 'wrapped-web.js'))) {
-  console.error('[shoot] dist 가 없다 — 먼저 npm run build.');
+  console.error('[shoot] dist 가 없다. 먼저 npm run build.');
   process.exit(1);
 }
 
@@ -72,7 +72,7 @@ for (let back = 29; back >= 0; back -= 1) {
   const weekday = new Date(day.getTime() + 9 * 3600000).getUTCDay();
   const busy = (weekday === 0 || weekday === 6 ? 1.5 : 1) * (1 + (29 - back) * 0.02);
   for (const person of PEOPLE) {
-    if (person.id === 'u5' && back > 10) continue; // 늦게 합류 = 「처음 온 사람」 확인용
+    if (person.id === 'u5' && back > 10) continue; // 늦게 합류 = 처음 온 사람 확인용
     const count = Math.round(person.weight * busy * (6 + rand() * 8));
     for (let i = 0; i < count; i += 1) {
       const kstHour = rand() < person.night ? Math.floor(rand() * 6) : 9 + Math.floor(rand() * 14);
@@ -130,6 +130,6 @@ for (const shot of SHOTS) {
 }
 
 const a = recorder.analytics(GUILD, 30);
-console.log(`\n데이터: 메시지 ${a.current.messages} · 참여 ${a.current.activeUsers}명 · 반응 ${a.current.reactions}`);
+console.log(`\n데이터: 메시지 ${a.current.messages}, 참여 ${a.current.activeUsers}명, 반응 ${a.current.reactions}`);
 console.log(`저장: ${OUT}`);
 server.close();

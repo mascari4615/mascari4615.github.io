@@ -2,13 +2,13 @@
 /**
  * 톱니를 **자동으로 조인다** (TASK-KL-312)
  *
- * 왜 있나: 이 저장소의 기준선 일곱은 전부 「빚 카운터」다 — 번들 바이트·별칭 없는 도구 수·
- * 이름 없는 칸 수·느슨한 검사·묶이지 않은 검사·안 불리는 말 묶음. 전부 **줄기만 해야** 한다.
+ * 왜 있나: 이 저장소의 기준선 일곱은 전부 빚 카운터다. 번들 바이트, 별칭 없는 도구 수, 
+ * 이름 없는 칸 수, 느슨한 검사, 묶이지 않은 검사, 안 불리는 말 묶음. 전부 **줄기만 해야** 한다.
  * 그런데 줄인 뒤 기준선을 다시 적는 일(`-- --update`)은 사람 몫이었다. 사람이 그걸 잊으면
- * 기준선은 옛 빚을 그대로 들고 있고, **다시 늘어나도 그 빚만큼은 안 걸린다** — 톱니가 헐거워진다.
+ * 기준선은 옛 빚을 그대로 들고 있고, **다시 늘어나도 그 빚만큼은 안 걸린다**. 톱니가 헐거워진다.
  *
  * 조이는 일은 기계 일이다. 여기서는 각 검사를 `--update` 로 돌린 뒤 **좋아진 경우에만** 남긴다.
- * 나빠지는 방향이면 되돌린다 — `--update` 는 「지금 값을 적는다」라서, 회귀 상태에서 부르면
+ * 나빠지는 방향이면 되돌린다. `--update` 는 지금 값을 적는다라서, 회귀 상태에서 부르면
  * 기준선이 **느슨해진다**(그러면 자동화가 톱니를 부수는 셈이다).
  *
  * 판정: 기준선 안의 모든 숫자와 list 길이가 **하나도 안 늘었으면** 조인 것이다.
@@ -16,7 +16,7 @@
  * 사용:
  *   node scripts/ratchet-tighten.mjs           # 조여 보고 결과만 알림 (파일은 남는다)
  *   node scripts/ratchet-tighten.mjs --dry     # 아무것도 안 남긴다 (원래대로 되돌린다)
- * exit: 0 = 조였거나 그대로 · 1 = 검사가 죽었다
+ * exit: 0 = 조였거나 그대로, 1 = 검사가 죽었다
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -40,7 +40,7 @@ const ratchet = [
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const readRaw = (rel) => (fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), 'utf8') : null);
 
-/** 숫자·list 길이만 모은다 — 날짜(`at`·`갱신`)는 값이 아니라 도장이라 뺀다. */
+/** 숫자, list 길이만 모은다. 날짜(`at`, `갱신`)는 값이 아니라 도장이라 뺀다. */
 function values(node, prefix = '', out = {}) {
   if (Array.isArray(node)) {
     out[prefix + '[]'] = node.length;
@@ -71,7 +71,7 @@ for (const t of ratchet) {
   const after = readRaw(t.file);
 
   if (after === null) {
-    dead.push(`${t.npm} — 기준선 파일이 없다 (${t.file}) · ${(r.stderr || '').trim().split('\n').pop() || ''}`);
+    dead.push(`${t.npm}. 기준선 파일이 없다 (${t.file}), ${(r.stderr || '').trim().split('\n').pop() || ''}`);
     continue;
   }
   if (before === after) continue;
@@ -82,7 +82,7 @@ for (const t of ratchet) {
     const b = values(JSON.parse(after));
     regressed = Object.keys(b).filter((k) => typeof a[k] === 'number' && b[k] > a[k]);
   } catch {
-    regressed = ['(기준선을 못 읽었다 — 안전하게 되돌린다)'];
+    regressed = ['(기준선을 못 읽었다. 안전하게 되돌린다)'];
   }
 
   if (regressed.length > 0 || DRY) {
@@ -100,10 +100,10 @@ if (dead.length) {
   process.exit(1);
 }
 
-for (const t of tighten) console.log(`[ratchet] 조였다 — ${t.what} (${t.file})`);
+for (const t of tighten) console.log(`[ratchet] 조였다. ${t.what} (${t.file})`);
 for (const t of loose) {
-  console.log(`[ratchet] 그대로 뒀다 — ${t.what} 이(가) 늘었다: ${t.regressed.slice(0, 4).join(', ')}`);
-  console.log(`          늘어난 것은 자동으로 눈감아 주지 않는다 — 그건 검사(${t.npm})가 빨갛게 말한다.`);
+  console.log(`[ratchet] 그대로 뒀다. ${t.what} 이(가) 늘었다: ${t.regressed.slice(0, 4).join(', ')}`);
+  console.log(`          늘어난 것은 자동으로 눈감아 주지 않는다. 그건 검사(${t.npm})가 빨갛게 말한다.`);
 }
-/* 아무 일 없어도 한 줄 — 「조용함」이 정상인지 안 돈 것인지 구분되게. */
-console.log(`[ratchet] 톱니 ${ratchet.length}종 · 조임 ${tighten.length} · 늘어남 ${loose.length}${DRY ? ' (--dry, 남긴 것 없음)' : ''}`);
+/* 아무 일 없어도 한 줄. 조용함이 정상인지 안 돈 것인지 구분되게. */
+console.log(`[ratchet] 톱니 ${ratchet.length}종, 조임 ${tighten.length}, 늘어남 ${loose.length}${DRY ? ' (--dry, 남긴 것 없음)' : ''}`);

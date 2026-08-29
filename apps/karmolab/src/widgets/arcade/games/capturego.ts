@@ -1,13 +1,13 @@
 /**
- * 따내기 바둑 — 먼저 다섯 점을 잡는다 (TASK-KL-242)
+ * 따내기 바둑. 먼저 다섯 점을 잡는다 (TASK-KL-242)
  *
  * 바둑을 오락실에 넣는 법. 집 세기는 처음 온 사람에게 설명하기 어렵고, 끝내는 시점도 애매하다
- * (「둘 데가 없다」가 아니라 「더 둘 이유가 없다」라서 사람이 합의해야 끝난다).
+ * (둘 데가 없다가 아니라 더 둘 이유가 없다라서 사람이 합의해야 끝난다).
  *
  * 그래서 **잡기만 남긴다.** 활로가 막히면 잡히고, 다섯 점을 먼저 잡으면 이긴다.
- * 규칙이 두 줄이 되고 끝이 눈에 보이는데, **활로·이음·자충** 같은 바둑의 알맹이는 그대로다.
+ * 규칙이 두 줄이 되고 끝이 눈에 보이는데, **활로, 이음, 자충** 같은 바둑의 알맹이는 그대로다.
  *
- * 패(같은 모양 되풀이)는 「방금 잡힌 자리에 바로 못 둔다」로 막는다 — 원래 규칙 그대로다.
+ * 패(같은 모양 되풀이)는 방금 잡힌 자리에 바로 못 둔다로 막는다. 원래 규칙 그대로다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -15,15 +15,15 @@ export const N = 9;
 const TARGET = 5;
 
 export interface GoState {
-  /** 0 빈 칸, 1·2 자리 번호+1 */
+  /** 0 빈 칸, 1, 2 자리 번호+1 */
   board: number[];
   turn: number;
   /** 자리별 잡은 수 */
   caught: number[];
-  /** 패 — 여기 바로 못 둔다 (없으면 -1) */
+  /** 패. 여기 바로 못 둔다 (없으면 -1) */
   ko: number;
   last: number;
-  /** 방금 따낸 사람과 돌 수 — 이 놀이의 순간은 「따냈다」이지 「놓았다」가 아니다. */
+  /** 방금 따낸 사람과 돌 수. 이 놀이의 순간은 따냈다이지 놓았다가 아니다. */
   took?: { by: number; n: number };
   /** 서로 이어서 거른 횟수 */
   passes: number;
@@ -83,10 +83,10 @@ export function tryPlay(s: GoState, cell: number, seat: number): { board: number
     }
   }
 
-  /* 따낸 게 없는데 내 덩어리가 숨을 못 쉬면 그건 자살수 — 못 둔다. */
+  /* 따낸 게 없는데 내 덩어리가 숨을 못 쉬면 그건 자살수. 못 둔다. */
   if (!taken.length && group(board, cell).liberties === 0) return null;
 
-  /* 한 점만 따냈고 내 돌도 한 점이면 패 — 그 자리에 바로 되받아 못 둔다. */
+  /* 한 점만 따냈고 내 돌도 한 점이면 패. 그 자리에 바로 되받아 못 둔다. */
   const ko = taken.length === 1 && group(board, cell).stones.length === 1 ? taken[0] : -1;
   return { board, taken, ko };
 }
@@ -140,8 +140,8 @@ export const capturego: GameDef<GoState, GoAction> = {
 
   outcome(s, ctx): Outcome {
     if (s.won === -1) {
-      /* 돌을 놓기만 한 수에는 소리를 안 붙인다 — 한 판에 수십 번이라 다 울리면 시끄럽다.
-         분간용 값은 안 싣는다 — 빼도 검사가 안 빨개졌다(따낸 돌 수 n 이 이미 갈라 준다).
+      /* 돌을 놓기만 한 수에는 소리를 안 붙인다. 한 판에 수십 번이라 다 울리면 시끄럽다.
+         분간용 값은 안 싣는다. 빼도 검사가 안 빨개졌다(따낸 돌 수 n 이 이미 갈라 준다).
          증명 안 되는 코드는 안 남긴다. */
       if (!s.took) return { over: false };
       return {

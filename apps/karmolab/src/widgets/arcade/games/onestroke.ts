@@ -1,12 +1,12 @@
 /**
- * 한붓그리기 — 선을 한 번도 안 떼고 다 지난다 (TASK-KL-242)
+ * 한붓그리기. 선을 한 번도 안 떼고 다 지난다 (TASK-KL-242)
  *
- * 조각 맞추기·지뢰 찾기와 같은 갈래(같은 문제를 나눠 주고 경주)지만, 여기서는 **문제를 만드는
- * 것 자체가 어렵다** — 아무렇게나 선을 그으면 대개 못 그리는 그림이 나온다.
+ * 조각 맞추기, 지뢰 찾기와 같은 갈래(같은 문제를 나눠 주고 경주)지만, 여기서는 **문제를 만드는
+ * 것 자체가 어렵다**. 아무렇게나 선을 그으면 대개 못 그리는 그림이 나온다.
  *
  * 그래서 **답부터 만든다.** 아무 데나 걷다가 지나온 길을 그림으로 삼으면, 그 걸음이 곧 정답이라
- * 반드시 풀린다. 문제를 무작위로 뽑고 「풀리나?」를 검사하는 쪽은 느리고 가끔 못 만든다.
- * (조각 맞추기에서 「맞춘 판에서 거꾸로 민다」와 같은 수법이다.)
+ * 반드시 풀린다. 문제를 무작위로 뽑고 풀리나?를 검사하는 쪽은 느리고 가끔 못 만든다.
+ * (조각 맞추기에서 맞춘 판에서 거꾸로 민다와 같은 수법이다.)
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
@@ -37,7 +37,7 @@ export type StrokeAction = { edge: number };
 
 const key = (a: number, b: number): string => (a < b ? `${a}-${b}` : `${b}-${a}`);
 
-/** **답부터 만든다** — 아무 데나 걸어 다닌 자취를 그림으로 삼는다. 그러면 반드시 풀린다. */
+/** **답부터 만든다**. 아무 데나 걸어 다닌 자취를 그림으로 삼는다. 그러면 반드시 풀린다. */
 function makePuzzle(ctx: GameCtx): Edge[] {
   for (let tries = 0; tries < 40; tries++) {
     const seen = new Set<string>();
@@ -118,7 +118,7 @@ export const onestroke: GameDef<StrokeState, StrokeAction> = {
         note: { key: 'arcade.stroke.win', params: { who: ctx.seats[s.won]?.name ?? '' } }
       };
     }
-    /* 시간이 다 됐다 — 많이 그린 쪽. */
+    /* 시간이 다 됐다. 많이 그린 쪽. */
     const counts = s.drawn.map((d) => d.length);
     const top = Math.max(...counts);
     const winners = ctx.seats.filter((_, i) => counts[i] === top);
@@ -137,7 +137,7 @@ export const onestroke: GameDef<StrokeState, StrokeAction> = {
       .map((e, i) => ({ e, i }))
       .filter(({ e, i }) => !mine.includes(i) && (here < 0 || e.a === here || e.b === here));
     if (!can.length) return null;
-    /* 봇은 앞을 안 읽는다 — 닿는 선 중 아무거나. 사람이 이길 자리가 있어야 한다. */
+    /* 봇은 앞을 안 읽는다. 닿는 선 중 아무거나. 사람이 이길 자리가 있어야 한다. */
     const pick = can[Math.floor(ctx.rng() * can.length)];
     return { action: { edge: pick.i }, delayMs: 700 + ctx.rng() * 700 };
   }

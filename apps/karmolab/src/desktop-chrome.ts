@@ -1,17 +1,17 @@
 /**
- * 데스크톱(Tauri) 앱에서만 쓰는 껍데기 — **웹에서는 아예 안 받는다** (TASK-KL-128 ①-c)
+ * 데스크톱(Tauri) 앱에서만 쓰는 껍데기. **웹에서는 아예 안 받는다** (TASK-KL-128 ①-c)
  *
- * 왜 따로 나왔나: 창 단추·앱 배지·업데이트 알림은 전부 `__KARMOLAB_DESKTOP__` 일 때만 도는데,
+ * 왜 따로 나왔나: 창 단추, 앱 배지, 업데이트 알림은 전부 `__KARMOLAB_DESKTOP__` 일 때만 도는데,
  * 코드는 셸에 박혀 있어서 **웹 화면 130장이 매번 같이 받고 있었다**. 받아 놓고 첫 줄에서
  * 돌아서는 코드다.
  *
  * 바깥에서 부르는 것: `window.KarmoDesktopChrome.install()`.
- * 셸은 데스크톱일 때만 이 파일을 데려온다 — 웹 사용자는 평생 안 받는다.
+ * 셸은 데스크톱일 때만 이 파일을 데려온다. 웹 사용자는 평생 안 받는다.
  *
  * 셸에서 쓰는 것은 `Toolbox.escapeHtml` / `Toolbox.isDesktopApp` 둘뿐이다(전역으로 부른다).
- * 여기 새 코드를 넣을 때 셸 내부를 더 부르지 마라 — 부르는 순간 도로 셸에 묶인다.
+ * 여기 새 코드를 넣을 때 셸 내부를 더 부르지 마라. 부르는 순간 도로 셸에 묶인다.
  */
-// @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
+// @ts-nocheck 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
 import { installContextMenu } from './lib/context-menu';
 
 (function () {
@@ -111,7 +111,7 @@ import { installContextMenu } from './lib/context-menu';
             }
 
             installBtn.disabled = true;
-            installBtn.textContent = '준비 중…';
+            installBtn.textContent = '준비 중...';
             progress.hidden = false;
 
             if (typeof listenFn === 'function') {
@@ -129,7 +129,7 @@ import { installContextMenu } from './lib/context-menu';
 
                 listenFn('karmolab://update-download-finished', () => {
                     progress.removeAttribute('value');
-                    installBtn.textContent = '설치 중…';
+                    installBtn.textContent = '설치 중...';
                 }).then((un) => { unlistenFinish = un; }).catch(() => {});
             }
 
@@ -143,7 +143,7 @@ import { installContextMenu } from './lib/context-menu';
                     installBtn.classList.add('karmolab-update-banner-restart');
                     installBtn.onclick = () => {
                         installBtn.disabled = true;
-                        installBtn.textContent = '재시작 중…';
+                        installBtn.textContent = '재시작 중...';
                         void invoke('desktop_restart_app', {}).catch(() => {
                             installBtn.disabled = false;
                             installBtn.textContent = '재시작';
@@ -174,7 +174,7 @@ import { installContextMenu } from './lib/context-menu';
         try { seen = localStorage.getItem(UPDATE_COMPLETED_SEEN_KEY); } catch (_) { /* ignore */ }
         if (seen === current) return;
         try { localStorage.setItem(UPDATE_COMPLETED_SEEN_KEY, current); } catch (_) { /* ignore */ }
-        if (!seen) return; // 최초 실행 — 업데이트가 아니므로 토스트 스킵
+        if (!seen) return; // 최초 실행. 업데이트가 아니므로 토스트 스킵
         showUpdateCompletedToast(seen, current);
     }
 
@@ -209,24 +209,24 @@ import { installContextMenu } from './lib/context-menu';
     }
 
     /** 앱 버전만 셸의 판 표식 배지에 넘긴다 (TASK-KL-192).
-     *  「앱」 배지와 「브라우저」 링크는 없앴다 — 판 표식 배지가 이미 앱/웹을 말한다. */
+     *  앱 배지와 브라우저 링크는 없앴다. 판 표식 배지가 이미 앱/웹을 말한다. */
     function registerAppVersion() {
         if (typeof window === 'undefined' || !window.__KARMOLAB_DESKTOP__) return;
         const ver = window.__KARMOLAB_VERSION__;
         if (ver) Toolbox.setAppVersion?.(ver);
     }
 
-    /** Files 진입 단추 — 데스크톱 앱 전용.
+    /** Files 진입 단추. 데스크톱 앱 전용.
      *  트레이 메뉴에만 있던 길을 머리띠로 올린다. 창을 보는 동안 트레이를 찾아 내려가는 건
-     *  들어가는 길로 너무 멀다. 되돌아오는 길은 Files 화면의 「← KarmoLab」이다
+     *  들어가는 길로 너무 멀다. 되돌아오는 길은 Files 화면의 ← KarmoLab이다
      *  (뒤로가기가 아니라 `karmolab_navigate` 로 한 번에 돌아온다). */
     function installFilesButton() {
         if (!isDesktopApp()) return;
         const btn = document.getElementById('filesBtn');
         if (!btn) return;
         const invoke = window.__TAURI__?.core?.invoke;
-        if (typeof invoke !== 'function') return; // 부를 길이 없으면 죽은 단추다 — 아예 안 켠다
-        // 감춤은 인라인 style 이다 — 클래스로 감추면 시트 순서에 걸리고, `aria-hidden` 으로
+        if (typeof invoke !== 'function') return; // 부를 길이 없으면 죽은 단추다. 아예 안 켠다
+        // 감춤은 인라인 style 이다. 클래스로 감추면 시트 순서에 걸리고, `aria-hidden` 으로
         // 감추면 초점이 갈 수 있는 단추가 숨은 채 남아 접근성 검사가 빨강이 된다(2026-08-29 실측).
         btn.style.display = 'flex';
         btn.addEventListener('click', () => {
@@ -242,7 +242,7 @@ import { installContextMenu } from './lib/context-menu';
         const tauriWin = window.__TAURI__?.window;
         const getCurrentWindow = tauriWin?.getCurrentWindow;
         if (typeof getCurrentWindow !== 'function') {
-            console.warn('[Toolbox] Tauri window API 미주입 — 윈도우 컨트롤 비활성');
+            console.warn('[Toolbox] Tauri window API 미주입. 윈도우 컨트롤 비활성');
             return;
         }
         const win = getCurrentWindow();
@@ -270,7 +270,7 @@ import { installContextMenu } from './lib/context-menu';
         win.onResized?.(() => { void syncMaximized(); }).catch(() => {});
     }
 
-    /** 데스크톱 전용(desktopOnly 플래그) 도구는 일반 브라우저에서 메뉴·페이지에 넣지 않음.
+    /** 데스크톱 전용(desktopOnly 플래그) 도구는 일반 브라우저에서 메뉴, 페이지에 넣지 않음.
      *  레거시: category==='desktop' 도 데스크톱전용으로 취급 (마이그 안전망). */
 
     window.KarmoDesktopChrome = {
@@ -280,7 +280,7 @@ import { installContextMenu } from './lib/context-menu';
             setupUpdateCompletedToast();
             installWindowControls();
             installFilesButton();
-            /* 앱 전용 우클릭 메뉴. 웹에서는 이 파일 자체를 안 받으므로 여기가 제자리다 —
+            /* 앱 전용 우클릭 메뉴. 웹에서는 이 파일 자체를 안 받으므로 여기가 제자리다 . 
              * 브라우저 기본 메뉴를 덮는 것은 데스크톱 앱에서만 정당하다. */
             installContextMenu();
         }

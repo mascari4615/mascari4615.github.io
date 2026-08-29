@@ -13,10 +13,10 @@
   "semver.noUpper": "no upper bound",
   "semver.in": "inside",
   "semver.out": "outside",
-  "semver.overlap.yes": "The two ranges overlap — one version can satisfy both",
-  "semver.overlap.no": "No version satisfies both — the package will be installed twice",
+  "semver.overlap.yes": "The two ranges overlap. one version can satisfy both",
+  "semver.overlap.no": "No version satisfies both. the package will be installed twice",
   "semver.status.idle": "Type a range",
   "semver.status.best": "Highest match: {v}",
   "semver.status.none": "None of those versions fall inside",
-  "semver.status.bad": "Could not read it — {msg}"
+  "semver.status.bad": "Could not read it. {msg}"
 }

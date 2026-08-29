@@ -1,5 +1,5 @@
 /**
- * proactive.ts — 먼저 말 걸기
+ * proactive.ts. 먼저 말 걸기
  * - 봇 시작 시 DM으로 기상 메시지 (해당 DM의 활성 캐릭터 카드로)
  * - 매일 아침 ASSISTANT_MORNING_HOUR 시 (KST) DM으로 인사
  * - 매일 저녁 ASSISTANT_EVENING_HOUR 시 (KST) 체크인
@@ -196,7 +196,7 @@ async function sendMorningGreeting(
 
   const card = resolveDMCard(characterService, userId);
   if (!card) {
-    console.warn('[Proactive] 활성 캐릭터 카드 없음 — 아침 인사 스킵');
+    console.warn('[Proactive] 활성 캐릭터 카드 없음. 아침 인사 스킵');
     return;
   }
 
@@ -218,7 +218,7 @@ async function sendMorningGreeting(
       `오늘은 ${dateStr} ${dayStr}이야.\n` +
       (weatherLine ? `${weatherLine}\n` : '') +
       (moodLine ? `${moodLine}\n` : '') +
-      (anniversaryLine ? `${anniversaryLine} — 이 기념일을 꼭 언급해줘!\n` : '') +
+      (anniversaryLine ? `${anniversaryLine}. 이 기념일을 꼭 언급해줘!\n` : '') +
       `아침 인사 메시지를 한국어로, 짧고 따뜻하게 보내줘.\n` +
       `날짜, 요일, 날씨를 자연스럽게 언급하고 오늘 하루를 응원해줘.\n` +
       `2-3문장 이내로.`;
@@ -302,7 +302,7 @@ async function sendEveningCheckin(
 
   const card = resolveDMCard(characterService, userId);
   if (!card) {
-    console.warn('[Proactive] 활성 캐릭터 카드 없음 — 저녁 체크인 스킵');
+    console.warn('[Proactive] 활성 캐릭터 카드 없음. 저녁 체크인 스킵');
     return;
   }
 
@@ -356,7 +356,7 @@ export async function sendStartupGreeting(
 
   const card = resolveDMCard(characterService, userId);
   if (!card) {
-    console.warn('[Proactive] 활성 캐릭터 카드 없음 — 기상 메시지 스킵');
+    console.warn('[Proactive] 활성 캐릭터 카드 없음. 기상 메시지 스킵');
     return;
   }
 
@@ -400,7 +400,7 @@ export function startProactive(
 
   const userId = process.env.ASSISTANT_USER_ID?.trim();
   if (!userId) {
-    console.warn('[Proactive] ASSISTANT_USER_ID 미설정 — 아침/저녁 인사 비활성화');
+    console.warn('[Proactive] ASSISTANT_USER_ID 미설정. 아침/저녁 인사 비활성화');
     return;
   }
 
@@ -441,7 +441,7 @@ export function startScheduleReminder(
           const unixSec = Math.floor(new Date(entry.datetime).getTime() / 1000);
           const user = await client.users.fetch(userId);
           const dm = (await user.createDM()) as DMChannel;
-          await dm.send(`⏰ **일정 알림**\n**${entry.title}** — <t:${unixSec}:f>`);
+          await dm.send(`⏰ **일정 알림**\n**${entry.title}**. <t:${unixSec}:f>`);
           console.log(`[Reminder:${slug}] 알림 전송: ${entry.title}`);
         }
       } catch (e: unknown) {
@@ -449,7 +449,7 @@ export function startScheduleReminder(
       }
     }
 
-    // 다음 알림 시각까지 남은 ms 계산 — 최소 5초, 최대 60초
+    // 다음 알림 시각까지 남은 ms 계산. 최소 5초, 최대 60초
     let nextMs = 60_000;
     for (const slug of slugs) {
       try {
@@ -517,7 +517,7 @@ async function sendSpontaneousMessage(
       } catch { /* ignore */ }
     }
 
-    // 뉴스 기사 조회 (30% 확률로 시도 — 너무 자주 뉴스만 얘기하지 않도록)
+    // 뉴스 기사 조회 (30% 확률로 시도. 너무 자주 뉴스만 얘기하지 않도록)
     let newsHint = '';
     if (getNews && Math.random() < 0.3) {
       try {
@@ -535,7 +535,7 @@ async function sendSpontaneousMessage(
       `지금은 ${dateStr} ${dayStr} ${timeStr}이야. ${timeHint}\n` +
       (moodLine ? `${moodLine}\n` : '') +
       `너는 갑자기 말을 걸고 싶어졌어.\n` +
-      `최근 기억을 참고해서 자연스럽게 한마디 건네줘 — 최근 대화 주제 후속, 오늘 하루 어떤지, 문득 떠오른 생각, 궁금한 것 등.\n` +
+      `최근 기억을 참고해서 자연스럽게 한마디 건네줘. 최근 대화 주제 후속, 오늘 하루 어떤지, 문득 떠오른 생각, 궁금한 것 등.\n` +
       `1-2문장, 한국어로.\n` +
       (scheduleHint ? `${scheduleHint}\n` : '') +
       (newsHint ? `${newsHint}\n` : '') +

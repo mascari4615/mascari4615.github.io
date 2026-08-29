@@ -6,7 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { spawnRoom, inviteCore, dissolveRoom } from './team-thread';
 import type { CharacterService } from '../services/character-service';
 
-describe('spawnRoom — 스레드 생성 + 코어 바인딩', () => {
+describe('spawnRoom. 스레드 생성 + 코어 바인딩', () => {
   it('스레드를 만들고 그 id 에 코어를 바인딩한 뒤 방 정보를 반환한다', async () => {
     const create = vi.fn().mockResolvedValue({
       id: 't1',
@@ -32,7 +32,7 @@ describe('spawnRoom — 스레드 생성 + 코어 바인딩', () => {
   });
 });
 
-describe('inviteCore — 방에 코어 배치', () => {
+describe('inviteCore. 방에 코어 배치', () => {
   it('스레드 id 에 코어를 setChannelCore 위임 (스킨 보존 시맨틱)', () => {
     const setChannelCore = vi.fn();
     const cs = { setChannelCore } as unknown as CharacterService;
@@ -41,7 +41,7 @@ describe('inviteCore — 방에 코어 배치', () => {
   });
 });
 
-describe('dissolveRoom — 해체 = 바인딩 제거 + 아카이브', () => {
+describe('dissolveRoom. 해체 = 바인딩 제거 + 아카이브', () => {
   it('resetChannel 로 .active.json 엔트리 제거 후 스레드를 아카이브한다', async () => {
     const resetChannel = vi.fn();
     const cs = { resetChannel } as unknown as CharacterService;

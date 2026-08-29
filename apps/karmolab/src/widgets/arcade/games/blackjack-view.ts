@@ -1,8 +1,8 @@
 /**
  * 블랙잭 화면 (TASK-KL-242)
  *
- * 딜러 자리에 카드를 한 장만 놓고 나머지는 **뒷면 한 장으로 그린다** — 실제로 그 카드는
- * 아직 뽑히지도 않았지만(모두 멈춘 뒤 뽑는다), 눈에는 「감춰져 있다」가 맞는 그림이다.
+ * 딜러 자리에 카드를 한 장만 놓고 나머지는 **뒷면 한 장으로 그린다**. 실제로 그 카드는
+ * 아직 뽑히지도 않았지만(모두 멈춘 뒤 뽑는다), 눈에는 감춰져 있다가 맞는 그림이다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
@@ -12,7 +12,7 @@ import { total, type BlackjackState, type BlackjackAction } from './blackjack';
 const label = (c: number): string =>
   c === 1 ? 'A' : c === 11 ? 'J' : c === 12 ? 'Q' : c === 13 ? 'K' : String(c);
 
-/* 카드는 공용 한 벌(`card.ts`)로 — 이 판만의 치수를 따로 두지 않는다. */
+/* 카드는 공용 한 벌(`card.ts`)로. 이 판만의 치수를 따로 두지 않는다. */
 const card = (c: number): string => cardMark(label(c));
 
 export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
@@ -50,7 +50,7 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
       mineEl.innerHTML = mine.map(card).join('');
       const t0 = total(mine);
       mLabel.textContent = t('arcade.blackjack.mine', { n: String(t0) }) +
-        (t0 > 21 ? ' · ' + t('arcade.blackjack.bust') : '');
+        (t0 > 21 ? ', ' + t('arcade.blackjack.bust') : '');
 
       const canPlay = !s.settled && !s.stood[mySeat] && t0 <= 21;
       hit.textContent = t('arcade.blackjack.hit');
