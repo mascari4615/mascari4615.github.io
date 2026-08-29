@@ -84,15 +84,75 @@ function attach(): void {
     };
 }
 
+/* ── 나는 누구로 보이나 (change.identity-one 3단계) ─────────────────
+ *
+ * 이름·색을 **화면이 만들지 않는다**. 서버 한 곳(`anonLabel`)이 정하고 여기서 받아 온다 —
+ * 위젯마다 자기 규칙으로 이름을 지으면 같은 사람이 화면마다 다른 사람이 된다.
+ */
+export interface Me {
+    deviceId: string;
+    signedIn: boolean;
+    handle: string | null;
+    name: string;
+    color: string;
+    who: string;
+}
+
+let me: Me | null = null;
+let asking: Promise<Me | null> | null = null;
+const watchers = new Set<(me: Me | null) => void>();
+
+function apiBase(): string {
+    return (window as { KARMOLAB_API_BASE?: string }).KARMOLAB_API_BASE || 'https://yawnbot.mascari4615.com';
+}
+
+/** 지금 아는 나. 아직 안 물어봤으면 null 을 주고 뒤에서 물어본다(화면을 안 막는다). */
+function current(): Me | null {
+    if (!me && !asking) void refresh();
+    return me;
+}
+
+/** 서버에 다시 묻는다 — 로그인·로그아웃 뒤에 부른다. */
+async function refresh(): Promise<Me | null> {
+    if (asking) return asking;
+    asking = fetch(`${apiBase()}/kl/me/who`, { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: Me | null) => {
+            me = data;
+            for (const fn of watchers) fn(me);
+            return me;
+        })
+        .catch(() => null)
+        .finally(() => {
+            asking = null;
+        });
+    return asking;
+}
+
+/** 내가 누구인지 바뀌면 알려 준다(로그인·날짜 넘김). 돌려받은 함수를 부르면 그만 듣는다. */
+function onChange(fn: (me: Me | null) => void): () => void {
+    watchers.add(fn);
+    if (me) fn(me);
+    return () => watchers.delete(fn);
+}
+
 declare global {
     interface Window {
         KarmoId: {
             deviceId: typeof deviceId;
+            me: typeof current;
+            refresh: typeof refresh;
+            onChange: typeof onChange;
         };
     }
 }
 
 attach();
-window.KarmoId = { deviceId };
+window.KarmoId = { deviceId, me: current, refresh, onChange };
+// 로그인·로그아웃하면 이름이 바뀐다 — 계정 쪽이 알려 주면 다시 묻는다.
+(window as unknown as { KarmoAccount?: { subscribe?: (fn: () => void) => void } }).KarmoAccount?.subscribe?.(
+    () => void refresh(),
+);
+void refresh();
 
 export {};

@@ -56,6 +56,9 @@ export interface RoomMember {
     handle: string | null;
     x: number;
     y: number;
+    /** 글 기준 자리 — 없을 수도 있다(옛 화면·잴 수 없는 경우). */
+    dx?: number | null;
+    dy?: number | null;
     active: boolean;
 }
 
@@ -72,8 +75,18 @@ const roomListeners = new Set<RoomListener>();
 
 let source: EventSource | null = null;
 let roomId: string | null = null;
-let pending: { x: number; y: number; active: boolean } | null = null;
-let last = { x: 0.5, y: 0.5, active: false };
+interface Spot {
+    /** 화면 기준 비율 — 언제나 있다(옛 화면도 이걸로 그린다). */
+    x: number;
+    y: number;
+    /** 글 기준 비율 — 스크롤이 달라도 같은 문단을 가리키게 한다. 잴 수 없으면 null. */
+    dx: number | null;
+    dy: number | null;
+    active: boolean;
+}
+
+let pending: Spot | null = null;
+let last: Spot = { x: 0.5, y: 0.5, dx: null, dy: null, active: false };
 let lastSentAt = 0;
 let rejoinAt = 0;
 let sendTimer: ReturnType<typeof setInterval> | null = null;
@@ -265,8 +278,8 @@ export function joinRoom(next: string): void {
 }
 
 /** 내 자리를 알린다. 대표가 아니면 안 보낸다 — 한 사람이 커서 셋일 이유가 없다. */
-export function sendMove(x: number, y: number, active: boolean): void {
-    last = { x, y, active };
+export function sendMove(x: number, y: number, active: boolean, doc?: { dx: number | null; dy: number | null }): void {
+    last = { x, y, dx: doc?.dx ?? null, dy: doc?.dy ?? null, active };
     if (leader) pending = { ...last };
 }
 
@@ -313,10 +326,29 @@ export function onRoomChange(fn: RoomListener): () => void {
     return () => roomListeners.delete(fn);
 }
 
+/**
+ * 화면이 바뀌면 방도 바뀐다.
+ *
+ * 예전엔 `hashchange` 만 들었다. 셸이 `pushState` 로 옮기는 자리(도구 상세 주소)는 그 신호가
+ * 안 와서 **옛 방에 남아 있었다** — 다른 도구를 보면서 남의 커서는 이전 도구 것을 보는 상태다.
+ */
+function watchRoute(): void {
+    const bump = (): void => joinRoom(currentRoom());
+    window.addEventListener('hashchange', bump);
+    window.addEventListener('popstate', bump);
+    for (const name of ['pushState', 'replaceState'] as const) {
+        const original = history[name].bind(history);
+        history[name] = function patched(data: unknown, unused: string, url?: string | URL | null): void {
+            original(data, unused, url);
+            bump();
+        };
+    }
+}
+
 function start(): void {
     openChannel();
     joinRoom(currentRoom());
-    window.addEventListener('hashchange', () => joinRoom(currentRoom()));
+    watchRoute();
     document.addEventListener('visibilitychange', () => {
         // 보이는 탭이 대표가 되는 것이 옳다 — 사람은 그 탭을 보고 있다.
         post({ kind: 'alive', tab: TAB_ID, room: roomId ?? '', visible: document.visibilityState === 'visible' });

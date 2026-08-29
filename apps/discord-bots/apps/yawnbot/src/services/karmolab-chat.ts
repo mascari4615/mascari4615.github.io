@@ -19,6 +19,7 @@
  * 저장 = `data/karmolab-chat-state.json` (`.gitignore` 의 `data/*-state.json`).
  */
 import fs from 'fs';
+import { anonLabel } from './karmolab-identity';
 import path from 'path';
 import crypto from 'crypto';
 import { PKG_ROOT } from '../paths';
@@ -108,35 +109,6 @@ export const MIN_INTERVAL_MS = 1200;
 /** 짧은 시간 안에 몇 줄까지. 도배 방지. */
 export const BURST_LIMIT = 20;
 export const BURST_WINDOW_MS = 60 * 1000;
-
-/**
- * 이름표 재료.
- *
- * 색과 동물을 곱하면 480 가지다 — 이 사이트 동시 접속 규모에서 겹칠 일이 사실상 없고,
- * 겹쳐도 대화가 안 망가진다(색이 같이 다르다). 굳이 번호를 붙여 이름을 못생기게 만들지 않는다.
- */
-const COLORS: { label: string; css: string }[] = [
-    { label: '연보라', css: '#b39ddb' },
-    { label: '하늘', css: '#7fc7f5' },
-    { label: '민트', css: '#5fd3b2' },
-    { label: '살구', css: '#f2a97e' },
-    { label: '자몽', css: '#ef8b8b' },
-    { label: '레몬', css: '#e6c65c' },
-    { label: '풀빛', css: '#8fc76a' },
-    { label: '바다', css: '#5aa9e6' },
-    { label: '분홍', css: '#f094c0' },
-    { label: '보라', css: '#a086e0' },
-    { label: '잿빛', css: '#a9b4c2' },
-    { label: '구리', css: '#d09a5e' },
-];
-
-const ANIMALS = [
-    '수달', '너구리', '여우', '올빼미', '고슴도치', '두더지', '다람쥐', '해달',
-    '펭귄', '물범', '알파카', '라마', '카피바라', '왈라비', '오소리', '족제비',
-    '삵', '표범', '늑대', '순록', '큰부리새', '홍학', '두루미', '기러기',
-    '개구리', '도롱뇽', '거북', '도마뱀', '문어', '해파리', '고래', '돌고래',
-    '나비', '반딧불이', '무당벌레', '사슴벌레', '달팽이', '해마', '가오리', '복어',
-];
 
 export interface ChatIdentity {
     who: string;
@@ -234,18 +206,8 @@ export class KarmolabChatStore {
      * 어디에도 저장하지 않는다 — 필요할 때마다 다시 계산하면 되고, 저장 안 하는 편이 더 익명이다.
      */
     identityFor(visitorKey: string, now: Date = new Date()): ChatIdentity {
-        const digest = crypto
-            .createHash('sha256')
-            .update(`${this.state.salt}|${kstDate(now)}|${visitorKey}`)
-            .digest();
-        const color = COLORS[digest[0] % COLORS.length];
-        const animal = ANIMALS[digest[1] % ANIMALS.length];
-        return {
-            who: digest.toString('hex').slice(0, 10),
-            name: `${color.label} ${animal}`,
-            color: color.css,
-            key: digest.toString('hex'),
-        };
+        // 이름·색 규칙은 신원 한 벌이 갖는다 (change.identity-one) — 여기서 또 만들면 두 벌이 된다.
+        return anonLabel(this.state.salt, visitorKey, now);
     }
 
     /** 오래되거나 넘치는 줄을 버린다. 읽기·쓰기 어느 쪽이든 들어올 때 한 번 훑는다. */

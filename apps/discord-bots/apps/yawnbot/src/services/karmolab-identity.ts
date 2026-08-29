@@ -107,3 +107,68 @@ export function identityOf(req: Request, res?: Response): KarmolabIdentity {
   (req as Request & { klIdentity?: KarmolabIdentity }).klIdentity = identity;
   return identity;
 }
+
+/* ── 오늘의 이름표 (change.identity-one 3단계) ──────────────────
+ *
+ * 이름과 색을 만드는 규칙은 **여기 하나**다. 예전엔 채팅이 자기 안에 들고 있었고, 방(커서)은
+ * 또 다른 규칙(`colorFor`)으로 색을 만들었다 — 같은 사람이 화면마다 다른 색이었다.
+ */
+/**
+ * 이름표 재료.
+ *
+ * 색과 동물을 곱하면 480 가지다 — 이 사이트 동시 접속 규모에서 겹칠 일이 사실상 없고,
+ * 겹쳐도 대화가 안 망가진다(색이 같이 다르다). 굳이 번호를 붙여 이름을 못생기게 만들지 않는다.
+ */
+export const NAME_COLORS: { label: string; css: string }[] = [
+    { label: '연보라', css: '#b39ddb' },
+    { label: '하늘', css: '#7fc7f5' },
+    { label: '민트', css: '#5fd3b2' },
+    { label: '살구', css: '#f2a97e' },
+    { label: '자몽', css: '#ef8b8b' },
+    { label: '레몬', css: '#e6c65c' },
+    { label: '풀빛', css: '#8fc76a' },
+    { label: '바다', css: '#5aa9e6' },
+    { label: '분홍', css: '#f094c0' },
+    { label: '보라', css: '#a086e0' },
+    { label: '잿빛', css: '#a9b4c2' },
+    { label: '구리', css: '#d09a5e' },
+];
+
+export const NAME_ANIMALS = [
+    '수달', '너구리', '여우', '올빼미', '고슴도치', '두더지', '다람쥐', '해달',
+    '펭귄', '물범', '알파카', '라마', '카피바라', '왈라비', '오소리', '족제비',
+    '삵', '표범', '늑대', '순록', '큰부리새', '홍학', '두루미', '기러기',
+    '개구리', '도롱뇽', '거북', '도마뱀', '문어', '해파리', '고래', '돌고래',
+    '나비', '반딧불이', '무당벌레', '사슴벌레', '달팽이', '해마', '가오리', '복어',
+];
+
+
+export interface AnonLabel {
+  /** 밖에 보여도 되는 짧은 이름표. */
+  who: string;
+  name: string;
+  color: string;
+  /** 서버만 아는 열쇠 — 이게 새면 익명이 아니다. */
+  key: string;
+}
+
+/** KST 날짜 한 줄. 이름표는 하루마다 바뀐다 — 어제 한 말과 오늘 한 말이 안 이어진다. */
+export function kstDay(now: Date = new Date()): string {
+  return new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+/**
+ * 오늘의 이름표. 같은 사람이면 하루 종일 같고, 날짜가 바뀌면 달라진다.
+ * 어디에도 저장하지 않는다 — 필요할 때 다시 계산하면 되고, 저장 안 하는 편이 더 익명이다.
+ */
+export function anonLabel(salt: string, personKey: string, now: Date = new Date()): AnonLabel {
+  const digest = crypto.createHash('sha256').update(`${salt}|${kstDay(now)}|${personKey}`).digest();
+  const color = NAME_COLORS[digest[0] % NAME_COLORS.length];
+  const animal = NAME_ANIMALS[digest[1] % NAME_ANIMALS.length];
+  return {
+    who: digest.toString('hex').slice(0, 10),
+    name: `${color.label} ${animal}`,
+    color: color.css,
+    key: digest.toString('hex'),
+  };
+}

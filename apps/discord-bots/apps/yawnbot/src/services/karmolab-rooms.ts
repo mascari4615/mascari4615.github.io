@@ -29,6 +29,15 @@ export interface RoomMember {
   handle: string | null;
   x: number;
   y: number;
+  /**
+   * 글(문서) 기준 자리 (change.copresence-hardening 4단계).
+   *
+   * 화면 기준 비율만 보내면 **스크롤이 다른 사람끼리 서로 다른 문단을 가리킨다** — 같은
+   * 화면을 보고 있다는 전제가 깨진다. 문서 전체에서의 자리를 같이 실어, 받는 쪽이 자기
+   * 스크롤에 맞춰 앉힌다. 없을 수도 있다(옛 화면·글이 화면보다 짧은 경우).
+   */
+  dx: number | null;
+  dy: number | null;
   /** 화면에 커서를 그릴까 — 창 밖으로 나가면 false 로 온다. */
   active: boolean;
   lastSeen: number;
@@ -36,7 +45,7 @@ export interface RoomMember {
 
 export type RoomEvent =
   | { type: 'join'; member: PublicMember }
-  | { type: 'move'; id: string; x: number; y: number; active: boolean }
+  | { type: 'move'; id: string; x: number; y: number; dx: number | null; dy: number | null; active: boolean }
   | { type: 'leave'; id: string }
   /**
    * 함께 편집 연산 (TASK-KL-183 C).
@@ -50,6 +59,12 @@ export type RoomEvent =
 export type PublicMember = Omit<RoomMember, 'lastSeen'>;
 
 type Listener = (event: RoomEvent) => void;
+
+/** 0~1 밖은 자른다. 숫자가 아니면 없는 것으로 본다 — 0 으로 메우면 왼쪽 위에 유령이 생긴다. */
+function ratio(raw: unknown): number | null {
+  const value = Number(raw);
+  return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : null;
+}
 
 /** 이름을 색으로 — 같은 사람은 어느 방에서든 같은 색이라 눈이 기억한다. */
 export function colorFor(seed: string): string {
@@ -109,7 +124,7 @@ export class KarmolabRoomStore {
   }
 
   /** 들어온다. 이미 있으면 이름·색만 새로 맞춘다(새로고침해도 커서가 두 개가 되지 않게). */
-  join(roomId: string, input: { id: string; name: string; handle: string | null; visitorKey?: string }, now = Date.now()): PublicMember | null {
+  join(roomId: string, input: { id: string; name: string; handle: string | null; color?: string; visitorKey?: string }, now = Date.now()): PublicMember | null {
     this.sweep(roomId, now);
     const room = this.room(roomId);
 
@@ -123,10 +138,14 @@ export class KarmolabRoomStore {
     const member: RoomMember = existing ?? {
       id: input.id,
       name: input.name,
-      color: colorFor(input.handle || input.name || input.id),
+      // 색은 이름표를 만든 곳(신원 한 벌)이 정한 것을 그대로 쓴다 — 여기서 또 만들면
+      // 같은 사람이 채팅에서와 커서에서 다른 색이 된다.
+      color: input.color || colorFor(input.handle || input.name || input.id),
       handle: input.handle,
       x: 0.5,
       y: 0.5,
+      dx: null,
+      dy: null,
       active: false,
       lastSeen: now,
     };
@@ -141,16 +160,26 @@ export class KarmolabRoomStore {
   }
 
   /** 커서가 움직였다. 방에 없으면 아무 일도 안 한다(들어온 적 없는 창의 좌표는 뜻이 없다). */
-  move(roomId: string, id: string, x: number, y: number, active: boolean, now = Date.now()): boolean {
+  move(
+    roomId: string,
+    id: string,
+    x: number,
+    y: number,
+    active: boolean,
+    now = Date.now(),
+    doc: { dx?: unknown; dy?: unknown } = {},
+  ): boolean {
     const room = this.rooms.get(roomId);
     const member = room?.members.get(id);
     if (!room || !member) return false;
     // 화면 밖 좌표는 자른다 — 이상한 값이 오면 남의 화면에서 커서가 사라진 것처럼 보인다.
-    member.x = Math.min(1, Math.max(0, Number(x) || 0));
-    member.y = Math.min(1, Math.max(0, Number(y) || 0));
+    member.x = ratio(x) ?? 0;
+    member.y = ratio(y) ?? 0;
+    member.dx = ratio(doc.dx);
+    member.dy = ratio(doc.dy);
     member.active = !!active;
     member.lastSeen = now;
-    this.emit(roomId, { type: 'move', id, x: member.x, y: member.y, active: member.active });
+    this.emit(roomId, { type: 'move', id, x: member.x, y: member.y, dx: member.dx, dy: member.dy, active: member.active });
     return true;
   }
 

@@ -5,7 +5,7 @@
  * 「누가 계속 있는 것처럼」 보인다. 그래서 나감·조용함·좌표 자르기를 눈으로 박는다.
  */
 import { describe, it, expect } from 'vitest';
-import { KarmolabRoomStore, IDLE_MS, MAX_TABS_PER_VISITOR, colorFor } from './karmolab-rooms';
+import { KarmolabRoomStore, IDLE_MS, MAX_TABS_PER_VISITOR, colorFor, type RoomEvent } from './karmolab-rooms';
 
 const who = (id: string, name = id) => ({ id, name, handle: null });
 
@@ -79,5 +79,19 @@ describe('방 (KL-180)', () => {
     rooms.join('pet', who('a'));
     rooms.leave('pet', 'a');
     expect(rooms.snapshot()).toEqual([]);
+  });
+});
+
+describe('글 기준 자리 (change.copresence-hardening 4단계)', () => {
+  it('실어 보내면 그대로 흐르고, 안 보내면 없는 것으로 남는다', () => {
+    const rooms = new KarmolabRoomStore();
+    const seen: RoomEvent[] = [];
+    rooms.join('pet', { id: 'a', name: '카르모', handle: null });
+    rooms.subscribe('pet', (event) => seen.push(event));
+    rooms.move('pet', 'a', 0.5, 0.5, true, Date.now(), { dx: 0.2, dy: 3 });
+    const moved = seen.find((e) => e.type === 'move');
+    expect(moved).toMatchObject({ dx: 0.2, dy: 1 }); // 1 밖은 자른다
+    rooms.move('pet', 'a', 0.5, 0.5, true);
+    expect(rooms.members('pet')[0]).toMatchObject({ dx: null, dy: null });
   });
 });

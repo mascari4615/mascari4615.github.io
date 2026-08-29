@@ -16,10 +16,14 @@
  * 커서 토글과는 무관하다 — 남의 마우스를 안 보겠다는 것과 같이 쓰던 글을 그만두겠다는 것은
  * 다른 말이다.
  */
-import { API_BASE, TAB_ID, currentRoomId, onRoomOp, sendRoomOp } from './room-channel';
+import { API_BASE, TAB_ID, currentRoomId, onRoomChange, onRoomOp, sendRoomOp } from './room-channel';
 import type { CoText, TextOp } from './cotext';
 
 const shared = new Map<string, { doc: CoText; el: HTMLTextAreaElement | HTMLInputElement; version: number }>();
+/** 어떤 글칸을 맡았는지 — 방이 바뀌면 **새 방의 글로** 다시 붙어야 한다. */
+const fields = new Map<string, HTMLTextAreaElement | HTMLInputElement>();
+/** 이 글칸에 손을 이미 달았나 — 방이 바뀔 때마다 또 달면 한 글자에 연산이 여럿 나간다. */
+const wired = new WeakSet<HTMLElement>();
 
 /** 저장은 손을 멈춘 뒤에 — 글자마다 보내면 방이 아니라 서버가 먼저 지친다. */
 const SAVE_IDLE_MS = 1500;
@@ -45,6 +49,7 @@ function saveDoc(key: string): void {
 }
 
 export async function shareField(el: HTMLTextAreaElement | HTMLInputElement, key: string): Promise<void> {
+    fields.set(key, el);
     if (shared.has(key)) return;
     const roomId = currentRoomId();
     const { CoText } = await import('./cotext');
@@ -79,8 +84,13 @@ export async function shareField(el: HTMLTextAreaElement | HTMLInputElement, key
         doc.diffTo(el.value);
     }
 
+    if (wired.has(el)) return;
+    wired.add(el);
     let saveTimer: ReturnType<typeof setTimeout> | null = null;
     el.addEventListener('input', () => {
+        const entryNow = shared.get(key);
+        if (!entryNow) return;      // 방을 옮기는 중이면 이번 글자는 다음 씨앗에 담긴다
+        const doc = entryNow.doc;
         const ops = doc.diffTo(el.value);
         if (!ops.length) return;
         if (saveTimer) clearTimeout(saveTimer);
@@ -118,3 +128,15 @@ function applyRemote(payload: unknown): void {
 }
 
 onRoomOp((op) => applyRemote(op));
+
+/* 방이 바뀌면 **글도 갈아탄다** (change.copresence-hardening 5단계).
+ *
+ * 예전엔 `shared` 를 안 비워서, 방을 옮긴 뒤에도 옛 key 의 글을 **새 방 문서에 저장**했다 —
+ * 다른 화면의 메모가 이 화면 메모를 덮는 길이었다. 이제 옛 것을 놓고 새 방 글로 다시 씨앗을 깐다.
+ */
+onRoomChange(() => {
+    for (const timer of remoteSaveTimers.values()) clearTimeout(timer);
+    remoteSaveTimers.clear();
+    shared.clear();
+    for (const [key, el] of fields) void shareField(el, key);
+});

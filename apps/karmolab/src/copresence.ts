@@ -29,6 +29,38 @@ const PREF_KEY = 'karmolab_copresence';
 
 let layer: HTMLElement | null = null;
 const cursors = new Map<string, HTMLElement>();
+/** 마지막으로 들은 남의 자리 — 내 화면이 움직이면(스크롤·크기) 이걸로 다시 앉힌다. */
+const spots = new Map<string, { x: number; y: number; dx: number | null; dy: number | null }>();
+
+/** 글이 화면보다 이만큼 넘게 길면 「같은 글을 보고 있다」로 안 친다 — 위젯이 열린 정도가 다르다. */
+const DOC_MISMATCH = 1.6;
+
+/**
+ * 남의 자리를 내 화면의 픽셀로.
+ *
+ * 화면 기준 비율만 쓰면 **스크롤이 다른 사람끼리 서로 다른 문단을 가리킨다**. 글 기준 자리가
+ * 같이 왔고 내 글이 그쪽과 비슷한 길이면 그걸 쓴다 — 그러면 둘 다 같은 문단을 본다.
+ * 길이가 많이 다르면(위젯을 편 사람과 안 편 사람) 화면 기준으로 떨어진다. 화면 밖으로
+ * 벗어나면 그리지 않는다(화면 끝에 눌러 붙은 유령보다 안 보이는 편이 정직하다).
+ */
+function place(node: HTMLElement, spot: { x: number; y: number; dx: number | null; dy: number | null }): void {
+    const root = document.documentElement;
+    let px = spot.x * window.innerWidth;
+    let py = spot.y * window.innerHeight;
+    let outside = false;
+    if (spot.dx !== null && spot.dy !== null) {
+        const width = Math.max(1, root.scrollWidth);
+        const height = Math.max(1, root.scrollHeight);
+        const ratio = height / Math.max(1, window.innerHeight);
+        if (ratio < DOC_MISMATCH || height > window.innerHeight) {
+            px = spot.dx * width - window.scrollX;
+            py = spot.dy * height - window.scrollY;
+            outside = py < -40 || py > window.innerHeight + 40 || px < -40 || px > window.innerWidth + 40;
+        }
+    }
+    node.style.transform = `translate(${px}px, ${py}px)`;
+    node.dataset.offscreen = outside ? '1' : '0';
+}
 
 export function isCopresenceOn(): boolean {
     try {
@@ -67,7 +99,7 @@ function ensureLayer(): HTMLElement {
             '.kl-cursors { position:fixed; inset:0; pointer-events:none; z-index:70; overflow:hidden; }',
             '.kl-cursor { position:absolute; top:0; left:0; will-change:transform;',
             '  transition:transform .09s linear, opacity .2s ease; display:flex; align-items:flex-start; gap:4px; }',
-            '.kl-cursor[data-active="0"] { opacity:0; }',
+            '.kl-cursor[data-active="0"], .kl-cursor[data-offscreen="1"] { opacity:0; }',
             '.kl-cursor svg { filter:drop-shadow(0 1px 2px rgba(0,0,0,.45)); flex:0 0 auto; }',
             '.kl-cursor-name { transform:translateY(14px); padding:2px 7px; border-radius:999px;',
             /* 12px 아래로 내리지 않는다 — 폰에서 읽히는 최소선이고, 관문 검사가 그 선을 지킨다
@@ -97,14 +129,26 @@ function drawMember(member: RoomMember): void {
     const label = node.querySelector('.kl-cursor-name');
     if (label) label.textContent = member.name;
     node.dataset.active = member.active ? '1' : '0';
-    node.style.transform = `translate(${member.x * window.innerWidth}px, ${member.y * window.innerHeight}px)`;
+    const spot = { x: member.x, y: member.y, dx: member.dx ?? null, dy: member.dy ?? null };
+    spots.set(member.id, spot);
+    place(node, spot);
 }
 
-function moveMember(data: { id: string; x: number; y: number; active: boolean }): void {
+function moveMember(data: { id: string; x: number; y: number; dx?: number | null; dy?: number | null; active: boolean }): void {
     const node = cursors.get(data.id);
     if (!node) return; // 아직 못 본 사람의 움직임은 버린다 — join 이 오면 그때 그린다.
     node.dataset.active = data.active ? '1' : '0';
-    node.style.transform = `translate(${data.x * window.innerWidth}px, ${data.y * window.innerHeight}px)`;
+    const spot = { x: data.x, y: data.y, dx: data.dx ?? null, dy: data.dy ?? null };
+    spots.set(data.id, spot);
+    place(node, spot);
+}
+
+/** 내 화면이 움직였다 — 남이 가만히 있어도 그 커서는 다른 픽셀에 있어야 한다. */
+function replaceAll(): void {
+    cursors.forEach((node, id) => {
+        const spot = spots.get(id);
+        if (spot) place(node, spot);
+    });
 }
 
 function removeMember(id: string): void {
@@ -117,6 +161,7 @@ function removeMember(id: string): void {
 function clearAll(): void {
     cursors.forEach((node) => node.remove());
     cursors.clear();
+    spots.clear();
     layer?.remove();
     layer = null;
 }
@@ -138,7 +183,15 @@ function watchPointer(): void {
         if (!isCopresenceOn()) return;
         // 안 보고 있는 창의 커서는 소식이 아니라 소음이다.
         if (document.visibilityState !== 'visible') return;
-        sendMove(x / window.innerWidth, y / window.innerHeight, active);
+        /* 화면 기준 비율 + **글 기준 비율**을 같이 보낸다 (change.copresence-hardening 4단계).
+           화면 기준만 보내면 스크롤이 다른 사람끼리 다른 문단을 가리킨다. */
+        const root = document.documentElement;
+        const width = Math.max(1, root.scrollWidth);
+        const height = Math.max(1, root.scrollHeight);
+        sendMove(x / window.innerWidth, y / window.innerHeight, active, {
+            dx: (window.scrollX + x) / width,
+            dy: (window.scrollY + y) / height,
+        });
     };
     window.addEventListener('pointermove', (event) => note(event.clientX, event.clientY, true), { passive: true });
     // 손가락도 커서다 — 폰에서 같이 쓰는 사람이 안 보이면 그건 반쪽이다.
@@ -152,6 +205,10 @@ function watchPointer(): void {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState !== 'visible') sendInactive();
     });
+    /* 내 화면이 움직이면 남의 커서도 다시 앉힌다 — 예전엔 그 사람이 마우스를 움직일 때까지
+       옛 자리에 멈춰 있었다. */
+    window.addEventListener('scroll', replaceAll, { passive: true });
+    window.addEventListener('resize', replaceAll);
 }
 
 if (document.readyState === 'complete') watchPointer();

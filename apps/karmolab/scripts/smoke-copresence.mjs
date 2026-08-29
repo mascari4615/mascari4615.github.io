@@ -111,7 +111,7 @@ const PAGE = `http://127.0.0.1:${sitePort}/apps/karmolab/index.html`;
 
 /* 기기 id 가 **선 위에 실제로 실리는지** 본다. 쿠키만으로도 여기서는 통과해 버리기 때문이다 —
    브라우저가 제3자 쿠키를 막는 진짜 환경에서는 머리(헤더)와 주소(query)뿐이다. */
-const wire = { header: false, stream: false };
+const wire = { header: false, stream: false, doc: false };
 
 const browser = await chromium.launch();
 
@@ -130,6 +130,7 @@ async function openWindow(userAgent) {
     if (!url.startsWith(apiOrigin)) return;
     if (request.headers()['x-kl-device']) wire.header = true;
     if (url.includes('/stream?') && /[?&]dev=[a-z0-9]{16,32}/.test(url)) wire.stream = true;
+    if (url.endsWith('/move') && /"dx":\s*[\d.]/.test(request.postData() ?? '')) wire.doc = true;
   });
   await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
   return { context, page };
@@ -243,6 +244,49 @@ try {
   await b.page.mouse.move(250, 250);
   await b.page.waitForTimeout(800);
   check('꺼면 안 그린다', (await a.page.evaluate(cursors)) === 0, '껐는데도 남의 커서가 그려진다');
+  // 다시 켜 놓는다 — 아래 검사들은 커서가 보이는 상태를 잰다.
+  await a.page.evaluate(() => window.KarmoCopresence.set(true));
+  await a.page.bringToFront();
+
+  /* ⑦ 화면을 옮기면 방도 옮긴다 — 셸은 주소를 `pushState` 로 바꾼다(해시가 아니다).
+     예전엔 그 신호를 안 들어서 다른 도구를 보면서 옛 방 커서를 봤다. */
+  await a.page.evaluate(() => history.pushState({}, '', '/t/qr/'));
+  await a.page.waitForTimeout(1500);
+  await a.page.mouse.move(210, 210);
+  await a.page.waitForTimeout(600);
+  check('주소가 바뀌면 방도', rooms.members('qr').length >= 1, 'pushState 로 도구를 열었는데 그 방에 아무도 없다 (옛 방에 남았다)');
+  await a.page.evaluate(() => history.pushState({}, '', '/'));
+  await a.page.waitForTimeout(1200);
+  await a.page.mouse.move(230, 230);
+  await a.page.waitForTimeout(600);
+
+  /* ⑧ 내가 스크롤하면 남의 커서도 따라 앉는다 — 글 기준 자리를 같이 보내기 때문이다.
+     화면 기준 비율만 보내던 시절엔 내가 굴려도 남의 커서는 화면 같은 자리에 붙어 있었고,
+     그건 서로 다른 문단을 가리키는 것이었다. */
+  await b.page.bringToFront();
+  await b.page.mouse.move(300, 420);
+  await b.page.waitForTimeout(700);
+  await a.page.bringToFront();
+  const spotBefore = await a.page.evaluate(() => document.querySelector('.kl-cursor')?.style.transform ?? '');
+  await a.page.evaluate(() => { document.documentElement.style.minHeight = '3000px'; window.scrollTo(0, 400); });
+  await a.page.waitForTimeout(400);
+  const spotAfter = await a.page.evaluate(() => document.querySelector('.kl-cursor')?.style.transform ?? '');
+  check('스크롤하면 다시 앉힌다', spotBefore !== '' && spotBefore !== spotAfter, `내가 굴려도 남의 커서가 그 자리다 (${spotBefore} → ${spotAfter})`);
+  check('글 기준 자리를 싣는다', wire.doc, '/move 에 dx 가 없다 — 스크롤이 다르면 서로 다른 문단을 가리킨다');
+
+  /* ⑨ 이름·색은 **서버 한 곳**이 정한다 — 화면이 자기 규칙으로 지으면 같은 사람이
+     화면마다 다른 사람이 된다 (change.identity-one 3단계). */
+  const whoAmI = await a.page.evaluate(async () => {
+    await window.KarmoId.refresh();
+    return window.KarmoId.me();
+  });
+  check('나를 안다', !!whoAmI && typeof whoAmI.name === 'string' && whoAmI.name.includes(' '), `내 이름표를 못 받았다: ${JSON.stringify(whoAmI)}`);
+  check('내 색도 온다', !!whoAmI && /^#[0-9a-f]{6}$/i.test(String(whoAmI.color)), `색이 서버가 정한 모양이 아니다: ${whoAmI?.color}`);
+  /* 색은 한 벌이다 — 채팅에서 보이는 색과 커서 색이 다르면 같은 사람으로 안 읽힌다. */
+  const cursorColor = await b.page.evaluate(() => document.querySelector('.kl-cursor-name')?.getAttribute('style') ?? '');
+  check('색이 한 벌', cursorColor.includes(String(whoAmI?.color)), `커서 색과 이름표 색이 다르다 (${cursorColor} vs ${whoAmI?.color})`);
+
+  check('로그인 상태도 안다', !!whoAmI && whoAmI.signedIn === false, '로그인 안 했는데 로그인으로 보인다');
 
   check('머리에 기기 id', wire.header, '우리 서버로 가는 요청에 X-KL-Device 가 안 실린다 (쿠키를 막은 브라우저에서 사람 수가 다시 창 수가 된다)');
   check('흐르는 연결에 기기 id', wire.stream, '방 연결 주소에 dev= 가 없다 (EventSource 는 머리를 못 단다)');
@@ -263,4 +307,4 @@ if (failures.length) {
   for (const line of failures) console.error(`  - ${line}`);
   process.exit(1);
 }
-console.log('[smoke-copresence] OK — 커서 그리기 · 잘린 뒤 스스로 재입장 · 떠남 신호 · 탭 셋 = 한 사람 · 꺼도 관은 산다');
+console.log('[smoke-copresence] OK — 커서 그리기 · 재입장 · 떠남 신호 · 탭 셋 = 한 사람 · 꺼도 관은 산다 · 주소↔방 · 스크롤 따라감 · 기기 id · 이름표 한 벌');

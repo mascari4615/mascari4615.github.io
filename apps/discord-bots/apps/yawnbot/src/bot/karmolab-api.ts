@@ -1463,10 +1463,11 @@ export function registerKarmolabApi(
     }
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const id = memberIdOf(req, req.query.tab);
-    const name = account?.displayName || chat.identityFor(visitorKeyFor(req)).name;
+    const anon = chat.identityFor(visitorKeyFor(req));
+    const name = account?.displayName || anon.name;
     /* 창 수 상한은 **IP** 로 센다 — 기기 id 로 세면 지우고 다시 오면 그만이라 상한이 아니다.
        (반대로 사람 수는 기기 id 로 센다. 두 키를 섞으면 한쪽이 반드시 틀린다.) */
-    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, visitorKey: abuseKeyFor(req) });
+    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, color: anon.color, visitorKey: abuseKeyFor(req) });
     if (!me) {
       res.status(429).json({ error: 'too_many_tabs' });
       return;
@@ -1518,7 +1519,7 @@ export function registerKarmolabApi(
       res.json({ moved: rooms.members(roomId).some((m) => m.id === id), throttled: true });
       return;
     }
-    const moved = rooms.move(roomId, id, body.x, body.y, body.active !== false);
+    const moved = rooms.move(roomId, id, body.x, body.y, body.active !== false, Date.now(), { dx: body.dx, dy: body.dy });
     res.json({ moved });
   });
 
@@ -1579,6 +1580,25 @@ export function registerKarmolabApi(
       return;
     }
     res.json({ version: doc.version, saved: doc.text === String(body.text ?? '') });
+  });
+
+  /**
+   * 나는 지금 누구인가 (change.identity-one 3단계).
+   *
+   * 화면이 이름·색을 **스스로 만들지 않게** 하는 자리다. 로그인했으면 계정 이름이 이기고,
+   * 아니면 오늘의 익명 이름표가 온다 — 규칙은 서버 한 곳(`anonLabel`)에만 있다.
+   */
+  app.get('/kl/me/who', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const anon = chat.identityFor(visitorKeyFor(req));
+    res.json({
+      deviceId: identityOf(req).deviceId,
+      signedIn: !!account,
+      handle: account?.handle ?? null,
+      name: account?.displayName || anon.name,
+      color: anon.color,
+      who: anon.who,
+    });
   });
 
   /** 어느 화면에 몇 명이 같이 있나 — 광장에 낼 수 있는 값. */
