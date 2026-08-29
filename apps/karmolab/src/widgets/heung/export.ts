@@ -53,6 +53,18 @@ export function normalizeGain(peak: number, targetDb = -1): number {
   return Math.pow(10, targetDb / 20) / peak;
 }
 
+/** 여러 벌을 한 배수로 맞춘다. 트랙마다 따로 맞추면 트랙 사이 음량 관계가 깨진다 */
+export function commonNormalizeGain(peaks: number[], targetDb = -1): number {
+  const loudest = peaks.reduce((high, peak) => (peak > high ? peak : high), 0);
+  return normalizeGain(loudest, targetDb);
+}
+
+/** 소리가 다 사라질 때까지 남길 시간(초). 가장 긴 꼬리와 잔향 중 큰 쪽 */
+export function exportTailSeconds(releases: number[], anyReverb: boolean, reverbSeconds = 1.8): number {
+  const longest = releases.reduce((high, release) => (release > high ? release : high), 0);
+  return Math.max(longest, anyReverb ? reverbSeconds : 0) + 0.2;
+}
+
 export function applyGain(buffer: PcmLike, gain: number): void {
   if (gain === 1) return;
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {

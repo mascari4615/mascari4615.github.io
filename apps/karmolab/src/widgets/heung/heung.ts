@@ -14,7 +14,7 @@ import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, noteName, PIANO_GEOMETRY } from './piano-view';
 import { automationHtml, automationPickerHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
-import { analysePeak, applyGain, clampBuffer, exportRange, normalizeGain, stemFileName, uniqueNames, type ExportRangeMode } from './export';
+import { analysePeak, applyGain, clampBuffer, commonNormalizeGain, exportRange, normalizeGain, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
 import { decodeMidi, encodeMidi } from './midi-file';
 
@@ -215,15 +215,20 @@ import { decodeMidi, encodeMidi } from './midi-file';
       const zip=new JSZipCtor();
       const names=uniqueNames(live.map((track,index)=>stemFileName(track.name,index)));
       let loudest=-Infinity;
+      /* 먼저 다 굽고 배수는 나중에 한 번. 트랙마다 따로 맞추면 트랙 사이 음량 관계가 깨진다 */
+      const stems:AudioBuffer[]=[];
       for(let index=0;index<live.length;index++){
         const track=live[index];
         if(note)note.textContent=`${index+1}/${live.length}, ${track.name}`;
-        status(`Rendering ${index+1}/${live.length}, ${track.name}`);
+        status(`굽는 중 ${index+1}/${live.length}, ${track.name}`);
         /* 솔로, 뮤트를 손대지 않고 **이번 렌더용 사본**만 만든다. 사용자의 믹서 상태는 그대로 둔다. */
         const only={...project,tracks:project.tracks.map((item)=>({...item,mute:item.id!==track.id,solo:false}))};
-        const rendered=await renderProject(only,assets,range.from,range.to,exportOptions.sampleRate,exportOptions.mono?1:2);
-        const before=analysePeak(rendered);
-        if(exportOptions.normalize)applyGain(rendered,normalizeGain(before.peak,-1));
+        stems.push(await renderProject(only,assets,range.from,range.to,exportOptions.sampleRate,exportOptions.mono?1:2));
+      }
+      const gain=exportOptions.normalize?commonNormalizeGain(stems.map((buffer)=>analysePeak(buffer).peak),-1):1;
+      for(let index=0;index<stems.length;index++){
+        const rendered=stems[index];
+        if(exportOptions.normalize)applyGain(rendered,gain);
         else clampBuffer(rendered);
         loudest=Math.max(loudest,analysePeak(rendered).dbfs);
         zip.file(names[index],toWav(rendered));

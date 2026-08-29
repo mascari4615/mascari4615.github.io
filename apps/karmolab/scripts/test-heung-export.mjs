@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Float32Array });
-const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames } = module.exports;
+const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames, commonNormalizeGain, exportTailSeconds } = module.exports;
 
 const pcm = (channels) => ({
   numberOfChannels: channels.length,
@@ -81,4 +81,16 @@ assert.deepEqual(uniqueNames(['a.wav', 'a.wav', 'a.wav']), ['a.wav', 'a (2).wav'
 assert.deepEqual(uniqueNames(['noext', 'noext']), ['noext', 'noext (2)']);
 assert.deepEqual(uniqueNames([]), []);
 
-console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름');
+// 스템은 한 배수로. 따로 맞추면 큰 소리와 작은 소리가 같아짐
+const shared = commonNormalizeGain([0.1, 0.5, 0.25], -1);
+assert.ok(Math.abs(shared - normalizeGain(0.5, -1)) < 1e-12, '순서와 무관하게 가장 큰 벌 기준');
+assert.ok(shared * 0.1 < shared * 0.25, '작은 벌은 작게 남는다');
+assert.equal(commonNormalizeGain([0, 0], -1), 1, '무음이면 건드리지 않는다');
+
+// 꼬리. 가장 긴 release 와 잔향 중 큰 쪽
+assert.ok(Math.abs(exportTailSeconds([0.1, 0.2], false) - 0.4) < 1e-9, '잔향이 없으면 가장 긴 꼬리');
+assert.ok(Math.abs(exportTailSeconds([4, 0.1], false) - 4.2) < 1e-9, '긴 패드는 4초까지');
+assert.ok(Math.abs(exportTailSeconds([0.1], true) - 2) < 1e-9, '잔향이 있으면 최소 잔향 길이');
+assert.ok(exportTailSeconds([0.1], false) < exportTailSeconds([0.1], true), '잔향이 켜지면 더 길다');
+
+console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이');

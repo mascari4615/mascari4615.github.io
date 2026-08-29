@@ -12,10 +12,13 @@ const load = (relative) => {
 const model = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${load('src/widgets/heung/model.ts')}\n})(module.exports,module);`, { module: model, console, Math, Date, JSON, crypto });
 const engine = { exports: {} };
-const require_ = (name) => { if (name === './model') return model.exports; throw new Error(`모르는 모듈 ${name}`); };
+const exportModule = { exports: {} };
+vm.runInNewContext(`(function(exports,module){${load('src/widgets/heung/export.ts')}
+})(module.exports,module);`, { module: exportModule, console, Math, Date, JSON, crypto });
+const require_ = (name) => { if (name === './model') return model.exports; if (name === './export') return exportModule.exports; throw new Error(`모르는 모듈 ${name}`); };
 vm.runInNewContext(`(function(exports,module,require){${load('src/widgets/heung/audio-engine.ts')}\n})(module.exports,module,require);`,
   { module: engine, console, Math, Date, JSON, crypto, require: require_, window: {}, WeakMap });
-const { scheduleDrum } = engine.exports;
+const { scheduleDrum, makeImpulse } = engine.exports;
 
 /** 가짜 오디오 장치. 무엇을 몇 개 만들었는지만 기록 */
 function fakeContext() {
@@ -79,4 +82,12 @@ const collected = [];
 scheduleDrum(fakeContext(), input, 49, 0.8, 0, collected);
 assert.ok(collected.length >= 1, '정지용으로 모아 둔다');
 
-console.log('[test-heung-drum] ✓ 타악기 8종의 재료, 시각, 정지 목록');
+// 잔향은 매번 같은 표본. 난수로 구우면 같은 곡도 매번 다른 파일
+const impulseContext = () => ({ sampleRate: 8000, createBuffer: (channels, length) => { const data = [new Float32Array(length), new Float32Array(length)]; return { length, numberOfChannels: channels, getChannelData: (channel) => data[channel] }; } });
+const firstImpulse = makeImpulse(impulseContext(), 0.05);
+const secondImpulse = makeImpulse(impulseContext(), 0.05);
+assert.deepEqual(Array.from(firstImpulse.getChannelData(0).slice(0, 24)), Array.from(secondImpulse.getChannelData(0).slice(0, 24)), '같은 잔향이 나온다');
+assert.notDeepEqual(Array.from(firstImpulse.getChannelData(0).slice(0, 24)), Array.from(firstImpulse.getChannelData(1).slice(0, 24)), '두 귀는 서로 다르다');
+assert.ok(firstImpulse.getChannelData(0).some((value) => value !== 0), '무음이 아니다');
+
+console.log('[test-heung-drum] ✓ 타악기 8종의 재료, 시각, 정지 목록, 잔향 재현');

@@ -1,5 +1,6 @@
 import type { AutomationPoint, StudioAsset, StudioClip, StudioProject, StudioTrack } from './model';
 import { automationValueAt, drumPieceFor, samplePlaybackRate, swingBeat } from './model';
+import { exportTailSeconds } from './export';
 
 type AudioContextLike = AudioContext | OfflineAudioContext;
 
@@ -78,15 +79,27 @@ export function scheduleDrum(context: AudioContextLike, input: AudioNode, pitch:
   else noise('highpass', 4600, 1.15, 0.42);
 }
 
-function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
+/** 고정 씨앗 난수. 잔향이 매번 달라지면 같은 곡을 두 번 뽑아도 다른 파일이 나온다 */
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
   const cached = impulseCache.get(context);
   if (cached) return cached;
   const length = Math.floor(context.sampleRate * seconds);
   const impulse = context.createBuffer(2, length, context.sampleRate);
   for (let channel = 0; channel < 2; channel++) {
     const data = impulse.getChannelData(channel);
+    const random = seededRandom(0x48554e47 + channel);
     for (let index = 0; index < length; index++) {
-      data[index] = (Math.random() * 2 - 1) * Math.pow(1 - index / length, 2.8);
+      data[index] = (random() * 2 - 1) * Math.pow(1 - index / length, 2.8);
     }
   }
   impulseCache.set(context, impulse);
@@ -391,7 +404,9 @@ export class HeungEngine {
 }
 
 export async function renderProject(project: StudioProject, assets: Map<string, StudioAssetRuntime>, fromBeat: number, toBeat: number, sampleRate = 44100, channels = 2): Promise<AudioBuffer> {
-  const duration = Math.max(0.1, (toBeat - fromBeat) * (60 / project.bpm) + 1.8);
+  /* 꼬리는 실제 소리 길이로. 1.8초 고정이라 release 가 긴 패드의 마지막 화음이 잘렸다 */
+  const tail = exportTailSeconds(project.tracks.map((track) => track.envelope.release), project.tracks.some((track) => track.reverb > 0));
+  const duration = Math.max(0.1, (toBeat - fromBeat) * (60 / project.bpm) + tail);
   const context = new OfflineAudioContext(Math.max(1, Math.min(2, channels)), Math.ceil(duration * sampleRate), sampleRate);
   scheduleProject(context, project, assets, fromBeat, toBeat, 0, context.destination);
   return context.startRendering();
