@@ -152,3 +152,18 @@ test('청크는 오래 잡아 두고, 색인은 매번 물어본다', async () =
     assert.equal(res.headers.get('cache-control'), 'private, no-cache', `${key} 는 잡아 두면 안 된다`);
   }
 });
+
+test('답이 안 오는 도메인 때문에 화면이 멈추지 않는다', async () => {
+  /* 정본 도메인은 Access 뒤라 딴 origin 에서 물으면 답이 아예 안 올 수 있다.
+     2026-08-29 에 45초를 넘겨도 안 왔고 화면은 불러오는 중에서 멈춘 채였다 */
+  const t0 = Date.now();
+  const base = await pickVaultBase({
+    origin: 'http://127.0.0.1:8896',
+    fixture: 'v/',
+    canonical: 'https://files.example',
+    probeMs: 60,
+    fetchFn: () => new Promise(() => {}),
+  });
+  assert.equal(base, 'v/');
+  assert.ok(Date.now() - t0 < 2000, '기다리다 끝나야 한다');
+});
