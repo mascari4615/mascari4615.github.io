@@ -532,7 +532,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 
   function buildStudymap(container: HTMLElement): void {
     injectStyles();
-    container.innerHTML = `<div class="sm-empty">${esc(t('studymap.loading', undefined, '지도를 펴는 중…'))}</div>`;
+    container.innerHTML = `<div class="sm-empty">${esc(t('studymap.loading', undefined, '지도를 펴는 중'))}</div>`;
 
     /* 내용 정본은 한국어 한 벌(`studymap.json`)이고, 다른 언어는 **덧씌우는 표**로 온다
        (`studymap.<언어>.json`). 아직 안 옮긴 칸은 한국어가 그대로 보인다 — 빈 칸보다 낫고,
@@ -578,8 +578,8 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             <button type="button" class="sm-find-btn" data-sm="allbtn" hidden></button>
             <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
             <input class="sm-search" type="search" name="studymap-search" data-sm="search" hidden
-                   placeholder="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}"
-                   aria-label="${esc(t('studymap.search', undefined, '주제 찾기. 예: rebase, 인덱스, 캐시'))}">
+                   placeholder="${esc(t('studymap.search', undefined, '주제 찾기. rebase, 인덱스, 캐시'))}"
+                   aria-label="${esc(t('studymap.search', undefined, '주제 찾기. rebase, 인덱스, 캐시'))}">
           </div>
         </div>
         <div class="sm-body">
@@ -723,7 +723,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
           let divider = '';
           if (tr.scope === 'personal' && !scopeMarked) {
             scopeMarked = true;
-            divider = `<div class="sm-scope-line">${esc(t('studymap.scope.personal', undefined, '내 것 — 이 저장소 이야기'))}</div>`;
+            divider = `<div class="sm-scope-line">${esc(t('studymap.scope.personal', undefined, '내 것. 이 저장소 이야기'))}</div>`;
           }
           const all = nodesOf(tr);
           const d = all.filter((n) => done.has(n.id)).length;
@@ -760,9 +760,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     const FOCUS_KEY = 'karmolab-studymap-focus';
     const FOCUSES: { id: string; label: string; tracks: string[] }[] = [
       { id: 'web', label: t('studymap.focus.web', undefined, '웹 프론트'), tracks: ['web', 'a11y', 'qa'] },
-      { id: 'server', label: t('studymap.focus.server', undefined, '서버 · 인프라'), tracks: ['api', 'devops', 'db'] },
-      { id: 'game', label: t('studymap.focus.game', undefined, '게임 · 그래픽스'), tracks: ['game', 'gfx', 'math'] },
-      { id: 'data', label: t('studymap.focus.data', undefined, '데이터 · AI'), tracks: ['data', 'ml', 'analytics'] },
+      { id: 'server', label: t('studymap.focus.server', undefined, '서버와 인프라'), tracks: ['api', 'devops', 'db'] },
+      { id: 'game', label: t('studymap.focus.game', undefined, '게임과 그래픽스'), tracks: ['game', 'gfx', 'math'] },
+      { id: 'data', label: t('studymap.focus.data', undefined, '데이터와 AI'), tracks: ['data', 'ml', 'analytics'] },
       { id: 'basic', label: t('studymap.focus.basic', undefined, '아직 모름'), tracks: ['cs', 'git', 'web'] },
     ];
     let focusId: string | null = (() => {
@@ -905,7 +905,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       }
       const total = groups.reduce((s, g) => s + g.found.length, 0);
       return (
-        `<div class="sm-found">${esc(t('studymap.found', { n: total, tracks: groups.length }, '지도 전체에서 {n}칸 · {tracks}갈래'))}</div>` +
+        `<div class="sm-found">${esc(t('studymap.found', { n: total, tracks: groups.length }, '지도 전체에서 {n}칸, {tracks}갈래'))}</div>` +
         groups
           .map(
             (g) => `<section class="sm-stage sm-stage-find">
@@ -966,7 +966,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
       paintTracks();   /* 옆 목록에서 지금 읽는 칸이 눈에 띄게 */
       const node = found.node;
       /* 글자 한 줄 대신 **올 모양**을 미리 그린다 — 화면이 덜 튄다(레이아웃이 미리 자리를 잡는다). */
-      elView.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중…'))}" aria-busy="true">
+      elView.innerHTML = `<div class="sm-skel" aria-label="${esc(t('studymap.lesson.loading', undefined, '강의를 펴는 중'))}" aria-busy="true">
         <div class="sm-skel-line is-crumb"></div>
         <div class="sm-skel-line is-title"></div>
         <div class="sm-skel-line is-meta"></div>
@@ -1199,7 +1199,7 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
               note.className = 'sm-quiz-done';
               quizRoot.appendChild(note);
             }
-            note.textContent = t('studymap.review.set', { when }, '다 맞혔다 — 다음 복습은 {when}');
+            note.textContent = t('studymap.review.set', { when }, '다 맞혔다. 다음 복습은 {when}');
           }
           if (cleared) {
             /* 이 장은 통과. 칸이 끝나는 것은 **모든 장**을 통과했을 때다. */
@@ -1598,10 +1598,10 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
         return;
       }
       if (typeof Toolbox !== 'undefined' && Toolbox.copyText) {
-        Toolbox.copyText(code, { message: t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.') });
+        Toolbox.copyText(code, { message: t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 진도 가져오기에 붙여 넣어라.') });
         return;
       }
-      prompt(t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 「진도 가져오기」에 붙여 넣어라.'), code);
+      prompt(t('studymap.export.done', undefined, '진도를 복사했다. 다른 기기에서 진도 가져오기에 붙여 넣어라.'), code);
     });
 
     q<HTMLButtonElement>('import').addEventListener('click', () => {
