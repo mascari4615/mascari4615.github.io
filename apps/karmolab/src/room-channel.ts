@@ -18,6 +18,7 @@
  */
 
 import { toolIdFromPath } from './lib/site-base';
+import { deviceId } from './identity';
 
 /**
  * 어디에 붙을까. 기본은 노트북의 그 서버다.
@@ -184,9 +185,11 @@ function emit(kind: RoomEventKind, data: unknown): void {
 function connect(): void {
     if (!roomId || source || !leader) return;
     const room = roomId;
-    source = new EventSource(`${API_BASE}/kl/room/${encodeURIComponent(room)}/stream?tab=${TAB_ID}`, {
-        withCredentials: true,
-    });
+    /* 기기 id 를 **주소에 싣는다** — 흐르는 연결(EventSource)에는 머리를 못 단다.
+       쿠키에 기대면 다른 도메인이라 브라우저가 막을 수 있고, 그러면 방 인원이 다시
+       창 수를 세게 된다 (change.identity-one). */
+    const stream = `${API_BASE}/kl/room/${encodeURIComponent(room)}/stream?tab=${TAB_ID}&dev=${encodeURIComponent(deviceId())}`;
+    source = new EventSource(stream, { withCredentials: true });
     const relay = (kind: RoomEventKind) => (event: Event) => {
         emit(kind, JSON.parse((event as MessageEvent).data));
     };

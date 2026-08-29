@@ -49,6 +49,9 @@ addEventListener('load', () => {
    그 기능만 조용히 죽는다). 사람이 읽기에도 이쪽이 낫다. */
 whenIdle(() => {
   [
+    /* 기기 id 가 **먼저** 들어와야 한다 — 뒤에 오는 것들이 부르는 서버가 그것으로 사람을 센다
+       (change.identity-one). 늦게 오면 그 요청들은 옛 방식(IP+UA)으로 세어진다. */
+    '/apps/karmolab/js/identity.js',
     '/apps/karmolab/js/lang-switch.js',
     '/apps/karmolab/js/account.js',
     '/apps/karmolab/js/copresence.js',

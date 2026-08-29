@@ -54,6 +54,7 @@ import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-upl
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
 import { MOVE_LIMIT, OP_LIMIT, RoomLimiter, opTooBig } from '../services/room-limits';
+import { identityOf } from '../services/karmolab-identity';
 import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
 import { notifyIfWanted as sharedNotifyGate } from '../services/karmolab-notify-gate';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
@@ -305,11 +306,19 @@ function sendPackError(res: Response, error: unknown): void {
   res.status(500).json({ error: 'server_error' });
 }
 
+/**
+ * 사람을 **세는** 키 (change.identity-one).
+ *
+ * 계산은 `karmolab-identity.ts` 한 곳에서 한다 — 여기서는 그 답을 쓰기만 한다.
+ * 브라우저가 만든 기기 id 가 있으면 그것으로, 없으면 옛 방식(IP+UA)으로 떨어진다.
+ */
 function visitorKeyFor(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  const first = Array.isArray(forwarded) ? forwarded[0] : String(forwarded ?? '').split(',')[0];
-  const ip = (first || req.socket.remoteAddress || 'unknown').trim();
-  return KarmolabTraceStore.visitorKey(ip, String(req.headers['user-agent'] ?? ''));
+  return identityOf(req).personKey;
+}
+
+/** 상한을 **거는** 키 — 언제나 IP. 기기 id 는 사람이 지울 수 있어서 상한의 근거가 못 된다. */
+function abuseKeyFor(req: Request): string {
+  return identityOf(req).abuseKey;
 }
 
 /**
@@ -380,12 +389,22 @@ export function registerKarmolabApi(
     if (typeof origin === 'string' && isAllowedOrigin(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      // 기기 id 는 머리에 실려 온다 (change.identity-one) — 허용 목록에 없으면 브라우저가 통째로 버린다.
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-KL-Device');
       res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS');
       res.setHeader('Access-Control-Max-Age', '86400');
     }
     // 출처마다 답이 다르므로 중간 캐시가 한 출처의 답을 다른 출처에 주면 안 된다.
     res.setHeader('Vary', 'Origin');
+
+    /* 기기 id 가 없으면 여기서 하나 심는다 (change.identity-one). **여기여야 한다** —
+       라우트보다 늦게 걸면 이미 처리된 요청은 이 자리를 안 지난다.
+       심은 그 요청은 아직 옛 키로 세어지고 다음 요청부터 사람 단위가 된다.
+
+       **브라우저에게만 심는다**: 아는 출처가 붙어 있는 요청만. 기계가 부르는 자리
+       (게임이 「누구 거냐」를 묻는 것 같은)는 쿠키를 들고 다니지 않는다 — 거기에 심으면
+       아무도 안 쓰는 쿠키를 답마다 붙이는 것이 된다. */
+    if (typeof origin === 'string' && isAllowedOrigin(origin)) identityOf(req, res);
 
     /* 요청마다 짧은 번호를 붙인다 (TASK-KL-098).
      *
@@ -1445,7 +1464,9 @@ export function registerKarmolabApi(
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const id = memberIdOf(req, req.query.tab);
     const name = account?.displayName || chat.identityFor(visitorKeyFor(req)).name;
-    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, visitorKey: visitorKeyFor(req) });
+    /* 창 수 상한은 **IP** 로 센다 — 기기 id 로 세면 지우고 다시 오면 그만이라 상한이 아니다.
+       (반대로 사람 수는 기기 id 로 센다. 두 키를 섞으면 한쪽이 반드시 틀린다.) */
+    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, visitorKey: abuseKeyFor(req) });
     if (!me) {
       res.status(429).json({ error: 'too_many_tabs' });
       return;

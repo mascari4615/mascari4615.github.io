@@ -109,6 +109,10 @@ for (const candidate of ALLOWED_PORTS) {
 if (sitePort === 0) cantRun(`개발 포트(${ALLOWED_PORTS.join('·')})가 전부 쓰이는 중이다 — 핫리로드 서버를 끄고 다시`);
 const PAGE = `http://127.0.0.1:${sitePort}/apps/karmolab/index.html`;
 
+/* 기기 id 가 **선 위에 실제로 실리는지** 본다. 쿠키만으로도 여기서는 통과해 버리기 때문이다 —
+   브라우저가 제3자 쿠키를 막는 진짜 환경에서는 머리(헤더)와 주소(query)뿐이다. */
+const wire = { header: false, stream: false };
+
 const browser = await chromium.launch();
 
 /** 창 하나 — UA 가 다르면 서버가 다른 사람으로 본다(같은 IP 라도 이름표가 갈린다). */
@@ -121,6 +125,12 @@ async function openWindow(userAgent) {
   }, apiOrigin);
   await context.route(`${PROD_ORIGIN}/**`, (route) => route.abort());
   const page = await context.newPage();
+  page.on('request', (request) => {
+    const url = request.url();
+    if (!url.startsWith(apiOrigin)) return;
+    if (request.headers()['x-kl-device']) wire.header = true;
+    if (url.includes('/stream?') && /[?&]dev=[a-z0-9]{16,32}/.test(url)) wire.stream = true;
+  });
   await page.goto(PAGE, { waitUntil: 'domcontentloaded' });
   return { context, page };
 }
@@ -193,7 +203,35 @@ try {
   await t2.close();
   await t3.close();
 
-  /* ⑤ 커서를 꺼도 **관은 산다** — 지구본 동시관람·함께 편집이 이 관을 같이 쓴다
+  /* ⑤ 기기 id 로 사람을 센다 (change.identity-one).
+     같은 브라우저(같은 저장소)면 창을 따로 열어도 한 사람 — 예전엔 IP+UA 가 사람이라
+     크롬과 엣지를 같이 열면 두 명이 됐다. 여기서는 반대 방향을 잰다: **UA 가 달라도**
+     기기 id 가 같으면 한 사람. */
+  const other = await a.context.newPage();
+  await other.goto(PAGE, { waitUntil: 'domcontentloaded' });
+  await other.bringToFront();
+  await other.waitForFunction(() => !!window.KarmoId, null, { timeout: 15000 });
+  const idA = await a.page.evaluate(() => window.KarmoId.deviceId());
+  const idOther = await other.evaluate(() => window.KarmoId.deviceId());
+  const idB = await b.page.evaluate(() => window.KarmoId.deviceId());
+  check('같은 브라우저 = 같은 기기', idA === idOther, `같은 브라우저인데 기기 id 가 다르다 (${idA} vs ${idOther})`);
+  check('다른 브라우저 = 다른 기기', idA !== idB, '다른 브라우저인데 기기 id 가 같다');
+  check('기기 id 모양', /^[a-z0-9]{16,32}$/.test(String(idA)), `기기 id 가 서버가 아는 모양이 아니다: ${idA}`);
+  await other.close();
+  await a.page.bringToFront();
+
+  /* 서버도 기기로 센다 — **UA 와 IP 가 똑같은 다른 브라우저**를 하나 더 붙인다.
+     옛 방식(IP+UA)이라면 이 사람은 A 와 같은 이름표를 받아 한 명으로 접혔다. */
+  const twin = await openWindow(CHROME);
+  await twin.page.bringToFront();
+  await twin.page.mouse.move(150, 150);
+  await twin.page.waitForTimeout(1500);
+  const keys = new Set(rooms.members('home').map((m) => keyOf(m.id)));
+  check('IP·UA 가 같아도 다른 사람', keys.size >= 3, `같은 IP·UA 의 다른 브라우저가 접혔다 — 방의 사람 이름표 ${keys.size}종`);
+  await twin.context.close();
+  await a.page.bringToFront();
+
+  /* ⑥ 커서를 꺼도 **관은 산다** — 지구본 동시관람·함께 편집이 이 관을 같이 쓴다
      (1단계 계약 변경). 끈 뒤에도 방에 남아야 하고, 남의 커서만 안 그려야 한다. */
   await a.page.bringToFront();
   await a.page.mouse.move(360, 360);
@@ -205,6 +243,9 @@ try {
   await b.page.mouse.move(250, 250);
   await b.page.waitForTimeout(800);
   check('꺼면 안 그린다', (await a.page.evaluate(cursors)) === 0, '껐는데도 남의 커서가 그려진다');
+
+  check('머리에 기기 id', wire.header, '우리 서버로 가는 요청에 X-KL-Device 가 안 실린다 (쿠키를 막은 브라우저에서 사람 수가 다시 창 수가 된다)');
+  check('흐르는 연결에 기기 id', wire.stream, '방 연결 주소에 dev= 가 없다 (EventSource 는 머리를 못 단다)');
 
   await a.context.close();
   await b.context.close();
