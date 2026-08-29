@@ -1195,6 +1195,13 @@
         "package.json",
         "data/gate-list.json"
       ]
+    },
+    {
+      "name": "test:pwa-update",
+      "볼것": [
+        "src/pwa-update.ts",
+        "scripts/test-pwa-update.mjs"
+      ]
     }
   ]
 }
