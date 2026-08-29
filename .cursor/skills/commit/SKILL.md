@@ -70,32 +70,32 @@ If anything is ambiguous, **ask once** with concrete options; do not guess by st
 
 ## Procedure (execute in order)
 
-1. **Classify the request**  
+1. **Classify the request**
    Session-only (Mode A) vs user-directed (Mode B). If mixed, **B overrides** for scope; still apply topic splitting unless user wants one commit.
 
-2. **Enumerate candidate paths**  
+2. **Enumerate candidate paths**
    Write the list explicitly (mental or brief note). Mode A: from chat tool edits only. Mode B: from user text only.
 
-3. **`git status` and optional `git diff`**  
+3. **`git status` and optional `git diff`**
    Confirm candidates exist and match intent.
 
-4. **Mixed-change / overlap check**  
+4. **Mixed-change / overlap check**
    If a candidate file likely contains **non-session** edits and the user did not say "commit all changes in this file", **stop** and ask: (A) omit file, (B) commit whole file, (C) user will split manually.
 
-5. **Topic grouping (required if >1 topic)**  
+5. **Topic grouping (required if >1 topic)**
    Group candidates by purpose. **Each commit** gets one group. Message must match **that group only**.
 
-6. **Stage narrowly**  
+6. **Stage narrowly**
    `git add -- <path1> <path2> …` per topic. After each `git add`, run `git status` or `git diff --cached --stat` and **remove** wrong paths with `git restore --staged -- <path>`.
 
-7. **Pre-commit checklist (mandatory)**  
-   - [ ] Staged paths ⊆ allowed set for this mode **and** match **this conversation's topic**.  
-   - [ ] No accidental `git add -A` / `git add .`.  
-   - [ ] **`_posts/`** (and **analogous** private or content-only trees the user cares about) is **absent** unless the user **explicitly** asked to commit that material for this commit.  
-   - [ ] User-excluded paths are **not** staged.  
+7. **Pre-commit checklist (mandatory)**
+   - [ ] Staged paths ⊆ allowed set for this mode **and** match **this conversation's topic**.
+   - [ ] No accidental `git add -A` / `git add .`.
+   - [ ] **`_posts/`** (and **analogous** private or content-only trees the user cares about) is **absent** unless the user **explicitly** asked to commit that material for this commit.
+   - [ ] User-excluded paths are **not** staged.
    - [ ] Commit message matches **this** topic only.
 
-8. **Commit message**  
+8. **Commit message**
    Short subject; match recent repo style (`git log -5 --oneline`). Body only if needed (one or two lines).
 
 9. **Repeat** for remaining topic groups (clear staging between groups if needed).

@@ -36,7 +36,7 @@ cd apps/karmolab && npm run dev   # http://127.0.0.1:8813/apps/karmolab/index.ht
 ```
 
 - **스타일**. 저장 즉시 반영. 새로고침 없음(화면 상태 유지)
-- **위젯**. 저장하면 그 번들만 다시 받아 **갈아 끼운다**. 입력하던 값, 열어 둔 탭이 살아 있다
+- **위젯**. 저장하면 그 번들만 다시 받아 **갈아 끼운다**. 입력하던 값, 열어 둔 탭이 살아 있음
 - **셸**(`src/toolbox.ts`, `widgets-loader`, `index.html`). 이때만 자동 새로고침
 - 서버모니터 KarmoLab (핫리로드) 카드로도 기동 (`devProfiles: karmolab-dev`)
 
@@ -104,7 +104,7 @@ pub async fn cmd(params) -> Result<T, String> {
 stale 자동 차단: `servermonitor-config-audit.mjs` 가 `npm run verify` 에서 script 실재 cross-check.
 
 **트레이 빠른 실행에도 띄우려면** `apps/karmolab/data/tray-menu.json` 에 한 줄. 시계 옆
-아이콘에서 바로 켜고 끈다(터미널 불요). `kind` 셋: `dev`(devProfiles id 를 켜고 끄기 . 
+아이콘에서 바로 켜고 끈다(터미널 불요). `kind` 셋: `dev`(devProfiles id 를 켜고 끄기 .
 사람 카드와 **같은 손**이라 상태가 안 갈라진다), `tool`(창 열고 그 위젯으로), `url`.
 Rust 는 안 건드린다(`src/tray_menu.rs` 가 그 파일을 읽어 그린다). 같은 audit 가 죽은 줄
 (없는 프로필, 없는 위젯)을 push 전에 막는다.
