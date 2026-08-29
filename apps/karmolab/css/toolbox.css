@@ -2708,6 +2708,9 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .header-now:empty { display: none; }
 @media (max-width: 768px) { .header-now { display: none; } }
 
+/* 갈래 아이콘. 화살표와 이름 사이 */
+.sidebar-group-icon { flex: none; opacity: 0.75; margin-right: 2px; }
+
 /* 갈래 이름 옆 도구 수. 234개가 다 있다는 것을 접힌 채로 보여 준다 */
 .sidebar-group-count {
     margin-left: auto;

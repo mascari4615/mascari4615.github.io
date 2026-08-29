@@ -1695,7 +1695,7 @@ const Toolbox = (() => {
         // Build sidebar nav groups
         const sidebarNavEl = document.getElementById('sidebar-nav');
         if (sidebarNavEl) {
-            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false) {
+            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false, iconPath = '') {
                 if (!catTools.length) return;
                 // 내 것은 처음부터 펴 둔다. 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
                 /* 기본은 **펴 둔다** (2026-08-19). 갈래 시절에는 칸 하나가 41줄이라 접는 것이
@@ -1711,6 +1711,12 @@ const Toolbox = (() => {
                 trigger.className = 'sidebar-group-trigger' + (isOpen ? ' open' : '');
                 trigger.setAttribute('aria-expanded', String(isOpen));
                 trigger.innerHTML = '<span class="chevron" aria-hidden="true"></span>'
+                    /* 갈래 아이콘. 접힌 상태에서 글자 없이도 어느 갈래인지 잡히게 */
+                    + (iconPath
+                        ? '<svg class="sidebar-group-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" '
+                          + 'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
+                          + 'aria-hidden="true">' + iconPath + '</svg>'
+                        : '')
                     + '<span class="sidebar-group-label">' + label + '</span>'
                     + (countBadge ? '<span class="sidebar-group-count">' + catTools.length + '</span>' : '');
                 const body = document.createElement('div');
@@ -1787,7 +1793,7 @@ const Toolbox = (() => {
                         && !(isDesktopOnlyTool(t) && !isDesktopApp()));
                     if (!catTools.length) return;
                     catTools.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
-                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true);
+                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true, cat.icon || '');
                 });
                 /* 바닥 줄은 **안 넣는다**. 옆줄 아래 링크 묶음에 도구 전체 목록이 이미 있다
                  * (2026-08-19 실측). 머리띠 판에는 그 링크가 없어서 판 안에 뒀던 것이고,

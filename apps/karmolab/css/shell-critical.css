@@ -2013,6 +2013,8 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .header-now:empty { display: none; }
 @media (max-width: 768px) { .header-now { display: none; } }
 
+.sidebar-group-icon { flex: none; opacity: 0.75; margin-right: 2px; }
+
 .sidebar-group-count {
     margin-left: auto;
     font-family: var(--font-mono);
