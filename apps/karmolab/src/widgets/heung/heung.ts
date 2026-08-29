@@ -4,7 +4,7 @@ import {
   automationValueAt, clampTrackHeight, cloneClip, nextClipColor, findClip, findTrack, legatoNotes, moveTrack, newProject, newTrack, normalizeProject, projectLength, keyToPitch, putAutomationPoint, putMarker, quantizeNotes, setNoteVelocity, selectionRange, snapBeat, sortMarkers, splitClip, stepMarker, tapTempo, studioId, transposeNotes,
   TRACK_HEIGHT, TRACK_INSTRUMENTS, INSTRUMENT_PRESETS, applyPreset, findPreset, toggleStepNote, stepNoteAt, SCALES, PITCH_NAMES, type AutomationParam, type StudioClip, type StudioNote, type StudioProject, type StudioSelection, type StudioTrack, type TrackInstrument
 } from './model';
-import { toWav } from '../tools/shared/media';
+import { toOggVorbis, toWav } from '../tools/shared/media';
 import { addAsset, backupCurrent, hydrateAssets, importPortable, loadPrevious, loadProject, portableProject, savedAt, saveProject } from './storage';
 import { ProjectHistory } from './history';
 import { HEUNG_CSS } from './styles';
@@ -14,6 +14,7 @@ import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, noteName, PIANO_GEOMETRY } from './piano-view';
 import { buildGridView } from './grid-view';
+import { injectVorbisComments } from './ogg-comments';
 import { automationHtml, automationPickerHtml, automationValue, clipHtml, laneHint, visibleClips, waveformPath, waveformSvg, waveMissing } from './arranger-view';
 import { analysePeak, applyGain, beatToSample, clampBuffer, commonNormalizeGain, exportRange, loopSections, normalizeGain, seamDiscontinuity, smplChunk, stemFileName, uniqueNames, type ExportRangeMode } from './export';
 import { clipMarks, dragRect, isBoxDrag, markMode, noteMarks, rectOverlaps, type ClipRef, type NoteRef } from './selection';
@@ -38,7 +39,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
     let playhead = 0; let pxPerBeat = 72; let sideMode: 'inspector' | 'mixer' = 'inspector';let editTool:'draw'|'select'|'slice'='draw'; let assets = new Map<string, StudioAssetRuntime>();
     let raf: number | undefined; let saveTimer: number | undefined; let recording: MediaRecorder | null = null; let recordChunks: Blob[] = []; let recordStart = 0;
     let armedTrackId=''; let taps:number[]=[]; let stepMode=false; let stepOctave=4; let stepBeat=0; let stepAdded:string[]=[]; let midiOn=false; let midiLabel='MIDI 건반 연결'; let metronome=false; let countIn=false; const autoLanes=new Map<string,AutomationParam>();
-    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false,loopPoints:false,sections:false};
+    let exportOptions={range:'song' as ExportRangeMode,sampleRate:44100,mono:false,normalize:true,stems:false,loopPoints:false,sections:false,format:'wav' as 'wav'|'ogg'};
     let editorExpanded = false; let editorScrollTop = 0; let editorScrollLeft = 0; let editorClipId = ''; let pianoPxPerBeat = pxPerBeat;
     let editorListenMode: 'clip' | 'song' = 'clip'; let editorLoopStart = 0; let editorLoopEnd = 0;
     let editorTimePx = pxPerBeat; let editorRowHeight: number = PIANO_GEOMETRY.row; let editorRangeStart: number | null = null; let editorRangeEnd: number | null = null; let lastNoteDuration = project.snap * 2; let suppressPianoRulerClick = false;
@@ -201,6 +202,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
         </select></label>
         <label>피크 맞추기 (-1 dBFS) <input type="checkbox" data-export="normalize"${exportOptions.normalize?' checked':''}></label>
         <label>트랙별로 따로 (ZIP) <input type="checkbox" data-export="stems"${exportOptions.stems?' checked':''}></label>
+        <label>파일 형식 <select data-export="format"><option value="wav"${exportOptions.format==='wav'?' selected':''}>WAV (원본, 큼)</option><option value="ogg"${exportOptions.format==='ogg'?' selected':''}>OGG (게임용, 10분의 1)</option></select></label>
         <label>루프 지점 넣기 (게임용) <input type="checkbox" data-export="loopPoints"${exportOptions.loopPoints?' checked':''}></label>
         ${exportOptions.loopPoints||exportOptions.sections?`<p class="hu-hint">Unity 는 임포트할 때 기본으로 Vorbis 로 다시 압축한다. 그러면 루프 지점이 조용히 깨진다. Compression Format 을 PCM 이나 ADPCM 으로, 또는 Load Type 을 Decompress On Load 로 두어라.</p>`:''}
         <label>인트로, 루프, 아웃트로 3파일 (ZIP) <input type="checkbox" data-export="sections"${exportOptions.sections?' checked':''}></label>
@@ -307,6 +309,15 @@ import { decodeMidi, encodeMidi } from './midi-file';
       playhead=Math.max(from,to-runUp);
       play();
     }
+    /** OGG 로 굽고 루프 지점을 주석으로 끼운다. 게임 쪽 표준은 표본 단위 두 줄이다 */
+    async function oggWithLoop(rendered: AudioBuffer, loop: {start:number;end:number}|null): Promise<Blob> {
+      const encoded=await toOggVorbis(rendered);
+      if(!loop||loop.end<=loop.start)return encoded;
+      const bytes=new Uint8Array(await encoded.arrayBuffer());
+      const result=injectVorbisComments(bytes,{LOOPSTART:String(loop.start),LOOPLENGTH:String(loop.end-loop.start)});
+      if(!result.injected)status('OGG 로 구웠지만 루프 지점을 못 적었다');
+      return new Blob([result.bytes.slice().buffer as ArrayBuffer],{type:'audio/ogg'});
+    }
     async function runExport(): Promise<void> {
       stop();
       const note=$<HTMLElement>('[data-role=export-note]');
@@ -325,10 +336,15 @@ import { decodeMidi, encodeMidi } from './midi-file';
         const loopChunk=exportOptions.loopPoints?smplChunk(rendered.sampleRate,
           beatToSample(Math.max(0,project.loopStart-range.from),project.bpm,rendered.sampleRate),
           beatToSample(Math.max(0,Math.min(range.to,project.loopEnd)-range.from),project.bpm,rendered.sampleRate)):undefined;
-        const blob=toWav(rendered,loopChunk);
+        const loopFrom=Math.max(0,project.loopStart-range.from);
+        const loopTo=Math.max(0,Math.min(range.to,project.loopEnd)-range.from);
+        const blob=exportOptions.format==='ogg'
+          ? await oggWithLoop(rendered,exportOptions.loopPoints?{start:beatToSample(loopFrom,project.bpm,rendered.sampleRate),end:beatToSample(loopTo,project.bpm,rendered.sampleRate)}:null)
+          : toWav(rendered,loopChunk);
+        const extension=exportOptions.format==='ogg'?'ogg':'wav';
         const suffix=exportOptions.range==='song'?'':`-${exportOptions.range}`;
-        download(blob,`${project.name||'흥'}${suffix}.wav`);
-        Toolbox.offerNext?.($('[data-role=status]'),{blob,name:`${project.name}${suffix}.wav`,from:'heung'});
+        download(blob,`${project.name||'흥'}${suffix}.${extension}`);
+        Toolbox.offerNext?.($('[data-role=status]'),{blob,name:`${project.name}${suffix}.${extension}`,from:'heung'});
         const headroom=`peak ${after.dbfs.toFixed(1)} dBFS`;
         const warn=clamped?`, 깎인 표본 ${clamped}개`:before.clipped&&exportOptions.normalize?`, 원래 ${before.clipped}개가 넘쳤는데 맞춰서 내렸다`:'';
         status(`WAV ready, ${(blob.size/1048576).toFixed(1)} MB, ${headroom}${warn}`);
@@ -792,6 +808,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       else if(key==='sampleRate')exportOptions.sampleRate=Number(field.value);
       else if(key==='mono')exportOptions.mono=field.value==='1';
       else if(key==='normalize')exportOptions.normalize=(field as HTMLInputElement).checked;
+      else if(key==='format'){exportOptions.format=field.value as 'wav'|'ogg';openExport();return;}
       else if(key==='stems')exportOptions.stems=(field as HTMLInputElement).checked;
       else if(key==='loopPoints'){exportOptions.loopPoints=(field as HTMLInputElement).checked;openExport();return;}
       else if(key==='sections'){exportOptions.sections=(field as HTMLInputElement).checked;openExport();return;}
@@ -1198,7 +1215,9 @@ const projectInput=$<HTMLInputElement>('[data-file=project]');projectInput.oncha
       if(chosen.type==='note'){const doomed=markedNotes();const clip=findClip(project,chosen.trackId,chosen.clipId);if(clip&&doomed.length){const ids=new Set(doomed.map((item)=>item.note.id));clip.notes=clip.notes.filter((note)=>!ids.has(note.id));noteSel.clear();if(doomed.length>1)status(`Deleted ${doomed.length} notes`);}selection={type:'clip',trackId:chosen.trackId,clipId:chosen.clipId};saveSoon();renderAll();return;}
       else if(chosen.type==='clip'){const all=markedClips();const doomed=all.filter((item)=>!item.clip.locked);const kept=all.length-doomed.length;for(const item of doomed)item.track.clips=item.track.clips.filter((clip)=>clip.id!==item.clip.id);marks.clear();if(kept)status(doomed.length?`${doomed.length}개 삭제, 잠긴 ${kept}개는 남김`:`잠겨 있어 안 지운다 (${kept}개)`);else if(doomed.length>1)status(`Deleted ${doomed.length} clips`);}
       selection={type:'track',trackId:track.id};saveSoon();renderAll();}
-    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();if(gestures.cancel())return;hideContextMenu();if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded)setEditorExpanded(false);return;}const command=event.ctrlKey||event.metaKey;const tag=(event.target as HTMLElement).tagName;const inField=tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA';if(command&&event.key.toLowerCase()==='z'&&!inField){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'&&!inField){event.preventDefault();restoreHistory('redo');return;}if(inField)return;if(event.key==='?'||(event.shiftKey&&event.key==='/')){event.preventDefault();if($<HTMLElement>('[data-role=help]').innerHTML)closeHelp();else openHelp();return;}if(editorExpanded&&selection?.type==='note'){
+    const keydown=(event:KeyboardEvent)=>{if(!root.isConnected)return;if(event.key==='Escape'){event.preventDefault();if(gestures.cancel())return;hideContextMenu();if($<HTMLElement>('[data-role=help]').innerHTML){closeHelp();return;}if($<HTMLElement>('[data-role=export]').innerHTML){closeExport();return;}if(editorExpanded){setEditorExpanded(false);return;}
+        /* 덮개만 남는 경우가 있다. 열린 창이 없으면 덮개를 걷는다 */
+        $<HTMLElement>('[data-role=backdrop]').classList.remove('is-open');return;}const command=event.ctrlKey||event.metaKey;const tag=(event.target as HTMLElement).tagName;const inField=tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA';if(command&&event.key.toLowerCase()==='z'&&!inField){event.preventDefault();restoreHistory(event.shiftKey?'redo':'undo');return;}if(command&&event.key.toLowerCase()==='y'&&!inField){event.preventDefault();restoreHistory('redo');return;}if(inField)return;if(event.key==='?'||(event.shiftKey&&event.key==='/')){event.preventDefault();if($<HTMLElement>('[data-role=help]').innerHTML)closeHelp();else openHelp();return;}if(editorExpanded&&selection?.type==='note'){
         const target=noteTargets();const clip=selectedClip();const track=selectedTrack();if(target&&clip&&track){const notes=target.notes;if(command&&event.key.toLowerCase()==='a'){event.preventDefault();noteSel.replace(clip.notes.map((note)=>({clipId:clip.id,noteId:note.id})));selection={type:'note',trackId:track.id,clipId:clip.id,noteId:clip.notes[0]?.id||selection.noteId};renderEditor();renderSide();status(`${clip.notes.length}개 음 전체 선택`);return;}if(event.key==='Enter'){event.preventDefault();void engine.preview(track,notes[0].pitch,notes[0].velocity);return;}if(event.key==='Home'||event.key==='End'){event.preventDefault();const anchor=event.key==='Home'?0:Math.max(0,clip.duration-Math.max(...notes.map((note)=>note.duration)));const origin=Math.min(...notes.map((note)=>note.beat));for(const note of notes)note.beat=Math.max(0,Math.min(clip.duration-note.duration,note.beat-origin+anchor));saveSoon('note-key');renderEditor();renderTracks();return;}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();const fine=event.altKey?.01:project.snap;if(event.shiftKey&&(event.key==='ArrowLeft'||event.key==='ArrowRight'))for(const note of notes)note.duration=Math.max(fine,Math.min(clip.duration-note.beat,note.duration+(event.key==='ArrowRight'?fine:-fine)));else if(event.key==='ArrowLeft'||event.key==='ArrowRight')for(const note of notes)note.beat=Math.max(0,Math.min(clip.duration-note.duration,note.beat+(event.key==='ArrowRight'?fine:-fine)));else transposeNotes(notes,event.key==='ArrowUp'?1:-1,PIANO_GEOMETRY.low,PIANO_GEOMETRY.high);saveSoon('note-key');renderEditor();renderTracks();renderSide();return;}}}if(stepMode&&!command&&!event.altKey){
         const clip=selectedClip();const track=selectedTrack();
         if(clip&&track&&clip.kind==='midi'){

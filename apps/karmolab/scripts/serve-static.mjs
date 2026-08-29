@@ -28,6 +28,7 @@ const TYPES = {
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.woff2': 'font/woff2',
+  '.wasm': 'application/wasm',
 };
 
 const server = http.createServer((req, res) => {

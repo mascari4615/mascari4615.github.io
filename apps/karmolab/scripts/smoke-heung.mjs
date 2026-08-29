@@ -12,7 +12,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 const bundle = path.join(root, 'js/widgets/heung/heung.js');
 if (!fs.existsSync(bundle)) { console.error('[smoke-heung] bundle missing. run build.mjs first'); process.exit(1); }
-const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2' };
+const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2','.wasm':'application/wasm' };
 const server = http.createServer((request,response)=>{let url=decodeURIComponent(request.url.split('?')[0]);if(url.endsWith('/'))url+='index.html';const file=path.join(repoRoot,url.replace(/^\//,''));if(!file.startsWith(repoRoot)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){response.writeHead(404).end('not found');return;}const ext=path.extname(file);let body=fs.readFileSync(file);if(ext==='.html')body=Buffer.from(stripJekyll(String(body)));response.writeHead(200,{'Content-Type':mime[ext]||'application/octet-stream'}).end(body);});
 await new Promise((resolve)=>server.listen(0,'127.0.0.1',resolve));
 const base=`http://127.0.0.1:${server.address().port}`;
@@ -538,6 +538,50 @@ let renderDrift=null, unityHint=0;
   await page.waitForTimeout(200);
 }
 
+/* 창이 열려 있으면 툴바를 못 누른다. 덮개가 사라질 때까지 물러난다 */
+const closeOverlays=async()=>{
+  for(let attempt=0;attempt<4;attempt++){
+    const open=await page.locator('.hu-modal-backdrop.is-open').count();
+    if(!open)return true;
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(220);
+    if(await page.locator('.hu-modal-backdrop.is-open').count()){
+      /* 키로 안 걷히면 덮개를 직접 누른다. 사람이 하는 것과 같은 길 */
+      await page.locator('.hu-modal-backdrop').click({force:true});
+      await page.waitForTimeout(220);
+    }
+  }
+  return (await page.locator('.hu-modal-backdrop.is-open').count())===0;
+};
+
+/* OGG. 게임 실전 포맷. 루프 지점은 주석 두 줄로 들어간다 */
+let oggInfo=null;
+{
+  try{
+    await closeOverlays();
+    await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
+    await page.selectOption('[data-export=format]','ogg');
+    await page.waitForTimeout(200);
+    await page.check('[data-export=loopPoints]');
+    await page.waitForTimeout(200);
+    const wait=page.waitForEvent('download',{timeout:60000});
+    await page.click('[data-export-act=go]');
+    const event=await wait;
+    const bytes=fs.readFileSync(await event.path());
+    const readable=bytes.toString('latin1');
+    oggInfo={name:event.suggestedFilename(),bytes:bytes.length,magic:bytes.subarray(0,4).toString(),loopStart:readable.includes('LOOPSTART='),loopLength:readable.includes('LOOPLENGTH=')};
+    await page.waitForTimeout(300);
+    await closeOverlays();
+    await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
+    await page.selectOption('[data-export=format]','wav');
+    await page.waitForTimeout(200);
+    await page.click('[data-export-act=cancel]');
+    await page.waitForTimeout(200);
+  }catch(error){ oggInfo={error:String(error).slice(0,80),
+    state: await page.evaluate(()=>({backdrop:document.querySelector('[data-role=backdrop]')?.className,dialog:Boolean(document.querySelector('.hu-export')),status:document.querySelector('[data-role=status]')?.textContent})).catch(()=>null) }; }
+  finally{ if(await page.locator('.hu-export [data-export-act=cancel]').count())await page.click('.hu-export [data-export-act=cancel]').catch(()=>{}); await closeOverlays(); }
+}
+
 /* 게임용 루프 지점. 켜면 WAV 안에 smpl 덩어리가 들어가야 한다 */
 await page.click('[data-act=export-wav]');await page.waitForSelector('.hu-export');
 await page.check('[data-export=loopPoints]');
@@ -726,6 +770,14 @@ if(wav.subarray(0,4).toString()!=='RIFF'||wav.subarray(8,12).toString()!=='WAVE'
 if(!seamNote.includes('이음매 차이'))problems.push(`이음매 수치가 안 나온다 (${seamNote.slice(0,40)})`);
 if(!seamClosed)problems.push('이음매를 듣는데 내보내기 창이 안 닫혔다');
 if(!seamPlaying)problems.push('이음매 듣기가 재생을 안 켰다');
+if(!oggInfo||oggInfo.error)problems.push(`OGG 출력 실패 (${oggInfo?.error||'없음'})`);
+else if(oggInfo.error){problems.push(`OGG 상태: ${JSON.stringify(oggInfo.state)}`);}
+else{
+  if(oggInfo.magic!=='OggS')problems.push(`OGG 머리말이 아니다 (${oggInfo.magic})`);
+  if(!oggInfo.name.endsWith('.ogg'))problems.push(`파일 이름이 ogg 가 아니다 (${oggInfo.name})`);
+  if(!oggInfo.loopStart||!oggInfo.loopLength)problems.push('OGG 에 루프 지점 주석이 없다');
+  if(oggInfo.bytes<2000)problems.push(`OGG 가 너무 작다 (${oggInfo.bytes})`);
+}
 if(!renderDrift)problems.push('재현성을 못 쟀다');
 else{
   if(!renderDrift.sameLength)problems.push('두 번 뽑은 파일 길이가 다르다');
@@ -753,6 +805,7 @@ else for(const line of describeLayout(layout))problems.push(`화면 ${mobile?'(�
 
 const shotIndex=process.argv.indexOf('--shot');if(shotIndex>0&&process.argv[shotIndex+1])await page.screenshot({path:process.argv[shotIndex+1],fullPage:true});
 await browser.close();server.close();
+console.log('[smoke-heung] OGG',JSON.stringify(oggInfo));
 console.log(`[smoke-heung] tracks ${initial.tracks}→${after.tracks}, clips ${initial.clips}→${after.clips}, notes ${initial.notes}→${after.notes}, synth ${after.osc}, WAV ${wav.length}B`);
 if(problems.length){console.error('[smoke-heung] ✗\n  - '+problems.join('\n  - '));process.exit(1);}
 console.log('[smoke-heung] ✓ 편집 → 재생 → 자동저장 → WAV 출력이 한 화면에서 닫힌다');

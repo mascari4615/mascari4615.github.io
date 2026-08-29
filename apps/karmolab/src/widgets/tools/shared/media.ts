@@ -52,6 +52,46 @@ export function toWav(buffer: AudioBuffer, extraChunks?: Uint8Array): Blob {
   return new Blob([view], { type: 'audio/wav' });
 }
 
+/** wasm 인코더의 UMD 전역. 필요할 때만 로드 */
+interface WasmEncoder {
+  configure: (options: { sampleRate: number; channels: number; vbrQuality?: number }) => void;
+  encode: (channels: Float32Array[]) => Uint8Array;
+  finalize: () => Uint8Array;
+}
+
+/**
+ * AudioBuffer → OGG(Vorbis). 게임 BGM 실전 포맷, WAV 의 10분의 1쯤.
+ *
+ * wasm 은 unpkg 대신 우리 vendor 에서. 남의 서버에 매달리지 않기 위해.
+ */
+export async function toOggVorbis(buffer: AudioBuffer, quality = 4): Promise<Blob> {
+  await Toolbox.ensureScript?.('vendor/wasm-media-encoder.min');
+  const global = (window as unknown as { WasmMediaEncoder?: { createEncoder: (mime: string, wasm: string | ArrayBuffer) => Promise<WasmEncoder> } }).WasmMediaEncoder;
+  if (!global) throw new Error('OGG 인코더를 못 불러왔다');
+  const tag = [...document.querySelectorAll('script')].map((element) => element.src).find((src) => src.includes('wasm-media-encoder.min.js'));
+  const wasmUrl = tag ? tag.replace(/wasm-media-encoder\.min\.js.*$/, 'ogg-vorbis.wasm') : 'js/vendor/ogg-vorbis.wasm';
+  const encoder = await global.createEncoder('audio/ogg', wasmUrl);
+  const channels = Math.min(2, buffer.numberOfChannels);
+  encoder.configure({ sampleRate: buffer.sampleRate, channels, vbrQuality: quality });
+  const pcm: Float32Array[] = [];
+  for (let channel = 0; channel < channels; channel++) pcm.push(buffer.getChannelData(channel));
+  const chunks: Uint8Array[] = [];
+  const block = 8192;
+  for (let at = 0; at < buffer.length; at += block) {
+    const slice = pcm.map((data) => data.subarray(at, Math.min(at + block, buffer.length)));
+    const encoded = encoder.encode(slice);
+    if (encoded.length) chunks.push(encoded.slice());
+  }
+  const tail = encoder.finalize();
+  if (tail.length) chunks.push(tail.slice());
+  let size = 0;
+  for (const chunk of chunks) size += chunk.length;
+  const out = new Uint8Array(size);
+  let write = 0;
+  for (const chunk of chunks) { out.set(chunk, write); write += chunk.length; }
+  return new Blob([out], { type: 'audio/ogg' });
+}
+
 interface Mp3Encoder {
   encodeBuffer: (l: Int16Array, r?: Int16Array) => Int8Array;
   flush: () => Int8Array;

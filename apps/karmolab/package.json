@@ -317,7 +317,7 @@
     "test:ghosttype": "node scripts/smoke-ghosttype.mjs",
     "test:gif": "node scripts/test-gif.mjs",
     "test:grad": "node scripts/test-gradient.mjs",
-    "test:heung": "node scripts/test-heung-history.mjs && node scripts/test-heung-selection.mjs && node scripts/test-heung-model.mjs && node scripts/test-heung-export.mjs && node scripts/test-heung-piano-view.mjs && node scripts/test-heung-arranger-view.mjs && node scripts/test-heung-gesture.mjs && node scripts/test-heung-shortcuts.mjs && node scripts/test-heung-midi.mjs && node scripts/test-heung-drum.mjs && node scripts/test-heung-grid-view.mjs && node scripts/smoke-heung.mjs",
+    "test:heung": "node scripts/test-heung-history.mjs && node scripts/test-heung-selection.mjs && node scripts/test-heung-model.mjs && node scripts/test-heung-export.mjs && node scripts/test-heung-piano-view.mjs && node scripts/test-heung-arranger-view.mjs && node scripts/test-heung-gesture.mjs && node scripts/test-heung-shortcuts.mjs && node scripts/test-heung-midi.mjs && node scripts/test-heung-drum.mjs && node scripts/test-heung-grid-view.mjs && node scripts/test-heung-ogg.mjs && node scripts/smoke-heung.mjs",
     "test:heung:midi-file": "node scripts/test-heung-midi-file.mjs",
     "test:heung:ux": "node scripts/test-heung-ux-contract.mjs",
     "test:hub": "node scripts/smoke-hub.mjs",
