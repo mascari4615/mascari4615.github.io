@@ -21,6 +21,18 @@
 import { renderMarkdown, plainPreview, postCover, escapeHtml as escapeMd } from './community-markdown';
 import { coverAttrs } from '../lib/markdown/frontmatter';
 import { loadPostsIndex, blogBoardSummary, buildBlogBoardBody, type BlogBoardSummary } from './community-blog';
+import {
+    DOCS_BOARD_ID,
+    loadDocEntries,
+    docsBoardSummary,
+    docsBoardDesc,
+    docsBoardLabel,
+    buildDocsBoardBody,
+    buildDocView,
+    disposeDocView,
+    type DocEntry,
+    type DocsBoardSummary,
+} from './community-docs';
 import { t, loadNamespace, locale } from '../lib/i18n';
 
 (function (): void {
@@ -409,6 +421,10 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     const BLOG_BOARD_ID = 'blog';
     const blogLabel = (): string => t('community.tab.blog', undefined, '글');
 
+    /** 문서 판 요약. 이것도 서버 판이 아니라 git 이 정본이다 (change.docs-into-community). */
+    let docsSummary: DocsBoardSummary | null = null;
+    let docsEntries: DocEntry[] = [];
+
     /**
      * 채팅에서 줄을 옮겨 오면 **글쓰기 칸이 펴진 채로** 도착해야 한다 (TASK-KL-157).
      * 초안만 넣어 두고 접힌 화면을 주면, 옮겨 온 사람은 아무 일도 안 일어난 줄 안다.
@@ -423,6 +439,40 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             /* 기억을 못 읽어도 커뮤니티는 그대로 돈다 */
         }
     }
+    /**
+     * 팔레트에서 문서로 바로 들어오는 길 (change.docs-into-community).
+     * 찾기 창이 `karmolab-docs-open` 에 문서 id 와 제목을 넣고 이 화면으로 넘김
+     * 표식은 한 번 쓰고 지움 (안 지우면 커뮤니티 열 때마다 그 문서로 튐)
+     */
+    function takeDocHandoff(): void {
+        let raw: string | null = null;
+        try {
+            raw = sessionStorage.getItem('karmolab-docs-open');
+            if (raw) sessionStorage.removeItem('karmolab-docs-open');
+        } catch {
+            return;
+        }
+        if (!raw) return;
+        try {
+            const wanted = JSON.parse(raw) as { id?: string; heading?: string };
+            if (!wanted.id) return;
+            pendingDocHeading = wanted.heading || '';
+            const search = new URLSearchParams(location.search);
+            search.set('board', DOCS_BOARD_ID);
+            search.set('d', wanted.id);
+            history.replaceState({}, '', `${location.pathname}?${search.toString()}#community`);
+        } catch {
+            /* 표식이 깨졌으면 그냥 커뮤니티를 연다 */
+        }
+    }
+    let pendingDocHeading = '';
+    /** 문서를 그릴 때 한 번만 쓰는 제목. 두 번째 그림에서는 원래 자리에서 시작한다. */
+    function takeDocHeading(): string {
+        const heading = pendingDocHeading;
+        pendingDocHeading = '';
+        return heading;
+    }
+
     /** 말머리 고치는 칸을 펼쳐 두었나. */
     let tagEditOpen = false;
 
@@ -536,6 +586,18 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                         ? `${esc(plainPreview(blogSummary.lastTitle, 28))}, ${relativeTime(blogSummary.lastAt ?? '')}`
                         : t('community.t104')
                 }</span>
+            </button>
+        </div>`;
+    }
+
+    /** 홈의 문서 판 카드. 목록을 못 받았으면 자리를 안 만든다. */
+    function docsHomeCard(): string {
+        if (!docsSummary) return '';
+        return `<div class="c-gal-wrap">
+            <button type="button" class="c-gal" data-gal="${DOCS_BOARD_ID}">
+                <span class="c-gal-name"><b>${esc(docsBoardLabel())}</b><em>${docsSummary.count}</em></span>
+                <span class="c-gal-desc">${esc(docsBoardDesc())}</span>
+                <span class="c-gal-last c-gal-quiet">${esc(t('community.docs.home-last', undefined, 'git 이 정본'))}</span>
             </button>
         </div>`;
     }
@@ -672,7 +734,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 boardsMeta.signedIn && !galleryFormOpen ? t('community.t113') : '<span></span>'
             }</div>
             ${maker}
-            <div class="c-galleries">${blogHomeCard()}${cards}</div>
+            <div class="c-galleries">${blogHomeCard()}${docsHomeCard()}${cards}</div>
         </div>`;
 
         wireSignIn();
@@ -812,7 +874,12 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                     title="${esc(t('community.blog.board-desc', undefined, '주인장의 글. 목록은 여기, 읽기는 글 장에서'))}">${esc(blogLabel())}${
                         blogSummary ? `<span class="c-board-count">${blogSummary.count}</span>` : ''
                     }</button>`;
-        return `<div class="c-picker"><span class="c-picker-label">${esc(t('community.t43'))}</span><div class="c-boards">${blogChip}${boards
+        /* 문서 판도 같은 붙박이다 (change.docs-into-community). */
+        const docsChip = `<button type="button" class="c-board" data-board="${DOCS_BOARD_ID}" data-on="${active === DOCS_BOARD_ID ? '1' : '0'}"
+                    title="${esc(docsBoardDesc())}">${esc(docsBoardLabel())}${
+                        docsSummary ? `<span class="c-board-count">${docsSummary.count}</span>` : ''
+                    }</button>`;
+        return `<div class="c-picker"><span class="c-picker-label">${esc(t('community.t43'))}</span><div class="c-boards">${blogChip}${docsChip}${boards
             .map(
                 (b) => `<button type="button" class="c-board" data-board="${esc(b.id)}" data-on="${b.id === active ? '1' : '0'}"
                     title="${esc(b.desc)}">${esc(b.label)}<span class="c-board-count">${b.count}</span></button>`,
@@ -1553,6 +1620,67 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         );
     }
 
+    /**
+     * 문서 판 화면 = 다른 판과 같은 머리, 칩 줄, 표 골격, 글쓰기 칸만 없음
+     * 본문도 여기서 그림 (블로그와 달리 문서에는 정적 장 없음)
+     */
+    async function renderDocsBoard(): Promise<void> {
+        if (!host) return;
+        /* 다른 판 칩도 같이 세우고 싶을 뿐이다. 못 받으면 문서 칩만 선다. */
+        if (boards.length === 0) {
+            const raw = (await api('/kl/boards')) as BoardsResponse | null;
+            if (raw?.boards) {
+                boards = raw.boards;
+                boardsMeta = { signedIn: raw.signedIn, labelMaxLength: raw.labelMaxLength, descMaxLength: raw.descMaxLength };
+            }
+        }
+        docsEntries = await loadDocEntries();
+        docsSummary = docsBoardSummary(docsEntries);
+
+        const wantedId = param('d');
+        const entry = wantedId ? docsEntries.find((e) => e.id === wantedId) : undefined;
+
+        host.innerHTML = `<div class="c-wrap">
+            <div class="c-gal-head">
+                <button type="button" class="c-linkbtn" data-board-home>${esc(t('community.t57'))}</button>
+                <h2>${esc(entry ? entry.label : docsBoardLabel())}</h2>
+                <p>${esc(entry ? entry.desc : docsBoardDesc())}${entry ? '' : `, ${docsEntries.length}`}</p>
+            </div>
+            ${renderBoards(DOCS_BOARD_ID)}
+            ${entry ? `<button type="button" class="c-linkbtn" data-docs-list>${esc(t('community.docs.back', undefined, '문서 목록'))}</button>` : ''}
+            <div data-docs-body></div>
+        </div>`;
+
+        const body = host.querySelector('[data-docs-body]') as HTMLElement;
+        if (entry) {
+            void buildDocView(body, entry, takeDocHeading());
+        } else {
+            disposeDocView();
+            buildDocsBoardBody(body, docsEntries, (id) => go({ board: DOCS_BOARD_ID, d: id, p: null, page: null, q: null }));
+        }
+
+        host.querySelector('[data-docs-list]')?.addEventListener('click', () => go({ board: DOCS_BOARD_ID, d: null }));
+        host.querySelector('[data-board-home]')?.addEventListener('click', () => {
+            disposeDocView();
+            go({ board: null, d: null, p: null, page: null, q: null });
+        });
+        host.querySelectorAll<HTMLButtonElement>('[data-board]').forEach((b) =>
+            b.addEventListener('click', () => {
+                writerOpen = false;
+                disposeDocView();
+                go({
+                    board: b.dataset.board === 'free' ? null : (b.dataset.board ?? null),
+                    d: null,
+                    sort: null,
+                    p: null,
+                    page: null,
+                    q: null,
+                    tag: null,
+                });
+            }),
+        );
+    }
+
     function renderDetail(data: DetailResponse): void {
         if (!host) return;
         const post = data.post;
@@ -1800,12 +1928,19 @@ import { t, loadNamespace, locale } from '../lib/i18n';
     async function render(): Promise<void> {
         if (!host) return;
         takeWriterHandoff();
+        takeDocHandoff();
         if (host.childElementCount === 0) host.innerHTML = t('community.t187');
 
         /* 글 판은 **서버보다 먼저** 갈라진다. 데이터가 git 색인이라 봇이 꺼져 있어도
            이 판만은 열린다 (change.board-unify ①: fail-open, 서버 죽어도 글은 읽힌다). */
         if (param('board') === BLOG_BOARD_ID) {
             await renderBlogBoard();
+            return;
+        }
+
+        /* 문서 판도 서버보다 먼저 갈라진다. 정본이 git 이라 봇이 꺼져 있어도 열린다. */
+        if (param('board') === DOCS_BOARD_ID) {
+            await renderDocsBoard();
             return;
         }
 
@@ -1833,7 +1968,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
         // 갤러리를 안 골랐으면 갤러리 목록부터. 이게 커뮤니티의 첫 화면이다.
         if (!param('board')) {
-            const [freshHome, best, recent, mod, blogPosts] = await Promise.all([
+            const [freshHome, best, recent, mod, blogPosts, docList] = await Promise.all([
                 api('/kl/boards') as Promise<BoardsResponse | null>,
                 api('/kl/recent?kind=best&limit=6') as Promise<{ posts?: Post[] } | null>,
                 api('/kl/recent?limit=6') as Promise<{ posts?: Post[] } | null>,
@@ -1841,8 +1976,14 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                 api('/kl/reports') as Promise<{ reports?: OpenReport[] } | null>,
                 // 글 판 요약. 색인을 못 받아도 홈은 산다 (카드만 안 선다).
                 loadPostsIndex(),
+                // 문서 판 요약. 실패해도 홈은 그대로 뜸
+                loadDocEntries(),
             ]);
             if (blogPosts) blogSummary = blogBoardSummary(blogPosts);
+            if (docList.length > 0) {
+                docsEntries = docList;
+                docsSummary = docsBoardSummary(docList);
+            }
             reports = mod?.reports ?? [];
             bestFeed = best?.posts ?? [];
             recentFeed = recent?.posts ?? [];
@@ -1881,6 +2022,19 @@ import { t, loadNamespace, locale } from '../lib/i18n';
 
     function build(container: HTMLElement): void {
         host = container;
+        /* 팔레트가 문서로 보내는 진입 함수 (change.docs-into-community).
+           이미 커뮤니티가 떠 있으면 페이지 전환이 안 일어나 render 가 안 돈다.
+           그래서 표식만 두지 않고 이 함수를 불러서 판을 갈아 끼운다. */
+        (window as unknown as { KarmoDocsOpen?: (id: string, heading?: string) => void }).KarmoDocsOpen = (id, heading) => {
+            if (!host?.isConnected) return;
+            try {
+                sessionStorage.removeItem('karmolab-docs-open');
+            } catch {
+                /* 기억을 못 지워도 문서는 열린다 */
+            }
+            pendingDocHeading = heading || '';
+            go({ board: DOCS_BOARD_ID, d: id, p: null, page: null, q: null });
+        };
         void render();
     }
 

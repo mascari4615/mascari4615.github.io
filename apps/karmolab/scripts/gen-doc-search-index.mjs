@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const docsDir = path.join(root, 'js', 'widgets', 'docs');
+const docsDir = path.join(root, 'data', 'docs');
 const ids = {
   'intro.md': 'docs-intro', 'roadmap.md': 'docs-roadmap', 'guide.md': 'docs-guide',
   'karmo-ai.md': 'docs-karmo-ai', 'discord-yawnbot.md': 'docs-discord-yawnbot',
@@ -24,5 +24,5 @@ for (const [file, docId] of Object.entries(ids)) {
   }
 }
 fs.writeFileSync(path.join(root, 'data', 'docs-search-index.ko.json'),
-  JSON.stringify({ $comment: '자동 생성. gen-doc-search-index.mjs. 문서 위젯 통합 검색 색인.', documents }, null, 2) + '\n');
+  JSON.stringify({ $comment: '자동 생성. gen-doc-search-index.mjs. 커뮤니티 문서 게시판 검색 색인.', documents }, null, 2) + '\n');
 console.log(`[doc-search-index] 문서 ${Object.keys(ids).length}개, 제목 ${documents.length}개`);

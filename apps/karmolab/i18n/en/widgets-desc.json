@@ -58,7 +58,6 @@
   "widgets-desc.devtool.desc": "Paste JSON, JWT, Base64, a table. we work out what it is and point at the right tool. JSON opens as a tree",
   "widgets-desc.devtools.desc": "A test bench for the desktop app and its integrations (notifications and such)",
   "widgets-desc.diff.desc": "Point at what differs between two texts or files. JSON is compared by key path, and a three-way merge is built in",
-  "widgets-desc.docs.desc": "KarmoLab intro, roadmap and guides plus the character and system wiki. sidebar navigation, body and table of contents",
   "widgets-desc.docscan.desc": "Straightens a document photographed at an angle and cleans it up like a scan, as PNG or PDF. Photos never leave your browser.",
   "widgets-desc.draw.desc": "Lottery numbers, ghost-leg ladders, draws and team splits in one place",
   "widgets-desc.duel.desc": "Two people going at it in a few seconds' worth of mini-games. One link starts it, and the room never sits on our server",

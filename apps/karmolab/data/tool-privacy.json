@@ -121,13 +121,6 @@
         "당신이 적은 주소"
       ]
     },
-    "docs": {
-      "where": "third-party",
-      "sends": "문서 원문을 GitHub 공개 저장소에서 받아 옵니다. 보내는 입력은 없습니다.",
-      "to": [
-        "raw.githubusercontent.com"
-      ]
-    },
     "draw": {
       "where": "third-party",
       "sends": "당첨 번호를 동행복권에서 받아 옵니다. 보내는 입력은 없습니다.",

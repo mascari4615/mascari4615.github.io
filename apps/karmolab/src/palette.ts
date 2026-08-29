@@ -348,7 +348,7 @@ const KarmoPalette = (() => {
       docsEntries = docsDocuments(await response.json()).map((document) => ({
         id: `docs:${document.value.id}`, title: document.value.title, desc: document.value.description,
         category: '문서', icon: '', alias: document.aliases || '', cho: '', bundle: null,
-        source: 'docs', pageId: 'docs', docId: document.value.docId, heading: document.value.heading,
+        source: 'docs', pageId: 'community', docId: document.value.docId, heading: document.value.heading,
       }));
       searchIndex.refresh('docs');
       if (inline?.input.value) render(inline);

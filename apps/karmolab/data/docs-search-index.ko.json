@@ -1,12 +1,12 @@
 {
-  "$comment": "자동 생성. gen-doc-search-index.mjs. 문서 위젯 통합 검색 색인.",
+  "$comment": "자동 생성. gen-doc-search-index.mjs. 커뮤니티 문서 게시판 검색 색인.",
   "documents": [
     {
       "id": "docs-intro:0",
       "docId": "docs-intro",
       "heading": "문서",
       "title": "문서",
-      "description": "이 페이지는 KarmoLab 의 문서 페이지예요. - 이곳에서 앞으로의 계획 로드맵 과 기획 문서를 확인할 수 있어요 - 사용자 관점 도움말은 가이드 , 개발자용 KarmoLabAI @karmo/ai 패키지, Node 서브패스 정리는 KarmoLabAI 탭이에요 - npm, KarmoLab, Tauri,  apps/ 등 레포 전체에서 쓰는 터미널 명령은 프로젝트 명령 탭에 모아 두었어요 복사용 - KarmoLab 데스크톱 앱 에서 핫리로드 서버, 봇 등을 끄고 켜는 로컬 데브 러너 는 데스크톱, 로컬 탭 local-dev-runner.md 에 정리했어요 - Dis",
+      "description": "이 페이지는 KarmoLab 의 문서 페이지예요. - 이곳에서 앞으로의 계획 로드맵 과 기획 문서를 확인할 수 있어요 - 사용자 관점 도움말은 가이드 , 개발자용 KarmoLabAI @karmo/ai 패키지, Node 서브패스 정리는 KarmoLabAI 탭이에요 - npm, KarmoLab, Tauri, apps/ 등 레포 전체에서 쓰는 터미널 명령은 프로젝트 명령 탭에 모아 두었어요 복사용 - KarmoLab 데스크톱 앱 에서 핫리로드 서버, 봇 등을 끄고 켜는 로컬 데브 러너 는 데스크톱, 로컬 탭 local-dev-runner.md 에 정리했어요 - Discor",
       "aliases": "intro"
     },
     {
@@ -30,7 +30,7 @@
       "docId": "docs-roadmap",
       "heading": "제품 로드맵",
       "title": "제품 로드맵",
-      "description": "- 연구소 안정도 표시 - 스토리 로그 마스코트 우클릭 - SEO/메타: MVP 툴 설명, 검색 키워드 정리 - 티메토 대사: mdd.js 의 LINE PRESETS, Mdd.linePreset 로 관리 위젯에서 msg / mood 덮어쓰기 ---",
+      "description": "- 연구소 안정도 표시 - 스토리 로그 마스코트 우클릭 - SEO/메타: MVP 툴 설명, 검색 키워드 정리 - 티메토 대사: mdd.js 의 LINE PRESETS , Mdd.linePreset 로 관리 위젯에서 msg / mood 덮어쓰기 ---",
       "aliases": "roadmap"
     },
     {
@@ -54,7 +54,7 @@
       "docId": "docs-roadmap",
       "heading": "확정 사항",
       "title": "확정 사항",
-      "description": "- 브랜드 : KarmoLab - 마스코트 : 티메토 Timeto. 연보라 머리, 소녀 연구소장 - 톤 : 밝은 연구소 + HUD 계측 + 청량한 학원 연구부 느낌",
+      "description": "- 브랜드 : KarmoLab - 마스코트 : 티메토 Timeto . 연보라 머리, 소녀 연구소장 - 톤 : 밝은 연구소 + HUD 계측 + 청량한 학원 연구부 느낌",
       "aliases": "roadmap"
     },
     {
@@ -78,7 +78,7 @@
       "docId": "docs-roadmap",
       "heading": "MVP 장비 목록 (요약)",
       "title": "MVP 장비 목록 (요약)",
-      "description": "유틸 1. 텍스트 계측기. 문자, 바이트, 줄, 공백 제외 등 2. 비밀번호 생성기 기존. 옵션, 복사 UX 3. 카운트다운 기존/확장. 타임스탬프 ↔ 날짜 4. GIF 실험기. 프레임 추출, 최적화 5. 짤 생성기. 템플릿, 자막 프리셋 프로필 / 세계관 6. 연구 노트 기존 \"내 정보\" 확장. 조수 닉네임, 안정도, 업적, 설정 이미 있는 툴 암호화, 이미지 변환 등 은 MVP 표에 안 적어도 사이트에 포함. 필요 시 라벨, 설명만 티메토 톤으로 맞춤.",
+      "description": "유틸 1. 텍스트 계측기 . 문자, 바이트, 줄, 공백 제외 등 2. 비밀번호 생성기 기존 . 옵션, 복사 UX 3. 카운트다운 기존/확장 . 타임스탬프 ↔ 날짜 4. GIF 실험기 . 프레임 추출, 최적화 5. 짤 생성기 . 템플릿, 자막 프리셋 프로필 / 세계관 6. 연구 노트 기존 \"내 정보\" 확장 . 조수 닉네임, 안정도, 업적, 설정 이미 있는 툴 암호화, 이미지 변환 등 은 MVP 표에 안 적어도 사이트에 포함. 필요 시 라벨, 설명만 티메토 톤으로 맞춤.",
       "aliases": "roadmap"
     },
     {
@@ -86,7 +86,7 @@
       "docId": "docs-roadmap",
       "heading": "티메토 캐릭터 시트",
       "title": "티메토 캐릭터 시트",
-      "description": "- 외형 : 연보라 머리, 흰 연구복, HUD 고글 - 말투 : 실험, 측정 용어 자연스럽게 사용 - 감정, 대사 프리셋 기본 문구는 LINE PRESETS , 코드에서 Mdd.linePreset 'success' 'error' 'tool run' ... 상황 포즈 기본 대사 요지 ------ ------ ----------------- 첫 방문 pointing 환영, 조수님 데일리/허브 happy 오늘 실험, 즐겨찾기 안내 도구 실행 think 측정 개시 성공 cheer 샘플 확보, 기록 실패 sad 장비 삐끗 데이터 경고 angry 중요 데이터 확인 방치 sleep zzZ...",
+      "description": "- 외형 : 연보라 머리, 흰 연구복, HUD 고글 - 말투 : 실험, 측정 용어 자연스럽게 사용 - 감정, 대사 프리셋 기본 문구는 LINE PRESETS , 코드에서 Mdd.linePreset 'success' 'error' 'tool run' … 상황 포즈 기본 대사 요지 ------ ------ ----------------- 첫 방문 pointing 환영, 조수님 데일리/허브 happy 오늘 실험, 즐겨찾기 안내 도구 실행 think 측정 개시 성공 cheer 샘플 확보, 기록 실패 sad 장비 삐끗 데이터 경고 angry 중요 데이터 확인 방치 sleep ",
       "aliases": "roadmap"
     },
     {
@@ -182,7 +182,7 @@
       "docId": "docs-guide",
       "heading": "AI 기능",
       "title": "AI 기능",
-      "description": "1. Google AI Studio 에서 API 키 발급 2. 내 정보 → 설정 에서 Gemini AI Studio 프로필, 키 입력 여러 프로필, 활성 프로필 전환 가능 3. 이미지 생성, 챗봇 등에서 Vertex 경로를 쓰려면 같은 설정 화면의 Vertex AI API 키, GCP 프로젝트 ID, 리전 도 채웁니다 4. 저장 후 AI 도구 사용 가능 API 키, Vertex 설정은 브라우저 localStorage 에만 저장돼요. 개발자용으로 모델 ID, REST URL 등을 레포 한곳에서 맞추는 @karmo/ai 패키지가 있고, 브라우저는 루트 엔트리만 번들에 포함됩니다. D",
+      "description": "1. Google AI Studio 에서 API 키 발급 2. 내 정보 → 설정 에서 Gemini AI Studio 프로필, 키 입력 여러 프로필, 활성 프로필 전환 가능 3. 이미지 생성, 챗봇 등에서 Vertex 경로를 쓰려면 같은 설정 화면의 Vertex AI API 키, GCP 프로젝트 ID, 리전 도 채웁니다 4. 저장 후 AI 도구 사용 가능 API 키, Vertex 설정은 브라우저 localStorage 에만 저장돼요. 개발자용으로 모델 ID, REST URL 등을 레포 한곳에서 맞추는 @karmo/ai 패키지가 있고, 브라우저는 루트 엔트리만 번들에 포",
       "aliases": "guide"
     },
     {
@@ -190,7 +190,7 @@
       "docId": "docs-guide",
       "heading": "문서 위젯",
       "title": "문서 위젯",
-      "description": "문서 도구 안에서는 왼쪽에 세로 목록 으로 문서 제목을 고르고, 오른쪽에 본문이 나와요 탭이 많아서 가로로 두지 않음 . 본문 안에서는 제목 h1-h3 이 둘 이상 이면 세계관 위키와 같은 방식으로 목차 오른쪽 고정, 좁은 화면에서는 위 와 제목 옆 링크 복사 가 붙어요. 소개, 로드맵, 가이드,  Discord, 욘봇 discord-yawnbot.md 등은 apps/karmolab/js/widgets/docs/ 안 Markdown이에요. discord-bots, README / Tauri, README 탭만 GitHub raw 로 레포 파일을 불러와요 main push ",
+      "description": "문서 도구 안에서는 왼쪽에 세로 목록 으로 문서 제목을 고르고, 오른쪽에 본문이 나와요 탭이 많아서 가로로 두지 않음 . 본문 안에서는 제목 h1-h3 이 둘 이상 이면 세계관 위키와 같은 방식으로 목차 오른쪽 고정, 좁은 화면에서는 위 와 제목 옆 링크 복사 가 붙어요. 소개, 로드맵, 가이드, Discord, 욘봇 discord-yawnbot.md 등은 apps/karmolab/js/widgets/docs/ 안 Markdown이에요. discord-bots, README / Tauri, README 탭만 GitHub raw 로 레포 파일을 불러와요 main pus",
       "aliases": "guide"
     },
     {
@@ -206,7 +206,7 @@
       "docId": "docs-karmo-ai",
       "heading": "KarmoLabAI (@karmo/ai) 사용 가이드",
       "title": "KarmoLabAI (@karmo/ai) 사용 가이드",
-      "description": "원본 경로: 레포 루트 packages/ai/. npm 패키지 이름 @karmo/ai 역할: Google AI Studio Generative Language API 와 Vertex AI 를 함께 쓸 때, 모델 ID, REST URL, 문서 링크, 기본값을 한곳 SSOT 에서 맞춥니다. 루트 엔트리 . 는 fetch , API 키, DOM을 넣지 않습니다. Node에서는 서브패스 @karmo/ai/node 로 AI Studio SDK 또는 Vertex REST fetch , 브라우저 gemini.ts 와 동일 엔드포인트 텍스트 호출을 맞출 수 있습니다. ---",
+      "description": "원본 경로: 레포 루트 packages/ai/ . npm 패키지 이름 @karmo/ai 역할: Google AI Studio Generative Language API 와 Vertex AI 를 함께 쓸 때, 모델 ID, REST URL, 문서 링크, 기본값을 한곳 SSOT 에서 맞춥니다. 루트 엔트리 . 는 fetch , API 키, DOM을 넣지 않습니다. Node에서는 서브패스 @karmo/ai/node 로 AI Studio SDK 또는 Vertex REST fetch , 브라우저 gemini.ts 와 동일 엔드포인트 텍스트 호출을 맞출 수 있습니다. ---",
       "aliases": "karmo ai"
     },
     {
@@ -214,7 +214,7 @@
       "docId": "docs-karmo-ai",
       "heading": "왜 패키지로 나눴나",
       "title": "왜 패키지로 나눴나",
-      "description": "KarmoLab 브라우저 앱과 yawnbot,  kakao-export.mjs 등 Node 쪽은 같은 모델 ID, 프로바이더 규칙 을 쓰지만, 호출 코드를 한 파일 로 합치기는 어렵습니다. - 브라우저: CORS, fetch , localStorage, UI와 결합된 apps/karmolab/src/gemini.ts 가 실제 REST 호출을 담당합니다. - Node: .env 와 @google/generative-ai 같은 SDK가 자연스럽습니다. 그래서 DOM, 네트워크, 키 저장 없이 모델 카탈로그, 기본 ID, AI Studio/Vertex URL 조립만 packages/",
+      "description": "KarmoLab 브라우저 앱과 yawnbot, kakao-export.mjs 등 Node 쪽은 같은 모델 ID, 프로바이더 규칙 을 쓰지만, 호출 코드를 한 파일 로 합치기는 어렵습니다. - 브라우저: CORS, fetch , localStorage, UI와 결합된 apps/karmolab/src/gemini.ts 가 실제 REST 호출을 담당합니다. - Node: .env 와 @google/generative-ai 같은 SDK가 자연스럽습니다. 그래서 DOM, 네트워크, 키 저장 없이 모델 카탈로그, 기본 ID, AI Studio/Vertex URL 조립만 pack",
       "aliases": "karmo ai"
     },
     {
@@ -230,7 +230,7 @@
       "docId": "docs-karmo-ai",
       "heading": "구현, 유지보수 체크리스트",
       "title": "구현, 유지보수 체크리스트",
-      "description": "- MODEL CATALOG / 기본 모델을 바꾼 뒤 패키지, KarmoLab, 봇을 각각 빌드했는지 - 선택 Node에서 Vertex를 쓸 때 KarmoLab과 동일 REST를 맞출지, @google-cloud/vertexai , ADC를 쓸지 결정을 문서에 남겼는지 - 챗봇 cb model / cb api surface, api-surface.ts , 캐릭터 이미지 Vertex 분기를 바꾼 뒤 이 절과 맞는지 확인 ---",
+      "description": "- MODEL CATALOG / 기본 모델을 바꾼 뒤 패키지, KarmoLab, 봇을 각각 빌드했는지 - 선택 Node에서 Vertex를 쓸 때 KarmoLab과 동일 REST를 맞출지, @google-cloud/vertexai , ADC를 쓸지 결정을 문서에 남겼는지 - 챗봇 cb model / cb api surface , api-surface.ts , 캐릭터 이미지 Vertex 분기를 바꾼 뒤 이 절과 맞는지 확인 ---",
       "aliases": "karmo ai"
     },
     {
@@ -238,7 +238,7 @@
       "docId": "docs-karmo-ai",
       "heading": "무엇이 들어 있나",
       "title": "무엇이 들어 있나",
-      "description": "구분 설명 ------ ------ 모델 카탈로그 텍스트 Gemini gemini , 이미지용 Nano Banana geminiImage , Imagen imagen 목록과 표시 이름 기본 모델 ID DEFAULT TEXT MODEL ID. 텍스트용 기본 API 모델 ID gemini-2.5-flash 등, 카탈로그와 동기 AI Studio URL buildAiStudioGenerateContentUrl , buildAiStudioStreamGenerateContentUrl , buildAiStudioPredictUrl Vertex URL buildVertexPub",
+      "description": "구분 설명 ------ ------ 모델 카탈로그 텍스트 Gemini gemini , 이미지용 Nano Banana geminiImage , Imagen imagen 목록과 표시 이름 기본 모델 ID DEFAULT TEXT MODEL ID . 텍스트용 기본 API 모델 ID gemini-2.5-flash 등, 카탈로그와 동기 AI Studio URL buildAiStudioGenerateContentUrl , buildAiStudioStreamGenerateContentUrl , buildAiStudioPredictUrl Vertex URL buildVertexPub",
       "aliases": "karmo ai"
     },
     {
@@ -254,7 +254,7 @@
       "docId": "docs-karmo-ai",
       "heading": "챗봇 위젯 (런타임 AI Studio / Vertex)",
       "title": "챗봇 위젯 (런타임 AI Studio / Vertex)",
-      "description": "- 모델 cbModelSelect : @karmo/ai 의 MODEL CATALOG.gemini 와 동일 목록. 선택 값은 Toolbox 프리픽 cb model 에 저장됩니다. - API cbApiSurfaceSelect : Google AI Studio ↔ Vertex AI . 저장 키 cb api surface , 값은 UI상 studio \\ vertex 이며, 패키지 타입 GoogleGenerativeSurface 의 aiStudio \\ vertex 와 대응합니다. 매핑, 헬퍼: apps/karmolab/src/widgets/chatbot/api-surface.t",
+      "description": "- 모델 cbModelSelect : @karmo/ai 의 MODEL CATALOG.gemini 와 동일 목록. 선택 값은 Toolbox 프리픽 cb model 에 저장됩니다. - API cbApiSurfaceSelect : Google AI Studio ↔ Vertex AI . 저장 키 cb api surface , 값은 UI상 studio \\ vertex 이며, 패키지 타입 GoogleGenerativeSurface 의 aiStudio \\ vertex 와 대응합니다. 매핑, 헬퍼: apps/karmolab/src/widgets/chatbot/api-surface.",
       "aliases": "karmo ai"
     },
     {
@@ -262,7 +262,7 @@
       "docId": "docs-karmo-ai",
       "heading": "Node(욘봇, 스크립트)에서",
       "title": "Node(욘봇, 스크립트)에서",
-      "description": "- apps/discord-bots/apps/yawnbot 에 @karmo/ai 가 file:../../../../packages/ai 로 연결되어 있습니다. - 루트에서 봇 빌드할 때 packages/ai 가 먼저 tsc 됩니다 apps/discord-bots 의 npm run build / build:yawnbot . - 엔트리 분리: 루트 @karmo/ai 는 계약 URL, 카탈로그 만, @karmo/ai/node 에서 AI Studio SDK 또는 Vertex REST 텍스트 호출을 제공합니다. peerDependencies : @google/generative",
+      "description": "- apps/discord-bots/apps/yawnbot 에 @karmo/ai 가 file:../../../../packages/ai 로 연결되어 있습니다. - 루트에서 봇 빌드할 때 packages/ai 가 먼저 tsc 됩니다 apps/discord-bots 의 npm run build / build:yawnbot . - 엔트리 분리: 루트 @karmo/ai 는 계약 URL, 카탈로그 만, @karmo/ai/node 에서 AI Studio SDK 또는 Vertex REST 텍스트 호출을 제공합니다. peerDependencies : @google/generativ",
       "aliases": "karmo ai"
     },
     {
@@ -270,7 +270,7 @@
       "docId": "docs-karmo-ai",
       "heading": "레포에서 타입체크(기여 시)",
       "title": "레포에서 타입체크(기여 시)",
-      "description": "- KarmoLab 위젯 소스 apps/karmolab/src/widgets/ .ts 는 전역 Gemini, Toolbox 등을 apps/karmolab/types/global.d.ts 에 선언해 두고, CI에서 npm run typecheck 로 검사합니다. ---",
+      "description": "- KarmoLab 위젯 소스 apps/karmolab/src/widgets/ .ts 는 전역 Gemini , Toolbox 등을 apps/karmolab/types/global.d.ts 에 선언해 두고, CI에서 npm run typecheck 로 검사합니다. ---",
       "aliases": "karmo ai"
     },
     {
@@ -310,7 +310,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "Discord 봇 (욘 / yawnbot)",
       "title": "Discord 봇 (욘 / yawnbot)",
-      "description": "KarmoLab 문서 위젯 Discord, 욘봇 탭. 음성, DAVE 참고, 구현 요약, TODO , 짧은 향후 검토 , 아이디어 구상 을 둡니다. 무엇 어디 ------ ------ 이 탭 음성, DAVE, 기능 요약, TODO, 향후 검토, 아이디어 구상 슬래시,  .env , 사용자 안내 레포 yawnbot README.md 워크스페이스 빌드,  npm run 문서 위젯 discord-bots, README 탭 또는 discord-bots/README.md 레포: apps/discord-bots/apps/yawnbot/ ---",
+      "description": "KarmoLab 문서 위젯 Discord, 욘봇 탭. 음성, DAVE 참고, 구현 요약, TODO , 짧은 향후 검토 , 아이디어 구상 을 둡니다. 무엇 어디 ------ ------ 이 탭 음성, DAVE , 기능 요약 , TODO , 향후 검토 , 아이디어 구상 슬래시, .env , 사용자 안내 레포 yawnbot README.md 워크스페이스 빌드, npm run 문서 위젯 discord-bots, README 탭 또는 discord-bots/README.md 레포: apps/discord-bots/apps/yawnbot/ ---",
       "aliases": "discord yawnbot"
     },
     {
@@ -318,7 +318,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "음성 연결과 DAVE 트러블슈팅",
       "title": "음성 연결과 DAVE 트러블슈팅",
-      "description": "레포의 Discord 슬래시 봇 욘 은 npm, 폴더명 yawnbot 으로 apps/discord-bots/apps/yawnbot/ 에 있습니다. 음성 /music play, /music speak, /music sound , 음성 입장 등 은 @discordjs/voice 와 Discord 음성 게이트웨이, UDP를 사용합니다.",
+      "description": "레포의 Discord 슬래시 봇 욘 은 npm, 폴더명 yawnbot 으로 apps/discord-bots/apps/yawnbot/ 에 있습니다. 음성 /music play , /music speak , /music sound , 음성 입장 등 은 @discordjs/voice 와 Discord 음성 게이트웨이, UDP를 사용합니다.",
       "aliases": "discord yawnbot"
     },
     {
@@ -334,7 +334,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "Discord 음성 연결이 이루어지는 순서 (아주 짧게)",
       "title": "Discord 음성 연결이 이루어지는 순서 (아주 짧게)",
-      "description": "1. 메인 Gateway 로 VOICE STATE UPDATE / VOICE SERVER UPDATE 를 받은 뒤, 음성 서버 예: .discord.media 로 별도의 WebSocket 을 엽니다. 2. 클라이언트가 Identify 등을 내면, 서버가 Hello heartbeat 간격 등 를 보냅니다. 3. 서버가 Ready op:2 로 UDP IP, 포트, SSRC, 암호화 모드 목록 을 주면, 클라이언트가 UDP 소켓을 열고 IP discovery,  Select Protocol 을 진행합니다. 4. Session Description 등으로 세션 키를 맞춘 뒤 상태가",
+      "description": "1. 메인 Gateway 로 VOICE STATE UPDATE / VOICE SERVER UPDATE 를 받은 뒤, 음성 서버 예: .discord.media 로 별도의 WebSocket 을 엽니다. 2. 클라이언트가 Identify 등을 내면, 서버가 Hello heartbeat 간격 등 를 보냅니다. 3. 서버가 Ready op:2 로 UDP IP, 포트, SSRC, 암호화 모드 목록 을 주면, 클라이언트가 UDP 소켓을 열고 IP discovery, Select Protocol 을 진행합니다. 4. Session Description 등으로 세션 키를 맞춘 뒤 ",
       "aliases": "discord yawnbot"
     },
     {
@@ -382,7 +382,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "증상",
       "title": "증상",
-      "description": "- 음성 입장 시 signalling ↔ connecting 만 반복 하거나, 곧바로 실패. - VOICE DEBUG=1 로그에서 음성 WebSocket은 잠깐 붙은 것 같지만 udp:false 가 길게 유지 되거나, Ready op:2 전에 끊김 . - Windows 리소스 모니터 에서 node.exe 에 UDP가 안 보이고 TCP만 보임. 처음에는 \"UDP가 막혔나?\" 쪽으로 의심.",
+      "description": "- 음성 입장 시 signalling ↔ connecting 만 반복 하거나, 곧바로 실패. - VOICE DEBUG=1 로그에서 음성 WebSocket은 잠깐 붙은 것 같지만 udp:false 가 길게 유지 되거나, Ready op:2 전에 끊김 . - Windows 리소스 모니터 에서 node.exe 에 UDP가 안 보이고 TCP만 보임 . 처음에는 \"UDP가 막혔나?\" 쪽으로 의심.",
       "aliases": "discord yawnbot"
     },
     {
@@ -398,7 +398,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "원인 파악의 전환점",
       "title": "원인 파악의 전환점",
-      "description": "- 로그상 흐름은 Identify → Hello op:8 까지는 성공 하지만, 그 직후 Ready op:2 전에 WebSocket이 닫힘 → UDP 소켓을 만들 타이밍 자체에 도달하지 못한 것 과 일치합니다. - @discordjs/voice 는 음성 WebSocket close code가 4014 일 때만 VoiceConnection 을 Disconnected 상태로 두고 closeCode 를 남깁니다. 4014 가 아니면 라이브러리가 자동 재접속 을 위해 곧바로 signalling 으로 되돌리기 때문에 , Disconnected, reason 로그가 안 찍힐 수",
+      "description": "- 로그상 흐름은 Identify → Hello op:8 까지는 성공 하지만, 그 직후 Ready op:2 전에 WebSocket이 닫힘 → UDP 소켓을 만들 타이밍 자체에 도달하지 못한 것 과 일치합니다. - @discordjs/voice 는 음성 WebSocket close code가 4014 일 때만 VoiceConnection 을 Disconnected 상태로 두고 closeCode 를 남깁니다. 4014 가 아니면 라이브러리가 자동 재접속 을 위해 곧바로 signalling 으로 되돌리기 때문에 , Disconnected , reason 로그가 안 찍힐 수",
       "aliases": "discord yawnbot"
     },
     {
@@ -406,7 +406,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "확인된 종료 코드: 4017",
       "title": "확인된 종료 코드: 4017",
-      "description": "- 로그에 Discord 음성 WebSocket close code: 4017 이 찍힘. - 문서상 해당 채널은 DAVE E2EE 를 지원하는 클라이언트만 허용. 봇에서 daveEncryption 을 켜야 합니다.",
+      "description": "- 로그에 Discord 음성 WebSocket close code: 4017 이 찍힘. - 문서상 해당 채널은 DAVE E2EE 를 지원하는 클라이언트만 허용 . 봇에서 daveEncryption 을 켜야 합니다.",
       "aliases": "discord yawnbot"
     },
     {
@@ -430,7 +430,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "구현된 기능 요약",
       "title": "구현된 기능 요약",
-      "description": "운영, 디버깅용으로 이미 들어가 있는 동작 만 짧게 묶었습니다. 세부 env, 명령은 README가 기준입니다. - /yawn : 채널 최근 메시지 맥락 YAWN CONTEXT MESSAGES , 시스템 프롬프트 YAWN SYSTEM PROMPT , 질문, 전체 프롬프트 길이 상한, API 오류 시 짧은 사용자 안내와 yawn 콘솔 로그. 선택 슬래시 옵션 api 기본, AI Studio, Vertex , model 모델 ID. @karmo/ai/node 의 generateBlobTextFromEnvWithOptions . 명령 등록 갱신 후 npm run deploy:ya",
+      "description": "운영, 디버깅용으로 이미 들어가 있는 동작 만 짧게 묶었습니다. 세부 env, 명령은 README가 기준입니다. - /yawn : 채널 최근 메시지 맥락 YAWN CONTEXT MESSAGES , 시스템 프롬프트 YAWN SYSTEM PROMPT , 질문, 전체 프롬프트 길이 상한, API 오류 시 짧은 사용자 안내와 yawn 콘솔 로그. 선택 슬래시 옵션 api 기본, AI Studio, Vertex , model 모델 ID . @karmo/ai/node 의 generateBlobTextFromEnvWithOptions . 명령 등록 갱신 후 npm run depl",
       "aliases": "discord yawnbot"
     },
     {
@@ -438,7 +438,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "남은 작업 (TODO)",
       "title": "남은 작업 (TODO)",
-      "description": "아래만 체크리스트로 둡니다. 완료되면 항목을 지우거나 README/코드 주석으로 옮기면 됩니다. - 대기열. 항목 순서 이동 옵션 - 음성. 선택 /voice-status 또는 close code 요약 로그 - 음성. 끊김 시 재입장 상한, 백오프 정책 정리, 구현 - 스테이지. 발언 요청, 봇 Speak 타이밍 문서화 - 배포. 글로벌 vs 길드 deploy 절차를 README 한 블록으로 - 데이터. gamedata.json 백업, git 추적, 민감 필드 운영 정책 - 남용 방지. 게임/도박 등 서버별 쿨다운, 관리자 예외 - /yawn. 민감 주제, 빈 입력",
+      "description": "아래만 체크리스트로 둡니다. 완료되면 항목을 지우거나 README/코드 주석으로 옮기면 됩니다. - 대기열 . 항목 순서 이동 옵션 - 음성 . 선택 /voice-status 또는 close code 요약 로그 - 음성 . 끊김 시 재입장 상한, 백오프 정책 정리, 구현 - 스테이지 . 발언 요청, 봇 Speak 타이밍 문서화 - 배포 . 글로벌 vs 길드 deploy 절차를 README 한 블록으로 - 데이터 . gamedata.json 백업, git 추적, 민감 필드 운영 정책 - 남용 방지 . 게임/도박 등 서버별 쿨다운, 관리자 예외 - /yawn . 민감 주",
       "aliases": "discord yawnbot"
     },
     {
@@ -446,7 +446,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "향후 검토 (우선순위 낮음)",
       "title": "향후 검토 (우선순위 낮음)",
-      "description": "한 번에 구현하기보다 필요할 때 이슈로 빼기 좋은 아이디어입니다. - 운영: 관리자만 길드 제한 예외, JSONL 로그, 일별 로테이션, YouTube, AI 일시 오류 백오프 - /yawn : 맥락 표시 푸터, 스레드, 포럼 부모 포함 옵션, 짧은 TTL 세션 메모리, 길드별 프리셋, PII 마스킹 - 음악: NP 채널 분리, pause/resume, 볼륨, 대기열 영속화, 라이브 스트림 NP 표시 - 가드: 카테고리, 역할 단위 허용, 가드 실패 debug 로그 - 기타: 시즌 이벤트, 주식 요약 웹훅, 컴포넌트, 컨텍스트 메뉴 진입, kakao-export 재시도, 큐, D",
+      "description": "한 번에 구현하기보다 필요할 때 이슈로 빼기 좋은 아이디어입니다. - 운영: 관리자만 길드 제한 예외, JSONL 로그, 일별 로테이션, YouTube, AI 일시 오류 백오프 - /yawn : 맥락 표시 푸터, 스레드, 포럼 부모 포함 옵션, 짧은 TTL 세션 메모리, 길드별 프리셋, PII 마스킹 - 음악: NP 채널 분리, pause/resume, 볼륨, 대기열 영속화, 라이브 스트림 NP 표시 - 가드: 카테고리, 역할 단위 허용, 가드 실패 debug 로그 - 기타: 시즌 이벤트, 주식 요약 웹훅, 컴포넌트, 컨텍스트 메뉴 진입, kakao-export 재시",
       "aliases": "discord yawnbot"
     },
     {
@@ -462,7 +462,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "욘봇과 같이 가기 좋은 방향",
       "title": "욘봇과 같이 가기 좋은 방향",
-      "description": "- 음성, 뮤직. 방이 잠잠할 때만 큐를 진행하는 식의 자동 DJ 말하는 사람 감지, 덕킹은 정책이 필요 . 플레이리스트 프리셋 길드, 채널별 고정 URL 묶음 . 재생, 요청 통계 남용 방지, 쿨다운 TODO와 같이 설계 . - /yawn , AI. 스레드, 포럼 긴 글 요약 전용 서브커맨드 맥락 옵션은 향후 검토의 스레드, 포럼 항목과 합칠 수 있음 . FAQ 전용 채널 또는 고정 메시지 범위만 답하는 가벼운 지식 베이스 과하면 운영, 토큰 부담 . - 커뮤니티, 게임. 외부 캘린더 iCal URL 등 와 D-day, 다음 일정 알림. 버튼 위주 간단 투표, 참가 신청 DB 없이",
+      "description": "- 음성, 뮤직 . 방이 잠잠할 때만 큐를 진행하는 식의 자동 DJ 말하는 사람 감지, 덕킹은 정책이 필요 . 플레이리스트 프리셋 길드, 채널별 고정 URL 묶음 . 재생, 요청 통계 남용 방지, 쿨다운 TODO와 같이 설계 . - /yawn , AI . 스레드, 포럼 긴 글 요약 전용 서브커맨드 맥락 옵션은 향후 검토의 스레드, 포럼 항목과 합칠 수 있음 . FAQ 전용 채널 또는 고정 메시지 범위만 답하는 가벼운 지식 베이스 과하면 운영, 토큰 부담 . - 커뮤니티, 게임 . 외부 캘린더 iCal URL 등 와 D-day, 다음 일정 알림. 버튼 위주 간단 투표,",
       "aliases": "discord yawnbot"
     },
     {
@@ -470,7 +470,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "별도 봇, 모듈로 두기 좋은 것",
       "title": "별도 봇, 모듈로 두기 좋은 것",
-      "description": "- 모더레이션 보조. 신규 계정 쿨다운, 링크, 첨부 화이트리스트, 규칙 위반 시 자동 타임아웃 권한, 사고 반경을 욘봇 본체와 분리 . - 웹훅 허브. GitHub Actions, 서버 모니터, RSS 등을 지정 채널로만 넘기는 얇은 레이어 향후 검토의 주식 요약 웹훅과 같은 패턴의 일반화 .",
+      "description": "- 모더레이션 보조 . 신규 계정 쿨다운, 링크, 첨부 화이트리스트, 규칙 위반 시 자동 타임아웃 권한, 사고 반경을 욘봇 본체와 분리 . - 웹훅 허브 . GitHub Actions, 서버 모니터, RSS 등을 지정 채널로만 넘기는 얇은 레이어 향후 검토의 주식 요약 웹훅과 같은 패턴의 일반화 .",
       "aliases": "discord yawnbot"
     },
     {
@@ -478,7 +478,7 @@
       "docId": "docs-discord-yawnbot",
       "heading": "기술, 운영",
       "title": "기술, 운영",
-      "description": "- 관측. 대시보드 없이도 관리자 전용 스냅샷 임베드 또는 /debug : 큐 길이, 음성 세션 수, 마지막 voice close 코드 등. TODO 헬스 와 한 이슈로 묶어도 됨. - 멀티 인스턴스. 스테이징 봇 토큰 + 길드 화이트리스트로 프로덕션과 분리 DAVE, 배포 검증, 실험용 .",
+      "description": "- 관측 . 대시보드 없이도 관리자 전용 스냅샷 임베드 또는 /debug : 큐 길이, 음성 세션 수, 마지막 voice close 코드 등. TODO 헬스 와 한 이슈로 묶어도 됨. - 멀티 인스턴스 . 스테이징 봇 토큰 + 길드 화이트리스트로 프로덕션과 분리 DAVE, 배포 검증, 실험용 .",
       "aliases": "discord yawnbot"
     },
     {
@@ -510,7 +510,7 @@
       "docId": "docs-project-commands",
       "heading": "레포 구조 한눈에",
       "title": "레포 구조 한눈에",
-      "description": "경로 역할 ------ ------ 루트 / 모노레포 오케스트레이터. npm run verify main invariant 단일 게이트 apps/karmolab/ KarmoLab 웹앱 TypeScript → js/ 빌드 산출 apps/karmolab-tauri/ KarmoLab 데스크톱 Tauri + 로컬 정적 서버 apps/discord-bots/ Discord 봇 워크스페이스 여러 패키지 apps/chat-overlay/ 방송용 오버레이 Tauri + Vite apps/karmo-web-extension/ Chrome 확장 MV3 apps/blog/ 배포되는 사",
+      "description": "경로 역할 ------ ------ 루트 / 모노레포 오케스트레이터. npm run verify main invariant 단일 게이트 apps/karmolab/ KarmoLab 웹앱 TypeScript → js/ 빌드 산출 apps/karmolab-tauri/ KarmoLab 데스크톱 Tauri + 로컬 정적 서버 apps/discord-bots/ Discord 봇 워크스페이스 여러 패키지 apps/chat-overlay/ 방송용 오버레이 Tauri + Vite apps/karmo-web-extension/ Chrome 확장 MV3 apps/blog/ 배포되는 사이",
       "aliases": "project commands guide"
     },
     {
@@ -542,7 +542,7 @@
       "docId": "docs-project-commands",
       "heading": "KarmoLab Tauri (데스크톱)",
       "title": "KarmoLab Tauri (데스크톱)",
-      "description": "Rust, Tauri, WebView2 전제. 자세한 설명은 apps/karmolab-tauri/README.md . - dev-static.mjs 가 레포 루트를 8898 KarmoLab Dev identifier .dev 에 서빙 Node, no-store header + Tauri 가 를 엽니다. - production .exe KarmoLab 옆에 그냥 켜면 됨 별 single-instance 그룹 . - 설치 패키지 빌드: npm run build release.conf.json 오버라이드, identifier 복원 . - KL-046. dev:dual / d",
+      "description": "Rust, Tauri, WebView2 전제. 자세한 설명은 apps/karmolab-tauri/README.md . - dev-static.mjs 가 레포 루트를 8898 KarmoLab Dev identifier .dev 에 서빙 Node, no-store header + Tauri 가 를 엽니다. - production .exe KarmoLab 옆에 그냥 켜면 됨 별 single-instance 그룹 . - 설치 패키지 빌드: npm run build release.conf.json 오버라이드, identifier 복원 . - KL-046. dev:dual / ",
       "aliases": "project commands guide"
     },
     {
@@ -582,7 +582,7 @@
       "docId": "docs-laptop",
       "heading": "노트북. 집에서 24시간 도는 기계",
       "title": "노트북. 집에서 24시간 도는 기계",
-      "description": "KarmoLab 의 노트북 위젯은 집에 켜져 있는 노트북으로 가는 문 이다. 그 노트북은 세 가지 일을 한다. 1. 파일을 주고받는다. 폰에서 노트북 폴더를 보고, 받고, 올린다. 2. 게임을 굽는다. Witch-Mendokusai 안드로이드, PC 빌드를 여기서 만든다. 3. 알림을 보낸다. 빌드가 끝나면 디스코드로 링크가 온다. 셋 다 브라우저만 있으면 된다. 앱도, 케이블도, 클라우드 왕복도 없다. ---",
+      "description": "KarmoLab 의 노트북 위젯은 집에 켜져 있는 노트북으로 가는 문 이다. 그 노트북은 세 가지 일을 한다. 1. 파일을 주고받는다 . 폰에서 노트북 폴더를 보고, 받고, 올림. 2. 게임을 굽는다 . Witch-Mendokusai 안드로이드, PC 빌드를 여기서 만듦. 3. 알림을 보낸다 . 빌드가 끝나면 디스코드로 링크가 옴. 셋 다 브라우저만 있으면 된다. 앱도, 케이블도, 클라우드 왕복도 없다. ---",
       "aliases": "laptop"
     },
     {
@@ -598,7 +598,7 @@
       "docId": "docs-laptop",
       "heading": "파일 공유에서 되는 것",
       "title": "파일 공유에서 되는 것",
-      "description": "- 사진, 영상, 소리, 글은 받기 전에 미리 본다 . 폰 저장소를 더럽히지 않는다. - 올리기는 덮어쓰지 않는다. 같은 이름이 오면 a.txt → a-2.txt 로 비켜 준다. 원본이 사라지는 건 되돌릴 수 없어서다. - 실행 파일 .exe , .ps1 등 은 받지 않는다. 공유 폴더가 배포 통로가 되면 안 된다. - 큰 파일은 조각조각 흘려보낸다. 예전엔 300MB 하나 올리는 데 노트북 메모리가 1.9GB 튀었다 파일의 6배 . 지금은 그 방식을 안 쓴다.",
+      "description": "- 사진, 영상, 소리, 글은 받기 전에 미리 본다 . 폰 저장소를 더럽히지 않음. - 올리기는 덮어쓰지 않는다. 같은 이름이 오면 a.txt → a-2.txt 로 비켜 줌. 원본이 사라지는 건 되돌릴 수 없어서다. - 실행 파일 .exe , .ps1 등 은 받지 않음. 공유 폴더가 배포 통로가 되면 안 됨. - 큰 파일은 조각조각 흘려보낸다. 예전엔 300MB 하나 올리는 데 노트북 메모리가 1.9GB 튀었다 파일의 6배 . 지금은 그 방식을 안 씀.",
       "aliases": "laptop"
     },
     {
@@ -606,7 +606,7 @@
       "docId": "docs-laptop",
       "heading": "빌드 현황에서 되는 것",
       "title": "빌드 현황에서 되는 것",
-      "description": "- 굽는 중은 깃허브에 물어서 판정한다. 로그가 조용한 구간이 25분 넘게 이어지기도 하는데, 시간만 보면 살아있는 빌드를 죽었다고 말한다. 그러면 사람이 다시 걸고, 러너가 한 대라 진짜 도는 빌드가 취소된다. - 로그는 언제나 볼 수 있다. 실패했을 때만 열리면 왜 이렇게 오래 걸리지에 답할 방법이 없다. - 버튼으로 폰에서 빌드를 걸 수 있다. 한 번 = 노트북 30~40분 점유. ---",
+      "description": "- 굽는 중은 깃허브에 물어서 판정함. 로그가 조용한 구간이 25분 넘게 이어지기도 하는데, 시간만 보면 살아있는 빌드를 죽었다고 말함. 그러면 사람이 다시 걸고, 러너가 한 대라 진짜 도는 빌드가 취소됨. - 로그는 언제나 볼 수 있다. 실패했을 때만 열리면 왜 이렇게 오래 걸리지에 답할 방법이 없음. - 버튼으로 폰에서 빌드를 걸 수 있다. 한 번 = 노트북 30~40분 점유. ---",
       "aliases": "laptop"
     },
     {
@@ -614,7 +614,7 @@
       "docId": "docs-laptop",
       "heading": "열쇠는 어디에",
       "title": "열쇠는 어디에",
-      "description": "- 비밀번호는 이 사이트에 없다. KarmoLab 은 문이 어디 있고 지금 열려 있나까지만 말한다. - 들어갈 때 노트북 화면이 직접 묻는다. 한 번 맞히면 그 기기에 저장돼 다음부터는 버튼만 누르면 된다 서버에 세션을 두지 않는다. 링크와 비밀번호만으로 모든 게 끝나는 성질을 지킨다 . - 받기 링크는 기한이 있는 서명 링크 다. 새어도 그 파일 하나, 그 기한까지로 끝난다. - 비밀번호를 여러 번 틀리면 점점 길어지는 대기 가 걸린다. 영구 잠금은 안 쓴다. 그러면 남이 내 문을 대신 잠글 수 있다.",
+      "description": "- 비밀번호는 이 사이트에 없다. KarmoLab 은 문이 어디 있고 지금 열려 있나까지만 말함. - 들어갈 때 노트북 화면이 직접 묻음. 한 번 맞히면 그 기기에 저장돼 다음부터는 버튼만 누르면 된다 서버에 세션을 두지 않음. 링크와 비밀번호만으로 모든 게 끝나는 성질을 지킨다 . - 받기 링크는 기한이 있는 서명 링크 다. 새어도 그 파일 하나, 그 기한까지로 끝남. - 비밀번호를 여러 번 틀리면 점점 길어지는 대기 가 걸림. 영구 잠금은 안 씀. 그러면 남이 내 문을 대신 잠글 수 있음.",
       "aliases": "laptop"
     },
     {
@@ -622,7 +622,7 @@
       "docId": "docs-laptop",
       "heading": "초록불 / 빨간불",
       "title": "초록불 / 빨간불",
-      "description": "위젯 맨 위 점은 살아있나만 물어본 결과다 버전과 응답 시간까지 . - 🟢 깨어 있다. 바로 들어가면 된다. - 🔴 안 잡힌다. 노트북이 꺼졌거나, 자고 있거나, 인터넷이 끊긴 것이다. 파일은 사라지지 않는다. 노트북이 깨면 그대로 있다. 안 잡힌다가 이어지면 노트북 전원과 인터넷을 먼저 본다. 문 자체가 고장 난 경우는 드물다.",
+      "description": "위젯 맨 위 점은 살아있나만 물어본 결과다 버전과 응답 시간까지 . - 🟢 깨어 있다 . 바로 들어가면 됨. - 🔴 안 잡힌다 . 노트북이 꺼졌거나, 자고 있거나, 인터넷이 끊긴 것이다. 파일은 사라지지 않는다. 노트북이 깨면 그대로 있음. 안 잡힌다가 이어지면 노트북 전원과 인터넷을 먼저 본다. 문 자체가 고장 난 경우는 드물다.",
       "aliases": "laptop"
     },
     {
@@ -630,7 +630,7 @@
       "docId": "docs-laptop",
       "heading": "밖에서 볼 수 있는 것",
       "title": "밖에서 볼 수 있는 것",
-      "description": "- 이 문들은 공개 주소에 있지만 전부 비밀번호 뒤 에 있다. - 밖에서 자격 없이 읽을 수 있는 건 살아있다 + 버전 + 시각 한 줄뿐이고, 그 버전은 어차피 공개 저장소의 커밋이다. - 게임 빌드 파일 자체는 기본적으로 인터넷에 안 올라간다. 노트북에만 남고, 링크로 배달한다.",
+      "description": "- 이 문들은 공개 주소에 있지만 전부 비밀번호 뒤 에 있음. - 밖에서 자격 없이 읽을 수 있는 건 살아있다 + 버전 + 시각 한 줄뿐이고, 그 버전은 어차피 공개 저장소의 커밋이다. - 게임 빌드 파일 자체는 기본적으로 인터넷에 안 올라간다 . 노트북에만 남고, 링크로 배달함.",
       "aliases": "laptop"
     },
     {
@@ -646,7 +646,7 @@
       "docId": "docs-local-dev",
       "heading": "앱 실행하기",
       "title": "앱 실행하기",
-      "description": "터미널에서: - npm run dev : scripts/dev-static.mjs 가 레포 루트를 8898 에 서빙합니다 Node, no-store header . 가 응답할 때까지 기다렸다가 Tauri 가 그 URL 을 엽니다 KarmoLab Dev identifier .dev . production .exe KarmoLab 옆에 그대로 켜면 됨. 별 single-instance 그룹. 끄려면 터미널 Ctrl+C . - KL-046. dev:dual / dev:app / dev:with-jekyll / dev:remote 변종 폐기. dev 흐름 한 개 npm ",
+      "description": "터미널에서: - npm run dev : scripts/dev-static.mjs 가 레포 루트를 8898 에 서빙합니다 Node, no-store header . 가 응답할 때까지 기다렸다가 Tauri 가 그 URL 을 엽니다 KarmoLab Dev identifier .dev . production .exe KarmoLab 옆에 그대로 켜면 됨. 별 single-instance 그룹. 끄려면 터미널 Ctrl+C . - KL-046. dev:dual / dev:app / dev:with-jekyll / dev:remote 변종 폐기. dev 흐름 한 개 npm ru",
       "aliases": "local dev runner"
     },
     {
@@ -654,7 +654,7 @@
       "docId": "docs-local-dev",
       "heading": "위젯에서 쓰는 법",
       "title": "위젯에서 쓰는 법",
-      "description": "1. 앱에서 상단 데스크톱 앱 메뉴 → 서버 모니터 를 엽니다. 열리면 한 번 자동으로 URL ping, 카드 갱신이 돌아갑니다. ping은 카드마다 순서대로 끝날 때마다 그 카드만 잠깐 연두색 강조와 ✓가 보였다 사라집니다 실제 HTTP 확인이 있는 항목만 . 2. 로컬 카드 같은 id 의 localMonitors URL 응답 + devProfiles 프로세스가 한 장 에 묶임 에서 시작, 종료 등을 씁니다. 새로고침 으로 다시 ping, 추적을 갱신하고, 목록 새로고침 은 설정, 추적만 다시 읽습니다 URL ping 없음 . 3. 환경 변수 .env : 로컬 아래 환",
+      "description": "1. 앱에서 상단 데스크톱 앱 메뉴 → 서버 모니터 를 엽니다. 열리면 한 번 자동으로 URL ping, 카드 갱신이 돌아갑니다. ping은 카드마다 순서대로 끝날 때마다 그 카드만 잠깐 연두색 강조와 ✓가 보였다 사라집니다 실제 HTTP 확인이 있는 항목만 . 2. 로컬 카드 같은 id 의 localMonitors URL 응답 + devProfiles 프로세스가 한 장 에 묶임 에서 시작 , 종료 등을 씁니다. 새로고침 으로 다시 ping, 추적을 갱신하고, 목록 새로고침 은 설정, 추적만 다시 읽습니다 URL ping 없음 . 3. 환경 변수 .env : 로컬 아",
       "aliases": "local dev runner"
     },
     {
@@ -670,7 +670,7 @@
       "docId": "docs-local-dev",
       "heading": "프로필 설정 (devProfiles)",
       "title": "프로필 설정 (devProfiles)",
-      "description": "- 명령 목록은 apps/karmolab/data/servermonitor-config.json 의 devProfiles 배열만 읽습니다. - UI는 프로필 id 만 Rust에 넘기고, program, args, cwd 는 Rust가 그 JSON에서 다시 읽어 검증합니다. - 허용 program : npm , npx , bundle , ruby , node 및 확장자 변형 . - cwd : 레포 루트 기준 상대 경로 예: . , apps/discord-bots . 반드시 루트 아래 실제 폴더여야 합니다. - npmInstall: true : 그 프로필에 npm i",
+      "description": "- 명령 목록은 apps/karmolab/data/servermonitor-config.json 의 devProfiles 배열만 읽습니다. - UI는 프로필 id 만 Rust에 넘기고, program , args , cwd 는 Rust가 그 JSON에서 다시 읽어 검증합니다. - 허용 program : npm , npx , bundle , ruby , node 및 확장자 변형 . - cwd : 레포 루트 기준 상대 경로 예: . , apps/discord-bots . 반드시 루트 아래 실제 폴더여야 합니다. - npmInstall: true : 그 프로필에 npm i",
       "aliases": "local dev runner"
     },
     {
@@ -678,7 +678,7 @@
       "docId": "docs-local-dev",
       "heading": "동작, 제한",
       "title": "동작, 제한",
-      "description": "- 시작: 백그라운드 프로세스로 실행합니다 표준 출력은 숨깁니다 . - 종료 Windows : taskkill /T /F 로 프로세스 트리를 끊습니다. - 종료 Linux/macOS : 부모 PID에 kill 을 보내는 수준이라, 자식이 남을 수 있어요. 필요하면 pkill 등으로 정리하세요. - 앱 완전 종료: Rust 쪽 PID 추적이 초기화됩니다. 남은 프로세스는 작업 관리자 등으로 확인하세요. - Windows: npm / npx / bundle / ruby 는 내부적으로 cmd /C 로 호출합니다 .cmd /배치 런처 호환 . Node, Ruby bundle ",
+      "description": "- 시작: 백그라운드 프로세스로 실행합니다 표준 출력은 숨깁니다 . - 종료 Windows : taskkill /T /F 로 프로세스 트리를 끊습니다. - 종료 Linux/macOS : 부모 PID에 kill 을 보내는 수준이라, 자식이 남을 수 있어요. 필요하면 pkill 등으로 정리하세요. - 앱 완전 종료: Rust 쪽 PID 추적이 초기화됩니다. 남은 프로세스는 작업 관리자 등으로 확인하세요. - Windows: npm / npx / bundle / ruby 는 내부적으로 cmd /C 로 호출합니다 .cmd /배치 런처 호환 . Node, Ruby bundle",
       "aliases": "local dev runner"
     },
     {
@@ -686,7 +686,7 @@
       "docId": "docs-local-dev",
       "heading": "AI 비-GUI 경로 (localhost HTTP. TASK-KL-065)",
       "title": "AI 비-GUI 경로 (localhost HTTP. TASK-KL-065)",
-      "description": "서버 모니터의 모든 운영 액션은 GUI 카드 클릭 외에 localhost HTTP 로도 구동됩니다. AI 에이전트 Claude 가 데스크톱 앱 창을 클릭하지 않고 dev 프로필을 직접 start/stop/log/deploy 할 수 있게 하기 위함입니다. 사람 카드와 같은 LocalDevState , 같은 함수 본체 를 공유하므로 한쪽에서 시작한 프로세스를 다른 쪽이 관측, 종료할 수 있습니다 이중 추적 없음 . - 바인드: 127.0.0.1 만 타 머신 접근 차단 . 기본 포트 8766 . - 인증: Authorization: Bearer <token . 토큰, 포트는 앱",
+      "description": "서버 모니터의 모든 운영 액션은 GUI 카드 클릭 외에 localhost HTTP 로도 구동됩니다. AI 에이전트 Claude 가 데스크톱 앱 창을 클릭하지 않고 dev 프로필을 직접 start/stop/log/deploy 할 수 있게 하기 위함입니다. 사람 카드와 같은 LocalDevState , 같은 함수 본체 를 공유하므로 한쪽에서 시작한 프로세스를 다른 쪽이 관측, 종료할 수 있습니다 이중 추적 없음 . - 바인드: 127.0.0.1 만 타 머신 접근 차단 . 기본 포트 8766 . - 인증: Authorization: Bearer <token . 토큰, 포트",
       "aliases": "local dev runner"
     },
     {
@@ -702,7 +702,7 @@
       "docId": "docs-servermonitor-deploy-log-design",
       "heading": "서버 모니터, Deploy / npm 로그 스트림",
       "title": "서버 모니터, Deploy / npm 로그 스트림",
-      "description": "상태: 구현됨 데스크톱 Tauri + 서버 모니터 위젯 . 범위: KarmoLab 데스크톱 Tauri 서버 모니터 위젯에서, 프로필 카드의 deploy, npm i 실행 시 표준 출력, 에러를 실시간으로 카드 아래 패널에 보여 줍니다. ---",
+      "description": "상태: 구현됨 데스크톱 Tauri + 서버 모니터 위젯 . 범위: KarmoLab 데스크톱 Tauri 서버 모니터 위젯에서, 프로필 카드의 deploy , npm i 실행 시 표준 출력, 에러를 실시간으로 카드 아래 패널에 보여 줍니다. ---",
       "aliases": "servermonitor deploy log stream"
     },
     {
@@ -726,7 +726,7 @@
       "docId": "docs-servermonitor-deploy-log-design",
       "heading": "1. 목표",
       "title": "1. 목표",
-      "description": "- deploy / npm i 시 터미널과 비슷하게 줄 단위 로그가 카드 하단에 쌓인다. - 긴 작업 중에도 응답 없음처럼 보이지 않게 한다. - 실패 시 마지막까지의 로그 로 원인 파악에 도움을 준다.",
+      "description": "- deploy / npm i 시 터미널과 비슷하게 줄 단위 로그가 카드 하단에 쌓임. - 긴 작업 중에도 응답 없음처럼 보이지 않게 함. - 실패 시 마지막까지의 로그 로 원인 파악에 도움을 줌.",
       "aliases": "servermonitor deploy log stream"
     },
     {
@@ -734,7 +734,7 @@
       "docId": "docs-servermonitor-deploy-log-design",
       "heading": "2. 비목표 (당분간)",
       "title": "2. 비목표 (당분간)",
-      "description": "- 시작 으로 띄운 백그라운드 프로세스의 장기 로그는 포함하지 않는다. - stdin, PTY 색상, 진행 막대 완벽 재현 는 하지 않는다. - GitHub Pages만 연 브라우저에서는 동작하지 않는다 Tauri WebView 전용 .",
+      "description": "- 시작 으로 띄운 백그라운드 프로세스의 장기 로그는 포함하지 않음. - stdin, PTY 색상, 진행 막대 완벽 재현 는 하지 않음. - GitHub Pages만 연 브라우저에서는 동작하지 않는다 Tauri WebView 전용 .",
       "aliases": "servermonitor deploy log stream"
     },
     {
@@ -756,9 +756,9 @@
     {
       "id": "docs-servermonitor-deploy-log-design:7",
       "docId": "docs-servermonitor-deploy-log-design",
-      "heading": "5. Windows cmd /C npm ...",
-      "title": "5. Windows cmd /C npm ...",
-      "description": "- 파이프는 cmd 자식에 연결한다. - stdout, stderr를 동시에 읽는다 데드락 방지 .",
+      "heading": "5. Windows cmd /C npm …",
+      "title": "5. Windows cmd /C npm …",
+      "description": "- 파이프는 cmd 자식에 연결함. - stdout, stderr를 동시에 읽는다 데드락 방지 .",
       "aliases": "servermonitor deploy log stream"
     },
     {

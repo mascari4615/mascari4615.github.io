@@ -58,7 +58,6 @@
   "widgets-desc.devtool.desc": "JSON・JWT・Base64・表... 貼り付けると何かを見分け、合う道具を示します。JSON は木で開きます",
   "widgets-desc.devtools.desc": "デスクトップアプリや連携を確かめるためのテスト置き場（通知など）",
   "widgets-desc.diff.desc": "ふたつの文章・コードの違うところを指します。JSON はキー経路で比べ、三方マージもできます",
-  "widgets-desc.docs.desc": "KarmoLab の紹介・ロードマップ・ガイドとキャラクター/システムの Wiki. サイドバー移動、本文と目次",
   "widgets-desc.docscan.desc": "斜めに撮った書類をまっすぐに直し、スキャンのように整えてPNG・PDFで出力します。写真はブラウザの外に出ません。",
   "widgets-desc.draw.desc": "ロト番号, あみだくじ, 抽選とチーム分けをひとまとめに",
   "widgets-desc.duel.desc": "数秒のミニゲームで一対一。リンク一本ですぐ始まり、部屋はこちらのサーバーに置きません",

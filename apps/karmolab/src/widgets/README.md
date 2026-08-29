@@ -7,7 +7,7 @@
 새 위젯, 기능을 *코드로 옮기기 전* 다음 순서로 정독한다. 정독 결과는 TASK 문서 관련 파일 / 읽기 (참고 패턴) 에 명시. *어떤 파일을 보고 어떤 결론* 인지.
 
 - [ ] **같은 카테고리, layout 위젯 1~2개 정독**. `widgets-lazy-meta.ts` 에서 같은 `layout` (`'full'` / `'form'`) 또는 `category` (`'desktop'` / `'lab'` / `'tool'` / `'play'`) 위젯 골라 *컨테이너 / 디자인 토큰 / 폴링, 라이프사이클 / 외부 lib 처리* 패턴 확인.
-- [ ] **공통 helper 모듈 검토**. `Toolbox`, `chatbot/markdown.ts` (마크다운→HTML), `lib/karmoworld/parse-md.ts` (frontmatter), `widgets/docs/docs.ts` (마크다운+mermaid+Prism+동일 출처 lib), `@karmo/ai` 패키지. 같은 기능 거의 다 *이미 있음*. 새로 만들기 전 grep.
+- [ ] **공통 helper 모듈 검토**. `Toolbox`, `chatbot/markdown.ts` (마크다운→HTML), `lib/karmoworld/parse-md.ts` (frontmatter), `lib/markdown/rich-view.ts` (마크다운+목차+mermaid+Prism), `@karmo/ai` 패키지. 같은 기능 거의 다 *이미 있음*. 새로 만들기 전 grep.
 - [ ] **외부 lib 동일 출처**. mermaid, marked, prism 등은 `assets/lib/<lib>/<lib>.min.js` 에 동일 출처로 박혀있음 (Tauri webview 의 Tracking Prevention 회피). CDN (`cdn.jsdelivr.net` 등) 우선 안 씀.
 - [ ] **글로벌 디자인 토큰 사용**. 자체 색, 폰트, spacing 박지 말 것. CSS 변수: `--bg-primary` / `--bg-secondary` / `--bg-tertiary` / `--text-primary` / `--text-tertiary` / `--accent` / `--border` / `--border-color` / `--radius-sm` / `--radius-md` / `--font-mono`. 다른 위젯이 쓰는 패턴 그대로.
 - [ ] **자체 CSS injection 최소화**. `injectStyles()` 패턴은 *위젯 한정 클래스* 만. 컨테이너 / 카드 / 버튼 / 표 / 코드블록은 글로벌 스타일에 맡김. 다른 위젯과 외관 톤 어긋나면 사용자가 *이질감* 느낌.
@@ -43,19 +43,18 @@
    `src-tauri/acl.toml` 에 `[[group]]` 한 벌 + `capabilities/default.json` 에 그 `identifier` 추가.
    → `permissions/` 는 **build.rs 가 acl.toml 에서 굽는 생성물**이다. 손으로 적지 않는다.
 
-## 외부 lib 동일 출처 패턴 (mermaid 예)
+## 외부 lib 동일 출처 패턴
 
-`widgets/docs/docs.ts` 가 정본 패턴:
-- `assets/lib/mermaid/mermaid.min.js` → `<script src=...>` 동적 삽입
-- `widgets-lazy-meta.ts` 의 `widget script base` URL 로 상대 경로 해결
-- *fallback*. 그것도 없으면 `location.origin + '/assets/lib/...'`
+`lib/markdown/rich-view.ts` 가 정본 패턴:
+- `Toolbox.ensureScript('vendor/marked.min')` 처럼 동일 출처 vendor 만 싣는다
+- mermaid 는 안 싣는다. 도해는 `lib/karmograph/render.ts` 가 그린다
 
 CDN 직접 import 는 *Tauri webview Tracking Prevention* 에서 사용자에 따라 차단됨. 동일 출처 우선.
 
 ## CSS 토큰 reference
 
 다른 위젯의 실제 사용 예:
-- `widgets/docs/docs.ts`. `.docs-body .mermaid` 가 `var(--bg-tertiary)`, `var(--border)`, `var(--radius-md)` 사용.
+- `lib/markdown/rich-view.ts` 의 `.docs-body .mermaid` 가 `var(--bg-tertiary)`, `var(--border)`, `var(--radius-md)` 사용.
 - `widgets/karmoddrine-dashboard/karmoddrine-dashboard.ts`. `.kd-card` 가 `var(--accent, #a99bf5)` (fallback), `var(--text-primary, #e8e8e8)` 사용.
 - `widgets/quest-log/quest-log.ts`. 같은 패턴.
 

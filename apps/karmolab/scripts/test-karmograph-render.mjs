@@ -4,7 +4,7 @@
  * 이 검사가 있는 이유: 문서 안 도해는 브라우저 DOM 없이 만들어져야 한다. 여기서 `document`
  * 를 한 번이라도 만지면 서버, MCP 에서 터진다. 그래서 **전역에 `document` 를 안 두고** 돌린다.
  * 그림이 나왔나만 보지 않고 **문서 도구가 실제로 내주는 그림**을 그린다 . 
- * `js/widgets/docs/karmo-ai.md` (`DOCS_BASE` 가 가리키는 폴더. `docs/ROADMAP.md` 는
+ * `data/docs/karmo-ai.md` (`DOCS_BASE` 가 가리키는 폴더. `docs/ROADMAP.md` 는
  * 깃허브에서 읽히는 다른 파일이라 이 도구가 안 연다).
  */
 import fs from 'fs';
@@ -35,7 +35,7 @@ if (typeof globalThis.document !== 'undefined') {
 }
 
 /* ── ② 문서에 실제로 들어 있는 그림 ─────────────────────────────────────── */
-const served = path.join(ROOT, 'js/widgets/docs/karmo-ai.md');
+const served = path.join(ROOT, 'data/docs/karmo-ai.md');
 const md = fs.readFileSync(served, 'utf8');
 const block = /```mermaid\r?\n([\s\S]*?)\r?\n```/.exec(md);
 if (block === null) {
