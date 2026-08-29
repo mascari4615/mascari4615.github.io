@@ -35,7 +35,7 @@ import { between, dday, midnight, parseDate, shift, toInput } from '../../core/d
   Toolbox.register({
     id: 'datecalc',
     title: t('widgets.datecalc.title', undefined, '날짜 계산기, D-Day'),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.datecalc.desc', undefined, '두 날짜 사이 일수, D-Day, 며칠 후 날짜, 만 나이를 계산합니다'),
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',

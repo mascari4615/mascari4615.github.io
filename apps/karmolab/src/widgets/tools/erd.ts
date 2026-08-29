@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'erd',
     title: t('widgets.erd.title', undefined, '표 관계 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.erd.desc',
       undefined,

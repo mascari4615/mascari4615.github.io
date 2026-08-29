@@ -36,7 +36,7 @@ import { isMetric } from '../../lib/region';
   Toolbox.register({
     id: 'pace',
     title: t('widgets.pace.title', undefined, '러닝 페이스 계산'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.pace.desc',
       undefined,

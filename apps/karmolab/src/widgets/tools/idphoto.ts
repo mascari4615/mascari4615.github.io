@@ -25,7 +25,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'idphoto',
     title: t('widgets.idphoto.title', undefined, '증명사진'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.idphoto.desc',
       undefined,

@@ -23,7 +23,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'askpapers',
     title: t('widgets.askpapers.title', undefined, '논문에게 묻기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.askpapers.desc',
       undefined,

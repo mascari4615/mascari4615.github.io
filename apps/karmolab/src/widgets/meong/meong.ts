@@ -423,7 +423,7 @@ import { download, encode } from '../tools/shared/image';
     ...meta,
     id: ID,
     title,
-    category: 'lab',
+    category: 'play',
     layout: 'full',
     noHero: true,
     tabs: [{ id: 'app', label: title, build }]

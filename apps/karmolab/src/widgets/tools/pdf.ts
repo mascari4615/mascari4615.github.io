@@ -65,7 +65,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'pdf',
     title: t('widgets.pdf.title', undefined, 'PDF 도구'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdf.desc',
       undefined,

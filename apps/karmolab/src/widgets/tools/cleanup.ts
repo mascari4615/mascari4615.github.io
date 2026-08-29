@@ -23,7 +23,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'cleanup',
     title: t('widgets.cleanup.title', undefined, '지우개'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.cleanup.desc',
       undefined,

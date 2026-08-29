@@ -25,7 +25,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: 'filesplit',
     title: t('widgets.filesplit.title', undefined, '큰 파일 나누기, 합치기'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.filesplit.desc',
       undefined,

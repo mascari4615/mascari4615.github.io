@@ -25,7 +25,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'pick',
     title: t('widgets.pick.title', undefined, "추첨, 팀 나누기"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.pick.desc', undefined, "명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게"),
     layout: 'form',
     icon: '<circle cx="7" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

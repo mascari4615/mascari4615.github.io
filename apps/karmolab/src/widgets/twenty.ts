@@ -88,7 +88,7 @@ import { appHost } from '../lib/site-base';
   Toolbox.register({
     id: 'twenty',
     title: t('widgets.twenty.title', undefined, "스무고개"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.twenty.desc', undefined, "하나를 마음에 정하세요. 스무 번 안에 맞혀 보겠습니다. 포켓몬, 롤, 원신"),
     // 커뮤니티와 같은 틀. 넓게 쓰고 도구 제목 카드는 안 그린다.
     layout: 'wide',

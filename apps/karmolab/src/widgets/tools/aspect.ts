@@ -28,7 +28,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'aspect',
     title: t('widgets.aspect.title', undefined, "화면 비율 계산기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.aspect.desc', undefined, "가로, 세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함"),
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 6l18 12" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>',

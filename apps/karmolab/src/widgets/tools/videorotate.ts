@@ -27,7 +27,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
     title: t('widgets.videorotate.title', undefined, '영상 돌리기'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.videorotate.desc',
       undefined,

@@ -16,7 +16,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'cssunit',
     title: t('widgets.cssunit.title', undefined, "CSS 단위 변환"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.cssunit.desc', undefined, "px, rem, em, pt, % 를 서로 바꿉니다. 루트 기준과 부모 기준을 나란히"),
     layout: 'form',
     icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M19 14v6M17 16l2-2 2 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',

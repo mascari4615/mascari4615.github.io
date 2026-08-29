@@ -175,7 +175,7 @@ const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: t('quest.t03'
   Toolbox.register({
     id: 'quest',
     title: t('widgets.quest.title', undefined, "오늘의 문제"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.quest.desc', undefined, "도구를 열어야 풀리는 하루 한 문제. 진법, 모스, 해시, 단위"),
     // 커뮤니티와 같은 틀. 넓게 쓰고 도구 제목 카드는 안 그린다.
     layout: 'wide',

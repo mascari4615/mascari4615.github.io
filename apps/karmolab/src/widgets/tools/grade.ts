@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'grade',
     title: t('widgets.grade.title', undefined, "학점 계산기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.grade.desc', undefined, "과목별 학점과 성적으로 평점을 계산합니다. 목표 학점에 필요한 성적도 함께"),
     layout: 'wide',
     icon: '<path d="M12 4 2 9l10 5 10-5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

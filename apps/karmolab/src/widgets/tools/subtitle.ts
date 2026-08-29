@@ -45,7 +45,7 @@ import { clock, outline, parseCues, plainText } from '../../lib/videosum';
   Toolbox.register({
     id: 'subtitle',
     title: t('widgets.subtitle.title', undefined, '자막 시간 맞추기'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.subtitle.desc',
       undefined,

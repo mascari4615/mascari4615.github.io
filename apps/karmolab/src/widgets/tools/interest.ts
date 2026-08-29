@@ -28,7 +28,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   Toolbox.register({
     id: 'interest',
     title: t('widgets.interest.title', undefined, "이자 계산기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.interest.desc', undefined, "예금, 적금 만기 금액과 대출 월 상환액을 계산합니다. 이자소득세 15.4% 반영"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.4V13m0 2.5v.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

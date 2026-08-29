@@ -27,7 +27,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   Toolbox.register({
     id: 'timecalc',
     title: t('widgets.timecalc.title', undefined, "시간 더하기, 빼기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.timecalc.desc', undefined, "시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M16 4h5M18.5 1.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',

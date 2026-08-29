@@ -46,7 +46,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'timer',
     title: t('widgets.timer.title', undefined, '타이머, 스톱워치'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.timer.desc',
       undefined,

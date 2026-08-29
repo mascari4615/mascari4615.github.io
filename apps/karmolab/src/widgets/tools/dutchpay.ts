@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'dutchpay',
     title: t('widgets.dutchpay.title', undefined, '나눠 내기'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.dutchpay.desc',
       undefined,

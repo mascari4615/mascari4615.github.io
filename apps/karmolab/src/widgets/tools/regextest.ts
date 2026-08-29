@@ -24,7 +24,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
   Toolbox.register({
     id: 'regextest',
     title: t('widgets.regextest.title', undefined, "정규식 테스터"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.regextest.desc', undefined, "정규표현식을 실시간으로 시험하고 매치, 그룹, 치환 결과를 확인합니다"),
     layout: 'wide',
     icon: '<path d="M12 4v16M5 8l14 8M19 8L5 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',

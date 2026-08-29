@@ -77,7 +77,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'numword',
     title: t('widgets.numword.title', undefined, '숫자 ↔ 한글'),
-    category: 'tool',
+    category: 'text',
     desc: t(
       'widgets-desc.numword.desc',
       undefined,

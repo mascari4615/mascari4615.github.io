@@ -43,7 +43,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'isitdown',
     title: t('widgets.isitdown.title', undefined, '나만 안 되나?'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.isitdown.desc',
       undefined,

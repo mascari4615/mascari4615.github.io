@@ -1441,7 +1441,7 @@ function injectStyles(): void {
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta?.('meok') || {}),
     id: 'meok',
-    category: 'tool',
+    category: 'image',
     layout: 'full',
     icon,
     tabs: [{

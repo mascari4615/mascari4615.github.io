@@ -30,7 +30,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'hashgen',
     title: t('widgets.hashgen.title', undefined, '해시 생성기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.hashgen.desc',
       undefined,

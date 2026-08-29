@@ -83,7 +83,7 @@ import { escapeHtml as esc } from './shared/text';
   Toolbox.register({
     id: 'percent',
     title: t('widgets.percent.title', undefined, "퍼센트 계산기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.percent.desc', undefined, "할인율, 증감률, 비율을 질문 문장 그대로 채워 넣어 계산합니다"),
     layout: 'form',
     icon: '<path d="M19 5 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16.5" cy="16.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',

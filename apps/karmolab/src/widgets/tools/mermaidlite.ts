@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'mermaidlite',
     title: t('widgets.mermaidlite.title', undefined, '글로 그리는 그림판'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.mermaidlite.desc',
       undefined,

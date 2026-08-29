@@ -64,7 +64,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'palette',
     title: t('widgets.palette.title', undefined, "이미지 색상 추출"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.palette.desc', undefined, "사진에서 대표 색을 뽑아 HEX, RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사"),
     layout: 'wide',
     icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7" r="1.3" fill="currentColor"/><circle cx="7" cy="14" r="1.3" fill="currentColor"/>',

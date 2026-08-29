@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'nettool',
     title: t('widgets.nettool.title', undefined, '대역, 포트'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.nettool.desc',
       undefined,

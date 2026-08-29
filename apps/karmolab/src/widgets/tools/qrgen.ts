@@ -20,7 +20,7 @@ import { appUrl } from '../../lib/site-base';
   Toolbox.register({
     id: 'qrgen',
     title: t('widgets.qrgen.title', undefined, 'QR 코드 생성'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.qrgen.desc',
       undefined,

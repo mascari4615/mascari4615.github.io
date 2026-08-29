@@ -2452,10 +2452,9 @@ html[data-nav="sidebar"] .main-content {
     margin-left: var(--sidebar-width);
 }
 
-html[data-nav="sidebar"] .main-content:has(.tool-page.layout-full.active),
-html[data-nav="sidebar"]:has(.sidebar:hover) .main-content:has(.tool-page.layout-full.active) {
-    margin-left: 0;
-}
+/* 화면 끝까지 쓰는 도구도 왼쪽 여백 유지
+   목록 56px 접힘 시절엔 0 이 맞았음. 224px 상시 펼침 뒤로는 목록이 도구를 덮음
+   (smoke:newtools 가 사이드바의 버튼 가림으로 잡음) */
 
 .sidebar-nav {
     padding: var(--space-md) var(--space-sm);
@@ -2592,6 +2591,16 @@ html[data-nav="sidebar"] .sidebar .sidebar-group-label {
 }
 
 /* 목록 상시 펼침이라 이름도 상시 노출. 예전엔 마우스 얹기 전까지 opacity 0 */
+
+/* 갈래 이름 옆 도구 수. 234개가 다 있다는 것을 접힌 채로 보여 준다 */
+.sidebar-group-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
 html[data-nav="sidebar"] .sidebar-dev-links-icon { display: flex; }
 html[data-nav="sidebar"] .sidebar-dev-links-text { display: inline; }
 
@@ -3601,12 +3610,7 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
     min-height: 0;
     width: 100%;
 }
-html[data-nav="sidebar"].is-layout-full .main-content,
-html[data-nav="sidebar"].is-layout-full .main-content:has(.tool-page.layout-full.active),
-html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content,
-html[data-nav="sidebar"].is-layout-full:has(.sidebar:hover) .main-content:has(.tool-page.layout-full.active) {
-    margin-left: 0;
-}
+/* 같은 이유로 여기서도 왼쪽 여백을 안 지운다 */
 
 /* AI 와 함께 만들었고 소스는 열려 있다 (TASK-KL-352). 첫 화면 맨 아래 한 줄.
    자랑도 변명도 아니라 사실 고지라, 가장 작고 가장 아래다. */

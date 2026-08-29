@@ -23,7 +23,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdfsign.title', undefined, 'PDF 에 서명 넣기'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdfsign.desc',
       undefined,

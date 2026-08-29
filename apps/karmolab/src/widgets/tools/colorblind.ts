@@ -55,7 +55,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'colorblind',
     title: t('widgets.colorblind.title', undefined, "색각 시뮬레이터"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.colorblind.desc', undefined, "두 색이 색각 이상에서 어떻게 보이는지 확인하고 구분 가능한지 판정합니다"),
     layout: 'wide',
     icon: '<circle cx="9" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7.5a5.5 5.5 0 0 0 0 9" stroke="currentColor" stroke-width="1.3"/>',

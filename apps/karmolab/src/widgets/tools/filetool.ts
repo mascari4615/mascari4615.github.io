@@ -26,7 +26,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'filetool',
     title: t('widgets.filetool.title', undefined, "파일 도구"),
-    category: 'tool',
+    category: 'file',
     desc: t('widgets-desc.filetool.desc', undefined, "사진 변환, 이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     lazyTabs: true, // 처리기가 무겁다. 연 탭만 만든다

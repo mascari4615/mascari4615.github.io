@@ -92,7 +92,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'cron',
     title: t('widgets.cron.title', undefined, "크론 표현식 읽기"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.cron.desc', undefined, "크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 4l2 2M21 4l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',

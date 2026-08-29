@@ -15,7 +15,7 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
   Toolbox.register({
     id: 'epoch',
     title: t('widgets.epoch.title', undefined, '타임스탬프 변환'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.epoch.desc',
       undefined,

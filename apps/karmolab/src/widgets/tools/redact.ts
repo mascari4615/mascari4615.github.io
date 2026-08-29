@@ -29,7 +29,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'redact',
     title: t('widgets.redact.title', undefined, '가리개'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.redact.desc',
       undefined,

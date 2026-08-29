@@ -25,7 +25,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'explainshell',
     title: t('widgets.explainshell.title', undefined, '명령줄 뜯어보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.explainshell.desc',
       undefined,

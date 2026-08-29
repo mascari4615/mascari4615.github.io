@@ -36,7 +36,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'jwt',
     title: t('widgets.jwt.title', undefined, 'JWT 디코더'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.jwt.desc',
       undefined,

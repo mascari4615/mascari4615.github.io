@@ -738,7 +738,7 @@ interface WorldBook {
   Toolbox.register({
     id: 'wm',
     title: 'Witch-Mendokusai',
-    category: 'tool',
+    category: 'app',
     desc: t('widgets-desc.wm.desc', undefined, "만들고 있는 게임. 소개, 세계 도감(인물, 세계, 규칙). 개발 노트에서 바로 옵니다"),
     // 커뮤니티와 같은 자리다. 위젯이 아닐 뿐. 넓게 쓰고 위젯 제목 카드, 탭 줄을 안 그린다.
     // 화면 구조는 이 페이지가 제 것으로 갖는다(아래 nav, 섹션, 주소).

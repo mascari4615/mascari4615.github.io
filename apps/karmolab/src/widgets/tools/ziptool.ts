@@ -34,7 +34,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: zipCoreSpec.id,
     title: t('widgets.ziptool.title', undefined, "ZIP 만들기, 풀기"),
-    category: 'tool',
+    category: 'file',
     desc: t('widgets-desc.ziptool.desc', undefined, "파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다"),
     layout: 'wide',
     icon: '<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 3v2h2V3M11 7v2h2V7M11 11v2h2v-2" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="15" width="3" height="4" rx="0.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',

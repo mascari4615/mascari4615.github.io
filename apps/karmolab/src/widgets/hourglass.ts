@@ -7,7 +7,7 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'hourglass',
     title: t('widgets.hourglass.title', undefined, "모래시계"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.hourglass.desc', undefined, "모래시계 타이머를 실행합니다"),
     layout: 'form',
     icon: '<path d="M6 2h12 M6 22h12 M6 2l6 10-6 10 M18 2l-6 10 18 10" stroke="currentColor" stroke-width="1.5" fill="none"/>',

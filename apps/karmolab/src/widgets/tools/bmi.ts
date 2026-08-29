@@ -45,7 +45,7 @@ import { region, isMetric } from '../../lib/region';
   Toolbox.register({
     id: 'bmi',
     title: t('widgets.bmi.title', undefined, 'BMI 계산기'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.bmi.desc',
       undefined,

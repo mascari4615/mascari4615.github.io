@@ -102,7 +102,7 @@ import { getKarmoGif } from '../../lib/karmogif';
   Toolbox.register({
     id: 'asciiart',
     title: t('widgets.asciiart.title', undefined, '이미지 → 아스키 아트'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.asciiart.desc',
       undefined,

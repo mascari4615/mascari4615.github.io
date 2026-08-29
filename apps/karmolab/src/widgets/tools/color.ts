@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'color',
     title: t('widgets.color.title', undefined, "색상 도구"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.color.desc', undefined, "HEX, RGB, HSL 변환, 이미지에서 색 추출, CSS 색 이름표를 한 곳에서"),
     layout: 'wide',
     lazyTabs: true, // 안 본 탭은 만들지 않는다

@@ -3923,7 +3923,7 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
        가져오는 자리가 없으면(재는 판) 예전 값으로 버틴다. */
     const meta = box.getLazyWidgetPublicMeta
       ? box.getLazyWidgetPublicMeta('memo-atlas')
-      : { title: '내 글 지형도', category: 'lab', desc: '내가 쓴 글이 어디에 쏠려 있는지 한 장으로' };
+      : { title: '내 글 지형도', category: 'app', desc: '내가 쓴 글이 어디에 쏠려 있는지 한 장으로' };
     box.register({
       id: 'memo-atlas',
       ...meta,

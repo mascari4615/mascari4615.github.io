@@ -26,7 +26,7 @@ interface ZipArchive {
   Toolbox.register({
     id: 'diff',
     title: t('widgets.diff.title', undefined, '견주기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.diff.desc',
       undefined,

@@ -23,7 +23,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
   Toolbox.register({
     id: 'comparepic',
     title: t('widgets.comparepic.title', undefined, "비교 슬라이더"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.comparepic.desc', undefined, "사진 두 장을 겹쳐 밀어 보며 비교합니다. 파일은 기기 밖으로 나가지 않습니다"),
     layout: 'wide',
     tabs: [

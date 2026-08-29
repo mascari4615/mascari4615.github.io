@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'videotool',
     title: t('widgets.videotool.title', undefined, '영상 도구'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.videotool.desc',
       undefined,

@@ -69,7 +69,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/*'],
     title: t('widgets.imgresize.title', undefined, '사진 크기 맞추기'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.imgresize.desc',
       undefined,

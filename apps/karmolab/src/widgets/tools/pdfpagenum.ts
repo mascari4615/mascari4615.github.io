@@ -50,7 +50,7 @@ import { encode } from './shared/image';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdfpagenum.title', undefined, 'PDF 쪽 번호'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdfpagenum.desc',
       undefined,

@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'csvjson',
     title: t('widgets.csvjson.title', undefined, "CSV ↔ JSON 변환"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.csvjson.desc', undefined, "표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표, 줄바꿈도 안 깨집니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="8" height="16" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h8M3 14h8" stroke="currentColor" stroke-width="1.3"/><path d="M15 6h1a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

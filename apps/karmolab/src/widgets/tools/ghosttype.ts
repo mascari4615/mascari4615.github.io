@@ -138,7 +138,7 @@ import { toolPage } from '../../lib/site-base';
   Toolbox.register({
     id: 'ghosttype',
     title: t('widgets.ghosttype.title', undefined, '유령 타자 대결'),
-    category: 'tool',
+    category: 'play',
     desc: t(
       'widgets-desc.ghosttype.desc',
       undefined,

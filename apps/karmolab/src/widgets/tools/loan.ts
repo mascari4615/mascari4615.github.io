@@ -17,7 +17,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: 'loan',
     title: t('widgets.loan.title', undefined, '대출 상환표'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.loan.desc',
       undefined,

@@ -18,7 +18,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: 'papermap',
     title: t('widgets.papermap.title', undefined, '논문 지도'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.papermap.desc',
       undefined,

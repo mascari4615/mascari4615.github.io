@@ -35,7 +35,7 @@ import {
   Toolbox.register({
     id: 'bgremove',
     title: t('widgets.bgremove.title', undefined, '배경 지우기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.bgremove.desc',
       undefined,

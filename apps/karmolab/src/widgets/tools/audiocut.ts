@@ -19,7 +19,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*'],
     title: t('widgets.audiocut.title', undefined, "오디오 자르기"),
-    category: 'tool',
+    category: 'av',
     desc: t('widgets-desc.audiocut.desc', undefined, "음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<path d="M3 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',

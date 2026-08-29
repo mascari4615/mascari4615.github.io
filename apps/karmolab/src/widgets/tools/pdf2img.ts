@@ -37,7 +37,7 @@ import { openForRead, renderPage } from './shared/pdf';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdf2img.title', undefined, "PDF → 이미지"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.pdf2img.desc', undefined, "PDF 페이지를 PNG, JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지"),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M13 19l2-2 2 2 2-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',

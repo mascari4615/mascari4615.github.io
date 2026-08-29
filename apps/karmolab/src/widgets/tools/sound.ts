@@ -50,7 +50,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'sound',
     title: t('widgets.sound.title', undefined, '소리 도구'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.sound.desc',
       undefined,

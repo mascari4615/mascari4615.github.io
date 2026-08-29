@@ -21,7 +21,7 @@ import { toolPage } from '../../lib/site-base';
   Toolbox.register({
     id: 'ocr',
     title: t('widgets.ocr.title', undefined, '그림 속 글자 읽기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.ocr.desc',
       undefined,

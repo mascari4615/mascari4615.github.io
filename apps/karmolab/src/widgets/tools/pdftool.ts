@@ -55,7 +55,7 @@ import { parsePages } from '../../core/pdftool';
   Toolbox.register({
     id: 'pdftool',
     title: t('widgets.pdftool.title', undefined, 'PDF 편집'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdftool.desc',
       undefined,

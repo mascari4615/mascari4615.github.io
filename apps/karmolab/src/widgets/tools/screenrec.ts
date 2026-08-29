@@ -29,7 +29,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   Toolbox.register({
     id: 'screenrec',
     title: t('widgets.screenrec.title', undefined, "화면 녹화"),
-    category: 'tool',
+    category: 'av',
     desc: t('widgets-desc.screenrec.desc', undefined, "화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="10.5" r="3" fill="currentColor"/>',

@@ -166,7 +166,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'duel',
     title: t('widgets.duel.title', undefined, '번개 대결'),
-    category: 'tool',
+    category: 'play',
     desc: t(
       'widgets-desc.duel.desc',
       undefined,

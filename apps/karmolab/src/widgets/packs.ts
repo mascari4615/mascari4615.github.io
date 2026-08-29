@@ -32,7 +32,7 @@ import { appQuery } from '../lib/site-base';
   Toolbox.register({
     id: 'packs',
     title: t('widgets.packs.title', undefined, "내 표 만들기"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.packs.desc', undefined, "놀이에 쓸 표를 직접 만듭니다. 붙여넣기 한 판이면 됩니다"),
     layout: 'wide',
     noHero: true,

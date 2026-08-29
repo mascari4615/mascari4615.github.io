@@ -87,7 +87,7 @@ import {
   Toolbox.register({
     id: 'lotto',
     title: t('widgets.lotto.title', undefined, "로또 번호 생성"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.lotto.desc', undefined, "로또 6/45 와 연금복권720+ 번호를 뽑고, 최신 회차와 자동으로 대조합니다"),
     layout: 'form',
     icon: '<circle cx="8" cy="9" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="15" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7v4M6 9h4" stroke="currentColor" stroke-width="1.4"/>',

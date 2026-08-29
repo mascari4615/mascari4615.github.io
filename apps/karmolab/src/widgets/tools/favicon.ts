@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'favicon',
     title: t('widgets.favicon.title', undefined, '파비콘 만들기'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.favicon.desc',
       undefined,

@@ -89,7 +89,7 @@ import { escapeHtml as esc } from './shared/text';
   Toolbox.register({
     id: 'colorconv',
     title: t('widgets.colorconv.title', undefined, "색상 변환"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.colorconv.desc', undefined, "HEX, RGB, HSL, CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.5"/>',

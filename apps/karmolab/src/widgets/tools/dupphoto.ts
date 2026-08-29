@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'dupphoto',
     title: t('widgets.dupphoto.title', undefined, '닮은 사진 찾기'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.dupphoto.desc',
       undefined,

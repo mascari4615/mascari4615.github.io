@@ -84,7 +84,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'barcode',
     title: t('widgets.barcode.title', undefined, "바코드 만들기"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.barcode.desc', undefined, "재고, 도서, 물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"),
     layout: 'wide',
     icon: '<path d="M4 5v14M7 5v14M9.5 5v14M13 5v14M16 5v14M18 5v14M20 5v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',

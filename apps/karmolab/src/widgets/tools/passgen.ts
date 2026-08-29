@@ -165,7 +165,7 @@ import { checkPassword, verdict } from '../../lib/pwned';
   Toolbox.register({
     id: 'passgen',
     title: '비밀번호 만들기, 확인',
-    category: 'tool',
+    category: 'dev',
     /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     desc: t('widgets-desc.passgen.desc', undefined, '안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다'),
     layout: 'wide',

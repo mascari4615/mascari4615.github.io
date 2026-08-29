@@ -68,7 +68,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: 'icsmake',
     title: t('widgets.icsmake.title', undefined, '일정 파일 만들기'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.icsmake.desc',
       undefined,

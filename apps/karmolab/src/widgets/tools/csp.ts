@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'csp',
     title: t('widgets.csp.title', undefined, '보안 헤더'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.csp.desc',
       undefined,

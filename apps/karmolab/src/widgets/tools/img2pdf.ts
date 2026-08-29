@@ -27,7 +27,7 @@ import { spec as imagePdfCoreSpec } from '../../core/img2pdf';
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/*'],
     title: t('widgets.img2pdf.title', undefined, "이미지 → PDF"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.img2pdf.desc', undefined, "사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

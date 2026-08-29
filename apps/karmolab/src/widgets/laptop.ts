@@ -61,7 +61,7 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'laptop',
     title: t('widgets.laptop.title', undefined, "노트북"),
-    category: 'lab',
+    category: 'app',
     desc: t('widgets-desc.laptop.desc', undefined, "집에서 24시간 도는 노트북. 파일 공유, 빌드 현황으로 가는 문"),
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',

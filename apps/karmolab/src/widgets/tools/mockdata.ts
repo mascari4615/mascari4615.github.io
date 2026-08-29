@@ -17,7 +17,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'mockdata',
     title: t('widgets.mockdata.title', undefined, '가짜 데이터 만들기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.mockdata.desc',
       undefined,

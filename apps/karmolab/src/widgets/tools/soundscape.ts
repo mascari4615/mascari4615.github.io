@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'soundscape',
     title: t('widgets.soundscape.title', undefined, '소리 풍경'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.soundscape.desc',
       undefined,

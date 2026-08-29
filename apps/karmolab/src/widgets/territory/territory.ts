@@ -105,7 +105,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
   Toolbox.register({
     id: 'territory',
     title: t('widgets.territory.title', undefined, '영토'),
-    category: 'lab',
+    category: 'play',
     desc: t('widgets-desc.territory.desc', undefined, '우리 동네 땅 주인은 CU 인가 GS25 인가. 편의점, 카페, 햄버거 브랜드 점령도'),
     layout: 'full',
     icon:

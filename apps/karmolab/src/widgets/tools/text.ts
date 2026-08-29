@@ -66,7 +66,7 @@ import { mountTextOperation } from './shared/text-operation';
   Toolbox.register({
     id: 'text',
     title: t('widgets.text.title', undefined, '텍스트 도구'),
-    category: 'tool',
+    category: 'text',
     desc: t(
       'widgets-desc.text.desc',
       undefined,

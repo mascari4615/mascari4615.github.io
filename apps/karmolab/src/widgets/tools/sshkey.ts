@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'sshkey',
     title: t('widgets.sshkey.title', undefined, 'SSH 열쇠 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.sshkey.desc',
       undefined,

@@ -73,7 +73,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'image',
     title: t('widgets.image.title', undefined, '이미지'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.image.desc',
       undefined,

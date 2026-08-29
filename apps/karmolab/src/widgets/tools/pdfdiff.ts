@@ -140,7 +140,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
   Toolbox.register({
     id: 'pdfdiff',
     title: t('widgets.pdfdiff.title', undefined, 'PDF 판본 대조'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdfdiff.desc',
       undefined,

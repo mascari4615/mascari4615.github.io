@@ -29,7 +29,7 @@ import { encode } from './shared/image';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdfredact.title', undefined, 'PDF 가리개'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdfredact.desc',
       undefined,

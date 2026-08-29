@@ -55,7 +55,7 @@ import { appHost } from '../lib/site-base';
   Toolbox.register({
     id: 'higher',
     title: t('widgets.higher.title', undefined, "높은 쪽 고르기"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬, 롤, 원신 표로 겨룹니다"),
     // 커뮤니티와 같은 틀. 넓게 쓰고 도구 제목 카드는 안 그린다 (TASK-KL-089).
     // 놀이는 앱의 일원이되 화면은 놀이 제 구조다. 도구 상세 페이지도 만들지 않는다.

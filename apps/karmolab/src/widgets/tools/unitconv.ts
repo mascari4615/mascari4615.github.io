@@ -201,7 +201,7 @@ import { readInvocation } from '../../lib/tool-url';
     id: 'unitconv',
     /* 도구 큰제목이 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     title: t('widgets.unitconv.title', undefined, '단위 변환'),
-    category: 'tool',
+    category: 'calc',
     /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     desc: t('widgets-desc.unitconv.desc', undefined, '길이, 무게, 넓이(평), 부피, 온도, 데이터, 속도, 시간을 서로 변환합니다'),
     layout: 'form',

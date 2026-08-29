@@ -18,7 +18,7 @@ import { inRegion } from '../../lib/region';
   Toolbox.register({
     id: 'birth',
     title: t('widgets.birth.title', undefined, '생일 정보'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.birth.desc',
       undefined,

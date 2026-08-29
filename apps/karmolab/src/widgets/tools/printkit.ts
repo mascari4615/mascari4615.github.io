@@ -18,7 +18,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'printkit',
     title: t('widgets.printkit.title', undefined, '인쇄용 종이'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.printkit.desc',
       undefined,

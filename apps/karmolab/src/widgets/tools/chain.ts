@@ -101,7 +101,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'chain',
     title: t('widgets.chain.title', undefined, "도구 묶어 쓰기"),
-    category: 'tool',
+    category: 'app',
     desc: t('widgets-desc.chain.desc', undefined, "도구 여러 개를 이어서 한 번에. 앞 결과가 다음 도구의 입력이 됩니다"),
     // 껍데기(widgets-lazy-meta)와 **같은 값이어야** 한다. 다르면 test:tools 가 막는다.
     // 여기가 비어 있어서(undefined) 메타의 'wide' 와 어긋났고, verify 19개 중 이 하나가 빨갰다.

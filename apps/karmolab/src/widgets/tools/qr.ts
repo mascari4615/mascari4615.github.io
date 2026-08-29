@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'qr',
     title: t('widgets.qr.title', undefined, "QR 도구"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.qr.desc', undefined, "QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다"),
     layout: 'wide',
     lazyTabs: true,

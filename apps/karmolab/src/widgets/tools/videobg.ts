@@ -36,7 +36,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
   Toolbox.register({
     id: 'videobg',
     title: t('widgets.videobg.title', undefined, '영상 배경 빼기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.videobg.desc',
       undefined,

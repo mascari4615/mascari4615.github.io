@@ -19,7 +19,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'payslip',
     title: t('widgets.payslip.title', undefined, '실수령액'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.payslip.desc',
       undefined,

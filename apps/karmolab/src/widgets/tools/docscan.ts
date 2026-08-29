@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'docscan',
     title: t('widgets.docscan.title', undefined, '서류 스캔'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.docscan.desc',
       undefined,

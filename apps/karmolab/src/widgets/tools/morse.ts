@@ -216,7 +216,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'morse',
     title: t('widgets.morse.title', undefined, '모스 부호 변환'),
-    category: 'tool',
+    category: 'text',
     desc: t(
       'widgets-desc.morse.desc',
       undefined,

@@ -109,7 +109,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'devtool',
     title: t('widgets.devtool.title', undefined, '개발 도구'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.devtool.desc',
       undefined,

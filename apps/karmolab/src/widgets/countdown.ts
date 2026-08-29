@@ -7,7 +7,7 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'countdown',
     title: t('widgets.countdown.title', undefined, "카운트다운"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.countdown.desc', undefined, "카운트다운 타이머를 설정합니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',

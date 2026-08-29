@@ -29,7 +29,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'logview',
     title: t('widgets.logview.title', undefined, '로그 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.logview.desc',
       undefined,

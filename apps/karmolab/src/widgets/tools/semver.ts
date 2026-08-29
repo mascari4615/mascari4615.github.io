@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'semver',
     title: t('widgets.semver.title', undefined, '버전 범위 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.semver.desc',
       undefined,

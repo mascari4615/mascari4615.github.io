@@ -19,7 +19,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*'],
     title: t('widgets.audiojoin.title', undefined, "오디오 이어붙이기"),
-    category: 'tool',
+    category: 'av',
     desc: t('widgets-desc.audiojoin.desc', undefined, "여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다"),
     layout: 'wide',
     icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',

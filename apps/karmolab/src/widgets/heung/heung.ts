@@ -25,7 +25,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
   Mdd.injectCSS('heung', HEUNG_CSS);
 
   Toolbox.register({
-    ...(Toolbox.getLazyWidgetPublicMeta?.('heung') || {}), id: 'heung', title: '흥', category: 'lab',
+    ...(Toolbox.getLazyWidgetPublicMeta?.('heung') || {}), id: 'heung', title: '흥', category: 'play',
     desc: '녹음부터 편곡, 믹싱, WAV 출력까지 한 프로젝트에서 완성하는 브라우저 DAW', layout: 'full', icon,
     accepts: ['audio/*', 'application/json'], produces: ['audio/wav', 'application/json'],
     tabs: [{ id: 'app', label: '흥', build(container: HTMLElement): void { buildStudio(container); } }]

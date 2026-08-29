@@ -74,7 +74,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdf2text.title', undefined, 'PDF 에서 글자 뽑기'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdf2text.desc',
       undefined,

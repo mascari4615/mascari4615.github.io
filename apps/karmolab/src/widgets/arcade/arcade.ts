@@ -77,7 +77,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
   Toolbox.register({
     id: 'arcade',
     title: t('widgets.arcade.title', undefined, '오락실'),
-    category: 'lab',
+    category: 'play',
     desc: t(
       'widgets-desc.arcade.desc',
       undefined,

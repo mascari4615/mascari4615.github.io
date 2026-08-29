@@ -21,7 +21,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'life',
     noPage: true,
     get title() { return t('widgets.life.title', undefined, "Life 채널"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.life.desc', undefined, "화면 캡처 / 음성 녹음 기능 on/off. 비활성 시 Whisper 모델 (~3.1GB) RAM 해제."); },
     icon: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
     lazyScriptPaths: ['life/life']
@@ -29,7 +29,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'user',
     get title() { return t('widgets.user.title', undefined, "내 정보"); },
-    category: 'tool',
+    category: 'app',
     hidden: true,
     get desc() { return t('widgets-desc.user.desc', undefined, "프로필, 성과, 활동, 계정"); },
     layout: 'form',
@@ -43,7 +43,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'usertool',
     noPage: true,
     get title() { return t('widgets.usertool.title', undefined, "만든 도구"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.usertool.desc', undefined, "사람들이 만들어 올린 도구. 상자 안에서만 돕니다"); },
     layout: 'form',
     icon: '<path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="17" cy="16" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -55,7 +55,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'flow',
     noPage: true,
     get title() { return t('widgets.flow.title', undefined, "흐름"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.flow.desc', undefined, "도구를 이어 붙여 내 순서를 만들고 저장합니다"); },
     layout: 'form',
     icon: '<path d="M4 6h6M14 6h6M4 18h6M14 18h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 6c0 6 4 6 4 12" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -65,7 +65,7 @@ window.KARMOLAB_LAZY_META = [
     // 환경 설정 = 이 브라우저의 것이다. 나(내 정보)와 한 화면에 두지 않는다 (TASK-KL-139).
     id: 'settings',
     get title() { return t('widgets.settings.title', undefined, "환경 설정"); },
-    category: 'tool',
+    category: 'app',
     hidden: true,
     get desc() { return t('widgets-desc.settings.desc', undefined, "테마, API 키, 이 브라우저에 저장된 것"); },
     layout: 'form',
@@ -75,7 +75,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'status',
     get title() { return t('widgets.status.title', undefined, "상태, 변경 기록"); },
-    category: 'tool',
+    category: 'app',
     hidden: true,
     get desc() { return t('widgets-desc.status.desc', undefined, "지금 잘 돌고 있는지와 최근에 무엇이 바뀌었는지. 전부 실측"); },
     layout: 'form',
@@ -87,7 +87,7 @@ window.KARMOLAB_LAZY_META = [
        어디가 느린가를 볼 때 여는 자리다. ⌘K, 주소로는 그대로 열린다. */
     id: 'perf',
     get title() { return t('widgets.perf.title', undefined, "성능 계기판"); },
-    category: 'tool',
+    category: 'app',
     hidden: true,
     get desc() { return t('widgets-desc.perf.desc', undefined, "KarmoLab 자기 성능 실측. 부팅, 위젯별 무게, 긴 작업, 프레임, 판별 부팅 비교 (개발용)"); },
     layout: 'form',
@@ -102,7 +102,7 @@ window.KARMOLAB_LAZY_META = [
     // marked 를 먼저. 렌더러가 공용(lib/markdown)으로 바뀌며 커뮤니티도 marked 를 쓴다 (KL-354).
     noPage: true,
     get title() { return t('widgets.community.title', undefined, "커뮤니티"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.community.desc', undefined, "자유, 질문, 자랑, 도구 요청. 도구를 쓰는 사람들이 모이는 자리"); },
     layout: 'full',
     noHero: true,
@@ -115,7 +115,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'plaza',
     noPage: true,
     get title() { return t('widgets.plaza.title', undefined, "광장"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.plaza.desc', undefined, "이 사이트의 숫자를 전부 공개하는 자리. 방문, 도구, 커뮤니티, 전부 실측"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3.5 12h17M12 3.2c2.4 2.6 2.4 14 0 17.6M12 3.2c-2.4 2.6-2.4 14 0 17.6" stroke="currentColor" stroke-width="1.2" fill="none"/>',
@@ -152,7 +152,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'devtools',
     noPage: true,
     get title() { return t('widgets.devtools.title', undefined, "디버그"); },
-    category: 'tool',
+    category: 'app',
     desktopOnly: true,
     get desc() { return t('widgets-desc.devtools.desc', undefined, "데스크톱 앱, 연동 점검용 테스트 모음 (알림 등)"); },
     layout: 'form',
@@ -164,7 +164,7 @@ window.KARMOLAB_LAZY_META = [
        안 되는 브라우저에서는 없는 척하지 않고 이 브라우저는 아직이라고 적는다. */
     id: 'localai',
     get title() { return t('widgets.localai.title', undefined, "기기 안 AI"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.localai.desc', undefined, "번역, 요약을 서버 없이 이 기기 안에서. 글이 밖으로 안 나갑니다 (크롬 계열 최신판)"); },
     layout: 'form',
     icon: '<rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9.5" cy="10" r="1.2" fill="currentColor"/><circle cx="14.5" cy="10" r="1.2" fill="currentColor"/><path d="M9 14.5c1.8 1.3 4.2 1.3 6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -175,7 +175,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'install',
     noPage: true,
     get title() { return t('widgets.install.title', undefined, "설치"); },
-    category: 'tool',
+    category: 'app',
     desktopOnly: true,
     get desc() { return t('widgets-desc.install.desc', undefined, "동반자 창 같은 부품을 이 컴퓨터에 깐다 (데스크톱 앱 전용)"); },
     layout: 'form',
@@ -186,7 +186,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'servermonitor',
     noPage: true,
     get title() { return t('widgets.servermonitor.title', undefined, "서버 모니터"); },
-    category: 'tool',
+    category: 'app',
     desktopOnly: true,
     get desc() { return t('widgets-desc.servermonitor.desc', undefined, "로컬 URL, 프로세스, .env (데스크톱)"); },
     layout: 'form',
@@ -198,7 +198,7 @@ window.KARMOLAB_LAZY_META = [
        자리, 덩어리, 이름은 미리 구워 둔다(scripts/build-memo-atlas.mjs). */
     id: 'memo-atlas',
     get title() { return t('widgets.memo-atlas.title', undefined, "내 글 지형도"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.memo-atlas.desc', undefined, "내가 쓴 글이 어디에 쏠려 있는지 한 장으로"); },
     icon: '<circle cx="7" cy="8" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="6" r="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="16" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="17" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 8.6l5.4-2M15.4 8.4l1.2 5M14.6 16.9l-6.2.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
     lazyScriptPaths: ['memo-atlas']
@@ -207,7 +207,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'activity',
     noPage: true,
     get title() { return t('widgets.activity.title', undefined, "활동 기록"); },
-    category: 'lab',
+    category: 'app',
     desktopOnly: true,
     get desc() { return t('widgets-desc.activity.desc', undefined, "내 PC에서 어떤 앱, 창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)"); },
     layout: 'form',
@@ -217,7 +217,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'quest-log',
     get title() { return t('widgets.quest-log.title', undefined, "Quest Log"); },
-    category: 'lab',
+    category: 'app',
     desktopOnly: true,
     hidden: true,
     get desc() { return t('widgets-desc.quest-log.desc', undefined, "memo TASK 정본을 읽어 프로젝트 진행도를 보여주는 개발용 작업 지도"); },
@@ -233,7 +233,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'wm',
     noPage: true,
     get title() { return t('widgets.wm.title', undefined, "Witch-Mendokusai"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.wm.desc', undefined, "만들고 있는 게임. 소개, 하루 체험, 세계 도감, 이야기, 소식, 만드는 중"); },
     layout: 'full',
     noHero: true,
@@ -257,7 +257,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'passgen',
     get title() { return t('widgets.passgen.title', undefined, "비밀번호 만들기, 확인"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.passgen.desc', undefined, "안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/>',
@@ -266,7 +266,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'devtool',
     get title() { return t('widgets.devtool.title', undefined, "개발 도구"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.devtool.desc', undefined, "JSON 포맷, JWT 디코드, 정규식 테스트, 해시, UUID, 크론, URL, 암호화를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -277,7 +277,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.diff.title', undefined, "견주기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.diff.desc', undefined, "두 글, 코드의 다른 데를 짚습니다. JSON 은 열쇠 경로로 견주고, 바탕 하나에 고침 둘도 합칩니다"); },
     layout: 'wide',
     icon: '<path d="M8 4v11a3 3 0 0 0 3 3h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="8" cy="4" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="18" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 6h4M18 4v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -288,7 +288,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.curlkit.title', undefined, "curl 옮기기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.curlkit.desc', undefined, "curl 명령을 fetch, axios, 파이썬, Go 코드로 옮기고, 그 자리에서 보내 봅니다"); },
     layout: 'wide',
     icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 15l3 2-3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -299,7 +299,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.xmlfmt.title', undefined, "XML 다루기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.xmlfmt.desc', undefined, "XML 을 보기 좋게 펴거나 한 줄로 뭉치고, JSON 으로 옮깁니다. 틀린 자리는 줄, 칸으로 짚습니다"); },
     layout: 'wide',
     icon: '<path d="M9 7 4 12l5 5M15 7l5 5-5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 5l-2 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -310,7 +310,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.configconv.title', undefined, "설정 옮기기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.configconv.desc', undefined, ".env, YAML, TOML, JSON, .properties 를 서로 옮깁니다. 무엇인지 알아서 알아봅니다"); },
     layout: 'wide',
     icon: '<path d="M4 6h7M4 12h7M4 18h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 8l3 4-3 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -321,7 +321,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.mockdata.title', undefined, "가짜 데이터 만들기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.mockdata.desc', undefined, "칸 종류만 적으면 그럴듯한 시험용 데이터를 만듭니다. 한국어, 영어, 일본어 이름, CSV, JSON, SQL 로"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/mockdata']
@@ -331,7 +331,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.jqplay.title', undefined, "jq 놀이터"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.jqplay.desc', undefined, "JSON 을 붙여넣고 jq 식으로 물어봅니다. 치는 동안 바로 답이 나오고, 아무것도 올리지 않습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
@@ -341,7 +341,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.sqlfmt.title', undefined, "SQL 다듬기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.sqlfmt.desc', undefined, "한 줄로 눌린 SQL 을 읽히게 펴고, MySQL, PostgreSQL, SQL Server, SQLite 사이를 옮겨 줍니다"); },
     layout: 'wide',
     // 파일이 아니라 작업대의 조작으로 산다 (TASK-KL-257). 주소는 그대로, 부르면 작업대가 연다.
@@ -352,7 +352,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.erd.title', undefined, "표 관계 보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.erd.desc', undefined, "CREATE TABLE 이나 Prisma 스키마를 붙여넣으면 표, 칸, 이어짐을 그림과 글로 보여 줍니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/erd']
@@ -362,7 +362,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.mermaidlite.title', undefined, "글로 그리는 그림판"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.mermaidlite.desc', undefined, "mermaid 문법으로 흐름도, 표 관계를 그리고 SVG, PNG 로 저장합니다. 치는 동안 바로 그려집니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/mermaidlite']
@@ -372,7 +372,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.semver.title', undefined, "버전 범위 보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.semver.desc', undefined, "^1.2.3 이 실제로 어디까지 받는지 이상, 미만으로 펴 주고, 두 범위가 겹치는지 봅니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/semver']
@@ -382,7 +382,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.csp.title', undefined, "보안 헤더"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.csp.desc', undefined, "CSP 를 갈래별로 펴서 약한 자리를 짚고, 필요한 것만 골라 헤더 한 줄을 지어 줍니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/csp']
@@ -390,7 +390,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'logview',
     get title() { return t('widgets.logview.title', undefined, "로그 보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.logview.desc', undefined, "큰 로그를 끌어다 놓으면 언제 몰렸는지 보여 주고, 급, 정규식으로 좁혀 봅니다. 파일은 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M4 5h16M4 9h10M4 13h16M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M20.2 19.2L22 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -399,7 +399,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'bundlemap',
     get title() { return t('widgets.bundlemap.title', undefined, "번들 지도"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.bundlemap.desc', undefined, "webpack stats.json 이나 esbuild metafile 을 넣으면 어디가 무거운지 넓이로 보여 주고, 두 번 들어간 꾸러미를 찾아 줍니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="3" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="16" y="3" width="5" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="16" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="12" y="12" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -408,7 +408,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'dupphoto',
     get title() { return t('widgets.dupphoto.title', undefined, "닮은 사진 찾기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.dupphoto.desc', undefined, "사진을 여러 장 넣으면 닮은 것끼리 묶어 어느 것을 남기면 되는지 알려 줍니다. 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="3" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -417,7 +417,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'photomap',
     get title() { return t('widgets.photomap.title', undefined, "사진 자리 보기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.photomap.desc', undefined, "사진에 든 위치, 날짜를 읽어 어디서 언제 찍었는지 보여 줍니다. 지도 타일을 받지 않아 위치가 밖으로 안 나갑니다"); },
     layout: 'wide',
     icon: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -426,7 +426,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'codegraph',
     get title() { return t('widgets.codegraph.title', undefined, "부름 지도"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.codegraph.desc', undefined, "zip 을 넣으면 파일이 서로 무엇을 부르는지 그리고, 고리, 많이 불리는 파일, 아무도 안 부르는 파일을 짚습니다"); },
     layout: 'wide',
     icon: '<circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="7" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.2 7.2l7.2 .6M7 8.3l4 7.4M16.6 9.3l-3.4 6.5" stroke="currentColor" stroke-width="1.4"/>',
@@ -437,7 +437,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.apitest.title', undefined, "API 눌러 보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.apitest.desc', undefined, "OpenAPI 스펙을 붙여넣으면 연산 목록이 서고, 값을 채워 그 자리에서 보내 봅니다. 목 응답도 만들어 줍니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/apitest']
@@ -447,7 +447,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.protobuf.title', undefined, "protobuf 뜯어보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.protobuf.desc', undefined, "protobuf 바이너리를 16진수, base64 로 붙여넣으면 칸별로 풀어 줍니다. .proto 를 주면 이름까지 붙습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/protobuf']
@@ -457,7 +457,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.prettyall.title', undefined, "CSS, HTML 정리"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.prettyall.desc', undefined, "CSS 와 HTML 을 읽기 좋게 펴거나 눌러서 줄입니다. 따옴표 안과 pre, script 속은 건드리지 않습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/devtool'] // 작업대의 조작으로 산다 (KL-257)
@@ -467,7 +467,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.sshkey.title', undefined, "SSH 열쇠 보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.sshkey.desc', undefined, "authorized_keys 를 붙여넣으면 줄마다 종류, 길이, 주석, 지문을 냅니다. 공개키 PEM 을 OpenSSH 줄로도 바꿉니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/sshkey']
@@ -477,7 +477,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.nettool.title', undefined, "대역, 포트"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.nettool.desc', undefined, "CIDR 이 어디부터 어디까지인지, 몇 대가 들어가는지 세고, 두 대역이 겹치는지 봅니다. 포트 번호도 찾습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/nettool']
@@ -485,7 +485,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'livecount',
     get title() { return t('widgets.livecount.title', undefined, "흐른 시간 카운터"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.livecount.desc', undefined, "그날 이후 흐른 시간이 초 단위로 올라간다. 하루 몇 번 기준 어림도"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -494,7 +494,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'comparepic',
     get title() { return t('widgets.comparepic.title', undefined, "비교 슬라이더"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.comparepic.desc', undefined, "사진 두 장을 겹쳐 밀어 보며 비교. 파일은 기기 밖으로 나가지 않는다"); },
     layout: 'wide',
     accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
@@ -504,7 +504,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'charconv',
     get title() { return t('widgets.charconv.title', undefined, "문자 변환"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.charconv.desc', undefined, "전각, 반각, 한글, 로마자, 한글, 자모, 간체, 번체, 한자, 병음을 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M5 8h6M8 8v8M14 16l4-8 4 8M15.5 13h5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -513,7 +513,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'mesh3d',
     get title() { return t('widgets.mesh3d.title', undefined, "3D 뷰어"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.mesh3d.desc', undefined, "STL, OBJ 를 열어 돌려 본다. 삼각형 수, 크기까지, 파일은 기기 밖으로 안 나간다"); },
     layout: 'wide',
     icon: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/>',
@@ -522,7 +522,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'dailycho',
     get title() { return t('widgets.dailycho.title', undefined, "오늘의 초성 맞히기"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.dailycho.desc', undefined, "초성만 보고 낱말 다섯 개. 답은 이 사이트의 도구 이름"); },
     layout: 'wide',
     icon: '<path d="M7 8v8M12 8v8M17 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 12h1M20 12h-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -531,7 +531,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'dailytype',
     get title() { return t('widgets.dailytype.title', undefined, "오늘의 한글 타자"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.dailytype.desc', undefined, "매일 바뀌는 세 문장. 전원 같은 문제, 결과는 격자로만 공유"); },
     layout: 'wide',
     icon: '<path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 11h2M11 11h2M15 11h2M8 14h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -540,7 +540,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'chain',
     get title() { return t('widgets.chain.title', undefined, "도구 묶어 쓰기"); },
-    category: 'tool',
+    category: 'app',
     get desc() { return t('widgets-desc.chain.desc', undefined, "도구 여러 개를 이어서 한 번에. 앞 결과가 다음 도구의 입력이 됩니다"); },
     layout: 'wide',
     icon: '<path d="M9 12a3 3 0 0 1 3-3h2a3 3 0 0 1 0 6h-1M15 12a3 3 0 0 1-3 3h-2a3 3 0 0 1 0-6h1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
@@ -552,7 +552,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // devtool 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.base64.title', undefined, "Base64 인코딩, 디코딩"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.base64.desc', undefined, "텍스트와 Base64 를 서로 바꿉니다. 한글 안 깨짐, URL-safe 표기 지원"); },
     layout: 'wide',
     icon: '<path d="M4 7h6v10H4zM14 7h6v10h-6z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 12h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -563,7 +563,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.crypto.title', undefined, "암호화 / 복호화"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.crypto.desc', undefined, "텍스트를 AES, Base64, URL 인코딩으로 암호화, 복호화합니다"); },
     layout: 'form',
     icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>',
@@ -572,7 +572,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'memo',
     get title() { return t('widgets.memo.title', undefined, "메모장"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.memo.desc', undefined, "로컬 메모를 저장하고 관리합니다"); },
     layout: 'full',
     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
@@ -581,7 +581,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'chatbot',
     get title() { return t('widgets.chatbot.title', undefined, "챗봇"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.chatbot.desc', undefined, "AI와 대화합니다"); },
     layout: 'full',
     icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>',
@@ -608,7 +608,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.imagegen.title', undefined, "이미지 생성"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.imagegen.desc', undefined, "AI로 이미지를 생성합니다"); },
     layout: 'full',
     icon: '<circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/>',
@@ -628,7 +628,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'image',
     get title() { return t('widgets.image.title', undefined, "이미지"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.image.desc', undefined, "편집, 형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서"); },
     layout: 'full',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 17l4.5-4.5 3 3L15 12l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -642,7 +642,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.imageedit.title', undefined, "이미지 편집"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.imageedit.desc', undefined, "편집, 형식, 해상도 변환(PNG, JPEG, WebP 등)을 한 화면에서"); },
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 3v18" stroke="currentColor" stroke-width="1.5"/><path d="M3 15h18" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="9" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -654,7 +654,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.meok.title', undefined, "먹"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.meok.desc', undefined, "갈아서 칠하고 칸으로 움직인다. 레이어, 붓, 도트 애니메이션"); },
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 15l3.2-4.2 2.4 3 2-2.4L18 15" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="9" cy="8" r="1.4" fill="currentColor"/>',
@@ -667,7 +667,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.imagelib.title', undefined, "이미지 라이브러리"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.imagelib.desc', undefined, "생성한 이미지를 저장하고 관리합니다"); },
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
@@ -676,7 +676,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'tierlist',
     get title() { return t('widgets.tierlist.title', undefined, "티어리스트"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.tierlist.desc', undefined, "후보 풀(주제별 요소)에서 순위 인스턴스를 만들고, 블로그, 로컬 JSON으로 주고받기 (개발 중)"); },
     layout: 'form',
     icon: '<path d="M3 3h18v4H3zM3 9h14v4H3zM3 15h10v4H3z"/>',
@@ -687,7 +687,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'works',
     noPage: true,
     get title() { return t('widgets.works.title', undefined, "작업물"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.works.desc', undefined, "만든 것들. 게임, VRChat 콘텐츠, 도구"); },
     layout: 'wide',
     icon: '<rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="1.5"/>',
@@ -698,7 +698,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'about',
     noPage: true,
     get title() { return t('widgets.about.title', undefined, "소개"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.about.desc', undefined, "카모뜨린. 유니티 게임 개발, VRChat 콘텐츠 제작"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="8" r="1" fill="currentColor"/>',
@@ -707,7 +707,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'postgraph',
     get title() { return t('widgets.postgraph.title', undefined, "글 그래프"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.postgraph.desc', undefined, "블로그 포스트 간 내부 링크 관계를 그래프로 봅니다 (개발 중)"); },
     layout: 'full',
     icon: '<circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10.2" y1="10.2" x2="13.8" y2="13.8" stroke="currentColor" stroke-width="1.5"/>',
@@ -736,7 +736,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'adventure',
     get title() { return t('widgets.adventure.title', undefined, "무한 텍스트 어드벤처"); },
-    category: 'play',
+    category: 'ai',
     get desc() { return t('widgets-desc.adventure.desc', undefined, "티메토 GM 의 무한 텍스트 어드벤처 (KL-032). 무대 = KarmoWorld, history → wiki entity 누적"); },
     layout: 'full',
     icon: '<path d="M14 4l6 6-9 9H5v-6l9-9z M3 21l3-3 M19 7l-2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
@@ -751,7 +751,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'planner',
     get title() { return t('widgets.planner.title', undefined, "플래너"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.planner.desc', undefined, "나만의 일정 동기화 및 스트릭 칸반 보드 (개발 중)"); },
     layout: 'full',
     icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>',
@@ -761,7 +761,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'cockpit',
     noPage: true,
     get title() { return t('widgets.cockpit.title', undefined, "Cockpit"); },
-    category: 'lab',
+    category: 'app',
     desktopOnly: true,
     get desc() { return t('widgets-desc.cockpit.desc', undefined, "프로젝트 구조, 상황 단일 표면. Unity Shader Graph 식 노드 그래프 + TASK 탭 (TASK-KL-082, 통합 위젯)"); },
     layout: 'full',
@@ -772,7 +772,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'terminal',
     get title() { return t('widgets.terminal.title', undefined, "PowerShell 터미널"); },
-    category: 'tool',
+    category: 'dev',
     desktopOnly: true,
     get desc() { return t('widgets-desc.terminal.desc', undefined, "카드 stdin 무관 단일 셸 (line-IO). pwsh→powershell.exe fallback, cd/Set-Location 자동 추적, 5000줄 cap"); },
     layout: 'full',
@@ -783,7 +783,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'my-ai',
     get title() { return t('widgets.my-ai.title', undefined, "내 AI"); },
-    category: 'tool',
+    category: 'ai',
     desktopOnly: true,
     get desc() { return t('widgets-desc.my-ai.desc', undefined, "내가 쓰는 AI의 구독, 환경, 운영, 연결을 한곳에서"); },
     layout: 'form',
@@ -793,7 +793,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'alarm',
     get title() { return t('widgets.alarm.title', undefined, "알람"); },
-    category: 'tool',
+    category: 'calc',
     desktopOnly: true,
     get desc() { return t('widgets-desc.alarm.desc', undefined, "강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064). 상주 스케줄러 + OS 강제기상(절전 깨우기/모니터 ON/볼륨 강제) + autostart"); },
     layout: 'form',
@@ -814,7 +814,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.slug.title', undefined, "슬러그 만들기"); },
-    category: 'tool',
+    category: 'dev',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -822,7 +822,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.caseconv.title', undefined, "표기법 변환"); },
-    category: 'tool',
+    category: 'dev',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -830,7 +830,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.linebreak.title', undefined, "줄바꿈 정리"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -838,7 +838,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.textclean.title', undefined, "텍스트 정리"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -846,7 +846,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.hangulkey.title', undefined, "한영타 변환"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -854,7 +854,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.jamo.title', undefined, "한글 자모 분해"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -862,7 +862,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.replace.title', undefined, "찾아 바꾸기"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -870,7 +870,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.listdiff.title', undefined, "목록 비교"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -878,7 +878,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.charcount.title', undefined, "글자수 세기"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -886,7 +886,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.wordfreq.title', undefined, "단어 빈도 분석"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -894,7 +894,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.textdiff.title', undefined, "텍스트 비교"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -902,7 +902,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.textredact.title', undefined, "글자 가리개"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -910,7 +910,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.encdetective.title', undefined, "깨진 글자 되살리기"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.encdetective.desc', undefined, "뷁, í-œêµ­ì-´ 처럼 잘못 읽힌 글을 되짚어 원문으로 돌리고, 무엇이 잘못됐는지 알려 줍니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/text']
@@ -920,7 +920,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.unicodex.title', undefined, "안 보이는 글자 찾기"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.unicodex.desc', undefined, "눈에 안 보이는 글자와 닮은 글자(키릴 а 같은 것)를 찾아 보여 주고 골라서 지웁니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/text']
@@ -930,7 +930,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 할 일로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.tts.title', undefined, "글 읽어 주기"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.tts.desc', undefined, "적은 글을 소리 내어 읽어 줍니다. 문장마다 따라가며 보여 주고, 목소리, 속도를 고를 수 있습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/tts']
@@ -940,7 +940,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.text2pdf.title', undefined, "글을 PDF 로"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -948,7 +948,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.text2img.title', undefined, "글자를 그림으로"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -956,7 +956,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.lorem.title', undefined, "더미 텍스트 생성"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
@@ -964,13 +964,13 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 텍스트 도구 작업대의 조작으로 합쳐짐. 검색, 북마크 주소는 유지
     bundle: 'text', // 이 도구를 부르면 작업대의 이 조작으로 간다
     get title() { return t('widgets.checklist.title', undefined, "체크리스트"); },
-    category: 'tool',
+    category: 'text',
     lazyScriptPaths: ['tools/text']
   },
   {
     id: 'text',
     get title() { return t('widgets.text.title', undefined, "텍스트 도구"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.text.desc', undefined, "글자수 세기, 줄 정리, 두 글 비교, 표기법 변환, 한영타 되돌리기를 한 곳에서"); },
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
@@ -980,7 +980,7 @@ window.KARMOLAB_LAZY_META = [
     // 진짜로 못 여는 편지. 목록에서 바로 보여야 한다 (TASK-KL-134).
     id: 'timecapsule',
     get title() { return t('widgets.timecapsule.title', undefined, "타임캡슐 편지"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.timecapsule.desc', undefined, "정한 날 전에는 아무도 못 여는 편지를 만듭니다. 맡아 두는 서버가 없어 잠긴 편지 자체가 주소가 됩니다"); },
     layout: 'wide',
     icon: '<rect x="4" y="9" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -990,7 +990,7 @@ window.KARMOLAB_LAZY_META = [
     // 둘이 붙는 놀이. 목록에서 바로 보여야 한다 (TASK-KL-132).
     id: 'duel',
     get title() { return t('widgets.duel.title', undefined, "번개 대결"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.duel.desc', undefined, "몇 초짜리 미니게임으로 둘이 붙습니다. 링크 하나면 바로 시작하고, 방을 우리 서버에 두지 않습니다"); },
     layout: 'wide',
     noHero: true,
@@ -1001,7 +1001,7 @@ window.KARMOLAB_LAZY_META = [
     // 놀이라 묶음에 안 넣는다. 목록에서 바로 보여야 사람이 들어온다 (TASK-KL-131).
     id: 'ghosttype',
     get title() { return t('widgets.ghosttype.title', undefined, "유령 타자 대결"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.ghosttype.desc', undefined, "타자 기록이 주소 하나가 되고, 그 주소를 연 사람은 내 유령과 나란히 달립니다. 아무 글이나 걸 수 있고 주소는 만료되지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M12 3a6 6 0 0 0-6 6v10l2-1.6 2 1.6 2-1.6 2 1.6 2-1.6 2 1.6V9a6 6 0 0 0-6-6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M10 10h.01M14 10h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
@@ -1012,7 +1012,7 @@ window.KARMOLAB_LAZY_META = [
     // 하는 일의 결이 다르고, 목록에서 바로 보여야 하는 도구다 (TASK-KL-130).
     id: 'pdfdiff',
     get title() { return t('widgets.pdfdiff.title', undefined, "PDF 판본 대조"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfdiff.desc', undefined, "문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표, 도장이 밀린 것도 잡습니다"); },
     layout: 'wide',
     icon: '<path d="M9 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 8h3M7 12h2M14 8h3M14 12h3M14 16h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1024,7 +1024,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdf2img.title', undefined, "PDF → 이미지"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.pdf2img.desc', undefined, "PDF 페이지를 PNG, JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지"); },
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M13 19l2-2 2 2 2-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
@@ -1036,7 +1036,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.img2pdf.title', undefined, "이미지 → PDF"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.img2pdf.desc', undefined, "사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -1048,7 +1048,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.printkit.title', undefined, "인쇄용 종이"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.printkit.desc', undefined, "모눈, 점모눈, 원고지, 오선지, 달력, 라벨을 PDF 로 만듭니다. mm 로 그려 어느 프린터에서도 자리가 맞습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/printkit']
@@ -1058,7 +1058,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // filetool 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.ziptool.title', undefined, "ZIP 만들기, 풀기"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.ziptool.desc', undefined, "파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다"); },
     layout: 'wide',
     icon: '<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 3v2h2V3M11 7v2h2V7M11 11v2h2v-2" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="15" width="3" height="4" rx="0.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -1070,7 +1070,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdfwatermark.title', undefined, "PDF 워터마크"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfwatermark.desc', undefined, "PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다"); },
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 17 16 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>',
@@ -1083,7 +1083,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 소리 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.audiospeed.title', undefined, "소리 속도"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.audiospeed.desc', undefined, "녹음을 빠르게, 느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다"); },
     layout: 'wide',
     icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 8l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1096,7 +1096,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 소리 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.audiofade.title', undefined, "소리 페이드"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.audiofade.desc', undefined, "시작, 끝의 툭 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다"); },
     layout: 'wide',
     icon: '<path d="M3 19L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 19v-3M11 19v-6M15 19v-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
@@ -1109,7 +1109,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 소리 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.audiojoin.title', undefined, "오디오 이어붙이기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.audiojoin.desc', undefined, "여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다"); },
     layout: 'wide',
     icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',
@@ -1121,7 +1121,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // filetool 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.imgbatch.title', undefined, "이미지 일괄 변환"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.imgbatch.desc', undefined, "사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다"); },
     layout: 'wide',
     produces: ['image/png', 'image/jpeg', 'image/webp'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1134,7 +1134,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // filetool 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.filehash.title', undefined, "파일 검사값 확인"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.filehash.desc', undefined, "내려받은 파일의 체크섬을 계산하고 배포처가 적어 둔 값과 맞춰 봅니다"); },
     layout: 'wide',
     icon: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1145,7 +1145,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdftool.title', undefined, "PDF 편집"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdftool.desc', undefined, "PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     accepts: ['application/pdf'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
@@ -1159,7 +1159,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 소리 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.audiocut.title', undefined, "오디오 자르기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.audiocut.desc', undefined, "음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M3 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1171,7 +1171,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.favicon.title', undefined, "파비콘 만들기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.favicon.desc', undefined, "그림 한 장으로 사이트 아이콘 여러 크기와 ico 를 만듭니다. 붙일 코드까지 줍니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.3" opacity="0.6"/><circle cx="6" cy="7" r="0.9" fill="currentColor"/><path d="M9 15l2-2.5L13 15l2-3 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1183,7 +1183,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.imgmerge.title', undefined, "사진 이어 붙이기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.imgmerge.desc', undefined, "여러 장을 세로나 가로로 한 장에 이어 붙입니다. 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="3" width="18" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="13" width="18" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 7l2-2 2 2M7 17l2-2 2 2" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>',
@@ -1196,7 +1196,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdfsign.title', undefined, "PDF 에 서명 넣기"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfsign.desc', undefined, "계약서에 손으로 그린 서명을 얹습니다. 인쇄, 스캔 없이, 문서가 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16c1.5-3 2.5 1 4-1s2 .5 3-1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
@@ -1208,7 +1208,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.filesplit.title', undefined, "큰 파일 나누기, 합치기"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.filesplit.desc', undefined, "큰 파일을 여러 조각으로 나누고 다시 합칩니다. 압축하지 않아 원본과 완전히 같습니다"); },
     layout: 'wide',
     icon: '<path d="M4 12h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 3"/><rect x="4" y="3" width="16" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="4" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -1220,7 +1220,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.exifclean.title', undefined, "사진 정보 지우기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.exifclean.desc', undefined, "사진에 든 위치, 카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6l1.5-2h5L16 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M18.5 4.5 5.5 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
@@ -1233,7 +1233,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdf2text.title', undefined, "PDF 에서 글자 뽑기"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdf2text.desc', undefined, "PDF 의 글자를 줄, 문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     produces: ['text/plain'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1246,7 +1246,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.audiolevel.title', undefined, "소리 크기 맞추기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.audiolevel.desc', undefined, "들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M4 14V10M8 17V7M12 19V5M16 16V8M20 13v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
@@ -1259,7 +1259,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdfcrop.title', undefined, "PDF 여백 자르기"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfcrop.desc', undefined, "스캔본, 논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다"); },
     layout: 'wide',
     icon: '<path d="M7 3v14h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 7h14v14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -1272,7 +1272,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdfpagenum.title', undefined, "PDF 쪽 번호"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfpagenum.desc', undefined, "PDF 에 쪽 번호를 넣습니다. 표지는 건너뛰고 본문부터 1로 셀 수 있습니다"); },
     layout: 'wide',
     icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
@@ -1285,7 +1285,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // PDF 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pdfredact.title', undefined, "PDF 가리개"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfredact.desc', undefined, "PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다"); },
     layout: 'wide',
     icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="8" y="12" width="7" height="3.5" rx="0.8" fill="currentColor"/>',
@@ -1300,7 +1300,7 @@ window.KARMOLAB_LAZY_META = [
     // 보여야 한다. 이어서 줄은 결과가 나온 그 순간에 갈 곳을 고르기 때문이다.
     accepts: ['application/pdf'],
     get title() { return t('widgets.pdfcompress.title', undefined, "PDF 용량 줄이기"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdfcompress.desc', undefined, "스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 16h6M12 11v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.2 12 14.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1310,7 +1310,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'pdf',
     get title() { return t('widgets.pdf.title', undefined, "PDF 도구"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.pdf.desc', undefined, "PDF 를 합치고 나누고 줄이고, 서명, 워터마크를 넣습니다. 문서가 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     lazyTabs: true, // 처리기가 무겁다. 연 탭만 만든다
@@ -1320,7 +1320,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'sound',
     get title() { return t('widgets.sound.title', undefined, "소리 도구"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.sound.desc', undefined, "녹음하고 자르고 크기를 맞추고 잇습니다. MP3, WAV 로 저장하며 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     lazyTabs: true,
@@ -1330,7 +1330,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'filetool',
     get title() { return t('widgets.filetool.title', undefined, "파일 도구"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.filetool.desc', undefined, "사진 변환, 이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
@@ -1342,7 +1342,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.video2gif.title', undefined, "영상 → GIF"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.video2gif.desc', undefined, "영상의 원하는 구간을 GIF 로 만듭니다. 구간, 화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/>',
@@ -1355,7 +1355,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.video2audio.title', undefined, "영상에서 소리 추출"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.video2audio.desc', undefined, "영상 파일의 소리만 뽑아 음원으로 받습니다. 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 10l5-3v10l-5-3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 14c0-2 1.5-3 2.5-3s2.5 1 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
@@ -1368,7 +1368,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.videotrim.title', undefined, "영상 자르기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.videotrim.desc', undefined, "영상에서 원하는 구간만 잘라 냅니다. 소리도 함께 남고, 영상이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M6 4v13a3 3 0 1 0 2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M18 4v13a3 3 0 1 1-2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M9 9h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1381,7 +1381,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.videorotate.title', undefined, "영상 돌리기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.videorotate.desc', undefined, "누워서 찍힌 영상을 세웁니다. 돌리면 가로세로도 함께 바뀝니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M17 8a5 5 0 0 1 0 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.5 5.5L17 8l2.5 2.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1394,7 +1394,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.videocompress.title', undefined, "영상 용량 줄이기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.videocompress.desc', undefined, "영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.5 9.5 8 12l2.5 2.5M13.5 9.5 16 12l-2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1407,7 +1407,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.video2img.title', undefined, "영상에서 사진 뽑기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.video2img.desc', undefined, "영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     produces: ['image/png', 'image/jpeg'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1419,7 +1419,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 영상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.screenrec.title', undefined, "화면 녹화"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.screenrec.desc', undefined, "화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     produces: ['video/webm'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1431,7 +1431,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.voicerec.title', undefined, "목소리 녹음"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.voicerec.desc', undefined, "마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     produces: ['audio/wav', 'audio/mpeg'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1441,7 +1441,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'videotool',
     get title() { return t('widgets.videotool.title', undefined, "영상 도구"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.videotool.desc', undefined, "영상을 GIF 로 만들고, 구간을 자르고, 소리를 뽑고, 화면을 녹화합니다. 영상이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     lazyTabs: true, // 처리가 무겁다. 연 탭만 만든다
@@ -1453,7 +1453,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // devtool 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.csvjson.title', undefined, "CSV ↔ JSON 변환"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.csvjson.desc', undefined, "표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표, 줄바꿈도 안 깨집니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="8" height="16" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h8M3 14h8" stroke="currentColor" stroke-width="1.3"/><path d="M15 6h1a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -1464,7 +1464,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.tableconv.title', undefined, "표 바꾸기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.tableconv.desc', undefined, "엑셀에서 복사한 표를 마크다운, CSV, JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M3 14.5h18M9 4v16M15 4v16" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',
@@ -1475,7 +1475,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // devtool 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.json2ts.title', undefined, "JSON → 타입 선언"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.json2ts.desc', undefined, "JSON 에서 TypeScript 인터페이스를 만듭니다. 배열은 모든 원소를 합쳐 봅니다"); },
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 8h6M17 8v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
@@ -1486,7 +1486,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.jsonfmt.title', undefined, "JSON 포맷터"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.jsonfmt.desc', undefined, "JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄, 칸 위치를 찾아줍니다"); },
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M15 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1497,7 +1497,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // QR 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'qr', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.qrgen.title', undefined, "QR 코드 생성"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.qrgen.desc', undefined, "URL, 텍스트, WiFi, 연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다"); },
     layout: 'form',
     icon: '<rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -1508,7 +1508,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // QR 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'qr', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.qrread.title', undefined, "QR 코드 읽기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.qrread.desc', undefined, "그림이나 카메라로 QR 을 읽고, 그 안에 무엇이 들었는지 알려 줍니다. 어디에도 올리지 않습니다"); },
     layout: 'wide',
     accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
@@ -1518,7 +1518,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'qr',
     get title() { return t('widgets.qr.title', undefined, "QR 도구"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.qr.desc', undefined, "QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다"); },
     layout: 'wide',
     lazyTabs: true, // 해독기가 무겁다. 연 탭만 만든다
@@ -1528,7 +1528,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'draw',
     get title() { return t('widgets.draw.title', undefined, "랜덤 뽑기"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.draw.desc', undefined, "로또 번호, 사다리타기, 추첨과 팀 나누기를 한 곳에서"); },
     layout: 'wide',
     icon: '<circle cx="9" cy="10" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 8v4M7 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1537,7 +1537,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'quest',
     get title() { return t('widgets.quest.title', undefined, "오늘의 문제"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.quest.desc', undefined, "도구를 열어야 풀리는 하루 한 문제. 진법, 모스, 해시, 단위"); },
     layout: 'wide',
     noHero: true,
@@ -1548,7 +1548,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'packs',
     get title() { return t('widgets.packs.title', undefined, "내 표 만들기"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.packs.desc', undefined, "놀이에 쓸 표를 직접 만듭니다. 스프레드시트에서 붙여넣기 한 판이면 됩니다"); },
     layout: 'wide',
     noHero: true,
@@ -1559,7 +1559,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'twenty',
     get title() { return t('widgets.twenty.title', undefined, "스무고개"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.twenty.desc', undefined, "하나를 마음에 정하면 스무 번 안에 맞힙니다. 포켓몬, 롤 챔피언, 원신 캐릭터"); },
     layout: 'wide',
     noHero: true,
@@ -1570,7 +1570,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'higher',
     get title() { return t('widgets.higher.title', undefined, "높은 쪽 고르기"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬, 롤, 원신"); },
     layout: 'wide',
     noHero: true,
@@ -1581,7 +1581,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'worldcup',
     get title() { return t('widgets.worldcup.title', undefined, "이상형 월드컵"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.worldcup.desc', undefined, "둘 중 하나만 고르는 토너먼트. 표를 만들면 그대로 내 월드컵이 됩니다"); },
     layout: 'wide',
     noHero: true,
@@ -1594,7 +1594,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 뽑기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.lotto.title', undefined, "로또 번호 생성"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.lotto.desc', undefined, "로또 6/45 와 연금복권720+ 번호를 뽑고, 최신 회차와 자동으로 대조합니다"); },
     layout: 'form',
     icon: '<circle cx="8" cy="9" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="15" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7v4M6 9h4" stroke="currentColor" stroke-width="1.4"/>',
@@ -1605,7 +1605,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 시간 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.timer.title', undefined, "타이머, 스톱워치"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.timer.desc', undefined, "카운트다운 타이머와 랩 기록 스톱워치. 끝나면 알림음이 울립니다"); },
     layout: 'form',
     icon: '<circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 9v4l3 2M9 2h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -1614,7 +1614,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'time',
     get title() { return t('widgets.time.title', undefined, "시간"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.time.desc', undefined, "날짜 계산, D-Day, 타이머, 스톱워치, 세계 시차를 한 곳에서"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -1625,7 +1625,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // time 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.birth.title', undefined, "생일 정보"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.birth.desc', undefined, "생년월일로 만 나이, 띠, 별자리, 태어난 요일, 다음 생일까지 남은 날을 한 번에"); },
     layout: 'form',
     icon: '<path d="M4 20h16v-7H4zM6 13V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 7V5M12 7V4M15 7V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -1636,7 +1636,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 시간 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.workdays.title', undefined, "영업일 계산"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.workdays.desc', undefined, "주말과 공휴일을 뺀 영업일을 셉니다. 어떤 날을 뺐는지 보여 줍니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9 15l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1647,7 +1647,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // time 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.timecalc.title', undefined, "시간 더하기, 빼기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.timecalc.desc', undefined, "시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M16 4h5M18.5 1.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1658,7 +1658,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // time 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pace.title', undefined, "러닝 페이스 계산"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.pace.desc', undefined, "페이스와 속도를 서로 바꾸고 목표 기록에 필요한 페이스를 역산합니다"); },
     layout: 'wide',
     icon: '<circle cx="17" cy="5" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 21l2-6-3-2 1-4 3 2 2 1M9 12l-2 3-3 1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1669,7 +1669,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 시간 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.datecalc.title', undefined, "날짜 계산기, D-Day"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.datecalc.desc', undefined, "두 날짜 사이 일수, D-Day, 며칠 후 날짜, 만 나이를 계산합니다"); },
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -1680,7 +1680,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.unitconv.title', undefined, "단위 변환"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.unitconv.desc', undefined, "길이, 무게, 넓이(평), 부피, 온도, 데이터, 속도, 시간을 서로 변환합니다"); },
     layout: 'form',
     icon: '<path d="M3 8h13l-3-3M21 16H8l3 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1691,7 +1691,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.hashgen.title', undefined, "해시 생성기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.hashgen.desc', undefined, "텍스트나 파일의 MD5, SHA-1, SHA-256, SHA-512 해시(체크섬)를 브라우저에서 계산합니다"); },
     layout: 'form',
     icon: '<path d="M9 3L7 21M17 3l-2 18M4 8h16M3 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -1706,7 +1706,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.uuidgen.title', undefined, "UUID 생성기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.uuidgen.desc', undefined, "UUID v4, v7, ULID, NanoID, 안전한 비밀번호를 원하는 개수만큼 만듭니다"); },
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h2M11 12h2M15 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
@@ -1717,7 +1717,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.regextest.title', undefined, "정규식 테스터"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.regextest.desc', undefined, "정규표현식을 실시간으로 시험하고 매치, 그룹, 치환 결과를 확인합니다"); },
     layout: 'wide',
     icon: '<path d="M12 4v16M5 8l14 8M19 8L5 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -1726,7 +1726,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'color',
     get title() { return t('widgets.color.title', undefined, "색상 도구"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.color.desc', undefined, "HEX, RGB, HSL 변환, 이미지에서 색 추출, CSS 색 이름표를 한 곳에서"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.45"/><circle cx="8" cy="9" r="1.1" fill="currentColor"/>',
@@ -1737,7 +1737,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 색상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.gradient.title', undefined, "그라데이션 만들기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.gradient.desc', undefined, "배경용 그라데이션을 보면서 만들고 CSS 를 가져갑니다. 가운데가 탁해지지 않게 섞습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 18 19 6" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><circle cx="7" cy="8" r="1.6" fill="currentColor" opacity="0.8"/><circle cx="17" cy="16" r="1.6" fill="currentColor" opacity="0.4"/>',
@@ -1748,7 +1748,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // color 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.contrast.title', undefined, "색 대비 검사"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.contrast.desc', undefined, "글자색과 배경색의 대비비를 재고 접근성 기준 통과 여부를 알려줍니다"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
@@ -1759,7 +1759,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // color 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.colorblind.title', undefined, "색각 시뮬레이터"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.colorblind.desc', undefined, "두 색이 색각 이상에서 어떻게 보이는지 확인하고 구분 가능한지 판정합니다"); },
     layout: 'wide',
     icon: '<circle cx="9" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7.5a5.5 5.5 0 0 0 0 9" stroke="currentColor" stroke-width="1.3"/>',
@@ -1770,7 +1770,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 색상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.colorconv.title', undefined, "색상 변환"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.colorconv.desc', undefined, "HEX, RGB, HSL, CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.5"/>',
@@ -1780,7 +1780,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'papermap',
     get title() { return t('widgets.papermap.title', undefined, "논문 지도"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.papermap.desc', undefined, "논문 하나가 무엇 위에 서 있는지 지도로 봅니다. 크기가 인용 수, 왼쪽이 옛 논문이라 무엇부터 읽을지가 한눈에 보입니다"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="6" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="5" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="19" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 9v6M11 8.6L6.3 15.8M13 8.6l4.7 7.2" stroke="currentColor" stroke-width="1.4" fill="none"/>',
@@ -1789,7 +1789,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'burnnote',
     get title() { return t('widgets.burnnote.title', undefined, "사라지는 쪽지"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.burnnote.desc', undefined, "비밀번호 같은 것을 한 번만 열리는 링크로 건넵니다. 브라우저에서 잠그고 열쇠는 주소에만 담겨 서버는 내용을 볼 수 없습니다"); },
     layout: 'wide',
     icon: '<path d="M12 3l7 4v6c0 4-3 6.5-7 8-4-1.5-7-4-7-8V7z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9.5 12l1.8 1.8L15 10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1798,7 +1798,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'explainshell',
     get title() { return t('widgets.explainshell.title', undefined, "명령줄 뜯어보기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.explainshell.desc', undefined, "명령줄을 붙여넣으면 조각마다 무슨 뜻인지 알려 줍니다. 되돌릴 수 없는 명령에는 경고가 붙고, 붙여넣은 줄은 브라우저 밖으로 나가지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 9l3 3-3 3M12 15h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1807,7 +1807,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'soundscape',
     get title() { return t('widgets.soundscape.title', undefined, "소리 풍경"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.soundscape.desc', undefined, "비, 파도, 모닥불을 섞어 집중용 배경음을 만듭니다. 음원을 내려받지 않고 그 자리에서 소리를 만들어 같은 소리가 반복되지 않습니다"); },
     layout: 'wide',
     icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1816,7 +1816,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'codeshot',
     get title() { return t('widgets.codeshot.title', undefined, "코드 사진"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.codeshot.desc', undefined, "코드를 붙여넣으면 문법 색칠된 이미지로 만듭니다. 껍데기를 골라 쓰며 파일이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 10l-2 2 2 2M15 10l2 2-2 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1829,7 +1829,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.imgresize.title', undefined, "사진 크기 맞추기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.imgresize.desc', undefined, "가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16l3-3 2 2 3-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 7h3v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1841,7 +1841,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.bgremove.title', undefined, "배경 지우기"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.bgremove.desc', undefined, "배경을 지워 투명 PNG 로 만듭니다. 색으로 지우거나, 모양을 알아보고 오려냅니다. 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/bgremove']
@@ -1851,7 +1851,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.idphoto.title', undefined, "증명사진"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.idphoto.desc', undefined, "여권, 주민증, 이력서 규격에 맞춰 자르고, 배경을 바꾸고, 인화지 한 장에 여러 장을 놓아 줍니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/idphoto']
@@ -1861,7 +1861,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.docscan.title', undefined, "서류 스캔"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.docscan.desc', undefined, "비스듬히 찍은 서류를 반듯하게 펴고 스캔처럼 다듬어 PNG, PDF 로 냅니다. 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/docscan']
@@ -1871,7 +1871,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.ocr.title', undefined, "그림 속 글자 읽기"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.ocr.desc', undefined, "사진 속 글자를 읽어 냅니다. 글자가 든 PDF 는 더 정확한 도구로 보내 주고, 모형은 켤 때만 받습니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/ocr']
@@ -1881,7 +1881,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.redact.title', undefined, "가리개"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.redact.desc', undefined, "캡처에서 계좌번호, 이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다"); },
     layout: 'wide',
     produces: ['image/png'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1894,7 +1894,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 이미지 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.asciiart.title', undefined, "이미지 → 아스키 아트"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.asciiart.desc', undefined, "사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭, 문자 세트, 반전 조절"); },
     layout: 'wide',
     accepts: ['image/*', 'video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
@@ -1906,7 +1906,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.radix.title', undefined, "진법 변환"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.radix.desc', undefined, "2, 8, 10, 16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께"); },
     layout: 'form',
     icon: '<path d="M4 6h4v4H4zM4 14h4v4H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8h8M12 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 4v4M16 16v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1915,7 +1915,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'barcode',
     get title() { return t('widgets.barcode.title', undefined, "바코드 만들기"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.barcode.desc', undefined, "재고, 도서, 물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"); },
     layout: 'wide',
     produces: ['image/png'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1925,7 +1925,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'icsmake',
     get title() { return t('widgets.icsmake.title', undefined, "일정 파일 만들기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.icsmake.desc', undefined, "모임, 공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다"); },
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v5M9.5 15.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -1934,7 +1934,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'subtitle',
     get title() { return t('widgets.subtitle.title', undefined, "자막 시간 맞추기"); },
-    category: 'tool',
+    category: 'av',
     get desc() { return t('widgets-desc.subtitle.desc', undefined, "어긋난 자막을 밀거나 늘려 맞춥니다. SRT, VTT 를 서로 바꿉니다"); },
     layout: 'wide',
     produces: ['text/plain'], // 이 도구가 내놓는 것 (TASK-KL-299)
@@ -1947,7 +1947,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 뽑기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.ladder.title', undefined, "사다리타기"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.ladder.desc', undefined, "이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다"); },
     layout: 'wide',
     icon: '<path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 8h10M7 13h10M7 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1958,7 +1958,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 색상 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.palette.title', undefined, "이미지 색상 추출"); },
-    category: 'tool',
+    category: 'image',
     get desc() { return t('widgets-desc.palette.desc', undefined, "사진에서 대표 색을 뽑아 HEX, RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사"); },
     layout: 'wide',
     accepts: ['image/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-299)
@@ -1968,7 +1968,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'calc',
     get title() { return t('widgets.calc.title', undefined, "계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.calc.desc', undefined, "퍼센트, 이자, BMI, 단위, 진법 계산을 한 곳에서"); },
     layout: 'wide',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -1979,7 +1979,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.numword.title', undefined, "숫자 ↔ 한글"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.numword.desc', undefined, "숫자를 한글로 읽고 한글 수를 숫자로 되돌립니다. 계약서, 영수증 금액 표기"); },
     layout: 'form',
     icon: '<path d="M4 8h6M7 5v11M14 5h4a2 2 0 0 1 0 4h-2a2 2 0 0 0 0 4h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -1990,7 +1990,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.aspect.title', undefined, "화면 비율 계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.aspect.desc', undefined, "가로, 세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함"); },
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 6l18 12" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>',
@@ -2001,7 +2001,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.grade.title', undefined, "학점 계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.grade.desc', undefined, "과목별 학점과 성적으로 평점을 계산합니다. 목표 학점에 필요한 성적도 함께"); },
     layout: 'wide',
     icon: '<path d="M12 4 2 9l10 5 10-5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -2012,7 +2012,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.vat.title', undefined, "부가세 계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.vat.desc', undefined, "공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로"); },
     layout: 'form',
     icon: '<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 4h10a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -2023,7 +2023,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.bytesize.title', undefined, "용량 단위 변환"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.bytesize.desc', undefined, "KB, MB, GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다"); },
     layout: 'form',
     icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.4" fill="none"/>',
@@ -2034,7 +2034,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.bizno.title', undefined, "사업자번호 검사"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.bizno.desc', undefined, "사업자등록번호, 법인등록번호가 형식상 올바른지 계산으로 확인합니다"); },
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6V4h8v2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h5M7 16h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -2045,7 +2045,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.loan.title', undefined, "대출 상환표"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.loan.desc', undefined, "원리금균등, 원금균등, 만기일시 상환을 비교하고 달별 원금, 이자를 봅니다"); },
     layout: 'wide',
     icon: '<path d="M3 20h18M6 20V10M11 20V6M16 20v-8M21 20v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
@@ -2056,7 +2056,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // calc 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.cssunit.title', undefined, "CSS 단위 변환"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.cssunit.desc', undefined, "px, rem, em, pt, % 를 서로 바꿉니다. 루트 기준과 부모 기준을 나란히"); },
     layout: 'form',
     icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M19 14v6M17 16l2-2 2 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -2067,7 +2067,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.percent.title', undefined, "퍼센트 계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.percent.desc', undefined, "할인율, 증감률, 비율을 질문 문장 그대로 채워 넣어 계산합니다"); },
     layout: 'form',
     icon: '<path d="M19 5 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16.5" cy="16.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -2078,7 +2078,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.dutchpay.title', undefined, "나눠 내기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.dutchpay.desc', undefined, "여럿이 쓴 돈을 나누고, 누가 누구에게 얼마를 보내면 되는지 가장 적은 횟수로 알려 줍니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/dutchpay']
@@ -2088,7 +2088,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산 작업대의 할 일로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 작업대의 이 할 일로 간다
     get title() { return t('widgets.payslip.title', undefined, "실수령액"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.payslip.desc', undefined, "연봉, 월급에서 4대보험과 세금을 떼고 통장에 들어오는 돈을 계산합니다. 비과세, 부양가족까지 반영합니다"); },
     layout: 'wide',
     lazyScriptPaths: ['tools/payslip']
@@ -2098,7 +2098,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.interest.title', undefined, "이자 계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.interest.desc', undefined, "예금, 적금 만기 금액과 대출 월 상환액을 계산합니다. 이자소득세 15.4% 반영"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.4V13m0 2.5v.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -2109,7 +2109,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.urlparse.title', undefined, "URL 인코딩, 분해"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.urlparse.desc', undefined, "한글이 깨진 주소를 되돌리고, 쿼리 파라미터를 펼쳐 보고, 추적 파라미터를 지웁니다"); },
     layout: 'wide',
     icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -2120,7 +2120,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.jwt.title', undefined, "JWT 디코더"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.jwt.desc', undefined, "JWT 토큰의 헤더, 페이로드를 풀어 보고 만료 시각과 남은 시간을 확인합니다"); },
     layout: 'wide',
     icon: '<path d="M12 3v18M12 7 5.5 9.5M12 7l6.5 2.5M12 15l-6.5-2.5M12 15l6.5-2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -2131,7 +2131,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 개발 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.cron.title', undefined, "크론 표현식 읽기"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.cron.desc', undefined, "크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 4l2 2M21 4l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -2142,7 +2142,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // time 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.epoch.title', undefined, "타임스탬프 변환"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.epoch.desc', undefined, "유닉스 타임스탬프와 사람이 읽는 시각을 서로 바꿉니다. 초, 밀리초 자동 판별"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l4 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -2153,7 +2153,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 시간 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.worldclock.title', undefined, "세계 시간, 시차"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.worldclock.desc', undefined, "도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" stroke="currentColor" stroke-width="1.4" fill="none"/>',
@@ -2162,7 +2162,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'morse',
     get title() { return t('widgets.morse.title', undefined, "모스 부호 변환"); },
-    category: 'tool',
+    category: 'text',
     get desc() { return t('widgets-desc.morse.desc', undefined, "글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리, 불빛 재생 지원"); },
     layout: 'form',
     icon: '<path d="M3 12h2M8 12h6M17 12h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M3 7h4M10 7h2M15 7h6M3 17h6M12 17h2M17 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>',
@@ -2173,7 +2173,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 뽑기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pick.title', undefined, "추첨, 팀 나누기"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.pick.desc', undefined, "명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게"); },
     layout: 'form',
     icon: '<circle cx="7" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -2184,7 +2184,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 계산기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.bmi.title', undefined, "BMI 계산기"); },
-    category: 'tool',
+    category: 'calc',
     get desc() { return t('widgets-desc.bmi.desc', undefined, "키와 몸무게로 체질량지수를 계산하고 대한비만학회, WHO 두 기준으로 함께 봅니다"); },
     layout: 'form',
     icon: '<circle cx="12" cy="5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8v7M9 22l3-7 3 7M7 11h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -2349,30 +2349,30 @@ window.KARMOLAB_LAZY_META = [
    * 직접 진입 (Toolbox.switchPage) 가능. 21 개 dead 위젯 자산 보존. */
   { id: 'bounce', get title() { return t('widgets.bounce.title', undefined, "바운스"); }, category: 'play', get desc() { return t('widgets-desc.bounce.desc', undefined, "공을 튕겨 바운스 게임을 합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bounce'] },
   { id: 'bubble', get title() { return t('widgets.bubble.title', undefined, "뽁뽁이"); }, category: 'play', get desc() { return t('widgets-desc.bubble.desc', undefined, "뽁뽁이를 터뜨립니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bubble'] },
-  { id: 'countdown', get title() { return t('widgets.countdown.title', undefined, "카운트다운"); }, category: 'tool', get desc() { return t('widgets-desc.countdown.desc', undefined, "카운트다운 타이머를 설정합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['countdown'] },
+  { id: 'countdown', get title() { return t('widgets.countdown.title', undefined, "카운트다운"); }, category: 'calc', get desc() { return t('widgets-desc.countdown.desc', undefined, "카운트다운 타이머를 설정합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['countdown'] },
   { id: 'darkroom', get title() { return t('widgets.darkroom.title', undefined, "다크룸"); }, category: 'play', get desc() { return t('widgets-desc.darkroom.desc', undefined, "어두운 방에서 마우스로 빛을 비춥니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['darkroom'] },
   { id: 'eyes', get title() { return t('widgets.eyes.title', undefined, "눈동자"); }, category: 'play', get desc() { return t('widgets-desc.eyes.desc', undefined, "마우스를 따라오는 눈동자"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['eyes'] },
   { id: 'folder', get title() { return t('widgets.folder.title', undefined, "에러"); }, category: 'play', get desc() { return t('widgets-desc.folder.desc', undefined, "폴더가 무한 증식하는 이스터에그"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['folder'] },
   { id: 'fontgacha', get title() { return t('widgets.fontgacha.title', undefined, "폰트가챠"); }, category: 'play', get desc() { return t('widgets-desc.fontgacha.desc', undefined, "가챠로 폰트를 바꿉니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['font'] },
   { id: 'hacker', get title() { return t('widgets.hacker.title', undefined, "해커"); }, category: 'play', get desc() { return t('widgets-desc.hacker.desc', undefined, "키보드를 연타해 해커 느낌의 텍스트를 출력합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
-  { id: 'hourglass', get title() { return t('widgets.hourglass.title', undefined, "모래시계"); }, category: 'tool', get desc() { return t('widgets-desc.hourglass.desc', undefined, "모래시계 타이머를 실행합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
-  { id: 'moon', get title() { return t('widgets.moon.title', undefined, "달 위상"); }, category: 'tool', get desc() { return t('widgets-desc.moon.desc', undefined, "오늘의 달 위상을 확인합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
+  { id: 'hourglass', get title() { return t('widgets.hourglass.title', undefined, "모래시계"); }, category: 'calc', get desc() { return t('widgets-desc.hourglass.desc', undefined, "모래시계 타이머를 실행합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
+  { id: 'moon', get title() { return t('widgets.moon.title', undefined, "달 위상"); }, category: 'calc', get desc() { return t('widgets-desc.moon.desc', undefined, "오늘의 달 위상을 확인합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
   { id: 'news', get title() { return t('widgets.news.title', undefined, "뉴스"); }, category: 'play', get desc() { return t('widgets-desc.news.desc', undefined, "가짜 뉴스 헤드라인을 생성합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
   { id: 'particle', get title() { return t('widgets.particle.title', undefined, "파티클"); }, category: 'play', get desc() { return t('widgets-desc.particle.desc', undefined, "마우스로 파티클을 움직이고 클릭으로 폭발시킵니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
-  { id: 'password', get title() { return t('widgets.password.title', undefined, "비번"); }, category: 'tool', get desc() { return t('widgets-desc.password.desc', undefined, "4자리 비밀번호를 힌트 보며 맞히는 놀이"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
+  { id: 'password', get title() { return t('widgets.password.title', undefined, "비번"); }, category: 'play', get desc() { return t('widgets-desc.password.desc', undefined, "4자리 비밀번호를 힌트 보며 맞히는 놀이"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
   { id: 'pet', get title() { return t('widgets.pet.title', undefined, "쓰다듬기"); }, category: 'play', get desc() { return t('widgets-desc.pet.desc', undefined, "고양이를 쓰다듬고 호감도를 올립니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['pet'] },
   { id: 'reaction', get title() { return t('widgets.reaction.title', undefined, "반응속도"); }, category: 'play', get desc() { return t('widgets-desc.reaction.desc', undefined, "반응 속도를 측정합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['reaction'] },
   { id: 'shylink', get title() { return t('widgets.shylink.title', undefined, "어그로"); }, category: 'play', get desc() { return t('widgets-desc.shylink.desc', undefined, "움직이는 링크를 잡는 미니게임"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['shylink'] },
   { id: 'speed', get title() { return t('widgets.speed.title', undefined, "속도측정"); }, category: 'play', get desc() { return t('widgets-desc.speed.desc', undefined, "드래그 속도를 측정합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['speed'] },
   { id: 'stone', get title() { return t('widgets.stone.title', undefined, "돌"); }, category: 'play', get desc() { return t('widgets-desc.stone.desc', undefined, "돌을 던져 점을 봅니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['stone'] },
   { id: 'toast', get title() { return t('widgets.toast.title', undefined, "토스트"); }, category: 'play', get desc() { return t('widgets-desc.toast.desc', undefined, "토스트 알림을 띄웁니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['toast'] },
-  { id: 'ytdownloader', get title() { return t('widgets.ytdownloader.title', undefined, "유튜브 다운로드"); }, category: 'tool', get desc() { return t('widgets-desc.ytdownloader.desc', undefined, "유튜브 영상을 다운로드합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['youtubedl'] },
+  { id: 'ytdownloader', get title() { return t('widgets.ytdownloader.title', undefined, "유튜브 다운로드"); }, category: 'av', get desc() { return t('widgets-desc.ytdownloader.desc', undefined, "유튜브 영상을 다운로드합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['youtubedl'] },
 
   /* 잡동사니 위젯 본체 */
   {
     id: 'stash',
     get title() { return t('widgets.stash.title', undefined, "잡동사니"); },
-    category: 'play',
+    category: 'file',
     get desc() { return t('widgets-desc.stash.desc', undefined, "정리 안 된 실험들이 한 상자에 살아 움직임"); },
     layout: 'full',
     icon: '<path d="M3 7h18l-2 13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L3 7z M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -2383,7 +2383,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'laptop',
     get title() { return t('widgets.laptop.title', undefined, "노트북"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.laptop.desc', undefined, "집에서 24시간 도는 노트북. 파일 공유, 빌드 현황으로 가는 문"); },
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -2394,7 +2394,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'heung',
     title: '흥',
-    category: 'lab',
+    category: 'play',
     desc: '멀티트랙 녹음, MIDI 편곡, 믹싱, WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW',
     layout: 'full',
     noHero: true,
@@ -2408,7 +2408,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'orbita',
     get title() { return t('widgets.orbita.title', undefined, "ORBITA"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서. 브라우저 신스 + MIDI 출력"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".8"/><circle cx="12" cy="3" r="1.8" fill="currentColor"/><circle cx="17" cy="12" r="1.4" fill="currentColor"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/>',
@@ -2420,7 +2420,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'bluemarble',
     get title() { return t('widgets.bluemarble.title', undefined, "블루마블"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.bluemarble.desc', undefined, "지금 이 순간의 지구. 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS"); },
     layout: 'full',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 10h17M4.2 15h15.6" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/><path d="M12 3c3 3.6 3 13.4 0 18M12 3C9 6.6 9 16.4 12 21" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/>',
@@ -2432,7 +2432,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'territory',
     get title() { return t('widgets.territory.title', undefined, "영토"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.territory.desc', undefined, "우리 동네 땅 주인은 CU 인가 GS25 인가. 편의점, 카페, 햄버거 브랜드 점령도"); },
     layout: 'full',
     icon: '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>',
@@ -2444,7 +2444,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'garden',
     get title() { return t('widgets.garden.title', undefined, "정원"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.garden.desc', undefined, "오늘의 규칙 하나로 스스로 자라는 격자. 손대지 않고 지켜봅니다"); },
     layout: 'full',
     icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
@@ -2456,7 +2456,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'meong',
     get title() { return t('widgets.meong.title', undefined, "멍"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면. 로고가 모여 더 큰 로고가 되고 끝없이 안으로 들어갑니다"); },
     layout: 'full',
     noHero: true,
@@ -2470,7 +2470,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'arcade',
     get title() { return t('widgets.arcade.title', undefined, "오락실"); },
-    category: 'lab',
+    category: 'play',
     get desc() { return t('widgets-desc.arcade.desc', undefined, "여러 미니게임을 혼자서도 여럿이서도 합니다. 사람이 모자란 자리는 봇이 앉습니다"); },
     layout: 'wide',
     noHero: true,
@@ -2484,7 +2484,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'collection',
     noPage: true,
     get title() { return t('widgets.collection.title', undefined, "도감"); },
-    category: 'tool',
+    category: 'play',
     get desc() { return t('widgets-desc.collection.desc', undefined, "써 본 도구에 도장이 찍힌다. 몇 칸이나 채웠나"); },
     layout: 'wide',
     noHero: true,
@@ -2500,7 +2500,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'karmograph',
     get title() { return t('widgets.karmograph.title', undefined, "KarmoGraph"); },
-    category: 'lab',
+    category: 'app',
     get desc() { return t('widgets-desc.karmograph.desc', undefined, "관계도, 세계관, 카드 전개를 그리는 캔버스. 어휘 팩을 갈아끼우면 쓰임새가 바뀐다"); },
     layout: 'full',
     noHero: true,
@@ -2531,7 +2531,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'askpapers',
     get title() { return t('widgets.askpapers.title', undefined, "논문에게 묻기"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.askpapers.desc', undefined, "물음을 던지면 논문이 답합니다. 지어낸 요약이 아니라 초록에 실제로 있는 문장을 그대로 뽑아 링크와 함께 보여 줍니다"); },
     layout: 'wide',
     icon:
@@ -2545,7 +2545,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'isitdown',
     get title() { return t('widgets.isitdown.title', undefined, "나만 안 되나?"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.isitdown.desc', undefined, "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다"); },
     layout: 'form',
     icon:
@@ -2560,7 +2560,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'cleanup',
     get title() { return t('widgets.cleanup.title', undefined, "지우개"); },
-    category: 'tool',
+    category: 'file',
     get desc() { return t('widgets-desc.cleanup.desc', undefined, "사진에서 거슬리는 것을 칠해서 지웁니다. 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon:
@@ -2574,7 +2574,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'videobg',
     get title() { return t('widgets.videobg.title', undefined, "영상 배경 빼기"); },
-    category: 'tool',
+    category: 'ai',
     get desc() { return t('widgets-desc.videobg.desc', undefined, "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다"); },
     layout: 'wide',
     icon:
@@ -2588,7 +2588,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'tempmail',
     get title() { return t('widgets.tempmail.title', undefined, "잠깐 쓰는 메일"); },
-    category: 'tool',
+    category: 'dev',
     get desc() { return t('widgets-desc.tempmail.desc', undefined, "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"); },
     layout: 'wide',
     icon: '<rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',

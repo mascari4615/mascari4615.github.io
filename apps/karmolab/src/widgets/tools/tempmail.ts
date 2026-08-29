@@ -32,7 +32,7 @@ import {
   Toolbox.register({
     id: 'tempmail',
     title: t('widgets.tempmail.title', undefined, '잠깐 쓰는 메일'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.tempmail.desc',
       undefined,

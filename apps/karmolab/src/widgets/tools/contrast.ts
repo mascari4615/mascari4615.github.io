@@ -61,7 +61,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'contrast',
     title: t('widgets.contrast.title', undefined, "색 대비 검사"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.contrast.desc', undefined, "글자색과 배경색의 대비비를 재고 접근성 기준 통과 여부를 알려줍니다"),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',

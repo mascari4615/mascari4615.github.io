@@ -67,7 +67,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'calc',
     title: t('widgets.calc.title', undefined, '계산기'),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.calc.desc', undefined, '퍼센트, 이자, BMI, 단위, 진법 계산을 한 곳에서'),
     layout: 'wide',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',

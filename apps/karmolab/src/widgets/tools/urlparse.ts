@@ -16,7 +16,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'urlparse',
     title: t('widgets.urlparse.title', undefined, "URL 인코딩, 분해"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.urlparse.desc', undefined, "한글이 깨진 주소를 되돌리고, 쿼리 파라미터를 펼쳐 보고, 추적 파라미터를 지웁니다"),
     layout: 'wide',
     icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

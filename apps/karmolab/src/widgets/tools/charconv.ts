@@ -100,7 +100,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'charconv',
     title: t('widgets.charconv.title', undefined, "문자 변환"),
-    category: 'tool',
+    category: 'text',
     desc: t('widgets-desc.charconv.desc', undefined, "전각, 반각, 한글, 로마자, 한글, 자모를 한 곳에서. 붙여 넣으면 섞인 글자를 먼저 알려 줍니다"),
     layout: 'wide',
     tabs: [

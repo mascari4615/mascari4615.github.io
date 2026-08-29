@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'time',
     title: t('widgets.time.title', undefined, '시간'),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.time.desc', undefined, '날짜 계산, D-Day, 타이머, 스톱워치, 세계 시차를 한 곳에서'),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',

@@ -34,7 +34,7 @@ import { readInvocation } from '../../lib/tool-url';
   Toolbox.register({
     id: 'workdays',
     title: t('widgets.workdays.title', undefined, '영업일 계산'),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.workdays.desc', undefined, '주말과 공휴일을 뺀 영업일을 셉니다. 어떤 날을 뺐는지 보여 줍니다'),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9 15l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',

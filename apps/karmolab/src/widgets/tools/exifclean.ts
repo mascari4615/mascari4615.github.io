@@ -104,7 +104,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/jpeg'],
     title: t('widgets.exifclean.title', undefined, '사진 정보 지우기'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.exifclean.desc',
       undefined,

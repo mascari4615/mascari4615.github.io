@@ -19,7 +19,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'tts',
     title: t('widgets.tts.title', undefined, '글 읽어 주기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.tts.desc',
       undefined,

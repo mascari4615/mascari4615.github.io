@@ -29,7 +29,7 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
   Toolbox.register({
     id: 'imgbatch',
     title: t('widgets.imgbatch.title', undefined, "이미지 일괄 변환"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.imgbatch.desc', undefined, "사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="6" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 14l3.5-3.5 2.5 2.5 3-3 4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M7 3h11a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.6"/>',

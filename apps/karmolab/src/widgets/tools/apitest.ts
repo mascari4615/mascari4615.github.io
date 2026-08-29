@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'apitest',
     title: t('widgets.apitest.title', undefined, 'API 눌러 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.apitest.desc',
       undefined,

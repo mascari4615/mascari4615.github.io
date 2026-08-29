@@ -19,7 +19,7 @@ import { escapeHtml as esc } from './shared/text';
   Toolbox.register({
     id: 'bytesize',
     title: t('widgets.bytesize.title', undefined, "용량 단위 변환"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.bytesize.desc', undefined, "KB, MB, GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다"),
     layout: 'form',
     icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.4" fill="none"/>',

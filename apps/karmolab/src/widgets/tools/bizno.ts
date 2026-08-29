@@ -14,7 +14,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'bizno',
     title: t('widgets.bizno.title', undefined, '사업자번호 검사'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.bizno.desc',
       undefined,

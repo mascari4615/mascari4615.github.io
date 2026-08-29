@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'curlkit',
     title: t('widgets.curlkit.title', undefined, 'curl 옮기기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.curlkit.desc',
       undefined,

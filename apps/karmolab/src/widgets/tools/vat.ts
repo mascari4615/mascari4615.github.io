@@ -24,7 +24,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   Toolbox.register({
     id: 'vat',
     title: t('widgets.vat.title', undefined, "부가세 계산기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.vat.desc', undefined, "공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로"),
     layout: 'form',
     icon: '<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 4h10a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',

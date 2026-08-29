@@ -55,7 +55,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'codeshot',
     title: t('widgets.codeshot.title', undefined, '코드 사진'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.codeshot.desc',
       undefined,

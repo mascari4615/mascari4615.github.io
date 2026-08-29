@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'dailytype',
     title: t('widgets.dailytype.title', undefined, "오늘의 한글 타자"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.dailytype.desc', undefined, "매일 바뀌는 세 문장. 전원 같은 문제이고, 결과는 격자로만 공유됩니다"),
     layout: 'wide',
     tabs: [

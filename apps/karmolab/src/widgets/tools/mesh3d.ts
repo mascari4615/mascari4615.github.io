@@ -101,7 +101,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
   Toolbox.register({
     id: 'mesh3d',
     title: t('widgets.mesh3d.title', undefined, "3D 뷰어"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.mesh3d.desc', undefined, "STL, OBJ 를 열어 돌려 봅니다. 삼각형 수, 크기도 함께. 파일은 기기 밖으로 나가지 않습니다"),
     layout: 'wide',
     tabs: [

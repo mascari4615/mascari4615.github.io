@@ -31,7 +31,7 @@ interface ZipArchive {
   Toolbox.register({
     id: 'codegraph',
     title: t('widgets.codegraph.title', undefined, '부름 지도'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.codegraph.desc',
       undefined,

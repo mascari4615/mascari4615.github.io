@@ -131,7 +131,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'jsonfmt',
     title: t('widgets.jsonfmt.title', undefined, 'JSON 포맷터'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.jsonfmt.desc',
       undefined,

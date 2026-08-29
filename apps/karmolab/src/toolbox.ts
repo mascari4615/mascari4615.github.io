@@ -23,7 +23,8 @@
  * 2. widgets-manifest.js(boot) + widgets-lazy-meta.js(지연 메타 단일 출처)
  * 3. Toolbox.register({ id, title, icon, category, desc, hidden?, tabs }) 호출
  *    - icon: SVG path 문자열 (viewBox 0 0 24 24 기준)
- *    - category: 'tool' | 'play' | 'lab' | 'desktop' | null  ('desktop'은 Tauri 앱에서만 메뉴, 페이지에 표시)
+ *    - category: 'app' | 'dev' | 'text' | 'image' | 'av' | 'file' | 'calc' | 'ai' | 'ref' | 'play'
+ *      (app 은 갈래 밖 고정 진입점. 데스크톱 전용은 category 가 아니라 desktopOnly 플래그)
  *    - desc: 한 줄 설명 (검색, 즐겨찾기용)
  *    - hidden: true면 메뉴에 비표시 (user 등)
  *    - layout: 'form'(기본, 900px 카드) | 'wide'(1200px, 표, 2단 편집기) | 'full'(화면 점유)
@@ -69,12 +70,20 @@ const Toolbox = (() => {
 
     // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039). 위젯은 일반
     // 카테고리(tool/lab/play) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
+    /* 갈래 아홉과 갈래 밖 하나. 정본은 memo 의 앱 셸 System
+       예전 넷(tool 196 / play 20 / lab 18 / ref 15)은 tool 하나가 84% 라 갈래로 못 씀
+       app 은 갈래가 아니라 왼쪽 목록 맨 위 고정 진입점 */
     const CATEGORIES = [
-        { id: 'tool', label: '도구', icon: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.15a2.1 2.1 0 0 1-3-3l6.72-6.72a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
-        // TASK-KL-088: 자료 = 입력, 출력이 아니라 찾아보고 눌러 복사 하는 표 (특수문자, 코드표 등).
-        { id: 'ref', label: '자료', icon: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7h7M8 11h7M8 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' },
+        { id: 'app', label: '앱과 내 것', icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>' },
+        { id: 'dev', label: '개발', icon: '<path d="M8 6 3 12l5 6M16 6l5 6-5 6M13.5 4l-3 16"/>' },
+        { id: 'text', label: '글', icon: '<path d="M5 5h14M5 5v3M19 5v3M12 5v14M9 19h6"/>' },
+        { id: 'image', label: '이미지', icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-5 4 4 3-3 4 4"/>' },
+        { id: 'av', label: '소리와 영상', icon: '<path d="M4 9v6M8 6v12M12 4v16M16 7v10M20 10v4"/>' },
+        { id: 'file', label: '문서와 파일', icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>' },
+        { id: 'calc', label: '계산과 시간', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' },
+        { id: 'ai', label: 'AI', icon: '<path d="M12 3l1.8 4.9L18.7 9.7l-4.9 1.8L12 16.4l-1.8-4.9L5.3 9.7l4.9-1.8z"/><circle cx="18" cy="18" r="2"/>' },
+        { id: 'ref', label: '참고표', icon: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7h7M8 11h7M8 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' },
         { id: 'play', label: '놀이', icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
-        { id: 'lab', label: '실험실, 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];
 
     /* ★ **갈래 표(prefix)와 갈래 내비 목록은 걷어냈다** (2026-08-19).
@@ -113,7 +122,7 @@ const Toolbox = (() => {
     /** 갈래 목록 (id, label, icon). 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
      *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
     function getCategories() {
-        return CATEGORIES.filter((c) => c.id !== 'lab').map((c) => ({ ...c }));
+        return CATEGORIES.filter((c) => c.id !== 'app').map((c) => ({ ...c }));
     }
 
     /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등). 각 위젯 register에서 정의 */
@@ -1672,7 +1681,7 @@ const Toolbox = (() => {
         // Build sidebar nav groups
         const sidebarNavEl = document.getElementById('sidebar-nav');
         if (sidebarNavEl) {
-            function buildSidebarGroup(catId, label, catTools) {
+            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false) {
                 if (!catTools.length) return;
                 // 내 것은 처음부터 펴 둔다. 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
                 /* 기본은 **펴 둔다** (2026-08-19). 갈래 시절에는 칸 하나가 41줄이라 접는 것이
@@ -1680,7 +1689,7 @@ const Toolbox = (() => {
                  * 이름 셋만 남아 아무것도 못 고른다. 접는 뜻이 사라졌다. */
                 const isOpen = getSidebarGroupState()[catId] !== undefined
                     ? getSidebarGroupState()[catId]
-                    : true;
+                    : defaultOpen;
                 const wrap = document.createElement('div');
                 wrap.className = 'sidebar-group';
                 const trigger = document.createElement('button');
@@ -1688,7 +1697,8 @@ const Toolbox = (() => {
                 trigger.className = 'sidebar-group-trigger' + (isOpen ? ' open' : '');
                 trigger.setAttribute('aria-expanded', String(isOpen));
                 trigger.innerHTML = '<span class="chevron" aria-hidden="true"></span>'
-                    + '<span class="sidebar-group-label">' + label + '</span>';
+                    + '<span class="sidebar-group-label">' + label + '</span>'
+                    + (countBadge ? '<span class="sidebar-group-count">' + catTools.length + '</span>' : '');
                 const body = document.createElement('div');
                 body.className = 'sidebar-group-body' + (isOpen ? ' open' : '');
                 /* 옆줄 항목도 **필요할 때 만든다** (TASK-KL-128 런타임).
@@ -1728,6 +1738,10 @@ const Toolbox = (() => {
              * 그래서 칸을 **같은 함수**(`sections()`)에서 받는다. 내 것, 많이 쓰는 것 , 
              * 최근 본 것. 머리띠 판을 세로로 편 것이 옆줄이고, 셈은 한 곳에서만 한다.
              * 갈래로 훑는 길은 팔레트의 둘러보기와 전체 목록 장이 받는다. */
+            /* 옆줄 두 켜. 위는 내 것(별, 최근), 아래는 갈래 아홉
+             * 정본은 memo 의 앱 셸 System
+             * 도구 234개 전량 나열 시 세로 7,456px. 실측 선례 최대가 109개(shadcn 문서)
+             * 그래서 Grafana, shadcn 방식으로 갈래 접기. 지금 도구가 든 갈래만 펼침 */
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
                 sections().forEach((sec, i) => {
@@ -1746,6 +1760,20 @@ const Toolbox = (() => {
                     note.textContent = sec.empty;
                     wrap.append(label, note);
                     sidebarNavEl.appendChild(wrap);
+                });
+
+                /* 갈래. app 은 갈래가 아니라 위 고정 진입점이라 뺀다 */
+                /* 펼칠 갈래 판정은 저장값이 아니라 지금 값으로
+                 * 저장값은 화면 이동 뒤에 쓰여서 한 발 늦음 */
+                const nowTool = tools.find(t => t.id === currentPageId);
+                const nowCat = nowTool ? nowTool.category : null;
+                getCategories().forEach(cat => {
+                    const catTools = tools.filter(t => t.category === cat.id
+                        && !hiddenSet.has(t.id)
+                        && !(isDesktopOnlyTool(t) && !isDesktopApp()));
+                    if (!catTools.length) return;
+                    catTools.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
+                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true);
                 });
                 /* 바닥 줄은 **안 넣는다**. 옆줄 아래 링크 묶음에 도구 전체 목록이 이미 있다
                  * (2026-08-19 실측). 머리띠 판에는 그 링크가 없어서 판 안에 뒀던 것이고,

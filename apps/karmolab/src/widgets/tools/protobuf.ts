@@ -17,7 +17,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'protobuf',
     title: t('widgets.protobuf.title', undefined, 'protobuf 뜯어보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.protobuf.desc',
       undefined,

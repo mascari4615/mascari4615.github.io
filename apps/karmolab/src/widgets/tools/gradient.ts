@@ -43,7 +43,7 @@ import { statusLine } from './shared/say';
   Toolbox.register({
     id: 'gradient',
     title: t('widgets.gradient.title', undefined, "그라데이션 만들기"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.gradient.desc', undefined, "배경용 그라데이션을 보면서 만들고 CSS 를 가져갑니다. 가운데가 탁해지지 않게 섞습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 18 19 6" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><circle cx="7" cy="8" r="1.6" fill="currentColor" opacity="0.8"/><circle cx="17" cy="16" r="1.6" fill="currentColor" opacity="0.4"/>',

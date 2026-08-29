@@ -196,7 +196,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
   Toolbox.register({
     id: 'bluemarble',
     title: 'Blue Marble',
-    category: 'lab',
+    category: 'play',
     layout: 'full',
     /* 이 위젯은 **창문**이다. 제목, 설명, 방문수, 여기도 있어요가 붙으면 창문이 아니라
        도구 상세 페이지가 된다. 이름은 지구 뒤에서 한 번 지나가는 것으로 충분하다. */

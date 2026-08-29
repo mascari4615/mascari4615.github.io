@@ -53,7 +53,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'radix',
     title: t('widgets.radix.title', undefined, "진법 변환"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.radix.desc', undefined, "2, 8, 10, 16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께"),
     layout: 'form',
     icon: '<path d="M4 6h4v4H4zM4 14h4v4H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8h8M12 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 4v4M16 16v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',

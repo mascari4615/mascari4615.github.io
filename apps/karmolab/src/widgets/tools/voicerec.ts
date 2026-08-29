@@ -23,7 +23,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   Toolbox.register({
     id: 'voicerec',
     title: t('widgets.voicerec.title', undefined, '목소리 녹음'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.voicerec.desc',
       undefined,

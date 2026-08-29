@@ -19,7 +19,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: 'burnnote',
     title: t('widgets.burnnote.title', undefined, '사라지는 쪽지'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.burnnote.desc',
       undefined,

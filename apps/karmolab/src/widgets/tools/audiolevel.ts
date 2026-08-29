@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
     title: t('widgets.audiolevel.title', undefined, '소리 크기 맞추기'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.audiolevel.desc',
       undefined,

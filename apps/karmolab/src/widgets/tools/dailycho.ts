@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'dailycho',
     title: t('widgets.dailycho.title', undefined, "오늘의 초성 맞히기"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.dailycho.desc', undefined, "초성만 보고 낱말 다섯 개. 답은 이 사이트의 도구 이름입니다"),
     layout: 'wide',
     tabs: [

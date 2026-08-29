@@ -20,7 +20,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   Toolbox.register({
     id: 'livecount',
     title: t('widgets.livecount.title', undefined, "흐른 시간 카운터"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.livecount.desc', undefined, "그날 이후 흐른 시간이 초 단위로 올라갑니다. 하루 몇 번 기준으로 어림도 냅니다"),
     layout: 'wide',
     tabs: [

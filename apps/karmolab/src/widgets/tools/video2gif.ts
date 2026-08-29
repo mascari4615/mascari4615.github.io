@@ -32,7 +32,7 @@ import { getKarmoGif } from '../../lib/karmogif';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
     title: t('widgets.video2gif.title', undefined, '영상 → GIF'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.video2gif.desc',
       undefined,

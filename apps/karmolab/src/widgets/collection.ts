@@ -108,7 +108,7 @@ interface ToolMeta {
     Toolbox.register({
         id: 'collection',
         title: t('widgets.collection.title', undefined, "도감"),
-        category: 'tool',
+        category: 'play',
         desc: t('widgets-desc.collection.desc', undefined, "써 본 도구에 도장이 찍힌다. 몇 칸이나 채웠나"),
         layout: 'wide',
         noHero: true,

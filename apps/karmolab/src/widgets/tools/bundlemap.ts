@@ -18,7 +18,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'bundlemap',
     title: t('widgets.bundlemap.title', undefined, '번들 지도'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.bundlemap.desc',
       undefined,

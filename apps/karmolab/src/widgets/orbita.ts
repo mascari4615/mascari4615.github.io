@@ -169,7 +169,7 @@ import { t, loadNamespace } from '../lib/i18n';
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('orbita') : {}),
     id: 'orbita',
     title: 'ORBITA',
-    category: 'lab',
+    category: 'play',
     desc: t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서. 브라우저 신스 + MIDI 출력"),
     /* `full` 이 아니라 `form` 이다. `full` 은 패널을 화면 높이에 가두고(`flex:1`) 내부에서
        스스로 스크롤하는 위젯(cockpit 등)용이다. 이건 위에서 아래로 흐르는 계기판이라

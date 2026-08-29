@@ -19,7 +19,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'tableconv',
     title: t('widgets.tableconv.title', undefined, "표 바꾸기"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.tableconv.desc', undefined, "엑셀에서 복사한 표를 마크다운, CSV, JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M3 14.5h18M9 4v16M15 4v16" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',

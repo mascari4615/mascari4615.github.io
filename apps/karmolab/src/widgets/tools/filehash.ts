@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'filehash',
     title: t('widgets.filehash.title', undefined, "파일 검사값 확인"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.filehash.desc', undefined, "내려받은 파일의 체크섬을 계산하고 배포처가 적어 둔 값과 맞춰 봅니다"),
     layout: 'wide',
     icon: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',

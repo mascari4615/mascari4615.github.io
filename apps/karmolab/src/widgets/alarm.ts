@@ -455,7 +455,7 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'alarm',
     title: t('widgets.alarm.title', undefined, "알람"),
-    category: 'tool',
+    category: 'calc',
     desktopOnly: true,
     desc: t('widgets-desc.alarm.desc', undefined, "강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064). 상주 스케줄러 + OS 강제기상 + autostart"),
     layout: 'form',

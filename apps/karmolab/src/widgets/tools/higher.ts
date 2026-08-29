@@ -41,7 +41,7 @@ import { appHost } from '../../lib/site-base';
   Toolbox.register({
     id: 'higher',
     title: t('widgets.higher.title', undefined, "높은 쪽 고르기"),
-    category: 'tool',
+    category: 'play',
     desc: t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬, 롤, 원신 표로 겨룹니다"),
     layout: 'wide',
     icon:

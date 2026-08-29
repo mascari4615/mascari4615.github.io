@@ -18,7 +18,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'photomap',
     title: t('widgets.photomap.title', undefined, '사진 자리 보기'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.photomap.desc',
       undefined,

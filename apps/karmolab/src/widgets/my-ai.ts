@@ -619,7 +619,7 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'my-ai',
     title: t('widgets.my-ai.title', undefined, '내 AI'),
-    category: 'tool',
+    category: 'ai',
     desktopOnly: true,
     desc: t('widgets-desc.my-ai.desc', undefined, '내가 쓰는 AI의 구독, 환경, 연결 상태를 한곳에서'),
     layout: 'form',

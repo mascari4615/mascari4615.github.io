@@ -18,7 +18,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'base64',
     title: t('widgets.base64.title', undefined, "Base64 인코딩, 디코딩"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.base64.desc', undefined, "텍스트와 Base64 를 서로 바꿉니다. 한글 안 깨짐, URL-safe 표기 지원"),
     layout: 'wide',
     icon: '<path d="M4 7h6v10H4zM14 7h6v10h-6z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 12h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
