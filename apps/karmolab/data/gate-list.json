@@ -323,6 +323,7 @@
     "audit:i18n-load",
     "audit:i18n-eager",
     "audit:generated",
+    "audit:vendor-syntax",
     "audit:nightly-alive",
     "smoke:arcadeletter",
     "test:arcade:ui",

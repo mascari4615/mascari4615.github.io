@@ -103,6 +103,7 @@
     "audit:footer": "node scripts/audit-tool-footer.mjs",
     "audit:gate-list": "node scripts/audit-gate-list.mjs",
     "audit:generated": "node scripts/audit-generated.mjs",
+    "audit:vendor-syntax": "node scripts/audit-vendor-syntax.mjs",
     "audit:generated-registry": "node scripts/audit-generated-registry.mjs",
     "audit:handoff": "node scripts/audit-handoff-accepts.mjs",
     "audit:heights": "node scripts/measure-tool-heights.mjs --check",
