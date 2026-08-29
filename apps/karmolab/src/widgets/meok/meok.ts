@@ -19,6 +19,8 @@ import { composite, compositeAll, spriteSheet } from './composite';
    먹이 뜬 시점에는 이미 와 있다 (`widgets-lazy-meta.ts` 의 image 묶음 lazyScriptPaths). */
 import { getKarmoGif } from '../../lib/karmogif';
 import { encodeApng } from './apng';
+import { injectStyles } from './styles';
+import { meokMarkup } from './markup';
 import { EMOTE_PRESETS, emoteName, fitBox, findPreset, limitRatio, overBudgetHint, type EmotePreset } from './emote';
 import {
   BLEND_MODES, activeLayer, addLayer, celAt, cloneSurface, createDoc, createSurface,
@@ -52,12 +54,6 @@ const esc = (value: unknown): string =>
   String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
 
 const T = (key: string, fallback: string): string => t('meok.' + key, undefined, fallback);
-
-/** 도구 단추 하나. 아이콘은 글리프가 아니라 선 그림이다(글꼴 따라 안 달라진다). */
-const toolButton = (id: string, hotkey: string, label: string, path: string, active = false): string =>
-  '<button data-tool="' + id + '"' + (active ? ' class="active"' : '') + ' title="' + esc(label + ' (' + hotkey + ')') + '">' +
-  '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>' +
-  '<small>' + esc(label) + '</small></button>';
 
 /* ===== 판 ↔ 캔버스 ===== */
 
@@ -188,130 +184,7 @@ function buildMeok(container: HTMLElement): void {
   const page = container.closest('.tool-page') as HTMLElement | null;
   page?.classList.add('meok-page');
   Toolbox.onDispose?.(() => { page?.classList.remove('meok-page'); });
-  container.innerHTML =
-    '<div class="meok">' +
-    '<header class="meok-bar">' +
-      '<strong class="meok-logo">먹</strong>' +
-      '<input class="meok-name" data-name aria-label="' + esc(T('docName', '그림 이름')) + '">' +
-      '<span class="meok-sep"></span>' +
-      '<button data-act="new" title="' + esc(T('newHelp', '빈 그림을 새로 시작한다')) + '">' + esc(T('new', '새로')) + '</button>' +
-      '<button data-act="new-pixel" title="' + esc(T('newPixelHelp', '격자에 붙는 픽셀 그림. 도트 애니메이션용')) + '">' + esc(T('newPixel', '픽셀')) + '</button>' +
-      '<label class="meok-file">' + esc(T('open', '열기')) +
-        '<input data-open type="file" accept="image/*,application/json,.json,.meok,.ditherdeck.json" hidden></label>' +
-      '<button data-act="add-text" title="' + esc(T('addTextHelp', '글자를 새 레이어로 얹는다')) + '">' + esc(T('addText', '글자')) + '</button>' +
-      '<button data-act="add-image" title="' + esc(T('addImageHelp', '그림 파일을 새 레이어로 얹는다')) + '">' + esc(T('addImage', '붙이기')) + '</button>' +
-      '<input data-place type="file" accept="image/*" hidden>' +
-      '<button data-act="undo" data-hot="Ctrl+Z">' + esc(T('undo', '되돌리기')) + '</button>' +
-      '<button data-act="redo" data-hot="Ctrl+Shift+Z">' + esc(T('redo', '다시')) + '</button>' +
-      '<span class="meok-sep"></span>' +
-      '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
-      '<button data-act="to-shelf" title="' + esc(T('toShelfHelp', '만든 것을 선반에 올린다 (CC0)')) + '">' + esc(T('toShelf', '선반')) + '</button>' +
-      '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
-      '<button data-act="save-gif" title="' + esc(T('saveGifHelp', '프레임을 움직이는 GIF 한 장으로. 초당 값이 속도가 된다')) + '">' + esc(T('saveGif', 'GIF')) + '</button>' +
-      '<button data-act="save-apng" title="' + esc(T('saveApngHelp', '움직이는 PNG. 반투명 가장자리가 살아 있다. 디스코드 스티커가 이 형식')) + '">' + esc(T('saveApng', 'APNG')) + '</button>' +
-      '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어, 프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
-      '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
-      '<span class="meok-status" data-status></span>' +
-      '<button data-act="fullscreen" class="meok-full" title="' + esc(T('fullscreenHelp', '창을 화면 전체로. 다시 누르면 돌아온다')) + '">⛶</button>' +
-    '</header>' +
-    '<div class="meok-body">' +
-      '<aside class="meok-tools">' +
-        toolButton('brush', 'B', T('toolBrush', '붓'), '<path d="M4 20c2.5.4 4.6-.6 5.4-2.6.5-1.3 0-2.6-1-3.3-1.2-.8-2.8-.5-3.5.8C4 16.4 4.2 18.3 4 20z"/><path d="M10.5 14.8 19.2 5.4a1.7 1.7 0 0 0-2.4-2.4L7.3 11.6"/>', true) +
-        toolButton('eraser', 'E', T('toolEraser', '지우개'), '<path d="m5.5 15.5 6-6a2 2 0 0 1 2.8 0l3.7 3.7a2 2 0 0 1 0 2.8l-4 4H8l-2.5-2.5a2 2 0 0 1 0-2z"/><path d="M9.5 20h10"/>') +
-        toolButton('fill', 'F', T('toolFill', '채우기'), '<path d="m10 3 8.2 8.2a1.4 1.4 0 0 1 0 2L12 19.4a1.4 1.4 0 0 1-2 0l-6.2-6.2a1.4 1.4 0 0 1 0-2L10 5"/><path d="M20.5 15.5c1 1.4 1.5 2.4 1.5 3a1.5 1.5 0 1 1-3 0c0-.6.5-1.6 1.5-3z" fill="currentColor"/>') +
-        toolButton('pick', 'I', T('toolPick', '스포이드'), '<path d="m13.5 7.5 3 3M4 20l1-3.2 8-8 2.2 2.2-8 8z"/><path d="M15 4.6a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-1.5 1.5-4.4-4.4z"/>') +
-        toolButton('marquee', 'M', T('toolMarquee', '사각 선택'), '<rect x="3.5" y="5.5" width="17" height="13" rx="1" stroke-dasharray="3 2.5"/>') +
-        toolButton('lasso', 'L', T('toolLasso', '올가미'), '<path d="M12 4.5c4.4 0 8 2.5 8 5.6 0 3-3.6 5.5-8 5.5-1.3 0-2.6-.2-3.7-.6-1.4 1.2-1.6 2.6-1 4.5-2-1.3-2.6-3.4-1.6-5.5C4.4 13 4 11.6 4 10.1c0-3.1 3.6-5.6 8-5.6z"/>') +
-        toolButton('wand', 'W', T('toolWand', '마술봉'), '<path d="m4 20 9.5-9.5M15 4l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9zM19.5 12.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/>') +
-        toolButton('pan', 'Space', T('toolPan', '이동'), '<path d="M12 3v18M3 12h18M12 3 9.5 5.8M12 3l2.5 2.8M12 21l-2.5-2.8M12 21l2.5-2.8M3 12l2.8-2.5M3 12l2.8 2.5M21 12l-2.8-2.5M21 12l-2.8 2.5"/>') +
-        '<hr>' +
-        '<input data-color type="color" value="#18202c" aria-label="' + esc(T('color', '색')) + '">' +
-        '<div class="meok-palette" data-palette></div>' +
-        '<button data-act="pick-palette" class="meok-mini">' + esc(T('paletteFromArt', '그림에서 색 뽑기')) + '</button>' +
-        '<hr>' +
-        '<div class="meok-presets" data-presets></div>' +
-        '<button data-act="brush-save" class="meok-mini">' + esc(T('brushSave', '이 붓 담기')) + '</button>' +
-      '</aside>' +
-      '<section class="meok-stage">' +
-        '<div class="meok-brush">' +
-          '<label>' + esc(T('size', '굵기')) + '<input data-brush="size" type="range" min="1" max="200" step="1"><b data-out="size"></b></label>' +
-          '<label>' + esc(T('hardness', '단단함')) + '<input data-brush="hardness" type="range" min="0" max="1" step="0.01"><b data-out="hardness"></b></label>' +
-          '<label>' + esc(T('opacity', '짙기')) + '<input data-brush="opacity" type="range" min="0" max="1" step="0.01"><b data-out="opacity"></b></label>' +
-          '<label>' + esc(T('flow', '흐름')) + '<input data-brush="flow" type="range" min="0.02" max="1" step="0.01"><b data-out="flow"></b></label>' +
-          '<label>' + esc(T('smoothing', '손떨림')) + '<input data-brush="smoothing" type="range" min="0" max="0.95" step="0.01"><b data-out="smoothing"></b></label>' +
-          '<span class="meok-selbar">' +
-            '<button data-act="deselect" data-needs-selection class="meok-mini" title="Ctrl+D">' + esc(T('deselect', '선택 풀기')) + '</button>' +
-            '<button data-act="feather-selection" data-needs-selection class="meok-mini">' + esc(T('featherEdge', '가장자리 부드럽게')) + '</button>' +
-            '<button data-act="clear-selection" data-needs-selection class="meok-mini" title="Delete">' + esc(T('clearSelection', '고른 자리 지우기')) + '</button>' +
-          '</span>' +
-          '<span class="meok-zoom" data-zoom></span>' +
-          '<button data-act="fit" class="meok-mini">' + esc(T('fit', '맞춤')) + '</button>' +
-        '</div>' +
-        '<div class="meok-canvas" data-canvas-wrap><canvas data-canvas></canvas></div>' +
-        '<div class="meok-timeline">' +
-          '<button data-act="play">▶</button>' +
-          '<label>' + esc(T('fps', '초당')) + '<input data-fps type="number" min="1" max="60" value="12"></label>' +
-          '<label class="meok-onion"><input data-onion type="checkbox"> ' + esc(T('onion', '어니언스킨')) + '</label>' +
-          '<div class="meok-frames" data-frames></div>' +
-          '<button data-act="add-frame" title="' + esc(T('addFrameHelp', '지금 프레임을 복사해 뒤에 끼운다')) + '">＋</button>' +
-          '<button data-act="del-frame">－</button>' +
-        '</div>' +
-      '</section>' +
-      '<aside class="meok-layers">' +
-        '<div class="meok-layer-head">' +
-          '<b>' + esc(T('layers', '레이어')) + '</b>' +
-          '<button data-act="add-layer" title="' + esc(T('addLayerHelp', '위에 새 레이어')) + '">＋</button>' +
-          '<button data-act="merge-layer" title="' + esc(T('mergeHelp', '아래 레이어에 눌러 붙인다')) + '">⇩</button>' +
-          '<button data-act="del-layer">🗑</button>' +
-        '</div>' +
-        '<div class="meok-layer-props">' +
-          '<label>' + esc(T('layerOpacity', '불투명도')) + '<input data-layer="opacity" type="range" min="0" max="1" step="0.01"></label>' +
-          '<label>' + esc(T('blend', '섞기')) + '<select data-layer="blend"></select></label>' +
-          '<label class="meok-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="mask-from-selection" data-needs-selection title="' + esc(T('maskFromSelectionHelp', '고른 자리만 보이게 가림막을 만든다. 그림은 안 지운다')) + '">' + esc(T('maskFromSelection', '가림막')) + '</button>' +
-            '<button data-act="mask-invert" data-needs-mask title="' + esc(T('maskInvertHelp', '보이는 자리와 가린 자리를 맞바꾼다')) + '">' + esc(T('maskInvert', '뒤집기')) + '</button>' +
-            '<button data-act="mask-apply" data-needs-mask title="' + esc(T('maskApplyHelp', '가림막대로 그림을 실제로 지운다')) + '">' + esc(T('maskApply', '굳히기')) + '</button>' +
-            '<button data-act="mask-clear" data-needs-mask>' + esc(T('maskClear', '없애기')) + '</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="meok-layer-list" data-layers></div>' +
-        '<details class="meok-fix"><summary>' + esc(T('fix', '고치기')) + '</summary>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="crop-selection" data-needs-selection title="' + esc(T('cropToSelection', '고른 자리로 자르기')) + '">' + esc(T('cropShort', '고른 자리')) + '</button>' +
-            '<button data-act="trim" title="' + esc(T('trim', '여백 자르기')) + '">' + esc(T('trimShort', '여백')) + '</button>' +
-            '<button data-act="resize">' + esc(T('resizeDoc', '크기...')) + '</button>' +
-          '</div>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="rot-left" title="' + esc(T('rotLeft', '왼쪽으로 90도')) + '">↺</button>' +
-            '<button data-act="rot-right" title="' + esc(T('rotRight', '오른쪽으로 90도')) + '">↻</button>' +
-            '<button data-act="flip-x" title="' + esc(T('flipX', '좌우 뒤집기')) + '">⇋</button>' +
-            '<button data-act="flip-y" title="' + esc(T('flipY', '상하 뒤집기')) + '">⇅</button>' +
-            '<button data-act="rotate-free" title="' + esc(T('rotateFreeHelp', '원하는 각도로 기울여 돌린다')) + '">∠</button>' +
-          '</div>' +
-          '<label>' + esc(T('brightness', '밝기')) + '<input data-adjust="brightness" type="range" min="-1" max="1" step="0.01" value="0"></label>' +
-          '<label>' + esc(T('contrast', '대비')) + '<input data-adjust="contrast" type="range" min="-0.9" max="0.9" step="0.01" value="0"></label>' +
-          '<label>' + esc(T('saturation', '채도')) + '<input data-adjust="saturation" type="range" min="-1" max="1" step="0.01" value="0"></label>' +
-          '<label>' + esc(T('hue', '색조')) + '<input data-adjust="hue" type="range" min="-180" max="180" step="1" value="0"></label>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="adjust-apply">' + esc(T('applyAdjust', '보정 굳히기')) + '</button>' +
-            '<button data-act="adjust-reset">' + esc(T('resetAdjust', '되돌리기')) + '</button>' +
-          '</div>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="rembg" title="' + esc(T('rembgHelp', '이 레이어에서 배경을 지운다. 기기 안에서 계산한다(처음 한 번은 모델을 받느라 느리다)')) + '">' + esc(T('rembg', '배경 지우기')) + '</button>' +
-          '</div>' +
-          '<div class="meok-filters" data-filters></div>' +
-        '</details>' +
-        '<details class="meok-emote"><summary>' + esc(T('emote', '이모트')) + '</summary>' +
-          '<div class="meok-emote-picks" data-emote-picks></div>' +
-          '<div class="meok-emote-shots" data-emote-shots></div>' +
-          '<p class="meok-emote-note" data-emote-note></p>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="emote-save">' + esc(T('emoteSave', '한 벌 뽑기')) + '</button>' +
-          '</div>' +
-        '</details>' +
-      '</aside>' +
-    '</div></div>';
+  container.innerHTML = meokMarkup();
 
   injectStyles();
 
@@ -1572,108 +1445,6 @@ function buildMeok(container: HTMLElement): void {
   });
 }
 
-function injectStyles(): void {
-  if (document.getElementById('meok-style')) return;
-  const style = document.createElement('style');
-  style.id = 'meok-style';
-  style.textContent = [
-    /* 높이는 **부모가 준 자리**로만. `height:100%` 금지. 부모 높이가 확정이 아닌 자리에서 auto 로
-       떨어지고, 자식이 부모를 다시 정하는 순환에 화면이 굳는다 (2026-08-29 실측: 탭 두 개 응답 상실).
-       옛 값 min(78vh,820px) 은 1440p 에서 상한에 걸려 화면 절반만 씀. 안 늘어나는 자리는 min-height 가 받음. */
-    '.meok{--meok-gap:8px;display:flex;flex-direction:column;flex:1 1 auto;min-height:min(62vh,420px);background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;font-size:12px}',
-    '.meok-host{display:flex;flex-direction:column;flex:1;min-height:0}',
-    /* 먹 탭에서만 도는 사슬. 셸에서 그림판까지 세로를 흘려 보낸다. 클래스는 탭을 떠날 때 뗀다. */
-    '.tool-page.meok-page{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;max-width:none}',
-    '.meok-page .tab-panel.active{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}',
-    '.meok-page .pf-body{flex:1 1 auto;min-height:0;align-items:stretch}',
-    '.meok-page .pf-right{display:flex;flex-direction:column;min-height:0}',
-    '.meok-page .pf-mount{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}',
-    /* 묶음 머리말은 그림 그리는 동안 자리만 먹는다 (실측 109px). 도구 사이를 오가는 `pf-head` 는 남긴다. */
-    '.meok-page > .tool-page-hero{display:none}',
-    /* 사진 놓는 자리도 접는다 (실측 106px). 먹에는 열기와 붙이기 버튼이 자기 머리줄에 있다. */
-    '.meok-page .pf-drop{display:none}',
-    '.meok-full{margin-left:2px;font-size:13px;line-height:1;padding:4px 7px}',
-    '.meok:fullscreen,.meok :fullscreen{border-radius:0}',
-    '.meok *{box-sizing:border-box}',
-    '.meok button{border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}',
-    '.meok button:hover{border-color:var(--accent,#4f7cff)}',
-    '.meok button.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 18%,transparent)}',
-    '.meok-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-secondary);border-bottom:1px solid var(--border);flex-wrap:wrap}',
-    '.meok-logo{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--text-primary);color:var(--bg-primary);font-size:13px;font-weight:700;flex:0 0 auto}',
-    '.meok-name{flex:0 1 180px;min-width:90px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:5px 7px}',
-    '.meok-sep{width:1px;height:20px;background:var(--border)}',
-    '.meok-file{border:1px solid var(--border);background:var(--bg-tertiary);border-radius:6px;padding:5px 8px;cursor:pointer}',
-    '.meok-status{margin-left:auto;color:var(--text-tertiary);font-size:11px}',
-    '.meok-body{flex:1;display:grid;grid-template-columns:76px minmax(0,1fr) 216px;min-height:0}',
-    '.meok-tools{display:flex;flex-direction:column;gap:5px;padding:8px;background:var(--bg-secondary);border-right:1px solid var(--border);overflow:auto}',
-    '.meok-tools button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;line-height:1.1}',
-    '.meok-tools small{font-size:9px;color:var(--text-tertiary);white-space:nowrap}',
-    '.meok-tools svg{width:19px;height:19px}',
-    '.meok-tools button.active svg{color:var(--accent,#4f7cff)}',
-    '.meok-tools hr{width:100%;border:0;border-top:1px solid var(--border);margin:4px 0}',
-    '.meok-tools input[type=color]{width:100%;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:none}',
-    '.meok-palette{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}',
-    '.meok-swatch{aspect-ratio:1;padding:0;border-radius:4px}',
-    '.meok-mini{font-size:10px!important;padding:5px 4px!important;line-height:1.25;white-space:normal}',
-    '.meok-presets{display:flex;flex-direction:column;gap:3px;margin-bottom:4px}',
-    '.meok-presets button{font-size:10px;padding:4px 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.meok-stage{display:flex;flex-direction:column;min-width:0;min-height:0}',
-    '.meok-brush{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap}',
-    '.meok-brush label{display:flex;align-items:center;gap:5px;color:var(--text-secondary)}',
-    '.meok-brush input[type=range]{width:74px}',
-    '.meok-brush b{min-width:26px;color:var(--text-tertiary);font-weight:500}',
-    '.meok-zoom{margin-left:auto;color:var(--text-tertiary)}',
-    '.meok-selbar{display:flex;gap:4px}',
-    '.meok-selbar button[disabled]{opacity:.35;cursor:default}',
-    '.meok-canvas{flex:1;min-height:0;position:relative;overflow:hidden;background:var(--bg-primary);background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--border) 60%,transparent) 1px,transparent 0);background-size:18px 18px}',
-    '.meok-canvas canvas{position:absolute;inset:0;touch-action:none}',
-    '.meok-timeline{display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg-secondary)}',
-    '.meok-timeline label{display:flex;align-items:center;gap:4px;color:var(--text-secondary)}',
-    '.meok-timeline input[type=number]{width:52px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px 5px}',
-    '.meok-frames{flex:1;display:flex;gap:5px;overflow-x:auto;padding:2px}',
-    '.meok-frame{padding:2px;display:flex;flex-direction:column;align-items:center;gap:1px}',
-    '.meok-frame canvas{width:34px;height:34px;image-rendering:pixelated;background:#fff;border-radius:3px}',
-    '.meok-frame small{font-size:9px;color:var(--text-tertiary)}',
-    '.meok-layers{display:flex;flex-direction:column;background:var(--bg-secondary);border-left:1px solid var(--border);min-height:0;overflow:hidden}',
-    '.meok-layer-head{display:flex;align-items:center;gap:4px;padding:8px}',
-    '.meok-layer-head b{flex:1;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary)}',
-    '.meok-layer-props{display:flex;flex-direction:column;gap:5px;padding:0 8px 8px;border-bottom:1px solid var(--border)}',
-    '.meok-layer-props label{display:flex;align-items:center;gap:6px;color:var(--text-secondary)}',
-    '.meok-layer-props input[type=range]{flex:1}',
-    '.meok-layer-props select{flex:1;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px}',
-    '.meok-layer-list{flex:0 1 auto;min-height:74px;max-height:38%;overflow:auto;padding:6px}',
-    '.meok-fix{border-top:1px solid var(--border);padding:6px 8px 10px;flex:1;min-height:0;overflow:auto}',
-    '.meok-fix summary{cursor:pointer;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);padding:2px 0}',
-    '.meok-fix label{display:flex;align-items:center;gap:6px;margin:4px 0;color:var(--text-secondary)}',
-    '.meok-fix label input{flex:1}',
-    '.meok-fix-row{display:flex;gap:4px;margin:5px 0;flex-wrap:wrap}',
-    '.meok-fix-row button{flex:1 1 0;min-width:0;font-size:10.5px;padding:5px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.meok-fix-row button[disabled]{opacity:.35;cursor:default}',
-    '.meok-filters{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}',
-    /* 이모트 판. 미리보기는 올라갈 크기 그대로. 키우거나 줄이면 보는 뜻이 없음.
-       `meok-fix` 를 같이 걸지 마라. 실브라우저 검사가 `.meok-fix summary` 하나를 집는데
-       둘이 되면 그 자리에서 죽는다 (2026-08-29 실측). 생김새만 여기서 따로 맞춘다. */
-    '.meok-emote{border-top:1px solid var(--border);padding:6px 8px 10px}',
-    '.meok-emote summary{cursor:pointer;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);padding:2px 0}',
-    '.meok-emote-picks{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:4px 0 8px}',
-    '.meok-emote-picks button{font-size:10.5px;padding:5px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.meok-emote-picks button.active{border-color:var(--accent,#4f7cff);color:var(--text-primary)}',
-    '.meok-emote-shots{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding:6px;background:var(--bg-primary);border-radius:6px;min-height:40px}',
-    '.meok-emote-shot{display:flex;flex-direction:column;align-items:center;gap:2px}',
-    '.meok-emote-shot canvas{background:#fff;border-radius:2px;image-rendering:auto}',
-    '.meok-emote-shot small{font-size:9px;color:var(--text-tertiary)}',
-    '.meok-emote-note{margin:6px 0 0;font-size:10.5px;color:var(--text-tertiary);line-height:1.4}',
-    '.meok-filters button{font-size:11px;padding:5px 4px}',
-    '.meok-layer{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid transparent;border-radius:6px;cursor:pointer}',
-    '.meok-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',
-    '.meok-layer canvas{width:34px;height:34px;background:#fff;border-radius:4px;image-rendering:pixelated}',
-    '.meok-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.meok-maskmark{color:var(--accent,#4f7cff);font-weight:400}',
-    '.meok-eye,.meok-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:10px;color:var(--text-tertiary);opacity:.8}',
-    '@media(max-width:860px){.meok-body{grid-template-columns:60px minmax(0,1fr)}.meok-layers{grid-column:1/-1;border-left:0;border-top:1px solid var(--border);max-height:210px}.meok{height:auto}}'
-  ].join('');
-  document.head.append(style);
-}
 
 (function register(): void {
   if (typeof Toolbox === 'undefined') return;
