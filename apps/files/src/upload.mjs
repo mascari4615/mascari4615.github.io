@@ -7,12 +7,13 @@
  */
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createVault, flushIndex, listFiles, unlockVault } from './vault.mjs';
+import { createVault, flushIndex, listFiles, putThumb, unlockVault } from './vault.mjs';
 import { putFileFromPath, sha256File } from './vault-node.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
 import { teeStore } from './store-tee.mjs';
 import { walkFiles } from './walk.mjs';
 import { mirrorable } from './mirror-policy.mjs';
+import { hasFfmpeg, makeThumb } from './thumb-node.mjs';
 import { budgetLine, capFromEnv, makeBudget, measureRemote } from './mirror-budget.mjs';
 import { loadFilesEnv } from './env-file.mjs';
 
@@ -117,6 +118,10 @@ async function writeProgress(stage, total, done, uploaded, skipped) {
 await writeProgress('index', files.length, 0, 0, 0);
 
 const have = new Map((await listFiles(session)).map((f) => [f.path, f.sha256]));
+/* ffmpeg 이 없으면 미리보기만 건너뛴다. 그것 때문에 올리기를 멈출 이유는 없다 */
+const thumbsOn = await hasFfmpeg();
+if (!thumbsOn) console.log('ffmpeg 없음. 미리보기는 안 굽는다');
+let thumbCount = 0;
 let n = 0;
 let skipped = 0;
 try {
@@ -136,7 +141,14 @@ try {
     if (toMirror) mirroredCount += 1;
     session.store = toMirror ? mirrored : primary;
     await putFileFromPath(session, rel, f.abs, { chunkSize: 8 * 1024 * 1024 });
+    /* 미리보기는 **늘 열람 저장까지** 간다. 원본을 안 올리는 큰 영상도 칸은 보여야 하고,
+       한 장이 수십 KB 라 값이 거의 안 든다 */
     session.store = mirrored;
+    const thumb = thumbsOn ? await makeThumb(f.abs, rel, f.size) : null;
+    if (thumb) {
+      await putThumb(session, rel, thumb);
+      thumbCount += 1;
+    }
     n += 1;
     if ((n + skipped) % 10 === 0) await flushIndex(session);
     if (verbose) console.log(rel);
@@ -153,4 +165,4 @@ try {
   await flushIndex(session);
   daemon?.stop();
 }
-console.log(`올림 ${n} 건너뜀 ${skipped}`);
+console.log(`올림 ${n} 건너뜀 ${skipped} 미리보기 ${thumbCount}`);

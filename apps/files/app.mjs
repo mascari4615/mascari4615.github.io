@@ -2,6 +2,7 @@ import {
   VaultUnlockError,
   fetchStore,
   getFile,
+  getThumb,
   listDir,
   listFiles,
   mimeFor,
@@ -643,6 +644,7 @@ function renderVaultDir(dir) {
         files: shownFiles,
         kindOf: previewKind,
         load: (path) => getFile(vaultSession, path),
+        loadThumb: (path) => getThumb(vaultSession, path),
         mimeOf: mimeFor,
         hrefOf: (path) => '#vault/' + encodeURIComponent(path),
       });

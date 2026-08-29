@@ -20,6 +20,7 @@ import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore } from './store-rclone.mjs';
 import { getFile, listFiles, unlockVault } from './vault.mjs';
 import { mirrorable } from './mirror-policy.mjs';
+import { thumbKind } from './thumb.mjs';
 import { budgetLine, budgetState, capFromEnv, measureRemote } from './mirror-budget.mjs';
 
 await loadFilesEnv();
@@ -94,6 +95,11 @@ if (gate.startsWith('open')) fails.push('인증 없이 /blob/ 이 열린다. Acc
 const session = await unlockVault(drive, pass);
 const files = await listFiles(session);
 say('[health] Drive 열림. 파일', files.length, '개');
+
+/* 미리보기 몫. 실패로 치지는 않는다. 없으면 액자가 갈래 글자로 떨어질 뿐이다 */
+const want = files.filter((f) => thumbKind(f.path, f.size));
+const has = want.filter((f) => f.thumb);
+say('[health] 미리보기', `${has.length} / ${want.length}`, want.length ? `(${Math.round((has.length / want.length) * 100)}%)` : '');
 
 /* 3. 복호 왕복. 열람 대상 중 제일 작은 것 */
 const small = files

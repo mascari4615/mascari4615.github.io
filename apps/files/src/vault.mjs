@@ -113,6 +113,12 @@ function aadChunk(id, n) {
   return new TextEncoder().encode(`karmvlt:chunk:${id}:${n}`);
 }
 
+/* 미리보기는 청크와 **다른 자리**를 쓴다. 같은 AAD 를 쓰면 미리보기를 청크 자리에
+   갖다 놓는 바꿔치기가 통한다 */
+function aadThumb(id) {
+  return new TextEncoder().encode(`karmvlt:thumb:${id}`);
+}
+
 async function sha256Hex(bytes) {
   return hex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
 }
@@ -275,7 +281,48 @@ export async function listFiles(session) {
     size: f.size,
     chunks: f.chunks,
     sha256: f.sha256,
+    thumb: f.thumb ?? 0,
   }));
+}
+
+/**
+ * 미리보기 한 장 넣기. 파일과 같은 id 아래 `t/<id>` 한 자리.
+ *
+ * 왜 따로 두나: 액자 한 칸을 채우려고 원본을 통째로 받아 복호하고 있었다.
+ * 사진 한 장 4MB 면 스무 칸에 80MB 다. 그리고 영상은 아예 못 그렸다.
+ * 미리보기는 수십 KB 라 그 둘을 한 번에 푼다.
+ */
+export async function putThumb(session, path, bytes) {
+  if (!(bytes instanceof Uint8Array)) throw new VaultPathError('bytes');
+  const norm = normalizePath(path);
+  const index = await loadIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry) return null;
+  const sealed = await seal(session.key, bytes, aadThumb(entry.id));
+  await session.store.put(`t/${entry.id}`, sealed);
+  entry.thumb = bytes.length;
+  await persistIndex(session, index);
+  return { id: entry.id, size: bytes.length };
+}
+
+/** 미리보기 꺼내기. 없으면 null. 없는 것은 고장이 아니다 */
+export async function getThumb(session, path) {
+  const norm = normalizePath(path);
+  const index = await loadIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry || !entry.thumb) return null;
+  const packed = await session.store.get(`t/${entry.id}`);
+  if (!packed) return null;
+  return { bytes: await open(session.key, packed, aadThumb(entry.id)) };
+}
+
+/**
+ * 미리보기 키 목록. 열람 저장에는 **미리보기를 늘 올린다**.
+ * 원본을 안 올리는 큰 영상도 칸은 보여야 하고, 한 장이 수십 KB 라 값이 거의 안 든다.
+ */
+export async function thumbKeys(session) {
+  const index = await loadIndex(session);
+  return index.files.filter((f) => f.thumb).map((f) => ({ path: f.path, key: `t/${f.id}` }));
 }
 
 export async function getFile(session, path) {

@@ -13,7 +13,7 @@
  */
 import { loadFilesEnv } from './env-file.mjs';
 import { rcloneStore, startRcloneDaemon } from './store-rclone.mjs';
-import { fileChunkKeys, listFiles, unlockVault } from './vault.mjs';
+import { fileChunkKeys, listFiles, thumbKeys, unlockVault } from './vault.mjs';
 import { mirrorable } from './mirror-policy.mjs';
 import { budgetLine, capFromEnv, makeBudget, measureRemote } from './mirror-budget.mjs';
 
@@ -45,7 +45,11 @@ const all = await fileChunkKeys(session);
 /* 영상은 크기로 가르므로(mirror-policy) 색인에서 크기를 붙여 온다 — 청크 키 목록에는 없다. */
 const sizeOf = new Map((await listFiles(session)).map((f) => [f.path, f.size]));
 const targets = all.filter((f) => mirrorable(f.path, sizeOf.get(f.path)));
-console.log(`열람 저장 대상 ${targets.length}개 / 전체 ${all.length}개`);
+/* 미리보기는 **크기 판단 밖**이다. 원본을 안 올리는 큰 영상도 칸은 보여야 하고,
+   한 장이 수십 KB 라 값이 거의 안 든다 */
+const thumbs = (await thumbKeys(session)).map((t) => ({ path: t.path, keys: [t.key] }));
+targets.push(...thumbs);
+console.log(`열람 저장 대상 ${targets.length}개 (미리보기 ${thumbs.length}개 포함) / 전체 ${all.length}개`);
 
 /* 이미 R2 에 있는 키는 **목록 한 번**으로 안다.
    키마다 존재를 물으면 rclone 을 그만큼 새로 띄운다. 539개 파일에서 몇 분이 지나도

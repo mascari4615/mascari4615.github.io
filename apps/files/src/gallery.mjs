@@ -8,6 +8,10 @@
  *      Worker 도 브라우저도 줄을 서고, 정작 먼저 보이는 칸이 제일 늦게 뜬다
  *   ③ 받은 것은 blob 으로 들고 있다가 화면을 뜰 때 되돌려 준다 (`dispose`)
  *
+ * **미리보기가 있으면 그것부터**. 올릴 때 ffmpeg 으로 구워 둔 수십 KB 한 장이라,
+ * 원본 4MB 를 받는 대신 그것만 받는다. 영상도 이 길로 화면이 생긴다.
+ * 미리보기가 없을 때만 예전 길(그림은 원본, 나머지는 갈래 글자)로 떨어진다.
+ *
  * 그림 아닌 것(영상, 문서, 꾸러미)은 안 받음. 대신 갈래 표시와 이름과 크기.
  * 예전엔 빗금만. 사람 눈에 고장난 칸과 구별 안 됨 (2026-08-29 관측)
  * R2 에 아직 안 올라간 것은 404 가 나는데, 그것도 못 받았다로 조용히 남긴다.
@@ -59,11 +63,13 @@ function human(bytes) {
  * @param {Array} opts.files           `{ path, size }`
  * @param {(path:string)=>string} opts.kindOf     previewKind
  * @param {(path:string)=>Promise<{bytes:Uint8Array}|null>} opts.load  복호해서 바이트를 준다
+ * @param {(path:string)=>Promise<{bytes:Uint8Array}|null>} [opts.loadThumb] 미리보기. 없으면 null
  * @param {(path:string)=>string} opts.mimeOf
  * @param {(path:string)=>string} opts.hrefOf     칸을 누르면 갈 곳
  * @returns {{ dispose: () => void }}
  */
-export function mountGallery({ host, files, kindOf, load, mimeOf, hrefOf }) {
+export function mountGallery({ host, files, kindOf, load, loadThumb, mimeOf, hrefOf }) {
+    const hasThumb = new Set(files.filter((f) => f.thumb).map((f) => f.path));
     const urls = [];
     let running = 0;
     const queue = [];
@@ -75,7 +81,7 @@ export function mountGallery({ host, files, kindOf, load, mimeOf, hrefOf }) {
             const esc = (v) => String(v).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
             /* 그림 아니면 갈래 글자와 크기 미리 박기. 그림이면 비워 두고 `fill` 이 채움 */
             const art =
-                kind === 'image'
+                kind === 'image' || f.thumb
                     ? '<span class="frame-art"></span>'
                     : `<span class="frame-art"><span class="frame-face">${FACE[kind] ?? FACE.file}` +
                       `<i>${esc(human(f.size))}</i></span></span>`;
@@ -103,9 +109,11 @@ export function mountGallery({ host, files, kindOf, load, mimeOf, hrefOf }) {
         const path = decodeURIComponent(cell.dataset.path);
         const art = cell.querySelector('.frame-art');
         try {
-            const got = await load(path);
+            /* 미리보기가 있으면 그것만 받는다. 원본은 200배 크다 */
+            const thumb = hasThumb.has(path) && loadThumb ? await loadThumb(path) : null;
+            const got = thumb ?? (kindOf(path) === 'image' ? await load(path) : null);
             if (!got) throw new Error('none');
-            const url = URL.createObjectURL(new Blob([got.bytes], { type: mimeOf(path) }));
+            const url = URL.createObjectURL(new Blob([got.bytes], { type: thumb ? 'image/jpeg' : mimeOf(path) }));
             urls.push(url);
             const img = new Image();
             img.loading = 'lazy';
@@ -124,7 +132,8 @@ export function mountGallery({ host, files, kindOf, load, mimeOf, hrefOf }) {
             for (const e of entries) {
                 if (!e.isIntersecting) continue;
                 io.unobserve(e.target);
-                if (e.target.dataset.kind !== 'image') {
+                const path = decodeURIComponent(e.target.dataset.path);
+                if (e.target.dataset.kind !== 'image' && !hasThumb.has(path)) {
                     /* 갈래 글자 이미 있음. 받아올 것 없으므로 여기서 끝 */
                     e.target.classList.add('shown');
                     continue;

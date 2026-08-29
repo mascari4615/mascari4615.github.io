@@ -7,6 +7,7 @@
     "test": "node --test test/*.test.mjs",
     "upload": "node src/upload.mjs",
     "probe": "node scripts/probe-rclone.mjs",
-    "health": "node src/health.mjs"
+    "health": "node src/health.mjs",
+    "thumbs": "node src/thumb-backfill.mjs"
   }
 }
