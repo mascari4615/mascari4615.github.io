@@ -454,7 +454,9 @@
     "verify:prepush": "node scripts/run-prepush.mjs",
     "verify:quality": "node scripts/run-gates.mjs audit:boot test:perf test:perf:budget test:leak",
     "verify:tonight": "node scripts/verify-tonight.mjs",
-    "test:post-model": "node scripts/test-post-model.mjs"
+    "test:post-model": "node scripts/test-post-model.mjs",
+    "gen:docs-pages": "node scripts/gen-docs-pages.mjs",
+    "test:docs-pages": "node scripts/test-docs-pages.mjs"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",

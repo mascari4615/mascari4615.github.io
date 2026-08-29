@@ -134,6 +134,15 @@
         "scripts/test-post-model.mjs"
       ]
     },
+    {
+      "name": "test:docs-pages",
+      "볼것": [
+        "scripts/gen-docs-pages.mjs",
+        "scripts/test-docs-pages.mjs",
+        "data/docs/**",
+        "world/wiki/**"
+      ]
+    },
     "test:tools",
     "test:pulse",
     "test:tool-url",

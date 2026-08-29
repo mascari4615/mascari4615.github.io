@@ -177,6 +177,12 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:community
 
+      # change.post-model 03: 문서 게시판 글의 정적 장(/c/docs/<문서id>/).
+      # 문서 15편이 검색엔진에 하나도 안 잡히던 자리다. 커뮤니티 글과 같은 규약.
+      - name: Generate KarmoLab docs pages
+        working-directory: apps/karmolab
+        run: npm run gen:docs-pages
+
       # TASK-KL-151 ⑪: 놀이마다 한 장씩. 놀이는 앱 안 해시로만 살아서 검색에 걸릴 글이
       # 한 줄도 없었다. 사람은 놀이터가 아니라 이상형 월드컵으로 검색한다.
       # TASK-KL-151 ⑬: 도구 월드컵 표를 굽는다. 남의 그림을 퍼다 심지 않으려고
