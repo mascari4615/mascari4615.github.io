@@ -1,7 +1,6 @@
 {
-  "왜": "이미 있던 자리 명부 — 새 위젯이 rAF 를 직접 거는 것만 막는다 (change.widget-idle-cost). 실측으로 나온 뒤에도 계속 그리던 것은 정원·멍 둘뿐이었고 둘 다 고쳤다. 여기 있는 파일을 Toolbox.raf 로 옮기면 이 줄을 지워라.",
+  "왜": "이미 있던 자리 명부 — 새 위젯이 rAF 를 직접 거는 것만 막는다 (change.widget-idle-cost). 여기 스무 곳은 2026-08-29 에 갈래마다 실측했다(scripts/smoke-widget-idle.mjs): 나온 뒤 남는 rAF 는 전부 0 이었다 — IntersectionObserver 로 스스로 멈추거나, 사람이 조작할 때만 도는 루프들이다. 실제로 계속 그리던 것은 정원과 멍 둘뿐이었고 둘 다 Toolbox.raf 로 옮겼다. 그래서 이 스무 곳은 고치는 것이 목적이 아니라 새 것을 막기 위한 기준선이다. 옮기면 이 줄을 지워라.",
   "files": [
-    "src/lib/karmograph/canvas-raf.ts",
     "src/widgets/arcade/arcade.ts",
     "src/widgets/bluemarble/bluemarble.ts",
     "src/widgets/bounce.ts",
@@ -9,7 +8,6 @@
     "src/widgets/darkroom.ts",
     "src/widgets/heung/heung.ts",
     "src/widgets/hourglass.ts",
-    "src/widgets/imageedit.ts",
     "src/widgets/karmograph/karmograph.ts",
     "src/widgets/moon.ts",
     "src/widgets/news.ts",

@@ -24,8 +24,14 @@ const APP = path.resolve(HERE, '..');
 const ROOTS = [path.join(APP, 'src/widgets'), path.join(APP, 'src/lib')];
 const BASELINE_PATH = path.join(APP, 'data/widget-raf-baseline.json');
 
-/** 이름에 담아 다시 거는 모양 = 루프. */
-const LOOP = /(^|[^.\w])(\w+)\s*=\s*requestAnimationFrame\s*\(/;
+/**
+ * 이름에 담아 **함수 하나를 통째로** 다시 거는 모양 = 루프.
+ *
+ * `pending = requestAnimationFrame(() => ...)` 같은 **한 번 미루기**(같은 프레임의 여러 번을
+ * 하나로 합치는 자리)는 루프가 아니다 — 다음 프레임에 한 번 돌고 끝난다. 그것까지 잡으면
+ * 검사가 「고칠 것 없는 곳」을 계속 가리키고, 그러면 아무도 안 본다.
+ */
+const LOOP = /(^|[^.\w])(\w+)\s*=\s*requestAnimationFrame\s*\(\s*[A-Za-z_$][\w$]*\s*\)/;
 
 async function walk(dir) {
   const out = [];
