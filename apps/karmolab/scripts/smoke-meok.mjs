@@ -100,6 +100,10 @@ try {
   console.error('[smoke-meok] 화면이 안 떴다', errors);
   throw error;
 }
+/* 오프라인 쪽지를 치운다. 검사판은 서버가 없어 이 쪽지가 늘 뜨고, `position:fixed; bottom:64px`
+   라 그림판이 화면을 다 쓰면 타임라인 위에 앉아 클릭을 가로챈다(2026-08-29 실측: 프레임 버튼
+   클릭이 30초 시간초과). 재는 것은 그리기지 쪽지가 아니다. 겹침 자체는 정본의 공백으로 남겼다. */
+await page.addStyleTag({ content: '#kl-offline-note{display:none!important}' }).catch(() => {});
 const shown = await page.evaluate(() => {
   const boxes = [...document.querySelectorAll('.meok')].map((el) => el.getBoundingClientRect());
   return boxes.some((r) => r.width > 200 && r.height > 200);

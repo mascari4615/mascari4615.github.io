@@ -175,6 +175,13 @@ function buildMeok(container: HTMLElement): void {
   /** 고른 자리 점선(개미) 애니메이션을 멈추는 함수 (`lib/tick`). 이것도 그리기만 한다. */
   let stopAnts: (() => void) | null = null;
 
+  /* 셸이 준 자리를 그림판까지 전달. 이 한 겹이 안 늘어나면 그림판은 내용 높이로 쪼그라듦.
+     이미지 묶음 안 탭이라 위에 `material-shell` 껍질 세 겹. 그중 `.pf-body` 의 `align-items:start`
+     에서 세로가 끊김. 껍질은 다른 묶음도 쓰므로 **먹 탭일 때만** 잇는다. */
+  container.classList.add('meok-host');
+  const page = container.closest('.tool-page') as HTMLElement | null;
+  page?.classList.add('meok-page');
+  Toolbox.onDispose?.(() => { page?.classList.remove('meok-page'); });
   container.innerHTML =
     '<div class="meok">' +
     '<header class="meok-bar">' +
@@ -197,6 +204,7 @@ function buildMeok(container: HTMLElement): void {
       '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어, 프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
       '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
       '<span class="meok-status" data-status></span>' +
+      '<button data-act="fullscreen" class="meok-full" title="' + esc(T('fullscreenHelp', '창을 화면 전체로. 다시 누르면 돌아온다')) + '">⛶</button>' +
     '</header>' +
     '<div class="meok-body">' +
       '<aside class="meok-tools">' +
@@ -905,6 +913,12 @@ function buildMeok(container: HTMLElement): void {
     'undo': () => { if (history.undo()) { renderLayers(); renderFrames(); repaint(); touched(); } },
     'redo': () => { if (history.redo()) { renderLayers(); renderFrames(); repaint(); touched(); } },
     'fit': () => { view.fit(); syncZoom(); view.invalidate(); },
+    /* 전체화면. 도구 화면째 던진다 (timer, arcade 와 같은 손). 나올 때 화면 맞춤은 ResizeObserver 가 한다. */
+    'fullscreen': () => {
+      const page = (root.closest('.tool-page') || root) as HTMLElement;
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void page.requestFullscreen?.();
+    },
     'add-layer': () => { addLayer(doc); renderLayers(); repaint(); touched(); },
     'del-layer': () => {
       if (doc.activeLayer && removeLayer(doc, doc.activeLayer)) { renderLayers(); repaint(); }
@@ -1334,7 +1348,23 @@ function injectStyles(): void {
   const style = document.createElement('style');
   style.id = 'meok-style';
   style.textContent = [
-    '.meok{--meok-gap:8px;display:flex;flex-direction:column;height:min(78vh,820px);min-height:520px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;font-size:12px}',
+    /* 높이는 **부모가 준 자리**로만. `height:100%` 금지. 부모 높이가 확정이 아닌 자리에서 auto 로
+       떨어지고, 자식이 부모를 다시 정하는 순환에 화면이 굳는다 (2026-08-29 실측: 탭 두 개 응답 상실).
+       옛 값 min(78vh,820px) 은 1440p 에서 상한에 걸려 화면 절반만 씀. 안 늘어나는 자리는 min-height 가 받음. */
+    '.meok{--meok-gap:8px;display:flex;flex-direction:column;flex:1 1 auto;min-height:min(62vh,420px);background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;font-size:12px}',
+    '.meok-host{display:flex;flex-direction:column;flex:1;min-height:0}',
+    /* 먹 탭에서만 도는 사슬. 셸에서 그림판까지 세로를 흘려 보낸다. 클래스는 탭을 떠날 때 뗀다. */
+    '.tool-page.meok-page{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;max-width:none}',
+    '.meok-page .tab-panel.active{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}',
+    '.meok-page .pf-body{flex:1 1 auto;min-height:0;align-items:stretch}',
+    '.meok-page .pf-right{display:flex;flex-direction:column;min-height:0}',
+    '.meok-page .pf-mount{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}',
+    /* 묶음 머리말은 그림 그리는 동안 자리만 먹는다 (실측 109px). 도구 사이를 오가는 `pf-head` 는 남긴다. */
+    '.meok-page > .tool-page-hero{display:none}',
+    /* 사진 놓는 자리도 접는다 (실측 106px). 먹에는 열기와 붙이기 버튼이 자기 머리줄에 있다. */
+    '.meok-page .pf-drop{display:none}',
+    '.meok-full{margin-left:2px;font-size:13px;line-height:1;padding:4px 7px}',
+    '.meok:fullscreen,.meok :fullscreen{border-radius:0}',
     '.meok *{box-sizing:border-box}',
     '.meok button{border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}',
     '.meok button:hover{border-color:var(--accent,#4f7cff)}',
