@@ -80,24 +80,9 @@ import { toolIndexPath } from './lib/site-base';
                     <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></span>
                     <span class="landing-cta-card-title">${t('site.cta.arcade', undefined, '오락실')}</span>
                 </button>
-                <button type="button" class="landing-cta-card" data-goto-docs>
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-                    <span class="landing-cta-card-title">${t('site.cta.docs', undefined, '문서')}</span>
-                </button>
             </div>
         `;
         landing.appendChild(cta);
-
-        /* 문서 = 커뮤니티의 한 판 (change.docs-into-community)
-           `data-goto` 는 페이지 id 만 받으므로, 어느 판인지는 주소에 적고 커뮤니티로 넘김 */
-        cta.querySelector('[data-goto-docs]')?.addEventListener('click', () => {
-            const search = new URLSearchParams(location.search);
-            search.set('board', 'docs');
-            search.delete('p');
-            search.delete('d');
-            history.pushState({}, '', `${location.pathname}?${search.toString()}#community`);
-            Toolbox.switchPage('community');
-        });
 
         /* TASK-KL-098. 사람이 있다를 말이 아니라 **숫자**로 보여 주는 자리.
          * 값은 전부 실측이고 지어낸 수는 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는
