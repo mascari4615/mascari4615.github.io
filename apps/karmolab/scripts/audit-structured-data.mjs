@@ -26,10 +26,6 @@ const KNOWN = new Set([
   '/bot/',
   '/wm/',
   '/works/',
-  '/daily/bluearchive/past/',
-  '/daily/genshin/past/',
-  '/daily/lol/past/',
-  '/daily/pokemon/past/',
 ]);
 
 const done = (code, line) => {
