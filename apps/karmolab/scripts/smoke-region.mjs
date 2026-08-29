@@ -131,7 +131,7 @@ for (const c of CASES) {
 const HOLIDAY_CASES = [
   /* 평일에 걸린 날로 고른다. 주말에 걸리면 토요일이 이겨서 이름이 안 뜬다(그건 맞는 동작). */
   { locale: 'en', region: 'US', from: '2026-11-23', to: '2026-11-28', want: 'Thanksgiving' },
-  { locale: 'en', region: 'JP', from: '2026-05-01', to: '2026-05-08', want: 'Children's Day' },
+  { locale: 'en', region: 'JP', from: '2026-05-01', to: '2026-05-08', want: "Children's Day" },
   { locale: 'en', region: 'KR', from: '2026-02-14', to: '2026-02-20', want: 'Seollal' }
 ];
 
