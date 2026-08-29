@@ -63,7 +63,7 @@ use local_dev::{
     restore_repo_root,
     LocalDevState,
 };
-use files_window::{files_navigate, files_window_open};
+use files_window::{files_navigate, files_window_open, karmolab_navigate};
 use vault_upload::{
     restore_upload_state, vault_upload_pick_target, vault_upload_start, vault_upload_status,
     vault_upload_stop, vault_upload_targets,

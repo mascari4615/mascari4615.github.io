@@ -216,6 +216,24 @@ import { installContextMenu } from './lib/context-menu';
         if (ver) Toolbox.setAppVersion?.(ver);
     }
 
+    /** Files 진입 단추 — 데스크톱 앱 전용.
+     *  트레이 메뉴에만 있던 길을 머리띠로 올린다. 창을 보는 동안 트레이를 찾아 내려가는 건
+     *  들어가는 길로 너무 멀다. 되돌아오는 길은 Files 화면의 「← KarmoLab」이다
+     *  (뒤로가기가 아니라 `karmolab_navigate` 로 한 번에 돌아온다). */
+    function installFilesButton() {
+        if (!isDesktopApp()) return;
+        const btn = document.getElementById('filesBtn');
+        if (!btn) return;
+        const invoke = window.__TAURI__?.core?.invoke;
+        if (typeof invoke !== 'function') return; // 부를 길이 없으면 죽은 단추다 — 아예 안 켠다
+        // 감춤은 인라인 style 이다 — 클래스로 감추면 시트 순서에 걸리고, `aria-hidden` 으로
+        // 감추면 초점이 갈 수 있는 단추가 숨은 채 남아 접근성 검사가 빨강이 된다(2026-08-29 실측).
+        btn.style.display = 'flex';
+        btn.addEventListener('click', () => {
+            void invoke('files_navigate', {}).catch((e) => console.warn('[Files] 이동 실패', e));
+        });
+    }
+
     function installWindowControls() {
         if (!isDesktopApp()) return;
         const controls = document.getElementById('windowControls');
@@ -261,6 +279,7 @@ import { installContextMenu } from './lib/context-menu';
             setupUpdateBannerListener();
             setupUpdateCompletedToast();
             installWindowControls();
+            installFilesButton();
             /* 앱 전용 우클릭 메뉴. 웹에서는 이 파일 자체를 안 받으므로 여기가 제자리다 —
              * 브라우저 기본 메뉴를 덮는 것은 데스크톱 앱에서만 정당하다. */
             installContextMenu();

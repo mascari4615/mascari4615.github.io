@@ -202,7 +202,10 @@ function mountDesktopNav() {
       win?.close?.();
       return;
     }
-    history.back();
+    // 뒤로가기가 **아니다**. 이 화면은 폴더를 해시로 넘기므로 히스토리가 폴더마다 쌓인다 —
+    // `history.back()` 이면 카모랩이 아니라 직전 폴더로 간다(2026-08-29 조수님이 봤다).
+    // 앱이 갈아타기 직전 카모랩 주소를 적어 뒀다가 한 번에 되돌린다.
+    desktopInvoke('karmolab_navigate').catch(() => history.back());
   });
 
   const openWin = document.getElementById('nav-window');

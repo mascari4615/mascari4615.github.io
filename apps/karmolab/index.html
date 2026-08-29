@@ -60,6 +60,12 @@ permalink: /
     <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/">
     <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/">
     <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/">
+    <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/">
+    <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/">
+    <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/">
+    <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/">
+    <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/">
+    <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/">
     <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
          기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
          도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
@@ -299,6 +305,13 @@ permalink: /
                      계정 메뉴에도 있지만 그건 서버에 닿을 때만 그려진다. 설정은 서버와 무관하다. -->
                 <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+                <!-- Files (데스크톱 앱 전용, 2026-08-29) — 트레이로만 들어갈 수 있어서
+                     창을 보고 있는 동안엔 파일로 가는 길이 화면에 없었다. 웹에서는 안 그린다:
+                     `/blob/`(클라우드 암호문)이 앱 도메인 밖에선 안 열려 픽스처로 되떨어진다.
+                     `css` 는 감춤이 기본이고 `desktop-chrome.ts` 가 앱에서만 켠다. -->
+                <button type="button" class="header-btn files-btn" id="filesBtn" data-desktop-only style="display:none" title="Files — 노트북 · 금고" aria-label="Files">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                 </button>
                 <!-- 언어 단추 (TASK-KL-203). 여기 박아 두는 이유: 검색으로 들어온 사람이 첫 화면에서
                      바로 찾아야 한다 — 설정 안에 넣으면 우리말을 못 읽는 사람은 거기까지 못 간다.

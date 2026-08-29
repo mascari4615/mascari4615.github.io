@@ -14,6 +14,13 @@
 
 use tauri::Manager;
 
+/// Files 로 갈아타기 **직전** 카모랩 주소. 돌아갈 때 이 자리로 되돌린다.
+///
+/// 왜 기억하나: 되돌아가는 길을 `history.back()` 으로 두면 **뒤로가기 한 칸**일 뿐이라
+/// Files 안에서 폴더를 넘긴 만큼 그 안을 거슬러 오른다 (해시로 폴더를 넘기므로 한 칸 = 한 폴더).
+/// 「카모랩으로」는 한 번에 카모랩이어야 한다.
+static KARMOLAB_RETURN_URL: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+
 /// 창 label. `capabilities/default.json` 의 `windows` 에 같은 이름이 있어야
 /// 이 창에서 command 를 부를 수 있다 (없으면 화면은 뜨는데 버튼이 다 죽는다).
 pub const FILES_WINDOW_LABEL: &str = "files";
@@ -88,19 +95,76 @@ pub fn open_files_window(app: &tauri::AppHandle) -> Result<(), String> {
 
 /// 지금 창을 그대로 Files 로 바꾼다 — 기본 길.
 ///
-/// 창을 새로 띄우면 창 관리가 늘어난다. 파일을 볼 때 카모랩을 동시에 볼 일은 드물고,
-/// navigate 는 히스토리를 남기므로 뒤로가기로 카모랩에 돌아온다.
+/// 창을 새로 띄우면 창 관리가 늘어난다. 파일을 볼 때 카모랩을 동시에 볼 일은 드물다.
+/// 돌아가는 길은 뒤로가기가 아니라 `karmolab_navigate` 다 (히스토리는 폴더마다 쌓인다).
 pub fn navigate_main_to_files(app: &tauri::AppHandle) -> Result<(), String> {
     let main = app
         .get_webview_window("main")
         .ok_or_else(|| "main 창이 없습니다.".to_string())?;
     let url = main.url().map_err(|e| format!("main 주소 조회 실패: {}", e))?;
     let target = files_url_from(&url);
+    // 되돌아갈 자리를 적어 둔다. 이미 Files 에 있는 상태에서 또 눌렀다면 덮어쓰지 않는다 —
+    // 덮어쓰면 「카모랩으로」가 Files 를 가리키게 된다.
+    if url != target {
+        if let Ok(mut g) = KARMOLAB_RETURN_URL.lock() {
+            *g = Some(url.as_str().to_string());
+        }
+    }
     let _ = main.unminimize();
     let _ = main.show();
     let _ = main.set_focus();
     main.navigate(target)
         .map_err(|e| format!("Files 로 이동 실패: {}", e))
+}
+
+/// Files 주소 → 카모랩 주소 (기억이 없을 때의 대비책).
+///
+/// 기억이 비는 경우: 앱을 껐다 켰는데 Files 가 마지막 화면이었거나, 트레이가 아니라
+/// 바깥에서 곧장 Files 로 들어온 경우.
+fn karmolab_url_from(files_url: &tauri::Url) -> tauri::Url {
+    if files_url.scheme() == "https" {
+        if let Ok(u) = tauri::Url::parse(crate::KARMOLAB_WEB_URL) {
+            return u;
+        }
+    }
+    let mut u = files_url.clone();
+    u.set_fragment(None);
+    u.set_query(None);
+    let path = u.path().to_string();
+    let next = if path.contains("/files") {
+        path.replace("/files", "/karmolab")
+    } else {
+        "/karmolab/".to_string()
+    };
+    u.set_path(&next);
+    u
+}
+
+/// 지금 창을 카모랩으로 되돌린다 — 「← KarmoLab」의 길.
+///
+/// 뒤로가기가 아니라 **주소 이동**이다. Files 안을 얼마나 헤맸든 한 번에 카모랩이다.
+#[tauri::command]
+pub fn karmolab_navigate(app: tauri::AppHandle) -> Result<(), String> {
+    let main = app
+        .get_webview_window("main")
+        .ok_or_else(|| "main 창이 없습니다.".to_string())?;
+    let remembered = KARMOLAB_RETURN_URL
+        .lock()
+        .ok()
+        .and_then(|g| g.clone())
+        .and_then(|s| tauri::Url::parse(&s).ok());
+    let target = match remembered {
+        Some(u) => u,
+        None => {
+            let url = main.url().map_err(|e| format!("main 주소 조회 실패: {}", e))?;
+            karmolab_url_from(&url)
+        }
+    };
+    let _ = main.unminimize();
+    let _ = main.show();
+    let _ = main.set_focus();
+    main.navigate(target)
+        .map_err(|e| format!("KarmoLab 로 이동 실패: {}", e))
 }
 
 /// 지금 창을 Files 로 바꾼다 (화면 손잡이용).
@@ -142,6 +206,18 @@ mod tests {
         assert_eq!(files_url_from(&u).as_str(), "https://files.mascari4615.com/");
         let u = tauri::Url::parse("https://blog.mascari4615.com/t/somethig/").unwrap();
         assert_eq!(files_url_from(&u).as_str(), "https://files.mascari4615.com/");
+    }
+
+    #[test]
+    fn 되돌아갈_주소도_같은_규칙() {
+        // prod = 카모랩 정식 주소 한 곳. dev = 경로만 도로 바꾼다.
+        let u = tauri::Url::parse("https://files.mascari4615.com/#vault/a/b").unwrap();
+        assert_eq!(karmolab_url_from(&u).as_str(), crate::KARMOLAB_WEB_URL);
+        let u = tauri::Url::parse("http://127.0.0.1:8898/apps/files/index.html#laptop/x").unwrap();
+        assert_eq!(
+            karmolab_url_from(&u).as_str(),
+            "http://127.0.0.1:8898/apps/karmolab/index.html"
+        );
     }
 
     #[test]

@@ -978,8 +978,7 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
 .wc-close:hover { background: #e81123; color: #fff; }
 .wc-btn:active { filter: brightness(0.9); }
 .wc-btn svg { width: 12px; height: 12px; display: block; }
-/* `.wc-btn svg { display: block }` 보다 특이도가 낮으면 진다 — 작은 창에서 최대화·복원
-   아이콘이 **둘 다** 보였다 (2026-08-27). 같은 자리에서 겨루게 `.wc-btn` 을 붙인다. */
+
 .wc-btn .wc-icon-restore { display: none; }
 .window-controls[data-maximized="true"] .wc-btn .wc-icon-max { display: none; }
 .window-controls[data-maximized="true"] .wc-btn .wc-icon-restore { display: block; }
