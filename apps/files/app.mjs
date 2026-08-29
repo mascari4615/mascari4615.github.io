@@ -662,6 +662,25 @@ async function renderVaultFile(path) {
     video.controls = true;
     video.src = lastBlob;
     put(video);
+    /* 브라우저가 비디오 트랙을 못 푸는 경우 (실측 2026-08-29: mp4 표본 12개 중 10개가 HEVC).
+       그때도 오디오는 나오고 오류도 안 난다. 화면만 검고 소리만 들려 고장처럼 보인다.
+       메타데이터가 온 뒤 화소 크기가 0 이면 그 상태로 판정 */
+    let warned = false;
+    const warnIfNoPicture = () => {
+      if (warned || video.videoWidth > 0) return;
+      warned = true;
+      const note = document.createElement('p');
+      note.className = 'none';
+      note.textContent =
+        '소리는 나오는데 화면이 없습니다. 브라우저가 이 영상의 코덱(HEVC 등)을 못 풉니다. ' +
+        '위의 받기로 저장한 뒤 재생기로 보세요.';
+      video.after(note);
+    };
+    video.addEventListener('loadeddata', warnIfNoPicture, { once: true });
+    /* 메타데이터가 영영 안 오는 경우 대비. 3초 뒤 한 번 더 */
+    setTimeout(() => {
+      if (video.isConnected && video.readyState >= 1) warnIfNoPicture();
+    }, 3000);
     return;
   }
   /* 화면으로 못 보여 주는 갈래. 받기는 위 줄에 */
