@@ -356,6 +356,29 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
   width: min(560px, calc(100% - 300px)); margin: 0; }
 .sm-wrap.is-map .sm-view > .sm-tree-head { left: 50%; transform: translateX(-50%); bottom: 18px;
   margin: 0; padding: 7px 14px; font-size: 11px; }
+/* 첫 화면은 **조용해야 한다** — 지도와 손잡이 하나. 왼쪽 조각(제목·진도·갈래 목록)은
+   접어 두고 「☰」 뒤에 넣는다. 지구본이 칩 열두 개로 계기판이 됐던 것과 같은 이유다.
+   사라지는 것은 **투명도**지 존재가 아니다 — 포커스·탭 이동이 끊기면 키보드로 못 쓴다. */
+.sm-mapmenu { display: none; }
+.sm-wrap.is-map .sm-mapmenu { display: block; position: absolute; z-index: 7; top: 64px; left: 18px;
+  appearance: none; font: inherit; font-size: 13px; line-height: 1; padding: 9px 12px; cursor: pointer;
+  border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary);
+  background: color-mix(in srgb, var(--bg-primary) 76%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.sm-wrap.is-map .sm-mapmenu[aria-expanded="true"] { color: var(--text-primary); border-color: var(--accent); }
+.sm-wrap.is-map:not(.is-panel) .sm-head,
+.sm-wrap.is-map:not(.is-panel) .sm-tracks { opacity: 0; pointer-events: none; transform: translateX(-8px); }
+.sm-wrap.is-map .sm-head, .sm-wrap.is-map .sm-tracks { transition: opacity .22s ease, transform .22s ease; }
+/* 펴면 손잡이 자리를 비켜 아래로 내려앉는다. */
+.sm-wrap.is-map.is-panel .sm-head { top: 112px; }
+.sm-wrap.is-map.is-panel .sm-tracks { top: 244px; max-height: calc(100% - 340px); }
+@media (prefers-reduced-motion: reduce) {
+  .sm-wrap.is-map .sm-head, .sm-wrap.is-map .sm-tracks { transition: none; }
+}
+
+/* 글판은 껍데기 머리띠(52px) 밑으로 들어가면 첫 줄이 잘린다 — 그만큼 내려서 앉힌다. */
+.sm-wrap.is-map .sm-reader > * { margin-top: 66px; }
+
 /* 읽는 중에는 아래 띠를 접는다 — 덮개보다 위에 떠 있어서 글 위에 얹혀 보였다. */
 .sm-wrap.is-map.is-reading .sm-view > .sm-resume,
 .sm-wrap.is-map.is-reading .sm-view > .sm-tree-head { display: none; }
@@ -375,20 +398,21 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
 /* 덮개는 **지도를 지우지 않는다** — 옅게 흐려 뒤로 물릴 뿐이다. 글은 가운데 한 폭으로만 앉는다
    (글줄이 길면 못 읽고, 화면을 다 덮으면 「지도에서 열었다」가 사라진다). */
 .sm-reader { position: absolute; inset: 0; z-index: 5; overflow-y: auto; overscroll-behavior: contain;
-  min-height: 60svh; padding: 0; border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--bg-primary) 42%, transparent);
-  backdrop-filter: blur(4px) saturate(.9); -webkit-backdrop-filter: blur(4px) saturate(.9);
+  min-height: 60svh; padding: 0; border-radius: var(--radius-lg); cursor: zoom-out;
+  background: color-mix(in srgb, #000 34%, transparent);
+  backdrop-filter: blur(5px) saturate(.85); -webkit-backdrop-filter: blur(5px) saturate(.85);
   animation: sm-reader-in .18s ease-out; }
-/* 글이 앉는 판 — 여기만 또렷하다. 뒤 지도가 살짝 비치되 글자를 안 흔든다. */
-.sm-reader > * { max-width: 780px; margin: 22px auto; padding: 20px 24px 30px;
-  border: 1px solid var(--border); border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
-  backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, .38); }
+/* 글이 앉는 판 — **여기가 종이다.** 배경과 같은 물성이면 어디까지가 글인지 안 보인다:
+   판은 불투명에 가깝고 테두리가 또렷하며 그림자로 떠 있다. 배경은 눌러서 닫는 자리라
+   커서도 다르다(판 위에서는 원래 커서로 돌아온다). */
+.sm-reader > * { max-width: 780px; margin: 22px auto; padding: 22px 26px 32px; cursor: auto;
+  border: 1px solid var(--border-hover, var(--border)); border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-primary) 97%, transparent);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .5), 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); }
 @keyframes sm-reader-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 /* 흐림을 못 그리는 브라우저에서는 **불투명하게** — 반투명만 남으면 글자 뒤로 지도가 비쳐 못 읽는다. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .sm-reader { background: color-mix(in srgb, var(--bg-primary) 78%, transparent); }
+  .sm-reader { background: color-mix(in srgb, #000 55%, transparent); }
   .sm-reader > * { background: var(--bg-primary); }
 }
 @media (prefers-reduced-motion: reduce) { .sm-reader { animation: none; } }
@@ -597,6 +621,9 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
             <div class="sm-meter-all" data-sm="pall"></div>
           </div>
         </div>
+        <button type="button" class="sm-mapmenu" data-sm="mapmenu" aria-expanded="false"
+                aria-label="${esc(t('studymap.panel', undefined, '갈래 목록 펴기'))}"
+                title="${esc(t('studymap.panel', undefined, '갈래 목록 펴기'))}">☰</button>
         <div class="sm-findbar">
           <button type="button" class="sm-find-btn" data-sm="viewbtn">🌳 ${esc(t('studymap.view.tree', undefined, '나무'))}</button>
           <button type="button" class="sm-find-btn" data-sm="findbtn" aria-expanded="false">🔎 ${esc(t('studymap.find', undefined, '찾기'))}</button>
@@ -1452,6 +1479,15 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     elStages.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
 
+      /* 덮개의 **빈 자리**를 누르면 닫는다 — 덮어 놓은 물건의 기본 약속이다.
+         글판 안을 누른 것과 구별해야 하므로 과녁이 덮개 **자기 자신**일 때만 (자식이면 글이다).
+         닫는 길은 Esc·「지도로」와 같다 — 기록에 빈 칸이 안 남는다. */
+      if (target === elReader && lessonOpen) {
+        if ((history.state as { smLesson?: string } | null)?.smLesson) history.back();
+        else paint();
+        return;
+      }
+
       /* 나무 눈 — 갈래를 누르면 그 갈래 안으로, 칸을 누르면 강의로. */
       const up = target.closest('[data-zoom]') as HTMLElement | null;
       if (up) {
@@ -1550,6 +1586,32 @@ pre:hover .doc-copy, .doc-copy:focus-visible { opacity: 1; }
     });
 
     /* 목록 눈과 나무 눈을 오간다 — 읽을 때는 목록, 길을 볼 때는 나무. */
+    /* 왼쪽 조각은 접힌 채로 시작한다 — 편 채로 두면 지도가 처음부터 가려진다.
+       편 상태는 기억한다(늘 쓰는 사람에게 매번 다시 펴게 하지 않는다). */
+    const PANEL_KEY = 'karmolab-studymap-panel';
+    let panelOpen = (() => {
+      try {
+        return localStorage.getItem(PANEL_KEY) === '1';
+      } catch {
+        return false;
+      }
+    })();
+    const elMapMenu = q<HTMLButtonElement>('mapmenu');
+    const paintPanel = (): void => {
+      container.querySelector('.sm-wrap')?.classList.toggle('is-panel', panelOpen);
+      elMapMenu.setAttribute('aria-expanded', String(panelOpen));
+    };
+    elMapMenu.addEventListener('click', () => {
+      panelOpen = !panelOpen;
+      try {
+        localStorage.setItem(PANEL_KEY, panelOpen ? '1' : '0');
+      } catch {
+        /* 못 적어도 이번 화면은 바뀐다 */
+      }
+      paintPanel();
+    });
+    paintPanel();
+
     const elViewBtn = q<HTMLButtonElement>('viewbtn');
     function paintViewBtn(): void {
       elViewBtn.textContent = view === 'tree' ? `📋 ${t('studymap.view.list', undefined, '목록')}` : `🌳 ${t('studymap.view.tree', undefined, '나무')}`;

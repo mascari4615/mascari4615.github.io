@@ -38,6 +38,8 @@ const read = (p, dflt = null) => {
   }
 };
 
+/** 묶음 이름 — 사람이 적는 자리. 없으면 이름 없이 굽는다. */
+const clusterNames = read(path.join(ROOT, 'data/studymap-clusters.json'), { names: [] });
 const map = read(MAP);
 const tracks = map?.tracks || map;
 if (!Array.isArray(tracks) || !tracks.length) {
@@ -312,9 +314,14 @@ const clusters = [];
 for (let j = 0; j < K; j += 1) {
   const members = tracks.filter((_, i) => cl.of[i] === j);
   if (!members.length) continue;
+  /* 이름은 사람이 적은 표에서 가져온다 — anchor 갈래가 든 묶음이 그 이름을 갖는다.
+     묶음 번호는 다시 구울 때 바뀌지만 anchor 는 안 바뀌므로, 이름이 엉뚱한 데 붙지 않는다.
+     이름이 없는 묶음은 색으로만 남는다(없는 이름을 지어내지 않는다). */
+  const ids = new Set(members.map((tr) => tr.id));
+  const named = (clusterNames.names || []).find((n) => ids.has(n.anchor));
   clusters.push({
     id: `c${j}`,
-    label: '',
+    label: named?.label || '',
     members: members.map((tr) => tr.id),
   });
 }
