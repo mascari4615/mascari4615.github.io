@@ -121,7 +121,7 @@ const tailOnly = loopSections({ from: 0, to: 16 }, { from: 0, to: 8 });
 assert.equal(tailOnly.map((section) => section.name).join(), 'loop,outro');
 
 // 이음매. 끝 표본과 첫 표본이 벌어질수록 커지는 딱 소리
-const fakeBuffer = (channels) => ({ numberOfChannels: channels.length, length: channels[0].length, getChannelData: (index) => channels[index] });
+const fakeBuffer = (channels) => ({ numberOfChannels: channels.length, length: channels[0].length, sampleRate: 44100, getChannelData: (index) => channels[index] });
 const seamless = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 0])]));
 assert.equal(seamless.jump, 0, '끝과 시작이 같으면 어긋남 0');
 assert.equal(seamless.dbfs, -Infinity, '어긋남이 없으면 잴 값이 없다');
@@ -131,6 +131,20 @@ assert.ok(Math.abs(rough.dbfs - 0) < 1e-6, '한 칸 다 벌어지면 0 dBFS');
 const quiet = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 0.001])]));
 assert.ok(quiet.dbfs < -50 && quiet.dbfs > -70, '작은 어긋남은 -60 dBFS 근처');
 const twoEars = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0, 0, 0.5]), Float32Array.from([0, 0, 0, 0])]));
+// 재는 자리는 루프가 도는 지점. 버퍼 끝은 꼬리라 늘 조용해서 안 넘기면 늘 좋게 나옴
+const withTail = fakeBuffer([Float32Array.from([0.0005, 0.5, 0.9, 0.6, 0.02, 0.001])]);
+const wholeBuffer = seamDiscontinuity(withTail);
+assert.ok(wholeBuffer.dbfs < -40, '버퍼 끝으로 재면 꼬리 때문에 좋게 나온다');
+const atBoundary = seamDiscontinuity(withTail, 4);
+assert.ok(Math.abs(atBoundary.jump - 0.5995) < 1e-3, '루프 자리에서 재면 실제 어긋남이 보인다');
+assert.ok(atBoundary.dbfs > -10, '들릴 만한 크기로 잡힌다');
+
+// 그 자리에서 잘려 나가는 꼬리 크기도 함께
+assert.ok(atBoundary.tailDbfs > -80 && atBoundary.tailDbfs < 0, `꼬리 크기를 잰다 (${atBoundary.tailDbfs})`);
+assert.ok(atBoundary.tailSeconds > 0, '꼬리 길이도 준다');
+const noTail = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.2, 0.4])]), 3);
+assert.equal(noTail.tailDbfs, -Infinity, '자를 꼬리가 없으면 없다고 한다');
+
 assert.ok(Math.abs(twoEars.jump - 0.5) < 1e-6, '두 귀 중 더 벌어진 쪽으로 잰다');
 
-console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이, 루프 지점, 세 구간, 이음매');
+console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이, 루프 지점, 세 구간, 이음매, 잘리는 꼬리');

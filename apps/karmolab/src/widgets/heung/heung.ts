@@ -276,9 +276,12 @@ import { decodeMidi, encodeMidi } from './midi-file';
       if(to-from<=0){status('루프 구간이 없다');if(note)note.textContent='구간 반복을 먼저 잡아라';return;}
       if(note)note.textContent='이음매 재는 중...';
       const rendered=await renderProject(project,assets,from,to,exportOptions.sampleRate,1);
-      const seam=seamDiscontinuity(rendered);
+      /* 재는 자리는 버퍼 끝이 아니라 **루프가 돌아가는 자리**다. 버퍼 끝은 꼬리라 늘 조용하다 */
+      const boundary=Math.round((to-from)*(60/project.bpm)*rendered.sampleRate);
+      const seam=seamDiscontinuity(rendered,boundary);
       const verdict=seam.dbfs<-60?'안 들린다':seam.dbfs<-20?'희미하게 들릴 수 있다':'딱 소리가 들린다';
-      const text=`이음매 차이 ${seam.dbfs===-Infinity?'없음':`${seam.dbfs.toFixed(1)} dBFS`}, ${verdict}`;
+      const tail=seam.tailDbfs===-Infinity?'':`, 잘리는 꼬리 ${seam.tailDbfs.toFixed(1)} dBFS ${seam.tailSeconds.toFixed(1)}초`;
+      const text=`이음매 차이 ${seam.dbfs===-Infinity?'없음':`${seam.dbfs.toFixed(1)} dBFS`}, ${verdict}${tail}`;
       if(note)note.textContent=text;
       status(text);
       /* 재는 데서 끝내지 않는다. 그 자리만 반복해 들려줘야 귀로 확인이 된다 */

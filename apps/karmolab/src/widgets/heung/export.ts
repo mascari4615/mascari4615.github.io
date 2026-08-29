@@ -106,16 +106,30 @@ export function loopSections(song: BeatRange, loop: BeatRange): { name: 'intro' 
  *
  * 두 값이 멀수록 이어 붙일 때 딱 소리. 귀보다 숫자가 먼저.
  * 기준은 -60 dBFS 아래면 안 들림, -20 dBFS 위면 대개 들림.
+ *
+ * `boundarySample` 은 **루프가 돌아가는 자리**다. 안 넘기면 버퍼 끝을 본다. 그런데 렌더 버퍼는
+ * 꼬리까지 담고 있어서 끝은 거의 무음이라, 안 넘기면 항상 이음매가 좋다고 나온다 (실측 -317 dBFS
+ * vs 실제 -25.1 dBFS). 그 자리에서 잘려 나가는 꼬리 크기도 함께 반환.
  */
-export function seamDiscontinuity(buffer: PcmLike): { jump: number; dbfs: number } {
+export function seamDiscontinuity(buffer: PcmLike, boundarySample?: number): { jump: number; dbfs: number; tailDbfs: number; tailSeconds: number } {
+  const end = Math.max(1, Math.min(buffer.length, Math.floor(boundarySample ?? buffer.length)));
   let jump = 0;
+  let tailSum = 0;
+  let tailCount = 0;
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
     const data = buffer.getChannelData(channel);
     if (data.length < 2) continue;
-    const gap = Math.abs(data[data.length - 1] - data[0]);
+    const gap = Math.abs(data[end - 1] - data[0]);
     if (gap > jump) jump = gap;
+    for (let index = end; index < data.length; index++) { tailSum += data[index] * data[index]; tailCount += 1; }
   }
-  return { jump, dbfs: jump > 0 ? 20 * Math.log10(jump) : -Infinity };
+  const tailRms = tailCount ? Math.sqrt(tailSum / tailCount) : 0;
+  return {
+    jump,
+    dbfs: jump > 0 ? 20 * Math.log10(jump) : -Infinity,
+    tailDbfs: tailRms > 0 ? 20 * Math.log10(tailRms) : -Infinity,
+    tailSeconds: tailCount / Math.max(1, buffer.numberOfChannels) / Math.max(1, buffer.sampleRate)
+  };
 }
 
 /** 여러 벌을 한 배수로 맞춘다. 트랙마다 따로 맞추면 트랙 사이 음량 관계가 깨진다 */
