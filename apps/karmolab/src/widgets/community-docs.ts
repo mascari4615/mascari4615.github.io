@@ -219,7 +219,7 @@ function entityHeader(dirName: string, item: EntityManifestItem, characters: Ent
     return parts.join('\n');
 }
 
-function richLabels(): RichViewLabels {
+export function richLabels(): RichViewLabels {
     return {
         toc: t('community.docs.t13'),
         tocTitle: t('community.docs.toc-title', undefined, '이 문서 목차'),

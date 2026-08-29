@@ -99,4 +99,13 @@ if (existsSync(indexPath)) {
   console.log('[post-model] posts-index.json 없음. 빌드 산출이라 건너뜀 (CANNOT-RUN 아님, 위 검사는 다 돌았다)');
 }
 
-console.log('[post-model] 세 갈래가 한 모양으로 담긴다. 주소, 신뢰 등급, 찾기까지');
+// 실행판(```demo)은 trust self 안에서만. 울타리가 풀리면 남의 글이 코드 실행
+const richSource = await readFile(fileURLToPath(new URL('src/lib/markdown/rich-view.ts', root)), 'utf8');
+const guardAt = richSource.indexOf("trust === 'self'");
+const mountAt = richSource.indexOf('mountDemos(');
+assert.ok(guardAt > 0, 'rich-view 에 trust self 울타리가 없다');
+assert.ok(mountAt > guardAt, '실행판이 trust self 울타리 밖에서 열린다');
+const guardBlockEnd = richSource.indexOf(String.fromCharCode(10) + '    }', guardAt);
+assert.ok(mountAt < guardBlockEnd, '실행판 호출이 울타리 블록 밖으로 나갔다');
+
+console.log('[post-model] 세 갈래가 한 모양으로 담긴다. 주소, 신뢰 등급, 찾기, 실행판 울타리까지');

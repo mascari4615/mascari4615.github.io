@@ -14,6 +14,7 @@ import { collectHeadings, watchReading, bindTocClicks, highlightCode, addCopyBut
 import { specFromMermaid } from '../karmograph/from-mermaid';
 import { renderGraphSvg } from '../karmograph/render';
 import { renderMarkdown as renderMarkdownShared } from './render';
+import { splitFrontMatter } from './frontmatter';
 
 export interface RichViewLabels {
     toc: string;
@@ -31,6 +32,10 @@ export interface RichViewOptions {
     labels: RichViewLabels;
     /** 제목이 이만큼 이상이면 오른쪽 목차를 세운다. 0 이면 목차 없음. */
     tocMin?: number;
+    /** 본문 상자의 class. 부르는 쪽 겉모습을 그대로 쓰고 싶을 때 (커뮤니티 글 상세 등) */
+    bodyClass?: string;
+    /** `demoted` 면 글 안 제목을 h3~h5 로 내린다. 화면 큰제목과 안 부딪히게 (커뮤니티 글 규칙) */
+    headings?: 'as-is' | 'demoted';
 }
 
 /** 겉모습은 한 곳에서. 문서 판도 글 상세도 같은 글꼴과 같은 여백을 쓴다. */
@@ -127,9 +132,10 @@ function applyAnchors(
     root: HTMLElement,
     tocEl: HTMLElement | null,
     labels: RichViewLabels,
+    selector: string,
 ): Array<{ id: string; text: string; level: number }> {
     const used = new Set<string>();
-    const toc = collectHeadings(root, { selector: 'h1, h2, h3', min: 1, idFrom: (text) => uniqueId(slugify(text), used) });
+    const toc = collectHeadings(root, { selector, min: 1, idFrom: (text) => uniqueId(slugify(text), used) });
 
     toc.forEach((item) => {
         const el = root.querySelector('#' + CSS.escape(item.id)) as HTMLElement | null;
@@ -239,8 +245,9 @@ export async function renderRichMarkdown(
     injectRichViewStyles();
 
     const body = document.createElement('div');
-    body.className = 'docs-body md';
-    const source = markdown.replace(/^﻿/, '');
+    body.className = options.bodyClass ?? 'docs-body md';
+    /* 앞머리(`---` 덩어리)는 설정이다. 본문으로도 목차로도 안 샌다 */
+    const source = splitFrontMatter(markdown.replace(/^﻿/, '')).body;
 
     // 서식 엔진은 첫 글을 그릴 때 싣는다 (KL-054). 첫 화면 무게 0.
     try {
@@ -255,7 +262,10 @@ export async function renderRichMarkdown(
         return () => {};
     }
 
-    body.innerHTML = renderMarkdownShared(source, { trust, marked, breaks: true });
+    const rendered = renderMarkdownShared(source, { trust, marked, breaks: true });
+    body.innerHTML = options.headings === 'demoted'
+        ? rendered.replace(/<(\/?)h3>/g, '<$1h5>').replace(/<(\/?)h2>/g, '<$1h4>').replace(/<(\/?)h1>/g, '<$1h3>')
+        : rendered;
 
     const layout = document.createElement('div');
     layout.className = 'docs-md-layout';
@@ -298,7 +308,7 @@ export async function renderRichMarkdown(
     void highlightCode(body);
     addCopyButtons(body, labels.copy, labels.copied);
 
-    const headings = applyAnchors(body, tocNav, labels);
+    const headings = applyAnchors(body, tocNav, labels, options.headings === 'demoted' ? 'h3, h4, h5' : 'h1, h2, h3');
     let stop: (() => void) | null = null;
     if (tocMin <= 0 || headings.length < Math.max(2, tocMin)) {
         layout.classList.add('docs-md-layout--no-toc');

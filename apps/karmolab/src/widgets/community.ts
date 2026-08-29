@@ -19,6 +19,7 @@
  * 뒤로 가기로 목록↔글을 오간다.
  */
 import { renderMarkdown, plainPreview, postCover, escapeHtml as escapeMd } from './community-markdown';
+import { renderRichMarkdown } from '../lib/markdown/rich-view';
 import { coverAttrs } from '../lib/markdown/frontmatter';
 import { loadPostsIndex, blogBoardSummary, buildBlogBoardBody, type BlogBoardSummary } from './community-blog';
 import {
@@ -30,6 +31,7 @@ import {
     buildDocsBoardBody,
     buildDocView,
     disposeDocView,
+    richLabels,
     type DocEntry,
     type DocsBoardSummary,
 } from './community-docs';
@@ -472,6 +474,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
         pendingDocHeading = '';
         return heading;
     }
+
+    /** 글 상세 본문의 읽는 곳 감시를 푸는 함수. 다른 글로 갈 때 반드시 부른다 */
+    let stopPostBodyWatch: (() => void) | null = null;
 
     /** 말머리 고치는 칸을 펼쳐 두었나. */
     let tagEditOpen = false;
@@ -1721,7 +1726,7 @@ import { t, loadNamespace, locale } from '../lib/i18n';
                     <span class="c-dot">${relativeTime(post.createdAt)}</span>
                     <span class="c-dot">조회 ${post.views}</span></div>
                 </header>
-                ${post.title ? `<div class="c-post-body md">${renderMarkdown(post.text)}</div>` : `<div class="c-post-body md">${renderMarkdown(post.text)}</div>`}
+                <div class="c-post-body md" data-post-body></div>
                 <div class="c-actions">
                     <button type="button" class="c-act" data-like data-on="${post.likedByMe ? '1' : '0'}"
                         ${data.signedIn ? '' : t('community.t170')}>
@@ -1798,6 +1803,21 @@ import { t, loadNamespace, locale } from '../lib/i18n';
             }
             reload();
         };
+
+        /* 본문은 문서와 같은 문으로 그린다 (change.post-model 02). 목차, 도해, 코드 복사까지 한 벌.
+           trust user 라 실행판(```demo)은 안 열린다. 겉모습은 `c-post-body` 그대로 */
+        const bodyHost = host.querySelector<HTMLElement>('[data-post-body]');
+        if (bodyHost) {
+            stopPostBodyWatch?.();
+            stopPostBodyWatch = null;
+            void renderRichMarkdown(bodyHost, post.text, {
+                trust: 'user',
+                labels: richLabels(),
+                bodyClass: 'c-post-body md',
+                headings: 'demoted',
+                tocMin: 4,
+            }).then((stop) => { stopPostBodyWatch = stop; });
+        }
 
         host.querySelector('[data-back]')?.addEventListener('click', () =>
             go({ p: null, board: post.board === 'free' ? null : post.board }),
@@ -1927,6 +1947,9 @@ import { t, loadNamespace, locale } from '../lib/i18n';
      */
     async function render(): Promise<void> {
         if (!host) return;
+        // 다른 화면으로 가면 옛 본문의 읽는 곳 감시 해제
+        stopPostBodyWatch?.();
+        stopPostBodyWatch = null;
         takeWriterHandoff();
         takeDocHandoff();
         if (host.childElementCount === 0) host.innerHTML = t('community.t187');
