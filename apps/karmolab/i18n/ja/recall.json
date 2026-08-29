@@ -9,7 +9,6 @@
   "recall.start.go": "開始",
   "recall.kind.pick": "記憶",
   "recall.kind.say": "説明",
-  "recall.say.hint": "話すように二三行",
   "recall.say.ph": "ここに答えを書く",
   "recall.say.check": "確認",
   "recall.say.dunno": "分からない",
@@ -54,5 +53,6 @@
   "recall.read.reset": "戻す",
   "recall.read.code": "サンプルコード",
   "recall.read.result": "実行結果",
-  "recall.export.manual": "コピーが塞がれた。下の文を直接選べばよい"
+  "recall.export.manual": "コピーが塞がれた。下の文を直接選べばよい",
+  "recall.say.hint2": "この見出しが指すものと、なぜそうなのかを二三行で、人に話すように"
 }

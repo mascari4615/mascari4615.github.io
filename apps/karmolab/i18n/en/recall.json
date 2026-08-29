@@ -9,7 +9,6 @@
   "recall.start.go": "Start",
   "recall.kind.pick": "Memory",
   "recall.kind.say": "Explain",
-  "recall.say.hint": "Two or three lines, like speaking",
   "recall.say.ph": "Write your answer here",
   "recall.say.check": "Check",
   "recall.say.dunno": "No idea",
@@ -54,5 +53,6 @@
   "recall.read.reset": "Reset",
   "recall.read.code": "Example code",
   "recall.read.result": "Result",
-  "recall.export.manual": "Copying was blocked. Select the text below instead"
+  "recall.export.manual": "Copying was blocked. Select the text below instead",
+  "recall.say.hint2": "Say what this title refers to and why, in two or three lines, as if explaining it to someone"
 }

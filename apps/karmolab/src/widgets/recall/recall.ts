@@ -23,7 +23,7 @@ type DropWhy = 'known' | 'off' | 'later';
 interface Pool {
   v: number;
   tracks: Record<string, string>;
-  lessons: Record<string, { t: string; q: number[]; s: string }>;
+  lessons: Record<string, { t: string; n: string; q: number[][]; s: string; p: string[] }>;
 }
 
 /** 오늘 세트의 한 자리. 본문은 아직 안 받은 상태 */
@@ -33,6 +33,9 @@ interface Slot {
   part: number;
   quiz?: number;
   track: string;
+  /** 어느 칸 몇째 장인지. 이게 없으면 문항이 홀로 못 선다 */
+  lessonTitle: string;
+  partName: string;
 }
 
 /** 본문까지 받은 문항. blocks 는 답한 뒤 펼쳐 읽을 그 장 전체 */
@@ -120,9 +123,11 @@ function buildSet(pool: Pool, seen: Record<string, SeenRow>, dropped: Record<str
   const all: Slot[] = [];
   for (const [lesson, meta] of Object.entries(pool.lessons)) {
     if (dropped[lesson] && dropped[lesson] > today()) continue;
-    meta.q.forEach((n, part) => {
-      if (meta.s[part] === '1') all.push({ kind: 'say', lesson, part, track: meta.t });
-      for (let k = 0; k < n; k += 1) all.push({ kind: 'pick', lesson, part, quiz: k, track: meta.t });
+    meta.q.forEach((slots, part) => {
+      const where = { track: meta.t, lessonTitle: meta.n, partName: meta.p?.[part] || '' };
+      if (meta.s[part] === '1') all.push({ kind: 'say', lesson, part, ...where });
+      /* 자리 번호 그대로. 문맥에 묶여 뺀 것이 있어 0부터 세면 어긋난다 */
+      for (const k of slots) all.push({ kind: 'pick', lesson, part, quiz: k, ...where });
     });
   }
 
@@ -287,6 +292,16 @@ function run(container: HTMLElement, pool: Pool): void {
   const keyOf = (s: Slot): string => `${s.lesson}#${s.part}${s.kind === 'pick' ? `q${s.quiz}` : 's'}`;
   const el = (): HTMLElement => container.querySelector('.rc-wrap') as HTMLElement;
 
+  /* 어느 칸 몇째 장인지. 문항 다수가 제 칸 제목을 전제함
+     (실측: 「1.1 에서 파일을 합치고 도메인을 나눈 이유는?」 은 HTTP 버전 칸 안에서만 성립).
+     답이 아니라 문맥이라 먼저 답하기를 안 깬다 */
+  function where(it: Item): string {
+    /* 서술은 장 제목이 곧 질문이라 그 줄을 빼야 두 번 안 나온다 */
+    const raw = it.kind === 'say' ? [it.lessonTitle] : [it.lessonTitle, it.partName];
+    const parts = raw.filter(Boolean).map(esc);
+    return parts.length ? `<p class="rc-where">${parts.join(' <span>·</span> ')}</p>` : '';
+  }
+
   function strip(): string {
     const dots = items
       .map((_, k) => `<span class="rc-dot${k < at ? ' is-done' : k === at ? ' is-now' : ''}"></span>`)
@@ -312,6 +327,7 @@ function run(container: HTMLElement, pool: Pool): void {
       el().innerHTML = `${head}
         <div class="rc-card">
           <span class="rc-tag">${esc(t('recall.kind.pick', undefined, '기억'))}, ${esc(pool.tracks[it.track] || '')}</span>
+          ${where(it)}
           <h2 class="rc-q">${esc(it.q)}</h2>
           <div class="rc-picks">${(it.choices || [])
             .map((c, k) => `<button type="button" class="rc-pick" data-pick="${k}">${esc(c)}</button>`)
@@ -328,8 +344,9 @@ function run(container: HTMLElement, pool: Pool): void {
     el().innerHTML = `${head}
       <div class="rc-card">
         <span class="rc-tag">${esc(t('recall.kind.say', undefined, '설명'))}, ${esc(pool.tracks[it.track] || '')}</span>
+        ${where(it)}
         <h2 class="rc-q">${esc(it.q)}</h2>
-        <p class="rc-hint">${esc(t('recall.say.hint', undefined, '왜 그런지 말하듯 두세 줄'))}</p>
+        <p class="rc-hint">${esc(t('recall.say.hint2', undefined, '이 제목이 가리키는 것이 무엇이고 왜 그런지, 아는 사람에게 말하듯 두세 줄'))}</p>
         <textarea class="rc-input" data-rc="answer" rows="5" placeholder="${esc(t('recall.say.ph', undefined, '여기에 답을 쓴다'))}"></textarea>
         <div class="rc-row">
           <button type="button" class="rc-go" data-rc="check">${esc(t('recall.say.check', undefined, '확인'))}</button>
@@ -345,6 +362,7 @@ function run(container: HTMLElement, pool: Pool): void {
     el().innerHTML = `${strip()}
       <div class="rc-card">
         <span class="rc-tag">${esc(t('recall.compare', undefined, '대조'))}</span>
+        ${where(it)}
         <h2 class="rc-q">${esc(it.q)}</h2>
         <div class="rc-cmp">
           <div class="rc-pane">
@@ -722,6 +740,8 @@ function injectStyles(): void {
 .rc-pane-b i { font-style: normal; color: var(--text-tertiary); }
 .rc-pane-b b { color: var(--accent); }
 
+.rc-where { font-size: 12px; color: var(--text-tertiary); margin: 0; }
+.rc-where span { opacity: .5; }
 .rc-read { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 4px; display: flex; flex-direction: column; gap: 14px; }
 .rc-read h3 { font-size: 17px; font-weight: 700; margin: 0; }
 .rc-read h4 { font-size: 15px; font-weight: 700; margin: 8px 0 0; }

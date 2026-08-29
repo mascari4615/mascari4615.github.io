@@ -9,7 +9,6 @@
   "recall.start.go": "시작",
   "recall.kind.pick": "기억",
   "recall.kind.say": "설명",
-  "recall.say.hint": "왜 그런지 말하듯 두세 줄",
   "recall.say.ph": "여기에 답을 쓴다",
   "recall.say.check": "확인",
   "recall.say.dunno": "모르겠다",
@@ -54,5 +53,6 @@
   "recall.read.reset": "되돌리기",
   "recall.read.code": "예제 코드",
   "recall.read.result": "실행 결과",
-  "recall.export.manual": "복사가 막혔다. 아래 글을 직접 고르면 된다"
+  "recall.export.manual": "복사가 막혔다. 아래 글을 직접 고르면 된다",
+  "recall.say.hint2": "이 제목이 가리키는 것이 무엇이고 왜 그런지, 아는 사람에게 말하듯 두세 줄"
 }
