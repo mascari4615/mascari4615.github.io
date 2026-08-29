@@ -119,6 +119,8 @@ const RAW_CHECKS = [
   /* 사이트맵 전수 대표 주소 검사. audit:seo 는 도구 장만 보므로 놀이와 글이 검사 밖이었음.
      2026-08-29 실측 341/438 장 빨강 (놀이 11장 뿌리 가리킴, 글 328장 두 개) */
   { name: '장마다 제 대표 주소를 다는지', cmd: ['npm', 'run', 'audit:canonical'], live: true },
+  /* 구조화 데이터도 도구 장만 검사 안이었음. 새로 빠지는 것만 잡는다 (아는 자리는 KNOWN) */
+  { name: '장마다 구조화 데이터를 다는지', cmd: ['npm', 'run', 'audit:structured'], live: true },
   { name: '놀이 셋이 성한지', cmd: ['node', '../play/scripts/smoke.mjs'] },
   /* 놀이 열 판이 **지어지기는 하나**. 말 묶음을 이르게 부르면 위젯이 통째로 안 올라간다.
      도구 장이 없는 놀이는 `test:i18n:runtime` 이 안 보고 있었다 (2026-08-14 실서비스 고장). */
