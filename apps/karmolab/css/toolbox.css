@@ -4516,12 +4516,14 @@ html[data-skin="field"] :where(.tool-page, .tab-panel) details:not([class]) { bo
    (옛 파랑 #5865F2 이 남아 있었다. 판이 회백인데 화살표만 파랬다, 2026-08-31) */
 html[data-skin="field"] select,
 html[data-skin="field"] .tool-page select,
+html[data-skin="field"] .prism-theme-select,
 html[data-skin="field"] .header-lang-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232a2a27' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center;
 }
 html[data-skin="field"][data-theme="dark"] select,
 html[data-skin="field"][data-theme="dark"] .tool-page select,
+html[data-skin="field"][data-theme="dark"] .prism-theme-select,
 html[data-skin="field"][data-theme="dark"] .header-lang-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c9c7bf' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center;
