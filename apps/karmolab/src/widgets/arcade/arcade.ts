@@ -559,12 +559,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ycpaper.ac-pin .ac-ychead .ac-ycleft{flex-basis:100%;margin-top:4px;font-size:var(--font-size-sm);line-height:1.3;height:2.6em;overflow:hidden}',
       '.ac-ycpaper.ac-pin .ac-yctable{table-layout:fixed}',
       '.ac-ycpaper.ac-pin .ac-yctable tr{height:38px}',
+      '.ac-ycpaper.ac-pin .ac-yctable td button{vertical-align:middle}',
       '.ac-ycpaper.ac-pin .ac-yctable thead tr{height:32px}',
-      '.ac-ycpaper.ac-pin .ac-yctable th,.ac-ycpaper.ac-pin .ac-yctable td{padding:3px 8px;font-size:var(--font-size-md)}',
-      '.ac-ycpaper.ac-pin .ac-yctable tbody th{width:44%}',
-      '.ac-ycpaper.ac-pin .ac-yctable .ac-yctot th,.ac-ycpaper.ac-pin .ac-yctable .ac-yctot td{font-size:var(--font-size-sm)}',
+      /* 행은 언제나 38px. 열린 칸(버튼)과 닫힌 칸(글자)과 빈 칸이 같은 높이(사용자 지적: 글자 유무로 배치가 달라짐) */
+      '.ac-ycpaper.ac-pin .ac-yctable th,.ac-ycpaper.ac-pin .ac-yctable td{padding:0 6px;height:38px;box-sizing:border-box;font-size:var(--font-size-md);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1}',
+      /* table-layout fixed 는 첫 행의 폭을 쓴다. 머리 행 첫 칸에도 폭을 줘야 이름 열이 넓다(실측: 25% 로 갈려 이름이 잘렸다) */
+      '.ac-ycpaper.ac-pin .ac-yctable thead th:first-child{width:42%}',
+      '.ac-ycpaper.ac-pin .ac-yctable tbody th{width:42%;font-size:var(--font-size-sm)}',
+      '.ac-ycpaper.ac-pin .ac-yctable .ac-yctot th,.ac-ycpaper.ac-pin .ac-yctable .ac-yctot td{font-size:var(--font-size-sm);height:32px}',
       '.ac-ycpaper.ac-pin .ac-yctable td{font-size:var(--font-size-lg)}',
-      '.ac-ycpaper.ac-pin .ac-yccell{min-height:34px;font-size:var(--font-size-lg)}',
+      '.ac-ycpaper.ac-pin .ac-yccell{min-height:0;height:30px;line-height:28px;padding:0;font-size:var(--font-size-lg)}',
       /* 무대는 화면 전부. 종이가 왼쪽을 덮는다(사용자: 3D 종이는 장식, 가려도 된다) */
       '.ac-ycsplit .ac-ychud,.ac-ycsplit .ac-yctoast{left:calc(50% + 120px)}',
       '.ac-ycpin{position:absolute;left:38px;top:36px;z-index:5;height:34px;padding:0 14px;border-radius:var(--radius-pill);background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-xs);letter-spacing:.06em;cursor:pointer;opacity:.7;backdrop-filter:blur(8px)}',
