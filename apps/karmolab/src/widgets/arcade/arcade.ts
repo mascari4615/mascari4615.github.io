@@ -34,7 +34,7 @@ import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
-import { EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
+import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { loadPacks } from '../pack-store';
@@ -603,6 +603,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ychudscore{font-size:var(--font-size-xl);font-variant-numeric:tabular-nums;line-height:1.1}',
       '.ac-ychudsub{margin-top:4px;padding-top:4px;border-top:1px dashed rgba(80,55,30,.35);font-size:var(--font-size-xs);color:#8a5a1a;white-space:nowrap}',
       '.ac-ychudsub i{display:inline-block;width:1px;height:10px;background:rgba(80,55,30,.4);vertical-align:middle;margin:0 4px}',
+      /* 카드의 얼굴과 말풍선(MDD). 얼굴은 카드 왼쪽 위 도형, 말풍선은 카드 위 종이쪽 */
+      '.ac-ychudcard.ac-cast{padding-left:66px;min-width:190px}',
+      '.ac-ychudface{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:44px;height:44px}',
+      '.ac-ychudface svg{width:44px;height:44px;display:block}',
+      '.ac-ychudbubble{position:absolute;left:8px;bottom:calc(100% + 12px);max-width:260px;padding:7px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-size:var(--font-size-sm);line-height:1.35;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4);z-index:2}',
+      '.ac-ychudbubble::after{content:"";position:absolute;left:20px;top:100%;border:7px solid transparent;border-top-color:rgba(238,225,200,.97);border-bottom:0}',
       '.ac-ycpaperin{width:min(440px,92%);max-height:92%;overflow:auto;padding:16px 18px 18px;border-radius:var(--radius-sm);background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(120,80,40,.22);color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:rotate(-.6deg)}',
       '.ac-ychead{display:flex;align-items:center;gap:10px;margin-bottom:10px}',
       '.ac-ychead .ac-ycdice{display:flex;gap:6px;--ac-die:30px}',
@@ -2573,7 +2579,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다. 또 깜냥한테 졌다가 되려면 그래야 한다. */
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       /* 판놀이는 저택 사람이 앉는다(MDD). 단계가 사람을 고른다(임시 대응, `cast.ts`) */
-      if (mddOn() && !tour && cardById(id)?.kind === 'board' && crew.length) crew[0] = { ...crew[0], name: castOfLevel(Number(optsFor(id).ai) || 3).name };
+      /* 단계(`ai`)가 있는 놀이 전부(오목, 야추). 봇이 여럿이면 남은 사람도 차례로 앉는다(야추는 넷까지). MDD 스위치를 따른다 */
+      if (mddOn() && !tour && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
+        const first = castOfLevel(Number(optsFor(id).ai) || 3);
+        const rest = Object.values(CAST).filter((c) => c.slug !== first.slug);
+        crew[0] = { ...crew[0], name: first.name };
+        for (let i = 1; i < crew.length && i - 1 < rest.length; i += 1) crew[i] = { ...crew[i], name: rest[i - 1].name };
+      }
       const personas: Record<number, BotPersona> = {};
       crew.forEach((b, i) => {
         personas[seats.length + i] = b;

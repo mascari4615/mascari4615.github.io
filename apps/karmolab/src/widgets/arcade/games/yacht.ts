@@ -10,6 +10,8 @@
  * 열두 칸을 다 채우면 끝. 위 여섯 칸 합이 63 이상이면 덤 35점(원래 규칙 그대로).
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { decide, clampLevel, type Level } from './yacht-engine';
+import { castByName } from '../cast';
 
 export const CATS = [
   'ones', 'twos', 'threes', 'fours', 'fives', 'sixes',
@@ -67,6 +69,15 @@ export function scoreOf(cat: Cat, d: number[]): number {
     }
     case 'yacht': return c.some((n) => n === DICE) ? 50 : 0;
   }
+}
+
+/** 자리의 사람이 단계를 정한다. 오목과 같은 대응(1~2 링, 3~4 알리사, 5 욘). 사람이 아니면 시작 옵션 */
+export function levelOf(seatName: string, ai: unknown): Level {
+  const c = castByName(seatName);
+  if (c?.slug === 'yawn') return 5;
+  if (c?.slug === 'alisa') return 4;
+  if (c?.slug === 'ling') return 2;
+  return clampLevel(ai);
 }
 
 /** 위 여섯 칸이 63 이상이면 덤 35. */
@@ -158,23 +169,12 @@ export const yacht: GameDef<YachtState, YachtAction> = {
     const open = CATS.filter((c) => mine[c] === null);
     if (!open.length) return null;
 
-    /* 아직 굴릴 수 있으면 **제일 많은 눈만 남기고** 다시 굴린다. 단순하지만 사람처럼 보인다. */
-    if (s.rolled < ROLLS) {
-      const c = counts(s.dice);
-      let best = 1;
-      for (let v = 2; v <= 6; v++) if (c[v] >= c[best]) best = v;
-      const wrong = s.dice.map((v, i) => ({ v, i })).find(({ v, i }) => (v === best) !== s.keep[i]);
-      if (wrong) return { action: { kind: 'keep', index: wrong.i }, delayMs: 250 + ctx.rng() * 250 };
-      return { action: { kind: 'roll' }, delayMs: 500 + ctx.rng() * 400 };
-    }
-
-    /* 다 굴렸으면 **제일 값진 칸**에 적는다. 0점만 남으면 위 칸부터 버린다(원래 사람도 그렇게 한다). */
-    let pick = open[0];
-    let bestV = -1;
-    for (const c of open) {
-      const v = scoreOf(c, s.dice);
-      if (v > bestV) { bestV = v; pick = c; }
-    }
-    return { action: { kind: 'write', cat: pick }, delayMs: 600 + ctx.rng() * 500 };
+    /* 머리는 `yacht-engine.ts`. 단계는 자리에 앉은 사람이 정한다(링 2, 알리사 4, 욘 5). 사람이 아니면 시작 옵션 */
+    const d = decide(s.dice, mine, ROLLS - s.rolled, levelOf(ctx.seats[seat]?.name ?? '', ctx.opts.ai), ctx.rng);
+    if (d.write) return { action: { kind: 'write', cat: d.write }, delayMs: 600 + ctx.rng() * 500 };
+    /* 남길 것을 하나씩 맞춘다. 사람이 하나씩 내리는 것처럼 보인다 */
+    const wrong = s.keep.findIndex((k, i) => k !== d.keep[i]);
+    if (wrong >= 0) return { action: { kind: 'keep', index: wrong }, delayMs: 250 + ctx.rng() * 250 };
+    return { action: { kind: 'roll' }, delayMs: 500 + ctx.rng() * 400 };
   }
 };

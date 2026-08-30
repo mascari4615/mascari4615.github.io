@@ -14,6 +14,7 @@ import type { GameView } from '../views';
 import { mountDiceStage, type DiceStage } from '../dice-stage';
 import { barAmbience } from '../bar-ambience';
 import { die } from '../die';
+import { castByName, faceSvg, lineOf, type Cast, type Mood } from '../cast';
 import { CATS, scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
 
 const UPPER: Cat[] = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
@@ -54,6 +55,34 @@ export const view3d: GameView<YachtState, YachtAction> = {
      */
     const hudEl = el.querySelector('#acYcHud') as HTMLElement;
     let hudKey = '';
+    /* 저택 사람(MDD). 얼굴은 기하 도형, 표정과 대사는 임시(`cast.ts`). 자리 이름이 사람이면 붙는다 */
+    const moods = new Map<number, Mood>();
+    const bubbles = new Map<number, { text: string; until: number }>();
+    let hudTimer = 0;
+    const repaintSoon = (ms: number): void => {
+      if (hudTimer) window.clearTimeout(hudTimer);
+      hudTimer = window.setTimeout(() => { hudTimer = 0; hudKey = ''; if (shown) paintHud(shown, lastFin); }, ms);
+    };
+    const castAt = (seat: number): Cast | null => castByName(seatNames[seat] ?? '');
+    const sayAs = (seat: number, text: string, ms = 2600): void => {
+      if (!text) return;
+      bubbles.set(seat, { text, until: performance.now() + ms });
+      hudKey = '';
+      if (shown) paintHud(shown, lastFin);
+      repaintSoon(ms + 50);
+    };
+    const castSay = (seat: number, key: Parameters<typeof lineOf>[1], chance = 1): void => {
+      const c = castAt(seat);
+      if (!c || Math.random() > chance) return;
+      sayAs(seat, lineOf(c, key, seatNames[mySeat] ?? ''));
+    };
+    const moodOf = (seat: number, m: Mood, ms = 2600): void => {
+      moods.set(seat, m);
+      hudKey = '';
+      if (shown) paintHud(shown, lastFin);
+      window.setTimeout(() => { if (moods.get(seat) === m) { moods.set(seat, 'calm'); hudKey = ''; if (shown) paintHud(shown, lastFin); } }, ms);
+    };
+    let lastFin = false;
     let seatBots: boolean[] = [];
     const bestOpen = (s: YachtState, seat: number): { cat: Cat; n: number } | null => {
       const sheet = s.sheet[seat];
@@ -67,7 +96,10 @@ export const view3d: GameView<YachtState, YachtAction> = {
       return best;
     };
     const paintHud = (s: YachtState, fin: boolean): void => {
-      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat, fin, seatNames]);
+      lastFin = fin;
+      const now = performance.now();
+      bubbles.forEach((b, i) => { if (b.until <= now) bubbles.delete(i); });
+      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat, fin, seatNames, [...bubbles.entries()].map(([i, b]) => i + b.text), [...moods.entries()]]);
       if (key === hudKey) return;
       hudKey = key;
       const done0 = s.sheet[0] ? CATS.filter((c) => s.sheet[0][c] !== null).length : 0;
@@ -84,8 +116,12 @@ export const view3d: GameView<YachtState, YachtAction> = {
             ? '<span class="ac-ychudsub">' + esc(t('arcade.yacht.hud.rolls', { n: String(s.rolled) })) +
               (best ? ' <i></i> ' + esc(t('arcade.yacht.hud.best', { cat: t('arcade.yacht.cat.' + best.cat), n: String(best.n) })) : '') + '</span>'
             : '';
-          return '<div class="ac-ychudcard' + (cur ? ' ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + '">' +
-            '<span class="ac-ychudname">' + esc(name) + (i === mySeat ? ' <small>' + esc(t('arcade.yacht.hud.me')) + '</small>' : seatBots[i] ? ' <small>' + esc(t('arcade.yacht.hud.bot')) + '</small>' : '') + '</span>' +
+          const cast = castAt(i);
+          const face = cast ? '<span class="ac-ychudface">' + faceSvg(cast, cur ? (moods.get(i) ?? 'think') : (moods.get(i) ?? 'calm')) + '</span>' : '';
+          const b = bubbles.get(i);
+          const bubble = b ? '<span class="ac-ychudbubble">' + esc(b.text) + '</span>' : '';
+          return '<div class="ac-ychudcard' + (cur ? ' ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + (cast ? ' ac-cast' : '') + '">' + bubble + face +
+            '<span class="ac-ychudname">' + esc(name) + (i === mySeat ? ' <small>' + esc(t('arcade.yacht.hud.me')) + '</small>' : seatBots[i] && !cast ? ' <small>' + esc(t('arcade.yacht.hud.bot')) + '</small>' : '') + '</span>' +
             '<b class="ac-ychudscore">' + total + '</b>' + sub + '</div>';
         }).join('');
     };
@@ -408,6 +444,14 @@ export const view3d: GameView<YachtState, YachtAction> = {
           const who = seatNames[i] ?? '';
           if (cat === 'yacht' && now[cat]) toast(t('arcade.yacht.toast.yacht', { who }), 2600);
           else toast(t('arcade.yacht.toast.wrote', { who, cat: t('arcade.yacht.cat.' + cat), n: String(now[cat]) }), 2200);
+          const got = now[cat] ?? 0;
+          if (castAt(i)) {
+            if (got >= 20) { moodOf(i, 'glad'); castSay(i, 'good', 0.6); }
+            else if (got === 0) moodOf(i, 'sad');
+          }
+          if (i === mySeat && (cat === 'yacht' && got > 0 || got >= 25)) {
+            seatNames.forEach((_, j) => { if (j !== mySeat && castAt(j)) { moodOf(j, 'tease', 2200); castSay(j, 'danger', 0.7); } });
+          }
           /* 위 여섯 합이 63을 넘는 순간. 덤 35 */
           if (upperOf(sh) < 63 && upperOf(now) >= 63) window.setTimeout(() => toast(t('arcade.yacht.toast.bonus', { who }), 2200), 2300);
         });
@@ -416,6 +460,14 @@ export const view3d: GameView<YachtState, YachtAction> = {
             if (last && last.turn === s.turn) toast(s.turn === mySeat ? t('arcade.yacht.toast.me') : t('arcade.yacht.toast.turn', { who: seatNames[s.turn] ?? '' }));
           }, 1500);
         }
+      }
+      /* 사람의 말과 표정. 봇 차례의 굴림, 좋은 점수, 0점, 내 요트에 놀람 */
+      if (rolled && s.turn !== mySeat && castAt(s.turn)) {
+        moodOf(s.turn, 'think', 2000);
+        castSay(s.turn, 'move', s.rolled === 1 ? 0.5 : 0.25);
+      }
+      if (before === null) {
+        seatNames.forEach((_, i) => { if (i !== mySeat && castAt(i)) window.setTimeout(() => { if (host.isConnected) castSay(i, 'hello'); }, 900 + i * 700); });
       }
       /* 굴림 알림. 첫 굴림은 차례 알림이 대신한다 */
       if (rolled && s.rolled >= 2) {
@@ -510,6 +562,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
       host.classList.toggle('ac-waiting', !myTurn());
       if (v.finished && !finished) {
         finished = true;
+        const totals = s.sheet.map((sh) => (sh ? totalOf(sh) : 0));
+        const top = Math.max(...totals);
+        seatNames.forEach((_, i) => { if (i !== mySeat && castAt(i)) { moodOf(i, totals[i] === top ? 'glad' : 'sad', 8000); window.setTimeout(() => castSay(i, totals[i] === top ? 'win' : 'lose'), 600 + i * 500); } });
         if (autoTimer) window.clearTimeout(autoTimer);
         autoTimer = 0;
         closeSheet();
