@@ -170,7 +170,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
           /* 내 차례 카드에는 굴리기 버튼(레퍼런스 bloob: "굴리기 (n/3)" 버튼 하나가 상태를 다 말한다). 컵과 스페이스는 그대로 */
           const rollBtn = mineNow
             ? (s.rolled < 3
-                ? '<button type="button" class="ac-ycroll" id="acYcRoll"' + (idle() ? '' : ' disabled') + '>' + esc(idle() ? t('arcade.yacht.hud.roll', { n: String(s.rolled + 1) }) : t('arcade.yacht.deny.busy')) + '</button>'
+                ? '<button type="button" class="ac-ycroll" id="acYcRoll"' + (idle() ? '' : ' disabled') + '>' + esc(idle() ? t(s.keep.every(Boolean) ? 'arcade.yacht.hud.rollall' : s.rolled === 1 ? 'arcade.yacht.hud.roll2' : 'arcade.yacht.hud.roll3', { n: String(s.rolled + 1) }) : t('arcade.yacht.deny.busy')) + '</button>'
                 : '<span class="ac-ycroll ac-ycroll-off">' + esc(t('arcade.yacht.sheet.pick')) + '</span>')
             : '';
           const sub = cur
@@ -187,7 +187,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
             '<b class="ac-ychudscore">' + total + '</b>' + sub + '</div>';
         }).join('');
       const rb = hudEl.querySelector<HTMLButtonElement>('#acYcRoll');
-      if (rb) rb.onclick = () => { const why = whyNot('roll'); if (why) { blip('bad'); toast(why, 1600, true); return; } act({ kind: 'roll' }); };
+      /* 손 모델상 굴린 다섯은 전부 홈에 있다. 아무것도 안 내렸으면 버튼이 **전부 내리고** 굴린다(안 그러면 버튼이 늘 거절) */
+      if (rb) rb.onclick = () => {
+        if (!last || last.turn !== mySeat || last.rolled >= 3) { blip('bad'); toast(whyNot('roll') ?? t('arcade.yacht.deny.rolls'), 1600, true); return; }
+        if (!idle()) { blip('bad'); toast(t('arcade.yacht.deny.busy'), 1600, true); return; }
+        if (last.keep.every(Boolean)) last.keep.forEach((_, i) => act({ kind: 'keep', index: i }));
+        act({ kind: 'roll' });
+      };
     };
     let toastTimer = 0;
     const toast = (text: string, ms = 1700, deny = false): void => {
@@ -411,7 +417,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
         if (done !== null && done !== undefined) return '<td class="ac-ycdone" data-done="1">' + done + '</td>';
         if (i === mySeat && my && mine) {
           const would = scoreOf(cat, s.dice);
-          return '<td><button type="button" class="ac-yccell' + (would === 0 ? ' ac-zero' : '') + '" data-c="' + cat + '">' + would + '</button></td>';
+          /* 0점 칸은 숫자를 안 적는다(레퍼런스 bloob: 빈 칸에 옅은 강조만). 0 이 열두 개면 표가 시끄럽다 */
+          return '<td><button type="button" class="ac-yccell' + (would === 0 ? ' ac-zero' : '') + '" data-c="' + cat + '">' + (would === 0 ? '' : would) + '</button></td>';
         }
         return '<td></td>';
       };

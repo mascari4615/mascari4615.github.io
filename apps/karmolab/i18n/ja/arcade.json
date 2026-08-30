@@ -578,5 +578,8 @@
   "arcade.yacht.sheet.done": "終了。合計を見る",
   "arcade.yacht.hud.roll": "振る {n} / 3",
   "arcade.yacht.toast.newbest": "自己最高。{n}点",
-  "arcade.yacht.result.stats": "自分: {games}戦、最高 {best}、平均 {avg}、ヨット {yachts}回、ボーナス {bonus}%"
+  "arcade.yacht.result.stats": "自分: {games}戦、最高 {best}、平均 {avg}、ヨット {yachts}回、ボーナス {bonus}%",
+  "arcade.yacht.hud.roll2": "もう一度振る {n} / 3",
+  "arcade.yacht.hud.roll3": "最後の振り {n} / 3",
+  "arcade.yacht.hud.rollall": "全部振り直す {n} / 3"
 }
