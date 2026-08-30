@@ -123,6 +123,10 @@ export function buildCalendarView(
 
     /* ===== 달력 알맹이 ===== */
 
+    /* 판을 그리는 순간 datesSet 이 먼저 울고, 그 손이 reload 를 부른다. 이 줄이 아래 있으면
+       그때는 아직 죽은 자리(TDZ)라 달력이 통째로 안 뜬다 (2026-08-31 실측) */
+    let lastRange: { start: Date; end: Date } | null = null;
+
     const options: CalendarOptions = {
         plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
         locale: koLocale,
@@ -194,7 +198,6 @@ export function buildCalendarView(
 
     /* ===== 받아 오기 ===== */
 
-    let lastRange: { start: Date; end: Date } | null = null;
 
     async function reload(start: Date, end: Date): Promise<void> {
         lastRange = { start, end };
