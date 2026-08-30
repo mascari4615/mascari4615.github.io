@@ -34,6 +34,7 @@ import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
+import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { loadPacks } from '../pack-store';
@@ -509,6 +510,25 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbar{width:240px;accent-color:#d9a85a}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-tlnum{color:#ffd696;font-size:15px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbranch{color:#ffd696;letter-spacing:.04em}',
+      /**
+       * ── 사람 (MDD, memo/rules/mdd.md) ── 자리 카드의 얼굴은 기하 도형(임시), 표정은 눈만, 말은 카드에 붙는 말풍선
+       */
+      '.ac-face,.ac-bubble,.ac-emotes{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face{display:block;grid-column:1;grid-row:1/3;width:56px;height:56px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg{display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));transition:transform .3s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="think"]{transform:rotate(-6deg)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="glad"]{transform:scale(1.08)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="sad"]{transform:rotate(8deg) translateY(3px);opacity:.85}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:has(.ac-face)::before{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-bubble{display:block;position:absolute;left:14px;max-width:280px;padding:8px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:15px;line-height:1.4;box-shadow:0 8px 20px rgba(0,0,0,.4);white-space:nowrap}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me .ac-bubble{bottom:calc(100% + 10px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me) .ac-bubble{top:calc(100% + 10px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me .ac-bubble::after{content:"";position:absolute;left:22px;top:100%;border:8px solid transparent;border-top-color:rgba(238,225,200,.97);border-bottom:0}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me) .ac-bubble::after{content:"";position:absolute;left:22px;bottom:100%;border:8px solid transparent;border-bottom-color:rgba(250,240,222,.97);border-top:0}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-emotes{display:flex;flex-wrap:wrap;gap:6px;position:absolute;left:18px;bottom:130px;width:300px;z-index:6}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-emotes[hidden]{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-emotebtn{height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(217,168,90,.42);background:rgba(24,15,8,.72);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:14px;cursor:pointer;backdrop-filter:blur(8px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-emotebtn:hover{border-color:#e6bd7a;background:rgba(46,30,14,.85)}',
       /* ── 콘텐츠 창 채우기 (위 `fill`) ── 헤더 아래, 사이드바 오른쪽을 전부 방으로 */
       '#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:0;width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}',
       '#acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}',
@@ -1343,6 +1363,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
       '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
       '<i class="ac-sep"></i>' +
+      '<button class="btn btn-ghost" id="acEmote" style="display:none">' + esc(t('arcade.btn.emote')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
       /* 끝난 판의 행동 셋. 방에서는 결과 종이 아래로 옮겨 간다(`placeEndButtons`) */
@@ -1352,6 +1373,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '</div>' +
       /* 복기 타임라인. 결과의 다시 보기가 켠다. 방에서는 판 아래 가운데 한 줄 */
+      /* 반응 판. 내 자리 카드 위에 여섯. 누르면 내 카드에 말풍선, 온라인이면 상대에게도 */
+      '<div class="ac-emotes" id="acEmotes" hidden>' + EMOTES.map((e, i) => '<button class="ac-emotebtn" data-emote="' + i + '">' + esc(e) + '</button>').join('') + '</div>' +
       '<div class="ac-timeline" id="acTimeline" hidden>' +
       '<button class="ac-tlbtn" id="acTlFirst" title="' + esc(t('arcade.tl.first')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 6l-8 6 8 6z"/></svg></button>' +
       '<button class="ac-tlbtn" id="acTlPrev" title="' + esc(t('arcade.tl.prev')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6l-8 6 8 6z"/></svg></button>' +
@@ -1828,6 +1851,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     } | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
+    /** 자리마다 지금 떠 있는 말. 카드는 매 프레임 다시 그려지므로 여기 들고 있다가 얹는다 */
+    const bubbles = new Map<number, { text: string; until: number }>();
+    /** 그 사람이 한마디. 카드가 있는 판에서만 보인다 */
+    function sayAs(seat: number, text: string, ms = 2600): void {
+      if (!text) return;
+      bubbles.set(seat, { text, until: performance.now() + ms });
+    }
+    /** 봇 자리의 사람이 그 상황의 말을 한다. 사람이 아니면 조용 */
+    function castSay(seat: number, key: Parameters<typeof lineOf>[1], chance = 1): void {
+      const v = match?.view() ?? shadow?.v;
+      const c = v ? castByName(v.seats[seat]?.name ?? '') : null;
+      if (!c || c.slug === 'me' || Math.random() > chance) return;
+      sayAs(seat, lineOf(c, key));
+    }
+    /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
+    let seenMoves = 0;
     let raf = 0;
     let t0 = 0;
     let gameId = '';
@@ -1904,7 +1943,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           ({ sq, i, r }) =>
             '<li class="ac-overrow' + (i === mySeat ? ' ac-me' : '') + '">' +
             '<span class="ac-overrank">' + (r + 1) + '</span>' +
-            '<span class="ac-overname">' + esc(sq.name) + (sq.bot ? ' 🤖' : '') + '</span>' +
+            '<span class="ac-overname">' + esc(sq.name) + (sq.bot && !castByName(sq.name) ? ' 🤖' : '') + '</span>' +
             '<span class="ac-overscore">' + sq.score + '</span></li>'
         )
         .join('');
@@ -1944,6 +1983,29 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       else $<HTMLElement>('#acControls').append(...btns);
     }
 
+    /** 얼굴 한 장. 내 자리는 조수, 봇 자리는 그 사람. 표정은 차례와 결과에서 */
+    function faceOf(v: MatchView<unknown>, i: number): string {
+      const seat = v.seats[i];
+      const c = i === mySeat ? CAST.me : castByName(seat?.name ?? '');
+      if (!c) return '';
+      const turn = (v.state as { turn?: number } | null)?.turn;
+      let mood: Mood = 'calm';
+      if (v.finished) {
+        const top = Math.max(...v.seats.map((x) => x.score));
+        mood = seat.score === top ? 'glad' : 'sad';
+      } else if (turn === i) mood = 'think';
+      return '<span class="ac-face">' + faceSvg(c, mood) + '</span>';
+    }
+    function bubbleOf(i: number, now: number): string {
+      const b = bubbles.get(i);
+      if (!b) return '';
+      if (performance.now() > b.until) {
+        bubbles.delete(i);
+        return '';
+      }
+      return '<span class="ac-bubble">' + esc(b.text) + '</span>';
+    }
+
     function paint(v: MatchView<unknown>, now: number): void {
       /* 지금 이 창이 **들고 있는 판**을 밖에서 볼 수 있게 둔다 (TASK-KL-264).
          감추기가 새는지는 화면으로 못 잡는다. 화면은 남의 배를 애초에 안 그리므로,
@@ -1962,10 +2024,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
               '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') +
               (plan ? ' ac-team' + plan[i] : '') + '">' +
               (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
-              '<span class="ac-seatname">' + esc(s.name) + (s.bot ? ' 🤖' : '') + '</span> <b>' + s.score + '</b></span>'
+              faceOf(v, i) +
+              '<span class="ac-seatname">' + esc(s.name) + (s.bot && !castByName(s.name) ? ' 🤖' : '') + '</span> <b>' + s.score + '</b>' +
+              bubbleOf(i, now) + '</span>'
           )
           .join('');
       render?.(v, mySeat, now);
+      if (match && match.moves !== seenMoves) {
+        const turn = (v.state as { turn?: number } | null)?.turn;
+        if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
+        seenMoves = match.moves;
+      }
       /* 복기 장면. 결과와 알림과 기록은 안 건드린다. 곁가지(살아 있는 판)는 보통 판처럼 간다 */
       if (review && !review.branch) {
         paintTimeline();
@@ -1990,6 +2059,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (!ended) {
           ended = true;
           if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
+          v.seats.forEach((sq, i) => { if (i !== mySeat) castSay(i, sq.score === top ? 'win' : 'lose'); });
           const draw = win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(
@@ -2297,6 +2367,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           startTogether(undefined, true);
           break;
         default:
+          if (meta.startsWith('emote:')) {
+            const text = meta.slice(6);
+            sayAs(seat, text);
+            net?.say({ kind: 'emote', seat, text });
+          }
           break;
       }
     }
@@ -2352,6 +2427,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       match.rewind(1);
       blip('tap');
       paintUndo();
+      castSay(1 - mySeat, 'undo');
     }
 
     function paintScene(id: string): void {
@@ -2359,6 +2435,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!btn) return;
       const on = dim() === '3d' && !!cardById(id)?.d3;
       btn.style.display = on ? '' : 'none';
+      const em = container.querySelector<HTMLButtonElement>('#acEmote');
+      if (em) em.style.display = on ? '' : 'none';
+      if (!on) $<HTMLElement>('#acEmotes').hidden = true;
       btn.textContent = t(specOf(sceneOf()).label);
     }
 
@@ -2427,6 +2506,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const need = Math.max(0, (want ?? partySize(g)) - seats.length);
       /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다. 또 깜냥한테 졌다가 되려면 그래야 한다. */
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
+      /* 판놀이는 저택 사람이 앉는다(MDD). 단계가 사람을 고른다(임시 대응, `cast.ts`) */
+      if (!tour && cardById(id)?.kind === 'board' && crew.length) crew[0] = { ...crew[0], name: castOfLevel(Number(optsFor(id).ai) || 3).name };
       const personas: Record<number, BotPersona> = {};
       crew.forEach((b, i) => {
         personas[seats.length + i] = b;
@@ -2454,6 +2535,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastPersonas = personas;
       lastLevel = levelNow();
       lastDef = def as GameDef<unknown, unknown>;
+      bubbles.clear();
+      seenMoves = 0;
+      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello')); }, 900); });
       tape = null;
       endReview(false);
       replaying = false;
@@ -2747,6 +2831,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             say(t('arcade.offer.declined'), 'warn');
             return;
           }
+          if (kind === 'emote') {
+            const d = data as { seat?: number; text?: string };
+            if (typeof d.seat === 'number' && d.seat !== mySeat) sayAs(d.seat, String(d.text ?? ''));
+            return;
+          }
           if (kind === 'result') {
             const d = data as { moves?: number; ms?: number };
             resultMeta = { moves: d.moves ?? 0, ms: d.ms ?? 0 };
@@ -3038,6 +3127,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       }
     }
 
+    /* 반응. 메뉴의 한 줄이 판을 열고, 여섯 중 하나를 누르면 내 카드에 말풍선. 온라인이면 상대에게도 */
+    const emotesEl = $<HTMLElement>('#acEmotes');
+    $<HTMLButtonElement>('#acEmote').onclick = () => { emotesEl.hidden = !emotesEl.hidden; };
+    emotesEl.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-emote]');
+      if (!b) return;
+      const text = EMOTES[Number(b.dataset.emote)] ?? '';
+      emotesEl.hidden = true;
+      sayAs(mySeat, text);
+      if (!net) return;
+      if (net.host) net.say({ kind: 'emote', seat: mySeat, text });
+      else net.act({ meta: 'emote:' + text });
+    });
     $<HTMLButtonElement>('#acTlFirst').onclick = () => { tlPlay(false); seek(0); };
     $<HTMLButtonElement>('#acTlPrev').onclick = () => { tlPlay(false); if (review) seek(review.at - 1); };
     $<HTMLButtonElement>('#acTlNext').onclick = () => { tlPlay(false); if (review) seek(review.at + 1); };
