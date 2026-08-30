@@ -465,5 +465,15 @@
   "arcade.setup.renju.on": "렌주",
   "arcade.setup.renju.off": "없음",
   "arcade.t3.software": "그래픽 가속이 꺼져 있어 CPU 로 그리고 있어요. 판이 버벅이면 브라우저 설정의 그래픽 가속을 켜거나 2D 로 보세요.",
-  "arcade.t3.software.btn": "2D 로 보기"
+  "arcade.t3.software.btn": "2D 로 보기",
+  "arcade.setup.limit": "제한시간",
+  "arcade.setup.limit.0": "없음",
+  "arcade.setup.limit.30": "30초",
+  "arcade.setup.limit.60": "60초",
+  "arcade.setup.limit.120": "120초",
+  "arcade.gomoku.timeout": "{who} 이(가) 시간을 넘겼다",
+  "arcade.gomoku.rule.free": "자유",
+  "arcade.gomoku.rule.lines": "{n}줄",
+  "arcade.gomoku.rule.limit": "{s}초",
+  "arcade.btn.undo": "무르기"
 }

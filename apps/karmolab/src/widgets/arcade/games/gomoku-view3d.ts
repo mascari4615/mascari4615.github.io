@@ -12,6 +12,20 @@ import { mountThreeBoard, type Board3d, type Stone } from '../three-board';
 import { roomAmbience } from '../ambience';
 import { DEFAULT_SIZE, starPoints, type GomokuState, type GomokuAction } from './gomoku';
 
+/** 자리 카드는 오락실 본체 것. 여기서는 클래스와 작은 글자만 얹는다 */
+function seatCards(): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>('#acSeats .ac-seat:not(.ac-watch)'));
+}
+function sub(card: HTMLElement, cls: string): HTMLElement {
+  let e = card.querySelector<HTMLElement>('.' + cls);
+  if (!e) {
+    e = document.createElement('small');
+    e.className = cls;
+    card.appendChild(e);
+  }
+  return e;
+}
+
 export const view3d: GameView<GomokuState, GomokuAction> = {
   id: 'gomoku',
   bare: true,
@@ -23,6 +37,10 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
     const amb = roomAmbience(host);
     host.addEventListener('pointerdown', () => amb.wake(), { passive: true });
     let shown = -1;
+    /* 미리 보기에 쓸 마지막 상태와 내 자리. 손이 움직일 때 규칙을 물어야 한다 */
+    let lastState: GomokuState | null = null;
+    let lastSeat = -1;
+    let lastTick = -1;
 
     /* 오목은 **줄이 만나는 점**에 둔다. 칸 안에 두면 그건 다른 놀이다. */
     let n = 0;
@@ -32,7 +50,21 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       n = size;
       const stars = new Set(starPoints(size));
       /* 방 표현. 다다미, 스포트, 알 떨어지는 손맛, 카메라 동작까지 한 벌(`three-board.ts`) */
-      board = mountThreeBoard(host, { n, star: (i) => stars.has(i), onCross: true, bowls: true, room: true, onCell: (i) => act({ cell: i }) });
+      board = mountThreeBoard(host, {
+        n,
+        star: (i) => stars.has(i),
+        onCross: true,
+        bowls: true,
+        room: true,
+        onCell: (i) => act({ cell: i }),
+        /* 다음 수 미리 보기. 내 차례고, 빈 자리고, 금수가 아닐 때만 */
+        onHover: (i) => {
+          const s = lastState;
+          if (!board || !s) return;
+          const ok = i >= 0 && s.won === -1 && s.turn === lastSeat && s.board[i] === 0 && !(lastSeat === 0 && s.banned.indexOf(i) >= 0);
+          board.ghost(ok ? i : -1, lastSeat + 1);
+        }
+      });
       if (!board.ok) {
         /* WebGL 을 못 얻었다. 판이 없으면 안 되므로 조용히 비운다(부르는 쪽이 2D 로 물러선다). */
         board = null;
@@ -57,11 +89,44 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
     };
     build(DEFAULT_SIZE);
 
-    return (v, mySeat) => {
+    return (v, mySeat, now) => {
       const s = v.state;
       if (!dead && s.n !== n) build(s.n);
       if (!board) return;
+      lastState = s;
+      lastSeat = mySeat;
       const myTurn = s.won === -1 && s.turn === mySeat;
+      if (!myTurn) board.ghost(-1, mySeat + 1);
+      /* 자리 카드: 룰 한 줄(내 카드), 남은 시간(차례 카드) */
+      const cards = seatCards();
+      const mine = cards[mySeat];
+      if (mine) {
+        const rule = [
+          s.renju ? t('arcade.setup.renju.on') : t('arcade.gomoku.rule.free'),
+          t('arcade.gomoku.rule.lines', { n: String(s.n) }),
+          s.limit ? t('arcade.gomoku.rule.limit', { s: String(s.limit) }) : ''
+        ].filter(Boolean).join(' / ');
+        const e = sub(mine, 'ac-rule');
+        if (e.textContent !== rule) e.textContent = rule;
+      }
+      cards.forEach((card, i) => {
+        const clock = sub(card, 'ac-clock');
+        if (s.limit && s.won === -1 && i === s.turn) {
+          const left = Math.max(0, Math.ceil((s.turnEndsAt - now) / 1000));
+          const txt = String(left);
+          if (clock.textContent !== txt) clock.textContent = txt;
+          card.style.setProperty('--ac-left', String(left / s.limit));
+          clock.classList.toggle('ac-hurry', left <= 10);
+          /* 마지막 10초는 매초 초침. 내 차례든 남의 차례든 방에 있는 사람은 다 듣는다 */
+          if (left <= 10 && left !== lastTick && left > 0) {
+            lastTick = left;
+            amb.tick();
+          }
+        } else if (clock.textContent) {
+          clock.textContent = '';
+          clock.classList.remove('ac-hurry');
+        }
+      });
       const stones: Stone[] = [];
       for (let i = 0; i < s.board.length; i += 1) {
         const who = s.board[i];

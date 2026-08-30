@@ -44,6 +44,17 @@ export const SETUPS: Record<string, Choice[]> = {
         { value: false, label: 'arcade.setup.renju.off' }
       ],
       fallback: true
+    },
+    {
+      key: 'limit',
+      label: 'arcade.setup.limit',
+      options: [
+        { value: 0, label: 'arcade.setup.limit.0' },
+        { value: 30, label: 'arcade.setup.limit.30' },
+        { value: 60, label: 'arcade.setup.limit.60' },
+        { value: 120, label: 'arcade.setup.limit.120' }
+      ],
+      fallback: 0
     }
   ]
 };

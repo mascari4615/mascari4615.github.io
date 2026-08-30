@@ -421,6 +421,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:absolute;left:18px;bottom:18px;top:auto;right:auto;margin:0;z-index:3}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{background:rgba(18,12,8,.62);border:1px solid rgba(255,230,190,.16);color:#f6ecdc;backdrop-filter:blur(6px);padding:8px 14px 8px 10px;font-size:var(--font-size-sm);gap:10px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{border-color:rgba(255,214,150,.6);background:rgba(40,26,12,.72)}',
+      /* 룰 한 줄과 남은 시간. 시계는 카드 오른쪽 끝, 남은 비율만큼 금색 호 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{flex-wrap:wrap;position:relative}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule{flex-basis:100%;font-size:11px;letter-spacing:.06em;color:rgba(240,225,200,.7);padding-left:26px;margin-top:-2px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule:empty{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock{position:relative;display:inline-grid;place-items:center;width:30px;height:30px;margin-left:6px;font-size:12px;font-variant-numeric:tabular-nums;color:#f7e9cf}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#d9a85a calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 10px,#000 11px);mask:radial-gradient(circle,transparent 10px,#000 11px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock:empty{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry{color:#ffb4a0}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry::before{background:conic-gradient(#e0553c calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0)}',
       /* 지금 둘 사람. 카드가 밝아지고 앞에 표시 하나 */
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{opacity:.72;transition:opacity .2s,box-shadow .2s}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn{opacity:1;box-shadow:0 0 0 2px rgba(255,214,150,.55),0 6px 18px rgba(0,0,0,.35)}',
@@ -1198,6 +1207,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 표현 고르기. 규칙은 그대로, 보는 법만 바뀐다. 입체 화면이 있는 판에서만 뜬다. */
       '<button class="btn btn-ghost" id="acDim" style="display:none" aria-pressed="false" title="' +
       esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
+      /* 무르기. 혼자 노는 판(봇 상대)에서만. 남과 두는 판은 합의가 필요해 아직 없다 */
+      '<button class="btn btn-ghost" id="acUndo" style="display:none">' + esc(t('arcade.btn.undo')) + '</button>' +
       '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
@@ -1771,6 +1782,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          사라져, 키로는 못 논다고 느낀다(체커, 미니장기, 여우와사냥개, 대통령, 도미노 다섯이 그랬다).
          표시는 그림의 일부라 그림을 다시 그리면 다시 얹어야 한다. 여기가 그 자리다. */
       markKeyCursor();
+      paintUndo();
 
       if (v.finished) {
         const top = Math.max(...v.seats.map((s) => s.score));
@@ -2020,6 +2032,21 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 이 판에 입체 화면이 있을 때만 단추가 선다. 없는 판에 죽은 단추를 두지 않는다. */
+    /** 무를 수 있는 판인가. 혼자, 봇 상대, 다시보기 아님, 편지 아님, 판 놀이 */
+    function canUndo(): boolean {
+      return !!match && !net && !letter && !replaying && !tour && cardById(gameId)?.kind === 'board' && match.tape.length > 0 && !match.view().finished;
+    }
+    function paintUndo(): void {
+      const btn = container.querySelector<HTMLButtonElement>('#acUndo');
+      if (btn) btn.style.display = canUndo() ? '' : 'none';
+    }
+    function undo(): void {
+      if (!canUndo() || !match) return;
+      match.rewind(1);
+      blip('tap');
+      paintUndo();
+    }
+
     function paintDim(id: string): void {
       const btn = container.querySelector<HTMLButtonElement>('#acDim');
       if (!btn) return;
@@ -2273,7 +2300,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각은 아직 없어도 된다. 새 편지 판은 이름과 씨앗만 있으면 접힌다.
          받아 오는 것은 `openLetter` 한 곳에서만 기다린다(문을 둘로 만들지 않는다). */
       if (!cardById(id)) return;
-      openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [], opts: optsFor(id) });
+      /* 편지 판은 제한시간을 안 싣는다. 며칠 뒤 여는 판에 수당 30초는 뜻이 없다 */
+      openLetter({ game: id, seed: seedFrom(id + String(Date.now())), who: [myName(), t('arcade.letter.friend')], moves: [], opts: { ...optsFor(id), limit: 0 } });
     }
 
     /**
@@ -2614,6 +2642,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     });
 
     /* 표현 갈아 끼우기. 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
+    $<HTMLButtonElement>('#acUndo').onclick = undo;
+    /* 우클릭도 무르기(레퍼런스와 같은 손). 무를 수 없는 판이면 브라우저 메뉴 그대로 */
+    viewEl.addEventListener('contextmenu', (ev) => {
+      if (!canUndo()) return;
+      ev.preventDefault();
+      undo();
+    });
+
     $<HTMLButtonElement>('#acDim').onclick = (): void => {
       const next = dim() === '3d' ? '2d' : '3d';
       try {

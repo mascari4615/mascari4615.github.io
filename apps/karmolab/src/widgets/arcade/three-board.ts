@@ -44,7 +44,7 @@ import {
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
-import { plankTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
+import { cloudTexture, plankTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
@@ -93,6 +93,8 @@ export interface Board3dOpts {
   room?: boolean;
   /** 칸을 눌렀을 때 */
   onCell: (i: number) => void;
+  /** 손이 어느 칸 위에 있나. 판 밖이면 -1. 칸이 바뀔 때만 부른다 */
+  onHover?: (i: number) => void;
 }
 
 export interface Board3d {
@@ -107,6 +109,11 @@ export interface Board3d {
    * 다시 부르면 아무 일도 안 한다(같은 판에서 두 번 부른다).
    */
   finish(): void;
+  /**
+   * 다음 수 미리 보기. 손이 올라간 점에 내 알을 반투명으로. -1 이면 지움.
+   * 둘 수 있는 자리인지는 화면이 정함(규칙을 아는 쪽). 판은 놓기만
+   */
+  ghost(cell: number, who: number): void;
   /** WebGL 을 못 얻었으면 false. 부르는 쪽이 2D 로 물러선다 */
   ok: boolean;
   /**
@@ -127,7 +134,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const cross = opts.onCross === true;
   const room = opts.room === true;
   /* 살아 있는 방의 손잡이. 아래 breathe 가 매 프레임 만진다 */
-  const living: { spot: SpotLight | null; motes: Points | null; seed: number } = { spot: null, motes: null, seed: Math.random() * 1000 };
+  const living: { spot: SpotLight | null; cloud: SpotLight | null; motes: Points | null; seed: number } = { spot: null, cloud: null, motes: null, seed: Math.random() * 1000 };
   /**
    * 줄이 덮는 거리. **교차점 판은 줄이 n 개**(칸은 n−1 개)고, 칸 판은 줄이 n+1 개다.
    * 여기를 한 줄로 갈라 두면 아래(줄 긋기, 알 자리, 손 짚기)가 전부 따라온다.
@@ -147,7 +154,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch {
     host.removeChild(canvas);
-    return { place: () => {}, finish: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
+    return { place: () => {}, finish: () => {}, ghost: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
   }
   /* GPU 이름. WARP(Basic Render Driver), SwiftShader, llvmpipe 면 CPU 로 그리는 중 */
   const gpuName = ((): string => {
@@ -233,7 +240,9 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * (실측: 판 가운데를 가로지르는 삼각형이 보였다. 그림자가 아니라 그림자 틀의 모서리였다).
    * 알만 그림자를 지므로 틀은 판 크기면 충분하다.
    */
-  sun.shadow.mapSize.set(room ? 1536 : 2048, room ? 1536 : 2048);
+  sun.shadow.mapSize.set(2048, 2048);
+  /* PCF 의 번짐 반경. 1 이면 가장자리가 계단, 3 이면 햇빛 그림자다운 반그늘(실측 비용 차이 없음) */
+  sun.shadow.radius = room ? 3 : 1;
   /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
   /* 낮은 해는 그림자가 길다. 방 표현은 틀을 더 넓게 */
   const shadowSpan = size * (room ? 1.4 : opts.bowls ? 0.95 : 0.62);
@@ -366,6 +375,17 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     scene.add(spot);
     scene.add(spot.target);
     living.spot = spot;
+
+    /* 구름 그늘. 위에서 넓게 비추는 등에 구름 무늬를 물린다. 등이 천천히 자리를 옮기면 그늘이 흘러간다 */
+    const cloudMap = new CanvasTexture(cloudTexture(41, 512));
+    cloudMap.colorSpace = SRGBColorSpace;
+    const cloud = new SpotLight(0xffffff, 0.9, 0, 0.95, 0.15, 0);
+    cloud.map = cloudMap;
+    cloud.position.set(0, size * 3.2, size * 0.3);
+    cloud.target.position.set(0, 0, 0);
+    scene.add(cloud);
+    scene.add(cloud.target);
+    living.cloud = cloud;
   }
 
   /* 줄. 얇은 판으로 긋는다. 선 하나가 메시 하나면 9칸에 20개, 가볍다. */
@@ -516,6 +536,25 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return m;
   };
 
+  /* 미리 보기 알. 반투명 재질은 색마다 하나씩 */
+  const ghostMats = new Map<number, MeshStandardMaterial>();
+  const ghostMatFor = (who: number): MeshStandardMaterial => {
+    let m = ghostMats.get(who);
+    if (!m) {
+      m = matFor(who).clone();
+      m.transparent = true;
+      m.opacity = 0.45;
+      m.depthWrite = false;
+      ghostMats.set(who, m);
+    }
+    return m;
+  };
+  const ghostMesh = new Mesh(stoneGeo, ghostMatFor(1));
+  ghostMesh.scale.set(1, 0.46, 1);
+  ghostMesh.visible = false;
+  scene.add(ghostMesh);
+  let ghostAt = -1;
+
   /* 마지막 수 표. 붉은 고리 하나를 옮겨 쓴다. */
   const markMat = new MeshStandardMaterial({ color: 0xe2503c, roughness: 0.5 });
   const mark = new Mesh(new CircleGeometry(CELL * 0.11, 20), markMat);
@@ -563,10 +602,28 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return row * n + col;
   };
   const onDown = (ev: PointerEvent): void => {
+    /* 왼쪽 손가락만 둔다. 오른쪽은 무르기라 여기서 두면 무르자마자 다시 둔 꼴(실측) */
+    if (ev.button !== 0) return;
     const i = cellAt(ev);
     if (i >= 0) opts.onCell(i);
   };
   canvas.addEventListener('pointerdown', onDown);
+  /* 손이 어느 점 위인가. 칸이 바뀔 때만 밖에 알린다(매 픽셀마다 알리면 화면이 바쁘다) */
+  let hoverAt = -2;
+  const onHoverMove = (ev: PointerEvent): void => {
+    if (!opts.onHover) return;
+    const i = cellAt(ev);
+    if (i === hoverAt) return;
+    hoverAt = i;
+    opts.onHover(i);
+  };
+  const onHoverLeave = (): void => {
+    if (hoverAt === -1 || !opts.onHover) return;
+    hoverAt = -1;
+    opts.onHover(-1);
+  };
+  canvas.addEventListener('pointermove', onHoverMove, { passive: true });
+  canvas.addEventListener('pointerleave', onHoverLeave);
 
   /* ── 그리기 ── **부를 때만** 그린다. 가만히 도는 60fps 는 배터리를 먹는다. */
   let need = true;
@@ -685,6 +742,12 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     const cloud = 0.86 + 0.14 * Math.sin(s * 0.11) * Math.cos(s * 0.037 + 1.3);
     sun.intensity = 2.4 * cloud;
     hemi.intensity = 0.75 * (0.85 + 0.15 * cloud);
+    if (living.cloud) {
+      /* 구름은 한 바퀴 두 분 남짓. 눈에 띄면 안 되고, 5분 앉아 있으면 달라져 있어야 한다 */
+      living.cloud.position.x = Math.sin(s * 0.045) * size * 1.4;
+      living.cloud.position.z = size * 0.3 + Math.cos(s * 0.031) * size * 1.0;
+      living.cloud.intensity = 0.9 * (0.9 + 0.1 * cloud);
+    }
     if (living.spot) {
       living.spot.intensity = 1.2 * (0.8 + 0.2 * cloud);
       /* 바람. 장지문 빛이 살짝 흔들린다 */
@@ -906,6 +969,19 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
       render();
       if (dropAt.size || t < nudgeUntil) kick();
     },
+    ghost(cell, who) {
+      if (cell === ghostAt && (cell < 0 || ghostMesh.material === ghostMatFor(who))) return;
+      ghostAt = cell;
+      if (cell < 0 || cell >= n * n) {
+        ghostMesh.visible = false;
+      } else {
+        ghostMesh.material = ghostMatFor(who);
+        ghostMesh.position.set(cx(cell), STONE_Y, cz(cell));
+        ghostMesh.visible = true;
+      }
+      need = true;
+      render();
+    },
     finish() {
       if (!room || done) return;
       done = true;
@@ -922,6 +998,9 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
       loop?.stop();
       loop = null;
       canvas.removeEventListener('pointerdown', onDown);
+      canvas.removeEventListener('pointermove', onHoverMove);
+      canvas.removeEventListener('pointerleave', onHoverLeave);
+      ghostMats.forEach((m) => m.dispose());
       canvas.removeEventListener('keydown', onKey);
       canvas.removeEventListener('pointermove', onMove);
       hudStop();

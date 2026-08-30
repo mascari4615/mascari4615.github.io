@@ -105,7 +105,12 @@ export interface GameDef<S, A> {
    */
   reduce(s: S, action: A, seat: number, ctx: GameCtx): S;
 
-  /** 시간이 흐르기만 해도 바뀌는 게임 (제한시간, 낙하 등). `realtime` 일 때만 불린다 */
+  /**
+   * 차례 놀이인데 **시계만** 본다 (수당 제한시간). `realtime` 과 다르다: 편지로 둘 수 있고,
+   * 봇의 박자도 차례 놀이 그대로. 커널은 이 값이 있어도 `tick` 을 돌림
+   */
+  clocked?: boolean;
+  /** 시간이 흐르기만 해도 바뀌는 게임 (제한시간, 낙하 등). `realtime` 이나 `clocked` 일 때만 불린다 */
   tick?(s: S, ctx: GameCtx): S;
 
   outcome(s: S, ctx: GameCtx): Outcome;

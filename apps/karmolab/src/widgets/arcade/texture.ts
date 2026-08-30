@@ -234,3 +234,28 @@ export function plankTexture(seed = 29, size = 512): HTMLCanvasElement {
   }
   return cv;
 }
+
+/**
+ * 구름. 빛에 물려 바닥에 **지나가는 구름 그늘**을 만든다(SpotLight.map). 밝은 바탕에 옅은 덩어리 몇.
+ * 진하면 얼룩, 옅어야 구름. 등이 천천히 자리를 옮기면 그늘이 흘러감
+ */
+export function cloudTexture(seed = 41, size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#ffffff';
+  c.fillRect(0, 0, size, size);
+  for (let i = 0; i < 9; i += 1) {
+    const x = r() * size;
+    const y = r() * size;
+    const rad = size * (0.12 + r() * 0.22);
+    const g = c.createRadialGradient(x, y, 0, x, y, rad);
+    g.addColorStop(0, `rgba(120,110,100,${(0.22 + r() * 0.16).toFixed(3)})`);
+    g.addColorStop(0.6, 'rgba(120,110,100,0.08)');
+    g.addColorStop(1, 'rgba(120,110,100,0)');
+    c.fillStyle = g;
+    c.beginPath();
+    c.ellipse(x, y, rad * (0.8 + r() * 0.6), rad * (0.5 + r() * 0.4), r() * Math.PI, 0, Math.PI * 2);
+    c.fill();
+  }
+  return cv;
+}

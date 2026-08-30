@@ -465,5 +465,15 @@
   "arcade.setup.renju.on": "連珠",
   "arcade.setup.renju.off": "なし",
   "arcade.t3.software": "グラフィック アクセラレーションがオフのため CPU で描画しています。カクつく場合はブラウザ設定でアクセラレーションを有効にするか、2D に切り替えてください。",
-  "arcade.t3.software.btn": "2D で見る"
+  "arcade.t3.software.btn": "2D で見る",
+  "arcade.setup.limit": "持ち時間",
+  "arcade.setup.limit.0": "なし",
+  "arcade.setup.limit.30": "30秒",
+  "arcade.setup.limit.60": "60秒",
+  "arcade.setup.limit.120": "120秒",
+  "arcade.gomoku.timeout": "{who} が時間切れ",
+  "arcade.gomoku.rule.free": "自由",
+  "arcade.gomoku.rule.lines": "{n}路",
+  "arcade.gomoku.rule.limit": "{s}秒",
+  "arcade.btn.undo": "待った"
 }

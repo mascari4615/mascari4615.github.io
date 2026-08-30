@@ -18,6 +18,8 @@ export interface Ambience {
   wake(): void;
   /** 알이 판에 닿는 소리 */
   stone(): void;
+  /** 마지막 10초의 초침. 작은 나무 딱 */
+  tick(): void;
   stop(): void;
 }
 
@@ -195,6 +197,26 @@ export function roomAmbience(host: HTMLElement): Ambience {
     }
   };
 
+  const tick = (): void => {
+    if (!soundOn() || !ctx || !master) return;
+    try {
+      const c = ctx;
+      const now = c.currentTime;
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(1400, now);
+      o.frequency.exponentialRampToValueAtTime(700, now + 0.03);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.09, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+      o.connect(g).connect(master);
+      o.start(now);
+      o.stop(now + 0.06);
+    } catch {
+      /* 위와 같다 */
+    }
+  };
+
   const stop = (): void => {
     if (timer) window.clearInterval(timer);
     timer = 0;
@@ -220,5 +242,5 @@ export function roomAmbience(host: HTMLElement): Ambience {
     master = null;
   };
 
-  return { wake, stone, stop };
+  return { wake, stone, tick, stop };
 }

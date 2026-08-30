@@ -30,6 +30,12 @@ export interface GomokuState {
   last: number;
   /** 흑이 지금 못 두는 자리. 화면이 표시하고 봇이 피한다. 렌주가 꺼져 있으면 빈 배열 */
   banned: number[];
+  /** 수당 제한시간(초). 0 이면 없음. 시작할 때 고른다 */
+  limit: number;
+  /** 이번 차례가 끝나는 커널 시각(ms). 제한이 없으면 -1 */
+  turnEndsAt: number;
+  /** 시간을 넘겨 진 자리. 없으면 -1 */
+  timedOut: number;
 }
 
 export type GomokuAction = { cell: number };
@@ -45,6 +51,13 @@ const NEED = 5;
 const DIRS: Array<[number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
 /** 고른 값 읽기. 모르는 값이 오면 표준으로 되돌린다 (그물망 너머에서 아무 값이나 온다) */
+/** 수당 제한시간. 없음이 기본. 혼자 노는 판에서 시계가 재촉하면 놀이가 아니라 시험이다 */
+export const LIMITS = [0, 30, 60, 120] as const;
+export function limitOf(opts: GameOpts): number {
+  const v = Number(opts.limit);
+  return (LIMITS as readonly number[]).indexOf(v) >= 0 ? v : 0;
+}
+
 export function sizeOf(opts: GameOpts): Size {
   const v = Number(opts.size);
   return (SIZES as readonly number[]).indexOf(v) >= 0 ? (v as Size) : DEFAULT_SIZE;
@@ -264,14 +277,25 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     const n = sizeOf(ctx.opts);
     /* 안 고르면 켠다. 흑이 먼저 두는 게임에서 금수 없는 판은 선수가 유리하다 */
     const renju = ctx.opts.renju !== false;
-    return { board: new Array(n * n).fill(0), n, renju, turn: 0, won: -1, last: -1, banned: [] };
+    const limit = limitOf(ctx.opts);
+    return { board: new Array(n * n).fill(0), n, renju, turn: 0, won: -1, last: -1, banned: [], limit, turnEndsAt: limit ? ctx.now + limit * 1000 : -1, timedOut: -1 };
+  },
+
+  /**
+   * 시간은 커널 시계로(`clocked`). 제한을 넘기면 그 사람 패. 레퍼런스와 같음
+   * 자동 착수는 시계가 사람 대신 두는 것이라 판이 남의 것
+   */
+  clocked: true,
+  tick(s, ctx) {
+    if (s.won !== -1 || !s.limit || ctx.now < s.turnEndsAt) return s;
+    return { ...s, won: 1 - s.turn, timedOut: s.turn, turnEndsAt: -1 };
   },
 
   canAct(s, seat) {
     return s.won === -1 && s.turn === seat;
   },
 
-  reduce(s, a, seat) {
+  reduce(s, a, seat, ctx) {
     if (s.won !== -1 || s.turn !== seat) return s;
     if (a.cell < 0 || a.cell >= s.n * s.n || s.board[a.cell] !== 0) return s;
     const who = seat + 1;
@@ -282,12 +306,19 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     const won = wins(board, s.n, a.cell, who, s.renju) ? seat : board.every((v) => v !== 0) ? -2 : -1;
     /* 다음 차례가 흑일 때만 금수 자리를 다시 센다. 백 차례에 세면 한 수마다 헛일이다 */
     const banned = won === -1 && 1 - seat === 0 ? bannedList(board, s.n, s.renju) : [];
-    return { ...s, board, turn: 1 - seat, won, last: a.cell, banned };
+    return { ...s, board, turn: 1 - seat, won, last: a.cell, banned, turnEndsAt: won === -1 && s.limit ? ctx.now + s.limit * 1000 : -1 };
   },
 
   outcome(s, ctx) {
     if (s.won === -1) return { over: false };
     if (s.won === -2) return { over: true, scores: [0, 0], note: { key: 'arcade.gomoku.full' } };
+    if (s.timedOut >= 0) {
+      return {
+        over: true,
+        scores: s.won === 0 ? [1, 0] : [0, 1],
+        note: { key: 'arcade.gomoku.timeout', params: { who: ctx.seats[s.timedOut]?.name ?? '' } }
+      };
+    }
     return {
       over: true,
       scores: s.won === 0 ? [1, 0] : [0, 1],

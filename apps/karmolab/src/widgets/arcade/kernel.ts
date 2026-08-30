@@ -118,6 +118,45 @@ export class Match<S, A> {
     return this.now;
   }
 
+  /**
+   * 무르기. **사람이 누른 마지막 `drop` 줄을 지우고 처음부터 다시 돌린다.**
+   *
+   * 커널에 되돌리는 길은 없다. 대신 판은 씨앗 하나와 누른 줄로 재생 가능하다(`replay.ts`).
+   * 그래서 무르기는 곧 짧은 재생이다: 같은 씨앗으로 새로 시작해 남긴 줄까지만 두고, 시계를
+   * 지운 줄의 시각까지 밀어 그 사이 봇의 답(같은 씨앗이라 같은 수)을 다시 받음
+   * 그러면 판은 내가 그 수를 두기 직전, 내 차례. 게임 파일은 아무것도 몰라도 됨
+   */
+  rewind(drop = 1): void {
+    if (drop <= 0 || !this.tape.length) return;
+    const keep = this.tape.slice(0, Math.max(0, this.tape.length - drop));
+    const until = this.tape[Math.max(0, this.tape.length - drop)]?.at ?? this.now;
+    this.tape.length = 0;
+    this.round = 0;
+    this.finished = false;
+    this.roundOverAt = null;
+    this.note = undefined;
+    this.now = 0;
+    this.pending = [];
+    this.rand = mulberry32(this.seed);
+    this.botRand = mulberry32((this.seed ^ 0x5bf03635) >>> 0);
+    for (const s of this.seats) s.score = 0;
+    this.state = this.game.init(this.ctx());
+    const runTo = (at: number): void => {
+      /* step 은 한 번에 MAX_CATCHUP 칸만 간다. 다 갈 때까지 부른다 */
+      while (this.now + TICK <= at && !this.finished) {
+        const before = this.now;
+        this.step(at);
+        if (this.now === before) break;
+      }
+    };
+    for (const mv of keep) {
+      runTo(mv.at);
+      this.dispatch(mv.seat, mv.action);
+    }
+    runTo(until);
+    this.emit();
+  }
+
   view(): MatchView<S> {
     return {
       round: this.round,
@@ -194,7 +233,7 @@ export class Match<S, A> {
       return this.finished;
     }
 
-    if (this.game.realtime && this.game.tick) {
+    if ((this.game.realtime || this.game.clocked) && this.game.tick) {
       this.state = this.game.tick(this.state, this.ctx());
       if (this.settle()) return false;
     }

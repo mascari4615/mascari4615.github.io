@@ -465,5 +465,15 @@
   "arcade.setup.renju.on": "On",
   "arcade.setup.renju.off": "Off",
   "arcade.t3.software": "Hardware acceleration is off, so this board is drawn on the CPU. If it stutters, turn on graphics acceleration in your browser settings or switch to 2D.",
-  "arcade.t3.software.btn": "View in 2D"
+  "arcade.t3.software.btn": "View in 2D",
+  "arcade.setup.limit": "Time per move",
+  "arcade.setup.limit.0": "None",
+  "arcade.setup.limit.30": "30s",
+  "arcade.setup.limit.60": "60s",
+  "arcade.setup.limit.120": "120s",
+  "arcade.gomoku.timeout": "{who} ran out of time",
+  "arcade.gomoku.rule.free": "Free",
+  "arcade.gomoku.rule.lines": "{n} lines",
+  "arcade.gomoku.rule.limit": "{s}s",
+  "arcade.btn.undo": "Undo"
 }
