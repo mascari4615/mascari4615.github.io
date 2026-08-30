@@ -1977,12 +1977,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     function mountView(id: string): void {
       const gv = viewFor(id);
+      /* 입체로 보기로 했는데 조각이 아직이면 **평면을 먼저 세우지 않는다**. 잠깐 보이는 2D 가 거슬린다(사용자 지적).
+         빈 무대(어두운 방)로 두고 조각이 오면 붙인다. 인트로 3초 동안 미리 받으므로 대개 안 기다린다 */
+      const wait3d = dim() === '3d' && !!cardById(id)?.d3 && !view3dById(id);
       viewEl.innerHTML = '';
-      render = gv ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
+      render = gv && !wait3d ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
       /* 껍데기를 걷을지는 표현이 정한다(`views.ts` 의 `bare`). 판 하나가 다 말하는 놀이가 있다 */
-      play.classList.toggle('ac-bare', gv?.bare === true);
+      play.classList.toggle('ac-bare', gv?.bare === true || wait3d);
       /* 2D 로 갈아타면 방이 아니다. 화면 채움과 목소리를 되돌린다 */
-      const roomNow = dim() === '3d' && !!cardById(id)?.d3 && !!view3dById(id);
+      const roomNow = dim() === '3d' && !!cardById(id)?.d3;
       fill(roomNow);
       setBlipVoice(roomNow ? 'room' : 'default');
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
@@ -2146,6 +2149,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방으로 가는 판이면 소리도 방 것(나무, 풍경). 인트로 셋, 둘, 하나부터 */
       setBlipVoice(roomBound ? 'room' : 'default');
       fill(roomBound);
+      /* 입체 조각도 셋둘하나 동안 미리 받는다. 안 받으면 판이 서고 나서 기다린다 */
+      if (roomBound) void ensureView3d(id);
       introEl.style.display = '';
       /* 지난 판의 결과와 한 판 더를 치운다. 안 치우면 다음 판을 세는 동안 지난 판이
          아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */
