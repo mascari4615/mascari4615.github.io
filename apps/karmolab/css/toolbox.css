@@ -4281,3 +4281,114 @@ html[data-skin="field"] .tool-page-hero > .tool-pin-star { position: static; mar
 /* 별 칩에 글자 (시안 Z1 의 "별 꽂기"). 글자는 이미 있는 title 을 그대로 씀 */
 html[data-skin="field"] .tool-page-hero-actions .tool-pin-star::after { content: attr(data-label); margin-left: 8px; font-weight: 700; }
 html[data-skin="field"] .tool-page-hero-actions .tool-pin-star { opacity: 1; }
+
+/* ===================================================================
+   부품 킷, 필드 스킨 (change.karmolab-ui-kit, 2026-08-30)
+   위젯이 이미 쓰는 공용 클래스(btn 601, btn-ghost 413, field-group 210, tool-status 167, btn-primary 143,
+   tool-chip 104, tool-grid-2 97, tool-list 79 ...)를 토큰으로 한 번에 갈아끼운다. 도구 234개가 같이 바뀜
+   새 이름 없음. 정본 목록은 src/widgets/README.md 부품 킷 절
+   =================================================================== */
+/* 버튼 */
+html[data-skin="field"] .btn {
+    min-height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--text-primary);
+    border-radius: 0;
+    background: var(--glass);
+    color: var(--text-primary);
+    font-size: var(--font-size-2xs);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+html[data-skin="field"] .btn:hover { background: var(--bg-hover); }
+html[data-skin="field"] .btn-primary {
+    background: var(--band);
+    color: var(--band-ink);
+    border-color: var(--band);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 6px 0 -2px var(--accent);
+    font-family: inherit;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 0 22px;
+    min-height: 40px;
+}
+html[data-skin="field"] .btn-primary:hover { background: var(--text-primary); color: var(--bg-void); border-color: var(--text-primary); }
+html[data-skin="field"] .btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); min-height: 32px; padding: 0 10px; }
+html[data-skin="field"] .btn-ghost:hover { color: var(--text-primary); background: var(--bg-hover); border-color: var(--border-hover); }
+html[data-skin="field"] .btn-sm { min-height: 28px; padding: 0 10px; font-size: var(--font-size-3xs); }
+
+/* 입력 묶음, 라벨, 입력칸 */
+html[data-skin="field"] .field-group {
+    background: var(--glass);
+    border: 1px solid var(--border-hover);
+    border-left: 3px solid var(--accent);
+    border-radius: 0;
+    padding: 12px 14px;
+}
+html[data-skin="field"] .field-label,
+html[data-skin="field"] .tool-sublabel {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-4xs);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+html[data-skin="field"] .tool-page textarea,
+html[data-skin="field"] .tool-page input[type="text"], html[data-skin="field"] .tool-page input[type="password"], html[data-skin="field"] .tool-page input[type="number"], html[data-skin="field"] .tool-page input[type="search"],
+html[data-skin="field"] .tool-page input[type="url"], html[data-skin="field"] .tool-page input[type="email"], html[data-skin="field"] .tool-page input[type="tel"],
+html[data-skin="field"] .tool-page input[type="date"], html[data-skin="field"] .tool-page input[type="time"], html[data-skin="field"] .tool-page input[type="datetime-local"], html[data-skin="field"] .tool-page input[type="month"],
+html[data-skin="field"] .tool-page select,
+html[data-skin="field"] .mono-input {
+    border-radius: 0;
+    border: 1px solid var(--border-hover);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+html[data-skin="field"] .tool-page textarea:focus,
+html[data-skin="field"] .tool-page input:focus,
+html[data-skin="field"] .tool-page select:focus { border-color: var(--text-primary); box-shadow: inset 3px 0 0 var(--accent); outline: none; }
+
+/* 상태, 힌트 */
+html[data-skin="field"] .tool-status { font-family: var(--font-mono); font-size: var(--font-size-3xs); letter-spacing: .04em; }
+html[data-skin="field"] .tool-hint { color: var(--text-tertiary); }
+
+/* 칩 (고르기). 평행사변형, 고른 것은 띠 반전 */
+html[data-skin="field"] .tool-chip {
+    border-radius: 0;
+    border: 1px solid var(--border-hover);
+    background: var(--glass);
+    color: var(--text-primary);
+    padding: 7px 16px;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+html[data-skin="field"] .tool-chip:hover { border-color: var(--text-primary); background: var(--bg-hover); color: var(--text-primary); }
+html[data-skin="field"] .tool-chip.active { background: var(--band); color: var(--band-ink); border-color: var(--band); font-weight: 700; }
+
+/* 목록 (키, 값) */
+html[data-skin="field"] .tool-list { border: 1px solid var(--text-primary); background: var(--glass); border-radius: 0; }
+html[data-skin="field"] .tool-list-row { border-bottom: 1px solid var(--border); }
+html[data-skin="field"] .tool-list-key { font-size: var(--font-size-3xs); letter-spacing: .08em; text-transform: uppercase; }
+
+/* 놓는 곳 */
+html[data-skin="field"] .tool-drop { border: 1px dashed var(--border-hover); background: var(--glass); border-radius: 0; }
+
+/* 탭 줄. 고른 탭은 띠 반전 */
+html[data-skin="field"] .tab-row { border-bottom: 1px solid var(--text-primary); gap: 4px; }
+html[data-skin="field"] .tab-btn {
+    font-family: inherit;
+    font-size: var(--font-size-2xs);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    margin-bottom: 0;
+    color: var(--text-secondary);
+}
+html[data-skin="field"] .tab-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+html[data-skin="field"] .tab-btn.active { background: var(--band); color: var(--band-ink); border-color: var(--band); box-shadow: 3px 3px 0 var(--accent); }

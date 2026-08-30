@@ -2,6 +2,29 @@
 
 > 새 위젯을 만들기 전 / 기존 위젯을 수정할 때 반드시 본다. 같은 일을 두 번 구현하지 않기 위해.
 
+## 부품 킷 (change.karmolab-ui-kit, 2026-08-30)
+
+위젯 화면은 아래 공용 클래스로만 짓는다. 모양은 스킨 토큰이 정하므로 위젯 CSS 에 색, 둥글기, 그림자를 직접 적지 않는다. 새 부품이 필요하면 여기 목록에 더하고 `css/toolbox.css` 의 부품 킷 절에 규칙을 둔다. 위젯 안에서 만들지 않는다.
+
+| 부품 | 클래스 | 쓰임 (2026-08-30 실측 사용 수) |
+| --- | --- | --- |
+| 버튼 | `.btn` `.btn-primary` `.btn-ghost` `.btn-sm` | 기본 601, 실행 143 (필 + 강조 밑선), 조용한 413, 작은 25 |
+| 입력 묶음 | `.field-group` > `.field-label` + input/select/textarea | 210 / 187. 라벨은 모노 대문자 |
+| 고정폭 입력 | `.mono-input` | 66 |
+| 상태 줄 | `.tool-status` (`.ok` `.error`) | 167 |
+| 보조 라벨 | `.tool-sublabel` `.tool-hint` | 247 / 31 |
+| 고르기 칩 | `.tool-chips` > `.tool-chip` (`.active`) | 51 / 104. 평행사변형, 고른 것은 띠 반전 |
+| 키, 값 목록 | `.tool-list` > `.tool-list-row` > `.tool-list-key` `.tool-list-val` `.tool-list-dim` | 79 / 90 |
+| 두 칸 | `.tool-grid-2` `.tool-split` | 97 |
+| 버튼 줄 | `.tool-actions` (`.tight`) | 50 |
+| 놓는 곳 | `.tool-drop` | 38 |
+| 탭 | `.tab-row` > `.tab-btn` (`.active`), `.tab-panel` | 셸이 만듦. 고른 탭은 띠 반전 |
+| 재료 도구 틀 | `tools/shared/material-shell.ts` (`.pf-*`) | 재료 아홉 |
+| 큰 수 | `.tool-display` | 타이머, 계산 |
+
+- 아직 위젯 자체 클래스(`hu-btn` 70, `km-field` 56, `tl-btn` 36, `ie-opt-label` 46)가 남아 있다. 새 코드는 위 표로, 옛 것은 만날 때 바꾼다
+- 부품 카탈로그(살아 있는 견본 장)는 다음 일. 그때까지는 캔버스 "부품 카탈로그" 페이지와 이 표가 정본
+
 ## 시작 전 체크리스트
 
 새 위젯, 기능을 *코드로 옮기기 전* 다음 순서로 정독한다. 정독 결과는 TASK 문서 관련 파일 / 읽기 (참고 패턴) 에 명시. *어떤 파일을 보고 어떤 결론* 인지.
