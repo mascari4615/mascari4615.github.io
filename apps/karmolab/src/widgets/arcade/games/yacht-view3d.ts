@@ -72,21 +72,21 @@ export const view3d: GameView<YachtState, YachtAction> = {
       const done0 = s.sheet[0] ? CATS.filter((c) => s.sheet[0][c] !== null).length : 0;
       const round = Math.min(CATS.length, done0 + 1);
       const best = fin ? null : bestOpen(s, s.turn);
+      /* 화면 아래 한 줄. 차례 순서대로 카드, 지금 차례는 금테(사용자 구상). 라운드는 줄 왼쪽 끝 */
       hudEl.innerHTML =
-        '<div class="ac-ychudhead"><span>' + esc(t('arcade.yacht.hud.round', { n: String(round), m: String(CATS.length) })) + '</span>' +
-        (fin ? '' : '<span class="ac-ychudrolls">' + esc(t('arcade.yacht.hud.rolls', { n: String(s.rolled) })) + '</span>') + '</div>' +
-        '<ol class="ac-ychudseats">' +
+        '<div class="ac-ychudround">' + esc(t('arcade.yacht.hud.round', { n: String(round), m: String(CATS.length) })) + '</div>' +
         seatNames.map((name, i) => {
           const sheet = s.sheet[i];
           const total = sheet ? totalOf(sheet) : 0;
           const cur = !fin && i === s.turn;
-          return '<li class="' + (cur ? 'ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + '">' +
-            '<i class="ac-ychudmark"></i>' +
+          const sub = cur
+            ? '<span class="ac-ychudsub">' + esc(t('arcade.yacht.hud.rolls', { n: String(s.rolled) })) +
+              (best ? ' <i></i> ' + esc(t('arcade.yacht.hud.best', { cat: t('arcade.yacht.cat.' + best.cat), n: String(best.n) })) : '') + '</span>'
+            : '';
+          return '<div class="ac-ychudcard' + (cur ? ' ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + '">' +
             '<span class="ac-ychudname">' + esc(name) + (i === mySeat ? ' <small>' + esc(t('arcade.yacht.hud.me')) + '</small>' : seatBots[i] ? ' <small>' + esc(t('arcade.yacht.hud.bot')) + '</small>' : '') + '</span>' +
-            '<b class="ac-ychudscore">' + total + '</b></li>';
-        }).join('') +
-        '</ol>' +
-        (best ? '<div class="ac-ychudbest">' + esc(t('arcade.yacht.hud.best', { cat: t('arcade.yacht.cat.' + best.cat), n: String(best.n) })) + '</div>' : '');
+            '<b class="ac-ychudscore">' + total + '</b>' + sub + '</div>';
+        }).join('');
     };
     let toastTimer = 0;
     const toast = (text: string, ms = 1700): void => {
