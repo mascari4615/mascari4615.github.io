@@ -2423,7 +2423,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* **어제의 나**를 마지막 자리에 앉힌다 (TASK-KL-264 A3). 고스트는 봇의 한 종류라
          여기 한 줄이면 끝난다. 자리도 점수도 결과 화면도 이미 있는 것을 쓴다.
          혼자 놀 때만. 여럿이 있는 방에 내 지난 판을 끼워 넣으면 자리가 하나 줄어든다. */
-      const past = !net && !tour ? bestOf(id) : null;
+      /* 판놀이(오목처럼 둘이 번갈아 두는 것)에는 안 앉힌다. 고스트는 남의 판 수를 시각대로 흉내 낼 뿐이라
+         판놀이에서는 엉뚱한 자리를 찌르다 수가 떨어지면 가만히 있고, 판이 안 끝난다(2026-08-30 실측) */
+      const past = !net && !tour && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
       /* 끝나면 `noteBest` 가 덮으므로 **시작할 때** 챙겨 둔다. 결과에 어제 N을 적으려면 필요하다. */
       lastBest = bestOf(id)?.score ?? null;
       let def = withBotLevel(g, levelNow(), personas);
