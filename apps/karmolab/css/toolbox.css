@@ -2406,6 +2406,16 @@ html[data-sidebar="rail"] .sidebar-group:not(.sidebar-group--cat) + .sidebar-gro
     transition: opacity var(--transition-slow);
 }
 
+/* 창을 화면 한가운데 띄우는 바탕. 이 블록이 없으면 창이 글 흐름에 그냥 놓여 왼쪽이
+   옆줄 밑으로 들어간다 (2026-08-31 실측: 환경 설정의 왼쪽 라벨이 잘려 보였다.
+   `557b04e74d` 의 옛 CSS 정리에 같이 지워졌다) */
+.kl-modal-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(8, 8, 12, 0.62);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--space-lg);
+    animation: fadeIn 140ms ease;
+}
 .kl-modal {
     position: relative;
     width: min(940px, 100%);
