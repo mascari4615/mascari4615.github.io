@@ -258,8 +258,8 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
       const sc = STATUS_COLORS[task.status] ?? '#55555a';
       const isActive = task.status === 'active';
       const prefix = isActive
-        ? '<span class="ckt-qrow-prefix" style="color:#a99bf5">✦</span>'
-        : '<span class="ckt-qrow-prefix" style="color:#33363d">◇</span>';
+        ? '<span class="ckt-qrow-prefix">✦</span>'
+        : '<span class="ckt-qrow-prefix ckt-qrow-prefix-off">◇</span>';
       const indentCls = task.parent ? ' ckt-qrow--sub' : '';
       return `<div class="ckt-qrow${indentCls}" data-task-id="${esc(task.id)}">
         ${prefix}
@@ -605,7 +605,8 @@ const TASK_TAB_CSS = `
 .ckt-qrow--sub { padding-left: 26px; background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .ckt-qrow:last-child { border-bottom: none; }
 .ckt-qrow:hover { background: var(--bg2); }
-.ckt-qrow-prefix { font-size: var(--font-size-2xs); line-height: 1; }
+.ckt-qrow-prefix { font-size: var(--font-size-2xs); line-height: 1; color: var(--accent); }
+.ckt-qrow-prefix-off { color: var(--text-tertiary); }
 .ckt-qsub-mark { color: var(--ink3); font-family: 'KarmoMono', monospace; }
 .ckt-qid { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); color: var(--accent); letter-spacing: 0.05em; }
 .ckt-qmag {

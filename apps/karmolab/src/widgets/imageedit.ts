@@ -199,7 +199,7 @@ const esc = (v: unknown): string =>
             gap:12px; color:var(--text-tertiary); text-align:center;
             position:absolute; inset:0; z-index:5; cursor:pointer; transition:background 0.2s;
         }
-        .ie-placeholder:hover { background:rgba(139,124,246,0.05); }
+        .ie-placeholder:hover { background:var(--accent-subtle); }
         .ie-placeholder-icon { font-size:48px; opacity:0.25; }
         .ie-placeholder-text { font-size:var(--font-size-sm); }
         .ie-placeholder-sub { font-size:var(--font-size-xs); opacity:0.6; }
@@ -263,6 +263,9 @@ const esc = (v: unknown): string =>
             margin-left:0; flex:1 1 100%; width:100%; box-sizing:border-box; text-align:center;
         }
         .ie-apply-btn:hover { background:var(--fill-strong-hover); }
+        /* 보조 버튼. 실행 버튼과 같은 틀에 조용한 칠 */
+        .ie-apply-btn-quiet { background:var(--bg-tertiary); color:var(--text-primary); }
+        .ie-apply-btn-quiet:hover { background:var(--bg-hover); }
 
         /* Filter grid */
         .ie-filter-grid { display:flex; gap:6px; flex-wrap:wrap; }
@@ -2136,7 +2139,7 @@ const esc = (v: unknown): string =>
             <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
                 <button class="ie-apply-btn" id="ieGeminiApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiApply'))}</button>
-                <button class="ie-apply-btn" id="ieGeminiDownloadMask" style="background:#555;" ${lastGeminiMaskDataUrl ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiDownloadMask'))}</button>
+                <button class="ie-apply-btn ie-apply-btn-quiet" id="ieGeminiDownloadMask"  ${lastGeminiMaskDataUrl ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiDownloadMask'))}</button>
             </div>`;
         requestAnimationFrame(() => {
             document!.getElementById('ieGeminiApply')!.onclick = applyGeminiRemoveBg;
@@ -2911,8 +2914,8 @@ const esc = (v: unknown): string =>
                 <div style="padding-bottom:8px;border-bottom:1px solid var(--border);">
                     <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t33'))}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-                        <button class="ie-apply-btn" id="ieMaskLoadFile" style="background:#555;">${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
-                        <button class="ie-apply-btn" id="ieMaskPaste" style="background:#555;">${esc(t('imageedit.btn.ieMaskPaste'))}</button>
+                        <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskLoadFile" >${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
+                        <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskPaste" >${esc(t('imageedit.btn.ieMaskPaste'))}</button>
                         <div id="ieMaskPreviewWrap" style="display:none; align-items:center; gap:6px;">
                             <canvas id="ieMaskPreview" style="max-width:60px; max-height:40px; border:1px solid var(--border); border-radius:var(--radius-sm);"></canvas>
                             <span id="ieMaskInfo" class="ie-opt-label" style="font-size:var(--font-size-xs);"></span>
@@ -2925,7 +2928,7 @@ const esc = (v: unknown): string =>
                         <label id="ieMaskInvertLabel" style="display:none; align-items:center; gap:4px; font-size:var(--font-size-sm); color:var(--text-secondary); cursor:pointer;">
                             <input type="checkbox" id="ieMaskInvertCb"> ${esc(t('imageedit.label.ieMaskInvertCb'))}
                         </label>
-                        <button class="ie-apply-btn" id="ieMaskPreviewBtn" disabled style="background:#666;">${esc(t('imageedit.btn.ieMaskPreviewBtn'))}</button>
+                        <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskPreviewBtn" disabled >${esc(t('imageedit.btn.ieMaskPreviewBtn'))}</button>
                         <button class="ie-apply-btn" id="ieMaskApplyBtn" disabled>${esc(t('imageedit.btn.ieMaskApplyBtn'))}</button>
                     </div>
                 </div>
