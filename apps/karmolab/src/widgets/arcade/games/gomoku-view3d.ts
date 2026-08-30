@@ -32,8 +32,23 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
   bare: true,
   mount(el, act) {
     /* 무대는 제 자리를 다 쓴다. 크기는 무대 계약(`--ac-stage`)이 정한다. */
-    el.innerHTML = '<div class="ac-t3 ac-t3room" id="acT3"></div>';
+    el.innerHTML = '<div class="ac-t3 ac-t3room" id="acT3"><div class="ac-yctoast" id="acGmToast" role="status"></div></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
+    /* 알림. 차례, 10초, 금수 자리, 무르기를 판 위 가운데 한 줄로(사용자 요청). 생김새는 야추와 같은 방 알림 */
+    const toastEl = el.querySelector('#acGmToast') as HTMLElement;
+    let toastTimer = 0;
+    const toast = (text: string, ms = 1300): void => {
+      toastEl.textContent = text;
+      toastEl.classList.add('ac-show');
+      if (toastTimer) window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => {
+        toastEl.classList.remove('ac-show');
+        toastTimer = 0;
+      }, ms);
+    };
+    /* 마지막으로 알린 차례. 같은 차례를 두 번 알리지 않음 */
+    let toldTurn = -1;
+    let toldHurry = false;
     /* 방의 소리(`ambience.ts`). 첫 손길에 깨고, 주인이 문서에서 빠지면 스스로 멈춘다 */
     /* 방은 취향(`scenes.ts`). 갈아 끼우면 오락실이 화면을 새로 세우므로 여기서는 지금 값만 읽는다 */
     const sceneId = sceneOf();
@@ -60,7 +75,15 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
         bowls: true,
         room: true,
         scene: sceneId,
-        onCell: (i) => act({ cell: i }),
+        onCell: (i) => {
+          /* 금수 자리는 규칙이 조용히 무시한다. 사람에게는 말해 줘야 왜 안 놓이는지 안다 */
+          const s = lastState;
+          if (s && lastSeat === 0 && s.turn === 0 && s.won === -1 && s.banned.indexOf(i) >= 0) {
+            toast(t('arcade.gomoku.toast.banned'));
+            return;
+          }
+          act({ cell: i });
+        },
         /* 다음 수 미리 보기. 내 차례고, 빈 자리고, 금수가 아닐 때만 */
         onHover: (i) => {
           const s = lastState;
@@ -101,6 +124,11 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       lastSeat = mySeat;
       const myTurn = s.won === -1 && s.turn === mySeat;
       if (!myTurn) board.ghost(-1, mySeat + 1);
+      /* 차례 알림. 첫 그림(shown < 0)은 조용히. 판이 끝나면 결과 종이가 말한다 */
+      if (shown >= 0 && s.won === -1 && s.turn !== toldTurn) {
+        toast(myTurn ? t('arcade.gomoku.toast.me') : t('arcade.gomoku.toast.turn', { who: v.seats[s.turn]?.name ?? '' }));
+      }
+      toldTurn = s.turn;
       /* 자리 카드: 룰 한 줄(내 카드), 남은 시간(차례 카드) */
       const cards = seatCards();
       const mine = cards[mySeat];
@@ -121,6 +149,12 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
           if (clock.textContent !== txt) clock.textContent = txt;
           card.style.setProperty('--ac-left', String(left / s.limit));
           clock.classList.toggle('ac-hurry', left <= 10);
+          /* 내 차례 10초. 한 번만 */
+          if (i === mySeat && left <= 10 && left > 0 && !toldHurry) {
+            toldHurry = true;
+            toast(t('arcade.gomoku.toast.hurry'), 1600);
+          }
+          if (left > 10) toldHurry = false;
           /* 마지막 10초는 매초 초침. 내 차례든 남의 차례든 방에 있는 사람은 다 듣는다 */
           if (left <= 10 && left !== lastTick && left > 0) {
             lastTick = left;
@@ -141,6 +175,8 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       board.place(stones);
       /* 알이 늘었으면 딱. 첫 그림은 안 울린다(도중에 들어온 판이면 스무 개가 한꺼번에 울린다) */
       if (shown >= 0 && stones.length > shown) amb.stone();
+      /* 알이 줄었으면 누가 물렀다. 무른 쪽은 지금 차례인 쪽 */
+      if (shown >= 0 && stones.length < shown) toast(t('arcade.gomoku.toast.undo', { who: v.seats[s.turn]?.name ?? '' }), 1600);
       shown = stones.length;
       if (s.won !== -1) board.finish();
       host.classList.toggle('ac-waiting', !myTurn);
