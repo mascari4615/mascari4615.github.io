@@ -34,7 +34,7 @@ import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
-import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
+import { EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { loadPacks } from '../pack-store';
@@ -1866,8 +1866,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function castSay(seat: number, key: Parameters<typeof lineOf>[1], chance = 1): void {
       const v = match?.view() ?? shadow?.v;
       const c = v ? castByName(v.seats[seat]?.name ?? '') : null;
-      if (!c || c.slug === 'me' || Math.random() > chance) return;
-      sayAs(seat, lineOf(c, key));
+      if (!c || Math.random() > chance) return;
+      sayAs(seat, lineOf(c, key, v?.seats[mySeat]?.name ?? ''));
     }
     /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
     let seenMoves = 0;
@@ -1990,7 +1990,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 얼굴 한 장. 내 자리는 조수, 봇 자리는 그 사람. 표정은 차례와 결과에서 */
     function faceOf(v: MatchView<unknown>, i: number): string {
       const seat = v.seats[i];
-      const c = i === mySeat ? CAST.me : castByName(seat?.name ?? '');
+      /* 플레이어는 캐릭터가 아니다. 얼굴은 저택 사람만 */
+      const c = i === mySeat ? null : castByName(seat?.name ?? '');
       if (!c) return '';
       const turn = (v.state as { turn?: number } | null)?.turn;
       let mood: Mood = 'calm';
@@ -2541,7 +2542,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastDef = def as GameDef<unknown, unknown>;
       bubbles.clear();
       seenMoves = 0;
-      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello')); }, 900); });
+      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
       tape = null;
       endReview(false);
       replaying = false;

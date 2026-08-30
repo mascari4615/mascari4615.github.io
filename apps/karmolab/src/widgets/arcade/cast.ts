@@ -5,9 +5,10 @@
  * 카드 정본은 `memo/characters/<slug>/card.md`. 여기 있는 말투와 대사는 그 카드를 따른 **임시** 문구
  *
  * 임시인 것(사용자가 바꾼다): 얼굴은 기하 도형, 대사, 표정, 반응. 구조만 먼저
- * TODO 목소리, 인연, 스킨, 각성. TODO 단계와 사람의 대응은 사용자 그릴 뒤 확정
+ * 플레이어는 캐릭터가 아니다(사용자 결정 2026-08-30). 얼굴 없음, 자기 이름 그대로. 세계관 이유도 없음, 캐릭터성만
+ * TODO 목소리, 인연, 스킨, 각성
  */
-export type CastSlug = 'yawn' | 'alisa' | 'ling' | 'me';
+export type CastSlug = 'yawn' | 'alisa' | 'ling';
 export type Mood = 'calm' | 'think' | 'glad' | 'sad' | 'tease';
 export type LineKey = 'hello' | 'move' | 'good' | 'danger' | 'undo' | 'win' | 'lose' | 'hurry' | 'again';
 
@@ -27,7 +28,7 @@ export const CAST: Record<CastSlug, Cast> = {
     shape: 'circle',
     hue: '#b9a6e8',
     lines: {
-      hello: ['...아, 조수. 한 판?', '하암. 앉아.'],
+      hello: ['...아, {you}. 한 판?', '하암. 앉아.'],
       move: ['음.', '여기.', '...'],
       good: ['오, 제법.'],
       danger: ['...귀찮게 하네.'],
@@ -44,7 +45,7 @@ export const CAST: Record<CastSlug, Cast> = {
     shape: 'square',
     hue: '#9fb3c8',
     lines: {
-      hello: ['조수님. 시작하겠습니다.'],
+      hello: ['{you}님. 시작하겠습니다.'],
       move: ['여기로.', '두겠습니다.'],
       good: ['좋은 수입니다.'],
       danger: ['막겠습니다.'],
@@ -61,7 +62,7 @@ export const CAST: Record<CastSlug, Cast> = {
     shape: 'triangle',
     hue: '#f2d16b',
     lines: {
-      hello: ['조수! 나랑 놀자~', '헤헷, 내가 이길 거야'],
+      hello: ['{you}! 나랑 놀자~', '헤헷, 내가 이길 거야'],
       move: ['여기다!', '에잇!'],
       good: ['에엣, 잘 두네...'],
       danger: ['안 돼 안 돼!'],
@@ -72,13 +73,12 @@ export const CAST: Record<CastSlug, Cast> = {
       again: ['한 판 더! 한 판 더!']
     }
   },
-  me: { slug: 'me', name: '조수', shape: 'diamond', hue: '#e8dcc4', lines: {} }
 };
 
 /** 플레이어가 보내는 반응. 임시 여섯 */
 export const EMOTES = ['ㅎㅎ', '앗', '좋은 수', '흠...', '고마워', '한 판 더'];
 
-/** 단계 -> 사람. 임시: 1~2 링, 3~4 알리사, 5 욘. 사용자 그릴 뒤 확정 */
+/** 단계 -> 사람. 1~2 링, 3~4 알리사, 5 욘 (사용자 확정 2026-08-30) */
 export function castOfLevel(level: number): Cast {
   if (level >= 5) return CAST.yawn;
   if (level >= 3) return CAST.alisa;
@@ -90,11 +90,14 @@ export function castByName(name: string): Cast | null {
   return null;
 }
 
-/** 대사 한 줄. 없으면 빈 문자열 */
-export function lineOf(cast: Cast, key: LineKey, rng: () => number = Math.random): string {
+/**
+ * 대사 한 줄. 없으면 빈 문자열. `{you}` 는 상대(플레이어)의 이름.
+ * 카드의 호칭 "조수"는 처음 온 사람이 모르는 말(사용자 결정). 이름으로 부름
+ */
+export function lineOf(cast: Cast, key: LineKey, you = '', rng: () => number = Math.random): string {
   const pool = cast.lines[key];
   if (!pool || !pool.length) return '';
-  return pool[Math.floor(rng() * pool.length)];
+  return pool[Math.floor(rng() * pool.length)].replace(/\{you\}/g, you);
 }
 
 /**
