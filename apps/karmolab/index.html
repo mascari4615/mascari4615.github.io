@@ -269,24 +269,6 @@ permalink: /
                 <span class="header-now" id="headerNow" aria-live="polite"></span>
             </div>
             <div class="header-bar-right">
-                <!-- 아래 링크 다섯은 **화면에 안 뜬다**. `.header-tools-link` 가 PC 에서도
-                     폰에서도 `display:none` 이고, `toolbox.ts` 가 이 마크업을 읽어 폰 내비
-                     줄(`.mobile-nav`)을 채운다. 지우면 폰에서 갈 곳이 사라진다. -->
-                <a href="/bot/" class="header-tools-link" title="디스코드 봇, 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
-                <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기. 포켓몬, 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
-                <!-- 작업물. 제 주소를 가진 위젯 장이다(change.blog-surfaces-as-widgets).
-                     여기 없던 동안 첫 화면에서 작업물로 가는 길이 아예 없었다. 링크가 글 장
-                     머리띠에만 있어서, 글을 열지 않은 사람은 그 판을 못 봤다. -->
-                <a href="/works/" class="header-tools-link" title="만든 것들. 게임, VRChat 콘텐츠, 도구" data-i18n-title="shell.nav.worksTitle" data-i18n="shell.nav.works">◆ 작업물</a>
-                <a href="#community" class="header-tools-link" data-goto="community" title="이야기, 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
-                <a href="#plaza" class="header-tools-link" data-goto="plaza" title="지금 무엇이 쓰이는지, 이야기, 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
-                <!-- Files (데스크톱 앱 전용, 2026-08-29). 트레이로만 들어갈 수 있어서
-                     창을 보고 있는 동안엔 파일로 가는 길이 화면에 없었다. 웹에서는 안 그린다:
-                     `/blob/`(클라우드 암호문)이 앱 도메인 밖에선 안 열려 픽스처로 되떨어진다.
-                     `css` 는 감춤이 기본이고 `desktop-chrome.ts` 가 앱에서만 켠다. -->
-                <button type="button" class="header-btn files-btn" id="filesBtn" data-desktop-only style="display:none" title="Files. 노트북, 금고" aria-label="Files">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                </button>
                 <div class="window-controls" id="windowControls" data-desktop-only aria-hidden="true">
                     <button type="button" class="wc-btn wc-min" id="wcMinimize" title="최소화" aria-label="최소화" data-i18n-title="shell.window.min" data-i18n-aria-label="shell.window.min">
                         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6 H10" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
@@ -301,6 +283,16 @@ permalink: /
                 </div>
             </div>
         </header>
+        <!-- 바깥 링크 원본. 화면에 안 그린다. `toolbox.ts` 가 읽어 폰 내비 줄을 채운다.
+             예전엔 머리띠 오른쪽에 있었고 CSS 로만 숨겼는데, 그 CSS 가 안 닿는 장에서 글자가
+             그대로 새어 나왔다 (2026-08-30 사용자 지적). -->
+        <div id="site-links" hidden>
+                    <a href="/bot/" class="header-tools-link" title="디스코드 봇, 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
+                    <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기. 포켓몬, 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
+                    <a href="/works/" class="header-tools-link" title="만든 것들. 게임, VRChat 콘텐츠, 도구" data-i18n-title="shell.nav.worksTitle" data-i18n="shell.nav.works">◆ 작업물</a>
+                    <a href="#community" class="header-tools-link" data-goto="community" title="이야기, 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
+                    <a href="#plaza" class="header-tools-link" data-goto="plaza" title="지금 무엇이 쓰이는지, 이야기, 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
+        </div>
         <div class="app-body">
             <aside class="sidebar" id="sidebar">
                 <!-- 찾기는 옆줄 맨 위 (2026-08-30). 예전엔 머리띠 가운데 입력칸이었고 옆줄
@@ -316,14 +308,11 @@ permalink: /
                 <nav class="sidebar-nav" role="navigation" aria-label="도구 목록" data-i18n-aria-label="shell.sidebar.tools">
                     <div id="sidebar-nav"></div>
                 </nav>
-                <!-- 옆줄 바닥은 사람 자리 (2026-08-30). 계정, 알림, 채팅, 설정, 테마.
-                     디스코드와 Codex 가 같은 자리에 둔다. 예전엔 전부 머리띠 오른쪽이었는데,
-                     머리띠를 걷으면서 여기로 내려왔다. 링크, 문의도 같은 묶음에 남는다. -->
+                <!-- 옆줄 바닥은 얼굴과 이름뿐 (2026-08-30, 사용자 결정). 누르면 메뉴 하나에
+                     내 정보, 설정, 언어, 테마, 알림, 채팅, 링크가 다 있다 (`account.ts`).
+                     아래 버튼들은 화면에서 숨긴 채 살아 있다. 종과 채팅의 판이 그 버튼에
+                     매달려 있고, 메뉴가 대신 눌러 준다. -->
                 <div class="sidebar-footer">
-                    <a href="#linktree" class="sidebar-dev-links" data-goto="linktree" title="연락처, 링크. 문의는 여기로" aria-label="링크, 문의" data-i18n-title="shell.sidebar.linksTitle" data-i18n-aria-label="shell.sidebar.links">
-                        <span class="sidebar-dev-links-icon" aria-hidden="true">✉</span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.links">링크, 문의</span>
-                    </a>
                     <div class="sidebar-user">
                         <!-- 계정 캡슐이 곧 내 정보 버튼이다 (TASK-KL-139 후속).
                              여기 박아 둔 것이 바닥값이고 js/account.js 가 로그인 상태면
@@ -336,7 +325,7 @@ permalink: /
                                 <span class="header-account-name" data-i18n="shell.account.me">내 정보</span>
                             </button>
                         </div>
-                        <div class="sidebar-user-actions">
+                        <div class="sidebar-user-actions" aria-hidden="true">
                             <!-- 알림 종 (TASK-KL-098). 공용이다. 도구, 계정, 봇이 보낸 것도 여기 뜬다.
                                  js/account.js 가 채운다. 서버에 못 닿거나 로그인 안 했으면 안 그려진다. -->
                             <div class="header-bell" id="headerBell"></div>
@@ -348,6 +337,10 @@ permalink: /
                             <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                             </button>
+                            <!-- Files (앱 전용). `desktop-chrome.ts` 가 앱에서만 켠다. 계정 메뉴의 Files 줄이 이걸 누른다 -->
+                            <button type="button" class="header-btn files-btn" id="filesBtn" data-desktop-only style="display:none" title="Files. 노트북, 금고" aria-label="Files">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                </button>
                             <!-- 언어는 설정 안 언어 칸으로 (2026-08-29, 사용자 결정) -->
                             <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환" data-i18n-title="shell.theme.toggle" data-i18n-aria-label="shell.theme.toggleAria">
                                 <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>

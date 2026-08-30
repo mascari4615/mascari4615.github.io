@@ -1561,11 +1561,10 @@ html[data-sidebar="rail"] .sidebar-head { padding: var(--space-sm) 8px 0; }
 html[data-sidebar="rail"] .sidebar-search-box { padding: 0; justify-content: center; }
 html[data-sidebar="rail"] .sidebar-search-text { display: none; }
 
-html[data-sidebar="rail"] .sidebar-user { flex-direction: column; gap: 2px; }
+html[data-sidebar="rail"] .sidebar-user { justify-content: center; }
 html[data-sidebar="rail"] .sidebar-user .header-account { flex: none; }
-html[data-sidebar="rail"] .sidebar-user .header-account-btn { width: auto; padding: 3px; border-color: transparent; }
+html[data-sidebar="rail"] .sidebar-user .header-account-btn { width: auto; padding: 3px; }
 html[data-sidebar="rail"] .sidebar-user .header-account-name { display: none; }
-html[data-sidebar="rail"] .sidebar-user-actions { flex-direction: column; }
 html[data-sidebar="rail"] .sidebar-user .header-account-menu,
 html[data-sidebar="rail"] .sidebar-user .kl-bell-panel { left: 100%; margin-left: 8px; bottom: 0; }
 
@@ -1842,20 +1841,28 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .header-now:empty { display: none; }
 @media (max-width: 768px) { .header-now { display: none; } }
 
-.sidebar-user { display: flex; align-items: center; gap: 4px; min-width: 0; margin-top: 2px; }
+.sidebar-user { position: relative; display: flex; align-items: center; min-width: 0; }
 .sidebar-user .header-account { flex: 1; min-width: 0; }
-.sidebar-user .header-account-btn { max-width: none; width: 100%; }
-.sidebar-user-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.sidebar-user .header-account-btn { max-width: none; width: 100%; min-height: 36px; border-color: transparent; }
+.sidebar-user .header-account-btn:hover { background: var(--bg-hover); }
+.sidebar-user-actions { position: absolute; left: 0; bottom: 100%; width: 0; height: 0; overflow: visible; }
 .sidebar-user-actions .header-btn,
-.sidebar-user-actions .theme-toggle { width: 28px; height: 28px; }
-.sidebar-user-actions .kl-bell-btn { width: 28px; height: 28px; border: none; }
+.sidebar-user-actions .theme-toggle,
+.sidebar-user-actions .kl-bell-btn,
+.sidebar-user-actions .klchat-dock {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: 0;
+    opacity: 0; pointer-events: none; overflow: hidden;
+}
 
-.sidebar-user-actions .klchat-dock { padding: 0; width: 28px; height: 28px; justify-content: center; border: none; background: transparent; }
-.sidebar-user-actions .klchat-dock-label,
-.sidebar-user-actions #klChatDockCount { display: none; }
+.sidebar-user-actions .files-btn { display: block !important; }
+.sidebar-user-actions .kl-bell-dot { display: none; }
 
-.sidebar-user .header-account-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
-.sidebar-user .kl-bell-panel { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
+.sidebar-user .header-account-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; min-width: 208px; }
+.sidebar-user .kl-bell-panel { top: auto; bottom: 6px; left: 0; right: auto; }
+.header-account-menu-count {
+    margin-left: 8px; padding: 0 6px; border-radius: 999px;
+    background: var(--accent); color: var(--bg-primary); font-size: 10.5px; font-weight: 700;
+}
 
 .sidebar-group-icon { flex: none; opacity: 0.75; margin-right: 2px; }
 
@@ -1878,11 +1885,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
         transition: none;
     }
     .sidebar-head, .sidebar-nav { display: none; }
-    .sidebar-footer { min-width: 0; border-top: none; flex-direction: row; align-items: center; gap: 6px; padding: 6px var(--space-sm); }
-    .sidebar-footer .sidebar-dev-links { flex: none; padding: 3px; }
-    .sidebar-footer .sidebar-dev-links-text { display: none; }
-    .sidebar-user { flex: 1; margin-top: 0; }
-    .sidebar-user-actions .header-btn, .sidebar-user-actions .theme-toggle, .sidebar-user-actions .klchat-dock { width: 36px; height: 36px; }
+    .sidebar-footer { min-width: 0; border-top: none; padding: 4px var(--space-sm); }
     .main-content { margin-left: 0; padding-bottom: 56px; }
     .sidebar-toggle { display: none; }
 }

@@ -21,5 +21,10 @@
   "account.minsAgo": "{n}分前",
   "account.hoursAgo": "{n}時間前",
   "account.daysAgo": "{n}日前",
-  "account.alsoDiscord": "Discord でも受け取る"
+  "account.alsoDiscord": "Discord でも受け取る",
+  "account.menu.lang": "言語と地域",
+  "account.menu.theme": "テーマ切替",
+  "account.menu.bell": "通知",
+  "account.menu.chat": "チャット",
+  "account.menu.links": "リンク, お問い合わせ"
 }

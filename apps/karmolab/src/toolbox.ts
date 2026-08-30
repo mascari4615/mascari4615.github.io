@@ -1274,7 +1274,10 @@ const Toolbox = (() => {
 
         document.body.appendChild(box);
         const r = btn.getBoundingClientRect();
-        box.style.top = `${r.bottom + 6 + scrollY}px`;
+        /* 버튼이 화면 아래쪽이면 위로 편다. 옆줄 바닥으로 내려온 뒤 목록이 화면 밖에 그려져
+           눌러도 아무것도 안 뜨는 것처럼 보였다 (2026-08-30 사용자 지적) */
+        const below = r.bottom + 6 + box.offsetHeight <= innerHeight;
+        box.style.top = `${(below ? r.bottom + 6 : Math.max(8, r.top - 6 - box.offsetHeight)) + scrollY}px`;
         // 오른쪽 끝 단추. 왼쪽 정렬 시 화면 밖으로 나감
         box.style.left = `${Math.max(8, r.right - box.offsetWidth + scrollX)}px`;
         btn.setAttribute('aria-expanded', 'true');
@@ -1384,9 +1387,9 @@ const Toolbox = (() => {
          * 그렇다고 헤더에서 숨기기만 하면 폰에서는 갈 길이 아예 사라진다(봇, 오늘의는 위젯이
          * 아니라 딴 주소다). 그래서 숨기는 대신 여기로 옮긴다.
          *
-         * 목록을 여기 다시 적지 않고 **헤더에서 읽는다**. 나중에 링크가 늘어도 저절로 따라온다.
+         * 목록을 여기 다시 적지 않고 **숨은 원본(#site-links)에서 읽음**. 늘어도 저절로 따라옴
          * 손으로 한 벌 더 적으면 그날부터 폰만 옛 목록을 보게 된다. */
-        document.querySelectorAll('.header-bar-right .header-tools-link').forEach((link) => {
+        document.querySelectorAll('#site-links .header-tools-link').forEach((link) => {
             const href = link.getAttribute('href') || '';
             const label = (link.textContent || '').replace(/^[^\w가-힣]+/, '').trim();
             if (!label) return;

@@ -21,5 +21,10 @@
   "account.minsAgo": "{n} min ago",
   "account.hoursAgo": "{n} h ago",
   "account.daysAgo": "{n} d ago",
-  "account.alsoDiscord": "Also on Discord"
+  "account.alsoDiscord": "Also on Discord",
+  "account.menu.lang": "Language & region",
+  "account.menu.theme": "Toggle theme",
+  "account.menu.bell": "Notifications",
+  "account.menu.chat": "Chat",
+  "account.menu.links": "Links & contact"
 }

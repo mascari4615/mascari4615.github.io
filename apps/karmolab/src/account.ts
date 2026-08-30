@@ -644,6 +644,12 @@ function mountHeaderAccount(): void {
      * 바로 옆 머리띠 설정 버튼이 그 길. 한 뼘 안에 같은 곳으로 가는 문이 둘이면 헷갈림 */
     let menuOpen = false;
 
+    /** 안 읽은 알림 수. 종 버튼의 점에서 읽는다. 없으면 빈 글 */
+    const bellCountText = (): string => {
+        const n = document.querySelector('#headerBell .kl-bell-dot')?.textContent?.trim();
+        return n ? ` <span class="header-account-menu-count">${esc(n)}</span>` : '';
+    };
+
     /** 로그인 전에도 쓰는 얼굴 자리. 화면(index.html)에 박아 둔 것과 같은 모양이어야 한다. */
     const BLANK_FACE =
         '<span class="header-account-blank">' +
@@ -675,9 +681,19 @@ function mountHeaderAccount(): void {
                 <span class="header-account-name">${label}</span>
             </button>` +
             (menuOpen
+                /* 옆줄 바닥은 얼굴과 이름뿐 (2026-08-30, 사용자 결정). 설정, 테마, 언어, 알림,
+                 * 채팅, 링크는 전부 이 메뉴 안. 종과 채팅 버튼은 화면에서 숨긴 채 살아 있고
+                 * 여기서 대신 눌러 준다 (판은 그 버튼에 매달려 있다). */
                 ? `<div class="header-account-menu" role="menu">
                        <button type="button" role="menuitem" data-go="user">${esc(t('account.t01'))}</button>
                        ${me ? `<a role="menuitem" href="${me.profileUrl}">${esc(t('account.t02'))}</a>` : ''}
+                       <button type="button" role="menuitem" data-settings>${esc(t('account.t03'))}</button>
+                       ${window.KarmoLang?.openMenu ? `<button type="button" role="menuitem" data-lang>${esc(t('account.menu.lang'))}</button>` : ''}
+                       <button type="button" role="menuitem" data-theme>${esc(t('account.menu.theme'))}</button>
+                       ${document.querySelector('#headerBell .kl-bell-btn') ? `<button type="button" role="menuitem" data-bell>${esc(t('account.menu.bell'))}${bellCountText()}</button>` : ''}
+                       ${document.getElementById('klChatDock') ? `<button type="button" role="menuitem" data-chat>${esc(t('account.menu.chat'))}</button>` : ''}
+                       ${isDesktop() && document.getElementById('filesBtn')?.style.display !== 'none' ? `<button type="button" role="menuitem" data-files>Files</button>` : ''}
+                       <button type="button" role="menuitem" data-go="linktree">${esc(t('account.menu.links'))}</button>
                        ${me ? t('account.t08') : ''}
                        ${!me && canAccount ? t('account.t09') : ''}
                        ${!me && canAccount && typeof window.PublicKeyCredential !== 'undefined'
@@ -685,6 +701,20 @@ function mountHeaderAccount(): void {
                            : ''}
                    </div>`
                 : '');
+        const closeThen = (selector: string, run: () => void): void => {
+            slot.querySelector(selector)?.addEventListener('click', (event) => {
+                event.stopPropagation();
+                menuOpen = false;
+                paint(state);
+                run();
+            });
+        };
+        closeThen('[data-settings]', () => Toolbox?.openSettingsModal?.());
+        closeThen('[data-theme]', () => Toolbox?.toggleTheme?.());
+        closeThen('[data-lang]', () => window.KarmoLang?.openMenu?.(slot.querySelector('#klHeaderMe')));
+        closeThen('[data-bell]', () => (document.querySelector('#headerBell .kl-bell-btn') as HTMLElement | null)?.click());
+        closeThen('[data-chat]', () => document.getElementById('klChatDock')?.click());
+        closeThen('[data-files]', () => document.getElementById('filesBtn')?.click());
         slot.querySelector('[data-signin]')?.addEventListener('click', () => KarmoAccount.signIn());
         slot.querySelector('[data-passkey-in]')?.addEventListener('click', () => {
             void KarmoAccount.signInWithPasskey();
@@ -1009,6 +1039,9 @@ function mountBell(): void {
 }
 
 declare global {
+    interface Window {
+        KarmoLang?: { openMenu?: (anchor: Element | null) => void; locale?: () => string };
+    }
     interface Window {
         KarmoAccount: typeof KarmoAccount;
         /** 데스크톱 앱(Rust)이 브라우저에서 받아 온 로그인 코드를 여기로 건넨다. */
