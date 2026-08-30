@@ -239,7 +239,15 @@ function inject(code: string, ns: string): Promise<void> {
  * 원본 언어 묶음도 같이 챙긴다. 번역이 아직 덜 된 열쇠가 있으면 그쪽으로 떨어져야 하는데,
  * 떨어질 곳이 없으면 열쇠가 그대로 화면에 나온다.
  */
+/* 있는 묶음만 부른다. 목록은 빌드가 낸다(`js/i18n/namespaces.js`). 목록이 아직 안 실렸으면
+   전처럼 그냥 불러 본다. 없는 이름을 부르면 404 두 번에 그 위젯 말이 조용히 빈다 */
+function known(ns: string): boolean {
+  const list = (typeof window !== 'undefined' && (window as unknown as { __KARMO_I18N_NS?: string[] }).__KARMO_I18N_NS) || null;
+  return !list || list.includes(ns);
+}
+
 export async function loadNamespace(ns: string): Promise<void> {
+  if (!known(ns)) return;
   const code = locale();
   const jobs: Promise<void>[] = [];
   if (!have(code, ns)) jobs.push(inject(code, ns));

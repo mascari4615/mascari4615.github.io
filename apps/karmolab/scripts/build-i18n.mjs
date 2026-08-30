@@ -343,6 +343,16 @@ if (!CHECK) {
       fs.writeFileSync(path.join(dir, ns + '.js'), js, 'utf8');
     }
   }
+  /* 있는 묶음 이름표. 셸은 위젯 id 로 묶음을 미리 부르는데, 이름이 다른 위젯이 있어
+     (글꼴 가챠는 `font`, 유튜브 받기는 `youtubedl`) 없는 주소를 두 번 두드렸다.
+     이 목록이 있으면 없는 것은 아예 안 부른다 (2026-08-31 실측 404 4건) */
+  const names = [...new Set(ALL_LOCALES.flatMap((l) => Object.keys(byLocale[l.code])))].sort();
+  fs.writeFileSync(
+    path.join(OUT_DIR, 'namespaces.js'),
+    `window.__KARMO_I18N_NS=${JSON.stringify(names)};
+`,
+    'utf8'
+  );
 }
 
 if (SEAL) {

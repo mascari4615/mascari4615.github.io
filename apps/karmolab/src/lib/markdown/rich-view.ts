@@ -254,6 +254,10 @@ export async function renderRichMarkdown(
         await Toolbox.ensureScript?.('vendor/marked.min');
         await Toolbox.ensureScript?.('vendor/prism.min');
         await Toolbox.ensureScript?.('vendor/prism-autoloader.min');
+        /* 자동 불러오기는 제 자리를 모른다. 안 알려 주면 `components/` 를 이 장 옆에서 찾아 404 가 난다
+           (2026-08-31 실측: 코드 사진 도구에서 타입스크립트 규칙을 못 받았다). 같은 줄이 boot-late 와 doc-view 에도 있다 */
+        const P = (window as unknown as { Prism?: { plugins?: { autoloader?: { languages_path: string } } } }).Prism;
+        if (P?.plugins?.autoloader) P.plugins.autoloader.languages_path = '/apps/karmolab/js/vendor/prism/components/';
     } catch {
         /* 아래 방어 검사가 처리 */
     }

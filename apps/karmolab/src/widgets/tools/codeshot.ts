@@ -153,6 +153,10 @@ import { t, loadNamespace } from '../../lib/i18n';
       } catch {
         /* 아래에서 색 없이 간다 */
       }
+      /* 자동 불러오기에 제 자리를 알려 준다. 안 하면 `components/` 를 이 장 옆에서 찾아 404 가 나고
+         그 언어만 색이 빠진다 (2026-08-31 실측: 타입스크립트). 칠하기 직전에 넣는다. 판이 다 선 뒤라야 값이 남는다 */
+      const auto = (window as unknown as { Prism?: { plugins?: { autoloader?: { languages_path: string } } } }).Prism;
+      if (auto?.plugins?.autoloader) auto.plugins.autoloader.languages_path = '/apps/karmolab/js/vendor/prism/components/';
       const P = (window as unknown as { Prism?: { highlightElement: (el: Element) => void } }).Prism;
       if (!P) return toLines([{ text: code, kind: '' }]);
 

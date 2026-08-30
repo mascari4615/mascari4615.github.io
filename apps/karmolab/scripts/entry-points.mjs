@@ -97,6 +97,7 @@ export function discoverEntryPoints(root, skip = new Set()) {
     for (const match of html.matchAll(SCRIPT_RE)) {
       // `js/vendor/...` 는 남이 만든 것을 그대로 두는 자리다. 우리 소스가 아니다.
       if (match[1].startsWith('vendor/')) continue;
+      if (match[1].startsWith('i18n/')) continue; // 말 묶음은 build-i18n 이 낸다
       rels.add(`src/${match[1]}.ts`);
     }
   }
@@ -110,6 +111,7 @@ export function discoverEntryPoints(root, skip = new Set()) {
     const body = fs.readFileSync(path.join(root, file), 'utf8');
     for (const match of body.matchAll(SCRIPT_RE)) {
       if (match[1].startsWith('vendor/')) continue;
+      if (match[1].startsWith('i18n/')) continue; // 말 묶음은 build-i18n 이 낸다
       rels.add(`src/${match[1]}.ts`);
     }
   }
@@ -117,6 +119,7 @@ export function discoverEntryPoints(root, skip = new Set()) {
     // toolbox.ts 의 `resolveScriptPath` 와 같은 규약으로 푼다 (한쪽만 바뀌면 빌드가 어긋난다).
     if (rel.startsWith('world/')) continue; // build.mjs 의 world 묶음이 따로 다룬다
     if (rel.startsWith('vendor/')) continue; // 남이 만든 것. 우리 소스가 아니다
+    if (rel.startsWith('i18n/')) continue; // 말 묶음은 build-i18n 이 낸다. 타입스크립트 소스가 없다
     if (rel.startsWith('root/')) rels.add(`src/${rel.slice('root/'.length)}.ts`);
     else rels.add(`src/widgets/${rel}.ts`);
   }
