@@ -550,6 +550,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-lesson b{flex:0 0 auto;font-size:var(--font-size-xs);color:var(--accent);letter-spacing:.06em}',
       '.ac-lesson p{margin:0;font-size:var(--font-size-sm);line-height:1.5}',
       '.ac-lesson .btn{flex:0 0 auto}',
+      /* 힌트 자리(평면). 금색 고리가 숨 쉰다. 방에서는 판 위 과녁(`three-board.ts` 의 advise) */
+      '.ac-root .ac-cell.ac-tip::after{content:"";position:absolute;left:50%;top:50%;width:62%;height:62%;transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(240,190,110,.95);box-shadow:0 0 10px rgba(240,190,110,.6);animation:ac-tip 1.1s ease-in-out infinite;pointer-events:none}',
+      '@keyframes ac-tip{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.95}50%{transform:translate(-50%,-50%) scale(1.14);opacity:.7}}',
       /* 화료 화면의 전신(작혼 실측: 캐릭터 전신 왼쪽 60%, 오른쪽에 내역과 점수). 그림 자리 1024x1536 비율 */
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody{display:block;position:absolute;left:3%;bottom:0;width:auto;height:72%;aspect-ratio:2/3;pointer-events:none;z-index:2}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody[hidden]{display:none}',
@@ -2046,7 +2049,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
     function paintHint(): void {
       const b = container.querySelector<HTMLButtonElement>('#acHint');
-      if (b) b.style.display = canHint() && dim() === '3d' ? '' : 'none';
+      if (b) b.style.display = canHint() ? '' : 'none';
     }
     function askHint(): void {
       const g = gameById(gameId);

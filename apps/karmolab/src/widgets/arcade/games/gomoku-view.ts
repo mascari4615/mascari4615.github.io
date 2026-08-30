@@ -56,6 +56,8 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
     return (v, mySeat) => {
       const s = v.state;
       if (s.n !== n) build(s.n);
+      /* 힌트 자리. 평면 화면에서는 칸에 금색 고리 클래스(`ac-tip`)로 (`arcade.ts` 가 `v.hint` 를 채운다) */
+      const tip = (v.hint as { cell?: number } | undefined)?.cell ?? -1;
       const myTurn = s.won === -1 && s.turn === mySeat;
       /* 금수는 흑만, 그리고 흑 차례일 때만 표시한다. 백 차례에 띄우면 남의 사정이다 */
       const banned = new Set(s.turn === 0 ? s.banned : []);
@@ -70,6 +72,7 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
         b.classList.toggle('ac-ban', no);
         b.disabled = !myTurn || who !== 0 || no;
         b.classList.toggle('ac-last', i === s.last);
+        b.classList.toggle('ac-tip', i === tip);
       });
       board?.classList.toggle('ac-waiting', !myTurn);
     };
