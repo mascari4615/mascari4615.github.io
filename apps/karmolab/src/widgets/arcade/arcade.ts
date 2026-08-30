@@ -353,7 +353,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 판은 **한 판 안에서만** 사는 물건이다. 나무 상자 위에 격자가 얹히고, 그 대각으로
        * 바둑통 둘이 놓임. 오른쪽에 이름표를 세우는 대신 여백을 물건으로 채움
        */
-      '.ac-goban{position:relative;width:100%;max-width:min(78vh,820px);margin:0 auto;padding:6%;box-sizing:border-box}',
+      '.ac-goban{position:relative;width:100%;max-width:min(var(--ac-goban-cap,78vh),100%);margin:0 auto;padding:6%;box-sizing:border-box}',
       /**
        * ★ **알은 줄이 만나는 점 위**. 그래서 칸의 **한가운데**가 곧 점
        * 예전에는 칸의 테두리를 줄로 삼고 알을 좌상단 모서리로 옮겼는데, 그러면 손이 올라간
@@ -406,6 +406,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-stage:has(.ac-t3){background:none}',
       '.ac-t3{width:100%;aspect-ratio:1;max-width:100%;margin:0 auto;border-radius:16px;overflow:hidden}',
       '.ac-t3.ac-waiting{opacity:.92}',
+      /* 방 표현의 비네팅. 네 귀를 어둡게 눌러야 판 위의 빛이 등에서 온 빛으로 읽힌다(레퍼런스 실측: 귀가 가운데보다 40% 어둡다) */
+      '.ac-t3.ac-room{position:relative;border-radius:0}',
+      '.ac-t3.ac-room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
       /* 화점. **자리는 판이 정한다**. 여기 칸 번호를 박으면 칸 수가 다른 판에 엉뚱한 점이
          찍힌다(9칸 번호가 15칸 판에 그대로 찍혀 있었다. 2026-08-29 실측).
          2D 오목판은 화면이 `ac-star` 를 붙이고(`gomoku-view.ts`), 입체 판은 `three-board.ts` 가 그린다. */
@@ -918,7 +921,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        */
       '@media (min-width:1000px) and (min-height:700px){',
       '  #acPlay{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,290px);grid-template-rows:auto auto 1fr auto;gap:var(--space-sm) var(--space-xl);align-items:start}',
-      '  #acStage{grid-column:1;grid-row:1/5;--ac-stage:min(56vw,72vh,900px);align-self:center}',
+      '  #acStage{grid-column:1;grid-row:1/5;--ac-stage:min(56vw,72vh);align-self:center}',
       /* 곁줄은 **한 장의 종이**로 묶는다. 넓은 화면에서 흩어 놓으면 허공에 뜬 글자가 된다. */
       '  #acSeats{grid-column:2;grid-row:1;flex-direction:column;align-items:stretch;gap:6px;justify-content:flex-start;margin:0;background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:14px}',
       '  #acSeats .ac-seat{justify-content:flex-start;background:none;border:0;padding:2px 0}',
@@ -929,7 +932,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '}',
       /* 아주 넓은 화면(와이드, 4K)은 세로가 먼저 동난다. 가로 몫을 더 열어 세로를 다 쓴다. */
       '@media (min-width:1600px) and (min-height:900px){',
-      '  #acStage{--ac-stage:min(62vw,78vh,1100px)}',
+      '  #acStage{--ac-stage:min(62vw,78vh)}',
       '}',
       /* 풀스크린이면 무대가 화면이 된다. 안에 있는 51개가 그대로 커진다. */
       /**
@@ -973,7 +976,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 키로 짚고 있는 자리. 눌린 것과 구별되게 테두리만. */
       '.ac-key{outline:3px solid var(--accent);outline-offset:1px;border-radius:4px}',
       '.ac-stage:fullscreen{max-width:none;width:100vw;height:100vh;min-height:0;background:var(--bg-primary);padding:var(--space-lg)}',
-      '.ac-stage:fullscreen #acView{width:100%;max-width:min(96vmin,900px);margin:0 auto}',
+      /* 풀스크린은 판이 화면이다. 통 자리(6% 여백)를 반으로 줄이고 세로를 다 쓴다(실측: 1280x900 에서 칸 38 -> 54px) */
+      '.ac-stage:fullscreen{--ac-goban-cap:96vh}',
+      '.ac-stage:fullscreen .ac-goban{padding:3%}',
+      /* 방 표현은 풀스크린에서 **화면이 곧 방**이다. 정사각을 버리고 화면 비율을 그대로 쓴다(카메라가 세로 화각을 지키므로 옆으로 넓어지면 통과 다다미가 더 보인다) */
+      '.ac-stage:fullscreen:has(.ac-room){padding:0}',
+      '.ac-stage:fullscreen #acView:has(.ac-room){max-width:none;height:100vh}',
+      '.ac-stage:fullscreen #acView:has(.ac-room)>*{margin:0}',
+      '.ac-stage:fullscreen .ac-t3.ac-room{aspect-ratio:auto;height:100vh;max-width:none;border-radius:0}',
+      '.ac-stage:fullscreen #acView{width:100%;max-width:min(92vmin,100%);margin:0 auto}',
       /* 풀스크린이면 단추 줄이 무대 **안으로 들어온다**. 아래 § 참고. 판 위에 뜨되 가리지 않게. */
       '.ac-stage:fullscreen .ac-controls{position:absolute;left:0;right:0;bottom:var(--space-lg);justify-content:center;margin:0;z-index:4}',
       '.ac-fl{max-width:100%;margin:0 auto}',

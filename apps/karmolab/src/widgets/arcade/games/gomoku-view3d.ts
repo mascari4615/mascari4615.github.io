@@ -15,7 +15,7 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
   bare: true,
   mount(el, act) {
     /* 무대는 제 자리를 다 쓴다. 크기는 무대 계약(`--ac-stage`)이 정한다. */
-    el.innerHTML = '<div class="ac-t3" id="acT3"></div>';
+    el.innerHTML = '<div class="ac-t3 ac-room" id="acT3"></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
 
     /* 오목은 **줄이 만나는 점**에 둔다. 칸 안에 두면 그건 다른 놀이다. */
@@ -25,7 +25,8 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
     const build = (size: number): void => {
       n = size;
       const stars = new Set(starPoints(size));
-      board = mountThreeBoard(host, { n, star: (i) => stars.has(i), onCross: true, bowls: true, onCell: (i) => act({ cell: i }) });
+      /* 방 표현. 다다미, 스포트, 알 떨어지는 손맛, 카메라 동작까지 한 벌(`three-board.ts`) */
+      board = mountThreeBoard(host, { n, star: (i) => stars.has(i), onCross: true, bowls: true, room: true, onCell: (i) => act({ cell: i }) });
       if (!board.ok) {
         /* WebGL 을 못 얻었다. 판이 없으면 안 되므로 조용히 비운다(부르는 쪽이 2D 로 물러선다). */
         board = null;
@@ -48,6 +49,7 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       /* 여기 둘 수 있다는 빈 칸 전부라 표시하지 않는다. 판이 온통 점으로 덮인다.
          자리를 좁혀 주는 놀이(오델로, 체커)에서만 쓴다. */
       board.place(stones);
+      if (s.won !== -1) board.finish();
       host.classList.toggle('ac-waiting', !myTurn);
     };
   }

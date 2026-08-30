@@ -11,27 +11,34 @@
  * 이 파일도, three 도 안 받는다.
  */
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
   BoxGeometry,
   CanvasTexture,
   CircleGeometry,
   Color,
-  CylinderGeometry,
   DirectionalLight,
+  DoubleSide,
+  HemisphereLight,
+  LatheGeometry,
   Mesh,
   MeshStandardMaterial,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
   Raycaster,
+  RepeatWrapping,
   RingGeometry,
   Scene,
   SphereGeometry,
+  SpotLight,
   SRGBColorSpace,
   Vector2,
+  Vector3,
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
-import { stoneTexture, woodTexture } from './texture';
+import { gloop, type GardenLoop } from '../garden/gloop';
+import { stoneTexture, tatamiTexture, woodTexture } from './texture';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
@@ -68,6 +75,16 @@ export interface Board3dOpts {
    * 실제 판 앞에 앉으면 통이 대각으로 놓여 있고, 그 그림자가 여백을 채움
    */
   bowls?: boolean;
+  /**
+   * **방 안에 판을 놓는다** (오목, 바둑).
+   *
+   * 판 하나만 떠 있으면 그건 물건이 아니라 도표다. 다다미 바닥, 판만 비추는 스포트,
+   * 알이 떨어져 앉는 손맛, 들어올 때 카메라가 자리를 잡는 동작까지 한 벌
+   * 레퍼런스(오목 가자) 실측: 다다미방, 판이 프레임 세로의 91%, 통은 프레임 밖으로 잘림
+   *
+   * 켜지 않으면 예전 그림 그대로다(오델로, 체커는 안 켠다).
+   */
+  room?: boolean;
   /** 칸을 눌렀을 때 */
   onCell: (i: number) => void;
 }
@@ -79,6 +96,11 @@ export interface Board3d {
   resize(): void;
   /** 판을 접는다. 화면을 떠날 때 반드시 (WebGL 맥락은 저절로 안 사라진다) */
   dispose(): void;
+  /**
+   * 판 끝. 카메라가 한 걸음 다가서며 판을 마무리로 보여 줌
+   * 다시 부르면 아무 일도 안 한다(같은 판에서 두 번 부른다).
+   */
+  finish(): void;
   /** WebGL 을 못 얻었으면 false. 부르는 쪽이 2D 로 물러선다 */
   ok: boolean;
 }
@@ -91,6 +113,7 @@ const CELL = 1; /* 칸 한 변 (3D 단위) */
 export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const { n } = opts;
   const cross = opts.onCross === true;
+  const room = opts.room === true;
   /**
    * 줄이 덮는 거리. **교차점 판은 줄이 n 개**(칸은 n−1 개)고, 칸 판은 줄이 n+1 개다.
    * 여기를 한 줄로 갈라 두면 아래(줄 긋기, 알 자리, 손 짚기)가 전부 따라온다.
@@ -110,14 +133,25 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch {
     host.removeChild(canvas);
-    return { place: () => {}, resize: () => {}, dispose: () => {}, ok: false };
+    return { place: () => {}, finish: () => {}, resize: () => {}, dispose: () => {}, ok: false };
   }
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
+  /**
+   * 톤 매핑. 이게 없으면 밝은 데가 흰색으로 뭉개지고 어두운 데는 그냥 검다 . 
+   * 나무와 흰 알처럼 **밝은 면이 넓은** 그림에서 차이가 크다(레퍼런스는 흰 알의 하이라이트가
+   * 타지 않고 결이 남아 있음). 노출은 1.0. 1.22 로 두니 나무가 하얗게 떴다(실측)
+   */
+  if (room) {
+    renderer.toneMapping = ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+  }
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(34, 1, 0.1, 100);
+  /* 방 표현은 화각을 조금 넓힌다. 판 옆면과 앞줄, 뒷줄의 차이가 보여야 판이 두께를 가진다 */
+  const fov = room ? 38 : 34;
+  const camera = new PerspectiveCamera(fov, 1, 0.1, 100);
 
   /**
    * 사람이 판 앞에 앉은 눈높이. 다만 **판이 다 보이는 거리**까지 물러선다.
@@ -132,15 +166,33 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 판놀이는 줄 간격이 고르게 보여야 읽힌다. 그렇다고 완전한 부감은 그림이 되므로
    * 비스듬함은 남긴다(알의 두께와 그림자가 보이는 각).
    */
-  /* 화면에 담아야 하는 반지름. 통을 놓으면 판 밖으로 그만큼 더 나간다 */
-  const reach = size * 0.5 * (opts.bowls ? 1.42 : 1.06);
-  const fit = reach / Math.tan((34 * Math.PI) / 180 / 2);
-  camera.position.set(0, fit * 0.93, fit * 0.36);
+  /**
+   * 화면에 담아야 하는 반지름. 통을 놓으면 판 밖으로 그만큼 더 나감
+   *
+   * ★ 방 표현에서는 **통을 다 담지 않음**. 통까지 담으려니 판이 프레임의 70% 로 줄었다(실측)
+   * 레퍼런스는 판이 프레임 세로의 91% 고 통 둘은 양쪽에서 잘려 있다(실측). 잘린 통은
+   * 화면 밖에도 방이 이어진다는 신호. 오히려 방이 넓어 보임
+   */
+  /* 방 표현은 판을 비스듬히 보므로 앞줄이 가깝다. 1.06 으로 두니 앞줄이 프레임 밖으로 나갔다(실측). */
+  const reach = size * 0.5 * (opts.bowls && !room ? 1.42 : room ? 1.2 : 1.06);
+  const fit = reach / Math.tan((fov * Math.PI) / 180 / 2);
+  /* 카메라가 앉을 자리. 판이 끝나면 여기서 한 걸음 다가선다(`finish`) */
+  const seat = new Vector3(0, fit * (room ? 0.88 : 0.93), fit * (room ? 0.45 : 0.36));
+  /* 지금 향해 가는 자리. 들어올 때와 끝날 때만 움직인다 */
+  const goal = seat.clone();
+  camera.position.copy(seat);
   camera.lookAt(0, 0, 0);
 
-  /* 빛 둘: 넓게 깔리는 것 + 그림자를 만드는 것. 하나만 쓰면 그늘이 새까매진다. */
-  scene.add(new AmbientLight(0xffffff, 1.45));
-  const sun = new DirectionalLight(0xfff3e0, 1.9);
+  /**
+   * 빛. 넓게 깔리는 것 + 그림자를 만드는 것. 하나만 쓰면 그늘이 새까맣게 됨
+   *
+   * 방 표현은 **깔린 빛을 절반 이하로 내린다**. 1.45 로 사방에서 비추면 그림자가 옅어지고
+   * 모든 면이 같은 밝기라 입체가 사라진다(사용자 지적: 알 말고는 입체감이 없다).
+   * 대신 위아래 색이 갈리는 하늘빛과, 판만 비추는 스포트
+   */
+  scene.add(new AmbientLight(0xffffff, room ? 0.42 : 1.45));
+  if (room) scene.add(new HemisphereLight(0xf4e7cd, 0x37281a, 0.7));
+  const sun = new DirectionalLight(0xfff3e0, room ? 1.7 : 1.9);
   sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
   sun.castShadow = true;
   /**
@@ -165,9 +217,17 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * ── 바닥 ── 판이 놓인 자리. 없으면 판이 허공에 뜬다(그림자가 받을 면이 없다).
    * 어두운 나무. 판보다 훨씬 어두워야 판이 앞으로 나옴
    */
-  const floorMap = new CanvasTexture(woodTexture(31, 256));
+  /* 방 표현은 다다미. 판만 나무면 판이 어디 놓였는지 모르고, 바닥까지 나무면 한 덩이가 된다 */
+  const floorMap = new CanvasTexture(room ? tatamiTexture(19, 512) : woodTexture(31, 256));
   floorMap.colorSpace = SRGBColorSpace;
-  const floorMat = new MeshStandardMaterial({ map: floorMap, color: 0x2b1d10, roughness: 0.98 });
+  if (room) {
+    floorMap.wrapS = RepeatWrapping;
+    floorMap.wrapT = RepeatWrapping;
+    /* 한 장이 다다미 반 장. 판 옆으로 여러 장이 이어져야 방이 된다 */
+    floorMap.repeat.set(6, 3);
+    floorMap.anisotropy = 4;
+  }
+  const floorMat = new MeshStandardMaterial({ map: floorMap, color: room ? 0xffffff : 0x2b1d10, roughness: room ? 0.94 : 0.98 });
   const floor = new Mesh(new PlaneGeometry(size * 6, size * 6), floorMat);
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
@@ -175,11 +235,14 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
 
   /* ── 판 ── 나무 상자 한 덩이. 윗면이 두께만큼 올라와 있다.
      결은 **코드로 굽는다**(`texture.ts`). 그림 파일 0개, 매끈한 플라스틱 면을 면한다. */
-  const boardTop = 0.34;
+  /* 판 두께. 레퍼런스 실측: 앞면 두께가 판 폭의 3% (15줄 판에서 0.45칸). 얇으면 종이가 된다 */
+  const boardTop = room ? CELL * 0.46 : 0.34;
   const woodMap = new CanvasTexture(woodTexture(7));
   woodMap.colorSpace = SRGBColorSpace;
   woodMap.anisotropy = 4;
-  const wood = new MeshStandardMaterial({ map: woodMap, color: 0xffffff, roughness: 0.68, metalness: 0.02 });
+  /* 방 표현은 판을 살짝 붉게 물들인다. 레퍼런스의 판은 노란 소나무가 아니라 주황빛 도는 계수나무다(실측 색 #d9905a).
+     0xf2b27c 로 두니 실제 GPU 에서 주황 줄무늬가 됐다(swiftshader 는 창백하게 속였다). 살짝만 */
+  const wood = new MeshStandardMaterial({ map: woodMap, color: room ? 0xf8dcb8 : 0xffffff, roughness: 0.68, metalness: 0.02 });
   const board = new Mesh(new PlaneGeometry(size, size), wood);
   board.rotation.x = -Math.PI / 2;
   board.position.y = boardTop;
@@ -193,16 +256,30 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    */
   const sideMap = new CanvasTexture(woodTexture(23, 256));
   sideMap.colorSpace = SRGBColorSpace;
-  const side = new MeshStandardMaterial({ map: sideMap, color: 0xc98f45, roughness: 0.82 });
+  const side = new MeshStandardMaterial({ map: sideMap, color: room ? 0xb87a3c : 0xc98f45, roughness: 0.82 });
   const body = new Mesh(new BoxGeometry(size, boardTop, size), side);
   body.position.y = boardTop / 2 - 0.004;
   body.castShadow = true;
   scene.add(body);
 
+  /**
+   * 판만 비추는 등. 방은 어둡고 판 위에만 빛이 떨어져야 눈이 판으로 감
+   * 그림자는 해 하나만 진다(등까지 그림자를 지면 알마다 그림자가 둘이라 가짜로 보인다).
+   * `decay 0` 인 이유: 거리로 어두워지면 판 크기(줄 수)에 따라 밝기가 갈림. 판은 늘 같은 밝기
+   */
+  if (room) {
+    const spot = new SpotLight(0xffe8c4, 1.1, 0, 0.62, 0.9, 0);
+    spot.position.set(size * 0.28, size * 1.9, size * 0.62);
+    spot.target.position.set(0, boardTop, 0);
+    scene.add(spot);
+    scene.add(spot.target);
+  }
+
   /* 줄. 얇은 판으로 긋는다. 선 하나가 메시 하나면 9칸에 20개, 가볍다. */
-  const ink = new MeshStandardMaterial({ color: 0x6b4518, roughness: 0.9 });
+  /* 줄은 먹이다. 나무보다 조금 진한 갈색으로 그으면 결에 묻혀 판이 흐려 보인다(레퍼런스는 검정) */
+  const ink = new MeshStandardMaterial({ color: room ? 0x1d1611 : 0x6b4518, roughness: 0.9 });
   const g0 = -span / 2; /* 첫 줄 자리 */
-  const lineW = 0.035;
+  const lineW = room ? 0.026 : 0.035;
   const lines = cross ? n : n + 1;
   for (let i = 0; i < lines; i += 1) {
     const at = g0 + i * CELL;
@@ -259,31 +336,71 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return m;
   };
 
-  /* ── 통 둘 ── 판의 대각에 놓인다. 왼쪽 위가 흑, 오른쪽 아래가 백(레퍼런스와 같은 자리). */
+  /**
+   * ── 통 둘 ── 판의 대각에 놓인다. 왼쪽 위가 흑, 오른쪽 아래가 백(레퍼런스와 같은 자리).
+   *
+   * 예전에는 원뿔대 하나(`CylinderGeometry`)에 알 일곱이었다. 그건 통이 아니라 화분이다 . 
+   * 실제 바둑통은 **굽이 있고 배가 부르고 입이 오므라든** 물레 모양이라, 옆선을 점으로 찍어
+   * 돌린다(`LatheGeometry`). 그리고 통마다 **뚜껑이 뒤집혀 옆에 놓인다** (딴 알을 담는 자리).
+   * 안에는 알이 수북해야 한다. 낱알이 몇 개면 접시고, 무더기여야 통이다(레퍼런스 실측).
+   */
   const bowlMats: MeshStandardMaterial[] = [];
   if (opts.bowls) {
     const r = CELL * 1.45;
-    const h = CELL * 0.86;
-    const away = size / 2 + r * 0.72;
     const bowlWoodMap = new CanvasTexture(woodTexture(13, 256));
     bowlWoodMap.colorSpace = SRGBColorSpace;
-    const bowlWood = new MeshStandardMaterial({ map: bowlWoodMap, color: 0xd8a865, roughness: 0.7 });
+    /* 통 안쪽도 보인다(입이 열려 있다). 뒷면을 안 그리면 통 속이 뻥 뚫린다 */
+    const bowlWood = new MeshStandardMaterial({ map: bowlWoodMap, color: 0xd8a865, roughness: 0.62, side: DoubleSide });
     bowlMats.push(bowlWood);
+
+    /* 옆선. (반지름, 높이) 를 아래에서 위로. 굽 → 배 → 오므라든 입 */
+    const profile: Array<[number, number]> = [
+      [0, 0], [0.36, 0], [0.44, 0.03], [0.47, 0.09], [0.41, 0.15],
+      [0.45, 0.3], [0.5, 0.5], [0.5, 0.66], [0.47, 0.78], [0.48, 0.83]
+    ];
+    /* 가로는 지름(=r*2), 세로는 그보다 낮게. 실측 바둑통은 높이가 반지름의 1.35배 안팎이다 */
+    const wide = r * 2;
+    const tall = r * 1.5;
+    const bowlGeo = new LatheGeometry(profile.map(([px, py]) => new Vector2(px * wide, py * tall)), 40);
+    /* 뚜껑. 얕은 접시라 같은 방식으로 낮게 굽는다. 뒤집어 놓으므로 x 축으로 돌린다 */
+    const lidGeo = new LatheGeometry(
+      ([[0, 0], [0.4, 0], [0.5, 0.04], [0.54, 0.12], [0.54, 0.2], [0.5, 0.24]] as Array<[number, number]>)
+        .map(([px, py]) => new Vector2(px * wide, py * tall)),
+      36
+    );
+    const away = size / 2 + r * 0.86;
+    /* 통 속 알. 가운데가 볼록한 무더기. 고리마다 개수와 높이가 달라야 쌓인 것으로 보인다 */
+    const heap: Array<[number, number, number]> = [];
+    ([[0, 1, 1], [0.34, 6, 0.96], [0.6, 10, 0.88], [0.8, 12, 0.74]] as Array<[number, number, number]>)
+      .forEach(([rad, count, high]) => {
+        for (let k = 0; k < count; k += 1) {
+          const a = (k / count) * Math.PI * 2 + rad * 3.1;
+          heap.push([Math.cos(a) * rad, Math.sin(a) * rad, high]);
+        }
+      });
+    const pileGeo = new SphereGeometry(CELL * 0.3, 14, 10);
     for (const who of [1, 2]) {
       const sx = who === 1 ? -away : away;
       const sz = who === 1 ? -away : away;
-      const cup = new Mesh(new CylinderGeometry(r, r * 0.74, h, 32), bowlWood);
-      cup.position.set(sx, h / 2, sz);
+      const cup = new Mesh(bowlGeo, bowlWood);
+      cup.position.set(sx, 0, sz);
       cup.castShadow = true;
       cup.receiveShadow = true;
       scene.add(cup);
-      /* 통 안의 알. 낱알 일곱이면 무더기로 읽힌다. 하나만 크게 두면 접시에 담긴 것이 된다 */
-      const pileGeo = new SphereGeometry(CELL * 0.33, 16, 12);
-      const spots: Array<[number, number]> = [[0, 0], [0.5, 0.2], [-0.45, 0.35], [0.2, -0.5], [-0.3, -0.4], [0.6, -0.25], [-0.6, -0.05]];
-      spots.forEach(([ox, oz], k) => {
+
+      /* 뚜껑은 통 바깥쪽에 뒤집혀 눕는다. 판 쪽에 두면 판을 가린다 */
+      const lid = new Mesh(lidGeo, bowlWood);
+      lid.rotation.x = Math.PI;
+      lid.position.set(sx + (who === 1 ? -r * 1.55 : r * 1.55), tall * 0.24, sz + (who === 1 ? -r * 0.3 : r * 0.3));
+      lid.castShadow = true;
+      lid.receiveShadow = true;
+      scene.add(lid);
+
+      const mouth = r * 0.96; /* 입 반지름 (옆선 맨 위) */
+      heap.forEach(([ox, oz, high]) => {
         const bead = new Mesh(pileGeo, matFor(who));
         bead.scale.set(1, 0.46, 1);
-        bead.position.set(sx + ox * r * 0.9, h * (k === 0 ? 1.02 : 0.96), sz + oz * r * 0.9);
+        bead.position.set(sx + ox * mouth, tall * (0.74 * high), sz + oz * mouth);
         bead.castShadow = true;
         scene.add(bead);
       });
@@ -374,44 +491,171 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     need = true;
     render();
   };
+
+  /**
+   * ── 움직임 ── (방 표현 전용)
+   *
+   * 판은 가만히 있어도 되는 물건이라 **상시 루프를 안 돈다**. 움직일 일이 생길 때만 루프를
+   * 걸고, 다 움직이면 스스로 끈다(`gloop` 은 화면 밖에서는 셸이 멈춰 준다).
+   * 그래서 판을 켜 두고 딴 일을 해도 프레임 소모 0
+   *
+   * 움직이는 것 셋:
+   *  ① **들어올 때** 카메라가 한 걸음 물러선 자리에서 제자리로
+   *  ② **알을 둘 때** 위에서 떨어져 눌렸다 펴짐. 카메라는 그쪽으로 살짝
+   *  ③ **판이 끝나면** 한 걸음 다가서며 조금 더 눕힘
+   */
+  const STONE_Y = boardTop + CELL * 0.19;
+  const DROP_MS = 260;
+  const NUDGE_MS = 520;
+  const ease = (t: number): number => 1 - (1 - t) ** 3;
+
+  let shown: Stone[] = [];
+  let canCells: number[] = [];
+  /* 아직 떨어지는 중인 알. 칸 번호로 잡는다 — 알이 늘면 pool 자리는 밀리지만 칸은 안 밀린다 */
+  const dropAt = new Map<number, number>();
+  let started = false;
+  let done = false;
+  const look = new Vector3(0, 0, 0);
+  const lookGoal = new Vector3(0, 0, 0);
+  const nudge = new Vector3(0, 0, 0);
+  let nudgeUntil = 0;
+  let camFrom: Vector3 | null = null;
+  let camT0 = 0;
+  let camMs = 0;
+  let loop: GardenLoop | null = null;
+
+  /** 지금 시각의 자리에 알과 표를 놓는다. 아직 움직이는 것이 있으면 true */
+  const layout = (t: number): boolean => {
+    pool.forEach((m) => { m.visible = false; });
+    hints.forEach((m) => { m.visible = false; });
+    mark.visible = false;
+    pickRing.visible = false;
+    let busy = false;
+    shown.forEach((st, k) => {
+      const m = stoneOf(k);
+      m.material = matFor(st.who);
+      /* 왕은 **한 장 더 얹은 것**이라 두 배 두껍다. */
+      const flat = st.king ? 0.92 : 0.46;
+      const began = dropAt.get(st.cell);
+      let up = 0;
+      let squash = 1;
+      if (began !== undefined) {
+        const k2 = (t - began) / DROP_MS;
+        if (k2 >= 1) dropAt.delete(st.cell);
+        else {
+          busy = true;
+          /* 떨어지는 동안은 가속(제곱), 닿는 끝자락에 눌렸다 편다. 알이 딱 소리를 낸 것처럼 보인다 */
+          up = CELL * 1.5 * (1 - Math.max(0, k2)) ** 2;
+          squash = k2 > 0.82 ? 1 - Math.sin(((k2 - 0.82) / 0.18) * Math.PI) * 0.2 : 1;
+        }
+      }
+      m.position.set(cx(st.cell), STONE_Y + up, cz(st.cell));
+      m.scale.set(1 + (1 - squash) * 0.45, flat * squash, 1 + (1 - squash) * 0.45);
+      m.visible = true;
+      if (st.last) {
+        /* 알 밑에 깔면 안 보인다(실측). 알 꼭대기 위에 얹는다 */
+        mark.position.set(cx(st.cell), STONE_Y + up + CELL * 0.44 * flat + 0.006, cz(st.cell));
+        mark.visible = true;
+      }
+      if (st.pick) {
+        pickRing.position.set(cx(st.cell), boardTop + 0.005, cz(st.cell));
+        pickRing.visible = true;
+      }
+    });
+    canCells.forEach((cell, k) => {
+      const m = hintOf(k);
+      m.position.set(cx(cell), boardTop + 0.004, cz(cell));
+      m.visible = true;
+    });
+    return busy;
+  };
+
+  const frame = (): void => {
+    const t = performance.now();
+    let busy = layout(t);
+    if (camFrom) {
+      const k = Math.min(1, (t - camT0) / camMs);
+      camera.position.lerpVectors(camFrom, goal, ease(k));
+      if (k >= 1) camFrom = null;
+      else busy = true;
+    }
+    lookGoal.set(0, 0, 0);
+    if (t < nudgeUntil) lookGoal.copy(nudge);
+    look.lerp(lookGoal, 0.12);
+    if (look.distanceTo(lookGoal) > 0.004) busy = true;
+    else look.copy(lookGoal);
+    camera.lookAt(look);
+    need = true;
+    render();
+    if (!busy) {
+      loop?.stop();
+      loop = null;
+    }
+  };
+  /* 움직일 일이 생겼다. 이미 돌고 있으면 그냥 둔다 */
+  const kick = (): void => {
+    if (room && !loop) loop = gloop(frame);
+  };
+
   const ro = new ResizeObserver(resize);
   ro.observe(host);
   resize();
 
+  if (room) {
+    /* ① 들어올 때. 판이 뚝 나타나는 대신 카메라가 자리를 잡는다 */
+    camFrom = seat.clone().multiplyScalar(1.24);
+    camFrom.y *= 1.1;
+    camera.position.copy(camFrom);
+    camT0 = performance.now();
+    camMs = 1150;
+    kick();
+  }
+
   return {
     ok: true,
     place(stones, hint) {
-      pool.forEach((m) => { m.visible = false; });
-      hints.forEach((m) => { m.visible = false; });
-      mark.visible = false;
-      pickRing.visible = false;
-      stones.forEach((st, k) => {
-        const m = stoneOf(k);
-        m.material = matFor(st.who);
-        m.position.set(cx(st.cell), boardTop + CELL * 0.19, cz(st.cell));
-        /* 왕은 **한 장 더 얹은 것**이라 두 배 두껍다. */
-        m.scale.set(1, st.king ? 0.92 : 0.46, 1);
-        m.visible = true;
-        if (st.last) {
-          /* 알 밑에 깔면 안 보인다(실측). 알 꼭대기 위에 얹는다 */
-          mark.position.set(cx(st.cell), boardTop + CELL * 0.19 + CELL * 0.44 * (st.king ? 0.92 : 0.46) + 0.006, cz(st.cell));
-          mark.visible = true;
+      const t = performance.now();
+      if (room) {
+        const before = new Set(shown.map((st) => st.cell));
+        let fresh = -1;
+        for (const st of stones) {
+          if (!before.has(st.cell)) {
+            dropAt.set(st.cell, t);
+            fresh = st.cell;
+          }
         }
-        if (st.pick) {
-          pickRing.position.set(cx(st.cell), boardTop + 0.005, cz(st.cell));
-          pickRing.visible = true;
+        if (!started) {
+          /* 첫 그림은 안 떨어뜨린다. 도중에 들어온 판이면 알 스무 개가 한꺼번에 쏟아진다 */
+          dropAt.clear();
+          started = true;
+        } else if (fresh >= 0) {
+          /* ② 카메라가 방금 둔 자리 쪽으로 살짝 끌렸다 돌아온다. 판이 흔들리면 안 된다 */
+          nudge.set(cx(fresh) * 0.09, 0, cz(fresh) * 0.09);
+          nudgeUntil = t + NUDGE_MS;
         }
-      });
-      (hint?.can ?? []).forEach((cell, k) => {
-        const m = hintOf(k);
-        m.position.set(cx(cell), boardTop + 0.004, cz(cell));
-        m.visible = true;
-      });
+      }
+      shown = stones;
+      canCells = hint?.can ?? [];
+      layout(t);
       need = true;
       render();
+      if (dropAt.size || t < nudgeUntil) kick();
+    },
+    finish() {
+      if (!room || done) return;
+      done = true;
+      /* ③ 한 걸음 다가서고 조금 더 눕는다. 끝난 판을 보여 주는 자리 */
+      goal.copy(seat).multiplyScalar(0.87);
+      goal.y = seat.y * 0.8;
+      camFrom = camera.position.clone();
+      camT0 = performance.now();
+      camMs = 1400;
+      kick();
     },
     resize,
     dispose() {
+      loop?.stop();
+      loop = null;
       canvas.removeEventListener('pointerdown', onDown);
       ro.disconnect();
       scene.traverse((o) => {

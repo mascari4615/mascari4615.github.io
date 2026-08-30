@@ -126,3 +126,50 @@ export function feltTexture(seed = 11, size = 256): HTMLCanvasElement {
   }
   return cv;
 }
+
+/**
+ * 다다미. 짚을 촘촘히 엮은 결 + 가장자리 검은 천(헤리).
+ *
+ * 오목가자 실측: 판 밑이 어두운 나무가 아니라 다다미방이다. 판만 나무면 판이 어디 놓였는지
+ * 모르겠고, 바닥까지 나무면 판과 바닥이 한 덩이로 붙어 보인다. 결이 가로로 흐르는 초록빛
+ * 짚이 깔려야 판이 **방 안 물건**
+ *
+ * 한 장에 다다미 반 장을 굽고 `repeat` 로 깐다. 그래서 좌우가 이어져야 한다(x 는 안 흔든다).
+ */
+export function tatamiTexture(seed = 19, size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+
+  /* 바탕은 올리브빛. 노랗게 두면 판과 한 색이 되어 판이 바닥에 묻힌다(실측) */
+  c.fillStyle = '#b3ad7e';
+  c.fillRect(0, 0, size, size);
+
+  /* 짚 결. 가로로 흐르는 잔 줄. 굵기와 색이 제각각이라야 돗자리로 보인다 */
+  for (let y = 0; y < size; y += 1) {
+    const v = r();
+    c.fillStyle = `rgba(${v > 0.5 ? '244,236,198' : '120,108,62'},${(0.05 + v * 0.16).toFixed(3)})`;
+    c.fillRect(0, y, size, 1);
+  }
+  /* 세로로 짚을 묶은 실. 일정한 간격이라 눈이 짜임을 읽는다 */
+  for (let x = 0; x < size; x += 7) {
+    c.fillStyle = `rgba(96,86,48,${(0.05 + r() * 0.05).toFixed(3)})`;
+    c.fillRect(x, 0, 1, size);
+  }
+  /* 헤리(가장자리 천). 위아래에만 둔다. 좌우까지 두르면 한 장이 정사각이 된다 */
+  const hem = Math.round(size * 0.045);
+  const g = c.createLinearGradient(0, 0, 0, hem);
+  g.addColorStop(0, '#2a2620');
+  g.addColorStop(1, '#413a2e');
+  c.fillStyle = g;
+  c.fillRect(0, 0, size, hem);
+  c.fillStyle = '#2a2620';
+  c.fillRect(0, size - hem, size, hem);
+  /* 천의 실 몇 올. 검은 띠가 한 색이면 종이테이프로 보인다 */
+  for (let i = 0; i < 400; i += 1) {
+    const x = r() * size;
+    const top = r() > 0.5;
+    c.fillStyle = `rgba(255,240,210,${(r() * 0.09).toFixed(3)})`;
+    c.fillRect(x, (top ? 0 : size - hem) + r() * hem, 2 + r() * 3, 1);
+  }
+  return cv;
+}

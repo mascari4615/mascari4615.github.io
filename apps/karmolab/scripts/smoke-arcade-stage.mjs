@@ -71,6 +71,8 @@ if (!cantRun) {
   check('판이 무대를 채운다 (폭 0 으로 안 무너진다)', thin.length === 0, thin.slice(0, 6).join(' '));
 
   /* 풀스크린은 무대만 커진다. 그 안의 것이 같이 커져야 뜻이 있다. */
+  /* 칸 폭은 평면 판에서 잰다. 기본 표현은 입체라(`arcade.ts` 의 dim) 그대로 두면 `.ac-cell` 이 없다 */
+  await p.evaluate(() => window.localStorage.setItem('karmolab.arcade.dim', '2d'));
   await p.click('[data-obj="gomoku"]');
   await p.click('[data-solo="gomoku"]');
   await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
@@ -111,7 +113,8 @@ if (!cantRun) {
     await q.route('**/__dev', (r) => r.abort());
     await q.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await q.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
-    await q.evaluate(() => Toolbox.switchPage('arcade'));
+    /* 새 맥락은 저장소가 비어 기본 표현(입체)이 뜬다. 칸 폭은 평면에서 잰다 */
+    await q.evaluate(() => { window.localStorage.setItem('karmolab.arcade.dim', '2d'); Toolbox.switchPage('arcade'); });
     await q.waitForSelector('[data-obj="gomoku"]', { timeout: 20000 });
     await q.click('[data-obj="gomoku"]');
     await q.click('[data-solo="gomoku"]');
