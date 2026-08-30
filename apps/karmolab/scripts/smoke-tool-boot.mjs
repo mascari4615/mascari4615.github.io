@@ -81,6 +81,9 @@ async function openOne(id) {
     if (r.status() < 400) return;
     const url = r.url();
     if (!/\.js(\?|$)/.test(url)) return; // 데이터와 그림은 서버 없이도 없다. 그건 이 검사 몫이 아니다
+    /* 말 묶음은 뺀다. 통짜 게이트가 도는 동안 `build:i18n` 이 그 폴더를 지웠다 다시 굽는 순간이 있어
+       멀쩡한 도구가 열 개씩 빨개졌다 (2026-08-31 실측). 없는 묶음은 `audit:i18n-catalog` 가 따로 본다 */
+    if (url.includes('/js/i18n/')) return;
     hits.add('못 받음 ' + url.split('/apps/karmolab/')[1]);
   });
   try {
