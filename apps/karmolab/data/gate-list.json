@@ -339,6 +339,7 @@
     "audit:nightly-alive",
     "smoke:arcadeletter",
     "test:arcade:ui",
+    "test:arcade:yacht",
     "test:arcade:multi",
     "test:garden",
     "test:favorites",
