@@ -415,6 +415,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
       paperKey = key;
       const mine = s.sheet[mySeat];
       const my = myTurn();
+      /* 지금 제일 값진 칸. 레퍼런스 클론이 최고 칸을 색으로 짚어 준다. 눈이 표를 훑지 않아도 된다 */
+      const top = my && mine ? bestOpen(s, mySeat) : null;
       const cell = (i: number, cat: Cat): string => {
         const sheet = s.sheet[i];
         const done = sheet?.[cat];
@@ -422,7 +424,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
         if (i === mySeat && my && mine) {
           const would = scoreOf(cat, s.dice);
           /* 0점 칸은 숫자를 안 적는다(레퍼런스 bloob: 빈 칸에 옅은 강조만). 0 이 열두 개면 표가 시끄럽다 */
-          return '<td><button type="button" class="ac-yccell' + (would === 0 ? ' ac-zero' : '') + '" data-c="' + cat + '">' + (would === 0 ? '' : would) + '</button></td>';
+          return '<td><button type="button" class="ac-yccell' + (would === 0 ? ' ac-zero' : '') + (top && top.cat === cat && would > 0 ? ' ac-top' : '') + '" data-c="' + cat + '">' + (would === 0 ? '' : would) + '</button></td>';
         }
         return '<td></td>';
       };
