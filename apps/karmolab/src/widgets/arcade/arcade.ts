@@ -46,7 +46,7 @@ import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
-import { enterQueue, type Ranked, type RankRoom } from './ranked';
+import { enterQueue, reportResult, type Ranked, type RankedMatch, type RankRoom } from './ranked';
 import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
@@ -2348,6 +2348,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           /* 다시 보기는 **내 커널이 있을 때만**. 손님은 판을 받아 그리기만 해서 되살릴 것이 없다. */
           replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying && !review ? '' : 'none';
           showResult(v, draw, top, note);
+          /* 등급전이면 점수에 반영. 양쪽이 각자 보내고 서버가 둘을 맞춰 봄 */
+          if (rankedMatch && !replaying && !review) void tellRanked(v, draw);
         }
       } else if (v.note) {
         /* ★ **한 줄 알림이 판을 죽이면 안 된다** (2026-08-17, 진짜로 죽였다).
@@ -3135,7 +3137,44 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 목록에 올린 방을 내리는 손. 방을 닫을 때 부른다. */
     let dropOpen: (() => void) | null = null;
 
+    /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
+    let rankedMatch: RankedMatch | null = null;
+
+    /**
+     * 등급전 결과를 서버에 보고
+     * - 점수 높은 순서를 id 로 적음. 2인 판이라 내 자리와 상대 자리 둘뿐
+     * - 양쪽이 각자 보냄. 한쪽 말만으로는 점수가 안 움직임
+     * - 못 보내도 판은 이미 끝났음. 조용히 넘어감
+     */
+    async function tellRanked(v: MatchView<unknown>, draw: boolean): Promise<void> {
+      const m = rankedMatch;
+      if (!m || mySeat < 0 || v.seats.length !== 2) return;
+      const mine = v.seats[mySeat]?.score ?? 0;
+      const yours = v.seats[1 - mySeat]?.score ?? 0;
+      const order = mine >= yours ? [m.you, m.rival] : [m.rival, m.you];
+      /* 먼저 보고한 쪽은 그 자리에서 답을 못 받음. 상대가 아직 안 보냈기 때문
+         - 같은 보고를 다시 던져 확인. 서버는 같은 판을 두 번 안 적고 결과만 돌려줌
+         - 세 번(약 12초)까지. 그 안에 상대가 안 보내면 점수는 그대로 대기 */
+      for (let tries = 0; tries < 4; tries++) {
+        if (tries > 0) await new Promise((r) => setTimeout(r, 4000));
+        if (rankedMatch !== m) return;
+        const said = await reportResult(m, order, draw);
+        if (!said) return;
+        if (said.disagreed) {
+          say(t('arcade.rank.disagreed'), 'warn');
+          return;
+        }
+        if (said.applied) {
+          const d = said.delta ?? 0;
+          say(t('arcade.rank.applied', { d: (d > 0 ? '+' : '') + String(d), n: String(said.rating ?? 0) }), d >= 0 ? 'ok' : 'warn');
+          return;
+        }
+        if (tries === 0) say(t('arcade.rank.waiting.other'));
+      }
+    }
+
     /** 등급전 줄. 서 있는 동안만 */
+
     let ranked: Ranked | null = null;
     /** 등급전 방은 상대 도착 순간 시작. 시작 버튼을 누를 사람이 없음 */
     let autoStart = false;
@@ -3210,6 +3249,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         },
         onMatched: (m) => {
           ranked = null;
+          rankedMatch = { code: m.code, you: m.you, rival: m.rival };
           if (m.host) {
             /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
             autoStart = true;
@@ -3657,6 +3697,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 줄에 서 있었으면 제외. 안 빠지면 15초간 유령과 짝 */
       ranked?.cancel();
       ranked = null;
+      rankedMatch = null;
       autoStart = false;
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
       dropOpen?.();

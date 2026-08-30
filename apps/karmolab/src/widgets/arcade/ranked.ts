@@ -41,6 +41,8 @@ export type RankRoom = 'beginner' | 'upper';
 
 export interface Matched {
   code: string;
+  you: string;
+  rival: string;
   host: boolean;
   room: RankRoom;
   opponent: string;
@@ -65,6 +67,8 @@ type Answer = {
   room?: RankRoom;
   opponent?: string;
   others?: number;
+  you?: string;
+  rival?: string;
 };
 
 /**
@@ -103,6 +107,8 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
       stop();
       hooks.onMatched({
         code: a.code,
+        you: String(a.you ?? ''),
+        rival: String(a.rival ?? ''),
         host: Boolean(a.host),
         room: a.room === 'upper' ? 'upper' : 'beginner',
         opponent: String(a.opponent ?? '')
@@ -121,4 +127,69 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
       void fetch(`${HOST}/kl/arcade/queue/${encodeURIComponent(key)}`, { method: 'DELETE', keepalive: true }).catch(() => {});
     }
   };
+}
+
+/** 등급전 판 하나. 결과 보고가 이걸로 누구의 판인지 적음 */
+export interface RankedMatch {
+  code: string;
+  /** 내 공개 id (서버가 열쇠에서 뽑은 것) */
+  you: string;
+  /** 상대 공개 id */
+  rival: string;
+}
+
+export interface Reported {
+  applied: boolean;
+  /** 아직 상대 말을 기다리는 중 */
+  waiting: number;
+  /** 양쪽 말이 어긋남 */
+  disagreed: boolean;
+  /** 반영됐으면 내 점수 변화 */
+  delta: number | null;
+  rating: number | null;
+}
+
+/**
+ * 판이 끝났다고 알림. `ranks` 는 잘한 순서 (첫째가 1위)
+ * - 양쪽이 각자 보냄. 서버는 둘이 같은 말을 할 때만 점수를 움직임
+ * - 못 보내도 판은 이미 끝났음. 조용히 없음을 돌려줌
+ */
+export async function reportResult(m: RankedMatch, ranks: string[], draw: boolean): Promise<Reported | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: guestKey(), code: m.code, ranks, draw })
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as {
+      applied?: boolean;
+      waiting?: number;
+      disagreed?: boolean;
+      result?: Array<{ id: string; after: number; delta: number }>;
+    };
+    const mine = body.result?.find((r) => r.id === m.you) ?? null;
+    return {
+      applied: Boolean(body.applied),
+      waiting: Number(body.waiting ?? 0),
+      disagreed: Boolean(body.disagreed),
+      delta: mine ? mine.delta : null,
+      rating: mine ? mine.after : null
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** 내 점수. 로비에 보여 줄 때. 못 물어보면 없음 */
+export async function myRating(game: string): Promise<{ rating: number; games: number; wins: number } | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/rating/${encodeURIComponent(guestKey())}?game=${encodeURIComponent(game)}`, {
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as { rating: number; games: number; wins: number };
+  } catch {
+    return null;
+  }
 }
