@@ -4344,3 +4344,5 @@ html[data-skin="field"] .pf-shell .pf-job {
 }
 html[data-skin="field"] .pf-shell .pf-job:hover { background: var(--bg-hover); border-color: var(--text-primary); }
 html[data-skin="field"] .pf-shell .pf-job.pf-hot { background: var(--band); color: var(--band-ink); border-color: var(--band); font-weight: 700; }
+/* 제목 블록에 별만 직접 붙는 옛 경로(정적 장). 오른쪽 끝에 붙지 않게 여백 */
+html[data-skin="field"] .tool-page-hero > .tool-pin-star { margin-left: auto; margin-right: 16px; align-self: flex-start; }
