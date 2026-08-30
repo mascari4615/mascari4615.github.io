@@ -4242,6 +4242,11 @@ html[data-skin="field"] .tool-page-hero-desc::after { content: none; }
 html[data-skin="field"] .tool-page-hero-actions { display: flex; align-items: flex-end; gap: 8px; margin-left: auto; padding: 0 10px 8px 0; }
 html[data-skin="field"] .tool-page-hero-actions .tool-pin-star {
     position: static;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    line-height: 1;
     height: 36px;
     padding: 0 16px;
     border: 1px solid var(--text-primary);

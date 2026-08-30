@@ -485,6 +485,11 @@ const Toolbox = (() => {
         btn.dataset.tool = toolId;
         btn.textContent = '★';
         btn.onclick = () => togglePin(toolId);
+        /* 만들 때 바로 칠한다. 뒤의 paintPinStars 가 이 별을 못 잡던 일이 있었다 (2026-08-30 실측) */
+        const on = isPinned(toolId);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.title = on ? '내 것에서 빼기' : '내 것으로 두기';
+        btn.dataset.label = on ? '내 것' : '별 꽂기';
         host.appendChild(btn);
         paintPinStars();
     }
