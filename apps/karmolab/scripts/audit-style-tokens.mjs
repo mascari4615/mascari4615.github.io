@@ -6,7 +6,10 @@
  *   (실측 2026-08-30: 위젯 CSS 둥글기 494, 글자 776). 만든 사람이 여럿인 인상,
  *   톤 변경에 수백 곳 손질 필요. 정본은 `css/toolbox.css` 의 `:root` 토큰
  *
- * 세는 것: `font-size: <숫자>px`, `border-radius: <숫자>px` (shorthand 안 값도 하나씩)
+ * 세는 것 둘. 크기와 색
+ *   크기: `font-size: <숫자>px`, `border-radius: <숫자>px` (shorthand 안 값도 하나씩)
+ *   색: `color|background|border|box-shadow|outline|fill|stroke: ... #hex | rgb() | hsl()`
+ *     (change.karmolab-ui-kit, 2026-08-31. 실측 733곳. 정본은 스킨 토큰)
  *   제외: `var(--...)`, `50%`, `calc(`, `${...}`, 주석 안
  *   캔버스 그리기(`ctx.font = '12px ...'`)는 CSS 아님. 안 걸림
  *
@@ -62,34 +65,62 @@ export function findRaw(src) {
   return out;
 }
 
+/** 한 파일의 직접 색 자리 [{prop, value, line}]. 칠은 스킨 토큰이 정한다 */
+export function findRawColors(src) {
+  const out = [];
+  const text = stripComments(src);
+  /* CSS 문법의 자리만. 캔버스(`ctx.fillStyle = '#fff'`)와 SVG 속성(`fill="#fff"`)은 CSS 가 아니다 */
+  const re = /(?<![\w-])(color|background|background-color|border|border-color|border-top|border-bottom|border-left|border-right|box-shadow|outline|outline-color|fill|stroke|text-shadow|caret-color|accent-color)\s*:\s*([^;{}"'`]*)/g;
+  for (const m of text.matchAll(re)) {
+    const prop = m[1];
+    const val = m[2].trim();
+    if (!val || /\$\{/.test(val)) continue;
+    const lits = val.match(/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\([^)]*\)/g);
+    if (!lits) continue;
+    const line = text.slice(0, m.index).split('\n').length;
+    for (const lit of lits) out.push({ prop, value: lit, line });
+  }
+  return out;
+}
+
 const counts = new Map();
 const detail = new Map();
+const colorCounts = new Map();
+const colorDetail = new Map();
 const scan = (p) => {
   const rel = path.relative(root, p).split(path.sep).join('/');
-  const raws = findRaw(fs.readFileSync(p, 'utf8'));
+  const src = fs.readFileSync(p, 'utf8');
+  const raws = findRaw(src);
   if (raws.length) { counts.set(rel, raws.length); detail.set(rel, raws); }
+  const cols = findRawColors(src);
+  if (cols.length) { colorCounts.set(rel, cols.length); colorDetail.set(rel, cols); }
 };
 for (const r of ROOTS) { const d = path.join(root, r); if (fs.existsSync(d)) walk(d, scan); }
 for (const f of EXTRA) { const p = path.join(root, f); if (fs.existsSync(p)) scan(p); }
 
 const total = [...counts.values()].reduce((a, b) => a + b, 0);
 const now = Object.fromEntries([...counts.entries()].sort());
+const colorTotal = [...colorCounts.values()].reduce((a, b) => a + b, 0);
+const colorNow = Object.fromEntries([...colorCounts.entries()].sort());
 
 const listIdx = process.argv.indexOf('--list');
 if (listIdx >= 0) {
   const needle = process.argv[listIdx + 1] || '';
-  for (const [f, raws] of [...detail.entries()].sort()) {
+  const wantColor = process.argv.includes('--color');
+  for (const [f, raws] of [...(wantColor ? colorDetail : detail).entries()].sort()) {
     if (needle && f.includes(needle) === false) continue;
     for (const r of raws) console.log(`${f}:${r.line}  ${r.prop}: ${r.value}`);
   }
-  console.log(`[style-tokens] 직접 값 ${total}개, 파일 ${counts.size}개`);
+  console.log(wantColor
+    ? `[style-tokens] 직접 색 ${colorTotal}개, 파일 ${colorCounts.size}개`
+    : `[style-tokens] 직접 값 ${total}개, 파일 ${counts.size}개`);
   process.exit(0);
 }
 
 if (process.argv.includes('--bless')) {
   fs.mkdirSync(path.dirname(BASELINE), { recursive: true });
-  fs.writeFileSync(BASELINE, JSON.stringify({ total, files: now }, null, 1) + '\n', 'utf8');
-  console.log(`[style-tokens] 기준선을 다시 적었다. 직접 값 ${total}개, 파일 ${counts.size}개`);
+  fs.writeFileSync(BASELINE, JSON.stringify({ total, files: now, colorTotal, colorFiles: colorNow }, null, 1) + '\n', 'utf8');
+  console.log(`[style-tokens] 기준선을 다시 적었다. 직접 값 ${total}개, 직접 색 ${colorTotal}개`);
   process.exit(0);
 }
 
@@ -105,6 +136,21 @@ for (const [f, n] of Object.entries(now)) {
   const b = base.files[f] || 0;
   if (n > b) grew.push({ f, b, n });
 }
+/* 색 기준선이 없는 판에서는 색을 안 잰다. --bless 가 적어 준다 */
+const colorGrew = [];
+if (base.colorFiles) {
+  for (const [f, n] of Object.entries(colorNow)) {
+    const b = base.colorFiles[f] || 0;
+    if (n > b) colorGrew.push({ f, b, n });
+  }
+}
+if (colorGrew.length) {
+  console.error(`[style-tokens] **색을 직접 적은 자리가 늘었다** ${colorGrew.length}파일:`);
+  for (const g of colorGrew) console.error(`  - ${g.f}  ${g.b} → ${g.n}`);
+  console.error('  칠은 스킨 토큰이 정한다. var(--accent), var(--text-primary), var(--bg-secondary) 등');
+  console.error('  목록: npm run audit:style-tokens -- --list <파일> --color');
+  process.exit(1);
+}
 if (grew.length) {
   console.error(`[style-tokens] **크기 값을 직접 적은 자리가 늘었다** ${grew.length}파일:`);
   for (const g of grew) console.error(`  - ${g.f}  ${g.b} → ${g.n}`);
@@ -112,8 +158,8 @@ if (grew.length) {
   console.error('  정본: css/toolbox.css :root. 예외가 정말 필요하면 npm run audit:style-tokens -- --bless');
   process.exit(1);
 }
-if (total < base.total) {
+if (total < base.total || (base.colorTotal != null && colorTotal < base.colorTotal)) {
   console.log(`[style-tokens] 줄었다 ${base.total} → ${total}개. 기준선을 다시 적어라: npm run audit:style-tokens -- --bless`);
   process.exit(0);
 }
-console.log(`[style-tokens] 안 늘었다 (남은 직접 값 ${total}개, 파일 ${counts.size}개)`);
+console.log(`[style-tokens] 안 늘었다 (남은 직접 값 ${total}개, 직접 색 ${colorTotal}개)`);
