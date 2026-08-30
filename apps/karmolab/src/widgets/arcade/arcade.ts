@@ -35,6 +35,7 @@ import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
+import { LESSONS, TUTOR_SIZE, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { loadPacks } from '../pack-store';
@@ -537,7 +538,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * ── 컷인 (MDD) ── 작혼의 리치, 론 연출과 같은 자리. 넷을 만들면(리치), 내가 넷을 만들면(위기), 판이 끝나면(론)
        * 오른쪽에서 큰 얼굴과 한 줄이 미끄러져 들어와 1.7초 머물고 나간다. 그림이 오면 얼굴만 갈아 끼움
        */
-      '.ac-cutin{display:none}',
+      '.ac-cutin,.ac-lesson{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson{display:flex;align-items:center;gap:14px;position:absolute;left:50%;top:52px;transform:translateX(-50%);z-index:7;max-width:min(720px,86%);padding:12px 18px;border-radius:10px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;box-shadow:0 14px 32px rgba(0,0,0,.45)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson[hidden]{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson b{flex:0 0 auto;font-size:15px;color:#8f5a2a;letter-spacing:.08em}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson p{margin:0;font-size:17px;line-height:1.45}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson .btn{flex:0 0 auto;height:32px;padding:0 14px;border-radius:999px;border:1px solid rgba(120,80,40,.4);background:none;color:#5a4028;font-family:inherit;font-size:14px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin{display:flex;align-items:center;gap:22px;position:absolute;right:0;top:24%;width:min(460px,60%);padding:18px 28px 18px 22px;z-index:9;pointer-events:none;background:linear-gradient(90deg,rgba(24,15,8,0),rgba(24,15,8,.88) 18%,rgba(24,15,8,.92));border-top:1px solid rgba(217,168,90,.55);border-bottom:1px solid rgba(217,168,90,.55);color:#f6ecdc;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:translateX(110%);opacity:0;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin[hidden]{display:none}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin.ac-on{transform:none;opacity:1}',
@@ -1443,6 +1449,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 반응 판. 내 자리 카드 위에 여섯. 누르면 내 카드에 말풍선, 온라인이면 상대에게도 */
       '<div class="ac-emotes" id="acEmotes" hidden>' + EMOTES.map((e, i) => '<button class="ac-emotebtn" data-emote="' + i + '">' + esc(e) + '</button>').join('') + '</div>' +
       '<div class="ac-cutin" id="acCutin" hidden></div>' +
+      /* 배우기 안내. 상태줄은 매 프레임 판 수로 덮이므로 따로 둔다 */
+      '<div class="ac-lesson" id="acLesson" hidden><b id="acLessonNo"></b><p id="acLessonSay"></p><button class="btn btn-ghost" id="acLessonQuit"></button></div>' +
       '<div class="ac-timeline" id="acTimeline" hidden>' +
       '<button class="ac-tlbtn" id="acTlFirst" title="' + esc(t('arcade.tl.first')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 6l-8 6 8 6z"/></svg></button>' +
       '<button class="ac-tlbtn" id="acTlPrev" title="' + esc(t('arcade.tl.prev')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6l-8 6 8 6z"/></svg></button>' +
@@ -1551,7 +1559,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (isTeamy(g.seats[1])
           ? '<button data-team="' + g.id + '">' + esc(t('arcade.btn.team')) + '</button>'
           : '') +
-        '<button data-find="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>';
+        '<button data-find="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>' +
+        /* 배우기. 판 위에서 한 수씩(`tutor.ts`). 지금은 오목만 */
+        (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '');
       const d = $<HTMLElement>('#acDetail');
       d.innerHTML =
         '<button class="ac-back" id="acBack">‹ ' + esc(t('widgets.arcade.title', undefined, '오락실')) + '</button>' +
@@ -1704,6 +1714,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       on('data-team', 'team', startTeam);
       on('data-pickteam', 'pickteam', startTeam);
       on('data-find', 'find', (id) => openRoom(id, true));
+      on('data-tutor', 'tutor', startTutor);
       on('data-pickfind', 'pickfind', (id) => openRoom(id, true));
       on('data-rank', 'rank', startRanked);
     }
@@ -1963,7 +1974,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let hintAt: { action: unknown; until: number } | null = null;
     function canHint(): boolean {
       const g = gameById(gameId);
-      return !!g?.hint && !net && !letter && !tour && !watching && (review !== null || (!!match && !match.view().finished));
+      return !!g?.hint && !net && !letter && !tour && !watching && tutorAt === null && (review !== null || (!!match && !match.view().finished));
     }
     function paintHint(): void {
       const b = container.querySelector<HTMLButtonElement>('#acHint');
@@ -2150,7 +2161,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 이 판이 **언제 저절로 끝나나**(`endsAt`)도 같이 내놓는다. 놀이마다 제한이 25초에서 300초까지 다르다.
          밖에서 기다리는 검사가 그걸 모르면 제 맘대로 잡은 참을성으로 안 끝났다고 적는다(2026-08-17 실측:
          참을성 60초인데 지뢰찾기 제한이 180초라, 그 놀이가 뽑히면 무조건 빨강이었다). */
-      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tap: (a: unknown) => sendAct(a), tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       seatsEl.innerHTML =
         (watching ? '<span class="ac-seat ac-watch">👀 ' + esc(t('arcade.watch.now')) + '</span>' : '') +
         v.seats
@@ -2165,7 +2176,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           )
           .join('');
       render?.(v, mySeat, now);
-      if (match && match.moves !== seenMoves) {
+      if (match && match.moves !== seenMoves && tutorAt === null) {
         hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
         if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
@@ -2560,7 +2571,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /** 무를 수 있는 판인가. 혼자, 봇 상대, 다시보기 아님, 편지 아님, 판 놀이 */
     function canUndo(): boolean {
-      return !!match && !net && !letter && !replaying && !tour && cardById(gameId)?.kind === 'board' && match.tape.length > 0 && !match.view().finished;
+      return !!match && !net && !letter && !replaying && !tour && tutorAt === null && cardById(gameId)?.kind === 'board' && match.tape.length > 0 && !match.view().finished;
     }
     function paintUndo(): void {
       const btn = container.querySelector<HTMLButtonElement>('#acUndo');
@@ -2613,6 +2624,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 구경꾼의 손은 여기서 멈춘다. 주인도 자리 없는 사람의 수는 흘리지만, **화면이 반응하면
          사람은 자기가 두고 있다고 믿는다**. 막는 자리는 손이 나가기 전이어야 한다. */
       if (watching) return;
+      /* 배우는 중이면 정답 자리만 먹는다 */
+      if (tutorAt !== null) {
+        const cell = (a as { cell?: number } | null)?.cell;
+        if (typeof cell === 'number') tutorPlay(cell);
+        return;
+      }
       /* 복기 중 판을 누르면 Try Play. 그 수까지 굴린 살아 있는 판에서 이어 둔다 */
       if (review && !review.branch) {
         if (!branchFrom(review.at)) return;
@@ -2820,6 +2837,99 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 그래서 이 자리에는 그물망도 봇도 없다. 사람 둘이 번갈아 둘 뿐이다.
      */
     let letter: Letter | null = null;
+    /** 배우기. 몇 장째인가. null 이면 안 배우는 중 */
+    let tutorAt: number | null = null;
+
+    /**
+     * 배우기 시작. 봇이 안 두는 판을 세우고 첫 장을 깖
+     * 씨앗은 아무거나. 장면은 `dispatch` 로 심으므로 난수가 판을 안 바꿈
+     */
+    function startTutor(id: string): void {
+      const g = gameById(id);
+      if (!g) {
+        void ensureGame(id).then(() => { if (gameById(id)) startTutor(id); });
+        return;
+      }
+      net?.leave();
+      net = null;
+      plan = null;
+      letter = null;
+      tour = null;
+      watching = false;
+      endReview(false);
+      tutorAt = 0;
+      gameId = id;
+      mySeat = 0;
+      show('play');
+      mountView(id);
+      layTutor();
+    }
+
+    /** 그 장의 장면을 깐다. 커널을 새로 세우고 돌을 심는다 */
+    function layTutor(): void {
+      const g = gameById(gameId);
+      if (!g || tutorAt === null) return;
+      const lesson = LESSONS[tutorAt];
+      if (!lesson) {
+        $<HTMLElement>('#acLesson').hidden = true;
+        tutorAt = null;
+        quit();
+        say(t('arcade.tutor.done'), 'ok');
+        return;
+      }
+      /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
+      const def = { ...g, bot: () => null } as typeof g;
+      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t('arcade.tutor.teacher'), bot: true }];
+      cancelAnimationFrame(raf);
+      match = new Match(def, 1, seats, { size: TUTOR_SIZE, renju: true, limit: 0, ai: 1 }) as Match<unknown, unknown>;
+      lastDef = def as GameDef<unknown, unknown>;
+      lastSeed = 1;
+      lastSeats = seats;
+      ended = false;
+      soundedRound = -1;
+      bubbles.clear();
+      hintAt = null;
+      /* 돌 심기. 차례를 번갈아 맞추려고 빈 곳을 채우는 대신 **그 색 차례일 때만** 둔다 */
+      const want = lesson.board.slice();
+      for (let guard = 0; guard < 200 && want.length; guard += 1) {
+        const turn = (match.view().state as { turn?: number }).turn ?? 0;
+        const k = want.findIndex((b) => b.who === turn + 1);
+        const pick = k >= 0 ? k : 0;
+        const b = want.splice(pick, 1)[0];
+        match.dispatch(b.who - 1, { cell: cellOf(b.x, b.y) });
+      }
+      /* 내 차례(흑)가 아니면 한 수 더 심어 맞춘다. 장면 표가 흑 차례로 끝나게 짜 두는 것이 먼저 */
+      /* 장면 심기는 사람이 둔 것이 아니다. 알림과 컷인을 안 깨운다 */
+      seenMoves = match.moves;
+      bubbles.clear();
+      $<HTMLElement>('#acCutin').hidden = true;
+      const box = $<HTMLElement>('#acLesson');
+      box.hidden = false;
+      $<HTMLElement>('#acLessonNo').textContent = `${tutorAt + 1} / ${LESSONS.length}`;
+      $<HTMLElement>('#acLessonSay').textContent = t(lesson.say);
+      $<HTMLElement>('#acLessonQuit').textContent = t('arcade.btn.quit');
+      t0 = performance.now() - match.clock();
+      loop();
+      paintHint();
+    }
+
+    /** 배우는 중의 한 수. 맞으면 다음 장, 틀리면 물린다 */
+    function tutorPlay(cell: number): void {
+      if (tutorAt === null || !match) return;
+      const lesson = LESSONS[tutorAt];
+      if (isAnswer(lesson, cell)) {
+        match.dispatch(mySeat, { cell });
+        blip('good');
+        window.setTimeout(() => {
+          if (tutorAt === null) return;
+          tutorAt += 1;
+          layTutor();
+        }, 1100);
+        return;
+      }
+      $<HTMLElement>('#acLessonSay').textContent = t(lesson.miss);
+      blip('bad');
+    }
 
     function paintLetter(): void {
       const box = $<HTMLElement>('#acLetter');
@@ -3384,6 +3494,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (net.host) net.say({ kind: 'emote', seat: mySeat, text });
       else net.act({ meta: 'emote:' + text });
     });
+    $<HTMLButtonElement>('#acLessonQuit').onclick = () => {
+      tutorAt = null;
+      $<HTMLElement>('#acLesson').hidden = true;
+      quit();
+    };
     $<HTMLButtonElement>('#acHint').onclick = askHint;
     $<HTMLButtonElement>('#acTlFirst').onclick = () => { tlPlay(false); seek(0); };
     $<HTMLButtonElement>('#acTlPrev').onclick = () => { tlPlay(false); if (review) seek(review.at - 1); };
@@ -3430,6 +3545,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       swapBtn.style.display = 'none';
       replayBtn.style.display = 'none';
       endReview(false);
+      tutorAt = null;
+      $<HTMLElement>('#acLesson').hidden = true;
       replaying = false;
       plan = null;
       letter = null;

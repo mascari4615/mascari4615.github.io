@@ -62,6 +62,9 @@ if (!cantRun) {
     /* 가로든 세로든 절반은 써야 무대에 담겼다고 할 수 있다. 무너지면 한 자릿수 px 이 된다.
        세로로 긴 판(컬링, 당구)은 화면에 넣느라 폭을 일부러 좁힌다. 그건 세로가 대신 채운다. */
     if (seen.widest < seen.stage * 0.5 && seen.tallest < seen.stage * 0.5) thin.push(`${id}(${seen.widest}×${seen.tallest}px)`);
+    /* 방(입체)에서는 나가기가 메뉴 종이 안에 있다. 메뉴부터 연다(2026-08-31 방 버튼 재편) */
+    const menu = await p.$('#acMenu');
+    if (menu && await menu.isVisible()) await menu.click();
     await p.click('#acQuit');
     await p.waitForSelector('[data-obj]', { timeout: 10000 });
   }
