@@ -119,6 +119,15 @@ import { t, loadNamespace } from '../lib/i18n';
             html: `<div class="tool-display">12:34.56</div>`
         },
         {
+            name: '클래스 없이도 되는 것',
+            classes: 'button, input[type=file], table, details (클래스 없을 때)',
+            note: '위젯이 아무것도 안 정한 자리는 셸이 킷 모양으로 채운다. 클래스를 하나라도 붙이면 그쪽이 이긴다',
+            html: `<button>맨 버튼</button>
+<input type="file">
+<table><tr><th>키</th><td>값</td></tr><tr><th>키</th><td>값</td></tr></table>
+<details><summary>접힌 것</summary><p class="tool-hint">펼치면 이 글</p></details>`
+        },
+        {
             name: '알림',
             classes: 'Toolbox.showToast(msg, type)',
             note: '위젯이 직접 안 그린다. 셸의 것을 부른다',

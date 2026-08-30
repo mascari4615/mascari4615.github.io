@@ -21,6 +21,7 @@
 | 탭 | `.tab-row` > `.tab-btn` (`.active`), `.tab-panel` | 셸이 만듦. 고른 탭은 띠 반전 |
 | 재료 도구 틀 | `tools/shared/material-shell.ts` (`.pf-*`) | 재료 아홉 |
 | 큰 수 | `.tool-display` | 타이머, 계산 |
+| 클래스 없이도 되는 것 | 맨 `button`, `input[type=file]`, `table`, `details` | 셸이 킷 모양으로 채운다. 클래스를 하나라도 붙이면 그쪽이 이긴다 |
 
 - 아직 위젯 자체 클래스(`hu-btn` 70, `km-field` 56, `tl-btn` 36, `ie-opt-label` 46)가 남아 있다. 새 코드는 위 표로, 옛 것은 만날 때 바꾼다
 - 살아 있는 견본 장은 `#uikit` (`src/widgets/uikit.ts`). 목록에는 안 뜬다. 부품을 더하면 이 표, `toolbox.css`, `uikit.ts` 셋을 같이 고친다
