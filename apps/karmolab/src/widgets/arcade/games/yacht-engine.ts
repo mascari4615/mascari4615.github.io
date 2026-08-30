@@ -205,6 +205,9 @@ function decideNow(dice: number[], sheet: Sheet, rollsLeft: number, level: Level
 
   /* 3, 4, 5. 기대값. 두 굴림 앞(`LOOK2`)은 보류. 위 주석의 실측 */
   const look = Math.min(rollsLeft, level >= 5 && LOOK2 ? 2 : 1);
+  /* 두 굴림 앞은 **손질하지 않은 점수**로 훑기(2026-08-31 시도). 그래도 171.4 를 못 넘음
+     5단계는 판 전체 기대값 표(칸 2^12 상태)가 있어야 함. 지금은 4단계와 같은 머리(`LOOK2`) */
+  const scanLevel: Level = look >= 2 ? 3 : level;
   if (rollsLeft === 0) return { keep: dice.map(() => true), write: bestCat(dice, sheet, level).cat };
   const memo = new Map<string, number>();
   const now = bestCat(dice, sheet, level);
