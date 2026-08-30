@@ -5,10 +5,10 @@
  * 펠트 깐 쟁반, 가죽 컵, 종이 점수표 한 장. 컵을 누르면 흔들어 쏟고, 주사위를 누르면 남기고,
  * 종이를 누르면 카메라가 내려가 적는 자리로
  *
- * 물리는 **흉내**다. 결과 눈은 커널이 이미 정했으므로(`yacht.ts`), 진짜 충돌을 돌리면
- * 나온 눈을 나중에 억지로 뒤집어야 한다. 대신 튀고 구르다가 마지막 한 뼘에서 정해진 눈으로
- * 눕는다. 사람 눈은 마지막 반 바퀴를 못 쫓는다(레퍼런스 실측: 스팀 상위 두 판 모두 착지
- * 0.2초 안에 눈이 굳는다).
+ * 물리는 **진짜**(`dice-physics.ts`). 굴리는 순간 끝까지 계산해 두고 녹화본 재생.
+ * 어느 면이 위로 오나는 시뮬레이션이 정하고, 커널이 정한 눈(`yacht.ts`)은 그 면에 **붙인다**
+ * (면 배치를 돌린다. 마주 보는 면의 합 7 은 그대로). 흉내 물리(마지막에 정해진 눈으로 슬러프)는
+ * 면이 뒤집히고 끊기고 바닥에 안 닿았다(사용자 지적 3건).
  *
  * 규칙은 이 파일을 모름. 상태를 받아 놓고, 손을 밖으로
  */
@@ -46,6 +46,7 @@ import {
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
 import { dieFaceTexture, feltTexture, leatherTexture, paperTexture, plankTexture, woodTexture } from './texture';
+import { simulateRoll, sample, type Track } from './dice-physics';
 
 export interface DiceStageOpts {
   /** 주사위 몇 개 */
@@ -96,7 +97,6 @@ const TRAY_Z0 = -4.5;
 const WALL = 0.4;
 const FLOOR_Y = 0.16;
 const REST_Y = FLOOR_Y + D / 2;
-const GRAVITY = 26;
 
 /* 눈마다 상자의 어느 면인가. 마주 보는 면의 합은 7 */
 const FACE_NORMAL: Record<number, Vector3> = {
@@ -123,17 +123,16 @@ interface Die {
   /* 지금 있는 자리와 눈. 움직임이 없으면 이것이 곧 mesh */
   pos: Vector3;
   quat: Quaternion;
-  /* 날아가는 중 */
-  vel: Vector3;
-  ang: Vector3;
-  released: number; /* ms, 0 이면 안 나는 중 */
-  target: Quaternion;
-  /* 정착 자세를 골랐나. 정착에 들어가는 순간 한 번 */
-  aimed: boolean;
-  settleMs: number;
-  bounces: number;
-  /* 남기기와 되돌리기. 두 자리 사이를 한 호로 */
+  /* 날아가는 중. 녹화본과 그 시작 시각(ms). 0 이면 안 나는 중 */
+  track: Track | null;
+  released: number;
+  hitIdx: number;
+  /* 이 주사위의 면 배치. 굴릴 때마다 위로 온 면에 눈을 붙이느라 돌린다 */
+  faces: MeshStandardMaterial[];
+  /* 남기기와 되돌리기, 컵으로 들어가기. 두 자리 사이를 한 호로 */
   moveFrom: Vector3 | null;
+  /* 이 이동이 끝나면 컵 안이다(안 보인다) */
+  gather: boolean;
   moveTo: Vector3;
   moveT0: number;
   hover: boolean;
@@ -433,7 +432,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const dieGeo = roundedBox(D, D * 0.16, 12);
   const dice: Die[] = [];
   for (let i = 0; i < opts.count; i += 1) {
-    const mesh = new Mesh(dieGeo, faceMats);
+    const faces = faceMats.slice();
+    const mesh = new Mesh(dieGeo, faces);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.visible = false;
@@ -441,40 +441,58 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     dice.push({
       mesh, value: 1, kept: false,
       spot: new Vector3(0, REST_Y, 1), pos: new Vector3(0, REST_Y, 1), quat: new Quaternion(),
-      vel: new Vector3(), ang: new Vector3(), released: 0, target: new Quaternion(), aimed: false, settleMs: 300, bounces: 0,
-      moveFrom: null, moveTo: new Vector3(), moveT0: 0, hover: false
+      track: null, released: 0, hitIdx: 0, faces,
+      moveFrom: null, gather: false, moveTo: new Vector3(), moveT0: 0, hover: false
     });
   }
   const slotX = (i: number): number => -TRAY_W / 2 + 1.6 + i * ((TRAY_W - 3.2) / Math.max(1, opts.count - 1));
   const railPos = (i: number): Vector3 => new Vector3(slotX(i), REST_Y, RAIL_Z);
 
-  /* 눈 v 가 위로 오는 자세. 그 위에 아무 방향으로 한 바퀴 돌린 것 */
-  const upright = (v: number, out: Quaternion, spinAngle = Math.random() * Math.PI * 2): Quaternion => {
-    const q = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, UP);
-    const spin = new Quaternion().setFromAxisAngle(UP, spinAngle);
-    return out.copy(spin.multiply(q));
+  /* 기하 면 순서(+x, -x, +y, -y, +z, -z)의 법선 */
+  const GEOM_NORMALS = [
+    new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 1, 0),
+    new Vector3(0, -1, 0), new Vector3(0, 0, 1), new Vector3(0, 0, -1)
+  ];
+  /* 표준 배치. 기하 면 i 에 FACE_ORDER[i] 눈 */
+  const standardFaces = (d: Die): void => {
+    FACE_ORDER.forEach((v, gi) => { d.faces[gi] = faceMats[gi]; void v; });
+    d.mesh.material = d.faces;
   };
   /**
-   * 지금 자세에서 **가장 가까운** 눈 v 위 자세. 눈이 위인 자세는 y 축으로 돌린 것 전부라
-   * 그중 회전이 제일 작은 것. 아무 자세로 슬러프하면 다 굴러 놓고 다른 면이 뒤집혀 올라온다(사용자 지적)
+   * 위로 온 면(로컬 법선 `upLocal`)에 눈 v 가 오도록 배치를 돌린다. 표준 배치를 회전한 것이라
+   * 마주 보는 합 7 과 손잡이 방향이 그대로. 네 방향 중 하나는 아무거나
    */
-  const nearestUpright = (v: number, from: Quaternion, out: Quaternion): number => {
-    const cand = new Quaternion();
-    let best = Infinity;
-    for (let k = 0; k < 24; k += 1) {
-      upright(v, cand, (k / 24) * Math.PI * 2);
-      const ang = from.angleTo(cand);
-      if (ang < best) {
-        best = ang;
-        out.copy(cand);
+  const faceUp = (d: Die, upLocal: Vector3, v: number): void => {
+    const q = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, upLocal);
+    const spin = new Quaternion().setFromAxisAngle(upLocal, Math.floor(Math.random() * 4) * (Math.PI / 2));
+    const inv = spin.multiply(q).invert();
+    const local = new Vector3();
+    GEOM_NORMALS.forEach((n, gi) => {
+      local.copy(n).applyQuaternion(inv);
+      let best = 1;
+      let bd = -2;
+      for (let val = 1; val <= 6; val += 1) {
+        const dd = FACE_NORMAL[val].dot(local);
+        if (dd > bd) {
+          bd = dd;
+          best = val;
+        }
       }
-    }
-    return best;
+      d.faces[gi] = faceMats[FACE_ORDER.indexOf(best)];
+    });
+    d.mesh.material = d.faces;
+  };
+  /* 눈 v 가 위로 오는 자세(표준 배치에서). 그 위에 아무 방향으로 한 바퀴 돌린 것. 안 굴리고 놓을 때 */
+  const upright = (d: Die, v: number): void => {
+    standardFaces(d);
+    const q = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, UP);
+    const spin = new Quaternion().setFromAxisAngle(UP, Math.floor(Math.random() * 4) * (Math.PI / 2));
+    d.quat.copy(spin.multiply(q));
   };
 
   /* 쟁반에 흩어질 자리. 서로 한 변 넘게 떨어지게. 못 찾으면 줄로 */
   const scatter = (which: number[]): void => {
-    const taken: Vector3[] = dice.filter((d, i) => !which.includes(i) && !d.kept).map((d) => d.spot);
+    const taken: Vector3[] = dice.filter((d, i) => !which.includes(i) && !d.kept && d.mesh.visible).map((d) => d.spot);
     const x0 = -TRAY_W / 2 + D * 0.8;
     const x1 = TRAY_W / 2 - D * 0.8;
     const z0 = ROLL_Z0 + D * 0.9;
@@ -501,19 +519,51 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   let pendingRelease: number[] = [];
   /* 컵이 도는 중에 온 다음 굴림. 봇은 컵이 돌아오기 전에 또 굴린다(0.5~0.9초). 끝나면 이어서 */
   let queued: number[] = [];
+  const TIP_U = easeInOut(0.75);
+  const GATHER_MS = 380;
   const shake = (which: number[], t: number): void => {
-    which.forEach((i) => {
-      dice[i].mesh.visible = false;
-      dice[i].released = 0;
-      dice[i].moveFrom = null;
+    /* 컵이 놓는 자리. `cupAt` 의 기울기 식과 같은 값 */
+    const tilt = 1.95 * TIP_U;
+    const mouth = new Vector3(
+      CUP_REST.x - 2.8 * TIP_U - Math.sin(tilt) * CUP_H,
+      CUP_REST.y + 2.6 * TIP_U + Math.cos(tilt) * CUP_H,
+      CUP_REST.z - 0.5 * TIP_U
+    );
+    const inputs = which.map((i, n) => ({
+      t0: n * 0.07,
+      pos: mouth.clone().add(new Vector3((Math.random() - 0.5) * 0.3, 0, (Math.random() - 0.5) * 0.3)),
+      /* 세기와 방향을 넓게 벌린다. 비슷하면 왼쪽 벽에 한 줄로 늘어선다(실측) */
+      vel: new Vector3(-3.5 - Math.random() * 7, 0.5 + Math.random() * 2.5, (Math.random() - 0.5) * 8),
+      quat: new Quaternion().setFromAxisAngle(new Vector3(Math.random(), Math.random(), Math.random()).normalize(), Math.random() * 6),
+      ang: new Vector3((Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22)
+    }));
+    const tracks = simulateRoll(inputs, { floorY: FLOOR_Y, xMin: -TRAY_W / 2, xMax: TRAY_W / 2, zMin: ROLL_Z0, zMax: ROLL_Z1 });
+    /* 먼저 쟁반에서 컵으로 모은다. 빈 컵을 흔들면 어색하다(사용자 지적). 모인 뒤에 흔든다 */
+    const mouthTop = new Vector3(CUP_REST.x, CUP_H + 0.7, CUP_REST.z);
+    which.forEach((i, n) => {
+      const d = dice[i];
+      const tr = tracks[n];
+      d.track = tr;
+      d.released = t + GATHER_MS + RELEASE_AT;
+      d.hitIdx = 0;
+      d.moveFrom = d.mesh.visible ? d.mesh.position.clone() : null;
+      d.gather = d.moveFrom !== null;
+      d.moveTo.copy(mouthTop).add(new Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6));
+      d.moveT0 = t + n * 40;
+      /* 멎은 자세에서 위로 온 면에 정해진 눈 */
+      faceUp(d, tr.upLocal, d.value);
+      const end = tr.frames[tr.frames.length - 1];
+      d.spot.copy(end.pos);
+      d.quat.copy(end.quat);
     });
     pendingRelease = which;
-    cupT0 = t;
-    opts.onSound?.('rattle', 1);
+    cupT0 = t + GATHER_MS;
+    window.setTimeout(() => opts.onSound?.('rattle', 1), GATHER_MS);
   };
   const cupAt = (t: number): boolean => {
     if (!cupT0) return false;
     const k = t - cupT0;
+    if (k < 0) return true;
     if (k < SHAKE_MS) {
       const s = k / 1000;
       cup.position.set(CUP_REST.x + Math.sin(s * 95) * 0.14, CUP_REST.y + Math.abs(Math.sin(s * 47)) * 0.4, CUP_REST.z + Math.cos(s * 71) * 0.1);
@@ -525,21 +575,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       /* 왼쪽(쟁반 쪽)으로 기울며 쟁반 위로 든다. 회전축이 굽이라 입이 안쪽으로 넘어온다 */
       cup.position.set(CUP_REST.x - 2.8 * u, CUP_REST.y + 2.6 * u, CUP_REST.z - 0.5 * u);
       cup.rotation.set(0, 0, 1.95 * u);
-      if (k >= RELEASE_AT && pendingRelease.length) {
-        const mouth = new Vector3(0, CUP_H, 0).applyQuaternion(cup.quaternion).add(cup.position);
-        pendingRelease.forEach((i, n) => {
-          const d = dice[i];
-          d.released = t + n * 70;
-          d.pos.copy(mouth).add(new Vector3((Math.random() - 0.5) * 0.3, 0, (Math.random() - 0.5) * 0.3));
-          d.vel.set(-7 - Math.random() * 4, 0.8 + Math.random() * 1.5, (Math.random() - 0.5) * 5);
-          d.ang.set((Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22);
-          d.bounces = 0;
-          d.aimed = false;
-          d.quat.setFromAxisAngle(new Vector3(Math.random(), Math.random(), Math.random()).normalize(), Math.random() * 6);
-          d.mesh.visible = true;
-        });
-        pendingRelease = [];
-      }
+      if (k >= RELEASE_AT && pendingRelease.length) pendingRelease = [];
       return true;
     }
     if (k < RETURN_AT) return true;
@@ -561,85 +597,52 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     return false;
   };
 
-  /* ── 주사위 움직임 ── 날기(흉내 물리), 마지막 한 뼘의 정착, 선반 오가기 */
-  const FLY_MS = 1050;
+  /* ── 주사위 움직임 ── 녹화본 재생, 선반 오가기 */
   const MOVE_MS = 300;
-  let lastT = 0;
-  const tmpQ = new Quaternion();
-  const tmpV = new Vector3();
-  const dieAt = (d: Die, t: number, dt: number): boolean => {
-    if (d.released) {
-      const k = t - d.released;
-      if (k < 0) {
+  const dieAt = (d: Die, t: number): boolean => {
+    if (d.moveFrom && d.gather) {
+      /* 컵으로. 호를 그리며 입 위로, 끝나면 컵 안 */
+      const u = Math.min(1, Math.max(0, (t - d.moveT0) / MOVE_MS));
+      const e = easeInOut(u);
+      d.mesh.position.lerpVectors(d.moveFrom, d.moveTo, e);
+      d.mesh.position.y += Math.sin(u * Math.PI) * 1.6;
+      d.mesh.quaternion.copy(d.quat);
+      if (u >= 1) {
+        d.moveFrom = null;
+        d.gather = false;
+        d.mesh.visible = false;
+      }
+      return true;
+    }
+    if (d.track && d.released) {
+      const k = (t - d.released) / 1000;
+      if (k < d.track.frames[0].t) {
         d.mesh.visible = false;
         return true;
       }
       d.mesh.visible = true;
-      if (k < FLY_MS) {
-        /* 날고 튄다 */
-        d.vel.y -= GRAVITY * dt;
-        d.pos.addScaledVector(d.vel, dt);
-        const half = D / 2;
-        const xMax = TRAY_W / 2 - half;
-        if (d.pos.x < -xMax) { d.pos.x = -xMax; d.vel.x = Math.abs(d.vel.x) * 0.5; opts.onSound?.('clatter', 0.5); }
-        if (d.pos.x > xMax) { d.pos.x = xMax; d.vel.x = -Math.abs(d.vel.x) * 0.5; }
-        if (d.pos.z < ROLL_Z0 + half) { d.pos.z = ROLL_Z0 + half; d.vel.z = Math.abs(d.vel.z) * 0.5; opts.onSound?.('clatter', 0.4); }
-        if (d.pos.z > ROLL_Z1 - half) { d.pos.z = ROLL_Z1 - half; d.vel.z = -Math.abs(d.vel.z) * 0.5; opts.onSound?.('clatter', 0.4); }
-        if (d.pos.y < REST_Y && d.vel.y < 0) {
-          d.pos.y = REST_Y;
-          const hit = -d.vel.y;
-          d.vel.y = hit > 1.0 ? hit * 0.42 : 0;
-          d.vel.x *= 0.78;
-          d.vel.z *= 0.78;
-          d.ang.multiplyScalar(0.62);
-          d.bounces += 1;
-          if (hit > 1.0) opts.onSound?.('clatter', Math.min(1, hit / 9));
-        }
-        if (d.pos.y <= REST_Y + 0.001) {
-          /* 바닥에서 구른다. 미끄러지며 느려진다. 끝자락(마지막 0.35초)은 더 세게 */
-          const late = k > FLY_MS - 350 ? 3 : 1;
-          d.vel.x *= 1 - 2.8 * dt * late;
-          d.vel.z *= 1 - 2.8 * dt * late;
-          d.ang.multiplyScalar(1 - 3.5 * dt * late);
-        }
-        const w = d.ang.length();
-        if (w > 0.0001) {
-          tmpQ.setFromAxisAngle(tmpV.copy(d.ang).divideScalar(w), w * dt);
-          d.quat.premultiply(tmpQ);
-        }
-        d.mesh.position.copy(d.pos);
-        d.mesh.quaternion.copy(d.quat);
+      const going = sample(d.track, k, d.mesh.position, d.mesh.quaternion);
+      /* 부딪힌 소리. 지나간 것은 이번 프레임에 한 번씩 */
+      while (d.hitIdx < d.track.hits.length && d.track.hits[d.hitIdx].t <= k) {
+        opts.onSound?.('clatter', d.track.hits[d.hitIdx].force);
+        d.hitIdx += 1;
+      }
+      if (going) return true;
+      /* 다 굴렀다 */
+      d.pos.copy(d.mesh.position);
+      d.quat.copy(d.mesh.quaternion);
+      d.spot.copy(d.pos);
+      d.track = null;
+      d.released = 0;
+      /* 나는 동안 남기기가 왔으면(봇은 0.25초 만에 고른다) 멎은 뒤에 선반으로 */
+      if (d.kept) {
+        d.moveFrom = d.pos.clone();
+        d.moveTo.copy(railPos(dice.indexOf(d)));
+        d.moveT0 = t;
+        opts.onSound?.('slide', 0.6);
         return true;
       }
-      /* 정착. 지금 자리에서 자기 자리와 정한 눈으로. 자세는 지금에서 제일 가까운 것, 시간은 돌 각도만큼 */
-      if (!d.aimed) {
-        d.aimed = true;
-        const ang = nearestUpright(d.value, d.quat, d.target);
-        d.settleMs = 140 + (ang / (Math.PI / 2)) * 260;
-      }
-      const u = Math.min(1, (k - FLY_MS) / d.settleMs);
-      const e = ease(u);
-      d.mesh.position.lerpVectors(d.pos, d.spot, e);
-      d.mesh.position.y = Math.max(d.mesh.position.y, REST_Y);
-      d.mesh.quaternion.copy(d.quat).slerp(d.target, e);
-      if (u >= 1) {
-        d.released = 0;
-        d.aimed = false;
-        d.pos.copy(d.spot);
-        d.quat.copy(d.target);
-        d.mesh.position.copy(d.pos);
-        d.mesh.quaternion.copy(d.quat);
-        /* 나는 동안 남기기가 왔으면(봇은 0.25초 만에 고른다) 멎은 뒤에 선반으로 */
-        if (d.kept) {
-          d.moveFrom = d.pos.clone();
-          d.moveTo.copy(railPos(dice.indexOf(d)));
-          d.moveT0 = t;
-          opts.onSound?.('slide', 0.6);
-          return true;
-        }
-        return false;
-      }
-      return true;
+      return false;
     }
     if (d.moveFrom) {
       const u = Math.min(1, (t - d.moveT0) / MOVE_MS);
@@ -758,61 +761,13 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   };
   const frame = (): void => {
     const t = performance.now();
-    const dt = Math.min(0.04, lastT ? (t - lastT) / 1000 : 0.016);
-    lastT = t;
     if (!host.isConnected) {
       loop?.stop();
       loop = null;
       return;
     }
     let busy = cupAt(t);
-    for (const d of dice) if (dieAt(d, t, dt)) busy = true;
-    /* 나는 주사위끼리 부딪힌다. 겹쳐 지나가면 유령이다(사용자 지적). 공으로 보고 밀어내고 속도를 맞바꾼다 */
-    /* 움직이는 것(날기, 정착)은 서 있는 것과도 부딪힌다. 나는 동안만 재니 정착 구간에서 겹쳤다(사용자 지적)
-       반지름은 정육면체 대각선 절반에 가깝게. 구 0.5 로 재니 모서리가 파고들었다 */
-    const moving = (d: Die): boolean => d.released !== 0 && t - d.released >= 0;
-    const min = D * 1.28;
-    for (let i = 0; i < dice.length; i += 1) {
-      const a = dice[i];
-      if (!moving(a)) continue;
-      for (let j = 0; j < dice.length; j += 1) {
-        if (j === i) continue;
-        const b = dice[j];
-        if (!b.mesh.visible || (j < i && moving(b))) continue;
-        const bMoving = moving(b);
-        const bPos = bMoving ? b.pos : b.mesh.position;
-        tmpV.subVectors(bPos, a.pos);
-        const dist = tmpV.length();
-        if (dist >= min || dist < 1e-6) continue;
-        tmpV.divideScalar(dist);
-        const push = min - dist;
-        if (bMoving) {
-          a.pos.addScaledVector(tmpV, -push / 2);
-          b.pos.addScaledVector(tmpV, push / 2);
-          const va = a.vel.dot(tmpV);
-          const vb = b.vel.dot(tmpV);
-          if (va - vb > 0) {
-            a.vel.addScaledVector(tmpV, (vb - va) * 0.8);
-            b.vel.addScaledVector(tmpV, (va - vb) * 0.8);
-            a.ang.multiplyScalar(0.8);
-            b.ang.multiplyScalar(0.8);
-            opts.onSound?.('clatter', Math.min(1, (va - vb) / 8));
-          }
-          b.mesh.position.copy(b.pos);
-        } else {
-          /* 서 있는 것은 안 밀린다. 움직이는 쪽만 물러나고 튕긴다 */
-          a.pos.addScaledVector(tmpV, -push);
-          const va = a.vel.dot(tmpV);
-          if (va > 0) {
-            a.vel.addScaledVector(tmpV, -va * 1.5);
-            a.ang.multiplyScalar(0.8);
-            opts.onSound?.('clatter', Math.min(1, va / 8));
-          }
-        }
-        a.pos.y = Math.max(a.pos.y, REST_Y);
-        if (t - a.released < FLY_MS) a.mesh.position.copy(a.pos);
-      }
-    }
+    for (const d of dice) if (dieAt(d, t)) busy = true;
     if (camFrom && lookFrom) {
       const k = Math.min(1, (t - camT0) / camMs);
       const e = easeInOut(k);
@@ -874,16 +829,16 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
         if (!started) {
           d.value = v;
           d.kept = k;
-          upright(v, d.quat);
-          d.target.copy(d.quat);
+          upright(d, v);
           d.mesh.visible = true;
         } else {
           if (k !== d.kept) {
             d.kept = k;
             const flying = d.released !== 0 || pendingRelease.includes(i) || queued.includes(i);
-            /* 나는 중이면 멎은 뒤에 옮긴다(`dieAt` 의 정착 끝). 지금 끊으면 허공에서 선반으로 미끄러진다(실측) */
+            /* 나는 중이면 멎은 뒤에 옮긴다(`dieAt` 의 끝). 지금 끊으면 허공에서 선반으로 미끄러진다(실측) */
             if (!flying) {
-              /* 선반으로, 또는 선반에서 자기 자리로 */
+              /* 선반으로, 또는 선반에서 빈 자리로(전 자리는 그새 다른 주사위가 차지했을 수 있다) */
+              if (!k) scatter([i]);
               d.moveFrom = d.mesh.position.clone();
               d.moveTo.copy(k ? railPos(i) : d.spot);
               d.moveT0 = t;
@@ -896,8 +851,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
           } else if (v !== d.value) {
             /* 굴림 없이 눈이 바뀌었다(도중에 들어옴). 그냥 놓는다 */
             d.value = v;
-            upright(v, d.quat);
-            d.target.copy(d.quat);
+            upright(d, v);
           }
         }
       });
@@ -910,7 +864,6 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
           d.mesh.quaternion.copy(d.quat);
         });
       } else if (rolling.length) {
-        scatter(rolling);
         if (cupT0) queued = [...new Set([...queued, ...rolling])];
         else shake(rolling, t);
       }
