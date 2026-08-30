@@ -419,31 +419,38 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room):not(.ac-roomfill){position:relative}',
       /* 그리드 안의 absolute 는 **제 칸**이 기준이다(실측: 단추가 top -66px 로 튀었다). 전체 칸으로 펴서 #acPlay 를 기준으로 */
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls,#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:absolute;left:18px;bottom:18px;top:auto;right:auto;margin:0;z-index:3}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{background:rgba(18,12,8,.62);border:1px solid rgba(255,230,190,.16);color:#f6ecdc;backdrop-filter:blur(6px);padding:8px 14px 8px 10px;font-size:var(--font-size-sm);gap:10px}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{border-color:rgba(255,214,150,.6);background:rgba(40,26,12,.72)}',
+      /**
+       * ── 자리 카드 ── (사용자: 좌하단이 작고 답답. 레퍼런스 더). Chess Ultra 실측(1920x1080): 카드 330x110(폭 17%, 높이 10%),
+       * 아바타 80px, 이름 26px 명조, 등급 줄, 금테 1~2px, 반투명 검정. 둘이 화면 위 양 귀퉁이, 차례인 쪽 귀퉁이에 금색 삼각. lichess 와
+       * chess.com 은 상대 위, 나 아래. 여기서는 상대는 왼쪽 위, 나는 왼쪽 아래(판을 사이에 두고 마주 앉음). 폭 300, 아바타 56, 이름 20
+       */
+      '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:block;position:absolute;inset:0;margin:0;padding:0;background:none;border:0;box-shadow:none;pointer-events:none;z-index:3}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{position:absolute;left:18px;display:grid;grid-template-columns:56px 1fr auto;grid-template-rows:auto auto;column-gap:12px;row-gap:1px;align-items:center;width:300px;max-width:calc(100% - 36px);padding:10px 14px 10px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(30,19,10,.8),rgba(16,10,6,.84));border:1px solid rgba(217,168,90,.38);color:#f6ecdc;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.42);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-weight:400;pointer-events:auto;opacity:.78;transition:opacity .2s,border-color .2s,box-shadow .2s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{bottom:18px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me):not(.ac-watch){top:14px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-watch{top:auto;bottom:130px;width:auto;display:inline-flex;gap:6px;padding:6px 12px;font-size:12px;border-radius:999px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn{opacity:1;border-color:#e6bd7a;box-shadow:0 0 0 1px rgba(230,189,122,.45),0 10px 28px rgba(0,0,0,.5)}',
+      /* 차례인 카드의 귀퉁이 금색 삼각(Chess Ultra). 글자 화살표보다 멀리서 보인다 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn::after{content:"";position:absolute;right:0;top:0;width:0;height:0;border-style:solid;border-width:0 20px 20px 0;border-color:transparent #e6bd7a transparent transparent;border-top-right-radius:9px}',
+      /* 아바타 자리. 알 색 원. 두 자리뿐이라 뒤에서 세면 구경꾼 줄이 앞에 끼어도 맞는다 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-watch)::before{content:"";grid-column:1;grid-row:1/3;width:56px;height:56px;border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(2)::before{background:radial-gradient(circle at 35% 30%,#6a6560,#141210 70%)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(1)::before{background:radial-gradient(circle at 35% 30%,#fff,#cfc6b4 75%)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-seatname{grid-column:2;grid-row:1;font-size:20px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat>b{grid-column:3;grid-row:1;font-size:22px;font-weight:600;color:#ffd696;font-variant-numeric:tabular-nums;line-height:1.2}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule{grid-column:2;grid-row:2;font-size:12px;letter-spacing:.06em;color:rgba(240,225,200,.68);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule:empty{display:none}',
+      /* 남은 시간. 카드 오른쪽 아래, 남은 비율만큼 금색 호 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock{grid-column:3;grid-row:2;justify-self:end;position:relative;display:inline-grid;place-items:center;width:38px;height:38px;margin-top:2px;font-size:14px;font-variant-numeric:tabular-nums;color:#f7e9cf}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#d9a85a calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 15px,#000 16px);mask:radial-gradient(circle,transparent 15px,#000 16px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock:empty{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry{color:#ffb4a0}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry::before{background:conic-gradient(#e0553c calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0)}',
       /* 제안 상자. 판 위 가운데 종이 한 장 */
       '.ac-offer{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--accent);border-radius:12px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-offer{position:absolute;left:50%;top:60px;transform:translateX(-50%);z-index:6;margin:0;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;border:0;box-shadow:0 14px 30px rgba(0,0,0,.45);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-offer .btn{height:32px;line-height:30px;padding:0 14px;border-radius:999px;font-family:inherit}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-offer .btn-ghost{color:#5a4028;border:1px solid rgba(120,80,40,.4);background:none}',
-      /* 룰 한 줄과 남은 시간. 시계는 카드 오른쪽 끝, 남은 비율만큼 금색 호 */
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{flex-wrap:wrap;position:relative}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule{flex-basis:100%;font-size:11px;letter-spacing:.06em;color:rgba(240,225,200,.7);padding-left:26px;margin-top:-2px}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule:empty{display:none}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock{position:relative;display:inline-grid;place-items:center;width:30px;height:30px;margin-left:6px;font-size:12px;font-variant-numeric:tabular-nums;color:#f7e9cf}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#d9a85a calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 10px,#000 11px);mask:radial-gradient(circle,transparent 10px,#000 11px)}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock:empty{display:none}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry{color:#ffb4a0}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry::before{background:conic-gradient(#e0553c calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0)}',
-      /* 지금 둘 사람. 카드가 밝아지고 앞에 표시 하나 */
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{opacity:.72;transition:opacity .2s,box-shadow .2s}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn{opacity:1;box-shadow:0 0 0 2px rgba(255,214,150,.55),0 6px 18px rgba(0,0,0,.35)}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn::after{content:"\\25C0";font-size:var(--font-size-4xs);margin-left:4px;color:#ffd696}',
-      /* 알 색. 두 자리뿐이라 뒤에서 세면 구경꾼 줄이 앞에 끼어도 맞는다 */
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-watch)::before{content:"";width:16px;height:16px;border-radius:50%;flex:0 0 auto;box-shadow:0 1px 2px rgba(0,0,0,.6)}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(2)::before{background:radial-gradient(circle at 35% 30%,#5a5652,#111 70%)}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(1)::before{background:radial-gradient(circle at 35% 30%,#fff,#cfc6b4 75%)}',
       '#acPlay.ac-bare:has(.ac-t3room) #acStatus{display:block;position:absolute;left:50%;top:14px;right:auto;bottom:auto;width:max-content;max-width:60%;transform:translateX(-50%);margin:0;padding:6px 14px;border-radius:var(--radius-pill);background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);font-size:var(--font-size-sm);z-index:3;backdrop-filter:blur(6px)}',
       '#acPlay.ac-bare:has(.ac-t3room) #acStatus:empty{display:none}',
       /**
@@ -543,7 +550,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overnote{color:#e8d8bd;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
       /* 상태 알림(차례, 금수, 판 수)도 같은 종이 톤 */
       '#acPlay.ac-bare:has(.ac-t3room) #acStatus{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;letter-spacing:.04em}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
       /* CPU 렌더링 경고. 판 위에 한 줄. 글자와 단추 하나 */
       '.ac-t3warn{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 14px;margin:0 0 8px;border-radius:var(--radius-xl);background:rgba(200,120,40,.16);border:1px solid rgba(200,120,40,.5);font-size:var(--font-size-sm)}',
       '.ac-t3.ac-t3room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
@@ -1872,7 +1878,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
               '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') +
               (plan ? ' ac-team' + plan[i] : '') + '">' +
               (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
-              esc(s.name) + (s.bot ? ' 🤖' : '') + ' <b>' + s.score + '</b></span>'
+              '<span class="ac-seatname">' + esc(s.name) + (s.bot ? ' 🤖' : '') + '</span> <b>' + s.score + '</b></span>'
           )
           .join('');
       render?.(v, mySeat, now);
