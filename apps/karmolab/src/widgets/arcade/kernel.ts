@@ -29,6 +29,8 @@ export interface MatchView<S> {
   /** 이번 판이 끝나고 다음 판을 기다리는 중인가 */
   roundOver: boolean;
   note?: Note;
+  /** 복기 중이면. 화면이 알에 수 번호를 얹고 알림을 참는다(`arcade.ts` 가 채움) */
+  review?: { order: number[]; at: number; total: number };
 }
 
 /** 판 사이 쉬는 시간. 결과를 읽을 틈이 없으면 이긴 줄도 모른다. */

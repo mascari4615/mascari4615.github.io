@@ -41,6 +41,8 @@ import {
   Scene,
   SphereGeometry,
   SpotLight,
+  Sprite,
+  SpriteMaterial,
   SRGBColorSpace,
   Vector2,
   Vector3,
@@ -60,6 +62,8 @@ export interface Stone {
   last?: boolean;
   /** 왕관 (체커) */
   king?: boolean;
+  /** 몇 번째 수인가. 복기 때만. 알 위에 숫자 */
+  n?: number;
   /** 집어 든 말. 금빛 고리 (체커) */
   pick?: boolean;
 }
@@ -718,6 +722,42 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   let ghostAt = -1;
 
   /* 마지막 수 표. 붉은 고리 하나를 옮겨 쓴다. */
+  /* 수 번호. 복기 때 알 위에 숫자 한 장(스프라이트). 그림은 번호와 색마다 한 번만 굽는다 */
+  const numMaps = new Map<string, SpriteMaterial>();
+  const numMatFor = (n: number, who: number): SpriteMaterial => {
+    const key = `${n}:${who}`;
+    let m = numMaps.get(key);
+    if (!m) {
+      const cv = document.createElement('canvas');
+      cv.width = 128;
+      cv.height = 128;
+      const c = cv.getContext('2d') as CanvasRenderingContext2D;
+      c.clearRect(0, 0, 128, 128);
+      c.fillStyle = who === 2 ? '#1a1612' : '#f6efe2';
+      c.font = `bold ${n >= 100 ? 58 : 68}px "Noto Sans KR",system-ui,sans-serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(String(n), 64, 68);
+      const map = new CanvasTexture(cv);
+      map.colorSpace = SRGBColorSpace;
+      m = new SpriteMaterial({ map, transparent: true, depthTest: false, depthWrite: false });
+      numMaps.set(key, m);
+    }
+    return m;
+  };
+  const numPool: Sprite[] = [];
+  const numOf = (k: number): Sprite => {
+    let s = numPool[k];
+    if (!s) {
+      s = new Sprite(numMatFor(1, 1));
+      s.scale.set(CELL * 0.55, CELL * 0.55, 1);
+      s.renderOrder = 5;
+      s.visible = false;
+      scene.add(s);
+      numPool[k] = s;
+    }
+    return s;
+  };
   const markMat = new MeshStandardMaterial({ color: 0xe2503c, roughness: 0.5 });
   const mark = new Mesh(new CircleGeometry(CELL * 0.11, 20), markMat);
   mark.rotation.x = -Math.PI / 2;
@@ -855,6 +895,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const layout = (t: number): boolean => {
     pool.forEach((m) => { m.visible = false; });
     hints.forEach((m) => { m.visible = false; });
+    numPool.forEach((m) => { m.visible = false; });
     mark.visible = false;
     pickRing.visible = false;
     let busy = false;
@@ -879,7 +920,13 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       m.position.set(cx(st.cell), STONE_Y + up, cz(st.cell));
       m.scale.set(1 + (1 - squash) * 0.45, flat * squash, 1 + (1 - squash) * 0.45);
       m.visible = true;
-      if (st.last) {
+      if (st.n !== undefined) {
+        /* 번호가 있으면 붉은 표 대신 숫자. 마지막 수는 숫자가 붉다 */
+        const sp = numOf(k);
+        sp.material = numMatFor(st.n, st.who);
+        sp.position.set(cx(st.cell), STONE_Y + up + CELL * 0.44 * flat + 0.05, cz(st.cell));
+        sp.visible = true;
+      } else if (st.last) {
         /* 알 밑에 깔면 안 보인다(실측). 알 꼭대기 위에 얹는다 */
         mark.position.set(cx(st.cell), STONE_Y + up + CELL * 0.44 * flat + 0.006, cz(st.cell));
         mark.visible = true;
@@ -1109,7 +1156,7 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
     ok: true,
     software,
     place(stones, hint) {
-      const key = stones.map((st) => `${st.cell}:${st.who}${st.last ? 'L' : ''}${st.king ? 'K' : ''}${st.pick ? 'P' : ''}`).join(',') + '|' + (hint?.can ?? []).join(',');
+      const key = stones.map((st) => `${st.cell}:${st.who}${st.last ? 'L' : ''}${st.king ? 'K' : ''}${st.pick ? 'P' : ''}${st.n !== undefined ? 'n' + st.n : ''}`).join(',') + '|' + (hint?.can ?? []).join(',');
       if (key === lastKey) return;
       lastKey = key;
       const t = performance.now();

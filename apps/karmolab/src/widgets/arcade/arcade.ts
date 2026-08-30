@@ -483,6 +483,31 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn:hover{border-color:#e6bd7a;background:rgba(46,30,14,.8);transform:translateY(-1px)}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn-primary{background:linear-gradient(180deg,#c9863d,#8f4f1c);border-color:#f0c98a;color:#fff6e4;font-weight:600;box-shadow:0 6px 18px rgba(120,60,10,.45)}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn-primary:hover{background:linear-gradient(180deg,#d8954a,#9d5a22)}',
+      /**
+       * ── 복기 타임라인 ── (레퍼런스: 오목 가자 복기는 휠로 수 이동과 Try Play. lichess 는 수 목록, 화살표 키, 속도)
+       * 처음, 한 수 앞, 재생, 한 수 뒤, 끝, 막대, N / M, 속도. 곁가지(Try Play)면 막대 대신 돌아가기
+       */
+      '.ac-timeline{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin:var(--space-md) 0 0}',
+      '.ac-timeline[hidden]{display:none}',
+      '.ac-tlbtn{display:inline-grid;place-items:center;width:34px;height:34px;padding:0;border-radius:50%;border:1px solid var(--border);background:var(--bg-secondary);color:inherit;cursor:pointer}',
+      '.ac-tlbtn svg{width:18px;height:18px}',
+      '.ac-tlbtn.ac-tltext,.ac-tlbtn.ac-tlspeed{width:auto;padding:0 12px;border-radius:var(--radius-pill);font-size:var(--font-size-xs)}',
+      '.ac-tlbar{width:200px;accent-color:var(--accent)}',
+      '.ac-tlnum{min-width:64px;text-align:center;font-variant-numeric:tabular-nums;font-size:var(--font-size-sm)}',
+      '.ac-tlbranch{font-size:var(--font-size-xs);color:var(--accent)}',
+      '.ac-tlbranch[hidden],.ac-tlbtn[hidden]{display:none}',
+      '.ac-tlplay .ac-ico-pause{display:none}',
+      '.ac-tlplay.ac-on .ac-ico-pause{display:block}',
+      '.ac-tlplay.ac-on .ac-ico-play{display:none}',
+      '.ac-timeline.ac-branch .ac-tlbar,.ac-timeline.ac-branch #acTlFirst,.ac-timeline.ac-branch #acTlPrev,.ac-timeline.ac-branch #acTlPlay,.ac-timeline.ac-branch #acTlNext,.ac-timeline.ac-branch #acTlLast,.ac-timeline.ac-branch #acTlSpeed,.ac-timeline.ac-branch .ac-tlnum{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-timeline{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;margin:0;flex-wrap:nowrap;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(24,15,8,.72);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.42);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-timeline{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbtn{background:none;border-color:rgba(217,168,90,.35);color:#f1e3c8;transition:background .12s,border-color .12s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbtn:hover{background:rgba(217,168,90,.18);border-color:#e6bd7a}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbtn.ac-tltext{font-family:inherit;letter-spacing:.06em;font-size:13px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbar{width:240px;accent-color:#d9a85a}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-tlnum{color:#ffd696;font-size:15px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-tlbranch{color:#ffd696;letter-spacing:.04em}',
       /* ── 콘텐츠 창 채우기 (위 `fill`) ── 헤더 아래, 사이드바 오른쪽을 전부 방으로 */
       '#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:0;width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}',
       '#acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}',
@@ -1309,7 +1334,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 끝나면 색을 바꿔 한 판 더. 레퍼런스의 결과 화면 첫 버튼 */
       '<button class="btn btn-ghost" id="acSwapColor" style="display:none">' + esc(t('arcade.btn.swapcolor')) + '</button>' +
       '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
-      '</div></div>';
+      '</div>' +
+      /* 복기 타임라인. 결과의 다시 보기가 켠다. 방에서는 판 아래 가운데 한 줄 */
+      '<div class="ac-timeline" id="acTimeline" hidden>' +
+      '<button class="ac-tlbtn" id="acTlFirst" title="' + esc(t('arcade.tl.first')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 6l-8 6 8 6z"/></svg></button>' +
+      '<button class="ac-tlbtn" id="acTlPrev" title="' + esc(t('arcade.tl.prev')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6l-8 6 8 6z"/></svg></button>' +
+      '<button class="ac-tlbtn ac-tlplay" id="acTlPlay" title="' + esc(t('arcade.tl.play')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="ac-ico-play" d="M8 5l12 7-12 7z"/><path class="ac-ico-pause" d="M7 5v14M17 5v14"/></svg></button>' +
+      '<button class="ac-tlbtn" id="acTlNext" title="' + esc(t('arcade.tl.next')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l8 6-8 6z"/></svg></button>' +
+      '<button class="ac-tlbtn" id="acTlLast" title="' + esc(t('arcade.tl.last')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5v14M6 6l8 6-8 6z"/></svg></button>' +
+      '<input type="range" class="ac-tlbar" id="acTlBar" min="0" max="0" value="0" aria-label="' + esc(t('arcade.tl.bar')) + '">' +
+      '<span class="ac-tlnum" id="acTlNum"></span>' +
+      '<button class="ac-tlbtn ac-tlspeed" id="acTlSpeed" title="' + esc(t('arcade.tl.speed')) + '">1x</button>' +
+      '<span class="ac-tlbranch" id="acTlBranch" hidden></span>' +
+      '<button class="ac-tlbtn ac-tltext" id="acTlBack" hidden>' + esc(t('arcade.tl.back')) + '</button>' +
+      '<button class="ac-tlbtn ac-tltext" id="acTlExit">' + esc(t('arcade.tl.exit')) + '</button>' +
+      '</div>' +
+      '</div>';
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
     const lobby = $<HTMLElement>('#acLobby');
@@ -1755,6 +1795,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let replaying = false;
     /** 되살리는 중 아직 안 넣은 수의 자리 */
     let tapeAt = 0;
+    /**
+     * 복기. 판을 씨앗으로 다시 굴려 **수마다 장면**을 잡아 두고 타임라인으로 넘김
+     * `branch` 는 Try Play. 그 수까지 굴린 살아 있는 판에서 다른 수를 이어 두는 것
+     */
+    let review: {
+      frames: Array<{ at: number; v: MatchView<unknown> }>;
+      order: number[];
+      at: number;
+      playing: boolean;
+      speed: number;
+      timer: number;
+      branch: boolean;
+    } | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
     let raf = 0;
@@ -1895,6 +1948,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           )
           .join('');
       render?.(v, mySeat, now);
+      /* 복기 장면. 결과와 알림과 기록은 안 건드린다. 곁가지(살아 있는 판)는 보통 판처럼 간다 */
+      if (review && !review.branch) {
+        paintTimeline();
+        return;
+      }
       /* 화면이 판을 다시 그리면 **짚은 자리 표시가 같이 지워진다** (2026-08-16 실측).
          매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 화살표를 눌러도 테두리가 0.4초 안에
          사라져, 키로는 못 논다고 느낀다(체커, 미니장기, 여우와사냥개, 대통령, 도미노 다섯이 그랬다).
@@ -1940,19 +1998,20 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             againBtn.style.display = '';
           }
           /* 끝난 순간의 기록을 챙긴다. 다음 판을 시작하면 커널이 새로 만들어져 사라진다. */
-          if (match && !replaying) {
+          /* 곁가지(Try Play)의 끝은 원래 판의 기록을 덮어쓰지 않는다 */
+          if (match && !replaying && !review) {
             const g0 = gameById(gameId);
             if (g0) tape = record(g0, match as never, lastSeats, lastSeed) as Tape<unknown>;
           }
           /* 여태 가장 잘한 판이면 남긴다. 다음 판에 이 사람이 옆자리에 앉는다 (`ghost.ts`).
              혼자 둔 판만 남긴다: 여럿이 둔 판의 내 수는 남의 수에 기대어 나온 것이라
              혼자 하는 판에 옮겨 놓으면 어제의 나가 아니라 딴사람이 된다. */
-          if (tape && !net && !replaying && mySeat >= 0) {
+          if (tape && !net && !replaying && !review && mySeat >= 0) {
             const mine = tape.moves.filter((mv) => mv.seat === mySeat).map((mv) => ({ at: mv.at, action: mv.action }));
             if (mine.length) noteBest(gameId, v.seats[mySeat]?.score ?? 0, mine);
           }
           /* 다시 보기는 **내 커널이 있을 때만**. 손님은 판을 받아 그리기만 해서 되살릴 것이 없다. */
-          replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying ? '' : 'none';
+          replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying && !review ? '' : 'none';
           showResult(v, draw, top, note);
         }
       } else if (v.note) {
@@ -2298,7 +2357,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function sendAct(a: unknown): void {
       /* 구경꾼의 손은 여기서 멈춘다. 주인도 자리 없는 사람의 수는 흘리지만, **화면이 반응하면
          사람은 자기가 두고 있다고 믿는다**. 막는 자리는 손이 나가기 전이어야 한다. */
-      if (watching || replaying) return;
+      if (watching) return;
+      /* 복기 중 판을 누르면 Try Play. 그 수까지 굴린 살아 있는 판에서 이어 둔다 */
+      if (review && !review.branch) {
+        if (!branchFrom(review.at)) return;
+      } else if (replaying) return;
       /* 편지 판이면 **내 차례에 한 수만** 둔다. 두고 나면 링크가 새로 나온다. */
       if (letter) {
         if (turnOf(letter) !== mySeat || match?.view().finished) return;
@@ -2371,6 +2434,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastPersonas = personas;
       lastLevel = levelNow();
       tape = null;
+      endReview(false);
       replaying = false;
       shadow = null;
       mountView(id);
@@ -2776,24 +2840,216 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 판을 저장해 두고 되감는 것이 **아니다.** 씨앗과 누가 언제 무엇을 눌렀나로 커널을
      * 다시 굴린다. 그래서 51개가 한꺼번에 얻는다. 게임 파일은 이걸 모른다.
      */
-    replayBtn.onclick = (): void => {
+    replayBtn.onclick = (): void => startReview();
+
+    /**
+     * 복기 시작. 판을 씨앗으로 처음부터 굴리며 **수가 먹힐 때마다 장면**을 잡음
+     * 장면 0 은 빈 판. 한 판이 서른 수면 서른한 장. 상태는 규칙이 매번 새 객체를 내므로 그대로, 자리 점수만 복사
+     */
+    function startReview(): void {
       const g = gameById(gameId);
       if (!g || !tape) return;
+      const tp = tape;
+      const m = new Match(withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
+      const snap = (): MatchView<unknown> => {
+        const v = m.view();
+        return { ...v, seats: v.seats.map((s) => ({ ...s })) };
+      };
+      const frames: Array<{ at: number; v: MatchView<unknown> }> = [{ at: 0, v: snap() }];
+      const order: number[] = [];
+      const boardOf = (v: MatchView<unknown>): number[] | null => {
+        const b = (v.state as { board?: unknown } | null)?.board;
+        return Array.isArray(b) ? (b as number[]) : null;
+      };
+      const take = (): void => {
+        while (frames.length - 1 < m.moves) {
+          const v = snap();
+          const prev = boardOf(frames[frames.length - 1].v);
+          const next = boardOf(v);
+          if (prev && next) {
+            let cell = -1;
+            for (let i = 0; i < next.length; i += 1) if (next[i] !== prev[i] && next[i]) { cell = i; break; }
+            order.push(cell);
+          }
+          frames.push({ at: m.clock(), v });
+        }
+      };
+      let i = 0;
+      for (let guard = 0; guard < 200000; guard += 1) {
+        while (i < tp.moves.length && tp.moves[i].at <= m.clock()) {
+          const mv = tp.moves[i++];
+          m.dispatch(mv.seat, mv.action);
+          take();
+        }
+        m.step(m.clock() + 16);
+        take();
+        if (m.view().finished) break;
+        if (m.clock() > tp.end + 16 && i >= tp.moves.length) break;
+      }
+      /* 끝 장면은 마지막 수 뒤의 판정(끝났다)까지 담는다 */
+      const last = frames[frames.length - 1];
+      last.v = snap();
+      last.at = m.clock();
+      cancelAnimationFrame(raf);
+      match = null;
       replaying = true;
-      tapeAt = 0;
+      review = { frames, order, at: frames.length - 1, playing: false, speed: 1, timer: 0, branch: false };
       ended = false;
-      soundedRound = -1;
-      match = new Match(withBotLevel(g, lastLevel, lastPersonas), tape.seed, tape.seats) as Match<unknown, unknown>;
-      mountView(gameId);
       hideResult();
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
       replayBtn.style.display = 'none';
+      $<HTMLElement>('#acTimeline').hidden = false;
+      /* 화면을 새로 세운다. 끝 장면에서 다가선 카메라가 남아 있으면 복기 판 위가 잘린다(실측) */
+      mountView(gameId);
       say(t('arcade.replay.now'), 'ok');
-      t0 = performance.now();
+      seek(0);
+    }
+
+    /** 그 수의 장면으로. 자리 카드의 시계도 그때 값 */
+    function seek(k: number): void {
+      if (!review || review.branch) return;
+      const n = review.frames.length - 1;
+      review.at = Math.max(0, Math.min(n, k));
+      const f = review.frames[review.at];
+      const v: MatchView<unknown> = { ...f.v, review: { order: review.order, at: review.at, total: n } };
+      paint(v, f.at);
+    }
+
+    function paintTimeline(): void {
+      const tlEl = $<HTMLElement>('#acTimeline');
+      if (!review) {
+        tlEl.hidden = true;
+        return;
+      }
+      tlEl.hidden = false;
+      tlEl.classList.toggle('ac-branch', review.branch);
+      const n = review.frames.length - 1;
+      const bar = $<HTMLInputElement>('#acTlBar');
+      if (bar.max !== String(n)) bar.max = String(n);
+      if (bar.value !== String(review.at)) bar.value = String(review.at);
+      $<HTMLElement>('#acTlNum').textContent = `${review.at} / ${n}`;
+      $<HTMLElement>('#acTlPlay').classList.toggle('ac-on', review.playing);
+      $<HTMLElement>('#acTlSpeed').textContent = `${review.speed}x`;
+      $<HTMLElement>('#acTlBack').hidden = !review.branch;
+      const br = $<HTMLElement>('#acTlBranch');
+      br.hidden = !review.branch;
+      if (review.branch) br.textContent = t('arcade.tl.branch', { n: String(review.at) });
+    }
+
+    function tlPlay(on: boolean): void {
+      if (!review) return;
+      if (review.timer) window.clearInterval(review.timer);
+      review.timer = 0;
+      review.playing = on;
+      if (on) {
+        if (review.at >= review.frames.length - 1) review.at = 0;
+        review.timer = window.setInterval(() => {
+          if (!review || review.branch) return;
+          if (review.at >= review.frames.length - 1) {
+            tlPlay(false);
+            return;
+          }
+          seek(review.at + 1);
+        }, 900 / review.speed);
+      }
+      paintTimeline();
+    }
+
+    /**
+     * Try Play. 복기 중 판을 누르면 **그 수까지 굴린 살아 있는 판**에서 이어 두기
+     * 봇이 상대면 봇이 답한다. 되돌아가기는 복기 장면으로
+     */
+    function branchFrom(k: number): boolean {
+      const g = gameById(gameId);
+      if (!g || !tape || !review) return false;
+      const tp = tape;
+      const m = new Match(withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
+      let i = 0;
+      for (let guard = 0; guard < 200000 && m.moves < k; guard += 1) {
+        while (i < tp.moves.length && tp.moves[i].at <= m.clock() && m.moves < k) {
+          const mv = tp.moves[i++];
+          m.dispatch(mv.seat, mv.action);
+        }
+        if (m.moves >= k) break;
+        m.step(m.clock() + 16);
+      }
+      if (m.view().finished) return false;
+      /* 내 차례인 수에서만. 봇 차례에서 갈라지면 봇이 먼저 두어 무엇이 내 수인지 헷갈린다(실측) */
+      if (g.canAct && !g.canAct(m.view().state as never, mySeat)) return false;
+      tlPlay(false);
+      review.branch = true;
+      replaying = false;
+      match = m;
+      ended = false;
+      t0 = performance.now() - m.clock();
       cancelAnimationFrame(raf);
       loop();
+      paintTimeline();
+      return true;
+    }
+
+    /** 곁가지에서 복기 장면으로 */
+    function backToReview(): void {
+      if (!review) return;
+      cancelAnimationFrame(raf);
+      match = null;
+      replaying = true;
+      review.branch = false;
+      hideResult();
+      seek(review.at);
+    }
+
+    /** 복기를 접는다. 결과 종이로 돌아간다 */
+    function endReview(showOver = true): void {
+      if (!review) return;
+      tlPlay(false);
+      const last = review.frames[review.frames.length - 1];
+      resultMeta = { moves: review.frames.length - 1, ms: last.at };
+      review = null;
+      replaying = false;
+      cancelAnimationFrame(raf);
+      match = null;
+      $<HTMLElement>('#acTimeline').hidden = true;
+      if (showOver) {
+        ended = false;
+        paint(last.v, last.at);
+      }
+    }
+
+    $<HTMLButtonElement>('#acTlFirst').onclick = () => { tlPlay(false); seek(0); };
+    $<HTMLButtonElement>('#acTlPrev').onclick = () => { tlPlay(false); if (review) seek(review.at - 1); };
+    $<HTMLButtonElement>('#acTlNext').onclick = () => { tlPlay(false); if (review) seek(review.at + 1); };
+    $<HTMLButtonElement>('#acTlLast').onclick = () => { tlPlay(false); if (review) seek(review.frames.length - 1); };
+    $<HTMLButtonElement>('#acTlPlay').onclick = () => tlPlay(!review?.playing);
+    $<HTMLButtonElement>('#acTlSpeed').onclick = () => {
+      if (!review) return;
+      review.speed = review.speed === 1 ? 2 : review.speed === 2 ? 0.5 : 1;
+      if (review.playing) tlPlay(true);
+      else paintTimeline();
     };
+    $<HTMLInputElement>('#acTlBar').oninput = (ev) => { tlPlay(false); seek(Number((ev.target as HTMLInputElement).value)); };
+    $<HTMLButtonElement>('#acTlBack').onclick = backToReview;
+    $<HTMLButtonElement>('#acTlExit').onclick = () => endReview(true);
+    /* 휠과 화살표. 오목 가자는 휠, lichess 는 화살표 */
+    play.addEventListener('wheel', (ev) => {
+      if (!review || review.branch) return;
+      ev.preventDefault();
+      tlPlay(false);
+      seek(review.at + (ev.deltaY > 0 ? 1 : -1));
+    }, { passive: false });
+    document.addEventListener('keydown', (ev) => {
+      if (!review || review.branch) return;
+      const tag = (ev.target as HTMLElement).tagName;
+      if (tag === 'INPUT' && (ev.target as HTMLInputElement).type !== 'range') return;
+      if (ev.key === 'ArrowLeft') { tlPlay(false); seek(review.at - 1); }
+      else if (ev.key === 'ArrowRight') { tlPlay(false); seek(review.at + 1); }
+      else if (ev.key === 'Home') { tlPlay(false); seek(0); }
+      else if (ev.key === 'End') { tlPlay(false); seek(review.frames.length - 1); }
+      else if (ev.key === ' ') { tlPlay(!review.playing); }
+      else return;
+      ev.preventDefault();
+    });
 
     /** 다른 게임. 방을 든 채 로비로. 손님에게는 고르는 중이라고 알린다. */
     swapBtn.onclick = (): void => {
@@ -2805,6 +3061,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
       replayBtn.style.display = 'none';
+      endReview(false);
       replaying = false;
       plan = null;
       letter = null;

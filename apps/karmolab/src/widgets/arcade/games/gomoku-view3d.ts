@@ -124,8 +124,8 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       lastSeat = mySeat;
       const myTurn = s.won === -1 && s.turn === mySeat;
       if (!myTurn) board.ghost(-1, mySeat + 1);
-      /* 차례 알림. 첫 그림(shown < 0)은 조용히. 판이 끝나면 결과 종이가 말한다 */
-      if (shown >= 0 && s.won === -1 && s.turn !== toldTurn) {
+      /* 차례 알림. 첫 그림(shown < 0)은 조용히. 판이 끝나면 결과 종이가 말한다. 복기 중엔 안 한다 */
+      if (!v.review && shown >= 0 && s.won === -1 && s.turn !== toldTurn) {
         toast(myTurn ? t('arcade.gomoku.toast.me') : t('arcade.gomoku.toast.turn', { who: v.seats[s.turn]?.name ?? '' }));
       }
       toldTurn = s.turn;
@@ -166,19 +166,23 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
         }
       });
       const stones: Stone[] = [];
+      /* 복기면 수 번호. 놓인 차례(`order`)에서 칸 -> 번호 */
+      const numOf = new Map<number, number>();
+      if (v.review) v.review.order.forEach((cell, i) => numOf.set(cell, i + 1));
       for (let i = 0; i < s.board.length; i += 1) {
         const who = s.board[i];
-        if (who) stones.push({ cell: i, who, last: i === s.last });
+        if (who) stones.push({ cell: i, who, last: i === s.last, n: numOf.get(i) });
       }
       /* 여기 둘 수 있다는 빈 칸 전부라 표시하지 않는다. 판이 온통 점으로 덮인다.
          자리를 좁혀 주는 놀이(오델로, 체커)에서만 쓴다. */
       board.place(stones);
       /* 알이 늘었으면 딱. 첫 그림은 안 울린다(도중에 들어온 판이면 스무 개가 한꺼번에 울린다) */
       if (shown >= 0 && stones.length > shown) amb.stone();
-      /* 알이 줄었으면 누가 물렀다. 무른 쪽은 지금 차례인 쪽 */
-      if (shown >= 0 && stones.length < shown) toast(t('arcade.gomoku.toast.undo', { who: v.seats[s.turn]?.name ?? '' }), 1600);
+      /* 알이 줄었으면 누가 물렀다. 무른 쪽은 지금 차례인 쪽. 복기에서 뒤로 가는 건 무르기가 아니다 */
+      if (!v.review && shown >= 0 && stones.length < shown) toast(t('arcade.gomoku.toast.undo', { who: v.seats[s.turn]?.name ?? '' }), 1600);
       shown = stones.length;
-      if (s.won !== -1) board.finish();
+      /* 복기에서는 카메라가 안 다가선다. 끝 장면과 처음 장면을 오가므로 */
+      if (s.won !== -1 && !v.review) board.finish();
       host.classList.toggle('ac-waiting', !myTurn);
       /* 차례를 자리 카드에 표시. 자리 카드는 오락실 본체 것이라 여기서 클래스만 얹는다 */
       document.querySelectorAll('#acSeats .ac-seat:not(.ac-watch)').forEach((e, i) => {
