@@ -3630,3 +3630,199 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
     color: var(--text-tertiary);
 }
 .landing-madewith a { color: var(--text-secondary); }
+
+/* ===================================================================
+   스킨 (change.karmolab-shell-redesign, 2026-08-30)
+   레이아웃 하나, 스킨은 토큰 재정의만. 부품 CSS 에 스킨 분기 없음
+   토큰 세 층: 색(위 :root 재정의) / 모양(--skew --cut --shadow-hard --band*) / 장면(--scene-*)
+   모양과 장면은 0 또는 transparent 면 소거. classic 이 그 값
+   =================================================================== */
+:root {
+    --skin: classic;
+    --skew: 0deg;
+    --cut: 0px;
+    --shadow-hard: none;
+    --band: var(--bg-tertiary);
+    --band-ink: var(--text-primary);
+    --band-mute: var(--text-tertiary);
+    --accent-mix: var(--accent);
+    --scene-blob-a: transparent;
+    --scene-blob-b: transparent;
+    --scene-shard: transparent;
+    --scene-dot: transparent;
+    --scene-grain: 0;
+    --scene-wm: transparent;
+}
+
+/* 필드: 밝은 회백 판 + 주황 키. 캔버스 "확정 Y4" 값 */
+html[data-skin="field"] {
+    --skin: field;
+    color-scheme: light;
+
+    --bg-void: #dedcd6;
+    --bg-primary: #e2e0da;
+    --bg-secondary: #eeece6;
+    --bg-tertiary: #d3d1ca;
+    --bg-hover: #e7e5df;
+    --bg-active: #d9d7d0;
+
+    --glass: rgba(238, 236, 230, 0.78);
+    --glass-hover: rgba(238, 236, 230, 0.88);
+    --glass-strong: rgba(238, 236, 230, 0.96);
+    --glass-blur: blur(14px);
+
+    --text-primary: #2a2a27;
+    --text-secondary: #4a4a46;
+    --text-tertiary: #6f6e68;
+
+    --accent: #e8963a;
+    --accent-fg: #2a2a27;
+    --accent-hover: #d9783a;
+    --accent-dim: rgba(232, 150, 58, 0.12);
+    --accent-subtle: rgba(232, 150, 58, 0.07);
+    --accent-glow: rgba(232, 150, 58, 0.25);
+    /* 한 요소의 칠 안에 얼룩 섞임. 요소별 다른 색 아님 */
+    --accent-mix: radial-gradient(circle at 8% 60%, #f0b25a 0%, transparent 30%), radial-gradient(circle at 92% 30%, #d9783a 0%, transparent 26%), linear-gradient(#e8963a, #e8963a);
+
+    --secondary: #6f6e68;
+    --secondary-hover: #4a4a46;
+    --secondary-subtle: rgba(111, 110, 104, 0.08);
+    --secondary-glow: rgba(111, 110, 104, 0.16);
+
+    --success: #3f9d6a;
+    --success-subtle: rgba(63, 157, 106, 0.08);
+    --error: #b8463a;
+    --error-subtle: rgba(184, 70, 58, 0.08);
+    --warning: #8a5c12;
+    --warning-subtle: rgba(138, 92, 18, 0.08);
+
+    --border: rgba(42, 42, 39, 0.14);
+    --border-hover: rgba(42, 42, 39, 0.26);
+    --border-strong: #2a2a27;
+
+    --radius-sm: 0px;
+    --radius-md: 0px;
+    --radius-lg: 2px;
+    --radius-xl: 2px;
+
+    --header-h: 36px;
+
+    --grid-color: rgba(42, 42, 39, 0.05);
+    --grid-color-fine: rgba(42, 42, 39, 0.0);
+    --vignette: transparent;
+    --holo-sweep: none;
+    --holo-bloom: none;
+    --chrome-grad: linear-gradient(135deg, #e8963a 0%, #f0b25a 50%, #d9783a 100%);
+    --chrome-grad-hover: linear-gradient(135deg, #f0b25a 0%, #f5c470 50%, #e8963a 100%);
+    --brand-edge: rgba(42, 42, 39, 0.3);
+    --brand-shadow: rgba(30, 30, 28, 0.45);
+    --decor-a: #e8963a;
+    --decor-b: #33332f;
+    --decor-c: #8a9aa3;
+    --decor-d: #d9783a;
+    --decor-e: #6f6e68;
+    --fill-strong: #33332f;
+    --fill-strong-hover: #4a4a46;
+    --fill-strong-ink: #ecebe5;
+    --shadow-float: 6px 6px 0 rgba(30, 30, 28, 0.45);
+    --header-shell-glass: #cfcfc8;
+
+    --skew: -12deg;
+    --cut: 14px;
+    --shadow-hard: 6px 6px 0 rgba(30, 30, 28, 0.45);
+    --band: #33332f;
+    --band-ink: #ecebe5;
+    --band-mute: #9a9992;
+
+    --scene-blob-a: rgba(232, 150, 58, 0.28);
+    --scene-blob-b: rgba(138, 154, 163, 0.22);
+    --scene-shard: rgba(42, 42, 39, 0.12);
+    --scene-dot: rgba(42, 42, 39, 0.10);
+    --scene-grain: 0.16;
+    --scene-wm: rgba(20, 20, 20, 0.06);
+}
+
+/* 필드 어두운 판: 근검정 + 밝은 판, 띠 반전 (캔버스 N6). 남회색, 순검정 금지 */
+html[data-skin="field"][data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg-void: #232220;
+    --bg-primary: #2a2926;
+    --bg-secondary: #3b3936;
+    --bg-tertiary: #4e4c47;
+    --bg-hover: #45433f;
+    --bg-active: #57544f;
+
+    --glass: rgba(59, 57, 54, 0.9);
+    --glass-hover: rgba(59, 57, 54, 0.95);
+    --glass-strong: rgba(59, 57, 54, 0.98);
+
+    --text-primary: #efede6;
+    --text-secondary: #c9c7bf;
+    --text-tertiary: #9c9a92;
+
+    --accent-fg: #2a2a27;
+    --accent-dim: rgba(232, 150, 58, 0.16);
+    --accent-glow: rgba(232, 150, 58, 0.3);
+
+    --border: rgba(239, 237, 230, 0.12);
+    --border-hover: rgba(239, 237, 230, 0.22);
+    --border-strong: #efede6;
+
+    --grid-color: rgba(239, 237, 230, 0.05);
+    --brand-edge: rgba(239, 237, 230, 0.3);
+    --brand-shadow: rgba(0, 0, 0, 0.55);
+    --decor-b: #e9e6dd;
+    --fill-strong: #e9e6dd;
+    --fill-strong-hover: #f3f1ea;
+    --fill-strong-ink: #2a2a27;
+    --shadow-float: 6px 6px 0 rgba(0, 0, 0, 0.55);
+    --header-shell-glass: #1a1917;
+    --shadow-hard: 6px 6px 0 rgba(0, 0, 0, 0.55);
+    --band: #e9e6dd;
+    --band-ink: #2a2a27;
+    --band-mute: #8a8983;
+
+    --scene-blob-a: rgba(232, 150, 58, 0.12);
+    --scene-blob-b: rgba(138, 154, 163, 0.1);
+    --scene-shard: rgba(239, 237, 230, 0.14);
+    --scene-dot: rgba(239, 237, 230, 0.12);
+    --scene-grain: 0.08;
+    --scene-wm: rgba(255, 250, 240, 0.06);
+}
+
+/* 필드 장면: 색 덩어리 둘 + 점 격자(바탕) / 결(::before) / 기울인 파편 둘(::after)
+   배경 테마 6종(data-bg)은 클래식 전용. 필드는 자기 장면 하나로 덮음 (뒤에 있어 우선) */
+html[data-skin="field"] .app-bg {
+    background-image:
+        radial-gradient(ellipse 520px 300px at 80% 20%, var(--scene-blob-a) 0%, transparent 70%),
+        radial-gradient(ellipse 480px 260px at 20% 92%, var(--scene-blob-b) 0%, transparent 70%),
+        radial-gradient(var(--scene-dot) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 20px 20px;
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-position: center, center, 0 0;
+    overflow: hidden;
+}
+html[data-skin="field"] .app-bg::before {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='200' height='200' filter='url(%23g)'/></svg>");
+    background-size: 200px 200px;
+    background-repeat: repeat;
+    opacity: var(--scene-grain);
+    mix-blend-mode: multiply;
+}
+html[data-skin="field"][data-theme="dark"] .app-bg::before { mix-blend-mode: screen; }
+html[data-skin="field"] .app-bg::after {
+    content: '';
+    position: absolute;
+    inset: -10% 0;
+    background-image:
+        linear-gradient(var(--scene-shard), var(--scene-shard)),
+        linear-gradient(var(--scene-shard), var(--scene-shard));
+    background-size: 10% 100%, 1.6% 100%;
+    background-repeat: no-repeat;
+    background-position: 76% 0, 88% 0;
+    transform: skewX(var(--skew));
+    pointer-events: none;
+}
+/* 클래식 첫 화면 꾸미기(떠다니는 그림)는 필드 장면과 중복. 필드에서 소거 */
+html[data-skin="field"] .home-decor { display: none; }

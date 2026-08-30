@@ -181,7 +181,9 @@ permalink: /
 (function(){
   var t=localStorage.getItem('toolbox_theme')||'dark';
   var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
+  var sk=localStorage.getItem('toolbox_skin')||'classic';
   document.documentElement.setAttribute('data-theme',t);
+  document.documentElement.setAttribute('data-skin',sk);
   /* ★ **글자로 박은 손잡이를 여기서 대신 단다** (2026-08-17). 늦게 받는 스타일 넉 장은
      media="print" + onload 로 달려 있었는데, 그 한 글자 때문에 CSP 에 script-src 를 못 건다
      (그 자물쇠는 인라인 손잡이도 함께 막는다). 같은 일을 여기서 한다. 이미 온 것은 바로,

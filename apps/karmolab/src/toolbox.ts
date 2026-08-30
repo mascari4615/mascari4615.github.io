@@ -2747,6 +2747,32 @@ const Toolbox = (() => {
         setTheme(next);
     }
 
+    /* ===== 스킨 (change.karmolab-shell-redesign, 2026-08-30) =====
+     * 레이아웃 하나, 스킨은 CSS 토큰 한 벌 교체. 여기서는 data-skin 속성만
+     * `?skin=` 은 미리 보기 전용, 저장 안 함 */
+    const SKIN_KEY = 'toolbox_skin';
+    const SKINS = [
+        { id: 'classic', label: '클래식' },
+        { id: 'field', label: '필드' },
+    ];
+
+    function getSkin() {
+        const q = new URLSearchParams(location.search).get('skin');
+        if (q && SKINS.some(s => s.id === q)) return q;
+        const saved = localStorage.getItem(SKIN_KEY);
+        if (saved && SKINS.some(s => s.id === saved)) return saved;
+        return 'classic';
+    }
+
+    function setSkin(skinId) {
+        if (!SKINS.some(s => s.id === skinId)) return;
+        document.documentElement.setAttribute('data-skin', skinId);
+        localStorage.setItem(SKIN_KEY, skinId);
+        syncThemeColor();
+    }
+
+    function getSkins() { return [...SKINS]; }
+
     /* ===== 배경 테마 (mesh/gradient) ===== */
     const BG_THEME_KEY = 'toolbox_bg_theme';
     const BG_THEMES = [
@@ -2846,6 +2872,7 @@ const Toolbox = (() => {
     }
 
     function initTheme() {
+        document.documentElement.setAttribute('data-skin', getSkin());
         setTheme(getTheme());
         setBgTheme(getBgTheme());
         setSidebarCollapsed(getSidebarCollapsed());
@@ -3053,6 +3080,7 @@ const Toolbox = (() => {
         getPref, setPref,
         getSidebarCollapsed, setSidebarCollapsed, toggleSidebar,
         getTheme, setTheme, toggleTheme,
+        getSkin, setSkin, getSkins,
         getBgTheme, setBgTheme, getBgThemes,
         getPrismTheme, setPrismTheme, getPrismThemes: () => [...PRISM_THEMES],
         getUserData, getStreaks, getProgress, setProgress, incrementProgress,
