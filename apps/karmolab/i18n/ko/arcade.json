@@ -109,7 +109,7 @@
   "arcade.yacht.sheet.keep": "{n}번 더 굴릴 수 있다. 다시 굴릴 주사위를 홈에서 내리고 컵을 누른다. 지금 적어도 된다",
   "arcade.yacht.sheet.wait": "{who} 차례",
   "arcade.yacht.sheet.close": "닫기",
-  "arcade.yacht.sheet.pin": "점수표 (Tab)",
+  "arcade.yacht.sheet.pin": "점수표 (S)",
   "arcade.yacht.toast.me": "내 차례",
   "arcade.yacht.toast.first": "내 차례. 컵을 눌러 굴린다 (스페이스)",
   "arcade.yacht.toast.combo": "{cat}!",

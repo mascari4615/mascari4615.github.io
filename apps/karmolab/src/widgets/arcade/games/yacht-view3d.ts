@@ -394,7 +394,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
         if (!sheetOpen) act({ kind: 'roll' });
       } else if (ev.key === 'Escape' && sheetOpen) {
         closeSheet();
-      } else if (ev.key === 'Tab') {
+      } else if (ev.key === 's' || ev.key === 'S' || ev.key === 'ㄴ') {
+        /* Tab 은 안 가로챈다. 키보드로 화면을 도는 유일한 길이라 뺏으면 손이 막힌다(접근성) */
         ev.preventDefault();
         ev.stopPropagation();
         togglePin();

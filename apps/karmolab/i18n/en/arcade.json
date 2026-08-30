@@ -109,7 +109,7 @@
   "arcade.yacht.sheet.keep": "{n} roll(s) left. Take dice out of the slots to reroll, then the cup. Or score now",
   "arcade.yacht.sheet.wait": "{who}'s turn",
   "arcade.yacht.sheet.close": "Close",
-  "arcade.yacht.sheet.pin": "Sheet (Tab)",
+  "arcade.yacht.sheet.pin": "Sheet (S)",
   "arcade.yacht.toast.me": "Your turn",
   "arcade.yacht.toast.first": "Your turn. Click the cup to roll (Space)",
   "arcade.yacht.toast.combo": "{cat}!",

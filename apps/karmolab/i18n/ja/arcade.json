@@ -109,7 +109,7 @@
   "arcade.yacht.sheet.keep": "あと{n}回振れる。振り直すサイコロを枠から下ろしてカップを押す。今書いてもよい",
   "arcade.yacht.sheet.wait": "{who}の番",
   "arcade.yacht.sheet.close": "閉じる",
-  "arcade.yacht.sheet.pin": "スコア表 (Tab)",
+  "arcade.yacht.sheet.pin": "スコア表 (S)",
   "arcade.yacht.toast.me": "あなたの番",
   "arcade.yacht.toast.first": "あなたの番。カップを押して振る (Space)",
   "arcade.yacht.toast.combo": "{cat}!",
