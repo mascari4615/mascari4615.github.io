@@ -128,6 +128,9 @@ interface Die {
   ang: Vector3;
   released: number; /* ms, 0 이면 안 나는 중 */
   target: Quaternion;
+  /* 정착 자세를 골랐나. 정착에 들어가는 순간 한 번 */
+  aimed: boolean;
+  settleMs: number;
   bounces: number;
   /* 남기기와 되돌리기. 두 자리 사이를 한 호로 */
   moveFrom: Vector3 | null;
@@ -438,7 +441,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     dice.push({
       mesh, value: 1, kept: false,
       spot: new Vector3(0, REST_Y, 1), pos: new Vector3(0, REST_Y, 1), quat: new Quaternion(),
-      vel: new Vector3(), ang: new Vector3(), released: 0, target: new Quaternion(), bounces: 0,
+      vel: new Vector3(), ang: new Vector3(), released: 0, target: new Quaternion(), aimed: false, settleMs: 300, bounces: 0,
       moveFrom: null, moveTo: new Vector3(), moveT0: 0, hover: false
     });
   }
@@ -446,10 +449,27 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const railPos = (i: number): Vector3 => new Vector3(slotX(i), REST_Y, RAIL_Z);
 
   /* 눈 v 가 위로 오는 자세. 그 위에 아무 방향으로 한 바퀴 돌린 것 */
-  const upright = (v: number, out: Quaternion): Quaternion => {
+  const upright = (v: number, out: Quaternion, spinAngle = Math.random() * Math.PI * 2): Quaternion => {
     const q = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, UP);
-    const spin = new Quaternion().setFromAxisAngle(UP, Math.random() * Math.PI * 2);
+    const spin = new Quaternion().setFromAxisAngle(UP, spinAngle);
     return out.copy(spin.multiply(q));
+  };
+  /**
+   * 지금 자세에서 **가장 가까운** 눈 v 위 자세. 눈이 위인 자세는 y 축으로 돌린 것 전부라
+   * 그중 회전이 제일 작은 것. 아무 자세로 슬러프하면 다 굴러 놓고 다른 면이 뒤집혀 올라온다(사용자 지적)
+   */
+  const nearestUpright = (v: number, from: Quaternion, out: Quaternion): number => {
+    const cand = new Quaternion();
+    let best = Infinity;
+    for (let k = 0; k < 24; k += 1) {
+      upright(v, cand, (k / 24) * Math.PI * 2);
+      const ang = from.angleTo(cand);
+      if (ang < best) {
+        best = ang;
+        out.copy(cand);
+      }
+    }
+    return best;
   };
 
   /* 쟁반에 흩어질 자리. 서로 한 변 넘게 떨어지게. 못 찾으면 줄로 */
@@ -514,8 +534,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
           d.vel.set(-7 - Math.random() * 4, 0.8 + Math.random() * 1.5, (Math.random() - 0.5) * 5);
           d.ang.set((Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22);
           d.bounces = 0;
+          d.aimed = false;
           d.quat.setFromAxisAngle(new Vector3(Math.random(), Math.random(), Math.random()).normalize(), Math.random() * 6);
-          upright(d.value, d.target);
           d.mesh.visible = true;
         });
         pendingRelease = [];
@@ -542,8 +562,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   };
 
   /* ── 주사위 움직임 ── 날기(흉내 물리), 마지막 한 뼘의 정착, 선반 오가기 */
-  const FLY_MS = 900;
-  const SETTLE_MS = 300;
+  const FLY_MS = 1050;
   const MOVE_MS = 300;
   let lastT = 0;
   const tmpQ = new Quaternion();
@@ -577,10 +596,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
           if (hit > 1.0) opts.onSound?.('clatter', Math.min(1, hit / 9));
         }
         if (d.pos.y <= REST_Y + 0.001) {
-          /* 바닥에서 구른다. 미끄러지며 느려진다 */
-          d.vel.x *= 1 - 2.8 * dt;
-          d.vel.z *= 1 - 2.8 * dt;
-          d.ang.multiplyScalar(1 - 3.5 * dt);
+          /* 바닥에서 구른다. 미끄러지며 느려진다. 끝자락(마지막 0.35초)은 더 세게 */
+          const late = k > FLY_MS - 350 ? 3 : 1;
+          d.vel.x *= 1 - 2.8 * dt * late;
+          d.vel.z *= 1 - 2.8 * dt * late;
+          d.ang.multiplyScalar(1 - 3.5 * dt * late);
         }
         const w = d.ang.length();
         if (w > 0.0001) {
@@ -591,14 +611,20 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
         d.mesh.quaternion.copy(d.quat);
         return true;
       }
-      /* 정착. 지금 자리에서 자기 자리와 정한 눈으로 */
-      const u = Math.min(1, (k - FLY_MS) / SETTLE_MS);
+      /* 정착. 지금 자리에서 자기 자리와 정한 눈으로. 자세는 지금에서 제일 가까운 것, 시간은 돌 각도만큼 */
+      if (!d.aimed) {
+        d.aimed = true;
+        const ang = nearestUpright(d.value, d.quat, d.target);
+        d.settleMs = 140 + (ang / (Math.PI / 2)) * 260;
+      }
+      const u = Math.min(1, (k - FLY_MS) / d.settleMs);
       const e = ease(u);
       d.mesh.position.lerpVectors(d.pos, d.spot, e);
       d.mesh.position.y = Math.max(d.mesh.position.y, REST_Y);
       d.mesh.quaternion.copy(d.quat).slerp(d.target, e);
       if (u >= 1) {
         d.released = 0;
+        d.aimed = false;
         d.pos.copy(d.spot);
         d.quat.copy(d.target);
         d.mesh.position.copy(d.pos);

@@ -131,8 +131,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     let stage: DiceStage | null = mountDiceStage(host, {
       count: 5,
-      onDie: (i) => { if (canRoll()) act({ kind: 'keep', index: i }); },
-      onCup: () => { if (canRoll()) act({ kind: 'roll' }); },
+      onDie: (i) => { if (canRoll() && idle()) act({ kind: 'keep', index: i }); },
+      onCup: () => { if (canRoll() && idle()) act({ kind: 'roll' }); },
       onPaper: () => openSheet(),
       onSound: (kind, force) => {
         if (kind === 'rattle') amb.rattle();
@@ -189,7 +189,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     /* 스페이스로 굴린다. 컵까지 손이 안 가도 되게. Tab 은 종이 고정 */
     const onKey = (ev: KeyboardEvent): void => {
-      if (ev.key === ' ' && canRoll() && !sheetOpen) {
+      if (ev.key === ' ' && canRoll() && !sheetOpen && idle()) {
         ev.preventDefault();
         act({ kind: 'roll' });
       } else if (ev.key === 'Escape' && sheetOpen) {
@@ -287,6 +287,50 @@ export const view3d: GameView<YachtState, YachtAction> = {
     let prevTurn = -1;
     let prevRolled = -1;
     let finished = false;
+    /**
+     * 화면은 수를 **차례대로**. 봇은 0.25~0.9초마다 수를 두고 굴림 연출은 2초 넘음
+     * 오는 대로 그리면 쏟는 중에 남기고, 남기는 중에 또 쏟음(사용자 지적). 줄을 세워 앞 연출이
+     * 끝난 뒤 다음 것. 규칙은 이미 끝나 있고 화면만 늦게 따라감
+     */
+    const seq: Array<{ s: YachtState; finished: boolean }> = [];
+    let busyUntil = 0;
+    let seqTimer = 0;
+    let shown: YachtState | null = null;
+    const ROLL_MS = 2500;
+    const KEEP_MS = 380;
+    const present = (s: YachtState, fin: boolean): void => {
+      if (!stage) return;
+      const before = shown;
+      const rolled = before !== null && (s.turn !== prevTurn || s.rolled > prevRolled);
+      const kept = before !== null && !rolled && s.keep.some((k, i) => k !== before.keep[i]);
+      if (rolled && sheetOpen) closeSheet();
+      stage.set(s.dice, s.keep, rolled);
+      stage.rollsLeft(fin ? 0 : Math.max(0, 3 - s.rolled));
+      prevTurn = s.turn;
+      prevRolled = s.rolled;
+      shown = s;
+      busyUntil = performance.now() + (rolled ? ROLL_MS : kept ? KEEP_MS : 0);
+      /* 세 번 다 굴렸고 내 차례면, 멎은 뒤 종이가 온다 */
+      if (autoTimer) window.clearTimeout(autoTimer);
+      autoTimer = 0;
+      if (rolled && s.rolled >= 3 && s.turn === mySeat && !fin) {
+        autoTimer = window.setTimeout(() => { autoTimer = 0; if (last && last.turn === mySeat && last.rolled >= 3 && host.isConnected) openSheet(); }, ROLL_MS - 300);
+      }
+    };
+    const pump = (): void => {
+      if (seqTimer) window.clearTimeout(seqTimer);
+      seqTimer = 0;
+      if (!seq.length || !host.isConnected) return;
+      const wait = busyUntil - performance.now();
+      if (wait > 0) {
+        seqTimer = window.setTimeout(pump, wait);
+        return;
+      }
+      const next = seq.shift() as { s: YachtState; finished: boolean };
+      present(next.s, next.finished);
+      pump();
+    };
+    const idle = (): boolean => seq.length === 0 && performance.now() >= busyUntil;
     return (v, seat) => {
       const s = v.state;
       mySeat = seat;
@@ -299,25 +343,15 @@ export const view3d: GameView<YachtState, YachtAction> = {
         seatNames = names;
         sheetSig = '';
       }
-      /* 주사위. 차례가 바뀌었거나 굴린 횟수가 늘었으면 컵에서 쏟는다 */
+      /* 주사위. 차례가 바뀌었거나 굴린 횟수가 늘었으면 컵에서 쏟는다. 줄을 서서 */
       const key = s.turn + ':' + s.rolled + ':' + s.dice.join('') + ':' + s.keep.map((k) => (k ? 1 : 0)).join('');
       if (key !== sig) {
-        const first = sig === '';
         sig = key;
-        const rolled = !first && (s.turn !== prevTurn || s.rolled > prevRolled);
-        if (rolled && sheetOpen) closeSheet();
-        stage.set(s.dice, s.keep, rolled);
-        prevTurn = s.turn;
-        prevRolled = s.rolled;
-        /* 세 번 다 굴렸고 내 차례면, 멎은 뒤 종이가 온다 */
-        if (autoTimer) window.clearTimeout(autoTimer);
-        autoTimer = 0;
-        if (rolled && s.rolled >= 3 && s.turn === seat && !v.finished) {
-          autoTimer = window.setTimeout(() => { autoTimer = 0; if (last === s || (last && last.turn === seat && last.rolled >= 3)) openSheet(); }, 2100);
-        }
+        seq.push({ s, finished: v.finished });
+        pump();
       }
-      stage.rollsLeft(v.finished ? 0 : Math.max(0, 3 - s.rolled));
-      stage.canAct(canRoll() && !sheetOpen);
+      /* 내 손은 연출이 끝난 뒤에. 굴리는 중에 또 굴리면 컵이 두 번 뒤집힌다 */
+      stage.canAct(canRoll() && !sheetOpen && idle());
       pinBtn.hidden = v.finished;
       /* 종이. 점수가 바뀔 때만 다시 그린다 */
       const sk = JSON.stringify(s.sheet) + '|' + seat;
