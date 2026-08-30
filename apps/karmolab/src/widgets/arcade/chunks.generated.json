@@ -261,7 +261,7 @@
     "view": "yacht-view",
     "defVar": "yacht",
     "viewVar": "yachtView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "highlow",

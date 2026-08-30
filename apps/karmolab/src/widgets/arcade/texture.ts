@@ -283,3 +283,80 @@ export function shaftTexture(size = 256): HTMLCanvasElement {
   c.fillRect(0, 0, size, size);
   return cv;
 }
+
+/**
+ * 가죽. 주사위 컵과 쟁반 테두리. 잔 주름과 모공.
+ * 매끈하게 칠하면 플라스틱 컵이다. 불규칙한 그물 주름이 있어야 손때 묻은 가죽
+ */
+export function leatherTexture(seed = 47, size = 256): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#4a2416';
+  c.fillRect(0, 0, size, size);
+  /* 모공. 어두운 점이 촘촘히 */
+  for (let i = 0; i < 9000; i += 1) {
+    const x = r() * size;
+    const y = r() * size;
+    c.fillStyle = `rgba(${r() > 0.6 ? '110,70,45' : '18,8,4'},${(r() * 0.22).toFixed(3)})`;
+    c.fillRect(x, y, 1 + r() * 1.5, 1 + r() * 1.5);
+  }
+  /* 주름. 짧은 굽은 선이 사방으로 */
+  for (let i = 0; i < 260; i += 1) {
+    const x = r() * size;
+    const y = r() * size;
+    c.strokeStyle = `rgba(14,6,3,${(0.08 + r() * 0.18).toFixed(3)})`;
+    c.lineWidth = 0.5 + r();
+    c.beginPath();
+    c.moveTo(x, y);
+    c.quadraticCurveTo(x + (r() - 0.5) * 24, y + (r() - 0.5) * 24, x + (r() - 0.5) * 40, y + (r() - 0.5) * 40);
+    c.stroke();
+  }
+  return cv;
+}
+
+/**
+ * 주사위 한 면. 상아빛 바탕에 검은 눈. 눈 배치는 `die.ts` 와 같다(홀수는 가운데, 6은 두 줄).
+ * 가장자리를 살짝 어둡게. 모서리가 둥근 것처럼 보이는 효과(기하는 상자)
+ */
+export function dieFaceTexture(n: number, size = 128): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const g = c.createRadialGradient(size * 0.45, size * 0.4, size * 0.1, size * 0.5, size * 0.5, size * 0.78);
+  g.addColorStop(0, '#fbf6ea');
+  g.addColorStop(0.8, '#efe6d2');
+  g.addColorStop(1, '#cdbfa4');
+  c.fillStyle = g;
+  c.fillRect(0, 0, size, size);
+  const spots: number[][] = [[], [4], [0, 8], [0, 4, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 3, 5, 6, 8]];
+  const on = spots[Math.max(0, Math.min(6, n))] ?? [];
+  const pad = size * 0.24;
+  const step = (size - pad * 2) / 2;
+  for (const s of on) {
+    const x = pad + (s % 3) * step;
+    const y = pad + Math.floor(s / 3) * step;
+    /* 눈은 파인 자리다. 아래쪽에 옅은 빛이 있어야 오목하다 */
+    c.fillStyle = 'rgba(255,255,255,.55)';
+    c.beginPath();
+    c.arc(x, y + size * 0.012, size * 0.085, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = '#17120f';
+    c.beginPath();
+    c.arc(x, y, size * 0.082, 0, Math.PI * 2);
+    c.fill();
+  }
+  return cv;
+}
+
+/** 종이. 상아빛에 섬유 자국. 점수표를 그 위에 그린다 */
+export function paperTexture(seed = 53, size = 256): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#f4ecd8';
+  c.fillRect(0, 0, size, size);
+  for (let i = 0; i < 2600; i += 1) {
+    const x = r() * size;
+    const y = r() * size;
+    c.fillStyle = `rgba(${r() > 0.5 ? '255,255,255' : '120,90,50'},${(r() * 0.09).toFixed(3)})`;
+    c.fillRect(x, y, 1 + r() * 3, 1);
+  }
+  return cv;
+}
