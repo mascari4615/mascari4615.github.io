@@ -717,6 +717,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-yctable thead th[data-turn]::after{content:"\\25C0";font-size:var(--font-size-4xs);margin-left:4px;color:#b8781a}',
       '.ac-yctable td{font-variant-numeric:tabular-nums;font-size:var(--font-size-md)}',
       '.ac-yctable .ac-ycdone{color:#2f2a2a;font-weight:600}',
+      /* 방금 적힌 칸. 잉크가 번지듯 한 번 */
+      '.ac-yctable .ac-ycdone.ac-ink{animation:acYcInk 1.3s ease-out}',
+      '@keyframes acYcInk{0%{background:rgba(184,120,26,.55);transform:scale(1.25)}30%{transform:scale(1)}100%{background:transparent}}',
       '.ac-yctable .ac-yctot th,.ac-yctable .ac-yctot td{background:rgba(80,55,30,.06);color:#5c4630;font-size:var(--font-size-xs)}',
       '.ac-yctable .ac-ycsum th,.ac-yctable .ac-ycsum td{font-weight:700;color:#3a2a18;font-size:var(--font-size-md);border-bottom:0}',
       '.ac-yccell{width:100%;min-height:30px;border:1px dashed rgba(184,120,26,.7);border-radius:var(--radius-sm);background:rgba(245,213,138,.28);color:#8a5a1a;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;transition:background .12s,transform .12s}',

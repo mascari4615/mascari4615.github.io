@@ -403,6 +403,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     /* ── 종이 ── 카메라가 내려오고 HTML 점수표가 종이 위에 겹친다 */
     let paperKey = '';
+    /* 방금 적힌 칸. 종이에 잉크가 번지듯 한 번 강조한다(레퍼런스 bloob 은 확정 색이 갈릴 뿐이라 우리 쪽 손맛) */
+    let justWrote: { seat: number; cat: Cat } | null = null;
     function paintPaper(): void {
       const s = last;
       if (!s || (!sheetOpen && !pinned)) return;
@@ -414,7 +416,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       const cell = (i: number, cat: Cat): string => {
         const sheet = s.sheet[i];
         const done = sheet?.[cat];
-        if (done !== null && done !== undefined) return '<td class="ac-ycdone" data-done="1">' + done + '</td>';
+        if (done !== null && done !== undefined) return '<td class="ac-ycdone' + (justWrote && justWrote.seat === i && justWrote.cat === cat ? ' ac-ink' : '') + '" data-done="1">' + done + '</td>';
         if (i === mySeat && my && mine) {
           const would = scoreOf(cat, s.dice);
           /* 0점 칸은 숫자를 안 적는다(레퍼런스 bloob: 빈 칸에 옅은 강조만). 0 이 열두 개면 표가 시끄럽다 */
@@ -520,6 +522,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
           if (!cat) return;
           const who = seatNames[i] ?? '';
           const got = now[cat] ?? 0;
+          justWrote = { seat: i, cat };
+          window.setTimeout(() => { if (justWrote && justWrote.cat === cat && justWrote.seat === i) { justWrote = null; paperKey = ''; if (last) paintPaper(); } }, 1400);
+          paperKey = '';
           const lv = got > 0 ? comboLevel(cat) : 0;
           if (lv) celebrate(t('arcade.yacht.cat.' + cat) + (lv >= 3 ? '!' : ''), lv);
           if (cat === 'yacht' && got) toast(t('arcade.yacht.toast.yacht', { who }), 2600);
