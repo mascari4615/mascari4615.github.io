@@ -73,6 +73,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
 
         const theme = Toolbox.getTheme?.() ?? 'dark';
         const skin = Toolbox.getSkin?.() ?? 'classic';
+        const uiScale = Toolbox.getUiScale?.() ?? 'fit';
         const prismTheme = Toolbox.getPrismTheme?.() ?? '';
         const prismThemes = Toolbox.getPrismThemes?.() ?? [];
         const bgTheme = Toolbox.getBgTheme?.() ?? '';
@@ -95,6 +96,13 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                         <select id="setSkin" class="settings-control">
                             <option value="classic" ${skin === 'classic' ? 'selected' : ''}>${esc(t('settings.opt.skinClassic'))}</option>
                             <option value="field" ${skin === 'field' ? 'selected' : ''}>${esc(t('settings.opt.skinField'))}</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="setUiScale">${esc(t('settings.label.setUiScale'))}</label>
+                        <select id="setUiScale" class="settings-control">
+                            <option value="fit" ${uiScale === 'fit' ? 'selected' : ''}>${esc(t('settings.opt.scaleFit'))}</option>
+                            <option value="fixed" ${uiScale === 'fixed' ? 'selected' : ''}>${esc(t('settings.opt.scaleFixed'))}</option>
                         </select>
                     </div>
                     <div class="settings-row">
@@ -147,6 +155,12 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
             if (!target) return;
             Toolbox.setTheme?.(target.value);
             Toolbox.showToast?.(t('settings.t23') + (target.value === 'dark' ? t('settings.opt.dark') : t('settings.opt.light')));
+        });
+
+        container.querySelector<HTMLSelectElement>('#setUiScale')?.addEventListener('change', (e: Event) => {
+            const target = e.target as HTMLSelectElement | null;
+            if (!target) return;
+            Toolbox.setUiScale?.(target.value);
         });
 
         container.querySelector<HTMLSelectElement>('#setSkin')?.addEventListener('change', (e: Event) => {

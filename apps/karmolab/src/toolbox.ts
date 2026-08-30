@@ -2738,6 +2738,36 @@ const Toolbox = (() => {
 
     function getSkins() { return [...SKINS]; }
 
+    /* ===== 화면 크기 (2026-08-30 사용자 제안). 시안은 1440x900 고정
+     * 큰 화면에서 글자가 그대로면 작아 보인다. 게임처럼 1440x900 비율로 확대. zoom 은 Chromium, Firefox 126+
+     * fit: 화면 / 1440x900 의 작은 쪽 비율, 1~1.75 사이. fixed: 확대 없음 */
+    const UI_SCALE_KEY = 'toolbox_ui_scale';
+    const UI_SCALES = [
+        { id: 'fit', label: '비율 유지 (1440x900 기준)' },
+        { id: 'fixed', label: '그대로' },
+    ];
+    function getUiScale() {
+        const saved = localStorage.getItem(UI_SCALE_KEY);
+        return saved && UI_SCALES.some(s => s.id === saved) ? saved : 'fit';
+    }
+    function applyUiScale() {
+        const mode = getUiScale();
+        let z = 1;
+        if (mode === 'fit' && window.innerWidth > 1440) {
+            z = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+            z = Math.max(1, Math.min(1.75, Math.round(z * 100) / 100));
+        }
+        document.documentElement.style.zoom = z === 1 ? '' : String(z);
+        document.documentElement.dataset.uiScale = String(z);
+    }
+    function setUiScale(mode) {
+        if (!UI_SCALES.some(s => s.id === mode)) return;
+        localStorage.setItem(UI_SCALE_KEY, mode);
+        applyUiScale();
+    }
+    function getUiScales() { return [...UI_SCALES]; }
+    window.addEventListener('resize', applyUiScale);
+
     /* ===== 배경 테마 (mesh/gradient) ===== */
     const BG_THEME_KEY = 'toolbox_bg_theme';
     const BG_THEMES = [
@@ -2838,6 +2868,7 @@ const Toolbox = (() => {
 
     function initTheme() {
         document.documentElement.setAttribute('data-skin', getSkin());
+        applyUiScale();
         setTheme(getTheme());
         setBgTheme(getBgTheme());
         setSidebarCollapsed(getSidebarCollapsed());
@@ -3046,6 +3077,7 @@ const Toolbox = (() => {
         getSidebarCollapsed, setSidebarCollapsed, toggleSidebar,
         getTheme, setTheme, toggleTheme,
         getSkin, setSkin, getSkins,
+        getUiScale, setUiScale, getUiScales,
         getBgTheme, setBgTheme, getBgThemes,
         getPrismTheme, setPrismTheme, getPrismThemes: () => [...PRISM_THEMES],
         getUserData, getStreaks, getProgress, setProgress, incrementProgress,
