@@ -110,8 +110,11 @@ async function onePage(id) {
     if (m.type() === 'error') errors.push(m.text().slice(0, 120));
   });
   try {
-    await page.goto(gate, { waitUntil: 'load', timeout: 25000 });
-    await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+    /* 통짜 게이트는 검사 여덟 판을 동시에 돌리고, 그 안에서 이 검사가 또 여섯 장을 연다.
+       48장이 한꺼번에 뜨는 판에서는 25초가 모자라 멀쩡한 화면이 못 열었다로 빨개졌다
+       (2026-08-31 실측: 통짜에서 speed, dailytype, dailycho 셋. 혼자 돌리면 통과) */
+    await page.goto(gate, { waitUntil: 'load', timeout: 45000 });
+    await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 45000 });
     await page.evaluate((x) => Toolbox.switchPage(x), id);
     /* ★ **판이 뜰 때까지 기다린다. 정해진 초를 세지 않는다** (2026-08-14).
        2.5초만 세었더니 판이 늦게 뜨는 화면이 판마다 앱 안 화면이 아님으로 넘어갔다
