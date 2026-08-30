@@ -38,6 +38,7 @@ import { registerArcadeRoomCard } from './bot/arcade-room-card';
 import { registerArcadeRooms, wasOpen } from './bot/arcade-rooms';
 import { registerArcadeResult } from './bot/arcade-result';
 import { registerArcadeQueue } from './bot/arcade-queue';
+import { registerArcadeReport } from './bot/arcade-report';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
@@ -387,6 +388,8 @@ registerArcadeRoomCard(app);
 registerArcadeRooms(app);
 /* change.arcade-online 1번. 등급전 대기열. 서버가 둘을 붙여 방 코드를 준다. */
 registerArcadeQueue(app);
+/* change.arcade-online 2번. 결과 보고와 점수. 양쪽 말이 맞아야 반영 */
+registerArcadeReport(app);
 /* 판이 끝나면 채널에 한 줄. 공개로 연 방만. 송신은 sendLocalEvent 한 길을 그대로 쓴다. */
 registerArcadeResult(app, client, wasOpen);
 registerWellRoutes(app);

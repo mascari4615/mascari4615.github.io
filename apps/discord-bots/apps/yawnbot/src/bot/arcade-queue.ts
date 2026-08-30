@@ -17,6 +17,8 @@
 import express from 'express';
 import type { Application, Request, Response } from 'express';
 import { createHash, randomBytes } from 'node:crypto';
+import { ratingOf, roomOf, type RoomName } from './arcade-rating';
+export type { RoomName } from './arcade-rating';
 
 /** 무소식 한계. 브라우저 알림 주기는 5초 */
 const TTL_MS = 15 * 1000;
@@ -24,10 +26,6 @@ const TTL_MS = 15 * 1000;
 const MATCH_KEEP_MS = 2 * 60 * 1000;
 /** 등급전 방. 이름은 자리표 (사용자 결정: 이름은 나중) */
 export const ROOMS = ['beginner', 'upper'] as const;
-export type RoomName = (typeof ROOMS)[number];
-/** 윗방 문턱. 첫 점수 1500 (ELO, 2번) */
-const UPPER_FROM = 1600;
-const DEFAULT_RATING = 1500;
 
 /** 방 코드 글자. 브라우저 `lib/room.ts` 의 `makeCode` 와 동일. `0, O, 1, I` 제외 */
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -41,17 +39,6 @@ export function idOf(key: string): string {
   return createHash('sha256').update(key).digest('base64url').slice(0, 12);
 }
 
-/** 점수. 2번(ELO)에서 채움. 지금은 전원 기본값이라 모두 초심 방 */
-const ratings = new Map<string, number>();
-export function ratingOf(id: string): number {
-  return ratings.get(id) ?? DEFAULT_RATING;
-}
-export function setRating(id: string, rating: number): void {
-  ratings.set(id, rating);
-}
-export function roomOf(rating: number): RoomName {
-  return rating >= UPPER_FROM ? 'upper' : 'beginner';
-}
 
 interface Waiting {
   id: string;
@@ -94,7 +81,26 @@ const NAME_MAX = 16;
 export function resetQueue(): void {
   waiting.clear();
   matched.clear();
-  ratings.clear();
+  rosters.clear();
+}
+
+/**
+ * 짝이 난 판의 사람들. 결과 보고가 이걸로 누가 그 판에 있었나를 봄
+ * - 짝 기록(2분)보다 오래 살아야 함. 판이 그보다 김
+ */
+interface Roster {
+  game: string;
+  ids: string[];
+  at: number;
+}
+const rosters = new Map<string, Roster>();
+/** 한 판의 최대 길이. 이보다 늦게 온 보고는 안 받음 */
+const ROSTER_KEEP_MS = 3 * 60 * 60 * 1000;
+
+export function rosterOf(code: string): Roster | null {
+  const r = rosters.get(code);
+  if (!r || Date.now() - r.at > ROSTER_KEEP_MS) return null;
+  return r;
 }
 
 /** 방마다 기다리는 사람 수. 로비의 같은 방에 n명 표시용 */
@@ -109,7 +115,8 @@ function answer(id: string): Record<string, unknown> {
   const m = matched.get(id);
   if (m) {
     const other = m.host === id ? m.guest : m.host;
-    return { status: 'matched', code: m.code, host: m.host === id, room: m.room, opponent: m.names[other] ?? '누군가' };
+    /* 내 id 와 상대 id 를 같이 줌. 결과 보고가 순서를 id 로 적음 */
+    return { status: 'matched', code: m.code, host: m.host === id, room: m.room, you: id, rival: other, opponent: m.names[other] ?? '누군가' };
   }
   const w = waiting.get(id);
   if (w) return { status: 'waiting', room: w.room, others: queueCounts(w.game)[w.room] - 1 };
@@ -137,7 +144,7 @@ export function registerArcadeQueue(app: Application): void {
       res.json(answer(id));
       return;
     }
-    const room = roomOf(ratingOf(id));
+    const room = roomOf(ratingOf(game, id));
     const now = Date.now();
     const other = [...waiting.values()]
       .filter((w) => w.id !== id && w.game === game && w.room === room)
@@ -156,6 +163,8 @@ export function registerArcadeQueue(app: Application): void {
       };
       matched.set(other.id, m);
       matched.set(id, m);
+      rosters.set(m.code, { game, ids: [other.id, id], at: now });
+      for (const [code, r] of rosters) if (now - r.at > ROSTER_KEEP_MS) rosters.delete(code);
     } else {
       /* 처음 선 때 보존. 알림마다 줄 맨 뒤면 오래 기다린 사람이 계속 밀림 */
       const since = waiting.get(id)?.since ?? now;

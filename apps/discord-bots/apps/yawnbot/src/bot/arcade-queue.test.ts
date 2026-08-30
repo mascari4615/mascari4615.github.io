@@ -4,7 +4,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import express from 'express';
 import type { Server } from 'http';
-import { registerArcadeQueue, resetQueue, idOf, setRating } from './arcade-queue';
+import { registerArcadeQueue, resetQueue, idOf } from './arcade-queue';
+import { resetRatings, applyResult } from './arcade-rating';
 
 let server: Server;
 let base = '';
@@ -20,7 +21,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
-beforeEach(() => resetQueue());
+beforeEach(() => { resetQueue(); resetRatings(); });
 
 const A = 'aaaaaaaaaaaaaaaaaaaa';
 const B = 'bbbbbbbbbbbbbbbbbbbb';
@@ -74,7 +75,8 @@ describe('등급전 대기열', () => {
   });
 
   it('점수 방이 다르면 안 만난다', async () => {
-    setRating(idOf(A), 1700);
+    /* 초심 1500 에서 순위점을 여러 번 얹어 윗방으로 올림 */
+    for (let i = 0; i < 12; i++) applyResult('gomoku', [idOf(A), 'dummy-rival']);
     expect((await stand(A)).room).toBe('upper');
     expect((await stand(B)).status).toBe('waiting');
   });
