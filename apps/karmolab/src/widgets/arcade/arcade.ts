@@ -2243,8 +2243,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         v.seats
           .map(
             (s, i) =>
+              /* 봇 자리에는 표를 단다. 이름이 사람 이름(캐릭터)이라 글자로는 못 가른다 */
               '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') +
-              (plan ? ' ac-team' + plan[i] : '') + '">' +
+              (plan ? ' ac-team' + plan[i] : '') + '"' + (s.bot ? ' data-bot="1"' : '') + '>' +
               (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
               faceOf(v, i) +
               '<span class="ac-seatname">' + esc(s.name) + (s.bot && !castByName(s.name) ? ' 🤖' : '') + '</span> <b>' + s.score + '</b>' +

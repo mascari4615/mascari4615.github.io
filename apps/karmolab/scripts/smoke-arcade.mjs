@@ -30,6 +30,13 @@ import { waitHydrated } from './lib/hydrated.mjs';
    verify 에서 늘 못 돌림이었다. 못 도는 검사는 없는 검사다. 켜져 있으면 그걸 쓰고,
    없으면 저장소를 그대로 내어 준다(다른 화면 검사들과 같은 `serveRepo`). */
 /* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+/** 판을 나간다. 방(입체)에서는 나가기가 메뉴 종이 안이라 메뉴부터 연다(2026-08-31 방 버튼 재편) */
+async function quitRoom(page) {
+  const menu = await page.$('#acMenu');
+  if (menu && (await menu.isVisible())) await menu.click();
+  await page.click('#acQuit');
+}
+
 const server = await smokeBase();
 const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
@@ -113,7 +120,8 @@ if (!cantRun) {
       const seats = await page.locator('#acSeats .ac-seat').allTextContents();
       /* 둘 이상이 필요한 게임만 봇이 앉는다. 혼자서도 되는 게임(자리 최소 1)은 나 하나가 정상이다.
        * 봇이 있어야 한다로 못 박으면 그 게임들이 틀린 것처럼 보인다. */
-      const hasBot = seats.some((t) => t.includes('🤖'));
+      /* 봇 표는 DOM 에. 이름이 캐릭터면 이모지가 안 붙는다(MDD, 2026-08-31) */
+      const hasBot = (await page.locator('#acSeats .ac-seat[data-bot]').count()) > 0;
       check(
         `${id}: 혼자 열면 판이 뜬다` + (seats.length > 1 ? ' + 빈 자리에 봇이 앉는다' : ' (혼자 하는 놀이)'),
         seats.length === 1 || hasBot,
@@ -122,7 +130,7 @@ if (!cantRun) {
     } catch (e) {
       check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, false, e.message.slice(0, 70));
     }
-    await page.click('#acQuit');
+    await quitRoom(page);
     await page.waitForSelector('[data-obj]', { timeout: 10000 });
   }
   check('혼자, 같이 두 길이 다 있다', noHost.length === 0, noHost.join(' / '));
@@ -176,7 +184,7 @@ if (!cantRun) {
    * 평면은 어느 환경에서나 떠야 함. 아래 깊은 검사가 그걸 잼
    */
   console.log('[arcade-ui] 오목. 입체');
-  if (hasReflex) await page.click('#acQuit');
+  if (hasReflex) await quitRoom(page);
   await page.waitForSelector('[data-obj="gomoku"]', { timeout: 10000 });
   await page.click('[data-obj="gomoku"]');
   await page.click('[data-solo="gomoku"]');
@@ -201,7 +209,7 @@ if (!cantRun) {
   }
 
   console.log('[arcade-ui] 오목. 평면으로 물러서기');
-  await page.click('#acQuit');
+  await quitRoom(page);
   /* 사람이 2D 를 고른 것과 같은 자리에 적는다. 껍데기가 읽는 곳이 여기 하나다 */
   await page.evaluate(() => localStorage.setItem('karmolab.arcade.dim', '2d'));
   await page.click('[data-obj="gomoku"]');
