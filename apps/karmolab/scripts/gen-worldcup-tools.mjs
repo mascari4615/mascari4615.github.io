@@ -25,7 +25,9 @@ const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), '
    굽는 놈은 한 번도 안 돌았다. 모름이 괜찮음으로 읽히던 자리다.
    손으로 적는 곳(`src/widgets-lazy-meta.ts`)은 커밋되어 있고, 사람이 쓴 한국어 이름이
    그대로 들어 있다. 짓지 않아도 읽힌다(그래서 밤 워크플로에 설치, 빌드가 필요 없다). */
-const metaSrc = fs.readFileSync(path.join(root, 'src/widgets-lazy-meta.ts'), 'utf8');
+/* 줄 끝을 먼저 고른다. 윈도우 체크아웃은 CRLF 라 덩이 나누기가 한 개도 안 맞는다
+   (2026-08-31 실측: 이 생성기가 목록을 0개 읽어 죽은 것으로 잡혔다) */
+const metaSrc = fs.readFileSync(path.join(root, 'src/widgets-lazy-meta.ts'), 'utf8').replace(/\r\n/g, '\n');
 
 /** 손으로 적는 목록에서 id → {title, category} 만 훑는다. 파서를 새로 쓰지 않는다. */
 const widgets = new Map();
