@@ -24,10 +24,16 @@ export interface Ambience {
 }
 
 /** 4초짜리 흰 잡음 한 통, 무한 반복 */
+/* 잡음 버퍼는 ctx 마다 하나. 빗방울이 초당 20알이라 매번 4초짜리를 만들면 그것만으로 무겁다 */
+const noiseBufs = new WeakMap<AudioContext, AudioBuffer>();
 function noise(ctx: AudioContext): AudioBufferSourceNode {
-  const buf = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i += 1) d[i] = Math.random() * 2 - 1;
+  let buf = noiseBufs.get(ctx);
+  if (!buf) {
+    buf = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i += 1) d[i] = Math.random() * 2 - 1;
+    noiseBufs.set(ctx, buf);
+  }
   const n = ctx.createBufferSource();
   n.buffer = buf;
   n.loop = true;
@@ -121,7 +127,7 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
     g.gain.exponentialRampToValueAtTime(level, at + 0.003);
     g.gain.exponentialRampToValueAtTime(0.0001, at + 0.02 + Math.random() * 0.03);
     src.connect(f).connect(g).connect(out);
-    src.start(at);
+    src.start(at, Math.random() * 3.5);
     src.stop(at + 0.07);
   };
 
