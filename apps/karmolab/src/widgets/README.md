@@ -24,6 +24,7 @@
 
 - 아직 위젯 자체 클래스(`hu-btn` 70, `km-field` 56, `tl-btn` 36, `ie-opt-label` 46)가 남아 있다. 새 코드는 위 표로, 옛 것은 만날 때 바꾼다
 - 살아 있는 견본 장은 `#uikit` (`src/widgets/uikit.ts`). 목록에는 안 뜬다. 부품을 더하면 이 표, `toolbox.css`, `uikit.ts` 셋을 같이 고친다
+- 그 장 아래쪽에 스킨 토큰 22개가 색 견본과 함께 뜬다. 위젯 CSS 는 이 이름만 쓴다. 글자로 쓰는 강조색은 `--accent-ink`, 상태색 위 글자는 `--status-fg`
 
 ## 시작 전 체크리스트
 

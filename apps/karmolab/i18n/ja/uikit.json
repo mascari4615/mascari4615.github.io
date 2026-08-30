@@ -1,4 +1,5 @@
 {
   "uikit.tab": "部品",
-  "uikit.hint": "部品 {n} 種。正本は src/widgets/README.md の部品キット節。ここに無い形はウィジェット内で作らない"
+  "uikit.hint": "部品 {n} 種。正本は src/widgets/README.md の部品キット節。ここに無い形はウィジェット内で作らない",
+  "uikit.tokens": "トークン"
 }

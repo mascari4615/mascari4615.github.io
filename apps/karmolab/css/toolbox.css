@@ -4470,3 +4470,7 @@ html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { bor
     display: block; font-size: var(--font-size-xs); font-weight: 600;
     color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.02em;
 }
+.kit-tokens { display: flex; flex-direction: column; gap: 6px; }
+.kit-token { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-2xs); }
+.kit-token code { font-family: var(--font-mono); }
+.kit-token-chip { width: 18px; height: 18px; flex: none; border: 1px solid var(--border); }

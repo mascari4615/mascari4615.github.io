@@ -1,4 +1,5 @@
 {
   "uikit.tab": "Parts",
-  "uikit.hint": "{n} parts. Source of truth is the UI kit section of src/widgets/README.md. Shapes not listed here are not built inside widgets"
+  "uikit.hint": "{n} parts. Source of truth is the UI kit section of src/widgets/README.md. Shapes not listed here are not built inside widgets",
+  "uikit.tokens": "Tokens"
 }

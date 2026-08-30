@@ -130,6 +130,16 @@ import { t, loadNamespace } from '../lib/i18n';
         }
     ];
 
+    /* 스킨이 정하는 값. 위젯은 이 이름만 쓴다 */
+    const TOKENS: { group: string; names: string[] }[] = [
+        { group: '판', names: ['--bg-primary', '--bg-secondary', '--bg-tertiary', '--bg-hover'] },
+        { group: '글자', names: ['--text-primary', '--text-secondary', '--text-tertiary'] },
+        { group: '테두리', names: ['--border', '--border-hover', '--border-strong'] },
+        { group: '강조', names: ['--accent', '--accent-ink', '--accent-fg', '--accent-dim', '--accent-subtle'] },
+        { group: '상태', names: ['--success', '--error', '--warning', '--status-fg'] },
+        { group: '띠', names: ['--band', '--band-ink', '--band-mute'] }
+    ];
+
     function build(container: HTMLElement): void {
         const cards = PARTS.map(
             (p) => `<section class="kit-part">
@@ -141,8 +151,15 @@ import { t, loadNamespace } from '../lib/i18n';
   <div class="kit-part-body">${p.html}</div>
 </section>`
         ).join('');
+        const cs = getComputedStyle(document.documentElement);
+        const swatches = TOKENS.map((g) => `<section class="kit-part">
+  <div class="kit-part-head"><span class="kit-part-name">${esc(g.group)}</span></div>
+  <div class="kit-tokens">${g.names.map((n) => `<div class="kit-token"><span class="kit-token-chip" style="background:var(${n})"></span><code>${esc(n)}</code><span class="tool-list-dim">${esc(cs.getPropertyValue(n).trim())}</span></div>`).join('')}</div>
+</section>`).join('');
         container.innerHTML = `<p class="tool-hint">${esc(t('uikit.hint', { n: PARTS.length }))}</p>
-<div class="kit-parts">${cards}</div>`;
+<div class="kit-parts">${cards}</div>
+<h3 class="tool-sublabel">${esc(t('uikit.tokens', undefined, '토큰'))}</h3>
+<div class="kit-parts">${swatches}</div>`;
         container.querySelectorAll<HTMLButtonElement>('[data-toast]').forEach((btn) => {
             btn.onclick = () => Toolbox.showToast(`${btn.textContent} 알림`, btn.dataset.toast);
         });

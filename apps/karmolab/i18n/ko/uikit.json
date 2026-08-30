@@ -1,4 +1,5 @@
 {
   "uikit.tab": "부품",
-  "uikit.hint": "부품 {n}종. 정본은 src/widgets/README.md 부품 킷 절. 여기 없는 모양은 위젯 안에서 만들지 않는다"
+  "uikit.hint": "부품 {n}종. 정본은 src/widgets/README.md 부품 킷 절. 여기 없는 모양은 위젯 안에서 만들지 않는다",
+  "uikit.tokens": "토큰"
 }
