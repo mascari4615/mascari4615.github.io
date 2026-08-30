@@ -35,9 +35,9 @@ import { t, loadNamespace } from '../lib/i18n';
       .lap-state { display:flex; align-items:center; gap:10px; padding:14px 16px;
         background:var(--bg-tertiary); border:1px solid var(--border, var(--border));
         border-radius:var(--radius-md); margin-bottom:14px; }
-      .lap-dot { width:10px; height:10px; border-radius:50%; background:#8a867e; flex:0 0 auto; }
-      .lap-dot.on { background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,.6); }
-      .lap-dot.off { background:#f87171; }
+      .lap-dot { width:10px; height:10px; border-radius:50%; background:var(--text-tertiary); flex:0 0 auto; }
+      .lap-dot.on { background:var(--success); box-shadow:0 0 8px color-mix(in srgb, var(--success) 60%, transparent); }
+      .lap-dot.off { background:var(--error); }
       .lap-state-text { font-size:.92rem; color:var(--text-primary); }
       .lap-state-sub { font-size:.78rem; color:var(--text-tertiary); margin-top:2px;
         font-family:var(--font-mono, monospace); }
