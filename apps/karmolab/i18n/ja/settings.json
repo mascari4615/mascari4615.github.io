@@ -8,7 +8,7 @@
   "settings.opt.skinClassic": "クラシック",
   "settings.opt.skinField": "フィールド",
   "settings.label.setUiScale": "画面サイズ",
-  "settings.opt.scaleFit": "比率を保つ (1440x900 基準で拡大)",
+  "settings.opt.scaleFit": "比率を保つ",
   "settings.opt.scaleFixed": "そのまま",
   "settings.label.setPrism": "コードのハイライト",
   "settings.t02": "一緒に使う",
