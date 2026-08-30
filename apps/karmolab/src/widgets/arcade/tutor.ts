@@ -23,7 +23,7 @@ const N = 15;
 export const TUTOR_SIZE = N;
 export const cellOf = (x: number, y: number): number => y * N + x;
 
-/** 오목 배우기 다섯 장. 이어라, 막아라, 열린 셋, 사삼, 금수 */
+/** 오목 배우기 일곱 장. 이어라, 막아라, 열린 셋, 사삼, 삼삼 금수, 사사 금수, 장목 금수 */
 export const LESSONS: readonly Lesson[] = [
   {
     say: 'arcade.tutor.five',
@@ -73,6 +73,30 @@ export const LESSONS: readonly Lesson[] = [
     /* 삼삼 자리(8,7)를 피해 다른 데. 렌주에서 흑은 거기 못 둔다 */
     answer: [{ x: 7, y: 7 }, { x: 4, y: 7 }],
     miss: 'arcade.tutor.banned.miss'
+  },
+  {
+    /* 사사 금수. 금수 자리는 (8,7) 하나(노드 실측). 흑 여섯, 백 여섯 */
+    say: 'arcade.tutor.four4',
+    board: [
+      { x: 4, y: 7, who: 1 }, { x: 5, y: 7, who: 1 }, { x: 6, y: 7, who: 1 },
+      { x: 8, y: 4, who: 1 }, { x: 8, y: 5, who: 1 }, { x: 8, y: 6, who: 1 },
+      { x: 2, y: 2, who: 2 }, { x: 12, y: 12, who: 2 }, { x: 2, y: 12, who: 2 },
+      { x: 12, y: 2, who: 2 }, { x: 0, y: 0, who: 2 }, { x: 14, y: 14, who: 2 }
+    ],
+    answer: [{ x: 7, y: 7 }, { x: 3, y: 7 }],
+    miss: 'arcade.tutor.four4.miss'
+  },
+  {
+    /* 장목 금수. 여섯이 되는 (6,7) 이 금수(노드 실측). 흑 다섯, 백 다섯 */
+    say: 'arcade.tutor.over',
+    board: [
+      { x: 3, y: 7, who: 1 }, { x: 4, y: 7, who: 1 }, { x: 5, y: 7, who: 1 },
+      { x: 7, y: 7, who: 1 }, { x: 8, y: 7, who: 1 },
+      { x: 1, y: 1, who: 2 }, { x: 13, y: 13, who: 2 }, { x: 1, y: 13, who: 2 },
+      { x: 13, y: 1, who: 2 }, { x: 0, y: 6, who: 2 }
+    ],
+    answer: [{ x: 9, y: 7 }, { x: 2, y: 7 }],
+    miss: 'arcade.tutor.over.miss'
   }
 ];
 
