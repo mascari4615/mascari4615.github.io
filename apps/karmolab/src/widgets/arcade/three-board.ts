@@ -49,7 +49,7 @@ import {
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
-import { cloudTexture, clothTexture, contactTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
+import { cloudTexture, clothTexture, contactTexture, coordTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 import type { SceneId } from './scenes';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
@@ -124,6 +124,8 @@ export interface Board3d {
    * 둘 수 있는 자리인지는 화면이 정함(규칙을 아는 쪽). 판은 놓기만
    */
   ghost(cell: number, who: number): void;
+  /** 판 가장자리 좌표(A~, 1~). 켜고 끈다. 교차점 판(방)에서만 뜻이 있음 */
+  coords(on: boolean): void;
   /** WebGL 을 못 얻었으면 false. 부르는 쪽이 2D 로 물러선다 */
   ok: boolean;
   /**
@@ -171,7 +173,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch {
     host.removeChild(canvas);
-    return { place: () => {}, finish: () => {}, ghost: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
+    return { place: () => {}, finish: () => {}, ghost: () => {}, coords: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
   }
   /* GPU 이름. WARP(Basic Render Driver), SwiftShader, llvmpipe 면 CPU 로 그리는 중 */
   const gpuName = ((): string => {
@@ -487,6 +489,21 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   board.position.y = boardTop;
   board.receiveShadow = true;
   scene.add(board);
+  /* 좌표. 판 위에 투명 한 장. 줄 밖 나무 폭(margin)에 글자가 앉는다. 기본 꺼짐 */
+  let coordMesh: Mesh | null = null;
+  const setCoords = (on: boolean): void => {
+    if (!cross) return;
+    if (on && !coordMesh) {
+      const map = new CanvasTexture(coordTexture(n, margin / size, 1024));
+      map.colorSpace = SRGBColorSpace;
+      map.anisotropy = 4;
+      coordMesh = new Mesh(new PlaneGeometry(size, size), new MeshBasicMaterial({ map, transparent: true, depthWrite: false }));
+      coordMesh.rotation.x = -Math.PI / 2;
+      coordMesh.position.y = boardTop + 0.003;
+      scene.add(coordMesh);
+    }
+    if (coordMesh) coordMesh.visible = on;
+  };
 
   /**
    * 판 몸통 = **상자**. 처음엔 4각 실린더로 뒀는데 윗면과 옆면이 미세하게 어긋나 판 위에
@@ -1155,6 +1172,7 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
   return {
     ok: true,
     software,
+    coords: setCoords,
     place(stones, hint) {
       const key = stones.map((st) => `${st.cell}:${st.who}${st.last ? 'L' : ''}${st.king ? 'K' : ''}${st.pick ? 'P' : ''}${st.n !== undefined ? 'n' + st.n : ''}`).join(',') + '|' + (hint?.can ?? []).join(',');
       if (key === lastKey) return;

@@ -55,6 +55,15 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
     const amb = roomAmbience(host, specOf(sceneId).voice);
     host.addEventListener('pointerdown', () => amb.wake(), { passive: true });
     let shown = -1;
+    /* 놓인 차례. 대국 중 수 번호는 상태에 없으니 화면이 알이 나타난 순서를 기억한다. 무르면 빠진다 */
+    const order: number[] = [];
+    const pref = (key: string): boolean => {
+      try {
+        return localStorage.getItem(key) === 'on';
+      } catch {
+        return false;
+      }
+    };
     /* 미리 보기에 쓸 마지막 상태와 내 자리. 손이 움직일 때 규칙을 물어야 한다 */
     let lastState: GomokuState | null = null;
     let lastSeat = -1;
@@ -166,9 +175,16 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
         }
       });
       const stones: Stone[] = [];
-      /* 복기면 수 번호. 놓인 차례(`order`)에서 칸 -> 번호 */
+      /* 놓인 차례 갱신. 새로 보인 알은 뒤에(한꺼번에 여럿이면 칸 순), 사라진 알은 뺀다 */
+      const present = new Set<number>();
+      for (let i = 0; i < s.board.length; i += 1) if (s.board[i]) present.add(i);
+      for (let k = order.length - 1; k >= 0; k -= 1) if (!present.has(order[k])) order.splice(k, 1);
+      for (const c of present) if (order.indexOf(c) < 0) order.push(c);
+      /* 수 번호. 복기면 복기의 차례, 대국 중이면 설정이 켜졌을 때 화면이 기억한 차례 */
       const numOf = new Map<number, number>();
       if (v.review) v.review.order.forEach((cell, i) => numOf.set(cell, i + 1));
+      else if (pref('karmolab.arcade.numbers')) order.forEach((cell, i) => numOf.set(cell, i + 1));
+      board.coords(pref('karmolab.arcade.coords'));
       for (let i = 0; i < s.board.length; i += 1) {
         const who = s.board[i];
         if (who) stones.push({ cell: i, who, last: i === s.last, n: numOf.get(i) });

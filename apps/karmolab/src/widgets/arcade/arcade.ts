@@ -514,7 +514,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * ── 사람 (MDD, memo/rules/mdd.md) ── 자리 카드의 얼굴은 기하 도형(임시), 표정은 눈만, 말은 카드에 붙는 말풍선
        */
       '.ac-face,.ac-bubble,.ac-emotes{display:none}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls #acMdd[aria-pressed="false"]{opacity:.55}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls #acMdd[aria-pressed="false"],#acPlay.ac-bare:has(.ac-t3room) #acControls #acCoords[aria-pressed="false"],#acPlay.ac-bare:has(.ac-t3room) #acControls #acNums[aria-pressed="false"]{opacity:.55}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face{display:block;grid-column:1;grid-row:1/3;width:56px;height:56px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg{display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));transition:transform .3s}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="think"]{transform:rotate(-6deg)}',
@@ -1401,6 +1401,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
       /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
       '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
+      /* 좌표와 수 번호(레퍼런스의 접근성 설정). 브라우저에 남고, 화면이 매 그림마다 읽는다 */
+      '<button class="btn btn-ghost" id="acCoords" style="display:none" aria-pressed="false">' + esc(t('arcade.btn.coords')) + '</button>' +
+      '<button class="btn btn-ghost" id="acNums" style="display:none" aria-pressed="false">' + esc(t('arcade.btn.numbers')) + '</button>' +
       '<i class="ac-sep"></i>' +
       /* MDD 는 확장. 끄면 이름 있는 봇, 얼굴과 말풍선과 컷인 없음. 지금은 켬이 기본(개발 편의), 출시 기본은 끔 */
       '<button class="btn btn-ghost" id="acMdd" aria-pressed="true" title="' + esc(t('arcade.btn.mdd')) + '">' + esc(t('arcade.btn.mdd')) + '</button>' +
@@ -2527,6 +2530,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (em) em.style.display = on && mddOn() ? '' : 'none';
       if (!on) $<HTMLElement>('#acEmotes').hidden = true;
       paintMdd();
+      for (const [sel, key] of [['#acCoords', 'karmolab.arcade.coords'], ['#acNums', 'karmolab.arcade.numbers']] as const) {
+        const b = container.querySelector<HTMLButtonElement>(sel);
+        if (!b) continue;
+        b.style.display = on && cardById(id)?.kind === 'board' ? '' : 'none';
+        let v = false;
+        try {
+          v = localStorage.getItem(key) === 'on';
+        } catch {
+          /* 못 읽으면 꺼짐 */
+        }
+        b.setAttribute('aria-pressed', v ? 'true' : 'false');
+      }
       btn.textContent = t(specOf(sceneOf(id)).label);
     }
 
@@ -3223,6 +3238,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /* 반응. 메뉴의 한 줄이 판을 열고, 여섯 중 하나를 누르면 내 카드에 말풍선. 온라인이면 상대에게도 */
+    for (const [sel, key] of [['#acCoords', 'karmolab.arcade.coords'], ['#acNums', 'karmolab.arcade.numbers']] as const) {
+      $<HTMLButtonElement>(sel).onclick = () => {
+        let v = false;
+        try {
+          v = localStorage.getItem(key) === 'on';
+          localStorage.setItem(key, v ? 'off' : 'on');
+        } catch {
+          /* 못 적어도 이 판에서는 바뀐다 */
+        }
+        if (gameId) paintScene(gameId);
+      };
+    }
     $<HTMLButtonElement>('#acMdd').onclick = () => {
       try {
         localStorage.setItem('karmolab.arcade.mdd', mddOn() ? 'off' : 'on');
@@ -3417,7 +3444,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     menuBtn.onclick = () => setMenu(!play.classList.contains('ac-menu-open'));
     controls.addEventListener('click', (ev) => {
       const b = (ev.target as HTMLElement).closest('button');
-      if (b && b.id !== 'acSound' && b.id !== 'acMdd') setMenu(false);
+      if (b && b.id !== 'acSound' && b.id !== 'acMdd' && b.id !== 'acCoords' && b.id !== 'acNums') setMenu(false);
     });
     document.addEventListener('pointerdown', (ev) => {
       if (!play.classList.contains('ac-menu-open')) return;

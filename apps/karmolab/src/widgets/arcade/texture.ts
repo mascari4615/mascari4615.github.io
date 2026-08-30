@@ -304,6 +304,33 @@ export function contactTexture(size = 256): HTMLCanvasElement {
 }
 
 /**
+ * 판 가장자리 좌표. 가로 A~, 세로는 앞줄(내 쪽)이 1. 나무에 먹으로 쓴 것처럼 옅게.
+ * 판 전체 크기 한 장(투명 바탕)이라 판 위에 얹으면 자리가 맞는다. `margin` 은 줄 밖 나무 폭의 비율
+ */
+export function coordTexture(n: number, margin: number, size = 1024): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  c.clearRect(0, 0, size, size);
+  const inner = size * (1 - margin * 2);
+  const step = inner / (n - 1);
+  const pad = size * margin;
+  c.fillStyle = 'rgba(40,26,14,.62)';
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.font = `${Math.round(step * 0.42)}px "Noto Serif KR","Nanum Myeongjo",Georgia,serif`;
+  for (let i = 0; i < n; i += 1) {
+    const x = pad + i * step;
+    const letter = String.fromCharCode(65 + i);
+    c.fillText(letter, x, pad * 0.5);
+    c.fillText(letter, x, size - pad * 0.5);
+    const y = pad + i * step;
+    const num = String(n - i);
+    c.fillText(num, pad * 0.5, y);
+    c.fillText(num, size - pad * 0.5, y);
+  }
+  return cv;
+}
+
+/**
  * 구름. 빛에 물려 바닥에 **지나가는 구름 그늘**을 만든다(SpotLight.map). 밝은 바탕에 옅은 덩어리 몇.
  * 진하면 얼룩, 옅어야 구름. 등이 천천히 자리를 옮기면 그늘이 흘러감
  */

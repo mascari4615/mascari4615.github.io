@@ -10,6 +10,8 @@
   "arcade.btn.mdd": "Characters",
   "arcade.mdd.on": "Characters on. From the next game the house folks sit in",
   "arcade.mdd.off": "Characters off. From the next game, names only",
+  "arcade.btn.coords": "Coordinates",
+  "arcade.btn.numbers": "Move numbers",
   "arcade.btn.quit": "Back to the lab",
   "arcade.btn.again": "One more",
   "arcade.seats": "{min}-{max} players",
