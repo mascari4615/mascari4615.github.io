@@ -528,7 +528,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 작성자 display 가 hidden 의 UA display:none 을 이긴다. 안 적으면 투명한 채 캔버스를 덮어 클릭을 전부 먹는다(실측) */
       '.ac-ycpaper[hidden]{display:none}',
       /* 두 칸 나란히(정본). 점수표는 왼쪽 340px 종이 기둥, 무대는 나머지. 해체 분석 §4 */
-      '.ac-ycpaper.ac-pin{inset:0 auto 0 0;width:420px;padding:52px 16px 14px;background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:8px 0 30px rgba(0,0,0,.45),inset -1px 0 0 rgba(120,80,40,.25);pointer-events:auto;display:block;opacity:1;overflow:auto}',
+      /* 종이 한 장. 화면 끝에 붙은 기둥이 아니라 여백을 두고 살짝 기운 종이(사용자 지적). 결은 가로 줄 무늬 */
+      '.ac-ycpaper.ac-pin{inset:24px auto 24px 24px;width:400px;padding:50px 18px 16px;border-radius:3px;transform:rotate(-.7deg);transform-origin:50% 0;background:linear-gradient(172deg,#f9f2e1 0%,#f1e6cf 60%,#e9dcc0 100%),repeating-linear-gradient(180deg,transparent 0 31px,rgba(120,80,40,.05) 31px 32px);background-blend-mode:multiply;box-shadow:0 22px 50px rgba(0,0,0,.55),0 2px 0 rgba(255,255,255,.35) inset,0 0 0 1px rgba(120,80,40,.22);pointer-events:auto;display:block;opacity:1;overflow:auto}',
+      '.ac-ycpaper.ac-pin::before{content:"";position:absolute;left:14px;right:14px;top:6px;height:10px;background:radial-gradient(ellipse at 50% 0,rgba(120,80,40,.18),transparent 70%);pointer-events:none}',
       '.ac-ycpaper.ac-pin .ac-ycpaperin{width:100%;max-height:none;padding:0;transform:none;background:none;box-shadow:none;font-size:var(--font-size-md);opacity:1}',
       '.ac-ycpaper.ac-pin .ac-ycclose{display:none}',
       '.ac-ycpaper.ac-pin .ac-ychead{flex-wrap:wrap;margin-bottom:10px}',
@@ -539,9 +541,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ycpaper.ac-pin .ac-yctable .ac-yctot th,.ac-ycpaper.ac-pin .ac-yctable .ac-yctot td{font-size:var(--font-size-sm)}',
       '.ac-ycpaper.ac-pin .ac-yctable td{font-size:var(--font-size-lg)}',
       '.ac-ycpaper.ac-pin .ac-yccell{min-height:34px;font-size:var(--font-size-lg)}',
-      '#acPlay.ac-roomfill .ac-ycsplit .ac-t3.ac-t3bar{left:420px;width:auto;right:0}',
-      '.ac-ycsplit .ac-ychud,.ac-ycsplit .ac-yctoast{left:calc(50% + 210px)}',
-      '.ac-ycpin{position:absolute;left:14px;top:12px;z-index:5;height:34px;padding:0 14px;border-radius:var(--radius-pill);background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-xs);letter-spacing:.06em;cursor:pointer;opacity:.7;backdrop-filter:blur(8px)}',
+      '#acPlay.ac-roomfill .ac-ycsplit .ac-t3.ac-t3bar{left:440px;width:auto;right:0}',
+      '.ac-ycsplit .ac-ychud,.ac-ycsplit .ac-yctoast{left:calc(50% + 220px)}',
+      '.ac-ycpin{position:absolute;left:38px;top:36px;z-index:5;height:34px;padding:0 14px;border-radius:var(--radius-pill);background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-xs);letter-spacing:.06em;cursor:pointer;opacity:.7;backdrop-filter:blur(8px)}',
       '.ac-ycpin:hover,.ac-ycpin[aria-pressed="true"]{opacity:1;border-color:#e6bd7a}',
       '.ac-ycpin[aria-pressed="true"]{background:linear-gradient(180deg,#c9863d,#8f4f1c);color:#fff6e4}',
       '.ac-ycpin[hidden]{display:none}',
