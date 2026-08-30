@@ -3632,3 +3632,5 @@ html[data-skin="field"] input[type="range"] { accent-color: var(--accent); }
 :where(.tool-page, .tab-panel) button:not([class]):hover { background: var(--bg-hover); border-color: var(--border-hover); }
 :where(.tool-page, .tab-panel) button:not([class]):disabled { opacity: .4; cursor: not-allowed; }
 html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { border-radius: 0; }
+
+:where(.tool-page, .tab-panel) :where(button, input, select, textarea) { font-family: inherit; font-size: var(--font-size-xs); }
