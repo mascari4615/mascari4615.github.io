@@ -484,12 +484,20 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * `render` 가 컴파일까지 떠안아 1초 막힘(실측 1007ms). 끝날 때까지 안 그림
    */
   let compiled = !room;
+  /* 렌더 횟수와 시간. HUD 가 읽는다 */
+  let renders = 0;
+  let renderMs = 0;
   const render = (): void => {
     if (!need || !compiled) return;
     need = false;
+    const s0 = performance.now();
     renderer.render(scene, camera);
+    renderMs += performance.now() - s0;
+    renders += 1;
   };
+  let resizes = 0;
   const resize = (): void => {
+    resizes += 1;
     const w = host.clientWidth || 1;
     const h = host.clientHeight || 1;
     /* 방 표현은 화소 상한 1.5. 2 로 두면 1648x842 가 3.1M 화소가 된다 */
@@ -606,6 +614,92 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     if (room && !loop) loop = gloop(frame);
   };
 
+  /**
+   * ── 프레임 HUD (디버그) ── `?fps=1` 또는 localStorage `karmolab.arcade.fps=1`, 판에서 F 키
+   *
+   * 두 숫자를 나눠 보여 준다. **rAF** 는 브라우저가 화면을 넘기는 박자(사람이 느끼는 프레임),
+   * **render** 는 이 판이 실제로 그린 횟수와 걸린 시간. 이 판은 움직일 때만 그리므로 가만히
+   * 있을 때 render 0/s 는 정상이다. 그때 rAF 가 144 밑이면 판 밖(셸, 합성기, GPU)이 원인
+   */
+  let hud: HTMLElement | null = null;
+  let hudLoop: GardenLoop | null = null;
+  /* GPU 이름. SwiftShader 가 찍히면 하드웨어 가속이 꺼진 것 */
+  const gpuName = ((): string => {
+    try {
+      const gl = renderer.getContext();
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'gpu ?';
+    } catch {
+      return 'gpu ?';
+    }
+  })();
+  const hudOn = (): boolean => {
+    try {
+      return /[?&]fps=1/.test(location.search) || localStorage.getItem('karmolab.arcade.fps') === '1';
+    } catch {
+      return false;
+    }
+  };
+  const hudStop = (): void => {
+    hudLoop?.stop();
+    hudLoop = null;
+    hud?.remove();
+    hud = null;
+  };
+  const hudStart = (): void => {
+    if (hud) return;
+    hud = document.createElement('div');
+    hud.className = 'ac-fps';
+    hud.style.cssText = 'position:absolute;left:8px;top:8px;z-index:5;font:12px/1.4 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre';
+    host.appendChild(hud);
+    const dts: number[] = [];
+    let last = 0;
+    let tick = 0;
+    let rendersAt = 0;
+    let renderMsAt = 0;
+    let lastText = performance.now();
+    hudLoop = gloop(() => {
+      const t = performance.now();
+      if (last) dts.push(t - last);
+      last = t;
+      if (dts.length > 144) dts.shift();
+      tick += 1;
+      if (t - lastText < 250 || !hud) return;
+      const span = t - lastText;
+      const avg = dts.reduce((a, b) => a + b, 0) / Math.max(1, dts.length);
+      const max = Math.max(...dts);
+      const slow = dts.filter((d) => d > 12).length;
+      const rn = renders - rendersAt;
+      const rms = renderMs - renderMsAt;
+      rendersAt = renders;
+      renderMsAt = renderMs;
+      lastText = t;
+      const info = renderer.info.render;
+      hud.textContent =
+        `rAF ${(1000 / avg).toFixed(0)} fps  avg ${avg.toFixed(1)}ms  max ${max.toFixed(0)}ms  >12ms ${slow}/${dts.length}
+` +
+        `render ${((rn * 1000) / span).toFixed(0)}/s  ${rn ? (rms / rn).toFixed(1) : '-'}ms/그림  calls ${info.calls}  tris ${info.triangles}
+` +
+        `${canvas.width}x${canvas.height}  dpr ${(window.devicePixelRatio || 1).toFixed(2)}  ${renderer.shadowMap.type === PCFShadowMap ? 'PCF' : 'PCFSoft'} ${sun.shadow.mapSize.x}  loop ${loop ? 'on' : 'off'}  resize ${resizes}
+` +
+        gpuName;
+      tick = 0;
+    });
+  };
+  const onKey = (ev: KeyboardEvent): void => {
+    if (ev.key !== 'f' && ev.key !== 'F') return;
+    const on = !hud;
+    try {
+      localStorage.setItem('karmolab.arcade.fps', on ? '1' : '0');
+    } catch {
+      /* 저장 못 해도 이번 판은 켠다 */
+    }
+    if (on) hudStart();
+    else hudStop();
+  };
+  canvas.addEventListener('keydown', onKey);
+  if (hudOn()) hudStart();
+
   const ro = new ResizeObserver(resize);
   ro.observe(host);
   resize();
@@ -631,9 +725,19 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     kick();
   }
 
+  /**
+   * 마지막으로 놓은 판의 서명. 오락실 본체는 시계 때문에 **매 프레임** 화면을 다시 부르고
+   * (`arcade.ts` 의 loop), 그게 그대로 여기로 온다. 같은 판을 같은 자리에 다시 놓는 것은
+   * 그림 한 장 값(실측: 가만히 있어도 초당 144번 그림). 서명이 같으면 손대지 않음
+   */
+  let lastKey = '';
+
   return {
     ok: true,
     place(stones, hint) {
+      const key = stones.map((st) => `${st.cell}:${st.who}${st.last ? 'L' : ''}${st.king ? 'K' : ''}${st.pick ? 'P' : ''}`).join(',') + '|' + (hint?.can ?? []).join(',');
+      if (key === lastKey) return;
+      lastKey = key;
       const t = performance.now();
       if (room) {
         const before = new Set(shown.map((st) => st.cell));
@@ -677,6 +781,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       loop?.stop();
       loop = null;
       canvas.removeEventListener('pointerdown', onDown);
+      canvas.removeEventListener('keydown', onKey);
+      hudStop();
       ro.disconnect();
       scene.traverse((o) => {
         const m = o as Mesh;
