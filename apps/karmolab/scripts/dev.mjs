@@ -147,6 +147,20 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  /* 워커 자폭. 개발 서버는 워커를 안 쓴다(`pwa-update.ts`). 그런데 예전 판이 이미 붙여 둔 워커는
+     화면이 안 떠서 그 코드가 못 돈다. 브라우저는 그래도 sw.js 갱신은 확인하므로, 여기서 스스로
+     떼고 캐시를 비우고 창을 다시 여는 워커를 내준다 */
+  if (url.pathname === '/sw.js') {
+    res.writeHead(200, { 'Content-Type': 'text/javascript', 'Cache-Control': 'no-store', 'Service-Worker-Allowed': '/' });
+    res.end(
+      "self.addEventListener('install',()=>self.skipWaiting());" +
+      "self.addEventListener('activate',e=>e.waitUntil(self.registration.unregister()" +
+      ".then(()=>caches.keys()).then(ks=>Promise.all(ks.map(k=>caches.delete(k))))" +
+      ".then(()=>self.clients.matchAll({type:'window'})).then(cs=>cs.forEach(c=>c.navigate(c.url)))));"
+    );
+    return;
+  }
+
   /* 프레임 HUD 가 보내는 숫자. 사람이 복사해 붙일 필요 없이 여기 쌓인다. 읽는 곳: os.tmpdir()/karmolab-fps.log */
   if (url.pathname === '/__fps' && req.method === 'POST') {
     let body = '';

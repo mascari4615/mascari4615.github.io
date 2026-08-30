@@ -25,6 +25,16 @@ if (typeof document !== 'undefined') void loadNamespace('pwa');
 (function (): void {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
   if (location.hash === '#alarm-fire') return;
+  /**
+   * ★ **개발 서버에는 워커를 안 붙인다** (2026-08-30 실측). 127.0.0.1 의 판은 몇 분마다 다시 구워지는데
+   * 워커는 구운 판의 표식을 물고 있어, 일반 프로필에서는 빈 화면("제목 없음")이 뜨고 InPrivate 에서만
+   * 떴다. 워커가 없는 창만 되는 것이 증거. 붙어 있던 것도 떼고 캐시도 비움
+   */
+  if (/^(127\.0\.0\.1|localhost|\[::1\])$/.test(location.hostname)) {
+    void navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => void r.unregister()));
+    if ('caches' in window) void caches.keys().then((keys) => keys.forEach((k) => void caches.delete(k)));
+    return;
+  }
   /** 데스크톱 앱은 묻지 않고 갈아 끼운다. 브라우저는 사람에게 묻는다 */
   const silent = !!window.__KARMOLAB_DESKTOP__;
   /** 이 화면이 뜰 때 이미 SW 가 붙어 있었나. 최초 설치는 갈아 끼우는 것이 아니다 */
