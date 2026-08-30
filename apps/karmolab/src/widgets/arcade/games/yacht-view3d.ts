@@ -9,6 +9,7 @@
  * 세 번째 굴림이 멎으면 종이가 저절로 다가온다(어차피 적어야 한다).
  */
 import { t } from '../../../lib/i18n';
+import { blip } from '../../../lib/blip';
 import type { GameView } from '../views';
 import { mountDiceStage, type DiceStage } from '../dice-stage';
 import { barAmbience } from '../bar-ambience';
@@ -89,8 +90,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
         }).join('');
     };
     let toastTimer = 0;
-    const toast = (text: string, ms = 1700): void => {
+    const toast = (text: string, ms = 1700, deny = false): void => {
       toastEl.textContent = text;
+      toastEl.classList.toggle('ac-deny', deny);
       toastEl.classList.add('ac-show');
       if (toastTimer) window.clearTimeout(toastTimer);
       toastTimer = window.setTimeout(() => { toastEl.classList.remove('ac-show'); toastTimer = 0; }, ms);
@@ -115,6 +117,23 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     const myTurn = (): boolean => !!last && last.turn === mySeat;
     const canRoll = (): boolean => myTurn() && (last as YachtState).rolled < 3;
+    /* 못 하는 조작에는 삑과 이유(사용자 요구: 왜 안 되는지 알려야 한다). 조용히 무시하면 고장으로 보인다 */
+    const deny = (key: string, params?: Record<string, string>): void => {
+      blip('bad');
+      toast(t(key, params), 1600, true);
+    };
+    /* 손의 조합. 높은 것부터. 없으면 null */
+    const comboOf = (dice: number[]): Cat | null => {
+      for (const c of ['yacht', 'lstraight', 'sstraight', 'fullhouse', 'fourkind'] as Cat[]) if (scoreOf(c, dice) > 0) return c;
+      return null;
+    };
+    const whyNot = (what: 'roll' | 'keep'): string | null => {
+      if (!last) return null;
+      if (last.turn !== mySeat) return t('arcade.yacht.deny.turn', { who: seatNames[last.turn] ?? '' });
+      if (last.rolled >= 3) return t(what === 'roll' ? 'arcade.yacht.deny.rolls' : 'arcade.yacht.deny.keep3');
+      if (!idle()) return t('arcade.yacht.deny.busy');
+      return null;
+    };
 
     /* 종이 위 점수표. 캔버스에 직접 그린다. 이름과 칸과 점수. 지금 적을 수 있는 값은 안 그린다(종이는 기록이다) */
     const drawSheet = (c: CanvasRenderingContext2D, w: number): void => {
@@ -184,8 +203,16 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     let stage: DiceStage | null = mountDiceStage(host, {
       count: 5,
-      onDie: (i) => { if (canRoll() && idle()) act({ kind: 'keep', index: i }); },
-      onCup: () => { if (canRoll() && idle()) act({ kind: 'roll' }); },
+      onDie: (i) => {
+        const why = whyNot('keep');
+        if (why) { blip('bad'); toast(why, 1600, true); return; }
+        act({ kind: 'keep', index: i });
+      },
+      onCup: () => {
+        const why = whyNot('roll');
+        if (why) { blip('bad'); toast(why, 1600, true); return; }
+        act({ kind: 'roll' });
+      },
       onPaper: () => openSheet(),
       onSound: (kind, force) => {
         if (kind === 'rattle') amb.rattle();
@@ -248,7 +275,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
       if (ev.key === ' ') {
         ev.preventDefault();
         ev.stopPropagation();
-        if (canRoll() && !sheetOpen && idle()) act({ kind: 'roll' });
+        const why = whyNot('roll');
+        if (why) { blip('bad'); toast(why, 1600, true); return; }
+        if (!sheetOpen) act({ kind: 'roll' });
       } else if (ev.key === 'Escape' && sheetOpen) {
         closeSheet();
       } else if (ev.key === 'Tab') {
@@ -272,7 +301,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       const cell = (i: number, cat: Cat): string => {
         const sheet = s.sheet[i];
         const done = sheet?.[cat];
-        if (done !== null && done !== undefined) return '<td class="ac-ycdone">' + done + '</td>';
+        if (done !== null && done !== undefined) return '<td class="ac-ycdone" data-done="1">' + done + '</td>';
         if (i === mySeat && my && mine) {
           const would = scoreOf(cat, s.dice);
           return '<td><button type="button" class="ac-yccell' + (would === 0 ? ' ac-zero' : '') + '" data-c="' + cat + '">' + would + '</button></td>';
@@ -287,7 +316,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
         '<div class="ac-ycpaperin">' +
         '<div class="ac-ychead">' +
         '<div class="ac-ycdice">' + s.dice.map((d, i) => die(d, { keep: s.keep[i], can: false, label: String(d) })).join('') + '</div>' +
-        '<div class="ac-ycleft">' + esc(my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : t('arcade.yacht.sheet.pick')) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
+        '<div class="ac-ycleft">' + esc(my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : (comboOf(s.dice) ? t('arcade.yacht.sheet.combo', { cat: t('arcade.yacht.cat.' + (comboOf(s.dice) as Cat)) }) : t('arcade.yacht.sheet.pick'))) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
         '<button type="button" class="ac-ycclose" aria-label="' + esc(t('arcade.yacht.sheet.close')) + '">×</button>' +
         '</div>' +
         '<table class="ac-yctable"><thead><tr><th></th>' +
@@ -309,6 +338,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
         };
       });
       (paperEl.querySelector('.ac-ycclose') as HTMLButtonElement).onclick = () => closeSheet();
+      /* 이미 적은 칸, 남의 열을 누르면 왜 안 되는지 */
+      paperEl.querySelectorAll<HTMLElement>('td[data-done]').forEach((td) => { td.onclick = () => deny('arcade.yacht.deny.written'); });
     }
     function openSheet(): void {
       if (sheetOpen || dead || pinned) return;
@@ -399,6 +430,18 @@ export const view3d: GameView<YachtState, YachtAction> = {
       /* 첫 차례. 판이 서자마자 내 차례인데 알 길이 없었다(사용자 지적). 알림 한 줄 */
       if (before === null && s.turn === mySeat && !fin) {
         window.setTimeout(() => { if (last && last.turn === mySeat && host.isConnected) toast(t('arcade.yacht.toast.first'), 2600); }, 900);
+      }
+      /* 세 번째 굴림이 멎으면 다섯이 선반 홈으로 옮겨져 **손이 완성**된다(클럽하우스 51 순서: 굴림 -> 홈 -> 적기.
+         사용자 지적: 배치도 안 하고 점수판부터 띄운다). 그 뒤 조합 이름을 알린다 */
+      if (rolled && s.rolled >= 3) {
+        busyUntil += 700;
+        window.setTimeout(() => {
+          if (shown !== s || !stage || !host.isConnected) return;
+          stage.set(s.dice, s.dice.map(() => true), false);
+          const combo = comboOf(s.dice);
+          const best = bestOpen(s, s.turn);
+          toast(combo ? t('arcade.yacht.toast.combo', { cat: t('arcade.yacht.cat.' + combo) }) : t('arcade.yacht.toast.nocombo', { cat: best ? t('arcade.yacht.cat.' + best.cat) : '', n: String(best?.n ?? 0) }), 2400);
+        }, ROLL_MS - 350);
       }
       /* 세 번 다 굴렸고 내 차례면, 멎은 뒤 종이가 온다 */
       if (autoTimer) window.clearTimeout(autoTimer);
