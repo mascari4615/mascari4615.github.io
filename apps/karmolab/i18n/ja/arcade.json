@@ -599,5 +599,17 @@
   "arcade.yacht.hud.roll3": "最後の振り {n} / 3",
   "arcade.yacht.hud.rollall": "全部振り直す {n} / 3",
   "arcade.yacht.toast.last": "最終ラウンド",
-  "arcade.yacht.result.spark": "直近8戦"
+  "arcade.yacht.result.spark": "直近8戦",
+  "arcade.yacht.rule.ones": "1 の数 x 1",
+  "arcade.yacht.rule.twos": "2 の数 x 2",
+  "arcade.yacht.rule.threes": "3 の数 x 3",
+  "arcade.yacht.rule.fours": "4 の数 x 4",
+  "arcade.yacht.rule.fives": "5 の数 x 5",
+  "arcade.yacht.rule.sixes": "6 の数 x 6",
+  "arcade.yacht.rule.choice": "5個の合計。いつでも",
+  "arcade.yacht.rule.fourkind": "同じ目が4個以上なら5個の合計",
+  "arcade.yacht.rule.fullhouse": "3個+2個なら5個の合計",
+  "arcade.yacht.rule.sstraight": "4個連続で15点",
+  "arcade.yacht.rule.lstraight": "5個連続で30点",
+  "arcade.yacht.rule.yacht": "5個同じで50点"
 }

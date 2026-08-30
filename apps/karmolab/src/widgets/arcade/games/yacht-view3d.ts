@@ -438,8 +438,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
         }
         return '<td></td>';
       };
+      /* 칸 이름에 규칙 한 줄(레퍼런스는 "게임 방법" 창. 판 안에서 규칙을 볼 길이 없었다) */
       const row = (cat: Cat): string =>
-        '<tr><th>' + esc(t('arcade.yacht.cat.' + cat)) + '</th>' + seatNames.map((_, i) => cell(i, cat)).join('') + '</tr>';
+        '<tr><th title="' + esc(t('arcade.yacht.rule.' + cat)) + '">' + esc(t('arcade.yacht.cat.' + cat)) + '</th>' + seatNames.map((_, i) => cell(i, cat)).join('') + '</tr>';
       const totalRow = (label: string, f: (sheet: Record<Cat, number | null>) => string, cls = ''): string =>
         '<tr class="ac-yctot' + cls + '"><th>' + esc(label) + '</th>' + seatNames.map((_, i) => '<td>' + (s.sheet[i] ? f(s.sheet[i]) : '') + '</td>').join('') + '</tr>';
       paperEl.innerHTML =

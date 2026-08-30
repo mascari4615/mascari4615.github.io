@@ -599,5 +599,17 @@
   "arcade.yacht.hud.roll3": "마지막 굴리기 {n} / 3",
   "arcade.yacht.hud.rollall": "전부 다시 굴리기 {n} / 3",
   "arcade.yacht.toast.last": "마지막 라운드",
-  "arcade.yacht.result.spark": "최근 여덟 판"
+  "arcade.yacht.result.spark": "최근 여덟 판",
+  "arcade.yacht.rule.ones": "1 의 개수 x 1",
+  "arcade.yacht.rule.twos": "2 의 개수 x 2",
+  "arcade.yacht.rule.threes": "3 의 개수 x 3",
+  "arcade.yacht.rule.fours": "4 의 개수 x 4",
+  "arcade.yacht.rule.fives": "5 의 개수 x 5",
+  "arcade.yacht.rule.sixes": "6 의 개수 x 6",
+  "arcade.yacht.rule.choice": "다섯 눈의 합. 아무 때나",
+  "arcade.yacht.rule.fourkind": "같은 눈 넷 이상이면 다섯 눈의 합",
+  "arcade.yacht.rule.fullhouse": "셋 + 둘이면 다섯 눈의 합",
+  "arcade.yacht.rule.sstraight": "이어지는 눈 넷이면 15점",
+  "arcade.yacht.rule.lstraight": "이어지는 눈 다섯이면 30점",
+  "arcade.yacht.rule.yacht": "다섯이 같으면 50점"
 }

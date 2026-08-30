@@ -599,5 +599,17 @@
   "arcade.yacht.hud.roll3": "Last roll {n} / 3",
   "arcade.yacht.hud.rollall": "Reroll all {n} / 3",
   "arcade.yacht.toast.last": "Final round",
-  "arcade.yacht.result.spark": "Last 8 games"
+  "arcade.yacht.result.spark": "Last 8 games",
+  "arcade.yacht.rule.ones": "Count of 1 x 1",
+  "arcade.yacht.rule.twos": "Count of 2 x 2",
+  "arcade.yacht.rule.threes": "Count of 3 x 3",
+  "arcade.yacht.rule.fours": "Count of 4 x 4",
+  "arcade.yacht.rule.fives": "Count of 5 x 5",
+  "arcade.yacht.rule.sixes": "Count of 6 x 6",
+  "arcade.yacht.rule.choice": "Sum of all five, anytime",
+  "arcade.yacht.rule.fourkind": "Four of a kind: sum of all five",
+  "arcade.yacht.rule.fullhouse": "Three + two: sum of all five",
+  "arcade.yacht.rule.sstraight": "Four in a row: 15",
+  "arcade.yacht.rule.lstraight": "Five in a row: 30",
+  "arcade.yacht.rule.yacht": "All five the same: 50"
 }
