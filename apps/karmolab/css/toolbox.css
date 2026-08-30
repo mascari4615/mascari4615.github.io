@@ -4528,3 +4528,11 @@ html[data-skin="field"][data-theme="dark"] .header-lang-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23c9c7bf' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 10px center;
 }
+
+/* 찾기 판(Ctrl+K). 셸이 각진 판인데 여기만 알약 칩과 둥근 판이었다 (2026-08-31) */
+html[data-skin="field"] .kp-box { border-radius: 0; box-shadow: var(--shadow-hard); border-color: var(--border-strong); }
+html[data-skin="field"] .kp-browse-chip { border-radius: 0; font-family: var(--font-mono); letter-spacing: .04em; }
+html[data-skin="field"] .kp-browse-chip:hover { background: var(--band); color: var(--band-ink); border-color: var(--band); }
+html[data-skin="field"] .kp-browse-chip--index:hover { background: none; color: var(--text-primary); border-color: var(--border-strong); }
+html[data-skin="field"] .kp-browse-tools .kp-browse-chip { border-color: var(--border); border-left: 3px solid var(--accent); }
+html[data-skin="field"] .kp-row { border-radius: 0; }
