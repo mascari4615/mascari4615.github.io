@@ -581,5 +581,6 @@
   "arcade.yacht.result.stats": "내 기록. {games}판, 최고 {best}, 평균 {avg}, 요트 {yachts}번, 덤 {bonus}%",
   "arcade.yacht.hud.roll2": "다시 굴리기 {n} / 3",
   "arcade.yacht.hud.roll3": "마지막 굴리기 {n} / 3",
-  "arcade.yacht.hud.rollall": "전부 다시 굴리기 {n} / 3"
+  "arcade.yacht.hud.rollall": "전부 다시 굴리기 {n} / 3",
+  "arcade.yacht.toast.last": "마지막 라운드"
 }

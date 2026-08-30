@@ -101,6 +101,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
     /* 끝의 의식. 순위는 합계로, 같으면 같은 순위 */
     let ranks: number[] = [];
     let lastStats: ReturnType<typeof readYachtStats> | null = null;
+    let lastRound = -1;
     const rankOf = (totals: number[]): number[] => totals.map((tv) => 1 + totals.filter((o) => o > tv).length);
     /* 결과 종이 아래 내역 한 줄씩. 셸의 결과창(`#acOver`)에 끼워 넣는다. 셸은 순위와 합계만 안다 */
     const paintResult = (s: YachtState): void => {
@@ -565,6 +566,12 @@ export const view3d: GameView<YachtState, YachtAction> = {
       prevRolled = s.rolled;
       shown = s;
       busyUntil = performance.now() + (rolled ? ROLL_MS : kept ? KEEP_MS : 0);
+      /* 마지막 라운드. 열두 번째 칸을 채우기 시작하면 한 번 알린다(긴장감. 레퍼런스 스팀도 라운드를 셈) */
+      const doneMin = Math.min(...s.sheet.map((sh) => (sh ? CATS.filter((c) => sh[c] !== null).length : 0)));
+      if (before && doneMin === CATS.length - 1 && lastRound !== doneMin) {
+        lastRound = doneMin;
+        window.setTimeout(() => { if (host.isConnected) toast(t('arcade.yacht.toast.last'), 2400); }, 700);
+      }
       /* 첫 차례. 판이 서자마자 내 차례인데 알 길이 없었다(사용자 지적). 알림 한 줄 */
       if (before === null && s.turn === mySeat && !fin) {
         window.setTimeout(() => { if (last && last.turn === mySeat && host.isConnected) toast(t('arcade.yacht.toast.first'), 2600); }, 900);

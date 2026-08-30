@@ -581,5 +581,6 @@
   "arcade.yacht.result.stats": "Me: {games} games, best {best}, avg {avg}, yachts {yachts}, bonus {bonus}%",
   "arcade.yacht.hud.roll2": "Roll again {n} / 3",
   "arcade.yacht.hud.roll3": "Last roll {n} / 3",
-  "arcade.yacht.hud.rollall": "Reroll all {n} / 3"
+  "arcade.yacht.hud.rollall": "Reroll all {n} / 3",
+  "arcade.yacht.toast.last": "Final round"
 }

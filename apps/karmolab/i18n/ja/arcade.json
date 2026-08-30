@@ -581,5 +581,6 @@
   "arcade.yacht.result.stats": "自分: {games}戦、最高 {best}、平均 {avg}、ヨット {yachts}回、ボーナス {bonus}%",
   "arcade.yacht.hud.roll2": "もう一度振る {n} / 3",
   "arcade.yacht.hud.roll3": "最後の振り {n} / 3",
-  "arcade.yacht.hud.rollall": "全部振り直す {n} / 3"
+  "arcade.yacht.hud.rollall": "全部振り直す {n} / 3",
+  "arcade.yacht.toast.last": "最終ラウンド"
 }
