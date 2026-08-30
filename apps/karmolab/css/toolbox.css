@@ -54,6 +54,7 @@
     --accent-fg: #0f1016;
     /* 상태색으로 칠한 자리의 글자. 칠이 밝으면 어두운 잉크로 바꿔 끼운다 */
     --status-fg: #ffffff;
+    --modal-scrim: rgba(8, 8, 12, 0.62);
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.10);
     --accent-subtle: rgba(167, 155, 239, 0.07);
@@ -2411,7 +2412,7 @@ html[data-sidebar="rail"] .sidebar-group:not(.sidebar-group--cat) + .sidebar-gro
    `557b04e74d` 의 옛 CSS 정리에 같이 지워졌다) */
 .kl-modal-overlay {
     position: fixed; inset: 0; z-index: 3000;
-    background: rgba(8, 8, 12, 0.62);
+    background: var(--modal-scrim);
     display: flex; align-items: center; justify-content: center;
     padding: var(--space-lg);
     animation: fadeIn 140ms ease;
