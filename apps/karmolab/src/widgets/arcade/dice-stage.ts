@@ -463,29 +463,28 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     d.mesh.material = d.faces;
   };
   /**
-   * 위로 온 면(로컬 법선 `upLocal`)에 눈 v 가 오도록 배치를 돌린다. 표준 배치를 회전한 것이라
-   * 마주 보는 합 7 과 손잡이 방향이 그대로. 네 방향 중 하나는 아무거나
+   * 위로 온 면(로컬 법선 `upLocal`)에 눈 v 가 오도록 **녹화본 전체를 몸체 대칭으로 돌린다**.
+   * 정육면체는 90도 대칭이라 움직임은 그대로, 어느 면이 어디를 보나만 변경.
+   * 재질을 면 사이에서 옮기면 2, 3, 6 의 대각 점 방향이 이웃 면과 어긋나 주사위마다 다른
+   * 물건처럼 보였다(사용자 지적). 재질은 표준 배치에 고정
    */
-  const faceUp = (d: Die, upLocal: Vector3, v: number): void => {
-    const q = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, upLocal);
+  const bodyTurn = (tr: Track, upLocal: Vector3, v: number): void => {
+    const r = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, upLocal);
     const spin = new Quaternion().setFromAxisAngle(upLocal, Math.floor(Math.random() * 4) * (Math.PI / 2));
-    const inv = spin.multiply(q).invert();
-    const local = new Vector3();
-    GEOM_NORMALS.forEach((n, gi) => {
-      local.copy(n).applyQuaternion(inv);
-      let best = 1;
-      let bd = -2;
-      for (let val = 1; val <= 6; val += 1) {
-        const dd = FACE_NORMAL[val].dot(local);
-        if (dd > bd) {
-          bd = dd;
-          best = val;
-        }
-      }
-      d.faces[gi] = faceMats[FACE_ORDER.indexOf(best)];
-    });
-    d.mesh.material = d.faces;
+    const bodyR = spin.multiply(r);
+    for (const f of tr.frames) f.quat.multiply(bodyR);
+    /* 불변식. 마지막 자세에서 위를 보는 몸체 면이 v 여야 한다. 아니면 눈이 틀린 것 */
+    const end = tr.frames[tr.frames.length - 1];
+    const upBody = new Vector3(0, 1, 0).applyQuaternion(end.quat.clone().invert());
+    let shown = 0;
+    let bd = -2;
+    for (let val = 1; val <= 6; val += 1) {
+      const dd = FACE_NORMAL[val].dot(upBody);
+      if (dd > bd) { bd = dd; shown = val; }
+    }
+    if (shown !== v) console.warn('[dice-stage] 눈이 어긋났다. 정한 눈', v, '보이는 눈', shown);
   };
+  void GEOM_NORMALS;
   /* 눈 v 가 위로 오는 자세(표준 배치에서). 그 위에 아무 방향으로 한 바퀴 돌린 것. 안 굴리고 놓을 때 */
   const upright = (d: Die, v: number): void => {
     standardFaces(d);
@@ -575,7 +574,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       d.inCup = d.moveFrom === null;
       d.cupT0 = t;
       /* 멎은 자세에서 위로 온 면에 정해진 눈 */
-      faceUp(d, tr.upLocal, d.value);
+      standardFaces(d);
+      bodyTurn(tr, tr.upLocal, d.value);
       const end = tr.frames[tr.frames.length - 1];
       d.spot.copy(end.pos);
       d.quat.copy(end.quat);
