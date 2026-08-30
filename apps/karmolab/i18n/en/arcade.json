@@ -463,5 +463,7 @@
   "arcade.setup.size.19": "19 lines",
   "arcade.setup.renju": "Renju",
   "arcade.setup.renju.on": "On",
-  "arcade.setup.renju.off": "Off"
+  "arcade.setup.renju.off": "Off",
+  "arcade.t3.software": "Hardware acceleration is off, so this board is drawn on the CPU. If it stutters, turn on graphics acceleration in your browser settings or switch to 2D.",
+  "arcade.t3.software.btn": "View in 2D"
 }

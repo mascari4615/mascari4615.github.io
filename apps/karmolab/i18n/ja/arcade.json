@@ -463,5 +463,7 @@
   "arcade.setup.size.19": "19路",
   "arcade.setup.renju": "禁手",
   "arcade.setup.renju.on": "連珠",
-  "arcade.setup.renju.off": "なし"
+  "arcade.setup.renju.off": "なし",
+  "arcade.t3.software": "グラフィック アクセラレーションがオフのため CPU で描画しています。カクつく場合はブラウザ設定でアクセラレーションを有効にするか、2D に切り替えてください。",
+  "arcade.t3.software.btn": "2D で見る"
 }

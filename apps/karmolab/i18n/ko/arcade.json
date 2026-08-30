@@ -463,5 +463,7 @@
   "arcade.setup.size.19": "19줄",
   "arcade.setup.renju": "금수",
   "arcade.setup.renju.on": "렌주",
-  "arcade.setup.renju.off": "없음"
+  "arcade.setup.renju.off": "없음",
+  "arcade.t3.software": "그래픽 가속이 꺼져 있어 CPU 로 그리고 있어요. 판이 버벅이면 브라우저 설정의 그래픽 가속을 켜거나 2D 로 보세요.",
+  "arcade.t3.software.btn": "2D 로 보기"
 }

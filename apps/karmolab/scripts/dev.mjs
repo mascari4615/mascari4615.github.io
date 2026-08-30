@@ -147,6 +147,20 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  /* 프레임 HUD 가 보내는 숫자. 사람이 복사해 붙일 필요 없이 여기 쌓인다. 읽는 곳: os.tmpdir()/karmolab-fps.log */
+  if (url.pathname === '/__fps' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (c) => { body += c; });
+    req.on('end', () => {
+      fs.appendFileSync(path.join(os.tmpdir(), 'karmolab-fps.log'), `[${new Date().toISOString().slice(11, 19)}]
+${body}
+`);
+      res.writeHead(204);
+      res.end();
+    });
+    return;
+  }
+
   let rel = decodeURIComponent(url.pathname);
   if (rel.endsWith('/')) rel += 'index.html';
   const file = resolveFile(rel);

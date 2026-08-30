@@ -104,6 +104,12 @@ export interface Board3d {
   finish(): void;
   /** WebGL 을 못 얻었으면 false. 부르는 쪽이 2D 로 물러선다 */
   ok: boolean;
+  /**
+   * GPU 없이 CPU 로 그리는 중 (WARP, SwiftShader, llvmpipe). 브라우저의 그래픽 가속이 꺼진 것
+   * 이 상태면 알 하나에 20~40fps 다(2026-08-30 사용자 Edge 실측: Microsoft Basic Render Driver).
+   * 화면이 사람에게 알릴 것. 안 그러면 사람은 판이 무거운 줄 앎
+   */
+  software: boolean;
 }
 
 /* 알 색. 2D 화면(`--ac-stone-*`)과 같은 눈으로 고른 값. */
@@ -134,8 +140,19 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch {
     host.removeChild(canvas);
-    return { place: () => {}, finish: () => {}, resize: () => {}, dispose: () => {}, ok: false };
+    return { place: () => {}, finish: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
   }
+  /* GPU 이름. WARP(Basic Render Driver), SwiftShader, llvmpipe 면 CPU 로 그리는 중 */
+  const gpuName = ((): string => {
+    try {
+      const gl = renderer.getContext();
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'gpu ?';
+    } catch {
+      return 'gpu ?';
+    }
+  })();
+  const software = /Basic Render Driver|SwiftShader|llvmpipe|Software/i.test(gpuName);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   /* 방 표현은 PCF. PCFSoft 는 화소마다 표본이 몇 배라 1648x842 캔버스에서 프레임이 40~100ms 로 튀었다(실측) */
@@ -630,15 +647,6 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   canvas.addEventListener('pointermove', onMove, { passive: true });
   /* Edge 강화 보안 모드는 JIT 와 WebAssembly 를 끈다. 그러면 JS 가 몇 배 느리다 */
   const jit = typeof WebAssembly !== 'undefined' ? 'jit on' : 'jit OFF (Edge 강화 보안 모드?)';
-  const gpuName = ((): string => {
-    try {
-      const gl = renderer.getContext();
-      const ext = gl.getExtension('WEBGL_debug_renderer_info');
-      return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'gpu ?';
-    } catch {
-      return 'gpu ?';
-    }
-  })();
   const hudOn = (): boolean => {
     try {
       return /[?&]fps=1/.test(location.search) || localStorage.getItem('karmolab.arcade.fps') === '1';
@@ -664,6 +672,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     let rendersAt = 0;
     let renderMsAt = 0;
     let lastText = performance.now();
+    let beaconAt = 0;
     hudLoop = gloop(() => {
       const t = performance.now();
       if (last) dts.push(t - last);
@@ -691,6 +700,15 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
         gpuName + `
 ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${document.hidden}`;
       moves = 0;
+      /* 개발 서버가 있으면 숫자를 보낸다(2초마다). 사람이 HUD 를 복사할 수 없어서(pointer-events 없음) */
+      beaconAt += 1;
+      if (beaconAt % 8 === 0 && /^(127\.0\.0\.1|localhost)$/.test(location.hostname)) {
+        try {
+          navigator.sendBeacon('/__fps', hud.textContent || '');
+        } catch {
+          /* 없으면 없는 대로 */
+        }
+      }
       tick = 0;
     });
   };
@@ -742,6 +760,7 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
 
   return {
     ok: true,
+    software,
     place(stones, hint) {
       const key = stones.map((st) => `${st.cell}:${st.who}${st.last ? 'L' : ''}${st.king ? 'K' : ''}${st.pick ? 'P' : ''}`).join(',') + '|' + (hint?.can ?? []).join(',');
       if (key === lastKey) return;

@@ -409,6 +409,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방 표현의 비네팅. 네 귀를 어둡게 눌러야 판 위의 빛이 등에서 온 빛으로 읽힌다(레퍼런스 실측: 귀가 가운데보다 40% 어둡다) */
       /* 이름이 `ac-t3room` 인 이유: `ac-room` 은 온라인 방 패널이 이미 쓴다. 같은 이름을 쓰니 캔버스에 테두리와 flex 가 붙었다(실측) */
       '.ac-t3.ac-t3room{position:relative;border-radius:0}',
+      /* CPU 렌더링 경고. 판 위에 한 줄. 글자와 단추 하나 */
+      '.ac-t3warn{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 14px;margin:0 0 8px;border-radius:10px;background:rgba(200,120,40,.16);border:1px solid rgba(200,120,40,.5);font-size:var(--font-size-sm)}',
       '.ac-t3.ac-t3room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
       /* 방은 정사각이 아니다. 무대 폭을 다 쓰고 세로는 화면에 맞춘다. 카메라가 세로 화각을 지키므로 옆이 넓어지면 통과 다다미가 더 보인다(레퍼런스는 16:9) */
       '#acPlay.ac-bare .ac-stage:has(.ac-t3room){max-width:none;width:100%}',

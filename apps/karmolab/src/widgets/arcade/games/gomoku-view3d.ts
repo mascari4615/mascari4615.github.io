@@ -6,6 +6,7 @@
  *
  * 무대는 `three-board.ts` 가 짓는다(받아 둔 three). 여기 있는 일은 **상태를 알로 옮기는 것**뿐.
  */
+import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { mountThreeBoard, type Board3d, type Stone } from '../three-board';
 import { DEFAULT_SIZE, starPoints, type GomokuState, type GomokuAction } from './gomoku';
@@ -32,6 +33,21 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
         board = null;
         dead = true;
         host.innerHTML = '';
+      } else if (board.software && !el.querySelector('.ac-t3warn')) {
+        /* CPU 로 그리는 중. 판 탓이 아니라 브라우저 설정이라고 사람에게 말한다. 2D 는 이 상태에서도 가볍다 */
+        const warn = document.createElement('div');
+        warn.className = 'ac-t3warn';
+        warn.setAttribute('role', 'status');
+        const msg = document.createElement('span');
+        msg.textContent = t('arcade.t3.software');
+        const to2d = document.createElement('button');
+        to2d.type = 'button';
+        to2d.className = 'btn btn-ghost';
+        to2d.textContent = t('arcade.t3.software.btn');
+        /* 표현 단추(`#acDim`)는 오락실 본체 것. 같은 손으로 눌러야 저장과 갈아 끼우기가 한 길로 간다 */
+        to2d.onclick = () => document.getElementById('acDim')?.click();
+        warn.append(msg, to2d);
+        el.prepend(warn);
       }
     };
     build(DEFAULT_SIZE);
