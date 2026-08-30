@@ -85,6 +85,10 @@ const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'w
 /* 1. 설정 목록 먼저 펴기. 언어는 그 안 (2026-08-29)
    설정 버튼은 옆줄 바닥에 크기 0 으로 숨어 있다 (2026-08-30). 마우스로는 계정 캡슐이 가로채
    못 누른다. 사람은 계정 메뉴의 환경 설정 줄로 들어가고, 여기서는 버튼을 직접 누른다 */
+/* 언어 칸은 `window.KarmoLang` 이 붙어 있을 때만 그려진다(`toolbox.ts` 의 openSettingsMenu).
+   그 전에 목록을 열면 칸이 없는 목록이 서고, 목록은 다시 안 그려지므로 아무리 기다려도 안 생긴다.
+   CI 에서 배포를 막던 것이 이것(2026-08-30 밤부터 실패 아홉, 성공 둘, 늘 이 자리) */
+await page.waitForFunction(() => typeof window.KarmoLang?.openMenu === 'function', undefined, { timeout: 20000 });
 await page.evaluate(() => document.getElementById('settingsPageBtn')?.click());
 /* 3초는 CI 부하에서 모자랐다. 배포가 무작위로 빨개짐(2026-08-30 밤부터 새벽까지 실패 아홉,
    성공 둘, 늘 같은 자리). 목록이 뜨는 것을 넉넉히 기다린다 */
