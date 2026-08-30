@@ -3411,24 +3411,49 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * - 서버가 죽으면 여기만 멈춤. 같이, 같이 찾기는 그대로 */
     const roomLabel = (room: RankRoom): string => t('arcade.rank.room.' + room);
 
+    /** 줄에 선 때. 기다린 시간을 세는 자리 */
+    let rankedSince = 0;
+    let rankedTick = 0;
+    /** 지금 줄에 선 방과 그 방의 나 말고 몇. 시계가 이 값을 다시 그림 */
+    let rankedRoom: RankRoom = 'beginner';
+    let rankedOthers = 0;
+
+    /** 기다리는 동안 한 줄. 방, 같은 방 인원, 기다린 시간 */
+    function paintRankWait(): void {
+      const secs = Math.max(0, Math.round((Date.now() - rankedSince) / 1000));
+      $<HTMLElement>('#acCode').textContent = roomLabel(rankedRoom);
+      $<HTMLElement>('#acWaitStatus').textContent =
+        t('arcade.rank.waiting', { room: roomLabel(rankedRoom), n: String(rankedOthers) }) +
+        ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) });
+    }
+
     function startRanked(id: string): void {
       if (net) quit();
       gameId = id;
       peers = [];
       show('wait');
-      $<HTMLElement>('#acCode').textContent = roomLabel('beginner');
+      rankedSince = Date.now();
+      rankedRoom = 'beginner';
+      rankedOthers = 0;
       $<HTMLElement>('#acWaitSeats').innerHTML = '<span class="ac-seat ac-me">' + esc(myName()) + '</span>';
-      $<HTMLElement>('#acWaitStatus').textContent = t('arcade.rank.waiting', { room: roomLabel('beginner'), n: '0' });
+      paintRankWait();
+      /* 나가기가 로비로 가는 문이 아니라 줄에서 빠지는 문임을 글자로 */
+      $<HTMLElement>('#acWaitQuit').textContent = t('arcade.rank.leave');
+      window.clearInterval(rankedTick);
+      rankedTick = window.setInterval(paintRankWait, 1000);
       startBtn.style.display = 'none';
       $<HTMLElement>('.ac-share').style.display = 'none';
       ranked?.cancel();
       ranked = enterQueue(id, myName(), {
         onWaiting: (room, others) => {
-          $<HTMLElement>('#acCode').textContent = roomLabel(room);
-          $<HTMLElement>('#acWaitStatus').textContent = t('arcade.rank.waiting', { room: roomLabel(room), n: String(others) });
+          rankedRoom = room;
+          rankedOthers = others;
+          paintRankWait();
         },
         onMatched: (m) => {
           ranked = null;
+          window.clearInterval(rankedTick);
+          rankedTick = 0;
           rankedMatch = { code: m.code, you: m.you, rival: m.rival };
           if (m.host) {
             /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
@@ -3883,6 +3908,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ranked = null;
       rankedMatch = null;
       autoStart = false;
+      window.clearInterval(rankedTick);
+      rankedTick = 0;
+      $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
       dropOpen?.();
       dropOpen = null;

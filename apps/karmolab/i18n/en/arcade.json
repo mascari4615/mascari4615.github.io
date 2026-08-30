@@ -504,6 +504,8 @@
   "arcade.rank.room.upper": "Adept",
   "arcade.rank.waiting": "{room} room. Looking for a rival, {n} others here",
   "arcade.rank.matched": "Matched with {name}. Opening the room",
+  "arcade.rank.waited": "waiting {t}",
+  "arcade.rank.leave": "Leave the queue",
   "arcade.rank.down": "The ranked server isn't answering. Together and find players still work",
   "arcade.rank.applied": "Rating {d}. Now {n}",
   "arcade.rank.waiting.other": "Your score lands once your rival reports too",
