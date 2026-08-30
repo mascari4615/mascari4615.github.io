@@ -3676,3 +3676,13 @@ html[data-skin="field"] .tool-hub-group { font-family: var(--font-mono); letter-
 }
 :where(.tool-page, .tab-panel) input[type="file"]::file-selector-button:hover { background: var(--bg-hover); border-color: var(--border-hover); }
 html[data-skin="field"] :where(.tool-page, .tab-panel) input[type="file"]::file-selector-button { border-radius: 0; }
+
+:where(.tool-page, .tab-panel) table:not([class]) { width: 100%; border-collapse: collapse; font-size: var(--font-size-2xs); }
+:where(.tool-page, .tab-panel) table:not([class]) th,
+:where(.tool-page, .tab-panel) table:not([class]) td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+:where(.tool-page, .tab-panel) table:not([class]) th { font-weight: 600; color: var(--text-secondary); }
+:where(.tool-page, .tab-panel) table:not([class]) caption { text-align: left; padding-bottom: 6px; color: var(--text-tertiary); font-size: var(--font-size-3xs); }
+
+:where(.tool-page, .tab-panel) details:not([class]) { border: 1px solid var(--border); padding: 8px 12px; margin: 8px 0; background: var(--bg-secondary); }
+:where(.tool-page, .tab-panel) details:not([class]) > summary { cursor: pointer; font-weight: 600; font-size: var(--font-size-xs); }
+html[data-skin="field"] :where(.tool-page, .tab-panel) details:not([class]) { border-radius: 0; }
