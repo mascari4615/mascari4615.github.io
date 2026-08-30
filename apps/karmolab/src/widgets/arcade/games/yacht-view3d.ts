@@ -13,6 +13,8 @@ import { blip } from '../../../lib/blip';
 import type { GameView } from '../views';
 import { mountDiceStage, type DiceStage } from '../dice-stage';
 import { barAmbience } from '../bar-ambience';
+import { roomAmbience } from '../ambience';
+import { sceneOf, specOf } from '../scenes';
 import { die } from '../die';
 import { castByName, faceSvg, lineOf, type Cast, type Mood } from '../cast';
 import { CATS, scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
@@ -133,8 +135,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
       if (toastTimer) window.clearTimeout(toastTimer);
       toastTimer = window.setTimeout(() => { toastEl.classList.remove('ac-show'); toastTimer = 0; }, ms);
     };
-    const amb = barAmbience(host);
-    host.addEventListener('pointerdown', () => amb.wake(), { passive: true });
+    /* 방은 취향(`scenes.ts`). 바 카운터는 야추 전용, 나머지 넷은 오목과 같은 방. 갈아 끼우면 오락실이 화면을 새로 세운다 */
+    const sceneId = sceneOf('yacht');
+    const isBar = sceneId === 'bar';
+    /* 주사위 소리는 어느 방이든 바 소리 모듈. 배경(웅성거림, 잔)은 바에서만. 다른 방은 오목과 같은 방 소리 */
+    const amb = barAmbience(host, isBar);
+    const roomAmb = isBar ? null : roomAmbience(host, specOf(sceneId).voice);
+    host.addEventListener('pointerdown', () => { amb.wake(); roomAmb?.wake(); }, { passive: true });
 
     let last: YachtState | null = null;
     let seatNames: string[] = [];
@@ -240,6 +247,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     let stage: DiceStage | null = mountDiceStage(host, {
       count: 5,
+      scene: sceneId,
       onDie: (i) => {
         const why = whyNot('keep');
         if (why) { blip('bad'); toast(why, 1600, true); return; }

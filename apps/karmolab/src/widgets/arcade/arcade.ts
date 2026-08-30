@@ -2510,7 +2510,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (em) em.style.display = on && mddOn() ? '' : 'none';
       if (!on) $<HTMLElement>('#acEmotes').hidden = true;
       paintMdd();
-      btn.textContent = t(specOf(sceneOf()).label);
+      btn.textContent = t(specOf(sceneOf(id)).label);
     }
 
     function paintDim(id: string): void {
@@ -3421,7 +3421,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     });
 
     $<HTMLButtonElement>('#acScene').onclick = (): void => {
-      setScene(nextScene(sceneOf()));
+      setScene(nextScene(sceneOf(gameId), gameId));
       /* 판은 커널이 들고 있다. 화면만 새로 세우면 같은 판이 다른 방에 놓인다 */
       if (gameId) mountView(gameId);
     };

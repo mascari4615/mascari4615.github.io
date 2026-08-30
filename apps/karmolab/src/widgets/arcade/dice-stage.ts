@@ -48,10 +48,14 @@ import {
 import { gloop, type GardenLoop } from '../garden/gloop';
 import { dieFaceTexture, feltTexture, leatherTexture, paperTexture, plankTexture, woodTexture } from './texture';
 import { simulateRoll, simulateInCup, sample, type Track } from './dice-physics';
+import { buildRoom, type Room } from './rooms';
+import type { SceneId } from './scenes';
 
 export interface DiceStageOpts {
   /** 주사위 몇 개 */
   count: number;
+  /** 방. 바 카운터는 이 파일이 짓고, 나머지 넷은 `rooms.ts`(오목과 같은 방) */
+  scene?: SceneId;
   /** 주사위를 눌렀다 (남기기) */
   onDie: (i: number) => void;
   /** 컵을 눌렀다 (굴리기) */
@@ -181,6 +185,9 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 80);
+  const sceneId: SceneId = opts.scene ?? 'bar';
+  const bar = sceneId === 'bar';
+  host.classList.add('ac-scene-' + sceneId);
 
   /**
    * 카메라 자리 둘. **탁자**는 쟁반을 가운데 두고 비스듬히(레퍼런스 실측: 스팀 두 판 모두
@@ -210,30 +217,33 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   camera.position.copy(tableSeat);
   camera.lookAt(look);
 
-  /* ── 빛 ── 천장 등 하나가 쟁반에 떨어진다. 방은 어둡고 등 아래만 밝다 */
-  scene.add(new AmbientLight(0xffffff, 0.3));
-  const hemi = new HemisphereLight(0x8a6a48, 0x0a0705, 0.7);
-  scene.add(hemi);
+  /* ── 방 ── 바 카운터는 여기서. 나머지 넷은 오목과 같은 방(`rooms.ts`). 방이 빛과 바닥을 다 놓는다 */
+  const room: Room | null = bar ? null : buildRoom(scene, sceneId, TRAY_W);
+  /* ── 빛(바) ── 천장 등 하나가 쟁반에 떨어진다. 방은 어둡고 등 아래만 밝다 */
   const lamp = new SpotLight(0xffc98a, 3.2, 0, 0.85, 0.6, 0);
-  lamp.position.set(0.6, 12.5, 2.0);
-  lamp.target.position.set(0, 0, 0.6);
-  lamp.castShadow = true;
-  lamp.shadow.mapSize.set(2048, 2048);
-  lamp.shadow.radius = 4;
-  lamp.shadow.camera.near = 3;
-  lamp.shadow.camera.far = 26;
-  lamp.shadow.bias = -0.0003;
-  lamp.shadow.normalBias = 0.035;
-  scene.add(lamp);
-  scene.add(lamp.target);
-  /* 종이가 읽혀야 한다. 왼쪽에 약한 보조광 */
-  const fill = new DirectionalLight(0xffd9b0, 0.55);
-  fill.position.set(-10, 9, 6);
-  scene.add(fill);
-  /* 컵 쪽 촛불. 컵이 등불 가장자리라 어둠에 묻혔다(사용자 지적). 거리 감쇠 없이 낮게 */
-  const candle = new PointLight(0xffb070, 1.1, 0, 0);
-  candle.position.set(12, 3.5, 5.5);
-  scene.add(candle);
+  if (bar) {
+    scene.add(new AmbientLight(0xffffff, 0.3));
+    scene.add(new HemisphereLight(0x8a6a48, 0x0a0705, 0.7));
+    lamp.position.set(0.6, 12.5, 2.0);
+    lamp.target.position.set(0, 0, 0.6);
+    lamp.castShadow = true;
+    lamp.shadow.mapSize.set(2048, 2048);
+    lamp.shadow.radius = 4;
+    lamp.shadow.camera.near = 3;
+    lamp.shadow.camera.far = 26;
+    lamp.shadow.bias = -0.0003;
+    lamp.shadow.normalBias = 0.035;
+    scene.add(lamp);
+    scene.add(lamp.target);
+    /* 종이가 읽혀야 한다. 왼쪽에 약한 보조광 */
+    const fill = new DirectionalLight(0xffd9b0, 0.55);
+    fill.position.set(-10, 9, 6);
+    scene.add(fill);
+    /* 컵 쪽 촛불. 컵이 등불 가장자리라 어둠에 묻혔다(사용자 지적). 거리 감쇠 없이 낮게 */
+    const candle = new PointLight(0xffb070, 1.1, 0, 0);
+    candle.position.set(12, 3.5, 5.5);
+    scene.add(candle);
+  }
 
   /* ── 카운터 ── 니스 칠한 널. 어둡고 조금 비친다 */
   const counterMap = new CanvasTexture(plankTexture(31, 512));
@@ -247,16 +257,16 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const counter = new Mesh(new PlaneGeometry(40, 40), counterMat);
   counter.rotation.x = -Math.PI / 2;
   counter.receiveShadow = true;
-  scene.add(counter);
+  if (bar) scene.add(counter);
 
   /* ── 뒤쪽 ── 어두운 벽과 병 선반. 병은 빛나는 상자 몇 개. 디테일을 그리면 눈이 거기로 간다 */
   const wallMat = new MeshStandardMaterial({ color: 0x120c08, roughness: 1 });
   const wall = new Mesh(new PlaneGeometry(60, 24), wallMat);
   wall.position.set(0, 12, -17);
-  scene.add(wall);
+  if (bar) scene.add(wall);
   const shelfMat = new MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.7 });
   const bottleMats: MeshStandardMaterial[] = [];
-  for (let row = 0; row < 2; row += 1) {
+  for (let row = 0; row < (bar ? 2 : 0); row += 1) {
     const shelf = new Mesh(new BoxGeometry(40, 0.2, 2), shelfMat);
     shelf.position.set(0, 3.2 + row * 3.6, -16);
     scene.add(shelf);
@@ -414,7 +424,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   moteGeo.setAttribute('position', new Float32BufferAttribute(motePos, 3));
   const moteMat = new PointsMaterial({ color: 0xffdca0, size: 0.03, transparent: true, opacity: 0.45, blending: AdditiveBlending, depthWrite: false, sizeAttenuation: true });
   const motes = new Points(moteGeo, moteMat);
-  scene.add(motes);
+  if (bar) scene.add(motes);
 
   /* ── 주사위 ── 면마다 눈을 구운 상자. 한 벌만 굽고 다섯이 나눠 쓴다 */
   const faceMaps = FACE_ORDER.map((v) => {
@@ -943,6 +953,10 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const seed = Math.random() * 1000;
   const breathe = (t: number): void => {
     const s = t / 1000 + seed;
+    if (room) {
+      room.breathe(t);
+      return;
+    }
     /* 등불이 아주 조금 흔들린다. 눈에 띄면 고장 난 등이다 */
     lamp.intensity = 3.0 * (0.985 + 0.015 * Math.sin(s * 2.3) * Math.sin(s * 0.7 + 1));
     const arr = motes.geometry.getAttribute('position') as { array: Float32Array; needsUpdate: boolean };
@@ -1113,6 +1127,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       });
       [...faceMats, ...bottleMats, counterMat, wallMat, shelfMat, feltMat, trayWood, slotMat, brassOff, brassOn, leather, lipMat, paperMat, pencilMat, moteMat].forEach((m) => m.dispose());
       [...faceMaps, counterMap, feltMap, trayWoodMap, leatherMap, sheetMap].forEach((m) => m.dispose());
+      room?.dispose();
       renderer.dispose();
       canvas.remove();
     }

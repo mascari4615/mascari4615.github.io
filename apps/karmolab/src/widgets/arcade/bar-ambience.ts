@@ -38,7 +38,7 @@ function filter(ctx: AudioContext, type: BiquadFilterType, hz: number, q = 1): B
   return f;
 }
 
-export function barAmbience(host: HTMLElement): BarAmbience {
+export function barAmbience(host: HTMLElement, background = true): BarAmbience {
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
   let timer = 0;
@@ -72,6 +72,7 @@ export function barAmbience(host: HTMLElement): BarAmbience {
     master.gain.value = 0;
     master.connect(c.destination);
     master.gain.linearRampToValueAtTime(0.9, c.currentTime + 2.5);
+    if (!background) return;
 
     /* 방의 웅성거림. 중간 대역 잡음이 천천히 부풀었다 꺼진다. 말은 안 들리고 사람만 있다 */
     const murmur = noise(c);
