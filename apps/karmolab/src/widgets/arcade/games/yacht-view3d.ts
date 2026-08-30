@@ -272,7 +272,10 @@ export const view3d: GameView<YachtState, YachtAction> = {
       paperEl.hidden = false;
       /* 카메라가 닿을 즈음 종이가 떠오른다 */
       paperEl.classList.remove('ac-show');
+      /* 떠오른 뒤에도 0.4초는 칸을 안 받는다. 방금 누르던 손이 그대로 떨어지는 것을 막는다 */
+      paperEl.classList.add('ac-arm');
       window.setTimeout(() => { if (sheetOpen) paperEl.classList.add('ac-show'); }, 380);
+      window.setTimeout(() => { if (sheetOpen) paperEl.classList.remove('ac-arm'); }, 380 + 400);
     }
     function closeSheet(): void {
       if (!sheetOpen) return;
@@ -280,6 +283,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       if (autoTimer) window.clearTimeout(autoTimer);
       autoTimer = 0;
       paperEl.classList.remove('ac-show');
+      paperEl.classList.remove('ac-arm');
       paperEl.hidden = true;
       stage?.sheetMode(false);
       stage?.canAct(canRoll());

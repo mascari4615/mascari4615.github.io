@@ -489,6 +489,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3bar) .ac-seat .ac-rule{padding-left:26px;font-variant-numeric:tabular-nums}',
       '.ac-ycpaper{position:absolute;inset:0;z-index:4;display:grid;place-items:center;background:rgba(6,4,2,.22);opacity:0;transition:opacity .28s ease}',
       '.ac-ycpaper.ac-show{opacity:1}',
+      /* 보이기 전에는 손이 안 닿는다. 투명한 채 깔린 0.38초에 주사위 자리를 누르면 안 보이는 칸에 적혔다(사용자 지적: 적지도 않았는데 차례가 넘어감) */
+      '.ac-ycpaper:not(.ac-show){pointer-events:none}',
+      '.ac-ycpaper.ac-arm .ac-yccell{pointer-events:none;opacity:.55}',
       /* 작성자 display 가 hidden 의 UA display:none 을 이긴다. 안 적으면 투명한 채 캔버스를 덮어 클릭을 전부 먹는다(실측) */
       '.ac-ycpaper[hidden]{display:none}',
       /* 고정 모드. 오른쪽에 작게 붙고, 캔버스는 그대로 눌린다 */
