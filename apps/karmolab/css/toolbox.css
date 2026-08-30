@@ -4474,3 +4474,22 @@ html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { bor
 .kit-token { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-2xs); }
 .kit-token code { font-family: var(--font-mono); }
 .kit-token-chip { width: 18px; height: 18px; flex: none; border: 1px solid var(--border); }
+
+/* 도구 전체 목록 장(`/t/`). 셸은 새 모양인데 이 장만 옛 모양이었다 (2026-08-31 실측:
+   알약 칩과 둥근 카드, 둥근 찾기 칸). 짜임은 그대로 두고 칠과 모서리만 스킨에 맞춘다 */
+html[data-skin="field"] .tool-hub-toc a,
+html[data-skin="field"] .tool-hub-find input,
+html[data-skin="field"] .tool-hub-empty,
+html[data-skin="field"] .tool-hub-new,
+html[data-skin="field"] .tool-hub-desktop { border-radius: 0; }
+html[data-skin="field"] .tool-hub-toc a {
+    border-color: var(--border); background: var(--bg-secondary); color: var(--text-secondary);
+    font-family: var(--font-mono); font-size: var(--font-size-2xs); letter-spacing: .04em;
+}
+html[data-skin="field"] .tool-hub-toc a:hover { background: var(--band); color: var(--band-ink); border-color: var(--band); }
+html[data-skin="field"] .tool-hub-find input { border-color: var(--border); box-shadow: var(--shadow-hard); }
+html[data-skin="field"] .tool-hub-card {
+    border-radius: 0; border-left: 3px solid var(--accent); background: var(--bg-secondary);
+}
+html[data-skin="field"] .tool-hub-card:hover { transform: none; background: var(--bg-hover); box-shadow: var(--shadow-hard); }
+html[data-skin="field"] .tool-hub-group { font-family: var(--font-mono); letter-spacing: .08em; }
