@@ -589,5 +589,6 @@
   "arcade.yacht.hud.roll2": "다시 굴리기 {n} / 3",
   "arcade.yacht.hud.roll3": "마지막 굴리기 {n} / 3",
   "arcade.yacht.hud.rollall": "전부 다시 굴리기 {n} / 3",
-  "arcade.yacht.toast.last": "마지막 라운드"
+  "arcade.yacht.toast.last": "마지막 라운드",
+  "arcade.yacht.result.spark": "최근 여덟 판"
 }

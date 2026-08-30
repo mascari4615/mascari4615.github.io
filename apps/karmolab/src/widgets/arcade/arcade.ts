@@ -721,6 +721,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '  .ac-yccombo.ac-lv3 b{font-size:clamp(30px,10vw,56px)}',
       '  .ac-ycresult{min-width:0;width:calc(100vw - 48px);max-width:360px}',
       '}',
+      /* 최근 여덟 판 막대 */
+      '.ac-ycspark{display:flex;align-items:flex-end;gap:4px;height:38px;margin-top:6px}',
+      '.ac-ycspark i{position:relative;flex:1;height:var(--h);min-height:6px;background:rgba(120,80,40,.28);border-radius:2px 2px 0 0}',
+      '.ac-ycspark i.ac-now{background:linear-gradient(180deg,#e6bd7a,#b8781a)}',
+      '.ac-ycspark i b{position:absolute;left:50%;bottom:calc(100% + 2px);transform:translateX(-50%);font-size:var(--font-size-4xs);font-weight:400;color:#8a7050}',
+      '.ac-ycspark i:not(.ac-now) b{opacity:0}',
       '.ac-ycstats{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(80,55,30,.35);font-size:var(--font-size-xs);color:#6b5236;text-align:center}',
       '.ac-yctable thead th[data-win]::after{content:"\\2605";font-size:var(--font-size-4xs);margin-left:4px;color:#b8781a}',
       '.ac-ycpaperin{width:min(440px,92%);max-height:92%;overflow:auto;padding:16px 18px 18px;border-radius:var(--radius-sm);background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(120,80,40,.22);color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:rotate(-.6deg)}',

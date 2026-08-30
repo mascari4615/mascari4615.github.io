@@ -589,5 +589,6 @@
   "arcade.yacht.hud.roll2": "もう一度振る {n} / 3",
   "arcade.yacht.hud.roll3": "最後の振り {n} / 3",
   "arcade.yacht.hud.rollall": "全部振り直す {n} / 3",
-  "arcade.yacht.toast.last": "最終ラウンド"
+  "arcade.yacht.toast.last": "最終ラウンド",
+  "arcade.yacht.result.spark": "直近8戦"
 }

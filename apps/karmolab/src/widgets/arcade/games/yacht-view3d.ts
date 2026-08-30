@@ -133,6 +133,16 @@ export const view3d: GameView<YachtState, YachtAction> = {
         line.className = 'ac-ycstats';
         line.textContent = t('arcade.yacht.result.stats', { games: String(st.games), best: String(st.best), avg: String(avgOf(st)), yachts: String(st.yachts), bonus: String(st.games ? Math.round((st.bonuses / st.games) * 100) : 0) });
         box.appendChild(line);
+        /* 최근 여덟 판 막대. 오늘이 잘한 판인지 한눈에(기록이 숫자로만 있으면 안 읽힌다) */
+        const last8 = st.recent.slice(-8);
+        if (last8.length >= 2) {
+          const hi = Math.max(...last8.map((r) => r.score), 1);
+          const spark = document.createElement('div');
+          spark.className = 'ac-ycspark';
+          spark.setAttribute('aria-label', t('arcade.yacht.result.spark'));
+          spark.innerHTML = last8.map((r, k) => '<i style="--h:' + Math.max(6, Math.round((r.score / hi) * 100)) + '%"' + (k === last8.length - 1 ? ' class="ac-now"' : '') + '><b>' + r.score + '</b></i>').join('');
+          box.appendChild(spark);
+        }
       }
       const list = over.querySelector('#acOverList');
       if (list) list.after(box);

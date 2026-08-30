@@ -589,5 +589,6 @@
   "arcade.yacht.hud.roll2": "Roll again {n} / 3",
   "arcade.yacht.hud.roll3": "Last roll {n} / 3",
   "arcade.yacht.hud.rollall": "Reroll all {n} / 3",
-  "arcade.yacht.toast.last": "Final round"
+  "arcade.yacht.toast.last": "Final round",
+  "arcade.yacht.result.spark": "Last 8 games"
 }
