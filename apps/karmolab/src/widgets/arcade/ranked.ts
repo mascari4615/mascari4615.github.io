@@ -287,3 +287,17 @@ export function tapeFromUrl(): string | null {
 export function tapeLink(id: string): string {
   return `${location.origin}${location.pathname}?g=${encodeURIComponent(id)}`;
 }
+
+/**
+ * 지금 등급전 줄에 몇이 서 있나. 로비가 문 옆에 적는 값
+ * - 못 물어보면 없음. 아무 것도 안 그림
+ */
+export async function queueCount(game: string): Promise<{ beginner: number; upper: number } | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/queue/count/${encodeURIComponent(game)}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return (await res.json()) as { beginner: number; upper: number };
+  } catch {
+    return null;
+  }
+}

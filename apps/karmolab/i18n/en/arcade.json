@@ -519,6 +519,7 @@
   "arcade.rank.tier.4": "Master",
   "arcade.rank.tier.5": "Summit",
   "arcade.rank.first": "Waiting on your first ranked game",
+  "arcade.rank.queued": "{n} looking for a rival right now",
   "arcade.rank.record": "{n} pts, {games} games {wins} wins",
   "arcade.rank.tonext": "{n} to the next step",
   "arcade.tape.copy": "Copy replay link",

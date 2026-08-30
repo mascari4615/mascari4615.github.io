@@ -519,6 +519,7 @@
   "arcade.rank.tier.4": "達人",
   "arcade.rank.tier.5": "頂",
   "arcade.rank.first": "段位戦の初戦を待っています",
+  "arcade.rank.queued": "今 {n}人が相手を探しています",
   "arcade.rank.record": "{n}点, {games}戦 {wins}勝",
   "arcade.rank.tonext": "次の段まで{n}点",
   "arcade.tape.copy": "この対局の再生リンクをコピー",

@@ -173,6 +173,20 @@ export function registerArcadeQueue(app: Application): void {
     res.json({ ...answer(id), until: TTL_MS });
   });
 
+  /**
+   * 지금 방마다 몇이 기다리나. 로비가 등급전 문 옆에 적는 값
+   * - 열쇠 없이 봄. 사람 수는 감출 것이 아니고, 아무도 없는 문을 누르게 두면 안 됨
+   */
+  app.get('/kl/arcade/queue/count/:game', (req: Request, res: Response) => {
+    const game = clean(req.params.game, /^[a-z0-9]{2,24}$/, 24);
+    if (!game) {
+      res.status(400).json({ error: 'game 모양이 아니다' });
+      return;
+    }
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(queueCounts(game));
+  });
+
   /** 짝이 났나. 먼저 선 사람이 아는 길 */
   app.get('/kl/arcade/queue/:key', (req: Request, res: Response) => {
     const key = clean(req.params.key, /^[A-Za-z0-9_-]{16,64}$/, 64);

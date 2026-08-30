@@ -519,6 +519,7 @@
   "arcade.rank.tier.4": "달인",
   "arcade.rank.tier.5": "정상",
   "arcade.rank.first": "등급전 첫 판을 기다리는 중",
+  "arcade.rank.queued": "지금 {n}명이 상대를 찾는 중",
   "arcade.rank.record": "{n}점, {games}판 {wins}승",
   "arcade.rank.tonext": "다음 계단까지 {n}점",
   "arcade.tape.copy": "이 판 복기 링크 복사",

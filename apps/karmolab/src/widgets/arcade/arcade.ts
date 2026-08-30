@@ -54,6 +54,7 @@ import {
   importKey,
   loadTape,
   myRating,
+  queueCount,
   reportResult,
   saveTape,
   tapeFromUrl,
@@ -328,6 +329,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 내 단위 한 줄. 점수를 못 물어보면 아예 안 그림(빈 자리는 고장으로 보임) */
       '#acDetail .ac-grade{margin-top:10px;font-size:var(--font-size-2xs);color:#8b897b}',
       '#acDetail .ac-grade b{color:#a4423a;font-weight:900}',
+      '#acDetail .ac-grade b.ac-queued{display:block;margin-top:4px;color:#3c3a30}',
       '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
       '#acDetail .ac-more{display:flex;gap:16px;margin-top:14px}',
       '#acDetail .ac-more button{background:none;border:0;padding:0;font-size:var(--font-size-2xs);color:#8b897b;text-decoration:underline;cursor:pointer}',
@@ -3262,11 +3264,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     async function paintGrade(id: string): Promise<void> {
       const box = container.querySelector<HTMLElement>('#acGrade');
       if (!box) return;
-      const rec = await myRating(id);
+      const [rec, count] = await Promise.all([myRating(id), queueCount(id)]);
       /* 그 사이에 사람이 다른 물건을 집었으면 남의 자리에 적지 않음 */
       if (!rec || container.querySelector('#acGrade') !== box) return;
+      /* 줄에 선 사람이 있으면 그 수부터. 아무도 없는 문을 누르게 두면 안 됨 */
+      const waiting = count ? count.beginner + count.upper : 0;
+      const line = waiting > 0 ? ' ' + t('arcade.rank.queued', { n: String(waiting) }) : '';
       if (rec.games === 0) {
-        box.textContent = t('arcade.rank.first');
+        box.textContent = t('arcade.rank.first') + line;
         return;
       }
       const g = gradeOf(rec.rating);
@@ -3274,7 +3279,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       box.innerHTML =
         '<b>' + esc(name) + '</b> ' +
         esc(t('arcade.rank.record', { n: String(rec.rating), games: String(rec.games), wins: String(rec.wins) })) +
-        (g.toNext !== null ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) })) : '');
+        (g.toNext !== null ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) })) : '') +
+        (line ? '<b class="ac-queued">' + esc(line.trim()) + '</b>' : '');
     }
 
     /**

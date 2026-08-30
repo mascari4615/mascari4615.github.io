@@ -89,6 +89,16 @@ describe('등급전 대기열', () => {
     expect((await stand(C)).status).toBe('waiting');
   });
 
+  it('방마다 몇이 기다리는지 열쇠 없이 본다', async () => {
+    const count = (game: string): Promise<Response> => fetch(`${base}/kl/arcade/queue/count/${game}`);
+    expect(await (await count('gomoku')).json()).toEqual({ beginner: 0, upper: 0 });
+    await stand(A);
+    expect(await (await count('gomoku')).json()).toEqual({ beginner: 1, upper: 0 });
+    /* 다른 놀이 줄은 안 센다 */
+    expect(await (await count('yut')).json()).toEqual({ beginner: 0, upper: 0 });
+    expect((await count('BAD')).status).toBe(400);
+  });
+
   it('나가면 줄에서 빠지고, 짝도 풀린다', async () => {
     await stand(A);
     await leave(A);
