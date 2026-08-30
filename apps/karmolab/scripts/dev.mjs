@@ -222,9 +222,13 @@ function snapshot(dir, acc = new Map()) {
   if (!fs.existsSync(dir)) return acc;
   for (const name of fs.readdirSync(dir)) {
     const p = path.join(dir, name);
-    const st = fs.statSync(p);
-    if (st.isDirectory()) snapshot(p, acc);
-    else if (p.endsWith('.js')) acc.set(p, createHash('sha1').update(fs.readFileSync(p)).digest('hex'));
+    /* 훑는 사이에 빌드가 그 파일을 다시 쓰면 stat 이 던진다. 그대로 두면 서버가 죽는다
+       (2026-08-31 실측: 도구 231장 훑는 동안 두 번 죽었고, 그 뒤 검사는 전부 못 잰 것이었다) */
+    try {
+      const st = fs.statSync(p);
+      if (st.isDirectory()) snapshot(p, acc);
+      else if (p.endsWith('.js')) acc.set(p, createHash('sha1').update(fs.readFileSync(p)).digest('hex'));
+    } catch { /* 사라졌으면 다음 사진에서 잡힌다 */ }
   }
   return acc;
 }
