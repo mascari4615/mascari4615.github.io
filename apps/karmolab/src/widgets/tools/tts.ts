@@ -85,10 +85,12 @@ import { t, loadNamespace } from '../../lib/i18n';
       const language = guessLanguage(textBox.value);
       /* 글에 맞는 목소리를 앞에 둔다. 한글을 영어 목소리로 읽으면 알아들을 수 없다. */
       const sorted = [...voices].sort((a, b) => Number(b.lang.startsWith(language)) - Number(a.lang.startsWith(language)));
-      $<HTMLSelectElement>('#ttVoice').innerHTML = sorted
+      const voiceBox = $<HTMLSelectElement>('#ttVoice');
+      if (!voiceBox) return; // 이미 닫힌 도구
+      voiceBox.innerHTML = sorted
         .map((v, i) => '<option value="' + i + '">' + esc(v.name + '  (' + v.lang + ')') + '</option>')
         .join('');
-      (($<HTMLSelectElement>('#ttVoice') as unknown) as { _voices?: SpeechSynthesisVoice[] })._voices = sorted;
+      ((voiceBox as unknown) as { _voices?: SpeechSynthesisVoice[] })._voices = sorted;
       if (voices.length === 0) status.textContent = t('tts.status.noVoice');
     }
 
@@ -96,7 +98,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       $<HTMLElement>('#ttLines').innerHTML = sentences
         .map(
           (s, i) =>
-            '<div class="tool-list-row" style="background:' + (i === at ? 'rgba(70,140,255,.14)' : 'transparent') + '">' +
+            '<div class="tool-list-row" style="background:' + (i === at ? 'var(--accent-dim)' : 'transparent') + '">' +
             '<span class="tool-list-key">' + (i + 1) + '</span><span class="tool-list-val">' + esc(s) + '</span></div>'
         )
         .join('');
@@ -166,7 +168,10 @@ import { t, loadNamespace } from '../../lib/i18n';
       status.textContent = t('tts.status.stopped');
     };
 
+    /* 목소리 목록은 브라우저가 늦게 채우고, 그때 이 손을 부른다. 도구를 닫은 뒤에도 부르므로
+       거두지 않으면 없는 칸에 글을 넣다 죽는다 (2026-08-31 실측: 도구를 옮기는 순간 TypeError) */
     speechSynthesis.addEventListener('voiceschanged', fillVoices);
+    Toolbox.onDispose?.(() => speechSynthesis.removeEventListener('voiceschanged', fillVoices));
     fillVoices();
     refresh();
     Toolbox.onDispose?.(() => speechSynthesis.cancel());

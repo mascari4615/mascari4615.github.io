@@ -89,6 +89,10 @@ async function openOne(id) {
       .then(() => true)
       .catch(() => false);
     if (!drew) { skipped.push(`${id}: 도구 판이 안 그려졌다`); return; }
+    /* 여기 재움은 값을 기다리는 게 아니라 **오류가 날 시간을 준다**. 무엇이 될지가 아니라
+       무엇이 깨지나를 보는 자리라 기다릴 상태가 없다. 멎기를 기다리게 해 봤더니 1분 7초가
+       2분 52초가 되고 무거운 도구 둘이 시간 초과로 빠졌다 (2026-08-31 실측) */
+    // 재움-의도: 오류가 터질 틈을 준다. 읽어서 판정하는 값이 없다
     await page.waitForTimeout(900);
     opened++;
     if (hits.size) failures.push(`${id}: ${[...hits].slice(0, 3).join(' | ')}`);
