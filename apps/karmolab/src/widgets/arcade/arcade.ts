@@ -591,6 +591,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ycpaper.ac-pin .ac-yctable{table-layout:fixed}',
       '.ac-ycpaper.ac-pin .ac-yctable tr{height:38px}',
       '.ac-ycpaper.ac-pin .ac-yctable td button{vertical-align:middle}',
+      /* 칸 버튼은 블록. inline-block 이면 글자 baseline 아래로 여백이 붙어 값 있는 행만 47px 이 된다(스모크가 잡았다) */
+      '.ac-ycpaper.ac-pin .ac-yctable td .ac-yccell{display:block;margin:0 auto}',
       '.ac-ycpaper.ac-pin .ac-yctable thead tr{height:32px}',
       /* 행은 언제나 38px. 열린 칸(버튼)과 닫힌 칸(글자)과 빈 칸이 같은 높이(사용자 지적: 글자 유무로 배치가 달라짐) */
       '.ac-ycpaper.ac-pin .ac-yctable th,.ac-ycpaper.ac-pin .ac-yctable td{padding:0 6px;height:38px;box-sizing:border-box;font-size:var(--font-size-md);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1}',
@@ -726,7 +728,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-yctable .ac-ycsum th,.ac-yctable .ac-ycsum td{font-weight:700;color:#3a2a18;font-size:var(--font-size-md);border-bottom:0}',
       '.ac-yccell{width:100%;min-height:30px;border:1px dashed rgba(184,120,26,.7);border-radius:var(--radius-sm);background:rgba(245,213,138,.28);color:#8a5a1a;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;transition:background .12s,transform .12s}',
       '.ac-yccell:hover{background:rgba(245,213,138,.7);transform:scale(1.04)}',
-      '.ac-yccell.ac-top{border-style:solid;border-color:#b8781a;background:rgba(245,213,138,.6);color:#5c3a08;box-shadow:0 0 0 2px rgba(184,120,26,.25)}',
+      /* 강조는 안쪽으로만. 바깥 그림자와 실선 테두리는 행 높이를 34 -> 41 로 밀었다(스모크가 잡았다) */
+      '.ac-yccell.ac-top{border-color:#b8781a;background:rgba(245,213,138,.6);color:#5c3a08}',
       '.ac-yccell.ac-zero{color:#9a8a72;border-color:rgba(120,100,70,.4);background:none}',
       '.ac-yccell.ac-zero:hover{background:rgba(120,100,70,.12)}',
       /**
