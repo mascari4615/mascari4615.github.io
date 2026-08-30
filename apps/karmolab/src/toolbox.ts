@@ -2347,13 +2347,25 @@ const Toolbox = (() => {
                사람 눈에 undefined지금까지 44번 열렸어요로 떴다. 바로 아랫줄 `desc` 는
                이미 없으면 빼는데 제목만 안 그랬다. 짝이 안 맞았다.
                (그 장이 왜 제목을 잃었는지는 KL-342 가 따로 본다. 여기서는 <b>사람 눈에 안 보이게</b> 한다.) */
+            /* 제목 블록 짜임 (시안 Z1, change.karmolab-shell-redesign): 큰 번호 | 라벨 줄 + 제목 + 설명 | 별
+               번호는 갈래 안 순번(옆줄 번호와 같은 수). 라벨은 `// 갈래 / 번호`. 클래식 스킨은 번호와 라벨을 CSS 로 숨김 */
+            const cat = CATEGORIES.find(c => c.id === tool.category);
+            const peers = tools.filter(t => t.category === tool.category && !t.hidden)
+                .sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
+            const no = Math.max(0, peers.findIndex(t => t.id === tool.id)) + 1;
             hero.innerHTML =
+                `<div class="tool-page-hero-no" aria-hidden="true">${String(no).padStart(2, '0')}</div>` +
+                `<div class="tool-page-hero-main">` +
+                `<p class="tool-page-hero-label" aria-hidden="true">// ${cat ? escapeHtml(cat.label) : ''} / ${String(no).padStart(2, '0')}</p>` +
                 (tool.title ? `<h1 class="tool-page-hero-title">${tool.title}</h1>` : '') +
                 (tool.desc ? `<p class="tool-page-hero-desc">${tool.desc}</p>` : '') +
-                `<p class="tool-page-hero-count" data-count-for="${escapeHtml(tool.id)}"></p>`;
+                `<p class="tool-page-hero-count" data-count-for="${escapeHtml(tool.id)}"></p>` +
+                `</div>` +
+                `<div class="tool-page-hero-actions"></div>` +
+                `<div class="tool-page-hero-rule" aria-hidden="true"></div>`;
             div.appendChild(hero);
             fillToolCount(hero.querySelector('[data-count-for]'), tool.id);
-            mountPinStar(hero, tool.id);
+            mountPinStar(hero.querySelector('.tool-page-hero-actions') || hero, tool.id);
         }
 
         let panelsHost: HTMLElement = div;

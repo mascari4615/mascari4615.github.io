@@ -4204,26 +4204,87 @@ html[data-skin="field"] .sidebar-user .header-account-name { color: var(--band-i
 html[data-skin="field"] .sidebar-user .header-account-blank { background: var(--bg-void); outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 50%; color: var(--text-primary); }
 
 /* 도구 판 제목. 큰 제목 + 괄호 설명 + 자(1px 선 + 강조 띠) (시안 Z1) */
-html[data-skin="field"] .tool-page-hero { padding-bottom: 0; margin-bottom: var(--space-lg); }
-html[data-skin="field"] .tool-page-hero-title { font-size: 30px; font-weight: 900; letter-spacing: -.02em; line-height: 1; }
-html[data-skin="field"] .tool-page-hero-desc { margin-top: 8px; }
-html[data-skin="field"] .tool-page-hero-desc::before { content: '[ '; }
-html[data-skin="field"] .tool-page-hero-desc::after { content: ' ]'; }
-html[data-skin="field"] .tool-page-hero::after {
-    content: '';
+/* 제목 블록 (시안 Z1). 큰 번호 96 | 라벨 10 모노 + 제목 30 + 괄호 설명 | 별 칩. 아래 자 1px + 강조 띠 120x6 */
+.tool-page-hero-no, .tool-page-hero-label, .tool-page-hero-rule { display: none; }
+.tool-page-hero-actions { display: contents; }
+html[data-skin="field"] .tool-page-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0 22px;
+    padding-bottom: 0;
+    margin-bottom: var(--space-lg);
+}
+html[data-skin="field"] .tool-page-hero-no {
     display: block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 96px;
+    line-height: .8;
+    letter-spacing: -.02em;
+    color: var(--text-primary);
+}
+html[data-skin="field"] .tool-page-hero-main { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; min-width: 0; }
+html[data-skin="field"] .tool-page-hero-label {
+    display: block;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-4xs);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+html[data-skin="field"] .tool-page-hero-title { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -.02em; line-height: 1; }
+html[data-skin="field"] .tool-page-hero-desc { margin: 0; display: flex; align-items: center; gap: 8px; }
+html[data-skin="field"] .tool-page-hero-desc::before { content: ''; width: 8px; height: 8px; background: var(--accent); background-image: var(--accent-mix); flex: none; }
+html[data-skin="field"] .tool-page-hero-desc::after { content: none; }
+html[data-skin="field"] .tool-page-hero-actions { display: flex; align-items: flex-end; gap: 8px; margin-left: auto; padding-bottom: 8px; }
+html[data-skin="field"] .tool-page-hero-actions .tool-pin-star {
+    position: static;
+    height: 36px;
+    padding: 0 16px;
+    border: 1px solid var(--text-primary);
+    background: var(--glass);
+    color: var(--text-primary);
+    font-size: var(--font-size-2xs);
+    transform: skewX(var(--skew));
+    border-radius: 0;
+}
+html[data-skin="field"] .tool-page-hero-rule {
+    display: block;
+    flex: 1 1 100%;
     height: 6px;
-    margin-top: 16px;
+    margin-top: 18px;
     border-bottom: 1px solid var(--text-primary);
     background-image: var(--accent-mix);
     background-size: 120px 6px;
     background-repeat: no-repeat;
 }
 
+/* 머리띠 글자 (시안 Z1). 로고는 표시 글꼴 대문자, 경로는 모노 라벨. 흰 칩은 뺌 */
+html[data-skin="field"] .header-crumb { background: transparent; border: 0; padding: 0 0 0 4px; gap: 10px; }
+html[data-skin="field"] .header-crumb .header-logo-text,
+html[data-skin="field"] .header-crumb .header-logo {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+}
+html[data-skin="field"] .header-crumb-sep { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; color: var(--text-tertiary); }
+html[data-skin="field"] .header-crumb-sep::before { content: '//'; }
+html[data-skin="field"] .header-crumb-sep { font-size: 0; }
+html[data-skin="field"] .header-crumb-sep::before { font-size: var(--font-size-4xs); }
+html[data-skin="field"] .header-crumb .header-now { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; font-weight: 500; }
+
 /* 재료 도구 판 (material-shell). 왼쪽 재료는 귀퉁이 깎인 유리 판 + 번호 머리, 오른쪽 할 일은 번호 절 + 평행사변형 칩 */
 html[data-skin="field"] .pf-shell { counter-reset: pf 1; }
 html[data-skin="field"] .pf-shell .pf-head {
-    position: relative;
+    /* position 은 원래 규칙(sticky)을 둔다. relative 로 덮으면 top 52px 가 살아 판이 52px 내려앉는다 (실측) */
     background: linear-gradient(180deg, var(--glass) 0%, var(--glassThin, var(--glass)) 70%, transparent 100%);
     backdrop-filter: blur(6px);
     border: 1px solid var(--text-primary);
@@ -4253,7 +4314,9 @@ html[data-skin="field"] .pf-shell .pf-head::after {
     border-top: 2px solid var(--accent);
 }
 html[data-skin="field"] .pf-shell .pf-paste textarea,
-html[data-skin="field"] .pf-shell .pf-drop { border-radius: 0; border-color: var(--border); background: transparent; }
+html[data-skin="field"] .pf-shell .pf-drop { border-radius: 0; border: 0; background: transparent; padding: 6px 4px; font-size: var(--font-size-sm); }
+html[data-skin="field"] .pf-shell.pf-shell .pf-paste textarea { min-height: 420px; }
+html[data-skin="field"] .pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; opacity: .55; }
 html[data-skin="field"] .pf-shell .pf-group { counter-increment: pf; margin-bottom: 18px; }
 html[data-skin="field"] .pf-shell .pf-group-label {
     display: flex; align-items: center; gap: 8px;
