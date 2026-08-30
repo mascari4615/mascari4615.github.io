@@ -2997,10 +2997,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!g || tutorAt === null) return;
       const lesson = LESSONS[tutorAt];
       if (!lesson) {
+        /* 다 배웠으면 곧바로 한 판. 로비로 돌려보내면 처음부터 다시 고른다 */
         $<HTMLElement>('#acLesson').hidden = true;
+        const id = gameId;
         tutorAt = null;
-        quit();
+        cancelAnimationFrame(raf);
+        match = null;
         say(t('arcade.tutor.done'), 'ok');
+        window.setTimeout(() => { if (tutorAt === null) startSolo(id); }, 900);
         return;
       }
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
