@@ -1526,9 +1526,12 @@ const Toolbox = (() => {
              * 정본은 memo 의 앱 셸 System
              * 도구 234개 전량 나열 시 세로 7,456px. 실측 선례 최대가 109개(shadcn 문서)
              * 그래서 Grafana, shadcn 방식으로 갈래 접기. 지금 도구가 든 갈래만 펼침 */
+            /* 옆줄 위 칸은 **내 것(별) 하나만** (2026-08-30). 많이 쓰는 것 6줄과 최근 6줄까지
+             * 얹으니 1600x900 에서 갈래 아홉 중 여섯이 첫 화면 밖으로 밀렸다. 갈래가 지도인데
+             * 지도가 스크롤 아래 있었다. 둘은 팔레트(Ctrl K)와 첫 화면이 그대로 맡는다. */
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
-                sections().forEach((sec, i) => {
+                sections().slice(0, 1).forEach((sec, i) => {
                     if (sec.tools.length) {
                         buildSidebarGroup('side-' + i, sec.label, sec.tools);
                         return;

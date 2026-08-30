@@ -90,6 +90,7 @@ export function materialShell(container: HTMLElement, o: MaterialShellOpts): voi
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   injectStyles();
+  container.classList.add('pf-shell');
 
   container.innerHTML = `
     <div class="pf-head" id="pfHead">
@@ -452,6 +453,18 @@ function injectStyles(): void {
   styled = true;
   const el = document.createElement('style');
   el.textContent = `
+/* 넓은 화면은 두 칸 (2026-08-30). 왼쪽 재료(붙여넣기, 파일), 오른쪽 할 일 목록
+   한 칸일 때는 1330px 입력칸 아래 같은 크기 상자 19개가 깔려 위계가 없었다
+   it-tools, transform.tools 가 이 짜임 */
+@media (min-width:1100px){
+  /* .tab-panel.active{display:block} (0,2,0) 을 이기려고 같은 특이도로 뒤에 둠 */
+  .pf-shell.pf-shell{display:grid;grid-template-columns:minmax(0,3fr) minmax(340px,2fr);gap:var(--space-xl);align-items:start;}
+  .pf-shell .pf-head{margin-bottom:0;position:sticky;top:calc(var(--header-h,40px) + var(--space-md));}
+  .pf-shell .pf-paste textarea{min-height:300px;}
+  .pf-shell .pf-drop{padding:48px 16px;}
+  .pf-shell .pf-body{grid-template-columns:1fr;}
+  .pf-shell .pf-body:has(#pfPreview:empty){grid-template-columns:1fr;}
+}
 .pf-head{margin-bottom:var(--space-lg);}
 .pf-head.pf-over .pf-drop,.pf-head.pf-over .pf-file{outline:2px dashed rgba(128,160,255,.8);outline-offset:3px;}
 .pf-drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;
@@ -475,11 +488,12 @@ function injectStyles(): void {
 @media (max-width:720px){.pf-body{grid-template-columns:1fr;}}
 .pf-preview{min-height:120px;}
 .pf-empty{font-size:12px;opacity:.5;}
-.pf-group{margin-bottom:14px;}
-.pf-group-label{font-size:12px;opacity:.6;margin-bottom:6px;}
-.pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
-.pf-job{appearance:none;text-align:left;padding:14px;border-radius:10px;cursor:pointer;
-  border:1px solid rgba(128,128,128,.28);background:transparent;font-size:14px;}
+.pf-group{margin-bottom:16px;}
+.pf-group-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;margin-bottom:6px;}
+/* 할 일은 카드가 아니라 칩. 60px 상자 19개보다 38px 칩이 한눈에 잡힌다 */
+.pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;}
+.pf-job{appearance:none;text-align:left;padding:9px 12px;border-radius:8px;cursor:pointer;
+  border:1px solid rgba(128,128,128,.28);background:transparent;font-size:13px;line-height:1.3;}
 .pf-job:hover{background:rgba(128,160,255,.12);border-color:rgba(128,160,255,.5);}
 .pf-job.pf-hot{border-color:rgba(120,200,140,.75);background:rgba(120,200,140,.12);font-weight:600;}
 .pf-recent[hidden]{display:none;}
