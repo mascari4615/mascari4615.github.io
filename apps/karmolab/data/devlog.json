@@ -2,11 +2,109 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2147,
+    "commits": 2188,
     "days": 11,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-08-31",
+      "entries": [
+        {
+          "sha": "478adacb",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "보스 껍질이 깎일수록 떨어져 나간다 (visual.md 4). 남은 조각 수는 체력 비율, 마지막 하나는 남아 코어가 완전히 벗겨지지 않는다. 실측: 체력 35%에서 조각 6 -> 3, 22구역 별모양 코어"
+        },
+        {
+          "sha": "671fdb58",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "보스가 화면을 덮던 것을 줄임 (크기 1.9 -> 1.35, 껍질 1.35 -> 1.15, 벌어짐 0.9 -> 0.6). 실패 배너를 위로 올려 보스와 안 겹치게. Play 실측 2장"
+        },
+        {
+          "sha": "fd6d6856",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "남은 탭 다섯도 UXML (도감, 상점, 연구소, 던전, 투자 + 생산자 줄 템플릿). 화면 코드는 이름으로 찾아 값과 클릭만. 씬 빌더가 꽂고 검사. 에셋이 없을 때 컴포넌트를 끄면 그 상태가 씬에 저장돼 복구가 안 되므로 플래그로 바꿈 (실측)"
+        },
+        {
+          "sha": "b8991d94",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "아군과 배경도 기하 언어 (visual.md 5, 6). 인형은 둥근 세분 구(각진 적과 대비), 배경 소품은 구역 도형을 따라간다. 실측: 8구역에서 적, 소품이 정육면체, 아군은 둥근 것"
+        },
+        {
+          "sha": "b446c7dd",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "적 색과 자세 (visual.md 3, 6). 구역이 깊을수록 채도가 오르고 밝기가 내린다(40구역에서 최대), 근접은 낮게 원거리는 높게 뜬다, 보스만 발광. 실측: 30구역 세분 구에서 원거리 갈색 높이, 근접 보라 낮게"
+        },
+        {
+          "sha": "5e8d259d",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "적이 기하 도형 계단으로 (visual.md). IdleGeometry 가 정다면체 5종과 세분 구 2종을 만들고 구역 5칸마다 한 계단. 보스는 한 계단 위 코어 + 껍질 조각 6 이 역회전하고 체력이 빌수록 벌어진다. 21구역부터 코어에 뿔(별 만들기). 실측: 삼각형 4,12,8,36,20,80,320 과 스크린샷 5장"
+        }
+      ],
+      "quiet": 2,
+      "more": 1
+    },
+    {
+      "date": "2026-08-30",
+      "entries": [
+        {
+          "sha": "5423cbe6",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "",
+          "text": "align volley animation with actual hits"
+        },
+        {
+          "sha": "53dd1778",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "",
+          "text": "target hit feedback at actual victim"
+        },
+        {
+          "sha": "65fc497e",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "",
+          "text": "add juicy battle impact feedback"
+        },
+        {
+          "sha": "7ef07bd7",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "기하학 적에 루프 애니메이션 추가"
+        },
+        {
+          "sha": "a15b59a8",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "공방을 등급 기준 랜덤 합성으로 변경"
+        },
+        {
+          "sha": "00bcf8ad",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "전장 이동을 부드럽게 보간"
+        }
+      ],
+      "quiet": 10,
+      "more": 19
+    },
     {
       "date": "2026-08-23",
       "entries": [
@@ -401,108 +499,10 @@
           "typeLabel": "새로 생긴 것",
           "scope": "",
           "text": "scope static world payloads by viewer"
-        },
-        {
-          "sha": "d16677e6",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "",
-          "text": "filter world presence by interest radius"
-        },
-        {
-          "sha": "fdccc2c6",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "",
-          "text": "sequence world snapshots"
-        },
-        {
-          "sha": "ef589046",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "",
-          "text": "parse Unity protocol envelopes by type"
         }
       ],
       "quiet": 4,
-      "more": 7
-    },
-    {
-      "date": "2026-08-10",
-      "entries": [
-        {
-          "sha": "fd272659",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "덜 가져간 만큼은 그 자리에 남는다 + 왜 안 되는지 말해 준다 (TASK-WM-217)"
-        },
-        {
-          "sha": "216e5466",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "겨냥 표시를 두 창이 같이 고르게 묶음 (TASK-WM-217)"
-        },
-        {
-          "sha": "580382af",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "관문: 만든 것이 다음 재료가 된다 — 사슬 (TASK-WM-217)"
-        },
-        {
-          "sha": "a376dd56",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "게이트: 파수꾼이 다시 <줄 직접>으로 새지 않게 (TASK-WM-217)"
-        },
-        {
-          "sha": "75512a21",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "관문: 솥도 <게임이 쓰는 길>로 — 이제 전부 그 길이다 (TASK-WM-217)"
-        },
-        {
-          "sha": "0a9e207c",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "관문: 짓기·부수기·이름도 <게임이 쓰는 길>로 (TASK-WM-217)"
-        }
-      ],
-      "quiet": 11,
-      "more": 87
-    },
-    {
-      "date": "2026-08-09",
-      "entries": [
-        {
-          "sha": "463658f8",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-218",
-          "text": "밀려난 창을 정리하다 난 문제가 새 창의 환영을 삼키지 않게"
-        },
-        {
-          "sha": "858da7af",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-218",
-          "text": "/health 가 세계 상태를 말한다 — 「떠 있는데 멈춘 세계」를 알아보게"
-        },
-        {
-          "sha": "45993cc5",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "WM-218",
-          "text": "계정 로그인이 설정 없이 바로 동작 + 웹 창에 코드 입력"
-        }
-      ],
-      "quiet": 17,
-      "more": 100
+      "more": 10
     }
   ]
 }
