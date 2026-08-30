@@ -35,7 +35,7 @@
   "arcade.game.reflex.name": "반응 대결",
   "arcade.game.reflex.desc": "명령 한 줄, 몇 초. 판마다 짧아진다",
   "arcade.game.gomoku.name": "오목",
-  "arcade.game.gomoku.desc": "아홉 칸 판에 다섯을 잇는다",
+  "arcade.game.gomoku.desc": "판 위에 다섯을 잇는다",
   "arcade.reflex.none": "아무도 못 맞혔다",
   "arcade.reflex.fastest": "{who}. {ms}ms",
   "arcade.gomoku.full": "판이 다 찼다. 비겼다",

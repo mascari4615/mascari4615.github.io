@@ -35,7 +35,7 @@
   "arcade.game.reflex.name": "Reaction Duel",
   "arcade.game.reflex.desc": "One order, a few seconds. Shorter every round",
   "arcade.game.gomoku.name": "Gomoku",
-  "arcade.game.gomoku.desc": "Line up five on a nine-by-nine board",
+  "arcade.game.gomoku.desc": "Connect five on the board",
   "arcade.reflex.none": "Nobody got it",
   "arcade.reflex.fastest": "{who}. {ms}ms",
   "arcade.gomoku.full": "Board full. a draw",

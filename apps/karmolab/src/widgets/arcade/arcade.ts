@@ -306,6 +306,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acDetail .ac-go button{border:0;border-radius:var(--radius-pill);padding:13px 30px;font-size:var(--font-size-xs);font-weight:900;cursor:pointer;white-space:nowrap}',
       '#acDetail .ac-go button[data-solo]{background:#3c3a30;color:#fdfcf7;box-shadow:0 4px 10px rgba(60,58,48,.28)}',
       '#acDetail .ac-go button[data-host]{background:#fdfcf7;color:#3c3a30;box-shadow:0 2px 6px rgba(60,58,48,.15)}',
+      '#acDetail .ac-go button[data-tutor]{background:none;color:#6d6b5d;box-shadow:inset 0 0 0 1px rgba(60,58,48,.28)}',
+      '#acDetail .ac-go button[data-tutor]:hover{color:#3c3a30;box-shadow:inset 0 0 0 1px rgba(60,58,48,.5)}',
       /* 등급전 문. 혼자, 같이 옆 셋째 (change.arcade-online). 붉은 인장 색 = 판정이 걸린 판 */
       '#acDetail .ac-go button[data-rank]{background:#a4423a;color:#fdfcf7;box-shadow:0 4px 10px rgba(164,66,58,.28)}',
       '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
@@ -1613,9 +1615,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (isTeamy(g.seats[1])
           ? '<button data-team="' + g.id + '">' + esc(t('arcade.btn.team')) + '</button>'
           : '') +
-        '<button data-find="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>' +
-        /* 배우기. 판 위에서 한 수씩(`tutor.ts`). 지금은 오목만 */
-        (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '');
+        '<button data-find="' + g.id + '">' + esc(t('arcade.btn.find')) + '</button>';
       const d = $<HTMLElement>('#acDetail');
       d.innerHTML =
         '<button class="ac-back" id="acBack">‹ ' + esc(t('widgets.arcade.title', undefined, '오락실')) + '</button>' +
@@ -1640,6 +1640,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (g.seats[0] === 2 && g.seats[1] === 2
           ? '<button data-rank="' + g.id + '">' + esc(t('arcade.btn.rank')) + '</button>'
           : '') +
+        /* 배우기(`tutor.ts`)는 처음 온 사람의 길이라 밑줄 글자가 아니라 버튼으로. 지금은 오목만 */
+        (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '') +
         '</div>' +
         '<div class="ac-more">' + more + '</div>' +
         '</div></div>';
