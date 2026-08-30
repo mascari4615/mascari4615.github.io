@@ -1390,6 +1390,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div class="ac-controls" id="acControls" style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       /* 무르기. 혼자 노는 판(봇 상대)에서만. 남과 두는 판은 합의가 필요해 아직 없다 */
       '<button class="btn btn-ghost" id="acUndo" style="display:none">' + esc(t('arcade.btn.undo')) + '</button>' +
+      /* 힌트(레퍼런스의 연습 모드 분석). 혼자 판과 복기에서만. 온라인은 약속상 없음 */
+      '<button class="btn btn-ghost" id="acHint" style="display:none">' + esc(t('arcade.btn.hint')) + '</button>' +
       /* 남과 두는 판의 예의. 무승부 제안과 기권. 둘이 둘 때만 */
       '<button class="btn btn-ghost" id="acDraw" style="display:none">' + esc(t('arcade.btn.draw')) + '</button>' +
       '<button class="btn btn-ghost" id="acResign" style="display:none">' + esc(t('arcade.btn.resign')) + '</button>' +
@@ -1931,6 +1933,28 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
     /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
     let seenMoves = 0;
+    /** 힌트. 규칙이 고른 수와 언제까지 보일지. 복기에서는 그 장면 동안 */
+    let hintAt: { action: unknown; until: number } | null = null;
+    function canHint(): boolean {
+      const g = gameById(gameId);
+      return !!g?.hint && !net && !letter && !tour && !watching && (review !== null || (!!match && !match.view().finished));
+    }
+    function paintHint(): void {
+      const b = container.querySelector<HTMLButtonElement>('#acHint');
+      if (b) b.style.display = canHint() && dim() === '3d' ? '' : 'none';
+    }
+    function askHint(): void {
+      const g = gameById(gameId);
+      if (!g?.hint || !canHint()) return;
+      const v = review && !review.branch ? review.frames[review.at].v : match?.view();
+      if (!v) return;
+      const turn = (v.state as { turn?: number } | null)?.turn;
+      const seat = review && !review.branch && typeof turn === 'number' ? turn : mySeat;
+      const action = g.hint(v.state as never, seat);
+      if (action === null || action === undefined) return;
+      hintAt = { action, until: performance.now() + (review && !review.branch ? 60000 : 3500) };
+      if (review && !review.branch) seek(review.at);
+    }
     /** 컷인. 그 자리의 사람이 큰 얼굴로 한 줄. 1.7초 뒤 나간다 */
     let cutTimer = 0;
     function cutIn(seat: number, key: Parameters<typeof lineOf>[1]): void {
@@ -2100,7 +2124,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 이 판이 **언제 저절로 끝나나**(`endsAt`)도 같이 내놓는다. 놀이마다 제한이 25초에서 300초까지 다르다.
          밖에서 기다리는 검사가 그걸 모르면 제 맘대로 잡은 참을성으로 안 끝났다고 적는다(2026-08-17 실측:
          참을성 60초인데 지뢰찾기 제한이 180초라, 그 놀이가 뽑히면 무조건 빨강이었다). */
-      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       seatsEl.innerHTML =
         (watching ? '<span class="ac-seat ac-watch">👀 ' + esc(t('arcade.watch.now')) + '</span>' : '') +
         v.seats
@@ -2116,6 +2140,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           .join('');
       render?.(v, mySeat, now);
       if (match && match.moves !== seenMoves) {
+        hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
         if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
         /* 방금 둔 수가 넷이면 컷인. 사람이 만들면 리치, 내가 만들면 사람의 위기 */
@@ -2227,7 +2252,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           }
         }
         match.step(now);
-        const v = match.view();
+        const v0 = match.view();
+        if (hintAt && performance.now() > hintAt.until) hintAt = null;
+        const v = hintAt ? { ...v0, hint: hintAt.action } : v0;
         paint(v, now);
         /* 다시 보기는 이 창 안의 일이다. 남에게 흘리면 손님 화면이 지난 판으로 되돌아간다. */
         if (replaying) return;
@@ -2512,6 +2539,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function paintUndo(): void {
       const btn = container.querySelector<HTMLButtonElement>('#acUndo');
       if (btn) btn.style.display = canUndo() ? '' : 'none';
+      paintHint();
     }
     function undo(): void {
       if (!canUndo() || !match) return;
@@ -3130,9 +3158,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function seek(k: number): void {
       if (!review || review.branch) return;
       const n = review.frames.length - 1;
-      review.at = Math.max(0, Math.min(n, k));
+      const next = Math.max(0, Math.min(n, k));
+      if (next !== review.at) hintAt = null;
+      review.at = next;
       const f = review.frames[review.at];
-      const v: MatchView<unknown> = { ...f.v, review: { order: review.order, at: review.at, total: n } };
+      const v: MatchView<unknown> = { ...f.v, review: { order: review.order, at: review.at, total: n }, hint: hintAt?.action };
       paint(v, f.at);
     }
 
@@ -3272,6 +3302,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (net.host) net.say({ kind: 'emote', seat: mySeat, text });
       else net.act({ meta: 'emote:' + text });
     });
+    $<HTMLButtonElement>('#acHint').onclick = askHint;
     $<HTMLButtonElement>('#acTlFirst').onclick = () => { tlPlay(false); seek(0); };
     $<HTMLButtonElement>('#acTlPrev').onclick = () => { tlPlay(false); if (review) seek(review.at - 1); };
     $<HTMLButtonElement>('#acTlNext').onclick = () => { tlPlay(false); if (review) seek(review.at + 1); };

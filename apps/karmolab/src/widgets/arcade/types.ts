@@ -127,6 +127,9 @@ export interface GameDef<S, A> {
    */
   cue?(s: S, mover: number): 'four' | null;
 
+  /** 힌트. 이 자리에서 두면 좋을 수 하나. 없으면 null. 봇 세기와 무관하게 제일 센 머리로 */
+  hint?(s: S, seat: number): A | null;
+
   /**
    * **남에게 보내면 안 되는 것을 지운다.** 주인은 판을 통째로 흘려보내므로, 감춘 수, 남의 패가
    * 상태에 들어 있으면 손님 창에서 그대로 보인다(화면이 안 그려도 값은 갔다).

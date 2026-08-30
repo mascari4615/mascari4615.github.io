@@ -334,6 +334,14 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     };
   },
 
+  /** 힌트. 명인(5단계) 머리로 한 수. 난수는 화면 것이라 판을 안 건드림 */
+  hint(s, seat): GomokuAction | null {
+    if (s.won !== -1 || s.turn !== seat) return null;
+    const who = seat + 1;
+    const cell = think({ board: s.board, n: s.n, who, renju: s.renju, banned: who === 1 ? s.banned : [], level: 5, rng: Math.random });
+    return cell >= 0 && s.board[cell] === 0 ? { cell } : null;
+  },
+
   /** 방금 둔 수(`last`)로 다음에 다섯이 되는 빈 칸이 생겼나. 컷인의 리치 */
   cue(s, mover): 'four' | null {
     if (s.last < 0 || s.won !== -1) return null;

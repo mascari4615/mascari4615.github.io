@@ -12,6 +12,7 @@
   "arcade.mdd.off": "キャラクターを無効にした。次の対局から名前だけ",
   "arcade.btn.coords": "座標",
   "arcade.btn.numbers": "手数",
+  "arcade.btn.hint": "ヒント",
   "arcade.btn.quit": "研究室へ",
   "arcade.btn.again": "もう一回",
   "arcade.seats": "{min}〜{max}人",

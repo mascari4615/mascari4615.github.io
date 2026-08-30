@@ -126,6 +126,8 @@ export interface Board3d {
   ghost(cell: number, who: number): void;
   /** 판 가장자리 좌표(A~, 1~). 켜고 끈다. 교차점 판(방)에서만 뜻이 있음 */
   coords(on: boolean): void;
+  /** 힌트 자리. 금색 고리 하나. -1 이면 지움 */
+  advise(cell: number): void;
   /** WebGL 을 못 얻었으면 false. 부르는 쪽이 2D 로 물러선다 */
   ok: boolean;
   /**
@@ -173,7 +175,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch {
     host.removeChild(canvas);
-    return { place: () => {}, finish: () => {}, ghost: () => {}, coords: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
+    return { place: () => {}, finish: () => {}, ghost: () => {}, coords: () => {}, advise: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
   }
   /* GPU 이름. WARP(Basic Render Driver), SwiftShader, llvmpipe 면 CPU 로 그리는 중 */
   const gpuName = ((): string => {
@@ -803,6 +805,28 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return m;
   };
 
+  /* 힌트 고리. 여기 두라는 금색 표. 옅은 후보 점과 달리 눈에 띄어야 한다 */
+  /* 옅은 고리는 나뭇결에 묻힌다(실측). 가산 혼합으로 빛나게, 굵게, 가운데 점까지 */
+  const adviseMat = new MeshBasicMaterial({ color: 0xffd070, transparent: true, opacity: 0.95, depthWrite: false, blending: AdditiveBlending });
+  const adviseRing = new Mesh(new RingGeometry(CELL * 0.3, CELL * 0.5, 32), adviseMat);
+  adviseRing.rotation.x = -Math.PI / 2;
+  adviseRing.visible = false;
+  adviseRing.renderOrder = 4;
+  scene.add(adviseRing);
+  const adviseDot = new Mesh(new CircleGeometry(CELL * 0.12, 20), adviseMat);
+  adviseDot.rotation.x = -Math.PI / 2;
+  adviseDot.visible = false;
+  adviseDot.renderOrder = 4;
+  scene.add(adviseDot);
+  const setAdvise = (cell: number): void => {
+    adviseRing.visible = cell >= 0;
+    adviseDot.visible = cell >= 0;
+    if (cell >= 0) {
+      adviseRing.position.set(cx(cell), boardTop + 0.006, cz(cell));
+      adviseDot.position.set(cx(cell), boardTop + 0.006, cz(cell));
+    }
+  };
+
   /* ── 손 ── 화면의 한 점을 판의 칸으로 옮긴다(레이캐스트). */
   const ray = new Raycaster();
   const ndc = new Vector2();
@@ -986,6 +1010,11 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       living.spot.intensity = 2.0 * (0.8 + 0.2 * cloud);
       /* 바람. 장지문 빛이 살짝 흔들린다 */
       living.spot.target.position.x = -size * 0.2 + Math.sin(s * 0.7) * size * 0.012 + Math.sin(s * 1.9) * size * 0.004;
+    }
+    if (adviseRing.visible) {
+      const k = 1 + Math.sin(s * 4) * 0.16;
+      adviseRing.scale.set(k, k, 1);
+      adviseMat.opacity = 0.7 + 0.3 * (0.5 + 0.5 * Math.sin(s * 4));
     }
     if (living.motes) {
       const arr = living.motes.geometry.getAttribute('position') as { array: Float32Array; needsUpdate: boolean };
@@ -1173,6 +1202,7 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
     ok: true,
     software,
     coords: setCoords,
+    advise: setAdvise,
     place(stones, hint) {
       const key = stones.map((st) => `${st.cell}:${st.who}${st.last ? 'L' : ''}${st.king ? 'K' : ''}${st.pick ? 'P' : ''}${st.n !== undefined ? 'n' + st.n : ''}`).join(',') + '|' + (hint?.can ?? []).join(',');
       if (key === lastKey) return;

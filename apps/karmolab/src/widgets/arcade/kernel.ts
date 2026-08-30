@@ -31,6 +31,8 @@ export interface MatchView<S> {
   note?: Note;
   /** 복기 중이면. 화면이 알에 수 번호를 얹고 알림을 참는다(`arcade.ts` 가 채움) */
   review?: { order: number[]; at: number; total: number };
+  /** 힌트로 보여 줄 수. 화면이 표시만 한다(`arcade.ts` 가 채움) */
+  hint?: unknown;
 }
 
 /** 판 사이 쉬는 시간. 결과를 읽을 틈이 없으면 이긴 줄도 모른다. */

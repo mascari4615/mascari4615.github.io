@@ -191,6 +191,9 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       }
       /* 여기 둘 수 있다는 빈 칸 전부라 표시하지 않는다. 판이 온통 점으로 덮인다.
          자리를 좁혀 주는 놀이(오델로, 체커)에서만 쓴다. */
+      /* 힌트. 금색 고리 하나. 손 올린 미리 보기와 겹쳐도 됨 */
+      const hintCell = (v.hint as { cell?: number } | undefined)?.cell;
+      board.advise(typeof hintCell === 'number' ? hintCell : -1);
       board.place(stones);
       /* 알이 늘었으면 딱. 첫 그림은 안 울린다(도중에 들어온 판이면 스무 개가 한꺼번에 울린다) */
       if (shown >= 0 && stones.length > shown) amb.stone();
