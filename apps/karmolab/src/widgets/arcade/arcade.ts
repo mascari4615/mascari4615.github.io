@@ -543,7 +543,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * ── 컷인 (MDD) ── 작혼의 리치, 론 연출과 같은 자리. 넷을 만들면(리치), 내가 넷을 만들면(위기), 판이 끝나면(론)
        * 오른쪽에서 큰 얼굴과 한 줄이 미끄러져 들어와 1.7초 머물고 나간다. 그림이 오면 얼굴만 갈아 끼움
        */
-      '.ac-cutin,.ac-lesson,.ac-overbody{display:none}',
+      '.ac-cutin,.ac-overbody{display:none}',
+      /* 배우기 안내는 평면 화면에도 있어야 한다. 방 CSS 에만 두었더니 2D 에서 안내 없이 돌았다(실측) */
+      '.ac-lesson{display:flex;align-items:center;gap:12px;max-width:min(720px,94%);margin:var(--space-md) auto 0;padding:12px 16px;border-radius:var(--radius-xl);background:var(--bg-secondary);border:1px solid var(--border);text-align:left}',
+      '.ac-lesson[hidden]{display:none}',
+      '.ac-lesson b{flex:0 0 auto;font-size:var(--font-size-xs);color:var(--accent);letter-spacing:.06em}',
+      '.ac-lesson p{margin:0;font-size:var(--font-size-sm);line-height:1.5}',
+      '.ac-lesson .btn{flex:0 0 auto}',
       /* 화료 화면의 전신(작혼 실측: 캐릭터 전신 왼쪽 60%, 오른쪽에 내역과 점수). 그림 자리 1024x1536 비율 */
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody{display:block;position:absolute;left:3%;bottom:0;width:auto;height:72%;aspect-ratio:2/3;pointer-events:none;z-index:2}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody[hidden]{display:none}',
