@@ -106,7 +106,9 @@ const browser = await launchOrSkip('widget-i18n');
 if (!browser) process.exit(0);
 const fail = [];
 
-for (const { code, id, page } of targets) {
+/* 한 판씩 여러 개를 동시에 연다. 하나씩 열면 화면 332개에 20분이고, 그 20분이 통짜 게이트의
+   앞을 통째로 막는다 (2026-08-31 실측). 판정은 창마다 따로라 순서와 무관하다 */
+async function checkOne({ code, id, page }) {
   /* **한국 밖에서 보는 사람**으로 열어 본다 (TASK-KL-203 S10). 지역을 안 정하면 이 기계의
      시간대(서울)를 따라 KR 이 되고, 그러면 한국 전용 칸(평당 가격 등)이 켜져 한국어가 남았다로
      잡힌다. 그건 맞는 동작이다. 이 검사가 보려는 것은 **어디서나 나오는 화면**이다. */
@@ -150,7 +152,7 @@ for (const { code, id, page } of targets) {
   const keys = FIRST_SCREEN.map((k) => `${id}.${k}`).filter((k) => mine[k] && src[k]);
   if (!keys.length) {
     await ctx.close();
-    continue;
+    return;
   }
 
   /* 있는가 = **마크업**으로 본다. 자리표시(placeholder), 읽어 주는 이름(aria-label)처럼 글자로
@@ -232,6 +234,18 @@ for (const { code, id, page } of targets) {
 
   await ctx.close();
 }
+
+const LANES = Number(process.env.KL_I18N_LANES || 4);
+const queue = [...targets];
+await Promise.all(
+  Array.from({ length: LANES }, async () => {
+    for (;;) {
+      const next = queue.shift();
+      if (!next) return;
+      await checkOne(next);
+    }
+  })
+);
 
 await browser.close();
 server.close();
