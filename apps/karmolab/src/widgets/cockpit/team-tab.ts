@@ -155,7 +155,7 @@ function renderProposalBody(raw: string): string {
       if (!inList) { out.push('<ul style="margin:.2rem 0 .2rem 1.1rem;padding:0;line-height:1.55">'); inList = true; }
       const inline = m[1]
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-        .replace(/`([^`]+)`/g, '<code style="background:rgba(127,127,127,.15);padding:0 .25rem;border-radius:.2rem">$1</code>');
+        .replace(/`([^`]+)`/g, '<code style="background:var(--border);padding:0 .25rem;border-radius:.2rem">$1</code>');
       out.push(`<li>${inline}</li>`);
     } else {
       if (inList) { out.push('</ul>'); inList = false; }
@@ -179,7 +179,7 @@ export function buildTeamTab(container: HTMLElement): void {
         <button class="at-cadence" type="button" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer" title="${esc(t('cockpit.t01'))}">⚡ Dev</button>
         <button class="at-cadence-prod" type="button" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer" title="${esc(t('cockpit.t02'))}">⚡ Prod</button>
       </header>
-      <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
+      <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:var(--bg-tertiary);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
 
       <section>
         <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem">
@@ -258,7 +258,7 @@ export function buildTeamTab(container: HTMLElement): void {
       const kind = a.kind ? `<span style="opacity:.6;font-size:.72rem;margin-left:.3rem">[${esc(a.kind)}]</span>` : '';
       const role = a.role ? `<div style="opacity:.7;font-size:.78rem;line-height:1.35;margin-top:.2rem">${esc(a.role)}</div>` : '';
       const count = a.activity_count > 0 ? t('cockpit.activityCount', { n: a.activity_count }) : '';
-      return `<div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+      return `<div style="padding:.5rem .65rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg-tertiary)">
         <div style="display:flex;align-items:center">${dot}<strong>${emoji}${esc(a.display_name || a.id)}</strong>${kind}
           <span style="margin-left:auto;font-size:.72rem;opacity:.55">${esc(a.id)}</span></div>
         ${role}
@@ -273,7 +273,7 @@ export function buildTeamTab(container: HTMLElement): void {
       const dot = statusDot(sessionStateColor(s.state));
       const topic = s.topic && s.topic !== '-' ? `<div style="opacity:.75;font-size:.78rem;margin-top:.25rem">${esc(s.topic)}</div>` : '';
       const task = s.task && s.task !== '-' ? `<span style="font-size:.72rem;opacity:.7;margin-left:.4rem">${esc(s.task)}</span>` : '';
-      return `<div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+      return `<div style="padding:.5rem .65rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg-tertiary)">
         <div style="display:flex;align-items:center">${dot}<strong>slot-${esc(s.name)}</strong>${task}
           <span style="margin-left:auto;font-size:.7rem;opacity:.55">${esc(s.started_kst)}</span></div>
         ${topic}
@@ -285,7 +285,7 @@ export function buildTeamTab(container: HTMLElement): void {
   function renderObjectives(rows: ObjectiveInfo[]): void {
     countObjectives.textContent = String(rows.length);
     objectivesList.innerHTML = rows.map((o) =>
-      `<div style="display:flex;align-items:flex-start;gap:.5rem;padding:.4rem .55rem;border:1px solid rgba(127,127,127,.2);border-radius:.3rem">
+      `<div style="display:flex;align-items:flex-start;gap:.5rem;padding:.4rem .55rem;border:1px solid var(--border);border-radius:.3rem">
         <span style="font-family:monospace;font-size:.78rem;opacity:.7;min-width:4.5rem">${esc(o.id)}</span>
         ${objectiveBadge(o.status)}
         <span style="flex:1;line-height:1.4">${esc(o.goal)}</span>
@@ -302,7 +302,7 @@ export function buildTeamTab(container: HTMLElement): void {
       const preview = b.body_preview
         ? `<div style="margin-top:.2rem;font-size:.76rem;opacity:.75;line-height:1.45;white-space:pre-wrap;max-height:6em;overflow:hidden">${esc(b.body_preview)}</div>`
         : '';
-      return `<div style="padding:.4rem .55rem;border:1px solid rgba(127,127,127,.2);border-radius:.3rem;border-left:3px solid ${color}">
+      return `<div style="padding:.4rem .55rem;border:1px solid var(--border);border-radius:.3rem;border-left:3px solid ${color}">
         <div style="display:flex;align-items:center;gap:.4rem">
           <span style="font-size:.7rem;padding:.05rem .3rem;border-radius:.2rem;background:${color};color:#fff;font-family:monospace">${esc(b.slot)}</span>
           <strong style="flex:1;font-size:.82rem;line-height:1.4">${esc(b.headline)}</strong>
@@ -320,7 +320,7 @@ export function buildTeamTab(container: HTMLElement): void {
     tasksList.innerHTML = filtered.map((task) => {
       const sv = taskStatusVisual(task.status);
       const dv = taskDomain(task.task_id);
-      return `<div style="padding:.55rem .7rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+      return `<div style="padding:.55rem .7rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg-tertiary)">
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
           <span style="background:${dv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${dv.emoji} ${dv.label}</span>
           <strong style="font-family:monospace;font-size:.82rem">${esc(task.task_id)}</strong>
@@ -341,11 +341,11 @@ export function buildTeamTab(container: HTMLElement): void {
     if (pending.length === 0) { proposalsList.innerHTML = t('cockpit.t22'); return; }
     proposalsList.innerHTML = pending.slice(0, 12).map((p) => {
       const title = p.title || p.id;
-      const domain = p.domain ? `<span style="padding:.05rem .3rem;border-radius:.25rem;font-size:.66rem;background:rgba(127,127,127,.25);font-family:monospace">${esc(p.domain)}</span>` : '';
+      const domain = p.domain ? `<span style="padding:.05rem .3rem;border-radius:.25rem;font-size:.66rem;background:var(--border);font-family:monospace">${esc(p.domain)}</span>` : '';
       const body = p.body
         ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">${esc(t('cockpit.t14'))}</summary><div style="font-size:.82rem;margin:.3rem 0 0;opacity:.9">${renderProposalBody(p.body)}</div></details>`
         : '';
-      return `<div class="at-prop" data-id="${esc(p.id)}" style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+      return `<div class="at-prop" data-id="${esc(p.id)}" style="padding:.5rem .65rem;border:1px solid var(--border);border-radius:.4rem;background:var(--bg-tertiary)">
         <div style="display:flex;align-items:center;gap:.4rem">${domain}
           <strong style="flex:1;line-height:1.4">${esc(title)}</strong>
           <span style="font-size:.66rem;opacity:.5;font-family:monospace">${esc(p.id)}</span></div>

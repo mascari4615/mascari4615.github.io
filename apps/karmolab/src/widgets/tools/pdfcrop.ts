@@ -94,7 +94,7 @@ import { spec as pdfCropCoreSpec } from '../../core/pdfcrop';
 
             <div id="pcStage" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('pdfcrop.label.preview'))}</div>
-              <canvas id="pcCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
+              <canvas id="pcCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; border:1px solid var(--border);"></canvas>
             </div>
 
             <div class="cc-stats" id="pcStats"></div>

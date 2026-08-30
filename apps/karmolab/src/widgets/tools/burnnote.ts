@@ -189,7 +189,7 @@ import { download } from './shared/image';
     const css = `
 .bn-note{margin:10px 0 0;font-size:var(--font-size-2xs);opacity:.75;line-height:1.6;}
 .bn-how{margin:18px 0 0;font-size:var(--font-size-2xs);opacity:.6;line-height:1.6;}
-.bn-open{padding:16px;border-radius:var(--radius-xl);border:1px solid rgba(128,128,128,.25);}
+.bn-open{padding:16px;border-radius:var(--radius-xl);border:1px solid var(--border);}
 .bn-warn{margin:6px 0 12px;font-size:var(--font-size-2xs);line-height:1.6;
   padding:10px 12px;border-radius:var(--radius-lg);
   border:1px solid rgba(240,180,90,.45);background:rgba(240,180,90,.10);}

@@ -153,7 +153,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .vd-player{width:100%;max-height:38vh;border-radius:var(--radius-xl);background:#000;display:block;margin-bottom:8px;}
 .vd-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;}
 .vd-frame{position:relative;appearance:none;padding:0;cursor:pointer;background:#000;line-height:0;
-  border:1px solid rgba(128,128,128,.3);border-radius:var(--radius-md);overflow:hidden;}
+  border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;}
 .vd-frame:hover{border-color:rgba(128,160,255,.75);box-shadow:0 0 0 2px rgba(128,160,255,.25);}
 .vd-frame span{position:absolute;right:3px;bottom:3px;font-size:var(--font-size-4xs);line-height:1;padding:2px 4px;
   border-radius:var(--radius-sm);background:rgba(0,0,0,.65);color:#fff;}

@@ -71,7 +71,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div id="rdStage" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('redact.label.stage'))}</div>
-              <canvas id="rdCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; cursor:crosshair; border:1px solid rgba(128,128,128,0.25); touch-action:none;"></canvas>
+              <canvas id="rdCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; cursor:crosshair; border:1px solid var(--border); touch-action:none;"></canvas>
             </div>
 
             <div class="cc-stats" id="rdStats"></div>

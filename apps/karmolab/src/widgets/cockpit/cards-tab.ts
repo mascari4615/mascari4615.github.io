@@ -90,7 +90,7 @@ export function buildCardsTab(container: HTMLElement): void {
       const badge = `<span style="display:inline-block;padding:.05rem .35rem;border-radius:.25rem;font-size:.68rem;background:${kindColor(c.kind)};color:#fff;font-family:monospace">${esc(k)}</span>`;
       const topic = c.topic ? `<span style="font-size:.74rem;opacity:.7;font-family:monospace;margin-left:.4rem">${esc(c.topic)}</span>` : '';
       const session = c.session ? `<span style="font-size:.7rem;opacity:.55;margin-left:.4rem">@${esc(c.session)}</span>` : '';
-      return `<div style="padding:.45rem .6rem;border:1px solid rgba(127,127,127,.2);border-radius:.3rem">
+      return `<div style="padding:.45rem .6rem;border:1px solid var(--border);border-radius:.3rem">
         <div style="display:flex;align-items:center;gap:.3rem">
           ${badge}${topic}${session}
           <span style="margin-left:auto;font-size:.7rem;opacity:.55;font-family:monospace">${esc(formatTs(c.ts))}</span>

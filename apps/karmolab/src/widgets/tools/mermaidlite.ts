@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
         <div>
           <div class="tool-sublabel">${esc(t('mermaidlite.label.out'))}</div>
-          <div id="mlPic" style="overflow:auto; border:1px solid rgba(128,128,128,.24); border-radius:var(--radius-xl); padding:10px; min-height:280px;"></div>
+          <div id="mlPic" style="overflow:auto; border:1px solid var(--border); border-radius:var(--radius-xl); padding:10px; min-height:280px;"></div>
         </div>
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 var(--space-lg);">

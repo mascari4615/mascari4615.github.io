@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <input type="range" id="pmNear" name="near" aria-label="${esc(t('photomap.label.near'))}" min="50" max="5000" step="50" value="300" style="width:200px;">
         </div>
       </div>
-      <div id="pmDots" style="border:1px solid rgba(128,128,128,.24); border-radius:var(--radius-xl); padding:8px; overflow:auto; margin-bottom:10px;"></div>
+      <div id="pmDots" style="border:1px solid var(--border); border-radius:var(--radius-xl); padding:8px; overflow:auto; margin-bottom:10px;"></div>
       <div class="tool-grid-2">
         <div>
           <div class="tool-sublabel">${esc(t('photomap.label.places'))}</div>
@@ -107,7 +107,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const spanKm = metersBetween(frame.minLat, frame.minLon, frame.minLat, frame.maxLon) / 1000;
       $<HTMLElement>('#pmDots').innerHTML =
         '<svg viewBox="0 0 ' + width + ' ' + height + '" width="100%" style="max-width:' + width + 'px" font-family="system-ui, sans-serif">' +
-        '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="rgba(128,128,128,.06)"/>' + dots +
+        '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="var(--bg-tertiary)"/>' + dots +
         '<text x="8" y="' + (height - 8) + '" font-size="11" fill="currentColor" opacity=".6">' + esc(t('photomap.span', { km: spanKm.toFixed(spanKm < 10 ? 1 : 0) })) + '</text>' +
         '</svg>';
 

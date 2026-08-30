@@ -125,7 +125,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       $<HTMLElement>('#dpGroups').innerHTML = groups
         .map(
           (g) =>
-            '<div style="border:1px solid rgba(128,128,128,.24); border-radius:var(--radius-xl); padding:10px; margin-bottom:10px;">' +
+            '<div style="border:1px solid var(--border); border-radius:var(--radius-xl); padding:10px; margin-bottom:10px;">' +
             '<div class="tool-sublabel">' + esc(t('dupphoto.group', { n: g.others.length + 1, saved: human(g.saved) })) + '</div>' +
             '<div style="display:flex; gap:10px; flex-wrap:wrap;">' + card(g.keep, true) + g.others.map((p) => card(p, false)).join('') + '</div></div>'
         )

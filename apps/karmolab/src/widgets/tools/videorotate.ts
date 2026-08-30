@@ -74,7 +74,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             <video id="vrVideo" playsinline muted style="display:none;"></video>
             <div id="vrStage" style="display:none;">
               <div class="tool-sublabel">${esc(t('videorotate.label.preview'))}</div>
-              <canvas id="vrCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
+              <canvas id="vrCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; border:1px solid var(--border);"></canvas>
             </div>
 
             <div class="cc-stats" id="vrStats"></div>

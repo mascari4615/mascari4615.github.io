@@ -79,7 +79,7 @@ import { encode } from './shared/image';
 
             <div id="prStage" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('pdfredact.label.drag'))}</div>
-              <canvas id="prCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; cursor:crosshair; border:1px solid rgba(128,128,128,0.25); touch-action:none;"></canvas>
+              <canvas id="prCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; cursor:crosshair; border:1px solid var(--border); touch-action:none;"></canvas>
             </div>
 
             <div class="cc-stats" id="prStats"></div>

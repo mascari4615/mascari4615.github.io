@@ -282,12 +282,12 @@ import { t, loadNamespace } from '../../lib/i18n';
     const el = document.createElement('style');
     el.textContent = `
 .im-shot{appearance:none;padding:6px;width:100%;cursor:zoom-in;line-height:0;
-  border:1px solid rgba(128,128,128,.28);border-radius:var(--radius-xl);background:
-  repeating-conic-gradient(rgba(128,128,128,.14) 0% 25%, transparent 0% 50%) 50%/16px 16px;}
+  border:1px solid var(--border);border-radius:var(--radius-xl);background:
+  repeating-conic-gradient(var(--border) 0% 25%, transparent 0% 50%) 50%/16px 16px;}
 .im-shot:hover{border-color:rgba(128,160,255,.7);}
 .im-shot-img{width:100%;height:auto;max-height:56vh;object-fit:contain;}
 .im-cmp{position:relative;width:100%;overflow:hidden;border-radius:var(--radius-xl);cursor:ew-resize;
-  border:1px solid rgba(128,128,128,.28);line-height:0;background:#111;}
+  border:1px solid var(--border);line-height:0;background:#111;}
 .im-cmp img{width:100%;height:auto;max-height:56vh;object-fit:contain;display:block;}
 .im-cmp-clip{position:absolute;inset:0;width:50%;overflow:hidden;}
 /* 잘리는 쪽 그림은 **바깥 칸의 너비**를 그대로 써야 두 장이 겹친다 . 

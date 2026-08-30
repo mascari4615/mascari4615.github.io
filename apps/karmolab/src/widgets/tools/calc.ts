@@ -220,10 +220,10 @@ import { t, loadNamespace } from '../../lib/i18n';
     styled = true;
     const el = document.createElement('style');
     el.textContent = `
-.ca-sheet{border:1px solid rgba(128,128,128,.22);border-radius:var(--radius-xl);overflow:hidden;
+.ca-sheet{border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--font-size-2xs);}
 .ca-row{display:flex;gap:10px;align-items:baseline;padding:5px 10px;
-  border-bottom:1px solid rgba(128,128,128,.12);}
+  border-bottom:1px solid var(--bg-tertiary);}
 .ca-row:last-child{border-bottom:0;}
 .ca-src{flex:1;min-width:0;white-space:pre-wrap;word-break:break-all;opacity:.75;}
 .ca-copy{cursor:copy;}

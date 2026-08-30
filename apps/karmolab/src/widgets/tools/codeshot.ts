@@ -115,7 +115,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
 
       <div class="tool-sublabel">${esc(t('codeshot.label.preview', undefined, '미리보기'))}</div>
-      <canvas id="csCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
+      <canvas id="csCanvas" style="max-width:100%; border-radius:var(--radius-xl); display:block; border:1px solid var(--border);"></canvas>
 
       <div class="cc-stats" id="csStats"></div>
 

@@ -55,7 +55,7 @@ import { statusLine } from './shared/say';
           void loadNamespace('gradient').then(function () {
 
           container.innerHTML = `
-            <div id="grPreview" style="height:180px; border-radius:var(--radius-xl); border:1px solid rgba(128,128,128,0.25);"></div>
+            <div id="grPreview" style="height:180px; border-radius:var(--radius-xl); border:1px solid var(--border);"></div>
 
             <div class="tool-section field-group">
               <div class="tool-grid-2">

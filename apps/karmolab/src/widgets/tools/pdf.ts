@@ -438,7 +438,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .pf-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;
   max-height:60vh;overflow:auto;padding:2px;}
 .pf-thumb{position:relative;padding:0;background:#fff;
-  border:1px solid rgba(128,128,128,.3);border-radius:var(--radius-md);overflow:hidden;line-height:0;}
+  border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;line-height:0;}
 .pf-thumb:hover{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim);}
 .pf-thumb span{position:absolute;right:3px;bottom:3px;font-size:var(--font-size-4xs);line-height:1;padding:2px 4px;
   border-radius:var(--radius-sm);background:rgba(0,0,0,.6);color:#fff;}

@@ -164,12 +164,12 @@ import { mountTextOperation } from './shared/text-operation';
     const el = document.createElement('style');
     el.textContent = `
 .tx-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
-.tx-num{border:1px solid rgba(128,128,128,.24);border-radius:var(--radius-xl);padding:10px 6px;text-align:center;}
+.tx-num{border:1px solid var(--border);border-radius:var(--radius-xl);padding:10px 6px;text-align:center;}
 .tx-num strong{display:block;font-size:var(--font-size-md);font-variant-numeric:tabular-nums;}
 .tx-num span{font-size:var(--font-size-3xs);opacity:.6;}
 .tx-head{margin:0;max-height:40vh;overflow:auto;white-space:pre-wrap;word-break:break-word;
   font-size:var(--font-size-2xs);line-height:1.5;padding:10px 12px;border-radius:var(--radius-xl);
-  border:1px solid rgba(128,128,128,.22);background:rgba(128,128,128,.05);}
+  border:1px solid var(--border);background:var(--bg-tertiary);}
 `;
     document.head.appendChild(el);
   }

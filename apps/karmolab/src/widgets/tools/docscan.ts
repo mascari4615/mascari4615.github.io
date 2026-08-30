@@ -58,11 +58,11 @@ import { t, loadNamespace } from '../../lib/i18n';
       <div style="display:flex; gap:16px; flex-wrap:wrap;">
         <div>
           <div class="tool-sublabel">${esc(t('docscan.label.pick'))}</div>
-          <canvas id="dsPick" style="border-radius:var(--radius-lg); border:1px solid rgba(128,128,128,.3); touch-action:none; cursor:crosshair; max-width:100%;"></canvas>
+          <canvas id="dsPick" style="border-radius:var(--radius-lg); border:1px solid var(--border); touch-action:none; cursor:crosshair; max-width:100%;"></canvas>
         </div>
         <div>
           <div class="tool-sublabel">${esc(t('docscan.label.result'))}</div>
-          <canvas id="dsOut" style="border-radius:var(--radius-lg); border:1px solid rgba(128,128,128,.3); max-width:100%;"></canvas>
+          <canvas id="dsOut" style="border-radius:var(--radius-lg); border:1px solid var(--border); max-width:100%;"></canvas>
         </div>
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin:10px 0;">
