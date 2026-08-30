@@ -2,14 +2,12 @@
 //!
 //! 라이브 창구 = `GET https://cli-chat-proxy.grok.com/v1/billing?format=credits`
 //! (`~/.grok/auth.json` 의 OIDC access token). **비공식이다** — x.ai 공식 문서에
-//! 잔량 조회 엔드포인트는 없고(rate-limit 은 콘솔 UI 로만 안내), 이 주소는 CLI 의
-//! `/usage` 가 쓰는 것으로 알려진 경로다. 그래서 실패를 정상 경로로 취급하고
-//! 로컬 로그 신호로 떨어진다.
+//! 잔량 조회의 공식 공개 API는 없고, 이 주소는 CLI가 쓰는 비공식 경로다. 그래서
+//! 실패를 정상 경로로 취급하고 로컬 로그 신호로 떨어진다. 2026-08-30 실측 형식:
+//! `config.currentPeriod`와 `config.productUsage`의 camelCase
 //!
 //! 로컬 신호 = 이미지 생성 잔량 + 마지막으로 429 를 맞은 시각. 퍼센트 게이지는
 //! 지어내지 않는다.
-
-use serde::Deserialize;
 
 use super::shared::*;
 
@@ -71,28 +69,59 @@ async fn probe_live() -> Result<VendorQuota, String> {
     }
 
     let body: serde_json::Value = res.json().await.map_err(|e| format!("bad-response: {e}"))?;
+    extract_live(&body)
+}
 
-    // 비공식 경로라 응답 모양이 언제 바뀔지 모른다 — 필드 이름으로 더듬어
-    // 찾고, 못 찾으면 지어내지 말고 스냅샷으로 떨어진다.
+/// 비공식 billing 응답: 과거 snake_case와 현재 `config` 아래 camelCase
+/// 기간 끝과 사용률을 같은 응답에서만 짝지어 추정 게이지 금지
+fn extract_live(body: &serde_json::Value) -> Result<VendorQuota, String> {
+    let config = body.get("config").unwrap_or(body);
     let mut out = VendorQuota::new(true);
     out.observed_at = Some(now_secs());
-    out.plan = find_key(&body, "tier")
-        .or_else(|| find_key(&body, "plan"))
-        .or_else(|| find_key(&body, "subscription_tier"))
+    out.plan = find_key(config, "tier")
+        .or_else(|| find_key(config, "plan"))
+        .or_else(|| find_key(config, "subscription_tier"))
         .and_then(|v| v.as_str())
         .map(str::to_string);
 
-    let used = find_key(&body, "used_percent")
-        .or_else(|| find_key(&body, "usage_percent"))
+    // productUsage 우선 — Grok Build 제품 한도 / 전체 credit 사용률은 보조 신호
+    let used = find_key(config, "usagePercent")
+        .or_else(|| find_key(config, "used_percent"))
+        .or_else(|| find_key(config, "usage_percent"))
+        .or_else(|| find_key(config, "creditUsagePercent"))
         .and_then(|v| v.as_f64());
-    let resets = find_key(&body, "reset_at")
+    let resets = find_key(config, "reset_at")
         .and_then(|v| v.as_i64())
         .or_else(|| {
-            find_key(&body, "reset_at")
+            find_key(config, "reset_at")
+                .and_then(|v| v.as_str())
+                .and_then(iso_to_epoch)
+        })
+        .or_else(|| {
+            config
+                .get("currentPeriod")
+                .and_then(|period| period.get("end"))
+                .and_then(|v| v.as_str())
+                .and_then(iso_to_epoch)
+        })
+        .or_else(|| {
+            find_key(config, "billingPeriodEnd")
                 .and_then(|v| v.as_str())
                 .and_then(iso_to_epoch)
         });
-    let window = find_key(&body, "window_seconds").and_then(|v| v.as_i64());
+    let window = find_key(config, "window_seconds")
+        .and_then(|v| v.as_i64())
+        .or_else(|| {
+            config
+                .get("currentPeriod")
+                .and_then(|period| period.get("type"))
+                .and_then(|v| v.as_str())
+                .and_then(|kind| match kind {
+                    "USAGE_PERIOD_TYPE_WEEKLY" => Some(604_800),
+                    "USAGE_PERIOD_TYPE_DAILY" => Some(86_400),
+                    _ => None,
+                })
+        });
 
     if used.is_some() || resets.is_some() {
         out.windows.push(QuotaWindow {
@@ -143,7 +172,8 @@ pub fn probe_log() -> Result<VendorQuota, String> {
         }
         if want_limit {
             // "rate_limited" 는 kind / error_type 어느 쪽으로도 온다.
-            let is_event = find_key(&value, "kind").and_then(|v| v.as_str()) == Some("rate_limited")
+            let is_event = find_key(&value, "kind").and_then(|v| v.as_str())
+                == Some("rate_limited")
                 || find_key(&value, "error_type").and_then(|v| v.as_str()) == Some("rate_limited");
             if is_event {
                 out.last_rate_limited_at = ts;
@@ -183,5 +213,33 @@ pub async fn probe() -> Result<VendorQuota, String> {
             Ok(q)
         }
         _ => Err(live_err),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn current_billing_shape_yields_a_weekly_usage_window() {
+        let body = json!({
+            "config": {
+                "creditUsagePercent": 100.0,
+                "currentPeriod": {
+                    "type": "USAGE_PERIOD_TYPE_WEEKLY",
+                    "start": "2026-08-24T12:42:12.372630+00:00",
+                    "end": "2026-08-31T12:42:12.372630+00:00"
+                },
+                "productUsage": { "product": "GrokBuild", "usagePercent": 100.0 }
+            }
+        });
+
+        let quota = extract_live(&body).expect("current billing shape should parse");
+        assert!(quota.live);
+        assert_eq!(quota.windows.len(), 1);
+        assert_eq!(quota.windows[0].key, "seven_day");
+        assert_eq!(quota.windows[0].used_percent, Some(100.0));
+        assert_eq!(quota.windows[0].resets_at, Some(1788180132));
     }
 }
