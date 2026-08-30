@@ -3343,7 +3343,7 @@ html[data-skin="field"] .nav-item-num {
 html[data-skin="field"] .sidebar-list-head { text-transform: none; letter-spacing: .12em; }
 html[data-skin="field"] .sidebar-user {
     margin: 0 8px 8px;
-    background: linear-gradient(90deg, var(--band) 70%, var(--band-fade, var(--band)));
+    background: linear-gradient(90deg, var(--band) 70%, color-mix(in srgb, var(--band) 82%, transparent));
     color: var(--band-ink);
 }
 html[data-skin="field"] .sidebar-user .header-account-btn { color: var(--band-ink); }
@@ -3434,7 +3434,7 @@ html[data-skin="field"] .header-crumb .header-now { font-family: var(--font-mono
 html[data-skin="field"] .pf-shell { counter-reset: pf 1; }
 html[data-skin="field"] .pf-shell .pf-head {
     
-    background: linear-gradient(180deg, var(--glass) 0%, var(--glassThin, var(--glass)) 70%, transparent 100%);
+    background: linear-gradient(180deg, var(--glass) 0%, color-mix(in srgb, var(--glass) 70%, transparent) 70%, transparent 100%);
     backdrop-filter: blur(6px);
     border: 1px solid var(--text-primary);
     border-bottom: 0;

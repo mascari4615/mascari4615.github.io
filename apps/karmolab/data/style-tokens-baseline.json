@@ -40,7 +40,7 @@
   "src/widgets/tools/payslip.ts": 1,
   "src/widgets/user.ts": 2
  },
- "colorTotal": 1452,
+ "colorTotal": 1450,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 3,
@@ -59,7 +59,7 @@
   "src/secrets.ts": 2,
   "src/toolbox.ts": 1,
   "src/widgets/alarm.ts": 2,
-  "src/widgets/arcade/arcade.ts": 403,
+  "src/widgets/arcade/arcade.ts": 405,
   "src/widgets/arcade/three-board.ts": 2,
   "src/widgets/bluemarble/bluemarble.ts": 36,
   "src/widgets/bon/styles.ts": 9,
@@ -103,7 +103,6 @@
   "src/widgets/karmograph/karmograph.ts": 26,
   "src/widgets/karmograph/panels/doc-section.ts": 1,
   "src/widgets/karmograph/print-sheet.ts": 1,
-  "src/widgets/laptop.ts": 4,
   "src/widgets/life/life.ts": 1,
   "src/widgets/memo-atlas.ts": 4,
   "src/widgets/meok/styles.ts": 3,
