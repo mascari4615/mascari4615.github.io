@@ -475,5 +475,10 @@
   "arcade.gomoku.rule.free": "自由",
   "arcade.gomoku.rule.lines": "{n}路",
   "arcade.gomoku.rule.limit": "{s}秒",
-  "arcade.btn.undo": "待った"
+  "arcade.btn.undo": "待った",
+  "arcade.setup.ai": "相手",
+  "arcade.setup.ai.1": "見習い",
+  "arcade.setup.ai.2": "初心者",
+  "arcade.setup.ai.3": "学徒",
+  "arcade.setup.ai.4": "専門家"
 }

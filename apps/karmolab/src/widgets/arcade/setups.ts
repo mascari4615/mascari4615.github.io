@@ -46,6 +46,17 @@ export const SETUPS: Record<string, Choice[]> = {
       fallback: true
     },
     {
+      key: 'ai',
+      label: 'arcade.setup.ai',
+      options: [
+        { value: 1, label: 'arcade.setup.ai.1' },
+        { value: 2, label: 'arcade.setup.ai.2' },
+        { value: 3, label: 'arcade.setup.ai.3' },
+        { value: 4, label: 'arcade.setup.ai.4' }
+      ],
+      fallback: 3
+    },
+    {
       key: 'limit',
       label: 'arcade.setup.limit',
       options: [

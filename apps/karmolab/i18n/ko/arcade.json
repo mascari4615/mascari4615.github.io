@@ -475,5 +475,10 @@
   "arcade.gomoku.rule.free": "자유",
   "arcade.gomoku.rule.lines": "{n}줄",
   "arcade.gomoku.rule.limit": "{s}초",
-  "arcade.btn.undo": "무르기"
+  "arcade.btn.undo": "무르기",
+  "arcade.setup.ai": "상대",
+  "arcade.setup.ai.1": "견습",
+  "arcade.setup.ai.2": "초보",
+  "arcade.setup.ai.3": "학도",
+  "arcade.setup.ai.4": "전문가"
 }

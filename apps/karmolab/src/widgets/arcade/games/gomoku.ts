@@ -15,6 +15,7 @@
  */
 import { bestOf } from '../pick-best';
 import type { GameDef, BotMove, GameOpts } from '../types';
+import { think, LEVELS, type Level } from './gomoku-engine';
 
 export interface GomokuState {
   /** 0 = 빈 칸, 1 = 첫째 자리, 2 = 둘째 자리 */
@@ -51,6 +52,13 @@ const NEED = 5;
 const DIRS: Array<[number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
 /** 고른 값 읽기. 모르는 값이 오면 표준으로 되돌린다 (그물망 너머에서 아무 값이나 온다) */
+/** 봇 단계. 기본 3(학도). 1 은 둘레 아무 데나, 5 는 여섯 수 앞과 VCF */
+export const DEFAULT_LEVEL: Level = 3;
+export function levelOf(opts: GameOpts): Level {
+  const v = Number(opts.ai);
+  return (LEVELS as readonly number[]).indexOf(v) >= 0 ? (v as Level) : DEFAULT_LEVEL;
+}
+
 /** 수당 제한시간. 없음이 기본. 혼자 노는 판에서 시계가 재촉하면 놀이가 아니라 시험이다 */
 export const LIMITS = [0, 30, 60, 120] as const;
 export function limitOf(opts: GameOpts): number {
@@ -329,6 +337,9 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
   bot(s, seat, ctx): BotMove<GomokuAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const who = seat + 1;
+    /* 단계별 엔진(`gomoku-engine.ts`). 아래 한 수 앞 점수는 엔진이 답을 못 낼 때의 안전망 */
+    const cell = think({ board: s.board, n: s.n, who, renju: s.renju, banned: who === 1 ? s.banned : [], level: levelOf(ctx.opts), rng: ctx.rng });
+    if (cell >= 0 && s.board[cell] === 0) return { action: { cell }, delayMs: 600 + ctx.rng() * 700 };
     /**
      * **둘 만한 자리만 본다.** 19줄이면 361칸. 한 칸마다 네 방향을 재면 한 수에 수천 번을 돎
      * 돌에서 두 칸 넘게 떨어진 자리는 값이 0에 가까움

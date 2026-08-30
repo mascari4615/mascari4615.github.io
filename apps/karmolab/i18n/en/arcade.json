@@ -475,5 +475,10 @@
   "arcade.gomoku.rule.free": "Free",
   "arcade.gomoku.rule.lines": "{n} lines",
   "arcade.gomoku.rule.limit": "{s}s",
-  "arcade.btn.undo": "Undo"
+  "arcade.btn.undo": "Undo",
+  "arcade.setup.ai": "Opponent",
+  "arcade.setup.ai.1": "Novice",
+  "arcade.setup.ai.2": "Beginner",
+  "arcade.setup.ai.3": "Student",
+  "arcade.setup.ai.4": "Expert"
 }

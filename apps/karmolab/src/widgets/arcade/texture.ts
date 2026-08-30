@@ -244,18 +244,42 @@ export function cloudTexture(seed = 41, size = 512): HTMLCanvasElement {
   const r = rng(seed);
   c.fillStyle = '#ffffff';
   c.fillRect(0, 0, size, size);
-  for (let i = 0; i < 9; i += 1) {
+  /* 덩어리는 크고 적게. 작고 많으면 판 위에서 얼룩으로 보인다(실측) */
+  for (let i = 0; i < 5; i += 1) {
     const x = r() * size;
     const y = r() * size;
-    const rad = size * (0.12 + r() * 0.22);
+    const rad = size * (0.24 + r() * 0.3);
     const g = c.createRadialGradient(x, y, 0, x, y, rad);
-    g.addColorStop(0, `rgba(120,110,100,${(0.22 + r() * 0.16).toFixed(3)})`);
-    g.addColorStop(0.6, 'rgba(120,110,100,0.08)');
+    /* 옅으면 안 보인다(실측: 22~38% 는 눈에 없었다). 구름 가운데는 절반 넘게 어둡게 */
+    g.addColorStop(0, `rgba(90,85,80,${(0.5 + r() * 0.2).toFixed(3)})`);
+    g.addColorStop(0.6, 'rgba(90,85,80,0.22)');
     g.addColorStop(1, 'rgba(120,110,100,0)');
     c.fillStyle = g;
     c.beginPath();
     c.ellipse(x, y, rad * (0.8 + r() * 0.6), rad * (0.5 + r() * 0.4), r() * Math.PI, 0, Math.PI * 2);
     c.fill();
   }
+  return cv;
+}
+
+/** 햇살 줄기. 위는 밝고 아래로 사라지는 띠. 창에서 방으로 드는 빛을 눈에 보이게 */
+export function shaftTexture(size = 256): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  c.clearRect(0, 0, size, size);
+  const g = c.createLinearGradient(0, 0, 0, size);
+  g.addColorStop(0, 'rgba(255,240,210,0.55)');
+  g.addColorStop(0.5, 'rgba(255,236,200,0.22)');
+  g.addColorStop(1, 'rgba(255,236,200,0)');
+  c.fillStyle = g;
+  c.fillRect(0, 0, size, size);
+  /* 가장자리를 부드럽게. 각진 띠는 유리판이지 빛이 아니다 */
+  const side = c.createLinearGradient(0, 0, size, 0);
+  side.addColorStop(0, 'rgba(0,0,0,1)');
+  side.addColorStop(0.25, 'rgba(0,0,0,0)');
+  side.addColorStop(0.75, 'rgba(0,0,0,0)');
+  side.addColorStop(1, 'rgba(0,0,0,1)');
+  c.globalCompositeOperation = 'destination-out';
+  c.fillStyle = side;
+  c.fillRect(0, 0, size, size);
   return cv;
 }

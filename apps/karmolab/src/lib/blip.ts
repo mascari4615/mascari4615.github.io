@@ -101,7 +101,7 @@ function roomBlip(c: AudioContext, kind: BlipKind): void {
   const now = c.currentTime;
   switch (kind) {
     case 'tap':
-      knock(c, now, 700, 0.14, 70);
+      /* 방에서는 누르는 소리가 없다. 알이 판에 닿는 소리(`ambience.ts`)가 그 자리다. 둘이 겹치면 두 번 두는 소리(사용자 실측) */
       break;
     case 'start':
       chime(c, now, 2093, 0.05);

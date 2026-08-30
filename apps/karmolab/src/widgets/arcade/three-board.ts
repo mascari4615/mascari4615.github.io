@@ -22,6 +22,7 @@ import {
   HemisphereLight,
   LatheGeometry,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   PCFShadowMap,
   PCFSoftShadowMap,
@@ -44,7 +45,7 @@ import {
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
-import { cloudTexture, plankTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
+import { cloudTexture, plankTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
@@ -134,7 +135,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const cross = opts.onCross === true;
   const room = opts.room === true;
   /* 살아 있는 방의 손잡이. 아래 breathe 가 매 프레임 만진다 */
-  const living: { spot: SpotLight | null; cloud: SpotLight | null; motes: Points | null; seed: number } = { spot: null, cloud: null, motes: null, seed: Math.random() * 1000 };
+  const living: { spot: SpotLight | null; cloud: SpotLight | null; motes: Points | null; shafts: Mesh[]; seed: number } = { spot: null, cloud: null, motes: null, shafts: [], seed: Math.random() * 1000 };
   /**
    * 줄이 덮는 거리. **교차점 판은 줄이 n 개**(칸은 n−1 개)고, 칸 판은 줄이 n+1 개다.
    * 여기를 한 줄로 갈라 두면 아래(줄 긋기, 알 자리, 손 짚기)가 전부 따라온다.
@@ -312,6 +313,19 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     const motes = new Points(moteGeo, moteMat);
     scene.add(motes);
     living.motes = motes;
+
+    /* 햇살 줄기 셋. 장지문 쪽에서 판 앞으로 비스듬히 누운 반투명 띠. 구름이 지나면 옅어진다 */
+    const shaftMap = new CanvasTexture(shaftTexture(256));
+    shaftMap.colorSpace = SRGBColorSpace;
+    const shaftMat = new MeshBasicMaterial({ map: shaftMap, transparent: true, opacity: 0.55, blending: AdditiveBlending, depthWrite: false, side: DoubleSide });
+    for (let k = 0; k < 3; k += 1) {
+      const shaft = new Mesh(new PlaneGeometry(size * (0.7 + k * 0.2), size * 2.2), shaftMat);
+      shaft.position.set(-size * 0.55 + k * size * 0.55, size * 0.55, -size * 0.35 + k * 0.08 * size);
+      /* 뒤 위에서 앞 아래로 눕힌다. 해와 같은 기울기 */
+      shaft.rotation.set(-0.95, 0.18 - k * 0.12, 0.25);
+      scene.add(shaft);
+      living.shafts.push(shaft);
+    }
     /* 바깥. 빛나는 면 하나. 디테일을 그리면 눈이 거기로 간다 */
     const outside = new Mesh(new PlaneGeometry(size * 6, size * 3), outsideMat);
     outside.rotation.x = -Math.PI / 2;
@@ -738,15 +752,19 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   let lastLive = 0;
   const breathe = (t: number): void => {
     const s = t / 1000 + living.seed;
-    /* 구름. 두 사인의 합으로 느리게. 0.72~1.0 사이 */
-    const cloud = 0.86 + 0.14 * Math.sin(s * 0.11) * Math.cos(s * 0.037 + 1.3);
+    /* 구름. 두 사인의 합. 0.5~1.0 사이를 40~90초 주기로. 해가 구름에 들면 방이 눈에 띄게 어두워진다 */
+    const cloud = 0.75 + 0.25 * Math.sin(s * 0.09) * Math.cos(s * 0.043 + 1.3);
     sun.intensity = 2.4 * cloud;
-    hemi.intensity = 0.75 * (0.85 + 0.15 * cloud);
+    hemi.intensity = 0.75 * (0.8 + 0.2 * cloud);
     if (living.cloud) {
-      /* 구름은 한 바퀴 두 분 남짓. 눈에 띄면 안 되고, 5분 앉아 있으면 달라져 있어야 한다 */
-      living.cloud.position.x = Math.sin(s * 0.045) * size * 1.4;
-      living.cloud.position.z = size * 0.3 + Math.cos(s * 0.031) * size * 1.0;
-      living.cloud.intensity = 0.9 * (0.9 + 0.1 * cloud);
+      /* 구름 그늘은 한 바퀴 50초 남짓. 앉아서 보이는 속도 */
+      living.cloud.position.x = Math.sin(s * 0.12) * size * 1.4;
+      living.cloud.position.z = size * 0.3 + Math.cos(s * 0.083) * size * 1.0;
+      living.cloud.intensity = 1.1;
+    }
+    for (const sh of living.shafts) {
+      const m = sh.material as MeshBasicMaterial;
+      m.opacity = 0.25 + 0.6 * Math.max(0, cloud - 0.5) * 2;
     }
     if (living.spot) {
       living.spot.intensity = 1.2 * (0.8 + 0.2 * cloud);
