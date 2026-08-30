@@ -27,6 +27,7 @@ import {
   MeshStandardMaterial,
   PCFSoftShadowMap,
   PerspectiveCamera,
+  Plane,
   PointLight,
   PlaneGeometry,
   Quaternion,
@@ -140,6 +141,8 @@ interface Die {
   moveTo: Vector3;
   moveT0: number;
   hover: boolean;
+  /* 손으로 끌리는 중. 자리 계산을 건너뛴다 */
+  dragging: boolean;
 }
 
 export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStage {
@@ -463,11 +466,20 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       mesh, value: 1, kept: false,
       spot: new Vector3(0, REST_Y, 1), pos: new Vector3(0, REST_Y, 1), quat: new Quaternion(),
       track: null, released: 0, hitIdx: 0, faces,
-      moveFrom: null, gather: false, inCup: false, cupTrack: null, cupT0: 0, moveTo: new Vector3(), moveT0: 0, hover: false
+      moveFrom: null, gather: false, inCup: false, cupTrack: null, cupT0: 0, moveTo: new Vector3(), moveT0: 0, hover: false, dragging: false
     });
   }
-  const slotX = (i: number): number => -TRAY_W / 2 + 1.6 + i * ((TRAY_W - 3.2) / Math.max(1, opts.count - 1));
-  const railPos = (i: number): Vector3 => new Vector3(slotX(i), REST_Y, RAIL_Z);
+  const slotX = (k: number): number => -TRAY_W / 2 + 1.6 + k * ((TRAY_W - 3.2) / Math.max(1, opts.count - 1));
+  /* 주사위 i 가 앉는 홈. 홈에서 끌어 순서를 바꿀 수 있다(사용자 요청). 규칙에는 순서가 없으니 화면만 */
+  const slotOf: number[] = dice.map((_, i) => i);
+  const railPos = (i: number): Vector3 => new Vector3(slotX(slotOf[i]), REST_Y, RAIL_Z);
+  /**
+   * 면마다 눈 그림의 **위쪽**이 몸체 어느 축인가(BoxGeometry 의 UV). 옆면 넷은 +y, 윗면은 -z, 아랫면은 +z.
+   * 멎을 때 그림 위쪽이 화면 위(월드 -z)를 보도록 네 방향 중 하나를 고르면 6 이 늘 세로 두 줄, 2 와 3 은 늘 같은 대각
+   * (사용자 지적. 6 이 가로세로 제각각, 숫자 6 과 9 처럼 정방향이 있어야 함)
+   */
+  const texUpFor = (n: Vector3): Vector3 => (Math.abs(n.y) > 0.5 ? new Vector3(0, 0, n.y > 0 ? -1 : 1) : new Vector3(0, 1, 0));
+  const SCREEN_UP = new Vector3(0, 0, -1);
 
   /* 기하 면 순서(+x, -x, +y, -y, +z, -z)의 법선 */
   const GEOM_NORMALS = [
@@ -487,8 +499,17 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
    */
   const bodyTurn = (tr: Track, upLocal: Vector3, v: number): void => {
     const r = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, upLocal);
-    const spin = new Quaternion().setFromAxisAngle(upLocal, Math.floor(Math.random() * 4) * (Math.PI / 2));
-    const bodyR = spin.multiply(r);
+    const endQ = tr.frames[tr.frames.length - 1].quat;
+    const texUp = texUpFor(FACE_NORMAL[v] ?? UP);
+    /* 네 방향 중 그림 위쪽이 화면 위를 보는 것 */
+    let bodyR = new Quaternion();
+    let bestDot = -2;
+    for (let k = 0; k < 4; k += 1) {
+      const cand = new Quaternion().setFromAxisAngle(upLocal, k * (Math.PI / 2)).multiply(r);
+      const world = texUp.clone().applyQuaternion(endQ.clone().multiply(cand));
+      const dd = world.dot(SCREEN_UP);
+      if (dd > bestDot) { bestDot = dd; bodyR = cand; }
+    }
     for (const f of tr.frames) f.quat.multiply(bodyR);
     /* 불변식. 마지막 자세에서 위를 보는 몸체 면이 v 여야 한다. 아니면 눈이 틀린 것 */
     const end = tr.frames[tr.frames.length - 1];
@@ -506,8 +527,15 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const upright = (d: Die, v: number): void => {
     standardFaces(d);
     const q = new Quaternion().setFromUnitVectors(FACE_NORMAL[v] ?? UP, UP);
-    const spin = new Quaternion().setFromAxisAngle(UP, Math.floor(Math.random() * 4) * (Math.PI / 2));
-    d.quat.copy(spin.multiply(q));
+    const texUp = texUpFor(FACE_NORMAL[v] ?? UP);
+    let best = q;
+    let bd = -2;
+    for (let k = 0; k < 4; k += 1) {
+      const cand = new Quaternion().setFromAxisAngle(UP, k * (Math.PI / 2)).multiply(q);
+      const dd = texUp.clone().applyQuaternion(cand).dot(SCREEN_UP);
+      if (dd > bd) { bd = dd; best = cand; }
+    }
+    d.quat.copy(best);
   };
 
   /* 쟁반에 흩어질 자리. 서로 한 변 넘게 떨어지게. 못 찾으면 줄로 */
@@ -680,6 +708,9 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const tmpV = new Vector3();
   const tmpQ = new Quaternion();
   const dieAt = (d: Die, t: number): boolean => {
+    /* 손이 올라오면 살짝 키운다. 들어 올리면 같은 픽셀의 광선이 빗나가 내려오고 다시 올라오는 떨림(실측: 포인터 구간이 6조각) */
+    d.mesh.scale.setScalar(d.hover && !d.released && !d.moveFrom && !d.dragging ? 1.08 : 1);
+    if (d.dragging) return true;
     if (d.moveFrom && d.gather) {
       /* 컵으로. 호를 그리며 입 위로, 끝나면 컵 안 */
       const u = Math.min(1, Math.max(0, (t - d.moveT0) / MOVE_MS));
@@ -748,9 +779,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       }
       return true;
     }
-    /* 가만히. 손이 올라와 있으면 살짝 든다 */
+    /* 가만히 */
     d.mesh.position.copy(d.pos);
-    d.mesh.position.y = d.pos.y + (d.hover ? 0.12 : 0);
     d.mesh.quaternion.copy(d.quat);
     return false;
   };
@@ -789,17 +819,92 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     setHover(p.kind, p.die);
   };
   const onLeave = (): void => setHover('', -1);
+  /* ── 홈에서 끌기 ── 남긴 주사위를 홈 사이에서 끌어 순서를 바꾼다. 6px 안 움직이면 누른 것 */
+  let drag: { i: number; x0: number; y0: number; moved: boolean; id: number } | null = null;
+  const railPlane = new Plane(new Vector3(0, 1, 0), -REST_Y);
+  const railHit = new Vector3();
+  const railXAt = (ev: PointerEvent): number | null => {
+    const r = canvas.getBoundingClientRect();
+    ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+    ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    if (!ray.ray.intersectPlane(railPlane, railHit)) return null;
+    return Math.max(-TRAY_W / 2 + 0.8, Math.min(TRAY_W / 2 - 0.8, railHit.x));
+  };
   const onDown = (ev: PointerEvent): void => {
     if (ev.button !== 0) return;
     if (sheetOn) return;
     const p = pick(ev);
-    if (p.kind === 'die') opts.onDie(p.die);
-    else if (p.kind === 'cup') opts.onCup();
+    if (p.kind === 'die') {
+      const d = dice[p.die];
+      if (d.kept && actable && !d.released && !d.moveFrom) {
+        drag = { i: p.die, x0: ev.clientX, y0: ev.clientY, moved: false, id: ev.pointerId };
+        return;
+      }
+      opts.onDie(p.die);
+    } else if (p.kind === 'cup') opts.onCup();
     else if (p.kind === 'paper') opts.onPaper();
   };
+  const onDragMove = (ev: PointerEvent): void => {
+    if (!drag) return;
+    const d = dice[drag.i];
+    if (!drag.moved && Math.hypot(ev.clientX - drag.x0, ev.clientY - drag.y0) < 6) return;
+    drag.moved = true;
+    d.dragging = true;
+    const x = railXAt(ev);
+    if (x === null) return;
+    d.mesh.position.set(x, REST_Y + 0.5, RAIL_Z);
+    d.mesh.quaternion.copy(d.quat);
+    canvas.style.cursor = 'grabbing';
+    need = true;
+    kick();
+  };
+  const onUp = (ev: PointerEvent): void => {
+    if (!drag) return;
+    const { i, moved } = drag;
+    drag = null;
+    void ev;
+    const d = dice[i];
+    d.dragging = false;
+    canvas.style.cursor = '';
+    if (!moved) {
+      opts.onDie(i);
+      return;
+    }
+    /* 제일 가까운 홈. 누가 앉아 있으면 자리를 바꾼다 */
+    let slot = 0;
+    let bd = Infinity;
+    for (let k = 0; k < opts.count; k += 1) {
+      const dd = Math.abs(slotX(k) - d.mesh.position.x);
+      if (dd < bd) { bd = dd; slot = k; }
+    }
+    const t = performance.now();
+    /* 홈 번호는 늘 서로 달라야 한다. 쟁반에 내려간 주사위의 홈이라도 바꿔 준다. 안 바꾸면 둘이 한 홈에 겹친다(실측) */
+    const other = slotOf.findIndex((sl, j) => sl === slot && j !== i);
+    if (other >= 0) {
+      slotOf[other] = slotOf[i];
+      const o = dice[other];
+      if (o.kept) {
+        o.moveFrom = o.mesh.position.clone();
+        o.moveTo.copy(railPos(other));
+        o.moveT0 = t;
+      }
+    }
+    slotOf[i] = slot;
+    d.moveFrom = d.mesh.position.clone();
+    d.moveTo.copy(railPos(i));
+    d.moveT0 = t;
+    opts.onSound?.('slide', 0.5);
+    need = true;
+    kick();
+  };
   canvas.addEventListener('pointermove', onMove, { passive: true });
+  /* 끌기는 창 전체에서 듣는다. 캔버스 밖에서 놓아도 끝나야 하고, 포인터 캡처는 셸과 엉켰다(실측: 놓음이 안 왔다) */
+  window.addEventListener('pointermove', onDragMove, { passive: true });
   canvas.addEventListener('pointerleave', onLeave);
   canvas.addEventListener('pointerdown', onDown);
+  window.addEventListener('pointerup', onUp, true);
+  window.addEventListener('pointercancel', onUp, true);
 
   /* ── 그리기 ── 부를 때만. 방은 30fps 로 산다 */
   let need = true;
@@ -912,7 +1017,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     software,
     set(values, keep, roll) {
       const t = performance.now();
-      const rolling: number[] = [];
+      /* 굴릴 것은 **전 상태에서 내려 둔 것**. 굴린 뒤에는 전부 손(남김)이라 새 keep 으로는 못 가른다 */
+      const rolling: number[] = started && roll ? dice.map((_, i) => i).filter((i) => !dice[i].kept) : [];
       dice.forEach((d, i) => {
         const v = values[i] ?? 1;
         const k = !!keep[i];
@@ -922,9 +1028,10 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
           upright(d, v);
           d.mesh.visible = true;
         } else {
+          const willRoll = rolling.includes(i);
           if (k !== d.kept) {
             d.kept = k;
-            const flying = d.released !== 0 || pendingRelease.includes(i) || queued.includes(i);
+            const flying = willRoll || d.released !== 0 || pendingRelease.includes(i) || queued.includes(i);
             /* 나는 중이면 멎은 뒤에 옮긴다(`dieAt` 의 끝). 지금 끊으면 허공에서 선반으로 미끄러진다(실측) */
             if (!flying) {
               /* 선반으로, 또는 선반에서 빈 자리로(전 자리는 그새 다른 주사위가 차지했을 수 있다) */
@@ -935,9 +1042,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
               opts.onSound?.('slide', 0.6);
             }
           }
-          if (roll && !k) {
+          if (willRoll) {
             d.value = v;
-            rolling.push(i);
           } else if (v !== d.value) {
             /* 굴림 없이 눈이 바뀌었다(도중에 들어옴). 그냥 놓는다 */
             d.value = v;
@@ -995,8 +1101,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       loop?.stop();
       loop = null;
       canvas.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointermove', onDragMove);
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener('pointercancel', onUp, true);
       ro.disconnect();
       scene.traverse((o) => {
         const m = o as Mesh;

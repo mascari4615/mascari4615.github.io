@@ -86,7 +86,7 @@
   "arcade.yacht.sheet.bonus": "Bonus (35 at 63+)",
   "arcade.yacht.sheet.sum": "Total",
   "arcade.yacht.sheet.pick": "Pick a box to score",
-  "arcade.yacht.sheet.keep": "{n} roll(s) left. Click dice to keep, then the cup. Or score now",
+  "arcade.yacht.sheet.keep": "{n} roll(s) left. Take dice out of the slots to reroll, then the cup. Or score now",
   "arcade.yacht.sheet.wait": "{who}'s turn",
   "arcade.yacht.sheet.close": "Close",
   "arcade.yacht.sheet.pin": "Sheet (Tab)",
@@ -543,5 +543,6 @@
   "arcade.scene.tatami": "Tatami room",
   "arcade.scene.desk": "Night desk",
   "arcade.scene.living": "Living room",
-  "arcade.scene.study": "Study"
+  "arcade.scene.study": "Study",
+  "arcade.yacht.deny.allkept": "Nothing to roll. Take dice out of the slots first"
 }

@@ -131,6 +131,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       if (!last) return null;
       if (last.turn !== mySeat) return t('arcade.yacht.deny.turn', { who: seatNames[last.turn] ?? '' });
       if (last.rolled >= 3) return t(what === 'roll' ? 'arcade.yacht.deny.rolls' : 'arcade.yacht.deny.keep3');
+      if (what === 'roll' && last.keep.every(Boolean)) return t('arcade.yacht.deny.allkept');
       if (!idle()) return t('arcade.yacht.deny.busy');
       return null;
     };
@@ -433,11 +434,11 @@ export const view3d: GameView<YachtState, YachtAction> = {
       }
       /* 세 번째 굴림이 멎으면 다섯이 선반 홈으로 옮겨져 **손이 완성**된다(클럽하우스 51 순서: 굴림 -> 홈 -> 적기.
          사용자 지적: 배치도 안 하고 점수판부터 띄운다). 그 뒤 조합 이름을 알린다 */
+      /* 굴린 다섯은 멎은 뒤 전부 홈으로(규칙이 그렇다). 세 번째면 손이 완성된 것이라 조합을 알린다 */
+      if (rolled) busyUntil += 500;
       if (rolled && s.rolled >= 3) {
-        busyUntil += 700;
         window.setTimeout(() => {
           if (shown !== s || !stage || !host.isConnected) return;
-          stage.set(s.dice, s.dice.map(() => true), false);
           const combo = comboOf(s.dice);
           const best = bestOpen(s, s.turn);
           toast(combo ? t('arcade.yacht.toast.combo', { cat: t('arcade.yacht.cat.' + combo) }) : t('arcade.yacht.toast.nocombo', { cat: best ? t('arcade.yacht.cat.' + best.cat) : '', n: String(best?.n ?? 0) }), 2400);

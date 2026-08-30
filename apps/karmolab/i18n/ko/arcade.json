@@ -86,7 +86,7 @@
   "arcade.yacht.sheet.bonus": "덤 (63 이상 35)",
   "arcade.yacht.sheet.sum": "합계",
   "arcade.yacht.sheet.pick": "적을 칸을 고른다",
-  "arcade.yacht.sheet.keep": "{n}번 더 굴릴 수 있다. 남길 주사위를 누르고 컵을 누른다. 지금 적어도 된다",
+  "arcade.yacht.sheet.keep": "{n}번 더 굴릴 수 있다. 다시 굴릴 주사위를 홈에서 내리고 컵을 누른다. 지금 적어도 된다",
   "arcade.yacht.sheet.wait": "{who} 차례",
   "arcade.yacht.sheet.close": "닫기",
   "arcade.yacht.sheet.pin": "점수표 (Tab)",
@@ -543,5 +543,6 @@
   "arcade.scene.tatami": "다다미방",
   "arcade.scene.desk": "밤 책상",
   "arcade.scene.living": "거실",
-  "arcade.scene.study": "서재"
+  "arcade.scene.study": "서재",
+  "arcade.yacht.deny.allkept": "굴릴 주사위가 없다. 다시 굴릴 것을 홈에서 내린다"
 }

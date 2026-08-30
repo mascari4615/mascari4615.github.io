@@ -86,7 +86,7 @@
   "arcade.yacht.sheet.bonus": "ボーナス (63以上で35)",
   "arcade.yacht.sheet.sum": "合計",
   "arcade.yacht.sheet.pick": "書き込む欄を選ぶ",
-  "arcade.yacht.sheet.keep": "あと{n}回振れる。残すサイコロを押してカップを押す。今書いてもよい",
+  "arcade.yacht.sheet.keep": "あと{n}回振れる。振り直すサイコロを枠から下ろしてカップを押す。今書いてもよい",
   "arcade.yacht.sheet.wait": "{who}の番",
   "arcade.yacht.sheet.close": "閉じる",
   "arcade.yacht.sheet.pin": "スコア表 (Tab)",
@@ -543,5 +543,6 @@
   "arcade.scene.tatami": "和室",
   "arcade.scene.desk": "夜の机",
   "arcade.scene.living": "居間",
-  "arcade.scene.study": "書斎"
+  "arcade.scene.study": "書斎",
+  "arcade.yacht.deny.allkept": "振るサイコロがない。振り直すものを枠から下ろす"
 }

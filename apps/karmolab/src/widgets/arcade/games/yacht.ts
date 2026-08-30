@@ -5,7 +5,8 @@
  * 그래서 난수를 부를 때마다 새로 만들어도 아무도 안 아팠다. 이 게임이 그 구멍을 드러냈다.
  * (커널이 판마다 난수 하나를 만들어 이어 쓰도록 고쳤다.)
  *
- * 세 번까지 굴린다. 굴릴 때마다 남길 주사위를 고르고, 마지막에 **아직 안 쓴 칸 하나**에 적는다.
+ * 세 번까지 굴린다. 굴린 주사위는 **전부 손(남김)에 들어오고**, 다시 굴릴 것만 내린다(클럽하우스 51 과 같은
+ * 손 모델. 2026-08-30 사용자 결정. 전에는 반대). 마지막에 **아직 안 쓴 칸 하나**에 적기
  * 열두 칸을 다 채우면 끝. 위 여섯 칸 합이 63 이상이면 덤 35점(원래 규칙 그대로).
  */
 import type { GameDef, BotMove, Outcome } from '../types';
@@ -85,7 +86,7 @@ export const yacht: GameDef<YachtState, YachtAction> = {
   init(ctx) {
     return {
       dice: Array.from({ length: DICE }, () => Math.floor(ctx.rng() * 6) + 1),
-      keep: new Array(DICE).fill(false),
+      keep: new Array(DICE).fill(true),
       rolled: 1,
       turn: 0,
       sheet: ctx.seats.map(() => emptySheet())
@@ -111,7 +112,8 @@ export const yacht: GameDef<YachtState, YachtAction> = {
     if (kind === 'roll') {
       if (s.rolled >= ROLLS) return s;
       const dice = s.dice.map((v, i) => (s.keep[i] ? v : Math.floor(ctx.rng() * 6) + 1));
-      return { ...s, dice, rolled: s.rolled + 1 };
+      /* 굴린 것도 손에 들어온다. 다음에 다시 굴릴 것은 다시 내려야 한다 */
+      return { ...s, dice, keep: new Array(DICE).fill(true), rolled: s.rolled + 1 };
     }
 
     if (kind === 'write') {
@@ -126,7 +128,7 @@ export const yacht: GameDef<YachtState, YachtAction> = {
         sheet,
         turn: next,
         dice: Array.from({ length: DICE }, () => Math.floor(ctx.rng() * 6) + 1),
-        keep: new Array(DICE).fill(false),
+        keep: new Array(DICE).fill(true),
         rolled: 1
       };
     }
