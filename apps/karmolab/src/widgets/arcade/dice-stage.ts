@@ -463,7 +463,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       let best: Vector3 | null = null;
       for (let tries = 0; tries < 80 && !best; tries += 1) {
         const p = new Vector3(x0 + Math.random() * (x1 - x0), REST_Y, z0 + Math.random() * (z1 - z0));
-        if (taken.every((q) => q.distanceTo(p) > D * 1.35)) best = p;
+        if (taken.every((q) => q.distanceTo(p) > D * 1.5)) best = p;
       }
       if (!best) best = new Vector3(x0 + ((i + 0.5) / opts.count) * (x1 - x0), REST_Y, (z0 + z1) / 2);
       taken.push(best);
@@ -509,8 +509,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
         const mouth = new Vector3(0, CUP_H, 0).applyQuaternion(cup.quaternion).add(cup.position);
         pendingRelease.forEach((i, n) => {
           const d = dice[i];
-          d.released = t + n * 45;
-          d.pos.copy(mouth).add(new Vector3((Math.random() - 0.5) * 0.4, -n * 0.2, (Math.random() - 0.5) * 0.4));
+          d.released = t + n * 70;
+          d.pos.copy(mouth).add(new Vector3((Math.random() - 0.5) * 0.3, 0, (Math.random() - 0.5) * 0.3));
           d.vel.set(-7 - Math.random() * 4, 0.8 + Math.random() * 1.5, (Math.random() - 0.5) * 5);
           d.ang.set((Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22);
           d.bounces = 0;
@@ -742,32 +742,49 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     let busy = cupAt(t);
     for (const d of dice) if (dieAt(d, t, dt)) busy = true;
     /* 나는 주사위끼리 부딪힌다. 겹쳐 지나가면 유령이다(사용자 지적). 공으로 보고 밀어내고 속도를 맞바꾼다 */
-    const flying = (d: Die): boolean => d.released !== 0 && t - d.released >= 0 && t - d.released < FLY_MS;
+    /* 움직이는 것(날기, 정착)은 서 있는 것과도 부딪힌다. 나는 동안만 재니 정착 구간에서 겹쳤다(사용자 지적)
+       반지름은 정육면체 대각선 절반에 가깝게. 구 0.5 로 재니 모서리가 파고들었다 */
+    const moving = (d: Die): boolean => d.released !== 0 && t - d.released >= 0;
+    const min = D * 1.28;
     for (let i = 0; i < dice.length; i += 1) {
       const a = dice[i];
-      if (!flying(a)) continue;
-      for (let j = i + 1; j < dice.length; j += 1) {
+      if (!moving(a)) continue;
+      for (let j = 0; j < dice.length; j += 1) {
+        if (j === i) continue;
         const b = dice[j];
-        if (!flying(b)) continue;
-        tmpV.subVectors(b.pos, a.pos);
+        if (!b.mesh.visible || (j < i && moving(b))) continue;
+        const bMoving = moving(b);
+        const bPos = bMoving ? b.pos : b.mesh.position;
+        tmpV.subVectors(bPos, a.pos);
         const dist = tmpV.length();
-        const min = D * 1.02;
         if (dist >= min || dist < 1e-6) continue;
         tmpV.divideScalar(dist);
-        const push = (min - dist) / 2;
-        a.pos.addScaledVector(tmpV, -push);
-        b.pos.addScaledVector(tmpV, push);
-        const va = a.vel.dot(tmpV);
-        const vb = b.vel.dot(tmpV);
-        if (va - vb > 0) {
-          a.vel.addScaledVector(tmpV, (vb - va) * 0.8);
-          b.vel.addScaledVector(tmpV, (va - vb) * 0.8);
-          a.ang.multiplyScalar(0.8);
-          b.ang.multiplyScalar(0.8);
-          opts.onSound?.('clatter', Math.min(1, (va - vb) / 8));
+        const push = min - dist;
+        if (bMoving) {
+          a.pos.addScaledVector(tmpV, -push / 2);
+          b.pos.addScaledVector(tmpV, push / 2);
+          const va = a.vel.dot(tmpV);
+          const vb = b.vel.dot(tmpV);
+          if (va - vb > 0) {
+            a.vel.addScaledVector(tmpV, (vb - va) * 0.8);
+            b.vel.addScaledVector(tmpV, (va - vb) * 0.8);
+            a.ang.multiplyScalar(0.8);
+            b.ang.multiplyScalar(0.8);
+            opts.onSound?.('clatter', Math.min(1, (va - vb) / 8));
+          }
+          b.mesh.position.copy(b.pos);
+        } else {
+          /* 서 있는 것은 안 밀린다. 움직이는 쪽만 물러나고 튕긴다 */
+          a.pos.addScaledVector(tmpV, -push);
+          const va = a.vel.dot(tmpV);
+          if (va > 0) {
+            a.vel.addScaledVector(tmpV, -va * 1.5);
+            a.ang.multiplyScalar(0.8);
+            opts.onSound?.('clatter', Math.min(1, va / 8));
+          }
         }
-        a.mesh.position.copy(a.pos);
-        b.mesh.position.copy(b.pos);
+        a.pos.y = Math.max(a.pos.y, REST_Y);
+        if (t - a.released < FLY_MS) a.mesh.position.copy(a.pos);
       }
     }
     if (camFrom && lookFrom) {
