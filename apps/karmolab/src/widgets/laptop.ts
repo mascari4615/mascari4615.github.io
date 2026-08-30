@@ -38,22 +38,22 @@ import { t, loadNamespace } from '../lib/i18n';
       .lap-dot { width:10px; height:10px; border-radius:50%; background:#8a867e; flex:0 0 auto; }
       .lap-dot.on { background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,.6); }
       .lap-dot.off { background:#f87171; }
-      .lap-state-text { font-size:.92rem; color:var(--text-primary, #e8e8e8); }
-      .lap-state-sub { font-size:.78rem; color:var(--text-tertiary, #8a867e); margin-top:2px;
+      .lap-state-text { font-size:.92rem; color:var(--text-primary); }
+      .lap-state-sub { font-size:.78rem; color:var(--text-tertiary); margin-top:2px;
         font-family:var(--font-mono, monospace); }
       .lap-again { margin-left:auto; background:none; border:1px solid var(--border, var(--border));
-        color:var(--text-tertiary, #8a867e); border-radius:var(--radius-sm); padding:6px 10px;
+        color:var(--text-tertiary); border-radius:var(--radius-sm); padding:6px 10px;
         font-size:.78rem; cursor:pointer; }
-      .lap-again:hover { color:var(--text-primary, #e8e8e8); }
+      .lap-again:hover { color:var(--text-primary); }
       .lap-doors { display:grid; gap:10px; }
       .lap-door { display:flex; align-items:center; gap:14px; padding:14px 16px; text-decoration:none;
         background:var(--bg-secondary); border:1px solid var(--border, var(--border));
         border-radius:var(--radius-md); color:inherit; }
-      .lap-door:hover { border-color:var(--accent, #a99bf5); }
+      .lap-door:hover { border-color:var(--accent); }
       .lap-door-icon { font-size:1.5rem; flex:0 0 auto; }
-      .lap-door-title { font-size:.98rem; color:var(--text-primary, #e8e8e8); }
-      .lap-door-desc { font-size:.8rem; color:var(--text-tertiary, #8a867e); margin-top:3px; line-height:1.5; }
-      .lap-note { margin-top:14px; font-size:.78rem; color:var(--text-tertiary, #8a867e); line-height:1.6; }
+      .lap-door-title { font-size:.98rem; color:var(--text-primary); }
+      .lap-door-desc { font-size:.8rem; color:var(--text-tertiary); margin-top:3px; line-height:1.5; }
+      .lap-note { margin-top:14px; font-size:.78rem; color:var(--text-tertiary); line-height:1.6; }
     `;
     document.head.appendChild(style);
   }

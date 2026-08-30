@@ -567,11 +567,11 @@ body.tool-detail .tool-head p {
 }
 /* 나가는 것과 안 나가는 것은 **색으로도** 갈린다. 글을 다 안 읽고 지나가는 사람이 훨씬 많다.
    색만으로는 못 가르는 사람이 있으므로 배지 글자가 늘 같은 뜻을 이고 간다(색은 거들 뿐). */
-.tool-privacy[data-where="local"], .tool-privacy[data-where="assets"] { border-left-color: var(--success, #3fa66a); }
+.tool-privacy[data-where="local"], .tool-privacy[data-where="assets"] { border-left-color: var(--success); }
 .tool-privacy[data-where="ours"] { border-left-color: var(--accent); }
 .tool-privacy[data-where="third-party"],
 .tool-privacy[data-where="yours"],
-.tool-privacy[data-where="ai"] { border-left-color: var(--warning, #d99a2b); }
+.tool-privacy[data-where="ai"] { border-left-color: var(--warning); }
 
 .tool-seo-note {
     margin-top: 24px;
@@ -1274,7 +1274,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
   margin: 0 0 0.6rem;
   font-size: var(--font-size-2xs);
   line-height: 1.5;
-  color: var(--text-tertiary, #8b8b85);
+  color: var(--text-tertiary);
 }
 .tool-crumb a {
   color: inherit;
@@ -1286,9 +1286,9 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
   align-items: center;
 }
 .tool-crumb a:hover,
-.tool-crumb a:focus-visible { color: var(--text-primary, #f2f2ee); text-decoration: underline; }
+.tool-crumb a:focus-visible { color: var(--text-primary); text-decoration: underline; }
 .tool-crumb i { font-style: normal; opacity: 0.55; }
-.tool-crumb [aria-current='page'] { color: var(--text-secondary, #b9b9b2); }
+.tool-crumb [aria-current='page'] { color: var(--text-secondary); }
 
 /* 도구 페이지에서 바로 다른 도구 찾기 (TASK-KL-089).
    설명 블록 안에 있고, 도구 본체를 가리지 않는다. 폰에서는 칸이 한 줄을 다 쓴다. */
@@ -1302,7 +1302,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tool-seo-find label {
   flex: 1 0 100%;
   font-size: var(--font-size-2xs);
-  color: var(--text-tertiary, #8b8b85);
+  color: var(--text-tertiary);
 }
 .tool-seo-find input[type='search'] {
   flex: 1 1 12rem;
@@ -1320,7 +1320,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 
 /* 목록 맨 위에서 오늘의 문제로 (TASK-KL-089) */
 .tool-hub-quest { margin: 0.2rem 0 1rem; font-size: 0.92rem; }
-.tool-hub-quest a { color: var(--accent, #a99bf5); text-decoration: none; }
+.tool-hub-quest a { color: var(--accent); text-decoration: none; }
 .tool-hub-quest a:hover, .tool-hub-quest a:focus-visible { text-decoration: underline; }
 
 /* 높은 쪽 고르기 (TASK-KL-089). 색, 모서리는 KarmoLab 토큰만 쓴다. 놀이도 KarmoLab 이다. */

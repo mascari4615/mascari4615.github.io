@@ -114,7 +114,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             `<div style="font-weight:600;">${head}</div>` +
             `<div class="tool-list-dim">${esc(who)}, ${esc(String(paper.year || '?'))}, ${esc(t('askpapers.cited', { n: paper.cited.toLocaleString() }))}</div>` +
             picks
-              .map((p) => `<blockquote style="margin:6px 0 0; padding-left:10px; border-left:2px solid var(--accent, #6aa9ff);">${esc(p.sentence)}</blockquote>`)
+              .map((p) => `<blockquote style="margin:6px 0 0; padding-left:10px; border-left:2px solid var(--accent);">${esc(p.sentence)}</blockquote>`)
               .join('') +
             `</div>`
           );

@@ -50,15 +50,15 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
             --fc-border-color: var(--border);
             --fc-neutral-bg-color: var(--bg-secondary);
             --fc-neutral-text-color: var(--text-tertiary);
-            --fc-today-bg-color: color-mix(in srgb, var(--accent, #4285f4) 10%, transparent);
+            --fc-today-bg-color: color-mix(in srgb, var(--accent) 10%, transparent);
             --fc-now-indicator-color: #ef4444;
             --fc-button-bg-color: var(--bg-secondary);
             --fc-button-border-color: var(--border);
             --fc-button-text-color: var(--text-secondary);
             --fc-button-hover-bg-color: var(--bg-tertiary);
             --fc-button-hover-border-color: var(--border);
-            --fc-button-active-bg-color: var(--accent, #4285f4);
-            --fc-button-active-border-color: var(--accent, #4285f4);
+            --fc-button-active-bg-color: var(--accent);
+            --fc-button-active-border-color: var(--accent);
             --fc-small-font-size: var(--font-size-xs);
         }
         .pl-cal-main .fc { font-size: var(--font-size-sm); color: var(--text-primary); }
@@ -69,11 +69,11 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
            FullCalendar 는 켜짐 상태에도 --fc-button-text-color 를 그대로 쓴다(켜짐용 토큰이 없다).
            accent 위에 얹는 글씨는 이 저장소 토큰으로 --accent-fg 다. 양쪽 판에서 함께 뒤집힌다. */
         .pl-cal-main .fc .fc-button-primary:not(:disabled).fc-button-active,
-        .pl-cal-main .fc .fc-button-primary:not(:disabled):active { color: var(--accent-fg, #fff); }
+        .pl-cal-main .fc .fc-button-primary:not(:disabled):active { color: var(--accent-fg); }
         .pl-cal-main .fc .fc-col-header-cell-cushion,
         .pl-cal-main .fc .fc-daygrid-day-number { color: var(--text-secondary); text-decoration: none; }
         .pl-cal-main .fc .fc-event { cursor: pointer; }
-        .pl-cal-main .fc .fc-event:focus-visible { outline: 2px solid var(--accent, #4285f4); outline-offset: 1px; }
+        .pl-cal-main .fc .fc-event:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
         .pl-cal-layout { display: flex; gap: 16px; height: 100%; min-height: 0; }
         .pl-cal-side { width: 210px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
@@ -90,7 +90,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-mini-day { font-size: var(--font-size-3xs); padding: 4px 0; border: none; background: none; color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer; position: relative; }
         .pl-mini-day:hover { background: var(--bg-tertiary); }
         .pl-mini-day--out { color: var(--text-tertiary); opacity: .45; }
-        .pl-mini-day--today { background: var(--accent, #4285f4); color: #fff; font-weight: 700; }
+        .pl-mini-day--today { background: var(--accent); color: #fff; font-weight: 700; }
         .pl-mini-day--busy::after { content: ''; position: absolute; left: 50%; bottom: 2px; width: 3px; height: 3px; border-radius: 50%; background: currentColor; transform: translateX(-50%); }
 
         .pl-cal-list-title { font-size: var(--font-size-xs); color: var(--text-tertiary); font-weight: 600; margin-bottom: 6px; }
@@ -128,7 +128,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-diary-empty { font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 4px 2px; }
         .pl-diary-item { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 8px 10px; border: 1px solid transparent; border-radius: var(--radius-md); background: none; cursor: pointer; }
         .pl-diary-item:hover { background: var(--bg-tertiary); }
-        .pl-diary-item--on { border-color: var(--accent, #4285f4); background: var(--bg-secondary); }
+        .pl-diary-item--on { border-color: var(--accent); background: var(--bg-secondary); }
         .pl-diary-item-date { font-size: var(--font-size-xs); font-weight: 700; color: var(--text-secondary); }
         .pl-diary-item-preview { font-size: var(--font-size-xs); color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pl-diary-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
@@ -137,7 +137,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-diary-head-right { display: flex; align-items: center; gap: 8px; }
         .pl-diary-count { font-size: var(--font-size-xs); color: var(--text-tertiary); }
         .pl-diary-text { flex: 1; min-height: 240px; resize: none; padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); font-size: var(--font-size-sm); line-height: 1.8; font-family: inherit; }
-        .pl-diary-text:focus { outline: 2px solid var(--accent, #4285f4); outline-offset: -2px; }
+        .pl-diary-text:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
         .pl-diary-saved { margin: 0; min-height: 1.2em; font-size: var(--font-size-xs); color: var(--text-tertiary); }
 
         /* 달력 칸의 일기 단추 */
@@ -146,7 +146,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .fc .fc-daygrid-day, .fc .fc-daygrid-day-frame { position: relative; }
         .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: var(--font-size-3xs); line-height: 1; padding: 2px 3px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
         .fc-daygrid-day:hover .pl-daycell-diary, .pl-daycell-diary:focus-visible { opacity: 1; }
-        .pl-daycell-diary--on { opacity: 1; color: var(--accent, #4285f4); }
+        .pl-daycell-diary--on { opacity: 1; color: var(--accent); }
         .pl-daycell-diary:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 
         /* 칸반 */
@@ -155,7 +155,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-kanban-add .pl-input { flex: 1; }
         .pl-kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex: 1; min-height: 0; }
         .pl-col { display: flex; flex-direction: column; min-height: 0; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); }
-        .pl-col--over { border-color: var(--accent, #4285f4); }
+        .pl-col--over { border-color: var(--accent); }
         .pl-col-head { padding: 10px 12px; font-size: var(--font-size-sm); font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
         .pl-col-count { color: var(--text-tertiary); font-weight: 500; }
         .pl-col-body { flex: 1; overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
@@ -172,12 +172,12 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         /* 연속일 */
         .pl-streaks { display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
         .pl-level { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
-        .pl-level-badge { width: 52px; height: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent, #4285f4); color: #fff; font-size: var(--font-size-lg); font-weight: 800; }
+        .pl-level-badge { width: 52px; height: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent); color: #fff; font-size: var(--font-size-lg); font-weight: 800; }
         .pl-level-info { flex: 1; min-width: 0; }
         .pl-level-title { font-weight: 700; color: var(--text-primary); }
         .pl-level-exp { font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 4px 0 8px; }
         .pl-level-bar { height: 6px; border-radius: var(--radius-sm); background: var(--bg-tertiary); overflow: hidden; }
-        .pl-level-fill { height: 100%; background: var(--accent, #4285f4); }
+        .pl-level-fill { height: 100%; background: var(--accent); }
         .pl-track-row { display: flex; flex-direction: column; gap: 8px; }
         .pl-track { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); }
         .pl-track--done { opacity: .7; }

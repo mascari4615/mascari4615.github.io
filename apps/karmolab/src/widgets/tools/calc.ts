@@ -206,7 +206,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       `<svg class="ca-plot" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img"` +
       ` aria-label="${esc(t('calc.plot.alt', { expr: p.expr, from: String(p.from), to: String(p.to) }, `${p.expr} 그래프`))}">` +
       `<path d="${axes.join(' ')}" stroke="currentColor" stroke-width="1" opacity=".25" fill="none"/>` +
-      `<path d="${d}" fill="none" stroke="var(--accent, #6aa9ff)" stroke-width="1.8" stroke-linejoin="round"/>` +
+      `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/>` +
       '</svg>' +
       `<span class="ca-plotmeta">x ${p.from}~${p.to}, y ${fmtShort(p.minY)}~${fmtShort(p.maxY)}</span>`;
     return row;
@@ -228,10 +228,10 @@ import { t, loadNamespace } from '../../lib/i18n';
 .ca-src{flex:1;min-width:0;white-space:pre-wrap;word-break:break-all;opacity:.75;}
 .ca-copy{cursor:copy;}
 .ca-copy:hover{text-decoration:underline;}
-.ca-ans{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent,#6aa9ff);}
+.ca-ans{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent);}
 .ca-bad .ca-ans{color:rgba(220,120,120,.9);font-weight:500;cursor:help;}
 .ca-plotrow{display:block;padding:8px 10px;}
-.ca-plot{display:block;color:var(--text-secondary,#999);}
+.ca-plot{display:block;color:var(--text-secondary);}
 .ca-plotmeta{display:block;margin-top:4px;font-size:var(--font-size-3xs);opacity:.6;}
 `;
     document.head.appendChild(el);

@@ -51,7 +51,7 @@ export interface MinorRow {
     const ORG_HUE: Record<string, string> = {
         '개인': 'var(--accent)',
         '패러블 엔터테인먼트': '#d4a04f',
-        '왁타버스': 'var(--secondary, #7ba7d4)'
+        '왁타버스': 'var(--secondary)'
     };
     const hueOf = (org: string): string => ORG_HUE[org] ?? 'var(--text-tertiary)';
 

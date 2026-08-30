@@ -34,12 +34,12 @@ function writeStringPref(key: string, value: string): void {
 }
 
 const STYLE_TOKENS = {
-  bgPrimary: 'var(--bg-primary, #0e0e0e)',
-  bgSecondary: 'var(--bg-secondary, #181818)',
-  bgTertiary: 'var(--bg-tertiary, #1f1f1f)',
-  textPrimary: 'var(--text-primary, #e8e8e8)',
-  textTertiary: 'var(--text-tertiary, #888)',
-  accent: 'var(--accent, #a99bf5)',
+  bgPrimary: 'var(--bg-primary)',
+  bgSecondary: 'var(--bg-secondary)',
+  bgTertiary: 'var(--bg-tertiary)',
+  textPrimary: 'var(--text-primary)',
+  textTertiary: 'var(--text-tertiary)',
+  accent: 'var(--accent)',
   border: 'var(--border)',
   radiusSm: 'var(--radius-sm, 4px)',
   radiusMd: 'var(--radius-md, 6px)',

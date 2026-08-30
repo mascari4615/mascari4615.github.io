@@ -49,7 +49,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        color: 'var(--text-primary, #e8e8e8)',
+        color: 'var(--text-primary)',
         maxWidth: '900px',
         margin: '0 auto',
       },
@@ -58,13 +58,13 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     /* ===== 헤더 ===== */
     const heading = el('h3', {
       textContent: t('adventure.t01'),
-      style: { margin: '0', color: 'var(--accent, #a99bf5)' },
+      style: { margin: '0', color: 'var(--accent)' },
     });
     wrap.appendChild(heading);
 
     const phase = el('p', {
       textContent: t('adventure.t02'),
-      style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary, #888)' },
+      style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary)' },
     });
     wrap.appendChild(phase);
 
@@ -76,8 +76,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     const providerSelect = el('select', {
       style: {
         padding: '4px 8px',
-        background: 'var(--bg-tertiary, #1f1f1f)',
-        color: 'var(--text-primary, #e8e8e8)',
+        background: 'var(--bg-tertiary)',
+        color: 'var(--text-primary)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-sm, 4px)',
       },
@@ -97,8 +97,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       textContent: t('adventure.t03'),
       style: {
         padding: '4px 10px',
-        background: 'var(--bg-tertiary, #1f1f1f)',
-        color: 'var(--text-primary, #e8e8e8)',
+        background: 'var(--bg-tertiary)',
+        color: 'var(--text-primary)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-sm, 4px)',
         cursor: 'pointer',
@@ -124,7 +124,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     /* ===== 모험 컨테이너 (cast picker / turn loop / 종료) ===== */
     const stage = el('div', {
       style: {
-        background: 'var(--bg-secondary, #181818)',
+        background: 'var(--bg-secondary)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md, 6px)',
         padding: '14px',
@@ -176,8 +176,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               textContent: `${i + 1}. ${choice}`,
               style: {
                 padding: '8px 12px',
-                background: 'var(--bg-tertiary, #1f1f1f)',
-                color: 'var(--text-primary, #e8e8e8)',
+                background: 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-sm, 4px)',
                 cursor: 'pointer',
@@ -213,7 +213,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const card = el('div', {
             style: {
               padding: '10px 12px',
-              background: 'var(--bg-tertiary, #1f1f1f)',
+              background: 'var(--bg-tertiary)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-sm, 4px)',
               display: 'flex',
@@ -229,11 +229,11 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           });
           card.appendChild(el('div', {
             textContent: slug,
-            style: { fontWeight: '600', fontSize: '13px', color: 'var(--text-primary, #e8e8e8)' },
+            style: { fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)' },
           }));
           card.appendChild(el('div', {
             textContent: t('adventure.savedLine', { date, turns: saved.turns.length, cast: saved.castSlugs.join(', ') || t('adventure.none') }),
-            style: { fontSize: '12px', color: 'var(--text-tertiary, #888)' },
+            style: { fontSize: '12px', color: 'var(--text-tertiary)' },
           }));
 
           const btnRow = el('div', { style: { display: 'flex', gap: '8px', marginTop: '4px' } });
@@ -242,7 +242,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             textContent: t('adventure.t06'),
             style: {
               padding: '4px 12px',
-              background: 'var(--accent, #a99bf5)',
+              background: 'var(--accent)',
               color: '#000',
               border: 'none',
               borderRadius: 'var(--radius-sm, 4px)',
@@ -256,8 +256,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             textContent: t('adventure.t07'),
             style: {
               padding: '4px 12px',
-              background: 'var(--bg-secondary, #181818)',
-              color: 'var(--text-tertiary, #888)',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-tertiary)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-sm, 4px)',
               cursor: 'pointer',
@@ -291,7 +291,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       stage.appendChild(el('strong', { textContent: t('adventure.t08') }));
       stage.appendChild(el('p', {
         textContent: t('adventure.t09'),
-        style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary, #888)' },
+        style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary)' },
       }));
 
       const checkboxList = el('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' } });
@@ -304,7 +304,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             alignItems: 'center',
             gap: '4px',
             padding: '4px 8px',
-            background: 'var(--bg-tertiary, #1f1f1f)',
+            background: 'var(--bg-tertiary)',
             borderRadius: 'var(--radius-sm, 4px)',
             cursor: 'pointer',
             fontSize: '13px',
@@ -327,7 +327,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         textContent: t('adventure.t10'),
         style: {
           padding: '8px 16px',
-          background: 'var(--accent, #a99bf5)',
+          background: 'var(--accent)',
           color: '#000',
           border: 'none',
           borderRadius: 'var(--radius-sm, 4px)',
@@ -350,7 +350,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       stage.innerHTML = '';
 
       const meta = el('div', {
-        style: { fontSize: '12px', color: 'var(--text-tertiary, #888)', display: 'flex', gap: '12px', flexWrap: 'wrap' },
+        style: { fontSize: '12px', color: 'var(--text-tertiary)', display: 'flex', gap: '12px', flexWrap: 'wrap' },
       });
       if (state) {
         meta.appendChild(document.createTextNode(`session: ${state.session.slug}`));
@@ -361,7 +361,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
       const narrativeBox = el('div', {
         style: {
-          background: 'var(--bg-tertiary, #1f1f1f)',
+          background: 'var(--bg-tertiary)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-md, 6px)',
           padding: '14px',
@@ -391,8 +391,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         style: {
           flex: '1',
           padding: '8px',
-          background: 'var(--bg-tertiary, #1f1f1f)',
-          color: 'var(--text-primary, #e8e8e8)',
+          background: 'var(--bg-tertiary)',
+          color: 'var(--text-primary)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm, 4px)',
           minHeight: '60px',
@@ -404,7 +404,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         textContent: t('adventure.t14'),
         style: {
           padding: '0 16px',
-          background: 'var(--accent, #a99bf5)',
+          background: 'var(--accent)',
           color: '#000',
           border: 'none',
           borderRadius: 'var(--radius-sm, 4px)',
@@ -434,8 +434,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         textContent: t('adventure.t15'),
         style: {
           padding: '4px 10px',
-          background: 'var(--bg-tertiary, #1f1f1f)',
-          color: 'var(--text-primary, #e8e8e8)',
+          background: 'var(--bg-tertiary)',
+          color: 'var(--text-primary)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm, 4px)',
           cursor: 'pointer',
@@ -483,8 +483,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         textContent: t('adventure.t19'),
         style: {
           padding: '4px 10px',
-          background: 'var(--bg-tertiary, #1f1f1f)',
-          color: 'var(--text-primary, #e8e8e8)',
+          background: 'var(--bg-tertiary)',
+          color: 'var(--text-primary)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-sm, 4px)',
           cursor: 'pointer',
@@ -530,8 +530,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             textContent: `${i + 1}. ${choice}`,
             style: {
               padding: '8px 12px',
-              background: 'var(--bg-tertiary, #1f1f1f)',
-              color: 'var(--text-primary, #e8e8e8)',
+              background: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-sm, 4px)',
               cursor: 'pointer',
@@ -546,7 +546,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         if (result.parsed.choices.length === 0 && !result.parsed.ended) {
           const note = el('div', {
             textContent: t('adventure.t22'),
-            style: { fontSize: '12px', color: 'var(--text-tertiary, #888)' },
+            style: { fontSize: '12px', color: 'var(--text-tertiary)' },
           });
           choicesBox.appendChild(note);
         }
@@ -555,9 +555,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             textContent: t('adventure.t23'),
             style: {
               fontSize: '13px',
-              color: 'var(--accent, #a99bf5)',
+              color: 'var(--accent)',
               padding: '8px',
-              background: 'var(--bg-tertiary, #1f1f1f)',
+              background: 'var(--bg-tertiary)',
               borderRadius: 'var(--radius-sm, 4px)',
             },
           });
@@ -576,8 +576,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               textContent: `${i + 1}. ${choice}`,
               style: {
                 padding: '8px 12px',
-                background: 'var(--bg-tertiary, #1f1f1f)',
-                color: 'var(--text-primary, #e8e8e8)',
+                background: 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-sm, 4px)',
                 cursor: 'pointer',
@@ -599,7 +599,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     /* ===== 누적된 모험 (β 사용처) ===== */
     const advList = el('div', {
       style: {
-        background: 'var(--bg-secondary, #181818)',
+        background: 'var(--bg-secondary)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md, 6px)',
         padding: '10px 12px',
@@ -619,7 +619,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     if (adventures.length === 0) {
       advList.appendChild(el('div', {
         textContent: t('adventure.t26'),
-        style: { color: 'var(--text-tertiary, #888)' },
+        style: { color: 'var(--text-tertiary)' },
       }));
     } else {
       const ul = el('ul', { style: { margin: '0', paddingLeft: '18px' } });

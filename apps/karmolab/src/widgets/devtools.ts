@@ -322,7 +322,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 max-width: 560px; max-height: 220px; overflow: auto;
             }
             .devtools-log { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-md); background: var(--bg-tertiary); border: 1px solid var(--border); font-size: var(--font-size-xs); font-family: ui-monospace, monospace; color: var(--text-secondary); white-space: pre-wrap; word-break: break-word; min-height: 2.5em; }
-            .devtools-log-ok { border-color: var(--success-subtle, rgba(34,197,94,0.35)); color: var(--text-primary); }
+            .devtools-log-ok { border-color: var(--success-subtle); color: var(--text-primary); }
             .devtools-log-err { border-color: var(--error-subtle); color: var(--error); }
         `
     );

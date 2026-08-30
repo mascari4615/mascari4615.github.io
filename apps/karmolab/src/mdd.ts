@@ -693,7 +693,7 @@ const Mdd = (() => {
 .mdd-av-part { position:absolute; display:block; pointer-events:none;
         -webkit-user-drag:none; user-drag:none; transform-box:fill-box; will-change:transform; }
     .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
-.mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
+.mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary); text-align:center; line-height:1.5; }
 /* 눈동자만 **코드로 그린** 것이라 다른 부위와 선명도가 안 맞았다. 원본 그림은 부드러운데
    눈만 벡터처럼 또렷해 눈이 따로 논다(사용자 신고). 아주 살짝 흐리고 채도를 낮춰
    같은 붓으로 그린 것처럼 맞춘다. 흐림은 1024 좌표계에서 걸리므로 화면에서는 그 절반쯤이다. */
@@ -1334,7 +1334,7 @@ const Mdd = (() => {
         `;
         injectCSS('mdd-log', `
             .mdd-log-overlay { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:16px; }
-            .mdd-log-panel { background:var(--bg-secondary,#1a1a1e); border:1px solid var(--border,rgba(255,255,255,0.08)); max-width:360px; width:100%; max-height:70vh; display:flex; flex-direction:column; border-radius:var(--radius-lg); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+            .mdd-log-panel { background:var(--bg-secondary); border:1px solid var(--border); max-width:360px; width:100%; max-height:70vh; display:flex; flex-direction:column; border-radius:var(--radius-lg); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
             .mdd-log-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
             .mdd-log-header h3 { margin:0; font-size:var(--font-size-xs); font-weight:600; color:var(--text-primary); }
             .mdd-log-close { background:none; border:none; color:var(--text-tertiary); font-size:24px; cursor:pointer; padding:0 4px; line-height:1; }
@@ -1373,7 +1373,7 @@ const Mdd = (() => {
 
         injectCSS('mdd-core', `
             .mdd-container { position:fixed; bottom:16px; right:16px; z-index:900; display:flex; flex-direction:column; align-items:flex-end; pointer-events:none; }
-            .mdd-bubble { background:var(--glass-strong,rgba(8,16,30,0.85)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--border-hover,rgba(0,229,255,0.12)); color:var(--text-primary,#e4eaf6); padding:6px 10px; font-size:var(--font-size-xs); max-width:180px; text-align:left; line-height:1.4; margin-bottom:6px; opacity:0; transform:translateY(4px); transition:opacity 0.2s,transform 0.2s; pointer-events:auto; font-family:var(--font-sans,'Inter',sans-serif); box-shadow:0 4px 16px var(--vignette,rgba(0,0,0,0.3)); border-radius:var(--radius-md,8px); }
+            .mdd-bubble { background:var(--glass-strong); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--border-hover); color:var(--text-primary); padding:6px 10px; font-size:var(--font-size-xs); max-width:180px; text-align:left; line-height:1.4; margin-bottom:6px; opacity:0; transform:translateY(4px); transition:opacity 0.2s,transform 0.2s; pointer-events:auto; font-family:var(--font-sans,'Inter',sans-serif); box-shadow:0 4px 16px var(--vignette); border-radius:var(--radius-md,8px); }
             .mdd-bubble.visible { opacity:1; transform:translateY(0); }
             .mdd-char { width:112px; height:122px; pointer-events:auto; cursor:grab; touch-action:none; transition:transform 0.15s,filter 0.3s; user-select:none; -webkit-user-select:none; opacity:0.85; }
             .mdd-char:active { cursor:grabbing; }

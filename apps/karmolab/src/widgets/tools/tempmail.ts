@@ -42,7 +42,7 @@ import {
     icon:
       '<rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>' +
       '<path d="M3 7l9 6 9-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<circle cx="18.5" cy="17.5" r="3.6" fill="var(--bg-secondary, #fff)" stroke="currentColor" stroke-width="1.4"/>' +
+      '<circle cx="18.5" cy="17.5" r="3.6" fill="var(--bg-secondary)" stroke="currentColor" stroke-width="1.4"/>' +
       '<path d="M18.5 15.6v2l1.3 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {

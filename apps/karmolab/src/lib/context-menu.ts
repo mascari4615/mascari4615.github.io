@@ -227,7 +227,7 @@ function injectStyle(): void {
     style.textContent = `
     .karmo-ctx {
         position:fixed; z-index:99999; min-width:180px; max-width:280px; padding:6px;
-        background:var(--bg-secondary, #1b1b1f); border:1px solid var(--border, #33333a);
+        background:var(--bg-secondary); border:1px solid var(--border);
         border-radius:var(--radius-md, 10px); box-shadow:var(--shadow-float, 0 12px 32px rgba(0,0,0,.4));
         display:flex; flex-direction:column; gap:2px;
         animation:karmo-ctx-in 90ms ease-out;
@@ -237,15 +237,15 @@ function injectStyle(): void {
     .karmo-ctx-item {
         appearance:none; border:none; background:none; cursor:pointer; text-align:left;
         padding:7px 10px; border-radius:var(--radius-md); font-size:var(--font-size-xs, 13px);
-        color:var(--text-primary, #e8e8ea); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .karmo-ctx-item:hover:not([disabled]), .karmo-ctx-item:focus-visible:not([disabled]) {
-        background:var(--bg-hover, #2a2a31); outline:none;
+        background:var(--bg-hover); outline:none;
     }
-    .karmo-ctx-item[disabled] { color:var(--text-tertiary, #6b6b75); cursor:default; }
-    .karmo-ctx-item.danger { color:var(--error, #e5484d); }
-    .karmo-ctx-item.danger:hover:not([disabled]) { background:var(--error, #e5484d); color:#fff; }
-    .karmo-ctx-sep { height:1px; margin:4px 2px; background:var(--border, #33333a); }
+    .karmo-ctx-item[disabled] { color:var(--text-tertiary); cursor:default; }
+    .karmo-ctx-item.danger { color:var(--error); }
+    .karmo-ctx-item.danger:hover:not([disabled]) { background:var(--error); color:#fff; }
+    .karmo-ctx-sep { height:1px; margin:4px 2px; background:var(--border); }
     `;
     document.head.appendChild(style);
 }

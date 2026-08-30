@@ -46,7 +46,7 @@ export function buildCanvasDom(
     //   부모가 flex 나 min-height 로 커진 경우엔 % 기준이 없어 svg 가 내용 높이(작게)로 남고,
     //   아랫부분을 눌러도 클릭이 svg 에 안 닿는다. 화면은 멀쩡해 보이는데 아래쪽만 죽는다
     //   (실측 2026-08-09: 캔버스 420px 인데 svg 는 그보다 짧아 하단 더블클릭이 무시됐다).
-    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary,#cbd5e1);';
+    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;color:var(--text-primary);';
     svg.setAttribute('xmlns', SVG_NS);
     // 자판으로 들어왔을 때 테두리를 보여 주려면 붙잡을 이름이 필요하다 (KL-271).
     svg.setAttribute('class', 'ck-board');
@@ -133,8 +133,8 @@ export function buildCanvasDom(
     // 지금 보는 곳. 파랑을 못 박으면 테마를 갈아도 혼자 파랗다. 판의 강조색을 따라간다.
     // ★ 색은 **style 로** 준다. `fill="var(--x)"` 처럼 속성에 적으면 변수가 안 풀린다
     //   (표현 속성은 var() 를 안 받는다). 그러면 상자가 통째로 검게 칠해진다.
-    minimapViewport.style.fill = 'var(--accent-dim, rgba(169,155,245,0.15))';
-    minimapViewport.style.stroke = 'var(--accent, rgba(169,155,245,0.65))';
+    minimapViewport.style.fill = 'var(--accent-dim)';
+    minimapViewport.style.stroke = 'var(--accent)';
     minimapViewport.setAttribute('stroke-width', '1.5');
     minimapViewport.setAttribute('rx', '3');
     minimapSvg.appendChild(minimapViewport);

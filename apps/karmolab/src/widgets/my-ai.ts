@@ -328,7 +328,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-modes { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; }
       .myai-mode { appearance: none; background: transparent; border: 0; color: var(--text-secondary); font-size: var(--font-size-2xs); padding: 4px 11px; cursor: pointer; }
       .myai-mode + .myai-mode { border-left: 1px solid var(--border); }
-      .myai-mode--on { background: var(--accent, #a99bf5); color: var(--bg-primary); font-weight: 600; }
+      .myai-mode--on { background: var(--accent); color: var(--bg-primary); font-weight: 600; }
       .myai-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; align-items: start; }
       .myai-card { border: 1px solid var(--border); border-left: 4px solid var(--myai-accent); border-radius: var(--radius-md); background: var(--bg-secondary); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
       .myai-card--error { border-left-color: var(--text-tertiary); }

@@ -800,11 +800,11 @@ html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #
     cursor: help;
 }
 .tool-privacy-chip[data-where="local"],
-.tool-privacy-chip[data-where="assets"] { border-color: var(--success, #3fa66a); }
+.tool-privacy-chip[data-where="assets"] { border-color: var(--success); }
 .tool-privacy-chip[data-where="ours"] { border-color: var(--accent); }
 .tool-privacy-chip[data-where="third-party"],
 .tool-privacy-chip[data-where="yours"],
-.tool-privacy-chip[data-where="ai"] { border-color: var(--warning, #d99a2b); color: var(--text-primary); }
+.tool-privacy-chip[data-where="ai"] { border-color: var(--warning); color: var(--text-primary); }
 
 .main-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; position: relative; min-height: 0; }
 
@@ -2703,7 +2703,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .karmolab-update-banner-install:hover { filter: brightness(1.1); }
 .karmolab-update-banner-install:disabled { opacity: 0.7; cursor: progress; }
 .karmolab-update-banner-restart {
-    background: var(--success, #22c55e);
+    background: var(--success);
 }
 
 .karmolab-update-banner-close {
@@ -2723,8 +2723,8 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     padding: 8px 10px 8px 12px;
     background: var(--bg-secondary);
     color: var(--text-primary);
-    border: 1px solid var(--success, #22c55e);
-    border-left: 3px solid var(--success, #22c55e);
+    border: 1px solid var(--success);
+    border-left: 3px solid var(--success);
     border-radius: var(--radius-md);
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     font-size: var(--font-size-sm);

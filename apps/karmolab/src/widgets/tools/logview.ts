@@ -103,7 +103,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const bad = b.error> 0;
           return (
             '<div title="' + esc(new Date(b.at).toLocaleString()) + ', ' + b.total + '" style="flex:1; height:' + h + '%; min-height:1px; background:' +
-            (bad ? 'var(--error)' : 'var(--accent, #4a7dff)') + '; opacity:' + (bad ? 0.85 : 0.55) + ';"></div>'
+            (bad ? 'var(--error)' : 'var(--accent)') + '; opacity:' + (bad ? 0.85 : 0.55) + ';"></div>'
           );
         })
         .join('');

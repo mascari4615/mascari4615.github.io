@@ -45,38 +45,38 @@ import { t, loadNamespace } from '../lib/i18n';
       .cmp-dot { width:10px; height:10px; border-radius:50%; background:#8a867e; flex:0 0 auto; }
       .cmp-dot.on { background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,.6); }
       .cmp-dot.off { background:#f87171; }
-      .cmp-state-text { font-size:.92rem; color:var(--text-primary, #e8e8e8); }
-      .cmp-state-sub { font-size:.78rem; color:var(--text-tertiary, #8a867e); margin-top:2px;
+      .cmp-state-text { font-size:.92rem; color:var(--text-primary); }
+      .cmp-state-sub { font-size:.78rem; color:var(--text-tertiary); margin-top:2px;
         font-family:var(--font-mono, monospace); }
       .cmp-open { margin-left:auto; display:flex; gap:8px; }
       .cmp-btn { background:none; border:1px solid var(--border, var(--border));
-        color:var(--text-tertiary, #8a867e); border-radius:var(--radius-sm); padding:6px 10px;
+        color:var(--text-tertiary); border-radius:var(--radius-sm); padding:6px 10px;
         font-size:.78rem; cursor:pointer; text-decoration:none; }
-      .cmp-btn:hover { color:var(--text-primary, #e8e8e8); border-color:var(--accent, #a99bf5); }
+      .cmp-btn:hover { color:var(--text-primary); border-color:var(--accent); }
       .cmp-say { display:flex; gap:8px; margin-bottom:14px; }
-      .cmp-say input { flex:1; background:var(--bg-secondary); color:var(--text-primary, #e8e8e8);
+      .cmp-say input { flex:1; background:var(--bg-secondary); color:var(--text-primary);
         border:1px solid var(--border, var(--border)); border-radius:var(--radius-sm);
         padding:10px 12px; font-size:.92rem; }
-      .cmp-say input:focus { outline:none; border-color:var(--accent, #a99bf5); }
+      .cmp-say input:focus { outline:none; border-color:var(--accent); }
       .cmp-log { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto;
         padding:12px; background:var(--bg-secondary); border:1px solid var(--border, var(--border));
         border-radius:var(--radius-md); }
-      .cmp-line { font-size:.88rem; line-height:1.55; color:var(--text-primary, #e8e8e8); }
-      .cmp-line.me { color:var(--text-tertiary, #8a867e); }
+      .cmp-line { font-size:.88rem; line-height:1.55; color:var(--text-primary); }
+      .cmp-line.me { color:var(--text-tertiary); }
       .cmp-who { font-family:var(--font-mono, monospace); font-size:.74rem; margin-right:8px;
-        color:var(--text-tertiary, #8a867e); }
-      .cmp-empty { font-size:.84rem; color:var(--text-tertiary, #8a867e); }
+        color:var(--text-tertiary); }
+      .cmp-empty { font-size:.84rem; color:var(--text-tertiary); }
       .cmp-known { margin-top:14px; padding:12px 14px; background:var(--bg-tertiary);
         border:1px solid var(--border, var(--border)); border-radius:var(--radius-md);
-        font-size:.84rem; line-height:1.7; color:var(--text-primary, #e8e8e8); white-space:pre-wrap; }
+        font-size:.84rem; line-height:1.7; color:var(--text-primary); white-space:pre-wrap; }
       .cmp-h { font-size:.76rem; letter-spacing:.06em; text-transform:uppercase;
-        color:var(--text-tertiary, #8a867e); margin:0 0 8px; }
-      .cmp-note { margin-top:14px; font-size:.78rem; color:var(--text-tertiary, #8a867e); line-height:1.6; }
+        color:var(--text-tertiary); margin:0 0 8px; }
+      .cmp-note { margin-top:14px; font-size:.78rem; color:var(--text-tertiary); line-height:1.6; }
       .cmp-bits { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
       .cmp-bit { display:flex; align-items:center; gap:6px; padding:6px 10px; font-size:.8rem;
         background:var(--bg-secondary); border:1px solid var(--border, var(--border));
-        border-radius:var(--radius-sm); color:var(--text-primary, #e8e8e8); }
-      .cmp-bit b { font-weight:600; color:var(--text-tertiary, #8a867e); font-size:.74rem; }
+        border-radius:var(--radius-sm); color:var(--text-primary); }
+      .cmp-bit b { font-weight:600; color:var(--text-tertiary); font-size:.74rem; }
       .cmp-bit.warn { border-color:#d9a441; }
     `;
     document.head.appendChild(style);
