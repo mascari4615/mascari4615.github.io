@@ -2512,7 +2512,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     border-left: 1px solid var(--border);
 }
 .header-now:empty { display: none; }
-@media (max-width: 768px) { .header-now { display: none; } }
+@media (max-width: 768px) { .header-now, .header-crumb-sep { display: none; } } /* 이름을 감추면 그 앞의 `//` 도 같이 (2026-08-31: 폰에서 빗금만 떠 있었다) */
 
 /* 옆줄 바닥은 얼굴과 이름뿐 (2026-08-30, 사용자 결정). 누르면 메뉴 하나
    종, 채팅, 설정, 테마 버튼은 visibility:hidden 으로 숨긴 채 산다 (초점과 접근성 나무에서 빠지고

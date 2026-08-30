@@ -1815,7 +1815,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     border-left: 1px solid var(--border);
 }
 .header-now:empty { display: none; }
-@media (max-width: 768px) { .header-now { display: none; } }
+@media (max-width: 768px) { .header-now, .header-crumb-sep { display: none; } } 
 
 .sidebar-user { position: relative; display: flex; align-items: center; min-width: 0; }
 .sidebar-user .header-account { flex: 1; min-width: 0; }
