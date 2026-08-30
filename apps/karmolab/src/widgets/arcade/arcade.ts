@@ -514,6 +514,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * ── 사람 (MDD, memo/rules/mdd.md) ── 자리 카드의 얼굴은 기하 도형(임시), 표정은 눈만, 말은 카드에 붙는 말풍선
        */
       '.ac-face,.ac-bubble,.ac-emotes{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls #acMdd[aria-pressed="false"]{opacity:.55}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face{display:block;grid-column:1;grid-row:1/3;width:56px;height:56px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg{display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));transition:transform .3s}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="think"]{transform:rotate(-6deg)}',
@@ -1378,6 +1379,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
       '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
       '<i class="ac-sep"></i>' +
+      /* MDD 는 확장. 끄면 이름 있는 봇, 얼굴과 말풍선과 컷인 없음. 지금은 켬이 기본(개발 편의), 출시 기본은 끔 */
+      '<button class="btn btn-ghost" id="acMdd" aria-pressed="true" title="' + esc(t('arcade.btn.mdd')) + '">' + esc(t('arcade.btn.mdd')) + '</button>' +
       '<button class="btn btn-ghost" id="acEmote" style="display:none">' + esc(t('arcade.btn.emote')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
@@ -1867,6 +1870,25 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     } | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
+    /** MDD 켜짐. 사람이 고른 것이 브라우저에 남는다. 기본 켬(개발 편의, 사용자 결정 2026-08-30) */
+    function mddOn(): boolean {
+      try {
+        return localStorage.getItem('karmolab.arcade.mdd') !== 'off';
+      } catch {
+        return true;
+      }
+    }
+    function paintMdd(): void {
+      const b = container.querySelector<HTMLButtonElement>('#acMdd');
+      if (b) b.setAttribute('aria-pressed', mddOn() ? 'true' : 'false');
+      const em = container.querySelector<HTMLButtonElement>('#acEmote');
+      if (em && !mddOn()) em.style.display = 'none';
+      if (!mddOn()) {
+        bubbles.clear();
+        $<HTMLElement>('#acEmotes').hidden = true;
+        $<HTMLElement>('#acCutin').hidden = true;
+      }
+    }
     /** 자리마다 지금 떠 있는 말. 카드는 매 프레임 다시 그려지므로 여기 들고 있다가 얹는다 */
     const bubbles = new Map<number, { text: string; until: number }>();
     /** 그 사람이 한마디. 카드가 있는 판에서만 보인다 */
@@ -1877,7 +1899,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 봇 자리의 사람이 그 상황의 말을 한다. 사람이 아니면 조용 */
     function castSay(seat: number, key: Parameters<typeof lineOf>[1], chance = 1): void {
       const v = match?.view() ?? shadow?.v;
-      const c = v ? castByName(v.seats[seat]?.name ?? '') : null;
+      const c = v && mddOn() ? castByName(v.seats[seat]?.name ?? '') : null;
       if (!c || Math.random() > chance) return;
       sayAs(seat, lineOf(c, key, v?.seats[mySeat]?.name ?? ''));
     }
@@ -1887,7 +1909,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let cutTimer = 0;
     function cutIn(seat: number, key: Parameters<typeof lineOf>[1]): void {
       const v = match?.view() ?? shadow?.v;
-      const c = v ? castByName(v.seats[seat]?.name ?? '') : null;
+      const c = v && mddOn() ? castByName(v.seats[seat]?.name ?? '') : null;
       if (!c || !v) return;
       const text = lineOf(c, key, v.seats[mySeat]?.name ?? '');
       if (!text) return;
@@ -2022,8 +2044,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 얼굴 한 장. 내 자리는 조수, 봇 자리는 그 사람. 표정은 차례와 결과에서 */
     function faceOf(v: MatchView<unknown>, i: number): string {
       const seat = v.seats[i];
-      /* 플레이어는 캐릭터가 아니다. 얼굴은 저택 사람만 */
-      const c = i === mySeat ? null : castByName(seat?.name ?? '');
+      /* 플레이어는 캐릭터가 아니다. 얼굴은 저택 사람만. MDD 가 꺼져 있으면 아무도 */
+      const c = i === mySeat || !mddOn() ? null : castByName(seat?.name ?? '');
       if (!c) return '';
       const turn = (v.state as { turn?: number } | null)?.turn;
       let mood: Mood = 'calm';
@@ -2479,8 +2501,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const on = dim() === '3d' && !!cardById(id)?.d3;
       btn.style.display = on ? '' : 'none';
       const em = container.querySelector<HTMLButtonElement>('#acEmote');
-      if (em) em.style.display = on ? '' : 'none';
+      if (em) em.style.display = on && mddOn() ? '' : 'none';
       if (!on) $<HTMLElement>('#acEmotes').hidden = true;
+      paintMdd();
       btn.textContent = t(specOf(sceneOf()).label);
     }
 
@@ -2550,7 +2573,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다. 또 깜냥한테 졌다가 되려면 그래야 한다. */
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       /* 판놀이는 저택 사람이 앉는다(MDD). 단계가 사람을 고른다(임시 대응, `cast.ts`) */
-      if (!tour && cardById(id)?.kind === 'board' && crew.length) crew[0] = { ...crew[0], name: castOfLevel(Number(optsFor(id).ai) || 3).name };
+      if (mddOn() && !tour && cardById(id)?.kind === 'board' && crew.length) crew[0] = { ...crew[0], name: castOfLevel(Number(optsFor(id).ai) || 3).name };
       const personas: Record<number, BotPersona> = {};
       crew.forEach((b, i) => {
         personas[seats.length + i] = b;
@@ -3171,6 +3194,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /* 반응. 메뉴의 한 줄이 판을 열고, 여섯 중 하나를 누르면 내 카드에 말풍선. 온라인이면 상대에게도 */
+    $<HTMLButtonElement>('#acMdd').onclick = () => {
+      try {
+        localStorage.setItem('karmolab.arcade.mdd', mddOn() ? 'off' : 'on');
+      } catch {
+        /* 못 적어도 이 판에서는 바뀐다 */
+      }
+      paintMdd();
+      if (gameId) paintScene(gameId);
+      say(t(mddOn() ? 'arcade.mdd.on' : 'arcade.mdd.off'), 'ok');
+    };
     const emotesEl = $<HTMLElement>('#acEmotes');
     $<HTMLButtonElement>('#acEmote').onclick = () => { emotesEl.hidden = !emotesEl.hidden; };
     emotesEl.addEventListener('click', (ev) => {
@@ -3355,7 +3388,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     menuBtn.onclick = () => setMenu(!play.classList.contains('ac-menu-open'));
     controls.addEventListener('click', (ev) => {
       const b = (ev.target as HTMLElement).closest('button');
-      if (b && b.id !== 'acSound') setMenu(false);
+      if (b && b.id !== 'acSound' && b.id !== 'acMdd') setMenu(false);
     });
     document.addEventListener('pointerdown', (ev) => {
       if (!play.classList.contains('ac-menu-open')) return;
