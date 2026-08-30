@@ -23,6 +23,7 @@ import {
   LatheGeometry,
   Mesh,
   MeshStandardMaterial,
+  PCFShadowMap,
   PCFSoftShadowMap,
   PerspectiveCamera,
   PlaneGeometry,
@@ -137,7 +138,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   }
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFSoftShadowMap;
+  /* 방 표현은 PCF. PCFSoft 는 화소마다 표본이 몇 배라 1648x842 캔버스에서 프레임이 40~100ms 로 튀었다(실측) */
+  renderer.shadowMap.type = room ? PCFShadowMap : PCFSoftShadowMap;
   /**
    * 톤 매핑. 이게 없으면 밝은 데가 흰색으로 뭉개지고 어두운 데는 그냥 검다 . 
    * 나무와 흰 알처럼 **밝은 면이 넓은** 그림에서 차이가 크다(레퍼런스는 흰 알의 하이라이트가
@@ -200,7 +202,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * (실측: 판 가운데를 가로지르는 삼각형이 보였다. 그림자가 아니라 그림자 틀의 모서리였다).
    * 알만 그림자를 지므로 틀은 판 크기면 충분하다.
    */
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(room ? 1536 : 2048, room ? 1536 : 2048);
   /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
   const shadowSpan = size * (opts.bowls ? 0.95 : 0.62);
   sun.shadow.camera.left = -shadowSpan;
@@ -401,7 +403,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
         const bead = new Mesh(pileGeo, matFor(who));
         bead.scale.set(1, 0.46, 1);
         bead.position.set(sx + ox * mouth, tall * (0.74 * high), sz + oz * mouth);
-        bead.castShadow = true;
+        /* 통 속 알은 그림자를 안 진다. 통 안이라 안 보이는데 그림자 패스에 58개가 더 그려졌다 */
+        bead.castShadow = !room;
         scene.add(bead);
       });
     }
@@ -476,15 +479,21 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
 
   /* ── 그리기 ── **부를 때만** 그린다. 가만히 도는 60fps 는 배터리를 먹는다. */
   let need = true;
+  /**
+   * 첫 그림 전에 셰이더를 **비동기로** 컴파일한다(three r169 `compileAsync`). 그냥 그리면 첫
+   * `render` 가 컴파일까지 떠안아 1초 막힘(실측 1007ms). 끝날 때까지 안 그림
+   */
+  let compiled = !room;
   const render = (): void => {
-    if (!need) return;
+    if (!need || !compiled) return;
     need = false;
     renderer.render(scene, camera);
   };
   const resize = (): void => {
     const w = host.clientWidth || 1;
     const h = host.clientHeight || 1;
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    /* 방 표현은 화소 상한 1.5. 2 로 두면 1648x842 가 3.1M 화소가 된다 */
+    renderer.setPixelRatio(Math.min(room ? 1.5 : 2, window.devicePixelRatio || 1));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -600,6 +609,17 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const ro = new ResizeObserver(resize);
   ro.observe(host);
   resize();
+  if (room) {
+    void renderer.compileAsync(scene, camera).then(() => {
+      compiled = true;
+      need = true;
+      render();
+    }, () => {
+      compiled = true;
+      need = true;
+      render();
+    });
+  }
 
   if (room) {
     /* ① 들어올 때. 판이 뚝 나타나는 대신 카메라가 자리를 잡는다 */
