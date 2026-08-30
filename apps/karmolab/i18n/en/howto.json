@@ -496,11 +496,6 @@
   "howto.sshkey.1": "Check the type, size, comment and fingerprint (SHA256:...)",
   "howto.sshkey.2": "Use the fingerprint to pick the line to remove on the server",
   "howto.sshkey.3": "Have a PEM public key? Convert it to a one-line OpenSSH key",
-  "howto.studymap.0": "Pick a track at the top (Web, Git, CS, Linux, DevOps, Security, AI, Data, Games, Craft, Mobile, Distributed, Graphics, Embedded)",
-  "howto.studymap.1": "Start from the card marked \"Next\"",
-  "howto.studymap.2": "Tap a card title to open its lesson. get every check question right and it is marked done automatically",
-  "howto.studymap.3": "Type a topic in the search box to search across all 41 tracks",
-  "howto.studymap.4": "Some cards open a KarmoLab tool with ▶ to practise right away; \"Prerequisite\" jumps to the topic you need first",
   "howto.subtitle.0": "Drop a subtitle file, or paste it in",
   "howto.subtitle.1": "Set how much to shift",
   "howto.subtitle.2": "Check the first and last cue times",
@@ -615,5 +610,10 @@
   "howto.worldclock.2": "Search by city or country",
   "howto.ziptool.0": "Choose Make or Open",
   "howto.ziptool.1": "Add the files",
-  "howto.ziptool.2": "Make gives you a ZIP; Open lets you click a file in the list"
+  "howto.ziptool.2": "Make gives you a ZIP; Open lets you click a file in the list",
+  "howto.recall.0": "Open it and six items for today appear, mixed across tracks",
+  "howto.recall.1": "Pick an answer for multiple choice; write one for open questions, then confirm",
+  "howto.recall.2": "Confirming opens that chapter. Compare and mark it hit, half, or miss",
+  "howto.recall.3": "The verdict sets the next date. Misses come back tomorrow, hits later",
+  "howto.recall.4": "When all six are done, copy the log. On desktop it saves to a file and can ask a follow-up question"
 }

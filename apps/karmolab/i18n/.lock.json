@@ -14527,7 +14527,23 @@
     "ziptool.verdict.smaller": "29f49fe158",
     "ziptool.verdict.bigger": "e283b395e5",
     "ziptool.say.made": "7e562f9c3a",
-    "ziptool.say.picked": "19cdbc7c9a"
+    "ziptool.say.picked": "19cdbc7c9a",
+    "faq.recall.0.q": "e1f26a9f77",
+    "faq.recall.0.a": "7cb3d8dd44",
+    "faq.recall.1.q": "cb2ffc4f15",
+    "faq.recall.1.a": "aa34ad65fb",
+    "faq.recall.2.q": "cfe94eb232",
+    "faq.recall.2.a": "def9904ae7",
+    "faq.recall.3.q": "8c3fe2e9e7",
+    "faq.recall.3.a": "10fde2d172",
+    "howto.recall.0": "4cc88dfeee",
+    "howto.recall.1": "643b6ac3a4",
+    "howto.recall.2": "14aab85bf8",
+    "howto.recall.3": "03e8b65de4",
+    "howto.recall.4": "e82d31a245",
+    "tools.recall.description": "9b753fe0c8",
+    "tools.recall.lead": "be86398a45",
+    "widgets-desc.recall.desc": "a179efb090"
   },
   "ja": {
     "account.title.klBell": "e29d147ed5",
@@ -29057,6 +29073,22 @@
     "ziptool.verdict.smaller": "29f49fe158",
     "ziptool.verdict.bigger": "e283b395e5",
     "ziptool.say.made": "7e562f9c3a",
-    "ziptool.say.picked": "19cdbc7c9a"
+    "ziptool.say.picked": "19cdbc7c9a",
+    "faq.recall.0.q": "e1f26a9f77",
+    "faq.recall.0.a": "7cb3d8dd44",
+    "faq.recall.1.q": "cb2ffc4f15",
+    "faq.recall.1.a": "aa34ad65fb",
+    "faq.recall.2.q": "cfe94eb232",
+    "faq.recall.2.a": "def9904ae7",
+    "faq.recall.3.q": "8c3fe2e9e7",
+    "faq.recall.3.a": "10fde2d172",
+    "howto.recall.0": "4cc88dfeee",
+    "howto.recall.1": "643b6ac3a4",
+    "howto.recall.2": "14aab85bf8",
+    "howto.recall.3": "03e8b65de4",
+    "howto.recall.4": "e82d31a245",
+    "tools.recall.description": "9b753fe0c8",
+    "tools.recall.lead": "be86398a45",
+    "widgets-desc.recall.desc": "a179efb090"
   }
 }
