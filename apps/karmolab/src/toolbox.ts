@@ -188,6 +188,8 @@ const Toolbox = (() => {
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             btn.title = on ? '내 것에서 빼기' : '내 것으로 두기';
             btn.setAttribute('aria-label', btn.title);
+            /* 필드 스킨의 별 칩 글자 (CSS 가 attr 로 읽음). 시안 Z1 의 "별 꽂기" 자리 */
+            btn.dataset.label = on ? '내 것' : '별 꽂기';
         });
     }
 
