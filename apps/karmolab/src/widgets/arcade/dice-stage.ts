@@ -306,6 +306,23 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   mkWall(WALL, trayDepth, -TRAY_W / 2 - WALL / 2, trayCz);
   mkWall(WALL, trayDepth, TRAY_W / 2 + WALL / 2, trayCz);
   /* 선반 칸막이. 낮은 나무 턱 */
+  /* 선반 홈 5칸. 남긴 주사위가 놓일 자리가 보여야 다섯을 확정한다는 것을 안다(사용자 지적. 클럽하우스 51 실화면도 홈 5칸) */
+  const slotMat = new MeshStandardMaterial({ color: 0x0c2a1c, roughness: 1 });
+  const slotN = opts.count;
+  for (let i = 0; i < slotN; i += 1) {
+    const sx = -TRAY_W / 2 + 1.6 + i * ((TRAY_W - 3.2) / Math.max(1, slotN - 1));
+    const hole = new Mesh(new PlaneGeometry(1.5, 1.5), slotMat);
+    hole.rotation.x = -Math.PI / 2;
+    hole.position.set(sx, FLOOR_Y + 0.006, RAIL_Z);
+    hole.receiveShadow = true;
+    scene.add(hole);
+    const rim = new Mesh(new BoxGeometry(1.62, 0.1, 1.62), trayWood);
+    rim.position.set(sx, FLOOR_Y + 0.05, RAIL_Z);
+    scene.add(rim);
+    const rimHole = new Mesh(new BoxGeometry(1.5, 0.12, 1.5), slotMat);
+    rimHole.position.set(sx, FLOOR_Y + 0.05, RAIL_Z);
+    scene.add(rimHole);
+  }
   const divider = new Mesh(new BoxGeometry(TRAY_W, 0.34, 0.16), trayWood);
   divider.position.set(0, FLOOR_Y + 0.17, (ROLL_Z0 + RAIL_Z) / 2 + 0.7);
   divider.castShadow = true;
@@ -325,8 +342,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   /* ── 컵 ── 가죽. 오른쪽에 서 있다가 흔들고 쏟고 돌아온다 */
   const leatherMap = new CanvasTexture(leatherTexture(47, 256));
   leatherMap.colorSpace = SRGBColorSpace;
-  /* 내 차례에 컵이 은은히 빛난다. 판이 서자마자 내 차례인데 알 길이 없었다(사용자 지적) */
-  const leather = new MeshStandardMaterial({ map: leatherMap, bumpMap: leatherMap, bumpScale: 0.05, color: 0xffffff, roughness: 0.7, side: DoubleSide, emissive: 0xff9a40, emissiveIntensity: 0 });
+  const leather = new MeshStandardMaterial({ map: leatherMap, bumpMap: leatherMap, bumpScale: 0.05, color: 0xffffff, roughness: 0.7, side: DoubleSide });
   const cup = new Group();
   const CUP_R = 1.7;
   const CUP_H = 3.1;
@@ -824,7 +840,6 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     const s = t / 1000 + seed;
     /* 등불이 아주 조금 흔들린다. 눈에 띄면 고장 난 등이다 */
     lamp.intensity = 3.0 * (0.985 + 0.015 * Math.sin(s * 2.3) * Math.sin(s * 0.7 + 1));
-    leather.emissiveIntensity = actable && !cupT0 ? 0.1 + 0.08 * Math.sin(s * 2.6) : 0;
     const arr = motes.geometry.getAttribute('position') as { array: Float32Array; needsUpdate: boolean };
     const a = arr.array;
     for (let i = 0; i < a.length; i += 3) {
@@ -987,7 +1002,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
         const m = o as Mesh;
         if (m.geometry) m.geometry.dispose();
       });
-      [...faceMats, ...bottleMats, counterMat, wallMat, shelfMat, feltMat, trayWood, brassOff, brassOn, leather, lipMat, paperMat, pencilMat, moteMat].forEach((m) => m.dispose());
+      [...faceMats, ...bottleMats, counterMat, wallMat, shelfMat, feltMat, trayWood, slotMat, brassOff, brassOn, leather, lipMat, paperMat, pencilMat, moteMat].forEach((m) => m.dispose());
       [...faceMaps, counterMap, feltMap, trayWoodMap, leatherMap, sheetMap].forEach((m) => m.dispose());
       renderer.dispose();
       canvas.remove();

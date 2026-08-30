@@ -218,6 +218,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
       pinBtn.textContent = t('arcade.yacht.sheet.pin');
       pinBtn.setAttribute('aria-pressed', String(pinned));
       paperEl.classList.toggle('ac-pin', pinned);
+      /* 두 칸 나란히. 점수표가 왼쪽 칸, 무대는 나머지(해체 분석 §4. 레퍼런스 넷 다 한 화면) */
+      el.classList.toggle('ac-ycsplit', pinned);
       if (pinned) {
         paperKey = '';
         paperEl.hidden = false;
@@ -242,13 +244,16 @@ export const view3d: GameView<YachtState, YachtAction> = {
 
     /* 스페이스로 굴린다. 컵까지 손이 안 가도 되게. Tab 은 종이 고정 */
     const onKey = (ev: KeyboardEvent): void => {
-      if (ev.key === ' ' && canRoll() && !sheetOpen && idle()) {
+      /* 셸(`#acStage`)은 Space 와 Enter 를 무대 안 첫 버튼 클릭으로 돌린다. 여기서 끊지 않으면 점수표 버튼이 눌린다(실측) */
+      if (ev.key === ' ') {
         ev.preventDefault();
-        act({ kind: 'roll' });
+        ev.stopPropagation();
+        if (canRoll() && !sheetOpen && idle()) act({ kind: 'roll' });
       } else if (ev.key === 'Escape' && sheetOpen) {
         closeSheet();
       } else if (ev.key === 'Tab') {
         ev.preventDefault();
+        ev.stopPropagation();
         togglePin();
       }
     };
@@ -282,7 +287,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
         '<div class="ac-ycpaperin">' +
         '<div class="ac-ychead">' +
         '<div class="ac-ycdice">' + s.dice.map((d, i) => die(d, { keep: s.keep[i], can: false, label: String(d) })).join('') + '</div>' +
-        '<div class="ac-ycleft">' + esc(my ? t('arcade.yacht.sheet.pick') : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
+        '<div class="ac-ycleft">' + esc(my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : t('arcade.yacht.sheet.pick')) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
         '<button type="button" class="ac-ycclose" aria-label="' + esc(t('arcade.yacht.sheet.close')) + '">×</button>' +
         '</div>' +
         '<table class="ac-yctable"><thead><tr><th></th>' +
