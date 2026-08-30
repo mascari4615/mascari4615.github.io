@@ -232,5 +232,6 @@
   "widgets-desc.ziptool.desc": "Bundles files into a ZIP, and lists and extracts a ZIP you received",
   "widgets-desc.works.desc": "Things I made. games, VRChat content, tools",
   "widgets-desc.about.desc": "KarmoDDrine. Unity game dev and VRChat content",
-  "widgets-desc.recall.desc": "Six a day. Answer first, then compare with the source. What you miss comes back tomorrow"
+  "widgets-desc.recall.desc": "Six a day. Answer first, then compare with the source. What you miss comes back tomorrow",
+  "widgets-desc.uikit.desc": "Catalog of the shared parts widgets are built from, shown with their exact classes"
 }

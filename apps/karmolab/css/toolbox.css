@@ -2498,8 +2498,9 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 @media (max-width: 768px) { .header-now { display: none; } }
 
 /* 옆줄 바닥은 얼굴과 이름뿐 (2026-08-30, 사용자 결정). 누르면 메뉴 하나
-   종, 채팅, 설정, 테마 버튼은 크기 0 으로 숨긴 채 산다. 종과 채팅의 판이 거기 매달려 있고
-   메뉴가 대신 눌러 준다. display:none 이면 판까지 같이 죽는다 */
+   종, 채팅, 설정, 테마 버튼은 visibility:hidden 으로 숨긴 채 산다 (초점과 접근성 나무에서 빠지고
+   `el.click()` 은 먹는다). 종과 채팅의 판이 거기 매달려 있고 메뉴가 대신 눌러 준다.
+   display:none 이면 판까지 같이 죽는다. 통에 aria-hidden 을 두면 안 된다. 판까지 숨긴다 (a11y 게이트) */
 .sidebar-user { position: relative; display: flex; align-items: center; min-width: 0; }
 .sidebar-user .header-account { flex: 1; min-width: 0; }
 .sidebar-user .header-account-btn { max-width: none; width: 100%; min-height: 36px; border-color: transparent; }
@@ -2510,7 +2511,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .sidebar-user-actions .kl-bell-btn,
 .sidebar-user-actions .klchat-dock {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: 0;
-    opacity: 0; pointer-events: none; overflow: hidden;
+    visibility: hidden; pointer-events: none; overflow: hidden;
 }
 /* Files 는 desktop-chrome 이 인라인 display:flex 로 켠다. 켜져도 여기서는 안 보여야 한다 */
 .sidebar-user-actions .files-btn { display: block !important; }
@@ -3599,7 +3600,8 @@ html[data-skin="field"] {
 
     --text-primary: #2a2a27;
     --text-secondary: #4a4a46;
-    --text-tertiary: #6f6e68;
+    --text-tertiary: #58574f;  /* 세 번째 판(#d3d1ca) 위 4.75:1 */
+    --accent-ink: #7a4510;      /* 주황 글자용. 칠은 --accent, 글자는 이것. 세 번째 판 위 5.0:1 */
 
     --accent: #e8963a;
     --accent-fg: #2a2a27;
@@ -3615,12 +3617,13 @@ html[data-skin="field"] {
     --secondary-subtle: rgba(111, 110, 104, 0.08);
     --secondary-glow: rgba(111, 110, 104, 0.16);
 
-    --success: #3f9d6a;
-    --success-subtle: rgba(63, 157, 106, 0.08);
-    --error: #b8463a;
-    --error-subtle: rgba(184, 70, 58, 0.08);
-    --warning: #8a5c12;
-    --warning-subtle: rgba(138, 92, 18, 0.08);
+    /* 상태색은 글자로도 쓰인다. 종이(#dedcd6) 위 4.5:1 넘는 값 (a11y 게이트, 2026-08-30) */
+    --success: #256540;
+    --success-subtle: rgba(37, 101, 64, 0.08);
+    --error: #a83127;
+    --error-subtle: rgba(168, 49, 39, 0.08);
+    --warning: #7f5310;
+    --warning-subtle: rgba(127, 83, 16, 0.08);
 
     --border: rgba(42, 42, 39, 0.14);
     --border-hover: rgba(42, 42, 39, 0.26);
@@ -3685,7 +3688,8 @@ html[data-skin="field"][data-theme="dark"] {
 
     --text-primary: #efede6;
     --text-secondary: #c9c7bf;
-    --text-tertiary: #9c9a92;
+    --text-tertiary: #c2bfb7;  /* 세 번째 판(#4e4c47) 위 4.67:1 */
+    --accent-ink: #f3bd70;      /* 주황 글자용. 세 번째 판 위 5.0:1 */
 
     --accent-fg: #2a2a27;
     --accent-dim: rgba(232, 150, 58, 0.16);
@@ -3694,6 +3698,14 @@ html[data-skin="field"][data-theme="dark"] {
     --border: rgba(239, 237, 230, 0.12);
     --border-hover: rgba(239, 237, 230, 0.22);
     --border-strong: #efede6;
+
+    /* 어두운 판에서는 상태색을 밝은 쪽으로. 밝은 판 값(#256540 등)은 여기서 2.3:1 */
+    --success: #6cd096;
+    --success-subtle: rgba(108, 208, 150, 0.12);
+    --error: #ef9089;
+    --error-subtle: rgba(239, 144, 137, 0.12);
+    --warning: #e0b158;
+    --warning-subtle: rgba(224, 177, 88, 0.12);
 
     --grid-color: rgba(239, 237, 230, 0.05);
     --brand-edge: rgba(239, 237, 230, 0.3);
@@ -3811,7 +3823,7 @@ html[data-skin="field"][data-theme="dark"] {
 }
 .header-search-box:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .header-search-box .sidebar-search-text { flex: 1; text-align: left; white-space: nowrap; }
-.header-search-box .sidebar-search-kbd { font-family: var(--font-mono); font-size: var(--font-size-4xs); opacity: .7; }
+.header-search-box .sidebar-search-kbd { font-family: var(--font-mono); font-size: var(--font-size-4xs); color: var(--text-tertiary); }
 @media (max-width: 768px) { .header-search-box { width: auto; } .header-search-box .sidebar-search-text { display: none; } }
 
 /* 갈래 탭 줄. 고른 탭만 이름이 붙고 띠 색으로 반전 */
@@ -3852,7 +3864,7 @@ html[data-skin="field"][data-theme="dark"] {
     text-transform: uppercase;
     color: var(--text-tertiary);
 }
-.sidebar-list-count { opacity: .6; }
+.sidebar-list-count { color: var(--text-tertiary); }
 .sidebar-list { display: flex; flex-direction: column; gap: var(--row-gap); padding: 0 8px; }
 
 /* 행. 필드: 회색 사각 38, 고른 것은 띠 반전 + 왼쪽 강조 3px (R12). 클래식은 토큰이 예전 값 */
@@ -4117,7 +4129,7 @@ html[data-skin="field"] .nav-item-num {
     margin-left: auto;
     font-family: var(--font-mono);
     font-size: var(--font-size-4xs);
-    opacity: .55;
+    color: var(--text-tertiary);
 }
 html[data-skin="field"] .sidebar-list-head { text-transform: none; letter-spacing: .12em; }
 html[data-skin="field"] .sidebar-user {
@@ -4248,7 +4260,7 @@ html[data-skin="field"] .pf-shell .pf-head::after {
 html[data-skin="field"] .pf-shell .pf-paste textarea,
 html[data-skin="field"] .pf-shell .pf-drop { border-radius: 0; border: 0; background: transparent; padding: 6px 4px; font-size: var(--font-size-sm); }
 html[data-skin="field"] .pf-shell.pf-shell .pf-paste textarea { min-height: 420px; }
-html[data-skin="field"] .pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; opacity: .55; }
+html[data-skin="field"] .pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; color: var(--text-tertiary); }
 html[data-skin="field"] .pf-shell .pf-group { counter-increment: pf; margin-bottom: 18px; }
 html[data-skin="field"] .pf-shell .pf-group-label {
     display: flex; align-items: center; gap: 8px;
@@ -4392,3 +4404,37 @@ html[data-skin="field"] .tab-btn {
 }
 html[data-skin="field"] .tab-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 html[data-skin="field"] .tab-btn.active { background: var(--band); color: var(--band-ink); border-color: var(--band); box-shadow: 3px 3px 0 var(--accent); }
+
+/* 부품 카탈로그 장 (`#uikit`). 견본 틀만. 부품 모양은 위 규칙이 정한다 */
+.kit-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-lg); align-items: start; }
+.kit-part { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-md); background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); min-width: 0; }
+.kit-part-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-sm); }
+.kit-part-name { font-weight: 600; }
+.kit-part-classes { font-family: var(--font-mono); font-size: var(--font-size-2xs); color: var(--text-tertiary); overflow-wrap: anywhere; }
+.kit-part-body { display: flex; flex-direction: column; gap: var(--space-sm); min-width: 0; }
+html[data-skin="field"] .kit-part { background: var(--bg-secondary); border-radius: 0; box-shadow: var(--shadow-hard); }
+/* 폰 줄의 찾기. 주황 글자는 어느 판 위에서도 4.5:1 이 안 나온다 (1.83, 3.7). 띠 반전으로 */
+html[data-skin="field"] .mobile-nav .nav-item-find { background: var(--band); color: var(--band-ink); }
+/* 주황은 칠이지 글자가 아니다. #e8963a 글자는 밝은 판 위 1.9:1. 글자 자리는 --accent-ink (a11y 게이트, 2026-08-30).
+   아직 위젯 주입 CSS 안의 `color: var(--accent)` 는 못 걸렀다. change.karmolab-ui-kit 의 색 sweep 몫 */
+html[data-skin="field"] .range-value,
+html[data-skin="field"] .cc-stat-primary .cc-stat-value,
+html[data-skin="field"] .hi-vl,
+html[data-skin="field"] .hi-chips button[aria-pressed='true'],
+html[data-skin="field"] .tool-hub-mine-title,
+html[data-skin="field"] .tool-next-btn,
+html[data-skin="field"] .rt-row-glyph,
+html[data-skin="field"] .kc-key,
+html[data-skin="field"] .pc-out,
+html[data-skin="field"] .tool-hub-new,
+html[data-skin="field"] .tool-seo-crumb a:hover,
+html[data-skin="field"] .tool-seo-kin a:hover,
+html[data-skin="field"] .tool-seo-related a:hover,
+html[data-skin="field"] .tool-hub-group a:hover,
+html[data-skin="field"] .tool-hub-toc a:hover,
+html[data-skin="field"] .tool-pin-star[aria-pressed='true'],
+html[data-skin="field"] .tool-hub-star[aria-pressed='true'] { color: var(--accent-ink); }
+/* 체크와 라디오와 슬라이더는 브라우저가 칠한다. 안 정하면 파랑이 남는다 */
+html[data-skin="field"] input[type="checkbox"],
+html[data-skin="field"] input[type="radio"],
+html[data-skin="field"] input[type="range"] { accent-color: var(--accent); }

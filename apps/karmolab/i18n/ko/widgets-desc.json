@@ -11,6 +11,7 @@
   "widgets-desc.favorites.desc": "자주 가는 사이트와 도구를 모아 빠르게 접속합니다",
   "widgets-desc.linktree.desc": "개발자 연락처 & 링크 모음",
   "widgets-desc.devtools.desc": "데스크톱 앱, 연동 점검용 테스트 모음 (알림 등)",
+  "widgets-desc.uikit.desc": "위젯이 쓰는 공용 부품을 그 클래스 그대로 나열한 카탈로그",
   "widgets-desc.localai.desc": "번역, 요약을 서버 없이 이 기기 안에서. 글이 밖으로 안 나갑니다 (크롬 계열 최신판)",
   "widgets-desc.install.desc": "동반자 창 같은 부품을 이 컴퓨터에 깐다 (데스크톱 앱 전용)",
   "widgets-desc.servermonitor.desc": "로컬 URL, 프로세스, .env (데스크톱)",

@@ -161,6 +161,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['devtools']
   },
   {
+    /* 부품 킷 카탈로그 (change.karmolab-ui-kit). 만드는 사람이 보는 장. 주소 `#uikit`, 목록에는 안 뜬다 */
+    id: 'uikit',
+    noPage: true,
+    hidden: true,
+    get title() { return t('widgets.uikit.title', undefined, "부품 킷"); },
+    category: 'dev',
+    get desc() { return t('widgets-desc.uikit.desc', undefined, "위젯이 쓰는 공용 부품을 그 클래스 그대로 나열한 카탈로그"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="13" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="13" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    lazyScriptPaths: ['uikit']
+  },
+  {
     /* 브라우저 안에서 도는 AI (TASK-KL-209). 서버를 한 번도 안 부른다.
        안 되는 브라우저에서는 없는 척하지 않고 이 브라우저는 아직이라고 적는다. */
     id: 'localai',

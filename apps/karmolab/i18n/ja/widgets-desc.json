@@ -232,5 +232,6 @@
   "widgets-desc.ziptool.desc": "ファイルを ZIP にまとめ、受け取った ZIP の中身を見て取り出します",
   "widgets-desc.works.desc": "作ったもの. ゲーム, VRChat コンテンツ, ツール",
   "widgets-desc.about.desc": "KarmoDDrine. Unity ゲーム開発, VRChat コンテンツ制作",
-  "widgets-desc.recall.desc": "一日六問。先に答えて本文と照合する。できなかったものは明日また聞く"
+  "widgets-desc.recall.desc": "一日六問。先に答えて本文と照合する。できなかったものは明日また聞く",
+  "widgets-desc.uikit.desc": "ウィジェットが使う共通部品を、そのクラスのまま並べたカタログ"
 }
