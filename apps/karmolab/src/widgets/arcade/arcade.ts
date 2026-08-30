@@ -46,7 +46,7 @@ import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
-import { enterQueue, reportResult, type Ranked, type RankedMatch, type RankRoom } from './ranked';
+import { enterQueue, gradeOf, myRating, reportResult, type Ranked, type RankedMatch, type RankRoom } from './ranked';
 import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
@@ -310,6 +310,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acDetail .ac-go button[data-tutor]:hover{color:#3c3a30;box-shadow:inset 0 0 0 1px rgba(60,58,48,.5)}',
       /* 등급전 문. 혼자, 같이 옆 셋째 (change.arcade-online). 붉은 인장 색 = 판정이 걸린 판 */
       '#acDetail .ac-go button[data-rank]{background:#a4423a;color:#fdfcf7;box-shadow:0 4px 10px rgba(164,66,58,.28)}',
+      /* 내 단위 한 줄. 점수를 못 물어보면 아예 안 그림(빈 자리는 고장으로 보임) */
+      '#acDetail .ac-grade{margin-top:10px;font-size:var(--font-size-2xs);color:#8b897b}',
+      '#acDetail .ac-grade b{color:#a4423a;font-weight:900}',
       '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
       '#acDetail .ac-more{display:flex;gap:16px;margin-top:14px}',
       '#acDetail .ac-more button{background:none;border:0;padding:0;font-size:var(--font-size-2xs);color:#8b897b;text-decoration:underline;cursor:pointer}',
@@ -1672,12 +1675,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         /* 배우기(`tutor.ts`)는 처음 온 사람의 길이라 밑줄 글자가 아니라 버튼으로. 지금은 오목만 */
         (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '') +
         '</div>' +
+        (g.seats[0] === 2 && g.seats[1] === 2 ? '<div class="ac-grade" id="acGrade"></div>' : '') +
         '<div class="ac-more">' + more + '</div>' +
         '</div></div>';
       $<HTMLElement>('#acShelfAll').style.display = 'none';
       d.style.display = '';
       wireCards();
       wireSetup(g.id);
+      void paintGrade(g.id);
       const back = container.querySelector<HTMLButtonElement>('#acBack');
       if (back) back.onclick = closeDetail;
     }
@@ -3170,6 +3175,29 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /** 목록에 올린 방을 내리는 손. 방을 닫을 때 부른다. */
     let dropOpen: (() => void) | null = null;
+
+    /**
+     * 내 단위와 점수 한 줄. 상세 화면을 연 뒤 물어서 채움
+     * - 못 물어보면 아무 것도 안 그림. 등급전은 있으면 좋은 것이지 없으면 안 되는 것이 아님
+     * - 한 판도 안 둔 사람에게는 첫 판 문구. 1500 이라는 숫자만 보여 주면 뜻이 없음
+     */
+    async function paintGrade(id: string): Promise<void> {
+      const box = container.querySelector<HTMLElement>('#acGrade');
+      if (!box) return;
+      const rec = await myRating(id);
+      /* 그 사이에 사람이 다른 물건을 집었으면 남의 자리에 적지 않음 */
+      if (!rec || container.querySelector('#acGrade') !== box) return;
+      if (rec.games === 0) {
+        box.textContent = t('arcade.rank.first');
+        return;
+      }
+      const g = gradeOf(rec.rating);
+      const name = t('arcade.rank.tier.' + g.tier) + (g.level ? ' ' + g.level : '');
+      box.innerHTML =
+        '<b>' + esc(name) + '</b> ' +
+        esc(t('arcade.rank.record', { n: String(rec.rating), games: String(rec.games), wins: String(rec.wins) })) +
+        (g.toNext !== null ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) })) : '');
+    }
 
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
     let rankedMatch: RankedMatch | null = null;

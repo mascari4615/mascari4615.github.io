@@ -193,3 +193,34 @@ export async function myRating(game: string): Promise<{ rating: number; games: n
     return null;
   }
 }
+
+/**
+ * 단위. 점수를 사람이 읽는 계단으로 (change.arcade-online 2번)
+ *
+ * - 여섯 단위, 각 셋 (작혼 실측: 초심 1~3, 작사 1~3 ... 혼천). 이름은 자리표 (사용자 결정)
+ * - 초심은 강등 없음. 그 아래로 안 떨어짐
+ * - 마지막 단위는 계단이 없음. 그 위는 점수 그대로
+ */
+export const TIERS = 6;
+/** 초심의 바닥과 한 단위의 폭. 1500 에서 시작하니 처음은 초심 2 */
+const TIER_FLOOR = 1400;
+const TIER_SPAN = 200;
+
+export interface Grade {
+  /** 0부터. i18n 열쇠는 `arcade.rank.tier.<tier>` */
+  tier: number;
+  /** 1, 2, 3. 마지막 단위는 0 (계단 없음) */
+  level: number;
+  /** 다음 계단까지 남은 점수. 마지막 단위는 없음 */
+  toNext: number | null;
+}
+
+export function gradeOf(rating: number): Grade {
+  const over = Math.max(0, rating - TIER_FLOOR);
+  const tier = Math.min(TIERS - 1, Math.floor(over / TIER_SPAN));
+  if (tier === TIERS - 1) return { tier, level: 0, toNext: null };
+  const inTier = over - tier * TIER_SPAN;
+  const step = TIER_SPAN / 3;
+  const level = Math.min(3, Math.floor(inTier / step) + 1);
+  return { tier, level, toNext: Math.ceil(TIER_FLOOR + tier * TIER_SPAN + level * step - rating) };
+}
