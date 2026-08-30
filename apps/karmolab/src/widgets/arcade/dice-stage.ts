@@ -207,7 +207,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const tableSeat = new Vector3();
   const fitTable = (): Vector3 => {
     const half = Math.tan((camera.fov * Math.PI) / 360);
-    const d = Math.max(15 / (half * camera.aspect), 8.5 / half);
+    /* 세로 화면(폰)은 종이와 컵을 안 담는다. 종이는 HTML 이 위에 있고 굴리기는 카드의 버튼이 한다(실측: 담으니 쟁반이 화면의 8%) */
+    const tall = camera.aspect < 0.9;
+    const d = tall
+      ? Math.max(7.5 / (half * camera.aspect), 7 / half)
+      : Math.max(15 / (half * camera.aspect), 8.5 / half);
     return tableSeat.copy(tableLook).addScaledVector(tableDir, d);
   };
   fitTable();
