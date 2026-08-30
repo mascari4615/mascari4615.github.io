@@ -15,6 +15,7 @@
   "arcade.btn.hint": "힌트",
   "arcade.btn.tutor": "배우기",
   "arcade.tutor.teacher": "링",
+  "arcade.tutor.teacher.plain": "연습 상대",
   "arcade.tutor.five": "다섯을 이으면 이긴다. 검은 돌 넷이 놓였다. 어디에 두면 다섯인가",
   "arcade.tutor.five.miss": "거기는 다섯이 안 된다. 넷의 양 끝을 보라",
   "arcade.tutor.block": "흰 돌이 넷이다. 다음에 다섯이 된다. 막을 자리는",

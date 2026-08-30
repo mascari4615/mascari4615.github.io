@@ -15,6 +15,7 @@
   "arcade.btn.hint": "Hint",
   "arcade.btn.tutor": "Learn",
   "arcade.tutor.teacher": "Ling",
+  "arcade.tutor.teacher.plain": "Practice partner",
   "arcade.tutor.five": "Five in a row wins. Black has four. Where makes five?",
   "arcade.tutor.five.miss": "That does not make five. Look at both ends.",
   "arcade.tutor.block": "White has four. Block it.",

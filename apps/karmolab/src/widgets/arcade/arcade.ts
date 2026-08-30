@@ -3016,7 +3016,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       }
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
       const def = { ...g, bot: () => null } as typeof g;
-      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t('arcade.tutor.teacher'), bot: true }];
+      /* 가르치는 자리. MDD 를 끄면 캐릭터 이름 대신 중립 이름 */
+      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mddOn() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
       cancelAnimationFrame(raf);
       match = new Match(def, 1, seats, { size: TUTOR_SIZE, renju: true, limit: 0, ai: 1 }) as Match<unknown, unknown>;
       lastDef = def as GameDef<unknown, unknown>;

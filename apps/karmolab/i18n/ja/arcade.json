@@ -15,6 +15,7 @@
   "arcade.btn.hint": "ヒント",
   "arcade.btn.tutor": "学ぶ",
   "arcade.tutor.teacher": "リン",
+  "arcade.tutor.teacher.plain": "練習相手",
   "arcade.tutor.five": "五を並べたら勝ち。黒が四つ。五になるのはどこ",
   "arcade.tutor.five.miss": "そこでは五にならない。四の両端を見る",
   "arcade.tutor.block": "白が四つ。次で五になる。止める場所は",
