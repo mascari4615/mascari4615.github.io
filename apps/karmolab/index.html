@@ -268,11 +268,10 @@ permalink: /
                 <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" data-goto="home" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
                 <span class="header-now" id="headerNow" aria-live="polite"></span>
             </div>
-            <nav class="header-nav" id="header-nav" role="navigation" aria-label="도구 카테고리" data-i18n-aria-label="shell.nav.categories"></nav>
             <div class="header-bar-right">
-                <!-- 전체 목록 링크는 여기 없다 (2026-08-19, 사용자 결정). 왼쪽의 내 도구와
-                     나란히 두니 둘이 무엇이 다른지 읽히지 않았다. 그 장(/t/)으로 가는 길은
-                     내 도구 판 **바닥 줄**로 옮겼다(`toolbox.ts` 의 addToolIndexLink). -->
+                <!-- 아래 링크 다섯은 **화면에 안 뜬다**. `.header-tools-link` 가 PC 에서도
+                     폰에서도 `display:none` 이고, `toolbox.ts` 가 이 마크업을 읽어 폰 내비
+                     줄(`.mobile-nav`)을 채운다. 지우면 폰에서 갈 곳이 사라진다. -->
                 <a href="/bot/" class="header-tools-link" title="디스코드 봇, 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
                 <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기. 포켓몬, 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
                 <!-- 작업물. 제 주소를 가진 위젯 장이다(change.blog-surfaces-as-widgets).
@@ -281,46 +280,12 @@ permalink: /
                 <a href="/works/" class="header-tools-link" title="만든 것들. 게임, VRChat 콘텐츠, 도구" data-i18n-title="shell.nav.worksTitle" data-i18n="shell.nav.works">◆ 작업물</a>
                 <a href="#community" class="header-tools-link" data-goto="community" title="이야기, 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
                 <a href="#plaza" class="header-tools-link" data-goto="plaza" title="지금 무엇이 쓰이는지, 이야기, 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
-                <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다. 서버에 못 닿으면 비워 둔다.
-                     눌러도 아무 일 없는 단추가 제일 나쁘므로, 안 되는 날은 아예 안 보인다. -->
-                <!-- 알림 종 (TASK-KL-098). 공용이다. 커뮤니티만이 아니라 도구, 계정, 봇이 보낸 것도 여기 뜬다.
-                     js/account.js 가 채운다. 서버에 못 닿거나 로그인 안 했으면 안 그려진다. -->
-                <div class="header-bell" id="headerBell"></div>
-                <!-- 채팅 단추 자리 (2026-08-22). js/widgets/chat.js 가 채운다.
-                     예전엔 왼쪽 아래 붙박이라 도구 화면을 늘 가렸다. 종 옆으로 올려서
-                     접혀 있을 때 본문 점유가 0이 되게 했다. 서버에 못 닿으면 안 그려진다. -->
-                <div class="header-chat" id="headerChat"></div>
-                <!-- 계정 캡슐 = 내 정보 단추이기도 하다 (TASK-KL-139 후속, 사용자 요청 통합).
-                     예전엔 캡슐과 👤 단추가 나란히 있어 **같은 사람을 두 번** 가리켰다.
-                     여기 박아 둔 것이 기본값이고 js/account.js 가 로그인 상태면 아바타, 이름으로 바꾼다 . 
-                     서버에 못 닿아도 이 단추는 남는다(내 정보로 가는 길이 사라지면 안 된다). -->
-                <div class="header-account" id="headerAccount">
-                    <button type="button" class="header-account-btn" id="userPageBtn" title="내 정보" data-i18n-title="shell.account.me">
-                        <span class="header-account-blank">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
-                        </span>
-                        <span class="header-account-name" data-i18n="shell.account.me">내 정보</span>
-                    </button>
-                </div>
-                <!-- 환경 설정 (TASK-KL-139). 내 정보에서 떼어 냈으므로 여기 진입점이 있어야 한다.
-                     계정 메뉴에도 있지만 그건 서버에 닿을 때만 그려진다. 설정은 서버와 무관하다. -->
-                <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                </button>
                 <!-- Files (데스크톱 앱 전용, 2026-08-29). 트레이로만 들어갈 수 있어서
                      창을 보고 있는 동안엔 파일로 가는 길이 화면에 없었다. 웹에서는 안 그린다:
                      `/blob/`(클라우드 암호문)이 앱 도메인 밖에선 안 열려 픽스처로 되떨어진다.
                      `css` 는 감춤이 기본이고 `desktop-chrome.ts` 가 앱에서만 켠다. -->
                 <button type="button" class="header-btn files-btn" id="filesBtn" data-desktop-only style="display:none" title="Files. 노트북, 금고" aria-label="Files">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                </button>
-                <!-- 머리띠 붙박이 언어 단추 폐지 (2026-08-29, 사용자 결정)
-                     여는 자리는 설정 단추를 눌렀을 때 펴지는 목록의 언어 칸
-                     (`lang-switch.ts` 의 `KarmoLang.openMenu`)
-                     옛 근거(검색으로 들어온 사람이 첫 화면에서 바로 찾기)의 값은 누름 1회 -->
-                <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환" data-i18n-title="shell.theme.toggle" data-i18n-aria-label="shell.theme.toggleAria">
-                    <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-                    <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
                 <div class="window-controls" id="windowControls" data-desktop-only aria-hidden="true">
                     <button type="button" class="wc-btn wc-min" id="wcMinimize" title="최소화" aria-label="최소화" data-i18n-title="shell.window.min" data-i18n-aria-label="shell.window.min">
@@ -338,34 +303,58 @@ permalink: /
         </header>
         <div class="app-body">
             <aside class="sidebar" id="sidebar">
+                <!-- 찾기는 옆줄 맨 위 (2026-08-30). 예전엔 머리띠 가운데 입력칸이었고 옆줄
+                     바닥에도 같은 문이 하나 더 있었다. 머리띠를 걷으면서 위로 올려 하나로 합친다.
+                     입력칸이 아니라 버튼. 어차피 한 글자만 쳐도 찾는 창으로 넘기고 있었다. -->
+                <div class="sidebar-head">
+                    <button type="button" class="sidebar-search-box" id="sidebarSearchBtn" title="도구 찾기 (Ctrl+K)" aria-label="도구 찾기" data-i18n-title="shell.nav.all.hint" data-i18n-aria-label="shell.search.aria">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <span class="sidebar-search-text" data-i18n="shell.search.placeholder">도구 찾기</span>
+                        <span class="sidebar-search-kbd" aria-hidden="true">Ctrl K</span>
+                    </button>
+                </div>
                 <nav class="sidebar-nav" role="navigation" aria-label="도구 목록" data-i18n-aria-label="shell.sidebar.tools">
                     <div id="sidebar-nav"></div>
                 </nav>
-                <!-- 옆줄 바닥 = **링크, 문의 한 줄** (2026-08-19, 사용자 결정).
-                     여기 있던 여섯 줄(언어 둘, 도구 전체 목록, 디스코드 봇, 오늘의, 상태)은
-                     서로 다른 곳으로 가는 문이 한자리에 쌓인 것이었다. 갈 길은 다른 데 있다:
-                     언어 = 머리띠 KO 단추, 도구 전체 목록 = 팔레트 둘러보기 첫 칩 , 
-                     봇/오늘의 = 머리띠 오른쪽 링크, 상태 = 판 표식 배지.
-                     남는 하나는 **사람에게 닿는 길**이다. 이메일, GitHub, X, 블로그가 모인 링크 장.
-                     ⚠ 이 자리에 있던 en/ja 진짜 앵커(TASK-KL-244)와 /t/ 앵커(KL-088)가
-                     같이 사라진다. 크롤러가 타던 내부 링크다. 되살릴 자리는 첫 화면 바닥이 맞다. -->
+                <!-- 옆줄 바닥은 사람 자리 (2026-08-30). 계정, 알림, 채팅, 설정, 테마.
+                     디스코드와 Codex 가 같은 자리에 둔다. 예전엔 전부 머리띠 오른쪽이었는데,
+                     머리띠를 걷으면서 여기로 내려왔다. 링크, 문의도 같은 묶음에 남는다. -->
                 <div class="sidebar-footer">
                     <a href="#linktree" class="sidebar-dev-links" data-goto="linktree" title="연락처, 링크. 문의는 여기로" aria-label="링크, 문의" data-i18n-title="shell.sidebar.linksTitle" data-i18n-aria-label="shell.sidebar.links">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">✉</span>
                         <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.links">링크, 문의</span>
                     </a>
-                    <!-- 찾기 (2026-08-19, 사용자 지적). 옆줄 차림에서는 머리띠 내비가 통째로 숨는다
-                         (옆줄을 켜면 머리띠 갈래 메뉴가 숨던 시절). 그래서 검색칸도
-                         같이 사라졌고, ⌘K 를 아는 사람만 찾을 수 있었다. 맨 아래에 둔다:
-                         옆줄은 위에서부터 내 것 → 많이 → 최근으로 읽히고, 거기서 못 찾았을 때
-                         손이 닿는 자리가 바닥이다. 누르면 머리띠 검색칸과 **같은 창**이 열린다. -->
-                    <button type="button" class="sidebar-dev-links sidebar-search-btn" id="sidebarSearchBtn" title="도구 찾기 (Ctrl+K)" aria-label="도구 찾기" data-i18n-title="shell.nav.all.hint" data-i18n-aria-label="shell.search.aria">
-                        <span class="sidebar-dev-links-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                        </span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.search.placeholder">도구 찾기</span>
-                        <span class="sidebar-search-kbd" aria-hidden="true">Ctrl K</span>
-                    </button>
+                    <div class="sidebar-user">
+                        <!-- 계정 캡슐이 곧 내 정보 버튼이다 (TASK-KL-139 후속).
+                             여기 박아 둔 것이 바닥값이고 js/account.js 가 로그인 상태면
+                             아바타와 이름으로 갈아 끼운다. 서버에 못 닿아도 이 버튼은 남는다. -->
+                        <div class="header-account" id="headerAccount">
+                            <button type="button" class="header-account-btn" id="userPageBtn" title="내 정보" data-i18n-title="shell.account.me">
+                                <span class="header-account-blank">
+                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+                                </span>
+                                <span class="header-account-name" data-i18n="shell.account.me">내 정보</span>
+                            </button>
+                        </div>
+                        <div class="sidebar-user-actions">
+                            <!-- 알림 종 (TASK-KL-098). 공용이다. 도구, 계정, 봇이 보낸 것도 여기 뜬다.
+                                 js/account.js 가 채운다. 서버에 못 닿거나 로그인 안 했으면 안 그려진다. -->
+                            <div class="header-bell" id="headerBell"></div>
+                            <!-- 채팅 버튼 자리 (2026-08-22). js/widgets/chat.js 가 채운다.
+                                 서버에 못 닿으면 안 그려진다. -->
+                            <div class="header-chat" id="headerChat"></div>
+                            <!-- 환경 설정 (TASK-KL-139). 계정 메뉴에도 있지만 그건 서버에 닿을 때만
+                                 그려진다. 설정은 서버와 무관하므로 제 자리가 따로 있어야 한다. -->
+                            <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            </button>
+                            <!-- 언어는 설정 안 언어 칸으로 (2026-08-29, 사용자 결정) -->
+                            <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환" data-i18n-title="shell.theme.toggle" data-i18n-aria-label="shell.theme.toggleAria">
+                                <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                                <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </aside>
             <main class="main-content" role="main">

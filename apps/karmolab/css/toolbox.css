@@ -83,6 +83,8 @@
     /* 위젯 내부 툴 사이드바 폭 (이미지 편집 등; 앱 메인 내비와 무관) */
     --sidebar-width: 224px;
     --sidebar-collapsed-width: 56px;
+    /* 머리띠. 2026-08-30 에 52 -> 40. 남은 것은 로고, 지금 도구 이름, 창 제어뿐 */
+    --header-h: 40px;
     --transition: 180ms ease;
     --transition-fast: 100ms ease;
     --transition-slow: 350ms ease;
@@ -511,191 +513,6 @@ html[data-intro="off"] .intro-overlay {
     min-width: 0;
 }
 
-/* overflow-x: auto는 세로 overflow까지 잘라 드롭다운이 안 보임 → 스크롤은 .header-nav-scroll에서만 (또는 생략) */
-.header-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    justify-self: center;
-    min-width: 0;
-    max-width: 100%;
-    overflow: visible;
-    position: relative;
-    z-index: 120;
-}
-
-.header-nav-scroll {
-    display: flex;
-    align-items: center;
-    /* 머리띠에는 이제 손잡이 하나와 검색칸 하나뿐이다. 줄바꿈을 허용하면 좁은 창에서
-       검색칸이 아래로 떨어져 머리띠가 두 층이 된다 (2026-08-19 실측). 대신 칸이 줄어든다. */
-    flex-wrap: nowrap;
-    justify-content: center;
-    gap: 2px;
-    min-width: 0;
-    max-width: min(100vw - 240px, 720px);
-    overflow: visible;
-}
-
-.header-nav-group {
-    position: relative;
-    flex-shrink: 0;
-}
-
-.header-nav-trigger {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 100%;
-    min-height: 32px;
-    padding: 4px 10px;
-    font-size: var(--font-size-xs);
-    font-weight: 500;
-    color: var(--text-secondary);
-    letter-spacing: -0.02em;
-    background: none;
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-family: var(--font-sans);
-    transition: color var(--transition), background var(--transition);
-    white-space: nowrap;
-}
-.header-nav-trigger:hover,
-.header-nav-group.is-open .header-nav-trigger {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-}
-.header-nav-trigger-label { pointer-events: none; }
-
-/* 전체 도구는 무리가 아니라 홀몸 단추다. 부모(.header-nav-group)가 없으니 제 몫으로
-   안 줄어들게 잡아 준다 (2026-08-19, 머리띠에서 갈래를 뺀 뒤). */
-.header-nav-trigger--action { flex-shrink: 0; }
-
-/* ── 머리띠 검색칸 (2026-08-19, 채널 사이트 본뜬 머리띠) ─────────────────────
-   찾는 창은 첫 화면에만 있었다. 도구를 보는 중에는 ⌘K 를 아는 사람만 다음 도구로 갔다.
-   여기 칸은 결과를 제가 안 그린다: 한 글자만 쳐도 팔레트로 넘긴다(표면은 하나).
-   ★ 색, 테두리는 **있는 토큰만** 쓴다. 처음엔 없는 이름(--bg-surface, --border-color)을 적어
-     테두리가 통째로 사라진 채 회색 덩어리로 보였다 (2026-08-19 실측). */
-.header-search {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 0 1 clamp(180px, 26vw, 340px);
-    min-width: 150px;
-    height: 30px;
-    padding: 0 6px 0 28px;
-    border-radius: 999px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    transition: border-color var(--transition), background var(--transition);
-}
-.header-search:hover { border-color: var(--border-hover); }
-.header-search:focus-within { border-color: var(--border-strong); background: var(--bg-tertiary); }
-.header-search-icon {
-    position: absolute;
-    left: 9px;
-    width: 14px;
-    height: 14px;
-    color: var(--text-tertiary);
-    pointer-events: none;
-}
-/* ★ **`input.` 로 적는다** (2026-08-19 실측. 이게 위아래로 튀어나옴의 근본이다).
-   이 파일 아래쪽에 `input[type="text"]{ padding:10px 14px; font-size:16px; border:1px ... }`
-   가 있다. 그쪽 특이도가 (0,1,1) 이라 클래스 하나짜리 내 규칙(0,1,0)을 이겼고, 그래서
-   칸 안의 input 이 **높이 46px** 로 자라 30px 알약을 위아래로 뚫고 나왔다(실측: 알약 top 11,
-   input top 3, h 46). 팔레트도 같은 이유로 `input.kp-input` 으로 적혀 있다. 같은 규율.
-   눌러 이기는 것으로 끝내지 않고 **안쪽 여백, 테두리, 그림자까지 0 으로 되돌린다**: 하나라도
-   남으면 알약 안에 두 번째 상자가 생긴다. */
-input.header-search-input,
-input.header-search-input:focus {
-    width: 100%;
-    min-width: 0;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    background: none;
-    border: none;
-    border-left: none;
-    outline: none;
-    box-shadow: none;
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-xs);
-    line-height: 1;
-}
-input.header-search-input::placeholder { color: var(--text-tertiary); }
-/* 단축키 글씨는 팔레트의 것과 같은 모양이다 (`.kp-kbd`). 같은 창을 여는 자리이므로 */
-.header-search-kbd {
-    flex-shrink: 0;
-    margin-left: 6px;
-    padding: 2px 5px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    line-height: 1;
-    letter-spacing: .04em;
-    color: var(--text-tertiary);
-}
-@media (max-width: 720px) {
-    .header-search-kbd { display: none; }
-}
-
-/* ── 내 도구 손잡이 = 메뉴처럼 보여야 한다 (2026-08-19) ────────────────
-   글자만 있으면 옆 검색칸에 눌려 눌리는 것으로 안 읽힌다. 아이콘 + 꺾쇠를 준다. */
-.header-nav-trigger--list { gap: 5px; padding-left: 8px; padding-right: 7px; }
-.header-nav-trigger--list .header-nav-trigger-icon { width: 14px; height: 14px; flex-shrink: 0; }
-.header-nav-trigger--list .header-nav-trigger-caret {
-    width: 9px; height: 9px; flex-shrink: 0; opacity: .55;
-    transition: transform var(--transition);
-}
-.header-nav-group.is-open .header-nav-trigger--list .header-nav-trigger-caret { transform: rotate(180deg); }
-
-/* ── 내 도구 판 = 화면을 가로지르는 대문짝이 아니라 **손잡이 밑 작은 판** ──
-   3칸(내 것, 많이 쓰는 것, 최근)은 대여섯 줄이라, 폭 100vw 를 쓰면 오른쪽 3분의 2가
-   빈 채로 화면 절반을 덮는다 (2026-08-19 실측). 손잡이에 붙여 필요한 만큼만 연다. */
-.header-nav-panel--list {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    width: min(620px, calc(100vw - 32px));
-    max-height: var(--header-mega-max-h);
-    /* 굴리는 것은 **목록만**이다. 바닥 줄은 굴러 나가면 안 된다 */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding: var(--space-sm);
-    /* ★ 제 바탕을 **직접** 깐다 (2026-08-19). 갈래 시절의 대문짝은 일부러 투명이다 . 
-       머리띠의 유리판이 화면 폭을 통째로 덮어 주기 때문이다. 그 규칙을 그대로 물려받았더니
-       글자만 허공에 떠서 뒤의 첫 화면과 겹쳐 읽혔다(실측). 작은 판은 제 바탕이 있어야 한다. */
-    background: var(--glass);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-float), 0 12px 32px -12px rgba(0, 0, 0, .55);
-}
-.header-nav-panel--list .header-nav-panel-inner {
-    min-height: 0;
-    overflow: hidden auto;
-    max-width: none;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2px 8px;
-}
-@media (max-width: 640px) {
-    .header-nav-panel--list { left: auto; right: 0; }
-    .header-nav-panel--list .header-nav-panel-inner { grid-template-columns: 1fr; }
-}
-.header-nav-section { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.header-nav-section-label {
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .02em;
-    color: var(--text-tertiary);
-}
 .header-nav-section-empty {
     margin: 0;
     padding: 2px 8px 8px;
@@ -704,111 +521,13 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     color: var(--text-tertiary);
 }
 
-/* 옆줄이 머리띠와 같은 칸을 쓰게 되면서 생긴 두 조각 (2026-08-19) . 
-   접히지 않는 이름표(빈 칸용)와 바닥의 전체 목록 줄. */
+/* 옆줄의 접히지 않는 이름표 (빈 칸용, 2026-08-19) */
 .sidebar-group-label--flat {
     padding: 8px 10px 2px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: .02em;
     color: var(--text-tertiary);
-}
-.sidebar-foot {
-    margin-top: 6px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-    color: var(--text-secondary);
-}
-/* 판 아래 전체 도구 찾기는 칸이 아니라 **바닥 줄**이다. 굴러 나가지 않는다 */
-.header-nav-panel-foot {
-    flex-shrink: 0;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid var(--border);
-}
-.header-nav-panel-foot .nav-item-find { color: var(--text-secondary); }
-
-.header-nav-panel {
-    z-index: 200;
-}
-.header-nav-panel[hidden] {
-    display: none !important;
-}
-.header-nav-panel:not([hidden]) {
-    display: block;
-}
-
-/*
- * 메가 패널: 배경, 블러 없음. 실제 글래스는 .header-bar::after 한 겹만 (뒤 픽셀이 달라도 색이 같게 보임)
- */
-.header-nav-panel--mega {
-    position: fixed;
-    top: 52px;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: none;
-    min-height: 0;
-    max-height: var(--header-mega-max-h);
-    overflow: hidden auto;
-    padding: var(--space-sm) var(--space-lg) var(--space-md);
-    margin: 0;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-}
-
-.header-nav-panel-inner {
-    max-width: 880px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-    gap: 4px 10px;
-    align-content: start;
-}
-
-.header-nav-panel--mega .nav-item {
-    padding: 7px 8px 7px 28px;
-    border-left: none;
-    border-radius: var(--radius-sm);
-    margin: 0;
-    font-size: var(--font-size-xs);
-    font-weight: 500;
-    color: var(--text-primary);
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    transition: background var(--transition), color var(--transition);
-}
-.header-nav-panel--mega .nav-item:hover {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-    box-shadow: none;
-}
-.header-nav-panel--mega .nav-item.active {
-    color: var(--accent);
-    background: var(--accent-dim);
-    box-shadow: none;
-}
-.header-nav-panel--mega .nav-item-find {
-    grid-column: 1 / -1;
-    justify-content: center;
-    padding-left: 8px;
-    color: var(--accent);
-    background: var(--accent-subtle);
-    font-weight: 600;
-}
-.header-nav-panel--mega .nav-item-find:hover {
-    background: var(--accent-dim);
-}
-.header-nav-panel--mega .nav-icon {
-    left: 8px;
-    width: 15px;
-    height: 15px;
-    opacity: 0.78;
 }
 
 /* 폰 전용 도구 목록 입구. 폰 미디어쿼리에서만 켠다 (PC 는 사이드바가 그 역할).
@@ -913,11 +632,11 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     z-index: 100;
     flex-shrink: 0;
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: var(--space-md);
-    padding: 0 var(--space-lg);
-    height: 52px;
+    padding: 0 var(--space-md);
+    height: var(--header-h);
     overflow: visible;
     isolation: isolate;
     /* 머리띠 불투명. 투명이면 지나가는 본문이 비쳐 글자 두 겹 */
@@ -932,7 +651,7 @@ input.header-search-input::placeholder { color: var(--text-tertiary); }
     left: 0;
     right: 0;
     top: 0;
-    height: 52px;
+    height: var(--header-h);
     z-index: 0;
     background: var(--header-shell-glass);
     backdrop-filter: var(--glass-blur);
@@ -1240,7 +959,7 @@ html[data-view="tool"] .main-content { background: var(--bg-primary); }
     flex: 0 0 auto;
     min-height: 100%;
     display: flex; flex-direction: column;
-    padding-top: calc(52px + var(--space-lg));
+    padding-top: calc(var(--header-h) + var(--space-lg));
 }
 
 /* layout-full 페이지가 활성화되면 스크롤 비활성화 및 flex fill 모드로 전환 */
@@ -1251,7 +970,7 @@ html[data-view="tool"] .main-content { background: var(--bg-primary); }
     flex: 1;
     min-height: 0;
     padding: 0;
-    padding-top: 52px; /* 헤더바 높이만 */
+    padding-top: var(--header-h); /* 헤더바 높이만 */
 }
 
 /* ═══════════════════════════════════════
@@ -2436,7 +2155,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 /* 왼쪽 목록은 상시 구조물이다 (2026-08-30). 예전엔 설정에서 왼쪽 목록/상단 메뉴 택일이었고
    상단 메뉴 끄기 스위치가 따로 있어, 둘 다 끄면 갈 길이 하나도 안 남았다. 스위치 둘을 걷고
    접힘 하나만 남긴다: 펼침 224px <-> 레일 56px. Claude, VSCode 와 같은 짜임. */
-.header-bar-right { grid-column: 3; }
+.header-bar-right { grid-column: 2; }
 
 /* 왼쪽 목록
    실측: Grafana 320px, it-tools 240px, transform 196px 전부 이름 상시 노출
@@ -2444,7 +2163,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 .sidebar {
     display: flex;
     position: fixed;
-    top: 52px; /* header-bar 높이 */
+    top: var(--header-h);
     left: 0;
     bottom: 0;
     width: var(--sidebar-width);
@@ -2452,7 +2171,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     border-right: 1px solid var(--border);
     flex-direction: column;
     flex-shrink: 0;
-    overflow: hidden;
+    /* 자르는 것은 안쪽 칸(.sidebar-nav, .sidebar-head)이 맡는다. 여기서 자르면 바닥의
+       계정 메뉴와 알림 판이 옆줄 안에 갇힌다 */
+    overflow: visible;
     z-index: 50;
     transition: width var(--transition);
 }
@@ -2466,7 +2187,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 html[data-sidebar="rail"] { --sidebar-width: 56px; }
 
 /* 손 떨림 방지: 폭이 움직이는 동안 글자가 줄바꿈되며 튀지 않게 */
-.sidebar-nav, .sidebar-footer { min-width: var(--sidebar-width); }
+.sidebar-nav, .sidebar-head, .sidebar-footer { min-width: var(--sidebar-width); }
 
 /* 접힘을 싫어하는 사람도 있다. 움직임 줄이기를 켜면 폭이 즉시 바뀐다 */
 @media (prefers-reduced-motion: reduce) {
@@ -2474,7 +2195,14 @@ html[data-sidebar="rail"] { --sidebar-width: 56px; }
 }
 
 /* 머리띠의 접기 버튼. 접혀도 자리가 안 움직인다 */
-.sidebar-toggle { flex-shrink: 0; }
+.sidebar-toggle {
+    flex-shrink: 0;
+    width: 32px; height: 32px; padding: 0;
+    border: none; background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-md); color: var(--text-secondary);
+}
+.sidebar-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
 html[data-sidebar="rail"] .sidebar-toggle svg { opacity: 0.65; }
 
 /* ── 레일(56px) 에서 감추는 것 ──
@@ -2491,6 +2219,17 @@ html[data-sidebar="rail"] .sidebar .header-nav-section-empty {
 }
 
 html[data-sidebar="rail"] .sidebar-nav { padding: var(--space-sm) 0; }
+html[data-sidebar="rail"] .sidebar-head { padding: var(--space-sm) 8px 0; }
+html[data-sidebar="rail"] .sidebar-search-box { padding: 0; justify-content: center; }
+html[data-sidebar="rail"] .sidebar-search-text { display: none; }
+/* 레일의 사람 자리. 세로로 쌓는다. 계정은 얼굴만 */
+html[data-sidebar="rail"] .sidebar-user { flex-direction: column; gap: 2px; }
+html[data-sidebar="rail"] .sidebar-user .header-account { flex: none; }
+html[data-sidebar="rail"] .sidebar-user .header-account-btn { width: auto; padding: 3px; border-color: transparent; }
+html[data-sidebar="rail"] .sidebar-user .header-account-name { display: none; }
+html[data-sidebar="rail"] .sidebar-user-actions { flex-direction: column; }
+html[data-sidebar="rail"] .sidebar-user .header-account-menu,
+html[data-sidebar="rail"] .sidebar-user .kl-bell-panel { left: 100%; margin-left: 8px; bottom: 0; }
 
 html[data-sidebar="rail"] .sidebar .nav-item,
 html[data-sidebar="rail"] .sidebar .sidebar-group-trigger,
@@ -2562,15 +2301,24 @@ html[data-sidebar="rail"] .sidebar-group:not(.sidebar-group--cat) + .sidebar-gro
     gap: 2px;
 }
 
-/* 옆줄 바닥의 찾기 단추. 옆 링크 줄과 같은 꼴이되 단축키 글씨가 오른쪽 끝에 붙는다 (2026-08-19) */
-.sidebar-search-btn {
-    width: 100%;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: var(--font-sans);
-    text-align: left;
+/* 옆줄 맨 위의 찾기 (2026-08-30). 머리띠 검색칸과 바닥 찾기 줄을 하나로 합침
+   입력칸이 아니라 버튼. 한 글자만 쳐도 찾는 창으로 넘기던 것이라 칸일 이유 없음 */
+.sidebar-head {
+    flex-shrink: 0;
+    padding: var(--space-sm) var(--space-sm) 0;
+    overflow: hidden;
 }
+.sidebar-search-box {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; height: 32px; padding: 0 10px;
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-secondary); color: var(--text-tertiary);
+    font: inherit; font-size: var(--font-size-xs); cursor: pointer; text-align: left;
+    transition: border-color var(--transition), color var(--transition);
+}
+.sidebar-search-box:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+.sidebar-search-box svg { flex: none; }
+.sidebar-search-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sidebar-search-kbd {
     margin-left: auto;
     padding: 1px 5px;
@@ -2783,6 +2531,23 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .header-now:empty { display: none; }
 @media (max-width: 768px) { .header-now { display: none; } }
 
+/* 옆줄 바닥의 사람 자리 (2026-08-30). 계정 캡슐 + 종, 채팅, 설정, 테마 한 줄
+   디스코드 좌하단과 같은 짜임. 예전엔 전부 머리띠 오른쪽 */
+.sidebar-user { display: flex; align-items: center; gap: 4px; min-width: 0; margin-top: 2px; }
+.sidebar-user .header-account { flex: 1; min-width: 0; }
+.sidebar-user .header-account-btn { max-width: none; width: 100%; }
+.sidebar-user-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.sidebar-user-actions .header-btn,
+.sidebar-user-actions .theme-toggle { width: 28px; height: 28px; }
+.sidebar-user-actions .kl-bell-btn { width: 28px; height: 28px; border: none; }
+/* 채팅 버튼은 점만. 글자까지 두면 224px 한 줄에 안 들어간다 */
+.sidebar-user-actions .klchat-dock { padding: 0; width: 28px; height: 28px; justify-content: center; border: none; background: transparent; }
+.sidebar-user-actions .klchat-dock-label,
+.sidebar-user-actions #klChatDockCount { display: none; }
+/* 메뉴와 알림 판은 위로 편다. 바닥에서 아래로 열면 화면 밖 */
+.sidebar-user .header-account-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
+.sidebar-user .kl-bell-panel { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
+
 /* 갈래 아이콘. 화살표와 이름 사이 */
 .sidebar-group-icon { flex: none; opacity: 0.75; margin-right: 2px; }
 
@@ -2798,10 +2563,22 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .sidebar-dev-links-icon { display: flex; }
 .sidebar-dev-links-text { display: inline; }
 
-/* 폰은 이번 범위 밖. 왼쪽 목록 대신 `.mobile-nav` 띠가 그대로 맡는다 */
+/* 폰. 도구 목록은 `.mobile-nav` 띠, 옆줄은 바닥 줄만 남아 화면 아래 띠
+   머리띠에서 내려온 계정, 설정, 테마, 채팅이 폰에서 통째로 사라지지 않게 (2026-08-30) */
 @media (max-width: 768px) {
-    .sidebar { display: none; }
-    .main-content { margin-left: 0; }
+    .sidebar {
+        top: auto; bottom: 0; left: 0; right: 0;
+        width: 100%; min-width: 0; height: auto;
+        border-right: none; border-top: 1px solid var(--border);
+        transition: none;
+    }
+    .sidebar-head, .sidebar-nav { display: none; }
+    .sidebar-footer { min-width: 0; border-top: none; flex-direction: row; align-items: center; gap: 6px; padding: 6px var(--space-sm); }
+    .sidebar-footer .sidebar-dev-links { flex: none; padding: 3px; }
+    .sidebar-footer .sidebar-dev-links-text { display: none; }
+    .sidebar-user { flex: 1; margin-top: 0; }
+    .sidebar-user-actions .header-btn, .sidebar-user-actions .theme-toggle, .sidebar-user-actions .klchat-dock { width: 36px; height: 36px; }
+    .main-content { margin-left: 0; padding-bottom: 56px; }
     .sidebar-toggle { display: none; }
 }
 
@@ -2859,7 +2636,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     .main-content:has(.tool-page.layout-full.active) { overflow: visible; padding-top: 0; }
     .content-body:has(.tool-page.layout-full.active) {
         padding: var(--space-md);
-        padding-top: calc(52px + var(--space-md));
+        padding-top: calc(var(--header-h) + var(--space-md));
         min-height: 0;
     }
     .tool-page.layout-full.active { display: block; }
@@ -2918,7 +2695,6 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     .header-logo { min-height: 40px; }
     input[type="text"], input[type="password"], input[type="date"], select, textarea { min-height: 42px; }
 
-    .header-nav { display: none !important; }
     .main-content { margin-left: 0; }
     .header-bar {
         left: 0;
@@ -2932,7 +2708,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
        도구 목록 폰 밀림 0.105 중 0.117(사건 둘 합)이 이것이었다(실측, 기준 0.1).
        채워진 높이(55px, 실측)를 미리 잡아 두면 채워져도 아무것도 안 움직인다.
        한 줄짜리 가로 스크롤이라 항목이 몇 개든 이 높이는 그대로다. */
-    .mobile-nav { display: flex !important; margin-top: 52px; min-height: 55px; }
+    .mobile-nav { display: flex !important; margin-top: var(--header-h); min-height: 55px; }
     .content-body { padding: var(--space-md); }
     .landing-page { padding: var(--space-md); }
     .landing-title { font-size: 52px; }
@@ -3787,7 +3563,7 @@ html.is-layout-full .content-body {
     flex: 1;
     min-height: 0;
     padding: 0;
-    padding-top: 52px;
+    padding-top: var(--header-h);
 }
 html.is-layout-full .tool-page.layout-full.active {
     display: flex;

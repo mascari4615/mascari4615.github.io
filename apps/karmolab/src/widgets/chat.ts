@@ -131,8 +131,8 @@ void (async function (): Promise<void> {
     Mdd.injectCSS(
         'kl-chat',
         `
-        /* 판은 헤더(52px) 바로 아래 오른쪽에 매단다. 단추는 이 상자 밖. 헤더 안에 산다. */
-        .klchat { position:fixed; top:58px; right:12px; z-index:940; display:flex; flex-direction:column; align-items:flex-end; gap:10px; font-family:var(--font-sans,'Inter',sans-serif); pointer-events:none; }
+        /* 판은 옆줄 바로 옆 왼쪽 아래 (2026-08-30). 버튼은 옆줄 바닥 사람 자리에 산다 */
+        .klchat { position:fixed; bottom:12px; left:calc(var(--sidebar-width, 224px) + 12px); z-index:940; display:flex; flex-direction:column; align-items:flex-start; gap:10px; font-family:var(--font-sans,'Inter',sans-serif); pointer-events:none; }
         .klchat > * { pointer-events:auto; }
         /* 헤더가 없는 화면에서는 옛 자리로 돌아간다. 단추가 갈 곳이 없으면 이 상자가 데리고 있다. */
         .klchat.loose { top:auto; right:auto; left:16px; bottom:16px; align-items:flex-start; }
@@ -201,7 +201,8 @@ void (async function (): Promise<void> {
             .klchat-dock { padding:0 9px; }
         }
         @media (max-width:640px) {
-            .klchat { top:56px; left:8px; right:8px; align-items:stretch; }
+            /* 인라인으로 박은 자리를 폰에서는 이긴다. 옆줄이 바닥 띠라 그 위에 */
+            .klchat { top:auto !important; bottom:60px !important; left:8px !important; right:8px !important; align-items:stretch; }
             /* 폰에서는 **화면에 실제로 보이는 높이**(dvh)로 잡는다. vh 는 주소창, 키보드가
                올라와도 안 줄어서, 키보드가 뜨면 입력칸이 화면 밖으로 밀려난다.
                dvh 를 모르는 브라우저를 위해 vh 를 먼저 적어 둔다(뒤가 이긴다). */
@@ -225,8 +226,8 @@ void (async function (): Promise<void> {
        첫 화면 밀림 0.178 중 0.174 가 이것 하나였다(실측). 뜨는 자리만 인라인으로 박아 두면
        스타일이 늦게 와도 아무것도 안 밀린다. 나머지 생김새는 그대로 그 CSS 가 맡는다. */
     root.style.position = 'fixed';
-    root.style.top = '58px';
-    root.style.right = '12px';
+    root.style.bottom = '12px';
+    root.style.left = 'calc(var(--sidebar-width, 224px) + 12px)';
     root.style.zIndex = '940';
     /* ★ **자리뿐 아니라 접혀 있음도 인라인으로 박는다** (2026-08-17, 도구 장 실측).
        위에서 자리를 못 박아 첫 화면 밀림은 잡혔는데, **도구 상세 장**에서는 아직 0.0929 가
@@ -283,8 +284,6 @@ void (async function (): Promise<void> {
         dockHost.appendChild(dock);
     } else {
         root.classList.add('loose');
-        root.style.top = 'auto';
-        root.style.right = 'auto';
         root.style.left = '16px';
         root.style.bottom = '16px';
         root.appendChild(dock);
