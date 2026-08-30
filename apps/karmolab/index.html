@@ -179,7 +179,7 @@ permalink: /
     <link id="prism-css" rel="stylesheet" media="print" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
     <script>
 (function(){
-  var t=localStorage.getItem('toolbox_theme')||'dark';
+  var t=localStorage.getItem('toolbox_theme')||'light';
   var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
   var sk=localStorage.getItem('toolbox_skin')||'field';
   document.documentElement.setAttribute('data-theme',t);
@@ -203,7 +203,7 @@ permalink: /
   /* 주소창, 넘겨 스크롤한 자리의 색을 테마에 맞춘다. 여기서 안 맞추면 밝은 테마에서
      스크롤 끝에 검은 띠가 보인다. 값은 CSS 의 바탕색과 같아야 한다(--bg-void). */
   var tcm=document.getElementById('themeColorMeta');
-  if(tcm) tcm.setAttribute('content', t==='light' ? '#ffffff' : '#0e0d14');
+  if(tcm) tcm.setAttribute('content', t==='dark' ? '#232220' : '#dedcd6');
   document.documentElement.setAttribute('data-bg',bg);
   /* 왼쪽 목록은 늘 있다. 고르는 것은 접힘뿐 (2026-08-30). 예전엔 왼쪽 목록/상단 메뉴
      택일 + 상단 메뉴 끄기까지 스위치가 둘이었고, 둘 다 끄면 길이 하나도 안 남았다. */

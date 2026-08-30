@@ -2686,7 +2686,7 @@ const Toolbox = (() => {
     /* ===== 테마 (라이트/다크) ===== */
     const THEME_KEY = 'toolbox_theme';
 
-    function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
+    function getTheme() { return localStorage.getItem(THEME_KEY) || 'light'; }
 
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
