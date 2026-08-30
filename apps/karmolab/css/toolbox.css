@@ -3967,3 +3967,86 @@ html[data-skin="field"][data-view="tool"] .app-bg {
 }
 html[data-skin="field"][data-view="tool"] .app-bg::before { display: block; }
 html[data-skin="field"][data-view="tool"] .main-content { background: transparent; }
+
+/* ===================================================================
+   첫 화면, 필드 스킨 (change.karmolab-shell-redesign 5단계, 시안 HA)
+   구성은 그대로(제목, 태그라인, 검색, 갈 곳 4, 방문 수). 부품 표현만 토큰으로
+   =================================================================== */
+html[data-skin="field"] .landing-title { color: var(--text-primary); }
+html[data-skin="field"] .landing-title .accent { color: var(--text-primary); }
+html[data-skin="field"] .landing-title::after {
+    content: '';
+    display: block;
+    width: 220px;
+    height: 6px;
+    margin: 12px auto 0;
+    border-bottom: 1px solid var(--text-primary);
+    background-image: var(--accent-mix);
+    background-size: 70px 6px;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+}
+html[data-skin="field"] .landing-tagline { text-shadow: none; color: var(--text-tertiary); }
+html[data-skin="field"] .landing-tagline::before { content: '[ '; }
+html[data-skin="field"] .landing-tagline::after { content: ' ]'; }
+
+/* 검색: 기울인 유리, 딱딱한 그림자. 안쪽은 도로 세움 */
+html[data-skin="field"] .kp-inline .kp-input-wrap {
+    transform: skewX(var(--skew));
+    background: var(--glass);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--text-primary);
+    border-radius: 0;
+    box-shadow: var(--shadow-hard);
+    padding: 0 18px;
+}
+html[data-skin="field"] .kp-inline .kp-input-wrap > * { transform: skewX(calc(-1 * var(--skew))); }
+html[data-skin="field"] .kp-inline input.kp-input { background: transparent; }
+
+/* 갈 곳: 기울인 칩, 첫 칸은 띠 반전 + 강조 그림자 */
+html[data-skin="field"] .landing-cta-card {
+    transform: skewX(var(--skew));
+    border-radius: 0;
+    border-color: var(--border-hover);
+    background: var(--glass);
+    padding: 9px 18px;
+}
+html[data-skin="field"] .landing-cta-card > * { transform: skewX(calc(-1 * var(--skew))); }
+html[data-skin="field"] .landing-cta-card:first-child {
+    background: var(--band);
+    color: var(--band-ink);
+    border-color: var(--band);
+    box-shadow: 3px 3px 0 var(--accent);
+}
+html[data-skin="field"] .landing-cta-card:first-child .landing-cta-card-icon,
+html[data-skin="field"] .landing-cta-card:first-child .landing-cta-card-title { color: var(--band-ink); }
+
+/* 방문 수: 검정 띠 라벨 + 큰 수 */
+html[data-skin="field"] .landing-pulse-line {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid var(--text-primary);
+    color: var(--text-primary);
+}
+html[data-skin="field"] .landing-pulse-stat { align-items: stretch; gap: 0; }
+html[data-skin="field"] .landing-pulse-k {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--band);
+    color: var(--band-ink);
+}
+html[data-skin="field"] .landing-pulse-line b {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    color: var(--text-primary);
+    font-size: var(--font-size-md);
+}
+html[data-skin="field"] .landing-pulse-all {
+    margin: 0;
+    padding: 0 14px;
+    border-left: 1px solid var(--text-primary);
+    font-weight: 700;
+    color: var(--accent);
+}
