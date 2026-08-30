@@ -325,7 +325,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   /* ── 컵 ── 가죽. 오른쪽에 서 있다가 흔들고 쏟고 돌아온다 */
   const leatherMap = new CanvasTexture(leatherTexture(47, 256));
   leatherMap.colorSpace = SRGBColorSpace;
-  const leather = new MeshStandardMaterial({ map: leatherMap, bumpMap: leatherMap, bumpScale: 0.05, color: 0xffffff, roughness: 0.7, side: DoubleSide });
+  /* 내 차례에 컵이 은은히 빛난다. 판이 서자마자 내 차례인데 알 길이 없었다(사용자 지적) */
+  const leather = new MeshStandardMaterial({ map: leatherMap, bumpMap: leatherMap, bumpScale: 0.05, color: 0xffffff, roughness: 0.7, side: DoubleSide, emissive: 0xff9a40, emissiveIntensity: 0 });
   const cup = new Group();
   const CUP_R = 1.7;
   const CUP_H = 3.1;
@@ -823,6 +824,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     const s = t / 1000 + seed;
     /* 등불이 아주 조금 흔들린다. 눈에 띄면 고장 난 등이다 */
     lamp.intensity = 3.0 * (0.985 + 0.015 * Math.sin(s * 2.3) * Math.sin(s * 0.7 + 1));
+    leather.emissiveIntensity = actable && !cupT0 ? 0.1 + 0.08 * Math.sin(s * 2.6) : 0;
     const arr = motes.geometry.getAttribute('position') as { array: Float32Array; needsUpdate: boolean };
     const a = arr.array;
     for (let i = 0; i < a.length; i += 3) {

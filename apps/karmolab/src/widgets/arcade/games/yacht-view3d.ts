@@ -102,10 +102,11 @@ export const view3d: GameView<YachtState, YachtAction> = {
     let seatNames: string[] = [];
     let mySeat = -1;
     let sheetOpen = false;
-    /* 종이를 화면 한쪽에 늘 둔다(사용자 요청). Tab 또는 왼쪽 위 버튼. 사람마다 남는다 */
-    let pinned = false;
+    /* 점수표는 왼쪽에 **늘 보인다**(레퍼런스: 클럽하우스 51 야추는 종이, 쟁반, 컵이 한 화면).
+       Tab 또는 왼쪽 위 버튼으로 숨긴다. 사람마다 남는다 */
+    let pinned = true;
     try {
-      pinned = localStorage.getItem('karmolab.arcade.yacht.pin') === '1';
+      pinned = localStorage.getItem('karmolab.arcade.yacht.pin') !== '0';
     } catch {
       /* 저장 못 하면 이번 판만 */
     }
@@ -390,6 +391,10 @@ export const view3d: GameView<YachtState, YachtAction> = {
       prevRolled = s.rolled;
       shown = s;
       busyUntil = performance.now() + (rolled ? ROLL_MS : kept ? KEEP_MS : 0);
+      /* 첫 차례. 판이 서자마자 내 차례인데 알 길이 없었다(사용자 지적). 알림 한 줄 */
+      if (before === null && s.turn === mySeat && !fin) {
+        window.setTimeout(() => { if (last && last.turn === mySeat && host.isConnected) toast(t('arcade.yacht.toast.first'), 2600); }, 900);
+      }
       /* 세 번 다 굴렸고 내 차례면, 멎은 뒤 종이가 온다 */
       if (autoTimer) window.clearTimeout(autoTimer);
       autoTimer = 0;

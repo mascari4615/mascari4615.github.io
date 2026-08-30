@@ -90,6 +90,7 @@
   "arcade.yacht.sheet.close": "닫기",
   "arcade.yacht.sheet.pin": "점수표 (Tab)",
   "arcade.yacht.toast.me": "내 차례",
+  "arcade.yacht.toast.first": "내 차례. 컵을 눌러 굴린다 (스페이스)",
   "arcade.yacht.toast.turn": "{who} 차례",
   "arcade.yacht.toast.wrote": "{who}: {cat} {n}점",
   "arcade.yacht.hud.round": "라운드 {n} / {m}",

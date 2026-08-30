@@ -90,6 +90,7 @@
   "arcade.yacht.sheet.close": "Close",
   "arcade.yacht.sheet.pin": "Sheet (Tab)",
   "arcade.yacht.toast.me": "Your turn",
+  "arcade.yacht.toast.first": "Your turn. Click the cup to roll (Space)",
   "arcade.yacht.toast.turn": "{who}'s turn",
   "arcade.yacht.toast.wrote": "{who}: {cat} {n}",
   "arcade.yacht.hud.round": "Round {n} / {m}",

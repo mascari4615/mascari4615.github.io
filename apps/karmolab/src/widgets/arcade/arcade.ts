@@ -527,10 +527,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 작성자 display 가 hidden 의 UA display:none 을 이긴다. 안 적으면 투명한 채 캔버스를 덮어 클릭을 전부 먹는다(실측) */
       '.ac-ycpaper[hidden]{display:none}',
       /* 고정 모드. 오른쪽에 작게 붙고, 캔버스는 그대로 눌린다 */
-      '.ac-ycpaper.ac-pin{inset:auto;right:14px;top:78px;width:min(340px,42%);max-height:calc(100% - 80px);background:none;pointer-events:none;display:block;opacity:1}',
-      '.ac-ycpaper.ac-pin .ac-ycpaperin{pointer-events:auto;width:100%;max-height:calc(100vh - 140px);padding:10px 12px 12px;transform:none;font-size:var(--font-size-xs);opacity:.94}',
+      '.ac-ycpaper.ac-pin{inset:auto;left:14px;top:58px;width:min(300px,38%);max-height:calc(100% - 150px);background:none;pointer-events:none;display:block;opacity:1}',
+      '.ac-ycpaper.ac-pin .ac-ycpaperin{pointer-events:auto;width:100%;max-height:calc(100vh - 220px);padding:8px 10px 10px;transform:rotate(-.6deg);font-size:var(--font-size-xs);opacity:.96}',
       '.ac-ycpaper.ac-pin .ac-ycclose{display:none}',
-      '.ac-ycpaper.ac-pin .ac-yctable th,.ac-ycpaper.ac-pin .ac-yctable td{padding:2px 5px}',
+      '.ac-ycpaper.ac-pin .ac-yctable th,.ac-ycpaper.ac-pin .ac-yctable td{padding:1px 4px}',
+      '.ac-ycpaper.ac-pin .ac-ychead{margin-bottom:6px}',
+      '.ac-ycpaper.ac-pin .ac-ychead .ac-ycdice .ac-die{width:24px;height:24px;padding:3px}',
       '.ac-ycpaper.ac-pin .ac-yccell{min-height:24px}',
       '.ac-ycpin{position:absolute;left:14px;top:12px;z-index:3;height:34px;padding:0 14px;border-radius:var(--radius-pill);background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-xs);letter-spacing:.06em;cursor:pointer;opacity:.7;backdrop-filter:blur(8px)}',
       '.ac-ycpin:hover,.ac-ycpin[aria-pressed="true"]{opacity:1;border-color:#e6bd7a}',

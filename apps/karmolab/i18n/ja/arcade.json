@@ -90,6 +90,7 @@
   "arcade.yacht.sheet.close": "閉じる",
   "arcade.yacht.sheet.pin": "スコア表 (Tab)",
   "arcade.yacht.toast.me": "あなたの番",
+  "arcade.yacht.toast.first": "あなたの番。カップを押して振る (Space)",
   "arcade.yacht.toast.turn": "{who}の番",
   "arcade.yacht.toast.wrote": "{who}: {cat} {n}点",
   "arcade.yacht.hud.round": "ラウンド {n} / {m}",
