@@ -35,10 +35,10 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
 
           container.innerHTML = `
             <div class="tool-block">
-              <div class="tool-row">
-                <label class="tool-btn" for="cpA">${esc(t('comparepic.label.cpA'))}<input id="cpA" type="file" accept="image/*" hidden /></label>
-                <label class="tool-btn" for="cpB">${esc(t('comparepic.label.cpB'))}<input id="cpB" type="file" accept="image/*" hidden /></label>
-                <button id="cpSave" class="tool-btn" type="button" disabled>${esc(t('comparepic.btn.cpSave'))}</button>
+              <div class="tool-actions">
+                <label class="btn" for="cpA">${esc(t('comparepic.label.cpA'))}<input id="cpA" type="file" accept="image/*" hidden /></label>
+                <label class="btn" for="cpB">${esc(t('comparepic.label.cpB'))}<input id="cpB" type="file" accept="image/*" hidden /></label>
+                <button id="cpSave" class="btn" type="button" disabled>${esc(t('comparepic.btn.cpSave'))}</button>
               </div>
               <div id="cpStage" style="position:relative; overflow:hidden; border-radius:var(--radius-lg);
                 background:var(--bg-secondary); touch-action:none; user-select:none;">

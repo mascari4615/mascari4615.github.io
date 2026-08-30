@@ -112,13 +112,13 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           container.innerHTML = `
             <div class="tool-block">
-              <div class="tool-row" id="ccModes"></div>
+              <div class="tool-chips" id="ccModes"></div>
               <label class="tool-label" for="ccIn">${esc(t('charconv.label.ccIn'))}</label>
               <textarea id="ccIn" class="tool-input" rows="4" spellcheck="false"></textarea>
               <div id="ccWarn" class="tool-note" role="status"></div>
               <label class="tool-label" for="ccOut">${esc(t('charconv.label.ccOut'))}</label>
               <textarea id="ccOut" class="tool-input" rows="4" readonly></textarea>
-              <div class="tool-row" id="ccToneRow" hidden>
+              <div class="tool-actions" id="ccToneRow" hidden>
                 <label class="tool-label" for="ccTone">${esc(t('charconv.label.ccTone'))}</label>
                 <select id="ccTone" class="tool-input" style="max-width:14em;">
                   <option value="mark">${esc(t('charconv.opt.mark'))}</option>
@@ -126,9 +126,9 @@ import { t, loadNamespace } from '../../lib/i18n';
                   <option value="none">${esc(t('charconv.opt.none'))}</option>
                 </select>
               </div>
-              <div class="tool-row">
-                <button id="ccCopy" class="tool-btn" type="button">${esc(t('charconv.btn.ccCopy'))}</button>
-                <button id="ccSwap" class="tool-btn" type="button">${esc(t('charconv.btn.ccSwap'))}</button>
+              <div class="tool-actions">
+                <button id="ccCopy" class="btn" type="button">${esc(t('charconv.btn.ccCopy'))}</button>
+                <button id="ccSwap" class="btn" type="button">${esc(t('charconv.btn.ccSwap'))}</button>
               </div>
             </div>`;
 
@@ -138,12 +138,12 @@ import { t, loadNamespace } from '../../lib/i18n';
           let mode: Mode = 'half';
 
           $('#ccModes').innerHTML = modes().map(
-            (m) => `<button class="tool-btn" type="button" data-mode="${m.id}">${esc(m.label)}</button>`
+            (m) => `<button class="tool-chip" type="button" data-mode="${m.id}">${esc(m.label)}</button>`
           ).join('');
 
           const paint = (): void => {
             for (const btn of container.querySelectorAll<HTMLButtonElement>('#ccModes button')) {
-              btn.classList.toggle('tool-btn-primary', btn.dataset.mode === mode);
+              btn.classList.toggle('active', btn.dataset.mode === mode);
             }
           };
 

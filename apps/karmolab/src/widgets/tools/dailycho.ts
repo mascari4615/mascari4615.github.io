@@ -38,19 +38,19 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           container.innerHTML = `
             <div class="tool-block">
-              <div class="tool-row" style="justify-content:space-between; align-items:baseline;">
+              <div class="tool-actions" style="justify-content:space-between; align-items:baseline;">
                 <strong>초성 #${puzzle.day}</strong>
                 <span class="tool-hint">다음 문제까지 ${esc(humanLeft(msUntilNextKST()))}</span>
               </div>
               <p class="tool-hint">${esc(t('dailycho.t01'))}</p>
               <div id="chList"></div>
-              <div class="tool-row">
-                <button id="chDone" class="tool-btn tool-btn-primary" type="button">${esc(t('dailycho.btn.chDone'))}</button>
-                <button id="chReset" class="tool-btn" type="button">${esc(t('dailycho.btn.chReset'))}</button>
+              <div class="tool-actions">
+                <button id="chDone" class="btn btn-primary" type="button">${esc(t('dailycho.btn.chDone'))}</button>
+                <button id="chReset" class="btn" type="button">${esc(t('dailycho.btn.chReset'))}</button>
               </div>
               <div id="chSay" class="tool-note" role="status"></div>
               <pre id="chShare" style="display:none; white-space:pre-wrap;"></pre>
-              <button id="chCopy" class="tool-btn" type="button" style="display:none;">${esc(t('dailycho.btn.chCopy'))}</button>
+              <button id="chCopy" class="btn" type="button" style="display:none;">${esc(t('dailycho.btn.chCopy'))}</button>
             </div>`;
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;

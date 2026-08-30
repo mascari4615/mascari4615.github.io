@@ -122,9 +122,9 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <code>"$1"</code> ${esc(t('chain.t01'))} <code>"a{{1}}b"</code> = 글 안에 끼우기 , 
                 최대 ${MAX_STEPS}단계
               </p>
-              <div class="tool-row">
-                <button id="chRun" class="tool-btn tool-btn-primary" type="button">${esc(t('chain.btn.chRun'))}</button>
-                <button id="chExample" class="tool-btn" type="button">${esc(t('chain.btn.chExample'))}</button>
+              <div class="tool-actions">
+                <button id="chRun" class="btn btn-primary" type="button">${esc(t('chain.btn.chRun'))}</button>
+                <button id="chExample" class="btn" type="button">${esc(t('chain.btn.chExample'))}</button>
               </div>
               <div id="chSay" class="tool-note" role="status"></div>
               <div id="chOut"></div>

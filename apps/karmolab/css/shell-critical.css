@@ -3620,3 +3620,15 @@ html[data-skin="field"] .tool-hub-star[aria-pressed='true'] { color: var(--accen
 html[data-skin="field"] input[type="checkbox"],
 html[data-skin="field"] input[type="radio"],
 html[data-skin="field"] input[type="range"] { accent-color: var(--accent); }
+
+:where(.tool-page, .tab-panel) button:not([class]) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 16px; font-family: inherit; font-size: var(--font-size-xs); font-weight: 600;
+    letter-spacing: 0.02em; line-height: 1.2;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-tertiary); color: var(--text-primary);
+    cursor: pointer; transition: all var(--transition);
+}
+:where(.tool-page, .tab-panel) button:not([class]):hover { background: var(--bg-hover); border-color: var(--border-hover); }
+:where(.tool-page, .tab-panel) button:not([class]):disabled { opacity: .4; cursor: not-allowed; }
+html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { border-radius: 0; }

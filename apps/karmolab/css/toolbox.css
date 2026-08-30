@@ -4438,3 +4438,18 @@ html[data-skin="field"] .tool-hub-star[aria-pressed='true'] { color: var(--accen
 html[data-skin="field"] input[type="checkbox"],
 html[data-skin="field"] input[type="radio"],
 html[data-skin="field"] input[type="range"] { accent-color: var(--accent); }
+
+/* 클래스가 하나도 없는 맨 버튼. 위젯이 아무것도 안 정한 자리다 (실측 2026-08-31: 글자 바꾸기 도구는
+   버튼 11 중 10 이 브라우저 기본 13.3px, 여백 0). `:where` 로 힘을 0 으로 두고 `:not([class])` 로
+   범위를 좁혀, 클래스가 하나라도 있는 버튼은 위젯 규칙이 그대로 이긴다 */
+:where(.tool-page, .tab-panel) button:not([class]) {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 16px; font-family: inherit; font-size: var(--font-size-xs); font-weight: 600;
+    letter-spacing: 0.02em; line-height: 1.2;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-tertiary); color: var(--text-primary);
+    cursor: pointer; transition: all var(--transition);
+}
+:where(.tool-page, .tab-panel) button:not([class]):hover { background: var(--bg-hover); border-color: var(--border-hover); }
+:where(.tool-page, .tab-panel) button:not([class]):disabled { opacity: .4; cursor: not-allowed; }
+html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { border-radius: 0; }

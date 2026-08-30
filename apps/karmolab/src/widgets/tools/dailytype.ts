@@ -38,19 +38,19 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           container.innerHTML = `
             <div class="tool-block">
-              <div class="tool-row" style="justify-content:space-between; align-items:baseline;">
+              <div class="tool-actions" style="justify-content:space-between; align-items:baseline;">
                 <strong>한글타자 #${puzzle.day}</strong>
                 <span class="tool-hint">다음 문제까지 ${esc(humanLeft(msUntilNextKST()))}</span>
               </div>
               <p class="tool-hint">${esc(t('dailytype.t01'))}</p>
               <div id="dtLines"></div>
-              <div class="tool-row">
-                <button id="dtDone" class="tool-btn tool-btn-primary" type="button">${esc(t('dailytype.btn.dtDone'))}</button>
-                <button id="dtReset" class="tool-btn" type="button">${esc(t('dailytype.btn.dtReset'))}</button>
+              <div class="tool-actions">
+                <button id="dtDone" class="btn btn-primary" type="button">${esc(t('dailytype.btn.dtDone'))}</button>
+                <button id="dtReset" class="btn" type="button">${esc(t('dailytype.btn.dtReset'))}</button>
               </div>
               <div id="dtSay" class="tool-note" role="status"></div>
               <pre id="dtShare" style="display:none; white-space:pre-wrap;"></pre>
-              <button id="dtCopy" class="tool-btn" type="button" style="display:none;">${esc(t('dailytype.btn.dtCopy'))}</button>
+              <button id="dtCopy" class="btn" type="button" style="display:none;">${esc(t('dailytype.btn.dtCopy'))}</button>
             </div>`;
 
           const $ = <T extends HTMLElement>(sel: string): T => container.querySelector(sel) as T;
