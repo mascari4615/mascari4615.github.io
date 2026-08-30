@@ -25,6 +25,7 @@ import { CARDS, cardById } from './catalog-meta.generated';
 import { SETUPS, optsFor, chooseOpt } from './setups';
 import { ensureGame, gameById } from './loader';
 import { Match, type MatchView, type SeatSpec } from './kernel';
+import type { GameDef } from './types';
 import { seedFrom } from './rng';
 import { iconOf, kindOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
@@ -1788,6 +1789,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /* 봇의 손버릇, 세기까지 같아야 같은 판이 나온다. 뜸 들이는 시간이 곧 수의 시각이다. */
     let lastPersonas: Record<number, BotPersona> = {};
     let lastLevel: BotLevel = 'normal';
+    /** 판을 만든 규칙 정의 그대로(봇 세기, 고스트까지). 복기와 곁가지는 이걸로 다시 굴려야 같은 판(2026-08-30 실측: 고스트를 빼고 굴려 딴 판이 됐다) */
+    let lastDef: GameDef<unknown, unknown> | null = null;
     /** 이 판을 시작할 때의 내 최고 기록. 결과에 어제 N으로 적는다. */
     let lastBest: number | null = null;
     let tape: Tape<unknown> | null = null;
@@ -2435,6 +2438,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastSeats = withCrew;
       lastPersonas = personas;
       lastLevel = levelNow();
+      lastDef = def as GameDef<unknown, unknown>;
       tape = null;
       endReview(false);
       replaying = false;
@@ -2852,7 +2856,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const g = gameById(gameId);
       if (!g || !tape) return;
       const tp = tape;
-      const m = new Match(withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
+      const m = new Match(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
       const snap = (): MatchView<unknown> => {
         const v = m.view();
         return { ...v, seats: v.seats.map((s) => ({ ...s })) };
@@ -2966,7 +2970,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const g = gameById(gameId);
       if (!g || !tape || !review) return false;
       const tp = tape;
-      const m = new Match(withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
+      const m = new Match(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
       let i = 0;
       for (let guard = 0; guard < 200000 && m.moves < k; guard += 1) {
         while (i < tp.moves.length && tp.moves[i].at <= m.clock() && m.moves < k) {
