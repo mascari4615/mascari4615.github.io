@@ -72,7 +72,7 @@
   "arcade.yacht.roll": "굴리기",
   "arcade.yacht.left": "{n}번 남음",
   "arcade.yacht.total": "합계 {n}",
-  "arcade.yacht.win": "{who}. {n}점",
+  "arcade.yacht.win": "{who} 승리. {n}점",
   "arcade.yacht.draw": "{n}점으로 똑같다",
   "arcade.yacht.cat.ones": "일",
   "arcade.yacht.cat.twos": "이",
@@ -549,5 +549,8 @@
   "arcade.scene.living": "거실",
   "arcade.scene.study": "서재",
   "arcade.scene.bar": "바 카운터",
-  "arcade.yacht.deny.allkept": "굴릴 주사위가 없다. 다시 굴릴 것을 홈에서 내린다"
+  "arcade.yacht.deny.allkept": "굴릴 주사위가 없다. 다시 굴릴 것을 홈에서 내린다",
+  "arcade.yacht.hud.rank": "{n}위",
+  "arcade.yacht.result.upper": "위 합 {n}",
+  "arcade.yacht.result.yacht": "요트!"
 }

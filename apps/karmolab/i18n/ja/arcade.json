@@ -72,7 +72,7 @@
   "arcade.yacht.roll": "振る",
   "arcade.yacht.left": "あと{n}回",
   "arcade.yacht.total": "合計 {n}",
-  "arcade.yacht.win": "{who}. {n}点",
+  "arcade.yacht.win": "{who}の勝ち。{n}点",
   "arcade.yacht.draw": "{n}点で同じ",
   "arcade.yacht.cat.ones": "1の目",
   "arcade.yacht.cat.twos": "2の目",
@@ -549,5 +549,8 @@
   "arcade.scene.living": "居間",
   "arcade.scene.study": "書斎",
   "arcade.scene.bar": "バーカウンター",
-  "arcade.yacht.deny.allkept": "振るサイコロがない。振り直すものを枠から下ろす"
+  "arcade.yacht.deny.allkept": "振るサイコロがない。振り直すものを枠から下ろす",
+  "arcade.yacht.hud.rank": "{n}位",
+  "arcade.yacht.result.upper": "上段 {n}",
+  "arcade.yacht.result.yacht": "ヨット!"
 }

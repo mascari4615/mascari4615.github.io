@@ -85,6 +85,37 @@ export const view3d: GameView<YachtState, YachtAction> = {
       window.setTimeout(() => { if (moods.get(seat) === m) { moods.set(seat, 'calm'); hudKey = ''; if (shown) paintHud(shown, lastFin); } }, ms);
     };
     let lastFin = false;
+    /* 끝의 의식. 순위는 합계로, 같으면 같은 순위 */
+    let ranks: number[] = [];
+    const rankOf = (totals: number[]): number[] => totals.map((tv) => 1 + totals.filter((o) => o > tv).length);
+    /* 결과 종이 아래 내역 한 줄씩. 셸의 결과창(`#acOver`)에 끼워 넣는다. 셸은 순위와 합계만 안다 */
+    const paintResult = (s: YachtState): void => {
+      const over = document.getElementById('acOver');
+      if (!over) return;
+      over.querySelector('#acYcResult')?.remove();
+      const box = document.createElement('div');
+      box.id = 'acYcResult';
+      box.className = 'ac-ycresult';
+      const totals = s.sheet.map((sh) => (sh ? totalOf(sh) : 0));
+      const rk = rankOf(totals);
+      const order = seatNames.map((_, i) => i).sort((a, b) => rk[a] - rk[b] || a - b);
+      box.innerHTML = order.map((i) => {
+        const sh = s.sheet[i];
+        if (!sh) return '';
+        const upper = upperOf(sh);
+        let bestCat: Cat | null = null;
+        for (const c of CATS) if (sh[c] !== null && (bestCat === null || (sh[c] as number) > (sh[bestCat] as number))) bestCat = c;
+        const bits = [
+          t('arcade.yacht.result.upper', { n: String(upper) }) + (upper >= 63 ? ' +35' : ''),
+          sh.yacht ? t('arcade.yacht.result.yacht') : '',
+          bestCat ? t('arcade.yacht.cat.' + bestCat) + ' ' + sh[bestCat] : ''
+        ].filter(Boolean).join(' <i></i> ');
+        return '<div class="ac-ycresrow' + (i === mySeat ? ' ac-me' : '') + (rk[i] === 1 ? ' ac-win' : '') + '"><b>' + esc(t('arcade.yacht.hud.rank', { n: String(rk[i]) })) + '</b><span>' + esc(seatNames[i] ?? '') + '</span><em>' + totals[i] + '</em><small>' + bits + '</small></div>';
+      }).join('');
+      const list = over.querySelector('#acOverList');
+      if (list) list.after(box);
+      else over.appendChild(box);
+    };
     let seatBots: boolean[] = [];
     const bestOpen = (s: YachtState, seat: number): { cat: Cat; n: number } | null => {
       const sheet = s.sheet[seat];
@@ -120,9 +151,10 @@ export const view3d: GameView<YachtState, YachtAction> = {
             : '';
           const cast = castAt(i);
           const face = cast ? '<span class="ac-ychudface">' + faceSvg(cast, cur ? (moods.get(i) ?? 'think') : (moods.get(i) ?? 'calm')) + '</span>' : '';
+          const rank = fin && ranks[i] ? '<i class="ac-ychudrank' + (ranks[i] === 1 ? ' ac-first' : '') + '">' + esc(t('arcade.yacht.hud.rank', { n: String(ranks[i]) })) + '</i>' : '';
           const b = bubbles.get(i);
           const bubble = b ? '<span class="ac-ychudbubble">' + esc(b.text) + '</span>' : '';
-          return '<div class="ac-ychudcard' + (cur ? ' ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + (cast ? ' ac-cast' : '') + '">' + bubble + face +
+          return '<div class="ac-ychudcard' + (cur ? ' ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + (cast ? ' ac-cast' : '') + (fin && ranks[i] === 1 ? ' ac-winner' : '') + '">' + bubble + face + rank +
             '<span class="ac-ychudname">' + esc(name) + (i === mySeat ? ' <small>' + esc(t('arcade.yacht.hud.me')) + '</small>' : seatBots[i] && !cast ? ' <small>' + esc(t('arcade.yacht.hud.bot')) + '</small>' : '') + '</span>' +
             '<b class="ac-ychudscore">' + total + '</b>' + sub + '</div>';
         }).join('');
@@ -365,7 +397,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
         '<button type="button" class="ac-ycclose" aria-label="' + esc(t('arcade.yacht.sheet.close')) + '">×</button>' +
         '</div>' +
         '<table class="ac-yctable"><thead><tr><th></th>' +
-        seatNames.map((n, i) => '<th' + (i === mySeat ? ' class="ac-me"' : '') + (i === s.turn ? ' data-turn="1"' : '') + '>' + esc(n) + '</th>').join('') +
+        seatNames.map((n, i) => '<th' + (i === mySeat ? ' class="ac-me"' : '') + (i === s.turn && !lastFin ? ' data-turn="1"' : '') + (lastFin && ranks[i] === 1 ? ' data-win="1"' : '') + '>' + esc(n) + '</th>').join('') +
         '</tr></thead><tbody>' +
         UPPER.map(row).join('') +
         totalRow(t('arcade.yacht.sheet.upper'), (sh) => upperOf(sh) + ' / 63') +
@@ -572,6 +604,12 @@ export const view3d: GameView<YachtState, YachtAction> = {
         finished = true;
         const totals = s.sheet.map((sh) => (sh ? totalOf(sh) : 0));
         const top = Math.max(...totals);
+        ranks = rankOf(totals);
+        hudKey = '';
+        paintHud(s, true);
+        /* 셸의 결과창은 조금 뒤에 뜬다(판 사이 쉬는 시간). 그 뒤에 내역을 끼운다 */
+        window.setTimeout(() => { if (host.isConnected) paintResult(s); }, 1000);
+        window.setTimeout(() => { if (host.isConnected) paintResult(s); }, 2500);
         seatNames.forEach((_, i) => { if (i !== mySeat && castAt(i)) { moodOf(i, totals[i] === top ? 'glad' : 'sad', 8000); window.setTimeout(() => castSay(i, totals[i] === top ? 'win' : 'lose'), 600 + i * 500); } });
         if (autoTimer) window.clearTimeout(autoTimer);
         autoTimer = 0;

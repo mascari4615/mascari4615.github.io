@@ -72,7 +72,7 @@
   "arcade.yacht.roll": "Roll",
   "arcade.yacht.left": "{n} left",
   "arcade.yacht.total": "Total {n}",
-  "arcade.yacht.win": "{who}. {n} points",
+  "arcade.yacht.win": "{who} wins. {n}",
   "arcade.yacht.draw": "Tied at {n}",
   "arcade.yacht.cat.ones": "Ones",
   "arcade.yacht.cat.twos": "Twos",
@@ -549,5 +549,8 @@
   "arcade.scene.living": "Living room",
   "arcade.scene.study": "Study",
   "arcade.scene.bar": "Bar counter",
-  "arcade.yacht.deny.allkept": "Nothing to roll. Take dice out of the slots first"
+  "arcade.yacht.deny.allkept": "Nothing to roll. Take dice out of the slots first",
+  "arcade.yacht.hud.rank": "#{n}",
+  "arcade.yacht.result.upper": "Upper {n}",
+  "arcade.yacht.result.yacht": "Yacht!"
 }
