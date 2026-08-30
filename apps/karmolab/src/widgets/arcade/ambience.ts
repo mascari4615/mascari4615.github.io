@@ -116,19 +116,22 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
     }
   };
 
-  /* 빗방울 한 알. 15ms 잡음을 좁은 대역으로. 창틀에 떨어지는 건 높고, 처마 밑은 낮다 */
+  /* 창에 듣는 물방울 한 알. 잡음이 아니라 사인 음. 높이가 빠르게 위로 미끄러지는 짧은 "핑" (물방울 소리의 원리) */
   const drop = (out: AudioNode, at: number): void => {
     const c = ctx as AudioContext;
-    const src = noise(c);
-    const f = filter(c, 'bandpass', 1400 + Math.random() * 3800, 6);
+    const o = c.createOscillator();
+    o.type = 'sine';
+    const f = 900 + Math.random() * 1800;
+    o.frequency.setValueAtTime(f, at);
+    o.frequency.exponentialRampToValueAtTime(f * 1.8, at + 0.04);
     const g = c.createGain();
-    const level = 0.006 + Math.random() * 0.02;
+    const level = 0.004 + Math.random() * 0.012;
     g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(level, at + 0.003);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.02 + Math.random() * 0.03);
-    src.connect(f).connect(g).connect(out);
-    src.start(at, Math.random() * 3.5);
-    src.stop(at + 0.07);
+    g.gain.exponentialRampToValueAtTime(level, at + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.05 + Math.random() * 0.06);
+    o.connect(g).connect(out);
+    o.start(at);
+    o.stop(at + 0.13);
   };
 
   const chime = (out: AudioNode): void => {
@@ -190,22 +193,9 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
       /* 거실은 창밖 새와 옅은 바람. 매미도 비도 없다 */
       windGain.gain.value = 0.07;
     } else {
-      /* 비. 2600Hz 위 흰 잡음을 그대로 깔았더니 TV 신호 끊긴 소리였다(2026-08-30 사용자 지적).
-         빗발은 멀리서 들리는 낮은 쏴 소리(600~1800Hz 대역)를 옅게, 그 위에 낱개 빗방울(아래 `drop`) */
-      const rain = noise(c);
-      const band = filter(c, 'bandpass', 1100, 0.5);
-      const rg = c.createGain();
-      rg.gain.value = 0.05;
-      const rl = c.createOscillator();
-      rl.frequency.value = 0.05;
-      const rd = c.createGain();
-      rd.gain.value = 0.012;
-      rl.connect(rd).connect(rg.gain);
-      rain.connect(band).connect(rg).connect(master);
-      rain.start();
-      rl.start();
-      started.push(rain, rl);
-      windGain.gain.value = 0.05;
+      /* 서재는 잡음 없음. 흰 잡음으로 만든 비는 어떻게 걸러도 TV 신호 끊긴 소리
+         (2026-08-30 사용자 지적 2회). 벽시계 초침과 창에 듣는 물방울(사인 음)만. 바람도 거의 끔 */
+      windGain.gain.value = 0.015;
     }
 
     /* 시간표. 매미는 몇 초에 한 번 울고, 풍경은 드문드문. 주인이 문서에서 빠지면 끈다 */
@@ -232,8 +222,8 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
           tick();
           nextChime = now + 1;
         }
-        /* 다음 0.5초 안에 빗방울 6~12알. 고른 간격이면 기계음이라 자리는 난수 */
-        const count = 6 + Math.floor(Math.random() * 7);
+        /* 다음 0.5초 안에 물방울 0~2알. 드문드문. 고른 간격이면 기계음이라 자리는 난수 */
+        const count = Math.floor(Math.random() * 3);
         for (let k = 0; k < count; k += 1) drop(master as GainNode, now + Math.random() * 0.5);
       }
       if (voice === 'living' && now >= nextChime) {
