@@ -51,7 +51,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
       </div>
       <div id="ntFacts" class="tool-list" style="margin-top:12px;"></div>
-      <div id="ntClash" style="display:none; padding:10px; border-radius:10px; margin:10px 0;"></div>
+      <div id="ntClash" style="display:none; padding:10px; border-radius:var(--radius-xl); margin:10px 0;"></div>
       <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin:10px 0;">
         <div>
           <label class="field-label" for="ntPrefix">${esc(t('nettool.label.split'))}</label>

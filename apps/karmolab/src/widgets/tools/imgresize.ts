@@ -149,7 +149,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </div>
 
             <div class="cc-stats" id="irStats"></div>
-            <img id="irPreview" alt="바뀐 사진 미리보기" style="max-width:100%; border-radius:10px; display:none; margin-bottom:var(--space-lg);">
+            <img id="irPreview" alt="바뀐 사진 미리보기" style="max-width:100%; border-radius:var(--radius-xl); display:none; margin-bottom:var(--space-lg);">
 
             <div class="tool-actions">
               <button class="btn btn-primary" id="irRun" disabled>${esc(t('imgresize.btn.run'))}</button>

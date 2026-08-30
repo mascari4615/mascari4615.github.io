@@ -54,7 +54,7 @@ import { attachMedia } from './shared/media';
             </div>
 
             <div id="vtEditor" style="display:none; margin-top:var(--space-lg);">
-              <video id="vtVideo" playsinline controls style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
+              <video id="vtVideo" playsinline controls style="width:100%; max-height:340px; background:#000; border-radius:var(--radius-lg);"></video>
 
               <div class="tool-section field-group">
                 <div class="tool-sublabel">${esc(t('videotrim.label.range'))} <span id="vtRangeLabel" class="range-value">${esc(t('videotrim.value.range'))}</span></div>
@@ -81,7 +81,7 @@ import { attachMedia } from './shared/media';
 
               <div id="vtResult" style="display:none;">
                 <div class="tool-sublabel">${esc(t('videotrim.label.result'))}</div>
-                <video id="vtPreview" controls playsinline style="width:100%; max-height:280px; background:#000; border-radius:8px;"></video>
+                <video id="vtPreview" controls playsinline style="width:100%; max-height:280px; background:#000; border-radius:var(--radius-lg);"></video>
               </div>
             </div>
 

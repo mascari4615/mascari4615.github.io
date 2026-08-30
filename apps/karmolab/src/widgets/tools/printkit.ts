@@ -83,7 +83,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
         <button class="btn btn-primary" id="prPdf">${esc(t('printkit.btn.pdf'))}</button>
       </div>
-      <div id="prPreview" style="overflow:auto; background:rgba(128,128,128,.06); border-radius:10px; padding:10px;"></div>
+      <div id="prPreview" style="overflow:auto; background:rgba(128,128,128,.06); border-radius:var(--radius-xl); padding:10px;"></div>
       <div class="tool-status" id="prStatus">${esc(t('printkit.status.idle'))}</div>
       <p class="tool-hint">${esc(t('printkit.note.margin'))}</p>
     `;

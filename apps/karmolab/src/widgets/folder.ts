@@ -84,7 +84,7 @@ import { t, loadNamespace } from '../lib/i18n';
             if (count >= MAX_WINDOWS) {
               if (count === MAX_WINDOWS) {
                 desktop.innerHTML =
-                  '<div style="background:#0000AA; color:#fff; width:100%; height:100%; padding:20px; font-family:monospace; font-size:14px; font-weight:bold;">A fatal exception 0E has occurred at 0028:C0011E36.<br>System memory depleted.<br><br>* Press any key to terminate the current application.<br>* Press CTRL+ALT+DEL to restart your computer.<br>* You will lose any unsaved information in all applications.</div>';
+                  '<div style="background:#0000AA; color:#fff; width:100%; height:100%; padding:20px; font-family:monospace; font-size:var(--font-size-xs); font-weight:bold;">A fatal exception 0E has occurred at 0028:C0011E36.<br>System memory depleted.<br><br>* Press any key to terminate the current application.<br>* Press CTRL+ALT+DEL to restart your computer.<br>* You will lose any unsaved information in all applications.</div>';
                 count++;
               }
               return;

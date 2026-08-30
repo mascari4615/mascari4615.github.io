@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </div>
 
             <div id="vcEditor" style="display:none; margin-top:var(--space-lg);">
-              <video id="vcVideo" playsinline muted style="width:100%; max-height:300px; background:#000; border-radius:8px;"></video>
+              <video id="vcVideo" playsinline muted style="width:100%; max-height:300px; background:#000; border-radius:var(--radius-lg);"></video>
 
               <div class="tool-section field-group">
                 <div class="tool-grid-2">
@@ -86,7 +86,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
               <div id="vcResult" style="display:none;">
                 <div class="tool-sublabel">${esc(t('videocompress.label.result'))}</div>
-                <video id="vcPreview" controls playsinline style="width:100%; max-height:280px; background:#000; border-radius:8px;"></video>
+                <video id="vcPreview" controls playsinline style="width:100%; max-height:280px; background:#000; border-radius:var(--radius-lg);"></video>
               </div>
             </div>
 

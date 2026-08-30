@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../lib/i18n';
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; padding:20px; height:380px; box-sizing:border-box; overflow:hidden;">
                     <div style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:8px;">${esc(t('hourglass.t01'))}</div>
-                    <canvas id="hourglassCanvas" style="flex:1; background:#0a0a0c; border-radius:8px;"></canvas>
+                    <canvas id="hourglassCanvas" style="flex:1; background:#0a0a0c; border-radius:var(--radius-lg);"></canvas>
                 </div>
             `;
           const canvasEl = container.querySelector('#hourglassCanvas') as HTMLCanvasElement | null;

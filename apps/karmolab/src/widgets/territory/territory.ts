@@ -146,7 +146,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
 .terr-bar{position:absolute;top:calc(10px + var(--terr-head));left:var(--terr-side);right:16px;z-index:4;
   display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
 .terr-chip{appearance:none;border:1px solid rgba(255,255,255,.16);background:rgba(10,14,22,.55);
-  color:rgba(255,255,255,.58);font-size:12px;line-height:1;padding:7px 11px;border-radius:999px;
+  color:rgba(255,255,255,.58);font-size:var(--font-size-2xs);line-height:1;padding:7px 11px;border-radius:var(--radius-pill);
   cursor:pointer;backdrop-filter:blur(6px);}
 .terr-chip:hover{border-color:rgba(255,255,255,.4);}
 .terr-chip[aria-pressed="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);background:rgba(30,52,96,.55);}
@@ -156,21 +156,21 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
   background:rgba(10,14,22,.62);backdrop-filter:blur(7px);border:1px solid rgba(255,255,255,.09);
   border-radius:var(--radius-md,12px);padding:10px 12px;pointer-events:none;}
 .terr-row{display:grid;grid-template-columns:11px 1fr auto;gap:8px;align-items:center;
-  padding:3px 0;font-size:12px;color:#e6ebf3;}
-.terr-sw{width:11px;height:11px;border-radius:3px;}
-.terr-bararea{position:relative;height:5px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden;}
-.terr-fill{position:absolute;inset:0 auto 0 0;border-radius:3px;}
-.terr-pct{font-family:var(--font-mono,ui-monospace,monospace);font-size:11px;color:rgba(255,255,255,.72);
+  padding:3px 0;font-size:var(--font-size-2xs);color:#e6ebf3;}
+.terr-sw{width:11px;height:11px;border-radius:var(--radius-sm);}
+.terr-bararea{position:relative;height:5px;border-radius:var(--radius-sm);background:rgba(255,255,255,.09);overflow:hidden;}
+.terr-fill{position:absolute;inset:0 auto 0 0;border-radius:var(--radius-sm);}
+.terr-pct{font-family:var(--font-mono,ui-monospace,monospace);font-size:var(--font-size-3xs);color:rgba(255,255,255,.72);
   font-variant-numeric:tabular-nums;}
-.terr-name{font-size:11px;color:rgba(255,255,255,.82);margin-bottom:2px;}
+.terr-name{font-size:var(--font-size-3xs);color:rgba(255,255,255,.82);margin-bottom:2px;}
 /* 아래 한 줄. 숫자를 늘어놓지 않고 문장으로 말한다. */
 .terr-note{position:absolute;left:var(--terr-side);right:16px;bottom:0;z-index:3;padding:0 2px 12px;
-  font-size:13px;line-height:1.55;color:#dbe3f0;pointer-events:none;text-shadow:0 1px 10px rgba(0,0,0,.8);}
+  font-size:var(--font-size-2xs);line-height:1.55;color:#dbe3f0;pointer-events:none;text-shadow:0 1px 10px rgba(0,0,0,.8);}
 .terr-warn{color:#ffc98a;}
 @media (max-width:520px){
   .terr-wrap{--terr-side:10px;}
   .terr-legend{right:10px;bottom:64px;max-width:none;}
-  .terr-note{font-size:12px;}
+  .terr-note{font-size:var(--font-size-2xs);}
 }`;
 
   function render(container: HTMLElement): void {
@@ -851,7 +851,7 @@ import { buildGrid, nearest, share, type Grid, type Industry, type Store } from 
             ? esc(t('territory.msg.electionHint', undefined, '구마다 1등이 통째로 가져간다. 진할수록 격차가 크고, 옅으면 접전이다.'))
             : esc(t('territory.msg.hint', undefined, '색은 그 자리에서 가장 가까운 가게의 브랜드다. 끌어서 옮기고 굴려서 확대한다.'))) +
         '</div>' +
-        '<div style="opacity:.62;font-size:11px;margin-top:2px">' +
+        '<div style="opacity:.62;font-size:var(--font-size-3xs);margin-top:2px">' +
         esc(loaded.meta.source) + ', ' + total.toLocaleString('ko-KR') + esc(t('territory.msg.stores', undefined, '곳')) +
         ', ' + esc(t('territory.msg.boundary', undefined, '경계: 통계청 시군구(2018)')) +
         (loaded.meta.sample

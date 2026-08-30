@@ -134,7 +134,7 @@ function noteStale(response: Response): void {
     note.textContent = t('account.t04');
     note.style.cssText =
         'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
-        'padding:8px 14px;border-radius:999px;font-size:12px;' +
+        'padding:8px 14px;border-radius:var(--radius-pill);font-size:var(--font-size-2xs);' +
         'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
         'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
     document.body.appendChild(note);
@@ -178,7 +178,7 @@ function offlineNote(show: boolean): void {
         );
         note.style.cssText =
             'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
-            'padding:8px 14px;border-radius:999px;font-size:12px;' +
+            'padding:8px 14px;border-radius:var(--radius-pill);font-size:var(--font-size-2xs);' +
             'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
             'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
         document.body.appendChild(note);
@@ -335,7 +335,7 @@ function loginNote(text: string | null): void {
         note.textContent = text;
         note.style.cssText =
             'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
-            'padding:8px 14px;border-radius:999px;font-size:12px;' +
+            'padding:8px 14px;border-radius:var(--radius-pill);font-size:var(--font-size-2xs);' +
             'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
             'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
         document.body.appendChild(note);
@@ -842,34 +842,34 @@ function bellStyle(): void {
         '  color:var(--text-secondary); cursor:pointer; }',
         '.kl-bell-btn:hover { color:var(--text-primary); border-color:var(--accent); }',
         '.kl-bell-dot { position:absolute; top:-3px; right:-3px; min-width:16px; height:16px; padding:0 4px;',
-        '  border-radius:999px; background:var(--accent); color:var(--bg-primary);',
-        '  font-size:10px; line-height:16px; font-weight:700; }',
+        '  border-radius:var(--radius-pill); background:var(--accent); color:var(--bg-primary);',
+        '  font-size:var(--font-size-4xs); line-height:16px; font-weight:700; }',
         '.kl-bell-panel { position:absolute; top:38px; right:0; width:300px; max-height:60vh; overflow-y:auto;',
-        '  background:var(--bg-secondary); border:1px solid var(--border); border-radius:10px;',
+        '  background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-xl);',
         '  box-shadow:0 8px 24px rgba(0,0,0,.35); z-index:60; }',
         '.kl-bell-head { display:flex; align-items:center; justify-content:space-between;',
-        '  padding:10px 12px; border-bottom:1px solid var(--border); font-size:12px; color:var(--text-secondary); }',
-        '.kl-bell-head button { background:none; border:0; color:var(--accent); font:inherit; font-size:11px; cursor:pointer; }',
+        '  padding:10px 12px; border-bottom:1px solid var(--border); font-size:var(--font-size-2xs); color:var(--text-secondary); }',
+        '.kl-bell-head button { background:none; border:0; color:var(--accent); font:inherit; font-size:var(--font-size-3xs); cursor:pointer; }',
         '.kl-bell-item { display:block; width:100%; text-align:left; padding:10px 12px; background:none;',
         '  border:0; border-top:1px solid var(--border); cursor:pointer; font:inherit; }',
         '.kl-bell-item:hover { background:var(--bg-tertiary); }',
         '.kl-bell-item[data-unread="1"] { background:var(--accent-dim); }',
-        '.kl-bell-title { display:block; font-size:12px; color:var(--text-primary); }',
-        '.kl-bell-body { display:block; margin-top:2px; font-size:11px; color:var(--text-tertiary);',
+        '.kl-bell-title { display:block; font-size:var(--font-size-2xs); color:var(--text-primary); }',
+        '.kl-bell-body { display:block; margin-top:2px; font-size:var(--font-size-3xs); color:var(--text-tertiary);',
         '  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
-        '.kl-bell-empty { padding:22px 12px; text-align:center; font-size:12px; color:var(--text-tertiary); }',
+        '.kl-bell-empty { padding:22px 12px; text-align:center; font-size:var(--font-size-2xs); color:var(--text-tertiary); }',
         // 어디로 받을 것인가 (KL-157). 목록 아래에 붙여 알림을 볼 때마다 눈에 들어오게.
         '.kl-bell-dm { display:block; width:100%; padding:9px 12px; border:none; border-top:1px solid var(--border);',
-        '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:12px; text-align:left; cursor:pointer; }',
+        '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:var(--font-size-2xs); text-align:left; cursor:pointer; }',
         '.kl-bell-dm:hover { color:var(--text-primary); }',
         '.kl-bell-dm[data-on="1"] { color:var(--accent); }',
         // 갈래 고르기 + 지난 것 더 보기 (TASK-KL-191 축7)
         '.kl-bell-tabs { display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid var(--border); flex-wrap:wrap; }',
-        '.kl-bell-tab { padding:3px 9px; border-radius:999px; border:1px solid var(--border); background:transparent;',
-        '  color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }',
+        '.kl-bell-tab { padding:3px 9px; border-radius:var(--radius-pill); border:1px solid var(--border); background:transparent;',
+        '  color:var(--text-tertiary); font:inherit; font-size:var(--font-size-3xs); cursor:pointer; }',
         '.kl-bell-tab[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); }',
         '.kl-bell-more { display:block; width:100%; padding:9px 12px; border:0; border-top:1px solid var(--border);',
-        '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }',
+        '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:var(--font-size-3xs); cursor:pointer; }',
         '.kl-bell-more:hover { color:var(--text-primary); }',
     ].join('\n');
     document.head.appendChild(style);

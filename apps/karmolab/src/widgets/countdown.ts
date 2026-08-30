@@ -21,13 +21,13 @@ import { t, loadNamespace } from '../lib/i18n';
           Mdd.linePreset('tool_run', { msg: t('countdown.t12') });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; gap:20px; text-align:center; padding-top:40px;">
-                        <div style="font-size:14px; color:var(--text-secondary);">${esc(t('countdown.t01'))}</div>
+                        <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('countdown.t01'))}</div>
                         <div id="countdownMs" style="font-size:54px; font-variant-numeric: tabular-nums; font-family:monospace; font-weight:900; color:var(--accent); text-shadow:0 0 10px rgba(100,100,250,0.4); letter-spacing:-2px;">0000000000</div>
                         <div style="display:flex; gap:12px; margin-top:20px; align-items:center;">
                             <span style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('countdown.t02'))}</span>
                             <input type="datetime-local" id="countdownTarget" class="input" style="width:200px; padding:6px; font-size:var(--font-size-sm);">
                         </div>
-                        <div style="margin-top:15px; font-size:var(--font-size-xs); color:var(--text-tertiary); display:grid; grid-template-columns:1fr; gap:6px; text-align:left; background:var(--bg-secondary); border:1px solid var(--border); padding:15px; border-radius:8px; width:100%; max-width:350px;">
+                        <div style="margin-top:15px; font-size:var(--font-size-xs); color:var(--text-tertiary); display:grid; grid-template-columns:1fr; gap:6px; text-align:left; background:var(--bg-secondary); border:1px solid var(--border); padding:15px; border-radius:var(--radius-lg); width:100%; max-width:350px;">
                             <div style="font-weight:bold; margin-bottom:4px; color:var(--text-secondary); text-align:center;">${esc(t('countdown.t03'))}</div>
                             <div style="display:flex; justify-content:space-between;"><span>${esc(t('countdown.t04'))}</span> <span>60,000 ms</span></div>
                             <div style="display:flex; justify-content:space-between;"><span>${esc(t('countdown.t05'))}</span> <span>3,600,000 ms</span></div>

@@ -64,7 +64,7 @@ const esc = (v: unknown): string =>
             display:flex; flex-direction:row; align-items:center; justify-content:flex-start; gap:8px;
             padding:0 6px 0 0; border:1px solid transparent; border-radius:var(--radius-sm); background:none;
             color:var(--text-tertiary); cursor:pointer; transition:color var(--transition), background var(--transition), border-color var(--transition), justify-content var(--transition-slow, 350ms ease);
-            font-size:16px; font-family:inherit; text-align:left;
+            font-size:var(--font-size-sm); font-family:inherit; text-align:left;
         }
         .ie-tools:not(:hover):not(:focus-within) .ie-tool-btn {
             justify-content:center; padding-left:0; padding-right:0;
@@ -115,7 +115,7 @@ const esc = (v: unknown): string =>
         .ie-pan-inner #ieCanvas {
             display:block; max-width:min(92vw, 1600px); max-height:min(88vh, 1100px);
             width:auto; height:auto; object-fit:contain;
-            border-radius:2px; box-shadow:0 2px 16px rgba(0,0,0,0.4);
+            border-radius:var(--radius-sm); box-shadow:0 2px 16px rgba(0,0,0,0.4);
         }
         .ie-pan-inner .ie-brush-overlay,
         .ie-pan-inner .ie-caption-overlay,
@@ -128,7 +128,7 @@ const esc = (v: unknown): string =>
             position:absolute; left:8px; top:8px; z-index:6;
             max-width:min(300px, 42vw); max-height:min(220px, 38vh);
             overflow:auto; padding:8px 10px; margin:0;
-            font-size:11px; line-height:1.45; font-family:var(--font-mono, ui-monospace, monospace);
+            font-size:var(--font-size-3xs); line-height:1.45; font-family:var(--font-mono, ui-monospace, monospace);
             color:#f2f2f2; text-align:left; white-space:pre-wrap; word-break:break-word;
             background:rgba(12,12,14,0.92); border:1px solid rgba(255,255,255,0.22);
             border-radius:var(--radius-sm); box-shadow:0 4px 18px rgba(0,0,0,0.45);
@@ -174,7 +174,7 @@ const esc = (v: unknown): string =>
         }
         .ie-cv-lb-btn-row { display:flex; flex-wrap:wrap; gap:6px; }
         .ie-cv-lb-meta {
-            font-size:11px; font-family:var(--font-mono, ui-monospace, monospace);
+            font-size:var(--font-size-3xs); font-family:var(--font-mono, ui-monospace, monospace);
             color:rgba(255,255,255,0.78); line-height:1.4; white-space:normal; word-break:break-all;
         }
         .ie-cv-lb-btn {
@@ -215,7 +215,7 @@ const esc = (v: unknown): string =>
         }
         .ie-crop-handle {
             position:absolute; width:10px; height:10px; background:var(--accent);
-            border:1px solid #fff; border-radius:2px;
+            border:1px solid #fff; border-radius:var(--radius-sm);
         }
         .ie-crop-handle.nw { top:-5px; left:-5px; cursor:nw-resize; }
         .ie-crop-handle.ne { top:-5px; right:-5px; cursor:ne-resize; }
@@ -274,7 +274,7 @@ const esc = (v: unknown): string =>
         .ie-filter-card:hover { border-color:var(--accent); }
         .ie-filter-card.active { border-color:var(--accent); background:var(--accent-subtle); }
         .ie-filter-thumb {
-            width:48px; height:48px; border-radius:4px; object-fit:cover;
+            width:48px; height:48px; border-radius:var(--radius-sm); object-fit:cover;
             background:var(--bg-primary);
         }
         .ie-filter-name { font-size:var(--font-size-2xs); color:var(--text-secondary); text-align:center; }
@@ -289,7 +289,7 @@ const esc = (v: unknown): string =>
         .ie-mask-preview-box {
             display:flex; flex-direction:column; align-items:center;
             max-width:95%; max-height:95%; box-shadow:0 2px 16px rgba(0,0,0,0.4);
-            border-radius:8px; overflow:hidden; background:var(--bg-secondary);
+            border-radius:var(--radius-lg); overflow:hidden; background:var(--bg-secondary);
         }
         .ie-mask-preview-imgwrap {
             position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center;
@@ -317,11 +317,11 @@ const esc = (v: unknown): string =>
             display:flex; align-items:center; gap:10px; padding:10px 12px;
             width:100%; box-sizing:border-box; background:var(--bg-tertiary);
         }
-        .ie-mask-preview-sliderrow span { font-size:11px; color:var(--text-secondary); white-space:nowrap; }
+        .ie-mask-preview-sliderrow span { font-size:var(--font-size-3xs); color:var(--text-secondary); white-space:nowrap; }
         .ie-mask-preview-sliderrow input[type="range"] { flex:1; min-width:80px; accent-color:var(--accent); }
         .ie-mask-preview-close {
             padding:4px 12px; border:none; border-radius:var(--radius-sm);
-            background:var(--accent); color:#fff; cursor:pointer; font-size:12px;
+            background:var(--accent); color:#fff; cursor:pointer; font-size:var(--font-size-2xs);
         }
 
         /* URL dialog */
@@ -335,7 +335,7 @@ const esc = (v: unknown): string =>
             background:var(--bg-secondary); border:1px solid var(--border);
             border-radius:var(--radius-lg); padding:24px; width:400px; max-width:90vw;
         }
-        .ie-url-dialog-title { font-size:14px; font-weight:600; margin-bottom:12px; }
+        .ie-url-dialog-title { font-size:var(--font-size-xs); font-weight:600; margin-bottom:12px; }
         .ie-url-dialog-input {
             width:100%; padding:8px 12px; font-size:var(--font-size-xs); border:1px solid var(--border);
             border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-primary);
@@ -355,7 +355,7 @@ const esc = (v: unknown): string =>
             border-radius:var(--radius-lg); padding:24px; width:560px; max-width:92vw; max-height:80vh;
             display:flex; flex-direction:column;
         }
-        .ie-lib-dialog-title { font-size:14px; font-weight:600; margin-bottom:12px; }
+        .ie-lib-dialog-title { font-size:var(--font-size-xs); font-weight:600; margin-bottom:12px; }
         .ie-lib-grid {
             display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr));
             gap:8px; overflow-y:auto; flex:1; padding:2px;
@@ -373,7 +373,7 @@ const esc = (v: unknown): string =>
             content:'이미지를 여기에 놓으세요'; position:absolute; inset:0;
             display:flex; align-items:center; justify-content:center;
             background:rgba(139,124,246,0.15); border:2px dashed var(--accent);
-            border-radius:var(--radius-md); font-size:14px; color:var(--accent);
+            border-radius:var(--radius-md); font-size:var(--font-size-xs); color:var(--accent);
             font-weight:600; z-index:50; pointer-events:none;
         }
 
@@ -388,7 +388,7 @@ const esc = (v: unknown): string =>
             background:var(--bg-secondary); border:1px solid var(--border);
             border-radius:var(--radius-lg); padding:24px; width:400px; max-width:90vw;
         }
-        .ie-warn-dialog-title { font-size:14px; font-weight:600; margin-bottom:8px; }
+        .ie-warn-dialog-title { font-size:var(--font-size-xs); font-weight:600; margin-bottom:8px; }
         .ie-warn-dialog-text { font-size:var(--font-size-xs); color:var(--text-secondary); margin-bottom:14px; line-height:1.6; }
         .ie-warn-dialog-actions { display:flex; gap:8px; justify-content:flex-end; }
 
@@ -406,10 +406,10 @@ const esc = (v: unknown): string =>
         @keyframes ie-spin { to { transform:rotate(360deg); } }
         .ie-rembg-status { color:#fff; font-size:var(--font-size-sm); font-weight:500; text-align:center; line-height:1.5; }
         .ie-rembg-bar-wrap {
-            width:220px; height:6px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden;
+            width:220px; height:6px; background:rgba(255,255,255,0.15); border-radius:var(--radius-sm); overflow:hidden;
         }
         .ie-rembg-bar {
-            height:100%; background:var(--accent); border-radius:3px; transition:width 0.3s;
+            height:100%; background:var(--accent); border-radius:var(--radius-sm); transition:width 0.3s;
             width:100%; transform-origin:left;
             animation:ie-pulse 1.5s ease-in-out infinite;
         }
@@ -446,7 +446,7 @@ const esc = (v: unknown): string =>
 
         /* Chromakey */
         .ie-chroma-swatch {
-            width:24px; height:24px; border-radius:4px; border:2px solid var(--border);
+            width:24px; height:24px; border-radius:var(--radius-sm); border:2px solid var(--border);
             display:inline-block; vertical-align:middle; background:#888;
         }
 
@@ -467,7 +467,7 @@ const esc = (v: unknown): string =>
             .ie-tool-icon svg { width:16px; height:16px; }
             .ie-tool-label {
                 width:auto; max-width:100%; opacity:1; pointer-events:none;
-                font-size:10px; line-height:1.15; text-align:center; white-space:normal;
+                font-size:var(--font-size-4xs); line-height:1.15; text-align:center; white-space:normal;
                 display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
             }
             .ie-canvas-area { flex-direction:column; }
@@ -2409,7 +2409,7 @@ const esc = (v: unknown): string =>
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
             <span class="ie-opt-label">${esc(t('imageedit.t29'))}</span>
-            <input type="color" id="ieBggColor" value="#ffffff" style="width:40px;height:28px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
+            <input type="color" id="ieBggColor" value="#ffffff" style="width:40px;height:28px;padding:2px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
             <input type="text" id="ieBggColorText" placeholder="${esc(t('imageedit.ph.ieBggColorText'))}" style="width:120px;padding:4px 8px;font-size:var(--font-size-xs);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-primary);" title="${esc(t('imageedit.title.ieBggColorText'))}">
             <span class="ie-toolbar-sep"></span>
             <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
@@ -2914,7 +2914,7 @@ const esc = (v: unknown): string =>
                         <button class="ie-apply-btn" id="ieMaskLoadFile" style="background:#555;">${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
                         <button class="ie-apply-btn" id="ieMaskPaste" style="background:#555;">${esc(t('imageedit.btn.ieMaskPaste'))}</button>
                         <div id="ieMaskPreviewWrap" style="display:none; align-items:center; gap:6px;">
-                            <canvas id="ieMaskPreview" style="max-width:60px; max-height:40px; border:1px solid var(--border); border-radius:4px;"></canvas>
+                            <canvas id="ieMaskPreview" style="max-width:60px; max-height:40px; border:1px solid var(--border); border-radius:var(--radius-sm);"></canvas>
                             <span id="ieMaskInfo" class="ie-opt-label" style="font-size:var(--font-size-xs);"></span>
                         </div>
                         <span class="ie-opt-label">${esc(t('imageedit.t34'))}</span>

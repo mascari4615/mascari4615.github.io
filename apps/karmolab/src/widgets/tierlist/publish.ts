@@ -431,7 +431,7 @@ import { isAppPath } from '../../lib/site-base';
             title: data.kind === 'catalog' ? t('tierlist.t120') : t('tierlist.t121'),
             wide: true,
             bodyHtml: `
-                <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:10px;">
+                <div style="font-size:var(--font-size-2xs); color:var(--text-tertiary); margin-bottom:10px;">
                     ${data.kind === 'catalog'
                         ? t('tierlist.t122')
                         : data.catalogRef

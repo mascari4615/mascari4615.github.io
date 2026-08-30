@@ -121,6 +121,6 @@ function once(): void {
   el.textContent =
     '.kl-batch[hidden]{display:none;}' +
     '.kl-batch{display:flex;flex-direction:column;gap:6px;margin:8px 0;}' +
-    '.kl-batch-fails{white-space:pre-wrap;font-size:12px;line-height:1.5;opacity:.85;}';
+    '.kl-batch-fails{white-space:pre-wrap;font-size:var(--font-size-2xs);line-height:1.5;opacity:.85;}';
   document.head.appendChild(el);
 }

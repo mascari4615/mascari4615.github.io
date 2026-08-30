@@ -325,7 +325,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-lede { margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); flex: 1 1 240px; }
       .myai-actions { display: flex; align-items: center; gap: 8px; }
       /* 남음 ⟷ 사용 = 같은 수치의 다른 표현. 새로고침 옆에 붙여 보기 묶음으로 읽히게. */
-      .myai-modes { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+      .myai-modes { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; }
       .myai-mode { appearance: none; background: transparent; border: 0; color: var(--text-secondary); font-size: var(--font-size-2xs); padding: 4px 11px; cursor: pointer; }
       .myai-mode + .myai-mode { border-left: 1px solid var(--border); }
       .myai-mode--on { background: var(--accent, #a99bf5); color: var(--bg-primary); font-weight: 600; }
@@ -335,7 +335,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
       .myai-vendor { margin: 0; font-size: var(--font-size-md); font-weight: 700; letter-spacing: 0.01em; }
       .myai-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-      .myai-chip { font-size: var(--font-size-2xs); padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap; }
+      .myai-chip { font-size: var(--font-size-2xs); padding: 2px 7px; border-radius: var(--radius-pill); border: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap; }
       .myai-chip--live { border-color: var(--success); color: var(--success); }
       .myai-chip--stale { border-style: dashed; cursor: help; }
       .myai-chip--plan { text-transform: uppercase; letter-spacing: 0.04em; }
@@ -345,8 +345,8 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-gauge { display: flex; flex-direction: column; gap: 5px; }
       .myai-gauge-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: var(--font-size-sm); }
       .myai-left { font-variant-numeric: tabular-nums; }
-      .myai-bar { position: relative; height: 8px; border-radius: 999px; background: var(--bg-tertiary); overflow: hidden; }
-      .myai-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; transition: width 0.3s ease; }
+      .myai-bar { position: relative; height: 8px; border-radius: var(--radius-pill); background: var(--bg-tertiary); overflow: hidden; }
+      .myai-bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); transition: width 0.3s ease; }
       .myai-bar-fill--ok { background: var(--success); }
       .myai-bar-fill--warn { background: var(--warning); }
       .myai-bar-fill--danger { background: var(--error); }
@@ -519,7 +519,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .myai-env-table tbody th { width:24%; }
       .myai-env-table strong, .myai-env-table small { display:block; }
       .myai-env-table small { margin-top:4px; color:var(--text-tertiary); font-size:var(--font-size-2xs); line-height:1.35; }
-      .myai-env-state { display:inline-block; border:1px solid var(--border); border-radius:999px; padding:2px 7px; font-size:var(--font-size-2xs); }
+      .myai-env-state { display:inline-block; border:1px solid var(--border); border-radius:var(--radius-pill); padding:2px 7px; font-size:var(--font-size-2xs); }
       .myai-env-state--applied { color:var(--success); border-color:var(--success); }
       .myai-env-state--partial { color:var(--warning); border-color:var(--warning); }
       .myai-env-state--missing { color:var(--error); border-color:var(--error); }

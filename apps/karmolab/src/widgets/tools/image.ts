@@ -282,11 +282,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     const el = document.createElement('style');
     el.textContent = `
 .im-shot{appearance:none;padding:6px;width:100%;cursor:zoom-in;line-height:0;
-  border:1px solid rgba(128,128,128,.28);border-radius:10px;background:
+  border:1px solid rgba(128,128,128,.28);border-radius:var(--radius-xl);background:
   repeating-conic-gradient(rgba(128,128,128,.14) 0% 25%, transparent 0% 50%) 50%/16px 16px;}
 .im-shot:hover{border-color:rgba(128,160,255,.7);}
 .im-shot-img{width:100%;height:auto;max-height:56vh;object-fit:contain;}
-.im-cmp{position:relative;width:100%;overflow:hidden;border-radius:10px;cursor:ew-resize;
+.im-cmp{position:relative;width:100%;overflow:hidden;border-radius:var(--radius-xl);cursor:ew-resize;
   border:1px solid rgba(128,128,128,.28);line-height:0;background:#111;}
 .im-cmp img{width:100%;height:auto;max-height:56vh;object-fit:contain;display:block;}
 .im-cmp-clip{position:absolute;inset:0;width:50%;overflow:hidden;}
@@ -295,7 +295,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .im-cmp-clip img{width:var(--cw,100%);max-width:none;}
 .im-cmp-b{position:absolute;left:0;top:0;}
 .im-cmp-bar{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.6);}
-.im-cmp-tag{position:absolute;bottom:6px;font-size:11px;line-height:1;padding:3px 6px;border-radius:5px;
+.im-cmp-tag{position:absolute;bottom:6px;font-size:var(--font-size-3xs);line-height:1;padding:3px 6px;border-radius:var(--radius-md);
   background:rgba(0,0,0,.66);color:#fff;pointer-events:none;}
 .im-cmp-tag-a{right:6px;}
 .im-cmp-tag-b{left:6px;}
@@ -303,7 +303,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   display:flex;align-items:center;justify-content:center;padding:16px;}
 .im-zoom-inner{position:relative;max-width:100%;}
 .im-zoom-inner img{max-width:100%;max-height:84vh;height:auto;}
-.im-zoom-tag{position:absolute;left:0;top:-22px;font-size:12px;color:#fff;opacity:.8;}
+.im-zoom-tag{position:absolute;left:0;top:-22px;font-size:var(--font-size-2xs);color:#fff;opacity:.8;}
 `;
     document.head.appendChild(el);
   }

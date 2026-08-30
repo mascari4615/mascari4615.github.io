@@ -117,15 +117,15 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
       const card = (photo: Photo, keep: boolean): string =>
         '<figure style="margin:0; text-align:center; opacity:' + (keep ? '1' : '.65') + ';">' +
-        '<img src="' + esc(thumbs.get(photo.name) ?? '') + '" alt="' + esc(photo.name) + '" style="max-width:120px; border-radius:8px; border:2px solid ' + (keep ? 'var(--success)' : 'transparent') + ';">' +
-        '<figcaption style="font-size:11px; margin-top:4px;">' + esc(photo.name) + '<br><span style="opacity:.6">' + esc(human(photo.size)) + '</span>' +
+        '<img src="' + esc(thumbs.get(photo.name) ?? '') + '" alt="' + esc(photo.name) + '" style="max-width:120px; border-radius:var(--radius-lg); border:2px solid ' + (keep ? 'var(--success)' : 'transparent') + ';">' +
+        '<figcaption style="font-size:var(--font-size-3xs); margin-top:4px;">' + esc(photo.name) + '<br><span style="opacity:.6">' + esc(human(photo.size)) + '</span>' +
         (keep ? '<br><b style="color:var(--success)">' + esc(t('dupphoto.keep')) + '</b>' : '') +
         '</figcaption></figure>';
 
       $<HTMLElement>('#dpGroups').innerHTML = groups
         .map(
           (g) =>
-            '<div style="border:1px solid rgba(128,128,128,.24); border-radius:10px; padding:10px; margin-bottom:10px;">' +
+            '<div style="border:1px solid rgba(128,128,128,.24); border-radius:var(--radius-xl); padding:10px; margin-bottom:10px;">' +
             '<div class="tool-sublabel">' + esc(t('dupphoto.group', { n: g.others.length + 1, saved: human(g.saved) })) + '</div>' +
             '<div style="display:flex; gap:10px; flex-wrap:wrap;">' + card(g.keep, true) + g.others.map((p) => card(p, false)).join('') + '</div></div>'
         )

@@ -141,7 +141,7 @@ interface WellPack {
                 if (!root.isConnected) return;
                 // 우물이 안 열려도 내 표 만들기는 멀쩡하다. 막다른 길로 두지 않는다.
                 list.innerHTML =
-                  `<div style="padding:14px 16px;border:1px solid var(--border);border-radius:12px;color:var(--text-secondary);` +
+                  `<div style="padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-xl);color:var(--text-secondary);` +
                   `font-size:var(--font-size-sm);line-height:1.7;">${esc(t('packwell.t05'))}<br>` +
                   `<a class="btn btn-ghost" style="margin-top:10px;" href="${appHash('packs')}">${esc(t('packwell.t06'))}</a></div>`;
               });
@@ -223,7 +223,7 @@ interface WellPack {
               const already = loadPacks().filter((p) => p.well === pack.well || p.title === pack.title)[0];
 
               view.innerHTML =
-                `<div style="border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;">` +
+                `<div style="border:1px solid var(--border);border-radius:var(--radius-xl);padding:16px;display:flex;flex-direction:column;gap:14px;">` +
                 `<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">` +
                 `<b style="font-size:var(--font-size-lg);">${esc(pack.emoji)} ${esc(pack.title)}</b>` +
                 `<span style="font-size:var(--font-size-xs);color:var(--text-tertiary);">` +
@@ -238,7 +238,7 @@ interface WellPack {
                 pack.fields
                   .map(
                     (f) =>
-                      `<span style="padding:3px 9px;border-radius:100px;background:var(--bg-tertiary);border:1px solid var(--border);` +
+                      `<span style="padding:3px 9px;border-radius:var(--radius-pill);background:var(--bg-tertiary);border:1px solid var(--border);` +
                       `font-size:var(--font-size-xs);color:var(--text-secondary);">${esc(f.label)}${f.unit ? ` (${esc(f.unit)})` : ''}</span>`,
                   )
                   .join('') +
@@ -250,7 +250,7 @@ interface WellPack {
                       `<div style="display:flex;flex-direction:column;gap:5px;min-width:0;">` +
                       (it.img
                         ? `<img src="${esc(String(it.img))}" alt="" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:cover;` +
-                          `border-radius:8px;background:var(--bg-tertiary);">`
+                          `border-radius:var(--radius-lg);background:var(--bg-tertiary);">`
                         : '') +
                       `<span style="font-size:var(--font-size-xs);color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;` +
                       `white-space:nowrap;">${esc(it.name)}</span></div>`,
@@ -294,7 +294,7 @@ interface WellPack {
                       .map((r) => {
                         const up = r.changePct > 0;
                         return (
-                          `<span style="padding:3px 9px;border-radius:100px;border:1px solid var(--border);` +
+                          `<span style="padding:3px 9px;border-radius:var(--radius-pill);border:1px solid var(--border);` +
                           `font-size:var(--font-size-xs);color:var(--text-secondary);">` +
                           `${up ? '▲' : '▼'} ${esc(r.name)} ${Math.abs(r.changePct)}%` +
                           `${r.rankDelta ? ` <span style="opacity:.7">${t('packwell.rankDelta', { n: Math.abs(r.rankDelta) })}</span>` : ''}</span>`
@@ -483,7 +483,7 @@ interface WellPack {
                 }
                 const pack = body.pack;
                 view.innerHTML =
-                  `<div style="border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">` +
+                  `<div style="border:1px solid var(--border);border-radius:var(--radius-xl);padding:16px;display:flex;flex-direction:column;gap:12px;">` +
                   `<b>${esc(pack.emoji)} ${esc(pack.title)}, ${t('packwell.count', { n: pack.items.length })}</b>` +
                   `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">` +
                   pack.items
@@ -493,7 +493,7 @@ interface WellPack {
                         `<div style="display:flex;flex-direction:column;gap:5px;min-width:0;">` +
                         (it.img
                           ? `<img src="${esc(String(it.img))}" alt="" loading="lazy" style="width:100%;aspect-ratio:92/43;` +
-                            `object-fit:cover;border-radius:8px;background:var(--bg-tertiary);">`
+                            `object-fit:cover;border-radius:var(--radius-lg);background:var(--bg-tertiary);">`
                           : '') +
                         `<span style="font-size:var(--font-size-xs);color:var(--text-secondary);overflow:hidden;` +
                         `text-overflow:ellipsis;white-space:nowrap;">${esc(it.name)}</span></div>`,

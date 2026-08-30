@@ -85,7 +85,7 @@ import {
         </label>
         <button class="btn btn-ghost" id="brSave">${esc(t('bgremove.btn.save'))}</button>
       </div>
-      <div id="brAiPanel" style="display:none; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin:10px 0;">
+      <div id="brAiPanel" style="display:none; border:1px solid var(--border); border-radius:var(--radius-xl); padding:10px 12px; margin:10px 0;">
         <div class="tool-sublabel">${esc(t('bgremove.ai.title'))}</div>
         <div style="display:flex; gap:8px; margin:8px 0; flex-wrap:wrap;">
           <button class="btn btn-ghost" id="brAiPerson">${esc(t('bgremove.ai.person'))}</button>
@@ -94,7 +94,7 @@ import {
         <div class="tool-status" id="brAiSay"></div>
         <p class="tool-hint" id="brAiLicense"></p>
       </div>
-      <div style="background-image:linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%),linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%); background-size:16px 16px; background-position:0 0,8px 8px; border-radius:10px; padding:8px; overflow:auto;">
+      <div style="background-image:linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%),linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%); background-size:16px 16px; background-position:0 0,8px 8px; border-radius:var(--radius-xl); padding:8px; overflow:auto;">
         <canvas id="brCanvas" style="max-width:100%; display:block; margin:0 auto;"></canvas>
       </div>
       <div class="tool-status" id="brStatus">${esc(t('bgremove.status.idle'))}</div>

@@ -39,18 +39,18 @@ function injectStyles(): void {
   const style = document.createElement('style');
   style.id = 'foundry-style';
   style.textContent = `
-    .fd-wrap { display:flex; flex-direction:column; gap:12px; min-height:420px; font-size:12px; }
+    .fd-wrap { display:flex; flex-direction:column; gap:12px; min-height:420px; font-size:var(--font-size-2xs); }
     .fd-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .fd-head h3 { margin:0; font-size:15px; }
-    .fd-head .fd-note { color:var(--text-secondary); font-size:11px; }
+    .fd-head h3 { margin:0; font-size:var(--font-size-xs); }
+    .fd-head .fd-note { color:var(--text-secondary); font-size:var(--font-size-3xs); }
     .fd-head .fd-spacer { flex:1; }
     .fd-tabs { display:flex; gap:6px; flex-wrap:wrap; }
     .fd-tabs button { border:1px solid var(--border); background:var(--bg-tertiary);
-      color:var(--text-primary); border-radius:999px; padding:4px 12px; cursor:pointer; font-size:12px; }
+      color:var(--text-primary); border-radius:var(--radius-pill); padding:4px 12px; cursor:pointer; font-size:var(--font-size-2xs); }
     .fd-tabs button.active { border-color:var(--accent); background:var(--bg-hover, var(--bg-secondary)); }
     .fd-tabs button small { color:var(--text-secondary); margin-left:5px; font-variant-numeric:tabular-nums; }
     .fd-grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(168px, 1fr)); }
-    .fd-card { margin:0; border:1px solid var(--border); border-radius:10px; overflow:hidden;
+    .fd-card { margin:0; border:1px solid var(--border); border-radius:var(--radius-xl); overflow:hidden;
       background:var(--bg-secondary); display:flex; flex-direction:column; }
     .fd-thumb { height:120px; display:block; width:100%; object-fit:contain; padding:8px;
       background-color:#fff;
@@ -59,12 +59,12 @@ function injectStyles(): void {
       background-size:14px 14px; background-position:0 0,7px 7px; }
     .fd-body { padding:8px 10px 10px; display:flex; flex-direction:column; gap:5px; }
     .fd-title { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .fd-meta { display:flex; align-items:center; gap:6px; color:var(--text-secondary); font-size:11px; }
-    .fd-tool { border:1px solid var(--border); border-radius:5px; padding:1px 6px; }
+    .fd-meta { display:flex; align-items:center; gap:6px; color:var(--text-secondary); font-size:var(--font-size-3xs); }
+    .fd-tool { border:1px solid var(--border); border-radius:var(--radius-md); padding:1px 6px; }
     .fd-acts { display:flex; gap:6px; margin-top:2px; }
     .fd-acts a, .fd-acts button { flex:1; text-align:center; border:1px solid var(--border);
-      background:var(--bg-tertiary); color:var(--text-primary); border-radius:6px; padding:4px 6px;
-      cursor:pointer; font-size:11px; text-decoration:none; }
+      background:var(--bg-tertiary); color:var(--text-primary); border-radius:var(--radius-md); padding:4px 6px;
+      cursor:pointer; font-size:var(--font-size-3xs); text-decoration:none; }
     .fd-acts a:hover, .fd-acts button:hover { border-color:var(--accent); }
     .fd-empty, .fd-error { padding:28px 12px; text-align:center; color:var(--text-secondary); }
     .fd-error { color:#ff6b6b; }

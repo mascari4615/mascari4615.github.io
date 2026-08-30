@@ -13,10 +13,10 @@ export function buildReactionDiffusion(container: HTMLElement): void {
 .rd-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);overflow:hidden;border-radius:var(--radius-md,12px);background:#05080b}
 .rd-canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
 .rd-head{position:absolute;inset:0 0 auto;display:flex;gap:9px;align-items:baseline;padding:13px 15px 30px;pointer-events:none;background:linear-gradient(#05080be8,transparent)}
-.rd-name{color:#e8fbff;font-size:13px}.rd-code,.rd-step{color:#9cc3c880;font:11px var(--font-mono,monospace)}.rd-step{margin-left:auto}
-.rd-actions{position:absolute;right:12px;top:45px;display:flex;gap:6px}.rd-btn{border:1px solid #ffffff28;background:#071216b8;color:#cce4e7;padding:6px 9px;border-radius:999px;cursor:pointer;font:11px var(--font-mono,monospace)}
+.rd-name{color:#e8fbff;font-size:var(--font-size-2xs)}.rd-code,.rd-step{color:#9cc3c880;font:11px var(--font-mono,monospace)}.rd-step{margin-left:auto}
+.rd-actions{position:absolute;right:12px;top:45px;display:flex;gap:6px}.rd-btn{border:1px solid #ffffff28;background:#071216b8;color:#cce4e7;padding:6px 9px;border-radius:var(--radius-pill);cursor:pointer;font:11px var(--font-mono,monospace)}
 .rd-btn[aria-pressed="true"]{border-color:#69d7cf88;background:#16413eb8}
-.rd-log{position:absolute;inset:auto 0 0;padding:35px 16px 16px;color:#ddfbf6;font-size:14px;line-height:1.45;pointer-events:none;background:linear-gradient(transparent,#05080be8)}
+.rd-log{position:absolute;inset:auto 0 0;padding:35px 16px 16px;color:#ddfbf6;font-size:var(--font-size-xs);line-height:1.45;pointer-events:none;background:linear-gradient(transparent,#05080be8)}
 .rd-hint{display:block;margin-top:3px;color:#b7d2d477;font:11px var(--font-mono,monospace)}
 `;
     document.head.appendChild(style);

@@ -299,7 +299,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .claude-env-section.claude-env-drop-active { outline: 2px dashed var(--accent); outline-offset: 2px; background: var(--bg-tertiary); }
         .claude-env-input--flash { animation: claude-env-flash 0.6s ease-out; }
         @keyframes claude-env-flash { 0% { background: var(--accent); color: var(--accent-fg); } 100% { background: var(--bg-primary); } }
-        .claude-env-section-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 12px 0; }
+        .claude-env-section-title { font-size: var(--font-size-xs); font-weight: 600; color: var(--text-primary); margin: 0 0 12px 0; }
         .claude-env-row { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
         .claude-env-row:last-child { margin-bottom: 0; }
         .claude-env-field-label { font-size: var(--font-size-sm); color: var(--text-secondary); font-weight: 600; }

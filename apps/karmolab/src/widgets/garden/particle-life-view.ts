@@ -12,9 +12,9 @@ export function buildParticleLife(container: HTMLElement): void {
     style.textContent = `
 .pl-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);overflow:hidden;border-radius:var(--radius-md,12px);background:#05070c}
 .pl-canvas{display:block;width:100%;height:100%}.pl-head{position:absolute;inset:0 0 auto;display:flex;gap:9px;align-items:baseline;padding:13px 15px 30px;pointer-events:none;background:linear-gradient(#05070ce8,transparent)}
-.pl-name{color:#edf5ff;font-size:13px}.pl-code,.pl-step{color:#b9c7e277;font:11px var(--font-mono,monospace)}.pl-step{margin-left:auto}.pl-actions{position:absolute;right:12px;top:45px;display:flex;gap:6px}
-.pl-btn{border:1px solid #ffffff28;background:#0b101db8;color:#dbe7ff;padding:6px 9px;border-radius:999px;cursor:pointer;font:11px var(--font-mono,monospace)}.pl-btn[aria-pressed="true"]{border-color:#8eb8ff88;background:#21365bb8}
-.pl-log{position:absolute;inset:auto 0 0;padding:35px 16px 16px;color:#e9efff;font-size:14px;line-height:1.45;pointer-events:none;background:linear-gradient(transparent,#05070ce8)}.pl-hint{display:block;margin-top:3px;color:#b9c7e277;font:11px var(--font-mono,monospace)}
+.pl-name{color:#edf5ff;font-size:var(--font-size-2xs)}.pl-code,.pl-step{color:#b9c7e277;font:11px var(--font-mono,monospace)}.pl-step{margin-left:auto}.pl-actions{position:absolute;right:12px;top:45px;display:flex;gap:6px}
+.pl-btn{border:1px solid #ffffff28;background:#0b101db8;color:#dbe7ff;padding:6px 9px;border-radius:var(--radius-pill);cursor:pointer;font:11px var(--font-mono,monospace)}.pl-btn[aria-pressed="true"]{border-color:#8eb8ff88;background:#21365bb8}
+.pl-log{position:absolute;inset:auto 0 0;padding:35px 16px 16px;color:#e9efff;font-size:var(--font-size-xs);line-height:1.45;pointer-events:none;background:linear-gradient(transparent,#05070ce8)}.pl-hint{display:block;margin-top:3px;color:#b9c7e277;font:11px var(--font-mono,monospace)}
 `;
     document.head.appendChild(style);
   }

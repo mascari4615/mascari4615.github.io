@@ -21,9 +21,9 @@ import { t, loadNamespace } from '../lib/i18n';
           Mdd.linePreset('meme_done', { msg: t('toast.t03') });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:360px; gap:16px;">
-                        <div id="toastStatus" style="font-size:15px; font-weight:600; color:var(--text-secondary);">${esc(t('toast.label.status'))}</div>
+                        <div id="toastStatus" style="font-size:var(--font-size-xs); font-weight:600; color:var(--text-secondary);">${esc(t('toast.label.status'))}</div>
                         <div id="toastImg" style="font-size:80px; cursor:pointer; transition:all 80ms; user-select:none;">🍞</div>
-                        <div style="width:200px; height:8px; background:var(--bg-tertiary); border-radius:4px; overflow:hidden;">
+                        <div style="width:200px; height:8px; background:var(--bg-tertiary); border-radius:var(--radius-sm); overflow:hidden;">
                             <div id="toastProgress" style="width:0%; height:100%; background:var(--accent); transition:width 50ms;"></div>
                         </div>
                         <button class="btn btn-ghost" id="resetToast">${esc(t('toast.btn.resetToast'))}</button>

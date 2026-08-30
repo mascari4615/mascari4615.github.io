@@ -88,9 +88,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div id="alEditor" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('audiolevel.label.before'))}</div>
-              <canvas id="alBefore" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--bg-secondary); display:block;"></canvas>
+              <canvas id="alBefore" height="70" style="width:100%; height:70px; border-radius:var(--radius-lg); background:var(--bg-secondary); display:block;"></canvas>
               <div class="tool-sublabel">${esc(t('audiolevel.label.after'))}</div>
-              <canvas id="alAfter" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--bg-secondary); display:block;"></canvas>
+              <canvas id="alAfter" height="70" style="width:100%; height:70px; border-radius:var(--radius-lg); background:var(--bg-secondary); display:block;"></canvas>
 
               <div class="tool-section field-group">
                 <div class="tool-grid-2">

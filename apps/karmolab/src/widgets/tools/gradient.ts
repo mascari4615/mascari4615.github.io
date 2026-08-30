@@ -55,7 +55,7 @@ import { statusLine } from './shared/say';
           void loadNamespace('gradient').then(function () {
 
           container.innerHTML = `
-            <div id="grPreview" style="height:180px; border-radius:10px; border:1px solid rgba(128,128,128,0.25);"></div>
+            <div id="grPreview" style="height:180px; border-radius:var(--radius-xl); border:1px solid rgba(128,128,128,0.25);"></div>
 
             <div class="tool-section field-group">
               <div class="tool-grid-2">
@@ -89,8 +89,8 @@ import { statusLine } from './shared/say';
 
             <div class="tool-sublabel">${esc(t('gradient.label.compare'))}</div>
             <div style="display:grid; gap:4px;">
-              <div id="grPlain" style="height:34px; border-radius:6px;"></div>
-              <div id="grPerceptual" style="height:34px; border-radius:6px;"></div>
+              <div id="grPlain" style="height:34px; border-radius:var(--radius-md);"></div>
+              <div id="grPerceptual" style="height:34px; border-radius:var(--radius-md);"></div>
             </div>
 
             <div class="tool-section field-group">

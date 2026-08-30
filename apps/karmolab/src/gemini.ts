@@ -1050,7 +1050,7 @@ const Gemini = (() => {
                 <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 8px 0;">
                     ${esc(t('gemini.t08'))} <strong>${esc(t('gemini.t09'))}</strong>${esc(t('gemini.t10'))} <code>AIza</code>${esc(t('gemini.t11'))}
                 </p>
-                <div id="${idPrefix}VertexKeyRow" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;">
+                <div id="${idPrefix}VertexKeyRow" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:8px;">
                     <span id="${idPrefix}VertexKeyStatus" style="font-size:var(--font-size-2xs);flex:1;min-width:120px;"></span>
                     <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyEdit" style="font-size:var(--font-size-2xs);padding:3px 10px;">${esc(t('gemini.btn.idPrefixVertexKeyEdit'))}</button>
                     <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyClear" style="font-size:var(--font-size-2xs);padding:3px 10px;color:var(--error);">${esc(t('gemini.btn.idPrefixVertexKeyClear'))}</button>
@@ -1114,8 +1114,8 @@ const Gemini = (() => {
                     listEl.innerHTML = profiles.map((p) => {
                         const hasKey = !!p.key;
                         return `
-                            <div class="api-prof-row" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:${p.id === activeId ? 'var(--accent-subtle)' : 'transparent'};">
-                                <input type="text" class="api-prof-name" value="${Toolbox.escapeHtml(p.name || '')}" placeholder="${esc(t('gemini.t01'))}" style="flex:1;min-width:80px;font-size:var(--font-size-xs);padding:4px 6px;border-radius:4px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);">
+                            <div class="api-prof-row" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--radius-md);background:${p.id === activeId ? 'var(--accent-subtle)' : 'transparent'};">
+                                <input type="text" class="api-prof-name" value="${Toolbox.escapeHtml(p.name || '')}" placeholder="${esc(t('gemini.t01'))}" style="flex:1;min-width:80px;font-size:var(--font-size-xs);padding:4px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);">
                                 <span class="api-prof-status" style="font-size:var(--font-size-2xs);color:${hasKey ? 'var(--success)' : 'var(--text-tertiary)'};">${hasKey ? t('gemini.t52') : t('gemini.t53')}</span>
                                 <button type="button" class="btn btn-ghost api-prof-active" data-role="active" style="font-size:var(--font-size-2xs);padding:3px 8px;${p.id === activeId ? 'color:var(--accent);' : ''}">${p.id === activeId ? t('gemini.t54') : t('gemini.t55')}</button>
                                 <button type="button" class="btn btn-ghost api-prof-edit" data-role="edit" style="font-size:var(--font-size-2xs);padding:3px 8px;">${esc(t('gemini.btn.idPrefixVertexKeyEdit'))}</button>

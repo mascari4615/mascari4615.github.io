@@ -49,36 +49,36 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
 .gd-canvas{flex:1;display:block;width:100%;height:100%;image-rendering:pixelated;}
 .gd-top{position:absolute;top:0;left:0;right:0;padding:12px 14px 22px;display:flex;align-items:baseline;gap:10px;
   z-index:2;pointer-events:none;background:linear-gradient(to bottom,rgba(4,5,10,.88),rgba(4,5,10,0));}
-.gd-rule{color:#e9e4ff;font-size:13px;letter-spacing:-.01em;text-shadow:0 1px 10px rgba(0,0,0,.9);}
-.gd-code{color:rgba(200,195,235,.5);font-size:11px;font-family:var(--font-mono,ui-monospace,monospace);}
-.gd-gen{margin-left:auto;color:rgba(200,195,235,.45);font-size:11px;
+.gd-rule{color:#e9e4ff;font-size:var(--font-size-2xs);letter-spacing:-.01em;text-shadow:0 1px 10px rgba(0,0,0,.9);}
+.gd-code{color:rgba(200,195,235,.5);font-size:var(--font-size-3xs);font-family:var(--font-mono,ui-monospace,monospace);}
+.gd-gen{margin-left:auto;color:rgba(200,195,235,.45);font-size:var(--font-size-3xs);
   font-family:var(--font-mono,ui-monospace,monospace);}
 .gd-log{position:absolute;left:0;right:0;bottom:0;padding:14px 16px 16px;z-index:2;pointer-events:none;
   background:linear-gradient(to top,rgba(4,5,10,.9),rgba(4,5,10,0));}
-.gd-line{display:block;color:#ded8ff;font-size:14px;line-height:1.5;opacity:0;transition:opacity .7s ease;
+.gd-line{display:block;color:#ded8ff;font-size:var(--font-size-xs);line-height:1.5;opacity:0;transition:opacity .7s ease;
   text-shadow:0 1px 12px rgba(0,0,0,.9);}
 .gd-line.gd-show{opacity:1;}
-.gd-sub{display:block;margin-top:3px;color:rgba(190,185,225,.42);font-size:11px;
+.gd-sub{display:block;margin-top:3px;color:rgba(190,185,225,.42);font-size:var(--font-size-3xs);
   font-family:var(--font-mono,ui-monospace,monospace);}
 .gd-btns{position:absolute;top:44px;right:12px;display:flex;gap:6px;z-index:3;}
 .gd-btn{appearance:none;border:1px solid rgba(255,255,255,.16);background:rgba(10,10,20,.55);
-  color:rgba(255,255,255,.6);font-size:11px;line-height:1;padding:6px 9px;border-radius:999px;cursor:pointer;
+  color:rgba(255,255,255,.6);font-size:var(--font-size-3xs);line-height:1;padding:6px 9px;border-radius:var(--radius-pill);cursor:pointer;
   backdrop-filter:blur(6px);font-family:var(--font-mono,ui-monospace,monospace);}
 .gd-btn[aria-pressed="true"]{color:#eae6ff;border-color:rgba(170,150,255,.55);background:rgba(48,36,96,.55);}
 /* 도감. 찾아낸 것을 모아 두는 서랍. 이름은 사람이 붙인다. */
 .gd-dex{position:absolute;inset:auto 12px 64px 12px;max-height:56%;overflow:auto;z-index:4;
-  background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;
+  background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius-xl);padding:12px 14px;
   backdrop-filter:blur(8px);display:none;}
 .gd-dex.gd-open{display:block;}
-.gd-dex h4{margin:0 0 10px;font-size:12px;color:rgba(220,215,255,.7);font-weight:600;}
+.gd-dex h4{margin:0 0 10px;font-size:var(--font-size-2xs);color:rgba(220,215,255,.7);font-weight:600;}
 .gd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;}
-.gd-card{display:flex;gap:9px;align-items:center;background:rgba(255,255,255,.04);border-radius:9px;padding:8px;}
-.gd-card canvas{width:44px;height:44px;image-rendering:pixelated;border-radius:5px;background:#0a0b12;flex:none;}
+.gd-card{display:flex;gap:9px;align-items:center;background:rgba(255,255,255,.04);border-radius:var(--radius-xl);padding:8px;}
+.gd-card canvas{width:44px;height:44px;image-rendering:pixelated;border-radius:var(--radius-md);background:#0a0b12;flex:none;}
 .gd-card .gd-meta{min-width:0;}
 .gd-name{display:block;width:100%;background:transparent;border:0;border-bottom:1px dashed rgba(255,255,255,.18);
-  color:#e9e4ff;font-size:12px;padding:1px 0;outline:none;}
+  color:#e9e4ff;font-size:var(--font-size-2xs);padding:1px 0;outline:none;}
 .gd-name:focus{border-bottom-color:rgba(170,150,255,.7);}
-.gd-what{display:block;margin-top:3px;color:rgba(200,195,235,.45);font-size:10px;
+.gd-what{display:block;margin-top:3px;color:rgba(200,195,235,.45);font-size:var(--font-size-4xs);
   font-family:var(--font-mono,ui-monospace,monospace);}
 @media (prefers-reduced-motion:reduce){.gd-line{transition:none}}
 `;

@@ -1334,16 +1334,16 @@ const Mdd = (() => {
         `;
         injectCSS('mdd-log', `
             .mdd-log-overlay { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:16px; }
-            .mdd-log-panel { background:var(--bg-secondary,#1a1a1e); border:1px solid var(--border,rgba(255,255,255,0.08)); max-width:360px; width:100%; max-height:70vh; display:flex; flex-direction:column; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+            .mdd-log-panel { background:var(--bg-secondary,#1a1a1e); border:1px solid var(--border,rgba(255,255,255,0.08)); max-width:360px; width:100%; max-height:70vh; display:flex; flex-direction:column; border-radius:var(--radius-lg); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
             .mdd-log-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
-            .mdd-log-header h3 { margin:0; font-size:14px; font-weight:600; color:var(--text-primary); }
+            .mdd-log-header h3 { margin:0; font-size:var(--font-size-xs); font-weight:600; color:var(--text-primary); }
             .mdd-log-close { background:none; border:none; color:var(--text-tertiary); font-size:24px; cursor:pointer; padding:0 4px; line-height:1; }
             .mdd-log-close:hover { color:var(--text-primary); }
             .mdd-log-body { overflow-y:auto; padding:12px; }
 
-            .mdd-log-entry { padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; line-height:1.5; color:var(--text-secondary); }
+            .mdd-log-entry { padding:8px 0; border-bottom:1px solid var(--border); font-size:var(--font-size-2xs); line-height:1.5; color:var(--text-secondary); }
             .mdd-log-entry:last-child { border-bottom:none; }
-            .mdd-log-empty { color:var(--text-tertiary); font-size:13px; text-align:center; padding:24px; margin:0; }
+            .mdd-log-empty { color:var(--text-tertiary); font-size:var(--font-size-2xs); text-align:center; padding:24px; margin:0; }
         `);
         const close = () => {
             overlay.remove();

@@ -78,22 +78,22 @@ const esc = (v: unknown): string =>
 }
 .kl-task-launcher .header { display: flex; gap: 12px; align-items: center; }
 .kl-task-launcher .search {
-  flex: 1; background: var(--paper); border: 1px solid var(--line-2); border-radius: 4px;
-  padding: 10px 14px; font-size: 14px; color: var(--ink); outline: none;
+  flex: 1; background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius-sm);
+  padding: 10px 14px; font-size: var(--font-size-xs); color: var(--ink); outline: none;
 }
 .kl-task-launcher .search:focus { border-color: var(--accent); }
 .kl-task-launcher .new-btn {
-  background: var(--accent); color: var(--bg); border: none; border-radius: 4px;
-  padding: 10px 16px; font-weight: 600; cursor: pointer; font-size: 13px;
+  background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius-sm);
+  padding: 10px 16px; font-weight: 600; cursor: pointer; font-size: var(--font-size-2xs);
 }
 .kl-task-launcher .new-btn:hover { background: #e6b85a; }
 .kl-task-launcher .sort-mode {
   background: var(--paper); color: var(--ink); border: 1px solid var(--line-2);
-  padding: 9px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; outline: none;
+  padding: 9px 10px; border-radius: var(--radius-sm); font-size: var(--font-size-2xs); cursor: pointer; outline: none;
 }
 .kl-task-launcher .sort-mode:focus { border-color: var(--accent); }
-.kl-task-launcher .meta { font-size: 12px; color: var(--ink-3); }
-.kl-task-launcher .list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; }
+.kl-task-launcher .meta { font-size: var(--font-size-2xs); color: var(--ink-3); }
+.kl-task-launcher .list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .kl-task-launcher .row {
   display: grid; grid-template-columns: 130px 80px 1fr auto;
   gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line);
@@ -107,18 +107,18 @@ const esc = (v: unknown): string =>
 }
 .kl-task-launcher .chip {
   background: var(--bg-2); color: var(--ink-2); border: 1px solid var(--line-2);
-  border-radius: 3px; padding: 4px 10px; font-size: 11px; font-family: 'KarmoMono', monospace;
+  border-radius: var(--radius-sm); padding: 4px 10px; font-size: var(--font-size-3xs); font-family: 'KarmoMono', monospace;
   text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s;
 }
 .kl-task-launcher .chip:hover { background: var(--line-2); }
 .kl-task-launcher .chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.kl-task-launcher .row .id { font-family: 'KarmoMono', monospace; font-size: 12px; color: var(--accent-2); }
+.kl-task-launcher .row .id { font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs); color: var(--accent-2); }
 .kl-task-launcher .row .status {
-  font-family: 'KarmoMono', monospace; font-size: 11px; text-transform: uppercase;
-  text-align: center; padding: 2px 6px; border: 1px solid currentColor; border-radius: 3px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); text-transform: uppercase;
+  text-align: center; padding: 2px 6px; border: 1px solid currentColor; border-radius: var(--radius-sm);
 }
-.kl-task-launcher .row .title { font-size: 14px; }
-.kl-task-launcher .row .tags { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.kl-task-launcher .row .title { font-size: var(--font-size-xs); }
+.kl-task-launcher .row .tags { font-size: var(--font-size-3xs); color: var(--ink-3); white-space: nowrap; }
 .kl-task-launcher .empty { padding: 48px; text-align: center; color: var(--ink-3); }
 
 /* 모달 */
@@ -127,18 +127,18 @@ const esc = (v: unknown): string =>
   display: flex; align-items: center; justify-content: center;
 }
 .kl-task-launcher .modal {
-  background: var(--paper); border: 1px solid var(--line-2); border-radius: 6px;
+  background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius-md);
   padding: 24px; min-width: 420px; max-width: 90%;
 }
-.kl-task-launcher .modal h3 { margin: 0 0 16px; font-size: 16px; color: var(--ink); }
-.kl-task-launcher .modal label { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+.kl-task-launcher .modal h3 { margin: 0 0 16px; font-size: var(--font-size-sm); color: var(--ink); }
+.kl-task-launcher .modal label { display: block; font-size: var(--font-size-2xs); color: var(--ink-2); margin-bottom: 4px; }
 .kl-task-launcher .modal select, .kl-task-launcher .modal input {
   width: 100%; background: var(--bg-2); border: 1px solid var(--line-2); color: var(--ink);
-  padding: 8px 10px; border-radius: 3px; font-size: 14px; outline: none; margin-bottom: 12px;
+  padding: 8px 10px; border-radius: var(--radius-sm); font-size: var(--font-size-xs); outline: none; margin-bottom: 12px;
 }
 .kl-task-launcher .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
 .kl-task-launcher .modal-cancel, .kl-task-launcher .modal-create {
-  border: none; padding: 8px 16px; border-radius: 3px; font-size: 13px; cursor: pointer;
+  border: none; padding: 8px 16px; border-radius: var(--radius-sm); font-size: var(--font-size-2xs); cursor: pointer;
 }
 .kl-task-launcher .modal-cancel { background: var(--line-2); color: var(--ink); }
 .kl-task-launcher .modal-create { background: var(--accent); color: var(--bg); font-weight: 600; }

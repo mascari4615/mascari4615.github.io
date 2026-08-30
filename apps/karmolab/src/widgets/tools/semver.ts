@@ -51,7 +51,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
       </div>
       <div id="svBounds" class="tool-list" style="margin-top:12px;"></div>
-      <div id="svClash" style="display:none; padding:10px; border-radius:10px; margin:10px 0;"></div>
+      <div id="svClash" style="display:none; padding:10px; border-radius:var(--radius-xl); margin:10px 0;"></div>
       <div class="field-group" style="margin-top:12px;">
         <label class="field-label" for="svVersions">${esc(t('semver.label.versions'))}</label>
         <textarea id="svVersions" name="versions" aria-label="${esc(t('semver.label.versions'))}" class="mono-input" style="min-height:110px;">1.0.0

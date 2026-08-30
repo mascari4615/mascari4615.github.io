@@ -323,20 +323,20 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-item { display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); cursor:pointer; transition:all var(--transition); text-decoration:none; color:inherit; }
         .fav-item:hover { background:var(--bg-hover); border-color:var(--border-hover); transform:translateY(-12px); box-shadow:var(--shadow-float); }
         .fav-item:active { transform:translateY(0); }
-        .fav-icon { width:52px; height:52px; border-radius:10px; object-fit:contain; background:var(--bg-secondary); }
+        .fav-icon { width:52px; height:52px; border-radius:var(--radius-xl); object-fit:contain; background:var(--bg-secondary); }
         .fav-icon-svg { display:flex; align-items:center; justify-content:center; padding:6px; }
         .fav-icon-svg svg { width:32px; height:32px; stroke:var(--text-secondary); }
         .fav-label { font-size:var(--font-size-2xs); color:var(--text-secondary); text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .fav-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
         .fav-add-form { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; padding:16px; background:var(--bg-tertiary); border:1px dashed var(--border); border-radius:var(--radius-md); }
-        .fav-add-form input, .fav-add-form select { flex:1; min-width:180px; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-add-form input, .fav-add-form select { flex:1; min-width:180px; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); }
         .fav-add-form .form-group { display:flex; flex-direction:column; gap:4px; }
         .fav-add-form label { font-size:var(--font-size-2xs); color:var(--text-tertiary); }
         .fav-item-wrap { position:relative; }
-        .fav-item-wrap .fav-remove { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:var(--error); color:#fff; border:none; cursor:pointer; font-size:12px; line-height:1; opacity:0; transition:opacity var(--transition); display:flex; align-items:center; justify-content:center; z-index:1; }
+        .fav-item-wrap .fav-remove { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:var(--error); color:#fff; border:none; cursor:pointer; font-size:var(--font-size-2xs); line-height:1; opacity:0; transition:opacity var(--transition); display:flex; align-items:center; justify-content:center; z-index:1; }
         .fav-item-wrap:hover .fav-remove { opacity:1; }
         .fav-remove:hover { background:#dc2626; }
-        .fav-view-toggle-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:4px; display:flex; align-items:center; justify-content:center; }
+        .fav-view-toggle-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
         .fav-view-toggle-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
         .fav-view-toggle-btn.active { background:var(--accent-subtle); border-color:var(--accent); color:var(--accent); }
         .fav-view-toggle-btn svg { width:18px; height:18px; }
@@ -358,8 +358,8 @@ import { t, loadNamespace } from '../lib/i18n';
             transition:var(--transition);
         }
         .fav-add-tile:hover { opacity:1; border-color:var(--accent); color:var(--accent); background:var(--accent-subtle); }
-        .fav-add-plus { font-size:20px; line-height:1; }
-        .fav-add-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:4px; display:flex; align-items:center; justify-content:center; }
+        .fav-add-plus { font-size:var(--font-size-title); line-height:1; }
+        .fav-add-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
         .fav-add-btn:hover { background:var(--bg-hover); color:var(--accent); }
         .fav-add-btn svg { width:18px; height:18px; }
         .fav-add-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9998; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity var(--transition); }
@@ -369,22 +369,22 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-add-modal .fav-add-form { display:flex; flex-direction:column; gap:12px; padding:0; border:none; background:none; align-items:stretch; }
         .fav-add-modal .fav-add-form .form-group { display:flex; flex-direction:column; gap:4px; width:100%; }
         .fav-add-modal .fav-add-form label { font-size:var(--font-size-2xs); color:var(--text-tertiary); }
-        .fav-add-modal .fav-add-form input, .fav-add-modal .fav-add-form select { width:100%; min-width:0; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-add-modal .fav-add-form input, .fav-add-modal .fav-add-form select { width:100%; min-width:0; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); }
         .fav-add-modal .fav-add-form .btn { width:100%; margin-top:4px; }
         .fav-bar .landing-search-wrap .landing-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-tertiary); pointer-events:none; flex-shrink:0; }
-        .fav-bar .landing-search-wrap .landing-search { width:100%; padding:9px 12px 9px 36px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-bar .landing-search-wrap .landing-search { width:100%; padding:9px 12px 9px 36px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); }
         .fav-bar .landing-search-wrap .landing-search:focus { outline:none; border-color:var(--accent); }
         .fav-bar .landing-search-wrap .landing-search::placeholder { color:var(--text-tertiary); }
         .fav-add-kind { display:flex; gap:6px; margin-bottom:var(--space-md); }
-        .fav-add-kind .fav-kind-btn { flex:1; padding:7px 10px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); border-radius:4px; cursor:pointer; transition:var(--transition); }
+        .fav-add-kind .fav-kind-btn { flex:1; padding:7px 10px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); border-radius:var(--radius-sm); cursor:pointer; transition:var(--transition); }
         .fav-add-kind .fav-kind-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
         .fav-add-kind .fav-kind-btn.active { background:var(--accent-subtle); border-color:var(--accent); color:var(--accent); }
         .fav-add-pane[data-pane="tool"] { display:flex; flex-direction:column; gap:10px; }
         /* display:flex 는 hidden 속성을 이긴다. 안 적으면 두 갈래가 동시에 뜬다 */
         .fav-add-modal [data-pane][hidden] { display:none; }
-        .fav-tool-search { width:100%; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-tool-search { width:100%; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); }
         .fav-tool-list { display:flex; flex-direction:column; gap:4px; max-height:min(46vh, 340px); overflow-y:auto; }
-        .fav-tool-row { display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; cursor:pointer; text-align:left; transition:var(--transition); color:var(--text-primary); }
+        .fav-tool-row { display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; text-align:left; transition:var(--transition); color:var(--text-primary); }
         .fav-tool-row:hover { background:var(--bg-hover); border-color:var(--border-hover); }
         .fav-tool-row.on { border-color:var(--accent); background:var(--accent-subtle); }
         .fav-tool-ico svg { width:18px; height:18px; stroke:var(--text-secondary); display:block; }
@@ -403,12 +403,12 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-add-pane[data-pane="app"] { display:flex; flex-direction:column; gap:10px; }
         .fav-app-note { font-size:var(--font-size-2xs); color:var(--text-tertiary); line-height:1.6; }
         .fav-app-custom { display:flex; gap:6px; align-items:stretch; }
-        .fav-app-custom input { flex:1; min-width:0; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-app-custom input { flex:1; min-width:0; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); }
         .fav-app-custom .btn { flex:none; }
-        .fav-tool-row .fav-app-ico { width:18px; height:18px; border-radius:4px; object-fit:contain; flex-shrink:0; }
+        .fav-tool-row .fav-app-ico { width:18px; height:18px; border-radius:var(--radius-sm); object-fit:contain; flex-shrink:0; }
         .fav-grid.fav-grid-card { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:16px; }
         .fav-grid.fav-grid-card .fav-item { padding:16px 12px; }
-        .fav-grid.fav-grid-card .fav-icon { width:60px; height:60px; border-radius:12px; }
+        .fav-grid.fav-grid-card .fav-icon { width:60px; height:60px; border-radius:var(--radius-xl); }
         .fav-grid.fav-grid-card .fav-icon-svg svg { width:40px; height:40px; }
         .fav-grid.fav-grid-card .fav-label { font-size:var(--font-size-xs); }
     ` + DECK_CSS);

@@ -73,7 +73,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-big-item strong { display:block; font-size:28px; font-weight:700; color:var(--accent);
             font-variant-numeric:tabular-nums; line-height:1.15; }
         .plaza-big-item span { display:block; margin-top:4px; font-size:var(--font-size-xs); color:var(--text-secondary); }
-        .plaza-big-item em { display:block; margin-top:2px; font-size:11px; color:var(--text-tertiary);
+        .plaza-big-item em { display:block; margin-top:2px; font-size:var(--font-size-3xs); color:var(--text-tertiary);
             font-style:normal; }
 
         .plaza-leaders { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }
@@ -82,7 +82,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-leaders td:first-child { width:28px; color:var(--text-tertiary); }
         .plaza-leaders td:not(:first-child):not(:nth-child(2)), .plaza-leaders th:not(:first-child):not(:nth-child(2)) { text-align:right; }
         .plaza-section h3 { margin:0 0 4px; font-size:var(--font-size-md); color:var(--text-primary); }
-        .plaza-section-note { margin:0 0 12px; font-size:11px; color:var(--text-tertiary); }
+        .plaza-section-note { margin:0 0 12px; font-size:var(--font-size-3xs); color:var(--text-tertiary); }
 
         /* 방금 있었던 일 (TASK-KL-151 ③). 숫자만 있는 광장은 사람이 있다까지만 말한다. */
         .plaza-feed { list-style:none; margin:0 0 6px; padding:0; }
@@ -90,33 +90,33 @@ import { profilePath, toolPage } from '../lib/site-base';
             border-bottom:1px solid var(--border); }
         .plaza-feed li:last-child { border-bottom:0; }
         .plaza-feed b { color:var(--text-primary); }
-        .plaza-dim { color:var(--text-tertiary); font-size:11px; }
+        .plaza-dim { color:var(--text-tertiary); font-size:var(--font-size-3xs); }
         .plaza-sub { margin:14px 0 4px; font-size:var(--font-size-sm); color:var(--text-primary); }
 
         /* 14일 막대. 빈 날도 자리를 지켜야 요즘 조용하다가 보인다. */
         .plaza-spark { display:flex; align-items:flex-end; gap:4px; height:64px;
             padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); }
-        .plaza-spark-bar { flex:1; min-width:6px; border-radius:3px 3px 0 0; background:var(--bg-tertiary);
+        .plaza-spark-bar { flex:1; min-width:6px; border-radius:var(--radius-sm) var(--radius-sm) 0 0; background:var(--bg-tertiary);
             position:relative; }
-        .plaza-spark-bar i { position:absolute; left:0; right:0; bottom:0; border-radius:3px 3px 0 0;
+        .plaza-spark-bar i { position:absolute; left:0; right:0; bottom:0; border-radius:var(--radius-sm) var(--radius-sm) 0 0;
             background:var(--accent); display:block; }
         .plaza-spark-bar[data-today="1"] i { background:var(--text-primary); }
         .plaza-spark-axis { display:flex; justify-content:space-between; margin-top:5px;
-            font-size:10px; color:var(--text-tertiary); }
+            font-size:var(--font-size-4xs); color:var(--text-tertiary); }
 
         .plaza-tools { display:flex; flex-direction:column; gap:6px; }
         .plaza-tool { display:flex; align-items:center; gap:10px; }
-        .plaza-tool-rank { flex:0 0 22px; text-align:right; font-size:11px; color:var(--text-tertiary);
+        .plaza-tool-rank { flex:0 0 22px; text-align:right; font-size:var(--font-size-3xs); color:var(--text-tertiary);
             font-variant-numeric:tabular-nums; }
         .plaza-tool-name { flex:0 0 34%; font-size:var(--font-size-xs); color:var(--text-primary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
         .plaza-tool-name:hover { color:var(--accent); }
-        .plaza-tool-bar { flex:1; height:8px; border-radius:4px; background:var(--bg-tertiary); overflow:hidden; }
+        .plaza-tool-bar { flex:1; height:8px; border-radius:var(--radius-sm); background:var(--bg-tertiary); overflow:hidden; }
         .plaza-tool-bar i { display:block; height:100%; background:var(--accent); }
         .plaza-tool-count { flex:0 0 84px; text-align:right; font-size:var(--font-size-xs);
             color:var(--text-secondary); font-variant-numeric:tabular-nums; }
-        .plaza-more { margin-top:10px; padding:6px 14px; border:1px solid var(--border); border-radius:999px;
+        .plaza-more { margin-top:10px; padding:6px 14px; border:1px solid var(--border); border-radius:var(--radius-pill);
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs);
             cursor:pointer; }
         .plaza-more:hover { border-color:var(--accent); color:var(--text-primary); }
@@ -137,7 +137,7 @@ import { profilePath, toolPage } from '../lib/site-base';
 
         /* 지금 보고 있는 사람. 유일하게 지금을 말하는 줄이라 눈에 띄어야 한다. */
         .plaza-online { display:inline-flex; align-items:center; gap:8px; align-self:flex-start;
-            padding:7px 14px; border:1px solid var(--border); border-radius:999px;
+            padding:7px 14px; border:1px solid var(--border); border-radius:var(--radius-pill);
             background:var(--bg-secondary); font-size:var(--font-size-xs); color:var(--text-secondary); }
         .plaza-online b { color:var(--text-primary); }
         .plaza-online-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; flex:0 0 auto;
@@ -145,13 +145,13 @@ import { profilePath, toolPage } from '../lib/site-base';
         @keyframes plaza-blink { 0%,100% { opacity:1; } 50% { opacity:.35; } }
         @media (prefers-reduced-motion: reduce) { .plaza-online-dot { animation:none; } }
 
-        .plaza-kind-bar { flex:0 0 90px; height:6px; border-radius:3px; background:var(--bg-tertiary);
+        .plaza-kind-bar { flex:0 0 90px; height:6px; border-radius:var(--radius-sm); background:var(--bg-tertiary);
             overflow:hidden; }
         .plaza-kind-bar i { display:block; height:100%; background:var(--accent); }
         .plaza-kind-bar i[data-kind="search"] { background:var(--text-tertiary); }
         .plaza-kind-bar i[data-kind="ai"] { background:#a78bfa; }
         .plaza-kind-bar i[data-kind="unknown"] { background:var(--bg-hover); }
-        .plaza-row-today { color:var(--text-tertiary); font-size:10px; margin-left:4px; }
+        .plaza-row-today { color:var(--text-tertiary); font-size:var(--font-size-4xs); margin-left:4px; }
         .plaza-caveat { margin-top:8px; line-height:1.6; }
 
         .plaza-up { color:#4ade80; font-weight:700; }

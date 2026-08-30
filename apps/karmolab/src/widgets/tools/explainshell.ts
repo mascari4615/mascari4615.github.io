@@ -142,20 +142,20 @@ import { t, loadNamespace } from '../../lib/i18n';
     if (styled) return;
     styled = true;
     const css = `
-.ex-seg{margin:14px 0;border:1px solid rgba(128,128,128,.22);border-radius:10px;overflow:hidden;}
-.ex-title{padding:9px 12px;font-size:13px;background:rgba(128,128,128,.08);}
+.ex-seg{margin:14px 0;border:1px solid rgba(128,128,128,.22);border-radius:var(--radius-xl);overflow:hidden;}
+.ex-title{padding:9px 12px;font-size:var(--font-size-2xs);background:rgba(128,128,128,.08);}
 .ex-sum{opacity:.85;}
-.ex-join{padding:8px 12px;font-size:12px;opacity:.8;display:flex;gap:8px;align-items:center;}
-.ex-join code{padding:1px 6px;border-radius:5px;background:rgba(128,128,128,.18);}
-.ex-table{width:100%;border-collapse:collapse;font-size:13px;}
+.ex-join{padding:8px 12px;font-size:var(--font-size-2xs);opacity:.8;display:flex;gap:8px;align-items:center;}
+.ex-join code{padding:1px 6px;border-radius:var(--radius-md);background:rgba(128,128,128,.18);}
+.ex-table{width:100%;border-collapse:collapse;font-size:var(--font-size-2xs);}
 .ex-table td{padding:7px 12px;border-top:1px solid rgba(128,128,128,.14);vertical-align:top;}
 .ex-tok{width:1%;white-space:nowrap;}
 .ex-tok code{font-family:var(--font-mono,monospace);font-weight:600;}
-.ex-kind{width:1%;white-space:nowrap;opacity:.6;font-size:12px;}
+.ex-kind{width:1%;white-space:nowrap;opacity:.6;font-size:var(--font-size-2xs);}
 .ex-what strong{font-weight:700;}
 .ex-dim{opacity:.45;}
 .ex-unknown .ex-tok code{opacity:.7;}
-.ex-danger{margin:14px 0;padding:12px 14px;border-radius:10px;
+.ex-danger{margin:14px 0;padding:12px 14px;border-radius:var(--radius-xl);
   border:1px solid rgba(240,120,120,.5);background:rgba(240,90,90,.10);}
 .ex-danger-head{font-weight:700;margin-bottom:6px;}
 .ex-danger ul{margin:0;padding-left:18px;}

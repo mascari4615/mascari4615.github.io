@@ -87,7 +87,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </div>
 
             <div id="plPreviewWrap" style="display:none; margin-bottom:var(--space-lg);">
-              <img id="plPreview" alt="${esc(t('palette.alt.preview'))}" style="max-width:100%; max-height:220px; border-radius:8px; display:block;">
+              <img id="plPreview" alt="${esc(t('palette.alt.preview'))}" style="max-width:100%; max-height:220px; border-radius:var(--radius-lg); display:block;">
             </div>
 
             <div class="cc-swatch-row" id="plSwatches"></div>

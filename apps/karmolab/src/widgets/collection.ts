@@ -47,7 +47,7 @@ interface ToolMeta {
 .cl-count { font-size: var(--font-size-lg); color: var(--text-secondary); display: flex; align-items: baseline; gap: 8px; }
 .cl-count b { font-size: 32px; color: var(--accent); font-variant-numeric: tabular-nums; }
 .cl-pct { margin-left: auto; font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-tertiary); }
-.cl-bar { height: 6px; border-radius: 999px; background: var(--bg-secondary); border: 1px solid var(--border);
+.cl-bar { height: 6px; border-radius: var(--radius-pill); background: var(--bg-secondary); border: 1px solid var(--border);
     overflow: hidden; margin-top: 8px; }
 .cl-bar i { display: block; height: 100%; background: var(--accent); transition: width 240ms ease; }
 .cl-note { margin: 10px 0 0; font-size: var(--font-size-xs); color: var(--text-tertiary); }

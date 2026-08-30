@@ -104,7 +104,7 @@ import { statusLine } from './shared/say';
               <button class="btn btn-ghost" id="qrStop" style="display:none;">${esc(t('qrread.btn.cameraOff'))}</button>
             </div>
 
-            <video id="qrVideo" playsinline muted style="display:none; width:100%; max-height:320px; background:#000; border-radius:8px;"></video>
+            <video id="qrVideo" playsinline muted style="display:none; width:100%; max-height:320px; background:#000; border-radius:var(--radius-lg);"></video>
 
             <div class="tool-list" id="qrInfo"></div>
 

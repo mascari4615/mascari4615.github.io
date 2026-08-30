@@ -45,14 +45,14 @@ import { onAccountSettled } from '../lib/account-ready';
         .ut-card { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:13px 15px;
             border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary); }
         .ut-card h4 { margin:0; flex:1 1 160px; font-size:var(--font-size-sm); color:var(--text-primary); }
-        .ut-meta { font-size:11px; color:var(--text-tertiary); }
-        .ut-btn { padding:6px 12px; border-radius:8px; cursor:pointer; font:inherit; font-size:var(--font-size-xs);
+        .ut-meta { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
+        .ut-btn { padding:6px 12px; border-radius:var(--radius-lg); cursor:pointer; font:inherit; font-size:var(--font-size-xs);
             border:1px solid var(--border); background:transparent; color:var(--text-secondary); }
         .ut-btn:hover { border-color:var(--accent); color:var(--text-primary); }
         .ut-btn-go { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
         .ut-make { display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--border);
             border-radius:var(--radius-lg); background:var(--bg-secondary); }
-        .ut-make input, .ut-make textarea { padding:8px 10px; border-radius:8px; border:1px solid var(--border);
+        .ut-make input, .ut-make textarea { padding:8px 10px; border-radius:var(--radius-lg); border:1px solid var(--border);
             background:var(--bg-tertiary); color:var(--text-primary); font:inherit; font-size:var(--font-size-xs); }
         .ut-make textarea { min-height:160px; font-family:var(--font-mono, monospace); }
         .ut-stage { border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; background:#fff; }
@@ -61,7 +61,7 @@ import { onAccountSettled } from '../lib/account-ready';
             background:var(--bg-tertiary); font-size:var(--font-size-xs); color:var(--text-secondary); }
         /* 이 도구가 뭘 하나 (TASK-KL-191 축4). 상자 바로 위, 열기 전에 눈에 들어오는 자리 */
         .ut-summary { padding:9px 12px; border-top:1px solid var(--border); background:var(--bg-secondary);
-            font-size:11px; color:var(--text-secondary); line-height:1.6; }
+            font-size:var(--font-size-3xs); color:var(--text-secondary); line-height:1.6; }
         .ut-summary b { color:var(--text-primary); font-weight:600; }
         .ut-stopped { color:#f87171; font-weight:600; }
     `);

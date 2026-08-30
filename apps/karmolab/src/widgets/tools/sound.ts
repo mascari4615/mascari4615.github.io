@@ -177,7 +177,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     const el = document.createElement('style');
     el.textContent = `
 .sd-player{width:100%;display:block;margin-bottom:10px;}
-.sd-wave-wrap{position:relative;border:1px solid rgba(128,128,128,.22);border-radius:10px;
+.sd-wave-wrap{position:relative;border:1px solid rgba(128,128,128,.22);border-radius:var(--radius-xl);
   background:rgba(128,128,128,.06);overflow:hidden;}
 .sd-wave{display:block;width:100%;height:120px;cursor:pointer;}
 .sd-cursor{position:absolute;top:0;bottom:0;left:0;width:2px;background:rgba(255,120,120,.9);

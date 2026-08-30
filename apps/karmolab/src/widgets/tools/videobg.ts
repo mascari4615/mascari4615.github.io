@@ -98,7 +98,7 @@ import { CUTOUT_MODELS, alphaOf, applyAlpha, cutout, planFrames, resampleAlpha, 
         <button class="btn btn-ghost" id="vbStop" style="display:none">${esc(t('videobg.btn.stop'))}</button>
         <button class="btn btn-ghost" id="vbSave" style="display:none">${esc(t('videobg.btn.save'))}</button>
       </div>
-      <div style="background-image:linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%),linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%); background-size:16px 16px; background-position:0 0,8px 8px; border-radius:10px; padding:8px; overflow:auto;">
+      <div style="background-image:linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%),linear-gradient(45deg,rgba(128,128,128,.25) 25%,transparent 25%,transparent 75%,rgba(128,128,128,.25) 75%); background-size:16px 16px; background-position:0 0,8px 8px; border-radius:var(--radius-xl); padding:8px; overflow:auto;">
         <canvas id="vbCanvas" style="max-width:100%; display:block; margin:0 auto;"></canvas>
       </div>
       <div class="tool-status" id="vbStatus">${esc(t('videobg.status.idle'))}</div>

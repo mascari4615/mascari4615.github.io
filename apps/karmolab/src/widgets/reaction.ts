@@ -43,7 +43,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
                 <div style="display:flex;flex-direction:column;align-items:center;gap:20px;max-width:500px;margin:0 auto;width:100%;">
                     <div id="reactionBox" style="width:100%;height:280px;border-radius:var(--radius-lg);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:background 0.15s;background:var(--bg-tertiary);border:1px solid var(--border);">
                         <div id="reactionIcon" style="font-size:48px;margin-bottom:16px;">🎯</div>
-                        <div id="reactionText" style="font-size:18px;font-weight:700;color:var(--text-primary);">${esc(t('reaction.label.text'))}</div>
+                        <div id="reactionText" style="font-size:var(--font-size-md);font-weight:700;color:var(--text-primary);">${esc(t('reaction.label.text'))}</div>
                         <div id="reactionSub" style="font-size:var(--font-size-sm);color:var(--text-tertiary);margin-top:8px;">${esc(t('reaction.label.sub'))}</div>
                     </div>
                     <div id="reactionResults" style="width:100%;font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center;min-height:24px;"></div>
@@ -176,7 +176,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
                 resultsOut.textContent = t('reaction.avgTries', { avg, n: results.length });
 
                 const chip = document.createElement('span');
-                chip.style.cssText = `padding:4px 10px;border-radius:100px;font-size:var(--font-size-xs);font-weight:600;background:var(--bg-tertiary);color:${reactionTime < 250 ? 'var(--success)' : reactionTime < 400 ? 'var(--accent)' : 'var(--text-secondary)'};`;
+                chip.style.cssText = `padding:4px 10px;border-radius:var(--radius-pill);font-size:var(--font-size-xs);font-weight:600;background:var(--bg-tertiary);color:${reactionTime < 250 ? 'var(--success)' : reactionTime < 400 ? 'var(--accent)' : 'var(--text-secondary)'};`;
                 chip.textContent = `${reactionTime}ms`;
                 historyOut.appendChild(chip);
 

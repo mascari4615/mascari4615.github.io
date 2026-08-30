@@ -70,27 +70,27 @@ import { appPath } from '../lib/site-base';
         .st-cards { display:flex; flex-wrap:wrap; gap:12px; }
         .st-card { flex:1 1 160px; min-width:150px; padding:14px 16px;
             border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary); }
-        .st-card-name { font-size:11px; color:var(--text-tertiary); margin-bottom:6px; }
-        .st-card-value { font-size:19px; font-weight:700; color:var(--text-primary);
+        .st-card-name { font-size:var(--font-size-3xs); color:var(--text-tertiary); margin-bottom:6px; }
+        .st-card-value { font-size:var(--font-size-md); font-weight:700; color:var(--text-primary);
             font-variant-numeric:tabular-nums; }
-        .st-card-note { font-size:11px; color:var(--text-tertiary); margin-top:4px; }
+        .st-card-note { font-size:var(--font-size-3xs); color:var(--text-tertiary); margin-top:4px; }
         .st-live { display:inline-flex; align-items:center; gap:7px; }
         .st-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--text-tertiary); }
         .st-dot[data-up="1"] { background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.18); }
         .st-dot[data-up="0"] { background:#f87171; box-shadow:0 0 0 3px rgba(248,113,113,.18); }
         .st-feed { color:var(--accent); text-decoration:none; }
         .st-feed:hover { text-decoration:underline; }
-        .st-link { background:none; border:0; padding:0; font:inherit; font-size:11px;
+        .st-link { background:none; border:0; padding:0; font:inherit; font-size:var(--font-size-3xs);
             color:var(--accent); cursor:pointer; }
         .st-sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
             margin-bottom:10px; }
         .st-sec-title { margin:0; font-size:var(--font-size-md); font-weight:700; color:var(--text-primary); }
-        .st-sec-note { font-size:11px; color:var(--text-tertiary); }
+        .st-sec-note { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
         .st-day { border-top:1px solid var(--border); padding:12px 0 2px; }
         .st-day:first-child { border-top:0; padding-top:0; }
-        .st-day-name { font-size:11px; font-weight:700; color:var(--text-tertiary); margin-bottom:6px; }
+        .st-day-name { font-size:var(--font-size-3xs); font-weight:700; color:var(--text-tertiary); margin-bottom:6px; }
         .st-row { display:flex; align-items:flex-start; gap:9px; padding:4px 0; }
-        .st-tag { flex:0 0 auto; padding:1px 8px; border-radius:999px; font-size:10px; font-weight:700;
+        .st-tag { flex:0 0 auto; padding:1px 8px; border-radius:var(--radius-pill); font-size:var(--font-size-4xs); font-weight:700;
             border:1px solid var(--border); color:var(--text-tertiary); }
         /* 이 세 색은 어두운 판을 보고 고른 파스텔이었는데 테마와 상관없이 늘 쓰였다.
            흰 바탕에서는 대비가 1.4~1.9 밖에 안 돼 새로 생김, 고침, 빨라짐이
@@ -103,7 +103,7 @@ import { appPath } from '../lib/site-base';
         html[data-theme="dark"] .st-tag[data-tone="fix"] { color:#fca5a5; border-color:rgba(252,165,165,.4); }
         html[data-theme="dark"] .st-tag[data-tone="perf"] { color:#fcd34d; border-color:rgba(252,211,77,.4); }
         .st-text { font-size:var(--font-size-sm); color:var(--text-secondary); line-height:1.55; }
-        .st-note { margin:0; font-size:11px; color:var(--text-tertiary); line-height:1.6; }
+        .st-note { margin:0; font-size:var(--font-size-3xs); color:var(--text-tertiary); line-height:1.6; }
         .st-fail { padding:14px 16px; border:1px dashed var(--border); border-radius:var(--radius-lg);
             font-size:var(--font-size-sm); color:var(--text-secondary); }
     `);

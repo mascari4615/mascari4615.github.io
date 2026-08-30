@@ -70,11 +70,11 @@ import { toolPage } from '../../lib/site-base';
         </label>
         <button class="btn btn-primary" id="ocRead">${esc(t('ocr.btn.read'))}</button>
       </div>
-      <div id="ocRoute" style="display:none; padding:10px; border-radius:10px; background:rgba(128,128,128,.12); margin-bottom:10px;"></div>
+      <div id="ocRoute" style="display:none; padding:10px; border-radius:var(--radius-xl); background:rgba(128,128,128,.12); margin-bottom:10px;"></div>
       <div style="display:flex; gap:16px; flex-wrap:wrap;">
         <div>
           <div class="tool-sublabel">${esc(t('ocr.label.prepared'))}</div>
-          <canvas id="ocCanvas" style="border-radius:8px; border:1px solid rgba(128,128,128,.3); max-width:100%;"></canvas>
+          <canvas id="ocCanvas" style="border-radius:var(--radius-lg); border:1px solid rgba(128,128,128,.3); max-width:100%;"></canvas>
         </div>
         <div style="flex:1; min-width:240px;">
           <div class="tool-sublabel">${esc(t('ocr.label.text'))}</div>

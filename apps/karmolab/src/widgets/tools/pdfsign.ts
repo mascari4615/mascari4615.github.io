@@ -54,7 +54,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
 
             <div id="psEditor" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('pdfsign.label.pad'))}</div>
-              <canvas id="psPad" height="150" style="width:100%; height:150px; background:#fff; border-radius:8px; touch-action:none; display:block; cursor:crosshair;"></canvas>
+              <canvas id="psPad" height="150" style="width:100%; height:150px; background:#fff; border-radius:var(--radius-lg); touch-action:none; display:block; cursor:crosshair;"></canvas>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
                 <button class="btn btn-ghost btn-sm" id="psClearPad">${esc(t('pdfsign.btn.clearPad'))}</button>
                 <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
@@ -77,7 +77,7 @@ import { createPdf, download, loadPdfJs, loadPdfLib, openForEdit, openForRead, p
 
               <div class="tool-sublabel">${esc(t('pdfsign.label.preview'))}</div>
               <div id="psStage" style="position:relative; display:inline-block; max-width:100%;">
-                <canvas id="psView" style="max-width:100%; border-radius:8px; background:#fff; display:block; cursor:crosshair;"></canvas>
+                <canvas id="psView" style="max-width:100%; border-radius:var(--radius-lg); background:#fff; display:block; cursor:crosshair;"></canvas>
                 <img id="psGhost" alt="" style="position:absolute; display:none; pointer-events:none; opacity:0.85;">
               </div>
 

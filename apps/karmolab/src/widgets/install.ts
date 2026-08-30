@@ -53,10 +53,10 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
      사라진다. 색은 셸의 변수를 빌려 쓴다. 밝기 테마를 따라간다. */
   const STYLE = `
 .install-intro { color: var(--text-secondary); font-size: .92rem; margin: 0 0 1rem; }
-.install-row { border: 1px solid var(--border); border-radius: 10px; padding: .9rem 1rem; margin-bottom: .7rem; }
+.install-row { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: .9rem 1rem; margin-bottom: .7rem; }
 .install-head { display: flex; align-items: center; gap: .55rem; }
 .install-name { font-size: 1.02rem; }
-.install-go { margin-left: auto; padding: .35rem .9rem; border-radius: 7px; cursor: pointer;
+.install-go { margin-left: auto; padding: .35rem .9rem; border-radius: var(--radius-lg); cursor: pointer;
   border: 1px solid var(--border); background: var(--bg-tertiary); color: inherit; }
 .install-go:hover:not(:disabled) { border-color: var(--accent); }
 .install-go:disabled { opacity: .55; cursor: default; }
@@ -66,19 +66,19 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
 .install-desc { margin: .5rem 0 .3rem; font-size: .9rem; }
 .install-state { margin: 0; font-size: .84rem; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .install-log { margin: .7rem 0 0; max-height: 15rem; overflow: auto; white-space: pre-wrap;
-  font-size: .78rem; line-height: 1.45; padding: .6rem .7rem; border-radius: 7px;
+  font-size: .78rem; line-height: 1.45; padding: .6rem .7rem; border-radius: var(--radius-lg);
   background: var(--bg-void); color: var(--text-secondary); }
 .install-empty { color: var(--text-secondary); }
 
 /* 손 못 대는 줄. 감추지 않는다. 흐리게 두되 무엇이 있는지는 그대로 읽힌다. */
 .install-row--locked { opacity: .55; }
 .install-row--locked .install-go { cursor: not-allowed; }
-.install-needroot { border: 1px solid var(--accent); border-radius: 10px; padding: .8rem 1rem; margin-bottom: .9rem; }
+.install-needroot { border: 1px solid var(--accent); border-radius: var(--radius-xl); padding: .8rem 1rem; margin-bottom: .9rem; }
 .install-needroot-why { margin: 0 0 .6rem; font-size: .92rem; }
 .install-needroot-row { display: flex; gap: .5rem; flex-wrap: wrap; }
-.install-folder { flex: 1 1 22rem; min-width: 12rem; padding: .35rem .6rem; border-radius: 7px;
+.install-folder { flex: 1 1 22rem; min-width: 12rem; padding: .35rem .6rem; border-radius: var(--radius-lg);
   border: 1px solid var(--border); background: var(--bg-void); color: inherit; font-size: .85rem; }
-.install-pick, .install-save { padding: .35rem .9rem; border-radius: 7px; cursor: pointer;
+.install-pick, .install-save { padding: .35rem .9rem; border-radius: var(--radius-lg); cursor: pointer;
   border: 1px solid var(--border); background: var(--bg-tertiary); color: inherit; }
 .install-pick:hover, .install-save:hover { border-color: var(--accent); }
 .install-needroot-note { margin: .55rem 0 0; font-size: .82rem; color: var(--text-secondary); }

@@ -468,18 +468,18 @@ function injectStyles(): void {
 .pf-head{margin-bottom:var(--space-lg);}
 .pf-head.pf-over .pf-drop,.pf-head.pf-over .pf-file{outline:2px dashed rgba(128,160,255,.8);outline-offset:3px;}
 .pf-drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;
-  padding:26px 16px;border:1px dashed rgba(128,128,128,.4);border-radius:12px;cursor:pointer;text-align:center;}
+  padding:26px 16px;border:1px dashed rgba(128,128,128,.4);border-radius:var(--radius-xl);cursor:pointer;text-align:center;}
 .pf-drop:hover{background:rgba(128,128,128,.06);}
 .pf-paste{display:flex;flex-direction:column;gap:6px;}
 .pf-paste textarea{width:100%;min-height:110px;resize:vertical;font-family:inherit;
-  padding:12px 14px;border-radius:12px;border:1px solid rgba(128,128,128,.35);background:transparent;}
-.pf-paste-hint{font-size:12px;opacity:.6;}
-.pf-drop span{font-size:12px;opacity:.6;}
+  padding:12px 14px;border-radius:var(--radius-xl);border:1px solid rgba(128,128,128,.35);background:transparent;}
+.pf-paste-hint{font-size:var(--font-size-2xs);opacity:.6;}
+.pf-drop span{font-size:var(--font-size-2xs);opacity:.6;}
 .pf-file[hidden]{display:none;}
 .pf-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  padding:10px 14px;border:1px solid rgba(128,128,128,.28);border-radius:12px;}
+  padding:10px 14px;border:1px solid rgba(128,128,128,.28);border-radius:var(--radius-xl);}
 .pf-name{font-weight:600;word-break:break-all;}
-.pf-meta{font-size:12px;opacity:.65;}
+.pf-meta{font-size:var(--font-size-2xs);opacity:.65;}
 .pf-file .btn{margin-left:auto;}
 .pf-body{display:grid;grid-template-columns:minmax(200px,300px) 1fr;gap:var(--space-lg);align-items:start;}
 /* 미리보기 빈 도구(글 다루는 것들)는 왼쪽 300px 이 통째로 빈칸. 그때는 열 제거 */
@@ -487,32 +487,32 @@ function injectStyles(): void {
 .pf-body:has(#pfPreview:empty) .pf-left{display:none;}
 @media (max-width:720px){.pf-body{grid-template-columns:1fr;}}
 .pf-preview{min-height:120px;}
-.pf-empty{font-size:12px;opacity:.5;}
+.pf-empty{font-size:var(--font-size-2xs);opacity:.5;}
 .pf-group{margin-bottom:16px;}
-.pf-group-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;margin-bottom:6px;}
+.pf-group-label{font-size:var(--font-size-3xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;margin-bottom:6px;}
 /* 할 일은 카드가 아니라 칩. 60px 상자 19개보다 38px 칩이 한눈에 잡힌다 */
 .pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;}
-.pf-job{appearance:none;text-align:left;padding:9px 12px;border-radius:8px;cursor:pointer;
-  border:1px solid rgba(128,128,128,.28);background:transparent;font-size:13px;line-height:1.3;}
+.pf-job{appearance:none;text-align:left;padding:9px 12px;border-radius:var(--radius-lg);cursor:pointer;
+  border:1px solid rgba(128,128,128,.28);background:transparent;font-size:var(--font-size-2xs);line-height:1.3;}
 .pf-job:hover{background:rgba(128,160,255,.12);border-color:rgba(128,160,255,.5);}
 .pf-job.pf-hot{border-color:rgba(120,200,140,.75);background:rgba(120,200,140,.12);font-weight:600;}
 .pf-recent[hidden]{display:none;}
 .pf-recent{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
-.pf-recent-label{font-size:11px;opacity:.6;margin-right:2px;}
-.pf-recent-job{appearance:none;cursor:pointer;padding:6px 10px;font-size:12px;border-radius:8px;
+.pf-recent-label{font-size:var(--font-size-3xs);opacity:.6;margin-right:2px;}
+.pf-recent-job{appearance:none;cursor:pointer;padding:6px 10px;font-size:var(--font-size-2xs);border-radius:var(--radius-lg);
   border:1px solid rgba(128,160,255,.5);background:rgba(128,160,255,.1);color:inherit;}
 .pf-recent-job:hover{background:rgba(128,160,255,.2);}
-.pf-tip{font-size:12px;margin-bottom:10px;padding:8px 12px;border-radius:10px;
+.pf-tip{font-size:var(--font-size-2xs);margin-bottom:10px;padding:8px 12px;border-radius:var(--radius-xl);
   border:1px solid rgba(120,200,140,.45);background:rgba(120,200,140,.09);}
 .pf-back{appearance:none;background:transparent;border:0;cursor:pointer;padding:4px 0;
-  font-size:13px;opacity:.7;margin-bottom:10px;}
+  font-size:var(--font-size-2xs);opacity:.7;margin-bottom:10px;}
 .pf-back:hover{opacity:1;}
 /* display:flex 는 hidden 속성을 이긴다. 이 한 줄이 없으면 이어서 줄이 결과도 없는데
    늘 서 있다 (2026-08-13 검사가 잡았다, TASK-KL-282). 숨김이 필요한 칸마다 짝으로 적는다.
    (여기는 템플릿 문자열 안이라 홑따옴표 기울임표를 쓰면 문자열이 끊긴다.) */
 .pf-chain[hidden]{display:none;}
-.pf-chain{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;
-  padding:8px 12px;border-radius:10px;border:1px solid rgba(128,200,140,.5);background:rgba(128,200,140,.1);}
+.pf-chain{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:var(--font-size-2xs);
+  padding:8px 12px;border-radius:var(--radius-xl);border:1px solid rgba(128,200,140,.5);background:rgba(128,200,140,.1);}
 `;
   document.head.appendChild(el);
 }

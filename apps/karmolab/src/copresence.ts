@@ -101,10 +101,10 @@ function ensureLayer(): HTMLElement {
             '  transition:transform .09s linear, opacity .2s ease; display:flex; align-items:flex-start; gap:4px; }',
             '.kl-cursor[data-active="0"], .kl-cursor[data-offscreen="1"] { opacity:0; }',
             '.kl-cursor svg { filter:drop-shadow(0 1px 2px rgba(0,0,0,.45)); flex:0 0 auto; }',
-            '.kl-cursor-name { transform:translateY(14px); padding:2px 7px; border-radius:999px;',
+            '.kl-cursor-name { transform:translateY(14px); padding:2px 7px; border-radius:var(--radius-pill);',
             /* 12px 아래로 내리지 않는다. 폰에서 읽히는 최소선이고, 관문 검사가 그 선을 지킨다
                (실측 2026-08-12: 11px 이라 첫 화면, 도구 목록이 빨갰다). */
-            '  font-size:12px; line-height:1.5; white-space:nowrap; color:#0f0f12; font-weight:600;',
+            '  font-size:var(--font-size-2xs); line-height:1.5; white-space:nowrap; color:#0f0f12; font-weight:600;',
             '  box-shadow:0 1px 3px rgba(0,0,0,.35); }',
         ].join('\n');
         document.head.appendChild(style);

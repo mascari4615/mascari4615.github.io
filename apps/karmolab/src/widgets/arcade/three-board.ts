@@ -709,7 +709,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     if (hud) return;
     hud = document.createElement('div');
     hud.className = 'ac-fps';
-    hud.style.cssText = 'position:absolute;left:8px;top:8px;z-index:5;font:12px/1.4 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre';
+    hud.style.cssText = 'position:absolute;left:8px;top:8px;z-index:5;font:12px/1.4 ui-monospace,monospace;color:#fff;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:var(--radius-md);pointer-events:none;white-space:pre';
     host.appendChild(hud);
     const dts: number[] = [];
     let last = 0;

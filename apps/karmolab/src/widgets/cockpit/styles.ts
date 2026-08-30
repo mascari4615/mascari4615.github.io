@@ -31,7 +31,7 @@ const CSS = `
 }
 .ck-tab {
   padding: 8px 16px;
-  font-size: 12px;
+  font-size: var(--font-size-2xs);
   font-weight: 500;
   color: rgba(226,232,240,0.45);
   cursor: pointer;
@@ -68,9 +68,9 @@ const CSS = `
   background: var(--glass-strong);
   border: 1px solid var(--border-hover);
   color: var(--text-secondary);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--font-size-3xs);
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
 }
@@ -86,7 +86,7 @@ const CSS = `
   bottom: 175px;  /* 미니맵 위 */
   right: 16px;
   z-index: 10;
-  font-size: 10px;
+  font-size: var(--font-size-4xs);
   color: rgba(226,232,240,0.3);
   font-family: var(--font-mono, ui-monospace, monospace);
   text-align: right;
@@ -105,7 +105,7 @@ const CSS = `
   justify-content: center;
   background: rgba(10,12,16,0.7);
   color: #22d3ee;
-  font-size: 13px;
+  font-size: var(--font-size-2xs);
   font-family: var(--font-mono, ui-monospace, monospace);
   z-index: 100;
   pointer-events: none;

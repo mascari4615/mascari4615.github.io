@@ -27,7 +27,7 @@ import { t, loadNamespace } from '../lib/i18n';
                     </div>
                 
                     <div id="shyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
-                        <div style="position:relative; width:80%; max-width:800px; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; box-shadow:0 0 40px rgba(255,0,0,0.3);">
+                        <div style="position:relative; width:80%; max-width:800px; aspect-ratio:16/9; background:#000; border-radius:var(--radius-xl); overflow:hidden; box-shadow:0 0 40px rgba(255,0,0,0.3);">
                             <button id="closeShyModal" style="position:absolute; top:10px; right:15px; color:#fff; font-size:24px; background:none; border:none; cursor:pointer; z-index:10; font-weight:bold;">✕</button>
                             <div id="shyIframeContainer" style="width:100%; height:100%;"></div>
                         </div>

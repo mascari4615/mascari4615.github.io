@@ -123,21 +123,21 @@ import { intervalWhileVisible } from '../../lib/tick';
 .life-widget-wrap { padding: 12px 0; display: flex; flex-direction: column; gap: 6px; }
 .life-feature-row {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border-radius: 8px;
+  padding: 12px 14px; border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   border: 1px solid var(--border);
 }
 .life-feature-info { flex: 1; min-width: 0; }
 .life-feature-label { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .life-feature-badge {
-  font-size: 0.65rem; font-weight: 500; padding: 1px 5px; border-radius: 3px;
+  font-size: 0.65rem; font-weight: 500; padding: 1px 5px; border-radius: var(--radius-sm);
   background: var(--bg-tertiary); color: var(--text-secondary);
   letter-spacing: 0.03em;
 }
 .life-feature-sub { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 2px; }
 .life-feature-hotkey {
   display: inline-block; font-size: 0.7rem; margin-top: 4px;
-  padding: 1px 6px; border-radius: 4px;
+  padding: 1px 6px; border-radius: var(--radius-sm);
   background: var(--bg-tertiary);
   border: 1px solid var(--border-hover);
   font-family: monospace; letter-spacing: 0.02em;
@@ -148,7 +148,7 @@ import { intervalWhileVisible } from '../../lib/tick';
 .life-toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; }
 .life-toggle-switch input { opacity: 0; width: 0; height: 0; }
 .life-toggle-slider {
-  position: absolute; inset: 0; border-radius: 11px;
+  position: absolute; inset: 0; border-radius: var(--radius-xl);
   background: var(--bg-active);
   transition: background 0.2s;
 }

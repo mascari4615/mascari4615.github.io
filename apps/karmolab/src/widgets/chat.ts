@@ -139,10 +139,10 @@ void (async function (): Promise<void> {
         .header-chat { display:flex; align-items:center; position:relative; }
         .header-chat:empty { display:none; }
         /* 헤더 캡슐. 계정 단추(.header-account-btn)와 같은 몸피여야 한 줄로 읽힌다. */
-        .klchat-dock { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 11px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:transparent; color:var(--text-secondary,#9aa7bd); border-radius:999px; font-size:var(--font-size-xs,12px); font-weight:600; font-family:inherit; white-space:nowrap; cursor:pointer; transition:color .12s ease, border-color .12s ease, background .12s ease; }
+        .klchat-dock { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 11px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:transparent; color:var(--text-secondary,#9aa7bd); border-radius:var(--radius-pill); font-size:var(--font-size-xs,12px); font-weight:600; font-family:inherit; white-space:nowrap; cursor:pointer; transition:color .12s ease, border-color .12s ease, background .12s ease; }
         .klchat-dock:hover { color:var(--text-primary,#e4eaf6); border-color:var(--accent,#00e5ff); }
         .klchat-dock[aria-expanded="true"] { color:var(--accent,#00e5ff); border-color:var(--accent,#00e5ff); background:var(--accent-dim,rgba(0,229,255,0.12)); }
-        .klchat.loose .klchat-dock { height:auto; padding:9px 14px; border-radius:var(--radius-md,8px); background:var(--glass-strong,rgba(8,16,30,0.85)); color:var(--text-primary,#e4eaf6); font-size:13px; }
+        .klchat.loose .klchat-dock { height:auto; padding:9px 14px; border-radius:var(--radius-md,8px); background:var(--glass-strong,rgba(8,16,30,0.85)); color:var(--text-primary,#e4eaf6); font-size:var(--font-size-2xs); }
         .klchat-dot { width:7px; height:7px; border-radius:50%; background:var(--text-tertiary,#6b7688); flex:none; }
         .klchat-dot { position:relative; }
         /* 맥박은 **평소에 안 돈다** (TASK-KL-128 25 → 2026-08-08 재측정으로 정정).
@@ -159,40 +159,40 @@ void (async function (): Promise<void> {
         .klchat-dot.ping::after { content:''; position:absolute; inset:0; border-radius:50%;
           background:rgba(95,211,178,0.5); animation:klchat-pulse .9s ease-out 1; }
         @keyframes klchat-pulse { 0%{transform:scale(1);opacity:.5;} 70%{transform:scale(3);opacity:0;} 100%{transform:scale(1);opacity:0;} }
-        .klchat-badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:#ef8b8b; color:#1a1016; font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+        .klchat-badge { min-width:18px; height:18px; padding:0 5px; border-radius:var(--radius-xl); background:#ef8b8b; color:#1a1016; font-size:var(--font-size-3xs); font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
         .klchat-panel { width:min(340px,calc(100vw - 32px)); height:min(460px,calc(100vh - 88px)); display:none; flex-direction:column; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--glass-strong,rgba(8,16,30,0.92)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:var(--radius-md,8px); overflow:hidden; box-shadow:0 12px 40px var(--vignette,rgba(0,0,0,0.45)); }
         .klchat.open .klchat-panel { display:flex; }
-        .klchat-head { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border,rgba(255,255,255,0.08)); font-size:12px; color:var(--text-secondary,#9aa7bd); }
-        .klchat-head b { color:var(--text-primary,#e4eaf6); font-size:13px; }
+        .klchat-head { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border,rgba(255,255,255,0.08)); font-size:var(--font-size-2xs); color:var(--text-secondary,#9aa7bd); }
+        .klchat-head b { color:var(--text-primary,#e4eaf6); font-size:var(--font-size-2xs); }
         .klchat-head .klchat-spacer { flex:1; }
-        .klchat-x { background:none; border:none; color:var(--text-tertiary,#6b7688); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px; }
+        .klchat-x { background:none; border:none; color:var(--text-tertiary,#6b7688); cursor:pointer; font-size:var(--font-size-sm); line-height:1; padding:2px 4px; }
         .klchat-x:hover { color:var(--text-primary,#e4eaf6); }
-        .klchat-log { flex:1; overflow-y:auto; overflow-x:hidden; padding:10px 12px; display:flex; flex-direction:column; gap:3px; font-size:13px; line-height:1.5; overscroll-behavior:contain; }
+        .klchat-log { flex:1; overflow-y:auto; overflow-x:hidden; padding:10px 12px; display:flex; flex-direction:column; gap:3px; font-size:var(--font-size-2xs); line-height:1.5; overscroll-behavior:contain; }
         .klchat-line { color:var(--text-primary,#e4eaf6); word-break:break-word; white-space:pre-wrap; position:relative; padding-right:34px; }
         .klchat-line.cont { padding-left:0; }
         .klchat-who { font-weight:700; }
-        .klchat-owner { font-size:10px; font-weight:800; padding:0 4px; border-radius:3px; background:var(--accent,#00e5ff); color:#04121a; margin-right:4px; vertical-align:1px; }
-        .klchat-time { color:var(--text-tertiary,#6b7688); font-size:10px; margin-left:6px; opacity:0; transition:opacity .12s; }
+        .klchat-owner { font-size:var(--font-size-4xs); font-weight:800; padding:0 4px; border-radius:var(--radius-sm); background:var(--accent,#00e5ff); color:#04121a; margin-right:4px; vertical-align:1px; }
+        .klchat-time { color:var(--text-tertiary,#6b7688); font-size:var(--font-size-4xs); margin-left:6px; opacity:0; transition:opacity .12s; }
         .klchat-line:hover .klchat-time { opacity:1; }
         .klchat-act { position:absolute; right:0; top:0; display:none; gap:4px; }
         .klchat-line:hover .klchat-act { display:flex; }
-        .klchat-act button { background:none; border:none; padding:0 2px; font-size:11px; color:var(--text-tertiary,#6b7688); cursor:pointer; }
+        .klchat-act button { background:none; border:none; padding:0 2px; font-size:var(--font-size-3xs); color:var(--text-tertiary,#6b7688); cursor:pointer; }
         .klchat-act button:hover { color:#ef8b8b; }
         .klchat-act button[data-on="1"] { color:#e6c65c; }
-        .klchat-kept { color:#e6c65c; font-size:10px; margin-left:4px; }
-        .klchat-filter { background:none; border:none; cursor:pointer; font-size:12px; opacity:0.35; padding:0 2px; }
+        .klchat-kept { color:#e6c65c; font-size:var(--font-size-4xs); margin-left:4px; }
+        .klchat-filter { background:none; border:none; cursor:pointer; font-size:var(--font-size-2xs); opacity:0.35; padding:0 2px; }
         .klchat-filter[data-on="1"] { opacity:1; }
-        .klchat-quote { font-size:11px; color:var(--text-tertiary,#6b7688); border-left:2px solid var(--border,rgba(255,255,255,0.15)); padding-left:6px; margin:2px 0 1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .klchat-replying { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-tertiary,#6b7688); }
+        .klchat-quote { font-size:var(--font-size-3xs); color:var(--text-tertiary,#6b7688); border-left:2px solid var(--border,rgba(255,255,255,0.15)); padding-left:6px; margin:2px 0 1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .klchat-replying { display:flex; align-items:center; gap:6px; font-size:var(--font-size-3xs); color:var(--text-tertiary,#6b7688); }
         .klchat-replying button { background:none; border:none; color:inherit; cursor:pointer; }
-        .klchat-note { color:var(--text-tertiary,#6b7688); font-size:11px; line-height:1.6; padding:6px 0; border-bottom:1px dashed var(--border,rgba(255,255,255,0.08)); margin-bottom:4px; }
+        .klchat-note { color:var(--text-tertiary,#6b7688); font-size:var(--font-size-3xs); line-height:1.6; padding:6px 0; border-bottom:1px dashed var(--border,rgba(255,255,255,0.08)); margin-bottom:4px; }
         .klchat-foot { border-top:1px solid var(--border,rgba(255,255,255,0.08)); padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
         .klchat-row { display:flex; gap:6px; align-items:flex-end; }
-        .klchat-input { flex:1; resize:none; height:34px; max-height:96px; padding:8px 10px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--bg-tertiary,rgba(255,255,255,0.04)); color:var(--text-primary,#e4eaf6); border-radius:var(--radius-sm,6px); font-size:13px; font-family:inherit; line-height:1.35; }
+        .klchat-input { flex:1; resize:none; height:34px; max-height:96px; padding:8px 10px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--bg-tertiary,rgba(255,255,255,0.04)); color:var(--text-primary,#e4eaf6); border-radius:var(--radius-sm,6px); font-size:var(--font-size-2xs); font-family:inherit; line-height:1.35; }
         .klchat-input:focus { outline:none; border-color:var(--border-hover,rgba(0,229,255,0.35)); }
-        .klchat-send { flex:none; padding:0 12px; height:34px; border:none; border-radius:var(--radius-sm,6px); background:var(--accent,#00e5ff); color:#04121a; font-weight:800; font-size:12px; cursor:pointer; }
+        .klchat-send { flex:none; padding:0 12px; height:34px; border:none; border-radius:var(--radius-sm,6px); background:var(--accent,#00e5ff); color:#04121a; font-weight:800; font-size:var(--font-size-2xs); cursor:pointer; }
         .klchat-send:disabled { opacity:0.4; cursor:default; }
-        .klchat-status { font-size:11px; color:var(--text-tertiary,#6b7688); min-height:14px; }
+        .klchat-status { font-size:var(--font-size-3xs); color:var(--text-tertiary,#6b7688); min-height:14px; }
         .klchat-status.warn { color:#ef8b8b; }
         .klchat-alone { border:none; color:var(--text-secondary,#9aa7bd); }
         @media (max-width:900px) {
@@ -209,7 +209,7 @@ void (async function (): Promise<void> {
             .klchat-panel { width:100%; height:min(70vh,460px); height:min(60dvh,460px); }
             /* 아이폰은 글자가 16px 보다 작은 칸을 누르면 **화면을 확대해 버린다.**
                그러면 창이 화면 밖으로 밀려나고, 되돌리려면 손으로 축소해야 한다. */
-            .klchat-input { font-size:16px; }
+            .klchat-input { font-size:var(--font-size-sm); }
         }
         `,
     );

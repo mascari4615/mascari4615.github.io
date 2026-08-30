@@ -15,10 +15,10 @@ import { t, loadNamespace } from '../lib/i18n';
 
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:380px; gap:16px; text-align:center;">
-                    <div style="font-size:14px; color:var(--text-secondary);">${esc(t('conch.t01'))}</div>
+                    <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('conch.t01'))}</div>
                     <input type="text" id="conchInput" class="input" style="width:80%; max-width:300px; text-align:center;" placeholder="${esc(t('conch.ph.input'))}">
                     <div id="conchVisual" style="font-size:70px; cursor:pointer; transition:transform 0.3s; user-select:none;">🐚</div>
-                    <div id="conchResult" style="font-size:16px; font-weight:bold; color:var(--accent); min-height:24px;"></div>
+                    <div id="conchResult" style="font-size:var(--font-size-sm); font-weight:bold; color:var(--accent); min-height:24px;"></div>
                     <button class="btn primary" id="conchBtn">${esc(t('conch.btn.btn'))}</button>
                 </div>
             `;

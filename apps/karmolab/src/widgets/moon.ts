@@ -21,9 +21,9 @@ import { t, loadNamespace } from '../lib/i18n';
           Mdd.linePreset('achievement', { msg: t('moon.t07') });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:380px; gap:16px; background:#020205; overflow:hidden; position:relative; border-radius:var(--radius-lg);">
-                        <div style="font-size:14px; color:#cfccc3; letter-spacing:4px; z-index:2; text-shadow:0 0 4px #000;">THE MOON PHASE</div>
+                        <div style="font-size:var(--font-size-xs); color:#cfccc3; letter-spacing:4px; z-index:2; text-shadow:0 0 4px #000;">THE MOON PHASE</div>
                         <div id="moonVisual" style="font-size:140px; line-height:1; z-index:2; filter:drop-shadow(0 0 20px rgba(255,255,200,0.15)); user-select:none; cursor:default;">🌕</div>
-                        <div id="moonDesc" style="font-size:14px; color:#9a968d; z-index:2; font-family:monospace;">${esc(t('moon.label.desc'))}</div>
+                        <div id="moonDesc" style="font-size:var(--font-size-xs); color:#9a968d; z-index:2; font-family:monospace;">${esc(t('moon.label.desc'))}</div>
                         <div style="font-size:var(--font-size-xs); color:#8a867e; text-align:center; max-width:80%; margin-top:10px; line-height:1.5; z-index:2;">
                             <span style="color:#aaa; font-weight:bold;">TMI 🌕</span><br>
                             ${esc(t('moon.t01'))}<br>

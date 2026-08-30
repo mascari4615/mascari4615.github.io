@@ -18,7 +18,7 @@ function once(): void {
   if (styled) return;
   styled = true;
   const el = document.createElement('style');
-  el.textContent = '.kl-copied{outline:2px solid rgba(120,200,140,.85);outline-offset:2px;border-radius:6px;}';
+  el.textContent = '.kl-copied{outline:2px solid rgba(120,200,140,.85);outline-offset:2px;border-radius:var(--radius-md);}';
   document.head.appendChild(el);
 }
 

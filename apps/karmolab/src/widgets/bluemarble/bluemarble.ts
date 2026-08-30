@@ -120,21 +120,21 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 /* 첫 화면은 **조용해야 한다**. 지구와 한 줄. 조작부는 ⋯ 뒤에 접어 둔다.
    (칩이 12개가 되자 화면이 창문이 아니라 계기판이 됐다.) */
 .bm-menu{position:absolute;top:calc(10px + var(--bm-head));left:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
-  background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 11px;
-  border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
+  background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:var(--font-size-2xs);line-height:1;padding:7px 11px;
+  border-radius:var(--radius-pill);cursor:pointer;backdrop-filter:blur(6px);}
 .bm-menu[aria-expanded="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);}
 .bm-chips{position:absolute;top:calc(46px + var(--bm-head));left:10px;right:104px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;
   opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .28s ease,transform .28s ease;}
 .bm-wrap.bm-panel .bm-chips{opacity:1;pointer-events:auto;transform:none;}
 .bm-wrap.bm-ambient .bm-menu{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-chip{appearance:none;border:1px solid rgba(255,255,255,.16);background:rgba(8,12,22,.55);
-  color:rgba(255,255,255,.55);font-size:11px;line-height:1;padding:6px 9px;border-radius:999px;
+  color:rgba(255,255,255,.55);font-size:var(--font-size-3xs);line-height:1;padding:6px 9px;border-radius:var(--radius-pill);
   cursor:pointer;backdrop-filter:blur(6px);font-family:var(--font-mono,ui-monospace,monospace);}
 .bm-chip[aria-pressed="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);background:rgba(30,52,96,.55);}
 .bm-chip:hover{border-color:rgba(255,255,255,.4);}
 .bm-ticker{position:absolute;left:0;right:0;bottom:0;padding:14px 16px 16px;z-index:2;pointer-events:none;
   background:linear-gradient(to top,rgba(2,4,10,.85),rgba(2,4,10,0));}
-.bm-line{display:block;color:#dbe6ff;font-size:14px;line-height:1.5;letter-spacing:-.01em;
+.bm-line{display:block;color:#dbe6ff;font-size:var(--font-size-xs);line-height:1.5;letter-spacing:-.01em;
   opacity:0;transition:opacity .8s ease;text-shadow:0 1px 12px rgba(0,0,0,.9);}
 .bm-line.bm-show{opacity:1;}
 /* 상시 모드. 켜 두는 물건이 되면 조작부는 사라져야 한다. 지구와 한 줄만 남는다.
@@ -156,35 +156,35 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 .bm-link{position:absolute;top:calc(10px + var(--bm-head));right:126px;z-index:4;}
 .bm-card{position:absolute;top:calc(10px + var(--bm-head));right:214px;z-index:4;}
 .bm-day{position:absolute;top:calc(44px + var(--bm-head));right:214px;z-index:4;background:rgba(8,12,22,.85);color:#eaf2ff;
-  border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 8px;font-size:11px;
+  border:1px solid rgba(255,255,255,.2);border-radius:var(--radius-lg);padding:5px 8px;font-size:var(--font-size-3xs);
   font-family:var(--font-mono,ui-monospace,monospace);display:none;}
 .bm-day.bm-show{display:block;}
 .bm-wrap.bm-ambient .bm-card,.bm-wrap.bm-ambient .bm-day{opacity:0;pointer-events:none;}
 .bm-wrap.bm-ambient .bm-link{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-body{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 /* 오늘의 우주 사진. 지구 창 곁에 붙은 작은 액자. 누르면 원본으로 간다. */
-.bm-apod{position:absolute;left:14px;bottom:96px;width:132px;border-radius:10px;z-index:3;cursor:pointer;
+.bm-apod{position:absolute;left:14px;bottom:96px;width:132px;border-radius:var(--radius-xl);z-index:3;cursor:pointer;
   border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.55);opacity:.92;
   transition:opacity .5s ease,transform .5s ease;}
 .bm-apod:hover{opacity:1;transform:translateY(-2px);}
 .bm-apod[hidden]{display:none;}
 @media (max-width:520px){.bm-apod{width:92px;bottom:88px}}
 .bm-fs{position:absolute;top:calc(10px + var(--bm-head));right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
-  background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 9px;
-  border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
+  background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:var(--font-size-2xs);line-height:1;padding:7px 9px;
+  border-radius:var(--radius-pill);cursor:pointer;backdrop-filter:blur(6px);}
 .bm-wrap.bm-ambient .bm-fs{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-time{position:absolute;left:0;right:0;bottom:58px;z-index:3;display:flex;align-items:center;gap:10px;
   padding:0 16px;opacity:0;pointer-events:none;transition:opacity .28s ease;}
 .bm-wrap.bm-panel .bm-time{opacity:1;pointer-events:auto;}
 .bm-time input[type=range]{flex:1;accent-color:#8fb8ff;height:2px;cursor:pointer;}
-.bm-date{color:#cfe0ff;font-size:12px;font-family:var(--font-mono,ui-monospace,monospace);min-width:92px;
+.bm-date{color:#cfe0ff;font-size:var(--font-size-2xs);font-family:var(--font-mono,ui-monospace,monospace);min-width:92px;
   text-align:right;text-shadow:0 1px 8px rgba(0,0,0,.9);}
 .bm-now{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(8,12,22,.6);color:#eaf2ff;
-  font-size:11px;padding:5px 9px;border-radius:999px;cursor:pointer;font-family:var(--font-mono,ui-monospace,monospace);}
+  font-size:var(--font-size-3xs);padding:5px 9px;border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font-mono,ui-monospace,monospace);}
 .bm-now[hidden]{display:none;}
-.bm-sub{display:block;margin-top:3px;color:rgba(190,205,235,.45);font-size:11px;
+.bm-sub{display:block;margin-top:3px;color:rgba(190,205,235,.45);font-size:var(--font-size-3xs);
   font-family:var(--font-mono,ui-monospace,monospace);}
-@media (max-width:520px){.bm-line{font-size:13px}.bm-chip{font-size:10px;padding:5px 8px}}
+@media (max-width:520px){.bm-line{font-size:var(--font-size-2xs)}.bm-chip{font-size:var(--font-size-4xs);padding:5px 8px}}
 @media (prefers-reduced-motion:reduce){.bm-line{transition:none}}
 `;
     document.head.appendChild(el);

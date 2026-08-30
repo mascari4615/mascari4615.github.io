@@ -124,7 +124,7 @@ import { markLive } from './shared/say';
               </div>
             </div>
 
-            <canvas id="bcCanvas" style="max-width:100%; background:#fff; border-radius:8px; display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
+            <canvas id="bcCanvas" style="max-width:100%; background:#fff; border-radius:var(--radius-lg); display:block; border:1px solid rgba(128,128,128,0.25);"></canvas>
 
             <div class="cc-stats cc-stats-early" id="bcStats"></div>
 

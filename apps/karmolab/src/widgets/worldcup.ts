@@ -339,7 +339,7 @@ const BUILTIN = [
             const right = current[1];
             $('wcAsk').textContent = `${roundOf === 2 ? t('worldcup.t17') : t('worldcup.roundOf', { n: roundOf })}, ${winners.length + 1} / ${roundOf / 2}`;
             const face = (r: Runner): string =>
-              `<img src="${esc(r.img)}" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:10px">` +
+              `<img src="${esc(r.img)}" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:var(--radius-xl)">` +
               `<span class="hi-nm" style="display:block;margin-top:8px;font-weight:700">${esc(r.name)}</span>`;
             $('wcA').innerHTML = face(left);
             $('wcB').innerHTML = face(right);
@@ -379,8 +379,8 @@ const BUILTIN = [
             $('wcChampion').innerHTML =
               `<div style="text-align:center">` +
               `<div style="font-size:var(--font-size-sm);color:var(--text-tertiary)">${esc(t('worldcup.t04'))}</div>` +
-              `<img src="${esc(champion.img)}" alt="" style="max-width:320px;max-height:320px;object-fit:contain;border-radius:12px">` +
-              `<div style="font-size:20px;font-weight:800;margin-top:8px">${esc(champion.name)}</div></div>`;
+              `<img src="${esc(champion.img)}" alt="" style="max-width:320px;max-height:320px;object-fit:contain;border-radius:var(--radius-xl)">` +
+              `<div style="font-size:var(--font-size-title);font-weight:800;margin-top:8px">${esc(champion.name)}</div></div>`;
 
             // 내가 고른 길. 마지막 판부터 거슬러. 우승만 남기면 누구를 버렸나가 사라진다.
             const path = matches
@@ -470,7 +470,7 @@ const BUILTIN = [
                 .slice(0, 8)
                 .map(
                   (h) =>
-                    `<span class="pk-emoji" title="${esc(h.title)}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border);border-radius:100px">` +
+                    `<span class="pk-emoji" title="${esc(h.title)}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill)">` +
                     `<img src="${esc(h.img)}" alt="" style="width:22px;height:22px;object-fit:cover;border-radius:50%">` +
                     `<b>${esc(h.champion)}</b></span>`,
                 )

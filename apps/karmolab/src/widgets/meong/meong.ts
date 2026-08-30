@@ -68,15 +68,15 @@ import { download, encode } from '../tools/shared/image';
 .meong-dock { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
   display: flex; gap: 6px; padding: 6px; pointer-events: auto;
   background: rgba(12,14,20,.62); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,.10); border-radius: 999px; }
+  border: 1px solid rgba(255,255,255,.10); border-radius: var(--radius-pill); }
 .meong-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-  border: 0; border-radius: 999px; cursor: pointer; font-size: 14px; line-height: 1;
+  border: 0; border-radius: var(--radius-pill); cursor: pointer; font-size: var(--font-size-xs); line-height: 1;
   color: rgba(255,255,255,.78); background: transparent; transition: background .15s, color .15s; }
 .meong-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
 .meong-btn[aria-pressed="true"] { background: rgba(255,255,255,.16); color: #fff; }
 .meong-chips { position: absolute; left: 14px; top: 14px; display: flex; gap: 6px;
   pointer-events: auto; flex-wrap: wrap; max-width: calc(100% - 28px); }
-.meong-chip { padding: 5px 12px; border-radius: 999px; cursor: pointer; font-size: 12px;
+.meong-chip { padding: 5px 12px; border-radius: var(--radius-pill); cursor: pointer; font-size: var(--font-size-2xs);
   border: 1px solid rgba(255,255,255,.12); background: rgba(12,14,20,.55);
   color: rgba(255,255,255,.7); backdrop-filter: blur(10px); }
 .meong-chip[aria-pressed="true"] { color: #fff; border-color: rgba(255,255,255,.34); }
@@ -86,18 +86,18 @@ import { download, encode } from '../tools/shared/image';
   border: 1px solid rgba(255,255,255,.10); border-radius: var(--radius-md, 10px); }
 .meong-panel.is-open { display: flex; }
 .meong-row { display: flex; flex-direction: column; gap: 6px; }
-.meong-row > label { font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+.meong-row > label { font-size: var(--font-size-3xs); letter-spacing: .04em; text-transform: uppercase;
   color: rgba(255,255,255,.52); display: flex; justify-content: space-between; gap: 8px; }
 .meong-row > label > b { font-weight: 600; color: rgba(255,255,255,.82); font-variant-numeric: tabular-nums; }
 .meong-row input[type="range"] { width: 100%; accent-color: #d4a849; }
 .meong-seg { display: flex; gap: 4px; flex-wrap: wrap; }
-.meong-seg > button { flex: 1 1 auto; min-width: 40px; padding: 5px 4px; font-size: 11px; cursor: pointer;
+.meong-seg > button { flex: 1 1 auto; min-width: 40px; padding: 5px 4px; font-size: var(--font-size-3xs); cursor: pointer;
   border-radius: var(--radius-sm, 6px); border: 1px solid rgba(255,255,255,.10);
   background: rgba(255,255,255,.04); color: rgba(255,255,255,.6); }
 .meong-seg > button[aria-pressed="true"] { background: rgba(212,168,73,.20);
   border-color: rgba(212,168,73,.55); color: #fff; }
 .meong-hint { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center;
-  font-size: 11px; color: rgba(255,255,255,.34); }
+  font-size: var(--font-size-3xs); color: rgba(255,255,255,.34); }
 @media (max-width: 620px) { .meong-panel { left: 14px; right: 14px; width: auto; } }
 @media (prefers-reduced-motion: reduce) { .meong-ui { transition: none; } }
 `;

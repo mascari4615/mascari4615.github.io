@@ -86,7 +86,7 @@ import { attachImage, encode } from './shared/image';
 
               <div id="pcShot" style="display:none;">
                 <div class="tool-sublabel">${esc(t('pdfcompress.shot.caption'))}</div>
-                <img id="pcShotImg" alt="${esc(t('pdfcompress.shot.alt'))}" style="max-width:100%; border-radius:8px; background:#fff;">
+                <img id="pcShotImg" alt="${esc(t('pdfcompress.shot.alt'))}" style="max-width:100%; border-radius:var(--radius-lg); background:#fff;">
               </div>
             </div>
 

@@ -50,7 +50,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </div>
 
             <div id="viEditor" style="display:none; margin-top:var(--space-lg);">
-              <video id="viVideo" controls playsinline style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
+              <video id="viVideo" controls playsinline style="width:100%; max-height:340px; background:#000; border-radius:var(--radius-lg);"></video>
 
               <div class="tool-section field-group">
                 <div class="tool-grid-2">
@@ -113,7 +113,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               .map(
                 (s, i) =>
                   `<figure style="margin:0; cursor:pointer;" data-i="${i}" title="${esc(t('video2img.row.download'))}">
-                     <img src="${s.url}" alt="${esc(t('video2img.alt.shot', { at: mmss(s.time) }))}" style="width:100%; border-radius:6px; display:block; background:#000;">
+                     <img src="${s.url}" alt="${esc(t('video2img.alt.shot', { at: mmss(s.time) }))}" style="width:100%; border-radius:var(--radius-md); display:block; background:#000;">
                      <figcaption class="tool-list-dim" style="text-align:center; padding-top:4px;">${mmss(s.time)}, ${size(s.blob.size)}</figcaption>
                    </figure>`
               )

@@ -25,7 +25,7 @@ import { t, loadNamespace } from '../lib/i18n';
         border-radius: var(--radius-lg);
         background: var(--bg-tertiary);
         color: var(--text-secondary);
-        font-size: 13px;
+        font-size: var(--font-size-2xs);
         line-height: 1.5;
       }
       .stash-grid {
@@ -56,11 +56,11 @@ import { t, loadNamespace } from '../lib/i18n';
       }
       .stash-item-title {
         font-weight: 600;
-        font-size: 14px;
+        font-size: var(--font-size-xs);
         color: var(--text-primary);
       }
       .stash-item-desc {
-        font-size: 12px;
+        font-size: var(--font-size-2xs);
         color: var(--text-secondary);
       }
       .stash-item-slot {
@@ -70,7 +70,7 @@ import { t, loadNamespace } from '../lib/i18n';
         padding: 16px;
         text-align: center;
         color: var(--text-secondary);
-        font-size: 12px;
+        font-size: var(--font-size-2xs);
       }
     `
   );

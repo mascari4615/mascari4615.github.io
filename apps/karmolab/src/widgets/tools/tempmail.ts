@@ -63,20 +63,20 @@ import {
       <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; align-items:center;">
         <label class="tool-checkline" for="tmTtl">${esc(t('tempmail.label.ttl'))}</label>
         <select id="tmTtl" name="minutes" aria-label="${esc(t('tempmail.label.ttl'))}"
-                style="height:38px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; padding:0 10px;">
+                style="height:38px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-lg); padding:0 10px;">
           ${TTL_CHOICES.map((m) => `<option value="${m}">${esc(t('tempmail.opt.minutes', { n: m }))}</option>`).join('')}
         </select>
         <button class="btn btn-primary" id="tmNew">${esc(t('tempmail.btn.new'))}</button>
         <button class="btn btn-ghost" id="tmDrop" style="display:none">${esc(t('tempmail.btn.drop'))}</button>
       </div>
 
-      <div id="tmBoxRow" style="display:none; align-items:center; gap:10px; flex-wrap:wrap; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:10px;">
+      <div id="tmBoxRow" style="display:none; align-items:center; gap:10px; flex-wrap:wrap; border:1px solid var(--border); border-radius:var(--radius-xl); padding:10px 12px; margin-bottom:10px;">
         <code id="tmAddr" style="font-size:1.1em; user-select:all;"></code>
         <button class="btn btn-ghost" id="tmCopy">${esc(t('tempmail.btn.copy'))}</button>
         <span class="range-value" id="tmLeft"></span>
       </div>
 
-      <div id="tmCode" style="display:none; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:10px;">
+      <div id="tmCode" style="display:none; border:1px solid var(--border); border-radius:var(--radius-xl); padding:10px 12px; margin-bottom:10px;">
         <div class="tool-sublabel">${esc(t('tempmail.code.label'))}</div>
         <div style="display:flex; gap:10px; align-items:center;">
           <code id="tmCodeValue" style="font-size:1.6em; letter-spacing:.08em; user-select:all;"></code>
@@ -151,7 +151,7 @@ import {
         .reverse()
         .map((l) => {
           const body = opened === l.id ? `<pre class="tool-pre" style="white-space:pre-wrap; margin:8px 0 0;">${esc(l.text)}</pre>` : '';
-          return `<div class="tool-row" data-id="${esc(l.id)}" style="border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer;">
+          return `<div class="tool-row" data-id="${esc(l.id)}" style="border:1px solid var(--border); border-radius:var(--radius-xl); padding:10px 12px; margin-bottom:8px; cursor:pointer;">
             <div style="display:flex; gap:8px; justify-content:space-between; flex-wrap:wrap;">
               <strong>${esc(l.subject || t('tempmail.list.noSubject'))}</strong>
               <span class="tool-hint">${esc(l.from)}</span>

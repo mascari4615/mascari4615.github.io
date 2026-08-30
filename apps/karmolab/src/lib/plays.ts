@@ -204,7 +204,7 @@ export function renderPlayResult(slot: HTMLElement, spec: PlaySpec, result: Play
   slot.innerHTML = parts
     .map(
       (text) =>
-        `<span style="padding:3px 9px;border-radius:100px;background:var(--bg-tertiary);border:1px solid var(--border);">${text}</span>`,
+        `<span style="padding:3px 9px;border-radius:var(--radius-pill);background:var(--bg-tertiary);border:1px solid var(--border);">${text}</span>`,
     )
     .join('');
 }

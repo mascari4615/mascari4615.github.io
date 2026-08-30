@@ -22,8 +22,8 @@ import { t, loadNamespace } from '../lib/i18n';
           container.innerHTML = `
                     <div style="position:relative; width:100%; flex:1; min-height:300px; background:#000; overflow:hidden; border-radius:var(--radius-lg); cursor:none;" id="darkArea">
                         <canvas id="darkCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
-                        <div id="escapeDoor" style="position:absolute; font-size:18px; opacity:0; cursor:none; width:24px; height:24px; display:flex; align-items:center; justify-content:center; transition:opacity 0.2s; user-select:none;">🚪</div>
-                        <div id="darkWin" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:18px; font-weight:bold; text-align:center; display:none; background:rgba(0,0,0,0.8); padding:20px; border-radius:12px; border:1px solid #333; cursor:default; user-select:none;">
+                        <div id="escapeDoor" style="position:absolute; font-size:var(--font-size-md); opacity:0; cursor:none; width:24px; height:24px; display:flex; align-items:center; justify-content:center; transition:opacity 0.2s; user-select:none;">🚪</div>
+                        <div id="darkWin" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:var(--font-size-md); font-weight:bold; text-align:center; display:none; background:rgba(0,0,0,0.8); padding:20px; border-radius:var(--radius-xl); border:1px solid #333; cursor:default; user-select:none;">
                              ${esc(t('darkroom.label.darkWin'))}<br>
                             <button class="btn" style="margin-top:16px; font-size:var(--font-size-xs); cursor:default;" id="resetDark">${esc(t('darkroom.btn.resetDark'))}</button>
                         </div>

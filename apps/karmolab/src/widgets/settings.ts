@@ -27,7 +27,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         .settings-row-stack { display:block; }
         .settings-row-stack label { display:block; margin-bottom:10px; }
         .settings-section { margin-bottom:0; }
-        .settings-section h3 { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-tertiary); margin:0 0 4px; }
+        .settings-section h3 { font-size:var(--font-size-3xs); font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-tertiary); margin:0 0 4px; }
         .settings-danger { border-color:var(--error-subtle); background:var(--error-subtle); }
         .settings-danger .btn-ghost { color:var(--error); }
         .settings-code-preview { margin-top:12px; font-size:var(--font-size-xs); }
@@ -35,7 +35,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         .settings-code-preview pre code { padding:12px 14px; line-height:1.5; display:block; font-size:var(--font-size-xs); }
         .storage-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
         .storage-card { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; min-width:140px; }
-        .storage-card-value { font-size:22px; font-weight:700; color:var(--accent); font-family:monospace; }
+        .storage-card-value { font-size:var(--font-size-lg); font-weight:700; color:var(--accent); font-family:monospace; }
         .storage-card-label { font-size:var(--font-size-xs); color:var(--text-secondary); margin-top:4px; }
         .storage-table { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }
         .storage-table th, .storage-table td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }

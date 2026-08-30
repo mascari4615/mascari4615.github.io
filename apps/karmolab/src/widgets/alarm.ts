@@ -73,7 +73,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .kl-alarm-meta { flex: 1; min-width: 0; }
       .kl-alarm-label { font-size: var(--font-size-sm); color: var(--text-primary); font-weight: 600; }
       .kl-alarm-sub { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: 2px; }
-      .kl-alarm-toggle { position: relative; width: 40px; height: 22px; border-radius: 11px; border: none; background: var(--bg-tertiary); cursor: pointer; flex: none; }
+      .kl-alarm-toggle { position: relative; width: 40px; height: 22px; border-radius: var(--radius-xl); border: none; background: var(--bg-tertiary); cursor: pointer; flex: none; }
       .kl-alarm-toggle[data-on="1"] { background: var(--accent, #4a9); }
       .kl-alarm-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
       .kl-alarm-toggle[data-on="1"]::after { transform: translateX(18px); }

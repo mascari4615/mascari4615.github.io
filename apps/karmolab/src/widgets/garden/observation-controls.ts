@@ -11,7 +11,7 @@ export function createObservationControls(): ObservationControls {
     style.id = 'garden-observation-controls-style';
     style.textContent = `
 .garden-observation-controls{display:flex;align-items:center;gap:4px}
-.garden-observation-speed{appearance:none;border:1px solid #ffffff28;background:#0b101db8;color:inherit;padding:6px 8px;border-radius:999px;cursor:pointer;font:11px var(--font-mono,monospace)}
+.garden-observation-speed{appearance:none;border:1px solid #ffffff28;background:#0b101db8;color:inherit;padding:6px 8px;border-radius:var(--radius-pill);cursor:pointer;font:11px var(--font-mono,monospace)}
 .garden-observation-speed:focus-visible{outline:2px solid #9bdcff;outline-offset:2px}
 `;
     document.head.appendChild(style);

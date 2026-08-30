@@ -150,7 +150,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                     <button class="tl-btn tl-btn-primary" id="tl-fork-catalog">${esc(t('tierlist.btn.tlforkcatalog'))}</button>
                     <button class="tl-btn" id="tl-btn-export-json">JSON</button>
                 </div>
-                <p style="font-size:13px;color:var(--text-tertiary);margin:0 0 12px;line-height:1.45;">
+                <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 12px;line-height:1.45;">
                     ${esc(t('tierlist.t04'))} <strong>${esc(t('tierlist.t05'))}</strong> ${esc(t('tierlist.t06'))} <strong>${esc(t('tierlist.btn.tlforkcatalog'))}</strong>${esc(t('tierlist.t07'))}
                 </p>
                 <div class="tl-pool" style="min-height:120px;">${grid}</div>

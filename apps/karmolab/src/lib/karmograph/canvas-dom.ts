@@ -124,7 +124,7 @@ export function buildCanvasDom(
       position:absolute; bottom:58px; right:16px;
       width:${MINIMAP_W}px; height:${MINIMAP_H}px;
       background:${theme.minimapBg}; border:1px solid ${theme.minimapBorder};
-      border-radius:12px; overflow:hidden; pointer-events:all; cursor:pointer;
+      border-radius:var(--radius-xl); overflow:hidden; pointer-events:all; cursor:pointer;
       box-shadow:0 8px 24px rgba(0,0,0,.32); backdrop-filter:blur(10px);
       -webkit-backdrop-filter:blur(10px);
     `;

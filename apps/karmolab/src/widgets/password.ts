@@ -20,19 +20,19 @@ import { t, loadNamespace } from '../lib/i18n';
           Mdd.linePreset('meme_done', { msg: t('password.t08') });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; padding:20px; height:100%; box-sizing:border-box;">
-                        <div style="font-size:18px; font-weight:bold; color:var(--text-primary); margin-bottom:8px;">${esc(t('password.t01'))}</div>
+                        <div style="font-size:var(--font-size-md); font-weight:bold; color:var(--text-primary); margin-bottom:8px;">${esc(t('password.t01'))}</div>
                         <div style="font-size:var(--font-size-sm); color:var(--text-secondary); margin-bottom:20px;">
                             알파벳(대/소문자) + 숫자 + 일부 기호(!@#$%^&*)가 섞인 <b>${esc(t('password.t02'))}</b> ${esc(t('password.t03'))}<br>
                             ${esc(t('password.t04'))}
                         </div>
                     
                         <div style="display:flex; gap:10px; margin-bottom:20px;">
-                            <input type="text" id="pwInput" class="input" style="flex:1; font-family:monospace; font-size:16px; letter-spacing:2px; text-align:center;" maxlength="4" placeholder="${esc(t('password.ph.pwInput'))}">
+                            <input type="text" id="pwInput" class="input" style="flex:1; font-family:monospace; font-size:var(--font-size-sm); letter-spacing:2px; text-align:center;" maxlength="4" placeholder="${esc(t('password.ph.pwInput'))}">
                             <button class="btn btn-primary" id="pwSubmit">${esc(t('password.btn.pwSubmit'))}</button>
                             <button class="btn btn-ghost" id="pwReset">${esc(t('password.btn.pwReset'))}</button>
                         </div>
 
-                        <div id="pwLogs" style="flex:1; background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; padding:15px; overflow-y:auto; font-size:var(--font-size-sm); font-family:monospace; display:flex; flex-direction:column; gap:8px;">
+                        <div id="pwLogs" style="flex:1; background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-lg); padding:15px; overflow-y:auto; font-size:var(--font-size-sm); font-family:monospace; display:flex; flex-direction:column; gap:8px;">
                         </div>
                     </div>
                 `;
@@ -129,7 +129,7 @@ import { t, loadNamespace } from '../lib/i18n';
             const tilesHtml = guessLetters
               .map(
                 (g, i) => `
-                        <div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:${colors[i]}; font-weight:bold; font-size:18px; border-radius:4px; color:#fff; box-shadow:inset 0 0 4px rgba(0,0,0,0.3);">${g}</div>
+                        <div style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:${colors[i]}; font-weight:bold; font-size:var(--font-size-md); border-radius:var(--radius-sm); color:#fff; box-shadow:inset 0 0 4px rgba(0,0,0,0.3);">${g}</div>
                     `
               )
               .join('');
@@ -153,7 +153,7 @@ import { t, loadNamespace } from '../lib/i18n';
                                 <div style="display:flex; gap:6px;">${tilesHtml}</div>
                                 <span style="color:var(--text-secondary); font-size:var(--font-size-xs); font-weight:bold; letter-spacing:1px;">${strike}S ${ball}B</span>
                             </div>
-                            <div style="color:var(--text-tertiary); font-size:var(--font-size-xs); background:var(--bg-tertiary); padding:8px; border-radius:4px;">💡 ${hintMsg}</div>
+                            <div style="color:var(--text-tertiary); font-size:var(--font-size-xs); background:var(--bg-tertiary); padding:8px; border-radius:var(--radius-sm);">💡 ${hintMsg}</div>
                         `;
             }
 

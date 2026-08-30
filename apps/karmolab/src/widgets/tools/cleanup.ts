@@ -70,7 +70,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <button class="btn btn-ghost" id="cuUndo">${esc(t('cleanup.btn.undo'))}</button>
         <button class="btn btn-ghost" id="cuSave">${esc(t('cleanup.btn.save'))}</button>
       </div>
-      <div style="border-radius:10px; padding:8px; overflow:auto; background:var(--bg-tertiary);">
+      <div style="border-radius:var(--radius-xl); padding:8px; overflow:auto; background:var(--bg-tertiary);">
         <canvas id="cuCanvas" tabindex="0" role="application"
                 aria-label="${esc(t('cleanup.aria.canvas'))}"
                 style="max-width:100%; display:block; margin:0 auto; touch-action:none; cursor:crosshair;"></canvas>

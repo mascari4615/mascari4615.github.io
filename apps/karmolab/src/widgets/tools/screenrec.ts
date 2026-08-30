@@ -57,7 +57,7 @@ import { intervalWhileVisible } from '../../lib/tick';
 
             <div id="srResult" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-sublabel">${esc(t('screenrec.label.result'))}</div>
-              <video id="srPreview" controls playsinline style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
+              <video id="srPreview" controls playsinline style="width:100%; max-height:340px; background:#000; border-radius:var(--radius-lg);"></video>
             </div>
 
             <div class="tool-status" id="srStatus">${esc(t('screenrec.status.idle'))}</div>

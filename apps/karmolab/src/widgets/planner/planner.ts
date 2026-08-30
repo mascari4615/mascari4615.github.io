@@ -86,8 +86,8 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-mini-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); }
         .pl-mini-nav { border: none; background: none; color: var(--text-tertiary); cursor: pointer; padding: 2px 6px; }
         .pl-mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .pl-mini-dow { font-size: 10px; color: var(--text-tertiary); text-align: center; padding: 2px 0; }
-        .pl-mini-day { font-size: 11px; padding: 4px 0; border: none; background: none; color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer; position: relative; }
+        .pl-mini-dow { font-size: var(--font-size-4xs); color: var(--text-tertiary); text-align: center; padding: 2px 0; }
+        .pl-mini-day { font-size: var(--font-size-3xs); padding: 4px 0; border: none; background: none; color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer; position: relative; }
         .pl-mini-day:hover { background: var(--bg-tertiary); }
         .pl-mini-day--out { color: var(--text-tertiary); opacity: .45; }
         .pl-mini-day--today { background: var(--accent, #4285f4); color: #fff; font-weight: 700; }
@@ -95,7 +95,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
 
         .pl-cal-list-title { font-size: var(--font-size-xs); color: var(--text-tertiary); font-weight: 600; margin-bottom: 6px; }
         .pl-cal-item { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-xs); color: var(--text-secondary); padding: 3px 0; cursor: pointer; }
-        .pl-cal-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+        .pl-cal-dot { width: 10px; height: 10px; border-radius: var(--radius-sm); flex: 0 0 auto; }
         .pl-cal-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* 창 */
@@ -103,7 +103,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-modal { width: min(420px, 92%); background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 12px 40px rgba(0,0,0,.3); }
         .pl-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
         .pl-modal-title { margin: 0; font-size: var(--font-size-md); color: var(--text-primary); }
-        .pl-modal-x { border: none; background: none; color: var(--text-tertiary); cursor: pointer; font-size: 14px; }
+        .pl-modal-x { border: none; background: none; color: var(--text-tertiary); cursor: pointer; font-size: var(--font-size-xs); }
         .pl-modal-body { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
         .pl-modal-name { font-size: var(--font-size-md); }
         .pl-times { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -144,7 +144,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         /* 단추는 **그 칸 안에서** 자리를 잡아야 한다. 칸에 자리 기준이 없으면 표 전체를 기준으로
            잡혀 모든 날의 단추가 한 자리에 겹쳐 쌓인다(실제로 그래서 옆 날 단추가 눌렸다). */
         .fc .fc-daygrid-day, .fc .fc-daygrid-day-frame { position: relative; }
-        .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: 11px; line-height: 1; padding: 2px 3px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
+        .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: var(--font-size-3xs); line-height: 1; padding: 2px 3px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
         .fc-daygrid-day:hover .pl-daycell-diary, .pl-daycell-diary:focus-visible { opacity: 1; }
         .pl-daycell-diary--on { opacity: 1; color: var(--accent, #4285f4); }
         .pl-daycell-diary:hover { background: var(--bg-tertiary); color: var(--text-primary); }
@@ -166,17 +166,17 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-card-title { font-size: var(--font-size-sm); color: var(--text-primary); word-break: break-word; }
         .pl-card-notes { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: 4px; white-space: pre-wrap; }
         .pl-card-moves { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
-        .pl-card-move { font-size: 10px; padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-tertiary); cursor: pointer; }
+        .pl-card-move { font-size: var(--font-size-4xs); padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: none; color: var(--text-tertiary); cursor: pointer; }
         .pl-card-move:hover { color: var(--text-primary); border-color: var(--accent, var(--border)); }
 
         /* 연속일 */
         .pl-streaks { display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
         .pl-level { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
-        .pl-level-badge { width: 52px; height: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent, #4285f4); color: #fff; font-size: 22px; font-weight: 800; }
+        .pl-level-badge { width: 52px; height: 52px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent, #4285f4); color: #fff; font-size: var(--font-size-lg); font-weight: 800; }
         .pl-level-info { flex: 1; min-width: 0; }
         .pl-level-title { font-weight: 700; color: var(--text-primary); }
         .pl-level-exp { font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 4px 0 8px; }
-        .pl-level-bar { height: 6px; border-radius: 3px; background: var(--bg-tertiary); overflow: hidden; }
+        .pl-level-bar { height: 6px; border-radius: var(--radius-sm); background: var(--bg-tertiary); overflow: hidden; }
         .pl-level-fill { height: 100%; background: var(--accent, #4285f4); }
         .pl-track-row { display: flex; flex-direction: column; gap: 8px; }
         .pl-track { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); }

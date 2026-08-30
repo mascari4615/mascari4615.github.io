@@ -119,7 +119,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
                 <button id="m3Reset" class="tool-btn" type="button" disabled>${esc(t('mesh3d.btn.m3Reset'))}</button>
                 <button id="m3Png" class="tool-btn" type="button" disabled>${esc(t('mesh3d.btn.m3Png'))}</button>
               </div>
-              <div id="m3Stage" style="position:relative; border-radius:8px; overflow:hidden;
+              <div id="m3Stage" style="position:relative; border-radius:var(--radius-lg); overflow:hidden;
                 background:var(--bg-secondary); touch-action:none;">
                 <canvas id="m3Canvas" style="display:block; width:100%; height:min(60vh, 520px);"></canvas>
               </div>

@@ -187,11 +187,11 @@ import { download } from './shared/image';
     if (styled) return;
     styled = true;
     const css = `
-.bn-note{margin:10px 0 0;font-size:13px;opacity:.75;line-height:1.6;}
-.bn-how{margin:18px 0 0;font-size:12px;opacity:.6;line-height:1.6;}
-.bn-open{padding:16px;border-radius:10px;border:1px solid rgba(128,128,128,.25);}
-.bn-warn{margin:6px 0 12px;font-size:13px;line-height:1.6;
-  padding:10px 12px;border-radius:8px;
+.bn-note{margin:10px 0 0;font-size:var(--font-size-2xs);opacity:.75;line-height:1.6;}
+.bn-how{margin:18px 0 0;font-size:var(--font-size-2xs);opacity:.6;line-height:1.6;}
+.bn-open{padding:16px;border-radius:var(--radius-xl);border:1px solid rgba(128,128,128,.25);}
+.bn-warn{margin:6px 0 12px;font-size:var(--font-size-2xs);line-height:1.6;
+  padding:10px 12px;border-radius:var(--radius-lg);
   border:1px solid rgba(240,180,90,.45);background:rgba(240,180,90,.10);}
 `;
     const el = document.createElement('style');

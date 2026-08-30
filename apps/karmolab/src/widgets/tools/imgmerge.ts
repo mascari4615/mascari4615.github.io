@@ -85,7 +85,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div id="imResult" style="display:none;">
               <div class="tool-sublabel">${esc(t('imgmerge.label.preview'))}</div>
-              <img id="imPreview" alt="${esc(t('imgmerge.alt.preview'))}" style="max-width:100%; border-radius:8px; background:#fff;">
+              <img id="imPreview" alt="${esc(t('imgmerge.alt.preview'))}" style="max-width:100%; border-radius:var(--radius-lg); background:#fff;">
             </div>
 
             <div class="tool-status" id="imStatus">${esc(t('imgmerge.status.idle'))}</div>

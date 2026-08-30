@@ -144,7 +144,7 @@ import {
     /* 폭을 못 박아 한 줄에 더 많이 들어가게. 툴바가 세로로 자랄수록 그림이 밀린다. */
     .km-toolbar select[data-km="maps"] { max-width:138px; }
     /* 이름을 고치는 동안 고르개 자리를 그대로 쓴다. 자리가 움직이면 옆 단추가 손 밑에서 밀린다. */
-    .km-toolbar input[data-km="map-name"] { max-width:138px; padding:4px 8px; border-radius:8px;
+    .km-toolbar input[data-km="map-name"] { max-width:138px; padding:4px 8px; border-radius:var(--radius-lg);
       border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary); }
     .km-toolbar input[data-km="map-name"].hidden { display:none; }
     /* ★ 단추의 hidden 클래스만은 **한 줄로** 못 박는다. 없던 동안 접었다고 표시한 단추가 그대로
@@ -159,23 +159,23 @@ import {
        무엇보다 복사하라는 건지 고치라는 건지가 안 읽혔다 (KL-271). */
     .km-linkbox { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:970;
       display:flex; gap:6px; align-items:center; max-width:min(560px, 92%); padding:10px 12px;
-      border-radius:12px; border:1px solid var(--border); background:var(--bg-secondary);
+      border-radius:var(--radius-xl); border:1px solid var(--border); background:var(--bg-secondary);
       box-shadow:0 8px 24px rgba(0,0,0,.35); }
     /* 말 상자. 안 됐다는 말은 사라지면 안 된다(토스트는 3초면 없어진다). 그렇다고
        브라우저 alert 처럼 판을 얼려서도 안 된다. 얼면 뒤에 있는 화면을 못 보고 답한다. */
     .km-note { position:absolute; left:50%; bottom:64px; transform:translateX(-50%); z-index:970;
       display:flex; gap:10px; align-items:flex-start; max-width:min(520px, 92%); padding:12px 14px;
-      border-radius:12px; border:1px solid var(--border); background:var(--bg-secondary);
-      box-shadow:0 8px 24px rgba(0,0,0,.35); color:var(--text-primary); font-size:13px;
+      border-radius:var(--radius-xl); border:1px solid var(--border); background:var(--bg-secondary);
+      box-shadow:0 8px 24px rgba(0,0,0,.35); color:var(--text-primary); font-size:var(--font-size-2xs);
       white-space:pre-line; }
-    .km-linkbox input { flex:1 1 auto; min-width:180px; padding:6px 10px; border-radius:8px;
+    .km-linkbox input { flex:1 1 auto; min-width:180px; padding:6px 10px; border-radius:var(--radius-lg);
       border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary);
-      font-size:12px; }
+      font-size:var(--font-size-2xs); }
     .km-toolbar input[type=text] { min-width:132px; max-width:176px; }
     .km-toolbar input[data-km="find"] { min-width:118px; }
     .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
     /* 찾은 수. 흐려지는 것만으로는 없다와 아직 안 쳤다가 구별이 안 된다. */
-    .km-findcount { font-size:11px; color:var(--text-tertiary); padding:0 2px; white-space:nowrap;
+    .km-findcount { font-size:var(--font-size-3xs); color:var(--text-tertiary); padding:0 2px; white-space:nowrap;
       font-variant-numeric:tabular-nums; }
     .km-findcount.is-none { color:var(--error); }
     .km-findcount.hidden { display:none; }
@@ -191,7 +191,7 @@ import {
       --ck-canvas-bg: var(--bg-primary); background:var(--bg-primary); }
     /* 고른 것 옆에 뜨는 작은 도구 줄. 자주 쓰는 네 가지를 옆 패널까지 안 가고 누르게 (Whimsical 계보). */
     .km-mini { position:absolute; z-index:15; display:flex; gap:2px; padding:2px;
-      background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px;
+      background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-lg);
       box-shadow:0 4px 14px rgba(0,0,0,0.28); }
     .km-mini.hidden { display:none; }
     /* 배율 줄. 판 오른쪽 아래, 작은 판(미니맵) 바로 밑. 캔버스 도구들이 다 그렇듯
@@ -201,23 +201,23 @@ import {
     /* ★ 왼쪽 아래 구석은 **셸의 채팅 방울**이 쓴다. 거기 두면 ‹가 눌리지 않는다(실측:
        elementFromPoint 가 klchat-dot 을 준다). 그 위로 올린다. */
     .km-times { position:absolute; left:16px; bottom:58px; z-index:16; display:flex; align-items:center;
-      gap:4px; padding:3px 6px; border-radius:999px; background:var(--glass-strong);
+      gap:4px; padding:3px 6px; border-radius:var(--radius-pill); background:var(--glass-strong);
       border:1px solid var(--border); max-width:min(60%, 520px); overflow-x:auto; }
     .km-times.hidden { display:none; }
-    .km-times .btn { padding:3px 9px; font-size:12px; border-radius:999px; white-space:nowrap; }
+    .km-times .btn { padding:3px 9px; font-size:var(--font-size-2xs); border-radius:var(--radius-pill); white-space:nowrap; }
     .km-times .btn.is-on { background:var(--bg-tertiary); color:var(--text-primary); font-weight:600; }
     /* 이름은 **그 자리에서** 고친다 (KL-271). 브라우저 prompt 는 판을 가리고,
        고치는 동안 어느 시점을 고치는 중인가가 화면에서 사라진다. */
-    .km-times input { padding:3px 9px; font-size:12px; border-radius:999px; min-width:72px; max-width:140px;
+    .km-times input { padding:3px 9px; font-size:var(--font-size-2xs); border-radius:var(--radius-pill); min-width:72px; max-width:140px;
       border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary); }
     .km-root.is-presenting .km-times { display:none; }
     .km-zoom { position:absolute; right:16px; bottom:14px; z-index:16; display:flex; align-items:center; gap:2px;
-      padding:2px; border-radius:999px; background:var(--glass-strong); border:1px solid var(--border);
+      padding:2px; border-radius:var(--radius-pill); background:var(--glass-strong); border:1px solid var(--border);
       box-shadow:0 8px 24px rgba(0,0,0,.32); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
-    .km-zoom .btn { padding:3px 9px; font-size:13px; line-height:1.3; border-radius:999px; }
-    .km-zoom .km-zoom-val { min-width:56px; font-size:11px; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+    .km-zoom .btn { padding:3px 9px; font-size:var(--font-size-2xs); line-height:1.3; border-radius:var(--radius-pill); }
+    .km-zoom .km-zoom-val { min-width:56px; font-size:var(--font-size-3xs); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
     .km-root.is-presenting .km-zoom { display:none; }
-    .km-mini .btn { padding:2px 6px; font-size:12px; line-height:1.2; }
+    .km-mini .btn { padding:2px 6px; font-size:var(--font-size-2xs); line-height:1.2; }
     .km-side { width:clamp(300px, 26vw, 420px); flex-shrink:0; position:relative; z-index:2;
       border-left:1px solid var(--border); background:var(--bg-secondary);
       padding:10px; overflow-y:auto; font-size:var(--font-size-xs); }
@@ -227,21 +227,21 @@ import {
     .km-tabs { display:flex; flex-wrap:wrap; gap:2px; margin:-4px -4px 10px; padding-bottom:8px;
       border-bottom:1px solid var(--border); position:sticky; top:-12px; background:var(--bg-secondary); z-index:2; }
     /* 아이콘 옆 이름. 폰에서는 줄이 옆으로 밀리므로 그대로 두고(밀어 쓰면 된다), 아주 좁을 때만 접는다. */
-    .km-btn-name { margin-left:5px; font-size:11px; vertical-align:middle; }
+    .km-btn-name { margin-left:5px; font-size:var(--font-size-3xs); vertical-align:middle; }
     @media (max-width: 420px) { .km-btn-name { display:none; } }
     .km-tabs { align-items:center; position:relative; }
-    .km-tabs-now { flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--text-primary);
+    .km-tabs-now { flex:1; min-width:0; font-size:var(--font-size-2xs); font-weight:600; color:var(--text-primary);
       overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 2px 2px 4px; }
-    .km-tabs-more { padding:2px 8px; font-size:13px; }
+    .km-tabs-more { padding:2px 8px; font-size:var(--font-size-2xs); }
     /* 다른 목록은 **접어 둔다**. 늘 펴 두면 어쩌다 쓰는 여덟이 늘 쓰는 하나만큼 자리를 먹는다. */
     .km-tabs-menu { position:absolute; right:0; top:calc(100% + 4px); z-index:6; display:flex;
       flex-direction:column; gap:2px; padding:6px; min-width:150px; border:1px solid var(--border);
-      border-radius:10px; background:var(--bg-secondary); box-shadow:0 10px 26px rgba(0,0,0,.4); }
+      border-radius:var(--radius-xl); background:var(--bg-secondary); box-shadow:0 10px 26px rgba(0,0,0,.4); }
     .km-tabs-menu.hidden { display:none; }
     .km-tabs-menu .km-tab { justify-content:flex-start; text-align:left; opacity:.9; }
-    .km-tab { padding:4px 7px; font-size:13px; opacity:.55; }
+    .km-tab { padding:4px 7px; font-size:var(--font-size-2xs); opacity:.55; }
     .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
-    .km-tab-name { margin-left:4px; font-size:11px; max-width:96px; overflow:hidden;
+    .km-tab-name { margin-left:4px; font-size:var(--font-size-3xs); max-width:96px; overflow:hidden;
       text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
     /* 빈 판에서 아직 쓸 데가 없는 손잡이는 접는다 (TASK-KL-271 F2). 되돌리기는 꺼진 채 남긴다 . 
        사라지면 되돌릴 수 있다는 사실 자체를 못 배운다. */
@@ -250,51 +250,51 @@ import {
     .km-toolbar.km-blank [data-km="fit"],
     .km-toolbar.km-blank [data-km="story"] { display:none !important; }
     /* 관계망을 읽어 주는 줄. 숫자보다 먼저 눈에 들어와야 한다. */
-    .km-said { background:var(--bg-tertiary); border-radius:8px; padding:8px 10px; }
+    .km-said { background:var(--bg-tertiary); border-radius:var(--radius-lg); padding:8px 10px; }
     /* 👁 읽는 화면 (KL-271 O3). 고칠 칸이 아니라 **읽을 글**의 옷이다. */
     /* 🌱 익은 정도 한 줄 (KL-271 L5). 재촉이 아니라 알림이라 옅게. */
-    .km-ripe { font-size:11.5px; color:var(--text-tertiary); margin:-2px 0 8px; }
-    .km-read-note { color:var(--text-secondary); font-size:13px; margin:2px 0 8px; }
-    .km-read-tags { color:var(--accent); font-size:11px; margin-bottom:8px; }
+    .km-ripe { font-size:var(--font-size-3xs); color:var(--text-tertiary); margin:-2px 0 8px; }
+    .km-read-note { color:var(--text-secondary); font-size:var(--font-size-2xs); margin:2px 0 8px; }
+    .km-read-tags { color:var(--accent); font-size:var(--font-size-3xs); margin-bottom:8px; }
     .km-read-fields, .km-read-doc { margin-bottom:10px; }
-    .km-read-doc { font-size:13px; line-height:1.7; color:var(--text-primary); white-space:pre-wrap; }
-    .km-read-row { display:flex; gap:8px; font-size:12.5px; line-height:1.7; }
+    .km-read-doc { font-size:var(--font-size-2xs); line-height:1.7; color:var(--text-primary); white-space:pre-wrap; }
+    .km-read-row { display:flex; gap:8px; font-size:var(--font-size-2xs); line-height:1.7; }
     .km-read-k { color:var(--text-tertiary); min-width:76px; flex-shrink:0; }
     /* ▤ 표 (KL-271 L4). 좁은 패널에서 옆으로 구르고, 머리는 붙어 있는다. */
     .km-tablewrap { overflow-x:auto; max-height:60vh; overflow-y:auto; }
-    .km-tbl { border-collapse:collapse; width:100%; font-size:12px; }
+    .km-tbl { border-collapse:collapse; width:100%; font-size:var(--font-size-2xs); }
     .km-tbl th { position:sticky; top:0; background:var(--bg-secondary); text-align:left; padding:0; }
-    .km-tbl th .btn { padding:4px 6px; font-size:11px; color:var(--text-tertiary); width:100%; justify-content:flex-start; }
+    .km-tbl th .btn { padding:4px 6px; font-size:var(--font-size-3xs); color:var(--text-tertiary); width:100%; justify-content:flex-start; }
     .km-tbl td { padding:5px 6px; border-top:1px solid var(--border); white-space:nowrap;
       max-width:140px; overflow:hidden; text-overflow:ellipsis; }
     .km-tbl tbody tr { cursor:pointer; }
     .km-tbl tbody tr:hover { background:var(--bg-tertiary); }
-    .km-said-line, .km-gap-line, .km-clu-line { font-size:12px; color:var(--text-primary); line-height:1.6; }
+    .km-said-line, .km-gap-line, .km-clu-line { font-size:var(--font-size-2xs); color:var(--text-primary); line-height:1.6; }
     .km-said-line + .km-said-line, .km-gap-line + .km-gap-line, .km-clu-line + .km-clu-line { margin-top:4px; }
     /* 글이 있으면 붙여넣기. 갈래 카드 밑에 한 줄로. 카드와 같은 무게로 두면 셋이 넷이 된다. */
-    .km-intent-text { width:100%; margin-top:6px; justify-content:center; font-size:12px; }
+    .km-intent-text { width:100%; margin-top:6px; justify-content:center; font-size:var(--font-size-2xs); }
     .km-side.hidden { display:none; }
     /* 패널 안에서 **성격이 다른 묶음**을 가르는 줄, 이름표 (TASK-KL-271 P5). */
     .km-split { border:none; border-top:1px solid var(--border); margin:16px 0 10px; }
-    .km-secname { font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    .km-secname { font-size:var(--font-size-4xs); letter-spacing:.06em; text-transform:uppercase;
       color:var(--text-tertiary); margin:2px 0 6px; }
     .km-side h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
     .km-field { margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
-    .km-field label { color:var(--text-secondary); font-size:11px; }
+    .km-field label { color:var(--text-secondary); font-size:var(--font-size-3xs); }
     .km-field input, .km-field select { width:100%; }
     .km-edge-row { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-bottom:8px; }
-    .km-edge-row .km-edge-label { flex-basis:100%; font-size:11px; }
+    .km-edge-row .km-edge-label { flex-basis:100%; font-size:var(--font-size-3xs); }
     .km-edge-row .km-edge-peer { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
       color:var(--text-primary); }
     .km-edge-row select { width:74px; }
-    .km-hint { color:var(--text-tertiary); font-size:11px; line-height:1.5; }
+    .km-hint { color:var(--text-tertiary); font-size:var(--font-size-3xs); line-height:1.5; }
     .km-group-row { display:flex; gap:5px; align-items:center; margin-bottom:6px; }
     .km-group-row input[type=text] { flex:1; min-width:0; }
     .km-group-row input[type=color] { width:30px; height:26px; padding:0; border:1px solid var(--border);
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
-    .km-group-count { color:var(--text-tertiary); font-size:11px; min-width:16px; text-align:right; }
+    .km-group-count { color:var(--text-tertiary); font-size:var(--font-size-3xs); min-width:16px; text-align:right; }
     .km-avatar-row { display:flex; gap:6px; align-items:center; }
-    .km-avatar-row input[type=text] { width:56px; text-align:center; font-size:16px; padding:2px 4px; }
+    .km-avatar-row input[type=text] { width:56px; text-align:center; font-size:var(--font-size-sm); padding:2px 4px; }
     .km-avatar-row input[type=color] { width:34px; height:28px; padding:0; border:1px solid var(--border);
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
@@ -303,8 +303,8 @@ import {
     .km-storage-warn.is-fail { display:flex; gap:8px; align-items:center; justify-content:space-between; }
     .km-storage-warn.is-fail .btn { color:#fecaca; border-color:#fecaca; }
     .km-help-row { display:flex; gap:8px; align-items:baseline; padding:2px 0; }
-    .km-help-how { color:var(--text-tertiary); font-size:11px; text-align:right; flex-shrink:0; max-width:58%; }
-    .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
+    .km-help-how { color:var(--text-tertiary); font-size:var(--font-size-3xs); text-align:right; flex-shrink:0; max-width:58%; }
+    .km-meter { height:8px; border-radius:var(--radius-pill); background:var(--bg-tertiary); overflow:hidden; }
     .km-meter-fill { height:100%; transition:width .2s ease; }
     /* ★ 종류 칸. 값을 정하는 곳은 **하나**다 (TASK-KL-271 P2).
        거르는 칸이 값 칸과 같은 크기, 같은 모양으로 위아래 붙어 있어서, 같은 값을 정하는 상자가
@@ -312,15 +312,15 @@ import {
        값 칸만 아래 한 줄로 남긴다. 27가지 6묶음이라 거르는 일 자체는 여전히 필요하다. */
     .km-kindrow { display:flex; align-items:baseline; gap:6px; }
     .km-kindrow label { flex:1; min-width:0; }
-    .km-field input.km-kind-find { width:auto; flex:0 0 124px; font-size:11px; padding:2px 9px;
-      background:var(--bg-tertiary); border:1px solid var(--border); border-radius:999px;
+    .km-field input.km-kind-find { width:auto; flex:0 0 124px; font-size:var(--font-size-3xs); padding:2px 9px;
+      background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-pill);
       text-overflow:ellipsis; }
     .km-field input.km-kind-find:focus { border-color:var(--accent); }
-    .km-h4btn { float:right; padding:2px 8px; font-size:11px; }
+    .km-h4btn { float:right; padding:2px 8px; font-size:var(--font-size-3xs); }
     .km-table { display:flex; flex-direction:column; gap:3px; max-height:220px; overflow-y:auto; }
     .km-trow { display:flex; gap:4px; align-items:center; }
-    .km-trow input[type=text] { flex:1; min-width:0; font-size:11px; }
-    .km-tcell { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:72px; }
+    .km-trow input[type=text] { flex:1; min-width:0; font-size:var(--font-size-3xs); }
+    .km-tcell { font-size:var(--font-size-3xs); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:72px; }
     .km-tdim { color:var(--text-tertiary); }
     .km-trow .btn { padding:2px 6px; }
     /* ★ 옆 패널 버튼은 **글자를 안 접는다**. 줄 안에서 버튼이 마지막이라 flex 가 여기부터 깎았고,
@@ -329,22 +329,22 @@ import {
     .km-side .btn { white-space:nowrap; flex:0 0 auto; }
     /* 나란히 놓기 줄. 아이콘 단추 여덟 개가 한 줄에 선다. 손가락 화면에서도 44px 규격을 탄다. */
     .km-alignbar { display:flex; align-items:center; gap:3px; flex-wrap:wrap; }
-    .km-alignbar .btn { padding:4px 8px; font-size:14px; line-height:1.1; }
+    .km-alignbar .btn { padding:4px 8px; font-size:var(--font-size-xs); line-height:1.1; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
-    .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
+    .km-tagchip { padding:2px 8px; font-size:var(--font-size-3xs); border-radius:var(--radius-pill); }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
     .km-link-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
       color:var(--text-primary); }
-    .km-link-row .btn { padding:3px 8px; font-size:11px; }
+    .km-link-row .btn { padding:3px 8px; font-size:var(--font-size-3xs); }
     .km-textarea { width:100%; background:var(--bg-tertiary); border:1px solid var(--border);
-      color:var(--text-primary); border-radius:var(--radius-sm); padding:8px; font-size:12px;
+      color:var(--text-primary); border-radius:var(--radius-sm); padding:8px; font-size:var(--font-size-2xs);
       font-family:var(--font-mono, ui-monospace, monospace); line-height:1.6; resize:vertical; margin-bottom:10px; }
     .km-more { position:relative; }
     /* 이름표로 묶고 나니 세로가 1020px 까지 자랐다. 창보다 길면 아래쪽 항목은 **없는 것**이 된다.
        메뉴답게 제 안에서 구른다(툴바와 달리 여기는 스크롤이 맞다). 폭도 조금 넓혀 줄바꿈을 줄인다. */
     .km-drawer { position:absolute; right:0; top:calc(100% + 6px); z-index:20; min-width:212px;
       display:flex; flex-direction:column; gap:3px; padding:8px; border:1px solid var(--border);
-      border-radius:10px; background:var(--bg-secondary); box-shadow:0 12px 32px rgba(0,0,0,.4);
+      border-radius:var(--radius-xl); background:var(--bg-secondary); box-shadow:0 12px 32px rgba(0,0,0,.4);
       max-height:calc(100dvh - 170px); overflow-y:auto; overscroll-behavior:contain; }
     .km-drawer.hidden { display:none; }
     /* 폰에서 툴바가 접은 것들의 대체 문. 데스크톱에서는 툴바에 그대로 있으므로 **안 보인다**
@@ -378,25 +378,25 @@ import {
       align-items:flex-start; padding-top:12vh; background:rgba(0,0,0,.45); }
     .km-pal.hidden { display:none; }
     .km-pal-box { width:min(420px, 92%); max-height:60vh; display:flex; flex-direction:column;
-      background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px;
+      background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-xl);
       box-shadow:0 18px 48px rgba(0,0,0,.5); overflow:hidden; }
     .km-pal-box input { border:none; border-bottom:1px solid var(--border); border-radius:0;
-      padding:12px 14px; font-size:14px; background:transparent; }
+      padding:12px 14px; font-size:var(--font-size-xs); background:transparent; }
     .km-pal-list { overflow-y:auto; padding:6px; display:flex; flex-direction:column; gap:2px; }
     .km-pal-list button { text-align:left; justify-content:flex-start; padding:7px 10px; }
     .km-pal-list button.is-on { background:var(--bg-tertiary); }
-    .km-pal-g { font-size:10px; letter-spacing:.06em; color:var(--text-tertiary);
+    .km-pal-g { font-size:var(--font-size-4xs); letter-spacing:.06em; color:var(--text-tertiary);
       text-transform:uppercase; margin:6px 2px 1px; }
-    .km-pal-none { padding:14px; color:var(--text-tertiary); font-size:12px; }
+    .km-pal-none { padding:14px; color:var(--text-tertiary); font-size:var(--font-size-2xs); }
     /* ★ 구를 수 있다는 **표시**가 없었다 (TASK-KL-271). 972px 중 728px 만 보이는데 손잡이가
        안 보여서, 잘려 있는 줄 알고 아래쪽 항목을 아예 없는 것으로 여긴다. 실측 후 확인. */
     .km-drawer { scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
     .km-drawer::-webkit-scrollbar { width:8px; }
-    .km-drawer::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px;
+    .km-drawer::-webkit-scrollbar-thumb { background:var(--border); border-radius:var(--radius-pill);
       border:2px solid transparent; background-clip:content-box; }
-    .km-drawer label { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--text-secondary); }
+    .km-drawer label { display:flex; flex-direction:column; gap:4px; font-size:var(--font-size-3xs); color:var(--text-secondary); }
     /* 이름표. 묶음의 머리. 얇고 작게, 대신 위에 숨 쉴 자리를 준다. */
-    .km-drawer-h { font-size:10px; letter-spacing:.06em; color:var(--text-tertiary);
+    .km-drawer-h { font-size:var(--font-size-4xs); letter-spacing:.06em; color:var(--text-tertiary);
       margin:6px 2px 1px; text-transform:uppercase; }
     .km-drawer-h:first-child { margin-top:0; }
     /* 메뉴는 **왼쪽 정렬**이다. 가운데 정렬이면 눈이 매 줄 시작점을 새로 찾는다. */
@@ -404,7 +404,7 @@ import {
     .km-drawer hr { border:none; border-top:1px solid var(--border); margin:4px 0; }
     .km-check { display:flex; align-items:center; gap:6px; padding:2px 0; color:var(--text-primary); cursor:pointer; }
     .km-check input { width:auto; }
-    .km-swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+    .km-swatch { width:10px; height:10px; border-radius:var(--radius-sm); flex-shrink:0; }
     .km-side input[type=range] { width:100%; }
     .km-empty [data-km="sample"] { pointer-events:auto; margin:3px; }
     /* ★ 안내 글은 **반드시 블록 하나로 감싼다**. flex 컨테이너에 글, <b>, <br>, 버튼을 그대로 두면
@@ -416,19 +416,19 @@ import {
     /* 첫 30초. 무엇을 만들 건가요 세 갈래. 기능 60개를 평평하게 늘어놓는 대신
        *들어오는 문 세 개*를 크게 연다. 고르면 그 갈래의 견본, 종류, 칸 틀이 한꺼번에 깔린다. */
     .km-intent { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 6px; }
-    .km-intent button { pointer-events:auto; flex:1 1 120px; min-width:110px; padding:10px 8px; border-radius:12px;
+    .km-intent button { pointer-events:auto; flex:1 1 120px; min-width:110px; padding:10px 8px; border-radius:var(--radius-xl);
       border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary);
       display:flex; flex-direction:column; gap:4px; align-items:center; cursor:pointer; text-align:center; }
     .km-intent button:hover { border-color:var(--accent); transform:translateY(-2px); }
     .km-intent .km-intent-ico { font-size:26px; line-height:1.1; }
-    .km-intent .km-intent-t { font-weight:600; font-size:13px; }
-    .km-intent .km-intent-s { font-size:11px; color:var(--text-tertiary); line-height:1.4; }
+    .km-intent .km-intent-t { font-weight:600; font-size:var(--font-size-2xs); }
+    .km-intent .km-intent-s { font-size:var(--font-size-3xs); color:var(--text-tertiary); line-height:1.4; }
     .km-empty-more { pointer-events:auto; }
     /* 다음 걸음 한 줄. 판 아래 가운데. **누르는 것을 가리면 안 된다**(pointer-events:none). */
     .km-next { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); pointer-events:none;
-      max-width:min(560px, 88%); text-align:center; padding:6px 12px; border-radius:999px;
+      max-width:min(560px, 88%); text-align:center; padding:6px 12px; border-radius:var(--radius-pill);
       background:var(--bg-secondary); border:1px solid var(--border); color:var(--text-secondary);
-      font-size:11px; opacity:.92; z-index:3; }
+      font-size:var(--font-size-3xs); opacity:.92; z-index:3; }
     .km-empty-in { max-width:min(760px, 100%); color:var(--text-tertiary); font-size:var(--font-size-sm);
       text-align:center; line-height:1.7; }
     /* 👁 보기 전용. 편집 손잡이를 **아예 없앤다**. 고쳐도 원본은 안 바뀝니다를 글로 설명하는 것보다
@@ -441,11 +441,11 @@ import {
     /* 옆 패널은 **남긴다**. 통째로 숨기면 탭까지 사라져 저장, 발표, 관계망 읽기 같은
        보는 일까지 못 하게 된다. 손잡이는 CSS 가 아니라 캔버스가 아예 안 만든다. */
     .km-root.is-readonly .km-viewbadge { position:absolute; left:12px; top:12px; z-index:16;
-      display:flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px;
-      background:var(--bg-secondary); border:1px solid var(--border); font-size:12px; }
+      display:flex; gap:8px; align-items:center; padding:6px 10px; border-radius:var(--radius-pill);
+      background:var(--bg-secondary); border:1px solid var(--border); font-size:var(--font-size-2xs); }
     /* 저장 표시. 조용히 왔다 사라진다. 늘 떠 있으면 그것대로 잔소리가 된다. */
-    .km-saved { position:absolute; left:16px; bottom:16px; z-index:16; font-size:11px;
-      color:var(--text-secondary); padding:3px 9px; border-radius:999px; pointer-events:none;
+    .km-saved { position:absolute; left:16px; bottom:16px; z-index:16; font-size:var(--font-size-3xs);
+      color:var(--text-secondary); padding:3px 9px; border-radius:var(--radius-pill); pointer-events:none;
       background:var(--bg-secondary); border:1px solid var(--border); opacity:.94; }
     .km-saved.hidden { display:none; }
     /* 눈에는 안 보이고 **읽어 주는 도구에만** 들리는 자리 (KL-271). 고르는 일은 초점이 안
@@ -457,7 +457,7 @@ import {
        고치는 중이 딴 창처럼 안 보인다. 판이 움직이면 닫는다. 떠 있는 채 어긋나면 더 나쁘다. */
     .km-inline { position:absolute; z-index:20; box-sizing:border-box; font-weight:600;
       background:var(--bg-secondary); color:var(--text-primary); border:2px solid var(--accent);
-      border-radius:8px; padding:2px 8px; outline:none; }
+      border-radius:var(--radius-lg); padding:2px 8px; outline:none; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
     /* 발표 모드. 그림을 가리지 않게 아래에만 얹는다. */
     /* ★ 발표 줄은 **판 위에 떠야 한다.** z-index 를 안 주면(auto) 캔버스 svg 가 그 위에 깔려
@@ -470,7 +470,7 @@ import {
       display:flex; flex-direction:column; gap:6px; pointer-events:none; }
     .km-stage.hidden { display:none; }
     .km-stage-strip { display:flex; flex-wrap:wrap; gap:4px; pointer-events:auto; margin-bottom:2px; }
-    .km-chip { padding:2px 8px; font-size:11px; border-radius:999px; color:rgba(255,255,255,.8);
+    .km-chip { padding:2px 8px; font-size:var(--font-size-3xs); border-radius:var(--radius-pill); color:rgba(255,255,255,.8);
       background:rgba(255,255,255,.08); }
     .km-chip.is-on { background:rgba(255,255,255,.28); color:#fff; }
     .km-stage-title { font-size:var(--font-size-lg); font-weight:700; color:#fff; }
@@ -486,7 +486,7 @@ import {
     .km-stage-form { display:flex; gap:6px; align-items:center; pointer-events:auto; flex-wrap:wrap;
       margin-top:4px; }
     .km-stage-form.hidden { display:none; }
-    .km-stage-form input { flex:1 1 180px; min-width:120px; padding:6px 10px; border-radius:8px;
+    .km-stage-form input { flex:1 1 180px; min-width:120px; padding:6px 10px; border-radius:var(--radius-lg);
       border:1px solid rgba(255,255,255,.24); background:rgba(0,0,0,.45); color:#fff; }
     .km-stage-form input::placeholder { color:rgba(255,255,255,.45); }
     .km-root.is-presenting .km-toolbar,
@@ -510,7 +510,7 @@ import {
          시트 안 첫 줄 단추가 채팅 알약에 가려 안 눌렸다(실측 2026-08-12, 갈래 고르기). */
       .km-side { position:absolute; left:0; right:0; bottom:0; width:auto; z-index:960;
         max-height:60%; border-left:none; border-top:1px solid var(--border);
-        border-radius:14px 14px 0 0; box-shadow:0 -8px 24px rgba(0,0,0,.35);
+        border-radius:var(--radius-xl) var(--radius-xl) 0 0; box-shadow:0 -8px 24px rgba(0,0,0,.35);
         /* 접혔을 때 내다보이는 만큼 = **손잡이 높이 그대로**. 손잡이만 키우면 그 아래가 화면 밖으로 나가 안 눌린다. */
         transform:translateY(calc(100% - 44px)); transition:transform .18s ease; padding-top:44px; }
       .km-root.is-sheet-up .km-side { transform:translateY(0); }
@@ -540,7 +540,7 @@ import {
          손잡이에 가로채였다). 손가락 규격(120×44)은 그대로 지키면서 양옆을 비워 준다. */
       .km-sheet-grip { position:absolute; left:50%; transform:translateX(-50%); top:0;
         width:120px; height:44px; display:flex; align-items:center; justify-content:center; cursor:grab; }
-      .km-sheet-grip::before { content:''; width:44px; height:4px; border-radius:999px; background:var(--border); }
+      .km-sheet-grip::before { content:''; width:44px; height:4px; border-radius:var(--radius-pill); background:var(--border); }
       /* 폰에서 툴바가 **줄바꿈으로 부풀면** 그림이 그만큼 밀려난다(실측: 화면 절반을 먹었다).
          한 줄로 눕히고 옆으로 밀어 쓰게 한다. 세로 공간이 폰에서 가장 비싼 자원이다. */
       .km-toolbar { gap:6px; padding:8px; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden;

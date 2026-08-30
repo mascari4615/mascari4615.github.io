@@ -63,10 +63,10 @@
       'text-align:center;padding:0 6vw;max-width:90vw;"></div>' +
       '<div style="display:flex;gap:20px;margin-top:10px;">' +
       '<button id="af-snooze" style="display:none;font-size:2.4vw;padding:18px 44px;' +
-      'border:2px solid #555;border-radius:14px;background:#1c1c1c;color:#ddd;' +
+      'border:2px solid #555;border-radius:var(--radius-xl);background:#1c1c1c;color:#ddd;' +
       'cursor:pointer;font-weight:600;">스누즈</button>' +
       '<button id="af-dismiss" style="font-size:2.4vw;padding:18px 56px;border:none;' +
-      'border-radius:14px;background:#e23b3b;color:#fff;cursor:pointer;' +
+      'border-radius:var(--radius-xl);background:#e23b3b;color:#fff;cursor:pointer;' +
       'font-weight:800;">끄기</button>' +
       '</div>';
 

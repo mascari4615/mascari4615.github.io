@@ -194,7 +194,7 @@ export const DECK_CSS = `
         display:flex; align-items:center; gap:6px; flex:1; min-width:0;
         overflow-x:auto; overflow-y:hidden;
         padding:7px 14px;
-        border-radius:999px;
+        border-radius:var(--radius-pill);
         background:linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.22) 100%);
         box-shadow:
             inset 0 2px 5px rgba(0,0,0,0.6),
@@ -204,14 +204,14 @@ export const DECK_CSS = `
         mask-image:linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
     }
     .fav-deck-tablist::-webkit-scrollbar { height:4px; }
-    .fav-deck-tablist::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.18); border-radius:2px; }
+    .fav-deck-tablist::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.18); border-radius:var(--radius-sm); }
     .fav-deck-tablist::-webkit-scrollbar-track { background:transparent; }
 
     /* 탭 = 홈 안에서 솟은 작은 키. 위 모서리는 빛을 받고 아래는 그림자가 앉는다. */
     .fav-deck-tab {
         flex:none;
         font:inherit; font-size:var(--font-size-xs); line-height:1.5;
-        padding:5px 12px; border-radius:999px; cursor:pointer;
+        padding:5px 12px; border-radius:var(--radius-pill); cursor:pointer;
         color:#c9cad6; border:1px solid rgba(255,255,255,0.10);
         background:linear-gradient(180deg, #33344312 0%, #0000001a 100%), #23242f;
         box-shadow:
@@ -274,7 +274,7 @@ export const DECK_CSS = `
         -webkit-tap-highlight-color:transparent;
     }
     .fav-key .fk-face {
-        position:absolute; inset:0; overflow:hidden; border-radius:4px;
+        position:absolute; inset:0; overflow:hidden; border-radius:var(--radius-sm);
         background:#14151d;
         transform:translateZ(var(--fk-lift, 0px)) scale(calc(1.03 * var(--fk-s, 1)));
         transition:filter 140ms ease, transform 110ms ease;
@@ -388,7 +388,7 @@ export const DECK_CSS = `
     .fav-key-empty .fk-face { background:var(--bg-tertiary); box-shadow:inset 0 2px 6px rgba(0,0,0,0.18); }
     .skin-glass .fav-key-empty .fk-face { background:#101119; box-shadow:inset 0 3px 9px rgba(0,0,0,0.8); }
     .fav-key-empty .fk-glass, .fav-key-empty .fk-gw, .fav-key-empty .fk-wall, .fav-key-empty .fk-lcd { display:none; }
-    .fav-key-empty .fk-plus { position:absolute; inset:0; display:grid; place-items:center; font-size:20px; color:var(--text-tertiary); opacity:0.5; }
+    .fav-key-empty .fk-plus { position:absolute; inset:0; display:grid; place-items:center; font-size:var(--font-size-title); color:var(--text-tertiary); opacity:0.5; }
 
     /* ── 살결 ①발광. 기기 흉내를 안 낸다. 키 얼굴 자체가 켜진 화면. ── */
     .skin-glow .fav-deck, .skin-plain .fav-deck { transform:none; }
@@ -403,7 +403,7 @@ export const DECK_CSS = `
     .skin-glow .fav-key{ pointer-events:auto; }
     .skin-glow .fk-wall, .skin-glow .fk-base, .skin-glow .fk-gw, .skin-glow .fk-glass { display:none; }
     .skin-glow .fk-face {
-        transform:none; border-radius:12px;
+        transform:none; border-radius:var(--radius-xl);
         background:
             radial-gradient(120% 90% at 50% 0%, var(--accent-subtle) 0%, transparent 62%),
             var(--bg-secondary);
@@ -454,7 +454,7 @@ export const DECK_CSS = `
     /* 살결 고르는 칸 */
     .fav-deck-skins { display:flex; gap:4px; margin-left:8px; }
     .fav-deck-skin {
-        font:inherit; font-size:var(--font-size-2xs); padding:4px 9px; border-radius:999px; cursor:pointer;
+        font:inherit; font-size:var(--font-size-2xs); padding:4px 9px; border-radius:var(--radius-pill); cursor:pointer;
         border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); color:inherit; opacity:0.7;
     }
     .fav-deck-skin.on { opacity:1; border-color:var(--accent); color:var(--accent); background:var(--accent-subtle); }
@@ -467,7 +467,7 @@ export const DECK_CSS = `
     .fav-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:var(--space-md); }
     .fav-skins { display:flex; gap:4px; }
     .fav-skin {
-        font:inherit; font-size:var(--font-size-2xs); padding:5px 10px; border-radius:999px; cursor:pointer;
+        font:inherit; font-size:var(--font-size-2xs); padding:5px 10px; border-radius:var(--radius-pill); cursor:pointer;
         border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary);
     }
     .fav-skin:hover { color:var(--text-primary); border-color:var(--border-hover); }

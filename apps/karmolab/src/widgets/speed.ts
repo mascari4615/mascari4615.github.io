@@ -29,12 +29,12 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
           Mdd.linePreset('tool_run', { msg: t('speed.t05') });
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; padding:20px; height:380px; box-sizing:border-box; text-align:center;">
-                    <div style="font-size:14px; color:var(--text-secondary); margin-bottom:10px;">${esc(t('speed.t01'))}</div>
-                    <div id="dropZone" style="flex:1; background:rgba(0,0,0,0.3); border:2px dashed #444; border-radius:8px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                        <div id="targetArea" style="position:absolute; right:20px; width:80px; height:80px; background:rgba(0, 200, 0, 0.1); border:2px dashed var(--success); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--success); font-size:var(--font-size-xs); font-weight:bold;">GOAL</div>
-                        <div id="dragBlock" style="position:absolute; left:20px; width:60px; height:60px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:var(--font-size-xs); cursor:grab; box-shadow:0 4px 6px rgba(0,0,0,0.3); user-select:none; touch-action:none;">1 MB</div>
+                    <div style="font-size:var(--font-size-xs); color:var(--text-secondary); margin-bottom:10px;">${esc(t('speed.t01'))}</div>
+                    <div id="dropZone" style="flex:1; background:rgba(0,0,0,0.3); border:2px dashed #444; border-radius:var(--radius-lg); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                        <div id="targetArea" style="position:absolute; right:20px; width:80px; height:80px; background:rgba(0, 200, 0, 0.1); border:2px dashed var(--success); border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; color:var(--success); font-size:var(--font-size-xs); font-weight:bold;">GOAL</div>
+                        <div id="dragBlock" style="position:absolute; left:20px; width:60px; height:60px; background:var(--accent); border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:var(--font-size-xs); cursor:grab; box-shadow:0 4px 6px rgba(0,0,0,0.3); user-select:none; touch-action:none;">1 MB</div>
                     </div>
-                    <div id="speedResult" style="margin-top:15px; font-size:15px; font-weight:bold; color:var(--text-primary); min-height:20px;"></div>
+                    <div id="speedResult" style="margin-top:15px; font-size:var(--font-size-xs); font-weight:bold; color:var(--text-primary); min-height:20px;"></div>
                     <div id="speedRecord" hidden style="margin-top:10px;"></div>
                     <div id="speedBoard" hidden style="margin-top:12px;"></div>
                 </div>

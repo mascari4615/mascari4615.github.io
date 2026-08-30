@@ -71,7 +71,7 @@ import { t } from '../../lib/i18n';
 
         md = md.replace(/^### (.+)$/gm, '<strong>$1</strong>');
         md = md.replace(/^## (.+)$/gm, '<strong>$1</strong>');
-        md = md.replace(/^# (.+)$/gm, '<strong style="font-size:15px">$1</strong>');
+        md = md.replace(/^# (.+)$/gm, '<strong style="font-size:var(--font-size-xs)">$1</strong>');
 
         md = md.replace(/\n\n+/g, '</p><p>');
         md = md.replace(/\n/g, '<br>');

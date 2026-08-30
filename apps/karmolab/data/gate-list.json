@@ -254,6 +254,16 @@
     "audit:csp-meta",
     "audit:serve-fm",
     "audit:css-tokens",
+    {
+      "name": "audit:style-tokens",
+      "watch": [
+        "src/**",
+        "css/toolbox.css",
+        "index.html",
+        "scripts/audit-style-tokens.mjs",
+        "data/style-tokens-baseline.json"
+      ]
+    },
     "test:jsontree",
     "test:dropwell",
     "test:saylive",

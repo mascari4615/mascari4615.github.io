@@ -69,7 +69,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       </div>
       <div style="display:flex; gap:16px; flex-wrap:wrap;">
         <div>
-          <canvas id="ipCanvas" style="border-radius:8px; border:1px solid rgba(128,128,128,.3); touch-action:none; cursor:grab;"></canvas>
+          <canvas id="ipCanvas" style="border-radius:var(--radius-lg); border:1px solid rgba(128,128,128,.3); touch-action:none; cursor:grab;"></canvas>
           <div style="margin-top:var(--space-sm);">
             <div class="tool-sublabel">${esc(t('idphoto.label.zoom'))} <span id="ipZoomVal" class="range-value">100%</span></div>
             <input type="range" id="ipZoom" name="zoom" aria-label="${esc(t('idphoto.label.zoom'))}" min="20" max="400" value="100" style="width:260px;">

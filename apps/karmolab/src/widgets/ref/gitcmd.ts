@@ -148,7 +148,7 @@ import { markLive } from '../tools/shared/say';
           <input type="checkbox" id="guShared" name="shared" style="width:auto;"> ${esc(t('gitundo.ask.shared'))}
         </label>
       </div>
-      <div id="guWarn" style="display:none; padding:10px; border-radius:10px; margin-bottom:10px;"></div>
+      <div id="guWarn" style="display:none; padding:10px; border-radius:var(--radius-xl); margin-bottom:10px;"></div>
       <div id="guSteps" class="tool-list"></div>
       <div class="tool-status" id="guStatus">${esc(t('gitundo.status.idle'))}</div>
     `;

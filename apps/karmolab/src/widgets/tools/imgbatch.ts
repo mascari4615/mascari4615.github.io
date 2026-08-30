@@ -71,11 +71,11 @@ import { centerCrop, estimateTotal, saving } from '../../lib/imgpreview';
               <div class="tool-sublabel">${esc(t('imgbatch.preview.title'))} <span id="ibPreviewMeta" class="range-value"></span></div>
               <div class="tool-grid-2">
                 <figure style="margin:0;">
-                  <canvas id="ibBefore" style="width:100%; height:auto; display:block; border-radius:8px;"></canvas>
+                  <canvas id="ibBefore" style="width:100%; height:auto; display:block; border-radius:var(--radius-lg);"></canvas>
                   <figcaption class="tool-list-dim">${esc(t('imgbatch.preview.before'))}</figcaption>
                 </figure>
                 <figure style="margin:0;">
-                  <canvas id="ibAfter" style="width:100%; height:auto; display:block; border-radius:8px;"></canvas>
+                  <canvas id="ibAfter" style="width:100%; height:auto; display:block; border-radius:var(--radius-lg);"></canvas>
                   <figcaption class="tool-list-dim" id="ibAfterCap">${esc(t('imgbatch.preview.after'))}</figcaption>
                 </figure>
               </div>

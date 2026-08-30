@@ -83,7 +83,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
 
     Mdd.injectCSS('user-page', `
         .user-layout { display:flex; flex-direction:column; gap:24px; }
-        .user-section h3{ font-size:14px; color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+        .user-section h3{ font-size:var(--font-size-xs); color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
         .user-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
         .user-item { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; transition:opacity 0.2s; }
         .user-item.locked { opacity:0.5; filter:grayscale(0.8); }
@@ -96,13 +96,13 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         /* 계정 자리 (TASK-KL-098).  서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
         .user-account-slot:empty { display:none; }
         .user-account-card { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;
-            margin-top:16px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; background:var(--bg-secondary); }
+            margin-top:16px; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-xl); background:var(--bg-secondary); }
         .user-account-who { display:flex; align-items:center; gap:12px; min-width:0; }
         .user-account-avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
         .user-account-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
         .user-account-text strong { font-size:var(--font-size-sm); color:var(--text-primary); }
         .user-account-text span { font-size:var(--font-size-xs); color:var(--text-secondary); }
-        .user-account-btn { padding:8px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent);
+        .user-account-btn { padding:8px 14px; border-radius:var(--radius-lg); border:1px solid var(--accent); background:var(--accent);
             color:var(--bg-primary); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; white-space:nowrap; }
         .user-account-btn:hover { filter:brightness(1.08); }
         .user-account-btn-quiet { background:transparent; color:var(--text-secondary); border-color:var(--border); }
@@ -115,14 +115,14 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-act-row:hover { background:var(--bg-tertiary); }
         .user-act-title { flex:1; min-width:0; font-size:var(--font-size-xs); color:var(--text-primary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .user-act-meta { flex:0 0 auto; font-size:11px; color:var(--text-tertiary); }
+        .user-act-meta { flex:0 0 auto; font-size:var(--font-size-3xs); color:var(--text-tertiary); }
         .user-acct { display:flex; flex-direction:column; gap:14px; margin-top:16px; padding:16px;
             border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary); }
         .user-acct-row { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
         .user-acct-label { flex:0 0 110px; font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:600; }
         .user-acct-value { font-size:var(--font-size-xs); color:var(--text-primary); }
         .user-acct-row input { flex:1 1 160px; min-width:0; }
-        .user-acct-hint { flex:1 1 100%; font-size:11px; color:var(--text-tertiary); line-height:1.55; }
+        .user-acct-hint { flex:1 1 100%; font-size:var(--font-size-3xs); color:var(--text-tertiary); line-height:1.55; }
         .user-acct-codes { flex:1 1 100%; margin-top:8px; }
         .user-acct-codelist { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
             gap:6px; margin:8px 0; padding-left:20px; }
@@ -143,7 +143,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             display:flex; align-items:center; justify-content:center; font-size:36px; }
         .user-id-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
         .user-id-main { flex:1 1 220px; min-width:0; }
-        .user-id-main h2 { font-size:20px; font-weight:600; margin:0 0 4px; color:var(--text-primary); }
+        .user-id-main h2 { font-size:var(--font-size-title); font-weight:600; margin:0 0 4px; color:var(--text-primary); }
         .user-id-sub { font-size:var(--font-size-sm); color:var(--text-secondary); margin:0 0 4px; }
         .user-id-sub a { color:var(--accent); text-decoration:none; }
         .user-id-sub a:hover { text-decoration:underline; }
@@ -152,7 +152,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-stats { display:flex; gap:10px; flex-wrap:wrap; }
         .user-stat { flex:1 1 100px; min-width:96px; padding:12px 14px; text-align:center;
             background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); }
-        .user-stat b { display:block; font-size:20px; font-weight:700; color:var(--accent); font-family:var(--font-mono, monospace); }
+        .user-stat b { display:block; font-size:var(--font-size-title); font-weight:700; color:var(--accent); font-family:var(--font-mono, monospace); }
         .user-stat span { display:block; margin-top:2px; font-size:var(--font-size-xs); color:var(--text-secondary); }
 
         /* 잔디 (TASK-KL-152 C2). 세로 7칸(일~토)으로 흘러 한 열이 한 주다.
@@ -160,7 +160,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-recap { margin-bottom:14px; }
         .fp-grass { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7, 11px);
             gap:3px; overflow-x:auto; padding:4px 0 8px; }
-        .fp-cell { width:11px; height:11px; border-radius:2px; background:var(--bg-tertiary); }
+        .fp-cell { width:11px; height:11px; border-radius:var(--radius-sm); background:var(--bg-tertiary); }
         .fp-cell[data-lv="1"] { background:color-mix(in srgb, var(--accent) 22%, var(--bg-tertiary)); }
         .fp-cell[data-lv="2"] { background:color-mix(in srgb, var(--accent) 45%, var(--bg-tertiary)); }
         .fp-cell[data-lv="3"] { background:color-mix(in srgb, var(--accent) 70%, var(--bg-tertiary)); }
@@ -168,43 +168,43 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-cell[data-lv="x"] { background:transparent; }
         .fp-top { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
         .fp-top-item { display:flex; align-items:baseline; gap:6px; padding:7px 12px; cursor:pointer;
-            border:1px solid var(--border); border-radius:999px; background:var(--bg-secondary); font:inherit; }
+            border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--bg-secondary); font:inherit; }
         .fp-top-item:hover { border-color:var(--accent); }
         .fp-top-item b { font-size:var(--font-size-xs); color:var(--text-primary); }
-        .fp-top-item span { font-size:11px; color:var(--text-tertiary); }
+        .fp-top-item span { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
         .fp-pins { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; }
-        .fp-pin { padding:5px 11px; border-radius:999px; border:1px solid var(--border); cursor:pointer;
+        .fp-pin { padding:5px 11px; border-radius:var(--radius-pill); border:1px solid var(--border); cursor:pointer;
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs); }
         .fp-pin:hover { border-color:var(--accent); }
         .fp-pin.on { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
         .fp-sessions, .fp-events { display:flex; flex-direction:column; gap:6px; flex:1 1 260px; }
         .fp-session, .fp-event { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-            padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-tertiary); }
+            padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-tertiary); }
         .fp-session-name, .fp-event-kind { flex:1 1 140px; font-size:var(--font-size-xs); color:var(--text-primary); }
-        .fp-session-name b { color:var(--accent); font-size:11px; }
-        .fp-session-when, .fp-event-when { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
-        .fp-event-meta { flex:2 1 160px; font-size:11px; color:var(--text-secondary);
+        .fp-session-name b { color:var(--accent); font-size:var(--font-size-3xs); }
+        .fp-session-when, .fp-event-when { font-size:var(--font-size-3xs); color:var(--text-tertiary); white-space:nowrap; }
+        .fp-event-meta { flex:2 1 160px; font-size:var(--font-size-3xs); color:var(--text-secondary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         /* 얼마나 왔나 (TASK-KL-175 E7). 잠긴 것에만 붙는다. 연 것에 막대는 뜻이 없다. */
-        .user-item-progress { position:relative; height:14px; margin-top:8px; border-radius:999px;
+        .user-item-progress { position:relative; height:14px; margin-top:8px; border-radius:var(--radius-pill);
             background:var(--bg-secondary); overflow:hidden; }
         .user-item-progress i { display:block; height:100%; background:var(--accent); opacity:.55; }
         .user-item-progress span { position:absolute; inset:0; display:grid; place-items:center;
-            font-size:10px; color:var(--text-secondary); font-family:var(--font-mono, monospace); }
-        .user-item-rarity { margin-top:6px; font-size:11px; color:var(--accent); }
+            font-size:var(--font-size-4xs); color:var(--text-secondary); font-family:var(--font-mono, monospace); }
+        .user-item-rarity { margin-top:6px; font-size:var(--font-size-3xs); color:var(--accent); }
         .fp-follows { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
         .fp-follows > div { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
-        .fp-follows > div > span { font-size:11px; color:var(--text-tertiary); margin-right:4px; }
-        .fp-person { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px;
+        .fp-follows > div > span { font-size:var(--font-size-3xs); color:var(--text-tertiary); margin-right:4px; }
+        .fp-person { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:var(--radius-pill);
             border:1px solid var(--border); background:var(--bg-secondary); font-size:var(--font-size-xs);
             color:var(--text-primary); text-decoration:none; }
         .fp-person:hover { border-color:var(--accent); }
-        .fp-person b { font-size:10px; color:var(--accent); font-weight:600; }
+        .fp-person b { font-size:var(--font-size-4xs); color:var(--accent); font-weight:600; }
         .fp-blocked { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; font-size:var(--font-size-xs); color:var(--text-secondary); }
         .fp-blocked-item { display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
-            border:1px solid var(--border); border-radius:999px; background:var(--bg-tertiary); }
-        .fp-blocked-item button { background:none; border:0; color:var(--accent); font:inherit; font-size:11px; cursor:pointer; }
-        .fp-season { font-size:11px; color:var(--text-tertiary); font-weight:400; margin-left:6px; }
+            border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--bg-tertiary); }
+        .fp-blocked-item button { background:none; border:0; color:var(--accent); font:inherit; font-size:var(--font-size-3xs); cursor:pointer; }
+        .fp-season { font-size:var(--font-size-3xs); color:var(--text-tertiary); font-weight:400; margin-left:6px; }
         .fp-missions { display:flex; flex-direction:column; gap:10px; }
         .fp-mission { display:flex; flex-direction:column; gap:4px; padding:10px 12px;
             border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-secondary); }

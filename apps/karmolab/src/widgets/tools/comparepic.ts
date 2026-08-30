@@ -40,7 +40,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
                 <label class="tool-btn" for="cpB">${esc(t('comparepic.label.cpB'))}<input id="cpB" type="file" accept="image/*" hidden /></label>
                 <button id="cpSave" class="tool-btn" type="button" disabled>${esc(t('comparepic.btn.cpSave'))}</button>
               </div>
-              <div id="cpStage" style="position:relative; overflow:hidden; border-radius:8px;
+              <div id="cpStage" style="position:relative; overflow:hidden; border-radius:var(--radius-lg);
                 background:var(--bg-secondary); touch-action:none; user-select:none;">
                 <canvas id="cpCanvas" style="display:block; width:100%; height:auto;"></canvas>
                 <div id="cpHandle" role="slider" tabindex="0" aria-label="${esc(t('comparepic.aria.cpHandle'))}"

@@ -39,10 +39,10 @@ import { t, loadNamespace } from '../lib/i18n';
 
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:380px; gap:16px; text-align:center; position:relative; overflow:hidden;">
-                    <div style="font-size:14px; color:var(--text-secondary);">${esc(t('pet.t01'))}</div>
+                    <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('pet.t01'))}</div>
                     <div style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('pet.t02'))}</div>
                     <div id="petArea" style="font-size:100px; cursor:grab; user-select:none; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.3)); transition:transform 0.1s;">🐱</div>
-                    <div style="font-size:20px; font-weight:bold; color:var(--accent);">${esc(t('pet.t03'))} <span id="petCount">0</span></div>
+                    <div style="font-size:var(--font-size-title); font-weight:bold; color:var(--accent);">${esc(t('pet.t03'))} <span id="petCount">0</span></div>
                     <div id="petMilestone" style="font-size:var(--font-size-xs); color:var(--success); min-height:16px;"></div>
                 </div>
             `;
@@ -114,7 +114,7 @@ import { t, loadNamespace } from '../lib/i18n';
             overlay.innerHTML = `
                     <div style="font-size:60px; animation:mdd-bounce 1s infinite;">💖💍🎉</div>
                     <div style="font-size:32px; font-weight:bold; margin-top:20px;">${esc(t('pet.t04'))}</div>
-                    <div style="font-size:14px; margin-top:10px; color:pink;">${esc(t('pet.t05'))}</div>
+                    <div style="font-size:var(--font-size-xs); margin-top:10px; color:pink;">${esc(t('pet.t05'))}</div>
                 `;
             document.body.appendChild(overlay);
           }

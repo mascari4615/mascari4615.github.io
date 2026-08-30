@@ -306,7 +306,7 @@ import { download } from './tools/shared/image';
                 background: var(--bg-tertiary); border: 1px solid var(--border);
             }
             .activity-stat-label { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-bottom: 4px; }
-            .activity-stat-value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+            .activity-stat-value { font-size: var(--font-size-title); font-weight: 700; color: var(--text-primary); }
             .activity-list { display: flex; flex-direction: column; gap: 8px; }
             .activity-row {
                 position: relative; padding: 10px 12px; border-radius: var(--radius-md);
@@ -338,12 +338,12 @@ import { download } from './tools/shared/image';
             /* 시간대 히트맵. 주 단위 모드 전용. 7행(월~일) × 24열(0~23시), accent 색 alpha 로 강도 표시. */
             .activity-heatmap-wrap { margin: 0 0 18px 0; }
             .activity-heatmap-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 6px 0; }
-            .activity-heatmap-hint { font-size: 10px; color: var(--text-tertiary); margin: 0 0 8px 0; }
+            .activity-heatmap-hint { font-size: var(--font-size-4xs); color: var(--text-tertiary); margin: 0 0 8px 0; }
             .activity-heatmap-grid {
                 display: grid;
                 grid-template-columns: 28px repeat(24, minmax(0, 1fr));
                 gap: 2px;
-                font-size: 9px;
+                font-size: var(--font-size-4xs);
                 color: var(--text-tertiary);
             }
             .activity-heatmap-corner { padding: 2px; }
@@ -356,7 +356,7 @@ import { download } from './tools/shared/image';
             }
             .activity-heatmap-cell {
                 aspect-ratio: 1 / 1;
-                border-radius: 2px;
+                border-radius: var(--radius-sm);
                 background: color-mix(in srgb, var(--accent) 0%, var(--bg-tertiary));
                 cursor: default;
             }
@@ -365,7 +365,7 @@ import { download } from './tools/shared/image';
             /* 일자별 막대. 주/월 모드 전용. flex row, 각 막대는 height = active / max. */
             .activity-bars-wrap { margin: 0 0 18px 0; }
             .activity-bars-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 6px 0; }
-            .activity-bars-hint { font-size: 10px; color: var(--text-tertiary); margin: 0 0 8px 0; }
+            .activity-bars-hint { font-size: var(--font-size-4xs); color: var(--text-tertiary); margin: 0 0 8px 0; }
             .activity-bars-grid {
                 display: flex;
                 align-items: flex-end;
@@ -388,7 +388,7 @@ import { download } from './tools/shared/image';
                 width: 100%;
                 min-height: 1px;
                 background: var(--accent);
-                border-radius: 2px 2px 0 0;
+                border-radius: var(--radius-sm) var(--radius-sm) 0 0;
                 opacity: 0.85;
             }
             .activity-bars-col--empty .activity-bars-col-bar {
@@ -402,7 +402,7 @@ import { download } from './tools/shared/image';
                 display: flex;
                 gap: 3px;
                 margin-top: 4px;
-                font-size: 9px;
+                font-size: var(--font-size-4xs);
                 color: var(--text-tertiary);
             }
             .activity-bars-label {

@@ -482,21 +482,21 @@ const TASK_TAB_CSS = `
 .ckt-header { display: flex; gap: 8px; align-items: center; }
 .ckt-search {
   flex: 1; background: var(--paper); border: 1px solid var(--line2);
-  border-radius: 4px; padding: 8px 12px; font-size: 13px; color: var(--ink); outline: none;
+  border-radius: var(--radius-sm); padding: 8px 12px; font-size: var(--font-size-2xs); color: var(--ink); outline: none;
 }
 .ckt-search:focus { border-color: var(--accent); }
 .ckt-new-btn {
-  background: var(--accent); color: var(--bg); border: none; border-radius: 4px;
-  padding: 8px 14px; font-weight: 600; cursor: pointer; font-size: 12px;
+  background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius-sm);
+  padding: 8px 14px; font-weight: 600; cursor: pointer; font-size: var(--font-size-2xs);
 }
 .ckt-sort {
   background: var(--paper); color: var(--ink); border: 1px solid var(--line2);
-  padding: 7px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; outline: none;
+  padding: 7px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-2xs); cursor: pointer; outline: none;
 }
-.ckt-mode-toggle { display: flex; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.ckt-mode-toggle { display: flex; border: 1px solid var(--line2); border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0; }
 .ckt-mode-btn {
   background: var(--bg2); color: var(--ink3); border: none;
-  padding: 7px 12px; font-size: 11px; cursor: pointer; white-space: nowrap;
+  padding: 7px 12px; font-size: var(--font-size-3xs); cursor: pointer; white-space: nowrap;
   font-family: 'KarmoMono', monospace; letter-spacing: 0.1em; transition: background 0.15s, color 0.15s;
 }
 .ckt-mode-btn.on { background: var(--accent2); color: var(--bg); }
@@ -505,12 +505,12 @@ const TASK_TAB_CSS = `
 .ckt-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .ckt-chip {
   background: var(--bg2); color: var(--ink2); border: 1px dashed var(--line3);
-  border-radius: 2px; padding: 3px 8px; font-size: 10px;
+  border-radius: var(--radius-sm); padding: 3px 8px; font-size: var(--font-size-4xs);
   font-family: 'KarmoMono', monospace; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
 }
 .ckt-chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); border-style: solid; }
-.ckt-meta { font-size: 11px; color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.14em; }
-.ckt-list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; }
+.ckt-meta { font-size: var(--font-size-3xs); color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.14em; }
+.ckt-list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 
 /* LIST rows */
 .ckt-row {
@@ -520,12 +520,12 @@ const TASK_TAB_CSS = `
 }
 .ckt-row:hover { background: var(--bg2); }
 .ckt-row.selected { background: var(--bg2); border-left: 3px solid var(--accent); padding-left: 9px; }
-.ckt-id { font-family: 'KarmoMono', monospace; font-size: 11px; color: var(--accent2); letter-spacing: 0.05em; }
-.ckt-status { font-family: 'KarmoMono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; }
-.ckt-title { font-size: 13px; }
-.ckt-sub-badge { font-family: 'KarmoMono', monospace; font-size: 10px; color: var(--ink3); margin-left: 5px; }
-.ckt-tags { font-size: 10px; color: var(--ink3); white-space: nowrap; }
-.ckt-empty { padding: 40px; text-align: center; color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.2em; font-size: 12px; }
+.ckt-id { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); color: var(--accent2); letter-spacing: 0.05em; }
+.ckt-status { font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); text-transform: uppercase; letter-spacing: 0.14em; }
+.ckt-title { font-size: var(--font-size-2xs); }
+.ckt-sub-badge { font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); color: var(--ink3); margin-left: 5px; }
+.ckt-tags { font-size: var(--font-size-4xs); color: var(--ink3); white-space: nowrap; }
+.ckt-empty { padding: 40px; text-align: center; color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.2em; font-size: var(--font-size-2xs); }
 .ckt-empty::before { content: '.  '; opacity: 0.5; }
 .ckt-empty::after { content: ' . '; opacity: 0.5; }
 
@@ -554,19 +554,19 @@ const TASK_TAB_CSS = `
 }
 .ckt-qcoord {
   position: absolute; left: 14px; top: 14px; z-index: 3;
-  font-family: 'KarmoMono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
   color: var(--ink2); letter-spacing: 0.15em; line-height: 1.8;
 }
 .ckt-qcoord-k { color: var(--ink3); }
 .ckt-qtag {
   position: absolute; right: 14px; top: 14px; z-index: 3;
-  font-family: 'KarmoMono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
   color: var(--ink); letter-spacing: 0.18em; text-transform: uppercase;
   padding: 3px 8px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.09);
 }
 .ckt-qchevron {
   position: absolute; right: 14px; bottom: 14px; z-index: 3;
-  font-family: 'KarmoMono', monospace; font-size: 18px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-md);
   color: rgba(255,255,255,0.5); line-height: 1; transition: color 0.15s;
 }
 .ckt-qposter--toggle { cursor: pointer; }
@@ -578,7 +578,7 @@ const TASK_TAB_CSS = `
   position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 3;
 }
 .ckt-qoverlay-sub {
-  font-family: 'KarmoMono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
   letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; margin-bottom: 5px;
 }
 .ckt-qoverlay-title {
@@ -590,7 +590,7 @@ const TASK_TAB_CSS = `
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
   padding: 7px 14px;
   background: var(--paper); border: 1px solid var(--line2); border-top: none; border-bottom: none;
-  font-family: 'KarmoMono', monospace; font-size: 10px; letter-spacing: 0.18em;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.18em;
 }
 .ckt-qstat-item b { font-weight: 700; }
 .ckt-qstat-sep { color: var(--line3); margin: 0 2px; }
@@ -605,21 +605,21 @@ const TASK_TAB_CSS = `
 .ckt-qrow--sub { padding-left: 26px; background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .ckt-qrow:last-child { border-bottom: none; }
 .ckt-qrow:hover { background: var(--bg2); }
-.ckt-qrow-prefix { font-size: 12px; line-height: 1; }
+.ckt-qrow-prefix { font-size: var(--font-size-2xs); line-height: 1; }
 .ckt-qsub-mark { color: var(--ink3); font-family: 'KarmoMono', monospace; }
-.ckt-qid { font-family: 'KarmoMono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.05em; }
+.ckt-qid { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); color: var(--accent); letter-spacing: 0.05em; }
 .ckt-qmag {
-  font-family: 'KarmoMono', monospace; font-size: 10px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs);
   letter-spacing: 0.14em; text-transform: uppercase;
   padding: 2px 5px; border: 1px solid; white-space: nowrap;
 }
 .ckt-qtitle {
-  font-family: 'KarmoSerif', serif; font-size: 13.5px; color: var(--ink);
+  font-family: 'KarmoSerif', serif; font-size: var(--font-size-2xs); color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em;
 }
 .ckt-qtitle[data-status="done"],
 .ckt-qtitle[data-status="sealed"] { color: var(--ink3); text-decoration: line-through; text-decoration-thickness: 1px; }
-.ckt-qempty { padding: 24px 14px; text-align: center; color: var(--ink3); font-family: 'KarmoMono', monospace; font-size: 11px; letter-spacing: 0.2em; }
+.ckt-qempty { padding: 24px 14px; text-align: center; color: var(--ink3); font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); letter-spacing: 0.2em; }
 
 /* ── DRAWER (quest-log .drawer 참고) ── */
 .ckt-backdrop {
@@ -643,13 +643,13 @@ const TASK_TAB_CSS = `
   flex-shrink: 0;
 }
 .ckt-drawer-crumb {
-  font-family: 'KarmoMono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs);
   letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink3);
 }
 .ckt-drawer-crumb b { color: var(--ink); }
 .ckt-drawer-close {
   background: transparent; border: 1px solid var(--line2); color: var(--ink2);
-  font-family: 'KarmoMono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs);
   width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .ckt-drawer-close:hover { border-color: var(--ink); color: var(--ink); }
@@ -658,12 +658,12 @@ const TASK_TAB_CSS = `
 /* drawer 내부 */
 .ckt-dr-pills { display: flex; gap: 6px; align-items: center; margin-bottom: 16px; }
 .ckt-dr-status {
-  font-family: 'KarmoMono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs);
   letter-spacing: 0.2em; text-transform: uppercase;
   padding: 4px 10px; border: 1px solid;
 }
 .ckt-dr-priority {
-  font-family: 'KarmoMono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
   letter-spacing: 0.2em; color: var(--ink2);
   padding: 3px 8px; border: 1px dashed var(--line3);
 }
@@ -673,19 +673,19 @@ const TASK_TAB_CSS = `
 }
 .ckt-dr-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--line2); }
 .ckt-dr-meta-row { display: flex; gap: 12px; align-items: baseline; }
-.ckt-dr-k { font-family: 'KarmoMono', monospace; font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink3); width: 52px; flex-shrink: 0; }
-.ckt-dr-v { font-size: 13px; color: var(--ink2); flex: 1; }
+.ckt-dr-k { font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink3); width: 52px; flex-shrink: 0; }
+.ckt-dr-v { font-size: var(--font-size-2xs); color: var(--ink2); flex: 1; }
 .ckt-dr-link { color: var(--accent2); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .ckt-dr-link:hover { color: var(--ink); }
-.ckt-dr-filepath { font-family: 'KarmoMono', monospace; font-size: 11px; word-break: break-all; }
+.ckt-dr-filepath { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); word-break: break-all; }
 .ckt-dr-tag {
   display: inline-block; background: var(--bg2); border: 1px solid var(--line2);
-  font-family: 'KarmoMono', monospace; font-size: 10px; letter-spacing: 0.1em;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.1em;
   padding: 2px 6px; margin: 0 3px 3px 0;
 }
 .ckt-dr-section { margin-bottom: 20px; }
 .ckt-dr-section-head {
-  font-family: 'KarmoMono', monospace; font-size: 10.5px; letter-spacing: 0.22em;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.22em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
 }
 .ckt-dr-child {
@@ -695,31 +695,31 @@ const TASK_TAB_CSS = `
 }
 .ckt-dr-child:last-child { border-bottom: none; }
 .ckt-dr-child:hover { background: var(--bg2); }
-.ckt-dr-child-status { font-family: 'KarmoMono', monospace; font-size: 10px; letter-spacing: 0.12em; padding: 2px 5px; border: 1px solid; text-transform: uppercase; }
-.ckt-dr-child-id { font-family: 'KarmoMono', monospace; font-size: 11px; color: var(--accent2); }
-.ckt-dr-child-title { font-family: 'KarmoSerif', serif; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ckt-dr-child-status { font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.12em; padding: 2px 5px; border: 1px solid; text-transform: uppercase; }
+.ckt-dr-child-id { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); color: var(--accent2); }
+.ckt-dr-child-title { font-family: 'KarmoSerif', serif; font-size: var(--font-size-2xs); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ckt-card-hint {
-  grid-column: 1 / -1; font-size: 11px; color: var(--ink3);
+  grid-column: 1 / -1; font-size: var(--font-size-3xs); color: var(--ink3);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   margin-top: 2px; padding: 0 2px; opacity: 0.8;
 }
 .ckt-dr-bus-entry {
   display: flex; align-items: baseline; gap: 6px;
   padding: 6px 0; border-bottom: 1px dashed var(--line);
-  font-size: 12px;
+  font-size: var(--font-size-2xs);
 }
 .ckt-dr-bus-entry:last-child { border-bottom: none; }
 .ckt-dr-bus-slot {
-  font-family: 'KarmoMono', monospace; font-size: 10px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs);
   color: var(--accent2); flex-shrink: 0; letter-spacing: 0.1em;
 }
 .ckt-dr-bus-head { flex: 1; color: var(--ink2); line-height: 1.4; }
-.ckt-dr-bus-ts { font-family: 'KarmoMono', monospace; font-size: 10px; color: var(--ink3); flex-shrink: 0; }
+.ckt-dr-bus-ts { font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); color: var(--ink3); flex-shrink: 0; }
 .ckt-dr-actions { margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--line2); }
 .ckt-dr-open-btn {
   width: 100%; background: var(--ink); color: var(--bg); border: none;
   padding: 13px; cursor: pointer;
-  font-family: 'KarmoMono', monospace; font-size: 12.5px;
+  font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs);
   letter-spacing: 0.22em; text-transform: uppercase; transition: background 140ms;
 }
 .ckt-dr-open-btn:hover { background: var(--accent); }
@@ -730,22 +730,22 @@ const TASK_TAB_CSS = `
   display: flex; align-items: center; justify-content: center;
 }
 .ckt-modal {
-  background: var(--paper); border: 1px solid var(--line2); border-radius: 6px;
+  background: var(--paper); border: 1px solid var(--line2); border-radius: var(--radius-md);
   padding: 22px; min-width: 380px; max-width: 90%; position: relative;
 }
 .ckt-modal::before {
   content: ''; position: absolute; top: -1px; left: -1px; width: 12px; height: 12px;
   border-top: 1px solid var(--accent); border-left: 1px solid var(--accent);
 }
-.ckt-modal h3 { margin: 0 0 14px; font-family: 'KarmoSerif', serif; font-size: 16px; font-weight: 700; }
-.ckt-modal label { display: block; font-family: 'KarmoMono', monospace; font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink2); margin-bottom: 4px; }
+.ckt-modal h3 { margin: 0 0 14px; font-family: 'KarmoSerif', serif; font-size: var(--font-size-sm); font-weight: 700; }
+.ckt-modal label { display: block; font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink2); margin-bottom: 4px; }
 .ckt-modal select, .ckt-modal input {
   width: 100%; background: var(--bg2); border: 1px solid var(--line2); color: var(--ink);
-  padding: 8px 10px; border-radius: 3px; font-size: 13px; outline: none; margin-bottom: 12px;
+  padding: 8px 10px; border-radius: var(--radius-sm); font-size: var(--font-size-2xs); outline: none; margin-bottom: 12px;
 }
 .ckt-modal-actions { display: flex; gap: 6px; justify-content: flex-end; }
-.ckt-cancel { background: var(--line2); color: var(--ink); border: none; padding: 8px 14px; border-radius: 3px; cursor: pointer; font-family: 'KarmoMono', monospace; font-size: 11.5px; letter-spacing: 0.1em; }
-.ckt-create { background: var(--accent); color: var(--bg); border: none; padding: 8px 14px; border-radius: 3px; cursor: pointer; font-family: 'KarmoMono', monospace; font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; }
+.ckt-cancel { background: var(--line2); color: var(--ink); border: none; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); letter-spacing: 0.1em; }
+.ckt-create { background: var(--accent); color: var(--bg); border: none; padding: 8px 14px; border-radius: var(--radius-sm); cursor: pointer; font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); font-weight: 700; letter-spacing: 0.1em; }
 `;
 
 // ── 진입점 ────────────────────────────────────────────────────────────────────

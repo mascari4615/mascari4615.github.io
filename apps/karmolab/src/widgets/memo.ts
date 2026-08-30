@@ -18,9 +18,9 @@ import { t, loadNamespace } from '../lib/i18n';
         .memo-empty-state { padding:24px 16px; text-align:center; font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .memo-editor { flex:1; display:flex; flex-direction:column; background:var(--bg-tertiary); }
         .memo-editor-header { padding:16px 24px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; }
-        .memo-title-input { flex:1; background:transparent; border:none; font-size:18px; font-weight:600; color:var(--text-primary); padding:0; outline:none; }
+        .memo-title-input { flex:1; background:transparent; border:none; font-size:var(--font-size-md); font-weight:600; color:var(--text-primary); padding:0; outline:none; }
         .memo-title-input::placeholder { color:var(--text-tertiary); font-weight:500; }
-        .memo-body-input { flex:1; background:transparent; border:none; resize:none; padding:24px; font-size:14px; line-height:1.7; color:var(--text-primary); outline:none; font-family:inherit; }
+        .memo-body-input { flex:1; background:transparent; border:none; resize:none; padding:24px; font-size:var(--font-size-xs); line-height:1.7; color:var(--text-primary); outline:none; font-family:inherit; }
         .memo-body-input::placeholder { color:var(--text-tertiary); }
         .memo-status-indicator { padding:8px 24px; font-size:var(--font-size-xs); color:var(--text-tertiary); text-align:right; border-top:1px solid var(--border); background:var(--bg-secondary); }
         @media (max-width:768px) { .memo-container { flex-direction:column; min-height:500px; } .memo-sidebar { width:100%; height:200px; flex:none; border-right:none; border-bottom:1px solid var(--border); } }

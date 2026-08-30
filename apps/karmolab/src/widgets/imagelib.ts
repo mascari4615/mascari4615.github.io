@@ -95,7 +95,7 @@ const esc = (v: unknown): string =>
         }
         .il-lib-card:hover .il-lib-card-overlay { opacity:1; }
         .il-lib-card-model {
-            display:inline-block; font-size:var(--font-size-2xs); padding:2px 8px; border-radius:4px;
+            display:inline-block; font-size:var(--font-size-2xs); padding:2px 8px; border-radius:var(--radius-sm);
             background:var(--accent); color:#fff; font-weight:600;
             margin-bottom:6px; width:fit-content;
         }
@@ -112,7 +112,7 @@ const esc = (v: unknown): string =>
             padding:80px 20px; color:var(--text-tertiary); text-align:center;
         }
         .il-lib-empty-icon { font-size:56px; opacity:0.2; margin-bottom:20px; }
-        .il-lib-empty-text { font-size:15px; font-weight:500; margin-bottom:6px; }
+        .il-lib-empty-text { font-size:var(--font-size-xs); font-weight:500; margin-bottom:6px; }
         .il-lib-empty-sub { font-size:var(--font-size-xs); opacity:0.6; }
 
         .il-detail { display:flex; gap:24px; min-height:480px; }

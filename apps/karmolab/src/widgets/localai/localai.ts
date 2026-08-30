@@ -107,9 +107,9 @@ import { t, loadNamespace } from '../../lib/i18n';
           border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-primary);
           font-size:var(--font-size-sm); line-height:1.7; white-space:pre-wrap; }
       .lai-out:empty::before { content:'결과가 여기 나옵니다'; color:var(--text-tertiary); }
-      .lai-bar { height:6px; background:var(--bg-tertiary); border-radius:999px; overflow:hidden; }
+      .lai-bar { height:6px; background:var(--bg-tertiary); border-radius:var(--radius-pill); overflow:hidden; }
       .lai-bar > span { display:block; height:100%; background:var(--accent); width:0%; transition:width .2s; }
-      .lai-state { font-size:11px; color:var(--text-tertiary); }
+      .lai-state { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
     `
   );
 

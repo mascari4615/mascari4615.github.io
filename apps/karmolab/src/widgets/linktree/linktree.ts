@@ -82,7 +82,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .linktree-card-body { flex: 1; min-width: 0; }
         .linktree-card-desc { font-size: var(--font-size-2xs); font-weight: 400; color: var(--text-tertiary); margin-top: 2px; }
         .linktree-card:hover .linktree-card-desc { color: var(--text-secondary); }
-        .linktree-card-copy { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: var(--text-tertiary); background: none; border: none; cursor: pointer; opacity: 0.6; transition: all var(--transition); }
+        .linktree-card-copy { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); color: var(--text-tertiary); background: none; border: none; cursor: pointer; opacity: 0.6; transition: all var(--transition); }
         .linktree-card-copy:hover { opacity: 1; color: var(--accent); }
         .linktree-card-copy svg { width: 16px; height: 16px; }
     `

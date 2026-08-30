@@ -302,10 +302,10 @@ import { t, loadNamespace } from '../lib/i18n';
             .devtools-intro { font-size: var(--font-size-sm); color: var(--text-tertiary); margin: 0 0 20px 0; line-height: 1.5; }
             .devtools-section { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
             .devtools-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-            .devtools-section-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0; }
+            .devtools-section-title { font-size: var(--font-size-xs); font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0; }
             .devtools-section-desc { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.55; margin: 0 0 12px 0; }
             .devtools-field { margin-bottom: 12px; }
-            .devtools-field-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+            .devtools-field-label { display: block; font-size: var(--font-size-2xs); font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
             .devtools-input, .devtools-textarea, .devtools-select {
                 width: 100%; max-width: 520px; box-sizing: border-box;
                 padding: 8px 10px; border-radius: var(--radius-md);
@@ -313,7 +313,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 font-size: var(--font-size-sm); font-family: inherit;
             }
             .devtools-textarea { resize: vertical; min-height: 72px; }
-            .devtools-preview-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 16px 0 6px 0; }
+            .devtools-preview-label { font-size: var(--font-size-2xs); font-weight: 600; color: var(--text-secondary); margin: 16px 0 6px 0; }
             .devtools-preview {
                 margin: 0 0 12px 0; padding: 12px 14px; border-radius: var(--radius-md);
                 background: var(--bg-tertiary); border: 1px solid var(--border);

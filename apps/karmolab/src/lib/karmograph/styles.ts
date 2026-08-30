@@ -19,7 +19,7 @@ export const GRAPH_CANVAS_CSS = `
    배경이라 아무것도 가리면 안 된다: 색은 아주 옅게, 글자는 작게, 클릭은 통과시킨다. */
 .ck-lane { pointer-events: none; }
 .ck-lane-label {
-  font-size: 11px;
+  font-size: var(--font-size-3xs);
   fill: currentColor;
   opacity: .45;
   letter-spacing: .04em;

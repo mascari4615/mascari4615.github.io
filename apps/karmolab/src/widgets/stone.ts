@@ -21,7 +21,7 @@ import { intervalWhileVisible } from '../lib/tick';
 
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:380px; gap:20px; text-align:center;">
-                    <div style="font-size:14px; color:var(--text-secondary);">${esc(t('stone.t01'))}</div>
+                    <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('stone.t01'))}</div>
                     <div id="stoneEmoji" style="font-size:100px; user-select:none; cursor:default; filter:drop-shadow(0 5px 5px rgba(0,0,0,0.5)); transition:transform 0.2s;">🪨</div>
                     <div id="stoneStatus" style="font-size:var(--font-size-sm); color:var(--text-tertiary); min-height:18px;">${esc(t('stone.label.status'))}</div>
                     <div style="display:flex; gap:10px;">

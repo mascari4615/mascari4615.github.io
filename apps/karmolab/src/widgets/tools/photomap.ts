@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           <input type="range" id="pmNear" name="near" aria-label="${esc(t('photomap.label.near'))}" min="50" max="5000" step="50" value="300" style="width:200px;">
         </div>
       </div>
-      <div id="pmDots" style="border:1px solid rgba(128,128,128,.24); border-radius:10px; padding:8px; overflow:auto; margin-bottom:10px;"></div>
+      <div id="pmDots" style="border:1px solid rgba(128,128,128,.24); border-radius:var(--radius-xl); padding:8px; overflow:auto; margin-bottom:10px;"></div>
       <div class="tool-grid-2">
         <div>
           <div class="tool-sublabel">${esc(t('photomap.label.places'))}</div>

@@ -236,7 +236,7 @@ function injectStyle(): void {
     @media (prefers-reduced-motion: reduce) { .karmo-ctx { animation:none; } }
     .karmo-ctx-item {
         appearance:none; border:none; background:none; cursor:pointer; text-align:left;
-        padding:7px 10px; border-radius:6px; font-size:var(--font-size-xs, 13px);
+        padding:7px 10px; border-radius:var(--radius-md); font-size:var(--font-size-xs, 13px);
         color:var(--text-primary, #e8e8ea); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .karmo-ctx-item:hover:not([disabled]), .karmo-ctx-item:focus-visible:not([disabled]) {

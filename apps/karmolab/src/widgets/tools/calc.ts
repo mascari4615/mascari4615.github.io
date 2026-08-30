@@ -220,8 +220,8 @@ import { t, loadNamespace } from '../../lib/i18n';
     styled = true;
     const el = document.createElement('style');
     el.textContent = `
-.ca-sheet{border:1px solid rgba(128,128,128,.22);border-radius:10px;overflow:hidden;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;}
+.ca-sheet{border:1px solid rgba(128,128,128,.22);border-radius:var(--radius-xl);overflow:hidden;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--font-size-2xs);}
 .ca-row{display:flex;gap:10px;align-items:baseline;padding:5px 10px;
   border-bottom:1px solid rgba(128,128,128,.12);}
 .ca-row:last-child{border-bottom:0;}
@@ -232,7 +232,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .ca-bad .ca-ans{color:rgba(220,120,120,.9);font-weight:500;cursor:help;}
 .ca-plotrow{display:block;padding:8px 10px;}
 .ca-plot{display:block;color:var(--text-secondary,#999);}
-.ca-plotmeta{display:block;margin-top:4px;font-size:11px;opacity:.6;}
+.ca-plotmeta{display:block;margin-top:4px;font-size:var(--font-size-3xs);opacity:.6;}
 `;
     document.head.appendChild(el);
   }
