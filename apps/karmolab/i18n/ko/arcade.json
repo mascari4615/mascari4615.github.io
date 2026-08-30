@@ -87,6 +87,7 @@
   "arcade.yacht.sheet.pick": "적을 칸을 고른다",
   "arcade.yacht.sheet.wait": "{who} 차례",
   "arcade.yacht.sheet.close": "닫기",
+  "arcade.yacht.sheet.pin": "점수표 (Tab)",
   "arcade.game.checkers.name": "체커",
   "arcade.game.checkers.desc": "뛰어넘어 잡고, 끝줄에 닿으면 왕",
   "arcade.checkers.win": "{who} 이(가) 판을 쓸었다",

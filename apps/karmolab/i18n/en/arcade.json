@@ -87,6 +87,7 @@
   "arcade.yacht.sheet.pick": "Pick a box to score",
   "arcade.yacht.sheet.wait": "{who}'s turn",
   "arcade.yacht.sheet.close": "Close",
+  "arcade.yacht.sheet.pin": "Sheet (Tab)",
   "arcade.game.checkers.name": "Checkers",
   "arcade.game.checkers.desc": "Jump to capture; reach the back row to crown",
   "arcade.checkers.win": "{who} swept the board",

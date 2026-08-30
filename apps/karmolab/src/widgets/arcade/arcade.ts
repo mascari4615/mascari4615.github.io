@@ -483,6 +483,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ycpaper.ac-show{opacity:1}',
       /* 작성자 display 가 hidden 의 UA display:none 을 이긴다. 안 적으면 투명한 채 캔버스를 덮어 클릭을 전부 먹는다(실측) */
       '.ac-ycpaper[hidden]{display:none}',
+      /* 고정 모드. 오른쪽에 작게 붙고, 캔버스는 그대로 눌린다 */
+      '.ac-ycpaper.ac-pin{inset:auto;right:14px;top:78px;width:min(340px,42%);max-height:calc(100% - 80px);background:none;pointer-events:none;display:block;opacity:1}',
+      '.ac-ycpaper.ac-pin .ac-ycpaperin{pointer-events:auto;width:100%;max-height:calc(100vh - 140px);padding:10px 12px 12px;transform:none;font-size:var(--font-size-xs);opacity:.94}',
+      '.ac-ycpaper.ac-pin .ac-ycclose{display:none}',
+      '.ac-ycpaper.ac-pin .ac-yctable th,.ac-ycpaper.ac-pin .ac-yctable td{padding:2px 5px}',
+      '.ac-ycpaper.ac-pin .ac-yccell{min-height:24px}',
+      '.ac-ycpin{position:absolute;left:14px;top:12px;z-index:3;height:34px;padding:0 14px;border-radius:var(--radius-pill);background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-xs);letter-spacing:.06em;cursor:pointer;opacity:.7;backdrop-filter:blur(8px)}',
+      '.ac-ycpin:hover,.ac-ycpin[aria-pressed="true"]{opacity:1;border-color:#e6bd7a}',
+      '.ac-ycpin[aria-pressed="true"]{background:linear-gradient(180deg,#c9863d,#8f4f1c);color:#fff6e4}',
+      '.ac-ycpin[hidden]{display:none}',
       '.ac-ycpaperin{width:min(440px,92%);max-height:92%;overflow:auto;padding:16px 18px 18px;border-radius:var(--radius-sm);background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(120,80,40,.22);color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:rotate(-.6deg)}',
       '.ac-ychead{display:flex;align-items:center;gap:10px;margin-bottom:10px}',
       '.ac-ychead .ac-ycdice{display:flex;gap:6px;--ac-die:30px}',

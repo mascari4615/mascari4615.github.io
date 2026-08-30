@@ -39,6 +39,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
   mount(el, act) {
     el.innerHTML =
       '<div class="ac-t3 ac-t3room ac-t3bar" id="acT3"></div>' +
+      '<button type="button" class="ac-ycpin" id="acYcPin" aria-pressed="false"></button>' +
       '<div class="ac-ycpaper" id="acYcPaper" hidden></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     const paperEl = el.querySelector('#acYcPaper') as HTMLElement;
@@ -49,6 +50,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
     let seatNames: string[] = [];
     let mySeat = -1;
     let sheetOpen = false;
+    /* 종이를 화면 한쪽에 늘 둔다(사용자 요청). Tab 또는 왼쪽 위 버튼. 사람마다 남는다 */
+    let pinned = false;
+    try {
+      pinned = localStorage.getItem('karmolab.arcade.yacht.pin') === '1';
+    } catch {
+      /* 저장 못 하면 이번 판만 */
+    }
     let autoTimer = 0;
     let dead = false;
 
@@ -152,22 +160,52 @@ export const view3d: GameView<YachtState, YachtAction> = {
       el.prepend(warn);
     }
 
-    /* 스페이스로 굴린다. 컵까지 손이 안 가도 되게 */
+    const pinBtn = el.querySelector('#acYcPin') as HTMLButtonElement;
+    const paintPin = (): void => {
+      pinBtn.textContent = t('arcade.yacht.sheet.pin');
+      pinBtn.setAttribute('aria-pressed', String(pinned));
+      paperEl.classList.toggle('ac-pin', pinned);
+      if (pinned) {
+        paperKey = '';
+        paperEl.hidden = false;
+        paperEl.classList.add('ac-show');
+        paintPaper();
+      } else if (!sheetOpen) {
+        paperEl.hidden = true;
+        paperEl.classList.remove('ac-show');
+      }
+    };
+    const togglePin = (): void => {
+      pinned = !pinned;
+      try {
+        localStorage.setItem('karmolab.arcade.yacht.pin', pinned ? '1' : '0');
+      } catch {
+        /* 위와 같다 */
+      }
+      if (pinned && sheetOpen) closeSheet();
+      paintPin();
+    };
+    pinBtn.onclick = togglePin;
+
+    /* 스페이스로 굴린다. 컵까지 손이 안 가도 되게. Tab 은 종이 고정 */
     const onKey = (ev: KeyboardEvent): void => {
       if (ev.key === ' ' && canRoll() && !sheetOpen) {
         ev.preventDefault();
         act({ kind: 'roll' });
       } else if (ev.key === 'Escape' && sheetOpen) {
         closeSheet();
+      } else if (ev.key === 'Tab') {
+        ev.preventDefault();
+        togglePin();
       }
     };
-    host.addEventListener('keydown', onKey);
+    el.addEventListener('keydown', onKey);
 
     /* ── 종이 ── 카메라가 내려오고 HTML 점수표가 종이 위에 겹친다 */
     let paperKey = '';
     function paintPaper(): void {
       const s = last;
-      if (!s || !sheetOpen) return;
+      if (!s || (!sheetOpen && !pinned)) return;
       const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat]);
       if (key === paperKey) return;
       paperKey = key;
@@ -209,13 +247,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
           if (!myTurn()) return;
           amb.scratch();
           act({ kind: 'write', cat });
-          closeSheet();
+          if (!pinned) closeSheet();
         };
       });
       (paperEl.querySelector('.ac-ycclose') as HTMLButtonElement).onclick = () => closeSheet();
     }
     function openSheet(): void {
-      if (sheetOpen || dead) return;
+      if (sheetOpen || dead || pinned) return;
       sheetOpen = true;
       paperKey = '';
       stage?.sheetMode(true);
@@ -235,11 +273,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
       paperEl.hidden = true;
       stage?.sheetMode(false);
       stage?.canAct(canRoll());
+      if (pinned) paintPin();
     }
     paperEl.addEventListener('pointerdown', (ev) => {
       /* 종이 밖(어두운 자리)을 누르면 닫는다 */
-      if (ev.target === paperEl) closeSheet();
+      if (ev.target === paperEl && !pinned) closeSheet();
     });
+    paintPin();
 
     let sig = '';
     let sheetSig = '';
@@ -278,13 +318,14 @@ export const view3d: GameView<YachtState, YachtAction> = {
       }
       stage.rollsLeft(v.finished ? 0 : Math.max(0, 3 - s.rolled));
       stage.canAct(canRoll() && !sheetOpen);
+      pinBtn.hidden = v.finished;
       /* 종이. 점수가 바뀔 때만 다시 그린다 */
       const sk = JSON.stringify(s.sheet) + '|' + seat;
       if (sk !== sheetSig) {
         sheetSig = sk;
         stage.sheetDirty();
       }
-      if (sheetOpen) paintPaper();
+      if (sheetOpen || pinned) paintPaper();
       /* 자리 카드. 합계와 차례 */
       const cards = seatCards();
       cards.forEach((card, i) => {

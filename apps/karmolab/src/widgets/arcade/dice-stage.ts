@@ -25,8 +25,9 @@ import {
   LatheGeometry,
   Mesh,
   MeshStandardMaterial,
-  PCFShadowMap,
+  PCFSoftShadowMap,
   PerspectiveCamera,
+  PointLight,
   PlaneGeometry,
   Quaternion,
   Raycaster,
@@ -85,16 +86,17 @@ export interface DiceStage {
 
 /* 주사위 한 변. 다른 치수는 전부 이것의 배수 */
 const D = 1;
-/* 쟁반 안쪽. 레퍼런스 실측: 쟁반 한 변이 주사위 다섯 개 반 */
-const TRAY_W = 6.6;
-const ROLL_Z0 = -1.15; /* 구르는 자리 (먼 쪽) */
-const ROLL_Z1 = 3.25; /* 구르는 자리 (앞) */
-const RAIL_Z = -2.05; /* 남긴 주사위 선반 */
-const TRAY_Z0 = -2.75;
-const WALL = 0.28;
+/* 쟁반 안쪽. 레퍼런스는 주사위 다섯 개 반이었으나 다른 물건에 비해 주사위가 커 보였다(사용자 지적).
+   실물 비율에 가깝게. 16mm 주사위에 쟁반 18cm, 컵 지름 5.5cm, 종이 엽서 */
+const TRAY_W = 11;
+const ROLL_Z0 = -1.9; /* 구르는 자리 (먼 쪽) */
+const ROLL_Z1 = 5.4; /* 구르는 자리 (앞) */
+const RAIL_Z = -3.3; /* 남긴 주사위 선반 */
+const TRAY_Z0 = -4.5;
+const WALL = 0.4;
 const FLOOR_Y = 0.16;
 const REST_Y = FLOOR_Y + D / 2;
-const GRAVITY = 24;
+const GRAVITY = 26;
 
 /* 눈마다 상자의 어느 면인가. 마주 보는 면의 합은 7 */
 const FACE_NORMAL: Record<number, Vector3> = {
@@ -162,9 +164,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const software = /Basic Render Driver|SwiftShader|llvmpipe|Software/i.test(gpuName);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFShadowMap;
+  /* 주사위 다섯이라 부드러운 그림자를 감당한다(오목은 알 200개라 PCF) */
+  renderer.shadowMap.type = PCFSoftShadowMap;
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  /* 1.0 은 컵이 어둠에 묻혀 있는지도 몰랐다(사용자 지적). 등불 아래만 밝되 물건은 다 보이게 */
+  renderer.toneMappingExposure = 1.15;
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 80);
@@ -173,23 +177,23 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
    * 카메라 자리 둘. **탁자**는 쟁반을 가운데 두고 비스듬히(레퍼런스 실측: 스팀 두 판 모두
    * 45~60도 부감). 왼쪽에 종이, 오른쪽에 컵. **종이**는 종이 바로 위에서 부감
    */
-  const PAPER_AT = new Vector3(-5.3, 0.02, 0.9);
+  const PAPER_AT = new Vector3(-8.8, 0.02, 1.6);
   /**
    * 레퍼런스 실측: 주사위 한 변이 화면 폭의 7~8%, 쟁반이 폭의 42%. 가까이 두면 폭의 19% (실측)
    * 거리는 **창 비율로 결정**. 세로 화각만 고정하면 좁은 창에서 가로가 잘려 주사위가 큼
-   * (실측: 1280 폭에서 14%, 1920 폭에서 10%). 종이 왼끝부터 컵 오른끝까지(18) 가 가로에,
-   * 쟁반 앞뒤(10) 가 세로에 들어오는 거리 중 먼 쪽
+   * (실측: 1280 폭에서 14%, 1920 폭에서 10%). 종이 왼끝부터 컵 오른끝까지(30) 가 가로에,
+   * 쟁반 앞뒤(17) 가 세로에 들어오는 거리 중 먼 쪽
    */
   const tableLook = new Vector3(0.1, 0, 0.5);
   const tableDir = new Vector3(0.2, 10.6, 8.4).normalize();
   const tableSeat = new Vector3();
   const fitTable = (): Vector3 => {
     const half = Math.tan((camera.fov * Math.PI) / 360);
-    const d = Math.max(9 / (half * camera.aspect), 5 / half);
+    const d = Math.max(15 / (half * camera.aspect), 8.5 / half);
     return tableSeat.copy(tableLook).addScaledVector(tableDir, d);
   };
   fitTable();
-  const sheetSeat = new Vector3(PAPER_AT.x + 0.05, 4.9, PAPER_AT.z + 1.1);
+  const sheetSeat = new Vector3(PAPER_AT.x + 0.05, 8.0, PAPER_AT.z + 1.8);
   const sheetLook = new Vector3(PAPER_AT.x, 0, PAPER_AT.z + 0.1);
   const goal = tableSeat.clone();
   const lookGoal = tableLook.clone();
@@ -198,34 +202,39 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   camera.lookAt(look);
 
   /* ── 빛 ── 천장 등 하나가 쟁반에 떨어진다. 방은 어둡고 등 아래만 밝다 */
-  scene.add(new AmbientLight(0xffffff, 0.14));
-  const hemi = new HemisphereLight(0x8a6a48, 0x060403, 0.42);
+  scene.add(new AmbientLight(0xffffff, 0.3));
+  const hemi = new HemisphereLight(0x8a6a48, 0x0a0705, 0.7);
   scene.add(hemi);
-  const lamp = new SpotLight(0xffc98a, 3.0, 0, 0.68, 0.55, 0);
-  lamp.position.set(0.4, 8.0, 1.2);
+  const lamp = new SpotLight(0xffc98a, 3.2, 0, 0.85, 0.6, 0);
+  lamp.position.set(0.6, 12.5, 2.0);
   lamp.target.position.set(0, 0, 0.6);
   lamp.castShadow = true;
   lamp.shadow.mapSize.set(2048, 2048);
-  lamp.shadow.radius = 3;
-  lamp.shadow.camera.near = 2;
-  lamp.shadow.camera.far = 16;
-  lamp.shadow.bias = -0.0006;
-  lamp.shadow.normalBias = 0.02;
+  lamp.shadow.radius = 4;
+  lamp.shadow.camera.near = 3;
+  lamp.shadow.camera.far = 26;
+  lamp.shadow.bias = -0.0003;
+  lamp.shadow.normalBias = 0.035;
   scene.add(lamp);
   scene.add(lamp.target);
   /* 종이가 읽혀야 한다. 왼쪽에 약한 보조광 */
   const fill = new DirectionalLight(0xffd9b0, 0.55);
-  fill.position.set(-6, 6, 4);
+  fill.position.set(-10, 9, 6);
   scene.add(fill);
+  /* 컵 쪽 촛불. 컵이 등불 가장자리라 어둠에 묻혔다(사용자 지적). 거리 감쇠 없이 낮게 */
+  const candle = new PointLight(0xffb070, 1.1, 0, 0);
+  candle.position.set(12, 3.5, 5.5);
+  scene.add(candle);
 
   /* ── 카운터 ── 니스 칠한 널. 어둡고 조금 비친다 */
   const counterMap = new CanvasTexture(plankTexture(31, 512));
   counterMap.colorSpace = SRGBColorSpace;
   counterMap.wrapS = RepeatWrapping;
   counterMap.wrapT = RepeatWrapping;
-  counterMap.repeat.set(4, 4);
-  counterMap.anisotropy = 4;
-  const counterMat = new MeshStandardMaterial({ map: counterMap, color: 0x7a5232, roughness: 0.38, metalness: 0.06 });
+  counterMap.repeat.set(2.5, 2.5);
+  counterMap.anisotropy = 8;
+  /* 결을 범프로도 쓴다. 색만 있으면 매끈한 유리판 위 그림(사용자 지적: 스펙큘러만 세고 질감이 없다) */
+  const counterMat = new MeshStandardMaterial({ map: counterMap, bumpMap: counterMap, bumpScale: 0.06, color: 0x8a5e3a, roughness: 0.64, metalness: 0 });
   const counter = new Mesh(new PlaneGeometry(40, 40), counterMat);
   counter.rotation.x = -Math.PI / 2;
   counter.receiveShadow = true;
@@ -233,23 +242,24 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
 
   /* ── 뒤쪽 ── 어두운 벽과 병 선반. 병은 빛나는 상자 몇 개. 디테일을 그리면 눈이 거기로 간다 */
   const wallMat = new MeshStandardMaterial({ color: 0x120c08, roughness: 1 });
-  const wall = new Mesh(new PlaneGeometry(40, 14), wallMat);
-  wall.position.set(0, 7, -9);
+  const wall = new Mesh(new PlaneGeometry(60, 24), wallMat);
+  wall.position.set(0, 12, -17);
   scene.add(wall);
   const shelfMat = new MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.7 });
   const bottleMats: MeshStandardMaterial[] = [];
   for (let row = 0; row < 2; row += 1) {
-    const shelf = new Mesh(new BoxGeometry(22, 0.12, 1.2), shelfMat);
-    shelf.position.set(0, 2.2 + row * 2.1, -8.4);
+    const shelf = new Mesh(new BoxGeometry(40, 0.2, 2), shelfMat);
+    shelf.position.set(0, 3.2 + row * 3.6, -16);
     scene.add(shelf);
-    const n = 11;
+    /* 병은 어둡게. 빛나는 막대로 두니 카메라를 물리자 천장에 색 막대가 떠 있었다(실측) */
+    const n = 13;
     for (let i = 0; i < n; i += 1) {
-      const hue = [0xd98a2c, 0x6fa84a, 0x3c7fbf, 0xc93b3b, 0xe0c060][(i + row * 3) % 5];
-      const m = new MeshStandardMaterial({ color: hue, emissive: hue, emissiveIntensity: 0.55, roughness: 0.3, transparent: true, opacity: 0.82 });
+      const hue = [0x8a4a12, 0x3c6a2a, 0x24507f, 0x7a2424, 0x8a7030][(i + row * 3) % 5];
+      const m = new MeshStandardMaterial({ color: hue, emissive: hue, emissiveIntensity: 0.16, roughness: 0.22, transparent: true, opacity: 0.9 });
       bottleMats.push(m);
-      const h = 1.1 + ((i * 7 + row * 3) % 4) * 0.18;
-      const b = new Mesh(new CylinderGeometry(0.16, 0.2, h, 10), m);
-      b.position.set(-10 + i * 2 + (row ? 1 : 0), 2.26 + row * 2.1 + h / 2, -8.4);
+      const h = 2.0 + ((i * 7 + row * 3) % 4) * 0.3;
+      const b = new Mesh(new CylinderGeometry(0.3, 0.36, h, 10), m);
+      b.position.set(-18 + i * 3 + (row ? 1.5 : 0), 3.3 + row * 3.6 + h / 2, -16);
       scene.add(b);
     }
   }
@@ -259,8 +269,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   feltMap.colorSpace = SRGBColorSpace;
   feltMap.wrapS = RepeatWrapping;
   feltMap.wrapT = RepeatWrapping;
-  feltMap.repeat.set(3, 3);
-  const feltMat = new MeshStandardMaterial({ map: feltMap, color: 0x1f6b4e, roughness: 0.96 });
+  feltMap.repeat.set(5, 5);
+  const feltMat = new MeshStandardMaterial({ map: feltMap, bumpMap: feltMap, bumpScale: 0.025, color: 0x2a7a58, roughness: 0.98 });
   const trayDepth = ROLL_Z1 - TRAY_Z0;
   const trayCz = (ROLL_Z1 + TRAY_Z0) / 2;
   const felt = new Mesh(new PlaneGeometry(TRAY_W, trayDepth), feltMat);
@@ -271,13 +281,13 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   scene.add(felt);
   const trayWoodMap = new CanvasTexture(woodTexture(23, 256));
   trayWoodMap.colorSpace = SRGBColorSpace;
-  const trayWood = new MeshStandardMaterial({ map: trayWoodMap, color: 0x3a2214, roughness: 0.55 });
+  const trayWood = new MeshStandardMaterial({ map: trayWoodMap, bumpMap: trayWoodMap, bumpScale: 0.03, color: 0x4a2c1a, roughness: 0.6 });
   const base = new Mesh(new BoxGeometry(TRAY_W + WALL * 2, FLOOR_Y, trayDepth + WALL * 2), trayWood);
   base.position.set(0, FLOOR_Y / 2, trayCz);
   base.castShadow = true;
   base.receiveShadow = true;
   scene.add(base);
-  const wallH = 0.62;
+  const wallH = 0.9;
   const mkWall = (w: number, d: number, x: number, z: number): void => {
     const m = new Mesh(new BoxGeometry(w, wallH, d), trayWood);
     m.position.set(x, wallH / 2, z);
@@ -290,8 +300,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   mkWall(WALL, trayDepth, -TRAY_W / 2 - WALL / 2, trayCz);
   mkWall(WALL, trayDepth, TRAY_W / 2 + WALL / 2, trayCz);
   /* 선반 칸막이. 낮은 나무 턱 */
-  const divider = new Mesh(new BoxGeometry(TRAY_W, 0.3, 0.12), trayWood);
-  divider.position.set(0, FLOOR_Y + 0.15, (ROLL_Z0 + RAIL_Z) / 2 + 0.45);
+  const divider = new Mesh(new BoxGeometry(TRAY_W, 0.34, 0.16), trayWood);
+  divider.position.set(0, FLOOR_Y + 0.17, (ROLL_Z0 + RAIL_Z) / 2 + 0.7);
   divider.castShadow = true;
   scene.add(divider);
 
@@ -300,8 +310,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const brassOn = new MeshStandardMaterial({ color: 0xf0c060, emissive: 0xb8781a, emissiveIntensity: 0.9, roughness: 0.3, metalness: 0.7 });
   const pips: Mesh[] = [];
   for (let i = 0; i < 3; i += 1) {
-    const p = new Mesh(new CylinderGeometry(0.11, 0.11, 0.06, 14), brassOff);
-    p.position.set(-0.4 + i * 0.4, wallH + 0.03, ROLL_Z1 + WALL / 2);
+    const p = new Mesh(new CylinderGeometry(0.14, 0.14, 0.06, 14), brassOff);
+    p.position.set(-0.55 + i * 0.55, wallH + 0.03, ROLL_Z1 + WALL / 2);
     scene.add(p);
     pips.push(p);
   }
@@ -309,10 +319,10 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   /* ── 컵 ── 가죽. 오른쪽에 서 있다가 흔들고 쏟고 돌아온다 */
   const leatherMap = new CanvasTexture(leatherTexture(47, 256));
   leatherMap.colorSpace = SRGBColorSpace;
-  const leather = new MeshStandardMaterial({ map: leatherMap, color: 0xffffff, roughness: 0.72, side: DoubleSide });
+  const leather = new MeshStandardMaterial({ map: leatherMap, bumpMap: leatherMap, bumpScale: 0.05, color: 0xffffff, roughness: 0.7, side: DoubleSide });
   const cup = new Group();
-  const CUP_R = 0.95;
-  const CUP_H = 1.75;
+  const CUP_R = 1.7;
+  const CUP_H = 3.1;
   const cupProfile: Array<[number, number]> = [
     [0, 0], [0.86, 0], [0.92, 0.04], [0.95, 0.12], [0.9, 0.45], [0.88, 0.75], [0.93, 0.92], [1, 1]
   ];
@@ -325,9 +335,9 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const lipMat = new MeshStandardMaterial({ color: 0x2a140b, roughness: 0.6 });
   const lip = new Mesh(new CylinderGeometry(CUP_R * 1.03, CUP_R * 1.0, 0.14, 36, 1, true), lipMat);
   lip.material.side = DoubleSide;
-  lip.position.y = CUP_H - 0.06;
+  lip.position.y = CUP_H - 0.1;
   cup.add(lip);
-  const CUP_REST = new Vector3(TRAY_W / 2 + WALL + 1.25, 0, 1.4);
+  const CUP_REST = new Vector3(TRAY_W / 2 + WALL + 2.2, 0, 2.2);
   cup.position.copy(CUP_REST);
   scene.add(cup);
 
@@ -351,7 +361,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   sheetMap.colorSpace = SRGBColorSpace;
   sheetMap.anisotropy = 8;
   const paperMat = new MeshStandardMaterial({ map: sheetMap, roughness: 0.92 });
-  const PAPER_SIZE = 2.7;
+  const PAPER_SIZE = 4.6;
   const paper = new Mesh(new PlaneGeometry(PAPER_SIZE, PAPER_SIZE * (SHEET_H / SHEET_W)), paperMat);
   paper.rotation.x = -Math.PI / 2;
   paper.rotation.z = 0.09;
@@ -359,10 +369,10 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   paper.receiveShadow = true;
   scene.add(paper);
   const pencilMat = new MeshStandardMaterial({ color: 0xd9a12b, roughness: 0.5 });
-  const pencil = new Mesh(new CylinderGeometry(0.05, 0.05, 1.7, 8), pencilMat);
+  const pencil = new Mesh(new CylinderGeometry(0.07, 0.07, 3.2, 8), pencilMat);
   pencil.rotation.z = Math.PI / 2;
   pencil.rotation.y = 0.35;
-  pencil.position.set(PAPER_AT.x + 1.1, 0.06, PAPER_AT.z + 2.1);
+  pencil.position.set(PAPER_AT.x + 1.8, 0.08, PAPER_AT.z + 3.6);
   pencil.castShadow = true;
   scene.add(pencil);
 
@@ -370,9 +380,9 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const moteN = 90;
   const motePos = new Float32Array(moteN * 3);
   for (let i = 0; i < moteN; i += 1) {
-    motePos[i * 3] = (Math.random() - 0.5) * 7;
-    motePos[i * 3 + 1] = 0.4 + Math.random() * 4.5;
-    motePos[i * 3 + 2] = (Math.random() - 0.5) * 6 + 0.5;
+    motePos[i * 3] = (Math.random() - 0.5) * 12;
+    motePos[i * 3 + 1] = 0.4 + Math.random() * 7;
+    motePos[i * 3 + 2] = (Math.random() - 0.5) * 10 + 0.5;
   }
   const moteGeo = new BufferGeometry();
   moteGeo.setAttribute('position', new Float32BufferAttribute(motePos, 3));
@@ -396,6 +406,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const roundedBox = (size: number, radius: number, segs: number): BoxGeometry => {
     const g = new BoxGeometry(size, size, size, segs, segs, segs);
     const pos = g.getAttribute('position') as { count: number; getX(i: number): number; getY(i: number): number; getZ(i: number): number; setXYZ(i: number, x: number, y: number, z: number): void; needsUpdate: boolean };
+    const nor = g.getAttribute('normal') as { setXYZ(i: number, x: number, y: number, z: number): void; needsUpdate: boolean };
     const inner = size / 2 - radius;
     const v = new Vector3();
     const c = new Vector3();
@@ -403,15 +414,20 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
       c.set(Math.max(-inner, Math.min(inner, v.x)), Math.max(-inner, Math.min(inner, v.y)), Math.max(-inner, Math.min(inner, v.z)));
       v.sub(c);
-      if (v.lengthSq() > 0) v.normalize().multiplyScalar(radius);
+      /* 법선은 안쪽 상자에서 밖으로 향하는 방향. 면마다 따로 계산하면 이음새에 각이 남는다(사용자 지적: 면이 뚝뚝 끊긴다) */
+      if (v.lengthSq() > 1e-9) {
+        v.normalize();
+        nor.setXYZ(i, v.x, v.y, v.z);
+        v.multiplyScalar(radius);
+      }
       v.add(c);
       pos.setXYZ(i, v.x, v.y, v.z);
     }
     pos.needsUpdate = true;
-    g.computeVertexNormals();
+    nor.needsUpdate = true;
     return g;
   };
-  const dieGeo = roundedBox(D, D * 0.14, 7);
+  const dieGeo = roundedBox(D, D * 0.16, 12);
   const dice: Die[] = [];
   for (let i = 0; i < opts.count; i += 1) {
     const mesh = new Mesh(dieGeo, faceMats);
@@ -426,7 +442,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       moveFrom: null, moveTo: new Vector3(), moveT0: 0, hover: false
     });
   }
-  const slotX = (i: number): number => -TRAY_W / 2 + 0.9 + i * ((TRAY_W - 1.8) / Math.max(1, opts.count - 1));
+  const slotX = (i: number): number => -TRAY_W / 2 + 1.6 + i * ((TRAY_W - 3.2) / Math.max(1, opts.count - 1));
   const railPos = (i: number): Vector3 => new Vector3(slotX(i), REST_Y, RAIL_Z);
 
   /* 눈 v 가 위로 오는 자세. 그 위에 아무 방향으로 한 바퀴 돌린 것 */
@@ -480,14 +496,14 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     const k = t - cupT0;
     if (k < SHAKE_MS) {
       const s = k / 1000;
-      cup.position.set(CUP_REST.x + Math.sin(s * 95) * 0.08, CUP_REST.y + Math.abs(Math.sin(s * 47)) * 0.25, CUP_REST.z + Math.cos(s * 71) * 0.06);
+      cup.position.set(CUP_REST.x + Math.sin(s * 95) * 0.14, CUP_REST.y + Math.abs(Math.sin(s * 47)) * 0.4, CUP_REST.z + Math.cos(s * 71) * 0.1);
       cup.rotation.set(Math.sin(s * 63) * 0.12, 0, Math.sin(s * 88) * 0.14);
       return true;
     }
     if (k < SHAKE_MS + TIP_MS) {
       const u = easeInOut((k - SHAKE_MS) / TIP_MS);
       /* 왼쪽(쟁반 쪽)으로 기울며 쟁반 위로 든다. 회전축이 굽이라 입이 안쪽으로 넘어온다 */
-      cup.position.set(CUP_REST.x - 1.55 * u, CUP_REST.y + 1.5 * u, CUP_REST.z - 0.3 * u);
+      cup.position.set(CUP_REST.x - 2.8 * u, CUP_REST.y + 2.6 * u, CUP_REST.z - 0.5 * u);
       cup.rotation.set(0, 0, 1.95 * u);
       if (k >= RELEASE_AT && pendingRelease.length) {
         const mouth = new Vector3(0, CUP_H, 0).applyQuaternion(cup.quaternion).add(cup.position);
@@ -495,7 +511,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
           const d = dice[i];
           d.released = t + n * 45;
           d.pos.copy(mouth).add(new Vector3((Math.random() - 0.5) * 0.4, -n * 0.2, (Math.random() - 0.5) * 0.4));
-          d.vel.set(-4.2 - Math.random() * 2.8, 0.6 + Math.random() * 1.2, (Math.random() - 0.5) * 3.2);
+          d.vel.set(-7 - Math.random() * 4, 0.8 + Math.random() * 1.5, (Math.random() - 0.5) * 5);
           d.ang.set((Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22, (Math.random() - 0.5) * 22);
           d.bounces = 0;
           d.quat.setFromAxisAngle(new Vector3(Math.random(), Math.random(), Math.random()).normalize(), Math.random() * 6);
@@ -509,7 +525,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     if (k < RETURN_AT) return true;
     if (k < RETURN_AT + RETURN_MS) {
       const u = ease((k - RETURN_AT) / RETURN_MS);
-      cup.position.set(CUP_REST.x - 1.55 * (1 - u), CUP_REST.y + 1.5 * (1 - u), CUP_REST.z - 0.3 * (1 - u));
+      cup.position.set(CUP_REST.x - 2.8 * (1 - u), CUP_REST.y + 2.6 * (1 - u), CUP_REST.z - 0.5 * (1 - u));
       cup.rotation.set(0, 0, 1.95 * (1 - u));
       return true;
     }
@@ -710,7 +726,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     for (let i = 0; i < a.length; i += 3) {
       a[i] += Math.sin(s * 0.4 + i) * 0.0005;
       a[i + 1] += 0.0003 + Math.sin(s * 0.3 + i * 0.7) * 0.0003;
-      if (a[i + 1] > 5) a[i + 1] = 0.4;
+      if (a[i + 1] > 7.5) a[i + 1] = 0.4;
     }
     arr.needsUpdate = true;
   };
@@ -725,6 +741,35 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     }
     let busy = cupAt(t);
     for (const d of dice) if (dieAt(d, t, dt)) busy = true;
+    /* 나는 주사위끼리 부딪힌다. 겹쳐 지나가면 유령이다(사용자 지적). 공으로 보고 밀어내고 속도를 맞바꾼다 */
+    const flying = (d: Die): boolean => d.released !== 0 && t - d.released >= 0 && t - d.released < FLY_MS;
+    for (let i = 0; i < dice.length; i += 1) {
+      const a = dice[i];
+      if (!flying(a)) continue;
+      for (let j = i + 1; j < dice.length; j += 1) {
+        const b = dice[j];
+        if (!flying(b)) continue;
+        tmpV.subVectors(b.pos, a.pos);
+        const dist = tmpV.length();
+        const min = D * 1.02;
+        if (dist >= min || dist < 1e-6) continue;
+        tmpV.divideScalar(dist);
+        const push = (min - dist) / 2;
+        a.pos.addScaledVector(tmpV, -push);
+        b.pos.addScaledVector(tmpV, push);
+        const va = a.vel.dot(tmpV);
+        const vb = b.vel.dot(tmpV);
+        if (va - vb > 0) {
+          a.vel.addScaledVector(tmpV, (vb - va) * 0.8);
+          b.vel.addScaledVector(tmpV, (va - vb) * 0.8);
+          a.ang.multiplyScalar(0.8);
+          b.ang.multiplyScalar(0.8);
+          opts.onSound?.('clatter', Math.min(1, (va - vb) / 8));
+        }
+        a.mesh.position.copy(a.pos);
+        b.mesh.position.copy(b.pos);
+      }
+    }
     if (camFrom && lookFrom) {
       const k = Math.min(1, (t - camT0) / camMs);
       const e = easeInOut(k);
@@ -857,7 +902,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     finish() {
       if (done) return;
       done = true;
-      if (!sheetOn) moveCam(new Vector3(-2.4, 8.6, 7.0), new Vector3(-2.6, 0, 0.8), 1400);
+      if (!sheetOn) moveCam(new Vector3(-4, 14, 11.5), new Vector3(-4.2, 0, 1.2), 1400);
     },
     resize,
     dispose() {
