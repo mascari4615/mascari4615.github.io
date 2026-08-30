@@ -498,5 +498,9 @@
   "arcade.offer.declined": "상대가 거절했다",
   "arcade.result.agreed": "합의로 비겼다",
   "arcade.result.resign": "{who} 이(가) 기권했다",
-  "arcade.result.moves": "{n}수, {t}"
+  "arcade.result.moves": "{n}수, {t}",
+  "arcade.btn.scene": "방 바꾸기",
+  "arcade.scene.tatami": "다다미방",
+  "arcade.scene.desk": "밤 책상",
+  "arcade.scene.study": "서재"
 }

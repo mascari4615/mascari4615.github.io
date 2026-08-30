@@ -45,7 +45,9 @@ function filter(ctx: AudioContext, type: BiquadFilterType, hz: number, q = 1): B
 /* 풍경 음. 높은 오음계. 낮으면 종이고, 이 높이라야 풍경이다 */
 const CHIME = [1568, 1760, 2093, 2349, 2637];
 
-export function roomAmbience(host: HTMLElement): Ambience {
+export type Voice = 'day' | 'night' | 'study';
+
+export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience {
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
   let timer = 0;
@@ -132,10 +134,30 @@ export function roomAmbience(host: HTMLElement): Ambience {
     lfo.start();
     started.push(wind, lfo);
 
-    /* 매미 둘. 음높이와 떨림이 달라야 두 마리다 */
-    const near = cicadaVoice(master, 5200, 46, 0.05);
-    const far = cicadaVoice(master, 4400, 37, 0.028);
-    const voices = [near, far] as Array<GainNode & { cry?: () => void }>;
+    /* 낮은 매미 둘, 밤은 귀뚜라미 둘(높고 짧게 떨림), 서재는 창밖 빗소리 하나 */
+    const voices: Array<GainNode & { cry?: () => void }> = [];
+    if (voice === 'day') {
+      voices.push(cicadaVoice(master, 5200, 46, 0.05), cicadaVoice(master, 4400, 37, 0.028));
+    } else if (voice === 'night') {
+      voices.push(cicadaVoice(master, 4300, 24, 0.022), cicadaVoice(master, 3800, 19, 0.014));
+      windGain.gain.value = 0.06;
+    } else {
+      /* 비. 높은 잡음이 아주 천천히 세졌다 약해진다 */
+      const rain = noise(c);
+      const hp = filter(c, 'highpass', 2600, 0.5);
+      const rg = c.createGain();
+      rg.gain.value = 0.045;
+      const rl = c.createOscillator();
+      rl.frequency.value = 0.05;
+      const rd = c.createGain();
+      rd.gain.value = 0.015;
+      rl.connect(rd).connect(rg.gain);
+      rain.connect(hp).connect(rg).connect(master);
+      rain.start();
+      rl.start();
+      started.push(rain, rl);
+      windGain.gain.value = 0.05;
+    }
 
     /* 시간표. 매미는 몇 초에 한 번 울고, 풍경은 드문드문. 주인이 문서에서 빠지면 끈다 */
     let nextCry = c.currentTime + 1;
@@ -147,13 +169,18 @@ export function roomAmbience(host: HTMLElement): Ambience {
       }
       if (master) master.gain.setTargetAtTime(soundOn() && !document.hidden ? 0.9 : 0, c.currentTime, 0.4);
       const now = c.currentTime;
-      if (now >= nextCry) {
+      if (voices.length && now >= nextCry) {
         voices[Math.floor(Math.random() * voices.length)].cry?.();
-        nextCry = now + 5 + Math.random() * 9;
+        nextCry = now + (voice === 'night' ? 2 + Math.random() * 4 : 5 + Math.random() * 9);
       }
-      if (now >= nextChime) {
+      /* 풍경은 낮에만. 서재는 대신 벽시계가 초를 센다 */
+      if (voice === 'day' && now >= nextChime) {
         chime(master as GainNode);
         nextChime = now + 7 + Math.random() * 14;
+      }
+      if (voice === 'study' && now >= nextChime) {
+        tick();
+        nextChime = now + 1;
       }
     }, 500);
   };

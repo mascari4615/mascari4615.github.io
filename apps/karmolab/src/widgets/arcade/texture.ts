@@ -267,9 +267,9 @@ export function shaftTexture(size = 256): HTMLCanvasElement {
   const { cv, c } = make(size);
   c.clearRect(0, 0, size, size);
   const g = c.createLinearGradient(0, 0, 0, size);
-  g.addColorStop(0, 'rgba(255,240,210,0.55)');
-  g.addColorStop(0.5, 'rgba(255,236,200,0.22)');
-  g.addColorStop(1, 'rgba(255,236,200,0)');
+  g.addColorStop(0, 'rgba(255,250,240,0.5)');
+  g.addColorStop(0.5, 'rgba(255,248,236,0.2)');
+  g.addColorStop(1, 'rgba(255,248,236,0)');
   c.fillStyle = g;
   c.fillRect(0, 0, size, size);
   /* 가장자리를 부드럽게. 각진 띠는 유리판이지 빛이 아니다 */
@@ -357,6 +357,77 @@ export function paperTexture(seed = 53, size = 256): HTMLCanvasElement {
     const y = r() * size;
     c.fillStyle = `rgba(${r() > 0.5 ? '255,255,255' : '120,90,50'},${(r() * 0.09).toFixed(3)})`;
     c.fillRect(x, y, 1 + r() * 3, 1);
+  }
+  return cv;
+}
+
+/** 쪽매 마루(헤링본). 서재 바닥. 밝은 참나무 조각이 어긋나게 맞물린다 */
+export function parquetTexture(seed = 53, size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#b8916a';
+  c.fillRect(0, 0, size, size);
+  const w = size / 8;
+  const h = w * 4;
+  for (let row = -4; row < 12; row += 1) {
+    for (let col = -2; col < 10; col += 1) {
+      const x = col * w * 2;
+      const y = row * w;
+      const dir = (row + col) % 2 === 0 ? 1 : -1;
+      c.save();
+      c.translate(x, y);
+      c.rotate((dir * Math.PI) / 4);
+      const tone = 190 + Math.floor(r() * 40);
+      c.fillStyle = `rgb(${tone},${Math.floor(tone * 0.78)},${Math.floor(tone * 0.56)})`;
+      c.fillRect(-w / 2, -h / 2, w, h);
+      c.strokeStyle = 'rgba(70,40,15,.45)';
+      c.lineWidth = 1.2;
+      c.strokeRect(-w / 2, -h / 2, w, h);
+      /* 결 */
+      for (let k = 0; k < 6; k += 1) {
+        c.strokeStyle = `rgba(90,55,20,${(0.06 + r() * 0.08).toFixed(3)})`;
+        c.beginPath();
+        const yy = -h / 2 + r() * h;
+        c.moveTo(-w / 2, yy);
+        c.lineTo(w / 2, yy + (r() - 0.5) * 6);
+        c.stroke();
+      }
+      c.restore();
+    }
+  }
+  return cv;
+}
+
+/** 융단. 깊은 붉은 바탕에 금실 테두리와 잔무늬 */
+export function rugTexture(seed = 61, size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#6e1f22';
+  c.fillRect(0, 0, size, size);
+  for (let i = 0; i < 5000; i += 1) {
+    c.fillStyle = `rgba(${r() > 0.5 ? '255,220,180' : '20,5,5'},${(r() * 0.07).toFixed(3)})`;
+    c.fillRect(r() * size, r() * size, 2, 2);
+  }
+  const b = size * 0.06;
+  c.strokeStyle = '#c9a15a';
+  c.lineWidth = size * 0.012;
+  c.strokeRect(b, b, size - b * 2, size - b * 2);
+  c.lineWidth = size * 0.004;
+  c.strokeRect(b * 1.8, b * 1.8, size - b * 3.6, size - b * 3.6);
+  /* 안쪽 잔무늬. 마름모 격자 */
+  c.strokeStyle = 'rgba(201,161,90,.35)';
+  c.lineWidth = 1;
+  const g = size / 10;
+  for (let x = b * 2; x < size - b * 2; x += g) {
+    for (let y = b * 2; y < size - b * 2; y += g) {
+      c.beginPath();
+      c.moveTo(x + g / 2, y);
+      c.lineTo(x + g, y + g / 2);
+      c.lineTo(x + g / 2, y + g);
+      c.lineTo(x, y + g / 2);
+      c.closePath();
+      c.stroke();
+    }
   }
   return cv;
 }

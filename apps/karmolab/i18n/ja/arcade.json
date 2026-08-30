@@ -498,5 +498,9 @@
   "arcade.offer.declined": "相手が断った",
   "arcade.result.agreed": "合意で引き分け",
   "arcade.result.resign": "{who} が投了",
-  "arcade.result.moves": "{n}手, {t}"
+  "arcade.result.moves": "{n}手, {t}",
+  "arcade.btn.scene": "部屋を変える",
+  "arcade.scene.tatami": "和室",
+  "arcade.scene.desk": "夜の机",
+  "arcade.scene.study": "書斎"
 }

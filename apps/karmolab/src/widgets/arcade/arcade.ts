@@ -30,6 +30,7 @@ import { iconOf, kindOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
+import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
@@ -527,6 +528,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* CPU 렌더링 경고. 판 위에 한 줄. 글자와 단추 하나 */
       '.ac-t3warn{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 14px;margin:0 0 8px;border-radius:var(--radius-xl);background:rgba(200,120,40,.16);border:1px solid rgba(200,120,40,.5);font-size:var(--font-size-sm)}',
       '.ac-t3.ac-t3room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
+      /* 밤 책상은 등불 밖이 곧 밤. 가장자리를 훨씬 어둡게 */
+      '.ac-t3.ac-t3room.ac-scene-desk::after{background:radial-gradient(ellipse 72% 66% at 50% 46%,transparent 45%,rgba(4,2,1,.6) 100%)}',
+      '.ac-t3.ac-t3room.ac-scene-study::after{background:radial-gradient(ellipse 80% 74% at 48% 50%,transparent 50%,rgba(20,10,4,.6) 100%)}',
       /* 방은 정사각이 아니다. 무대 폭을 다 쓰고 세로는 화면에 맞춘다. 카메라가 세로 화각을 지키므로 옆이 넓어지면 통과 다다미가 더 보인다(레퍼런스는 16:9) */
       '#acPlay.ac-bare .ac-stage:has(.ac-t3room){max-width:none;width:100%}',
       '.ac-t3.ac-t3room{aspect-ratio:auto;height:min(78vh,calc(100vh - 140px));max-width:none}',
@@ -1253,6 +1257,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-ghost" id="acResign" style="display:none">' + esc(t('arcade.btn.resign')) + '</button>' +
       /* 끝나면 색을 바꿔 한 판 더. 레퍼런스의 결과 화면 첫 버튼 */
       '<button class="btn btn-ghost" id="acSwapColor" style="display:none">' + esc(t('arcade.btn.swapcolor')) + '</button>' +
+      /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
+      '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
       '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
@@ -2068,6 +2074,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         });
       }
       paintDim(id);
+      paintScene(id);
     }
 
     /** 지금 표현. 사람이 고른 것이 브라우저에 남는다. */
@@ -2209,6 +2216,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       match.rewind(1);
       blip('tap');
       paintUndo();
+    }
+
+    function paintScene(id: string): void {
+      const btn = container.querySelector<HTMLButtonElement>('#acScene');
+      if (!btn) return;
+      const on = dim() === '3d' && !!cardById(id)?.d3;
+      btn.style.display = on ? '' : 'none';
+      btn.textContent = t(specOf(sceneOf()).label);
     }
 
     function paintDim(id: string): void {
@@ -2840,6 +2855,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ev.preventDefault();
       undo();
     });
+
+    $<HTMLButtonElement>('#acScene').onclick = (): void => {
+      setScene(nextScene(sceneOf()));
+      /* 판은 커널이 들고 있다. 화면만 새로 세우면 같은 판이 다른 방에 놓인다 */
+      if (gameId) mountView(gameId);
+    };
 
     $<HTMLButtonElement>('#acDim').onclick = (): void => {
       const next = dim() === '3d' ? '2d' : '3d';

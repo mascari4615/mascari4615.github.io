@@ -10,6 +10,7 @@ import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { mountThreeBoard, type Board3d, type Stone } from '../three-board';
 import { roomAmbience } from '../ambience';
+import { sceneOf, specOf } from '../scenes';
 import { DEFAULT_SIZE, starPoints, type GomokuState, type GomokuAction } from './gomoku';
 
 /** 자리 카드는 오락실 본체 것. 여기서는 클래스와 작은 글자만 얹는다 */
@@ -34,7 +35,9 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
     el.innerHTML = '<div class="ac-t3 ac-t3room" id="acT3"></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     /* 방의 소리(`ambience.ts`). 첫 손길에 깨고, 주인이 문서에서 빠지면 스스로 멈춘다 */
-    const amb = roomAmbience(host);
+    /* 방은 취향(`scenes.ts`). 갈아 끼우면 오락실이 화면을 새로 세우므로 여기서는 지금 값만 읽는다 */
+    const sceneId = sceneOf();
+    const amb = roomAmbience(host, specOf(sceneId).voice);
     host.addEventListener('pointerdown', () => amb.wake(), { passive: true });
     let shown = -1;
     /* 미리 보기에 쓸 마지막 상태와 내 자리. 손이 움직일 때 규칙을 물어야 한다 */
@@ -56,6 +59,7 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
         onCross: true,
         bowls: true,
         room: true,
+        scene: sceneId,
         onCell: (i) => act({ cell: i }),
         /* 다음 수 미리 보기. 내 차례고, 빈 자리고, 금수가 아닐 때만 */
         onHover: (i) => {
