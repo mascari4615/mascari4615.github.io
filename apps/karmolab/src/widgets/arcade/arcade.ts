@@ -29,7 +29,7 @@ import { seedFrom } from './rng';
 import { iconOf, kindOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room';
-import { blip, soundOn, setSoundOn } from '../../lib/blip';
+import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
@@ -341,7 +341,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-choice.ac-right{border-color:#22c55e;box-shadow:inset 0 0 0 1px #22c55e}',
       '.ac-choice.ac-wrong{border-color:#ef4444;opacity:.5}',
       '.ac-bar{height:5px;border-radius:var(--radius-sm);background:var(--border);margin:var(--space-lg) auto 0;max-width:100%;overflow:hidden}',
-      '.ac-fill{height:100%;background:var(--accent);width:100%}',
+      '.ac-roomfill{height:100%;background:var(--accent);width:100%}',
       /**
        * 오목판 = 나무. 글자 돌(●○)은 판정, 읽기용으로 두고 투명 처리. 보이는 돌은 ::after 가 그린다.
        *
@@ -414,7 +414,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * `bare` 가 자리줄과 상태줄을 숨겼는데 그러면 누구 차례인지, 누가 누군지 모른다(사용자 지적).
        * 같은 DOM 을 판 위 카드로 다시 놓는다. 글자는 판 밖 귀퉁이에만
        */
-      '#acPlay.ac-bare:has(.ac-t3room){position:relative}',
+      /* 화면 채움(`ac-roomfill`)이 fixed 를 걸므로 여기서는 비켜 준다. 특이도가 이쪽이 높아 안 비키면 fixed 가 진다(실측: 높이 0) */
+      '#acPlay.ac-bare:has(.ac-t3room):not(.ac-roomfill){position:relative}',
       /* 그리드 안의 absolute 는 **제 칸**이 기준이다(실측: 단추가 top -66px 로 튀었다). 전체 칸으로 펴서 #acPlay 를 기준으로 */
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}',
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:absolute;left:18px;bottom:18px;top:auto;right:auto;margin:0;z-index:3}',
@@ -435,6 +436,31 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) #acControls:hover,#acPlay.ac-bare:has(.ac-t3room) #acControls:focus-within{opacity:1}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);backdrop-filter:blur(6px)}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{flex:0 0 auto;width:auto}',
+      /* ── 콘텐츠 창 채우기 (위 `fill`) ── 헤더 아래, 사이드바 오른쪽을 전부 방으로 */
+      '#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:0;width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}',
+      '#acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}',
+      '#acPlay.ac-roomfill #acView{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none}',
+      '#acPlay.ac-roomfill #acView>*{margin:0}',
+      '#acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}',
+      '#acPlay.ac-roomfill .ac-intro{border-radius:0}',
+      '#acPlay.ac-roomfill .ac-over{border-radius:0}',
+      /**
+       * ── 방의 버튼 ── 검은 네모에 이모지는 그 방의 물건이 아니다(사용자 지적: 최악).
+       * 얇은 금테 알약, 명조 글자, 아이콘은 선으로 그린 것(SVG). 소리와 전체화면은 글자 대신 그림
+       */
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls{gap:8px;opacity:.85}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{height:38px;padding:0 18px;border-radius:999px;background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:14px;letter-spacing:.08em;line-height:36px;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);transition:border-color .15s,background .15s,transform .15s}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:hover{border-color:#e6bd7a;background:rgba(46,30,14,.8);transform:translateY(-1px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:active{transform:translateY(0)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{background:linear-gradient(180deg,#c9863d,#8f4f1c);border-color:#f0c98a;color:#fff6e4;font-weight:600;box-shadow:0 6px 18px rgba(120,60,10,.45)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary:hover{background:linear-gradient(180deg,#d8954a,#9d5a22)}',
+      /* 아이콘 버튼 셋. 글자(이모지)를 지우고 선으로 그린 아이콘을 마스크로 */
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound,#acPlay.ac-bare:has(.ac-t3room) #acFull{width:38px;padding:0;font-size:0;position:relative}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound::before,#acPlay.ac-bare:has(.ac-t3room) #acFull::before{content:"";position:absolute;inset:9px;background:#f1e3c8;-webkit-mask:var(--ac-ico) center/contain no-repeat;mask:var(--ac-ico) center/contain no-repeat}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9a4 4 0 0 1 0 6%27/><path d=%27M18.5 6.5a8 8 0 0 1 0 11%27/></svg>")}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"]{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9l5 6M21 9l-5 6%27/></svg>");opacity:.6}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acFull{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5%27/></svg>")}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acDim{font-family:Georgia,serif;letter-spacing:.04em;font-size:13px}',
       /* 판이 끝나 결과창이 떠 있으면 버튼 줄이 결과창 아래로 내려온다. 우상단에 "한 판 더" 가 걸려 있으면 눈이 두 군데로 간다 */
       '#acPlay.ac-bare:has(.ac-t3room):has(.ac-over:not([style*="none"])) #acControls{top:auto;bottom:11%;right:auto;left:50%;transform:translateX(-50%);opacity:1;gap:10px}',
       /* 한 판 더 같은 주 버튼은 옻칠에 금박. 셸의 보라 강조색은 이 방에 없다 */
@@ -1196,12 +1222,36 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       statusEl.className = 'tool-status' + (kind ? ' ' + kind : '');
     };
     const myName = (): string => nameInput.value.trim() || t('arcade.name.default');
+    /**
+     * **콘텐츠 창을 다 쓴다** (사용자 요구. 여백이 있다).
+     * 셸은 도구 둘레에 64px 24px 48px 여백을 두고 사이드바 옆에 세운다. 방은 그 여백까지 방이어야
+     * 한다. 판 영역(`#acPlay`)을 헤더 아래, 사이드바 오른쪽에 고정으로 붙인다. 헤더와 사이드바는
+     * 그대로 남아 나가는 길. 크기는 실측해 CSS 변수로(사이드바는 접히기도 함)
+     */
+    const fillVars = (): void => {
+      const head = document.getElementById('headerBar')?.getBoundingClientRect();
+      const main = document.querySelector('.main-content')?.getBoundingClientRect();
+      play.style.setProperty('--ac-roomfill-y', `${Math.round(head?.bottom ?? 0)}px`);
+      play.style.setProperty('--ac-roomfill-x', `${Math.round(main?.left ?? 0)}px`);
+    };
+    const fill = (on: boolean): void => {
+      if (on) fillVars();
+      play.classList.toggle('ac-roomfill', on);
+    };
+    window.addEventListener('resize', () => {
+      if (play.classList.contains('ac-roomfill')) fillVars();
+    });
+
     const show = (which: 'lobby' | 'wait' | 'play'): void => {
       lobby.style.display = which === 'lobby' ? '' : 'none';
       wait.style.display = which === 'wait' ? '' : 'none';
       play.style.display = which === 'play' ? '' : 'none';
       /* 판에서 로비로 돌아오면 진열장부터. 집었던 물건 화면에 걸려 있으면 길을 잃는다. */
-      if (which === 'lobby') closeDetail();
+      if (which === 'lobby') {
+        closeDetail();
+        fill(false);
+        setBlipVoice('default');
+      }
       /* 판이 도는 동안임을 뿌리에 남긴다. 좁게 눕힌 화면에서 셸 메뉴 띠를 접는 데 쓴다.
          (아래 `--ac-playing` 규칙, 그 이유는 거기 적어 뒀다) */
       document.documentElement.classList.toggle('ac-playing', which === 'play');
@@ -1931,6 +1981,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       render = gv ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
       /* 껍데기를 걷을지는 표현이 정한다(`views.ts` 의 `bare`). 판 하나가 다 말하는 놀이가 있다 */
       play.classList.toggle('ac-bare', gv?.bare === true);
+      /* 2D 로 갈아타면 방이 아니다. 화면 채움과 목소리를 되돌린다 */
+      const roomNow = dim() === '3d' && !!cardById(id)?.d3 && !!view3dById(id);
+      fill(roomNow);
+      setBlipVoice(roomNow ? 'room' : 'default');
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
          그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다. 판은 커널이 들고 있어서
          화면이 늦게 와도 놓치는 수가 없다. 그 사이 딴 게임으로 넘어갔으면 안 붙인다. */
@@ -2087,7 +2141,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acIntroName').textContent = t('arcade.game.' + id + '.name');
       $<HTMLElement>('#acIntroDesc').textContent = t('arcade.game.' + id + '.desc');
       /* 입체 방으로 들어가는 판이면 인트로도 그 방의 종이 한 장. 보라 숫자와 이모지는 그 방에 없다(사용자 지적) */
-      introEl.classList.toggle('ac-intro-room', dim() === '3d' && !!cardById(id)?.d3);
+      const roomBound = dim() === '3d' && !!cardById(id)?.d3;
+      introEl.classList.toggle('ac-intro-room', roomBound);
+      /* 방으로 가는 판이면 소리도 방 것(나무, 풍경). 인트로 셋, 둘, 하나부터 */
+      setBlipVoice(roomBound ? 'room' : 'default');
+      fill(roomBound);
       introEl.style.display = '';
       /* 지난 판의 결과와 한 판 더를 치운다. 안 치우면 다음 판을 세는 동안 지난 판이
          아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */
@@ -2562,7 +2620,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
 
     $<HTMLButtonElement>('#acFull').onclick = (): void => {
-      const stage = $<HTMLElement>('#acStage');
+      /* 방(화면 채움)이면 판 영역 통째로. 무대만 키우면 자리 카드와 버튼이 무대 밖이라 안 보인다(사용자 실측) */
+      const stage = play.classList.contains('ac-roomfill') ? play : $<HTMLElement>('#acStage');
       try {
         if (document.fullscreenElement) void document.exitFullscreen();
         else void stage.requestFullscreen?.();

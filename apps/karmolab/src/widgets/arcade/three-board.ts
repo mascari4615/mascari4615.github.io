@@ -29,6 +29,11 @@ import {
   PlaneGeometry,
   Raycaster,
   RepeatWrapping,
+  AdditiveBlending,
+  BufferGeometry,
+  Float32BufferAttribute,
+  Points,
+  PointsMaterial,
   RingGeometry,
   Scene,
   SphereGeometry,
@@ -121,6 +126,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const { n } = opts;
   const cross = opts.onCross === true;
   const room = opts.room === true;
+  /* 살아 있는 방의 손잡이. 아래 breathe 가 매 프레임 만진다 */
+  const living: { spot: SpotLight | null; motes: Points | null; seed: number } = { spot: null, motes: null, seed: Math.random() * 1000 };
   /**
    * 줄이 덮는 거리. **교차점 판은 줄이 n 개**(칸은 n−1 개)고, 칸 판은 줄이 n+1 개다.
    * 여기를 한 줄로 갈라 두면 아래(줄 긋기, 알 자리, 손 짚기)가 전부 따라온다.
@@ -215,7 +222,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 색이 갈려야 그림에 온도. 해는 뒤쪽(툇마루 쪽)에서 들어 그림자가 앞으로 누움
    */
   scene.add(new AmbientLight(0xffffff, room ? 0.22 : 1.45));
-  if (room) scene.add(new HemisphereLight(0xcfe0f2, 0x4a3823, 0.75));
+  const hemi = new HemisphereLight(0xcfe0f2, 0x4a3823, 0.75);
+  if (room) scene.add(hemi);
   const sun = new DirectionalLight(room ? 0xffd8a8 : 0xfff3e0, room ? 2.4 : 1.9);
   if (room) sun.position.set(size * 0.9, size * 1.05, -size * 0.75);
   else sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
@@ -281,6 +289,20 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     const step = new Mesh(new BoxGeometry(size * 6, 0.06, 0.05), plankMat);
     step.position.set(0, 0.03, edge);
     scene.add(step);
+    /* 먼지. 햇살이 드는 자리(판 뒤쪽, 툇마루 위) 공중에 점 120개 */
+    const n = 120;
+    const pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i += 1) {
+      pos[i * 3] = (Math.random() - 0.5) * size * 1.6;
+      pos[i * 3 + 1] = Math.random() * size * 0.5 + 0.1;
+      pos[i * 3 + 2] = -size * 0.2 - Math.random() * size * 0.9;
+    }
+    const moteGeo = new BufferGeometry();
+    moteGeo.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    const moteMat = new PointsMaterial({ color: 0xffe9c0, size: 0.035, transparent: true, opacity: 0.55, blending: AdditiveBlending, depthWrite: false, sizeAttenuation: true });
+    const motes = new Points(moteGeo, moteMat);
+    scene.add(motes);
+    living.motes = motes;
     /* 바깥. 빛나는 면 하나. 디테일을 그리면 눈이 거기로 간다 */
     const outside = new Mesh(new PlaneGeometry(size * 6, size * 3), outsideMat);
     outside.rotation.x = -Math.PI / 2;
@@ -327,6 +349,12 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 격자 빛을 떨어뜨림. 판 뒤(툇마루 쪽) 높은 데서 앞으로 비스듬히. 그림자는 없음
    * (해가 이미 그림자를 지므로, 둘이면 알마다 그림자가 둘이라 가짜로 보임)
    */
+  /**
+   * ── 살아 있는 방 ── (사용자 요구: 너무 정적이다. 그림자가 움직이든 구름이 있든)
+   * 셋이 느리게 움직인다. ① 구름이 지나며 해가 어두워졌다 밝아짐(수십 초 주기)
+   * ② 장지문 빛이 바람에 살짝 흔들림 ③ 햇살 속 먼지가 떠다님. 셋 다 눈에 띄지 않을 만큼.
+   * 이게 도는 동안은 30fps 로 그린다(가만히 있을 때 0 이던 것이 30 으로. 그림 한 장 1ms)
+   */
   const shojiMap = new CanvasTexture(shojiTexture(512));
   shojiMap.colorSpace = SRGBColorSpace;
   if (room) {
@@ -337,6 +365,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     spot.target.position.set(-size * 0.2, 0, -size * 0.35);
     scene.add(spot);
     scene.add(spot.target);
+    living.spot = spot;
   }
 
   /* 줄. 얇은 판으로 긋는다. 선 하나가 메시 하나면 9칸에 20개, 가볍다. */
@@ -649,9 +678,48 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     return busy;
   };
 
+  let lastLive = 0;
+  const breathe = (t: number): void => {
+    const s = t / 1000 + living.seed;
+    /* 구름. 두 사인의 합으로 느리게. 0.72~1.0 사이 */
+    const cloud = 0.86 + 0.14 * Math.sin(s * 0.11) * Math.cos(s * 0.037 + 1.3);
+    sun.intensity = 2.4 * cloud;
+    hemi.intensity = 0.75 * (0.85 + 0.15 * cloud);
+    if (living.spot) {
+      living.spot.intensity = 1.2 * (0.8 + 0.2 * cloud);
+      /* 바람. 장지문 빛이 살짝 흔들린다 */
+      living.spot.target.position.x = -size * 0.2 + Math.sin(s * 0.7) * size * 0.012 + Math.sin(s * 1.9) * size * 0.004;
+    }
+    if (living.motes) {
+      const arr = living.motes.geometry.getAttribute('position') as { array: Float32Array; needsUpdate: boolean };
+      const a = arr.array;
+      for (let i = 0; i < a.length; i += 3) {
+        a[i] += Math.sin(s * 0.5 + i) * 0.0006;
+        a[i + 1] += 0.0004 + Math.sin(s * 0.3 + i * 0.7) * 0.0003;
+        if (a[i + 1] > size * 0.55) a[i + 1] = 0.1;
+      }
+      arr.needsUpdate = true;
+    }
+  };
+
   const frame = (): void => {
     const t = performance.now();
     let busy = layout(t);
+    /* 방은 늘 조금씩 산다. 30fps 면 충분하고, 호스트가 문서에서 빠지면 끝 */
+    if (room) {
+      if (!host.isConnected) {
+        loop?.stop();
+        loop = null;
+        return;
+      }
+      if (t - lastLive >= 33) {
+        lastLive = t;
+        breathe(t);
+        busy = true;
+      } else if (!camFrom && !dropAt.size) {
+        return;
+      }
+    }
     if (camFrom) {
       const k = Math.min(1, (t - camT0) / camMs);
       camera.position.lerpVectors(camFrom, goal, ease(k));
@@ -774,6 +842,7 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
   const ro = new ResizeObserver(resize);
   ro.observe(host);
   resize();
+  if (room) kick();
   if (room) {
     void renderer.compileAsync(scene, camera).then(() => {
       compiled = true;

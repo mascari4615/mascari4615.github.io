@@ -40,6 +40,93 @@ const KEY = 'karmolab.sound';
 let ctx: AudioContext | null = null;
 let on: boolean | null = null;
 
+/**
+ * 목소리. 같은 여섯 순간을 **다른 소리**로
+ * 기본은 전자음(진동자 하나). `room` 은 나무와 쇠. 오목 방(다다미, 툇마루)에서 전자 비프가 나면
+ * 그 방이 깨짐(사용자 지적). 방 판이 켜지면 오락실이 목소리를 바꾸고 로비로 나오면 원래대로
+ */
+export type BlipVoice = 'default' | 'room';
+let voice: BlipVoice = 'default';
+
+export function setBlipVoice(v: BlipVoice): void {
+  voice = v;
+}
+
+/* 풍경 한 음. 기음과 비화성 배음 둘. 금속은 배음이 정수배가 아니다 */
+function chime(c: AudioContext, at: number, hz: number, gain: number): void {
+  for (const [mul, g] of [[1, 1], [2.76, 0.35], [5.4, 0.12]] as Array<[number, number]>) {
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = hz * mul;
+    const a = c.createGain();
+    a.gain.setValueAtTime(0.0001, at);
+    a.gain.exponentialRampToValueAtTime(gain * g, at + 0.006);
+    a.gain.exponentialRampToValueAtTime(0.0001, at + 1.8 / mul);
+    o.connect(a).connect(c.destination);
+    o.start(at);
+    o.stop(at + 2);
+  }
+}
+
+/* 나무 두드림. 짧은 잡음 + 내려앉는 사인 */
+function knock(c: AudioContext, at: number, hz: number, gain: number, ms: number): void {
+  const buf = c.createBuffer(1, Math.ceil(c.sampleRate * 0.03), c.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i += 1) d[i] = Math.random() * 2 - 1;
+  const n = c.createBufferSource();
+  n.buffer = buf;
+  const band = c.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = hz * 3;
+  band.Q.value = 1.2;
+  const ng = c.createGain();
+  ng.gain.setValueAtTime(gain * 1.6, at);
+  ng.gain.exponentialRampToValueAtTime(0.0001, at + 0.025);
+  n.connect(band).connect(ng).connect(c.destination);
+  n.start(at);
+  n.stop(at + 0.04);
+  const o = c.createOscillator();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(hz, at);
+  o.frequency.exponentialRampToValueAtTime(hz * 0.3, at + ms / 1000);
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, at);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + ms / 1000);
+  o.connect(g).connect(c.destination);
+  o.start(at);
+  o.stop(at + ms / 1000 + 0.02);
+}
+
+function roomBlip(c: AudioContext, kind: BlipKind): void {
+  const now = c.currentTime;
+  switch (kind) {
+    case 'tap':
+      knock(c, now, 700, 0.14, 70);
+      break;
+    case 'start':
+      chime(c, now, 2093, 0.05);
+      break;
+    case 'good':
+      chime(c, now, 1760, 0.045);
+      chime(c, now + 0.16, 2349, 0.045);
+      break;
+    case 'bad':
+      knock(c, now, 220, 0.12, 160);
+      break;
+    case 'win':
+      chime(c, now, 1568, 0.05);
+      chime(c, now + 0.18, 2093, 0.05);
+      chime(c, now + 0.36, 2637, 0.05);
+      break;
+    case 'lose':
+      knock(c, now, 200, 0.12, 200);
+      knock(c, now + 0.28, 150, 0.1, 260);
+      break;
+    default:
+      break;
+  }
+}
+
 export function soundOn(): boolean {
   if (on === null) {
     try {
@@ -72,6 +159,10 @@ export function blip(kind: BlipKind): void {
     ctx ??= new Ctor();
     /* 손댄 뒤에야 깨어난다. 그 전에 만들면 잠든 채로 남는다. */
     if (ctx.state === 'suspended') void ctx.resume();
+    if (voice === 'room') {
+      roomBlip(ctx, kind);
+      return;
+    }
 
     const s = SHAPES[kind];
     const now = ctx.currentTime;
