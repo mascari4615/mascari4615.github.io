@@ -40,7 +40,8 @@ try {
 /** 메타에 적힌 도구 전부. 손으로 적으면 새 도구가 빠진다 */
 function allIds() {
   const src = fs.readFileSync(path.join(root, 'src/widgets-lazy-meta.ts'), 'utf8');
-  return [...src.matchAll(/^\s*id: '([a-z0-9-]+)'/gm)].map((m) => m[1]);
+  /* 한 줄로 적힌 것(숨김 도구 스무 개)도 담는다. 줄머리만 보면 그것들이 통째로 빠진다 */
+  return [...new Set([...src.matchAll(/(?:^|[{,]\s*)id: '([a-z0-9-]+)'/gm)].map((m) => m[1]))];
 }
 
 const given = process.argv.slice(2).filter((x) => !x.startsWith('--'));
