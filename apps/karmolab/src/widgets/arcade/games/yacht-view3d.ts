@@ -13,7 +13,7 @@ import type { GameView } from '../views';
 import { mountDiceStage, type DiceStage } from '../dice-stage';
 import { barAmbience } from '../bar-ambience';
 import { die } from '../die';
-import { scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
+import { CATS, scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
 
 const UPPER: Cat[] = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
 const LOWER: Cat[] = ['choice', 'fourkind', 'fullhouse', 'sstraight', 'lstraight', 'yacht'];
@@ -41,11 +41,53 @@ export const view3d: GameView<YachtState, YachtAction> = {
       '<div class="ac-t3 ac-t3room ac-t3bar" id="acT3"></div>' +
       '<button type="button" class="ac-ycpin" id="acYcPin" aria-pressed="false"></button>' +
       '<div class="ac-yctoast" id="acYcToast" role="status"></div>' +
+      '<div class="ac-ychud" id="acYcHud"></div>' +
       '<div class="ac-ycpaper" id="acYcPaper" hidden></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     const paperEl = el.querySelector('#acYcPaper') as HTMLElement;
     /* 알림. 차례가 넘어가거나 누가 적으면 화면 위쪽 가운데에 한 줄(사용자 요청). 레퍼런스도 "X's ROUND" 오버레이 */
     const toastEl = el.querySelector('#acYcToast') as HTMLElement;
+    /**
+     * 탁자 위 상황판(사용자 요청: 누가 있고, 차례 순서, 지금 누구, 예상 점수). 레퍼런스 공통 다섯:
+     * 라운드, 차례 표시된 사람 목록, 남은 굴림, 지금 적으면 몇 점, 상태 띠. 자리 카드는 숨김
+     */
+    const hudEl = el.querySelector('#acYcHud') as HTMLElement;
+    let hudKey = '';
+    let seatBots: boolean[] = [];
+    const bestOpen = (s: YachtState, seat: number): { cat: Cat; n: number } | null => {
+      const sheet = s.sheet[seat];
+      if (!sheet) return null;
+      let best: { cat: Cat; n: number } | null = null;
+      for (const c of CATS) {
+        if (sheet[c] !== null) continue;
+        const n = scoreOf(c, s.dice);
+        if (!best || n > best.n) best = { cat: c, n };
+      }
+      return best;
+    };
+    const paintHud = (s: YachtState, fin: boolean): void => {
+      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat, fin, seatNames]);
+      if (key === hudKey) return;
+      hudKey = key;
+      const done0 = s.sheet[0] ? CATS.filter((c) => s.sheet[0][c] !== null).length : 0;
+      const round = Math.min(CATS.length, done0 + 1);
+      const best = fin ? null : bestOpen(s, s.turn);
+      hudEl.innerHTML =
+        '<div class="ac-ychudhead"><span>' + esc(t('arcade.yacht.hud.round', { n: String(round), m: String(CATS.length) })) + '</span>' +
+        (fin ? '' : '<span class="ac-ychudrolls">' + esc(t('arcade.yacht.hud.rolls', { n: String(s.rolled) })) + '</span>') + '</div>' +
+        '<ol class="ac-ychudseats">' +
+        seatNames.map((name, i) => {
+          const sheet = s.sheet[i];
+          const total = sheet ? totalOf(sheet) : 0;
+          const cur = !fin && i === s.turn;
+          return '<li class="' + (cur ? 'ac-cur' : '') + (i === mySeat ? ' ac-me' : '') + '">' +
+            '<i class="ac-ychudmark"></i>' +
+            '<span class="ac-ychudname">' + esc(name) + (i === mySeat ? ' <small>' + esc(t('arcade.yacht.hud.me')) + '</small>' : seatBots[i] ? ' <small>' + esc(t('arcade.yacht.hud.bot')) + '</small>' : '') + '</span>' +
+            '<b class="ac-ychudscore">' + total + '</b></li>';
+        }).join('') +
+        '</ol>' +
+        (best ? '<div class="ac-ychudbest">' + esc(t('arcade.yacht.hud.best', { cat: t('arcade.yacht.cat.' + best.cat), n: String(best.n) })) + '</div>' : '');
+    };
     let toastTimer = 0;
     const toast = (text: string, ms = 1700): void => {
       toastEl.textContent = text;
@@ -324,7 +366,12 @@ export const view3d: GameView<YachtState, YachtAction> = {
           const now = s.sheet[i];
           if (!now) return;
           const cat = (Object.keys(now) as Cat[]).find((c) => sh[c] === null && now[c] !== null);
-          if (cat) toast(t('arcade.yacht.toast.wrote', { who: seatNames[i] ?? '', cat: t('arcade.yacht.cat.' + cat), n: String(now[cat]) }), 2200);
+          if (!cat) return;
+          const who = seatNames[i] ?? '';
+          if (cat === 'yacht' && now[cat]) toast(t('arcade.yacht.toast.yacht', { who }), 2600);
+          else toast(t('arcade.yacht.toast.wrote', { who, cat: t('arcade.yacht.cat.' + cat), n: String(now[cat]) }), 2200);
+          /* 위 여섯 합이 63을 넘는 순간. 덤 35 */
+          if (upperOf(sh) < 63 && upperOf(now) >= 63) window.setTimeout(() => toast(t('arcade.yacht.toast.bonus', { who }), 2200), 2300);
         });
         if (!fin && s.turn !== before.turn) {
           window.setTimeout(() => {
@@ -332,8 +379,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
           }, 1500);
         }
       }
+      /* 굴림 알림. 첫 굴림은 차례 알림이 대신한다 */
+      if (rolled && s.rolled >= 2) {
+        toast(s.turn === mySeat ? t('arcade.yacht.toast.roll.me', { n: String(s.rolled) }) : t('arcade.yacht.toast.roll', { who: seatNames[s.turn] ?? '', n: String(s.rolled) }), 1400);
+      }
       stage.set(s.dice, s.keep, rolled);
       stage.rollsLeft(fin ? 0 : Math.max(0, 3 - s.rolled));
+      paintHud(s, fin);
       prevTurn = s.turn;
       prevRolled = s.rolled;
       shown = s;
@@ -369,7 +421,10 @@ export const view3d: GameView<YachtState, YachtAction> = {
       if (nk !== seatSig) {
         seatSig = nk;
         seatNames = names;
+        seatBots = v.seats.map((x) => x.bot);
         sheetSig = '';
+        hudKey = '';
+        if (shown) paintHud(shown, v.finished);
       }
       /* 주사위. 차례가 바뀌었거나 굴린 횟수가 늘었으면 컵에서 쏟는다. 줄을 서서 */
       const key = s.turn + ':' + s.rolled + ':' + s.dice.join('') + ':' + s.keep.map((k) => (k ? 1 : 0)).join('');
