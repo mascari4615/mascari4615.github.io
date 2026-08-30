@@ -279,9 +279,6 @@ import {
     .km-secname { font-size:var(--font-size-4xs); letter-spacing:.06em; text-transform:uppercase;
       color:var(--text-tertiary); margin:2px 0 6px; }
     .km-side h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
-    .km-field { margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
-    .km-field label { color:var(--text-secondary); font-size:var(--font-size-3xs); }
-    .km-field input, .km-field select { width:100%; }
     .km-edge-row { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin-bottom:8px; }
     .km-edge-row .km-edge-label { flex-basis:100%; font-size:var(--font-size-3xs); }
     .km-edge-row .km-edge-peer { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -312,10 +309,10 @@ import {
        값 칸만 아래 한 줄로 남긴다. 27가지 6묶음이라 거르는 일 자체는 여전히 필요하다. */
     .km-kindrow { display:flex; align-items:baseline; gap:6px; }
     .km-kindrow label { flex:1; min-width:0; }
-    .km-field input.km-kind-find { width:auto; flex:0 0 124px; font-size:var(--font-size-3xs); padding:2px 9px;
+    .field-group input.km-kind-find { width:auto; flex:0 0 124px; font-size:var(--font-size-3xs); padding:2px 9px;
       background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-pill);
       text-overflow:ellipsis; }
-    .km-field input.km-kind-find:focus { border-color:var(--accent); }
+    .field-group input.km-kind-find:focus { border-color:var(--accent); }
     .km-h4btn { float:right; padding:2px 8px; font-size:var(--font-size-3xs); }
     .km-table { display:flex; flex-direction:column; gap:3px; max-height:220px; overflow-y:auto; }
     .km-trow { display:flex; gap:4px; align-items:center; }
@@ -1832,7 +1829,7 @@ import {
         if (empty) raiseSheet();
         sideEl.innerHTML = (empty ? '' : pickHint) +
           (!empty ? '' : `
-            <div class="km-field">
+            <div class="field-group">
               <label>${esc(t('karmograph.renderSide.msg2'))}</label>
               <div class="km-hint">${t('karmograph.packHint', { what: `<b>${esc(t('karmograph.renderSide.msg3'))}</b>` })}</div>
               <div class="km-intent">${intents.map((it) => `
@@ -1860,7 +1857,7 @@ import {
         // 다음 걸음 셋만 짧게 보여 주고, 한 번 닫으면 다시 안 뜬다(맵마다 기억한다).
         if (spec.nodes.length > 0 && spec._meta?.tips !== 'off') {
           const tips = document.createElement('div');
-          tips.className = 'km-field';
+          tips.className = 'field-group';
           tips.innerHTML = t('karmograph.renderSide.msg4')
             + t('karmograph.renderSide.msg5')
             + t('karmograph.renderSide.msg6')
@@ -2197,13 +2194,13 @@ import {
         <button class="btn btn-ghost km-offer" data-km="focus-offer">${esc(t('karmograph.crowd.offer', {
           n: String(spec.nodes.length),
         }))}</button>`}
-        <div class="km-field">
+        <div class="field-group">
           <!-- ★ 이름표는 for 속성으로 칸에 **묶여 있어야** 한다. 나란히 놓기만 하면 화면 읽어 주는
                도구에는 글자 칸이라고만 들린다. 이 판에서 가장 많이 쓰는 칸인데도 (실측 2026-08-14). -->
           <label for="km-edit-label">${esc(t('karmograph.labelOf.msg'))}</label>
           <input type="text" id="km-edit-label" data-km="edit-label" value="${escapeAttr(node.label)}" />
         </div>
-        <div class="km-field">
+        <div class="field-group">
           <div class="km-kindrow">
             <label for="km-kind-list">${esc(t('karmograph.labelOf.msg2'))}</label>
             <input type="text" class="km-kind-find" data-km="kind-find" placeholder="${esc(t('karmograph.kindFind.ph'))}"
@@ -2211,7 +2208,7 @@ import {
           </div>
           <select id="km-kind-list" data-km="edit-kind">${nodeKindOptions(node.kind)}</select>
         </div>
-        <div class="km-field">
+        <div class="field-group">
           <label>${esc(t('karmograph.labelOf.msg3'))}</label>
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="${esc(t('karmograph.editNote.ph'))}" />
         </div>
@@ -2240,7 +2237,7 @@ import {
           ${avatarFieldHtml(panelCtx, node)}
         `}
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
-        <div class="km-field">
+        <div class="field-group">
           <label>${esc(t('karmograph.labelOf.msg4'))}</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
           <!-- 손으로는 카드 오른쪽 점을 끌면 된다. 이 단추는 **자판, 화면낭독기로 쓰는 길**이다
@@ -2249,7 +2246,7 @@ import {
           <div class="km-hint">${esc(t('karmograph.linkStart.hint'))}</div>
           ${linkingFrom === node.id ? t('karmograph.labelOf.msg5') : ''}
         </div>
-        <div class="km-field">
+        <div class="field-group">
           <label>${esc(t('karmograph.links.count', { n: String(related.length) }))}</label>
           ${
             related.length === 0

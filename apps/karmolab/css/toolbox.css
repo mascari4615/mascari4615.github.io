@@ -4464,3 +4464,9 @@ html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { bor
 /* 위젯이 글꼴을 안 정한 조작 부품. 브라우저 기본(13.33px Arial)이 남는다 (실측 2026-08-31: 도구 60 중 7).
    `:where` 라 힘이 0. 위젯이 무엇이든 정해 두면 그쪽이 이긴다 */
 :where(.tool-page, .tab-panel) :where(button, input, select, textarea) { font-family: inherit; font-size: var(--font-size-xs); }
+/* 묶음 안의 맨 라벨. 위젯이 `<label>` 만 쓰고 클래스를 안 붙인 자리가 많다 (karmograph 63곳 등).
+   `:where` 라 힘이 0, 클래스가 붙은 라벨은 제 규칙이 이긴다 */
+:where(.field-group) > label:not([class]) {
+    display: block; font-size: var(--font-size-xs); font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.02em;
+}

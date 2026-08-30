@@ -1142,7 +1142,7 @@ import { t, loadNamespace } from '../lib/i18n';
             .sm-card-sub { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-top: 6px; line-height: 1.35; }
             .sm-card-status { margin-top: auto; padding-top: 12px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: var(--font-size-xs); }
             .sm-card-status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-            .sm-card--up .sm-card-status-dot { background: var(--success); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25); }
+            .sm-card--up .sm-card-status-dot { background: var(--success); box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 25%, transparent); }
             .sm-card--down .sm-card-status-dot { background: var(--error); }
             .sm-card--na .sm-card-status-dot { background: var(--text-tertiary); }
             .sm-local-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
@@ -1181,8 +1181,8 @@ import { t, loadNamespace } from '../lib/i18n';
             .sm-card--ping-flash { animation: sm-ping-flash-bg 0.95s ease forwards; }
             @keyframes sm-ping-flash-bg {
               0%, 100% { box-shadow: none; }
-              12% { box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.45), 0 4px 14px rgba(34, 197, 94, 0.12); background-color: rgba(34, 197, 94, 0.1); }
-              40% { box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2); background-color: rgba(34, 197, 94, 0.05); }
+              12% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 45%, transparent), 0 4px 14px color-mix(in srgb, var(--success) 12%, transparent); background-color: color-mix(in srgb, var(--success) 10%, transparent); }
+              40% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 20%, transparent); background-color: color-mix(in srgb, var(--success) 5%, transparent); }
             }
             .sm-card-ping-check {
               position: absolute;

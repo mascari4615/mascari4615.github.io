@@ -3642,3 +3642,8 @@ html[data-skin="field"] input[type="range"] { accent-color: var(--accent); }
 html[data-skin="field"] :where(.tool-page, .tab-panel) button:not([class]) { border-radius: 0; }
 
 :where(.tool-page, .tab-panel) :where(button, input, select, textarea) { font-family: inherit; font-size: var(--font-size-xs); }
+
+:where(.field-group) > label:not([class]) {
+    display: block; font-size: var(--font-size-xs); font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.02em;
+}
