@@ -443,9 +443,10 @@ console.log('[arcade] 오목. 판 크기와 렌주 금수');
      명부가 세 곳이던 시절엔 규칙은 있는데 로비에 안 뜨는 게임이 조용히 생겼다.
      이제 정본은 `catalog.ts` 하나. 그러니 **규칙 파일이 있는데 카탈로그에 없는 것**과
      **말 묶음이 빠진 것**만 막으면 갈라질 자리가 없다. */
-  /* 한 규칙에 화면이 여럿이다(2D, 3D). `-view.ts`, `-view3d.ts` 는 **표현**이라 규칙이 아니다. */
+  /* 한 규칙에 화면이 여럿(2D, 3D). `-view.ts`, `-view3d.ts` 는 **표현**이라 규칙이 아님.
+     `-engine.ts` 는 봇의 머리(오목 엔진). 규칙 파일이 부르는 도우미라 카탈로그에 안 오른다 */
   const files = readdirSync('src/widgets/arcade/games')
-    .filter((f) => f.endsWith('.ts') && !/-view(3d)?\.ts$/.test(f))
+    .filter((f) => f.endsWith('.ts') && !/-(view(3d)?|engine)\.ts$/.test(f))
     .map((f) => f.replace(/\.ts$/, ''));
   const listed = new Set(GAMES.map((g) => g.id));
   /* 파일 이름과 게임 이름이 다른 것 하나(shell → shellgame)는 여기서만 안다 */

@@ -67,6 +67,8 @@ export class Match<S, A> {
    * 칸 단위라 화면 주사율이 안 남는다. 그래서 한 판이 **씨앗 하나 + 누른 것 몇 줄**로 줄어든다.
    */
   readonly tape: Array<{ at: number; seat: number; action: A }> = [];
+  /** 판에 실제로 먹힌 수. 사람과 봇 모두. 결과에 "열두 수" 로 적는다 */
+  moves = 0;
   private listeners: Array<(v: MatchView<S>) => void> = [];
   /** 이번 판의 난수. 판이 바뀔 때만 새로 만든다 */
   private rand: () => number;
@@ -126,11 +128,28 @@ export class Match<S, A> {
    * 지운 줄의 시각까지 밀어 그 사이 봇의 답(같은 씨앗이라 같은 수)을 다시 받음
    * 그러면 판은 내가 그 수를 두기 직전, 내 차례. 게임 파일은 아무것도 몰라도 됨
    */
+  /**
+   * 판 밖의 끝. 무승부 합의, 기권. 규칙은 이 사실을 모른다(오목 파일에 기권이 없다).
+   * 점수를 주고 판을 닫음. 이미 끝난 판이면 아무 일도 없음
+   */
+  end(scores: number[], note?: Note): void {
+    if (this.finished) return;
+    scores.forEach((v, i) => {
+      if (this.seats[i]) this.seats[i].score += v;
+    });
+    this.note = note;
+    this.pending = [];
+    this.roundOverAt = null;
+    this.finished = true;
+    this.emit();
+  }
+
   rewind(drop = 1): void {
     if (drop <= 0 || !this.tape.length) return;
     const keep = this.tape.slice(0, Math.max(0, this.tape.length - drop));
     const until = this.tape[Math.max(0, this.tape.length - drop)]?.at ?? this.now;
     this.tape.length = 0;
+    this.moves = 0;
     this.round = 0;
     this.finished = false;
     this.roundOverAt = null;
@@ -196,7 +215,9 @@ export class Match<S, A> {
     if (this.finished || this.roundOverAt !== null) return;
     if (seat < 0 || seat >= this.seats.length) return;
     if (this.game.canAct && !this.game.canAct(this.state, seat)) return;
+    const before = this.state;
     this.state = this.game.reduce(this.state, action, seat, this.ctx());
+    if (this.state !== before) this.moves += 1;
     this.settle();
     this.emit();
   }
@@ -245,7 +266,9 @@ export class Match<S, A> {
       for (const p of due) {
         if (this.roundOverAt !== null) break;
         if (this.game.canAct && !this.game.canAct(this.state, p.seat)) continue;
+        const before = this.state;
         this.state = this.game.reduce(this.state, p.action, p.seat, this.ctx());
+        if (this.state !== before) this.moves += 1;
         if (this.settle()) break;
       }
     }

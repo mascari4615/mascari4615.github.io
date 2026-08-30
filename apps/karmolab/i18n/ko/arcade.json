@@ -486,5 +486,17 @@
   "arcade.setup.ai.1": "견습",
   "arcade.setup.ai.2": "초보",
   "arcade.setup.ai.3": "학도",
-  "arcade.setup.ai.4": "전문가"
+  "arcade.setup.ai.4": "전문가",
+  "arcade.btn.swapcolor": "색 바꿔 한 판 더",
+  "arcade.btn.draw": "무승부 제안",
+  "arcade.btn.resign": "기권",
+  "arcade.btn.accept": "좋아요",
+  "arcade.btn.decline": "아니요",
+  "arcade.offer.draw": "{who} 이(가) 무승부를 제안했다",
+  "arcade.offer.again": "{who} 이(가) 색을 바꿔 한 판 더 하자고 한다",
+  "arcade.offer.sent": "제안을 보냈다. 답을 기다린다",
+  "arcade.offer.declined": "상대가 거절했다",
+  "arcade.result.agreed": "합의로 비겼다",
+  "arcade.result.resign": "{who} 이(가) 기권했다",
+  "arcade.result.moves": "{n}수, {t}"
 }

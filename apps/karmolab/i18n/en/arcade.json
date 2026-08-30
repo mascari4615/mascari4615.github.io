@@ -486,5 +486,17 @@
   "arcade.setup.ai.1": "Novice",
   "arcade.setup.ai.2": "Beginner",
   "arcade.setup.ai.3": "Student",
-  "arcade.setup.ai.4": "Expert"
+  "arcade.setup.ai.4": "Expert",
+  "arcade.btn.swapcolor": "Rematch, swap colors",
+  "arcade.btn.draw": "Offer draw",
+  "arcade.btn.resign": "Resign",
+  "arcade.btn.accept": "Accept",
+  "arcade.btn.decline": "Decline",
+  "arcade.offer.draw": "{who} offers a draw",
+  "arcade.offer.again": "{who} wants a rematch with swapped colors",
+  "arcade.offer.sent": "Offer sent. Waiting for a reply",
+  "arcade.offer.declined": "Declined",
+  "arcade.result.agreed": "Draw by agreement",
+  "arcade.result.resign": "{who} resigned",
+  "arcade.result.moves": "{n} moves, {t}"
 }

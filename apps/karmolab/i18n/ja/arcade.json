@@ -486,5 +486,17 @@
   "arcade.setup.ai.1": "見習い",
   "arcade.setup.ai.2": "初心者",
   "arcade.setup.ai.3": "学徒",
-  "arcade.setup.ai.4": "専門家"
+  "arcade.setup.ai.4": "専門家",
+  "arcade.btn.swapcolor": "色を替えてもう一局",
+  "arcade.btn.draw": "引き分け提案",
+  "arcade.btn.resign": "投了",
+  "arcade.btn.accept": "はい",
+  "arcade.btn.decline": "いいえ",
+  "arcade.offer.draw": "{who} が引き分けを提案",
+  "arcade.offer.again": "{who} が色を替えてもう一局と言っている",
+  "arcade.offer.sent": "提案を送った。返事待ち",
+  "arcade.offer.declined": "相手が断った",
+  "arcade.result.agreed": "合意で引き分け",
+  "arcade.result.resign": "{who} が投了",
+  "arcade.result.moves": "{n}手, {t}"
 }

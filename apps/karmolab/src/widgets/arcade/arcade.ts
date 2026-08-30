@@ -421,6 +421,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:absolute;left:18px;bottom:18px;top:auto;right:auto;margin:0;z-index:3}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{background:rgba(18,12,8,.62);border:1px solid rgba(255,230,190,.16);color:#f6ecdc;backdrop-filter:blur(6px);padding:8px 14px 8px 10px;font-size:var(--font-size-sm);gap:10px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{border-color:rgba(255,214,150,.6);background:rgba(40,26,12,.72)}',
+      /* 제안 상자. 판 위 가운데 종이 한 장 */
+      '.ac-offer{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--accent);border-radius:12px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-offer{position:absolute;left:50%;top:60px;transform:translateX(-50%);z-index:6;margin:0;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;border:0;box-shadow:0 14px 30px rgba(0,0,0,.45);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-offer .btn{height:32px;line-height:30px;padding:0 14px;border-radius:999px;font-family:inherit}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-offer .btn-ghost{color:#5a4028;border:1px solid rgba(120,80,40,.4);background:none}',
       /* 룰 한 줄과 남은 시간. 시계는 카드 오른쪽 끝, 남은 비율만큼 금색 호 */
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{flex-wrap:wrap;position:relative}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule{flex-basis:100%;font-size:11px;letter-spacing:.06em;color:rgba(240,225,200,.7);padding-left:26px;margin-top:-2px}',
@@ -1227,6 +1232,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<input type="text" id="acLetterUrl" readonly aria-label="' + esc(t('arcade.letter.link')) + '" style="flex:1;min-width:0">' +
       '<button class="btn btn-primary" id="acLetterCopy">' + esc(t('arcade.btn.copy')) + '</button>' +
       '</div></div>' +
+      /* 제안 상자. 무승부, 색 바꿔 한 판 더. 상대가 수락하거나 거절할 때까지 판 위에 뜬다 */
+      '<div class="ac-offer" id="acOffer" style="display:none"><span id="acOfferSay"></span>' +
+      '<button class="btn btn-primary" id="acOfferYes">' + esc(t('arcade.btn.accept')) + '</button>' +
+      '<button class="btn btn-ghost" id="acOfferNo">' + esc(t('arcade.btn.decline')) + '</button></div>' +
       '<div class="tool-status" id="acStatus"></div>' +
       '<div class="ac-controls" id="acControls" style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
       '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
@@ -1237,6 +1246,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
       /* 무르기. 혼자 노는 판(봇 상대)에서만. 남과 두는 판은 합의가 필요해 아직 없다 */
       '<button class="btn btn-ghost" id="acUndo" style="display:none">' + esc(t('arcade.btn.undo')) + '</button>' +
+      /* 남과 두는 판의 예의. 무승부 제안과 기권. 둘이 둘 때만 */
+      '<button class="btn btn-ghost" id="acDraw" style="display:none">' + esc(t('arcade.btn.draw')) + '</button>' +
+      '<button class="btn btn-ghost" id="acResign" style="display:none">' + esc(t('arcade.btn.resign')) + '</button>' +
+      /* 끝나면 색을 바꿔 한 판 더. 레퍼런스의 결과 화면 첫 버튼 */
+      '<button class="btn btn-ghost" id="acSwapColor" style="display:none">' + esc(t('arcade.btn.swapcolor')) + '</button>' +
       '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
@@ -1774,8 +1788,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             ? t('arcade.best.new', { n: String(mineNow), was: String(lastBest) })
             : t('arcade.best.was', { n: String(lastBest) }))
         : '';
-      $<HTMLElement>('#acOverNote').textContent = [note, record].filter(Boolean).join(', ');
+      /* 몇 수에 얼마나 걸렸나. 주인과 혼자 판은 커널에서, 손님은 주인이 보낸 것에서 */
+      const meta = match ? { moves: match.moves, ms: match.clock() } : resultMeta;
+      const count = meta && meta.moves > 0 ? t('arcade.result.moves', { n: String(meta.moves), t: clockText(meta.ms) }) : '';
+      $<HTMLElement>('#acOverNote').textContent = [note, count, record].filter(Boolean).join(', ');
       $<HTMLElement>('#acOver').style.display = '';
+    }
+
+    /** 1:03 꼴. 한 시간 넘는 판은 없다고 본다 */
+    function clockText(ms: number): string {
+      const s = Math.max(0, Math.round(ms / 1000));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
 
     /** 다음 판, 나가기 전에 걷는다. 안 걷으면 다음 판이 지난 결과 뒤에서 돈다. */
@@ -1811,6 +1834,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          표시는 그림의 일부라 그림을 다시 그리면 다시 얹어야 한다. 여기가 그 자리다. */
       markKeyCursor();
       paintUndo();
+      paintRitual(v);
 
       if (v.finished) {
         const top = Math.max(...v.seats.map((s) => s.score));
@@ -1822,6 +1846,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
            다음 프레임에 이겼다/졌다로 덮인다(실측. 점수판이 안 보였다). */
         if (!ended) {
           ended = true;
+          if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
           const draw = win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(
@@ -2060,6 +2085,115 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 이 판에 입체 화면이 있을 때만 단추가 선다. 없는 판에 죽은 단추를 두지 않는다. */
+    /* ── 끝의 의식 (레퍼런스: 색 바꿔 재대국, 무승부 제안, 수와 시간) ─────────── */
+    /** 지금 뜬 제안. 상대 답을 기다리는 동안 두 번 안 보낸다 */
+    let offerOpen: 'draw' | 'again' | null = null;
+    /** 손님이 주인에게서 받은 결과 숫자(수, 시간). 손님에게는 커널이 없다 */
+    let resultMeta: { moves: number; ms: number } | null = null;
+
+    /** 둘이 두는 판인가(사람 둘). 무승부와 기권은 여기서만 뜻이 있다 */
+    function twoHumans(): boolean {
+      const v = match?.view() ?? shadow?.v;
+      return !!v && v.seats.length === 2 && v.seats.every((s) => !s.bot) && !!net && mySeat >= 0;
+    }
+
+    function paintRitual(v: MatchView<unknown>): void {
+      const live = !v.finished && !replaying && !letter;
+      $<HTMLButtonElement>('#acDraw').style.display = live && twoHumans() ? '' : 'none';
+      $<HTMLButtonElement>('#acResign').style.display = live && twoHumans() ? '' : 'none';
+      /* 색 바꿔 한 판 더: 끝난 판, 두 자리 판, 혼자거나 주인. 대회와 편지는 아님 */
+      const canSwap = v.finished && v.seats.length === 2 && !tour && !letter && !replaying && (!net || net.host);
+      $<HTMLButtonElement>('#acSwapColor').style.display = canSwap ? '' : 'none';
+    }
+
+    /** 제안 상자를 띄운다. 수락과 거절은 아래 단추가 답한다 */
+    function showOffer(what: 'draw' | 'again', from: string): void {
+      offerOpen = what;
+      $<HTMLElement>('#acOfferSay').textContent = t(what === 'draw' ? 'arcade.offer.draw' : 'arcade.offer.again', { who: from });
+      $<HTMLElement>('#acOffer').style.display = '';
+      blip('start');
+    }
+    function hideOffer(): void {
+      offerOpen = null;
+      $<HTMLElement>('#acOffer').style.display = 'none';
+    }
+
+    /** 주인이 받는 판 밖의 손. 손님이 보낸 것도, 주인 자신의 것도 여기로 */
+    function onMeta(seat: number, meta: string): void {
+      if (!match) return;
+      const v = match.view();
+      const who = v.seats[seat]?.name ?? '';
+      const other = 1 - seat;
+      switch (meta) {
+        case 'draw':
+          /* 상대에게 묻는다. 상대가 주인이면 상자를, 손님이면 소식을 */
+          if (other === 0) showOffer('draw', who);
+          else net?.say({ kind: 'offer', what: 'draw', from: who });
+          break;
+        case 'accept-draw':
+          hideOffer();
+          match.end(v.seats.map(() => 0), { key: 'arcade.result.agreed' });
+          break;
+        case 'decline-draw':
+        case 'decline-again':
+          hideOffer();
+          if (seat === 0) net?.say({ kind: 'declined' });
+          else say(t('arcade.offer.declined'), 'warn');
+          break;
+        case 'resign':
+          match.end(v.seats.map((_, i) => (i === seat ? 0 : 1)), { key: 'arcade.result.resign', params: { who } });
+          break;
+        case 'again':
+          if (other === 0) showOffer('again', who);
+          else net?.say({ kind: 'offer', what: 'again', from: who });
+          break;
+        case 'accept-again':
+          hideOffer();
+          startTogether(undefined, true);
+          break;
+        default:
+          break;
+      }
+    }
+
+    /** 내 손. 주인이면 바로 처리, 손님이면 주인에게 보낸다 */
+    function meta(what: string): void {
+      if (!net) return;
+      if (net.host) onMeta(mySeat, what);
+      else net.act({ meta: what });
+    }
+
+    $<HTMLButtonElement>('#acDraw').onclick = (): void => {
+      if (offerOpen) return;
+      offerOpen = 'draw';
+      say(t('arcade.offer.sent'), 'ok');
+      meta('draw');
+    };
+    $<HTMLButtonElement>('#acResign').onclick = (): void => meta('resign');
+    $<HTMLButtonElement>('#acSwapColor').onclick = (): void => {
+      if (!gameId) return;
+      if (!net) {
+        startSolo(gameId, true);
+        return;
+      }
+      if (offerOpen) return;
+      offerOpen = 'again';
+      say(t('arcade.offer.sent'), 'ok');
+      meta('again');
+    };
+    $<HTMLButtonElement>('#acOfferYes').onclick = (): void => {
+      const what = offerOpen;
+      hideOffer();
+      if (what === 'draw') meta('accept-draw');
+      else if (what === 'again') meta('accept-again');
+    };
+    $<HTMLButtonElement>('#acOfferNo').onclick = (): void => {
+      const what = offerOpen;
+      hideOffer();
+      if (what === 'draw') meta('decline-draw');
+      else if (what === 'again') meta('decline-again');
+    };
+
     /** 무를 수 있는 판인가. 혼자, 봇 상대, 다시보기 아님, 편지 아님, 판 놀이 */
     function canUndo(): boolean {
       return !!match && !net && !letter && !replaying && !tour && cardById(gameId)?.kind === 'board' && match.tape.length > 0 && !match.view().finished;
@@ -2111,18 +2245,20 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 대회가 돌고 있으면 여기 있다 (혼자 하는 대회. 여럿 대회는 다음 걸음). */
     let tour: TourState | null = null;
 
-    function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number): void {
+    function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number, mine = 0): void {
       const g = gameById(id);
       /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
          저마다 기다리게 하면 언젠가 한 곳을 빠뜨린다. 문을 하나로 두고 여기서만 기다린다. */
       if (!g) {
         void ensureGame(id).then(() => {
-          if (gameById(id)) beginMatch(id, seats, seed, want);
+          if (gameById(id)) beginMatch(id, seats, seed, want, mine);
         });
         return;
       }
       gameId = id;
-      mySeat = 0;
+      mySeat = mine;
+      offerOpen = null;
+      $<HTMLElement>('#acOffer').style.display = 'none';
       watching = false;
       ended = false;
       soundedRound = -1;
@@ -2352,12 +2488,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 혼자. 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
-    function startSolo(id: string): void {
+    function startSolo(id: string, swap = false): void {
       net?.leave();
       net = null;
       plan = null;
       show('play');
-      withIntro(id, () => beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now()))));
+      /* 색을 바꾸면 봇이 먼저 앉는다(0 번 = 흑). 나는 1 번 */
+      const seats: SeatSpec[] = swap
+        ? [{ name: pickBots(1)[0]?.name ?? '봇', bot: true }, { name: myName(), bot: false }]
+        : [{ name: myName(), bot: false }];
+      withIntro(id, () => beginMatch(id, seats, seedFrom(id + String(Date.now())), undefined, swap ? 1 : 0));
     }
 
     /* ── 여럿 ────────────────────────────────────────────────────── */
@@ -2404,7 +2544,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         },
         onAct: (peerId, data) => {
           const seat = seatOf[peerId];
-          if (seat !== undefined) match?.dispatch(seat, (data as { a?: unknown }).a);
+          if (seat === undefined) return;
+          const meta = (data as { meta?: string }).meta;
+          if (meta) {
+            onMeta(seat, meta);
+            return;
+          }
+          match?.dispatch(seat, (data as { a?: unknown }).a);
         },
         onSync: () => {
           /* 주인은 남의 판을 안 받는다 */
@@ -2430,7 +2576,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         onSay: (data) => {
           /* 판 밖의 소식. 지금은 하나뿐. 주인이 다음 판을 고르는 중이다.
              `sync` 로는 못 알린다: 그 순간 보낼 판이 아예 없다. */
-          if ((data as { kind?: string })?.kind !== 'picking') return;
+          const kind = (data as { kind?: string })?.kind;
+          if (kind === 'offer') {
+            const d = data as { what?: string; from?: string };
+            showOffer(d.what === 'again' ? 'again' : 'draw', d.from ?? '');
+            return;
+          }
+          if (kind === 'declined') {
+            say(t('arcade.offer.declined'), 'warn');
+            return;
+          }
+          if (kind === 'result') {
+            const d = data as { moves?: number; ms?: number };
+            resultMeta = { moves: d.moves ?? 0, ms: d.ms ?? 0 };
+            return;
+          }
+          if (kind !== 'picking') return;
           $<HTMLElement>('#acOverHead').textContent = '⏳ ' + t('arcade.room.picking');
           $<HTMLElement>('#acOverList').innerHTML = '';
           $<HTMLElement>('#acOverNote').textContent = '';
@@ -2466,22 +2627,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 그래서 주인은 로비로 **방을 든 채** 돌아가 아무 게임이나 고를 수 있다. 손님 쪽은 이미
      * 받은 판의 게임이 바뀌면 갈아 끼운다로 되어 있어서 따라오는 데 새 코드가 필요 없었다.
      */
-    function startTogether(id?: string): void {
+    function startTogether(id?: string, swap = false): void {
       if (id) gameId = id;
       const card = cardById(gameId);
       if (!card) return;
-      /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로. */
+      /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로.
+         색을 바꾸면 손님들이 앞에, 주인이 맨 뒤(둘이면 손님이 흑) */
       const take = peers.slice(0, card.seats[1] - 1);
       seatOf = {};
       take.forEach((p, i) => {
-        seatOf[p.id] = i + 1;
+        seatOf[p.id] = swap ? i : i + 1;
       });
-      const seats: SeatSpec[] = [
-        { name: myName(), bot: false },
-        ...take.map((p) => ({ name: p.name, bot: false }))
-      ];
+      const me: SeatSpec = { name: myName(), bot: false };
+      const others = take.map((p) => ({ name: p.name, bot: false }));
+      const seats: SeatSpec[] = swap ? [...others, me] : [me, ...others];
       show('play');
-      withIntro(gameId, () => beginMatch(gameId, seats, seedFrom(gameId + String(Date.now()))));
+      withIntro(gameId, () => beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), undefined, swap ? others.length : 0));
     }
 
     /* 단추는 마우스 사건을 넘긴다. 그게 게임 이름 자리에 들어가면 안 된다. */
