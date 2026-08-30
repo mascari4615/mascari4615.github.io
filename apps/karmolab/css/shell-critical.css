@@ -3716,3 +3716,10 @@ html[data-skin="field"] .kp-browse-chip:hover { background: var(--band); color: 
 html[data-skin="field"] .kp-browse-chip--index:hover { background: none; color: var(--text-primary); border-color: var(--border-strong); }
 html[data-skin="field"] .kp-browse-tools .kp-browse-chip { border-color: var(--border); border-left: 3px solid var(--accent); }
 html[data-skin="field"] .kp-row { border-radius: 0; }
+
+html[data-skin="field"] .hu-btn,
+html[data-skin="field"] .tl-btn,
+html[data-skin="field"] .ie-apply-btn,
+html[data-skin="field"] .ie-tool-btn { border-radius: 0; }
+html[data-skin="field"] .hu-btn.is-on,
+html[data-skin="field"] .tl-btn-primary { background: var(--band); color: var(--band-ink); border-color: var(--band); }
