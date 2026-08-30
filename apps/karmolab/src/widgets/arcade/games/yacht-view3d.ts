@@ -17,7 +17,7 @@ import { roomAmbience } from '../ambience';
 import { sceneOf, specOf } from '../scenes';
 import { die } from '../die';
 import { castByName, faceSvg, lineOf, type Cast, type Mood } from '../cast';
-import { noteYachtGame, readYachtStats, avgOf } from './yacht-stats';
+import { noteYachtGame, readYachtStats, avgOf } from '../yacht-stats';
 import { CATS, scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
 
 const UPPER: Cat[] = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
