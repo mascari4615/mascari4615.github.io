@@ -86,11 +86,18 @@ const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'w
    설정 버튼은 옆줄 바닥에 크기 0 으로 숨어 있다 (2026-08-30). 마우스로는 계정 캡슐이 가로채
    못 누른다. 사람은 계정 메뉴의 환경 설정 줄로 들어가고, 여기서는 버튼을 직접 누른다 */
 await page.evaluate(() => document.getElementById('settingsPageBtn')?.click());
-await page.waitForSelector('#settingsMenuLang', { timeout: 3000 }).catch(() => {});
+/* 3초는 CI 부하에서 모자랐다. 배포가 무작위로 빨개짐(2026-08-30 밤부터 새벽까지 실패 아홉,
+   성공 둘, 늘 같은 자리). 목록이 뜨는 것을 넉넉히 기다린다 */
+await page.waitForSelector('#settingsMenuLang', { timeout: 20000 }).catch(() => {});
 if (!(await page.locator('#settingsMenuLang').count())) {
+  /* 칸이 없는데 글자를 읽으러 가면 30초 뒤 예외로 죽는다. 검사 결과가 아니라 스택이 남음 */
   fail.push('설정 목록에 언어 칸이 없다');
+  console.log('[lang] ' + fail.join(' / '));
+  await browser.close();
+  server.close();
+  process.exit(1);
 }
-const code = (await page.locator('#settingsMenuLang .hsm-hint').textContent())?.trim();
+const code = (await page.locator('#settingsMenuLang .hsm-hint').textContent({ timeout: 20000 }))?.trim();
 /* 칸 글자는 **언어 두 글자만** (TASK-KL-203 S12). 지역은 눌러서 펴는 목록 안
    깃발 그림문자 금지 (윈도우 크롬에 깃발 글리프 없음, KR 글자로 떨어짐) */
 if (!/^KO$/.test(code || '')) fail.push(`칸 언어 글자가 KO 가 아니다: ${code}`);
