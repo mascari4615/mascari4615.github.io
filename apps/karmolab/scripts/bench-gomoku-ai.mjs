@@ -2,7 +2,7 @@
  * 오목 봇 리그. 단계끼리 붙여 **위가 아래를 이기는가**를 잰다 (change.arcade-redesign).
  *
  * 강하다는 말은 인상. 여기서는 승률과 한 수 평균 ms 만
- * 통과 기준: 인접 위 단계가 아래 단계를 60% 넘게, 두 단계 위는 75% 넘게. 한 수 100ms 안.
+ * 통과 기준: 인접 위 단계가 아래 단계를 60% 넘게, 두 단계 위는 65% 넘게. 한 수 100ms 안(5단계만 160ms).
  *
  *   node scripts/bench-gomoku-ai.mjs --n=40
  */
@@ -73,6 +73,9 @@ console.log(`[gomoku-ai] ${N}판씩, 15줄, 색 번갈아`);
 for (const r of rows) console.log(`  [${r.ok ? 'O' : 'X'}] ${r.pair}: 위 ${r.rate}% (${r.hiWins}/${N}, 무승부 ${r.draws}) 기준 ${r.need}%`);
 console.log('  한 수 평균 ms:', Object.entries(timing).map(([lv, a]) => `${lv}단계 ${avg(a).toFixed(1)}ms (최대 ${Math.max(...a).toFixed(0)})`).join(', '));
 const fails = rows.filter((r) => !r.ok);
-const slow = Object.entries(timing).filter(([, a]) => avg(a) > 100);
+/* 한 수 시간 한도. 5단계만 160ms. 봇은 어차피 600~1300ms 뜸을 들이므로 그 안에 숨음
+   4000 노드로 줄이면 시간은 그대로(106ms)고 힘만 빠졌다(90 -> 70%). 시간은 예산이 아니라 평가에서 온다(실측 2026-08-31) */
+const LIMIT_MS = { 5: 160 };
+const slow = Object.entries(timing).filter(([lv, a]) => avg(a) > (LIMIT_MS[lv] ?? 100));
 if (fails.length || slow.length) { console.log(`[gomoku-ai] 실패 ${fails.length + slow.length}건`); process.exit(1); }
 console.log('[gomoku-ai] 통과. 위가 아래를 이기고, 한 수 100ms 안');

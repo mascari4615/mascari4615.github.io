@@ -34,7 +34,7 @@ export const PLAN: Record<Level, { depth: number; width: number; nodes: number; 
   /* 5 (2026-08-30 실측, 40판 리그): 깊이 4 + 사삼/삼삼 겹침 평가(combo) + 두고 난 뒤 상대 VCF 가 없는 수 고르기(safe).
      4 상대 85%, 3 상대 65%, 한 수 평균 88ms 최대 265ms. 셋까지 잇는 위협 탐색(vct)은 붙이니 오히려 약해져(4 상대 40%) 꺼 둠.
      예전엔 깊이가 잡음이었는데 겹침 평가가 붙자 깊이가 힘이 됐다(깊이 2 는 4 상대 65%, 깊이 4 는 85%) */
-  5: { depth: 4, width: 12, nodes: 6000, vcf: 14, guard: false, vct: 0, safe: true, combo: true }
+  5: { depth: 4, width: 12, nodes: 4000, vcf: 14, guard: false, vct: 0, safe: true, combo: true }
 };
 
 const DIRS: ReadonlyArray<readonly [number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
@@ -149,6 +149,7 @@ function sideValue(b: number[], n: number, who: number): number {
     s += 'o';
     if (s.indexOf('x') < 0) continue;
     total += lineValue(s);
+    if (!comboOn) continue;
     const th = lineThreats(s);
     fours += th >> 4;
     threes += th & 15;
