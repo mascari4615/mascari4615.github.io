@@ -4238,7 +4238,8 @@ html[data-skin="field"] .tool-page-hero-title { margin: 0; font-size: 30px; font
 html[data-skin="field"] .tool-page-hero-desc { margin: 0; display: flex; align-items: center; gap: 8px; }
 html[data-skin="field"] .tool-page-hero-desc::before { content: ''; width: 8px; height: 8px; background: var(--accent); background-image: var(--accent-mix); flex: none; }
 html[data-skin="field"] .tool-page-hero-desc::after { content: none; }
-html[data-skin="field"] .tool-page-hero-actions { display: flex; align-items: flex-end; gap: 8px; margin-left: auto; padding-bottom: 8px; }
+/* 기울인 칩은 상자 밖으로 36 x tan(12도) = 8px 삐져나온다. 그만큼 오른쪽 여백 */
+html[data-skin="field"] .tool-page-hero-actions { display: flex; align-items: flex-end; gap: 8px; margin-left: auto; padding: 0 10px 8px 0; }
 html[data-skin="field"] .tool-page-hero-actions .tool-pin-star {
     position: static;
     height: 36px;
@@ -4345,4 +4346,4 @@ html[data-skin="field"] .pf-shell .pf-job {
 html[data-skin="field"] .pf-shell .pf-job:hover { background: var(--bg-hover); border-color: var(--text-primary); }
 html[data-skin="field"] .pf-shell .pf-job.pf-hot { background: var(--band); color: var(--band-ink); border-color: var(--band); font-weight: 700; }
 /* 제목 블록에 별만 직접 붙는 옛 경로(정적 장). 오른쪽 끝에 붙지 않게 여백 */
-html[data-skin="field"] .tool-page-hero > .tool-pin-star { margin-left: auto; margin-right: 16px; align-self: flex-start; }
+html[data-skin="field"] .tool-page-hero > .tool-pin-star { position: static; margin-left: auto; margin-right: 24px; align-self: flex-start; transform: none; }
