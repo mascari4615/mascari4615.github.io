@@ -12,12 +12,13 @@
 import { build } from 'esbuild';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { join, dirname, resolve } from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const dir = mkdtempSync(join(tmpdir(), 'tutor-'));
 const entry = join(dir, 'entry.ts');
-const root = process.cwd().replace(/\\/g, '/');
+/* 어디서 부르든 같은 곳을 본다. cwd 기준이면 저장소 뿌리에서 돌 때 깨짐(실측) */
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..').replace(/\\/g, '/');
 writeFileSync(entry, `export { gomoku } from '${root}/src/widgets/arcade/games/gomoku';\nexport { LESSONS, cellOf, TUTOR_SIZE } from '${root}/src/widgets/arcade/tutor';\n`);
 const out = join(dir, 'tutor.mjs');
 await build({ entryPoints: [entry], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent' });
