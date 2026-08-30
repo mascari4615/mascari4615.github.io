@@ -132,7 +132,7 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         description: "사용자가 직접 부르는 반복 명령과 프롬프트",
         vendors: vec![
             state("claude", has_entries(&claude_commands), false, "Claude slash commands", vec![claude_commands.clone()]),
-            state("codex", has_entries(&codex_skills), has_entries(&codex_bundled_skills), "Codex는 skill을 명시 호출하는 방식", vec![codex_skills.clone(), codex_bundled_skills.clone()]),
+            state("codex", has_entries(&codex_skills), has_entries(&codex_bundled_skills), "Codex skill 명시 호출: $session-start, $session-end", vec![codex_skills.clone(), codex_bundled_skills.clone()]),
             state("grok", has_entries(&claude_commands), true, "Claude 호환 command 스캔에 의존", vec![claude_commands.clone()]),
         ],
     };
