@@ -76,6 +76,8 @@ export interface DiceStage {
    * 아니면 남김이 바뀐 것만 쟁반과 선반 사이 이동
    */
   set(dice: number[], keep: boolean[], roll: boolean): void;
+  /** 연출 배속. 남의 차례는 빠르게(한 봇 차례가 15초였다. 실측) */
+  speed(mul: number): void;
   /** 남은 굴리기 수. 쟁반 앞 놋쇠 버튼이 그만큼 켜짐 */
   rollsLeft(n: number): void;
   /** 손이 닿는 것이 있나. 아니면 커서와 들림이 꺼진다 */
@@ -164,7 +166,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     host.removeChild(canvas);
     return {
       ok: false, software: false,
-      set: () => {}, rollsLeft: () => {}, canAct: () => {}, sheetMode: () => {}, sheetDirty: () => {}, finish: () => {}, write: () => {}, resize: () => {}, dispose: () => {}
+      set: () => {}, speed: () => {}, rollsLeft: () => {}, canAct: () => {}, sheetMode: () => {}, sheetDirty: () => {}, finish: () => {}, write: () => {}, resize: () => {}, dispose: () => {}
     };
   }
   const gpuName = ((): string => {
@@ -580,6 +582,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   const RETURN_AT = SHAKE_MS + TIP_MS + 420;
   const RETURN_MS = 520;
   let cupT0 = 0;
+  /* 연출 배속. 1 이 내 차례, 남의 차례는 더 빠르다. 흔들기와 쏟기와 재생에 다 걸린다 */
+  let speedMul = 1;
   let pendingRelease: number[] = [];
   /* 컵이 도는 중에 온 다음 굴림. 봇은 컵이 돌아오기 전에 또 굴린다(0.5~0.9초). 끝나면 이어서 */
   let queued: number[] = [];
@@ -626,12 +630,12 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       const d = dice[i];
       const tr = tracks[n];
       d.track = tr;
-      d.released = t + GATHER_MS + RELEASE_AT;
+      d.released = t + (GATHER_MS + RELEASE_AT) / speedMul;
       d.hitIdx = 0;
       d.moveFrom = d.mesh.visible ? d.mesh.position.clone() : null;
       d.gather = d.moveFrom !== null;
       d.moveTo.copy(mouthTop).add(new Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6));
-      d.moveT0 = t + n * 40;
+      d.moveT0 = t + (n * 40) / speedMul;
       d.inCup = d.moveFrom === null;
       d.cupT0 = t;
       /* 멎은 자세에서 위로 온 면에 정해진 눈 */
@@ -679,12 +683,12 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     });
     which.forEach((i, n) => { dice[i].cupTrack = cupTracks[n]; });
     pendingRelease = which;
-    cupT0 = t + GATHER_MS;
-    window.setTimeout(() => opts.onSound?.('rattle', 1), GATHER_MS);
+    cupT0 = t + GATHER_MS / speedMul;
+    window.setTimeout(() => opts.onSound?.('rattle', 1), GATHER_MS / speedMul);
   };
   const cupAt = (t: number): boolean => {
     if (!cupT0) return false;
-    const k = t - cupT0;
+    const k = (t - cupT0) * speedMul;
     if (k < 0) return true;
     if (k < SHAKE_MS) {
       const s = k / 1000;
@@ -729,7 +733,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     if (d.dragging) return true;
     if (d.moveFrom && d.gather) {
       /* 컵으로. 호를 그리며 입 위로, 끝나면 컵 안 */
-      const u = Math.min(1, Math.max(0, (t - d.moveT0) / MOVE_MS));
+      const u = Math.min(1, Math.max(0, ((t - d.moveT0) * speedMul) / MOVE_MS));
       const e = easeInOut(u);
       d.mesh.position.lerpVectors(d.moveFrom, d.moveTo, e);
       d.mesh.position.y += Math.sin(u * Math.PI) * 1.6;
@@ -742,7 +746,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       return true;
     }
     if (d.track && d.released) {
-      const k = (t - d.released) / 1000;
+      const k = ((t - d.released) * speedMul) / 1000;
       if (k < d.track.frames[0].t) {
         /* 아직 컵 안. 컵 좌표계 녹화본을 컵을 따라 재생한다(빈 컵을 흔들면 어색하다. 사용자 지적) */
         if (d.inCup && d.cupTrack && d.cupTrack.frames.length) {
@@ -785,7 +789,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       return false;
     }
     if (d.moveFrom) {
-      const u = Math.min(1, (t - d.moveT0) / MOVE_MS);
+      const u = Math.min(1, ((t - d.moveT0) * speedMul) / MOVE_MS);
       const e = easeInOut(u);
       d.mesh.position.lerpVectors(d.moveFrom, d.moveTo, e);
       d.mesh.position.y = REST_Y + Math.sin(u * Math.PI) * 0.7;
@@ -1113,6 +1117,9 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       }
       need = true;
       kick();
+    },
+    speed(mul) {
+      speedMul = Math.max(0.5, Math.min(3, mul));
     },
     rollsLeft(n) {
       pips.forEach((p, i) => { p.material = i < n ? brassOn : brassOff; });

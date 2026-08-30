@@ -507,6 +507,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
     let seqTimer = 0;
     let shown: YachtState | null = null;
     const ROLL_MS = 4000; /* 모으기와 낙하 0.72 + 흔들기와 기울이기 0.62 + 굴림 최대 2.6 */
+    /* 남의 차례는 1.8배속. 그대로 두니 봇 한 차례가 15초, 셋이면 판이 200초였다(실측) */
+    const BOT_SPEED = 1.8;
     const KEEP_MS = 380;
     const present = (s: YachtState, fin: boolean): void => {
       if (!stage) return;
@@ -514,6 +516,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
       const rolled = before !== null && (s.turn !== prevTurn || s.rolled > prevRolled);
       const kept = before !== null && !rolled && s.keep.some((k, i) => k !== before.keep[i]);
       if (rolled && sheetOpen) closeSheet();
+      const mul = s.turn === mySeat ? 1 : BOT_SPEED;
+      stage.speed(mul);
       /* 누가 적었나. 앞 상태와 점수표를 비교해 새로 찬 칸 */
       if (before) {
         before.sheet.forEach((sh, i) => {
@@ -565,7 +569,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       prevTurn = s.turn;
       prevRolled = s.rolled;
       shown = s;
-      busyUntil = performance.now() + (rolled ? ROLL_MS : kept ? KEEP_MS : 0);
+      busyUntil = performance.now() + (rolled ? ROLL_MS / mul : kept ? KEEP_MS / mul : 0);
       /* 마지막 라운드. 열두 번째 칸을 채우기 시작하면 한 번 알린다(긴장감. 레퍼런스 스팀도 라운드를 셈) */
       const doneMin = Math.min(...s.sheet.map((sh) => (sh ? CATS.filter((c) => sh[c] !== null).length : 0)));
       if (before && doneMin === CATS.length - 1 && lastRound !== doneMin) {
@@ -579,20 +583,20 @@ export const view3d: GameView<YachtState, YachtAction> = {
       /* 세 번째 굴림이 멎으면 다섯이 선반 홈으로 옮겨져 **손이 완성**된다(클럽하우스 51 순서: 굴림 -> 홈 -> 적기.
          사용자 지적: 배치도 안 하고 점수판부터 띄운다). 그 뒤 조합 이름을 알린다 */
       /* 굴린 다섯은 멎은 뒤 전부 홈으로(규칙이 그렇다). 세 번째면 손이 완성된 것이라 조합을 알린다 */
-      if (rolled) busyUntil += 500;
+      if (rolled) busyUntil += 500 / mul;
       if (rolled && s.rolled >= 3) {
         window.setTimeout(() => {
           if (shown !== s || !stage || !host.isConnected) return;
           const combo = comboOf(s.dice);
           const best = bestOpen(s, s.turn);
           toast(combo ? t('arcade.yacht.toast.combo', { cat: t('arcade.yacht.cat.' + combo) }) : t('arcade.yacht.toast.nocombo', { cat: best ? t('arcade.yacht.cat.' + best.cat) : '', n: String(best?.n ?? 0) }), 2400);
-        }, ROLL_MS - 350);
+        }, ROLL_MS / mul - 350);
       }
       /* 세 번 다 굴렸고 내 차례면, 멎은 뒤 종이가 온다 */
       if (autoTimer) window.clearTimeout(autoTimer);
       autoTimer = 0;
       if (rolled && s.rolled >= 3 && s.turn === mySeat && !fin) {
-        autoTimer = window.setTimeout(() => { autoTimer = 0; if (last && last.turn === mySeat && last.rolled >= 3 && host.isConnected) openSheet(); }, ROLL_MS - 300);
+        autoTimer = window.setTimeout(() => { autoTimer = 0; if (last && last.turn === mySeat && last.rolled >= 3 && host.isConnected) openSheet(); }, ROLL_MS / mul - 300);
       }
     };
     const pump = (): void => {
