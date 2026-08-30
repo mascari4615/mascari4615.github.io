@@ -4050,3 +4050,78 @@ html[data-skin="field"] .landing-pulse-all {
     font-weight: 700;
     color: var(--accent);
 }
+
+/* ===================================================================
+   창, 메뉴, 토스트, 필드 스킨 (change.karmolab-shell-redesign 6단계, 시안 Z5~Z7)
+   떠 있는 판은 귀퉁이 깎임 + 딱딱한 그림자 + 위 띠. 깔린 판은 그림자 없음
+   =================================================================== */
+html[data-skin="field"] .kl-modal-overlay { background: rgba(20, 20, 18, 0.35); backdrop-filter: blur(3px); }
+html[data-skin="field"] .kl-modal {
+    border-radius: 0;
+    border: 1px solid var(--text-primary);
+    background: var(--glass-strong);
+    box-shadow: var(--shadow-hard);
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+}
+html[data-skin="field"] .kl-modal::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0;
+    width: 55%;
+    height: 4px;
+    background: var(--accent);
+    background-image: var(--accent-mix);
+    pointer-events: none;
+}
+html[data-skin="field"] .kl-modal-close { border-radius: 0; }
+
+html[data-skin="field"] .header-account-menu {
+    border-radius: 0;
+    border: 1px solid var(--text-primary);
+    background: var(--glass-strong);
+    box-shadow: var(--shadow-hard);
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+    padding: 0 6px 6px;
+}
+html[data-skin="field"] .kam-head {
+    margin: 0 -6px 4px;
+    padding: 10px 14px 12px;
+    background: var(--band);
+    color: var(--band-ink);
+}
+html[data-skin="field"] .kam-head .kam-who b { color: var(--band-ink); }
+html[data-skin="field"] .kam-head .kam-who small { color: var(--band-mute); }
+html[data-skin="field"] .kam-head .header-account-blank { background: var(--bg-void); outline: 2px solid var(--accent); outline-offset: -2px; }
+html[data-skin="field"] .header-account-menu button,
+html[data-skin="field"] .header-account-menu a { border-radius: 0; }
+html[data-skin="field"] .header-account-menu button[data-signin] {
+    background: var(--accent);
+    background-image: var(--accent-mix);
+    color: var(--accent-fg);
+    transform: skewX(var(--skew));
+    margin: 4px 6px 0;
+}
+html[data-skin="field"] .header-account-menu button[data-signin] > * { transform: skewX(calc(-1 * var(--skew))); }
+
+html[data-skin="field"] .status-toast {
+    border-radius: 0;
+    background: var(--band);
+    color: var(--band-ink);
+    border-color: var(--band);
+    box-shadow: var(--shadow-hard);
+    padding-left: 18px;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut));
+}
+html[data-skin="field"] .status-toast.success { color: var(--band-ink); border-left: 3px solid var(--success); }
+html[data-skin="field"] .status-toast.error { color: var(--band-ink); border-left: 3px solid var(--error); }
+
+html[data-skin="field"] .settings-control { border-radius: 0; }
+html[data-skin="field"] .settings-section h3 {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-4xs);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+/* 배경 테마 6종은 클래식 전용. 필드에서는 고를 게 없으니 줄 자체를 감춤 */
+html[data-skin="field"] .settings-row-stack:has(.settings-bg-picker) { display: none; }

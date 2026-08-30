@@ -2706,7 +2706,8 @@ const Toolbox = (() => {
         if (q && SKINS.some(s => s.id === q)) return q;
         const saved = localStorage.getItem(SKIN_KEY);
         if (saved && SKINS.some(s => s.id === saved)) return saved;
-        return 'classic';
+        /* 기본은 필드 (2026-08-30 확정). 클래식은 설정에서 고를 수 있는 스킨으로 남김 */
+        return 'field';
     }
 
     function setSkin(skinId) {
