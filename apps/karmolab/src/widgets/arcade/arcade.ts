@@ -409,6 +409,31 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방 표현의 비네팅. 네 귀를 어둡게 눌러야 판 위의 빛이 등에서 온 빛으로 읽힌다(레퍼런스 실측: 귀가 가운데보다 40% 어둡다) */
       /* 이름이 `ac-t3room` 인 이유: `ac-room` 은 온라인 방 패널이 이미 쓴다. 같은 이름을 쓰니 캔버스에 테두리와 flex 가 붙었다(실측) */
       '.ac-t3.ac-t3room{position:relative;border-radius:0}',
+      /**
+       * ── 방 표현 위의 UI ── 레퍼런스 실측: 좌하단 내 카드(아바타, 이름, 등급, 룰), 우상단 일시정지 하나.
+       * `bare` 가 자리줄과 상태줄을 숨겼는데 그러면 누구 차례인지, 누가 누군지 모른다(사용자 지적).
+       * 같은 DOM 을 판 위 카드로 다시 놓는다. 글자는 판 밖 귀퉁이에만
+       */
+      '#acPlay.ac-bare:has(.ac-t3room){position:relative}',
+      /* 그리드 안의 absolute 는 **제 칸**이 기준이다(실측: 단추가 top -66px 로 튀었다). 전체 칸으로 펴서 #acPlay 를 기준으로 */
+      '#acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:absolute;left:18px;bottom:18px;top:auto;right:auto;margin:0;z-index:3}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{background:rgba(18,12,8,.62);border:1px solid rgba(255,230,190,.16);color:#f6ecdc;backdrop-filter:blur(6px);padding:8px 14px 8px 10px;font-size:var(--font-size-sm);gap:10px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{border-color:rgba(255,214,150,.6);background:rgba(40,26,12,.72)}',
+      /* 지금 둘 사람. 카드가 밝아지고 앞에 표시 하나 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{opacity:.72;transition:opacity .2s,box-shadow .2s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn{opacity:1;box-shadow:0 0 0 2px rgba(255,214,150,.55),0 6px 18px rgba(0,0,0,.35)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn::after{content:"\\25C0";font-size:10px;margin-left:4px;color:#ffd696}',
+      /* 알 색. 두 자리뿐이라 뒤에서 세면 구경꾼 줄이 앞에 끼어도 맞는다 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-watch)::before{content:"";width:16px;height:16px;border-radius:50%;flex:0 0 auto;box-shadow:0 1px 2px rgba(0,0,0,.6)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(2)::before{background:radial-gradient(circle at 35% 30%,#5a5652,#111 70%)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(1)::before{background:radial-gradient(circle at 35% 30%,#fff,#cfc6b4 75%)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acStatus{display:block;position:absolute;left:50%;top:14px;right:auto;bottom:auto;width:max-content;max-width:60%;transform:translateX(-50%);margin:0;padding:6px 14px;border-radius:999px;background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);font-size:var(--font-size-sm);z-index:3;backdrop-filter:blur(6px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acStatus:empty{display:none}',
+      /* 버튼은 우상단. 늘 보이되 옅게, 손이 가면 또렷하게 */
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls{position:absolute;right:14px;top:12px;left:auto;bottom:auto;margin:0;opacity:.55;z-index:3;justify-content:flex-end}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls:hover,#acPlay.ac-bare:has(.ac-t3room) #acControls:focus-within{opacity:1}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);backdrop-filter:blur(6px)}',
       /* CPU 렌더링 경고. 판 위에 한 줄. 글자와 단추 하나 */
       '.ac-t3warn{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 14px;margin:0 0 8px;border-radius:10px;background:rgba(200,120,40,.16);border:1px solid rgba(200,120,40,.5);font-size:var(--font-size-sm)}',
       '.ac-t3.ac-t3room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',

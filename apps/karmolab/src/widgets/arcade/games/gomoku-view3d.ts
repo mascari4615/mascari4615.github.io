@@ -67,6 +67,10 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       board.place(stones);
       if (s.won !== -1) board.finish();
       host.classList.toggle('ac-waiting', !myTurn);
+      /* 차례를 자리 카드에 표시. 자리 카드는 오락실 본체 것이라 여기서 클래스만 얹는다 */
+      document.querySelectorAll('#acSeats .ac-seat:not(.ac-watch)').forEach((e, i) => {
+        e.classList.toggle('ac-turn', s.won === -1 && i === s.turn);
+      });
     };
   }
 };

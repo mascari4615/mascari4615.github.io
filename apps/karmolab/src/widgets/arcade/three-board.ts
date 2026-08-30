@@ -39,7 +39,7 @@ import {
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
-import { stoneTexture, tatamiTexture, woodTexture } from './texture';
+import { plankTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
@@ -209,10 +209,16 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 모든 면이 같은 밝기라 입체가 사라진다(사용자 지적: 알 말고는 입체감이 없다).
    * 대신 위아래 색이 갈리는 하늘빛과, 판만 비추는 스포트
    */
-  scene.add(new AmbientLight(0xffffff, room ? 0.42 : 1.45));
-  if (room) scene.add(new HemisphereLight(0xf4e7cd, 0x37281a, 0.7));
-  const sun = new DirectionalLight(0xfff3e0, room ? 1.7 : 1.9);
-  sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
+  /**
+   * 방 표현의 빛은 **오후 햇살**. 따뜻한 해가 낮게 비스듬히 들고, 보조광은 차가운 하늘빛.
+   * 전부 노랗게 두니 다다미, 판, 빛이 한 색으로 눌려 누렇게 떴다(사용자 지적). 해와 그늘의
+   * 색이 갈려야 그림에 온도. 해는 뒤쪽(툇마루 쪽)에서 들어 그림자가 앞으로 누움
+   */
+  scene.add(new AmbientLight(0xffffff, room ? 0.22 : 1.45));
+  if (room) scene.add(new HemisphereLight(0xcfe0f2, 0x4a3823, 0.75));
+  const sun = new DirectionalLight(room ? 0xffd8a8 : 0xfff3e0, room ? 2.4 : 1.9);
+  if (room) sun.position.set(size * 0.9, size * 1.05, -size * 0.75);
+  else sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
   sun.castShadow = true;
   /**
    * 그림자 틀을 **판에 딱 맞춘다**. 넉넉히 잡아 두면 남는 자리가 판 위에 각진 무늬로 남는다
@@ -221,7 +227,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    */
   sun.shadow.mapSize.set(room ? 1536 : 2048, room ? 1536 : 2048);
   /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
-  const shadowSpan = size * (opts.bowls ? 0.95 : 0.62);
+  /* 낮은 해는 그림자가 길다. 방 표현은 틀을 더 넓게 */
+  const shadowSpan = size * (room ? 1.4 : opts.bowls ? 0.95 : 0.62);
   sun.shadow.camera.left = -shadowSpan;
   sun.shadow.camera.right = shadowSpan;
   sun.shadow.camera.top = shadowSpan;
@@ -251,6 +258,35 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
+
+  /**
+   * ── 툇마루와 바깥 ── 판 뒤쪽. 다다미가 끝나고 어두운 널마루가 한 폭, 그 너머는 해가 든 바깥.
+   * 카메라 위쪽 가장자리에 걸려야 하므로 판 뒤 0.8 판 거리에 둔다. 레퍼런스도 판 옆에
+   * 어두운 마루가 있음(실측). 방이 사방으로 다다미면 창고, 마루가 있어야 집
+   */
+  const plankMap = new CanvasTexture(plankTexture(29, 512));
+  plankMap.colorSpace = SRGBColorSpace;
+  plankMap.wrapS = RepeatWrapping;
+  plankMap.repeat.set(5, 1);
+  const plankMat = new MeshStandardMaterial({ map: plankMap, color: 0xffffff, roughness: 0.42, metalness: 0.05 });
+  const outsideMat = new MeshStandardMaterial({ color: 0xfff1d6, emissive: 0xffe9c8, emissiveIntensity: 0.9, roughness: 1 });
+  if (room) {
+    const edge = -size * 0.66;
+    const plank = new Mesh(new PlaneGeometry(size * 6, size * 0.7), plankMat);
+    plank.rotation.x = -Math.PI / 2;
+    plank.position.set(0, 0.012, edge - size * 0.35);
+    plank.receiveShadow = true;
+    scene.add(plank);
+    /* 마루 턱. 다다미보다 한 뼘 높다 */
+    const step = new Mesh(new BoxGeometry(size * 6, 0.06, 0.05), plankMat);
+    step.position.set(0, 0.03, edge);
+    scene.add(step);
+    /* 바깥. 빛나는 면 하나. 디테일을 그리면 눈이 거기로 간다 */
+    const outside = new Mesh(new PlaneGeometry(size * 6, size * 3), outsideMat);
+    outside.rotation.x = -Math.PI / 2;
+    outside.position.set(0, 0.011, edge - size * 0.7 - size * 1.5);
+    scene.add(outside);
+  }
 
   /* ── 판 ── 나무 상자 한 덩이. 윗면이 두께만큼 올라와 있다.
      결은 **코드로 굽는다**(`texture.ts`). 그림 파일 0개, 매끈한 플라스틱 면을 면한다. */
@@ -286,10 +322,19 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 그림자는 해 하나만 진다(등까지 그림자를 지면 알마다 그림자가 둘이라 가짜로 보인다).
    * `decay 0` 인 이유: 거리로 어두워지면 판 크기(줄 수)에 따라 밝기가 갈림. 판은 늘 같은 밝기
    */
+  /**
+   * ── 장지문으로 드는 빛 ── 방 표현의 핵심 한 장. 스포트에 장지문 무늬를 물려 다다미에
+   * 격자 빛을 떨어뜨림. 판 뒤(툇마루 쪽) 높은 데서 앞으로 비스듬히. 그림자는 없음
+   * (해가 이미 그림자를 지므로, 둘이면 알마다 그림자가 둘이라 가짜로 보임)
+   */
+  const shojiMap = new CanvasTexture(shojiTexture(512));
+  shojiMap.colorSpace = SRGBColorSpace;
   if (room) {
-    const spot = new SpotLight(0xffe8c4, 1.1, 0, 0.62, 0.9, 0);
-    spot.position.set(size * 0.28, size * 1.9, size * 0.62);
-    spot.target.position.set(0, boardTop, 0);
+    /* 세기 2.6, 각 0.58 로 두니 판 위까지 굵은 격자가 덮여 판이 지저분했다(실측). 옅게, 좁게, 판 뒤로 */
+    const spot = new SpotLight(0xffe2b8, 1.2, 0, 0.4, 0.5, 0);
+    spot.map = shojiMap;
+    spot.position.set(size * 0.35, size * 1.7, -size * 1.7);
+    spot.target.position.set(-size * 0.2, 0, -size * 0.35);
     scene.add(spot);
     scene.add(spot.target);
   }
@@ -816,7 +861,9 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
         const m = o as Mesh;
         if (m.geometry) m.geometry.dispose();
       });
-      [...mats.values(), ...bowlMats, wood, side, ink, dot, darkMat, markMat, hintMat, pickMat, floorMat].forEach((mm) => mm.dispose());
+      [...mats.values(), ...bowlMats, wood, side, ink, dot, darkMat, markMat, hintMat, pickMat, floorMat, plankMat, outsideMat].forEach((mm) => mm.dispose());
+      plankMap.dispose();
+      shojiMap.dispose();
       woodMap.dispose();
       sideMap.dispose();
       floorMap.dispose();

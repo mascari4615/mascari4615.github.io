@@ -141,7 +141,7 @@ export function tatamiTexture(seed = 19, size = 512): HTMLCanvasElement {
   const r = rng(seed);
 
   /* 바탕은 올리브빛. 노랗게 두면 판과 한 색이 되어 판이 바닥에 묻힌다(실측) */
-  c.fillStyle = '#b3ad7e';
+  c.fillStyle = '#aeb08a';
   c.fillRect(0, 0, size, size);
 
   /* 짚 결. 가로로 흐르는 잔 줄. 굵기와 색이 제각각이라야 돗자리로 보인다 */
@@ -170,6 +170,67 @@ export function tatamiTexture(seed = 19, size = 512): HTMLCanvasElement {
     const top = r() > 0.5;
     c.fillStyle = `rgba(255,240,210,${(r() * 0.09).toFixed(3)})`;
     c.fillRect(x, (top ? 0 : size - hem) + r() * hem, 2 + r() * 3, 1);
+  }
+  return cv;
+}
+
+/**
+ * 장지문. 빛을 **투사하는 무늬**로 씀(SpotLight.map). 종이는 밝고 살은 어두움
+ * 다다미에 이 무늬가 떨어지면 처마 밑으로 해가 드는 방이 된다. 살 가장자리는 조금 번져야
+ * 그림자. 번지지 않으면 인쇄물
+ */
+export function shojiTexture(size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const g = c.createRadialGradient(size / 2, size / 2, size * 0.1, size / 2, size / 2, size * 0.72);
+  g.addColorStop(0, '#fff6e6');
+  g.addColorStop(1, '#3a2a18');
+  c.fillStyle = g;
+  c.fillRect(0, 0, size, size);
+  c.strokeStyle = 'rgba(30,20,10,.92)';
+  c.lineCap = 'butt';
+  const cols = 10;
+  const rows = 14;
+  c.shadowColor = 'rgba(30,20,10,.9)';
+  c.shadowBlur = size * 0.012;
+  for (let i = 0; i <= cols; i += 1) {
+    c.lineWidth = i === 0 || i === cols ? size * 0.03 : size * 0.014;
+    c.beginPath();
+    c.moveTo((i / cols) * size, 0);
+    c.lineTo((i / cols) * size, size);
+    c.stroke();
+  }
+  for (let j = 0; j <= rows; j += 1) {
+    c.lineWidth = j === 0 || j === rows ? size * 0.03 : size * 0.014;
+    c.beginPath();
+    c.moveTo(0, (j / rows) * size);
+    c.lineTo(size, (j / rows) * size);
+    c.stroke();
+  }
+  return cv;
+}
+
+/** 툇마루 널. 어둡고 윤이 나는 나무. 결은 가로로 흐른다(널이 가로로 놓이므로) */
+export function plankTexture(seed = 29, size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#5a3a20';
+  c.fillRect(0, 0, size, size);
+  for (let i = 0; i < 260; i += 1) {
+    const y = r() * size;
+    c.strokeStyle = `rgba(${r() > 0.5 ? '120,84,48' : '28,16,8'},${(0.06 + r() * 0.18).toFixed(3)})`;
+    c.lineWidth = 0.6 + r() * 3;
+    c.beginPath();
+    c.moveTo(0, y);
+    c.bezierCurveTo(size * 0.33, y + (r() - 0.5) * 18, size * 0.66, y + (r() - 0.5) * 18, size, y + (r() - 0.5) * 10);
+    c.stroke();
+  }
+  /* 널 사이 틈. 여섯 장 */
+  for (let k = 1; k < 6; k += 1) {
+    const y = (k / 6) * size;
+    c.fillStyle = 'rgba(12,6,2,.85)';
+    c.fillRect(0, y - 1.5, size, 3);
+    c.fillStyle = 'rgba(160,120,80,.18)';
+    c.fillRect(0, y + 1.5, size, 1.5);
   }
   return cv;
 }
