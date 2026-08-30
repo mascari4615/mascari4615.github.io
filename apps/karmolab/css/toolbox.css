@@ -2392,7 +2392,14 @@ html[data-sidebar="rail"] .sidebar-group:not(.sidebar-group--cat) + .sidebar-gro
 
 
 /* 텍스트는 항상 한 줄. 사이드바 overflow:hidden 이 클리핑 담당 */
-.sidebar .nav-item-text,
+.sidebar .nav-item-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    flex-shrink: 0;
+    transition: opacity var(--transition-slow);
+}
+
 .kl-modal {
     position: relative;
     width: min(940px, 100%);

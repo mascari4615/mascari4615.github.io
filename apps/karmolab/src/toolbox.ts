@@ -1466,19 +1466,28 @@ const Toolbox = (() => {
                 list.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
                 return list;
             }
+            /* 도구를 열면 그 갈래로 한 번만 따라간다. 사람이 탭을 끄거나 바꾼 뒤에는 그 도구 안에서 다시 안 덮는다 */
+            let followedPage = '';
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
                 const mine = sections().slice(0, 1)[0];
                 const nowTool = tools.find(t => t.id === currentPageId);
-                if (nowTool && nowTool.category && nowTool.category !== 'app') sidebarTab = nowTool.category;
+                if (nowTool && nowTool.category && nowTool.category !== 'app' && followedPage !== currentPageId) {
+                    sidebarTab = nowTool.category;
+                    followedPage = currentPageId;
+                }
                 const tabs = [{ id: 'mine', label: mine ? mine.label : '', icon: STAR_ICON, tools: mine ? mine.tools : [], empty: mine ? mine.empty : '' }]
                     .concat(getCategories().map(cat => ({ id: cat.id, label: cat.label, icon: cat.icon || '', tools: catToolsOf(cat.id), empty: '' }))
                         .filter(t => t.tools.length));
+                /* 탭을 끈 상태(all): 도구 전부. 켜진 탭을 다시 누르면 여기로 */
+                const allTools = tools.filter(t => t.category !== 'app' && !hiddenSet.has(t.id) && !(isDesktopOnlyTool(t) && !isDesktopApp()))
+                    .sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
+                tabs.push({ id: 'all', label: text2('shell.nav.all', '전부'), icon: '', tools: allTools, empty: '' });
                 if (!tabs.some(t => t.id === sidebarTab)) sidebarTab = 'mine';
                 const row = document.createElement('div');
                 row.className = 'sidebar-tabs';
                 row.setAttribute('role', 'tablist');
-                tabs.forEach(t => {
+                tabs.filter(t => t.id !== 'all').forEach(t => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     const on = t.id === sidebarTab;
@@ -1492,8 +1501,9 @@ const Toolbox = (() => {
                     btn.onclick = () => {
                         /* 레일에서 누르면 먼저 펴기. 누른 뜻은 그 갈래 보기 */
                         if (getSidebarCollapsed()) setSidebarCollapsed(false);
-                        sidebarTab = t.id;
-                        localStorage.setItem(SIDEBAR_TAB_KEY, t.id);
+                        /* 켜진 탭을 다시 누르면 끈다 (전부) */
+                        sidebarTab = (t.id === sidebarTab) ? 'all' : t.id;
+                        localStorage.setItem(SIDEBAR_TAB_KEY, sidebarTab);
                         rebuildMineGroup();
                     };
                     row.appendChild(btn);
