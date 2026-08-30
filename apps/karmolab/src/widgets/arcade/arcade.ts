@@ -493,6 +493,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ycpin:hover,.ac-ycpin[aria-pressed="true"]{opacity:1;border-color:#e6bd7a}',
       '.ac-ycpin[aria-pressed="true"]{background:linear-gradient(180deg,#c9863d,#8f4f1c);color:#fff6e4}',
       '.ac-ycpin[hidden]{display:none}',
+      '.ac-yctoast{position:absolute;left:50%;top:18%;transform:translate(-50%,-50%) translateY(8px);z-index:4;pointer-events:none;padding:10px 24px;border-radius:var(--radius-pill);background:rgba(24,15,8,.74);border:1px solid rgba(217,168,90,.5);color:#f7e9cf;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-lg);letter-spacing:.08em;white-space:nowrap;opacity:0;transition:opacity .25s ease,transform .25s ease;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.4)}',
+      '.ac-yctoast.ac-show{opacity:1;transform:translate(-50%,-50%)}',
       '.ac-ycpaperin{width:min(440px,92%);max-height:92%;overflow:auto;padding:16px 18px 18px;border-radius:var(--radius-sm);background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(120,80,40,.22);color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:rotate(-.6deg)}',
       '.ac-ychead{display:flex;align-items:center;gap:10px;margin-bottom:10px}',
       '.ac-ychead .ac-ycdice{display:flex;gap:6px;--ac-die:30px}',

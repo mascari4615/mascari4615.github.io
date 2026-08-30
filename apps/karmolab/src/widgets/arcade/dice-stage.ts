@@ -131,8 +131,11 @@ interface Die {
   faces: MeshStandardMaterial[];
   /* 남기기와 되돌리기, 컵으로 들어가기. 두 자리 사이를 한 호로 */
   moveFrom: Vector3 | null;
-  /* 이 이동이 끝나면 컵 안이다(안 보인다) */
+  /* 이 이동이 끝나면 컵 안 */
   gather: boolean;
+  /* 컵 안에 있다. 컵을 따라 움직이고 살짝 흔들린다. 위에서 보면 입으로 보인다 */
+  inCup: boolean;
+  cupOffset: Vector3;
   moveTo: Vector3;
   moveT0: number;
   hover: boolean;
@@ -442,7 +445,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       mesh, value: 1, kept: false,
       spot: new Vector3(0, REST_Y, 1), pos: new Vector3(0, REST_Y, 1), quat: new Quaternion(),
       track: null, released: 0, hitIdx: 0, faces,
-      moveFrom: null, gather: false, moveTo: new Vector3(), moveT0: 0, hover: false
+      moveFrom: null, gather: false, inCup: false, cupOffset: new Vector3(), moveTo: new Vector3(), moveT0: 0, hover: false
     });
   }
   const slotX = (i: number): number => -TRAY_W / 2 + 1.6 + i * ((TRAY_W - 3.2) / Math.max(1, opts.count - 1));
@@ -550,6 +553,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       d.gather = d.moveFrom !== null;
       d.moveTo.copy(mouthTop).add(new Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6));
       d.moveT0 = t + n * 40;
+      const a = (n / which.length) * Math.PI * 2 + Math.random();
+      const r = n === 0 ? 0 : CUP_R * 0.5;
+      /* 입 가까이. 바닥에 두면 위에서 볼 때 컵 벽에 가려 빈 컵으로 보인다(실측) */
+      d.cupOffset.set(Math.cos(a) * r, CUP_H * 0.5 + n * 0.28, Math.sin(a) * r);
+      d.inCup = d.moveFrom === null;
       /* 멎은 자세에서 위로 온 면에 정해진 눈 */
       faceUp(d, tr.upLocal, d.value);
       const end = tr.frames[tr.frames.length - 1];
@@ -599,6 +607,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
 
   /* ── 주사위 움직임 ── 녹화본 재생, 선반 오가기 */
   const MOVE_MS = 300;
+  const tmpV = new Vector3();
+  const tmpQ = new Quaternion();
   const dieAt = (d: Die, t: number): boolean => {
     if (d.moveFrom && d.gather) {
       /* 컵으로. 호를 그리며 입 위로, 끝나면 컵 안 */
@@ -610,16 +620,32 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       if (u >= 1) {
         d.moveFrom = null;
         d.gather = false;
-        d.mesh.visible = false;
+        d.inCup = true;
       }
       return true;
     }
     if (d.track && d.released) {
       const k = (t - d.released) / 1000;
       if (k < d.track.frames[0].t) {
-        d.mesh.visible = false;
+        /* 아직 컵 안. 컵을 따라가며 조금 흔들린다(빈 컵을 흔들면 어색하다. 사용자 지적) */
+        if (d.inCup) {
+          const s = t / 1000;
+          const n = dice.indexOf(d);
+          tmpV.copy(d.cupOffset);
+          tmpV.x += Math.sin(s * 41 + n) * 0.08;
+          tmpV.z += Math.cos(s * 37 + n * 2) * 0.08;
+          tmpV.y += Math.abs(Math.sin(s * 53 + n * 3)) * 0.35;
+          cup.localToWorld(tmpV);
+          d.mesh.position.copy(tmpV);
+          tmpQ.setFromAxisAngle(UP, s * 3 + n).multiply(d.quat);
+          d.mesh.quaternion.copy(cup.quaternion).multiply(tmpQ);
+          d.mesh.visible = true;
+        } else {
+          d.mesh.visible = false;
+        }
         return true;
       }
+      d.inCup = false;
       d.mesh.visible = true;
       const going = sample(d.track, k, d.mesh.position, d.mesh.quaternion);
       /* 부딪힌 소리. 지나간 것은 이번 프레임에 한 번씩 */

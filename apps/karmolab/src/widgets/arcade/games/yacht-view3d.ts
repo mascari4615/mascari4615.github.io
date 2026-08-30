@@ -40,9 +40,19 @@ export const view3d: GameView<YachtState, YachtAction> = {
     el.innerHTML =
       '<div class="ac-t3 ac-t3room ac-t3bar" id="acT3"></div>' +
       '<button type="button" class="ac-ycpin" id="acYcPin" aria-pressed="false"></button>' +
+      '<div class="ac-yctoast" id="acYcToast" role="status"></div>' +
       '<div class="ac-ycpaper" id="acYcPaper" hidden></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     const paperEl = el.querySelector('#acYcPaper') as HTMLElement;
+    /* 알림. 차례가 넘어가거나 누가 적으면 화면 위쪽 가운데에 한 줄(사용자 요청). 레퍼런스도 "X's ROUND" 오버레이 */
+    const toastEl = el.querySelector('#acYcToast') as HTMLElement;
+    let toastTimer = 0;
+    const toast = (text: string, ms = 1700): void => {
+      toastEl.textContent = text;
+      toastEl.classList.add('ac-show');
+      if (toastTimer) window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => { toastEl.classList.remove('ac-show'); toastTimer = 0; }, ms);
+    };
     const amb = barAmbience(host);
     host.addEventListener('pointerdown', () => amb.wake(), { passive: true });
 
@@ -304,6 +314,20 @@ export const view3d: GameView<YachtState, YachtAction> = {
       const rolled = before !== null && (s.turn !== prevTurn || s.rolled > prevRolled);
       const kept = before !== null && !rolled && s.keep.some((k, i) => k !== before.keep[i]);
       if (rolled && sheetOpen) closeSheet();
+      /* 누가 적었나. 앞 상태와 점수표를 비교해 새로 찬 칸 */
+      if (before) {
+        before.sheet.forEach((sh, i) => {
+          const now = s.sheet[i];
+          if (!now) return;
+          const cat = (Object.keys(now) as Cat[]).find((c) => sh[c] === null && now[c] !== null);
+          if (cat) toast(t('arcade.yacht.toast.wrote', { who: seatNames[i] ?? '', cat: t('arcade.yacht.cat.' + cat), n: String(now[cat]) }), 2200);
+        });
+        if (!fin && s.turn !== before.turn) {
+          window.setTimeout(() => {
+            if (last && last.turn === s.turn) toast(s.turn === mySeat ? t('arcade.yacht.toast.me') : t('arcade.yacht.toast.turn', { who: seatNames[s.turn] ?? '' }));
+          }, 1500);
+        }
+      }
       stage.set(s.dice, s.keep, rolled);
       stage.rollsLeft(fin ? 0 : Math.max(0, 3 - s.rolled));
       prevTurn = s.turn;
