@@ -393,7 +393,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
         '<div class="ac-ycpaperin">' +
         '<div class="ac-ychead">' +
         '<div class="ac-ycdice">' + s.dice.map((d, i) => die(d, { keep: s.keep[i], can: false, label: String(d) })).join('') + '</div>' +
-        '<div class="ac-ycleft">' + esc(my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : (comboOf(s.dice) ? t('arcade.yacht.sheet.combo', { cat: t('arcade.yacht.cat.' + (comboOf(s.dice) as Cat)) }) : t('arcade.yacht.sheet.pick'))) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
+        '<div class="ac-ycleft">' + esc(lastFin ? t('arcade.yacht.sheet.done') : my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : (comboOf(s.dice) ? t('arcade.yacht.sheet.combo', { cat: t('arcade.yacht.cat.' + (comboOf(s.dice) as Cat)) }) : t('arcade.yacht.sheet.pick'))) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
         '<button type="button" class="ac-ycclose" aria-label="' + esc(t('arcade.yacht.sheet.close')) + '">×</button>' +
         '</div>' +
         '<table class="ac-yctable"><thead><tr><th></th>' +

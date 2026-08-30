@@ -623,6 +623,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ycresrow em{font-style:normal;font-size:var(--font-size-lg);font-variant-numeric:tabular-nums}',
       '.ac-ycresrow small{grid-column:2/4;font-size:var(--font-size-xs);color:#6b5236}',
       '.ac-ycresrow small i{display:inline-block;width:1px;height:9px;background:rgba(80,55,30,.4);margin:0 6px;vertical-align:middle}',
+      /* 야추에는 다시 보기가 없다(사용자 결정. 굴림의 운은 복기할 것이 없다) */
+      '#acPlay.ac-bare:has(.ac-t3bar) #acReplay{display:none}',
       '.ac-yctable thead th[data-win]::after{content:"\\2605";font-size:var(--font-size-4xs);margin-left:4px;color:#b8781a}',
       '.ac-ycpaperin{width:min(440px,92%);max-height:92%;overflow:auto;padding:16px 18px 18px;border-radius:var(--radius-sm);background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(120,80,40,.22);color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:rotate(-.6deg)}',
       '.ac-ychead{display:flex;align-items:center;gap:10px;margin-bottom:10px}',

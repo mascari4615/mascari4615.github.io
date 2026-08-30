@@ -552,5 +552,6 @@
   "arcade.yacht.deny.allkept": "Nothing to roll. Take dice out of the slots first",
   "arcade.yacht.hud.rank": "#{n}",
   "arcade.yacht.result.upper": "Upper {n}",
-  "arcade.yacht.result.yacht": "Yacht!"
+  "arcade.yacht.result.yacht": "Yacht!",
+  "arcade.yacht.sheet.done": "Game over. Totals below"
 }
