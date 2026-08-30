@@ -23,8 +23,13 @@
   "account.daysAgo": "{n}일 전",
   "account.alsoDiscord": "디스코드로도 받기",
   "account.menu.lang": "언어와 지역",
-  "account.menu.theme": "테마 전환",
+  "account.menu.theme": "테마",
   "account.menu.bell": "알림",
   "account.menu.chat": "채팅",
-  "account.menu.links": "링크, 문의"
+  "account.menu.links": "링크, 문의",
+  "account.menu.themeDark": "다크",
+  "account.menu.themeLight": "라이트",
+  "account.menu.discord": "디스코드 계정",
+  "account.menu.guest": "로그인 전, 도구는 그대로",
+  "account.menu.guestName": "게스트"
 }

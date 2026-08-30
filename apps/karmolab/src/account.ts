@@ -644,6 +644,23 @@ function mountHeaderAccount(): void {
      * 바로 옆 머리띠 설정 버튼이 그 길. 한 뼘 안에 같은 곳으로 가는 문이 둘이면 헷갈림 */
     let menuOpen = false;
 
+    /** 메뉴 줄 아이콘. 16px 선 아이콘, 색은 글자색 */
+    const svg = (d: string): string =>
+        `<svg class="kam-ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+    const ICON = {
+        user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>'),
+        card: svg('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M14 10h4M14 14h4"/>'),
+        gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+        globe: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>'),
+        moon: svg('<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'),
+        sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/>'),
+        bell: svg('<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>'),
+        chat: svg('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.4A8 8 0 1 1 21 12z"/>'),
+        folder: svg('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
+        mail: svg('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
+    };
+    const isDark = (): boolean => document.documentElement.getAttribute('data-theme') !== 'light';
+
     /** 안 읽은 알림 수. 종 버튼의 점에서 읽는다. 없으면 빈 글 */
     const bellCountText = (): string => {
         const n = document.querySelector('#headerBell .kl-bell-dot')?.textContent?.trim();
@@ -685,20 +702,30 @@ function mountHeaderAccount(): void {
                  * 채팅, 링크는 전부 이 메뉴 안. 종과 채팅 버튼은 화면에서 숨긴 채 살아 있고
                  * 여기서 대신 눌러 준다 (판은 그 버튼에 매달려 있다). */
                 ? `<div class="header-account-menu" role="menu">
-                       <button type="button" role="menuitem" data-go="user">${esc(t('account.t01'))}</button>
-                       ${me ? `<a role="menuitem" href="${me.profileUrl}">${esc(t('account.t02'))}</a>` : ''}
-                       <button type="button" role="menuitem" data-settings>${esc(t('account.t03'))}</button>
-                       ${window.KarmoLang?.openMenu ? `<button type="button" role="menuitem" data-lang>${esc(t('account.menu.lang'))}</button>` : ''}
-                       <button type="button" role="menuitem" data-theme>${esc(t('account.menu.theme'))}</button>
-                       ${document.querySelector('#headerBell .kl-bell-btn') ? `<button type="button" role="menuitem" data-bell>${esc(t('account.menu.bell'))}${bellCountText()}</button>` : ''}
-                       ${document.getElementById('klChatDock') ? `<button type="button" role="menuitem" data-chat>${esc(t('account.menu.chat'))}</button>` : ''}
-                       ${isDesktop() && document.getElementById('filesBtn')?.style.display !== 'none' ? `<button type="button" role="menuitem" data-files>Files</button>` : ''}
-                       <button type="button" role="menuitem" data-go="linktree">${esc(t('account.menu.links'))}</button>
-                       ${me ? t('account.t08') : ''}
-                       ${!me && canAccount ? t('account.t09') : ''}
-                       ${!me && canAccount && typeof window.PublicKeyCredential !== 'undefined'
-                           ? t('account.t10')
-                           : ''}
+                       <div class="kam-head">
+                           ${avatar ? `<img src="${avatar}" alt="">` : BLANK_FACE}
+                           <span class="kam-who"><b>${me ? label : esc(t('account.menu.guestName'))}</b><small>${esc(me ? t('account.menu.discord') : t('account.menu.guest'))}</small></span>
+                       </div>
+                       <div class="kam-group">
+                           <button type="button" role="menuitem" data-go="user">${ICON.user}<span>${esc(t('account.t01'))}</span></button>
+                           ${me ? `<a role="menuitem" href="${me.profileUrl}">${ICON.card}<span>${esc(t('account.t02'))}</span></a>` : ''}
+                       </div>
+                       <div class="kam-group">
+                           <button type="button" role="menuitem" data-settings>${ICON.gear}<span>${esc(t('account.t03'))}</span></button>
+                           ${window.KarmoLang?.openMenu ? `<button type="button" role="menuitem" data-lang>${ICON.globe}<span>${esc(t('account.menu.lang'))}</span><i class="kam-hint">${esc(String(window.KarmoLang.locale?.() || 'ko').toUpperCase())}</i></button>` : ''}
+                           <button type="button" role="menuitem" data-theme>${isDark() ? ICON.moon : ICON.sun}<span>${esc(t('account.menu.theme'))}</span><i class="kam-hint">${esc(isDark() ? t('account.menu.themeDark') : t('account.menu.themeLight'))}</i></button>
+                       </div>
+                       <div class="kam-group">
+                           ${document.querySelector('#headerBell .kl-bell-btn') ? `<button type="button" role="menuitem" data-bell>${ICON.bell}<span>${esc(t('account.menu.bell'))}</span>${bellCountText()}</button>` : ''}
+                           ${document.getElementById('klChatDock') ? `<button type="button" role="menuitem" data-chat>${ICON.chat}<span>${esc(t('account.menu.chat'))}</span></button>` : ''}
+                           ${isDesktop() && document.getElementById('filesBtn')?.style.display !== 'none' ? `<button type="button" role="menuitem" data-files>${ICON.folder}<span>Files</span></button>` : ''}
+                           <button type="button" role="menuitem" data-go="linktree">${ICON.mail}<span>${esc(t('account.menu.links'))}</span></button>
+                       </div>
+                       ${me || canAccount ? `<div class="kam-group kam-foot">
+                           ${me ? t('account.t08') : ''}
+                           ${!me && canAccount ? t('account.t09') : ''}
+                           ${!me && canAccount && typeof window.PublicKeyCredential !== 'undefined' ? t('account.t10') : ''}
+                       </div>` : ''}
                    </div>`
                 : '');
         const closeThen = (selector: string, run: () => void): void => {

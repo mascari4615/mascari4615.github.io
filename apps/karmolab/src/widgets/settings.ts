@@ -16,15 +16,18 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
     type StorageItemStat = { key: string; bytes: number; valLen: number };
 
     Mdd.injectCSS('settings-page', `
-        .settings-layout { display:flex; flex-direction:column; gap:24px; }
-        .settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 16px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; }
+        .settings-layout { display:flex; flex-direction:column; gap:28px; }
+        /* 줄은 카드가 아니라 목록 (2026-08-30). 줄마다 상자를 씌우면 설정 창이 상자 더미
+           라벨 왼쪽, 조작 오른쪽, 줄 사이 실선 하나. 시스템 설정과 같은 문법 */
+        .settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 0; border-bottom:1px solid var(--border); }
+        .settings-row:last-child { border-bottom:none; }
         .settings-row label { font-size:var(--font-size-sm); font-weight:500; color:var(--text-primary); white-space:nowrap; flex-shrink:0; }
-        .settings-row .settings-control { min-width:140px; }
+        .settings-row .settings-control { min-width:160px; max-width:260px; }
         /* 견본처럼 폭이 필요한 것은 한 줄에 나란히 두지 않고 아래로 편다 */
         .settings-row-stack { display:block; }
         .settings-row-stack label { display:block; margin-bottom:10px; }
-        .settings-section { margin-bottom:24px; }
-        .settings-section h3 { font-size:14px; color:var(--text-secondary); margin-bottom:12px; }
+        .settings-section { margin-bottom:0; }
+        .settings-section h3 { font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-tertiary); margin:0 0 4px; }
         .settings-danger { border-color:var(--error-subtle); background:var(--error-subtle); }
         .settings-danger .btn-ghost { color:var(--error); }
         .settings-code-preview { margin-top:12px; font-size:var(--font-size-xs); }
@@ -126,7 +129,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     </p>
                 </div>
                 <div class="settings-section">
-                    <h3>🔑 API</h3>
+                    <h3>API</h3>
                     ${apiUI.html}
                 </div>
             </div>`;

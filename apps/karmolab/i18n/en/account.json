@@ -23,8 +23,13 @@
   "account.daysAgo": "{n} d ago",
   "account.alsoDiscord": "Also on Discord",
   "account.menu.lang": "Language & region",
-  "account.menu.theme": "Toggle theme",
+  "account.menu.theme": "Theme",
   "account.menu.bell": "Notifications",
   "account.menu.chat": "Chat",
-  "account.menu.links": "Links & contact"
+  "account.menu.links": "Links & contact",
+  "account.menu.themeDark": "Dark",
+  "account.menu.themeLight": "Light",
+  "account.menu.discord": "Discord account",
+  "account.menu.guest": "Not signed in, tools still work",
+  "account.menu.guestName": "Guest"
 }

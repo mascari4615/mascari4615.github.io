@@ -772,22 +772,47 @@ html[data-intro="off"] .intro-overlay {
 .header-account-blank { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; }
 .header-account-blank { display: grid; place-items: center; background: var(--bg-tertiary); }
 .header-account-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 계정 메뉴 (2026-08-30 다시 그림). 머리(얼굴, 이름, 상태) + 구획 셋 + 바닥(로그인, 로그아웃)
+   Claude, ChatGPT 계정 메뉴와 같은 짜임. 폭 240, 줄 34, 아이콘 16 */
 .header-account-menu {
-    position: absolute; top: 40px; right: 0; min-width: 190px; z-index: 60;
-    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .35); overflow: hidden;
+    position: absolute; top: 40px; right: 0; width: 240px; z-index: 60;
+    padding: 6px;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
+    font-size: var(--font-size-xs);
 }
+.kam-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 8px 10px;
+}
+.kam-head img, .kam-head .header-account-blank { width: 36px; height: 36px; border-radius: 50%; flex: none; }
+.kam-head .header-account-blank { display: grid; place-items: center; background: var(--bg-tertiary); }
+.kam-who { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.kam-who b { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kam-who small { font-size: 11px; color: var(--text-tertiary); }
+.kam-group { padding: 4px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; }
 .header-account-menu button,
 .header-account-menu a {
-    display: block; width: 100%; padding: 9px 13px;
-    background: none; border: 0; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; min-height: 34px; padding: 0 8px;
+    background: none; border: 0; border-radius: 8px;
     text-align: left; font: inherit; font-size: var(--font-size-xs);
     color: var(--text-primary); cursor: pointer; text-decoration: none;
 }
-.header-account-menu > :first-child { border-top: 0; }
 .header-account-menu button:hover,
-.header-account-menu a:hover { background: var(--bg-tertiary); }
-.header-account-menu button[data-signin] { color: var(--accent); font-weight: 600; }
+.header-account-menu a:hover,
+.header-account-menu button:focus-visible,
+.header-account-menu a:focus-visible { background: var(--bg-hover); outline: none; }
+.header-account-menu .kam-ic { flex: none; color: var(--text-tertiary); }
+.header-account-menu button:hover .kam-ic,
+.header-account-menu a:hover .kam-ic { color: var(--text-primary); }
+.header-account-menu button > span,
+.header-account-menu a > span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kam-hint { font-style: normal; font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); }
+.header-account-menu .header-account-menu-count { margin-left: 0; }
+.kam-foot button { justify-content: center; font-weight: 600; }
+.header-account-menu button[data-signin] { color: var(--bg-primary); background: var(--accent); }
+.header-account-menu button[data-signin]:hover { background: var(--accent); filter: brightness(1.08); }
 .header-account-menu .header-account-menu-out { color: #dc2626; }
 html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #fca5a5; }
 
@@ -2549,7 +2574,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 .sidebar-user-actions .files-btn { display: block !important; }
 .sidebar-user-actions .kl-bell-dot { display: none; }
 /* 메뉴와 알림 판은 위로 편다. 바닥에서 아래로 열면 화면 밖 */
-.sidebar-user .header-account-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; min-width: 208px; }
+.sidebar-user .header-account-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: auto; }
 .sidebar-user .kl-bell-panel { top: auto; bottom: 6px; left: 0; right: auto; }
 .header-account-menu-count {
     margin-left: 8px; padding: 0 6px; border-radius: 999px;

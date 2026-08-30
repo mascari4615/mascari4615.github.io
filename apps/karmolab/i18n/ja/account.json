@@ -23,8 +23,13 @@
   "account.daysAgo": "{n}日前",
   "account.alsoDiscord": "Discord でも受け取る",
   "account.menu.lang": "言語と地域",
-  "account.menu.theme": "テーマ切替",
+  "account.menu.theme": "テーマ",
   "account.menu.bell": "通知",
   "account.menu.chat": "チャット",
-  "account.menu.links": "リンク, お問い合わせ"
+  "account.menu.links": "リンク, お問い合わせ",
+  "account.menu.themeDark": "ダーク",
+  "account.menu.themeLight": "ライト",
+  "account.menu.discord": "Discord アカウント",
+  "account.menu.guest": "未ログイン、ツールは使えます",
+  "account.menu.guestName": "ゲスト"
 }
