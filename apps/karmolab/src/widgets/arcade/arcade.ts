@@ -331,6 +331,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * 더 키우고 싶으면 풀스크린이 그 자리다. 거기서는 단추가 아예 없다.
        */
       ':root{--ac-stage:min(94vw,58vh,640px)}',
+      /* 눕힌 폰처럼 아주 낮은 화면은 세로 몫을 늘린다. 58vh 로는 9줄 판도 한 칸 27px 이라 옆 칸이 눌렸다(실측) */
+      /* 낮은 화면은 무대 위아래 여백까지 줄인다(실측: 여백 48px 이 칸 4px) */
+      '@media (max-height:430px){:root{--ac-stage:min(94vw,88vh,640px)}.ac-stage{padding:4px 0}}',
       /* 무대에 옅은 판때기. 게임이 노는 자리가 로비와 구별된다 (크기 계약은 아래 § 그대로). */
       '.ac-stage{text-align:center;padding:var(--space-lg) 0;background:color-mix(in srgb,var(--accent) 4%,var(--bg-primary));border-radius:20px}',
       /* ★ 세로로 긴 캔버스 판의 **세로 상한** (실측: 컬링 1900px, 당구 1393px 가 1274px
@@ -538,7 +541,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        * ── 컷인 (MDD) ── 작혼의 리치, 론 연출과 같은 자리. 넷을 만들면(리치), 내가 넷을 만들면(위기), 판이 끝나면(론)
        * 오른쪽에서 큰 얼굴과 한 줄이 미끄러져 들어와 1.7초 머물고 나간다. 그림이 오면 얼굴만 갈아 끼움
        */
-      '.ac-cutin,.ac-lesson{display:none}',
+      '.ac-cutin,.ac-lesson,.ac-overbody{display:none}',
+      /* 화료 화면의 전신(작혼 실측: 캐릭터 전신 왼쪽 60%, 오른쪽에 내역과 점수). 그림 자리 1024x1536 비율 */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody{display:block;position:absolute;left:3%;bottom:0;width:auto;height:72%;aspect-ratio:2/3;pointer-events:none;z-index:2}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody[hidden]{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody svg{width:100%;height:100%;filter:drop-shadow(0 18px 40px rgba(0,0,0,.6))}',
+      '@media (max-width:900px){#acPlay.ac-bare:has(.ac-t3room) .ac-overbody{display:none}}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson{display:flex;align-items:center;gap:14px;position:absolute;left:50%;top:52px;transform:translateX(-50%);z-index:7;max-width:min(720px,86%);padding:12px 18px;border-radius:10px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;box-shadow:0 14px 32px rgba(0,0,0,.45)}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson[hidden]{display:none}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-lesson b{flex:0 0 auto;font-size:15px;color:#8f5a2a;letter-spacing:.08em}',
@@ -1300,7 +1308,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '  #acPlay{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,26vw);grid-template-rows:auto 1fr auto;gap:0 var(--space-md);align-items:center}',
       /* 눕힌 화면에서는 **무대가 곧 틀**이라 여백이 사치다. 무대 padding 48 + 판 바깥여백 48 이
          세로 96px 을 먹어 판이 화면 밖으로 밀렸다(실측). 둘 다 걷고 세로를 판에 준다. */
-      '  #acStage{grid-column:1;grid-row:1/4;--ac-stage:min(62vw,78vh,640px);padding:0;min-height:0}',
+      '  #acStage{grid-column:1;grid-row:1/4;--ac-stage:min(62vw,92vh,640px);padding:0;min-height:0}',
       /* ★ **좁게 눕히면 셸 메뉴 띠가 판 몫을 먹는다** (2026-08-15 실측).
          폭이 좁아지면 메뉴가 상단 바에서 빠져나와 **바 아래 가로 띠**(`.mobile-nav`)가 된다:
            844 폭 → 메뉴가 바 안, 판 위 공간 76px  → 오목 칸 33px
@@ -1313,6 +1321,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          같은 세기로 말해야 접힌다. 접는 조건이 좁고(눕힘+판 도는 중) 판이 끝나면 풀린다. */
       '  html.ac-playing .mobile-nav{display:none!important}',
       '  #acStage #acView>*{margin-top:0;margin-bottom:0}',
+      /* 판 둘레 여백 6% 가 눕힌 화면에서 칸 3px 을 먹는다(실측 27 -> 30px). 통 자리는 어차피 잘린다 */
+      '  #acStage .ac-goban{padding:2%}',
       '  #acSeats{grid-column:2;grid-row:1;justify-content:flex-start}',
       '  #acStatus{grid-column:2;grid-row:2}',
       '  .ac-controls{grid-column:2;grid-row:3;flex-wrap:wrap;margin-top:0}',
@@ -1437,6 +1447,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<ol class="ac-overlist" id="acOverList"></ol>' +
       '<div class="ac-overnote" id="acOverNote"></div>' +
       '<div class="ac-overacts" id="acOverActs"></div>' +
+      /* 전신 자리. 지금은 도형, 그림이 오면 여기만 갈아 끼운다(`rules/mdd.md` 그림 규격) */
+      '<div class="ac-overbody" id="acOverBody" hidden></div>' +
       '</div>' +
       '</div>' +
       '<div class="ac-letter" id="acLetter" style="display:none">' +
@@ -2144,6 +2156,25 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acOverNote').textContent = [note, count, record].filter(Boolean).join(', ');
       $<HTMLElement>('#acOver').style.display = '';
       placeEndButtons(true);
+      paintOverBody(v, top);
+    }
+
+    /** 결과 종이 옆의 전신. 이긴 사람(비기면 상대). MDD 가 꺼져 있으면 없음 */
+    function paintOverBody(v: MatchView<unknown>, top: number): void {
+      const el = $<HTMLElement>('#acOverBody');
+      const room = !!play.querySelector('.ac-t3room');
+      if (!room || !mddOn()) {
+        el.hidden = true;
+        return;
+      }
+      const win = v.seats.find((sq, i) => i !== mySeat && sq.score === top) ?? v.seats.find((_, i) => i !== mySeat);
+      const c = win ? castByName(win.name) : null;
+      if (!c) {
+        el.hidden = true;
+        return;
+      }
+      el.innerHTML = faceSvg(c, win && win.score === top ? 'glad' : 'sad');
+      el.hidden = false;
     }
 
     /** 1:03 꼴. 한 시간 넘는 판은 없다고 본다 */
@@ -2155,6 +2186,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 다음 판, 나가기 전에 걷는다. 안 걷으면 다음 판이 지난 결과 뒤에서 돈다. */
     function hideResult(): void {
       $<HTMLElement>('#acOver').style.display = 'none';
+      $<HTMLElement>('#acOverBody').hidden = true;
       placeEndButtons(false);
     }
 

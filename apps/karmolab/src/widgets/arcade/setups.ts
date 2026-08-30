@@ -99,6 +99,22 @@ function all(): Record<string, Record<string, number | boolean>> {
 }
 
 /** 이 놀이에서 지금 고른 값. 안 골랐으면 기본값 */
+/**
+ * 안 고른 값의 기본. 좁은 화면에서는 판을 줄임
+ *
+ * 15줄 판은 폰 세로(360px)에서 한 칸이 21px 이라 옆 칸이 눌린다(`smoke:arcade-stage` 실측).
+ * 9줄이면 36px. 화면의 짧은 쪽이 560px 미만이면 9줄. 고른 적이 있으면 그 값이 먼저다(폰에서도 15줄을 고를 수 있음)
+ */
+function fallbackOf(id: string, key: string, given: number | boolean): number | boolean {
+  if (id !== 'gomoku' || key !== 'size') return given;
+  try {
+    /* 눕힌 폰은 폭이 넉넉해도 높이가 모자란다. 짧은 쪽으로 잰다(실측: 가로 18px, 작은 가로 16px) */
+    return Math.min(window.innerWidth, window.innerHeight) < 560 ? 9 : given;
+  } catch {
+    return given;
+  }
+}
+
 export function optsFor(id: string): GameOpts {
   const choices = SETUPS[id];
   if (!choices) return {};
@@ -107,7 +123,7 @@ export function optsFor(id: string): GameOpts {
   for (const c of choices) {
     const v = mine[c.key];
     const known = c.options.some((o) => o.value === v);
-    out[c.key] = known ? v : c.fallback;
+    out[c.key] = known ? v : fallbackOf(id, c.key, c.fallback);
   }
   return out;
 }
