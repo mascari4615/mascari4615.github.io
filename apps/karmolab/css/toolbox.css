@@ -4493,3 +4493,11 @@ html[data-skin="field"] .tool-hub-card {
 }
 html[data-skin="field"] .tool-hub-card:hover { transform: none; background: var(--bg-hover); box-shadow: var(--shadow-hard); }
 html[data-skin="field"] .tool-hub-group { font-family: var(--font-mono); letter-spacing: .08em; }
+/* 파일 고르기 버튼은 브라우저가 그린다. 안 정하면 도구마다 회색 네모가 하나씩 남는다 */
+:where(.tool-page, .tab-panel) input[type="file"]::file-selector-button {
+    margin-right: 10px; padding: 6px 12px; font-family: inherit; font-size: var(--font-size-xs); font-weight: 600;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-tertiary); color: var(--text-primary); cursor: pointer;
+}
+:where(.tool-page, .tab-panel) input[type="file"]::file-selector-button:hover { background: var(--bg-hover); border-color: var(--border-hover); }
+html[data-skin="field"] :where(.tool-page, .tab-panel) input[type="file"]::file-selector-button { border-radius: 0; }
