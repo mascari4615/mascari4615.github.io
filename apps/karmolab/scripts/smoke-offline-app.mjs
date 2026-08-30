@@ -44,8 +44,13 @@ const server = http.createServer((req, res) => {
     res.end(body);
   });
 });
-await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-const origin = `http://127.0.0.1:${server.address().port}`;
+/* ★ **127.0.0.1 에는 일꾼이 안 붙는다** (2026-08-30, `src/pwa-update.ts`). 개발 서버에서 옛 판을
+   물고 빈 화면이 뜨던 것을 막으려고 그 주소에서는 등록을 건너뛴다. 그래서 이 검사는 그날부터
+   늘 빨갰다. 같은 되돌이 주소지만 이름이 다른 127.0.0.2 로 띄우면 제품 코드를 안 건드리고
+   진짜 등록을 잰다 (2026-08-31 실측: 등록 1건, 캐시 karmolab-*, `/` 담김) */
+const HOST = '127.0.0.2';
+await new Promise((resolve) => server.listen(0, HOST, resolve));
+const origin = `http://${HOST}:${server.address().port}`;
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 420, height: 860 } });
