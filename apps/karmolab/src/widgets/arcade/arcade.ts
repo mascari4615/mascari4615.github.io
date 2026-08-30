@@ -45,6 +45,7 @@ import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
+import { enterQueue, type Ranked, type RankRoom } from './ranked';
 import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
@@ -304,6 +305,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acDetail .ac-go button{border:0;border-radius:var(--radius-pill);padding:13px 30px;font-size:var(--font-size-xs);font-weight:900;cursor:pointer;white-space:nowrap}',
       '#acDetail .ac-go button[data-solo]{background:#3c3a30;color:#fdfcf7;box-shadow:0 4px 10px rgba(60,58,48,.28)}',
       '#acDetail .ac-go button[data-host]{background:#fdfcf7;color:#3c3a30;box-shadow:0 2px 6px rgba(60,58,48,.15)}',
+      /* 등급전 문. 혼자, 같이 옆 셋째 (change.arcade-online). 붉은 인장 색 = 판정이 걸린 판 */
+      '#acDetail .ac-go button[data-rank]{background:#a4423a;color:#fdfcf7;box-shadow:0 4px 10px rgba(164,66,58,.28)}',
       '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
       '#acDetail .ac-more{display:flex;gap:16px;margin-top:14px}',
       '#acDetail .ac-more button{background:none;border:0;padding:0;font-size:var(--font-size-2xs);color:#8b897b;text-decoration:underline;cursor:pointer}',
@@ -1551,6 +1554,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<div class="ac-go">' +
         '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
         '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
+        /* 등급전은 2인 놀이만 (1번). 셋, 넷 순위전(야추)은 매칭 규칙 확정 뒤 */
+        (g.seats[0] === 2 && g.seats[1] === 2
+          ? '<button data-rank="' + g.id + '">' + esc(t('arcade.btn.rank')) + '</button>'
+          : '') +
         '</div>' +
         '<div class="ac-more">' + more + '</div>' +
         '</div></div>';
@@ -1680,6 +1687,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       on('data-pickteam', 'pickteam', startTeam);
       on('data-find', 'find', (id) => openRoom(id, true));
       on('data-pickfind', 'pickfind', (id) => openRoom(id, true));
+      on('data-rank', 'rank', startRanked);
     }
 
     /** 이 게임이 검색어에 걸리나. 이름, 설명, 갈래, 길이 어디든. */
@@ -2897,20 +2905,26 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acWaitStatus').textContent =
         (host ? t('arcade.wait.host', { n: String(peers.length + 1) }) : t('arcade.wait.guest')) +
         (over > 0 ? ', ' + t('arcade.watch.over', { n: String(over) }) : '');
-      startBtn.style.display = host ? '' : 'none';
-      $<HTMLElement>('.ac-share').style.display = host ? '' : 'none';
+      /* 등급전 방은 시작 버튼도 링크도 없음. 상대는 서버가 정함, 오면 바로 판 */
+      startBtn.style.display = host && !autoStart ? '' : 'none';
+      $<HTMLElement>('.ac-share').style.display = host && !autoStart ? '' : 'none';
     }
 
     /** 목록에 올린 방을 내리는 손. 방을 닫을 때 부른다. */
     let dropOpen: (() => void) | null = null;
 
-    function openRoom(id: string, publicly = false): void {
+    /** 등급전 줄. 서 있는 동안만 */
+    let ranked: Ranked | null = null;
+    /** 등급전 방은 상대 도착 순간 시작. 시작 버튼을 누를 사람이 없음 */
+    let autoStart = false;
+
+    function openRoom(id: string, publicly = false, fixed?: string): void {
       /* 이미 방을 들고 있으면 새로 파지 않는다. 그게 방 유지의 전부다. */
       if (net?.host) {
         startTogether(id);
         return;
       }
-      const code = makeCode();
+      const code = fixed ?? makeCode();
       /* 같이 찾기로 연 방만 목록에 올린다. 같이는 그대로 링크 아는 사람만이다. */
       dropOpen?.();
       dropOpen = publicly ? holdRoom({ code, game: id, host: myName() }) : null;
@@ -2924,6 +2938,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           peers = list;
           paintWait(code, true);
           paintRoom();
+          /* 등급전: 서버가 붙여 준 상대 도착 시 즉시 시작. 둘째 사람 대기 없음 */
+          if (autoStart && peers.length >= 1 && !match) {
+            autoStart = false;
+            startTogether();
+          }
         },
         onAct: (peerId, data) => {
           const seat = seatOf[peerId];
@@ -2940,6 +2959,51 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         },
         onSay: () => {
           /* 주인은 제 소식을 안 받는다 */
+        }
+      });
+    }
+
+    /* ── 등급전 ────────────────────────────────────────────────────
+     *
+     * - 줄서기 -> 서버(욘봇)가 같은 점수 방의 둘을 붙여 방 코드 하나
+     * - 먼저 선 쪽이 주인. 그 코드로 방을 열고 상대 도착 시 시작 버튼 없이 바로 판
+     * - 서버가 죽으면 여기만 멈춤. 같이, 같이 찾기는 그대로 */
+    const roomLabel = (room: RankRoom): string => t('arcade.rank.room.' + room);
+
+    function startRanked(id: string): void {
+      if (net) quit();
+      gameId = id;
+      peers = [];
+      show('wait');
+      $<HTMLElement>('#acCode').textContent = roomLabel('beginner');
+      $<HTMLElement>('#acWaitSeats').innerHTML = '<span class="ac-seat ac-me">' + esc(myName()) + '</span>';
+      $<HTMLElement>('#acWaitStatus').textContent = t('arcade.rank.waiting', { room: roomLabel('beginner'), n: '0' });
+      startBtn.style.display = 'none';
+      $<HTMLElement>('.ac-share').style.display = 'none';
+      ranked?.cancel();
+      ranked = enterQueue(id, myName(), {
+        onWaiting: (room, others) => {
+          $<HTMLElement>('#acCode').textContent = roomLabel(room);
+          $<HTMLElement>('#acWaitStatus').textContent = t('arcade.rank.waiting', { room: roomLabel(room), n: String(others) });
+        },
+        onMatched: (m) => {
+          ranked = null;
+          if (m.host) {
+            /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
+            autoStart = true;
+            openRoom(id, false, m.code);
+          } else {
+            /* 손님 화면 올리기는 지금 놀이와 다를 때만 열림. 미리 채운 이름 비우기
+               (실측: 안 비우면 손님 창에 판이 영영 안 뜸) */
+            gameId = '';
+            joinRoomAs(m.code);
+          }
+          $<HTMLElement>('#acWaitStatus').textContent = t('arcade.rank.matched', { name: m.opponent });
+        },
+        onDown: () => {
+          ranked = null;
+          say(t('arcade.rank.down'), 'warn');
+          quit();
         }
       });
     }
@@ -3361,6 +3425,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const quit = (): void => {
       dropIntro?.();
       dropIntro = null;
+      /* 줄에 서 있었으면 제외. 안 빠지면 15초간 유령과 짝 */
+      ranked?.cancel();
+      ranked = null;
+      autoStart = false;
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
       dropOpen?.();
       dropOpen = null;
