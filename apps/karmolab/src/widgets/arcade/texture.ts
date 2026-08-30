@@ -191,7 +191,7 @@ export function shojiTexture(size = 512): HTMLCanvasElement {
   const cols = 10;
   const rows = 14;
   c.shadowColor = 'rgba(30,20,10,.9)';
-  c.shadowBlur = size * 0.012;
+  c.shadowBlur = size * 0.006;
   for (let i = 0; i <= cols; i += 1) {
     c.lineWidth = i === 0 || i === cols ? size * 0.03 : size * 0.014;
     c.beginPath();
@@ -287,6 +287,19 @@ export function clothTexture(seed = 73, size = 256): HTMLCanvasElement {
     c.fillStyle = `rgba(${r() > 0.5 ? '255,255,255' : '0,0,0'},${(r() * 0.08).toFixed(3)})`;
     c.fillRect(r() * size, r() * size, 1.5, 1.5);
   }
+  return cv;
+}
+
+/** 접지 그늘. 가운데 검고 가장자리로 갈수록 투명. 물건 밑에 깔면 바닥에 붙는다 */
+export function contactTexture(size = 256): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  c.clearRect(0, 0, size, size);
+  const g = c.createRadialGradient(size / 2, size / 2, size * 0.18, size / 2, size / 2, size * 0.5);
+  g.addColorStop(0, 'rgba(0,0,0,1)');
+  g.addColorStop(0.55, 'rgba(0,0,0,.45)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  c.fillStyle = g;
+  c.fillRect(0, 0, size, size);
   return cv;
 }
 

@@ -47,7 +47,7 @@ import {
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
-import { cloudTexture, clothTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
+import { cloudTexture, clothTexture, contactTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 import type { SceneId } from './scenes';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
@@ -244,15 +244,17 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 색이 갈려야 그림에 온도. 해는 뒤쪽(툇마루 쪽)에서 들어 그림자가 앞으로 누움
    */
   /* 전부 노란 빛으로 두면 방 전체에 노란 필터가 낀다(사용자 지적). 해만 살짝 따뜻하고 나머지는 흰 쪽 */
-  scene.add(new AmbientLight(0xffffff, desk ? 0.35 : lounge ? 0.34 : room ? 0.28 : 1.45));
-  const hemi = desk ? new HemisphereLight(0x8fa3c4, 0x2a2018, 0.6) : study ? new HemisphereLight(0xe8eef5, 0x4a3a2c, 0.65) : lounge ? new HemisphereLight(0xe9f0fa, 0x6a5a48, 0.9) : new HemisphereLight(0xdde8f4, 0x4a3823, 0.8);
+  /* 채움광은 해의 1/5 아래. 0.28+0.8 로 두니 해(2.3)와 맞먹어 알 그림자가 얼룩으로 씻겼다(2026-08-30 실측, 사용자 지적) */
+  scene.add(new AmbientLight(0xffffff, desk ? 0.2 : lounge ? 0.18 : room ? 0.14 : 1.45));
+  const hemi = desk ? new HemisphereLight(0x8fa3c4, 0x2a2018, 0.38) : study ? new HemisphereLight(0xe8eef5, 0x4a3a2c, 0.38) : lounge ? new HemisphereLight(0xe9f0fa, 0x6a5a48, 0.48) : new HemisphereLight(0xdde8f4, 0x4a3823, 0.42);
   if (room) scene.add(hemi);
   /* 해. 밤 책상은 위에서 곧게(등불의 그림자 몫), 서재는 왼쪽 뒤 창에서 저녁 빛 */
-  const sun = new DirectionalLight(desk ? 0xfff1e0 : study ? 0xffe6cc : lounge ? 0xfff8ee : room ? 0xfff0dc : 0xfff3e0, desk ? 1.8 : study ? 2.0 : lounge ? 2.1 : room ? 2.3 : 1.9);
-  if (desk) sun.position.set(size * 0.25, size * 2.2, size * 0.35);
-  else if (study) sun.position.set(-size * 1.0, size * 1.0, -size * 0.35);
-  else if (lounge) sun.position.set(size * 1.25, size * 1.35, -size * 0.2);
-  else if (room) sun.position.set(size * 0.9, size * 1.05, -size * 0.75);
+  const sun = new DirectionalLight(desk ? 0xfff1e0 : study ? 0xffe6cc : lounge ? 0xfff8ee : room ? 0xfff0dc : 0xfff3e0, desk ? 2.2 : study ? 2.9 : lounge ? 2.9 : room ? 3.1 : 1.9);
+  /* 해 고도 28~32도. 42도로 두니 알(높이 0.2) 그림자가 알 밑에 숨었다. 레퍼런스는 긴 그림자(실측) */
+  if (desk) sun.position.set(size * 1.0, size * 1.05, size * 0.85);
+  else if (study) sun.position.set(-size * 1.25, size * 0.8, -size * 0.5);
+  else if (lounge) sun.position.set(size * 1.3, size * 0.9, -size * 0.45);
+  else if (room) sun.position.set(size * 1.05, size * 0.78, -size * 0.85);
   else sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
   sun.castShadow = true;
   /**
@@ -262,7 +264,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    */
   sun.shadow.mapSize.set(2048, 2048);
   /* PCF 의 번짐 반경. 1 이면 가장자리가 계단, 3 이면 햇빛 그림자다운 반그늘(실측 비용 차이 없음) */
-  sun.shadow.radius = room ? 3 : 1;
+  sun.shadow.radius = room ? 2 : 1;
   /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
   /* 낮은 해는 그림자가 길다. 방 표현은 틀을 더 넓게 */
   const shadowSpan = size * (room ? 1.4 : opts.bowls ? 0.95 : 0.62);
@@ -474,7 +476,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   woodMap.anisotropy = 4;
   /* 방 표현은 판을 살짝 붉게 물들인다. 레퍼런스의 판은 노란 소나무가 아니라 주황빛 도는 계수나무다(실측 색 #d9905a).
      0xf2b27c 로 두니 실제 GPU 에서 주황 줄무늬가 됐다(swiftshader 는 창백하게 속였다). 살짝만 */
-  const wood = new MeshStandardMaterial({ map: woodMap, color: room ? 0xfbf0e2 : 0xffffff, roughness: 0.68, metalness: 0.02 });
+  /* 방 표현은 윤을 조금 살림. 0.68 이면 판이 무광 종이라 해 방향이 안 읽힘 */
+  const wood = new MeshStandardMaterial({ map: woodMap, color: room ? 0xfbf0e2 : 0xffffff, roughness: room ? 0.52 : 0.68, metalness: 0.02 });
   const board = new Mesh(new PlaneGeometry(size, size), wood);
   board.rotation.x = -Math.PI / 2;
   board.position.y = boardTop;
@@ -493,6 +496,17 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   body.position.y = boardTop / 2 - 0.004;
   body.castShadow = true;
   scene.add(body);
+  /* 접지 그늘. 판과 통이 바닥에 닿는 자리를 어둡게. 없으면 물건이 바닥에 떠 보인다(2026-08-30 실측) */
+  const aoMap = new CanvasTexture(contactTexture(256));
+  const aoMat = new MeshBasicMaterial({ map: aoMap, transparent: true, opacity: room ? 0.62 : 0.4, depthWrite: false, color: 0x000000 });
+  const contact = (w: number, d: number, x: number, z: number, y = 0.012): void => {
+    const m = new Mesh(new PlaneGeometry(w, d), aoMat);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, y, z);
+    m.renderOrder = -1;
+    scene.add(m);
+  };
+  contact(size * 1.3, size * 1.3, 0, 0);
 
   /**
    * 판만 비추는 등. 방은 어둡고 판 위에만 빛이 떨어져야 눈이 판으로 감
@@ -514,7 +528,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   shojiMap.colorSpace = SRGBColorSpace;
   if (tatami) {
     /* 세기 2.6, 각 0.58 로 두니 판 위까지 굵은 격자가 덮여 판이 지저분했다(실측). 옅게, 좁게, 판 뒤로 */
-    const spot = new SpotLight(0xfff4e6, 1.1, 0, 0.4, 0.5, 0);
+    const spot = new SpotLight(0xfff4e6, 1.9, 0, 0.4, 0.5, 0);
     spot.map = shojiMap;
     spot.position.set(size * 0.35, size * 1.7, -size * 1.7);
     spot.target.position.set(-size * 0.2, 0, -size * 0.35);
@@ -644,6 +658,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       const sz = who === 1 ? -away : away;
       const cup = new Mesh(bowlGeo, bowlWood);
       cup.position.set(sx, 0, sz);
+      contact(r * 3.2, r * 3.2, sx, sz, 0.014);
       cup.castShadow = true;
       cup.receiveShadow = true;
       scene.add(cup);
@@ -886,9 +901,9 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const breathe = (t: number): void => {
     const s = t / 1000 + living.seed;
     /* 구름. 두 사인의 합. 0.5~1.0 사이를 40~90초 주기로. 해가 구름에 들면 방이 눈에 띄게 어두워진다 */
-    const cloud = desk ? 1 : 0.75 + 0.25 * Math.sin(s * 0.09) * Math.cos(s * 0.043 + 1.3);
-    sun.intensity = (desk ? 1.8 : study ? 2.0 : lounge ? 2.1 : 2.3) * cloud;
-    hemi.intensity = (desk ? 0.6 : study ? 0.65 : lounge ? 0.9 : 0.8) * (0.8 + 0.2 * cloud);
+    const cloud = desk ? 1 : 0.84 + 0.16 * Math.sin(s * 0.09) * Math.cos(s * 0.043 + 1.3);
+    sun.intensity = (desk ? 2.2 : study ? 2.9 : lounge ? 2.9 : 3.1) * cloud;
+    hemi.intensity = (desk ? 0.38 : study ? 0.38 : lounge ? 0.48 : 0.42) * (0.8 + 0.2 * cloud);
     if (living.lamp) {
       /* 등불은 숨쉬듯. 눈에 띄면 고장 난 전구다 */
       living.lamp.intensity = (desk ? 3.4 : 1.6) * (0.965 + 0.035 * Math.sin(s * 1.3) * Math.sin(s * 0.37 + 0.8));
@@ -904,7 +919,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       m.opacity = 0.25 + 0.6 * Math.max(0, cloud - 0.5) * 2;
     }
     if (living.spot) {
-      living.spot.intensity = 1.2 * (0.8 + 0.2 * cloud);
+      living.spot.intensity = 2.0 * (0.8 + 0.2 * cloud);
       /* 바람. 장지문 빛이 살짝 흔들린다 */
       living.spot.target.position.x = -size * 0.2 + Math.sin(s * 0.7) * size * 0.012 + Math.sin(s * 1.9) * size * 0.004;
     }

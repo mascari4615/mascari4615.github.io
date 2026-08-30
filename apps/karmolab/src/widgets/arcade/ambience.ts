@@ -110,6 +110,21 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
     }
   };
 
+  /* 빗방울 한 알. 15ms 잡음을 좁은 대역으로. 창틀에 떨어지는 건 높고, 처마 밑은 낮다 */
+  const drop = (out: AudioNode, at: number): void => {
+    const c = ctx as AudioContext;
+    const src = noise(c);
+    const f = filter(c, 'bandpass', 1400 + Math.random() * 3800, 6);
+    const g = c.createGain();
+    const level = 0.006 + Math.random() * 0.02;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(level, at + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.02 + Math.random() * 0.03);
+    src.connect(f).connect(g).connect(out);
+    src.start(at);
+    src.stop(at + 0.07);
+  };
+
   const chime = (out: AudioNode): void => {
     const c = ctx as AudioContext;
     const notes = 2 + Math.floor(Math.random() * 3);
@@ -169,17 +184,18 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
       /* 거실은 창밖 새와 옅은 바람. 매미도 비도 없다 */
       windGain.gain.value = 0.07;
     } else {
-      /* 비. 높은 잡음이 아주 천천히 세졌다 약해진다 */
+      /* 비. 2600Hz 위 흰 잡음을 그대로 깔았더니 TV 신호 끊긴 소리였다(2026-08-30 사용자 지적).
+         빗발은 멀리서 들리는 낮은 쏴 소리(600~1800Hz 대역)를 옅게, 그 위에 낱개 빗방울(아래 `drop`) */
       const rain = noise(c);
-      const hp = filter(c, 'highpass', 2600, 0.5);
+      const band = filter(c, 'bandpass', 1100, 0.5);
       const rg = c.createGain();
-      rg.gain.value = 0.045;
+      rg.gain.value = 0.05;
       const rl = c.createOscillator();
       rl.frequency.value = 0.05;
       const rd = c.createGain();
-      rd.gain.value = 0.015;
+      rd.gain.value = 0.012;
       rl.connect(rd).connect(rg.gain);
-      rain.connect(hp).connect(rg).connect(master);
+      rain.connect(band).connect(rg).connect(master);
       rain.start();
       rl.start();
       started.push(rain, rl);
@@ -205,9 +221,14 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
         chime(master as GainNode);
         nextChime = now + 7 + Math.random() * 14;
       }
-      if (voice === 'study' && now >= nextChime) {
-        tick();
-        nextChime = now + 1;
+      if (voice === 'study') {
+        if (now >= nextChime) {
+          tick();
+          nextChime = now + 1;
+        }
+        /* 다음 0.5초 안에 빗방울 6~12알. 고른 간격이면 기계음이라 자리는 난수 */
+        const count = 6 + Math.floor(Math.random() * 7);
+        for (let k = 0; k < count; k += 1) drop(master as GainNode, now + Math.random() * 0.5);
       }
       if (voice === 'living' && now >= nextChime) {
         bird(master as GainNode);
