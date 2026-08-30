@@ -2760,9 +2760,11 @@ const Toolbox = (() => {
     function applyUiScale() {
         const mode = getUiScale();
         let z = 1;
-        if (mode === 'fit' && window.innerWidth > 1440) {
+        /* 양방향. 큰 화면은 키우고 작은 화면은 줄여 1440x900 짜임을 지킨다 (사용자: 게임처럼). 0.6~1.75
+         * 폰(1024 미만)은 안 건드린다. 폰 짜임은 따로 있고 0.3배로 줄이면 못 읽는다 */
+        if (mode === 'fit' && window.innerWidth >= 1024) {
             z = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
-            z = Math.max(1, Math.min(1.75, Math.round(z * 100) / 100));
+            z = Math.max(0.6, Math.min(1.75, Math.round(z * 100) / 100));
         }
         document.documentElement.style.zoom = z === 1 ? '' : String(z);
         document.documentElement.dataset.uiScale = String(z);

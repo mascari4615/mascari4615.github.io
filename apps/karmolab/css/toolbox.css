@@ -528,13 +528,6 @@ html[data-intro="off"] .intro-overlay {
 }
 
 /* 옆줄의 접히지 않는 이름표 (빈 칸용, 2026-08-19) */
-.sidebar-group-label--flat {
-    padding: 8px 10px 2px;
-    font-size: var(--font-size-3xs);
-    font-weight: 700;
-    letter-spacing: .02em;
-    color: var(--text-tertiary);
-}
 
 /* 폰 전용 도구 목록 입구. 폰 미디어쿼리에서만 켠다 (PC 는 사이드바가 그 역할).
    손가락 기준 최소 40px 을 여기서 확보한다 (미디어쿼리는 display 만 뒤집는다). */
@@ -2393,77 +2386,13 @@ html[data-sidebar="rail"] .sidebar-group:not(.sidebar-group--cat) + .sidebar-gro
     color: var(--text-tertiary);
 }
 
-.sidebar-group { margin-top: var(--space-sm); }
 
-.sidebar-group-trigger {
-    display: flex;
-    gap: 6px;
-    width: 100%;
-    padding: 6px 10px 6px 30px;
-    font-size: var(--font-size-2xs);
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    transition: color var(--transition);
-    text-align: left;
-    position: relative;
-    cursor: pointer;
-    background: none;
-    border: none;
-}
 
-.sidebar-group-trigger:hover { color: var(--text-secondary); }
 
-.sidebar-group-trigger .chevron {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    transition: transform var(--transition);
-}
 
-.sidebar-group-trigger .chevron::before {
-    content: '';
-    position: absolute;
-    left: 1px;
-    top: 2px;
-    width: 4px;
-    height: 4px;
-    border-right: 1.5px solid currentColor;
-    border-bottom: 1.5px solid currentColor;
-    transform: rotate(-45deg);
-}
-
-.sidebar-group-trigger.open .chevron { transform: translateY(-50%) rotate(90deg); }
-
-.sidebar-group-body { display: none; overflow: hidden; }
-.sidebar-group-body.open { display: block; }
 
 /* 텍스트는 항상 한 줄. 사이드바 overflow:hidden 이 클리핑 담당 */
 .sidebar .nav-item-text,
-.sidebar .sidebar-group-label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: clip;
-    flex-shrink: 0;
-    transition: opacity var(--transition-slow);
-}
-
-/* 목록 상시 펼침이라 이름도 상시 노출. 예전엔 마우스 얹기 전까지 opacity 0 */
-
-/* ── 창(모달). 지금은 환경 설정 하나가 씀 ──
-   설정은 도구가 아니라 창. 보던 화면 위에 뜸 */
-.kl-modal-overlay {
-    position: fixed; inset: 0; z-index: 3000;
-    background: rgba(8, 8, 12, 0.62);
-    display: flex; align-items: center; justify-content: center;
-    padding: var(--space-lg);
-    animation: fadeIn 140ms ease;
-}
 .kl-modal {
     position: relative;
     width: min(940px, 100%);
@@ -2588,16 +2517,6 @@ html.has-modal, html.has-modal body { overflow: hidden; }
 }
 
 /* 갈래 아이콘. 화살표와 이름 사이 */
-.sidebar-group-icon { flex: none; opacity: 0.75; margin-right: 2px; }
-
-/* 갈래 이름 옆 도구 수. 234개가 다 있다는 것을 접힌 채로 보여 준다 */
-.sidebar-group-count {
-    margin-left: auto;
-    font-family: var(--font-mono);
-    font-size: var(--font-size-4xs);
-    color: var(--text-tertiary);
-    font-variant-numeric: tabular-nums;
-}
 
 .sidebar-dev-links-icon { display: flex; }
 .sidebar-dev-links-text { display: inline; }
