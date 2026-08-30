@@ -129,6 +129,13 @@ export function discoverEntryPoints(root, skip = new Set()) {
     for (const match of body.matchAll(/ensureScript\(\s*['"]root\/([A-Za-z0-9_-]+)['"]/g)) {
       rels.add(`src/${match[1]}.ts`);
     }
+    /* 뿌리가 아닌 위젯도 같은 손으로 데려온다. `ensureScript('dashboard')`.
+       메타에 안 적힌 위젯이라 목록으로는 안 잡히고, 안 잡히면 그 화면만 조용히 빈다
+       (2026-08-31 실측: 내 정보 화면의 쓰임새 표가 404 로 안 떴다). 소스가 있을 때만 담는다 */
+    for (const match of body.matchAll(/ensureScript(?:\?\.)?\(\s*['"]([A-Za-z0-9_-]+)['"]/g)) {
+      const guess = `src/widgets/${match[1]}.ts`;
+      if (fs.existsSync(path.join(root, guess))) rels.add(guess);
+    }
   }
 
   // 위젯이 **실행 중에 형제 파일을 부르는** 경우 (tierlist, imageconvert 가 그렇게 한다:
