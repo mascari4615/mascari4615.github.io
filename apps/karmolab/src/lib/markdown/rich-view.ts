@@ -53,7 +53,7 @@ export function injectRichViewStyles(): void {
         .docs-toc-listnav { display:flex; flex-direction:column; gap:6px; }
         .docs-toc-a { font-size:var(--font-size-2xs); color:var(--text-tertiary); text-decoration:none; line-height:1.45; padding:6px 8px; border-radius:var(--radius-xl); border:1px solid transparent; }
         .docs-toc-a:hover { color:var(--text-secondary); border-color:var(--border); background:var(--bg-tertiary); }
-        .docs-toc-a.active { color:var(--text-primary); border-color:var(--accent-ink); box-shadow:0 0 0 2px var(--accent-subtle); }
+        .docs-toc-a.active { color:var(--text-primary); border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-subtle); }
         .docs-toc-l2 { padding-left:18px; }
         .docs-toc-l3 { padding-left:28px; }
         .docs-heading { position:relative; scroll-margin-top:16px; }

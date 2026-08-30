@@ -494,7 +494,7 @@ function injectStyles(): void {
 .pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;}
 .pf-job{appearance:none;text-align:left;padding:9px 12px;border-radius:var(--radius-lg);cursor:pointer;
   border:1px solid var(--border);background:transparent;font-size:var(--font-size-2xs);line-height:1.3;}
-.pf-job:hover{background:var(--accent-dim);border-color:var(--accent-ink);}
+.pf-job:hover{background:var(--accent-dim);border-color:var(--accent);}
 .pf-job.pf-hot{border-color:var(--success);background:var(--success-subtle);font-weight:600;}
 .pf-recent[hidden]{display:none;}
 .pf-recent{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}

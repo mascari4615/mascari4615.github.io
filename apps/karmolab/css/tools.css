@@ -84,7 +84,7 @@
     /* 아래 글자 크기가 이 칸의 폭을 보고 정해지게 한다 (TASK-KL-128). */
     container-type: inline-size;
 }
-.cc-stat-primary { border-left-color: var(--accent-ink); }
+.cc-stat-primary { border-left-color: var(--accent); }
 .cc-stat-label {
     font-size: var(--font-size-2xs);
     color: var(--text-tertiary);
@@ -238,7 +238,7 @@
 .tool-chip.active {
     color: var(--accent-ink);
     background: var(--accent-subtle);
-    border-color: var(--accent-ink);
+    border-color: var(--accent);
 }
 
 /* ── key/value 목록 ── */
@@ -306,7 +306,7 @@
     color: var(--text-secondary);
     transition: all var(--transition);
 }
-.tool-drop.over { border-color: var(--accent-ink); background: var(--accent-subtle); }
+.tool-drop.over { border-color: var(--accent); background: var(--accent-subtle); }
 
 /* ── 로또, 연금복권 ──
    연출 규율 (2026-08-20): 움직임은 **켜질 때만** 붙인다. 기본이 정지고
@@ -568,7 +568,7 @@ body.tool-detail .tool-head p {
 /* 나가는 것과 안 나가는 것은 **색으로도** 갈린다. 글을 다 안 읽고 지나가는 사람이 훨씬 많다.
    색만으로는 못 가르는 사람이 있으므로 배지 글자가 늘 같은 뜻을 이고 간다(색은 거들 뿐). */
 .tool-privacy[data-where="local"], .tool-privacy[data-where="assets"] { border-left-color: var(--success, #3fa66a); }
-.tool-privacy[data-where="ours"] { border-left-color: var(--accent-ink); }
+.tool-privacy[data-where="ours"] { border-left-color: var(--accent); }
 .tool-privacy[data-where="third-party"],
 .tool-privacy[data-where="yours"],
 .tool-privacy[data-where="ai"] { border-left-color: var(--warning, #d99a2b); }
@@ -616,7 +616,7 @@ body.tool-detail .tool-head p {
     text-decoration: none;
     line-height: 1.5;
 }
-a.tool-sponsor-link:hover { border-color: var(--accent-ink); }
+a.tool-sponsor-link:hover { border-color: var(--accent); }
 .tool-sponsor-link span {
     display: block;
     margin-top: 6px;
@@ -680,7 +680,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     cursor: pointer;
     transition: all var(--transition);
 }
-.tool-next-btn:hover { border-color: var(--accent-ink); background: var(--bg-tertiary); }
+.tool-next-btn:hover { border-color: var(--accent); background: var(--bg-tertiary); }
 
 /* 도구 화면의 별 (TASK-KL-129). 쓰다가 이거 자주 쓰겠네 싶을 때 그 자리에서 꽂는다.
    제목 옆이 아니라 오른쪽 위. 제목을 읽는 눈길을 가로막지 않는 자리다. */
@@ -758,7 +758,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 }
 .tool-hub-group:first-of-type { margin-top: 8px; }
 .tool-hub-group a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border); }
-.tool-hub-group a:hover { color: var(--accent-ink); border-bottom-color: var(--accent-ink); }
+.tool-hub-group a:hover { color: var(--accent-ink); border-bottom-color: var(--accent); }
 
 /* 창고 (2026-08-29). 넉 주 동안 아무도 안 연 도구 105개가 여기로 내려왔다.
    지운 것이 아니라 접은 것이라, 눌러서 펴는 자리라는 게 보여야 한다.
@@ -820,7 +820,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     text-decoration: none;
     transition: all var(--transition);
 }
-.tool-hub-card:hover { border-left-color: var(--accent-ink); transform: translateY(-2px); }
+.tool-hub-card:hover { border-left-color: var(--accent); transform: translateY(-2px); }
 /* 줄간격은 본문 기준(1.8)을 물려받는데, 한 줄짜리 제목에는 그게 위아래 빈칸이 된다.
    카드 한 장에서 12px 가 그냥 빈칸이었다 (TASK-KL-128). */
 .tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); line-height: 1.35; margin-bottom: 2px; }
@@ -961,7 +961,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     outline: none;
     cursor: default;
 }
-.kc-stage:focus { border-color: var(--accent-ink); }
+.kc-stage:focus { border-color: var(--accent); }
 .kc-hint { color: var(--text-tertiary); font-size: var(--font-size-sm); }
 .kc-key {
     font-family: var(--font-mono);
@@ -1018,7 +1018,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .p2-cell { border: 1px solid var(--border); background: var(--bg-secondary); padding: 8px; text-decoration: none; display: block; }
 .p2-cell img { width: 100%; height: auto; display: block; background: #fff; }
 .p2-cell span { display: block; margin-top: 6px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
-.p2-cell:hover { border-color: var(--accent-ink); }
+.p2-cell:hover { border-color: var(--accent); }
 
 /* 오디오 파형 */
 .ac-wave { width: 100%; height: 120px; display: block; background: var(--bg-secondary); border: 1px solid var(--border); }
@@ -1177,7 +1177,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-sm);
     font-family: inherit;
 }
-.tool-hub-find input:focus { outline: none; border-color: var(--accent-ink); }
+.tool-hub-find input:focus { outline: none; border-color: var(--accent); }
 .tool-hub-find span { color: var(--text-secondary); font-size: var(--font-size-xs); white-space: nowrap; }
 .tool-hub-empty[hidden] { display: none; }
 .tool-hub-empty {
@@ -1248,7 +1248,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
     text-decoration: none;
 }
-.tool-hub-toc a:hover { border-color: var(--accent-ink); color: var(--accent-ink); }
+.tool-hub-toc a:hover { border-color: var(--accent); color: var(--accent-ink); }
 /* 폰에서는 분류가 열여섯 개라 다섯 줄을 차지했다. 목록이 시작하기도 전에 화면 절반이 없어진다.
    한 줄로 두고 옆으로 밀어 본다 (TASK-KL-128). 줄 끝을 흐리게 해서 더 있다는 것을 알린다. */
 @media (max-width: 640px) {
@@ -1369,7 +1369,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     background: transparent; border: 1px solid var(--border-strong);
     border-radius: var(--radius-xl); cursor: pointer;
 }
-.qs-tool:hover:not(:disabled) { border-color: var(--accent-ink); }
+.qs-tool:hover:not(:disabled) { border-color: var(--accent); }
 .qs-tool:disabled { opacity: .6; cursor: default; }
 /* 도구가 문제 밑에서 펴지는 자리. 문제 카드 안이라 한 겹 더 들어가 보이게 한다.
    높이를 묶어 **제 안에서** 스크롤하게 한다: 안 묶으면 진법 도구 하나가 1,043px 로 펴져
@@ -1390,7 +1390,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pd-card { border: 1px solid var(--border); background: var(--bg-secondary); padding: 12px; }
 .pd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: var(--font-size-sm); }
 .pd-badge { font-size: var(--font-size-2xs); padding: 2px 8px; border: 1px solid var(--border); color: var(--text-secondary); }
-.pd-badge.pd-chg { border-color: var(--accent-ink); color: var(--accent-ink); }
+.pd-badge.pd-chg { border-color: var(--accent); color: var(--accent-ink); }
 .pd-badge.pd-same { color: var(--success); border-color: var(--success); }
 .pd-badge.pd-add { color: var(--success); border-color: var(--success); }
 .pd-badge.pd-del { color: var(--error); border-color: var(--error); }
@@ -1421,7 +1421,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     background: var(--bg-secondary); border: 1px solid var(--border);
     border-radius: var(--radius-xl); transition: border-color .15s, transform .15s;
 }
-.pl-card:hover, .pl-card:focus-visible { border-color: var(--accent-ink); transform: translateY(-2px); }
+.pl-card:hover, .pl-card:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
 .pl-emoji { grid-row: 1 / span 2; font-size: 1.7rem; align-self: center; }
 .pl-card strong { font-size: var(--font-size-sm); }
 .pl-lead-sm { color: var(--text-tertiary); font-size: var(--font-size-2xs); line-height: 1.5; }
@@ -1556,7 +1556,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     cursor: pointer;
     min-height: 60px;
 }
-.du-choice:hover:enabled { border-color: var(--accent-ink); }
+.du-choice:hover:enabled { border-color: var(--accent); }
 .du-choice.du-right { border-color: var(--success); box-shadow: inset 0 0 0 2px var(--success); }
 .du-choice.du-wrong { border-color: var(--error); box-shadow: inset 0 0 0 2px var(--error); }
 .du-timerbar { height: 6px; background: var(--bg-primary); border: 1px solid var(--border); margin-top: 14px; }
@@ -1663,7 +1663,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
     cursor: pointer;
 }
-.wb-kind:hover { border-color: var(--accent-ink); color: var(--text-primary); }
+.wb-kind:hover { border-color: var(--accent); color: var(--text-primary); }
 .wb-kind.is-on { background: var(--band); border-color: transparent; color: var(--band-ink); font-weight: 700; }
 .wb-list[hidden], .wb-toolbar[hidden] { display: none; }
 .wb-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
@@ -1678,7 +1678,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     color: inherit;
     cursor: pointer;
 }
-.wb-card:hover { border-color: var(--accent-ink); }
+.wb-card:hover { border-color: var(--accent); }
 .wb-card-kind { font-size: var(--font-size-2xs); color: var(--accent-ink); letter-spacing: .08em; }
 .wb-card-title { font-size: var(--font-size-md); font-weight: 700; }
 .wb-card-sum { font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6; }
@@ -1725,7 +1725,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
     cursor: pointer;
 }
-.wm-nav-btn:hover { border-color: var(--accent-ink); color: var(--text-primary); }
+.wm-nav-btn:hover { border-color: var(--accent); color: var(--text-primary); }
 .wm-nav-btn.is-on { background: var(--band); border-color: transparent; color: var(--band-ink); font-weight: 700; }
 .wm-nav-link { margin-left: auto; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .wm-nav-link + .wm-nav-link { margin-left: 10px; }
@@ -1738,7 +1738,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wm-news-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
 .wm-news-list li { display: grid; grid-template-columns: minmax(5.5em, auto) 1fr; gap: 10px; align-items: baseline; }
 .wm-news-kind { font-size: var(--font-size-2xs); color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; text-align: center; }
-.wm-news-feat { color: var(--accent-ink); border-color: var(--accent-ink); }
+.wm-news-feat { color: var(--accent-ink); border-color: var(--accent); }
 .wm-news-text { font-size: var(--font-size-sm); line-height: 1.65; word-break: keep-all; }
 .wm-news-quiet { margin: 8px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 
@@ -1829,7 +1829,7 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .wm-day-cond, .wm-day-slots { margin: 0; font-size: var(--font-size-sm); color: var(--text-secondary); }
 .wm-day-acts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .wm-act { display: grid; gap: 4px; text-align: left; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: transparent; color: inherit; cursor: pointer; }
-.wm-act:hover:not(:disabled) { border-color: var(--accent-ink); }
+.wm-act:hover:not(:disabled) { border-color: var(--accent); }
 .wm-act:disabled { opacity: .45; cursor: default; }
 .wm-act span { font-size: var(--font-size-xs); color: var(--text-tertiary); line-height: 1.55; }
 .wm-day-log { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; font-size: var(--font-size-xs); color: var(--text-tertiary); }
@@ -1873,5 +1873,5 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .tool-card-btn { display: inline-flex; align-items: center; gap: 6px; margin: -8px 0 var(--space-lg);
     padding: 6px 12px; font: inherit; font-size: var(--font-size-xs); color: var(--text-secondary);
     background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
-.tool-card-btn:hover { color: var(--accent-ink); border-color: var(--accent-ink); }
+.tool-card-btn:hover { color: var(--accent-ink); border-color: var(--accent); }
 .tool-card-btn[disabled] { color: var(--text-tertiary); cursor: default; }

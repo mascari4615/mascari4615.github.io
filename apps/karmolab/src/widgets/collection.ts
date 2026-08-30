@@ -72,7 +72,7 @@ interface ToolMeta {
 .cl-sec { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 5px 10px;
     border: 1px dashed var(--border); border-radius: var(--radius-sm);
     font-size: var(--font-size-xs); color: var(--text-tertiary); font-family: var(--font-mono); }
-.cl-sec.is-on { border-style: solid; border-color: var(--accent-ink); color: var(--accent-ink); font-family: inherit; }`;
+.cl-sec.is-on { border-style: solid; border-color: var(--accent); color: var(--accent-ink); font-family: inherit; }`;
         document.head.appendChild(style);
     }
 

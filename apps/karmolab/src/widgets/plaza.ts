@@ -119,7 +119,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-more { margin-top:10px; padding:6px 14px; border:1px solid var(--border); border-radius:var(--radius-pill);
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs);
             cursor:pointer; }
-        .plaza-more:hover { border-color:var(--accent-ink); color:var(--text-primary); }
+        .plaza-more:hover { border-color:var(--accent); color:var(--text-primary); }
 
         .plaza-rows { border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); overflow:hidden; }

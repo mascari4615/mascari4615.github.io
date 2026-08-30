@@ -74,7 +74,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .linktree-group-title { font-size: var(--font-size-2xs); font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
         .linktree-list { display: flex; flex-direction: column; gap: var(--space-sm); }
         .linktree-card { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text-primary); text-decoration: none; font-weight: 500; font-size: var(--font-size-sm); transition: all var(--transition); text-align: left; }
-        .linktree-card:hover { background: var(--bg-hover); border-color: var(--accent-ink); color: var(--accent-ink); transform: translateY(-1px); }
+        .linktree-card:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--accent-ink); transform: translateY(-1px); }
         .linktree-card-email { cursor: default; }
         .linktree-card-icon { flex-shrink: 0; width: 20px; height: 20px; opacity: 0.7; }
         .linktree-card-icon svg { width: 100%; height: 100%; }

@@ -58,7 +58,7 @@ Mdd.injectCSS(
         border:1px solid var(--bg-tertiary); border-radius:var(--radius-lg); color:var(--text-primary); padding:8px 12px; }
     .cb-blog-chip { background:none; border:1px solid var(--bg-tertiary); border-radius:var(--radius-pill);
         color:var(--text-secondary); padding:4px 12px; cursor:pointer; font-size:var(--font-size-2xs); }
-    .cb-blog-chip.on { border-color:var(--accent-ink); color:var(--accent-ink); }
+    .cb-blog-chip.on { border-color:var(--accent); color:var(--accent-ink); }
     /* 목록 골격은 커뮤니티의 c-table, c-num, c-td-title 을 **그대로** 입는다 . 
        판마다 줄 모양이 다르면 게시판이 아니다. 여기서 새로 정하는 것은 분류 꼬리표 하나뿐.
        (제목 칸이 자기 규격을 안 쓰면 표가 글자 수만큼 좌우로 흔들린다. 2026-08-23 실측) */

@@ -104,7 +104,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         .pf-btn { padding:6px 12px; border:1px solid var(--border); border-radius:var(--radius-md);
             background:var(--bg-secondary); color:var(--text-primary); font-size:var(--font-size-xs);
             cursor:pointer; font-family:inherit; }
-        .pf-btn:hover { border-color:var(--accent-ink); }
+        .pf-btn:hover { border-color:var(--accent); }
         .pf-stamp { margin-left:auto; font-size:var(--font-size-3xs); color:var(--text-tertiary);
             font-family:var(--font-mono); }
         .pf-cards { display:flex; flex-wrap:wrap; gap:12px; }

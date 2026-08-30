@@ -83,7 +83,7 @@ const esc = (v: unknown): string =>
             cursor:pointer; transition:all 0.25s ease; aspect-ratio:1;
         }
         .il-lib-card:hover {
-            border-color:var(--accent-ink); transform:translateY(-3px);
+            border-color:var(--accent); transform:translateY(-3px);
             box-shadow:0 8px 28px rgba(0,0,0,0.5);
         }
         .il-lib-card img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -166,7 +166,7 @@ const esc = (v: unknown): string =>
             flex:1; font-size:var(--font-size-xs); padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm);
             background:var(--bg-primary); color:var(--text-primary); outline:none; font-family:inherit;
         }
-        .il-search-bar input:focus { border-color:var(--accent-ink); }
+        .il-search-bar input:focus { border-color:var(--accent); }
         .il-search-bar input::placeholder { color:var(--text-tertiary); }
 
         @media (max-width:768px) {

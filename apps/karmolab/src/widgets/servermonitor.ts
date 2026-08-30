@@ -1151,11 +1151,11 @@ import { t, loadNamespace } from '../lib/i18n';
             .sm-local-title-text { margin-bottom: 0 !important; flex: 1; min-width: 0; }
             .sm-refresh-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
             .sm-refresh-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
-            .sm-refresh-icon-btn:hover:not(:disabled) { border-color: var(--accent-ink); color: var(--accent-ink); }
+            .sm-refresh-icon-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-ink); }
             .sm-refresh-icon-btn:disabled { opacity: 0.55; cursor: not-allowed; }
             .sm-refresh-icon-btn svg { width: 16px; height: 16px; }
             .sm-refresh-progress { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-2xs); color: var(--text-tertiary); min-height: 16px; }
-            .sm-spinner { width: 14px; height: 14px; flex-shrink: 0; border: 2px solid var(--border); border-top-color: var(--accent-ink); border-radius: 50%; animation: sm-spin 0.7s linear infinite; }
+            .sm-spinner { width: 14px; height: 14px; flex-shrink: 0; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sm-spin 0.7s linear infinite; }
             @keyframes sm-spin { to { transform: rotate(360deg); } }
             .sm-desktop-section-title { font-weight: 700; margin-bottom: 10px; color: var(--accent-ink); }
             .sm-local-services { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
@@ -1165,7 +1165,7 @@ import { t, loadNamespace } from '../lib/i18n';
             .sm-card--merged .sm-card-title { font-size: var(--font-size-sm); flex-shrink: 0; }
             .sm-card-sub-inline { flex: 0 1 auto; min-width: 0; font-size: var(--font-size-xs); color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .sm-menu-btn { flex-shrink: 0; width: 30px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: var(--font-size-md); line-height: 1; }
-            .sm-menu-btn:hover { border-color: var(--accent-ink); color: var(--accent-ink); }
+            .sm-menu-btn:hover { border-color: var(--accent); color: var(--accent-ink); }
             .sm-card-status-text { flex-shrink: 0; font-size: var(--font-size-xs); color: var(--text-tertiary); font-weight: 600; }
             .sm-card--up .sm-card-status-text { color: var(--success, #22c55e); }
             .sm-card--down .sm-card-status-text { color: var(--error, #e74c3c); }

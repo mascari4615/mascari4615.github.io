@@ -79,7 +79,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .kl-alarm-toggle[data-on="1"]::after { transform: translateX(18px); }
       .kl-alarm-btns { display: flex; gap: 4px; flex: none; }
       .kl-alarm-mini { padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-secondary); font-size: var(--font-size-xs); cursor: pointer; }
-      .kl-alarm-mini:hover { border-color: var(--accent-ink); color: var(--text-primary); }
+      .kl-alarm-mini:hover { border-color: var(--accent); color: var(--text-primary); }
       .kl-alarm-form { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); margin-bottom: 14px; display: none; }
       .kl-alarm-form[data-open="1"] { display: block; }
       .kl-alarm-grid { display: grid; grid-template-columns: 120px 1fr; gap: 10px 12px; align-items: center; }
@@ -96,7 +96,7 @@ import { t, loadNamespace } from '../lib/i18n';
       .kl-alarm-btn-primary { background: var(--accent, var(--bg-tertiary)); color: var(--accent-fg); border-color: var(--accent, var(--border)); }
       .kl-alarm-btn-danger { color: var(--error, #c55); border-color: var(--error-subtle, var(--border)); }
       .kl-alarm-add { padding: 8px 16px; border: 1px dashed var(--border); border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); font-size: var(--font-size-sm); cursor: pointer; width: 100%; }
-      .kl-alarm-add:hover { border-color: var(--accent-ink); color: var(--text-primary); }
+      .kl-alarm-add:hover { border-color: var(--accent); color: var(--text-primary); }
       .kl-alarm-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
       .kl-alarm-log { margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--bg-tertiary); border: 1px solid var(--border); font-size: var(--font-size-xs); color: var(--text-secondary); white-space: pre-wrap; }
       .kl-alarm-log-err { border-color: var(--error-subtle); color: var(--error); }

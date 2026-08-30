@@ -169,14 +169,14 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-top { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
         .fp-top-item { display:flex; align-items:baseline; gap:6px; padding:7px 12px; cursor:pointer;
             border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--bg-secondary); font:inherit; }
-        .fp-top-item:hover { border-color:var(--accent-ink); }
+        .fp-top-item:hover { border-color:var(--accent); }
         .fp-top-item b { font-size:var(--font-size-xs); color:var(--text-primary); }
         .fp-top-item span { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
         .fp-pins { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; }
         .fp-pin { padding:5px 11px; border-radius:var(--radius-pill); border:1px solid var(--border); cursor:pointer;
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs); }
-        .fp-pin:hover { border-color:var(--accent-ink); }
-        .fp-pin.on { background:var(--accent); border-color:var(--accent-ink); color:var(--bg-primary); font-weight:600; }
+        .fp-pin:hover { border-color:var(--accent); }
+        .fp-pin.on { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
         .fp-sessions, .fp-events { display:flex; flex-direction:column; gap:6px; flex:1 1 260px; }
         .fp-session, .fp-event { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
             padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-tertiary); }
@@ -198,7 +198,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-person { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:var(--radius-pill);
             border:1px solid var(--border); background:var(--bg-secondary); font-size:var(--font-size-xs);
             color:var(--text-primary); text-decoration:none; }
-        .fp-person:hover { border-color:var(--accent-ink); }
+        .fp-person:hover { border-color:var(--accent); }
         .fp-person b { font-size:var(--font-size-4xs); color:var(--accent-ink); font-weight:600; }
         .fp-blocked { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; font-size:var(--font-size-xs); color:var(--text-secondary); }
         .fp-blocked-item { display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
@@ -208,7 +208,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-missions { display:flex; flex-direction:column; gap:10px; }
         .fp-mission { display:flex; flex-direction:column; gap:4px; padding:10px 12px;
             border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-secondary); }
-        .fp-mission.done { border-color:var(--accent-ink); }
+        .fp-mission.done { border-color:var(--accent); }
         .fp-mission-title { font-size:var(--font-size-xs); color:var(--text-primary); }
         .fp-mission .user-item-progress { margin-top:2px; }
         .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }

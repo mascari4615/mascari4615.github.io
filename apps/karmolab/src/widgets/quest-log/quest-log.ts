@@ -981,7 +981,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 
 /* ── status-coloured obs rows ── */
-.kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent-ink); }
+.kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
 .kl-quest-log .obs[data-status="done"] .mag,
 .kl-quest-log .obs[data-status="sealed"] .mag { color: var(--bg); background: var(--ink); border-color: var(--ink); }
 .kl-quest-log .obs[data-status="hold"] .mag { border-style: dashed; }
@@ -1011,7 +1011,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   width: 14px; height: 14px; border: 1px solid var(--ink-3); flex-shrink: 0;
   margin-top: 3px; position: relative; transition: all 140ms;
 }
-.kl-quest-log .check-row.done .check-box { background: var(--accent); border-color: var(--accent-ink); }
+.kl-quest-log .check-row.done .check-box { background: var(--accent); border-color: var(--accent); }
 .kl-quest-log .check-row.done .check-box::after {
   content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   color: var(--bg); font-size: var(--font-size-2xs); font-weight: 700;
@@ -1073,7 +1073,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs); letter-spacing: 0.22em;
   color: var(--ink-3); text-align: center; padding: 2px 5px; border: 1px solid var(--line-2);
 }
-.kl-quest-log .cr-status.fire { color: var(--accent-ink); border-color: var(--accent-ink); }
+.kl-quest-log .cr-status.fire { color: var(--accent-ink); border-color: var(--accent); }
 .kl-quest-log .cr-status.sealed { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .kl-quest-log .cr-title { font-family: 'KarmoSerif', serif; font-size: var(--font-size-sm); color: var(--ink); }
 .kl-quest-log .cr-right { display: flex; align-items: center; }
@@ -1290,7 +1290,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
   padding: 2px 5px; border: 1px solid var(--line-2); white-space: nowrap; flex-shrink: 0;
 }
-.kl-quest-log .pri--high { color: var(--bg); background: var(--accent); border-color: var(--accent-ink); }
+.kl-quest-log .pri--high { color: var(--bg); background: var(--accent); border-color: var(--accent); }
 .kl-quest-log .pri--low  { color: var(--ink-3); border-style: dashed; }
 .kl-quest-log .pri--blank { visibility: hidden; }
 

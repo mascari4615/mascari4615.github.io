@@ -243,7 +243,7 @@ export const DECK_CSS = `
         box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.18);
     }
     .skin-plain .fav-deck-tab.on, .skin-glow .fav-deck-tab.on {
-        color:var(--accent-ink); background:var(--accent-subtle); border-color:var(--accent-ink);
+        color:var(--accent-ink); background:var(--accent-subtle); border-color:var(--accent);
         box-shadow:inset 0 2px 3px rgba(0,0,0,0.12);
     }
 
@@ -398,7 +398,7 @@ export const DECK_CSS = `
     }
     .skin-glow .fav-deck-tab{ color:var(--text-primary); }
     .skin-glow .fav-deck-tab.on{
-        background:var(--accent-subtle); border-color:var(--accent-ink); color:var(--accent-ink);
+        background:var(--accent-subtle); border-color:var(--accent); color:var(--accent-ink);
     }
     .skin-glow .fav-key{ pointer-events:auto; }
     .skin-glow .fk-wall, .skin-glow .fk-base, .skin-glow .fk-gw, .skin-glow .fk-glass { display:none; }
@@ -448,7 +448,7 @@ export const DECK_CSS = `
 
     /* 크기 조절. 살결과 나란히, 다른 축 */
     .fav-deck-size { display:flex; align-items:center; gap:6px; margin-left:8px; }
-    .fav-deck-size input[type="range"] { width:92px; accent-color:var(--accent-ink); cursor:pointer; }
+    .fav-deck-size input[type="range"] { width:92px; accent-color:var(--accent); cursor:pointer; }
     .fav-deck-size output { font-size:var(--font-size-2xs); opacity:0.7; font-variant-numeric:tabular-nums; min-width:34px; }
 
     /* 살결 고르는 칸 */
@@ -457,11 +457,11 @@ export const DECK_CSS = `
         font:inherit; font-size:var(--font-size-2xs); padding:4px 9px; border-radius:var(--radius-pill); cursor:pointer;
         border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); color:inherit; opacity:0.7;
     }
-    .fav-deck-skin.on { opacity:1; border-color:var(--accent-ink); color:var(--accent-ink); background:var(--accent-subtle); }
+    .fav-deck-skin.on { opacity:1; border-color:var(--accent); color:var(--accent-ink); background:var(--accent-subtle); }
     .skin-glow .fav-deck-skin{
         border-color:var(--border); background:var(--bg-tertiary); color:var(--text-secondary);
     }
-    .skin-glow .fav-deck-skin.on{ color:var(--accent-ink); border-color:var(--accent-ink); background:var(--accent-subtle); }
+    .skin-glow .fav-deck-skin.on{ color:var(--accent-ink); border-color:var(--accent); background:var(--accent-subtle); }
 
     /* 조절칸. 살결, 크기는 배치와 무관하게 늘 여기 있다 */
     .fav-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:var(--space-md); }
@@ -471,9 +471,9 @@ export const DECK_CSS = `
         border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary);
     }
     .fav-skin:hover { color:var(--text-primary); border-color:var(--border-hover); }
-    .fav-skin.on { color:var(--accent-ink); border-color:var(--accent-ink); background:var(--accent-subtle); }
+    .fav-skin.on { color:var(--accent-ink); border-color:var(--accent); background:var(--accent-subtle); }
     .fav-sizer { display:flex; align-items:center; gap:6px; }
-    .fav-sizer input[type="range"] { width:110px; accent-color:var(--accent-ink); cursor:pointer; }
+    .fav-sizer input[type="range"] { width:110px; accent-color:var(--accent); cursor:pointer; }
     .fav-sizer output { font-size:var(--font-size-2xs); color:var(--text-tertiary); font-variant-numeric:tabular-nums; min-width:30px; }
 
     /* 목록 배치에서도 크기 슬라이더가 먹는다 (칸, 아이콘이 같이 큰다) */
@@ -734,7 +734,7 @@ export const DECK_CSS = `
         box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.18);
     }
     [data-theme="light"] .skin-sign .fav-deck-tab.on {
-        color:var(--accent-ink); background:var(--accent-subtle); border-color:var(--accent-ink);
+        color:var(--accent-ink); background:var(--accent-subtle); border-color:var(--accent);
         box-shadow:inset 0 2px 3px rgba(0,0,0,0.12);
     }
 

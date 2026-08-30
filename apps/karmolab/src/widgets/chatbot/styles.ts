@@ -126,7 +126,7 @@
             border-radius:var(--radius-md); cursor:pointer; font-size:var(--font-size-sm);
             display:flex; align-items:center; justify-content:center; transition:all var(--transition);
         }
-        .cb-mic-btn:hover { border-color:var(--accent-ink); color:var(--accent-ink); }
+        .cb-mic-btn:hover { border-color:var(--accent); color:var(--accent-ink); }
         .cb-mic-btn.recording { background:var(--error); color:#fff; border-color:var(--error); animation:cbMicPulse 1s infinite; }
         @keyframes cbMicPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
@@ -135,12 +135,12 @@
         .cb-attach-wrap { position:relative; display:inline-block; }
         .cb-attach-remove { position:absolute; top:-4px; right:-4px; width:16px; height:16px; border-radius:50%; background:var(--error); color:#fff; border:none; font-size:var(--font-size-2xs); line-height:16px; text-align:center; cursor:pointer; padding:0; }
         .cb-attach-btn { background:none; border:1px dashed var(--border); border-radius:var(--radius-sm); width:40px; height:40px; font-size:var(--font-size-md); cursor:pointer; color:var(--text-tertiary); display:flex; align-items:center; justify-content:center; }
-        .cb-attach-btn:hover { border-color:var(--accent-ink); color:var(--accent-ink); }
+        .cb-attach-btn:hover { border-color:var(--accent); color:var(--accent-ink); }
         .cb-input-area.drag-over { outline:2px dashed var(--accent); outline-offset:-2px; border-radius:var(--radius-md); }
 
         .cb-session-bar { display:flex; gap:2px; padding:6px 16px; border-bottom:1px solid var(--border); background:var(--bg-secondary); overflow-x:auto; flex-shrink:0; }
         .cb-session-tab { display:flex; align-items:center; gap:4px; padding:4px 10px; font-size:var(--font-size-xs); border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-secondary); cursor:pointer; white-space:nowrap; font-family:inherit; transition:all var(--transition); }
-        .cb-session-tab:hover { border-color:var(--accent-ink); color:var(--text-primary); }
+        .cb-session-tab:hover { border-color:var(--accent); color:var(--text-primary); }
         .cb-session-tab.active { background:var(--band); color:var(--band-ink); border-color:var(--band); }
         .cb-session-tab-name { max-width:80px; overflow:hidden; text-overflow:ellipsis; cursor:default; }
         .cb-session-tab-edit { border:1px solid var(--accent); border-radius:var(--radius-sm); font-size:var(--font-size-xs); padding:0 4px; width:70px; font-family:inherit; outline:none; background:var(--bg-primary); color:var(--text-primary); }
@@ -157,7 +157,7 @@
             flex:1; font-size:var(--font-size-xs); padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius-sm);
             background:var(--bg-primary); color:var(--text-primary); outline:none; font-family:inherit;
         }
-        .cb-search-bar input:focus { border-color:var(--accent-ink); }
+        .cb-search-bar input:focus { border-color:var(--accent); }
         .cb-search-bar .cb-search-nav { font-size:var(--font-size-xs); color:var(--text-tertiary); white-space:nowrap; }
         .cb-search-highlight { background:rgba(255,200,0,0.35); border-radius:var(--radius-sm); padding:0 1px; }
         .cb-search-highlight.current { background:rgba(255,200,0,0.7); outline:2px solid var(--accent); }
@@ -189,7 +189,7 @@
             width:72px; height:72px; border-radius:50%; border:2px solid var(--border); background:var(--bg-tertiary);
             padding:0; cursor:pointer; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;
         }
-        .cb-char-profile-btn:hover { border-color:var(--accent-ink); }
+        .cb-char-profile-btn:hover { border-color:var(--accent); }
         .cb-char-profile-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
         .cb-char-profile-avatar { width:100%; height:100%; object-fit:cover; }
         .cb-char-profile-placeholder { font-size:32px; line-height:1; user-select:none; }

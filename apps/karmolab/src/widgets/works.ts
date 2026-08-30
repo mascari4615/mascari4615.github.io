@@ -71,7 +71,7 @@ export interface MinorRow {
         .wk-chip { background:none; border:1px solid var(--border); border-radius:var(--radius-pill); color:var(--text-secondary);
             padding:4px 12px; cursor:pointer; font-size:var(--font-size-2xs); display:inline-flex; align-items:center; gap:6px; }
         .wk-chip i { width:7px; height:7px; border-radius:50%; display:inline-block; }
-        .wk-chip.on { border-color:var(--accent-ink); color:var(--text-primary); }
+        .wk-chip.on { border-color:var(--accent); color:var(--text-primary); }
         .wk-count { color:var(--text-tertiary); font-size:var(--font-size-2xs); margin-left:auto; }
 
         /* ── 진열 ── */
@@ -94,7 +94,7 @@ export interface MinorRow {
             border:1px solid transparent; display:block; color:inherit; text-decoration:none; }
         .wk-tile img { width:100%; height:100%; object-fit:cover; display:block;
             filter:grayscale(.4) brightness(.85); transition:filter .2s, transform .25s; }
-        .wk-tile:hover { border-color:var(--accent-ink); }
+        .wk-tile:hover { border-color:var(--accent); }
         .wk-tile:hover img { filter:none; transform:scale(1.05); }
         .wk-tile .cap { position:absolute; inset:auto 0 0 0; padding:18px 8px 7px; font-size:var(--font-size-3xs); line-height:1.35;
             background:linear-gradient(transparent, rgba(0,0,0,.9)); opacity:0; transition:opacity .18s; color:#fff; }

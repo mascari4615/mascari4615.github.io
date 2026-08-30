@@ -26,7 +26,7 @@
         .tl-toolbar-spacer { flex:1; }
         .tl-btn { display:inline-flex; align-items:center; gap:6px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); padding:6px 12px; font-size:var(--font-size-xs); font-weight:600; cursor:pointer; transition:all var(--transition); white-space:nowrap; }
         .tl-btn:hover { background:var(--bg-hover); border-color:var(--text-tertiary); }
-        .tl-btn-primary { background:var(--accent); border-color:var(--accent-ink); color:#fff; }
+        .tl-btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; }
         .tl-btn-primary:hover { background:var(--accent-hover); border-color:var(--accent-hover); }
         .tl-btn-toggle-on { border-color:rgba(229,57,53,.55); background:rgba(229,57,53,.1); color:#e53935; }
         .tl-btn-toggle-on:hover { border-color:rgba(229,57,53,.75); background:rgba(229,57,53,.16); }
@@ -109,7 +109,7 @@
         .tl-item-userlabels { position:absolute; top:2px; right:2px; left:22px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:2px; pointer-events:none; max-height:calc(100% - 6px); overflow:hidden; }
         .tl-item-userlabel { font-size:var(--font-size-4xs); font-weight:800; line-height:1.15; padding:2px 4px; border-radius:var(--radius-sm); color:#fff; text-shadow:0 1px 1px rgba(0,0,0,.45); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,.25); }
         .tl-item-userlabel--more { background:#37474f !important; font-size:var(--font-size-4xs); }
-        .tl-item:hover { border-color:var(--accent-ink); }
+        .tl-item:hover { border-color:var(--accent); }
         .tl-item img { width:100%; height:100%; object-fit:cover; pointer-events:none; display:block; }
         .tl-item-text { width:100%; height:100%; display:flex; align-items:center; justify-content:center; text-align:center; font-size:var(--font-size-2xs); font-weight:600; color:var(--text-primary); padding:4px; word-break:break-word; line-height:1.2; }
         .tl-item-name { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.7); color:#fff; font-size:var(--font-size-4xs); padding:2px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity var(--transition); pointer-events:none; }
@@ -169,7 +169,7 @@
         .tl-list-card-embed.active { border-color:#e53935; background:rgba(229,57,53,.08); }
         .tl-list-card-local { border-color:rgba(100,116,139,.35); }
         .tl-list-card-local:hover { border-color:rgba(100,116,139,.65); }
-        .tl-list-card-local.active { border-color:var(--accent-ink); background:var(--accent-subtle); }
+        .tl-list-card-local.active { border-color:var(--accent); background:var(--accent-subtle); }
         .tl-list-pill-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
         .tl-pill {
             display:inline-flex; align-items:center; font-size:var(--font-size-4xs); font-weight:800;
@@ -191,8 +191,8 @@
             background:rgba(100,116,139,.2); color:var(--text-secondary);
             border:1px solid rgba(100,116,139,.35);
         }
-        .tl-list-card:hover { border-color:var(--accent-ink); box-shadow:0 2px 8px rgba(0,0,0,.1); }
-        .tl-list-card.active { border-color:var(--accent-ink); background:var(--accent-subtle); }
+        .tl-list-card:hover { border-color:var(--accent); box-shadow:0 2px 8px rgba(0,0,0,.1); }
+        .tl-list-card.active { border-color:var(--accent); background:var(--accent-subtle); }
         .tl-list-card-title { font-size:var(--font-size-xs); font-weight:600; color:var(--text-primary); margin-bottom:4px; }
         .tl-list-card-meta { font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .tl-list-card-cat { display:inline-block; font-size:var(--font-size-2xs); padding:2px 6px; border-radius:var(--radius-xl); background:var(--bg-hover); color:var(--text-secondary); margin-top:6px; }

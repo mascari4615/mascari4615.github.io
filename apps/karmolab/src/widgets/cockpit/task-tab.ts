@@ -484,7 +484,7 @@ const TASK_TAB_CSS = `
   flex: 1; background: var(--paper); border: 1px solid var(--line2);
   border-radius: var(--radius-sm); padding: 8px 12px; font-size: var(--font-size-2xs); color: var(--ink); outline: none;
 }
-.ckt-search:focus { border-color: var(--accent-ink); }
+.ckt-search:focus { border-color: var(--accent); }
 .ckt-new-btn {
   background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius-sm);
   padding: 8px 14px; font-weight: 600; cursor: pointer; font-size: var(--font-size-2xs);
@@ -508,7 +508,7 @@ const TASK_TAB_CSS = `
   border-radius: var(--radius-sm); padding: 3px 8px; font-size: var(--font-size-4xs);
   font-family: 'KarmoMono', monospace; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
 }
-.ckt-chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent-ink); border-style: solid; }
+.ckt-chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); border-style: solid; }
 .ckt-meta { font-size: var(--font-size-3xs); color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.14em; }
 .ckt-list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 

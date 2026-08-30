@@ -18,7 +18,7 @@
             font-size:var(--font-size-title); background:var(--bg-tertiary); border:1px solid var(--border);
             border-radius:var(--radius-sm); cursor:pointer; transition:all var(--transition);
         }
-        .ig-preset-btn:hover { border-color:var(--accent-ink); background:var(--bg-hover); transform:scale(1.05); }
+        .ig-preset-btn:hover { border-color:var(--accent); background:var(--bg-hover); transform:scale(1.05); }
         .ig-preset-btn:active { transform:scale(0.98); }
 
         .ig-preset-popup { display:none; position:fixed; inset:0; z-index:9997; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px; }
@@ -40,8 +40,8 @@
             border-radius:var(--radius-sm); color:var(--text-secondary);
             cursor:pointer; transition:all var(--transition); font-family:inherit;
         }
-        .ig-preset-tab-btn:hover { color:var(--text-primary); border-color:var(--accent-ink); }
-        .ig-preset-tab-btn.active { background:var(--accent); color:#fff; border-color:var(--accent-ink); }
+        .ig-preset-tab-btn:hover { color:var(--text-primary); border-color:var(--accent); }
+        .ig-preset-tab-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
         .ig-preset-popup-body { overflow-y:auto; padding:12px; flex:1; min-height:0; }
         .ig-preset-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
         .ig-card {
@@ -50,8 +50,8 @@
             background:var(--bg-tertiary); cursor:pointer; transition:all var(--transition);
             gap:4px; text-align:center; min-height:68px;
         }
-        .ig-card:hover { border-color:var(--accent-ink); background:var(--bg-hover); }
-        .ig-card.selected { border-color:var(--accent-ink); background:var(--accent-subtle); }
+        .ig-card:hover { border-color:var(--accent); background:var(--bg-hover); }
+        .ig-card.selected { border-color:var(--accent); background:var(--accent-subtle); }
         .ig-card-icon { font-size:var(--font-size-title); }
         .ig-card-label { font-size:var(--font-size-2xs); font-weight:500; color:var(--text-secondary); line-height:1.2; }
 
@@ -65,7 +65,7 @@
         .ig-placeholder { color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; }
         .ig-placeholder span { display:block; font-size:40px; margin-bottom:8px; opacity:0.3; }
 
-        .ig-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent-ink); border-radius:50%; animation:spin 0.8s linear infinite; }
+        .ig-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
         .ig-loading-text { font-size:var(--font-size-xs); color:var(--text-tertiary); margin-top:8px; }
 
         .ig-input-area { margin-top:12px; }
@@ -124,8 +124,8 @@
             width:56px; height:56px; border-radius:var(--radius-sm); border:2px solid var(--border);
             cursor:pointer; object-fit:cover; transition:all var(--transition); flex-shrink:0; opacity:0.7;
         }
-        .ig-thumb:hover { opacity:1; border-color:var(--accent-ink); }
-        .ig-thumb.active { opacity:1; border-color:var(--accent-ink); box-shadow:0 0 8px rgba(139,124,246,0.4); }
+        .ig-thumb:hover { opacity:1; border-color:var(--accent); }
+        .ig-thumb.active { opacity:1; border-color:var(--accent); box-shadow:0 0 8px rgba(139,124,246,0.4); }
 
         /* ===== 라이트박스 ===== */
         .ig-lightbox {
