@@ -43,6 +43,8 @@ FAMILIES = {
     'sans':  ('ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf',       'KarmoSans',  ('latin', 'ko'), 'common'),
     'serif': ('ofl/notoserifkr/NotoSerifKR%5Bwght%5D.ttf',     'KarmoSerif', ('latin', 'ko'), 'ours'),
     'mono':  ('ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf', 'KarmoMono',  ('latin',),      'ours'),
+    # 표시용 압축 글꼴. 큰 숫자와 대문자 제목에만 (change.karmolab-shell-redesign, 2026-08-30). 굵기 하나
+    'display': ('ofl/barlowcondensed/BarlowCondensed-ExtraBold.ttf', 'KarmoDisplay', ('latin',), 'ours'),
 }
 
 # 화면에 나오는 글자를 여기서 긁는다. 코드 안의 문자열도 결국 화면에 나오므로 통째로 본다.
@@ -201,10 +203,13 @@ def main():
     # 그래서 한 덩이로 둔다. 다시 나누려면 먼저 이 둘을 풀어라:
     #   ① 앞 조각을 「화면에 나오는 문자열」에서만 뽑기 (주석 제외 — 소스 긁기로는 안 된다)
     #   ② 그 목록을 CSS 에 안 적고도 나누기 (예: 앞 조각만 exact, 뒤는 블록 전체)
+    # 표시용은 대문자, 숫자, 기호 몇 개만. 큰 제목과 큰 수 전용
+    display_latin = {chr(c) for c in range(0x41, 0x5B)} | set('0123456789 .,:/-+%')
     pools = {
         'sans':  [('latin', latin), ('ko', ko_common)],
         'serif': [('latin', serif_latin), ('ko', ko_ours)],
         'mono':  [('latin', mono_latin)],
+        'display': [('latin', display_latin)],
     }
 
     css = [

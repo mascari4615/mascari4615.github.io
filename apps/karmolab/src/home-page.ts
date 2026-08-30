@@ -38,7 +38,10 @@ import { toolIndexPath } from './lib/site-base';
          * 예전엔 작은 KarmoLab 위에 큰 KarmoLab이 또 있었다. 같은 말이 두 줄이었다. */
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
+        /* 제목 위 한 줄 라벨. 필드 스킨에서만 표시 (CSS). 날짜와 도구 수는 사람별 값 아님, 미리 그려도 무방 */
+        const toolCount = Array.isArray(window.KARMOLAB_LAZY_META) ? window.KARMOLAB_LAZY_META.length : 0;
         hero.innerHTML = `
+            <p class="landing-label" aria-hidden="true">// ${new Date().toISOString().slice(0, 10)} / TOOLS ${toolCount}</p>
             <h1 class="landing-title">KarmoLab</h1>
             <p class="landing-tagline">${t('site.tagline', undefined, '삶을 섞고 술을 바꿀 시간')}</p>
         `;

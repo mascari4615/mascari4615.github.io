@@ -1495,12 +1495,19 @@ const Toolbox = (() => {
                 const cur = tabs.find(t => t.id === sidebarTab) || tabs[0];
                 const head = document.createElement('div');
                 head.className = 'sidebar-list-head';
-                head.innerHTML = '<span class="sidebar-list-label">' + cur.label + '</span><span class="sidebar-list-count">' + cur.tools.length + '</span>';
+                head.innerHTML = '<span class="sidebar-list-label">// ' + cur.label + '</span><span class="sidebar-list-count">/ ' + cur.tools.length + '</span>';
                 sidebarNavEl.appendChild(head);
                 const list = document.createElement('div');
                 list.className = 'sidebar-list';
                 if (cur.tools.length) {
-                    cur.tools.forEach(tool => addNavItem(list, tool));
+                    cur.tools.forEach((tool, i) => {
+                        addNavItem(list, tool);
+                        /* 오른쪽 번호. 시안 Z1 의 21, 22, ... 자리. 갈래 안 순번 */
+                        const num = document.createElement('span');
+                        num.className = 'nav-item-num';
+                        num.textContent = String(i + 1).padStart(2, '0');
+                        list.lastElementChild.appendChild(num);
+                    });
                 } else {
                     const note = document.createElement('p');
                     note.className = 'header-nav-section-empty';
