@@ -488,34 +488,25 @@ const Toolbox = (() => {
     }
     /** 현재 열린 도구 id. 복사, 사용 계측이 어느 도구인지 알기 위해 (TASK-KL-088) */
     let currentPageId = 'home';
-    const NAV_LAYOUT_KEY = 'toolbox_nav_layout';
     const SIDEBAR_GROUP_KEY = 'toolbox_sidebar_groups';
 
-    function getNavLayout() {
-        const v = localStorage.getItem(NAV_LAYOUT_KEY);
-        /* 바닥값은 왼쪽 목록. 도구 233개라 위 메뉴 하나로는 이름 안 보임
-           위 메뉴 모드는 설정에 유지 */
-        return (v === 'sidebar' || v === 'header') ? v : 'sidebar';
+    /* 왼쪽 목록은 늘 있다 (2026-08-30). 고르는 것은 접힘 하나뿐: 펼침 224px <-> 레일 56px.
+       걷어낸 것 둘 . `toolbox_nav_layout` (왼쪽 목록/상단 메뉴 택일) 과
+       `toolbox_header_nav` (상단 메뉴 끄기). 둘 다 끄면 갈 길이 하나도 안 남았다. */
+    const SIDEBAR_COLLAPSED_KEY = 'toolbox_sidebar_collapsed';
+
+    function getSidebarCollapsed() {
+        try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'; } catch (_) { return false; }
     }
 
-    function setNavLayout(layout) {
-        document.documentElement.setAttribute('data-nav', layout);
-        try { localStorage.setItem(NAV_LAYOUT_KEY, layout); } catch (_) {}
+    function setSidebarCollapsed(collapsed) {
+        document.documentElement.setAttribute('data-sidebar', collapsed ? 'rail' : 'open');
+        try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (_) {}
+        const btn = document.getElementById('sidebarToggle');
+        if (btn) btn.setAttribute('aria-expanded', String(!collapsed));
     }
 
-    /* 왼쪽 목록과 상단 메뉴는 택일 아님
-       왼쪽 목록은 도구 목록, 상단 메뉴는 검색과 계정. 역할이 갈리므로 둘 다
-       예전: 왼쪽 목록을 켜면 상단 메뉴가 통째로 사라짐 */
-    const HEADER_NAV_KEY = 'toolbox_header_nav';
-
-    function getHeaderNavOn() {
-        try { return localStorage.getItem(HEADER_NAV_KEY) !== 'off'; } catch (_) { return true; }
-    }
-
-    function setHeaderNavOn(on) {
-        document.documentElement.setAttribute('data-headernav', on ? 'on' : 'off');
-        try { localStorage.setItem(HEADER_NAV_KEY, on ? 'on' : 'off'); } catch (_) {}
-    }
+    function toggleSidebar() { setSidebarCollapsed(!getSidebarCollapsed()); }
 
     function getSidebarGroupState() {
         try {
@@ -1695,7 +1686,7 @@ const Toolbox = (() => {
         // Build sidebar nav groups
         const sidebarNavEl = document.getElementById('sidebar-nav');
         if (sidebarNavEl) {
-            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false, iconPath = '') {
+            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false, iconPath = '', isCategory = false) {
                 if (!catTools.length) return;
                 // 내 것은 처음부터 펴 둔다. 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
                 /* 기본은 **펴 둔다** (2026-08-19). 갈래 시절에는 칸 하나가 41줄이라 접는 것이
@@ -1705,11 +1696,13 @@ const Toolbox = (() => {
                     ? getSidebarGroupState()[catId]
                     : defaultOpen;
                 const wrap = document.createElement('div');
-                wrap.className = 'sidebar-group';
+                wrap.className = 'sidebar-group' + (isCategory ? ' sidebar-group--cat' : '');
                 const trigger = document.createElement('button');
                 trigger.type = 'button';
                 trigger.className = 'sidebar-group-trigger' + (isOpen ? ' open' : '');
                 trigger.setAttribute('aria-expanded', String(isOpen));
+                /* 레일에서는 라벨이 안 보인다. 아이콘만 남으므로 이름은 툴팁으로 */
+                trigger.title = label;
                 trigger.innerHTML = '<span class="chevron" aria-hidden="true"></span>'
                     /* 갈래 아이콘. 접힌 상태에서 글자 없이도 어느 갈래인지 잡히게 */
                     + (iconPath
@@ -1736,6 +1729,17 @@ const Toolbox = (() => {
                     idle(fillBodyOnce);
                 }
                 trigger.onclick = () => {
+                    /* 레일에서는 갈래 몸통이 안 보인다. 접은 채로 누르면 아무 일도 안 일어난 것처럼
+                     * 보이므로, 먼저 펴 주고 그 갈래를 연다 (누른 뜻은 그 갈래를 보겠다는 것) */
+                    if (isCategory && getSidebarCollapsed()) {
+                        setSidebarCollapsed(false);
+                        fillBodyOnce();
+                        body.classList.add('open');
+                        trigger.classList.add('open');
+                        trigger.setAttribute('aria-expanded', 'true');
+                        setSidebarGroupState({ ...getSidebarGroupState(), [catId]: true });
+                        return;
+                    }
                     fillBodyOnce();
                     const open = body.classList.toggle('open');
                     trigger.classList.toggle('open', open);
@@ -1793,7 +1797,7 @@ const Toolbox = (() => {
                         && !(isDesktopOnlyTool(t) && !isDesktopApp()));
                     if (!catTools.length) return;
                     catTools.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
-                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true, cat.icon || '');
+                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true, cat.icon || '', true);
                 });
                 /* 바닥 줄은 **안 넣는다**. 옆줄 아래 링크 묶음에 도구 전체 목록이 이미 있다
                  * (2026-08-19 실측). 머리띠 판에는 그 링크가 없어서 판 안에 뒀던 것이고,
@@ -1907,6 +1911,9 @@ const Toolbox = (() => {
 
         // 옆줄 바닥의 찾기. 머리띠 검색칸과 같은 창을 연다 (옆줄 차림에서는 머리띠 내비가 숨는다)
         document.getElementById('sidebarSearchBtn')?.addEventListener('click', () => window.KarmoPalette?.open(''));
+
+        /* 왼쪽 목록 접기. 버튼 하나와 Ctrl+B (VSCode, Claude 와 같은 자리) */
+        document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
         /* 설정 단추는 이동이 아니라 목록 열기 (2026-08-29). 설정, 언어, 판 표식이 이 안 */
         const settingsHeaderBtn = document.getElementById('settingsPageBtn');
@@ -2072,6 +2079,16 @@ const Toolbox = (() => {
      * 헤더에 상시 검색창을 두지 않는 대신, 첫 화면에서 배운 그 표면을 다시 띄운다. */
     function installPaletteShortcut() {
         document.addEventListener('keydown', (e) => {
+            /* Ctrl+B 로 왼쪽 목록 접고 펴기. 브라우저 기본은 파이어폭스 북마크 옆줄인데
+             * 앱 안에서는 이쪽이 맞는 동작이다 (VSCode, Claude 도 같은 키). */
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'b' || e.key === 'B')) {
+                const t = e.target;
+                const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+                if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+                e.preventDefault();
+                toggleSidebar();
+                return;
+            }
             if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
                 // 브라우저 기본(주소창 검색)을 뺏는다. 이 앱 안에서는 이쪽이 맞는 동작이다.
                 e.preventDefault();
@@ -3070,7 +3087,7 @@ const Toolbox = (() => {
     function initTheme() {
         setTheme(getTheme());
         setBgTheme(getBgTheme());
-        setNavLayout(getNavLayout());
+        setSidebarCollapsed(getSidebarCollapsed());
         const btn = document.getElementById('themeToggle');
         if (btn) btn.onclick = toggleTheme;
         setPrismTheme(getPrismTheme(), true);
@@ -3248,7 +3265,6 @@ const Toolbox = (() => {
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
-        getHeaderNavOn, setHeaderNavOn,
         openSettingsModal, closeSettingsModal,
         takeBundleRequest,
         onDispose,
@@ -3274,7 +3290,7 @@ const Toolbox = (() => {
         escapeHtml, formatTimestamp, showLightbox,
         recordUsage, getUsageStats,
         getPref, setPref,
-        getNavLayout, setNavLayout,
+        getSidebarCollapsed, setSidebarCollapsed, toggleSidebar,
         getTheme, setTheme, toggleTheme,
         getBgTheme, setBgTheme, getBgThemes,
         getPrismTheme, setPrismTheme, getPrismThemes: () => [...PRISM_THEMES],

@@ -181,7 +181,6 @@ permalink: /
 (function(){
   var t=localStorage.getItem('toolbox_theme')||'dark';
   var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
-  var nav=localStorage.getItem('toolbox_nav_layout')||'sidebar';
   document.documentElement.setAttribute('data-theme',t);
   /* ★ **글자로 박은 손잡이를 여기서 대신 단다** (2026-08-17). 늦게 받는 스타일 넉 장은
      media="print" + onload 로 달려 있었는데, 그 한 글자 때문에 CSP 에 script-src 를 못 건다
@@ -204,8 +203,9 @@ permalink: /
   var tcm=document.getElementById('themeColorMeta');
   if(tcm) tcm.setAttribute('content', t==='light' ? '#ffffff' : '#0e0d14');
   document.documentElement.setAttribute('data-bg',bg);
-  document.documentElement.setAttribute('data-nav',nav);
-  document.documentElement.setAttribute('data-headernav',(localStorage.getItem('toolbox_header_nav')==='off')?'off':'on');
+  /* 왼쪽 목록은 늘 있다. 고르는 것은 접힘뿐 (2026-08-30). 예전엔 왼쪽 목록/상단 메뉴
+     택일 + 상단 메뉴 끄기까지 스위치가 둘이었고, 둘 다 끄면 길이 하나도 안 남았다. */
+  document.documentElement.setAttribute('data-sidebar',(localStorage.getItem('toolbox_sidebar_collapsed')==='1')?'rail':'open');
   /* 인트로를 켤지 **첫 그림 전에** 정한다. 도구를 보던 사람에게는 인트로가 방해다.
      여기서 안 정하고 스크립트가 다 돈 뒤에 정하면 첫 화면이 한 번 번쩍인다(실제로 그랬다). */
   var lp=localStorage.getItem('toolbox_last_page');
@@ -260,6 +260,11 @@ permalink: /
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
             <div class="header-bar-left">
+                <!-- 왼쪽 목록 접기. 머리띠에 두는 이유는 접힌 뒤에도 자리가 안 움직여서다.
+                     목록 안에 두면 224px 일 때와 56px 일 때 버튼이 옆으로 뛴다. -->
+                <button type="button" class="header-btn sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-controls="sidebar" title="사이드바 접기 (Ctrl+B)" aria-label="사이드바 접기" data-i18n-title="shell.sidebar.collapse" data-i18n-aria-label="shell.sidebar.collapse">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+                </button>
                 <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" data-goto="home" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
                 <span class="header-now" id="headerNow" aria-live="polite"></span>
             </div>
@@ -350,7 +355,7 @@ permalink: /
                         <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.links">링크, 문의</span>
                     </a>
                     <!-- 찾기 (2026-08-19, 사용자 지적). 옆줄 차림에서는 머리띠 내비가 통째로 숨는다
-                         (`html[data-nav="sidebar"] .header-nav { display: none }`). 그래서 검색칸도
+                         (옆줄을 켜면 머리띠 갈래 메뉴가 숨던 시절). 그래서 검색칸도
                          같이 사라졌고, ⌘K 를 아는 사람만 찾을 수 있었다. 맨 아래에 둔다:
                          옆줄은 위에서부터 내 것 → 많이 → 최근으로 읽히고, 거기서 못 찾았을 때
                          손이 닿는 자리가 바닥이다. 누르면 머리띠 검색칸과 **같은 창**이 열린다. -->

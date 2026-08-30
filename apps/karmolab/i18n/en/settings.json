@@ -1,9 +1,6 @@
 {
   "settings.aria.setBgTheme": "Background theme",
   "settings.t01": "🎨 Display",
-  "settings.label.setNavLayout": "Navigation",
-  "settings.opt.header": "Top menu",
-  "settings.opt.sidebar": "Sidebar",
   "settings.label.setTheme": "Theme",
   "settings.opt.dark": "Dark",
   "settings.opt.light": "Light",
@@ -64,7 +61,6 @@
   "settings.btn.mdResetPrefs": "↩️ Reset",
   "settings.t20": "Erase affection and story progress",
   "settings.t21": "Changing the settings?",
-  "settings.t22": "Navigation: ",
   "settings.t23": "Theme: ",
   "settings.t24": "Background: ",
   "settings.t25": "Sharing: on",
@@ -103,7 +99,6 @@
   "settings.tab.mascot": "Mascot",
   "settings.tab.data": "What is stored in this browser",
   "settings.t27": "Screen theme (light / dark)",
-  "settings.t28": "Menu layout",
   "settings.t59": "Who made this, contact",
   "settings.label.setLinks": "Contact, links",
   "settings.btn.setLinks": "Open",
@@ -117,6 +112,5 @@
   "settings.machine.saving": "Checking...",
   "settings.machine.nopick": "Could not open the folder picker. type the path instead.",
   "settings.machine.webonly": "This is desktop-app only. a browser has no folder on this machine.",
-  "settings.machine.guessed": "Guessed this path. press Save if it is right.",
-  "settings.label.setHeaderNav": "Top menu"
+  "settings.machine.guessed": "Guessed this path. press Save if it is right."
 }

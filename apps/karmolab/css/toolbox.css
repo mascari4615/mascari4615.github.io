@@ -2430,20 +2430,18 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 }
 
 /* ═══════════════════════════════════════
-   SIDEBAR NAV (data-nav="sidebar" 모드)
+   SIDEBAR NAV (늘 있다. 고르는 것은 접힘뿐)
    ═══════════════════════════════════════ */
 
-.sidebar { display: none; }
+/* 왼쪽 목록은 상시 구조물이다 (2026-08-30). 예전엔 설정에서 왼쪽 목록/상단 메뉴 택일이었고
+   상단 메뉴 끄기 스위치가 따로 있어, 둘 다 끄면 갈 길이 하나도 안 남았다. 스위치 둘을 걷고
+   접힘 하나만 남긴다: 펼침 224px <-> 레일 56px. Claude, VSCode 와 같은 짜임. */
+.header-bar-right { grid-column: 3; }
 
-/* 상단 메뉴는 스위치가 끌 때만 숨김. 왼쪽 목록과 무관 */
-html[data-headernav="off"] .header-nav { display: none !important; }
-html[data-nav="sidebar"] .header-bar-right { grid-column: 3; }
-
-/* 왼쪽 목록. 늘 펼침
-   예전: 56px 아이콘 줄 + 마우스 얹어 확장. 도구 233개에 이름 가림은 목록 아님
+/* 왼쪽 목록
    실측: Grafana 320px, it-tools 240px, transform 196px 전부 이름 상시 노출
    유리(backdrop-filter) 제거. 뒤 비침으로 배경 격자가 글자에 겹침 */
-html[data-nav="sidebar"] .sidebar {
+.sidebar {
     display: flex;
     position: fixed;
     top: 52px; /* header-bar 높이 */
@@ -2456,10 +2454,87 @@ html[data-nav="sidebar"] .sidebar {
     flex-shrink: 0;
     overflow: hidden;
     z-index: 50;
+    transition: width var(--transition);
 }
 
-html[data-nav="sidebar"] .main-content {
+.main-content {
     margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition);
+}
+
+/* 접힌 레일. 폭 한 값만 바꾸면 목록과 본문 여백이 같이 따라온다 */
+html[data-sidebar="rail"] { --sidebar-width: 56px; }
+
+/* 손 떨림 방지: 폭이 움직이는 동안 글자가 줄바꿈되며 튀지 않게 */
+.sidebar-nav, .sidebar-footer { min-width: var(--sidebar-width); }
+
+/* 접힘을 싫어하는 사람도 있다. 움직임 줄이기를 켜면 폭이 즉시 바뀐다 */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar, .main-content { transition: none; }
+}
+
+/* 머리띠의 접기 버튼. 접혀도 자리가 안 움직인다 */
+.sidebar-toggle { flex-shrink: 0; }
+html[data-sidebar="rail"] .sidebar-toggle svg { opacity: 0.65; }
+
+/* ── 레일(56px) 에서 감추는 것 ──
+   이름, 갈래 라벨, 도구 수, 화살표, 단축키 글씨. 아이콘만 남는다.
+   아이콘은 가운데로. 224px 때의 왼쪽 정렬 여백이 그대로면 아이콘이 왼쪽 벽에 붙는다. */
+html[data-sidebar="rail"] .sidebar .nav-item-text,
+html[data-sidebar="rail"] .sidebar .sidebar-group-label,
+html[data-sidebar="rail"] .sidebar .sidebar-group-count,
+html[data-sidebar="rail"] .sidebar .sidebar-group-trigger .chevron,
+html[data-sidebar="rail"] .sidebar .sidebar-dev-links-text,
+html[data-sidebar="rail"] .sidebar .sidebar-search-kbd,
+html[data-sidebar="rail"] .sidebar .header-nav-section-empty {
+    display: none;
+}
+
+html[data-sidebar="rail"] .sidebar-nav { padding: var(--space-sm) 0; }
+
+html[data-sidebar="rail"] .sidebar .nav-item,
+html[data-sidebar="rail"] .sidebar .sidebar-group-trigger,
+html[data-sidebar="rail"] .sidebar .sidebar-dev-links {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
+}
+
+/* 갈래는 레일에서 아이콘 한 줄로만 남는다. 그 안의 도구 목록까지 아이콘으로 깔면
+   234개가 세로로 늘어서 레일이 목록이 되어 버린다. 누르면 펼치면서 그 갈래를 연다
+   (`toolbox.ts` 의 sidebar-group--cat 처리). */
+html[data-sidebar="rail"] .sidebar-group--cat .sidebar-group-body { display: none; }
+html[data-sidebar="rail"] .sidebar-group--cat + .sidebar-group--cat { margin-top: 0; }
+html[data-sidebar="rail"] .sidebar-group-icon { margin-right: 0; width: 18px; height: 18px; opacity: 0.9; }
+
+/* 아이콘은 절대배치로 왼쪽 12px 에 박혀 있다. 224px 에서는 그 자리가 맞지만 56px 에서는
+   왼쪽 벽에 붙는다. 레일에서만 흐름 배치로 돌려 가운데로 온다.
+   행 높이도 같이 못박는다. 글자가 빠지면 행이 눌려 아이콘끼리 촘촘해진다 (실측 28px -> 32px) */
+html[data-sidebar="rail"] .sidebar .nav-icon {
+    position: static;
+    transform: none;
+    width: 18px;
+    height: 18px;
+}
+html[data-sidebar="rail"] .sidebar .nav-item,
+html[data-sidebar="rail"] .sidebar .sidebar-group-trigger,
+html[data-sidebar="rail"] .sidebar .sidebar-dev-links {
+    min-height: 32px;
+    margin: 1px 8px;
+    border-radius: var(--radius-sm);
+}
+
+/* 왼쪽 세로줄은 레일에서 아이콘을 밀어낸다. 어차피 지금 옆줄에는 `.nav-item.active` 를
+   붙이는 자리가 없다 (실측 2026-08-30, 붙는 것은 폰 띠의 홈 하나뿐) */
+html[data-sidebar="rail"] .sidebar .nav-item { border-left-width: 0; }
+
+/* 라벨이 사라지면 위 세 칸과 갈래가 한 덩이로 붙어 줄 하나로 가름
+   첫 갈래는 갈래 아닌 무리 바로 뒤. `:first-of-type` 은 여기서 안 걸림 (형제가 다 div) */
+html[data-sidebar="rail"] .sidebar-group:not(.sidebar-group--cat) + .sidebar-group--cat {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border);
 }
 
 /* 화면 끝까지 쓰는 도구도 왼쪽 여백 유지
@@ -2591,8 +2666,8 @@ html[data-nav="sidebar"] .main-content {
 .sidebar-group-body.open { display: block; }
 
 /* 텍스트는 항상 한 줄. 사이드바 overflow:hidden 이 클리핑 담당 */
-html[data-nav="sidebar"] .sidebar .nav-item-text,
-html[data-nav="sidebar"] .sidebar .sidebar-group-label {
+.sidebar .nav-item-text,
+.sidebar .sidebar-group-label {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: clip;
@@ -2720,12 +2795,14 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     font-variant-numeric: tabular-nums;
 }
 
-html[data-nav="sidebar"] .sidebar-dev-links-icon { display: flex; }
-html[data-nav="sidebar"] .sidebar-dev-links-text { display: inline; }
+.sidebar-dev-links-icon { display: flex; }
+.sidebar-dev-links-text { display: inline; }
 
+/* 폰은 이번 범위 밖. 왼쪽 목록 대신 `.mobile-nav` 띠가 그대로 맡는다 */
 @media (max-width: 768px) {
-    html[data-nav="sidebar"] .sidebar { display: none; }
-    html[data-nav="sidebar"] .main-content { margin-left: 0; }
+    .sidebar { display: none; }
+    .main-content { margin-left: 0; }
+    .sidebar-toggle { display: none; }
 }
 
 /* ── Scrollbar ── */

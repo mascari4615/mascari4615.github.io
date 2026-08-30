@@ -59,5 +59,6 @@
   "shell.sidebar.linksTitle": "연락처, 링크. 문의는 여기로",
   "shell.desktop_only_note": "이 도구는 데스크톱 앱에서만 동작합니다. 이 컴퓨터에 있는 것을 읽어야 하기 때문입니다. 아래 설명은 브라우저에서도 그대로 읽을 수 있습니다.",
   "shell.nav.works": "◆ 작업물",
-  "shell.nav.worksTitle": "만든 것들. 게임, VRChat 콘텐츠, 도구"
+  "shell.nav.worksTitle": "만든 것들. 게임, VRChat 콘텐츠, 도구",
+  "shell.sidebar.collapse": "사이드바 접기, 펼치기 (Ctrl+B)"
 }

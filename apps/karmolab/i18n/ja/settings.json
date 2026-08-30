@@ -1,9 +1,6 @@
 {
   "settings.aria.setBgTheme": "背景テーマ",
   "settings.t01": "🎨 表示",
-  "settings.label.setNavLayout": "ナビゲーション",
-  "settings.opt.header": "上部メニュー",
-  "settings.opt.sidebar": "サイドバー",
   "settings.label.setTheme": "テーマ",
   "settings.opt.dark": "ダーク",
   "settings.opt.light": "ライト",
@@ -64,7 +61,6 @@
   "settings.btn.mdResetPrefs": "↩️ 戻す",
   "settings.t20": "好感度・ストーリーの記録を消す",
   "settings.t21": "設定を変えるんですか?",
-  "settings.t22": "ナビゲーション: ",
   "settings.t23": "テーマ: ",
   "settings.t24": "背景: ",
   "settings.t25": "一緒に使う: オン",
@@ -103,7 +99,6 @@
   "settings.tab.mascot": "マスコット",
   "settings.tab.data": "このブラウザに保存されているもの",
   "settings.t27": "画面テーマ（明るい・暗い）",
-  "settings.t28": "メニューの配置",
   "settings.t59": "作った人, お問い合わせ",
   "settings.label.setLinks": "連絡先, リンク集",
   "settings.btn.setLinks": "開く",
@@ -117,6 +112,5 @@
   "settings.machine.saving": "確認中...",
   "settings.machine.nopick": "フォルダ選択を開けませんでした. パスを直接入力してください。",
   "settings.machine.webonly": "これはデスクトップアプリ専用です. ブラウザにはこのPCのフォルダがありません。",
-  "settings.machine.guessed": "この場所と推測しました. 合っていれば保存を押してください。",
-  "settings.label.setHeaderNav": "上部メニュー"
+  "settings.machine.guessed": "この場所と推測しました. 合っていれば保存を押してください。"
 }

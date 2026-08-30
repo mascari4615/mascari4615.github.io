@@ -1,9 +1,6 @@
 {
   "settings.aria.setBgTheme": "배경 테마",
   "settings.t01": "🎨 표시",
-  "settings.label.setNavLayout": "네비게이션",
-  "settings.opt.header": "상단 메뉴",
-  "settings.opt.sidebar": "사이드바",
   "settings.label.setTheme": "테마",
   "settings.opt.dark": "다크",
   "settings.opt.light": "라이트",
@@ -64,13 +61,11 @@
   "settings.btn.mdResetPrefs": "↩️ 되돌리기",
   "settings.t20": "호감도, 스토리 기록 지우기",
   "settings.t21": "설정 바꿀 거야?",
-  "settings.t22": "네비게이션: ",
   "settings.t23": "테마: ",
   "settings.t24": "배경: ",
   "settings.t25": "같이 쓰기: 켬",
   "settings.t26": "같이 쓰기: 끔",
   "settings.t27": "화면 테마 (밝게, 어둡게)",
-  "settings.t28": "메뉴 배치 방식",
   "settings.t29": "사이드바 그룹 접힘 상태",
   "settings.t30": "코드 하이라이트 테마",
   "settings.t31": "마지막 접속 페이지",
@@ -117,6 +112,5 @@
   "settings.machine.saving": "확인하는 중...",
   "settings.machine.nopick": "폴더 고르기 창을 못 열었다. 경로를 손으로 적어라.",
   "settings.machine.webonly": "이 칸은 데스크톱 앱에서만 쓴다. 브라우저에는 이 컴퓨터의 폴더가 없다.",
-  "settings.machine.guessed": "이 자리로 짐작했다. 맞으면 저장을 눌러라.",
-  "settings.label.setHeaderNav": "상단 메뉴"
+  "settings.machine.guessed": "이 자리로 짐작했다. 맞으면 저장을 눌러라."
 }

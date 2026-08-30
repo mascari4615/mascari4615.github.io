@@ -73,28 +73,12 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         const prismThemes = Toolbox.getPrismThemes?.() ?? [];
         const bgTheme = Toolbox.getBgTheme?.() ?? '';
         const bgThemes = Toolbox.getBgThemes?.() ?? [];
-        const navLayout = Toolbox.getNavLayout?.() ?? 'header';
-        const headerNavOn = Toolbox.getHeaderNavOn?.() ?? true;
         const apiUI = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('set') : { html: '' };
 
         container.innerHTML = `
             <div class="settings-layout">
                 <div class="settings-section">
                     <h3>${esc(t('settings.t01'))}</h3>
-                    <div class="settings-row">
-                        <label for="setNavLayout">${esc(t('settings.label.setNavLayout'))}</label>
-                        <select id="setNavLayout" class="settings-control">
-                            <option value="sidebar" ${navLayout === 'sidebar' ? 'selected' : ''}>${esc(t('settings.opt.sidebar'))}</option>
-                            <option value="header" ${navLayout === 'header' ? 'selected' : ''}>${esc(t('settings.opt.header'))}</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
-                        <label for="setHeaderNav">${esc(t('settings.label.setHeaderNav'))}</label>
-                        <select id="setHeaderNav" class="settings-control">
-                            <option value="on" ${headerNavOn ? 'selected' : ''}>${esc(t('settings.opt.on'))}</option>
-                            <option value="off" ${headerNavOn ? '' : 'selected'}>${esc(t('settings.opt.off'))}</option>
-                        </select>
-                    </div>
                     <div class="settings-row">
                         <label for="setTheme">${esc(t('settings.label.setTheme'))}</label>
                         <select id="setTheme" class="settings-control">
@@ -147,18 +131,6 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                 </div>
             </div>`;
 
-        container.querySelector<HTMLSelectElement>('#setHeaderNav')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement;
-            Toolbox.setHeaderNavOn?.(target.value === 'on');
-        });
-        container.querySelector<HTMLSelectElement>('#setNavLayout')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement | null;
-            if (!target) return;
-            Toolbox.setNavLayout?.(target.value);
-            const label = target.value === 'sidebar' ? t('settings.opt.sidebar') : t('settings.opt.header');
-            Toolbox.showToast?.(t('settings.t22') + label);
-        });
-
         container.querySelector<HTMLSelectElement>('#setTheme')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
@@ -210,7 +182,6 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
        그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
     const storageDesc = (): Record<string, string> => ({
         'toolbox_theme': t('settings.t27'),
-        'toolbox_nav_layout': t('settings.t28'),
         'toolbox_sidebar_groups': t('settings.t29'),
         'toolbox_prism_theme': t('settings.t30'),
         'toolbox_last_page': t('settings.t31'),
