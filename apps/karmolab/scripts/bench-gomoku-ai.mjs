@@ -48,8 +48,8 @@ function play(levelBlack, levelWhite, seed, n = 15) {
   return { winner: 0, ms, moves: n * n };
 }
 
-/* 5 는 아직 화면에 안 내놓는다(4 상대 35~63%, 실측). 리그도 내놓은 넷만 잰다. 5 를 넣을 때 [5, 4] 와 [5, 3] 을 되돌릴 것 */
-const pairs = [[2, 1], [3, 2], [4, 3], [3, 1], [4, 2]];
+/* 5 는 2026-08-30 에 들어왔다(4 상대 85%, 3 상대 65%). `--five` 면 5 짝만 */
+const pairs = process.argv.includes('--five') ? [[5, 4], [5, 3]] : [[2, 1], [3, 2], [4, 3], [5, 4], [3, 1], [4, 2], [5, 3]];
 const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
 const rows = [];
 const timing = {};

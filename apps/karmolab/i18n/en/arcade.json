@@ -526,6 +526,7 @@
   "arcade.setup.ai.2": "Beginner",
   "arcade.setup.ai.3": "Student",
   "arcade.setup.ai.4": "Expert",
+  "arcade.setup.ai.5": "Master",
   "arcade.btn.swapcolor": "Rematch, swap colors",
   "arcade.btn.draw": "Offer draw",
   "arcade.btn.resign": "Resign",

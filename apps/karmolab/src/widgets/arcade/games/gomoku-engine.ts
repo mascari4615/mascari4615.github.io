@@ -22,17 +22,19 @@ export const LEVELS: readonly Level[] = [1, 2, 3, 4, 5];
 /**
  * 단계별 깊이(플라이), 후보 수, 노드 예산, VCF 깊이, 상대 VCF 막기.
  *
- * 실측(봇 리그 20판씩, 2026-08-30): 깊이 4 는 깊이 2 보다 **약했다**(폭 7 에서 10%, 폭 14 에서 같음).
- * 이 평가 함수로는 깊이가 잡음만 더한다. 대신 **폭과 VCF** 가 힘을 갈랐다(VCF 붙이면 85%).
- * 그래서 단계는 깊이가 아니라 폭, VCF 깊이, 상대 VCF 읽기로 가른다. 깊이 탐색은 남겨 두되 2 로 고정
+ * 실측(봇 리그 20판씩, 2026-08-30): 옛 평가로는 깊이 4 가 깊이 2 보다 **약했다**(폭 7 에서 10%, 폭 14 에서 같음).
+ * 대신 **폭과 VCF** 가 힘을 갈랐다(VCF 붙이면 85%). 3, 4단계는 그대로.
+ * 5단계는 겹침 평가(combo)를 켜니 깊이 4 가 힘이 됐다. 아래 PLAN 의 5 주석
  */
-export const PLAN: Record<Level, { depth: number; width: number; nodes: number; vcf: number; guard: boolean }> = {
-  1: { depth: 0, width: 6, nodes: 0, vcf: 0, guard: false },
-  2: { depth: 1, width: 12, nodes: 0, vcf: 0, guard: false },
-  3: { depth: 2, width: 8, nodes: 600, vcf: 0, guard: false },
-  4: { depth: 2, width: 12, nodes: 2000, vcf: 8, guard: false },
-  /* 5 는 아직 화면에 안 내놓는다. 실측 4 상대 63%, 3 상대 67% 로 기준(60/75) 에 못 미침. 평가 함수가 천장 */
-  5: { depth: 3, width: 12, nodes: 6000, vcf: 14, guard: false }
+export const PLAN: Record<Level, { depth: number; width: number; nodes: number; vcf: number; guard: boolean; vct: number; safe: boolean; combo: boolean }> = {
+  1: { depth: 0, width: 6, nodes: 0, vcf: 0, guard: false, vct: 0, safe: false, combo: false },
+  2: { depth: 1, width: 12, nodes: 0, vcf: 0, guard: false, vct: 0, safe: false, combo: false },
+  3: { depth: 2, width: 8, nodes: 600, vcf: 0, guard: false, vct: 0, safe: false, combo: false },
+  4: { depth: 2, width: 12, nodes: 2000, vcf: 8, guard: false, vct: 0, safe: false, combo: false },
+  /* 5 (2026-08-30 실측, 40판 리그): 깊이 4 + 사삼/삼삼 겹침 평가(combo) + 두고 난 뒤 상대 VCF 가 없는 수 고르기(safe).
+     4 상대 85%, 3 상대 65%, 한 수 평균 88ms 최대 265ms. 셋까지 잇는 위협 탐색(vct)은 붙이니 오히려 약해져(4 상대 40%) 꺼 둠.
+     예전엔 깊이가 잡음이었는데 겹침 평가가 붙자 깊이가 힘이 됐다(깊이 2 는 4 상대 65%, 깊이 4 는 85%) */
+  5: { depth: 4, width: 12, nodes: 6000, vcf: 14, guard: false, vct: 0, safe: true, combo: true }
 };
 
 const DIRS: ReadonlyArray<readonly [number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
@@ -113,9 +115,30 @@ function lineValueRaw(s: string): number {
   return v;
 }
 
-/** 판 전체를 한 색의 눈으로 매긴 값. 줄마다 글자로 옮겨 잰다 */
+/** 겹침 평가를 켜나. 단계가 정한다(`think` 가 매번 놓음). 3, 4단계는 옛 평가가 더 셌다(실측: 켜니 4 대 3 이 77 -> 47) */
+let comboOn = false;
+
+/** 줄 하나의 위협 수. 겹침(사삼, 삼삼)을 보려면 줄마다 넷과 열린 셋이 몇인지 알아야 한다 */
+const THREATS = new Map<string, number>();
+function lineThreats(s: string): number {
+  const hit = THREATS.get(s);
+  if (hit !== undefined) return hit;
+  const fours = count(P_OPEN4, s) + count(P_FOUR, s);
+  const threes = count(P_OPEN3, s);
+  const v = fours * 16 + threes;
+  if (THREATS.size < 200000) THREATS.set(s, v);
+  return v;
+}
+
+/**
+ * 판 전체를 한 색의 눈으로 매긴 값. 줄마다 글자로 옮겨 잼
+ * 줄 너머 겹침을 더한다: 넷 둘(사사)이나 넷 하나에 열린 셋 하나(사삼)는 막을 수 없으니 열린 넷값,
+ * 열린 셋 둘(삼삼)은 그 절반. 줄 하나의 합만 보면 이 겹침이 안 보여 5단계가 4단계를 못 이겼다(실측 63%)
+ */
 function sideValue(b: number[], n: number, who: number): number {
   let total = 0;
+  let fours = 0;
+  let threes = 0;
   const ls = linesOf(n);
   for (const line of ls) {
     let s = 'o';
@@ -126,6 +149,13 @@ function sideValue(b: number[], n: number, who: number): number {
     s += 'o';
     if (s.indexOf('x') < 0) continue;
     total += lineValue(s);
+    const th = lineThreats(s);
+    fours += th >> 4;
+    threes += th & 15;
+  }
+  if (comboOn && total < WEIGHT.open4) {
+    if (fours >= 2 || (fours >= 1 && threes >= 1)) total += WEIGHT.open4 * 0.8;
+    else if (threes >= 2) total += WEIGHT.open4 * 0.4;
   }
   return total;
 }
@@ -292,6 +322,86 @@ function vcf(b: number[], n: number, who: number, renju: boolean, depth: number,
   return -1;
 }
 
+/** 이 칸에 두면 상대가 막아야 하는 다섯 자리(넷)가 몇인가. 놓았다 거둔다 */
+function fivesAfter(b: number[], n: number, cell: number, who: number, renju: boolean, cap = 3): number[] {
+  b[cell] = who;
+  const out: number[] = [];
+  for (let e = 0; e < n * n && out.length < cap; e += 1) {
+    if (b[e] !== 0 || !near(b, n, e, 1)) continue;
+    if (renju && who === 1 && isBanned(b, n, e)) continue;
+    if (winsAt(b, n, e, who, renju)) out.push(e);
+  }
+  b[cell] = 0;
+  return out;
+}
+
+/** 이 칸에 두면 열린 셋(다음에 열린 넷이 되는 자리가 있는 셋)이 생기나. 생기면 그 자리들 */
+function open4After(b: number[], n: number, cell: number, who: number, renju: boolean): number[] {
+  b[cell] = who;
+  const out: number[] = [];
+  for (let e = 0; e < n * n && out.length < 3; e += 1) {
+    if (b[e] !== 0 || !near(b, n, e, 1)) continue;
+    if (renju && who === 1 && isBanned(b, n, e)) continue;
+    if (fivesAfter(b, n, e, who, renju, 2).length >= 2) out.push(e);
+  }
+  b[cell] = 0;
+  return out;
+}
+
+/**
+ * VCT. 넷과 열린 셋을 이어 이기는 길. VCF 보다 가지가 넓어 깊이 8 안팎, 예산으로 자름
+ * 공격자는 넷이나 열린 셋을 만드는 수만. 수비자는 넷이면 막는 한 수, 열린 셋이면 막는 자리들과
+ * 자기 넷 만들기(맞불). 어느 수비에도 이기는 길이 남으면 그 첫 수
+ */
+function vct(b: number[], n: number, who: number, renju: boolean, depth: number, budget: { left: number }): number {
+  if (depth <= 0 || budget.left <= 0) return -1;
+  const foe = 3 - who;
+  /* 넷을 잇는 길이 있으면 그게 곧 답 */
+  const quick = vcf(b, n, who, renju, Math.min(depth + 4, 12), budget);
+  if (quick >= 0) return quick;
+  for (let c = 0; c < n * n; c += 1) {
+    if (b[c] !== 0 || !near(b, n, c, 1) || budget.left <= 0) continue;
+    if (renju && who === 1 && isBanned(b, n, c)) continue;
+    budget.left -= 1;
+    const fives = fivesAfter(b, n, c, who, renju, 2);
+    let replies: number[];
+    if (fives.length >= 2) return c;
+    if (fives.length === 1) replies = fives;
+    else {
+      const o4 = open4After(b, n, c, who, renju);
+      if (!o4.length) continue;
+      /* 열린 셋의 수비: 열린 넷이 될 자리들, 그리고 그 셋의 양 끝 너머. 더해서 상대의 맞불(넷 만들기) */
+      replies = o4.slice();
+      b[c] = who;
+      for (let e = 0; e < n * n && replies.length < 8; e += 1) {
+        if (b[e] !== 0 || !near(b, n, e, 1) || replies.indexOf(e) >= 0) continue;
+        if (fivesAfter(b, n, e, foe, renju, 1).length >= 1) replies.push(e);
+      }
+      b[c] = 0;
+    }
+    b[c] = who;
+    let holds = true;
+    for (const r of replies) {
+      if (winsAt(b, n, r, foe, renju)) { holds = false; break; }
+      b[r] = foe;
+      /* 수비가 상대의 넷이면 나는 그걸 막아야 하고, 그 뒤가 곧 이 길의 끝 */
+      let counter = -1;
+      for (let e = 0; e < n * n; e += 1) if (b[e] === 0 && near(b, n, e, 1) && winsAt(b, n, e, foe, renju)) { counter = e; break; }
+      let win: number;
+      if (counter >= 0) {
+        win = -1;
+      } else {
+        win = vct(b, n, who, renju, depth - 2, budget);
+      }
+      b[r] = 0;
+      if (win < 0) { holds = false; break; }
+    }
+    b[c] = 0;
+    if (holds && replies.length) return c;
+  }
+  return -1;
+}
+
 /** 렌주 금수(장목, 사사, 삼삼). 흑만. 게임 파일의 판정과 같은 기준, 탐색용으로 가볍게 */
 function isBanned(b: number[], n: number, cell: number): boolean {
   b[cell] = 1;
@@ -375,6 +485,7 @@ export function think(ask: Ask): number {
   const { n, who, renju, level, rng } = ask;
   const b = ask.board.slice();
   const plan = PLAN[level];
+  comboOn = plan.combo;
   const banned = new Set(ask.banned);
   const foe = 3 - who;
 
@@ -416,6 +527,11 @@ export function think(ask: Ask): number {
     const w = vcf(b, n, who, renju, plan.vcf, { left: 3000 });
     if (w >= 0) return w;
   }
+  /* 셋까지 이어 이기는 길 */
+  if (plan.vct > 0) {
+    const w = vct(b, n, who, renju, plan.vct, { left: 4000 });
+    if (w >= 0 && !banned.has(w)) return w;
+  }
   /* 상대에게 그 길이 있으면 그 첫 수 자리를 먼저 차지한다. 공격의 시작점을 막는 것이 제일 싼 수비 */
   if (plan.guard) {
     const danger = vcf(b, n, foe, renju, plan.vcf, { left: 3000 });
@@ -444,6 +560,16 @@ export function think(ask: Ask): number {
     if (starved && d > 2) break;
     scored = round;
     if (starved) break;
+  }
+  /* 안전 고르기. 값 높은 순으로, 두고 난 뒤 상대에게 VCF 가 없는 첫 수. 전부 위험하면 값대로 */
+  if (plan.safe) {
+    const order = scored.slice().sort((p, q) => q[1] - p[1]);
+    for (const [c] of order.slice(0, 4)) {
+      b[c] = who;
+      const threat = vcf(b, n, foe, renju, plan.vcf, { left: 800 });
+      b[c] = 0;
+      if (threat < 0) return c;
+    }
   }
   const top = scored.reduce((m, p) => Math.max(m, p[1]), -Infinity);
   /* 동점은 난수로. 늘 앞칸을 고르면 같은 판이 반복된다 */
