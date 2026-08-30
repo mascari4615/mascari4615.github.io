@@ -291,8 +291,15 @@ if ((await airChip.count()) === 0) {
     } else {
       check(onCount > 0, `★ 비행기가 실제로 그려진다 (그 색 픽셀 ${onCount}개)`);
       await airChip.click(); // 끈다
-      await page.waitForTimeout(400);
-      const offCount = await planePixels();
+      /* 지구본은 다음 프레임에 다시 그린다. 400ms 로 세면 아직 옛 그림을 읽어 7 -> 7 처럼 안 줄었다가 나온다
+         (2026-08-31 실측, 통짜 판에서 두 번). 값이 멎을 때까지 기다린다 */
+      let offCount = await planePixels();
+      for (let i = 0; i < 12; i += 1) {
+        await page.waitForTimeout(150);
+        const now = await planePixels();
+        if (now === offCount && now < onCount) break;
+        offCount = now;
+      }
       check(offCount < onCount, `겹을 끄면 사라진다 (${onCount} → ${offCount})`);
     }
   }
