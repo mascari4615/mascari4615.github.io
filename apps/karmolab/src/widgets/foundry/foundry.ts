@@ -47,7 +47,7 @@ function injectStyles(): void {
     .fd-tabs { display:flex; gap:6px; flex-wrap:wrap; }
     .fd-tabs button { border:1px solid var(--border); background:var(--bg-tertiary);
       color:var(--text-primary); border-radius:var(--radius-pill); padding:4px 12px; cursor:pointer; font-size:var(--font-size-2xs); }
-    .fd-tabs button.active { border-color:var(--accent); background:var(--bg-hover, var(--bg-secondary)); }
+    .fd-tabs button.active { border-color:var(--accent-ink); background:var(--bg-hover, var(--bg-secondary)); }
     .fd-tabs button small { color:var(--text-secondary); margin-left:5px; font-variant-numeric:tabular-nums; }
     .fd-grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fill, minmax(168px, 1fr)); }
     .fd-card { margin:0; border:1px solid var(--border); border-radius:var(--radius-xl); overflow:hidden;
@@ -65,7 +65,7 @@ function injectStyles(): void {
     .fd-acts a, .fd-acts button { flex:1; text-align:center; border:1px solid var(--border);
       background:var(--bg-tertiary); color:var(--text-primary); border-radius:var(--radius-md); padding:4px 6px;
       cursor:pointer; font-size:var(--font-size-3xs); text-decoration:none; }
-    .fd-acts a:hover, .fd-acts button:hover { border-color:var(--accent); }
+    .fd-acts a:hover, .fd-acts button:hover { border-color:var(--accent-ink); }
     .fd-empty, .fd-error { padding:28px 12px; text-align:center; color:var(--text-secondary); }
     .fd-error { color:#ff6b6b; }
     .fd-error button { margin-left:8px; }

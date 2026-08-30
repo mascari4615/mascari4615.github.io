@@ -310,9 +310,9 @@ import { t, loadNamespace } from '../lib/i18n';
         .claude-env-select, .claude-env-input { flex: 1; min-width: 0; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-primary); color: var(--text-primary); font-size: var(--font-size-sm); font-family: inherit; }
         .claude-env-input { font-family: ui-monospace, monospace; }
         .claude-env-play { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-size: var(--font-size-sm); cursor: pointer; line-height: 1; }
-        .claude-env-play:hover { background: var(--bg-tertiary); border-color: var(--accent); }
+        .claude-env-play:hover { background: var(--bg-tertiary); border-color: var(--accent-ink); }
         .claude-env-browse { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-secondary); font-size: var(--font-size-xs); cursor: pointer; line-height: 1; white-space: nowrap; }
-        .claude-env-browse:hover { background: var(--bg-tertiary); border-color: var(--accent); color: var(--text-primary); }
+        .claude-env-browse:hover { background: var(--bg-tertiary); border-color: var(--accent-ink); color: var(--text-primary); }
         .claude-env-hint { flex: 1; color: var(--text-tertiary); font-size: var(--font-size-xs); font-family: ui-monospace, monospace; }
         .claude-env-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
         .claude-env-save { padding: 6px 16px; border: 1px solid var(--accent, var(--border)); border-radius: var(--radius-sm); background: var(--accent, var(--bg-tertiary)); color: var(--accent-fg)); font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; }

@@ -70,7 +70,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-big { display:flex; gap:12px; flex-wrap:wrap; }
         .plaza-big-item { flex:1 1 150px; padding:16px 18px; border:1px solid var(--border);
             border-radius:var(--radius-lg); background:var(--bg-secondary); }
-        .plaza-big-item strong { display:block; font-size:28px; font-weight:700; color:var(--accent);
+        .plaza-big-item strong { display:block; font-size:28px; font-weight:700; color:var(--accent-ink);
             font-variant-numeric:tabular-nums; line-height:1.15; }
         .plaza-big-item span { display:block; margin-top:4px; font-size:var(--font-size-xs); color:var(--text-secondary); }
         .plaza-big-item em { display:block; margin-top:2px; font-size:var(--font-size-3xs); color:var(--text-tertiary);
@@ -111,7 +111,7 @@ import { profilePath, toolPage } from '../lib/site-base';
             font-variant-numeric:tabular-nums; }
         .plaza-tool-name { flex:0 0 34%; font-size:var(--font-size-xs); color:var(--text-primary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
-        .plaza-tool-name:hover { color:var(--accent); }
+        .plaza-tool-name:hover { color:var(--accent-ink); }
         .plaza-tool-bar { flex:1; height:8px; border-radius:var(--radius-sm); background:var(--bg-tertiary); overflow:hidden; }
         .plaza-tool-bar i { display:block; height:100%; background:var(--accent); }
         .plaza-tool-count { flex:0 0 84px; text-align:right; font-size:var(--font-size-xs);
@@ -119,7 +119,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-more { margin-top:10px; padding:6px 14px; border:1px solid var(--border); border-radius:var(--radius-pill);
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs);
             cursor:pointer; }
-        .plaza-more:hover { border-color:var(--accent); color:var(--text-primary); }
+        .plaza-more:hover { border-color:var(--accent-ink); color:var(--text-primary); }
 
         .plaza-rows { border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); overflow:hidden; }

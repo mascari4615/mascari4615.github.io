@@ -83,7 +83,7 @@ const esc = (v: unknown): string =>
             cursor:pointer; transition:all 0.25s ease; aspect-ratio:1;
         }
         .il-lib-card:hover {
-            border-color:var(--accent); transform:translateY(-3px);
+            border-color:var(--accent-ink); transform:translateY(-3px);
             box-shadow:0 8px 28px rgba(0,0,0,0.5);
         }
         .il-lib-card img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -113,7 +113,7 @@ const esc = (v: unknown): string =>
         }
         .il-lib-empty-icon { font-size:56px; opacity:0.2; margin-bottom:20px; }
         .il-lib-empty-text { font-size:var(--font-size-xs); font-weight:500; margin-bottom:6px; }
-        .il-lib-empty-sub { font-size:var(--font-size-xs); opacity:0.6; }
+        .il-lib-empty-sub { font-size:var(--font-size-xs); color:var(--text-tertiary); }
 
         .il-detail { display:flex; gap:24px; min-height:480px; }
         .il-detail-image {
@@ -132,7 +132,7 @@ const esc = (v: unknown): string =>
         .il-detail-model-badge {
             display:inline-flex; align-items:center; gap:6px;
             padding:8px 14px; border-radius:var(--radius-sm);
-            background:var(--accent-subtle); color:var(--accent);
+            background:var(--accent-subtle); color:var(--accent-ink);
             font-size:var(--font-size-xs); font-weight:600; width:fit-content;
         }
         .il-detail-date { font-size:var(--font-size-xs); color:var(--text-tertiary); }
@@ -166,7 +166,7 @@ const esc = (v: unknown): string =>
             flex:1; font-size:var(--font-size-xs); padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm);
             background:var(--bg-primary); color:var(--text-primary); outline:none; font-family:inherit;
         }
-        .il-search-bar input:focus { border-color:var(--accent); }
+        .il-search-bar input:focus { border-color:var(--accent-ink); }
         .il-search-bar input::placeholder { color:var(--text-tertiary); }
 
         @media (max-width:768px) {

@@ -65,7 +65,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .linktree-wrap { display: flex; flex-direction: column; align-items: center; padding: var(--space-xl) 0; max-width: 400px; margin: 0 auto; }
         .linktree-intro { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-md); letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
         .linktree-intro-btn { background: none; border: none; font: inherit; color: inherit; cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 2px; }
-        .linktree-intro-btn:hover { color: var(--accent); }
+        .linktree-intro-btn:hover { color: var(--accent-ink); }
         .linktree-avatar { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); margin-bottom: var(--space-md); }
         .linktree-name { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 4px; }
         .linktree-bio { font-size: var(--font-size-xs); color: var(--text-tertiary); margin-bottom: var(--space-lg); text-align: center; line-height: 1.5; }
@@ -74,7 +74,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .linktree-group-title { font-size: var(--font-size-2xs); font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
         .linktree-list { display: flex; flex-direction: column; gap: var(--space-sm); }
         .linktree-card { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text-primary); text-decoration: none; font-weight: 500; font-size: var(--font-size-sm); transition: all var(--transition); text-align: left; }
-        .linktree-card:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+        .linktree-card:hover { background: var(--bg-hover); border-color: var(--accent-ink); color: var(--accent-ink); transform: translateY(-1px); }
         .linktree-card-email { cursor: default; }
         .linktree-card-icon { flex-shrink: 0; width: 20px; height: 20px; opacity: 0.7; }
         .linktree-card-icon svg { width: 100%; height: 100%; }
@@ -83,7 +83,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         .linktree-card-desc { font-size: var(--font-size-2xs); font-weight: 400; color: var(--text-tertiary); margin-top: 2px; }
         .linktree-card:hover .linktree-card-desc { color: var(--text-secondary); }
         .linktree-card-copy { flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); color: var(--text-tertiary); background: none; border: none; cursor: pointer; opacity: 0.6; transition: all var(--transition); }
-        .linktree-card-copy:hover { opacity: 1; color: var(--accent); }
+        .linktree-card-copy:hover { opacity: 1; color: var(--accent-ink); }
         .linktree-card-copy svg { width: 16px; height: 16px; }
     `
   );

@@ -42,7 +42,7 @@ import { t, loadNamespace } from '../lib/i18n';
                     <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('pet.t01'))}</div>
                     <div style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('pet.t02'))}</div>
                     <div id="petArea" style="font-size:100px; cursor:grab; user-select:none; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.3)); transition:transform 0.1s;">🐱</div>
-                    <div style="font-size:var(--font-size-title); font-weight:bold; color:var(--accent);">${esc(t('pet.t03'))} <span id="petCount">0</span></div>
+                    <div style="font-size:var(--font-size-title); font-weight:bold; color:var(--accent-ink);">${esc(t('pet.t03'))} <span id="petCount">0</span></div>
                     <div id="petMilestone" style="font-size:var(--font-size-xs); color:var(--success); min-height:16px;"></div>
                 </div>
             `;

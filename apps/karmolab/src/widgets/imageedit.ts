@@ -21,7 +21,7 @@ const esc = (v: unknown): string =>
             border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-secondary);
             cursor:pointer; transition:all var(--transition); font-family:inherit; white-space:nowrap;
         }
-        .ie-tb-btn:hover { color:var(--text-primary); border-color:var(--accent); }
+        .ie-tb-btn:hover { color:var(--text-primary); border-color:var(--accent-ink); }
         .ie-tb-btn:disabled { opacity:0.35; cursor:not-allowed; }
         .ie-tb-btn.accent { background:var(--fill-strong); color:var(--fill-strong-ink); border-color:var(--fill-strong); }
         .ie-tb-btn.accent:hover { background:var(--fill-strong-hover); border-color:var(--fill-strong-hover); }
@@ -86,7 +86,7 @@ const esc = (v: unknown): string =>
             width:auto; max-width:none; opacity:1; pointer-events:auto;
         }
         .ie-tool-btn:hover { color:var(--text-primary); background:var(--bg-hover); }
-        .ie-tool-btn.active { color:var(--accent); border-color:var(--accent); background:var(--accent-subtle); }
+        .ie-tool-btn.active { color:var(--accent-ink); border-color:var(--accent-ink); background:var(--accent-subtle); }
 
         /* Canvas + options (options = 우측 사이드바) */
         .ie-canvas-area {
@@ -185,7 +185,7 @@ const esc = (v: unknown): string =>
         }
         .ie-cv-lb-btn:hover { background:rgba(255,255,255,0.14); }
         .ie-cv-lb-btn.ie-cv-lb-active {
-            border-color:var(--accent); color:var(--text-primary); background:var(--accent-subtle);
+            border-color:var(--accent-ink); color:var(--text-primary); background:var(--accent-subtle);
         }
         .ie-cv-fmt {
             display:inline-flex; align-items:center; gap:5px; font-size:var(--font-size-2xs);
@@ -193,7 +193,7 @@ const esc = (v: unknown): string =>
             cursor:pointer; color:var(--text-secondary); background:var(--bg-tertiary);
         }
         .ie-cv-fmt.ie-cv-off { opacity:0.4; pointer-events:none; }
-        .ie-cv-fmt:has(input:checked) { border-color:var(--accent); color:var(--text-primary); background:var(--accent-subtle); }
+        .ie-cv-fmt:has(input:checked) { border-color:var(--accent-ink); color:var(--text-primary); background:var(--accent-subtle); }
         .ie-placeholder {
             display:flex; flex-direction:column; align-items:center; justify-content:center;
             gap:12px; color:var(--text-tertiary); text-align:center;
@@ -246,16 +246,16 @@ const esc = (v: unknown): string =>
             border:1px solid var(--border); border-radius:var(--radius-sm);
             background:var(--bg-tertiary); color:var(--text-primary);
         }
-        .ie-opt-range { width:120px; accent-color:var(--accent); }
+        .ie-opt-range { width:120px; accent-color:var(--accent-ink); }
         .ie-opt-range-val { font-size:var(--font-size-2xs); color:var(--text-tertiary); font-family:monospace; min-width:36px; }
-        .ie-opt-check { accent-color:var(--accent); }
+        .ie-opt-check { accent-color:var(--accent-ink); }
         .ie-opt-btn {
             padding:4px 12px; font-size:var(--font-size-xs); border:1px solid var(--border);
             border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-secondary);
             cursor:pointer; font-family:inherit; transition:all var(--transition);
         }
-        .ie-opt-btn:hover { border-color:var(--accent); color:var(--text-primary); }
-        .ie-opt-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .ie-opt-btn:hover { border-color:var(--accent-ink); color:var(--text-primary); }
+        .ie-opt-btn.active { background:var(--band); color:var(--band-ink); border-color:var(--band); }
         .ie-apply-btn {
             padding:5px 16px; font-size:var(--font-size-xs); font-weight:600; border:none;
             border-radius:var(--radius-sm); background:var(--fill-strong); color:var(--fill-strong-ink);
@@ -274,8 +274,8 @@ const esc = (v: unknown): string =>
             padding:6px 4px; border-radius:var(--radius-sm); border:1px solid var(--border);
             background:var(--bg-tertiary); cursor:pointer; transition:all var(--transition);
         }
-        .ie-filter-card:hover { border-color:var(--accent); }
-        .ie-filter-card.active { border-color:var(--accent); background:var(--accent-subtle); }
+        .ie-filter-card:hover { border-color:var(--accent-ink); }
+        .ie-filter-card.active { border-color:var(--accent-ink); background:var(--accent-subtle); }
         .ie-filter-thumb {
             width:48px; height:48px; border-radius:var(--radius-sm); object-fit:cover;
             background:var(--bg-primary);
@@ -321,7 +321,7 @@ const esc = (v: unknown): string =>
             width:100%; box-sizing:border-box; background:var(--bg-tertiary);
         }
         .ie-mask-preview-sliderrow span { font-size:var(--font-size-3xs); color:var(--text-secondary); white-space:nowrap; }
-        .ie-mask-preview-sliderrow input[type="range"] { flex:1; min-width:80px; accent-color:var(--accent); }
+        .ie-mask-preview-sliderrow input[type="range"] { flex:1; min-width:80px; accent-color:var(--accent-ink); }
         .ie-mask-preview-close {
             padding:4px 12px; border:none; border-radius:var(--radius-sm);
             background:var(--accent); color:#fff; cursor:pointer; font-size:var(--font-size-2xs);
@@ -367,7 +367,7 @@ const esc = (v: unknown): string =>
             aspect-ratio:1; border-radius:var(--radius-sm); overflow:hidden;
             border:2px solid var(--border); cursor:pointer; transition:all var(--transition);
         }
-        .ie-lib-thumb-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+        .ie-lib-thumb-card:hover { border-color:var(--accent-ink); transform:translateY(-2px); }
         .ie-lib-thumb-card img { width:100%; height:100%; object-fit:cover; display:block; }
         .ie-lib-empty { text-align:center; color:var(--text-tertiary); padding:40px 20px; font-size:var(--font-size-sm); }
 
@@ -376,7 +376,7 @@ const esc = (v: unknown): string =>
             content:'이미지를 여기에 놓으세요'; position:absolute; inset:0;
             display:flex; align-items:center; justify-content:center;
             background:rgba(139,124,246,0.15); border:2px dashed var(--accent);
-            border-radius:var(--radius-md); font-size:var(--font-size-xs); color:var(--accent);
+            border-radius:var(--radius-md); font-size:var(--font-size-xs); color:var(--accent-ink);
             font-weight:600; z-index:50; pointer-events:none;
         }
 
@@ -403,7 +403,7 @@ const esc = (v: unknown): string =>
         }
         .ie-rembg-spinner {
             width:40px; height:40px; border:3px solid rgba(255,255,255,0.15);
-            border-top-color:var(--accent); border-radius:50%;
+            border-top-color:var(--accent-ink); border-radius:50%;
             animation:ie-spin 0.8s linear infinite;
         }
         @keyframes ie-spin { to { transform:rotate(360deg); } }
@@ -431,8 +431,8 @@ const esc = (v: unknown): string =>
             background:var(--bg-tertiary); color:var(--text-secondary);
             cursor:pointer; transition:all var(--transition); font-family:inherit;
         }
-        .ie-rembg-tab:hover { color:var(--text-primary); border-color:var(--accent); }
-        .ie-rembg-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .ie-rembg-tab:hover { color:var(--text-primary); border-color:var(--accent-ink); }
+        .ie-rembg-tab.active { background:var(--accent); color:#fff; border-color:var(--accent-ink); }
 
         /* Brush overlay */
         .ie-brush-overlay {
@@ -4264,7 +4264,7 @@ const esc = (v: unknown): string =>
                                 <button class="ie-dropdown-item" id="ieExDlJpg">${esc(t('imageedit.btn.ieExDlJpg'))}</button>
                                 <div style="padding:6px 14px;display:flex;align-items:center;gap:6px;">
                                     <span style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">${esc(t('imageedit.t45'))}</span>
-                                    <input type="range" id="ieJpegQuality" min="10" max="100" value="92" style="width:80px;accent-color:var(--accent);">
+                                    <input type="range" id="ieJpegQuality" min="10" max="100" value="92" style="width:80px;accent-color:var(--accent-ink);">
                                     <span id="ieJpegQualityVal" style="font-size:var(--font-size-2xs);color:var(--text-tertiary);font-family:monospace;min-width:28px;">92%</span>
                                 </div>
                                 <button class="ie-dropdown-item" id="ieExClip">${esc(t('imageedit.btn.ieExClip'))}</button>

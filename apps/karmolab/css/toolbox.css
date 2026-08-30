@@ -46,6 +46,8 @@
 
     /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기. 두 테마가 같은 색을 공유한다. */
     --accent: #a79bef;         /* quiet lavender */
+    /* 글자로 쓰는 주황, 보라. 클래식에서는 칠과 같다. 필드 스킨만 따로 정한다 */
+    --accent-ink: var(--accent);
     /* ★ accent 로 **채운 자리 위의 글자색** (2026-08-16). 여태 토큰이 없어서 여러 자리가
        `var(--accent-fg)` 로 흰 글자를 썼는데, 어두운 판의 accent 는 **밝은 라벤더**라
        흰 글자는 2.45:1 이다. 사실상 안 읽힌다. 판마다 반대 색을 쓴다: 어두운 판 7.76, 밝은 판 6.31. */
@@ -182,6 +184,7 @@
     --text-tertiary: #656374;  /* ink-3 */
 
     --accent: #5f4dc2;         /* 연보라 잉크. 다크(#a99bf5)와 같은 hue, 흰 위에서 읽히게 어둡게 */
+    --accent-ink: var(--accent);
     --accent-fg: #ffffff;      /* 밝은 판 accent 는 어두우므로 글자는 흰색 (6.31:1) */
     --accent-hover: #4f3eb0;
     --accent-dim: rgba(95, 77, 194, 0.10);

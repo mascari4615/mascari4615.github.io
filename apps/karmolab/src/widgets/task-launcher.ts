@@ -81,7 +81,7 @@ const esc = (v: unknown): string =>
   flex: 1; background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius-sm);
   padding: 10px 14px; font-size: var(--font-size-xs); color: var(--ink); outline: none;
 }
-.kl-task-launcher .search:focus { border-color: var(--accent); }
+.kl-task-launcher .search:focus { border-color: var(--accent-ink); }
 .kl-task-launcher .new-btn {
   background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius-sm);
   padding: 10px 16px; font-weight: 600; cursor: pointer; font-size: var(--font-size-2xs);
@@ -91,7 +91,7 @@ const esc = (v: unknown): string =>
   background: var(--paper); color: var(--ink); border: 1px solid var(--line-2);
   padding: 9px 10px; border-radius: var(--radius-sm); font-size: var(--font-size-2xs); cursor: pointer; outline: none;
 }
-.kl-task-launcher .sort-mode:focus { border-color: var(--accent); }
+.kl-task-launcher .sort-mode:focus { border-color: var(--accent-ink); }
 .kl-task-launcher .meta { font-size: var(--font-size-2xs); color: var(--ink-3); }
 .kl-task-launcher .list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .kl-task-launcher .row {
@@ -111,7 +111,7 @@ const esc = (v: unknown): string =>
   text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s;
 }
 .kl-task-launcher .chip:hover { background: var(--line-2); }
-.kl-task-launcher .chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.kl-task-launcher .chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent-ink); }
 .kl-task-launcher .row .id { font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs); color: var(--accent-2); }
 .kl-task-launcher .row .status {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); text-transform: uppercase;

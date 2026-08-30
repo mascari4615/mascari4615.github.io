@@ -255,7 +255,7 @@ import {
     /* 🌱 익은 정도 한 줄 (KL-271 L5). 재촉이 아니라 알림이라 옅게. */
     .km-ripe { font-size:var(--font-size-3xs); color:var(--text-tertiary); margin:-2px 0 8px; }
     .km-read-note { color:var(--text-secondary); font-size:var(--font-size-2xs); margin:2px 0 8px; }
-    .km-read-tags { color:var(--accent); font-size:var(--font-size-3xs); margin-bottom:8px; }
+    .km-read-tags { color:var(--accent-ink); font-size:var(--font-size-3xs); margin-bottom:8px; }
     .km-read-fields, .km-read-doc { margin-bottom:10px; }
     .km-read-doc { font-size:var(--font-size-2xs); line-height:1.7; color:var(--text-primary); white-space:pre-wrap; }
     .km-read-row { display:flex; gap:8px; font-size:var(--font-size-2xs); line-height:1.7; }
@@ -315,7 +315,7 @@ import {
     .km-field input.km-kind-find { width:auto; flex:0 0 124px; font-size:var(--font-size-3xs); padding:2px 9px;
       background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-pill);
       text-overflow:ellipsis; }
-    .km-field input.km-kind-find:focus { border-color:var(--accent); }
+    .km-field input.km-kind-find:focus { border-color:var(--accent-ink); }
     .km-h4btn { float:right; padding:2px 8px; font-size:var(--font-size-3xs); }
     .km-table { display:flex; flex-direction:column; gap:3px; max-height:220px; overflow-y:auto; }
     .km-trow { display:flex; gap:4px; align-items:center; }
@@ -419,7 +419,7 @@ import {
     .km-intent button { pointer-events:auto; flex:1 1 120px; min-width:110px; padding:10px 8px; border-radius:var(--radius-xl);
       border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary);
       display:flex; flex-direction:column; gap:4px; align-items:center; cursor:pointer; text-align:center; }
-    .km-intent button:hover { border-color:var(--accent); transform:translateY(-2px); }
+    .km-intent button:hover { border-color:var(--accent-ink); transform:translateY(-2px); }
     .km-intent .km-intent-ico { font-size:26px; line-height:1.1; }
     .km-intent .km-intent-t { font-weight:600; font-size:var(--font-size-2xs); }
     .km-intent .km-intent-s { font-size:var(--font-size-3xs); color:var(--text-tertiary); line-height:1.4; }

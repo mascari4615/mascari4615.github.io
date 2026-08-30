@@ -114,7 +114,7 @@ import { download } from '../tools/shared/image';
             text-align:center; background:var(--bg-secondary); color:var(--text-secondary);
             cursor:pointer; transition:border-color var(--transition), background var(--transition);
         }
-        .imc-drop:hover, .imc-drop.imc-drag { border-color:var(--accent); background:var(--accent-subtle); }
+        .imc-drop:hover, .imc-drop.imc-drag { border-color:var(--accent-ink); background:var(--accent-subtle); }
         .imc-drop-title { font-size:var(--font-size-sm); font-weight:600; color:var(--text-primary); margin-bottom:6px; }
         .imc-drop-hint { font-size:var(--font-size-xs); color:var(--text-tertiary); line-height:1.45; }
         .imc-panel {
@@ -174,11 +174,11 @@ import { download } from '../tools/shared/image';
             cursor:pointer; color:var(--text-secondary); padding:6px 10px; border-radius:var(--radius-sm);
             border:1px solid var(--border); background:var(--bg-tertiary);
         }
-        .imc-format input { accent-color:var(--accent); }
+        .imc-format input { accent-color:var(--accent-ink); }
         .imc-format label.imc-fmt-off { opacity:0.4; pointer-events:none; }
-        .imc-format label:has(input:checked) { border-color:var(--accent); color:var(--text-primary); background:var(--accent-subtle); }
+        .imc-format label:has(input:checked) { border-color:var(--accent-ink); color:var(--text-primary); background:var(--accent-subtle); }
         .imc-quality { display:flex; align-items:center; gap:10px; width:100%; max-width:320px; }
-        .imc-quality input[type="range"] { flex:1; accent-color:var(--accent); }
+        .imc-quality input[type="range"] { flex:1; accent-color:var(--accent-ink); }
         .imc-select, .imc-num {
             padding:6px 10px; font-size:var(--font-size-xs); border-radius:var(--radius-sm);
             border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-primary); font-family:inherit;
@@ -188,7 +188,7 @@ import { download } from '../tools/shared/image';
         .imc-color { width:44px; height:32px; padding:2px; border:1px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; background:var(--bg-tertiary); }
         .imc-row-inline { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
         .imc-check { display:inline-flex; align-items:center; gap:8px; font-size:var(--font-size-xs); color:var(--text-secondary); cursor:pointer; }
-        .imc-check input { accent-color:var(--accent); }
+        .imc-check input { accent-color:var(--accent-ink); }
         .imc-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
         .imc-note { font-size:var(--font-size-2xs); color:var(--text-tertiary); line-height:1.55; margin:0; }
         .imc-resample-block.imc-off { display:none; }

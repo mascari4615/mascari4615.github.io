@@ -48,8 +48,8 @@ import { onAccountSettled } from '../lib/account-ready';
         .ut-meta { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
         .ut-btn { padding:6px 12px; border-radius:var(--radius-lg); cursor:pointer; font:inherit; font-size:var(--font-size-xs);
             border:1px solid var(--border); background:transparent; color:var(--text-secondary); }
-        .ut-btn:hover { border-color:var(--accent); color:var(--text-primary); }
-        .ut-btn-go { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
+        .ut-btn:hover { border-color:var(--accent-ink); color:var(--text-primary); }
+        .ut-btn-go { background:var(--accent); border-color:var(--accent-ink); color:var(--bg-primary); font-weight:600; }
         .ut-make { display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--border);
             border-radius:var(--radius-lg); background:var(--bg-secondary); }
         .ut-make input, .ut-make textarea { padding:8px 10px; border-radius:var(--radius-lg); border:1px solid var(--border);

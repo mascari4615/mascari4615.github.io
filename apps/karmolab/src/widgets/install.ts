@@ -58,11 +58,11 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
 .install-name { font-size: 1.02rem; }
 .install-go { margin-left: auto; padding: .35rem .9rem; border-radius: var(--radius-lg); cursor: pointer;
   border: 1px solid var(--border); background: var(--bg-tertiary); color: inherit; }
-.install-go:hover:not(:disabled) { border-color: var(--accent); }
+.install-go:hover:not(:disabled) { border-color: var(--accent-ink); }
 .install-go:disabled { opacity: .55; cursor: default; }
 .install-dot { width: .62rem; height: .62rem; border-radius: 50%; flex: none;
   background: transparent; border: 1.5px solid var(--text-secondary); }
-.install-dot.on { background: var(--accent); border-color: var(--accent); }
+.install-dot.on { background: var(--accent); border-color: var(--accent-ink); }
 .install-desc { margin: .5rem 0 .3rem; font-size: .9rem; }
 .install-state { margin: 0; font-size: .84rem; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .install-log { margin: .7rem 0 0; max-height: 15rem; overflow: auto; white-space: pre-wrap;
@@ -80,7 +80,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
   border: 1px solid var(--border); background: var(--bg-void); color: inherit; font-size: .85rem; }
 .install-pick, .install-save { padding: .35rem .9rem; border-radius: var(--radius-lg); cursor: pointer;
   border: 1px solid var(--border); background: var(--bg-tertiary); color: inherit; }
-.install-pick:hover, .install-save:hover { border-color: var(--accent); }
+.install-pick:hover, .install-save:hover { border-color: var(--accent-ink); }
 .install-needroot-note { margin: .55rem 0 0; font-size: .82rem; color: var(--text-secondary); }
 `;
 

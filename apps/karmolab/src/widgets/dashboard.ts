@@ -10,7 +10,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .dash-layout { display:flex; flex-direction:column; gap:16px; }
         .dash-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
         .dash-card { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; }
-        .dash-card-value { font-size:28px; font-weight:700; color:var(--accent); margin-bottom:4px; font-family:monospace; }
+        .dash-card-value { font-size:28px; font-weight:700; color:var(--accent-ink); margin-bottom:4px; font-family:monospace; }
         .dash-card-label { font-size:var(--font-size-xs); color:var(--text-secondary); }
         .dash-table-wrap { overflow-x:auto; }
         .dash-table { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }

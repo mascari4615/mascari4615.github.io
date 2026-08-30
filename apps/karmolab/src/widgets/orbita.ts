@@ -133,7 +133,7 @@ import { t, loadNamespace } from '../lib/i18n';
       background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border);
       border-radius:var(--radius-md); padding:4px 6px; font-size:var(--font-size-2xs); font-family:var(--font-mono);
     }
-    .orbita-panel input[type=range] { accent-color:var(--accent); width:120px; flex:0 0 auto; margin:0; }
+    .orbita-panel input[type=range] { accent-color:var(--accent-ink); width:120px; flex:0 0 auto; margin:0; }
     .orbita-panel label, .orbita-ring-row label { margin:0; flex:0 0 auto; }
     .orbita-panel #orbitaMidi { flex:1 1 200px; max-width:320px; }
     .orbita-btn {

@@ -706,22 +706,22 @@ function injectStyles(): void {
 .rc-dot.is-now { background: var(--text-secondary); }
 
 .rc-card { display: flex; flex-direction: column; gap: 16px; padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--bg-secondary); }
-.rc-card.rc-open { background: var(--accent-subtle); border-color: var(--accent); }
-.rc-tag { font-size: var(--font-size-3xs); letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+.rc-card.rc-open { background: var(--accent-subtle); border-color: var(--accent-ink); }
+.rc-tag { font-size: var(--font-size-3xs); letter-spacing: .08em; color: var(--accent-ink); font-weight: 700; }
 .rc-title { font-size: 28px; font-weight: 700; line-height: 1.25; margin: 0; letter-spacing: -0.02em; }
 .rc-q { font-size: var(--font-size-lg); font-weight: 700; line-height: 1.4; margin: 0; }
 .rc-lede, .rc-hint { font-size: var(--font-size-2xs); color: var(--text-secondary); margin: 0; line-height: 1.75; }
 .rc-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .rc-go, .rc-skip, .rc-vd { font: inherit; font-size: var(--font-size-xs); cursor: pointer; padding: 10px 18px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-secondary); }
-.rc-go { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-.rc-skip:hover, .rc-vd:hover { border-color: var(--accent); color: var(--accent); }
+.rc-go { background: var(--accent); border-color: var(--accent-ink); color: #fff; font-weight: 600; }
+.rc-skip:hover, .rc-vd:hover { border-color: var(--accent-ink); color: var(--accent-ink); }
 .rc-skip[data-rc="drop"] { margin-left: auto; border-color: transparent; color: var(--text-tertiary); }
 .rc-skip[data-rc="drop"]:hover { border-color: var(--border); color: var(--text-secondary); }
 
 .rc-picks { display: flex; flex-direction: column; gap: 8px; }
 .rc-pick { font: inherit; font-size: var(--font-size-xs); text-align: left; cursor: pointer; padding: 13px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-primary); }
-.rc-pick:hover { border-color: var(--accent); }
+.rc-pick:hover { border-color: var(--accent-ink); }
 .rc-pick.is-done { cursor: default; }
 .rc-pick.is-right { border-color: var(--success); color: var(--success); background: var(--success-subtle, var(--bg-tertiary)); font-weight: 600; }
 .rc-pick.is-wrong { border-color: var(--secondary); color: var(--secondary); }
@@ -738,7 +738,7 @@ function injectStyles(): void {
 .rc-pane-b { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; font-size: var(--font-size-xs); line-height: 1.8; min-height: 112px; white-space: pre-wrap; }
 .rc-pane.is-src .rc-pane-b { border-left: 2px solid var(--accent); }
 .rc-pane-b i { font-style: normal; color: var(--text-tertiary); }
-.rc-pane-b b { color: var(--accent); }
+.rc-pane-b b { color: var(--accent-ink); }
 
 .rc-where { font-size: var(--font-size-2xs); color: var(--text-tertiary); margin: 0; }
 .rc-where span { opacity: .5; }
@@ -746,16 +746,16 @@ function injectStyles(): void {
 .rc-read h3 { font-size: var(--font-size-sm); font-weight: 700; margin: 0; }
 .rc-read h4 { font-size: var(--font-size-xs); font-weight: 700; margin: 8px 0 0; }
 .rc-read p { font-size: var(--font-size-xs); line-height: 1.85; margin: 0; max-width: 68ch; color: var(--text-primary); }
-.rc-read b { color: var(--accent); }
+.rc-read b { color: var(--accent-ink); }
 .rc-callout { border-left: 2px solid var(--border-hover); background: var(--bg-tertiary); border-radius: var(--radius-lg); padding: 14px 16px; font-size: var(--font-size-xs); line-height: 1.8; display: flex; flex-direction: column; gap: 6px; }
-.rc-callout.is-try { border-left-color: var(--accent); }
+.rc-callout.is-try { border-left-color: var(--accent-ink); }
 .rc-callout-tag { font-size: var(--font-size-3xs); letter-spacing: .06em; color: var(--text-tertiary); }
 .rc-code-label { font-size: var(--font-size-3xs); color: var(--text-tertiary); margin-bottom: 6px; }
 .rc-code pre { margin: 0; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; background: var(--bg-tertiary); font-size: var(--font-size-2xs); line-height: 1.7; }
 .rc-tail { display: flex; flex-direction: column; gap: 8px; font-size: var(--font-size-xs); line-height: 1.8; color: var(--text-primary); padding: 14px 16px; border-radius: var(--radius-lg); background: var(--bg-tertiary); border-left: 2px solid var(--accent); white-space: pre-wrap; }
 .rc-note { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .rc-chip { font-size: var(--font-size-2xs); padding: 6px 13px; border-radius: var(--radius-pill); border: 1px solid var(--border); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
-.rc-chip.is-hit { border-color: var(--accent); color: var(--accent); }
+.rc-chip.is-hit { border-color: var(--accent-ink); color: var(--accent-ink); }
 .rc-chip.is-half { border-color: var(--secondary); color: var(--secondary); }
 .rc-chip.is-miss { border-color: var(--text-tertiary); }
 .rc-scheds { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); padding-top: 14px; }

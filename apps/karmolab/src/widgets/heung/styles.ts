@@ -6,11 +6,11 @@ export const HEUNG_CSS = `
     .hu-toolbar { display:flex; align-items:center; gap:6px; padding:7px 9px; flex-wrap:wrap; flex:none;
       border-bottom:1px solid var(--border); background:var(--bg-secondary); position:relative; z-index:8; }
     .hu-toolbar > * { width:auto; flex:0 0 auto; margin:0; }
-    .hu-brand { font:700 12px/1 var(--font-mono); letter-spacing:.13em; margin-right:5px; color:var(--accent); }
+    .hu-brand { font:700 12px/1 var(--font-mono); letter-spacing:.13em; margin-right:5px; color:var(--accent-ink); }
     .hu-btn { border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-primary);
       min-height:30px; padding:4px 9px; font:11px var(--font-mono); cursor:pointer; }
     .hu-btn:hover { border-color:var(--border-hover); background:var(--bg-hover); }
-    .hu-btn.is-on, .hu-btn.is-recording { color:var(--accent-hover); background:var(--accent-dim); border-color:var(--accent); }
+    .hu-btn.is-on, .hu-btn.is-recording { color:var(--accent-hover); background:var(--accent-dim); border-color:var(--accent-ink); }
     .hu-btn.is-recording { color:#ff7a86; }
     .hu-project-name { width:150px !important; border:0; background:transparent; color:var(--text-primary); font-weight:650; padding:4px; }
     .hu-number { width:74px !important; min-width:74px; flex:none; padding:5px; background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-sm); }
@@ -37,8 +37,8 @@ export const HEUNG_CSS = `
     .hu-track-title input { min-width:0; width:100%; border:0; padding:2px; background:transparent; color:var(--text-primary); font-size:var(--font-size-2xs); }
     .hu-track-actions { display:flex; gap:3px; margin:5px 0; }
     .hu-mini { width:25px; height:23px; padding:0; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary); border-radius:var(--radius-sm); font:10px var(--font-mono); cursor:pointer; }
-    .hu-mini.is-on { background:var(--accent-dim); color:var(--accent-hover); border-color:var(--accent); }
-    .hu-track-head input[type=range] { width:72px; height:14px; margin:0; accent-color:var(--accent); }
+    .hu-mini.is-on { background:var(--accent-dim); color:var(--accent-hover); border-color:var(--accent-ink); }
+    .hu-track-head input[type=range] { width:72px; height:14px; margin:0; accent-color:var(--accent-ink); }
     .hu-lane { position:relative; height:84px; background-image:linear-gradient(to right, var(--border) 1px, transparent 1px);
       background-size:var(--hu-beat) 100%; }
     .hu-lane,.hu-clip,.hu-handle,.hu-note,.hu-note-handle,[data-piano],[data-velocity],.hu-loop,.hu-loop-grip,.hu-track-resize,.hu-track-grip { touch-action:none; }
@@ -65,7 +65,7 @@ export const HEUNG_CSS = `
     .hu-playhead { position:absolute; top:30px; bottom:0; width:1px; background:#ff5d6c; z-index:6; pointer-events:none; box-shadow:0 0 5px #ff5d6c; }
     .hu-guide { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:7px 10px; border-bottom:1px solid var(--border); background:color-mix(in srgb,var(--accent) 12%,var(--bg-secondary)); color:var(--text-secondary); font:11px var(--font-mono); }
     .hu-guide[hidden] { display:none; }
-    .hu-guide b { color:var(--accent); letter-spacing:.06em; }
+    .hu-guide b { color:var(--accent-ink); letter-spacing:.06em; }
     .hu-guide em { font-style:normal; color:var(--text-primary); }
     .hu-guide small { color:var(--text-tertiary); font:10px/1.35 var(--font-mono); }
     .hu-lane-hint { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); font:10px var(--font-mono); opacity:.62; pointer-events:none; white-space:nowrap; }
@@ -107,7 +107,7 @@ export const HEUNG_CSS = `
     .hu-help { position:fixed; left:50%; top:8%; transform:translateX(-50%); z-index:1000; width:min(620px,94vw); max-height:84dvh; overflow:auto; padding:14px 16px; border:1px solid var(--border-hover); border-radius:var(--radius-lg); background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); }
     .hu-help-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font:12px var(--font-mono); color:var(--text-secondary); }
     .hu-help-body { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px 18px; }
-    .hu-help h5 { margin:0 0 4px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--accent); }
+    .hu-help h5 { margin:0 0 4px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--accent-ink); }
     .hu-help p { display:flex; gap:8px; align-items:baseline; margin:0 0 3px; font:11px var(--font-mono); color:var(--text-tertiary); }
     .hu-help .hu-keys { flex:none; display:flex; gap:3px; }
     .hu-help kbd { padding:1px 5px; border:1px solid var(--border-hover); border-bottom-width:2px; border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-secondary); font:10px var(--font-mono); }
@@ -137,7 +137,7 @@ export const HEUNG_CSS = `
     .hu-section h4 { margin:0 0 7px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--text-tertiary); }
     .hu-field { display:grid; grid-template-columns:82px minmax(0,1fr); align-items:center; gap:7px; margin:5px 0; font-size:var(--font-size-3xs); color:var(--text-secondary); }
     .hu-field input,.hu-field select { min-width:0; width:100%; margin:0; padding:5px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-primary); color:var(--text-primary); }
-    .hu-field input[type=range] { padding:0; accent-color:var(--accent); }
+    .hu-field input[type=range] { padding:0; accent-color:var(--accent-ink); }
     .hu-meter { position:relative; height:9px; background:var(--bg-tertiary); border-radius:var(--radius-md); overflow:hidden; }
     .hu-meter span { position:absolute; left:0; top:0; bottom:0; width:0; background:linear-gradient(90deg,var(--accent),#e3c15a 78%,#ff6b76 100%); transition:width .05s linear; }
     .hu-meter i { position:absolute; top:0; bottom:0; width:2px; background:white; opacity:.85; left:0; }
@@ -173,7 +173,7 @@ export const HEUNG_CSS = `
     .hu-grid-name { width:96px; flex:0 0 96px; font:11px var(--font-mono); color:var(--text-secondary); text-align:right; padding-right:6px; }
     .hu-grid-cell { width:var(--hu-grid-cell,34px); height:30px; flex:0 0 var(--hu-grid-cell,34px); border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-secondary); cursor:pointer; padding:0; }
     .hu-grid-cell.is-strong { border-color:var(--text-tertiary); }
-    .hu-grid-cell.is-on { background:color-mix(in srgb, var(--accent) calc(var(--hu-grid-level,1) * 100%), var(--bg-secondary)); border-color:var(--accent); }
+    .hu-grid-cell.is-on { background:color-mix(in srgb, var(--accent) calc(var(--hu-grid-level,1) * 100%), var(--bg-secondary)); border-color:var(--accent-ink); }
     .hu-grid-cell:focus-visible { outline:2px solid var(--accent-hover); outline-offset:1px; }
     .hu-grid-tick { width:var(--hu-grid-cell,34px); flex:0 0 var(--hu-grid-cell,34px); text-align:center; font:10px var(--font-mono); color:var(--text-tertiary); }
     .hu-grid-tick.is-strong { color:var(--text-secondary); }

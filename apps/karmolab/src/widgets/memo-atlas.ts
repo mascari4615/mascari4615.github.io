@@ -489,17 +489,17 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
       '.atlas-wrap{display:flex;flex-direction:column;gap:8px;height:100%;min-height:420px}',
       '.atlas-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}',
       '.atlas-title{font-weight:600}',
-      '.atlas-count{margin-left:auto;font-size:var(--font-size-2xs);opacity:.65}',
+      '.atlas-count{margin-left:auto;font-size:var(--font-size-2xs);color:var(--text-tertiary)}',
       '.atlas-modes{display:inline-flex;gap:4px}',
       /* display 를 준 것에는 hidden 이 안 먹는다. 접었는데 그대로 보였다. */
       '.atlas-modes[hidden]{display:none}',
       '.atlas-modes button{padding:4px 10px;font:inherit;font-size:var(--font-size-2xs);cursor:pointer;',
-      'background:transparent;color:inherit;border:1px solid currentColor;border-radius:var(--radius-md);opacity:.5}',
+      'background:transparent;color:var(--text-secondary);border:1px solid currentColor;border-radius:var(--radius-md)}',
       '.atlas-modes button.on{opacity:1;background:var(--bg-hover)}',
-      '.atlas-more{padding:4px 10px;font:inherit;font-size:var(--font-size-2xs);cursor:pointer;background:transparent;',
-      'color:inherit;border:1px dashed currentColor;border-radius:var(--radius-md);opacity:.55}',
-      '.atlas-more:hover{opacity:.9}',
-      '.atlas-more.on{opacity:.9;border-style:solid}',
+      '.atlas-more{padding:4px 10px;font:inherit;font-size:var(--font-size-2xs);cursor:pointer;background:transparent;color:var(--text-secondary);',
+      'border:1px dashed currentColor;border-radius:var(--radius-md)}',
+      '.atlas-more:hover{color:var(--text-primary)}',
+      '.atlas-more.on{color:var(--text-primary);border-style:solid}',
       /* touch-action:none. 안 끄면 손가락을 대는 순간 브라우저가 페이지를 대신
          스크롤해서 우리 손짓이 아예 안 온다(폰에서 지도가 안 움직이던 이유). */
       '.atlas-canvas{flex:1;width:100%;min-height:320px;border-radius:var(--radius-xl);touch-action:none;',

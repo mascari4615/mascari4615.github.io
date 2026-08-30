@@ -35,7 +35,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         .settings-code-preview pre code { padding:12px 14px; line-height:1.5; display:block; font-size:var(--font-size-xs); }
         .storage-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
         .storage-card { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; min-width:140px; }
-        .storage-card-value { font-size:var(--font-size-lg); font-weight:700; color:var(--accent); font-family:monospace; }
+        .storage-card-value { font-size:var(--font-size-lg); font-weight:700; color:var(--accent-ink); font-family:monospace; }
         .storage-card-label { font-size:var(--font-size-xs); color:var(--text-secondary); margin-top:4px; }
         .storage-table { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }
         .storage-table th, .storage-table td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }

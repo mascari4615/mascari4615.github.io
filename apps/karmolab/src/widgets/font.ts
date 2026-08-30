@@ -24,7 +24,7 @@ import { t, loadNamespace } from '../lib/i18n';
                     <div id="fontDisplay" style="font-size:24px; font-weight:bold; margin:10px 0; min-height:36px; transition:all 0.3s;">${esc(t('font.label.display'))}</div>
                     <div id="fontGrade" style="font-size:40px; min-height:50px; transition:transform 0.3s;"></div>
                     <button class="btn btn-accent" id="drawFontBtn">${esc(t('font.btn.drawFontBtn'))}</button>
-                    <div id="fontResult" style="font-size:var(--font-size-xs); font-weight:bold; color:var(--accent); min-height:18px;"></div>
+                    <div id="fontResult" style="font-size:var(--font-size-xs); font-weight:bold; color:var(--accent-ink); min-height:18px;"></div>
                     <div id="fontCollection" style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('font.label.collection'))} <span id="fontCollected">0</span> / 7</div>
                 </div>
             `;

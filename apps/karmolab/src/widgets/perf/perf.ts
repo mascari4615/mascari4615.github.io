@@ -104,7 +104,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         .pf-btn { padding:6px 12px; border:1px solid var(--border); border-radius:var(--radius-md);
             background:var(--bg-secondary); color:var(--text-primary); font-size:var(--font-size-xs);
             cursor:pointer; font-family:inherit; }
-        .pf-btn:hover { border-color:var(--accent); }
+        .pf-btn:hover { border-color:var(--accent-ink); }
         .pf-stamp { margin-left:auto; font-size:var(--font-size-3xs); color:var(--text-tertiary);
             font-family:var(--font-mono); }
         .pf-cards { display:flex; flex-wrap:wrap; gap:12px; }
@@ -143,7 +143,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             font-size:var(--font-size-xs); color:var(--text-secondary); line-height:1.6; }
         .pf-sort { background:none; border:0; padding:0; font:inherit; font-size:var(--font-size-3xs);
             color:var(--text-tertiary); cursor:pointer; }
-        .pf-sort[data-on="1"] { color:var(--accent); font-weight:700; }
+        .pf-sort[data-on="1"] { color:var(--accent-ink); font-weight:700; }
     `
   );
 

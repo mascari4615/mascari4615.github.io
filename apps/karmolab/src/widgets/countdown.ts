@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../lib/i18n';
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; gap:20px; text-align:center; padding-top:40px;">
                         <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('countdown.t01'))}</div>
-                        <div id="countdownMs" style="font-size:54px; font-variant-numeric: tabular-nums; font-family:monospace; font-weight:900; color:var(--accent); text-shadow:0 0 10px rgba(100,100,250,0.4); letter-spacing:-2px;">0000000000</div>
+                        <div id="countdownMs" style="font-size:54px; font-variant-numeric: tabular-nums; font-family:monospace; font-weight:900; color:var(--accent-ink); text-shadow:0 0 10px rgba(100,100,250,0.4); letter-spacing:-2px;">0000000000</div>
                         <div style="display:flex; gap:12px; margin-top:20px; align-items:center;">
                             <span style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('countdown.t02'))}</span>
                             <input type="datetime-local" id="countdownTarget" class="input" style="width:200px; padding:6px; font-size:var(--font-size-sm);">

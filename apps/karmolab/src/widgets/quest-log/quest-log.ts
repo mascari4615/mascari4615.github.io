@@ -664,7 +664,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   font-size: var(--font-size-lg); line-height: 1; letter-spacing: -0.01em;
 }
 .kl-quest-log .stat .v small { font-family: 'KarmoMono', monospace; font-weight: 400; font-size: var(--font-size-2xs); color: var(--ink-2); margin-left: 3px; }
-.kl-quest-log .stat.accent .v { color: var(--accent); }
+.kl-quest-log .stat.accent .v { color: var(--accent-ink); }
 
 /* ── chip (drawer status switcher) ── */
 .kl-quest-log .chip {
@@ -762,14 +762,14 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .obs.selected { background: var(--bg-2); outline: 1px solid var(--line-2); }
 .kl-quest-log .obs .obs-id {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
-  color: var(--accent); letter-spacing: 0.05em; flex-shrink: 0; white-space: nowrap;
+  color: var(--accent-ink); letter-spacing: 0.05em; flex-shrink: 0; white-space: nowrap;
 }
 .kl-quest-log .obs .obs-name {
   font-family: 'KarmoSerif', serif; font-size: var(--font-size-2xs); color: var(--ink); font-weight: 500;
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   letter-spacing: -0.01em;
 }
-.kl-quest-log .obs[data-status="fire"] .obs-name::before { content: '✦ '; color: var(--accent); font-size: var(--font-size-3xs); font-family: 'KarmoMono', monospace; }
+.kl-quest-log .obs[data-status="fire"] .obs-name::before { content: '✦ '; color: var(--accent-ink); font-size: var(--font-size-3xs); font-family: 'KarmoMono', monospace; }
 .kl-quest-log .obs[data-status="done"] .obs-name,
 .kl-quest-log .obs[data-status="sealed"] .obs-name { text-decoration: line-through; color: var(--ink-3); text-decoration-thickness: 1px; }
 .kl-quest-log .obs .obs-prog {
@@ -909,7 +909,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .featured .f-sky .overlay-title .cst {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs);
-  letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase;
+  letter-spacing: 0.3em; color: var(--accent-ink); text-transform: uppercase;
 }
 .kl-quest-log .featured .f-sky .overlay-title .name {
   font-family: 'KarmoSerif', serif; font-style: italic; font-weight: 500;
@@ -919,7 +919,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .featured .f-meta { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 .kl-quest-log .featured .f-meta .eye {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs);
-  letter-spacing: 0.28em; color: var(--accent); text-transform: uppercase;
+  letter-spacing: 0.28em; color: var(--accent-ink); text-transform: uppercase;
 }
 .kl-quest-log .featured .f-meta h2 {
   margin: 0; font-family: 'KarmoSerif', serif; font-weight: 900;
@@ -943,7 +943,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   font-family: 'KarmoSerif', serif; font-weight: 700;
   font-size: var(--font-size-title); line-height: 1.2; letter-spacing: -0.01em;
 }
-.kl-quest-log .featured .f-meta .mini-stats .s.accent .v { color: var(--accent); }
+.kl-quest-log .featured .f-meta .mini-stats .s.accent .v { color: var(--accent-ink); }
 .kl-quest-log .featured .f-meta .bar-line {
   height: 2px; background: var(--line); position: relative; overflow: hidden; margin-top: 4px;
 }
@@ -962,7 +962,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   width: 18px; text-align: center; flex-shrink: 0;
   color: var(--ink-3); font-size: var(--font-size-3xs); line-height: 1; vertical-align: middle;
 }
-.kl-quest-log .obs-expand-btn:hover { color: var(--accent); }
+.kl-quest-log .obs-expand-btn:hover { color: var(--accent-ink); }
 .kl-quest-log .featured .f-right .log-head {
   display: flex; justify-content: space-between; align-items: baseline;
   padding-bottom: 8px; border-bottom: 1px solid var(--line-2); margin-bottom: 4px;
@@ -981,7 +981,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 
 /* ── status-coloured obs rows ── */
-.kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent-ink); }
 .kl-quest-log .obs[data-status="done"] .mag,
 .kl-quest-log .obs[data-status="sealed"] .mag { color: var(--bg); background: var(--ink); border-color: var(--ink); }
 .kl-quest-log .obs[data-status="hold"] .mag { border-style: dashed; }
@@ -991,9 +991,9 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .stars { display: inline-flex; gap: 2px; vertical-align: middle; }
 .kl-quest-log .stars .star { width: 11px; height: 11px; color: var(--line-3); display: inline-block; }
 .kl-quest-log .stars.large .star { width: 16px; height: 16px; }
-.kl-quest-log .stars .star.filled { color: var(--accent); }
+.kl-quest-log .stars .star.filled { color: var(--accent-ink); }
 .kl-quest-log .stars .star.half {
-  color: var(--accent);
+  color: var(--accent-ink);
   mask-image: linear-gradient(90deg, black 50%, transparent 50%);
   -webkit-mask-image: linear-gradient(90deg, black 50%, transparent 50%);
 }
@@ -1011,7 +1011,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   width: 14px; height: 14px; border: 1px solid var(--ink-3); flex-shrink: 0;
   margin-top: 3px; position: relative; transition: all 140ms;
 }
-.kl-quest-log .check-row.done .check-box { background: var(--accent); border-color: var(--accent); }
+.kl-quest-log .check-row.done .check-box { background: var(--accent); border-color: var(--accent-ink); }
 .kl-quest-log .check-row.done .check-box::after {
   content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   color: var(--bg); font-size: var(--font-size-2xs); font-weight: 700;
@@ -1032,7 +1032,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .check-delete { right: 4px; font-size: var(--font-size-md); }
 .kl-quest-log .check-row:hover .check-edit,
 .kl-quest-log .check-row:hover .check-delete { opacity: 1; }
-.kl-quest-log .check-edit:hover { color: var(--accent); }
+.kl-quest-log .check-edit:hover { color: var(--accent-ink); }
 .kl-quest-log .check-delete:hover { color: #d4504e; }
 .kl-quest-log .check-edit-input {
   font-family: 'KarmoSerif', serif; font-size: var(--font-size-sm); line-height: 1.45;
@@ -1073,7 +1073,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs); letter-spacing: 0.22em;
   color: var(--ink-3); text-align: center; padding: 2px 5px; border: 1px solid var(--line-2);
 }
-.kl-quest-log .cr-status.fire { color: var(--accent); border-color: var(--accent); }
+.kl-quest-log .cr-status.fire { color: var(--accent-ink); border-color: var(--accent-ink); }
 .kl-quest-log .cr-status.sealed { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .kl-quest-log .cr-title { font-family: 'KarmoSerif', serif; font-size: var(--font-size-sm); color: var(--ink); }
 .kl-quest-log .cr-right { display: flex; align-items: center; }
@@ -1119,7 +1119,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-section h2 {
   margin: 0 0 10px;
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); font-weight: 500;
-  letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-ink);
 }
 .kl-quest-log .overview-section h2 small {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs);
@@ -1150,7 +1150,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-domain-icon { margin-right: 4px; font-size: var(--font-size-xs); }
 .kl-quest-log .overview-domain-pct {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs); font-weight: 700;
-  color: var(--accent); letter-spacing: 0.04em;
+  color: var(--accent-ink); letter-spacing: 0.04em;
 }
 .kl-quest-log .overview-domain-bar {
   height: 2px; background: var(--line); margin: 6px 0 8px;
@@ -1168,7 +1168,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-domain-counts .k { color: var(--ink-3); }
 .kl-quest-log .overview-domain-counts .v { color: var(--ink); font-weight: 500; margin-left: 3px; }
 .kl-quest-log .overview-domain-counts .v.zero { color: var(--ink-3); font-weight: 400; }
-.kl-quest-log .overview-domain-counts .fire .v:not(.zero) { color: var(--accent); }
+.kl-quest-log .overview-domain-counts .fire .v:not(.zero) { color: var(--accent-ink); }
 
 /* top-next list */
 .kl-quest-log .overview-next-list {
@@ -1182,13 +1182,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-next-item .icon { font-size: var(--font-size-xs); text-align: center; }
 .kl-quest-log .overview-next-item .id {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
-  letter-spacing: 0.08em; color: var(--accent);
+  letter-spacing: 0.08em; color: var(--accent-ink);
 }
 .kl-quest-log .overview-next-item .title {
   font-family: 'KarmoSerif', serif; font-size: var(--font-size-xs); color: var(--ink); line-height: 1.4;
 }
 .kl-quest-log .overview-next-item[data-status="active"] .title::before {
-  content: '✦'; color: var(--accent); margin-right: 6px;
+  content: '✦'; color: var(--accent-ink); margin-right: 6px;
 }
 .kl-quest-log .overview-next-item[data-status="ready"] .title::before {
   content: '◇'; color: var(--ink-2); margin-right: 6px;
@@ -1210,7 +1210,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .overview-commit-bucket-count {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-2xs); font-weight: 700;
-  color: var(--accent); letter-spacing: 0.04em;
+  color: var(--accent-ink); letter-spacing: 0.04em;
 }
 .kl-quest-log .overview-commit-bucket-list {
   list-style: none; padding: 0; margin: 0;
@@ -1219,7 +1219,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-commit-bucket-list li {
   color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.kl-quest-log .overview-commit-bucket-list li .hash { color: var(--accent); margin-right: 6px; }
+.kl-quest-log .overview-commit-bucket-list li .hash { color: var(--accent-ink); margin-right: 6px; }
 .kl-quest-log .overview-commit-bucket .empty {
   font-family: 'KarmoSerif', serif; font-style: italic;
   font-size: var(--font-size-3xs); color: var(--ink-3);
@@ -1236,7 +1236,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   color: var(--ink-3);
 }
 .kl-quest-log .overview-hold.has-hold { color: var(--ink-2); }
-.kl-quest-log .overview-hold.has-hold .v { color: var(--accent); font-weight: 700; }
+.kl-quest-log .overview-hold.has-hold .v { color: var(--accent-ink); font-weight: 700; }
 .kl-quest-log .overview-hold .icon { font-size: var(--font-size-2xs); }
 
 /* loading state */
@@ -1290,7 +1290,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
   padding: 2px 5px; border: 1px solid var(--line-2); white-space: nowrap; flex-shrink: 0;
 }
-.kl-quest-log .pri--high { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.kl-quest-log .pri--high { color: var(--bg); background: var(--accent); border-color: var(--accent-ink); }
 .kl-quest-log .pri--low  { color: var(--ink-3); border-style: dashed; }
 .kl-quest-log .pri--blank { visibility: hidden; }
 
@@ -1354,7 +1354,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   // ── renderQuestLog: HTML scaffold + memo 정본 fetch + runQuestLog ───────
   function renderQuestLog(container: HTMLElement): void {
     if (!isDesktop()) {
-      container.innerHTML = `<div class="kl-quest-log"><div style="padding:48px 24px; text-align:center; color:#888;">${esc(t('quest-log.t11'))}<br/>${esc(t('quest-log.t12'))}</div></div>`;
+      container.innerHTML = `<div class="kl-quest-log"><div style="padding:48px 24px; text-align:center; color:var(--text-tertiary);">${esc(t('quest-log.t11'))}<br/>${esc(t('quest-log.t12'))}</div></div>`;
       return;
     }
 
@@ -2081,7 +2081,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                   <div class="lane"><span class="sw"></span>${esc(t.project.toUpperCase())}</div>
                   <div class="t serif">${esc(t.title)}</div>
                   ${t.note ? `<div class="n">${esc(t.note)}</div>` : ''}
-                  ${t.sealedNote ? `<div class="n" style="font-style:italic;color:var(--accent);margin-top:6px;">"${esc(t.sealedNote)}"</div>` : ''}
+                  ${t.sealedNote ? `<div class="n" style="font-style:italic;color:var(--accent-ink);margin-top:6px;">"${esc(t.sealedNote)}"</div>` : ''}
                 </div>
                 <div class="mag">SEALED</div>
               </div>

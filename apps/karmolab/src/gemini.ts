@@ -1039,7 +1039,7 @@ const Gemini = (() => {
                     <span style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">${esc(t('gemini.t03'))}</span>
                 </div>
                 <div style="font-size:var(--font-size-2xs);margin-top:4px;color:var(--text-tertiary);">
-                    ${esc(t('gemini.t04'))} <a href="${DOC_URL_AI_STUDIO_API_KEY}" target="_blank" rel="noopener" style="color:var(--accent);">${esc(t('gemini.t05'))}</a>
+                    ${esc(t('gemini.t04'))} <a href="${DOC_URL_AI_STUDIO_API_KEY}" target="_blank" rel="noopener" style="color:var(--accent-ink);">${esc(t('gemini.t05'))}</a>
                 </div>
                 <div style="font-size:var(--font-size-2xs);margin-top:4px;color:var(--warning);">
                     ${esc(t('gemini.t06'))}
@@ -1056,7 +1056,7 @@ const Gemini = (() => {
                     <button type="button" class="btn btn-ghost" id="${idPrefix}VertexKeyClear" style="font-size:var(--font-size-2xs);padding:3px 10px;color:var(--error);">${esc(t('gemini.btn.idPrefixVertexKeyClear'))}</button>
                 </div>
                 <div style="font-size:var(--font-size-2xs);color:var(--text-tertiary);">
-                    ${esc(t('gemini.t12'))} <a href="${DOC_URL_VERTEX_API_KEYS}" target="_blank" rel="noopener" style="color:var(--accent);">${esc(t('gemini.t13'))}</a>
+                    ${esc(t('gemini.t12'))} <a href="${DOC_URL_VERTEX_API_KEYS}" target="_blank" rel="noopener" style="color:var(--accent-ink);">${esc(t('gemini.t13'))}</a>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
                     <div>
@@ -1117,7 +1117,7 @@ const Gemini = (() => {
                             <div class="api-prof-row" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:var(--radius-md);background:${p.id === activeId ? 'var(--accent-subtle)' : 'transparent'};">
                                 <input type="text" class="api-prof-name" value="${Toolbox.escapeHtml(p.name || '')}" placeholder="${esc(t('gemini.t01'))}" style="flex:1;min-width:80px;font-size:var(--font-size-xs);padding:4px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);">
                                 <span class="api-prof-status" style="font-size:var(--font-size-2xs);color:${hasKey ? 'var(--success)' : 'var(--text-tertiary)'};">${hasKey ? t('gemini.t52') : t('gemini.t53')}</span>
-                                <button type="button" class="btn btn-ghost api-prof-active" data-role="active" style="font-size:var(--font-size-2xs);padding:3px 8px;${p.id === activeId ? 'color:var(--accent);' : ''}">${p.id === activeId ? t('gemini.t54') : t('gemini.t55')}</button>
+                                <button type="button" class="btn btn-ghost api-prof-active" data-role="active" style="font-size:var(--font-size-2xs);padding:3px 8px;${p.id === activeId ? 'color:var(--accent-ink);' : ''}">${p.id === activeId ? t('gemini.t54') : t('gemini.t55')}</button>
                                 <button type="button" class="btn btn-ghost api-prof-edit" data-role="edit" style="font-size:var(--font-size-2xs);padding:3px 8px;">${esc(t('gemini.btn.idPrefixVertexKeyEdit'))}</button>
                                 <button type="button" class="btn btn-ghost api-prof-del" data-role="delete" style="font-size:var(--font-size-2xs);padding:3px 8px;color:var(--error);">${esc(t('gemini.btn.idPrefixVertexKeyClear'))}</button>
                             </div>`;

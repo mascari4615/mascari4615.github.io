@@ -16,7 +16,7 @@ export function injectBonStyles(): void {
     .bon-wrap * { box-sizing:border-box; }
     .bon-wrap button { border:1px solid var(--border); background:var(--bg-tertiary);
       color:var(--text-primary); border-radius:var(--radius-md); padding:5px 9px; cursor:pointer; font-size:var(--font-size-2xs); }
-    .bon-wrap button:hover { border-color:var(--accent); }
+    .bon-wrap button:hover { border-color:var(--accent-ink); }
     .bon-wrap input[type=number], .bon-wrap input[type=color] {
       background:var(--bg-primary); color:var(--text-primary);
       border:1px solid var(--border); border-radius:var(--radius-md); padding:4px 6px; font-size:var(--font-size-2xs); }
@@ -38,8 +38,8 @@ export function injectBonStyles(): void {
       background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-sm);
       color:var(--text-secondary); cursor:pointer; transition:all var(--transition);
     }
-    .bon-tools button:hover { border-color:var(--accent); color:var(--text-primary); }
-    .bon-tools button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .bon-tools button:hover { border-color:var(--accent-ink); color:var(--text-primary); }
+    .bon-tools button.active { background:var(--accent); border-color:var(--accent-ink); color:#fff; }
     .bon-tools svg { width:20px; height:20px; }
 
     /* 가운데 판. 투명한 곳은 체크무늬로 보인다 */
@@ -82,7 +82,7 @@ export function injectBonStyles(): void {
     .bon-layer { display:flex; align-items:center; gap:7px; padding:5px 7px;
       border:1px solid transparent; border-radius:var(--radius-md); cursor:pointer; font-size:var(--font-size-2xs); }
     .bon-layer:hover { background:var(--bg-tertiary); }
-    .bon-layer.active { border-color:var(--accent); background:var(--bg-tertiary); }
+    .bon-layer.active { border-color:var(--accent-ink); background:var(--bg-tertiary); }
     .bon-layer-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .bon-layer-count { color:var(--text-secondary); font-variant-numeric:tabular-nums; font-size:var(--font-size-3xs); }
     .bon-eye { width:22px; height:22px; padding:0; display:flex; align-items:center; justify-content:center;

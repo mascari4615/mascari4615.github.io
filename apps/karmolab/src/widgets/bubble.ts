@@ -33,7 +33,7 @@ import { t, loadNamespace } from '../lib/i18n';
           container.innerHTML = `
                 <div class="bubble-wrap-container">
                     <div class="bubble-wrap-header">
-                        <span style="font-size:var(--font-size-sm); font-weight:600; color:var(--text-primary);">${esc(t('bubble.t01'))} <span id="popCount" style="color:var(--accent)">0</span> / <span id="popTotal">90</span></span>
+                        <span style="font-size:var(--font-size-sm); font-weight:600; color:var(--text-primary);">${esc(t('bubble.t01'))} <span id="popCount" style="color:var(--accent-ink)">0</span> / <span id="popTotal">90</span></span>
                         <button class="btn btn-ghost" id="resetBubbleBtn">${esc(t('bubble.btn.resetBubbleBtn'))}</button>
                     </div>
                     <div class="bubble-wrap-grid" id="bubbleGrid"></div>

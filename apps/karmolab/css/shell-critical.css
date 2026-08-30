@@ -31,7 +31,9 @@
     --font-size-title: 20px;
     --font-size-lg: 22px;
 
-    --accent: #a79bef;         
+    --accent: #a79bef;
+
+    --accent-ink: var(--accent);
     
     --accent-fg: #0f1016;
     --accent-hover: #bdb4f4;
@@ -133,7 +135,8 @@
     --text-secondary: #64626f; 
     --text-tertiary: #656374;  
 
-    --accent: #5f4dc2;         
+    --accent: #5f4dc2;
+    --accent-ink: var(--accent);
     --accent-fg: #ffffff;      
     --accent-hover: #4f3eb0;
     --accent-dim: rgba(95, 77, 194, 0.10);

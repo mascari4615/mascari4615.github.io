@@ -484,7 +484,7 @@ const TASK_TAB_CSS = `
   flex: 1; background: var(--paper); border: 1px solid var(--line2);
   border-radius: var(--radius-sm); padding: 8px 12px; font-size: var(--font-size-2xs); color: var(--ink); outline: none;
 }
-.ckt-search:focus { border-color: var(--accent); }
+.ckt-search:focus { border-color: var(--accent-ink); }
 .ckt-new-btn {
   background: var(--accent); color: var(--bg); border: none; border-radius: var(--radius-sm);
   padding: 8px 14px; font-weight: 600; cursor: pointer; font-size: var(--font-size-2xs);
@@ -508,7 +508,7 @@ const TASK_TAB_CSS = `
   border-radius: var(--radius-sm); padding: 3px 8px; font-size: var(--font-size-4xs);
   font-family: 'KarmoMono', monospace; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
 }
-.ckt-chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); border-style: solid; }
+.ckt-chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent-ink); border-style: solid; }
 .ckt-meta { font-size: var(--font-size-3xs); color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.14em; }
 .ckt-list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 
@@ -570,7 +570,7 @@ const TASK_TAB_CSS = `
   color: rgba(255,255,255,0.5); line-height: 1; transition: color 0.15s;
 }
 .ckt-qposter--toggle { cursor: pointer; }
-.ckt-qposter--toggle:hover .ckt-qchevron { color: var(--accent); }
+.ckt-qposter--toggle:hover .ckt-qchevron { color: var(--accent-ink); }
 .ckt-qposter--toggle:hover .ckt-qposter-veil {
   background: linear-gradient(to bottom, rgba(11,13,18,0.35) 0%, rgba(11,13,18,0.88) 100%);
 }
@@ -579,7 +579,7 @@ const TASK_TAB_CSS = `
 }
 .ckt-qoverlay-sub {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs);
-  letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; margin-bottom: 5px;
+  letter-spacing: 0.22em; color: var(--accent-ink); text-transform: uppercase; margin-bottom: 5px;
 }
 .ckt-qoverlay-title {
   font-family: 'KarmoSerif', serif; font-style: italic; font-weight: 700;
@@ -605,10 +605,10 @@ const TASK_TAB_CSS = `
 .ckt-qrow--sub { padding-left: 26px; background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .ckt-qrow:last-child { border-bottom: none; }
 .ckt-qrow:hover { background: var(--bg2); }
-.ckt-qrow-prefix { font-size: var(--font-size-2xs); line-height: 1; color: var(--accent); }
+.ckt-qrow-prefix { font-size: var(--font-size-2xs); line-height: 1; color: var(--accent-ink); }
 .ckt-qrow-prefix-off { color: var(--text-tertiary); }
 .ckt-qsub-mark { color: var(--ink3); font-family: 'KarmoMono', monospace; }
-.ckt-qid { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); color: var(--accent); letter-spacing: 0.05em; }
+.ckt-qid { font-family: 'KarmoMono', monospace; font-size: var(--font-size-3xs); color: var(--accent-ink); letter-spacing: 0.05em; }
 .ckt-qmag {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs);
   letter-spacing: 0.14em; text-transform: uppercase;
@@ -687,7 +687,7 @@ const TASK_TAB_CSS = `
 .ckt-dr-section { margin-bottom: 20px; }
 .ckt-dr-section-head {
   font-family: 'KarmoMono', monospace; font-size: var(--font-size-4xs); letter-spacing: 0.22em;
-  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+  text-transform: uppercase; color: var(--accent-ink); margin-bottom: 8px;
 }
 .ckt-dr-child {
   display: grid; grid-template-columns: 72px 100px 1fr;

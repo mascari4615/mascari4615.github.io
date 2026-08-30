@@ -53,7 +53,7 @@ export function injectRichViewStyles(): void {
         .docs-toc-listnav { display:flex; flex-direction:column; gap:6px; }
         .docs-toc-a { font-size:var(--font-size-2xs); color:var(--text-tertiary); text-decoration:none; line-height:1.45; padding:6px 8px; border-radius:var(--radius-xl); border:1px solid transparent; }
         .docs-toc-a:hover { color:var(--text-secondary); border-color:var(--border); background:var(--bg-tertiary); }
-        .docs-toc-a.active { color:var(--text-primary); border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-subtle); }
+        .docs-toc-a.active { color:var(--text-primary); border-color:var(--accent-ink); box-shadow:0 0 0 2px var(--accent-subtle); }
         .docs-toc-l2 { padding-left:18px; }
         .docs-toc-l3 { padding-left:28px; }
         .docs-heading { position:relative; scroll-margin-top:16px; }
@@ -67,12 +67,12 @@ export function injectRichViewStyles(): void {
         }
         .docs-body { font-size:var(--font-size-xs); line-height:1.8; color:var(--text-primary); max-width:800px; }
         .docs-body h1 { font-size:24px; font-weight:800; letter-spacing:-0.03em; margin:0 0 16px; padding-bottom:12px; border-bottom:2px solid var(--border); }
-        .docs-body h2 { font-size:var(--font-size-md); font-weight:700; letter-spacing:-0.02em; margin:32px 0 12px; color:var(--accent); }
+        .docs-body h2 { font-size:var(--font-size-md); font-weight:700; letter-spacing:-0.02em; margin:32px 0 12px; color:var(--accent-ink); }
         .docs-body h3 { font-size:var(--font-size-xs); font-weight:600; margin:24px 0 8px; }
         .docs-body p { margin:0 0 12px; color:var(--text-secondary); }
         .docs-body ul, .docs-body ol { margin:0 0 12px; padding-left:24px; color:var(--text-secondary); }
         .docs-body li { margin-bottom:4px; }
-        .docs-body code { font-family:var(--font-mono); font-size:var(--font-size-xs); background:var(--bg-tertiary); padding:2px 6px; border-radius:var(--radius-sm); color:var(--accent); }
+        .docs-body code { font-family:var(--font-mono); font-size:var(--font-size-xs); background:var(--bg-tertiary); padding:2px 6px; border-radius:var(--radius-sm); color:var(--accent-ink); }
         .docs-body pre { margin:0 0 16px; border-radius:var(--radius-md); overflow-x:auto; border:1px solid var(--border); }
         .docs-body pre code { display:block; padding:16px; background:var(--bg-tertiary); color:var(--text-primary); border-radius:var(--radius-md); font-size:var(--font-size-xs); line-height:1.6; }
         .docs-body table { width:100%; border-collapse:collapse; margin:0 0 16px; font-size:var(--font-size-sm); }
@@ -81,7 +81,7 @@ export function injectRichViewStyles(): void {
         .docs-body blockquote { margin:0 0 16px; padding:12px 16px; border-left:3px solid var(--accent); background:var(--accent-subtle); border-radius:0 var(--radius-sm) var(--radius-sm) 0; color:var(--text-secondary); }
         .docs-body blockquote p { margin:0; }
         .docs-body hr { border:none; border-top:1px solid var(--border); margin:24px 0; }
-        .docs-body a { color:var(--accent); text-decoration:none; }
+        .docs-body a { color:var(--accent-ink); text-decoration:none; }
         .docs-body a:hover { text-decoration:underline; }
         .docs-body strong { color:var(--text-primary); }
         .docs-body .mermaid { margin:0 0 16px; padding:12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-tertiary); overflow-x:auto; text-align:center; }

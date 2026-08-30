@@ -84,7 +84,7 @@
     /* 아래 글자 크기가 이 칸의 폭을 보고 정해지게 한다 (TASK-KL-128). */
     container-type: inline-size;
 }
-.cc-stat-primary { border-left-color: var(--accent); }
+.cc-stat-primary { border-left-color: var(--accent-ink); }
 .cc-stat-label {
     font-size: var(--font-size-2xs);
     color: var(--text-tertiary);
@@ -104,7 +104,7 @@
     white-space: nowrap;
     overflow: hidden;
 }
-.cc-stat-primary .cc-stat-value { color: var(--accent); }
+.cc-stat-primary .cc-stat-value { color: var(--accent-ink); }
 
 /* ── 상태 줄 ── */
 /* ── 흐름 간격: **여백을 부모가 소유한다** (TASK-KL-257) ──────────────
@@ -234,11 +234,11 @@
     cursor: pointer;
     transition: all var(--transition);
 }
-.tool-chip:hover { color: var(--accent); border-color: var(--accent-dim); }
+.tool-chip:hover { color: var(--accent-ink); border-color: var(--accent-dim); }
 .tool-chip.active {
-    color: var(--accent);
+    color: var(--accent-ink);
     background: var(--accent-subtle);
-    border-color: var(--accent);
+    border-color: var(--accent-ink);
 }
 
 /* ── key/value 목록 ── */
@@ -306,7 +306,7 @@
     color: var(--text-secondary);
     transition: all var(--transition);
 }
-.tool-drop.over { border-color: var(--accent); background: var(--accent-subtle); }
+.tool-drop.over { border-color: var(--accent-ink); background: var(--accent-subtle); }
 
 /* ── 로또, 연금복권 ──
    연출 규율 (2026-08-20): 움직임은 **켜질 때만** 붙인다. 기본이 정지고
@@ -524,7 +524,7 @@ body.tool-detail .tool-head p {
     font-size: var(--font-size-xs);
     transition: background var(--transition);
 }
-.tool-seo-related a:hover { background: var(--bg-tertiary); color: var(--accent); }
+.tool-seo-related a:hover { background: var(--bg-tertiary); color: var(--accent-ink); }
 .tool-seo-related a span { display: block; color: var(--text-tertiary); margin-top: 4px; line-height: 1.55; }
 /* 묻는 말과 답이 같은 무게라 어디까지가 질문인지 눈으로 안 갈렸다. */
 .tool-seo-faq dt { color: var(--text-primary); margin-top: 22px; font-weight: 700; }
@@ -536,7 +536,7 @@ body.tool-detail .tool-head p {
     margin-bottom: 12px;
 }
 .tool-seo-crumb a { color: var(--text-tertiary); text-decoration: none; }
-.tool-seo-crumb a:hover { color: var(--accent); }
+.tool-seo-crumb a:hover { color: var(--accent-ink); }
 /* 내가 넣은 것이 이 기기를 떠나는가 (TASK-KL-352).
    예전에는 이 자리에 한 문장이 **모든 도구에 똑같이** 붙어 어디에도 전송되지 않습니다라고
    했다. 그림을 Google 로 보내는 도구에도 같은 문장이 붙어 있었다. 안심시키는 자리가 틀리면
@@ -568,7 +568,7 @@ body.tool-detail .tool-head p {
 /* 나가는 것과 안 나가는 것은 **색으로도** 갈린다. 글을 다 안 읽고 지나가는 사람이 훨씬 많다.
    색만으로는 못 가르는 사람이 있으므로 배지 글자가 늘 같은 뜻을 이고 간다(색은 거들 뿐). */
 .tool-privacy[data-where="local"], .tool-privacy[data-where="assets"] { border-left-color: var(--success, #3fa66a); }
-.tool-privacy[data-where="ours"] { border-left-color: var(--accent); }
+.tool-privacy[data-where="ours"] { border-left-color: var(--accent-ink); }
 .tool-privacy[data-where="third-party"],
 .tool-privacy[data-where="yours"],
 .tool-privacy[data-where="ai"] { border-left-color: var(--warning, #d99a2b); }
@@ -595,7 +595,7 @@ body.tool-detail .tool-head p {
 /* 가장 흐린 색은 본문 배경 대비가 2.7 로 읽기 힘들다(기준 4.5). 한 단계 올린다. */
 .tool-seo-kin span { color: var(--text-secondary); }
 .tool-seo-kin a { color: var(--text-secondary); text-decoration: none; }
-.tool-seo-kin a:hover { color: var(--accent); }
+.tool-seo-kin a:hover { color: var(--accent-ink); }
 
 /* 후원, 광고 자리 (TASK-KL-089). 도구를 다 쓰고 읽는 자리에만 놓는다.
    도구 본체와 헷갈리지 않게 라벨을 달고, 화면을 잡아끄는 색, 움직임은 쓰지 않는다. */
@@ -616,7 +616,7 @@ body.tool-detail .tool-head p {
     text-decoration: none;
     line-height: 1.5;
 }
-a.tool-sponsor-link:hover { border-color: var(--accent); }
+a.tool-sponsor-link:hover { border-color: var(--accent-ink); }
 .tool-sponsor-link span {
     display: block;
     margin-top: 6px;
@@ -673,14 +673,14 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     min-height: 32px;
     font-size: var(--font-size-xs);
     font-weight: 600;
-    color: var(--accent);
+    color: var(--accent-ink);
     background: var(--accent-subtle);
     border: 1px solid var(--accent-dim);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all var(--transition);
 }
-.tool-next-btn:hover { border-color: var(--accent); background: var(--bg-tertiary); }
+.tool-next-btn:hover { border-color: var(--accent-ink); background: var(--bg-tertiary); }
 
 /* 도구 화면의 별 (TASK-KL-129). 쓰다가 이거 자주 쓰겠네 싶을 때 그 자리에서 꽂는다.
    제목 옆이 아니라 오른쪽 위. 제목을 읽는 눈길을 가로막지 않는 자리다. */
@@ -703,8 +703,8 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     opacity: 0.5;
     transition: opacity var(--transition), color var(--transition);
 }
-.tool-pin-star:hover { color: var(--accent); opacity: 1; }
-.tool-pin-star[aria-pressed='true'] { color: var(--accent); opacity: 1; }
+.tool-pin-star:hover { color: var(--accent-ink); opacity: 1; }
+.tool-pin-star[aria-pressed='true'] { color: var(--accent-ink); opacity: 1; }
 .tool-pin-star:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* 카드마다 별 하나 (TASK-KL-129). 훑다가 그 자리에서 내 것으로.
@@ -731,8 +731,8 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     transition: opacity var(--transition), color var(--transition);
 }
 .tool-hub-card:hover .tool-hub-star { opacity: 0.8; }
-.tool-hub-star:hover { color: var(--accent); opacity: 1; }
-.tool-hub-star[aria-pressed='true'] { color: var(--accent); opacity: 1; }
+.tool-hub-star:hover { color: var(--accent-ink); opacity: 1; }
+.tool-hub-star[aria-pressed='true'] { color: var(--accent-ink); opacity: 1; }
 .tool-hub-star:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 /* 별이 앉을 자리를 비워 둔다. 안 그러면 설명 끝이 별 밑으로 들어가 잘린 줄 모른다. */
 .tool-hub-card strong, .tool-hub-card span { padding-right: 28px; }
@@ -745,7 +745,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     padding-left: 12px;
     border-left: 2px solid var(--accent);
 }
-.tool-hub-mine-title { margin-top: 0; color: var(--accent); }
+.tool-hub-mine-title { margin-top: 0; color: var(--accent-ink); }
 .tool-hub-mine-grid { margin-top: 10px; }
 
 /* 도구 목록 소제목. 앱에서 묶어 놓은 그대로 나눈다 */
@@ -758,7 +758,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 }
 .tool-hub-group:first-of-type { margin-top: 8px; }
 .tool-hub-group a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border); }
-.tool-hub-group a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.tool-hub-group a:hover { color: var(--accent-ink); border-bottom-color: var(--accent-ink); }
 
 /* 창고 (2026-08-29). 넉 주 동안 아무도 안 연 도구 105개가 여기로 내려왔다.
    지운 것이 아니라 접은 것이라, 눌러서 펴는 자리라는 게 보여야 한다.
@@ -820,7 +820,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     text-decoration: none;
     transition: all var(--transition);
 }
-.tool-hub-card:hover { border-left-color: var(--accent); transform: translateY(-2px); }
+.tool-hub-card:hover { border-left-color: var(--accent-ink); transform: translateY(-2px); }
 /* 줄간격은 본문 기준(1.8)을 물려받는데, 한 줄짜리 제목에는 그게 위아래 빈칸이 된다.
    카드 한 장에서 12px 가 그냥 빈칸이었다 (TASK-KL-128). */
 .tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); line-height: 1.35; margin-bottom: 2px; }
@@ -927,7 +927,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     font-family: var(--font-mono);
     font-size: var(--font-size-sm);
     font-weight: 700;
-    color: var(--accent);
+    color: var(--accent-ink);
 }
 /* 이름 칸이 자리를 내준다. 좁은 화면에서는 190px 를 고집하지 않고 줄어든다. */
 .rt-row-label {
@@ -961,13 +961,13 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     outline: none;
     cursor: default;
 }
-.kc-stage:focus { border-color: var(--accent); }
+.kc-stage:focus { border-color: var(--accent-ink); }
 .kc-hint { color: var(--text-tertiary); font-size: var(--font-size-sm); }
 .kc-key {
     font-family: var(--font-mono);
     font-size: clamp(32px, 9vw, 64px);
     font-weight: 700;
-    color: var(--accent);
+    color: var(--accent-ink);
     word-break: break-all;
     text-align: center;
     padding: 0 12px;
@@ -1018,7 +1018,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .p2-cell { border: 1px solid var(--border); background: var(--bg-secondary); padding: 8px; text-decoration: none; display: block; }
 .p2-cell img { width: 100%; height: auto; display: block; background: #fff; }
 .p2-cell span { display: block; margin-top: 6px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
-.p2-cell:hover { border-color: var(--accent); }
+.p2-cell:hover { border-color: var(--accent-ink); }
 
 /* 오디오 파형 */
 .ac-wave { width: 100%; height: 120px; display: block; background: var(--bg-secondary); border: 1px solid var(--border); }
@@ -1079,7 +1079,7 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     font-family: var(--font-mono);
     font-size: var(--font-size-md);
     font-weight: 700;
-    color: var(--accent);
+    color: var(--accent-ink);
     background: var(--bg-tertiary);
     border-left: 3px solid var(--accent);
     cursor: pointer;
@@ -1177,7 +1177,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-sm);
     font-family: inherit;
 }
-.tool-hub-find input:focus { outline: none; border-color: var(--accent); }
+.tool-hub-find input:focus { outline: none; border-color: var(--accent-ink); }
 .tool-hub-find span { color: var(--text-secondary); font-size: var(--font-size-xs); white-space: nowrap; }
 .tool-hub-empty[hidden] { display: none; }
 .tool-hub-empty {
@@ -1196,7 +1196,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     padding: 1px 6px;
     border-radius: 999px;
     background: var(--accent-dim);
-    color: var(--accent);
+    color: var(--accent-ink);
     /* 눈금의 가장 작은 값(12px)에 맞춘다. 폰에서 읽히게. */
     font-size: var(--font-size-2xs);
     font-style: normal;
@@ -1248,7 +1248,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
     text-decoration: none;
 }
-.tool-hub-toc a:hover { border-color: var(--accent); color: var(--accent); }
+.tool-hub-toc a:hover { border-color: var(--accent-ink); color: var(--accent-ink); }
 /* 폰에서는 분류가 열여섯 개라 다섯 줄을 차지했다. 목록이 시작하기도 전에 화면 절반이 없어진다.
    한 줄로 두고 옆으로 밀어 본다 (TASK-KL-128). 줄 끝을 흐리게 해서 더 있다는 것을 알린다. */
 @media (max-width: 640px) {
@@ -1331,7 +1331,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
   border: 1px solid var(--border); border-radius: var(--radius-lg);
 }
 .hi-chips button:hover { color: var(--text-primary); border-color: var(--border-hover); }
-.hi-chips button[aria-pressed='true'] { background: var(--accent-dim); color: var(--accent); border-color: var(--border-strong); font-weight: 700; }
+.hi-chips button[aria-pressed='true'] { background: var(--accent-dim); color: var(--accent-ink); border-color: var(--border-strong); font-weight: 700; }
 
 .hi-ask { text-align: center; font-size: var(--font-size-md); color: var(--text-secondary); margin: 4px 0 10px; }
 .hi-ask b { color: var(--text-primary); }
@@ -1349,7 +1349,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 /* 포켓몬은 96px 도트다. 매끄럽게 늘리면 뭉갠 것처럼 보인다. 도트는 각지게 늘려야 원래 모양이다. */
 .hi-pair[data-board='pokemon'] .hi-side img { image-rendering: pixelated; }
 .hi-nm { font-weight: 700; font-size: var(--font-size-sm); }
-.hi-vl { font-size: var(--font-size-lg); color: var(--accent); font-weight: 700; min-height: 1.4em; }
+.hi-vl { font-size: var(--font-size-lg); color: var(--accent-ink); font-weight: 700; min-height: 1.4em; }
 .hi-side.is-win { border-color: var(--success); }
 .hi-side.is-lose { border-color: var(--error); }
 .hi-score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
@@ -1359,17 +1359,17 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 /* 오늘의 문제 (TASK-KL-089). 앱 토큰만 쓴다. 커뮤니티처럼 앱 안의 한 화면이다. */
 .qs-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 14px; }
 .qs-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; max-width: 34rem; }
-.qs-day { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: 0.04em; }
+.qs-day { font-size: var(--font-size-2xs); color: var(--accent-ink); letter-spacing: 0.04em; }
 .qs-q { font-size: var(--font-size-md); font-weight: 700; margin: 6px 0 14px; }
 .qs-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .qs-row input[type='text'] { flex: 1 1 11rem; min-width: 0; font-size: 16px; min-height: 44px; }
 .qs-tool {
     display: inline-block; margin-top: 12px; padding: 6px 12px;
-    font-size: var(--font-size-xs); color: var(--accent);
+    font-size: var(--font-size-xs); color: var(--accent-ink);
     background: transparent; border: 1px solid var(--border-strong);
     border-radius: var(--radius-xl); cursor: pointer;
 }
-.qs-tool:hover:not(:disabled) { border-color: var(--accent); }
+.qs-tool:hover:not(:disabled) { border-color: var(--accent-ink); }
 .qs-tool:disabled { opacity: .6; cursor: default; }
 /* 도구가 문제 밑에서 펴지는 자리. 문제 카드 안이라 한 겹 더 들어가 보이게 한다.
    높이를 묶어 **제 안에서** 스크롤하게 한다: 안 묶으면 진법 도구 하나가 1,043px 로 펴져
@@ -1390,7 +1390,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pd-card { border: 1px solid var(--border); background: var(--bg-secondary); padding: 12px; }
 .pd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: var(--font-size-sm); }
 .pd-badge { font-size: var(--font-size-2xs); padding: 2px 8px; border: 1px solid var(--border); color: var(--text-secondary); }
-.pd-badge.pd-chg { border-color: var(--accent); color: var(--accent); }
+.pd-badge.pd-chg { border-color: var(--accent-ink); color: var(--accent-ink); }
 .pd-badge.pd-same { color: var(--success); border-color: var(--success); }
 .pd-badge.pd-add { color: var(--success); border-color: var(--success); }
 .pd-badge.pd-del { color: var(--error); border-color: var(--error); }
@@ -1421,14 +1421,14 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     background: var(--bg-secondary); border: 1px solid var(--border);
     border-radius: var(--radius-xl); transition: border-color .15s, transform .15s;
 }
-.pl-card:hover, .pl-card:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
+.pl-card:hover, .pl-card:focus-visible { border-color: var(--accent-ink); transform: translateY(-2px); }
 .pl-emoji { grid-row: 1 / span 2; font-size: 1.7rem; align-self: center; }
 .pl-card strong { font-size: var(--font-size-sm); }
 .pl-lead-sm { color: var(--text-tertiary); font-size: var(--font-size-2xs); line-height: 1.5; }
 .pl-mine {
     grid-column: 2; justify-self: start; margin-top: 6px;
     padding: 1px 8px; font-size: var(--font-size-2xs);
-    color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px;
+    color: var(--accent-ink); border: 1px solid var(--border-strong); border-radius: 999px;
 }
 
 /* 오늘 성적 줄. 연습을 시작해도 이 줄은 안 사라진다 (TASK-KL-089). */
@@ -1454,7 +1454,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pl-course-left { margin-left: auto; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 .pl-stamp {
     margin-left: auto; padding: 2px 10px;
-    color: var(--accent); border: 1px solid var(--accent);
+    color: var(--accent-ink); border: 1px solid var(--accent);
     border-radius: 999px; font-size: var(--font-size-2xs);
 }
 .pl-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -1462,7 +1462,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     padding: 3px 10px; font-size: var(--font-size-2xs);
     color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px;
 }
-.pl-step.is-done { color: var(--accent); border-color: var(--border-strong); }
+.pl-step.is-done { color: var(--accent-ink); border-color: var(--border-strong); }
 .pl-course-note { margin: 10px 0 0; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 
 /* ── 유령 타자 대결 (TASK-KL-131) ── */
@@ -1525,8 +1525,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     border-radius: var(--radius-xl);
 }
 .pc-line[hidden] { display: none; }
-.pc-tag { padding: 1px 8px; color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px; }
-.pc-go { margin-left: auto; color: var(--accent); text-decoration: none; }
+.pc-tag { padding: 1px 8px; color: var(--accent-ink); border: 1px solid var(--border-strong); border-radius: 999px; }
+.pc-go { margin-left: auto; color: var(--accent-ink); text-decoration: none; }
 .pc-go:hover { text-decoration: underline; }
 /* 좌우 화살표로도 고를 수 있다는 표시. 조용히 옆에만 (TASK-KL-089). */
 .hi-keys { margin-left: 8px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
@@ -1542,7 +1542,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     min-height: 1.4em;
     margin-bottom: 16px;
 }
-.du-order-live { color: var(--accent); }
+.du-order-live { color: var(--accent-ink); }
 .du-order.du-ok { color: var(--success); }
 .du-order.du-no { color: var(--error); }
 .du-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 120px; }
@@ -1556,7 +1556,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     cursor: pointer;
     min-height: 60px;
 }
-.du-choice:hover:enabled { border-color: var(--accent); }
+.du-choice:hover:enabled { border-color: var(--accent-ink); }
 .du-choice.du-right { border-color: var(--success); box-shadow: inset 0 0 0 2px var(--success); }
 .du-choice.du-wrong { border-color: var(--error); box-shadow: inset 0 0 0 2px var(--error); }
 .du-timerbar { height: 6px; background: var(--bg-primary); border: 1px solid var(--border); margin-top: 14px; }
@@ -1626,11 +1626,11 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 /* 고른 칩은 바탕이 강조색이다. 거기서도 글자를 강조색으로 칠하면 **글자가 사라진다**
    (대비 1.0, 실측 2026-08-12). 강조는 안 고른 칩에서만 한다. */
-.pl-chip:not(.on) b { color: var(--accent); }
+.pl-chip:not(.on) b { color: var(--accent-ink); }
 
 /* ── 타임캡슐 편지 (TASK-KL-134) ── */
 .tc-out { border: 1px solid var(--border); background: var(--bg-secondary); padding: 16px; margin-bottom: 12px; }
-.tc-when { font-size: var(--font-size-sm); color: var(--accent); font-weight: 700; margin-bottom: 10px; }
+.tc-when { font-size: var(--font-size-sm); color: var(--accent-ink); font-weight: 700; margin-bottom: 10px; }
 .tc-remain { font-size: var(--font-size-xs); color: var(--text-secondary); }
 .tc-locked { text-align: center; font-size: 40px; line-height: 1.4; }
 .tc-letter { white-space: pre-wrap; line-height: 1.9; font-size: var(--font-size-md); word-break: keep-all; }
@@ -1663,8 +1663,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
     cursor: pointer;
 }
-.wb-kind:hover { border-color: var(--accent); color: var(--text-primary); }
-.wb-kind.is-on { background: var(--accent); border-color: transparent; color: var(--bg-primary); font-weight: 700; }
+.wb-kind:hover { border-color: var(--accent-ink); color: var(--text-primary); }
+.wb-kind.is-on { background: var(--band); border-color: transparent; color: var(--band-ink); font-weight: 700; }
 .wb-list[hidden], .wb-toolbar[hidden] { display: none; }
 .wb-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .wb-card {
@@ -1678,8 +1678,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     color: inherit;
     cursor: pointer;
 }
-.wb-card:hover { border-color: var(--accent); }
-.wb-card-kind { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: .08em; }
+.wb-card:hover { border-color: var(--accent-ink); }
+.wb-card-kind { font-size: var(--font-size-2xs); color: var(--accent-ink); letter-spacing: .08em; }
 .wb-card-title { font-size: var(--font-size-md); font-weight: 700; }
 .wb-card-sum { font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6; }
 .wb-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -1694,7 +1694,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wb-empty { color: var(--text-tertiary); font-size: var(--font-size-sm); }
 .wb-detail { display: grid; gap: 12px; }
 .wb-back { justify-self: start; }
-.wb-detail-kind { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: .08em; margin: 0; }
+.wb-detail-kind { font-size: var(--font-size-2xs); color: var(--accent-ink); letter-spacing: .08em; margin: 0; }
 .wb-detail-title { margin: 0; font-size: var(--font-size-lg); }
 .wb-detail-lead { margin: 0; color: var(--text-secondary); line-height: 1.7; }
 .wb-fields { display: grid; gap: 6px; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--bg-secondary); }
@@ -1708,7 +1708,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 
 /* ── WM 위젯 소개 탭 (TASK-KL-158 / KL-162) ── */
 .wm-in-hero { padding: 6px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
-.wm-in-kicker { letter-spacing: .24em; text-transform: uppercase; font-size: var(--font-size-2xs); color: var(--accent); margin: 0 0 8px; }
+.wm-in-kicker { letter-spacing: .24em; text-transform: uppercase; font-size: var(--font-size-2xs); color: var(--accent-ink); margin: 0 0 8px; }
 .wm-in-title { margin: 0 0 10px; font-size: var(--font-size-lg); }
 .wm-in-tagline { margin: 0 0 12px; font-size: var(--font-size-md); color: var(--text-secondary); max-width: 34em; line-height: 1.7; }
 .wm-in-theme { margin: 0 0 14px; padding: 6px 0 6px 12px; border-left: 3px solid var(--accent); color: var(--text-tertiary); font-style: italic; }
@@ -1725,8 +1725,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     font-size: var(--font-size-xs);
     cursor: pointer;
 }
-.wm-nav-btn:hover { border-color: var(--accent); color: var(--text-primary); }
-.wm-nav-btn.is-on { background: var(--accent); border-color: transparent; color: var(--bg-primary); font-weight: 700; }
+.wm-nav-btn:hover { border-color: var(--accent-ink); color: var(--text-primary); }
+.wm-nav-btn.is-on { background: var(--band); border-color: transparent; color: var(--band-ink); font-weight: 700; }
 .wm-nav-link { margin-left: auto; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .wm-nav-link + .wm-nav-link { margin-left: 10px; }
 .wm-body { display: block; }
@@ -1734,11 +1734,11 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 
 /* ── WM 소식 (TASK-KL-164) ── */
 .wm-news { display: grid; gap: 18px; }
-.wm-news-date { margin: 0 0 8px; font-size: var(--font-size-xs); color: var(--accent); letter-spacing: .06em; }
+.wm-news-date { margin: 0 0 8px; font-size: var(--font-size-xs); color: var(--accent-ink); letter-spacing: .06em; }
 .wm-news-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
 .wm-news-list li { display: grid; grid-template-columns: minmax(5.5em, auto) 1fr; gap: 10px; align-items: baseline; }
 .wm-news-kind { font-size: var(--font-size-2xs); color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; text-align: center; }
-.wm-news-feat { color: var(--accent); border-color: var(--accent); }
+.wm-news-feat { color: var(--accent-ink); border-color: var(--accent-ink); }
 .wm-news-text { font-size: var(--font-size-sm); line-height: 1.65; word-break: keep-all; }
 .wm-news-quiet { margin: 8px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 
@@ -1758,7 +1758,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 
 /* ── WM 개발 보드 (TASK-KL-171) ── */
 .wm-board { display: grid; gap: 18px; }
-.wm-board-status { margin: 0 0 8px; font-size: var(--font-size-sm); color: var(--accent); display: flex; gap: 8px; align-items: center; }
+.wm-board-status { margin: 0 0 8px; font-size: var(--font-size-sm); color: var(--accent-ink); display: flex; gap: 8px; align-items: center; }
 .wm-board-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .wm-board-list li { display: grid; grid-template-columns: minmax(7.5em, auto) 1fr; gap: 10px; align-items: baseline; }
 .wm-board-id { font-size: var(--font-size-2xs); color: var(--text-tertiary); font-family: var(--font-mono); }
@@ -1797,7 +1797,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .jt-key { color: var(--text-primary); }
 .jt-colon, .jt-brace { color: var(--text-tertiary); }
 .jt-count { color: var(--text-tertiary); margin: 0 4px; }
-.jt-str { color: var(--accent); }
+.jt-str { color: var(--accent-ink); }
 .jt-num { color: var(--warning); }
 .jt-bool, .jt-null { color: var(--text-secondary); }
 .jt-hit { background: color-mix(in srgb, var(--accent) 22%, transparent); }
@@ -1829,12 +1829,12 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .wm-day-cond, .wm-day-slots { margin: 0; font-size: var(--font-size-sm); color: var(--text-secondary); }
 .wm-day-acts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .wm-act { display: grid; gap: 4px; text-align: left; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: transparent; color: inherit; cursor: pointer; }
-.wm-act:hover:not(:disabled) { border-color: var(--accent); }
+.wm-act:hover:not(:disabled) { border-color: var(--accent-ink); }
 .wm-act:disabled { opacity: .45; cursor: default; }
 .wm-act span { font-size: var(--font-size-xs); color: var(--text-tertiary); line-height: 1.55; }
 .wm-day-log { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; font-size: var(--font-size-xs); color: var(--text-tertiary); }
 .wm-day-end { display: grid; gap: 10px; justify-items: start; }
-.wm-day-event { margin: 0; font-size: var(--font-size-sm); color: var(--accent); font-style: italic; }
+.wm-day-event { margin: 0; font-size: var(--font-size-sm); color: var(--accent-ink); font-style: italic; }
 .wm-day-reset { background: none; border: 0; padding: 0; color: var(--text-tertiary); text-decoration: underline; cursor: pointer; font-size: inherit; }
 
 /* ── WM 이야기 (TASK-KL-165) ── */
@@ -1842,7 +1842,7 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .wm-talk { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
 .wm-talk-row { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-secondary); }
 .wm-talk-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); text-decoration: none; }
-.wm-talk-title:hover { color: var(--accent); }
+.wm-talk-title:hover { color: var(--accent-ink); }
 .wm-talk-meta { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 
 /* 다른 곳과 뭐가 다른가. 도구 페이지에서 우리만의 것을 사람이 읽게 (KL-184).
@@ -1873,5 +1873,5 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .tool-card-btn { display: inline-flex; align-items: center; gap: 6px; margin: -8px 0 var(--space-lg);
     padding: 6px 12px; font: inherit; font-size: var(--font-size-xs); color: var(--text-secondary);
     background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
-.tool-card-btn:hover { color: var(--accent); border-color: var(--accent); }
+.tool-card-btn:hover { color: var(--accent-ink); border-color: var(--accent-ink); }
 .tool-card-btn[disabled] { color: var(--text-tertiary); cursor: default; }

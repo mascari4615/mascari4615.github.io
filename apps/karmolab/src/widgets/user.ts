@@ -91,7 +91,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-item .user-item-title { font-size:var(--font-size-xs); font-weight:600; color:var(--text-primary); margin-bottom:4px; }
         .user-item .user-item-desc { font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .user-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
-        .user-link { font-size:var(--font-size-sm); color:var(--accent); text-decoration:none; }
+        .user-link { font-size:var(--font-size-sm); color:var(--accent-ink); text-decoration:none; }
         .user-link:hover { text-decoration:underline; }
         /* 계정 자리 (TASK-KL-098).  서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
         .user-account-slot:empty { display:none; }
@@ -132,7 +132,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-account-btn-danger { background:transparent; color:#dc2626; border-color:rgba(220,38,38,.45); }
         html[data-theme="dark"] .user-account-btn-danger { color:#fca5a5; border-color:rgba(252,165,165,.45); }
         .user-account-btn-danger:hover { background:rgba(220,38,38,.12); }
-        .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent); }
+        .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent-ink); }
 
         /* 신원 배지 (TASK-KL-139). 내 정보의 나와 계정의 나는 한 사람이다.
            두 칸으로 나뉘어 있으면 로그인한 뒤에도 위쪽에는 여전히 남이 서 있다. */
@@ -145,14 +145,14 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-id-main { flex:1 1 220px; min-width:0; }
         .user-id-main h2 { font-size:var(--font-size-title); font-weight:600; margin:0 0 4px; color:var(--text-primary); }
         .user-id-sub { font-size:var(--font-size-sm); color:var(--text-secondary); margin:0 0 4px; }
-        .user-id-sub a { color:var(--accent); text-decoration:none; }
+        .user-id-sub a { color:var(--accent-ink); text-decoration:none; }
         .user-id-sub a:hover { text-decoration:underline; }
         .user-id-mascot { font-size:var(--font-size-xs); color:var(--text-tertiary); margin:0; }
         .user-id-actions { display:flex; gap:8px; flex:0 0 auto; }
         .user-stats { display:flex; gap:10px; flex-wrap:wrap; }
         .user-stat { flex:1 1 100px; min-width:96px; padding:12px 14px; text-align:center;
             background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); }
-        .user-stat b { display:block; font-size:var(--font-size-title); font-weight:700; color:var(--accent); font-family:var(--font-mono, monospace); }
+        .user-stat b { display:block; font-size:var(--font-size-title); font-weight:700; color:var(--accent-ink); font-family:var(--font-mono, monospace); }
         .user-stat span { display:block; margin-top:2px; font-size:var(--font-size-xs); color:var(--text-secondary); }
 
         /* 잔디 (TASK-KL-152 C2). 세로 7칸(일~토)으로 흘러 한 열이 한 주다.
@@ -169,19 +169,19 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-top { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
         .fp-top-item { display:flex; align-items:baseline; gap:6px; padding:7px 12px; cursor:pointer;
             border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--bg-secondary); font:inherit; }
-        .fp-top-item:hover { border-color:var(--accent); }
+        .fp-top-item:hover { border-color:var(--accent-ink); }
         .fp-top-item b { font-size:var(--font-size-xs); color:var(--text-primary); }
         .fp-top-item span { font-size:var(--font-size-3xs); color:var(--text-tertiary); }
         .fp-pins { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; }
         .fp-pin { padding:5px 11px; border-radius:var(--radius-pill); border:1px solid var(--border); cursor:pointer;
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs); }
-        .fp-pin:hover { border-color:var(--accent); }
-        .fp-pin.on { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
+        .fp-pin:hover { border-color:var(--accent-ink); }
+        .fp-pin.on { background:var(--accent); border-color:var(--accent-ink); color:var(--bg-primary); font-weight:600; }
         .fp-sessions, .fp-events { display:flex; flex-direction:column; gap:6px; flex:1 1 260px; }
         .fp-session, .fp-event { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
             padding:7px 10px; border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-tertiary); }
         .fp-session-name, .fp-event-kind { flex:1 1 140px; font-size:var(--font-size-xs); color:var(--text-primary); }
-        .fp-session-name b { color:var(--accent); font-size:var(--font-size-3xs); }
+        .fp-session-name b { color:var(--accent-ink); font-size:var(--font-size-3xs); }
         .fp-session-when, .fp-event-when { font-size:var(--font-size-3xs); color:var(--text-tertiary); white-space:nowrap; }
         .fp-event-meta { flex:2 1 160px; font-size:var(--font-size-3xs); color:var(--text-secondary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -191,24 +191,24 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-item-progress i { display:block; height:100%; background:var(--accent); opacity:.55; }
         .user-item-progress span { position:absolute; inset:0; display:grid; place-items:center;
             font-size:var(--font-size-4xs); color:var(--text-secondary); font-family:var(--font-mono, monospace); }
-        .user-item-rarity { margin-top:6px; font-size:var(--font-size-3xs); color:var(--accent); }
+        .user-item-rarity { margin-top:6px; font-size:var(--font-size-3xs); color:var(--accent-ink); }
         .fp-follows { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
         .fp-follows > div { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
         .fp-follows > div > span { font-size:var(--font-size-3xs); color:var(--text-tertiary); margin-right:4px; }
         .fp-person { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:var(--radius-pill);
             border:1px solid var(--border); background:var(--bg-secondary); font-size:var(--font-size-xs);
             color:var(--text-primary); text-decoration:none; }
-        .fp-person:hover { border-color:var(--accent); }
-        .fp-person b { font-size:var(--font-size-4xs); color:var(--accent); font-weight:600; }
+        .fp-person:hover { border-color:var(--accent-ink); }
+        .fp-person b { font-size:var(--font-size-4xs); color:var(--accent-ink); font-weight:600; }
         .fp-blocked { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; font-size:var(--font-size-xs); color:var(--text-secondary); }
         .fp-blocked-item { display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
             border:1px solid var(--border); border-radius:var(--radius-pill); background:var(--bg-tertiary); }
-        .fp-blocked-item button { background:none; border:0; color:var(--accent); font:inherit; font-size:var(--font-size-3xs); cursor:pointer; }
+        .fp-blocked-item button { background:none; border:0; color:var(--accent-ink); font:inherit; font-size:var(--font-size-3xs); cursor:pointer; }
         .fp-season { font-size:var(--font-size-3xs); color:var(--text-tertiary); font-weight:400; margin-left:6px; }
         .fp-missions { display:flex; flex-direction:column; gap:10px; }
         .fp-mission { display:flex; flex-direction:column; gap:4px; padding:10px 12px;
             border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-secondary); }
-        .fp-mission.done { border-color:var(--accent); }
+        .fp-mission.done { border-color:var(--accent-ink); }
         .fp-mission-title { font-size:var(--font-size-xs); color:var(--text-primary); }
         .fp-mission .user-item-progress { margin-top:2px; }
         .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }

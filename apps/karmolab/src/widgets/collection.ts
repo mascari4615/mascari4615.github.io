@@ -45,7 +45,7 @@ interface ToolMeta {
 .cl-lead { color: var(--text-secondary); font-size: var(--font-size-sm); margin: 0 0 14px; }
 .cl-head { margin-bottom: 16px; }
 .cl-count { font-size: var(--font-size-lg); color: var(--text-secondary); display: flex; align-items: baseline; gap: 8px; }
-.cl-count b { font-size: 32px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.cl-count b { font-size: 32px; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
 .cl-pct { margin-left: auto; font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-tertiary); }
 .cl-bar { height: 6px; border-radius: var(--radius-pill); background: var(--bg-secondary); border: 1px solid var(--border);
     overflow: hidden; margin-top: 8px; }
@@ -59,7 +59,7 @@ interface ToolMeta {
 .cl-cell:hover { border-color: var(--text-tertiary); color: var(--text-secondary); }
 /* 찍힌 칸 = 실선 + 색. 점선/실선까지 같이 바꾸는 이유 = 색만으로 가르면 못 보는 사람이 있다. */
 .cl-cell.is-on { border-style: solid; border-color: var(--border); background: var(--bg-secondary); color: var(--text-primary); }
-.cl-cell.is-on .cl-ico { color: var(--accent); opacity: 1; }
+.cl-cell.is-on .cl-ico { color: var(--accent-ink); opacity: 1; }
 .cl-ico { width: 26px; height: 26px; opacity: 0.45; }
 .cl-ico svg { width: 100%; height: 100%; }
 .cl-name { font-size: var(--font-size-xs); line-height: 1.3; word-break: keep-all; }
@@ -67,12 +67,12 @@ interface ToolMeta {
 /* 숨긴 것 (TASK-KL-196 D). 못 찾은 칸은 ? 하나. 이름을 적으면 숨긴 것이 아니게 된다. */
 .cl-secrets { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); }
 .cl-sec-title { margin: 0 0 10px; font-size: var(--font-size-sm); color: var(--text-secondary); font-weight: 700; }
-.cl-sec-title b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.cl-sec-title b { color: var(--accent-ink); font-variant-numeric: tabular-nums; }
 .cl-sec-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .cl-sec { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 5px 10px;
     border: 1px dashed var(--border); border-radius: var(--radius-sm);
     font-size: var(--font-size-xs); color: var(--text-tertiary); font-family: var(--font-mono); }
-.cl-sec.is-on { border-style: solid; border-color: var(--accent); color: var(--accent); font-family: inherit; }`;
+.cl-sec.is-on { border-style: solid; border-color: var(--accent-ink); color: var(--accent-ink); font-family: inherit; }`;
         document.head.appendChild(style);
     }
 

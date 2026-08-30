@@ -78,10 +78,10 @@ import { appPath } from '../lib/site-base';
         .st-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--text-tertiary); }
         .st-dot[data-up="1"] { background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.18); }
         .st-dot[data-up="0"] { background:#f87171; box-shadow:0 0 0 3px rgba(248,113,113,.18); }
-        .st-feed { color:var(--accent); text-decoration:none; }
+        .st-feed { color:var(--accent-ink); text-decoration:none; }
         .st-feed:hover { text-decoration:underline; }
         .st-link { background:none; border:0; padding:0; font:inherit; font-size:var(--font-size-3xs);
-            color:var(--accent); cursor:pointer; }
+            color:var(--accent-ink); cursor:pointer; }
         .st-sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
             margin-bottom:10px; }
         .st-sec-title { margin:0; font-size:var(--font-size-md); font-weight:700; color:var(--text-primary); }
@@ -96,7 +96,7 @@ import { appPath } from '../lib/site-base';
            흰 바탕에서는 대비가 1.4~1.9 밖에 안 돼 새로 생김, 고침, 빨라짐이
            사실상 안 읽혔다(기준 2.2). 밝은 쪽을 기본으로 두고, 어두운 판에서만 원래
            파스텔로 돌린다. 두 테마가 각자 자기 바탕에 맞는 색을 갖는다. */
-        .st-tag[data-tone="new"] { color:#0369a1; border-color:rgba(3,105,161,.35); }
+        .st-tag[data-tone="new"] { color:#025b8a; border-color:rgba(2,91,138,.35); }
         .st-tag[data-tone="fix"] { color:#b91c1c; border-color:rgba(185,28,28,.35); }
         .st-tag[data-tone="perf"] { color:#a16207; border-color:rgba(161,98,7,.35); }
         html[data-theme="dark"] .st-tag[data-tone="new"] { color:#7dd3fc; border-color:rgba(125,211,252,.4); }

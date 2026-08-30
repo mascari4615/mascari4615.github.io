@@ -338,7 +338,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-remove:hover { background:#dc2626; }
         .fav-view-toggle-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
         .fav-view-toggle-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
-        .fav-view-toggle-btn.active { background:var(--accent-subtle); border-color:var(--accent); color:var(--accent); }
+        .fav-view-toggle-btn.active { background:var(--accent-subtle); border-color:var(--accent-ink); color:var(--accent-ink); }
         .fav-view-toggle-btn svg { width:18px; height:18px; }
         .fav-view-toggle-btn .fav-view-icon-card { display:none; }
         .fav-view-toggle-btn .fav-view-icon-grid { display:block; }
@@ -357,10 +357,10 @@ import { t, loadNamespace } from '../lib/i18n';
             color:var(--text-tertiary); cursor:pointer; padding:12px 8px; opacity:0.55;
             transition:var(--transition);
         }
-        .fav-add-tile:hover { opacity:1; border-color:var(--accent); color:var(--accent); background:var(--accent-subtle); }
+        .fav-add-tile:hover { opacity:1; border-color:var(--accent-ink); color:var(--accent-ink); background:var(--accent-subtle); }
         .fav-add-plus { font-size:var(--font-size-title); line-height:1; }
         .fav-add-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }
-        .fav-add-btn:hover { background:var(--bg-hover); color:var(--accent); }
+        .fav-add-btn:hover { background:var(--bg-hover); color:var(--accent-ink); }
         .fav-add-btn svg { width:18px; height:18px; }
         .fav-add-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9998; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity var(--transition); }
         .fav-add-modal-backdrop.open { opacity:1; pointer-events:auto; }
@@ -373,12 +373,12 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-add-modal .fav-add-form .btn { width:100%; margin-top:4px; }
         .fav-bar .landing-search-wrap .landing-search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-tertiary); pointer-events:none; flex-shrink:0; }
         .fav-bar .landing-search-wrap .landing-search { width:100%; padding:9px 12px 9px 36px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); }
-        .fav-bar .landing-search-wrap .landing-search:focus { outline:none; border-color:var(--accent); }
+        .fav-bar .landing-search-wrap .landing-search:focus { outline:none; border-color:var(--accent-ink); }
         .fav-bar .landing-search-wrap .landing-search::placeholder { color:var(--text-tertiary); }
         .fav-add-kind { display:flex; gap:6px; margin-bottom:var(--space-md); }
         .fav-add-kind .fav-kind-btn { flex:1; padding:7px 10px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); border-radius:var(--radius-sm); cursor:pointer; transition:var(--transition); }
         .fav-add-kind .fav-kind-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
-        .fav-add-kind .fav-kind-btn.active { background:var(--accent-subtle); border-color:var(--accent); color:var(--accent); }
+        .fav-add-kind .fav-kind-btn.active { background:var(--accent-subtle); border-color:var(--accent-ink); color:var(--accent-ink); }
         .fav-add-pane[data-pane="tool"] { display:flex; flex-direction:column; gap:10px; }
         /* display:flex 는 hidden 속성을 이긴다. 안 적으면 두 갈래가 동시에 뜬다 */
         .fav-add-modal [data-pane][hidden] { display:none; }
@@ -386,14 +386,14 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-tool-list { display:flex; flex-direction:column; gap:4px; max-height:min(46vh, 340px); overflow-y:auto; }
         .fav-tool-row { display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; text-align:left; transition:var(--transition); color:var(--text-primary); }
         .fav-tool-row:hover { background:var(--bg-hover); border-color:var(--border-hover); }
-        .fav-tool-row.on { border-color:var(--accent); background:var(--accent-subtle); }
+        .fav-tool-row.on { border-color:var(--accent-ink); background:var(--accent-subtle); }
         .fav-tool-ico svg { width:18px; height:18px; stroke:var(--text-secondary); display:block; }
         .fav-tool-row.on .fav-tool-ico svg { stroke:var(--accent); }
         .fav-tool-text { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
         .fav-tool-name { font-size:var(--font-size-xs); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .fav-tool-group { font-size:var(--font-size-2xs); color:var(--text-tertiary); }
         .fav-tool-mark { font-size:var(--font-size-sm); color:var(--text-tertiary); flex-shrink:0; }
-        .fav-tool-row.on .fav-tool-mark { color:var(--accent); }
+        .fav-tool-row.on .fav-tool-mark { color:var(--accent-ink); }
         .fav-tool-empty { padding:16px; text-align:center; font-size:var(--font-size-xs); color:var(--text-tertiary); }
         /* 이 PC 에 있나 표시. **데스크톱에서만 단다**. 브라우저는 설치 여부를 알
            방법이 없어서, 웹에서 회색 점을 달면 그냥 거짓말이 된다. */

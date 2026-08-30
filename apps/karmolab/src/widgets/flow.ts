@@ -45,8 +45,8 @@ import { intervalWhileVisible } from '../lib/tick';
         .flow-actions { display:flex; gap:6px; flex-wrap:wrap; }
         .flow-btn { padding:6px 12px; border-radius:var(--radius-lg); cursor:pointer; font:inherit; font-size:var(--font-size-xs);
             border:1px solid var(--border); background:transparent; color:var(--text-secondary); }
-        .flow-btn:hover { border-color:var(--accent); color:var(--text-primary); }
-        .flow-btn-go { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
+        .flow-btn:hover { border-color:var(--accent-ink); color:var(--text-primary); }
+        .flow-btn-go { background:var(--accent); border-color:var(--accent-ink); color:var(--bg-primary); font-weight:600; }
         .flow-make { display:flex; flex-direction:column; gap:10px; padding:16px; border:1px solid var(--border);
             border-radius:var(--radius-lg); background:var(--bg-secondary); }
         .flow-make input, .flow-make select { padding:8px 10px; border-radius:var(--radius-lg); border:1px solid var(--border);
@@ -57,7 +57,7 @@ import { intervalWhileVisible } from '../lib/tick';
         .flow-draft .flow-step { cursor:pointer; }
         .flow-draft .flow-step:hover { border-color:#dc2626; }
         .flow-empty { font-size:var(--font-size-xs); color:var(--text-tertiary); }
-        .flow-skip { margin-left:5px; font-size:var(--font-size-4xs); color:var(--accent); font-weight:600; }
+        .flow-skip { margin-left:5px; font-size:var(--font-size-4xs); color:var(--accent-ink); font-weight:600; }
         /* 실행 띠. 도구 화면 위에 얇게 뜬다. 도구를 가리면 흐름이 방해가 된다. */
         .flow-bar { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:65;
             display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:var(--radius-pill);
@@ -72,10 +72,10 @@ import { intervalWhileVisible } from '../lib/tick';
         }
         @media (prefers-reduced-motion: reduce) { .flow-btn.flow-ready { animation:none; outline:2px solid var(--accent); } }
         /* 스스로 넘어가는 중. 남은 초가 보이고, 그 자리에서 멈출 수 있다 (TASK-KL-191 축1) */
-        .flow-bar-auto { font-size:var(--font-size-3xs); color:var(--accent); font-weight:600; }
+        .flow-bar-auto { font-size:var(--font-size-3xs); color:var(--accent-ink); font-weight:600; }
         .flow-auto-toggle { display:inline-flex; align-items:center; gap:5px; font-size:var(--font-size-3xs); color:var(--text-tertiary); cursor:pointer; }
-        .flow-auto-toggle input { accent-color:var(--accent); }
-        .flow-auto-tag { margin-left:6px; font-size:var(--font-size-4xs); color:var(--accent); font-weight:600; }
+        .flow-auto-toggle input { accent-color:var(--accent-ink); }
+        .flow-auto-tag { margin-left:6px; font-size:var(--font-size-4xs); color:var(--accent-ink); font-weight:600; }
     `);
 
     const api = (): string | null => window.KarmoAccount?.apiBase ?? null;
