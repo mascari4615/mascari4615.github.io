@@ -466,18 +466,18 @@ function injectStyles(): void {
   .pf-shell .pf-body:has(#pfPreview:empty){grid-template-columns:1fr;}
 }
 .pf-head{margin-bottom:var(--space-lg);}
-.pf-head.pf-over .pf-drop,.pf-head.pf-over .pf-file{outline:2px dashed rgba(128,160,255,.8);outline-offset:3px;}
+.pf-head.pf-over .pf-drop,.pf-head.pf-over .pf-file{outline:2px dashed var(--accent);outline-offset:3px;}
 .pf-drop{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;
-  padding:26px 16px;border:1px dashed rgba(128,128,128,.4);border-radius:var(--radius-xl);cursor:pointer;text-align:center;}
-.pf-drop:hover{background:rgba(128,128,128,.06);}
+  padding:26px 16px;border:1px dashed var(--border-strong);border-radius:var(--radius-xl);cursor:pointer;text-align:center;}
+.pf-drop:hover{background:var(--bg-hover);}
 .pf-paste{display:flex;flex-direction:column;gap:6px;}
 .pf-paste textarea{width:100%;min-height:110px;resize:vertical;font-family:inherit;
-  padding:12px 14px;border-radius:var(--radius-xl);border:1px solid rgba(128,128,128,.35);background:transparent;}
+  padding:12px 14px;border-radius:var(--radius-xl);border:1px solid var(--border);background:transparent;}
 .pf-paste-hint{font-size:var(--font-size-2xs);opacity:.6;}
 .pf-drop span{font-size:var(--font-size-2xs);opacity:.6;}
 .pf-file[hidden]{display:none;}
 .pf-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  padding:10px 14px;border:1px solid rgba(128,128,128,.28);border-radius:var(--radius-xl);}
+  padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-xl);}
 .pf-name{font-weight:600;word-break:break-all;}
 .pf-meta{font-size:var(--font-size-2xs);opacity:.65;}
 .pf-file .btn{margin-left:auto;}
@@ -493,17 +493,17 @@ function injectStyles(): void {
 /* 할 일은 카드가 아니라 칩. 60px 상자 19개보다 38px 칩이 한눈에 잡힌다 */
 .pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;}
 .pf-job{appearance:none;text-align:left;padding:9px 12px;border-radius:var(--radius-lg);cursor:pointer;
-  border:1px solid rgba(128,128,128,.28);background:transparent;font-size:var(--font-size-2xs);line-height:1.3;}
-.pf-job:hover{background:rgba(128,160,255,.12);border-color:rgba(128,160,255,.5);}
-.pf-job.pf-hot{border-color:rgba(120,200,140,.75);background:rgba(120,200,140,.12);font-weight:600;}
+  border:1px solid var(--border);background:transparent;font-size:var(--font-size-2xs);line-height:1.3;}
+.pf-job:hover{background:var(--accent-dim);border-color:var(--accent);}
+.pf-job.pf-hot{border-color:var(--success);background:var(--success-subtle);font-weight:600;}
 .pf-recent[hidden]{display:none;}
 .pf-recent{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
 .pf-recent-label{font-size:var(--font-size-3xs);opacity:.6;margin-right:2px;}
 .pf-recent-job{appearance:none;cursor:pointer;padding:6px 10px;font-size:var(--font-size-2xs);border-radius:var(--radius-lg);
-  border:1px solid rgba(128,160,255,.5);background:rgba(128,160,255,.1);color:inherit;}
-.pf-recent-job:hover{background:rgba(128,160,255,.2);}
+  border:1px solid var(--accent);background:var(--accent-dim);color:inherit;}
+.pf-recent-job:hover{background:var(--accent-subtle);}
 .pf-tip{font-size:var(--font-size-2xs);margin-bottom:10px;padding:8px 12px;border-radius:var(--radius-xl);
-  border:1px solid rgba(120,200,140,.45);background:rgba(120,200,140,.09);}
+  border:1px solid var(--success);background:var(--success-subtle);}
 .pf-back{appearance:none;background:transparent;border:0;cursor:pointer;padding:4px 0;
   font-size:var(--font-size-2xs);opacity:.7;margin-bottom:10px;}
 .pf-back:hover{opacity:1;}
@@ -512,7 +512,7 @@ function injectStyles(): void {
    (여기는 템플릿 문자열 안이라 홑따옴표 기울임표를 쓰면 문자열이 끊긴다.) */
 .pf-chain[hidden]{display:none;}
 .pf-chain{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:var(--font-size-2xs);
-  padding:8px 12px;border-radius:var(--radius-xl);border:1px solid rgba(128,200,140,.5);background:rgba(128,200,140,.1);}
+  padding:8px 12px;border-radius:var(--radius-xl);border:1px solid var(--success);background:var(--success-subtle);}
 `;
   document.head.appendChild(el);
 }

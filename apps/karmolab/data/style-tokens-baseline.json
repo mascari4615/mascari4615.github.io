@@ -40,7 +40,7 @@
   "src/widgets/tools/payslip.ts": 1,
   "src/widgets/user.ts": 2
  },
- "colorTotal": 1692,
+ "colorTotal": 1675,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 4,
@@ -152,7 +152,6 @@
   "src/widgets/tools/printkit.ts": 2,
   "src/widgets/tools/screenrec.ts": 1,
   "src/widgets/tools/shared/copyable.ts": 1,
-  "src/widgets/tools/shared/material-shell.ts": 17,
   "src/widgets/tools/sound.ts": 3,
   "src/widgets/tools/text.ts": 3,
   "src/widgets/tools/time.ts": 12,
