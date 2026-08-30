@@ -188,7 +188,9 @@ function openMenu(btn: HTMLElement): void {
 
   document.body.appendChild(box);
   const r = btn.getBoundingClientRect();
-  box.style.top = `${r.bottom + 6 + scrollY}px`;
+  /* 여는 버튼이 옆줄 바닥이면 아래 공간이 없다. 위로 편다 (2026-08-30) */
+  const below = r.bottom + 6 + box.offsetHeight <= innerHeight;
+  box.style.top = `${(below ? r.bottom + 6 : Math.max(8, r.top - 6 - box.offsetHeight)) + scrollY}px`;
   /* 오른쪽 끝에 붙은 단추라 왼쪽으로 펼친다. 그냥 왼쪽 정렬하면 화면 밖으로 나간다. */
   box.style.left = `${Math.max(8, r.right - box.offsetWidth + scrollX)}px`;
   btn.setAttribute('aria-expanded', 'true');

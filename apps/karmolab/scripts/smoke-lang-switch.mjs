@@ -71,7 +71,9 @@ page.on('console', (m) => {
 const fail = [];
 const base = `http://127.0.0.1:${PORT_IN_USE}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => !!document.getElementById('settingsPageBtn'), undefined, { timeout: 5000 });
+/* 버튼 존재만으로는 부족. 셸이 클릭 손잡이를 다는 순간 `aria-haspopup` 이 붙음
+   그 전에 누르면 무반응 (2026-08-30 재실행 거짓 빨강) */
+await page.waitForFunction(() => document.getElementById('settingsPageBtn')?.getAttribute('aria-haspopup') === 'menu', undefined, { timeout: 10000 });
 
 /* 이 장이 가진 언어 = 짝 표시. 생성기, 검사와 같은 규칙이다. */
 const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
@@ -80,8 +82,10 @@ const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>
 const expected = ENABLED_LOCALES.filter((l) => tags.includes(l.htmlLang));
 const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'widgets')]));
 
-/* 1. 설정 목록 먼저 펴기. 언어는 그 안 (2026-08-29) */
-await page.click('#settingsPageBtn');
+/* 1. 설정 목록 먼저 펴기. 언어는 그 안 (2026-08-29)
+   설정 버튼은 옆줄 바닥에 크기 0 으로 숨어 있다 (2026-08-30). 마우스로는 계정 캡슐이 가로채
+   못 누른다. 사람은 계정 메뉴의 환경 설정 줄로 들어가고, 여기서는 버튼을 직접 누른다 */
+await page.evaluate(() => document.getElementById('settingsPageBtn')?.click());
 await page.waitForSelector('#settingsMenuLang', { timeout: 3000 }).catch(() => {});
 if (!(await page.locator('#settingsMenuLang').count())) {
   fail.push('설정 목록에 언어 칸이 없다');
