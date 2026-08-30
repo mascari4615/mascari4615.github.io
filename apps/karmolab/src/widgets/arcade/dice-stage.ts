@@ -86,6 +86,8 @@ export interface DiceStage {
   sheetDirty(): void;
   /** 판이 끝났다. 카메라가 종이 쪽으로 */
   finish(): void;
+  /** 적는다. 연필이 종이 위를 긋고 돌아온다 */
+  write(): void;
   resize(): void;
   dispose(): void;
 }
@@ -162,7 +164,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     host.removeChild(canvas);
     return {
       ok: false, software: false,
-      set: () => {}, rollsLeft: () => {}, canAct: () => {}, sheetMode: () => {}, sheetDirty: () => {}, finish: () => {}, resize: () => {}, dispose: () => {}
+      set: () => {}, rollsLeft: () => {}, canAct: () => {}, sheetMode: () => {}, sheetDirty: () => {}, finish: () => {}, write: () => {}, resize: () => {}, dispose: () => {}
     };
   }
   const gpuName = ((): string => {
@@ -755,7 +757,10 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       const going = sample(d.track, k, d.mesh.position, d.mesh.quaternion);
       /* 부딪힌 소리. 지나간 것은 이번 프레임에 한 번씩 */
       while (d.hitIdx < d.track.hits.length && d.track.hits[d.hitIdx].t <= k) {
-        opts.onSound?.('clatter', d.track.hits[d.hitIdx].force);
+        const force = d.track.hits[d.hitIdx].force;
+        opts.onSound?.('clatter', force);
+        /* 첫 착지에 카메라가 살짝 흔들린다. 무거운 것이 떨어진 느낌. 세기는 낙하 세기, 길이 0.18초 */
+        if (d.hitIdx === 0 && force > 0.3) { shakeUntil = Math.max(shakeUntil, t + 180); shakeAmp = Math.max(shakeAmp, 0.05 + force * 0.08); }
         d.hitIdx += 1;
       }
       if (going) return true;
@@ -947,6 +952,12 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
 
   let loop: GardenLoop | null = null;
   let lookFrom: Vector3 | null = null;
+  let shakeUntil = 0;
+  let shakeAmp = 0;
+  /* 연필. 적을 때 종이 위로 갔다 돌아온다 */
+  const pencilHome = new Vector3();
+  let pencilT0 = 0;
+  const PENCIL_MS = 520;
   let camT0 = 0;
   let camMs = 0;
   let lastLive = 0;
@@ -984,6 +995,25 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       look.lerpVectors(lookFrom, lookGoal, e);
       camera.lookAt(look);
       if (k >= 1) { camFrom = null; lookFrom = null; } else busy = true;
+    } else if (shakeUntil) {
+      if (t < shakeUntil) {
+        const left = (shakeUntil - t) / 180;
+        camera.position.copy(goal).add(new Vector3((Math.random() - 0.5) * shakeAmp * left, (Math.random() - 0.5) * shakeAmp * 0.6 * left, 0));
+      } else {
+        camera.position.copy(goal);
+        shakeUntil = 0;
+        shakeAmp = 0;
+      }
+      camera.lookAt(look);
+      busy = true;
+    }
+    if (pencilT0) {
+      const u = Math.min(1, (t - pencilT0) / PENCIL_MS);
+      const e = Math.sin(u * Math.PI);
+      pencil.position.set(pencilHome.x - 1.2 * e, pencilHome.y + 0.5 * e, pencilHome.z - 1.6 * e);
+      pencil.rotation.y = 0.35 + 0.5 * e;
+      if (u >= 1) { pencilT0 = 0; pencil.position.copy(pencilHome); pencil.rotation.y = 0.35; }
+      busy = true;
     }
     if (t - lastLive >= 33) {
       lastLive = t;
@@ -1103,6 +1133,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       drawPaper();
       sheetMap.needsUpdate = true;
       need = true;
+      kick();
+    },
+    write() {
+      pencilHome.copy(pencil.position);
+      if (!pencilT0) pencilT0 = performance.now();
       kick();
     },
     finish() {

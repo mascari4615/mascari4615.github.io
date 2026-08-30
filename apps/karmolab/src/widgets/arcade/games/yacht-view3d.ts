@@ -17,6 +17,7 @@ import { roomAmbience } from '../ambience';
 import { sceneOf, specOf } from '../scenes';
 import { die } from '../die';
 import { castByName, faceSvg, lineOf, type Cast, type Mood } from '../cast';
+import { noteYachtGame, readYachtStats, avgOf } from './yacht-stats';
 import { CATS, scoreOf, totalOf, type Cat, type YachtState, type YachtAction } from './yacht';
 
 const UPPER: Cat[] = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
@@ -45,12 +46,24 @@ export const view3d: GameView<YachtState, YachtAction> = {
       '<div class="ac-t3 ac-t3room ac-t3bar" id="acT3"></div>' +
       '<button type="button" class="ac-ycpin" id="acYcPin" aria-pressed="false"></button>' +
       '<div class="ac-yctoast" id="acYcToast" role="status"></div>' +
+      '<div class="ac-yccombo" id="acYcCombo" aria-hidden="true"></div>' +
       '<div class="ac-ychud" id="acYcHud"></div>' +
       '<div class="ac-ycpaper" id="acYcPaper" hidden></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     const paperEl = el.querySelector('#acYcPaper') as HTMLElement;
     /* 알림. 차례가 넘어가거나 누가 적으면 화면 위쪽 가운데에 한 줄(사용자 요청). 레퍼런스도 "X's ROUND" 오버레이 */
     const toastEl = el.querySelector('#acYcToast') as HTMLElement;
+    /* 족보 연출. 큰 글자가 판 위에 떠오르고(레퍼런스 스팀: 큰 글자 + 별), 요트와 큰 스트레이트는 종이 조각이 내린다 */
+    const comboEl = el.querySelector('#acYcCombo') as HTMLElement;
+    let comboTimer = 0;
+    const celebrate = (text: string, level: number): void => {
+      comboEl.innerHTML = '<b>' + esc(text) + '</b>' + (level >= 2 ? Array.from({ length: level >= 3 ? 28 : 16 }, (_, i) => '<i style="--x:' + (Math.random() * 100).toFixed(1) + '%;--d:' + (Math.random() * 0.5).toFixed(2) + 's;--r:' + Math.round(Math.random() * 360) + 'deg;--h:' + (i % 3) + '"></i>').join('') : '');
+      comboEl.className = 'ac-yccombo ac-show ac-lv' + level;
+      amb.fanfare(level);
+      if (comboTimer) window.clearTimeout(comboTimer);
+      comboTimer = window.setTimeout(() => { comboEl.className = 'ac-yccombo'; comboEl.innerHTML = ''; comboTimer = 0; }, level >= 3 ? 2600 : 1900);
+    };
+    const comboLevel = (cat: Cat): number => (cat === 'yacht' ? 3 : cat === 'lstraight' || cat === 'fourkind' || cat === 'fullhouse' ? 2 : cat === 'sstraight' ? 1 : 0);
     /**
      * 탁자 위 상황판(사용자 요청: 누가 있고, 차례 순서, 지금 누구, 예상 점수). 레퍼런스 공통 다섯:
      * 라운드, 차례 표시된 사람 목록, 남은 굴림, 지금 적으면 몇 점, 상태 띠. 자리 카드는 숨김
@@ -87,6 +100,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
     let lastFin = false;
     /* 끝의 의식. 순위는 합계로, 같으면 같은 순위 */
     let ranks: number[] = [];
+    let lastStats: ReturnType<typeof readYachtStats> | null = null;
     const rankOf = (totals: number[]): number[] => totals.map((tv) => 1 + totals.filter((o) => o > tv).length);
     /* 결과 종이 아래 내역 한 줄씩. 셸의 결과창(`#acOver`)에 끼워 넣는다. 셸은 순위와 합계만 안다 */
     const paintResult = (s: YachtState): void => {
@@ -112,6 +126,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
         ].filter(Boolean).join(' <i></i> ');
         return '<div class="ac-ycresrow' + (i === mySeat ? ' ac-me' : '') + (rk[i] === 1 ? ' ac-win' : '') + '"><b>' + esc(t('arcade.yacht.hud.rank', { n: String(rk[i]) })) + '</b><span>' + esc(seatNames[i] ?? '') + '</span><em>' + totals[i] + '</em><small>' + bits + '</small></div>';
       }).join('');
+      const st = lastStats ?? readYachtStats();
+      if (st.games > 0) {
+        const line = document.createElement('div');
+        line.className = 'ac-ycstats';
+        line.textContent = t('arcade.yacht.result.stats', { games: String(st.games), best: String(st.best), avg: String(avgOf(st)), yachts: String(st.yachts), bonus: String(st.games ? Math.round((st.bonuses / st.games) * 100) : 0) });
+        box.appendChild(line);
+      }
       const list = over.querySelector('#acOverList');
       if (list) list.after(box);
       else over.appendChild(box);
@@ -145,9 +166,16 @@ export const view3d: GameView<YachtState, YachtAction> = {
           const sheet = s.sheet[i];
           const total = sheet ? totalOf(sheet) : 0;
           const cur = !fin && i === s.turn;
+          const mineNow = cur && i === mySeat;
+          /* 내 차례 카드에는 굴리기 버튼(레퍼런스 bloob: "굴리기 (n/3)" 버튼 하나가 상태를 다 말한다). 컵과 스페이스는 그대로 */
+          const rollBtn = mineNow
+            ? (s.rolled < 3
+                ? '<button type="button" class="ac-ycroll" id="acYcRoll"' + (idle() ? '' : ' disabled') + '>' + esc(idle() ? t('arcade.yacht.hud.roll', { n: String(s.rolled + 1) }) : t('arcade.yacht.deny.busy')) + '</button>'
+                : '<span class="ac-ycroll ac-ycroll-off">' + esc(t('arcade.yacht.sheet.pick')) + '</span>')
+            : '';
           const sub = cur
             ? '<span class="ac-ychudsub">' + esc(t('arcade.yacht.hud.rolls', { n: String(s.rolled) })) +
-              (best ? ' <i></i> ' + esc(t('arcade.yacht.hud.best', { cat: t('arcade.yacht.cat.' + best.cat), n: String(best.n) })) : '') + '</span>'
+              (best ? ' <i></i> ' + esc(t('arcade.yacht.hud.best', { cat: t('arcade.yacht.cat.' + best.cat), n: String(best.n) })) : '') + '</span>' + rollBtn
             : '';
           const cast = castAt(i);
           const face = cast ? '<span class="ac-ychudface">' + faceSvg(cast, cur ? (moods.get(i) ?? 'think') : (moods.get(i) ?? 'calm')) + '</span>' : '';
@@ -158,6 +186,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
             '<span class="ac-ychudname">' + esc(name) + (i === mySeat ? ' <small>' + esc(t('arcade.yacht.hud.me')) + '</small>' : seatBots[i] && !cast ? ' <small>' + esc(t('arcade.yacht.hud.bot')) + '</small>' : '') + '</span>' +
             '<b class="ac-ychudscore">' + total + '</b>' + sub + '</div>';
         }).join('');
+      const rb = hudEl.querySelector<HTMLButtonElement>('#acYcRoll');
+      if (rb) rb.onclick = () => { const why = whyNot('roll'); if (why) { blip('bad'); toast(why, 1600, true); return; } act({ kind: 'roll' }); };
     };
     let toastTimer = 0;
     const toast = (text: string, ms = 1700, deny = false): void => {
@@ -482,9 +512,12 @@ export const view3d: GameView<YachtState, YachtAction> = {
           const cat = (Object.keys(now) as Cat[]).find((c) => sh[c] === null && now[c] !== null);
           if (!cat) return;
           const who = seatNames[i] ?? '';
-          if (cat === 'yacht' && now[cat]) toast(t('arcade.yacht.toast.yacht', { who }), 2600);
-          else toast(t('arcade.yacht.toast.wrote', { who, cat: t('arcade.yacht.cat.' + cat), n: String(now[cat]) }), 2200);
           const got = now[cat] ?? 0;
+          const lv = got > 0 ? comboLevel(cat) : 0;
+          if (lv) celebrate(t('arcade.yacht.cat.' + cat) + (lv >= 3 ? '!' : ''), lv);
+          if (cat === 'yacht' && got) toast(t('arcade.yacht.toast.yacht', { who }), 2600);
+          else toast(t('arcade.yacht.toast.wrote', { who, cat: t('arcade.yacht.cat.' + cat), n: String(got) }), 2200);
+          stage?.write();
           if (castAt(i)) {
             if (got >= 20) { moodOf(i, 'glad'); castSay(i, 'good', 0.6); }
             else if (got === 0) moodOf(i, 'sad');
@@ -493,7 +526,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
             seatNames.forEach((_, j) => { if (j !== mySeat && castAt(j)) { moodOf(j, 'tease', 2200); castSay(j, 'danger', 0.7); } });
           }
           /* 위 여섯 합이 63을 넘는 순간. 덤 35 */
-          if (upperOf(sh) < 63 && upperOf(now) >= 63) window.setTimeout(() => toast(t('arcade.yacht.toast.bonus', { who }), 2200), 2300);
+          if (upperOf(sh) < 63 && upperOf(now) >= 63) window.setTimeout(() => { toast(t('arcade.yacht.toast.bonus', { who }), 2300); celebrate(t('arcade.yacht.sheet.bonus'), 1); }, 2300);
         });
         if (!fin && s.turn !== before.turn) {
           window.setTimeout(() => {
@@ -557,6 +590,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       pump();
     };
     const idle = (): boolean => seq.length === 0 && performance.now() >= busyUntil;
+    let idleWas = true;
     return (v, seat) => {
       const s = v.state;
       mySeat = seat;
@@ -580,7 +614,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
         pump();
       }
       /* 내 손은 연출이 끝난 뒤에. 굴리는 중에 또 굴리면 컵이 두 번 뒤집힌다 */
-      stage.canAct(canRoll() && !sheetOpen && idle());
+      const idleNow = idle();
+      stage.canAct(canRoll() && !sheetOpen && idleNow);
+      if (idleNow !== idleWas) { idleWas = idleNow; hudKey = ''; if (shown) paintHud(shown, lastFin); }
       pinBtn.hidden = v.finished;
       /* 종이. 점수가 바뀔 때만 다시 그린다 */
       const sk = JSON.stringify(s.sheet) + '|' + seat;
@@ -607,6 +643,13 @@ export const view3d: GameView<YachtState, YachtAction> = {
         ranks = rankOf(totals);
         hudKey = '';
         paintHud(s, true);
+        /* 내 기록. 이 브라우저에만(bloob 의 등급과 경험치는 계정 몫, 온라인 Change) */
+        const mine = s.sheet[mySeat];
+        if (mine) {
+          const r = noteYachtGame(totals[mySeat] ?? 0, !!mine.yacht, upperOf(mine) >= 63);
+          lastStats = r.stats;
+          if (r.newBest) window.setTimeout(() => toast(t('arcade.yacht.toast.newbest', { n: String(totals[mySeat] ?? 0) }), 2600), 1200);
+        }
         /* 셸의 결과창은 조금 뒤에 뜬다(판 사이 쉬는 시간). 그 뒤에 내역을 끼운다 */
         window.setTimeout(() => { if (host.isConnected) paintResult(s); }, 1000);
         window.setTimeout(() => { if (host.isConnected) paintResult(s); }, 2500);

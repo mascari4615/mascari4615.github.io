@@ -17,6 +17,8 @@ export interface BarAmbience {
   clatter(force: number): void;
   slide(): void;
   scratch(): void;
+  /** 족보. 세기 1~3 (작은 스트레이트, 풀하우스와 포카드와 큰 스트레이트, 요트) */
+  fanfare(level: number): void;
   stop(): void;
 }
 
@@ -211,6 +213,33 @@ export function barAmbience(host: HTMLElement, background = true): BarAmbience {
     }
   };
 
+  /* 족보. 올라가는 음 셋에서 다섯. 유리잔 배음이라 바에 어울린다 */
+  const fanfare = (level: number): void => {
+    if (!soundOn() || !ctx || !master) return;
+    try {
+      const c = ctx;
+      const notes = level >= 3 ? [523, 659, 784, 1047, 1319] : level === 2 ? [523, 659, 784, 1047] : [587, 740, 880];
+      let at = c.currentTime;
+      notes.forEach((f, i) => {
+        for (const [mul, g] of [[1, 1], [2.32, 0.3], [3.9, 0.1]] as Array<[number, number]>) {
+          const o = c.createOscillator();
+          o.type = 'sine';
+          o.frequency.value = f * mul;
+          const a = c.createGain();
+          a.gain.setValueAtTime(0.0001, at);
+          a.gain.exponentialRampToValueAtTime(0.05 * g * (i === notes.length - 1 ? 1.4 : 1), at + 0.008);
+          a.gain.exponentialRampToValueAtTime(0.0001, at + (i === notes.length - 1 ? 1.6 : 0.5) / mul);
+          o.connect(a).connect(master as GainNode);
+          o.start(at);
+          o.stop(at + 1.8);
+        }
+        at += level >= 3 ? 0.11 : 0.13;
+      });
+    } catch {
+      /* 위와 같다 */
+    }
+  };
+
   const stop = (): void => {
     if (timer) window.clearInterval(timer);
     timer = 0;
@@ -236,5 +265,5 @@ export function barAmbience(host: HTMLElement, background = true): BarAmbience {
     master = null;
   };
 
-  return { wake, rattle, clatter, slide, scratch, stop };
+  return { wake, rattle, clatter, slide, scratch, fanfare, stop };
 }

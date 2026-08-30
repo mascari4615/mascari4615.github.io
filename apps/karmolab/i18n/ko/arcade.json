@@ -562,5 +562,8 @@
   "arcade.yacht.hud.rank": "{n}위",
   "arcade.yacht.result.upper": "위 합 {n}",
   "arcade.yacht.result.yacht": "요트!",
-  "arcade.yacht.sheet.done": "판 끝. 합계를 본다"
+  "arcade.yacht.sheet.done": "판 끝. 합계를 본다",
+  "arcade.yacht.hud.roll": "굴리기 {n} / 3",
+  "arcade.yacht.toast.newbest": "내 최고 기록. {n}점",
+  "arcade.yacht.result.stats": "내 기록. {games}판, 최고 {best}, 평균 {avg}, 요트 {yachts}번, 덤 {bonus}%"
 }

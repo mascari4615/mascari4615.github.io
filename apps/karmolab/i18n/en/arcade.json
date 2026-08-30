@@ -562,5 +562,8 @@
   "arcade.yacht.hud.rank": "#{n}",
   "arcade.yacht.result.upper": "Upper {n}",
   "arcade.yacht.result.yacht": "Yacht!",
-  "arcade.yacht.sheet.done": "Game over. Totals below"
+  "arcade.yacht.sheet.done": "Game over. Totals below",
+  "arcade.yacht.hud.roll": "Roll {n} / 3",
+  "arcade.yacht.toast.newbest": "New personal best. {n}",
+  "arcade.yacht.result.stats": "Me: {games} games, best {best}, avg {avg}, yachts {yachts}, bonus {bonus}%"
 }
