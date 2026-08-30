@@ -2055,6 +2055,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const el = $<HTMLElement>('#acCutin');
       el.innerHTML = '<span class="ac-cutface">' + faceSvg(c, mood) + '</span><div><b>' + esc(c.name) + '</b><p>' + esc(text) + '</p></div>';
       el.hidden = false;
+      /* 컷인에 소리 한 번. 끝의 이김과 짐은 결과 화면이 이미 울리므로 빼고, 리치와 위기만 */
+      if (key === 'four' || key === 'danger') blip('start');
       el.classList.remove('ac-on');
       if (cutTimer) window.clearTimeout(cutTimer);
       window.requestAnimationFrame(() => el.classList.add('ac-on'));
