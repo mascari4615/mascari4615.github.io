@@ -1466,16 +1466,11 @@ const Toolbox = (() => {
                 list.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
                 return list;
             }
-            /* 도구를 열면 그 갈래로 한 번만 따라간다. 사람이 탭을 끄거나 바꾼 뒤에는 그 도구 안에서 다시 안 덮는다 */
-            let followedPage = '';
+            /* 도구를 열어도 탭은 안 따라간다 (2026-08-30 사용자: 안 보던 갈래 목록이 튀어나옴).
+               고른 탭은 사람이 누를 때만 바뀐다. 기본은 내 것 */
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
                 const mine = sections().slice(0, 1)[0];
-                const nowTool = tools.find(t => t.id === currentPageId);
-                if (nowTool && nowTool.category && nowTool.category !== 'app' && followedPage !== currentPageId) {
-                    sidebarTab = nowTool.category;
-                    followedPage = currentPageId;
-                }
                 const tabs = [{ id: 'mine', label: mine ? mine.label : '', icon: STAR_ICON, tools: mine ? mine.tools : [], empty: mine ? mine.empty : '' }]
                     .concat(getCategories().map(cat => ({ id: cat.id, label: cat.label, icon: cat.icon || '', tools: catToolsOf(cat.id), empty: '' }))
                         .filter(t => t.tools.length));
