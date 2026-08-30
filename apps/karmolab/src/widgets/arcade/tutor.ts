@@ -54,11 +54,12 @@ export const LESSONS: readonly Lesson[] = [
   },
   {
     say: 'arcade.tutor.double',
+    /* 세로는 넷, 가로는 열린 셋이 되는 자리. 가로까지 넷이면 사사라 금수가 된다(검사가 잡았다) */
     board: [
-      { x: 5, y: 7, who: 1 }, { x: 6, y: 7, who: 1 }, { x: 7, y: 7, who: 1 },
+      { x: 6, y: 7, who: 1 }, { x: 7, y: 7, who: 1 },
       { x: 8, y: 4, who: 1 }, { x: 8, y: 5, who: 1 }, { x: 8, y: 6, who: 1 },
-      { x: 2, y: 2, who: 2 }, { x: 12, y: 12, who: 2 }, { x: 2, y: 12, who: 2 }, { x: 12, y: 2, who: 2 },
-      { x: 0, y: 7, who: 2 }, { x: 14, y: 7, who: 2 }
+      { x: 2, y: 2, who: 2 }, { x: 12, y: 12, who: 2 }, { x: 2, y: 12, who: 2 },
+      { x: 12, y: 2, who: 2 }, { x: 0, y: 0, who: 2 }
     ],
     answer: [{ x: 8, y: 7 }],
     miss: 'arcade.tutor.double.miss'

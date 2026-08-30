@@ -276,6 +276,7 @@
     "smoke:batchretry",
     "audit:prerender-home",
     "test:arcade",
+  "test:arcade:tutor",
     "test:drift",
     "test:arcade:solo",
     "test:play-i18n",
