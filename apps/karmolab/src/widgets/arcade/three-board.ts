@@ -624,6 +624,12 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   let hud: HTMLElement | null = null;
   let hudLoop: GardenLoop | null = null;
   /* GPU 이름. SwiftShader 가 찍히면 하드웨어 가속이 꺼진 것 */
+  /* 마우스 움직임 수. 움직일 때만 떨어지면 포인터 쪽(합성기, 커서 층)이 의심 */
+  let moves = 0;
+  const onMove = (): void => { moves += 1; };
+  canvas.addEventListener('pointermove', onMove, { passive: true });
+  /* Edge 강화 보안 모드는 JIT 와 WebAssembly 를 끈다. 그러면 JS 가 몇 배 느리다 */
+  const jit = typeof WebAssembly !== 'undefined' ? 'jit on' : 'jit OFF (Edge 강화 보안 모드?)';
   const gpuName = ((): string => {
     try {
       const gl = renderer.getContext();
@@ -682,7 +688,9 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
 ` +
         `${canvas.width}x${canvas.height}  dpr ${(window.devicePixelRatio || 1).toFixed(2)}  ${renderer.shadowMap.type === PCFShadowMap ? 'PCF' : 'PCFSoft'} ${sun.shadow.mapSize.x}  loop ${loop ? 'on' : 'off'}  resize ${resizes}
 ` +
-        gpuName;
+        gpuName + `
+${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${document.hidden}`;
+      moves = 0;
       tick = 0;
     });
   };
@@ -782,6 +790,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
       loop = null;
       canvas.removeEventListener('pointerdown', onDown);
       canvas.removeEventListener('keydown', onKey);
+      canvas.removeEventListener('pointermove', onMove);
       hudStop();
       ro.disconnect();
       scene.traverse((o) => {
