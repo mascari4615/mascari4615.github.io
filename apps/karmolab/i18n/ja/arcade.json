@@ -517,6 +517,7 @@
   "arcade.rank.first": "段位戦の初戦を待っています",
   "arcade.rank.record": "{n}点, {games}戦 {wins}勝",
   "arcade.rank.tonext": "次の段まで{n}点",
+  "arcade.tape.copy": "この対局の再生リンクをコピー",
   "arcade.open.title": "いま開いてる部屋",
   "arcade.open.none": "",
   "arcade.open.card": "{game}, {host}",

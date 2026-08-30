@@ -224,3 +224,66 @@ export function gradeOf(rating: number): Grade {
   const level = Math.min(3, Math.floor(inTier / step) + 1);
   return { tier, level, toNext: Math.ceil(TIER_FLOOR + tier * TIER_SPAN + level * step - rating) };
 }
+
+/**
+ * 패보. 끝난 판을 서버에 두고 링크로 다시 편다 (change.arcade-online 3번)
+ *
+ * - 판 전체를 안 보냄. 씨앗과 누른 것 몇 줄(`Tape`)
+ * - 양쪽이 각자 보내도 서버가 한 판에 하나만 적고 같은 id 를 돌려줌
+ * - 못 보내도 판은 이미 끝났음. 조용히 없음
+ */
+export async function saveTape(code: string, tape: unknown): Promise<string | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/tape`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: guestKey(), code, tape })
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { id?: string };
+    return body.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 이 판의 패보 id. 손님 창이 묻는 자리
+ * - 패보는 판을 돌린 주인만 만듦. 손님에게는 되살릴 것이 없음
+ * - 주인이 올릴 때까지 잠깐 걸림. 3초 간격 세 번까지 물음
+ */
+export async function findTape(code: string): Promise<string | null> {
+  for (let i = 0; i < 3; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 3000));
+    try {
+      const res = await fetch(`${HOST}/kl/arcade/tape/of/${encodeURIComponent(code)}`, { cache: 'no-store' });
+      if (res.ok) return ((await res.json()) as { id?: string }).id ?? null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/** 링크에 실린 패보 하나. 없으면 없음 */
+export async function loadTape(id: string): Promise<unknown | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/tape/${encodeURIComponent(id)}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { tape?: unknown };
+    return body.tape ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** 주소에서 패보 id. 방 코드(`?r=`), 편지(`?m=`)와 다른 자리 */
+export function tapeFromUrl(): string | null {
+  const q = new URLSearchParams(location.search).get('g');
+  return q && /^[A-Za-z0-9_-]{6,16}$/.test(q) ? q : null;
+}
+
+/** 복기 링크. 방 이름과 같은 규칙으로 물음표 뒤에 (셸이 `#` 뒤를 덮어씀) */
+export function tapeLink(id: string): string {
+  return `${location.origin}${location.pathname}?g=${encodeURIComponent(id)}`;
+}

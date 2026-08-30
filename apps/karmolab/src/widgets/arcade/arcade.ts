@@ -46,7 +46,20 @@ import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
 import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
-import { enterQueue, gradeOf, myRating, reportResult, type Ranked, type RankedMatch, type RankRoom } from './ranked';
+import {
+  enterQueue,
+  gradeOf,
+  findTape,
+  loadTape,
+  myRating,
+  reportResult,
+  saveTape,
+  tapeFromUrl,
+  tapeLink,
+  type Ranked,
+  type RankedMatch,
+  type RankRoom
+} from './ranked';
 import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
@@ -1248,6 +1261,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-overname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.ac-overscore{font-variant-numeric:tabular-nums;font-weight:600}',
       '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
+      '.ac-overtape{margin-top:8px;text-align:center;font-size:var(--font-size-2xs)}',
+      '.ac-overtape button{background:none;border:0;padding:0;color:var(--text-secondary);text-decoration:underline;cursor:pointer;font-size:inherit}',
+      '.ac-overtape button:hover{color:var(--text-primary)}',
       '.ac-find{width:100%;max-width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--bg-secondary);color:var(--text-primary);margin:var(--space-md) 0}',
       '.ac-openstrip{display:flex;gap:8px;flex-wrap:wrap;margin:var(--space-md) 0}',
       '.ac-opencard{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--accent);border-radius:var(--radius-xl);background:var(--bg-secondary);font-size:var(--font-size-sm)}',
@@ -1485,6 +1501,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div class="ac-overhead" id="acOverHead"></div>' +
       '<ol class="ac-overlist" id="acOverList"></ol>' +
       '<div class="ac-overnote" id="acOverNote"></div>' +
+      /* 등급전 패보 링크. 판이 서버에 올라간 뒤에만 뜬다 */
+      '<div class="ac-overtape" id="acOverTape" hidden></div>' +
       '<div class="ac-overacts" id="acOverActs"></div>' +
       /* 전신 자리. 지금은 도형, 그림이 오면 여기만 갈아 끼운다(`rules/mdd.md` 그림 규격) */
       '<div class="ac-overbody" id="acOverBody" hidden></div>' +
@@ -2385,7 +2403,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying && !review ? '' : 'none';
           showResult(v, draw, top, note);
           /* 등급전이면 점수에 반영. 양쪽이 각자 보내고 서버가 둘을 맞춰 봄 */
-          if (rankedMatch && !replaying && !review) void tellRanked(v, draw);
+          if (rankedMatch && !replaying && !review) {
+            void tellRanked(v, draw);
+            void keepTape();
+          }
         }
       } else if (v.note) {
         /* ★ **한 줄 알림이 판을 죽이면 안 된다** (2026-08-17, 진짜로 죽였다).
@@ -3202,6 +3223,49 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (g.toNext !== null ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) })) : '');
     }
 
+    /**
+     * 끝난 등급전 판을 서버에 두고 복기 링크를 보여 줌
+     * - 양쪽이 각자 보냄. 서버가 한 판에 하나만 적고 같은 id 를 돌려줌
+     * - 못 올리면 링크 자리를 아예 안 그림. 링크는 있으면 좋은 것
+     */
+    async function keepTape(): Promise<void> {
+      const m = rankedMatch;
+      const box = container.querySelector<HTMLElement>('#acOverTape');
+      if (!m || !box) return;
+      /* 손님에게는 되살릴 것이 없음. 주인이 올린 뒤 코드로 링크만 물음 */
+      const id = tape ? await saveTape(m.code, tape) : await findTape(m.code);
+      if (!id || rankedMatch !== m) return;
+      box.hidden = false;
+      box.innerHTML = '<button type="button" id="acTapeCopy">' + esc(t('arcade.tape.copy')) + '</button>';
+      const btn = container.querySelector<HTMLButtonElement>('#acTapeCopy');
+      if (btn) btn.onclick = (): void => {
+        void Toolbox.copyText?.(tapeLink(id), { message: t('arcade.copy.done') });
+      };
+    }
+
+    /**
+     * 링크에 실린 패보를 편다. 판을 되살려 복기 화면으로
+     * - 자리와 옵션까지 서버가 들고 있어 그때 그 판이 그대로 펴짐
+     * - 없는 패보면 조용히 로비. 남의 주소를 잘못 눌렀을 뿐
+     */
+    async function openTape(id: string): Promise<void> {
+      const raw = (await loadTape(id)) as Tape<unknown> | null;
+      if (!raw || !raw.game) return;
+      /* 규칙 파일을 먼저 받아야 함. 안 받으면  가 아직 없음을 돌려줌(실측: 빈 화면) */
+      await ensureGame(raw.game);
+      if (!gameById(raw.game)) return;
+      gameId = raw.game;
+      mountView(raw.game);
+      lastDef = null;
+      lastSeats = raw.seats;
+      lastSeed = raw.seed;
+      tape = raw;
+      mySeat = -1;
+      watching = true;
+      show('play');
+      startReview();
+    }
+
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
     let rankedMatch: RankedMatch | null = null;
 
@@ -3434,6 +3498,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * → `#arcade`). 그래서 방 이름은 **물음표 뒤**에 단다. 그쪽은 셸이 안 건드린다. */
     const joined = location.search.match(/[?&]r=([A-Za-z0-9]{4,12})/);
     if (joined) joinRoomAs(joined[1]);
+
+    /* 패보가 실려 있으면 복기로 연다. 방(`?r=`), 편지(`?m=`)와 다른 자리(`?g=`) */
+    const taped = tapeFromUrl();
+    if (taped) void openTape(taped);
 
     /* 편지가 실려 있으면 그 판을 편다. 방과 다른 자리(`?m=`)를 쓴다 (TASK-KL-264 D5). */
     const posted = letterFromUrl();

@@ -517,6 +517,7 @@
   "arcade.rank.first": "Waiting on your first ranked game",
   "arcade.rank.record": "{n} pts, {games} games {wins} wins",
   "arcade.rank.tonext": "{n} to the next step",
+  "arcade.tape.copy": "Copy replay link",
   "arcade.open.title": "rooms open now",
   "arcade.open.none": "",
   "arcade.open.card": "{game}, {host}",
