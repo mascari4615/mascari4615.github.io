@@ -434,6 +434,26 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) #acControls{position:absolute;right:14px;top:12px;left:auto;bottom:auto;margin:0;opacity:.55;z-index:3;justify-content:flex-end}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls:hover,#acPlay.ac-bare:has(.ac-t3room) #acControls:focus-within{opacity:1}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);backdrop-filter:blur(6px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{flex:0 0 auto;width:auto}',
+      /* 판이 끝나 결과창이 떠 있으면 버튼 줄이 결과창 아래로 내려온다. 우상단에 "한 판 더" 가 걸려 있으면 눈이 두 군데로 간다 */
+      '#acPlay.ac-bare:has(.ac-t3room):has(.ac-over:not([style*="none"])) #acControls{top:auto;bottom:11%;right:auto;left:50%;transform:translateX(-50%);opacity:1;gap:10px}',
+      /* 한 판 더 같은 주 버튼은 옻칠에 금박. 셸의 보라 강조색은 이 방에 없다 */
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{background:linear-gradient(180deg,#b9702f,#8f4f1c);color:#fff3de;border-color:rgba(255,214,150,.6);font-weight:700}',
+      /**
+       * 결과창. 셸의 카드가 아니라 **종이 한 장**. 어두운 방에 등불처럼
+       * 글꼴은 명조. 방이 명조를 부른다(레퍼런스 결과창도 붓글씨 계열)
+       */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-over{background:radial-gradient(ellipse at 50% 45%,rgba(40,28,16,.55),rgba(10,7,4,.82) 75%);backdrop-filter:blur(3px);border-radius:0;gap:14px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overhead{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:clamp(28px,4vw,44px);font-weight:600;color:#f7e9cf;letter-spacing:.06em;text-shadow:0 2px 18px rgba(0,0,0,.7)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overlist{min-width:260px;max-width:360px;padding:14px;border-radius:6px;background:linear-gradient(180deg,rgba(250,240,222,.96),rgba(236,222,196,.96));box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 0 0 1px rgba(120,80,40,.25)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overrow{background:none;border-bottom:1px solid rgba(120,80,40,.18);border-radius:0;color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:var(--font-size-md);padding:8px 6px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overrow:last-child{border-bottom:0}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overrow.ac-me{outline:0;background:rgba(190,120,50,.14)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overrank{color:#8f5a2a}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overnote{color:#e8d8bd;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
+      /* 상태 알림(차례, 금수, 판 수)도 같은 종이 톤 */
+      '#acPlay.ac-bare:has(.ac-t3room) #acStatus{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;letter-spacing:.04em}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}',
       /* CPU 렌더링 경고. 판 위에 한 줄. 글자와 단추 하나 */
       '.ac-t3warn{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 14px;margin:0 0 8px;border-radius:var(--radius-xl);background:rgba(200,120,40,.16);border:1px solid rgba(200,120,40,.5);font-size:var(--font-size-sm)}',
       '.ac-t3.ac-t3room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
@@ -924,6 +944,20 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-introname{font-size:var(--font-size-lg);font-weight:800}',
       '.ac-introdesc{font-size:var(--font-size-sm);color:var(--text-secondary);max-width:22em}',
       '.ac-introcount{font-size:clamp(48px,16vw,84px);font-weight:800;color:var(--accent);line-height:1}',
+      /**
+       * 방으로 들어가는 인트로. 어두운 방에 종이 한 장. 이모지 없음, 명조, 숫자는 작은 금색.
+       * 셸의 보라와 이모지 팝은 그 방과 딴 세계다(사용자 지적)
+       */
+      '.ac-intro.ac-intro-room{background:radial-gradient(ellipse at 50% 40%,#3a2a18 0%,#1a120b 60%,#0d0906 100%);gap:14px}',
+      '.ac-intro.ac-intro-room .ac-introicon{display:none}',
+      /* 인트로 때는 아직 방이 안 섰다. 그래도 무대는 방과 같은 틀이어야 3초 뒤 화면이 안 출렁인다 */
+      '#acPlay .ac-stage:has(.ac-intro-room:not([style*="none"])){max-width:none;width:100%;min-height:min(78vh,calc(100vh - 140px))}',
+      '.ac-intro.ac-intro-room .ac-introname{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:clamp(36px,5vw,56px);font-weight:600;color:#f7e9cf;letter-spacing:.18em;text-shadow:0 2px 20px rgba(0,0,0,.7)}',
+      '.ac-intro.ac-intro-room .ac-introdesc{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;color:#cdb896;font-size:var(--font-size-md);letter-spacing:.06em}',
+      '.ac-intro.ac-intro-room .ac-introcount{font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:clamp(28px,4vw,40px);font-weight:400;color:#d9a85a;margin-top:10px}',
+      '.ac-intro.ac-intro-room .ac-introskip{color:rgba(230,210,180,.5);font-size:var(--font-size-xs);letter-spacing:.1em}',
+      /* 종이 밑에 가는 금줄 한 가닥. 세로 중앙의 이름 아래 */
+      '.ac-intro.ac-intro-room .ac-introname::after{content:"";display:block;width:64px;height:1px;margin:14px auto 0;background:linear-gradient(90deg,transparent,#d9a85a,transparent)}',
       /**
        * **무대**. 51개 화면이 여기 안에서만 산다 (TASK-KL-314).
        *
@@ -2052,6 +2086,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acIntroIcon').textContent = iconOf(id);
       $<HTMLElement>('#acIntroName').textContent = t('arcade.game.' + id + '.name');
       $<HTMLElement>('#acIntroDesc').textContent = t('arcade.game.' + id + '.desc');
+      /* 입체 방으로 들어가는 판이면 인트로도 그 방의 종이 한 장. 보라 숫자와 이모지는 그 방에 없다(사용자 지적) */
+      introEl.classList.toggle('ac-intro-room', dim() === '3d' && !!cardById(id)?.d3);
       introEl.style.display = '';
       /* 지난 판의 결과와 한 판 더를 치운다. 안 치우면 다음 판을 세는 동안 지난 판이
          아직 안 끝난 것처럼 보인다(대회에서 다음 판이 안 넘어가는 것처럼 보였다). */

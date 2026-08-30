@@ -9,6 +9,7 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { mountThreeBoard, type Board3d, type Stone } from '../three-board';
+import { roomAmbience } from '../ambience';
 import { DEFAULT_SIZE, starPoints, type GomokuState, type GomokuAction } from './gomoku';
 
 export const view3d: GameView<GomokuState, GomokuAction> = {
@@ -18,6 +19,10 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
     /* 무대는 제 자리를 다 쓴다. 크기는 무대 계약(`--ac-stage`)이 정한다. */
     el.innerHTML = '<div class="ac-t3 ac-t3room" id="acT3"></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
+    /* 방의 소리(`ambience.ts`). 첫 손길에 깨고, 주인이 문서에서 빠지면 스스로 멈춘다 */
+    const amb = roomAmbience(host);
+    host.addEventListener('pointerdown', () => amb.wake(), { passive: true });
+    let shown = -1;
 
     /* 오목은 **줄이 만나는 점**에 둔다. 칸 안에 두면 그건 다른 놀이다. */
     let n = 0;
@@ -65,6 +70,9 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
       /* 여기 둘 수 있다는 빈 칸 전부라 표시하지 않는다. 판이 온통 점으로 덮인다.
          자리를 좁혀 주는 놀이(오델로, 체커)에서만 쓴다. */
       board.place(stones);
+      /* 알이 늘었으면 딱. 첫 그림은 안 울린다(도중에 들어온 판이면 스무 개가 한꺼번에 울린다) */
+      if (shown >= 0 && stones.length > shown) amb.stone();
+      shown = stones.length;
       if (s.won !== -1) board.finish();
       host.classList.toggle('ac-waiting', !myTurn);
       /* 차례를 자리 카드에 표시. 자리 카드는 오락실 본체 것이라 여기서 클래스만 얹는다 */
