@@ -32,8 +32,13 @@ export const GHOST_NAME = '어제의 나';
 /**
  * 한 자리를 고스트로 바꾼다. 나머지 자리는 원래 봇 그대로다.
  *
- * 기록이 다 떨어지면 그 자리는 **가만히 있는다**(null). 아무 수나 지어내면 그건 어제의
- * 내가 아니라 그냥 봇이고, 옆에 두는 뜻이 사라진다.
+ * 기록이 다 떨어지면 점수형 놀이에서는 그 자리가 **가만히 있는다**(null). 아무 수나 지어내면
+ * 그건 어제의 내가 아니라 그냥 봇. 옆에 두는 뜻이 사라짐
+ *
+ * 차례를 주고받는 놀이는 다르다. 그 자리가 멈추면 차례가 거기서 멈춰 **판이 안 끝난다**.
+ * 2026-08-31 야추 실측: 한 판 더로 들어간 두 판째가 고스트 자리에서 굳어, 남은 자리들이
+ * 240초 동안 굴리기만 반복. 그래서 차례제 놀이는 기록이 떨어지면 원래 봇이 이어 앉음
+ * 차례제는 `realtime` 도 `clocked` 도 아닌 놀이
  */
 export function withGhost<S, A>(game: GameDef<S, A>, seat: number, tape: GhostTape<A>): GameDef<S, A> {
   return {
@@ -41,7 +46,7 @@ export function withGhost<S, A>(game: GameDef<S, A>, seat: number, tape: GhostTa
     bot(s: S, at: number, ctx: GameCtx): BotMove<A> | null {
       if (at !== seat) return game.bot(s, at, ctx);
       const next = tape.moves.find((m) => m.at >= ctx.now);
-      if (!next) return null;
+      if (!next) return game.realtime || game.clocked ? null : game.bot(s, at, ctx);
       return { action: next.action, delayMs: Math.max(0, next.at - ctx.now) };
     }
   };
