@@ -334,6 +334,30 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     };
   },
 
+  /** 방금 둔 수(`last`)로 다음에 다섯이 되는 빈 칸이 생겼나. 컷인의 리치 */
+  cue(s, mover): 'four' | null {
+    if (s.last < 0 || s.won !== -1) return null;
+    const who = mover + 1;
+    const n = s.n;
+    const x = s.last % n;
+    const y = Math.floor(s.last / n);
+    for (const [dx, dy] of DIRS) {
+      for (let k = -4; k <= 4; k += 1) {
+        if (!k) continue;
+        const cx = x + dx * k;
+        const cy = y + dy * k;
+        if (cx < 0 || cy < 0 || cx >= n || cy >= n) continue;
+        const e = cy * n + cx;
+        if (s.board[e] !== 0) continue;
+        if (who === 1 && s.banned.indexOf(e) >= 0) continue;
+        const t = s.board.slice();
+        t[e] = who;
+        if (wins(t, n, e, who, s.renju)) return 'four';
+      }
+    }
+    return null;
+  },
+
   bot(s, seat, ctx): BotMove<GomokuAction> | null {
     if (s.won !== -1 || s.turn !== seat) return null;
     const who = seat + 1;

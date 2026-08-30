@@ -529,6 +529,17 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) .ac-emotes[hidden]{display:none}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-emotebtn{height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(217,168,90,.42);background:rgba(24,15,8,.72);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:14px;cursor:pointer;backdrop-filter:blur(8px)}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-emotebtn:hover{border-color:#e6bd7a;background:rgba(46,30,14,.85)}',
+      /**
+       * ── 컷인 (MDD) ── 작혼의 리치, 론 연출과 같은 자리. 넷을 만들면(리치), 내가 넷을 만들면(위기), 판이 끝나면(론)
+       * 오른쪽에서 큰 얼굴과 한 줄이 미끄러져 들어와 1.7초 머물고 나간다. 그림이 오면 얼굴만 갈아 끼움
+       */
+      '.ac-cutin{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin{display:flex;align-items:center;gap:22px;position:absolute;right:0;top:24%;width:min(460px,60%);padding:18px 28px 18px 22px;z-index:9;pointer-events:none;background:linear-gradient(90deg,rgba(24,15,8,0),rgba(24,15,8,.88) 18%,rgba(24,15,8,.92));border-top:1px solid rgba(217,168,90,.55);border-bottom:1px solid rgba(217,168,90,.55);color:#f6ecdc;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:translateX(110%);opacity:0;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin[hidden]{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin.ac-on{transform:none;opacity:1}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin .ac-cutface svg{width:150px;height:150px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin b{display:block;font-size:17px;letter-spacing:.12em;color:#ffd696;font-weight:600;margin-bottom:6px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-cutin p{margin:0;font-size:22px;line-height:1.35;text-shadow:0 2px 10px rgba(0,0,0,.6)}',
       /* ── 콘텐츠 창 채우기 (위 `fill`) ── 헤더 아래, 사이드바 오른쪽을 전부 방으로 */
       '#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:0;width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}',
       '#acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}',
@@ -1379,6 +1390,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 복기 타임라인. 결과의 다시 보기가 켠다. 방에서는 판 아래 가운데 한 줄 */
       /* 반응 판. 내 자리 카드 위에 여섯. 누르면 내 카드에 말풍선, 온라인이면 상대에게도 */
       '<div class="ac-emotes" id="acEmotes" hidden>' + EMOTES.map((e, i) => '<button class="ac-emotebtn" data-emote="' + i + '">' + esc(e) + '</button>').join('') + '</div>' +
+      '<div class="ac-cutin" id="acCutin" hidden></div>' +
       '<div class="ac-timeline" id="acTimeline" hidden>' +
       '<button class="ac-tlbtn" id="acTlFirst" title="' + esc(t('arcade.tl.first')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 6l-8 6 8 6z"/></svg></button>' +
       '<button class="ac-tlbtn" id="acTlPrev" title="' + esc(t('arcade.tl.prev')) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6l-8 6 8 6z"/></svg></button>' +
@@ -1871,6 +1883,26 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
     /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
     let seenMoves = 0;
+    /** 컷인. 그 자리의 사람이 큰 얼굴로 한 줄. 1.7초 뒤 나간다 */
+    let cutTimer = 0;
+    function cutIn(seat: number, key: Parameters<typeof lineOf>[1]): void {
+      const v = match?.view() ?? shadow?.v;
+      const c = v ? castByName(v.seats[seat]?.name ?? '') : null;
+      if (!c || !v) return;
+      const text = lineOf(c, key, v.seats[mySeat]?.name ?? '');
+      if (!text) return;
+      const mood: Mood = key === 'win' ? 'glad' : key === 'lose' ? 'sad' : key === 'four' ? 'tease' : key === 'danger' ? 'think' : 'calm';
+      const el = $<HTMLElement>('#acCutin');
+      el.innerHTML = '<span class="ac-cutface">' + faceSvg(c, mood) + '</span><div><b>' + esc(c.name) + '</b><p>' + esc(text) + '</p></div>';
+      el.hidden = false;
+      el.classList.remove('ac-on');
+      if (cutTimer) window.clearTimeout(cutTimer);
+      window.requestAnimationFrame(() => el.classList.add('ac-on'));
+      cutTimer = window.setTimeout(() => {
+        el.classList.remove('ac-on');
+        cutTimer = window.setTimeout(() => { el.hidden = true; cutTimer = 0; }, 350);
+      }, 1700);
+    }
     let raf = 0;
     let t0 = 0;
     let gameId = '';
@@ -2038,6 +2070,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (match && match.moves !== seenMoves) {
         const turn = (v.state as { turn?: number } | null)?.turn;
         if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
+        /* 방금 둔 수가 넷이면 컷인. 사람이 만들면 리치, 내가 만들면 사람의 위기 */
+        if (match.moves > seenMoves && !v.finished && v.seats.length === 2 && typeof turn === 'number') {
+          const mover = 1 - turn;
+          const cue = gameById(gameId)?.cue?.(v.state, mover) ?? null;
+          if (cue === 'four') cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
+        }
         seenMoves = match.moves;
       }
       /* 복기 장면. 결과와 알림과 기록은 안 건드린다. 곁가지(살아 있는 판)는 보통 판처럼 간다 */
@@ -2064,7 +2102,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (!ended) {
           ended = true;
           if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
-          v.seats.forEach((sq, i) => { if (i !== mySeat) castSay(i, sq.score === top ? 'win' : 'lose'); });
+          v.seats.forEach((sq, i) => { if (i !== mySeat) cutIn(i, sq.score === top ? 'win' : 'lose'); });
           const draw = win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(

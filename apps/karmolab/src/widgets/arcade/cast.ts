@@ -10,7 +10,7 @@
  */
 export type CastSlug = 'yawn' | 'alisa' | 'ling';
 export type Mood = 'calm' | 'think' | 'glad' | 'sad' | 'tease';
-export type LineKey = 'hello' | 'move' | 'good' | 'danger' | 'undo' | 'win' | 'lose' | 'hurry' | 'again';
+export type LineKey = 'hello' | 'move' | 'good' | 'four' | 'danger' | 'undo' | 'win' | 'lose' | 'hurry' | 'again';
 
 export interface Cast {
   slug: CastSlug;
@@ -31,6 +31,7 @@ export const CAST: Record<CastSlug, Cast> = {
       hello: ['...아, {you}. 한 판?', '하암. 앉아.'],
       move: ['음.', '여기.', '...'],
       good: ['오, 제법.'],
+      four: ['...다음에 끝낼게.', '넷.'],
       danger: ['...귀찮게 하네.'],
       undo: ['무르기? 뭐, 그러든가.'],
       win: ['끝. 자러 갈래.', '이겼다. 하암.'],
@@ -48,6 +49,7 @@ export const CAST: Record<CastSlug, Cast> = {
       hello: ['{you}님. 시작하겠습니다.'],
       move: ['여기로.', '두겠습니다.'],
       good: ['좋은 수입니다.'],
+      four: ['넷입니다. 막으셔야 합니다.'],
       danger: ['막겠습니다.'],
       undo: ['무르기. 기록해 두겠습니다.'],
       win: ['제가 이겼습니다. 정리하겠습니다.'],
@@ -65,6 +67,7 @@ export const CAST: Record<CastSlug, Cast> = {
       hello: ['{you}! 나랑 놀자~', '헤헷, 내가 이길 거야'],
       move: ['여기다!', '에잇!'],
       good: ['에엣, 잘 두네...'],
+      four: ['막아 봐~!', '리치! ...가 아니라 넷!'],
       danger: ['안 돼 안 돼!'],
       undo: ['물러 줄게. 이번만이야?'],
       win: ['이겼다! 헤헷', '봤지? 봤지?'],
