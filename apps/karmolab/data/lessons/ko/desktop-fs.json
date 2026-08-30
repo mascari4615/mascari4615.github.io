@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "text",
       "label": "종류별로 자리가 다르다",
-      "text": "설정(config)   : macOS ~/Library/Preferences · Windows %APPDATA% · Linux ~/.config\n데이터(data)   : ~/Library/Application Support · %APPDATA% · ~/.local/share\n캐시(cache)    : ~/Library/Caches · %LOCALAPPDATA% · ~/.cache  ← 지워져도 되는 것만\n로그           : ~/Library/Logs · %LOCALAPPDATA%\\Logs · ~/.local/state\n\n프레임워크의 path API 를 쓰면 알아서 골라 준다"
+      "text": "설정(config)   : macOS ~/Library/Preferences, Windows %APPDATA%, Linux ~/.config\n데이터(data)   : ~/Library/Application Support, %APPDATA%, ~/.local/share\n캐시(cache)    : ~/Library/Caches, %LOCALAPPDATA%, ~/.cache  ← 지워져도 되는 것만\n로그           : ~/Library/Logs, %LOCALAPPDATA%\\Logs, ~/.local/state\n\n프레임워크의 path API 를 쓰면 알아서 골라 준다"
     },
     {
       "type": "note",

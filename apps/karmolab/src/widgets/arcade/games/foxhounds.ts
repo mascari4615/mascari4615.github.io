@@ -1,11 +1,11 @@
 /**
- * 여우와 사냥개 — 힘이 다른 둘이 붙는다 (TASK-KL-242)
+ * 여우와 사냥개. 힘이 다른 둘이 붙는다 (TASK-KL-242)
  *
  * 지금까지의 보드 게임은 전부 **양쪽이 같은 것**을 가졌다(같은 말, 같은 수). 이건 다르다:
- * 한쪽은 개 넷, 한쪽은 여우 하나. **이길 조건도 다르다** — 개는 가두면 이기고, 여우는 빠져나가면 이긴다.
+ * 한쪽은 개 넷, 한쪽은 여우 하나. **이길 조건도 다르다**. 개는 가두면 이기고, 여우는 빠져나가면 이긴다.
  *
  * 그래서 처음으로 **자리에 따라 규칙이 다른** 판이 된다. 커널에는 새로울 게 없다(`canAct` 와
- * `reduce` 가 이미 자리를 받는다). 다만 화면이 「내가 여우인가 개인가」로 말을 바꿔야 한다.
+ * `reduce` 가 이미 자리를 받는다). 다만 화면이 내가 여우인가 개인가로 말을 바꿔야 한다.
  *
  * 개는 앞으로만, 여우는 아무 대각선으로. 8×8 어두운 칸만 쓴다(체커와 같은 판).
  */
@@ -71,15 +71,15 @@ export const foxhounds: GameDef<FoxState, FoxAction> = {
     const hounds = seat === 1 ? s.hounds.map((h) => (h === from ? to : h)) : s.hounds;
     const next = { ...s, fox, hounds, turn: 1 - seat, idle: s.idle + 1 };
 
-    /* 여우가 맨 아래 줄에 닿으면 빠져나간 것 — 여우 승. */
+    /* 여우가 맨 아래 줄에 닿으면 빠져나간 것. 여우 승. */
     if (Math.floor(fox / N) === N - 1) return { ...next, won: 0 };
-    /* 여우가 갈 곳이 없으면 갇힌 것 — 개 승. */
+    /* 여우가 갈 곳이 없으면 갇힌 것. 개 승. */
     if (next.turn === 0 && moves(next, fox, 0).length === 0) return { ...next, won: 1 };
     /* 개도 갈 곳이 없으면(드물다) 여우 승. */
     if (next.turn === 1 && next.hounds.every((h) => moves(next, h, 1).length === 0)) {
       return { ...next, won: 0 };
     }
-    /* 오래 끌면 개가 못 가둔 것으로 본다 — 여우가 도망만 다녀도 끝은 난다. */
+    /* 오래 끌면 개가 못 가둔 것으로 본다. 여우가 도망만 다녀도 끝은 난다. */
     if (next.idle >= 120) return { ...next, won: 0 };
     return next;
   },
@@ -107,7 +107,7 @@ export const foxhounds: GameDef<FoxState, FoxAction> = {
       return { action: { from: s.fox, to: best }, delayMs: 600 + ctx.rng() * 600 };
     }
 
-    /* 개는 줄을 흐트러뜨리지 않으면서 앞으로 — 한 마리만 튀어나가면 여우가 그 옆으로 샌다. */
+    /* 개는 줄을 흐트러뜨리지 않으면서 앞으로. 한 마리만 튀어나가면 여우가 그 옆으로 샌다. */
     const all: Array<{ from: number; to: number; v: number }> = [];
     for (const h of s.hounds) {
       for (const to of moves(s, h, 1)) {

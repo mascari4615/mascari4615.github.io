@@ -1,13 +1,13 @@
 /**
- * 결산 개발 콘솔 (TASK-YB-042) — `/w/<공유키>/dev`.
+ * 결산 개발 콘솔 (TASK-YB-042). `/w/<공유키>/dev`.
  *
  * QA 할 때 디스코드 명령을 계속 치는 건 느리고, 무엇보다 *기다려야 하는 것*(월요일 아침,
  * 20초 저장 주기)을 확인할 방법이 없다. 이 페이지는 그 둘을 없앤다:
- *  - 기준 시각을 직접 넣어 「그때라면 어떻게 나오나」를 지금 본다
- *  - 저장 상태·주간 예약·다음 발송 시각을 한 화면에 편다
+ *  - 기준 시각을 직접 넣어 그때라면 어떻게 나오나를 지금 본다
+ *  - 저장 상태, 주간 예약, 다음 발송 시각을 한 화면에 편다
  *
- * 쓰기 동작은 「지금 저장」 하나뿐이다. 남의 채널로 메시지를 보내는 종류의 버튼은
- * 여기 두지 않는다 — 주소만 알면 누구나 누를 수 있는 자리라서.
+ * 쓰기 동작은 지금 저장 하나뿐이다. 남의 채널로 메시지를 보내는 종류의 버튼은
+ * 여기 두지 않는다. 주소만 알면 누구나 누를 수 있는 자리라서.
  */
 import type { Analytics, DebugDump, ServerSummary, WeeklySchedule } from '../services/server-stats';
 import { WEEKLY_POST_HOUR, kstDayKey, weekdayOf } from '../services/server-stats';
@@ -17,7 +17,7 @@ export interface DevPageData {
   guildName: string;
   guildId: string;
   shareKey: string;
-  /** 기준 시각 (기본 = 지금). QA 가 「월요일 아침」 같은 시점을 흉내 낼 때 쓴다. */
+  /** 기준 시각 (기본 = 지금). QA 가 월요일 아침 같은 시점을 흉내 낼 때 쓴다. */
   at: Date;
   atInput: string;
   days: number;
@@ -28,7 +28,7 @@ export interface DevPageData {
   channelNames: Record<string, string>;
   /** 원시 상태 요약 (서버별 기록 일수). */
   guildDayCounts: { guildId: string; days: number }[];
-  /** 채널 시야 — 「0 인데 왜 0 인가」의 1순위 용의자. */
+  /** 채널 시야. 0 인데 왜 0 인가의 1순위 용의자. */
   coverage?: CoverageReport;
 }
 
@@ -44,25 +44,25 @@ function num(v: number): string {
   return v.toLocaleString('ko-KR');
 }
 
-/** 다음 주간 게시가 언제인지 — 「이번 주 몫을 보냈나」까지 반영해 사람 말로. */
+/** 다음 주간 게시가 언제인지. 이번 주 몫을 보냈나까지 반영해 사람 말로. */
 export function nextWeeklyText(weekly: WeeklySchedule | null, at: Date): string {
-  if (!weekly) return '꺼짐 — 서버에서 <code>/결산 매주:켜기</code>';
+  if (!weekly) return '꺼짐. 서버에서 <code>/결산 매주:켜기</code>';
   const dayKey = kstDayKey(at);
   const daysSinceMonday = (weekdayOf(dayKey) + 6) % 7;
   const mondayKey = kstDayKey(new Date(at.getTime() - daysSinceMonday * 86400000));
-  if (weekly.lastPostedDayKey === mondayKey) return `이번 주 몫 발송 완료 (${mondayKey} 기준) · 다음 주 월요일`;
+  if (weekly.lastPostedDayKey === mondayKey) return `이번 주 몫 발송 완료 (${mondayKey} 기준), 다음 주 월요일`;
   const hour = (at.getUTCHours() + 9) % 24;
   if (daysSinceMonday === 0 && hour < WEEKLY_POST_HOUR) return `오늘 오전 ${WEEKLY_POST_HOUR}시 이후`;
   return '지금 보내야 함 (다음 확인에서 발송)';
 }
 
-/** 채널 시야 한 칸 — 가려진 채널이 있으면 그 이름까지 편다(진단 자리라 다 보여준다). */
+/** 채널 시야 한 칸. 가려진 채널이 있으면 그 이름까지 편다(진단 자리라 다 보여준다). */
 function coverageRow(coverage: CoverageReport): string {
   if (!coverage.known) return '<span class="dim">확인 못 함</span>';
   const head = `${coverage.visible} / ${coverage.total}`;
   if (!coverage.blind.length) return `<span class="ok">${head}</span>`;
   const names = coverage.blind.map((c) => escapeHtml('#' + c.name)).join(', ');
-  return `<span class="warn">${head}</span> · 가려짐: ${names}`;
+  return `<span class="warn">${head}</span>, 가려짐: ${names}`;
 }
 
 function row(label: string, value: string): string {
@@ -101,7 +101,7 @@ export function renderDevPage(data: DevPageData): string {
 <html lang="ko"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>결산 개발 콘솔 — ${escapeHtml(data.guildName)}</title>
+<title>결산 개발 콘솔. ${escapeHtml(data.guildName)}</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -135,7 +135,7 @@ export function renderDevPage(data: DevPageData): string {
 </style>
 </head><body><div class="wrap">
 <h1>🔧 결산 개발 콘솔</h1>
-<p class="sub">${escapeHtml(data.guildName)} · 서버 ${escapeHtml(data.guildId)}</p>
+<p class="sub">${escapeHtml(data.guildName)}, 서버 ${escapeHtml(data.guildId)}</p>
 
 <section>
   <h2>기준 시각</h2>
@@ -158,7 +158,7 @@ export function renderDevPage(data: DevPageData): string {
   <h2>집계 상태</h2>
   ${row('기록 있는 날', `${detail.dayKeys.length}일`)}
   ${row('오늘(KST)', escapeHtml(detail.todayKey))}
-  ${row('상태 파일', detail.stateFileExists ? `있음 · 마지막 저장 ${escapeHtml(detail.stateFileMtime ?? '')}` : '<span class="warn">아직 없음</span>')}
+  ${row('상태 파일', detail.stateFileExists ? `있음, 마지막 저장 ${escapeHtml(detail.stateFileMtime ?? '')}` : '<span class="warn">아직 없음</span>')}
   ${row('미저장 변경', detail.dirty ? '<span class="warn">있음</span>' : '<span class="ok">없음</span>')}
   ${row('채널 시야 (봄/전체)', coverageRow(data.coverage ?? UNKNOWN_COVERAGE))}
   ${row('이 서버 총 메시지 (범위 내)', num(summary.totalMessages))}
@@ -210,7 +210,7 @@ export function renderDevPage(data: DevPageData): string {
     msg.textContent = '저장 중...';
     fetch('${base}/dev/flush', { method: 'POST' })
       .then(function (r) { return r.json(); })
-      .then(function (j) { msg.textContent = '저장됨 · ' + (j.mtime || ''); })
+      .then(function (j) { msg.textContent = '저장됨, ' + (j.mtime || ''); })
       .catch(function () { msg.textContent = '실패'; });
   });
 </script>

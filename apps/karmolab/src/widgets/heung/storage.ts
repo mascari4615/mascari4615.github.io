@@ -2,8 +2,10 @@ import { normalizeProject, projectJson, type StudioProject } from './model';
 import type { StudioAssetRuntime } from './audio-engine';
 
 const PROJECT_KEY = 'karmolab_heung_project_v1';
-/** 이름을 「흥」으로 바꾸기 전 열쇠. 남의 곡을 잃게 할 수는 없다 — 한 번 옮기고 옛 것을 지운다. */
+/** 이름을 흥으로 바꾸기 전 열쇠. 남의 곡을 잃게 할 수는 없다. 한 번 옮기고 옛 것을 지운다. */
 const LEGACY_PROJECT_KEY = 'karmolab_karmo_studio_project_v1';
+/** 덮어쓰기 직전 곡, 새 곡과 프로젝트 열기가 남기는 한 칸 */
+const PREV_PROJECT_KEY = 'karmolab_heung_project_prev_v1';
 
 function migrateLegacy(): void {
   try {
@@ -49,6 +51,27 @@ async function dbGet(id: string): Promise<ArrayBuffer | undefined> {
 export function saveProject(project: StudioProject): void {
   const compact = { ...project, assets: project.assets.map(({ dataUrl: _dataUrl, ...asset }) => asset), updatedAt: new Date().toISOString() };
   localStorage.setItem(PROJECT_KEY, projectJson(compact, false));
+}
+
+/** 현재 곡을 한 칸 뒤로 백업, 덮어쓰기 직전 호출, 남길 것이 있었으면 true */
+export function backupCurrent(): boolean {
+  const raw = localStorage.getItem(PROJECT_KEY);
+  if (!raw) return false;
+  try { localStorage.setItem(PREV_PROJECT_KEY, raw); return true; } catch (_) { return false; }
+}
+
+/** 백업된 곡 복구, 없으면 null */
+export function loadPrevious(): StudioProject | null {
+  const raw = localStorage.getItem(PREV_PROJECT_KEY);
+  if (!raw) return null;
+  try { return normalizeProject(JSON.parse(raw)); } catch (_) { return null; }
+}
+
+/** 마지막 저장 시각, 이전 작업인지 샘플인지 구분용 */
+export function savedAt(): string | null {
+  const raw = localStorage.getItem(PROJECT_KEY);
+  if (!raw) return null;
+  try { const value = (JSON.parse(raw) as { updatedAt?: string }).updatedAt; return typeof value === 'string' ? value : null; } catch (_) { return null; }
 }
 
 export function loadProject(): StudioProject | null {
@@ -103,5 +126,6 @@ export async function importPortable(json: string): Promise<StudioProject> {
     const bytes = await (await fetch(asset.dataUrl)).arrayBuffer();
     try { await dbSet(asset.id, bytes); } catch (_) { /* session can still use embedded data */ }
   }
-  saveProject(project); return project;
+  /* 저장은 호출부 몫, 파일 고르기만으로 현재 곡 덮어쓰기 금지 */
+  return project;
 }

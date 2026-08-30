@@ -1,12 +1,12 @@
 /**
- * jq 놀이터 — 붙여넣은 JSON 에 물어보기 (TASK-KL-316 / 7)
+ * jq 놀이터. 붙여넣은 JSON 에 물어보기 (TASK-KL-316 / 7)
  *
- * `jq` 는 좋은데 **켜 두고 쓰기가 번거롭다** — 터미널을 열고, 파일로 저장하고, 따옴표를 이겨야 한다.
+ * `jq` 는 좋은데 **켜 두고 쓰기가 번거롭다**. 터미널을 열고, 파일로 저장하고, 따옴표를 이겨야 한다.
  * 여기서는 붙여넣고 `.users[] | select(.age > 20) | .name` 을 치면 그 자리에서 답이 나온다.
  *
- * 진짜 jq 를 통째로 들이지 않는다(그 무게가 화면으로 따라 나간다 — 번들 예산, KL-128).
+ * 진짜 jq 를 통째로 들이지 않는다(그 무게가 화면으로 따라 나간다. 번들 예산, KL-128).
  * 대신 **자주 쓰는 만큼**을 여기서 직접 읽는다. 무엇이 되고 무엇이 안 되는지는 `SUPPORTED` 에
- * 적어 두고 화면에도 그대로 보여 준다 — 「되는 줄 알았는데 안 되는」 것이 제일 나쁘다.
+ * 적어 두고 화면에도 그대로 보여 준다. 되는 줄 알았는데 안 되는 것이 제일 나쁘다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -23,16 +23,16 @@ export const spec: ToolSpec = {
   }
 };
 
-/** 되는 것 — 화면에도 이 목록을 그대로 보여 준다. */
+/** 되는 것. 화면에도 이 목록을 그대로 보여 준다. */
 export const SUPPORTED = [
-  '.  ·  .key  ·  .a.b  ·  .["키 이름"]  ·  .[0]  ·  .[1:3]  ·  .[]  ·  ..',
-  '| (이어서)  ·  , (둘 다)  ·  ? (없으면 넘어가기)',
-  'select(…) · map(…) · map_values(…) · has("k") · empty',
-  'length · keys · values · type · not · add · any · all',
-  'sort · sort_by(…) · group_by(…) · unique · unique_by(…) · reverse · first · last · flatten',
-  'min · max · min_by(…) · max_by(…) · range(n) · tostring · tonumber · ascii_downcase · ascii_upcase',
-  'join("·") · split(",") · test("정규식") · startswith · endswith · contains',
-  'to_entries · from_entries · with_entries(…) · paths · del(.k) · [ … ] · { a: … }',
+  '. ,  .key ,  .a.b ,  .["키 이름"] ,  .[0] ,  .[1:3] ,  .[] ,  ..',
+  '| (이어서) ,  , (둘 다) ,  ? (없으면 넘어가기)',
+  'select(...), map(...), map_values(...), has("k"), empty',
+  'length, keys, values, type, not, add, any, all',
+  'sort, sort_by(...), group_by(...), unique, unique_by(...), reverse, first, last, flatten',
+  'min, max, min_by(...), max_by(...), range(n), tostring, tonumber, ascii_downcase, ascii_upcase',
+  'join(", "), split(","), test("정규식"), startswith, endswith, contains',
+  'to_entries, from_entries, with_entries(...), paths, del(.k), [ ... ], { a: ... }',
   '== != < <= > >= and or + - * / %'
 ];
 
@@ -75,7 +75,7 @@ function lex(src: string): Tok[] {
       out.push({ t: 'num', v: parseFloat(s) });
       continue;
     }
-    /* 열쇠는 한글·한자일 수 있다 — 아스키만 낱말로 보면 「나이」가 「나」와 「이」로 쪼개진다 (실측). */
+    /* 열쇠는 한글, 한자일 수 있다. 아스키만 낱말로 보면 나이가 나와 이로 쪼개진다 (실측). */
     if (/[\p{L}_]/u.test(c)) {
       let s = '';
       while (i < src.length && /[\p{L}\p{N}_]/u.test(src[i])) s += src[i++];
@@ -117,7 +117,7 @@ class Parser {
     const tk = this.toks[this.at];
     if (tk === undefined) throw new Error('쿼리가 도중에 끝났습니다');
     if (v !== undefined && !(tk.t === 'op' && tk.v === v) && !(tk.t === 'id' && tk.v === v)) {
-      throw new Error('「' + v + '」 가 있어야 할 자리에 「' + String(tk.v) + '」 가 있습니다');
+      throw new Error('' + v + ' 가 있어야 할 자리에 ' + String(tk.v) + ' 가 있습니다');
     }
     this.at++;
     return tk;
@@ -129,7 +129,7 @@ class Parser {
 
   parse(): Node {
     const node = this.pipe();
-    if (this.at < this.toks.length) throw new Error('「' + String(this.toks[this.at].v) + '」 를 못 읽었습니다');
+    if (this.at < this.toks.length) throw new Error('' + String(this.toks[this.at].v) + ' 를 못 읽었습니다');
     return node;
   }
 
@@ -287,7 +287,7 @@ class Parser {
       }
       return { kind: 'call', name, args };
     }
-    throw new Error('「' + String(tk.v) + '」 는 여기서 못 씁니다');
+    throw new Error('' + String(tk.v) + ' 는 여기서 못 씁니다');
   }
 }
 
@@ -345,7 +345,7 @@ function evalNode(node: Node, input: Json): Json[] {
           out.push(null);
           continue;
         }
-        if (!isObj(v)) throw new Error(typeOf(v) + ' 에서는 「.' + String(node.name) + '」 를 꺼낼 수 없습니다');
+        if (!isObj(v)) throw new Error(typeOf(v) + ' 에서는 .' + String(node.name) + ' 를 꺼낼 수 없습니다');
         out.push(v[String(node.name)] ?? null);
       }
       return out;
@@ -480,11 +480,11 @@ function builtin(name: string, args: Node[], input: Json): Json[] {
     case 'keys':
       if (Array.isArray(input)) return [input.map((_, i) => i)];
       if (isObj(input)) return [Object.keys(input).sort()];
-      throw new Error('keys 는 물체·목록에만 씁니다');
+      throw new Error('keys 는 물체, 목록에만 씁니다');
     case 'values':
       if (Array.isArray(input)) return [input];
       if (isObj(input)) return [Object.values(input)];
-      throw new Error('values 는 물체·목록에만 씁니다');
+      throw new Error('values 는 물체, 목록에만 씁니다');
     case 'type':
       return [typeOf(input)];
     case 'not':
@@ -503,7 +503,7 @@ function builtin(name: string, args: Node[], input: Json): Json[] {
         }
         return [out];
       }
-      throw new Error('map_values 는 물체·목록에만 씁니다');
+      throw new Error('map_values 는 물체, 목록에만 씁니다');
     }
     case 'has': {
       const key = one(args, 0, input);
@@ -583,7 +583,7 @@ function builtin(name: string, args: Node[], input: Json): Json[] {
       const needle = one(args, 0, input);
       if (typeof input === 'string') return [input.includes(String(needle))];
       if (Array.isArray(input) && Array.isArray(needle)) return [needle.every((x) => input.some((y) => JSON.stringify(x) === JSON.stringify(y)))];
-      throw new Error('contains 는 글자·목록에만 씁니다');
+      throw new Error('contains 는 글자, 목록에만 씁니다');
     }
     case 'to_entries': {
       if (!isObj(input)) throw new Error('to_entries 는 물체에만 씁니다');
@@ -643,7 +643,7 @@ export function query(jsonText: string, q: string): QueryResult {
   try {
     input = JSON.parse(jsonText === '' ? 'null' : jsonText);
   } catch (e) {
-    return { values: [], error: 'JSON 이 아닙니다 — ' + (e as Error).message };
+    return { values: [], error: 'JSON 이 아닙니다. ' + (e as Error).message };
   }
   try {
     return { values: compile(q.trim() === '' ? '.' : q)(input) };

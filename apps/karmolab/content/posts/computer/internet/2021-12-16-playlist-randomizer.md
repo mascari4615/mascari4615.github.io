@@ -5,6 +5,7 @@ last_modified_at: "2024-10-20T12:41:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 유튜브 재생목록 셔플 기능 문제점

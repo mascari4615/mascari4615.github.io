@@ -15,7 +15,7 @@ import {
 
 export type ChatContent = { role: 'user' | 'model'; parts: [{ text: string }] };
 
-/** generate 호출 결과 — text + usage 한 묶음. (TASK-KAR-145) */
+/** generate 호출 결과. text + usage 한 묶음. (TASK-KAR-145) */
 export interface GeminiGenerateResult {
   text: string;
   usage: GenerationUsage;
@@ -29,7 +29,7 @@ export function resolveAiStudioTextModelId(modelFromEnv?: string | null): string
 }
 
 /**
- * model id 해소 — tier(있으면) → env override(GEMINI_MODEL_*) → modelId param → GEMINI_MODEL env → default.
+ * model id 해소. tier(있으면) → env override(GEMINI_MODEL_*) → modelId param → GEMINI_MODEL env → default.
  * 우선순위 정렬: explicit modelId param 이 tier 보다 위. tier 는 caller 의 "용도 라벨", modelId 는 강제 지정.
  */
 export function resolveGeminiModelId(opts: {
@@ -173,7 +173,7 @@ export async function generateVertexText(opts: {
 
 function readSurfaceRaw(env: NodeJS.ProcessEnv): string {
   /**
-   * 옛 이름(`KARMOLAB_AI_SURFACE`)은 **안 받는다** — 둘 다 받아 주면 이관이 영영 안 끝난다.
+   * 옛 이름(`KARMOLAB_AI_SURFACE`)은 **안 받는다**. 둘 다 받아 주면 이관이 영영 안 끝난다.
    *
    * 다만 **조용히 기본값으로 떨어지지도 않는다.** 옛 이름만 있는 기계는 설정이 깨진 것이므로
    * 여기서 소리 내어 죽인다. 안 그러면 그 기계는 Vertex 로 간다고 믿으면서 AI Studio 로 돌고,
@@ -194,7 +194,7 @@ function readSurfaceRaw(env: NodeJS.ProcessEnv): string {
 }
 
 /**
- * `vertex` | `vertex_ai` | `gcp_vertex` → Vertex, 그 외·비어 있음 → AI Studio.
+ * `vertex` | `vertex_ai` | `gcp_vertex` → Vertex, 그 외, 비어 있음 → AI Studio.
  */
 export function parseGenerativeSurfaceFromEnv(env: NodeJS.ProcessEnv = process.env): GoogleGenerativeSurface {
   const s = readSurfaceRaw(env).toLowerCase().replace(/-/g, '_');
@@ -216,7 +216,7 @@ export type GenerativeSurfaceOverride = 'inherit' | 'aiStudio' | 'vertex';
  * `surface: inherit` 이면 `KARMO_AI_SURFACE` 등과 동일 규칙.
  *
  * **TASK-KAR-145 확장**: `tier`/`tag`/`onUsage`/`systemInstruction` 추가.
- * - `tier`: lite/standard/pro 라벨 — `getGeminiModelIdForTier` 로 해소.
+ * - `tier`: lite/standard/pro 라벨. `getGeminiModelIdForTier` 로 해소.
  *   `modelId` 명시 시 tier 무시 (explicit > tier).
  * - `tag`: telemetry 분류 라벨 (`yawnbot/voiced-worker` 등). usage 로그에 포함.
  * - `onUsage`: per-call 콜백. 전역 recorder(`KARMOLAB_AI_USAGE_LOG=1`) 와 둘 다 호출.
@@ -293,9 +293,9 @@ export async function generateBlobTextFromEnvWithOptions(
  * `.env` 기준으로 호출 가능한 텍스트 클라이언트를 만듦. 자격이 없으면 `null`.
  *
  * - **AI Studio (기본):** `GEMINI_API_KEY` 필수, `GEMINI_MODEL` 선택
- * - **Vertex:** `KARMO_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택
+ * - **Vertex:** `KARMO_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`, `GEMINI_MODEL` 선택
  *
- * TASK-KAR-145: tier 옵션 추가. 클라이언트 생성 시점에 tier 고정 — 호출별 가변 케이스는
+ * TASK-KAR-145: tier 옵션 추가. 클라이언트 생성 시점에 tier 고정. 호출별 가변 케이스는
  * `generateBlobTextFromEnvWithOptions` 직접 사용.
  */
 export function tryCreateGenerativeTextFromEnv(

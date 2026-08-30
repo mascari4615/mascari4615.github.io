@@ -11,5 +11,5 @@
   "jqplay.status.ok": "답 {n}개",
   "jqplay.copy.done": "복사했습니다",
   "jqplay.help.title": "되는 문법 보기",
-  "jqplay.help.limits": "진짜 jq 를 통째로 넣지 않고 자주 쓰는 만큼만 넣었습니다 — 변수($x)·함수 정의(def)·reduce·try/catch 는 아직 없습니다."
+  "jqplay.help.limits": "진짜 jq 를 통째로 넣지 않고 자주 쓰는 만큼만 넣었습니다. 변수($x), 함수 정의(def), reduce, try/catch 는 아직 없습니다."
 }

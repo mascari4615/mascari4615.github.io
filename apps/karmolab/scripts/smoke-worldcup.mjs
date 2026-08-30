@@ -1,18 +1,18 @@
 /**
- * 이상형 월드컵 — 한 판을 **실제로 끝까지 돌려 본다** (TASK-KL-151)
+ * 이상형 월드컵. 한 판을 **실제로 끝까지 돌려 본다** (TASK-KL-151)
  *
- * 왜 있나: 이 놀이는 붙인 조각이 많다(표 고르기 · 라운드 · 토너먼트 진행 · 결과 · 지난 우승 ·
- * 결과 그림). 빌드는 이 중 **하나도** 안 눌러 본다. 이 레포에서 「빌드 초록 · 화면 사망」은
+ * 왜 있나: 이 놀이는 붙인 조각이 많다(표 고르기, 라운드, 토너먼트 진행, 결과, 지난 우승 , 
+ * 결과 그림). 빌드는 이 중 **하나도** 안 눌러 본다. 이 레포에서 빌드 초록, 화면 사망은
  * 상습이라, 한 판을 끝까지 눌러 보는 검사가 없으면 배포된 뒤에야 안다.
  *
  * 보는 것 (전부 실제 클릭):
  *  ① 처음 온 사람에게 고를 표가 있다 (씨앗 표가 안 뜨면 첫 화면이 죽는다)
- *  ② 8강을 끝까지 눌러 우승자가 나온다 — 매 판 그림 둘이 서로 다르다
- *  ③ 「내가 고른 길」과 「지난 우승」이 남는다
+ *  ② 8강을 끝까지 눌러 우승자가 나온다. 매 판 그림 둘이 서로 다르다
+ *  ③ 내가 고른 길과 지난 우승이 남는다
  *  ④ 결과 그림 단추가 실제로 그림을 만든다 (canvas → PNG 바이트)
  *  ⑤ 도중에 페이지 스크립트가 한 번도 안 죽는다
  *
- * 로그인이 필요한 길(표 올리기)은 여기서 안 밟는다 — 디스코드 왕복은 사람 몫이다.
+ * 로그인이 필요한 길(표 올리기)은 여기서 안 밟는다. 디스코드 왕복은 사람 몫이다.
  *
  * 사용: node scripts/smoke-worldcup.mjs
  *       URL=http://127.0.0.1:8813/apps/karmolab/index.html#worldcup node scripts/smoke-worldcup.mjs
@@ -25,44 +25,44 @@ const problems = [];
 
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
-// 결과 그림 복사는 사용자 동작 밖에서 막히는 브라우저가 있다 — 그 갈림길을 안 타게 미리 허용한다.
+// 결과 그림 복사는 사용자 동작 밖에서 막히는 브라우저가 있다. 그 갈림길을 안 타게 미리 허용한다.
 await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => undefined);
 const page = await context.newPage();
 page.on('pageerror', (e) => problems.push(`페이지 스크립트가 죽었다: ${e.message}`));
 /* ★ **너무 자주 물어보면 서버가 문을 닫는다** (2026-08-13). 표(1025장)를 받는 주소가 429 를
-   주면 라운드 칸도 안 생기고 판도 안 열린다 — 그건 **제품이 깨진 게 아니라 못 잰 것**이다.
-   그때는 「빨강」이 아니라 CANNOT-RUN 으로 물러선다(0 을 초록·빨강 어느 쪽으로도 안 적는다). */
+   주면 라운드 칸도 안 생기고 판도 안 열린다. 그건 **제품이 깨진 게 아니라 못 잰 것**이다.
+   그때는 빨강이 아니라 CANNOT-RUN 으로 물러선다(0 을 초록, 빨강 어느 쪽으로도 안 적는다). */
 let rateLimited = false;
 page.on('response', (r) => { if (r.status() === 429) rateLimited = true; });
 
 const res = await page.goto(URL_TARGET, { waitUntil: 'domcontentloaded', timeout: 45000 });
 if (!res || res.status() !== 200) problems.push(`월드컵이 안 열린다 (http ${res && res.status()})`);
 
-// ① 고를 표 — 씨앗 표는 서버에서 오므로 잠깐 기다린다. 못 받으면 그 사실이 문제다.
+// ① 고를 표. 씨앗 표는 서버에서 오므로 잠깐 기다린다. 못 받으면 그 사실이 문제다.
 await page.waitForSelector('#wcPacks button', { timeout: 20000 }).catch(() => {
-  problems.push('고를 수 있는 표가 하나도 안 뜬다 — 처음 온 사람에게 빈 화면이다');
+  problems.push('고를 수 있는 표가 하나도 안 뜬다. 처음 온 사람에게 빈 화면이다');
 });
 const packCount = await page.locator('#wcPacks button').count();
 if (packCount === 0) problems.push('표 칸이 0개다');
 
 if (packCount > 0) {
-  // 처음부터 있는 표 중 하나를 고른다 (「오늘의 월드컵」이 맨 앞이면 그것이 곧 씨앗 표다).
+  // 처음부터 있는 표 중 하나를 고른다 (오늘의 월드컵이 맨 앞이면 그것이 곧 씨앗 표다).
   await page.locator('#wcPacks button').first().click();
   await page.waitForSelector('#wcStart', { state: 'visible', timeout: 10000 });
 
-  // ② 8강으로 — 라운드 칸이 있으면 8강을 고른다(오늘의 월드컵은 라운드가 고정이라 칸이 없다).
+  // ② 8강으로. 라운드 칸이 있으면 8강을 고른다(오늘의 월드컵은 라운드가 고정이라 칸이 없다).
   const eight = page.locator('#wcRounds button', { hasText: '8강' });
   /* ★ **주소가 바뀌는 클릭은 기다리지 않는다** (2026-08-13). 이 칩을 누르면 주소에 `#worldcup`
-     이 붙는데, 그러면 Playwright 가 「화면 이동이 끝나기」를 기다리다 시간 초과로 죽는다 —
-     칩은 멀쩡히 눌렸고 판도 그대로다(실측: 로그에 「navigated to …#worldcup」만 남고 끝). */
+     이 붙는데, 그러면 Playwright 가 화면 이동이 끝나기를 기다리다 시간 초과로 죽는다 . 
+     칩은 멀쩡히 눌렸고 판도 그대로다(실측: 로그에 navigated to ...#worldcup만 남고 끝). */
   if (await eight.count()) await eight.first().click({ noWaitAfter: true }).catch(() => {});
 
-  /* 표를 받아야 라운드 칸이 생긴다 — 그 전에 누르면 아무 일도 안 난 것처럼 보인다.
-     사람도 그렇게 겪으므로 화면에는 「받는 중」을 띄우게 했고, 검사는 준비될 때까지 기다린다. */
+  /* 표를 받아야 라운드 칸이 생긴다. 그 전에 누르면 아무 일도 안 난 것처럼 보인다.
+     사람도 그렇게 겪으므로 화면에는 받는 중을 띄우게 했고, 검사는 준비될 때까지 기다린다. */
   await page.waitForSelector('#wcRounds button', { timeout: 30000 }).catch(() => {});
   await page.click('#wcStart');
   await page.waitForSelector('#wcPlay:not([hidden])', { timeout: 30000 }).catch(async () => {
-    /* 왜 안 열렸는지 같이 남긴다 — 「안 열린다」만으로는 표를 못 받은 것인지, 라운드가 없는
+    /* 왜 안 열렸는지 같이 남긴다. 안 열린다만으로는 표를 못 받은 것인지, 라운드가 없는
        것인지, 화면이 아직인지 구분할 수 없다(실측 2026-08-13: 이것 때문에 세 판을 헤맸다). */
     const why = await page.evaluate(() => ({
       pickedTable: document.querySelector('#wcPacks button[aria-pressed="true"]')?.textContent?.trim().slice(0, 20)
@@ -71,12 +71,12 @@ if (packCount > 0) {
       round: [...document.querySelectorAll('#wcRounds button')].map((b) => b.textContent.trim()).join(','),
       startBlocked: document.getElementById('wcStart')?.hasAttribute('disabled')
     })).catch(() => null);
-    problems.push(`시작을 눌렀는데 판이 안 열린다 — ${JSON.stringify(why)}`);
+    problems.push(`시작을 눌렀는데 판이 안 열린다. ${JSON.stringify(why)}`);
   });
 
   /* ★ **판이 그려질 때까지 기다렸다가 누른다** (2026-08-13). 시작 직후에는 `#wcPlay` 가 아직
-     감춰져 있어, 아래 고리가 첫 바퀴에 곧바로 빠져나가 「0번을 눌렀는데 안 끝났다」가 됐다
-     (실측: CI 에서만 났다 — 내 기계는 그 사이가 짧다). 사람도 그림이 뜬 뒤에 누른다. */
+     감춰져 있어, 아래 고리가 첫 바퀴에 곧바로 빠져나가 0번을 눌렀는데 안 끝났다가 됐다
+     (실측: CI 에서만 났다. 내 기계는 그 사이가 짧다). 사람도 그림이 뜬 뒤에 누른다. */
   await page.waitForSelector('#wcPlay:not([hidden])', { timeout: 30000 }).catch(() => {});
   await page.waitForSelector('#wcA img', { timeout: 30000 }).catch(() => {});
 
@@ -94,7 +94,7 @@ if (packCount > 0) {
       problems.push('고를 두 쪽 중 그림이 없는 쪽이 있다');
       break;
     }
-    if (left === right) problems.push('양쪽에 같은 것이 올라왔다 — 고를 수가 없는 판이다');
+    if (left === right) problems.push('양쪽에 같은 것이 올라왔다. 고를 수가 없는 판이다');
 
     await page.click('#wcA');
     await page.waitForTimeout(60);
@@ -104,7 +104,7 @@ if (packCount > 0) {
   // ③ 우승자와 내가 고른 길
   const finished = await page.locator('#wcDone:not([hidden])').count();
   if (!finished && rateLimited) {
-    console.log('[smoke-worldcup] CANNOT-RUN — 서버가 429(너무 잦은 요청)를 줘서 표를 못 받았다. 제품 판정 아님.');
+    console.log('[smoke-worldcup] CANNOT-RUN. 서버가 429(너무 잦은 요청)를 줘서 표를 못 받았다. 제품 판정 아님.');
     await browser.close();
     process.exit(0);
   }
@@ -114,11 +114,11 @@ if (packCount > 0) {
     const champion = (await page.locator('#wcChampion').innerText().catch(() => '')).trim();
     if (!champion) problems.push('우승자 칸이 비었다');
     const path = await page.locator('#wcPath li').count();
-    if (path === 0) problems.push('「내가 고른 길」이 한 줄도 안 남았다');
+    if (path === 0) problems.push('내가 고른 길이 한 줄도 안 남았다');
     const history = await page.locator('#wcHistory .pk-emoji').count();
     if (history === 0) problems.push('지난 우승에 이번 판이 안 남았다');
 
-    // ④ 결과 그림 — 단추가 실제로 PNG 를 만드는가. 화면 글자가 아니라 **바이트**로 확인한다.
+    // ④ 결과 그림. 단추가 실제로 PNG 를 만드는가. 화면 글자가 아니라 **바이트**로 확인한다.
     const png = await page.evaluate(async () => {
       const canvas = document.createElement('canvas');
       canvas.width = 8;
@@ -126,7 +126,7 @@ if (packCount > 0) {
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
       return blob ? blob.size : 0;
     });
-    if (!png) problems.push('이 브라우저가 그림을 아예 못 만든다 — 결과 카드가 설 수 없다');
+    if (!png) problems.push('이 브라우저가 그림을 아예 못 만든다. 결과 카드가 설 수 없다');
 
     await page.click('#wcShare');
     await page.waitForTimeout(1500);
@@ -143,4 +143,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  - ${p}`);
   process.exit(1);
 }
-console.log('[smoke-worldcup] 표 고르기 · 한 판 완주 · 고른 길 · 지난 우승 · 결과 그림 OK');
+console.log('[smoke-worldcup] 표 고르기, 한 판 완주, 고른 길, 지난 우승, 결과 그림 OK');

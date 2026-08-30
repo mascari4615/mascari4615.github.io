@@ -63,8 +63,8 @@ body {
 }
 .topbar .logo svg { width: 15px; height: 15px; }
 
-/* 데스크톱 전용 이동 손잡이 — 웹에서는 안 그린다 */
-/* 데스크톱 전용 손잡이 — 상단바 오른쪽에 붙어 카모랩 헤더와 같은 결로 놓인다.
+/* 데스크톱 전용 이동 손잡이. 웹에서는 안 그린다 */
+/* 데스크톱 전용 손잡이. 상단바 오른쪽에 붙어 카모랩 헤더와 같은 결로 놓인다.
    따로 한 줄을 차지하면 화면에서 떠 보인다. */
 .desknav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .desknav .go {
@@ -115,6 +115,26 @@ body {
   border-bottom: 1px solid var(--line); background: var(--surface-2);
   font-size: .76rem; font-weight: 700; color: var(--mute); letter-spacing: .02em;
 }
+/* 머리글을 눌러 정렬한다. 같은 자리를 다시 누르면 뒤집는다 */
+.head { padding: 0 14px; }
+.th {
+  background: none; border: 0; cursor: pointer; color: inherit;
+  font: inherit; letter-spacing: inherit; padding: 9px 0;
+  display: inline-flex; align-items: center; gap: 4px; width: 100%;
+}
+.th:hover { color: var(--ink); }
+.th.on { color: var(--accent); }
+.th i { font-style: normal; font-size: .68rem; }
+.head .th-kind .th { font-size: .7rem; }
+.head .size .th, .head .when .th { justify-content: flex-start; }
+/* 액자에는 표가 없어 보기 줄에 같은 버튼을 둔다 */
+.sortsw { display: flex; gap: 2px; margin-left: 14px; }
+.sortsw .th {
+  width: auto; padding: 4px 8px; font-size: .8rem; font-weight: 600;
+  color: var(--mute); border-radius: 6px;
+}
+.sortsw .th.on { color: var(--accent); background: var(--surface); }
+
 .row {
   display: grid; grid-template-columns: 34px 1fr 110px 140px 92px; gap: 12px;
   align-items: center; padding: 9px 14px; border-top: 1px solid var(--line);
@@ -134,14 +154,30 @@ body {
 }
 .acts a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
-/* 액자 보기 — 썸네일이 따로 없어 원본을 받아 그린다(gallery.mjs). 그래서 칸은
-   **자리를 먼저 잡고** 그림이 늦게 온다. 자리를 안 잡으면 그림이 올 때마다 화면이 튄다. */
-.viewsw { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+/* 액자 보기. 썸네일이 없어 원본을 받아 그림 (gallery.mjs).
+   칸은 자리를 먼저 잡고 그림이 늦게 옴. 자리 안 잡으면 그림 올 때마다 화면이 튐 */
+.viewsw { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
 .viewsw button {
   background: none; border: 1px solid transparent; border-radius: 6px; cursor: pointer;
   color: var(--mute); font-size: .8rem; font-weight: 600; padding: 4px 10px;
 }
 .viewsw button.on { color: var(--ink); border-color: var(--line); background: var(--surface); }
+/* 칸 크기. 액자일 때만 뜬다. 목록 옆에 붙으면 무엇에 걸리는 값인지 안 헷갈린다 */
+.cellsw { display: flex; gap: 4px; margin-left: auto; }
+
+/* 여럿 고르기. 체크는 갈래 아이콘 자리를 쓴다. 칸을 늘리면 좁은 화면 표가 어긋난다 */
+.pickbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.pickbar .pb-at { color: var(--mute); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.pickbar .fb-gap { flex: 1; }
+input.pick { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+.framewrap { position: relative; display: block; min-width: 0; }
+.frame-pick {
+  position: absolute; top: 7px; left: 7px; z-index: 2;
+  box-shadow: 0 0 0 2px var(--surface-2);
+}
 .folderbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
 .folderbar a {
   display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--ink);
@@ -150,7 +186,7 @@ body {
 .folderbar a:hover { border-color: var(--accent); color: var(--accent); }
 .folderbar .icon { width: 16px; height: 16px; }
 .grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cell, 146px), 1fr));
   gap: 10px; padding: 12px;
 }
 .frame {
@@ -160,7 +196,7 @@ body {
 .frame:hover { border-color: var(--accent); }
 .frame-art { display: block; aspect-ratio: 1; background: var(--surface-2); position: relative; }
 .frame-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-/* 아직 안 온 칸 = 옅은 맥박. 못 받은 칸 = 조용한 빗금 (고장이 아니라 「여긴 없음」) */
+/* 아직 안 온 칸은 옅은 맥박, 못 받은 칸은 조용한 빗금 (고장 아니라 여긴 없음) */
 .frame-art::after {
   content: ''; position: absolute; inset: 0; background: var(--line); opacity: .35;
   animation: framewait 1.4s ease-in-out infinite;
@@ -172,12 +208,72 @@ body {
   background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px);
 }
 @keyframes framewait { 0%, 100% { opacity: .18; } 50% { opacity: .4; } }
+/* 좁히기 줄. 정렬, 갈래, 찾기. 목록과 액자 위에 늘 같은 자리 */
+.siftbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.siftbar input {
+  flex: 1; min-width: 140px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 7px; color: var(--ink); font: inherit; font-size: .84rem; padding: 5px 10px;
+}
+.sf-group { display: inline-flex; gap: 4px; }
+.sf-chip {
+  background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+  color: var(--mute); font: inherit; font-size: .78rem; font-weight: 600; padding: 4px 11px;
+}
+.sf-chip:hover { color: var(--ink); }
+.sf-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.sf-note { color: var(--mute); font-size: .78rem; margin-left: auto; }
+
+/* 파일 화면 맨 위. 몇 번째인지, 앞뒤, 받기. 갈래와 무관하게 같은 줄 */
+.filebar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 9px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+}
+.filebar .fb-gap { flex: 1; }
+.filebar .fb-at { color: var(--mute); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.fb-btn {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 7px; cursor: pointer;
+  color: var(--ink); font: inherit; font-size: .82rem; font-weight: 600; padding: 5px 11px;
+  text-decoration: none; display: inline-block;
+}
+.fb-btn:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
+.fb-btn[disabled] { opacity: .38; cursor: default; }
+.fb-btn.on { border-color: var(--accent); color: var(--accent); }
+.fb-btn.sm { font-size: .74rem; padding: 3px 8px; font-weight: 600; }
+/* 액자의 폴더 칩. 이름과 받기가 한 덩이 */
+.fb-item { display: inline-flex; align-items: center; gap: 4px; }
+.fb-item > a { border-radius: 8px 0 0 8px; }
+
+/* 정보 패널. 탐색기 속성 창 자리. 이름과 값 두 칸 */
+.fileinfo {
+  margin: 0; padding: 10px 12px; border-bottom: 1px solid var(--line);
+  background: var(--surface-2); font-size: .82rem;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 18px;
+}
+.fileinfo > div { display: flex; gap: 8px; min-width: 0; }
+.fileinfo dt { color: var(--mute); flex: 0 0 62px; }
+.fileinfo dd {
+  margin: 0; min-width: 0; overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 그림 아닌 칸. 빈 자리 대신 갈래 글자와 크기 (2026-08-29: 빗금만 두니 고장처럼 보임) */
+.frame-face {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px;
+  color: var(--mute); font-size: 1.5rem; line-height: 1;
+}
+.frame-face i { font-style: normal; font-size: .72rem; letter-spacing: .02em; }
+.frame.shown .frame-art::after { content: none; }
+
 .frame-cap {
   display: block; padding: 7px 9px; font-size: .78rem; color: var(--mute);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* PC 업로드 관리 — 데스크톱 앱에서만 조작, 웹에서는 안내 한 줄 */
+/* PC 업로드 관리. 데스크톱 앱에서만 조작, 웹에서는 안내 한 줄 */
 .uploader {
   border: 1px solid var(--line); border-radius: var(--radius);
   background: var(--surface); padding: 12px 14px; margin-bottom: 12px;
@@ -195,7 +291,7 @@ body {
 .up-bar i { display: block; height: 100%; background: var(--accent); transition: width .4s ease; }
 .up-meta { font-size: .78rem; color: var(--mute); min-height: 1em; }
 .up-acts { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-/* 고른 폴더 이름을 그대로 보여 주는 단추 — 이름이 길어도 칸을 밀지 않는다. */
+/* 고른 폴더 이름을 그대로 보여 주는 단추. 이름이 길어도 칸을 밀지 않는다. */
 #up-pick {
   flex: 1 1 160px; min-width: 0; padding: 7px 10px; font-weight: 400; text-align: left;
   border: 1px solid var(--line); background: var(--bg); color: var(--ink);

@@ -28,7 +28,7 @@
       "type": "code",
       "lang": "text",
       "label": "기본 설정",
-      "text": "Electron : contextIsolation: true · nodeIntegration: false · sandbox: true\nTauri    : 허용 목록(capabilities)에서 필요한 명령·경로만 열기\n\n「나중에 필요할지 모르니」 열어 두면 그 자리가 구멍이 된다"
+      "text": "Electron : contextIsolation: true, nodeIntegration: false, sandbox: true\nTauri    : 허용 목록(capabilities)에서 필요한 명령, 경로만 열기\n\n나중에 필요할지 모르니 열어 두면 그 자리가 구멍이 된다"
     },
     {
       "type": "h",
@@ -44,7 +44,7 @@
     },
     {
       "type": "note",
-      "text": "로컬 파일은 **다른 프로그램도 읽는다**. 비밀은 OS 자격 증명 저장소로, 민감 데이터는 암호화. \"내 컴퓨터니까 안전\"은 멀웨어, 공용 PC 앞에서 무너진다."
+      "text": "로컬 파일은 **다른 프로그램도 읽는다**. 비밀은 OS 자격 증명 저장소로, 민감 데이터는 암호화. 내 컴퓨터니까 안전은 멀웨어, 공용 PC 앞에서 무너진다."
     },
     {
       "type": "h",

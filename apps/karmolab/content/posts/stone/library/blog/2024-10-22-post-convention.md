@@ -6,7 +6,7 @@ last_modified_at: "2025-05-02T01:35:00+09:00"
 categories: [작업물]
 tags: [블로그]
 image: /assets/img/background/20230112-151539.jpg
-hidden: true
+board: info
 ---
 
 ## 머리말

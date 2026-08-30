@@ -1,13 +1,13 @@
 /**
  * 목소리 녹음 (TASK-KL-088)
  *
- * 메모·발음 확인·짧은 음성 전달처럼 「지금 바로 한마디 담고 싶은」 순간에 쓰는 자리다.
+ * 메모, 발음 확인, 짧은 음성 전달처럼 지금 바로 한마디 담고 싶은 순간에 쓰는 자리다.
  * 녹음 앱을 찾거나 설치하는 사이에 하려던 말을 잊는다.
  *
  * 신경 쓴 곳:
- *  - **소리가 들어오고 있는지 눈으로 보인다.** 녹음의 최대 사고는 「다 말하고 보니 안 담김」이라,
+ *  - **소리가 들어오고 있는지 눈으로 보인다.** 녹음의 최대 사고는 다 말하고 보니 안 담김이라,
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
- *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
+ *  - 저장은 WAV. 다른 도구(오디오 자르기, 잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
 import { attachMedia, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss, toWav } from './shared/media';
 import { escapeHtml as esc } from './shared/text';
@@ -23,7 +23,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   Toolbox.register({
     id: 'voicerec',
     title: t('widgets.voicerec.title', undefined, '목소리 녹음'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.voicerec.desc',
       undefined,
@@ -95,8 +95,8 @@ import { intervalWhileVisible } from '../../lib/tick';
           /*
            * 로컬 전사 (해자④ 파일럿). **키 없이, 소리를 밖으로 안 내보내고** 글자를 얻는다.
            *
-           * 철칙은 하나 — 이 자리가 없어도 녹음기는 그대로 돌아야 한다. 그래서 WebGPU 가 없으면
-           * 자리 자체를 안 보여 준다(오류 X). 모델은 「AI 켜기」를 누른 뒤에만 받는다.
+           * 철칙은 하나. 이 자리가 없어도 녹음기는 그대로 돌아야 한다. 그래서 WebGPU 가 없으면
+           * 자리 자체를 안 보여 준다(오류 X). 모델은 AI 켜기를 누른 뒤에만 받는다.
            */
           let gate: AiGate | null = null;
 
@@ -128,14 +128,14 @@ import { intervalWhileVisible } from '../../lib/tick';
               sizeMb: MODEL_SIZE_MB,
               fetch: async (onProgress) => {
                 const engine = await loadEngine();
-                /* 이미 디코드된 소리라 다시 풀 필요가 없다 — 그대로 16kHz 단일채널로만 맞춘다. */
+                /* 이미 디코드된 소리라 다시 풀 필요가 없다. 그대로 16kHz 단일채널로만 맞춘다. */
                 const audio = await toModelAudio(new ArrayBuffer(0), async () => recorded as AudioBuffer);
                 const result = await transcribe(engine, audio, { language: 'korean', onProgress });
                 out.value = result.text === '' ? '(말소리를 못 알아들었습니다)' : result.text;
                 out.style.display = '';
                 const srt = toSrt(result);
                 srtBtn.style.display = srt === '' ? 'none' : '';
-                srtBtn.onclick = () => void Toolbox.copyText?.(srt, { message: '자막을 복사했어요 — 자막 도구에 붙여 넣으세요' });
+                srtBtn.onclick = () => void Toolbox.copyText?.(srt, { message: '자막을 복사했어요. 자막 도구에 붙여 넣으세요' });
               },
               onChange: (v) => aiSay(v.say, v.state === 'failed' ? 'error' : '')
             });
@@ -150,10 +150,10 @@ import { intervalWhileVisible } from '../../lib/tick';
           /** 녹화 시계를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. */
           let stopTicker: (() => void) | null = null;
           let startedAt = 0;
-          let peak = 0; // 녹음 내내 가장 컸던 소리 — 「안 담겼다」를 판정하는 근거
+          let peak = 0; // 녹음 내내 가장 컸던 소리. 안 담겼다를 판정하는 근거
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           /** 들어오는 소리를 흐르는 막대로 그린다. 숫자보다 눈이 빠르다. */
@@ -254,7 +254,7 @@ import { intervalWhileVisible } from '../../lib/tick';
             }
             recorded = buffer;
             wav = toWav(buffer); // 미리 듣기는 손실 없는 쪽으로 들려준다
-            attachMedia(preview, wav); // 공용 — 앞 주소를 거두고 물린다
+            attachMedia(preview, wav); // 공용. 앞 주소를 거두고 물린다
             $<HTMLElement>('#vrResult').style.display = '';
             showAi();
             saveBtn.disabled = false;
@@ -264,7 +264,7 @@ import { intervalWhileVisible } from '../../lib/tick';
               statCell(t('voicerec.stat.size'), size(wav.size)) +
               statCell(t('voicerec.stat.peak'), `${Math.round(peak * 100)}%`);
 
-            // 소리가 거의 안 들어왔으면 그냥 저장 성공이라고 하면 안 된다 — 사용자는 나중에야 안다
+            // 소리가 거의 안 들어왔으면 그냥 저장 성공이라고 하면 안 된다. 사용자는 나중에야 안다
             if (peak < 0.02) {
               say(t('voicerec.say.silent', { len: mmss(seconds) }), 'error');
             } else if (peak> 0.99) {
@@ -297,8 +297,8 @@ import { intervalWhileVisible } from '../../lib/tick';
                 download(blob, name);
                 say(t('voicerec.say.saved', { size: size(blob.size) }), 'ok');
                 /* **녹음한 것을 이어서 쓰게 내놓는다** (TASK-KL-298).
-                 * 녹음 다음에 하는 일은 거의 늘 「앞뒤 자르기」인데, 여태 그러려면 방금 받은 파일을
-                 * 다시 올려야 했다 — 사슬이 여기서 끊겨 있었다. */
+                 * 녹음 다음에 하는 일은 거의 늘 앞뒤 자르기인데, 여태 그러려면 방금 받은 파일을
+                 * 다시 올려야 했다. 사슬이 여기서 끊겨 있었다. */
                 Toolbox.offerNext?.(status, { blob, name, from: 'voicerec' });
               })
               .catch((err: Error) => say(t('voicerec.err.encode', { msg: err.message }), 'error'));

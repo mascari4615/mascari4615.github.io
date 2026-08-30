@@ -3,7 +3,7 @@ import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface
 import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
 import { t, loadNamespace } from '../../lib/i18n';
 
-/** 스트리밍 표시용 KARMO_IMAGE 태그 제거·파싱·캐릭터 이미지 생성 */
+/** 스트리밍 표시용 KARMO_IMAGE 태그 제거, 파싱, 캐릭터 이미지 생성 */
 (function () {
     const KARMO_IMAGE_RE = /\[\[KARMO_IMAGE:(\{[\s\S]*?\})\]\]/;
 

@@ -1,17 +1,17 @@
 /**
- * 멍 — 화면에 실제로 그려지는가 + **이음매가 없는가** (TASK-KL-247)
+ * 멍. 화면에 실제로 그려지는가 + **이음매가 없는가** (TASK-KL-247)
  *
  * 두 가지를 본다. 앞의 것은 흔한 검사고, 뒤의 것이 이 작품의 전부다.
  *
  *  ① 앱에서 켰을 때 캔버스에 잉크가 있고 손잡이가 나오는가.
- *     「위젯이 등록됐다」까지만 보면 **아무것도 안 그리는 검은 화면**도 초록으로 지나간다.
+ *     위젯이 등록됐다까지만 보면 **아무것도 안 그리는 검은 화면**도 초록으로 지나간다.
  *     그래서 픽셀을 센다.
  *
  *  ② 한 주기 뒤의 그림이 시작 그림과 **픽셀 단위로 같은가**.
- *     무한 줌은 이 하나로 서고 무너진다. 밝기·흩어짐·회전 중 하나라도 시각이나 깊이의
- *     함수로 슬쩍 바뀌면, 화면은 멀쩡해 보이는데 한 주기마다 딱 한 번 튄다 — 사람이
+ *     무한 줌은 이 하나로 서고 무너진다. 밝기, 흩어짐, 회전 중 하나라도 시각이나 깊이의
+ *     함수로 슬쩍 바뀌면, 화면은 멀쩡해 보이는데 한 주기마다 딱 한 번 튄다. 사람이
  *     눈으로 잡으려면 9초를 노려봐야 하는 종류다. 기계는 두 장을 바이트로 비교하면 끝난다.
- *     그래서 작품 파일만 따로 묶어 캔버스에 직접 그려 본다(껍데기·시간 흐름 없이).
+ *     그래서 작품 파일만 따로 묶어 캔버스에 직접 그려 본다(껍데기, 시간 흐름 없이).
  *
  * 사용: node scripts/smoke-meong.mjs   (npm run test:meong)
  */
@@ -34,7 +34,7 @@ const MIME = {
 };
 
 if (!fs.existsSync(path.join(root, 'js/widgets/meong/meong.js'))) {
-  console.log('[smoke-meong] 못 돌림 — js/widgets/meong/meong.js 가 없다 (`node build.mjs` 먼저)');
+  console.log('[smoke-meong] 못 돌림. js/widgets/meong/meong.js 가 없다 (`node build.mjs` 먼저)');
   process.exit(0);
 }
 
@@ -76,7 +76,7 @@ const seen = await page.evaluate(() => {
   const c = document.querySelector('.meong-canvas');
   const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
   let lit = 0;
-  // 바탕이 아닌 픽셀 세기 — 바탕만 칠하고 끝났으면 0 이 나온다
+  // 바탕이 아닌 픽셀 세기. 바탕만 칠하고 끝났으면 0 이 나온다
   for (let i = 0; i < d.length; i += 4 * 53) {
     if (d[i] > 40 || d[i + 1] > 40 || d[i + 2] > 40) lit++;
   }
@@ -88,15 +88,15 @@ const seen = await page.evaluate(() => {
   };
 });
 
-if (seen.lit < 40) problems.push(`캔버스가 거의 비어 있다 — 밝은 픽셀 ${seen.lit}개`);
-if (seen.buttons < 5) problems.push(`손잡이 단추가 모자라다 — ${seen.buttons}개`);
+if (seen.lit < 40) problems.push(`캔버스가 거의 비어 있다. 밝은 픽셀 ${seen.lit}개`);
+if (seen.buttons < 5) problems.push(`손잡이 단추가 모자라다. ${seen.buttons}개`);
 if (!seen.hint.trim()) problems.push('안내 글이 비어 있다 (말 묶음이 안 붙었다)');
-if (seen.rows < 5) problems.push(`손잡이 줄이 모자라다 — ${seen.rows}개`);
+if (seen.rows < 5) problems.push(`손잡이 줄이 모자라다. ${seen.rows}개`);
 // 열쇠 이름이 그대로 뜨면 말 묶음을 못 받은 것이다
 if (/^meong\./.test(seen.hint.trim())) problems.push('안내 글에 열쇠 이름이 그대로 떴다: ' + seen.hint);
 
 /* 멈춤 단추가 진짜 멈추는가.
-   화면을 찍어 비교하면 안 된다 — 캔버스 자리를 찍으면 그 위에 뜬 손잡이까지 함께 찍히고,
+   화면을 찍어 비교하면 안 된다. 캔버스 자리를 찍으면 그 위에 뜬 손잡이까지 함께 찍히고,
    손잡이가 사라지는 중이면 그림이 그대로여도 두 장이 달라진다(실제로 그렇게 헛짚었다).
    캔버스 안의 픽셀만 직접 센다. */
 const canvasSig = () => page.evaluate(() => {
@@ -144,7 +144,7 @@ const SPEED = 0.11;
 const P = 1 / SPEED;
 const params = { shape: 'square', speed: SPEED, grid: '9', palette: 'gold', dir: 'out' };
 
-/** 그 시각의 화면을 픽셀로 받아온다 (그림 자체만 — 손잡이가 위에 안 뜨는 화면이다) */
+/** 그 시각의 화면을 픽셀로 받아온다 (그림 자체만. 손잡이가 위에 안 뜨는 화면이다) */
 async function px(time) {
   return loopPage.evaluate(
     ([t, p]) => {
@@ -163,19 +163,19 @@ const meanDiff = (a, b) => {
 };
 
 /* ① 주기 경계에 **이음매가 없어야** 한다.
-   이 작품은 층마다 다른 덩어리를 쓰므로 「한 주기 뒤 픽셀 동일」은 성립하지 않는다(그건 모든
-   층이 한 모양일 때만 된다 — 사용자가 「매번 다른 모양」을 골랐다). 대신 지켜야 할 것은
+   이 작품은 층마다 다른 덩어리를 쓰므로 한 주기 뒤 픽셀 동일은 성립하지 않는다(그건 모든
+   층이 한 모양일 때만 된다. 사용자가 매번 다른 모양을 골랐다). 대신 지켜야 할 것은
    **경계에서 안 튀는 것**이다: 뿌리가 한 칸 올라가는 그 순간 그림이 이어져야 한다. */
 const before = await px(P * 0.998);
 const after = await px(P * 1.002);
 const seam = meanDiff(before, after);
 const move = meanDiff(await px(P * 0.998), await px(P * 0.94));
 if (seam > move * 1.6 + 1.5) {
-  problems.push(`주기 경계에서 그림이 튄다 — 경계 차이 ${seam.toFixed(2)} vs 같은 간격 움직임 ${move.toFixed(2)}`);
+  problems.push(`주기 경계에서 그림이 튄다. 경계 차이 ${seam.toFixed(2)} vs 같은 간격 움직임 ${move.toFixed(2)}`);
 }
 
 /* ② 그리고 실제로 움직여야 한다 (같은 그림을 계속 그리는 게 아니다) */
-if (meanDiff(await px(0), await px(P * 0.5)) < 1) problems.push('주기 한가운데가 시작과 같다 — 안 움직인다');
+if (meanDiff(await px(0), await px(P * 0.5)) < 1) problems.push('주기 한가운데가 시작과 같다. 안 움직인다');
 
 fs.rmSync(tmp, { force: true });
 await browser.close();
@@ -188,5 +188,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  `[smoke-meong] 통과 — 밝은 픽셀 ${seen.lit} · 단추 ${seen.buttons} · 손잡이 ${seen.rows}줄 · 한 주기 뒤 픽셀 동일`
+  `[smoke-meong] 통과. 밝은 픽셀 ${seen.lit}, 단추 ${seen.buttons}, 손잡이 ${seen.rows}줄, 한 주기 뒤 픽셀 동일`
 );

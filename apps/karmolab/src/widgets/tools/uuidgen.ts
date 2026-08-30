@@ -13,8 +13,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'uuidgen',
     title: t('widgets.uuidgen.title', undefined, "UUID 생성기"),
-    category: 'tool',
-    desc: t('widgets-desc.uuidgen.desc', undefined, "UUID v4·v7, ULID, NanoID, 안전한 비밀번호를 원하는 개수만큼 만듭니다"),
+    category: 'dev',
+    desc: t('widgets-desc.uuidgen.desc', undefined, "UUID v4, v7, ULID, NanoID, 안전한 비밀번호를 원하는 개수만큼 만듭니다"),
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h2M11 12h2M15 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     tabs: [
@@ -71,7 +71,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const count = $<HTMLInputElement>('#uuCount');
           const len = $<HTMLInputElement>('#uuLen');
           const out = $<HTMLTextAreaElement>('#uuOut');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(out);
 
           function render(): void {

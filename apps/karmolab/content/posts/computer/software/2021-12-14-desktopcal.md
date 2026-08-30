@@ -5,6 +5,7 @@ last_modified_at: "2024-10-20T12:27:00+09:00"
 categories: [컴퓨터, 소프트웨어]
 tags: []
 image: /assets/img/background/20230112-151539.jpg
+board: info
 ---
 
 ![바탕화면 달력 스크린샷 내꺼](/assets/img/post/stone/2021/211214-0000.jpg)

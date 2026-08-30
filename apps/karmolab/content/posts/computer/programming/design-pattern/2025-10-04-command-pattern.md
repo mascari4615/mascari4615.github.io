@@ -5,6 +5,7 @@ last_modified_at: "2025-10-08T14:19:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: [Design-Pattern]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 머리말

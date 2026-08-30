@@ -1,9 +1,9 @@
 /**
- * 잡동사니 (Stash) 위젯 — TASK-KL-034.
+ * 잡동사니 (Stash) 위젯. TASK-KL-034.
  *
  * 21 개 dead 위젯 (boot/lazy 미등록 → 사이드바 노출 X) 을 한 페이지에 통합.
  * 각 위젯은 .ts 분리 유지, 잡동사니 안에서 lazy 로드 + inline render + 자동 작동.
- * Pinterest masonry layout (CSS columns). 티메토 「조수님, 여기 정리 안 된 실험들이에요!」.
+ * Pinterest masonry layout (CSS columns). 티메토 조수님, 여기 정리 안 된 실험들이에요!.
  */
 import { t, loadNamespace } from '../lib/i18n';
 
@@ -12,7 +12,7 @@ import { t, loadNamespace } from '../lib/i18n';
     'stash',
     `
       /* layout-full tab-panel(flex column) 안에서 단일 스크롤 컨테이너로 동작.
-       * intro/grid 가 직접 자식이면 부모가 overflow:hidden 이라 잘림 — root 가 책임. */
+       * intro/grid 가 직접 자식이면 부모가 overflow:hidden 이라 잘림. root 가 책임. */
       .stash-root {
         flex: 1;
         min-height: 0;
@@ -135,7 +135,7 @@ import { t, loadNamespace } from '../lib/i18n';
                 if (!ok) slot.innerHTML = t('stash.t03');
               })
               .catch((err: unknown) => {
-                console.warn('[stash] load fail —', id, err);
+                console.warn('[stash] load fail . ', id, err);
                 slot.innerHTML = t('stash.t04');
               });
           }

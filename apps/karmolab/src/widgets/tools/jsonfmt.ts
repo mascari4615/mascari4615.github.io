@@ -1,5 +1,5 @@
 /**
- * JSON 포맷터 / 검증기 — 정렬·압축·키 정렬 + 파싱 에러의 줄·칸 위치를 짚어준다.
+ * JSON 포맷터 / 검증기. 정렬, 압축, 키 정렬 + 파싱 에러의 줄, 칸 위치를 짚어준다.
  * 라이브러리 없이 JSON.parse 의 message 에서 위치를 역산 (브라우저별 문구 차이 흡수).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -41,17 +41,17 @@ import { markLive } from './shared/say';
   }
 
   /**
-   * 흔한 실수를 고쳐 본다 — 꼬리 쉼표 · 홑따옴표 · 주석 · 앞뒤 군더더기.
+   * 흔한 실수를 고쳐 본다. 꼬리 쉼표, 홑따옴표, 주석, 앞뒤 군더더기.
    *
-   * 남들(codebeautify·jsonformatter)은 「고쳐 준다」를 앞세운다. 우리도 하되 **말없이 고치지는
-   * 않는다** — 고친 판이 실제로 통과할 때만 「이렇게 고치면 됩니다」라고 보여 주고, 누를지는
+   * 남들(codebeautify, jsonformatter)은 고쳐 준다를 앞세운다. 우리도 하되 **말없이 고치지는
+   * 않는다**. 고친 판이 실제로 통과할 때만 이렇게 고치면 됩니다라고 보여 주고, 누를지는
    * 사람이 정한다. 조용히 바꿔 놓으면 원본이 뭐였는지 아무도 모른다.
    */
   function repairCandidate(raw: string): string | null {
     let s = raw.trim();
     if (!s) return null;
     s = s.replace(/^\uFEFF/, '');
-    // 줄 주석 · 블록 주석 (문자열 안은 건드리지 않도록 따옴표를 따라가며 지운다)
+    // 줄 주석, 블록 주석 (문자열 안은 건드리지 않도록 따옴표를 따라가며 지운다)
     let out = '';
     let inStr: string | null = null;
     for (let i = 0; i < s.length; i++) {
@@ -68,7 +68,7 @@ import { markLive } from './shared/say';
       if (ch === '/' && next === '*') { i += 2; while (i < s.length && !(s[i] === '*' && s[i + 1] === '/')) i++; i++; continue; }
       out += ch;
     }
-    // 홑따옴표 문자열 → 쌍따옴표 (안에 쌍따옴표가 없을 때만 — 있으면 손대지 않는다)
+    // 홑따옴표 문자열 → 쌍따옴표 (안에 쌍따옴표가 없을 때만. 있으면 손대지 않는다)
     out = out.replace(/'([^'"\\]*)'/g, '"$1"');
     // 따옴표 없는 키
     out = out.replace(/([{,]\s*)([A-Za-z_$][\w$]*)(\s*:)/g, '$1"$2"$3');
@@ -131,11 +131,11 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'jsonfmt',
     title: t('widgets.jsonfmt.title', undefined, 'JSON 포맷터'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.jsonfmt.desc',
       undefined,
-      'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다'
+      'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄, 칸 위치를 찾아줍니다'
     ),
     layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M15 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -170,7 +170,7 @@ import { markLive } from './shared/say';
                   </div>
                 </div>
                 <textarea id="jfInput" aria-label="${esc(t('jsonfmt.aria.input'))}" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
-                <!-- 「눌러야 나오는」 도구가 아니라 **모드를 고르면 즉시 나오는** 도구다 (TASK-KL-133).
+                <!-- 눌러야 나오는 도구가 아니라 **모드를 고르면 즉시 나오는** 도구다 (TASK-KL-133).
                      붙여넣고 한 번 더 눌러야 결과가 나오면 그 한 번이 매번 쌓인다. -->
                 <div class="tool-chips" id="jfModes">
                   <button type="button" class="tool-chip active" data-mode="format">${esc(t('jsonfmt.mode.format'))}</button>
@@ -204,7 +204,7 @@ import { markLive } from './shared/say';
           const input = container.querySelector('#jfInput') as HTMLTextAreaElement;
           const output = container.querySelector('#jfOutput') as HTMLTextAreaElement;
           const status = container.querySelector('#jfStatus') as HTMLElement;
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const indentSel = container.querySelector('#jfIndent') as HTMLSelectElement;
           const treeWrap = container.querySelector('#jfTreeWrap') as HTMLElement;
@@ -300,7 +300,7 @@ import { markLive } from './shared/say';
                 p = p.parentElement;
               }
             });
-            setStatus(correct.length ? `「${find.value.trim()}」 ${correct.length}줄` : `「${find.value.trim()}」 없음`, correct.length ? 'ok' : 'idle');
+            setStatus(correct.length ? `${find.value.trim()} ${correct.length}줄` : `${find.value.trim()} 없음`, correct.length ? 'ok' : 'idle');
           }
 
           function run(): void {
@@ -317,7 +317,7 @@ import { markLive } from './shared/say';
             if (v === undefined) { output.value = ''; tree.innerHTML = ''; return; }
             if (mode === 'tree') {
               tree.innerHTML = treeHtml(v, null, '$', 0);
-              setStatus(`유효한 JSON · ${describe(v)} · 줄을 누르면 그 자리의 경로를 복사해요`, 'ok');
+              setStatus(`유효한 JSON, ${describe(v)}, 줄을 누르면 그 자리의 경로를 복사해요`, 'ok');
               applyFind();
               return;
             }
@@ -364,14 +364,14 @@ import { markLive } from './shared/say';
           (container.querySelector('#jfCollapse') as HTMLButtonElement).onclick = () => {
             tree.querySelectorAll('details').forEach((d) => { (d as HTMLDetailsElement).open = false; });
           };
-          /* 큰 JSON 에서 사람이 진짜 원하는 건 「이 값이 어디 있냐」다 — 누르면 그 경로를 준다.
+          /* 큰 JSON 에서 사람이 진짜 원하는 건 이 값이 어디 있냐다. 누르면 그 경로를 준다.
              코드에 그대로 붙여 쓸 수 있는 모양($.a.b[0])으로. */
           tree.addEventListener('click', (e: Event) => {
             const el = (e.target as HTMLElement).closest<HTMLElement>('[data-path]');
             if (!el) return;
             const path = el.dataset.path || '';
             if (!path) return;
-            void Toolbox.copyText?.(path, { message: `경로 복사 · ${path}` });
+            void Toolbox.copyText?.(path, { message: `경로 복사, ${path}` });
           });
           (container.querySelector('#jfSample') as HTMLButtonElement).onclick = () => {
             input.value = '{"name":"KarmoLab","tools":[{"id":"charcount","ko":"글자수 세기"},{"id":"jsonfmt","ko":"JSON 포맷터"}],"free":true,"since":2024}';

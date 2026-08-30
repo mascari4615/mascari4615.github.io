@@ -1,5 +1,5 @@
 /**
- * Business registration number and corporate registration number checks — core (TASK-KL-088 / S1)
+ * Business registration number and corporate registration number checks. core (TASK-KL-088 / S1)
  *
  * The last digit of a 10-digit number is a **check digit** computed from the first nine digits.
  * Most typos are caught by math alone, but this cannot tell you whether the number is actually registered.
@@ -14,7 +14,7 @@ export const spec: ToolSpec = {
     check: {
       desc:
         'Validate a Korean business registration number (10 digits) or corporate registration number' +
-        ' (13 digits) against its check-digit rule. Format only — it cannot tell you whether the number is' +
+        ' (13 digits) against its check-digit rule. Format only. it cannot tell you whether the number is' +
         ' actually registered (that needs the National Tax Service lookup).',
       in: { number: 'string' },
       out: 'string'
@@ -41,7 +41,7 @@ export function checkBiz(digits: string): CheckResult | null {
   return { ok: expect === Number(digits[9]), expect, got: Number(digits[9]) };
 }
 
-/** Corporate registration number check (13 digits) — alternating 1,2 weights. */
+/** Corporate registration number check (13 digits). alternating 1,2 weights. */
 export function checkCorp(digits: string): CheckResult | null {
   if (/^\d{13}$/.test(digits) === false) return null;
   let sum = 0;

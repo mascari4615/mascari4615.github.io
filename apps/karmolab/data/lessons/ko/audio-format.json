@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "text",
       "label": "성격이 다르다",
-      "text": "wav/pcm : 무압축 · 디코딩 0 · 용량 큼 → 짧은 효과음\nogg/opus: 손실 · 용량 작음 · 디코딩 필요 → 배경음악 · 음성\nmp3     : 손실 · 호환성 최고 · 앞쪽에 무음이 생겨 루프에 불리\nflac    : 무손실 압축 · 보관용"
+      "text": "wav/pcm : 무압축, 디코딩 0, 용량 큼 → 짧은 효과음\nogg/opus: 손실, 용량 작음, 디코딩 필요 → 배경음악, 음성\nmp3     : 손실, 호환성 최고, 앞쪽에 무음이 생겨 루프에 불리\nflac    : 무손실 압축, 보관용"
     },
     {
       "type": "h",
@@ -22,7 +22,7 @@
     },
     {
       "type": "note",
-      "text": "mp3 는 인코딩 특성상 **앞뒤에 미세한 무음**이 붙어 이음매가 \"툭\" 끊긴다. 반복되는 배경음악은 **ogg/opus** 를 쓰거나, 엔진의 루프 포인트 기능을 쓰라."
+      "text": "mp3 는 인코딩 특성상 **앞뒤에 미세한 무음**이 붙어 이음매가 툭 끊긴다. 반복되는 배경음악은 **ogg/opus** 를 쓰거나, 엔진의 루프 포인트 기능을 쓰라."
     },
     {
       "type": "h",
@@ -40,7 +40,7 @@
       "type": "code",
       "lang": "js",
       "label": "지원 여부를 물어보고 고른다",
-      "text": "const a = new Audio();\nconst canOpus = a.canPlayType('audio/ogg; codecs=opus');   // '' | 'maybe' | 'probably'\n// Safari 는 ogg 지원이 약하다 — aac/mp3 대체본을 함께 두는 것이 안전"
+      "text": "const a = new Audio();\nconst canOpus = a.canPlayType('audio/ogg; codecs=opus');   // '' | 'maybe' | 'probably'\n// Safari 는 ogg 지원이 약하다. aac/mp3 대체본을 함께 두는 것이 안전"
     },
     {
       "type": "h",

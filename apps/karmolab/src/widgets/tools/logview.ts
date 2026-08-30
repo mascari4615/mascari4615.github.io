@@ -1,11 +1,11 @@
 /**
- * 로그 보기 — 좁히고, 언제 몰렸는지 본다 (TASK-KL-316 / 15)
+ * 로그 보기. 좁히고, 언제 몰렸는지 본다 (TASK-KL-316 / 15)
  *
- * 이건 **새 위젯이 맞다**. 글 작업대는 「붙여넣고 한 번 바꾸는」 자리인데, 로그는
+ * 이건 **새 위젯이 맞다**. 글 작업대는 붙여넣고 한 번 바꾸는 자리인데, 로그는
  * ① 파일이 크고 ② 한 번 바꾸는 게 아니라 **여러 번 좁히는** 일이라 화면이 다르다.
  *
  * 큰 파일에서 화면이 멎지 않게 두 가지를 지킨다:
- *   - 그리는 줄 수를 막는다(기본 2000줄) — 셈은 다 하고 **그리기만** 막는다.
+ *   - 그리는 줄 수를 막는다(기본 2000줄). 셈은 다 하고 **그리기만** 막는다.
  *   - 시각 없는 줄은 그림에서 빼되 목록에는 남긴다(로그에서 버려진 줄이 대개 범인이다).
  */
 import { filter, parse, summarise, timeline, spec, type Level, type Row } from '../../core/logview';
@@ -29,11 +29,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'logview',
     title: t('widgets.logview.title', undefined, '로그 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.logview.desc',
       undefined,
-      '큰 로그를 끌어다 놓으면 언제 몰렸는지 보여 주고, 급·정규식으로 좁혀 봅니다. 파일은 브라우저를 벗어나지 않습니다'
+      '큰 로그를 끌어다 놓으면 언제 몰렸는지 보여 주고, 급, 정규식으로 좁혀 봅니다. 파일은 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<path d="M4 5h16M4 9h10M4 13h16M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M20.2 19.2L22 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const h = top === 0 ? 0 : Math.round((b.total / top) * 100);
           const bad = b.error> 0;
           return (
-            '<div title="' + esc(new Date(b.at).toLocaleString()) + ' · ' + b.total + '" style="flex:1; height:' + h + '%; min-height:1px; background:' +
+            '<div title="' + esc(new Date(b.at).toLocaleString()) + ', ' + b.total + '" style="flex:1; height:' + h + '%; min-height:1px; background:' +
             (bad ? 'var(--error)' : 'var(--accent, #4a7dff)') + '; opacity:' + (bad ? 0.85 : 0.55) + ';"></div>'
           );
         })

@@ -1,5 +1,5 @@
 /**
- * 네이티브 Opus — 있으면 우선 사용.
+ * 네이티브 Opus. 있으면 우선 사용.
  * Node Current(예: 25)처럼 @discordjs/opus prebuild가 아직 없는 ABI면 require 실패 → opusscript만 씀.
  */
 import 'opusscript';
@@ -9,7 +9,7 @@ try {
 } catch {
   console.warn(
     '[music] @discordjs/opus 네이티브 바이너리를 불러오지 못했습니다. opusscript로 진행합니다. ' +
-      '네이티브 Opus를 쓰려면 Node.js LTS(22·24)로 맞추거나, Visual Studio Build Tools 설치 후 `npm rebuild @discordjs/opus`를 실행하세요.',
+      '네이티브 Opus를 쓰려면 Node.js LTS(22, 24)로 맞추거나, Visual Studio Build Tools 설치 후 `npm rebuild @discordjs/opus`를 실행하세요.',
   );
 }
 import ffmpegPath from 'ffmpeg-static';
@@ -39,14 +39,14 @@ import {
 import type { VoiceBasedChannel } from 'discord.js';
 import { createEdgeTtsAudioResource } from './edge-tts-speak';
 
-/** play-dl / YouTube 조회·스트림이 끝없이 걸리면 `/music play`가 생각 중에서 안 풀림 */
+/** play-dl / YouTube 조회, 스트림이 끝없이 걸리면 `/music play`가 생각 중에서 안 풀림 */
 export const YOUTUBE_RESOLVE_TIMEOUT_MS = 45_000;
 export const YOUTUBE_STREAM_TIMEOUT_MS = 90_000;
 
 /**
  * `/music play` 플레이리스트에서 큐에 넣을 곡 수 상한.
  * - 비우거나 잘못된 값: 기본 40
- * - `0` 이하: **한도 없음** (목록 끝까지 페이징; 시간·메모리·디스코드 인터랙션 제한에 유의)
+ * - `0` 이하: **한도 없음** (목록 끝까지 페이징; 시간, 메모리, 디스코드 인터랙션 제한에 유의)
  * - 양수: 그 개수만큼만
  */
 export function getYoutubePlaylistMaxTracks(): number {
@@ -59,9 +59,9 @@ export function getYoutubePlaylistMaxTracks(): number {
 }
 
 /**
- * 2025–2026 권장: 순수 JS 추출기보다 yt-dlp 바이너리가 YouTube 변경에 가장 빨리 따라감.
+ * 2025-2026 권장: 순수 JS 추출기보다 yt-dlp 바이너리가 YouTube 변경에 가장 빨리 따라감.
  * - YT_DLP_PATH / YAWNBOT_YT_DLP_PATH: 실행 파일 직접 지정
- * - YT_DLP_COOKIES_PATH / YAWNBOT_YOUTUBE_COOKIES_PATH: Netscape cookies.txt (연령·로그인 제한 완화)
+ * - YT_DLP_COOKIES_PATH / YAWNBOT_YOUTUBE_COOKIES_PATH: Netscape cookies.txt (연령, 로그인 제한 완화)
  * - youtube-dl-exec postinstall 로 내려받은 바이너리(있으면) 자동 사용
  */
 function resolveYtDlpBinary(): string {
@@ -133,7 +133,7 @@ async function resourceFromYtDlpExec(url: string): Promise<AudioResource> {
 }
 
 /**
- * play-dl이 기대하는 표준 watch URL로 맞춤 (검색 결과·단축 URL 등).
+ * play-dl이 기대하는 표준 watch URL로 맞춤 (검색 결과, 단축 URL 등).
  * 내부 스트림 URL이 비어 Invalid URL 이 나는 경우를 줄입니다.
  */
 export function canonicalYoutubeWatchUrl(input: string): string {
@@ -191,10 +191,10 @@ type GuildMusicState = {
   subscribed: boolean;
   /** 지금 스피커로 나가는 트랙 (대기열에서 이미 빠진 항목) */
   currentTrack: { title: string } | null;
-  /** 한 곡 반복용 — 재생에 쓴 항목의 복제본 */
+  /** 한 곡 반복용. 재생에 쓴 항목의 복제본 */
   nowPlayingItem: QueueItem | null;
   loopMode: MusicLoopMode;
-  /** 대기열 반복 — `/music loop queue` 시점의 대기 스냅샷 */
+  /** 대기열 반복. `/music loop queue` 시점의 대기 스냅샷 */
   loopRing: QueueItem[];
   notifyTextChannelId: string | null;
   lastPlayFailureNoticeAt: number;
@@ -254,11 +254,11 @@ function buildNowPlayingEmbedForGuild(guildId: string): EmbedBuilder | null {
   const elapsedMs = getElapsedPlaybackMs(s);
   const elapsedSec = elapsedMs != null ? elapsedMs / 1000 : null;
   const total = s.nowPlayingDurationSec;
-  let timeLine = '—';
+  let timeLine = '. ';
   if (elapsedSec != null) {
     if (total != null && total > 0) {
       const rem = Math.max(0, total - elapsedSec);
-      timeLine = `${formatMmSs(elapsedSec)} / ${formatMmSs(total)} · 남음 ~${formatMmSs(rem)}`;
+      timeLine = `${formatMmSs(elapsedSec)} / ${formatMmSs(total)}, 남음 ~${formatMmSs(rem)}`;
     } else {
       timeLine = `재생 ${formatMmSs(elapsedSec)}`;
     }
@@ -337,7 +337,7 @@ export type MusicPlayFailurePayload = {
 
 let playFailureReporter: ((p: MusicPlayFailurePayload) => Promise<void>) | null = null;
 
-/** `main` 등에서 등록 — 재생 실패 시 텍스트 채널 한 줄 알림 */
+/** `main` 등에서 등록. 재생 실패 시 텍스트 채널 한 줄 알림 */
 export function setMusicPlayFailureReporter(fn: (p: MusicPlayFailurePayload) => Promise<void>): void {
   playFailureReporter = fn;
 }
@@ -535,8 +535,8 @@ async function fetchPlaylistViaYoutubei(
 }
 
 /**
- * YouTube 플레이리스트 URL(`playlist?list=` 또는 `watch?…&list=`)에서 재생 가능한 동영상 목록.
- * **youtubei.js(Innertube)만 사용** — play-dl `playlist_info`는 YouTube 마크업 변경에 취약해 제거함.
+ * YouTube 플레이리스트 URL(`playlist?list=` 또는 `watch?...&list=`)에서 재생 가능한 동영상 목록.
+ * **youtubei.js(Innertube)만 사용**. play-dl `playlist_info`는 YouTube 마크업 변경에 취약해 제거함.
  */
 export async function fetchYoutubePlaylistEntries(playlistUrl: string): Promise<{
   title: string;
@@ -589,7 +589,7 @@ async function createYoutubeAudioResourceInner(url: string): Promise<AudioResour
     return await resourceFromYtDlpExec(canonical);
   } catch (e: unknown) {
     lastErrors.push(`yt-dlp: ${e instanceof Error ? e.message : String(e)}`);
-    console.warn('[music] yt-dlp 실패, youtubei·play-dl 폴백:', e instanceof Error ? e.message : String(e));
+    console.warn('[music] yt-dlp 실패, youtubei, play-dl 폴백:', e instanceof Error ? e.message : String(e));
   }
 
   try {
@@ -811,7 +811,7 @@ export async function enqueueYouTubeTracks(
   }
 }
 
-/** TTS·URL·파일 등 임의 오디오 소스를 `/music play`와 같은 대기열에 넣습니다. */
+/** TTS, URL, 파일 등 임의 오디오 소스를 `/music play`와 같은 대기열에 넣습니다. */
 export async function enqueueCustomTrack(
   channel: VoiceBasedChannel,
   title: string,
@@ -867,7 +867,7 @@ export function stopMusic(guildId: string): boolean {
 
 /**
  * 재생 중인 곡은 그대로 두고, **대기열(다음 곡들)** 순서만 무작위로 섞습니다.
- * @returns `empty` — 대기열 없음 · `single` — 1곡뿐
+ * @returns `empty`. 대기열 없음, `single`. 1곡뿐
  */
 export function shuffleWaitingQueue(
   guildId: string,
@@ -985,11 +985,11 @@ export function getMusicQueuePage(
     const elapsedSec = elapsedMs != null ? elapsedMs / 1000 : null;
     const total = s.nowPlayingDurationSec;
     if (elapsedSec != null && total != null && total > 0) {
-      nowPlaying += ` · ${formatMmSs(elapsedSec)}/${formatMmSs(total)}`;
+      nowPlaying += `, ${formatMmSs(elapsedSec)}/${formatMmSs(total)}`;
     } else if (elapsedSec != null) {
-      nowPlaying += ` · ${formatMmSs(elapsedSec)}`;
+      nowPlaying += `, ${formatMmSs(elapsedSec)}`;
     } else if (total != null && total > 0) {
-      nowPlaying += ` · ~${formatMmSs(total)}`;
+      nowPlaying += `, ~${formatMmSs(total)}`;
     }
   }
   const totalWaiting = titles.length;

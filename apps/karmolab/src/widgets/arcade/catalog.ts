@@ -1,18 +1,18 @@
 /**
- * 오락실 게임 명부 — **단일 정본(SSOT)** (TASK-KL-264)
+ * 오락실 게임 명부. **단일 정본(SSOT)** (TASK-KL-264)
  *
- * 전에는 게임 하나를 넣으려면 세 파일에 세 번 적어야 했다 — 규칙 명부·화면 명부·명패.
+ * 전에는 게임 하나를 넣으려면 세 파일에 세 번 적어야 했다. 규칙 명부, 화면 명부, 명패.
  * 세 곳에 같은 것을 적으면 **언젠가 갈라진다**(화면만 빠진 게임, 명패만 있는 게임).
- * 그래서 여기 한 줄로 모았다: **규칙 · 화면 · 그림 · 갈래가 한 자리에.**
+ * 그래서 여기 한 줄로 모았다: **규칙, 화면, 그림, 갈래가 한 자리에.**
  *
- * `id` 는 여기 안 적는다 — 규칙 파일의 `def.id` 가 유일한 이름이다. 이름을 두 번 적으면
+ * `id` 는 여기 안 적는다. 규칙 파일의 `def.id` 가 유일한 이름이다. 이름을 두 번 적으면
  * 그 둘이 어긋나는 날이 온다.
  *
- * 게임 추가 = 파일 2개(규칙·화면) + **이 파일 한 줄**. 다른 곳은 여기서 파생된다:
- * `index.ts`(GAMES) · `view-registry.ts`(VIEWS) · `meta.ts`(META) 전부 이 배열의 그림자다.
+ * 게임 추가 = 파일 2개(규칙, 화면) + **이 파일 한 줄**. 다른 곳은 여기서 파생된다:
+ * `index.ts`(GAMES), `view-registry.ts`(VIEWS), `meta.ts`(META) 전부 이 배열의 그림자다.
  *
  * 차례 = 화면에 보일 차례(갈래 안에서는 쉬운 것부터). 검사(`test-arcade.mjs`)가
- * 「규칙 파일이 있는데 여기 없는 것」과 「말 묶음이 빠진 것」을 막는다.
+ * 규칙 파일이 있는데 여기 없는 것과 말 묶음이 빠진 것을 막는다.
  */
 import type { GameDef } from './types';
 import type { GameView } from './views';
@@ -125,61 +125,63 @@ import { sudokuView } from './games/sudoku-view';
 export interface CatalogEntry {
   def: GameDef<any, any>;
   view: GameView<any, any>;
-  /** 흔한 이모지만 — 트럼프·도미노 낱자는 기본 글꼴에 없어 두부로 뜬다 */
+  /** 흔한 이모지만. 트럼프, 도미노 낱자는 기본 글꼴에 없어 두부로 뜬다 */
   icon: string;
   kind: Kind;
+  /** 로비에서 감춘다. 규칙과 화면은 그대로 살아 있어 주소로 들어온 방과 다시보기는 돈다 */
+  hidden?: true;
 }
 
 export const CATALOG: CatalogEntry[] = [
-  { def: reflex, view: reflexView, icon: '⚡', kind: 'quick' },
-  { def: speed, view: speedView, icon: '⚡', kind: 'quick' },
-  { def: airhockey, view: airhockeyView, icon: '🏒', kind: 'quick' },
-  { def: pong, view: pongView, icon: '🏓', kind: 'quick' },
-  { def: whack, view: whackView, icon: '🐹', kind: 'quick' },
-  { def: tug, view: tugView, icon: '🪢', kind: 'quick' },
-  { def: rps, view: rpsView, icon: '✌️', kind: 'quick' },
-  { def: tuho, view: tuhoView, icon: '🏹', kind: 'sport' },
-  { def: yut, view: yutView, icon: '🏯', kind: 'board' },
-  { def: fleet, view: fleetView, icon: '🚢', kind: 'board' },
-  { def: auction, view: auctionView, icon: '🔨', kind: 'card' },
-  { def: jegi, view: jegiView, icon: '🥋', kind: 'quick' },
-  { def: nunchi, view: nunchiView, icon: '👀', kind: 'quick' },
-  { def: wordchain, view: wordchainView, icon: '🗣️', kind: 'quick' },
-  { def: lineup, view: lineupView, icon: '👥', kind: 'quick' },
-  { def: twenty, view: twentyView, icon: '❓', kind: 'quick' },
-  { def: snake, view: snakeView, icon: '🐍', kind: 'quick' },
-  { def: shellgame, view: shellgameView, icon: '🥄', kind: 'quick' },
+  { def: reflex, view: reflexView, icon: '⚡', kind: 'quick' , hidden: true },
+  { def: speed, view: speedView, icon: '⚡', kind: 'quick' , hidden: true },
+  { def: airhockey, view: airhockeyView, icon: '🏒', kind: 'quick' , hidden: true },
+  { def: pong, view: pongView, icon: '🏓', kind: 'quick' , hidden: true },
+  { def: whack, view: whackView, icon: '🐹', kind: 'quick' , hidden: true },
+  { def: tug, view: tugView, icon: '🪢', kind: 'quick' , hidden: true },
+  { def: rps, view: rpsView, icon: '✌️', kind: 'quick' , hidden: true },
+  { def: tuho, view: tuhoView, icon: '🏹', kind: 'sport' , hidden: true },
+  { def: yut, view: yutView, icon: '🏯', kind: 'board' , hidden: true },
+  { def: fleet, view: fleetView, icon: '🚢', kind: 'board' , hidden: true },
+  { def: auction, view: auctionView, icon: '🔨', kind: 'card' , hidden: true },
+  { def: jegi, view: jegiView, icon: '🥋', kind: 'quick' , hidden: true },
+  { def: nunchi, view: nunchiView, icon: '👀', kind: 'quick' , hidden: true },
+  { def: wordchain, view: wordchainView, icon: '🗣️', kind: 'quick' , hidden: true },
+  { def: lineup, view: lineupView, icon: '👥', kind: 'quick' , hidden: true },
+  { def: twenty, view: twentyView, icon: '❓', kind: 'quick' , hidden: true },
+  { def: snake, view: snakeView, icon: '🐍', kind: 'quick' , hidden: true },
+  { def: shellgame, view: shellgameView, icon: '🥄', kind: 'quick' , hidden: true },
   { def: gomoku, view: gomokuView, icon: '⚫', kind: 'board' },
-  { def: four, view: fourView, icon: '🔴', kind: 'board' },
-  { def: reversi, view: reversiView, icon: '⚪', kind: 'board' },
-  { def: dots, view: dotsView, icon: '⬜', kind: 'board' },
-  { def: ultimate, view: ultimateView, icon: '⊞', kind: 'board' },
-  { def: checkers, view: checkersView, icon: '🔶', kind: 'board' },
-  { def: nim, view: nimView, icon: '⚪', kind: 'board' },
-  { def: minishogi, view: minishogiView, icon: '将', kind: 'board' },
-  { def: mancala, view: mancalaView, icon: '🪵', kind: 'board' },
-  { def: foxhounds, view: foxhoundsView, icon: '🦊', kind: 'board' },
-  { def: capturego, view: capturegoView, icon: '⚫', kind: 'board' },
-  { def: blackjack, view: blackjackView, icon: '♠️', kind: 'card' },
-  { def: president, view: presidentView, icon: '👑', kind: 'card' },
-  { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' },
+  { def: four, view: fourView, icon: '🔴', kind: 'board' , hidden: true },
+  { def: reversi, view: reversiView, icon: '⚪', kind: 'board' , hidden: true },
+  { def: dots, view: dotsView, icon: '⬜', kind: 'board' , hidden: true },
+  { def: ultimate, view: ultimateView, icon: '⊞', kind: 'board' , hidden: true },
+  { def: checkers, view: checkersView, icon: '🔶', kind: 'board' , hidden: true },
+  { def: nim, view: nimView, icon: '⚪', kind: 'board' , hidden: true },
+  { def: minishogi, view: minishogiView, icon: '将', kind: 'board' , hidden: true },
+  { def: mancala, view: mancalaView, icon: '🪵', kind: 'board' , hidden: true },
+  { def: foxhounds, view: foxhoundsView, icon: '🦊', kind: 'board' , hidden: true },
+  { def: capturego, view: capturegoView, icon: '⚫', kind: 'board' , hidden: true },
+  { def: blackjack, view: blackjackView, icon: '♠️', kind: 'card' , hidden: true },
+  { def: president, view: presidentView, icon: '👑', kind: 'card' , hidden: true },
+  { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' , hidden: true },
   { def: yacht, view: yachtView, icon: '🎲', kind: 'card' },
-  { def: highlow, view: highlowView, icon: '🔺', kind: 'card' },
-  { def: lanterns, view: lanternsView, icon: '🏮', kind: 'card' },
-  { def: liars, view: liarsView, icon: '🎲', kind: 'card' },
-  { def: hanafuda, view: hanafudaView, icon: '🌸', kind: 'card' },
-  { def: derby, view: derbyView, icon: '🐎', kind: 'card' },
-  { def: curling, view: curlingView, icon: '🥌', kind: 'sport' },
-  { def: bowling, view: bowlingView, icon: '🎳', kind: 'sport' },
-  { def: pool, view: poolView, icon: '🎱', kind: 'sport' },
-  { def: darts, view: dartsView, icon: '🎯', kind: 'sport' },
-  { def: fishing, view: fishingView, icon: '🎣', kind: 'sport' },
-  { def: tanks, view: tanksView, icon: '💥', kind: 'sport' },
-  { def: memory, view: memoryView, icon: '🃏', kind: 'puzzle' },
-  { def: hitblow, view: hitblowView, icon: '🔢', kind: 'puzzle' },
-  { def: slide, view: slideView, icon: '🧩', kind: 'puzzle' },
-  { def: minesweeper, view: minesweeperView, icon: '💣', kind: 'puzzle' },
-  { def: onestroke, view: onestrokeView, icon: '✏️', kind: 'puzzle' },
-  { def: simon, view: simonView, icon: '🎵', kind: 'puzzle' },
-  { def: sudoku, view: sudokuView, icon: '🔢', kind: 'puzzle' }
+  { def: highlow, view: highlowView, icon: '🔺', kind: 'card' , hidden: true },
+  { def: lanterns, view: lanternsView, icon: '🏮', kind: 'card' , hidden: true },
+  { def: liars, view: liarsView, icon: '🎲', kind: 'card' , hidden: true },
+  { def: hanafuda, view: hanafudaView, icon: '🌸', kind: 'card' , hidden: true },
+  { def: derby, view: derbyView, icon: '🐎', kind: 'card' , hidden: true },
+  { def: curling, view: curlingView, icon: '🥌', kind: 'sport' , hidden: true },
+  { def: bowling, view: bowlingView, icon: '🎳', kind: 'sport' , hidden: true },
+  { def: pool, view: poolView, icon: '🎱', kind: 'sport' , hidden: true },
+  { def: darts, view: dartsView, icon: '🎯', kind: 'sport' , hidden: true },
+  { def: fishing, view: fishingView, icon: '🎣', kind: 'sport' , hidden: true },
+  { def: tanks, view: tanksView, icon: '💥', kind: 'sport' , hidden: true },
+  { def: memory, view: memoryView, icon: '🃏', kind: 'puzzle' , hidden: true },
+  { def: hitblow, view: hitblowView, icon: '🔢', kind: 'puzzle' , hidden: true },
+  { def: slide, view: slideView, icon: '🧩', kind: 'puzzle' , hidden: true },
+  { def: minesweeper, view: minesweeperView, icon: '💣', kind: 'puzzle' , hidden: true },
+  { def: onestroke, view: onestrokeView, icon: '✏️', kind: 'puzzle' , hidden: true },
+  { def: simon, view: simonView, icon: '🎵', kind: 'puzzle' , hidden: true },
+  { def: sudoku, view: sudokuView, icon: '🔢', kind: 'puzzle' , hidden: true }
 ];

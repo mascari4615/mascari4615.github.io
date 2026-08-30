@@ -1,5 +1,5 @@
 /**
- * TASK-YB-004 — dev-digest webhook 분기 핸들러.
+ * TASK-YB-004. dev-digest webhook 분기 핸들러.
  *
  * trigger: push event, commit message starts with "chore(digests):", added path contains "digests/YYYY-MM-DD.md"
  * 처리:
@@ -34,8 +34,8 @@ function stripFrontmatter(raw: string): string {
  * raw.githubusercontent 는 404 (digest 송신0 진짜 근본). 토큰
  * (`MEMO_GITHUB_PAT`/`GITHUB_TOKEN`) 있으면 GitHub API contents
  * (`Accept: raw`, private OK), 없으면 raw fallback (public github.io
- * 호환). !ok = throw (caller graceful return). 평행정의0 — memo→prod
- * sync 와 동일 「private=인증 필수」 class (quality.md § 정본→prod 동기).
+ * 호환). !ok = throw (caller graceful return). 평행정의0. memo→prod
+ * sync 와 동일 private=인증 필수 class (quality.md § 정본→prod 동기).
  */
 export async function fetchRepoFile(
   repoFullName: string,
@@ -63,7 +63,7 @@ export async function fetchRepoFile(
   const resp = await fetch(rawUrl, { signal });
   if (!resp.ok)
     throw new Error(
-      `raw ${resp.status} (${rawUrl}) — private repo 면 토큰(MEMO_GITHUB_PAT) 필요`,
+      `raw ${resp.status} (${rawUrl}). private repo 면 토큰(MEMO_GITHUB_PAT) 필요`,
     );
   return resp.text();
 }
@@ -78,7 +78,7 @@ const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
  * - added 뿐 아니라 **modified 포함**: 같은 날 재실행/백필/수동
  *   `/schedule run` 은 기존 일자파일 *modified* → added-only 면 영구
  *   누락(KAR-004 2차 갭, 2026-05-17 사용자 트리거로 실증).
- * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
+ * - 일자패턴 한정: `digests/INDEX.md`, `README.md` 오선택 차단(잘못된
  *   파일 fetch → 깨진 게시 방지).
  */
 export function isDigestCommit(commit: GitHubCommit): string | null {
@@ -110,7 +110,7 @@ export async function handleDigestCommit(
   const sha: string = String(commit.id ?? '');
 
   try {
-    // 1. fetch digest body — **memo 는 private** → 무인증 raw 는 404
+    // 1. fetch digest body. **memo 는 private** → 무인증 raw 는 404
     //    (KAR-004 송신0 진짜 근본, 2026-05-17). 토큰 있으면 GitHub API
     //    contents(private OK), 없으면 raw fallback(public github.io 호환).
     let rawBody = '';
@@ -125,7 +125,7 @@ export async function handleDigestCommit(
     }
     const body = stripFrontmatter(rawBody).slice(0, MAX_FETCH_CHARS);
     if (!body.trim()) {
-      console.warn('[DigestWebhook] 빈 digest 본문 — 전송 skip');
+      console.warn('[DigestWebhook] 빈 digest 본문. 전송 skip');
       return;
     }
 
@@ -135,7 +135,7 @@ export async function handleDigestCommit(
 
     let yawnResponse = '';
     try {
-      // TASK-KAR-145: digest 톤가공 = lite tier (짧은 코멘트·요약, 가격 ~1/3).
+      // TASK-KAR-145: digest 톤가공 = lite tier (짧은 코멘트, 요약, 가격 ~1/3).
       // YAWN_DIGEST_MODEL_ID 명시 시 explicit (resolveGeminiModelId: explicit > tier).
       const { text } = await generateBlobTextFromEnvWithOptions(process.env, userPrompt, {
         systemInstruction: systemPrompt,
@@ -147,10 +147,10 @@ export async function handleDigestCommit(
     } catch (e: unknown) {
       console.error('[DigestWebhook] AI 가공 실패:', e instanceof Error ? e.message : String(e));
       // fallback: 원본 첫 500자 그대로
-      yawnResponse = body.slice(0, 500) + (body.length > 500 ? '\n…' : '');
+      yawnResponse = body.slice(0, 500) + (body.length > 500 ? '\n...' : '');
     }
 
-    // 3. Discord 전송 — embed description 한계 4096, 실 메시지 2000자 권장
+    // 3. Discord 전송. embed description 한계 4096, 실 메시지 2000자 권장
     const dateLabel = digestFile.replace('digests/', '').replace('.md', '');
     const repoUrl = `https://github.com/${repoFullName}/blob/${sha}/${digestFile}`;
 
@@ -160,7 +160,7 @@ export async function handleDigestCommit(
       .setURL(repoUrl)
       .setDescription(yawnResponse.slice(0, 4000))
       .setColor(0xb39ddb)
-      .setFooter({ text: `${repoFullName} · chore(digests)` })
+      .setFooter({ text: `${repoFullName}, chore(digests)` })
       .setTimestamp();
 
     // 별도 digest 채널: dev=프로비저닝 'digest' / prod=env YAWN_DIGEST_CHANNEL_ID

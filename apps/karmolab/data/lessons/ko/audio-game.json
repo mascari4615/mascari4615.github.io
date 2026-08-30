@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "csharp",
       "label": "조금씩 다르게",
-      "text": "// 변형 3~5개를 랜덤으로 + 피치·볼륨 미세 랜덤화\nvar clip = footsteps[Random.Range(0, footsteps.Length)];\nsource.pitch  = Random.Range(0.95f, 1.05f);\nsource.volume = Random.Range(0.9f, 1.0f);\nsource.PlayOneShot(clip);"
+      "text": "// 변형 3~5개를 랜덤으로 + 피치, 볼륨 미세 랜덤화\nvar clip = footsteps[Random.Range(0, footsteps.Length)];\nsource.pitch  = Random.Range(0.95f, 1.05f);\nsource.volume = Random.Range(0.9f, 1.0f);\nsource.PlayOneShot(clip);"
     },
     {
       "type": "note",
@@ -36,7 +36,7 @@
       "type": "code",
       "lang": "text",
       "label": "거리와 방향",
-      "text": "· 감쇠 곡선(로그가 자연스럽다) · 최소/최대 거리 설정\n· 도플러는 과하면 어지럽다 — 대개 약하게\n· 실내/실외 리버브 존으로 공간감 전환\n· 중요한 소리(대사·경고)는 2D 로 두는 것이 안전하다"
+      "text": ",  감쇠 곡선(로그가 자연스럽다), 최소/최대 거리 설정, 도플러는 과하면 어지럽다. 대개 약하게, 실내/실외 리버브 존으로 공간감 전환, 중요한 소리(대사, 경고)는 2D 로 두는 것이 안전하다"
     },
     {
       "type": "h",

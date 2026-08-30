@@ -3,27 +3,27 @@ import test from 'node:test';
 
 import { learnSlot, askSlot, brief, whichSlot, slotTone } from '../dist/index.js';
 
-/** 78회차에 실제로 떠 있던 창들 — 표가 모르던 것들이다. */
+/** 78회차에 실제로 떠 있던 창들. 표가 모르던 것들이다. */
 const unknownWindow = ['설정', 'NVIDIA GeForce Overlay', 'Windows 입력 환경'];
 
-test('표가 아는 창은 안 물어본다 — 물어보는 값이 헛되이 든다', () => {
+test('표가 아는 창은 안 물어본다. 물어보는 값이 헛되이 든다', () => {
   const learning = new learnSlot({ ask: async () => null });
-  assert.equal(learning.read('claude · resume'), '만드는중');
+  assert.equal(learning.read('claude, resume'), '만드는중');
   assert.equal(learning.pending, 0);
 });
 
-test('얘는 자기 창을 알아본다 — 그건 말 걸기 가장 좋은 때다', () => {
+test('얘는 자기 창을 알아본다. 그건 말 걸기 가장 좋은 때다', () => {
   assert.equal(whichSlot('동반자'), '나를보는중');
   assert.match(slotTone('동반자'), /말 걸기 가장 좋은/);
 });
 
-test('표가 모르는 창은 물어볼 것으로 담는다 — 모른다고 버리면 영영 모른다', () => {
+test('표가 모르는 창은 물어볼 것으로 담는다. 모른다고 버리면 영영 모른다', () => {
   const learning2 = new learnSlot({ ask: async () => null });
   for (const t of unknownWindow) assert.equal(learning2.read(t), null);
   assert.equal(learning2.pending, unknownWindow.length);
 });
 
-test('물어보기가 없으면 담지도 않는다 — 아무도 안 볼 목록을 키우지 않는다', () => {
+test('물어보기가 없으면 담지도 않는다. 아무도 안 볼 목록을 키우지 않는다', () => {
   const learning3 = new learnSlot();
   learning3.read('NVIDIA GeForce Overlay');
   assert.equal(learning3.pending, 0);
@@ -37,23 +37,23 @@ test('한 번 배우면 그 뒤로는 표처럼 쓴다', async () => {
   assert.equal(learning4.pending, 0, '배운 걸 또 물으면 안 된다');
 });
 
-test('모른다고 답한 것도 적어 둔다 — 안 적으면 같은 창을 영원히 다시 묻는다', async () => {
+test('모른다고 답한 것도 적어 둔다. 안 적으면 같은 창을 영원히 다시 묻는다', async () => {
   let callCount = 0;
   const learning5 = new learnSlot({ ask: async (ts) => { callCount += 1; return ts.map(() => null); } });
   learning5.read('Windows 입력 환경');
   await learning5.reflect();
   learning5.read('Windows 입력 환경');
   await learning5.reflect();
-  assert.equal(callCount, 1, `두 번째엔 물어볼 게 없어야 한다 — 실제로 ${callCount}번 불렀다`);
+  assert.equal(callCount, 1, `두 번째엔 물어볼 게 없어야 한다. 실제로 ${callCount}번 불렀다`);
 });
 
-test('표가 두뇌를 이긴다 — 우리 창은 우리가 안다', async () => {
+test('표가 두뇌를 이긴다. 우리 창은 우리가 안다', async () => {
   const learning6 = new learnSlot({ ask: async (ts) => ts.map(() => '통화') });
   await learning6.reflect();
   assert.equal(learning6.read('동반자'), '나를보는중');
 });
 
-test('개수가 안 맞는 대답은 통째로 버린다 — 어긋나면 엉뚱한 창이 「통화」가 되어 입을 닫는다', async () => {
+test('개수가 안 맞는 대답은 통째로 버린다. 어긋나면 엉뚱한 창이 통화가 되어 입을 닫는다', async () => {
   const written = [];
   const learning7 = new learnSlot({ ask: async () => ['노는중'], log: (m) => written.push(m) });
   for (const t of unknownWindow) learning7.read(t);
@@ -62,7 +62,7 @@ test('개수가 안 맞는 대답은 통째로 버린다 — 어긋나면 엉뚱
   assert.match(written.join(' '), /안 맞는다/);
 });
 
-test('두뇌가 죽어도 상황 파악이 멈추지 않는다 — 그리고 조용히 삼키지 않는다', async () => {
+test('두뇌가 죽어도 상황 파악이 멈추지 않는다. 그리고 조용히 삼키지 않는다', async () => {
   const written2 = [];
   const learning8 = new learnSlot({ ask: async () => { throw new Error('두뇌 없음'); }, log: (m) => written2.push(m) });
   learning8.read('설정');
@@ -72,7 +72,7 @@ test('두뇌가 죽어도 상황 파악이 멈추지 않는다 — 그리고 조
 
 // ── 바뀌는 부분 떼어 내기 ──────────────────────────────────────────
 
-test('노래가 바뀔 때마다 새로 묻지 않는다 — 그러면 물어보는 값이 영영 안 준다', () => {
+test('노래가 바뀔 때마다 새로 묻지 않는다. 그러면 물어보는 값이 영영 안 준다', () => {
   const a = 'Bad Taste ft. Kasane Teto | YouTube Music 외 페이지 1개 - 개인 - Microsoft Edge';
   const b = '다른 노래 | YouTube Music 외 페이지 1개 - 개인 - Microsoft Edge';
   assert.equal(brief(a), brief(b), `${brief(a)} vs ${brief(b)}`);
@@ -102,7 +102,7 @@ test('두뇌가 개수를 안 맞추면 아무것도 안 돌려준다', async ()
   assert.equal(await ask3(unknownWindow), null);
 });
 
-test('배운 자리를 그대로 한 줄로 풀 수 있다 — 제목인 척 되돌리면 조용히 빈 말이 된다', async () => {
+test('배운 자리를 그대로 한 줄로 풀 수 있다. 제목인 척 되돌리면 조용히 빈 말이 된다', async () => {
   const { bySlotTone } = await import('../dist/index.js');
   assert.equal(slotTone('노는중'), '', 'slot 이름은 창 제목이 아니다');
   assert.match(bySlotTone('노는중'), /노는 중/);

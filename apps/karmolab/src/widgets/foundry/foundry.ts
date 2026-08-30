@@ -1,14 +1,14 @@
 /**
- * 선반 — 여기 도구로 만든 것이 쌓이는 자리 (TASK-KL-254)
+ * 선반. 여기 도구로 만든 것이 쌓이는 자리 (TASK-KL-254)
  *
  * KarmoLab 에는 도구가 많은데 만든 결과가 안 남았다. 뽑으면 내려받기 폴더로 끝이라 다시 찾지도,
  * 남에게 보이지도 못한다. 참고한 곳(freegameui.net)의 알맹이는 에셋이 아니라
- * **툴 → 산출물 → 공개 → 산출물이 툴을 부른다**는 고리였다 — 이 화면이 그 고리의 마지막 칸이다.
+ * **툴 → 산출물 → 공개 → 산출물이 툴을 부른다**는 고리였다. 이 화면이 그 고리의 마지막 칸이다.
  *
  * 규칙 둘:
- *  1. **종류로 나눈다.** 이미지·벡터·소리가 한 칸에 섞이면 잡동사니가 되고, 잡동사니는 아무도 안 본다.
- *  2. **어느 도구로 만들었는지 항상 보인다.** 그게 없으면 선반은 그냥 파일 창고다 —
- *     보다가 「나도 만들어 볼까」로 넘어가는 길이 카드 안에 있어야 한다.
+ *  1. **종류로 나눈다.** 이미지, 벡터, 소리가 한 칸에 섞이면 잡동사니가 되고, 잡동사니는 아무도 안 본다.
+ *  2. **어느 도구로 만들었는지 항상 보인다.** 그게 없으면 선반은 그냥 파일 창고다 . 
+ *     보다가 나도 만들어 볼까로 넘어가는 길이 카드 안에 있어야 한다.
  *
  * 서버가 죽어도 화면은 살아 있어야 한다. 못 읽으면 그 사실을 적고, 다시 시도할 자리를 준다.
  */
@@ -83,7 +83,7 @@ function buildFoundry(container: HTMLElement): void {
     '<div class="fd-wrap">' +
       '<div class="fd-head">' +
         '<h3>선반</h3>' +
-        '<span class="fd-note">여기 도구로 만든 것. 전부 CC0 — 아무나 가져다 쓴다.</span>' +
+        '<span class="fd-note">여기 도구로 만든 것. 전부 CC0. 아무나 가져다 쓴다.</span>' +
         '<span class="fd-spacer"></span>' +
         '<button data-act="reload">새로 읽기</button>' +
       '</div>' +
@@ -117,11 +117,11 @@ function buildFoundry(container: HTMLElement): void {
           '<span class="fd-title">' + esc(item.title) + '</span>' +
           '<span class="fd-meta">' +
             '<span class="fd-tool">' + esc(TOOL_NAME[item.tool] ?? item.tool) + '</span>' +
-            esc(sizeText(item.bytes)) + ' · ' + esc(KST.format(new Date(item.createdAt))) +
+            esc(sizeText(item.bytes)) + ', ' + esc(KST.format(new Date(item.createdAt))) +
           '</span>' +
           '<span class="fd-acts">' +
             '<a href="' + esc(item.url) + '" download>내려받기</a>' +
-            // 만든 도구로 되돌려보내는 고리 — 이게 없으면 선반은 그냥 파일 창고다.
+            // 만든 도구로 되돌려보내는 고리. 이게 없으면 선반은 그냥 파일 창고다.
             (item.recipe ? '<a href="#' + esc(item.tool) + '">' + esc(TOOL_NAME[item.tool] ?? item.tool) + '에서 열기</a>' : '') +
           '</span>' +
         '</div>' +
@@ -129,7 +129,7 @@ function buildFoundry(container: HTMLElement): void {
   }
 
   async function load(): Promise<void> {
-    body.innerHTML = '<div class="fd-empty">선반을 읽는 중…</div>';
+    body.innerHTML = '<div class="fd-empty">선반을 읽는 중...</div>';
     try {
       const result = await listFoundry({ limit: 120 });
       all = result.items;
@@ -137,9 +137,9 @@ function buildFoundry(container: HTMLElement): void {
       drawTabs();
       drawItems();
     } catch (error) {
-      // 서버가 죽어도 화면은 살아 있어야 한다 — 무슨 일인지 적고, 다시 할 자리를 준다.
+      // 서버가 죽어도 화면은 살아 있어야 한다. 무슨 일인지 적고, 다시 할 자리를 준다.
       tabs.innerHTML = '';
-      body.innerHTML = '<div class="fd-error">선반을 못 읽었다 — ' +
+      body.innerHTML = '<div class="fd-error">선반을 못 읽었다. ' +
         esc(error instanceof Error ? error.message : String(error)) +
         '<br><small>' + esc(foundryBase()) + '</small>' +
         '<button data-act="reload">다시</button></div>';
@@ -165,7 +165,7 @@ function buildFoundry(container: HTMLElement): void {
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('foundry') || {} : {}),
     id: 'foundry',
-    category: 'tool',
+    category: 'play',
     layout: 'full',
     icon: '<path d="M3 8h18M3 14h18" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/><circle cx="7" cy="17" r="1.2" fill="currentColor"/>',
     tabs: [{ id: 'foundry-main', label: '선반', build: buildFoundry }]

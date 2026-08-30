@@ -1,11 +1,11 @@
 /**
- * panels/context.ts — 패널이 위젯에게 빌리는 것들 (TASK-KL-202 개편 2).
+ * panels/context.ts. 패널이 위젯에게 빌리는 것들 (TASK-KL-202 개편 2).
  *
  * `karmograph.ts` 가 2500 줄을 넘었고 그 절반이 **패널 아홉 개**였다. 그냥 파일만 쪼개면
- * 인자가 스무 개씩 붙어 더 나빠진다 — 그래서 **빌려 쓰는 것을 한 덩이(`PanelCtx`)로 묶어**
+ * 인자가 스무 개씩 붙어 더 나빠진다. 그래서 **빌려 쓰는 것을 한 덩이(`PanelCtx`)로 묶어**
  * 넘긴다. 패널은 이 덩이 하나만 알면 되고, 위젯은 한 군데서 채워 준다.
  *
- * 한 번에 다 옮기지 않는다. **의존이 가장 적은 패널부터** 하나씩 — 큰 이사를 한 번에 하면
+ * 한 번에 다 옮기지 않는다. **의존이 가장 적은 패널부터** 하나씩. 큰 이사를 한 번에 하면
  * 무엇이 깨졌는지 알 수 없고, 화면 검사(35항목)가 있어도 되돌릴 지점이 없어진다.
  */
 import type { GraphCanvas } from '../../../lib/karmograph/canvas';
@@ -15,14 +15,14 @@ import type { MyTerms } from '../terms';
 export interface PanelCtx {
   /** 패널이 그려질 자리. 패널은 여기 `innerHTML` 을 통째로 쓴다. */
   side: HTMLElement;
-  /** 지금 맵. 읽기만 — 고치는 것은 위젯이 준 함수로. */
+  /** 지금 맵. 읽기만. 고치는 것은 위젯이 준 함수로. */
   spec: () => GraphSpec;
   canvas: () => GraphCanvas | null;
   /** 화면 상태를 바꾸고 다시 그린다. */
   goNode: () => void;
   /** 그 노드를 골라 보여 준다. */
   focusNode: (nodeId: string) => void;
-  /** 구조를 고쳤을 때 — 저장 + 되돌리기 한 걸음. */
+  /** 구조를 고쳤을 때. 저장 + 되돌리기 한 걸음. */
   persist: () => void;
   /** 다시 그리기 (패널 자신 포함). */
   refresh: () => void;
@@ -37,12 +37,12 @@ export interface PanelCtx {
   backupAllMaps: () => void;
   /** 직전 판으로 되돌리기. */
   restorePrevRevision: () => void;
-  /** 다른 탭이 고친 판을 덮으며 따로 떠 둔 것이 있나 — 되찾는 길을 눈에 보이게 하려고. */
+  /** 다른 탭이 고친 판을 덮으며 따로 떠 둔 것이 있나. 되찾는 길을 눈에 보이게 하려고. */
   hasRescue?: () => boolean;
 
   // ── 거르기 패널이 빌리는 것들 ──────────────────────────────────────────
   /**
-   * 무엇을 껐는지 · 어떤 규칙을 켰는지. **위젯이 들고 있는 것을 그대로 빌려 준다** —
+   * 무엇을 껐는지, 어떤 규칙을 켰는지. **위젯이 들고 있는 것을 그대로 빌려 준다** . 
    * 패널 안에 두면 패널을 닫을 때마다 사라진다.
    */
   filterState: {
@@ -54,7 +54,7 @@ export interface PanelCtx {
     minDegree: number;
     sizeByDegree: boolean;
     colorByTag: boolean;
-    /** 칸으로 좁히기 — 이름만 있으면 「그 칸을 가진 것」, 값까지 있으면 「그 값인 것」. */
+    /** 칸으로 좁히기. 이름만 있으면 그 칸을 가진 것, 값까지 있으면 그 값인 것. */
     fieldName: string;
     fieldValue: string;
     /** 이 칸의 값마다 다른 색으로 물들인다(비면 안 씀). */
@@ -63,12 +63,12 @@ export interface PanelCtx {
   /** 거르기 값을 캔버스에 반영. */
   applyFilter: () => void;
   /**
-   * 이웃 몇 다리까지 볼 것인가 (`''` = 이웃 전체 · `'0'|'1'|'2'`) — TASK-KL-271 P4.
-   * 툴바에 있던 고르개를 여기로 들였다: 「덜 보기」가 세 자리로 흩어져 있었다.
+   * 이웃 몇 다리까지 볼 것인가 (`''` = 이웃 전체, `'0'|'1'|'2'`). TASK-KL-271 P4.
+   * 툴바에 있던 고르개를 여기로 들였다: 덜 보기가 세 자리로 흩어져 있었다.
    */
   focusDegree: () => string;
   setFocusDegree: (v: string) => void;
-  /** 시점이 바뀌었다 — 판 아래 시점 줄을 다시 그린다 (KL-271 X2). */
+  /** 시점이 바뀌었다. 판 아래 시점 줄을 다시 그린다 (KL-271 X2). */
   timesChanged: () => void;
   /** 꾸미기 규칙을 캔버스에 반영. */
   applyDecorate: () => void;
@@ -86,7 +86,7 @@ export interface PanelCtx {
   applyTerms: () => void;
 
   // ── 묶음 패널이 빌리는 것들 ────────────────────────────────────────────
-  /** 새 묶음 하나(팩 프리셋 이름·색을 집어 온다). */
+  /** 새 묶음 하나(팩 프리셋 이름, 색을 집어 온다). */
   createGroup: () => GroupDef;
   /** 이 노드가 든 묶음들. */
   memberOf: (node: GraphNode) => string[];
@@ -98,19 +98,19 @@ export interface PanelCtx {
   // ── 여럿 고름 패널이 빌리는 것들 ──────────────────────────────────────
   selectedMany: () => string[];
   clearMany: () => void;
-  /** 고른 한 벌을 「본」으로 떠 사람 창고에 둔다. */
+  /** 고른 한 벌을 본으로 떠 사람 창고에 둔다. */
   saveStamp: (name: string) => void;
   /** 떠 둔 본을 지금 화면 한가운데에 찍는다. */
   putStamp: (stampId: string) => void;
   /** 본을 창고에서 지운다(이미 찍어 놓은 그림은 그대로). */
   removeStamp: (stampId: string) => void;
-  /** 노드들과 거기 붙은 선·지시선을 함께 지운다. */
+  /** 노드들과 거기 붙은 선, 지시선을 함께 지운다. */
   removeNodes: (ids: string[]) => void;
 
   // ── 글로 만들기 패널이 빌리는 것들 ────────────────────────────────────
   /** 노드 종류 <option> 묶음 HTML. */
   nodeKindOptionsHtml: () => string;
-  /** 들여쓴 글 → 노드·선. 만든 개수를 돌려준다. */
+  /** 들여쓴 글 → 노드, 선. 만든 개수를 돌려준다. */
   buildFromOutline: (src: string, kind: string) => number;
 
   // ── 선 패널이 빌리는 것들 ──────────────────────────────────────────────
@@ -131,7 +131,7 @@ export interface PanelCtx {
   spawnNoteCard: (noteId: string) => void;
   /** 그 자리에 노드를 놓는다(이름이 비면 이름 칸에 커서). */
   spawnNodeAt: (x: number, y: number, label: string) => void;
-  /** 이름·모양이 바뀐 뒤 상자 크기를 다시 잰다. */
+  /** 이름, 모양이 바뀐 뒤 상자 크기를 다시 잰다. */
   resizeNode: (node: GraphNode) => void;
   /** 사진 고르는 창을 연다(고른 뒤 그 노드 얼굴이 된다). */
   openAvatarPicker: (nodeId: string) => void;

@@ -1,12 +1,12 @@
 /**
- * 기록·연속일·경험치 — 사용자 데이터 한 벌 (TASK-KL-321)
+ * 기록, 연속일, 경험치. 사용자 데이터 한 벌 (TASK-KL-321)
  *
  * 왜 여기 있나: 같은 `toolbox_user_data` 를 **두 벌이 따로** 만지고 있었다. 본체는
- * `toolbox.ts` 안에서(도전과제·뱃지·진행도), 플래너는 React 섬 안에서(연속일·경험치·레벨).
- * 열쇠가 같으니 서로의 값을 덮어쓸 수 있고, 실제로 규칙도 갈라져 있었다 — 섬만 레벨을
+ * `toolbox.ts` 안에서(도전과제, 뱃지, 진행도), 플래너는 React 섬 안에서(연속일, 경험치, 레벨).
+ * 열쇠가 같으니 서로의 값을 덮어쓸 수 있고, 실제로 규칙도 갈라져 있었다. 섬만 레벨을
  * 올리고 본체는 그 필드를 몰랐다. 섬을 걷어 내면서 **셈은 여기 한 곳**으로 모은다.
  *
- * 여기 있는 것은 전부 순수 함수 + 저장 한 겹이다. 화면은 없다 — 화면은 부르는 쪽이 그린다.
+ * 여기 있는 것은 전부 순수 함수 + 저장 한 겹이다. 화면은 없다. 화면은 부르는 쪽이 그린다.
  * 그래야 노드에서 그대로 시험할 수 있다(`scripts/test-gamification.mjs`).
  */
 
@@ -32,7 +32,7 @@ export interface UserData {
 
 export interface TrackMeta {
     id: string;
-    /** 화면 이름은 부르는 쪽이 i18n 으로 붙인다 — 여기엔 열쇠만 둔다 */
+    /** 화면 이름은 부르는 쪽이 i18n 으로 붙인다. 여기엔 열쇠만 둔다 */
     labelKey: string;
 }
 
@@ -43,7 +43,7 @@ export const DEFAULT_TRACKS: readonly TrackMeta[] = [
     { id: 'exercise', labelKey: 'planner.track.exercise' }
 ] as const;
 
-/** 연속일 마일스톤 도전과제 id — `widgets/user.ts` 의 도전과제 목록과 같은 문자열을 쓴다. */
+/** 연속일 마일스톤 도전과제 id. `widgets/user.ts` 의 도전과제 목록과 같은 문자열을 쓴다. */
 export const STREAK_ACHIEVEMENTS = ['streak_first', 'streak_7', 'streak_30', 'streak_100'] as const;
 export type StreakAchievementId = (typeof STREAK_ACHIEVEMENTS)[number];
 
@@ -69,7 +69,7 @@ function parseLocalDate(s: string): Date {
     return new Date(y, m - 1, d);
 }
 
-/** prev 가 today 의 바로 전날인가. 달·해가 바뀌는 자리를 손으로 세지 않으려고 날짜로 뺀다. */
+/** prev 가 today 의 바로 전날인가. 달, 해가 바뀌는 자리를 손으로 세지 않으려고 날짜로 뺀다. */
 function isYesterday(prev: string, today: string): boolean {
     return (parseLocalDate(today).getTime() - parseLocalDate(prev).getTime()) / 86400000 === 1;
 }
@@ -91,7 +91,7 @@ function normalizeStreak(raw: unknown): StreakState | null {
     };
 }
 
-/** 저장된 것이 어떤 모양이든 여기서 한 모양으로 만든다 — 옛 판이 남아 있어도 안 죽게. */
+/** 저장된 것이 어떤 모양이든 여기서 한 모양으로 만든다. 옛 판이 남아 있어도 안 죽게. */
 export function mergeUserData(parsed: Partial<UserData> | null | undefined): UserData {
     const d = emptyUserData();
     if (!parsed || typeof parsed !== 'object') return d;
@@ -121,7 +121,7 @@ export function hadAnyStreakActivity(data: UserData): boolean {
 
 export interface RecordResult {
     data: UserData;
-    /** 오늘 이미 기록했으면 false — 하루에 한 번만 는다 */
+    /** 오늘 이미 기록했으면 false. 하루에 한 번만 는다 */
     changed: boolean;
     newState?: StreakState;
     /** 이번에 새로 열린 마일스톤 도전과제 */
@@ -133,9 +133,9 @@ export interface RecordResult {
 }
 
 /**
- * 오늘 활동 기록 → 연속일·마일스톤·경험치까지 한 번에 셈한다 (저장은 안 한다).
+ * 오늘 활동 기록 → 연속일, 마일스톤, 경험치까지 한 번에 셈한다 (저장은 안 한다).
  *
- * 하나로 묶은 이유: 섬에서는 연속일·도전과제·경험치가 세 함수로 나뉘어 있었고, 부르는 쪽이
+ * 하나로 묶은 이유: 섬에서는 연속일, 도전과제, 경험치가 세 함수로 나뉘어 있었고, 부르는 쪽이
  * 그 셋을 순서대로 부르면서 **중간 상태를 두 번 읽어** 도전과제가 덮이는 자리가 있었다.
  * 들어간 값 하나 → 나온 값 하나면 그 사고가 안 난다.
  */
@@ -168,7 +168,7 @@ export function recordActivity(data: UserData, trackId: string, activityDate?: s
     if (current === 30) push('streak_30');
     if (current === 100) push('streak_100');
 
-    /* 보너스는 10일에서 멈춘다 — 안 그러면 오래 이어 온 사람만 하루에 수백씩 받아 레벨이 튄다. */
+    /* 보너스는 10일에서 멈춘다. 안 그러면 오래 이어 온 사람만 하루에 수백씩 받아 레벨이 튄다. */
     const exp = EXP_REWARDS.STREAK_COMPLETE + EXP_REWARDS.STREAK_BONUS_PER_DAY * Math.min(current, 10);
     const totalExp = (data.totalExp || 0) + exp;
     const newLevel = calcLevel(totalExp);
@@ -190,7 +190,7 @@ export function recordActivity(data: UserData, trackId: string, activityDate?: s
     };
 }
 
-/** 레벨 = floor(sqrt(경험치 / 50)) — 뒤로 갈수록 천천히 오른다. */
+/** 레벨 = floor(sqrt(경험치 / 50)). 뒤로 갈수록 천천히 오른다. */
 export function calcLevel(totalExp: number): number {
     return Math.floor(Math.sqrt(Math.max(0, totalExp) / 50));
 }
@@ -212,7 +212,7 @@ export function loadUserData(): UserData {
         const raw = localStorage.getItem(USER_DATA_KEY);
         if (raw) return mergeUserData(JSON.parse(raw) as Partial<UserData>);
     } catch {
-        /* 깨진 값이면 빈 것으로 시작한다 — 여기서 던지면 화면 전체가 안 뜬다 */
+        /* 깨진 값이면 빈 것으로 시작한다. 여기서 던지면 화면 전체가 안 뜬다 */
     }
     return emptyUserData();
 }
@@ -235,7 +235,7 @@ export function addExp(amount: number): { newLevel: number; leveledUp: boolean }
 }
 
 /**
- * 화면에서 부르는 자리 — 읽고·셈하고·저장하고·알린다.
+ * 화면에서 부르는 자리. 읽고, 셈하고, 저장하고, 알린다.
  * 되돌려주는 것 = 이번에 실제로 변한 것 (안 변했으면 `changed: false`).
  */
 export function recordStreakActivity(trackId: string, activityDate?: string): RecordResult {

@@ -1,15 +1,15 @@
 /**
- * panels/text-panel.ts — 글로 만들기 (TASK-KL-202 개편 2, 여덟 번째 이사).
+ * panels/text-panel.ts. 글로 만들기 (TASK-KL-202 개편 2, 여덟 번째 이사).
  *
- * 파싱과 배치는 `from-text.ts` 가, 실제로 노드를 놓는 일은 위젯의 `buildFromOutline` 이 한다 —
+ * 파싱과 배치는 `from-text.ts` 가, 실제로 노드를 놓는 일은 위젯의 `buildFromOutline` 이 한다 . 
  * 여기는 **글을 받아 넘기는 창**일 뿐이다(견본 넣기도 같은 길을 쓴다).
  */
 import { t } from '../../../lib/i18n';
 import type { PanelCtx } from './context';
 
 /**
- * 글로 만들기 — 들여쓴 목록을 그대로 관계도로 (격차 O).
- * 이미 그린 것은 건드리지 않고 **더한다**: 사람은 보통 「이만큼 더 있어」로 오지, 처음부터 다시 오지 않는다.
+ * 글로 만들기. 들여쓴 목록을 그대로 관계도로 (격차 O).
+ * 이미 그린 것은 건드리지 않고 **더한다**: 사람은 보통 이만큼 더 있어로 오지, 처음부터 다시 오지 않는다.
  */
 export function renderTextPanel(ctx: PanelCtx): void {
   const { side } = ctx;

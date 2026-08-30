@@ -1,14 +1,14 @@
 /**
  * 남이 만든 도구의 **신뢰 층** (TASK-KL-191 축4)
  *
- * KL-183 H 가 상자를 만들었다(우리 출처 없음 · 바깥 통신 끊김). 상자는 안전을 만들지만
- * **판단을 대신해 주지는 않는다** — 사람은 열기 전에 「이게 뭘 하는 건가」를 알 길이 없었고,
+ * KL-183 H 가 상자를 만들었다(우리 출처 없음, 바깥 통신 끊김). 상자는 안전을 만들지만
+ * **판단을 대신해 주지는 않는다**. 사람은 열기 전에 이게 뭘 하는 건가를 알 길이 없었고,
  * 이상한 것을 봐도 누를 자리가 없었다.
  *
  * 여기서는 진짜 브라우저에서 셋을 본다:
- *   ① 열면 「하는 일 · 막힌 것」 요약이 상자 위에 뜬다 (설명이 아니라 소스에서 읽은 것)
+ *   ① 열면 하는 일, 막힌 것 요약이 상자 위에 뜬다 (설명이 아니라 소스에서 읽은 것)
  *   ② 신고 단추가 **열어 본 그 자리**에 있다 (목록에만 있으면 창을 닫고 안 돌아온다)
- *   ③ 세워진 도구는 소스가 안 오고, 화면이 「왜 못 여나」를 말한다
+ *   ③ 세워진 도구는 소스가 안 오고, 화면이 왜 못 여나를 말한다
  *
  * 사용: URL=http://127.0.0.1:8813/apps/karmolab/index.html node scripts/smoke-usertool-trust.mjs
  */
@@ -68,7 +68,7 @@ page.on('dialog', (d) => d.accept()); // 신고 확인창
 await page.goto(`${BASE}#usertool`, { waitUntil: 'networkidle', timeout: 30000 });
 await page.waitForSelector('.ut-wrap', { timeout: 20000 });
 
-// ① 요약 — 열기 전에는 없고, 열면 상자 위에 뜬다
+// ① 요약. 열기 전에는 없고, 열면 상자 위에 뜬다
 if ((await page.locator('.ut-summary').count()) !== 0) problems.push('안 열었는데 요약이 떠 있다');
 await page.locator('button[data-run]').first().click();
 await page.waitForSelector('.ut-stage iframe', { timeout: 10000 });
@@ -85,7 +85,7 @@ if ((await page.locator('.ut-stage-head button[data-report]').count()) !== 1) {
   if (reported !== 1) problems.push('신고를 눌렀는데 서버로 안 갔다');
 }
 
-// ③ 세워진 도구 — 소스가 안 오고, 왜 못 여는지 말한다
+// ③ 세워진 도구. 소스가 안 오고, 왜 못 여는지 말한다
 await page.locator('button[data-run]').nth(1).click();
 await page.waitForTimeout(900);
 const stageText = (await page.locator('#utStage').textContent()) ?? '';
@@ -99,4 +99,4 @@ if (problems.length) {
   for (const p of problems) console.error(`   - ${p}`);
   process.exit(1);
 }
-console.log('✅ 열기 전 요약 · 열어 본 자리의 신고 · 세워진 것은 소스가 안 온다');
+console.log('✅ 열기 전 요약, 열어 본 자리의 신고, 세워진 것은 소스가 안 온다');

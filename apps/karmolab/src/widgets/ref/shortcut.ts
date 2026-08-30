@@ -1,14 +1,14 @@
 /**
  * 단축키 모음 (TASK-KL-088)
  *
- * 단축키표는 「외운 것을 확인」 이 아니라 「이런 게 있는 줄 몰랐다」 를 위해 존재한다.
+ * 단축키표는 외운 것을 확인 이 아니라 이런 게 있는 줄 몰랐다 를 위해 존재한다.
  * 그래서 목록을 다 싣지 않고, **알면 실제로 쓰게 되는 것**만 남긴다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /** [단축키, 하는 일, 비고] */
-  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /* 표는 **쓸 때** 짓는다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const sc = (): Record<string, Array<[string, string, string]>> => ({
     [t('shortcut.t01')]: [
       ['Win + D', t('shortcut.t02'), t('shortcut.t03')],
@@ -79,7 +79,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'shortcut',
     title: t('widgets.shortcut.title', undefined, "단축키 모음"),
     category: 'ref',
-    desc: t('widgets-desc.shortcut.desc', undefined, "윈도우·맥·브라우저·VS Code 단축키 중 알면 실제로 쓰게 되는 것만 모았습니다"),
+    desc: t('widgets-desc.shortcut.desc', undefined, "윈도우, 맥, 브라우저, VS Code 단축키 중 알면 실제로 쓰게 되는 것만 모았습니다"),
     layout: 'wide',
     icon: '<rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h1M10 9h1M14 9h1M18 9h1M6 13h1M10 13h5M18 13h1M8 16.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
     tabs: [

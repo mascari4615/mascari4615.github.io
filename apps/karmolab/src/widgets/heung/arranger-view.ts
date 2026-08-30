@@ -1,14 +1,14 @@
 /**
- * 흥 — 타임라인(arranger) 뷰 (TASK-KL-220 분리 3단).
+ * 흥. 타임라인(arranger) 뷰 (TASK-KL-220 분리 3단).
  *
  * piano-view 와 같은 규칙: DOM 도 프로젝트 상태도 모른다. 판정과 자료를 주입받아 문자열만 낸다.
- * 오디오 표본 읽기만 바깥에서 넣는다 — `AudioBuffer` 는 브라우저 것이라 여기 들이면
+ * 오디오 표본 읽기만 바깥에서 넣는다. `AudioBuffer` 는 브라우저 것이라 여기 들이면
  * 단위 테스트가 막힌다.
  */
 
 import { AUTOMATION_RANGE, type AutomationParam, type AutomationPoint, type StudioClip, type StudioTrack } from './model';
 
-/** 자동화 줄 높이 — 뷰와 제스처가 같은 숫자를 본다. 값의 범위는 항목마다 다르다. */
+/** 자동화 줄 높이. 뷰와 제스처가 같은 숫자를 본다. 값의 범위는 항목마다 다르다. */
 export const AUTOMATION_GEOMETRY = { height: 46 } as const;
 
 /** 값 → 화면 y. 항목의 최소~최대를 줄 높이에 편다 (볼륨 0~1.2, 팬 -1~1). */
@@ -19,7 +19,7 @@ export function automationY(value: number, param: AutomationParam = 'volume'): n
   return height - ratio * height;
 }
 
-/** 화면 y → 값 — 제스처가 쓰는 반대 방향. */
+/** 화면 y → 값. 제스처가 쓰는 반대 방향. */
 export function automationValue(ratioFromTop: number, param: AutomationParam = 'volume'): number {
   const { min, max } = AUTOMATION_RANGE[param];
   return min + (1 - Math.max(0, Math.min(1, ratioFromTop))) * (max - min);
@@ -58,7 +58,7 @@ export function waveformSvg(path: string, label: string, className = ''): string
 }
 
 export function waveMissing(decoding: boolean): string {
-  return `<div class="hu-wave-missing">${decoding ? 'DECODING…' : 'AUDIO MISSING'}</div>`;
+  return `<div class="hu-wave-missing">${decoding ? 'DECODING...' : 'AUDIO MISSING'}</div>`;
 }
 
 export interface ClipViewInput {
@@ -66,14 +66,14 @@ export interface ClipViewInput {
   clip: StudioClip;
   pxPerBeat: number;
   selected: boolean;
-  /** 오디오 클립의 속 그림 — 본체가 파형이든 「없음」이든 만들어 넣는다. */
+  /** 오디오 클립의 속 그림. 본체가 파형이든 없음이든 만들어 넣는다. */
   audioBody: () => string;
   esc: (value: unknown) => string;
 }
 
 /**
  * 클립 속 미리보기는 몇 밀리미터짜리 그림이다. 폭보다 촘촘한 음은 겹쳐서 안 보이는데
- * DOM 만 늘린다 — 폭에 맞춰 고르게 솎는다(4px 에 하나, 최소 8·최대 64).
+ * DOM 만 늘린다. 폭에 맞춰 고르게 솎는다(4px 에 하나, 최소 8, 최대 64).
  */
 export function previewNotes<T>(notes: T[], widthPx: number): T[] {
   const cap = Math.max(8, Math.min(64, Math.round(widthPx / 4)));
@@ -112,7 +112,7 @@ export interface AutomationViewInput {
   beatLabel: (beat: number) => string;
 }
 
-/** 항목 고르는 단추는 **트랙 머리**에 둔다 — lane 안에 두면 그 자리의 점을 덮는다. */
+/** 항목 고르는 단추는 **트랙 머리**에 둔다. lane 안에 두면 그 자리의 점을 덮는다. */
 export function automationPickerHtml(trackId: string, param: AutomationParam): string {
   const SHORT: Record<AutomationParam, string> = { volume: 'VOL', pan: 'PAN', reverb: 'REV' };
   return `<span class="hu-auto-pick">${(['volume', 'pan', 'reverb'] as AutomationParam[]).map((option) => `<button class="hu-mini${option === param ? ' is-on' : ''}" data-auto-param="${option}" data-track="${trackId}" title="${SHORT[option]} 자동화">${SHORT[option]}</button>`).join('')}</span>`;
@@ -130,11 +130,11 @@ export function automationHtml(input: AutomationViewInput): string {
     : `${Math.round(value * 100)}%`;
   const NAMES: Record<AutomationParam, string> = { volume: 'VOLUME', pan: 'PAN', reverb: 'REVERB' };
   const KOREAN: Record<AutomationParam, string> = { volume: '볼륨', pan: '팬', reverb: '리버브' };
-  const dots = points.map((point) => `<i data-auto-point="${point.id}" data-track="${trackId}" style="left:${point.beat * pxPerBeat}px;top:${y(point.value)}px" title="${beatLabel(point.beat)} · ${label(point.value)}"></i>`).join('');
+  const dots = points.map((point) => `<i data-auto-point="${point.id}" data-track="${trackId}" style="left:${point.beat * pxPerBeat}px;top:${y(point.value)}px" title="${beatLabel(point.beat)}, ${label(point.value)}"></i>`).join('');
   const name = NAMES[param];
-  const tag = points.length ? ` · ${points.length}점` : ` · 점 없음(트랙 ${KOREAN[param]} 그대로)`;
+  const tag = points.length ? `, ${points.length}점` : `, 점 없음(트랙 ${KOREAN[param]} 그대로)`;
 
-  return `<div class="hu-auto" data-auto="${trackId}" data-auto-kind="${param}" style="width:${width}px" title="빈 곳 클릭 = 점 추가 · 점 드래그 = 이동 · 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="hu-auto-tag">${name}${tag}</span>${dots}</div>`;
+  return `<div class="hu-auto" data-auto="${trackId}" data-auto-kind="${param}" style="width:${width}px" title="빈 곳 클릭 = 점 추가, 점 드래그 = 이동, 우클릭 = 삭제"><svg viewBox="0 0 ${Math.max(1, projectBeats * pxPerBeat)} ${AUTOMATION_GEOMETRY.height}" preserveAspectRatio="none"><path d="${line}"></path></svg><span class="hu-auto-tag">${name}${tag}</span>${dots}</div>`;
 }
 
 /**
@@ -152,7 +152,7 @@ export function visibleClips<T extends { start: number; duration: number }>(
   return clips.filter((clip) => clip.start + clip.duration > from && clip.start < to);
 }
 
-/** 빈 lane 에 뭘 하면 되는지 — 지금 든 도구에 따라 다르게 말한다. */
+/** 빈 lane 에 뭘 하면 되는지. 지금 든 도구에 따라 다르게 말한다. */
 export function laneHint(tool: 'draw' | 'select' | 'slice', kind: 'audio' | 'midi'): string {
   if (tool === 'select') return '끌어서 여러 개 고르기';
   if (tool === 'slice') return '클립을 눌러 자르기';

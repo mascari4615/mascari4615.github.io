@@ -1,6 +1,6 @@
 // agent-thread-router 순수 코어 전수검증 (Discord IO 무관). KAR-018-Y.
-// + TASK-KAR-018-THR: 재기동-중복 root fix (이름검색 dedup) ·
-//   proposal-id(pXXX) thread key · findThreadByName 분기.
+// + TASK-KAR-018-THR: 재기동-중복 root fix (이름검색 dedup) , 
+//   proposal-id(pXXX) thread key, findThreadByName 분기.
 import { describe, it, expect } from 'vitest';
 import { ChannelType, type Client } from 'discord.js';
 import {
@@ -13,7 +13,7 @@ import {
 describe('extractTaskId (순수)', () => {
   it('워커 메시지에서 TASK id 추출', () => {
     expect(
-      extractTaskId('🤖 KlWorker ▶ TASK-KL-071 수행 — 브랜치 feature/...'),
+      extractTaskId('🤖 KlWorker ▶ TASK-KL-071 수행. 브랜치 feature/...'),
     ).toBe('TASK-KL-071');
   });
   it('서브 접미(-A/-B/-X) 포함', () => {
@@ -31,13 +31,13 @@ describe('extractTaskId (순수)', () => {
   // ── TASK-KAR-018-THR (A): proposal-id(pXXX)도 thread key ──
   it('proposal-id (p+8hex) 를 thread key 로 인정', () => {
     expect(
-      extractTaskId("⑦' 발굴 → task-new (task) [p42c94051] — 승인 시 처리"),
+      extractTaskId("⑦' 발굴 → task-new (task) [p42c94051]. 승인 시 처리"),
     ).toBe('p42c94051');
     expect(
       extractTaskId('{"objId":"p0a1b2c3d","status":"approved"}'),
     ).toBe('p0a1b2c3d');
   });
-  it('TASK id 가 proposal-id 보다 우선 (기존 틱 대상 불변·회귀0)', () => {
+  it('TASK id 가 proposal-id 보다 우선 (기존 틱 대상 불변, 회귀0)', () => {
     expect(
       extractTaskId('TASK-KAR-018-THR 관련 제안 p42c94051 검토'),
     ).toBe('TASK-KAR-018-THR');
@@ -116,7 +116,7 @@ describe('findThreadByName (TASK-KAR-018-THR root fix)', () => {
 describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => {
   // prod nssm restart = 새 makeThreadRouter 인스턴스(맵 빈 상태).
   // 같은 TASK 다음 메시지가 *이름검색* 으로 기존 스레드 재사용 →
-  // ch.threads.create 0회 + 메인채널 포인터 0회 (중복·고아 0).
+  // ch.threads.create 0회 + 메인채널 포인터 0회 (중복, 고아 0).
   function makeFakeClient() {
     const created: { name: string; id: string }[] = [];
     const liveThreads: { id: string; name: string }[] = [];
@@ -163,7 +163,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
 
   const wait = () => new Promise((r) => setTimeout(r, 0));
 
-  it('재기동(맵 소실) 후 같은 TASK → 스레드 생성·포인터 0회 (중복 0)', async () => {
+  it('재기동(맵 소실) 후 같은 TASK → 스레드 생성, 포인터 0회 (중복 0)', async () => {
     const f = makeFakeClient();
     const deps = {
       resolveChannelId: () => 'CH',
@@ -186,7 +186,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
     r2('🤖 TASK-KAR-018-THR 사용자 질문에 답합니다');
     await wait();
     await wait();
-    // 이름검색이 기존 스레드 재사용 → 신규 생성·포인터 추가 0
+    // 이름검색이 기존 스레드 재사용 → 신규 생성, 포인터 추가 0
     expect(f.created.length).toBe(1);
     expect(f.sends.length).toBe(1);
 
@@ -203,7 +203,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
   });
 });
 
-describe('onMissingTask: silent — 사용자 정신없음 fix (2026-05-23)', () => {
+describe('onMissingTask: silent. 사용자 정신없음 fix (2026-05-23)', () => {
   function makeFakeClient() {
     const sends: string[] = [];
     const channel = {
@@ -241,7 +241,7 @@ describe('onMissingTask: silent — 사용자 정신없음 fix (2026-05-23)', ()
       },
       onMissingTask: 'silent',
     });
-    router('🛰 cadence digest — 일반 메시지 TASK-id 없음');
+    router('🛰 cadence digest. 일반 메시지 TASK-id 없음');
     await wait();
     await wait();
     expect(fallbackCalled).toBe(0);
@@ -272,14 +272,14 @@ describe('onMissingTask: silent — 사용자 정신없음 fix (2026-05-23)', ()
         fallbackCalled++;
       },
     });
-    router('🛰 cadence digest — 일반');
+    router('🛰 cadence digest. 일반');
     await wait();
     await wait();
     expect(fallbackCalled).toBe(1);
   });
 });
 
-describe('chunkForDiscord (순수·결정적)', () => {
+describe('chunkForDiscord (순수, 결정적)', () => {
   it('한도 이하 = 1청크', () => {
     expect(chunkForDiscord('짧은 보고')).toEqual(['짧은 보고']);
   });

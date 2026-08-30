@@ -3,7 +3,7 @@
  *
  * 왜 검사가 따로 있나: 언어 표시는 **틀려도 화면이 멀쩡하다**. 짝 표시가 한쪽만 있거나 없는
  * 주소를 가리켜도 사람 눈엔 아무 일도 안 일어나고, 몇 주 뒤 검색 유입이 안 오는 것으로만 드러난다.
- * 국제 사이트의 약 2/3 가 이 표시를 틀린다 — 대부분 **왕복 누락**이다.
+ * 국제 사이트의 약 2/3 가 이 표시를 틀린다. 대부분 **왕복 누락**이다.
  *
  * 보는 것 넷:
  *  ① 원본 장(`index.html`)의 짝 표시가 등록부(`data/locales.json`)와 같은가
@@ -53,7 +53,7 @@ for (const code of codes) {
   if (code === DEFAULT_LOCALE) continue;
   const file = path.join(root, '../blog', localizedPath(BARE, code).replace(/^\//, ''), 'index.html');
   if (!fs.existsSync(file)) {
-    fail.push(`${code} 장이 안 찍혔다: ${file} — \`npm run gen:locale-pages\` 먼저`);
+    fail.push(`${code} 장이 안 찍혔다: ${file}. \`npm run gen:locale-pages\` 먼저`);
     continue;
   }
   const html = fs.readFileSync(file, 'utf8');
@@ -67,9 +67,9 @@ for (const code of codes) {
     fail.push(`${code} 장의 canonical 이 제 주소가 아니다`);
 }
 
-/* ④ 도구 상세 장의 짝 표시 — **제 것을 가리키는가** ────
+/* ④ 도구 상세 장의 짝 표시. **제 것을 가리키는가** ────
  *
- * 예전에는 「도구 장에 짝 표시가 하나라도 있으면 실패」였다. 그때는 도구 장에 언어 판이 없었고,
+ * 예전에는 도구 장에 짝 표시가 하나라도 있으면 실패였다. 그때는 도구 장에 언어 판이 없었고,
  * 셸에서 새어 나온 표시는 전부 **첫 화면 주소**를 가리켰기 때문이다(129장이 남의 주소를 제 짝이라
  * 우기는 상태). 이제 도구 장에도 언어 판이 있으므로 규칙이 바뀐다: **있어야 하고, 제 id 를
  * 가리켜야 한다.** 없으면 언어 판이 한국어 장을 가리켜도 왕복이 안 돼 양쪽이 통째로 무시된다.
@@ -80,7 +80,7 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
   const bare = [];
   for (const id of fs.readdirSync(toolsDir)) {
     /* 작업대로 합친 옛 도구의 자리는 도구 장이 아니라 **작업대로 보내는 안내 한 장**이다
-       (canonical 은 작업대, noindex). 언어 판을 만들지 않으므로 짝 표시도 없는 게 맞다 —
+       (canonical 은 작업대, noindex). 언어 판을 만들지 않으므로 짝 표시도 없는 게 맞다 . 
        여기서 세면 배포가 선다(2026-08-13 실측: 그 이유로 배포 두 판 실패). */
     if (RETIRED_OPERATION_IDS.has(id)) continue;
     const f = path.join(toolsDir, id, 'index.html');
@@ -94,17 +94,17 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
     if (got.some((l) => !l.href.endsWith(`/t/${id}/`))) wrong.push(id);
   }
   if (wrong.length)
-    fail.push(`도구 장 ${wrong.length}개의 짝 표시가 제 주소가 아니다 (예: ${wrong[0]}) — 셸에서 새어 나왔는지 확인`);
+    fail.push(`도구 장 ${wrong.length}개의 짝 표시가 제 주소가 아니다 (예: ${wrong[0]}). 셸에서 새어 나왔는지 확인`);
   if (bare.length)
     fail.push(
-      `도구 장 ${bare.length}개에 짝 표시가 없다 (예: ${bare[0]}) — 언어 판만 한쪽을 가리키면 양쪽이 무시된다. \`npm run gen:tool-pages-locale\``
+      `도구 장 ${bare.length}개에 짝 표시가 없다 (예: ${bare[0]}). 언어 판만 한쪽을 가리키면 양쪽이 무시된다. \`npm run gen:tool-pages-locale\``
     );
 }
 
 /* ⑤ 언어 장의 링크가 **실제로 있는 곳**을 가리키는가 ──
  *
- * 도구 장 258개를 찍자마자 그 전부가 `/en/t/`(목록)·`/en/bot/`(봇 소개)를
- * 가리켰다 — 그 둘은 아직 그 언어로 안 찍는다. 링크는 **눌러 보기 전에는 멀쩡해 보인다**:
+ * 도구 장 258개를 찍자마자 그 전부가 `/en/t/`(목록), `/en/bot/`(봇 소개)를
+ * 가리켰다. 그 둘은 아직 그 언어로 안 찍는다. 링크는 **눌러 보기 전에는 멀쩡해 보인다**:
  * 화면도 검사도 통과하고, 누른 사람만 404 를 본다. 그래서 찍은 장을 훑어 그 언어 주소를 전부
  * 모으고, 파일이 실제로 있는지 본다. 없는 곳을 가리키면 여기서 선다.
  */
@@ -131,8 +131,8 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
         checked++;
         const html = fs.readFileSync(f, 'utf8');
         /* ★ 언어 주소는 **켠 언어 코드로만** 알아본다 (change.karmolab-at-root ②).
-           예전에는 `/<두 글자>/karmolab…` 이라 두 글자가 곧 언어였다. 뿌리 이관으로
-           `karmolab` 이 빠지자 `/apps/…`·`/changes.xml` 까지 언어 주소로 읽혀
+           예전에는 `/<두 글자>/karmolab...` 이라 두 글자가 곧 언어였다. 뿌리 이관으로
+           `karmolab` 이 빠지자 `/apps/...`, `/changes.xml` 까지 언어 주소로 읽혀
            **배포가 섰다** (2026-08-27 실측, 13종 오검출). */
         for (const m of html.matchAll(localeHrefRe)) {
           const target = path.join(root, '../blog', m[1].replace(/^\//, ''), 'index.html');
@@ -145,7 +145,7 @@ if (fs.existsSync(toolsDir) && codes.length > 1) {
   if (dead.size)
     fail.push(
       `언어 장이 없는 주소를 가리킨다 (${dead.size}종, 장 ${checked}개 검사): ${[...dead].slice(0, 3).join(', ')}` +
-        ' — 그 언어로 안 찍는 장은 원래 주소 그대로 둬야 한다'
+        '. 그 언어로 안 찍는 장은 원래 주소 그대로 둬야 한다'
     );
 }
 
@@ -153,9 +153,9 @@ if (fail.length) {
   for (const f of fail) console.error('[i18n-pages] ' + f);
   process.exit(1);
 }
-/* 덮은 정도를 늘 같이 찍는다 — 「거의 다 차면 낸다」로 바꾼 이상, 남은 구멍이 눈에 보여야 한다. */
+/* 덮은 정도를 늘 같이 찍는다. 거의 다 차면 낸다로 바꾼 이상, 남은 구멍이 눈에 보여야 한다. */
 const cov = codes
   .filter((c) => c !== DEFAULT_LOCALE)
-  .map((c) => `${c} ${(PAGE.itemNamespaces || []).map((ns) => `${ns} ${Math.round(coverage(c, ns) * 100)}%`).join(' · ')}`)
+  .map((c) => `${c} ${(PAGE.itemNamespaces || []).map((ns) => `${ns} ${Math.round(coverage(c, ns) * 100)}%`).join(', ')}`)
   .join(' | ');
-console.log(`[i18n-pages] 짝 표시 정상 — 언어 ${codes.join(', ')} · 왕복 + x-default 확인${cov ? ` · ${cov}` : ''}`);
+console.log(`[i18n-pages] 짝 표시 정상. 언어 ${codes.join(', ')}, 왕복 + x-default 확인${cov ? `, ${cov}` : ''}`);

@@ -1,18 +1,18 @@
 /**
- * 번개 대결 — 몇 초짜리 미니게임으로 붙는 1:1 (TASK-KL-132, 첫 사이클)
+ * 번개 대결. 몇 초짜리 미니게임으로 붙는 1:1 (TASK-KL-132, 첫 사이클)
  *
  * 레퍼런스에서 가져온 것 (2026-08-07 조사):
- *  - **와리오웨어**의 마이크로게임 — 「한 단어 명령 + 3~5초 + 즉시 판정」, 그리고 갈수록 짧아지는
+ *  - **와리오웨어**의 마이크로게임. 한 단어 명령 + 3~5초 + 즉시 판정, 그리고 갈수록 짧아지는
  *    limit 시간. 설명을 읽을 틈이 없어야 재밌다. 명령은 한 단어, 고르는 곳은 늘 같은 자리에 넷.
- *  - **브라우저 파티게임**(GameBuddies·게이밍카우치 류) — 가입 없이 **링크/방 코드**로 30초 안에
+ *  - **브라우저 파티게임**(GameBuddies, 게이밍카우치 류). 가입 없이 **링크/방 코드**로 30초 안에
  *    시작하고, 판이 끝나도 **방을 안 닫는다**(다시 붙는 마찰이 0이어야 한 판 더 한다).
  *  - 다만 그것들은 전부 **여럿이서, 자기 서버로** 돈다. 몇 초짜리 마이크로게임 1:1 은 못 찾았고,
- *    와리오웨어 대결 모드는 콘솔 전용이다 — 거기가 이 도구의 자리다.
+ *    와리오웨어 대결 모드는 콘솔 전용이다. 거기가 이 도구의 자리다.
  *
  * 서버가 없다: 짝짓기는 공개망을 거쳐 붙고(트리스테로), 오간 것은 둘 사이에서만 흐른다.
  * 우리 쪽에 방도 기록도 남지 않는다.
  *
- * 판정은 방을 만든 쪽이 맡는다 — 양쪽이 각자 재면 시계가 달라 승부가 갈리지 않는다.
+ * 판정은 방을 만든 쪽이 맡는다. 양쪽이 각자 재면 시계가 달라 승부가 갈리지 않는다.
  * P2P 라 마음먹으면 속일 수 있다. 캐주얼 놀이라 감수한다(순위표가 없으니 속일 값도 없다).
  */
 import { openRoom, quickMatch, makeCode, inviteLink, codeFromUrl, type Room } from '../../lib/room';
@@ -22,7 +22,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   const ROUNDS = 5;
   const LIMIT_START = 4000; // 첫 판 limit (레퍼런스: 3~5초)
-  const LIMIT_STEP = 400; // 판마다 이만큼 짧아진다 — 마지막은 2.4초
+  const LIMIT_STEP = 400; // 판마다 이만큼 짧아진다. 마지막은 2.4초
   const APP_ID = 'karmolab-duel';
 
   type Kind = 'chosung' | 'bigger' | 'color' | 'sum' | 'same' | 'reverse';
@@ -37,9 +37,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /* 문제는 **말 묶음이 들고 있다.** 초성 놀이는 한글에만 있는 놀이라, 말만 갈아끼우면
    * 다른 언어에선 놀이가 성립하지 않는다. 그래서 언어마다 *같은 규칙의 그 나라 놀이*를
-   * 적어 둔다 — en = 모음 뺀 glyph, ja = ローマ字の子音. 미끼는 첫 글자만 같고 실마리로
+   * 적어 둔다. en = 모음 뺀 glyph, ja = ローマ字の子音. 미끼는 첫 글자만 같고 실마리로
    * 되돌리면 달라지게 골라 둔다(겹치면 답이 둘이 된다).
-   * 표를 미리 굳히지 않고 **쓸 때 만든다** — 굳히면 그 시점엔 말 묶음이 아직 안 왔다. */
+   * 표를 미리 굳히지 않고 **쓸 때 만든다**. 굳히면 그 시점엔 말 묶음이 아직 안 왔다. */
   const QUIZ_COUNT = 6;
   const quizRound = (): Array<[string, string, string[]]> =>
     Array.from({ length: QUIZ_COUNT }, (_, i) => [
@@ -66,7 +66,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     return out;
   }
 
-  /** 판을 미리 다 만들어 상대에게 통째로 보낸다 — 양쪽이 각자 뽑으면 다른 문제가 뜬다. */
+  /** 판을 미리 다 만들어 상대에게 통째로 보낸다. 양쪽이 각자 뽑으면 다른 문제가 뜬다. */
   function makeRound(i: number): Round {
     const limitMs = LIMIT_START - i * LIMIT_STEP;
     const kind2: Kind[] = ['chosung', 'bigger', 'color', 'sum', 'same', 'reverse'];
@@ -136,8 +136,8 @@ import { t, loadNamespace } from '../../lib/i18n';
         limitMs
       };
     }
-    /* 색깔(스트룹): 「glyph 말고 **칠해진 색**」을 고른다. 정답 칸만 부른 색으로 칠하고,
-     * 글자는 일부러 다른 색 이름을 적는다 — 글자를 읽으면 오히려 틀린다. */
+    /* 색깔(스트룹): glyph 말고 **칠해진 색**을 고른다. 정답 칸만 부른 색으로 칠하고,
+     * 글자는 일부러 다른 색 이름을 적는다. 글자를 읽으면 오히려 틀린다. */
     const palette = colorName();
     const 고를색 = pick(palette);
     const rest = palette.filter((c) => c[0] !== 고를색[0]);
@@ -166,7 +166,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'duel',
     title: t('widgets.duel.title', undefined, '번개 대결'),
-    category: 'tool',
+    category: 'play',
     desc: t(
       'widgets-desc.duel.desc',
       undefined,
@@ -188,7 +188,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     ]
   });
 
-  /** 그리기는 **말 묶음이 온 뒤**에 — 문제도 화면도 전부 말 묶음에서 나온다. */
+  /** 그리기는 **말 묶음이 온 뒤**에. 문제도 화면도 전부 말 묶음에서 나온다. */
   function draw(container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: t('duel.mdd') });
 
@@ -201,7 +201,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             <div class="du-scores">
               <div class="du-score"><span class="du-who">${esc(t('duel.who.me'))}</span><b id="duMeScore">0</b></div>
-              <div class="du-round" id="duRound">— </div>
+              <div class="du-round" id="duRound">.  </div>
               <div class="du-score"><span class="du-who" id="duFoeName">${esc(t('duel.who.foe'))}</span><b id="duFoeScore">0</b></div>
             </div>
 
@@ -232,15 +232,15 @@ import { t, loadNamespace } from '../../lib/i18n';
           const status = $<HTMLElement>('#duStatus');
           const nameInput = $<HTMLInputElement>('#duName');
 
-          /* state 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* state 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           let room: Room | null = null;
 
           /* ★ **들어간 뒤에 이름을 적어도 상대에게 간다** (2026-08-14).
-             이름은 방에 들어갈 때 한 번만 갔다 — 링크로 들어온 사람은 보통 **들어가서**
-             이름을 적으므로, 상대 화면에는 영영 「누군가」로 남았다.
+             이름은 방에 들어갈 때 한 번만 갔다. 링크로 들어온 사람은 보통 **들어가서**
+             이름을 적으므로, 상대 화면에는 영영 누군가로 남았다.
              (`test:duel` 이 그 사실을 적고 있었는데 그 검사를 아무도 안 돌렸다.) */
           for (const ev of ['change', 'input']) nameInput.addEventListener(ev, () => room?.rename(내이름()));
           let host = false;
@@ -275,7 +275,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           function paintScores(): void {
             $<HTMLElement>('#duMeScore').textContent = String(myScore);
             $<HTMLElement>('#duFoeScore').textContent = String(foeScore);
-            $<HTMLElement>('#duRound').textContent = roundIndex>= 0 ? `${roundIndex + 1} / ${ROUNDS}` : '— ';
+            $<HTMLElement>('#duRound').textContent = roundIndex>= 0 ? `${roundIndex + 1} / ${ROUNDS}` : '.  ';
           }
 
           function showRound(r: Round): void {
@@ -307,7 +307,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               if (!answered) answer(-1);
             }, r.limitMs);
 
-            /* 유령과 놀 때는 상대의 손을 여기서 흉내 낸다. 사람처럼 가끔 틀리고, 가끔 늦는다 —
+            /* 유령과 놀 때는 상대의 손을 여기서 흉내 낸다. 사람처럼 가끔 틀리고, 가끔 늦는다 . 
              * 늘 맞히면 이길 수 없고 늘 틀리면 이길 이유가 없다. */
             clearTimeout(유령손);
             if (ghost) {
@@ -356,7 +356,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           function nextRound(): void {
             roundIndex++;
             if (roundIndex>= ROUNDS) {
-              // 끝났다는 것도 말해 줘야 한다 — 손님 쪽은 다음 판을 받아야 화면이 바뀌므로,
+              // 끝났다는 것도 말해 줘야 한다. 손님 쪽은 다음 판을 받아야 화면이 바뀌므로,
               // 안 보내면 마지막 판 화면에서 영영 기다린다(연결은 멀쩡한데 안 끝난 것처럼 보인다).
               sendPlan?.({ round: -1 });
               finish();
@@ -387,8 +387,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               /* 못 적어도 그만 */
             }
             say(asHost ? t('duel.status.waiting') : t('duel.status.joining'));
-            /* 방을 여는 일·이름 알리기·사람 들고 남은 `lib/room.ts` 가 맡는다 (TASK-KL-264).
-               여기 남는 것은 이 놀이만의 통로 셋 — 판(plan)·기록(res)·점수(score). */
+            /* 방을 여는 일, 이름 알리기, 사람 들고 남은 `lib/room.ts` 가 맡는다 (TASK-KL-264).
+               여기 남는 것은 이 놀이만의 통로 셋. 판(plan), 기록(res), 점수(score). */
             const r0 = openRoom({
               appId: APP_ID,
               code: roomId,
@@ -435,7 +435,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               paintScores();
             }).send as Send;
 
-            // 공개망을 거쳐 붙는다 — 통신망에 따라 아예 안 붙는 자리가 있다. 조용히 기다리게 두지 않는다.
+            // 공개망을 거쳐 붙는다. 통신망에 따라 아예 안 붙는 자리가 있다. 조용히 기다리게 두지 않는다.
             window.setTimeout(() => {
               if (!foe && roundIndex < 0) {
                 say(t('duel.status.blocked'));
@@ -448,7 +448,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           } catch {
             /* 못 읽어도 그만 */
           }
-          /* 적는 즉시 적어 둔다 — 위젯이 다시 짜이면(핫리로드·주소 바뀜) 입력칸이 비워져서
+          /* 적는 즉시 적어 둔다. 위젯이 다시 짜이면(핫리로드, 주소 바뀜) 입력칸이 비워져서
            * 이름 없이 붙는 일이 실제로 있었다. 다시 짜여도 위에서 되살아난다. */
           nameInput.addEventListener('input', () => {
             try {
@@ -465,7 +465,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             connect(joined, false);
           }
 
-          /* 「아무나랑」 — 대기방에 들어가 처음 만난 사람과 짝을 짓고, **둘만의 방으로 옮긴다.**
+          /* 아무나랑. 대기방에 들어가 처음 만난 사람과 짝을 짓고, **둘만의 방으로 옮긴다.**
            * 대기방에서 그대로 놀면 나중에 온 사람들에게까지 판이 새어 나간다. 방 이름을 두 사람의
            * 번호로 만들면 양쪽이 따로 계산해도 같은 이름이 나온다(주고받을 필요가 없다). */
           let ghost = false;
@@ -477,7 +477,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('duel.status.searching'));
             quickMatch(APP_ID, (room2, 내가주인) => {
               paired = true;
-              connect(room2, 내가주인); // 주인 뽑기·방 이름 계산은 `lib/room.ts` 한 곳에서
+              connect(room2, 내가주인); // 주인 뽑기, 방 이름 계산은 `lib/room.ts` 한 곳에서
             });
             // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
             window.setTimeout(() => {
@@ -485,7 +485,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             }, 45000);
           }
 
-          /** 아무도 없을 때 — 유령이 대신 달린다. 혼자 온 사람이 그냥 나가지 않게. */
+          /** 아무도 없을 때. 유령이 대신 달린다. 혼자 온 사람이 그냥 나가지 않게. */
           function 유령과(): void {
             ghost = true;
             host = true;

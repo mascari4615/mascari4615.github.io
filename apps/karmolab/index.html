@@ -17,45 +17,45 @@ permalink: /
     <!-- KAR-115 PWA (Phase 3 native mobile substrate) -->
     <link rel="manifest" href="/apps/karmolab/manifest.json">
     <!-- 브라우저가 주소창과 **넘겨 스크롤한 자리**를 이 색으로 칠한다. 어두운 색으로 박아 두면
-         밝은 테마에서도 스크롤 끝에 검은 띠가 보인다 — 폰에서 그렇게 나가고 있었다.
+         밝은 테마에서도 스크롤 끝에 검은 띠가 보인다. 폰에서 그렇게 나가고 있었다.
          아래 부트 스크립트가 지금 테마에 맞춰 바꾼다 (TASK-KL-101). -->
     <meta name="theme-color" id="themeColorMeta" content="#0f0f12">
     <!-- 이 앱은 어두운 화면이 기본이다. 이걸 안 알려 주면 브라우저가 CSS 가 오기 전까지 흰 바탕을
-         칠해, 느린 회선에서 흰 화면이 번쩍인 뒤 검게 바뀐다. 「dark light」 로 둘 다 적으면 브라우저가 OS 설정을 따라 흰 바탕을 칠한다 — 실측으로 확인해 하나만 적는다.
+         칠해, 느린 회선에서 흰 화면이 번쩍인 뒤 검게 바뀐다. dark light 로 둘 다 적으면 브라우저가 OS 설정을 따라 흰 바탕을 칠한다. 실측으로 확인해 하나만 적는다.
          밝은 테마로 바꾼 사람은 CSS 가 오면 그쪽이 이긴다(toolbox.css 가 light 를 다시 지정한다). -->
     <meta name="color-scheme" content="dark">
-    <!-- 표준 이름이 먼저다. apple- 접두 쪽은 Edge/Chrome 이 「낡았다」고 콘솔에 찍지만,
-         구형 iOS Safari 는 아직 그것만 읽는다 — 둘 다 남긴다 (2026-08-08). -->
+    <!-- 표준 이름이 먼저다. apple- 접두 쪽은 Edge/Chrome 이 낡았다고 콘솔에 찍지만,
+         구형 iOS Safari 는 아직 그것만 읽는다. 둘 다 남긴다 (2026-08-08). -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
-    <!-- KAR-115 PWA + KL-088 갱신 안내 — 등록·업데이트 배너는 js/pwa-update.js 가 담당.
-         첫 그림에는 안 쓰인다(SW 등록과 「새 버전 있어요」 배너뿐) — 아래 `pullRest` 가 한가할 때 받는다.
+    <!-- KAR-115 PWA + KL-088 갱신 안내. 등록, 업데이트 배너는 js/pwa-update.js 가 담당.
+         첫 그림에는 안 쓰인다(SW 등록과 새 버전 있어요 배너뿐). 아래 `pullRest` 가 한가할 때 받는다.
          부팅 예산 40KB 를 지키려고 뺐다: 여기 두면 2.0KB(gz) 가 첫 그림을 막는다. -->
-    <!-- 언어 단추·안내 띠 (TASK-KL-203). 첫 그림에는 필요 없다 — 단추 자체는 HTML 에 이미 있고
+    <!-- 언어 단추, 안내 띠 (TASK-KL-203). 첫 그림에는 필요 없다. 단추 자체는 HTML 에 이미 있고
          글자도 찍을 때 박히므로, 이 파일은 누를 때와 안내를 띄울 때만 쓰인다.
-         **그런데 첫 그림 앞에 있었다**(3.6KB gz) — 부팅 예산 천장을 함께 넘기고 있었다.
-         주석이 이미 「필요 없다」고 말하고 있었으므로 그 말대로 뒤로 옮긴다 (TASK-KL-201).
+         **그런데 첫 그림 앞에 있었다**(3.6KB gz). 부팅 예산 천장을 함께 넘기고 있었다.
+         주석이 이미 필요 없다고 말하고 있었으므로 그 말대로 뒤로 옮긴다 (TASK-KL-201).
          늦게 와도 단추가 늦게 살아날 뿐이고, 그 사이 눌러도 주소는 그대로 동작한다. -->
     <!-- ★ **늦게 받는 것 셋을 한 자리에 모았다** (2026-08-17). 똑같은 아홉 줄이 세 군데
-         흩어져 있었다(말 바꾸기·내 정보·같이 쓰기). 뜻이 같은 글이 여러 벌이면 한 곳만 고쳐도
+         흩어져 있었다(말 바꾸기, 내 정보, 같이 쓰기). 뜻이 같은 글이 여러 벌이면 한 곳만 고쳐도
          모르고, `script-src` 자물쇠를 걸 때는 **지문도 세 개**가 된다(인라인 14 → 12).
          하는 일은 그대로다: 화면이 다 뜬 뒤 한가해지면 받는다. -->
     <!-- 늦게 받는 것 셋은 boot-late.js 로 옮겼다 (2026-08-17) -->
-    <title>KarmoLab — 삶을 섞고 술을 바꿀 시간</title>
+    <title>KarmoLab. 삶을 섞고 술을 바꿀 시간</title>
     <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
          WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
          경량 풀스크린 알람만 로드 (widgets-loader.js 가 같은 hash 로 early-return). -->
     <!-- 알람 발화 모드도 boot-late.js 로 (2026-08-17) -->
     <meta name="description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="canonical" href="https://blog.mascari4615.com/">
-    <!-- 언어 판 왕복 표시 (TASK-KL-203). 원본(이 장)도 상대를 가리켜야 한 벌로 인정된다 —
+    <!-- 언어 판 왕복 표시 (TASK-KL-203). 원본(이 장)도 상대를 가리켜야 한 벌로 인정된다 . 
          한쪽만 가리키면 양쪽 표시가 통째로 무시된다(다국어 사이트가 가장 자주 틀리는 곳).
-         **아래 줄들은 자동 생성이다** — 손으로 고치지 마라. `npm run gen:locale-pages` 가
+         **아래 줄들은 자동 생성이다**. 손으로 고치지 마라. `npm run gen:locale-pages` 가
          `data/locales.json` + 번역 상태를 보고 다시 쓴다(언어를 켜면 여기도 저절로 는다).
          도구 상세 장 전부(수는 `data/tools-seo.json` 이 정본)는 이 셸을 복사해 쓰지만 아직 한국어뿐이라, `shell-page.mjs` 가 이 줄을
-         빼고 찍는다 — 안 빼면 129장이 전부 이 주소(/)를 제 짝이라고 우긴다. -->
+         빼고 찍는다. 안 빼면 129장이 전부 이 주소(/)를 제 짝이라고 우긴다. -->
     <link rel="alternate" hreflang="ko" href="https://blog.mascari4615.com/">
     <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/">
     <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/">
@@ -63,21 +63,21 @@ permalink: /
     <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
          기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
          도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
-         그 둘 다 검색 결과에서 제 크기로 안 쓰인다. 「색인하지 마라」와는 반대 방향의 표시다. -->
+         그 둘 다 검색 결과에서 제 크기로 안 쓰인다. 색인하지 마라와는 반대 방향의 표시다. -->
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
+    <meta property="og:title" content="KarmoLab. 삶을 섞고 술을 바꿀 시간">
     <meta property="og:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <meta property="og:url" content="https://blog.mascari4615.com/">
     <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/default.jpg">
     <meta property="og:locale" content="ko_KR">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
+    <meta name="twitter:title" content="KarmoLab. 삶을 섞고 술을 바꿀 시간">
     <meta name="twitter:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
-    <!-- KARMOLAB_ROOT_LD — 검색엔진이 읽는 구조 설명 (TASK-KL-089).
-         이 페이지는 블로그의 모든 글에서 링크되는데 여기에만 구조 설명이 없었다 — 도구 상세와
-         목록에는 있다. 그래서 검색 결과에서 이름·주소만 나가고, 이 안에서 도구를 찾을 수 있다는
-         사실이 전달되지 않았다. 찾기 주소(`/t/?q=…`)는 실제로 동작하는 것을 쓴다:
+    <!-- KARMOLAB_ROOT_LD. 검색엔진이 읽는 구조 설명 (TASK-KL-089).
+         이 페이지는 블로그의 모든 글에서 링크되는데 여기에만 구조 설명이 없었다. 도구 상세와
+         목록에는 있다. 그래서 검색 결과에서 이름, 주소만 나가고, 이 안에서 도구를 찾을 수 있다는
+         사실이 전달되지 않았다. 찾기 주소(`/t/?q=...`)는 실제로 동작하는 것을 쓴다:
          목록 페이지가 그 값을 읽어 그 상태에서 시작한다(없는 주소를 적으면 무시당한다). -->
     <script type="application/ld+json">
     {"@context":"https://schema.org","@graph":[
@@ -89,35 +89,35 @@ permalink: /
       {"@type":"CollectionPage","@id":"https://blog.mascari4615.com/#page",
        "url":"https://blog.mascari4615.com/","isPartOf":{"@id":"https://blog.mascari4615.com/#site"},
        "name":"KarmoLab","inLanguage":"ko-KR",
-       "about":"글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다루는 곳",
+       "about":"글, 이미지, 계산, 개발에 쓰는 도구를 브라우저 안에서 다루는 곳",
        "hasPart":{"@type":"CollectionPage","name":"도구 전체","url":"https://blog.mascari4615.com/t/"}}
     ]}
     </script>
-    <!-- 변경 기록 구독 (TASK-KL-098). 구독기·브라우저가 이 줄을 보고 「구독할 수 있는 곳」임을 안다 —
+    <!-- 변경 기록 구독 (TASK-KL-098). 구독기, 브라우저가 이 줄을 보고 구독할 수 있는 곳임을 안다 . 
          주소를 아는 사람만 닿게 두면 있으나 마나다. -->
-    <link rel="alternate" type="application/rss+xml" title="KarmoLab — 변경 기록" href="/changes.xml">
+    <link rel="alternate" type="application/rss+xml" title="KarmoLab. 변경 기록" href="/changes.xml">
     <!-- 다음에 갈 곳을 **미리 받아 둔다** (TASK-KL-128, Speculation Rules).
-         도구가 백 가지가 넘어 사람은 목록에서 하나를 고른다 — 그 순간 화면 하나를 통째로 새로
+         도구가 백 가지가 넘어 사람은 목록에서 하나를 고른다. 그 순간 화면 하나를 통째로 새로
          받아야 했다. 마우스를 올리거나 누르기 시작하면(=고를 낌새) 브라우저가 그 화면을 미리
          받아 둔다. 그러면 누르는 순간에는 이미 와 있다.
-         이제 **미리 실행까지** 한다(`prerender`) — 누르는 순간 이미 다 그려져 있다.
-         한동안 받아만 뒀던 이유는 「아무도 안 본 화면이 방문으로 세인다」였는데, 그건 계측이
+         이제 **미리 실행까지** 한다(`prerender`). 누르는 순간 이미 다 그려져 있다.
+         한동안 받아만 뒀던 이유는 아무도 안 본 화면이 방문으로 세인다였는데, 그건 계측이
          브라우저의 구분을 안 보고 있었기 때문이다. `analytics.ts` 가 `document.prerendering`
-         을 보고 도착(`prerenderingchange`) 뒤에 세도록 고쳤다 — 그동안의 기록은 줄을 세운다.
-         **새로 뭘 미리 돌게 만들 때는 그 구분을 같이 봐라** (타이머·소리·서버 두드리기).
-         `moderate` = 「올려두거나 누르기 시작했을 때」. 아무것도 안 하는 사람은 아무것도 안 받는다.
-         한 번에 두 장까지만 미리 돈다(브라우저 제한) — 화면 128개를 다 돌리지 않는다.
+         을 보고 도착(`prerenderingchange`) 뒤에 세도록 고쳤다. 그동안의 기록은 줄을 세운다.
+         **새로 뭘 미리 돌게 만들 때는 그 구분을 같이 봐라** (타이머, 소리, 서버 두드리기).
+         `moderate` = 올려두거나 누르기 시작했을 때. 아무것도 안 하는 사람은 아무것도 안 받는다.
+         한 번에 두 장까지만 미리 돈다(브라우저 제한). 화면 128개를 다 돌리지 않는다.
          이 기능을 모르는 브라우저는 이 덩어리를 그냥 무시한다(우리가 손댈 것 없음).
          **주소가 한국어 판만이면 나머지 두 판은 이 줄을 달고도 아무 일이 안 난다** (2026-08-17 실측):
-         영어 장의 링크는 `/en/t/...` 인데 규칙은 `/t/*` 만 봤다 — 규칙은 주소
+         영어 장의 링크는 `/en/t/...` 인데 규칙은 `/t/*` 만 봤다. 규칙은 주소
          맨 앞부터 맞춰 보므로 하나도 안 맞는다. 260여 장이 태그만 달고 이득은 0이었다.
-         그래서 세 판을 다 적는다(`/`·`/en/`·`/ja/`). 그 장에 없는 링크는 어차피 아무 일도 안 한다.
+         그래서 세 판을 다 적는다(`/`, `/en/`, `/ja/`). 그 장에 없는 링크는 어차피 아무 일도 안 한다.
          -->
-    <!-- ★ 미리읽기 규칙 — **되살렸다** (2026-08-17).
+    <!-- ★ 미리읽기 규칙. **되살렸다** (2026-08-17).
          한때 `script-src` 자물쇠를 걸며 뺐는데, 그 자물쇠가 크롬에서 이 규칙을 막는다는 걸 재고
-         빼 봤더니 이번엔 `smoke-navigation` 이 「미리받기 규칙집이 사라졌다」로 배포를 세웠다.
+         빼 봤더니 이번엔 `smoke-navigation` 이 미리받기 규칙집이 사라졌다로 배포를 세웠다.
          즉 **자물쇠와 이 빠르기 도우미는 지금 같이 못 산다.** 이미 있고 검사가 지키는 쪽(빠르기)을
-         남기고, 자물쇠는 껍데기에서 내린다(만드는 도구·검사·손잡이 0 은 그대로 두었다 —
+         남기고, 자물쇠는 껍데기에서 내린다(만드는 도구, 검사, 손잡이 0 은 그대로 두었다 . 
          헤더를 붙일 수 있는 자리로 옮기거나 크롬이 키워드를 받으면 그때 다시 건다). -->
     <script type="speculationrules">
       {"prerender":[{"where":{"and":[{"href_matches":"/t/*"},{"not":{"href_matches":"/t/"}}]},"eagerness":"moderate"},
@@ -127,21 +127,21 @@ permalink: /
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
     <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
-    <!-- KARMOLAB_FONTS — 글꼴은 우리 서버에서, 우리가 쓰는 글자만 (TASK-KL-128).
-         예전엔 남의 서버(fonts.googleapis.com)에서 목록을 받았는데 그것만 281~467KB 였다 —
+    <!-- KARMOLAB_FONTS. 글꼴은 우리 서버에서, 우리가 쓰는 글자만 (TASK-KL-128).
+         예전엔 남의 서버(fonts.googleapis.com)에서 목록을 받았는데 그것만 281~467KB 였다 . 
          우리 JS+CSS 를 다 합친 것보다 크다. 재 보니 그 2초 동안 글꼴 파일은 도착조차 안 했다(쓰임 0%).
          지금은 굵기가 축으로 든 원본에서 쓰는 글자만 구워 둔다. 목록은 아래 여섯 줄이 전부다.
-         만드는 곳 = `scripts/gen-fonts.py`. 목록을 여기 베껴 적지 않는다 — 두 벌이면 언젠가 갈라진다.
+         만드는 곳 = `scripts/gen-fonts.py`. 목록을 여기 베껴 적지 않는다. 두 벌이면 언젠가 갈라진다.
          한글 뭉치를 미리 부르는(preload) 것도 해 봤는데 **느린 회선에서 오히려 늦어졌다**:
          257KB 짜리가 가장 높은 우선순위로 회선을 먼저 먹어 스타일이 밀렸다(첫 그림 284→880ms).
          글꼴은 늦게 와도 되는 것이라(swap) 미리 부르지 않는다. -->
     <script src="/apps/karmolab/js/boot-late.js" defer></script>
-    <!-- 위 한 줄이 하던 일 = 글꼴 늦게 받기 · 방문 기록 늦게 부르기.
-         인라인이던 것을 밖으로 뺐다(자물쇠로 가는 길 — `src/boot-late.ts` 머리말). -->
+    <!-- 위 한 줄이 하던 일 = 글꼴 늦게 받기, 방문 기록 늦게 부르기.
+         인라인이던 것을 밖으로 뺐다(자물쇠로 가는 길. `src/boot-late.ts` 머리말). -->
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/fonts.css"></noscript>
     <!-- 셸 스타일을 두 벌로 나눠 받는다 (TASK-KL-128 ④-b).
          한 장(101KB)이 통째로 화면 그리기를 막고 있었는데, 재 보니 그 안에 **눌러야/골라야
-         나타나는 것**이 23.7KB 섞여 있었다 — 명령 팔레트(목록·도구 화면에서 쓰임 0%),
+         나타나는 것**이 23.7KB 섞여 있었다. 명령 팔레트(목록, 도구 화면에서 쓰임 0%),
          첫 화면 큰 소개, 옆줄 차림. 글이 나오기를 그것들이 막을 이유가 없다.
          나누는 곳 = `scripts/split-css.mjs` (정본은 여전히 `css/toolbox.css` 한 장이다). -->
     <link rel="stylesheet" href="/apps/karmolab/css/shell-critical.css">
@@ -149,11 +149,11 @@ permalink: /
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css"></noscript>
     <!-- 화면이 바뀔 때 **흰 화면이 깜빡이지 않게** (TASK-KL-208).
          도구 상세는 131장이 각자 별개 페이지라, 목록에서 하나를 누르면 문서를 통째로 갈아
-         끼우는 동안 흰 판이 한 번 번쩍인다 — 앱처럼 생긴 사이트에서 그 순간만 「웹페이지」로
+         끼우는 동안 흰 판이 한 번 번쩍인다. 앱처럼 생긴 사이트에서 그 순간만 웹페이지로
          돌아간다. 아래 두 줄이면 브라우저가 두 페이지 사이를 이어 그린다. 자바스크립트 0.
-         모르는 브라우저(파이어폭스, 진행 중)는 이 덩어리를 그냥 무시한다 — 지금과 똑같이 동작.
+         모르는 브라우저(파이어폭스, 진행 중)는 이 덩어리를 그냥 무시한다. 지금과 똑같이 동작.
          머리띠에 이름을 주면 그 자리는 **넘어가는 동안 그대로 남는다**(같이 사라졌다 나타나지
-         않는다) — 이름은 문서에 하나뿐이어야 하므로 머리띠 하나에만 준다.
+         않는다). 이름은 문서에 하나뿐이어야 하므로 머리띠 하나에만 준다.
          인라인으로 둔 이유: 이 몇 줄이 늦게 오면 첫 이동에서만 전환이 빠진다. 200바이트다. -->
     <style>
       @view-transition { navigation: auto; }
@@ -161,37 +161,36 @@ permalink: /
       @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
       #headerBar { view-transition-name: kl-header; }
     </style>
-    <!-- 도구 화면용 스타일은 **첫 화면에서 한 줄도 안 쓰인다** (실측 0%) — 그런데 통째로
+    <!-- 도구 화면용 스타일은 **첫 화면에서 한 줄도 안 쓰인다** (실측 0%). 그런데 통째로
          화면 그리기를 막고 있었다 (TASK-KL-128 ④-c). 첫 화면은 앱 셸이고, 이 둘은 그 안에서
-         도구를 열었을 때부터 필요하다. 그리기를 막지 않게 걸어 두고 바로 이어서 켠다 —
+         도구를 열었을 때부터 필요하다. 그리기를 막지 않게 걸어 두고 바로 이어서 켠다 . 
          받는 것은 그대로라 도구를 열 때쯤이면 이미 와 있다.
-         도구 상세 페이지(/t/…)는 첫 그림부터 이 스타일이 필요하므로
+         도구 상세 페이지(/t/...)는 첫 그림부터 이 스타일이 필요하므로
          `scripts/lib/shell-page.mjs` 가 그 장에서만 도로 막는 쪽으로 바꾼다. -->
     <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print">
     <link rel="stylesheet" href="/apps/karmolab/css/lotto.css" media="print">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print">
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/randomgen.css"><link rel="stylesheet" href="/apps/karmolab/css/lotto.css"><link rel="stylesheet" href="/apps/karmolab/css/tools.css"></noscript>
     <!-- 코드 색칠 스타일은 **첫 그림을 막지 않는다** (실측 2026-08-08).
-         `rel="stylesheet"` 로 두면 이 한 장이 첫 그림을 붙잡는다 — 그 요청만 1.5초 늦춰 봤더니
+         `rel="stylesheet"` 로 두면 이 한 장이 첫 그림을 붙잡는다. 그 요청만 1.5초 늦춰 봤더니
          첫 그림이 484ms → 1936ms 가 됐다(3회 중앙값). 그런데 첫 화면에는 코드 블록이 없다.
          도구 상세 장들은 생성기(`scripts/lib/shell-page.mjs`)가 이미 같은 처리를 하고 있었고,
-         앱 첫 화면만 빠져 있었다. `id` 는 그대로 둔다 — 테마 고르는 코드가 이 id 로 찾는다. -->
+         앱 첫 화면만 빠져 있었다. `id` 는 그대로 둔다. 테마 고르는 코드가 이 id 로 찾는다. -->
     <link id="prism-css" rel="stylesheet" media="print" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
     <script>
 (function(){
   var t=localStorage.getItem('toolbox_theme')||'dark';
   var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
-  var nav=localStorage.getItem('toolbox_nav_layout')||'header';
   document.documentElement.setAttribute('data-theme',t);
   /* ★ **글자로 박은 손잡이를 여기서 대신 단다** (2026-08-17). 늦게 받는 스타일 넉 장은
      media="print" + onload 로 달려 있었는데, 그 한 글자 때문에 CSP 에 script-src 를 못 건다
-     (그 자물쇠는 인라인 손잡이도 함께 막는다). 같은 일을 여기서 한다 — 이미 온 것은 바로,
+     (그 자물쇠는 인라인 손잡이도 함께 막는다). 같은 일을 여기서 한다. 이미 온 것은 바로,
      아직인 것은 오면. 받는 시점은 그대로라 첫 화면 값은 안 바뀐다. */
-  /* ★ **켜 준 것에는 표를 남긴다** (2026-08-17). 「이건 미뤄 둔 것」이라는 사실은 예전엔
+  /* ★ **켜 준 것에는 표를 남긴다** (2026-08-17). 이건 미뤄 둔 것이라는 사실은 예전엔
      `onload=` 라는 글자가 증거였고, 첫 화면을 막는 스타일을 세는 검사도 그 글자를 보고 뺐다.
-     그 글자를 걷어내자 검사는 켜진 뒤의 `media="all"` 만 보고 **미뤄 둔 것을 「막는 것」으로**
-     세기 시작했다(도구 장 넷에서 8건 빨강 — 실제로는 첫 화면을 안 막는다).
-     증거를 다시 남긴다. 켤 때 표를 달아 두면 켠 뒤에도 「미뤄 둔 것」임이 남는다. */
+     그 글자를 걷어내자 검사는 켜진 뒤의 `media="all"` 만 보고 **미뤄 둔 것을 막는 것으로**
+     세기 시작했다(도구 장 넷에서 8건 빨강. 실제로는 첫 화면을 안 막는다).
+     증거를 다시 남긴다. 켤 때 표를 달아 두면 켠 뒤에도 미뤄 둔 것임이 남는다. */
   for (var i=0, ls=document.querySelectorAll('link[rel="stylesheet"][media="print"]'); i<ls.length; i++) {
     (function(l){
       l.setAttribute('data-deferred','');
@@ -199,17 +198,19 @@ permalink: /
       l.addEventListener('load', function(){ l.media='all'; });
     })(ls[i]);
   }
-  /* 주소창·넘겨 스크롤한 자리의 색을 테마에 맞춘다. 여기서 안 맞추면 밝은 테마에서
+  /* 주소창, 넘겨 스크롤한 자리의 색을 테마에 맞춘다. 여기서 안 맞추면 밝은 테마에서
      스크롤 끝에 검은 띠가 보인다. 값은 CSS 의 바탕색과 같아야 한다(--bg-void). */
   var tcm=document.getElementById('themeColorMeta');
   if(tcm) tcm.setAttribute('content', t==='light' ? '#ffffff' : '#0e0d14');
   document.documentElement.setAttribute('data-bg',bg);
-  document.documentElement.setAttribute('data-nav',nav);
+  /* 왼쪽 목록은 늘 있다. 고르는 것은 접힘뿐 (2026-08-30). 예전엔 왼쪽 목록/상단 메뉴
+     택일 + 상단 메뉴 끄기까지 스위치가 둘이었고, 둘 다 끄면 길이 하나도 안 남았다. */
+  document.documentElement.setAttribute('data-sidebar',(localStorage.getItem('toolbox_sidebar_collapsed')==='1')?'rail':'open');
   /* 인트로를 켤지 **첫 그림 전에** 정한다. 도구를 보던 사람에게는 인트로가 방해다.
      여기서 안 정하고 스크립트가 다 돈 뒤에 정하면 첫 화면이 한 번 번쩍인다(실제로 그랬다). */
   var lp=localStorage.getItem('toolbox_last_page');
-  /* 도구 상세 페이지(/t/…)는 이 셸을 그대로 쓴다. 거기서도 켜면 검색으로 도구에
-     바로 들어온 사람이 브랜드 스플래시를 맞는다 — 그 사람은 도구를 보러 온 것이다. */
+  /* 도구 상세 페이지(/t/...)는 이 셸을 그대로 쓴다. 거기서도 켜면 검색으로 도구에
+     바로 들어온 사람이 브랜드 스플래시를 맞는다. 그 사람은 도구를 보러 온 것이다. */
   var isShellRoot=location.pathname.indexOf('/t/')===-1;
   document.documentElement.setAttribute('data-intro',(isShellRoot&&(!lp||lp==='home'))?'on':'off');
   var pt=localStorage.getItem('toolbox_prism_theme');
@@ -226,66 +227,72 @@ permalink: /
 </head>
 <body>
     <!-- 배경 판때기. 화면에 딱 맞게 붙어 있고(fixed + inset:0) 아무것도 안 받는다.
-         body 배경으로 두면 「화면이 이만할 것」이라는 추측(vh/svh/lvh)이 필요한데, 폰 주소창이
+         body 배경으로 두면 화면이 이만할 것이라는 추측(vh/svh/lvh)이 필요한데, 폰 주소창이
          접혔다 펴질 때마다 그 추측이 어긋나 검은 띠가 났다 (TASK-KL-101). -->
     <div class="app-bg" aria-hidden="true"></div>
-    <!-- KARMOLAB_ROOT_INTRO — 스크립트를 실행하지 않는 크롤러만 보는 자리 (TASK-KL-089).
+    <!-- KARMOLAB_ROOT_INTRO. 스크립트를 실행하지 않는 크롤러만 보는 자리 (TASK-KL-089).
          이 페이지는 블로그의 모든 글에서 링크되는데, 스크립트를 안 돌리면 87자밖에 안 보였다.
          사람 화면은 그대로 두고(noscript 라 눈에 안 띈다) 크롤러에게만 무엇이 있는 곳인지와
-         대표 도구로 가는 길을 준다. 도구 상세·목록 페이지에는 이미 제 설명이 있으므로 생성기가 뺀다. -->
+         대표 도구로 가는 길을 준다. 도구 상세, 목록 페이지에는 이미 제 설명이 있으므로 생성기가 뺀다. -->
     <noscript>
       <section class="root-intro">
         <h2>KarmoLab</h2>
         <p data-i18n="site.noscript.intro">
-          글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다룹니다. 넣은 내용은 이 브라우저를
+          글, 이미지, 계산, 개발에 쓰는 도구를 브라우저 안에서 다룹니다. 넣은 내용은 이 브라우저를
           벗어나지 않고, 도구마다 자기 주소가 있어 바로 열 수 있습니다.
         </p>
         <ul>
           <li><a href="/t/">도구 전체 목록</a></li>
-          <li><a href="/t/text/">글 작업대 — 정리 · 비교 · 변환 · 글 카드</a></li>
-          <li><a href="/t/pdftool/">PDF 편집 — 합치기 · 페이지 빼내기 · 돌리기</a></li>
-          <li><a href="/t/imageedit/">이미지 편집 — 자르기 · 크기·형식 변환</a></li>
-          <li><a href="/t/jsonfmt/">JSON 포맷터 — 정렬 · 압축 · 문법 검사</a></li>
-          <li><a href="/t/unitconv/">단위 변환 — 길이 · 무게 · 평 · 온도</a></li>
-          <li><a href="/t/timer/">타이머 · 스톱워치 — 카운트다운 · 랩 기록</a></li>
-          <li><a href="/t/qrgen/">QR 코드 생성 — URL · WiFi · 연락처</a></li>
+          <li><a href="/t/text/">글 작업대. 정리, 비교, 변환, 글 카드</a></li>
+          <li><a href="/t/pdftool/">PDF 편집. 합치기, 페이지 빼내기, 돌리기</a></li>
+          <li><a href="/t/imageedit/">이미지 편집. 자르기, 크기, 형식 변환</a></li>
+          <li><a href="/t/jsonfmt/">JSON 포맷터. 정렬, 압축, 문법 검사</a></li>
+          <li><a href="/t/unitconv/">단위 변환. 길이, 무게, 평, 온도</a></li>
+          <li><a href="/t/timer/">타이머, 스톱워치. 카운트다운, 랩 기록</a></li>
+          <li><a href="/t/qrgen/">QR 코드 생성. URL, WiFi, 연락처</a></li>
         </ul>
       </section>
     </noscript>
     <!-- ★ 알림은 **소리로도 닿아야** 한다 (KL-271). 이 자리가 살아 있는 자리(live region)가
-         아니어서, 화면 읽어 주는 도구를 쓰는 사람에게는 「저장됨」·「만들었습니다」·「다른 탭에서
-         고쳤습니다」가 **하나도 안 들렸다**(실측 2026-08-14). polite = 하던 말을 끊지 않는다. -->
+         아니어서, 화면 읽어 주는 도구를 쓰는 사람에게는 저장됨, 만들었습니다, 다른 탭에서
+         고쳤습니다가 **하나도 안 들렸다**(실측 2026-08-14). polite = 하던 말을 끊지 않는다. -->
     <div class="status-toast" id="statusToast" role="status" aria-live="polite"></div>
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
             <div class="header-bar-left">
+                <!-- 왼쪽 목록 접기. 머리띠에 두는 이유는 접힌 뒤에도 자리가 안 움직여서다.
+                     목록 안에 두면 224px 일 때와 56px 일 때 버튼이 옆으로 뛴다. -->
+                <button type="button" class="header-btn sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-controls="sidebar" title="사이드바 접기 (Ctrl+B)" aria-label="사이드바 접기" data-i18n-title="shell.sidebar.collapse" data-i18n-aria-label="shell.sidebar.collapse">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+                </button>
                 <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" data-goto="home" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
+                <span class="header-now" id="headerNow" aria-live="polite"></span>
             </div>
             <nav class="header-nav" id="header-nav" role="navigation" aria-label="도구 카테고리" data-i18n-aria-label="shell.nav.categories"></nav>
             <div class="header-bar-right">
-                <!-- 「전체 목록」 링크는 여기 없다 (2026-08-19, 사용자 결정). 왼쪽의 「내 도구」와
-                     나란히 두니 둘이 무엇이 다른지 읽히지 않았다 — 그 장(/t/)으로 가는 길은
-                     「내 도구」 판 **바닥 줄**로 옮겼다(`toolbox.ts` 의 addToolIndexLink). -->
-                <a href="/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
-                <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기 — 포켓몬 · 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
-                <!-- 작업물 — 제 주소를 가진 위젯 장이다(change.blog-surfaces-as-widgets).
-                     여기 없던 동안 첫 화면에서 작업물로 가는 길이 아예 없었다 — 링크가 글 장
+                <!-- 전체 목록 링크는 여기 없다 (2026-08-19, 사용자 결정). 왼쪽의 내 도구와
+                     나란히 두니 둘이 무엇이 다른지 읽히지 않았다. 그 장(/t/)으로 가는 길은
+                     내 도구 판 **바닥 줄**로 옮겼다(`toolbox.ts` 의 addToolIndexLink). -->
+                <a href="/bot/" class="header-tools-link" title="디스코드 봇, 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
+                <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기. 포켓몬, 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
+                <!-- 작업물. 제 주소를 가진 위젯 장이다(change.blog-surfaces-as-widgets).
+                     여기 없던 동안 첫 화면에서 작업물로 가는 길이 아예 없었다. 링크가 글 장
                      머리띠에만 있어서, 글을 열지 않은 사람은 그 판을 못 봤다. -->
-                <a href="/works/" class="header-tools-link" title="만든 것들 — 게임 · VRChat 콘텐츠 · 도구" data-i18n-title="shell.nav.worksTitle" data-i18n="shell.nav.works">◆ 작업물</a>
-                <a href="#community" class="header-tools-link" data-goto="community" title="이야기 · 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
-                <a href="#plaza" class="header-tools-link" data-goto="plaza" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
-                <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다 — 서버에 못 닿으면 비워 둔다.
+                <a href="/works/" class="header-tools-link" title="만든 것들. 게임, VRChat 콘텐츠, 도구" data-i18n-title="shell.nav.worksTitle" data-i18n="shell.nav.works">◆ 작업물</a>
+                <a href="#community" class="header-tools-link" data-goto="community" title="이야기, 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
+                <a href="#plaza" class="header-tools-link" data-goto="plaza" title="지금 무엇이 쓰이는지, 이야기, 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
+                <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다. 서버에 못 닿으면 비워 둔다.
                      눌러도 아무 일 없는 단추가 제일 나쁘므로, 안 되는 날은 아예 안 보인다. -->
-                <!-- 알림 종 (TASK-KL-098) — 공용이다. 커뮤니티만이 아니라 도구·계정·봇이 보낸 것도 여기 뜬다.
+                <!-- 알림 종 (TASK-KL-098). 공용이다. 커뮤니티만이 아니라 도구, 계정, 봇이 보낸 것도 여기 뜬다.
                      js/account.js 가 채운다. 서버에 못 닿거나 로그인 안 했으면 안 그려진다. -->
                 <div class="header-bell" id="headerBell"></div>
-                <!-- 채팅 단추 자리 (2026-08-22) — js/widgets/chat.js 가 채운다.
+                <!-- 채팅 단추 자리 (2026-08-22). js/widgets/chat.js 가 채운다.
                      예전엔 왼쪽 아래 붙박이라 도구 화면을 늘 가렸다. 종 옆으로 올려서
                      접혀 있을 때 본문 점유가 0이 되게 했다. 서버에 못 닿으면 안 그려진다. -->
                 <div class="header-chat" id="headerChat"></div>
-                <!-- 계정 캡슐 = 「내 정보」 단추이기도 하다 (TASK-KL-139 후속, 사용자 요청 「통합」).
+                <!-- 계정 캡슐 = 내 정보 단추이기도 하다 (TASK-KL-139 후속, 사용자 요청 통합).
                      예전엔 캡슐과 👤 단추가 나란히 있어 **같은 사람을 두 번** 가리켰다.
-                     여기 박아 둔 것이 기본값이고 js/account.js 가 로그인 상태면 아바타·이름으로 바꾼다 —
+                     여기 박아 둔 것이 기본값이고 js/account.js 가 로그인 상태면 아바타, 이름으로 바꾼다 . 
                      서버에 못 닿아도 이 단추는 남는다(내 정보로 가는 길이 사라지면 안 된다). -->
                 <div class="header-account" id="headerAccount">
                     <button type="button" class="header-account-btn" id="userPageBtn" title="내 정보" data-i18n-title="shell.account.me">
@@ -295,25 +302,22 @@ permalink: /
                         <span class="header-account-name" data-i18n="shell.account.me">내 정보</span>
                     </button>
                 </div>
-                <!-- 환경 설정 (TASK-KL-139) — 「내 정보」에서 떼어 냈으므로 여기 진입점이 있어야 한다.
+                <!-- 환경 설정 (TASK-KL-139). 내 정보에서 떼어 냈으므로 여기 진입점이 있어야 한다.
                      계정 메뉴에도 있지만 그건 서버에 닿을 때만 그려진다. 설정은 서버와 무관하다. -->
                 <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
-                <!-- Files (데스크톱 앱 전용, 2026-08-29) — 트레이로만 들어갈 수 있어서
+                <!-- Files (데스크톱 앱 전용, 2026-08-29). 트레이로만 들어갈 수 있어서
                      창을 보고 있는 동안엔 파일로 가는 길이 화면에 없었다. 웹에서는 안 그린다:
                      `/blob/`(클라우드 암호문)이 앱 도메인 밖에선 안 열려 픽스처로 되떨어진다.
                      `css` 는 감춤이 기본이고 `desktop-chrome.ts` 가 앱에서만 켠다. -->
-                <button type="button" class="header-btn files-btn" id="filesBtn" data-desktop-only style="display:none" title="Files — 노트북 · 금고" aria-label="Files">
+                <button type="button" class="header-btn files-btn" id="filesBtn" data-desktop-only style="display:none" title="Files. 노트북, 금고" aria-label="Files">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                 </button>
-                <!-- 언어 단추 (TASK-KL-203). 여기 박아 두는 이유: 검색으로 들어온 사람이 첫 화면에서
-                     바로 찾아야 한다 — 설정 안에 넣으면 우리말을 못 읽는 사람은 거기까지 못 간다.
-                     글자(KO/EN)는 언어 장을 찍을 때 갈아 끼우고, 앱에서는 js/lang-switch.js 가 맞춘다. -->
-                <button type="button" class="header-btn lang-btn" id="langBtn" title="언어 바꾸기" aria-label="언어 바꾸기" data-i18n-title="shell.lang.title" data-i18n-aria-label="shell.lang.aria" aria-haspopup="listbox" aria-expanded="false">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9s1.3-6.5 3.8-9z"/></svg>
-                    <span class="lang-btn-code" data-i18n="shell.lang.code">KO</span>
-                </button>
+                <!-- 머리띠 붙박이 언어 단추 폐지 (2026-08-29, 사용자 결정)
+                     여는 자리는 설정 단추를 눌렀을 때 펴지는 목록의 언어 칸
+                     (`lang-switch.ts` 의 `KarmoLang.openMenu`)
+                     옛 근거(검색으로 들어온 사람이 첫 화면에서 바로 찾기)의 값은 누름 1회 -->
                 <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환" data-i18n-title="shell.theme.toggle" data-i18n-aria-label="shell.theme.toggleAria">
                     <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
                     <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -337,23 +341,23 @@ permalink: /
                 <nav class="sidebar-nav" role="navigation" aria-label="도구 목록" data-i18n-aria-label="shell.sidebar.tools">
                     <div id="sidebar-nav"></div>
                 </nav>
-                <!-- 옆줄 바닥 = **링크·문의 한 줄** (2026-08-19, 사용자 결정).
-                     여기 있던 여섯 줄(언어 둘 · 도구 전체 목록 · 디스코드 봇 · 오늘의 · 상태)은
+                <!-- 옆줄 바닥 = **링크, 문의 한 줄** (2026-08-19, 사용자 결정).
+                     여기 있던 여섯 줄(언어 둘, 도구 전체 목록, 디스코드 봇, 오늘의, 상태)은
                      서로 다른 곳으로 가는 문이 한자리에 쌓인 것이었다. 갈 길은 다른 데 있다:
-                     언어 = 머리띠 KO 단추 · 도구 전체 목록 = 팔레트 「둘러보기」 첫 칩 ·
-                     봇/오늘의 = 머리띠 오른쪽 링크 · 상태 = 판 표식 배지.
-                     남는 하나는 **사람에게 닿는 길**이다 — 이메일·GitHub·X·블로그가 모인 「링크」 장.
+                     언어 = 머리띠 KO 단추, 도구 전체 목록 = 팔레트 둘러보기 첫 칩 , 
+                     봇/오늘의 = 머리띠 오른쪽 링크, 상태 = 판 표식 배지.
+                     남는 하나는 **사람에게 닿는 길**이다. 이메일, GitHub, X, 블로그가 모인 링크 장.
                      ⚠ 이 자리에 있던 en/ja 진짜 앵커(TASK-KL-244)와 /t/ 앵커(KL-088)가
-                     같이 사라진다 — 크롤러가 타던 내부 링크다. 되살릴 자리는 첫 화면 바닥이 맞다. -->
+                     같이 사라진다. 크롤러가 타던 내부 링크다. 되살릴 자리는 첫 화면 바닥이 맞다. -->
                 <div class="sidebar-footer">
-                    <a href="#linktree" class="sidebar-dev-links" data-goto="linktree" title="연락처 · 링크 — 문의는 여기로" aria-label="링크 · 문의" data-i18n-title="shell.sidebar.linksTitle" data-i18n-aria-label="shell.sidebar.links">
+                    <a href="#linktree" class="sidebar-dev-links" data-goto="linktree" title="연락처, 링크. 문의는 여기로" aria-label="링크, 문의" data-i18n-title="shell.sidebar.linksTitle" data-i18n-aria-label="shell.sidebar.links">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">✉</span>
-                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.links">링크 · 문의</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.links">링크, 문의</span>
                     </a>
                     <!-- 찾기 (2026-08-19, 사용자 지적). 옆줄 차림에서는 머리띠 내비가 통째로 숨는다
-                         (`html[data-nav="sidebar"] .header-nav { display: none }`) — 그래서 검색칸도
+                         (옆줄을 켜면 머리띠 갈래 메뉴가 숨던 시절). 그래서 검색칸도
                          같이 사라졌고, ⌘K 를 아는 사람만 찾을 수 있었다. 맨 아래에 둔다:
-                         옆줄은 위에서부터 「내 것 → 많이 → 최근」으로 읽히고, 거기서 못 찾았을 때
+                         옆줄은 위에서부터 내 것 → 많이 → 최근으로 읽히고, 거기서 못 찾았을 때
                          손이 닿는 자리가 바닥이다. 누르면 머리띠 검색칸과 **같은 창**이 열린다. -->
                     <button type="button" class="sidebar-dev-links sidebar-search-btn" id="sidebarSearchBtn" title="도구 찾기 (Ctrl+K)" aria-label="도구 찾기" data-i18n-title="shell.nav.all.hint" data-i18n-aria-label="shell.search.aria">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">
@@ -373,7 +377,7 @@ permalink: /
                 </div>
                 <script>
                 (function () {
-                  // 글자를 여기서 쪼갠다 — 화면에 그려지는 그 순간부터 걸어 나오게.
+                  // 글자를 여기서 쪼갠다. 화면에 그려지는 그 순간부터 걸어 나오게.
                   var t = document.getElementById('introTitle');
                   if (!t) return;
                   var s = t.textContent;
@@ -392,8 +396,8 @@ permalink: /
                     <div><div class="breadcrumb" id="breadcrumb"></div><h1 class="content-title" id="pageTitle"></h1></div>
                 </div>
                 <div class="content-body" id="tool-pages"></div>
-                <!-- KARMOLAB_TOOL_SEO — gen-tool-pages.mjs 가 도구 상세 페이지에서만 이 자리에
-                     서버 렌더 설명(h1·사용법·FAQ·관련 도구)을 채운다. / 본체에서는 빈 주석. -->
+                <!-- KARMOLAB_TOOL_SEO. gen-tool-pages.mjs 가 도구 상세 페이지에서만 이 자리에
+                     서버 렌더 설명(h1, 사용법, FAQ, 관련 도구)을 채운다. / 본체에서는 빈 주석. -->
             </main>
         </div>
     </div>
@@ -401,22 +405,22 @@ permalink: /
          블로그 글에는 이 줄이 있는데 도구 쪽에는 없어서, 도구 페이지 124장과 이 첫 화면의
          방문이 **하나도 세어지지 않고 있었다**. 어느 도구로 사람이 오는지 알 수 없으면
          무엇을 더 만들지도, 무엇이 통했는지도 알 수 없다.
-         아래 analytics.js 는 이 스크립트가 만든 `window.goatcounter` 를 쓴다 — 그것이 없으면
+         아래 analytics.js 는 이 스크립트가 만든 `window.goatcounter` 를 쓴다. 그것이 없으면
          조용히 아무것도 안 한다. 즉 이 줄이 빠지면 기록 전체가 사라진다.
          (도구를 옮겨 다닐 때의 기록은 analytics.js 가 맡고, 처음 연 도구는 이 줄이 센다.) -->
     <!-- 방문 기록은 boot-late.js 로 옮겼다 (2026-08-17) -->
-    <!-- 성능 계측 (TASK-KL-201) — **재는 것이 비용이 되면 안 된다.**
+    <!-- 성능 계측 (TASK-KL-201). **재는 것이 비용이 되면 안 된다.**
          계측기(4.6KB)를 첫 그림 앞에 두었더니 부팅 예산 천장을 넘겼다(48.8KB / 40KB).
          그래서 계측기는 **화면을 다 그린 뒤** 데려온다. 대신 셸이 찍는 눈금은 그 전에
          일어나므로, 여기 **작은 통**을 놓아 담아 두고 계측기가 와서 흡수한다(아래 몇 십 바이트).
-         브라우저가 이미 재 두는 것(문서 단계·첫 그림·큰 그림·긴 작업)은 늦게 물어봐도
-         소급해서 읽힌다 — 그래서 늦게 와도 부팅 그림이 안 빈다. -->
+         브라우저가 이미 재 두는 것(문서 단계, 첫 그림, 큰 그림, 긴 작업)은 늦게 물어봐도
+         소급해서 읽힌다. 그래서 늦게 와도 부팅 그림이 안 빈다. -->
     <script>
       window.__klMarks = [];
       window.__klMark = function (n) { window.__klMarks.push([n, performance.now()]); };
       /* 눈금뿐 아니라 **그린 것**도 담는다 (2026-08-16 실측). 계측기는 첫 그림 뒤에 오는데,
-         도구 한 장에서는 그 전에 이미 그 도구가 다 그려져 있다 — 그래서 계측기가 와서 보면
-         「받아 놓고 한 번도 안 그린 코드」로 보였고, 제 페이지에서 제 코드가 낭비로 잡혔다
+         도구 한 장에서는 그 전에 이미 그 도구가 다 그려져 있다. 그래서 계측기가 와서 보면
+         받아 놓고 한 번도 안 그린 코드로 보였고, 제 페이지에서 제 코드가 낭비로 잡혔다
          (대출 장에서 13.8KB). 눈금과 같은 방식으로 통에 담아 두고 흡수하게 한다. */
       window.__klBuilds = [];
       window.__klBuild = function (id, ms) { window.__klBuilds.push([id, ms]); };
@@ -430,51 +434,51 @@ permalink: /
       });
     </script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/analytics.js"></script>
-    <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
+    <!-- 계정 (TASK-KL-098). 도전과제, 연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
          자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->
     <!-- ★ **첫 그림 뒤로 옮긴다** (2026-08-13). 이 한 줄이 부팅 짐의 6.6KB 였고, 그 때문에
          첫 화면 천장(41KB)을 넘겨 모든 세션의 verify 가 섰다. 헤더의 로그인 자리는 서버 응답이
-         와야 채워지므로 **어차피 첫 그림에는 못 맞춘다** — 토글도 `window.KarmoAccount?.` 로
+         와야 채워지므로 **어차피 첫 그림에는 못 맞춘다**. 토글도 `window.KarmoAccount?.` 로
          없을 때를 이미 견딘다. 같이 쓰기(copresence)를 옮긴 그 방식 그대로. -->
-    <!-- account-late:begin (도구 화면은 자기 shim 이 같은 일을 한다 — 생성기가 이 블록을 뗀다) -->
+    <!-- account-late:begin (도구 화면은 자기 shim 이 같은 일을 한다. 생성기가 이 블록을 뗀다) -->
 
     <!-- account-late:end -->
-    <!-- 같이 쓰기 (TASK-KL-180) — 같은 화면을 열고 있는 사람들의 커서가 서로 보인다.
+    <!-- 같이 쓰기 (TASK-KL-180). 같은 화면을 열고 있는 사람들의 커서가 서로 보인다.
          급하지 않다: 도구가 먼저 뜨고 그 다음에 사람이 보이는 순서가 맞다. -->
-    <!-- 같이 쓰기도 첫 그림 뒤로 (TASK-KL-201). 위 주석이 이미 「급하지 않다: 도구가 먼저 뜨고
-         그 다음에 사람이 보이는 순서가 맞다」고 말한다 — 그 말대로 옮긴다. 3.0KB gz. -->
+    <!-- 같이 쓰기도 첫 그림 뒤로 (TASK-KL-201). 위 주석이 이미 급하지 않다: 도구가 먼저 뜨고
+         그 다음에 사람이 보이는 순서가 맞다고 말한다. 그 말대로 옮긴다. 3.0KB gz. -->
 
-    <!-- 명령 팔레트 (TASK-KL-099) — 첫 화면의 본체이자 ⌘K 로 뜨는 그것.
+    <!-- 명령 팔레트 (TASK-KL-099). 첫 화면의 본체이자 ⌘K 로 뜨는 그것.
          toolbox 가 첫 화면을 그릴 때 window.KarmoPalette 를 찾으므로 그보다 먼저 둔다.
          defer 는 문서 순서대로 실행되므로 이 줄의 위치가 곧 순서다.
-         이 한 줄이 빌드 목록이기도 하다 — build.mjs 가 화면이 부르는 주소에서 뽑는다(KL-098). -->
+         이 한 줄이 빌드 목록이기도 하다. build.mjs 가 화면이 부르는 주소에서 뽑는다(KL-098). -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/palette.js"></script>
-    <!-- 첫 화면 본문 (TASK-KL-128 ①-c 3차) — **이 화면에만** 싣는다.
+    <!-- 첫 화면 본문 (TASK-KL-128 ①-c 3차). **이 화면에만** 싣는다.
          도구 화면 129장에서는 한 번도 안 불리는 코드였는데 셸에 박혀 있어 매번 따라왔다.
          정적 페이지 생성기(`scripts/lib/shell-page.mjs`)가 그 화면들에서 이 줄을 뺀다.
          toolbox 가 `init()` 에서 `window.KarmoHomePage.build()` 를 부르므로 그보다 먼저 둔다
-         (defer 는 문서 순서대로 실행된다 — 이 줄의 위치가 곧 순서다). -->
+         (defer 는 문서 순서대로 실행된다. 이 줄의 위치가 곧 순서다). -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/home-page.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/toolbox.js"></script>
     <!-- KL-131: 평소엔 아무 일도 안 한다. 켜면 지금 화면에 있는 것들이 그대로 액정이 된다. -->
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
-         · user(ensureScript) 가 첫 사용 시 로드. -->
+        , user(ensureScript) 가 첫 사용 시 로드. -->
     <!-- ★ 첫 그림 전에는 **가벼운 목록만** 받는다 (2026-08-12, 부팅 예산 복구).
          전체 메타는 아이콘 SVG 와 설명까지 들어 25.3KB(gz) 였고, 그것 하나로 첫 화면 JS 가
          천장 40KB 를 넘겨 `verify` 가 빨강이었다(실측 60.8KB).
-         이름·분류·불러올 자리만 있는 `widgets-index.js` 는 5KB 다 — 첫 그림에 필요한 건 그게 전부고,
-         아이콘·설명은 옆줄이 그려진 **뒤에** 따라와도 화면이 안 흔들린다(`Toolbox.upgradeMeta`).
-         그래서 아래 `pullRest` 가 한가할 때 **나머지(아이콘·설명)만** 받아 제자리에 꽂는다.
-         전체를 한 벌 더 받으면 첫 그림만 빨라지고 전송량은 31KB 늘어난다 — 그래서 나머지만 낸다.
+         이름, 분류, 불러올 자리만 있는 `widgets-index.js` 는 5KB 다. 첫 그림에 필요한 건 그게 전부고,
+         아이콘, 설명은 옆줄이 그려진 **뒤에** 따라와도 화면이 안 흔들린다(`Toolbox.upgradeMeta`).
+         그래서 아래 `pullRest` 가 한가할 때 **나머지(아이콘, 설명)만** 받아 제자리에 꽂는다.
+         전체를 한 벌 더 받으면 첫 그림만 빨라지고 전송량은 31KB 늘어난다. 그래서 나머지만 낸다.
          도구 한 장짜리 화면은 여기 없이도 돌아간다(찾기창 열 때만 lite 를 부른다: `shell-page.mjs`). -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-index.js"></script>
     <script defer src="/apps/karmolab/js/widgets-manifest.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-loader.js"></script>
-    <!-- 마스코트·액정놀이는 **화면을 다 그린 뒤에** 부른다 (TASK-KL-128 런타임).
+    <!-- 마스코트, 액정놀이는 **화면을 다 그린 뒤에** 부른다 (TASK-KL-128 런타임).
          둘 다 첫 그림에 안 쓰이는데 합쳐서 압축 10KB 를 부팅에 얹고 있었다.
 
-         그냥 미루면 첫 화면이 죽는다 — 마스코트를 **안 감싸고 부르는 곳**이 위젯 여러 곳에
-         있어서 「Mdd 가 없다」로 멈춘다(실제로 그렇게 죽었다). 호출부를 전부 고치는 대신,
+         그냥 미루면 첫 화면이 죽는다. 마스코트를 **안 감싸고 부르는 곳**이 위젯 여러 곳에
+         있어서 Mdd 가 없다로 멈춘다(실제로 그렇게 죽었다). 호출부를 전부 고치는 대신,
          **먼저 자리만 만들어 둔다**: 아직 안 온 동안의 부름은 줄을 세워 두었다가, 진짜가
          도착하면 그대로 다시 불러 준다. 그래서 놓치는 대사도 없다. -->
     <script>
@@ -485,7 +489,7 @@ permalink: /
                  'setPrefs', 'resetPrefs', 'resetPosition', 'spot'];
       var stub = {};
       api.forEach(function (n) { stub[n] = function () { q.push([n, [].slice.call(arguments)]); }; });
-      /* 값으로 읽는 것들은 빈 값으로 답한다 — 없는 것보다 낫다. */
+      /* 값으로 읽는 것들은 빈 값으로 답한다. 없는 것보다 낫다. */
       stub.getAffection = function () { return 0; };
       stub.getRelationshipTitle = function () { return ''; };
       stub.getStoryProgress = function () { return { seen: [], chapter: 0 }; };
@@ -501,11 +505,11 @@ permalink: /
           meta.src = '/apps/karmolab/js/widgets-meta-rest.js';
           meta.onload = function () {
             /* ★ `window.Toolbox` 가 아니라 **맨 이름**으로 부른다 (2026-08-12).
-             *   셸은 `const Toolbox = …` 라 window 에 안 붙는다 — `window.Toolbox` 는 늘 undefined 라
-             *   이 줄이 **매번 조용히 건너뛰어졌다**. 그 결과 아이콘·설명이 목록·찾기창에 영영 안 꽂혀,
+             *   셸은 `const Toolbox = ...` 라 window 에 안 붙는다. `window.Toolbox` 는 늘 undefined 라
+             *   이 줄이 **매번 조용히 건너뛰어졌다**. 그 결과 아이콘, 설명이 목록, 찾기창에 영영 안 꽂혀,
              *   그 도구를 한 번 열어야만 아이콘이 생겼다(실측: 메타 204개 중 아이콘 0개 → 부르면 187개).
              *   나머지 코드가 전부 쓰는 방식(typeof 가드 + 맨 이름)으로 맞춘다. */
-            try { if (typeof Toolbox !== 'undefined' && Toolbox.upgradeMeta) Toolbox.upgradeMeta(); } catch (e) { /* 못 꽂아도 이름·분류는 이미 있다 */ }
+            try { if (typeof Toolbox !== 'undefined' && Toolbox.upgradeMeta) Toolbox.upgradeMeta(); } catch (e) { /* 못 꽂아도 이름, 분류는 이미 있다 */ }
           };
           document.body.appendChild(meta);
         }
@@ -524,7 +528,7 @@ permalink: /
         };
         document.body.appendChild(mdd);
 
-        /* 채팅도 여기서 온다 (TASK-KL-128 26) — 첫 그림에 필요 없는데 부팅 목록에 있었다.
+        /* 채팅도 여기서 온다 (TASK-KL-128 26). 첫 그림에 필요 없는데 부팅 목록에 있었다.
            도구 화면에서 491ms 짜리 프레임 하나를 통째로 만들고 있었다(실측). */
         var chat = document.createElement('script');
         chat.src = '/apps/karmolab/js/widgets/chat.js';
@@ -534,10 +538,10 @@ permalink: /
 
       /* 액정놀이는 **켜는 신호가 왔을 때** 데려온다 (TASK-KL-128 ⑱).
          평소엔 아무 일도 안 하는 이스터에그인데 4.9KB(압축)를 화면 130장이 매번 받고 있었다.
-         켜는 길은 둘 — 주소 뒤 `?badapple`, 그리고 위위아래아래왼오왼오BA.
+         켜는 길은 둘. 주소 뒤 `?badapple`, 그리고 위위아래아래왼오왼오BA.
          그 둘만 여기서 지켜보고, 걸리면 그때 진짜를 부른다.
 
-         도구가 「나도 그릴게」 하고 신고하는 창구는 **먼저 자리를 만들어 둔다** — 안 그러면
+         도구가 나도 그릴게 하고 신고하는 창구는 **먼저 자리를 만들어 둔다**. 안 그러면
          이 파일이 오기 전에 열려 있던 도구들의 칸이 통째로 빠진다(켰을 때 화면 일부만 액정이
          되는데, 오류가 없어서 아무도 못 알아챈다). 줄 세워 뒀다가 진짜가 오면 흘려보낸다. */
       (function () {
@@ -565,7 +569,7 @@ permalink: /
           };
           document.body.appendChild(ba);
         }
-        /* 주소로 켠 경우엔 그쪽 파일이 스스로 시작한다 — 여기서 또 부르면 두 번 켠다. */
+        /* 주소로 켠 경우엔 그쪽 파일이 스스로 시작한다. 여기서 또 부르면 두 번 켠다. */
         if (new URLSearchParams(location.search).has('badapple')) { pull(false); return; }
 
         var KONAMI = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
@@ -585,11 +589,11 @@ permalink: /
       else addEventListener('load', function () { idle(pullRest); });
     })();
     </script>
-    <!-- 아이콘·설명은 첫 그림 뒤에 따라온다 — 위 `widgets-index.js`(가벼운 목록) 다음에
+    <!-- 아이콘, 설명은 첫 그림 뒤에 따라온다. 위 `widgets-index.js`(가벼운 목록) 다음에
          전체를 받아 `Toolbox.upgradeMeta()` 로 제자리에 꽂는다. 이미 그려진 아이콘 자리는
          비어 있으므로 DOM 을 다시 그리지 않는다(화면이 안 흔들린다). -->
-    <!-- Chirpy SW(/sw.min.js) 등록은 컷오버로 제거 (change.blog-cutover) — 그 파일 자체가
-         테마와 함께 사라졌고, 옛 등록의 회수는 /·/posts/* 경량 장의 킬스위치가 맡는다
-         (scope '/' 만 해제 — / SW 는 pwa-update.ts 가 따로 관리). -->
+    <!-- Chirpy SW(/sw.min.js) 등록은 컷오버로 제거 (change.blog-cutover). 그 파일 자체가
+         테마와 함께 사라졌고, 옛 등록의 회수는 /, /posts/* 경량 장의 킬스위치가 맡는다
+         (scope '/' 만 해제. / SW 는 pwa-update.ts 가 따로 관리). -->
 </body>
 </html>

@@ -1,10 +1,10 @@
 /**
  * 앱 아이콘 생성 (TASK-KL-089)
  *
- * 왜: `manifest.json` 이 192·512 아이콘을 가리키는데 그 파일이 아예 없었다(둘 다 404).
+ * 왜: `manifest.json` 이 192, 512 아이콘을 가리키는데 그 파일이 아예 없었다(둘 다 404).
  * 그 상태로 설치하면 아이콘이 빈 앱이 되고, 브라우저에 따라 설치 자체를 막는다.
  *
- * 카드와 같은 손으로 그린다 — 밤하늘 바탕에 금색. 다만 아이콘은 홈 화면에서 둥글게·모나게
+ * 카드와 같은 손으로 그린다. 밤하늘 바탕에 금색. 다만 아이콘은 홈 화면에서 둥글게, 모나게
  * 잘리므로(maskable) 가운데 80% 안에만 그림을 둔다. 가장자리는 배경만 남긴다.
  *
  * 사용: node scripts/gen-app-icons.mjs
@@ -84,4 +84,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('[gen-app-icons] ' + p));
   process.exit(1);
 }
-console.log(`[gen-app-icons] ${SIZES.join('·')} 아이콘 생성 — manifest 가 가리키는 파일이 모두 있다`);
+console.log(`[gen-app-icons] ${SIZES.join(', ')} 아이콘 생성. manifest 가 가리키는 파일이 모두 있다`);

@@ -8,10 +8,10 @@
   "workdays.label.to": "終了日",
   "workdays.opt.saturday": "土曜も営業日",
   "workdays.opt.includeStart": "開始日も1日として数える",
-  "workdays.status.idle": "締切は週末を外すだけでは合いません — 韓国の祝日と振替休日まで外して数えます。",
+  "workdays.status.idle": "締切は週末を外すだけでは合いません. 韓国の祝日と振替休日まで外して数えます。",
   "workdays.day.sunday": "日曜日",
   "workdays.day.saturday": "土曜日",
-  "workdays.warn.lunar": "{years}年は旧暦の祝日を持っていません。ソルラル·チュソク·灌仏会が抜けるため、結果が数日ずれることがあります。",
+  "workdays.warn.lunar": "{years}年は旧暦の祝日を持っていません。ソルラル, チュソク, 灌仏会が抜けるため、結果が数日ずれることがあります。",
   "workdays.value.days": "{n}日",
   "workdays.stat.business": "営業日",
   "workdays.stat.actual": "実際にかかる日数",
@@ -20,7 +20,7 @@
   "workdays.error.endBeforeStart": "終了日が開始日より前です。",
   "workdays.out.business": "営業日 {n}日",
   "workdays.list.none": "外した日はありません。",
-  "workdays.status.listed": "休みの日は下にすべて書き出しました — 確かめてください。",
+  "workdays.status.listed": "休みの日は下にすべて書き出しました. 確かめてください。",
   "workdays.week.0": "日",
   "workdays.week.1": "月",
   "workdays.week.2": "火",
@@ -70,5 +70,5 @@
   "workdays.holiday.usVeterans": "復員軍人の日",
   "workdays.holiday.usThanksgiving": "感謝祭",
   "workdays.holiday.usObserved": "振替休業",
-  "workdays.warn.noCalendar": "この国の祝日表はまだありません — 週末のみ除いて数えます。ヘッダーのボタンから地域を変更できます。"
+  "workdays.warn.noCalendar": "この国の祝日表はまだありません. 週末のみ除いて数えます。ヘッダーのボタンから地域を変更できます。"
 }

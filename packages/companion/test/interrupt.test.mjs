@@ -3,14 +3,14 @@ import test from 'node:test';
 
 import { Companion, InMemoryMemory, alwaysRespond } from '../dist/index.js';
 
-/** 천천히 생각하는 두뇌 — 도중에 끊는 상황을 만들려면 시간이 필요하다. */
+/** 천천히 생각하는 두뇌. 도중에 끊는 상황을 만들려면 시간이 필요하다. */
 function slowBrain(ms = 60) {
   let aborted = false;
   return {
     name: 'slow',
     aborts: 0,
     async think(input) {
-      aborted = false; // 새 생각은 새로 시작한다 — 앞의 것이 끊겼다고 이번 것까지 막히면 안 된다
+      aborted = false; // 새 생각은 새로 시작한다. 앞의 것이 끊겼다고 이번 것까지 막히면 안 된다
       await new Promise((done) => setTimeout(done, ms));
       if (aborted) throw new Error('그만뒀다');
       return `응답:${input.sensation.text}`;
@@ -74,7 +74,7 @@ test('끊을 때 하던 소리도 멈추라고 알린다', async () => {
   assert.equal(hushes.count, 1, '입을 다물라고 한 번 알렸다');
 });
 
-test('끊을 때 두뇌한테도 그만두라고 한다 — 안 그러면 뒤늦게 옛 답이 튀어나온다', async () => {
+test('끊을 때 두뇌한테도 그만두라고 한다. 안 그러면 뒤늦게 옛 답이 튀어나온다', async () => {
   const { body } = recordingBody();
   const brain = slowBrain(80);
   const companion = new Companion({
@@ -106,7 +106,7 @@ test('끊기로 정하지 않은 채널은 하던 말을 끝까지 한다', asyn
   assert.deepEqual(spoken, ['응답:A', '응답:B'], '둘 다 말한다');
 });
 
-test('끊긴 것은 사고가 아니다 — 에러로 올리지 않는다', async () => {
+test('끊긴 것은 사고가 아니다. 에러로 올리지 않는다', async () => {
   const { body } = recordingBody();
   const errors = [];
   const companion = new Companion({

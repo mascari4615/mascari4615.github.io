@@ -1,10 +1,10 @@
 /**
- * lib/karmograph/canvas-filter.ts — **무엇이 화면에 남나** (TASK-KL-202 방향① 해체 17조각).
+ * lib/karmograph/canvas-filter.ts. **무엇이 화면에 남나** (TASK-KL-202 방향① 해체 17조각).
  *
  * 거르기는 지우는 게 아니라 **보기를 줄이는** 일이다. 규칙 넷:
- *  - 꺼 둔 종류 · 꺼 둔 꼬리표가 붙은 것은 뺀다.
+ *  - 꺼 둔 종류, 꺼 둔 꼬리표가 붙은 것은 뺀다.
  *  - 칸으로 좁히면 그 칸이 있는 것만(값까지 적었으면 그 값인 것만) 남는다.
- *  - 「선이 N개 이상」은 **빠질 게 없을 때까지 되풀이**한다 — 이웃이 빠지면 남은 것의 연결 수도 줄기 때문
+ *  - 선이 N개 이상은 **빠질 게 없을 때까지 되풀이**한다. 이웃이 빠지면 남은 것의 연결 수도 줄기 때문
  *    (network 쪽 k-core 와 같은 셈법). 한 번만 걸러내면 조건을 못 채운 것이 남는다.
  */
 import type { GraphNode, GraphEdge } from './spec';
@@ -30,7 +30,7 @@ export function visibleNodes(
     if ((n.tags ?? []).some((tag) => filter.tags.has(tag))) return false;
     if (filter.fieldName) {
       // **빈 칸은 안 적은 것**이다. 새 카드는 그 종류의 칸 이름을 빈 채로 갖고 태어나므로
-      // (「여기에 적어라」 표시), 이름만 있으면 남긴다면 좁혀도 하나도 안 줄어든다.
+      // (여기에 적어라 표시), 이름만 있으면 남긴다면 좁혀도 하나도 안 줄어든다.
       const v = (n.fields ?? {})[filter.fieldName];
       if (String(v ?? '').trim() === '') return false;
       if (filter.fieldValue && String(v).trim() !== filter.fieldValue) return false;
@@ -61,7 +61,7 @@ export function visibleNodes(
 
 
 /**
- * 노드별 **연결 수**. 「많이 이어진 것을 크게」가 켜졌을 때만 센다 —
+ * 노드별 **연결 수**. 많이 이어진 것을 크게가 켜졌을 때만 센다 . 
  * 안 쓰는 판에서까지 매 렌더마다 전체 선을 훑을 이유가 없다.
  */
 export function degreeMap(edges: GraphEdge[], refOf: (ref: string) => string): Map<string, number> {

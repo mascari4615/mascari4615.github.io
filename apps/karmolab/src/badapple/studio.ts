@@ -1,17 +1,17 @@
 /**
- * 굽는 화면 — 영상 한 편을 흑백 격자 파일(.bab)로 굽고, 그 자리에서 바로 틀어 본다.
+ * 굽는 화면. 영상 한 편을 흑백 격자 파일(.bab)로 굽고, 그 자리에서 바로 틀어 본다.
  *
- * 영상 파일은 여기 없다. 쓰는 사람이 자기 것을 고른다 — 브라우저 안에서만 처리하고
+ * 영상 파일은 여기 없다. 쓰는 사람이 자기 것을 고른다. 브라우저 안에서만 처리하고
  * 아무 데도 안 올린다. (그래서 남의 영상을 이 저장소에 담을 일도 없다.)
  *
- * 미리보기가 두 종류인 이유: 이 시스템의 핵심 주장이 「같은 그림을 서로 다른 표면이
- * 동시에 나눠 그린다」다. 글자판 하나만 보여 주면 그냥 아스키 아트 도구로 보인다.
+ * 미리보기가 두 종류인 이유: 이 시스템의 핵심 주장이 같은 그림을 서로 다른 표면이
+ * 동시에 나눠 그린다다. 글자판 하나만 보여 주면 그냥 아스키 아트 도구로 보인다.
  */
 import { decode, encode, Player, sampleVideo, TextSurface, DomTilesSurface } from 'badapple';
 import { saveClip } from './shared';
 import { t, loadNamespace } from '../lib/i18n';
 
-/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 위젯이 아니라 셸, 라이브러리. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
 if (typeof document !== 'undefined') void loadNamespace('badapple');
 
@@ -23,10 +23,10 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 	let baked: Uint8Array | null = null;
 
 	/* ★ **상태를 말로만 남기면 말이 바뀌는 순간 아무도 못 읽는다** (2026-08-16, 실측).
-	   이 줄은 `t('badapple.playing')` 이라 화면 말에 따라 「재생 중 —」·「Playing —」·「再生中 —」
-	   으로 나온다. 그런데 검사는 「재생 중」을 찾고 있었다 — 그래서 실주소(영어 판)에서는
-	   **재생이 되고 있는데도** 60초를 기다리다 「재생이 안 시작됐다」로 빨갰다(그 빨강 줄 안에
-	   `Playing — 64×48 · 27 frames` 라고 적혀 있었다). 말과 함께 **말이 아닌 표시**를 남긴다. */
+	   이 줄은 `t('badapple.playing')` 이라 화면 말에 따라 재생 중 . , Playing . , 再生中 . 
+	   으로 나온다. 그런데 검사는 재생 중을 찾고 있었다. 그래서 실주소(영어 판)에서는
+	   **재생이 되고 있는데도** 60초를 기다리다 재생이 안 시작됐다로 빨갰다(그 빨강 줄 안에
+	   `Playing. 64×48, 27 frames` 라고 적혀 있었다). 말과 함께 **말이 아닌 표시**를 남긴다. */
 	function status(message: string, state?: string): void {
 		const el = $('baStatus');
 		el.textContent = message;
@@ -35,7 +35,7 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 	}
 
 	/**
-	 * 구운 것을 홈이 이어받을 자리에 놓는다 (`shared.ts` — 바이트를 그대로 받는 자리).
+	 * 구운 것을 홈이 이어받을 자리에 놓는다 (`shared.ts`. 바이트를 그대로 받는 자리).
 	 *
 	 * 담을 자리가 없어도 **굽는 것은 계속된다.** 못 담은 것을 굽기 실패로 보이게 하면,
 	 * 방금 만든 것이 눈앞에 있는데 화면은 실패라고 말하는 상태가 된다. 사실대로 적는다.
@@ -51,13 +51,13 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 		player = null;
 	}
 
-	/** 구운 것을 튼다. 시계는 화면 갱신에 맞춰 넣는다 — 재생기는 시계를 스스로 안 만든다. */
+	/** 구운 것을 튼다. 시계는 화면 갱신에 맞춰 넣는다. 재생기는 시계를 스스로 안 만든다. */
 	function playBaked(bytes: Uint8Array): void {
 		stop();
 		const clip = decode(bytes);
 		player = new Player(clip, { loop: true });
 
-		// ① 글자판 — 자리를 신고하지 않으므로 전체 그림을 통째로 받는다 (거울)
+		// ① 글자판. 자리를 신고하지 않으므로 전체 그림을 통째로 받는다 (거울)
 		const pre = $('baText');
 		player.stage.add(
 			new TextSurface({
@@ -71,7 +71,7 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 			})
 		);
 
-		// ② 화면에 실제로 있는 것들 — 자리를 신고하므로 그림의 자기 구역만 받는다 (모자이크).
+		// ② 화면에 실제로 있는 것들. 자리를 신고하므로 그림의 자기 구역만 받는다 (모자이크).
 		// 선택자를 안 준다: 무엇을 액정으로 쓸지는 화면을 재서 스스로 고른다.
 		if ($<HTMLInputElement>('baOverlay').checked) {
 			player.stage.add(new DomTilesSurface({ subdivide: { cols: 8, rows: 8 } }));
@@ -109,7 +109,7 @@ if (typeof document !== 'undefined') void loadNamespace('badapple');
 			fps,
 			threshold: Number($<HTMLInputElement>('baThreshold').value) || 128,
 			invert: $<HTMLInputElement>('baInvert').checked,
-			// 색을 담으면 실루엣 위에 평면이 얹힌다. 색을 못 쓰는 표면(파비콘·기계 부하)은
+			// 색을 담으면 실루엣 위에 평면이 얹힌다. 색을 못 쓰는 표면(파비콘, 기계 부하)은
 			// 그대로 실루엣만 읽으므로, 켜도 그쪽이 달라지지 않는다.
 			levels: $<HTMLInputElement>('baColor').checked,
 			colors: $<HTMLInputElement>('baColor').checked,

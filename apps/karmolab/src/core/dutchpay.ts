@@ -1,13 +1,13 @@
 /**
- * 나눠 내기 — 누가 누구에게 얼마 (TASK-KL-316 / 33)
+ * 나눠 내기. 누가 누구에게 얼마 (TASK-KL-316 / 33)
  *
  * 여럿이 먹고 나면 계산이 두 번 어긋난다. **첫째,** 1/N 이 딱 안 떨어진다(1원이 남는다).
- * **둘째,** 서로 주고받다 보면 송금이 쓸데없이 많아진다 — A→B, B→C 를 A→C 하나로 줄일 수 있다.
+ * **둘째,** 서로 주고받다 보면 송금이 쓸데없이 많아진다. A→B, B→C 를 A→C 하나로 줄일 수 있다.
  *
  * 그래서 여기서는 ① 남는 1원까지 **누가 더 내는지 정해서** 총합을 딱 맞추고
  * ② 갚는 횟수를 **가장 적게** 만든다(큰 빚과 큰 몫부터 맞물린다).
  *
- * 돈은 소수로 세지 않는다 — 원 단위 정수로만 센다(부동소수점은 0.1 을 못 담는다).
+ * 돈은 소수로 세지 않는다. 원 단위 정수로만 센다(부동소수점은 0.1 을 못 담는다).
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -45,8 +45,8 @@ export interface Share {
 }
 
 /**
- * 한 줄씩 읽는다: `이름:금액` · `이름:금액:대상1,대상2` · `이름:금액:대상:무엇`.
- * 금액의 쉼표(1,000)와 「원」은 떼고 읽는다 — 사람은 그렇게 적는다.
+ * 한 줄씩 읽는다: `이름:금액`, `이름:금액:대상1,대상2`, `이름:금액:대상:무엇`.
+ * 금액의 쉼표(1,000)와 원은 떼고 읽는다. 사람은 그렇게 적는다.
  */
 export function parseExpenses(text: string): Expense[] {
   const out: Expense[] = [];
@@ -67,8 +67,8 @@ export function parseExpenses(text: string): Expense[] {
 }
 
 /**
- * 몫을 나눈다. **남는 1원은 버리지 않는다** — 앞사람부터 1원씩 더 낸다.
- * (버리면 총합이 안 맞아 「1원이 비었다」가 생긴다. 그 1원이 계산을 다시 하게 만든다.)
+ * 몫을 나눈다. **남는 1원은 버리지 않는다**. 앞사람부터 1원씩 더 낸다.
+ * (버리면 총합이 안 맞아 1원이 비었다가 생긴다. 그 1원이 계산을 다시 하게 만든다.)
  */
 export function splitAmount(amount: number, count: number): number[] {
   if (count <= 0) return [];
@@ -116,7 +116,7 @@ export interface Transfer {
 }
 
 /**
- * 갚기. **가장 많이 낼 사람과 가장 많이 받을 사람부터** 맞물린다 —
+ * 갚기. **가장 많이 낼 사람과 가장 많이 받을 사람부터** 맞물린다 . 
  * 그러면 한 번에 한 사람은 셈이 끝나서, 송금 횟수가 사람 수보다 적어진다.
  */
 export function settle(shares: Share[]): Transfer[] {
@@ -136,7 +136,7 @@ export function settle(shares: Share[]): Transfer[] {
   return out;
 }
 
-/** 주소로 나눠 갖기 — 서버에 안 맡긴다(주소 자체가 저장소다). */
+/** 주소로 나눠 갖기. 서버에 안 맡긴다(주소 자체가 저장소다). */
 export function encode(people: string[], expenses: Expense[]): string {
   const payload = JSON.stringify({ p: people, e: expenses.map((x) => [x.by, x.amount, x.forWhom ?? [], x.what ?? '']) });
   const bytes = new TextEncoder().encode(payload);

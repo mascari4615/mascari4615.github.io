@@ -1,7 +1,7 @@
 /**
- * 논문에게 묻기 — **지어내지 않는가** (TASK-KL-238 / 34·35·38).
+ * 논문에게 묻기. **지어내지 않는가** (TASK-KL-238 / 34, 35, 38).
  *
- * 이런 도구의 유일한 죄는 「논문이 이렇게 말했다」를 **만들어 내는 것**이다. 그래서 여기서 재는 것:
+ * 이런 도구의 유일한 죄는 논문이 이렇게 말했다를 **만들어 내는 것**이다. 그래서 여기서 재는 것:
  *   ① 뽑은 문장이 초록에 **실제로 있는 문장 그대로**인가
  *   ② 물음과 아무 상관 없으면 **아무것도 안 내놓는가**
  *   ③ 뒤집힌 초록을 되돌릴 때 빠진 낱말을 지어내지 않는가
@@ -24,7 +24,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load(rel, name) {
   const stamp = Date.now() + name;
@@ -47,7 +47,7 @@ eq(O.abstractOf({ a: [0, 2], b: [1] }), 'a b a', '같은 낱말이 여러 자리
 eq(O.abstractOf(null), undefined, '없으면 undefined');
 eq(O.abstractOf({}), undefined, '빈 목록도 undefined');
 {
-  // ★ 빠진 자리를 지어내지 않는다 — 없는 낱말은 그냥 비운다
+  // ★ 빠진 자리를 지어내지 않는다. 없는 낱말은 그냥 비운다
   const got = O.abstractOf({ start: [0], end: [3] });
   check(got.startsWith('start') && got.endsWith('end') && !/undefined|null/.test(got), '빠진 칸을 지어내지 않는다');
 }
@@ -97,8 +97,8 @@ eq(A.answerSentences('', 'attention', 2).length, 0, '초록이 없으면 빈 목
 
 process.stdout.write('\n');
 if (failures.length) {
-  console.error(`\n논문에게 묻기 — ${failures.length}건 실패:`);
+  console.error(`\n논문에게 묻기. ${failures.length}건 실패:`);
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('논문에게 묻기 — 전부 통과');
+console.log('논문에게 묻기. 전부 통과');

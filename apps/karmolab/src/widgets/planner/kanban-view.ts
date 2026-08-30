@@ -1,12 +1,12 @@
 /**
- * 칸반 — 구글 할 일을 세 칸으로 (TASK-KL-321)
+ * 칸반. 구글 할 일을 세 칸으로 (TASK-KL-321)
  *
  * 옛 React 판은 끌어 옮기기에 `@hello-pangea/dnd`(묶어서 97KB)를 썼다. 여기서 필요한 것은
- * 「카드를 집어 다른 칸에 놓는다」 하나뿐이라, 브라우저에 이미 있는 끌어 놓기(HTML5 DnD)로 한다.
+ * 카드를 집어 다른 칸에 놓는다 하나뿐이라, 브라우저에 이미 있는 끌어 놓기(HTML5 DnD)로 한다.
  * 받아 오는 코드가 0KB 다.
  *
  * 손가락(터치)으로는 HTML5 끌어 놓기가 안 먹는 브라우저가 있어, 카드마다 **옮길 칸 단추**를
- * 같이 둔다 — 끌기는 편의고, 단추가 정본이다. 이러면 키보드로도 옮길 수 있다.
+ * 같이 둔다. 끌기는 편의고, 단추가 정본이다. 이러면 키보드로도 옮길 수 있다.
  */
 import { t } from '../../lib/i18n';
 import {
@@ -40,7 +40,7 @@ export interface KanbanViewHandle {
 }
 
 /**
- * 할 일 세 칸. `token` 이 없으면 **이 브라우저 할 일만** 쓴다 — 구글은 얹는 것이다.
+ * 할 일 세 칸. `token` 이 없으면 **이 브라우저 할 일만** 쓴다. 구글은 얹는 것이다.
  * 어느 쪽 것인지는 id 앞머리(`local__`)가 정한다.
  */
 export function buildKanbanView(container: HTMLElement, token: string | null): KanbanViewHandle {
@@ -94,7 +94,7 @@ export function buildKanbanView(container: HTMLElement, token: string | null): K
             try {
                 remote = await fetchTasks(token);
             } catch {
-                /* 구글이 안 되면 이 브라우저 것만 보여 준다 — 화면이 비어 버리지 않는다 */
+                /* 구글이 안 되면 이 브라우저 것만 보여 준다. 화면이 비어 버리지 않는다 */
                 Toolbox?.showToast?.(t('planner.t46'), 'error');
             }
         }
@@ -120,7 +120,7 @@ export function buildKanbanView(container: HTMLElement, token: string | null): K
         if (!found || found.from === to) return;
         const { task, from } = found;
 
-        /* 화면부터 옮긴다 — 구글을 기다리는 동안 카드가 멈춰 있으면 두 번 누르게 된다 */
+        /* 화면부터 옮긴다. 구글을 기다리는 동안 카드가 멈춰 있으면 두 번 누르게 된다 */
         data[from] = data[from].filter((x) => x.id !== id);
         const payload = taskMovePayload(task, to);
         const moved: GoogleTask = {
@@ -134,7 +134,7 @@ export function buildKanbanView(container: HTMLElement, token: string | null): K
         try {
             if (isLocal(id)) moveLocalTask(id, to);
             else await patchTask(token!, id, payload);
-            /* 끝낸 것·손댄 것에 경험치 — 스트릭과 같은 지갑을 쓴다 */
+            /* 끝낸 것, 손댄 것에 경험치. 스트릭과 같은 지갑을 쓴다 */
             if (to === 'done') addExp(EXP_REWARDS.TASK_COMPLETE);
             else if (to === 'inProgress' && from === 'todo') addExp(EXP_REWARDS.TASK_IN_PROGRESS);
         } catch {
@@ -216,7 +216,7 @@ export function buildKanbanView(container: HTMLElement, token: string | null): K
         input.value = '';
         void (async () => {
             try {
-                /* 연동 전이면 이 브라우저에 적는다 — 구글이 없다고 못 적을 이유가 없다 */
+                /* 연동 전이면 이 브라우저에 적는다. 구글이 없다고 못 적을 이유가 없다 */
                 if (token) await createTask(token, title);
                 else createLocalTask(title);
                 await reload();

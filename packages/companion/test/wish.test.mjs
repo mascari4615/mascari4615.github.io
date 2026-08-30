@@ -13,17 +13,17 @@ const companion = (text, at = thisMorning) => ({ role: 'said', channel: 'web', t
 const wishOne = {
   what: '시험용 바람',
   met: (es, since) => es.some((e) => e.role === 'sensed' && e.at >= since && e.text.includes('됐다')),
-  say: '…그거 아직인데.',
+  say: '...그거 아직인데.',
 };
-const wishTwo = { ...wishOne, what: '시험용 바람 둘', say: '…이것도 아직인데.' };
+const wishTwo = { ...wishOne, what: '시험용 바람 둘', say: '...이것도 아직인데.' };
 
 const wishes = (extra = {}) => new Wishes({ pool: [wishOne], perDay: 1, now: () => daytime, roll: () => 0, ...extra });
 
-test('오늘 바라는 게 있다 — 원하는 게 없으면 상대가 아니라 도구다', () => {
+test('오늘 바라는 게 있다. 원하는 게 없으면 상대가 아니라 도구다', () => {
   assert.equal(wishes().list().length, 1);
 });
 
-test('하루에 몇 개나 바랄지 정한다 — 많으면 그건 요구 목록이다', () => {
+test('하루에 몇 개나 바랄지 정한다. 많으면 그건 요구 목록이다', () => {
   const w = new Wishes({ pool: [wishOne, wishTwo], perDay: 2, now: () => daytime, roll: () => 0 });
   assert.equal(w.list().length, 2);
 });
@@ -39,7 +39,7 @@ test('바랄 수 있는 것보다 많이 바라지 않는다', () => {
   assert.equal(w.list().length, 1);
 });
 
-test('하루가 바뀌면 새로 고른다 — 어제 못 이룬 걸 끌고 가면 원망이다', () => {
+test('하루가 바뀌면 새로 고른다. 어제 못 이룬 걸 끌고 가면 원망이다', () => {
   let now2 = daytime;
   const w = new Wishes({ pool: [wishOne], perDay: 1, now: () => now2, roll: () => 0 });
   w.nudge([]);
@@ -70,17 +70,17 @@ test('오늘 몇 개나 채워졌는지 센다', () => {
 // ── 조르지 않기 ─────────────────────────────────────────────────────
 
 test('안 채워진 게 있으면 슬쩍 꺼낸다', () => {
-  assert.equal(wishes().nudge([]), '…그거 아직인데.');
+  assert.equal(wishes().nudge([]), '...그거 아직인데.');
 });
 
-test('하루에 한 번만 꺼낸다 — 두 번 말하면 조르는 것이다', () => {
+test('하루에 한 번만 꺼낸다. 두 번 말하면 조르는 것이다', () => {
   const w = wishes();
   assert.notEqual(w.nudge([]), null);
   assert.equal(w.nudge([]), null);
   assert.equal(w.nudge([]), null);
 });
 
-test('한 번에 하나만 꺼낸다 — 두 개를 늘어놓으면 요구 사항이 된다', () => {
+test('한 번에 하나만 꺼낸다. 두 개를 늘어놓으면 요구 사항이 된다', () => {
   const w = new Wishes({ pool: [wishOne, wishTwo], perDay: 2, now: () => daytime, roll: () => 0 });
   const firstTurn = w.nudge([]);
   assert.notEqual(firstTurn, null);
@@ -104,16 +104,16 @@ test('실제로 쓰는 바람들은 조수님이 조금만 움직이면 채워�
   const todayStart = new Date(thisMorning).setHours(0, 0, 0, 0);
   for (const w of wishable) {
     const material = filler[w.what];
-    assert.notEqual(material, undefined, `「${w.what}」 를 채우는 법이 시험에 없다`);
-    assert.equal(w.met(material, todayStart), true, `「${w.what}」 가 안 채워진다`);
-    assert.equal(w.met([], todayStart), false, `「${w.what}」 가 아무것도 없이 채워진다`);
+    assert.notEqual(material, undefined, `${w.what} 를 채우는 법이 시험에 없다`);
+    assert.equal(w.met(material, todayStart), true, `${w.what} 가 안 채워진다`);
+    assert.equal(w.met([], todayStart), false, `${w.what} 가 아무것도 없이 채워진다`);
   }
 });
 
-test('화면에서 주워 온 것으로는 안 채워진다 — 곁눈질은 조수님이 한 게 아니다', () => {
+test('화면에서 주워 온 것으로는 안 채워진다. 곁눈질은 조수님이 한 게 아니다', () => {
   const todayStart2 = new Date(thisMorning).setHours(0, 0, 0, 0);
   const heardEvents = wishable.find((w) => w.what === '오늘 있었던 일 한 조각 듣기');
-  const screen = [person('화면을 봤다. 지금 앞에 있는 창은 「동반자」.', thisMorning, 'screen')];
+  const screen = [person('화면을 봤다. 지금 앞에 있는 창은 동반자.', thisMorning, 'screen')];
   assert.equal(heardEvents.met(screen, todayStart2), false);
 });
 
@@ -123,7 +123,7 @@ test('바라는 게 없으면 아무 말도 안 얹는다', () => {
   assert.equal(wishNote([]), '');
 });
 
-test('시키지 않는다 — 시키면 억지로 만들어 내려 든다', () => {
+test('시키지 않는다. 시키면 억지로 만들어 내려 든다', () => {
   const note = wishNote([wishOne]);
   assert.match(note, /시험용 바람/);
   assert.match(note, /억지로 만들어 내려 하지 마라/);

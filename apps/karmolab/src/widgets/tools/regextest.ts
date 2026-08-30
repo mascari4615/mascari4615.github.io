@@ -9,7 +9,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
 
 (function (): void {
 
-  /* 예시는 **쓸 때** 만든다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  /* 예시는 **쓸 때** 만든다. 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const presets = (): Array<{ label: string; pattern: string; flags: string; sample: string }> => [
     { label: t('regextest.preset.email'), pattern: '[\\w.+-]+@[\\w-]+\\.[\\w.]+', flags: 'g', sample: t('regextest.sample.email') },
     { label: t('regextest.preset.phone'), pattern: '01[016789]-?\\d{3,4}-?\\d{4}', flags: 'g', sample: '010-1234-5678 / 01098765432' },
@@ -24,8 +24,8 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
   Toolbox.register({
     id: 'regextest',
     title: t('widgets.regextest.title', undefined, "정규식 테스터"),
-    category: 'tool',
-    desc: t('widgets-desc.regextest.desc', undefined, "정규표현식을 실시간으로 시험하고 매치·그룹·치환 결과를 확인합니다"),
+    category: 'dev',
+    desc: t('widgets-desc.regextest.desc', undefined, "정규표현식을 실시간으로 시험하고 매치, 그룹, 치환 결과를 확인합니다"),
     layout: 'wide',
     icon: '<path d="M12 4v16M5 8l14 8M19 8L5 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
@@ -69,7 +69,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
             <div class="tool-section tool-status" id="rxStatus">${esc(t('regextest.status.idle'))}</div>
             <div id="rxMatches" class="tool-list"></div>
 
-            <!-- 시험만으로는 「왜 이게 잡히나」를 모른다 — 조각마다 무슨 뜻인지 + 철길 그림 (TASK-KL-316) -->
+            <!-- 시험만으로는 왜 이게 잡히나를 모른다. 조각마다 무슨 뜻인지 + 철길 그림 (TASK-KL-316) -->
             <details class="tool-section" id="rxExplainBox">
               <summary style="cursor:pointer;">${esc(t('regextest.explain.title'))}</summary>
               <div id="rxRail" style="overflow:auto; margin:10px 0;"></div>
@@ -84,7 +84,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
           const highlight = $<HTMLElement>('#rxHighlight');
           const replaced = $<HTMLElement>('#rxReplaced');
           const status = $<HTMLElement>('#rxStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const matchesEl = $<HTMLElement>('#rxMatches');
 
@@ -122,7 +122,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
               const groups = m.slice(1).map((g, i) => `$${i + 1}=${g === undefined ? t('regextest.value.none') : g}`);
               const named = m.groups ? Object.keys(m.groups).map((k) => `${k}=${m?.groups?.[k]}`) : [];
               rows.push(
-                `<div class="tool-list-row"><span class="tool-list-key">#${count} @${m.index}</span><span class="tool-list-val">${esc(m[0])}</span><span class="tool-list-dim">${esc([...groups, ...named].join(' · '))}</span></div>`
+                `<div class="tool-list-row"><span class="tool-list-key">#${count} @${m.index}</span><span class="tool-list-val">${esc(m[0])}</span><span class="tool-list-dim">${esc([...groups, ...named].join(', '))}</span></div>`
               );
               if (m[0] === '') re.lastIndex++;
               if (count> 5000) break;
@@ -151,8 +151,8 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
           /**
            * 조각마다 무슨 뜻인지 + 철길 그림 (TASK-KL-316).
            *
-           * 시험만 있으면 「이게 왜 잡히나」를 못 배운다. 말은 **여기서** 만든다 —
-           * 알맹이(`core/regexplain`)는 `what` 열쇠만 돌려주므로 영어·일본어 화면에서도 그 말이 나온다.
+           * 시험만 있으면 이게 왜 잡히나를 못 배운다. 말은 **여기서** 만든다 . 
+           * 알맹이(`core/regexplain`)는 `what` 열쇠만 돌려주므로 영어, 일본어 화면에서도 그 말이 나온다.
            */
           function explain(pat: string): void {
             const rail = $<HTMLElement>('#rxRail');

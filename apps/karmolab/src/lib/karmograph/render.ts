@@ -1,17 +1,17 @@
 /**
- * lib/karmograph/render.ts — **편집기 없이 그림만** (TASK-KL-326).
+ * lib/karmograph/render.ts. **편집기 없이 그림만** (TASK-KL-326).
  *
  * 왜 있나: 판을 그리는 길이 캔버스(`canvas.ts`) 하나뿐이었다. 그런데 캔버스는 **대화형
- * 편집기**다 — 끌고 고르고 되돌리는 것이 본체고, 그림은 그 부산물이다. `exportSvgString`
+ * 편집기**다. 끌고 고르고 되돌리는 것이 본체고, 그림은 그 부산물이다. `exportSvgString`
  * 도 *살아 있는 캔버스의 DOM* 을 읽어서 뽑으므로, 그림 한 장이 필요할 뿐인 자리
- * (문서 안 도해 · 브라우저 없는 MCP · 인쇄)에서도 편집기 257KB 를 통째로 띄워야 했다.
+ * (문서 안 도해, 브라우저 없는 MCP, 인쇄)에서도 편집기 257KB 를 통째로 띄워야 했다.
  *
  * 그래서 **그림만 내는 길**을 연다. 셈은 이미 순수한 것을 그대로 쓴다
- * (`canvas-math` 의 `boundsOf`·`edgeCurve`·`convexHull`) — 자리·곡선을 여기서 다시
+ * (`canvas-math` 의 `boundsOf`, `edgeCurve`, `convexHull`). 자리, 곡선을 여기서 다시
  * 셈하면 편집기에서 본 그림과 문서에서 본 그림이 **조용히 어긋난다**. 다른 것은
- * 「무엇으로 뱉느냐」뿐이다: 캔버스는 DOM 조각, 여기는 글자.
+ * 무엇으로 뱉느냐뿐이다: 캔버스는 DOM 조각, 여기는 글자.
  *
- * 안 하는 것 — 고르기·끌기·되돌리기·소형지도·손잡이. 그건 편집기의 일이다.
+ * 안 하는 것. 고르기, 끌기, 되돌리기, 소형지도, 손잡이. 그건 편집기의 일이다.
  */
 import type { GraphSpec, GraphNode, GraphEdge, GroupDef, EdgeKindDef, NodeShape } from './spec';
 import { boundsOf, edgeCurve, convexHull, roundedHullPath, boxCorners } from './canvas-math';
@@ -25,11 +25,11 @@ export interface RenderOptions {
   defaultKindColor?: string;
   /** 판 둘레 여백(px). */
   padding?: number;
-  /** 색표. 안 주면 기본(어두운 판) — 문서에 넣을 때는 그 문서의 색을 넘겨라. */
+  /** 색표. 안 주면 기본(어두운 판). 문서에 넣을 때는 그 문서의 색을 넘겨라. */
   theme?: Partial<Theme>;
   /** `<svg>` 에 박을 class. */
   className?: string;
-  /** 접근성 이름 — `<title>` 로 들어간다. 화면낭독기가 이 그림을 뭐라 부를지. */
+  /** 접근성 이름. `<title>` 로 들어간다. 화면낭독기가 이 그림을 뭐라 부를지. */
   title?: string;
 }
 
@@ -42,7 +42,7 @@ function esc(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
-/** 소수점을 잘라 글자 수를 줄인다 — 판 하나가 수천 줄이 되면 문서가 무거워진다. */
+/** 소수점을 잘라 글자 수를 줄인다. 판 하나가 수천 줄이 되면 문서가 무거워진다. */
 const n = (value: number): string => (Math.round(value * 100) / 100).toString();
 
 function attrs(map: Record<string, string | number | undefined>): string {
@@ -54,9 +54,9 @@ function attrs(map: Record<string, string | number | undefined>): string {
 
 /** 한 줄이 카드보다 길면 자른다. 감싸 접기는 편집기의 일(`foldNoteBody`)이고 여기선 한 줄이다. */
 function clip(text: string, width: number, fontSize: number): string {
-  const per = fontSize * 0.62;            // 한글·영문 섞인 평균 글자폭 (실측 근사)
+  const per = fontSize * 0.62;            // 한글, 영문 섞인 평균 글자폭 (실측 근사)
   const max = Math.max(2, Math.floor((width - 16) / per));
-  return text.length <= max ? text : text.slice(0, max - 1) + '…';
+  return text.length <= max ? text : text.slice(0, max - 1) + '...';
 }
 
 function nodeBackground(node: GraphNode, shape: NodeShape, color: string, fill: string): string {
@@ -66,7 +66,7 @@ function nodeBackground(node: GraphNode, shape: NodeShape, color: string, fill: 
       cx: n(node.w / 2), cy: n(node.h / 2), rx: n(node.w / 2), ry: n(node.h / 2), ...common,
     }) + '/>';
   }
-  // bubble·note·photo 도 여기서는 카드로 낸다 — 꼬리·사진은 편집기의 꾸밈이다.
+  // bubble, note, photo 도 여기서는 카드로 낸다. 꼬리, 사진은 편집기의 꾸밈이다.
   return '<rect ' + attrs({
     x: 0, y: 0, width: n(node.w), height: n(node.h), rx: 10, ry: 10, ...common,
   }) + '/>';
@@ -76,7 +76,7 @@ function renderNode(node: GraphNode, color: string, theme: Theme): string {
   const shape: NodeShape = node.shape ?? 'rect';
   const parts: string[] = [nodeBackground(node, shape, color, theme.nodeFill)];
 
-  // 좌측 색띠 — 카드일 때만 (동그라미에선 어색하다). 캔버스와 같은 규칙.
+  // 좌측 색띠. 카드일 때만 (동그라미에선 어색하다). 캔버스와 같은 규칙.
   if (shape === 'rect') {
     parts.push('<rect ' + attrs({ x: 0, y: 0, width: 4, height: n(node.h), rx: 2, ry: 2, fill: color }) + '/>');
   }
@@ -153,7 +153,7 @@ function renderEdge(
   }) + '/>';
 
   if (typeof edge.label !== 'string' || edge.label === '') return path;
-  // 이름표는 곡선 가운데 — 베지어 t=0.5 는 네 점의 가중평균이다.
+  // 이름표는 곡선 가운데. 베지어 t=0.5 는 네 점의 가중평균이다.
   const mx = (geom.p1.x + 3 * geom.c1.x + 3 * geom.c2.x + geom.p2.x) / 8;
   const my = (geom.p1.y + 3 * geom.c1.y + 3 * geom.c2.y + geom.p2.y) / 8;
   const width = edge.label.length * 6.4 + 10;
@@ -168,7 +168,7 @@ function renderEdge(
     }) + '>' + esc(edge.label) + '</text>';
 }
 
-/* 화살촉은 선 색을 따라가야 한다 — `context-stroke` 가 그 일을 하고, 못 알아듣는
+/* 화살촉은 선 색을 따라가야 한다. `context-stroke` 가 그 일을 하고, 못 알아듣는
    곳에서는 검정으로 떨어진다(그림이 사라지지는 않는다). */
 function marker(id: string, flip: boolean): string {
   return '<marker ' + attrs({
@@ -181,7 +181,7 @@ function marker(id: string, flip: boolean): string {
 /**
  * 판 하나를 **SVG 글자 한 덩이**로. DOM 도 브라우저도 안 쓴다.
  *
- * 돌려주는 것은 `<svg>…</svg>` 통짜라 문서에 그대로 넣거나 파일로 써도 혼자 선다
+ * 돌려주는 것은 `<svg>...</svg>` 통짜라 문서에 그대로 넣거나 파일로 써도 혼자 선다
  * (색을 변수로 두지 않고 값으로 박는 이유 = `canvas-theme.ts` 머리말과 같다).
  */
 export function renderGraphSvg(spec: GraphSpec, options: RenderOptions = {}): string {
@@ -205,7 +205,7 @@ export function renderGraphSvg(spec: GraphSpec, options: RenderOptions = {}): st
 
   const edgeLayer = (spec.edges ?? [])
     .map((edge) => {
-      // 포트 suffix(`id:port`)는 그림에선 뜻이 없다 — 캔버스와 같은 규칙으로 잘라 낸다.
+      // 포트 suffix(`id:port`)는 그림에선 뜻이 없다. 캔버스와 같은 규칙으로 잘라 낸다.
       const from = byId.get(String(edge.from).split(':')[0]);
       const to = byId.get(String(edge.to).split(':')[0]);
       if (from === undefined || to === undefined) return '';

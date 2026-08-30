@@ -1,13 +1,13 @@
 /**
- * 스도쿠 경주 — 같은 문제, 먼저 채우기 (TASK-KL-242)
+ * 스도쿠 경주. 같은 문제, 먼저 채우기 (TASK-KL-242)
  *
  * 한붓그리기에서 쓴 수법을 그대로 쓴다: **답부터 만들고 거기서 지운다.** 아무렇게나 숫자를
- * 뿌리고 「풀리나?」를 검사하면 느리고 가끔 못 만든다.
+ * 뿌리고 풀리나?를 검사하면 느리고 가끔 못 만든다.
  *
  * 6×6(2×3 상자)으로 줄였다. 9×9는 한 판이 십 분을 넘어 오락실에 안 맞고, 4×4는 삼십 초면
- * 끝나 겨룰 것이 없다. 6×6이 「한 판 삼 분」에 가장 가깝다.
+ * 끝나 겨룰 것이 없다. 6×6이 한 판 삼 분에 가장 가깝다.
  *
- * 틀린 숫자는 **넣을 수는 있되 표시된다** — 못 넣게 막으면 그건 스도쿠가 아니라 힌트 놀이다.
+ * 틀린 숫자는 **넣을 수는 있되 표시된다**. 못 넣게 막으면 그건 스도쿠가 아니라 힌트 놀이다.
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
@@ -18,7 +18,7 @@ const HOLES = 18;
 const LIMIT_MS = 300000;
 
 export interface SudokuState {
-  /** 정답 판 — **`redact` 가 지운다** */
+  /** 정답 판. **`redact` 가 지운다** */
   answer: number[];
   /** 처음 주어진 숫자 (0 = 빈 칸) */
   given: number[];
@@ -37,7 +37,7 @@ const rowOf = (c: number): number => Math.floor(c / N);
 const colOf = (c: number): number => c % N;
 const boxOf = (c: number): number => Math.floor(rowOf(c) / BOX_H) * BOX_H + Math.floor(colOf(c) / BOX_W);
 
-/** 답 하나를 만든다 — 되짚기(백트래킹). 6×6 은 금방 찾는다. */
+/** 답 하나를 만든다. 되짚기(백트래킹). 6×6 은 금방 찾는다. */
 function solve(board: number[], rng: () => number): boolean {
   const at = board.indexOf(0);
   if (at < 0) return true;
@@ -65,7 +65,7 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
   init(ctx: GameCtx) {
     const answer = new Array(N * N).fill(0);
     solve(answer, ctx.rng);
-    /* 답에서 구멍을 뚫는다 — 모두 같은 문제를 받는다(경주니까). */
+    /* 답에서 구멍을 뚫는다. 모두 같은 문제를 받는다(경주니까). */
     const given = answer.slice();
     const order = given.map((_, i) => i).sort(() => ctx.rng() - 0.5);
     for (let k = 0; k < HOLES; k++) given[order[k]] = 0;
@@ -136,7 +136,7 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
     const mine = s.filled[seat] ?? [];
     const empty = mine.map((v, i) => (v === 0 ? i : -1)).filter((i) => i >= 0);
     if (!empty.length) return null;
-    /* 봇은 정답을 안 본다 — 그 칸에 들어갈 수 있는 수가 하나뿐일 때만 확신하고,
+    /* 봇은 정답을 안 본다. 그 칸에 들어갈 수 있는 수가 하나뿐일 때만 확신하고,
        아니면 그중 아무거나 넣는다(사람처럼 틀리기도 한다). */
     const cell = empty[Math.floor(ctx.rng() * empty.length)];
     const used = new Set<number>();

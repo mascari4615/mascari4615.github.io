@@ -1,10 +1,10 @@
 /**
  * 표 사이 관계 보기 (TASK-KL-316 / 9)
  *
- * 「개발 도구」 작업대의 **살펴보기** 칸. 알맹이는 `core/erd`.
+ * 개발 도구 작업대의 **살펴보기** 칸. 알맹이는 `core/erd`.
  *
- * 그림은 **우리 렌더러**(`core/mermaidlite`)로 그린다 — 이 저장소엔 mermaid 꾸러미가 없다.
- * 그래도 mermaid 원문과 글 요약을 늘 먼저 내놓는다: 원문은 깃허브·노션에 그대로 붙일 수 있고,
+ * 그림은 **우리 렌더러**(`core/mermaidlite`)로 그린다. 이 저장소엔 mermaid 꾸러미가 없다.
+ * 그래도 mermaid 원문과 글 요약을 늘 먼저 내놓는다: 원문은 깃허브, 노션에 그대로 붙일 수 있고,
  * 요약은 그림이 못 떠도 남는다.
  */
 import { outline, parse, toMermaid, spec } from '../../core/erd';
@@ -21,11 +21,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'erd',
     title: t('widgets.erd.title', undefined, '표 관계 보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.erd.desc',
       undefined,
-      'CREATE TABLE 이나 Prisma 스키마를 붙여넣으면 표·칸·이어짐을 그림과 글로 보여 줍니다'
+      'CREATE TABLE 이나 Prisma 스키마를 붙여넣으면 표, 칸, 이어짐을 그림과 글로 보여 줍니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="14" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 7h4a3 3 0 0 1 3 3v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -92,8 +92,8 @@ import { t, loadNamespace } from '../../lib/i18n';
      * 그림은 **우리 것**으로 그린다 (`core/mermaidlite`).
      *
      * 처음엔 `vendor/mermaid.min.js` 를 부르려 했는데 **이 저장소엔 그 파일이 없다**
-     * (문서 위젯도 같은 경로를 부르고 있어 그림이 안 뜬다 — TASK-KL-316 에 적어 뒀다).
-     * 3MB 짜리 꾸러미를 들이는 대신 표 관계·흐름도만 그리는 작은 것을 직접 갖는다.
+     * (문서 위젯도 같은 경로를 부르고 있어 그림이 안 뜬다. TASK-KL-316 에 적어 뒀다).
+     * 3MB 짜리 꾸러미를 들이는 대신 표 관계, 흐름도만 그리는 작은 것을 직접 갖는다.
      */
     function drawPicture(): void {
       if (text.value === '') return;
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         status.textContent = t('erd.status.drawn');
       } catch {
         pic.textContent = '';
-        /* 못 그려도 mermaid 글은 그대로 남는다 — 깃허브·노션에 붙이면 거기서 그려진다. */
+        /* 못 그려도 mermaid 글은 그대로 남는다. 깃허브, 노션에 붙이면 거기서 그려진다. */
         status.textContent = t('erd.status.noPic');
       }
     }

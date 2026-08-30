@@ -1,7 +1,7 @@
 /**
  * 색각 시뮬레이터 (TASK-KL-088)
  *
- * 「빨강은 실패, 초록은 성공」 처럼 색만으로 뜻을 나누면 적록 색각 이상이 있는 사람에게는
+ * 빨강은 실패, 초록은 성공 처럼 색만으로 뜻을 나누면 적록 색각 이상이 있는 사람에게는
  * 같은 색으로 보인다. 남성 약 8%가 해당하므로 드문 경우가 아니다.
  * 색을 바꿔 보여주는 데 그치지 않고, **어떤 유형에서 두 색이 구분되지 않는지** 판정한다.
  */
@@ -20,7 +20,7 @@ import { markLive } from './shared/say';
     tritanopia: [[0.95, 0.05, 0], [0, 0.433, 0.567], [0, 0.475, 0.525]],
     achromatopsia: [[0.299, 0.587, 0.114], [0.299, 0.587, 0.114], [0.299, 0.587, 0.114]]
   };
-  /* 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  /* 이름은 **쓸 때** 붙인다. 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const labels = (): Record<string, string> => ({
     normal: t('colorblind.kind.normal'),
     protanopia: t('colorblind.kind.protanopia'),
@@ -48,14 +48,14 @@ import { markLive } from './shared/say';
     ];
   }
 
-  /** 두 색이 얼마나 떨어져 보이는지 — 거리가 작으면 구분이 안 된다는 뜻 */
+  /** 두 색이 얼마나 떨어져 보이는지. 거리가 작으면 구분이 안 된다는 뜻 */
   const distance = (a: RGB, b: RGB): number =>
     Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2);
 
   Toolbox.register({
     id: 'colorblind',
     title: t('widgets.colorblind.title', undefined, "색각 시뮬레이터"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.colorblind.desc', undefined, "두 색이 색각 이상에서 어떻게 보이는지 확인하고 구분 가능한지 판정합니다"),
     layout: 'wide',
     icon: '<circle cx="9" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7.5a5.5 5.5 0 0 0 0 9" stroke="currentColor" stroke-width="1.3"/>',
@@ -88,8 +88,8 @@ import { markLive } from './shared/say';
           const bEl = $<HTMLInputElement>('#cbB');
           const out = $<HTMLElement>('#cbOut');
           const status = $<HTMLElement>('#cbStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
 
           function run(): void {
@@ -106,7 +106,7 @@ import { markLive } from './shared/say';
                 const sa = simulate(a, type);
                 const sb = simulate(b, type);
                 const d = distance(sa, sb);
-                // 경험적 문턱 — 이보다 가까우면 나란히 놓아도 같은 색으로 읽힌다
+                // 경험적 문턱. 이보다 가까우면 나란히 놓아도 같은 색으로 읽힌다
                 const hard = d < 60;
                 if (hard && type !== 'normal') hardCount++;
                 return `<div class="cb-card">

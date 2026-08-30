@@ -1,8 +1,8 @@
 /**
- * URL 인코딩·분해 (TASK-KL-088)
+ * URL 인코딩, 분해 (TASK-KL-088)
  *
- * 「%EC%95%88%EB%85%95」 를 읽으려 할 때와 긴 추적 파라미터가 붙은 링크를 정리할 때는
- * 사실 같은 도구가 필요하다 — 주소를 **조각으로 펼쳐** 보는 것. 인코딩 변환과 분해를 한 화면에 둔다.
+ * %EC%95%88%EB%85%95 를 읽으려 할 때와 긴 추적 파라미터가 붙은 링크를 정리할 때는
+ * 사실 같은 도구가 필요하다. 주소를 **조각으로 펼쳐** 보는 것. 인코딩 변환과 분해를 한 화면에 둔다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -10,13 +10,13 @@ import { markLive } from './shared/say';
 
 (function (): void {
 
-  /** 광고·추적용으로만 붙는 파라미터 — 지워도 링크가 같은 곳을 가리킨다. */
+  /** 광고, 추적용으로만 붙는 파라미터. 지워도 링크가 같은 곳을 가리킨다. */
   const TRACKING = /^(utm_|fbclid$|gclid$|igshid$|mc_eid$|mc_cid$|ref$|ref_src$|si$|_ga$|yclid$|msclkid$)/i;
 
   Toolbox.register({
     id: 'urlparse',
-    title: t('widgets.urlparse.title', undefined, "URL 인코딩 · 분해"),
-    category: 'tool',
+    title: t('widgets.urlparse.title', undefined, "URL 인코딩, 분해"),
+    category: 'dev',
     desc: t('widgets-desc.urlparse.desc', undefined, "한글이 깨진 주소를 되돌리고, 쿼리 파라미터를 펼쳐 보고, 추적 파라미터를 지웁니다"),
     layout: 'wide',
     icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -48,7 +48,7 @@ import { markLive } from './shared/say';
           const input = $<HTMLTextAreaElement>('#upIn');
           const parts = $<HTMLElement>('#upParts');
           const status = $<HTMLElement>('#upStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const row = (k: string, v: string, dim = false): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${esc(k)}</span><span class="tool-list-val${dim ? ' tool-list-dim' : ''}">${esc(v)}</span></div>`;
@@ -84,7 +84,7 @@ import { markLive } from './shared/say';
             });
             parts.innerHTML = rows.filter(Boolean).join('');
             const trackCount = qs.filter(([k]) => TRACKING.test(k)).length;
-            status.textContent = `파라미터 ${qs.length}개${trackCount ? ` · 그중 추적용 ${trackCount}개` : ''}`;
+            status.textContent = `파라미터 ${qs.length}개${trackCount ? `, 그중 추적용 ${trackCount}개` : ''}`;
             status.className = 'tool-status ok';
           }
 

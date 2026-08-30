@@ -5,7 +5,7 @@ last_modified_at: "2024-08-30T00:48:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 🌒 프로그래밍 패러다임

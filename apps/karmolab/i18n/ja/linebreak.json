@@ -14,6 +14,6 @@
   "linebreak.btn.swap": "結果を元の文章にする",
   "linebreak.status.idle": "段落のあいだの空行はそのままで、段落の中の行だけつなぎます。",
   "linebreak.copy.done": "結果をコピーしました",
-  "linebreak.say.done": "{before}行 → {after}行 · 段落のあいだの空行はそのままにします。",
+  "linebreak.say.done": "{before}行 → {after}行, 段落のあいだの空行はそのままにします。",
   "linebreak.sample": "この文は画面の幅に\n合わせて切られています。そのまま\n貼ると不自然です。\n\n2つめの段落です。段落の\nあいだの空行は残るべきです。"
 }

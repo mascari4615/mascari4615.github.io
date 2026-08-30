@@ -2,20 +2,20 @@
  * 공용 모듈이 **적어 둔 약속을 실제로 지키는가** (TASK-KL-277).
  *
  * `rules/quality.md § 설명문이 거짓말이면 아무 검사에도 안 걸린다` 를 이번 세션에 만든
- * 공용 모듈들에 그대로 적용한다. 설명문에 「~한다」고 적은 문장 하나가 검사 하나다.
- * 여기 모은 것은 **틀려도 조용한** 약속들 — 화면은 멀쩡하고 오류도 안 나는 종류다.
+ * 공용 모듈들에 그대로 적용한다. 설명문에 ~한다고 적은 문장 하나가 검사 하나다.
+ * 여기 모은 것은 **틀려도 조용한** 약속들. 화면은 멀쩡하고 오류도 안 나는 종류다.
  *
- *   `shared/pdf.openForRead`  「같은 파일을 두 번 열 수 있다」
- *   `shared/media.loadAudio`  「같은 파일을 두 번 읽을 수 있다」
+ *   `shared/pdf.openForRead`  같은 파일을 두 번 열 수 있다
+ *   `shared/media.loadAudio`  같은 파일을 두 번 읽을 수 있다
  *
- * ⚠ 이 둘의 설명문에는 원래 「사본을 안 넘기면 두 번째가 빈손이 된다」고 적혀 있었는데,
+ * ⚠ 이 둘의 설명문에는 원래 사본을 안 넘기면 두 번째가 빈손이 된다고 적혀 있었는데,
  *   **그 줄을 빼도 이 검사가 안 빨개졌다**(통을 매번 새로 뜨므로). 검사가 못 잡는다는 건
  *   그 약속이 지금은 관측되지 않는다는 뜻이라, 설명문을 실제에 맞춰 고쳤다
  *   (`rules/quality.md § 설명문이 거짓말이면 아무 검사에도 안 걸린다`).
- *   검사는 남긴다 — 「두 번 열 수 있다」 자체는 여전히 지켜야 할 약속이다.
- *   `shared/image.toCanvas`   「늘리지는 않는다」
- *   `shared/image.encode`     「JPG 는 흰 바탕을 깐다」
- *   `shared/text.head`        「반 토막 난 글자를 안 남긴다」
+ *   검사는 남긴다. 두 번 열 수 있다 자체는 여전히 지켜야 할 약속이다.
+ *   `shared/image.toCanvas`   늘리지는 않는다
+ *   `shared/image.encode`     JPG 는 흰 바탕을 깐다
+ *   `shared/text.head`        반 토막 난 글자를 안 남긴다
  *
  * 사용: node scripts/test-shared-claims.mjs
  */
@@ -58,7 +58,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 await serveAppAssets(page, root);
 await page.goto('http://localhost/');
-/* pdf.js 는 진짜로 있어야 한다 — 「두 번 열 수 있나」를 재는 검사이므로 흉내로는 못 잰다.
+/* pdf.js 는 진짜로 있어야 한다. 두 번 열 수 있나를 재는 검사이므로 흉내로는 못 잰다.
  * 실제 `ensureScript` 가 하는 일(그 파일을 붙이기)을 여기서 그대로 한다. */
 await page.addScriptTag({ path: path.join(root, 'js/vendor/pdfjs.min.js') });
 await page.evaluate(() => {
@@ -90,7 +90,7 @@ const out = await page.evaluate(async ({ pdfBytes }) => {
   const S = window.__shared;
   const res = {};
 
-  /* ① PDF 를 **두 번** 연다 — 사본을 안 넘기면 두 번째가 빈손이다 */
+  /* ① PDF 를 **두 번** 연다. 사본을 안 넘기면 두 번째가 빈손이다 */
   try {
     const file = new File([new Uint8Array(pdfBytes)], 'a.pdf', { type: 'application/pdf' });
     const first = await S.openForRead(file);
@@ -150,7 +150,7 @@ check(out.pdfTwice === '1/1', `PDF 를 두 번 열 수 있어야 한다 (지금 
 check(out.audioTwice === '1/1', `소리를 두 번 읽을 수 있어야 한다 (지금 ${out.audioTwice})`);
 check(out.noUpscale === '20x10', `작은 그림을 늘리지 않는다 (지금 ${out.noUpscale})`);
 check(out.jpegBg === '255,255,255', `JPG 는 흰 바탕을 깐다 (지금 rgb(${out.jpegBg}))`);
-check(!/�/.test(out.headCut), `앞머리를 자르며 글자를 쪼개지 않는다 (지금 「${out.headCut}」)`);
+check(!/�/.test(out.headCut), `앞머리를 자르며 글자를 쪼개지 않는다 (지금 ${out.headCut})`);
 
 process.stdout.write('\n');
 await browser.close();

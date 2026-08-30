@@ -5,6 +5,7 @@ last_modified_at: "2025-05-28T22:05:00+09:00"
 categories: [컴퓨터, 프로그래밍, Convention]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 2024-09-05. 04:47: 글 추상화.  

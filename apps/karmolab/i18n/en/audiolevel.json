@@ -11,10 +11,10 @@
   "audiolevel.even.strong": "Strong",
   "audiolevel.btn.run": "Normalize",
   "audiolevel.btn.save": "Download",
-  "audiolevel.format.mp3": "MP3 — smaller",
-  "audiolevel.format.wav": "WAV — lossless",
+  "audiolevel.format.mp3": "MP3. smaller",
+  "audiolevel.format.wav": "WAV. lossless",
   "audiolevel.label.preview": "Listen to the result",
-  "audiolevel.status.idle": "The file stays in your browser — nothing is uploaded anywhere.",
+  "audiolevel.status.idle": "The file stays in your browser. nothing is uploaded anywhere.",
   "audiolevel.err.decode": "Your browser could not decode the audio in this file. mp3, wav, m4a and mp4 usually work.",
   "audiolevel.err.noFile": "Add a file first.",
   "audiolevel.err.leveling": "Something went wrong while normalizing: {msg}",
@@ -26,7 +26,7 @@
   "audiolevel.stat.size": "File size",
   "audiolevel.say.ready": "Pick your settings and hit Normalize.",
   "audiolevel.say.done": "Done. The range narrowed from {before} to {after} dB.",
-  "audiolevel.say.encoding": "Encoding to MP3…",
-  "audiolevel.say.saving": "Downloading…",
+  "audiolevel.say.encoding": "Encoding to MP3...",
+  "audiolevel.say.saving": "Downloading...",
   "audiolevel.file.suffix": "-normalized"
 }

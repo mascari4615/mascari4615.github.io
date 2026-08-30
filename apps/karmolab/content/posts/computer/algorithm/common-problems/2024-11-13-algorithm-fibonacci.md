@@ -5,7 +5,7 @@ last_modified_at: "2024-11-13T03:57:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬, Fibonacci]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Fibonacci | 피보나치 수열

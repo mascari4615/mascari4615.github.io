@@ -3,7 +3,7 @@
  *
  * 우리가 직접 담아 둔 파일(vendor/ 아래 등)은 우리가 바꿀 때만 바뀐다. 그런데 주소 뒤에
  * `?v=` + 지금 시각을 붙이면 매번 새 주소가 되어, 브라우저가 저장해 둔 것을 못 쓰고 다시 받는다.
- * 눈에는 똑같이 보여서 아무도 모른 채 회선만 쓴다 — 그래서 코드로 잡는다.
+ * 눈에는 똑같이 보여서 아무도 모른 채 회선만 쓴다. 그래서 코드로 잡는다.
  *
  * 사용: node scripts/audit-cache-busting.mjs
  */
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const bad = [];
 
-/** 주소를 만드는 자리에서 지금 시각을 쓰는 곳 — `'?v=' + Date.now()` 꼴 */
+/** 주소를 만드는 자리에서 지금 시각을 쓰는 곳. `'?v=' + Date.now()` 꼴 */
 const PATTERN = /\?(?:v|t|_|cb)=['"`]?\s*\+?\s*(?:Date\.now\(\)|new Date\(\)|Math\.random\(\))/;
 
 function scan(dir) {
@@ -29,10 +29,10 @@ function scan(dir) {
     const lines = fs.readFileSync(p, 'utf8').split('\n');
     lines.forEach((line, i) => {
       if (!PATTERN.test(line)) return;
-      /* **「내가 낡았나」를 묻는 파일만 예외다.** 그 물음은 캐시가 옛 답을 주면 물음 자체가
-         거짓말이 된다 — 매번 새 주소로 물어야 맞다. 그 밖에는 전부 잡는다.
+      /* **내가 낡았나를 묻는 파일만 예외다.** 그 물음은 캐시가 옛 답을 주면 물음 자체가
+         거짓말이 된다. 매번 새 주소로 물어야 맞다. 그 밖에는 전부 잡는다.
          (2026-08-08: 이 예외가 없어 배포가 섰다. 룰을 느슨하게 한 게 아니라, 규칙이 겨눈
-          「담아 둔 파일을 헛되이 다시 받는 것」과 정반대인 한 경우를 갈라낸 것이다.) */
+          담아 둔 파일을 헛되이 다시 받는 것과 정반대인 한 경우를 갈라낸 것이다.) */
       if (/build\.json\?/.test(line)) return;
       bad.push([path.relative(root, p), i + 1, line.trim().slice(0, 100)]);
     });

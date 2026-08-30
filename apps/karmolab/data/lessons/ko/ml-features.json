@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "python",
       "label": "기본 도구들",
-      "text": "# 범주형 → 숫자\nOneHotEncoder()          # 종류가 적을 때\nTargetEncoder()          # 종류가 많을 때(누수 주의)\n\n# 수치 스케일\nStandardScaler()         # 평균0 분산1 — 선형·신경망에 필요\nQuantileTransformer()    # 분포가 치우쳤을 때\n\n# 결측\nSimpleImputer(strategy='median')   # + 「결측이었음」 플래그 컬럼 추가"
+      "text": "# 범주형 → 숫자\nOneHotEncoder()          # 종류가 적을 때\nTargetEncoder()          # 종류가 많을 때(누수 주의)\n\n# 수치 스케일\nStandardScaler()         # 평균0 분산1. 선형, 신경망에 필요\nQuantileTransformer()    # 분포가 치우쳤을 때\n\n# 결측\nSimpleImputer(strategy='median')   # + 결측이었음 플래그 컬럼 추가"
     },
     {
       "type": "note",
@@ -28,7 +28,7 @@
       "type": "code",
       "lang": "python",
       "label": "누수를 구조적으로 막는다",
-      "text": "from sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\n\npre = ColumnTransformer([\n    ('num', StandardScaler(), num_cols),\n    ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols),\n])\npipe = Pipeline([('pre', pre), ('model', model)])\npipe.fit(X_train, y_train)   # 학습 데이터 통계만 사용 — 누수 없음"
+      "text": "from sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\n\npre = ColumnTransformer([\n    ('num', StandardScaler(), num_cols),\n    ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols),\n])\npipe = Pipeline([('pre', pre), ('model', model)])\npipe.fit(X_train, y_train)   # 학습 데이터 통계만 사용. 누수 없음"
     },
     {
       "type": "h",
@@ -36,7 +36,7 @@
     },
     {
       "type": "p",
-      "text": "\"가입 후 경과일\", \"최근 7일 접속 횟수\", \"평균 대비 이번 주 사용량\"처럼 **사람이 아는 것을 특징으로** 만들면 성능이 크게 오른다. 자동 특징 생성보다 이쪽이 대개 낫다."
+      "text": "가입 후 경과일, 최근 7일 접속 횟수, 평균 대비 이번 주 사용량처럼 **사람이 아는 것을 특징으로** 만들면 성능이 크게 오른다. 자동 특징 생성보다 이쪽이 대개 낫다."
     },
     {
       "type": "h",
@@ -46,7 +46,7 @@
       "type": "code",
       "lang": "text",
       "label": "자주 쓰는 변환",
-      "text": "· 요일·시간대(주기성은 sin/cos 로 인코딩)\n· 최근성(마지막 행동 이후 며칠)\n· 이동 평균·추세(지난 7일 대비 30일)\n· 반드시 「예측 시점까지의 정보만」 사용"
+      "text": ",  요일, 시간대(주기성은 sin/cos 로 인코딩), 최근성(마지막 행동 이후 며칠), 이동 평균, 추세(지난 7일 대비 30일), 반드시 예측 시점까지의 정보만 사용"
     },
     {
       "type": "h",

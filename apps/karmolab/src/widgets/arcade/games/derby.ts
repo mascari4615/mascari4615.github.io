@@ -1,13 +1,13 @@
 /**
- * 경마 — 달리는 건 말, 고르는 건 나 (TASK-KL-242)
+ * 경마. 달리는 건 말, 고르는 건 나 (TASK-KL-242)
  *
  * 서른여덟 개 중 처음으로 **내가 판을 못 건드린다.** 말이 알아서 달리고, 사람이 하는 일은
- * 「어디에 걸까」뿐이다 — 그래서 수가 실력이 아니라 **읽기**다.
+ * 어디에 걸까뿐이다. 그래서 수가 실력이 아니라 **읽기**다.
  *
  * 그냥 운으로 끝나지 않게 두 가지를 둔다:
  *  - 말마다 **성격이 다르다**(느리지만 꾸준한 말, 빠른데 들쭉날쭉한 말). 그 표는 다 보인다.
- *  - **배당이 성격을 따라간다** — 이길 것 같은 말은 적게 준다. 그러니 「이길 말」이 아니라
- *    **「사람들이 얕본 말」**을 찾는 게 이 놀이의 수다.
+ *  - **배당이 성격을 따라간다**. 이길 것 같은 말은 적게 준다. 그러니 이길 말이 아니라
+ *    **사람들이 얕본 말**을 찾는 게 이 놀이의 수다.
  *
  * 세 판. 걸 돈은 판마다 새로 준다(한 번 크게 잃어도 다음 판이 있다).
  */
@@ -30,7 +30,7 @@ export interface Horse {
 
 export interface DerbyState {
   horses: Horse[];
-  /** 자리별 (말, 건 돈) — 아직 안 걸었으면 -1 */
+  /** 자리별 (말, 건 돈). 아직 안 걸었으면 -1 */
   bet: Array<{ horse: number; amount: number } | null>;
   /** 자리별 딴 돈 */
   purse: number[];
@@ -111,12 +111,12 @@ export const derby: GameDef<DerbyState, DerbyAction> = {
 
     if (s.since === 0 || s.winner !== -1) return s;
 
-    /* 걸음 수는 **시각으로 정해진다** — 프레임에 맡기면 기기마다 다른 말이 이긴다. */
+    /* 걸음 수는 **시각으로 정해진다**. 프레임에 맡기면 기기마다 다른 말이 이긴다. */
     const steps = Math.floor((ctx.now - s.since) / STEP_MS);
     const horses = s.horses.map((h, i) => {
       let at = 0;
       for (let k = 0; k < steps; k++) {
-        /* 같은 씨앗·같은 걸음이면 같은 결과 — 판을 다시 그려도 경주가 안 바뀐다. */
+        /* 같은 씨앗, 같은 걸음이면 같은 결과. 판을 다시 그려도 경주가 안 바뀐다. */
         const r = Math.abs(Math.sin((i + 1) * 12.9898 + (k + 1) * 78.233 + s.round * 37.719)) % 1;
         at += Math.max(0.1, h.pace + (r - 0.5) * h.wild * 2);
       }
@@ -126,7 +126,7 @@ export const derby: GameDef<DerbyState, DerbyAction> = {
     const done = horses.findIndex((h) => h.at >= TRACK);
     if (done < 0) return { ...s, horses };
 
-    /* 이긴 말이 나왔다 — 돈을 준다. */
+    /* 이긴 말이 나왔다. 돈을 준다. */
     const purse = s.purse.map((v, i) => {
       const b = s.bet[i];
       if (!b) return v;
@@ -148,7 +148,7 @@ export const derby: GameDef<DerbyState, DerbyAction> = {
 
   bot(s, seat, ctx): BotMove<DerbyAction> | null {
     if (s.over || s.since !== 0 || s.bet[seat] !== null) return null;
-    /* 봇은 배당이 큰 말을 좋아한다 — 사람과 다른 쪽에 걸어야 판이 재밌다. */
+    /* 봇은 배당이 큰 말을 좋아한다. 사람과 다른 쪽에 걸어야 판이 재밌다. */
     const pick = s.horses
       .map((_, i) => ({ i, o: odds(s.horses, i) }))
       .sort((a, b) => b.o - a.o)[Math.floor(ctx.rng() * 2)];

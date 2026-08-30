@@ -1,5 +1,5 @@
 /**
- * EnhancementService — C# EnhancementService → Node.js 이식
+ * EnhancementService. C# EnhancementService → Node.js 이식
  * 강화, 판매, 미니게임(슬롯/홀짝/가위바위보/배틀), 출첵, 용돈
  */
 import { GameDataService, UserData, getRandomImage, getRandomWeaponImage, getWeaponLore } from './gamedata';
@@ -14,7 +14,7 @@ export class EnhancementService {
     this.gameData = gameData;
   }
 
-  /** 유저 검사 (마이그레이션) — index 등 외부에서도 호출 */
+  /** 유저 검사 (마이그레이션). index 등 외부에서도 호출 */
   ensureSword(user: UserData): void {
     if (!user.sword.weaponType || !user.sword.imageName) {
       const r = getRandomWeaponImage(user.sword.level, user.sword.weaponType, this.gameData);

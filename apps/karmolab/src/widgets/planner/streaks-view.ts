@@ -1,10 +1,10 @@
 /**
- * 연속일·레벨 — 오늘 눌렀나 (TASK-KL-321)
+ * 연속일, 레벨. 오늘 눌렀나 (TASK-KL-321)
  *
- * 옛 React 판에는 같은 내용이 두 벌 있었다(`HeroPanel` 과 `StreaksPanel` — 레벨 카드와
+ * 옛 React 판에는 같은 내용이 두 벌 있었다(`HeroPanel` 과 `StreaksPanel`. 레벨 카드와
  * 연속일 카드가 서로 조금씩 다르게 그려졌다). 옮기면서 한 벌로 합친다.
  *
- * 셈은 여기 없다 — 전부 `lib/gamification.ts` 다. 여기는 그린다.
+ * 셈은 여기 없다. 전부 `lib/gamification.ts` 다. 여기는 그린다.
  */
 import { t } from '../../lib/i18n';
 import {
@@ -19,7 +19,7 @@ import {
 const esc = (v: string): string =>
     v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** 레벨 이름표 — 숫자만 있으면 무슨 뜻인지 모른다 */
+/** 레벨 이름표. 숫자만 있으면 무슨 뜻인지 모른다 */
 function levelTitleKey(level: number): string {
     if (level < 5) return 'planner.t60';
     if (level < 10) return 'planner.t61';
@@ -30,8 +30,8 @@ function levelTitleKey(level: number): string {
 }
 
 /**
- * `onOpenDiary` = 일기 트랙의 단추가 갈 곳. 일기는 **글을 써야** 하루가 는다 —
- * 여기서 그냥 누르면 늘어나는 것은 거짓이라, 이 트랙만 「쓰러 가기」로 보낸다.
+ * `onOpenDiary` = 일기 트랙의 단추가 갈 곳. 일기는 **글을 써야** 하루가 는다 . 
+ * 여기서 그냥 누르면 늘어나는 것은 거짓이라, 이 트랙만 쓰러 가기로 보낸다.
  */
 export function buildStreaksView(container: HTMLElement, onOpenDiary?: () => void): void {
     function render(): void {

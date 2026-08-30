@@ -22,7 +22,7 @@
       "type": "code",
       "lang": "text",
       "label": "대략의 성격",
-      "text": "Electron : Chromium 을 함께 배포 — 무겁지만(수십~100MB+) 동작이 예측 가능\nTauri    : OS 웹뷰 사용 — 가볍다(수 MB) · Rust 백엔드 · 웹뷰 차이를 감안해야\nWails    : Go 백엔드 · Tauri 와 비슷한 구조\n네이티브 : 최고 성능·통합, 대신 OS 별로 따로 만든다"
+      "text": "Electron : Chromium 을 함께 배포. 무겁지만(수십~100MB+) 동작이 예측 가능\nTauri    : OS 웹뷰 사용. 가볍다(수 MB), Rust 백엔드, 웹뷰 차이를 감안해야\nWails    : Go 백엔드, Tauri 와 비슷한 구조\n네이티브 : 최고 성능, 통합, 대신 OS 별로 따로 만든다"
     },
     {
       "type": "note",
@@ -44,7 +44,7 @@
       "type": "code",
       "lang": "text",
       "label": "일정에 미리 넣을 것",
-      "text": "· 코드 서명 인증서 (연 비용 · 발급 절차)\n· 세 OS 빌드·테스트 환경\n· 자동 업데이트 서버·서명 키 관리\n· OS 업데이트마다 깨지는 것 대응"
+      "text": ",  코드 서명 인증서 (연 비용, 발급 절차), 세 OS 빌드, 테스트 환경, 자동 업데이트 서버, 서명 키 관리, OS 업데이트마다 깨지는 것 대응"
     },
     {
       "type": "h",
@@ -56,7 +56,7 @@
     },
     {
       "type": "try",
-      "text": "Tauri 와 Electron 으로 각각 \"Hello\" 창을 띄우고 설치본 용량, 메모리를 비교하라."
+      "text": "Tauri 와 Electron 으로 각각 Hello 창을 띄우고 설치본 용량, 메모리를 비교하라."
     }
   ],
   "quiz": [

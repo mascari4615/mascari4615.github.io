@@ -5,7 +5,7 @@ last_modified_at: "2024-09-26T20:50:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: [CSharp]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 접근제한자, 접근한정자  

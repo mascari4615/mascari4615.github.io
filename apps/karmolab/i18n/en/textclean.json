@@ -3,7 +3,7 @@
   "textclean.label.in": "Input",
   "textclean.label.out": "Result",
   "textclean.ph.in": "Paste one item per line",
-  "textclean.label.ops": "Steps — applied in this order",
+  "textclean.label.ops": "Steps. applied in this order",
   "textclean.op.trim": "Trim both ends",
   "textclean.op.squeeze": "Collapse inner spaces",
   "textclean.op.dropEmpty": "Drop empty lines",
@@ -32,6 +32,6 @@
   "textclean.btn.swap": "Use result as input",
   "textclean.btn.clear": "Clear",
   "textclean.status.idle": "Paste something and it is cleaned right away.",
-  "textclean.status.done": "{before} lines → {after} lines · {chars} characters",
+  "textclean.status.done": "{before} lines → {after} lines, {chars} characters",
   "textclean.copy.done": "Cleaned text copied"
 }

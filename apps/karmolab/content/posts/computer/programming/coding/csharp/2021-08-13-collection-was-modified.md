@@ -5,6 +5,7 @@ last_modified_at: "2021-10-07T00:00:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: [CSharp]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 > [!WARNING]

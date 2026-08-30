@@ -12,10 +12,10 @@
   "apitest.copy.curl": "curl command copied",
   "apitest.copy.mock": "Mock response table copied",
   "apitest.status.idle": "Paste an OpenAPI document",
-  "apitest.status.ok": "{title} · {n} operations",
-  "apitest.status.bad": "Could not read it — {msg}",
-  "apitest.status.sending": "Sending…",
-  "apitest.status.answered": "{code} · answered in {ms}ms",
-  "apitest.status.blocked": "The other side refuses browser requests (CORS) — copy it as curl and run it in a terminal",
-  "apitest.status.mock": "Built mock responses for {n} operations — paste them into your own mock server"
+  "apitest.status.ok": "{title}, {n} operations",
+  "apitest.status.bad": "Could not read it. {msg}",
+  "apitest.status.sending": "Sending...",
+  "apitest.status.answered": "{code}, answered in {ms}ms",
+  "apitest.status.blocked": "The other side refuses browser requests (CORS). copy it as curl and run it in a terminal",
+  "apitest.status.mock": "Built mock responses for {n} operations. paste them into your own mock server"
 }

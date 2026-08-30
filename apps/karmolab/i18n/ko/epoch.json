@@ -1,6 +1,6 @@
 {
   "epoch.tab": "변환",
-  "epoch.label.stamp": "타임스탬프 — 10자리 초 · 13자리 밀리초 · 16자리 마이크로초 · 19자리 나노초",
+  "epoch.label.stamp": "타임스탬프. 10자리 초, 13자리 밀리초, 16자리 마이크로초, 19자리 나노초",
   "epoch.label.human": "사람이 읽는 시각",
   "epoch.btn.now": "지금",
   "epoch.btn.copySec": "초 복사",

@@ -1,8 +1,8 @@
-/* 자동 생성 — `node scripts/gen-word-pool.mjs`. 손으로 고치지 마라.
- * 원본은 `data/tool-aliases.json` 이다 — 별칭을 고치면 여기도 따라 바뀐다. */
+/* 자동 생성. `node scripts/gen-word-pool.mjs`. 손으로 고치지 마라.
+ * 원본은 `data/tool-aliases.json` 이다. 별칭을 고치면 여기도 따라 바뀐다. */
 export interface PoolWord {
   word: string;
-  /** 이 낱말이 가리키는 도구 — 힌트이자, 맞힌 뒤 눌러 볼 곳. */
+  /** 이 낱말이 가리키는 도구. 힌트이자, 맞힌 뒤 눌러 볼 곳. */
   tool: string;
 }
 

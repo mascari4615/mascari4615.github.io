@@ -14,6 +14,6 @@
   "linebreak.tab": "줄바꿈",
   "linebreak.unit.chars": "자",
   "linebreak.copy.done": "결과를 복사했어요",
-  "linebreak.say.done": "{before}줄 → {after}줄 · 문단 사이 빈 줄은 그대로 둡니다.",
+  "linebreak.say.done": "{before}줄 → {after}줄, 문단 사이 빈 줄은 그대로 둡니다.",
   "linebreak.sample": "이 문장은 화면 너비에\n맞춰 잘려 있습니다. 그대로\n붙여 넣으면 어색합니다.\n\n두 번째 문단입니다. 문단\n사이 빈 줄은 남아야 합니다."
 }

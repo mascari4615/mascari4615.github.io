@@ -1,17 +1,17 @@
 {
-  "$comment": "English overlay for the study map. Korean (studymap.json) is canonical; anything missing here falls back to Korean. Match by id only — never restate structure or URLs here.",
+  "$comment": "English overlay for the study map. Korean (studymap.json) is canonical; anything missing here falls back to Korean. Match by id only. never restate structure or URLs here.",
   "tracks": {
     "web": {
       "title": "Web",
-      "lead": "From one line in the address bar to pixels on screen — everything in between"
+      "lead": "From one line in the address bar to pixels on screen. everything in between"
     },
     "git": {
       "title": "Git",
-      "lead": "Not memorizing commands — seeing the graph. Once you see it, it stops being scary"
+      "lead": "Not memorizing commands. seeing the graph. Once you see it, it stops being scary"
     },
     "cs": {
       "title": "Computer science",
-      "lead": "The layer that does not follow trends — still true in ten years"
+      "lead": "The layer that does not follow trends. still true in ten years"
     },
     "shell": {
       "title": "Linux & shell",
@@ -19,7 +19,7 @@
     },
     "devops": {
       "title": "DevOps & cloud",
-      "lead": "The layer that lets other people use what you built — where it becomes a service"
+      "lead": "The layer that lets other people use what you built. where it becomes a service"
     },
     "security": {
       "title": "Security",
@@ -27,43 +27,43 @@
     },
     "ai": {
       "title": "AI & LLM",
-      "lead": "Engineering on the using side — system design, not clever wording"
+      "lead": "Engineering on the using side. system design, not clever wording"
     },
     "data": {
       "title": "Data",
-      "lead": "Easy to pile up, hard to get back out — design backwards from the reading side"
+      "lead": "Easy to pile up, hard to get back out. design backwards from the reading side"
     },
     "game": {
       "title": "Game development",
-      "lead": "Fun is a feeling, not a feature — the distance between running and enjoyable"
+      "lead": "Fun is a feeling, not a feature. the distance between running and enjoyable"
     },
     "craft": {
       "title": "Developer craft",
-      "lead": "What separates people regardless of language — the part nobody teaches"
+      "lead": "What separates people regardless of language. the part nobody teaches"
     },
     "mobile": {
       "title": "Mobile",
-      "lead": "The screen in your hand plays by other rules — narrow, flaky, battery-powered"
+      "lead": "The screen in your hand plays by other rules. narrow, flaky, battery-powered"
     },
     "scale": {
       "title": "Distribution & scale",
-      "lead": "When one machine stops being enough — and the new problems that splitting creates"
+      "lead": "When one machine stops being enough. and the new problems that splitting creates"
     },
     "gfx": {
       "title": "Graphics & shaders",
-      "lead": "Why a pixel is that color — the rules of triangles and light"
+      "lead": "Why a pixel is that color. the rules of triangles and light"
     },
     "embed": {
       "title": "Embedded & IoT",
-      "lead": "Computers off-screen — kilobytes of memory, and someone has to walk over to unplug it"
+      "lead": "Computers off-screen. kilobytes of memory, and someone has to walk over to unplug it"
     },
     "product": {
       "title": "Product sense",
-      "lead": "Judgment rather than technique — deciding what to build and what not to"
+      "lead": "Judgment rather than technique. deciding what to build and what not to"
     },
     "analytics": {
       "title": "Data analysis",
-      "lead": "Making answers out of numbers — so you do not draw a wrong answer beautifully"
+      "lead": "Making answers out of numbers. so you do not draw a wrong answer beautifully"
     },
     "a11y": {
       "title": "Accessibility",
@@ -71,31 +71,31 @@
     },
     "design": {
       "title": "Design & architecture",
-      "lead": "The craft of staying changeable — code is cheap, structural fit is expensive"
+      "lead": "The craft of staying changeable. code is cheap, structural fit is expensive"
     },
     "lang": {
       "title": "Languages & paradigms",
-      "lead": "Ways of thinking, not syntax — the real study starts with your second language"
+      "lead": "Ways of thinking, not syntax. the real study starts with your second language"
     },
     "karmolab": {
       "title": "My project (KarmoLab)",
-      "lead": "Not general knowledge — this repository: from first look to changing it yourself"
+      "lead": "Not general knowledge. this repository: from first look to changing it yourself"
     },
     "audio": {
       "title": "Sound & audio",
-      "lead": "The most underrated half — mute it and the same screen becomes a different thing"
+      "lead": "The most underrated half. mute it and the same screen becomes a different thing"
     },
     "i18n": {
       "title": "Internationalization",
-      "lead": "\"We will translate it later\" is the most expensive sentence — pulling text out is a structural change"
+      "lead": "\"We will translate it later\" is the most expensive sentence. pulling text out is a structural change"
     },
     "legal": {
       "title": "Licensing & law",
-      "lead": "Code is a copyrighted work — using it blindly creates places you cannot undo later"
+      "lead": "Code is a copyrighted work. using it blindly creates places you cannot undo later"
     },
     "ml": {
       "title": "Machine learning basics",
-      "lead": "The building side, not the using side — teaching by examples instead of writing rules"
+      "lead": "The building side, not the using side. teaching by examples instead of writing rules"
     },
     "team": {
       "title": "Team & collaboration",
@@ -103,35 +103,35 @@
     },
     "career": {
       "title": "Career & growth",
-      "lead": "The part skill alone does not cover — being seen, and lasting"
+      "lead": "The part skill alone does not cover. being seen, and lasting"
     },
     "desktop": {
       "title": "Desktop apps",
-      "lead": "What appears the moment web tech opens a window — files, permissions, updates, signing"
+      "lead": "What appears the moment web tech opens a window. files, permissions, updates, signing"
     },
     "pay": {
       "title": "Payments & billing",
-      "lead": "Code that moves money — mistakes hurt users and are hard to undo"
+      "lead": "Code that moves money. mistakes hurt users and are hard to undo"
     },
     "search": {
       "title": "Search",
-      "lead": "Not \"found it\" but \"the right one is on top\" — LIKE cannot do that"
+      "lead": "Not \"found it\" but \"the right one is on top\". LIKE cannot do that"
     },
     "dataeng": {
       "title": "Data engineering",
-      "lead": "Analysis needs pipes in front of it — the side that runs quietly every day"
+      "lead": "Analysis needs pipes in front of it. the side that runs quietly every day"
     },
     "video": {
       "title": "Video & media",
-      "lead": "The triangle of size, quality and compatibility — gaining one costs another"
+      "lead": "The triangle of size, quality and compatibility. gaining one costs another"
     },
     "net": {
       "title": "Networking",
-      "lead": "Half of \"works on my machine\" is decided here — follow the wire and the cause shows up"
+      "lead": "Half of \"works on my machine\" is decided here. follow the wire and the cause shows up"
     },
     "qa": {
       "title": "Testing & quality",
-      "lead": "Tests exist to keep you fast — code you can change without fear is fast code"
+      "lead": "Tests exist to keep you fast. code you can change without fear is fast code"
     },
     "plt": {
       "title": "Languages & tooling",
@@ -139,31 +139,31 @@
     },
     "sys": {
       "title": "Systems programming",
-      "lead": "The OS is not magic — open it up and it is processes, files and a few signals"
+      "lead": "The OS is not magic. open it up and it is processes, files and a few signals"
     },
     "sync": {
       "title": "Realtime & sync",
-      "lead": "When two people edit the same thing at once — the craft of losing nobody’s words"
+      "lead": "When two people edit the same thing at once. the craft of losing nobody's words"
     },
     "math": {
       "title": "Math for developers",
-      "lead": "Not exam math — the math that quietly breaks your screen and your ledger"
+      "lead": "Not exam math. the math that quietly breaks your screen and your ledger"
     },
     "api": {
       "title": "API design",
-      "lead": "Once someone else depends on it you cannot change it — so the first hour lasts for years"
+      "lead": "Once someone else depends on it you cannot change it. so the first hour lasts for years"
     },
     "db": {
       "title": "Running a database",
-      "lead": "Getting slow, getting stuck, getting your data back — it is all decided here"
+      "lead": "Getting slow, getting stuck, getting your data back. it is all decided here"
     },
     "write": {
       "title": "Technical writing",
-      "lead": "Someone reads your code six months later — and that someone is usually you"
+      "lead": "Someone reads your code six months later. and that someone is usually you"
     },
     "oss": {
       "title": "Open source",
-      "lead": "How to touch someone else’s code — and how to open yours to everyone"
+      "lead": "How to touch someone else's code. and how to open yours to everyone"
     }
   },
   "stages": {
@@ -221,7 +221,7 @@
     "i18n-a": "Handling text",
     "i18n-b": "Formats and layout",
     "i18n-c": "Running it",
-    "legal-a": "Using other people’s work",
+    "legal-a": "Using other people's work",
     "legal-b": "Publishing your own",
     "legal-c": "Taking users",
     "ml-a": "What this work is",
@@ -299,7 +299,7 @@
     },
     "web-js": {
       "title": "JavaScript fundamentals",
-      "why": "Values, scope and async — hold those three and frameworks shrink to syntax.",
+      "why": "Values, scope and async. hold those three and frameworks shrink to syntax.",
       "check": "You can draw closures and the event loop",
       "links": [
         "javascript.info",
@@ -317,7 +317,7 @@
     },
     "web-http": {
       "title": "HTTP, cache, cookies",
-      "why": "Slow, stale, logged out — all three end here.",
+      "why": "Slow, stale, logged out. all three end here.",
       "check": "You explain the difference between 304 and 200 (from cache) in the network tab",
       "links": [
         "MDN HTTP",
@@ -352,7 +352,7 @@
     },
     "web-ts": {
       "title": "TypeScript",
-      "why": "Types are documentation — the only kind you actually leave for yourself six months out.",
+      "why": "Types are documentation. the only kind you actually leave for yourself six months out.",
       "check": "You handle someone else's API response without any",
       "links": [
         "TypeScript handbook"
@@ -403,7 +403,7 @@
     },
     "git-areas": {
       "title": "Working tree, index, HEAD",
-      "why": "This is why add exists as its own step — and where partial commits live.",
+      "why": "This is why add exists as its own step. and where partial commits live.",
       "check": "From status output alone you say which area each file is in",
       "links": [
         "git add docs"
@@ -419,10 +419,10 @@
     },
     "git-rebase": {
       "title": "Rebase",
-      "why": "The tool that makes history readable — and an accident when used on commits others already pulled.",
+      "why": "The tool that makes history readable. and an accident when used on commits others already pulled.",
       "check": "You squash three commits, reorder them, and edit just the middle one",
       "links": [
-        "Pro Git — rewriting history"
+        "Pro Git. rewriting history"
       ]
     },
     "git-undo": {
@@ -439,7 +439,7 @@
       "why": "Once you know pull is fetch plus merge, the weird merge commits stop.",
       "check": "You explain how origin/main differs from main",
       "links": [
-        "Pro Git — remote branches"
+        "Pro Git. remote branches"
       ]
     },
     "git-pr": {
@@ -512,7 +512,7 @@
       "why": "Change the structure and the algorithm often disappears entirely.",
       "check": "You choose between array, hash and tree and say why",
       "links": [
-        "VisuAlgo — structures you can watch"
+        "VisuAlgo. structures you can watch"
       ]
     },
     "cs-algo": {
@@ -611,7 +611,7 @@
       "why": "Done twice, script it. Done daily, schedule it. By hand you will eventually skip it.",
       "check": "Your backup runs as a script every day",
       "links": [
-        "ShellCheck — script linting"
+        "ShellCheck. script linting"
       ],
       "tool": "Cron expression reader"
     },
@@ -674,7 +674,7 @@
     },
     "sec-owasp": {
       "title": "The common holes (OWASP Top 10)",
-      "why": "Most real incidents are not novel techniques — they are these ten.",
+      "why": "Most real incidents are not novel techniques. they are these ten.",
       "check": "You point at where injection or XSS could land in your code",
       "links": [
         "OWASP Top 10"
@@ -729,7 +729,7 @@
       "why": "Length, price and speed are all decided here. Skip it and the invoice teaches you.",
       "check": "You compute the token count and cost of one request",
       "links": [
-        "Anthropic docs — models and cost"
+        "Anthropic docs. models and cost"
       ]
     },
     "ai-prompt": {
@@ -745,7 +745,7 @@
       "why": "Models are bad at saying they do not know. The system has to cover that.",
       "check": "You write down where wrong answers will appear and plan for it",
       "links": [
-        "Anthropic — reduce hallucinations"
+        "Anthropic. reduce hallucinations"
       ]
     },
     "ai-rag": {
@@ -753,15 +753,15 @@
       "why": "The usual way to put your own data into a model that never saw it.",
       "check": "You ask your document pile a question and get the source passage back",
       "links": [
-        "Anthropic — contextual retrieval"
+        "Anthropic. contextual retrieval"
       ]
     },
     "ai-tools": {
       "title": "Tool use and agents",
-      "why": "Where the model stops talking and starts doing — and where safety design begins.",
+      "why": "Where the model stops talking and starts doing. and where safety design begins.",
       "check": "You attach one tool and decide what happens when it fails",
       "links": [
-        "Anthropic — tool use"
+        "Anthropic. tool use"
       ]
     },
     "ai-eval": {
@@ -769,7 +769,7 @@
       "why": "The feeling that a prompt got better is usually wrong.",
       "check": "You score 20 fixed cases and compare",
       "links": [
-        "Anthropic — building evals"
+        "Anthropic. building evals"
       ]
     },
     "data-model": {
@@ -900,7 +900,7 @@
       "why": "You in six months is a stranger. A name and one line save that person.",
       "check": "Someone else runs it from the README alone",
       "links": [
-        "Diátaxis — four kinds of docs"
+        "Diátaxis. four kinds of docs"
       ]
     },
     "craft-ask": {
@@ -916,7 +916,7 @@
       "why": "Take it without checking and you get wrong fast. It is about what to delegate and what to verify.",
       "check": "You verify AI-written code with a test before committing",
       "links": [
-        "Anthropic — Claude Code docs"
+        "Anthropic. Claude Code docs"
       ]
     },
     "craft-focus": {
@@ -949,7 +949,7 @@
       "why": "Buttons designed for a mouse do not fit a thumb. 44px is a spec, not a taste.",
       "check": "You finish the main action one-handed with your thumb",
       "links": [
-        "Apple HIG — touch targets"
+        "Apple HIG. touch targets"
       ]
     },
     "mobile-offline": {
@@ -1226,7 +1226,7 @@
     },
     "a11y-keyboard": {
       "title": "Everything with the keyboard alone",
-      "why": "Not only about people who cannot use a mouse — a screen with no focus usually has no structure either.",
+      "why": "Not only about people who cannot use a mouse. a screen with no focus usually has no structure either.",
       "check": "Tab alone completes the main flow and you always see where you are",
       "links": [
         "MDN keyboard accessibility"
@@ -1250,7 +1250,7 @@
     },
     "a11y-contrast": {
       "title": "Contrast, text size, motion",
-      "why": "Sunlight, aging eyes, motion sickness — conditions everyone meets, not rare exceptions.",
+      "why": "Sunlight, aging eyes, motion sickness. conditions everyone meets, not rare exceptions.",
       "check": "Body text clears 4.5:1 and reduced-motion is respected",
       "links": [
         "WCAG quick reference"
@@ -1267,7 +1267,7 @@
     },
     "design-coupling": {
       "title": "Coupling and cohesion",
-      "why": "Why fixing one place breaks three. The names are fancy, the instinct is simple — keep what changes together together.",
+      "why": "Why fixing one place breaks three. The names are fancy, the instinct is simple. keep what changes together together.",
       "check": "You count how many files one change touches",
       "links": [
         "A Philosophy of Software Design"
@@ -1278,7 +1278,7 @@
       "why": "A module is worth what it hides, not what it holds.",
       "check": "You name one decision this module hides",
       "links": [
-        "Parnas — criteria for modularization (1972)"
+        "Parnas. criteria for modularization (1972)"
       ]
     },
     "design-model": {
@@ -1294,7 +1294,7 @@
       "why": "A pattern is a label, not a goal. See the problem first, name it later.",
       "check": "You point at a pattern already in your code",
       "links": [
-        "Refactoring Guru — patterns"
+        "Refactoring Guru. patterns"
       ]
     },
     "design-seam": {
@@ -1318,7 +1318,7 @@
       "why": "A design that settles everything up front ages fastest. Settle only what is hard to undo.",
       "check": "You order decisions by whether they are reversible",
       "links": [
-        "Martin Fowler — evolutionary design"
+        "Martin Fowler. evolutionary design"
       ]
     },
     "lang-second": {
@@ -1350,7 +1350,7 @@
       "why": "A machine catches the class of mistakes tests miss. The price is expressive constraint.",
       "check": "You make invalid states impossible to construct",
       "links": [
-        "Parse, don’t validate"
+        "Parse, don't validate"
       ]
     },
     "lang-memory": {
@@ -1358,7 +1358,7 @@
       "why": "One of the real criteria for picking a language: can you afford the pauses?",
       "check": "You state the price of GC and of Rust-style ownership",
       "links": [
-        "Rust Book — ownership"
+        "Rust Book. ownership"
       ]
     },
     "lang-concurrency": {
@@ -1379,7 +1379,7 @@
     },
     "kl-orientation": {
       "title": "01. Workspace and the safety line",
-      "why": "Separate editor, terminal and dev server — and how not to break other uncommitted work.",
+      "why": "Separate editor, terminal and dev server. and how not to break other uncommitted work.",
       "check": "You run npm run dev and open the screen",
       "links": [
         "KarmoLab AGENTS.md"
@@ -1422,7 +1422,7 @@
     },
     "kl-project": {
       "title": "08. Finish one small widget",
-      "why": "From reading to changing: one line, save, typecheck, bundle — the whole lap.",
+      "why": "From reading to changing: one line, save, typecheck, bundle. the whole lap.",
       "check": "Your change is on screen and the checks are green"
     },
     "audio-basics": {
@@ -1483,7 +1483,7 @@
     },
     "audio-web": {
       "title": "Web Audio API",
-      "why": "The browser standard for sound — with an autoplay policy that silently blocks the first sound.",
+      "why": "The browser standard for sound. with an autoplay policy that silently blocks the first sound.",
       "check": "You play after a user gesture and control volume",
       "links": [
         "MDN Web Audio API"
@@ -1508,7 +1508,7 @@
     },
     "i18n-plural": {
       "title": "Plurals, gender, word order (ICU)",
-      "why": "Build \"3 items\" by string concatenation and it collapses in other languages — the rules differ per language.",
+      "why": "Build \"3 items\" by string concatenation and it collapses in other languages. the rules differ per language.",
       "check": "You handle plurals with an ICU message",
       "links": [
         "ICU MessageFormat"
@@ -1582,7 +1582,7 @@
     },
     "legal-publish": {
       "title": "Publishing your project",
-      "why": "With no license the default is \"all rights reserved\" — nobody may use it.",
+      "why": "With no license the default is \"all rights reserved\". nobody may use it.",
       "check": "You pick a LICENSE and add README and a code of conduct",
       "links": [
         "Open Source Guides"
@@ -1590,7 +1590,7 @@
     },
     "legal-contribute": {
       "title": "Contributing to open source",
-      "why": "Sending a PR to someone else’s repo has rules too — DCO, CLA, contribution guides.",
+      "why": "Sending a PR to someone else's repo has rules too. DCO, CLA, contribution guides.",
       "check": "You land one small PR following the project rules",
       "links": [
         "First Contributions"
@@ -1614,10 +1614,10 @@
     },
     "legal-terms": {
       "title": "Terms of service and liability",
-      "why": "A service needs rules — read what you are promising before copying someone else’s terms.",
+      "why": "A service needs rules. read what you are promising before copying someone else's terms.",
       "check": "You separate what your service promises from what it does not",
       "links": [
-        "Terms of Service; Didn’t Read"
+        "Terms of Service; Didn't Read"
       ]
     },
     "ml-what": {
@@ -1625,12 +1625,12 @@
       "why": "Use it when the rule cannot be written as if-statements; otherwise plain code wins.",
       "check": "You judge with reasons whether this problem needs ML at all",
       "links": [
-        "Google — Rules of ML"
+        "Google. Rules of ML"
       ]
     },
     "ml-data": {
       "title": "Splitting data and overfitting",
-      "why": "Score on the training data and you get 100% — that is memorizing, not learning.",
+      "why": "Score on the training data and you get 100%. that is memorizing, not learning.",
       "check": "You split train/validation/test and prevent leakage",
       "links": [
         "scikit-learn user guide"
@@ -1665,12 +1665,12 @@
       "why": "99% accuracy can be worthless, especially on imbalanced data.",
       "check": "You judge with precision, recall and a confusion matrix",
       "links": [
-        "Google ML crash course — accuracy"
+        "Google ML crash course. accuracy"
       ]
     },
     "ml-deploy": {
       "title": "Deployment and drift",
-      "why": "A model starts aging the moment it ships; when the world shifts, yesterday’s answer is wrong today.",
+      "why": "A model starts aging the moment it ships; when the world shifts, yesterday's answer is wrong today.",
       "check": "You watch input distribution and performance continuously",
       "links": [
         "Hidden technical debt in ML systems"
@@ -1678,7 +1678,7 @@
     },
     "ml-ethics": {
       "title": "Bias and responsibility",
-      "why": "A model learns the discrimination present in the data — and scales it up.",
+      "why": "A model learns the discrimination present in the data. and scales it up.",
       "check": "You measure and record performance per group",
       "links": [
         "Model Cards"
@@ -1686,7 +1686,7 @@
     },
     "team-async": {
       "title": "Async communication",
-      "why": "Said out loud, it never happened for anyone who was not there — even more so across time zones.",
+      "why": "Said out loud, it never happened for anyone who was not there. even more so across time zones.",
       "check": "Decisions are written down and referenced by link",
       "links": [
         "GitLab all-remote handbook"
@@ -1705,12 +1705,12 @@
       "why": "Time a newcomer spends lost is a cost to the whole team, and docs are never fixed better than right then.",
       "check": "A newcomer runs the environment and lands a first PR within a day",
       "links": [
-        "Open Source Guides — building community"
+        "Open Source Guides. building community"
       ]
     },
     "team-estimate": {
       "title": "Estimation and planning",
-      "why": "How you answer \"when will it be done\" — not accurate prediction but handling uncertainty.",
+      "why": "How you answer \"when will it be done\". not accurate prediction but handling uncertainty.",
       "check": "You slice the scope and resolve the uncertain parts first",
       "links": [
         "Shape Up (free)"
@@ -1769,7 +1769,7 @@
       "why": "Writing introduces you while you sleep, and it organizes your own thinking.",
       "check": "You publish one thing you learned",
       "links": [
-        "Julia Evans — blogging myths"
+        "Julia Evans. blogging myths"
       ]
     },
     "career-interview": {
@@ -1782,7 +1782,7 @@
     },
     "career-offer": {
       "title": "Compensation and negotiation",
-      "why": "Simply not naming a number first changes outcomes — it is an information game.",
+      "why": "Simply not naming a number first changes outcomes. it is an information game.",
       "check": "You research the market range and argue from evidence",
       "links": [
         "levels.fyi"
@@ -1790,10 +1790,10 @@
     },
     "career-network": {
       "title": "People",
-      "why": "Good opportunities usually arrive through people, not postings — and it is contribution, not sales.",
+      "why": "Good opportunities usually arrive through people, not postings. and it is contribution, not sales.",
       "check": "You have a few relationships where you helped first",
       "links": [
-        "Open Source Guides — how to contribute"
+        "Open Source Guides. how to contribute"
       ]
     },
     "career-growth": {
@@ -1806,10 +1806,10 @@
     },
     "career-burnout": {
       "title": "Burnout and sustainability",
-      "why": "It comes less from doing a lot and more from seeing no end — lasting requires structure.",
+      "why": "It comes less from doing a lot and more from seeing no end. lasting requires structure.",
       "check": "Rest is actually in the plan",
       "links": [
-        "WHO — burnout definition"
+        "WHO. burnout definition"
       ]
     },
     "desktop-why": {
@@ -1871,7 +1871,7 @@
     },
     "desktop-security": {
       "title": "Security",
-      "why": "A local app can reach the user’s whole file system; loading arbitrary pages in the webview leaks that power.",
+      "why": "A local app can reach the user's whole file system; loading arbitrary pages in the webview leaks that power.",
       "check": "External links open in the system browser and permissions stay minimal",
       "links": [
         "Electron security checklist"
@@ -1879,7 +1879,7 @@
     },
     "pay-flow": {
       "title": "The life of one payment",
-      "why": "After the button, authorization, capture and settlement happen over days — that gap is where bugs live.",
+      "why": "After the button, authorization, capture and settlement happen over days. that gap is where bugs live.",
       "check": "You name authorization, capture, settlement and cancellation in order",
       "links": [
         "Stripe payment intents"
@@ -1951,7 +1951,7 @@
     },
     "search-index": {
       "title": "Inverted index",
-      "why": "Instead of scanning documents for a word, you look the word up and get documents — that is why it is fast.",
+      "why": "Instead of scanning documents for a word, you look the word up and get documents. that is why it is fast.",
       "check": "You can draw an inverted index by hand",
       "links": [
         "Elasticsearch documents and indices"
@@ -1991,7 +1991,7 @@
     },
     "search-quality": {
       "title": "Measuring search quality",
-      "why": "Tuning by feel makes yesterday’s win today’s regression; numbers let improvements accumulate.",
+      "why": "Tuning by feel makes yesterday's win today's regression; numbers let improvements accumulate.",
       "check": "You measure top-k hit rate against an evaluation set",
       "links": [
         "Rank Eval API"
@@ -2010,12 +2010,12 @@
       "why": "Aggregating on the production DB slows the service, and hand-pulled numbers differ every time.",
       "check": "You explain why operational and analytical systems are separated",
       "links": [
-        "dbt — analytics engineering"
+        "dbt. analytics engineering"
       ]
     },
     "dataeng-batch": {
       "title": "Batch and streaming",
-      "why": "\"Every night\" and \"instantly\" differ in cost and complexity — batch is enough for most cases.",
+      "why": "\"Every night\" and \"instantly\" differ in cost and complexity. batch is enough for most cases.",
       "check": "You state the latency this data actually needs, as a number",
       "links": [
         "Kafka introduction"
@@ -2031,7 +2031,7 @@
     },
     "dataeng-contract": {
       "title": "Schema evolution and data contracts",
-      "why": "One column rename in the app silently breaks ten dashboards — hence contracts.",
+      "why": "One column rename in the app silently breaks ten dashboards. hence contracts.",
       "check": "You know which downstream breaks before you change something",
       "links": [
         "Schema Registry"
@@ -2047,7 +2047,7 @@
     },
     "dataeng-quality": {
       "title": "Data quality checks",
-      "why": "Silently wrong data is the most expensive kind — decisions ship while nobody notices.",
+      "why": "Silently wrong data is the most expensive kind. decisions ship while nobody notices.",
       "check": "Row count, duplicate, null and range checks run inside the pipeline",
       "links": [
         "Great Expectations"
@@ -2071,7 +2071,7 @@
     },
     "video-container": {
       "title": "Containers are not codecs",
-      "why": ".mp4 is the box; the codec inside decides whether it plays — the answer to \"why will this not open\".",
+      "why": ".mp4 is the box; the codec inside decides whether it plays. the answer to \"why will this not open\".",
       "check": "You explain how mp4, H.264 and AAC relate",
       "links": [
         "MDN media containers"
@@ -2111,7 +2111,7 @@
     },
     "video-thumb": {
       "title": "Thumbnails, previews, metadata",
-      "why": "Perceived quality of a list comes from thumbnails — and rotation metadata is what lays photos sideways.",
+      "why": "Perceived quality of a list comes from thumbnails. and rotation metadata is what lays photos sideways.",
       "check": "You extract a thumbnail at a chosen time and honor rotation",
       "links": [
         "FFmpeg thumbnails"
@@ -2119,7 +2119,7 @@
     },
     "video-caption": {
       "title": "Captions and accessibility",
-      "why": "Not only for people who cannot hear — more people watch muted on a train.",
+      "why": "Not only for people who cannot hear. more people watch muted on a train.",
       "check": "You attach a caption file and toggle it in the player",
       "links": [
         "WebVTT (MDN)"
@@ -2138,7 +2138,7 @@
       "why": "Narrowing a problem to one layer cuts the suspects tenfold; it is the first cut in diagnosis.",
       "check": "You hear a symptom and place it on a layer",
       "links": [
-        "Cloudflare — OSI model"
+        "Cloudflare. OSI model"
       ]
     },
     "net-ip": {
@@ -2146,7 +2146,7 @@
       "why": "Without private vs public, ranges and gateways you cannot move past \"it will not connect\".",
       "check": "You read CIDR notation and tell whether two hosts share a range",
       "links": [
-        "Cloudflare — what is an IP address"
+        "Cloudflare. what is an IP address"
       ]
     },
     "net-tcp-udp": {
@@ -2154,7 +2154,7 @@
       "why": "Ordering and retransmission cost latency, which is why games and calls pick UDP.",
       "check": "You choose one for your feature and justify it",
       "links": [
-        "Cloudflare — what is UDP"
+        "Cloudflare. what is UDP"
       ]
     },
     "net-dns": {
@@ -2162,7 +2162,7 @@
       "why": "The usual suspect when a deploy is done but nothing shows; misreading TTL makes you wait wrong.",
       "check": "You tell A, CNAME and TXT apart and watch propagation yourself",
       "links": [
-        "Cloudflare — what is DNS"
+        "Cloudflare. what is DNS"
       ]
     },
     "net-tls": {
@@ -2170,7 +2170,7 @@
       "why": "\"Your connection is not private\" is almost always expiry, chain or name mismatch.",
       "check": "You query a certificate and read expiry, issuer and SAN",
       "links": [
-        "Cloudflare — TLS handshake"
+        "Cloudflare. TLS handshake"
       ]
     },
     "net-http-versions": {
@@ -2178,7 +2178,7 @@
       "why": "Old advice like \"reduce request count\" is already wrong on newer versions.",
       "check": "You check which version your site actually serves",
       "links": [
-        "Cloudflare — what is HTTP/3"
+        "Cloudflare. what is HTTP/3"
       ]
     },
     "net-nat": {
@@ -2186,7 +2186,7 @@
       "why": "It explains at once why your home box is invisible from outside and why tunnels exist.",
       "check": "You verify whether a port is open and expose a service through a tunnel",
       "links": [
-        "Cloudflare — what is NAT"
+        "Cloudflare. what is NAT"
       ]
     },
     "net-diag": {
@@ -2199,10 +2199,10 @@
     },
     "qa-why": {
       "title": "Tests are a speed tool",
-      "why": "This is where \"no time to write tests\" flips over — without them you verify by hand every time.",
+      "why": "This is where \"no time to write tests\" flips over. without them you verify by hand every time.",
       "check": "You name one moment where the lack of tests slowed you down",
       "links": [
-        "Martin Fowler — Test Pyramid"
+        "Martin Fowler. Test Pyramid"
       ]
     },
     "qa-pyramid": {
@@ -2210,7 +2210,7 @@
       "why": "All end to end is slow and brittle; all unit misses the failures that actually happen.",
       "check": "You sort your tests into the three kinds and count the ratio",
       "links": [
-        "Google — test sizes"
+        "Google. test sizes"
       ]
     },
     "qa-first": {
@@ -2218,7 +2218,7 @@
       "why": "It is the only proof that a test catches what you think; green that was never red is not trustworthy.",
       "check": "You reproduce the bug in a test before fixing it",
       "links": [
-        "Kent Beck — TDD"
+        "Kent Beck. TDD"
       ]
     },
     "qa-seam": {
@@ -2226,7 +2226,7 @@
       "why": "Time, network and randomness baked into code make it untestable, so you plan the cut in advance.",
       "check": "You inject the clock and the random source from outside",
       "links": [
-        "Martin Fowler — test double"
+        "Martin Fowler. test double"
       ]
     },
     "qa-data": {
@@ -2234,7 +2234,7 @@
       "why": "Shared state between tests makes results depend on order, and that hunt costs days.",
       "check": "Your suite is still green in random order",
       "links": [
-        "Vitest — config and isolation"
+        "Vitest. config and isolation"
       ]
     },
     "qa-flaky": {
@@ -2242,7 +2242,7 @@
       "why": "A sometimes-red test teaches the whole team to ignore the gate, and then red is the default.",
       "check": "You measure a flake rate and find the cause",
       "links": [
-        "Google — flaky tests"
+        "Google. flaky tests"
       ]
     },
     "qa-e2e": {
@@ -2258,7 +2258,7 @@
       "why": "90% coverage is not quality; choosing what to block is the actual design work.",
       "check": "You add one pre-commit gate and measure how long it survives",
       "links": [
-        "Martin Fowler — continuous integration"
+        "Martin Fowler. continuous integration"
       ]
     },
     "plt-why": {
@@ -2274,7 +2274,7 @@
       "why": "The most reusable string-handling skill, and it carries you past where regex collapses.",
       "check": "You turn an expression string into a token array",
       "links": [
-        "Crafting Interpreters — scanning"
+        "Crafting Interpreters. scanning"
       ]
     },
     "plt-parser": {
@@ -2290,7 +2290,7 @@
       "why": "With a tree in hand execution is surprisingly short, and \"I made a language\" becomes real here.",
       "check": "You evaluate expressions with variables and conditionals",
       "links": [
-        "Crafting Interpreters — evaluating expressions"
+        "Crafting Interpreters. evaluating expressions"
       ]
     },
     "plt-error": {
@@ -2298,7 +2298,7 @@
       "why": "\"Syntax error\" helps nobody; position, expectation and a suggested fix are the actual usability.",
       "check": "Bad input shows line, column and a suggestion",
       "links": [
-        "Rust — diagnostics design"
+        "Rust. diagnostics design"
       ]
     },
     "plt-bytecode": {
@@ -2306,7 +2306,7 @@
       "why": "Turning the tree into an instruction list shows you first-hand why it gets faster.",
       "check": "You compile expressions to stack-machine instructions and run them",
       "links": [
-        "Crafting Interpreters — a virtual machine"
+        "Crafting Interpreters. a virtual machine"
       ]
     },
     "plt-codemod": {
@@ -2330,15 +2330,15 @@
       "why": "Most \"it will not die\" problems come from not knowing what a process is holding.",
       "check": "You read a process tree and its exit codes",
       "links": [
-        "man7 — credentials(7)"
+        "man7. credentials(7)"
       ]
     },
     "sys-fd": {
       "title": "File descriptors and pipes",
       "why": "Redirection, pipes and \"too many open files\" are all explained by this one number.",
-      "check": "You list a process’s open files and chain output through a pipe",
+      "check": "You list a process's open files and chain output through a pipe",
       "links": [
-        "man7 — pipe(7)"
+        "man7. pipe(7)"
       ]
     },
     "sys-signal": {
@@ -2346,7 +2346,7 @@
       "why": "Requests dropped during a deploy usually mean nobody wrote the shutdown path.",
       "check": "Your program catches the stop signal, cleans up, then exits",
       "links": [
-        "man7 — signal(7)"
+        "man7. signal(7)"
       ]
     },
     "sys-mem": {
@@ -2354,7 +2354,7 @@
       "why": "It explains why every tool reports a different \"memory usage\" and why a process vanishes.",
       "check": "You explain RSS versus virtual size and find an OOM record",
       "links": [
-        "man7 — mmap(2)"
+        "man7. mmap(2)"
       ]
     },
     "sys-sched": {
@@ -2362,15 +2362,15 @@
       "why": "\"CPU at 100%\" and \"slow\" are different problems; waiting and working must be told apart.",
       "check": "You read load, wait time and context switch counts",
       "links": [
-        "Brendan Gregg — USE method"
+        "Brendan Gregg. USE method"
       ]
     },
     "sys-syscall": {
       "title": "Peeking at syscalls",
       "why": "It is how you learn what a program really does without its source, and it lies less than logs.",
-      "check": "You trace a program’s file and network calls",
+      "check": "You trace a program's file and network calls",
       "links": [
-        "man7 — strace(1)"
+        "man7. strace(1)"
       ]
     },
     "sys-container": {
@@ -2378,7 +2378,7 @@
       "why": "With namespaces and cgroups, most container problems become ordinary Linux problems.",
       "check": "You explain why processes and networking look different inside",
       "links": [
-        "man7 — namespaces(7)"
+        "man7. namespaces(7)"
       ]
     },
     "sys-profile": {
@@ -2386,7 +2386,7 @@
       "why": "It points at the slow part; optimizing by guess usually fixes the wrong thing.",
       "check": "You profile one slow task and name the top consumer",
       "links": [
-        "Brendan Gregg — flame graphs"
+        "Brendan Gregg. flame graphs"
       ]
     },
     "sync-transport": {
@@ -2394,7 +2394,7 @@
       "why": "Needing realtime does not mean needing WebSocket; you pick by cost and limits.",
       "check": "You choose one for your feature and justify it",
       "links": [
-        "MDN — WebSocket API"
+        "MDN. WebSocket API"
       ]
     },
     "sync-presence": {
@@ -2402,7 +2402,7 @@
       "why": "Cursors and typing indicators are what collaboration feels like, and ghost users are born here too.",
       "check": "Join and leave are detected so the list stays correct",
       "links": [
-        "MDN — server-sent events"
+        "MDN. server-sent events"
       ]
     },
     "sync-reconnect": {
@@ -2410,15 +2410,15 @@
       "why": "Mobile will disconnect; without reconnect and catch-up the screen quietly goes wrong.",
       "check": "State is still correct after you kill and restore the link",
       "links": [
-        "MDN — online/offline events"
+        "MDN. online/offline events"
       ]
     },
     "sync-conflict": {
       "title": "Conflicts are unavoidable",
-      "why": "\"Last write wins\" silently deletes someone else’s work, and silence is what makes it bad.",
+      "why": "\"Last write wins\" silently deletes someone else's work, and silence is what makes it bad.",
       "check": "You reproduce exactly what disappears on concurrent edits",
       "links": [
-        "Martin Fowler — optimistic offline lock"
+        "Martin Fowler. optimistic offline lock"
       ]
     },
     "sync-crdt": {
@@ -2434,7 +2434,7 @@
       "why": "An app that never waits for the network simply feels faster, and syncing happens behind it.",
       "check": "It works in airplane mode and reconciles once back",
       "links": [
-        "Ink & Switch — local-first software"
+        "Ink & Switch. local-first software"
       ]
     },
     "sync-event": {
@@ -2442,7 +2442,7 @@
       "why": "Storing only the current value loses \"how it got this way\" forever; a log lets you rewind.",
       "check": "You append changes as events and restore any point in time",
       "links": [
-        "Martin Fowler — event sourcing"
+        "Martin Fowler. event sourcing"
       ]
     },
     "sync-cost": {
@@ -2450,7 +2450,7 @@
       "why": "Ten thousand connections is a different problem from ten thousand requests; memory and fan-out break first.",
       "check": "You compute cost per concurrent connection and set a ceiling",
       "links": [
-        "Cloudflare — WebSockets"
+        "Cloudflare. WebSockets"
       ]
     },
     "math-float": {
@@ -2463,10 +2463,10 @@
     },
     "math-money": {
       "title": "Money and rounding",
-      "why": "Treat amounts as floats and a coin eventually vanishes — tax, discounts and splitting always expose it.",
+      "why": "Treat amounts as floats and a coin eventually vanishes. tax, discounts and splitting always expose it.",
       "check": "You hold money in integers and fix a rounding rule",
       "links": [
-        "MDN — Intl.NumberFormat"
+        "MDN. Intl.NumberFormat"
       ]
     },
     "math-random": {
@@ -2474,7 +2474,7 @@
       "why": "Irreproducible randomness makes bugs uncatchable, and perceived fairness differs from real probability.",
       "check": "A fixed seed reproduces the same run",
       "links": [
-        "MDN — Math.random()"
+        "MDN. Math.random()"
       ]
     },
     "math-vector": {
@@ -2482,7 +2482,7 @@
       "why": "\"Is the enemy behind me\" and \"how far\" both reduce to a dot product and a length.",
       "check": "You use a dot product for front/back and normalize properly",
       "links": [
-        "Red Blob Games — interactive game math"
+        "Red Blob Games. interactive game math"
       ]
     },
     "math-matrix": {
@@ -2490,7 +2490,7 @@
       "why": "Knowing why order matters is what fixes objects flying off to nowhere.",
       "check": "You explain the difference when translation and rotation swap",
       "links": [
-        "MDN — CSS transform"
+        "MDN. CSS transform"
       ]
     },
     "math-easing": {
@@ -2506,7 +2506,7 @@
       "why": "You can compute what \"20% crit\" actually feels like instead of tuning by vibes.",
       "check": "You tune balance using expected value and variance",
       "links": [
-        "Red Blob Games — damage rolls"
+        "Red Blob Games. damage rolls"
       ]
     },
     "math-stats": {
@@ -2514,7 +2514,7 @@
       "why": "A 200ms average still leaves the top 1% waiting five seconds; averages hide incidents.",
       "check": "You measure p50, p95 and p99 and compare to the mean",
       "links": [
-        "Brendan Gregg — latency heat maps"
+        "Brendan Gregg. latency heat maps"
       ]
     },
     "api-resource": {
@@ -2522,7 +2522,7 @@
       "why": "Pretty URLs are not design; cut the resources wrong and every screen needs more round trips.",
       "check": "You count the calls one screen needs and reduce them",
       "links": [
-        "MDN — HTTP methods"
+        "MDN. HTTP methods"
       ]
     },
     "api-error": {
@@ -2530,7 +2530,7 @@
       "why": "A 200 with a message string forces every caller to guess; the error shape is part of the contract.",
       "check": "You return a status code plus a machine-readable error code",
       "links": [
-        "RFC 9457 — problem details"
+        "RFC 9457. problem details"
       ]
     },
     "api-page": {
@@ -2538,7 +2538,7 @@
       "why": "\"Give me everything\" always dies as data grows, and the paging style is hard to change later.",
       "check": "Your list endpoint pages with a cursor",
       "links": [
-        "GraphQL — pagination"
+        "GraphQL. pagination"
       ]
     },
     "api-idempotent": {
@@ -2546,15 +2546,15 @@
       "why": "Networks drop, and \"I was charged twice\" is almost always born here.",
       "check": "An idempotency key makes duplicate requests apply once",
       "links": [
-        "Stripe — idempotent requests"
+        "Stripe. idempotent requests"
       ]
     },
     "api-authz": {
       "title": "Who you are, what you may do",
-      "why": "Authenticated but unauthorized is how other people’s data leaks — the most common real incident.",
+      "why": "Authenticated but unauthorized is how other people's data leaks. the most common real incident.",
       "check": "Ownership checks are enforced structurally, not per handler",
       "links": [
-        "OWASP — broken access control"
+        "OWASP. broken access control"
       ]
     },
     "api-limit": {
@@ -2562,7 +2562,7 @@
       "why": "One runaway client can take everyone down, and limits also give callers predictability.",
       "check": "You return 429 with accurate remaining-quota headers",
       "links": [
-        "MDN — 429 Too Many Requests"
+        "MDN. 429 Too Many Requests"
       ]
     },
     "api-version": {
@@ -2570,7 +2570,7 @@
       "why": "Freedom ends the moment someone depends on you, so you need rules for changing safely.",
       "check": "You classify changes as breaking or not and plan accordingly",
       "links": [
-        "RFC 8594 — the Sunset header"
+        "RFC 8594. the Sunset header"
       ]
     },
     "api-doc": {
@@ -2586,7 +2586,7 @@
       "why": "Most slow queries are an index problem, and adding them everywhere makes writes slow instead.",
       "check": "You add the right index and watch the query time drop",
       "links": [
-        "PostgreSQL — indexes"
+        "PostgreSQL. indexes"
       ]
     },
     "db-explain": {
@@ -2594,7 +2594,7 @@
       "why": "The database will tell you how it plans to search, which turns tuning from gambling into reading.",
       "check": "You tell a sequential scan from an index scan in EXPLAIN",
       "links": [
-        "PostgreSQL — using EXPLAIN"
+        "PostgreSQL. using EXPLAIN"
       ]
     },
     "db-nplus1": {
@@ -2602,15 +2602,15 @@
       "why": "An ORM quietly fires two hundred queries; the code looks clean and only the screen is slow.",
       "check": "You count the queries one request makes and cut them",
       "links": [
-        "PostgreSQL — pg_stat_statements"
+        "PostgreSQL. pg_stat_statements"
       ]
     },
     "db-lock": {
       "title": "Locks and deadlocks",
-      "why": "This is what \"sometimes it just hangs\" really is — a long transaction makes everyone queue.",
+      "why": "This is what \"sometimes it just hangs\" really is. a long transaction makes everyone queue.",
       "check": "You query who is currently waiting on whom",
       "links": [
-        "PostgreSQL — explicit locking"
+        "PostgreSQL. explicit locking"
       ]
     },
     "db-pool": {
@@ -2618,7 +2618,7 @@
       "why": "More connections stop helping and then start hurting everyone at once.",
       "check": "You size the pool and watch wait time",
       "links": [
-        "PostgreSQL — connection settings"
+        "PostgreSQL. connection settings"
       ]
     },
     "db-migrate": {
@@ -2626,7 +2626,7 @@
       "why": "Adding one column can stop a service; knowing the order means it does not.",
       "check": "You split changes into expand, migrate and contract",
       "links": [
-        "Martin Fowler — evolutionary database design"
+        "Martin Fowler. evolutionary database design"
       ]
     },
     "db-backup": {
@@ -2634,7 +2634,7 @@
       "why": "Having backups and being able to restore are different things, usually learned on the worst day.",
       "check": "You actually restore one and time it",
       "links": [
-        "PostgreSQL — backup and restore"
+        "PostgreSQL. backup and restore"
       ]
     },
     "db-grow": {
@@ -2642,7 +2642,7 @@
       "why": "Past a hundred million rows even deleting is hard, so deciding early is the cheap option.",
       "check": "You set a retention window and a partition key",
       "links": [
-        "PostgreSQL — partitioning"
+        "PostgreSQL. partitioning"
       ]
     },
     "write-reader": {
@@ -2658,7 +2658,7 @@
       "why": "If the first five minutes do not produce one success, nobody reaches the second screen.",
       "check": "Install to first success fits in three commands",
       "links": [
-        "GitHub — about READMEs"
+        "GitHub. about READMEs"
       ]
     },
     "write-types": {
@@ -2666,7 +2666,7 @@
       "why": "A tutorial welded to a reference serves neither the learner nor the looker-up.",
       "check": "You split your docs into the four kinds and redo the index",
       "links": [
-        "Diátaxis — four kinds of documentation"
+        "Diátaxis. four kinds of documentation"
       ]
     },
     "write-adr": {
@@ -2674,7 +2674,7 @@
       "why": "When nobody remembers why, the same argument restarts from zero six months later.",
       "check": "You capture one recent decision on a single page",
       "links": [
-        "ADR — architecture decision records"
+        "ADR. architecture decision records"
       ]
     },
     "write-incident": {
@@ -2682,7 +2682,7 @@
       "why": "Name a culprit and the next incident gets hidden; there is a format that leaves learning instead.",
       "check": "You write up one incident blamelessly",
       "links": [
-        "Google SRE — postmortem culture"
+        "Google SRE. postmortem culture"
       ]
     },
     "write-async": {
@@ -2690,7 +2690,7 @@
       "why": "The surest way to delete a meeting is one page someone can approve by reading.",
       "check": "You write context, options and a recommendation",
       "links": [
-        "Write the Docs — guide"
+        "Write the Docs. guide"
       ]
     },
     "write-plain": {
@@ -2706,12 +2706,12 @@
       "why": "Wrong docs are worse than none, and willpower does not stop rot.",
       "check": "Docs carry an owner and a review date, checked automatically",
       "links": [
-        "Google style — maintaining docs"
+        "Google style. maintaining docs"
       ]
     },
     "oss-why": {
       "title": "Why bother",
-      "why": "Not because it is virtuous, but because learning inside someone else’s codebase is unmatched.",
+      "why": "Not because it is virtuous, but because learning inside someone else's codebase is unmatched.",
       "check": "You write one line about what you want out of it",
       "links": [
         "Open Source Guides"
@@ -2728,9 +2728,9 @@
     "oss-issue": {
       "title": "Reading and reproducing an issue",
       "why": "Reproduction comes before fixing; without it you cannot even tell that you fixed it.",
-      "check": "You reproduce someone else’s issue locally",
+      "check": "You reproduce someone else's issue locally",
       "links": [
-        "GitHub — issues"
+        "GitHub. issues"
       ]
     },
     "oss-firstpr": {
@@ -2738,7 +2738,7 @@
       "why": "Most rejected PRs fail for being large or unagreed, not for bad code.",
       "check": "You follow CONTRIBUTING and open one small PR",
       "links": [
-        "GitHub — pull requests"
+        "GitHub. pull requests"
       ]
     },
     "oss-review": {
@@ -2754,7 +2754,7 @@
       "why": "Docs, translation, triage and reproduction are often more urgent, and far easier to start with.",
       "check": "You land one docs, translation or triage contribution",
       "links": [
-        "Write the Docs — guide"
+        "Write the Docs. guide"
       ]
     },
     "oss-maintain": {

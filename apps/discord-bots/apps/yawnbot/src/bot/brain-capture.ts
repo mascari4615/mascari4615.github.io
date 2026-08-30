@@ -1,5 +1,5 @@
 /**
- * brain-capture — 외장 뇌 캡처 레이어.
+ * brain-capture. 외장 뇌 캡처 레이어.
  *
  * DM 에서 `뇌: <내용>` 형태로 오면:
  *  1. Claude API 로 1줄 요약 + 자동 태그 추출
@@ -15,9 +15,9 @@ import { generateAssistantText } from '@karmo/ai/node';
 import { commitAndPushMemoFile } from '../services/memo-push.js';
 
 // `뇌: 내용` `뇌:내용` `뇌 : 내용` `뇌：내용` `뇌 내용` 전부 매칭.
-// 콜론이 있으면 뒤 공백은 없어도 된다 — 붙여 쓰는 게 사람의 기본값이고,
+// 콜론이 있으면 뒤 공백은 없어도 된다. 붙여 쓰는 게 사람의 기본값이고,
 // 공백을 강제하던 동안 이 통로로 들어온 메모는 0건이었다 (TASK-KAR-233).
-// 콜론이 없을 때만 공백을 요구한다 — 안 그러면 「뇌졸중…」 같은 말이 걸린다.
+// 콜론이 없을 때만 공백을 요구한다. 안 그러면 뇌졸중... 같은 말이 걸린다.
 const BRAIN_PREFIX_RE = /^뇌\s*[:：]\s*|^뇌\s+/;
 
 export function isBrainCapture(content: string): boolean {
@@ -130,7 +130,7 @@ export async function handleBrainCapture(
 
     await message.reply(
       ok
-        ? `🧠 저장됨 — ${summary}${tagStr}`
+        ? `🧠 저장됨. ${summary}${tagStr}`
         : `⚠ 저장 실패 (\`${result.outcome}\`): ${result.detail ?? ''}`,
     );
   } catch (e) {

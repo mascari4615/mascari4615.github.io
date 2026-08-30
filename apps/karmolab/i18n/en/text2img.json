@@ -1,9 +1,9 @@
 {
   "text2img.tab": "Text → image",
-  "text2img.ratio.square": "Square — Instagram",
-  "text2img.ratio.wide": "Landscape — X, blogs",
-  "text2img.ratio.story": "Portrait — stories",
-  "text2img.ratio.banner": "Banner — page header",
+  "text2img.ratio.square": "Square. Instagram",
+  "text2img.ratio.wide": "Landscape. X, blogs",
+  "text2img.ratio.story": "Portrait. stories",
+  "text2img.ratio.banner": "Banner. page header",
   "text2img.theme.dark": "Dark",
   "text2img.theme.light": "Light",
   "text2img.theme.warm": "Warm",
@@ -20,7 +20,7 @@
   "text2img.opt.quote": "Add quotation marks",
   "text2img.label.preview": "Preview",
   "text2img.btn.save": "Download as PNG",
-  "text2img.status.idle": "The text stays in your browser — nothing is uploaded anywhere.",
+  "text2img.status.idle": "The text stays in your browser. nothing is uploaded anywhere.",
   "text2img.stat.size": "Image size",
   "text2img.stat.lines": "Lines",
   "text2img.stat.font": "Text size",
@@ -28,6 +28,6 @@
   "text2img.say.overflow": "The text may overflow at this size. Leave it on Auto and it fits itself.",
   "text2img.say.ready": "Download it if you like it.",
   "text2img.err.render": "Could not turn it into an image.",
-  "text2img.say.saved": "Downloaded {w}×{h} · {size}.",
+  "text2img.say.saved": "Downloaded {w}×{h}, {size}.",
   "text2img.file.name": "text-card"
 }

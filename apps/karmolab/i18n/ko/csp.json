@@ -5,7 +5,7 @@
   "csp.mode.make": "짓기",
   "csp.label.in": "헤더 붙여넣기 (CSP 한 줄이어도 됩니다)",
   "csp.label.images": "그림을 어디서 받나",
-  "csp.label.connect": "어디로 연결하나 (API·소켓)",
+  "csp.label.connect": "어디로 연결하나 (API, 소켓)",
   "csp.label.fonts": "글꼴을 어디서 받나",
   "csp.opt.inlineStyles": "인라인 스타일 허용",
   "csp.opt.frames": "우리 화면 끼워넣기 허용",
@@ -21,9 +21,9 @@
   "csp.status.built": "가장 좁은 데서 시작해 고른 것만 넓혔습니다",
   "csp.find.noDefault": "default-src 가 없어 안 적은 갈래는 아무 데서나 받습니다",
   "csp.find.wildcard": "별표는 사실상 잠그지 않은 것입니다",
-  "csp.find.unsafeInline": "인라인 스크립트·스타일을 허용하면 XSS 를 거의 못 막습니다 (nonce 나 해시를 쓰세요)",
+  "csp.find.unsafeInline": "인라인 스크립트, 스타일을 허용하면 XSS 를 거의 못 막습니다 (nonce 나 해시를 쓰세요)",
   "csp.find.unsafeEval": "eval 을 허용하면 문자열이 코드가 됩니다",
-  "csp.find.scriptData": "data:·blob: 스크립트는 우회로가 됩니다",
+  "csp.find.scriptData": "data:, blob: 스크립트는 우회로가 됩니다",
   "csp.find.plainHttp": "http:// 는 중간에서 바꿔치기됩니다",
   "csp.find.noObject": "object-src 를 none 으로 잠그지 않으면 옛 플러그인 우회가 남습니다",
   "csp.find.objectNotNone": "object-src 는 none 이 가장 안전합니다",
@@ -36,5 +36,5 @@
   "csp.find.noSniff": "X-Content-Type-Options: nosniff 가 없습니다",
   "csp.find.noReferrer": "Referrer-Policy 가 없어 주소가 새어 나갈 수 있습니다",
   "csp.find.noFrameOptions": "끼워 넣기 막는 헤더가 둘 다 없습니다",
-  "csp.find.noPermissions": "Permissions-Policy 로 카메라·마이크 등을 꺼 둘 수 있습니다"
+  "csp.find.noPermissions": "Permissions-Policy 로 카메라, 마이크 등을 꺼 둘 수 있습니다"
 }

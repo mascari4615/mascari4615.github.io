@@ -1,98 +1,98 @@
 {
-    "localMonitors": [
-        {
-            "id": "yawnbot-tunnel",
-            "title": "YawnBot (dev)",
-            "subtitle": "cloudflared quick tunnel + webhook 자동등록 (dev)",
-            "url": "http://127.0.0.1:4615/webhook/github"
-        },
-        {
-            "id": "companion",
-            "title": "동반자",
-            "subtitle": "말하는 봇 — 창 + 목소리 (packages/companion, TASK-KAR-201)",
-            "url": "http://127.0.0.1:4620/ears"
-        },
-        {
-            "id": "karmolab-devmode",
-            "title": "KarmoLab Dev",
-            "subtitle": "트레이 메뉴에서 켜기 (prod 앱 WebView → 로컬 dev 웹)",
-            "url": "http://127.0.0.1:8899/apps/karmolab/index.html"
-        },
-        {
-            "id": "karmolab-tauri-dev",
-            "title": "KarmoLab Tauri Dev",
-            "subtitle": "dev — debug 빌드 + 빨간 banner (prod 옆에서 동시)",
-            "url": "http://127.0.0.1:8898/apps/karmolab/"
-        },
-        {
-            "id": "karmolab-react",
-            "title": "KarmoLab React",
-            "subtitle": "Vite dev — Planner React 재작성판",
-            "url": "http://127.0.0.1:5173/"
-        }
-    ],
-    "envFiles": [
-        {
-            "id": "yawnbot-env",
-            "label": "YawnBot .env (dev)",
-            "relPath": "apps/discord-bots/apps/yawnbot/.env",
-            "hint": "dev 봇 토큰 + dev 길드. prod 는 GitHub Secrets → 노트북 자동 주입 (TASK-YB-002)"
-        },
-        {
-            "id": "discord-bots-env",
-            "label": "discord-bots 공통",
-            "relPath": "apps/discord-bots/.env",
-            "hint": "워크스페이스 루트(있을 때)"
-        }
-    ],
-    "_schema": "devProfiles: npm 스크립트는 {app,script[,deployScript]} 참조 (program/args/cwd 손기재 X — package.json rename 자동 추종, scripts/servermonitor-config-audit.mjs 가 verify 게이트에서 실재 검증). npm 스크립트가 아닌 경우만 raw {cwd,program,args}. 정본 설명 = TASK-KL-066 / Rust DevProfile::resolve / TS resolveProfile.",
-    "devProfiles": [
-        {
-            "id": "yawnbot-tunnel",
-            "label": "YawnBot (dev)",
-            "app": "apps/discord-bots",
-            "script": "dev:yawnbot",
-            "deployScript": "deploy:yawnbot",
-            "healthUrl": "http://127.0.0.1:4615/webhook/github",
-            "npmInstall": true
-        },
-        {
-            "id": "companion",
-            "label": "동반자 (말하는 봇)",
-            "app": "packages/companion",
-            "script": "face",
-            "healthUrl": "http://127.0.0.1:4620/ears",
-            "npmInstall": true
-        },
-        {
-            "id": "karmolab-dev",
-            "label": "KarmoLab (핫리로드)",
-            "app": "apps/karmolab",
-            "script": "dev",
-            "healthUrl": "http://127.0.0.1:8813/apps/karmolab/index.html",
-            "npmInstall": true
-        },
-        {
-            "id": "install-piper-voice",
-            "label": "설치 · 내 컴퓨터 목소리",
-            "app": "apps/karmolab-tauri",
-            "script": "build:piper",
-            "npmInstall": false
-        },
-        {
-            "id": "install-companion-window",
-            "label": "설치 · 동반자 창",
-            "app": "apps/karmolab-tauri",
-            "script": "build:companion",
-            "npmInstall": false
-        },
-        {
-            "id": "karmolab-tauri-dev",
-            "label": "KarmoLab Tauri Dev (dual)",
-            "app": "apps/karmolab-tauri",
-            "script": "dev",
-            "healthUrl": "http://127.0.0.1:8898/apps/karmolab/",
-            "npmInstall": true
-        }
-    ]
+  "localMonitors": [
+    {
+      "id": "yawnbot-tunnel",
+      "title": "YawnBot (dev)",
+      "subtitle": "cloudflared quick tunnel + webhook 자동등록 (dev)",
+      "url": "http://127.0.0.1:4615/webhook/github"
+    },
+    {
+      "id": "companion",
+      "title": "동반자",
+      "subtitle": "말하는 봇. 창 + 목소리 (packages/companion, TASK-KAR-201)",
+      "url": "http://127.0.0.1:4620/ears"
+    },
+    {
+      "id": "karmolab-devmode",
+      "title": "KarmoLab Dev",
+      "subtitle": "트레이 메뉴에서 켜기 (prod 앱 WebView → 로컬 dev 웹)",
+      "url": "http://127.0.0.1:8899/apps/karmolab/index.html"
+    },
+    {
+      "id": "karmolab-tauri-dev",
+      "title": "KarmoLab Tauri Dev",
+      "subtitle": "dev. debug 빌드 + 빨간 banner (prod 옆에서 동시)",
+      "url": "http://127.0.0.1:8898/apps/karmolab/"
+    },
+    {
+      "id": "karmolab-react",
+      "title": "KarmoLab React",
+      "subtitle": "Vite dev. Planner React 재작성판",
+      "url": "http://127.0.0.1:5173/"
+    }
+  ],
+  "envFiles": [
+    {
+      "id": "yawnbot-env",
+      "label": "YawnBot .env (dev)",
+      "relPath": "apps/discord-bots/apps/yawnbot/.env",
+      "hint": "dev 봇 토큰 + dev 길드. prod 는 GitHub Secrets → 노트북 자동 주입 (TASK-YB-002)"
+    },
+    {
+      "id": "discord-bots-env",
+      "label": "discord-bots 공통",
+      "relPath": "apps/discord-bots/.env",
+      "hint": "워크스페이스 루트(있을 때)"
+    }
+  ],
+  "_schema": "devProfiles: npm 스크립트는 {app,script[,deployScript]} 참조 (program/args/cwd 손기재 X. package.json rename 자동 추종, scripts/servermonitor-config-audit.mjs 가 verify 게이트에서 실재 검증). npm 스크립트가 아닌 경우만 raw {cwd,program,args}. 정본 설명 = TASK-KL-066 / Rust DevProfile::resolve / TS resolveProfile.",
+  "devProfiles": [
+    {
+      "id": "yawnbot-tunnel",
+      "label": "YawnBot (dev)",
+      "app": "apps/discord-bots",
+      "script": "dev:yawnbot",
+      "deployScript": "deploy:yawnbot",
+      "healthUrl": "http://127.0.0.1:4615/webhook/github",
+      "npmInstall": true
+    },
+    {
+      "id": "companion",
+      "label": "동반자 (말하는 봇)",
+      "app": "packages/companion",
+      "script": "face",
+      "healthUrl": "http://127.0.0.1:4620/ears",
+      "npmInstall": true
+    },
+    {
+      "id": "karmolab-dev",
+      "label": "KarmoLab (핫리로드)",
+      "app": "apps/karmolab",
+      "script": "dev",
+      "healthUrl": "http://127.0.0.1:8813/apps/karmolab/index.html",
+      "npmInstall": true
+    },
+    {
+      "id": "install-piper-voice",
+      "label": "설치, 내 컴퓨터 목소리",
+      "app": "apps/karmolab-tauri",
+      "script": "build:piper",
+      "npmInstall": false
+    },
+    {
+      "id": "install-companion-window",
+      "label": "설치, 동반자 창",
+      "app": "apps/karmolab-tauri",
+      "script": "build:companion",
+      "npmInstall": false
+    },
+    {
+      "id": "karmolab-tauri-dev",
+      "label": "KarmoLab Tauri Dev (dual)",
+      "app": "apps/karmolab-tauri",
+      "script": "dev",
+      "healthUrl": "http://127.0.0.1:8898/apps/karmolab/",
+      "npmInstall": true
+    }
+  ]
 }

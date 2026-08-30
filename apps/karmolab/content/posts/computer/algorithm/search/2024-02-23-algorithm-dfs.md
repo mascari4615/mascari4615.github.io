@@ -5,7 +5,7 @@ last_modified_at: "2024-07-15T06:52:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬, Search]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 https://youtu.be/93jy2yUYfVE

@@ -1,12 +1,12 @@
 /**
  * 영상에서 사진 뽑기 (TASK-KL-088)
  *
- * 「이 장면 캡처해서 보내 줘」가 필요할 때 대개 재생하다 화면을 찍는다. 그러면 화질이 화면 해상도에
+ * 이 장면 캡처해서 보내 줘가 필요할 때 대개 재생하다 화면을 찍는다. 그러면 화질이 화면 해상도에
  * 묶이고 UI 까지 같이 찍힌다. 영상 안의 원본 화면을 그대로 꺼내면 그럴 이유가 없다.
  *
  * 두 갈래를 다 둔다:
- *  - **지금 이 순간** — 재생하다 멈춘 그 장면 한 장 (섬네일 고를 때)
- *  - **일정 간격** — 몇 초마다 한 장씩 여러 장 (요약·정리·연속 동작 확인)
+ *  - **지금 이 순간**. 재생하다 멈춘 그 장면 한 장 (섬네일 고를 때)
+ *  - **일정 간격**. 몇 초마다 한 장씩 여러 장 (요약, 정리, 연속 동작 확인)
  * 뽑은 장은 눌러 하나씩 받거나 ZIP 으로 한 번에 받는다.
  */
 import { fileSize as size, mmss, download } from './shared/media';
@@ -32,7 +32,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
     title: t('widgets.video2img.title', undefined, "영상에서 사진 뽑기"),
-    category: 'tool',
+    category: 'av',
     desc: t('widgets-desc.video2img.desc', undefined, "영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M15 9l6-3v9l-6-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><rect x="7" y="12" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="var(--bg-primary)"/><path d="M7 18l3-3 2 2 2.5-2.5L19 18" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
@@ -99,8 +99,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           let duration = 0;
           let shots: Shot[] = [];
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           const extOf = (): string => {
@@ -114,7 +114,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 (s, i) =>
                   `<figure style="margin:0; cursor:pointer;" data-i="${i}" title="${esc(t('video2img.row.download'))}">
                      <img src="${s.url}" alt="${esc(t('video2img.alt.shot', { at: mmss(s.time) }))}" style="width:100%; border-radius:6px; display:block; background:#000;">
-                     <figcaption class="tool-list-dim" style="text-align:center; padding-top:4px;">${mmss(s.time)} · ${size(s.blob.size)}</figcaption>
+                     <figcaption class="tool-list-dim" style="text-align:center; padding-top:4px;">${mmss(s.time)}, ${size(s.blob.size)}</figcaption>
                    </figure>`
               )
               .join('');
@@ -143,7 +143,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!ctx) throw new Error(t('video2img.err.canvas'));
             await seekTo(video, time);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            /* 내보내기는 공용 것으로 (TASK-KL-272) — JPG 는 투명을 못 담아, 그림이 아직 안 그려진
+            /* 내보내기는 공용 것으로 (TASK-KL-272). JPG 는 투명을 못 담아, 그림이 아직 안 그려진
              * 자리가 있으면 **검게** 나온다. 공용 쪽이 흰 바탕을 먼저 깔아 준다. */
             const fmt = $<HTMLSelectElement>('#viFormat').value;
             const blob = await encode(canvas, fmt === 'image/jpeg' ? 'jpeg' : fmt === 'image/webp' ? 'webp' : 'png', 0.92);
@@ -155,7 +155,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             shots.forEach((s) => URL.revokeObjectURL(s.url));
             shots = [];
             render();
-            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+            /* 공용 `attachVideo` 로 (TASK-KL-281). 녹화한 webm 은 길이가 안 적혀 있어
              * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
             void attachVideo(video, f).then(() => {
               duration = video.duration;
@@ -192,7 +192,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('video2img', (f: File) => load(f));
           }
@@ -226,7 +226,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               shots.forEach((s, i) => z.file(`${String(i + 1).padStart(3, '0')}-${mmss(s.time).replace(':', 'm')}s.${ext}`, s.blob));
               const blob = await z.generateAsync({ type: 'blob' });
               download(blob, fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip'));
-              /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298) — 받을 도구가 없으면 줄이 안 생긴다. */
+              /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298). 받을 도구가 없으면 줄이 안 생긴다. */
               Toolbox.offerNext?.(status, { blob: blob, name: fileName.replace(/\.[^.]+$/, '') + t('video2img.file.zip'), from: 'video2img' });
               say(t('video2img.say.zipped', { n: shots.length }), 'ok');
             })().catch((err: Error) => say(t('video2img.err.zip') + err.message, 'error'));

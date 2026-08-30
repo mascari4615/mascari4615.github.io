@@ -1,15 +1,15 @@
 /**
- * 내 표 (TASK-KL-089) — 놀이의 재료를 사람이 만든다.
+ * 내 표 (TASK-KL-089). 놀이의 재료를 사람이 만든다.
  *
- * 지금까지 놀이의 세계는 셋뿐이었다(포켓몬·롤·원신). 재미의 뿌리는 놀이 방식이 아니라
- * **표**인데 그 표를 우리만 만들 수 있었다 — 좋아하는 것이 그 셋이 아니면 할 게 없다.
+ * 지금까지 놀이의 세계는 셋뿐이었다(포켓몬, 롤, 원신). 재미의 뿌리는 놀이 방식이 아니라
+ * **표**인데 그 표를 우리만 만들 수 있었다. 좋아하는 것이 그 셋이 아니면 할 게 없다.
  * 표를 사람이 만들 수 있게 하면 놀이 수가 그대로 곱해진다.
  *
  * 표의 모양은 **이미 쓰는 것과 같다**(`/daily/data/*.json`): 칸 정의 + 항목들.
- * 그래야 우리 표와 남의 표를 놀이가 구분 없이 먹는다 — 새 모양을 만들면 그날부터 갈라진다.
+ * 그래야 우리 표와 남의 표를 놀이가 구분 없이 먹는다. 새 모양을 만들면 그날부터 갈라진다.
  *
  * 어디에 사나: 이 브라우저(localStorage). 서버가 없으니 남에게 줄 때는 **주소에 담아** 준다
- * (유령 타자 대결이 먼저 쓴 방식이다 — 만료가 없는 게 서버 없음의 강점이다).
+ * (유령 타자 대결이 먼저 쓴 방식이다. 만료가 없는 게 서버 없음의 강점이다).
  */
 import { t } from '../lib/i18n';
 
@@ -34,14 +34,14 @@ export interface Pack {
    * 이 표가 **서버에도 있을 때** 그쪽 주소 (TASK-KL-150).
    *
    * 왜 두 개인가: `id` 는 이 브라우저 안에서만 유일하다(만든 순간의 시각). 그래서 같은 표를
-   * 두 사람이 갖고 있어도 id 가 다르다 — 순위판을 그걸로 가르면 **각자 혼자 1등**이 된다.
+   * 두 사람이 갖고 있어도 id 가 다르다. 순위판을 그걸로 가르면 **각자 혼자 1등**이 된다.
    * 서버 주소가 있으면 순위판은 그걸로 갈린다(`plays` 의 표 이름). 없으면 지금까지처럼 혼자 쓴다.
    */
   sharedId?: string;
-  /** 서버에 있는 표를 이어받았다면 그 주인 — 「누가 만든 표인가」를 화면이 말할 수 있게. */
+  /** 서버에 있는 표를 이어받았다면 그 주인. 누가 만든 표인가를 화면이 말할 수 있게. */
   sharedBy?: string;
   /**
-   * 바깥 우물에서 길어 온 표면 그 우물 id (`steam-hot`·`anime-top` …) — TASK-KL-153.
+   * 바깥 우물에서 길어 온 표면 그 우물 id (`steam-hot`, `anime-top` ...). TASK-KL-153.
    *
    * 왜 따로 두나: 같은 우물에서 길어 온 표는 **누가 담았든 같은 표**다. 그래서 순위판을
    * 이걸로 가르면 서로 겨룰 수 있다(`variantFor`). 브라우저마다 다른 `id` 로 가르면
@@ -66,7 +66,7 @@ export function savePacks(list: Pack[]): boolean {
     localStorage.setItem(KEY, JSON.stringify(list));
     return true;
   } catch {
-    return false; // 사생활 모드거나 자리가 없다 — 부르는 쪽이 말해 준다
+    return false; // 사생활 모드거나 자리가 없다. 부르는 쪽이 말해 준다
   }
 }
 
@@ -89,9 +89,9 @@ export function getPack(id: string): Pack | null {
 /**
  * 붙여넣기 한 판으로 표를 만든다.
  *
- * 사람은 이미 표를 갖고 있다 — 스프레드시트에. 거기서 긁어 오면 탭으로 나뉜 글이 되고,
+ * 사람은 이미 표를 갖고 있다. 스프레드시트에. 거기서 긁어 오면 탭으로 나뉜 글이 되고,
  * 그게 이 놀이의 가장 짧은 입구다. 첫 줄은 칸 이름, 첫 칸은 이름, `그림` 칸이 있으면 그림.
- * 칸의 종류는 값을 보고 정한다 — 숫자만 있으면 숫자, 쉼표가 있으면 여럿, 나머지는 하나.
+ * 칸의 종류는 값을 보고 정한다. 숫자만 있으면 숫자, 쉼표가 있으면 여럿, 나머지는 하나.
  */
 export function parseTable(text: string): { fields: PackField[]; items: PackItem[]; problems: string[] } {
   const problems: string[] = [];
@@ -116,8 +116,8 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
     if (!vals.length) return;
     const num = vals.map(numberish);
     const allNum = num.every((n) => n !== null);
-    const anySet = vals.some((v) => v.indexOf(',') >= 0 || v.indexOf('·') >= 0);
-    // 「1.2m」처럼 단위를 붙여 적는 게 사람의 기본값이다 — 단위는 떼어 칸의 것으로 삼는다.
+    const anySet = vals.some((v) => v.indexOf(',') >= 0 || v.indexOf(', ') >= 0);
+    // 1.2m처럼 단위를 붙여 적는 게 사람의 기본값이다. 단위는 떼어 칸의 것으로 삼는다.
     const unit = allNum ? (num.find((n) => n && n.unit)?.unit ?? '') : '';
     fields.push({
       key: 'f' + i,
@@ -157,8 +157,8 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
 
 /**
  * 쉼표로 나누되 **따옴표 안의 쉼표는 값의 일부**다.
- * 엑셀·구글 시트에서 CSV 로 내보내면 「"개, 큰개"」 처럼 나오는데, 그냥 쉼표로 자르면
- * 값이 한 칸씩 밀리고 이름에 따옴표가 남는다(실측: 이름이 「"멍멍이"」 로 저장됐다).
+ * 엑셀, 구글 시트에서 CSV 로 내보내면 "개, 큰개" 처럼 나오는데, 그냥 쉼표로 자르면
+ * 값이 한 칸씩 밀리고 이름에 따옴표가 남는다(실측: 이름이 "멍멍이" 로 저장됐다).
  */
 function splitCsv(line: string): string[] {
   const out: string[] = [];
@@ -186,8 +186,8 @@ function splitCsv(line: string): string[] {
 }
 
 /**
- * 「3」·「1.2m」·「5 kg」·「12개」를 숫자로 읽는다. 숫자가 아니면 null.
- * 사람은 단위를 붙여 적는다 — 그걸 글자로 취급하면 「높은 쪽 고르기」에서 그 칸이 통째로 빠진다.
+ * 3, 1.2m, 5 kg, 12개를 숫자로 읽는다. 숫자가 아니면 null.
+ * 사람은 단위를 붙여 적는다. 그걸 글자로 취급하면 높은 쪽 고르기에서 그 칸이 통째로 빠진다.
  */
 function numberish(v: string): { value: number; unit: string } | null {
   const m = /^(-?\d+(?:[.,]\d+)?)\s*([^\d\s].*)?$/.exec(v.trim());
@@ -199,9 +199,9 @@ function numberish(v: string): { value: number; unit: string } | null {
 
 
 /**
- * 주소에 실려 온 표를 이 브라우저로 들인다 (주소의 `pack=…` 부분).
+ * 주소에 실려 온 표를 이 브라우저로 들인다 (주소의 `pack=...` 부분).
  *
- * 「내 표」 화면만 이 일을 하고 있었다. 그런데 자랑은 **놀이 화면 주소**로 나간다 —
+ * 내 표 화면만 이 일을 하고 있었다. 그런데 자랑은 **놀이 화면 주소**로 나간다 . 
  * 받은 사람이 그 주소를 열면 놀이가 열리고, 정작 표는 안 들어와 남의 표로 놀게 된다.
  * 표를 쓰는 쪽이면 어디서든 같은 문을 지나게 한다. 이미 있는 표면 다시 안 만든다.
  */

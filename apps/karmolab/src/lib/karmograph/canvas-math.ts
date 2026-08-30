@@ -1,15 +1,15 @@
 /**
- * lib/karmograph/canvas-math.ts — 캔버스의 **셈법만** (TASK-KL-202 방향① 해체 1조각).
+ * lib/karmograph/canvas-math.ts. 캔버스의 **셈법만** (TASK-KL-202 방향① 해체 1조각).
  *
  * `canvas.ts` 는 2865 줄짜리 한 덩이였다. 그 안에는 DOM 을 만드는 일과 **순수한 계산**이
  * 섞여 있었는데, 계산은 화면 없이도 맞는지 틀리는지 말할 수 있는 것들이다
- * (색 고르기·베지어 위의 점·볼록 껍질·격자 스냅·물결 선).
+ * (색 고르기, 베지어 위의 점, 볼록 껍질, 격자 스냅, 물결 선).
  *
  * 여기로 떼어 내면 두 가지가 생긴다:
- *  1. **1초 단위 검사**로 잠글 수 있다(브라우저 없이) — 해체를 계속할 안전망.
- *  2. `canvas.ts` 가 「그리는 일」에 가까워진다.
+ *  1. **1초 단위 검사**로 잠글 수 있다(브라우저 없이). 해체를 계속할 안전망.
+ *  2. `canvas.ts` 가 그리는 일에 가까워진다.
  *
- * 규칙: 이 파일은 `document`·`window`·SVG 를 **모른다**. 문자열(패스 d)까지만 만든다.
+ * 규칙: 이 파일은 `document`, `window`, SVG 를 **모른다**. 문자열(패스 d)까지만 만든다.
  */
 
 export interface Pt {
@@ -18,9 +18,9 @@ export interface Pt {
 }
 
 /**
- * 꼬리표 색 — 어두운 판에서도 서로 구별되는 열 가지. 이름을 해시해 고르므로 **같은 말이면 늘 같은 색**이다
+ * 꼬리표 색. 어두운 판에서도 서로 구별되는 열 가지. 이름을 해시해 고르므로 **같은 말이면 늘 같은 색**이다
  * (색을 손으로 정하게 하면 꼬리표를 만들 때마다 결정이 하나 늘어난다).
- * 열 개 남짓으로 묶는 것은 범주형 팔레트의 통설 — 그 이상은 사람이 못 가른다.
+ * 열 개 남짓으로 묶는 것은 범주형 팔레트의 통설. 그 이상은 사람이 못 가른다.
  */
 export const TAG_COLORS = [
   '#f472b6', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa',
@@ -39,7 +39,7 @@ export function snapTo(value: number, grid: number): number {
   return Math.round(value / grid) * grid;
 }
 
-/** 3차 베지어 위의 점 — 선 위 이름표·손잡이 자리를 잡는 데 쓴다. */
+/** 3차 베지어 위의 점. 선 위 이름표, 손잡이 자리를 잡는 데 쓴다. */
 export function pointOnCubic(g: { p1: Pt; c1: Pt; c2: Pt; p2: Pt }, t: number): Pt {
   const u = 1 - t;
   return {
@@ -49,7 +49,7 @@ export function pointOnCubic(g: { p1: Pt; c1: Pt; c2: Pt; p2: Pt }, t: number): 
 }
 
 /**
- * 볼록 껍질 (Andrew monotone chain). 점이 셋보다 적으면 빈 배열 —
+ * 볼록 껍질 (Andrew monotone chain). 점이 셋보다 적으면 빈 배열 . 
  * 껍질이 선이 되면 그릴 뜻이 없다(그럴 땐 네모가 낫다).
  */
 export function convexHull(points: Pt[]): Pt[] {
@@ -74,7 +74,7 @@ export function convexHull(points: Pt[]): Pt[] {
 
 /**
  * 껍질을 **모서리 둥근 닫힌 경로**로. 각 꼭짓점에서 이웃 쪽으로 `r` 만큼 물러난 두 점을
- * 이차 곡선으로 잇는다 — 각진 껍질은 「임시로 그은 선」처럼 보인다.
+ * 이차 곡선으로 잇는다. 각진 껍질은 임시로 그은 선처럼 보인다.
  */
 export function roundedHullPath(hull: Pt[], r = 14): string | null {
   if (hull.length < 3) return null;
@@ -95,7 +95,7 @@ export function roundedHullPath(hull: Pt[], r = 14): string | null {
   return `${d} Z`;
 }
 
-/** 노드 네 모서리를 `pad` 만큼 부풀린 점들 — 껍질 재료. */
+/** 노드 네 모서리를 `pad` 만큼 부풀린 점들. 껍질 재료. */
 export function boxCorners(box: { x: number; y: number; w: number; h: number }, pad = 0): Pt[] {
   return [
     { x: box.x - pad, y: box.y - pad },
@@ -106,7 +106,7 @@ export function boxCorners(box: { x: number; y: number; w: number; h: number }, 
 }
 
 /**
- * 물결·금 간 선 — 「애매한 사이」·「깨진 사이」를 점선만으로는 못 나타낸다.
+ * 물결, 금 간 선. 애매한 사이, 깨진 사이를 점선만으로는 못 나타낸다.
  * 베지어를 잘게 나눠 법선 방향으로 흔든다. `mode='wavy'` 는 사인파, `'crack'` 은 지그재그.
  * 양 끝은 흔들지 않는다(노드에 닿는 자리가 떨리면 어디에 붙었는지가 흐려진다).
  */
@@ -134,7 +134,7 @@ export function wobblePath(
   return `M ${pts.join(' L ')}`;
 }
 
-/** 미니맵·맞춤보기가 쓰는 「세계 → 작은 판」 투영. */
+/** 미니맵, 맞춤보기가 쓰는 세계 → 작은 판 투영. */
 export interface Projection {
   scale: number;
   offsetX: number;
@@ -149,10 +149,10 @@ export interface WorldBounds {
 }
 
 /**
- * 세계 전체를 `size` 안에 **가운데 맞춰** 담는 배율·여백. `margin` 은 가장자리를 조금 남기는 비율
+ * 세계 전체를 `size` 안에 **가운데 맞춰** 담는 배율, 여백. `margin` 은 가장자리를 조금 남기는 비율
  * (1 이면 딱 붙어 그림이 판에 물린 것처럼 보인다).
  *
- * 세계가 비면(폭·높이 0) 배율 0 을 돌려준다 — 호출한 쪽이 「그릴 게 없다」로 곧장 빠져나가게.
+ * 세계가 비면(폭, 높이 0) 배율 0 을 돌려준다. 호출한 쪽이 그릴 게 없다로 곧장 빠져나가게.
  */
 export function fitProjection(bounds: WorldBounds, size: { w: number; h: number }, margin = 0.9): Projection {
   if (bounds.w <= 0 || bounds.h <= 0) return { scale: 0, offsetX: 0, offsetY: 0 };
@@ -174,7 +174,7 @@ export function projectPoint(bounds: WorldBounds, p: Projection, x: number, y: n
 
 /**
  * 지금 화면이 덮는 자리를 작은 판 위 사각형으로. 판 밖으로 삐져나간 만큼은 잘라 낸다
- * — 안 자르면 미니맵의 「지금 보는 곳」 상자가 판을 넘어가 어디를 보는지 되레 흐려진다.
+ *. 안 자르면 미니맵의 지금 보는 곳 상자가 판을 넘어가 어디를 보는지 되레 흐려진다.
  */
 export function viewportRectOnMap(
   bounds: WorldBounds,
@@ -237,8 +237,8 @@ b2: { x: number; y: number; w: number; h: number },
 
 
 /**
- * 두 상자를 잇는 **베지어 네 점**. 제어점은 나가는 면의 **바깥쪽으로** 밀어 낸다 —
- * 그래야 선이 카드에서 수직으로 빠져나와 「어디에 붙었는지」가 또렷하다.
+ * 두 상자를 잇는 **베지어 네 점**. 제어점은 나가는 면의 **바깥쪽으로** 밀어 낸다 . 
+ * 그래야 선이 카드에서 수직으로 빠져나와 어디에 붙었는지가 또렷하다.
  * `curve` 는 두 점을 잇는 직선의 법선 방향으로 제어점을 함께 밀어 좌우로 휘게 한다
  * (같은 두 노드를 잇는 선이 여럿일 때 겹침을 푸는 유일한 손잡이).
  */
@@ -275,8 +275,8 @@ export function edgeCurve(
 
 
 /**
- * 상자들을 다 덮는 **세계 범위**. 아무것도 없으면 기본 크기를 돌려준다 —
- * 0×0 을 돌려주면 「맞춤 보기」가 배율을 무한대로 잡아 화면이 하얗게 날아간다.
+ * 상자들을 다 덮는 **세계 범위**. 아무것도 없으면 기본 크기를 돌려준다 . 
+ * 0×0 을 돌려주면 맞춤 보기가 배율을 무한대로 잡아 화면이 하얗게 날아간다.
  */
 export function boundsOf(
   boxes: { x: number; y: number; w: number; h: number }[],
@@ -297,7 +297,7 @@ export function boundsOf(
 }
 
 
-/** 화면 이동·배율 상태. */
+/** 화면 이동, 배율 상태. */
 export interface ViewState {
   tx: number;
   ty: number;
@@ -305,10 +305,10 @@ export interface ViewState {
 }
 
 /**
- * **가리킨 자리를 붙잡은 채** 확대·축소한다. 화면 한가운데를 기준으로 잡으면
- * 확대할 때마다 보고 있던 것이 옆으로 흘러 「따라가며 다시 찾는」 일이 생긴다.
+ * **가리킨 자리를 붙잡은 채** 확대, 축소한다. 화면 한가운데를 기준으로 잡으면
+ * 확대할 때마다 보고 있던 것이 옆으로 흘러 따라가며 다시 찾는 일이 생긴다.
  *
- * `min`·`max` 는 배율 한계 — 너무 줄이면 점만 남고, 너무 키우면 한 카드가 화면을 덮는다.
+ * `min`, `max` 는 배율 한계. 너무 줄이면 점만 남고, 너무 키우면 한 카드가 화면을 덮는다.
  */
 export function zoomAt(
   view: ViewState,
@@ -327,7 +327,7 @@ export function zoomAt(
 }
 
 
-/** 두 점으로 만든 네모(음수 폭 없이). 범위 고르기·잘라내기 자리에 쓴다. */
+/** 두 점으로 만든 네모(음수 폭 없이). 범위 고르기, 잘라내기 자리에 쓴다. */
 export function rectFromPoints(a: Pt, b: Pt): { x: number; y: number; w: number; h: number } {
   return {
     x: Math.min(a.x, b.x),
@@ -338,7 +338,7 @@ export function rectFromPoints(a: Pt, b: Pt): { x: number; y: number; w: number;
 }
 
 /**
- * 네모와 상자가 **조금이라도 겹치나**. 「완전히 감싸야 고른 것」으로 하면 잔 조작을 강요한다 —
+ * 네모와 상자가 **조금이라도 겹치나**. 완전히 감싸야 고른 것으로 하면 잔 조작을 강요한다 . 
  * 사람은 대충 칠하고 결과를 본다.
  */
 export function rectHits(

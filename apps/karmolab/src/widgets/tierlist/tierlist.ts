@@ -50,8 +50,8 @@ import { t } from '../../lib/i18n';
     'dialogs.js',
     'render.js',
     'index.js',
-    // TASK-KL-190 ⑥ — 「표 우물」·「내 표」가 놓아 둔 표를 티어표로 들인다. 맨 뒤여야
-    // TL.state·TL.db 가 다 서 있다.
+    // TASK-KL-190 ⑥. 표 우물, 내 표가 놓아 둔 표를 티어표로 들인다. 맨 뒤여야
+    // TL.state, TL.db 가 다 서 있다.
     'from-pack.js'
   ].map((f) => base + f)
 

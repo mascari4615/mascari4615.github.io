@@ -6,12 +6,12 @@
   "mermaidlite.btn.svg": "SVG 로 저장",
   "mermaidlite.btn.png": "PNG 로 저장",
   "mermaidlite.btn.copy": "SVG 복사",
-  "mermaidlite.status.idle": "첫 줄에 flowchart TD · graph LR · erDiagram 중 하나를 적으세요",
-  "mermaidlite.status.unknown": "첫 줄이 flowchart TD · graph LR · erDiagram 중 하나여야 합니다",
-  "mermaidlite.status.ok": "마디 {nodes}개 · 이어짐 {edges}개를 그렸습니다",
+  "mermaidlite.status.idle": "첫 줄에 flowchart TD, graph LR, erDiagram 중 하나를 적으세요",
+  "mermaidlite.status.unknown": "첫 줄이 flowchart TD, graph LR, erDiagram 중 하나여야 합니다",
+  "mermaidlite.status.ok": "마디 {nodes}개, 이어짐 {edges}개를 그렸습니다",
   "mermaidlite.status.savedSvg": "SVG 로 내려받았습니다",
   "mermaidlite.status.savedPng": "PNG 로 내려받았습니다",
-  "mermaidlite.status.pngFail": "PNG 로 못 바꿨습니다 — SVG 로 받아 주세요",
+  "mermaidlite.status.pngFail": "PNG 로 못 바꿨습니다. SVG 로 받아 주세요",
   "mermaidlite.copy.done": "SVG 를 복사했습니다",
-  "mermaidlite.note.subset": "진짜 mermaid 전부가 아니라 흐름도(flowchart·graph)와 표 관계(erDiagram)만 그립니다. subgraph·class·style 은 아직 안 읽습니다 — 못 읽은 줄은 왼쪽 아래에 그대로 적어 둡니다."
+  "mermaidlite.note.subset": "진짜 mermaid 전부가 아니라 흐름도(flowchart, graph)와 표 관계(erDiagram)만 그립니다. subgraph, class, style 은 아직 안 읽습니다. 못 읽은 줄은 왼쪽 아래에 그대로 적어 둡니다."
 }

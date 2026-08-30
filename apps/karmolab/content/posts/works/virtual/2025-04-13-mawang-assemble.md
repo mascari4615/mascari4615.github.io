@@ -6,7 +6,7 @@ last_modified_at: "2025-04-17T22:40:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/mawang-assemble/250413-203153.png
-hidden: true
+board: me
 ---
 
 이세계에 마왕들이 모였습니다 - 버튜버 마왕총회  

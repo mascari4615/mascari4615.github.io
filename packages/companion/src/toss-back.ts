@@ -1,14 +1,14 @@
 import type { MemoryEntry } from './types';
 
 /**
- * 공을 돌려주기 — 대화가 한쪽으로만 흐르지 않게.
+ * 공을 돌려주기. 대화가 한쪽으로만 흐르지 않게.
  *
- * 조수님이 오늘 대화 목록을 붙여 놓고 「대화가 되는 느낌이 아니다」라고 했다. 67회차에
- * 원인 하나(밤이라 짧게 답하라는 지시)를 걷어냈는데, **남은 절반은 이거다 — 얘가 공을
+ * 조수님이 오늘 대화 목록을 붙여 놓고 대화가 되는 느낌이 아니다라고 했다. 67회차에
+ * 원인 하나(밤이라 짧게 답하라는 지시)를 걷어냈는데, **남은 절반은 이거다. 얘가 공을
  * 안 돌려준다.** 스무 마디 중 되묻는 말이 하나였다.
  *
- * 레퍼런스 쪽에서 「말을 잘한다」로 꼽히는 것들의 공통점이 되받아치기와 되묻기다. 답만
- * 하면 그건 대답이지 대화가 아니다 — 사람은 곧 물어볼 말이 떨어지고, 그러면 끝난다.
+ * 레퍼런스 쪽에서 말을 잘한다로 꼽히는 것들의 공통점이 되받아치기와 되묻기다. 답만
+ * 하면 그건 대답이지 대화가 아니다. 사람은 곧 물어볼 말이 떨어지고, 그러면 끝난다.
  *
  * **다만 매번 되물으면 취조다.** 그래서 좁게 잡는다.
  *
@@ -21,12 +21,12 @@ import type { MemoryEntry } from './types';
 export function isQuestion(text: string): boolean {
   const text2 = text.trim();
   if (text2 === '') return false;
-  /* **물음표 없이 묻는 말이 훨씬 흔하다.** 라이브에서 「뭐가 재밌었는데.」가 묻는 말로
-     안 잡혀서 짧다는 이유로 걸러졌다 — 공을 돌려주는 가장 좋은 답이었는데. 한국말은
+  /* **물음표 없이 묻는 말이 훨씬 흔하다.** 라이브에서 뭐가 재밌었는데.가 묻는 말로
+     안 잡혀서 짧다는 이유로 걸러졌다. 공을 돌려주는 가장 좋은 답이었는데. 한국말은
      끝맺음으로 묻는다. */
   if (/[?？]\s*$/.test(text2)) return true;
   if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[.…]?\s*$/.test(text2)) return true;
-  // 「~는데」 「~을까」 「~야?」 처럼 끝나면서 앞에 묻는 낱말이 있으면 묻는 말이다.
+  // ~는데 ~을까 ~야? 처럼 끝나면서 앞에 묻는 낱말이 있으면 묻는 말이다.
   const questionWord = /(뭐|무슨|어디|언제|누구|왜|어떻|어느|얼마)/;
   return questionWord.test(text2) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(text2);
 }
@@ -41,7 +41,7 @@ export interface TossBackInput {
 /**
  * 지금 공을 돌려줘야 하나. 아니면 빈 말.
  *
- * 재료로 얹을 한 줄을 돌려준다 — 무엇을 물으라고까지 정해 주지는 않는다. 물을 거리는
+ * 재료로 얹을 한 줄을 돌려준다. 무엇을 물으라고까지 정해 주지는 않는다. 물을 거리는
  * 대화에서 나와야지, 우리가 정해 주면 그게 설문지다.
  */
 export function tossBackNote(input: TossBackInput): string {
@@ -49,27 +49,27 @@ export function tossBackNote(input: TossBackInput): string {
 }
 
 const tossBackText =
-  '대화가 식어 가고 있다. 답만 하지 말고 **공을 돌려줘라** — 방금 나온 얘기에서 ' +
+  '대화가 식어 가고 있다. 답만 하지 말고 **공을 돌려줘라**. 방금 나온 얘기에서 ' +
   '한 가지를 골라 되물어라. 새 주제를 꺼내라는 게 아니라, 하던 얘기를 이어 가라는 것이다.';
 
 /**
  * 지금 왜 공을 안 돌려주나. 돌려줄 자리면 null.
  *
- * **「빔」만 보이면 못 고친다.** 오늘 하루 같은 벽에 세 번 부딪혔다 — 발동 기록은 「안
- * 실렸다」까지만 알려 주고, 네 갈래 중 **어디서 빠졌는지**는 안 보여 준다. 그래서 조건이
+ * **빔만 보이면 못 고친다.** 오늘 하루 같은 벽에 세 번 부딪혔다. 발동 기록은 안
+ * 실렸다까지만 알려 주고, 네 갈래 중 **어디서 빠졌는지**는 안 보여 준다. 그래서 조건이
  * 왜 안 잡혔는지 알아내려고 매번 실험을 다시 돌렸다. 이유를 말하게 하면 한 번에 끝난다.
  */
 export function skipReason(input: TossBackInput): string | null {
   const conversation = input.recent.filter((e) => e.channel === 'web');
   const userText = conversation.filter((e) => e.role === 'sensed');
   const companionText = conversation.filter((e) => e.role === 'said');
-  /* 아직 말이 몇 마디 안 오갔으면 그냥 둔다 — 처음부터 되물으면 낯설다.
+  /* 아직 말이 몇 마디 안 오갔으면 그냥 둔다. 처음부터 되물으면 낯설다.
      **얘 말은 하나만 있어도 센다.** 이 판단은 *지금 할 말을 내보내기 직전*에도 도는데,
      그때 그 말은 아직 기억에 없다. 둘을 요구했더니 늘 한 마디씩 모자라서 세 마디를
-     주고받아도 영영 안 걸렸다(실측: 「사람 2 · 얘 1」로 계속 빠졌다). 지금 심판받는
+     주고받아도 영영 안 걸렸다(실측: 사람 2, 얘 1로 계속 빠졌다). 지금 심판받는
      그 말이 곧 두 번째다. */
   if (userText.length < 2 || companionText.length < 1) {
-    return `아직 몇 마디 안 오갔다 (사람 ${userText.length} · 얘 ${companionText.length})`;
+    return `아직 몇 마디 안 오갔다 (사람 ${userText.length}, 얘 ${companionText.length})`;
   }
   // 물음에 물음으로 답하는 건 회피다.
   if (isQuestion(input.justNow)) return '조수님이 물어본 turn 이다';
@@ -77,25 +77,25 @@ export function skipReason(input: TossBackInput): string | null {
   const lastCompanionText = companionText[companionText.length - 1];
   if (lastCompanionText !== undefined && isQuestion(lastCompanionText.text)) return '방금 되물었다';
 
-  // 대화가 식어 가는가 — 최근 말이 그 앞보다 짧아지고 있으면 공이 멈추는 중이다.
+  // 대화가 식어 가는가. 최근 말이 그 앞보다 짧아지고 있으면 공이 멈추는 중이다.
   const length2 = (es: readonly MemoryEntry[]) =>
     es.length === 0 ? 0 : es.reduce((a, e) => a + e.text.trim().length, 0) / es.length;
   // **방금 한 말 하나**를 앞엣것들과 견준다. 최근 두 마디를 묶어 재면 그 안에 든 긴
-  // 말이 짧아진 것을 희석해 버린다 — 「28자, 1자」가 평균 14자가 되어 「아직 안 식었다」로
+  // 말이 짧아진 것을 희석해 버린다. 28자, 1자가 평균 14자가 되어 아직 안 식었다로
   // 나왔다(실측). 식는다는 건 *방금* 짧아졌다는 뜻이다.
   const recent2 = length2(userText.slice(-1));
   const before = length2(userText.slice(-4, -1));
   const cooling = before > 0 ? recent2 < before * 0.8 : recent2 < 12;
   if (cooling === false) {
-    return `아직 안 식었다 (최근 ${Math.round(recent2)}자 · 그전 ${Math.round(before)}자)`;
+    return `아직 안 식었다 (최근 ${Math.round(recent2)}자, 그전 ${Math.round(before)}자)`;
   }
   return null;
 }
 
 /**
- * 얼마나 자주 공을 돌려줬나 — 재는 자리.
+ * 얼마나 자주 공을 돌려줬나. 재는 자리.
  *
- * 「되묻게 했다」는 만든 사람 말이고, **몇 번 중 몇 번인가**가 결과다. 이걸 안 세면
+ * 되묻게 했다는 만든 사람 말이고, **몇 번 중 몇 번인가**가 결과다. 이걸 안 세면
  * 재료만 얹어 놓고 됐다고 하게 된다(오늘만 그런 자리를 셋 찾았다).
  */
 export function followUpRatio(said: readonly MemoryEntry[]): { all: number; followUp: number } {
@@ -105,10 +105,10 @@ export function followUpRatio(said: readonly MemoryEntry[]): { all: number; foll
 
 
 /**
- * 다시 시킬 때 넘길 말 — **재료로는 안 밀렸다.**
+ * 다시 시킬 때 넘길 말. **재료로는 안 밀렸다.**
  *
  * 재료로 한 줄 얹어 봤더니 큰 머리로 바꿔도, 인격을 빼도 **0/3 이었다**(실측). 여섯 줄
- * 중 한 줄로는 안 되는 것이다. 그래서 입 앞 관문으로 옮긴다 — 이미 지어낸 말과 빈말을
+ * 중 한 줄로는 안 되는 것이다. 그래서 입 앞 관문으로 옮긴다. 이미 지어낸 말과 빈말을
  * 거기서 막고 있고, 거기서는 **그 한 가지만** 말하므로 묻히지 않는다.
  *
  * 한 번만 다시 시킨다. 두 번 시키면 억지로 물음표를 붙인 말이 나온다.
@@ -123,7 +123,7 @@ export function tossBackRetryNote(): string {
 /**
  * 지금 말이 공을 안 돌려줬나. 돌려줬으면 null.
  *
- * **공을 돌려줄 자리일 때만** 본다 — 아무 때나 되물으라고 하면 취조가 된다.
+ * **공을 돌려줄 자리일 때만** 본다. 아무 때나 되물으라고 하면 취조가 된다.
  */
 export function notReturned(said: string, shouldToss: boolean): string | null {
   if (shouldToss === false) return null;

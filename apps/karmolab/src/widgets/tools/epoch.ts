@@ -1,5 +1,5 @@
 /**
- * 유닉스 타임스탬프 변환 — 화면 (TASK-KL-088)
+ * 유닉스 타임스탬프 변환. 화면 (TASK-KL-088)
  *
  * 자릿수로 단위를 가리는 판단과 값 만들기는 `src/core/epoch.ts` 가 한다 (TASK-KL-205).
  * 여기는 칸을 그리고 오간 값을 옮기는 일만 한다.
@@ -15,11 +15,11 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
   Toolbox.register({
     id: 'epoch',
     title: t('widgets.epoch.title', undefined, '타임스탬프 변환'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.epoch.desc',
       undefined,
-      '유닉스 타임스탬프와 사람이 읽는 시각을 서로 바꿉니다. 초·밀리초 자동 판별'
+      '유닉스 타임스탬프와 사람이 읽는 시각을 서로 바꿉니다. 초, 밀리초 자동 판별'
     ),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l4 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -61,8 +61,8 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
           const date = $<HTMLInputElement>('#epDate');
           const out = $<HTMLElement>('#epOut');
           const status = $<HTMLElement>('#epStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           let ms = Date.now();
 
@@ -70,8 +70,8 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
           function render(note: string): void {
-            /* 이름은 여기서 붙이고, 「지금 기준」과 시각·요일은 **그 언어의 규칙**으로 적는다
-               (`Intl` 이 상대 시각·요일·날짜 표기를 안다) — 알맹이는 표식과 값만 준다. */
+            /* 이름은 여기서 붙이고, 지금 기준과 시각, 요일은 **그 언어의 규칙**으로 적는다
+               (`Intl` 이 상대 시각, 요일, 날짜 표기를 안다). 알맹이는 표식과 값만 준다. */
             out.innerHTML = stampRowKeys(ms)
               .map(([k, v]) => {
                 if (k === 'local') return row(t('epoch.row.local'), fmtDate(ms, { dateStyle: 'medium', timeStyle: 'medium' }));
@@ -113,13 +113,13 @@ import { t, loadNamespace, fmtDate, fmtRelative } from '../../lib/i18n';
             void Toolbox.copyText?.(String(ms), { message: t('epoch.copy.ms') });
           };
 
-          // 주소로 부른 경우(`?op=toDate&ts=…`)는 그 값으로, 아니면 지금 시각으로 연다 (TASK-KL-205).
+          // 주소로 부른 경우(`?op=toDate&ts=...`)는 그 값으로, 아니면 지금 시각으로 연다 (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'toDate') {
             num.value = String(call.args.ts ?? '');
             fromNumber();
           } else if (call !== null && call.error === undefined && call.op === 'toStamp') {
-            /* 이름을 `t` 로 두면 **말 갈아끼우는 `t()` 를 가린다** — 그 아래 줄이 조용히 깨진다. */
+            /* 이름을 `t` 로 두면 **말 갈아끼우는 `t()` 를 가린다**. 그 아래 줄이 조용히 깨진다. */
             const stamp = new Date(String(call.args.date ?? '')).getTime();
             if (Number.isNaN(stamp) === false) {
               ms = stamp;

@@ -1,8 +1,8 @@
 /**
- * TASK-KL-098 — 계정 저장소 시험.
+ * TASK-KL-098. 계정 저장소 시험.
  *
  * 여기서 틀리면 **사용자 기록이 조용히 사라진다** (에러도 안 나고, 다음에 열었을 때
- * 도전과제가 비어 있을 뿐이다). 그래서 합치기·다시 저장·세션을 눈으로 볼 수 있게 박는다.
+ * 도전과제가 비어 있을 뿐이다). 그래서 합치기, 다시 저장, 세션을 눈으로 볼 수 있게 박는다.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
@@ -29,8 +29,8 @@ const discordUser = {
   avatarUrl: 'https://cdn.discordapp.com/avatars/1234567890/abc.png',
 };
 
-describe('mergeRecords — 어느 쪽도 잃지 않는다', () => {
-  it('도전과제·뱃지는 합집합', () => {
+describe('mergeRecords. 어느 쪽도 잃지 않는다', () => {
+  it('도전과제, 뱃지는 합집합', () => {
     const a = { ...emptyRecords(), achievements: ['pet_100'], badges: ['early'] };
     const b = { ...emptyRecords(), achievements: ['first_chat'], badges: ['early', 'night'] };
     const merged = mergeRecords(a, b);
@@ -38,13 +38,13 @@ describe('mergeRecords — 어느 쪽도 잃지 않는다', () => {
     expect(merged.badges).toEqual(['early', 'night']);
   });
 
-  it('누적값은 큰 쪽이 이긴다 — 낡은 기기가 올려도 안 깎인다', () => {
+  it('누적값은 큰 쪽이 이긴다. 낡은 기기가 올려도 안 깎인다', () => {
     const a = { ...emptyRecords(), progress: { pet_strokes: 12000 } };
     const b = { ...emptyRecords(), progress: { pet_strokes: 30, chat_count: 5 } };
     expect(mergeRecords(a, b).progress).toEqual({ pet_strokes: 12000, chat_count: 5 });
   });
 
-  it('연속기록은 최장·최신을 남기고, 최장은 현재보다 작아지지 않는다', () => {
+  it('연속기록은 최장, 최신을 남기고, 최장은 현재보다 작아지지 않는다', () => {
     const a = {
       ...emptyRecords(),
       streaks: { exercise: { current: 9, longest: 3, lastActivityDate: '2026-08-01' } },
@@ -60,7 +60,7 @@ describe('mergeRecords — 어느 쪽도 잃지 않는다', () => {
     });
   });
 
-  it('순서를 바꿔도 결과가 같다 — 재시도가 안전하려면 이게 성립해야 한다', () => {
+  it('순서를 바꿔도 결과가 같다. 재시도가 안전하려면 이게 성립해야 한다', () => {
     const a = {
       achievements: ['x'],
       badges: [],
@@ -76,7 +76,7 @@ describe('mergeRecords — 어느 쪽도 잃지 않는다', () => {
     expect(mergeRecords(a, b)).toEqual(mergeRecords(b, a));
   });
 
-  it('빈 쪽과 합쳐도 원본이 그대로다 — 첫 로그인에 기록이 날아가지 않는다', () => {
+  it('빈 쪽과 합쳐도 원본이 그대로다. 첫 로그인에 기록이 날아가지 않는다', () => {
     const mine = {
       achievements: ['pet_1000'],
       badges: ['b'],
@@ -124,7 +124,7 @@ describe('KarmolabAccountStore', () => {
     expect(store.accountForSession('아무거나')).toBeNull();
   });
 
-  it('다시 켜도 계정·세션·기록이 남는다 — 이게 안 되면 「저장된다」가 거짓말이다', () => {
+  it('다시 켜도 계정, 세션, 기록이 남는다. 이게 안 되면 저장된다가 거짓말이다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     const { token } = store.createSession(account.id);
@@ -137,7 +137,7 @@ describe('KarmolabAccountStore', () => {
     expect(reopened.byHandle('MASCARI4615')?.id).toBe(account.id);
   });
 
-  it('공개 프로필에는 디스코드 id·안쪽 id 가 안 나간다', () => {
+  it('공개 프로필에는 디스코드 id, 안쪽 id 가 안 나간다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     store.mergeRecordsForAccount(account.id, {
@@ -152,12 +152,12 @@ describe('KarmolabAccountStore', () => {
     expect(asText).not.toContain(account.id);
     expect(profile.avatarPath).toBe(`/kl/u/${account.handle}/avatar`);
     expect(profile.achievements).toEqual(['pet_100']);
-    // 누적 카운터는 공개 프로필에 안 싣는다 (Cycle 1 은 도전과제·뱃지·연속기록만 공개).
+    // 누적 카운터는 공개 프로필에 안 싣는다 (Cycle 1 은 도전과제, 뱃지, 연속기록만 공개).
     expect(asText).not.toContain('secret_counter');
     expect(profile.streaks.exercise).toEqual({ current: 3, longest: 5 });
   });
 
-  it('상태 파일이 깨져 있어도 기동한다 — 로그인 하나 때문에 사이트가 멈추면 안 된다', () => {
+  it('상태 파일이 깨져 있어도 기동한다. 로그인 하나 때문에 사이트가 멈추면 안 된다', () => {
     fs.writeFileSync(statePath, '{ 깨진 JSON', 'utf-8');
     const store = new KarmolabAccountStore(statePath);
     expect(store.stats().accounts).toBe(0);
@@ -168,8 +168,8 @@ describe('KarmolabAccountStore', () => {
 /**
  * 계정별 발자국 (TASK-KL-152 C1).
  *
- * 여기가 틀리면 잔디·돌아보기가 **조용히 거짓말한다** — 화면은 멀쩡히 그려지고 숫자만 틀린다.
- * 그래서 「밤에 연 것이 어제로 안 밀리나」·「그냥 다녀간 날도 칠해지나」를 눈으로 박는다.
+ * 여기가 틀리면 잔디, 돌아보기가 **조용히 거짓말한다**. 화면은 멀쩡히 그려지고 숫자만 틀린다.
+ * 그래서 밤에 연 것이 어제로 안 밀리나, 그냥 다녀간 날도 칠해지나를 눈으로 박는다.
  */
 describe('발자국 (KL-152 C1)', () => {
   const at = (iso: string) => new Date(iso);
@@ -186,19 +186,19 @@ describe('발자국 (KL-152 C1)', () => {
     expect(activity.totals).toEqual({ opens: 2, activeDays: 1, distinctTools: 1 });
   });
 
-  it('한국 시간으로 날짜를 가른다 — 밤 10시(UTC 13시)에 연 것이 어제로 안 밀린다', () => {
+  it('한국 시간으로 날짜를 가른다. 밤 10시(UTC 13시)에 연 것이 어제로 안 밀린다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     // 2026-08-08 22:00 KST = 2026-08-08 13:00 UTC
     store.noteFootprint(account.id, { toolId: 'pet', at: at('2026-08-08T13:00:00Z') });
-    // 2026-08-09 01:00 KST = 2026-08-08 16:00 UTC — UTC 로 세면 같은 날로 뭉개진다
+    // 2026-08-09 01:00 KST = 2026-08-08 16:00 UTC. UTC 로 세면 같은 날로 뭉개진다
     store.noteFootprint(account.id, { toolId: 'pet', at: at('2026-08-08T16:00:00Z') });
 
     const activity = store.footprintFor(account.id, at('2026-08-08T16:30:00Z'));
     expect(Object.keys(activity.days).sort()).toEqual(['2026-08-08', '2026-08-09']);
   });
 
-  it('도구를 안 연 날도 칠해진다 — 둘러보기만 한 날을 「안 온 날」로 적으면 거짓말이다', () => {
+  it('도구를 안 연 날도 칠해진다. 둘러보기만 한 날을 안 온 날로 적으면 거짓말이다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     store.noteFootprint(account.id, { at: at('2026-08-07T03:00:00Z') });
@@ -209,7 +209,7 @@ describe('발자국 (KL-152 C1)', () => {
     expect(activity.totals.opens).toBe(0);
   });
 
-  it('연속일은 어제까지 이어져 있으면 살아 있다 — 오늘 아직 안 왔다고 0 으로 지우지 않는다', () => {
+  it('연속일은 어제까지 이어져 있으면 살아 있다. 오늘 아직 안 왔다고 0 으로 지우지 않는다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     for (const day of ['2026-08-05', '2026-08-06', '2026-08-07']) {
@@ -254,16 +254,16 @@ describe('발자국 (KL-152 C1)', () => {
 /**
  * 공개 범위 (TASK-KL-152 C4).
  *
- * 여기가 틀리면 **가렸다고 믿는 것이 그대로 새어 나간다** — 화면에는 안 보이니 아무도 모른다.
- * 그래서 「응답 자체에서 사라지나」를 문자열로 확인한다.
+ * 여기가 틀리면 **가렸다고 믿는 것이 그대로 새어 나간다**. 화면에는 안 보이니 아무도 모른다.
+ * 그래서 응답 자체에서 사라지나를 문자열로 확인한다.
  */
 describe('공개 범위 (KL-152 C4)', () => {
-  it('기본은 지금까지와 같은 전부 공개 — 링크 걸어 둔 사람이 하루아침에 안 깨지게', () => {
+  it('기본은 지금까지와 같은 전부 공개. 링크 걸어 둔 사람이 하루아침에 안 깨지게', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     expect(store.visibilityFor(account.id)).toEqual({
       profile: true, achievements: true, badges: true, streaks: true, community: true, activity: true,
-      // presence 만 기본이 꺼짐 — 새로 생기는 노출은 켜는 사람만 켠다 (KL-156 D5)
+      // presence 만 기본이 꺼짐. 새로 생기는 노출은 켜는 사람만 켠다 (KL-156 D5)
       presence: false,
     });
   });
@@ -285,7 +285,7 @@ describe('공개 범위 (KL-152 C4)', () => {
     expect(asText).not.toContain('exercise');
     // 가리지 않은 것은 그대로 나간다
     expect(profile.badges).toEqual(['toolbox_explorer']);
-    // 「없는 것」과 「가린 것」은 다르다 — 가렸다는 사실은 알려 준다
+    // 없는 것과 가린 것은 다르다. 가렸다는 사실은 알려 준다
     expect(profile.hidden).toEqual(['achievements', 'streaks']);
   });
 
@@ -307,9 +307,9 @@ describe('공개 범위 (KL-152 C4)', () => {
   });
 });
 
-/** 프로필 꾸미기 (TASK-KL-152 C5) — 남의 화면에 그려지는 값이라 좁게 받는다. */
+/** 프로필 꾸미기 (TASK-KL-152 C5). 남의 화면에 그려지는 값이라 좁게 받는다. */
 describe('프로필 꾸미기 (KL-152 C5)', () => {
-  it('한 줄 소개는 다듬어 담고, 대표 도구는 3개까지·모양 확인·중복 제거', () => {
+  it('한 줄 소개는 다듬어 담고, 대표 도구는 3개까지, 모양 확인, 중복 제거', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     const card = store.setCard(account.id, {
@@ -319,7 +319,7 @@ describe('프로필 꾸미기 (KL-152 C5)', () => {
     expect(card).toEqual({ bio: '도구 만드는 사람', pins: ['pet', 'memo', 'imageconvert'] });
   });
 
-  it('안 채우면 지금과 같은 모습 — 빈 값이 나간다', () => {
+  it('안 채우면 지금과 같은 모습. 빈 값이 나간다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     expect(store.publicProfile(account).card).toEqual({ bio: '', pins: [] });
@@ -334,24 +334,24 @@ describe('프로필 꾸미기 (KL-152 C5)', () => {
   });
 });
 
-/** 기기 상세 + 보안 기록 (TASK-KL-152 C6·C7). */
-describe('기기·보안 기록 (KL-152 C6·C7)', () => {
-  it('로그인 목록에 기기 이름과 「이 기기」가 함께 나온다 — 숫자만으로는 끊을 결심을 못 한다', () => {
+/** 기기 상세 + 보안 기록 (TASK-KL-152 C6, C7). */
+describe('기기, 보안 기록 (KL-152 C6, C7)', () => {
+  it('로그인 목록에 기기 이름과 이 기기가 함께 나온다. 숫자만으로는 끊을 결심을 못 한다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
-    const here = store.createSession(account.id, 'Windows · Chrome');
-    store.createSession(account.id, 'Android · Firefox');
+    const here = store.createSession(account.id, 'Windows, Chrome');
+    store.createSession(account.id, 'Android, Firefox');
 
     const sessions = store.sessionsFor(account.id, here.token);
     expect(sessions).toHaveLength(2);
-    expect(sessions.map((s) => s.device).sort()).toEqual(['Android · Firefox', 'Windows · Chrome']);
+    expect(sessions.map((s) => s.device).sort()).toEqual(['Android, Firefox', 'Windows, Chrome']);
     expect(sessions.filter((s) => s.current)).toHaveLength(1);
   });
 
-  it('목록에 나가는 것은 토큰이 아니다 — 토큰이 나가면 그게 곧 열쇠다', () => {
+  it('목록에 나가는 것은 토큰이 아니다. 토큰이 나가면 그게 곧 열쇠다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
-    const here = store.createSession(account.id, 'Windows · Chrome');
+    const here = store.createSession(account.id, 'Windows, Chrome');
     const asText = JSON.stringify(store.sessionsFor(account.id, here.token));
     expect(asText).not.toContain(here.token);
   });
@@ -372,15 +372,15 @@ describe('기기·보안 기록 (KL-152 C6·C7)', () => {
   it('무슨 일이 있었는지 최근 것부터 남는다 (주소는 안 적는다)', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
-    store.noteEvent(account.id, 'login', { device: 'Windows · Chrome', detail: '디스코드' });
-    store.noteEvent(account.id, 'recovery-used', { device: 'iOS · Safari' });
+    store.noteEvent(account.id, 'login', { device: 'Windows, Chrome', detail: '디스코드' });
+    store.noteEvent(account.id, 'recovery-used', { device: 'iOS, Safari' });
 
     const events = store.eventsFor(account.id);
     expect(events.map((e) => e.kind)).toEqual(['recovery-used', 'login']);
     expect(JSON.stringify(events)).not.toMatch(/\d+\.\d+\.\d+\.\d+/);
   });
 
-  it('기록은 50줄까지만 — 계정 파일이 끝없이 커지지 않게', () => {
+  it('기록은 50줄까지만. 계정 파일이 끝없이 커지지 않게', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     for (let i = 0; i < 60; i += 1) store.noteEvent(account.id, 'login', { detail: String(i) });
@@ -389,7 +389,7 @@ describe('기기·보안 기록 (KL-152 C6·C7)', () => {
     expect(events[0].detail).toBe('59');
   });
 
-  it('마지막 쓰임은 하루 한 번만 저장한다 — 요청마다 쓰면 디스크가 돈다', () => {
+  it('마지막 쓰임은 하루 한 번만 저장한다. 요청마다 쓰면 디스크가 돈다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord(discordUser);
     const here = store.createSession(account.id, '이 기기');
@@ -404,11 +404,11 @@ describe('기기·보안 기록 (KL-152 C6·C7)', () => {
   });
 });
 
-/** 팔로우 (TASK-KL-152 C8) — 목록은 한 벌만 둔다(따라가는 쪽). */
+/** 팔로우 (TASK-KL-152 C8). 목록은 한 벌만 둔다(따라가는 쪽). */
 describe('팔로우 (KL-152 C8)', () => {
   const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
 
-  it('따라가고 끊을 수 있다 · 팔로워는 전수에서 센다', () => {
+  it('따라가고 끊을 수 있다, 팔로워는 전수에서 센다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     const you = store.upsertFromDiscord(other);
@@ -422,14 +422,14 @@ describe('팔로우 (KL-152 C8)', () => {
     expect(store.followerCount(you.handle)).toBe(0);
   });
 
-  it('자기 자신·없는 사람은 못 따라간다', () => {
+  it('자기 자신, 없는 사람은 못 따라간다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     expect(store.setFollowing(me.id, me.handle, true)).toBeNull();
     expect(store.setFollowing(me.id, '없는사람', true)).toBeNull();
   });
 
-  it('두 번 따라가도 한 번만 담긴다 · 다시 열어도 남는다', () => {
+  it('두 번 따라가도 한 번만 담긴다, 다시 열어도 남는다', () => {
     const first = new KarmolabAccountStore(statePath);
     const me = first.upsertFromDiscord(discordUser);
     const you = first.upsertFromDiscord(other);
@@ -441,8 +441,8 @@ describe('팔로우 (KL-152 C8)', () => {
   });
 });
 
-/** 희귀도·막기 (TASK-KL-156 D1·D2). */
-describe('희귀도·막기 (KL-156 D1·D2)', () => {
+/** 희귀도, 막기 (TASK-KL-156 D1, D2). */
+describe('희귀도, 막기 (KL-156 D1, D2)', () => {
   const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
 
   it('희귀도는 전수에서 세고, 계정이 적으면 비율을 안 내놓는다', () => {
@@ -455,12 +455,12 @@ describe('희귀도·막기 (KL-156 D1·D2)', () => {
     const rarity = store.achievementRarity();
     expect(rarity.total).toBe(2);
     expect(rarity.counts).toEqual({ pet_100: 2, first_chat: 1 });
-    // 둘뿐이면 「셋 중 하나가 33%」 같은 착시를 안 만든다
+    // 둘뿐이면 셋 중 하나가 33% 같은 착시를 안 만든다
     expect(rarity.enough).toBe(false);
     expect(store.achievementRarity(2).enough).toBe(true);
   });
 
-  it('막으면 양쪽 팔로우가 함께 끊긴다 — 안 그러면 막고도 내 글이 그쪽으로 간다', () => {
+  it('막으면 양쪽 팔로우가 함께 끊긴다. 안 그러면 막고도 내 글이 그쪽으로 간다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     const you = store.upsertFromDiscord(other);
@@ -486,7 +486,7 @@ describe('희귀도·막기 (KL-156 D1·D2)', () => {
     expect(store.followingOf(me.id)).toEqual([]);
   });
 
-  it('자기 자신·없는 사람은 못 막는다 · 다시 열어도 남는다', () => {
+  it('자기 자신, 없는 사람은 못 막는다, 다시 열어도 남는다', () => {
     const first = new KarmolabAccountStore(statePath);
     const me = first.upsertFromDiscord(discordUser);
     const you = first.upsertFromDiscord(other);
@@ -497,11 +497,11 @@ describe('희귀도·막기 (KL-156 D1·D2)', () => {
   });
 });
 
-/** 알림 대상·전당·지금 상태 (TASK-KL-156 D3·D4·D5). */
-describe('알림 대상·전당·지금 상태 (KL-156 D3·D4·D5)', () => {
+/** 알림 대상, 전당, 지금 상태 (TASK-KL-156 D3, D4, D5). */
+describe('알림 대상, 전당, 지금 상태 (KL-156 D3, D4, D5)', () => {
   const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
 
-  it('막은 사람은 알림 대상에서 빠진다 — 막아 놓고 알림이 오면 막은 것이 아니다', () => {
+  it('막은 사람은 알림 대상에서 빠진다. 막아 놓고 알림이 오면 막은 것이 아니다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     const you = store.upsertFromDiscord(other);
@@ -534,7 +534,7 @@ describe('알림 대상·전당·지금 상태 (KL-156 D3·D4·D5)', () => {
     expect(store.leaders()).toEqual([]);
   });
 
-  it('「지금 접속 중」은 켠 사람만 대답한다 (기본은 안 켜짐)', () => {
+  it('지금 접속 중은 켠 사람만 대답한다 (기본은 안 켜짐)', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     store.touchPresence(me.id);
@@ -548,11 +548,11 @@ describe('알림 대상·전당·지금 상태 (KL-156 D3·D4·D5)', () => {
   });
 });
 
-/** 병합·보관 (TASK-KL-156 D8·D10). */
-describe('병합·보관 (KL-156 D8·D10)', () => {
+/** 병합, 보관 (TASK-KL-156 D8, D10). */
+describe('병합, 보관 (KL-156 D8, D10)', () => {
   const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
 
-  it('합치면 아무것도 안 잃는다 — 기록·발자국·따라가기가 모두 남는다', () => {
+  it('합치면 아무것도 안 잃는다. 기록, 발자국, 따라가기가 모두 남는다', () => {
     const store = new KarmolabAccountStore(statePath);
     const keep = store.upsertFromDiscord(discordUser);
     const gone = store.upsertFromDiscord(other);
@@ -572,7 +572,7 @@ describe('병합·보관 (KL-156 D8·D10)', () => {
     expect(footprint.days['2026-08-01']).toBe(2);
   });
 
-  it('남는 이름은 받는 쪽 · 지운 이름으로 찾아도 받는 쪽이 나온다 (걸어 둔 링크가 안 깨진다)', () => {
+  it('남는 이름은 받는 쪽, 지운 이름으로 찾아도 받는 쪽이 나온다 (걸어 둔 링크가 안 깨진다)', () => {
     const store = new KarmolabAccountStore(statePath);
     const keep = store.upsertFromDiscord(discordUser);
     const gone = store.upsertFromDiscord(other);
@@ -582,7 +582,7 @@ describe('병합·보관 (KL-156 D8·D10)', () => {
     expect(store.byHandle(gone.handle)?.id).toBe(keep.id);
   });
 
-  it('지우는 쪽 로그인은 전부 끊긴다 — 합쳐 놓고 옛 문이 열려 있으면 합친 게 아니다', () => {
+  it('지우는 쪽 로그인은 전부 끊긴다. 합쳐 놓고 옛 문이 열려 있으면 합친 게 아니다', () => {
     const store = new KarmolabAccountStore(statePath);
     const keep = store.upsertFromDiscord(discordUser);
     const gone = store.upsertFromDiscord(other);
@@ -600,16 +600,16 @@ describe('병합·보관 (KL-156 D8·D10)', () => {
     const dormant = store.dormantAccounts(365, new Date('2026-08-08T00:00:00Z'));
     expect(dormant.map((row) => row.handle)).toEqual([account.handle]);
     expect(store.idleDaysOf(account.id, new Date('2026-08-08T00:00:00Z'))).toBeGreaterThan(900);
-    // 세기만 한다 — 계정은 그대로 있다
+    // 세기만 한다. 계정은 그대로 있다
     expect(store.byHandle(account.handle)).not.toBeNull();
   });
 });
 
-/** 3라운드 (TASK-KL-175 E1·E5·E6). */
-describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
+/** 3라운드 (TASK-KL-175 E1, E5, E6). */
+describe('알림 갈래, 팔로우 목록, 잔디 공개 (KL-175)', () => {
   const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
 
-  it('알림 갈래는 기본 전부 받음 · 끈 갈래는 「원하지 않음」으로 답한다', () => {
+  it('알림 갈래는 기본 전부 받음, 끈 갈래는 원하지 않음으로 답한다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     expect(store.notifyPrefsOf(me.id)).toEqual({ community: true, follow: true, system: true });
@@ -617,7 +617,7 @@ describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
 
     store.setNotifyPrefs(me.id, { follow: false, '장난': true });
     expect(store.wantsNotification(me.id, 'follow')).toBe(false);
-    // 모르는 출처는 「그 밖」으로 묶인다
+    // 모르는 출처는 그 밖으로 묶인다
     expect(store.wantsNotification(me.id, 'tool')).toBe(true);
     store.setNotifyPrefs(me.id, { system: false });
     expect(store.wantsNotification(me.id, 'tool')).toBe(false);
@@ -650,7 +650,7 @@ describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
     expect(store.followList(me.handle, 'following', me.id)).toEqual([]);
   });
 
-  it('잔디는 가리면 빈 것이 아니라 아예 없다 · 기록이 없어도 없다', () => {
+  it('잔디는 가리면 빈 것이 아니라 아예 없다, 기록이 없어도 없다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     expect(store.publicFootprint(me.handle)).toBeNull();
@@ -663,9 +663,9 @@ describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
   });
 });
 
-/** 작업실 (TASK-KL-182 F3·F4). */
+/** 작업실 (TASK-KL-182 F3, F4). */
 describe('작업실 (KL-182)', () => {
-  it('걸고 내린다 · 같은 것을 두 번 걸지 않는다', () => {
+  it('걸고 내린다, 같은 것을 두 번 걸지 않는다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     store.addWork(me.id, { id: 'abcd1234', title: '첫 그림', toolId: 'imagegen' });
@@ -677,7 +677,7 @@ describe('작업실 (KL-182)', () => {
     expect(store.worksOf(me.id)).toEqual([]);
   });
 
-  it('벽이 차면 가장 오래된 것이 내려간다 — 거는 순간 실패하면 만든 것이 사라진다', () => {
+  it('벽이 차면 가장 오래된 것이 내려간다. 거는 순간 실패하면 만든 것이 사라진다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     for (let i = 0; i < 15; i += 1) store.addWork(me.id, { id: `work${String(i).padStart(4, '0')}`, title: `w${i}` });
@@ -686,7 +686,7 @@ describe('작업실 (KL-182)', () => {
     expect(works[0].title).toBe('w14');
   });
 
-  it('이상한 id·꾸민 글자는 안 받는다', () => {
+  it('이상한 id, 꾸민 글자는 안 받는다', () => {
     const store = new KarmolabAccountStore(statePath);
     const me = store.upsertFromDiscord(discordUser);
     expect(store.addWork(me.id, { id: '../etc/passwd' })).toBeNull();
@@ -705,7 +705,7 @@ describe('작업실 (KL-182)', () => {
 });
 
 describe('작업실이 그림만 받던 것 (KL-191 축3)', () => {
-  it('그림이 아닌 것도 걸린다 — 갈래와 단서가 남는다', () => {
+  it('그림이 아닌 것도 걸린다. 갈래와 단서가 남는다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord({ id: 'd1', username: '카르모' });
     store.addWork(account.id, { id: 'w0123456789ab', title: '보고서', kind: 'pdf', preview: true, note: '1.2MB' });
@@ -716,25 +716,25 @@ describe('작업실이 그림만 받던 것 (KL-191 축3)', () => {
     expect(works.find((w) => w.kind === 'pdf')!.note).toBe('1.2MB');
   });
 
-  it('모르는 갈래는 「그 밖」으로 — 화면이 지어낸 이름을 그리지 않게', () => {
+  it('모르는 갈래는 그 밖으로. 화면이 지어낸 이름을 그리지 않게', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord({ id: 'd2', username: '카르모' });
     store.addWork(account.id, { id: 'w0123456789ef', title: 'x', kind: '장난', preview: true });
     expect(store.worksOf(account.id)[0].kind).toBe('file');
   });
 
-  it('올린 그림이 없으면 미리보기는 거짓 — 없는 그림을 부르는 칸을 안 만든다', () => {
+  it('올린 그림이 없으면 미리보기는 거짓. 없는 그림을 부르는 칸을 안 만든다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord({ id: 'd3', username: '카르모' });
     store.addWork(account.id, { id: 'w0123456789gh', title: 'x', kind: 'audio', preview: false });
     expect(store.worksOf(account.id)[0].preview).toBe(false);
   });
 
-  it('옛 기록(갈래 없음)은 읽을 때 그림으로 본다 — 저장된 것을 고쳐 쓰지 않는다', () => {
+  it('옛 기록(갈래 없음)은 읽을 때 그림으로 본다. 저장된 것을 고쳐 쓰지 않는다', () => {
     const store = new KarmolabAccountStore(statePath);
     const account = store.upsertFromDiscord({ id: 'd4', username: '카르모' });
     store.addWork(account.id, { id: 'oldwork12345', title: '옛 그림' });
-    // 갈래·미리보기 칸을 지운 옛 모양으로 되돌려 놓는다
+    // 갈래, 미리보기 칸을 지운 옛 모양으로 되돌려 놓는다
     const raw = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
     const key = Object.keys(raw.accounts)[0];
     raw.accounts[key].works = [{ id: 'oldwork12345', title: '옛 그림', toolId: null, at: new Date().toISOString() }];

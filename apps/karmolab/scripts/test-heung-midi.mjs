@@ -18,7 +18,7 @@ assert.ok(Math.abs(on.velocity - 100 / 127) < 1e-9);
 assert.equal(on.channel, 0);
 assert.equal(parseMidiMessage([0x80, 60, 64]).kind, 'off');
 
-// 세기 0 인 note-on 은 note-off — 안 걸러 내면 음이 안 끊긴다
+// 세기 0 인 note-on 은 note-off. 안 걸러 내면 음이 안 끊긴다
 const zero = parseMidiMessage([0x90, 60, 0]);
 assert.equal(zero.kind, 'off', '세기 0 은 떼는 것');
 assert.equal(zero.velocity, 0);
@@ -48,4 +48,4 @@ assert.equal(describeInputs(['A', 'B', 'C']), 'A 외 2대');
 assert.equal(describeInputs([null]), '건반 1', '이름 없는 기기도 자리를 잃지 않는다');
 assert.equal(describeInputs(['   ', 'B']), '건반 1 외 1대');
 
-console.log('[test-heung-midi] ✓ note on/off · 세기 0 · 채널 · 잘못된 입력 · 장치 요약');
+console.log('[test-heung-midi] ✓ note on/off, 세기 0, 채널, 잘못된 입력, 장치 요약');

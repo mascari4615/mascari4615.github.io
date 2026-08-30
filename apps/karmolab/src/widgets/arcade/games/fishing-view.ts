@@ -1,7 +1,7 @@
 /**
  * 낚시 화면 (TASK-KL-242)
  *
- * 입질은 **글자가 아니라 움직임**으로 알린다 — 「지금!」이라고 써 두면 읽는 데 시간이 걸려
+ * 입질은 **글자가 아니라 움직임**으로 알린다. 지금!이라고 써 두면 읽는 데 시간이 걸려
  * 창을 놓친다. 찌가 확 들어가고 물결이 커지는 것으로 충분하다.
  */
 import { t } from '../../../lib/i18n';
@@ -36,7 +36,7 @@ export const fishingView: GameView<FishState, FishAction> = {
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const wpx = cv.clientWidth || 280;
-      /* 물은 **깊어야** 물로 보인다 — 150px 고정이면 넓은 화면에서 띠 한 줄이 된다. */
+      /* 물은 **깊어야** 물로 보인다. 150px 고정이면 넓은 화면에서 띠 한 줄이 된다. */
       const hpx = Math.round(Math.min(300, Math.max(150, wpx * 0.5)));
       if (cv.width !== Math.round(wpx * dpr)) {
         cv.width = Math.round(wpx * dpr);
@@ -48,7 +48,7 @@ export const fishingView: GameView<FishState, FishAction> = {
         const k = cv.width / 100;
         c.setTransform(k, 0, 0, k, 0, 0);
         const hh = cv.height / k;
-        /* 수면 — 물 위와 물 밑을 **가르는 선**이 있어야 찌가 어디 떠 있는지 읽힌다.
+        /* 수면. 물 위와 물 밑을 **가르는 선**이 있어야 찌가 어디 떠 있는지 읽힌다.
            한 색으로 칠하면 파란 사각형에 흰 줄이 그어진 그림이 된다. */
         const SURF = hh * 0.2;
         const sky = c.createLinearGradient(0, 0, 0, SURF);
@@ -64,7 +64,7 @@ export const fishingView: GameView<FishState, FishAction> = {
         c.fillStyle = deep;
         c.fillRect(0, SURF, 100, hh - SURF);
 
-        /* 물속 빛기둥 — 수면에서 비스듬히 내려오는 옅은 띠. 깊이가 보인다. */
+        /* 물속 빛기둥. 수면에서 비스듬히 내려오는 옅은 띠. 깊이가 보인다. */
         for (let i = 0; i < 3; i++) {
           const x0 = 18 + i * 32;
           const beam = c.createLinearGradient(x0, SURF, x0 + 14, hh);
@@ -78,7 +78,7 @@ export const fishingView: GameView<FishState, FishAction> = {
           c.fill();
         }
 
-        /* 물결 — 입질이 오면 크게 흔들린다. 수면 줄이 가장 또렷하다. */
+        /* 물결. 입질이 오면 크게 흔들린다. 수면 줄이 가장 또렷하다. */
         const amp = biting ? 2.2 : 0.7;
         for (let row = 0; row < 3; row++) {
           c.strokeStyle = row === 0 ? 'rgba(215,240,255,.72)' : 'rgba(255,255,255,.16)';
@@ -92,7 +92,7 @@ export const fishingView: GameView<FishState, FishAction> = {
           c.stroke();
         }
 
-        /* 찌 — 물면 쑥 들어간다. 잠긴 만큼 물결이 퍼진다. */
+        /* 찌. 물면 쑥 들어간다. 잠긴 만큼 물결이 퍼진다. */
         if (casted) {
           const bob = SURF - 6 + (biting ? 6 + Math.sin(now / 40) * 2 : 10 + Math.sin(now / 300));
           c.strokeStyle = 'rgba(255,255,255,.45)';

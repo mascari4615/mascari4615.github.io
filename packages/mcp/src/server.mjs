@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * @karmo/mcp — KarmoLab 도구를 AI 에이전트가 부를 수 있게 (TASK-KL-205 / S1 P3)
+ * @karmo/mcp. KarmoLab 도구를 AI 에이전트가 부를 수 있게 (TASK-KL-205 / S1 P3)
  *
- * 왜 있나: LLM 은 해시를 **지어낸다**. 만나이·대체공휴일·시간대 전환처럼 규칙이 복잡한 것도
+ * 왜 있나: LLM 은 해시를 **지어낸다**. 만나이, 대체공휴일, 시간대 전환처럼 규칙이 복잡한 것도
  * 자신 있게 틀린다. 우리 도구는 그걸 정확히 하는 코드를 이미 갖고 있는데, 그동안 **화면으로만**
  * 열려 있어서 에이전트가 쓸 방법이 없었다. 알맹이를 떼어 놓았으니 이제 그대로 내놓는다.
  *
  * **의존성 0.** MCP 의 stdio 전송은 줄 단위 JSON-RPC 2.0 이라 SDK 없이도 말이 통한다.
  * 남의 코드를 안 들이는 편이 우리가 지고 갈 짐이 적다 (SHA-3 을 직접 쓴 것과 같은 판단).
  *
- * 도구 목록은 **손으로 안 적는다** — `dist/manifest.json`(빌드가 찍음)을 읽고, 각 알맹이의
- * `spec` 에서 이름·설명·입력 모양을 뽑는다. 알맹이가 늘면 여기 손 안 대도 도구가 는다.
+ * 도구 목록은 **손으로 안 적는다**. `dist/manifest.json`(빌드가 찍음)을 읽고, 각 알맹이의
+ * `spec` 에서 이름, 설명, 입력 모양을 뽑는다. 알맹이가 늘면 여기 손 안 대도 도구가 는다.
  *
  * 쓰는 법 (Claude Code 등):
  *   claude mcp add karmolab -- npx -y @karmo/mcp
@@ -32,7 +32,7 @@ const PROTOCOL = '2025-06-18';
 const VERSION = '0.1.0';
 
 if (fs.existsSync(path.join(distDir, 'manifest.json')) === false) {
-  process.stderr.write('[@karmo/mcp] dist 가 없다 — 먼저 `npm run build` 를 돌려라\n');
+  process.stderr.write('[@karmo/mcp] dist 가 없다. 먼저 `npm run build` 를 돌려라\n');
   process.exit(1);
 }
 
@@ -48,13 +48,13 @@ const hashBackend = (algo, text) => {
 // ── 알맹이 올리기 ───────────────────────────────────────────────────────────
 const { tools: toolFiles } = JSON.parse(fs.readFileSync(path.join(distDir, 'manifest.json'), 'utf8'));
 
-/** MCP 도구 이름 = `<도구>_<연산>`. 점·슬래시는 이름 규칙에 안 맞아 밑줄로 간다. */
+/** MCP 도구 이름 = `<도구>_<연산>`. 점, 슬래시는 이름 규칙에 안 맞아 밑줄로 간다. */
 const registry = new Map();
 
 for (const base of toolFiles) {
   const mod = await import(pathToFileURL(path.join(distDir, `${base}.mjs`)).href);
   if (mod.spec === undefined || typeof mod.run !== 'function') {
-    process.stderr.write(`[@karmo/mcp] ${base} 에 spec 또는 run 이 없다 — 건너뛴다\n`);
+    process.stderr.write(`[@karmo/mcp] ${base} 에 spec 또는 run 이 없다. 건너뛴다\n`);
     continue;
   }
   for (const [op, opSpec] of Object.entries(mod.spec.ops)) {
@@ -252,7 +252,7 @@ function callToolRaw(name, args) {
   const t = registry.get(name);
   if (t === undefined) throw new Error(`모르는 도구입니다: ${name}`);
   /*
-   * `call` = 도구가 다른 도구를 부르는 손 (chain 이 쓴다). 여기서만 줄 수 있다 —
+   * `call` = 도구가 다른 도구를 부르는 손 (chain 이 쓴다). 여기서만 줄 수 있다 . 
    * 알맹이끼리 서로 import 하면 목록을 손으로 관리하게 되고, 화면 번들도 통째로 무거워진다.
    * 깊이는 chain 쪽에서 막는다(chain 은 chain 을 못 부른다).
    */
@@ -293,7 +293,7 @@ rl.on('line', async (line) => {
     return;
   }
 
-  // 알림(id 없음)은 답하지 않는다 — 답하면 규약 위반이다.
+  // 알림(id 없음)은 답하지 않는다. 답하면 규약 위반이다.
   if (msg.id === undefined) return;
 
   try {
@@ -314,7 +314,7 @@ rl.on('line', async (line) => {
         const out = await callTool(msg.params?.name, msg.params?.arguments);
         ok(msg.id, { content: [{ type: 'text', text: out }] });
       } catch (e) {
-        // 도구가 실패한 것은 **프로토콜 오류가 아니다** — 에이전트가 읽고 고칠 수 있게 내용으로 준다.
+        // 도구가 실패한 것은 **프로토콜 오류가 아니다**. 에이전트가 읽고 고칠 수 있게 내용으로 준다.
         ok(msg.id, { content: [{ type: 'text', text: `실패: ${e.message}` }], isError: true });
       }
       return;

@@ -1,8 +1,8 @@
 /**
  * 나눠 내기 (TASK-KL-316 / 33)
  *
- * 「계산」 작업대의 할 일 한 칸. 셈은 `core/dutchpay`.
- * 1원까지 맞추고, 갚는 횟수를 가장 적게 만든다. 나눠 갖기는 **주소 자체에 담는다** — 서버에 안 맡긴다.
+ * 계산 작업대의 할 일 한 칸. 셈은 `core/dutchpay`.
+ * 1원까지 맞추고, 갚는 횟수를 가장 적게 만든다. 나눠 갖기는 **주소 자체에 담는다**. 서버에 안 맡긴다.
  */
 import { balances, decode, encode, parseExpenses, settle } from '../../core/dutchpay';
 import { escapeHtml as esc } from './shared/text';
@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'dutchpay',
     title: t('widgets.dutchpay.title', undefined, '나눠 내기'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.dutchpay.desc',
       undefined,
@@ -126,7 +126,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
     $<HTMLButtonElement>('#dpShare').onclick = async (): Promise<void> => {
       const packed = encode(peopleOf(), parseExpenses(linesBox.value));
-      /* 주소 자체가 저장소다 — 우리 서버에 아무것도 안 남는다. */
+      /* 주소 자체가 저장소다. 우리 서버에 아무것도 안 남는다. */
       const url = location.origin + location.pathname + '#d=' + packed;
       await Toolbox.copyText?.(url, { message: t('dutchpay.shared') });
     };
@@ -140,7 +140,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       await Toolbox.copyText?.(text, { message: t('dutchpay.copied') });
     };
 
-    /* 받은 주소로 들어온 경우 — 사람과 쓴 돈을 되살린다 */
+    /* 받은 주소로 들어온 경우. 사람과 쓴 돈을 되살린다 */
     const hash = location.hash.startsWith('#d=') ? location.hash.slice(3) : '';
     if (hash !== '') {
       try {

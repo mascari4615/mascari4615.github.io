@@ -1,15 +1,15 @@
 /**
- * 박동(Pulse) — 방송국 화면.
+ * 박동(Pulse). 방송국 화면.
  *
  * 화면 구조는 **한 번에 하나**다(사용자, 2026-08-09: "하나하나에 집중할 수 있게").
- * 벤토 격자에 열두 칸을 늘어놓았다가 걷어냈다 — 열두 개가 동시에 뛰면 어느 것도 안 보인다.
+ * 벤토 격자에 열두 칸을 늘어놓았다가 걷어냈다. 열두 개가 동시에 뛰면 어느 것도 안 보인다.
  *
  *   위    방송 고르는 칩 한 줄
- *   가운데 **무대** — 지금 그 방송의 판 하나. 이 판이 곧 공유될 그림이다(같은 붓, `card.ts`)
- *   아래   지나간 박동 — 작은 판들. 누르면 무대에 올라온다
+ *   가운데 **무대**. 지금 그 방송의 판 하나. 이 판이 곧 공유될 그림이다(같은 붓, `card.ts`)
+ *   아래   지나간 박동. 작은 판들. 누르면 무대에 올라온다
  *
  * 무대와 공유 그림이 같은 함수로 그려지는 것이 핵심이다. 두 벌로 나뉘면 언젠가 한쪽만
- * 고쳐지고, 그날부터 「보던 것과 다른 게 나간다」.
+ * 고쳐지고, 그날부터 보던 것과 다른 게 나간다.
  *
  * **다음 박동은 절대 안 보여준다.** 계산은 되지만 보여 주면 기다림이 사라진다.
  */
@@ -63,7 +63,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .pl-now { font-family: var(--font-mono, monospace); font-size: 13px; color: var(--accent, #a99bf5);
   font-variant-numeric: tabular-nums; }
 
-/* 방송 고르는 줄 — 좁으면 가로로 민다(줄바꿈해서 세 줄이 되면 무대가 밀려난다) */
+/* 방송 고르는 줄. 좁으면 가로로 민다(줄바꿈해서 세 줄이 되면 무대가 밀려난다) */
 .pl-chips { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
 .pl-chip { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; padding: 6px 12px;
   font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
@@ -75,7 +75,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .pl-chip b { font-weight: 600; }
 .pl-chip .pl-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .5; }
 
-/* 무대 — 이 판이 곧 공유될 그림이다 */
+/* 무대. 이 판이 곧 공유될 그림이다 */
 .pl-stage { position: relative; width: 100%; aspect-ratio: 1200 / 630;
   border: 1px solid var(--border, #2a2a31); border-radius: var(--radius-md, 10px); overflow: hidden; }
 .pl-stage canvas { width: 100%; height: 100%; display: block; }
@@ -93,7 +93,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 .pl-blurb { font-size: 12px; color: var(--text-tertiary, #8a8a92); line-height: 1.7; }
 .pl-blurb b { color: var(--text-primary, #e8e8e8); font-weight: 600; }
 
-/* 지나간 박동 — 작은 판들. 누르면 무대에 올라온다 */
+/* 지나간 박동. 작은 판들. 누르면 무대에 올라온다 */
 .pl-past h4 { margin: 0 0 8px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
   color: var(--text-tertiary, #8a8a92); font-weight: 600; }
 .pl-strip { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
@@ -171,7 +171,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           let channel: Channel = CHANNELS.find((c) => c.id === saved) ?? CHANNELS[0];
           /** 무대에 올라와 있는 박동. null = 지금 것(계속 따라간다). */
           let pinned: number | null = null;
-          /** 「나만의 것」을 무대에 올린 상태 — 시각과 무관하므로 따로 둔다. */
+          /** 나만의 것을 무대에 올린 상태. 시각과 무관하므로 따로 둔다. */
           let mine: Beat | null = null;
           let lastTick = Number.NaN;
 
@@ -201,12 +201,12 @@ import { t, loadNamespace } from '../../lib/i18n';
             paintSoundBtn();
             const ac = ensureAudio();
             if (!ac) return;
-            /* 켠 자리에서 한 번 울려 준다 — 안 그러면 다음 정각까지 켠 게 맞는지 알 길이 없다. */
+            /* 켠 자리에서 한 번 울려 준다. 안 그러면 다음 정각까지 켠 게 맞는지 알 길이 없다. */
             const bell = CHANNELS.find((c) => c.id === 'bell');
             bell?.beat(tickOf(bell, Date.now())).sound?.(ac, ac.currentTime + 0.05);
           };
 
-          /* ── 한 판 그리기 — 무대·작은 판·공유 그림이 전부 이 함수를 쓴다 ── */
+          /* ── 한 판 그리기. 무대, 작은 판, 공유 그림이 전부 이 함수를 쓴다 ── */
           function renderBeat(
             c: CanvasRenderingContext2D,
             w: number,
@@ -225,7 +225,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               h,
               {
                 text: beat.line,
-                channel: `${ch.name} · ${periodLabel(ch.period)}`,
+                channel: `${ch.name}, ${periodLabel(ch.period)}`,
                 stamp: mine ? t('pulse.t07') : stampOf(tickStart(ch, tick), ch.period >= 86400000),
                 mark: beat.mark
               },
@@ -259,7 +259,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const tick = currentTick();
             renderBeat(box.c, box.w, box.h, channel, tick, currentBeat());
             /* 무대가 **어느 판을 그렸는지** 남긴다. 캔버스는 안을 들여다볼 수가 없어서,
-               이게 없으면 「누른 판이 올라왔나」를 사람도 검사도 확인할 방법이 없다.
+               이게 없으면 누른 판이 올라왔나를 사람도 검사도 확인할 방법이 없다.
                (무대와 작은 판은 해상도가 달라 화소 지문끼리도 못 맞춘다.) */
             stage.dataset.tick = mine ? 'mine' : String(tick);
             stage.dataset.channel = channel.id;
@@ -327,7 +327,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 renderMeta();
                 renderStrip();
                 drawStage();
-                update(); // 안내 줄을 **그 자리에서** 바꾼다 — 안 그러면 다음 초까지 옛말이 남는다
+                update(); // 안내 줄을 **그 자리에서** 바꾼다. 안 그러면 다음 초까지 옛말이 남는다
               };
             });
             requestAnimationFrame(() => {
@@ -400,8 +400,8 @@ import { t, loadNamespace } from '../../lib/i18n';
               }
             }
 
-            /* 소리는 **지금 보고 있지 않은 방송**에서도 울려야 한다 — 종은 정각에 울리는 것이 전부다.
-               처음 본 박동 번호는 「방금 갈렸다」가 아니라 「원래 그거였다」이므로 울리지 않는다. */
+            /* 소리는 **지금 보고 있지 않은 방송**에서도 울려야 한다. 종은 정각에 울리는 것이 전부다.
+               처음 본 박동 번호는 방금 갈렸다가 아니라 원래 그거였다이므로 울리지 않는다. */
             for (const ch of CHANNELS) {
               const tick = tickOf(ch, now);
               const beat = ch.beat(tick);
@@ -420,7 +420,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 ? t('pulse.t10')
                 : `다음까지 ${humanLeft(channel.period * (1 - p))}`;
           }
-          /** 방송마다 마지막으로 본 박동 번호 — 같은 종을 두 번 울리지 않으려고 둔다. */
+          /** 방송마다 마지막으로 본 박동 번호. 같은 종을 두 번 울리지 않으려고 둔다. */
           const rung = new Map<string, number>();
 
           renderChips();
@@ -429,7 +429,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           update();
           requestAnimationFrame(drawStage);
 
-          // 보이는 동안만 돈다 (`lib/tick`) — 덮어 둔 탭에서 배터리를 안 태운다.
+          // 보이는 동안만 돈다 (`lib/tick`). 덮어 둔 탭에서 배터리를 안 태운다.
           const stopTick = intervalWhileVisible(update, 1000);
           const onResize = (): void => {
             ink = inkOf(container);

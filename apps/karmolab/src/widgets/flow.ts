@@ -1,11 +1,11 @@
 /**
- * 도구 흐름 (TASK-KL-181) — 내 방식대로 이어 붙이고 저장한다.
+ * 도구 흐름 (TASK-KL-181). 내 방식대로 이어 붙이고 저장한다.
  *
- * 도구가 160개인데 서로 못 만난다. 「이어서」(KL-133)가 한 쌍을 통하게 했지만 그건 그 자리에서
- * 한 번이다 — 같은 일을 매주 하는 사람은 매주 같은 순서를 손으로 다시 밟는다.
+ * 도구가 160개인데 서로 못 만난다. 이어서(KL-133)가 한 쌍을 통하게 했지만 그건 그 자리에서
+ * 한 번이다. 같은 일을 매주 하는 사람은 매주 같은 순서를 손으로 다시 밟는다.
  *
  * 흐름은 **순서를 적어 둔 종이 한 장**이다. 파일도 결과도 서버에 안 올라간다. 실행은 이 화면이
- * 단계를 차례로 열어 주고, 앞 단계 결과는 지금 있는 「이어서」 배선으로 다음 단계에 넘어간다.
+ * 단계를 차례로 열어 주고, 앞 단계 결과는 지금 있는 이어서 배선으로 다음 단계에 넘어간다.
  */
 import { t, loadNamespace } from '../lib/i18n';
 import { onAccountSettled } from '../lib/account-ready';
@@ -27,7 +27,7 @@ import { intervalWhileVisible } from '../lib/tick';
         auto?: boolean;
     };
 
-    /** 실행 중인 흐름 — 화면을 옮겨 다녀야 하므로 이 창에 적어 둔다(탭을 닫으면 끝난다). */
+    /** 실행 중인 흐름. 화면을 옮겨 다녀야 하므로 이 창에 적어 둔다(탭을 닫으면 끝난다). */
     const RUN_KEY = 'karmolab_flow_run';
 
     Mdd.injectCSS('flow-page', `
@@ -58,20 +58,20 @@ import { intervalWhileVisible } from '../lib/tick';
         .flow-draft .flow-step:hover { border-color:#dc2626; }
         .flow-empty { font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .flow-skip { margin-left:5px; font-size:10px; color:var(--accent); font-weight:600; }
-        /* 실행 띠 — 도구 화면 위에 얇게 뜬다. 도구를 가리면 흐름이 방해가 된다. */
+        /* 실행 띠. 도구 화면 위에 얇게 뜬다. 도구를 가리면 흐름이 방해가 된다. */
         .flow-bar { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:65;
             display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:999px;
             border:1px solid var(--border); background:var(--bg-secondary); box-shadow:0 8px 24px rgba(0,0,0,.35); }
         .flow-bar-title { font-size:var(--font-size-xs); color:var(--text-primary); }
         .flow-bar-count { font-size:11px; color:var(--text-tertiary); }
-        /* 결과가 나온 단추는 빛난다 — 언제 눌러야 하는지를 사람이 판단하지 않아도 되게. */
+        /* 결과가 나온 단추는 빛난다. 언제 눌러야 하는지를 사람이 판단하지 않아도 되게. */
         .flow-btn.flow-ready { animation:flow-pulse 1.2s ease-in-out infinite; }
         @keyframes flow-pulse {
             0%, 100% { box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
             50% { box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent); }
         }
         @media (prefers-reduced-motion: reduce) { .flow-btn.flow-ready { animation:none; outline:2px solid var(--accent); } }
-        /* 스스로 넘어가는 중 — 남은 초가 보이고, 그 자리에서 멈출 수 있다 (TASK-KL-191 축1) */
+        /* 스스로 넘어가는 중. 남은 초가 보이고, 그 자리에서 멈출 수 있다 (TASK-KL-191 축1) */
         .flow-bar-auto { font-size:11px; color:var(--accent); font-weight:600; }
         .flow-auto-toggle { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--text-tertiary); cursor:pointer; }
         .flow-auto-toggle input { accent-color:var(--accent); }
@@ -95,8 +95,8 @@ import { intervalWhileVisible } from '../lib/tick';
 
     /* ── 실행 ─────────────────────────────────────────────────────────
      *
-     * 화면을 옮기며 도는 일이라 「지금 몇 번째인가」를 창에 적어 둔다. 탭을 닫으면 사라지는 게
-     * 맞다 — 어제 시작한 흐름이 오늘 갑자기 이어지면 그건 자동화가 아니라 유령이다.
+     * 화면을 옮기며 도는 일이라 지금 몇 번째인가를 창에 적어 둔다. 탭을 닫으면 사라지는 게
+     * 맞다. 어제 시작한 흐름이 오늘 갑자기 이어지면 그건 자동화가 아니라 유령이다.
      */
     type RunState = { id: string; title: string; steps: Step[]; at: number; started: number; auto?: boolean };
 
@@ -130,7 +130,7 @@ import { intervalWhileVisible } from '../lib/tick';
 
     /**
      * 이 단계를 건너뛸까 (TASK-KL-183 B).
-     * 근거는 **직전에 실제로 나온 결과**뿐이다 — 없는 것을 추측해 건너뛰지 않는다.
+     * 근거는 **직전에 실제로 나온 결과**뿐이다. 없는 것을 추측해 건너뛰지 않는다.
      */
     function shouldSkip(step: Step): boolean {
         if (!step.skipWhen) return false;
@@ -141,9 +141,9 @@ import { intervalWhileVisible } from '../lib/tick';
 
     /* ── 스스로 이어감 (TASK-KL-191 축1) ─────────────────────────────
      *
-     * 「자동화」라고 적어 두고 사람이 단계마다 **다음**을 눌러야 했다. 그런데 그 시점에
+     * 자동화라고 적어 두고 사람이 단계마다 **다음**을 눌러야 했다. 그런데 그 시점에
      * 결과는 이미 나와 있고(`karmolab-result`), 다음 도구는 이미 그 결과를 집어 갈 줄 안다
-     * (`onHandoff`). 남은 것은 클릭 하나 — 그게 자동화와 반자동을 갈랐다.
+     * (`onHandoff`). 남은 것은 클릭 하나. 그게 자동화와 반자동을 갈랐다.
      *
      * 서버가 대신 도는 것은 여전히 불가능하다(도구가 전부 브라우저 안에서 돈다). 자동은
      * **이 창 안에서** 일어난다. 그리고 **셀 수 있게** 한다: 결과를 확인할 틈은 사람의
@@ -159,7 +159,7 @@ import { intervalWhileVisible } from '../lib/tick';
         stopAuto = null;
     }
 
-    /** 결과가 나왔고 자동이 켜져 있으면 — 초를 세고 넘어간다. 세는 동안 아무 때나 멈춘다. */
+    /** 결과가 나왔고 자동이 켜져 있으면. 초를 세고 넘어간다. 세는 동안 아무 때나 멈춘다. */
     function armAuto(run: RunState): void {
         cancelAuto();
         const bar = document.querySelector('.flow-bar');
@@ -193,8 +193,8 @@ import { intervalWhileVisible } from '../lib/tick';
             left -= 1;
         };
         tick();
-        // 덮어 둔 탭에서는 세지 않는다 — 안 보는 사이에 **다음 단계로 저 혼자 넘어가** 있으면
-        // 「내가 안 눌렀는데 지나갔다」가 된다. 돌아오면 그 자리에서 이어 센다.
+        // 덮어 둔 탭에서는 세지 않는다. 안 보는 사이에 **다음 단계로 저 혼자 넘어가** 있으면
+        // 내가 안 눌렀는데 지나갔다가 된다. 돌아오면 그 자리에서 이어 센다.
         stopAuto = intervalWhileVisible(tick, 1000);
     }
 
@@ -222,7 +222,7 @@ import { intervalWhileVisible } from '../lib/tick';
         Toolbox.switchPage?.(run.steps[at].toolId);
     }
 
-    /** 실행 띠 — 어디쯤 왔고 다음이 무엇인지. 도구 화면을 가리지 않게 아래에 얇게 뜬다. */
+    /** 실행 띠. 어디쯤 왔고 다음이 무엇인지. 도구 화면을 가리지 않게 아래에 얇게 뜬다. */
     function paintBar(): void {
         document.querySelector('.flow-bar')?.remove();
         const run = readRun();
@@ -233,7 +233,7 @@ import { intervalWhileVisible } from '../lib/tick';
         bar.className = 'flow-bar';
         bar.innerHTML =
             `<span class="flow-bar-title">${escapeHtml(run.title)}</span>` +
-            `<span class="flow-bar-count">${run.at + 1} / ${run.steps.length} · ${t('flow.nowAt', { tool: escapeHtml(toolTitle(step.toolId)) })}` +
+            `<span class="flow-bar-count">${run.at + 1} / ${run.steps.length}, ${t('flow.nowAt', { tool: escapeHtml(toolTitle(step.toolId)) })}` +
             `${run.auto ? t('flow.t23') : ''}</span>` +
             (next
                 ? `<button type="button" class="flow-btn flow-btn-go" data-flow-next>${t('flow.next', { tool: escapeHtml(toolTitle(next.toolId)) })} →</button>`
@@ -243,7 +243,7 @@ import { intervalWhileVisible } from '../lib/tick';
         bar.querySelector('[data-flow-next]')?.addEventListener('click', () => goStep(run.at + 1));
         bar.querySelector('[data-flow-done]')?.addEventListener('click', () => finishRun(run));
         bar.querySelector('[data-flow-stop]')?.addEventListener('click', () => {
-            /* 그만둔 것도 자국이다 — 오히려 **어디서 막히는지**는 여기서만 드러난다. */
+            /* 그만둔 것도 자국이다. 오히려 **어디서 막히는지**는 여기서만 드러난다. */
             cancelAuto();
             noteTrail(run, false);
             writeRun(null);
@@ -251,8 +251,8 @@ import { intervalWhileVisible } from '../lib/tick';
     }
 
     /**
-     * 한 판의 자국 (TASK-KL-182 F5) — 몇 번째까지 갔나 · 얼마나 걸렸나.
-     * 파일도 결과도 안 보낸다. 이 두 값만이 「어느 단계가 막히나」를 말한다.
+     * 한 판의 자국 (TASK-KL-182 F5). 몇 번째까지 갔나, 얼마나 걸렸나.
+     * 파일도 결과도 안 보낸다. 이 두 값만이 어느 단계가 막히나를 말한다.
      */
     function noteTrail(run: RunState, finished: boolean): void {
         const base = api();
@@ -296,11 +296,11 @@ import { intervalWhileVisible } from '../lib/tick';
             <div class="flow-card" data-flow="${escapeHtml(flow.id)}">
                 <h4>${escapeHtml(flow.title)}</h4>
                 <div class="flow-steps">${stepsHtml(flow.steps)}</div>
-                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}${flow.auto ? t('flow.t26') : ''}</span>
+                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? `, @${escapeHtml(flow.ownerHandle)}` : ''}${flow.auto ? t('flow.t26') : ''}</span>
                 <div class="flow-actions">
                     <button type="button" class="flow-btn flow-btn-go" data-run="${escapeHtml(flow.id)}">${esc(t('flow.t04'))}</button>
                     ${mine
-                        ? /* 단계가 하나뿐이면 이어갈 다음이 없다 — 켤 수 없는 것을 켜는 자리로 두지 않는다 */
+                        ? /* 단계가 하나뿐이면 이어갈 다음이 없다. 켤 수 없는 것을 켜는 자리로 두지 않는다 */
                           `${flow.steps.length > 1
                               ? `<label class="flow-auto-toggle" title="${esc(t('flow.t01'))}">
                                      <input type="checkbox" data-auto="${escapeHtml(flow.id)}"${flow.auto ? ' checked' : ''}> ${esc(t('flow.t05'))}
@@ -370,8 +370,8 @@ import { intervalWhileVisible } from '../lib/tick';
     }
 
     /**
-     * 어디서 막히나 (TASK-KL-182 F5) — 자국이 있는 흐름에만 한 줄 붙는다.
-     * 자국이 없으면 아무 말도 안 한다. 「0% 완주」 같은 수는 아직 아무것도 안 말해 준다.
+     * 어디서 막히나 (TASK-KL-182 F5). 자국이 있는 흐름에만 한 줄 붙는다.
+     * 자국이 없으면 아무 말도 안 한다. 0% 완주 같은 수는 아직 아무것도 안 말해 준다.
      */
     async function paintSummaries(container: HTMLElement): Promise<void> {
         const base = api();
@@ -391,7 +391,7 @@ import { intervalWhileVisible } from '../lib/tick';
                     if (summary.stuckStep !== null && summary.finished < summary.runs) {
                         parts.push(t('flow.stuck', { n: summary.stuckStep }));
                     }
-                    slot.textContent = `${slot.textContent} · ${parts.join(' · ')}`;
+                    slot.textContent = `${slot.textContent}, ${parts.join(', ')}`;
                 } catch {
                     /* 요약을 못 받아도 카드는 그대로다 */
                 }
@@ -431,7 +431,7 @@ import { intervalWhileVisible } from '../lib/tick';
                 }
             });
         });
-        /* 스스로 이어감 켜기·끄기 (TASK-KL-191 축1) — 서버는 이 선택만 지킨다(돌리지는 않는다). */
+        /* 스스로 이어감 켜기, 끄기 (TASK-KL-191 축1). 서버는 이 선택만 지킨다(돌리지는 않는다). */
         container.querySelectorAll<HTMLInputElement>('[data-auto]').forEach((box) => {
             box.addEventListener('change', async () => {
                 const base = api();
@@ -446,7 +446,7 @@ import { intervalWhileVisible } from '../lib/tick';
                     });
                     if (!res.ok) throw new Error(String(res.status));
                     const saved = (await res.json()) as { auto?: boolean };
-                    // 화면은 **서버가 답한 값**을 따른다 — 눌린 대로 두면 저장 안 된 것이 켜져 보인다.
+                    // 화면은 **서버가 답한 값**을 따른다. 눌린 대로 두면 저장 안 된 것이 켜져 보인다.
                     box.checked = saved.auto === true;
                     Toolbox.showToast?.(box.checked ? t('flow.t33') : t('flow.t34'));
                 } catch {
@@ -492,10 +492,10 @@ import { intervalWhileVisible } from '../lib/tick';
         const titleInput = container.querySelector<HTMLInputElement>('[data-title]');
         if (!pick || !draftSlot || !titleInput) return;
 
-        /* 고를 수 있는 것은 여전히 **도구 전부**다 — 형식을 안 밝힌 도구를 빼면 흐름을 못 만든다.
+        /* 고를 수 있는 것은 여전히 **도구 전부**다. 형식을 안 밝힌 도구를 빼면 흐름을 못 만든다.
          * 다만 앞 단계가 정해지면 **이어지는 것을 위로 올린다** (TASK-KL-183 A):
          * 앞 도구가 내놓는 형식을 받을 수 있다고 밝힌(`accepts`) 도구가 먼저 온다.
-         * 거르지 않고 **줄만 세운다** — 고르는 자유는 그대로 두고 눈만 덜 피곤하게. */
+         * 거르지 않고 **줄만 세운다**. 고르는 자유는 그대로 두고 눈만 덜 피곤하게. */
         const metas = (window.KARMOLAB_LAZY_META ?? []) as Array<{
             id: string;
             title?: string;
@@ -507,13 +507,13 @@ import { intervalWhileVisible } from '../lib/tick';
 
         /* 묶음은 **자식이 하는 일을 대신 말한다** (TASK-KL-183 A).
          *
-         * 형식 선언(`accepts`·`produces`)은 실제로 일하는 도구에 붙어 있는데, 그 도구들 상당수가
+         * 형식 선언(`accepts`, `produces`)은 실제로 일하는 도구에 붙어 있는데, 그 도구들 상당수가
          * 묶음 탭 안으로 들어가며 목록에서 숨겨졌다(`hidden`). 그러면 화면에 보이는 대표는
-         * 아무 형식도 안 밝힌 것이 되어 「이어지는 도구」가 영영 안 뜬다.
-         * 그래서 자식 것을 합쳐서 본다 — 두 벌로 적지 않고 **파생**한다. */
-        /* 선언은 셸이 읽는다 (TASK-KL-191) — 여기서 `meta.accepts` 를 직접 뒤지면 형식을 재는
-         * 자가 두 개가 된다(셸의 「이어서」 줄과 이 화면의 ↳ 가 서로 다른 답을 냈었다).
-         * 묶음이 자식을 대신 말하는 것만 이 화면의 몫이다 — 셸은 낱개 도구를 다룬다. */
+         * 아무 형식도 안 밝힌 것이 되어 이어지는 도구가 영영 안 뜬다.
+         * 그래서 자식 것을 합쳐서 본다. 두 벌로 적지 않고 **파생**한다. */
+        /* 선언은 셸이 읽는다 (TASK-KL-191). 여기서 `meta.accepts` 를 직접 뒤지면 형식을 재는
+         * 자가 두 개가 된다(셸의 이어서 줄과 이 화면의 ↳ 가 서로 다른 답을 냈었다).
+         * 묶음이 자식을 대신 말하는 것만 이 화면의 몫이다. 셸은 낱개 도구를 다룬다. */
         const declared = (id: string, key: 'accepts' | 'produces'): string[] =>
             (key === 'accepts' ? Toolbox.declaredAccepts?.(id) : Toolbox.declaredProduces?.(id)) ?? [];
 
@@ -569,7 +569,7 @@ import { intervalWhileVisible } from '../lib/tick';
             });
         };
 
-        // 첫 그림 — 고를 목록과 빈 초안을 한 번 그려 둔다.
+        // 첫 그림. 고를 목록과 빈 초안을 한 번 그려 둔다.
         paintDraft();
 
         container.querySelector('[data-add]')?.addEventListener('click', () => {
@@ -607,10 +607,10 @@ import { intervalWhileVisible } from '../lib/tick';
 
     /* 결과가 나오면 띠가 **먼저 안다** (TASK-KL-183 A).
      *
-     * 지금까지는 사람이 「다음」을 눌러야 했고, 언제 눌러야 하는지는 스스로 판단해야 했다.
+     * 지금까지는 사람이 다음을 눌러야 했고, 언제 눌러야 하는지는 스스로 판단해야 했다.
      * 도구가 결과를 내놓는 순간 그 단추가 빛나면, 흐름이 화면을 따라오는 것이 아니라
-     * **화면이 흐름을 따라간다**. 자동으로 넘기지는 않는다 — 결과를 확인할 틈은 사람의 것이다. */
-    /** 이번 단계에서 무엇이 나왔나 — 건너뛰기 판정의 유일한 근거(TASK-KL-183 B). */
+     * **화면이 흐름을 따라간다**. 자동으로 넘기지는 않는다. 결과를 확인할 틈은 사람의 것이다. */
+    /** 이번 단계에서 무엇이 나왔나. 건너뛰기 판정의 유일한 근거(TASK-KL-183 B). */
     let lastResult: { type: string; size: number } | null = null;
 
     window.addEventListener('karmolab-result', (event) => {
@@ -626,17 +626,17 @@ import { intervalWhileVisible } from '../lib/tick';
             const count = bar.querySelector('.flow-bar-count');
             if (count && !count.textContent?.includes(t('flow.t46'))) count.textContent += t('flow.t47');
         }
-        /* 자동이 켜져 있으면 여기서부터는 손이 필요 없다 — 초를 세고 스스로 넘어간다. */
+        /* 자동이 켜져 있으면 여기서부터는 손이 필요 없다. 초를 세고 스스로 넘어간다. */
         if (run?.auto) armAuto(run);
     });
 
     /* 알림을 누르면 **그 흐름이 바로 시작한다** (TASK-KL-191 축1).
      *
      * 예약 알림이 목록으로 보내던 시절엔, 알림을 누른 사람이 목록에서 다시 찾아 다시 눌러야
-     * 했다 — 「때가 됐다」를 알려 주고 정작 시작은 사람에게 미룬 셈이다. 주소에 흐름 이름이
+     * 했다. 때가 됐다를 알려 주고 정작 시작은 사람에게 미룬 셈이다. 주소에 흐름 이름이
      * 실려 오면 그 자리에서 시작한다. 스스로 이어가기가 켜져 있으면 그 한 번이 끝까지 간다.
      *
-     * 주소는 시작한 뒤 지운다 — 안 지우면 새로고침마다 같은 흐름이 다시 시작한다.
+     * 주소는 시작한 뒤 지운다. 안 지우면 새로고침마다 같은 흐름이 다시 시작한다.
      */
     async function startFromLink(): Promise<void> {
         const wanted = new URLSearchParams(location.search).get('flow');
@@ -670,9 +670,9 @@ import { intervalWhileVisible } from '../lib/tick';
                 id: 'flow-main',
                 label: t('flow.t31', undefined, "흐름"),
                 build: (container: HTMLElement) => {
-                    /* ★ 로그인 상태는 처음엔 **아직 모름**이다 — 계정 꾸러미가 늦게 온다.
-                       한 번만 그리면 로그인한 사람에게도 「만들려면 로그인」이 남는다.
-                       (2026-08-14: 「남이 만든 도구」가 이 병으로 목록을 아예 안 불렀다 —
+                    /* ★ 로그인 상태는 처음엔 **아직 모름**이다. 계정 꾸러미가 늦게 온다.
+                       한 번만 그리면 로그인한 사람에게도 만들려면 로그인이 남는다.
+                       (2026-08-14: 남이 만든 도구가 이 병으로 목록을 아예 안 불렀다 . 
                         같은 자리가 여기에도 있었다. 기다리는 방법은 `lib/account-ready.ts` 한 곳.) */
                     Toolbox.onDispose?.(onAccountSettled(() => {
                         void loadNamespace('flow').then(() => build(container));

@@ -1,16 +1,16 @@
 /**
- * 닫은 뒤에도 남는 것 — 위젯 뒷정리 검사 (TASK-KL-201 ㉓).
+ * 닫은 뒤에도 남는 것. 위젯 뒷정리 검사 (TASK-KL-201 ㉓).
  *
- * 왜 있나: 셸은 위젯을 갈아 끼운다(`Toolbox.register` 재등록 = 교체). 위젯이 타이머·전역
+ * 왜 있나: 셸은 위젯을 갈아 끼운다(`Toolbox.register` 재등록 = 교체). 위젯이 타이머, 전역
  * 리스너를 걸었으면 `Toolbox.onDispose(fn)` 로 뒷정리를 맡겨야 하는데, 안 맡기면 **화면을 떠난
- * 뒤에도 계속 돈다**. 증상이 조용하다: 화면은 멀쩡하고, 한참 뒤에 「요즘 느리다」로만 나타난다.
- * 계기판은 「지금 프레임이 도나」까지는 보여 주지만 「누가 안 거뒀나」는 못 짚는다.
+ * 뒤에도 계속 돈다**. 증상이 조용하다: 화면은 멀쩡하고, 한참 뒤에 요즘 느리다로만 나타난다.
+ * 계기판은 지금 프레임이 도나까지는 보여 주지만 누가 안 거뒀나는 못 짚는다.
  *
- * 어떻게: **게이트에서만** 타이머·애니메이션 루프를 세는 카운터를 페이지에 심는다
- * (`addInitScript`). 상시로 감싸면 그 자체가 비용이라 앱에는 안 넣는다 — 계측이 비용이면 안 된다.
+ * 어떻게: **게이트에서만** 타이머, 애니메이션 루프를 세는 카운터를 페이지에 심는다
+ * (`addInitScript`). 상시로 감싸면 그 자체가 비용이라 앱에는 안 넣는다. 계측이 비용이면 안 된다.
  * 그리고 위젯을 열었다 홈으로 돌아가기를 반복하며 **바퀴마다 남는 수가 느는지** 본다.
  *
- * 한 번 열고 재면 못 잡는다: 처음 열 때 만드는 것(한 번만 만드는 캐시·감시자)은 정상이다.
+ * 한 번 열고 재면 못 잡는다: 처음 열 때 만드는 것(한 번만 만드는 캐시, 감시자)은 정상이다.
  * **두 바퀴째부터 또 느는 것**이 새는 것이다.
  *
  * 사용: node scripts/smoke-widget-leak.mjs             (npm run test:leak)
@@ -27,18 +27,18 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 
 if (!fs.existsSync(path.join(root, 'js/toolbox.js'))) {
-  console.log('[leak] 못 돌림 — js/toolbox.js 가 없다 (`node build.mjs` 먼저)');
+  console.log('[leak] 못 돌림. js/toolbox.js 가 없다 (`node build.mjs` 먼저)');
   process.exit(0);
 }
 
 /**
- * Jekyll 이 처리해 줄 것을 정적 서빙에서도 없앤다 — 앞머리 + 「{%…%}」.
+ * Jekyll 이 처리해 줄 것을 정적 서빙에서도 없앤다. 앞머리 + {%...%}.
  *
  * 왜: 앞머리만 걷었더니 화면 맨 위에 조건문 한 줄이 **글자로** 떴다(계기판 화면을 찍어서
  * 발견). 그만큼 자리가 밀려 밀림(CLS) 값이 오염된다. 실서비스에는 없는 것이니 재는 자리에도
  * 없어야 같은 것을 재는 것이 된다.
  *
- * 정규식을 안 쓴다 — 여러 줄 정규식을 스크립트로 심다가 세 번 깨졌다(개행·따옴표 이스케이프).
+ * 정규식을 안 쓴다. 여러 줄 정규식을 스크립트로 심다가 세 번 깨졌다(개행, 따옴표 이스케이프).
  */
 function stripJekyll(text) {
   let out = text;
@@ -69,7 +69,7 @@ const server = http.createServer((req, res) => {
   let body = fs.readFileSync(f);
   const ext = path.extname(f);
   if (ext === '.html') {
-    /* 앞머리만 걷으면 **Liquid 태그가 글자로 뜬다** — 실측: 화면 맨 위에 `{% if
+    /* 앞머리만 걷으면 **Liquid 태그가 글자로 뜬다**. 실측: 화면 맨 위에 `{% if
        jekyll.environment ... %}` 한 줄이 그대로 보였고, 그만큼 자리가 밀려 밀림(CLS)이 오염됐다.
        실서비스에서는 Jekyll 이 처리해 없는 것이니, 재는 자리에서도 없애야 같은 것을 재게 된다. */
     body = Buffer.from(
@@ -82,7 +82,7 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-/* 브라우저가 없으면 「통과」가 아니라 **못 돌림**이다 — CI 의 verify 잡에는 아직 설치 스텝이 없다.
+/* 브라우저가 없으면 통과가 아니라 **못 돌림**이다. CI 의 verify 잡에는 아직 설치 스텝이 없다.
    여기서 조용히 통과시키면 계측이 죽은 날에도 초록이 뜨고, 반대로 그냥 죽이면 배포 길목이 막힌다. */
 if (!(await browserReady('leak'))) process.exit(0);
 
@@ -104,11 +104,11 @@ await page.addInitScript(() => {
     box.intervals -= 1;
     return realClearInterval.apply(window, args);
   };
-  /* 애니메이션 루프는 「스스로 다시 예약하는 것」만 문제다 — 한 번짜리는 저절로 끝난다.
-     1초 동안 몇 번 예약되는지로 「도는 루프가 몇 개인가」를 가늠한다. */
+  /* 애니메이션 루프는 스스로 다시 예약하는 것만 문제다. 한 번짜리는 저절로 끝난다.
+     1초 동안 몇 번 예약되는지로 도는 루프가 몇 개인가를 가늠한다. */
   const realRaf = window.requestAnimationFrame;
   let rafCalls = 0;
-  /* **누가** 예약했는지도 같이 센다. 숫자만 주는 게이트는 「어딘가 루프가 있다」까지만 말해서
+  /* **누가** 예약했는지도 같이 센다. 숫자만 주는 게이트는 어딘가 루프가 있다까지만 말해서
      다음 사람이 또 처음부터 판다. 실측으로 이 한 줄이 범인을 바로 짚었다 (mdd.js frame). */
   box.rafBy = {};
   window.requestAnimationFrame = function (cb) {
@@ -130,10 +130,10 @@ await page.waitForFunction(() => typeof Toolbox !== 'undefined', null, { timeout
 await page.waitForTimeout(3000);
 
 /**
- * 도는 것을 가진 위젯들 — `requestAnimationFrame` 을 쓰는 쪽에서 골랐다
+ * 도는 것을 가진 위젯들. `requestAnimationFrame` 을 쓰는 쪽에서 골랐다
  * (`grep -l requestAnimationFrame src/widgets`). 여섯 개만 볼 때는 마스코트 누수 하나만
- * 걸렸는데, 넓혀야 그 옆의 것도 걸린다. 무거운 것(영상·이미지 편집)은 뺐다 — 이 검사는
- * 「뒷정리」를 보는 자리지 「무거운가」를 보는 자리가 아니다.
+ * 걸렸는데, 넓혀야 그 옆의 것도 걸린다. 무거운 것(영상, 이미지 편집)은 뺐다. 이 검사는
+ * 뒷정리를 보는 자리지 무거운가를 보는 자리가 아니다.
  */
 const WIDGETS = [
   'reaction', 'particle', 'bounce', 'moon', 'hourglass', 'eyes',
@@ -143,8 +143,8 @@ const WIDGETS = [
 async function idleCounts() {
   await page.evaluate(() => Toolbox.switchPage('home'));
   /* **가라앉을 때까지 기다렸다가** 잰다. 위젯을 막 닫은 직후에는 그 위젯의 마지막 프레임들이
-     아직 흐르고 있어서, 바로 재면 「가만히 둔 화면」이 아니라 「방금 닫은 직후」를 재게 된다.
-     실측으로 그 차이가 113 ↔ 177 이었다 — 상한을 그 위에 잡으면 애먼 빨간불이 난다. */
+     아직 흐르고 있어서, 바로 재면 가만히 둔 화면이 아니라 방금 닫은 직후를 재게 된다.
+     실측으로 그 차이가 113 ↔ 177 이었다. 상한을 그 위에 잡으면 애먼 빨간불이 난다. */
   await page.waitForTimeout(3000);
   await page.evaluate(() => { window.__leak.rafLoops = 0; window.__leak.rafBy = {}; });
   await page.waitForTimeout(1600); // 카운터가 한 바퀴 돌 시간
@@ -155,35 +155,35 @@ const SELFTEST = process.argv.includes('--selftest');
 
 const rounds = [];
 for (let round = 0; round < 3; round++) {
-  /* 늘 초록인 검사는 없는 것과 같다 — 일부러 안 거두는 타이머를 바퀴마다 하나 남겨 본다. */
+  /* 늘 초록인 검사는 없는 것과 같다. 일부러 안 거두는 타이머를 바퀴마다 하나 남겨 본다. */
   if (SELFTEST) await page.evaluate(() => window.setInterval(() => {}, 100000));
   for (const id of WIDGETS) {
     await page.evaluate((widget) => Toolbox.switchPage(widget), id);
     await page.waitForTimeout(700);
   }
   rounds.push(await idleCounts());
-  console.log(`[leak] ${round + 1}바퀴 뒤 홈 — 남은 타이머 ${rounds[round].intervals} · 도는 프레임 루프 초당 ${rounds[round].rafLoops}`);
+  console.log(`[leak] ${round + 1}바퀴 뒤 홈. 남은 타이머 ${rounds[round].intervals}, 도는 프레임 루프 초당 ${rounds[round].rafLoops}`);
 }
 
 await browser.close();
 server.close();
 
-/* 가만히 둔 홈에서 초당 몇 번 그리기를 예약하나 — **절대량 상한**.
+/* 가만히 둔 홈에서 초당 몇 번 그리기를 예약하나. **절대량 상한**.
    실측(2026-08-09): 60 = 마스코트 한 벌(`mdd.js` frame). 처음엔 120~305 였는데 그건 **떨어진
-   아바타의 루프가 쌓인 것**이었다 — 이 게이트가 그걸 잡아서 `mdd.ts` 가 스스로 멈추도록 고쳤다.
-   그건 「살아 있어 보이게」 하는 선택이라 여기서 끄지 않는다. 다만 **셋째 루프가 새로 생기면**
-   그때는 알아야 한다 — 그래서 지금 값에 여유만 얹어 잠근다. 「쉬는가」 자체는 `smoke-perf.mjs` 몫. */
+   아바타의 루프가 쌓인 것**이었다. 이 게이트가 그걸 잡아서 `mdd.ts` 가 스스로 멈추도록 고쳤다.
+   그건 살아 있어 보이게 하는 선택이라 여기서 끄지 않는다. 다만 **셋째 루프가 새로 생기면**
+   그때는 알아야 한다. 그래서 지금 값에 여유만 얹어 잠근다. 쉬는가 자체는 `smoke-perf.mjs` 몫. */
 const IDLE_RAF_CAP = 90;
 const idleRaf = rounds[2].rafLoops;
-console.log(`[leak] 가만히 둔 홈 — 초당 그리기 예약 ${idleRaf} (상한 ${IDLE_RAF_CAP}, 지금은 마스코트+첫화면 장면 둘)`);
+console.log(`[leak] 가만히 둔 홈. 초당 그리기 예약 ${idleRaf} (상한 ${IDLE_RAF_CAP}, 지금은 마스코트+첫화면 장면 둘)`);
 
 /* 첫 바퀴에 생긴 것은 정상일 수 있다(한 번만 만드는 것). **그 뒤로도 계속 느는지**가 신호다. */
 const growth = rounds[2].intervals - rounds[1].intervals;
 const rafGrowth = rounds[2].rafLoops - rounds[1].rafLoops;
-console.log(`[leak] 2→3바퀴 증가: 타이머 ${growth} · 프레임 루프 ${rafGrowth}`);
+console.log(`[leak] 2→3바퀴 증가: 타이머 ${growth}, 프레임 루프 ${rafGrowth}`);
 if (idleRaf > IDLE_RAF_CAP) {
-  console.error(`[leak] FAIL — 가만히 둔 화면이 초당 ${idleRaf}번 그리기를 예약한다 (상한 ${IDLE_RAF_CAP}).`);
-  console.error('  새로 생긴 상시 루프가 있는지 보라 — 손 안 댄 화면은 쉬어야 한다(배터리·발열).');
+  console.error(`[leak] FAIL. 가만히 둔 화면이 초당 ${idleRaf}번 그리기를 예약한다 (상한 ${IDLE_RAF_CAP}).`);
+  console.error('  새로 생긴 상시 루프가 있는지 보라. 손 안 댄 화면은 쉬어야 한다(배터리, 발열).');
   const by = rounds[rounds.length - 1].rafBy || {};
   for (const [where, n] of Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 4)) {
     console.error(`    ${String(n).padStart(5)}회  ${where}`);
@@ -191,9 +191,9 @@ if (idleRaf > IDLE_RAF_CAP) {
   process.exit(1);
 }
 if (growth > 0 || rafGrowth > 20) {
-  console.error('[leak] FAIL — 화면을 떠난 뒤에도 남는 것이 바퀴마다 늘어난다.');
-  console.error('  위젯이 `build` 안에서 `Toolbox.onDispose(fn)` 로 타이머·전역 리스너를 맡겼는지 보라.');
-  console.error('  (DOM 리스너는 노드와 함께 죽으므로 적을 필요 없다 — 타이머·rAF·window 리스너만.)');
+  console.error('[leak] FAIL. 화면을 떠난 뒤에도 남는 것이 바퀴마다 늘어난다.');
+  console.error('  위젯이 `build` 안에서 `Toolbox.onDispose(fn)` 로 타이머, 전역 리스너를 맡겼는지 보라.');
+  console.error('  (DOM 리스너는 노드와 함께 죽으므로 적을 필요 없다. 타이머, rAF, window 리스너만.)');
   process.exit(1);
 }
-console.log('[leak] OK — 바퀴를 돌아도 남는 것이 늘지 않는다');
+console.log('[leak] OK. 바퀴를 돌아도 남는 것이 늘지 않는다');

@@ -1,9 +1,9 @@
 /**
- * team-room — 코어 바인딩 채널("팀 방") 판정 + 에이전트↔에이전트 루프 가드 4겹.
+ * team-room. 코어 바인딩 채널("팀 방") 판정 + 에이전트↔에이전트 루프 가드 4겹.
  *
  * KAR-018-A sub-A-2 (그릴-락 결정 2: ".active.json 3-튜플에 코어 바인딩된 채널 = 팀 방").
- * slice-3 = 골격 + 팀 방 owner 수신. webhook 송신·수용(sub-A-1) · 예산 엔진(sub-D)
- * 이 아래 훅을 채운다 (현재는 dormant — main.ts:220 가 webhook 을 upstream 에서 drop).
+ * slice-3 = 골격 + 팀 방 owner 수신. webhook 송신, 수용(sub-A-1), 예산 엔진(sub-D)
+ * 이 아래 훅을 채운다 (현재는 dormant. main.ts:220 가 webhook 을 upstream 에서 drop).
  *
  * 루프 가드 4겹 (정본 = memo TASK-KAR-018-A § 결정 2):
  *   ① 자기 webhook 무응답   ② (core,channel) cooldown
@@ -16,9 +16,9 @@ import { channelIdFor } from '../services/channel-provision';
 /**
  * 인스턴스 전용 에이전트 채널 (prod/dev 격리, KAR-018-W).
  * `YAWNBOT_AGENT_CHANNEL_ID` 설정 시 = 이 인스턴스는 *오직 그 채널만* 팀 방
- * 으로 취급 (.active.json·다른 채널 무시). 미설정(prod default) → 기존
+ * 으로 취급 (.active.json, 다른 채널 무시). 미설정(prod default) → 기존
  * .active.json 바인딩 동작 *불변*. 같은 서버에 prod+dev 공존 시 크로스-봇
- * 루프·검증오염 차단 = env 가 유일하게 인스턴스별로 다른 축(공유 파일 X).
+ * 루프, 검증오염 차단 = env 가 유일하게 인스턴스별로 다른 축(공유 파일 X).
  */
 export function agentChannelId(): string | null {
   // channelIdFor 경유: prod(프로비저닝 OFF) → env YAWNBOT_AGENT_CHANNEL_ID 그대로
@@ -38,9 +38,9 @@ export function isTeamRoom(
 }
 
 /**
- * 메시지가 팀 방에서 온 것인가 — isDM·channelKey 조립을 은닉 (main.ts 재사용).
+ * 메시지가 팀 방에서 온 것인가. isDM, channelKey 조립을 은닉 (main.ts 재사용).
  * env 격리 우선: `YAWNBOT_AGENT_CHANNEL_ID` 설정 시 *그 채널만* true
- * (dev 인스턴스가 prod 채널·.active.json 에 절대 반응 안 함, 역도 동일).
+ * (dev 인스턴스가 prod 채널, .active.json 에 절대 반응 안 함, 역도 동일).
  */
 export function isTeamRoomMessage(cs: CharacterService, message: Message): boolean {
   if (message.channel.isDMBased()) return false;

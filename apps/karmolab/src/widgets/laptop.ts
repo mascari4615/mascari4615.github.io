@@ -1,11 +1,11 @@
 /**
- * 「노트북」 위젯 — 집에서 24시간 도는 노트북으로 가는 문.
+ * 노트북 위젯. 집에서 24시간 도는 노트북으로 가는 문.
  *
  * 왜 새로 만드나(흡수 검토 결과): 서버 모니터는 *이 기계에서 도는 로컬 프로세스*를 켜고 끄는
- * 판이라 데스크톱 앱 기능(Tauri 호출)에 묶여 있다. 이건 반대다 — **다른 기계에 원격으로,
+ * 판이라 데스크톱 앱 기능(Tauri 호출)에 묶여 있다. 이건 반대다. **다른 기계에 원격으로,
  * 폰 브라우저에서도** 되어야 한다. 읽기 전용이고 여는 링크뿐이라 그 큰 판에 얹을 이유가 없다.
  *
- * ★ 비밀번호는 여기 담지 않는다. 이 페이지는 「문이 어디 있고 지금 열려 있나」까지만 말하고,
+ * ★ 비밀번호는 여기 담지 않는다. 이 페이지는 문이 어디 있고 지금 열려 있나까지만 말하고,
  *   들어가는 것은 노트북 쪽 화면이 직접 묻는다. 공개된 사이트에 열쇠를 두지 않는다.
  */
 import { t, loadNamespace } from '../lib/i18n';
@@ -61,8 +61,8 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'laptop',
     title: t('widgets.laptop.title', undefined, "노트북"),
-    category: 'lab',
-    desc: t('widgets-desc.laptop.desc', undefined, "집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문"),
+    category: 'app',
+    desc: t('widgets-desc.laptop.desc', undefined, "집에서 24시간 도는 노트북. 파일 공유, 빌드 현황으로 가는 문"),
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
@@ -107,7 +107,7 @@ import { t, loadNamespace } from '../lib/i18n';
             sub.textContent = '';
             const started = Date.now();
             try {
-              // 시간 제한이 없으면 「확인하는 중」에서 영영 멈춘다 — 그건 꺼진 것과 구분이 안 된다.
+              // 시간 제한이 없으면 확인하는 중에서 영영 멈춘다. 그건 꺼진 것과 구분이 안 된다.
               const res = await fetch(`${BASE}/health`, {
                 cache: 'no-store',
                 signal: AbortSignal.timeout(6000),
@@ -120,7 +120,7 @@ import { t, loadNamespace } from '../lib/i18n';
             } catch (e) {
               dot.className = 'lap-dot off';
               text.textContent = t('laptop.t12');
-              // 왜인지까지 말한다 — 「안 됨」만 있으면 뭘 해볼지가 없다.
+              // 왜인지까지 말한다. 안 됨만 있으면 뭘 해볼지가 없다.
               sub.textContent =
                 (e as Error).name === 'TimeoutError' ? t('laptop.t13') : (e as Error).message;
             }

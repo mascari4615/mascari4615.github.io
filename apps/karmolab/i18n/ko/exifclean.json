@@ -2,7 +2,7 @@
   "exifclean.tab": "정보 지우기",
   "exifclean.drop": "사진(JPG)을 끌어다 놓거나 눌러서 고르세요",
   "exifclean.btn.run": "정보 지우고 받기",
-  "exifclean.status.idle": "사진은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.",
+  "exifclean.status.idle": "사진은 브라우저 안에서만 열립니다. 어디에도 올리지 않습니다.",
   "exifclean.err.jpgOnly": "JPG 사진만 다룰 수 있어요. PNG 에는 위치 정보가 거의 들어가지 않습니다.",
   "exifclean.row.gps": "찍은 곳",
   "exifclean.row.gpsNote": "{v}  ← 집이나 직장이 드러날 수 있습니다",
@@ -22,7 +22,7 @@
   "exifclean.value.has": "있음",
   "exifclean.value.none": "없음",
   "exifclean.say.gps": "찍은 곳 좌표가 들어 있습니다. 지우고 받으세요.",
-  "exifclean.say.someInfo": "위치 정보는 없지만 카메라·시각 정보가 남아 있습니다.",
+  "exifclean.say.someInfo": "위치 정보는 없지만 카메라, 시각 정보가 남아 있습니다.",
   "exifclean.say.clean": "지울 정보가 이미 없습니다.",
   "exifclean.file.suffix": "-정보지움"
 }

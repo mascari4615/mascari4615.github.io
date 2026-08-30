@@ -1,13 +1,13 @@
 /**
  * 자랑 카드가 사람을 데려왔나 (TASK-KL-195).
  *
- * 왜 따로 세나: 방문 원장(`karmolab-traces`)은 「누가 왔나」를 세지만 **어디서 왔는지**는 안
- * 적는다. 그게 없으면 카드를 아무리 고쳐도 그것이 사람을 데려왔는지 영영 모른다 —
+ * 왜 따로 세나: 방문 원장(`karmolab-traces`)은 누가 왔나를 세지만 **어디서 왔는지**는 안
+ * 적는다. 그게 없으면 카드를 아무리 고쳐도 그것이 사람을 데려왔는지 영영 모른다 . 
  * 고칠 근거가 없는 것은 고쳐도 나아지는지 알 수 없다.
  *
  * 두 수만 센다: **펼쳐 본 수**(자랑 한 장이 열림)와 **넘어온 수**(거기서 사이트로 들어옴).
- * 둘의 차이가 카드의 힘이다. 사람을 식별하지 않는다 — 날짜별 숫자 두 칸뿐이고,
- * 누구인지·어디서인지는 안 적는다(자랑을 본 사람을 우리가 알 이유가 없다).
+ * 둘의 차이가 카드의 힘이다. 사람을 식별하지 않는다. 날짜별 숫자 두 칸뿐이고,
+ * 누구인지, 어디서인지는 안 적는다(자랑을 본 사람을 우리가 알 이유가 없다).
  *
  * 저장 = `data/karmolab-brag-state.json` (`.gitignore` 의 `data/*-state.json`).
  */
@@ -17,7 +17,7 @@ import { PKG_ROOT } from '../paths';
 
 const STATE_FILE = 'karmolab-brag-state.json';
 
-/** 며칠치 들고 있나. 이보다 오래된 날은 버린다 — 이 수는 추세용이지 회계가 아니다. */
+/** 며칠치 들고 있나. 이보다 오래된 날은 버린다. 이 수는 추세용이지 회계가 아니다. */
 export const KEEP_DAYS = 90;
 
 export interface BragDay {
@@ -50,7 +50,7 @@ export class KarmolabBragStore {
         return { version: 1, days: parsed.days ?? {} };
       }
     } catch (error) {
-      console.error('[karmolab-brag] 상태 파일을 못 읽었다 — 0 에서 시작한다:', error);
+      console.error('[karmolab-brag] 상태 파일을 못 읽었다. 0 에서 시작한다:', error);
     }
     return { version: 1, days: {} };
   }
@@ -64,7 +64,7 @@ export class KarmolabBragStore {
     }
   }
 
-  /** 오래된 날을 버린다. 세는 자리에서 같이 부른다 — 청소를 따로 예약하면 그것이 안 도는 날이 온다. */
+  /** 오래된 날을 버린다. 세는 자리에서 같이 부른다. 청소를 따로 예약하면 그것이 안 도는 날이 온다. */
   private trim(): void {
     const days = Object.keys(this.state.days).sort();
     for (const day of days.slice(0, Math.max(0, days.length - KEEP_DAYS))) delete this.state.days[day];

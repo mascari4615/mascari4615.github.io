@@ -1,16 +1,16 @@
 /**
- * 되돌리기 — 커맨드 스택 (공용)
+ * 되돌리기. 커맨드 스택 (공용)
  *
  * 되돌리기를 **화면 통짜 스냅샷**으로 하면 4000×3000 한 장이 48MB 라 몇 단계 못 쌓고,
- * 「이름만 바꿨는데 48MB」 같은 낭비가 생긴다. 그래서 커맨드로 든다: 각 동작이 **자기가
+ * 이름만 바꿨는데 48MB 같은 낭비가 생긴다. 그래서 커맨드로 든다: 각 동작이 **자기가
  * 무엇을 되돌리는지** 안다.
  *
- * 여기 있는 것은 그림에도 도형에도 표에도 똑같이 맞는 부분뿐이다 — 무엇을 되돌리는지는
+ * 여기 있는 것은 그림에도 도형에도 표에도 똑같이 맞는 부분뿐이다. 무엇을 되돌리는지는
  * 커맨드가 알고, 이 스택은 순서와 묶기만 안다. 그림 전용(더러워진 사각형만 담기)은
  * `widgets/meok/history.ts` 에 남는다. 그건 픽셀 판을 알아야 하는 일이라 공용이 아니다.
  *
- * 브라우저를 모른다 — 화면 없이 검사한다.
- * (「먹」의 TASK-KL-240 에서 자라났고, TASK-KL-254 에서 공용으로 올렸다.)
+ * 브라우저를 모른다. 화면 없이 검사한다.
+ * (먹의 TASK-KL-240 에서 자라났고, TASK-KL-254 에서 공용으로 올렸다.)
  */
 
 export interface Command {
@@ -22,6 +22,11 @@ export interface Command {
    * 묶을 때 새 커맨드의 `redo` 만 살아남고, 되돌리기는 **처음 것**으로 돌아간다.
    */
   coalesceKey?: string;
+  /**
+   * 이 동작이 붙들고 있는 바이트. 적어 두면 History 가 **개수만이 아니라 무게로도** 버림.
+   * 안 적으면 0 으로 친다 (값 하나 바꾸기 같은 가벼운 동작).
+   */
+  bytes?: number;
 }
 
 export interface HistoryEntry {
@@ -39,9 +44,26 @@ export class History {
   private mergeWindow: number;
   private listeners: Array<() => void> = [];
 
-  constructor(limit = 200, mergeWindow = 900) {
+  /** 지금 쌓인 동작들이 붙들고 있는 바이트 합. */
+  private bytes = 0;
+  /**
+   * 무게 상한. 개수 상한만 두면 판이 큰 그림에서 터진다. 전면 필터 하나가 원본과 결과를 함께
+   * 들고 있어 2048^2 이면 32MB. 그런 동작 300 개면 상한이 없는 것과 같음.
+   */
+  private byteLimit: number;
+
+  constructor(limit = 200, mergeWindow = 900, byteLimit = Infinity) {
     this.limit = Math.max(1, limit);
     this.mergeWindow = mergeWindow;
+    this.byteLimit = byteLimit;
+  }
+
+  /** 개수와 무게 둘 다 상한 안으로. 오래된 것부터 버린다. 하나는 남긴다. */
+  private trim(): void {
+    while (this.done.length > this.limit) this.bytes -= this.done.shift()?.bytes || 0;
+    while (this.done.length > 1 && this.bytes > this.byteLimit) {
+      this.bytes -= this.done.shift()?.bytes || 0;
+    }
   }
 
   onChange(fn: () => void): () => void {
@@ -52,7 +74,7 @@ export class History {
   private emit(): void { this.listeners.forEach(fn => fn()); }
 
   /**
-   * 이미 **적용된** 동작을 기록한다(다시 실행하지 않는다 — 화면은 벌써 그렇게 돼 있다).
+   * 이미 **적용된** 동작을 기록한다(다시 실행하지 않는다. 화면은 벌써 그렇게 돼 있다).
    * 새 동작이 들어오면 앞으로가기(redo) 가지는 버린다.
    */
   push(command: Command, now = Date.now()): void {
@@ -62,25 +84,28 @@ export class History {
       && now - this.lastAt <= this.mergeWindow
       && this.done.length > 0;
     if (merged) {
-      /* 되돌리기는 처음 것으로, 다시하기는 마지막 것으로 — 둘을 한 커맨드로 꿰맨다. */
+      /* 되돌리기는 처음 것으로, 다시하기는 마지막 것으로. 둘을 한 커맨드로 꿰맨다. */
       const first = this.done[this.done.length - 1];
       this.done[this.done.length - 1] = {
         label: command.label,
         coalesceKey: key,
+        bytes: (first.bytes || 0) + (command.bytes || 0),
         redo: () => command.redo(),
         undo: () => first.undo()
       };
+      this.bytes += command.bytes || 0;
     } else {
       this.done.push(command);
-      if (this.done.length > this.limit) this.done.shift();
+      this.bytes += command.bytes || 0;
     }
+    this.trim();
     this.undone.length = 0;
     this.lastKey = key || '';
     this.lastAt = now;
     this.emit();
   }
 
-  /** 만들면서 바로 실행한다 — 「하기」와 「기록」을 두 번 안 적게. */
+  /** 만들면서 바로 실행한다. 하기와 기록을 두 번 안 적게. */
   run(command: Command, now = Date.now()): void {
     command.redo();
     this.push(command, now);
@@ -88,10 +113,12 @@ export class History {
 
   get canUndo(): boolean { return this.done.length > 0; }
   get canRedo(): boolean { return this.undone.length > 0; }
-  /** 다음에 되돌릴 동작 이름 — 「되돌리기: 붓」처럼 화면에 보여 준다. */
+  /** 다음에 되돌릴 동작 이름. 되돌리기: 붓처럼 화면에 보여 준다. */
   get undoLabel(): string { return this.done.length ? this.done[this.done.length - 1].label : ''; }
   get redoLabel(): string { return this.undone.length ? this.undone[this.undone.length - 1].label : ''; }
   get depth(): number { return this.done.length; }
+  /** 지금 되돌리기가 붙들고 있는 바이트. 검사와 화면 표시용. */
+  get heldBytes(): number { return this.bytes; }
 
   undo(): boolean {
     const command = this.done.pop();
@@ -121,9 +148,9 @@ export class History {
   }
 }
 
-/* ===== 픽셀 편집 — 더러워진 사각형만 ===== */
+/* ===== 픽셀 편집. 더러워진 사각형만 ===== */
 
-/** 값 하나 바꾸기(이름·불투명도·블렌드…) — 되돌릴 것이 옛 값 하나뿐일 때. */
+/** 값 하나 바꾸기(이름, 불투명도, 블렌드...). 되돌릴 것이 옛 값 하나뿐일 때. */
 export function fieldChange<T, K extends keyof T>(
   target: T,
   key: K,

@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "text",
       "label": "누가 무엇을 할 수 있나",
-      "text": "Electron : 메인 프로세스(Node·전권) ↔ 렌더러(웹) — preload 로 다리를 놓는다\nTauri    : Rust 코어(전권) ↔ 웹뷰 — #[command] 로 노출한 함수만 호출 가능\n\n원칙: 웹뷰는 「신뢰하지 않는 쪽」으로 취급한다"
+      "text": "Electron : 메인 프로세스(Node, 전권) ↔ 렌더러(웹). preload 로 다리를 놓는다\nTauri    : Rust 코어(전권) ↔ 웹뷰. #[command] 로 노출한 함수만 호출 가능\n\n원칙: 웹뷰는 신뢰하지 않는 쪽으로 취급한다"
     },
     {
       "type": "h",
@@ -24,17 +24,17 @@
       "type": "code",
       "lang": "js",
       "label": "Electron. 필요한 것만 노출",
-      "text": "// preload.js\nconst { contextBridge, ipcRenderer } = require('electron');\ncontextBridge.exposeInMainWorld('api', {\n  readConfig: () => ipcRenderer.invoke('config:read'),   // 특정 기능만\n});\n// nodeIntegration: false · contextIsolation: true 는 기본으로 둔다"
+      "text": "// preload.js\nconst { contextBridge, ipcRenderer } = require('electron');\ncontextBridge.exposeInMainWorld('api', {\n  readConfig: () => ipcRenderer.invoke('config:read'),   // 특정 기능만\n});\n// nodeIntegration: false, contextIsolation: true 는 기본으로 둔다"
     },
     {
       "type": "code",
       "lang": "rust",
       "label": "Tauri. 명령 단위 노출",
-      "text": "#[tauri::command]\nfn read_config(app: tauri::AppHandle) -> Result<Config, String> { … }\n// 프런트: await invoke('read_config')"
+      "text": "#[tauri::command]\nfn read_config(app: tauri::AppHandle) -> Result<Config, String> { ... }\n// 프런트: await invoke('read_config')"
     },
     {
       "type": "note",
-      "text": "\"파일을 읽어 주는 범용 함수\"를 노출하면 **경계가 사라진다**. `readFile(path)` 대신 `readConfig()` 처럼 **의도 단위**로 노출하라."
+      "text": "파일을 읽어 주는 범용 함수를 노출하면 **경계가 사라진다**. `readFile(path)` 대신 `readConfig()` 처럼 **의도 단위**로 노출하라."
     },
     {
       "type": "h",
@@ -52,7 +52,7 @@
       "type": "code",
       "lang": "js",
       "label": "양방향 통신",
-      "text": "// 백엔드 → 프런트 (진행률·상태 변화)\nlisten('scan:progress', (e) => setProgress(e.payload));\n\n// 프런트 → 백엔드는 invoke/ipc 호출"
+      "text": "// 백엔드 → 프런트 (진행률, 상태 변화)\nlisten('scan:progress', (e) => setProgress(e.payload));\n\n// 프런트 → 백엔드는 invoke/ipc 호출"
     },
     {
       "type": "h",
@@ -60,7 +60,7 @@
     },
     {
       "type": "note",
-      "text": "**두 쪽을 따로 본다**. 웹뷰는 개발자도구, 백엔드는 로그, 디버거. \"호출했는데 아무 일도 없다\"의 절반은 명령 등록 누락, 나머지는 권한/허용 목록 설정이다."
+      "text": "**두 쪽을 따로 본다**. 웹뷰는 개발자도구, 백엔드는 로그, 디버거. 호출했는데 아무 일도 없다의 절반은 명령 등록 누락, 나머지는 권한/허용 목록 설정이다."
     },
     {
       "type": "h",

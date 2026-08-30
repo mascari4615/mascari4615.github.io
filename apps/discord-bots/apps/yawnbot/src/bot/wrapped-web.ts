@@ -1,10 +1,10 @@
 /**
- * 웹 결산 페이지 (TASK-YB-042) — `/w/<공유키>`.
+ * 웹 결산 페이지 (TASK-YB-042). `/w/<공유키>`.
  *
  * 왜 웹인가: 디스코드 embed 는 그 서버 안에서만 보인다. 자랑은 밖에서 일어나야 유입이 된다.
  * 왜 공유키인가: 주소가 서버 ID 면 남의 서버 결산이 추측만으로 열린다. 키는 못 맞힌다.
  *
- * 페이지는 자기 완결(외부 CDN·폰트 0) — 봇 머신에서 바로 뜨고, 스샷 찍기 좋게 세로 카드 비율.
+ * 페이지는 자기 완결(외부 CDN, 폰트 0). 봇 머신에서 바로 뜨고, 스샷 찍기 좋게 세로 카드 비율.
  */
 import type { Application, Request, Response } from 'express';
 import type { Client } from 'discord.js';
@@ -13,18 +13,18 @@ import { renderDashboardPage } from './wrapped-dashboard';
 import { renderDevPage } from './wrapped-dev';
 import { coverageNotice, guildCoverage, UNKNOWN_COVERAGE, type CoverageReport } from './stats-coverage';
 
-/** 카드에 실을 값 — HTML 과 JSON 이 같은 모양을 쓰도록 한 번 만든다. */
+/** 카드에 실을 값. HTML 과 JSON 이 같은 모양을 쓰도록 한 번 만든다. */
 export interface WrappedPageData {
   guildName: string;
   days: number;
   summary: ServerSummary;
-  /** 「자세히」 절 — 전원 표·채널별·날짜별. 카드는 top3 만 보여주므로 여기서 전부 편다. */
+  /** 자세히 절. 전원 표, 채널별, 날짜별. 카드는 top3 만 보여주므로 여기서 전부 편다. */
   detail: DebugDump;
   /** 채널 ID → 사람이 읽는 이름. 모르면 ID 그대로. */
   channelNames: Record<string, string>;
   /** 분석판 주소 (`/w/<키>/board`). 없으면 버튼을 안 그린다. */
   boardPath?: string;
-  /** 욘이 이 서버에서 어느 채널을 보는가 — 0 이 「조용함」인지 「안 보임」인지 가른다. */
+  /** 욘이 이 서버에서 어느 채널을 보는가. 0 이 조용함인지 안 보임인지 가른다. */
   coverage?: CoverageReport;
   generatedAt: string;
 }
@@ -55,7 +55,7 @@ function podium(entries: { name: string; value: number }[], unit: string): strin
     entries
       .map(
         (entry, index) =>
-          `<li><span class="medal">${medals[index] ?? '·'}</span>` +
+          `<li><span class="medal">${medals[index] ?? ', '}</span>` +
           `<span class="who">${escapeHtml(entry.name)}</span>` +
           `<span class="num">${entry.value.toLocaleString('ko-KR')}${unit}</span></li>`,
       )
@@ -64,13 +64,13 @@ function podium(entries: { name: string; value: number }[], unit: string): strin
   );
 }
 
-/** 24시간 막대 — 픽셀 그래프 대신 CSS 높이. 스샷에서도 깨지지 않는다. */
+/** 24시간 막대. 픽셀 그래프 대신 CSS 높이. 스샷에서도 깨지지 않는다. */
 function hoursChart(hours: number[]): string {
   const max = Math.max(...hours, 1);
   const bars = hours
     .map((count, hour) => {
       const pct = Math.round((count / max) * 100);
-      return `<div class="bar" title="${hourLabel(hour)} · ${count}개"><i style="height:${Math.max(pct, 2)}%"></i></div>`;
+      return `<div class="bar" title="${hourLabel(hour)}, ${count}개"><i style="height:${Math.max(pct, 2)}%"></i></div>`;
     })
     .join('');
   return `<div class="hours">${bars}</div><div class="hours-axis"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>23시</span></div>`;
@@ -90,7 +90,7 @@ function num(value: number): string {
 }
 
 /**
- * 「자세히」 절 — 카드가 요약이라면 여기는 원본이다.
+ * 자세히 절. 카드가 요약이라면 여기는 원본이다.
  * `<details>` 로 접어 둔다: 자랑용 스샷에는 안 걸리고, 궁금하면 펼친다.
  */
 function detailSection(data: WrappedPageData): string {
@@ -147,7 +147,7 @@ function detailSection(data: WrappedPageData): string {
   );
 
   const meta = [
-    `기록이 있는 날 <b>${detail.dayKeys.length}일</b> · 오늘(KST) ${escapeHtml(detail.todayKey)}`,
+    `기록이 있는 날 <b>${detail.dayKeys.length}일</b>, 오늘(KST) ${escapeHtml(detail.todayKey)}`,
     detail.stateFileExists
       ? `마지막 저장 ${escapeHtml(detail.stateFileMtime ?? '')}`
       : '아직 파일로 저장된 적 없음 (첫 저장 전)',
@@ -166,9 +166,9 @@ function detailSection(data: WrappedPageData): string {
 }
 
 /**
- * 「이미지로 저장」 — 화면을 캡처하는 대신 캔버스에 **다시 그린다**.
- * 화면 캡처 방식(html2canvas 류)은 외부 라이브러리가 필요하고 글꼴·그림자에서 자주 깨진다.
- * 숫자만 넘겨 직접 그리면 의존성 0에 결과가 항상 같다 — 자랑용이라 이게 중요하다.
+ * 이미지로 저장. 화면을 캡처하는 대신 캔버스에 **다시 그린다**.
+ * 화면 캡처 방식(html2canvas 류)은 외부 라이브러리가 필요하고 글꼴, 그림자에서 자주 깨진다.
+ * 숫자만 넘겨 직접 그리면 의존성 0에 결과가 항상 같다. 자랑용이라 이게 중요하다.
  */
 function imageScript(data: WrappedPageData): string {
   const { summary, guildName } = data;
@@ -194,7 +194,7 @@ function imageScript(data: WrappedPageData): string {
   var CARD = ${payload};
   var btn = document.getElementById('save-image');
   if (btn) btn.addEventListener('click', function () {
-    var W = 1080, H = 1350, S = 2; // 세로 카드 — SNS 에 그대로 올라가는 비율
+    var W = 1080, H = 1350, S = 2; // 세로 카드. SNS 에 그대로 올라가는 비율
     var c = document.createElement('canvas');
     c.width = W * S; c.height = H * S;
     var g = c.getContext('2d');
@@ -214,7 +214,7 @@ function imageScript(data: WrappedPageData): string {
     g.fillStyle = '#ffc86b'; g.font = font(190, '800');
     g.fillText(String(CARD.total.toLocaleString('ko-KR')), 80, 420);
     g.fillStyle = '#e6dfd2'; g.font = font(34);
-    g.fillText('개의 메시지 · ' + CARD.people + '명 · ' + CARD.chars.toLocaleString('ko-KR') + '자', 80, 480);
+    g.fillText('개의 메시지, ' + CARD.people + '명, ' + CARD.chars.toLocaleString('ko-KR') + '자', 80, 480);
 
     var y = 590;
     g.fillStyle = '#d9d2ff'; g.font = font(32, '600');
@@ -248,7 +248,7 @@ function imageScript(data: WrappedPageData): string {
       y += 90;
     }
 
-    // 하루의 리듬 — 24개 막대
+    // 하루의 리듬. 24개 막대
     var bw = (W - 160) / 24, max = Math.max.apply(null, CARD.hours) || 1;
     var base = H - 150;
     CARD.hours.forEach(function (v, i) {
@@ -262,7 +262,7 @@ function imageScript(data: WrappedPageData): string {
     g.fillText('0시', 80, base + 44);
     g.fillText('23시', W - 80 - g.measureText('23시').width, base + 44);
     g.fillStyle = '#6f688a'; g.font = font(24);
-    g.fillText('메시지 내용은 저장하지 않습니다 · 욘봇', 80, H - 48);
+    g.fillText('메시지 내용은 저장하지 않습니다, 욘봇', 80, H - 48);
 
     c.toBlob(function (blob) {
       var a = document.createElement('a');
@@ -279,7 +279,7 @@ export function renderWrappedPage(data: WrappedPageData): string {
   const { summary, guildName } = data;
   const title = `${guildName} 결산`;
 
-  // 마크다운 굵게(**) 는 embed 문법 — 웹에서는 태그로 바꿔 준다.
+  // 마크다운 굵게(**) 는 embed 문법. 웹에서는 태그로 바꿔 준다.
   const notice = coverageNotice(data.coverage ?? UNKNOWN_COVERAGE, summary.totalMessages);
   const noticeHtml = notice
     ? `<section class="card blind"><p class="one-line">${escapeHtml(notice).replace(
@@ -294,7 +294,7 @@ export function renderWrappedPage(data: WrappedPageData): string {
       ? `<section class="card"><h2>아직 셀 게 없어요</h2>
            <p class="empty">${
              notice
-               ? '위 채널 권한부터 확인해 주세요 — 욘이 못 보는 곳의 대화는 세지 못해요.'
+               ? '위 채널 권한부터 확인해 주세요. 욘이 못 보는 곳의 대화는 세지 못해요.'
                : '봇이 이제 막 세기 시작했어요. 며칠 떠들고 다시 열어 주세요.'
            }</p></section>`
       : [
@@ -323,12 +323,12 @@ export function renderWrappedPage(data: WrappedPageData): string {
             : '',
           `<section class="card"><h2>🕐 하루의 리듬</h2>
              ${hoursChart(summary.hours)}
-             ${summary.busiestHour ? `<p class="sub">가장 붐빈 시각 — <b>${hourLabel(summary.busiestHour.hour)}</b></p>` : ''}
+             ${summary.busiestHour ? `<p class="sub">가장 붐빈 시각. <b>${hourLabel(summary.busiestHour.hour)}</b></p>` : ''}
              ${
                summary.busiestChannel
                  ? // 디스코드 embed 는 `<#id>` 멘션을 쓰지만 브라우저는 그걸 모르는 태그로 먹어 지운다.
                    //  웹에서는 채널 *이름* 을 글자로 넣는다.
-                   `<p class="sub">가장 붐빈 채널 — <b>${escapeHtml(
+                   `<p class="sub">가장 붐빈 채널. <b>${escapeHtml(
                      data.channelNames[summary.busiestChannel.channelId] ?? summary.busiestChannel.channelId,
                    )}</b></p>`
                  : ''
@@ -380,14 +380,14 @@ export function renderWrappedPage(data: WrappedPageData): string {
   .num { color: #ffc86b; font-variant-numeric: tabular-nums; }
   .emojis { margin: 0; font-size: 17px; line-height: 1.7; }
   .empty { color: #8f87a8; font-size: 14px; margin: 0; }
-  /* 「왜 0인가」는 카드보다 먼저 눈에 띄어야 한다 — 안 그러면 또 조용한 서버로 오해한다. */
+  /* 왜 0인가는 카드보다 먼저 눈에 띄어야 한다. 안 그러면 또 조용한 서버로 오해한다. */
   .card.blind { background: rgba(255,152,107,0.10); border-color: rgba(255,152,107,0.32); }
   .card.blind .one-line { margin: 0; font-size: 14px; line-height: 1.6; color: #ffd7c2; }
   .hours { display: flex; align-items: flex-end; gap: 2px; height: 72px; }
   .hours .bar { flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .hours .bar i { display: block; width: 100%; background: linear-gradient(180deg, #ffc86b, #b98bff); border-radius: 2px; }
   .hours-axis { display: flex; justify-content: space-between; color: #8f87a8; font-size: 11px; margin-top: 6px; }
-  /* 표는 카드보다 넓어야 읽힌다 — 자랑용 카드 폭에 억지로 맞추지 않는다. */
+  /* 표는 카드보다 넓어야 읽힌다. 자랑용 카드 폭에 억지로 맞추지 않는다. */
   details.detail { padding: 0; width: min(560px, 100%); }
   details.detail summary {
     cursor: pointer; padding: 16px 20px; font-size: 14px; color: #d9d2ff; font-weight: 600;
@@ -413,7 +413,7 @@ export function renderWrappedPage(data: WrappedPageData): string {
 </head><body>
 <header>
   <h1>🎁 ${escapeHtml(title)}</h1>
-  <div class="range">최근 ${summary.days}일 · 기록된 날 ${summary.daysWithData}일</div>
+  <div class="range">최근 ${summary.days}일, 기록된 날 ${summary.daysWithData}일</div>
   <div class="header-links">
     ${data.boardPath ? `<a class="board-link" href="${escapeHtml(data.boardPath)}">📊 대시보드 열기</a>` : ''}
     ${summary.totalMessages > 0 ? '<button type="button" class="board-link" id="save-image">🖼 이미지로 저장</button>' : ''}
@@ -422,8 +422,8 @@ export function renderWrappedPage(data: WrappedPageData): string {
 ${body}
 ${detailSection(data)}
 <footer>
-  메시지 내용은 저장하지 않습니다 — 길이·시각·이모지만 셉니다.<br>
-  욘봇이 만든 결산 · <a href="https://mascari4615.github.io/">KarmoLab</a>
+  메시지 내용은 저장하지 않습니다. 길이, 시각, 이모지만 셉니다.<br>
+  욘봇이 만든 결산, <a href="https://mascari4615.github.io/">KarmoLab</a>
 </footer>
 ${imageScript(data)}
 </body></html>`;
@@ -472,7 +472,7 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
     res.type('text/html; charset=utf-8').send(renderWrappedPage(data));
   });
 
-  // 분석판 — 카드가 요약이면 이쪽은 방문 통계 도구 감각의 대시보드.
+  // 분석판. 카드가 요약이면 이쪽은 방문 통계 도구 감각의 대시보드.
   app.get('/w/:key/board', (req: Request, res: Response) => {
     const recorder = getServerStatsRecorder();
     const key = String(req.params.key ?? '');
@@ -501,11 +501,11 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
     );
   });
 
-  // 개발 콘솔 — 기준 시각을 바꿔가며 볼 수 있어 「월요일 아침」을 기다리지 않아도 된다.
+  // 개발 콘솔. 기준 시각을 바꿔가며 볼 수 있어 월요일 아침을 기다리지 않아도 된다.
   app.get('/w/:key/dev', (req: Request, res: Response) => {
     const recorder = getServerStatsRecorder();
     const key = String(req.params.key ?? '');
-    // 개발 콘솔은 *개발 키* 로만 열린다. 카드 공유 키로는 못 연다 —
+    // 개발 콘솔은 *개발 키* 로만 열린다. 카드 공유 키로는 못 연다 . 
     // 카드는 남에게 주라고 만든 주소라, 같은 열쇠면 공유하는 순간 속까지 열린다.
     const guildId = recorder.guildIdForDevKey(key);
     if (!guildId) {
@@ -514,7 +514,7 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
     }
     const days = parseDays(req.query.days);
     const atInput = typeof req.query.at === 'string' ? req.query.at.trim() : '';
-    // 입력은 KST 벽시계로 읽는다 — QA 가 머릿속으로 시차를 계산하지 않게.
+    // 입력은 KST 벽시계로 읽는다. QA 가 머릿속으로 시차를 계산하지 않게.
     const parsed = atInput ? new Date(`${atInput}${atInput.length <= 16 ? ':00' : ''}+09:00`) : null;
     const at = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date();
 

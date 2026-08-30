@@ -13,7 +13,7 @@
   "codeshot.status.ready": "다 그렸습니다",
   "codeshot.status.saved": "저장했습니다",
   "codeshot.status.copied": "클립보드에 넣었습니다",
-  "codeshot.status.noclip": "이 브라우저는 그림 복사를 막습니다 — 저장을 쓰세요",
+  "codeshot.status.noclip": "이 브라우저는 그림 복사를 막습니다. 저장을 쓰세요",
   "codeshot.stat.lines": "줄",
   "codeshot.stat.size": "그림 크기",
   "codeshot.frame.specimen": "실험실 표본",

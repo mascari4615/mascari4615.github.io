@@ -3,16 +3,16 @@
  *
  * PDF 도구가 열셋인데, 그 열셋이 각자 이렇게 하고 있었다(2026-08-12 실측):
  *   - `interface PDFLib` 를 **4곳**에서 따로 선언
- *   - `interface PdfJs`·`PdfDoc`·`PdfPage` 를 **7곳**에서 따로 선언
- *   - 라이브러리 불러오기(`ensureScript`)·`PDFDocument.load`·`save()`·내려주기를 각자 다시 씀
+ *   - `interface PdfJs`, `PdfDoc`, `PdfPage` 를 **7곳**에서 따로 선언
+ *   - 라이브러리 불러오기(`ensureScript`), `PDFDocument.load`, `save()`, 내려주기를 각자 다시 씀
  *
- * 같은 것을 열 번 적으면 **열 곳이 서로 다르게 낡는다** — 한 곳에서 「암호 걸린 PDF 도 열기」를
+ * 같은 것을 열 번 적으면 **열 곳이 서로 다르게 낡는다**. 한 곳에서 암호 걸린 PDF 도 열기를
  * 배워도 나머지 아홉은 모른다. 그래서 여기 하나만 둔다(SSOT).
  *
- * 두 라이브러리를 쓰는 이유가 갈린다 — 섞으면 안 된다:
- *   - **pdf.js** = 보여 주기(그려서 화면에 · 글자 뽑기). 고칠 수는 없다.
- *   - **pdf-lib** = 고치기(쪽 옮기기·자르기·그려 넣기·저장). 그릴 수는 없다.
- * 그래서 「보고 → 고치는」 도구(자르기 같은)는 **둘 다** 쓴다.
+ * 두 라이브러리를 쓰는 이유가 갈린다. 섞으면 안 된다:
+ *   - **pdf.js** = 보여 주기(그려서 화면에, 글자 뽑기). 고칠 수는 없다.
+ *   - **pdf-lib** = 고치기(쪽 옮기기, 자르기, 그려 넣기, 저장). 그릴 수는 없다.
+ * 그래서 보고 → 고치는 도구(자르기 같은)는 **둘 다** 쓴다.
  */
 
 /* ── 타입 (전에는 11개 파일에 흩어져 있던 것들의 합집합) ────────────── */
@@ -20,7 +20,7 @@
 export interface PdfPage {
   getViewport: (o: { scale: number }) => { width: number; height: number };
   render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
-  /** 글자 뽑기. `str` 은 늘 온다(빈 문자열일 수는 있어도 없지는 않다) — 부르는 쪽마다
+  /** 글자 뽑기. `str` 은 늘 온다(빈 문자열일 수는 있어도 없지는 않다). 부르는 쪽마다
    *  물음표를 달지 않게 여기서 그렇게 못 박는다. */
   getTextContent: () => Promise<{ items: Array<{ str: string; transform: number[]; width?: number; height?: number }> }>;
 }
@@ -35,7 +35,7 @@ export interface PdfJs {
   GlobalWorkerOptions: { workerSrc: string };
 }
 
-/** pdf-lib 의 페이지 — 고치는 쪽. 쓰는 도구마다 필요한 손잡이가 달라 합집합으로 둔다. */
+/** pdf-lib 의 페이지. 고치는 쪽. 쓰는 도구마다 필요한 손잡이가 달라 합집합으로 둔다. */
 export interface PdfLibPage {
   getSize: () => { width: number; height: number };
   setCropBox: (x: number, y: number, w: number, h: number) => void;
@@ -49,12 +49,12 @@ export interface PdfLibPage {
     height: number;
     color?: unknown;
     opacity?: number;
-    /* 테두리만 그리는 자리 — 인쇄용 종이(TASK-KL-316 / 35)가 칸을 그릴 때 쓴다 */
+    /* 테두리만 그리는 자리. 인쇄용 종이(TASK-KL-316 / 35)가 칸을 그릴 때 쓴다 */
     borderWidth?: number;
     borderColor?: unknown;
     borderOpacity?: number;
   }) => void;
-  /* 선과 글자 — pdf-lib 에는 원래 있는데 우리 타입에만 없었다. 쓰는 도구가 생겨 여기 적는다. */
+  /* 선과 글자. pdf-lib 에는 원래 있는데 우리 타입에만 없었다. 쓰는 도구가 생겨 여기 적는다. */
   drawLine: (o: { start: { x: number; y: number }; end: { x: number; y: number }; thickness?: number; color?: unknown; opacity?: number }) => void;
   drawText: (text: string, o: { x: number; y: number; size?: number; color?: unknown; opacity?: number; font?: unknown }) => void;
 }
@@ -91,7 +91,7 @@ export async function loadPdfJs(): Promise<PdfJs> {
   await Toolbox.ensureScript?.('vendor/pdfjs.min');
   const lib = (window as unknown as { pdfjsLib?: PdfJs }).pdfjsLib;
   if (!lib) throw new Error('pdfjs-missing');
-  /* 일꾼(worker)도 **같은 자리에서** 받아야 한다 — 남의 CDN 을 따로 두면 판이 어긋나 조용히 깨진다. */
+  /* 일꾼(worker)도 **같은 자리에서** 받아야 한다. 남의 CDN 을 따로 두면 판이 어긋나 조용히 깨진다. */
   lib.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
   pdfjsCache = lib;
   return lib;
@@ -110,13 +110,13 @@ export async function loadPdfLib(): Promise<PDFLib> {
 /* ── 열기 ────────────────────────────────────────────────────────────── */
 
 /**
- * 파일을 **읽기용**으로 연다(그리기·글자 뽑기).
+ * 파일을 **읽기용**으로 연다(그리기, 글자 뽑기).
  *
  * `slice(0)` 이 붙어 있는 이유: pdf.js 는 받은 바이트 통을 자기 것으로 삼아 **비워 버린다**.
- * 여기서는 통을 매번 새로 뜨므로(`file.arrayBuffer()`) 이 사본이 없어도 **겉으로는 같게 돈다** —
- * 지키는 것은 「`bytes` 를 여기서 더 쓰거나 밖으로 넘길 때」다. 즉 **앞으로를 위한 울타리**이지
+ * 여기서는 통을 매번 새로 뜨므로(`file.arrayBuffer()`) 이 사본이 없어도 **겉으로는 같게 돈다** . 
+ * 지키는 것은 `bytes` 를 여기서 더 쓰거나 밖으로 넘길 때다. 즉 **앞으로를 위한 울타리**이지
  * 지금 눈에 보이는 고장을 막는 줄이 아니다. (2026-08-13 실측: 이 줄을 빼도 검사가 안 빨개진다.
- * 그래서 설명을 실제에 맞춰 고쳤다 — `rules/quality.md § 설명문이 거짓말이면`.)
+ * 그래서 설명을 실제에 맞춰 고쳤다. `rules/quality.md § 설명문이 거짓말이면`.)
  */
 export async function openForRead(file: File | Blob): Promise<PdfJsDoc> {
   const lib = await loadPdfJs();
@@ -147,12 +147,12 @@ export interface RenderedPage {
 /**
  * 한 장을 캔버스에 굽는다. `scale` 은 1 이 원래 크기.
  *
- * 미리보기와 「내용이 어디 있나」 찾기가 둘 다 이걸 쓴다 — 전에는 그 굽는 코드가 파일마다 있었다.
+ * 미리보기와 내용이 어디 있나 찾기가 둘 다 이걸 쓴다. 전에는 그 굽는 코드가 파일마다 있었다.
  */
 export async function renderPage(
   page: PdfPage,
   scale = 1,
-  /** 바탕색 — JPG 로 내보낼 때 필요하다(투명을 못 담아 **검게** 나온다). */
+  /** 바탕색. JPG 로 내보낼 때 필요하다(투명을 못 담아 **검게** 나온다). */
   background?: string
 ): Promise<RenderedPage> {
   const viewport = page.getViewport({ scale });

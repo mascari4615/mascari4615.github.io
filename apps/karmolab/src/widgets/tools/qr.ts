@@ -1,5 +1,5 @@
 /**
- * QR 도구 (TASK-KL-088) — 만들기와 읽기를 한자리에.
+ * QR 도구 (TASK-KL-088). 만들기와 읽기를 한자리에.
  *
  * 만든 QR 이 제대로 읽히는지 바로 확인하고 싶은 게 사람 마음이다. 두 기능이 떨어져 있으면
  * 그걸 하려고 다른 사이트를 찾게 된다.
@@ -7,7 +7,7 @@
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /* 부품 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  /* 부품 이름은 **쓸 때** 붙인다. 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const parts = (): Array<[string, string]> => [
     ['qrgen', t('qr.part.qrgen', undefined, 'QR 만들기')],
     ['qrread', t('qr.part.qrread', undefined, 'QR 읽기')]
@@ -16,7 +16,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'qr',
     title: t('widgets.qr.title', undefined, "QR 도구"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.qr.desc', undefined, "QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다"),
     layout: 'wide',
     lazyTabs: true,

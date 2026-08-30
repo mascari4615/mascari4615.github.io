@@ -1,14 +1,14 @@
 /**
- * **앱이 사는 자리 — 한 벌 (생성기 쪽)** (change.karmolab-at-root ①)
+ * **앱이 사는 자리. 한 벌 (생성기 쪽)** (change.karmolab-at-root ①)
  *
  * 짝 = `src/lib/site-base.ts` (앱 쪽). 두 값이 어긋나면 `test:site-base` 가 선다.
- * 뜻·규칙은 그쪽 머리말에 적혀 있다 — 여기 복제하지 않는다.
+ * 뜻, 규칙은 그쪽 머리말에 적혀 있다. 여기 복제하지 않는다.
  */
 
 /** 앱 뿌리. 항상 `/` 로 시작하고 `/` 로 끝난다. */
 export const APP_BASE = '/';
 
-/** 사이트 주소 (canonical·og 에 쓴다). */
+/** 사이트 주소 (canonical, og 에 쓴다). */
 export const SITE_ORIGIN = 'https://blog.mascari4615.com';
 
 /** 뿌리에서 이어 붙인 주소. `appPath('t/qr/')` → `/karmolab/t/qr/` */
@@ -34,7 +34,7 @@ export function appUrl(rest = '') {
 /**
  * **앱 뿌리 밑이지만 앱이 아닌 자리** (change.karmolab-at-root ②).
  *
- * 뿌리 이관 전에는 이 목록이 필요 없었다 — 앱은 `/karmolab/` 안에만 살았고, 그 밖은 전부
+ * 뿌리 이관 전에는 이 목록이 필요 없었다. 앱은 `/karmolab/` 안에만 살았고, 그 밖은 전부
  * 남의 자리였다. 뿌리로 올라오면 **모든 주소가 앱 범위 안**이 되므로, 앱이 아닌 자리를
  * 이름으로 적어 두어야 한다. 이게 없으면 서비스 워커가 글 장까지 앱 껍데기로 덮는다.
  *

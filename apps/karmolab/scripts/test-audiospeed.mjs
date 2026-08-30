@@ -1,14 +1,14 @@
 /**
  * 소리 속도가 길이만 바꾸고 목소리는 그대로 두는지 확인한다 (TASK-KL-088)
  *
- * 길이가 줄어든 것만 재면 절반만 잰 것이다 — 그냥 빨리 돌려도 길이는 줄어든다.
+ * 길이가 줄어든 것만 재면 절반만 잰 것이다. 그냥 빨리 돌려도 길이는 줄어든다.
  * 이 도구의 약속은 **높이가 안 변한다**이므로 높이까지 재야 한다.
  *
  * 440Hz 사인파를 넣고 1.5배로 바꾼 뒤
  *  ① 길이가 1/1.5 로 줄었는지
  *  ② 소리의 높이가 그대로 440Hz 인지 (영점 통과 횟수로 잰다)
- *  ③ 대조: 「그냥 빠르게」로 하면 660Hz 로 올라가는지
- *     — 이게 없으면 높이 재는 자가 고장 나 있어도 통과한다.
+ *  ③ 대조: 그냥 빠르게로 하면 660Hz 로 올라가는지
+ *    . 이게 없으면 높이 재는 자가 고장 나 있어도 통과한다.
  *
  * 사용: node scripts/test-audiospeed.mjs
  */
@@ -97,7 +97,7 @@ const out = await page.evaluate(async () => {
   }
   const keep = await measure();
 
-  // ③ 대조 — 그냥 빠르게
+  // ③ 대조. 그냥 빠르게
   host.querySelector('#asKeep').checked = false;
   host.querySelector('#asPlay').style.display = 'none';
   host.querySelector('#asRun').click();
@@ -114,9 +114,9 @@ const out = await page.evaluate(async () => {
   return {
     ok: lenOk && pitchOk && controlOk,
     why:
-      `길이 ${keep.seconds.toFixed(2)}초 (${want.toFixed(2)} 목표) ${lenOk ? '✓' : '✗'} · ` +
-      `높이 ${Math.round(keep.hz)}Hz (440 유지) ${pitchOk ? '✓' : '✗'} · ` +
-      `대조 「그냥 빠르게」 ${Math.round(plain.hz)}Hz (660 으로 올라가야) ${controlOk ? '✓' : '✗'}`
+      `길이 ${keep.seconds.toFixed(2)}초 (${want.toFixed(2)} 목표) ${lenOk ? '✓' : '✗'}, ` +
+      `높이 ${Math.round(keep.hz)}Hz (440 유지) ${pitchOk ? '✓' : '✗'}, ` +
+      `대조 그냥 빠르게 ${Math.round(plain.hz)}Hz (660 으로 올라가야) ${controlOk ? '✓' : '✗'}`
   };
 });
 

@@ -1,8 +1,8 @@
 /**
- * 줄다리기 — 누르는 만큼 끌려온다 (TASK-KL-242)
+ * 줄다리기. 누르는 만큼 끌려온다 (TASK-KL-242)
  *
- * 마흔 개 중 제일 단순한 놀이. 수도 없고 판도 없다 — **누가 더 많이 누르나**뿐이다.
- * 그래서 여기서만 「어떻게 이길까」가 아니라 「얼마나 버틸까」가 문제가 된다.
+ * 마흔 개 중 제일 단순한 놀이. 수도 없고 판도 없다. **누가 더 많이 누르나**뿐이다.
+ * 그래서 여기서만 어떻게 이길까가 아니라 얼마나 버틸까가 문제가 된다.
  *
  * 다만 그냥 연타면 손가락 빠른 사람이 늘 이긴다. 그래서 **박자**를 넣었다:
  * 너무 빨리 누르면 힘이 덜 실린다(헛심). 사람 손이 낼 수 있는 가장 좋은 간격이 있고,
@@ -21,7 +21,7 @@ export interface TugState {
   rope: number;
   /** 자리별 마지막으로 누른 시각 */
   lastAt: number[];
-  /** 자리별 헛심 낸 횟수 — 화면이 「너무 빠르다」를 알려 준다 */
+  /** 자리별 헛심 낸 횟수. 화면이 너무 빠르다를 알려 준다 */
   waste: number[];
   endsAt: number;
   over: boolean;
@@ -54,7 +54,7 @@ export const tug: GameDef<TugState, TugAction> = {
     const gap = ctx.now - (s.lastAt[seat] || 0);
     const lastAt = s.lastAt.map((v, i) => (i === seat ? ctx.now : v));
 
-    /* 너무 빠르면 헛심 — 연타 속도만으로 이기지 못하게. */
+    /* 너무 빠르면 헛심. 연타 속도만으로 이기지 못하게. */
     if (gap < BEST_MS) {
       return { ...s, lastAt, waste: s.waste.map((v, i) => (i === seat ? v + 1 : v)) };
     }
@@ -87,7 +87,7 @@ export const tug: GameDef<TugState, TugAction> = {
 
   bot(s, seat, ctx): BotMove<TugAction> | null {
     if (s.over) return null;
-    /* 봇은 박자를 거의 지킨다 — 다만 사람보다 살짝 늦다(사람이 이길 자리가 있어야 한다). */
+    /* 봇은 박자를 거의 지킨다. 다만 사람보다 살짝 늦다(사람이 이길 자리가 있어야 한다). */
     return { action: { kind: 'pull' }, delayMs: BEST_MS + 20 + ctx.rng() * 90 };
   }
 };

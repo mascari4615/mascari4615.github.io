@@ -12,7 +12,7 @@
   "palette.err.open": "이미지를 열지 못했어요.",
   "palette.copy.hex": "HEX 를 복사했어요",
   "palette.copy.css": "CSS 변수를 복사했어요",
-  "palette.say.done": "{n}색 추출 · 색을 누르면 HEX 가 복사됩니다.",
+  "palette.say.done": "{n}색 추출, 색을 누르면 HEX 가 복사됩니다.",
   "palette.copy.one": "복사: {v}",
   "palette.value.colors": "{n}색"
 }

@@ -1,8 +1,8 @@
 /**
- * 조각 맞추기 경주 — 같은 판을 놓고 누가 먼저 (TASK-KL-242)
+ * 조각 맞추기 경주. 같은 판을 놓고 누가 먼저 (TASK-KL-242)
  *
- * 클럽하우스의 「슬라이딩 퍼즐」은 혼자 하는 놀이다. 여기서는 **같은 씨앗으로 흐트러진 같은 판**을
- * 모두에게 주고 먼저 맞추는 쪽이 이긴다 — 혼자 하던 것을 여럿이 하게 만드는 방법은 대개 이거다.
+ * 클럽하우스의 슬라이딩 퍼즐은 혼자 하는 놀이다. 여기서는 **같은 씨앗으로 흐트러진 같은 판**을
+ * 모두에게 주고 먼저 맞추는 쪽이 이긴다. 혼자 하던 것을 여럿이 하게 만드는 방법은 대개 이거다.
  *
  * 이 게임이 커널에서 처음 밟는 자리: **자리 최소가 1**이다. 혼자 열면 봇이 안 앉는다
  * (`bot` 이 한 번도 안 불린다). 51개 중에 혼자만 하는 것들이 여기로 들어온다.
@@ -15,7 +15,7 @@ const SIZE = N * N;
 /** 빈 칸을 이렇게 많이 흔든다. 무작위 배열은 절반이 못 맞추는 판이라 **섞지 않고 민다**. */
 const SHUFFLE = 200;
 /**
- * 판이 끝나는 시각. **경주에 끝이 없으면 그건 경주가 아니다** — 아무도 못 맞추면 화면이 영영
+ * 판이 끝나는 시각. **경주에 끝이 없으면 그건 경주가 아니다**. 아무도 못 맞추면 화면이 영영
  * 안 닫힌다(봇만 있는 방에서 실제로 안 끝났다). 시간이 다 되면 제자리에 든 조각이 많은 쪽이 이긴다.
  */
 const LIMIT_MS = 180000;
@@ -70,7 +70,7 @@ export const slide: GameDef<SlideState, SlideAction> = {
   realtime: true,
 
   init(ctx) {
-    /* 모두 **같은 판**을 받는다 — 판이 다르면 누가 빨랐는지가 아니라 누가 쉬운 판을 받았는지가 된다. */
+    /* 모두 **같은 판**을 받는다. 판이 다르면 누가 빨랐는지가 아니라 누가 쉬운 판을 받았는지가 된다. */
     const one = scramble(ctx);
     return {
       boards: ctx.seats.map(() => one.slice()),
@@ -111,7 +111,7 @@ export const slide: GameDef<SlideState, SlideAction> = {
     if (s.won === -1 && !s.timeUp) return { over: false };
 
     if (s.won === -1) {
-      /* 시간이 다 됐다 — 제자리에 든 조각이 제일 많은 쪽. 같으면 아무도 못 가져간다. */
+      /* 시간이 다 됐다. 제자리에 든 조각이 제일 많은 쪽. 같으면 아무도 못 가져간다. */
       const home = s.boards.map((b) => b.filter((v, i) => v !== 0 && v === i + 1).length);
       const top = Math.max(...home);
       const winners = home.map((v, i) => (v === top ? i : -1)).filter((i) => i >= 0);
@@ -140,7 +140,7 @@ export const slide: GameDef<SlideState, SlideAction> = {
 
   /**
    * 혼자 열면 이 함수는 한 번도 안 불린다(자리 최소가 1이라 봇이 안 앉는다).
-   * 여럿일 때만 빈 자리를 메우는데, **푸는 척만 한다** — 최단 경로로 밀면 사람이 한 번도 못 이긴다.
+   * 여럿일 때만 빈 자리를 메우는데, **푸는 척만 한다**. 최단 경로로 밀면 사람이 한 번도 못 이긴다.
    */
   bot(s, seat, ctx): BotMove<SlideAction> | null {
     if (s.won !== -1 || s.timeUp) return null;
@@ -149,7 +149,7 @@ export const slide: GameDef<SlideState, SlideAction> = {
     const empty = b.indexOf(0);
     const near = b.map((_, i) => i).filter((i) => adjacent(i, empty));
     if (!near.length) return null;
-    /* 제자리에 없는 조각을 살짝 더 자주 고른다 — 아주 느리게, 그러나 나아지긴 한다. */
+    /* 제자리에 없는 조각을 살짝 더 자주 고른다. 아주 느리게, 그러나 나아지긴 한다. */
     const wrong = near.filter((i) => b[i] !== i + 1);
     const pool = wrong.length && ctx.rng() < 0.7 ? wrong : near;
     return { action: { cell: pool[Math.floor(ctx.rng() * pool.length)] }, delayMs: 900 + ctx.rng() * 900 };

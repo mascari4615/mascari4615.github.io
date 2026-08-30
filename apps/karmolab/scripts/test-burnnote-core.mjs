@@ -1,9 +1,9 @@
 /**
- * 사라지는 쪽지 알맹이 — 잠그고 푸는 일 (TASK-KL-251).
+ * 사라지는 쪽지 알맹이. 잠그고 푸는 일 (TASK-KL-251).
  *
- * 이 도구의 값어치는 「우리도 못 본다」 하나에 걸려 있다. 그러니 여기서 지키는 것은
+ * 이 도구의 값어치는 우리도 못 본다 하나에 걸려 있다. 그러니 여기서 지키는 것은
  * ① 잠근 덩어리에 원문이 비치지 않는가 ② 열쇠가 매번 다른가 ③ 틀린 열쇠가 **조용히**
- * 실패하지 않는가(빈 글을 돌려주면 「빈 쪽지였나」로 읽힌다) ④ 링크의 열쇠가 `#` 뒤에 있는가.
+ * 실패하지 않는가(빈 글을 돌려주면 빈 쪽지였나로 읽힌다) ④ 링크의 열쇠가 `#` 뒤에 있는가.
  *
  * 사용: node scripts/test-burnnote-core.mjs   (npm run test:burnnote)
  */
@@ -24,9 +24,9 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
-/* 브라우저가 주는 것들은 요즘 Node 에도 있다 — 없을 때만 채워 넣는다(있는 걸 덮으면 던진다). */
+/* 브라우저가 주는 것들은 요즘 Node 에도 있다. 없을 때만 채워 넣는다(있는 걸 덮으면 던진다). */
 if (!globalThis.crypto?.subtle) Object.defineProperty(globalThis, 'crypto', { value: webcrypto });
 if (!globalThis.btoa) globalThis.btoa = (s) => Buffer.from(s, 'binary').toString('base64');
 if (!globalThis.atob) globalThis.atob = (s) => Buffer.from(s, 'base64').toString('binary');
@@ -54,7 +54,7 @@ const B = await load();
 }
 
 {
-  /* 같은 글을 두 번 잠가도 결과가 같으면, 서버가 「둘이 같은 말이다」를 알게 된다. */
+  /* 같은 글을 두 번 잠가도 결과가 같으면, 서버가 둘이 같은 말이다를 알게 된다. */
   const a = await B.seal('같은 글');
   const b = await B.seal('같은 글');
   check(a.body !== b.body, '같은 글도 매번 다르게 잠긴다');
@@ -70,7 +70,7 @@ const B = await load();
   } catch {
     threw = true;
   }
-  check(threw, '틀린 열쇠는 **던져야** 한다 — 조용히 빈 글을 주면 「빈 쪽지였나」로 읽힌다');
+  check(threw, '틀린 열쇠는 **던져야** 한다. 조용히 빈 글을 주면 빈 쪽지였나로 읽힌다');
 }
 
 {
@@ -85,10 +85,10 @@ const B = await load();
 }
 
 {
-  /* 한 글자만 바꿔도 열리면 안 된다 — 그건 자물쇠가 아니라 장식이다. */
+  /* 한 글자만 바꿔도 열리면 안 된다. 그건 자물쇠가 아니라 장식이다. */
   const { body, key } = await B.seal('건드리지 마시오');
   /* **마지막 글자를 건드리면 안 된다** (2026-08-13, CI 가 잡은 깜빡이).
-     base64 의 끝 글자는 남는 비트 자리라, 값에 따라 두세 비트가 **아무 뜻도 없다** —
+     base64 의 끝 글자는 남는 비트 자리라, 값에 따라 두세 비트가 **아무 뜻도 없다** . 
      그 자리를 바꾸면 바이트는 그대로여서 쪽지가 멀쩡히 열리고, 이 검사만 스무 판에 한 번쯤
      빨개졌다(실측 run 31690994661). 가운데 글자는 여섯 비트가 다 쓰이므로 반드시 달라진다. */
   const at = Math.floor(body.length / 2);
@@ -111,7 +111,7 @@ const B = await load();
 {
   const emoji = '🔥 이모지와 한글과 English';
   const { body, key } = await B.seal(emoji);
-  eq(await B.open(body, key), emoji, '이모지·한글이 깨지지 않는다');
+  eq(await B.open(body, key), emoji, '이모지, 한글이 깨지지 않는다');
 }
 
 /* ── 파일 봉투 (TASK-KL-252) ─────────────────────────────────────── */
@@ -119,7 +119,7 @@ const B = await load();
   const bytes = new Uint8Array([0, 1, 2, 250, 251, 255]);
   const packed = B.packFile('계약서 최종.pdf', 'application/pdf', bytes);
   const { body, key } = await B.seal(packed);
-  check(!body.includes('계약서'), '파일 이름도 잠긴 안쪽에 있다 — 이름 자체가 정보다');
+  check(!body.includes('계약서'), '파일 이름도 잠긴 안쪽에 있다. 이름 자체가 정보다');
   const out = B.unpackFile(await B.open(body, key));
   eq(out?.name, '계약서 최종.pdf', '이름이 돌아온다');
   eq(out?.type, 'application/pdf', '종류가 돌아온다');
@@ -130,11 +130,11 @@ const B = await load();
   check(B.unpackFile('그냥 글') === null, '그냥 글은 파일 봉투가 아니다');
   check(B.unpackFile('') === null, '빈 것도 아니다');
   const half = B.packFile('a', 'b', new Uint8Array([1])).slice(0, 20);
-  check(B.unpackFile(half) === null, '잘린 봉투는 null — 반쯤 읽은 파일을 내주면 안 된다');
+  check(B.unpackFile(half) === null, '잘린 봉투는 null. 반쯤 읽은 파일을 내주면 안 된다');
 }
 
 {
-  /* 큰 파일도 바이트가 그대로여야 한다 — base64 자리 맞춤에서 끝이 잘리는 실수가 흔하다. */
+  /* 큰 파일도 바이트가 그대로여야 한다. base64 자리 맞춤에서 끝이 잘리는 실수가 흔하다. */
   const big = new Uint8Array(100000);
   for (let i = 0; i < big.length; i += 1) big[i] = i % 256;
   const out = B.unpackFile(B.packFile('big.bin', '', big));
@@ -147,9 +147,9 @@ const B = await load();
   const link = B.linkFor('https://x.example', 'ID123', 'KEY456');
   check(link.includes('#'), '링크에는 # 이 있다');
   const after = link.slice(link.indexOf('#'));
-  check(after.includes('KEY456'), '**열쇠는 # 뒤에** 있다 — 이 자리가 서버로 안 가는 유일한 자리다');
+  check(after.includes('KEY456'), '**열쇠는 # 뒤에** 있다. 이 자리가 서버로 안 가는 유일한 자리다');
   check(link.slice(0, link.indexOf('#')).indexOf('KEY456') === -1, '열쇠가 # 앞에 새어 나오면 안 된다');
-  check(link.slice(0, link.indexOf('#')).indexOf('?') === -1, '물음표 뒤에 두면 서버 기록에 남는다 — 안 쓴다');
+  check(link.slice(0, link.indexOf('#')).indexOf('?') === -1, '물음표 뒤에 두면 서버 기록에 남는다. 안 쓴다');
 }
 
 {

@@ -41,5 +41,5 @@
   "ascii.t40": "Search by character, decimal, hex or name (e.g. 65, 0x41, LF)",
   "ascii.t41": "Value",
   "ascii.t42": "Printable characters copy the character itself; control characters copy their decimal value.",
-  "ascii.t45": "0 to 127 — the root of every character a computer knows."
+  "ascii.t45": "0 to 127. the root of every character a computer knows."
 }

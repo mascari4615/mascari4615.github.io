@@ -11,7 +11,7 @@
   "worldclock.at": "지정한 시각",
   "worldclock.city.seoul": "서울",
   "worldclock.city.tokyo": "도쿄",
-  "worldclock.city.shanghai": "베이징·상하이",
+  "worldclock.city.shanghai": "베이징, 상하이",
   "worldclock.city.hongkong": "홍콩",
   "worldclock.city.taipei": "타이베이",
   "worldclock.city.singapore": "싱가포르",
@@ -35,7 +35,7 @@
   "worldclock.city.newyork": "뉴욕",
   "worldclock.city.chicago": "시카고",
   "worldclock.city.denver": "덴버",
-  "worldclock.city.losangeles": "LA·샌프란시스코",
+  "worldclock.city.losangeles": "LA, 샌프란시스코",
   "worldclock.city.anchorage": "앵커리지",
   "worldclock.city.honolulu": "호놀룰루",
   "worldclock.city.toronto": "토론토",
@@ -59,6 +59,6 @@
   "worldclock.region.ca-west": "캐나다 서부",
   "worldclock.region.au-west": "호주 서부",
   "worldclock.region.utc": "협정 세계시",
-  "worldclock.status": "{city} 기준 · {when} · 서머타임은 자동 반영됩니다.",
-  "worldclock.baseTimeHint": "기준 시각 — 비우면 지금"
+  "worldclock.status": "{city} 기준, {when}, 서머타임은 자동 반영됩니다.",
+  "worldclock.baseTimeHint": "기준 시각. 비우면 지금"
 }

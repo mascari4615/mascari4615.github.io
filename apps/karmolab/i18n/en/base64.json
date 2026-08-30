@@ -11,7 +11,7 @@
   "base64.err.decode": "There is a character in there that Base64 cannot read.",
   "base64.copy.code": "Base64 copied",
   "base64.copy.text": "Text copied",
-  "base64.err.noText": "Write some text first — the link carries that state.",
+  "base64.err.noText": "Write some text first. the link carries that state.",
   "base64.copy.link": "Copied a link that opens in this state",
   "base64.say.size": "{bytes} bytes → {chars} characters"
 }

@@ -2,7 +2,7 @@
 
 Welcome to my personal workspace and monorepo! This repository hosts my technical blog, personal projects, and various web applications.
 
-> **AI 와 함께 만듭니다 / Built with AI.** 코드·문서 상당 부분을 AI 에이전트(Claude Code)와 함께 씁니다.
+> **AI 와 함께 만듭니다 / Built with AI.** 코드, 문서 상당 부분을 AI 에이전트(Claude Code)와 함께 씁니다.
 
 ## 📂 Repository Structure
 

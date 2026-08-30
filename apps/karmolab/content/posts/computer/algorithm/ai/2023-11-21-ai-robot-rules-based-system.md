@@ -5,7 +5,7 @@ last_modified_at: "2023-12-12T10:50:00+09:00"
 categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 @ GPT의 문제점: 기업 정보가 OPEN AI로 유출된다, 그래서 못쓰게 한다, 근데 쓰고는 싶어서 직접 만들어 쓴다  

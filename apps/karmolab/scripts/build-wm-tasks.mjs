@@ -1,14 +1,14 @@
 /**
  * build-wm-tasks: memo/wm/tasks/*.md → apps/karmolab/data/wm-tasks.json (TASK-KL-171)
  *
- * 왜: 「지금 뭘 만들고 있나」를 웹에 두면, 보러 온 사람이 이 게임이 어디쯤 왔는지 안다.
- * 소식(devlog)은 **끝난 것**만 보여 준다 — 이쪽은 **하는 중 / 할 것**을 보여 준다.
+ * 왜: 지금 뭘 만들고 있나를 웹에 두면, 보러 온 사람이 이 게임이 어디쯤 왔는지 안다.
+ * 소식(devlog)은 **끝난 것**만 보여 준다. 이쪽은 **하는 중 / 할 것**을 보여 준다.
  * 개발 보드를 따로 쓰면 밀리므로, 이미 쓰고 있는 TASK 문서의 머리말을 그대로 읽는다.
  *
  * 무엇이 나가나: 머리말에 `web: private` 이 붙은 문서만 뺀다(문서가 정한다).
- * 본문은 아예 안 싣는다 — 제목·상태·우선순위만. 스포일러가 본문에 있어도 나갈 길이 없다.
+ * 본문은 아예 안 싣는다. 제목, 상태, 우선순위만. 스포일러가 본문에 있어도 나갈 길이 없다.
  *
- * memo 가 없으면(다른 컴퓨터·CI) 커밋된 산출을 그대로 쓴다.
+ * memo 가 없으면(다른 컴퓨터, CI) 커밋된 산출을 그대로 쓴다.
  *
  * 사용: node scripts/build-wm-tasks.mjs
  */
@@ -23,7 +23,7 @@ const MEMO_PATH = process.env.KARMODDRINE_MEMO_PATH || path.resolve(REPO_ROOT, '
 const TASKS_ROOT = path.join(MEMO_PATH, 'wm/tasks');
 const OUT_PATH = path.join(KARMOLAB_ROOT, 'data/wm-tasks.json');
 
-/** 사람이 읽는 상태 이름. 모르는 상태는 그대로 — 상태 집합은 열려 있다. */
+/** 사람이 읽는 상태 이름. 모르는 상태는 그대로. 상태 집합은 열려 있다. */
 const STATUS_LABEL = {
   in_progress: '하는 중',
   ready: '준비됨',
@@ -33,7 +33,7 @@ const STATUS_LABEL = {
   sealed: '닫힘',
   blocked: '막힘',
 };
-/** 화면에 세우는 순서 — 「하는 중」이 맨 위. */
+/** 화면에 세우는 순서. 하는 중이 맨 위. */
 const ORDER = ['in_progress', 'ready', 'seed', 'hold', 'blocked', 'done', 'sealed'];
 const DONE_SHOWN = 12;
 
@@ -65,21 +65,21 @@ async function main() {
       process.exit(1);
     }
     const prev = JSON.parse(await fsp.readFile(OUT_PATH, 'utf8'));
-    /* 바닥 (2026-08-14). 아래 갈래에는 「보여 줄 항목 0건이면 실패」가 있는데 이 갈래엔 없었다.
-     * CI 는 언제나 이 갈래로 온다(memo 는 비공개) — 비면 배포는 초록, 화면은 백지다. */
+    /* 바닥 (2026-08-14). 아래 갈래에는 보여 줄 항목 0건이면 실패가 있는데 이 갈래엔 없었다.
+     * CI 는 언제나 이 갈래로 온다(memo 는 비공개). 비면 배포는 초록, 화면은 백지다. */
     const kept = prev.counts?.shown;
     if (typeof kept !== 'number' || kept < 1) {
-      console.error(`[wm-tasks] ❌ 커밋된 산출에 보여 줄 항목이 ${kept ?? '?'}건이다 — 「memo 가 없다」가 아니라 **산출이 비었다**.`);
+      console.error(`[wm-tasks] ❌ 커밋된 산출에 보여 줄 항목이 ${kept ?? '?'}건이다. memo 가 없다가 아니라 **산출이 비었다**.`);
       console.error('[wm-tasks]   memo 가 있는 기계에서 `npm run build:wm-tasks` 를 돌려 다시 커밋할 것.');
       process.exit(1);
     }
-    console.log(`[wm-tasks] memo 없음 — 커밋된 산출 사용 (${kept}건)`);
+    console.log(`[wm-tasks] memo 없음. 커밋된 산출 사용 (${kept}건)`);
     return;
   }
 
   // ★ `done/` 아래도 읽는다 (2026-08-14).
   //   끝난 TASK 는 `wm/tasks/done/` 으로 옮겨 활성 폴더를 비우는데, 여기서 평면으로만 읽으면
-  //   그 순간 사이트의 「끝남·닫힘」이 통째로 사라진다 — **웹이 폴더 배치에 묶여 있던 자리**다.
+  //   그 순간 사이트의 끝남, 닫힘이 통째로 사라진다. **웹이 폴더 배치에 묶여 있던 자리**다.
   //   깊이 1 만 본다(그 아래로 더 파는 구조는 없다).
   const entries = await fsp.readdir(TASKS_ROOT, { withFileTypes: true });
   const files = [];
@@ -134,7 +134,7 @@ async function main() {
 
   const shown = ordered.reduce((n, g) => n + g.items.length, 0);
   if (shown === 0) {
-    console.error(`[wm-tasks] 보여 줄 항목이 0건 — 수집이 깨진 것 아닌지 확인 (문서 ${total}개 읽음)`);
+    console.error(`[wm-tasks] 보여 줄 항목이 0건. 수집이 깨진 것 아닌지 확인 (문서 ${total}개 읽음)`);
     process.exit(1);
   }
 
@@ -146,12 +146,12 @@ async function main() {
   const next = JSON.stringify(out, null, 2) + '\n';
   const prevText = fs.existsSync(OUT_PATH) ? await fsp.readFile(OUT_PATH, 'utf8') : '';
   if (prevText === next) {
-    console.log(`[wm-tasks] 그대로 — ${shown}건 / 무리 ${ordered.length}개`);
+    console.log(`[wm-tasks] 그대로. ${shown}건 / 무리 ${ordered.length}개`);
     return;
   }
   await fsp.mkdir(path.dirname(OUT_PATH), { recursive: true });
   await fsp.writeFile(OUT_PATH, next, 'utf8');
-  console.log(`[wm-tasks] 씀: data/wm-tasks.json — ${shown}건 / 무리 ${ordered.length}개 (문서 ${total} · 숨김 ${skipped})`);
+  console.log(`[wm-tasks] 씀: data/wm-tasks.json. ${shown}건 / 무리 ${ordered.length}개 (문서 ${total}, 숨김 ${skipped})`);
 }
 
 main().catch((err) => {

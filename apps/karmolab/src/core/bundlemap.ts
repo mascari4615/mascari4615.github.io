@@ -2,10 +2,10 @@
  * 번들 어디가 무거운가 (TASK-KL-316 / 19)
  *
  * 번들이 커졌을 때 필요한 건 총합이 아니라 **누가 먹었나**다. 그런데 `stats.json` 은
- * 수만 줄짜리라 눈으로 못 본다 — 그래서 폴더 나무로 접어 넓이로 보여 준다.
+ * 수만 줄짜리라 눈으로 못 본다. 그래서 폴더 나무로 접어 넓이로 보여 준다.
  *
  * 두 형식을 받는다: webpack `stats.json`(`modules[]`)과 esbuild `metafile`(`inputs`/`outputs`).
- * 둘 다 「이름 + 바이트」로 줄여서 같은 나무로 만든다 — 뒤쪽 셈은 하나면 된다.
+ * 둘 다 이름 + 바이트로 줄여서 같은 나무로 만든다. 뒤쪽 셈은 하나면 된다.
  *
  * 하나 더 본다: **같은 꾸러미가 두 번 들어간 자리**. 번들이 갑자기 커지는 흔한 이유다.
  */
@@ -35,7 +35,7 @@ export interface Node {
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-/** 두 형식을 「이름 + 바이트」로 줄인다. 못 알아보면 그렇다고 던진다. */
+/** 두 형식을 이름 + 바이트로 줄인다. 못 알아보면 그렇다고 던진다. */
 export function readStats(text: string): Item[] {
   const doc: unknown = JSON.parse(text);
   if (!isObj(doc)) throw new Error('JSON 물체가 아닙니다');
@@ -66,7 +66,7 @@ export function readStats(text: string): Item[] {
     return out;
   }
 
-  /* rollup·vite 의 요약 형태도 흔하다: { "output": { "파일": { "code": "..." } } } */
+  /* rollup, vite 의 요약 형태도 흔하다: { "output": { "파일": { "code": "..." } } } */
   if (isObj(doc.output)) {
     return Object.entries(doc.output)
       .map(([name, value]) => ({ name, bytes: isObj(value) && typeof value.code === 'string' ? value.code.length : 0 }))
@@ -78,7 +78,7 @@ export function readStats(text: string): Item[] {
 
 /** `./node_modules/lodash/map.js` 같은 이름을 보기 좋게 자른다. */
 export function tidy(name: string): string {
-  /* 자르는 **차례가 중요하다** — 로더 접두사를 먼저 떼야 그 뒤의 `./` 도 떨어진다. */
+  /* 자르는 **차례가 중요하다**. 로더 접두사를 먼저 떼야 그 뒤의 `./` 도 떨어진다. */
   return name
     .replace(/^.*!/, '') // 로더 접두사(`babel-loader!./a.js`)
     .replace(/^webpack:\/\/\//, '')
@@ -113,7 +113,7 @@ export function tree(items: Item[]): Node {
   return root;
 }
 
-/** 나무를 한 겹으로 눌러 큰 것부터 — 「어디가 무거운가」의 답. */
+/** 나무를 한 겹으로 눌러 큰 것부터. 어디가 무거운가의 답. */
 export function heaviest(node: Node, depth = 1, prefix = ''): Array<{ path: string; bytes: number }> {
   const out: Array<{ path: string; bytes: number }> = [];
   for (const child of node.children) {
@@ -159,7 +159,7 @@ export interface Rect {
   depth: number;
 }
 
-/** 칸을 넓이 비율대로 나눈다. 정사각형에 가깝게 — 길쭉하면 이름이 안 보인다. */
+/** 칸을 넓이 비율대로 나눈다. 정사각형에 가깝게. 길쭉하면 이름이 안 보인다. */
 export function layout(node: Node, x: number, y: number, w: number, h: number, depth = 0, max = 2): Rect[] {
   const out: Rect[] = [];
   if (depth >= max || node.children.length === 0 || w < 8 || h < 8) return out;
@@ -179,7 +179,7 @@ export function layout(node: Node, x: number, y: number, w: number, h: number, d
     const left = rest.reduce((sum, c) => sum + c.bytes, 0);
     if (left <= 0) break;
 
-    /* 한 줄에 몇 개를 담을지 — 담을수록 납작해지고, 적을수록 길쭉해진다. 나빠지기 직전에 멈춘다. */
+    /* 한 줄에 몇 개를 담을지. 담을수록 납작해지고, 적을수록 길쭉해진다. 나빠지기 직전에 멈춘다. */
     const row: Node[] = [];
     let worst = Infinity;
     while (rest.length > 0) {

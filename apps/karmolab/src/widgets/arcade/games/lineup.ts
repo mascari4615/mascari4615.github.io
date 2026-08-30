@@ -1,14 +1,14 @@
 /**
- * 한 줄 서기 — 남이 뭐라고 답했을지 맞힌다 (TASK-KL-242)
+ * 한 줄 서기. 남이 뭐라고 답했을지 맞힌다 (TASK-KL-242)
  *
- * 지금까지는 전부 **판**을 읽었다(돌·카드·공). 이건 처음으로 **사람**을 읽는다 —
+ * 지금까지는 전부 **판**을 읽었다(돌, 카드, 공). 이건 처음으로 **사람**을 읽는다 . 
  * 답을 맞히는 게 아니라 *남이 어떻게 답했을지*를 맞힌다. 그래서 혼자 하면 재미가 반이고,
  * 셋넷이 붙어야 산다(그래도 봇이 있으면 굴러가긴 한다).
  *
- * 한 판: 모두 「얼마나?」 질문에 몰래 숫자를 낸다 → 그다음 **작은 것부터 큰 것 순서로 사람을
+ * 한 판: 모두 얼마나? 질문에 몰래 숫자를 낸다 → 그다음 **작은 것부터 큰 것 순서로 사람을
  * 늘어놓아** 맞힌다. 순서가 맞은 만큼 점수.
  *
- * 질문은 말 묶음에서 온다 — 규칙 파일은 무엇을 묻는지 모른다.
+ * 질문은 말 묶음에서 온다. 규칙 파일은 무엇을 묻는지 모른다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -19,7 +19,7 @@ export interface LineupState {
   q: number;
   /** 자리별로 낸 숫자 (아직이면 null) */
   picks: Array<number | null>;
-  /** 자리별로 「이 순서일 것」이라 답한 것 (자리 번호 배열) */
+  /** 자리별로 이 순서일 것이라 답한 것 (자리 번호 배열) */
   guesses: Array<number[] | null>;
   /** 지금 무엇을 하는 때인가 */
   phase: 'pick' | 'order' | 'reveal';
@@ -31,13 +31,13 @@ export interface LineupState {
 
 export type LineupAction = { kind: 'pick'; value: number } | { kind: 'order'; order: number[] };
 
-/** 질문 몇 개가 있나 — 화면이 넣어 준다(말 묶음). 안 넣으면 이 값. */
+/** 질문 몇 개가 있나. 화면이 넣어 준다(말 묶음). 안 넣으면 이 값. */
 let QUESTIONS = 8;
 export function useQuestionCount(n: number): void {
   QUESTIONS = Math.max(1, n);
 }
 
-/** 진짜 순서 — 작은 것부터. 같으면 자리 번호로. */
+/** 진짜 순서. 작은 것부터. 같으면 자리 번호로. */
 function trueOrder(picks: Array<number | null>): number[] {
   return picks
     .map((v, i) => ({ v: v ?? 0, i }))
@@ -45,7 +45,7 @@ function trueOrder(picks: Array<number | null>): number[] {
     .map((x) => x.i);
 }
 
-/** 두 줄이 얼마나 닮았나 — 같은 자리에 같은 사람이 몇 명인가. */
+/** 두 줄이 얼마나 닮았나. 같은 자리에 같은 사람이 몇 명인가. */
 function agree(a: number[], b: number[]): number {
   return a.reduce((n, v, i) => n + (b[i] === v ? 1 : 0), 0);
 }
@@ -94,17 +94,17 @@ export const lineup: GameDef<LineupState, LineupAction> = {
     if (s.phase === 'order') {
       if (a?.kind !== 'order' || !Array.isArray(a.order)) return s;
       if (s.guesses[seat] !== null) return s;
-      /* 자리 번호가 하나씩 다 들어 있어야 한다 — 아니면 안 받는다. */
+      /* 자리 번호가 하나씩 다 들어 있어야 한다. 아니면 안 받는다. */
       const ok = a.order.length === seats && new Set(a.order).size === seats &&
         a.order.every((n) => Number.isInteger(n) && n >= 0 && n < seats);
       if (!ok) return s;
       const guesses = s.guesses.map((x, i) => (i === seat ? a.order.slice() : x));
       if (!guesses.every((x) => x !== null)) return { ...s, guesses };
 
-      /* 다 냈다 — 맞은 자리 수만큼 점수. */
+      /* 다 냈다. 맞은 자리 수만큼 점수. */
       const real = trueOrder(s.picks);
       const score = s.score.map((v, i) => v + agree(guesses[i] as number[], real));
-      /* 결과를 잠깐 보여 준 뒤 다음 판. **넘기는 일도 커널 안에서** 한다 —
+      /* 결과를 잠깐 보여 준 뒤 다음 판. **넘기는 일도 커널 안에서** 한다 . 
          화면이 상태를 바꾸면 주인과 손님이 서로 다른 판을 보게 된다. */
       return { ...s, guesses, score, phase: 'reveal', nextAt: ctx.now + 3500 };
     }
@@ -146,7 +146,7 @@ export const lineup: GameDef<LineupState, LineupAction> = {
     }
     if (s.phase === 'order') {
       if (s.guesses[seat] !== null) return null;
-      /* 봇은 남의 숫자를 안 본다 — 자기 자리를 어림으로 끼우고 나머지는 섞는다. */
+      /* 봇은 남의 숫자를 안 본다. 자기 자리를 어림으로 끼우고 나머지는 섞는다. */
       const seats = ctx.seats.length;
       const order = Array.from({ length: seats }, (_, i) => i);
       for (let i = order.length - 1; i > 0; i--) {

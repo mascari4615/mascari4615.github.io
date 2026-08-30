@@ -1,14 +1,14 @@
 /**
- * QR 코드 만들기 — 알맹이 (TASK-KL-088 / S1)
+ * QR 코드 만들기. 알맹이 (TASK-KL-088 / S1)
  *
- * 외부 API 를 안 부른다 — QR 에 담기는 건 대개 WiFi 비밀번호·연락처라, 그게 남의 서버로
+ * 외부 API 를 안 부른다. QR 에 담기는 건 대개 WiFi 비밀번호, 연락처라, 그게 남의 서버로
  * 나가면 안 된다. `qrcode-generator` 를 번들해 여기서 직접 만든다.
  *
  * MCP 로 내놓는 이유(A등급): LLM 은 QR 을 **못 만든다**(그림이다). 그럴듯한 격자를 그려 줘도
- * 스캔이 안 된다. 게다가 WiFi·vCard 처럼 **문법이 정해진 문자열**은 이스케이프를 자주 빠뜨린다 —
+ * 스캔이 안 된다. 게다가 WiFi, vCard 처럼 **문법이 정해진 문자열**은 이스케이프를 자주 빠뜨린다 . 
  * 비밀번호에 `;` 나 `:` 가 있으면 그 자리에서 QR 이 통째로 깨지는데, 눈으로는 멀쩡해 보인다.
  *
- * 화면은 캔버스로 그리고, 여기서는 **SVG 문자열**로 낸다 — 캔버스 없이 도는 유일한 길이고
+ * 화면은 캔버스로 그리고, 여기서는 **SVG 문자열**로 낸다. 캔버스 없이 도는 유일한 길이고
  * 확대해도 안 깨진다.
  */
 import qrcode from 'qrcode-generator';
@@ -21,7 +21,7 @@ export const spec: ToolSpec = {
   ops: {
     svg: {
       desc:
-        'Make a QR code as SVG — no external API, so the contents never leave the machine.' +
+        'Make a QR code as SVG. no external API, so the contents never leave the machine.' +
         ' level = L/M/Q/H error correction (default M), size in pixels.' +
         ' / 내용을 QR SVG 로. 외부 API 없음.',
       in: { text: 'string', level: 'string?', size: 'number?' },
@@ -30,13 +30,13 @@ export const spec: ToolSpec = {
     wifi: {
       desc:
         'WiFi 접속 QR 을 만든다. 스캔하면 그 네트워크에 바로 붙는다.' +
-        ' encryption = WPA(기본) · WEP · nopass. 비밀번호에 ; : , \\ 가 있어도 규칙대로 처리한다.',
+        ' encryption = WPA(기본), WEP, nopass. 비밀번호에 ; : , \\ 가 있어도 규칙대로 처리한다.',
       in: { ssid: 'string', password: 'string?', encryption: 'string?', hidden: 'boolean?', size: 'number?' },
       out: 'string'
     },
     contact: {
       desc:
-        'Make a contact (vCard) QR — scanning it adds the contact directly.' +
+        'Make a contact (vCard) QR. scanning it adds the contact directly.' +
         ' / 연락처(vCard) QR.',
       in: { name: 'string', org: 'string?', tel: 'string?', email: 'string?', size: 'number?' },
       out: 'string'
@@ -45,7 +45,7 @@ export const spec: ToolSpec = {
 };
 
 /**
- * WiFi·vCard 문법에서 뜻을 가진 글자는 앞에 `\` 를 붙인다.
+ * WiFi, vCard 문법에서 뜻을 가진 글자는 앞에 `\` 를 붙인다.
  * 이걸 빠뜨리면 비밀번호에 `;` 하나 있는 것만으로 **QR 이 조용히 다른 뜻**이 된다.
  */
 export function escapeWifi(s: string): string {
@@ -97,7 +97,7 @@ export function makeGrid(text: string, level: Level = 'M'): QrGrid {
   return { count: qr.getModuleCount(), isDark: (r, c) => qr.isDark(r, c) };
 }
 
-/** 격자 → SVG. 여백 4칸은 규격이 요구하는 「조용한 구역」이라 줄이면 스캔이 안 된다. */
+/** 격자 → SVG. 여백 4칸은 규격이 요구하는 조용한 구역이라 줄이면 스캔이 안 된다. */
 export function toSvg(grid: QrGrid, size = 256, fg = '#000000', bg = '#ffffff'): string {
   const margin = 4;
   const total = grid.count + margin * 2;
@@ -131,7 +131,7 @@ export const run: ToolRunner = (op, args) => {
         : op === 'contact'
           ? vcardPayload(String(args.name ?? ''), String(args.org ?? ''), String(args.tel ?? ''), String(args.email ?? ''))
           : null;
-  if (text === null) throw new Error(`qrgen 에 「${op}」 는 없습니다`);
+  if (text === null) throw new Error(`qrgen 에 ${op} 는 없습니다`);
 
   const grid = makeGrid(text, level);
   return toSvg(grid, size);

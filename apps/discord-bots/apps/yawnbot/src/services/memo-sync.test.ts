@@ -30,7 +30,7 @@ const CFG: MemoSyncConfig = {
 };
 const silentLogger = { log: () => {}, warn: () => {}, error: () => {} };
 
-/** 결정적 fake git — SHA 시퀀스·실패 주입. */
+/** 결정적 fake git. SHA 시퀀스, 실패 주입. */
 function fakeGit(opts: {
   head: string;
   fetchHead: string;
@@ -56,7 +56,7 @@ function fakeGit(opts: {
   };
 }
 
-describe('planMemoSync — fetch → skip 판정', () => {
+describe('planMemoSync. fetch → skip 판정', () => {
   it('local == FETCH_HEAD → skip true (이미 최신)', async () => {
     const git = fakeGit({ head: 'abc1234567', fetchHead: 'abc1234567' });
     const plan = await planMemoSync(CFG, git);
@@ -89,7 +89,7 @@ describe('planMemoSync — fetch → skip 판정', () => {
   });
 });
 
-describe('syncMemoOnce — skip 이면 reset X / 변경이면 reset --hard', () => {
+describe('syncMemoOnce. skip 이면 reset X / 변경이면 reset --hard', () => {
   it('skip → resetHard 호출 0', async () => {
     let resetCalls = 0;
     const git = fakeGit({
@@ -129,7 +129,7 @@ describe('syncMemoOnce — skip 이면 reset X / 변경이면 reset --hard', () 
   });
 });
 
-describe('runMemoSyncTick — 상태 전이 alert', () => {
+describe('runMemoSyncTick. 상태 전이 alert', () => {
   const ok = () => fakeGit({ head: 'a000000', fetchHead: 'b111111' });
   const fail = () =>
     fakeGit({ head: 'x', fetchHead: 'y', fetchErr: new Error('네트워크') });
@@ -204,7 +204,7 @@ describe('runMemoSyncTick — 상태 전이 alert', () => {
   });
 });
 
-describe('startMemoSync — 스케줄링 + ensureFresh', () => {
+describe('startMemoSync. 스케줄링 + ensureFresh', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => {
     stopMemoSync();
@@ -304,7 +304,7 @@ describe('startMemoSync — 스케줄링 + ensureFresh', () => {
     const handle = startMemoSync({
       token: 'tok',
       memoRepoPath: '/tmp/memo',
-      intervalMin: 60, // 긴 interval — ensureFresh 단독 검증
+      intervalMin: 60, // 긴 interval. ensureFresh 단독 검증
       git,
       logger: silentLogger,
     })!;

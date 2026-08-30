@@ -1,8 +1,8 @@
 /**
  * 크론 표현식 읽기 (TASK-KL-088)
  *
- * 간격 표기와 범위 표기를 헷갈리면 「매일 새벽에 한 번」 이 「1분마다」 가 된다.
- * 그래서 뜻풀이만 주지 않고 **다음 실행 시각 5개를 실제로 계산해** 보여준다 —
+ * 간격 표기와 범위 표기를 헷갈리면 매일 새벽에 한 번 이 1분마다 가 된다.
+ * 그래서 뜻풀이만 주지 않고 **다음 실행 시각 5개를 실제로 계산해** 보여준다 . 
  * 사람의 해석이 아니라 기계의 답으로 확인되는 형태.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -10,7 +10,7 @@ import { escapeHtml as esc } from './shared/text';
 import { markLive } from './shared/say';
 
 (function (): void {
-  /** 남은 시간의 단위는 **Intl 이 그 언어로 적어 준다** — 분/시간/일을 언어마다 적을 필요가 없다. */
+  /** 남은 시간의 단위는 **Intl 이 그 언어로 적어 준다**. 분/시간/일을 언어마다 적을 필요가 없다. */
   function humanGap(mins: number): string {
     const [n, unit]: [number, Intl.NumberFormatOptions['unit']] =
       mins < 60 ? [mins, 'minute'] : mins < 1440 ? [Math.round(mins / 60), 'hour'] : [Math.round(mins / 1440), 'day'];
@@ -23,11 +23,11 @@ import { markLive } from './shared/say';
     ok: boolean;
   }
 
-  /** 이름값 — 실제 crontab 에서 흔히 쓰는데 예전에는 통째로 거절했다. */
+  /** 이름값. 실제 crontab 에서 흔히 쓰는데 예전에는 통째로 거절했다. */
   const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   const DOW_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-  /** `@daily` 같은 별칭 — 사람이 실제로 쓰는 표기다. */
+  /** `@daily` 같은 별칭. 사람이 실제로 쓰는 표기다. */
   const ALIASES: Record<string, string> = {
     '@yearly': '0 0 1 1 *',
     '@annually': '0 0 1 1 *',
@@ -40,7 +40,7 @@ import { markLive } from './shared/say';
 
   function parseField(raw: string, min: number, max: number, names?: string[]): Field {
     const values = new Set<number>();
-    /* 이름값(JAN·MON)과 일요일 7 을 숫자로 바꾼 뒤 푼다.
+    /* 이름값(JAN, MON)과 일요일 7 을 숫자로 바꾼 뒤 푼다.
        표준 cron 은 요일 0 과 7 을 둘 다 일요일로 받는데, 예전에는 7 을 에러로 냈다. */
     let text = raw.toUpperCase();
     /* 이름 → 숫자. 달은 1부터(JAN=1), 요일은 0부터(SUN=0)라 `min` 을 더한다. */
@@ -63,13 +63,13 @@ import { markLive } from './shared/say';
       for (let v = lo; v <= hi; v += step) values.add(v);
     }
     /* 요일은 0 과 7 이 **둘 다 일요일**이다(표준 cron). 요일 칸만 7 까지 받아 두고 여기서 0 으로
-       접는다 — 이렇게 해야 `1-7`(월~일) 같은 범위도 그대로 읽힌다. 예전에는 7 을 통째로 거절해
+       접는다. 이렇게 해야 `1-7`(월~일) 같은 범위도 그대로 읽힌다. 예전에는 7 을 통째로 거절해
        실제 crontab 에 흔한 표현이 에러로 떴다. */
     const folded = max === 7 ? new Set([...values].map((v) => (v === 7 ? 0 : v))) : values;
     return { values: [...folded].sort((a, b) => a - b), ok: true };
   }
 
-  /* 요일 이름은 **쓸 때** 가져온다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  /* 요일 이름은 **쓸 때** 가져온다. 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
   const dow = (): string[] => [
     t('cron.day.sun'),
     t('cron.day.mon'),
@@ -80,7 +80,7 @@ import { markLive } from './shared/say';
     t('cron.day.sat')
   ];
 
-  /** 사람 문장으로 옮긴다 — 값이 전부면 「매」, 몇 개면 나열. */
+  /** 사람 문장으로 옮긴다. 값이 전부면 매, 몇 개면 나열. */
   function describe(f: Field, total: number, unit: string, fmt?: (n: number) => string): string {
     const show = (n: number): string => (fmt ? fmt(n) : String(n));
     if (f.values.length === total) return '';
@@ -92,7 +92,7 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'cron',
     title: t('widgets.cron.title', undefined, "크론 표현식 읽기"),
-    category: 'tool',
+    category: 'dev',
     desc: t('widgets-desc.cron.desc', undefined, "크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 4l2 2M21 4l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -120,7 +120,7 @@ import { markLive } from './shared/say';
               </div>
             </div>
 
-            <div class="tool-display" id="crText">—</div>
+            <div class="tool-display" id="crText">. </div>
             <div class="tool-list" id="crNext"></div>
             <div class="tool-status" id="crStatus">${esc(t('cron.status.idle'))}</div>
           `;
@@ -130,14 +130,14 @@ import { markLive } from './shared/say';
           const text = $<HTMLElement>('#crText');
           const next = $<HTMLElement>('#crNext');
           const status = $<HTMLElement>('#crStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
           function run(): void {
             const typed = input.value.trim();
             const parts = (ALIASES[typed.toLowerCase()] || typed).split(/\s+/);
             if (parts.length !== 5) {
-              text.textContent = '—';
+              text.textContent = '. ';
               next.innerHTML = '';
               status.textContent = t('cron.err.fields');
               status.className = 'tool-status error';
@@ -151,7 +151,7 @@ import { markLive } from './shared/say';
               parseField(parts[4], 0, 7, DOW_NAMES)
             ];
             if (![mi, ho, da, mo, dw].every((f) => f.ok)) {
-              text.textContent = '—';
+              text.textContent = '. ';
               next.innerHTML = '';
               status.textContent = t('cron.err.parse');
               status.className = 'tool-status error';
@@ -167,7 +167,7 @@ import { markLive } from './shared/say';
             ].filter(Boolean);
             text.textContent = bits.length ? bits.join(' ') + t('cron.phrase.runAt') : t('cron.phrase.everyMinute');
 
-            // 표현식을 직접 돌려 다음 시각을 찾는다. 최대 2년치까지만 훑고 없으면 「없음」.
+            // 표현식을 직접 돌려 다음 시각을 찾는다. 최대 2년치까지만 훑고 없으면 없음.
             const found: Date[] = [];
             const cur = new Date();
             cur.setSeconds(0, 0);
@@ -177,7 +177,7 @@ import { markLive } from './shared/say';
             while (found.length < 5 && cur < limit) {
               const dayOk =
                 mo.values.includes(cur.getMonth() + 1) &&
-                // 크론은 일·요일이 둘 다 지정되면 OR 로 친다 (표준 동작)
+                // 크론은 일, 요일이 둘 다 지정되면 OR 로 친다 (표준 동작)
                 (da.values.length === 31 || dw.values.length === 7
                   ? da.values.includes(cur.getDate()) && dw.values.includes(cur.getDay())
                   : da.values.includes(cur.getDate()) || dw.values.includes(cur.getDay()));

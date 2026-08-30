@@ -13,14 +13,14 @@ export const spec: ToolSpec = {
   ops: {
     gpa: {
       desc:
-        'Korean university GPA from "credits grade" lines, e.g. "3 A+\\n3 B0\\n2 A-" — credit-weighted,' +
+        'Korean university GPA from "credits grade" lines, e.g. "3 A+\\n3 B0\\n2 A-". credit-weighted,' +
         ' not a plain average. scale = 4.5 (default, the Korean norm) or 4.3.',
       in: { courses: 'string', scale: 'string?' },
       out: 'string'
     },
     needed: {
       desc:
-        'What average the remaining credits must earn to reach a target GPA —' +
+        'What average the remaining credits must earn to reach a target GPA . ' +
         ' and it says so plainly when even straight A+ cannot get there.',
       in: { courses: 'string', target: 'number', future: 'number', scale: 'string?' },
       out: 'string'
@@ -131,11 +131,11 @@ export const run: ToolRunner = (op, args) => {
 
   const head = [
     `GPA (credit-weighted): ${r.gpa.toFixed(2)} / ${max}`,
-    `Credits: ${r.credits}  ·  Courses: ${r.counted}`,
+    `Credits: ${r.credits} ,  Courses: ${r.counted}`,
     `Plain average: ${r.simple.toFixed(2)}  <- ignore credits and you get this. GPA is above.`,
     `Percent of max: ${((r.gpa / max) * 100).toFixed(1)}%`
   ];
-  if (r.bad.length > 0) head.push(`Unreadable lines ${r.bad.length}: ${r.bad.slice(0, 3).join(' · ')}`);
+  if (r.bad.length > 0) head.push(`Unreadable lines ${r.bad.length}: ${r.bad.slice(0, 3).join(', ')}`);
 
   if (op === 'gpa') return head.join('\n');
 

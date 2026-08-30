@@ -19,7 +19,7 @@ export class InMemoryMemory implements Memory {
     return this.entries.slice(-limit);
   }
 
-  /** 전부 (테스트·디버깅용). */
+  /** 전부 (테스트, 디버깅용). */
   all(): readonly MemoryEntry[] {
     return this.entries.slice();
   }

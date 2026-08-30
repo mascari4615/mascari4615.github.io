@@ -9,7 +9,7 @@
  * 환경변수:
  *   WEBHOOK_PORT (기본 4615)
  *   WEBHOOK_URL  (지정 시 PORT 무시. 예: http://localhost:4615/webhook/github)
- *   WEBHOOK_TEST_REPO (기본 mascari4615/test-repo) — payload.repository.full_name
+ *   WEBHOOK_TEST_REPO (기본 mascari4615/test-repo). payload.repository.full_name
  *     data/webhook-routes.json 의 routes 매칭을 검증할 때 본인 repo 로 지정.
  */
 import process from 'node:process';

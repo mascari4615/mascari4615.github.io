@@ -28,7 +28,7 @@ test('시간을 안 말하면 기본만큼', () => {
   assert.equal(asksForQuiet('좀 조용히 해', 10 * minutes).ms, 10 * minutes);
 });
 
-test('너무 짧게는 안 받는다 — 1초 조용은 조용이 아니다', () => {
+test('너무 짧게는 안 받는다. 1초 조용은 조용이 아니다', () => {
   assert.ok(asksForQuiet('0분만 조용히').ms >= minutes);
 });
 
@@ -37,7 +37,7 @@ test('부탁에는 대꾸할 말이 딸려 온다', () => {
   assert.notEqual(asksForQuiet('좀 조용히').says.trim(), '');
 });
 
-test('「이제 됐어」는 푸는 말이다', () => {
+test('이제 됐어는 푸는 말이다', () => {
   for (const text3 of ['이제 됐어', '다시 얘기하자', '이제 말해도 돼', '회의 끝났어']) {
     assert.equal(asksToResume(text3), true, `${text3}`);
   }
@@ -66,21 +66,21 @@ test('부탁받으면 먼저 안 건다', () => {
   assert.equal(q.hushed, true);
 });
 
-test('시간이 지나면 저절로 풀린다 — 영영 입 다물지 않는다', () => {
+test('시간이 지나면 저절로 풀린다. 영영 입 다물지 않는다', () => {
   const { q, flow: flow } = make();
   q.hushFor(30 * minutes);
   flow(31 * minutes);
   assert.equal(q.maySpeakFirst, true);
 });
 
-test('「이제 됐어」로 바로 풀린다', () => {
+test('이제 됐어로 바로 풀린다', () => {
   const { q } = make();
   q.hushFor(60 * minutes);
   q.resume();
   assert.equal(q.maySpeakFirst, true);
 });
 
-test('조용히 있는 중에 또 부탁하면 더 길게 — 짧아지지 않는다', () => {
+test('조용히 있는 중에 또 부탁하면 더 길게. 짧아지지 않는다', () => {
   const { q } = make();
   q.hushFor(60 * minutes);
   q.hushFor(5 * minutes);
@@ -111,7 +111,7 @@ test('낮에는 괜찮다', () => {
   assert.equal(q.inQuietHours, false);
 });
 
-test('밤을 넘어가는 구간도 제대로 본다 — 23시도 2시도 밤이다', () => {
+test('밤을 넘어가는 구간도 제대로 본다. 23시도 2시도 밤이다', () => {
   const { q, at: at } = make({ fromHour: 23, toHour: 7 });
   at(23);
   assert.equal(q.inQuietHours, true);
@@ -119,7 +119,7 @@ test('밤을 넘어가는 구간도 제대로 본다 — 23시도 2시도 밤이
   assert.equal(q.inQuietHours, false);
 });
 
-test('한마디로 밤을 없앨 수는 없다 — 「이제 됐어」는 부탁만 푼다', () => {
+test('한마디로 밤을 없앨 수는 없다. 이제 됐어는 부탁만 푼다', () => {
   const { q, at: at } = make({ fromHour: 23, toHour: 7 });
   at(2);
   q.hushFor(30 * minutes);
@@ -140,7 +140,7 @@ test('평소에는 아무 말도 안 얹는다', () => {
   assert.equal(quietNote(make().q), '');
 });
 
-test('조용 중이면 답은 하되 짧게 — 벙어리가 되라는 게 아니다', () => {
+test('조용 중이면 답은 하되 짧게. 벙어리가 되라는 게 아니다', () => {
   const { q } = make();
   q.hushFor(30 * minutes);
   const note = quietNote(q);
@@ -156,7 +156,7 @@ test('밤과 부탁을 다르게 말한다', () => {
   assert.match(quietNote(q), /조수님이 조용히 있으라고/);
 });
 
-test('그냥 밤일 때는 짧게 답하라고 시키지 않는다 — 그러면 대화가 통째로 죽는다', () => {
+test('그냥 밤일 때는 짧게 답하라고 시키지 않는다. 그러면 대화가 통째로 죽는다', () => {
   const { q, at: at } = make({ fromHour: 23, toHour: 7 });
   at(2);
   const text4 = quietNote(q);
@@ -164,7 +164,7 @@ test('그냥 밤일 때는 짧게 답하라고 시키지 않는다 — 그러면
   assert.match(text4, /평소처럼 제대로 답하라/);
 });
 
-test('부탁받았을 때는 여전히 짧게 — 그건 사람이 그러라고 한 것이다', () => {
+test('부탁받았을 때는 여전히 짧게. 그건 사람이 그러라고 한 것이다', () => {
   const { q } = make({ fromHour: 23, toHour: 7 });
   q.hushFor(30 * minutes);
   assert.match(quietNote(q), /아주 짧게/);

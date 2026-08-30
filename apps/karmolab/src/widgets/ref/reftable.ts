@@ -1,17 +1,17 @@
 /**
  * 자료표 공용 렌더러 (TASK-KL-088)
  *
- * 특수문자·ASCII·HTTP 상태코드 같은 「찾아보고 눌러 복사」 표는 화면 구조가 전부 같다.
- * 표마다 UI 를 복제하면 검색·복사·칩 동작이 6벌로 갈라지므로, 렌더러 하나에 데이터만 갈아 끼운다.
+ * 특수문자, ASCII, HTTP 상태코드 같은 찾아보고 눌러 복사 표는 화면 구조가 전부 같다.
+ * 표마다 UI 를 복제하면 검색, 복사, 칩 동작이 6벌로 갈라지므로, 렌더러 하나에 데이터만 갈아 끼운다.
  *
  * 각 자료 위젯은 `RefTable.build(container, spec)` 만 호출한다.
  */
 interface RefItem {
   /** 클릭 시 복사되는 값 */
   copy: string;
-  /** 크게 보이는 것 (문자·코드) */
+  /** 크게 보이는 것 (문자, 코드) */
   glyph: string;
-  /** 이름·설명 */
+  /** 이름, 설명 */
   label: string;
   /** 부가 정보 한 줄 (코드값 등) */
   sub?: string;
@@ -29,7 +29,7 @@ interface RefSpec {
   placeholder: string;
   /** 복사 시 토스트 문구 접두 */
   copyNoun: string;
-  /** 표 형태 — glyph 강조(문자표) / 줄 목록(코드표) */
+  /** 표 형태. glyph 강조(문자표) / 줄 목록(코드표) */
   layout?: 'grid' | 'list';
   /** 표 아래 각주 */
   note?: string;
@@ -44,7 +44,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   /**
    * 표 정의를 이름표로 보관한다.
    *
-   * 같은 표를 「문자표」 위젯의 탭과 그 표의 개별 검색 페이지에서 둘 다 그려야 하는데,
+   * 같은 표를 문자표 위젯의 탭과 그 표의 개별 검색 페이지에서 둘 다 그려야 하는데,
    * 데이터를 양쪽에 복제하면 한쪽만 고쳐지는 날이 온다. 정의는 한 곳, 그리는 쪽이 꺼내 쓴다.
    */
   const specs: Record<string, RefSpec> = {};

@@ -1,16 +1,16 @@
 /**
  * BMI 계산기 (TASK-KL-088)
  *
- * BMI 표가 두 종류라는 걸 모르면 결과를 잘못 읽는다 — 세계보건기구는 30 이상을 비만으로 보지만
+ * BMI 표가 두 종류라는 걸 모르면 결과를 잘못 읽는다. 세계보건기구는 30 이상을 비만으로 보지만
  * 대한비만학회는 25 이상을 비만으로 본다(아시아인 기준). 그래서 **두 기준을 나란히** 보여준다.
- * 근육량·체지방을 구분하지 못한다는 한계도 화면에 적는다. 숫자만 주면 오해가 남는다.
+ * 근육량, 체지방을 구분하지 못한다는 한계도 화면에 적는다. 숫자만 주면 오해가 남는다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { markLive } from './shared/say';
 import { region, isMetric } from '../../lib/region';
 
 (function (): void {
-  /** [상한(미만), 이름열쇠] — 대한비만학회(아시아·태평양) 기준 */
+  /** [상한(미만), 이름열쇠]. 대한비만학회(아시아, 태평양) 기준 */
   const ASIA: Array<[number, string]> = [
     [18.5, 'under'],
     [23, 'normal'],
@@ -29,27 +29,27 @@ import { region, isMetric } from '../../lib/region';
     [Infinity, 'obese3']
   ];
 
-  /* 이름은 **찾을 때** 정한다 — 표를 만들 때 정하면 열쇠가 굳는다. */
+  /* 이름은 **찾을 때** 정한다. 표를 만들 때 정하면 열쇠가 굳는다. */
   const classify = (bmi: number, table: Array<[number, string]>): string => {
     for (const [hi, key] of table) if (bmi < hi) return t(`bmi.class.${key}`);
     return '';
   };
 
   /**
-   * 어느 기준을 **앞에** 둘까 — 아시아·태평양 기준(비만 25 이상)은 같은 BMI 라도 아시아인에게
-   * 위험이 더 일찍 온다는 데서 나왔다. 그래서 **사는 곳**으로 고른다: 한국·일본은 그 기준이 앞,
-   * 그 밖은 WHO 가 앞. 어느 쪽이든 **둘 다 보여 준다** — 하나만 주면 결과를 잘못 읽는다.
+   * 어느 기준을 **앞에** 둘까. 아시아, 태평양 기준(비만 25 이상)은 같은 BMI 라도 아시아인에게
+   * 위험이 더 일찍 온다는 데서 나왔다. 그래서 **사는 곳**으로 고른다: 한국, 일본은 그 기준이 앞,
+   * 그 밖은 WHO 가 앞. 어느 쪽이든 **둘 다 보여 준다**. 하나만 주면 결과를 잘못 읽는다.
    */
   const asiaFirst = (): boolean => region() === 'KR' || region() === 'JP';
 
   Toolbox.register({
     id: 'bmi',
     title: t('widgets.bmi.title', undefined, 'BMI 계산기'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.bmi.desc',
       undefined,
-      '키와 몸무게로 체질량지수를 계산하고 대한비만학회·WHO 두 기준으로 함께 봅니다'
+      '키와 몸무게로 체질량지수를 계산하고 대한비만학회, WHO 두 기준으로 함께 봅니다'
     ),
     layout: 'form',
     icon: '<circle cx="12" cy="5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8v7M9 22l3-7 3 7M7 11h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -69,7 +69,7 @@ import { region, isMetric } from '../../lib/region';
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
           const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          /* 미국은 피트·인치·파운드를 쓴다 — 「kg 을 넣으세요」는 그 사람에게 못 쓰는 도구다.
+          /* 미국은 피트, 인치, 파운드를 쓴다. kg 을 넣으세요는 그 사람에게 못 쓰는 도구다.
              재는 것은 같으니 **넣는 칸만** 그 나라 단위로 두고 계산 직전에 미터법으로 바꾼다. */
           const us = !isMetric();
 
@@ -97,8 +97,8 @@ import { region, isMetric } from '../../lib/region';
               </div>
             </div>
 
-            <div class="tool-display" id="bmValue">—</div>
-            <!-- 숫자 22.5 보다 「내가 어디쯤」이 즉각 이해된다. 상위 계산기는 전부 눈금이 있다. -->
+            <div class="tool-display" id="bmValue">. </div>
+            <!-- 숫자 22.5 보다 내가 어디쯤이 즉각 이해된다. 상위 계산기는 전부 눈금이 있다. -->
             <div class="bmi-scale" id="bmScale" aria-hidden="true">
               <div class="bmi-scale-bar">
                 <span class="bmi-seg" style="flex:18.5"></span>
@@ -121,7 +121,7 @@ import { region, isMetric } from '../../lib/region';
           const stats = $<HTMLElement>('#bmStats');
           const detail = $<HTMLElement>('#bmDetail');
           const status = $<HTMLElement>('#bmStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
           const stat = (label: string, v: string, primary = false): string =>
@@ -136,7 +136,7 @@ import { region, isMetric } from '../../lib/region';
               : parseFloat(h.value);
             const kg = us ? parseFloat(w.value) * 0.45359237 : parseFloat(w.value);
             if (!isFinite(cm) || !isFinite(kg) || cm <= 0 || kg <= 0) {
-              value.textContent = '—';
+              value.textContent = '. ';
               stats.innerHTML = '';
               detail.innerHTML = '';
               status.textContent = t('bmi.status.empty');
@@ -147,14 +147,14 @@ import { region, isMetric } from '../../lib/region';
             const bmi = kg / (m * m);
             value.textContent = bmi.toFixed(1);
 
-            /* 눈금 위 내 자리 — 15~40 을 화면 폭으로 본다(그 밖은 양끝에 붙인다). */
+            /* 눈금 위 내 자리. 15~40 을 화면 폭으로 본다(그 밖은 양끝에 붙인다). */
             const pin = Math.min(100, Math.max(0, ((bmi - 15) / 25) * 100));
             $<HTMLElement>('#bmPin').style.left = pin.toFixed(1) + '%';
 
-            /* 「정상까지 몇 kg」 — 실제로 행동을 만드는 한 줄인데 우리에겐 없었다. */
+            /* 정상까지 몇 kg. 실제로 행동을 만드는 한 줄인데 우리에겐 없었다. */
             const normalMin = 18.5 * m * m;
             const normalMax = 23 * m * m;
-            /* 무게는 **그 사람이 넣은 단위로** 돌려준다 — 파운드로 넣었는데 「3.2kg 빼세요」는 못 읽는다. */
+            /* 무게는 **그 사람이 넣은 단위로** 돌려준다. 파운드로 넣었는데 3.2kg 빼세요는 못 읽는다. */
             const wUnit = t(us ? 'bmi.unit.lb' : 'bmi.unit.kg');
             const showW = (v: number): string => `${(us ? v / 0.45359237 : v).toFixed(1)} ${wUnit}`;
             const diff =
@@ -166,7 +166,7 @@ import { region, isMetric } from '../../lib/region';
             const who = stat(t('bmi.stat.who'), classify(bmi, WHO), !asiaFirst());
             stats.innerHTML = (asiaFirst() ? asia + who : who + asia) + stat(t('bmi.stat.toNormal'), diff);
 
-            // 「정상 범위 몸무게」 는 BMI 자체보다 실제로 궁금해하는 값이다.
+            // 정상 범위 몸무게 는 BMI 자체보다 실제로 궁금해하는 값이다.
             const lo = 18.5 * m * m;
             const hiKr = 23 * m * m;
             const hiWho = 25 * m * m;

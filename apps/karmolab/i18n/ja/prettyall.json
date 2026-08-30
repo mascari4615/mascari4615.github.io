@@ -13,5 +13,5 @@
   "prettyall.status.idle": "CSS か HTML を貼ってください",
   "prettyall.status.formatted": "{kind} を {n} 行に広げました",
   "prettyall.status.minified": "{before} 文字 → {after} 文字 ({cut}% 減)",
-  "prettyall.note.noJs": "JavaScript はあえて扱いません — 中途半端な整形はセミコロンのないコードで意味を変えます。エディタの Prettier を使ってください。"
+  "prettyall.note.noJs": "JavaScript はあえて扱いません. 中途半端な整形はセミコロンのないコードで意味を変えます。エディタの Prettier を使ってください。"
 }

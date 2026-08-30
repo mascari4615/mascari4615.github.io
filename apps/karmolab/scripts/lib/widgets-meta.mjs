@@ -1,12 +1,12 @@
 /**
- * 위젯 이름·한 줄 설명을 등록 파일에서 뽑는다 (TASK-KL-203 S5-b)
+ * 위젯 이름, 한 줄 설명을 등록 파일에서 뽑는다 (TASK-KL-203 S5-b)
  *
- * 정본은 `src/widgets-lazy-meta.ts` 다 — 도구를 새로 만들면 거기 등록한다. 같은 이름을
+ * 정본은 `src/widgets-lazy-meta.ts` 다. 도구를 새로 만들면 거기 등록한다. 같은 이름을
  * `i18n/ko/widgets.json` 에 한 벌 더 적어 두면 그날부터 갈라지므로, **적지 않고 뽑는다**
  * (도구 설명 때와 같은 규칙).
  *
  * 왜 실행하지 않고 읽어서 뽑나: 그 파일은 브라우저용 TypeScript 라 여기서 그대로 못 돈다.
- * 빌드된 `js/` 를 읽는 방법도 있지만, 그러면 **빌드 전에는 검사가 못 돈다** — 그건 게이트로 쓸 수
+ * 빌드된 `js/` 를 읽는 방법도 있지만, 그러면 **빌드 전에는 검사가 못 돈다**. 그건 게이트로 쓸 수
  * 없다(순서가 뒤집히면 영원히 빨갛다). 우리가 필요한 건 세 줄뿐이라 줄 단위로 읽는다.
  */
 import fs from 'node:fs';
@@ -18,7 +18,7 @@ const SRC = path.join(APP_ROOT, 'src/widgets-lazy-meta.ts');
 /** 따옴표 안의 글에서 이스케이프를 되돌린다 (`\'` → `'`). */
 const unesc = (s) => s.replace(/\\(['\\])/g, '$1');
 
-/** 한 줄짜리 등록에서도 표식을 뽑는다 — 놀이 위젯 20개가 그 모양이다. */
+/** 한 줄짜리 등록에서도 표식을 뽑는다. 놀이 위젯 20개가 그 모양이다. */
 function oneLineFlags(entry, line) {
   if (/\bhidden:\s*true/.test(line)) entry.hidden = true;
   if (/\bdesktopOnly:\s*true/.test(line)) entry.desktopOnly = true;
@@ -29,7 +29,7 @@ function oneLineFlags(entry, line) {
 
 /**
  * `{ id, title, desc }` 목록. 등록 파일의 모양이 바뀌면 뽑히는 수가 줄어드는데,
- * 그건 `build-i18n.mjs` 가 「갑자기 확 줄었다」로 잡는다(조용히 비는 것이 제일 나쁘다).
+ * 그건 `build-i18n.mjs` 가 갑자기 확 줄었다로 잡는다(조용히 비는 것이 제일 나쁘다).
  */
 export function widgetMeta() {
   if (!fs.existsSync(SRC)) return {};
@@ -37,7 +37,7 @@ export function widgetMeta() {
   let cur = null;
   for (const line of fs.readFileSync(SRC, 'utf8').split('\n')) {
     /* **한 줄짜리 등록도 있다.** 처음에는 줄마다 `id:` / `title:` 을 따로 찾았는데, 놀이 위젯 20개는
-       `{ id: 'x', title: '…', … }` 로 한 줄에 적혀 있어 통째로 빠졌다 — 영어 화면에서 그 20개
+       `{ id: 'x', title: '...', ... }` 로 한 줄에 적혀 있어 통째로 빠졌다. 영어 화면에서 그 20개
        이름만 한국어로 남았다(실측). 한 줄 형태를 먼저 본다. */
     const one = /\bid:\s*'([^']+)'[^\n]*?\btitle:\s*'((?:[^'\\]|\\.)*)'/.exec(line);
     if (one) {
@@ -64,16 +64,16 @@ export function widgetMeta() {
       continue;
     }
     if (!cur) continue;
-    /* 표식 세 가지도 같이 뽑는다 (TASK-KL-349). 「이 도구에 상세 페이지가 있어야 하나」를
-       판정하려면 이름·설명만으로는 모자란다 — 숨긴 화면(설정·상태)은 페이지가 없어야 맞고,
+    /* 표식 세 가지도 같이 뽑는다 (TASK-KL-349). 이 도구에 상세 페이지가 있어야 하나를
+       판정하려면 이름, 설명만으로는 모자란다. 숨긴 화면(설정, 상태)은 페이지가 없어야 맞고,
        데스크톱 전용은 **있어야** 맞다(앱 안 도구 목록이 이 표를 읽는다). */
     if (/^\s*hidden:\s*true/.test(line)) { out[cur].hidden = true; continue; }
     if (/^\s*desktopOnly:\s*true/.test(line)) { out[cur].desktopOnly = true; continue; }
     if (/^\s*noPage:\s*true/.test(line)) { out[cur].noPage = true; continue; }
     m = /^\s*category:\s*'([a-z]+)'/.exec(line);
     if (m) { out[cur].category = m[1]; continue; }
-    /* 이름·설명은 **읽는 순간에 정해지는 getter** 로 바뀌었다 (KL-203: 도구 목록도 그 언어로).
-       그 안의 기본값(한국어)이 곧 원본이다 —
+    /* 이름, 설명은 **읽는 순간에 정해지는 getter** 로 바뀌었다 (KL-203: 도구 목록도 그 언어로).
+       그 안의 기본값(한국어)이 곧 원본이다 . 
        `get title() { return t('widgets.x.title', undefined, "한국어"); },`
        이 모양을 못 읽으면 여기서 뽑히는 수가 180 → 20 으로 떨어지고, 그러면 **원본 자체가
        사라져** 세 언어가 전부 빈다. 실제로 한 번 그랬다. */

@@ -1,11 +1,11 @@
 /**
  * PDF 용량 줄이기 (TASK-KL-088)
  *
- * 메일이나 제출 창구가 「10MB 이하」를 요구하는데 스캔한 PDF 가 40MB인 상황이 흔하다.
- * 그 파일에 주민번호나 계약 내용이 들어 있어도 사람들은 낯선 사이트에 올린다 — 다른 방법을 모르니까.
+ * 메일이나 제출 창구가 10MB 이하를 요구하는데 스캔한 PDF 가 40MB인 상황이 흔하다.
+ * 그 파일에 주민번호나 계약 내용이 들어 있어도 사람들은 낯선 사이트에 올린다. 다른 방법을 모르니까.
  *
  * 방식: 각 쪽을 그림으로 다시 그려 JPEG 로 담고 PDF 를 새로 엮는다. 이게 **되돌릴 수 없는 거래**라
- * 숨기지 않는다 — 글자를 더는 선택·검색할 수 없다. 대신 스캔 문서(원래 그림)에는 손해가 거의 없다.
+ * 숨기지 않는다. 글자를 더는 선택, 검색할 수 없다. 대신 스캔 문서(원래 그림)에는 손해가 거의 없다.
  * 그래서 넣자마자 **글자가 들어 있는 PDF인지 먼저 알려 주고**, 첫 쪽 미리보기로 화질을 눈으로 고르게 한다.
  */
 import { statusLine } from './shared/say';
@@ -27,22 +27,22 @@ import { attachImage, encode } from './shared/image';
 
   Toolbox.register({
     id: 'pdfcompress',
-    /* 도구 큰제목이 이 값을 쓴다 — 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
+    /* 도구 큰제목이 이 값을 쓴다. 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
        큰제목만 한국어로 남았다). 등록 순간이라 기다릴 수 없어 원본을 기본값으로 함께 준다. */
     title: t('widgets.pdfcompress.title', undefined, 'PDF 용량 줄이기'),
-    category: 'tool',
-    // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133) — 「이어서」 줄이 이 표시를 보고 고른다.
+    category: 'file',
+    // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133). 이어서 줄이 이 표시를 보고 고른다.
     accepts: ['application/pdf'],
-    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     desc: t('widgets-desc.pdfcompress.desc', undefined, '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다'),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 16h6M12 11v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.2 12 14.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        /* 등록 순간에 쓰이는 유일한 글 — 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
+        /* 등록 순간에 쓰이는 유일한 글. 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
         label: t('pdfcompress.tab', undefined, '용량 줄이기'),
-        /* 도구의 *자기 화면*은 스크립트가 그린다 — 말을 받아온 **뒤에** 그린다.
+        /* 도구의 *자기 화면*은 스크립트가 그린다. 말을 받아온 **뒤에** 그린다.
            안 기다리고 그리면 화면에 열쇠 이름이 그대로 뜬다 (qrread 에서 확인한 것과 같다). */
         build: function (container: HTMLElement): void {
           void loadNamespace('pdfcompress').then(function () {
@@ -54,7 +54,7 @@ import { attachImage, encode } from './shared/image';
   });
 
   function draw(container: HTMLElement): void {
-    /* 화면에 넣는 말은 그대로 붙이지 않는다 — 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
+    /* 화면에 넣는 말은 그대로 붙이지 않는다. 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
           container.innerHTML = `
             <div class="tool-drop" id="pcDrop">
               <input type="file" id="pcFile" accept="application/pdf" hidden>
@@ -117,8 +117,8 @@ import { attachImage, encode } from './shared/image';
           let made: Blob | null = null;
           let hasText = false;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           async function loadPdfjs(): Promise<PdfJs> {
@@ -159,7 +159,7 @@ import { attachImage, encode } from './shared/image';
             return { canvas, w: base.width, h: base.height };
           }
 
-          // 공용 한 자리(`shared/image.encode`) — 흰 바탕 규칙도 거기 있다.
+          // 공용 한 자리(`shared/image.encode`). 흰 바탕 규칙도 거기 있다.
           const toJpeg = (canvas: HTMLCanvasElement): Promise<Blob> =>
             encode(canvas, 'jpeg', parseInt(qualityEl.value, 10) / 100);
 
@@ -174,7 +174,7 @@ import { attachImage, encode } from './shared/image';
             try {
               const lib = await loadPdfjs();
               doc = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
-              // 글자가 들어 있는 문서면 이 도구가 그 글자를 그림으로 바꿔 버린다 — 먼저 알려야 한다
+              // 글자가 들어 있는 문서면 이 도구가 그 글자를 그림으로 바꿔 버린다. 먼저 알려야 한다
               const first = await doc.getPage(1);
               const text = await first.getTextContent();
               hasText = text.items.map((i) => i.str || '').join('').trim().length> 40;
@@ -200,7 +200,7 @@ import { attachImage, encode } from './shared/image';
             say(t('pdfcompress.status.drawingFirst'));
             const { canvas } = await renderPage(1);
             const blob = await toJpeg(canvas);
-            attachImage($<HTMLImageElement>('#pcShotImg'), blob); // 공용 — 앞 주소를 거두고 물린다
+            attachImage($<HTMLImageElement>('#pcShotImg'), blob); // 공용. 앞 주소를 거두고 물린다
             $<HTMLElement>('#pcShot').style.display = '';
             // 첫 쪽 크기 × 쪽 수 = 전체 어림. 다 만들고 나서 실망하는 걸 막는다.
             const guess = blob.size * (doc?.numPages || 1);
@@ -233,7 +233,7 @@ import { attachImage, encode } from './shared/image';
               statCell(t('pdfcompress.stat.originalSize'), size(before)) +
               statCell(t('pdfcompress.stat.newSize'), size(after), true) +
               statCell(t('pdfcompress.stat.change'), after < before ? t('pdfcompress.change.smaller', { pct }) : after> before ? t('pdfcompress.change.bigger', { pct }) : t('pdfcompress.change.same'));
-            // 이미 잘 압축된 PDF 는 오히려 커진다 — 성공이라 우기면 안 된다
+            // 이미 잘 압축된 PDF 는 오히려 커진다. 성공이라 우기면 안 된다
             if (after>= before) {
               say(t('pdfcompress.status.noGain', { before: size(before), after: size(after) }), 'error');
             } else {
@@ -244,8 +244,8 @@ import { attachImage, encode } from './shared/image';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 「PDF 를 합쳤다 → 이어서 용량 줄이기」에서 사람이 파일을 다시 고르지 않게 하는 자리다.
-           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+           * PDF 를 합쳤다 → 이어서 용량 줄이기에서 사람이 파일을 다시 고르지 않게 하는 자리다.
+           * 한 번만 집어 간다. 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
             Toolbox.onHandoff?.('pdfcompress', (f: File) => void load(f));
           /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
@@ -262,9 +262,9 @@ import { attachImage, encode } from './shared/image';
           saveBtn.onclick = () => {
             if (!made || !file) return;
             const outName = file.name.replace(/\.pdf$/i, '') + t('pdfcompress.file.suffix');
-            download(made, outName); // 공용 — 거두는 시점까지 같이 온다
+            download(made, outName); // 공용. 거두는 시점까지 같이 온다
             say(t('pdfcompress.status.saved'), 'ok');
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: outName, from: 'pdfcompress' });
           };
   }

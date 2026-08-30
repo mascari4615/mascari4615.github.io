@@ -1,11 +1,11 @@
 /**
  * 놀이터 관문(/play/) 만들기 + 목록 검사 (TASK-KL-089)
  *
- * 놀이가 셋이 되면서 「무엇이 있나」를 한 자리에서 보여 줄 곳이 필요해졌다.
+ * 놀이가 셋이 되면서 무엇이 있나를 한 자리에서 보여 줄 곳이 필요해졌다.
  * 목록은 `games.json` 하나뿐이고, 관문도 각 놀이의 전환 줄도 전부 거기서 나온다.
  *
- * 막는 것: 적어 둔 주소가 실제로 없는 경우 · 이름이나 한 줄 소개가 빈 경우 · id 겹침.
- * (주소가 죽으면 관문에서 눌러도 없는 곳으로 간다 — 사람이 바로 겪는 손해다.)
+ * 막는 것: 적어 둔 주소가 실제로 없는 경우, 이름이나 한 줄 소개가 빈 경우, id 겹침.
+ * (주소가 죽으면 관문에서 눌러도 없는 곳으로 간다. 사람이 바로 겪는 손해다.)
  *
  * 사용: node scripts/build.mjs
  */
@@ -20,7 +20,7 @@ const list = games();
 const problems = [];
 const seen = new Set();
 
-/** 그 주소를 실제로 내주는 파일이 있는가 — 앱마다 어디에 사는지는 여기 한 번만 적는다. */
+/** 그 주소를 실제로 내주는 파일이 있는가. 앱마다 어디에 사는지는 여기 한 번만 적는다. */
 const WHERE = {
   '/daily/': path.join(apps, 'daily/dist/index.html'),
   '/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
@@ -30,7 +30,7 @@ const WHERE = {
   '/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
   '/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
   '/#speed': path.join(apps, 'karmolab/js/widgets/speed.js'),
-  /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다 — 검색으로 바로 들어올 수 있게.
+  /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다. 검색으로 바로 들어올 수 있게.
      장은 배포 때 찍히므로, 있는지 물을 대상은 장이 아니라 그 장을 채우는 위젯 묶음이다. */
   '/t/dailytype/': path.join(apps, 'karmolab/js/widgets/tools/dailytype.js'),
   '/t/dailycho/': path.join(apps, 'karmolab/js/widgets/tools/dailycho.js')
@@ -41,8 +41,8 @@ for (const g of list) {
   seen.add(g.id);
   if (!g.title || !g.lead) problems.push(`${g.id}: 이름이나 한 줄 소개가 비었다`);
   const file = WHERE[g.url];
-  if (!file) problems.push(`${g.id}: 「${g.url}」 가 어디서 나오는지 모른다 — 이 파일의 WHERE 에 적어라`);
-  else if (!fs.existsSync(file)) problems.push(`${g.id}: 「${g.url}」 를 내주는 파일이 없다 — 그 놀이를 먼저 만들어야 한다`);
+  if (!file) problems.push(`${g.id}: ${g.url} 가 어디서 나오는지 모른다. 이 파일의 WHERE 에 적어라`);
+  else if (!fs.existsSync(file)) problems.push(`${g.id}: ${g.url} 를 내주는 파일이 없다. 그 놀이를 먼저 만들어야 한다`);
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -62,18 +62,18 @@ permalink: /play/
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<!-- GitHub Pages 는 헤더를 못 붙인다 — 이 한 줄이 유일한 자리다 (2026-08-16).
+<!-- GitHub Pages 는 헤더를 못 붙인다. 이 한 줄이 유일한 자리다 (2026-08-16).
      문구 정본 = apps/karmolab/scripts/lib/head-security.mjs 의 CSP_CONTENT.
      이 관문 장은 여기서 찍히므로 index.html 을 손으로 고쳐도 다음 빌드가 지운다. -->
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="color-scheme" content="dark">
-<title>놀이터 — 하루 한 판씩 | KarmoLab</title>
+<title>놀이터. 하루 한 판씩 | KarmoLab</title>
 <meta name="description" content="KarmoLab 의 놀이 ${list.length}가지. 오늘의 하나 맞히기, 높은 쪽 고르기, 도구로 푸는 하루 한 문제. 하나 하다 다른 것으로 바로 건너갈 수 있습니다.">
 <link rel="canonical" href="https://blog.mascari4615.com/play/">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta property="og:type" content="website">
-<meta property="og:title" content="놀이터 — 하루 한 판씩">
-<meta property="og:description" content="맞히기 · 고르기 · 풀기. 하나 하다 다른 것으로 바로 건너갑니다.">
+<meta property="og:title" content="놀이터. 하루 한 판씩">
+<meta property="og:description" content="맞히기, 고르기, 풀기. 하나 하다 다른 것으로 바로 건너갑니다.">
 <meta property="og:url" content="https://blog.mascari4615.com/play/">
 <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
 <meta property="og:locale" content="ko_KR">
@@ -105,6 +105,21 @@ h1 { font-size: 1.5rem; margin: 0 0 0.2rem; letter-spacing: -0.02em; }
 footer { margin-top: 2rem; font-size: 0.8rem; color: #8b8b85; }
 footer a { color: #b9b9b2; }
 ${STRIP_CSS}</style>
+<script type="application/ld+json">${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '놀이터. 하루 한 판씩',
+  description: `KarmoLab 의 놀이 ${list.length}가지. 맞히기, 고르기, 풀기`,
+  url: 'https://blog.mascari4615.com/play/',
+  inLanguage: 'ko-KR',
+  isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: 'https://blog.mascari4615.com/' },
+  hasPart: list.map((g) => ({
+    '@type': 'VideoGame',
+    name: g.title,
+    url: `https://blog.mascari4615.com/play/${g.id}/`,
+    applicationCategory: 'GameApplication',
+  })),
+}).replace(/</g, '\u003c')}</script>
 </head>
 <body>
 <main>
@@ -114,12 +129,12 @@ ${STRIP_CSS}</style>
   <div class="play-grid">
 ${cards}
   </div>
-  <p class="lead"><a href="/#arcade">오락실에서 전부 보기 →</a> — 여럿이 하는 판 51개도 같은 자리에 있습니다.</p>
-  <footer>도구가 필요하면 — <a href="/t/">도구 전체 목록</a> · <a href="/">KarmoLab</a></footer>
+  <p class="lead"><a href="/#arcade">오락실에서 전부 보기 →</a>. 여럿이 하는 판 51개도 같은 자리에 있습니다.</p>
+  <footer>도구가 필요하면. <a href="/t/">도구 전체 목록</a>, <a href="/">KarmoLab</a></footer>
 <script>
 (function () {
-  /* 관문이 정적이라 「오늘 내가 뭘 했나」가 안 보였다 (TASK-KL-089).
-   * 각 놀이가 이 브라우저에 남겨 둔 것만 읽어 카드에 한 줄 붙인다 —
+  /* 관문이 정적이라 오늘 내가 뭘 했나가 안 보였다 (TASK-KL-089).
+   * 각 놀이가 이 브라우저에 남겨 둔 것만 읽어 카드에 한 줄 붙인다 . 
    * 여기서 새로 저장하는 것은 없다. 못 읽으면 아무 줄도 안 붙는다(사생활 모드도 그냥 조용하다). */
   var read = function (k) {
     try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; }
@@ -130,7 +145,7 @@ ${cards}
   };
   var lines = {};
 
-  // 하나 맞히기 — 주제·모드마다 따로 두므로, 오늘 끝낸 판이 하나라도 있으면 「오늘 했음」.
+  // 하나 맞히기. 주제, 모드마다 따로 두므로, 오늘 끝낸 판이 하나라도 있으면 오늘 했음.
   try {
     var done = 0, playing = 0;
     Object.keys(localStorage).forEach(function (k) {
@@ -144,11 +159,11 @@ ${cards}
     else if (playing) lines.daily = '풀던 판이 있어요';
   } catch (e) { /* 조용히 */ }
 
-  // 오늘의 문제 — 오늘 날짜 기록이 있으면 맞혔는지까지.
+  // 오늘의 문제. 오늘 날짜 기록이 있으면 맞혔는지까지.
   var q = read('karmolab_quest');
   if (q && q[kstDay()]) lines.quest = q[kstDay()].win ? '오늘 맞혔어요 (' + q[kstDay()].tries + '번)' : '오늘은 아쉬웠어요';
 
-  // 높은 쪽 고르기 — 판마다 최고 연승 중 가장 큰 것.
+  // 높은 쪽 고르기. 판마다 최고 연승 중 가장 큰 것.
   var h = read('karmolab_higher_best');
   if (h) {
     var top = 0;
@@ -158,7 +173,7 @@ ${cards}
 
   [].forEach.call(document.querySelectorAll('.play-card'), function (card) {
     /* 카드가 제 이름표를 달고 있다. 예전엔 주소를 보고 되짚었는데, 짚는 규칙의 마지막 갈래가
-       「그 밖에는 전부 높은 쪽」이라 새 놀이가 늘자 남의 기록을 달고 나왔다. */
+       그 밖에는 전부 높은 쪽이라 새 놀이가 늘자 남의 기록을 달고 나왔다. */
     var id = card.getAttribute('data-play');
     if (!id || !lines[id]) return;
     var tag = document.createElement('span');
@@ -181,12 +196,12 @@ if (problems.length) {
 
 fs.writeFileSync(path.join(here, 'index.html'), html, 'utf8');
 
-/* 앱 안의 오락실(`/#arcade`)도 같은 목록을 본다 — 여기서 실어 준다 (TASK-KL-313:
+/* 앱 안의 오락실(`/#arcade`)도 같은 목록을 본다. 여기서 실어 준다 (TASK-KL-313:
  * 놀이터 화면은 오락실로 합쳐졌고, 명부는 여전히 이 파일 하나가 정본이다).
  * 앱 쪽에 한 벌 더 적어 두면 그날부터 관문과 앱이 서로 다른 놀이를 말한다. */
 fs.writeFileSync(
   path.join(apps, 'karmolab/data/games.json'),
-  JSON.stringify({ $comment: 'apps/play/games.json 에서 만들어진다 — 여기를 고치지 마라.', games: list }, null, 2) + '\n',
+  JSON.stringify({ $comment: 'apps/play/games.json 에서 만들어진다. 여기를 고치지 마라.', games: list }, null, 2) + '\n',
   'utf8'
 );
-console.log(`[play] 관문 만듦 — 놀이 ${list.length}개 (${list.map((g) => g.title).join(' · ')})`);
+console.log(`[play] 관문 만듦. 놀이 ${list.length}개 (${list.map((g) => g.title).join(', ')})`);

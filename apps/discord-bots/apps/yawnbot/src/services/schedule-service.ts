@@ -1,5 +1,5 @@
 /**
- * ScheduleService — 캐릭터별 일정 관리
+ * ScheduleService. 캐릭터별 일정 관리
  *
  * 저장 위치: characters/<slug>/memory/schedule.json
  * 구조: ScheduleEntry[]

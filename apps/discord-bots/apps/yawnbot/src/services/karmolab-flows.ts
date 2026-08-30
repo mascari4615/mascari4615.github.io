@@ -1,12 +1,12 @@
 /**
  * 도구 흐름(Flow) 원장 (TASK-KL-181).
  *
- * 왜: 도구가 160개인데 **서로 못 만난다**. KL-133 이 「이어서」로 한 쌍을 통하게 했지만 그것은
- * 그 자리에서 한 번이다 — 같은 일을 매주 하는 사람은 매주 같은 순서를 손으로 다시 밟는다.
+ * 왜: 도구가 160개인데 **서로 못 만난다**. KL-133 이 이어서로 한 쌍을 통하게 했지만 그것은
+ * 그 자리에서 한 번이다. 같은 일을 매주 하는 사람은 매주 같은 순서를 손으로 다시 밟는다.
  *
- * 흐름을 **물건으로** 만들면 셋이 한꺼번에 풀린다: 다시 쓰기 · 남에게 주기 · 자동으로 돌리기.
+ * 흐름을 **물건으로** 만들면 셋이 한꺼번에 풀린다: 다시 쓰기, 남에게 주기, 자동으로 돌리기.
  *
- * 저장하는 것은 **순서뿐**이다. 파일도 결과도 서버에 안 올라온다 — 우리 도구는 전부 브라우저
+ * 저장하는 것은 **순서뿐**이다. 파일도 결과도 서버에 안 올라온다. 우리 도구는 전부 브라우저
  * 안에서 돌고, 흐름은 그 순서를 적어 둔 종이 한 장이다.
  */
 import fs from 'fs';
@@ -22,7 +22,7 @@ export interface FlowStep {
   /**
    * 이 단계를 **건너뛸 조건** (TASK-KL-183 B).
    *
-   * 분기를 나무로 만들지 않는다 — 줄은 하나로 두고 「이 조건이면 건너뛴다」만 붙인다.
+   * 분기를 나무로 만들지 않는다. 줄은 하나로 두고 이 조건이면 건너뛴다만 붙인다.
    * 나무는 화면이 복잡해지는 만큼 사람이 안 쓰고, 우리가 풀려는 문제는 갈래가 아니라
    * **가끔 필요 없는 단계**다(그림이 이미 작으면 압축을 건너뛴다 같은).
    *
@@ -42,27 +42,27 @@ export interface Flow {
   updatedAt: string;
   /** 남의 것을 담아 온 것이면 그 원본 id */
   forkedFrom: string | null;
-  /** 몇 번 돌았나 — 실측만. 지어낸 수는 없다. */
+  /** 몇 번 돌았나. 실측만. 지어낸 수는 없다. */
   runs: number;
   /**
    * 마지막으로 돈 자국들 (TASK-KL-182 F5). 최근 20판.
    *
-   * 왜 남기나: 흐름을 만들어 놓고 「이거 실제로 되나」를 아무도 못 봤다. 몇 번째에서 멈췄는지,
-   * 얼마나 걸렸는지가 보이면 **어느 단계가 막히는지**가 드러난다 — 그게 흐름을 고치는 유일한 단서다.
-   * 파일도 결과도 안 남긴다. 남기는 것은 **몇 번째 · 얼마나**뿐이다.
+   * 왜 남기나: 흐름을 만들어 놓고 이거 실제로 되나를 아무도 못 봤다. 몇 번째에서 멈췄는지,
+   * 얼마나 걸렸는지가 보이면 **어느 단계가 막히는지**가 드러난다. 그게 흐름을 고치는 유일한 단서다.
+   * 파일도 결과도 안 남긴다. 남기는 것은 **몇 번째, 얼마나**뿐이다.
    */
   trails?: FlowTrail[];
-  /** 때가 되면 알려 줄까 (TASK-KL-183 B). 서버가 대신 돌지는 않는다 — 알리는 것까지다. */
+  /** 때가 되면 알려 줄까 (TASK-KL-183 B). 서버가 대신 돌지는 않는다. 알리는 것까지다. */
   reminder?: { weekday: number; hour: number; lastFiredWeek: string | null };
   /**
    * 스스로 이어갈까 (TASK-KL-191 축1).
    *
-   * 「자동화」라고 적어 놓고 사람이 단계마다 **다음**을 눌러야 했다. 진짜 걸림돌은 서버가
-   * 아니라 그 클릭이다 — 결과는 이미 나왔고, 다음 도구도 이미 그 결과를 받을 줄 안다.
+   * 자동화라고 적어 놓고 사람이 단계마다 **다음**을 눌러야 했다. 진짜 걸림돌은 서버가
+   * 아니라 그 클릭이다. 결과는 이미 나왔고, 다음 도구도 이미 그 결과를 받을 줄 안다.
    *
    * 서버가 대신 도는 것은 여전히 **불가능**하다(도구가 전부 브라우저 안에서 돈다). 그러니
    * 자동은 브라우저에서 일어난다: 결과가 나오면 잠깐 세었다가 스스로 다음 도구로 간다.
-   * 세는 동안 멈출 수 있다 — 못 멈추는 자동은 자동이 아니라 덫이다.
+   * 세는 동안 멈출 수 있다. 못 멈추는 자동은 자동이 아니라 덫이다.
    */
   auto?: boolean;
 }
@@ -97,7 +97,7 @@ function isToolIdLike(value: unknown): value is string {
   return typeof value === 'string' && /^[a-z0-9][a-z0-9-]{0,39}$/.test(value);
 }
 
-/** 사람이 쓴 한 줄을 화면에 그대로 쓸 수 있는 모양으로 — 자유 HTML 은 받지 않는다. */
+/** 사람이 쓴 한 줄을 화면에 그대로 쓸 수 있는 모양으로. 자유 HTML 은 받지 않는다. */
 function clean(value: unknown, max: number): string {
   return String(value ?? '')
     .replace(/[\x00-\x1f<>]/g, '')
@@ -120,7 +120,7 @@ export class KarmolabFlowStore {
         return { version: 1, flows: parsed.flows ?? {} };
       }
     } catch (error) {
-      console.error('[karmolab-flows] 상태 파일을 못 읽었다 — 빈 상태로 시작한다:', error);
+      console.error('[karmolab-flows] 상태 파일을 못 읽었다. 빈 상태로 시작한다:', error);
     }
     return { version: 1, flows: {} };
   }
@@ -154,7 +154,7 @@ export class KarmolabFlowStore {
     return steps;
   }
 
-  /** 만들기. 단계가 하나도 없으면 흐름이 아니다 — 빈 흐름은 안 만든다. */
+  /** 만들기. 단계가 하나도 없으면 흐름이 아니다. 빈 흐름은 안 만든다. */
   create(ownerHandle: string | null, input: { title?: unknown; steps?: unknown; forkedFrom?: string | null }): Flow | null {
     const steps = this.normalizeSteps(input.steps);
     const title = clean(input.title, TITLE_MAX);
@@ -177,7 +177,7 @@ export class KarmolabFlowStore {
     return flow;
   }
 
-  /** 고치기 — 주인만. 남의 흐름은 「담아서」 자기 것으로 만든 뒤 고친다. */
+  /** 고치기. 주인만. 남의 흐름은 담아서 자기 것으로 만든 뒤 고친다. */
   update(id: string, ownerHandle: string, input: { title?: unknown; steps?: unknown }): Flow | null {
     const flow = this.state.flows[id];
     if (!flow || flow.ownerHandle !== ownerHandle) return null;
@@ -208,7 +208,7 @@ export class KarmolabFlowStore {
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
 
-  /** 공개 목록 — 많이 돈 것이 앞이다. 한 번도 안 돈 흐름은 아직 아무것도 증명하지 않았다. */
+  /** 공개 목록. 많이 돈 것이 앞이다. 한 번도 안 돈 흐름은 아직 아무것도 증명하지 않았다. */
   list(limit = 30): Flow[] {
     return Object.values(this.state.flows)
       .sort((a, b) => b.runs - a.runs || b.updatedAt.localeCompare(a.updatedAt))
@@ -216,10 +216,10 @@ export class KarmolabFlowStore {
   }
 
   /**
-   * 예약 (TASK-KL-183 B) — 「매주 월요일 아침에 이 흐름을 하라고 알려 줘」.
+   * 예약 (TASK-KL-183 B). 매주 월요일 아침에 이 흐름을 하라고 알려 줘.
    *
    * 서버가 **대신 돌지는 않는다**. 우리 도구는 전부 브라우저 안에서 도는 것이라 서버가 혼자
-   * 실행할 수 있는 것이 없다 — 할 수 있는 것은 **때가 되면 알리는 일**뿐이고, 그것을 정직하게
+   * 실행할 수 있는 것이 없다. 할 수 있는 것은 **때가 되면 알리는 일**뿐이고, 그것을 정직하게
    * 그 이름으로 부른다(자동 실행이라 부르면 안 도는 것을 돈다고 말하는 셈이다).
    */
   setReminder(id: string, ownerHandle: string, input: { weekday?: unknown; hour?: unknown; on?: unknown }): Flow | null {
@@ -238,9 +238,9 @@ export class KarmolabFlowStore {
   }
 
   /**
-   * 스스로 이어가게 할까 (TASK-KL-191 축1) — 주인만 바꾼다.
+   * 스스로 이어가게 할까 (TASK-KL-191 축1). 주인만 바꾼다.
    *
-   * 단계가 하나뿐인 흐름에는 켤 수 없다: 이어갈 다음이 없는데 「스스로 이어감」이 켜져 있으면
+   * 단계가 하나뿐인 흐름에는 켤 수 없다: 이어갈 다음이 없는데 스스로 이어감이 켜져 있으면
    * 그건 켠 적 없는 기능이 켜져 있다고 말하는 것이다.
    */
   setAuto(id: string, ownerHandle: string, on: boolean): Flow | null {
@@ -254,7 +254,7 @@ export class KarmolabFlowStore {
     return flow;
   }
 
-  /** 지금 알릴 흐름들 — 그 요일·그 시각이 지났고 이번 주에 아직 안 알린 것. */
+  /** 지금 알릴 흐름들. 그 요일, 그 시각이 지났고 이번 주에 아직 안 알린 것. */
   dueReminders(week: string, weekday: number, hour: number): Flow[] {
     return Object.values(this.state.flows).filter((flow) => {
       const reminder = flow.reminder;
@@ -282,7 +282,7 @@ export class KarmolabFlowStore {
     });
   }
 
-  /** 한 번 돌았다. 이 수만이 「쓸모 있는 흐름」을 가려낸다. */
+  /** 한 번 돌았다. 이 수만이 쓸모 있는 흐름을 가려낸다. */
   noteRun(id: string): number {
     const flow = this.state.flows[id];
     if (!flow) return 0;
@@ -292,8 +292,8 @@ export class KarmolabFlowStore {
   }
 
   /**
-   * 한 판이 끝났다(또는 도중에 멈췄다) — 자국 한 줄 (TASK-KL-182 F5).
-   * 남기는 것은 **몇 번째까지 갔나 · 얼마나 걸렸나**뿐이다. 파일도 결과도 안 남긴다.
+   * 한 판이 끝났다(또는 도중에 멈췄다). 자국 한 줄 (TASK-KL-182 F5).
+   * 남기는 것은 **몇 번째까지 갔나, 얼마나 걸렸나**뿐이다. 파일도 결과도 안 남긴다.
    */
   noteTrail(id: string, input: { reached: unknown; finished: unknown; seconds?: unknown }): FlowTrail[] {
     const flow = this.state.flows[id];
@@ -309,7 +309,7 @@ export class KarmolabFlowStore {
 
   /**
    * 이 흐름이 어디서 막히나 (TASK-KL-182 F5).
-   * 끝까지 간 비율과 **가장 자주 멈추는 단계**를 준다 — 지어낸 수는 없고, 자국이 없으면 null.
+   * 끝까지 간 비율과 **가장 자주 멈추는 단계**를 준다. 지어낸 수는 없고, 자국이 없으면 null.
    */
   trailSummary(id: string): { runs: number; finished: number; stuckStep: number | null; medianSeconds: number | null } | null {
     const flow = this.state.flows[id];
@@ -327,7 +327,7 @@ export class KarmolabFlowStore {
     return { runs: trails.length, finished, stuckStep, medianSeconds };
   }
 
-  /** 계정을 지울 때 — 흐름은 남기고 주인만 지운다(남이 담아 간 것이 안 죽게). */
+  /** 계정을 지울 때. 흐름은 남기고 주인만 지운다(남이 담아 간 것이 안 죽게). */
   orphanOwner(ownerHandle: string): number {
     let count = 0;
     for (const flow of Object.values(this.state.flows)) {

@@ -1,7 +1,7 @@
 {
   "ladder.mdd": "Ask the ladder, not me.",
-  "ladder.label.names": "Players — one per line",
-  "ladder.label.prizes": "Outcomes — one per line (empty means win/lose)",
+  "ladder.label.names": "Players. one per line",
+  "ladder.label.prizes": "Outcomes. one per line (empty means win/lose)",
   "ladder.ph.names": "Ann\nBen\nCara\nDan",
   "ladder.ph.prizes": "Coffee\nnope\nnope\nnope",
   "ladder.sample.names": "Ann\nBen\nCara\nDan",
@@ -14,6 +14,6 @@
   "ladder.prize.win": "Win",
   "ladder.prize.lose": "Nope",
   "ladder.copy.done": "Outcome copied",
-  "ladder.say.ready": "{n} players · click a name at the top to follow its path.",
+  "ladder.say.ready": "{n} players, click a name at the top to follow its path.",
   "ladder.name": "Ladder"
 }

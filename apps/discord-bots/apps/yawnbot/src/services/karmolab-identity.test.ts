@@ -27,13 +27,13 @@ describe('identityOf', () => {
     expect(a.personKey).toBe(b.personKey);
   });
 
-  it('같은 IP 라도 기기가 다르면 다른 사람이다 — 같은 카페의 두 사람', () => {
+  it('같은 IP 라도 기기가 다르면 다른 사람이다. 같은 카페의 두 사람', () => {
     const a = identityOf(reqOf({ [DEVICE_HEADER]: DEVICE, 'user-agent': 'chrome' }));
     const b = identityOf(reqOf({ [DEVICE_HEADER]: 'ffffffffffffffffffffffff', 'user-agent': 'chrome' }));
     expect(a.personKey).not.toBe(b.personKey);
   });
 
-  it('상한을 거는 키는 언제나 IP — 기기가 달라도 같다', () => {
+  it('상한을 거는 키는 언제나 IP. 기기가 달라도 같다', () => {
     const a = identityOf(reqOf({ [DEVICE_HEADER]: DEVICE }));
     const b = identityOf(reqOf({ [DEVICE_HEADER]: 'ffffffffffffffffffffffff' }));
     expect(a.abuseKey).toBe(b.abuseKey);
@@ -46,7 +46,7 @@ describe('identityOf', () => {
     expect(cookie.personKey).toBe(head.personKey);
   });
 
-  it('기기 id 가 없으면 옛 방식(IP+UA)으로 떨어진다 — 쿠키를 막은 사람도 같이 쓴다', () => {
+  it('기기 id 가 없으면 옛 방식(IP+UA)으로 떨어진다. 쿠키를 막은 사람도 같이 쓴다', () => {
     const a = identityOf(reqOf({ 'user-agent': 'chrome' }));
     const b = identityOf(reqOf({ 'user-agent': 'chrome' }));
     const c = identityOf(reqOf({ 'user-agent': 'firefox' }));
@@ -55,7 +55,7 @@ describe('identityOf', () => {
     expect(a.personKey).not.toBe(c.personKey);
   });
 
-  it('없으면 심는다 — 답을 줄 자리가 있을 때만', () => {
+  it('없으면 심는다. 답을 줄 자리가 있을 때만', () => {
     const { res, cookies } = resSpy();
     const made = identityOf(reqOf({}), res);
     expect(made.deviceId).toMatch(/^[a-f0-9]{24}$/);
@@ -65,7 +65,7 @@ describe('identityOf', () => {
     expect(identityOf(reqOf({})).deviceId).toBe(null);
   });
 
-  it('한 요청 안에서는 답이 안 바뀐다 — 심은 그 요청도 새 id 로 센다', () => {
+  it('한 요청 안에서는 답이 안 바뀐다. 심은 그 요청도 새 id 로 센다', () => {
     const { res } = resSpy();
     const req = reqOf({ 'user-agent': 'chrome' });
     const first = identityOf(req, res);

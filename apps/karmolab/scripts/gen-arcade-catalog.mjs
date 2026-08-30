@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
- * 오락실 명패 굽기 — 로비가 **게임 코드 없이** 목록을 그릴 수 있게 (TASK-KL-242 쪼개기)
+ * 오락실 명패 굽기. 로비가 **게임 코드 없이** 목록을 그릴 수 있게 (TASK-KL-242 쪼개기)
  *
  * 왜: 로비만 열어도 게임 51개가 통째로 딸려 왔다(`arcade.js` gzip 94.5KB, 천장 64KB).
- * 로비가 진짜 필요한 건 이름표뿐이다 — 그림·갈래·자리 수·실시간 여부. 규칙과 화면은
+ * 로비가 진짜 필요한 건 이름표뿐이다. 그림, 갈래, 자리 수, 실시간 여부. 규칙과 화면은
  * **누를 때** 조각으로 받는다(`arcade/games/<조각>.js`).
  *
  * 정본은 그대로 `catalog.ts` 한 곳이다. 이 파일은 거기서 **파생**만 한다:
- *   · `src/widgets/arcade/catalog-meta.generated.ts` — 로비가 읽는 명패 51줄
- *   · 각 줄의 `chunk` = 그 게임 조각 파일 이름 (`build.mjs` 가 그 이름으로 굽는다)
+ *  , `src/widgets/arcade/catalog-meta.generated.ts`. 로비가 읽는 명패 51줄
+ *  , 각 줄의 `chunk` = 그 게임 조각 파일 이름 (`build.mjs` 가 그 이름으로 굽는다)
  *
- * 자리 수·실시간 여부는 **규칙 파일 안에** 있어서 글자로 못 읽는다 — 그래서 카탈로그를
+ * 자리 수, 실시간 여부는 **규칙 파일 안에** 있어서 글자로 못 읽는다. 그래서 카탈로그를
  * 한 번 **묶어서 돌려** 진짜 값을 꺼낸다(추측한 값을 적으면 언젠가 갈라진다).
  *
  * 사용: node scripts/gen-arcade-catalog.mjs
@@ -32,7 +32,7 @@ for (const m of src.matchAll(/import\s*\{\s*([\w$]+)\s*\}\s*from\s*'\.\/games\/(
   modOf.set(m[1], m[2]);
 }
 
-/* ② 줄 차례대로 규칙·화면이 어느 파일에서 왔나 */
+/* ② 줄 차례대로 규칙, 화면이 어느 파일에서 왔나 */
 const body = src.slice(src.indexOf('export const CATALOG'));
 const rows = [...body.matchAll(/\{\s*def:\s*([\w$]+),\s*view:\s*([\w$]+),/g)].map((m) => ({
   defMod: modOf.get(m[1]),
@@ -47,7 +47,7 @@ if (orphans.length) {
   process.exit(1);
 }
 
-/* ③ 진짜 값(id·자리 수·실시간)은 돌려서 꺼낸다 */
+/* ③ 진짜 값(id, 자리 수, 실시간)은 돌려서 꺼낸다 */
 const tmp = mkdtempSync(join(tmpdir(), 'kl-arcade-'));
 let CATALOG;
 try {
@@ -72,7 +72,7 @@ if (!Array.isArray(CATALOG) || CATALOG.length !== rows.length) {
 }
 
 /* 이 판에 **입체 화면**이 있나 = `games/<조각>-view3d.ts` 가 실재하나.
-   명부에 손으로 적지 않는다 — 파일을 만들면 그날 켜지고, 지우면 그날 꺼진다. */
+   명부에 손으로 적지 않는다. 파일을 만들면 그날 켜지고, 지우면 그날 꺼진다. */
 const has3d = (chunk) => existsSync(join(root, 'src/widgets/arcade/games', `${chunk}-view3d.ts`));
 
 const meta = CATALOG.map((e, i) => ({
@@ -81,6 +81,7 @@ const meta = CATALOG.map((e, i) => ({
   kind: e.kind,
   seats: [e.def.seats[0], e.def.seats[1]],
   realtime: e.def.realtime === true,
+  hidden: e.hidden === true,
   chunk: rows[i].defMod,
   view: rows[i].viewMod,
   defVar: rows[i].defVar,
@@ -101,16 +102,16 @@ const lines = meta
     (m) =>
       `  { id: ${q(m.id)}, icon: ${q(m.icon)}, kind: ${q(m.kind)}` +
       `, seats: [${m.seats[0]}, ${m.seats[1]}], realtime: ${m.realtime}, chunk: ${q(m.chunk)}` +
-      (m.d3 ? ', d3: true' : '') + ` }`
+      (m.d3 ? ', d3: true' : '') + (m.hidden ? ', hidden: true' : '') + ` }`
   )
   .join(',' + NL);
 
 const ts =
   `/* `.trim() +
-  `* **구운 파일이다 — 손으로 고치지 마라.** 정본 = \`catalog.ts\`, 굽는 놈 = \`scripts/gen-arcade-catalog.mjs\`.` + NL +
+  `* **구운 파일이다. 손으로 고치지 마라.** 정본 = \`catalog.ts\`, 굽는 놈 = \`scripts/gen-arcade-catalog.mjs\`.` + NL +
   ` *` + NL +
-  ` * 로비가 목록을 그리는 데 필요한 것만 담았다(그림·갈래·자리 수·실시간 여부).` + NL +
-  ` * 규칙과 화면은 여기 없다 — 누를 때 \`arcade/games/<chunk>.js\` 로 받는다.` + NL +
+  ` * 로비가 목록을 그리는 데 필요한 것만 담았다(그림, 갈래, 자리 수, 실시간 여부).` + NL +
+  ` * 규칙과 화면은 여기 없다. 누를 때 \`arcade/games/<chunk>.js\` 로 받는다.` + NL +
   ` */` + NL +
   `import type { Kind } from './meta';` + NL + NL +
   `export interface GameCard {` + NL +
@@ -119,21 +120,26 @@ const ts =
   `  kind: Kind;` + NL +
   `  seats: [min: number, max: number];` + NL +
   `  realtime: boolean;` + NL +
-  `  /** 이 게임 조각 파일 이름 — \`arcade/games/<chunk>.js\` */` + NL +
+  `  /** 이 게임 조각 파일 이름. \`arcade/games/<chunk>.js\` */` + NL +
   `  chunk: string;` + NL +
-  `  /** 입체 화면이 있나 (\`games/<chunk>-view3d.ts\` 실재) — 있으면 2D/3D 를 사람이 고른다 */` + NL +
+  `  /** 입체 화면이 있나 (\`games/<chunk>-view3d.ts\` 실재). 있으면 2D/3D 를 사람이 고른다 */` + NL +
   `  d3?: boolean;` + NL +
+  `  /** 로비에 안 보인다. 주소로 들어온 방과 다시보기는 그대로 돈다 */` + NL +
+  `  hidden?: boolean;` + NL +
   `}` + NL + NL +
-  `export const CARDS: GameCard[] = [` + NL +
+  `/** 감춘 것까지 전부. 이름표를 찾을 때만 쓴다 */` + NL +
+  `export const ALL_CARDS: GameCard[] = [` + NL +
   lines + NL +
   `];` + NL + NL +
-  `export const cardById = (id: string): GameCard | undefined => CARDS.find((c) => c.id === id);` + NL;
+  `/** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */` + NL +
+  `export const CARDS: GameCard[] = ALL_CARDS.filter((c) => !c.hidden);` + NL + NL +
+  `export const cardById = (id: string): GameCard | undefined => ALL_CARDS.find((c) => c.id === id);` + NL;
 
 writeFileSync(join(root, 'src/widgets/arcade/catalog-meta.generated.ts'), '/*' + ts.slice(2), 'utf8');
-/* 조각 굽기가 읽는 표 — 이름 → 규칙 파일 · 화면 파일 */
+/* 조각 굽기가 읽는 표. 이름 → 규칙 파일, 화면 파일 */
 writeFileSync(
   join(root, 'src/widgets/arcade/chunks.generated.json'),
   JSON.stringify(meta.map((m) => ({ id: m.id, chunk: m.chunk, view: m.view, defVar: m.defVar, viewVar: m.viewVar, d3: m.d3 })), null, 2) + NL,
   'utf8'
 );
-console.log(`[gen-arcade-catalog] 명패 ${meta.length}개 → catalog-meta.generated.ts · 조각 표 ${meta.length}개`);
+console.log(`[gen-arcade-catalog] 명패 ${meta.length}개 → catalog-meta.generated.ts, 조각 표 ${meta.length}개`);

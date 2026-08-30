@@ -1,11 +1,11 @@
 /**
  * PDF 에서 글자 뽑기 (TASK-KL-088)
  *
- * 논문·계약서·안내문에서 한 문단만 인용하려고 드래그하면 줄마다 끊기거나 아예 안 잡힌다.
- * PDF 는 「글자가 놓인 자리」만 담고 있어서, 줄과 문단은 **좌표를 보고 되살려야** 한다.
+ * 논문, 계약서, 안내문에서 한 문단만 인용하려고 드래그하면 줄마다 끊기거나 아예 안 잡힌다.
+ * PDF 는 글자가 놓인 자리만 담고 있어서, 줄과 문단은 **좌표를 보고 되살려야** 한다.
  *
  * 그래서 이 도구는 단순 추출이 아니라 ① 줄을 y 좌표로 묶고 ② 줄 간격이 벌어지면 문단으로 끊는다.
- * 그리고 스캔 문서라 글자가 아예 없으면 **빈 결과를 성공처럼 내놓지 않고** 그렇다고 말한다 —
+ * 그리고 스캔 문서라 글자가 아예 없으면 **빈 결과를 성공처럼 내놓지 않고** 그렇다고 말한다 . 
  * 그게 이 도구에서 가장 흔한 헛걸음이다.
  */
 import { statusLine } from './shared/say';
@@ -24,7 +24,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
   }
 
   /**
-   * 글자 조각들을 사람이 읽는 줄·문단으로 되살린다.
+   * 글자 조각들을 사람이 읽는 줄, 문단으로 되살린다.
    * PDF 는 조각을 아무 순서로나 담을 수 있어, 자리(y)로 줄을 묶고 x 로 정렬해야 한다.
    */
   function legacyRebuild(items: TextItem[]): string {
@@ -40,7 +40,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
       if (line) line.parts.push({ x, s });
       else lines.push({ y, parts: [{ x, s }] });
     }
-    // PDF 의 y 는 아래에서 위로 커진다 — 위에서 아래 순서로 읽으려면 내림차순
+    // PDF 의 y 는 아래에서 위로 커진다. 위에서 아래 순서로 읽으려면 내림차순
     lines.sort((a, b) => b.y - a.y);
 
     const out: string[] = [];
@@ -74,11 +74,11 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdf2text.title', undefined, 'PDF 에서 글자 뽑기'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdf2text.desc',
       undefined,
-      'PDF 의 글자를 줄·문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다'
+      'PDF 의 글자를 줄, 문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -141,8 +141,8 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
           let doc: PdfJsDoc | null = null;
           let pdfjs: PdfJs | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function parseRange(spec: string, total: number): number[] {
@@ -238,7 +238,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
           {
             Toolbox.onHandoff?.('pdf2text', (f: File) => void load(f));
           }
@@ -257,7 +257,7 @@ import { rebuildTextItems as rebuild } from '../../core/pdf2text';
             const name = fileName.replace(/\.pdf$/i, '') + '.txt';
             download(blob, name);
             say(t('pdf2text.say.saved'), 'ok');
-            /* 뽑은 글은 대개 **다음에 손본다**(정리·비교·표기법) — 이어서 쓰게 내놓는다 (TASK-KL-298). */
+            /* 뽑은 글은 대개 **다음에 손본다**(정리, 비교, 표기법). 이어서 쓰게 내놓는다 (TASK-KL-298). */
             Toolbox.offerNext?.(status, { blob, name, from: 'pdf2text' });
           };
   }

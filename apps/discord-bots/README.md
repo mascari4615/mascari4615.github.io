@@ -4,9 +4,9 @@
 
 ## 앱 목록
 
-- `apps/yawnbot`: 게임/슬래시/음성/AI/Unity 무료 에셋·긱뉴스 알림 통합 봇 — 앱별 요약은 [`apps/yawnbot/README.md`](apps/yawnbot/README.md)
+- `apps/yawnbot`: 게임/슬래시/음성/AI/Unity 무료 에셋, 긱뉴스 알림 통합 봇. 앱별 요약은 [`apps/yawnbot/README.md`](apps/yawnbot/README.md)
 
-> 이전 `apps/atkup-bot` (Unity 무료·긱뉴스 알림 별도 봇) 은 TASK-YB-003 (2026-05) 에서 yawnbot 안 `services/notifiers/` + `/atkup` 슬래시로 흡수 폐기. 봇 1개 / 토큰 1개 / `.env` 1개로 운영 통합.
+> 이전 `apps/atkup-bot` (Unity 무료, 긱뉴스 알림 별도 봇) 은 TASK-YB-003 (2026-05) 에서 yawnbot 안 `services/notifiers/` + `/atkup` 슬래시로 흡수 폐기. 봇 1개 / 토큰 1개 / `.env` 1개로 운영 통합.
 
 ## 설치
 

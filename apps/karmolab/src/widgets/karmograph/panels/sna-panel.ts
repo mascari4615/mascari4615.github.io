@@ -1,7 +1,7 @@
 /**
- * panels/sna-panel.ts — 관계망 읽기 (TASK-KL-202 개편 2, 두 번째 이사).
+ * panels/sna-panel.ts. 관계망 읽기 (TASK-KL-202 개편 2, 두 번째 이사).
  *
- * 계산은 `sna.ts` 가 이미 따로였고, 남은 건 그리기와 「가기」 버튼뿐이라 옮기기 쉬웠다.
+ * 계산은 `sna.ts` 가 이미 따로였고, 남은 건 그리기와 가기 버튼뿐이라 옮기기 쉬웠다.
  */
 import { computeSna, topBy, structuralGaps } from '../sna';
 import { snaLines, islandCount } from '../sna-words';
@@ -17,13 +17,13 @@ export function renderSnaPanel(ctx: PanelCtx): void {
   ctx.canvas()?.setSelectedNode(null);
 
   const raw = ctx.canvas()?.getSpec() ?? ctx.spec();
-  /* 판을 **읽어 세는 곳**도 시점을 따른다 (KL-271 X2) — 화면과 설명이 어긋나면 둘 중 하나가
-     틀린 것보다 나쁘다. 「2부를 보는데 관계망은 1부 것」이 그 꼴이었다. */
+  /* 판을 **읽어 세는 곳**도 시점을 따른다 (KL-271 X2). 화면과 설명이 어긋나면 둘 중 하나가
+     틀린 것보다 나쁘다. 2부를 보는데 관계망은 1부 것이 그 꼴이었다. */
   const live = { ...raw, edges: resolveEdges(raw.edges, raw._meta?.time ?? '') };
   const sna = computeSna({ nodes: live.nodes, edges: live.edges });
   const nameOf = (id: string): string => live.nodes.find((n) => n.id === id)?.label || t('karmograph.unnamed');
 
-  // 순위만으로는 「그래서 뭘 하지」가 안 나온다 — 이을 자리를 짚어 준다.
+  // 순위만으로는 그래서 뭘 하지가 안 나온다. 이을 자리를 짚어 준다.
   const gaps = structuralGaps({ nodes: live.nodes, edges: live.edges });
 
   const list = (title: string, hint: string, rows: { id: string; value: number }[], digits: number): string => `
@@ -39,8 +39,8 @@ export function renderSnaPanel(ctx: PanelCtx): void {
           </div>`).join('')}
     </div>`;
 
-  /* ★ **숫자 앞에 말 한 줄** (TASK-KL-271 L2). 「연결 3.4 · 다리 0.21」은 이미 아는 사람에게만
-     말을 건다 — 처음 보는 사람에게는 「그래서 뭐?」로 끝나 열어 보고 닫는 칸이었다.
+  /* ★ **숫자 앞에 말 한 줄** (TASK-KL-271 L2). 연결 3.4, 다리 0.21은 이미 아는 사람에게만
+     말을 건다. 처음 보는 사람에게는 그래서 뭐?로 끝나 열어 보고 닫는 칸이었다.
      무슨 말을 할지는 `sna-words` 가 정하고(검사로 잠근다), 여기서는 말만 골라 끼운다. */
   const topDeg = topBy(sna.degree, 1)[0];
   const topBtw = topBy(sna.betweenness, 1)[0];
@@ -59,12 +59,12 @@ export function renderSnaPanel(ctx: PanelCtx): void {
     .map((l) => `<div class="km-said-line">${t(`karmograph.said.${l.kind}`, l.vars as Record<string, string>)}</div>`)
     .join('')}</div>`;
 
-  /* ★ **아직 안 적은 칸** (TASK-KL-271 L6). 위의 「이어질 법한데 안 이어진 사이」와 짝이다 —
+  /* ★ **아직 안 적은 칸** (TASK-KL-271 L6). 위의 이어질 법한데 안 이어진 사이와 짝이다 . 
      이건 **적힐 법한데 안 적힌 칸**. 카드를 하나씩 눌러 보지 않으면 알 수 없던 것이라
-     세계관을 짓는 사람이 가장 자주 하는 질문(「무엇을 더 채워야 하나」)에 도구가 처음 답한다. */
-  /* ★ **무리** (TASK-KL-271 L3). 관계망 칸은 「끊긴 덩어리」는 세지만, 다 이어져 있는 판 안에서
-     「누가 누구랑 한 패인가」는 안 말했다 — 학교 무리와 가족 무리가 한 사람으로만 붙어 있어도
-     눈으로는 그 경계가 안 보인다. Gephi·Kumu 가 파는 자리. */
+     세계관을 짓는 사람이 가장 자주 하는 질문(무엇을 더 채워야 하나)에 도구가 처음 답한다. */
+  /* ★ **무리** (TASK-KL-271 L3). 관계망 칸은 끊긴 덩어리는 세지만, 다 이어져 있는 판 안에서
+     누가 누구랑 한 패인가는 안 말했다. 학교 무리와 가족 무리가 한 사람으로만 붙어 있어도
+     눈으로는 그 경계가 안 보인다. Gephi, Kumu 가 파는 자리. */
   const clusters = findClusters(live.nodes.map((n) => n.id), live.edges);
   const cluHtml = !clustersWorthTelling(clusters) ? '' : `<div class="km-field">
       <label>${esc(t('karmograph.clusters.head'))}</label>
@@ -72,7 +72,7 @@ export function renderSnaPanel(ctx: PanelCtx): void {
       <div class="km-clu-line">${esc(t('karmograph.clusters.line', {
         n: String(clusters.length),
         size: String(clusters[0].members.length),
-        names: clusters[0].members.slice(0, 3).map(nameOf).join(' · '),
+        names: clusters[0].members.slice(0, 3).map(nameOf).join(', '),
       }))}</div>
     </div>`;
 
@@ -88,8 +88,8 @@ export function renderSnaPanel(ctx: PanelCtx): void {
 
   side.innerHTML = `
     <h4>${esc(t('karmograph.list.msg3'))}</h4>
-    <!-- ★ **말이 먼저, 숫자가 나중** (KL-271 L2 의 뜻). 무리·안 적은 칸도 「읽으면 바로 아는 말」인데
-         숫자 목록 셋 뒤에 있어서 접힌 자리 밖으로 밀려났다(실측 2026-08-14: 684·756px / 보이는 795px —
+    <!-- ★ **말이 먼저, 숫자가 나중** (KL-271 L2 의 뜻). 무리, 안 적은 칸도 읽으면 바로 아는 말인데
+         숫자 목록 셋 뒤에 있어서 접힌 자리 밖으로 밀려났다(실측 2026-08-14: 684, 756px / 보이는 795px . 
          카드가 조금만 늘면 안 보인다). 말끼리 앞에 모은다. -->
     ${saidHtml}
     ${cluHtml}

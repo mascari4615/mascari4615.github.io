@@ -1,6 +1,6 @@
-/* 오늘의 하나 맞히기 (TASK-KAR-202) — 주제와 무관한 껍데기. 주제별 색은 --accent 하나로만 바뀐다. */
+/* 오늘의 하나 맞히기 (TASK-KAR-202). 주제와 무관한 껍데기. 주제별 색은 --accent 하나로만 바뀐다. */
 :root {
-  /* 색은 KarmoLab 이 정본이다 (TASK-KL-089) — 여기서 새로 정하지 않고 그 값을 잇는다.
+  /* 색은 KarmoLab 이 정본이다 (TASK-KL-089). 여기서 새로 정하지 않고 그 값을 잇는다.
      놀이마다 제 색을 박으면 같은 사이트로 안 보인다. 이름은 이 앱이 쓰던 것을 그대로 둔다. */
   --bg: #0e0d14;        /* KarmoLab bg-void */
   --panel: #16151f;     /* bg-primary */
@@ -10,17 +10,17 @@
   --ink-2: #9a9a94;     /* text-secondary */
   --ink-3: #7a7a75;     /* text-tertiary */
   --accent: #a99bf5;    /* 브랜드 연보라 */
-  /* 맞음·비슷함·틀림은 놀이에만 있는 뜻이라 여기서 정한다 — 대비를 재서 고른 값이다. */
+  /* 맞음, 비슷함, 틀림은 놀이에만 있는 뜻이라 여기서 정한다. 대비를 재서 고른 값이다. */
   --exact: #286b43;
   --near: #775e1a;
   --wrong: #2b2937;
-  --radius: 8px;        /* KarmoLab radius-xl — 앱이 각진 쪽이라 12px 는 혼자 둥글었다 */
+  --radius: 8px;        /* KarmoLab radius-xl. 앱이 각진 쪽이라 12px 는 혼자 둥글었다 */
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 
-/* 눈에는 안 보이지만 화면 낭독기는 읽는 글. 색·화살표로만 알려 주면 안 되는 내용을 여기 담는다. */
+/* 눈에는 안 보이지만 화면 낭독기는 읽는 글. 색, 화살표로만 알려 주면 안 되는 내용을 여기 담는다. */
 .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 body {
@@ -59,7 +59,7 @@ a { color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 .home {
-  /* 손가락 자리 — 재 보니 25px 이었다. 헤더에서 자주 누르는 것이라 40 으로 올린다. */
+  /* 손가락 자리. 재 보니 25px 이었다. 헤더에서 자주 누르는 것이라 40 으로 올린다. */
   display: inline-flex;
   align-items: center;
   min-height: 40px;
@@ -79,7 +79,7 @@ a { color: var(--accent); }
 }
 
 /* ── 모드 탭 + 연속 기록 ── */
-/* 판이 넷이 되면서 한 줄에 안 들어간다 — 좁은 화면(글자 200%)에서 통째로 넘쳤다.
+/* 판이 넷이 되면서 한 줄에 안 들어간다. 좁은 화면(글자 200%)에서 통째로 넘쳤다.
    줄바꿈을 허용한다: 넘치는 것보다 두 줄이 낫다. 연속 기록은 계속 오른쪽 끝. */
 .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; }
 .tab {
@@ -100,7 +100,7 @@ a { color: var(--accent); }
 .streak { margin-left: auto; font-size: 13px; color: var(--ink-2); }
 .streak b { color: var(--accent); }
 
-/* 저장이 막혔을 때 — 조용히 넘기면 새로고침 한 번에 진행이 사라지고 이유를 모른다. */
+/* 저장이 막혔을 때. 조용히 넘기면 새로고침 한 번에 진행이 사라지고 이유를 모른다. */
 .warn {
   background: rgba(120, 40, 40, 0.9);
   border-radius: var(--radius);
@@ -109,7 +109,7 @@ a { color: var(--accent); }
   margin: 0 0 12px;
 }
 
-/* 자정을 넘겨 창을 열어 둔 사람에게 — 지금 보는 게 어제 문제라고 말해 준다. */
+/* 자정을 넘겨 창을 열어 둔 사람에게. 지금 보는 게 어제 문제라고 말해 준다. */
 .newday {
   display: flex;
   flex-wrap: wrap;
@@ -156,7 +156,7 @@ a { color: var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) { .shot img { transition: none; } }
 
-/* 그림이 오는 중인지 끝내 못 왔는지 말해 준다 — 까만 상자만 두면 규칙인 줄 안다. */
+/* 그림이 오는 중인지 끝내 못 왔는지 말해 준다. 까만 상자만 두면 규칙인 줄 안다. */
 .shot { position: relative; }
 .shot-note {
   position: absolute;
@@ -210,7 +210,7 @@ a { color: var(--accent); }
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 }
 .sug:empty { display: none; }
-/* 없는 이름·이미 낸 이름일 때 — 침묵하면 사람은 고장으로 읽는다. */
+/* 없는 이름, 이미 낸 이름일 때. 침묵하면 사람은 고장으로 읽는다. */
 .sug-none { margin: 0; padding: 12px 14px; color: var(--ink-2); font-size: 13.5px; }
 .sug button {
   display: flex;
@@ -229,12 +229,12 @@ a { color: var(--accent); }
 .sug button[aria-selected='true'],
 .sug button:hover { background: rgba(255, 255, 255, 0.07); }
 
-/* 첫 한 수의 문턱 — 이름이 안 떠올라 못 시작하는 사람을 위한 시작점. */
+/* 첫 한 수의 문턱. 이름이 안 떠올라 못 시작하는 사람을 위한 시작점. */
 .seeds { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 2px 0; }
 .seeds:empty { display: none; }
 .seeds span { color: var(--ink-3); font-size: 12.5px; margin-right: 2px; }
 .seeds button {
-  /* 첫 한 수를 여는 단추다 — 재 보니 29px 이라 잘못 누르기 쉬웠다. 44 로. */
+  /* 첫 한 수를 여는 단추다. 재 보니 29px 이라 잘못 누르기 쉬웠다. 44 로. */
   min-height: 44px;
   background: var(--panel-2);
   border: 1px solid var(--line);
@@ -253,7 +253,7 @@ a { color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 
-/* 첫 줄이 뜬 자리에서 읽는 법을 알려 준다 — 규칙은 위에 있고 결과는 아래에 뜬다. */
+/* 첫 줄이 뜬 자리에서 읽는 법을 알려 준다. 규칙은 위에 있고 결과는 아래에 뜬다. */
 .legend {
   display: flex;
   flex-wrap: wrap;
@@ -305,7 +305,7 @@ a { color: var(--accent); }
 .cell .k {
   display: block;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.82); /* 0.62 였을 때 초록·노랑 칸에서 3:1 도 못 넘었다 */
+  color: rgba(255, 255, 255, 0.82); /* 0.62 였을 때 초록, 노랑 칸에서 3:1 도 못 넘었다 */
   letter-spacing: 0.02em;
 }
 .cell .v {
@@ -318,7 +318,7 @@ a { color: var(--accent); }
 .cell.exact { background: var(--exact); }
 .cell.near { background: var(--near); }
 .cell.wrong { background: var(--wrong); }
-/* 색만으로 알려주지 않는다 — 화살표·물결이 같은 뜻을 글자로 실어 나른다. */
+/* 색만으로 알려주지 않는다. 화살표, 물결이 같은 뜻을 글자로 실어 나른다. */
 .cell .mark { font-size: 11px; opacity: 0.9; }
 
 /* ── 끝난 뒤 ── */
@@ -355,13 +355,13 @@ a { color: var(--accent); }
 .next { color: var(--ink-3); font-size: 13px; margin-top: 10px; font-variant-numeric: tabular-nums; }
 .tally { color: var(--ink-2); font-size: 13px; margin: 6px 0 12px; font-variant-numeric: tabular-nums; }
 
-/* 몇 번 만에 맞혔나 — 양을 견주는 일이라 가로 막대. 색은 한 가지고, 숫자를 늘 같이 적는다. */
+/* 몇 번 만에 맞혔나. 양을 견주는 일이라 가로 막대. 색은 한 가지고, 숫자를 늘 같이 적는다. */
 .dist { margin: 4px 0 14px; text-align: left; }
 .dist[hidden] { display: none; }
 .dist-t { color: var(--ink-3); font-size: 12px; margin-bottom: 6px; text-align: center; }
 .dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12.5px; }
 .dist-row .k { width: 34px; flex: none; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
-/* 막대는 제 칸(track) 안에서만 자란다 — 안 그러면 옆 숫자 자리를 먹어 글자가 세로로 눌린다. */
+/* 막대는 제 칸(track) 안에서만 자란다. 안 그러면 옆 숫자 자리를 먹어 글자가 세로로 눌린다. */
 .dist-row .track { flex: 1 1 auto; min-width: 0; }
 .dist-row .bar {
   display: block;
@@ -374,7 +374,7 @@ a { color: var(--accent); }
 .dist-row .n { flex: none; min-width: 52px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dist-row.now .n { color: var(--ink); font-weight: 700; }
 
-/* 끝난 사람에게 건네는 다음 판 — 이 자리가 이 물건에서 가장 값진 자리다. */
+/* 끝난 사람에게 건네는 다음 판. 이 자리가 이 물건에서 가장 값진 자리다. */
 .more {
   display: flex;
   flex-wrap: wrap;
@@ -399,7 +399,7 @@ a { color: var(--accent); }
 .more .more-all { background: none; border-style: dashed; color: var(--ink-2); }
 
 /* ── 지난 문제 ── */
-/* 글자를 크게 키우면 표가 화면보다 넓어진다 — 페이지 전체가 옆으로 밀리는 대신 표 안에서만 밀린다. */
+/* 글자를 크게 키우면 표가 화면보다 넓어진다. 페이지 전체가 옆으로 밀리는 대신 표 안에서만 밀린다. */
 .past-scroll { overflow-x: auto; }
 table.past { width: 100%; border-collapse: collapse; }
 table.past th, table.past td {
@@ -410,7 +410,7 @@ table.past th, table.past td {
 }
 table.past th { width: 84px; font-weight: 500; }
 table.past th, table.past td { vertical-align: top; }
-/* 날짜가 「2026-08-」/「06」 으로 쪼개지면 못 읽는다 — 한 줄로 붙여 둔다. */
+/* 날짜가 2026-08-/06 으로 쪼개지면 못 읽는다. 한 줄로 붙여 둔다. */
 table.past .d { display: block; font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.past .n { display: block; font-size: 11px; color: var(--ink-3); }
 table.past .mo { display: block; font-size: 10.5px; color: var(--ink-3); }
@@ -420,8 +420,8 @@ table.past b { font-size: 14px; }
 .past-more:empty { display: none; }
 .past-more button { min-height: 44px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); font-size: 13px; padding: 8px 20px; cursor: pointer; }
 .past-more button:hover { color: var(--ink); border-color: var(--accent); }
-/* 표 안이라 44 는 과하지만 23px 은 너무 작았다 — 36 으로. */
-/* 답은 단추다 — 가려 둔 동안에도 눌러 열 수 있게. 겉보기는 그냥 글이다. */
+/* 표 안이라 44 는 과하지만 23px 은 너무 작았다. 36 으로. */
+/* 답은 단추다. 가려 둔 동안에도 눌러 열 수 있게. 겉보기는 그냥 글이다. */
 table.past .a {
   display: inline-flex;
   align-items: center;
@@ -436,10 +436,10 @@ table.past .a {
   text-align: left;
   cursor: default;
 }
-/* 「풀어보기」 옆에 답이 그대로 있으면 연습이 성립하지 않는다 — 글자는 두고 흐리게만 한다. */
+/* 풀어보기 옆에 답이 그대로 있으면 연습이 성립하지 않는다. 글자는 두고 흐리게만 한다. */
 table.past.hide .a { filter: blur(7px); opacity: 0.6; cursor: pointer; user-select: none; }
 table.past.hide td.on .a { filter: none; opacity: 1; cursor: default; user-select: auto; }
-/* 탭으로 지나가기만 해도 열리면 안 된다 — 테두리만 준다. 열리는 건 누를 때. */
+/* 탭으로 지나가기만 해도 열리면 안 된다. 테두리만 준다. 열리는 건 누를 때. */
 table.past .a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) { table.past .a { transition: filter 0.15s ease-out, opacity 0.15s ease-out; } }
 
@@ -457,7 +457,7 @@ table.past .a:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .past-reveal button:hover { color: var(--ink); border-color: var(--accent); }
 .past-reveal button[aria-pressed='true'] { color: var(--ink); border-color: var(--ink-3); }
 
-/* 판마다 하나씩 — 답 밑에 붙는다. */
+/* 판마다 하나씩. 답 밑에 붙는다. */
 table.past .play { display: flex; width: fit-content; align-items: center; min-height: 36px; margin-top: 2px; font-size: 11.5px; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
 table.past .play:hover { border-color: var(--accent); }
 .tab.practice { background: var(--near); color: #fff; border-color: transparent; }
@@ -466,15 +466,15 @@ table.past .play:hover { border-color: var(--accent); }
 .foot a { color: var(--ink-2); }
 
 /* ── 허브 ── */
-/* 판이 주제 × 모드라 평면으로 늘어놓으면 주제가 늘수록 어지럽다 — 주제로 묶어 구조가 보이게. */
+/* 판이 주제 × 모드라 평면으로 늘어놓으면 주제가 늘수록 어지럽다. 주제로 묶어 구조가 보이게. */
 .group { margin-bottom: 18px; }
 .group-t { font-size: 15px; margin: 0 0 8px; letter-spacing: -0.01em; }
 .group-t span { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
-/* 본문 안 인라인 링크라 44 는 과하지만 15px 은 손가락으로 못 누른다 — 28 로. */
+/* 본문 안 인라인 링크라 44 는 과하지만 15px 은 손가락으로 못 누른다. 28 로. */
 .group-t a { display: inline-flex; align-items: center; min-height: 28px; padding: 0 6px; color: var(--ink-2); }
 .card h3 { margin: 0 0 2px; font-size: 15px; }
 
-/* 최소 폭을 화면보다 크게 잡으면 좁은 화면에서 넘친다 — 200% 확대(논리 폭 180px)에서 실제로 넘쳤다. */
+/* 최소 폭을 화면보다 크게 잡으면 좁은 화면에서 넘친다. 200% 확대(논리 폭 180px)에서 실제로 넘쳤다. */
 .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
 .card {
   display: block;
@@ -513,7 +513,7 @@ table.past .play:hover { border-color: var(--accent); }
 .how p { color: var(--ink-3); font-size: 12.5px; margin: 10px 0 0; }
 
 .past-links { margin-top: 16px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
-/* 재 보니 15px — 손가락으로는 거의 못 누른다. 줄 사이를 벌려 36 으로. */
+/* 재 보니 15px. 손가락으로는 거의 못 누른다. 줄 사이를 벌려 36 으로. */
 .past-links a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 8px; color: var(--ink-2); }
 
 @media (max-width: 420px) {
@@ -523,8 +523,8 @@ table.past .play:hover { border-color: var(--accent); }
 
 /*
  * 아주 좁은 화면 (폰 + 글자 200% 확대 = 논리 폭 180px 쯤).
- * 속성 여섯을 한 줄에 욱여넣으면 칸이 20px 남짓이 되어 **글자가 한 자씩 세로로 쌓인다** —
- * 가로 넘침은 0 이라 「안 넘친다」 검사만으로는 멀쩡해 보이는데 실제로는 못 읽는다.
+ * 속성 여섯을 한 줄에 욱여넣으면 칸이 20px 남짓이 되어 **글자가 한 자씩 세로로 쌓인다** . 
+ * 가로 넘침은 0 이라 안 넘친다 검사만으로는 멀쩡해 보이는데 실제로는 못 읽는다.
  * 줄을 나눠 담는다.
  */
 @media (max-width: 300px) {
@@ -536,7 +536,7 @@ table.past .play:hover { border-color: var(--accent); }
 }
 
 /* 이름이 기억 안 날 때 훑어서 고르기 (TASK-KL-089).
-   추천은 **치기 시작해야** 뜬다 — 한 글자도 생각 안 나면 시작조차 못 했다. */
+   추천은 **치기 시작해야** 뜬다. 한 글자도 생각 안 나면 시작조차 못 했다. */
 .browse-open {
   margin-top: 8px;
   font: inherit;
@@ -579,7 +579,7 @@ table.past .play:hover { border-color: var(--accent); }
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
-  /* 천 개가 넘는 판이 있다 — 화면에 가까워질 때만 그린다 */
+  /* 천 개가 넘는 판이 있다. 화면에 가까워질 때만 그린다 */
   content-visibility: auto;
   contain-intrinsic-size: auto 40px;
 }
@@ -587,7 +587,7 @@ table.past .play:hover { border-color: var(--accent); }
 .browse-grid img { width: 26px; height: 26px; object-fit: contain; flex: 0 0 auto; }
 .browse-empty { padding: 10px 12px; margin: 0; font-size: 13px; color: var(--ink-2); }
 
-/* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json (TASK-KL-089).
+/* 놀이끼리 오가는 줄. 목록 정본은 apps/play/games.json (TASK-KL-089).
    놀이가 셋이 되면서 하나 끝내면 거기서 끊겼다. 어디서든 다른 놀이로 건너가게 한다. */
 .play-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 6px; margin: 0 0 12px; font-size: 13px; }
 .play-strip::-webkit-scrollbar { display: none; }
@@ -600,7 +600,7 @@ table.past .play:hover { border-color: var(--accent); }
 .play-strip-now { background: rgba(169, 155, 245, 0.15); color: var(--accent); border-color: rgba(169, 155, 245, 0.4); font-weight: 700; }
 .play-strip-all { opacity: 0.75; }
 
-/* 지금까지 좁혀진 것 — 줄마다 흩어진 정보를 한 줄로 (TASK-KL-089) */
+/* 지금까지 좁혀진 것. 줄마다 흩어진 정보를 한 줄로 (TASK-KL-089) */
 .narrow {
   margin: 10px 0 6px;
   padding: 9px 11px;
@@ -621,7 +621,7 @@ table.past .play:hover { border-color: var(--accent); }
   border-radius: 999px;
 }
 
-/* 아직 될 수 있는 것 — 좁힌 보람이 보이게 (TASK-KL-089).
+/* 아직 될 수 있는 것. 좁힌 보람이 보이게 (TASK-KL-089).
    누르면 훑어보기가 그 후보만 걸러서 열린다. */
 .narrow-left {
   display: inline-block;
@@ -638,7 +638,7 @@ table.past .play:hover { border-color: var(--accent); }
 .narrow-left:hover { border-color: var(--accent); }
 
 
-/* 오늘의 코스 줄 — 끝낸 그 자리에서 다음 놀이로 (TASK-KL-089).
+/* 오늘의 코스 줄. 끝낸 그 자리에서 다음 놀이로 (TASK-KL-089).
    KarmoLab 안의 두 놀이에 붙는 줄과 같은 생김새다(거기 tools.css 의 .pc-line). */
 .pc-line {
   display: flex;
@@ -662,7 +662,7 @@ table.past .play:hover { border-color: var(--accent); }
 }
 .pc-go { margin-left: auto; color: var(--accent); }
 
-/* 지난 문제에서 「내가 푼 날」 표시 (TASK-KL-089) — 놓친 날을 눈으로 바로 고르게. */
+/* 지난 문제에서 내가 푼 날 표시 (TASK-KL-089). 놓친 날을 눈으로 바로 고르게. */
 .mine {
   display: inline-block;
   margin-left: 6px;
@@ -674,12 +674,12 @@ table.past .play:hover { border-color: var(--accent); }
   white-space: nowrap;
 }
 .mine.win { color: var(--accent); }
-/* 풀다 만 판 표시 (TASK-KL-089) — 끝낸 판과 눈으로 갈리게 한다. */
+/* 풀다 만 판 표시 (TASK-KL-089). 끝낸 판과 눈으로 갈리게 한다. */
 .done-mark.going { color: var(--accent); }
 .card.going-today { border-color: var(--accent); }
 
 /* ── 전부대기 (TASK-KL-197) ─────────────────────────────────────────────────
-   90초 안에 답을 쏟아 넣는 판. 눈이 가야 할 곳은 셋뿐이다 — 질문 · 남은 시간 · 얼마나 찼나. */
+   90초 안에 답을 쏟아 넣는 판. 눈이 가야 할 곳은 셋뿐이다. 질문, 남은 시간, 얼마나 찼나. */
 .question {
   margin: 4px 0 10px;
   font-size: 19px;
@@ -698,7 +698,7 @@ table.past .play:hover { border-color: var(--accent); }
   height: 100%;
   width: 0;
   background: var(--accent);
-  /* 답 하나가 들어갈 때 바가 **자라는 게 보여야** 한다 — 즉시 갈아 끼우면 아무 일도 안 난 것 같다. */
+  /* 답 하나가 들어갈 때 바가 **자라는 게 보여야** 한다. 즉시 갈아 끼우면 아무 일도 안 난 것 같다. */
   transition: width 220ms ease-out;
 }
 .listmeta {
@@ -732,7 +732,7 @@ table.past .play:hover { border-color: var(--accent); }
 }
 .chip.hit { border-color: var(--exact); }
 .chip.off { color: var(--ink-3); text-decoration: line-through; }
-/* 남들이 몇 %나 댔는지 — 희귀한 답을 낸 순간이 이 놀이의 보상이다. */
+/* 남들이 몇 %나 댔는지. 희귀한 답을 낸 순간이 이 놀이의 보상이다. */
 .chip i { font-style: normal; font-size: 11.5px; color: var(--ink-3); }
 .giveup {
   margin-top: 8px;
@@ -751,7 +751,7 @@ table.past .play:hover { border-color: var(--accent); }
 .missed div { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 
 /* ── 격자판 (TASK-KL-199) ───────────────────────────────────────────────────
-   가로·세로 조건이 만나는 아홉 칸. 좁은 폰에서 글자가 뭉개지지 않는 것이 이 판의 전부다. */
+   가로, 세로 조건이 만나는 아홉 칸. 좁은 폰에서 글자가 뭉개지지 않는 것이 이 판의 전부다. */
 .grid-board { margin: 6px 0 10px; overflow-x: auto; }
 .grid-table {
   width: 100%;
@@ -784,7 +784,7 @@ table.past .play:hover { border-color: var(--accent); }
   word-break: keep-all;
 }
 .gcell:hover { border-color: var(--ink-3); }
-/* 지금 넣는 칸 — 입력칸이 화면 아래에 있어서, 어디에 넣는 중인지가 안 보이면 헷갈린다. */
+/* 지금 넣는 칸. 입력칸이 화면 아래에 있어서, 어디에 넣는 중인지가 안 보이면 헷갈린다. */
 .gcell.picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .gcell.on { color: var(--ink); border-color: var(--exact); background: color-mix(in srgb, var(--exact) 18%, var(--panel-2)); }
 .gcell i { display: block; font-style: normal; font-size: 11px; color: var(--ink-3); }

@@ -13,7 +13,7 @@ test('앞말의 끝 글자로 시작해야 한다', () => {
   assert.equal(judge(run(['사과'], '과'), '바다').ok, false);
 });
 
-test('두음법칙을 봐준다 — 이걸 빼면 놀이가 억지스러워진다', () => {
+test('두음법칙을 봐준다. 이걸 빼면 놀이가 억지스러워진다', () => {
   assert.equal(judge(run(['유리'], '리'), '이불').ok, true);
   assert.equal(judge(run(['오리'], '리'), '리본').ok, true);
   assert.deepEqual(canFollow('려'), ['려', '여']);
@@ -48,13 +48,13 @@ test('맞는 말을 내면 판이 이어지고 차례가 넘어간다', () => {
   assert.equal(chain.winner, null);
 });
 
-test('규칙을 어기면 낸 쪽이 진다 — 무르는 놀이에는 긴장이 없다', () => {
+test('규칙을 어기면 낸 쪽이 진다. 무르는 놀이에는 긴장이 없다', () => {
   const { chain } = play(run(['사과'], '과'), '바다', '조수님');
   assert.equal(chain.winner, '나');
   assert.deepEqual(chain.used, ['사과'], '판은 그대로다');
 });
 
-test('얘가 어겨도 얘가 진다 — 똑같이 적용된다', () => {
+test('얘가 어겨도 얘가 진다. 똑같이 적용된다', () => {
   const { chain } = play(run(['사과'], '과'), '바다', '나');
   assert.equal(chain.winner, '조수님');
 });
@@ -71,19 +71,19 @@ test('낼 수 있는 말만 고른다', () => {
   assert.equal(picked, '과일');
 });
 
-test('낼 말이 없으면 null — 그러면 진다', () => {
+test('낼 말이 없으면 null. 그러면 진다', () => {
   assert.equal(pickWord(run(['사과'], '과'), ['바다', '하늘'], firstOne), null);
 });
 
 // ── 대화에 끼워 넣기 ────────────────────────────────────────────────
 
-test('걸어오지 않으면 놀이가 나서지 않는다 — 놀이가 대화를 가로채면 안 된다', () => {
+test('걸어오지 않으면 놀이가 나서지 않는다. 놀이가 대화를 가로채면 안 된다', () => {
   const p = new Playing();
   assert.equal(p.hear('오늘 좀 힘들었어'), null);
   assert.equal(p.on, false);
 });
 
-test('끝말잇기 하자고 하면 얘가 먼저 낸다 — 먼저 하라고 미루는 건 같이 노는 게 아니다', () => {
+test('끝말잇기 하자고 하면 얘가 먼저 낸다. 먼저 하라고 미루는 건 같이 노는 게 아니다', () => {
   const p = new Playing({ words: ['사과', '과일'], roll: firstOne });
   const r = p.hear('끝말잇기 하자');
   assert.equal(r.playing, true);
@@ -107,7 +107,7 @@ test('조수님이 규칙을 어기면 얘가 이긴다', () => {
   assert.equal(p.on, false, '이기면 판이 끝난다');
 });
 
-test('얘가 낼 말이 떨어지면 순순히 진다 — 안 지는 상대와 하는 놀이는 놀이가 아니다', () => {
+test('얘가 낼 말이 떨어지면 순순히 진다. 안 지는 상대와 하는 놀이는 놀이가 아니다', () => {
   const p = new Playing({ words: ['사과'], roll: firstOne });
   p.hear('끝말잇기 하자');
   const r = p.hear('과자');
@@ -115,7 +115,7 @@ test('얘가 낼 말이 떨어지면 순순히 진다 — 안 지는 상대와 �
   assert.equal(p.on, false);
 });
 
-test('그만하자면 그만둔다 — 빠져나올 수 없는 놀이는 덫이다', () => {
+test('그만하자면 그만둔다. 빠져나올 수 없는 놀이는 덫이다', () => {
   for (const text of ['그만', '그만하자', '안 해', '됐어', '항복']) {
     const p = new Playing({ words: ['사과', '과일'], roll: firstOne });
     p.hear('끝말잇기 하자');
@@ -160,14 +160,14 @@ test('놀이가 끝난 뒤 다시 걸면 새 판이 열린다', () => {
   assert.deepEqual(p.used, ['사과'], '지난 판은 안 남는다');
 });
 
-test('얘가 아는 말 목록 자체가 규칙을 지킨다 — 사전에 없는 말로 이기면 재미가 없다', () => {
+test('얘가 아는 말 목록 자체가 규칙을 지킨다. 사전에 없는 말로 이기면 재미가 없다', () => {
   assert.equal(new Set(knownWords).size, knownWords.length, '같은 말이 두 번 들어 있으면 안 된다');
   for (const w of knownWords) {
-    assert.equal(judge(startWordChain(), w).ok, true, `「${w}」 는 낼 수 없는 말이다`);
+    assert.equal(judge(startWordChain(), w).ok, true, `${w} 는 낼 수 없는 말이다`);
   }
 });
 
-test('아는 말이 충분해서 몇 수는 주고받는다 — 한 수 만에 끝나면 놀이가 아니라 버튼이다', () => {
+test('아는 말이 충분해서 몇 수는 주고받는다. 한 수 만에 끝나면 놀이가 아니라 버튼이다', () => {
   const p = new Playing({ roll: () => 0.5 });
   p.hear('끝말잇기 하자');
   let count = 0;
@@ -181,14 +181,14 @@ test('아는 말이 충분해서 몇 수는 주고받는다 — 한 수 만에 �
   assert.ok(count >= 4, `네 수는 주고받아야 한다 (실제 ${count}수)`);
 });
 
-test('놀이 중에도 문장은 대화로 흘려보낸다 — 판을 열어 둔 걸 잊었다고 이겼다고 하면 안 된다', () => {
+test('놀이 중에도 문장은 대화로 흘려보낸다. 판을 열어 둔 걸 잊었다고 이겼다고 하면 안 된다', () => {
   const p = new Playing({ words: ['사과', '과일'], roll: firstOne });
   p.hear('끝말잇기 하자');
   assert.equal(p.hear('나 방금 그 버그 드디어 고쳤어!'), null, '문장은 한 수가 아니다');
   assert.equal(p.on, true, '판은 그대로 열려 있다');
 });
 
-test('틀린 수는 그래도 한 수다 — 안 그러면 규칙 없는 놀이가 된다', () => {
+test('틀린 수는 그래도 한 수다. 안 그러면 규칙 없는 놀이가 된다', () => {
   const p = new Playing({ words: ['사과'], roll: firstOne });
   p.hear('끝말잇기 하자');
   assert.match(p.hear('apple').say, /내가 이겼다/);

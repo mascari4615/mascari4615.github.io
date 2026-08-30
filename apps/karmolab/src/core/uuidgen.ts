@@ -1,13 +1,13 @@
 /**
- * UUID · 랜덤 ID — 알맹이 (TASK-KL-088 / S1)
+ * UUID, 랜덤 ID. 알맹이 (TASK-KL-088 / S1)
  *
- * 난수는 `crypto.getRandomValues` 만 쓴다. `Math.random` 은 예측 가능해서 ID·비밀번호 용도로 부적격이다.
+ * 난수는 `crypto.getRandomValues` 만 쓴다. `Math.random` 은 예측 가능해서 ID, 비밀번호 용도로 부적격이다.
  * 이 전역은 브라우저와 Node(19+) 둘 다에 있어서 이 파일은 양쪽에서 그대로 돈다.
  *
- * MCP 로 내놓는 이유(A등급 — 「LLM 이 **못 하는** 것」):
- * LLM 에게 「UUID 하나 만들어 줘」나 「무작위 비밀번호」를 시키면 **무작위가 아닌 것**이 나온다.
+ * MCP 로 내놓는 이유(A등급. LLM 이 **못 하는** 것):
+ * LLM 에게 UUID 하나 만들어 줘나 무작위 비밀번호를 시키면 **무작위가 아닌 것**이 나온다.
  * 학습 데이터에 흔한 값이거나, 자기가 방금 만든 것과 비슷하거나, 같은 요청에 같은 답을 낸다.
- * 그걸 세션 토큰·비밀번호로 쓰면 그 자리가 곧 구멍이다. **여기가 이 서버에서 가장 값이 큰 도구다.**
+ * 그걸 세션 토큰, 비밀번호로 쓰면 그 자리가 곧 구멍이다. **여기가 이 서버에서 가장 값이 큰 도구다.**
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -17,7 +17,7 @@ export const spec: ToolSpec = {
     generate: {
       desc:
         'Generate IDs from a cryptographic RNG. An LLM asked for a "random" value returns something from' +
-        ' its training data — using that as a token or password is a hole.' +
+        ' its training data. using that as a token or password is a hole.' +
         ' kind = uuid4 (default), uuid7 (sortable by time), ulid, nanoid, password.' +
         ' count, length (nanoid/password), symbols (password).' +
         ' / 암호학적으로 안전한 난수로 ID 생성.',
@@ -45,7 +45,7 @@ export function uuidV4(): string {
   return dash(hexOf(b));
 }
 
-/** UUID v7 — 앞 48비트가 밀리초 타임스탬프라 **정렬하면 생성 순서**가 된다 (DB 기본키에 유리). */
+/** UUID v7. 앞 48비트가 밀리초 타임스탬프라 **정렬하면 생성 순서**가 된다 (DB 기본키에 유리). */
 export function uuidV7(now: number = Date.now()): string {
   const b = randomBytes(16);
   b[0] = (now / 2 ** 40) & 0xff;
@@ -78,7 +78,7 @@ export function ulid(now: number = Date.now()): string {
   return time + rand;
 }
 
-/** 헷갈리는 글자(0/O, 1/l/I)는 뺐다 — 손으로 옮겨 적을 때 그게 사고를 낸다. */
+/** 헷갈리는 글자(0/O, 1/l/I)는 뺐다. 손으로 옮겨 적을 때 그게 사고를 낸다. */
 export function password(len = 16, symbols = false): string {
   const base = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const pool = base + (symbols ? '!@#$%^&*()-_=+[]{}' : '');
@@ -96,10 +96,10 @@ export function makeOne(kind: Kind, length: number, symbols: boolean, now?: numb
 }
 
 export const run: ToolRunner = (op, args) => {
-  if (op !== 'generate') throw new Error(`uuidgen 에 「${op}」 는 없습니다`);
+  if (op !== 'generate') throw new Error(`uuidgen 에 ${op} 는 없습니다`);
   const kind = String(args.kind ?? 'uuid4') as Kind;
   if (['uuid4', 'uuid7', 'ulid', 'nanoid', 'password'].includes(kind) === false) {
-    throw new Error(`모르는 종류입니다: ${kind} (uuid4 · uuid7 · ulid · nanoid · password)`);
+    throw new Error(`모르는 종류입니다: ${kind} (uuid4, uuid7, ulid, nanoid, password)`);
   }
   const count = Math.min(100, Math.max(1, Math.round(Number(args.count ?? 1))));
   const length = Math.min(256, Math.max(4, Math.round(Number(args.length ?? (kind === 'password' ? 16 : 21)))));

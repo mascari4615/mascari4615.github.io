@@ -1,7 +1,7 @@
 /**
  * 스도쿠 경주 화면 (TASK-KL-242)
  *
- * **줄·칸에서 겹치는 숫자를 붉게** 보여 준다 — 정답을 알려 주는 게 아니라(정답은 화면에 안 온다)
+ * **줄, 칸에서 겹치는 숫자를 붉게** 보여 준다. 정답을 알려 주는 게 아니라(정답은 화면에 안 온다)
  * 이미 화면에 있는 것끼리 부딪히는 것만 짚어 준다. 그 정도는 종이로 풀 때도 눈에 보인다.
  */
 import { t } from '../../../lib/i18n';
@@ -39,7 +39,7 @@ export const sudokuView: GameView<SudokuState, SudokuAction> = {
       const mine = s.filled[mySeat] ?? [];
       const live = !s.over && s.won === -1;
 
-      /* 부딪히는 칸 찾기 — 화면에 이미 있는 것끼리만 본다. */
+      /* 부딪히는 칸 찾기. 화면에 이미 있는 것끼리만 본다. */
       const clash = new Set<number>();
       for (let i = 0; i < N * N; i++) {
         if (!mine[i]) continue;

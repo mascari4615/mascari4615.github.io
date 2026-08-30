@@ -1,11 +1,11 @@
 /**
  * 인쇄해서 쓰는 종이 (TASK-KL-316 / 35)
  *
- * 모눈종이·원고지·오선지·달력·라벨은 **필요할 때 딱 없다**. 사서 쓰기엔 아깝고,
+ * 모눈종이, 원고지, 오선지, 달력, 라벨은 **필요할 때 딱 없다**. 사서 쓰기엔 아깝고,
  * 인터넷에서 받은 PDF 는 여백이 안 맞아 잘린다(프린터마다 못 찍는 가장자리가 있다).
  *
  * 그래서 **mm 로 그린다**. 종이 크기와 여백을 알고 그리면 어느 프린터에서도 자리가 맞는다.
- * 여기서는 「어디에 선이 있나」만 낸다 — 그리는 일은 화면(SVG)과 PDF 가 각각 한다.
+ * 여기서는 어디에 선이 있나만 낸다. 그리는 일은 화면(SVG)과 PDF 가 각각 한다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -31,7 +31,7 @@ export const PAPER_MM: Record<Paper, [number, number]> = {
   letter: [215.9, 279.4]
 };
 
-/** 대부분의 프린터가 못 찍는 가장자리 — 이보다 안쪽에만 그린다. */
+/** 대부분의 프린터가 못 찍는 가장자리. 이보다 안쪽에만 그린다. */
 export const SAFE_MARGIN_MM = 8;
 
 export interface Line {
@@ -58,7 +58,7 @@ export interface Sheet {
   heightMm: number;
   lines: Line[];
   boxes: Box[];
-  /** 글자 자리 (달력의 날짜 등) — 글은 화면이 넣는다 */
+  /** 글자 자리 (달력의 날짜 등). 글은 화면이 넣는다 */
   labels: Array<{ x: number; y: number; text: string; size: number }>;
   /** 사람이 읽을 한 줄 요약 열쇠 */
   what: string;
@@ -74,7 +74,7 @@ const empty = (paper: Paper, what: string): Sheet => ({
   what
 });
 
-/** 모눈 — `size` mm 간격. 5칸마다 진하게(세다가 놓치지 않게). */
+/** 모눈. `size` mm 간격. 5칸마다 진하게(세다가 놓치지 않게). */
 export function grid(paper: Paper = 'a4', size = 5, landscape = false): Sheet {
   const sheet = empty(paper, 'grid');
   if (landscape) {
@@ -94,26 +94,26 @@ export function grid(paper: Paper = 'a4', size = 5, landscape = false): Sheet {
   return sheet;
 }
 
-/** 점 모눈 — 선이 없어 그림이 덜 방해받는다(불렛 저널에서 쓰는 그것). */
+/** 점 모눈. 선이 없어 그림이 덜 방해받는다(불렛 저널에서 쓰는 그것). */
 export function dots(paper: Paper = 'a4', size = 5): Sheet {
   const sheet = empty(paper, 'dots');
   const m = SAFE_MARGIN_MM;
   for (let y = m; y <= sheet.heightMm - m + 0.001; y += size) {
     for (let x = m; x <= sheet.widthMm - m + 0.001; x += size) {
-      /* 점은 아주 짧은 선으로 그린다 — 그리는 쪽이 원·선 둘 중 뭘 쓰든 같은 자리에 찍힌다. */
+      /* 점은 아주 짧은 선으로 그린다. 그리는 쪽이 원, 선 둘 중 뭘 쓰든 같은 자리에 찍힌다. */
       sheet.lines.push({ x1: x, y1: y, x2: x + 0.2, y2: y, weight: 0.3 });
     }
   }
   return sheet;
 }
 
-/** 원고지 — 한 칸에 한 글자. 200자(20×10)가 기본. */
+/** 원고지. 한 칸에 한 글자. 200자(20×10)가 기본. */
 export function manuscript(paper: Paper = 'a4', cols = 20, rows = 10): Sheet {
   const sheet = empty(paper, 'manuscript');
   const m = SAFE_MARGIN_MM + 4;
   const usableW = sheet.widthMm - m * 2;
   const usableH = sheet.heightMm - m * 2;
-  /* 칸은 **정사각**이어야 글자가 눌리지 않는다 — 좁은 쪽에 맞춘다. */
+  /* 칸은 **정사각**이어야 글자가 눌리지 않는다. 좁은 쪽에 맞춘다. */
   const cell = Math.min(usableW / cols, usableH / rows);
   const startX = (sheet.widthMm - cell * cols) / 2;
   const startY = (sheet.heightMm - cell * rows) / 2;
@@ -125,7 +125,7 @@ export function manuscript(paper: Paper = 'a4', cols = 20, rows = 10): Sheet {
   return sheet;
 }
 
-/** 오선지 — 다섯 줄 한 묶음. 묶음 사이는 넉넉히 띄운다(가사·화음 적을 자리). */
+/** 오선지. 다섯 줄 한 묶음. 묶음 사이는 넉넉히 띄운다(가사, 화음 적을 자리). */
 export function staff(paper: Paper = 'a4', staves = 10, staffHeight = 7): Sheet {
   const sheet = empty(paper, 'staff');
   const m = SAFE_MARGIN_MM + 4;
@@ -149,10 +149,10 @@ export function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
-/** 달력 — 날짜 숫자만 자리에 놓는다(요일 이름은 화면이 말로 넣는다). */
+/** 달력. 날짜 숫자만 자리에 놓는다(요일 이름은 화면이 말로 넣는다). */
 export function calendar(year: number, month: number, paper: Paper = 'a4', startMonday = false): Sheet {
   const sheet = empty(paper, 'calendar');
-  /* 달력은 가로가 넓어야 쓰기 좋다 — 종이를 눕힌다. */
+  /* 달력은 가로가 넓어야 쓰기 좋다. 종이를 눕힌다. */
   const w = sheet.widthMm;
   sheet.widthMm = sheet.heightMm;
   sheet.heightMm = w;
@@ -182,7 +182,7 @@ export function calendar(year: number, month: number, paper: Paper = 'a4', start
   return sheet;
 }
 
-/** 라벨 시트 — 흔한 규격 몇 가지. 「몇 칸이 나오나」가 사람이 궁금한 값이다. */
+/** 라벨 시트. 흔한 규격 몇 가지. 몇 칸이 나오나가 사람이 궁금한 값이다. */
 export const LABELS: Record<string, { w: number; h: number; cols: number; rows: number; top: number; left: number; gapX: number; gapY: number }> = {
   '24': { w: 63.5, h: 33.9, cols: 3, rows: 8, top: 12.7, left: 7.2, gapX: 2.5, gapY: 0 },
   '21': { w: 63.5, h: 38.1, cols: 3, rows: 7, top: 15.1, left: 7.2, gapX: 2.5, gapY: 0 },
@@ -207,7 +207,7 @@ export function labels(kind: keyof typeof LABELS = '24'): Sheet {
   return sheet;
 }
 
-/** 그린 것이 종이를 넘지 않는가 — 넘으면 인쇄에서 잘린다. */
+/** 그린 것이 종이를 넘지 않는가. 넘으면 인쇄에서 잘린다. */
 export function fits(sheet: Sheet): boolean {
   const okLine = sheet.lines.every((l) => l.x1 >= 0 && l.y1 >= 0 && l.x2 <= sheet.widthMm + 0.01 && l.y2 <= sheet.heightMm + 0.01);
   const okBox = sheet.boxes.every((b) => b.x >= 0 && b.y >= 0 && b.x + b.w <= sheet.widthMm + 0.01 && b.y + b.h <= sheet.heightMm + 0.01);
@@ -231,5 +231,5 @@ export const run: ToolRunner = (op, args) => {
             : kind === 'label'
               ? labels('24')
               : grid(paper, size ?? 5);
-  return sheet.what + ' ' + sheet.widthMm + '×' + sheet.heightMm + 'mm · lines ' + sheet.lines.length + ' · boxes ' + sheet.boxes.length;
+  return sheet.what + ' ' + sheet.widthMm + '×' + sheet.heightMm + 'mm, lines ' + sheet.lines.length + ', boxes ' + sheet.boxes.length;
 };

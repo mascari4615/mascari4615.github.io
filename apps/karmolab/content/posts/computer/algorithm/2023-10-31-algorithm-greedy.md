@@ -5,7 +5,7 @@ last_modified_at: "2024-07-08T18:37:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬, Greedy]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 @ 6~N차시  

@@ -1,15 +1,15 @@
 /**
- * 영상 — **한 편, 할 일은 골라서** (TASK-KL-088 → TASK-KL-268)
+ * 영상. **한 편, 할 일은 골라서** (TASK-KL-088 → TASK-KL-268)
  *
  * 영상은 파일이 크고 사적인 경우가 많아 남의 서버에 올리는 것이 특히 꺼려진다.
- * 여기서는 브라우저 안에서 끝난다 — 그 점은 그대로다. 바뀐 건 **순서**다.
+ * 여기서는 브라우저 안에서 끝난다. 그 점은 그대로다. 바뀐 건 **순서**다.
  *
  * 전에는 할 일 일곱이 탭이었고, 탭을 옮기면 **영상을 다시 올려야** 했다. 영상은 파일이 커서
- * 이 되풀이가 다른 재료보다 훨씬 아프다(200MB 를 두 번 고르는 일). 그래서 PDF·이미지와 같은
- * 껍데기(`shared/material-shell`)로 옮겼다 — 한 번 올리면 할 일을 옮겨도 따라간다.
+ * 이 되풀이가 다른 재료보다 훨씬 아프다(200MB 를 두 번 고르는 일). 그래서 PDF, 이미지와 같은
+ * 껍데기(`shared/material-shell`)로 옮겼다. 한 번 올리면 할 일을 옮겨도 따라간다.
  *
- * 왼쪽 칸은 **필름 스트립**이다. Clideo·Kapwing 의 타임라인이 하는 일을 우리 식으로 줄인 것 —
- * 첫 장면 하나만 보여 주면 「이 영상이 맞나」밖에 못 판단한다. 어디를 자를지, 어디서 GIF 를
+ * 왼쪽 칸은 **필름 스트립**이다. Clideo, Kapwing 의 타임라인이 하는 일을 우리 식으로 줄인 것 . 
+ * 첫 장면 하나만 보여 주면 이 영상이 맞나밖에 못 판단한다. 어디를 자를지, 어디서 GIF 를
  * 만들지는 **흐름이 보일 때** 정해진다. 눌러 보면 그 자리부터 재생한다.
  */
 import { materialShell, type MaterialGroup } from './shared/material-shell';
@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 (function (): void {
   const GROUPS = (): MaterialGroup[] => [
     {
-      label: t('videotool.group.cut', undefined, '자르기·줄이기'),
+      label: t('videotool.group.cut', undefined, '자르기, 줄이기'),
       jobs: [
         ['videotrim', t('videotool.part.videotrim', undefined, '구간 자르기')],
         ['videocompress', t('videotool.part.videocompress', undefined, '용량 줄이기')],
@@ -43,7 +43,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     }
   ];
 
-  /** 영상을 안 들고 와도 되는 할 일 — 없는 데서 영상을 **만드는** 쪽. */
+  /** 영상을 안 들고 와도 되는 할 일. 없는 데서 영상을 **만드는** 쪽. */
   const NO_VIDEO_NEEDED = new Set(['screenrec']);
 
   /** 필름 스트립 장수. 늘리면 예뻐지지만 큰 영상에서 오래 걸린다(한 장마다 되감아 그린다). */
@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'videotool',
     title: t('widgets.videotool.title', undefined, '영상 도구'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.videotool.desc',
       undefined,
@@ -102,13 +102,13 @@ import { t, loadNamespace } from '../../lib/i18n';
     if (!alive()) return '';
     const m = metaOf(probe);
 
-    /* 보는 용 재생기는 따로 둔다 — 스트립을 뽑는 쪽은 계속 되감기므로 같이 쓰면 화면이 튄다 */
+    /* 보는 용 재생기는 따로 둔다. 스트립을 뽑는 쪽은 계속 되감기므로 같이 쓰면 화면이 튄다 */
     const player = document.createElement('video');
     player.className = 'vd-player';
     player.id = 'vdPlayer';
     player.controls = true;
     player.preload = 'metadata';
-    attachMedia(player, file); // 공용 — 앞 주소를 거두고 물린다
+    attachMedia(player, file); // 공용. 앞 주소를 거두고 물린다
     box.appendChild(player);
 
     const strip = document.createElement('div');
@@ -116,7 +116,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     strip.id = 'vdStrip';
     box.appendChild(strip);
 
-    /* 한 장씩 **나오는 대로** 붙인다 — 여덟 장을 다 뽑고 붙이면 그동안 빈 칸만 보인다 */
+    /* 한 장씩 **나오는 대로** 붙인다. 여덟 장을 다 뽑고 붙이면 그동안 빈 칸만 보인다 */
     void filmstrip(probe, FRAMES, 220, (i, canvas, at) => {
       if (!alive()) return;
       const cell = document.createElement('button');
@@ -129,7 +129,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const tag = document.createElement('span');
       tag.textContent = mmss(at);
       cell.appendChild(tag);
-      /* 눌러서 그 자리부터 — 스트립은 보는 것만이 아니라 **옮겨 가는 자리**다 */
+      /* 눌러서 그 자리부터. 스트립은 보는 것만이 아니라 **옮겨 가는 자리**다 */
       cell.onclick = (): void => {
         player.currentTime = at;
         void player.play();
@@ -140,7 +140,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     return t(
       'videotool.meta',
       { time: mmss(m.duration), w: m.width, h: m.height, size: fileSize(file.size) },
-      `${mmss(m.duration)} · ${m.width}×${m.height} · ${fileSize(file.size)}`
+      `${mmss(m.duration)}, ${m.width}×${m.height}, ${fileSize(file.size)}`
     );
   }
 

@@ -1,13 +1,13 @@
 /**
- * 화투 짝맞추기 — 같은 달끼리 가져온다 (TASK-KL-242)
+ * 화투 짝맞추기. 같은 달끼리 가져온다 (TASK-KL-242)
  *
- * 클럽하우스 51 의 「화투」 자리. 고스톱까지 가면 규칙이 스무 줄인데, 그 뿌리인
+ * 클럽하우스 51 의 화투 자리. 고스톱까지 가면 규칙이 스무 줄인데, 그 뿌리인
  * **같은 달 두 장을 가져오는 것**만 남기면 세 줄이면 끝나고 재미는 거의 그대로다.
  *
  * 한 수의 모양이 또 새롭다: **내 패 한 장 + 바닥 한 장**을 함께 고른다(둘 중 하나만으로는
- * 수가 성립하지 않는다). 그래서 화면이 「고른 뒤 고르기」를 받아야 한다.
+ * 수가 성립하지 않는다). 그래서 화면이 고른 뒤 고르기를 받아야 한다.
  *
- * 낼 수 있는 짝이 없으면 그냥 버린다 — 버리는 것도 수라서 못 낸다고 막히지 않는다.
+ * 낼 수 있는 짝이 없으면 그냥 버린다. 버리는 것도 수라서 못 낸다고 막히지 않는다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
@@ -69,7 +69,7 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
     const card = hand[hi];
     const fi = a.floor;
     const matching = fi >= 0 && fi < s.floor.length && s.floor[fi] === card;
-    /* 짝이 있는데 굳이 버리는 것은 막지 않는다 — 손에 남길지 버릴지는 그 사람 판단이다. */
+    /* 짝이 있는데 굳이 버리는 것은 막지 않는다. 손에 남길지 버릴지는 그 사람 판단이다. */
     if (fi >= 0 && !matching) return s;
 
     const hands = s.hands.map((h, i) => (i === seat ? h.filter((_, k) => k !== hi) : h));
@@ -83,7 +83,7 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
       floor.push(card);
     }
 
-    /* 낸 뒤 더미에서 한 장 뒤집는다 — 그것도 짝이 맞으면 같이 가져간다(원래 놀이 그대로). */
+    /* 낸 뒤 더미에서 한 장 뒤집는다. 그것도 짝이 맞으면 같이 가져간다(원래 놀이 그대로). */
     const deck = s.deck.slice();
     const flip = deck.shift();
     if (flip !== undefined) {

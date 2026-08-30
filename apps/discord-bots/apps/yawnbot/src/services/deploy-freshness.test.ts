@@ -16,7 +16,7 @@ function at(minAgo: number): string {
   return new Date(NOW.getTime() - minAgo * 60_000).toISOString();
 }
 
-describe('evaluateFreshness — 사이트 파일이 진실', () => {
+describe('evaluateFreshness. 사이트 파일이 진실', () => {
   it('사이트 = main 끝이면 아무리 오래돼도 신선하다 (아무도 안 민 것뿐)', () => {
     const v = evaluateFreshness({
       site: { commit: HEAD, builtAt: at(3 * 24 * 60) },
@@ -28,7 +28,7 @@ describe('evaluateFreshness — 사이트 파일이 진실', () => {
     expect(v.reason).toContain('3일');
   });
 
-  it('방금 민 것은 아직 안 올라간 게 정상 — 유예 안이면 신선', () => {
+  it('방금 민 것은 아직 안 올라간 게 정상. 유예 안이면 신선', () => {
     const v = evaluateFreshness({
       site: { commit: OLD, builtAt: at(8) },
       headSha: HEAD,
@@ -39,7 +39,7 @@ describe('evaluateFreshness — 사이트 파일이 진실', () => {
     expect(v.reason).toContain('올라가는 중');
   });
 
-  it('밀 것이 있는데 유예를 넘겼으면 낡음 — 이것만이 사고다', () => {
+  it('밀 것이 있는데 유예를 넘겼으면 낡음. 이것만이 사고다', () => {
     const v = evaluateFreshness({
       site: { commit: OLD, builtAt: at(21 * 60) },
       headSha: HEAD,
@@ -51,7 +51,7 @@ describe('evaluateFreshness — 사이트 파일이 진실', () => {
     expect(v.reason).toContain('21시간');
   });
 
-  it('사이트가 자기 판을 못 밝히면 「낡음」이 아니라 「못 받음」 — 손이 엉뚱한 데 가면 안 된다', () => {
+  it('사이트가 자기 판을 못 밝히면 낡음이 아니라 못 받음. 손이 엉뚱한 데 가면 안 된다', () => {
     const v = evaluateFreshness({
       site: null,
       unreachableReason: 'HTTP 503',
@@ -63,7 +63,7 @@ describe('evaluateFreshness — 사이트 파일이 진실', () => {
     expect(v.reason).toContain('503');
   });
 
-  it('main 끝을 못 물어봤으면 판단을 미룬다 — GitHub 흔들림으로 우릴 깨우지 않는다', () => {
+  it('main 끝을 못 물어봤으면 판단을 미룬다. GitHub 흔들림으로 우릴 깨우지 않는다', () => {
     const v = evaluateFreshness({
       site: { commit: OLD, builtAt: at(21 * 60) },
       headSha: null,
@@ -85,7 +85,7 @@ describe('evaluateFreshness — 사이트 파일이 진실', () => {
   });
 });
 
-describe('decideAlert — 조용해지는 것이 이 사고의 본체', () => {
+describe('decideAlert. 조용해지는 것이 이 사고의 본체', () => {
   const stale = { state: 'stale' as const, reason: '낡음', ageMin: 200 };
   const fresh = { state: 'fresh' as const, reason: '신선', ageMin: 3 };
 
@@ -118,7 +118,7 @@ describe('decideAlert — 조용해지는 것이 이 사고의 본체', () => {
   });
 });
 
-describe('runFreshnessTick — 실제 물어보기', () => {
+describe('runFreshnessTick. 실제 물어보기', () => {
   function fakeFetch(siteBody: unknown, headSha: string | null) {
     return vi.fn(async (url: string) => {
       if (String(url).includes('build.json')) {
@@ -151,13 +151,13 @@ describe('runFreshnessTick — 실제 물어보기', () => {
     expect(alert).toHaveBeenCalledWith(expect.objectContaining({ healthy: false }));
   });
 
-  it('캐시에 안 속게 주소에 시각을 붙인다 — 파수꾼이 옛 판을 보면 파수꾼이 아니다', async () => {
+  it('캐시에 안 속게 주소에 시각을 붙인다. 파수꾼이 옛 판을 보면 파수꾼이 아니다', async () => {
     const fetchImpl = fakeFetch({ commit: HEAD, builtAt: at(5) }, HEAD);
     await runFreshnessTick({ ...base, fetchImpl: fetchImpl as never }, { last: null, lastAlertAt: null });
     expect(String(fetchImpl.mock.calls[0][0])).toMatch(/build\.json\?t=\d+/);
   });
 
-  it('build.json 모양이 다르면 「못 받음」으로 센다', async () => {
+  it('build.json 모양이 다르면 못 받음으로 센다', async () => {
     const v = await runFreshnessTick(
       { ...base, fetchImpl: fakeFetch({ hello: 'world' }, HEAD) as never },
       { last: null, lastAlertAt: null },
@@ -166,23 +166,23 @@ describe('runFreshnessTick — 실제 물어보기', () => {
   });
 });
 
-describe('nextDelayMin — 판이 갈린 동안만 촘촘히 (Datadog adaptive polling)', () => {
+describe('nextDelayMin. 판이 갈린 동안만 촘촘히 (Datadog adaptive polling)', () => {
   it('사이트 = main 끝이면 느슨하게', () => {
     expect(nextDelayMin({ state: 'fresh', reason: '사이트 = main 끝 abc', ageMin: 5 }, 10, 3)).toBe(10);
   });
-  it('올라가는 중이면 촘촘히 — 초록 전환을 10분 늦게 알 이유가 없다', () => {
-    expect(nextDelayMin({ state: 'fresh', reason: '올라가는 중 — …', ageMin: 5 }, 10, 3)).toBe(3);
+  it('올라가는 중이면 촘촘히. 초록 전환을 10분 늦게 알 이유가 없다', () => {
+    expect(nextDelayMin({ state: 'fresh', reason: '올라가는 중. ...', ageMin: 5 }, 10, 3)).toBe(3);
   });
-  it('낡음·못 받음도 촘촘히', () => {
+  it('낡음, 못 받음도 촘촘히', () => {
     expect(nextDelayMin({ state: 'stale', reason: 'x', ageMin: 500 }, 10, 3)).toBe(3);
     expect(nextDelayMin({ state: 'unreachable', reason: 'x', ageMin: null }, 10, 3)).toBe(3);
   });
 });
 
-describe('lastDeployNote — 알림이 원인까지 말한다', () => {
+describe('lastDeployNote. 알림이 원인까지 말한다', () => {
   const ok = (body) => ({ ok: true, json: async () => body });
 
-  it('취소된 판은 원인이 아니다 — 끝까지 간 판을 본다', async () => {
+  it('취소된 판은 원인이 아니다. 끝까지 간 판을 본다', async () => {
     const f = vi.fn(async (url) => {
       if (String(url).includes('/runs?')) {
         return ok({
@@ -199,13 +199,13 @@ describe('lastDeployNote — 알림이 원인까지 말한다', () => {
     expect(note).toContain('build → Build KarmoLab');
   });
 
-  it('초록인데 사이트가 안 바뀐 경우를 따로 말한다 — 오늘 실제로 그랬다', async () => {
+  it('초록인데 사이트가 안 바뀐 경우를 따로 말한다. 오늘 실제로 그랬다', async () => {
     const f = vi.fn(async () => ok({ workflow_runs: [{ id: 9, status: 'completed', conclusion: 'success' }] }));
     const note = await lastDeployNote('o/r', 'w.yml', f, 1000, undefined);
     expect(note).toContain('초록인데');
   });
 
-  it('못 물어보면 아무 말도 안 붙인다 — 지어내면 알림을 못 믿게 된다', async () => {
+  it('못 물어보면 아무 말도 안 붙인다. 지어내면 알림을 못 믿게 된다', async () => {
     const f = vi.fn(async () => ({ ok: false, status: 403 }));
     expect(await lastDeployNote('o/r', 'w.yml', f, 1000, undefined)).toBe('');
   });

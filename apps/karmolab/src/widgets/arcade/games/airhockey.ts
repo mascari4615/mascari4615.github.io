@@ -1,11 +1,11 @@
 /**
- * 에어하키 — 계속 움직이면서 계속 친다 (TASK-KL-242)
+ * 에어하키. 계속 움직이면서 계속 친다 (TASK-KL-242)
  *
- * 커널이 마지막으로 안 밟아 본 자리: **한 수가 「한 번」이 아니다.** 앞의 열아홉은 전부
- * 「두고 → 기다린다」였는데(다트조차 던지는 순간만 골랐다), 이건 손가락이 움직이는 내내
- * 수가 흐른다. 그래서 액션이 「패들을 여기로」다 — 누를 때가 아니라 **있는 자리**를 보낸다.
+ * 커널이 마지막으로 안 밟아 본 자리: **한 수가 한 번이 아니다.** 앞의 열아홉은 전부
+ * 두고 → 기다린다였는데(다트조차 던지는 순간만 골랐다), 이건 손가락이 움직이는 내내
+ * 수가 흐른다. 그래서 액션이 패들을 여기로다. 누를 때가 아니라 **있는 자리**를 보낸다.
  *
- * 그물망을 생각하면 이게 맞다. 「눌렀다/뗐다」를 보내면 소식 하나가 늦을 때 패들이 벽에
+ * 그물망을 생각하면 이게 맞다. 눌렀다/뗐다를 보내면 소식 하나가 늦을 때 패들이 벽에
  * 붙어 버리지만, **자리**를 보내면 늦게 온 소식은 그냥 낡은 자리일 뿐이라 다음 것이 덮는다.
  *
  * 먼저 다섯 골. 판이 안 끝나는 일이 없게 시간 상한도 둔다(앞선 네 게임에서 배운 자리).
@@ -33,7 +33,7 @@ export interface AirState {
   over: boolean;
 }
 
-/** 「패들을 여기로」 — 누름이 아니라 자리를 보낸다. */
+/** 패들을 여기로. 누름이 아니라 자리를 보낸다. */
 export type AirAction = { x: number; y: number };
 
 /** 그 자리가 이 사람의 진영인가. 반쪽을 넘어가면 안 된다. */
@@ -89,7 +89,7 @@ export const airhockey: GameDef<AirState, AirAction> = {
     if (p.x < PUCK_R) { p.x = PUCK_R; p.vx = Math.abs(p.vx); }
     if (p.x > W - PUCK_R) { p.x = W - PUCK_R; p.vx = -Math.abs(p.vx); }
 
-    /* 골대 — 가운데로 들어가면 골, 아니면 뒷벽에 튕긴다 */
+    /* 골대. 가운데로 들어가면 골, 아니면 뒷벽에 튕긴다 */
     const inGoal = Math.abs(p.x - W / 2) < GOAL_W / 2;
     let score = s.score;
     let scored = false;
@@ -112,7 +112,7 @@ export const airhockey: GameDef<AirState, AirAction> = {
       };
     }
 
-    /* 패들에 부딪히면 튕긴다. 패들이 움직이던 방향으로 밀어 주지 않는다 —
+    /* 패들에 부딪히면 튕긴다. 패들이 움직이던 방향으로 밀어 주지 않는다 . 
        자리만 받으므로 속도를 모른다. 대신 맞은 지점에 따라 각이 갈린다(그게 이 놀이의 맛이다). */
     for (const pad of s.paddles) {
       const dx = p.x - pad.x;
@@ -129,7 +129,7 @@ export const airhockey: GameDef<AirState, AirAction> = {
 
     const sp = Math.hypot(p.vx, p.vy);
     if (sp > MAX_V) { p.vx = (p.vx / sp) * MAX_V; p.vy = (p.vy / sp) * MAX_V; }
-    /* 너무 느려지면 판이 멈춘 것처럼 보인다 — 최소 속도를 준다. */
+    /* 너무 느려지면 판이 멈춘 것처럼 보인다. 최소 속도를 준다. */
     if (sp < 0.5) { const k = 0.5 / (sp || 1); p.vx *= k; p.vy *= k; }
 
     return { ...s, puck: p };
@@ -153,7 +153,7 @@ export const airhockey: GameDef<AirState, AirAction> = {
 
   bot(s, seat): BotMove<AirAction> | null {
     if (s.over) return null;
-    /* 퍽을 따라간다. 조금 굼뜨게 — 딱 붙어 다니면 사람이 한 골도 못 넣는다. */
+    /* 퍽을 따라간다. 조금 굼뜨게. 딱 붙어 다니면 사람이 한 골도 못 넣는다. */
     const home = seat === 0 ? H - 16 : 16;
     const chase = (seat === 0 && s.puck.y > H / 2) || (seat === 1 && s.puck.y < H / 2);
     const pad = s.paddles[seat];

@@ -14,8 +14,8 @@
   "sshkey.problem.noKey": "⚠ no key on this line",
   "sshkey.problem.noType": "⚠ could not find the key type",
   "sshkey.status.idle": "Paste an authorized_keys file",
-  "sshkey.status.ok": "{n} lines · fingerprints included",
+  "sshkey.status.ok": "{n} lines, fingerprints included",
   "sshkey.status.some": "{bad} of {n} lines look wrong",
   "sshkey.status.converted": "Converted to an OpenSSH line",
-  "sshkey.note.local": "Keys are read inside your browser only — nothing is uploaded. The fingerprint is the SHA256:… value you use to pick a line on the server."
+  "sshkey.note.local": "Keys are read inside your browser only. nothing is uploaded. The fingerprint is the SHA256:... value you use to pick a line on the server."
 }

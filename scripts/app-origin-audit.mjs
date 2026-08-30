@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-// KarmoLab Tauri "앱 origin" 정합 + liveness 게이트 — main invariant.
+// KarmoLab Tauri "앱 origin" 정합 + liveness 게이트. main invariant.
 //
 // 정본 = `apps/karmolab-tauri/src-tauri/tauri.release.conf.json` 의
 // build.frontendDist (= prod 앱이 로드하는 곳, 단일 선언적 진실).
 //
 // 막는 사고 2종 (TASK-KL-064 포스트모템):
-//  A. config 드리프트 — 도메인/origin 을 바꿀 때 흩어진 참조(base conf /
+//  A. config 드리프트. 도메인/origin 을 바꿀 때 흩어진 참조(base conf /
 //     lib.rs 상수 / allow_in_webview / capabilities)가 *전부* 안 바뀜 →
 //     prod 빈화면. 옛 코드는 단일정본도 cross-check 도 없었음.
-//  B. stale URL — 정본 URL 이 301/리다이렉트/non-200 (사이트가 커스텀
+//  B. stale URL. 정본 URL 이 301/리다이렉트/non-200 (사이트가 커스텀
 //     도메인 이전했는데 config 가 옛 github.io 가리킴). 웹뷰가 redirect
 //     stub 로딩 + 새 host 미-allowlist → 빈화면. 실제 이번 사고.
 //
@@ -91,7 +91,7 @@ try {
 }
 
 // ── 2. liveness: 정본 URL 이 실제로 200 직빵인가 (드리프트 B = 이번 사고) ──
-// 3xx → 다른 host = HARD FAIL (config 가 옛 주소·사이트 이전 = 결정적 드리프트).
+// 3xx → 다른 host = HARD FAIL (config 가 옛 주소, 사이트 이전 = 결정적 드리프트).
 // network 에러/타임아웃 = WARN (transient, CI 비차단). 200 = pass.
 async function liveness() {
   if (process.env.APP_ORIGIN_AUDIT_SKIP_LIVENESS === '1') {
@@ -110,16 +110,16 @@ async function liveness() {
     const loc = res.headers.get('location') || '(no Location)';
     fail(
       `정본 URL ${canonical} 이 ${res.status} 리다이렉트 → ${loc}. ` +
-        `사이트 이전/주소 변경인데 config 가 옛 주소 가리킴 — frontendDist 를 최종 주소로, ` +
-        `allow_in_webview·capabilities 도 그 host 로 갱신 (KL-064 사고 시그니처).`,
+        `사이트 이전/주소 변경인데 config 가 옛 주소 가리킴. frontendDist 를 최종 주소로, ` +
+        `allow_in_webview, capabilities 도 그 host 로 갱신 (KL-064 사고 시그니처).`,
     );
   } else if (res.status !== 200) {
     console.log(
-      `[app-origin-audit] ! 정본 URL ${res.status} (200 아님). transient outage 가능 — ` +
+      `[app-origin-audit] ! 정본 URL ${res.status} (200 아님). transient outage 가능. ` +
         `비차단 경고. 지속되면 frontendDist 점검.`,
     );
   } else {
-    console.log(`[app-origin-audit] OK liveness — ${canonical} = 200 직응답`);
+    console.log(`[app-origin-audit] OK liveness. ${canonical} = 200 직응답`);
   }
 }
 
@@ -134,4 +134,4 @@ if (FAIL.length) {
   );
   process.exit(1);
 }
-console.log('[app-origin-audit] OK — 앱 origin 정합 + liveness 통과');
+console.log('[app-origin-audit] OK. 앱 origin 정합 + liveness 통과');

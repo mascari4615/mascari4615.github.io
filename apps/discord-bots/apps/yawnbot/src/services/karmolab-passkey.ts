@@ -1,12 +1,12 @@
 /**
- * 패스키(WebAuthn) — 두 번째 문 (TASK-KL-156 D7).
+ * 패스키(WebAuthn). 두 번째 문 (TASK-KL-156 D7).
  *
  * 왜: 지금 계정에 들어오는 문은 디스코드 하나뿐이고, 복구 코드는 종이 한 장이라 잃으면 끝이다.
- * 패스키는 기기(지문·얼굴·PIN)가 열쇠라 **외부 등록도 secret 도 필요 없다** — 도메인만 있으면
+ * 패스키는 기기(지문, 얼굴, PIN)가 열쇠라 **외부 등록도 secret 도 필요 없다**. 도메인만 있으면
  * 된다. 2026 기준 주요 브라우저가 전부 지원한다.
  *
  * 왜 라이브러리를 안 쓰나: 여기서 필요한 것은 ES256 서명 검증 하나와 CBOR 의 **아주 일부**다.
- * Node 의 `crypto` 가 검증을 다 하고, 우리가 읽어야 할 CBOR 는 지도(map)·바이트열·정수뿐이라
+ * Node 의 `crypto` 가 검증을 다 하고, 우리가 읽어야 할 CBOR 는 지도(map), 바이트열, 정수뿐이라
  * 100줄이면 끝난다. 이 한 줄을 위해 의존성 나무를 들이지 않는다.
  *
  * 무엇을 확인하나 (하나라도 빠지면 검증이 아니다):
@@ -15,18 +15,18 @@
  *  ③ `origin` 이 우리 사이트인가
  *  ④ `rpIdHash` 가 우리 도메인의 해시인가
  *  ⑤ 서명이 그 공개키로 맞는가
- *  ⑥ 사용 횟수(signCount)가 뒤로 가지 않았나 — 복제된 열쇠를 알아보는 유일한 신호
+ *  ⑥ 사용 횟수(signCount)가 뒤로 가지 않았나. 복제된 열쇠를 알아보는 유일한 신호
  */
 import crypto from 'crypto';
 
-/** 우리 도메인. 패스키는 이 이름에 묶인다 — 여기가 바뀌면 기존 패스키는 안 열린다. */
+/** 우리 도메인. 패스키는 이 이름에 묶인다. 여기가 바뀌면 기존 패스키는 안 열린다. */
 /**
  * 우리 도메인. 브라우저는 **이 값과 주소가 안 맞으면 패스키를 아예 안 만들어 준다.**
  *
  * 그래서 로컬에서 확인하려면 `KARMOLAB_RP_ID=localhost` 로 띄워야 한다 (TASK-KL-191 축5).
- * 기본값 그대로면 로컬에서는 **어떤 패스키도 통과하지 못한다** — 배포해야만 확인되는
+ * 기본값 그대로면 로컬에서는 **어떤 패스키도 통과하지 못한다**. 배포해야만 확인되는
  * 기능이 되고, 그건 확인 루프가 없는 것과 같다.
- * IP 주소(`127.0.0.1`)는 브라우저가 도메인으로 안 쳐 준다 — 반드시 `localhost` 다.
+ * IP 주소(`127.0.0.1`)는 브라우저가 도메인으로 안 쳐 준다. 반드시 `localhost` 다.
  */
 export const RP_ID = process.env.KARMOLAB_RP_ID?.trim() || 'blog.mascari4615.com';
 export const RP_NAME = 'KarmoLab';
@@ -41,7 +41,7 @@ const ALLOWED_ORIGINS = new Set(
   ]),
 );
 
-/** 도전값이 살아 있는 시간. 짧아야 한다 — 오래 살아 있으면 훔쳐서 나중에 쓸 수 있다. */
+/** 도전값이 살아 있는 시간. 짧아야 한다. 오래 살아 있으면 훔쳐서 나중에 쓸 수 있다. */
 export const CHALLENGE_TTL_MS = 3 * 60 * 1000;
 
 export interface StoredPasskey {
@@ -49,7 +49,7 @@ export interface StoredPasskey {
   id: string;
   /** COSE 공개키에서 뽑은 DER SubjectPublicKeyInfo (base64) */
   publicKey: string;
-  /** 사용 횟수 — 뒤로 가면 복제 신호다 */
+  /** 사용 횟수. 뒤로 가면 복제 신호다 */
   signCount: number;
   label: string;
   createdAt: string;
@@ -87,7 +87,7 @@ function readHead(c: CborCursor): { major: number; value: number } {
   throw new Error('CBOR: 우리가 안 쓰는 길이 형식');
 }
 
-/** 지도·바이트열·글자·정수만 읽는다. 그 밖의 것이 오면 **조용히 넘기지 않고 멈춘다**. */
+/** 지도, 바이트열, 글자, 정수만 읽는다. 그 밖의 것이 오면 **조용히 넘기지 않고 멈춘다**. */
 function readValue(c: CborCursor): unknown {
   const { major, value } = readHead(c);
   switch (major) {
@@ -133,7 +133,7 @@ export function decodeCbor(buf: Buffer): { value: unknown; rest: number } {
 
 /**
  * COSE(EC2/P-256) 를 DER SubjectPublicKeyInfo 로 옮긴다.
- * P-256 만 받는다 — 브라우저가 기본으로 만드는 것이고, 종류를 늘리면 검증할 것도 늘어난다.
+ * P-256 만 받는다. 브라우저가 기본으로 만드는 것이고, 종류를 늘리면 검증할 것도 늘어난다.
  */
 export function coseToDer(cose: Map<unknown, unknown>): Buffer {
   const kty = cose.get(1);
@@ -208,7 +208,7 @@ function checkRpIdHash(authData: AuthData): void {
   if ((authData.flags & 0x01) === 0) throw new Error('패스키: 사람 확인이 없다');
 }
 
-/** 등록 — 새 패스키 하나를 만들어 저장할 모양으로 돌려준다. */
+/** 등록. 새 패스키 하나를 만들어 저장할 모양으로 돌려준다. */
 export function verifyRegistration(input: {
   challenge: string;
   clientDataJSON: string;
@@ -235,7 +235,7 @@ export function verifyRegistration(input: {
 }
 
 /**
- * 로그인 — 서명이 그 공개키로 맞나.
+ * 로그인. 서명이 그 공개키로 맞나.
  * @returns 새 사용 횟수 (저장할 값)
  */
 export function verifyAssertion(input: {
@@ -260,7 +260,7 @@ export function verifyAssertion(input: {
   const ok = crypto.verify('sha256', signed, key, b64urlToBuf(input.signature));
   if (!ok) throw new Error('패스키: 서명이 안 맞는다');
 
-  /* 사용 횟수는 뒤로 가지 않는다. 뒤로 갔다면 **열쇠가 복제됐다는 신호**다 —
+  /* 사용 횟수는 뒤로 가지 않는다. 뒤로 갔다면 **열쇠가 복제됐다는 신호**다 . 
    * 둘 다 0 인 경우(횟수를 안 세는 기기)는 정상이라 그때만 통과시킨다. */
   if (authData.signCount !== 0 || input.passkey.signCount !== 0) {
     if (authData.signCount <= input.passkey.signCount) throw new Error('패스키: 사용 횟수가 뒤로 갔다');

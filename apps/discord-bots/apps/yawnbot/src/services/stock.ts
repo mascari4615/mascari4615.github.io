@@ -1,5 +1,5 @@
 /**
- * StockService — C# StockService → Node.js 이식
+ * StockService. C# StockService → Node.js 이식
  * 5개 종목 가격 변동 시뮬레이션 + 매수/매도/포트폴리오
  */
 import { formatMoney, GameDataService } from './gamedata';

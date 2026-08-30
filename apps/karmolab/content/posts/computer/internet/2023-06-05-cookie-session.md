@@ -5,7 +5,7 @@ last_modified_at: "2023-06-05T14:15:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Cookie, 쿠키

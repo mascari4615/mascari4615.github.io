@@ -31,7 +31,7 @@ describe('KST 경계', () => {
 });
 
 describe('이모지 추출', () => {
-  it('커스텀·애니메이션·유니코드를 모두 뽑는다', () => {
+  it('커스텀, 애니메이션, 유니코드를 모두 뽑는다', () => {
     const names = extractEmojiNames('<:yon:123> 하이 <a:dance:456> 🎉🎉');
     expect(names).toContain('yon');
     expect(names).toContain('dance');
@@ -138,7 +138,7 @@ describe('요약', () => {
     return state;
   }
 
-  it('총합·수다왕·붐빈 시각을 뽑는다', () => {
+  it('총합, 수다왕, 붐빈 시각을 뽑는다', () => {
     const s = summarize(seed(), 'g1', { days: 7, now });
     expect(s.totalMessages).toBe(24);
     expect(s.activeUsers).toBe(3);
@@ -190,7 +190,7 @@ describe('요약', () => {
   });
 });
 
-describe('보관·복구', () => {
+describe('보관, 복구', () => {
   it('보관 기간 밖 날짜를 버린다', () => {
     const state = emptyState();
     recordMessage(state, {

@@ -5,6 +5,7 @@ last_modified_at: "2024-11-19T13:04:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: [CSharp]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 @ TODO: 글 정리

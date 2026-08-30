@@ -1,6 +1,6 @@
 ## 한 줄
 
-karmoddrine 산하 모든 작업 (WM / KarmoLab / YawnBot / 인생·취미·학습 등) 이 도는 *메타* 흐름. 모든 다른 시스템의 부모.
+karmoddrine 산하 모든 작업 (WM / KarmoLab / YawnBot / 인생, 취미, 학습 등) 이 도는 *메타* 흐름. 모든 다른 시스템의 부모.
 
 ## 흐름 (시퀀스)
 
@@ -56,10 +56,10 @@ flowchart LR
 
 ## 관련 룰 / 메모리
 
-- `feedback_check_existing_first.md` — 새 기능 시작 전 같은 도메인 정독 우선
-- `feedback_user_intent_quote.md` — TASK 「목표」 사용자 발화 인용 강제
-- `feedback_format_options.md` — 형식·구조 결정도 옵션 표
-- `feedback_recommend_when_offering_options.md` — 추천 + 근본성 평가
+- `feedback_check_existing_first.md`. 새 기능 시작 전 같은 도메인 정독 우선
+- `feedback_user_intent_quote.md`. TASK 목표 사용자 발화 인용 강제
+- `feedback_format_options.md`. 형식, 구조 결정도 옵션 표
+- `feedback_recommend_when_offering_options.md`. 추천 + 근본성 평가
 - `feedback_commit_ask_first.md` / `feedback_push_only_when_asked.md`
 
 ## 후속

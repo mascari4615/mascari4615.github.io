@@ -1,10 +1,10 @@
 /**
- * 판 결과가 채널로 나가는 자리 — 남의 판을 옮기지 않는가 (arcade-next 「결과를 채널로」)
+ * 판 결과가 채널로 나가는 자리. 남의 판을 옮기지 않는가 (arcade-next 결과를 채널로)
  *
- * 여기서 지키는 것 셋. 셋 다 안 지키면 「중계」가 아니라 다른 것이 된다:
+ * 여기서 지키는 것 셋. 셋 다 안 지키면 중계가 아니라 다른 것이 된다:
  *  ① **공개로 연 방만.** 링크 아는 사람끼리 둔 판을 채널에 옮기면 그건 감시다
- *  ② **같은 판은 한 번만.** 창이 여럿이면 주인·손님·구경꾼이 저마다 보낸다
- *  ③ **아무 글자나 안 받는다.** 이름·놀이·점수가 그대로 남에게 보인다
+ *  ② **같은 판은 한 번만.** 창이 여럿이면 주인, 손님, 구경꾼이 저마다 보낸다
+ *  ③ **아무 글자나 안 받는다.** 이름, 놀이, 점수가 그대로 남에게 보인다
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import express from 'express';
@@ -55,12 +55,12 @@ describe('판 결과를 채널로', () => {
     expect((sent[0] as { summary: string }).summary).toContain('7CCMN');
   });
 
-  it('공개로 연 방이 아니면 안 나간다 — 중계가 아니라 감시가 된다', async () => {
+  it('공개로 연 방이 아니면 안 나간다. 중계가 아니라 감시가 된다', async () => {
     expect((await post({ ...won, code: 'ZZZZZ' })).status).toBe(403);
     expect(sent).toHaveLength(0);
   });
 
-  it('같은 판은 한 번만 — 창이 여럿이면 저마다 보낸다', async () => {
+  it('같은 판은 한 번만. 창이 여럿이면 저마다 보낸다', async () => {
     await post(won);
     await post(won);
     await post(won);
@@ -80,7 +80,7 @@ describe('판 결과를 채널로', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('이름은 자르고 점수는 정수로 — 그대로 남에게 보이는 값이다', async () => {
+  it('이름은 자르고 점수는 정수로. 그대로 남에게 보이는 값이다', async () => {
     await post({ ...won, seats: [{ name: '가'.repeat(40), score: 3.9 }, { name: '나\n다', score: 'x' }] });
     const f = (sent[0] as { fields: Array<{ name: string; value: string }> }).fields;
     expect(f[0].name.length).toBeLessThanOrEqual(16);

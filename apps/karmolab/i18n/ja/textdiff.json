@@ -14,6 +14,6 @@
   "textdiff.status.idle": "両方にテキストを入れるとすぐ比較します。",
   "textdiff.status.none": "表示する行がありません。",
   "textdiff.status.same": "2つのテキストは同じです（{n}行）。",
-  "textdiff.status.diff": "追加 {add}行 · 削除 {del}行 · 同一 {same}行",
-  "textdiff.status.truncated": " · {n}行までを比較しました"
+  "textdiff.status.diff": "追加 {add}行, 削除 {del}行, 同一 {same}行",
+  "textdiff.status.truncated": ", {n}行までを比較しました"
 }

@@ -4,10 +4,10 @@
  * 화면이 **0건일 때만** 여기로 온다. 이름으로 찾아지는 물음까지 모델에 보내면 노트북 한 대가
  * 매 글자마다 두들겨 맞고, 돈도 든다.
  *
- * 못 하면 못 한다고 말한다 — 자격이 없거나(`ready:false`) 못 고르면(`none`) 화면은 지금까지처럼
- * 「전체 목록에서 찾아보기」를 내민다. 억지로 아무 도구나 보내지 않는다.
+ * 못 하면 못 한다고 말한다. 자격이 없거나(`ready:false`) 못 고르면(`none`) 화면은 지금까지처럼
+ * 전체 목록에서 찾아보기를 내민다. 억지로 아무 도구나 보내지 않는다.
  *
- * 자기 파일에 사는 이유는 우물·오늘의 판과 같다(`karmolab-api.ts` 통짜 덮어쓰기 사고).
+ * 자기 파일에 사는 이유는 우물, 오늘의 판과 같다(`karmolab-api.ts` 통짜 덮어쓰기 사고).
  */
 import type { Application, Request, Response } from 'express';
 import type { GenerativeTextClient } from '@karmo/ai/node';
@@ -33,7 +33,7 @@ export function registerRouteRoutes(
     return client;
   };
 
-  /** 누구인지 모르게 세는 열쇠 — 주소는 저장하지 않는다(상한을 세는 동안만 메모리에 있다). */
+  /** 누구인지 모르게 세는 열쇠. 주소는 저장하지 않는다(상한을 세는 동안만 메모리에 있다). */
   const whoOf = (req: Request): string =>
     String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
 
@@ -49,7 +49,7 @@ export function registerRouteRoutes(
       return;
     }
 
-    // 같은 물음은 한 번만 묻는다 — 「없다」도 기억한다(답 없는 물음이 매번 모델을 부르지 않게).
+    // 같은 물음은 한 번만 묻는다. 없다도 기억한다(답 없는 물음이 매번 모델을 부르지 않게).
     const cached = memory.get(question);
     if (cached.hit) {
       res.json({ ready: true, cached: true, pick: cached.pick });
@@ -58,7 +58,7 @@ export function registerRouteRoutes(
 
     const engine = ai();
     if (!engine) {
-      // 자격이 없으면 **없다고 말한다**. 조용히 빈 답을 주면 화면은 「못 찾았다」로 읽는다.
+      // 자격이 없으면 **없다고 말한다**. 조용히 빈 답을 주면 화면은 못 찾았다로 읽는다.
       res.json({ ready: false, reason: 'no_ai' });
       return;
     }

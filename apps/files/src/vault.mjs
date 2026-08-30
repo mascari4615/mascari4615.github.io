@@ -1,11 +1,12 @@
 /**
- * Files 클라우드 v1 — 청크 AES-GCM + 암호화 목록.
+ * Files 클라우드 v1. 청크 AES-GCM + 암호화 목록.
  *
  * 왜 위젯 crypto.ts 를 안 쓰나: 그쪽은 CryptoJS AES-CBC 텍스트 메모다. 인증 태그가 없고
- * 파일·이름을 담는 규격이 아니다. 연산은 WebCrypto 만 (알고리즘 자작 금지).
+ * 파일, 이름을 담는 규격이 아니다. 연산은 WebCrypto 만 (알고리즘 자작 금지).
  *
- * 저장 키에는 평문 경로를 넣지 않는다. 이름·목록은 idx 암호문 안에만 있다.
+ * 저장 키에는 평문 경로를 넣지 않는다. 이름, 목록은 idx 암호문 안에만 있다.
  */
+import { normalizeTrash } from './trash.mjs';
 const MAGIC = new TextEncoder().encode('KARMVLT1');
 const KDF_PBKDF2 = 1;
 const HEADER_LEN = 30;
@@ -113,6 +114,12 @@ function aadChunk(id, n) {
   return new TextEncoder().encode(`karmvlt:chunk:${id}:${n}`);
 }
 
+/* 미리보기는 청크와 **다른 자리**를 쓴다. 같은 AAD 를 쓰면 미리보기를 청크 자리에
+   갖다 놓는 바꿔치기가 통한다 */
+function aadThumb(id) {
+  return new TextEncoder().encode(`karmvlt:thumb:${id}`);
+}
+
 async function sha256Hex(bytes) {
   return hex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
 }
@@ -137,6 +144,34 @@ function decodeIndex(bytes) {
 async function writeIndex(session, index) {
   const packed = await seal(session.key, encodeIndex(index), AAD_INDEX);
   await session.store.put('idx', packed);
+}
+
+const AAD_TRASH = new TextEncoder().encode('karmvlt:trash');
+
+/**
+ * 휴지통 읽기. 없으면 빈 것. 없는 것은 고장이 아니다.
+ * 깨져 있어도 빈 것으로 떨어뜨린다. 휴지통 하나 때문에 화면 전체가 안 열리면 안 된다.
+ */
+export async function readTrash(session) {
+  let packed = null;
+  try {
+    packed = await session.store.get('trash');
+  } catch {
+    return normalizeTrash(null);
+  }
+  if (!packed) return normalizeTrash(null);
+  try {
+    const raw = JSON.parse(new TextDecoder().decode(await open(session.key, packed, AAD_TRASH)));
+    return normalizeTrash(raw);
+  } catch {
+    return normalizeTrash(null);
+  }
+}
+
+/** 휴지통 쓰기. 화면이 쓸 수 있는 **유일한** 자리다 */
+export async function writeTrash(session, trash) {
+  const body = new TextEncoder().encode(JSON.stringify(normalizeTrash(trash)));
+  await session.store.put('trash', await seal(session.key, body, AAD_TRASH));
 }
 
 async function readIndex(session) {
@@ -229,13 +264,18 @@ export async function commitFile(session, rec) {
   const norm = normalizePath(rec.path);
   const index = await loadIndex(session);
   index.files = index.files.filter((f) => f.path !== norm);
-  index.files.push({
+  const row = {
     id: rec.id,
     path: norm,
     size: rec.size,
     chunks: rec.chunks,
     sha256: rec.sha256,
-  });
+  };
+  /* 시각은 있을 때만 담는다. 0 을 담으면 옛 항목과 구별이 안 된다.
+     `mtime` 은 디스크 수정 시각, `shot` 은 찍은 날 (EXIF) */
+  if (rec.mtime > 0) row.mtime = rec.mtime;
+  if (rec.shot > 0) row.shot = rec.shot;
+  index.files.push(row);
   await persistIndex(session, index);
   return { id: rec.id, sha256: rec.sha256, chunks: rec.chunks };
 }
@@ -259,7 +299,7 @@ export async function putFile(session, path, bytes, opts = {}) {
   });
 }
 
-/** 파일별 청크 키. 열람 저장에 **암호문을 그대로 옮길 때**만 쓴다 — 복호가 필요 없는 일이다. */
+/** 파일별 청크 키. 열람 저장에 **암호문을 그대로 옮길 때**만 쓴다. 복호가 필요 없는 일이다. */
 export async function fileChunkKeys(session) {
   const index = await loadIndex(session);
   return index.files.map((f) => ({
@@ -275,22 +315,97 @@ export async function listFiles(session) {
     size: f.size,
     chunks: f.chunks,
     sha256: f.sha256,
+    thumb: f.thumb ?? 0,
+    mtime: f.mtime ?? 0,
+    shot: f.shot ?? 0,
   }));
 }
 
-export async function getFile(session, path) {
+/**
+ * 이미 담긴 항목에 시각만 붙인다. 청크는 안 건드린다.
+ * 이미 올라간 것들을 채울 때 쓴다 (`meta-backfill`).
+ */
+export async function setTimes(session, path, times) {
+  const norm = normalizePath(path);
+  const index = await loadIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry) return null;
+  let changed = false;
+  if (times.mtime > 0 && entry.mtime !== times.mtime) {
+    entry.mtime = times.mtime;
+    changed = true;
+  }
+  if (times.shot > 0 && entry.shot !== times.shot) {
+    entry.shot = times.shot;
+    changed = true;
+  }
+  if (changed) await persistIndex(session, index);
+  return { changed };
+}
+
+/**
+ * 미리보기 한 장 넣기. 파일과 같은 id 아래 `t/<id>` 한 자리.
+ *
+ * 왜 따로 두나: 액자 한 칸을 채우려고 원본을 통째로 받아 복호하고 있었다.
+ * 사진 한 장 4MB 면 스무 칸에 80MB 다. 그리고 영상은 아예 못 그렸다.
+ * 미리보기는 수십 KB 라 그 둘을 한 번에 푼다.
+ */
+export async function putThumb(session, path, bytes) {
+  if (!(bytes instanceof Uint8Array)) throw new VaultPathError('bytes');
+  const norm = normalizePath(path);
+  const index = await loadIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry) return null;
+  const sealed = await seal(session.key, bytes, aadThumb(entry.id));
+  await session.store.put(`t/${entry.id}`, sealed);
+  entry.thumb = bytes.length;
+  await persistIndex(session, index);
+  return { id: entry.id, size: bytes.length };
+}
+
+/** 미리보기 꺼내기. 없으면 null. 없는 것은 고장이 아니다 */
+export async function getThumb(session, path) {
+  const norm = normalizePath(path);
+  const index = await loadIndex(session);
+  const entry = index.files.find((f) => f.path === norm);
+  if (!entry || !entry.thumb) return null;
+  const packed = await session.store.get(`t/${entry.id}`);
+  if (!packed) return null;
+  return { bytes: await open(session.key, packed, aadThumb(entry.id)) };
+}
+
+/**
+ * 미리보기 키 목록. 열람 저장에는 **미리보기를 늘 올린다**.
+ * 원본을 안 올리는 큰 영상도 칸은 보여야 하고, 한 장이 수십 KB 라 값이 거의 안 든다.
+ */
+export async function thumbKeys(session) {
+  const index = await loadIndex(session);
+  return index.files.filter((f) => f.thumb).map((f) => ({ path: f.path, key: `t/${f.id}` }));
+}
+
+/**
+ * 파일 하나 받아 복호.
+ *
+ * `opts.onProgress(done, all, bytes)` 를 주면 청크마다 부른다. 큰 파일은 청크가 8MB 라
+ * 100MB 면 열세 번 온다. 그 사이 화면이 아무 말이 없으면 멈춘 것처럼 보인다.
+ */
+export async function getFile(session, path, opts = {}) {
   const norm = normalizePath(path);
   const index = await loadIndex(session);
   const entry = index.files.find((f) => f.path === norm);
   if (!entry) return null;
   const parts = [];
   let total = 0;
+  const tell = typeof opts.onProgress === 'function' ? opts.onProgress : null;
+  /* 받기 전에 한 번. 0 / 13 을 먼저 보여 줘야 시작한 것이 보인다 */
+  tell?.(0, entry.chunks, 0);
   for (let i = 0; i < entry.chunks; i++) {
     const packed = await session.store.get(`c/${entry.id}/${i}`);
     if (!packed) throw new VaultCorruptError('missing chunk');
     const part = await open(session.key, packed, aadChunk(entry.id, i));
     parts.push(part);
     total += part.length;
+    tell?.(i + 1, entry.chunks, total);
   }
   const out = new Uint8Array(total);
   let off = 0;
@@ -304,7 +419,11 @@ export async function getFile(session, path) {
   return { bytes: out, entry };
 }
 
-/** 브라우저·원격 읽기 전용. 올리기는 PC rclone. */
+/** 브라우저, 원격 읽기 전용. 올리기는 PC rclone. */
+/**
+ * 화면이 쓰는 저장소. 읽기는 다 되고, **쓰기는 휴지통 하나뿐**이다.
+ * Worker 도 같은 규칙으로 막는다 (`src/blob-key.mjs`). 두 자리에서 같이 막는다.
+ */
 export function fetchStore(base, fetchFn = globalThis.fetch) {
   const prefix = String(base).replace(/\/+$/, '');
   return {
@@ -314,8 +433,10 @@ export function fetchStore(base, fetchFn = globalThis.fetch) {
       if (!r.ok) throw new Error('get ' + r.status);
       return new Uint8Array(await r.arrayBuffer());
     },
-    async put() {
-      throw new Error('read-only');
+    async put(key, bytes) {
+      if (key !== 'trash') throw new Error('read-only');
+      const r = await fetchFn(`${prefix}/${key}`, { method: 'PUT', body: bytes });
+      if (!r.ok) throw new Error('put ' + r.status);
     },
   };
 }

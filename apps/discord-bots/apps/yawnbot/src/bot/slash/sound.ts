@@ -69,7 +69,7 @@ export async function handleSound(ctx: BotContext, interaction: ChatInputCommand
   const perms = vc.permissionsFor(botMember);
   if (!perms?.has([PermissionFlagsBits.Connect, PermissionFlagsBits.Speak, PermissionFlagsBits.ViewChannel])) {
     await interaction.editReply({
-      content: '봇에게 해당 음성 채널 **보기·연결·말하기(Speak)** 권한이 필요합니다.',
+      content: '봇에게 해당 음성 채널 **보기, 연결, 말하기(Speak)** 권한이 필요합니다.',
     });
     return;
   }
@@ -82,7 +82,7 @@ export async function handleSound(ctx: BotContext, interaction: ChatInputCommand
   if (sources.length === 0) {
     await interaction.editReply({
       content:
-        '`file`(첨부)·`url`·`clip` 중 **하나**만 지정하세요. 서버에 넣은 파일은 `resources/audio/` 에 두고 `/music sound clip:파일명.mp3` 로 재생할 수 있습니다.',
+        '`file`(첨부), `url`, `clip` 중 **하나**만 지정하세요. 서버에 넣은 파일은 `resources/audio/` 에 두고 `/music sound clip:파일명.mp3` 로 재생할 수 있습니다.',
     });
     return;
   }
@@ -106,7 +106,7 @@ export async function handleSound(ctx: BotContext, interaction: ChatInputCommand
       ct.includes('wav');
     if (!looksAudio) {
       await interaction.editReply({
-        content: '오디오로 보이는 첨부만 재생합니다. (mp3, wav, ogg 등 — `content-type`이 audio가 아니면 확장자를 확인합니다.)',
+        content: '오디오로 보이는 첨부만 재생합니다. (mp3, wav, ogg 등. `content-type`이 audio가 아니면 확장자를 확인합니다.)',
       });
       return;
     }
@@ -139,7 +139,7 @@ export async function handleSound(ctx: BotContext, interaction: ChatInputCommand
     load = () => createAudioResourceFromLocalFile(resolved);
   }
 
-  await interaction.editReply({ content: '오디오 불러와서 대기열에 넣는 중…' });
+  await interaction.editReply({ content: '오디오 불러와서 대기열에 넣는 중...' });
 
   let result;
   try {
@@ -148,7 +148,7 @@ export async function handleSound(ctx: BotContext, interaction: ChatInputCommand
         notifyTextChannelId: interaction.channelId ?? undefined,
       }),
       SOUND_PREPARE_TIMEOUT_MS,
-      '오디오 준비·재생',
+      '오디오 준비, 재생',
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

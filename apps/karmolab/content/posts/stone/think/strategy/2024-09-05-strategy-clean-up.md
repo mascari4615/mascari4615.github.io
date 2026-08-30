@@ -6,7 +6,7 @@ last_modified_at: "2025-08-11T00:19:00+09:00"
 categories: [수필, 생각]
 tags: [Strategy]
 image: /assets/img/background/20230112-151539.jpg
-hidden: true
+board: me
 ---
 
 ## 머리말

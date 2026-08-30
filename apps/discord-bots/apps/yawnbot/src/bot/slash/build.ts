@@ -1,11 +1,11 @@
 /**
- * /빌드 — WM 노트북 빌드머신 조작 (TASK-WM-197).
+ * /빌드. WM 노트북 빌드머신 조작 (TASK-WM-197).
  *
  * 왜 봇이 하나: 빌드는 폰에서 걸 일이 많은데(자다 일어나서, 밖에서), 그때마다 깃허브
  * 앱을 열어 워크플로를 찾아 입력칸을 채우는 게 유일하게 남은 PC-스러운 단계였다.
- * 결과는 이미 디스코드로 오므로, 걸고·보고·끄는 것도 같은 자리에서 되게 한다.
+ * 결과는 이미 디스코드로 오므로, 걸고, 보고, 끄는 것도 같은 자리에서 되게 한다.
  *
- * 진행/결과 카드는 이 커맨드가 만들지 않는다 — 빌드 워크플로가 #wm-build 에 직접
+ * 진행/결과 카드는 이 커맨드가 만들지 않는다. 빌드 워크플로가 #wm-build 에 직접
  * 띄우고 갱신한다 (한 사건을 두 곳에서 보고하면 반드시 어긋난다).
  */
 import { MessageFlags } from 'discord.js';
@@ -34,12 +34,12 @@ function githubHeaders(token: string): Record<string, string> {
   };
 }
 
-/** 실패 사유를 그대로 보여준다 — 「실패」 한 마디로는 무엇을 고칠지 알 수 없다. */
+/** 실패 사유를 그대로 보여준다. 실패 한 마디로는 무엇을 고칠지 알 수 없다. */
 async function describeFailure(response: Response): Promise<string> {
   let detail = `HTTP ${response.status}`;
   try {
     const body = (await response.json()) as { message?: string };
-    if (body?.message) detail += ` — ${body.message}`;
+    if (body?.message) detail += `. ${body.message}`;
   } catch {
     /* 본문이 없을 수도 있다 */
   }
@@ -47,7 +47,7 @@ async function describeFailure(response: Response): Promise<string> {
 }
 
 async function findActiveRun(token: string): Promise<WorkflowRun | null> {
-  // queued 와 in_progress 를 따로 물어본다 — status 필터는 값 하나만 받는다.
+  // queued 와 in_progress 를 따로 물어본다. status 필터는 값 하나만 받는다.
   for (const status of ['in_progress', 'queued']) {
     const response = await fetch(
       `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?status=${status}&per_page=1`,
@@ -80,7 +80,7 @@ export async function handleBuild(ctx: BotContext, interaction: ChatInputCommand
   }
 
   const sub = interaction.options.getSubcommand();
-  // 빌드는 30~40분 노트북을 통째로 쓴다 — 3초 응답 제한 안에 자리를 잡아두고
+  // 빌드는 30~40분 노트북을 통째로 쓴다. 3초 응답 제한 안에 자리를 잡아두고
   // 실제 결과를 이어 붙인다.
   await interaction.deferReply();
 
@@ -105,14 +105,14 @@ export async function handleBuild(ctx: BotContext, interaction: ChatInputCommand
       method: 'POST',
       headers: githubHeaders(token),
     });
-    // 202 = 취소 접수. 실제 종료는 잠시 뒤라 「끊었다」고 단정하지 않는다.
+    // 202 = 취소 접수. 실제 종료는 잠시 뒤라 끊었다고 단정하지 않는다.
     if (response.status !== 202) {
       await interaction.editReply(`빌드를 끊지 못했어요: ${await describeFailure(response)}\n${run.html_url}`);
       return;
     }
     await interaction.editReply(
       `🛑 빌드 중단을 걸었어요. 잠시 뒤 멈추고, 노트북에 남은 유니티도 같이 정리돼요.\n` +
-        `결과는 #wm-build 카드가 「취소됨」으로 바뀌는 것으로 알 수 있어요.`,
+        `결과는 #wm-build 카드가 취소됨으로 바뀌는 것으로 알 수 있어요.`,
     );
     return;
   }
@@ -145,7 +145,7 @@ export async function handleBuild(ctx: BotContext, interaction: ChatInputCommand
     return;
   }
 
-  // 「앞에 뭐가 있으면」이 아니라 실제로 있는지 보고 말한다 — 40분을 기다릴지 말지의
+  // 앞에 뭐가 있으면이 아니라 실제로 있는지 보고 말한다. 40분을 기다릴지 말지의
   // 판단이 걸린 정보라 추측으로 흐리면 안 된다.
   let queueNote: string;
   if (cancelRunning) {

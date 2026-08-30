@@ -12,4 +12,4 @@ const sourceNotes=[{id:'a',beat:0,duration:.5,pitch:60,velocity:.8},{id:'b',beat
 const bytes=encodeMidi(sourceNotes,123);assert.equal(new TextDecoder().decode(bytes.slice(0,4)),'MThd');assert.equal(new TextDecoder().decode(bytes.slice(14,18)),'MTrk');
 const decoded=decodeMidi(bytes);assert.equal(decoded.bpm,123);assert.equal(decoded.notes.length,2);assert.equal(decoded.notes.map((note)=>note.pitch).join(','),'60,67');assert.ok(Math.abs(decoded.notes[1].beat-1.25)<.001);assert.ok(Math.abs(decoded.notes[1].duration-1.5)<.001);
 assert.throws(()=>decodeMidi(new Uint8Array([1,2,3,4])),/헤더/);
-console.log('[test-heung-midi-file] ✓ SMF 헤더 · tempo · note on/off · 왕복 · 잘린 파일 거부');
+console.log('[test-heung-midi-file] ✓ SMF 헤더, tempo, note on/off, 왕복, 잘린 파일 거부');

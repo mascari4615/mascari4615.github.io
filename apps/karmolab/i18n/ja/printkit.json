@@ -22,8 +22,8 @@
   "printkit.weekday.sat": "土",
   "printkit.status.idle": "どの紙が要るか選んでください",
   "printkit.status.ok": "{w}×{h} mm で描きました",
-  "printkit.status.making": "PDF を作成中…",
+  "printkit.status.making": "PDF を作成中...",
   "printkit.status.saved": "PDF で保存しました",
   "printkit.err.pdfLib": "PDF ライブラリを読み込めませんでした",
-  "printkit.note.margin": "すべて mm で描き、端 8mm は空けています — プリンタが印刷できない領域で、そこに描くと切れます。印刷は「実際のサイズ(100%)」で。PDF 内の曜日はラテン文字1字です(フォントを埋め込むとファイルが大きくなるため)。"
+  "printkit.note.margin": "すべて mm で描き、端 8mm は空けています. プリンタが印刷できない領域で、そこに描くと切れます。印刷は実際のサイズ(100%)で。PDF 内の曜日はラテン文字1字です(フォントを埋め込むとファイルが大きくなるため)。"
 }

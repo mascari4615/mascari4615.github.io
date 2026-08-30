@@ -1,9 +1,9 @@
 /**
- * 모스 부호 (TASK-KL-088) — 잡동사니에서 승격.
+ * 모스 부호 (TASK-KL-088). 잡동사니에서 승격.
  *
- * 이전 판은 텍스트 → 부호 한 방향만 됐고 한글이 없었다. 실제 쓰임은 반대가 더 많다 —
- * 어디선가 본 점·선을 **읽어야** 한다. 그래서 양방향으로 만들고, 한글 모스(1926년 제정,
- * 자모 단위로 찍는다)도 넣는다. 소리·불빛 재생은 그대로 살린다.
+ * 이전 판은 텍스트 → 부호 한 방향만 됐고 한글이 없었다. 실제 쓰임은 반대가 더 많다 . 
+ * 어디선가 본 점, 선을 **읽어야** 한다. 그래서 양방향으로 만들고, 한글 모스(1926년 제정,
+ * 자모 단위로 찍는다)도 넣는다. 소리, 불빛 재생은 그대로 살린다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -22,7 +22,7 @@ import { markLive } from './shared/say';
     '=': '-...-', '+': '.-.-.', '@': '.--.-.'
   };
 
-  /** 한글 모스 부호 — 자모 단위. 겹자음·겹모음은 자모를 나눠 찍는다. */
+  /** 한글 모스 부호. 자모 단위. 겹자음, 겹모음은 자모를 나눠 찍는다. */
   const KO: Record<string, string> = {
     ㄱ: '.-..', ㄴ: '..-.', ㄷ: '-...', ㄹ: '...-', ㅁ: '--', ㅂ: '.--',
     ㅅ: '--.', ㅇ: '-.-', ㅈ: '.--.', ㅊ: '-.-.', ㅋ: '-..-', ㅌ: '--..',
@@ -76,7 +76,7 @@ import { markLive } from './shared/say';
     return out.join(' ');
   }
 
-  /** 겹모음·겹받침 합치기 — decompose 의 역방향 */
+  /** 겹모음, 겹받침 합치기. decompose 의 역방향 */
   const JOIN: Record<string, string> = {};
   Object.keys(SPLIT).forEach((k) => {
     if (SPLIT[k].length === 2) JOIN[SPLIT[k]] = k;
@@ -85,7 +85,7 @@ import { markLive } from './shared/say';
   /**
    * 자모 나열 → 완성형 한글.
    *
-   * 모스는 자모 단위라 풀면 「ㅇㅏㄴㄴㅕㅇ」 이 나온다 — 원리상 맞지만 읽히지 않는다.
+   * 모스는 자모 단위라 풀면 ㅇㅏㄴㄴㅕㅇ 이 나온다. 원리상 맞지만 읽히지 않는다.
    * 받침이 다음 글자의 첫소리가 될 수 있어서(안+녕), **다음 자모를 보고 나서** 확정한다.
    */
   function compose(jamo: string[]): string {
@@ -210,17 +210,17 @@ import { markLive } from './shared/say';
       .join(' ');
   }
 
-  // 자모 조립·부호 표가 이 도구의 존재 이유라 값으로 검증한다 (scripts/smoke-tools.mjs).
+  // 자모 조립, 부호 표가 이 도구의 존재 이유라 값으로 검증한다 (scripts/smoke-tools.mjs).
   window.KarmoMorse = { encode, decode };
 
   Toolbox.register({
     id: 'morse',
     title: t('widgets.morse.title', undefined, '모스 부호 변환'),
-    category: 'tool',
+    category: 'text',
     desc: t(
       'widgets-desc.morse.desc',
       undefined,
-      '글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리·불빛 재생 지원'
+      '글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리, 불빛 재생 지원'
     ),
     layout: 'form',
     icon: '<path d="M3 12h2M8 12h6M17 12h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M3 7h4M10 7h2M15 7h6M3 17h6M12 17h2M17 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>',
@@ -275,7 +275,7 @@ import { markLive } from './shared/say';
           const codeEl = $<HTMLTextAreaElement>('#msCode');
           const led = $<HTMLElement>('#msLed');
           const status = $<HTMLElement>('#msStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           let korean = false;
           let syncing = false;
@@ -325,7 +325,7 @@ import { markLive } from './shared/say';
             await Toolbox.copyText?.(codeEl.value, { message: t('morse.copy.done') });
           };
 
-          // ── 소리·불빛 재생 (점 1 : 선 3 : 글자 사이 3 : 낱말 사이 7 — 국제 표준 비율)
+          // ── 소리, 불빛 재생 (점 1 : 선 3 : 글자 사이 3 : 낱말 사이 7. 국제 표준 비율)
           const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
           let playing = false;
           $<HTMLButtonElement>('#msPlay').onclick = async () => {

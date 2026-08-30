@@ -1,4 +1,4 @@
-/** 본문(body)에 붙는 채팅 표시 옵션 — 프리셋과 독립적으로 조합 가능 */
+/** 본문(body)에 붙는 채팅 표시 옵션. 프리셋과 독립적으로 조합 가능 */
 
 import type { PresetId } from "./presets";
 

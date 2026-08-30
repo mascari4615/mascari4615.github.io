@@ -1,12 +1,12 @@
 /**
- * 등불 잇기 — 서로 이기는 게 아니라 같이 이긴다 (TASK-KL-242)
+ * 등불 잇기. 서로 이기는 게 아니라 같이 이긴다 (TASK-KL-242)
  *
  * 스물두 개가 전부 **누가 이기나**였다. 이건 처음으로 **다 같이 이기거나 다 같이 진다.**
- * 커널의 점수는 자리별인데, 여기서는 모두에게 같은 값을 준다 — 「협동」은 새 기능이 아니라
+ * 커널의 점수는 자리별인데, 여기서는 모두에게 같은 값을 준다. 협동은 새 기능이 아니라
  * 점수를 그렇게 나눠 주는 것뿐이었다(커널을 안 고쳐도 됐다).
  *
  * 그리고 뒤집힌 `redact`: 다른 게임은 **남의 패를 감췄지만**, 여기서는 **내 패만 감춘다.**
- * 그게 이 놀이의 전부다 — 내가 못 보는 것을 남이 말해 준다.
+ * 그게 이 놀이의 전부다. 내가 못 보는 것을 남이 말해 준다.
  *
  * 간추린 규칙: 색 셋(🔴🟢🔵) × 숫자 1~5. 색마다 1부터 차례로 쌓는다. 알려 주기는 힌트 토큰을
  * 쓰고, 잘못 걸면 등불이 하나 꺼진다. 셋 다 터지면 끝. 다 쌓으면(15장) 이긴다.
@@ -36,7 +36,7 @@ export interface LanternsState {
   hints: number;
   fuses: number;
   turn: number;
-  /** 자리별·자리내 카드별로 「색을 들었다 / 숫자를 들었다」 */
+  /** 자리별, 자리내 카드별로 색을 들었다 / 숫자를 들었다 */
   told: Array<Array<{ color: boolean; rank: boolean }>>;
   /**
    * 산이 마른 뒤 **남은 차례 수**. -1 = 아직 산이 있다.
@@ -45,7 +45,7 @@ export interface LanternsState {
   finalLeft: number;
   /** 끝났나 */
   over: boolean;
-  /** 마지막에 무슨 일이 있었나 — 화면이 한 줄로 말해 준다 */
+  /** 마지막에 무슨 일이 있었나. 화면이 한 줄로 말해 준다 */
   last: { kind: 'play' | 'fail' | 'hint' | 'drop'; who: number; text: string } | null;
 }
 
@@ -57,7 +57,7 @@ export type LanternsAction =
 function freshDeck(rng: () => number): Card[] {
   const cards: Card[] = [];
   for (let c = 0; c < COLORS; c++) {
-    /* 1 은 흔하고 5 는 하나뿐 — 원래 놀이의 긴장이 여기서 나온다. */
+    /* 1 은 흔하고 5 는 하나뿐. 원래 놀이의 긴장이 여기서 나온다. */
     const counts = [0, 3, 2, 2, 2, 1];
     for (let r = 1; r <= RANKS; r++) {
       for (let k = 0; k < counts[r]; k++) cards.push({ color: c, rank: r });
@@ -70,8 +70,8 @@ function freshDeck(rng: () => number): Card[] {
  * 차례를 넘기고 **끝을 여기서 정한다**.
  *
  * 원래 놀이의 규칙: 산이 마르면 각자 한 번씩만 더 두고 끝난다. 그 규칙이 없었더니 산도
- * 마르고 손도 거의 빈 판에서 차례가 **빈손에게** 돌아가 영영 멈췄다 — 봇끼리 200판 중
- * 115판(TASK-KL-264 F1 실측). 씨앗 하나로 「끝난다」를 봤던 계약 검사는 이걸 못 봤다.
+ * 마르고 손도 거의 빈 판에서 차례가 **빈손에게** 돌아가 영영 멈췄다. 봇끼리 200판 중
+ * 115판(TASK-KL-264 F1 실측). 씨앗 하나로 끝난다를 봤던 계약 검사는 이걸 못 봤다.
  *
  * 빈손은 낼 것도 버릴 것도 없으니 건너뛴다. 건너뛸 자리가 하나도 없으면 그것이 판의 끝이다.
  */
@@ -113,7 +113,7 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
     };
   },
 
-  /** **내 패만 감춘다.** 다른 게임과 정반대다 — 그게 이 놀이다. */
+  /** **내 패만 감춘다.** 다른 게임과 정반대다. 그게 이 놀이다. */
   redact(s, seat) {
     return { ...s, hands: s.hands.map((h, i) => (i === seat ? h.map(() => ({ color: -1, rank: 0 })) : h)) };
   },
@@ -174,7 +174,7 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
     );
 
     if (a.kind === 'drop') {
-      /* 버리면 힌트가 하나 돌아온다 — 못 쓰는 카드를 버리는 것도 수다. */
+      /* 버리면 힌트가 하나 돌아온다. 못 쓰는 카드를 버리는 것도 수다. */
       const step = advance(seat, seats, hands, deck.length, s.finalLeft);
       return {
         ...s,
@@ -216,11 +216,11 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
 
   outcome(s, ctx): Outcome {
     if (!s.over) {
-      /* 판이 도는 중에도 **방금 무슨 일이 있었나**를 말로 낸다 (arcade-next 「놀이마다의 소리」).
-         협동 놀이라 「불이 하나 꺼졌다」가 특히 크다 — 그건 모두의 손해다.
-         **일마다 달라지는 값은 안 싣는다** — 여기는 차례가 돌아 `who` 가 매번 바뀐다.
+      /* 판이 도는 중에도 **방금 무슨 일이 있었나**를 말로 낸다 (arcade-next 놀이마다의 소리).
+         협동 놀이라 불이 하나 꺼졌다가 특히 크다. 그건 모두의 손해다.
+         **일마다 달라지는 값은 안 싣는다**. 여기는 차례가 돌아 `who` 가 매번 바뀐다.
          함대는 맞히면 한 번 더 두므로 같은 사람이 연달아 와서 그 값이 필요했다(91발 중 10발).
-         여기서는 빼도 안 빨개져서 뺐다 — 증명 안 되는 줄은 안 남긴다. */
+         여기서는 빼도 안 빨개져서 뺐다. 증명 안 되는 줄은 안 남긴다. */
       if (!s.last) return { over: false };
       const who = ctx.seats[s.last.who]?.name ?? '';
       const kind = s.last.kind;
@@ -253,7 +253,7 @@ export const lanterns: GameDef<LanternsState, LanternsAction> = {
     const mine = s.told[seat] ?? [];
     const hand = s.hands[seat] ?? [];
 
-    /* ① 「숫자를 들은」 카드가 지금 놓을 수 있는 수면 낸다 — 봇도 제 패는 안 본다. */
+    /* ① 숫자를 들은 카드가 지금 놓을 수 있는 수면 낸다. 봇도 제 패는 안 본다. */
     for (let i = 0; i < hand.length; i++) {
       const mark = mine[i];
       if (!mark?.rank) continue;

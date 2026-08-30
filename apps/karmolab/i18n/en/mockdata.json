@@ -12,9 +12,9 @@
   "mockdata.btn.run": "Generate",
   "mockdata.btn.shuffle": "Another batch",
   "mockdata.btn.copy": "Copy",
-  "mockdata.hint.types": "Types: name · email · phone · address · company · job · id · uuid · int(20,40) · float(0,1) · bool · date(2024-01-01,2026-12-31) · enum(a|b|c) · lorem(6) · url",
+  "mockdata.hint.types": "Types: name, email, phone, address, company, job, id, uuid, int(20,40), float(0,1), bool, date(2024-01-01,2026-12-31), enum(a|b|c), lorem(6), url",
   "mockdata.status.idle": "Write the fields and it generates as you type",
   "mockdata.status.empty": "Write at least one field",
-  "mockdata.status.ok": "{n} rows · {cols} fields (seed {seed})",
+  "mockdata.status.ok": "{n} rows, {cols} fields (seed {seed})",
   "mockdata.copy.done": "Copied"
 }

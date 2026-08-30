@@ -1,10 +1,10 @@
 /**
- * 인증서·CSR 을 사람 말로 (TASK-KL-316 / 23)
+ * 인증서, CSR 을 사람 말로 (TASK-KL-316 / 23)
  *
- * 인증서에서 사람이 알고 싶은 건 늘 같다: **누구 것인가 · 언제까지인가 · 어떤 이름들에 쓰이나**.
+ * 인증서에서 사람이 알고 싶은 건 늘 같다: **누구 것인가, 언제까지인가, 어떤 이름들에 쓰이나**.
  * 그런데 `openssl x509 -text` 는 한 화면을 넘고, 웹 도구는 인증서를 남의 서버로 올린다.
  *
- * 여기서는 `core/pem` 이 읽은 나무에서 그 넷만 집어 온다. 남는 자리(확장·서명)는 나무 그대로 둔다 —
+ * 여기서는 `core/pem` 이 읽은 나무에서 그 넷만 집어 온다. 남는 자리(확장, 서명)는 나무 그대로 둔다 . 
  * **모르는 것을 지어내지 않는다**(모르는 OID 는 숫자 그대로 나온다).
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -23,7 +23,7 @@ export const spec: ToolSpec = {
 
 export interface Cert {
   kind: 'certificate' | 'request' | 'unknown';
-  /** `CN=example.com, O=…` */
+  /** `CN=example.com, O=...` */
   subject: string;
   issuer: string;
   serial?: string;
@@ -38,7 +38,7 @@ export interface Cert {
   selfSigned: boolean;
 }
 
-/** `SEQUENCE > SET > SEQUENCE{OID, 값}` 을 `CN=…, O=…` 로 편다. */
+/** `SEQUENCE > SET > SEQUENCE{OID, 값}` 을 `CN=..., O=...` 로 편다. */
 function readName(node: Asn1 | undefined): string {
   if (node === undefined || node.children === undefined) return '';
   const parts: string[] = [];
@@ -53,7 +53,7 @@ function readName(node: Asn1 | undefined): string {
   return parts.join(', ');
 }
 
-/** SAN 확장 — 안이 또 DER 이다. `[2]` 는 dNSName, `[7]` 은 IP. */
+/** SAN 확장. 안이 또 DER 이다. `[2]` 는 dNSName, `[7]` 은 IP. */
 function readSans(nodes: Asn1[]): string[] {
   const out: string[] = [];
   /* 확장은 `SEQUENCE { OID, OCTET STRING }` 꼴이라 **OID 옆의 형제**를 봐야 한다 (OID 만 찾으면 못 찾는다). */
@@ -106,8 +106,8 @@ export function readCert(der: Uint8Array, label = ''): Cert {
   const tbs = top.children[0];
   const parts = tbs.children ?? [];
 
-  /* 인증서: [0]버전? · 일련번호 · 서명알고리즘 · 발급자 · 기간 · 주체 · 공개키 · 확장
-     CSR:    버전 · 주체 · 공개키 · 속성 — 그래서 자리 세는 법이 다르다. */
+  /* 인증서: [0]버전?, 일련번호, 서명알고리즘, 발급자, 기간, 주체, 공개키, 확장
+     CSR:    버전, 주체, 공개키, 속성. 그래서 자리 세는 법이 다르다. */
   let subject = '';
   let issuer = '';
   let serial: string | undefined;
@@ -150,7 +150,7 @@ export function readCert(der: Uint8Array, label = ''): Cert {
 
 export interface Chain {
   certs: Cert[];
-  /** 사슬이 이어지나 — 앞 것의 발급자가 뒤 것의 주체인가 */
+  /** 사슬이 이어지나. 앞 것의 발급자가 뒤 것의 주체인가 */
   linked: boolean;
   /** 남은 날 (첫 인증서 기준). 이미 지났으면 음수 */
   daysLeft?: number;

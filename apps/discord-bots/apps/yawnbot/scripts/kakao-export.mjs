@@ -1,5 +1,5 @@
 /**
- * 카카오톡 PC 대화 저장 + (기본) 제미니 요약·디스코드 웹훅 — 단일 스크립트.
+ * 카카오톡 PC 대화 저장 + (기본) 제미니 요약, 디스코드 웹훅. 단일 스크립트.
  *
  * 기본: 트리거(저장) 후 이번에 생긴 .txt 만 스캔해 요약
  *   npm run kakao-export
@@ -9,15 +9,15 @@
  * 모드:
  *   --watch              폴더 상시 감시만 (백그라운드용과 동일 동작)
  *   --scan [epochMs]     .txt 한 번만 처리 (생략 시 전체, 숫자면 mtime 기준)
- *   --trigger-only       저장만 하고 요약 안 함 (테스트: npm run kakao-export-save). 후보 없음이면 스냅샷 직후 exit 0(카운트다운·저장 PS 생략)
+ *   --trigger-only       저장만 하고 요약 안 함 (테스트: npm run kakao-export-save). 후보 없음이면 스냅샷 직후 exit 0(카운트다운, 저장 PS 생략)
  *
  * 환경 변수: `config/yawnbot-defaults.txt` → 앱 루트 `.env`
  *   KAKAO_EXPORT_WATCH_DIR,
- *   AI: GEMINI_* / VERTEX_* (`.env`). 숫자·폴링 기본값은 defaults.txt
+ *   AI: GEMINI_* / VERTEX_* (`.env`). 숫자, 폴링 기본값은 defaults.txt
  *   DISCORD_SUMMARY_WEBHOOK_URL, KAKAO_EXPORT_MAX_ROUNDS,
- *   KAKAO_EXPORT_SKIP_WINDOW_TITLES — 제외할 창 제목(정확 일치·대소문자 무시·| 구분). 남는 창이 전부 스킵이면 창 없음으로 종료(메인에 Ctrl+S 안 보냄). 비우려면 OFF
+ *   KAKAO_EXPORT_SKIP_WINDOW_TITLES. 제외할 창 제목(정확 일치, 대소문자 무시, | 구분). 남는 창이 전부 스킵이면 창 없음으로 종료(메인에 Ctrl+S 안 보냄). 비우려면 OFF
  *   KAKAO_EXPORT_SAVE_WAIT_TIMEOUT_SEC, KAKAO_EXPORT_SAVE_POLL_MS, KAKAO_EXPORT_AFTER_FILE_MS,
- *   KAKAO_EXPORT_FILE_STABLE_CHECKS — 파일 크기가 같은 연속 확인 횟수(기본 3)
+ *   KAKAO_EXPORT_FILE_STABLE_CHECKS. 파일 크기가 같은 연속 확인 횟수(기본 3)
  */
 
 import { spawnSync } from 'child_process';
@@ -253,7 +253,7 @@ try {
   [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
   $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 } catch { }
-Write-Output '--- Get-Process (프로세스당 MainWindowTitle 1개뿐 — 여러 채팅창 대표 아님) ---'
+Write-Output '--- Get-Process (프로세스당 MainWindowTitle 1개뿐. 여러 채팅창 대표 아님) ---'
 $exact = @(Get-Process -Name 'KakaoTalk' -ErrorAction SilentlyContinue)
 if ($exact.Count -gt 0) {
   foreach ($e in $exact) {
@@ -261,11 +261,11 @@ if ($exact.Count -gt 0) {
     Write-Output ('EXACT:KakaoTalk PID=' + $e.Id + ' MainWindowTitle="' + $t + '"')
   }
 } else {
-  Write-Output 'EXACT:KakaoTalk (없음 — 스크립트는 Get-Process -Name KakaoTalk 사용)'
+  Write-Output 'EXACT:KakaoTalk (없음. 스크립트는 Get-Process -Name KakaoTalk 사용)'
 }
 $fuzzy = @(Get-Process | Where-Object { $_.Name -match '(?i)kakao' })
 if ($fuzzy.Count -eq 0) {
-  Write-Output 'FUZZY:(이름에 kakao 포함 — 없음)'
+  Write-Output 'FUZZY:(이름에 kakao 포함. 없음)'
 } else {
   $fuzzy | Sort-Object Name, Id | ForEach-Object {
     $t = if ($_.MainWindowTitle) { ($_.MainWindowTitle -replace '\\s+', ' ').Trim() } else { '' }
@@ -475,7 +475,7 @@ async function runTrigger({ countdown, saveDialogOnly, once }) {
   console.error(`※ 트리거: ${saveDialogOnly ? '저장창만 1회' : once ? '한 창만' : '전부 순차'}`);
 
   for (let i = countdown; i > 0; i--) {
-    console.error(`대기 ${i}…`);
+    console.error(`대기 ${i}...`);
     await delay(1000);
   }
 
@@ -572,9 +572,9 @@ async function summarizeChunk(text) {
 형식:
 - 한 줄 제목(채팅 주제 추정)
 - 핵심 요약 (불릿 3~7개)
-- 결정·할 일·약속이 있으면 별도 소제목
+- 결정, 할 일, 약속이 있으면 별도 소제목
 
-원문에 이름이 있으면 그대로 쓰되, 불필요한 욕설·개인정보(전화·주소·계좌)는 [생략] 처리.
+원문에 이름이 있으면 그대로 쓰되, 불필요한 욕설, 개인정보(전화, 주소, 계좌)는 [생략] 처리.
 
 ---
 ${text.slice(0, 120_000)}

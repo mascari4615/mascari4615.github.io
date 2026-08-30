@@ -24,7 +24,7 @@ test('결이 없으면 늘 하던 속도', async () => {
   } finally { restore(); }
 });
 
-test('처진 결은 느리게 — 결을 붙여 놓고 안 받으면 붙인 적 없는 것과 같다', async () => {
+test('처진 결은 느리게. 결을 붙여 놓고 안 받으면 붙인 적 없는 것과 같다', async () => {
   const { sent: sent, restore: restore } = intercept();
   try {
     await voice().synthesize('안녕', 'cloned@droop');
@@ -40,7 +40,7 @@ test('들뜬 결은 빠르게', async () => {
   } finally { restore(); }
 });
 
-test('모르는 결은 늘 하던 속도 — 엉뚱한 값이 들어와도 안 튄다', async () => {
+test('모르는 결은 늘 하던 속도. 엉뚱한 값이 들어와도 안 튄다', async () => {
   const { sent: sent, restore: restore } = intercept();
   try {
     await voice().synthesize('안녕', 'cloned@없는결');
@@ -48,7 +48,7 @@ test('모르는 결은 늘 하던 속도 — 엉뚱한 값이 들어와도 안 �
   } finally { restore(); }
 });
 
-test('네 결이 모두 이어져 있다 — 하나만 빠지면 그 마음만 안 들린다', async () => {
+test('네 결이 모두 이어져 있다. 하나만 빠지면 그 마음만 안 들린다', async () => {
   for (const tone of Object.keys(moodSpeed)) {
     const { sent: sent, restore: restore } = intercept();
     try {

@@ -5,7 +5,7 @@
   "soundscape.btn.on": "流す",
   "soundscape.btn.off": "止める",
   "soundscape.btn.clear": "すべて0に",
-  "soundscape.status.idle": "レイヤーを上げて「流す」を押してください",
+  "soundscape.status.idle": "レイヤーを上げて流すを押してください",
   "soundscape.status.playing": "{n}層が鳴っています",
   "soundscape.status.silent": "動いていますが全レイヤーが0です",
   "soundscape.layer.drone": "低いうなり",

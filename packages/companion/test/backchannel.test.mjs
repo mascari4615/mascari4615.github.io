@@ -6,7 +6,7 @@ import { Backchannel } from '../dist/index.js';
 const seconds = 1000;
 const agreement = (options = {}) => new Backchannel({ withinMs: 2500, roll: () => 0, ...options });
 
-test('첫 마디에는 맞장구를 안 친다 — 그건 듣는 게 아니라 흘리는 것이다', () => {
+test('첫 마디에는 맞장구를 안 친다. 그건 듣는 게 아니라 흘리는 것이다', () => {
   assert.equal(agreement().heard(0), null);
 });
 
@@ -16,7 +16,7 @@ test('이어서 두 번째 마디가 오면 받아 준다', () => {
   assert.notEqual(b.heard(900), null);
 });
 
-test('한 뭉치에 한 번만 — 마디마다 「응」 「응」 하면 소음이다', () => {
+test('한 뭉치에 한 번만. 마디마다 응 응 하면 소음이다', () => {
   const b = agreement();
   b.heard(0);
   assert.notEqual(b.heard(900), null);
@@ -24,7 +24,7 @@ test('한 뭉치에 한 번만 — 마디마다 「응」 「응」 하면 소�
   assert.equal(b.heard(2700), null);
 });
 
-test('한참 있다 말하면 새 뭉치다 — 이어 말한 게 아니다', () => {
+test('한참 있다 말하면 새 뭉치다. 이어 말한 게 아니다', () => {
   const b = agreement();
   b.heard(0);
   assert.equal(b.heard(60 * seconds), null, '새 뭉치의 첫 마디에는 안 친다');
@@ -41,7 +41,7 @@ test('얼마나 빨라야 이어 말한 것인지 정할 수 있다', () => {
   assert.notEqual(wide.heard(900), null);
 });
 
-test('답이 나가면 뭉치가 끝난다 — 답한 뒤의 맞장구는 뒷북이다', () => {
+test('답이 나가면 뭉치가 끝난다. 답한 뒤의 맞장구는 뒷북이다', () => {
   const b = agreement();
   b.heard(0);
   b.heard(900);
@@ -63,14 +63,14 @@ test('같은 소리를 연달아 내지 않는다', () => {
   assert.notEqual(secondTurn, firstTurn);
 });
 
-test('내는 소리는 아주 짧다 — 길면 그건 맞장구가 아니라 끼어드는 것이다', () => {
+test('내는 소리는 아주 짧다. 길면 그건 맞장구가 아니라 끼어드는 것이다', () => {
   const b = agreement({ roll: Math.random });
   for (let i = 0; i < 30; i += 1) {
     b.answered();
     b.heard(i * 10_000);
     const sound = b.heard(i * 10_000 + 500);
     assert.notEqual(sound, null);
-    assert.ok(sound.length <= 5, `「${sound}」 는 너무 길다`);
+    assert.ok(sound.length <= 5, `${sound} 는 너무 길다`);
   }
 });
 
@@ -83,7 +83,7 @@ test('뭉치를 세는 것은 답이 나갈 때까지 이어진다', () => {
   assert.equal(b.used, true, '답이 없었으니 아직 같은 뭉치다');
 });
 
-test('한 뭉치에 소리는 하나다 — 뜸과 맞장구가 겹치면 혼잣말하는 사람이 된다', () => {
+test('한 뭉치에 소리는 하나다. 뜸과 맞장구가 겹치면 혼잣말하는 사람이 된다', () => {
   const b = agreement();
   b.heard(0);
   assert.equal(b.mayFiller(), true, '아직 아무 소리도 안 냈으면 뜸은 나간다');

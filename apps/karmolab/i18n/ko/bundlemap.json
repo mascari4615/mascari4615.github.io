@@ -7,7 +7,7 @@
   "bundlemap.label.dupes": "두 번 들어간 꾸러미",
   "bundlemap.dupes.none": "겹쳐 들어간 꾸러미가 없습니다",
   "bundlemap.status.idle": "webpack stats.json 이나 esbuild metafile 을 넣으세요",
-  "bundlemap.status.reading": "읽는 중…",
-  "bundlemap.status.ok": "{total} · 조각 {n}개 · 겹친 꾸러미 {dupes}개",
-  "bundlemap.status.bad": "못 읽었습니다 — {msg}"
+  "bundlemap.status.reading": "읽는 중...",
+  "bundlemap.status.ok": "{total}, 조각 {n}개, 겹친 꾸러미 {dupes}개",
+  "bundlemap.status.bad": "못 읽었습니다. {msg}"
 }

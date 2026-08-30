@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { demandBoot, onDemand } from '../dist/index.js';
 
-/** 시계를 손에 쥔다 — 「몇 분 안 썼나」가 이 기능의 전부라 진짜 시간에 맡길 수 없다. */
+/** 시계를 손에 쥔다. 몇 분 안 썼나가 이 기능의 전부라 진짜 시간에 맡길 수 없다. */
 const run = (settings = {}) => {
   const events = [];
   let now2 = 1_000_000;
@@ -40,7 +40,7 @@ const run = (settings = {}) => {
 
 const waited = () => new Promise((r) => setImmediate(r));
 
-test('쓸 때 켠다 — 그리고 기다리지 않는다', async () => {
+test('쓸 때 켠다. 그리고 기다리지 않는다', async () => {
   const t = run();
   assert.equal(t.boot.isReady, false);
   await t.boot.mustWrite();
@@ -111,27 +111,27 @@ const fakeVoice = (name2, failure = false) => ({
   },
 });
 
-test('준비될 때까지 기다렸다 **고른 목소리로** 말한다 — 딴 목소리로 안 바꾼다', async () => {
+test('준비될 때까지 기다렸다 **고른 목소리로** 말한다. 딴 목소리로 안 바꾼다', async () => {
   const t = run();
   const voice = onDemand({ real: fakeVoice('흉내'), boot: t.boot });
   // 아직 안 떴지만, 뒤에서 떠서 결국 그 목소리로 나온다.
   assert.equal((await voice.synthesize('안녕')).toString(), '흉내');
 });
 
-test('영영 안 뜨면 소리가 없다 — 조용한 게 딴 사람 목소리보다 낫다', async () => {
+test('영영 안 뜨면 소리가 없다. 조용한 게 딴 사람 목소리보다 낫다', async () => {
   const t = run({ autoStart: false }); // autoStart 기동 꺼 두면 영영 안 뜬다
   const voice2 = onDemand({ real: fakeVoice('흉내'), boot: t.boot, waitLimitMs: 300 });
   await assert.rejects(() => voice2.synthesize('안녕'), /준비 안 됐다/);
 });
 
-test('떠 있는데 실패하면 그 실패가 그대로 드러난다 — 몰래 딴 목소리로 안 바꾼다', async () => {
+test('떠 있는데 실패하면 그 실패가 그대로 드러난다. 몰래 딴 목소리로 안 바꾼다', async () => {
   const t = run();
   t.keepOn();
   const voice3 = onDemand({ real: fakeVoice('흉내', true), boot: t.boot });
   await assert.rejects(() => voice3.synthesize('안녕'), /죽었다/);
 });
 
-test('꺼져 있어도 목록에는 늘 보인다 — 사라지면 사람은 기능이 없어진 줄 안다', async () => {
+test('꺼져 있어도 목록에는 늘 보인다. 사라지면 사람은 기능이 없어진 줄 안다', async () => {
   const t = run();
   const voice4 = onDemand({ real: fakeVoice('흉내'), boot: t.boot });
   const list = await voice4.voices();
@@ -139,7 +139,7 @@ test('꺼져 있어도 목록에는 늘 보인다 — 사라지면 사람은 기
   assert.equal(list[0].id, '흉내-1');
 });
 
-/* 아래 둘이 **실제로 났던 사고**다. 위 시험들은 「부르면 곧바로 뜨는」 가짜를 썼기 때문에
+/* 아래 둘이 **실제로 났던 사고**다. 위 시험들은 부르면 곧바로 뜨는 가짜를 썼기 때문에
    전부 초록이었는데, 진짜 서버는 뜨는 데 30초가 걸린다. 그 사이 말이 올 때마다 다시
    띄워서 파이썬 프로세스가 38개까지 갔다. 느리게 뜨는 판을 시험이 흉내 내야 한다. */
 
@@ -184,7 +184,7 @@ test('영영 안 뜨면 포기하고, 한동안 다시 안 띄운다', async () 
   await t.boot.mustWrite();
   await new Promise((r) => setTimeout(r, 600));
   assert.equal(t.events.filter((x) => x === '띄움').length, 1);
-  // 실패 직후에는 다시 안 띄운다 — 안 그러면 실패를 무한히 되풀이한다.
+  // 실패 직후에는 다시 안 띄운다. 안 그러면 실패를 무한히 되풀이한다.
   await t.boot.mustWrite();
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(t.events.filter((x) => x === '띄움').length, 1, '실패하자마자 또 띄웠다');

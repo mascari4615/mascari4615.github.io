@@ -1,20 +1,20 @@
 import type { Ingredient } from './budget';
 
 /**
- * 밀린 생각은 사라지지 않는다 — 쌓여서 다음에 더 세게 겨룬다.
+ * 밀린 생각은 사라지지 않는다. 쌓여서 다음에 더 세게 겨룬다.
  *
  * **72회차 방향 점검에서 나온 것이다.** 여태 회차마다 재료를 하나씩 더 만들었다. 지금 재료
- * 만드는 자리가 쉰 곳이 넘는데, 한 turn 에 실리는 건 여섯 줄뿐이다. 나머지는 「밀림」으로
+ * 만드는 자리가 쉰 곳이 넘는데, 한 turn 에 실리는 건 여섯 줄뿐이다. 나머지는 밀림으로
  * 찍히고 **그대로 증발한다.** 다음 turn 은 아무것도 기억하지 못한 채 처음부터 다시 추첨한다.
  *
- * 그래서 무게가 어중간한 재료는 *영영* 안 실린다 — 만들어 놓고 안 붙인 것과 같다. 오늘
+ * 그래서 무게가 어중간한 재료는 *영영* 안 실린다. 만들어 놓고 안 붙인 것과 같다. 오늘
  * 되묻기 하나로 여섯 회차를 쓰고도 라이브에서 못 본 것도 결국 이 자리 문제였다.
  *
  * 사람 머리는 안 그렇다. **못 한 말은 남아서 더 하고 싶어진다.** 참을수록 세지고, 말하고
  * 나면 풀리고, 때를 놓치면 식는다. 그 세 가지를 그대로 옮긴다.
  *
- * 레퍼런스(Inner Thoughts, CHI 2025)도 같은 곳을 짚는다 — 겉으로 오가는 말과 나란히
- * *속으로 도는 생각*이 있고, 각 생각이 「말하고 싶은 정도」를 들고 때를 기다린다. 그쪽은
+ * 레퍼런스(Inner Thoughts, CHI 2025)도 같은 곳을 짚는다. 겉으로 오가는 말과 나란히
+ * *속으로 도는 생각*이 있고, 각 생각이 말하고 싶은 정도를 들고 때를 기다린다. 그쪽은
  * 생각을 따로 지어내지만, 우리는 이미 쉰 곳에서 생각을 만들고 있다. 없던 건 **기다리는
  * 자리**다.
  */
@@ -24,7 +24,7 @@ export interface PendingThoughtOptions {
   step?: number;
   /** 아무리 밀려도 이 이상은 안 세진다. 안 그러면 오래된 것이 영영 1등이라 새 것이 굶는다. */
   cap?: number;
-  /** 이만큼 지나도록 다시 안 밀리면 잊는다 — 지나간 관심이다. */
+  /** 이만큼 지나도록 다시 안 밀리면 잊는다. 지나간 관심이다. */
   forgetTurn?: number;
 }
 
@@ -73,7 +73,7 @@ export class pendingThoughts {
     this.pressed.set(name2, { count: (previous?.count ?? 0) + 1, lastTurn: this.turn });
   };
 
-  /** 이 재료가 몇 번이나 참았나 — 「이제 그만 꺼내라」를 정할 때 쓴다(87회차). */
+  /** 이 재료가 몇 번이나 참았나. 이제 그만 꺼내라를 정할 때 쓴다(87회차). */
   heldFor(name3: string): number {
     return this.pressed.get(name3)?.count ?? 0;
   }
@@ -100,13 +100,13 @@ export class pendingThoughts {
     });
   }
 
-  /** 지금 뭐가 얼마나 참고 있나 — 기록용. 참는 게 없으면 빈 말. */
+  /** 지금 뭐가 얼마나 참고 있나. 기록용. 참는 게 없으면 빈 말. */
   summary(): string {
     const items = [...this.pressed.entries()]
       .filter(([name]) => this.addedWeight(name) > 0)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
       .map(([name, v]) => `${name}+${this.addedWeight(name)}(${v.count}번)`);
-    return items.join(' · ');
+    return items.join(', ');
   }
 }

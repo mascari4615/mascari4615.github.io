@@ -1,15 +1,15 @@
 /**
- * KarmoLab 계정 API (TASK-KL-098 Cycle 1) — yawnbot Express 위에 얹는다.
+ * KarmoLab 계정 API (TASK-KL-098 Cycle 1). yawnbot Express 위에 얹는다.
  *
  * 왜 여기인가: 노트북에서 24/7 도는 Express 가 이미 있고 `yawnbot.mascari4615.com` 으로
- * 밖에 열려 있다. 계정 하나 때문에 새 서버·새 요금제를 들이는 것보다, 살아 있는 것 위에
+ * 밖에 열려 있다. 계정 하나 때문에 새 서버, 새 요금제를 들이는 것보다, 살아 있는 것 위에
  * 얹는 쪽이 근본이다.
  *
  * 도메인이 다르다 (`blog.mascari4615.com` → `yawnbot.mascari4615.com`). 그래서:
  *  - 쿠키는 `SameSite=None; Secure` 여야 브라우저가 보낸다 (둘 다 https 라 성립).
  *  - CORS 를 직접 답한다. 아무 데나 열지 않고 **아는 출처만** 허용한다.
  *
- * 새 패키지는 안 쓴다 (cors·cookie-parser 미도입) — 쿠키 한 줄 읽고 헤더 세 줄 다는 일에
+ * 새 패키지는 안 쓴다 (cors, cookie-parser 미도입). 쿠키 한 줄 읽고 헤더 세 줄 다는 일에
  * 의존성을 늘리지 않는다.
  */
 import express from 'express';
@@ -18,15 +18,15 @@ import crypto from 'crypto';
 import {
   getKarmolabAccountStore,
   emptyRecords,
-  // 이름 바꾸기 라우트가 쓴다. 이 줄이 빠져 있어서 봇이 통째로 컴파일이 안 됐다 —
+  // 이름 바꾸기 라우트가 쓴다. 이 줄이 빠져 있어서 봇이 통째로 컴파일이 안 됐다 . 
   // 내가 KL-112 에서 훅만 골라 담다가 라우트는 담고 이 한 줄을 빠뜨린 탓이다.
   DISPLAY_NAME_MAX,
   type Account,
   type AccountRecords,
   type KarmolabAccountStore,
-  // 기기 이름표·보안 기록 (TASK-KL-152 C6·C7)
+  // 기기 이름표, 보안 기록 (TASK-KL-152 C6, C7)
   deviceLabel,
-  // 받은함이 갈래로 거르는 자 (TASK-KL-191 축7) — 사람이 켜고 끄는 갈래와 같은 자여야 한다
+  // 받은함이 갈래로 거르는 자 (TASK-KL-191 축7). 사람이 켜고 끄는 갈래와 같은 자여야 한다
   notifyBucket,
 } from '../services/karmolab-accounts';
 import {
@@ -53,7 +53,7 @@ import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
-import { MOVE_LIMIT, OP_LIMIT, RoomLimiter, opTooBig } from '../services/room-limits';
+import { MOVE_IP_LIMIT, MOVE_LIMIT, OP_IP_LIMIT, OP_LIMIT, RoomLimiter, opTooBig } from '../services/room-limits';
 import { identityOf } from '../services/karmolab-identity';
 import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
 import { notifyIfWanted as sharedNotifyGate } from '../services/karmolab-notify-gate';
@@ -69,7 +69,7 @@ import {
   CHALLENGE_TTL_MS,
 } from '../services/karmolab-passkey';
 import {
-  // 클래스 자체를 값으로도 쓴다 (`keeperKey`) — type 으로만 들이면 그 자리에서 못 부른다.
+  // 클래스 자체를 값으로도 쓴다 (`keeperKey`). type 으로만 들이면 그 자리에서 못 부른다.
   KarmolabChatStore,
   getKarmolabChatStore,
   TEXT_MAX as CHAT_TEXT_MAX,
@@ -86,7 +86,7 @@ const SESSION_COOKIE = 'kl_session';
 const ALLOWED_ORIGINS = new Set([
   'https://blog.mascari4615.com',
   // KarmoLab 핫리로드 개발 서버 (KL-100, `cd apps/karmolab && npm run dev`).
-  // 이게 없으면 개발 중에는 로그인·커뮤니티가 통째로 막힌다 (브라우저가 요청을 버린다).
+  // 이게 없으면 개발 중에는 로그인, 커뮤니티가 통째로 막힌다 (브라우저가 요청을 버린다).
   'http://localhost:8813',
   'http://127.0.0.1:8813',
   // 정적으로 띄워 볼 때 쓰던 자리 (python -m http.server 8899).
@@ -102,10 +102,10 @@ const ALLOWED_ORIGINS = new Set([
 /**
  * 세션마다 다른 포트로 뜨는 **레인 개발 서버**(`session-lane.ps1 -WithServer`)도 받는다.
  *
- * 레인은 8813 이 물려 있으면 8820·8821… 로 올라간다. 목록에 8813 만 있으니 레인에서는
- * 커뮤니티가 통째로 「서버에 못 닿았어요」였다 — 봇은 멀쩡한데 브라우저가 요청을 버린 것이다
+ * 레인은 8813 이 물려 있으면 8820, 8821... 로 올라간다. 목록에 8813 만 있으니 레인에서는
+ * 커뮤니티가 통째로 서버에 못 닿았어요였다. 봇은 멀쩡한데 브라우저가 요청을 버린 것이다
  * (2026-08-23 실측). 포트를 하나씩 적어 두는 길은 다음 레인에서 또 막히므로 대역으로 연다.
- * 여는 것은 **루프백 8800~8899 뿐** — 남의 기계에서는 닿지 않는 자리다.
+ * 여는 것은 **루프백 8800~8899 뿐**. 남의 기계에서는 닿지 않는 자리다.
  */
 function isLoopbackDevOrigin(origin: string): boolean {
   const m = /^http:\/\/(127\.0\.0\.1|localhost):(\d{4})$/.exec(origin);
@@ -123,13 +123,13 @@ function blogSlug(raw: unknown): string | null {
 }
 
 /**
- * 데스크톱 앱이 되돌아오는 자리 — **그 기계 안(loopback)** 에서만 (RFC 8252).
+ * 데스크톱 앱이 되돌아오는 자리. **그 기계 안(loopback)** 에서만 (RFC 8252).
  *
  * 앱은 로그인을 자기 창(웹뷰)에서 돌리지 않는다. 그러면 사람이 앱 창 안에서 디스코드
  * 비밀번호를 치게 되고(그게 바로 가짜 로그인 창이 노리는 그림), 브라우저에 이미 있는
  * 로그인도 못 쓴다. 그래서 **시스템 브라우저**로 내보내고, 끝나면 앱이 그 순간만 열어 둔
- * 127.0.0.1 의 임시 포트로 되돌아온다. 포트는 앱이 그때그때 받는 값이라 못 박지 않는다 —
- * 대신 「집 안 주소 + 이 경로」만 통과시킨다.
+ * 127.0.0.1 의 임시 포트로 되돌아온다. 포트는 앱이 그때그때 받는 값이라 못 박지 않는다 . 
+ * 대신 집 안 주소 + 이 경로만 통과시킨다.
  */
 const DESKTOP_CALLBACK_PATH = '/kl/desktop-callback';
 
@@ -139,7 +139,7 @@ function isDesktopReturn(url: URL): boolean {
   return url.pathname === DESKTOP_CALLBACK_PATH;
 }
 
-/** 로그인 후 되돌아갈 수 있는 곳 — 열린 리디렉트(아무 주소로나 튕겨 보내기)를 막는다. */
+/** 로그인 후 되돌아갈 수 있는 곳. 열린 리디렉트(아무 주소로나 튕겨 보내기)를 막는다. */
 function safeReturnUrl(raw: unknown): string {
   const fallback = 'https://blog.mascari4615.com/';
   const value = typeof raw === 'string' ? raw : '';
@@ -176,7 +176,7 @@ function clearSessionCookie(res: Response): void {
   res.append('Set-Cookie', `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None`);
 }
 
-/** 들어온 몸통을 기록 모양으로 다듬는다 — 남이 아무거나 보낼 수 있는 자리다. */
+/** 들어온 몸통을 기록 모양으로 다듬는다. 남이 아무거나 보낼 수 있는 자리다. */
 function sanitizeRecords(raw: unknown): AccountRecords {
   const out = emptyRecords();
   if (!raw || typeof raw !== 'object') return out;
@@ -194,7 +194,7 @@ function sanitizeRecords(raw: unknown): AccountRecords {
     for (const [key, value] of Object.entries(body.progress as Record<string, unknown>)) {
       if (key.length > 64) continue;
       const n = Number(value);
-      // 음수·NaN·무한대는 기록이 아니다. 위쪽 한계는 두지 않는다 — 쓰다듬기 50만 회가 실제 목표다.
+      // 음수, NaN, 무한대는 기록이 아니다. 위쪽 한계는 두지 않는다. 쓰다듬기 50만 회가 실제 목표다.
       if (!Number.isFinite(n) || n < 0) continue;
       out.progress[key] = Math.floor(n);
       if (Object.keys(out.progress).length >= 200) break;
@@ -223,12 +223,12 @@ function sanitizeRecords(raw: unknown): AccountRecords {
 /**
  * 로그인 왕복에 쓰는 일회용 표.
  * 왜 필요한가: 이게 없으면 남이 만든 링크로 사람을 로그인 흐름에 밀어 넣을 수 있다(CSRF).
- * 메모리에만 둔다 — 봇이 재시작하면 진행 중이던 로그인만 한 번 실패하고, 다시 누르면 된다.
+ * 메모리에만 둔다. 봇이 재시작하면 진행 중이던 로그인만 한 번 실패하고, 다시 누르면 된다.
  */
 const pendingLogins = new Map<string, { returnUrl: string; expiresAt: number }>();
 const LOGIN_STATE_TTL_MS = 10 * 60 * 1000;
 
-/** 프로필 그림을 잠깐 들고 있는 자리 — 같은 그림을 매번 디스코드에서 다시 받지 않으려고. */
+/** 프로필 그림을 잠깐 들고 있는 자리. 같은 그림을 매번 디스코드에서 다시 받지 않으려고. */
 const avatarCache = new Map<string, { body: Buffer; contentType: string; expiresAt: number }>();
 const AVATAR_TTL_MS = 60 * 60 * 1000;
 
@@ -257,7 +257,7 @@ function discordAvatarUrl(user: { id: string; avatar: string | null }): string |
   return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
 }
 
-/** OAuth 설정이 다 있는가. 없으면 라우트는 살아 있되 「아직 안 켰다」고 정직하게 답한다. */
+/** OAuth 설정이 다 있는가. 없으면 라우트는 살아 있되 아직 안 켰다고 정직하게 답한다. */
 export function karmolabOauthConfig(env: NodeJS.ProcessEnv = process.env): {
   clientId: string;
   clientSecret: string;
@@ -273,7 +273,7 @@ export function karmolabOauthConfig(env: NodeJS.ProcessEnv = process.env): {
 }
 
 /**
- * 이 사람이 주인인가 — 요청에 답을 달거나 상태를 바꿀 수 있는 사람.
+ * 이 사람이 주인인가. 요청에 답을 달거나 상태를 바꿀 수 있는 사람.
  * 봇이 이미 쓰는 `ADMIN_IDS`(디스코드 id 목록)를 그대로 본다. 새 설정을 만들지 않는다.
  */
 function isAdminAccount(account: Account | null, env: NodeJS.ProcessEnv = process.env): boolean {
@@ -287,13 +287,13 @@ function isAdminAccount(account: Account | null, env: NodeJS.ProcessEnv = proces
 }
 
 /**
- * 방문자를 가리키는 열쇠를 만든다 — 주소는 저장하지 않고 섞어서만 쓴다.
+ * 방문자를 가리키는 열쇠를 만든다. 주소는 저장하지 않고 섞어서만 쓴다.
  * cloudflared 를 거쳐 오므로 원래 주소는 `x-forwarded-for` 의 맨 앞에 있다.
  */
 /**
  * 표 원장이 던진 거절을 답으로 옮긴다 (TASK-KL-150).
  *
- * 왜 한자리인가: 「안 됩니다」만 돌려주면 스프레드시트에서 긁어 온 사람은 뭐가 문제인지
+ * 왜 한자리인가: 안 됩니다만 돌려주면 스프레드시트에서 긁어 온 사람은 뭐가 문제인지
  * 영영 모른다. 이유(code)와 기준(detail)을 **항상 같이** 실어 보낸다.
  */
 function sendPackError(res: Response, error: unknown): void {
@@ -309,14 +309,14 @@ function sendPackError(res: Response, error: unknown): void {
 /**
  * 사람을 **세는** 키 (change.identity-one).
  *
- * 계산은 `karmolab-identity.ts` 한 곳에서 한다 — 여기서는 그 답을 쓰기만 한다.
+ * 계산은 `karmolab-identity.ts` 한 곳에서 한다. 여기서는 그 답을 쓰기만 한다.
  * 브라우저가 만든 기기 id 가 있으면 그것으로, 없으면 옛 방식(IP+UA)으로 떨어진다.
  */
 function visitorKeyFor(req: Request): string {
   return identityOf(req).personKey;
 }
 
-/** 상한을 **거는** 키 — 언제나 IP. 기기 id 는 사람이 지울 수 있어서 상한의 근거가 못 된다. */
+/** 상한을 **거는** 키. 언제나 IP. 기기 id 는 사람이 지울 수 있어서 상한의 근거가 못 된다. */
 function abuseKeyFor(req: Request): string {
   return identityOf(req).abuseKey;
 }
@@ -336,17 +336,17 @@ export function registerKarmolabApi(
 ): void {
 
   /**
-   * 「이 글을 남기는 사람은 누구인가」 — 실명과 익명을 **한 자리에서** 가른다 (TASK-KL-157).
+   * 이 글을 남기는 사람은 누구인가. 실명과 익명을 **한 자리에서** 가른다 (TASK-KL-157).
    *
    * 왜 필요한가: 채팅은 익명으로 즉시 말할 수 있는데 커뮤니티는 서른여덟 자리에서 로그인을
    * 요구했다. 채팅으로 들어온 사람이 글은 못 쓰는 턱이 생겼고, 그 턱에서 사람이 끊긴다.
    *
-   * 익명이어도 서버는 **누구의 글인지 안다** — 안 그러면 지울 수도, 하루 상한을 셀 수도 없다.
+   * 익명이어도 서버는 **누구의 글인지 안다**. 안 그러면 지울 수도, 하루 상한을 셀 수도 없다.
    *  - 로그인한 채로 익명 = 글쓴이 열쇠는 **진짜 계정**. 내일도 내가 지운다. 표시만 이름표.
-   *  - 로그인 없이 익명 = 오늘 열쇠에 묶는다. **하루가 지나면 내 글이 아니게 된다** —
-   *    그게 익명의 값이다(추적할 것을 안 남긴다). 대신 채팅과 같은 재갈·봇 차단이 걸린다.
+   *  - 로그인 없이 익명 = 오늘 열쇠에 묶는다. **하루가 지나면 내 글이 아니게 된다** . 
+   *    그게 익명의 값이다(추적할 것을 안 남긴다). 대신 채팅과 같은 재갈, 봇 차단이 걸린다.
    */
-  /* 판별 유니온(`{ok:true}|{ok:false}`)으로 쓰면 이 패키지에서는 안 좁혀진다 —
+  /* 판별 유니온(`{ok:true}|{ok:false}`)으로 쓰면 이 패키지에서는 안 좁혀진다 . 
    * `strictNullChecks` 가 꺼져 있어서 컴파일러가 갈래를 못 가른다. 그래서 한 모양으로 둔다. */
   interface Writer {
     /** 막혔으면 그 까닭. null 이면 통과다. */
@@ -372,7 +372,7 @@ export function registerKarmolabApi(
     // 봇이 익명 문을 통해 글을 쏟아붓지 못하게. 채팅과 같은 기준을 쓴다.
     if (classifyVisitor(req.headers['user-agent']) !== 'human') return blocked(403, 'not_human');
     const identity = chat.identityFor(visitorKeyFor(req));
-    // 채팅에서 재갈이 물린 사람은 글로도 못 돈다 — 안 그러면 재갈이 우회로를 갖는다.
+    // 채팅에서 재갈이 물린 사람은 글로도 못 돈다. 안 그러면 재갈이 우회로를 갖는다.
     if (chat.isMuted(identity.who)) return blocked(403, 'muted');
     return {
       error: null,
@@ -383,13 +383,13 @@ export function registerKarmolabApi(
     };
   }
 
-  // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
+  // ── CORS. 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
   app.use('/kl', (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
     if (typeof origin === 'string' && isAllowedOrigin(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
-      // 기기 id 는 머리에 실려 온다 (change.identity-one) — 허용 목록에 없으면 브라우저가 통째로 버린다.
+      // 기기 id 는 머리에 실려 온다 (change.identity-one). 허용 목록에 없으면 브라우저가 통째로 버린다.
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-KL-Device');
       res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS');
       res.setHeader('Access-Control-Max-Age', '86400');
@@ -397,20 +397,20 @@ export function registerKarmolabApi(
     // 출처마다 답이 다르므로 중간 캐시가 한 출처의 답을 다른 출처에 주면 안 된다.
     res.setHeader('Vary', 'Origin');
 
-    /* 기기 id 가 없으면 여기서 하나 심는다 (change.identity-one). **여기여야 한다** —
+    /* 기기 id 가 없으면 여기서 하나 심는다 (change.identity-one). **여기여야 한다** . 
        라우트보다 늦게 걸면 이미 처리된 요청은 이 자리를 안 지난다.
        심은 그 요청은 아직 옛 키로 세어지고 다음 요청부터 사람 단위가 된다.
 
        **브라우저에게만 심는다**: 아는 출처가 붙어 있는 요청만. 기계가 부르는 자리
-       (게임이 「누구 거냐」를 묻는 것 같은)는 쿠키를 들고 다니지 않는다 — 거기에 심으면
+       (게임이 누구 거냐를 묻는 것 같은)는 쿠키를 들고 다니지 않는다. 거기에 심으면
        아무도 안 쓰는 쿠키를 답마다 붙이는 것이 된다. */
     if (typeof origin === 'string' && isAllowedOrigin(origin)) identityOf(req, res);
 
     /* 요청마다 짧은 번호를 붙인다 (TASK-KL-098).
      *
-     * 「안 돼요」라는 말만으로는 아무도 못 고친다. 화면에 이 번호가 보이면 사용자가 그것만
+     * 안 돼요라는 말만으로는 아무도 못 고친다. 화면에 이 번호가 보이면 사용자가 그것만
      * 알려 줘도 로그에서 그 요청 하나를 바로 집을 수 있다. 브라우저가 이 헤더를 읽을 수 있게
-     * 내보낼 헤더 목록에도 적는다 — 안 적으면 CORS 가 가려서 화면이 못 읽는다. */
+     * 내보낼 헤더 목록에도 적는다. 안 적으면 CORS 가 가려서 화면이 못 읽는다. */
     const requestId = crypto.randomBytes(4).toString('hex');
     res.setHeader('X-KL-Request-Id', requestId);
     res.setHeader('Access-Control-Expose-Headers', 'X-KL-Request-Id');
@@ -430,10 +430,10 @@ export function registerKarmolabApi(
     next();
   });
 
-  /** 브라우저가 「계정 기능이 지금 되나」를 물어보는 자리. 서버가 죽으면 이 요청이 실패하고, 브라우저는 조용히 예전처럼 동작한다. */
+  /** 브라우저가 계정 기능이 지금 되나를 물어보는 자리. 서버가 죽으면 이 요청이 실패하고, 브라우저는 조용히 예전처럼 동작한다. */
   app.get('/kl/health', (_req: Request, res: Response) => {
     const config = karmolabOauthConfig();
-    // 「살아 있나」만으로는 부족하다 — 백업이 언제 돌았는지 안 보이면 안 도는 것을 모른다.
+    // 살아 있나만으로는 부족하다. 백업이 언제 돌았는지 안 보이면 안 도는 것을 모른다.
     res.json({
       ok: true,
       login: config.ready ? 'discord' : 'disabled',
@@ -448,7 +448,7 @@ export function registerKarmolabApi(
     const config = karmolabOauthConfig();
     const returnUrl = safeReturnUrl(req.query.return);
     if (!config.ready) {
-      // 「눌렀는데 아무 일도 안 남」이 제일 나쁘다. 왜 안 되는지 눈에 보이게 되돌려 보낸다.
+      // 눌렀는데 아무 일도 안 남이 제일 나쁘다. 왜 안 되는지 눈에 보이게 되돌려 보낸다.
       res.redirect(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}kl_login=unconfigured`);
       return;
     }
@@ -457,12 +457,12 @@ export function registerKarmolabApi(
     url.searchParams.set('client_id', config.clientId);
     url.searchParams.set('redirect_uri', config.redirectUri);
     url.searchParams.set('response_type', 'code');
-    // identify 만 받는다. 이메일·서버 목록은 필요 없고, 안 받는 것이 제일 확실한 보호다.
+    // identify 만 받는다. 이메일, 서버 목록은 필요 없고, 안 받는 것이 제일 확실한 보호다.
     url.searchParams.set('scope', 'identify');
     url.searchParams.set('state', state);
     // `prompt=none` 은 안 쓴다. 이미 허락한 사람의 클릭 한 번을 줄여 주지만, **한 번도 허락한
     // 적 없는 사람**에게 어떻게 도는지는 디스코드 문서가 말하지 않는다 (오류로 튕기는지 화면을
-    // 띄우는지). 잘못 짚으면 신규 로그인이 전부 깨진다 — 얻는 것(클릭 1회)보다 잃는 것이 크다.
+    // 띄우는지). 잘못 짚으면 신규 로그인이 전부 깨진다. 얻는 것(클릭 1회)보다 잃는 것이 크다.
     res.redirect(url.toString());
   });
 
@@ -528,10 +528,10 @@ export function registerKarmolabApi(
       const session = store.createSession(account.id, device);
       store.noteEvent(account.id, 'login', { device, detail: '디스코드' });
       setSessionCookie(res, session.token, session.expiresAt - Date.now());
-      /* 데스크톱 앱은 이 쿠키를 못 받는다 — 로그인이 **브라우저에서** 끝나기 때문이다.
-       * 그 자리는 이미 있는 「다른 기기 로그인 코드」로 메운다: 코드를 한 장 실어 보내면
+      /* 데스크톱 앱은 이 쿠키를 못 받는다. 로그인이 **브라우저에서** 끝나기 때문이다.
+       * 그 자리는 이미 있는 다른 기기 로그인 코드로 메운다: 코드를 한 장 실어 보내면
        * 앱이 자기 웹뷰에서 그 코드를 내밀어 세션을 받아 간다(`/kl/auth/link`).
-       * 새 계정 장치를 만들지 않았다 — 한 번 쓰면 사라지고 몇 분만 사는 그 코드 그대로다. */
+       * 새 계정 장치를 만들지 않았다. 한 번 쓰면 사라지고 몇 분만 사는 그 코드 그대로다. */
       if (isDesktopReturn(new URL(returnUrl))) {
         const link = store.issueLinkCode(account.id);
         if (link) {
@@ -565,7 +565,7 @@ export function registerKarmolabApi(
       account: {
         handle: account.handle,
         displayName: account.displayName,
-        // 내 화면에서도 디스코드 주소를 안 쓴다 — 화면에 박힌 주소는 그대로 복사돼 남에게 간다.
+        // 내 화면에서도 디스코드 주소를 안 쓴다. 화면에 박힌 주소는 그대로 복사돼 남에게 간다.
         avatarPath: account.avatarUrl ? `/kl/u/${encodeURIComponent(account.handle)}/avatar` : null,
         joinedAt: account.createdAt,
         profileUrl: `https://blog.mascari4615.com/u/?h=${encodeURIComponent(account.handle)}`,
@@ -577,7 +577,7 @@ export function registerKarmolabApi(
 
   /**
    * 브라우저에 쌓인 기록을 올린다. 서버가 가진 것과 **합쳐서** 돌려준다 (덮어쓰기 X).
-   * 그래서 이 호출은 몇 번을 다시 보내도 결과가 같다 — 실패 후 재시도가 안전하다.
+   * 그래서 이 호출은 몇 번을 다시 보내도 결과가 같다. 실패 후 재시도가 안전하다.
    */
   app.put('/kl/me/records', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -592,7 +592,7 @@ export function registerKarmolabApi(
   /**
    * 보이는 이름 바꾸기.
    *
-   * 계정의 정본은 우리 쪽이고 디스코드는 들어오는 문 하나다 — 문에 적힌 이름을 평생 달고
+   * 계정의 정본은 우리 쪽이고 디스코드는 들어오는 문 하나다. 문에 적힌 이름을 평생 달고
    * 다닐 이유가 없다. 주소(handle)는 안 바꾼다: 남이 걸어 둔 링크가 깨진다.
    */
   app.patch('/kl/me', (req: Request, res: Response) => {
@@ -612,7 +612,7 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 복구 코드 새로 만들기 — **원문은 이 답에서 딱 한 번만** 나온다.
+   * 복구 코드 새로 만들기. **원문은 이 답에서 딱 한 번만** 나온다.
    * 들어오는 문이 디스코드 하나뿐이면 그 문이 잠기는 날 계정을 통째로 잃는다.
    */
   app.post('/kl/me/recovery-codes', (req: Request, res: Response) => {
@@ -625,7 +625,7 @@ export function registerKarmolabApi(
     res.json({ codes, note: '지금 한 번만 보입니다. 안전한 곳에 옮겨 적어 두세요.' });
   });
 
-  /** 남은 복구 코드 장 수 (원문은 안 준다 — 서버도 모른다). */
+  /** 남은 복구 코드 장 수 (원문은 안 준다. 서버도 모른다). */
   app.get('/kl/me/recovery-codes', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -639,7 +639,7 @@ export function registerKarmolabApi(
   app.post('/kl/auth/recovery', (req: Request, res: Response) => {
     const account = store.consumeRecoveryCode((req.body ?? {}).code);
     if (!account) {
-      // 왜 틀렸는지(없는 코드인지 이미 쓴 코드인지) 안 알려 준다 — 알려 주면 찍어 보는 데 쓰인다.
+      // 왜 틀렸는지(없는 코드인지 이미 쓴 코드인지) 안 알려 준다. 알려 주면 찍어 보는 데 쓰인다.
       res.status(401).json({ error: 'bad_code' });
       return;
     }
@@ -675,14 +675,14 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 게임(WM)이 「이 코드 누구 거냐」고 묻는 자리 (TASK-WM-218).
+   * 게임(WM)이 이 코드 누구 거냐고 묻는 자리 (TASK-WM-218).
    *
-   * ★ 새 계정 시스템을 만들지 않았다 — 이미 있는 「다른 기기 로그인 코드」를 그대로 쓴다.
+   * ★ 새 계정 시스템을 만들지 않았다. 이미 있는 다른 기기 로그인 코드를 그대로 쓴다.
    *   사람은 KarmoLab 에서 늘 하던 대로 코드를 받고, 게임에 그 코드를 적어 넣는다.
-   *   게임 창은 브라우저가 아니라 쿠키를 못 읽는다 — 코드가 그 자리를 메운다.
+   *   게임 창은 브라우저가 아니라 쿠키를 못 읽는다. 코드가 그 자리를 메운다.
    *
    * 여기서는 **세션을 만들지 않는다**(브라우저 로그인이 아니다). 손잡이 이름만 돌려준다.
-   * 코드는 한 번 쓰면 사라진다 — 게임 서버가 그 뒤로는 자기 신원 장부로 그 사람을 기억한다.
+   * 코드는 한 번 쓰면 사라진다. 게임 서버가 그 뒤로는 자기 신원 장부로 그 사람을 기억한다.
    */
   app.get('/kl/link/verify', (req: Request, res: Response) => {
     const account = store.consumeLinkCode(String(req.query.code ?? ''));
@@ -695,10 +695,10 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 내 발자국 (TASK-KL-152 C1) — 잔디·돌아보기가 읽는 자리.
+   * 내 발자국 (TASK-KL-152 C1). 잔디, 돌아보기가 읽는 자리.
    *
    * 지어낸 수는 하나도 없다. 로그인한 뒤에 실제로 열린 것만 들어 있고, 없으면 빈 채로 답한다
-   * (없는 것을 0 이 아니라 「아직 없다」로 보여 줄 수 있게 날짜 칸 자체가 비어 나간다).
+   * (없는 것을 0 이 아니라 아직 없다로 보여 줄 수 있게 날짜 칸 자체가 비어 나간다).
    */
   app.get('/kl/me/activity', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -710,7 +710,7 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 프로필 꾸미기 (TASK-KL-152 C5) — 한 줄 소개 · 대표 도구.
+   * 프로필 꾸미기 (TASK-KL-152 C5). 한 줄 소개, 대표 도구.
    * 자유 HTML 은 안 받는다: 글 한 줄과 우리 도구 id 뿐이라 남의 화면에 무엇이 그려질지 우리가 안다.
    */
   app.patch('/kl/me/card', (req: Request, res: Response) => {
@@ -730,7 +730,7 @@ export function registerKarmolabApi(
   /**
    * 로그인 하나만 끊는다 (TASK-KL-152 C6).
    *
-   * 「이 기기만 빼고 전부」로는 못 하는 일이 있다 — 집 컴퓨터는 두고 카페에서 켠 것만 끄고 싶을 때.
+   * 이 기기만 빼고 전부로는 못 하는 일이 있다. 집 컴퓨터는 두고 카페에서 켠 것만 끄고 싶을 때.
    * 목록에 나가는 것은 **토큰이 아니라 섞은 이름표**다. 토큰을 화면에 내보내면 그게 곧 열쇠가 된다.
    */
   app.post('/kl/me/sessions/:id/revoke', (req: Request, res: Response) => {
@@ -746,7 +746,7 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 보안 기록 (TASK-KL-152 C7) — 「내 계정에 무슨 일이 있었나」.
+   * 보안 기록 (TASK-KL-152 C7). 내 계정에 무슨 일이 있었나.
    * 남이 내 계정에 들어와도 알 방법이 지금까지 하나도 없었다.
    */
   app.get('/kl/me/security', (req: Request, res: Response) => {
@@ -761,7 +761,7 @@ export function registerKarmolabApi(
   /**
    * 따라가기 (TASK-KL-152 C8).
    *
-   * 프로필이 「명함」에서 「사람」이 되는 자리다 — 따라가면 그 사람이 남긴 것이 내 피드로 온다.
+   * 프로필이 명함에서 사람이 되는 자리다. 따라가면 그 사람이 남긴 것이 내 피드로 온다.
    * 알림은 안 보낸다: 누가 나를 따라갔다는 것으로 종이 울리면 그 종은 곧 꺼진다.
    */
   app.post('/kl/u/:handle/follow', (req: Request, res: Response) => {
@@ -772,8 +772,8 @@ export function registerKarmolabApi(
     }
     const handle = String(req.params.handle ?? '');
     const on = (req.body ?? {}).on !== false;
-    // 막은·막힌 사이는 따라갈 수 없다 (TASK-KL-156 D2). 막혔다는 사실 자체는 안 알린다 —
-    // 「막혔음」이라고 답하면 그것이 곧 통보가 된다. 그냥 안 되는 것으로 답한다.
+    // 막은, 막힌 사이는 따라갈 수 없다 (TASK-KL-156 D2). 막혔다는 사실 자체는 안 알린다 . 
+    // 막혔음이라고 답하면 그것이 곧 통보가 된다. 그냥 안 되는 것으로 답한다.
     if (store.isBlockedBy(handle, account.handle) || store.blockedBy(account.id).includes(handle.toLowerCase())) {
       res.status(400).json({ error: 'cannot_follow' });
       return;
@@ -787,9 +787,9 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 내 피드 — 내가 따라가는 사람들이 남긴 것.
+   * 내 피드. 내가 따라가는 사람들이 남긴 것.
    *
-   * 아무도 안 따라가면 **빈 목록이 아니라 「아직 없다」**를 뜻한다. 부르는 쪽이 그 둘을
+   * 아무도 안 따라가면 **빈 목록이 아니라 아직 없다**를 뜻한다. 부르는 쪽이 그 둘을
    * 구별할 수 있게 따라가는 수를 같이 보낸다.
    */
   app.get('/kl/me/feed', (req: Request, res: Response) => {
@@ -810,7 +810,7 @@ export function registerKarmolabApi(
   /**
    * 프로필 카드 그림 (TASK-KL-152 C8).
    *
-   * SVG 로 만든다 — 그림 라이브러리를 새로 들이지 않고, 글자가 또렷하며, 몇 KB 다.
+   * SVG 로 만든다. 그림 라이브러리를 새로 들이지 않고, 글자가 또렷하며, 몇 KB 다.
    * 값은 전부 실측이고 없는 값은 칸 자체를 안 그린다.
    */
   app.get('/kl/u/:handle/card.svg', (req: Request, res: Response) => {
@@ -853,13 +853,13 @@ export function registerKarmolabApi(
     ].join('');
 
     res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-    // 몇 분은 그대로 써도 된다 — 이 그림은 초 단위로 달라지는 것이 아니다.
+    // 몇 분은 그대로 써도 된다. 이 그림은 초 단위로 달라지는 것이 아니다.
     res.setHeader('Cache-Control', 'public, max-age=300');
     res.send(card);
   });
 
   /**
-   * 명예의 전당 (TASK-KL-156 D4) — 연속·다녀간 날 상위.
+   * 명예의 전당 (TASK-KL-156 D4). 연속, 다녀간 날 상위.
    *
    * 프로필이나 발자국을 가린 사람은 애초에 안 들어간다. 가렸는데 순위표에 이름이 뜨면
    * 그건 가린 것이 아니다.
@@ -869,19 +869,19 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 도전과제 희귀도 (TASK-KL-156 D1) — 전체 중 몇 %가 가졌나.
+   * 도전과제 희귀도 (TASK-KL-156 D1). 전체 중 몇 %가 가졌나.
    *
    * 공개 값이다(누가 가졌는지는 안 나가고, 몇 명인지만 나간다). 계정이 적으면 비율 대신
-   * 「아직 셀 수 없음」을 뜻하는 `enough:false` 로 답한다 — 셋 중 하나를 33%라고 말하면 착시다.
+   * 아직 셀 수 없음을 뜻하는 `enough:false` 로 답한다. 셋 중 하나를 33%라고 말하면 착시다.
    */
   app.get('/kl/stats/achievements', (_req: Request, res: Response) => {
     res.json(store.achievementRarity());
   });
 
   /**
-   * 막기·풀기 (TASK-KL-156 D2).
+   * 막기, 풀기 (TASK-KL-156 D2).
    *
-   * 막으면 양쪽 팔로우가 함께 끊긴다 — 안 그러면 막아 놓고도 그쪽 피드에는 내 글이 계속 간다.
+   * 막으면 양쪽 팔로우가 함께 끊긴다. 안 그러면 막아 놓고도 그쪽 피드에는 내 글이 계속 간다.
    * 막았다는 사실은 상대에게 안 알린다.
    */
   app.post('/kl/u/:handle/block', (req: Request, res: Response) => {
@@ -935,9 +935,9 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 프로필 공유 주소 (TASK-KL-156 D9) — `https://yawnbot.mascari4615.com/kl/u/:handle/card`.
+   * 프로필 공유 주소 (TASK-KL-156 D9). `https://yawnbot.mascari4615.com/kl/u/:handle/card`.
    *
-   * 왜 서버가 HTML 을 내보내나: 지금 프로필은 `/u/?h=…` 라 **크롤러가 사람마다 다른
+   * 왜 서버가 HTML 을 내보내나: 지금 프로필은 `/u/?h=...` 라 **크롤러가 사람마다 다른
    * 미리보기 그림을 못 읽는다**(정적 파일 한 장이라 og 태그가 모두 같다). 카드 그림은 이미
    * 서버에 있는데 아무도 못 보는 상태였다.
    *
@@ -959,7 +959,7 @@ export function registerKarmolabApi(
       String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const target = `https://blog.mascari4615.com/u/?h=${encodeURIComponent(account.handle)}`;
     const image = `https://yawnbot.mascari4615.com/kl/u/${encodeURIComponent(account.handle)}/card.svg`;
-    const title = `${account.displayName} (@${account.handle}) — KarmoLab`;
+    const title = `${account.displayName} (@${account.handle}). KarmoLab`;
     const description = account.card?.bio || 'KarmoLab 에서 이어 온 기록.';
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -986,8 +986,8 @@ export function registerKarmolabApi(
   /**
    * 계정 합치기 (TASK-KL-156 D8).
    *
-   * 지금 로그인한 계정이 **받는 쪽**이고, 합칠 계정은 그 계정의 복구 코드로 증명한다 —
-   * 남의 계정을 흡수할 수 없어야 하므로 「그 계정에 들어갈 수 있는 사람」만 합칠 수 있다.
+   * 지금 로그인한 계정이 **받는 쪽**이고, 합칠 계정은 그 계정의 복구 코드로 증명한다 . 
+   * 남의 계정을 흡수할 수 없어야 하므로 그 계정에 들어갈 수 있는 사람만 합칠 수 있다.
    * 되돌릴 수 없다.
    */
   app.post('/kl/me/merge', (req: Request, res: Response) => {
@@ -996,7 +996,7 @@ export function registerKarmolabApi(
       res.status(401).json({ error: 'not_signed_in' });
       return;
     }
-    // 합칠 쪽의 복구 코드. 이것이 곧 「그 계정이 내 것이다」의 증명이다.
+    // 합칠 쪽의 복구 코드. 이것이 곧 그 계정이 내 것이다의 증명이다.
     const other = store.consumeRecoveryCode((req.body ?? {}).code);
     if (!other) {
       res.status(401).json({ error: 'bad_code' });
@@ -1016,7 +1016,7 @@ export function registerKarmolabApi(
 
   /**
    * 보관 안내 (TASK-KL-156 D10).
-   * 지우지 않는다 — 「얼마나 안 왔는지」를 본인이 볼 수 있게 하는 것까지다.
+   * 지우지 않는다. 얼마나 안 왔는지를 본인이 볼 수 있게 하는 것까지다.
    */
   app.get('/kl/me/retention', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -1032,22 +1032,22 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 알림 한 통 — **받기로 한 사람에게만** (TASK-KL-175 E1).
+   * 알림 한 통. **받기로 한 사람에게만** (TASK-KL-175 E1).
    *
-   * 끈 갈래는 쌓지도 않는다. 쌓아 두고 화면에서만 숨기면 「안 읽음 12」 같은 수가 계속 붙고,
+   * 끈 갈래는 쌓지도 않는다. 쌓아 두고 화면에서만 숨기면 안 읽음 12 같은 수가 계속 붙고,
    * 그 수를 없애려고 사람은 결국 종을 통째로 끈다.
    *
-   * 거르는 자리를 여기 하나로 둔다 — 부르는 곳마다 검사를 적으면 한 곳은 반드시 빠뜨린다.
+   * 거르는 자리를 여기 하나로 둔다. 부르는 곳마다 검사를 적으면 한 곳은 반드시 빠뜨린다.
    */
   function notifyIfWanted(input: Parameters<typeof notes.notify>[0]): void {
-    /* 문 자체는 이 파일 밖에 있다 (TASK-KL-191 축7) — 문이 한 파일 안에만 있으면
+    /* 문 자체는 이 파일 밖에 있다 (TASK-KL-191 축7). 문이 한 파일 안에만 있으면
      * 그 파일 밖에서 알리는 곳(흐름 예약)은 언제나 뒷문이 된다. 실제로 그랬다. */
     sharedNotifyGate(store, notes, input);
   }
 
   /**
-   * 팔로잉·팔로워 목록 (TASK-KL-175 E5).
-   * 로그인 없이도 볼 수 있다 — 프로필과 같은 성질의 공개 정보다. 맞팔 표시만 보는 사람에 따라 다르다.
+   * 팔로잉, 팔로워 목록 (TASK-KL-175 E5).
+   * 로그인 없이도 볼 수 있다. 프로필과 같은 성질의 공개 정보다. 맞팔 표시만 보는 사람에 따라 다르다.
    */
   app.get('/kl/u/:handle/follows', (req: Request, res: Response) => {
     const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -1067,9 +1067,9 @@ export function registerKarmolabApi(
     });
   });
 
-  /* ── 작업실 (TASK-KL-182 F3·F4) ──────────────────────────────────
+  /* ── 작업실 (TASK-KL-182 F3, F4) ──────────────────────────────────
    *
-   * 프로필은 「무엇을 했나」까지 왔는데 **무엇을 만들었나**가 없었다. 도구로 만든 결과를
+   * 프로필은 무엇을 했나까지 왔는데 **무엇을 만들었나**가 없었다. 도구로 만든 결과를
    * 걸면 프로필이 명함에서 작업실이 된다. 그림은 이미 있는 업로드 자리를 쓴다.
    */
   app.get('/kl/me/works', (req: Request, res: Response) => {
@@ -1088,7 +1088,7 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
-    /* 그림이 아닌 것도 걸린다 (TASK-KL-191 축3). 미리보기가 없는 것은 **열쇠를 여기서 만든다** —
+    /* 그림이 아닌 것도 걸린다 (TASK-KL-191 축3). 미리보기가 없는 것은 **열쇠를 여기서 만든다** . 
      * 업로드 id 가 곧 열쇠이던 시절의 규칙이 그대로면 그림 아닌 것은 애초에 못 걸린다. */
     const givenId = String(body.id ?? '');
     const workId = givenId || `w${crypto.randomBytes(8).toString('hex')}`;
@@ -1116,20 +1116,20 @@ export function registerKarmolabApi(
     res.json({ works: store.removeWork(account.id, String(req.params.id ?? '')) });
   });
 
-  /** 남의 작업실 — 로그인 없이 볼 수 있다(프로필과 같은 성질). */
+  /** 남의 작업실. 로그인 없이 볼 수 있다(프로필과 같은 성질). */
   app.get('/kl/u/:handle/works', (req: Request, res: Response) => {
     const works = store.publicWorks(String(req.params.handle ?? ''));
     res.json({ works: works ?? [] });
   });
 
   /**
-   * 아직 안 써 본 것 (TASK-KL-183 E) — 발견.
+   * 아직 안 써 본 것 (TASK-KL-183 E). 발견.
    *
    * 도구가 160개인데 사람들이 여는 건 늘 같은 열몇 개다. 이미 두 벌의 실측이 있다:
    * **남들이 많이 여는 것**(익명 집계)과 **내가 열어 본 것**(발자국). 둘을 맞대면
-   * 「남들은 쓰는데 나는 아직 안 써 본 것」이 그냥 나온다 — 지어낼 필요가 없다.
+   * 남들은 쓰는데 나는 아직 안 써 본 것이 그냥 나온다. 지어낼 필요가 없다.
    *
-   * 로그인 안 했으면 「내가 써 본 것」을 모른다. 그때는 추천 대신 **그냥 인기**를 준다
+   * 로그인 안 했으면 내가 써 본 것을 모른다. 그때는 추천 대신 **그냥 인기**를 준다
    * (없는 개인화를 있는 척하지 않는다).
    */
   app.get('/kl/suggest', (req: Request, res: Response) => {
@@ -1139,7 +1139,7 @@ export function registerKarmolabApi(
     const fresh = popular.filter((row) => !mine || !mine.has(row.toolId)).slice(0, 6);
     res.json({
       personal: !!mine,
-      // 이미 다 써 본 사람에게는 빈 목록이 정직하다 — 억지로 채우지 않는다.
+      // 이미 다 써 본 사람에게는 빈 목록이 정직하다. 억지로 채우지 않는다.
       tools: fresh.map((row) => ({ toolId: row.toolId, recent: row.recent, total: row.total })),
     });
   });
@@ -1147,7 +1147,7 @@ export function registerKarmolabApi(
   /**
    * 이번 주 미션 (TASK-KL-182 F1).
    *
-   * 저장하는 것이 없다 — 미션 목록은 주 이름에서 계산되고 진행도는 발자국에서 그때그때 센다.
+   * 저장하는 것이 없다. 미션 목록은 주 이름에서 계산되고 진행도는 발자국에서 그때그때 센다.
    * 두 벌로 적어 두면 갈라지고, 갈라진 순간 숫자가 거짓이 된다.
    */
   app.get('/kl/me/missions', (req: Request, res: Response) => {
@@ -1160,14 +1160,14 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 시즌 순위 (TASK-KL-182 F2) — 판마다 메달을 주고 메달 수로 줄 세운다.
+   * 시즌 순위 (TASK-KL-182 F2). 판마다 메달을 주고 메달 수로 줄 세운다.
    * 점수를 섞지 않는다: 단위가 다른 수를 더하면 그 합은 아무 뜻이 없다.
    */
   app.get('/kl/play/season', (_req: Request, res: Response) => {
     res.json({ ranking: plays.seasonRanking() });
   });
 
-  /** 이번 주 미션은 **모두에게 같다** — 로그인 없이도 무엇이 걸렸는지 볼 수 있어야 이야기가 된다. */
+  /** 이번 주 미션은 **모두에게 같다**. 로그인 없이도 무엇이 걸렸는지 볼 수 있어야 이야기가 된다. */
   app.get('/kl/missions', (_req: Request, res: Response) => {
     res.json({ missions: missionsOfWeek() });
   });
@@ -1175,7 +1175,7 @@ export function registerKarmolabApi(
   /* ── 남이 만든 도구 (TASK-KL-183 H) ──────────────────────────────
    *
    * 서버는 **글자만 보관한다**. 실행은 브라우저의 모래상자에서만 일어나고, 그 안에는 우리
-   * 출처를 안 준다 — 남의 도구가 내 계정을 만지는 일이 구조적으로 없다.
+   * 출처를 안 준다. 남의 도구가 내 계정을 만지는 일이 구조적으로 없다.
    * 기본은 비공개다: 목록에 올리는 것은 주인이 스스로 켠다.
    */
   const userTools = getKarmolabUserToolStore();
@@ -1189,12 +1189,12 @@ export function registerKarmolabApi(
     res.json({ tools: userTools.byOwner(account.handle) });
   });
 
-  /** 목록 — 주인이 올린 것만. 로그인 없이 볼 수 있다. */
+  /** 목록. 주인이 올린 것만. 로그인 없이 볼 수 있다. */
   app.get('/kl/tools/user', (_req: Request, res: Response) => {
     res.json({ tools: userTools.listed().map(({ source: _source, ...rest }) => rest) });
   });
 
-  /** 하나 — 소스까지. 주소를 아는 사람은 열 수 있다(비공개는 「목록에 안 올림」이지 잠금이 아니다). */
+  /** 하나. 소스까지. 주소를 아는 사람은 열 수 있다(비공개는 목록에 안 올림이지 잠금이 아니다). */
   app.get('/kl/tools/user/:id', (req: Request, res: Response) => {
     const tool = userTools.get(String(req.params.id ?? ''));
     if (!tool) {
@@ -1202,7 +1202,7 @@ export function registerKarmolabApi(
       return;
     }
     /* 선 도구는 **소스를 안 준다** (TASK-KL-191 축4).
-     * 목록에서만 빼면 주소를 아는 사람에게는 그대로 돌아간다 — 그러면 세운 것이 아니다.
+     * 목록에서만 빼면 주소를 아는 사람에게는 그대로 돌아간다. 그러면 세운 것이 아니다.
      * 주인은 자기 것을 계속 본다(고치려면 봐야 한다). */
     const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const isOwner = viewer?.handle === tool.ownerHandle;
@@ -1212,12 +1212,12 @@ export function registerKarmolabApi(
     }
     res.json({
       tool: { ...tool, reports: (tool.reports ?? []).length },
-      /* 「이 도구가 뭘 하나」 — 올린 사람의 설명이 아니라 **소스에서 읽은 것**이다. */
+      /* 이 도구가 뭘 하나. 올린 사람의 설명이 아니라 **소스에서 읽은 것**이다. */
       summary: KarmolabUserToolStore.summarize(tool.source),
     });
   });
 
-  /** 신고 — 로그인한 사람만, 한 사람 한 번. 이유는 안 받는다(볼 사람 없는 글은 안 쌓는다). */
+  /** 신고. 로그인한 사람만, 한 사람 한 번. 이유는 안 받는다(볼 사람 없는 글은 안 쌓는다). */
   app.post('/kl/tools/user/:id/report', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1232,7 +1232,7 @@ export function registerKarmolabApi(
     res.json(result);
   });
 
-  /** 주인이 세우기·다시 열기. 신고로 선 것은 주인 혼자 못 되돌린다. */
+  /** 주인이 세우기, 다시 열기. 신고로 선 것은 주인 혼자 못 되돌린다. */
   app.patch('/kl/tools/user/:id/stopped', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1256,7 +1256,7 @@ export function registerKarmolabApi(
     const body = req.body ?? {};
     const tool = userTools.create(account.handle, { title: body.title, source: body.source });
     if (!tool) {
-      // 왜 안 됐는지 말해 준다 — 조용히 실패하면 사람은 고장으로 읽는다.
+      // 왜 안 됐는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
       res.status(400).json({ error: 'bad_tool', titleMax: 32, sourceMax: 20000, perOwner: 10 });
       return;
     }
@@ -1292,11 +1292,11 @@ export function registerKarmolabApi(
 
   /* ── 도구 흐름 (TASK-KL-181) ──────────────────────────────────────
    *
-   * 저장하는 것은 **순서뿐**이다. 파일도 결과도 서버에 안 올라온다 — 우리 도구는 전부
+   * 저장하는 것은 **순서뿐**이다. 파일도 결과도 서버에 안 올라온다. 우리 도구는 전부
    * 브라우저 안에서 돌고, 흐름은 그 순서를 적어 둔 종이 한 장이다.
    *
-   * 보는 것은 로그인 없이. 만들고 고치는 것만 로그인 — 주소를 받은 사람이 못 열면
-   * 「남에게 준다」가 성립하지 않는다.
+   * 보는 것은 로그인 없이. 만들고 고치는 것만 로그인. 주소를 받은 사람이 못 열면
+   * 남에게 준다가 성립하지 않는다.
    */
   const flows = getKarmolabFlowStore();
 
@@ -1323,7 +1323,7 @@ export function registerKarmolabApi(
     const body = req.body ?? {};
     const flow = flows.create(account.handle, { title: body.title, steps: body.steps });
     if (!flow) {
-      // 왜 안 됐는지 말해 준다 — 조용히 실패하면 사람은 고장으로 읽는다.
+      // 왜 안 됐는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
       res.status(400).json({ error: 'bad_flow', titleMax: 40, stepMax: 8, perOwner: 30 });
       return;
     }
@@ -1369,22 +1369,22 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 한 판의 자국 (TASK-KL-182 F5) — 몇 번째까지 갔나 · 얼마나 걸렸나.
-   * 흐름을 만들어 놓고 「실제로 되나」를 아무도 못 봤다. 이 줄이 그 답이다.
+   * 한 판의 자국 (TASK-KL-182 F5). 몇 번째까지 갔나, 얼마나 걸렸나.
+   * 흐름을 만들어 놓고 실제로 되나를 아무도 못 봤다. 이 줄이 그 답이다.
    */
   app.post('/kl/flows/:id/trail', (req: Request, res: Response) => {
     const body = req.body ?? {};
     res.json({ trails: flows.noteTrail(String(req.params.id ?? ''), body).length });
   });
 
-  /** 이 흐름이 어디서 막히나 — 자국이 없으면 null(모르는 것을 아는 척하지 않는다). */
+  /** 이 흐름이 어디서 막히나. 자국이 없으면 null(모르는 것을 아는 척하지 않는다). */
   app.get('/kl/flows/:id/summary', (req: Request, res: Response) => {
     res.json({ summary: flows.trailSummary(String(req.params.id ?? '')) });
   });
 
   /**
-   * 예약 (TASK-KL-183 B) — 요일·시각에 「이 흐름 할 때예요」를 알린다.
-   * 서버가 대신 돌지 않는다는 사실을 응답에도 적는다 — 이름이 하는 일을 넘어서면 안 된다.
+   * 예약 (TASK-KL-183 B). 요일, 시각에 이 흐름 할 때예요를 알린다.
+   * 서버가 대신 돌지 않는다는 사실을 응답에도 적는다. 이름이 하는 일을 넘어서면 안 된다.
    */
   app.patch('/kl/flows/:id/reminder', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -1401,9 +1401,9 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 스스로 이어가기 켜기·끄기 (TASK-KL-191 축1).
+   * 스스로 이어가기 켜기, 끄기 (TASK-KL-191 축1).
    *
-   * 서버가 흐름을 대신 도는 일은 여전히 없다 — 도구가 전부 브라우저 안에서 돈다.
+   * 서버가 흐름을 대신 도는 일은 여전히 없다. 도구가 전부 브라우저 안에서 돈다.
    * 서버가 지키는 것은 **그 사람의 선택**뿐이라, 응답도 그 사실을 그대로 말한다.
    */
   app.patch('/kl/flows/:id/auto', (req: Request, res: Response) => {
@@ -1421,29 +1421,35 @@ export function registerKarmolabApi(
     res.json({ auto: flow.auto === true, runsOnServer: false, runsInBrowser: true });
   });
 
-  /** 한 번 돌았다 — 이 수만이 「쓸모 있는 흐름」을 가려낸다. 로그인 없이도 센다. */
+  /** 한 번 돌았다. 이 수만이 쓸모 있는 흐름을 가려낸다. 로그인 없이도 센다. */
   app.post('/kl/flows/:id/run', (req: Request, res: Response) => {
     res.json({ runs: flows.noteRun(String(req.params.id ?? '')) });
   });
 
   /* ── 같이 쓰기 (TASK-KL-180) ──────────────────────────────────────
    *
-   * 방 id = 지금 보고 있는 화면 id (도구든 게임이든 같다). 아무것도 저장하지 않는다 —
+   * 방 id = 지금 보고 있는 화면 id (도구든 게임이든 같다). 아무것도 저장하지 않는다 . 
    * 지나간 커서 좌표는 값이 0 이다.
    *
-   * 로그인은 필요 없다. 익명도 같이 쓸 수 있어야 「지금 여기 사람이 있다」가 성립한다.
+   * 로그인은 필요 없다. 익명도 같이 쓸 수 있어야 지금 여기 사람이 있다가 성립한다.
    */
   const rooms = getKarmolabRoomStore();
-  /* 상한 (change.copresence-hardening 3단계) — 팬아웃이 있는 자리에서 무제한 입력은
+  /* 상한 (change.copresence-hardening 3단계). 팬아웃이 있는 자리에서 무제한 입력은
      상한이 아니라 확성기다. 참가자 기준이라 같은 IP 를 쓰는 옆자리를 같이 벌하지 않는다. */
   const moveLimiter = new RoomLimiter(MOVE_LIMIT);
   const opLimiter = new RoomLimiter(OP_LIMIT);
+  /* 참가자 상한 위에 **IP 지붕**을 하나 더. 창을 여럿 열어 참가자를 늘리면 참가자 상한은
+     그만큼 늘어난다. 지붕이 없으면 상한을 우회하는 길이 열려 있는 셈이다. */
+  const moveIpLimiter = new RoomLimiter(MOVE_IP_LIMIT);
+  const opIpLimiter = new RoomLimiter(OP_IP_LIMIT);
   setInterval(() => {
     moveLimiter.sweep();
     opLimiter.sweep();
+    moveIpLimiter.sweep();
+    opIpLimiter.sweep();
   }, 60_000).unref?.();
 
-  /** 방 id 로 받아들일 모양 — 주소에 그대로 들어가므로 좁게 잡는다. */
+  /** 방 id 로 받아들일 모양. 주소에 그대로 들어가므로 좁게 잡는다. */
   function roomIdOf(raw: unknown): string | null {
     const id = String(raw ?? '');
     return /^[a-z0-9][a-z0-9-]{0,39}$/.test(id) ? id : null;
@@ -1463,10 +1469,11 @@ export function registerKarmolabApi(
     }
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const id = memberIdOf(req, req.query.tab);
-    const name = account?.displayName || chat.identityFor(visitorKeyFor(req)).name;
-    /* 창 수 상한은 **IP** 로 센다 — 기기 id 로 세면 지우고 다시 오면 그만이라 상한이 아니다.
+    const anon = chat.identityFor(visitorKeyFor(req));
+    const name = account?.displayName || anon.name;
+    /* 창 수 상한은 **IP** 로 센다. 기기 id 로 세면 지우고 다시 오면 그만이라 상한이 아니다.
        (반대로 사람 수는 기기 id 로 센다. 두 키를 섞으면 한쪽이 반드시 틀린다.) */
-    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, visitorKey: abuseKeyFor(req) });
+    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, color: anon.color, visitorKey: abuseKeyFor(req) });
     if (!me) {
       res.status(429).json({ error: 'too_many_tabs' });
       return;
@@ -1482,7 +1489,7 @@ export function registerKarmolabApi(
     const send = (event: string, data: unknown): void => {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
-    // 붙자마자 그릴 것을 준다 — 나와 지금 있는 사람들.
+    // 붙자마자 그릴 것을 준다. 나와 지금 있는 사람들.
     send('hello', { me, members: rooms.members(roomId).filter((m) => m.id !== id) });
 
     const unsubscribe = rooms.subscribe(roomId, (event: RoomEvent) => {
@@ -1512,18 +1519,18 @@ export function registerKarmolabApi(
     }
     const body = req.body ?? {};
     const id = memberIdOf(req, body.tab);
-    /* 넘친 좌표는 **조용히 버린다** — 지나간 커서는 값이 0 이라, 「너무 빠르다」를 돌려주는
+    /* 넘친 좌표는 **조용히 버린다**. 지나간 커서는 값이 0 이라, 너무 빠르다를 돌려주는
        것 자체가 또 하나의 소음이다. 다만 `moved` 는 거짓말하지 않는다(방에는 그대로 있다). */
-    if (!moveLimiter.take(`${roomId}:${id}`)) {
+    if (!moveLimiter.take(`${roomId}:${id}`) || !moveIpLimiter.take(abuseKeyFor(req))) {
       res.json({ moved: rooms.members(roomId).some((m) => m.id === id), throttled: true });
       return;
     }
-    const moved = rooms.move(roomId, id, body.x, body.y, body.active !== false);
+    const moved = rooms.move(roomId, id, body.x, body.y, body.active !== false, Date.now(), { dx: body.dx, dy: body.dy });
     res.json({ moved });
   });
 
   /**
-   * 함께 편집 연산 (TASK-KL-183 C) — 받아서 그대로 흘려보낸다.
+   * 함께 편집 연산 (TASK-KL-183 C). 받아서 그대로 흘려보낸다.
    * 서버는 글을 읽지도 저장하지도 않는다. 뜻은 브라우저 쪽 규칙이 정한다.
    */
   app.post('/kl/room/:id/op', (req: Request, res: Response) => {
@@ -1534,13 +1541,13 @@ export function registerKarmolabApi(
     }
     const body = req.body ?? {};
     const id = memberIdOf(req, body.tab);
-    // 크기·깊이는 뜻을 안 읽고도 잴 수 있다 — 깊은 것을 흘려보내면 받는 쪽 브라우저가 먼저 죽는다.
+    // 크기, 깊이는 뜻을 안 읽고도 잴 수 있다. 깊은 것을 흘려보내면 받는 쪽 브라우저가 먼저 죽는다.
     const tooBig = opTooBig(body.op);
     if (tooBig) {
       res.status(413).json({ error: tooBig === 'size' ? 'op_too_long' : 'op_too_deep' });
       return;
     }
-    if (!opLimiter.take(`${roomId}:${id}`)) {
+    if (!opLimiter.take(`${roomId}:${id}`) || !opIpLimiter.take(abuseKeyFor(req))) {
       res.status(429).json({ error: 'too_fast' });
       return;
     }
@@ -1549,12 +1556,12 @@ export function registerKarmolabApi(
 
   /* ── 같이 쓴 글이 방을 나가도 남는다 (TASK-KL-191 축2) ─────────────
    *
-   * 커서·연산은 여전히 **안 저장한다**(지나간 좌표는 값이 0). 남기는 것은 글 한 장뿐이고,
-   * 그마저 로그가 아니라 **지금 글**이다 — 다시 열 때 필요한 것은 그것뿐이다.
+   * 커서, 연산은 여전히 **안 저장한다**(지나간 좌표는 값이 0). 남기는 것은 글 한 장뿐이고,
+   * 그마저 로그가 아니라 **지금 글**이다. 다시 열 때 필요한 것은 그것뿐이다.
    */
   const codocs = getKarmolabCoDocStore();
 
-  /** 다시 들어온 사람의 **시작점**. 없으면 빈 글 — 없는 것을 지어내지 않는다. */
+  /** 다시 들어온 사람의 **시작점**. 없으면 빈 글. 없는 것을 지어내지 않는다. */
   app.get('/kl/room/:id/doc/:key', (req: Request, res: Response) => {
     const id = KarmolabCoDocStore.idOf(req.params.id, req.params.key);
     if (!id) {
@@ -1565,7 +1572,7 @@ export function registerKarmolabApi(
     res.json({ text: doc?.text ?? '', version: doc?.version ?? 0, updatedAt: doc?.updatedAt ?? null });
   });
 
-  /** 저장 — 낡은 판이 새 판을 못 덮고, 빈 글이 쓴 글을 못 덮는다(원장이 막는다). */
+  /** 저장. 낡은 판이 새 판을 못 덮고, 빈 글이 쓴 글을 못 덮는다(원장이 막는다). */
   app.put('/kl/room/:id/doc/:key', (req: Request, res: Response) => {
     const id = KarmolabCoDocStore.idOf(req.params.id, req.params.key);
     if (!id) {
@@ -1581,7 +1588,26 @@ export function registerKarmolabApi(
     res.json({ version: doc.version, saved: doc.text === String(body.text ?? '') });
   });
 
-  /** 어느 화면에 몇 명이 같이 있나 — 광장에 낼 수 있는 값. */
+  /**
+   * 나는 지금 누구인가 (change.identity-one 3단계).
+   *
+   * 화면이 이름, 색을 **스스로 만들지 않게** 하는 자리다. 로그인했으면 계정 이름이 이기고,
+   * 아니면 오늘의 익명 이름표가 온다. 규칙은 서버 한 곳(`anonLabel`)에만 있다.
+   */
+  app.get('/kl/me/who', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const anon = chat.identityFor(visitorKeyFor(req));
+    res.json({
+      deviceId: identityOf(req).deviceId,
+      signedIn: !!account,
+      handle: account?.handle ?? null,
+      name: account?.displayName || anon.name,
+      color: anon.color,
+      who: anon.who,
+    });
+  });
+
+  /** 어느 화면에 몇 명이 같이 있나. 광장에 낼 수 있는 값. */
   app.get('/kl/rooms', (_req: Request, res: Response) => {
     res.json({ rooms: rooms.snapshot() });
   });
@@ -1613,7 +1639,7 @@ export function registerKarmolabApi(
   /* ── 패스키 (TASK-KL-156 D7) ──────────────────────────────────────
    *
    * 들어오는 문이 디스코드 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. 패스키는 기기가 열쇠라
-   * 외부 등록도 secret 도 필요 없다 — 도메인만 있으면 된다.
+   * 외부 등록도 secret 도 필요 없다. 도메인만 있으면 된다.
    *
    * 도전값은 **메모리에만, 몇 분만** 산다. 한 번 쓰면 버린다(같은 답을 두 번 못 쓰게).
    */
@@ -1632,7 +1658,7 @@ export function registerKarmolabApi(
     return found.challenge;
   }
 
-  /** 등록 시작 — 로그인한 사람만. 이미 있는 열쇠는 제외해 같은 기기를 두 번 담지 않는다. */
+  /** 등록 시작. 로그인한 사람만. 이미 있는 열쇠는 제외해 같은 기기를 두 번 담지 않는다. */
   app.post('/kl/me/passkeys/challenge', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1647,7 +1673,7 @@ export function registerKarmolabApi(
     });
   });
 
-  /** 등록 마무리 — 브라우저가 만든 것을 확인하고 담는다. */
+  /** 등록 마무리. 브라우저가 만든 것을 확인하고 담는다. */
   app.post('/kl/me/passkeys', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1674,7 +1700,7 @@ export function registerKarmolabApi(
       store.noteEvent(account.id, 'login', { device: passkey.label, detail: '패스키 등록' });
       res.json({ passkeys: store.passkeysOf(account.id) });
     } catch (error) {
-      // 왜 틀렸는지 자세히 알려 주지 않는다 — 찍어 보는 데 쓰인다.
+      // 왜 틀렸는지 자세히 알려 주지 않는다. 찍어 보는 데 쓰인다.
       console.warn('[karmolab-api] 패스키 등록 실패:', error instanceof Error ? error.message : error);
       res.status(400).json({ error: 'bad_passkey' });
     }
@@ -1690,7 +1716,7 @@ export function registerKarmolabApi(
     res.json({ passkeys: store.passkeysOf(account.id) });
   });
 
-  /** 패스키 지우기. 마지막 하나여도 막지 않는다 — 디스코드와 복구 코드가 남아 있다. */
+  /** 패스키 지우기. 마지막 하나여도 막지 않는다. 디스코드와 복구 코드가 남아 있다. */
   app.delete('/kl/me/passkeys/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1701,7 +1727,7 @@ export function registerKarmolabApi(
     res.json({ removed, passkeys: store.passkeysOf(account.id) });
   });
 
-  /** 로그인 시작 — 로그인 전이라 도전값은 쿠키 없이 브라우저가 그대로 돌려준다. */
+  /** 로그인 시작. 로그인 전이라 도전값은 쿠키 없이 브라우저가 그대로 돌려준다. */
   app.post('/kl/auth/passkey/challenge', (_req: Request, res: Response) => {
     const key = crypto.randomUUID();
     res.json({ key, challenge: issueChallenge(`auth:${key}`), rpId: RP_ID });
@@ -1709,7 +1735,7 @@ export function registerKarmolabApi(
 
   /**
    * 패스키로 로그인.
-   * 누구인지 미리 안 물어도 된다 — 자격증명 id 하나로 계정을 찾는다.
+   * 누구인지 미리 안 물어도 된다. 자격증명 id 하나로 계정을 찾는다.
    */
   app.post('/kl/auth/passkey', (req: Request, res: Response) => {
     const body = req.body ?? {};
@@ -1753,7 +1779,7 @@ export function registerKarmolabApi(
     res.json({ visibility: store.visibilityFor(account.id) });
   });
 
-  /** 공개 범위 바꾸기 — 보낸 칸만 바뀐다. */
+  /** 공개 범위 바꾸기. 보낸 칸만 바뀐다. */
   app.patch('/kl/me/visibility', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1772,7 +1798,7 @@ export function registerKarmolabApi(
     res.json({ visibility });
   });
 
-  /** 지금 살아 있는 내 로그인들. 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
+  /** 지금 살아 있는 내 로그인들. 어디서 로그인돼 있나를 볼 수 있어야 끊을 수도 있다. */
   app.get('/kl/me/sessions', (req: Request, res: Response) => {
     const token = readCookie(req, SESSION_COOKIE);
     const account = store.accountForSession(token);
@@ -1797,7 +1823,7 @@ export function registerKarmolabApi(
   /**
    * 내 것 전부 내려받기.
    *
-   * 「기록이 남는다」는 약속은, 그 기록을 **가지고 나갈 수 있을 때** 비로소 약속이 된다.
+   * 기록이 남는다는 약속은, 그 기록을 **가지고 나갈 수 있을 때** 비로소 약속이 된다.
    * 못 가지고 나가는 기록은 맡긴 것이 아니라 잡힌 것이다.
    */
   app.get('/kl/me/export', (req: Request, res: Response) => {
@@ -1814,7 +1840,7 @@ export function registerKarmolabApi(
         handle: account.handle,
         displayName: account.displayName,
         joinedAt: account.createdAt,
-        // 디스코드 id 는 안 넣는다 — 이 파일이 남에게 넘어가도 계정이 드러나면 안 된다.
+        // 디스코드 id 는 안 넣는다. 이 파일이 남에게 넘어가도 계정이 드러나면 안 된다.
         loginMethods: Object.keys(account.identities),
       },
       records: account.records,
@@ -1825,7 +1851,7 @@ export function registerKarmolabApi(
   /**
    * 계정 지우기. **되돌릴 수 없다.**
    *
-   * 계정·기록·로그인은 사라진다. 이미 남긴 글은 남기되 **누가 썼는지를 지운다** —
+   * 계정, 기록, 로그인은 사라진다. 이미 남긴 글은 남기되 **누가 썼는지를 지운다** . 
    * 답글이 달린 글을 통째로 지우면 남의 답글이 뜻을 잃는다. 대화는 혼자 만든 것이 아니다.
    * 그 사실을 부르는 쪽(화면)에서 먼저 밝히고 확인을 받는다.
    */
@@ -1843,20 +1869,20 @@ export function registerKarmolabApi(
     res.json({ ok: true, postsKept: touched });
   });
 
-  // ── 흔적 원장 (Cycle 2) — 남의 자국이 보이는 자리 ────────────────────────
+  // ── 흔적 원장 (Cycle 2). 남의 자국이 보이는 자리 ────────────────────────
   //
   // 여기 숫자는 전부 실제로 일어난 일이다. 초반에는 작을 것이고, 작은 게 맞다.
   // 지어낸 수를 넣는 순간 이 자리 전체가 못 믿을 것이 된다.
 
   /**
-   * 도구가 열렸다. 로그인과 무관하다 — 그냥 지나간 사람의 자국도 사이트의 자국이다.
+   * 도구가 열렸다. 로그인과 무관하다. 그냥 지나간 사람의 자국도 사이트의 자국이다.
    *
    * **사람만 센다 (TASK-KL-112).** 바로 아래 방문 세는 자리는 처음부터 봇을 가려냈는데
-   * 여기만 안 가려냈다. 그래서 같은 하루에 「다녀간 사람 17」 과 「도구 열림 5,545」 라는
+   * 여기만 안 가려냈다. 그래서 같은 하루에 다녀간 사람 17 과 도구 열림 5,545 라는
    * 말이 안 되는 두 수가 나란히 떴다. 우리 점검이 도구 전체를 한 바퀴 돌 때마다 138개가
-   * 통째로 +1 되고 있었던 것이다 — 실제로 도구 130개가 **똑같이 48번**이었다.
+   * 통째로 +1 되고 있었던 것이다. 실제로 도구 130개가 **똑같이 48번**이었다.
    *
-   * 그 수는 첫 화면에 「이번 주에 많이 쓴 도구」로 공개된다. 로봇이 만든 순위를 사람에게
+   * 그 수는 첫 화면에 이번 주에 많이 쓴 도구로 공개된다. 로봇이 만든 순위를 사람에게
    * 보여 주면 그건 자랑이 아니라 거짓말이다. 방문 쪽과 같은 잣대를 쓴다.
    */
   app.post('/kl/trace/tool', (req: Request, res: Response) => {
@@ -1871,7 +1897,7 @@ export function registerKarmolabApi(
       return;
     }
     const counted = traces.recordToolOpen(toolId, visitorKeyFor(req));
-    // 로그인했으면 **내 것으로도** 적는다 (TASK-KL-152 C1). 익명 집계는 그대로 — 두 벌은 쓰임이 다르다.
+    // 로그인했으면 **내 것으로도** 적는다 (TASK-KL-152 C1). 익명 집계는 그대로. 두 벌은 쓰임이 다르다.
     const sessionToken = readCookie(req, SESSION_COOKIE);
     const account = store.accountForSession(sessionToken);
     if (account) {
@@ -1883,15 +1909,15 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 누가 사이트에 왔다 — 도구를 열든 안 열든. 첫 화면만 보고 나간 사람도 다녀간 사람이다.
+   * 누가 사이트에 왔다. 도구를 열든 안 열든. 첫 화면만 보고 나간 사람도 다녀간 사람이다.
    * 로그인과 무관하고, 주소는 저장하지 않는다 (되돌릴 수 없게 섞은 열쇠만 오늘치).
    */
   app.post('/kl/trace/visit', (req: Request, res: Response) => {
-    // 누가 왔는지 가려서 센다 — 검색봇·AI 를 사람으로 세면 공개해 놓은 수가 거짓말이 된다.
+    // 누가 왔는지 가려서 센다. 검색봇, AI 를 사람으로 세면 공개해 놓은 수가 거짓말이 된다.
     // 버리지는 않는다. 종류별로 나눠서 그대로 공개한다.
     const kind = classifyVisitor(req.headers['user-agent']);
     const counted = traces.recordVisit(visitorKeyFor(req), kind);
-    /* 도구를 안 연 날도 **온 날이다** (TASK-KL-152 C1). 도구 연 것만 세면 「그냥 둘러본 날」이
+    /* 도구를 안 연 날도 **온 날이다** (TASK-KL-152 C1). 도구 연 것만 세면 그냥 둘러본 날이
      * 잔디에서 빈칸이 되고, 연속 기록이 사실과 다르게 끊긴다. */
     if (kind === 'human') {
       const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -1899,9 +1925,9 @@ export function registerKarmolabApi(
     }
     /* 다녀갔다는 알림에 **그 기기에서 잰 숫자**가 실려 올 수 있다 (TASK-KL-201).
      *
-     * 여태 성능은 만든 사람 기계에서만 쟀다 — 진짜 사람이 자기 폰으로 열 때 몇 초인지 몰랐다.
+     * 여태 성능은 만든 사람 기계에서만 쟀다. 진짜 사람이 자기 폰으로 열 때 몇 초인지 몰랐다.
      * 사람이 보낸 판만 센다(검색봇의 시간은 사람 체감이 아니다). 개별 기록은 안 남기고 날짜별
-     * 칸에 하나 더할 뿐이라, 되돌려서 한 사람을 찾을 수 없다. 숫자가 없거나 이상하면 그냥 넘긴다 —
+     * 칸에 하나 더할 뿐이라, 되돌려서 한 사람을 찾을 수 없다. 숫자가 없거나 이상하면 그냥 넘긴다 . 
      * 이 곁다리 때문에 방문 세기가 실패하면 안 된다. */
     let perfCounted = 0;
     if (kind === 'human') {
@@ -1918,13 +1944,13 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 「지금 보고 있어요」 — 몇 분에 한 번씩 알려 온다.
+   * 지금 보고 있어요. 몇 분에 한 번씩 알려 온다.
    *
    * 저장하지 않는다. 사람만 센다 (봇은 화면을 보고 있는 게 아니다).
    */
   app.post('/kl/presence', (req: Request, res: Response) => {
     const kind = classifyVisitor(req.headers['user-agent']);
-    // 로그인한 사람은 계정에도 시각을 적는다 (TASK-KL-156 D5) — 프로필의 「지금 접속 중」이
+    // 로그인한 사람은 계정에도 시각을 적는다 (TASK-KL-156 D5). 프로필의 지금 접속 중이
     // 이 값 하나로 판정된다. 본인이 켜 두지 않았으면 그 값은 남에게 안 나간다.
     if (kind === 'human') {
       const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -1936,34 +1962,34 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 주간 결산 — 「이번 주 KarmoLab」. 통계 페이지에 함께 붙는다.
+   * 주간 결산. 이번 주 KarmoLab. 통계 페이지에 함께 붙는다.
    * 새로 저장하는 값은 없다. 이미 세고 있는 것에서 그때그때 계산한다.
    */
   app.get('/kl/recap', (_req: Request, res: Response) => {
     res.json({ recap: traces.weeklyRecap() });
   });
 
-  /** 공개 집계 — 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
+  /** 공개 집계. 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
   app.get('/kl/tools/stats', (_req: Request, res: Response) => {
-    /* 성능 분포도 같이 준다 (TASK-KL-201) — 계기판이 「내 기계」 옆에 「진짜 사람들」을 놓는다.
+    /* 성능 분포도 같이 준다 (TASK-KL-201). 계기판이 내 기계 옆에 진짜 사람들을 놓는다.
        칸으로 센 값이라 정확한 ms 가 아니라 칸의 위 경계다. 그 사실을 숨기지 않고 그대로 보낸다. */
     res.json({ tools: traces.toolStats(), pulse: traces.pulse(), visits: traces.visitStats(), perf: traces.perfStats() });
   });
 
   // ── 놀이 기록 (TASK-KL-148) ────────────────────────────────────────────────
   //
-  // 한 판이 끝나면 남는 자리. **순위 방향은 서버만 안다** — 반응속도는 작을수록, 연승은
+  // 한 판이 끝나면 남는 자리. **순위 방향은 서버만 안다**. 반응속도는 작을수록, 연승은
   // 클수록 좋다. 화면은 자기 숫자를 그리기만 한다(두 곳에 적으면 그날부터 갈라진다).
   //
   // 로그인해야 서버에 남는다. 안 한 사람도 놀이는 그대로 되고(이 브라우저 최고만 뜬다),
-  // 서버가 죽어도 마찬가지다 — 놀이 여섯의 생사를 노트북 한 대에 걸지 않는다.
+  // 서버가 죽어도 마찬가지다. 놀이 여섯의 생사를 노트북 한 대에 걸지 않는다.
 
   /** 겨룰 수 있는 놀이와 그 규칙 + 지금까지 몇 명이 겨뤘나. */
   app.get('/kl/play/games', (_req: Request, res: Response) => {
     res.json({ games: plays.stats() });
   });
 
-  /** 한 판 결과. 로그인 안 했으면 401 — 화면은 그걸 받고 로컬 최고만 보여 준다. */
+  /** 한 판 결과. 로그인 안 했으면 401. 화면은 그걸 받고 로컬 최고만 보여 준다. */
   app.post('/kl/play', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -1981,7 +2007,7 @@ export function registerKarmolabApi(
       res.json({ counted: false });
       return;
     }
-    // 표가 갈리는 놀이(높은 쪽 고르기)는 어느 표로 놀았는지가 있어야 순위가 성립한다 —
+    // 표가 갈리는 놀이(높은 쪽 고르기)는 어느 표로 놀았는지가 있어야 순위가 성립한다 . 
     // 없으면 쉬운 표를 고른 사람이 1등이 된다.
     const variant = typeof body.variant === 'string' ? body.variant : null;
     const outcome = plays.record(spec.id, account.handle, Number(body.score), new Date(), variant);
@@ -1997,7 +2023,7 @@ export function registerKarmolabApi(
     res.json({ counted: true, outcome, board: plays.board(spec.id, 'all', 5, new Date(), outcome.variant) });
   });
 
-  /** 순위판 — 역대(all) 또는 오늘(day). 아무도 안 논 놀이는 빈 목록이다(0 을 꾸며 내지 않는다). */
+  /** 순위판. 역대(all) 또는 오늘(day). 아무도 안 논 놀이는 빈 목록이다(0 을 꾸며 내지 않는다). */
   app.get('/kl/play/board', (req: Request, res: Response) => {
     const spec = playGame(req.query.game);
     if (!spec) {
@@ -2020,7 +2046,7 @@ export function registerKarmolabApi(
       better: spec.better,
       period,
       entries: plays.board(spec.id, period, limit, new Date(), variant),
-      // 내가 순위 밖이어도 내 자리는 알려 준다 — 없으면 「나는 어디쯤인가」를 영영 모른다.
+      // 내가 순위 밖이어도 내 자리는 알려 준다. 없으면 나는 어디쯤인가를 영영 모른다.
       // 핸들을 같이 주는 이유: 순위판에서 **내 줄에 색을 넣으려면** 어느 줄이 나인지 알아야 한다.
       me: account
         ? (() => {
@@ -2034,20 +2060,20 @@ export function registerKarmolabApi(
     });
   });
 
-  // ── 사람이 만든 표 (TASK-KL-150 · 게임 커스텀/UGC) ─────────────────────────
+  // ── 사람이 만든 표 (TASK-KL-150, 게임 커스텀/UGC) ─────────────────────────
   //
-  // 표가 주소를 갖는 순간 셋이 한꺼번에 풀린다: 남에게 주기 · 고치면 남도 갱신 · 같은 표로
+  // 표가 주소를 갖는 순간 셋이 한꺼번에 풀린다: 남에게 주기, 고치면 남도 갱신, 같은 표로
   // 논 사람끼리 겨루기(`pack:<id>` 를 놀이 기록 원장의 표 이름으로 그대로 넘긴다).
 
   /**
-   * 표 하나를 자랑하는 주소 (TASK-KL-151 ⑤) — `https://yawnbot.mascari4615.com/kl/w/<표>`.
+   * 표 하나를 자랑하는 주소 (TASK-KL-151 ⑤). `https://yawnbot.mascari4615.com/kl/w/<표>`.
    *
-   * 왜 봇이 내주나: 우리 사이트는 정적으로 찍혀 나간다. 그런데 표는 **런타임에 생긴다** —
-   * 찍는 시점에는 없는 표라 미리보기(제목·그림)를 넣어 둘 수가 없다. 링크를 붙였을 때
+   * 왜 봇이 내주나: 우리 사이트는 정적으로 찍혀 나간다. 그런데 표는 **런타임에 생긴다** . 
+   * 찍는 시점에는 없는 표라 미리보기(제목, 그림)를 넣어 둘 수가 없다. 링크를 붙였을 때
    * 아무 그림도 안 뜨면 아무도 안 누른다.
    *
-   * 사람은 곧바로 놀이 화면으로 보내고, 미리보기를 읽는 쪽(디스코드·카톡·검색)에는 이 표의
-   * 제목과 첫 그림을 준다. 그림은 표에 실제로 들어 있는 주소다 — 우리가 새로 만들지 않는다.
+   * 사람은 곧바로 놀이 화면으로 보내고, 미리보기를 읽는 쪽(디스코드, 카톡, 검색)에는 이 표의
+   * 제목과 첫 그림을 준다. 그림은 표에 실제로 들어 있는 주소다. 우리가 새로 만들지 않는다.
    */
   app.get('/kl/w/:id', (req: Request, res: Response) => {
     const pack = packs.get(req.params.id);
@@ -2062,7 +2088,7 @@ export function registerKarmolabApi(
     const esc = (raw: string): string =>
       raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const title = `${pack.emoji} ${pack.title} 이상형 월드컵`;
-    const desc = `${pack.items.length}명 중 하나를 고릅니다 — ${pack.ownerHandle} 님이 만든 표. KarmoLab`;
+    const desc = `${pack.items.length}명 중 하나를 고릅니다. ${pack.ownerHandle} 님이 만든 표. KarmoLab`;
     res.type('html').send(
       `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
         `<title>${esc(title)}</title>` +
@@ -2078,20 +2104,20 @@ export function registerKarmolabApi(
     );
   });
 
-  /** 표 하나를 그대로 — 놀이가 이걸 받아 판을 짠다. 열린 횟수도 여기서 센다. */
+  /** 표 하나를 그대로. 놀이가 이걸 받아 판을 짠다. 열린 횟수도 여기서 센다. */
   app.get('/kl/packs/:id', (req: Request, res: Response) => {
     const pack = packs.get(req.params.id);
     if (!pack) {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    // 로봇이 긁어 간 것을 「열렸다」로 세면 인기 순위가 거짓말이 된다.
+    // 로봇이 긁어 간 것을 열렸다로 세면 인기 순위가 거짓말이 된다.
     if (classifyVisitor(req.headers['user-agent']) === 'human') packs.noteOpen(pack.id, visitorKeyFor(req));
     res.json({ pack });
   });
 
   /**
-   * 월드컵 한 판의 결과 (TASK-KL-151) — 항목별 「마주쳤나 / 골라졌나」.
+   * 월드컵 한 판의 결과 (TASK-KL-151). 항목별 마주쳤나 / 골라졌나.
    *
    * 로그인은 안 받는다: 이건 **표의 통계**지 사람의 기록이 아니다. 대신 사람만 세고,
    * 같은 사람이 한 표에 연달아 보내는 것은 10분 안에는 안 센다.
@@ -2116,7 +2142,7 @@ export function registerKarmolabApi(
     res.json({ counted, tally: packs.tally(pack.id, 20) });
   });
 
-  /** 표의 항목 순위 — 실제로 붙어 본 항목만. 아직 아무도 안 돌렸으면 빈 목록. */
+  /** 표의 항목 순위. 실제로 붙어 본 항목만. 아직 아무도 안 돌렸으면 빈 목록. */
   app.get('/kl/packs/:id/tally', (req: Request, res: Response) => {
     const pack = packs.get(req.params.id);
     if (!pack) {
@@ -2127,7 +2153,7 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 표 목록. 놀이가 「내가 걸 수 있는 표만」 달라고 할 수 있다 —
+   * 표 목록. 놀이가 내가 걸 수 있는 표만 달라고 할 수 있다 . 
    * 못 거는 표가 목록에 서면 눌러 보고서야 안 된다는 걸 알게 된다.
    */
   app.get('/kl/packs', (req: Request, res: Response) => {
@@ -2148,12 +2174,12 @@ export function registerKarmolabApi(
       }),
       signedIn: Boolean(account),
       // 전체 규모는 `total` 안에 넣는다. 펼쳐서 넣으면 `packs`(목록)를 `packs`(개수)가
-      // 덮어써서 목록이 통째로 숫자가 된다 — 화면은 빈 목록으로 보이고 오류는 안 난다.
+      // 덮어써서 목록이 통째로 숫자가 된다. 화면은 빈 목록으로 보이고 오류는 안 난다.
       total: packs.stats(),
     });
   });
 
-  /** 표를 올린다 — 로그인해야 한다. 남의 표를 고치는 게 아니라 **이어받을** 때도 여기로 온다. */
+  /** 표를 올린다. 로그인해야 한다. 남의 표를 고치는 게 아니라 **이어받을** 때도 여기로 온다. */
   app.post('/kl/packs', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2169,7 +2195,7 @@ export function registerKarmolabApi(
     }
   });
 
-  /** 고친다 — 주인만. */
+  /** 고친다. 주인만. */
   app.put('/kl/packs/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2183,7 +2209,7 @@ export function registerKarmolabApi(
     }
   });
 
-  /** 내린다 — 주인이거나 주인장. 순위 기록은 안 지운다(그 사람들이 실제로 논 것이다). */
+  /** 내린다. 주인이거나 주인장. 순위 기록은 안 지운다(그 사람들이 실제로 논 것이다). */
   app.delete('/kl/packs/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2203,10 +2229,10 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 방금 무슨 일이 있었나 (TASK-KL-151 ③) — 최근 판 · 새로 올라온 표.
+   * 방금 무슨 일이 있었나 (TASK-KL-151 ③). 최근 판, 새로 올라온 표.
    *
-   * 광장이 숫자만 보여 주고 있었다. 숫자는 「사람이 있다」를 말하지만 **누가 방금 뭘 했는지**는
-   * 말하지 못한다. 원장에 이미 쌓고 있는 것을 그대로 내보낸다 — 새로 세는 값 0.
+   * 광장이 숫자만 보여 주고 있었다. 숫자는 사람이 있다를 말하지만 **누가 방금 뭘 했는지**는
+   * 말하지 못한다. 원장에 이미 쌓고 있는 것을 그대로 내보낸다. 새로 세는 값 0.
    *
    * 아직 아무 일도 없었으면 빈 목록이다. 0 을 꾸며 내지 않는다.
    */
@@ -2236,7 +2262,7 @@ export function registerKarmolabApi(
     res.json({ handle: account.handle, records: plays.me(account.handle) });
   });
 
-  /** 어떤 갤러리가 있고, 각 갤러리가 얼마나 살아 있나 (글 수 · 마지막 글 · 마지막 시각). */
+  /** 어떤 갤러리가 있고, 각 갤러리가 얼마나 살아 있나 (글 수, 마지막 글, 마지막 시각). */
   app.get('/kl/boards', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const summaries = traces.boardSummaries();
@@ -2262,7 +2288,7 @@ export function registerKarmolabApi(
     });
   });
 
-  /** 갤러리를 만든다 — 로그인한 사람이면 누구나. */
+  /** 갤러리를 만든다. 로그인한 사람이면 누구나. */
   app.post('/kl/boards', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2305,7 +2331,7 @@ export function registerKarmolabApi(
     res.json({ id: created.id });
   });
 
-  /** 갤러리의 말머리를 정한다 — 만든 사람이나 주인만. */
+  /** 갤러리의 말머리를 정한다. 만든 사람이나 주인만. */
   app.put('/kl/boards/:id/tags', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2332,9 +2358,9 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 갤러리 성격 바꾸기 — 「이슈식으로 쓸래」 (사용자: "원한다면 갤러리를 깃허브 이슈 식으로").
+   * 갤러리 성격 바꾸기. 이슈식으로 쓸래 (사용자: "원한다면 갤러리를 깃허브 이슈 식으로").
    *
-   * 만든 사람과 주인만. 껐다 켜도 글은 안 다친다 — 상태·번호는 원래 모든 글이 들고 있고,
+   * 만든 사람과 주인만. 껐다 켜도 글은 안 다친다. 상태, 번호는 원래 모든 글이 들고 있고,
    * 이슈식은 그걸 화면에 보여줄지를 정할 뿐이다.
    */
   app.patch('/kl/boards/:id', (req: Request, res: Response) => {
@@ -2358,7 +2384,7 @@ export function registerKarmolabApi(
     res.json({ ok: true, gallery: updated });
   });
 
-  /** 갤러리를 지운다 — 빈 갤러리만. 글이 있는데 지우면 그 글들이 갈 곳을 잃는다. */
+  /** 갤러리를 지운다. 빈 갤러리만. 글이 있는데 지우면 그 글들이 갈 곳을 잃는다. */
   app.delete('/kl/boards/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2384,8 +2410,8 @@ export function registerKarmolabApi(
       return;
     }
     const sort = isPostSort(req.query.sort) ? req.query.sort : 'recent';
-    // 말머리로 거르기 — 그 갤러리가 가진 말머리일 때만. 없는 말머리를 주면 통째로 빈 목록이 되어
-    // 「글이 없다」로 잘못 읽힌다.
+    // 말머리로 거르기. 그 갤러리가 가진 말머리일 때만. 없는 말머리를 주면 통째로 빈 목록이 되어
+    // 글이 없다로 잘못 읽힌다.
     const tag = typeof req.query.tag === 'string' && gallery.tags.includes(req.query.tag) ? req.query.tag : null;
     res.json({
       board: gallery.id,
@@ -2396,10 +2422,10 @@ export function registerKarmolabApi(
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
       myHandle: account?.handle ?? null,
-      /* 오늘의 내 이름표 — 익명으로 올릴 때 **미리** 보여 준다 (TASK-KL-157).
+      /* 오늘의 내 이름표. 익명으로 올릴 때 **미리** 보여 준다 (TASK-KL-157).
          올리고 나서야 어떤 이름으로 나갔는지 알게 되면 되돌릴 수가 없다. */
       myAnon: anonFaceFor(req),
-      /* 로그인 없이도 쓴다 (익명). 공지판만 주인 몫으로 남는다 —
+      /* 로그인 없이도 쓴다 (익명). 공지판만 주인 몫으로 남는다 . 
          예전에는 여기서 로그인을 요구해서, 채팅으로 들어온 사람이 글은 못 쓰는 턱이 있었다. */
       canWrite: !gallery.ownerOnly || isAdminAccount(account),
       maxLength: maxLenFor(gallery),
@@ -2408,11 +2434,11 @@ export function registerKarmolabApi(
     });
   });
 
-  /** 첫 화면에 띄우는 최근 글 — 판을 가리지 않는다. */
+  /** 첫 화면에 띄우는 최근 글. 판을 가리지 않는다. */
   app.get('/kl/recent', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const limit = Math.min(Math.max(1, Number(req.query.limit ?? 3) || 3), 20);
-    // `kind=best` = 반응이 모인 글만 (아카의 「베스트 라이브」 자리).
+    // `kind=best` = 반응이 모인 글만 (아카의 베스트 라이브 자리).
     const posts =
       req.query.kind === 'best'
         ? traces.bestPosts(limit, account?.id ?? null)
@@ -2421,8 +2447,8 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 정적 블로그 글의 답글. 글 본문·목록은 git이고 서버에는 slug별 답글만 둔다.
-   * 묶음이 아직 없으면 404가 아니라 빈 목록 — 댓글 0개는 오류가 아니다.
+   * 정적 블로그 글의 답글. 글 본문, 목록은 git이고 서버에는 slug별 답글만 둔다.
+   * 묶음이 아직 없으면 404가 아니라 빈 목록. 댓글 0개는 오류가 아니다.
    */
   app.get('/kl/blog/:slug/comments', (req: Request, res: Response) => {
     const slug = blogSlug(req.params.slug);
@@ -2485,7 +2511,7 @@ export function registerKarmolabApi(
         actorAccountId: writer.accountId,
         source: 'community',
         title: '내 글에 답글이 달렸어요',
-        body: `${title} — ${actorLabel}`,
+        body: `${title}. ${actorLabel}`,
         url,
         groupKey: `blog-reply:${slug}`,
       });
@@ -2502,7 +2528,7 @@ export function registerKarmolabApi(
       });
     }
     notes.flush();
-    // 저장형에는 authorAccountId·likerAccountIds가 있다. 공개 응답에 내부 원장을 싣지 않는다.
+    // 저장형에는 authorAccountId, likerAccountIds가 있다. 공개 응답에 내부 원장을 싣지 않는다.
     res.json({ ok: true });
   });
 
@@ -2555,8 +2581,8 @@ export function registerKarmolabApi(
    * 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다.
    *
    * **사람만 센다 (TASK-KL-113).** 도구 열림에서 같은 구멍을 막고 나서 훑어 보니 여기도
-   * 안 거르고 있었다. 글마다 붙는 조회수는 글쓴이가 보는 숫자다 — 검색봇이 훑고 간 것을
-   * 「사람이 읽었다」로 보여 주면, 아무도 안 읽었는데 읽혔다고 믿게 만든다.
+   * 안 거르고 있었다. 글마다 붙는 조회수는 글쓴이가 보는 숫자다. 검색봇이 훑고 간 것을
+   * 사람이 읽었다로 보여 주면, 아무도 안 읽었는데 읽혔다고 믿게 만든다.
    */
   app.get('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -2591,7 +2617,7 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'no_such_gallery' });
       return;
     }
-    // 공지는 주인만 쓴다. 막을 거면 서버가 막아야 한다 — 화면에서 숨기는 것은 잠금이 아니다.
+    // 공지는 주인만 쓴다. 막을 거면 서버가 막아야 한다. 화면에서 숨기는 것은 잠금이 아니다.
     // 익명은 여기 못 들어온다 (익명 공지는 공지가 아니다).
     if (gallery.ownerOnly && (writer.anon !== null || !isAdminAccount(account))) {
       res.status(403).json({ error: 'not_allowed' });
@@ -2600,7 +2626,7 @@ export function registerKarmolabApi(
     const text = String(body.text ?? '').trim();
     const title = String(body.title ?? '').trim();
 
-    // 한 글자짜리 글도 글이다 (「ㅋ」). 막을 것은 빈 글뿐이다.
+    // 한 글자짜리 글도 글이다 (ㅋ). 막을 것은 빈 글뿐이다.
     if (text.length < 1 || text.length > maxLenFor(gallery)) {
       res.status(400).json({ error: 'bad_text', maxLength: maxLenFor(gallery) });
       return;
@@ -2630,12 +2656,12 @@ export function registerKarmolabApi(
     traces.flush();
 
     /* 따라가는 사람들에게 알린다 (TASK-KL-156 D3).
-     * 종은 있었지만 울릴 일이 커뮤니티(내 글에 달린 답글)뿐이었다 — 따라가기를 만들어 놓고
+     * 종은 있었지만 울릴 일이 커뮤니티(내 글에 달린 답글)뿐이었다. 따라가기를 만들어 놓고
      * 새 글이 안 오면 그 따라가기는 아무 일도 안 하는 단추다.
      * 막은 사이는 `followerIdsOf` 에서 이미 빠져 나온다.
      *
-     * **익명 글은 안 알린다** (TASK-KL-157). 「아무개 님의 새 글」이 나가는 순간 그 글이
-     * 누구 것인지 팔로워 전원에게 드러난다 — 익명을 고른 뜻이 거기서 무너진다.
+     * **익명 글은 안 알린다** (TASK-KL-157). 아무개 님의 새 글이 나가는 순간 그 글이
+     * 누구 것인지 팔로워 전원에게 드러난다. 익명을 고른 뜻이 거기서 무너진다.
      * 로그인 안 한 사람은 `account` 자체가 없다(예전엔 여기가 로그인 필수라 없을 수 없었다). */
     for (const followerId of account && !writer.anon ? store.followerIdsOf(account.handle) : []) {
       notifyIfWanted({
@@ -2667,7 +2693,7 @@ export function registerKarmolabApi(
     res.json({ voted });
   });
 
-  /** 좋아요 — 표와 다르다. 표는 「만들어 줘」, 좋아요는 「좋다」. */
+  /** 좋아요. 표와 다르다. 표는 만들어 줘, 좋아요는 좋다. */
   app.post('/kl/posts/:id/like', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2682,7 +2708,7 @@ export function registerKarmolabApi(
     }
     traces.flush();
 
-    // 누를 때만 알린다 (취소는 안 알린다 — 그건 알릴 일이 아니다).
+    // 누를 때만 알린다 (취소는 안 알린다. 그건 알릴 일이 아니다).
     const target = liked ? traces.rawPost(postId) : null;
     if (target) {
       notifyIfWanted({
@@ -2690,7 +2716,7 @@ export function registerKarmolabApi(
         actorAccountId: account.id,
         source: 'community',
         title: '내 글을 좋아했어요',
-        body: `${target.title ?? target.text.slice(0, 30)} — @${account.handle}`,
+        body: `${target.title ?? target.text.slice(0, 30)}. @${account.handle}`,
         url: `/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `post-like:${postId}`,
       });
@@ -2700,7 +2726,7 @@ export function registerKarmolabApi(
     res.json({ liked });
   });
 
-  /** 답글 — 게시판이 게시판인 이유. `parentId` 를 주면 그 답글에 달리는 답글이다. */
+  /** 답글. 게시판이 게시판인 이유. `parentId` 를 주면 그 답글에 달리는 답글이다. */
   app.post('/kl/posts/:id/replies', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const body = req.body ?? {};
@@ -2733,12 +2759,12 @@ export function registerKarmolabApi(
     }
     traces.flush();
 
-    /* 알림 — 답글이 달렸는데 글쓴이가 모르면 그 사람은 안 돌아온다.
-       한 글의 답글은 같은 열쇠라 「답글 3개」로 묶인다. 내가 내 글에 단 것은 안 보낸다.
-       익명으로 달았으면 **오늘의 이름표**로 알린다 — 알림 한 줄에 진짜 손잡이를 적으면
-       익명이 거기서 샌다. 「누가」를 안 적을 수는 없다(그러면 알림이 안 읽힌다). */
+    /* 알림. 답글이 달렸는데 글쓴이가 모르면 그 사람은 안 돌아온다.
+       한 글의 답글은 같은 열쇠라 답글 3개로 묶인다. 내가 내 글에 단 것은 안 보낸다.
+       익명으로 달았으면 **오늘의 이름표**로 알린다. 알림 한 줄에 진짜 손잡이를 적으면
+       익명이 거기서 샌다. 누가를 안 적을 수는 없다(그러면 알림이 안 읽힌다). */
     const actorLabel = writer.anon ? writer.anon.name : `@${writer.handle}`;
-    // 익명이 로그인 상태로 달았으면 `writer.accountId` 는 진짜 계정이다 — 자기 글엔 알림이 안 가야 한다.
+    // 익명이 로그인 상태로 달았으면 `writer.accountId` 는 진짜 계정이다. 자기 글엔 알림이 안 가야 한다.
     const actorAccountId = writer.accountId;
     if (target) {
       notifyIfWanted({
@@ -2746,7 +2772,7 @@ export function registerKarmolabApi(
         actorAccountId,
         source: 'community',
         title: `내 글에 답글이 달렸어요`,
-        body: `${target.title ?? target.text.slice(0, 30)} — ${actorLabel}`,
+        body: `${target.title ?? target.text.slice(0, 30)}. ${actorLabel}`,
         url: `/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `post-reply:${postId}`,
       });
@@ -2803,7 +2829,7 @@ export function registerKarmolabApi(
     res.json({ ok: true });
   });
 
-  /** 지우기 — 쓴 사람 본인이나 주인만. 남의 글을 지울 수 있으면 게시판이 못 산다. */
+  /** 지우기. 쓴 사람 본인이나 주인만. 남의 글을 지울 수 있으면 게시판이 못 산다. */
   app.delete('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2819,7 +2845,7 @@ export function registerKarmolabApi(
     res.json({ ok: true });
   });
 
-  /** 주인이 진행 상태·고정을 바꾼다. */
+  /** 주인이 진행 상태, 고정을 바꾼다. */
   app.patch('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -2844,7 +2870,7 @@ export function registerKarmolabApi(
       by: account.handle,
     });
 
-    /* 「내가 남긴 말이 어떻게 됐나」를 글쓴이가 다시 들어와서 확인해야 한다면, 대부분은
+    /* 내가 남긴 말이 어떻게 됐나를 글쓴이가 다시 들어와서 확인해야 한다면, 대부분은
      * 영영 모른다. 요청이 만들어졌는데 요청한 사람이 그걸 모르는 게 제일 아깝다.
      * 그래서 상태가 **실제로 바뀐 때만** 알린다 (같은 상태로 다시 눌러도 안 보낸다). */
     if (updated && before && updated.status !== before) {
@@ -2856,7 +2882,7 @@ export function registerKarmolabApi(
       notifyIfWanted({
         accountId: updated.authorAccountId,
         source: 'community',
-        title: `올리신 「${what}」 — ${closingWord[updated.status] ?? '상태가 바뀌었어요'}`,
+        title: `올리신 ${what}. ${closingWord[updated.status] ?? '상태가 바뀌었어요'}`,
         body: updated.statusNote,
         url: `/?p=${encodeURIComponent(updated.id)}#community`,
         groupKey: `post-status:${updated.id}`,
@@ -2873,16 +2899,16 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 프로필 그림 — 디스코드에서 서버가 대신 받아 보낸다.
+   * 프로필 그림. 디스코드에서 서버가 대신 받아 보낸다.
    *
    * 왜 대신 받나: 디스코드 그림 주소에는 그 사람의 디스코드 id 가 박혀 있다. 주소를 그대로
-   * 넘기면 사이트를 쓴 것만으로 디스코드 계정이 남에게 공개된다 — 본인이 그러겠다고 한 적이 없다.
+   * 넘기면 사이트를 쓴 것만으로 디스코드 계정이 남에게 공개된다. 본인이 그러겠다고 한 적이 없다.
    * 받아 온 것은 잠깐 들고 있는다 (프로필 한 장에 여러 번 뜨는 그림을 매번 다시 받지 않게).
    */
   /* ===== 알림 (공용) =====
-   * 커뮤니티만의 기능이 아니다. 도구·계정·봇 무엇이든 같은 자리에 알림을 넣는다. */
+   * 커뮤니티만의 기능이 아니다. 도구, 계정, 봇 무엇이든 같은 자리에 알림을 넣는다. */
 
-  /** 주인이 지금 당장 백업을 뜬다 — 주기를 기다리지 않고 확인할 수 있어야 한다. */
+  /** 주인이 지금 당장 백업을 뜬다. 주기를 기다리지 않고 확인할 수 있어야 한다. */
   app.post('/kl/backup', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!isAdminAccount(account)) {
@@ -2892,16 +2918,16 @@ export function registerKarmolabApi(
     res.json(triggerBackupNow());
   });
 
-  /* ===== 검색 · 활동 · 질서 · 그림 ===== */
+  /* ===== 검색, 활동, 질서, 그림 ===== */
 
-  /** 갤러리를 가리지 않는 검색 — 「그 글 어디 있더라」를 찾는 자리. */
+  /** 갤러리를 가리지 않는 검색. 그 글 어디 있더라를 찾는 자리. */
   app.get('/kl/search', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const q = typeof req.query.q === 'string' ? req.query.q : '';
     res.json({ q, posts: q.trim() ? traces.searchPosts(q, account?.id ?? null) : [] });
   });
 
-  /** 이 사람이 쓴 글과 답글 — 공개 프로필의 「활동」. */
+  /** 이 사람이 쓴 글과 답글. 공개 프로필의 활동. */
   app.get('/kl/u/:handle/activity', (req: Request, res: Response) => {
     const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const target = store.byHandle(String(req.params.handle ?? ''));
@@ -2925,7 +2951,7 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 신고 — 지우지 않는다. 주인이 볼 목록에 올릴 뿐이다.
+   * 신고. 지우지 않는다. 주인이 볼 목록에 올릴 뿐이다.
    * 신고 한 번으로 글이 사라지면 그것 자체가 남을 지우는 단추가 된다.
    */
   app.post('/kl/reports', (req: Request, res: Response) => {
@@ -2946,7 +2972,7 @@ export function registerKarmolabApi(
       return;
     }
     traces.flush();
-    // 주인에게 바로 알린다 — 목록을 들여다볼 사람이 한 명뿐이라 알림이 없으면 안 본다.
+    // 주인에게 바로 알린다. 목록을 들여다볼 사람이 한 명뿐이라 알림이 없으면 안 본다.
     for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
       const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
       if (!admin) continue;
@@ -3026,7 +3052,7 @@ export function registerKarmolabApi(
       return;
     }
     res.setHeader('Content-Type', found.mime);
-    // 그림은 안 바뀐다 (이름에 임의 글자가 들어 있다) — 오래 캐시해도 된다.
+    // 그림은 안 바뀐다 (이름에 임의 글자가 들어 있다). 오래 캐시해도 된다.
     res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
     res.end(found.bytes);
   });
@@ -3034,20 +3060,20 @@ export function registerKarmolabApi(
   app.get('/kl/notifications', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
-      // 로그인 안 한 사람에게도 200 — 화면이 오류로 깨지면 안 된다.
+      // 로그인 안 한 사람에게도 200. 화면이 오류로 깨지면 안 된다.
       res.json({ items: [], unread: 0, signedIn: false });
       return;
     }
-    /* 받은함 (TASK-KL-191 축7) — 갈래로 걸러 보고, 지난 것도 볼 수 있다.
+    /* 받은함 (TASK-KL-191 축7). 갈래로 걸러 보고, 지난 것도 볼 수 있다.
      * 예전엔 서른 개만 내려보내고 그게 전부였다. 알림이 서른을 넘는 순간 그 앞의 것은
-     * **없는 것**이 된다 — 「나중에 볼게」가 성립하지 않으면 그건 받은함이 아니라 종소리다. */
+     * **없는 것**이 된다. 나중에 볼게가 성립하지 않으면 그건 받은함이 아니라 종소리다. */
     const bucket = String(req.query.bucket ?? '');
     const limit = Math.min(100, Math.max(10, Number(req.query.limit) || 30));
     const all = notes.listFor(account.id, limit);
     const items = bucket ? all.filter((n) => notifyBucket(n.source) === bucket) : all;
     res.json({
       items,
-      /** 갈래마다 안 읽은 수 — 종을 열기 전에 「무엇이 왔나」가 보인다. */
+      /** 갈래마다 안 읽은 수. 종을 열기 전에 무엇이 왔나가 보인다. */
       buckets: notes.listFor(account.id, 100).reduce<Record<string, number>>((acc, n) => {
         if (n.readAt) return acc;
         const key = notifyBucket(n.source);
@@ -3056,16 +3082,16 @@ export function registerKarmolabApi(
       }, {}),
       unread: notes.unreadCount(account.id),
       signedIn: true,
-      /* 「어디로 받고 있나」를 목록과 함께 준다 (TASK-KL-157) — 종을 열면 바로 보이고,
+      /* 어디로 받고 있나를 목록과 함께 준다 (TASK-KL-157). 종을 열면 바로 보이고,
          이 값 하나 때문에 요청을 한 번 더 하지 않는다. */
       discord: notes.discordEnabled(account.id),
-      /* 디스코드로 못 보내는 계정(연결 안 됨)에는 칸 자체를 안 만든다 —
+      /* 디스코드로 못 보내는 계정(연결 안 됨)에는 칸 자체를 안 만든다 . 
          켤 수 없는 스위치가 보이는 것이 제일 나쁘다. */
       discordAvailable: Boolean(account.identities.discord?.discordId),
     });
   });
 
-  /** 알림을 디스코드로도 받을지. 기본은 꺼짐 — 부르지도 않았는데 말 거는 일이다. */
+  /** 알림을 디스코드로도 받을지. 기본은 꺼짐. 부르지도 않았는데 말 거는 일이다. */
   app.post('/kl/notifications/discord', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
@@ -3124,7 +3150,7 @@ export function registerKarmolabApi(
     }
   });
 
-  /** 공개 프로필 — 로그인 없이 남이 본다. 「북적북적」이 실제로 보이는 첫 자리. */
+  /** 공개 프로필. 로그인 없이 남이 본다. 북적북적이 실제로 보이는 첫 자리. */
   app.get('/kl/u/:handle', (req: Request, res: Response) => {
     const account = store.byHandle(String(req.params.handle ?? ''));
     if (!account) {
@@ -3132,7 +3158,7 @@ export function registerKarmolabApi(
       return;
     }
     /* 본인이 프로필을 잠갔으면 **주소를 알아도 안 보인다** (TASK-KL-152 C4).
-     * 「없는 사람」과 구별되는 답을 준다 — 링크를 걸어 둔 사람이 왜 안 열리는지 알아야 한다.
+     * 없는 사람과 구별되는 답을 준다. 링크를 걸어 둔 사람이 왜 안 열리는지 알아야 한다.
      * 본인은 자기 프로필을 늘 볼 수 있다(잠근 모습이 어떻게 보이는지 확인해야 하므로). */
     const viewerSelf = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const visible = store.visibilityFor(account.id);
@@ -3140,16 +3166,16 @@ export function registerKarmolabApi(
       res.status(403).json({ error: 'profile_private' });
       return;
     }
-    // 커뮤니티 활동도 프로필의 일부다 — 「이 사람이 여기서 무엇을 했나」.
+    // 커뮤니티 활동도 프로필의 일부다. 이 사람이 여기서 무엇을 했나.
     res.json({
       profile: {
         ...store.publicProfile(account),
         activity: visible.community ? traces.activityOf(account.handle) : { posts: 0, replies: 0 },
-        // 따라가기 (TASK-KL-152 C8) — 보는 사람이 누구냐에 따라 답이 다르다.
+        // 따라가기 (TASK-KL-152 C8). 보는 사람이 누구냐에 따라 답이 다르다.
         followers: store.followerCount(account.handle),
-        // 「지금 접속 중」 — 본인이 켠 사람만. 안 켰으면 null 이라 화면이 그 칸을 아예 안 그린다.
+        // 지금 접속 중. 본인이 켠 사람만. 안 켰으면 null 이라 화면이 그 칸을 아예 안 그린다.
         online: store.onlineNow(account.handle),
-        // 잔디 (TASK-KL-175 E6) — 가린 사람은 null 이라 화면이 그 자리를 아예 안 그린다.
+        // 잔디 (TASK-KL-175 E6). 가린 사람은 null 이라 화면이 그 자리를 아예 안 그린다.
         footprint: store.publicFootprint(account.handle),
         following: viewerSelf ? store.isFollowing(viewerSelf.id, account.handle) : false,
         canFollow: !!viewerSelf && viewerSelf.id !== account.id,
@@ -3158,8 +3184,8 @@ export function registerKarmolabApi(
   });
   // ── 실시간 익명 채팅 (TASK-KL-149) ─────────────────────────────────────────
   //
-  // 광장은 「지금 N명」을 세기만 했다. 여기서 그 N명이 서로에게 말을 건다.
-  // 전송은 **SSE** 다 — 새 의존성 0, 재연결은 브라우저가 알아서, 프록시(cloudflared)를 그냥 통과.
+  // 광장은 지금 N명을 세기만 했다. 여기서 그 N명이 서로에게 말을 건다.
+  // 전송은 **SSE** 다. 새 의존성 0, 재연결은 브라우저가 알아서, 프록시(cloudflared)를 그냥 통과.
 
   /**
    * 흐르는 쪽. 브라우저가 한 번 붙어 두고 계속 받는다.
@@ -3184,23 +3210,23 @@ export function registerKarmolabApi(
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
 
-    /* 세는 자리에 **먼저 들어간 뒤** 첫 마디를 보낸다 (사용자 신고 2026-08-08 — 숫자가
+    /* 세는 자리에 **먼저 들어간 뒤** 첫 마디를 보낸다 (사용자 신고 2026-08-08. 숫자가
      * 계속 왔다갔다). 예전엔 붙기 전에 세고 `+1` 을 손으로 더했다. 같은 사람이 탭을 하나
-     * 더 열면 이미 세어진 자기 자신에 또 1 을 더해 「2명」이 됐다가 다음 갱신에 1 로
+     * 더 열면 이미 세어진 자기 자신에 또 1 을 더해 2명이 됐다가 다음 갱신에 1 로
      * 돌아왔다. 이름표를 넘겨 **사람 단위**로 묶으므로, 들어간 다음 그냥 물어보면 맞다. */
     const unsubscribe = chat.subscribe((event: ChatEvent) => {
       send(event.type, event);
     }, identity.who);
 
-    /* 첫 마디. 「너는 오늘 누구인가」 + 지금까지의 줄 + 몇 명이 창을 열고 있나.
-     * 이걸 한 번에 주기 때문에 화면은 붙자마자 그릴 것이 있다 — 빈 창을 안 보여 준다. */
+    /* 첫 마디. 너는 오늘 누구인가 + 지금까지의 줄 + 몇 명이 창을 열고 있나.
+     * 이걸 한 번에 주기 때문에 화면은 붙자마자 그릴 것이 있다. 빈 창을 안 보여 준다. */
     send('hello', {
       me: { who: identity.who, name: identity.name, color: identity.color },
-      // 저장 모양이 아니라 **보여 줄 모양**을 내보낸다 — 지킨/신고한 사람 목록은 안 나간다.
+      // 저장 모양이 아니라 **보여 줄 모양**을 내보낸다. 지킨/신고한 사람 목록은 안 나간다.
       messages: chat.publicMessages(KarmolabChatStore.keeperKey(identity.who, account?.id)),
       here: chat.hereCount(),
-      /* 지금 혼자여도 「오늘 여기 몇 명이 말했나」를 알면 빈 방으로 안 읽힌다.
-         자기 자신은 안 뺀다 — 「오늘 이 방에 있던 사람 수」가 곧 그 값이다. */
+      /* 지금 혼자여도 오늘 여기 몇 명이 말했나를 알면 빈 방으로 안 읽힌다.
+         자기 자신은 안 뺀다. 오늘 이 방에 있던 사람 수가 곧 그 값이다. */
       todayVoices: chat.todaysVoiceCount(),
       isAdmin: isAdminAccount(account),
       maxLength: CHAT_TEXT_MAX,
@@ -3217,7 +3243,7 @@ export function registerKarmolabApi(
     res.on('error', close);
   });
 
-  /** SSE 가 막힌 자리(구형 브라우저·이상한 프록시)를 위한 되돌아갈 길. 화면은 이걸로도 돈다. */
+  /** SSE 가 막힌 자리(구형 브라우저, 이상한 프록시)를 위한 되돌아갈 길. 화면은 이걸로도 돈다. */
   app.get('/kl/chat/recent', (req: Request, res: Response) => {
     const identity = chat.identityFor(visitorKeyFor(req));
     res.json({
@@ -3233,8 +3259,8 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 한 줄 보낸다. **로그인은 안 물어본다** — 익명 채팅이니까.
-   * 막힐 때는 왜 막혔는지와 언제 다시 되는지를 같이 준다(「안 돼요」만 주면 아무도 못 고친다).
+   * 한 줄 보낸다. **로그인은 안 물어본다**. 익명 채팅이니까.
+   * 막힐 때는 왜 막혔는지와 언제 다시 되는지를 같이 준다(안 돼요만 주면 아무도 못 고친다).
    */
   app.post('/kl/chat', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -3245,7 +3271,7 @@ export function registerKarmolabApi(
     }
     const result = chat.post(visitorKeyFor(req), String(req.body?.text ?? ''), {
       byOwner: isAdminAccount(account),
-      // 로그인한 사람만 적힌다 — 나중에 온 말을 이 사람들에게 알린다 (TASK-KL-157).
+      // 로그인한 사람만 적힌다. 나중에 온 말을 이 사람들에게 알린다 (TASK-KL-157).
       accountId: account?.id ?? null,
       // 어느 줄에 답하는가 (TASK-KL-159). 없는 줄을 가리키면 그냥 최상위 말이 된다.
       replyTo: typeof req.body?.replyTo === 'string' ? req.body.replyTo : null,
@@ -3259,14 +3285,14 @@ export function registerKarmolabApi(
 
     /* 답을 받은 사람에게 먼저 알린다 (TASK-KL-160).
      *
-     * ↩ 로 답해도 상대가 창을 안 보고 있으면 모른다 — 답하기를 넣어 놓고 닿지 않으면
-     * 그건 대화가 아니다. 아래 「오늘 여기 있던 사람」 알림과 **열쇠를 다르게** 둬서,
+     * ↩ 로 답해도 상대가 창을 안 보고 있으면 모른다. 답하기를 넣어 놓고 닿지 않으면
+     * 그건 대화가 아니다. 아래 오늘 여기 있던 사람 알림과 **열쇠를 다르게** 둬서,
      * 나에게 온 답이 흐름 알림에 묻히지 않게 한다. */
     const answeredAccountId = req.body?.replyTo ? chat.accountOfMessage(String(req.body.replyTo)) : null;
     if (answeredAccountId) {
       /* 여기도 **거르는 자리를 지난다** (TASK-KL-191 축7). 이 한 곳만 `notes.notify` 를 직접
-       * 불러서, 채팅 알림을 꺼 둔 사람에게도 답글 알림이 쌓이고 있었다 — 끈 갈래가 쌓이면
-       * 「안 읽음 12」가 안 없어지고, 그 수를 없애려고 사람은 결국 종을 통째로 끈다. */
+       * 불러서, 채팅 알림을 꺼 둔 사람에게도 답글 알림이 쌓이고 있었다. 끈 갈래가 쌓이면
+       * 안 읽음 12가 안 없어지고, 그 수를 없애려고 사람은 결국 종을 통째로 끈다. */
       notifyIfWanted({
         accountId: answeredAccountId,
         actorAccountId: account?.id ?? null,
@@ -3281,9 +3307,9 @@ export function registerKarmolabApi(
     /* 빈 방을 깨는 자리 (TASK-KL-157).
      *
      * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안 남기고
-     * → 방이 영영 빈다. 그래서 「지금 보고 있는 사람」이 아니라 **오늘 여기 있던 사람**에게 알린다.
+     * → 방이 영영 빈다. 그래서 지금 보고 있는 사람이 아니라 **오늘 여기 있던 사람**에게 알린다.
      * 지금 창을 열어 둔 사람은 이미 그 줄을 받았으므로, 알림은 그 밖의 사람들을 위한 것이다.
-     * 한 열쇠로 묶여서 여러 줄이 와도 「채팅 3」 한 줄이 된다. */
+     * 한 열쇠로 묶여서 여러 줄이 와도 채팅 3 한 줄이 된다. */
     for (const accountId of chat.todaysSpeakers(account?.id ?? null).filter((id) => id !== answeredAccountId)) {
       notifyIfWanted({
         accountId,
@@ -3300,8 +3326,8 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 이 줄을 지킨다 (TASK-KL-158). 로그인은 안 물어본다 — 채팅과 같은 자리다.
-   * 지킨 줄은 하루가 지나도 안 사라진다. 좋은 말을 남길 길이 「손으로 글로 옮기기」뿐이면
+   * 이 줄을 지킨다 (TASK-KL-158). 로그인은 안 물어본다. 채팅과 같은 자리다.
+   * 지킨 줄은 하루가 지나도 안 사라진다. 좋은 말을 남길 길이 손으로 글로 옮기기뿐이면
    * 대부분 그냥 사라진다.
    */
   app.post('/kl/chat/:id/keep', (req: Request, res: Response) => {
@@ -3311,7 +3337,7 @@ export function registerKarmolabApi(
     }
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const identity = chat.identityFor(visitorKeyFor(req));
-    /* 로그인했으면 **계정**으로 적는다 — 오늘 이름표로만 적으면 자정에 「내가 지킨 것」이
+    /* 로그인했으면 **계정**으로 적는다. 오늘 이름표로만 적으면 자정에 내가 지킨 것이
        통째로 남의 것처럼 보인다. 지킨 줄은 하루를 넘겨 남는데 지킨 사람이 하루를 못 넘기면
        앞뒤가 안 맞는다 (TASK-KL-160). */
     const keeper = KarmolabChatStore.keeperKey(identity.who, account?.id);
@@ -3324,7 +3350,7 @@ export function registerKarmolabApi(
     res.json({ ok: true, kept });
   });
 
-  /** 주인이 한 줄 지운다. 지운 자리는 안 남긴다 — 「삭제됨」이 줄줄이 남으면 그것이 도배가 된다. */
+  /** 주인이 한 줄 지운다. 지운 자리는 안 남긴다. 삭제됨이 줄줄이 남으면 그것이 도배가 된다. */
   app.delete('/kl/chat/:id', (req: Request, res: Response) => {
     if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
       res.status(403).json({ error: 'not_allowed' });
@@ -3341,9 +3367,9 @@ export function registerKarmolabApi(
   /**
    * 신고함에서 바로 재갈을 문다 (TASK-KL-158).
    *
-   * 신고 원장은 **누가 말했는지를 안 들고 있다** — 신고 당시의 그 말만 베껴 뒀다(익명이 새지
+   * 신고 원장은 **누가 말했는지를 안 들고 있다**. 신고 당시의 그 말만 베껴 뒀다(익명이 새지
    * 않게). 그래서 줄 id 로 그 사람을 되찾아 문다. 줄이 이미 사라졌으면(하루가 지났으면)
-   * 물 대상이 없다 — 그때는 「없다」고 정직하게 답한다. 조용히 성공한 척하지 않는다.
+   * 물 대상이 없다. 그때는 없다고 정직하게 답한다. 조용히 성공한 척하지 않는다.
    */
   app.post('/kl/chat/mute-message', (req: Request, res: Response) => {
     if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
@@ -3361,7 +3387,7 @@ export function registerKarmolabApi(
     res.json({ ok: true, who: target.who });
   });
 
-  /** 주인이 재갈을 물린다. 오늘 이름표 기준이라 **자정이면 어차피 풀린다** — 영구 추방이 아니다. */
+  /** 주인이 재갈을 물린다. 오늘 이름표 기준이라 **자정이면 어차피 풀린다**. 영구 추방이 아니다. */
   app.post('/kl/chat/mute', (req: Request, res: Response) => {
     if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
       res.status(403).json({ error: 'not_allowed' });
@@ -3377,7 +3403,7 @@ export function registerKarmolabApi(
   });
 
   /**
-   * 신고. 지우지 않는다 — 주인에게 알림만 간다(커뮤니티 신고와 같은 원칙).
+   * 신고. 지우지 않는다. 주인에게 알림만 간다(커뮤니티 신고와 같은 원칙).
    * 신고 한 번으로 남의 말이 사라지면 그 단추 자체가 무기가 된다.
    */
   app.post('/kl/chat/report', (req: Request, res: Response) => {
@@ -3387,7 +3413,7 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    /* 눌렀는지 화면이 알 수 있게 적어 둔다 (TASK-KL-159) — 안 그러면 또 누른다.
+    /* 눌렀는지 화면이 알 수 있게 적어 둔다 (TASK-KL-159). 안 그러면 또 누른다.
        이미 눌렀으면 원장에 두 줄을 만들지 않는다. */
     const reporter = KarmolabChatStore.keeperKey(
       chat.identityFor(visitorKeyFor(req)).who,
@@ -3428,7 +3454,7 @@ export function registerKarmolabApi(
   });
 
   /* 라우트보다 **뒤**에 있어야 잡는다. 여기로 오는 오류는 **반드시 CORS 헤더를 달고** 나가야 한다.
-   * 안 그러면 브라우저가 진짜 이유(너무 큼·잘못된 몸통) 대신 「CORS 막힘」만 보여 준다. */
+   * 안 그러면 브라우저가 진짜 이유(너무 큼, 잘못된 몸통) 대신 CORS 막힘만 보여 준다. */
   app.use('/kl', (error: Error & { status?: number; type?: string }, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
       next(error);
@@ -3440,8 +3466,8 @@ export function registerKarmolabApi(
       res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
     /* **자취를 남긴다.** 여기로는 몸통이 깨진 요청만 오는 게 아니라 라우트 안에서 터진 것도
-     * 전부 온다. 그런데 답은 늘 `bad_request` 한 마디라, 서버가 터진 것을 「잘못 보냈다」로
-     * 읽게 된다 — 실제로 익명 글쓰기를 붙이다가 이것 때문에 원인을 못 찾고 헤맸다.
+     * 전부 온다. 그런데 답은 늘 `bad_request` 한 마디라, 서버가 터진 것을 잘못 보냈다로
+     * 읽게 된다. 실제로 익명 글쓰기를 붙이다가 이것 때문에 원인을 못 찾고 헤맸다.
      * 사용자에게 나가는 답은 그대로 두되, 로그에는 무엇이 터졌는지 그대로 적는다. */
     console.error(`[karmolab-api] ${req.method} ${req.path} 에서 터졌다:`, error?.stack ?? error);
     const tooBig = error.status === 413 || error.type === 'entity.too.large';

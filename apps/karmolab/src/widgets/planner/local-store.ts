@@ -1,8 +1,8 @@
 /**
- * 이 브라우저 안의 일정·할 일 — 구글 없이도 쓴다 (TASK-KL-321)
+ * 이 브라우저 안의 일정, 할 일. 구글 없이도 쓴다 (TASK-KL-321)
  *
  * 플래너는 원래 구글 연동이 **있어야만** 아무것도 보이는 게 없었다. 그건 우리 도구가 아니라
- * 구글 화면 한 겹이라는 뜻이다. 그래서 **여기 저장소를 정본으로 하나 둔다** — 연동은 얹는 것이다.
+ * 구글 화면 한 겹이라는 뜻이다. 그래서 **여기 저장소를 정본으로 하나 둔다**. 연동은 얹는 것이다.
  *
  * 규칙 하나로 둘을 가른다: **id 앞머리.** 여기 것은 전부 `local__` 로 시작하고, 구글 것은
  * `<캘린더>__<일정>` 이다. 그래서 화면은 둘을 섞어 보여 주고, 고칠 때는 id 만 보고 어디로
@@ -15,7 +15,7 @@ import type { FcEvent, GoogleTask, KanbanColumn } from './gcal';
 
 export const LOCAL_PREFIX = 'local__';
 export const LOCAL_CALENDAR_ID = 'local';
-/** 이 브라우저 캘린더의 색 — 구글 캘린더들과 섞여도 한눈에 갈리게 */
+/** 이 브라우저 캘린더의 색. 구글 캘린더들과 섞여도 한눈에 갈리게 */
 export const LOCAL_COLOR = '#8b5cf6';
 
 const EVENTS_KEY = 'karmolab_planner_events';
@@ -53,7 +53,7 @@ export interface LocalEventInput {
     title: string;
     /** 종일이면 YYYY-MM-DD, 아니면 ISO 시각 */
     start: string;
-    /** 끝은 「다음」이다 — 구글·FullCalendar 와 같은 규약 */
+    /** 끝은 다음이다. 구글, FullCalendar 와 같은 규약 */
     end: string;
     allDay: boolean;
     color?: string;

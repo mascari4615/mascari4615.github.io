@@ -1,7 +1,7 @@
 /**
  * 홈 화면 스위치가 진짜로 켜지는지 (TASK-KL-131 ②).
  *
- * 굽는 화면은 내가 만든 칸들 위에서 돌았다. 그건 「우리 화면에서 된다」의 증거가 아니다 —
+ * 굽는 화면은 내가 만든 칸들 위에서 돌았다. 그건 우리 화면에서 된다의 증거가 아니다 . 
  * 진짜 홈에는 내가 심어 둔 칸이 하나도 없고, 무엇을 액정으로 쓸지는 화면을 재서 스스로 골라야 한다.
  * 그게 되는지는 진짜 홈을 열어 봐야만 안다.
  *
@@ -62,7 +62,7 @@ const report = await page.evaluate(async () => {
   return {
     paintedMax: Math.max(...seenPainted),
     distinctTitles: seenTitles.size,
-    // 켜져 있는 동안 표식이 붙는다 — 끄면 사라져야 한다.
+    // 켜져 있는 동안 표식이 붙는다. 끄면 사라져야 한다.
     markAfterStop: document.documentElement.getAttribute('data-badapple'),
     canvasAfterStop: Boolean(canvas())
   };
@@ -83,4 +83,4 @@ if (fail.length) {
   console.log(`RED:\n- ${fail.join('\n- ')}`);
   process.exit(1);
 }
-console.log('GREEN — 진짜 홈에서 스스로 액정을 찾아 그리고, 끄면 흔적 없이 사라진다');
+console.log('GREEN. 진짜 홈에서 스스로 액정을 찾아 그리고, 끄면 흔적 없이 사라진다');

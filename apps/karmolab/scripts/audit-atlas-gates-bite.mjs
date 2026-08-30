@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * audit-atlas-gates-bite — **자가 진짜 무는지** 확인한다 (TASK-KAR-233).
+ * audit-atlas-gates-bite. **자가 진짜 무는지** 확인한다 (TASK-KAR-233).
  *
- * 자를 다섯 세웠다. 그런데 자가 초록인 것과 자가 **일을 하는 것**은 다르다 —
+ * 자를 다섯 세웠다. 그런데 자가 초록인 것과 자가 **일을 하는 것**은 다르다 . 
  * 아무것도 안 잡는 자도 늘 초록이다. 이번 작업에서만 손으로 일곱 번 확인했다
- * (자리 섞기 · 갈래 지도 흉내 · 지도 옛것 만들기 · 비공개 파일 담기 · 옛 모델 꽂기).
+ * (자리 섞기, 갈래 지도 흉내, 지도 옛것 만들기, 비공개 파일 담기, 옛 모델 꽂기).
  * 매번 통했지만 **손일은 다음 사람이 안 한다.**
  *
  * 그래서 기계가 한다: 지도를 일부러 망가뜨려 넣고 자가 빨개지는지 본다.
@@ -21,19 +21,19 @@ import { atlasPath, isFake } from './lib/atlas-file.mjs';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ATLAS = atlasPath(HERE);
 
-/* **가짜 지도로는 이 자를 못 댄다** — 망가뜨려 볼 자들이 가짜에선 여럿 쉬어서 물었는지 알 수 없다.
+/* **가짜 지도로는 이 자를 못 댄다**. 망가뜨려 볼 자들이 가짜에선 여럿 쉬어서 물었는지 알 수 없다.
    조용히 통과하지 말고 왜 안 도는지 말한다. */
 if (isFake(ATLAS)) {
-  console.log('[atlas-gates-bite] 가짜 지도다 — 이 자는 진짜 굽기에서만 잰다 (망가뜨려 볼 자들이 가짜에선 여럿 쉬어서 물었는지 알 수 없다). 건너뜀');
+  console.log('[atlas-gates-bite] 가짜 지도다. 이 자는 진짜 굽기에서만 잰다 (망가뜨려 볼 자들이 가짜에선 여럿 쉬어서 물었는지 알 수 없다). 건너뜀');
   process.exit(0);
 }
 
 if (!fs.existsSync(ATLAS)) {
-  console.log('[gates-bite] 지도가 아직 없다 — 검사 건너뜀');
+  console.log('[gates-bite] 지도가 아직 없다. 검사 건너뜀');
   process.exit(0);
 }
 
-/** 씨앗 고정 — 매번 같은 망가뜨림이어야 결과를 견줄 수 있다. */
+/** 씨앗 고정. 매번 같은 망가뜨림이어야 결과를 견줄 수 있다. */
 let seed = 1234;
 const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
 
@@ -81,8 +81,8 @@ const BITES = [
   }, 'audit-atlas-honesty.mjs'],
 
   ['렌즈를 표에서 제일 나쁜 것으로 적는다', (a) => {
-    /* 그림은 그대로 두고 **어떤 렌즈로 훑었다고 적는지**만 바꾼다 — 자가 표에 같은 규칙을
-       다시 걸어 「더 나은 렌즈가 있는데 안 골랐다」로 잡아야 한다. 값은 표에서 파생시킨다. */
+    /* 그림은 그대로 두고 **어떤 렌즈로 훑었다고 적는지**만 바꾼다. 자가 표에 같은 규칙을
+       다시 걸어 더 나은 렌즈가 있는데 안 골랐다로 잡아야 한다. 값은 표에서 파생시킨다. */
     const sk = a.skeleton;
     if (!sk || !Array.isArray(sk.lensTable) || !sk.lensTable.length) return;
     const worst = [...sk.lensTable].sort((x, y) => (y.spread - x.spread) || (y.off - x.off) || (x.n - y.n))[0];
@@ -91,7 +91,7 @@ const BITES = [
 
   ['뼈대 손잡이를 벼랑으로 옮긴다', (a) => {
     /* **자가 쓸어 보는 그리드 밖으로** 밀어낸다(9~16). 안에 있는 값을 박아 두면
-       어느 날 그게 마침 제일 안정한 자리가 되어 망가뜨림이 무효가 된다 — 18 로 박아
+       어느 날 그게 마침 제일 안정한 자리가 되어 망가뜨림이 무효가 된다. 18 로 박아
        뒀다가 실제로 그랬다(2026-08-21, 값 박기 사고 세 번째). */
     if (a.skeleton && a.skeleton.params) a.skeleton.params.bins = 3;
   }, 'audit-atlas-skeleton-stable.mjs'],
@@ -126,7 +126,7 @@ const BITES = [
   }, 'audit-atlas-lonely.mjs'],
 
   ['얇은 글을 혼자 있는 글로 만든다', (a) => {
-    /* 재료가 없어서 혼자인 글을 뜻으로 혼자인 척 세운다 — 자가 이걸 걸러야 한다.
+    /* 재료가 없어서 혼자인 글을 뜻으로 혼자인 척 세운다. 자가 이걸 걸러야 한다.
        **문턱을 박아 두지 않는다.** 200자로 박았더니 그런 글이 하나도 없어 아무것도
        안 하는 망가뜨림이 됐다(2026-08-21). 지도에 실린 문턱을 그대로 쓴다. */
     const min = (a.lonelyStat && a.lonelyStat.minBytes) || 400;
@@ -150,14 +150,14 @@ const BITES = [
   }, 'audit-memo-atlas-fresh.mjs'],
 
   ['덩어리 이름을 지어낸 말로 바꾼다', (a) => {
-    /* 낱말 둘을 억지로 붙이던 옛 방식 흉내 — 글에 없는 말이 된다. */
+    /* 낱말 둘을 억지로 붙이던 옛 방식 흉내. 글에 없는 말이 된다. */
     for (const lv of a.levels || []) {
       lv.names = lv.names.map((n, i) => `zzq${i} ${String(n).split(' ')[0]}`);
     }
   }, 'audit-atlas-names.mjs'],
 
   ['덩어리마다 쓰는 말을 똑같이 만든다', (a) => {
-    /* 견주기가 「이쪽만 쓰는 말」이라며 아무 말이나 내놓게 만든다 — 자가 잡아야 한다.
+    /* 견주기가 이쪽만 쓰는 말이라며 아무 말이나 내놓게 만든다. 자가 잡아야 한다.
        흔해서 어느 덩어리에나 나오는 말을 쓴다. */
     for (const lv of a.levels || []) {
       if (!Array.isArray(lv.words)) continue;
@@ -168,26 +168,26 @@ const BITES = [
   }, 'audit-atlas-compare.mjs'],
 
   ['층마다 잰 값을 부풀린다', (a) => {
-    /* **박아 두지 않는다** — 지금 값에서 옮긴다. 무슨 값이든 반드시 달라진다.
+    /* **박아 두지 않는다**. 지금 값에서 옮긴다. 무슨 값이든 반드시 달라진다.
        자가 곳간 벡터로 다시 재므로, 실린 값만 부풀리면 어긋난다. */
     for (const lv of a.levels || []) if (lv.sil != null) lv.sil = lv.sil * 3 + 0.1;
   }, 'audit-atlas-cluster-real.mjs'],
 
   ['갈래를 스물로 늘린다', (a) => {
-    /* 색 여덟·모양 예닐곱이라 짝이 반드시 겹친다 — 채널 예산 자가 잡아야 한다.
+    /* 색 여덟, 모양 예닐곱이라 짝이 반드시 겹친다. 채널 예산 자가 잡아야 한다.
        이름은 지금 갈래에서 파생시킨다(박아 두지 않는다). */
     const base = a.lanes.slice();
     while (a.lanes.length < 20) a.lanes.push(`${base[a.lanes.length % base.length]}-${a.lanes.length}`);
   }, 'audit-atlas-channels.mjs'],
 
   ['조각 판단을 뒤집어 적는다', (a) => {
-    /* 막대는 그대로 두고 **판단만** 뒤집는다 — 자가 같은 규칙(낙차)을 다시 걸어 잡아야 한다. */
+    /* 막대는 그대로 두고 **판단만** 뒤집는다. 자가 같은 규칙(낙차)을 다시 걸어 잡아야 한다. */
     if (a.h0) { a.h0.clear = !a.h0.clear; a.h0.pieces = a.h0.clear ? (a.h0.long || 1) + 1 : null; }
   }, 'audit-atlas-h0.mjs'],
 
   ['자리 손잡이를 표에서 나쁜 자리로 적는다', (a) => {
-    /* 표는 그대로 두고 **골랐다고 적은 값만** 옮긴다 — 자가 같은 규칙(채움 80% 문턱 안에서
-       이웃 최고)을 다시 걸어 「더 나은 자리가 있는데 안 골랐다」로 잡아야 한다. */
+    /* 표는 그대로 두고 **골랐다고 적은 값만** 옮긴다. 자가 같은 규칙(채움 80% 문턱 안에서
+       이웃 최고)을 다시 걸어 더 나은 자리가 있는데 안 골랐다로 잡아야 한다. */
     const u2 = a.umap;
     if (!u2 || !Array.isArray(u2.table) || !u2.table.length) return;
     const worst = [...u2.table].sort((x, y) => (x.trust + x.cont) - (y.trust + y.cont))[0];
@@ -195,7 +195,7 @@ const BITES = [
   }, 'audit-atlas-umap.mjs'],
 
   ['층을 서로 가로지르게 뒤섞는다', (a) => {
-    /* 자리·이름은 그대로 두고 **촘촘한 층의 무리 번호만** 남의 것과 바꾼다 — 그러면
+    /* 자리, 이름은 그대로 두고 **촘촘한 층의 무리 번호만** 남의 것과 바꾼다. 그러면
        촘촘한 무리가 성긴 무리를 가로지른다(단조성이 깨진다). 자가 수로 잡아야 한다. */
     const li = (a.levels || []).length - 1;
     if (li < 1) return;
@@ -208,22 +208,22 @@ const BITES = [
   }, 'audit-atlas-zoom.mjs'],
 
   ['이상치에 덜 흔들리는 답을 지운다', (a) => {
-    /* 막대는 그대로고 **DTM 쪽 답만** 사라진다 — 순수 거리 하나로만 답하던 옛 상태다. */
+    /* 막대는 그대로고 **DTM 쪽 답만** 사라진다. 순수 거리 하나로만 답하던 옛 상태다. */
     if (a.h0) delete a.h0.dtm;
   }, 'audit-atlas-h0.mjs'],
 
   ['DTM 이 갈린다고 거짓으로 적는다', (a) => {
-    /* 낙차는 그대로 두고 **센 수만** 올린다 — 자가 다시 세서 잡아야 한다. */
+    /* 낙차는 그대로 두고 **센 수만** 올린다. 자가 다시 세서 잡아야 한다. */
     if (a.h0 && a.h0.dtm) a.h0.dtm.split = a.h0.dtm.rows.length;
   }, 'audit-atlas-h0.mjs'],
 
   ['붓스트랩 띠를 지운다', (a) => {
-    /* 막대는 그대로고 **문턱을 잰 결과만** 사라진다 — 문턱이 다시 지어낸 값이 된다. */
+    /* 막대는 그대로고 **문턱을 잰 결과만** 사라진다. 문턱이 다시 지어낸 값이 된다. */
     if (a.h0) delete a.h0.boot;
   }, 'audit-atlas-h0.mjs'],
 
   ['띠를 좁혀 없는 조각을 만든다', (a) => {
-    /* 띠를 아주 좁게 적으면 잡음 낙차도 「갈림」이 된다 — 자가 다시 걸어 잡아야 한다. */
+    /* 띠를 아주 좁게 적으면 잡음 낙차도 갈림이 된다. 자가 다시 걸어 잡아야 한다. */
     if (a.h0 && a.h0.boot) { a.h0.boot.c = 0.0001; a.h0.boot.band = 0.0002; }
   }, 'audit-atlas-h0.mjs'],
 
@@ -233,22 +233,22 @@ const BITES = [
   }, 'audit-atlas-umap.mjs'],
 
   ['이름 재 본 표를 지운다', (a) => {
-    /* 「다른 방식으로도 재 봤다」는 표가 사라지면 판단을 다시 세울 수가 없다. */
+    /* 다른 방식으로도 재 봤다는 표가 사라지면 판단을 다시 세울 수가 없다. */
     for (const L of a.levels || []) delete L.nameMmr;
   }, 'audit-atlas-name-fit.mjs'],
 
   ['표는 나쁜데 바꿨다고 적는다', (a) => {
-    /* 표대로면 안 바꿔야 하는데 바꿨다고 적으면 — 자를 세워 놓고 결과를 안 따른 것이다. */
+    /* 표대로면 안 바꿔야 하는데 바꿨다고 적으면. 자를 세워 놓고 결과를 안 따른 것이다. */
     for (const L of a.levels || []) if (L.nameMmr) { L.nameMmr.picked = 0.4; L.nameWay = '임베딩+MMR λ0.4'; }
   }, 'audit-atlas-name-fit.mjs'],
 
   ['안 갈리는 까닭을 지운다', (a) => {
-    /* 수는 그대로고 **까닭만** 사라진다 — 「안 갈린다」만 남아 고칠 수가 없다. */
+    /* 수는 그대로고 **까닭만** 사라진다. 안 갈린다만 남아 고칠 수가 없다. */
     for (const L of a.levels || []) delete L.why;
   }, 'audit-atlas-cluster-real.mjs'],
 
   ['안 갈리는 까닭을 엉뚱하게 적는다', (a) => {
-    /* 요인 수는 그대로 두고 **이름만** 바꾼다 — 자가 수로 다시 세워 잡아야 한다. */
+    /* 요인 수는 그대로 두고 **이름만** 바꾼다. 자가 수로 다시 세워 잡아야 한다. */
     for (const L of a.levels || []) if (L.why) L.why.why = '늘어짐';
   }, 'audit-atlas-cluster-real.mjs'],
 
@@ -258,50 +258,50 @@ const BITES = [
   }, 'audit-atlas-hub.mjs'],
 
   ['가장 나은 처방을 엉뚱하게 적는다', (a) => {
-    /* 표는 그대로 두고 **골랐다고 적은 것만** 바꾼다 — 자가 표에서 다시 세워 잡아야 한다. */
+    /* 표는 그대로 두고 **골랐다고 적은 것만** 바꾼다. 자가 표에서 다시 세워 잡아야 한다. */
     for (const r of (a.hub && a.hub.rows) || []) r.best = '공유 이웃';
   }, 'audit-atlas-hub.mjs'],
 
   ['허브 평균을 엉뚱하게 적는다', (a) => {
-    /* 이웃 자리 총합은 n×k 라 평균 N_k 는 **반드시 k** 다 — 아니면 셈이 틀렸다는 신호. */
+    /* 이웃 자리 총합은 n×k 라 평균 N_k 는 **반드시 k** 다. 아니면 셈이 틀렸다는 신호. */
     for (const r of (a.hub && a.hub.rows) || []) r.raw.mean = 1;
   }, 'audit-atlas-hub.mjs'],
 
   ['거짓 이웃을 지운다', (a) => {
-    /* 찢김은 그대로 두고 **나머지 반쪽만** 없앤다 — 어긋남을 반쪽만 재던 옛 상태다. */
+    /* 찢김은 그대로 두고 **나머지 반쪽만** 없앤다. 어긋남을 반쪽만 재던 옛 상태다. */
     delete a.warp;
     for (const d of a.docs) { delete d.fake; delete d.fakeOf; }
   }, 'audit-atlas-warp.mjs'],
 
   ['어긋남을 작게 적는다', (a) => {
-    /* 글마다의 수는 그대로 두고 **요약만** 좋게 적는다 — 자가 다시 재서 잡아야 한다. */
+    /* 글마다의 수는 그대로 두고 **요약만** 좋게 적는다. 자가 다시 재서 잡아야 한다. */
     if (a.warp) { a.warp.fakeMean = 0.05; a.warp.tearMean = 0.05; }
   }, 'audit-atlas-warp.mjs'],
 
   ['흔든 판을 지운다', (a) => {
-    /* 살아남은 비율(수)은 그대로고 **그림째 남긴 판만** 사라진다 — 흔들림을 글로만 적게 된다. */
+    /* 살아남은 비율(수)은 그대로고 **그림째 남긴 판만** 사라진다. 흔들림을 글로만 적게 된다. */
     if (a.skeleton) delete a.skeleton.hops;
   }, 'audit-atlas-hops.mjs'],
 
   ['흔든 판을 전부 같게 만든다', (a) => {
-    /* 판은 있는데 다 똑같으면 흔든 게 아니다 — 자가 「흔들기가 안 흔든다」로 잡아야 한다. */
+    /* 판은 있는데 다 똑같으면 흔든 게 아니다. 자가 흔들기가 안 흔든다로 잡아야 한다. */
     const h = a.skeleton && a.skeleton.hops;
     if (Array.isArray(h) && h.length) for (let i = 1; i < h.length; i += 1) h[i] = JSON.parse(JSON.stringify(h[0]));
   }, 'audit-atlas-hops.mjs'],
 
   ['고리를 지운다', (a) => {
-    /* 마디·이음은 그대로고 **고리만** 사라진다 — H0 만 재던 옛 상태로 돌아간다. */
+    /* 마디, 이음은 그대로고 **고리만** 사라진다. H0 만 재던 옛 상태로 돌아간다. */
     if (a.skeleton) delete a.skeleton.h1;
   }, 'audit-atlas-loops.mjs'],
 
   ['고리 대조군을 지운다', (a) => {
-    /* 「고리 9개」만 남고 「섞으면 21개」가 사라지면 그건 발견처럼 읽힌다. */
+    /* 고리 9개만 남고 섞으면 21개가 사라지면 그건 발견처럼 읽힌다. */
     const h = a.skeleton && a.skeleton.h1;
     if (h) delete h.rand;
   }, 'audit-atlas-loops.mjs'],
 
   ['고리를 없는 이음으로 잇는다', (a) => {
-    /* 고리 하나의 마디 하나를 남으로 바꾼다 — 닫힌 길이 아니게 된다. */
+    /* 고리 하나의 마디 하나를 남으로 바꾼다. 닫힌 길이 아니게 된다. */
     const h = a.skeleton && a.skeleton.h1;
     if (!h || !h.loops || !h.loops.length) return;
     const V = a.skeleton.nodes.length;
@@ -310,57 +310,57 @@ const BITES = [
   }, 'audit-atlas-loops.mjs'],
 
   ['써 보는 잣대를 지운다', (a) => {
-    /* 나눔은 그대로고 **써 본 결과만** 사라진다 — 「나눔이 좋은가」만 남는다. */
+    /* 나눔은 그대로고 **써 본 결과만** 사라진다. 나눔이 좋은가만 남는다. */
     delete a.prox;
   }, 'audit-atlas-prox.mjs'],
 
   ['써 보는 잣대 대조군을 성한 값으로 적는다', (a) => {
-    /* 배정을 섞어도 잘 가려낸 척 — 그러면 「찍기와 못 가른다」가 된다. */
+    /* 배정을 섞어도 잘 가려낸 척. 그러면 찍기와 못 가른다가 된다. */
     for (const r of (a.prox && a.prox.rows) || []) r.randAuc = r.auc;
   }, 'audit-atlas-prox.mjs'],
 
   ['가장 나쁜 무리를 평균보다 좋게 적는다', (a) => {
-    /* 앞뒤가 안 맞는 수 — 가장 나쁜 것이 평균보다 좋을 수는 없다. */
+    /* 앞뒤가 안 맞는 수. 가장 나쁜 것이 평균보다 좋을 수는 없다. */
     for (const r of (a.prox && a.prox.rows) || []) r.worst = Math.min(1, r.auc + 0.05);
   }, 'audit-atlas-prox.mjs'],
 
   ['바깥 잣대를 지운다', (a) => {
-    /* 나눔·라벨은 그대로고 **바깥에 물어본 결과만** 사라진다 — 자가 전부 안쪽이 된다. */
+    /* 나눔, 라벨은 그대로고 **바깥에 물어본 결과만** 사라진다. 자가 전부 안쪽이 된다. */
     delete a.external;
   }, 'audit-atlas-external.mjs'],
 
   ['바깥 잣대를 좋게 적는다', (a) => {
-    /* 글의 층·갈래는 그대로 두고 **적어 둔 수만** 올린다 — 자가 다시 재서 잡아야 한다. */
+    /* 글의 층, 갈래는 그대로 두고 **적어 둔 수만** 올린다. 자가 다시 재서 잡아야 한다. */
     for (const r of (a.external && a.external.rows) || []) { r.ari = 0.95; r.harmonic = 0.95; r.nmi = 0.95; }
   }, 'audit-atlas-external.mjs'],
 
   ['바깥 잣대 대조군을 성한 값으로 적는다', (a) => {
-    /* 라벨을 섞어도 잘 맞은 척 — 그러면 「우연과 못 가른다」가 된다. */
+    /* 라벨을 섞어도 잘 맞은 척. 그러면 우연과 못 가른다가 된다. */
     for (const r of (a.external && a.external.rows) || []) { r.randAri = r.ari; }
   }, 'audit-atlas-external.mjs'],
 
   ['침입자 시험을 지운다', (a) => {
-    /* 이름·낱말은 그대로고 **읽히는지 잰 것만** 사라진다 — 「나눔이 좋은가」만 남는다. */
+    /* 이름, 낱말은 그대로고 **읽히는지 잰 것만** 사라진다. 나눔이 좋은가만 남는다. */
     delete a.intrusion;
   }, 'audit-atlas-intrusion.mjs'],
 
   ['침입자 맞춘 비율을 부풀린다', (a) => {
-    /* 판 수로 나올 수 없는 수를 적는다 — 자가 격자로 잡아야 한다. */
+    /* 판 수로 나올 수 없는 수를 적는다. 자가 격자로 잡아야 한다. */
     if (a.intrusion) a.intrusion.mp = 0.9137;
   }, 'audit-atlas-intrusion.mjs'],
 
   ['침입자 대조군을 성한 값으로 적는다', (a) => {
-    /* 아무 무리에 대고 물어도 잘 맞힌 척 — 그러면 「무리와 상관없이 풀린다」가 된다. */
+    /* 아무 무리에 대고 물어도 잘 맞힌 척. 그러면 무리와 상관없이 풀린다가 된다. */
     if (a.intrusion) a.intrusion.randMp = a.intrusion.mp;
   }, 'audit-atlas-intrusion.mjs'],
 
   ['눈금 사다리를 지운다', (a) => {
-    /* 마디·이음은 그대로고 **여러 눈금에서 본 답만** 사라진다 — 눈금 하나로 그린 한 장면이 된다. */
+    /* 마디, 이음은 그대로고 **여러 눈금에서 본 답만** 사라진다. 눈금 하나로 그린 한 장면이 된다. */
     if (a.skeleton) delete a.skeleton.tower;
   }, 'audit-atlas-mapper-tower.mjs'],
 
   ['사다리 막대를 조각 수와 어긋나게 적는다', (a) => {
-    /* 가장 성긴 눈금까지 산 막대를 하나 지운다 — 자가 「거기 조각이 몇 개인데 막대는 몇 개냐」로
+    /* 가장 성긴 눈금까지 산 막대를 하나 지운다. 자가 거기 조각이 몇 개인데 막대는 몇 개냐로
        잡아야 한다. 조각 수 표는 그대로 둔다. */
     const tw = a.skeleton && a.skeleton.tower;
     if (!tw || !tw.bars || !tw.counts) return;
@@ -370,36 +370,36 @@ const BITES = [
   }, 'audit-atlas-mapper-tower.mjs'],
 
   ['자리를 다시 잡은 걸 숨긴다', (a) => {
-    /* 자리는 옮겨 놓고 **옮겼다는 사실만** 지운다 — 화면이 입을 다물게 된다.
+    /* 자리는 옮겨 놓고 **옮겼다는 사실만** 지운다. 화면이 입을 다물게 된다.
        그러면 사람이 뼈대와 뜻자리를 같은 지도로 읽는다. */
     const d = a.skeleton && a.skeleton.draw;
     if (d && d.anchored) d.anchored.used = false;
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
   ['stress 가 늘어난 판이 있었다고 적는다', (a) => {
-    /* 단조 수렴이 깨졌다고 적으면 자가 잡아야 한다 — 셈이 틀렸다는 신호다. */
+    /* 단조 수렴이 깨졌다고 적으면 자가 잡아야 한다. 셈이 틀렸다는 신호다. */
     const d = a.skeleton && a.skeleton.draw;
     if (d && d.anchored && d.anchored.used) d.anchored.rose = 3;
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
   ['그림 자 셋을 지운다', (a) => {
-    /* 마디·이음은 그대로고 **잰 값만** 사라진다 — 얽힘 하나로 그림을 판정하던 옛 상태다. */
+    /* 마디, 이음은 그대로고 **잰 값만** 사라진다. 얽힘 하나로 그림을 판정하던 옛 상태다. */
     if (a.skeleton) delete a.skeleton.draw;
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
   ['그린 거리 어긋남을 좋게 적는다', (a) => {
-    /* 그림은 안 건드리고 **적어 둔 수만** 낮춘다 — 자가 따로 셈해 잡아야 한다. */
+    /* 그림은 안 건드리고 **적어 둔 수만** 낮춘다. 자가 따로 셈해 잡아야 한다. */
     if (a.skeleton && a.skeleton.draw) a.skeleton.draw.stress = 0.01;
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
-  ['렌즈 표에서 stress·이웃 지킴을 뺀다', (a) => {
-    /* 얽힘만 남기면 「얽힘 하나로 렌즈를 골랐다」가 된다 — 자가 그걸 잡아야 한다. */
+  ['렌즈 표에서 stress, 이웃 지킴을 뺀다', (a) => {
+    /* 얽힘만 남기면 얽힘 하나로 렌즈를 골랐다가 된다. 자가 그걸 잡아야 한다. */
     for (const t of (a.skeleton && a.skeleton.lensTable) || []) { delete t.stress; delete t.np; delete t.rank; }
   }, 'audit-atlas-skeleton-drawing.mjs'],
 
   ['마디가 다 살아남은 척한다', (a) => {
-    /* 흔들어 본 결과만 지운다 — 마디·이음은 그대로다. 자가 **다시 재서** 잡아야 한다
-       (「스무 판 다 버텼다」는 우리 지도에서 43개 중 4개뿐이다). */
+    /* 흔들어 본 결과만 지운다. 마디, 이음은 그대로다. 자가 **다시 재서** 잡아야 한다
+       (스무 판 다 버텼다는 우리 지도에서 43개 중 4개뿐이다). */
     const cf = a.skeleton && a.skeleton.confidence;
     if (!cf) return;
     cf.survival = cf.survival.map(() => 1);
@@ -408,21 +408,21 @@ const BITES = [
   }, 'audit-atlas-skeleton-confidence.mjs'],
 
   ['바탕값을 지운다', (a) => {
-    /* 「마구 섞은 지도도 이만큼 남는다」를 빼면 살아남은 비율은 단단한 뼈대로 읽힌다.
+    /* 마구 섞은 지도도 이만큼 남는다를 빼면 살아남은 비율은 단단한 뼈대로 읽힌다.
        숫자를 고치는 게 아니라 **말을 안 하게** 만드는 망가뜨림이다. */
     const cf = a.skeleton && a.skeleton.confidence;
     if (cf) delete cf.baseline;
   }, 'audit-atlas-skeleton-confidence.mjs'],
 
   ['같은 마디 문턱을 0.5 로 박는다', (a) => {
-    /* 곡선은 그대로 두고 **골랐다고 적은 문턱만** 옮긴다 — 자가 같은 규칙(차가 가장 큰 자리)을
-       다시 걸어 「박아 뒀다」로 잡아야 한다. */
+    /* 곡선은 그대로 두고 **골랐다고 적은 문턱만** 옮긴다. 자가 같은 규칙(차가 가장 큰 자리)을
+       다시 걸어 박아 뒀다로 잡아야 한다. */
     const cf = a.skeleton && a.skeleton.confidence;
     if (cf) cf.same = 0.5;
   }, 'audit-atlas-skeleton-confidence.mjs'],
 
   ['생일을 한 달로 몰아 준다', (a) => {
-    /* 모든 글이 같은 달에 태어난 척하면 궤적은 점 하나가 된다 — 「이을 달이 둘도 안 된다」로
+    /* 모든 글이 같은 달에 태어난 척하면 궤적은 점 하나가 된다. 이을 달이 둘도 안 된다로
        걸려야 한다. 달 이름은 지도에 있는 것에서 가져온다(박아 두지 않는다). */
     const one = (a.months && a.months[a.months.length - 1]) || null;
     if (!one) return;
@@ -431,8 +431,8 @@ const BITES = [
   }, 'audit-atlas-trail.mjs'],
 
   ['둘레가 통짜가 되게 이웃을 부풀린다', (a) => {
-    /* 닮은 글을 여덟이 아니라 예순으로 만들면 두 칸 만에 지도의 태반이 잡힌다 —
-       그때 「둘레」는 이름만 둘레다. 수는 지금 값에서 키운다(박아 두지 않는다). */
+    /* 닮은 글을 여덟이 아니라 예순으로 만들면 두 칸 만에 지도의 태반이 잡힌다 . 
+       그때 둘레는 이름만 둘레다. 수는 지금 값에서 키운다(박아 두지 않는다). */
     const wide = Math.min(60, Math.max(20, (a.docs[0]?.near?.length || 8) * 8));
     const n = a.docs.length;
     a.docs.forEach((d, i) => { d.near = Array.from({ length: wide }, (_, k) => (i * 7 + k * 11) % n); });
@@ -441,15 +441,15 @@ const BITES = [
   ['겹침 요약을 지운다', (a) => { delete a.twins; }, 'audit-atlas-twins.mjs'],
 
   ['겹침 문턱을 곡선 밖으로 옮긴다', (a) => {
-    /* 곡선은 그대로 두고 문턱만 옮긴다 — 자가 같은 규칙을 다시 걸어 잡아야 한다.
-       값은 곡선의 맨 위(제일 빡빡한 자리)로 — 지금 값에서 파생시켜 박아 두지 않는다. */
+    /* 곡선은 그대로 두고 문턱만 옮긴다. 자가 같은 규칙을 다시 걸어 잡아야 한다.
+       값은 곡선의 맨 위(제일 빡빡한 자리)로. 지금 값에서 파생시켜 박아 두지 않는다. */
     if (a.twins && Array.isArray(a.twins.curve) && a.twins.curve.length) a.twins.at = a.twins.curve[0].t;
   }, 'audit-atlas-twins.mjs'],
 
   ['이름 적합도를 지운다', (a) => { for (const lv of a.levels || []) delete lv.fit; }, 'audit-atlas-name-fit.mjs'],
 
   ['이름 적합도를 뒤집어 적는다', (a) => {
-    /* 값은 그대로 두고 **제 무리/남의 무리만 맞바꾼다** — 자가 다시 재면 판정이 안 맞는다. */
+    /* 값은 그대로 두고 **제 무리/남의 무리만 맞바꾼다**. 자가 다시 재면 판정이 안 맞는다. */
     for (const lv of a.levels || []) {
       for (const f of (lv.fit && lv.fit.names) || []) {
         if (!f || f.own == null || f.other == null) continue;
@@ -461,7 +461,7 @@ const BITES = [
   ['뭉친 자리를 통째로 지운다', (a) => { delete a.dense; }, 'audit-atlas-dense.mjs'],
 
   ['허허벌판 수를 거짓으로 적는다', (a) => {
-    /* 화면은 이 수를 그대로 읽으므로 화면만 봐선 안 걸린다 — 붙은 글 수와 **합**이
+    /* 화면은 이 수를 그대로 읽으므로 화면만 봐선 안 걸린다. 붙은 글 수와 **합**이
        안 맞는 것으로 걸려야 한다. 값은 지금 값에서 옮긴다(박아 두지 않는다). */
     if (a.dense) a.dense.noise += 777;
   }, 'audit-atlas-dense.mjs'],
@@ -475,38 +475,38 @@ const BITES = [
   }, 'audit-atlas-dense.mjs'],
 
   ['밀도로 잰 값을 부풀린다', (a) => {
-    /* 지금 값에서 옮긴다 — 자가 곳간 벡터로 전수로 다시 재므로 반드시 어긋난다. */
+    /* 지금 값에서 옮긴다. 자가 곳간 벡터로 전수로 다시 재므로 반드시 어긋난다. */
     for (const lv of a.levels || []) if (lv.dbcv != null) lv.dbcv = lv.dbcv + 1.1;
   }, 'audit-atlas-dbcv.mjs'],
 
   ['밀도로 잰 값을 지운다', (a) => {
-    /* 자 하나만 남으면 「무리가 없다」와 「이 자로는 못 잰다」를 못 가른다. */
+    /* 자 하나만 남으면 무리가 없다와 이 자로는 못 잰다를 못 가른다. */
     for (const lv of a.levels || []) delete lv.dbcv;
   }, 'audit-atlas-dbcv.mjs'],
 
   ['어느 모델이 그렸는지를 지운다', (a) => {
-    /* 이게 없으면 재는 쪽이 곳간에 같이 사는 **옛 모델 벡터**를 집어 든다 —
-       실제로 그래서 「안 맞는다」고 했다(2026-08-21). 지도는 자기를 그린 손을 적어야 한다. */
+    /* 이게 없으면 재는 쪽이 곳간에 같이 사는 **옛 모델 벡터**를 집어 든다 . 
+       실제로 그래서 안 맞는다고 했다(2026-08-21). 지도는 자기를 그린 손을 적어야 한다. */
     delete a.model;
   }, 'audit-atlas-cluster-real.mjs'],
 
   ['고른 근거를 반대로 적는다', (a) => {
-    /* 곡선은 그대로 두고 **판단만** 뒤집는다 — 자가 곡선에 같은 규칙을 다시 걸어
-       「봉우리가 안 뚜렷한데 뚜렷하다고 적혀 있다」를 잡아야 한다. */
+    /* 곡선은 그대로 두고 **판단만** 뒤집는다. 자가 곡선에 같은 규칙을 다시 걸어
+       봉우리가 안 뚜렷한데 뚜렷하다고 적혀 있다를 잡아야 한다. */
     if (a.coarse) a.coarse.clear = !a.coarse.clear;
   }, 'audit-atlas-cluster-real.mjs'],
 
   /* ⚠ draw-budget 은 여기서 안 문다. 그 자는 **저장된 주장이 없는 순수 실측형**(벽시계 p90)이라
-     지도를 비틀어 거짓을 심을 자리가 없고, 「점을 늘리면 넘친다」는 기계 성능 명제라 빠른
-     기계에선 8000점도 예산 안 = 초록이 옳은 답이다 (2026-08-23 데스크톱 실측 — 5배·8000점
-     둘 다 안 넘쳤다). 실측형 자는 제 측정이 곧 검사다 — 조작 시험의 대상이 아니다. */
+     지도를 비틀어 거짓을 심을 자리가 없고, 점을 늘리면 넘친다는 기계 성능 명제라 빠른
+     기계에선 8000점도 예산 안 = 초록이 옳은 답이다 (2026-08-23 데스크톱 실측. 5배, 8000점
+     둘 다 안 넘쳤다). 실측형 자는 제 측정이 곧 검사다. 조작 시험의 대상이 아니다. */
 
   ['잣대 중복 표를 지운다', (a) => {
     delete a.zoo;
   }, 'audit-atlas-zoo.mjs'],
 
   ['잣대가 다 따로 논다고 우긴다', (a) => {
-    /* ★ 이 자의 심장 — 겹치는 쌍을 지우고 「전부 독립」이라 적으면 같은 말을 여러 번 하며
+    /* ★ 이 자의 심장. 겹치는 쌍을 지우고 전부 독립이라 적으면 같은 말을 여러 번 하며
        여러 잣대를 댄 척하게 된다. 행렬은 그대로라 표와 행렬이 어긋난다. */
     if (a.zoo) { a.zoo.dup = []; a.zoo.eff = a.zoo.real; }
   }, 'audit-atlas-zoo.mjs'],
@@ -520,7 +520,7 @@ const BITES = [
   }, 'audit-atlas-taskdoi.mjs'],
 
   ['지도가 보탠다고 우긴다', (a) => {
-    /* ★ 이 자의 심장 — 지도가 안 보탠다는 결론을 뒤집으면 지도가 한 일이 없는데 있는 척한다. */
+    /* ★ 이 자의 심장. 지도가 안 보탠다는 결론을 뒤집으면 지도가 한 일이 없는데 있는 척한다. */
     if (a.taskDoi) a.taskDoi.mapAdds = !a.taskDoi.mapAdds;
   }, 'audit-atlas-taskdoi.mjs'],
 
@@ -533,9 +533,9 @@ const BITES = [
   }, 'audit-atlas-revisit.mjs'],
 
   ['같은 때 신호를 예측인 척한다', (a) => {
-    /* ★ 이 자의 심장 — 이웃이 같은 시기에 움직인 걸로 80% 를 맞히는 건 예측이 아니라 번짐이다.
-       그걸 앞 때 성적 자리에 놓으면 「일깨움에 쓸 만하다」로 뒤집힌다.
-       ⚠ 판정·화면은 상위 K[0] 를 읽는다 — 거기서 두 값이 같은 판(749편 판에서 0%↔0%)이면
+    /* ★ 이 자의 심장. 이웃이 같은 시기에 움직인 걸로 80% 를 맞히는 건 예측이 아니라 번짐이다.
+       그걸 앞 때 성적 자리에 놓으면 일깨움에 쓸 만하다로 뒤집힌다.
+       ⚠ 판정, 화면은 상위 K[0] 를 읽는다. 거기서 두 값이 같은 판(749편 판에서 0%↔0%)이면
        바꿔치기가 아무 데도 안 보이므로 물 것이 없다. 그땐 안 바꿔 no-op 판별에 걸리게 둔다. */
     if (a.revisit && a.revisit.strict.hits[0].rate !== a.revisit.ours.hits[0].rate) a.revisit.strict = a.revisit.ours;
   }, 'audit-atlas-revisit.mjs'],
@@ -545,7 +545,7 @@ const BITES = [
   }, 'audit-atlas-revisit.mjs'],
 
   ['확률이 잘 맞는 척한다', (a) => {
-    /* ★ 「우리 확률이 늘 같은 확률보다 낫다」고 적어 두면, 그럴듯한 수를 화면에 붙이게 된다.
+    /* ★ 우리 확률이 늘 같은 확률보다 낫다고 적어 두면, 그럴듯한 수를 화면에 붙이게 된다.
        설득력은 오르고 효과는 안 오르는 바로 그 자리다. */
     if (a.suggest && a.suggest.calib) a.suggest.calib.better = !a.suggest.calib.better;
   }, 'audit-atlas-suggest.mjs'],
@@ -559,7 +559,7 @@ const BITES = [
   }, 'audit-atlas-suggest.mjs'],
 
   ['후보 수를 숨긴다', (a) => {
-    /* ★ 이 자의 심장 — 후보가 186만 쌍인 걸 안 적으면 「찾았다」가 발견처럼 읽힌다. */
+    /* ★ 이 자의 심장. 후보가 186만 쌍인 걸 안 적으면 찾았다가 발견처럼 읽힌다. */
     if (a.suggest) delete a.suggest.pairsAll;
   }, 'audit-atlas-suggest.mjs'],
 
@@ -572,7 +572,7 @@ const BITES = [
   }, 'audit-atlas-novelty.mjs'],
 
   ['달을 섞어도 뭉치는 척한다', (a) => {
-    /* ★ 이 자의 심장 — 대조군이 1 에서 벗어나면 이웃이 아니라 딴 것을 재고 있는 것이다. */
+    /* ★ 이 자의 심장. 대조군이 1 에서 벗어나면 이웃이 아니라 딴 것을 재고 있는 것이다. */
     if (a.novelty) a.novelty.shuffled.lift = a.novelty.real.lift;
   }, 'audit-atlas-novelty.mjs'],
 
@@ -586,7 +586,7 @@ const BITES = [
   }, 'audit-atlas-share.mjs'],
 
   ['값어치 쪽 우연 수준을 지운다', (a) => {
-    /* ★ 이 자의 심장 — 굵게 뭉갤수록 「닮은 글이 곁에」는 저절로 오른다.
+    /* ★ 이 자의 심장. 굵게 뭉갤수록 닮은 글이 곁에는 저절로 오른다.
        우연을 지우면 그 저절로가 이득처럼 읽힌다. */
     if (a.share) for (const r of a.share.rows) delete r.randNear;
   }, 'audit-atlas-share.mjs'],
@@ -596,17 +596,17 @@ const BITES = [
   }, 'audit-atlas-share.mjs'],
 
   ['공개 위험을 지운다', (a) => {
-    /* 지우면 「가리면 안전하다」는 착각이 그대로 남는다. */
+    /* 지우면 가리면 안전하다는 착각이 그대로 남는다. */
     delete a.leak;
   }, 'audit-atlas-leak.mjs'],
 
   ['이웃을 섞어도 잘 맞히는 척한다', (a) => {
-    /* ★ 이 자의 심장 — 대조군이 진짜만큼 맞히면 이웃을 안 보고 있다는 뜻이다. */
+    /* ★ 이 자의 심장. 대조군이 진짜만큼 맞히면 이웃을 안 보고 있다는 뜻이다. */
     if (a.leak) a.leak.shuffledRate = a.leak.rate;
   }, 'audit-atlas-leak.mjs'],
 
   ['좌표만 줬을 때를 지운다', (a) => {
-    /* 이게 없으면 「이웃 목록만 빼면 된다」를 반증 못 한다. */
+    /* 이게 없으면 이웃 목록만 빼면 된다를 반증 못 한다. */
     if (a.leak) delete a.leak.xyRate;
   }, 'audit-atlas-leak.mjs'],
 
@@ -615,33 +615,33 @@ const BITES = [
   }, 'audit-atlas-seriation.mjs'],
 
   ['섞은 자료에서도 얻는다는 걸 숨긴다', (a) => {
-    /* ★ 이게 이 자의 심장 — 정렬은 아무 자료에서도 얼마쯤 얻는다(우리 14%).
+    /* ★ 이게 이 자의 심장. 정렬은 아무 자료에서도 얼마쯤 얻는다(우리 14%).
        그걸 0 으로 적으면 35% 가 전부 자료의 것처럼 읽힌다. */
     if (a.seriation) a.seriation.shufGain = 0;
   }, 'audit-atlas-seriation.mjs'],
 
   ['마구 정렬이 이미 좋다고 적는다', (a) => {
-    /* 아무 순서나 놓으면 어긋남이 0.5 여야 한다 — 아니면 셈이 틀린 것이다. */
+    /* 아무 순서나 놓으면 어긋남이 0.5 여야 한다. 아니면 셈이 틀린 것이다. */
     if (a.seriation) { const r = a.seriation.ours.find((x) => x.way === 'random'); if (r) r.ar = 0.1; }
   }, 'audit-atlas-seriation.mjs'],
 
   ['나무 같은 정도를 지운다', (a) => {
-    /* 지우면 「굽은 2차원으로 도망갈 수 있나」를 다시 안 묻게 된다. */
+    /* 지우면 굽은 2차원으로 도망갈 수 있나를 다시 안 묻게 된다. */
     delete a.delta;
   }, 'audit-atlas-delta.mjs'],
 
   ['같은 축 수 잡음 기준선을 뺀다', (a) => {
-    /* ★ 이게 이 자의 심장 — 거리 집중 때문에 δ 가 작아지는 것을 못 가르게 된다. */
+    /* ★ 이게 이 자의 심장. 거리 집중 때문에 δ 가 작아지는 것을 못 가르게 된다. */
     if (a.delta) { a.delta.calibration = a.delta.calibration.filter((c) => !c.matched); }
   }, 'audit-atlas-delta.mjs'],
 
   ['나무 눈금을 망가뜨린다', (a) => {
-    /* 나무는 정의상 0-쌍곡이다 — 0 이 아니면 셈이 틀린 것이다. */
+    /* 나무는 정의상 0-쌍곡이다. 0 이 아니면 셈이 틀린 것이다. */
     if (a.delta) { const t = a.delta.calibration.find((c) => c.shape === '나무'); if (t) t.relMean = 0.5; }
   }, 'audit-atlas-delta.mjs'],
 
   ['고유차원을 지운다', (a) => {
-    /* 지우면 「2차원에 담기나」를 다시 안 묻게 된다 — 다른 결론 넷의 원인이 사라진다. */
+    /* 지우면 2차원에 담기나를 다시 안 묻게 된다. 다른 결론 넷의 원인이 사라진다. */
     delete a.idim;
   }, 'audit-atlas-idim.mjs'],
 
@@ -656,7 +656,7 @@ const BITES = [
   }, 'audit-atlas-idim.mjs'],
 
   ['초기값 배관이 안 도는 척한다', (a) => {
-    /* ★ 이게 이 자의 심장이다 — 초기 자리를 넣어도 판이 안 바뀌면 사다리 표는 전부 헛것.
+    /* ★ 이게 이 자의 심장이다. 초기 자리를 넣어도 판이 안 바뀌면 사다리 표는 전부 헛것.
        `u.embedding` 재대입이 조용히 무시되던 그 자리를 흉내 낸다. */
     if (a.initLadder && a.initLadder.plumbing) a.initLadder.plumbing.differs = false;
   }, 'audit-atlas-init.mjs'],
@@ -666,28 +666,28 @@ const BITES = [
   }, 'audit-atlas-init.mjs'],
 
   ['초기값 사다리를 한 조건으로 줄인다', (a) => {
-    /* 한 조건만 재고 「이게 낫다」 하면 사다리가 아니다. */
+    /* 한 조건만 재고 이게 낫다 하면 사다리가 아니다. */
     if (a.initLadder) a.initLadder.table = a.initLadder.table.slice(0, 1);
   }, 'audit-atlas-init.mjs'],
 
   ['씨앗 떨림을 지운다', (a) => {
-    /* 지우면 자 전부가 도로 씨앗 하나 위 점추정이 된다 — 그걸 아무도 모르면 안 된다. */
+    /* 지우면 자 전부가 도로 씨앗 하나 위 점추정이 된다. 그걸 아무도 모르면 안 된다. */
     delete a.wobble;
   }, 'audit-atlas-wobble.mjs'],
 
   ['떨림을 좋게 적는다', (a) => {
-    /* 판마다 흔들리는 건 그대로고 **요약만** 좋게 적는다 — 이웃 유지율을 우연 수준으로
-       떨어뜨려도 자가 「이웃마저 난수다」로 잡아야 한다. */
+    /* 판마다 흔들리는 건 그대로고 **요약만** 좋게 적는다. 이웃 유지율을 우연 수준으로
+       떨어뜨려도 자가 이웃마저 난수다로 잡아야 한다. */
     if (a.wobble) { a.wobble.ratio = 0.01; a.wobble.keep = a.wobble.nullKeep; }
   }, 'audit-atlas-wobble.mjs'],
 
   ['판을 늘려도 안 모이게 만든다', (a) => {
-    /* 합의 지도가 안 모이면 「가운데 자리」라는 게 없는 것이다. */
+    /* 합의 지도가 안 모이면 가운데 자리라는 게 없는 것이다. */
     if (a.wobble && a.wobble.at) a.wobble.at = a.wobble.at.map((c) => ({ ...c, gap: 0.2 }));
   }, 'audit-atlas-wobble.mjs'],
 
   ['졌는데 이겼다고 적는다 (관심도)', (a) => {
-    /* 수는 그대로 두고 **판정만** 뒤집는다 — 「재 봤고 졌다」를 「쓴다」로 바꾸면
+    /* 수는 그대로 두고 **판정만** 뒤집는다. 재 봤고 졌다를 쓴다로 바꾸면
        다음 사람이 표를 안 보고 그 말만 믿는다. 자가 수와 대조해서 잡아야 한다. */
     if (a.doi) { a.doi.used = !a.doi.used; }
   }, 'audit-atlas-doi.mjs'],
@@ -698,19 +698,19 @@ const BITES = [
   }, 'audit-atlas-doi.mjs'],
 
   ['갈린다는 p 값만 지운다', (a) => {
-    /* 문턱을 손으로 고른 자(실루엣·DBCV)는 그대로 두고 **p 값만** 없앤다 —
-       「구획이지 무리가 아니다」의 근거가 도로 문턱뿐인 상태로 돌아간다. */
+    /* 문턱을 손으로 고른 자(실루엣, DBCV)는 그대로 두고 **p 값만** 없앤다 . 
+       구획이지 무리가 아니다의 근거가 도로 문턱뿐인 상태로 돌아간다. */
     for (const l of a.levels || []) delete l.dip;
   }, 'audit-atlas-dip.mjs'],
 
   ['대조군이 진짜 방향만큼 갈린다고 적는다', (a) => {
-    /* 값은 그대로고 **아무 방향 대조군만** 부풀린다 — 그러면 「갈린다」는 방향 고르기의
+    /* 값은 그대로고 **아무 방향 대조군만** 부풀린다. 그러면 갈린다는 방향 고르기의
        산물이라는 뜻이다. 자가 그걸 말해야 한다. */
     for (const l of a.levels || []) if (l.dip) l.dip.randSplit = l.dip.split;
   }, 'audit-atlas-dip.mjs'],
 
   ['점을 고르게 흩는다 (지형을 평평하게)', (a) => {
-    /* 자리를 **섞는 것**으로는 지형이 안 흔들린다 — 점 무더기 모양이 그대로라서다.
+    /* 자리를 **섞는 것**으로는 지형이 안 흔들린다. 점 무더기 모양이 그대로라서다.
        그래서 아예 **고르게 흩는다**: 봉우리가 사라지고 높낮이가 0 에 붙어야 한다.
        등고선이 자료가 아니라 알고리즘의 무늬라면 이래도 멀쩡히 그려질 것이다. */
     for (const d of a.docs) if (d.xy) d.xy = [rnd(), rnd()];
@@ -720,18 +720,18 @@ const BITES = [
 const original = fs.readFileSync(ATLAS, 'utf8');
 const results = [];
 
-/* **살림 사본.** 이 검사는 지도를 일부러 망가뜨린다 — 도중에 죽으면(사람이 Ctrl-C 를
+/* **살림 사본.** 이 검사는 지도를 일부러 망가뜨린다. 도중에 죽으면(사람이 Ctrl-C 를
    누르거나 시간 제한에 잘리면) 망가진 채로 남는다. finally 는 그럴 때 안 돈다.
    그래서 망가뜨리기 전에 사본을 남기고, 다음 판이 시작할 때 사본이 있으면 먼저 되돌린다.
-   실제로 한 번 잘렸고, 그 다음 판이 「성한 지도에서도 빨갛다」로 헛돌았다(2026-08-21). */
+   실제로 한 번 잘렸고, 그 다음 판이 성한 지도에서도 빨갛다로 헛돌았다(2026-08-21). */
 const SAFE = path.join(HERE, '..', 'data', '.memo-atlas-bite-backup.json');
 if (fs.existsSync(SAFE)) {
-  console.log('[gates-bite] 지난 판이 도중에 죽었다 — 사본으로 되돌린다');
+  console.log('[gates-bite] 지난 판이 도중에 죽었다. 사본으로 되돌린다');
   fs.copyFileSync(SAFE, ATLAS);
   fs.unlinkSync(SAFE);
 }
 
-/* exit 0 = 초록 · 2 = CANNOT-RUN(자료 미달 — 빨강 아님) · 그 외 = 빨강. */
+/* exit 0 = 초록, 2 = CANNOT-RUN(자료 미달. 빨강 아님), 그 외 = 빨강. */
 function runGate(file, atlasFile = null) {
   const env = atlasFile ? { ...process.env, ATLAS_FILE: atlasFile } : process.env;
   const r = spawnSync(process.execPath, [path.join(HERE, file)], { encoding: 'utf8', env });
@@ -742,7 +742,7 @@ function runGate(file, atlasFile = null) {
  * **판마다 제 사본을 보게 하고 넷씩 동시에 돌린다.**
  *
  * 예전엔 진짜 지도 파일 하나를 망가뜨렸다 되돌렸다 하며 **한 판씩** 돌았다. 자가 서른여섯이
- * 되자 그 한 판이 20분을 넘겼고, 그동안 다른 일을 못 했다(같은 파일을 쓰니 겹쳐 돌릴 수도 없다 —
+ * 되자 그 한 판이 20분을 넘겼고, 그동안 다른 일을 못 했다(같은 파일을 쓰니 겹쳐 돌릴 수도 없다 . 
  * 겹쳐 돌렸다가 서로의 망가뜨림을 성한 지도로 읽는 사고도 냈다).
  * 이제 사본을 만들어 `ATLAS_FILE` 로 가리키게 하므로, 진짜 지도는 **손도 안 대고** 넷씩 동시에 돈다.
  */
@@ -765,31 +765,31 @@ function restore() {
   if (fs.existsSync(SAFE)) fs.unlinkSync(SAFE);
 }
 
-/* 먼저 성한 상태에서 초록인지 본다 — 원래 빨간 자는 무는 게 아니라 고장이다.
+/* 먼저 성한 상태에서 초록인지 본다. 원래 빨간 자는 무는 게 아니라 고장이다.
    **망가뜨리기 전에** 끝낸다. 여기서 죽어도 지도는 손 안 댄 상태다. */
 const gates = [...new Set(BITES.map(([, , g]) => g))];
 const pre = await runMany(gates.map((gate) => async () => [gate, runGate(gate)]));
 const broken = pre.filter(([, st]) => st !== 0 && st !== 2);
 if (broken.length) {
-  for (const [gate] of broken) console.log(`[gates-bite] ${gate} 가 성한 지도에서도 빨갛다 — 무는 게 아니라 고장이다`);
+  for (const [gate] of broken) console.log(`[gates-bite] ${gate} 가 성한 지도에서도 빨갛다. 무는 게 아니라 고장이다`);
   process.exit(1);
 }
 /* CANNOT-RUN 인 자는 판정부에 못 들어가므로 그 자를 무는 시험도 이 판에선 못 돈다.
-   조용히 줄이지 않는다 — 몇 개를 왜 못 돌리는지 적는다. 자료가 다시 서면 저절로 돌아온다. */
+   조용히 줄이지 않는다. 몇 개를 왜 못 돌리는지 적는다. 자료가 다시 서면 저절로 돌아온다. */
 const cannotRun = new Set(pre.filter(([, st]) => st === 2).map(([g]) => g));
 const RUNNABLE = BITES.filter(([, , g]) => !cannotRun.has(g));
 for (const g of cannotRun) {
   const n = BITES.filter(([, , gg]) => gg === g).length;
-  console.log(`[gates-bite] ${g} 는 지금 CANNOT-RUN (자료 미달) — 무는 시험 ${n}개를 이 판에선 못 돌린다`);
+  console.log(`[gates-bite] ${g} 는 지금 CANNOT-RUN (자료 미달). 무는 시험 ${n}개를 이 판에선 못 돌린다`);
 }
 
-/* 사본을 담을 자리. 진짜 지도는 이제 **안 건드린다** — 그래서 살림 사본도 필요 없다. */
+/* 사본을 담을 자리. 진짜 지도는 이제 **안 건드린다**. 그래서 살림 사본도 필요 없다. */
 const TMP = path.join(HERE, '..', 'data', '.bite');
 fs.mkdirSync(TMP, { recursive: true });
 try {
-  /* no-op 망가뜨림 판별용 — 지도 상태에 따라 망가뜨림이 아무것도 안 바꿀 수 있다
-     (렌즈가 접혀 표시가 이미 0개인데 「표시를 지운다」 · 두 값이 이미 같은데 「맞바꾼다」).
-     그건 자의 구멍이 아니라 시험이 무효인 것이다 — 조용히 세지 말고 따로 적는다. */
+  /* no-op 망가뜨림 판별용. 지도 상태에 따라 망가뜨림이 아무것도 안 바꿀 수 있다
+     (렌즈가 접혀 표시가 이미 0개인데 표시를 지운다, 두 값이 이미 같은데 맞바꾼다).
+     그건 자의 구멍이 아니라 시험이 무효인 것이다. 조용히 세지 말고 따로 적는다. */
   const canon = JSON.stringify(JSON.parse(original));
   const runs = await runMany(RUNNABLE.map(([label, bite, gate], i) => async () => {
     const a = JSON.parse(original);
@@ -798,7 +798,7 @@ try {
     if (mutated === canon) return [gate, label, null];
     const file = path.join(TMP, `m${i}.json`);
     fs.writeFileSync(file, mutated);
-    /* 망가뜨렸을 때 0(초록)만 「못 잡았다」 — 1(빨강)은 물론 2(CANNOT-RUN)로 밀려나도
+    /* 망가뜨렸을 때 0(초록)만 못 잡았다. 1(빨강)은 물론 2(CANNOT-RUN)로 밀려나도
        그 표는 화면에 안 실리므로 잡은 것으로 친다. */
     const bit = runGate(gate, file) !== 0;
     fs.unlinkSync(file);
@@ -806,7 +806,7 @@ try {
   }));
   for (const [gate, label, bit] of runs) {
     if (bit === null) {
-      console.log(`  △ ${label} → 지도 상태상 아무것도 안 바꾼다 — 이 판에선 못 물린다 (${path.basename(gate)})`);
+      console.log(`  △ ${label} → 지도 상태상 아무것도 안 바꾼다. 이 판에선 못 물린다 (${path.basename(gate)})`);
       continue;
     }
     results.push([gate, label, bit]);
@@ -818,10 +818,10 @@ try {
 }
 
 const missed = results.filter(([, , bit]) => !bit);
-console.log(`[gates-bite] 망가뜨림 ${results.length}가지 · 잡힌 것 ${results.length - missed.length}`);
+console.log(`[gates-bite] 망가뜨림 ${results.length}가지, 잡힌 것 ${results.length - missed.length}`);
 if (missed.length) {
-  console.log('[gates-bite] **자에 구멍이 있다** — 망가뜨렸는데 안 빨개진다');
+  console.log('[gates-bite] **자에 구멍이 있다**. 망가뜨렸는데 안 빨개진다');
   for (const [gate, label] of missed) console.log(`  - ${label} 를 ${path.basename(gate)} 가 놓친다`);
   process.exit(1);
 }
-console.log('[gates-bite] 자가 다 문다 — 망가뜨리면 전부 빨개진다');
+console.log('[gates-bite] 자가 다 문다. 망가뜨리면 전부 빨개진다');

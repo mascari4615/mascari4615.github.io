@@ -1,5 +1,5 @@
 /**
- * ZIP 만들기·풀기 (TASK-KL-088)
+ * ZIP 만들기, 풀기 (TASK-KL-088)
  *
  * 파일 몇 개를 묶어 보내거나 받은 압축을 열어 보는 일은, 압축 프로그램을 깔 수 없는
  * 회사 컴퓨터나 남의 기기에서 특히 막힌다. 브라우저만으로 되는 자리를 둔다.
@@ -33,8 +33,8 @@ import { download } from './shared/image';
 
   Toolbox.register({
     id: zipCoreSpec.id,
-    title: t('widgets.ziptool.title', undefined, "ZIP 만들기·풀기"),
-    category: 'tool',
+    title: t('widgets.ziptool.title', undefined, "ZIP 만들기, 풀기"),
+    category: 'file',
     desc: t('widgets-desc.ziptool.desc', undefined, "파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다"),
     layout: 'wide',
     icon: '<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 3v2h2V3M11 7v2h2V7M11 11v2h2v-2" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="15" width="3" height="4" rx="0.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -83,8 +83,8 @@ import { download } from './shared/image';
           let opened: ZipInstance | null = null;
           let JSZipCtor: (new () => ZipInstance) | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           async function loadLib(): Promise<new () => ZipInstance> {
@@ -149,8 +149,8 @@ import { download } from './shared/image';
             });
             download(blob, t('ziptool.file.name')); // 공용 한 자리(`shared/image.download`)
             const before = files.reduce((s, f) => s + f.size, 0);
-            // 사진·영상처럼 이미 눌린 파일은 묶으면 오히려 커진다. 그때 「-3% 줄었어요」라고 하면
-            // 숫자도 말도 틀린다 — 늘었으면 늘었다고 적는다.
+            // 사진, 영상처럼 이미 눌린 파일은 묶으면 오히려 커진다. 그때 -3% 줄었어요라고 하면
+            // 숫자도 말도 틀린다. 늘었으면 늘었다고 적는다.
             const pct = Math.round(Math.abs(1 - blob.size / before) * 100);
             const verdict =
               blob.size < before

@@ -5,7 +5,7 @@ last_modified_at: "2024-11-13T05:12:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Euclidean Algorithm | 유클리드 알고리듬/호제법

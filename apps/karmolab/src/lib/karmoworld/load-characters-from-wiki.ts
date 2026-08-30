@@ -2,7 +2,7 @@
  * wiki/entities/characters/{slug}.yaml + {slug}.md 를 fetch → 파싱 → KarmoWorld.entities + bindings 채움
  * imagegen/chatbot 스크립트보다 먼저 실행되며, Toolbox 지연 로더가 Promise 완료까지 대기합니다.
  *
- * 캐릭터 목록은 wiki/manifest.json 에서 동적으로 발견 — `stages: ['karmolab', ...]` 포함 entity 만
+ * 캐릭터 목록은 wiki/manifest.json 에서 동적으로 발견. `stages: ['karmolab', ...]` 포함 entity 만
  * KarmoLab UI 에 노출 (TASK-KL-033). SLUGS 하드코딩 폐기 → 신규 entity 자동 발견.
  */
 (function (): void {

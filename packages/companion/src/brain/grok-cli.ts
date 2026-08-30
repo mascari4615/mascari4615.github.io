@@ -13,7 +13,7 @@ export interface GrokCliBrainOptions {
   handsNote?: string;
   alwaysNote?: string;
   model?: string;
-  /** talk = 말만. work = 셸·편집 살림. */
+  /** talk = 말만. work = 셸, 편집 살림. */
   tools?: ToolMode;
   workDir?: string;
 }
@@ -21,7 +21,7 @@ export interface GrokCliBrainOptions {
 /**
  * 격리된 Grok CLI 두뇌.
  *
- * 클로드 두뇌와 같은 이유: 집 설정·훅·프로젝트 지침을 물려받으면 코딩 조수가 된다.
+ * 클로드 두뇌와 같은 이유: 집 설정, 훅, 프로젝트 지침을 물려받으면 코딩 조수가 된다.
  * 동반자는 그 사람이 아니다. 빈 폴더에서 부르고, 자격만 옮긴다.
  * 기억은 CLI 세션이 아니라 우리 Memory 가 가진다.
  *
@@ -53,7 +53,7 @@ export function grokCliBrain(options: GrokCliBrainOptions = {}): SwitchableBrain
   }
 
   return {
-    get name() { return `grok-cli(${tools}${model ? `·${model}` : ''})`; },
+    get name() { return `grok-cli(${tools}${model ? `, ${model}` : ''})`; },
     currentModel: () => model,
     useModel(next) { model = next; },
     setHandsNote(note) { handsNote = note; },
@@ -105,7 +105,7 @@ export function grokStreamText(line: string): string {
   return part?.kind === 'text' ? part.text : '';
 }
 
-/** 그록 한 줄을 채팅 칸(말·도구·그림)으로 푼다. */
+/** 그록 한 줄을 채팅 칸(말, 도구, 그림)으로 푼다. */
 export function grokStreamPart(line: string): ChatPart | { kind: 'text'; text: string } | null {
   const trimmed = line.trim();
   if (trimmed === '') return null;
@@ -295,8 +295,8 @@ function run(opts: {
       clearTimeout(timer);
       const since = (at: number | null) => (at === null ? '-' : `${at - startedAt}ms`);
       process.stderr.write(
-        `[두뇌] grok 첫낱말 ${since(firstWordAt)} · 끝 ${Date.now() - startedAt}ms` +
-          ` · 재료 ${opts.prompt.length}자 · 답 ${(opts.onDelta ? streamed : stdout).length}자\n`,
+        `[두뇌] grok 첫낱말 ${since(firstWordAt)}, 끝 ${Date.now() - startedAt}ms` +
+          `, 재료 ${opts.prompt.length}자, 답 ${(opts.onDelta ? streamed : stdout).length}자\n`,
       );
       opts.thinking?.delete(handle);
       const text = opts.onDelta ? streamed.trim() : grokJsonText(stdout).trim();

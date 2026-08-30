@@ -1,8 +1,8 @@
 /**
- * 사목 — 떨어뜨려 넷을 잇는다 (TASK-KL-242)
+ * 사목. 떨어뜨려 넷을 잇는다 (TASK-KL-242)
  *
- * 오목과 같은 「차례·보드」 갈래지만 **수를 두는 곳이 칸이 아니라 줄**이다. 중력이 자리를 정한다.
- * 커널이 이걸 그대로 받는지 보려고 넣었다 — 게임마다 「한 수」의 모양이 다르다는 것을 증명하는 자리.
+ * 오목과 같은 차례, 보드 갈래지만 **수를 두는 곳이 칸이 아니라 줄**이다. 중력이 자리를 정한다.
+ * 커널이 이걸 그대로 받는지 보려고 넣었다. 게임마다 한 수의 모양이 다르다는 것을 증명하는 자리.
  */
 import type { GameDef, BotMove } from '../types';
 
@@ -12,7 +12,7 @@ const NEED = 4;
 const DIRS: Array<[number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
 export interface FourState {
-  /** 0 = 빈 칸, 1·2 = 자리 번호+1. `y=0` 이 맨 위 */
+  /** 0 = 빈 칸, 1, 2 = 자리 번호+1. `y=0` 이 맨 위 */
   board: number[];
   turn: number;
   /** 이긴 자리 (없으면 -1), 판이 다 차면 -2 */
@@ -97,11 +97,11 @@ export const four: GameDef<FourState, FourAction> = {
       delayMs: 600 + ctx.rng() * 700
     });
 
-    /* ① 이길 수 있으면 이긴다 ② 못 이기면 상대의 넷을 막는다 — 이 둘만 해도 사람이 진다. */
+    /* ① 이길 수 있으면 이긴다 ② 못 이기면 상대의 넷을 막는다. 이 둘만 해도 사람이 진다. */
     for (const c of legal) if (wins(after(s.board, drop(s.board, c), me), drop(s.board, c), me)) return move(c);
     for (const c of legal) if (wins(after(s.board, drop(s.board, c), foe), drop(s.board, c), foe)) return move(c);
 
-    /* ③ 아니면 가운데로 — 가운데 줄이 이을 수 있는 방향이 제일 많다.
+    /* ③ 아니면 가운데로. 가운데 줄이 이을 수 있는 방향이 제일 많다.
      *    단 **상대에게 바로 넷을 내주는 자리는 뺀다**(내가 놓으면 그 위가 상대 자리가 된다). */
     const safe = legal.filter((c) => {
       const mine = drop(s.board, c);

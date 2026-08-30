@@ -2,23 +2,23 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 /**
- * 발동 기록 — 만든 게 실제로 도는지 세는 것.
+ * 발동 기록. 만든 게 실제로 도는지 세는 것.
  *
- * 지난 스무 회차 동안 같은 말을 다섯 번 적었다: **「단위 시험은 통과했는데 라이브에서 도는
- * 건 못 봤다.」** 화제 틀기(30·31), 붙들고 있음(34), 곁의 사람 안부(27), 바람 먼저 꺼내기(22),
+ * 지난 스무 회차 동안 같은 말을 다섯 번 적었다: **단위 시험은 통과했는데 라이브에서 도는
+ * 건 못 봤다.** 화제 틀기(30, 31), 붙들고 있음(34), 곁의 사람 안부(27), 바람 먼저 꺼내기(22),
  * 말버릇 잔소리(28). 전부 **드물게 열리는 조건**이라 확인할 방법이 없었다.
  *
  * 죽은 코드를 찾는 쪽에서 쓰는 방법은 단순하다: **의심되는 자리에 계측을 넣고, 얼마간 두고,
  * 실제로 몇 번 돌았는지 센다.** 안 돌면 조건이 틀렸거나 아무도 그 길을 안 지나는 것이다.
- * 「도는지 모름」과 「스무 번 중 0번 돌았음」은 완전히 다른 말이다.
+ * 도는지 모름과 스무 번 중 0번 돌았음은 완전히 다른 말이다.
  *
  * 그래서 **재료가 어떻게 됐는지를 넷으로 나눠 센다**:
- * - `실림` — 골라져서 실제로 두뇌에 갔다.
- * - `밀림` — 켜지긴 했는데 예산에 밀려 빠졌다.
- * - `꺼짐` — 조건이 안 맞아 아예 안 켜졌다.
- * - `빔` — 켜졌는데 내용이 비었다(만들 거리가 없었다).
+ * - `실림`. 골라져서 실제로 두뇌에 갔다.
+ * - `밀림`. 켜지긴 했는데 예산에 밀려 빠졌다.
+ * - `꺼짐`. 조건이 안 맞아 아예 안 켜졌다.
+ * - `빔`. 켜졌는데 내용이 비었다(만들 거리가 없었다).
  *
- * 이 넷을 가르는 게 핵심이다. **켜졌는데 밀린 것**과 **아예 안 켜진 것**은 고칠 데가 다르다 —
+ * 이 넷을 가르는 게 핵심이다. **켜졌는데 밀린 것**과 **아예 안 켜진 것**은 고칠 데가 다르다 . 
  * 앞은 예산이나 무게 문제고, 뒤는 조건이 틀렸거나 그런 상황이 안 오는 것이다.
  */
 export type Fate = 'loaded' | 'queued' | 'off' | 'blank';
@@ -65,7 +65,7 @@ export class Tally {
   mark(name: string, fate: Fate, why?: string): void {
     const m = this.marks.get(name) ?? empty();
     m[fate] += 1;
-    // 마지막으로 왜 안 실렸는지. 실린 순간에는 지운다 — 낡은 이유가 남아 헷갈린다.
+    // 마지막으로 왜 안 실렸는지. 실린 순간에는 지운다. 낡은 이유가 남아 헷갈린다.
     if (fate === 'loaded') delete m.lastWhy;
     else if (why !== undefined && why !== '') m.lastWhy = why;
     if (fate === 'loaded') m.lastAt = (this.options.now ?? (() => Date.now()))();
@@ -114,7 +114,7 @@ export class Tally {
 /**
  * 사람이 읽는 표.
  *
- * **한 번도 안 실린 것을 맨 위에 둔다** — 그게 봐야 할 것이다. 잘 도는 걸 위에 놓으면
+ * **한 번도 안 실린 것을 맨 위에 둔다**. 그게 봐야 할 것이다. 잘 도는 걸 위에 놓으면
  * 표를 봐도 아무것도 안 보인다.
  */
 export function tallyReport(tally: Tally): string {
@@ -127,10 +127,10 @@ export function tallyReport(tally: Tally): string {
   return lines
     .map(({ name, m, elapsed: elapsed }) => {
       const state = m.loaded === 0 ? '● 한 번도 안 실림' : `실림 ${m.loaded}`;
-      // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
+      // 왜 안 실렸는지를 같이 보여 준다. 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
       const why2 = m.lastWhy === undefined ? '' : `
 ${' '.repeat(10)}↳ ${m.lastWhy}`;
-      return `${name.padEnd(8)} ${state.padEnd(16)} (elapsed ${elapsed} · 밀림 ${m.queued} · 꺼짐 ${m.off} · 빔 ${m.blank})${why2}`;
+      return `${name.padEnd(8)} ${state.padEnd(16)} (elapsed ${elapsed}, 밀림 ${m.queued}, 꺼짐 ${m.off}, 빔 ${m.blank})${why2}`;
     })
     .join('\n');
 }

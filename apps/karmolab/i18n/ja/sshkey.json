@@ -14,8 +14,8 @@
   "sshkey.problem.noKey": "⚠ 鍵がありません",
   "sshkey.problem.noType": "⚠ 種類が見つかりません",
   "sshkey.status.idle": "authorized_keys を貼ってください",
-  "sshkey.status.ok": "{n} 行 · 指紋まで出しました",
+  "sshkey.status.ok": "{n} 行, 指紋まで出しました",
   "sshkey.status.some": "{n} 行のうち {bad} 行がおかしいです",
   "sshkey.status.converted": "OpenSSH 行に変換しました",
-  "sshkey.note.local": "鍵はブラウザの中だけで読みます — どこにも送りません。指紋はサーバーで行を選ぶときに使う SHA256:… の値です。"
+  "sshkey.note.local": "鍵はブラウザの中だけで読みます. どこにも送りません。指紋はサーバーで行を選ぶときに使う SHA256:... の値です。"
 }

@@ -49,7 +49,7 @@ test('fetchStore 는 404 를 빈 값으로, 쓰기는 거절', async () => {
   await assert.rejects(() => store.put('x', new Uint8Array(1)), /read-only/);
 });
 
-test('픽스처 클라우드를 열어 글·그림을 메모리에서 읽는다', async () => {
+test('픽스처 클라우드를 열어 글, 그림을 메모리에서 읽는다', async () => {
   const store = await buildFixtureStore();
   const session = await unlockVault(store, FIXTURE_PASS);
   const listed = await listFiles(session);

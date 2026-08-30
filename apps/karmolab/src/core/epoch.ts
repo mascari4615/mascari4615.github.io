@@ -1,14 +1,14 @@
 /**
- * 유닉스 타임스탬프 변환 — 알맹이 (TASK-KL-088 / S1)
+ * 유닉스 타임스탬프 변환. 알맹이 (TASK-KL-088 / S1)
  *
- * 로그와 API 응답의 시각은 대개 숫자로 온다. 이걸 읽으려면 **자릿수부터 가려야 한다** —
+ * 로그와 API 응답의 시각은 대개 숫자로 온다. 이걸 읽으려면 **자릿수부터 가려야 한다** . 
  * 10자리는 초, 13자리는 밀리초, 16자리는 마이크로초, 19자리는 나노초다.
  *
- * 예전에 여기서 크게 틀렸다: 「11자리 미만이면 초, 아니면 밀리초」 하나뿐이라 마이크로초·
- * 나노초를 밀리초로 읽고 **서기 5만 년을 자신 있게 내놓았다**. 게다가 「밀리초로 읽었습니다」
+ * 예전에 여기서 크게 틀렸다: 11자리 미만이면 초, 아니면 밀리초 하나뿐이라 마이크로초, 
+ * 나노초를 밀리초로 읽고 **서기 5만 년을 자신 있게 내놓았다**. 게다가 밀리초로 읽었습니다
  * 까지 붙어 사람이 의심할 길이 없었다. 그 판단이 이 파일의 핵심이고, 그래서 시험 대상이다.
  *
- * 「지금」은 인자로 받는다(`now`). 알맹이가 시계를 직접 보면 같은 입력에 답이 매번 달라져
+ * 지금은 인자로 받는다(`now`). 알맹이가 시계를 직접 보면 같은 입력에 답이 매번 달라져
  * 시험이 못 잡는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -19,7 +19,7 @@ export const spec: ToolSpec = {
     toDate: {
       desc:
         'Turn a Unix timestamp into a readable time, detecting seconds / milliseconds / microseconds /' +
-        ' nanoseconds from the digit count — guessing wrong lands you in 1970 or the year 55000.' +
+        ' nanoseconds from the digit count. guessing wrong lands you in 1970 or the year 55000.' +
         ' / 유닉스 타임스탬프 → 사람이 읽는 시각. 단위 자동 판별.',
       in: { ts: 'string' },
       out: 'string'
@@ -35,7 +35,7 @@ export const spec: ToolSpec = {
 export interface Unit {
   /** 이 단위 값을 밀리초로 만들려면 나눌 수. (초는 0.001 로 나눔 = 1000 곱) */
   div: number;
-  /** 이름 대신 쓰는 표식 — 화면은 이걸로 자기 말을 붙인다. */
+  /** 이름 대신 쓰는 표식. 화면은 이걸로 자기 말을 붙인다. */
   key: UnitKey;
 }
 
@@ -66,7 +66,7 @@ export interface ParsedStamp {
   unit: Unit;
 }
 
-/** 사람이 붙여넣은 문자열에서 숫자만 골라 읽는다. 읽을 수 없으면 null — 「모르겠다」를 값으로 말한다. */
+/** 사람이 붙여넣은 문자열에서 숫자만 골라 읽는다. 읽을 수 없으면 null. 모르겠다를 값으로 말한다. */
 export function parseTimestamp(input: string): ParsedStamp | null {
   const raw = input.replace(/[^\d-]/g, '');
   if (raw === '' || raw === '-') return null;
@@ -85,7 +85,7 @@ const DELTA_UNITS: Array<[number, string]> = [
   [31536000000, '년']
 ];
 
-/** 「3일 전」 같은 말. `now` 를 받아야 같은 입력에 같은 답이 난다. */
+/** 3일 전 같은 말. `now` 를 받아야 같은 입력에 같은 답이 난다. */
 export function humanDelta(ms: number, now: number): string {
   const diff = ms - now;
   const abs = Math.abs(diff);
@@ -120,7 +120,7 @@ export function humanDeltaParts(ms: number, now: number): { amount: number; unit
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
-/** `<input type="datetime-local">` 이 받는 모양. **로컬 시간대**로 적어야 한다 — UTC 로 밀면 한 번 더 틀린다. */
+/** `<input type="datetime-local">` 이 받는 모양. **로컬 시간대**로 적어야 한다. UTC 로 밀면 한 번 더 틀린다. */
 export function toLocalInput(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
@@ -131,7 +131,7 @@ export function weekdayKo(index: number): string {
   return WEEKDAYS_KO[index] ?? '';
 }
 
-/** 화면이 줄줄이 보여 줄 값들. 여기서 만들어야 Node·브라우저가 같은 답을 낸다. */
+/** 화면이 줄줄이 보여 줄 값들. 여기서 만들어야 Node, 브라우저가 같은 답을 낸다. */
 export function stampRows(ms: number, now: number): Array<[string, string]> {
   const d = new Date(ms);
   return [
@@ -148,7 +148,7 @@ export function stampRows(ms: number, now: number): Array<[string, string]> {
 }
 
 /**
- * 화면용 — **이름 대신 표식**과 값. 「지금 기준」은 값이 아니라 시각을 넘겨 화면이
+ * 화면용. **이름 대신 표식**과 값. 지금 기준은 값이 아니라 시각을 넘겨 화면이
  * `Intl.RelativeTimeFormat` 으로 그 언어답게 적게 한다 (TASK-KL-203).
  */
 export function stampRowKeys(ms: number): Array<[string, string | number]> {
@@ -168,7 +168,7 @@ export function stampRowKeys(ms: number): Array<[string, string | number]> {
 
 /**
  * 이름으로 부르는 창구 (`types.ts` 의 ToolRunner).
- * 「지금」이 필요한 답(`지금 기준`)은 `deps.now` 로 받는다 — 안 주면 시계를 본다.
+ * 지금이 필요한 답(`지금 기준`)은 `deps.now` 로 받는다. 안 주면 시계를 본다.
  */
 export const run: ToolRunner = (op, args, deps) => {
   const now = typeof deps?.now === 'number' ? deps.now : Date.now();
@@ -184,5 +184,5 @@ export const run: ToolRunner = (op, args, deps) => {
     if (Number.isNaN(t)) throw new Error('시각을 못 읽었습니다 (ISO 8601 로 주세요)');
     return Math.floor(t / 1000);
   }
-  throw new Error(`epoch 에 「${op}」 는 없습니다`);
+  throw new Error(`epoch 에 ${op} 는 없습니다`);
 };

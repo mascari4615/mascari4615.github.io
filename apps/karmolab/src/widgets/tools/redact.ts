@@ -1,14 +1,14 @@
 /**
- * 가리개 — 캡처에서 개인정보 지우기 (TASK-KL-088)
+ * 가리개. 캡처에서 개인정보 지우기 (TASK-KL-088)
  *
- * 화면 캡처를 올리기 전에 계좌번호·주소·이름을 가려야 할 때가 있다. 그림판으로 덮으면 되지만,
+ * 화면 캡처를 올리기 전에 계좌번호, 주소, 이름을 가려야 할 때가 있다. 그림판으로 덮으면 되지만,
  * 급할 때 실수하기 쉽고 사진에 남은 위치 정보까지는 못 뗀다.
  *
- * 신경 쓴 곳 — **덮는 게 아니라 지운다.**
+ * 신경 쓴 곳. **덮는 게 아니라 지운다.**
  *  - 가린 자리의 원래 점들은 그 자리에서 없어진다. 화면에만 덮어 두면 원본이 파일 안에 남는다.
- *  - 내보낼 때 사진에 붙어 있던 위치·기기 정보도 같이 떨어진다 (다시 그려 내보내므로).
+ *  - 내보낼 때 사진에 붙어 있던 위치, 기기 정보도 같이 떨어진다 (다시 그려 내보내므로).
  *  - 모자이크는 되돌릴 수 있다는 것이 알려져 있다. 그래서 기본은 **검은칠**이고, 모자이크를
- *    고르면 그 사실을 말해 준다. 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다.
+ *    고르면 그 사실을 말해 준다. 가린 줄 알았는데 아니었다가 이 도구에서 가장 나쁜 결과다.
  */
 import { statusLine } from './shared/say';
 import { escapeHtml as esc } from './shared/text';
@@ -29,11 +29,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'redact',
     title: t('widgets.redact.title', undefined, '가리개'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.redact.desc',
       undefined,
-      '캡처에서 계좌번호·이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다'
+      '캡처에서 계좌번호, 이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="6" y="9" width="7" height="4" rx="1" fill="currentColor"/><path d="M15 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -101,17 +101,17 @@ import { t, loadNamespace } from '../../lib/i18n';
           let dragStart: { x: number; y: number } | null = null;
           let dragNow: { x: number; y: number } | null = null;
           /* 자판으로 고르는 네모 (TASK-KL: 마우스 전용 구멍 메우기). 끌기만 있으면 손가락 하나로
-           * 하는 이 일이 **통째로 막힌 사람**이 생긴다 — 가리개는 「못 가림」이 곧 사고다. */
+           * 하는 이 일이 **통째로 막힌 사람**이 생긴다. 가리개는 못 가림이 곧 사고다. */
           let caret: Box | null = null;
           let sourceName = t('redact.file.fallback');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           /**
            * 가린 자리의 점들을 그 자리에서 없앤다.
-           * 화면 위에 네모를 덮어 두는 것과 다르다 — 여기서 지우면 내보낸 파일에도 없다.
+           * 화면 위에 네모를 덮어 두는 것과 다르다. 여기서 지우면 내보낸 파일에도 없다.
            */
           function applyBox(ctx: CanvasRenderingContext2D, b: Box): void {
             if (b.w < 1 || b.h < 1) return;
@@ -195,7 +195,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           /**
            * 화면에서 누른 자리를 그림의 점 좌표로 옮긴다 (보이는 크기와 실제 크기가 다르다).
-           * 그림 밖은 그림 가장자리로 붙인다 — 손가락이 밖으로 나가는 일은 늘 있고,
+           * 그림 밖은 그림 가장자리로 붙인다. 손가락이 밖으로 나가는 일은 늘 있고,
            * 밖까지 잡힌 상자는 지우려던 자리를 비껴간다.
            */
           function toImage(e: PointerEvent): { x: number; y: number } {
@@ -207,7 +207,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             };
           }
 
-          /** 공용 `loadImage` 를 쓴다 (TASK-KL-280) — 주소 만들고 거두는 네 줄이 도구마다 있었다. */
+          /** 공용 `loadImage` 를 쓴다 (TASK-KL-280). 주소 만들고 거두는 네 줄이 도구마다 있었다. */
           async function load(file: File): Promise<void> {
             let im: HTMLImageElement;
             try {
@@ -250,7 +250,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             };
             dragStart = null;
             dragNow = null;
-            // 아주 작은 것은 잘못 누른 것이다 — 가렸다고 착각하게 두면 안 된다
+            // 아주 작은 것은 잘못 누른 것이다. 가렸다고 착각하게 두면 안 된다
             if (b.w < 3 || b.h < 3) {
               redraw();
               say(t('redact.err.tooSmall'), 'error');
@@ -261,8 +261,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             say(t('redact.say.added', { n: boxes.length }), 'ok');
           });
 
-          /* 자판 길 — 끌기와 **같은 일**을 자판으로 한다 (2026-08-14, `audit:mouse-only` 가 잡은 자리).
-           * 화살표=옮기기 · Shift+화살표=크기 · Enter=가리기 · Backspace=되돌리기.
+          /* 자판 길. 끌기와 **같은 일**을 자판으로 한다 (2026-08-14, `audit:mouse-only` 가 잡은 자리).
+           * 화살표=옮기기, Shift+화살표=크기, Enter=가리기, Backspace=되돌리기.
            * 걸음은 그림 크기에 맞춘다(작은 그림에서 한 칸이 화면 절반이 되면 못 쓴다). */
           canvas.tabIndex = 0;
           canvas.setAttribute('role', 'application');
@@ -329,7 +329,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             $<HTMLElement>('#rdModePixel').classList.toggle('active', next === 'pixel');
             $<HTMLElement>('#rdPixelWrap').style.display = next === 'pixel' ? '' : 'none';
             redraw();
-            // 「가린 줄 알았는데 아니었다」가 이 도구에서 가장 나쁜 결과다 — 미리 말해 준다
+            // 가린 줄 알았는데 아니었다가 이 도구에서 가장 나쁜 결과다. 미리 말해 준다
             if (next === 'pixel') {
               say(t('redact.say.pixel'), 'error');
             } else say(t('redact.say.fill'), 'ok');
@@ -355,9 +355,9 @@ import { t, loadNamespace } from '../../lib/i18n';
             // 공용 한 자리(`shared/image.encode`)
             encode(canvas, 'png').then((blob) => {
               download(blob, sourceName + t('redact.file.suffix') + '.png');
-              /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298) — 받을 도구가 없으면 줄이 안 생긴다. */
+              /* 만든 것을 **이어서 쓰게 내놓는다** (TASK-KL-298). 받을 도구가 없으면 줄이 안 생긴다. */
               Toolbox.offerNext?.(status, { blob: blob, name: sourceName + t('redact.file.suffix') + '.png', from: 'redact' });
-              // 다시 그려 내보내므로 사진에 붙어 있던 위치·기기 정보도 함께 떨어진다
+              // 다시 그려 내보내므로 사진에 붙어 있던 위치, 기기 정보도 함께 떨어진다
               say(t('redact.say.saved', { size: size(blob.size) }), 'ok');
               Toolbox.trackUse?.('save');
             }).catch(() => say(t('redact.err.render'), 'error'));

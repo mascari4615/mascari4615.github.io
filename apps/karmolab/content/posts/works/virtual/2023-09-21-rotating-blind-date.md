@@ -5,7 +5,7 @@ last_modified_at: "2024-11-09T08:26:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/rotating-blind-date/230916-172652.png
-hidden: true
+board: me
 ---
 
 20230921 회전소개팅 - 고세구 다시보기  

@@ -1,11 +1,11 @@
 /**
- * 초월 틱택토 — 내가 둔 칸이 상대의 판을 정한다 (TASK-KL-242)
+ * 초월 틱택토. 내가 둔 칸이 상대의 판을 정한다 (TASK-KL-242)
  *
- * 삼목은 몇 판만 두면 무승부만 남는다. 그런데 작은 판 아홉을 큰 판에 얹고 **「내가 둔 칸의
- * 자리」가 상대가 둘 작은 판이 된다**는 규칙 하나를 더하면, 같은 재료가 갑자기 깊어진다.
+ * 삼목은 몇 판만 두면 무승부만 남는다. 그런데 작은 판 아홉을 큰 판에 얹고 **내가 둔 칸의
+ * 자리가 상대가 둘 작은 판이 된다**는 규칙 하나를 더하면, 같은 재료가 갑자기 깊어진다.
  * 51개를 채울 때 새 소재를 찾는 것보다 이런 규칙 하나를 얹는 쪽이 값싸고 자주 낫다.
  *
- * 보낸 판이 이미 끝났으면 아무 데나 둔다 — 안 그러면 판이 잠긴다.
+ * 보낸 판이 이미 끝났으면 아무 데나 둔다. 안 그러면 판이 잠긴다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -16,9 +16,9 @@ const LINES: Array<[number, number, number]> = [
 ];
 
 export interface UltimateState {
-  /** 81칸. 0 = 빈 칸, 1·2 = 자리 번호+1 */
+  /** 81칸. 0 = 빈 칸, 1, 2 = 자리 번호+1 */
   cells: number[];
-  /** 작은 판 아홉의 임자. 0 = 진행 중, 1·2 = 이긴 자리, 3 = 비김 */
+  /** 작은 판 아홉의 임자. 0 = 진행 중, 1, 2 = 이긴 자리, 3 = 비김 */
   boards: number[];
   turn: number;
   /** 이번에 둘 수 있는 작은 판. -1 이면 아무 데나 */
@@ -30,7 +30,7 @@ export interface UltimateState {
 
 export type UltimateAction = { cell: number };
 
-/** 아홉 칸에서 이겼나 — 이겼으면 임자, 다 찼으면 3, 아직이면 0. */
+/** 아홉 칸에서 이겼나. 이겼으면 임자, 다 찼으면 3, 아직이면 0. */
 function judge(nine: number[]): number {
   for (const [a, b, c] of LINES) {
     if (nine[a] && nine[a] === nine[b] && nine[b] === nine[c]) return nine[a];
@@ -82,7 +82,7 @@ export const ultimate: GameDef<UltimateState, UltimateAction> = {
     const boards = s.boards.slice();
     boards[sm] = judge(cells.slice(sm * 9, sm * 9 + 9));
 
-    /* 큰 판은 「작은 판의 임자」로 따진다. 비긴 작은 판(3)은 어느 쪽 줄도 못 만든다. */
+    /* 큰 판은 작은 판의 임자로 따진다. 비긴 작은 판(3)은 어느 쪽 줄도 못 만든다. */
     const big = boards.map((v) => (v === 3 ? 0 : v));
     let won = -1;
     for (const [x, y, z] of LINES) {
@@ -90,7 +90,7 @@ export const ultimate: GameDef<UltimateState, UltimateAction> = {
     }
     if (won === -1 && boards.every((v) => v !== 0)) won = -2;
 
-    /* 보낸 판이 이미 끝났으면 아무 데나 — 안 그러면 둘 곳이 없어 판이 잠긴다. */
+    /* 보낸 판이 이미 끝났으면 아무 데나. 안 그러면 둘 곳이 없어 판이 잠긴다. */
     const sent = spotOf(cell);
     const next = boards[sent] === 0 ? sent : -1;
     return { cells, boards, turn: 1 - seat, next, won, last: cell };
@@ -127,7 +127,7 @@ export const ultimate: GameDef<UltimateState, UltimateAction> = {
       /* 가운데 작은 판과 가운데 칸이 줄을 제일 많이 만든다. */
       if (sm === 4) v += 4;
       if (spotOf(cell) === 4) v += 3;
-      /* **아무 데나 두게 보내는 수는 손해다** — 상대에게 판 전체를 내주는 것과 같다. */
+      /* **아무 데나 두게 보내는 수는 손해다**. 상대에게 판 전체를 내주는 것과 같다. */
       const sent = spotOf(cell);
       if (s.boards[sent] !== 0) v -= 12;
       return v;

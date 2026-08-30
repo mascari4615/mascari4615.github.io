@@ -11,7 +11,7 @@
   "worldclock.at": "指定した時刻",
   "worldclock.city.seoul": "ソウル",
   "worldclock.city.tokyo": "東京",
-  "worldclock.city.shanghai": "北京·上海",
+  "worldclock.city.shanghai": "北京, 上海",
   "worldclock.city.hongkong": "香港",
   "worldclock.city.taipei": "台北",
   "worldclock.city.singapore": "シンガポール",
@@ -35,7 +35,7 @@
   "worldclock.city.newyork": "ニューヨーク",
   "worldclock.city.chicago": "シカゴ",
   "worldclock.city.denver": "デンバー",
-  "worldclock.city.losangeles": "ロサンゼルス·サンフランシスコ",
+  "worldclock.city.losangeles": "ロサンゼルス, サンフランシスコ",
   "worldclock.city.anchorage": "アンカレッジ",
   "worldclock.city.honolulu": "ホノルル",
   "worldclock.city.toronto": "トロント",
@@ -54,11 +54,11 @@
   "worldclock.region.us-central": "アメリカ中部",
   "worldclock.region.us-mountain": "アメリカ山岳部",
   "worldclock.region.us-west": "アメリカ西部",
-  "worldclock.region.us-alaska": "アメリカ·アラスカ",
-  "worldclock.region.us-hawaii": "アメリカ·ハワイ",
+  "worldclock.region.us-alaska": "アメリカ, アラスカ",
+  "worldclock.region.us-hawaii": "アメリカ, ハワイ",
   "worldclock.region.ca-west": "カナダ西部",
   "worldclock.region.au-west": "オーストラリア西部",
   "worldclock.region.utc": "協定世界時",
-  "worldclock.status": "{city} 基準 · {when} · サマータイムは自動で反映されます。",
-  "worldclock.baseTimeHint": "基準の時刻 — 空なら「いま」"
+  "worldclock.status": "{city} 基準, {when}, サマータイムは自動で反映されます。",
+  "worldclock.baseTimeHint": "基準の時刻. 空ならいま"
 }

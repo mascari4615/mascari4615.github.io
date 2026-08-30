@@ -27,7 +27,7 @@ export const spec: ToolSpec = {
     },
     compare: {
       desc:
-        'Compare all three repayment methods side by side — total interest and first-month payment,' +
+        'Compare all three repayment methods side by side. total interest and first-month payment,' +
         ' the two numbers that actually decide the choice.',
       in: { amount: 'number', rate: 'number', months: 'number' },
       out: 'string'
@@ -145,10 +145,10 @@ export const run: ToolRunner = (op, args) => {
   if (op === 'compare') {
     const lines = (['equal', 'principal', 'bullet'] as Method[]).map((m) => {
       const rows = scheduleOf(amount, rate, months, m);
-      return `${METHOD_NAME[m]}: first payment ${won(rows[0].pay)} · total interest ${won(totalInterest(rows))}`;
+      return `${METHOD_NAME[m]}: first payment ${won(rows[0].pay)}, total interest ${won(totalInterest(rows))}`;
     });
     return [
-      `Principal ${won(amount)} · APR ${rate}% · ${months} months`,
+      `Principal ${won(amount)}, APR ${rate}%, ${months} months`,
       ...lines,
       'Equal principal has the least total interest; bullet has the most. Monthly payments differ.'
     ].join('\n');
@@ -168,8 +168,8 @@ export const run: ToolRunner = (op, args) => {
     const nowInterest = totalInterest(rows);
 
     const head = [
-      `${METHOD_NAME[method]} · Principal ${won(amount)} · APR ${rate}% · ${months} months` + (grace > 0 ? ` · grace ${grace} months` : ''),
-      `First payment: ${won(rows[0].pay)}  (interest ${won(rows[0].interest)} · principal ${won(rows[0].principal)})`,
+      `${METHOD_NAME[method]}, Principal ${won(amount)}, APR ${rate}%, ${months} months` + (grace > 0 ? `, grace ${grace} months` : ''),
+      `First payment: ${won(rows[0].pay)}  (interest ${won(rows[0].interest)}, principal ${won(rows[0].principal)})`,
       `Total paid: ${won(rows.reduce((a, r) => a + r.pay, 0))}`,
       `Total interest: ${won(nowInterest)}`
     ];
@@ -181,7 +181,7 @@ export const run: ToolRunner = (op, args) => {
     }
     // Only show a sample of the schedule.
     const pick = [0, Math.floor(rows.length / 2), rows.length - 1].filter((v, i, a) => a.indexOf(v) === i);
-    head.push('Schedule sample: ' + pick.map((i) => `${rows[i].n}: interest ${won(rows[i].interest)} · principal ${won(rows[i].principal)}`).join(' / '));
+    head.push('Schedule sample: ' + pick.map((i) => `${rows[i].n}: interest ${won(rows[i].interest)}, principal ${won(rows[i].principal)}`).join(' / '));
     head.push('Prepayment fees, stamp tax, and other fees are not included.');
     return head.join('\n');
   }

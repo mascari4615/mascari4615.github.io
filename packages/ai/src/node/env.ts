@@ -34,7 +34,7 @@ function parseDotenvFile(filePath: string, override: boolean): void {
     const key = line.slice(0, eq).trim();
     if (!key) continue;
     const raw = line.slice(eq + 1);
-    // 따옴표 벗기기 (첫·마지막 " 또는 ' 한 쌍만)
+    // 따옴표 벗기기 (첫, 마지막 " 또는 ' 한 쌍만)
     const val = raw.match(/^(['"])(.*)\1$/) ? raw.slice(1, -1) : raw;
     if (override || !(key in process.env)) {
       process.env[key] = val;

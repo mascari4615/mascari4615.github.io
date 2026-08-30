@@ -1,10 +1,10 @@
 /**
- * 남과 나누는 표 — 브라우저 쪽 이음매 (TASK-KL-150).
+ * 남과 나누는 표. 브라우저 쪽 이음매 (TASK-KL-150).
  *
  * 지금까지 표는 이 브라우저 안에서 끝났다. 남에게 주려면 표 전체를 주소에 실어야 했고(수 KB),
  * 받은 사람은 **사본**을 가지니 원본이 고쳐져도 모르고, 같은 표로 논 사람끼리 겨룰 수도 없었다.
  *
- * 여기서 하는 일은 그 표에 **주소를 붙이는 것**뿐이다. 나머지는 전부 그대로 둔다 —
+ * 여기서 하는 일은 그 표에 **주소를 붙이는 것**뿐이다. 나머지는 전부 그대로 둔다 . 
  * 표의 모양도, 놀이가 표를 읽는 법도(`pack-store`). 새 모양을 만들면 그날부터 갈라진다.
  *
  * **fail-open**: 서버가 죽거나 로그인을 안 했으면 이 파일의 모든 함수가 조용히 `null` 을
@@ -13,7 +13,7 @@
 import { loadPacks, putPack, type Pack, type PackField, type PackItem } from '../widgets/pack-store';
 import { t, loadNamespace } from './i18n';
 
-/* 이 파일은 위젯이 아니라 **셸·라이브러리**다 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 이 파일은 위젯이 아니라 **셸, 라이브러리**다. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 이 파일을 읽으므로 document 가 있을 때만 부른다. */
 if (typeof document !== 'undefined') void loadNamespace('sharedpacks');
 
@@ -27,9 +27,9 @@ export interface SharedPackSummary {
   emoji: string;
   items: number;
   fields: number;
-  /** 겨룰 수 있는 숫자 칸 수 — 0 이면 「높은 쪽 고르기」에 못 건다. */
+  /** 겨룰 수 있는 숫자 칸 수. 0 이면 높은 쪽 고르기에 못 건다. */
   numberFields: number;
-  /** 그림이 붙은 항목 수 — 월드컵처럼 그림이 주인공인 놀이가 본다. */
+  /** 그림이 붙은 항목 수. 월드컵처럼 그림이 주인공인 놀이가 본다. */
   images: number;
   opens: number;
   createdAt: string;
@@ -38,7 +38,7 @@ export interface SharedPackSummary {
   /**
    * 사이트에 **붙박이로도 있는** 판을 그대로 옮겨 심은 표면 그 판 이름(`pokemon` 등), 아니면 null.
    *
-   * 놀이 목록은 이걸 뺀다 — 안 빼면 붙박이 「포켓몬」 옆에 봇 사본 「포켓몬 · karmolab」이
+   * 놀이 목록은 이걸 뺀다. 안 빼면 붙박이 포켓몬 옆에 봇 사본 포켓몬, karmolab이
    * 나란히 서서 같은 표가 두 번 보인다.
    */
   siteBoard?: string | null;
@@ -54,13 +54,13 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T | null> 
       ...init,
     });
     if (!res.ok) {
-      // 실패해도 **왜인지**는 화면이 말할 수 있어야 한다 — 몸통에 이유가 실려 온다.
+      // 실패해도 **왜인지**는 화면이 말할 수 있어야 한다. 몸통에 이유가 실려 온다.
       const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
       return body ? ({ ...body, ok: false } as unknown as T) : null;
     }
     return (await res.json()) as T;
   } catch {
-    return null; // 서버가 죽었거나 느리다 — 이 브라우저 표로 그냥 논다
+    return null; // 서버가 죽었거나 느리다. 이 브라우저 표로 그냥 논다
   } finally {
     clearTimeout(timer);
   }
@@ -87,7 +87,7 @@ export function listShared(options: {
  * 표 하나를 통째로 받아 **이 브라우저로 들인다**.
  *
  * 왜 들이나: 놀이들은 이미 이 브라우저의 표를 읽어 판을 짠다(`pack-store`). 서버 표만 다른
- * 길로 읽게 하면 놀이마다 두 갈래가 생긴다. 대신 **서버 주소를 같이 적어 둔다** —
+ * 길로 읽게 하면 놀이마다 두 갈래가 생긴다. 대신 **서버 주소를 같이 적어 둔다** . 
  * 순위판은 그 주소로 갈리므로, 같은 표로 논 사람끼리 한 순위판에서 만난다.
  */
 export async function adoptShared(id: string): Promise<Pack | null> {
@@ -110,7 +110,7 @@ export async function adoptShared(id: string): Promise<Pack | null> {
 export interface UploadResult {
   /** 올라간 표의 서버 주소. */
   id?: string;
-  /** 안 됐으면 이유 — 화면이 사람 말로 옮긴다. */
+  /** 안 됐으면 이유. 화면이 사람 말로 옮긴다. */
   error?: string;
   detail?: Record<string, unknown>;
 }
@@ -152,7 +152,7 @@ export async function updateShared(sharedId: string, pack: Pack): Promise<Upload
 /**
  * 이 표로 놀 때 **순위판을 가르는 이름**.
  *
- * 서버 주소가 있으면 그것 — 그래야 같은 표로 논 사람끼리 한 판에서 만난다.
+ * 서버 주소가 있으면 그것. 그래야 같은 표로 논 사람끼리 한 판에서 만난다.
  * 없으면 이 브라우저 안의 이름(혼자만의 기록).
  */
 export function variantFor(pack: { id: string; sharedId?: string }): string {
@@ -185,11 +185,11 @@ export function packErrorText(error: string, detail?: Record<string, unknown>): 
 
 /* ── 로그인 전에 만든 표를 잃지 않는다 (TASK-KL-151 ⑦) ──────────────────────
  *
- * 「올리려면 로그인하세요」로 끝내면 대부분 거기서 나간다. 붙여넣고 다듬어 만든 표를
+ * 올리려면 로그인하세요로 끝내면 대부분 거기서 나간다. 붙여넣고 다듬어 만든 표를
  * 두고 로그인 왕복을 다녀오라는 뜻이기 때문이다.
  *
  * 그래서 **올리려던 사실을 적어 두고** 로그인으로 보낸다. 돌아오면 그 표가 저절로 올라간다.
- * 표 자체는 이미 이 브라우저에 있으니 여기 적는 것은 「어느 표였나」 하나뿐이다.
+ * 표 자체는 이미 이 브라우저에 있으니 여기 적는 것은 어느 표였나 하나뿐이다.
  */
 const PENDING_KEY = 'karmolab_pack_upload_pending';
 
@@ -218,10 +218,10 @@ export function queueUpload(localPackId: string): void {
 }
 
 /**
- * 적어 둔 표들을 올린다 — 로그인한 뒤 한 번 부른다.
+ * 적어 둔 표들을 올린다. 로그인한 뒤 한 번 부른다.
  *
  * 실패한 것은 **줄에서 안 뺀다**(서버가 잠깐 죽었을 수 있다). 다만 표가 이 브라우저에서
- * 사라졌으면 그 줄은 지운다 — 영영 못 올릴 것을 계속 들고 있을 이유가 없다.
+ * 사라졌으면 그 줄은 지운다. 영영 못 올릴 것을 계속 들고 있을 이유가 없다.
  *
  * @returns 실제로 올라간 표들.
  */
@@ -232,14 +232,14 @@ export async function flushQueuedUploads(): Promise<Pack[]> {
   const left: string[] = [];
   for (const id of list) {
     const pack = loadPacks().filter((p) => p.id === id)[0];
-    if (!pack) continue; // 표가 사라졌다 — 줄에서 뺀다
+    if (!pack) continue; // 표가 사라졌다. 줄에서 뺀다
     if (pack.sharedId) continue; // 이미 올라가 있다
     const res = await uploadPack(pack);
     if (res.id) {
       putPack({ ...pack, sharedId: res.id });
       done.push(pack);
     } else if (res.error === 'offline') {
-      left.push(id); // 서버가 잠깐 없었을 뿐이다 — 다음에 다시
+      left.push(id); // 서버가 잠깐 없었을 뿐이다. 다음에 다시
     }
   }
   writePending(left);

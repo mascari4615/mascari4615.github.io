@@ -3,7 +3,7 @@
  *
  * 왜: 여기는 끌기 말고는 길이 없어서 마우스가 없으면 순위를 아예 못 매겼다(접근성 감사가
  * `dnd.ts` 를 이름으로 짚은 자리). 화살표로 옮기게 만들었는데, 그게 **정말로 옮겨지는지**를
- * 보는 눈이 없으면 「표시만 달고 죽은」 상태를 아무도 모른다.
+ * 보는 눈이 없으면 표시만 달고 죽은 상태를 아무도 모른다.
  *
  * 재는 것 ① 카드가 초점을 받나 ② → 로 같은 줄에서 자리가 바뀌나 ③ ↓ 로 아래 줄로 가나.
  * 나가는 값: 0 = 통과 / 1 = 빨강 / 2 = 못 돌림(안 구웠거나 브라우저 없음).
@@ -18,14 +18,14 @@ const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
 
 if (!fs.existsSync(path.join(appRoot, 'js/widgets/tierlist/tierlist.js'))) {
-  console.log('[tierlist-keys] 못 돌림 — 아직 안 구웠다 (`node build.mjs` 뒤에 돌려라). 이건 통과가 아니다.');
+  console.log('[tierlist-keys] 못 돌림. 아직 안 구웠다 (`node build.mjs` 뒤에 돌려라). 이건 통과가 아니다.');
   process.exit(2);
 }
 let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.log('[tierlist-keys] 못 돌림 — 이 기계에 브라우저가 없다. 이건 통과가 아니다.');
+  console.log('[tierlist-keys] 못 돌림. 이 기계에 브라우저가 없다. 이건 통과가 아니다.');
   process.exit(2);
 }
 
@@ -54,9 +54,9 @@ const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.goto(`${BASE}/apps/karmolab/#tierlist`, { waitUntil: 'networkidle', timeout: 60000 });
-  /* ★ **잴 것을 우리가 만든다**. 이 화면은 「무슨 표를 매길지」를 고르기 전에는 카드가 0장이라,
+  /* ★ **잴 것을 우리가 만든다**. 이 화면은 무슨 표를 매길지를 고르기 전에는 카드가 0장이라,
      그냥 열고 기다리면 판마다 다른 답이 나온다(실측: 한 판은 카드가 있고 한 판은 없었다).
-     위젯이 이미 내놓은 제 손잡이로 표 하나와 카드 셋을 만들어 두고 잰다 — 흔들리지 않는다. */
+     위젯이 이미 내놓은 제 손잡이로 표 하나와 카드 셋을 만들어 두고 잰다. 흔들리지 않는다. */
   await page.waitForFunction(() => !!(window.Tierlist?.state?.createList && window.Tierlist?.state?.addItem),
     null, { timeout: 30000 });
   await page.evaluate(() => {
@@ -67,7 +67,7 @@ try {
   });
   const card = await page.waitForSelector('#page-tierlist .tl-item[data-item-id]', { timeout: 30000 }).catch(() => null);
   if (!card) {
-    console.log('[tierlist-keys] 못 돌림 — 표를 만들었는데도 카드가 안 뜬다.');
+    console.log('[tierlist-keys] 못 돌림. 표를 만들었는데도 카드가 안 뜬다.');
     await browser.close(); server.close();
     process.exit(2);
   }
@@ -78,7 +78,7 @@ try {
   const first = await readLines();
   const lineNumber = first.findIndex((z) => z.length >= 2);
   if (lineNumber < 0) {
-    console.log('[tierlist-keys] 못 돌림 — 카드가 둘 이상 있는 줄이 없다(옮길 것이 없다).');
+    console.log('[tierlist-keys] 못 돌림. 카드가 둘 이상 있는 줄이 없다(옮길 것이 없다).');
     await browser.close(); server.close();
     process.exit(2);
   }
@@ -87,7 +87,7 @@ try {
   await page.click(`.tl-item[data-item-id="${toMove}"]`, { position: { x: 2, y: 2 } }).catch(() => {});
   await page.evaluate((id) => document.querySelector(`.tl-item[data-item-id="${id}"]`).focus(), toMove);
   const caught = await page.evaluate((id) => document.activeElement?.dataset?.itemId === id, toMove);
-  if (!caught) problems.push('카드가 초점을 못 받는다 — 자판으로는 잡을 수조차 없다');
+  if (!caught) problems.push('카드가 초점을 못 받는다. 자판으로는 잡을 수조차 없다');
 
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction((a) => {
@@ -97,7 +97,7 @@ try {
 
   const horizontal = await readLines();
   await page.evaluate((id) => document.querySelector(`.tl-item[data-item-id="${id}"]`)?.focus(), toMove);
-  /* 맨 아래 줄(담아 두는 자리)에 있으면 ↓ 는 갈 데가 없다 — 그건 결함이 아니라 끝이다. 그때는 ↑ 로 잰다. */
+  /* 맨 아래 줄(담아 두는 자리)에 있으면 ↓ 는 갈 데가 없다. 그건 결함이 아니라 끝이다. 그때는 ↑ 로 잰다. */
   const vertical = lineNumber >= first.length - 1;
   await page.keyboard.press(vertical ? 'ArrowUp' : 'ArrowDown');
   await page.waitForFunction((a) => {
@@ -105,7 +105,7 @@ try {
     return ![...zs[a.i].querySelectorAll('.tl-item')].some((e) => e.dataset.itemId === a.id);
   }, { i: lineNumber, id: toMove }, { timeout: 5000 }).catch(() => problems.push('↓ 를 눌러도 아래 줄로 안 간다'));
 
-  console.log(`[tierlist-keys] 줄 ${first.length}개 · 옮긴 카드 ${toMove} · 문제 ${problems.length}건`);
+  console.log(`[tierlist-keys] 줄 ${first.length}개, 옮긴 카드 ${toMove}, 문제 ${problems.length}건`);
   void horizontal;
 } finally {
   await browser.close();
@@ -117,4 +117,4 @@ if (problems.length) {
   console.error('[tierlist-keys] ❌ 자판으로 티어표를 못 옮긴다.');
   process.exit(1);
 }
-console.log('[tierlist-keys] OK — 화살표만으로 같은 줄·아래 줄로 옮겨진다.');
+console.log('[tierlist-keys] OK. 화살표만으로 같은 줄, 아래 줄로 옮겨진다.');

@@ -20,7 +20,7 @@ test('짚은 것을 근거와 함께 담는다', async () => {
   assert.equal(r.all[0].evidence.length, 1);
 });
 
-test('근거를 못 대면 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다', async () => {
+test('근거를 못 대면 버린다. 되새김은 헛것이 가장 잘 나오는 자리다', async () => {
   const written = [];
   const r = new reflection({ ask: async () => [{ what: '조수님은 사실 고양이를 싫어한다', evidence: [] }], log: (m) => written.push(m) });
   assert.equal(await r.reflect(exchange), 0);
@@ -28,7 +28,7 @@ test('근거를 못 대면 버린다 — 되새김은 헛것이 가장 잘 나�
   assert.match(written.join(' '), /근거가 없어 버렸다/);
 });
 
-test('같은 걸 또 짚지 않는다 — 글자가 달라도 같은 얘기면 안 담는다', async () => {
+test('같은 걸 또 짚지 않는다. 글자가 달라도 같은 얘기면 안 담는다', async () => {
   const r = new reflection({ ask: async () => [pointed('조수님은 셰이더에 자꾸 막힌다')] });
   await r.reflect(exchange);
   const r2 = new reflection({ ask: async () => [pointed('조수님은 셰이더에 계속 막힌다')] });
@@ -36,19 +36,19 @@ test('같은 걸 또 짚지 않는다 — 글자가 달라도 같은 얘기면 �
   assert.equal(await r2.reflect(exchange), 0, '거의 같은 말을 두 번 담으면 재료 자리를 다 먹는다');
 });
 
-test('아무것도 안 짚어도 조용히 넘어간다 — 억지로 만들지 않는다', async () => {
+test('아무것도 안 짚어도 조용히 넘어간다. 억지로 만들지 않는다', async () => {
   const r = new reflection({ ask: async () => [] });
   assert.equal(await r.reflect(exchange), 0);
 });
 
-test('두뇌가 죽어도 대화는 안 멈춘다 — 그리고 조용히 삼키지 않는다', async () => {
+test('두뇌가 죽어도 대화는 안 멈춘다. 그리고 조용히 삼키지 않는다', async () => {
   const written2 = [];
   const r = new reflection({ ask: async () => { throw new Error('두뇌 없음'); }, log: (m) => written2.push(m) });
   assert.equal(await r.reflect(exchange), 0);
   assert.match(written2.join(' '), /실패/);
 });
 
-test('물어보기가 없으면 아무 일도 안 한다 — 아무 데도 안 걸리고 그냥 돈다', async () => {
+test('물어보기가 없으면 아무 일도 안 한다. 아무 데도 안 걸리고 그냥 돈다', async () => {
   const r = new reflection();
   assert.equal(await r.reflect(exchange), 0);
   assert.equal(r.isCountTime, false);
@@ -56,7 +56,7 @@ test('물어보기가 없으면 아무 일도 안 한다 — 아무 데도 안 �
 
 // ── 언제 되새기나 ────────────────────────────────────────────────
 
-test('말이 얼마쯤 쌓여야 되새긴다 — 매 turn 되새기면 그게 값이다', () => {
+test('말이 얼마쯤 쌓여야 되새긴다. 매 turn 되새기면 그게 값이다', () => {
   const r = new reflection({ every: 3, ask: async () => [] });
   assert.equal(r.calc([text2('하나')]), false);
   assert.equal(r.calc([text2('하나'), text2('둘'), text2('셋')]), true);
@@ -71,7 +71,7 @@ test('되새기고 나면 다시 쌓일 때까지 안 한다', async () => {
 
 // ── 두뇌에 얹을 한 줄 ─────────────────────────────────────────────
 
-test('지금 얘기와 이어질 때만 얹는다 — 늘 붙이면 사람을 계속 분석하는 꼴이다', async () => {
+test('지금 얘기와 이어질 때만 얹는다. 늘 붙이면 사람을 계속 분석하는 꼴이다', async () => {
   const r = new reflection({ ask: async () => [pointed('조수님은 셰이더 얘기를 밤에만 꺼낸다')] });
   await r.reflect(exchange);
   assert.equal(reflectionNote(r, '오늘 점심 뭐 먹지'), '');

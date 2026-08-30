@@ -2,11 +2,11 @@
  * PDF 서명이 고른 자리에 제대로 들어가는지 확인한다 (TASK-KL-088)
  *
  * 조용히 어긋나는 자리가 둘이다:
- *  ① **위아래 뒤집힘** — PDF 의 y 는 아래에서 위로 커진다. 화면 좌표를 그대로 쓰면
+ *  ① **위아래 뒤집힘**. PDF 의 y 는 아래에서 위로 커진다. 화면 좌표를 그대로 쓰면
  *     위쪽을 눌렀는데 아래에 찍힌다. 파일은 멀쩡히 나오고 오류도 없다.
- *  ② 엉뚱한 쪽에 들어감 — 쪽 번호를 1부터 세느냐 0부터 세느냐에서 어긋난다.
+ *  ② 엉뚱한 쪽에 들어감. 쪽 번호를 1부터 세느냐 0부터 세느냐에서 어긋난다.
  *
- * 그래서 결과 PDF 를 **다시 그려 픽셀을 본다** — 누른 자리 근처에만 잉크가 있어야 한다.
+ * 그래서 결과 PDF 를 **다시 그려 픽셀을 본다**. 누른 자리 근처에만 잉크가 있어야 한다.
  *
  * 사용: node scripts/test-pdfsign.mjs
  */
@@ -20,7 +20,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12) — 자매 검사들과 같은 처방.
+/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12). 자매 검사들과 같은 처방.
  *   위젯 build() 가 말 묶음을 받아 온 뒤에 그리므로, 껍데기만 주면 화면이 영영 안 그려진다. */
 await page.route('**/*', (route) => {
   const url = new URL(route.request().url());
@@ -89,8 +89,8 @@ const result = await page.evaluate(async () => {
   const input = host.querySelector('#psFile');
   input.files = dt.files;
   input.dispatchEvent(new Event('change'));
-  // 화면이 보이는 것만으로는 부족하다 — 여는 일이 아직 끝나지 않았는데 서명을 넣으면,
-  // 뒤늦게 뜨는 「서명을 그리고…」 안내가 우리 결과를 덮어써 실패로 보인다(실제로 그랬다).
+  // 화면이 보이는 것만으로는 부족하다. 여는 일이 아직 끝나지 않았는데 서명을 넣으면,
+  // 뒤늦게 뜨는 서명을 그리고... 안내가 우리 결과를 덮어써 실패로 보인다(실제로 그랬다).
   await wait(
     () => host.querySelector('#psStatus').textContent.includes('놓을 자리를 누르세요') && host.querySelector('#psView').width > 10,
     15000,
@@ -111,7 +111,7 @@ const result = await page.evaluate(async () => {
   imgInput.dispatchEvent(new Event('change'));
   await wait(() => host.querySelector('#psStatus').textContent.includes('서명으로 넣었어요'), 8000, '서명 그림이 들어가지 않았다');
 
-  // 2쪽의 **위쪽 1/4** 지점을 누른다 — 뒤집히면 아래에 찍힌다
+  // 2쪽의 **위쪽 1/4** 지점을 누른다. 뒤집히면 아래에 찍힌다
   host.querySelector('#psPage').value = '2';
   host.querySelector('#psPage').dispatchEvent(new Event('input'));
   await new Promise((r) => setTimeout(r, 600));
@@ -154,7 +154,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: doc.numPages === 2 && p1.dark < 50 && p2.dark > 500 && p2.avgY > 0.12 && p2.avgY < 0.4,
-    why: `쪽 ${doc.numPages} · 1쪽 잉크 ${p1.dark} (없어야 함) · 2쪽 잉크 ${p2.dark} · 세로 위치 ${p2.avgY.toFixed(2)} (누른 0.25 근처여야 함)`
+    why: `쪽 ${doc.numPages}, 1쪽 잉크 ${p1.dark} (없어야 함), 2쪽 잉크 ${p2.dark}, 세로 위치 ${p2.avgY.toFixed(2)} (누른 0.25 근처여야 함)`
   };
 });
 

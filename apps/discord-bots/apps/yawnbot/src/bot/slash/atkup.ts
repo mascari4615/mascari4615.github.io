@@ -1,6 +1,6 @@
 /**
  * /atkup unity 슬래시 핸들러 (atkup-bot 흡수, TASK-YB-003).
- * (구 /atkup news = Hacker News 수동 — YB-036 에서 스케줄 news notifier 로 흡수·폐기.)
+ * (구 /atkup news = Hacker News 수동. YB-036 에서 스케줄 news notifier 로 흡수, 폐기.)
  */
 import { MessageFlags, type ChatInputCommandInteraction } from 'discord.js';
 import type { BotContext } from './bot-context';

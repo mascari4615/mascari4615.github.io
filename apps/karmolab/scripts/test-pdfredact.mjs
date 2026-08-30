@@ -1,14 +1,14 @@
 /**
  * PDF 가리개가 정말 글자를 없애는지 확인한다 (TASK-KL-088)
  *
- * 이 도구가 존재하는 이유는 「검은 네모를 그려도 글자는 남는다」이다. 그런데 그 실패는
- * 눈으로는 절대 안 보인다 — 결과물이 똑같이 생겼기 때문이다. 그래서 눈이 아니라
+ * 이 도구가 존재하는 이유는 검은 네모를 그려도 글자는 남는다이다. 그런데 그 실패는
+ * 눈으로는 절대 안 보인다. 결과물이 똑같이 생겼기 때문이다. 그래서 눈이 아니라
  * **만들어진 PDF 에서 글자를 도로 뽑아** 잰다.
  *
  *  ① 비밀 글자가 들어간 PDF 를 만들고 → 그 자리를 가린 뒤 → 결과에서 글자를 뽑아 비밀이 없는지
  *  ② 쪽수가 그대로인지 (그림으로 굽다가 페이지를 잃으면 그것도 사고다)
  *  ③ 비교 대조: 가리지 않은 원본에서는 그 비밀이 실제로 뽑히는지
- *     — 이게 없으면 「원래 못 뽑는 것」을 성공으로 착각한다.
+ *    . 이게 없으면 원래 못 뽑는 것을 성공으로 착각한다.
  *
  * 사용: node scripts/test-pdfredact.mjs
  */
@@ -63,7 +63,7 @@ const out = await page.evaluate(async () => {
   }
   const srcBytes = await src.save();
 
-  /** PDF 에서 글자를 뽑는다 — 도구의 약속을 재는 유일한 방법이다 */
+  /** PDF 에서 글자를 뽑는다. 도구의 약속을 재는 유일한 방법이다 */
   const textOf = async (bytes) => {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
     const doc = await window.pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
@@ -78,7 +78,7 @@ const out = await page.evaluate(async () => {
   // ③ 대조: 원본에서는 비밀이 정말 뽑히는가
   const before = await textOf(srcBytes);
   if (!before.text.includes(SECRET)) {
-    return { ok: false, why: '원본에서 비밀이 안 뽑힌다 — 시험 자체가 아무것도 못 잰다' };
+    return { ok: false, why: '원본에서 비밀이 안 뽑힌다. 시험 자체가 아무것도 못 잰다' };
   }
 
   const host = document.createElement('div');
@@ -90,7 +90,7 @@ const out = await page.evaluate(async () => {
   dt.items.add(new File([srcBytes], '문서.pdf', { type: 'application/pdf' }));
   input.files = dt.files;
   input.dispatchEvent(new Event('change'));
-  // 캔버스 크기가 잡히는 것은 **그리기 시작**의 신호일 뿐이다 — 다 끝났다는 뜻이 아니다.
+  // 캔버스 크기가 잡히는 것은 **그리기 시작**의 신호일 뿐이다. 다 끝났다는 뜻이 아니다.
   // 준비가 끝났다고 말해 줄 때까지 기다린다. 안 그러면 아직 그리는 중에 끌게 되고,
   // 그때 잡은 것은 뒤이어 끝나는 그리기에 묻힌다.
   for (let i = 0; i < 100 && !/드래그하세요/.test(host.querySelector('#prStatus').textContent); i++) {
@@ -134,8 +134,8 @@ const out = await page.evaluate(async () => {
   return {
     ok: !after.text.includes(SECRET) && after.pages === before.pages,
     why:
-      `원본에서 비밀 뽑힘 ✓ · 결과에서 비밀 ${after.text.includes(SECRET) ? '아직 뽑힌다 ✗' : '안 뽑힘 ✓'} · ` +
-      `쪽수 ${before.pages} → ${after.pages} · 결과에서 뽑힌 글자 ${after.text.trim().length}자`
+      `원본에서 비밀 뽑힘 ✓, 결과에서 비밀 ${after.text.includes(SECRET) ? '아직 뽑힌다 ✗' : '안 뽑힘 ✓'}, ` +
+      `쪽수 ${before.pages} → ${after.pages}, 결과에서 뽑힌 글자 ${after.text.trim().length}자`
   };
 });
 
@@ -143,7 +143,7 @@ await browser.close();
 
 console.log(`${out.ok ? '  OK' : '  X '} ${out.why}`);
 if (!out.ok) {
-  console.error('[test-pdfredact] 가린 PDF 에서 글자가 그대로 뽑힌다 — 이 도구의 존재 이유가 무너진다');
+  console.error('[test-pdfredact] 가린 PDF 에서 글자가 그대로 뽑힌다. 이 도구의 존재 이유가 무너진다');
   process.exit(1);
 }
 console.log('[test-pdfredact] 가린 PDF 에서 비밀이 한 글자도 안 뽑히는 것까지 확인');

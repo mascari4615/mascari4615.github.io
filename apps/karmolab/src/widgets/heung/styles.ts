@@ -1,4 +1,4 @@
-/** 흥 화면 규칙 — 위젯 본체에서 떼어 낸 문자열 하나 (TASK-KL-220). 동작은 없다. */
+/** 흥 화면 규칙. 위젯 본체에서 떼어 낸 문자열 하나 (TASK-KL-220). 동작은 없다. */
 export const HEUNG_CSS = `
     .hu-root { --hu-head:172px; --hu-beat:72px; display:flex; flex-direction:column; width:100%; user-select:none;
       height:calc(100dvh - 150px); min-height:620px; overflow:hidden; background:var(--bg-primary); color:var(--text-primary); }
@@ -94,11 +94,11 @@ export const HEUNG_CSS = `
     .hu-clip.is-locked .hu-handle { display:none; }
     .hu-clip.is-muted .hu-clip-name::before { content:'🔇 '; }
     .hu-btn, .hu-mini { white-space:nowrap; }
-    /* 셸이 상태줄 옆에 붙이는 「이어서」 줄. 다섯 단추가 390px 를 넘겨 화면 밖으로 나갔다 —
+    /* 셸이 상태줄 옆에 붙이는 이어서 줄. 다섯 단추가 390px 를 넘겨 화면 밖으로 나갔다 . 
        내 판 안에 들어온 것이니 여기서 접거나 굴러가게 한다. */
     .hu-root .tool-next-row { max-width:100%; overflow-x:auto; flex-wrap:nowrap; }
     .hu-root .tool-next-btn { flex:none; }
-    /* 트랙 이름칸은 좁은 머리에서 늘 길다 — 최소폭을 풀어 머리 안에 들어오게 한다. */
+    /* 트랙 이름칸은 좁은 머리에서 늘 길다. 최소폭을 풀어 머리 안에 들어오게 한다. */
     .hu-track-title { min-width:0; }
     .hu-track-title input { min-width:0; width:100%; }
     .hu-auto-pick { display:flex; gap:3px; margin-top:4px; }
@@ -165,6 +165,20 @@ export const HEUNG_CSS = `
     .hu-key { position:absolute; left:0; width:68px; height:16px; border:1px solid var(--border); border-top:0; border-radius:0; text-align:left; cursor:pointer;
       background:#e8e8e4; color:#25252b; font:9px var(--font-mono); padding:2px 5px; z-index:4; }
     .hu-key.is-black { width:45px; background:#25252b; color:#d8d8d3; border-color:#111; z-index:5; }
+    /* 타악기 줄. 한 벌에 있는 소리만 폭을 넓혀 이름이 안 잘리게 */
+    .hu-off-scale { position:absolute; left:68px; right:0; background:rgba(0,0,0,.28); pointer-events:none; z-index:1; }
+    .hu-ghost-note { position:absolute; border-radius:3px; background:var(--text-tertiary); opacity:.22; pointer-events:none; z-index:2; border:0; }
+    .hu-grid { display:flex; flex-direction:column; gap:3px; padding:10px; overflow:auto; height:100%; }
+    .hu-grid-row { display:flex; align-items:center; gap:3px; }
+    .hu-grid-name { width:96px; flex:0 0 96px; font:11px var(--font-mono); color:var(--text-secondary); text-align:right; padding-right:6px; }
+    .hu-grid-cell { width:var(--hu-grid-cell,34px); height:30px; flex:0 0 var(--hu-grid-cell,34px); border:1px solid var(--border); border-radius:3px; background:var(--bg-secondary); cursor:pointer; padding:0; }
+    .hu-grid-cell.is-strong { border-color:var(--text-tertiary); }
+    .hu-grid-cell.is-on { background:color-mix(in srgb, var(--accent) calc(var(--hu-grid-level,1) * 100%), var(--bg-secondary)); border-color:var(--accent); }
+    .hu-grid-cell:focus-visible { outline:2px solid var(--accent-hover); outline-offset:1px; }
+    .hu-grid-tick { width:var(--hu-grid-cell,34px); flex:0 0 var(--hu-grid-cell,34px); text-align:center; font:10px var(--font-mono); color:var(--text-tertiary); }
+    .hu-grid-tick.is-strong { color:var(--text-secondary); }
+    .hu-hint { margin:2px 6px 6px; font:10px var(--font-mono); color:var(--text-tertiary); }
+    .hu-key.is-piece { width:68px; background:var(--accent); color:#0e0e12; font-weight:600; z-index:6; }
     .hu-piano-ruler { position:absolute; top:0; left:68px; height:24px; z-index:3; background:var(--bg-secondary); border-bottom:1px solid var(--border); }
     .hu-piano-ruler { cursor:pointer; }
     .hu-after-end { position:absolute; top:0; bottom:0; z-index:2; display:grid; place-items:start center; padding-top:34px; background:repeating-linear-gradient(135deg,rgba(0,0,0,.34) 0 8px,rgba(0,0,0,.48) 8px 16px); color:var(--text-tertiary); pointer-events:none; font:10px var(--font-mono); }
@@ -183,6 +197,6 @@ export const HEUNG_CSS = `
     .hu-note.is-overlap { box-shadow:0 0 0 2px #ffb347,0 0 8px #ff8c42; }
     .hu-drag-feedback { position:fixed; z-index:1300; pointer-events:none; padding:4px 7px; border:1px solid var(--accent); border-radius:4px; background:var(--bg-primary); color:var(--text-primary); font:10px var(--font-mono); }
     .hu-empty { padding:18px 8px; text-align:center; color:var(--text-tertiary); font-size:11px; line-height:1.6; }
-    .hu-status { margin-left:auto; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-tertiary); font:10px var(--font-mono); }
+    .hu-status { margin-left:auto; width:260px; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-tertiary); font:10px var(--font-mono); }
     @media(max-width:850px) { .hu-root{height:auto;min-height:720px;--hu-head:132px}.hu-toolbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}.hu-toolbar .hu-spacer{display:none}.hu-btn{min-height:38px}.hu-track-head{padding:5px 4px}.hu-track-head input[type=range]{height:18px}.hu-track-title input{font-size:11px}.hu-track-actions .hu-mini{width:32px;height:32px}.hu-editor.is-empty{height:96px}.hu-work{grid-template-columns:1fr}.hu-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.hu-scroll{height:420px}.hu-editor{height:340px}.hu-editor.is-expanded{inset:2dvh 2vw;height:auto}.hu-audio-controls{grid-template-columns:1fr 1fr}.hu-toolbar .hu-status{display:none}.hu-guide{align-items:flex-start;gap:7px}.hu-guide span,.hu-guide small{flex:1 0 100%}.hu-note-handle,.hu-handle{width:16px} }
 `;

@@ -5,6 +5,7 @@ last_modified_at: "2024-08-29T22:16:00+09:00"
 categories: [수필, 생각]
 tags: []
 image: /assets/img/background/backtop.gif
+board: me
 ---
 
 ## 우주 팽창

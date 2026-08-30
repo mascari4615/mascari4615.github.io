@@ -2,17 +2,17 @@
  * **도구가 통째로 죽어 있지 않나** (2026-08-17).
  *
  * 왜 생겼나: 지구본에 화면 읽기용 이름을 다는 한 줄을 **말 묶음을 받기 전에** 넣었더니
- * 「그 말이 없다」로 터져 위젯이 통째로 안 떴다 — 그런데 **어떤 검사도 안 빨개졌다.**
- * 빌드 초록 · 타입 초록 · 말 묶음 검사 초록 · 대비 검사 초록. 몇 시간을 죽은 채로 서비스했다.
- * 껍데기는 그 경우 `.karmolab-build-error` 알림을 대신 그려 준다 — 그러니까 **그 알림이 떴나**만
- * 봐도 「이 도구가 안 뜬다」를 잡는다. 아무도 안 보고 있던 가장 큰 구멍이 그것이었다.
+ * 그 말이 없다로 터져 위젯이 통째로 안 떴다. 그런데 **어떤 검사도 안 빨개졌다.**
+ * 빌드 초록, 타입 초록, 말 묶음 검사 초록, 대비 검사 초록. 몇 시간을 죽은 채로 서비스했다.
+ * 껍데기는 그 경우 `.karmolab-build-error` 알림을 대신 그려 준다. 그러니까 **그 알림이 떴나**만
+ * 봐도 이 도구가 안 뜬다를 잡는다. 아무도 안 보고 있던 가장 큰 구멍이 그것이었다.
  *
  * 재는 것: 도구를 하나씩 열어 ① 못 그렸다는 알림이 떴나 ② 화면이 텅 비었나.
- * 느리다(도구 하나에 1~2초) — 그래서 `--shard i/n` 을 받는다. CI 는 쪼개서 돌린다.
+ * 느리다(도구 하나에 1~2초). 그래서 `--shard i/n` 을 받는다. CI 는 쪼개서 돌린다.
  *
  *
  * [빨강-확인] 2026-08-17: 지구본에 없는 말 열쇠를 일부러 넣고 구워 돌렸더니
- *   「죽은 것 1개 — 번역을 불러오지 못했습니다」로 빨개졌다. 되돌리고 다시 초록인 것도 봤다.
+ *   죽은 것 1개. 번역을 불러오지 못했습니다로 빨개졌다. 되돌리고 다시 초록인 것도 봤다.
  * 사용: node scripts/smoke-widgets-alive.mjs [id ...] [--shard 1/4]
  * 나가는 값: 0 = 다 살아 있다 / 1 = 죽은 도구가 있다 / 2 = 못 돌림.
  */
@@ -28,14 +28,14 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 
 if (!fs.existsSync(path.join(root, 'js/toolbox.js'))) {
-  console.log('[widgets-alive] 못 돌림 — 아직 안 구웠다 (`npm run build` 뒤에 돌려라). 이건 통과가 아니다.');
+  console.log('[widgets-alive] 못 돌림. 아직 안 구웠다 (`npm run build` 뒤에 돌려라). 이건 통과가 아니다.');
   process.exit(2);
 }
 let chromium;
 try {
   ({ chromium } = await import('playwright'));
 } catch {
-  console.log('[widgets-alive] 못 돌림 — 이 기계에 브라우저가 없다. 이건 통과가 아니다.');
+  console.log('[widgets-alive] 못 돌림. 이 기계에 브라우저가 없다. 이건 통과가 아니다.');
   process.exit(2);
 }
 
@@ -49,24 +49,24 @@ const shard = (() => {
 const givenNames = argv.filter((x) => !x.startsWith('--') && x !== (shard ? `${shard.of}/${shard.shardTotal}` : ''));
 
 const lazyMeta = fs.readFileSync(path.join(root, 'src/widgets-lazy-meta.ts'), 'utf8');
-// desktopOnly 는 앱에서만 뜬다 — 브라우저에선 홈으로 튕기므로 여기서 재면 거짓 빨강이다.
+// desktopOnly 는 앱에서만 뜬다. 브라우저에선 홈으로 튕기므로 여기서 재면 거짓 빨강이다.
 const allTools = givenNames.length
   ? givenNames
   : [...lazyMeta.matchAll(/id: '([a-z0-9-]+)'([\s\S]*?)(?=\n {2}\{|\n\];)/g)]
       .filter((m) => !m[2].includes('desktopOnly'))
       .map((m) => m[1]);
 if (allTools.length < 10 && !givenNames.length) {
-  console.error(`[widgets-alive] CANNOT-RUN: 도구를 ${allTools.length}개만 읽었다 — 매니페스트 모양이 바뀌었는지 볼 것.`);
+  console.error(`[widgets-alive] CANNOT-RUN: 도구를 ${allTools.length}개만 읽었다. 매니페스트 모양이 바뀌었는지 볼 것.`);
   process.exit(2);
 }
-/* ★ **다 열면 8분이다** — 그대로 두면 `npm run build` 가 그만큼 느려진다(배포는 지금 250초).
+/* ★ **다 열면 8분이다**. 그대로 두면 `npm run build` 가 그만큼 느려진다(배포는 지금 250초).
    그래서 기본값은 **이번에 손댄 도구만** 연다. 무엇을 열지 가르는 셈은 `lib/alive-scope.mjs`
-   에 따로 두고 시험을 붙였다 — 그 셈이 틀리면 **죽은 도구를 지나친다**(제일 조용한 고장). */
+   에 따로 두고 시험을 붙였다. 그 셈이 틀리면 **죽은 도구를 지나친다**(제일 조용한 고장). */
 function changedFiles() {
   if (argv.includes('--all')) return null;
   try {
     /* ★ 신호를 **세 곳**에서 모은다 (2026-08-17). CI 는 갓 꺼낸 체크아웃이라 `origin/main...HEAD`
-       가 비고, 그것만 보면 「손댄 것 0개」로 읽혀 이 검사가 CI 에서 234개를 매번 다 열거나
+       가 비고, 그것만 보면 손댄 것 0개로 읽혀 이 검사가 CI 에서 234개를 매번 다 열거나
        아예 안 돈다. **이 커밋이 무엇을 바꿨나**(HEAD~1..HEAD)가 CI 에서 가장 정직한 신호다. */
     const branchDiff = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD'], { cwd: repoRoot, encoding: 'utf8' });
     const headDiff = execFileSync('git', ['diff', '--name-only', 'HEAD~1', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' });
@@ -79,7 +79,7 @@ function changedFiles() {
 }
 const narrowed = givenNames.length ? null : toolsToOpen(changedFiles());
 const toCheck = narrowed === null ? allTools : allTools.filter((id) => narrowed.includes(id));
-if (narrowed !== null) console.log(`[widgets-alive] 이번에 손댄 도구만 본다 — ${toCheck.length}개 (전부 = --all)`);
+if (narrowed !== null) console.log(`[widgets-alive] 이번에 손댄 도구만 본다. ${toCheck.length}개 (전부 = --all)`);
 const ids = shard ? toCheck.filter((_, i) => i % shard.shardTotal === shard.of - 1) : toCheck;
 
 const MIME = {
@@ -114,12 +114,12 @@ try {
       couldNotMeasure.push(`${id}: 화면을 못 열었다`);
       continue;
     }
-    /* 그리기는 늦게 끝날 수 있다 — **알림이 뜨거나 뭔가 그려질 때까지** 기다린다.
-       재우고 한 번 보면 느린 기계에서 「아직 안 그린 것」을 「죽었다」로 읽는다. */
+    /* 그리기는 늦게 끝날 수 있다. **알림이 뜨거나 뭔가 그려질 때까지** 기다린다.
+       재우고 한 번 보면 느린 기계에서 아직 안 그린 것을 죽었다로 읽는다. */
     const verdict = await page
       .waitForFunction((wid) => {
-        /* ★ 도구 이름과 화면 이름이 늘 같지는 않다 — 묶여 있는 도구(`docscan` → `page-image`)가 있다.
-           그래서 **지금 보이는 화면**을 본다(2026-08-17: 그걸 몰라 멀쩡한 둘을 「못 쟀다」로 적었다). */
+        /* ★ 도구 이름과 화면 이름이 늘 같지는 않다. 묶여 있는 도구(`docscan` → `page-image`)가 있다.
+           그래서 **지금 보이는 화면**을 본다(2026-08-17: 그걸 몰라 멀쩡한 둘을 못 쟀다로 적었다). */
         const box = document.getElementById(`page-${wid}`)
           || [...document.querySelectorAll('[id^="page-"]')].find((e) => getComputedStyle(e).display !== 'none');
         if (!box) return false;
@@ -137,15 +137,15 @@ try {
 }
 
 const shardLabel = shard ? `${shard.of}/${shard.shardTotal} 조각 ` : '';
-console.log(`[widgets-alive] ${shardLabel}도구 ${ids.length}개 · 죽은 것 ${dead.length}개 · 못 잰 것 ${couldNotMeasure.length}개`);
+console.log(`[widgets-alive] ${shardLabel}도구 ${ids.length}개, 죽은 것 ${dead.length}개, 못 잰 것 ${couldNotMeasure.length}개`);
 for (const m of couldNotMeasure) console.log(`  ? ${m}`);
 if (dead.length) {
-  console.error('[widgets-alive] ❌ 열었는데 못 그린 도구가 있다 — 화면에 「못 불러왔다」만 뜬다:');
+  console.error('[widgets-alive] ❌ 열었는데 못 그린 도구가 있다. 화면에 못 불러왔다만 뜬다:');
   for (const m of dead) console.error('  - ' + m);
   process.exit(1);
 }
 if (couldNotMeasure.length === ids.length) {
-  console.log('[widgets-alive] 못 돌림 — 하나도 못 쟀다. 이건 통과가 아니다.');
+  console.log('[widgets-alive] 못 돌림. 하나도 못 쟀다. 이건 통과가 아니다.');
   process.exit(2);
 }
-console.log('[widgets-alive] OK — 연 도구가 전부 무언가를 그렸다.');
+console.log('[widgets-alive] OK. 연 도구가 전부 무언가를 그렸다.');

@@ -10,10 +10,10 @@
   "comparepic.say.07": "The image to save could not be made",
   "comparepic.say.08": "Saved exactly as it looks now",
   "comparepic.say.09": "Choose two photos. The files never leave your device",
-  "comparepic.sizeDiff": "The sizes differ ({a} / {b}) — they are laid over each other at the larger size",
-  "comparepic.same.line": "Machine verdict: {word} — {pct}% alike ({bits}/64 bits differ). Mirroring, rotation and heavy cropping are not detected",
+  "comparepic.sizeDiff": "The sizes differ ({a} / {b}). they are laid over each other at the larger size",
+  "comparepic.same.line": "Machine verdict: {word}. {pct}% alike ({bits}/64 bits differ). Mirroring, rotation and heavy cropping are not detected",
   "comparepic.same.same": "the same picture",
   "comparepic.same.likely": "almost the same picture (re-saved or resized)",
-  "comparepic.same.maybe": "similar — check with your eyes",
+  "comparepic.same.maybe": "similar. check with your eyes",
   "comparepic.same.different": "a different picture"
 }

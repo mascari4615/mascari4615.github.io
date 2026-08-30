@@ -16,7 +16,7 @@
   "videotool.btn.back": "作業を選ぶ",
   "videotool.btn.chain": "この結果で続ける",
   "videotool.preview.fail": "この動画はプレビューできません",
-  "videotool.meta": "{time} · {w}×{h} · {size}",
+  "videotool.meta": "{time}, {w}×{h}, {size}",
   "videotool.part.subtitle": "字幕",
   "videotool.btn.recent": "さっきの作業"
 }

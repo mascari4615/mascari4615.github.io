@@ -1,15 +1,15 @@
 /**
  * 화투 짝맞추기 화면 (TASK-KL-242)
  *
- * 내 패를 고르면 **짝이 되는 바닥 패가 밝아진다** — 열두 달을 외운 사람만 놀 수 있으면 안 된다.
- * 짝이 하나뿐이면 바로 가져가고, 없으면 「버리기」가 뜬다(막히지 않게).
+ * 내 패를 고르면 **짝이 되는 바닥 패가 밝아진다**. 열두 달을 외운 사람만 놀 수 있으면 안 된다.
+ * 짝이 하나뿐이면 바로 가져가고, 없으면 버리기가 뜬다(막히지 않게).
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { cardMark } from '../card';
 import type { HanafudaState, HanafudaAction } from './hanafuda';
 
-/** 달마다 다른 꽃 — 그림 없이 글자와 색만으로 열둘을 구분한다. */
+/** 달마다 다른 꽃. 그림 없이 글자와 색만으로 열둘을 구분한다. */
 const FLOWER = ['松', '梅', '桜', '藤', '菖', '牡', '萩', '芒', '菊', '楓', '柳', '桐'];
 const HUE = [
   '#166534', '#be185d', '#f472b6', '#7c3aed', '#0891b2', '#dc2626',
@@ -32,7 +32,7 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
     const who = el.querySelector('#acHfWho') as HTMLElement;
     let picked = -1;
 
-    /* 종이는 공용 부품이 정한다 — 여기서는 **무엇이 적혀 있는지**(꽃·달·색)만 준다. */
+    /* 종이는 공용 부품이 정한다. 여기서는 **무엇이 적혀 있는지**(꽃, 달, 색)만 준다. */
     const card = (m: number, o: { can?: boolean; pick?: boolean; data: Record<string, number> }): string =>
       cardMark(FLOWER[m], {
         ...o,

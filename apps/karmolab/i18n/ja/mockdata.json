@@ -12,9 +12,9 @@
   "mockdata.btn.run": "作る",
   "mockdata.btn.shuffle": "別のをもう一度",
   "mockdata.btn.copy": "コピー",
-  "mockdata.hint.types": "使える種類: name · email · phone · address · company · job · id · uuid · int(20,40) · float(0,1) · bool · date(2024-01-01,2026-12-31) · enum(あ|い|う) · lorem(6) · url",
+  "mockdata.hint.types": "使える種類: name, email, phone, address, company, job, id, uuid, int(20,40), float(0,1), bool, date(2024-01-01,2026-12-31), enum(あ|い|う), lorem(6), url",
   "mockdata.status.idle": "項目を書くとすぐ作ります",
   "mockdata.status.empty": "項目を1行でも書いてください",
-  "mockdata.status.ok": "{n} 行 · {cols} 項目 (種 {seed})",
+  "mockdata.status.ok": "{n} 行, {cols} 項目 (種 {seed})",
   "mockdata.copy.done": "コピーしました"
 }

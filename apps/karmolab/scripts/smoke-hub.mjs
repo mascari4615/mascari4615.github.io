@@ -2,7 +2,7 @@
  * 도구 목록 페이지가 성한지 확인 (TASK-KL-089)
  *
  * 다른 검사들은 도구 **상세** 페이지만 본다. 정작 목록 페이지는 아무도 안 보는데,
- * 여기는 검색으로 들어온 사람이 「다른 건 뭐가 있나」 하고 거치는 관문이고
+ * 여기는 검색으로 들어온 사람이 다른 건 뭐가 있나 하고 거치는 관문이고
  * 크롤러가 도구 전체를 발견하는 통로이기도 하다. 여기가 비면 그 아래가 통째로 가려진다.
  *
  * 보는 것:
@@ -11,9 +11,9 @@
  *  - 링크가 실제로 눌리는가 (첫 카드를 눌러 그 도구 페이지로 가는지)
  *  - 분류 묶음이 남아 있는가
  *
- * 세는 것은 **아래 목록의 카드만**이다 (TASK-KL-129). 맨 위 「내가 쓰는 것」은 같은 카드를
- * 데려다 놓은 사본이라, 같이 세면 이 검사가 자기 발자국을 밟는다 — 검사가 도구를 한 번
- * 눌러 보고 나면 그것이 「최근」에 남아 다음 셈이 하나 늘어난다(실제로 그렇게 빨간불이 났다).
+ * 세는 것은 **아래 목록의 카드만**이다 (TASK-KL-129). 맨 위 내가 쓰는 것은 같은 카드를
+ * 데려다 놓은 사본이라, 같이 세면 이 검사가 자기 발자국을 밟는다. 검사가 도구를 한 번
+ * 눌러 보고 나면 그것이 최근에 남아 다음 셈이 하나 늘어난다(실제로 그렇게 빨간불이 났다).
  *
  * 사용: node scripts/smoke-hub.mjs
  *       BASE=http://127.0.0.1:8797/apps/blog node scripts/smoke-hub.mjs
@@ -28,14 +28,14 @@ import { untilSettled } from './lib/settle.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-/* 작업대로 흡수된 옛 도구는 목록에 카드가 없다 — 주소만 살아 있고(숨은 별칭) 누르면
-   작업대의 그 조작으로 간다. 목록에서 찾으면 「빠졌다」로 열여섯 건이 뜬다(2026-08-13).
+/* 작업대로 흡수된 옛 도구는 목록에 카드가 없다. 주소만 살아 있고(숨은 별칭) 누르면
+   작업대의 그 조작으로 간다. 목록에서 찾으면 빠졌다로 열여섯 건이 뜬다(2026-08-13).
    목록 정본은 `lib/retired-operations.mjs` 하나다. */
 const expected = withoutRetired(Object.keys(seo));
 
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
-/** 걸러 찾기가 **끝났나** — 보이는 카드 수가 두 번 연속 같으면 끝난 것으로 본다.
+/** 걸러 찾기가 **끝났나**. 보이는 카드 수가 두 번 연속 같으면 끝난 것으로 본다.
     시간을 박으면 느린 판에서 옛 수를 읽는다(`quality.md` § 재우고 읽지 마라). */
 async function untilFiltered(page, max = 5000) {
   const count = () => page.evaluate(() =>
@@ -53,8 +53,8 @@ async function untilFiltered(page, max = 5000) {
 const problems = [];
 
 /* ★ **못 받은 파일이 있으면 그 기능만 조용히 죽는다** (2026-08-17, 실주소에서 뒤늦게 들켰다).
-   늦게 받는 스크립트(같이 쓰기·알람 화면) 둘이 안 지어진 채 배포돼 404 였는데, 화면은 멀쩡하고
-   검사도 전부 초록이었다 — 도구 상세 장을 보는 검사는 그 파일을 안 부르고, 관문을 보는 이 검사는
+   늦게 받는 스크립트(같이 쓰기, 알람 화면) 둘이 안 지어진 채 배포돼 404 였는데, 화면은 멀쩡하고
+   검사도 전부 초록이었다. 도구 상세 장을 보는 검사는 그 파일을 안 부르고, 관문을 보는 이 검사는
    응답 코드를 안 봤다. 여기서 센다: 관문에서 받다 만 것이 있으면 빨강.
    지문 붙은 이름의 404 는 **배포가 갈리는 순간**일 수 있어 뺀다(옆 검사가 이미 그렇게 다룬다). */
 const hashed = /\.[0-9a-f]{8,}\.(js|css)$/;
@@ -62,16 +62,16 @@ const notFetched = [];
 page.on('response', (r) => {
   const u = r.url();
   if (r.status() < 400) return;
-  if (/gc\.zgo\.at|goatcounter/.test(u)) return;   // 남의 서버 — 우리가 못 고친다
+  if (/gc\.zgo\.at|goatcounter/.test(u)) return;   // 남의 서버. 우리가 못 고친다
   if (hashed.test(u.split('?')[0])) return;
   notFetched.push(`${r.status()} ${u.split('/').slice(-2).join('/')}`);
 });
 const res = await page.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 30000 });
 if (res.status() !== 200) problems.push(`목록 페이지가 안 열린다 (http ${res.status()})`);
 
-/* 관문에서 받다 만 것 — 화면이 멀쩡해도 기능이 빠진 것이다. */
+/* 관문에서 받다 만 것. 화면이 멀쩡해도 기능이 빠진 것이다. */
 await page.waitForTimeout(2500);   // 재움-의도: 늦게 받는 것들(load 뒤 한가할 때)이 올 시간을 준다
-for (const m of [...new Set(notFetched)].slice(0, 5)) problems.push(`관문에서 못 받은 것 — ${m}`);
+for (const m of [...new Set(notFetched)].slice(0, 5)) problems.push(`관문에서 못 받은 것. ${m}`);
 
 const state = await page.evaluate(() => {
   const links = [...document.querySelectorAll('a[href^="/t/"]')];
@@ -90,7 +90,7 @@ const state = await page.evaluate(() => {
 });
 
 // 빠진 도구가 있는지는 **링크로** 센다. 묶음 부모는 카드가 아니라 분류 제목 링크로 걸리므로
-// 카드 수는 늘 도구 수보다 적다 — 그것을 문제로 세었다가 멀쩡한 목록을 실패로 판정했다.
+// 카드 수는 늘 도구 수보다 적다. 그것을 문제로 세었다가 멀쩡한 목록을 실패로 판정했다.
 const missing = expected.filter((id) => !state.ids.includes(id));
 if (missing.length) problems.push(`목록에 없는 도구 ${missing.length}개: ${missing.slice(0, 12).join(', ')}`);
 if (state.visibleCards !== state.cards) problems.push(`화면에 안 보이는 카드 ${state.cards - state.visibleCards}개`);
@@ -103,40 +103,40 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
   if (!find) problems.push('걸러 찾는 칸이 없다');
   else {
     await find.fill('PDF');
-    /* 재우지 말고 **걸러진 결과가 멎기를** 기다린다 (`lib/settle.mjs`) — 400ms 를 세면
+    /* 재우지 말고 **걸러진 결과가 멎기를** 기다린다 (`lib/settle.mjs`). 400ms 를 세면
        느린 판에서 거르기 전 숫자를 읽는다. */
     const narrowed = await untilSettled(page, () => page.evaluate(() => ({
       shown: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length,
       total: document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length
     })));
-    if (narrowed.shown === 0) problems.push('걸러 찾기에 「PDF」 를 넣으니 하나도 안 남는다');
+    if (narrowed.shown === 0) problems.push('걸러 찾기에 PDF 를 넣으니 하나도 안 남는다');
     else if (narrowed.shown >= narrowed.total) problems.push('걸러 찾기가 아무것도 걸러 내지 못한다');
 
-    // 영문 이름으로도 찾힌다 — 「regex」 로 치는 사람이 「정규식」 으로 치는 사람만큼 많다.
-    /* 「diff」 는 예전에 글 비교·목록 비교가 낱개 카드라 둘이었다. 열여섯이 「텍스트 도구」
-       작업대로 합쳐지면서 카드가 하나로 줄었다 — 수를 못 채우는 게 정상이다(2026-08-13).
-       세는 것은 「영문으로도 찾히나」이지 「카드가 몇 장이냐」가 아니다. */
+    // 영문 이름으로도 찾힌다. regex 로 치는 사람이 정규식 으로 치는 사람만큼 많다.
+    /* diff 는 예전에 글 비교, 목록 비교가 낱개 카드라 둘이었다. 열여섯이 텍스트 도구
+       작업대로 합쳐지면서 카드가 하나로 줄었다. 수를 못 채우는 게 정상이다(2026-08-13).
+       세는 것은 영문으로도 찾히나이지 카드가 몇 장이냐가 아니다. */
     for (const [q, least] of [['regex', 2], ['hash', 2], ['timer', 1], ['diff', 1]]) {
       await find.fill(q);
       const n = await untilSettled(page, () => page.evaluate(
         () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
       ));
-      if (n < least) problems.push(`영문 이름으로 못 찾는다 (「${q}」 로 ${n}개, 적어도 ${least}개)`);
+      if (n < least) problems.push(`영문 이름으로 못 찾는다 (${q} 로 ${n}개, 적어도 ${least}개)`);
     }
 
-    // 갈래 이름으로도 찾힌다 — 사람은 「개발」 처럼 분류 이름을 치기도 한다.
+    // 갈래 이름으로도 찾힌다. 사람은 개발 처럼 분류 이름을 치기도 한다.
     await find.fill('개발');
     const byGroup = await untilSettled(page, () => page.evaluate(
       () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     ));
-    if (byGroup < 5) problems.push(`분류 이름으로 찾기가 안 된다 (「개발」 로 ${byGroup}개만 남음)`);
+    if (byGroup < 5) problems.push(`분류 이름으로 찾기가 안 된다 (개발 로 ${byGroup}개만 남음)`);
     await find.fill('PDF');
     /* ★ 시간을 박지 말고 **걸러진 뒤**를 기다린다 (2026-08-17). 400ms 는 느린 판에서 모자라
-       「거른 수와 분류 숫자가 안 맞는다」로 애먼 빨강이 난다(같은 부류로 오늘 라이브가 빨갰다). */
+       거른 수와 분류 숫자가 안 맞는다로 애먼 빨강이 난다(같은 부류로 오늘 라이브가 빨갰다). */
     await untilFiltered(page);
 
     // 화면에 보이는 카드 수와 분류 옆 숫자의 합은 늘 같아야 한다.
-    // 걸러 찾기·분류 숫자·목차가 각각 따로 갱신되므로, 하나만 손보면 조용히 어긋난다.
+    // 걸러 찾기, 분류 숫자, 목차가 각각 따로 갱신되므로, 하나만 손보면 조용히 어긋난다.
     const consistent = await page.evaluate(() => {
       const vis = (e) => e.getBoundingClientRect().height > 0;
       const cards = [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter(vis).length;
@@ -146,10 +146,10 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
       return { cards, sum };
     });
     if (consistent.cards !== consistent.sum) {
-      problems.push(`걸러낸 뒤 카드 수와 분류 숫자 합이 다르다 (카드 ${consistent.cards} · 합 ${consistent.sum})`);
+      problems.push(`걸러낸 뒤 카드 수와 분류 숫자 합이 다르다 (카드 ${consistent.cards}, 합 ${consistent.sum})`);
     }
 
-    // 걸러낸 뒤에도 목차가 성해야 한다 — 숨은 분류로 가는 링크는 눌러도 갈 곳이 없다.
+    // 걸러낸 뒤에도 목차가 성해야 한다. 숨은 분류로 가는 링크는 눌러도 갈 곳이 없다.
     const tocState = await page.evaluate(() => {
       const links = [...document.querySelectorAll('.tool-hub-toc a')].filter((a) => a.getBoundingClientRect().height > 0);
       const dead = links.filter((a) => {
@@ -161,7 +161,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     if (tocState.dead) problems.push(`걸러낸 뒤 목차에 갈 곳 없는 링크 ${tocState.dead}개`);
     if (!tocState.visible) problems.push('걸러낸 뒤 목차가 통째로 사라진다');
 
-    /* 초성으로도 찾힌다. 표본은 **지금 카드가 있는 도구**여야 한다 — 예전 표본(글자수 세기)은
+    /* 초성으로도 찾힌다. 표본은 **지금 카드가 있는 도구**여야 한다. 예전 표본(글자수 세기)은
        작업대의 조작이 되어 낱개 카드가 없다(그 이름으로는 작업대가 걸린다). */
     await find.fill('ㅌㅅㅌ');
     const byCho = await untilSettled(page, () => page.evaluate(() =>
@@ -200,9 +200,9 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     ));
     if (restored !== state.cards) problems.push(`비웠는데 목록이 안 돌아온다 (${restored}/${state.cards})`);
 
-    // 찾은 결과를 주소로 주고받을 수 있어야 한다 — 링크로 보낸 사람과 받은 사람이 같은 화면을 본다.
+    // 찾은 결과를 주소로 주고받을 수 있어야 한다. 링크로 보낸 사람과 받은 사람이 같은 화면을 본다.
     await find.fill('PDF');
-    /* 주소에 남는 것을 보는 자리다 — 주소가 바뀔 때까지 기다린다. */
+    /* 주소에 남는 것을 보는 자리다. 주소가 바뀔 때까지 기다린다. */
     await page.waitForFunction(() => /[?&]q=/.test(location.href), null, { timeout: 5000 }).catch(() => {});
     if (!/[?&]q=/.test(page.url())) problems.push('걸러 찾은 결과가 주소에 안 남는다');
     const shared = await page.goto(`${BASE}/t/?q=PDF`, { waitUntil: 'networkidle', timeout: 25000 });
@@ -215,7 +215,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
       problems.push(`검색어가 붙은 주소로 들어가면 그 상태로 안 열린다 (칸="${fromLink.value}" 보이는 카드 ${fromLink.shown})`);
     }
 
-    /* 한글 검색어도 마찬가지여야 한다 — 이 사이트를 쓰는 사람 대부분이 한글로 친다.
+    /* 한글 검색어도 마찬가지여야 한다. 이 사이트를 쓰는 사람 대부분이 한글로 친다.
      * 주소에 실릴 때 글자가 한 번 감싸지므로, 푸는 쪽이 어긋나면 **한글 링크만** 조용히 깨진다. */
     const ko = '이미지';
     const korean = await page.goto(`${BASE}/t/?q=${encodeURIComponent(ko)}`, {
@@ -236,7 +236,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
 // 실제로 눌러서 그 도구로 가는지
 if (state.firstHref) {
   // 앞 단계에서 걸러 놓은 상태로 오면 첫 카드가 숨어 있어 눌리지 않는다.
-  // 「거르지 않은 목록」으로 돌아와서 누른다 — 카드 차례가 바뀌어도 흔들리지 않는다.
+  // 거르지 않은 목록으로 돌아와서 누른다. 카드 차례가 바뀌어도 흔들리지 않는다.
   await page.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 25000 });
   await page.waitForTimeout(400);
   await page.click('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card');
@@ -251,7 +251,7 @@ if (state.firstHref) {
  * 이 페이지는 백 가지가 넘는 목록이라 첫 화면에 다 안 들어간다. 그런데 앱 껍데기용 스크롤
  * 잠금(body overflow:hidden)이 껍데기 없는 이 문서에도 걸려, 데스크톱에서 첫 화면 밑이
  * 통째로 못 보게 갇혀 있었다. 여기 검사가 없어 아무도 못 잡았다.
- * 주의: window.scrollTo 로 재면 잠겨 있어도 통과한다 — **바퀴를 실제로 굴려** 확인한다. */
+ * 주의: window.scrollTo 로 재면 잠겨 있어도 통과한다. **바퀴를 실제로 굴려** 확인한다. */
 {
   const s = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const sp = await s.newPage();
@@ -259,14 +259,14 @@ if (state.firstHref) {
   await sp.waitForTimeout(400);
   /* 내려가는 자리가 **문서라고 단정하지 않는다** (TASK-KL-129).
    * 목록이 앱 셸 안으로 들어오면서 실제로 굴러가는 것은 본문 칸(.main-content)이다.
-   * 문서만 재면 「짧다」고 나오는데, 화면에서는 멀쩡히 내려간다 — 검사가 거짓으로 운다.
+   * 문서만 재면 짧다고 나오는데, 화면에서는 멀쩡히 내려간다. 검사가 거짓으로 운다.
    * 굴릴 것을 먼저 찾고, 그 다음에 **바퀴를 실제로 굴려** 확인한다. */
   const scroller = await sp.evaluate(() => {
     const cands = [document.querySelector('.main-content'), document.scrollingElement].filter(Boolean);
     const hit = cands.find((e) => e.scrollHeight > e.clientHeight + 100);
     return hit ? (hit === document.scrollingElement ? 'doc' : 'main') : null;
   });
-  if (!scroller) problems.push('목록이 한 화면보다 짧다 — 스크롤 검사가 아무것도 못 본다');
+  if (!scroller) problems.push('목록이 한 화면보다 짧다. 스크롤 검사가 아무것도 못 본다');
   else {
     await sp.mouse.move(640, 450);
     await sp.mouse.wheel(0, 1200);
@@ -275,7 +275,7 @@ if (state.firstHref) {
       (which) => (which === 'main' ? document.querySelector('.main-content').scrollTop : document.scrollingElement.scrollTop),
       scroller
     );
-    if (y < 100) problems.push(`바퀴를 굴려도 안 내려간다 — 아래가 통째로 갇혔다 (${scroller} scrollTop ${y})`);
+    if (y < 100) problems.push(`바퀴를 굴려도 안 내려간다. 아래가 통째로 갇혔다 (${scroller} scrollTop ${y})`);
   }
   await sp.close();
   await s.close();
@@ -283,7 +283,7 @@ if (state.firstHref) {
 
 /* ── 폰에서 본 목록 ─────────────────────────────────
  * 이 페이지는 검색으로 들어온 사람이 처음 밟는 자리이고, 그 대부분이 폰이다. 도구 페이지에는
- * 이미 같은 검사가 걸려 있는데 정작 관문에는 없었다 — 실제로 분류 옆 숫자가 11px 이었다. */
+ * 이미 같은 검사가 걸려 있는데 정작 관문에는 없었다. 실제로 분류 옆 숫자가 11px 이었다. */
 {
   const phone = await (await browser.newContext({ viewport: { width: 375, height: 720 } })).newPage();
   await phone.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 30000 });
@@ -293,7 +293,7 @@ if (state.firstHref) {
     const clipped = [...document.querySelectorAll('body *')]
       .filter((e) => e.scrollWidth > e.clientWidth + 2 && near(e))
       .filter((e) => !['auto', 'scroll'].includes(getComputedStyle(e).overflowX))
-      /* 일부러 자른 한 줄은 사고가 아니다 (TASK-KL-128 — 카드 설명은 한 줄로 자르고 「…」를
+      /* 일부러 자른 한 줄은 사고가 아니다 (TASK-KL-128. 카드 설명은 한 줄로 자르고 ...를
          붙인다. 뒷부분은 도구를 열면 다 보이고 마우스를 올려도 뜬다). 이 검사가 잡아야 하는
          것은 **자를 생각이 없었는데 잘린 것**이다. 예전부터 여기 걸려 울고 있었다. */
       .filter((e) => getComputedStyle(e).textOverflow !== 'ellipsis')
@@ -301,8 +301,8 @@ if (state.firstHref) {
     const smallTap = [...document.querySelectorAll('a.tool-hub-card, .tool-hub-toc a, button, input')]
       .filter(near)
       .filter((e) => { const b = e.getBoundingClientRect(); return Math.min(b.width, b.height) < 32; })
-      /* 이름 없는 단추는 「BUTTON」으로만 찍혀 **무엇인지 알 수가 없다** — 실측 2026-08-13:
-         그 한 줄 때문에 어느 자리인지 못 찾아 세 판을 헤맸다. 글자·id·크기를 같이 남긴다. */
+      /* 이름 없는 단추는 BUTTON으로만 찍혀 **무엇인지 알 수가 없다**. 실측 2026-08-13:
+         그 한 줄 때문에 어느 자리인지 못 찾아 세 판을 헤맸다. 글자, id, 크기를 같이 남긴다. */
       .map((e) => {
         const b = e.getBoundingClientRect();
         const label = (e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 14);
@@ -324,16 +324,16 @@ if (state.firstHref) {
     const inputs = [...document.querySelectorAll('input')].filter(near).map((e) => parseFloat(getComputedStyle(e).fontSize));
     return { clipped: clipped.slice(0, 2), smallTap: [...new Set(smallTap)].slice(0, 2), tinyText: [...new Set(tinyText)].slice(0, 2), inputs };
   });
-  if (m.clipped.length) problems.push(`폰에서 잘려 못 보는 것 — ${m.clipped.join(' , ')}`);
-  if (m.smallTap.length) problems.push(`폰에서 누르기 작은 것 — ${m.smallTap.join(' , ')}`);
-  if (m.tinyText.length) problems.push(`폰에서 글씨가 작은 것 — ${m.tinyText.join(' , ')}`);
+  if (m.clipped.length) problems.push(`폰에서 잘려 못 보는 것. ${m.clipped.join(' , ')}`);
+  if (m.smallTap.length) problems.push(`폰에서 누르기 작은 것. ${m.smallTap.join(' , ')}`);
+  if (m.tinyText.length) problems.push(`폰에서 글씨가 작은 것. ${m.tinyText.join(' , ')}`);
   if (m.inputs.some((px) => px < 16)) problems.push(`찾기 칸을 누르면 화면이 확대된다 (${m.inputs.join(',')}px)`);
   await phone.close();
 }
 
 /* ── 없는 도구 주소 ─────────────────────────────────
  * 오타나 옛 링크로 들어온 주소가 200 을 돌려주면 검색엔진이 그 빈 페이지를 정상 문서로 색인한다.
- * (없는 문서를 200 으로 답하는 것을 「가짜 200」이라 부른다.) 404 로 답해야 한다. */
+ * (없는 문서를 200 으로 답하는 것을 가짜 200이라 부른다.) 404 로 답해야 한다. */
 {
   const ghost = await page.goto(`${BASE}/t/이런도구는없다/`, {
     waitUntil: 'domcontentloaded',
@@ -352,16 +352,16 @@ const homeRes = await home.goto(`${BASE}/`, { waitUntil: 'networkidle', timeout:
 await home.waitForTimeout(1200);
 
 // 첫 화면(`/index.html`)은 배포가 복사해 만든다. 로컬 사본에는 없을 수 있는데,
-// 그건 이 환경에 없는 것이지 사이트가 깨진 게 아니다 — 없으면 건너뛴다(라이브에는 늘 있다).
-/* 이 주소가 여는 것은 **배포가 복사해 둔 사본**이다 — 소스(`apps/karmolab/index.html`)가 아니다.
+// 그건 이 환경에 없는 것이지 사이트가 깨진 게 아니다. 없으면 건너뛴다(라이브에는 늘 있다).
+/* 이 주소가 여는 것은 **배포가 복사해 둔 사본**이다. 소스(`apps/karmolab/index.html`)가 아니다.
    사본이 낡으면 그 안의 옛 지문 파일과 방금 새로 빌드된 파일이 섞여, 제품은 멀쩡한데
-   「tools is not defined」 같은 오류가 난다(2026-08-08 실제로 그렇게 빨갰다).
+   tools is not defined 같은 오류가 난다(2026-08-08 실제로 그렇게 빨갰다).
    그건 **제품 고장이 아니라 이 환경의 사본이 낡은 것**이므로, 그때는 첫 화면 판정을 건너뛴다. */
 const srcShell = path.join(root, 'index.html');
 const copyShell = path.join(path.dirname(root), 'blog/index.html');
 const homeStale = fs.existsSync(srcShell) && fs.existsSync(copyShell)
   && fs.statSync(copyShell).mtimeMs < fs.statSync(srcShell).mtimeMs;
-if (homeStale) console.log('  (첫 화면 판정 건너뜀 — 배포 사본이 소스보다 낡았다. 배포가 다시 찍는다)');
+if (homeStale) console.log('  (첫 화면 판정 건너뜀. 배포 사본이 소스보다 낡았다. 배포가 다시 찍는다)');
 
 const homeMissing = homeRes.status() === 404 || homeStale;
 if (!homeMissing && homeRes.status() !== 200) problems.push(`첫 화면이 안 열린다 (http ${homeRes.status()})`);
@@ -372,9 +372,9 @@ const homeState = homeMissing ? null : await home.evaluate(() => {
     (a) => a.getBoundingClientRect().height > 0
   );
   /* 배경 판때기는 **뒤에 깔린다**(z-index 음수). 그런데 뒤에 깐 것은 그리는 순서상
-     body 의 바탕색보다 **먼저** 칠해진다 — body 가 불투명한 색을 가지면 판때기가 통째로
-     덮여 격자·홀로그램이 사라진다. 실제로 그렇게 나갔다 (TASK-KL-101).
-     화면은 「어두운 색이 깔린 정상」처럼 보여서 눈으로도 안 잡혔다. */
+     body 의 바탕색보다 **먼저** 칠해진다. body 가 불투명한 색을 가지면 판때기가 통째로
+     덮여 격자, 홀로그램이 사라진다. 실제로 그렇게 나갔다 (TASK-KL-101).
+     화면은 어두운 색이 깔린 정상처럼 보여서 눈으로도 안 잡혔다. */
   const bgEl = document.querySelector('.app-bg');
   const bgZ = bgEl ? parseInt(getComputedStyle(bgEl).zIndex, 10) : 0;
   const bodyPaint = getComputedStyle(document.body).backgroundColor;
@@ -390,20 +390,20 @@ const homeState = homeMissing ? null : await home.evaluate(() => {
   };
 });
 if (homeState) {
-  if (homeState.bgMissing) problems.push('배경 판때기(.app-bg)가 없다 — 격자·홀로그램이 통째로 안 나온다');
-  if (homeState.bgBuried) problems.push('배경 판때기가 body 바탕색에 덮인다 — 격자가 안 보인다 (body 는 바탕색을 갖지 마라)');
+  if (homeState.bgMissing) problems.push('배경 판때기(.app-bg)가 없다. 격자, 홀로그램이 통째로 안 나온다');
+  if (homeState.bgBuried) problems.push('배경 판때기가 body 바탕색에 덮인다. 격자가 안 보인다 (body 는 바탕색을 갖지 마라)');
   if (!homeState.landingVisible) problems.push('첫 화면에 아무것도 안 그려진다');
   if (!homeState.hubLinks) problems.push('첫 화면에서 도구 목록으로 갈 길이 없다');
   if (homeState.navItems < 10) problems.push(`사이드바가 비었다 (항목 ${homeState.navItems}개)`);
-  if (homeErrs.length) problems.push(`첫 화면 콘솔 에러 — ${homeErrs[0]}`);
+  if (homeErrs.length) problems.push(`첫 화면 콘솔 에러. ${homeErrs[0]}`);
 }
 
 await browser.close();
 
 if (problems.length) {
-  console.error(`[smoke-hub] 관문(첫 화면·도구 목록)에 문제 ${problems.length}건`);
+  console.error(`[smoke-hub] 관문(첫 화면, 도구 목록)에 문제 ${problems.length}건`);
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
 const homeNote = homeState ? `사이드바 ${homeState.navItems}개` : '이 환경엔 사본이 없어 건너뜀';
-console.log(`[smoke-hub] 관문 정상 — 첫 화면 ${homeNote} · 목록 카드 ${state.cards}개 · 분류 ${state.groups}개 · 빠진 도구 0`);
+console.log(`[smoke-hub] 관문 정상. 첫 화면 ${homeNote}, 목록 카드 ${state.cards}개, 분류 ${state.groups}개, 빠진 도구 0`);

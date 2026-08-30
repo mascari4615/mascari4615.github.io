@@ -41,7 +41,7 @@ export async function createAudioResourceFromHttpUrl(urlString: string): Promise
 }
 
 /**
- * 로컬 파일(절대 경로) — 패키지 `resources/audio/` 등에서만 쓰는 것을 권장.
+ * 로컬 파일(절대 경로). 패키지 `resources/audio/` 등에서만 쓰는 것을 권장.
  */
 export async function createAudioResourceFromLocalFile(filePath: string): Promise<AudioResource> {
   const rs = createReadStream(filePath);

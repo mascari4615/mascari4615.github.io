@@ -19,4 +19,4 @@ history.record({count:3},'',3000);
 assert.equal(history.redo({count:3}).changed,false,'new edit clears redo');
 history.reset({count:9});
 assert.equal(history.undo({count:9}).changed,false,'reset clears history');
-console.log('[test-heung-history] ✓ merge · undo · redo · branch clear · reset');
+console.log('[test-heung-history] ✓ merge, undo, redo, branch clear, reset');

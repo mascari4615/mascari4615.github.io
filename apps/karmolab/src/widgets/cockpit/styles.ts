@@ -1,5 +1,5 @@
 /**
- * styles.ts — Cockpit 전용 CSS inject (TASK-KL-082 단위 G/H highlight + 전체 CSS).
+ * styles.ts. Cockpit 전용 CSS inject (TASK-KL-082 단위 G/H highlight + 전체 CSS).
  */
 
 const STYLE_ID = 'ck-cockpit-styles';

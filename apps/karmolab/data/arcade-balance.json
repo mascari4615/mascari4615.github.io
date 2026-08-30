@@ -1,8 +1,8 @@
 {
-  "note": "봇끼리 돌려 잰 오락실 저울 — 자리 편향·무승부율·판 길이. 다시 재기: npm run bench:arcade",
-  "measuredOn": "2026-08-13",
+  "note": "봇끼리 돌려 잰 오락실 저울. 자리 편향, drawRate, 판 길이. 다시 재기: npm run bench:arcade",
+  "measuredOn": "2026-08-29",
   "roundCount": 200,
-  "elapsedSec": 23.9,
+  "elapsedSec": 24.1,
   "game": [
     {
       "id": "airhockey",
@@ -260,13 +260,13 @@
       "seats": 2,
       "roundCount": 200,
       "seatWinRate": [
-        1,
-        0
+        0.525,
+        0.475
       ],
-      "slope": 0.5,
+      "slope": 0.025,
       "drawRate": 0,
       "singleRound": false,
-      "avgSeconds": 24.1,
+      "avgSeconds": 41.8,
       "scoreSpread": 1,
       "unfinished": 0
     },

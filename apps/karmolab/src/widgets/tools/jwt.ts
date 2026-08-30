@@ -1,9 +1,9 @@
 /**
  * JWT 디코더 (TASK-KL-088)
  *
- * JWT 는 암호화가 아니라 **서명된 평문**이라 누구나 읽을 수 있다 — 그 사실 자체가
+ * JWT 는 암호화가 아니라 **서명된 평문**이라 누구나 읽을 수 있다. 그 사실 자체가
  * 이 도구의 핵심 교육 포인트라서 화면에 적어 둔다. 만료 시각은 숫자(epoch)로 오기 때문에
- * 사람이 읽을 시각과 「지금 유효한가」 판정까지 붙여야 실제로 쓸모가 있다.
+ * 사람이 읽을 시각과 지금 유효한가 판정까지 붙여야 실제로 쓸모가 있다.
  * 서명 검증은 비밀키가 필요해 브라우저에서 하지 않는다 (키를 웹에 붙여 넣게 하면 안 된다).
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -21,11 +21,11 @@ import { markLive } from './shared/say';
     return new TextDecoder().decode(bytes);
   }
 
-  /* 이름표는 **쓸 때** 붙인다 — 표로 굳히면 그 시점엔 말 묶음이 아직 안 와서 한국어로 박힌다. */
+  /* 이름표는 **쓸 때** 붙인다. 표로 굳히면 그 시점엔 말 묶음이 아직 안 와서 한국어로 박힌다. */
   const TIME_CLAIMS = ['exp', 'iat', 'nbf'];
   const CLAIMS = ['iss', 'sub', 'aud', 'jti', 'scope', 'alg', 'typ', 'kid'];
 
-  /** 남은 시간은 **Intl 이 그 언어로 적어 준다** — 「분/시간/일」을 언어마다 적을 필요가 없다. */
+  /** 남은 시간은 **Intl 이 그 언어로 적어 준다**. 분/시간/일을 언어마다 적을 필요가 없다. */
   function humanGap(ms: number): string {
     const mins = Math.round(Math.abs(ms) / 60000);
     const [n, unit]: [number, Intl.NumberFormatOptions['unit']] =
@@ -36,11 +36,11 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'jwt',
     title: t('widgets.jwt.title', undefined, 'JWT 디코더'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.jwt.desc',
       undefined,
-      'JWT 토큰의 헤더·페이로드를 풀어 보고 만료 시각과 남은 시간을 확인합니다'
+      'JWT 토큰의 헤더, 페이로드를 풀어 보고 만료 시각과 남은 시간을 확인합니다'
     ),
     layout: 'wide',
     icon: '<path d="M12 3v18M12 7 5.5 9.5M12 7l6.5 2.5M12 15l-6.5-2.5M12 15l6.5-2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -57,7 +57,7 @@ import { markLive } from './shared/say';
     ]
   });
 
-  /** 그리기는 **말 묶음이 온 뒤**에 — 이름표도 남은 시간도 전부 그때 정해진다. */
+  /** 그리기는 **말 묶음이 온 뒤**에. 이름표도 남은 시간도 전부 그때 정해진다. */
   function draw(container: HTMLElement): void {
           container.innerHTML = `
             <div class="field-group">
@@ -86,10 +86,10 @@ import { markLive } from './shared/say';
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const input = $<HTMLTextAreaElement>('#jwIn');
           const status = $<HTMLElement>('#jwStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
-          /* 뜯어본 내용은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297) — 그 자리를 눌러 복사한다. */
+          /* 뜯어본 내용은 **옮겨 적으려고** 보는 것이다 (TASK-KL-297). 그 자리를 눌러 복사한다. */
           copyOnClick(
             $<HTMLElement>('#jwRaw'),
             () => $<HTMLTextAreaElement>('#jwRaw').value,

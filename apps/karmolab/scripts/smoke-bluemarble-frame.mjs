@@ -1,10 +1,10 @@
 /**
- * 지구본 창문틀 — 제목이 보이는가, 조작부가 머리띠에 가리지 않는가 (TASK-KL-241).
+ * 지구본 창문틀. 제목이 보이는가, 조작부가 머리띠에 가리지 않는가 (TASK-KL-241).
  *
- * 왜 화면 검사인가: 2026-08-12 에 제목이 「안 보인다」는 말을 들었다. 원인은 캔버스에
- * `var(--font-sans)` 를 넣은 것 — **캔버스는 CSS 변수를 못 읽는다**. 글꼴 지정이 통째로
- * 버려져 10px 기본값으로 그려졌는데, 타입체크도 단위검사도 전부 초록이었다. 「그려졌나」가
- * 아니라 **「얼마나 크게 그려졌나」**를 재야 잡히는 종류다.
+ * 왜 화면 검사인가: 2026-08-12 에 제목이 안 보인다는 말을 들었다. 원인은 캔버스에
+ * `var(--font-sans)` 를 넣은 것. **캔버스는 CSS 변수를 못 읽는다**. 글꼴 지정이 통째로
+ * 버려져 10px 기본값으로 그려졌는데, 타입체크도 단위검사도 전부 초록이었다. 그려졌나가
+ * 아니라 **얼마나 크게 그려졌나**를 재야 잡히는 종류다.
  *
  * 사용: node scripts/smoke-bluemarble-frame.mjs
  */
@@ -30,7 +30,7 @@ await page.waitForSelector('.bm-canvas', { timeout: 20000 });
 // 제목이 다 떠오를 때까지 (1.4초에 걸쳐 나타난다)
 await page.waitForTimeout(2400);
 
-/* ① 제목이 실제로 크게 그려졌는가 — 캔버스에서 밝은 점이 걸친 가로 범위를 잰다 */
+/* ① 제목이 실제로 크게 그려졌는가. 캔버스에서 밝은 점이 걸친 가로 범위를 잰다 */
 const title = await page.evaluate(() => {
   const cv = document.querySelector('.bm-canvas');
   const c = cv.getContext('2d', { willReadFrequently: true });
@@ -38,13 +38,13 @@ const title = await page.evaluate(() => {
   const w = cv.width;
   /* ★ **5px 한 줄로 재면 글꼴 모양을 재게 된다** (2026-08-16, 리눅스 재현으로 갈렸다).
      여기는 화면 한가운데 **5px 띠**만 훑었다. 그런데 그 높이에 획이 얼마나 걸치는지는
-     글꼴마다 다르다 — 같은 크기로 그린 같은 글자인데도
-       윈도우 88% · 리눅스 **44%**  (띠를 글자 구역 전체로 넓히면 둘 다 88%)
+     글꼴마다 다르다. 같은 크기로 그린 같은 글자인데도
+       윈도우 88%, 리눅스 **44%**  (띠를 글자 구역 전체로 넓히면 둘 다 88%)
      가 나왔다. 판정이 나는 곳은 리눅스(ubuntu-latest)라, 이 줄은 몇 달째 CI 에서만 빨갰고
-     내 자리에서는 늘 초록이라 원인을 못 짚었다(글꼴 탓이라 적혀 있었지만 아니었다 —
-     글자 크기는 두 쪽이 똑같았다: 측정폭 300 · 세로상한 306).
-     재려던 것은 「제목이 크게 그려졌나」지 「이 높이에 획이 있나」가 아니다. 글자가 놓인
-     구역을 통째로 훑는다 — 글꼴이 바뀌어도 안 흔들린다. */
+     내 자리에서는 늘 초록이라 원인을 못 짚었다(글꼴 탓이라 적혀 있었지만 아니었다 . 
+     글자 크기는 두 쪽이 똑같았다: 측정폭 300, 세로상한 306).
+     재려던 것은 제목이 크게 그려졌나지 이 높이에 획이 있나가 아니다. 글자가 놓인
+     구역을 통째로 훑는다. 글꼴이 바뀌어도 안 흔들린다. */
   const bandTop = Math.round(h * 0.30);
   const bandH = Math.round(h * 0.40);
   const band = c.getImageData(0, bandTop, w, bandH).data;
@@ -65,20 +65,20 @@ const title = await page.evaluate(() => {
   return { span: max > min ? (max - min) / w : 0, lit, w };
 });
 if (process.env.DEBUG) console.log('[dbg] 제목:', title);
-/* ★ **한글 글꼴은 안 올 수도 있다 — 그건 설계다** (2026-08-14).
+/* ★ **한글 글꼴은 안 올 수도 있다. 그건 설계다** (2026-08-14).
    `css/fonts.css` 의 한글 조각은 `font-display: optional` 이다. 첫 화면을 늦추지 않으려고
-   「빨리 못 오면 그냥 안 쓴다」로 둔 것이다. 그러면 제목은 **대체 글꼴**로 그려지고 폭이 준다 —
+   빨리 못 오면 그냥 안 쓴다로 둔 것이다. 그러면 제목은 **대체 글꼴**로 그려지고 폭이 준다 . 
    CI 에서 이 줄이 44% 로 빨갰던 이유다(내 자리는 글꼴이 캐시에 있어 늘 초록이었다).
    화면이 고장 난 게 아니므로, 우리 글꼴이 실제로 쓰였을 때만 폭을 잰다. */
 const ourFonts = await page.evaluate(() => document.fonts.check('900 100px KarmoSans', '지구촌'));
 if (!ourFonts) {
-  console.log(`  [~] 제목이 화면 폭의 60% 이상에 걸쳐야 한다 — 못 쟀다(한글 글꼴이 이 판에 안 왔다: 지금 ${(title.span * 100).toFixed(0)}%)`);
+  console.log(`  [~] 제목이 화면 폭의 60% 이상에 걸쳐야 한다. 못 쟀다(한글 글꼴이 이 판에 안 왔다: 지금 ${(title.span * 100).toFixed(0)}%)`);
 } else {
-  /* ★ **빨갈 때는 「왜」를 같이 낸다** (2026-08-16). 이 줄은 CI 에서만 44% 로 빨갛고 내 자리에서는
-     늘 초록이라 몇 달째 원인을 못 짚었다 — 글꼴을 일부러 늦게 줘 재현해 봤더니 오히려 88% 로
-     **더 넓게** 나왔다. 즉 여태 적혀 있던 「글꼴이 안 와서 좁아진다」는 설명이 안 맞는다.
+  /* ★ **빨갈 때는 왜를 같이 낸다** (2026-08-16). 이 줄은 CI 에서만 44% 로 빨갛고 내 자리에서는
+     늘 초록이라 몇 달째 원인을 못 짚었다. 글꼴을 일부러 늦게 줘 재현해 봤더니 오히려 88% 로
+     **더 넓게** 나왔다. 즉 여태 적혀 있던 글꼴이 안 와서 좁아진다는 설명이 안 맞는다.
      추측으로 고치는 대신, 빨간 판이 **자기가 무엇을 보고 있었는지** 말하게 한다:
-     캔버스 실제 크기·픽셀 밀도·글꼴이 정말 실렸는지·재던 띠의 밝은 점 수.
+     캔버스 실제 크기, 픽셀 밀도, 글꼴이 정말 실렸는지, 재던 띠의 밝은 점 수.
      다음 CI 빨강 한 판이면 갈린다. */
   if (title.span <= 0.6) {
     const details = await page.evaluate(() => ({
@@ -95,11 +95,11 @@ if (!ourFonts) {
       fonts: [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family + '/' + f.weight).slice(0, 6),
       titleFont: getComputedStyle(document.querySelector('.bm-canvas')).fontFamily,
     }));
-    console.log(`  [dbg] 재던 자리: 밝은 점 ${title.lit}개 · 띠 폭 ${title.w}px · ${JSON.stringify(details)}`);
+    console.log(`  [dbg] 재던 자리: 밝은 점 ${title.lit}개, 띠 폭 ${title.w}px, ${JSON.stringify(details)}`);
   }
   check(title.span > 0.6, `제목이 화면 폭의 60% 이상에 걸쳐야 한다 (지금 ${(title.span * 100).toFixed(0)}%)`);
 }
-/* 획이 가는 글꼴이라 가운데 한 줄에 걸리는 점은 원래 많지 않다 — 여기서 재는 것은 두께가
+/* 획이 가는 글꼴이라 가운데 한 줄에 걸리는 점은 원래 많지 않다. 여기서 재는 것은 두께가
    아니라 **정말 칠해졌는가**다. 크기는 위의 `span` 이 지킨다. */
 check(title.lit > 60, `제목 글자가 칠해져야 한다 (밝은 점 ${title.lit}개)`);
 
@@ -123,9 +123,9 @@ const covered = await page.evaluate((h) => {
   }
   return bad;
 }, headH);
-check(covered.length === 0, `조작부가 머리띠에 가리면 안 된다: ${covered.join(' · ')}`);
+check(covered.length === 0, `조작부가 머리띠에 가리면 안 된다: ${covered.join(', ')}`);
 
-/* ③ 창문이 화면을 정확히 채우는가 — 아래에 빈 칸이 남으면 안 된다 */
+/* ③ 창문이 화면을 정확히 채우는가. 아래에 빈 칸이 남으면 안 된다 */
 const box = await page.evaluate(() => {
   const r = document.querySelector('.bm-wrap').getBoundingClientRect();
   return { top: Math.round(r.top), bottom: Math.round(r.bottom), vh: window.innerHeight };
@@ -138,8 +138,8 @@ const hero = await page.evaluate(() => ({
   hero: !!document.querySelector('.tool-page.active .tool-page-hero'),
   next: !!document.querySelector('.tool-page.active .tool-page-next')
 }));
-check(!hero.hero, '지구본에는 제목·방문수 머리말이 붙지 않아야 한다');
-check(!hero.next, '지구본에는 「여기도 있어요」가 붙지 않아야 한다');
+check(!hero.hero, '지구본에는 제목, 방문수 머리말이 붙지 않아야 한다');
+check(!hero.next, '지구본에는 여기도 있어요가 붙지 않아야 한다');
 
 process.stdout.write('\n');
 await browser.close();

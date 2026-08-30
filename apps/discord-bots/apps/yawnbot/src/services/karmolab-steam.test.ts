@@ -1,9 +1,9 @@
 /**
- * TASK-KL-153 — 스팀 숫자를 표로 옮기는 규칙 시험.
+ * TASK-KL-153. 스팀 숫자를 표로 옮기는 규칙 시험.
  *
- * 바깥은 **우리 것이 아니다.** 그래서 「잘 오면 되나」보다 「이상하게 오면 어떻게 되나」를
- * 먼저 묻는다: 빈 이름 · 겹치는 이름 · 표본 세 개짜리 평점 · 표가 아닌 응답.
- * (길어 오기·캐시·바깥이 죽었을 때 = `karmolab-wells.test.ts` — 우물 전부의 공통이다.)
+ * 바깥은 **우리 것이 아니다.** 그래서 잘 오면 되나보다 이상하게 오면 어떻게 되나를
+ * 먼저 묻는다: 빈 이름, 겹치는 이름, 표본 세 개짜리 평점, 표가 아닌 응답.
+ * (길어 오기, 캐시, 바깥이 죽었을 때 = `karmolab-wells.test.ts`. 우물 전부의 공통이다.)
  */
 import { describe, it, expect } from 'vitest';
 import { toPack, ownersFloor, likeRatio, priceUsd, headerImage, isSteamSourceId } from './karmolab-steam';
@@ -21,14 +21,14 @@ const row = (over: Record<string, unknown> = {}) => ({
 });
 
 describe('숫자 읽기', () => {
-  it('보유자는 구간의 하한을 쓴다 — 가운데 값은 우리가 만들어 낸 숫자다', () => {
+  it('보유자는 구간의 하한을 쓴다. 가운데 값은 우리가 만들어 낸 숫자다', () => {
     expect(ownersFloor('100,000,000 .. 200,000,000')).toBe(100_000_000);
     expect(ownersFloor('0 .. 20,000')).toBe(0);
     expect(ownersFloor(undefined)).toBeNull();
     expect(ownersFloor('알 수 없음')).toBeNull();
   });
 
-  it('표본이 적으면 평점을 아예 안 적는다 — 3개 만점이 1등이 되면 안 된다', () => {
+  it('표본이 적으면 평점을 아예 안 적는다. 3개 만점이 1등이 되면 안 된다', () => {
     expect(likeRatio(3, 0)).toBeNull();
     expect(likeRatio(90, 10)).toBe(90);
     expect(likeRatio(2_000_000, 400_000)).toBe(83.3);
@@ -49,7 +49,7 @@ describe('숫자 읽기', () => {
 });
 
 describe('표 만들기', () => {
-  it('그림은 appid 로 만든다 — 표에 그림이 있고 없고가 재미를 가른다', () => {
+  it('그림은 appid 로 만든다. 표에 그림이 있고 없고가 재미를 가른다', () => {
     const pack = toPack('hot', { '570': row() });
     expect(pack.items[0].img).toBe(headerImage(570));
     expect(pack.items[0].name).toBe('Dota 2');
@@ -57,7 +57,7 @@ describe('표 만들기', () => {
     expect(pack.items[0].owners).toBe(100_000_000);
   });
 
-  it('이름이 없거나 겹치면 뺀다 — 놀이가 두 항목을 못 가른다', () => {
+  it('이름이 없거나 겹치면 뺀다. 놀이가 두 항목을 못 가른다', () => {
     const pack = toPack('hot', {
       '1': row({ appid: 1, name: 'Dota 2' }),
       '2': row({ appid: 2, name: 'Dota 2' }),
@@ -67,7 +67,7 @@ describe('표 만들기', () => {
     expect(pack.items.map((i) => i.name)).toEqual(['Dota 2']);
   });
 
-  it('모르는 값은 칸을 비운다 — 0 으로 채우면 「제일 싼 게임」이 거짓이 된다', () => {
+  it('모르는 값은 칸을 비운다. 0 으로 채우면 제일 싼 게임이 거짓이 된다', () => {
     const pack = toPack('hot', { '1': { appid: 1, name: 'X' } });
     const item = pack.items[0];
     expect(item.price).toBeUndefined();
@@ -76,7 +76,7 @@ describe('표 만들기', () => {
     expect(item.ccu).toBeUndefined();
   });
 
-  it('응답이 표가 아니면 빈 표다 — 던지지 않는다', () => {
+  it('응답이 표가 아니면 빈 표다. 던지지 않는다', () => {
     expect(toPack('hot', null).items).toEqual([]);
     expect(toPack('hot', [1, 2, 3]).items).toEqual([]);
     expect(toPack('hot', '<html>죽음</html>').items).toEqual([]);

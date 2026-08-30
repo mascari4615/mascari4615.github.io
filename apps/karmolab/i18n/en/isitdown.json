@@ -3,14 +3,14 @@
   "isitdown.label.url": "The address that is not working",
   "isitdown.btn.run": "Check now",
   "isitdown.status.idle": "It measures your site and three always-up sites at the same time",
-  "isitdown.status.badUrl": "That does not look like an address — e.g. example.com",
-  "isitdown.status.working": "Measuring {host} and the controls…",
-  "isitdown.verdict.up": "{host} answers right now — it is up",
+  "isitdown.status.badUrl": "That does not look like an address. e.g. example.com",
+  "isitdown.status.working": "Measuring {host} and the controls...",
+  "isitdown.verdict.up": "{host} answers right now. it is up",
   "isitdown.verdict.slow": "{host} answers, but slowly",
-  "isitdown.verdict.mine": "Looks like your side — the control sites fail too (internet, Wi-Fi, DNS)",
-  "isitdown.verdict.theirs": "Only {host} fails — looks like their side",
-  "isitdown.verdict.unclear": "Cannot tell — the controls disagree. Try again in a moment",
-  "isitdown.row.ok": "answered · {ms}ms",
+  "isitdown.verdict.mine": "Looks like your side. the control sites fail too (internet, Wi-Fi, DNS)",
+  "isitdown.verdict.theirs": "Only {host} fails. looks like their side",
+  "isitdown.verdict.unclear": "Cannot tell. the controls disagree. Try again in a moment",
+  "isitdown.row.ok": "answered, {ms}ms",
   "isitdown.row.no": "no answer",
-  "isitdown.note.limits": "A browser cannot read a cross-origin response (it is opaque) — \"answers\" here means the server is reachable, not that the service is healthy. A broken login page still looks up"
+  "isitdown.note.limits": "A browser cannot read a cross-origin response (it is opaque). \"answers\" here means the server is reachable, not that the service is healthy. A broken login page still looks up"
 }

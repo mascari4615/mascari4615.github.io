@@ -4,6 +4,7 @@ date: "2022-11-21T16:35:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## SSMS 설치 시 계속해서 리부트를 요구하는 문제

@@ -69,7 +69,7 @@ export async function fetchSessionUrlUser(accessToken: string): Promise<string> 
 }
 
 /**
- * 연결된 세션에 채팅 이벤트 구독 (문서: Request Param sessionKey — 쿼리로 전달).
+ * 연결된 세션에 채팅 이벤트 구독 (문서: Request Param sessionKey. 쿼리로 전달).
  * 소켓이 연결된 뒤 `SYSTEM` connected의 sessionKey로 호출해야 합니다.
  */
 export async function subscribeChatEvent(accessToken: string, sessionKey: string): Promise<void> {

@@ -1,15 +1,15 @@
 /**
- * `/오락실` — 채널에서 방을 열고 **문패 링크**를 뿌린다 (TASK-KL-264 D4)
+ * `/오락실`. 채널에서 방을 열고 **문패 링크**를 뿌린다 (TASK-KL-264 D4)
  *
  * 사람을 모으는 자리는 디스코드다. 그런데 지금은 누군가 사이트를 열고, 방을 만들고, 링크를
- * 복사해서, 채널에 붙여야 한다 — 네 걸음이다. 놀자는 말을 꺼내는 데 드는 비용이 노는 비용보다
+ * 복사해서, 채널에 붙여야 한다. 네 걸음이다. 놀자는 말을 꺼내는 데 드는 비용이 노는 비용보다
  * 크면 아무도 안 꺼낸다.
  *
  * 여기서는 한 걸음이다: `/오락실 오목` → 방 코드가 생기고 문패 링크가 채널에 뜬다.
  * 누르면 그 방으로 들어간다.
  *
- * **방을 서버가 들고 있지 않다.** 코드만 만들어 준다 — 판은 브라우저끼리(P2P) 돌고, 봇은
- * 「이 코드로 모이자」고 말할 뿐이다. 그래서 봇이 죽어도 이미 뿌린 링크는 그대로 산다.
+ * **방을 서버가 들고 있지 않다.** 코드만 만들어 준다. 판은 브라우저끼리(P2P) 돌고, 봇은
+ * 이 코드로 모이자고 말할 뿐이다. 그래서 봇이 죽어도 이미 뿌린 링크는 그대로 산다.
  */
 import { SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
@@ -21,9 +21,9 @@ import { PKG_ROOT } from '../../paths';
 const CARD = 'https://yawnbot.mascari4615.com/kl/r';
 
 /**
- * 방 코드 알파벳 — 사이트(`apps/karmolab/src/lib/room.ts`)와 **같아야 한다.**
+ * 방 코드 알파벳. 사이트(`apps/karmolab/src/lib/room.ts`)와 **같아야 한다.**
  * 0/O 와 1/I 가 빠져 있다: 사람이 소리 내어 읽어 주는 코드라 헷갈리는 글자를 안 쓴다.
- * 여기서 다른 알파벳을 쓰면 봇이 만든 방을 사이트가 못 알아보는 것이 아니라 — 알아는 보되
+ * 여기서 다른 알파벳을 쓰면 봇이 만든 방을 사이트가 못 알아보는 것이 아니라. 알아는 보되
  * 사람이 손으로 옮겨 적을 때만 틀린다. 그래서 더 나쁘다(가끔만 안 된다).
  */
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -33,7 +33,7 @@ export function makeCode(len = 5): string {
   return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('');
 }
 
-/** 놀이 이름표 — 같은 저장소의 말 묶음이 정본. 없으면 빈 표(그래도 명령은 돈다). */
+/** 놀이 이름표. 같은 저장소의 말 묶음이 정본. 없으면 빈 표(그래도 명령은 돈다). */
 export function loadGames(): Array<{ id: string; name: string }> {
   try {
     const file = path.join(PKG_ROOT, '..', '..', '..', 'karmolab', 'i18n', 'ko', 'arcade.json');
@@ -85,7 +85,7 @@ export async function handleArcade(interaction: ChatInputCommandInteraction): Pr
 
   await interaction.reply({
     content:
-      (pick ? `🎮 **${pick.name}** · 방 \`${code}\`` : `🎮 오락실 · 방 \`${code}\``) +
+      (pick ? `🎮 **${pick.name}**, 방 \`${code}\`` : `🎮 오락실, 방 \`${code}\``) +
       '\n' + link +
       '\n-# 눌러서 들어오면 됩니다. 자리가 비면 봇이 앉아요.',
   });

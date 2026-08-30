@@ -1,5 +1,5 @@
 /**
- * TASK-KL-098 — 공용 알림 시험.
+ * TASK-KL-098. 공용 알림 시험.
  *
  * 여기서 틀리면 두 방향으로 나쁘다: 알림이 **안 가서** 사람이 안 돌아오거나,
  * 알림이 **너무 가서** 사람이 알림을 꺼 버린다. 둘 다 커뮤니티를 죽인다.
@@ -26,7 +26,7 @@ afterEach(() => {
 
 const base = { accountId: 'me', source: 'community', title: '답글이 달렸어요' };
 
-describe('알림 — 공용', () => {
+describe('알림. 공용', () => {
   it('내가 한 일로 나에게는 안 온다', () => {
     expect(notes.notify({ ...base, actorAccountId: 'me' })).toBeNull();
     expect(notes.unreadCount('me')).toBe(0);
@@ -37,7 +37,7 @@ describe('알림 — 공용', () => {
     expect(notes.unreadCount('me')).toBe(1);
   });
 
-  it('같은 열쇠는 묶인다 — 답글 다섯 개가 다섯 줄이 되면 못 읽는다', () => {
+  it('같은 열쇠는 묶인다. 답글 다섯 개가 다섯 줄이 되면 못 읽는다', () => {
     for (let i = 0; i < 5; i += 1) {
       notes.notify({ ...base, actorAccountId: `other-${i}`, groupKey: 'post-reply:p1' });
     }
@@ -47,7 +47,7 @@ describe('알림 — 공용', () => {
     expect(notes.unreadCount('me')).toBe(1);
   });
 
-  it('읽고 나면 다시 새 줄로 온다 — 묶임은 안 읽은 것끼리만', () => {
+  it('읽고 나면 다시 새 줄로 온다. 묶임은 안 읽은 것끼리만', () => {
     notes.notify({ ...base, actorAccountId: 'a', groupKey: 'g' });
     notes.markRead('me');
     notes.notify({ ...base, actorAccountId: 'b', groupKey: 'g' });

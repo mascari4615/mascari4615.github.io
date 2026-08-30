@@ -20,20 +20,20 @@ test('평범한 말은 조심할 자리가 아니다', () => {
   }
 });
 
-test('얘가 한 말은 안 본다 — 제 말에 스스로 반응하면 안 된다', () => {
-  assert.equal(readTender([companion('힘들었겠네…')]).soft, false);
+test('얘가 한 말은 안 본다. 제 말에 스스로 반응하면 안 된다', () => {
+  assert.equal(readTender([companion('힘들었겠네...')]).soft, false);
 });
 
 test('화면 곁눈질도 안 본다', () => {
-  assert.equal(readTender([person('화면을 봤다. 창은 「힘들다.txt」', 1, 'screen')]).soft, false);
+  assert.equal(readTender([person('화면을 봤다. 창은 힘들다.txt', 1, 'screen')]).soft, false);
 });
 
-test('오래된 말은 안 본다 — 지난주에 힘들었다고 오늘까지 조심하지 않는다', () => {
+test('오래된 말은 안 본다. 지난주에 힘들었다고 오늘까지 조심하지 않는다', () => {
   const es = [person('힘들었어', 1), person('오늘 회의', 2), person('셰이더', 3), person('밥 먹었어', 4), person('그렇구나', 5)];
   assert.equal(readTender(es, 3).soft, false);
 });
 
-test('무거운 말은 따로 가린다 — 그냥 힘든 것과 다르다', () => {
+test('무거운 말은 따로 가린다. 그냥 힘든 것과 다르다', () => {
   const t = readTender([person('요즘 다 끝내고 싶다')]);
   assert.equal(t.soft, true);
   assert.equal(t.heavy, true);
@@ -49,24 +49,24 @@ test('평소엔 아무 말도 안 얹는다', () => {
   assert.equal(tenderNote(readTender([person('오늘 회의 있었어')])), '');
 });
 
-test('조심할 자리에서는 농담·딴 얘기를 하지 말라고 한다', () => {
+test('조심할 자리에서는 농담, 딴 얘기를 하지 말라고 한다', () => {
   const note = tenderNote(readTender([person('오늘 진짜 힘들었어')]));
-  assert.match(note, /농담·놀리기·딴 얘기는 지금 하지 마라/);
+  assert.match(note, /농담, 놀리기, 딴 얘기는 지금 하지 마라/);
 });
 
-test('고치려 들지 말라고 한다 — 조언은 곁에 있는 것과 다른 일이다', () => {
+test('고치려 들지 말라고 한다. 조언은 곁에 있는 것과 다른 일이다', () => {
   const note = tenderNote(readTender([person('오늘 진짜 힘들었어')]));
   assert.match(note, /고치려 들지도 마라/);
   assert.match(note, /곁에 있어라/);
 });
 
-test('무거운 자리에서는 한 줄 더 붙인다 — 가벼운 말로 넘기지 말라고', () => {
+test('무거운 자리에서는 한 줄 더 붙인다. 가벼운 말로 넘기지 말라고', () => {
   const note = tenderNote(readTender([person('요즘 다 끝내고 싶다')]));
   assert.match(note, /가벼운 말로 넘기지 마라/);
   assert.match(note, /사람한테 말해 보라고/);
 });
 
-test('무거워도 고치려 들라고는 하지 않는다 — 얘가 할 수 있는 건 곁에 있는 것이다', () => {
+test('무거워도 고치려 들라고는 하지 않는다. 얘가 할 수 있는 건 곁에 있는 것이다', () => {
   const note = tenderNote(readTender([person('요즘 다 끝내고 싶다')]));
   assert.match(note, /고치려 들지도 마라/);
 });
@@ -99,7 +99,7 @@ test('평소에는 가벼운 재료가 그대로 있다', () => {
   assert.equal(picked2.map((x) => x.name).includes('놀리기'), true);
 });
 
-test('조심하라는 줄은 가장 무거워 예산에 안 밀린다 — 밀리면 아무 소용이 없다', () => {
+test('조심하라는 줄은 가장 무거워 예산에 안 밀린다. 밀리면 아무 소용이 없다', () => {
   const caution3 = readTender([person('오늘 진짜 힘들었어')]);
   const picked3 = pickIngredients(
     [

@@ -1,5 +1,5 @@
 /**
- * 알아보기 알맹이 검사 (TASK-KL-263) — 붙여넣은 것의 갈래를 맞게 짚는가.
+ * 알아보기 알맹이 검사 (TASK-KL-263). 붙여넣은 것의 갈래를 맞게 짚는가.
  *
  * 이건 화면이 아니라 **판정**이라, 브라우저 없이 판정만 재는 게 맞다. 특히 볼 것은
  * **겹치는 것들**이다: JWT 는 base64 이기도 하고, 해시는 16진수이기도 하고, 쉼표가 든 글은
@@ -29,14 +29,14 @@ const eq = (raw, want, why) => {
   if (got === want) process.stdout.write('.');
   else {
     process.stdout.write('x');
-    failures.push(`${why} — 기대 「${want}」, 나온 것 「${got}」`);
+    failures.push(`${why}. 기대 ${want}, 나온 것 ${got}`);
   }
 };
 
 /* 곧은 것들 */
 eq('{"a":1,"b":[1,2]}', 'json', 'JSON 물체');
 eq('[1,2,3]', 'json', 'JSON 목록');
-eq('{"a":1,', 'json', '깨진 JSON 도 JSON — 오히려 이때 「보기 좋게」가 필요하다');
+eq('{"a":1,', 'json', '깨진 JSON 도 JSON. 오히려 이때 보기 좋게가 필요하다');
 eq('https://karmolab.dev/t/pdf?a=1&b=2', 'url', 'URL');
 eq('550e8400-e29b-41d4-a716-446655440000', 'uuid', 'UUID');
 eq('1755043200', 'epoch', '초 단위 시각');
@@ -47,7 +47,7 @@ eq('a\tb\n1\t2', 'csv', '탭으로 나뉜 표');
 eq('d41d8cd98f00b204e9800998ecf8427e', 'hex', 'MD5 길이 16진수');
 eq('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'hex', 'SHA-256 길이');
 
-/* **겹치는 것들** — 여기서 순서가 판가름난다 */
+/* **겹치는 것들**. 여기서 순서가 판가름난다 */
 const jwt =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dBjftJeZ4CVPmB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 eq(jwt, 'jwt', 'JWT 가 base64 에 먹히면 안 된다');
@@ -64,13 +64,13 @@ const j = sniff('{"a":1,"b":2,"c":3}');
 if (j.detail === '키 3개') process.stdout.write('.');
 else {
   process.stdout.write('x');
-  failures.push(`JSON 키 수를 세야 한다 — 나온 것 「${j.detail}」`);
+  failures.push(`JSON 키 수를 세야 한다. 나온 것 ${j.detail}`);
 }
 const c = sniff('a,b,c\n1,2,3');
-if (c.detail === '3칸 · 2줄') process.stdout.write('.');
+if (c.detail === '3칸, 2줄') process.stdout.write('.');
 else {
   process.stdout.write('x');
-  failures.push(`표는 칸·줄을 세야 한다 — 나온 것 「${c.detail}」`);
+  failures.push(`표는 칸, 줄을 세야 한다. 나온 것 ${c.detail}`);
 }
 
 process.stdout.write('\n');

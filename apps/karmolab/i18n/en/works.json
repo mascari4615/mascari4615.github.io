@@ -5,7 +5,7 @@
   "works.viewShelf": "Shelf",
   "works.viewMap": "Map",
   "works.ongoing": "still building",
-  "works.minor": "Also worked on — {n} smaller credits",
+  "works.minor": "Also worked on. {n} smaller credits",
   "works.mapHint": "Hover a dot or bar to see it here.",
   "works.none": "Nothing matches"
 }

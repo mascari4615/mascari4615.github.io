@@ -1,16 +1,16 @@
 import { toolPage } from './site-base';
 /**
- * 사라지는 쪽지 — 잠그고 푸는 일 (TASK-KL-251)
+ * 사라지는 쪽지. 잠그고 푸는 일 (TASK-KL-251)
  *
- * **열쇠는 서버로 안 간다.** 브라우저가 여기서 잠그고, 열쇠는 주소의 `#` 뒤에 실린다 —
+ * **열쇠는 서버로 안 간다.** 브라우저가 여기서 잠그고, 열쇠는 주소의 `#` 뒤에 실린다 . 
  * 브라우저는 `#` 뒤를 서버로 보내지 않는다(HTTP 규격). 그래서 우리 서버가 들고 있는 것은
  * 알아볼 수 없는 덩어리 하나뿐이고, 우리도 내용을 못 본다.
  *
- * 이 조각은 화면을 모른다 — 글을 받아 덩어리와 열쇠를 돌려주고, 그 반대도 한다.
+ * 이 조각은 화면을 모른다. 글을 받아 덩어리와 열쇠를 돌려주고, 그 반대도 한다.
  */
 
 const ALGO = 'AES-GCM';
-/** 열쇠 길이 256비트. 짧게 줄일 이유가 없다 — 주소 몇 글자를 아끼자고 자물쇠를 얇게 만들지 않는다. */
+/** 열쇠 길이 256비트. 짧게 줄일 이유가 없다. 주소 몇 글자를 아끼자고 자물쇠를 얇게 만들지 않는다. */
 const KEY_BITS = 256;
 
 function bytesToBase64Url(b: Uint8Array): string {
@@ -19,7 +19,7 @@ function bytesToBase64Url(b: Uint8Array): string {
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-/** 되짚을 때 **자기 그릇을 새로 잡는다** — 남의 버퍼를 잘라 쓰면 암호 API 가 받아 주지 않는다. */
+/** 되짚을 때 **자기 그릇을 새로 잡는다**. 남의 버퍼를 잘라 쓰면 암호 API 가 받아 주지 않는다. */
 function base64UrlToBytes(s: string): Uint8Array<ArrayBuffer> {
   const pad = s.replace(/-/g, '+').replace(/_/g, '/');
   const raw = atob(pad + '='.repeat((4 - (pad.length % 4)) % 4));
@@ -50,7 +50,7 @@ export interface Sealed {
 }
 
 /**
- * 잠근다. **한 번 쓰는 값(nonce)을 매번 새로 뽑아** 덩어리 앞에 붙인다 —
+ * 잠근다. **한 번 쓰는 값(nonce)을 매번 새로 뽑아** 덩어리 앞에 붙인다 . 
  * 같은 열쇠로 두 번 잠글 때 이 값이 겹치면 AES-GCM 은 통째로 무너진다.
  */
 export async function seal(text: string): Promise<Sealed> {
@@ -66,8 +66,8 @@ export async function seal(text: string): Promise<Sealed> {
 }
 
 /**
- * 푼다. 열쇠가 틀리거나 덩어리가 손상되면 **던진다** — 조용히 빈 글을 돌려주면
- * 「빈 쪽지였나 보다」로 읽혀서, 실제로는 못 연 것을 연 것으로 착각하게 된다.
+ * 푼다. 열쇠가 틀리거나 덩어리가 손상되면 **던진다**. 조용히 빈 글을 돌려주면
+ * 빈 쪽지였나 보다로 읽혀서, 실제로는 못 연 것을 연 것으로 착각하게 된다.
  */
 export async function open(body: string, key: string): Promise<string> {
   const joined = base64UrlToBytes(body);
@@ -80,8 +80,8 @@ export async function open(body: string, key: string): Promise<string> {
 }
 
 /* ── 파일 (TASK-KL-252) ───────────────────────────────────────────────
-   서버는 잠긴 덩어리만 보므로 **글인지 파일인지도 모른다.** 그래서 파일 이름·종류는
-   서버에 따로 적지 않고 **잠긴 안쪽에** 넣는다 — `계약서_최종_진짜최종.pdf` 는 그 자체로
+   서버는 잠긴 덩어리만 보므로 **글인지 파일인지도 모른다.** 그래서 파일 이름, 종류는
+   서버에 따로 적지 않고 **잠긴 안쪽에** 넣는다. `계약서_최종_진짜최종.pdf` 는 그 자체로
    정보다. 밖에서 보이는 것은 여전히 덩어리 하나뿐이다. */
 
 /** 파일 하나를 통째로 담은 봉투. 잠근 뒤에는 이 모양조차 안 보인다. */
@@ -112,11 +112,11 @@ export function unpackFile(text: string): { name: string; type: string; bytes: U
 }
 
 /**
- * 링크 한 줄. 열쇠는 **`#` 뒤**에 둔다 — 이 자리가 서버로 안 가는 유일한 자리다.
+ * 링크 한 줄. 열쇠는 **`#` 뒤**에 둔다. 이 자리가 서버로 안 가는 유일한 자리다.
  * (물음표 뒤에 두면 주소가 서버 기록에 그대로 남는다.)
  *
- * 주소 모양은 **도구 상세 쪽**을 쓴다(`/t/burnnote/`) — 해시는 이 앱에서
- * 「어느 도구를 열까」를 뜻하므로, 거기에 데이터를 실으면 도구가 안 열린다.
+ * 주소 모양은 **도구 상세 쪽**을 쓴다(`/t/burnnote/`). 해시는 이 앱에서
+ * 어느 도구를 열까를 뜻하므로, 거기에 데이터를 실으면 도구가 안 열린다.
  * 타임캡슐이 먼저 같은 자리를 지나갔고 같은 모양을 쓴다.
  */
 export function linkFor(origin: string, id: string, key: string): string {

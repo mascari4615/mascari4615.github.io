@@ -1,9 +1,9 @@
 /**
  * 서류 스캔 (TASK-KL-316 / 28)
  *
- * 「이미지」 작업대의 할 일 한 칸. 셈은 `core/docscan`.
+ * 이미지 작업대의 할 일 한 칸. 셈은 `core/docscan`.
  * 네 모서리를 끌어서 종이 귀퉁이에 맞추면 반듯하게 펴진다. PDF 로도 낸다(A4 에 얹어서).
- * 모서리를 자동으로 안 찾는 이유는 알맹이 머리말에 적어 뒀다 — 요약하면 **틀렸을 때 이유가 안 보인다**.
+ * 모서리를 자동으로 안 찾는 이유는 알맹이 머리말에 적어 뒀다. 요약하면 **틀렸을 때 이유가 안 보인다**.
  */
 import { enhance, fitA4, guessSize, warp, type Corners, type Look } from '../../core/docscan';
 import { escapeHtml as esc } from './shared/text';
@@ -16,11 +16,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'docscan',
     title: t('widgets.docscan.title', undefined, '서류 스캔'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.docscan.desc',
       undefined,
-      '비스듬히 찍은 서류를 반듯하게 펴고 스캔처럼 다듬어 PNG·PDF 로 냅니다. 사진이 브라우저를 벗어나지 않습니다'
+      '비스듬히 찍은 서류를 반듯하게 펴고 스캔처럼 다듬어 PNG, PDF 로 냅니다. 사진이 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<path d="M5 4l14 2v12l-14 2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 9h8M8 13h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -143,7 +143,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       image.onload = (): void => {
         URL.revokeObjectURL(url);
         photo = image;
-        /* 고르는 화면은 작게, 셈은 원본으로 — 큰 사진에서 손이 안 무겁게. */
+        /* 고르는 화면은 작게, 셈은 원본으로. 큰 사진에서 손이 안 무겁게. */
         const view = Math.min(1, 420 / Math.max(image.width, image.height));
         pick.width = Math.round(image.width * view);
         pick.height = Math.round(image.height * view);
@@ -267,7 +267,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         const doc = await library.PDFDocument.create();
         const png = await doc.embedPng(await blob.arrayBuffer());
         const fit = fitA4(out.width, out.height);
-        /* 쪽 크기는 우리가 정했으니 그대로 쓴다 — `getWidth()` 를 쓰면 우리 타입에 없다. */
+        /* 쪽 크기는 우리가 정했으니 그대로 쓴다. `getWidth()` 를 쓰면 우리 타입에 없다. */
         const pageW = fit.landscape ? 842 : 595;
         const pageH = fit.landscape ? 595 : 842;
         const page = doc.addPage([pageW, pageH]);

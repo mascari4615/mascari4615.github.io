@@ -1,15 +1,15 @@
 /**
- * 비교 슬라이더 — 화면 (흡수 ⓐ / 04 문서 A부류)
+ * 비교 슬라이더. 화면 (흡수 ⓐ / 04 문서 A부류)
  *
- * 사진 두 장을 겹쳐 놓고 가운데 손잡이를 밀어 「전 / 후」를 견주는 그것. 보정·업스케일·
+ * 사진 두 장을 겹쳐 놓고 가운데 손잡이를 밀어 전 / 후를 견주는 그것. 보정, 업스케일, 
  * 배경 제거처럼 **바뀐 정도를 보여 줘야 하는 일**에 늘 필요한데, 매번 남의 사이트를 찾아 간다.
  *
- * 우리 원칙 그대로 — **사진은 기기 밖으로 안 나간다.** 브라우저 안에서 그리고, 저장도 여기서 한다.
+ * 우리 원칙 그대로. **사진은 기기 밖으로 안 나간다.** 브라우저 안에서 그리고, 저장도 여기서 한다.
  *
- * 골격만이다(색·움직임은 사용자 몫). 다만 아래 셋은 기능이라 지금 박는다:
- * ① 손가락·마우스·키보드 셋 다 — 손잡이를 마우스로만 잡게 하면 폰에서는 없는 기능이 된다
- * ② 크기가 다른 두 장도 겹쳐진다 — 「전/후」는 대개 크기가 다르다(업스케일이 그렇다)
- * ③ 지금 보이는 그대로 PNG 로 저장 — 자랑하려면 그림 한 장이 있어야 한다
+ * 골격만이다(색, 움직임은 사용자 몫). 다만 아래 셋은 기능이라 지금 박는다:
+ * ① 손가락, 마우스, 키보드 셋 다. 손잡이를 마우스로만 잡게 하면 폰에서는 없는 기능이 된다
+ * ② 크기가 다른 두 장도 겹쳐진다. 전/후는 대개 크기가 다르다(업스케일이 그렇다)
+ * ③ 지금 보이는 그대로 PNG 로 저장. 자랑하려면 그림 한 장이 있어야 한다
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { acceptPastedFiles } from './shared/paste';
@@ -23,7 +23,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
   Toolbox.register({
     id: 'comparepic',
     title: t('widgets.comparepic.title', undefined, "비교 슬라이더"),
-    category: 'tool',
+    category: 'image',
     desc: t('widgets-desc.comparepic.desc', undefined, "사진 두 장을 겹쳐 밀어 보며 비교합니다. 파일은 기기 밖으로 나가지 않습니다"),
     layout: 'wide',
     tabs: [
@@ -68,12 +68,12 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
 
           /**
            * 두 장의 크기가 다르면 **큰 쪽에 맞춘다.** 작은 쪽을 늘리면 흐려지지만, 자르면
-           * 비교하려던 부분이 사라진다 — 흐린 편이 낫다(업스케일 전/후가 바로 그 경우다).
+           * 비교하려던 부분이 사라진다. 흐린 편이 낫다(업스케일 전/후가 바로 그 경우다).
            */
           /**
            * **같은 사진인가** (TASK-KL-238 / 46 tineye). 손잡이를 밀어 *보는* 것 옆에,
-           * 기계가 *재는* 답을 한 줄 놓는다 — 재압축·크기 변경으로 파일이 달라졌을 때
-           * 「눈에는 같은데 파일 해시는 다르다」를 사람이 혼자 판단하지 않게.
+           * 기계가 *재는* 답을 한 줄 놓는다. 재압축, 크기 변경으로 파일이 달라졌을 때
+           * 눈에는 같은데 파일 해시는 다르다를 사람이 혼자 판단하지 않게.
            *
            * 그림은 여기서도 밖으로 안 나간다: 9×8 로 줄여 밝기만 읽는다.
            */
@@ -88,7 +88,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
             try {
               px = c.getImageData(0, 0, HASH_W, HASH_H).data;
             } catch {
-              return null; // 다른 곳에서 온 그림이면 캔버스가 잠긴다(tainted) — 조용히 안 한다
+              return null; // 다른 곳에서 온 그림이면 캔버스가 잠긴다(tainted). 조용히 안 한다
             }
             const gray: number[] = [];
             for (let i = 0; i < px.length; i += 4) gray.push(luma(px[i], px[i + 1], px[i + 2]));
@@ -140,7 +140,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
           };
 
           /** 공용 `loadImage` 로 (TASK-KL-280). 여기선 주소를 **바로 거두고** 있었는데, 그러면
-           *  그림을 다시 그릴 때 쓸 수 없다 — 공용 쪽이 한참 뒤에 거둔다. */
+           *  그림을 다시 그릴 때 쓸 수 없다. 공용 쪽이 한참 뒤에 거둔다. */
           const load = async (file: File, side: 'left' | 'right'): Promise<void> => {
             let img: HTMLImageElement;
             try {
@@ -180,12 +180,12 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
             if (f) void load(f, 'right');
           };
 
-          /* **붙여넣기** (TASK-KL-290). 이 도구는 파일 칸이 **둘**이라 공용 `wireDrop` 틀에 안 맞는다 —
-           * 「어느 쪽에 넣나」를 틀이 모르기 때문이다. 억지로 끼우지 않고 그 판단만 여기 둔다:
+          /* **붙여넣기** (TASK-KL-290). 이 도구는 파일 칸이 **둘**이라 공용 `wireDrop` 틀에 안 맞는다 . 
+           * 어느 쪽에 넣나를 틀이 모르기 때문이다. 억지로 끼우지 않고 그 판단만 여기 둔다:
            * **비어 있는 쪽**에 넣고, 둘 다 비었으면 왼쪽부터. 둘 다 찼으면 오른쪽을 갈아 끼운다
-           * (전/후 비교에서 새로 온 것은 대개 「후」다). */
+           * (전/후 비교에서 새로 온 것은 대개 후다). */
           /* 남이 넘긴 그림도 받는다 (TASK-KL-238 / 2). 메타에 `accepts` 를 적어 두고 안 받으면
-           * 「이어서」로 눌렀을 때 **빈 화면**이 뜬다 — 오류도 안 난다. `audit:handoff` 가 그걸 잰다. */
+           * 이어서로 눌렀을 때 **빈 화면**이 뜬다. 오류도 안 난다. `audit:handoff` 가 그걸 잰다. */
           Toolbox.onHandoff?.('comparepic', (file: File) => {
             if (file.type.startsWith('image/')) void load(file, left === null ? 'left' : 'right');
           });
@@ -196,7 +196,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
             void load(f, left === null ? 'left' : right === null ? 'right' : 'right');
           });
 
-          /* 손가락·마우스 한 벌로 (pointer). 마우스만 받으면 폰에서는 없는 기능이 된다. */
+          /* 손가락, 마우스 한 벌로 (pointer). 마우스만 받으면 폰에서는 없는 기능이 된다. */
           const moveTo = (clientX: number): void => {
             const box = stage.getBoundingClientRect();
             split = Math.max(0, Math.min(1, (clientX - box.left) / box.width));
@@ -215,7 +215,7 @@ import { HASH_H, HASH_W, dhash, hamming, luma, similarity, verdict } from '../..
             dragging = false;
           });
 
-          /* 키보드로도 — 손이 불편한 사람에게 손잡이는 잡기 가장 어려운 것 중 하나다. */
+          /* 키보드로도. 손이 불편한 사람에게 손잡이는 잡기 가장 어려운 것 중 하나다. */
           handle.addEventListener('keydown', (e) => {
             const key = (e as KeyboardEvent).key;
             const step = (e as KeyboardEvent).shiftKey ? 0.1 : 0.02;

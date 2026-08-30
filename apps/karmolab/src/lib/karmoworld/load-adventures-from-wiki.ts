@@ -76,7 +76,7 @@
     const idxUrl = indexUrl(base);
     const rIdx = await fetch(idxUrl);
     if (!rIdx.ok) {
-      // _index.json 미배포 = adventures 0개 (정상 케이스 — 첫 모험 commit 전).
+      // _index.json 미배포 = adventures 0개 (정상 케이스. 첫 모험 commit 전).
       window.KarmoWorld = window.KarmoWorld || {};
       window.KarmoWorld.entities = window.KarmoWorld.entities || {};
       window.KarmoWorld.entities.adventures = {};

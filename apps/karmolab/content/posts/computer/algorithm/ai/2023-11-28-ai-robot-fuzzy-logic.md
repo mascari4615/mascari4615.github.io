@@ -5,7 +5,7 @@ last_modified_at: "2023-12-12T10:50:00+09:00"
 categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Fuzzy Logic

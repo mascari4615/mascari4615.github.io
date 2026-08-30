@@ -1,5 +1,5 @@
 /**
- * 즐겨찾기 정리 — chrome.bookmarks 로 읽고 지운다.
+ * 즐겨찾기 정리. chrome.bookmarks 로 읽고 지운다.
  * 파일(Bookmarks JSON) 직접 편집과 달리 동기화에도 전파된다.
  */
 
@@ -54,7 +54,7 @@ function render() {
     url.textContent = b.url;
     const folder = document.createElement("div");
     folder.className = "folder";
-    folder.textContent = `${b.folder || "(루트)"} · id ${b.id}`;
+    folder.textContent = `${b.folder || "(루트)"}, id ${b.id}`;
     meta.append(name, url, folder);
 
     row.append(cb, meta);
@@ -64,7 +64,7 @@ function render() {
 }
 
 function updateCounts() {
-  $("list-status").textContent = `전체 ${items.length}건 · 표시 ${visible().length}건 · 선택 ${selected.size}건`;
+  $("list-status").textContent = `전체 ${items.length}건, 표시 ${visible().length}건, 선택 ${selected.size}건`;
 }
 
 function asTsv(rows) {
@@ -80,7 +80,7 @@ function asMarkdown(rows) {
 async function copy(text, note) {
   await navigator.clipboard.writeText(text);
   $("export-status").className = "status";
-  $("export-status").textContent = `${note} — ${text.split("\n").length}줄 복사됨`;
+  $("export-status").textContent = `${note}. ${text.split("\n").length}줄 복사됨`;
 }
 
 /** 붙여넣은 덩어리에서 id 와 URL 을 뽑아 대상 북마크를 고른다. */
@@ -103,7 +103,7 @@ async function removeMany(targets, statusEl) {
       await chrome.bookmarks.remove(b.id);
       ok.push(b);
     } catch (e) {
-      fail.push(`${b.id} ${b.name} — ${e.message}`);
+      fail.push(`${b.id} ${b.name}. ${e.message}`);
     }
   }
   await load();
@@ -133,7 +133,7 @@ $("bulk-preview").addEventListener("click", () => {
   const { hit, urls, ids } = matchTargets($("bulk").value);
   $("bulk-status").className = "status";
   $("bulk-status").textContent =
-    `입력에서 id ${ids.size}개 · URL ${urls.size}개 인식 → 즐겨찾기 ${hit.length}건 일치.\n` +
+    `입력에서 id ${ids.size}개, URL ${urls.size}개 인식 → 즐겨찾기 ${hit.length}건 일치.\n` +
     hit.map((b) => `- ${b.id}\t${b.name}\t${b.url}`).join("\n");
 });
 

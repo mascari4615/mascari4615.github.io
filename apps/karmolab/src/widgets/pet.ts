@@ -13,7 +13,7 @@ import { t, loadNamespace } from '../lib/i18n';
     badge?: string;
   };
 
-  /* 이 표는 **쓸 때 만든다** — 모듈이 뜨는 순간에 굳으면 한국어로 굳는다. */
+  /* 이 표는 **쓸 때 만든다**. 모듈이 뜨는 순간에 굳으면 한국어로 굳는다. */
   const milestones = (): Record<number, MilestoneDef> => ({
     100: { msg: t('pet.t06'), mood: 'happy', achievement: 'pet_100' },
     1000: { msg: t('pet.t07'), mood: 'smug', achievement: 'pet_1000' },
@@ -68,7 +68,7 @@ import { t, loadNamespace } from '../lib/i18n';
             isDragging = false;
           });
 
-          /* 쓰다듬는 일 자체를 함수로 뽑는다 — 마우스로 문지르든 자판을 누르든 **같은 한 번**이다.
+          /* 쓰다듬는 일 자체를 함수로 뽑는다. 마우스로 문지르든 자판을 누르든 **같은 한 번**이다.
            * (2026-08-14, `audit:mouse-only`: 문지르기만 있으면 자판 쓰는 사람은 아예 못 쓰다듬는다.) */
           function petOnce(): void {
             count = Toolbox.incrementProgress?.(PROGRESS_KEY) ?? count + 1;
@@ -95,7 +95,7 @@ import { t, loadNamespace } from '../lib/i18n';
             if (isDragging) petOnce();
           });
 
-          /* 자판 길 — 누르면 한 번 쓰다듬는다. 고양이는 단추가 아니지만, 하는 일이 단추와 같다
+          /* 자판 길. 누르면 한 번 쓰다듬는다. 고양이는 단추가 아니지만, 하는 일이 단추와 같다
            * (누르면 한 번 일어난다)라서 `role="button"` 이 맞다. */
           petArea.tabIndex = 0;
           petArea.setAttribute('role', 'button');

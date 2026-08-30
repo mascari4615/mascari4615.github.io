@@ -6,7 +6,7 @@ import type { Character } from './types';
 /**
  * 인격을 파일 하나에서 읽는다.
  *
- * 형식은 아주 얕게만 정했다 — 맨 위 `---` 블록의 `name:` 과 나머지 본문. 본문은 가공
+ * 형식은 아주 얕게만 정했다. 맨 위 `---` 블록의 `name:` 과 나머지 본문. 본문은 가공
  * 없이 그대로 두뇌에 넘어간다. 인격을 코드가 아니라 글로 고칠 수 있게 하려는 것이다.
  */
 export function loadCharacter(path: string): Character {
@@ -21,7 +21,7 @@ export function loadCharacter(path: string): Character {
 /**
  * 한 폴더 안의 인격들을 전부 읽는다.
  *
- * 인격은 고정이 아니다 — 파일을 하나 더 넣으면 그만큼 후보가 는다. 누구로 있을지는
+ * 인격은 고정이 아니다. 파일을 하나 더 넣으면 그만큼 후보가 는다. 누구로 있을지는
  * 코드가 아니라 폴더가 정한다.
  */
 export function loadCharacters(folder: string): Character[] {
@@ -35,7 +35,7 @@ export function loadCharacters(folder: string): Character[] {
 /**
  * 인격 폴더.
  *
- * 기본은 이 패키지 안 `characters/`. 다른 저장소의 폴더를 꽂을 수 있다 —
+ * 기본은 이 패키지 안 `characters/`. 다른 저장소의 폴더를 꽂을 수 있다 . 
  * 코어는 경로가 어디든 본문을 해석하지 않고 두뇌에 넘긴다.
  * 어떤 본문이 있는지는 이 저장소가 모른다.
  */

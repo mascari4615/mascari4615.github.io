@@ -1,10 +1,10 @@
 /**
- * 기억 순서 — 한 칸씩 길어진다 (TASK-KL-242)
+ * 기억 순서. 한 칸씩 길어진다 (TASK-KL-242)
  *
- * 짝 맞추기가 「어디에 뭐가 있었나」였다면 이건 **「어떤 차례였나」**다. 자리는 넷뿐이라 볼 것은
- * 없고, 순서만 남는다 — 그래서 판이 길어질수록 화면은 그대로인데 사람만 힘들어진다.
+ * 짝 맞추기가 어디에 뭐가 있었나였다면 이건 **어떤 차례였나**다. 자리는 넷뿐이라 볼 것은
+ * 없고, 순서만 남는다. 그래서 판이 길어질수록 화면은 그대로인데 사람만 힘들어진다.
  *
- * 여럿이 하는 법: **모두 같은 순서를 본다.** 틀리면 그 사람만 빠지고 나머지는 계속 간다 —
+ * 여럿이 하는 법: **모두 같은 순서를 본다.** 틀리면 그 사람만 빠지고 나머지는 계속 간다 . 
  * 마지막까지 남은 사람이 이긴다. 남의 실수를 보면서 내 차례를 기다리는 것도 재미다.
  *
  * 순서는 씨앗에서 나온다. 그때그때 뽑으면 창마다 다른 것을 보게 된다.
@@ -18,7 +18,7 @@ const SHOW_MS = 620;
 const SHOW_MIN = 300;
 
 export interface SimonState {
-  /** 전체 순서 — 앞에서부터 `len` 개만 쓴다 */
+  /** 전체 순서. 앞에서부터 `len` 개만 쓴다 */
   seq: number[];
   /** 이번 판의 길이 */
   len: number;
@@ -33,7 +33,7 @@ export interface SimonState {
 
 export type SimonAction = { pad: number };
 
-/** 한 칸 보여 주는 시간 — 길수록 빠르다. */
+/** 한 칸 보여 주는 시간. 길수록 빠르다. */
 export const showMs = (len: number): number => Math.max(SHOW_MIN, SHOW_MS - len * 18);
 
 /** 지금 몇 번째 칸을 보여 주는 중인가. 다 보여 줬으면 -1. */
@@ -46,8 +46,8 @@ export function showing(s: SimonState, now: number): number {
 /**
  * 한 칸 더 보여 줄 때가 됐나 본다.
  *
- * **탈락도 「다 쳤다」를 만든다.** 남들이 틀려 빠졌는데 나는 이미 다 쳐 놓은 상태면 그 판은
- * 아무도 움직일 수 없다 — 나는 칠 것이 없고 남은 죽었다. 원래는 「친 사람」만 이 자리를
+ * **탈락도 다 쳤다를 만든다.** 남들이 틀려 빠졌는데 나는 이미 다 쳐 놓은 상태면 그 판은
+ * 아무도 움직일 수 없다. 나는 칠 것이 없고 남은 죽었다. 원래는 친 사람만 이 자리를
  * 지나가서 봇끼리 200판 중 47판이 그렇게 멈췄다(TASK-KL-264 F1 실측).
  */
 function advance(s: SimonState, ctx: GameCtx): SimonState {
@@ -80,7 +80,7 @@ export const simon: GameDef<SimonState, SimonAction> = {
 
   reduce(s, a, seat, ctx) {
     if (s.over || !s.alive[seat]) return s;
-    /* 보여 주는 중에는 못 누른다 — 중간에 눌러 맞히면 기억할 이유가 없다. */
+    /* 보여 주는 중에는 못 누른다. 중간에 눌러 맞히면 기억할 이유가 없다. */
     if (showing(s, ctx.now) >= 0) return s;
     const pad = a?.pad;
     if (!Number.isInteger(pad) || pad < 0 || pad >= PADS) return s;
@@ -88,7 +88,7 @@ export const simon: GameDef<SimonState, SimonAction> = {
     const at = s.typed[seat];
     if (at >= s.len) return s;
 
-    /* 틀리면 그 사람만 빠진다 — 나머지 판은 그대로 간다. */
+    /* 틀리면 그 사람만 빠진다. 나머지 판은 그대로 간다. */
     if (s.seq[at] !== pad) {
       const alive = s.alive.map((v, i) => (i === seat ? false : v));
       return advance({ ...s, alive, over: alive.every((v) => !v) }, ctx);
@@ -121,7 +121,7 @@ export const simon: GameDef<SimonState, SimonAction> = {
     if (showing(s, ctx.now) >= 0) return null;
     const at = s.typed[seat];
     if (at >= s.len) return null;
-    /* 길어질수록 더 자주 틀린다 — 사람과 비슷하게. */
+    /* 길어질수록 더 자주 틀린다. 사람과 비슷하게. */
     const forget = Math.min(0.45, 0.02 + s.len * 0.035);
     const pad = ctx.rng() < forget ? Math.floor(ctx.rng() * PADS) : s.seq[at];
     return { action: { pad }, delayMs: 320 + ctx.rng() * 280 };

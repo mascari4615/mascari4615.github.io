@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:06:00+09:00"
 categories: [컴퓨터, 자료구조]
 tags: [자료구조, Heap]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## @TODO

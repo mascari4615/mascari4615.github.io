@@ -53,7 +53,7 @@ function friendlyYawnErrorMessage(err: unknown): string {
     lower.includes('401') ||
     lower.includes('403')
   ) {
-    return 'API 인증에 문제가 있습니다. 서버 `.env`의 키·프로젝트 설정을 확인해 주세요.';
+    return 'API 인증에 문제가 있습니다. 서버 `.env`의 키, 프로젝트 설정을 확인해 주세요.';
   }
   if (lower.includes('fetch') || lower.includes('network') || lower.includes('econnreset')) {
     return '네트워크 오류로 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
@@ -187,7 +187,7 @@ export async function handleCursorEdit(ctx: BotContext, interaction: ChatInputCo
         { name: '모드', value: `\`${modeOpt || 'agent'}\``, inline: true },
         { name: '작업 경로', value: `\`${String(json.cwd || repoDir).slice(0, 900)}\`` },
         {
-          name: '질문·플랜 (ACP)',
+          name: '질문, 플랜 (ACP)',
           value: formatCursorAcpRpcSummaryField(json.acpRpcSummary),
           inline: false,
         },
@@ -289,7 +289,7 @@ export async function handleYawn(ctx: BotContext, interaction: ChatInputCommandI
     const maxFull = parseInt(process.env.YAWN_MAX_PROMPT_CHARS || '12000', 10);
     const maxFullClamped = Math.min(Math.max(2000, Number.isFinite(maxFull) ? maxFull : 12000), 32000);
     if (blobPrompt.length > maxFullClamped) {
-      blobPrompt = blobPrompt.slice(0, maxFullClamped) + '\n\n…(앞부분·맥락이 잘렸습니다)';
+      blobPrompt = blobPrompt.slice(0, maxFullClamped) + '\n\n...(앞부분, 맥락이 잘렸습니다)';
     }
     // TASK-KAR-145: 사용자 가시 응답 = 'standard' tier (풀 품질). modelOpt 명시 시
     // 그게 우선 (resolveGeminiModelId: explicit > tier). usage telemetry tag.
@@ -312,7 +312,7 @@ export async function handleYawn(ctx: BotContext, interaction: ChatInputCommandI
         ),
       )
       .setColor(0x4285f4)
-      .setFooter({ text: `${apiLabel} · ${usedModelId}` })
+      .setFooter({ text: `${apiLabel}, ${usedModelId}` })
       .setTimestamp();
     await interaction.editReply({ content: null, embeds: [embed] });
     await notifyDeferCompletion(interaction, { ok: true, kind: 'gemini' });

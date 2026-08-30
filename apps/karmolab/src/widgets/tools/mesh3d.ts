@@ -1,13 +1,13 @@
 /**
- * 3D 뷰어 — 화면 (흡수 ⓑ)
+ * 3D 뷰어. 화면 (흡수 ⓑ)
  *
- * 「받아 놓고 못 여는 3D 파일」을 그냥 여는 것. 읽는 일은 전부 `core/mesh3d.ts` 가 하고,
+ * 받아 놓고 못 여는 3D 파일을 그냥 여는 것. 읽는 일은 전부 `core/mesh3d.ts` 가 하고,
  * 여기는 **그리는 일만** 한다.
  *
- * ★ 라이브러리 0 — three.js(600KB+)를 이 도구 하나 때문에 들이지 않는다. WebGL 을 손으로 쓴다.
- *   행렬 네 개와 셰이더 두 장이면 「돌려 보기」에는 충분하다.
+ * ★ 라이브러리 0. three.js(600KB+)를 이 도구 하나 때문에 들이지 않는다. WebGL 을 손으로 쓴다.
+ *   행렬 네 개와 셰이더 두 장이면 돌려 보기에는 충분하다.
  *
- * ★ 가만히 두면 **안 그린다.** 돌리거나 확대할 때만 한 판 그린다 — 60fps 로 계속 도는 화면은
+ * ★ 가만히 두면 **안 그린다.** 돌리거나 확대할 때만 한 판 그린다. 60fps 로 계속 도는 화면은
  *   가만히 있어도 배터리를 먹고, 그 원인은 아무 데도 안 보인다.
  *
  * ★ 파일은 기기 밖으로 안 나간다. 남의 3D 뷰어 사이트는 대개 업로드부터 시킨다.
@@ -54,7 +54,7 @@ function rotationXY(pitch: number, yaw: number): Float32Array {
   const sp = Math.sin(pitch);
   const cy = Math.cos(yaw);
   const sy = Math.sin(yaw);
-  /* Y 축(좌우) 먼저, X 축(위아래) 나중 — 사람이 「지구본 돌리듯」 기대하는 순서다. */
+  /* Y 축(좌우) 먼저, X 축(위아래) 나중. 사람이 지구본 돌리듯 기대하는 순서다. */
   return new Float32Array([cy, sp * sy, -cp * sy, 0, 0, cp, sp, 0, sy, -sp * cy, cp * cy, 0, 0, 0, 0, 1]);
 }
 
@@ -101,8 +101,8 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
   Toolbox.register({
     id: 'mesh3d',
     title: t('widgets.mesh3d.title', undefined, "3D 뷰어"),
-    category: 'tool',
-    desc: t('widgets-desc.mesh3d.desc', undefined, "STL·OBJ 를 열어 돌려 봅니다. 삼각형 수·크기도 함께. 파일은 기기 밖으로 나가지 않습니다"),
+    category: 'image',
+    desc: t('widgets-desc.mesh3d.desc', undefined, "STL, OBJ 를 열어 돌려 봅니다. 삼각형 수, 크기도 함께. 파일은 기기 밖으로 나가지 않습니다"),
     layout: 'wide',
     tabs: [
       {
@@ -135,7 +135,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
             el.className = `tool-note${tone === '' ? '' : ' ' + tone}`;
           };
 
-          /* preserveDrawingBuffer — 없으면 PNG 저장이 빈 그림으로 나온다(그린 직후가 아니면 지워진다). */
+          /* preserveDrawingBuffer. 없으면 PNG 저장이 빈 그림으로 나온다(그린 직후가 아니면 지워진다). */
           const gl = canvas.getContext('webgl', { antialias: true, preserveDrawingBuffer: true });
           if (gl === null) {
             say(t('mesh3d.say.06'), 'error');
@@ -175,7 +175,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           let zoom = 1;
           let pending = false;
 
-          /* 한 판만 그린다. 여러 번 불려도 다음 프레임에 한 번 — 끄는 자리를 잊지 않기 위해 rAF 로 묶는다. */
+          /* 한 판만 그린다. 여러 번 불려도 다음 프레임에 한 번. 끄는 자리를 잊지 않기 위해 rAF 로 묶는다. */
           const invalidate = (): void => {
             if (pending) return;
             pending = true;
@@ -219,7 +219,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
 
               /*
                * 화면 좌표로 옮긴다: 가운데를 원점으로, 가장 긴 변을 1 로.
-               * 파일마다 크기가 mm·m·인치로 제각각이라, 안 맞추면 어떤 모델은 점이고 어떤 모델은
+               * 파일마다 크기가 mm, m, 인치로 제각각이라, 안 맞추면 어떤 모델은 점이고 어떤 모델은
                * 화면을 뚫고 나온다. 원래 크기는 아래 글로 따로 알려 준다.
                */
               const scale = info.longest === 0 ? 1 : 1 / info.longest;
@@ -278,15 +278,15 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           };
 
           $<HTMLButtonElement>('#m3Png').onclick = () => {
-            render(); // 저장 직전에 한 판 — 그린 지 오래된 화면은 비어 있을 수 있다
+            render(); // 저장 직전에 한 판. 그린 지 오래된 화면은 비어 있을 수 있다
             // 공용 한 자리(`shared/image`). 여기 있던 `revokeObjectURL` 은 `click()` 직후라
-            // 브라우저가 아직 안 읽었을 수 있었다 — 공용은 2초 뒤에 거둔다.
+            // 브라우저가 아직 안 읽었을 수 있었다. 공용은 2초 뒤에 거둔다.
             encode(canvas, 'png')
               .then((blob) => download(blob, 'mesh.png'))
               .catch(() => say(t('mesh3d.say.11'), 'error'));
           };
 
-          /* 손가락·마우스 한 벌 — 마우스만 받으면 폰에서는 못 돌린다. */
+          /* 손가락, 마우스 한 벌. 마우스만 받으면 폰에서는 못 돌린다. */
           let dragging = false;
           let lastX = 0;
           let lastY = 0;
@@ -309,9 +309,9 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           };
           canvas.addEventListener('pointerup', stop);
           canvas.addEventListener('pointercancel', stop);
-          /* 자판 길 (2026-08-14, `audit:mouse-only`). 끌기·휠만 있으면 자판 쓰는 사람은
-           * **모형을 한 번도 못 돌린다** — 3D 도구에서 그건 아무것도 못 보는 것과 같다.
-           * 화살표=돌리기(5도) · Shift+화살표=크게(15도) · +/− = 배율 · 0 = 처음 자리. */
+          /* 자판 길 (2026-08-14, `audit:mouse-only`). 끌기, 휠만 있으면 자판 쓰는 사람은
+           * **모형을 한 번도 못 돌린다**. 3D 도구에서 그건 아무것도 못 보는 것과 같다.
+           * 화살표=돌리기(5도), Shift+화살표=크게(15도), +/− = 배율, 0 = 처음 자리. */
           canvas.tabIndex = 0;
           canvas.setAttribute('role', 'application');
           canvas.setAttribute('aria-label', t('mesh3d.kb.label'));
@@ -346,7 +346,7 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
           const onResize = (): void => invalidate();
           window.addEventListener('resize', onResize);
 
-          /* 갈아 끼울 때 뒷정리 — 예약된 프레임과 창 리스너를 두고 가면 도구마다 쌓인다. */
+          /* 갈아 끼울 때 뒷정리. 예약된 프레임과 창 리스너를 두고 가면 도구마다 쌓인다. */
           Toolbox.onDispose?.(() => {
             window.cancelAnimationFrame(frame);
             window.removeEventListener('resize', onResize);

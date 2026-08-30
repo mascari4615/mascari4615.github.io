@@ -1,15 +1,15 @@
 /**
- * sna.ts — 관계망 지표 (TASK-KL-202 격차 U).
+ * sna.ts. 관계망 지표 (TASK-KL-202 격차 U).
  *
  * 관계도를 다 그리고 나면 다음 질문은 늘 같다: **누가 중심인가, 누가 다리인가.**
- * 눈으로는 안 보인다 — 선이 많은 것과 「없으면 그림이 두 조각 나는 것」은 다르다.
+ * 눈으로는 안 보인다. 선이 많은 것과 없으면 그림이 두 조각 나는 것은 다르다.
  *
  * 세 가지만 낸다(Kumu 가 쓰는 것과 같은 뜻):
- * - `degree`    닿은 선의 수 — 허브. 「없어지면 곤란한 자리」의 1차 신호.
- * - `betweenness` 남들 사이의 **다리**가 된 횟수 — 중개자·병목.
- * - `closeness` 다른 모두에게 얼마나 가까운가 — 소문이 빨리 퍼지는 자리.
+ * - `degree`    닿은 선의 수. 허브. 없어지면 곤란한 자리의 1차 신호.
+ * - `betweenness` 남들 사이의 **다리**가 된 횟수. 중개자, 병목.
+ * - `closeness` 다른 모두에게 얼마나 가까운가. 소문이 빨리 퍼지는 자리.
  *
- * 방향은 무시한다(관계도에서 「좋아함」이 한쪽이어도 두 사람은 이어져 있다).
+ * 방향은 무시한다(관계도에서 좋아함이 한쪽이어도 두 사람은 이어져 있다).
  */
 
 export interface SnaInput {
@@ -42,8 +42,8 @@ function adjacency(input: SnaInput): Map<string, Set<string>> {
 }
 
 /**
- * Brandes 알고리즘 — 모든 노드에서 너비 우선으로 훑으며 최단 경로 수를 세고,
- * 되돌아오며 「내가 몇 번 다리였나」를 쌓는다. 노드 수 V, 선 수 E 에 대해 O(V·E) —
+ * Brandes 알고리즘. 모든 노드에서 너비 우선으로 훑으며 최단 경로 수를 세고,
+ * 되돌아오며 내가 몇 번 다리였나를 쌓는다. 노드 수 V, 선 수 E 에 대해 O(V, E) . 
  * 관계도 규모(수백)에서는 즉시 끝난다.
  */
 export function computeSna(input: SnaInput): SnaResult {
@@ -107,12 +107,12 @@ export function computeSna(input: SnaInput): SnaResult {
     }
   }
 
-  // 방향 없는 그래프에서는 각 쌍을 두 번 센다 — 절반으로 되돌린다.
+  // 방향 없는 그래프에서는 각 쌍을 두 번 센다. 절반으로 되돌린다.
   for (const id of ids) betweenness.set(id, (betweenness.get(id) ?? 0) / 2);
   return { degree, betweenness, closeness };
 }
 
-/** 값이 큰 순으로 상위 n개. 값이 0 인 것은 넣지 않는다(「1등인데 0」은 아무 말도 아니다). */
+/** 값이 큰 순으로 상위 n개. 값이 0 인 것은 넣지 않는다(1등인데 0은 아무 말도 아니다). */
 export function topBy(map: Map<string, number>, n: number): { id: string; value: number }[] {
   return [...map.entries()]
     .filter(([, v]) => v > 0)
@@ -122,13 +122,13 @@ export function topBy(map: Map<string, number>, n: number): { id: string; value:
 }
 
 /**
- * 「이어질 법한데 안 이어진 자리」 (TASK-KL-202, InfraNodus 의 structural gap 계보).
+ * 이어질 법한데 안 이어진 자리 (TASK-KL-202, InfraNodus 의 structural gap 계보).
  *
- * 관계망 읽기는 지금까지 **순위**만 냈다(허브·다리·가까움). 그런데 사람이 그림을 보다 얻는 것은
- * 대개 「어? 얘랑 얘는 왜 안 이어져 있지?」다 — **공통 이웃이 여럿인데 서로는 안 이어진 쌍**이
+ * 관계망 읽기는 지금까지 **순위**만 냈다(허브, 다리, 가까움). 그런데 사람이 그림을 보다 얻는 것은
+ * 대개 어? 얘랑 얘는 왜 안 이어져 있지?다. **공통 이웃이 여럿인데 서로는 안 이어진 쌍**이
  * 그 자리다. 세계관에서는 대개 아직 안 쓴 이야기이고, 정리 도구에서는 빠뜨린 연결이다.
  *
- * 공통 이웃이 하나뿐인 쌍은 흔해서 소음이 된다 — 둘 이상만 본다.
+ * 공통 이웃이 하나뿐인 쌍은 흔해서 소음이 된다. 둘 이상만 본다.
  */
 export function structuralGaps(
   graph: { nodes: { id: string }[]; edges: { from: string; to: string }[] },

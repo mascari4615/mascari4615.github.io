@@ -1,8 +1,8 @@
 /**
  * 한 줄 서기 화면 (TASK-KL-242)
  *
- * 순서를 정하는 일은 **누르는 차례**로 받는다 — 끌어서 옮기기는 폰에서 자주 어긋나고,
- * 「몇 번째」를 숫자로 고르게 하면 셈이 두 번이 된다. 왼쪽에서 고르면 오른쪽 줄에 쌓인다.
+ * 순서를 정하는 일은 **누르는 차례**로 받는다. 끌어서 옮기기는 폰에서 자주 어긋나고,
+ * 몇 번째를 숫자로 고르게 하면 셈이 두 번이 된다. 왼쪽에서 고르면 오른쪽 줄에 쌓인다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
@@ -11,7 +11,7 @@ import { useQuestionCount, type LineupState, type LineupAction } from './lineup'
 export const lineupView: GameView<LineupState, LineupAction> = {
   id: 'lineup',
   mount(el, act) {
-    /* 질문 개수를 말 묶음에서 센다 — 규칙 파일은 무엇을 묻는지 모른다. */
+    /* 질문 개수를 말 묶음에서 센다. 규칙 파일은 무엇을 묻는지 모른다. */
     const raw = t('arcade.lineup.questions');
     const questions = raw && raw !== 'arcade.lineup.questions' ? raw.split('|').map((q) => q.trim()) : [];
     if (questions.length) useQuestionCount(questions.length);
@@ -81,7 +81,7 @@ export const lineupView: GameView<LineupState, LineupAction> = {
         return;
       }
 
-      /* reveal — 진짜 순서와 점수 */
+      /* reveal. 진짜 순서와 점수 */
       const real = s.picks
         .map((val, i) => ({ v: val ?? 0, i }))
         .sort((a, b) => a.v - b.v || a.i - b.i);

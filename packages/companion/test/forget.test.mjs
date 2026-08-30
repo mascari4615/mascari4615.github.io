@@ -10,7 +10,7 @@ function tempPath(name = 'conversation.jsonl') {
   return join(mkdtempSync(join(tmpdir(), 'companion-forget-')), name);
 }
 
-test('그 낱말이 든 대화를 지운다 — 몇 줄 지웠는지 알려준다', () => {
+test('그 낱말이 든 대화를 지운다. 몇 줄 지웠는지 알려준다', () => {
   const path = tempPath();
   const memory = new JsonlFileMemory(path);
   memory.remember({ role: 'sensed', channel: 'web', text: '내 비밀번호는 사실 1234야', at: 1 });
@@ -20,7 +20,7 @@ test('그 낱말이 든 대화를 지운다 — 몇 줄 지웠는지 알려준�
   assert.deepEqual(memory.recent(10).map((e) => e.text), ['오늘 날씨 좋다']);
 });
 
-test('지운 건 파일에서도 사라진다 — 화면에서만 감추지 않는다', () => {
+test('지운 건 파일에서도 사라진다. 화면에서만 감추지 않는다', () => {
   const path = tempPath();
   const memory = new JsonlFileMemory(path);
   memory.remember({ role: 'sensed', channel: 'web', text: '지울 말', at: 1 });
@@ -49,7 +49,7 @@ test('없는 낱말을 지우라고 하면 아무 일도 안 한다', () => {
   assert.equal(memory.recent(10).length, 1);
 });
 
-test('빈 낱말로는 아무것도 안 지운다 — 실수로 전부 날아가지 않게', () => {
+test('빈 낱말로는 아무것도 안 지운다. 실수로 전부 날아가지 않게', () => {
   const memory = new JsonlFileMemory(tempPath());
   memory.remember({ role: 'sensed', channel: 'web', text: '안녕', at: 1 });
   assert.equal(memory.forget('   '), 0);

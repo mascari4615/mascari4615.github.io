@@ -1,19 +1,19 @@
 {
   "filehash.drop": "파일을 끌어다 놓거나 눌러서 고르세요",
-  "filehash.label.expect": "배포처가 적어 둔 값 — 붙여 넣으면 자동으로 맞춰 봅니다",
+  "filehash.label.expect": "배포처가 적어 둔 값. 붙여 넣으면 자동으로 맞춰 봅니다",
   "filehash.status.idle": "파일은 브라우저 안에서만 읽습니다.",
   "filehash.stat.digest": "검사값",
   "filehash.copy.done": "검사값을 복사했어요",
   "filehash.say.done": "계산 완료",
   "filehash.verdict.match": "일치",
   "filehash.verdict.differ": "불일치",
-  "filehash.say.noMatch": "어떤 방식으로도 값이 다릅니다 — 받다가 깨졌거나 다른 파일일 수 있습니다.",
-  "filehash.say.working": "계산 중…",
-  "filehash.say.match": "{algo} 값이 배포처와 같습니다 — 파일이 온전합니다.",
-  "filehash.say.reading": "{name} · {size} 를 읽는 중…",
-  "filehash.say.ready": "{name} · {size} · 줄을 누르면 값이 복사됩니다.",
+  "filehash.say.noMatch": "어떤 방식으로도 값이 다릅니다. 받다가 깨졌거나 다른 파일일 수 있습니다.",
+  "filehash.say.working": "계산 중...",
+  "filehash.say.match": "{algo} 값이 배포처와 같습니다. 파일이 온전합니다.",
+  "filehash.say.reading": "{name}, {size} 를 읽는 중...",
+  "filehash.say.ready": "{name}, {size}, 줄을 누르면 값이 복사됩니다.",
   "filehash.lookup.title": "이 검사값으로 물어보기",
   "filehash.lookup.virustotal": "VirusTotal 에서 보기",
   "filehash.lookup.bazaar": "MalwareBazaar 에서 보기",
-  "filehash.lookup.how": "파일은 여전히 안 나갑니다 — 누르면 64자리 검사값만 그 사이트 주소에 실립니다. 검사값으로는 파일을 되돌릴 수 없습니다."
+  "filehash.lookup.how": "파일은 여전히 안 나갑니다. 누르면 64자리 검사값만 그 사이트 주소에 실립니다. 검사값으로는 파일을 되돌릴 수 없습니다."
 }

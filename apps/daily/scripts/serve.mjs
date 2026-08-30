@@ -1,5 +1,5 @@
 /**
- * dist/ 를 실제 배포와 같은 주소(/daily/…)로 띄운다. 눈으로 보고 스샷 찍는 용도.
+ * dist/ 를 실제 배포와 같은 주소(/daily/...)로 띄운다. 눈으로 보고 스샷 찍는 용도.
  *   node scripts/serve.mjs [포트]
  */
 import { createServer } from 'node:http';

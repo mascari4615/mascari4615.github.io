@@ -1,5 +1,5 @@
 /**
- * QR 코드 생성기 (TASK-KL-088) — 텍스트·URL·WiFi·연락처를 QR 로. PNG/SVG 다운로드.
+ * QR 코드 생성기 (TASK-KL-088). 텍스트, URL, WiFi, 연락처를 QR 로. PNG/SVG 다운로드.
  * qrcode-generator 를 번들해 오프라인에서도 동작 (외부 API 호출 0 = 입력 데이터가 밖으로 안 나감).
  */
 import qrcode from 'qrcode-generator';
@@ -14,17 +14,17 @@ import { appUrl } from '../../lib/site-base';
 
 (function (): void {
 
-  /* WiFi·vCard 문법 이스케이프와 SVG 만들기는 `src/core/qrgen.ts` 가 소유한다 —
+  /* WiFi, vCard 문법 이스케이프와 SVG 만들기는 `src/core/qrgen.ts` 가 소유한다 . 
      비밀번호에 `;` 하나로 QR 이 조용히 다른 뜻이 되는 자리라 시험이 거기 붙어 있다 (TASK-KL-205). */
 
   Toolbox.register({
     id: 'qrgen',
     title: t('widgets.qrgen.title', undefined, 'QR 코드 생성'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.qrgen.desc',
       undefined,
-      'URL·텍스트·WiFi·연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다. 서버 전송 없이 브라우저에서 생성'
+      'URL, 텍스트, WiFi, 연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다. 서버 전송 없이 브라우저에서 생성'
     ),
     layout: 'form',
     icon: '<rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" stroke="currentColor" stroke-width="1.6" fill="none"/>',
@@ -151,7 +151,7 @@ import { appUrl } from '../../lib/site-base';
           const kind = $<HTMLSelectElement>('#qrKind');
           const preview = $<HTMLElement>('#qrPreview');
           const status = $<HTMLElement>('#qrStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           const sizeInput = $<HTMLInputElement>('#qrSize');
           const sizeVal = $<HTMLElement>('#qrSizeVal');
@@ -196,7 +196,7 @@ import { appUrl } from '../../lib/site-base';
             }
           }
 
-          /* 가운데 로고 — 남들(QR Tiger 등)이 앞세우는 기능이다. 다만 로고를 얹으면 그 자리 칸이
+          /* 가운데 로고. 남들(QR Tiger 등)이 앞세우는 기능이다. 다만 로고를 얹으면 그 자리 칸이
              가려져 **안 읽히는 QR** 이 되기 쉬워서, 얹은 뒤 실제로 다시 읽어 확인한다. */
           let logoImg: HTMLImageElement | null = null;
           let lastCanvas: HTMLCanvasElement | null = null;
@@ -251,7 +251,7 @@ import { appUrl } from '../../lib/site-base';
                 const pct = parseInt($<HTMLInputElement>('#qrLogoSize').value, 10) / 100;
                 const w = size * pct;
                 const x = (size - w) / 2;
-                /* 로고 뒤에 배경색을 깔아 준다 — 안 깔면 코드 무늬 위에 겹쳐 더 안 읽힌다. */
+                /* 로고 뒤에 배경색을 깔아 준다. 안 깔면 코드 무늬 위에 겹쳐 더 안 읽힌다. */
                 ctx.fillStyle = $<HTMLInputElement>('#qrBg').value;
                 ctx.fillRect(x - w * 0.06, x - w * 0.06, w * 1.12, w * 1.12);
                 ctx.drawImage(logoImg, x, x, w, w);
@@ -277,9 +277,9 @@ import { appUrl } from '../../lib/site-base';
            *
            * 로고를 얹거나 색 대비를 낮추면 화면에는 멀쩡한 QR 이 그려지는데 폰으로는 안 읽힌다.
            * 인쇄해 붙이고 나서야 아는 사고가 흔하다. 여기서는 만든 그림을 그대로 해독해
-           * 원래 내용과 같은지 확인한다 — 다르면 그 자리에서 말해 준다.
+           * 원래 내용과 같은지 확인한다. 다르면 그 자리에서 말해 준다.
            *
-           * 못 읽어 오는 환경이면 「확인 못 했다」고 말한다(통과로 삼지 않는다).
+           * 못 읽어 오는 환경이면 확인 못 했다고 말한다(통과로 삼지 않는다).
            */
           async function verify(canvas: HTMLCanvasElement, expected: string): Promise<void> {
             const scan = $<HTMLElement>('#qrScan');
@@ -321,7 +321,7 @@ import { appUrl } from '../../lib/site-base';
           $<HTMLInputElement>('#qrLogo').addEventListener('change', (e: Event) => {
             const f = (e.target as HTMLInputElement).files?.[0];
             if (!f) { logoImg = null; render(); return; }
-            // 공용 한 자리(`shared/image`) — 주소 만들기·거두기가 거기 한 벌로 있다.
+            // 공용 한 자리(`shared/image`). 주소 만들기, 거두기가 거기 한 벌로 있다.
             loadImage(f).then((img) => { logoImg = img; render(); })
               .catch(() => { logoImg = null; render(); });
           });
@@ -341,7 +341,7 @@ import { appUrl } from '../../lib/site-base';
           });
 
           /* 열자마자 **QR 한 장이 이미 그려져 있게** 한다 (TASK-KL-133).
-             빈 칸만 있으면 「여기 뭘 넣으라는 거지」로 시작한다 — 결과를 먼저 보여 주면
+             빈 칸만 있으면 여기 뭘 넣으라는 거지로 시작한다. 결과를 먼저 보여 주면
              무엇을 하는 도구인지 한 번에 안다. 사람이 치는 순간 그 값으로 바뀐다. */
           $<HTMLTextAreaElement>('#qrText').value = appUrl();
           render();
@@ -381,7 +381,7 @@ import { appUrl } from '../../lib/site-base';
             });
           };
 
-          // 주소로 부른 경우 (`?op=svg&text=…` / `?op=wifi&ssid=…`) (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=svg&text=...` / `?op=wifi&ssid=...`) (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined) {
             if (call.op === 'svg') {

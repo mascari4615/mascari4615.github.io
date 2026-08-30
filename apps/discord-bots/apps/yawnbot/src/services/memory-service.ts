@@ -1,5 +1,5 @@
 /**
- * MemoryService — 캐릭터별 계층형 메모리 시스템
+ * MemoryService. 캐릭터별 계층형 메모리 시스템
  *
  * 각 인스턴스는 하나의 캐릭터 slug 전용. 경로는 전부 characters/<slug>/memory/ 기준.
  *
@@ -10,7 +10,7 @@
  *   self.md                 : 이 캐릭터가 아는 자기 자신
  *
  * 영속화: 각 write 메서드가 fs.writeFileSync/appendFileSync 로 *즉시* 디스크
- * 기록. git 커밋 안 함 — characters/<slug>/memory/ 는 .gitignore (런타임
+ * 기록. git 커밋 안 함. characters/<slug>/memory/ 는 .gitignore (런타임
  * 산출, prod memo divergence 근본 제거, TASK-KAR-MEMOSYNC). 봇이 tracked
  * 정본을 mutate → origin 영구 divergence → deploy memo-sync 동결이던 구조
  * root 제거. memo 정본 동기 = deploy memo-sync 의 fetch + reset --hard
@@ -118,7 +118,7 @@ export class MemoryService {
 
     const sourcePath = path.join(this.memoRepoPath, 'UMBRELLA.md');
     if (!fs.existsSync(sourcePath)) {
-      console.warn('[Memory] UMBRELLA.md 없음 — 에이전트 컨텍스트 파일 생성 건너뜀');
+      console.warn('[Memory] UMBRELLA.md 없음. 에이전트 컨텍스트 파일 생성 건너뜀');
       return;
     }
 
@@ -305,7 +305,7 @@ export class MemoryService {
 
   /**
    * 최근 2개월 중 monthly 요약이 없는 달이 있으면 생성.
-   * 1일 가드 없음 — 봇이 1일에 안 켜져 있어도 누락 안 되게 백필.
+   * 1일 가드 없음. 봇이 1일에 안 켜져 있어도 누락 안 되게 백필.
    * (weekly cleanup이 84일이라 3개월 이전은 소스가 사라져 백필 불가)
    */
   private async _generateMonthlySummaryIfNeeded(): Promise<void> {
@@ -447,7 +447,7 @@ export class MemoryService {
 
   /**
    * user.md가 임계값(기본 4000자)을 초과하면 LLM으로 압축해서 덮어씀.
-   * 중복·오래된 내용을 합치고 핵심 정보를 절반 이하 분량으로 유지.
+   * 중복, 오래된 내용을 합치고 핵심 정보를 절반 이하 분량으로 유지.
    */
   private async _compressUserMdIfNeeded(): Promise<void> {
     const userMdPath = path.join(this.memoryDir, 'user.md');
@@ -482,7 +482,7 @@ export class MemoryService {
   /**
    * self.md가 임계값(기본 4000자)을 초과하면 LLM으로 압축해서 덮어씀.
    * 매일 누적되는 성장 일지와 _updateUserAndSelfMemoryIfNeeded 갱신분이
-   * 무한히 쌓이는 것을 방지. 정체성·역할·최근 성장은 유지.
+   * 무한히 쌓이는 것을 방지. 정체성, 역할, 최근 성장은 유지.
    */
   private async _compressSelfMdIfNeeded(): Promise<void> {
     const selfMdPath = path.join(this.memoryDir, 'self.md');
@@ -494,7 +494,7 @@ export class MemoryService {
     try {
       const { text } = await generateAssistantText(
         process.env,
-        `다음은 캐릭터 자신에 대해 누적된 메모야 (정체성·역할·성장 일지 포함).\n` +
+        `다음은 캐릭터 자신에 대해 누적된 메모야 (정체성, 역할, 성장 일지 포함).\n` +
           `중복되거나 오래돼 의미가 줄어든 내용을 합치고,\n` +
           `핵심(자기 인식, 역할, 사용자와의 관계, 최근 깨달음)을 유지하면서 절반 이하 분량으로 압축해줘.\n` +
           `마크다운 형식 유지. "## 성장 일지" 섹션은 최근 항목 위주로 남기고 오래된 건 통합 요약으로 대체:\n\n${content}`,
@@ -600,7 +600,7 @@ export class MemoryService {
   }
 
   /**
-   * 시스템 프롬프트(card.md 본문)는 포함하지 않음 — 호출자가 앞에 붙인다.
+   * 시스템 프롬프트(card.md 본문)는 포함하지 않음. 호출자가 앞에 붙인다.
    * user.md / self.md / 오늘 로그(최근 N개) / 최근 7일 daily 요약 / weekly 요약 반환.
    */
   buildContext(maxChars = 8000): string {
@@ -665,12 +665,12 @@ export class MemoryService {
     }
   }
 
-  // ── 영속화 (git 비커밋 — 런타임 산출) ────────────────────────────────────
+  // ── 영속화 (git 비커밋. 런타임 산출) ────────────────────────────────────
 
   /**
    * 영속화 마커 리셋. write 는 각 메서드에서 fs 로 *즉시* 디스크 반영되므로
    * 별도 flush 작업 없음. git 커밋 안 함 (TASK-KAR-MEMOSYNC): memory/ 는
-   * .gitignore 런타임 산출 — 봇 커밋이 곧 prod memo origin divergence
+   * .gitignore 런타임 산출. 봇 커밋이 곧 prod memo origin divergence
    * 엔진이었다(deploy memo-sync 영구 동결 근본). 호출부(/저장 슬래시,
    * destroy, main SIGINT) 시그니처는 보존 = Grey Box seam 불변.
    */

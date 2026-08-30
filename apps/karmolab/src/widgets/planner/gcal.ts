@@ -1,14 +1,14 @@
 /**
- * 구글 캘린더·할 일 — 말 바꾸기 층 (TASK-KL-321)
+ * 구글 캘린더, 할 일. 말 바꾸기 층 (TASK-KL-321)
  *
  * 화면이 안 들어 있다. 구글이 주는 모양 ↔ 달력이 쓰는 모양을 **양방향으로 바꾸는 순수 함수**와,
- * 그걸 실제로 주고받는 얇은 fetch 몇 개뿐이다. 순수 함수를 떼어 둔 이유는 하나 —
- * 종일 일정의 「끝나는 날」이 이 바닥에서 제일 잘 틀리는 자리이고, 그건 브라우저를 안 켜고
+ * 그걸 실제로 주고받는 얇은 fetch 몇 개뿐이다. 순수 함수를 떼어 둔 이유는 하나 . 
+ * 종일 일정의 끝나는 날이 이 바닥에서 제일 잘 틀리는 자리이고, 그건 브라우저를 안 켜고
  * 시험할 수 있어야 하기 때문이다 (`scripts/test-planner-core.mjs`).
  *
  * ★ 종일 일정의 끝은 **다음 날**이다 (구글이 그렇게 준다: 8/16 하루짜리 → end.date = 8/17).
- *   FullCalendar 도 같은 규약을 쓴다. 그래서 옛 React 판이 하던 「받을 때 -1일, 보낼 때 +1일」
- *   맞바꿈이 **여기엔 없다** — 규약이 같은 둘 사이에 손으로 하루를 옮기면 그게 곧 버그다.
+ *   FullCalendar 도 같은 규약을 쓴다. 그래서 옛 React 판이 하던 받을 때 -1일, 보낼 때 +1일
+ *   맞바꿈이 **여기엔 없다**. 규약이 같은 둘 사이에 손으로 하루를 옮기면 그게 곧 버그다.
  *   (옛 판은 달력 라이브러리가 끝을 포함으로 봐서 어쩔 수 없었다.)
  */
 
@@ -59,7 +59,7 @@ export interface FcEvent {
     };
 }
 
-/** 캘린더가 제 색을 안 주면 id 로 늘 같은 색을 뽑는다 — 새로고침마다 색이 바뀌면 못 알아본다. */
+/** 캘린더가 제 색을 안 주면 id 로 늘 같은 색을 뽑는다. 새로고침마다 색이 바뀌면 못 알아본다. */
 export function calendarColor(calId: string, backgroundColor?: string): string {
     if (backgroundColor) return backgroundColor;
     let hash = 0;
@@ -67,12 +67,12 @@ export function calendarColor(calId: string, backgroundColor?: string): string {
     return PALETTE[Math.abs(hash) % PALETTE.length];
 }
 
-/** 일정 하나의 색 — 일정에 박힌 색이 캘린더 색을 이긴다 (구글 화면과 같은 순서) */
+/** 일정 하나의 색. 일정에 박힌 색이 캘린더 색을 이긴다 (구글 화면과 같은 순서) */
 export function eventColor(item: GoogleEvent, baseColor: string): string {
     return item.colorId ? GOOGLE_COLORS[item.colorId] || baseColor : baseColor;
 }
 
-/** 하루짜리 종일 일정이면 구글이 end 를 안 줄 때가 있다 — 그때는 다음 날로 채운다. */
+/** 하루짜리 종일 일정이면 구글이 end 를 안 줄 때가 있다. 그때는 다음 날로 채운다. */
 function nextDay(dateStr: string): string {
     const [y, m, d] = dateStr.split('-').map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d + 1));
@@ -115,7 +115,7 @@ export interface EventDraft {
     allDay: boolean;
 }
 
-/** 구글에 보낼 모양. 종일이면 날짜만, 아니면 시각까지. 끝은 양쪽 다 「다음」이다. */
+/** 구글에 보낼 모양. 종일이면 날짜만, 아니면 시각까지. 끝은 양쪽 다 다음이다. */
 export function toGooglePayload(draft: EventDraft): Record<string, unknown> {
     const body: Record<string, unknown> = {};
     if (draft.title) body.summary = draft.title;
@@ -123,7 +123,7 @@ export function toGooglePayload(draft: EventDraft): Record<string, unknown> {
         const startYmd = ymd(draft.start);
         const endYmd = ymd(draft.end);
         body.start = { date: startYmd };
-        /* 끝이 시작과 같거나 앞이면 하루짜리로 본다 — 구글은 end > start 를 요구한다 */
+        /* 끝이 시작과 같거나 앞이면 하루짜리로 본다. 구글은 end > start 를 요구한다 */
         body.end = { date: endYmd > startYmd ? endYmd : nextDay(startYmd) };
     } else {
         body.start = { dateTime: draft.start.toISOString() };
@@ -148,7 +148,7 @@ export async function fetchCalendars(token: string): Promise<GoogleCalendar[]> {
 }
 
 /**
- * 여러 캘린더의 일정을 한 번에. 하나가 죽어도 나머지는 보여 준다 —
+ * 여러 캘린더의 일정을 한 번에. 하나가 죽어도 나머지는 보여 준다 . 
  * 공유 캘린더 하나의 권한이 빠졌다고 내 일정까지 안 보이면 안 된다.
  */
 export async function fetchEvents(
@@ -210,7 +210,7 @@ export async function deleteEvent(token: string, calendarId: string, eventId: st
         `${CAL_API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
         { method: 'DELETE', headers: authHeaders(token) }
     );
-    /* 이미 지워진 것(410)은 성공으로 친다 — 두 번 눌렀다고 빨간 글씨를 볼 이유가 없다 */
+    /* 이미 지워진 것(410)은 성공으로 친다. 두 번 눌렀다고 빨간 글씨를 볼 이유가 없다 */
     if (!res.ok && res.status !== 410) throw new Error(`deleteEvent ${res.status}`);
 }
 
@@ -226,8 +226,8 @@ export interface GoogleTask {
 }
 
 /**
- * 구글 할 일에는 「진행 중」이 없다 (안 함/함 둘뿐). 그래서 메모에 표식을 박아 셋으로 쓴다.
- * 표식은 화면에서 지워서 보여 준다 — 사용자가 쓴 메모가 아니니까.
+ * 구글 할 일에는 진행 중이 없다 (안 함/함 둘뿐). 그래서 메모에 표식을 박아 셋으로 쓴다.
+ * 표식은 화면에서 지워서 보여 준다. 사용자가 쓴 메모가 아니니까.
  */
 export const IN_PROGRESS_TAG = '[IN_PROGRESS]';
 

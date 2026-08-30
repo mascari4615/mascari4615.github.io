@@ -2,7 +2,7 @@
   "exifclean.tab": "情報を消す",
   "exifclean.drop": "写真（JPG）をドラッグするか、押して選んでください",
   "exifclean.btn.run": "情報を消してダウンロード",
-  "exifclean.status.idle": "写真はブラウザの中だけで開かれます — どこにも送りません。",
+  "exifclean.status.idle": "写真はブラウザの中だけで開かれます. どこにも送りません。",
   "exifclean.err.jpgOnly": "JPG の写真だけ扱えます。PNG には位置情報がほとんど入りません。",
   "exifclean.row.gps": "撮影場所",
   "exifclean.row.gpsNote": "{v}  ← 自宅や職場が分かってしまうことがあります",

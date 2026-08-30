@@ -2,7 +2,7 @@
  * 영상 → GIF (TASK-KL-088)
  *
  * GIF 로 만드는 일의 어려움은 변환 자체가 아니라 **어디를 자를지 고르는 것**이다.
- * 그래서 이 도구의 중심은 미리보기다 — 구간을 잡고, 그 자리를 바로 눈으로 보고,
+ * 그래서 이 도구의 중심은 미리보기다. 구간을 잡고, 그 자리를 바로 눈으로 보고,
  * 만들기 전에 대략의 용량을 알려 준다. 만든 뒤에도 받기 전에 결과를 먼저 보여 준다.
  *
  * 파일은 브라우저 밖으로 나가지 않는다. GIF 압축까지 여기서 직접 한다(`gifenc`).
@@ -32,11 +32,11 @@ import { getKarmoGif } from '../../lib/karmogif';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
     title: t('widgets.video2gif.title', undefined, '영상 → GIF'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.video2gif.desc',
       undefined,
-      '영상의 원하는 구간을 GIF 로 만듭니다. 구간·화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다'
+      '영상의 원하는 구간을 GIF 로 만듭니다. 구간, 화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/>',
@@ -65,7 +65,7 @@ import { getKarmoGif } from '../../lib/karmogif';
               <video id="vgVideo" playsinline muted style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
 
               <div class="tool-section field-group">
-                <div class="tool-sublabel">${esc(t('video2gif.label.range'))} — <span id="vgRangeLabel" class="range-value">${esc(
+                <div class="tool-sublabel">${esc(t('video2gif.label.range'))}. <span id="vgRangeLabel" class="range-value">${esc(
                   t('video2gif.range.value', { from: '0:00.0', to: '0:00.0', sec: '0.0' })
                 )}</span></div>
                 <input type="range" id="vgStart" aria-label="구간 시작" min="0" max="1000" value="0" step="1">
@@ -136,8 +136,8 @@ import { getKarmoGif } from '../../lib/karmogif';
           let made: Blob | null = null;
           let rangePlayTimer = 0;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           const startSec = (): number => (parseInt(startEl.value, 10) / 1000) * duration;
@@ -151,7 +151,7 @@ import { getKarmoGif } from '../../lib/karmogif';
 
           function refresh(): void {
             if (!duration) return;
-            // 시작이 끝을 넘어가면 사람이 뭘 고른 건지 알 수 없다 — 서로 밀어 준다
+            // 시작이 끝을 넘어가면 사람이 뭘 고른 건지 알 수 없다. 서로 밀어 준다
             if (parseInt(startEl.value, 10)>= parseInt(endEl.value, 10)) {
               if (document.activeElement === startEl) endEl.value = String(Math.min(1000, parseInt(startEl.value, 10) + 10));
               else startEl.value = String(Math.max(0, parseInt(endEl.value, 10) - 10));
@@ -170,7 +170,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             const { w, h } = outSize();
             const fps = parseInt(fpsEl.value, 10);
             const count = Math.max(1, Math.round(span * fps));
-            // 실측 기준 대략치다. 정확한 값은 만들어 봐야 알지만, 「만들고 나서 너무 크네」를 막는 게 목적이다.
+            // 실측 기준 대략치다. 정확한 값은 만들어 봐야 알지만, 만들고 나서 너무 크네를 막는 게 목적이다.
             const guess = w * h * count * 0.13 * (parseInt(colorsEl.value, 10) / 128);
             stats.innerHTML =
               statCell(t('video2gif.stat.size'), `${w}×${h}`, true) +
@@ -183,7 +183,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             made = null;
             saveBtn.disabled = true;
             $<HTMLElement>('#vgResult').style.display = 'none';
-            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+            /* 공용 `attachVideo` 로 (TASK-KL-281). 녹화한 webm 은 길이가 안 적혀 있어
              * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
             void attachVideo(video, f).then(() => {
               duration = video.duration;
@@ -250,7 +250,7 @@ import { getKarmoGif } from '../../lib/karmogif';
               onProgress: (r) => say(t('video2gif.say.encodingPct', { pct: Math.round(r * 100) }))
             });
 
-            attachImage(preview, made); // GIF 미리보기는 <img> 다 — 그림 쪽 공용
+            attachImage(preview, made); // GIF 미리보기는 <img> 다. 그림 쪽 공용
             $<HTMLElement>('#vgResult').style.display = '';
             saveBtn.disabled = false;
             say(t('video2gif.say.done', { n: count, w, h, size: size(made.size) }), 'ok');
@@ -259,7 +259,7 @@ import { getKarmoGif } from '../../lib/karmogif';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('video2gif', (f: File) => load(f));
           }
@@ -268,7 +268,7 @@ import { getKarmoGif } from '../../lib/karmogif';
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
 
           [startEl, endEl, widthEl, fpsEl, colorsEl].forEach((el) => el.addEventListener('input', refresh));
-          // 손잡이를 옮기면 그 자리를 바로 보여 준다 — 눈으로 확인 못 하면 구간 고르기가 감이 안 온다
+          // 손잡이를 옮기면 그 자리를 바로 보여 준다. 눈으로 확인 못 하면 구간 고르기가 감이 안 온다
           startEl.addEventListener('input', () => {
             video.currentTime = startSec();
           });
@@ -297,7 +297,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             if (!made) return;
             const aName = fileName.replace(/\.[^.]+$/, '') + '.gif';
             download(made, aName);
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'video2gif' });
             say(t('video2gif.say.saved'), 'ok');
           };

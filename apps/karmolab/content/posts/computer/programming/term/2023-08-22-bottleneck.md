@@ -5,7 +5,7 @@ last_modified_at: "2023-08-22T16:26:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Bottleneck, 병목 현상

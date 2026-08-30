@@ -1,8 +1,8 @@
 /**
- * panels/avatar-section.ts — 노드 얼굴 (TASK-KL-202 개편 2, 노드 패널 두 번째 조각).
+ * panels/avatar-section.ts. 노드 얼굴 (TASK-KL-202 개편 2, 노드 패널 두 번째 조각).
  *
  * 얼굴은 세 갈래 중 **마지막에 고른 것 하나**만 남는다(이모지 / 색 / 사진). 셋을 겹쳐 두면
- * 「지금 뭐가 보이는지」를 사람이 추측해야 한다.
+ * 지금 뭐가 보이는지를 사람이 추측해야 한다.
  */
 import type { GraphNode } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
@@ -25,7 +25,7 @@ export function avatarFieldHtml(ctx: PanelCtx, node: GraphNode): string {
     </div>`;
 }
 
-/** `touch` = 위젯이 쥔 「고치면 다시 그리고 저장」 뒷정리. 패널마다 다시 짜지 않는다. */
+/** `touch` = 위젯이 쥔 고치면 다시 그리고 저장 뒷정리. 패널마다 다시 짜지 않는다. */
 export function bindAvatarField(
   ctx: PanelCtx,
   node: GraphNode,

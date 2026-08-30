@@ -1,7 +1,7 @@
 {
   "name": "KarmoLab",
   "short_name": "KarmoLab",
-  "description": "손에 잡히는 도구들이 있는 작업실. 글·이미지·계산·개발 도구를 브라우저 안에서 다룹니다.",
+  "description": "손에 잡히는 도구들이 있는 작업실. 글, 이미지, 계산, 개발 도구를 브라우저 안에서 다룹니다.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f12",

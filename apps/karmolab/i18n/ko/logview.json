@@ -14,7 +14,7 @@
   "logview.span": "{from} ~ {to}",
   "logview.span.none": "시각을 읽은 줄이 없어 그림을 못 그립니다 (목록은 그대로 있습니다)",
   "logview.status.idle": "로그 파일을 고르거나 붙여넣으세요",
-  "logview.status.reading": "읽는 중…",
+  "logview.status.reading": "읽는 중...",
   "logview.status.ok": "{shown}줄 보임 (전체 {total}줄)",
-  "logview.status.capped": "{shown}줄만 그렸습니다 (조건에 맞는 줄 {all}개 · 전체 {total}줄) — 더 좁혀 보세요"
+  "logview.status.capped": "{shown}줄만 그렸습니다 (조건에 맞는 줄 {all}개, 전체 {total}줄). 더 좁혀 보세요"
 }

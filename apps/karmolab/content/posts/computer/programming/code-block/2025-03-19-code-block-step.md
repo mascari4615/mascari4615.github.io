@@ -4,7 +4,7 @@ date: "2025-04-19T01:27:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Step

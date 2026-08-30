@@ -4,8 +4,8 @@
  * `10.0.0.0/22` 가 어디부터 어디까지인지, 몇 대가 들어가는지는 **머리로 세면 꼭 하나 틀린다**.
  * 방화벽 규칙에서 그 하나가 문을 열어 두거나 닫아 버린다. 그래서 여기서 센다.
  *
- * 겹치는지도 본다 — 규칙 두 줄이 겹치면 뒤 줄이 안 먹거나 앞 줄이 너무 넓다.
- * 포트는 「몇 번이 뭐였더라」를 위한 작은 사전이다. **아는 것만** 적는다.
+ * 겹치는지도 본다. 규칙 두 줄이 겹치면 뒤 줄이 안 먹거나 앞 줄이 너무 넓다.
+ * 포트는 몇 번이 뭐였더라를 위한 작은 사전이다. **아는 것만** 적는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -59,16 +59,16 @@ export interface Block {
   prefix: number;
   network: string;
   broadcast: string;
-  /** 쓸 수 있는 첫·마지막 주소. /31·/32 는 **없다**(그 둘은 규칙이 다르다). */
+  /** 쓸 수 있는 첫, 마지막 주소. /31, /32 는 **없다**(그 둘은 규칙이 다르다). */
   firstHost?: string;
   lastHost?: string;
   mask: string;
   wildcard: string;
-  /** 주소 개수 (네트워크·브로드캐스트 포함) */
+  /** 주소 개수 (네트워크, 브로드캐스트 포함) */
   total: number;
   /** 실제로 기기에 줄 수 있는 개수 */
   usable: number;
-  /** 사설 대역인가 (10/8 · 172.16/12 · 192.168/16 · 100.64/10 · 169.254/16) */
+  /** 사설 대역인가 (10/8, 172.16/12, 192.168/16, 100.64/10, 169.254/16) */
   private: boolean;
 }
 
@@ -90,7 +90,7 @@ export function parseCidr(text: string): Block {
   const network = (ip & mask) >>> 0;
   const broadcast = (network | (~mask >>> 0)) >>> 0;
   const total = prefix === 0 ? 4294967296 : Math.pow(2, 32 - prefix);
-  /* /31 은 둘 다 쓴다(점대점), /32 는 한 대뿐 — 「-2」를 그냥 하면 음수가 나온다. */
+  /* /31 은 둘 다 쓴다(점대점), /32 는 한 대뿐. -2를 그냥 하면 음수가 나온다. */
   const usable = prefix >= 31 ? total : total - 2;
   const isPrivate = PRIVATE.some(([base, bits]) => {
     const m = bits === 0 ? 0 : (0xffffffff << (32 - bits)) >>> 0;
@@ -117,7 +117,7 @@ export function contains(cidr: string, ip: string): boolean {
   return value >= ipToNumber(block.network) && value <= ipToNumber(block.broadcast);
 }
 
-/** 규칙 두 줄이 겹치나 — 겹치면 뒤 줄이 안 먹거나 앞 줄이 너무 넓다. */
+/** 규칙 두 줄이 겹치나. 겹치면 뒤 줄이 안 먹거나 앞 줄이 너무 넓다. */
 export function overlaps(a: string, b: string): boolean {
   const x = parseCidr(a);
   const y = parseCidr(b);
@@ -155,7 +155,7 @@ export function summarize(ips: string[]): string {
 
 /* ── 포트 사전 ─────────────────────────────────────────────────────── */
 
-/** 이름은 어느 말에서나 같다(프로토콜 이름) — 그래서 여기 둔다. 설명은 화면이 붙인다. */
+/** 이름은 어느 말에서나 같다(프로토콜 이름). 그래서 여기 둔다. 설명은 화면이 붙인다. */
 export const PORTS: Record<number, string> = {
   20: 'FTP data',
   21: 'FTP',
@@ -191,7 +191,7 @@ export const PORTS: Record<number, string> = {
   3000: 'Node dev',
   3306: 'MySQL',
   3389: 'RDP',
-  5000: 'Flask · AirPlay',
+  5000: 'Flask, AirPlay',
   5173: 'Vite dev',
   5432: 'PostgreSQL',
   5672: 'AMQP',
@@ -201,7 +201,7 @@ export const PORTS: Record<number, string> = {
   8080: 'HTTP 대체',
   8443: 'HTTPS 대체',
   8813: 'KarmoLab dev',
-  9000: 'SonarQube · MinIO',
+  9000: 'SonarQube, MinIO',
   9090: 'Prometheus',
   9200: 'Elasticsearch',
   11211: 'memcached',
@@ -229,7 +229,7 @@ export function findPort(query: string): PortHit[] {
     .sort((a, b) => a.port - b.port);
 }
 
-/** 잘 알려진 자리인가 — 1024 아래는 관리자 권한이 필요하다(리눅스). */
+/** 잘 알려진 자리인가. 1024 아래는 관리자 권한이 필요하다(리눅스). */
 export function isWellKnown(port: number): boolean {
   return port > 0 && port < 1024;
 }
@@ -241,7 +241,7 @@ export const run: ToolRunner = (op, args) => {
       b.cidr + '  (' + b.total.toLocaleString() + ' addresses, ' + b.usable.toLocaleString() + ' usable)',
       'network   ' + b.network,
       'broadcast ' + b.broadcast,
-      b.firstHost === undefined ? '' : 'hosts     ' + b.firstHost + ' – ' + String(b.lastHost),
+      b.firstHost === undefined ? '' : 'hosts     ' + b.firstHost + ' - ' + String(b.lastHost),
       'mask      ' + b.mask + '   wildcard ' + b.wildcard,
       b.private ? 'private range' : 'public range'
     ]
@@ -251,7 +251,7 @@ export const run: ToolRunner = (op, args) => {
   if (op === 'contains') return contains(String(args.cidr ?? ''), String(args.ip ?? ''));
   if (op === 'split') {
     const got = split(String(args.cidr ?? ''), Number(args.prefix ?? 24));
-    return got.blocks.join('\n') + (got.count > got.blocks.length ? '\n… ' + got.count.toLocaleString() + ' total' : '');
+    return got.blocks.join('\n') + (got.count > got.blocks.length ? '\n... ' + got.count.toLocaleString() + ' total' : '');
   }
   if (op === 'port') return findPort(String(args.query ?? '')).map((p) => p.port + '  ' + p.name).join('\n');
   throw new Error('nettool: 모르는 연산 ' + op);

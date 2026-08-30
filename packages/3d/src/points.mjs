@@ -1,5 +1,5 @@
 /**
- * **점 많이 그리기** — 글 수천 개를 한 번의 draw call 로.
+ * **점 많이 그리기**. 글 수천 개를 한 번의 draw call 로.
  *
  * 점마다 색과 **크기**가 달라야 하는데 `PointsMaterial` 은 크기가 하나뿐이다. 그래서 아주 짧은
  * 셰이더를 둔다(속성 `size` 를 읽는다). 셰이더를 쓰는 곳이 늘어나면 여기서만 고친다.
@@ -38,7 +38,7 @@ export function rgb255(r, g, b) {
 }
 
 /* `size` 는 **세상 크기**(월드 단위)다. 화면 화소로 바꾸는 값(`uScale`)은 화면 높이와 화각에서
-   나오므로 밖에서 넣는다 — 안에 박으면 창 크기·화각이 바뀔 때 점만 안 따라온다.
+   나오므로 밖에서 넣는다. 안에 박으면 창 크기, 화각이 바뀔 때 점만 안 따라온다.
    (처음엔 `300.0` 을 박았다가 점 하나가 300px 로 떠서 화면을 통째로 덮었다. 2026-08-23) */
 const VERT = `
 attribute float size;
@@ -47,7 +47,7 @@ varying vec3 vColor;
 void main() {
   vColor = color;
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  /* 멀수록 작아진다 — 안 그러면 뒤엣것과 앞엣것이 같은 크기라 깊이가 안 읽힌다. */
+  /* 멀수록 작아진다. 안 그러면 뒤엣것과 앞엣것이 같은 크기라 깊이가 안 읽힌다. */
   gl_PointSize = max(1.0, size * uScale / max(0.0001, -mv.z));
   gl_Position = projectionMatrix * mv;
 }`;
@@ -55,7 +55,7 @@ void main() {
 const FRAG = `
 varying vec3 vColor;
 void main() {
-  /* 네모를 동그라미로 — 모서리를 버린다. */
+  /* 네모를 동그라미로. 모서리를 버린다. */
   vec2 d = gl_PointCoord - vec2(0.5);
   float r2 = dot(d, d);
   if (r2 > 0.25) discard;
@@ -88,7 +88,7 @@ export function createPointCloud(THREE, list, opts = {}) {
     geometry,
     material,
     count: packed.count,
-    /** 자리·색이 바뀌면 통째로 다시 만들지 말고 값만 갈아 끼운다. */
+    /** 자리, 색이 바뀌면 통째로 다시 만들지 말고 값만 갈아 끼운다. */
     update(next) {
       const p = packPoints(next, opts);
       if (p.count !== packed.count) {
@@ -106,7 +106,7 @@ export function createPointCloud(THREE, list, opts = {}) {
       geometry.computeBoundingSphere();
       return p.count;
     },
-    /** 창 크기·화각이 바뀌면 다시 넣는다 — `pixelScale()` 이 그 값을 셈해 준다. */
+    /** 창 크기, 화각이 바뀌면 다시 넣는다. `pixelScale()` 이 그 값을 셈해 준다. */
     setScale(v) { material.uniforms.uScale.value = v; return api; },
     dispose() {
       geometry.dispose();

@@ -1,12 +1,12 @@
 /**
- * 글 앞머리(front matter) — **글 한 편의 설정을 글 안에 적는 한 가지 문법**.
+ * 글 앞머리(front matter). **글 한 편의 설정을 글 안에 적는 한 가지 문법**.
  *
  * 블로그 글(`content/posts/**.md`)은 처음부터 `---` 사이에 `image:` 를 적어 왔다. 커뮤니티 글은
  * 그런 자리가 없어 썸네일을 걸 수 없었는데, 서버(yawnbot)에 필드를 새로 파면 저장 위치가 갈려
  * **한 사이트에 문법이 둘**이 된다. 그래서 커뮤니티 글도 본문 맨 앞의 같은 `---` 덩어리를 설정으로
- * 읽는다 — 서버는 여전히 글자 한 덩이만 알면 되고(스키마 변경 0), 사람이 쓰는 문법은 하나다.
+ * 읽는다. 서버는 여전히 글자 한 덩이만 알면 되고(스키마 변경 0), 사람이 쓰는 문법은 하나다.
  *
- * 읽는 것은 `key: value` 한 줄짜리뿐이다. 목록·본문 어디서도 이 덩어리는 글자로 그려지지 않는다.
+ * 읽는 것은 `key: value` 한 줄짜리뿐이다. 목록, 본문 어디서도 이 덩어리는 글자로 그려지지 않는다.
  */
 
 export interface FrontMatterSplit {
@@ -16,7 +16,7 @@ export interface FrontMatterSplit {
     body: string;
 }
 
-/** 값의 겉따옴표만 벗긴다 (`"foo"` · `'foo'` → `foo`). */
+/** 값의 겉따옴표만 벗긴다 (`"foo"`, `'foo'` → `foo`). */
 function unquote(raw: string): string {
     const value = raw.trim();
     const quoted = /^(["'])([\s\S]*)\1$/.exec(value);
@@ -50,14 +50,14 @@ export function coverImage(meta: Record<string, string>): string | null {
 }
 
 /**
- * 글 머리에 붙일 속성 한 벌 — `<header class="c-post-head"${coverAttrs(url)}>`.
+ * 글 머리에 붙일 속성 한 벌. `<header class="c-post-head"${coverAttrs(url)}>`.
  * 그림이 없으면 빈 문자열이라 아무 규칙도 안 걸린다(= 옛 모양). 겉모습 규칙은 `css/community.css` 정본.
- * 주소는 따옴표·괄호를 막아 `style` 속성을 벗어나지 못하게 한다.
+ * 주소는 따옴표, 괄호를 막아 `style` 속성을 벗어나지 못하게 한다.
  */
 export function coverAttrs(url: string | null): string {
     if (!url) return '';
-    // `encodeURIComponent` 는 `'`·`(`·`)` 를 그냥 통과시킨다 — 그 셋이 바로 속성을 벗어나는 글자라
-    // 손으로 적는다 (시험: 「주소가 style 속성을 못 벗어난다」).
+    // `encodeURIComponent` 는 `'`, `(`, `)` 를 그냥 통과시킨다. 그 셋이 바로 속성을 벗어나는 글자라
+    // 손으로 적는다 (시험: 주소가 style 속성을 못 벗어난다).
     const ESCAPES: Record<string, string> = {
         '\\': '%5C', "'": '%27', '"': '%22', '(': '%28', ')': '%29', '<': '%3C', '>': '%3E',
     };

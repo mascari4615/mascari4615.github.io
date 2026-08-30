@@ -1,10 +1,10 @@
 /**
  * 파일 사이 부름 지도 (TASK-KL-316 / 20)
  *
- * zip 을 받아 「누가 누구를 부르나」를 그린다. 파일을 받는 도구라 **새 위젯**이다
- * (로그 보기·번들 지도와 같은 이유).
+ * zip 을 받아 누가 누구를 부르나를 그린다. 파일을 받는 도구라 **새 위젯**이다
+ * (로그 보기, 번들 지도와 같은 이유).
  *
- * 그림은 `core/mermaidlite` 가 그린다 — 그리기 엔진은 저장소에 하나면 된다.
+ * 그림은 `core/mermaidlite` 가 그린다. 그리기 엔진은 저장소에 하나면 된다.
  * 셈은 `core/codegraph`. 여기 있는 건 zip 을 여는 일과 말투뿐이다.
  */
 import { build, cycles, ranks, toMermaid, unreferenced, type Graph } from '../../core/codegraph';
@@ -13,7 +13,7 @@ import { parse as parseMermaid, toSvg } from '../../core/mermaidlite';
 import { markLive } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 
-/** zip 안의 한 칸 — 우리가 쓰는 만큼만 (JSZip 타입을 통째로 안 들인다). */
+/** zip 안의 한 칸. 우리가 쓰는 만큼만 (JSZip 타입을 통째로 안 들인다). */
 interface ZipEntry {
   dir: boolean;
   async(kind: 'string'): Promise<string>;
@@ -31,11 +31,11 @@ interface ZipArchive {
   Toolbox.register({
     id: 'codegraph',
     title: t('widgets.codegraph.title', undefined, '부름 지도'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.codegraph.desc',
       undefined,
-      'zip 을 넣으면 파일이 서로 무엇을 부르는지 그리고, 고리·많이 불리는 파일·아무도 안 부르는 파일을 짚습니다'
+      'zip 을 넣으면 파일이 서로 무엇을 부르는지 그리고, 고리, 많이 불리는 파일, 아무도 안 부르는 파일을 짚습니다'
     ),
     layout: 'wide',
     icon: '<circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="18" cy="7" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="18" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.2 7.2l7.2 .6M7 8.3l4 7.4M16.6 9.3l-3.4 6.5" stroke="currentColor" stroke-width="1.4"/>',

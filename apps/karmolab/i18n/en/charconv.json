@@ -20,7 +20,7 @@
   "charconv.t13": "Some characters have several readings (the first was used): ",
   "charconv.t14": " or ",
   "charconv.t15": "Some characters are decided by meaning (the first candidate was used): ",
-  "charconv.t16": "Full-width characters are mixed in — this is usually why a search, a login or a lookup would not work.",
+  "charconv.t16": "Full-width characters are mixed in. this is usually why a search, a login or a lookup would not work.",
   "charconv.t17": "The converted text is copied",
   "charconv.err.table": "The sound table could not be fetched ({status})"
 }

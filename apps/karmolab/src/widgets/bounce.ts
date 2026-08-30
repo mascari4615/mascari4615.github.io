@@ -53,9 +53,9 @@ import { loadImage } from './tools/shared/image';
           }
           resize();
 
-          // 공용 한 자리(`shared/image.loadImage`) — 파일에서 읽을 때와 **같은 길**로 읽는다.
-          // 여기만 손으로 `new Image()` 를 쓰면 「다 실렸나」를 재는 방식이 둘로 갈린다.
-          // 로고는 **다 실린 뒤에만** 있는 것으로 친다 — 「없음(null)」이 곧 「아직」이다.
+          // 공용 한 자리(`shared/image.loadImage`). 파일에서 읽을 때와 **같은 길**로 읽는다.
+          // 여기만 손으로 `new Image()` 를 쓰면 다 실렸나를 재는 방식이 둘로 갈린다.
+          // 로고는 **다 실린 뒤에만** 있는 것으로 친다. 없음(null)이 곧 아직이다.
           // 실렸나 여부를 따로 들고 다니면 둘이 어긋날 자리가 생긴다(그림은 있는데 안 실렸다고 하거나).
           let img: HTMLImageElement | null = null;
           const textLogo = 'ANTIGRAVITY';
@@ -70,7 +70,7 @@ import { loadImage } from './tools/shared/image';
             const input = e.target as HTMLInputElement;
             const file = input.files?.[0];
             if (!file) return;
-            // 공용 한 자리(`shared/image`) — 여기서 만든 주소를 **아무도 안 거두고 있었다**.
+            // 공용 한 자리(`shared/image`). 여기서 만든 주소를 **아무도 안 거두고 있었다**.
             img = null;
             loadImage(file).then((loaded) => { img = loaded; }).catch(() => { img = null; });
           };

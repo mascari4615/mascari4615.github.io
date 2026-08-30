@@ -35,7 +35,7 @@ assert.equal(ranked('PDF 합치키')[0], 'pdfmerge', '한 글자 오타');
 assert.deepEqual(ranked('이미지 존재하지않는말'), [], '단어 하나만 맞는 과다 검색 방지');
 assert.equal(search.englishKeysToKorean('dlalwl dkqcnr'), '이미지 압축', '영문 자판 한글 복원');
 assert.equal(ranked('dlalwl dkqcnr')[0], 'image', '영문 자판으로 한글 의도 검색');
-assert.equal(search.englishKeysToKorean('rhkf rkqt Rk'), '괄 값 까', '복합 모음·겹받침·쌍자음');
+assert.equal(search.englishKeysToKorean('rhkf rkqt Rk'), '괄 값 까', '복합 모음, 겹받침, 쌍자음');
 assert.equal(ranked('image')[0], 'image', '정상 영문 검색 보존');
 assert.equal(system.size(), 3, '검색 문서 등록');
 assert.equal(system.search('dlalwl dkqcnr', 1)[0].value.id, 'image', '시스템 질의와 결과 제한');
@@ -60,7 +60,7 @@ disposeSecond();
 dispose();
 assert.equal(providerSystem.size(), 0, '공급자 해제');
 
-/* 미리 다듬기(캐시)는 **도구 객체를 열쇠로** 삼는다 — 목록을 새로 지으면 새 값이어야 하고,
+/* 미리 다듬기(캐시)는 **도구 객체를 열쇠로** 삼는다. 목록을 새로 지으면 새 값이어야 하고,
    `warm()` 을 먼저 돌렸든 안 돌렸든 답이 같아야 한다. 캐시가 답을 바꾸면 그게 최악이다. */
 const warmSystem = search.createSearchSystem();
 warmSystem.replace(tools.map((tool) => ({ ...tool, value: tool })));

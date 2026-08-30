@@ -5,9 +5,9 @@
  * 편집 프로그램을 켜기는 아깝다.
  *
  * 신경 쓴 곳:
- *  - **표지는 건너뛴다.** 표지에 「1」이 찍히면 대부분 다시 만들어야 한다. 몇 장을 건너뛸지
+ *  - **표지는 건너뛴다.** 표지에 1이 찍히면 대부분 다시 만들어야 한다. 몇 장을 건너뛸지
  *    고를 수 있고, 건너뛴 장은 세지도 않게 할 수 있다(그래야 본문 첫 장이 1이 된다).
- *  - 번호는 글자를 그림으로 그려 넣는다 — PDF 기본 글꼴은 한글을 담지 못해서 「3쪽」이 깨진다.
+ *  - 번호는 글자를 그림으로 그려 넣는다. PDF 기본 글꼴은 한글을 담지 못해서 3쪽이 깨진다.
  *  - 종이 크기가 제각각인 문서에서도 여백 비율로 자리를 잡는다.
  */
 import { fileSize as size } from './shared/media';
@@ -23,7 +23,7 @@ import { encode } from './shared/image';
 
 (function (): void {
 
-  /** 글자를 그림으로 — PDF 기본 글꼴은 한글을 담지 못해 「3쪽」이 깨진다 */
+  /** 글자를 그림으로. PDF 기본 글꼴은 한글을 담지 못해 3쪽이 깨진다 */
   function textToPng(text: string, color: string): Promise<Uint8Array> {
     const fontSize = 64; // 크게 그려 두고 넣을 때 줄인다 (인쇄해도 안 뭉갠다)
     const pad = 8;
@@ -39,7 +39,7 @@ import { encode } from './shared/image';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     ctx.fillText(text, pad, cv.height / 2);
-    // 공용 한 자리(`shared/image.encode`) — 굽기 규칙을 여기 또 적지 않는다.
+    // 공용 한 자리(`shared/image.encode`). 굽기 규칙을 여기 또 적지 않는다.
     return encode(cv, 'png')
       .then((b) => b.arrayBuffer())
       .then((ab) => new Uint8Array(ab));
@@ -50,7 +50,7 @@ import { encode } from './shared/image';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdfpagenum.title', undefined, 'PDF 쪽 번호'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdfpagenum.desc',
       undefined,
@@ -133,11 +133,11 @@ import { encode } from './shared/image';
           let file: File | null = null;
           let pageCount = 0;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 쪽 번호 문구를 만든다 — 모양에 따라 「/ 전체」가 붙는다 */
+          /** 쪽 번호 문구를 만든다. 모양에 따라 / 전체가 붙는다 */
           function label(n: number, total: number): string {
             switch ($<HTMLSelectElement>('#pnStyle').value) {
               case 'slash': return `${n} / ${total}`;
@@ -202,7 +202,7 @@ import { encode } from './shared/image';
                 const { width, height } = page.getSize();
                 const h = pt;
                 const w = (png.width / png.height) * h;
-                // 여백은 종이 크기에 견주어 잡는다 — A4·레터가 섞여 있어도 자리가 튀지 않는다
+                // 여백은 종이 크기에 견주어 잡는다. A4, 레터가 섞여 있어도 자리가 튀지 않는다
                 const mx = width * 0.06;
                 const my = height * 0.045;
                 const x = pos === 'bc' ? (width - w) / 2 : pos.endsWith('r') ? width - mx - w : mx;
@@ -211,11 +211,11 @@ import { encode } from './shared/image';
               }
 
               const blob = pdfBlob(await doc.save());
-              // 공용 한 자리(`shared/pdf.download`) — 거두는 시점까지 같이 온다.
+              // 공용 한 자리(`shared/pdf.download`). 거두는 시점까지 같이 온다.
               const outName =
                 (file.name || t('pdfpagenum.file.base')).replace(/\.[^.]+$/, '') + t('pdfpagenum.file.suffix') + '.pdf';
               download(blob, outName);
-              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: outName, from: 'pdfpagenum' });
               say(
                 t('pdfpagenum.say.done', { n: pages.length - skip, size: size(blob.size) }) +

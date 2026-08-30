@@ -1,14 +1,14 @@
 /*
- * 창 배치 — 「말풍선만」.
+ * 창 배치. 말풍선만.
  *
  * 앞선 배치는 단추 다섯 개와 대화 상자와 입력칸이 늘 자리를 잡고 있었다. 뚫린 창에서
- * 그것들은 허공에 뜬 네모로 보여서, 얘가 아니라 「띄워 둔 프로그램」이 먼저 눈에 들어왔다.
+ * 그것들은 허공에 뜬 네모로 보여서, 얘가 아니라 띄워 둔 프로그램이 먼저 눈에 들어왔다.
  *
  * 그래서 화면에 상시로 있는 것은 **얘와 말풍선뿐**이다.
  *   - 말은 얼굴 위 말풍선으로 뜨고 잠시 뒤 사라진다.
  *   - 말을 걸려면 얘를 누른다 → 얼굴 아래에 입력칸 하나만 열린다.
  *   - 지난 대화는 입력칸 위로 필요한 만큼만 접혀 올라온다.
- *   - 설정(인격·머리·목소리·아는 것·닫기)은 얘를 우클릭했을 때만.
+ *   - 설정(인격, 머리, 목소리, 아는 것, 닫기)은 얘를 우클릭했을 때만.
  */
 
 :root {
@@ -17,7 +17,7 @@
   --edge: rgba(150, 170, 200, 0.22);
   --panel: rgba(14, 16, 22, 0.86);
   --accent: #6ee7ff;
-  /* 안 된 것 — 얘 색(청록)과 절대 안 헷갈리게 반대쪽 빨강. */
+  /* 안 된 것. 얘 색(청록)과 절대 안 헷갈리게 반대쪽 빨강. */
   --bad: #ff6b6b;
   --bad-bg: rgba(120, 26, 32, 0.32);
   --bad-edge: rgba(255, 107, 107, 0.55);
@@ -34,13 +34,13 @@ html, body {
   cursor: default;
 }
 
-/* 무대 — 세로로 얼굴이 가운데, 아래쪽에 말할 자리 */
+/* 무대. 세로로 얼굴이 가운데, 아래쪽에 말할 자리 */
 .room {
   position: relative;
   height: 100%;
   display: grid;
-  /* 말풍선 · 얘 · 지금 뭐 하는 중 · 말 걸기. **네 칸이다.**
-     80회차에 「지금 뭐 하는 중」을 넣으면서 칸을 안 늘려서 대화창과 같은 칸에 겹쳐 놓았다
+  /* 말풍선, 얘, 지금 뭐 하는 중, 말 걸기. **네 칸이다.**
+     80회차에 지금 뭐 하는 중을 넣으면서 칸을 안 늘려서 대화창과 같은 칸에 겹쳐 놓았다
      (둘 다 grid-row: 3). 화면이 이상해 보인 게 그것이다. */
   grid-template-rows: auto 1fr auto auto;
   justify-items: center;
@@ -55,8 +55,8 @@ html, body {
   grid-row: 1;
   position: relative;
   max-width: 94%;
-  /* 말이 길면 잘렸다. 자리를 넓히고, 넘칠 땐 넘친다는 걸 **보이게** 한다 —
-     막대를 숨겨 놔서 잘린 줄도 모르고 지나갔다. 위쪽이 흐려지면 「더 있다」가 읽힌다. */
+  /* 말이 길면 잘렸다. 자리를 넓히고, 넘칠 땐 넘친다는 걸 **보이게** 한다 . 
+     막대를 숨겨 놔서 잘린 줄도 모르고 지나갔다. 위쪽이 흐려지면 더 있다가 읽힌다. */
   max-height: 46vh;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -91,7 +91,7 @@ html, body {
   border-bottom: 1px solid var(--edge);
   transform: rotate(45deg);
 }
-/* 혼잣말·화면을 보고 하는 말은 나한테 한 말이 아니다 — 흐리게. */
+/* 혼잣말, 화면을 보고 하는 말은 나한테 한 말이 아니다. 흐리게. */
 .bubble.aside { border-style: dashed; color: var(--dim); font-style: italic; }
 
 /* ── 얘 ─────────────────────────────────────────────── */
@@ -114,7 +114,7 @@ html, body {
 }
 .talk.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-/* 지난 대화 — 입력칸 위로 필요한 만큼만 */
+/* 지난 대화. 입력칸 위로 필요한 만큼만 */
 .log {
   display: flex;
   flex-direction: column;
@@ -140,8 +140,8 @@ html, body {
 .line.them { align-self: flex-start; }
 .line.alone .what { border-style: dashed; color: var(--dim); font-style: italic; }
 
-/* 알아챈 것 — 말이 아니다. 얘가 뭘 보고 듣고 담았는지 대화 사이에 흐리게 끼운다.
-   조수님이 「인식할 땐 채팅창에 무조건 떴으면 좋겠다」고 했다(77회차). 말과 같은 무게로
+/* 알아챈 것. 말이 아니다. 얘가 뭘 보고 듣고 담았는지 대화 사이에 흐리게 끼운다.
+   조수님이 인식할 땐 채팅창에 무조건 떴으면 좋겠다고 했다(77회차). 말과 같은 무게로
    그리면 대화를 덮어 버리므로, 가운데에 작고 옅게 놓아 눈이 그냥 스치게 한다. */
 .line.notice { align-self: center; max-width: 94%; }
 .line.notice .who { display: block; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); opacity: .55; text-align: center; margin-bottom: 2px; }
@@ -150,8 +150,8 @@ html, body {
   font-size: 11px; line-height: 1.4; color: var(--dim); opacity: .72; text-align: center;
 }
 /* ── 안 됨 ────────────────────────────────────────────────
-   조수님(오늘): 「실패했으면 대화창에 실패했다는 걸 빨간색 등으로 강하게 알려줘야 할 듯.」
-   알아챔(notice)은 일부러 옅게 스치게 그리지만, **실패는 그 반대다** — 가운데 놓고,
+   조수님(오늘): 실패했으면 대화창에 실패했다는 걸 빨간색 등으로 강하게 알려줘야 할 듯.
+   알아챔(notice)은 일부러 옅게 스치게 그리지만, **실패는 그 반대다**. 가운데 놓고,
    빨갛게, 테두리까지 세워 눈이 걸리게 한다. 사라지지도 않는다(기록에 남는다). */
 .line.fail { align-self: center; max-width: 96%; }
 .line.fail .who {
@@ -165,7 +165,7 @@ html, body {
   color: #ffd9d9;
   font-size: 12px; line-height: 1.5; font-weight: 600; text-align: left;
 }
-/* 새로 뜬 실패는 한 번 크게 깜빡인다 — 스크롤 끝에 조용히 붙는 걸로는 약하다. */
+/* 새로 뜬 실패는 한 번 크게 깜빡인다. 스크롤 끝에 조용히 붙는 걸로는 약하다. */
 @keyframes 실패번쩍 { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); } 35% { box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.35); } }
 .line.fail .what { animation: 실패번쩍 900ms ease-out 2; border-radius: 10px; }
 @media (prefers-reduced-motion: reduce) { .line.fail .what { animation: none; } }
@@ -218,8 +218,8 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
 }
 .menu[hidden] { display: none; }
 
-/* 설정창 머리 — 여는 길은 우클릭 하나뿐인데 닫는 길은 Esc·바깥누르기뿐이었다.
-   뚫린 창에서는 「바깥」이 클릭을 안 받고, 창에 초점이 없으면 Esc 도 안 먹는다.
+/* 설정창 머리. 여는 길은 우클릭 하나뿐인데 닫는 길은 Esc, 바깥누르기뿐이었다.
+   뚫린 창에서는 바깥이 클릭을 안 받고, 창에 초점이 없으면 Esc 도 안 먹는다.
    그래서 눈에 보이는 ✕ 를 단다. */
 .menu-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -243,7 +243,7 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
   font-size: 12px;
   color: var(--dim);
 }
-/* 조절 막대 — 고르는 자리와 같은 폭에 맞춘다. 기본 모양은 어두운 판 위에서 안 보인다. */
+/* 조절 막대. 고르는 자리와 같은 폭에 맞춘다. 기본 모양은 어두운 판 위에서 안 보인다. */
 .menu input[type="range"] {
   width: 100%;
   height: 18px;
@@ -337,10 +337,10 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
 .ask-row button { padding: 6px 13px; font-size: 13px; }
 .ask-yes { border-color: rgba(255, 200, 110, 0.6); color: #ffc86e; }
 
-/* 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다. */
+/* 상태 글씨는 안 쓴다. 얘 움직임이 곧 상태다. */
 .status, .grip, .mute, .known-btn, .who-pick, .brain-pick, .voice-pick, .shadow, .cube { display: none !important; }
 /* **지금 뭐 하는 중은 전체화면에서도 보여야 한다.** 여태 글로 알리던 자리(.status)가
-   여기서 통째로 숨겨져 있었다 — 조수님이 실제로 쓰는 모드가 이쪽이라, 얘가 뭘 하는지
+   여기서 통째로 숨겨져 있었다. 조수님이 실제로 쓰는 모드가 이쪽이라, 얘가 뭘 하는지
    알릴 길이 사실상 없었다. */
 body.full .doing { display: inline-flex !important; }
 
@@ -350,7 +350,7 @@ body.full .doing { display: inline-flex !important; }
 
 
 /* ── 화면 전체로 편 창 ────────────────────────────────────
-   작은 창에 얹으니 말풍선·메뉴가 끝없이 잘렸다. 자리를 조금씩 넓히는 건 증상 추격이라,
+   작은 창에 얹으니 말풍선, 메뉴가 끝없이 잘렸다. 자리를 조금씩 넓히는 건 증상 추격이라,
    창을 화면만큼 키우고 **얘가 사는 자리(.room)만 화면 안에서 옮겨 다니게** 했다.
    창은 다 덮지만 얘와 눌러야 하는 자리 밖은 클릭이 그대로 지나간다. */
 body.full .room {
@@ -358,7 +358,7 @@ body.full .room {
   left: var(--방x, 60%);
   top: var(--방y, 40%);
   /* **상자도 같이 커져야 한다.** 창만 화면만 하게 키우고 이 상자를 420×620 로 두면
-     보이는 건 하나도 안 달라진다 — 몸을 키우면 이 상자에 걸려 잘린다(실측). 몸 크기를
+     보이는 건 하나도 안 달라진다. 몸을 키우면 이 상자에 걸려 잘린다(실측). 몸 크기를
      그대로 따라간다. */
   width: var(--방폭, 420px);
   height: var(--방높이, 620px);
@@ -368,7 +368,7 @@ body.full .room {
 }
 /* 화면이 넓어졌으니 말풍선도 넉넉히. 이제 잘릴 일이 거의 없다. */
 body.full .bubble { max-height: 40vh; max-width: 420px; }
-/* 끌고 다니는 동안엔 부드럽게 따라오지 않는다 — 손이 끄는 느낌이 뭉개진다. */
+/* 끌고 다니는 동안엔 부드럽게 따라오지 않는다. 손이 끄는 느낌이 뭉개진다. */
 body.full.dragging .room { transition: none; }
 
 
@@ -387,9 +387,9 @@ body.showboxes .room::before {
 
 
 /* ── 지금 뭐 하는 중 ─────────────────────────────────────
-   조수님: 「얘 계속 떠 있긴 한데, 뭐하는지 솔직히 모르겠음.」 아이콘 하나를 얘 발밑에
-   늘 둔다. 아무것도 안 할 때는 아주 옅게 — 있는 줄도 모르게, 그러나 사라지지는 않게.
-   그래야 「멈춘 건가」와 「가만히 있는 중인가」가 갈린다. */
+   조수님: 얘 계속 떠 있긴 한데, 뭐하는지 솔직히 모르겠음. 아이콘 하나를 얘 발밑에
+   늘 둔다. 아무것도 안 할 때는 아주 옅게. 있는 줄도 모르게, 그러나 사라지지는 않게.
+   그래야 멈춘 건가와 가만히 있는 중인가가 갈린다. */
 .doing {
   grid-row: 3;
   display: inline-flex;
@@ -410,7 +410,7 @@ body.showboxes .room::before {
 .doing .lab:empty { display: none; }
 .doing.idle { opacity: .28; }
 
-/* 지금 들어오는 소리 — 「마이크가 잡혔나」를 눈으로 본다.
+/* 지금 들어오는 소리. 마이크가 잡혔나를 눈으로 본다.
    가는 세로선(b) = 문이 열리는 문턱. 막대가 그 선을 넘어야 듣기 시작한다. */
 .menu .level { position: relative; height: 8px; margin: 2px 0 6px; border-radius: 4px;
   background: rgba(255,255,255,.12); overflow: hidden; }

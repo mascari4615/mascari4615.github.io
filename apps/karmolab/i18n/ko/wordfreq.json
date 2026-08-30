@@ -5,7 +5,7 @@
   "wordfreq.opt.particle": "조사 떼기",
   "wordfreq.opt.stop": "흔한 말 빼기",
   "wordfreq.opt.case": "대소문자 구분",
-  "wordfreq.label.phrases": "되풀이한 구 — 두 번 이상",
+  "wordfreq.label.phrases": "되풀이한 구. 두 번 이상",
   "wordfreq.btn.copy": "표 복사",
   "wordfreq.status.idle": "같은 말을 얼마나 반복하는지 보면 글이 줄어듭니다.",
   "wordfreq.status.done": "상위 {n}개를 보여줍니다. 같은 말을 얼마나 반복하는지 보면 글이 줄어듭니다.",

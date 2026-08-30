@@ -36,10 +36,10 @@ test('말로 들어온 것은 닿은 것이 아니다', () => {
 });
 
 test('처음 찌르면 놀란다', () => {
-  assert.equal(touchReply('쿡', { times: 1, roll: firstOne }), '…어?');
+  assert.equal(touchReply('쿡', { times: 1, roll: firstOne }), '...어?');
 });
 
-test('계속 찌르면 결이 옮겨 간다 — 같은 자극에 같은 소리만 내면 버튼이다', () => {
+test('계속 찌르면 결이 옮겨 간다. 같은 자극에 같은 소리만 내면 버튼이다', () => {
   const first = touchReply('쿡', { times: 1, roll: firstOne });
   const times2 = touchReply('쿡', { times: 3, roll: firstOne });
   const keepGoing = touchReply('쿡', { times: 9, roll: firstOne });
@@ -54,11 +54,11 @@ test('끌고 다니면 어지러워한다', () => {
 });
 
 test('쓰다듬는 것은 찌르는 것과 다르게 받는다', () => {
-  clearReplyMemory(); // 이 자리는 이제 「최근에 쓴 것」을 들고 있다 — 앞판이 새면 안 된다
+  clearReplyMemory(); // 이 자리는 이제 최근에 쓴 것을 들고 있다. 앞판이 새면 안 된다
   assert.notEqual(touchReply('쓰다듬', { times: 3, roll: firstOne }), touchReply('쿡', { times: 3, roll: firstOne }));
   clearReplyMemory();
-  // 글자를 못 박지 않는다 — 이제 같은 걸 연달아 안 내므로 어느 것이 나올지는 자리 상태에 달렸다.
-  assert.ok(['…계속해도 돼.', '…나쁘진 않아.', '…음…'].includes(touchReply('쓰다듬', { times: 3, roll: firstOne })));
+  // 글자를 못 박지 않는다. 이제 같은 걸 연달아 안 내므로 어느 것이 나올지는 자리 상태에 달렸다.
+  assert.ok(['...계속해도 돼.', '...나쁘진 않아.', '...음...'].includes(touchReply('쓰다듬', { times: 3, roll: firstOne })));
 });
 
 test('바로 전에 한 대꾸를 또 하지 않는다', () => {
@@ -66,7 +66,7 @@ test('바로 전에 한 대꾸를 또 하지 않는다', () => {
   assert.notEqual(touchReply('쿡', { times: 1, last: first2, roll: firstOne }), first2);
 });
 
-test('고를 게 하나뿐이면 그거라도 낸다 — 입을 다무는 것보다 낫다', () => {
+test('고를 게 하나뿐이면 그거라도 낸다. 입을 다무는 것보다 낫다', () => {
   const keepGoing2 = touchReply('쓰다듬', { times: 9, roll: () => 0 });
   assert.notEqual(touchReply('쓰다듬', { times: 9, last: keepGoing2, roll: () => 0 }), '');
 });
@@ -80,7 +80,7 @@ test('연달아 닿으면 쌓인다', () => {
   assert.equal(c.bump(2000), 3);
 });
 
-test('뜸해지면 처음으로 되돌린다 — 잊는 자리가 없으면 영영 귀찮아하는 상태로 굳는다', () => {
+test('뜸해지면 처음으로 되돌린다. 잊는 자리가 없으면 영영 귀찮아하는 상태로 굳는다', () => {
   const c = new TouchCount(60_000);
   c.bump(0);
   c.bump(1000);
@@ -95,7 +95,7 @@ test('얼마나 지나야 잊을지는 밖에서 정한다', () => {
 
 // ── 이음매 ──────────────────────────────────────────────────────────
 
-test('닿은 것에는 두뇌를 부르지 않는다 — 2초 뒤 문장은 반응이 아니라 답변이다', async () => {
+test('닿은 것에는 두뇌를 부르지 않는다. 2초 뒤 문장은 반응이 아니라 답변이다', async () => {
   clearReplyMemory();
   let thought = 0;
   const said = [];
@@ -117,10 +117,10 @@ test('닿은 것에는 두뇌를 부르지 않는다 — 2초 뒤 문장은 반�
   await companion.feed(touchSensation('쿡', Date.now()));
 
   assert.equal(thought, 0, '두뇌를 부르면 안 된다');
-  assert.deepEqual(said, ['…어?']);
+  assert.deepEqual(said, ['...어?']);
 });
 
-test('닿은 것도 기억에는 남는다 — 곁에서 있었던 일이니까', async () => {
+test('닿은 것도 기억에는 남는다. 곁에서 있었던 일이니까', async () => {
   const memory = new InMemoryMemory();
   const mouth2 = { name: 'v', speak() {} };
   const companion = new Companion({
@@ -131,15 +131,15 @@ test('닿은 것도 기억에는 남는다 — 곁에서 있었던 일이니까'
     brain: { name: 'b', async think() { return '안 불림'; } },
     memory,
     attention: alwaysRespond,
-    reflex: () => '…어?',
+    reflex: () => '...어?',
   });
   await companion.start();
   await companion.feed(touchSensation('쿡', Date.now()));
 
-  assert.deepEqual(memory.all().map((e) => e.text), ['조수님이 나를 쿡 찔렀다.', '…어?']);
+  assert.deepEqual(memory.all().map((e) => e.text), ['조수님이 나를 쿡 찔렀다.', '...어?']);
 });
 
-test('전선 위 이름은 ASCII 다 — 한글을 주소에 실으면 인코딩 관문마다 깨진다', () => {
+test('전선 위 이름은 ASCII 다. 한글을 주소에 실으면 인코딩 관문마다 깨진다', () => {
   assert.equal(touchKindFromWire('poke'), '쿡');
   assert.equal(touchKindFromWire('drag'), '흔듦');
   assert.equal(touchKindFromWire('pet'), '쓰다듬');
@@ -151,7 +151,7 @@ test('모르는 이름은 받지 않는다', () => {
   assert.equal(touchKindFromWire(''), null);
 });
 
-test('닿은 것에는 눈치를 보지 않는다 — 나를 찔렀는데 바쁘신 것 같아 참았다는 말이 안 된다', () => {
+test('닿은 것에는 눈치를 보지 않는다. 나를 찔렀는데 바쁘신 것 같아 참았다는 말이 안 된다', () => {
   const hint = tactfulAttention({ bypassChannels: ['web', TOUCH_CHANNEL], idleMs: () => 0 });
   const recent2 = [{ role: 'said', channel: 'web', text: '방금 말함', at: Date.now() }];
   assert.equal(hint.shouldRespond({ sensation: touchSensation('쿡'), recent: recent2 }).respond, true);
@@ -164,16 +164,16 @@ test('닿은 것에는 눈치를 보지 않는다 — 나를 찔렀는데 바쁘
 
 // ── 같은 말을 되풀이하지 않는다 (88회차) ──────────────────────────
 
-test('한 바퀴는 다른 말이 나온다 — 바로 앞것만 피하면 둘을 뱅뱅 돈다', () => {
+test('한 바퀴는 다른 말이 나온다. 바로 앞것만 피하면 둘을 뱅뱅 돈다', () => {
   clearReplyMemory();
-  // 실측: 오간 말 320개 중 145개가 글자 그대로 반복, 「…계속할 거야?」만 18번이었다
+  // 실측: 오간 말 320개 중 145개가 글자 그대로 반복, ...계속할 거야?만 18번이었다
   const produced = [];
   let last;
   for (let i = 0; i < 3; i += 1) { last = touchReply('쿡', { times: 9, last, roll: () => 0 }); produced.push(last); }
-  assert.equal(new Set(produced).size, 3, `세 번에 세 가지가 나와야 한다 — 실제로는 ${produced.join(' / ')}`);
+  assert.equal(new Set(produced).size, 3, `세 번에 세 가지가 나와야 한다. 실제로는 ${produced.join(' / ')}`);
 });
 
-test('다 쓰면 비우고 다시 돈다 — 말이 떨어져서 멈추면 안 된다', () => {
+test('다 쓰면 비우고 다시 돈다. 말이 떨어져서 멈추면 안 된다', () => {
   clearReplyMemory();
   const produced2 = [];
   let last;
@@ -182,7 +182,7 @@ test('다 쓰면 비우고 다시 돈다 — 말이 떨어져서 멈추면 안 �
   assert.equal(produced2.every((x) => typeof x === 'string' && x !== ''), true);
 });
 
-test('갈래마다 따로 센다 — 찌른 것과 쓰다듬은 것이 서로 말을 뺏으면 안 된다', () => {
+test('갈래마다 따로 센다. 찌른 것과 쓰다듬은 것이 서로 말을 뺏으면 안 된다', () => {
   clearReplyMemory();
   const a = touchReply('쿡', { times: 1, roll: () => 0 });
   touchReply('쓰다듬', { times: 1, roll: () => 0 });

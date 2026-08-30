@@ -1,19 +1,19 @@
 /**
- * 사이트 조립기 — Jekyll 의 마지막 세 가지 일을 Node 로 (change.blog-finish ①).
+ * 사이트 조립기. Jekyll 의 마지막 세 가지 일을 Node 로 (change.blog-finish ①).
  *
  * 컷오버(change.blog-cutover) 뒤 Jekyll 이 하던 일은 셋뿐이었다:
- *  ① 머리말(front matter) 처리 — `permalink` 자리로 옮기고 머리말을 뗀다
- *  ② sitemap.xml 생성 — jekyll-sitemap + `_plugins/sitemap-*.rb` 4종의 좁히기 규율
+ *  ① 머리말(front matter) 처리. `permalink` 자리로 옮기고 머리말을 뗀다
+ *  ② sitemap.xml 생성. jekyll-sitemap + `_plugins/sitemap-*.rb` 4종의 좁히기 규율
  *  ③ 나머지 정적 파일을 _site 로 복사
- * 그 셋을 여기로 옮긴다. 이 파일이 살면 Ruby·Gemfile·_config.yml·_plugins 전부가 죽는다.
+ * 그 셋을 여기로 옮긴다. 이 파일이 살면 Ruby, Gemfile, _config.yml, _plugins 전부가 죽는다.
  *
- * ## 이식한 사이트맵 규율 (원본 = 삭제된 _plugins/*.rb — git 이력 0919e7f8f 이전)
- *  - focus (TASK-KL-349/350): `/en/**`·`/ja/**` 제외 · `tools-seo.json` 항목 700자 미만 도구 장
- *    제외. 단 **모이는 자리 면제** — noindex 넘김 장이 canonical 로 가리키는 도구는 얇아도 싣는다
+ * ## 이식한 사이트맵 규율 (원본 = 삭제된 _plugins/*.rb. git 이력 0919e7f8f 이전)
+ *  - focus (TASK-KL-349/350): `/en/**`, `/ja/**` 제외, `tools-seo.json` 항목 700자 미만 도구 장
+ *    제외. 단 **모이는 자리 면제**. noindex 넘김 장이 canonical 로 가리키는 도구는 얇아도 싣는다
  *    (열일곱 글 도구의 목적지가 유배됐던 사고의 재발 방지).
- *  - drop-thin: `/tags/*`·`/categories/*`·`assets/doc/**` (컷오버로 소멸 — 방어선으로 유지)
+ *  - drop-thin: `/tags/*`, `/categories/*`, `assets/doc/**` (컷오버로 소멸. 방어선으로 유지)
  *  - drop-paginated: `/page<N>/` (동)
- *  - drop-noindex: 본문에 `<meta name="robots" … noindex>` 가 있는 장
+ *  - drop-noindex: 본문에 `<meta name="robots" ... noindex>` 가 있는 장
  *  - lastmod: 머리말 `last_modified_at` → 없으면 원본 파일의 git 마지막 커밋 시각 →
  *    그것도 없으면(생성 산출물) 조립 시각. 비면 배포가 선다 (audit-sitemap-lastmod).
  *
@@ -34,7 +34,7 @@ const OUT = argOf('--out', path.join(SITE_SRC, '_site'));
 const BASE_URL = 'https://blog.mascari4615.com';
 const FOCUS_MIN_SEO_CHARS = 700;
 
-/** 조립에 안 실리는 것 — 소스 관리 파일. (Jekyll exclude 의 후계. _data = works.yml 등 원료) */
+/** 조립에 안 실리는 것. 소스 관리 파일. (Jekyll exclude 의 후계. _data = works.yml 등 원료) */
 const SKIP = /^(_site|\.git|\.jekyll-cache|node_modules|_data|_plugins|_config\.yml|Gemfile|README|LICENSE)|\.gemspec$/;
 
 // ---------------------------------------------------------------- ① + ③ 걷고 놓기
@@ -51,7 +51,7 @@ function walk(dir, rel = '') {
     return out;
 }
 
-/** 머리말 한 장 읽기 — 이 사이트의 머리말은 permalink·last_modified_at·sitemap 세 키뿐이다. */
+/** 머리말 한 장 읽기. 이 사이트의 머리말은 permalink, last_modified_at, sitemap 세 키뿐이다. */
 function readFrontMatter(text) {
     const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
     if (!m) return null;
@@ -89,7 +89,7 @@ const NOINDEX = /<meta[^>]+name\s*=\s*["']robots["'][^>]*noindex/i;
 const CANONICAL_TOOL = /<link[^>]+rel=["']canonical["'][^>]+href=["'][^"']*\/t\/([^/"']+)\//i;
 const TOOL_URL = /^\/t\/([^/]+)\/$/;
 
-/** 얇은 도구 명단 — tools-seo.json 항목 700자 미만. 못 읽으면 아무것도 안 뺀다 (넓은 쪽이 안전). */
+/** 얇은 도구 명단. tools-seo.json 항목 700자 미만. 못 읽으면 아무것도 안 뺀다 (넓은 쪽이 안전). */
 function thinToolIds() {
     try {
         const tools = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'data', 'tools-seo.json'), 'utf8')).tools ?? {};
@@ -97,28 +97,44 @@ function thinToolIds() {
         console.log(`[assemble] 도구 ${Object.keys(tools).length}개 중 ${Object.keys(tools).length - thin.length}개가 ${FOCUS_MIN_SEO_CHARS}자 문턱을 넘었다`);
         return new Set(thin);
     } catch (error) {
-        console.warn(`[assemble] tools-seo.json 을 못 읽었다 (${error.message}) — 도구 장은 하나도 안 뺀다`);
+        console.warn(`[assemble] tools-seo.json 을 못 읽었다 (${error.message}). 도구 장은 하나도 안 뺀다`);
         return null;
     }
 }
 
-/** 사이트맵에 실을 것인가 — 이식한 좁히기 전부. pages = {url, html, sitemapOff}. */
+/** 사이트맵에 실을 것인가. 이식한 좁히기 전부. pages = {url, html, sitemapOff}. */
 function sitemapEligible(page, thin, hubs) {
     if (page.sitemapOff) return false;
     const url = page.url;
-    if (/^\/(en|ja)\//.test(url)) return false; // focus — 언어 판
+    if (/^\/(en|ja)\//.test(url)) return false; // focus. 언어 판
     if (/^\/(tags|categories)\/[^/]+\/?$/.test(url)) return false; // drop-thin
     if (/^\/page\d+\/?$/.test(url)) return false; // drop-paginated
     if (/^\/assets\/doc\//.test(url)) return false; // drop-thin (파일)
     if (NOINDEX.test(page.html)) return false; // drop-noindex
+    // 검색엔진 소유 확인 파일. 색인 대상이 아니고 대표 주소도 없다 (2026-08-29 audit-canonical 로 드러남)
+    if (/^\/(google|naver)[0-9a-f]+\.html$/.test(url)) return false;
+    // `/c/docs/` 14장 제외 (사용자 결정 2026-08-29)
+    //   - 위젯은 커뮤니티로 접혔는데 정적 장만 남아 사이트맵에 실려 있었음
+    //   - 내부 개발 문서와 세계관 메모. 검색으로 부를 자리가 아님
+    //   - 주소는 그대로 삶. 링크로 오는 사람은 그대로 봄
+    if (/^\/c\/docs\//.test(url)) return false;
     const tool = url.match(TOOL_URL);
-    if (tool && thin && thin.has(tool[1]) && hubs.has(tool[1]) === false) return false; // focus — 얇은 도구 (모이는 자리 면제)
+    if (tool && thin && thin.has(tool[1]) && hubs.has(tool[1]) === false) return false; // focus. 얇은 도구 (모이는 자리 면제)
     return true;
 }
 
 // ---------------------------------------------------------------- 조립
 
 const started = new Date().toISOString();
+
+/** 지금 체크아웃 HEAD sha. CI 에서는 GITHUB_SHA 우선 */
+function gitHeadSha() {
+    try {
+        return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: SITE_SRC, encoding: 'utf8' }).trim();
+    } catch {
+        return '';
+    }
+}
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -135,7 +151,7 @@ for (const rel of walk(SITE_SRC)) {
 
     if (fm) {
         if (!fm.permalink) {
-            console.error(`[assemble] ✗ ${rel}: 머리말에 permalink 가 없다 — 어디 놓을지 모른다`);
+            console.error(`[assemble] ✗ ${rel}: 머리말에 permalink 가 없다. 어디 놓을지 모른다`);
             process.exit(1);
         }
         const dest = destOf(fm.permalink);
@@ -156,7 +172,7 @@ for (const rel of walk(SITE_SRC)) {
         fs.mkdirSync(path.dirname(dest), { recursive: true });
         fs.copyFileSync(full, dest);
         copied += 1;
-        // 머리말 없는 .html (daily 산출물·검증 파일 등)도 사이트맵 후보다 — jekyll-sitemap 이 그랬다.
+        // 머리말 없는 .html (daily 산출물, 검증 파일 등)도 사이트맵 후보다. jekyll-sitemap 이 그랬다.
         if (rel.endsWith('.html')) {
             const url = '/' + rel.replace(/index\.html$/, '').replace(/\\/g, '/');
             pages.push({ url, html: text ?? '', sitemapOff: false, lastmod: gitLastmod(rel) ?? started });
@@ -164,7 +180,7 @@ for (const rel of walk(SITE_SRC)) {
     }
 }
 
-// 모이는 자리 — noindex 넘김 장이 canonical 로 가리키는 도구 id (focus 면제).
+// 모이는 자리. noindex 넘김 장이 canonical 로 가리키는 도구 id (focus 면제).
 const hubs = new Set();
 for (const page of pages) {
     if (NOINDEX.test(page.html) === false) continue;
@@ -174,7 +190,7 @@ for (const page of pages) {
     if (self && self[1] === target[1]) continue; // 자기 자신은 넘김이 아니다
     hubs.add(target[1]);
 }
-if (hubs.size) console.log(`[assemble] 모이는 자리라 문턱 면제 — ${[...hubs].sort().join(' ')}`);
+if (hubs.size) console.log(`[assemble] 모이는 자리라 문턱 면제. ${[...hubs].sort().join(' ')}`);
 
 const thin = thinToolIds();
 const listed = pages.filter((p) => sitemapEligible(p, thin, hubs));
@@ -186,7 +202,19 @@ const xml =
         .join('\n') +
     `\n</urlset>\n`;
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), xml);
+// 같은 목록을 두 번째 주소로도 낸다. GSC 는 이미 제출된 주소를 새 행으로 안 만들어서,
+// 뿌리 이관(2026-08-27) 뒤 바뀐 목록을 읽히려면 다른 주소가 필요하다 (seo-ops 공백 ②).
+fs.writeFileSync(path.join(OUT, 'sitemap-root.xml'), xml);
+
+// 라이브 판본 표시 (2026-08-29)
+//   - 왜냐면 배포 세 판 연속 빨강인데 `audit-live-essentials` 는 16/16 초록. 요소 유무만 재는 검사
+//   - 이 sha 로 신선도를 바깥에서 잰다 (`audit-live-fresh.mjs`)
+const buildSha = process.env.GITHUB_SHA || gitHeadSha() || '';
+fs.writeFileSync(
+    path.join(OUT, 'build.json'),
+    JSON.stringify({ sha: buildSha, builtAt: started }, null, 2) + '\n'
+);
 
 console.log(
-    `[assemble] 머리말 장 ${processed} · 정적 복사 ${copied} · 사이트맵 ${listed.length}장 (후보 ${pages.length}) → ${path.relative(process.cwd(), OUT)}`
+    `[assemble] 머리말 장 ${processed}, 정적 복사 ${copied}, 사이트맵 ${listed.length}장 (후보 ${pages.length}) → ${path.relative(process.cwd(), OUT)}`
 );

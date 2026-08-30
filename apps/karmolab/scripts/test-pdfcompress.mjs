@@ -2,10 +2,10 @@
  * PDF 용량 줄이기를 진짜 PDF 로 끝까지 돌려 본다 (TASK-KL-088)
  *
  * 이 도구가 조용히 어긋날 자리:
- *  ① 쪽이 빠지거나 늘어남 — 결과는 열리는데 내용이 다르다
- *  ② 쪽 크기가 바뀜 — 인쇄하면 A4 가 아니게 된다
+ *  ① 쪽이 빠지거나 늘어남. 결과는 열리는데 내용이 다르다
+ *  ② 쪽 크기가 바뀜. 인쇄하면 A4 가 아니게 된다
  *  ③ 줄었다고 말하는데 실제로는 안 줆
- * 셋 다 오류가 안 난다. 그래서 결과 PDF 를 다시 열어 **쪽 수·쪽 크기·용량**을 직접 잰다.
+ * 셋 다 오류가 안 난다. 그래서 결과 PDF 를 다시 열어 **쪽 수, 쪽 크기, 용량**을 직접 잰다.
  *
  * 사용: node scripts/test-pdfcompress.mjs
  */
@@ -20,11 +20,11 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const browser = await chromium.launch();
 const page = await browser.newPage();
 // 위젯이 무거운 처리기를 부를 때 쓰는 길(ensureScript)을 우리가 대신 채워 준다.
-// pdf.js 는 별도 일꾼 파일을 반드시 받아 간다 — 없으면 PDF 를 아예 못 연다.
+// pdf.js 는 별도 일꾼 파일을 반드시 받아 간다. 없으면 PDF 를 아예 못 연다.
 // 네트워크는 안 쓰되, 그 경로만은 진짜 파일을 돌려준다.
 /* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12).
  *   위젯 build() 가 말 묶음(i18n)을 받아 온 뒤에 그리므로, 껍데기만 주면 `#pcFile` 이 null 이라
- *   「Cannot set properties of null」로 죽는다 — 제품이 아니라 검사가 굶긴 것이다.
+ *   Cannot set properties of null로 죽는다. 제품이 아니라 검사가 굶긴 것이다.
  *   (자매 검사들과 같은 처방. 여기는 pdfjs 일꾼을 따로 먹여야 해서 공용 하네스 대신 직접 적는다.) */
 await page.route('**/*', (route) => {
   const url = new URL(route.request().url());
@@ -57,7 +57,7 @@ await page.evaluate(() => {
     register: (t) => { window.__reg[t.id] = t; },
     trackUse() {},
     mountTool() { return true; },
-    // 처리기는 이미 붙여 두었다 — 위젯이 부르면 그냥 넘어가면 된다
+    // 처리기는 이미 붙여 두었다. 위젯이 부르면 그냥 넘어가면 된다
     ensureScript: () => Promise.resolve()
   };
   // 일꾼 파일 자리를 실제와 같은 경로로 둔다 (위 route 가 진짜 파일을 돌려준다)
@@ -101,12 +101,12 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
-  /* build() 는 말 묶음을 받아 온 뒤에 그린다 — 그려질 때까지 기다린다(sleep 아님). */
+  /* build() 는 말 묶음을 받아 온 뒤에 그린다. 그려질 때까지 기다린다(sleep 아님). */
   const waitDrawn = async (ms = 8000) => {
     const until = Date.now() + ms;
     for (;;) {
       if (host.children.length > 0) return;
-      if (Date.now() > until) throw new Error('build() 뒤 아무것도 안 그려졌다 — 기다리는 말 묶음이 안 온다');
+      if (Date.now() > until) throw new Error('build() 뒤 아무것도 안 그려졌다. 기다리는 말 묶음이 안 온다');
       await new Promise((r) => setTimeout(r, 25));
     }
   };
@@ -153,7 +153,7 @@ const result = await page.evaluate(async () => {
   const sameSize = Math.abs(vp.width - 595) < 2 && Math.abs(vp.height - 842) < 2;
   return {
     ok: magic === '%PDF-' && outDoc.numPages === 3 && sameSize && outBlob.size < src.size,
-    why: `형식 ${magic} · 쪽 ${outDoc.numPages}/3 · 첫 쪽 ${Math.round(vp.width)}x${Math.round(vp.height)} (595x842 여야 함) · ${(src.size / 1024).toFixed(0)}KB → ${(outBlob.size / 1024).toFixed(0)}KB`
+    why: `형식 ${magic}, 쪽 ${outDoc.numPages}/3, 첫 쪽 ${Math.round(vp.width)}x${Math.round(vp.height)} (595x842 여야 함), ${(src.size / 1024).toFixed(0)}KB → ${(outBlob.size / 1024).toFixed(0)}KB`
   };
 });
 
@@ -164,4 +164,4 @@ if (!result.ok) {
   console.error('[test-pdfcompress] PDF 줄이기가 제대로 돌지 않는다');
   process.exit(1);
 }
-console.log('[test-pdfcompress] 쪽 수·쪽 크기를 지키면서 용량이 주는 것까지 확인');
+console.log('[test-pdfcompress] 쪽 수, 쪽 크기를 지키면서 용량이 주는 것까지 확인');

@@ -1,12 +1,12 @@
 /**
  * 앱 셸에서 **정적으로 찍는 페이지**의 공통 바탕 (TASK-KL-129)
  *
- * 도구 상세 장 전부 · 도구 목록 · 봇 소개 · 프로필이 전부 여기를 지난다. 예전에는 목록·봇·프로필이
- * 셸 밖에서 손으로 짠 문서였다 — 거기만 머리띠도 옆줄도 테마 단추도 ⌘K 도 없었고, 같은 곳인데
+ * 도구 상세 장 전부, 도구 목록, 봇 소개, 프로필이 전부 여기를 지난다. 예전에는 목록, 봇, 프로필이
+ * 셸 밖에서 손으로 짠 문서였다. 거기만 머리띠도 옆줄도 테마 단추도 ⌘K 도 없었고, 같은 곳인데
  * 다른 집처럼 보였다. 한 벌로 모아 두면 한쪽만 고쳐져 갈라지는 일이 없다.
  *
- * 파는 것: 셸 읽기 · 공통 손질 · meta 갈아끼우기 · 위젯 파일 주소 규칙.
- * 무엇을 보여 줄지(제목·설명·본문)는 부르는 쪽이 정한다.
+ * 파는 것: 셸 읽기, 공통 손질, meta 갈아끼우기, 위젯 파일 주소 규칙.
+ * 무엇을 보여 줄지(제목, 설명, 본문)는 부르는 쪽이 정한다.
  */
 import { CSP_CONTENT } from './head-security.mjs';
 import fs from 'node:fs';
@@ -20,16 +20,16 @@ export const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /* 셸은 **줄 끝을 맞춰서** 읽는다 (TASK-KL-129).
- * 아래 손질은 전부 「여러 줄이 이 순서로 있다」를 찾아 바꾼다. 그런데 이 파일이 윈도우에서
+ * 아래 손질은 전부 여러 줄이 이 순서로 있다를 찾아 바꾼다. 그런데 이 파일이 윈도우에서
  * 한 번 저장되면 줄 끝이 CRLF 로 바뀌고(깃은 되돌려 저장하므로 diff 에는 안 보인다),
  * 그 순간 앞머리 치환부터 전부 못 찾아 **생성기가 통째로 죽는다 = 배포 정지**. */
 export function loadShell(root) {
   const text = fs.readFileSync(path.join(root, 'index.html'), 'utf8').split(String.fromCharCode(13, 10)).join(String.fromCharCode(10));
-  /* ★ **자물쇠는 껍데기 것이다 — 찍는 장에 물려주면 그 장이 죽는다** (2026-08-17, 두 번 데임).
+  /* ★ **자물쇠는 껍데기 것이다. 찍는 장에 물려주면 그 장이 죽는다** (2026-08-17, 두 번 데임).
      껍데기 CSP 에는 그 화면 인라인의 **지문**이 박혀 있다. 찍는 장에는 장마다 다른 인라인이 더
-     붙는다(도구 이름·말 바꾸기 표시…) — 지문에 없으니 막히고 위젯이 안 뜬다. 실제로
+     붙는다(도구 이름, 말 바꾸기 표시...). 지문에 없으니 막히고 위젯이 안 뜬다. 실제로
      ① 도구 장 145개가 막혀 미리그리기 18분 정지 ② 다국어 장 이름이 안 바뀌어 배포가 섰다.
-     그래서 **껍데기를 읽는 이 문 하나**에서 기본 세 줄로 되돌린다 — 생성기마다 고치면 또 빠뜨린다.
+     그래서 **껍데기를 읽는 이 문 하나**에서 기본 세 줄로 되돌린다. 생성기마다 고치면 또 빠뜨린다.
      장마다 지문을 찍는 것은 다음 걸음이고, 그때도 자리는 여기다. */
   return text.replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(">)/, (m, a, b) => a + CSP_CONTENT + b);
 }
@@ -37,18 +37,18 @@ export function loadShell(root) {
 /** head 의 한 줄짜리 meta 를 값만 갈아끼운다 (셸 구조 변화에 둔감하게 attr 매칭). */
 export function replaceMeta(html, attr, name, content) {
   const re = new RegExp(`(<meta\\s+${attr}="${name}"\\s+content=")[^"]*(">)`);
-  if (!re.test(html)) throw new Error(`셸에서 meta ${attr}="${name}" 를 못 찾음 — index.html 구조 변경 확인`);
+  if (!re.test(html)) throw new Error(`셸에서 meta ${attr}="${name}" 를 못 찾음. index.html 구조 변경 확인`);
   return html.replace(re, `$1${esc(content)}$2`);
 }
 
 /** 위젯 이름 → 실제 파일 자리. 앱이 쓰는 규칙과 같아야 한다(두 벌이면 언젠가 갈라진다). */
 /**
- * 이 판(배포)의 표식 — `build.mjs` 가 남긴 것을 그대로 읽는다 (TASK-KL-128 ②-b).
+ * 이 판(배포)의 표식. `build.mjs` 가 남긴 것을 그대로 읽는다 (TASK-KL-128 ②-b).
  *
  * 미리받기(preload) 주소는 앱이 실제로 부르는 주소와 **글자 그대로 같아야** 한다.
- * 앱은 위젯 주소에 이 표식을 붙인다(`toolbox.ts` 의 withBuildTag) — 여기서 안 붙이면
+ * 앱은 위젯 주소에 이 표식을 붙인다(`toolbox.ts` 의 withBuildTag). 여기서 안 붙이면
  * 같은 위젯을 두 번 받는다: 미리받기로 한 번, 앱이 한 번(실측으로 그랬다).
- * 파일이 없으면 표식 없이 간다 — 그때는 앱도 안 붙이므로 여전히 같다.
+ * 파일이 없으면 표식 없이 간다. 그때는 앱도 안 붙이므로 여전히 같다.
  */
 const BUILD_TAG = (() => {
   try {
@@ -58,7 +58,7 @@ const BUILD_TAG = (() => {
   }
 })();
 
-/** 위젯 묶음 주소에만 표식을 붙인다 (vendor·world·root 는 앱도 안 붙인다). */
+/** 위젯 묶음 주소에만 표식을 붙인다 (vendor, world, root 는 앱도 안 붙인다). */
 export function preloadHref(p) {
   const file = scriptFile(p);
   return `/apps/karmolab/${file}` + (BUILD_TAG && file.startsWith('js/widgets/') ? `?b=${BUILD_TAG}` : '');
@@ -73,7 +73,7 @@ export function scriptFile(p) {
 }
 
 /**
- * 「이 셸을 이 주소의 한 장으로 만든다」 — 앞머리·부팅 목록·큰제목·안 쓰는 스타일.
+ * 이 셸을 이 주소의 한 장으로 만든다. 앞머리, 부팅 목록, 큰제목, 안 쓰는 스타일.
  */
 export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   // 사이트맵에 실릴 변경일도 여기서 박는다 (jekyll-sitemap 이 front matter 의 이 값을 읽는다).
@@ -82,17 +82,17 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
     `---\nlayout: none\npermalink: ${permalink}\nlast_modified_at: ${lastModified}\n---`
   );
   if (!html.startsWith(`---\nlayout: none\npermalink: ${permalink}`)) {
-    throw new Error('셸 front matter 치환 실패 — index.html 앞머리 확인');
+    throw new Error('셸 front matter 치환 실패. index.html 앞머리 확인');
   }
 
   /* 셸에 박힌 **언어 판 표시는 셸의 것**이다 (TASK-KL-203).
-     그대로 복사되면 도구 129장이 전부 「내 영어 판은 /en/ 이다」라고 우긴다 —
+     그대로 복사되면 도구 129장이 전부 내 영어 판은 /en/ 이다라고 우긴다 . 
      그 주소는 첫 화면이지 이 도구가 아니다. 잘못된 짝 표시는 없느니만 못하다(양쪽이 무효가 된다).
      각 장이 제 언어 판을 가지게 되면 `lib/locale-page.mjs` 가 제 것을 다시 박는다. */
   html = html.replace(/\n\s*<!-- 언어 판 왕복 표시[\s\S]*?-->/, '');
   html = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
 
-  /* 눈에 보이는 언어 링크 칸은 없앴다 (2026-08-20) — 언어 지도는 머리말 hreflang 하나다. */
+  /* 눈에 보이는 언어 링크 칸은 없앴다 (2026-08-20). 언어 지도는 머리말 hreflang 하나다. */
 
   // 첫 화면용 뽑기 위젯은 정적 페이지에서 쓰이지 않는다.
   html = html.replace(
@@ -100,9 +100,9 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
     ''
   );
   // 매니페스트 파일이 뒤늦게(defer) 원래 목록을 다시 씌우므로, 그 파일을 부르는 자리를
-  // 짧은 목록으로 바꾼다 — 인라인으로 먼저 정해 봐야 defer 가 이긴다.
+  // 짧은 목록으로 바꾼다. 인라인으로 먼저 정해 봐야 defer 가 이긴다.
   const bootTag = '<script defer src="/apps/karmolab/js/widgets-manifest.js"></script>';
-  if (!html.includes(bootTag)) throw new Error('셸에서 위젯 매니페스트 자리를 못 찾음 — index.html 확인');
+  if (!html.includes(bootTag)) throw new Error('셸에서 위젯 매니페스트 자리를 못 찾음. index.html 확인');
   html = html.replace(
     bootTag,
     `<script>window.KARMOLAB_WIDGETS_BOOT=${JSON.stringify(bootPaths)};</script>`
@@ -114,91 +114,91 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   );
 
   // 페이지의 큰제목은 하나여야 한다 (TASK-KL-089).
-  // 셸에는 큰제목이 둘 더 있다 — 첫 화면 인사말 「KarmoLab」과, 자바스크립트가 채우는 헤더 제목
+  // 셸에는 큰제목이 둘 더 있다. 첫 화면 인사말 KarmoLab과, 자바스크립트가 채우는 헤더 제목
   // (이쪽은 화면에 아예 안 나온다). 정적 페이지의 주제는 제 본문인데 큰제목이 셋이면
   // 검색엔진이 무엇에 대한 문서인지 흐리게 읽는다. 생김새는 클래스가 정하므로 태그만 바꾼다.
   // 태그를 **통째 문자열로** 찾다가, 셸에 속성 하나(id) 가 붙자 생성기가 통째로 멈췄다.
-  // 클래스만 보고 태그 이름을 바꾼다 — 속성이 늘어도 계속 맞는다.
+  // 클래스만 보고 태그 이름을 바꾼다. 속성이 늘어도 계속 맞는다.
   for (const cls of ['intro-title', 'content-title']) {
     const re = new RegExp(`<h1([^>]*\\bclass="${cls}"[^>]*)>([\\s\\S]*?)</h1>`);
-    if (!re.test(html)) throw new Error(`셸에서 큰제목을 못 찾음 — index.html 확인: class="${cls}"`);
+    if (!re.test(html)) throw new Error(`셸에서 큰제목을 못 찾음. index.html 확인: class="${cls}"`);
     html = html.replace(re, '<div$1>$2</div>');
   }
 
-  /* 도구·목록 화면에는 **브랜드 인트로 덮개를 아예 안 싣는다** (TASK-KL-135).
+  /* 도구, 목록 화면에는 **브랜드 인트로 덮개를 아예 안 싣는다** (TASK-KL-135).
    *
-   * 원래도 이 화면들에서는 안 켠다 — 머리말의 부트 스크립트가 `data-intro=off` 로 정한다.
+   * 원래도 이 화면들에서는 안 켠다. 머리말의 부트 스크립트가 `data-intro=off` 로 정한다.
    * 그런데 그 판단이 **스크립트**라, 스크립트를 못 쓰는 사람에게는 덮개가 그대로 남아
-   * 화면 전체를 가린다(미리 그린 도구가 그 뒤에 멀쩡히 있는데도 안 보인다 — 실측으로 확인).
+   * 화면 전체를 가린다(미리 그린 도구가 그 뒤에 멀쩡히 있는데도 안 보인다. 실측으로 확인).
    * 여기서는 켤 일이 영영 없으므로 자리째 뺀다. 덤으로 DOM 도 줄어든다. */
   html = html.replace(/\s*<div class="intro-overlay"[\s\S]*?<\/div>\s*<script>[\s\S]*?<\/script>/, '');
 
 
   // 랜덤 생성기 전용 스타일은 정적 페이지에서 뺀다 (TASK-KL-089).
-  // 그 위젯은 앱 첫 화면에만 있고 상세 페이지가 없다. 뽑기 계열 도구(로또·사다리·추첨)도
-  // 이 스타일을 쓰지 않는 것을 다섯 페이지에서 확인했다 — 해당 요소가 하나도 안 나온다.
-  /* 도구 상세 페이지는 **첫 그림부터** 도구 스타일이 필요하다 — 셸에서는 그리기를 안 막게
+  // 그 위젯은 앱 첫 화면에만 있고 상세 페이지가 없다. 뽑기 계열 도구(로또, 사다리, 추첨)도
+  // 이 스타일을 쓰지 않는 것을 다섯 페이지에서 확인했다. 해당 요소가 하나도 안 나온다.
+  /* 도구 상세 페이지는 **첫 그림부터** 도구 스타일이 필요하다. 셸에서는 그리기를 안 막게
      걸어 뒀지만(첫 화면에서는 쓰임 0%), 여기서는 도로 막는 쪽으로 되돌린다.
      안 그러면 글이 먼저 나왔다가 스타일이 와서 자리가 튄다 (TASK-KL-128 ④-c). */
-  /* ★ **자물쇠는 껍데기 것이다 — 찍는 장에 그대로 물려주면 그 장이 죽는다** (2026-08-17 실측).
+  /* ★ **자물쇠는 껍데기 것이다. 찍는 장에 그대로 물려주면 그 장이 죽는다** (2026-08-17 실측).
      껍데기 `index.html` 의 CSP 에는 그 화면 인라인의 지문이 박혀 있다. 그런데 찍는 장에는
-     `KARMOLAB_ENTRY_TOOL="…"` 처럼 **장마다 다른 인라인**이 세 개 더 붙는다 — 지문에 없으니
+     `KARMOLAB_ENTRY_TOOL="..."` 처럼 **장마다 다른 인라인**이 세 개 더 붙는다. 지문에 없으니
      막히고, 위젯이 안 뜬다. 실제로 그 상태로 미리그리기 단계가 16분째 서 있었다.
      지금은 **기본 세 줄로 되돌린다**(자물쇠 없음 = 예전과 같음). 장마다 지문을 찍는 것이
-     다음 걸음이다 — 그건 145장을 한꺼번에 거는 일이라 따로 검증하고 간다. */
+     다음 걸음이다. 그건 145장을 한꺼번에 거는 일이라 따로 검증하고 간다. */
   html = html.replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(">)/,
     (m, a, b) => a + CSP_CONTENT + b);
 
   const TOOLS_CSS_DEFERRED =
     /* ★ 2026-08-17: 껍데기에서 `onload="this.media='all'"` 를 걷어냈다(인라인 손잡이 0 = CSP
-       script-src 를 걸기 위한 조건). 그래서 여기서 찾는 글자도 바뀐다 — 안 바꾸면 **배포가 선다**
-       (실제로 네 판이 「도구 스타일 자리를 못 찾음」으로 죽었다). 뜻은 그대로: 도구 상세 장에서는
+       script-src 를 걸기 위한 조건). 그래서 여기서 찾는 글자도 바뀐다. 안 바꾸면 **배포가 선다**
+       (실제로 네 판이 도구 스타일 자리를 못 찾음으로 죽었다). 뜻은 그대로: 도구 상세 장에서는
        이 스타일을 **막고 그리게** 되돌린다. */
     '<link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print">';
-  if (!html.includes(TOOLS_CSS_DEFERRED)) throw new Error('셸에서 도구 스타일 자리를 못 찾음 — index.html 확인');
+  if (!html.includes(TOOLS_CSS_DEFERRED)) throw new Error('셸에서 도구 스타일 자리를 못 찾음. index.html 확인');
   html = html.replace(TOOLS_CSS_DEFERRED, '<link rel="stylesheet" href="/apps/karmolab/css/tools.css">');
 
   const RANDOMGEN_CSS =
     '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print">';
-  if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음 — index.html 확인');
+  if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음. index.html 확인');
   html = html.replace(RANDOMGEN_CSS, '');
 
-  /* 로또 전용 스타일도 같은 길이다 (2026-08-21) — 로또 한 장에서만 쓰는 `.lt-*` 233줄이
+  /* 로또 전용 스타일도 같은 길이다 (2026-08-21). 로또 한 장에서만 쓰는 `.lt-*` 233줄이
      `tools.css` 에 있어서 <b>도구 145장 전부</b>가 첫 그림 전에 7KB 를 더 기다렸다.
      `randomgen.css` 와 같은 자리에 두고, 정적 도구 장에서는 뺀다(그 장에 필요하면 그때 켜진다). */
   const LOTTO_CSS =
     '<link rel="stylesheet" href="/apps/karmolab/css/lotto.css" media="print">';
-  if (!html.includes(LOTTO_CSS)) throw new Error('셸에서 로또 스타일 자리를 못 찾음 — index.html 확인');
+  if (!html.includes(LOTTO_CSS)) throw new Error('셸에서 로또 스타일 자리를 못 찾음. index.html 확인');
   html = html.replace(LOTTO_CSS, '');
 
-  /* 앱 첫 화면용 크롤러 안내는 여기서 뺀다 — 정적 페이지에는 이미 자기 설명이 있고,
+  /* 앱 첫 화면용 크롤러 안내는 여기서 뺀다. 정적 페이지에는 이미 자기 설명이 있고,
    * 같은 글이 126장에 똑같이 박히면 페이지끼리 닮아 보여 되레 손해다. */
   {
     const before = html;
     html = html.replace(/\s*<!-- KARMOLAB_ROOT_INTRO[\s\S]*?<\/noscript>/, '');
-    if (html === before) throw new Error('셸에서 첫 화면 안내 블록을 못 찾음 — index.html 확인');
+    if (html === before) throw new Error('셸에서 첫 화면 안내 블록을 못 찾음. index.html 확인');
   }
 
   /* 앱 첫 화면용 구조 설명도 뺀다 (TASK-KL-089).
-   * 그것은 「여기가 KarmoLab 이고 안에서 도구를 찾을 수 있다」는 말이라, 그대로 복사되면
+   * 그것은 여기가 KarmoLab 이고 안에서 도구를 찾을 수 있다는 말이라, 그대로 복사되면
    * 각 장이 자기를 첫 화면이라고 주장하게 된다. 정적 페이지는 제 설명을 따로 박는다. */
   {
     const before = html;
     html = html.replace(/\s*<!-- KARMOLAB_ROOT_LD[\s\S]*?<\/script>/, '');
-    if (html === before) throw new Error('셸에서 첫 화면 구조 설명 블록을 못 찾음 — index.html 확인');
+    if (html === before) throw new Error('셸에서 첫 화면 구조 설명 블록을 못 찾음. index.html 확인');
   }
 
   /* 코드 색칠 스타일은 첫 화면을 막지 않게 한다 (TASK-KL-089).
-   * 재 보니 도구 125장 중 색칠을 쓰는 페이지가 **하나도 없다** — 그 기능을 쓰는 위젯은
+   * 재 보니 도구 125장 중 색칠을 쓰는 페이지가 **하나도 없다**. 그 기능을 쓰는 위젯은
    * 대화 도구 하나뿐이고, 거기엔 도구 페이지가 없다. 그런데 스타일 링크는 모든 장의 머리에
    * 있어서, 매번 첫 화면을 막는 자리를 하나씩 차지했다(0% 사용).
-   * 태그 자체는 남긴다 — 색 테마를 고르는 코드가 이 자리를 찾기 때문이다. 나중에 색칠이
+   * 태그 자체는 남긴다. 색 테마를 고르는 코드가 이 자리를 찾기 때문이다. 나중에 색칠이
    * 실제로 실려 오면 그때 켜 준다(안 그러면 코드가 흑백으로 나오는 조용한 고장이 된다). */
   {
     /* 셸이 **이미 뒤로 빼 뒀으면** 그대로 둔다 (2026-08-08).
-     * 앱 첫 화면도 이 스타일에 첫 그림이 걸려 있었다 — 그 요청만 1.5초 늦추니 첫 그림이
+     * 앱 첫 화면도 이 스타일에 첫 그림이 걸려 있었다. 그 요청만 1.5초 늦추니 첫 그림이
      * 484ms → 1936ms 였다. 그래서 `index.html` 쪽도 `media="print"` 로 바꿨는데, 그 순간
-     * 여기서 「자리를 못 찾음」으로 세워 **도구 129장 생성이 통째로 멈췄다**(찾는 모양이
+     * 여기서 자리를 못 찾음으로 세워 **도구 129장 생성이 통째로 멈췄다**(찾는 모양이
      * 하나뿐이었다). 이제 두 모양을 다 안다: 아직 막고 있으면 뒤로 빼고, 이미 빠져 있으면
      * 아무 일도 안 한다. 둘 다 아니면 그때는 진짜로 세운다. */
     if (!/<link id="prism-css"[^>]*media="print"/.test(html)) {
@@ -210,11 +210,11 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
           'if(!el)return;var t=setInterval(function(){if(window.Prism){el.media="all";clearInterval(t)}},400);' +
           'setTimeout(function(){clearInterval(t)},30000)})()</script>'
       );
-      if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음 — index.html 확인');
+      if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음. index.html 확인');
     }
   }
 
-  /* 첫 그림에 안 쓰이는 셸 조각은 여기서 통째로 미룬다 — 정적 페이지 전부에 해당한다.
+  /* 첫 그림에 안 쓰이는 셸 조각은 여기서 통째로 미룬다. 정적 페이지 전부에 해당한다.
      앱 첫 화면(`index.html`)만 예외다: 거기서는 팔레트가 화면의 본체다. */
   html = deferShellExtras(html);
 
@@ -225,46 +225,46 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
  * 정적 페이지에서 **첫 그림에 안 쓰이는 셸 조각**을 부팅에서 뺀다 (TASK-KL-128 ①-b)
  *
  * 도구 화면 한 장이 앱 셸을 통째로 싣고 있었다. 그중 셋은 **그 화면이 뜰 때 하는 일이 없다**:
- *  - `palette.js`(5.4KB gz) — 첫 화면에서는 본체(가운데 찾는 칸)지만, 도구 화면에서는
- *    ⌘K 나 폰 「찾기」를 눌러야 처음 쓰인다.
- *  - `widgets-index.js`(5.0KB gz) — 그 팔레트가 찾을 때 쓰는 목록. 팔레트와 운명을 같이한다.
- *  - `account.js`(4.0KB gz) — 머리띠의 로그인 자리를 채운다. 도구를 쓰는 데는 필요 없다.
+ *  - `palette.js`(5.4KB gz). 첫 화면에서는 본체(가운데 찾는 칸)지만, 도구 화면에서는
+ *    ⌘K 나 폰 찾기를 눌러야 처음 쓰인다.
+ *  - `widgets-index.js`(5.0KB gz). 그 팔레트가 찾을 때 쓰는 목록. 팔레트와 운명을 같이한다.
+ *  - `account.js`(4.0KB gz). 머리띠의 로그인 자리를 채운다. 도구를 쓰는 데는 필요 없다.
  *
- * 그냥 빼면 **조용히 고장 난다** — 셸은 `window.KarmoPalette?.…` 로 부르므로 ⌘K 가 아무 일도
+ * 그냥 빼면 **조용히 고장 난다**. 셸은 `window.KarmoPalette?....` 로 부르므로 ⌘K 가 아무 일도
  * 안 하게 된다(눌러도 안 열리는데 오류도 안 난다). 그래서 마스코트 때와 같은 수를 쓴다:
  * **먼저 자리를 만들어 둔다.** 사람이 부르는 것(open/toggle)은 그 순간 진짜를 데려와 이어서
- * 열고, 앱이 배경으로 부르는 것(noteOpen·refresh…)은 줄을 세워 뒀다가 진짜가 오면 흘려보낸다.
+ * 열고, 앱이 배경으로 부르는 것(noteOpen, refresh...)은 줄을 세워 뒀다가 진짜가 오면 흘려보낸다.
  * 값으로 읽는 것은 빈 값으로 답한다.
  */
 export function deferShellExtras(html) {
   const tag = (file) =>
     `<script defer fetchpriority="low" src="/apps/karmolab/js/${file}"></script>`;
-  /* `home-page.js` 는 미루는 게 아니라 **아예 안 싣는다** — 이 화면들에서는 한 번도 안 불린다
+  /* `home-page.js` 는 미루는 게 아니라 **아예 안 싣는다**. 이 화면들에서는 한 번도 안 불린다
      (`init()` 이 `staticBody` 면 건너뛴다). 미룰 것과 달리 대신 세울 자리도 필요 없다. */
-  /* `widgets-index.js` — 첫 화면은 이 가벼운 목록만 셸에서 받고, 아이콘·설명은 그린 뒤에
+  /* `widgets-index.js`. 첫 화면은 이 가벼운 목록만 셸에서 받고, 아이콘, 설명은 그린 뒤에
      `widgets-meta-rest.js` 로 따라온다(KL-220). 도구 한 장짜리 화면은 그 목록으로 하는 일이
-     없다 — 찾기창을 열 때 아래 shim 이 그때 부른다.
+     없다. 찾기창을 열 때 아래 shim 이 그때 부른다.
      ⚠ 여기 이름은 **셸에 실제로 있는 태그**여야 한다. 한동안 `widgets-lazy-meta.js` 라고 적혀
      있었는데 셸이 그 사이 `widgets-index.js` 로 바뀌어, 도구 페이지 129장이 통째로 안 찍히고
      배포가 섰다(2026-08-12). 못 찾으면 조용히 넘기지 말고 여기서 던지는 이유가 그것이다. */
   /* `account.js` 는 이제 셸에서도 **첫 그림 뒤에** 들어온다(2026-08-13, 부팅 짐 6.6KB).
-     태그가 없으니 뗄 것도 없고, 대신 그 자리의 인라인 블록을 뗀다 — 도구 화면은 아래 shim 이
+     태그가 없으니 뗄 것도 없고, 대신 그 자리의 인라인 블록을 뗀다. 도구 화면은 아래 shim 이
      같은 일을 하므로 두 번 부르지 않게 한다. */
   html = html.replace(/\s*<!-- account-late:begin[\s\S]*?account-late:end -->/, '');
   for (const f of ['home-page.js', 'palette.js', 'widgets-index.js']) {
-    if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음 — index.html 확인`);
+    if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음. index.html 확인`);
     html = html.replace(tag(f) + '\n', '').replace(tag(f), '');
   }
 
   const shim = `<script>
-    /* 도구 화면 전용 — 첫 그림에 안 쓰이는 셋을 미룬다 (TASK-KL-128 ①-b). */
+    /* 도구 화면 전용. 첫 그림에 안 쓰이는 셋을 미룬다 (TASK-KL-128 ①-b). */
     (function () {
       var q = [], real = null, loading = false;
-      /* 앱이 배경으로 부르는 것들 — 줄을 세운다. */
+      /* 앱이 배경으로 부르는 것들. 줄을 세운다. */
       var quiet = ['noteOpen', 'refresh', 'setPopular', 'mountInline', 'focusInline', 'close'];
       var stub = {};
       quiet.forEach(function (n) { stub[n] = function () { q.push([n, [].slice.call(arguments)]); }; });
-      /* 값으로 읽는 것 — 없는 것보다 빈 값이 낫다. */
+      /* 값으로 읽는 것. 없는 것보다 빈 값이 낫다. */
       stub.isOpen = function () { return false; };
       stub.getRecent = function () { return []; };
 
@@ -292,7 +292,7 @@ export function deferShellExtras(html) {
           document.head.appendChild(s);
         });
       }
-      /* 사람이 부른 것 — 지금 데려와서 이어서 연다. */
+      /* 사람이 부른 것. 지금 데려와서 이어서 연다. */
       ['open', 'toggle'].forEach(function (n) {
         stub[n] = function () { var a = [].slice.call(arguments); load(function () { if (real && real[n]) real[n].apply(real, a); }); };
       });
@@ -315,8 +315,8 @@ export function deferShellExtras(html) {
 /**
  * 본문이 이미 HTML 에 박혀 있는 정적 페이지로 만든다 (TASK-KL-129).
  *
- * 셸은 그대로 쓰되 화면은 앱이 그리지 않는다 — 여기서 첫 화면을 그리면 적혀 있던 본문 위에
- * 홈이 덮인다. 옆줄·머리띠에서 도구를 고르면 그 도구의 제 주소로 옮겨 간다.
+ * 셸은 그대로 쓰되 화면은 앱이 그리지 않는다. 여기서 첫 화면을 그리면 적혀 있던 본문 위에
+ * 홈이 덮인다. 옆줄, 머리띠에서 도구를 고르면 그 도구의 제 주소로 옮겨 간다.
  */
 export function asStaticPage(html, { kind, bodyHtml, toolPages = [], buildPrint = '', head = '' }) {
   const entry =
@@ -326,10 +326,10 @@ export function asStaticPage(html, { kind, bodyHtml, toolPages = [], buildPrint 
   html = html.replace('</head>', `    ${entry}\n${head ? `    ${head}\n` : ''}</head>`);
   html = html.replace('<body>', `<body class="${kind === 'hub' ? 'tool-hub-page' : 'shell-static-page'}">`);
 
-  // 도구 상세용 설명 자리는 여기선 안 쓴다 — 본문이 곧 이 페이지다.
+  // 도구 상세용 설명 자리는 여기선 안 쓴다. 본문이 곧 이 페이지다.
   html = html.replace(/<!-- KARMOLAB_TOOL_SEO[\s\S]*?-->/, '');
 
   const slot = '<div class="content-body" id="tool-pages"></div>';
-  if (!html.includes(slot)) throw new Error('셸에서 본문 자리를 못 찾음 — index.html 확인');
+  if (!html.includes(slot)) throw new Error('셸에서 본문 자리를 못 찾음. index.html 확인');
   return html.replace(slot, `<div class="content-body" id="tool-pages">${bodyHtml}</div>`);
 }

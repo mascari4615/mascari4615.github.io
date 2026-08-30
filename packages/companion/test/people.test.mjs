@@ -15,7 +15,7 @@ test('부르는 말이 붙은 이름을 뽑는다', () => {
   assert.deepEqual(peopleIn('지훈이 형이 그랬어'), ['지훈이형']);
 });
 
-test('부르는 말까지 통짜로 잡는다 — 「김」으로 줄이면 김 과장과 뒤섞인다', () => {
+test('부르는 말까지 통짜로 잡는다. 김으로 줄이면 김 과장과 뒤섞인다', () => {
   const one = peopleIn('김 대리랑 김 과장이랑 같이 갔어');
   assert.equal(one.includes('김대리'), true);
   assert.equal(one.includes('김과장'), true);
@@ -26,7 +26,7 @@ test('한 말에 같은 사람이 두 번 나와도 한 번만 센다', () => {
   assert.deepEqual(peopleIn('김 대리 말인데 김 대리가 그랬어'), ['김대리']);
 });
 
-test('사람이 아닌 게 뻔한 건 안 잡는다 — 잘못 잡는 게 못 잡는 것보다 나쁘다', () => {
+test('사람이 아닌 게 뻔한 건 안 잡는다. 잘못 잡는 게 못 잡는 것보다 나쁘다', () => {
   for (const text2 of ['오늘 님아', '그 씨앗', '우리 형편이', '다음 님']) {
     for (const extracted of peopleIn(text2)) {
       assert.equal(['오늘', '그', '우리', '다음'].some((x) => extracted.startsWith(x)), false, `${text2} → ${extracted}`);
@@ -34,13 +34,13 @@ test('사람이 아닌 게 뻔한 건 안 잡는다 — 잘못 잡는 게 못 �
   }
 });
 
-test('부르는 말이 없으면 안 잡는다 — 욕심내지 않는다', () => {
+test('부르는 말이 없으면 안 잡는다. 욕심내지 않는다', () => {
   assert.deepEqual(peopleIn('오늘 회의가 길었어'), []);
 });
 
 // ── 쌓기 ────────────────────────────────────────────────────────────
 
-test('한 번 나온 사람은 아직 인정하지 않는다 — 스쳐 간 말일 수 있다', () => {
+test('한 번 나온 사람은 아직 인정하지 않는다. 스쳐 간 말일 수 있다', () => {
   const p = new People();
   p.learn([person('김 대리랑 회의했어', 1)]);
   assert.equal(p.known.length, 0);
@@ -60,7 +60,7 @@ test('몇 번 나와야 인정할지 정할 수 있다', () => {
   assert.equal(p.known.length, 1);
 });
 
-test('같은 말을 두 번 배워도 두 번 세지 않는다 — 훑을 때마다 늘면 금방 다 인정된다', () => {
+test('같은 말을 두 번 배워도 두 번 세지 않는다. 훑을 때마다 늘면 금방 다 인정된다', () => {
   const p = new People();
   const exchange = [person('김 대리랑 회의했어', 1)];
   p.learn(exchange);
@@ -69,7 +69,7 @@ test('같은 말을 두 번 배워도 두 번 세지 않는다 — 훑을 때마
   assert.equal(p.known.length, 0);
 });
 
-test('얘가 한 말에서는 안 줍는다 — 제가 지어낸 이름을 제가 배우면 안 된다', () => {
+test('얘가 한 말에서는 안 줍는다. 제가 지어낸 이름을 제가 배우면 안 된다', () => {
   const p = new People({ needTimes: 1 });
   p.learn([companion('그 박 과장 말이야', 1)]);
   assert.equal(p.known.length, 0);
@@ -77,11 +77,11 @@ test('얘가 한 말에서는 안 줍는다 — 제가 지어낸 이름을 제�
 
 test('화면에서 주워 온 것에서도 안 줍는다', () => {
   const p = new People({ needTimes: 1 });
-  p.learn([person('화면을 봤다. 창은 「이 대리 보고서」', 1, 'screen')]);
+  p.learn([person('화면을 봤다. 창은 이 대리 보고서', 1, 'screen')]);
   assert.equal(p.known.length, 0);
 });
 
-test('최근에 나온 순으로 남긴다 — 삼 년 전 사람보다 지난주 사람이 쓸모 있다', () => {
+test('최근에 나온 순으로 남긴다. 삼 년 전 사람보다 지난주 사람이 쓸모 있다', () => {
   const p = new People();
   p.learn([person('김 대리랑', 1), person('박 과장이랑', 2)]);
   p.learn([person('김 대리 또', 100), person('박 과장 또', 200)]);
@@ -110,7 +110,7 @@ test('한동안 얘기 안 나온 사람에게 안부를 묻는다', () => {
   assert.equal(p.whoToAskAbout(30 * day)?.name, '김대리');
 });
 
-test('방금 나온 사람에게는 안 묻는다 — 「아까 그 김 대리는 요즘 어때?」는 이상하다', () => {
+test('방금 나온 사람에게는 안 묻는다. 아까 그 김 대리는 요즘 어때?는 이상하다', () => {
   const p = new People();
   const now = 30 * day;
   p.learn([person('김 대리랑', now - 2000), person('김 대리 또', now - 1000)]);
@@ -136,7 +136,7 @@ test('아는 사람이 없으면 아무 말도 안 얹는다', () => {
   assert.equal(peopleNote([]), '');
 });
 
-test('누구인지는 안 적는다 — 단정하면 틀렸을 때 그대로 굳는다', () => {
+test('누구인지는 안 적는다. 단정하면 틀렸을 때 그대로 굳는다', () => {
   const note = peopleNote([{ name: '김대리', times: 3, firstAt: 1, lastAt: 9 }]);
   assert.match(note, /김대리/);
   assert.match(note, /아는 척하지 마라/);

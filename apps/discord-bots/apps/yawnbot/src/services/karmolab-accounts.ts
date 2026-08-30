@@ -1,17 +1,17 @@
 /**
  * KarmoLab 계정 저장소 (TASK-KL-098 Cycle 1).
  *
- * 왜 있나: 지금까지 KarmoLab 의 도전과제·뱃지·연속기록은 **브라우저 안에만** 있었다
+ * 왜 있나: 지금까지 KarmoLab 의 도전과제, 뱃지, 연속기록은 **브라우저 안에만** 있었다
  * (`apps/karmolab/src/widgets/user.ts` 의 localStorage). 브라우저를 지우면 증발하고,
- * 남에게는 한 글자도 안 보인다 — 「내 기록이 남는다」·「북적북적」의 정반대다.
+ * 남에게는 한 글자도 안 보인다. 내 기록이 남는다, 북적북적의 정반대다.
  * 이 파일이 그 기록의 새 정본이다.
  *
- * 왜 자체 계정인가 (사용자 결정 2026-08-07): 기록·프로필의 소유는 우리 서버다.
- * 디스코드는 **로그인 수단 하나**로 붙을 뿐이라, 나중에 패스키·다른 수단을 같은 계정에
+ * 왜 자체 계정인가 (사용자 결정 2026-08-07): 기록, 프로필의 소유는 우리 서버다.
+ * 디스코드는 **로그인 수단 하나**로 붙을 뿐이라, 나중에 패스키, 다른 수단을 같은 계정에
  * 더 걸 수 있다 (`identities` 가 배열이 아니라 종류별 칸인 이유).
  *
  * 저장 위치 = `data/karmolab-accounts-state.json` (`.gitignore` 의 `data/*-state.json` 에 이미 걸림).
- * server-stats 와 같은 패턴 — 프로세스가 죽어도 남고, 레포에는 안 올라간다.
+ * server-stats 와 같은 패턴. 프로세스가 죽어도 남고, 레포에는 안 올라간다.
  */
 import fs from 'fs';
 import path from 'path';
@@ -25,9 +25,9 @@ export interface AccountRecords {
   achievements: string[];
   /** 획득한 뱃지 id */
   badges: string[];
-  /** 누적 카운터 — 예: `pet_strokes` */
+  /** 누적 카운터. 예: `pet_strokes` */
   progress: Record<string, number>;
-  /** 연속 기록 — 트랙 id → 현재·최장·마지막 활동일 */
+  /** 연속 기록. 트랙 id → 현재, 최장, 마지막 활동일 */
   streaks: Record<string, { current: number; longest: number; lastActivityDate: string | null }>;
 }
 
@@ -40,9 +40,9 @@ export interface AccountIdentityDiscord {
 /**
  * 계정별 발자국 (TASK-KL-152 C1).
  *
- * 서버는 「어느 도구가 열렸나」를 오래전부터 세고 있었다 — 그런데 **익명 집계뿐**이라
- * 「내가 무엇을 했나」는 아무도 못 봤다. 모으기만 하고 안 돌려주면 없는 것과 같다.
- * 잔디(C2)·돌아보기(C3)가 전부 이 한 벌 위에 선다.
+ * 서버는 어느 도구가 열렸나를 오래전부터 세고 있었다. 그런데 **익명 집계뿐**이라
+ * 내가 무엇을 했나는 아무도 못 봤다. 모으기만 하고 안 돌려주면 없는 것과 같다.
+ * 잔디(C2), 돌아보기(C3)가 전부 이 한 벌 위에 선다.
  *
  * 로그인한 사람만 쌓인다. 안 한 사람 것은 지금까지처럼 익명 집계로만 남는다.
  */
@@ -55,16 +55,16 @@ export interface AccountFootprint {
   lastSeenAt: string | null;
 }
 
-/** 잔디는 1년 남짓이면 된다. 그보다 오래된 날은 지운다 — 파일이 끝없이 커지지 않게. */
+/** 잔디는 1년 남짓이면 된다. 그보다 오래된 날은 지운다. 파일이 끝없이 커지지 않게. */
 export const FOOTPRINT_KEEP_DAYS = 400;
 
-/** 이 사이트는 KST 로 말한다. 날짜 칸이 UTC 면 밤에 연 것이 「어제」로 찍힌다. */
+/** 이 사이트는 KST 로 말한다. 날짜 칸이 UTC 면 밤에 연 것이 어제로 찍힌다. */
 export function kstDayKey(at: Date = new Date()): string {
-  // en-CA 는 `YYYY-MM-DD` 로 준다 — 손으로 자르지 않는다.
+  // en-CA 는 `YYYY-MM-DD` 로 준다. 손으로 자르지 않는다.
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(at);
 }
 
-/** 날짜 칸에서 하루 뒤로 (문자열만으로 옮긴다 — 시간대에 다시 안 걸리게). */
+/** 날짜 칸에서 하루 뒤로 (문자열만으로 옮긴다. 시간대에 다시 안 걸리게). */
 function prevDayKey(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
   const date = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1));
@@ -74,7 +74,7 @@ function prevDayKey(key: string): string {
 
 export interface Account {
   id: string;
-  /** 공개 주소에 쓰는 이름 (`/u/<handle>`). 소문자·영숫자·`-`·`_` 만. */
+  /** 공개 주소에 쓰는 이름 (`/u/<handle>`). 소문자, 영숫자, `-`, `_` 만. */
   handle: string;
   displayName: string;
   avatarUrl: string | null;
@@ -83,14 +83,14 @@ export interface Account {
   records: AccountRecords;
   recordsUpdatedAt: string | null;
   /**
-   * 복구 코드 — **들어오는 문이 하나뿐이면 그 문이 잠기는 날 계정을 통째로 잃는다.**
+   * 복구 코드. **들어오는 문이 하나뿐이면 그 문이 잠기는 날 계정을 통째로 잃는다.**
    * 디스코드 계정을 잃거나 정지당하면 지금은 되찾을 방법이 하나도 없다.
    *
-   * 원문은 저장하지 않는다. 되돌릴 수 없게 섞은 값만 둔다 — 이 파일이 새어 나가도
+   * 원문은 저장하지 않는다. 되돌릴 수 없게 섞은 값만 둔다. 이 파일이 새어 나가도
    * 그것으로는 아무도 로그인하지 못한다. 원문은 만들 때 딱 한 번 보여 준다.
    */
   recoveryCodes?: { hash: string; usedAt: string | null }[];
-  /** 내가 언제 무엇을 열었나 (TASK-KL-152 C1). 없을 수 있다 — 옛 계정은 이 칸 없이 저장돼 있다. */
+  /** 내가 언제 무엇을 열었나 (TASK-KL-152 C1). 없을 수 있다. 옛 계정은 이 칸 없이 저장돼 있다. */
   footprint?: AccountFootprint;
   /** 남에게 무엇을 보일지 (TASK-KL-152 C4). 없으면 지금까지처럼 전부 공개. */
   visibility?: Partial<AccountVisibility>;
@@ -102,20 +102,20 @@ export interface Account {
    * 내가 따라가는 사람 (TASK-KL-152 C8). handle 소문자.
    *
    * 팔로워 목록을 따로 두지 않는 이유: 두 벌이면 언젠가 갈라진다. 따라가는 쪽만 적고,
-   * 팔로워는 전수에서 센다 (계정 수가 만 단위가 되면 그때 색인을 만든다 — 지금은 아니다).
+   * 팔로워는 전수에서 센다 (계정 수가 만 단위가 되면 그때 색인을 만든다. 지금은 아니다).
    */
   following?: string[];
   /**
    * 내가 막은 사람 (TASK-KL-156 D2). handle 소문자.
    *
-   * 따라갈 수만 있고 막을 수 없으면 그건 반쪽이다. 막으면 **내 피드·알림에서 사라지고**,
-   * 그쪽이 나를 따라가는 것도 끊긴다. 「안 보이게」와 「못 하게」를 같이 해야 뜻이 있다.
+   * 따라갈 수만 있고 막을 수 없으면 그건 반쪽이다. 막으면 **내 피드, 알림에서 사라지고**,
+   * 그쪽이 나를 따라가는 것도 끊긴다. 안 보이게와 못 하게를 같이 해야 뜻이 있다.
    */
   blocked?: string[];
   /**
    * 주간 발자국을 디스코드로 받을까 (TASK-KL-156 D6). 기본 꺼짐.
    *
-   * 남들은 이 자리에 메일을 붙이느라 고생한다 — 우리는 봇이 이미 그 사람과 대화하는 창이 있다.
+   * 남들은 이 자리에 메일을 붙이느라 고생한다. 우리는 봇이 이미 그 사람과 대화하는 창이 있다.
    * 다만 **부르지도 않았는데 말 거는 것**이라 켠 사람에게만 간다.
    */
   weeklyDm?: boolean;
@@ -124,9 +124,9 @@ export interface Account {
   /** 패스키 (TASK-KL-156 D7). 문이 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. */
   passkeys?: StoredPasskey[];
   /**
-   * 작업실에 건 것 (TASK-KL-182 F3·F4).
+   * 작업실에 건 것 (TASK-KL-182 F3, F4).
    *
-   * 프로필은 「이 사람이 무엇을 했나」까지 왔지만 **무엇을 만들었나**는 없다.
+   * 프로필은 이 사람이 무엇을 했나까지 왔지만 **무엇을 만들었나**는 없다.
    * 도구로 만든 결과를 여기 걸면 프로필이 명함에서 **작업실**이 된다.
    * 그림 자체는 업로드 자리에 있고, 여기엔 그 이름표만 담는다.
    */
@@ -139,7 +139,7 @@ export interface Account {
  * 알림 종류 (TASK-KL-175 E1).
  *
  * 알림 울릴 일이 답글 하나였을 때는 고를 것이 없었다. 팔로우한 사람의 새 글이 붙으면서
- * **전부 받거나 안 받거나** 두 갈래만 남았다 — 그러면 사람은 종을 통째로 끈다.
+ * **전부 받거나 안 받거나** 두 갈래만 남았다. 그러면 사람은 종을 통째로 끈다.
  *
  * 여기 이름은 알림의 `source` 와 **같은 말**이다. 두 벌로 적으면 언젠가 갈라진다.
  */
@@ -148,20 +148,20 @@ export interface NotifyPrefs {
   community: boolean;
   /** 따라가는 사람의 새 글 */
   follow: boolean;
-  /** 그 밖(계정·도구·봇) */
+  /** 그 밖(계정, 도구, 봇) */
   system: boolean;
 }
 
 export const DEFAULT_NOTIFY: NotifyPrefs = { community: true, follow: true, system: true };
 
-/** 알림 출처를 사람이 고른 갈래로 옮긴다. 모르는 출처는 「그 밖」이다. */
+/** 알림 출처를 사람이 고른 갈래로 옮긴다. 모르는 출처는 그 밖이다. */
 export function notifyBucket(source: string): keyof NotifyPrefs {
   if (source === 'community') return 'community';
   if (source === 'follow') return 'follow';
   return 'system';
 }
 
-/** ISO 주 이름 (`2026-W32`) — KST 기준. 주간 발송이 같은 주에 두 번 나가지 않게 하는 열쇠. */
+/** ISO 주 이름 (`2026-W32`). KST 기준. 주간 발송이 같은 주에 두 번 나가지 않게 하는 열쇠. */
 export function kstWeekKey(at: Date = new Date()): string {
   const kst = new Date(at.getTime() + 9 * 60 * 60 * 1000);
   const day = (kst.getUTCDay() + 6) % 7; // 월=0
@@ -175,9 +175,9 @@ export function kstWeekKey(at: Date = new Date()): string {
 /**
  * 프로필 꾸미기 (TASK-KL-152 C5).
  *
- * 지금 프로필은 **아무나 똑같이 생겼다** — 이름·아바타·숫자뿐이라 누구 것인지 말해 주는
- * 자리가 없다. 한 줄 소개와 「내가 자주 쓰는 것」이 있으면 그때부터 명함이 된다
- * (GitHub 프로필 README · Steam 쇼케이스가 같은 자리를 그렇게 쓴다).
+ * 지금 프로필은 **아무나 똑같이 생겼다**. 이름, 아바타, 숫자뿐이라 누구 것인지 말해 주는
+ * 자리가 없다. 한 줄 소개와 내가 자주 쓰는 것이 있으면 그때부터 명함이 된다
+ * (GitHub 프로필 README, Steam 쇼케이스가 같은 자리를 그렇게 쓴다).
  *
  * 자유 HTML 은 안 받는다. 글 한 줄과 **우리 도구 id 목록**뿐이라, 남의 화면에서 무엇이
  * 그려질지 우리가 전부 안다.
@@ -193,35 +193,35 @@ export interface ProfileCard {
  * 걸린 것이 **무엇인가** (TASK-KL-191 축3).
  *
  * 작업실은 그림만 받았다. 그런데 도구 160개 중 그림을 내놓는 것은 스물 남짓이고, 나머지가
- * 만든 것(PDF·소리·영상·표·글)은 걸 자리가 없었다 — 「만든 것을 건다」고 해 놓고 대부분의
+ * 만든 것(PDF, 소리, 영상, 표, 글)은 걸 자리가 없었다. 만든 것을 건다고 해 놓고 대부분의
  * 만든 것을 안 받은 셈이다.
  */
 export type WorkKind = 'image' | 'pdf' | 'audio' | 'video' | 'text' | 'file';
 
 export interface AccountWork {
-  /** 갤러리 열쇠. 그림·PDF 는 미리보기 업로드 id 를 겸한다 (`/kl/img/<id>`) */
+  /** 갤러리 열쇠. 그림, PDF 는 미리보기 업로드 id 를 겸한다 (`/kl/img/<id>`) */
   id: string;
   /** 한 줄 이름 */
   title: string;
   /** 어느 도구로 만들었나 (모르면 null) */
   toolId: string | null;
   at: string;
-  /** 무엇인가 — 옛 기록에는 없다(그때는 그림뿐이었다). 읽을 때 그림으로 본다. */
+  /** 무엇인가. 옛 기록에는 없다(그때는 그림뿐이었다). 읽을 때 그림으로 본다. */
   kind?: WorkKind;
-  /** 그림으로 보여 줄 수 있나. 소리·영상·글은 못 보여 준다 — 없는 그림을 부르면 깨진 칸이 남는다. */
+  /** 그림으로 보여 줄 수 있나. 소리, 영상, 글은 못 보여 준다. 없는 그림을 부르면 깨진 칸이 남는다. */
   preview?: boolean;
   /** 크기 한 줄 또는 글 앞머리. 미리보기가 없을 때 **이것이 유일한 단서**다. */
   note?: string | null;
 }
 
-/** 걸 수 있는 개수. 벽이 넓으면 아무것도 안 보인다 — 고르는 것이 작업실의 절반이다. */
+/** 걸 수 있는 개수. 벽이 넓으면 아무것도 안 보인다. 고르는 것이 작업실의 절반이다. */
 export const WORKS_MAX = 12;
 export const WORK_TITLE_MAX = 40;
 
 export const BIO_MAX = 80;
 export const PIN_MAX = 3;
 
-/** 도구 id 로 받아들일 모양 — 주소에 그대로 들어가는 값이라 좁게 잡는다. */
+/** 도구 id 로 받아들일 모양. 주소에 그대로 들어가는 값이라 좁게 잡는다. */
 function isToolIdLike(value: unknown): value is string {
   return typeof value === 'string' && /^[a-z0-9][a-z0-9-]{0,39}$/.test(value);
 }
@@ -230,9 +230,9 @@ function isToolIdLike(value: unknown): value is string {
  * 공개 범위 (TASK-KL-152 C4).
  *
  * 지금까지 프로필은 **전부 공개**였고 숨길 방법이 하나도 없었다. 사람이 늘어난 뒤에
- * 잠그는 것은 이미 늦다 — 0건인 지금이 잠글 때다.
+ * 잠그는 것은 이미 늦다. 0건인 지금이 잠글 때다.
  *
- * 기본값은 지금까지와 같은 「전부 공개」다. 잠금을 기본으로 바꾸면 이미 프로필을 걸어 둔
+ * 기본값은 지금까지와 같은 전부 공개다. 잠금을 기본으로 바꾸면 이미 프로필을 걸어 둔
  * 사람의 링크가 하루아침에 죽는다.
  */
 export interface AccountVisibility {
@@ -241,15 +241,15 @@ export interface AccountVisibility {
   achievements: boolean;
   badges: boolean;
   streaks: boolean;
-  /** 커뮤니티에 남긴 글·답글 */
+  /** 커뮤니티에 남긴 글, 답글 */
   community: boolean;
-  /** 발자국(잔디·연속·써 본 도구) */
+  /** 발자국(잔디, 연속, 써 본 도구) */
   activity: boolean;
   /**
-   * 「지금 접속 중」을 남에게 보이나 (TASK-KL-156 D5).
+   * 지금 접속 중을 남에게 보이나 (TASK-KL-156 D5).
    *
    * 이것만 **기본이 꺼짐**이다. 다른 칸은 이미 공개돼 있던 것을 잠그는 것이라 기본을 바꾸면
-   * 걸어 둔 링크가 죽지만, 이건 새로 생기는 노출이다 — 새 노출은 켜는 사람만 켠다.
+   * 걸어 둔 링크가 죽지만, 이건 새로 생기는 노출이다. 새 노출은 켜는 사람만 켠다.
    */
   presence: boolean;
 }
@@ -268,20 +268,20 @@ interface Session {
   accountId: string;
   createdAt: number;
   expiresAt: number;
-  /** 어떤 기기·브라우저인가 (TASK-KL-152 C6). 「2곳」이라는 숫자만으로는 끊을 결심을 못 한다. */
+  /** 어떤 기기, 브라우저인가 (TASK-KL-152 C6). 2곳이라는 숫자만으로는 끊을 결심을 못 한다. */
   device?: string;
-  /** 이 로그인이 마지막으로 쓰인 시각 — 몇 달 잠든 로그인을 알아볼 수 있어야 한다. */
+  /** 이 로그인이 마지막으로 쓰인 시각. 몇 달 잠든 로그인을 알아볼 수 있어야 한다. */
   lastSeenAt?: number;
 }
 
 /**
  * 보안 기록 (TASK-KL-152 C7).
  *
- * 「내 계정에 무슨 일이 있었나」를 계정 자신이 말할 수 있어야 한다. 로그인·로그아웃·복구코드
- * 사용은 지금까지 **아무 데도 안 남았다** — 남이 내 계정에 들어와도 알 방법이 없었다.
+ * 내 계정에 무슨 일이 있었나를 계정 자신이 말할 수 있어야 한다. 로그인, 로그아웃, 복구코드
+ * 사용은 지금까지 **아무 데도 안 남았다**. 남이 내 계정에 들어와도 알 방법이 없었다.
  *
- * 남기는 것은 **일어난 일과 기기 이름**뿐이다. 주소(IP)는 안 적는다 — 있으면 언젠가 새고,
- * 없어도 「내가 한 것인지」는 시각과 기기로 충분히 가려진다.
+ * 남기는 것은 **일어난 일과 기기 이름**뿐이다. 주소(IP)는 안 적는다. 있으면 언젠가 새고,
+ * 없어도 내가 한 것인지는 시각과 기기로 충분히 가려진다.
  */
 export interface AccountEvent {
   at: string;
@@ -290,7 +290,7 @@ export interface AccountEvent {
   detail?: string;
 }
 
-/** 남기는 줄 수 상한. 오래된 것부터 버린다 — 계정 파일이 끝없이 커지지 않게. */
+/** 남기는 줄 수 상한. 오래된 것부터 버린다. 계정 파일이 끝없이 커지지 않게. */
 export const EVENT_KEEP = 50;
 
 /**
@@ -314,7 +314,7 @@ export function deviceLabel(userAgent: unknown): string {
     : /Chrome\//i.test(ua) ? 'Chrome'
     : /Safari\//i.test(ua) ? 'Safari'
     : '';
-  return browser ? `${os} · ${browser}` : os;
+  return browser ? `${os}, ${browser}` : os;
 }
 
 interface AccountsState {
@@ -338,10 +338,10 @@ export const DISPLAY_NAME_MAX = 24;
 /** 한 번에 만들어 주는 복구 코드 수. 적으면 금세 떨어지고, 많으면 아무도 안 챙긴다. */
 export const RECOVERY_CODE_COUNT = 8;
 
-/** 다른 기기 로그인 코드가 살아 있는 시간. 짧아야 한다 — 화면에 떠 있는 동안만 쓰는 것이다. */
+/** 다른 기기 로그인 코드가 살아 있는 시간. 짧아야 한다. 화면에 떠 있는 동안만 쓰는 것이다. */
 export const LINK_CODE_TTL_MS = 5 * 60 * 1000;
 
-/** 사람이 옮겨 적을 코드 — 헷갈리는 글자(0/O, 1/I/l)는 뺀다. */
+/** 사람이 옮겨 적을 코드. 헷갈리는 글자(0/O, 1/I/l)는 뺀다. */
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 function randomCode(length: number): string {
@@ -351,7 +351,7 @@ function randomCode(length: number): string {
   return out;
 }
 
-/** 코드를 되돌릴 수 없게 섞는다. 사람이 적는 것이라 대소문자·붙임표는 무시한다. */
+/** 코드를 되돌릴 수 없게 섞는다. 사람이 적는 것이라 대소문자, 붙임표는 무시한다. */
 function hashCode(raw: string): string {
   const normalized = String(raw ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   return crypto.createHash('sha256').update(`karmolab-code:${normalized}`).digest('hex');
@@ -363,7 +363,7 @@ export function emptyRecords(): AccountRecords {
 
 /**
  * 디스코드 사용자명 → 주소에 쓸 수 있는 handle.
- * 한글·공백·특수문자는 주소에서 깨지므로 떨어내고, 남는 게 없으면 임의 이름을 준다.
+ * 한글, 공백, 특수문자는 주소에서 깨지므로 떨어내고, 남는 게 없으면 임의 이름을 준다.
  */
 export function slugifyHandle(raw: string): string {
   const base = String(raw ?? '')
@@ -376,11 +376,11 @@ export function slugifyHandle(raw: string): string {
 }
 
 /**
- * 두 벌의 기록을 합친다 — **어느 쪽도 잃지 않는 방향으로만**.
+ * 두 벌의 기록을 합친다. **어느 쪽도 잃지 않는 방향으로만**.
  *
- * 왜 덮어쓰기가 아닌가: 로그인은 보통 이미 한참 쓴 뒤에 한다. 덮어쓰면 「로그인했더니
- * 내 기록이 사라졌다」가 된다. 그래서 도전과제·뱃지는 합집합, 누적값은 큰 쪽,
- * 연속기록은 최장·최신을 남긴다. 이 함수는 순서를 바꿔 불러도 결과가 같다.
+ * 왜 덮어쓰기가 아닌가: 로그인은 보통 이미 한참 쓴 뒤에 한다. 덮어쓰면 로그인했더니
+ * 내 기록이 사라졌다가 된다. 그래서 도전과제, 뱃지는 합집합, 누적값은 큰 쪽,
+ * 연속기록은 최장, 최신을 남긴다. 이 함수는 순서를 바꿔 불러도 결과가 같다.
  */
 export function mergeRecords(a: AccountRecords, b: AccountRecords): AccountRecords {
   const merged = emptyRecords();
@@ -402,7 +402,7 @@ export function mergeRecords(a: AccountRecords, b: AccountRecords): AccountRecor
       const prev = merged.streaks[key];
       const current = Math.max(prev?.current ?? 0, Number(value.current) || 0);
       const longest = Math.max(prev?.longest ?? 0, Number(value.longest) || 0, current);
-      // 날짜는 문자열 비교로 최신을 고른다 — YYYY-MM-DD 는 사전순 = 시간순.
+      // 날짜는 문자열 비교로 최신을 고른다. YYYY-MM-DD 는 사전순 = 시간순.
       const dates = [prev?.lastActivityDate ?? null, value.lastActivityDate ?? null].filter(
         (d): d is string => typeof d === 'string' && d.length > 0,
       );
@@ -418,11 +418,11 @@ export function mergeRecords(a: AccountRecords, b: AccountRecords): AccountRecor
 }
 
 /**
- * 공개 프로필에 내보낼 모양 — 안쪽 id·세션·디스코드 id 는 절대 안 나간다.
+ * 공개 프로필에 내보낼 모양. 안쪽 id, 세션, 디스코드 id 는 절대 안 나간다.
  *
  * `avatarPath` 가 디스코드 주소가 아닌 이유: 디스코드 아바타 주소에는 **그 사람의 디스코드 id 가
- * 그대로 박혀 있다** (`cdn.discordapp.com/avatars/<id>/…`). 프로필에 그 주소를 실으면 사이트를
- * 쓴 것만으로 디스코드 계정이 공개된다 — 본인이 그러겠다고 한 적이 없다. 그래서 우리 주소로
+ * 그대로 박혀 있다** (`cdn.discordapp.com/avatars/<id>/...`). 프로필에 그 주소를 실으면 사이트를
+ * 쓴 것만으로 디스코드 계정이 공개된다. 본인이 그러겠다고 한 적이 없다. 그래서 우리 주소로
  * 한 겹 감싸고, 그림 자체는 서버가 대신 받아 보낸다.
  */
 export interface PublicProfile {
@@ -435,16 +435,16 @@ export interface PublicProfile {
   badges: string[];
   streaks: Record<string, { current: number; longest: number }>;
   updatedAt: string | null;
-  /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채웠으면 빈 값 — 그때는 지금까지와 같은 모습이다. */
+  /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채웠으면 빈 값. 그때는 지금까지와 같은 모습이다. */
   card?: ProfileCard;
-  /** 본인이 **일부러 가린** 칸들 (TASK-KL-152 C4). 「없는 것」과 「가린 것」은 다르다. */
+  /** 본인이 **일부러 가린** 칸들 (TASK-KL-152 C4). 없는 것과 가린 것은 다르다. */
   hidden?: string[];
 }
 
 export class KarmolabAccountStore {
   private state: AccountsState;
 
-  /** 다른 기기 로그인 코드 — 메모리에만. 몇 분짜리라 다시 뜨면 사라지는 게 맞다. */
+  /** 다른 기기 로그인 코드. 메모리에만. 몇 분짜리라 다시 뜨면 사라지는 게 맞다. */
   private readonly linkCodes = new Map<string, { accountId: string; expiresAt: number }>();
 
   constructor(private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE)) {
@@ -467,7 +467,7 @@ export class KarmolabAccountStore {
     } catch (error) {
       // 파일이 깨졌다고 로그인 자체를 못 하게 만들면 사이트가 통째로 멈춘다.
       // 빈 상태로 계속 가되, 덮어쓰기 전에 사람이 볼 수 있게 크게 남긴다.
-      console.error('[karmolab-accounts] 상태 파일을 못 읽었다 — 빈 상태로 시작한다:', error);
+      console.error('[karmolab-accounts] 상태 파일을 못 읽었다. 빈 상태로 시작한다:', error);
     }
     return { version: 1, accounts: {}, identityIndex: {}, handleIndex: {}, sessions: {} };
   }
@@ -509,7 +509,7 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 디스코드로 들어온 사람을 계정에 잇는다 — 처음이면 만들고, 있으면 표시 이름·사진만 새로 맞춘다.
+   * 디스코드로 들어온 사람을 계정에 잇는다. 처음이면 만들고, 있으면 표시 이름, 사진만 새로 맞춘다.
    * 계정 정본은 우리 쪽이므로 handle 은 **처음 한 번만** 정해지고 이후 디스코드가 바뀌어도 안 흔들린다.
    */
   upsertFromDiscord(input: {
@@ -565,7 +565,7 @@ export class KarmolabAccountStore {
 
   /**
    * 이 로그인이 방금 쓰였다 (TASK-KL-152 C6).
-   * 저장은 **하루 한 번**만 한다 — 요청마다 파일을 쓰면 도구 한 번 열 때마다 디스크가 돈다.
+   * 저장은 **하루 한 번**만 한다. 요청마다 파일을 쓰면 도구 한 번 열 때마다 디스크가 돈다.
    */
   touchSession(token: string | undefined | null, now: number = Date.now()): void {
     if (!token) return;
@@ -576,7 +576,7 @@ export class KarmolabAccountStore {
     this.save();
   }
 
-  /** 무슨 일이 있었는지 한 줄 남긴다 (TASK-KL-152 C7). 주소(IP)는 안 적는다 — 있으면 언젠가 샌다. */
+  /** 무슨 일이 있었는지 한 줄 남긴다 (TASK-KL-152 C7). 주소(IP)는 안 적는다. 있으면 언젠가 샌다. */
   noteEvent(accountId: string, kind: AccountEvent['kind'], input: { device?: string; detail?: string } = {}): void {
     const account = this.state.accounts[accountId];
     if (!account) return;
@@ -586,12 +586,12 @@ export class KarmolabAccountStore {
     this.save();
   }
 
-  /** 내 보안 기록 — 최근 것부터. */
+  /** 내 보안 기록. 최근 것부터. */
   eventsFor(accountId: string): AccountEvent[] {
     return [...(this.state.accounts[accountId]?.events ?? [])];
   }
 
-  /** 이 로그인 하나만 끊는다 (TASK-KL-152 C6). 「이 기기만 빼고 전부」로는 못 하는 일이 있다. */
+  /** 이 로그인 하나만 끊는다 (TASK-KL-152 C6). 이 기기만 빼고 전부로는 못 하는 일이 있다. */
   revokeSession(accountId: string, sessionId: string): boolean {
     for (const [token, session] of Object.entries(this.state.sessions)) {
       if (session.accountId !== accountId) continue;
@@ -605,7 +605,7 @@ export class KarmolabAccountStore {
 
   /**
    * 화면에 내보낼 로그인 이름표.
-   * **토큰 자체는 절대 안 내보낸다** — 그걸 아는 사람은 그 계정으로 로그인할 수 있다.
+   * **토큰 자체는 절대 안 내보낸다**. 그걸 아는 사람은 그 계정으로 로그인할 수 있다.
    */
   private sessionId(token: string): string {
     return crypto.createHash('sha256').update(`karmolab-session:${token}`).digest('hex').slice(0, 16);
@@ -633,7 +633,7 @@ export class KarmolabAccountStore {
    * 보이는 이름 바꾸기.
    *
    * 지금까지 이름은 디스코드에서 온 것으로 **고정**이었다. 그런데 계정의 정본은 우리 쪽이고
-   * 디스코드는 들어오는 문 하나일 뿐이다 — 문에 적힌 이름을 평생 달고 다닐 이유가 없다.
+   * 디스코드는 들어오는 문 하나일 뿐이다. 문에 적힌 이름을 평생 달고 다닐 이유가 없다.
    * 주소(handle)는 안 바꾼다: 남이 링크로 걸어 둔 자리가 깨진다.
    */
   setDisplayName(accountId: string, raw: unknown): Account | null {
@@ -650,7 +650,7 @@ export class KarmolabAccountStore {
    * 발자국 한 줄 남기기 (TASK-KL-152 C1).
    *
    * 도구를 열면 `toolId` 와 함께, 그냥 다녀가기만 하면 `toolId` 없이 부른다.
-   * 다녀간 날도 잔디에 칠해져야 한다 — 도구를 안 연 날을 「안 온 날」로 적으면 거짓말이 된다.
+   * 다녀간 날도 잔디에 칠해져야 한다. 도구를 안 연 날을 안 온 날로 적으면 거짓말이 된다.
    */
   noteFootprint(accountId: string, input: { toolId?: string | null; at?: Date } = {}): void {
     const account = this.state.accounts[accountId];
@@ -687,10 +687,10 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 내 발자국 — 잔디·돌아보기가 읽는 자리.
+   * 내 발자국. 잔디, 돌아보기가 읽는 자리.
    *
    * 연속일은 **오늘 또는 어제**에서 이어져야 살아 있는 것으로 본다. 오늘 아직 안 왔다고
-   * 어제까지의 연속을 0 으로 지우면, 아침에 열어 본 사람은 늘 「끊겼다」를 본다.
+   * 어제까지의 연속을 0 으로 지우면, 아침에 열어 본 사람은 늘 끊겼다를 본다.
    */
   footprintFor(accountId: string, now: Date = new Date()): {
     days: Record<string, number>;
@@ -734,7 +734,7 @@ export class KarmolabAccountStore {
     };
   }
 
-  /** 지금 살아 있는 내 로그인들 — 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
+  /** 지금 살아 있는 내 로그인들. 어디서 로그인돼 있나를 볼 수 있어야 끊을 수도 있다. */
   sessionsFor(
     accountId: string,
     currentToken: string | null = null,
@@ -771,9 +771,9 @@ export class KarmolabAccountStore {
   /**
    * 계정을 지운다. **되돌릴 수 없다.**
    *
-   * 계정·기록·로그인은 전부 사라진다. 이미 남긴 글은 이 함수가 안 건드린다 — 답글이 달린
+   * 계정, 기록, 로그인은 전부 사라진다. 이미 남긴 글은 이 함수가 안 건드린다. 답글이 달린
    * 글을 통째로 지우면 그 답글들이 뜻을 잃는다. 글 쪽 처리는 부르는 쪽이 따로 한다
-   * (거기서 글쓴이를 「지운 계정」으로 바꾼다).
+   * (거기서 글쓴이를 지운 계정으로 바꾼다).
    */
   deleteAccount(accountId: string): Account | null {
     const account = this.state.accounts[accountId];
@@ -792,7 +792,7 @@ export class KarmolabAccountStore {
 
   /**
    * 복구 코드를 새로 만든다 (있던 것은 전부 버린다).
-   * @returns 사람에게 보여 줄 원문. **이때 한 번만** 볼 수 있다 — 서버에는 안 남는다.
+   * @returns 사람에게 보여 줄 원문. **이때 한 번만** 볼 수 있다. 서버에는 안 남는다.
    */
   issueRecoveryCodes(accountId: string): string[] | null {
     const account = this.state.accounts[accountId];
@@ -817,7 +817,7 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 복구 코드로 들어온다. **한 장은 한 번만** 쓴다 — 다시 쓸 수 있으면 적어 둔 종이가
+   * 복구 코드로 들어온다. **한 장은 한 번만** 쓴다. 다시 쓸 수 있으면 적어 둔 종이가
    * 영구 열쇠가 되고, 그건 비밀번호를 종이에 적어 두는 것과 같다.
    */
   consumeRecoveryCode(raw: unknown): Account | null {
@@ -836,8 +836,8 @@ export class KarmolabAccountStore {
   /**
    * 다른 기기에서 로그인할 짧은 코드를 낸다 (지금 로그인한 기기에서 만든다).
    *
-   * **저장하지 않는다** — 몇 분만 사는 것이고, 봇이 다시 뜨면 사라지는 게 맞다.
-   * 디스코드 로그인이 안 되는 기기(티비·남의 컴퓨터)에서 들어오는 길이다.
+   * **저장하지 않는다**. 몇 분만 사는 것이고, 봇이 다시 뜨면 사라지는 게 맞다.
+   * 디스코드 로그인이 안 되는 기기(티비, 남의 컴퓨터)에서 들어오는 길이다.
    */
   issueLinkCode(accountId: string, now: Date = new Date()): { code: string; expiresAt: string } | null {
     if (!this.state.accounts[accountId]) return null;
@@ -870,13 +870,13 @@ export class KarmolabAccountStore {
     return account.records;
   }
 
-  /** 디스코드 id 로 계정 찾기 — 주인에게 알림 보낼 때 쓴다. */
+  /** 디스코드 id 로 계정 찾기. 주인에게 알림 보낼 때 쓴다. */
   accountForDiscordId(discordId: string): Account | null {
     const id = this.state.identityIndex[`discord:${discordId}`];
     return id ? (this.state.accounts[id] ?? null) : null;
   }
 
-  /** 계정 id 로 찾기 — 알림이 들고 있는 것은 id 뿐이다 (TASK-KL-157). */
+  /** 계정 id 로 찾기. 알림이 들고 있는 것은 id 뿐이다 (TASK-KL-157). */
   byId(accountId: string): Account | null {
     return this.state.accounts[accountId] ?? null;
   }
@@ -888,7 +888,7 @@ export class KarmolabAccountStore {
 
   /**
    * 따라가기 켜고 끄기 (TASK-KL-152 C8).
-   * 자기 자신은 못 따라간다 — 자기 글이 자기 피드에 두 번 뜨는 것뿐이라 아무 뜻이 없다.
+   * 자기 자신은 못 따라간다. 자기 글이 자기 피드에 두 번 뜨는 것뿐이라 아무 뜻이 없다.
    */
   setFollowing(accountId: string, targetHandle: string, on: boolean): string[] | null {
     const account = this.state.accounts[accountId];
@@ -911,10 +911,10 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 막기·풀기 (TASK-KL-156 D2).
+   * 막기, 풀기 (TASK-KL-156 D2).
    *
-   * 막으면 **양쪽 팔로우를 함께 끊는다** — 안 그러면 막아 놓고도 그쪽 피드에는 내 글이 계속 간다.
-   * 「안 보이게」와 「못 하게」를 같이 해야 막은 것이다.
+   * 막으면 **양쪽 팔로우를 함께 끊는다**. 안 그러면 막아 놓고도 그쪽 피드에는 내 글이 계속 간다.
+   * 안 보이게와 못 하게를 같이 해야 막은 것이다.
    */
   setBlocked(accountId: string, targetHandle: string, on: boolean): string[] | null {
     const account = this.state.accounts[accountId];
@@ -942,7 +942,7 @@ export class KarmolabAccountStore {
     return [...(this.state.accounts[accountId]?.blocked ?? [])];
   }
 
-  /** 저 사람이 나를 막았나 — 팔로우를 막을 때 쓴다(막은 사실 자체는 안 알려 준다). */
+  /** 저 사람이 나를 막았나. 팔로우를 막을 때 쓴다(막은 사실 자체는 안 알려 준다). */
   isBlockedBy(targetHandle: string, viewerHandle: string): boolean {
     const targetId = this.state.handleIndex[String(targetHandle ?? '').toLowerCase()];
     const target = targetId ? this.state.accounts[targetId] : null;
@@ -950,10 +950,10 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 도전과제 희귀도 (TASK-KL-156 D1) — 전체 계정 중 몇 %가 가졌나.
+   * 도전과제 희귀도 (TASK-KL-156 D1). 전체 계정 중 몇 %가 가졌나.
    *
-   * Steam 이 하는 그것과 같다. 값은 **전수에서 세고**, 계정이 너무 적으면 비율을 안 내놓는다 —
-   * 세 명 중 한 명이 가졌다고 「33%」라고 말하면 그건 수치가 아니라 착시다.
+   * Steam 이 하는 그것과 같다. 값은 **전수에서 세고**, 계정이 너무 적으면 비율을 안 내놓는다 . 
+   * 세 명 중 한 명이 가졌다고 33%라고 말하면 그건 수치가 아니라 착시다.
    */
   achievementRarity(minAccounts = 5): { total: number; enough: boolean; counts: Record<string, number> } {
     const accounts = Object.values(this.state.accounts);
@@ -968,7 +968,7 @@ export class KarmolabAccountStore {
 
   /**
    * 이 사람을 따라가는 사람들의 계정 id (TASK-KL-156 D3).
-   * 막은 사이는 뺀다 — 막아 놓고 알림이 오면 막은 것이 아니다.
+   * 막은 사이는 뺀다. 막아 놓고 알림이 오면 막은 것이 아니다.
    */
   followerIdsOf(handle: string): string[] {
     const target = String(handle ?? '').toLowerCase();
@@ -982,7 +982,7 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 명예의 전당 (TASK-KL-156 D4) — 연속·다녀간 날 상위.
+   * 명예의 전당 (TASK-KL-156 D4). 연속, 다녀간 날 상위.
    *
    * 프로필이나 발자국을 가린 사람은 **애초에 목록에 안 들어간다**. 가렸는데 순위표에 이름이
    * 뜨면 그건 가린 것이 아니다.
@@ -1005,8 +1005,8 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 「지금 보고 있다」를 계정에 적는다 (TASK-KL-156 D5).
-   * 발자국의 마지막 시각을 그대로 쓴다 — 같은 뜻을 두 곳에 적지 않는다.
+   * 지금 보고 있다를 계정에 적는다 (TASK-KL-156 D5).
+   * 발자국의 마지막 시각을 그대로 쓴다. 같은 뜻을 두 곳에 적지 않는다.
    */
   touchPresence(accountId: string, at: Date = new Date()): void {
     const account = this.state.accounts[accountId];
@@ -1028,7 +1028,7 @@ export class KarmolabAccountStore {
     return last > 0 && now.getTime() - last <= windowMs;
   }
 
-  /** 이 사람을 따라가는 사람 수 — 목록을 두 벌 두지 않으려고 셀 때 훑는다. */
+  /** 이 사람을 따라가는 사람 수. 목록을 두 벌 두지 않으려고 셀 때 훑는다. */
   followerCount(handle: string): number {
     const target = String(handle ?? '').toLowerCase();
     let count = 0;
@@ -1046,9 +1046,9 @@ export class KarmolabAccountStore {
   /**
    * 계정 병합 (TASK-KL-156 D8).
    *
-   * 같은 사람이 두 계정이 되는 일은 실제로 생긴다 — 디스코드로 한 번, 복구 코드로 잘못 한 번.
-   * **아무것도 잃지 않는 방향으로만** 합친다: 기록은 합집합·큰 쪽, 발자국은 날짜별 합,
-   * 따라가기/막기는 합집합. 남는 이름(handle)은 **받는 쪽**이다 — 남이 걸어 둔 링크가 깨지지
+   * 같은 사람이 두 계정이 되는 일은 실제로 생긴다. 디스코드로 한 번, 복구 코드로 잘못 한 번.
+   * **아무것도 잃지 않는 방향으로만** 합친다: 기록은 합집합, 큰 쪽, 발자국은 날짜별 합,
+   * 따라가기/막기는 합집합. 남는 이름(handle)은 **받는 쪽**이다. 남이 걸어 둔 링크가 깨지지
    * 않는 쪽을 남긴다.
    *
    * 지우는 쪽의 로그인은 전부 끊는다. 합쳐 놓고 옛 문이 열려 있으면 합친 것이 아니다.
@@ -1061,7 +1061,7 @@ export class KarmolabAccountStore {
     keep.records = mergeRecords(keep.records ?? emptyRecords(), gone.records ?? emptyRecords());
     keep.recordsUpdatedAt = new Date().toISOString();
 
-    // 발자국 — 날짜별로 더한다. 두 계정을 번갈아 쓴 날이 하나로 합쳐진다.
+    // 발자국. 날짜별로 더한다. 두 계정을 번갈아 쓴 날이 하나로 합쳐진다.
     const a = keep.footprint ?? { days: {}, tools: {}, firstSeenAt: null, lastSeenAt: null };
     const b = gone.footprint ?? { days: {}, tools: {}, firstSeenAt: null, lastSeenAt: null };
     const days: Record<string, number> = { ...a.days };
@@ -1104,8 +1104,8 @@ export class KarmolabAccountStore {
   /**
    * 오래 안 온 계정 (TASK-KL-156 D10).
    *
-   * 지우지 않는다 — **알리기 위한 목록**이다. 자동으로 지우는 규칙은 사람 몫이고, 그 전에
-   * 「곧 정리될 수 있다」를 본인이 볼 수 있어야 한다. 지금은 세는 것과 보여 주는 것까지만 한다.
+   * 지우지 않는다. **알리기 위한 목록**이다. 자동으로 지우는 규칙은 사람 몫이고, 그 전에
+   * 곧 정리될 수 있다를 본인이 볼 수 있어야 한다. 지금은 세는 것과 보여 주는 것까지만 한다.
    */
   dormantAccounts(days = 365, now: Date = new Date()): Array<{ handle: string; lastSeenAt: string | null; days: number }> {
     const rows: Array<{ handle: string; lastSeenAt: string | null; days: number }> = [];
@@ -1117,7 +1117,7 @@ export class KarmolabAccountStore {
     return rows.sort((x, y) => y.days - x.days);
   }
 
-  /** 내가 마지막으로 다녀간 뒤 며칠 지났나 — 보관 안내에 쓴다. */
+  /** 내가 마지막으로 다녀간 뒤 며칠 지났나. 보관 안내에 쓴다. */
   idleDaysOf(accountId: string, now: Date = new Date()): number {
     const account = this.state.accounts[accountId];
     if (!account) return 0;
@@ -1126,10 +1126,10 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 팔로잉·팔로워 목록 (TASK-KL-175 E5).
+   * 팔로잉, 팔로워 목록 (TASK-KL-175 E5).
    *
    * 수만 보이고 누구인지 못 보면 그건 사회가 아니라 계기판이다.
-   * **프로필을 잠근 사람은 목록에서 빠진다** — 잠갔는데 남의 목록에 이름이 뜨면 잠근 게 아니다.
+   * **프로필을 잠근 사람은 목록에서 빠진다**. 잠갔는데 남의 목록에 이름이 뜨면 잠근 게 아니다.
    * 맞팔 여부는 보는 사람 기준으로 계산한다.
    */
   followList(
@@ -1167,7 +1167,7 @@ export class KarmolabAccountStore {
 
   /**
    * 남에게 보일 잔디 (TASK-KL-175 E6).
-   * 발자국을 가렸으면 **null** — 빈 잔디가 아니라 아예 없는 것이다.
+   * 발자국을 가렸으면 **null**. 빈 잔디가 아니라 아예 없는 것이다.
    */
   publicFootprint(handle: string): { days: Record<string, number>; streak: { current: number; longest: number } } | null {
     const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
@@ -1180,10 +1180,10 @@ export class KarmolabAccountStore {
     return { days: footprint.days, streak: footprint.streak };
   }
 
-  /* ── 작업실 (TASK-KL-182 F3·F4) ─────────────────────────────────── */
+  /* ── 작업실 (TASK-KL-182 F3, F4) ─────────────────────────────────── */
 
   /**
-   * 옛 기록에는 「무엇인가」가 없다 — 그때는 그림뿐이었다 (TASK-KL-191 축3).
+   * 옛 기록에는 무엇인가가 없다. 그때는 그림뿐이었다 (TASK-KL-191 축3).
    * 읽는 자리에서 그림으로 채운다. 저장된 것을 고쳐 쓰지 않는다(마이그레이션 없이 늙는다).
    */
   private static fillWork(work: AccountWork): AccountWork {
@@ -1199,7 +1199,7 @@ export class KarmolabAccountStore {
     return (this.state.accounts[accountId]?.works ?? []).map(KarmolabAccountStore.fillWork);
   }
 
-  /** 하나 건다. 벽이 다 차면 **가장 오래된 것을 내린다** — 거는 순간 실패하면 만든 것이 사라진다. */
+  /** 하나 건다. 벽이 다 차면 **가장 오래된 것을 내린다**. 거는 순간 실패하면 만든 것이 사라진다. */
   addWork(
     accountId: string,
     input: { id: string; title?: unknown; toolId?: unknown; kind?: unknown; preview?: unknown; note?: unknown },
@@ -1217,7 +1217,7 @@ export class KarmolabAccountStore {
       toolId: isToolIdLike(input.toolId) ? input.toolId : null,
       at: new Date().toISOString(),
       kind,
-      /* 「그림이 있다」는 **올린 쪽만** 안다. 여기서 추측하면 없는 그림을 부르는 칸이 남는다. */
+      /* 그림이 있다는 **올린 쪽만** 안다. 여기서 추측하면 없는 그림을 부르는 칸이 남는다. */
       preview: input.preview === true,
       note: String(input.note ?? '').replace(/[<>&"]/g, '').trim().slice(0, 80) || null,
     });
@@ -1234,7 +1234,7 @@ export class KarmolabAccountStore {
     return account.works;
   }
 
-  /** 남에게 보일 작업실 — 프로필을 잠갔으면 아예 없다. */
+  /** 남에게 보일 작업실. 프로필을 잠갔으면 아예 없다. */
   publicWorks(handle: string): AccountWork[] | null {
     const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
     const account = id ? this.state.accounts[id] : null;
@@ -1249,7 +1249,7 @@ export class KarmolabAccountStore {
     return { ...DEFAULT_NOTIFY, ...(this.state.accounts[accountId]?.notify ?? {}) };
   }
 
-  /** 알림 갈래 바꾸기 — 보낸 칸만. */
+  /** 알림 갈래 바꾸기. 보낸 칸만. */
   setNotifyPrefs(accountId: string, patch: unknown): NotifyPrefs | null {
     const account = this.state.accounts[accountId];
     if (!account) return null;
@@ -1263,14 +1263,14 @@ export class KarmolabAccountStore {
     return this.notifyPrefsOf(accountId);
   }
 
-  /** 이 출처의 알림을 이 사람이 받기로 했나 — 알림을 **쌓기 전에** 묻는다. */
+  /** 이 출처의 알림을 이 사람이 받기로 했나. 알림을 **쌓기 전에** 묻는다. */
   wantsNotification(accountId: string, source: string): boolean {
     return this.notifyPrefsOf(accountId)[notifyBucket(source)];
   }
 
   /* ── 패스키 (TASK-KL-156 D7) ─────────────────────────────────────── */
 
-  /** 내 패스키 목록 — 공개키는 안 내보낸다(화면에 쓸 일이 없고, 안 내보내면 샐 일도 없다). */
+  /** 내 패스키 목록. 공개키는 안 내보낸다(화면에 쓸 일이 없고, 안 내보내면 샐 일도 없다). */
   passkeysOf(accountId: string): Array<{ id: string; label: string; createdAt: string; lastUsedAt: string | null }> {
     return (this.state.accounts[accountId]?.passkeys ?? []).map((key) => ({
       id: key.id,
@@ -1302,7 +1302,7 @@ export class KarmolabAccountStore {
     return removed;
   }
 
-  /** 이 자격증명 id 를 가진 계정과 그 열쇠 — 로그인은 이것으로 찾는다(누구인지 미리 안 물어도 된다). */
+  /** 이 자격증명 id 를 가진 계정과 그 열쇠. 로그인은 이것으로 찾는다(누구인지 미리 안 물어도 된다). */
   accountForPasskey(passkeyId: string): { account: Account; passkey: StoredPasskey } | null {
     for (const account of Object.values(this.state.accounts)) {
       const passkey = (account.passkeys ?? []).find((key) => key.id === passkeyId);
@@ -1311,7 +1311,7 @@ export class KarmolabAccountStore {
     return null;
   }
 
-  /** 쓰고 나면 사용 횟수와 시각을 적는다 — 복제 신호를 알아보려면 이 값이 살아 있어야 한다. */
+  /** 쓰고 나면 사용 횟수와 시각을 적는다. 복제 신호를 알아보려면 이 값이 살아 있어야 한다. */
   notePasskeyUse(accountId: string, passkeyId: string, signCount: number): void {
     const account = this.state.accounts[accountId];
     const passkey = (account?.passkeys ?? []).find((key) => key.id === passkeyId);
@@ -1330,7 +1330,7 @@ export class KarmolabAccountStore {
     return account.weeklyDm;
   }
 
-  /** 지금 보낼 사람들 — 켜 뒀고, 디스코드가 붙어 있고, 이번 주에 아직 안 보낸 계정. */
+  /** 지금 보낼 사람들. 켜 뒀고, 디스코드가 붙어 있고, 이번 주에 아직 안 보낸 계정. */
   weeklyDmTargets(week: string = kstWeekKey()): Array<{ accountId: string; discordId: string; displayName: string }> {
     const rows: Array<{ accountId: string; discordId: string; displayName: string }> = [];
     for (const account of Object.values(this.state.accounts)) {
@@ -1343,7 +1343,7 @@ export class KarmolabAccountStore {
     return rows;
   }
 
-  /** 보냈다고 적는다 — 같은 주에 두 번 안 가게. */
+  /** 보냈다고 적는다. 같은 주에 두 번 안 가게. */
   markWeeklyDmSent(accountId: string, week: string = kstWeekKey()): void {
     const account = this.state.accounts[accountId];
     if (!account) return;
@@ -1363,7 +1363,7 @@ export class KarmolabAccountStore {
   }
 
   /**
-   * 프로필 꾸미기 바꾸기 — 보낸 칸만.
+   * 프로필 꾸미기 바꾸기. 보낸 칸만.
    * 도구 id 는 모양을 확인하고 최대 3개까지만 받는다(같은 것 두 번은 하나로).
    */
   setCard(accountId: string, patch: unknown): ProfileCard | null {
@@ -1388,7 +1388,7 @@ export class KarmolabAccountStore {
     return { ...DEFAULT_VISIBILITY, ...(account?.visibility ?? {}) };
   }
 
-  /** 공개 범위 바꾸기 — 보낸 칸만 바꾼다(모르는 칸은 무시). */
+  /** 공개 범위 바꾸기. 보낸 칸만 바꾼다(모르는 칸은 무시). */
   setVisibility(accountId: string, patch: unknown): AccountVisibility | null {
     const account = this.state.accounts[accountId];
     if (!account) return null;
@@ -1405,8 +1405,8 @@ export class KarmolabAccountStore {
   /**
    * 남에게 보이는 모습.
    *
-   * **꺼 둔 항목은 응답에서 아예 사라진다** — 화면에서만 숨기면 주소를 직접 열어 본 사람에게는
-   * 그대로 나간다. 숨긴다는 말은 「안 보낸다」여야 한다.
+   * **꺼 둔 항목은 응답에서 아예 사라진다**. 화면에서만 숨기면 주소를 직접 열어 본 사람에게는
+   * 그대로 나간다. 숨긴다는 말은 안 보낸다여야 한다.
    */
   publicProfile(account: Account): PublicProfile {
     const visible = this.visibilityFor(account.id);
@@ -1426,15 +1426,15 @@ export class KarmolabAccountStore {
       streaks,
       updatedAt: account.recordsUpdatedAt,
       card: this.cardFor(account.id),
-      /* 「가렸다」에 `presence` 는 안 넣는다 (TASK-KL-156 D5). 그건 원래 꺼져 있는 것을
-       * 켜는 칸이라, 안 켠 것을 「가렸다」고 적으면 아무것도 안 한 사람에게 늘 그 문구가 붙는다. */
+      /* 가렸다에 `presence` 는 안 넣는다 (TASK-KL-156 D5). 그건 원래 꺼져 있는 것을
+       * 켜는 칸이라, 안 켠 것을 가렸다고 적으면 아무것도 안 한 사람에게 늘 그 문구가 붙는다. */
       hidden: (Object.keys(DEFAULT_VISIBILITY) as (keyof AccountVisibility)[]).filter(
         (key) => key !== 'profile' && key !== 'presence' && !visible[key],
       ),
     };
   }
 
-  /** 관측용 — 지어낸 수가 아니라 실제 계정 수. */
+  /** 관측용. 지어낸 수가 아니라 실제 계정 수. */
   stats(): { accounts: number; sessions: number } {
     return {
       accounts: Object.keys(this.state.accounts).length,

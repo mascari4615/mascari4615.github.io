@@ -1,7 +1,7 @@
 /**
- * 슬래시 dispatch — thin (TASK-YB-025 slice 1).
+ * 슬래시 dispatch. thin (TASK-YB-025 slice 1).
  *
- * 커맨드별 분기·가드·resolveMemory 는 전부 `registry.ts` 의 엔트리로 colocate.
+ * 커맨드별 분기, 가드, resolveMemory 는 전부 `registry.ts` 의 엔트리로 colocate.
  * 본 파일 = 횡단 관심사만: guard / usage 로그 / 레지스트리 lookup / 공통 try-catch.
  */
 import { MessageFlags } from 'discord.js';

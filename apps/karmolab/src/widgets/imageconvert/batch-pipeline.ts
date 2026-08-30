@@ -1,5 +1,5 @@
 /**
- * KarmoLab — 이미지 배치 파이프라인 (도구 공통)
+ * KarmoLab. 이미지 배치 파이프라인 (도구 공통)
  * 현재 지원: convert 단계 1개 (KarmoLabImageConvert.convertImage 와 동일 옵션)
  * 이후 단계 타입을 recipe.steps 에 추가해 확장.
  */
@@ -117,7 +117,7 @@ import { download } from '../tools/shared/image';
         return new Promise<void>(function (resolve) {
           const blob = r.blob!;
           // 공용 한 자리(`shared/image.download`). 바깥 80ms 는 **거두기용이 아니라
-          // 순서 벌리기**다 — 여러 장을 한꺼번에 쏘면 브라우저가 뒤엣것을 버린다.
+          // 순서 벌리기**다. 여러 장을 한꺼번에 쏘면 브라우저가 뒤엣것을 버린다.
           download(blob, IC.baseNameFromFile(r.file) + '.' + IC.extFromMime(outputMime));
           setTimeout(function () {
             setTimeout(resolve, dm);

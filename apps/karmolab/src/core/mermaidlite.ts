@@ -1,13 +1,13 @@
 /**
- * 작은 mermaid — 글로 적은 그림을 그린다 (TASK-KL-316 / 10)
+ * 작은 mermaid. 글로 적은 그림을 그린다 (TASK-KL-316 / 10)
  *
  * 왜 직접 그리나: 이 저장소는 `vendor/mermaid.min.js` 를 **가리키기만 하고 갖고 있지 않다**
- * (`docs` 위젯이 그 경로를 부르는데 파일이 없다 — 그래서 문서의 그림은 지금 안 뜬다).
+ * (`docs` 위젯이 그 경로를 부르는데 파일이 없다. 그래서 문서의 그림은 지금 안 뜬다).
  * 진짜 mermaid 는 3MB 가 넘는다. 우리가 쓰는 건 **흐름도와 표 관계** 둘이라,
  * 그 둘만 여기서 읽고 SVG 로 그린다. 저장소가 안 무거워지고, 인터넷도 필요 없다.
  *
  * 그리는 법은 **층 나누기**다: 화살표를 따라 깊이를 매기고(위상 순서), 같은 깊이를 한 줄에 놓는다.
- * 예쁜 자동 배치를 흉내 내지 않는다 — 「누가 누구를 가리키나」가 보이면 그림의 할 일은 끝이다.
+ * 예쁜 자동 배치를 흉내 내지 않는다. 누가 누구를 가리키나가 보이면 그림의 할 일은 끝이다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -33,7 +33,7 @@ export type Dir = 'TD' | 'LR';
 export interface Node {
   id: string;
   label: string;
-  /** 네모 · 둥근 네모 · 마름모 · 원 */
+  /** 네모, 둥근 네모, 마름모, 원 */
   shape: 'box' | 'round' | 'diamond' | 'circle';
   /** 표 관계에서 쓰는 칸 목록 */
   fields?: string[];
@@ -49,9 +49,9 @@ export interface Edge {
 /**
  * `subgraph` 묶음 (TASK-KL-326).
  *
- * 여태 `subgraph`·`end` 를 「못 읽은 줄」로 버렸다. 그런데 그 줄이 버려지면 **소속이
- * 통째로 사라진다** — `docs/ROADMAP.md` 의 그림은 「어느 것이 글쓴이 쪽이고 어느 것이
- * 브라우저 쪽인가」가 요점인데, 남는 것은 화살표뿐이었다.
+ * 여태 `subgraph`, `end` 를 못 읽은 줄로 버렸다. 그런데 그 줄이 버려지면 **소속이
+ * 통째로 사라진다**. `docs/ROADMAP.md` 의 그림은 어느 것이 글쓴이 쪽이고 어느 것이
+ * 브라우저 쪽인가가 요점인데, 남는 것은 화살표뿐이었다.
  */
 export interface Group {
   id: string;
@@ -67,13 +67,13 @@ export interface Diagram {
   edges: Edge[];
   /** `subgraph` 묶음. 흐름도에만 나온다. */
   groups: Group[];
-  /** 못 읽은 줄 — 숨기지 않고 돌려준다 */
+  /** 못 읽은 줄. 숨기지 않고 돌려준다 */
   unknown: string[];
 }
 
 const clean = (s: string): string => s.trim().replace(/^["']|["']$/g, '');
 
-/** `A[글]` · `B(둥근)` · `C{마름모}` · `D((원))` · `E` */
+/** `A[글]`, `B(둥근)`, `C{마름모}`, `D((원))`, `E` */
 function readNode(raw: string): Node {
   const text = raw.trim();
   const m = /^([\w가-힣.\-]+)\s*(\(\(|\[|\(|\{)([^\])}]*)(\)\)|\]|\)|\})$/.exec(text);
@@ -139,12 +139,12 @@ export function parse(text: string): Diagram {
     return out;
   }
 
-  /* 묶음은 겹쳐 적을 수 있다(`subgraph` 안의 `subgraph`) — 그래서 쌓아 두고, 마디가 나오면
+  /* 묶음은 겹쳐 적을 수 있다(`subgraph` 안의 `subgraph`). 그래서 쌓아 두고, 마디가 나오면
      **가장 안쪽 묶음**에 넣는다. 닫는 `end` 가 모자라거나 남아도 터지지 않는다. */
   const openGroups: Group[] = [];
 
   for (const line of lines.slice(1)) {
-    /* `subgraph 아이디 [보이는 이름]` · `subgraph 이름` 둘 다 받는다. */
+    /* `subgraph 아이디 [보이는 이름]`, `subgraph 이름` 둘 다 받는다. */
     const sub = /^subgraph\s+([^\[\]]+?)(?:\s*\[([^\]]*)\])?\s*$/i.exec(line);
     if (sub !== null) {
       const id = clean(sub[1]);
@@ -161,7 +161,7 @@ export function parse(text: string): Diagram {
       out.unknown.push(line);
       continue;
     }
-    /* `A --> B` · `A -->|글| B` · `A -.-> B` · `A --- B` */
+    /* `A --> B`, `A -->|글| B`, `A -.-> B`, `A --- B` */
     /* 이 마디가 지금 열려 있는 묶음 안에 적혔다면 그 묶음의 것이다. 같은 마디가 두 번
        적혀도 한 번만 센다(`A --> B` 와 `B --> C` 에 B 가 둘 다 나온다). */
     const join = (id: string): void => {
@@ -197,7 +197,7 @@ export function levels(diagram: Diagram): string[][] {
   for (const e of diagram.edges) incoming.set(e.to, (incoming.get(e.to) ?? 0) + 1);
 
   const queue = diagram.nodes.filter((n) => (incoming.get(n.id) ?? 0) === 0).map((n) => n.id);
-  /* 고리뿐이면 시작점이 없다 — 그럴 땐 첫 마디를 시작점으로 삼는다 */
+  /* 고리뿐이면 시작점이 없다. 그럴 땐 첫 마디를 시작점으로 삼는다 */
   if (queue.length === 0 && diagram.nodes.length > 0) queue.push(diagram.nodes[0].id);
   for (const id of queue) depth.set(id, 0);
 
@@ -213,7 +213,7 @@ export function levels(diagram: Diagram): string[][] {
       if (now <= 0 && !order.includes(e.to)) order.push(e.to);
     }
   }
-  /* 고리 때문에 못 들어간 마디도 자리를 준다 — 안 그리면 그림이 거짓말이 된다 */
+  /* 고리 때문에 못 들어간 마디도 자리를 준다. 안 그리면 그림이 거짓말이 된다 */
   for (const n of diagram.nodes) if (!depth.has(n.id)) depth.set(n.id, 0);
 
   const rows: string[][] = [];
@@ -229,7 +229,7 @@ export function levels(diagram: Diagram): string[][] {
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** 한글은 한 글자가 두 칸이다 — 글자 수로만 재면 상자가 글을 못 담는다. */
+/** 한글은 한 글자가 두 칸이다. 글자 수로만 재면 상자가 글을 못 담는다. */
 function textWidth(s: string): number {
   let w = 0;
   for (const ch of s) w += /[ᄀ-ᇿ　-鿿가-힣＀-￯]/.test(ch) ? 15 : 8;
@@ -359,9 +359,9 @@ export function toSvg(diagram: Diagram, opts: DrawOpts = {}): string {
 }
 
 export function check(diagram: Diagram): string {
-  if (diagram.kind === 'unknown') return '첫 줄이 `flowchart TD` · `graph LR` · `erDiagram` 중 하나여야 합니다.';
+  if (diagram.kind === 'unknown') return '첫 줄이 `flowchart TD`, `graph LR`, `erDiagram` 중 하나여야 합니다.';
   const rows = [
-    (diagram.kind === 'er' ? '표 관계' : '흐름도 (' + diagram.dir + ')') + ' · 마디 ' + diagram.nodes.length + '개 · 이어짐 ' + diagram.edges.length + '개'
+    (diagram.kind === 'er' ? '표 관계' : '흐름도 (' + diagram.dir + ')') + ', 마디 ' + diagram.nodes.length + '개, 이어짐 ' + diagram.edges.length + '개'
   ];
   if (diagram.unknown.length > 0) {
     rows.push('');

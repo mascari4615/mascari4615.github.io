@@ -1,15 +1,15 @@
 /**
- * 놀이 기록 이음매 (TASK-KL-148) — 한 판이 끝나면 부르는 자리.
+ * 놀이 기록 이음매 (TASK-KL-148). 한 판이 끝나면 부르는 자리.
  *
  * 왜 있나: 놀이마다 저장을 따로 짜면 여섯 벌이 그날부터 갈라진다(어떤 놀이는 최고를 덮어쓰고,
- * 어떤 놀이는 새로고침에 증발했다). 「한 판이 끝났다」를 말하는 곳은 여기 하나다.
+ * 어떤 놀이는 새로고침에 증발했다). 한 판이 끝났다를 말하는 곳은 여기 하나다.
  *
- * **fail-open 이 제일 중요한 성질이다.** 로그인을 안 했든, 서버가 죽었든, 느리든 —
+ * **fail-open 이 제일 중요한 성질이다.** 로그인을 안 했든, 서버가 죽었든, 느리든 . 
  * 이 파일은 놀이를 절대 막지 않는다. 실패하면 이 브라우저의 최고만 들고 조용히 돌아간다.
  * 놀이 여섯의 생사를 노트북 한 대에 걸지 않는다.
  *
- * 「크면 좋은가 작으면 좋은가」를 왜 여기서도 말하나: 그건 **놀이 자체의 성질**이다
- * (반응속도는 작을수록 빠르다). 서버도 같은 표를 들고 있지만 그건 복사본이 아니라 **경계**다 —
+ * 크면 좋은가 작으면 좋은가를 왜 여기서도 말하나: 그건 **놀이 자체의 성질**이다
+ * (반응속도는 작을수록 빠르다). 서버도 같은 표를 들고 있지만 그건 복사본이 아니라 **경계**다 . 
  * 순위는 브라우저가 보내온 말을 믿고 매길 수 없다.
  */
 import { t, loadNamespace } from './i18n';
@@ -18,7 +18,7 @@ import { appPath } from './site-base';
 const esc = (v: unknown): string =>
   String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 위젯이 아니라 셸, 라이브러리. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
 if (typeof document !== 'undefined') void loadNamespace('plays');
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -29,7 +29,7 @@ export interface PlaySpec {
   /** 서버 표(`PLAY_GAMES`)에 있는 id. */
   game: string;
   /**
-   * 순위판이 표마다 갈리는 놀이는 그 표 이름 (`pokemon` · `pack:내표`).
+   * 순위판이 표마다 갈리는 놀이는 그 표 이름 (`pokemon`, `pack:내표`).
    *
    * 왜: 포켓몬 10연승과 롤 10연승은 같은 기록이 아니다. 한 순위판에 섞으면 쉬운 표를 고른
    * 사람이 1등이 된다. 사람이 만든 표(UGC)도 같은 자리로 들어온다.
@@ -75,7 +75,7 @@ interface LocalRecord {
   days: Record<string, number>;
 }
 
-/** 오늘(KST). 서버와 같은 모양으로 — 여기서 갈리면 「어제의 나」가 하루씩 어긋난다. */
+/** 오늘(KST). 서버와 같은 모양으로. 여기서 갈리면 어제의 나가 하루씩 어긋난다. */
 function kstDay(now: Date = new Date()): string {
   return new Date(now.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
 }
@@ -91,7 +91,7 @@ function readLocal(): Record<string, LocalRecord> {
     const raw = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
     return raw && typeof raw === 'object' ? raw : {};
   } catch {
-    return {}; // 사생활 모드 · 깨진 값 — 없는 셈 친다
+    return {}; // 사생활 모드, 깨진 값. 없는 셈 친다
   }
 }
 
@@ -133,7 +133,7 @@ async function postPlay(spec: PlaySpec, score: number): Promise<PlayOutcome | nu
       body: JSON.stringify({ game: spec.game, score, variant: spec.variant ?? null }),
       signal: control.signal,
     });
-    if (!res.ok) return null; // 401(로그인 안 함) 도 여기로 — 놀이는 그대로 된다
+    if (!res.ok) return null; // 401(로그인 안 함) 도 여기로. 놀이는 그대로 된다
     const body = (await res.json()) as { counted?: boolean; outcome?: PlayOutcome };
     return body.counted && body.outcome ? body.outcome : null;
   } catch {
@@ -146,7 +146,7 @@ async function postPlay(spec: PlaySpec, score: number): Promise<PlayOutcome | nu
 /**
  * 한 판이 끝났다.
  *
- * 이 브라우저 기록은 **먼저, 반드시** 적는다 — 서버를 기다리다 실패하면 그 판이 통째로
+ * 이 브라우저 기록은 **먼저, 반드시** 적는다. 서버를 기다리다 실패하면 그 판이 통째로
  * 사라지기 때문이다. 서버는 그 다음에 조용히 시도한다.
  */
 export async function submitPlay(spec: PlaySpec, score: number): Promise<PlayResult> {
@@ -178,9 +178,9 @@ export async function submitPlay(spec: PlaySpec, score: number): Promise<PlayRes
 }
 
 /**
- * 한 판 끝난 자리에 붙이는 한 줄 — 최고 · 순위 · 어제의 나.
+ * 한 판 끝난 자리에 붙이는 한 줄. 최고, 순위, 어제의 나.
  *
- * 없는 것은 **아예 안 적는다**. 「순위 -」·「어제 0」 같은 빈칸이 늘어서면 화면이 죽어 보인다.
+ * 없는 것은 **아예 안 적는다**. 순위 -, 어제 0 같은 빈칸이 늘어서면 화면이 죽어 보인다.
  */
 export function renderPlayResult(slot: HTMLElement, spec: PlaySpec, result: PlayResult): void {
   const parts: string[] = [];
@@ -211,13 +211,13 @@ export function renderPlayResult(slot: HTMLElement, spec: PlaySpec, result: Play
 
 interface BoardResponse {
   entries?: Array<{ rank: number; handle: string; score: number }>;
-  /** 내 자리 — 순위 밖이어도 온다. 핸들이 같이 오므로 순위판에서 내 줄을 집을 수 있다. */
+  /** 내 자리. 순위 밖이어도 온다. 핸들이 같이 오므로 순위판에서 내 줄을 집을 수 있다. */
   me?: { handle: string; rank: number; best: number } | null;
   signedIn?: boolean;
 }
 
 /**
- * 순위판을 붙인다. 서버에 못 닿거나 아직 아무도 안 놀았으면 **아무것도 안 붙인다** —
+ * 순위판을 붙인다. 서버에 못 닿거나 아직 아무도 안 놀았으면 **아무것도 안 붙인다** . 
  * 빈 표가 덩그러니 있는 것보다 없는 게 낫다.
  */
 export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' | 'all' = 'all'): void {
@@ -239,7 +239,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
       const rows = entries
         .map((e) => {
           const isMe = mine ? e.handle === mine.handle : false;
-          /* 얼굴을 붙인다 (TASK-KL-151 ⑩) — 「북적북적」은 숫자가 아니라 **사람**에서 온다.
+          /* 얼굴을 붙인다 (TASK-KL-151 ⑩). 북적북적은 숫자가 아니라 **사람**에서 온다.
              핸들 글자만 늘어서면 순위판이 로그 파일처럼 읽힌다.
              그림이 없는 계정도 있다: 그때는 그 자리가 비고(alt 빈 글자) 이름만 남는다. */
           const face =
@@ -261,7 +261,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
         body.signedIn === false
           ? `<div style="margin-top:8px;color:var(--text-tertiary);">${esc(t('plays.t01'))}</div>`
           : mine
-            ? `<div style="margin-top:8px;color:var(--text-tertiary);">내 기록 ${formatScore(spec, mine.best)} · ${mine.rank}위</div>`
+            ? `<div style="margin-top:8px;color:var(--text-tertiary);">내 기록 ${formatScore(spec, mine.best)}, ${mine.rank}위</div>`
             : '';
 
       slot.hidden = false;
@@ -271,7 +271,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
         `<ol style="list-style:none;margin:0;padding:0;">${rows}</ol>${footer}</div>`;
 
       /* 그림이 없는 계정도 있다(디스코드 아바타가 없거나 씨앗 계정). 깨진 그림 표시가 뜨면
-         순위판이 고장 난 것처럼 보인다 — 조용히 자리만 비운다. */
+         순위판이 고장 난 것처럼 보인다. 조용히 자리만 비운다. */
       slot.querySelectorAll('img').forEach((img) => {
         img.addEventListener('error', () => {
           (img as HTMLImageElement).style.visibility = 'hidden';

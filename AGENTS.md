@@ -4,7 +4,7 @@ This file provides context and operating rules for AI coding agents working in t
 
 ## Project Snapshot
 
-- Repository: mascari4615.github.io (monorepo; the site is assembled by Node — `apps/karmolab/scripts/assemble-site.mjs`. Jekyll/Chirpy were removed in the cutover)
+- Repository: mascari4615.github.io (monorepo; the site is assembled by Node. `apps/karmolab/scripts/assemble-site.mjs`. Jekyll/Chirpy were removed in the cutover)
 - Main site: Korean blog/portfolio deployed to GitHub Pages (`blog.mascari4615.com`); the app shell lives at `/`
 - Companion apps: KarmoLab, Tauri app, Discord bots, browser extension
 
@@ -17,7 +17,7 @@ widgets are hot-swapped (open tabs and typed input survive); only shell changes
 (`src/toolbox.ts`, `widgets-loader`, `index.html`) trigger a reload.
 
 Widgets that start timers or global listeners must hand cleanup to `Toolbox.onDispose(fn)`
-inside `build` — otherwise they pile up on every swap.
+inside `build`. otherwise they pile up on every swap.
 
 If you change `index.html`, run `npm run audit:pages`: the 127 tool detail pages are
 generated from that shell at deploy time, and a shape change there can stop deploys entirely.

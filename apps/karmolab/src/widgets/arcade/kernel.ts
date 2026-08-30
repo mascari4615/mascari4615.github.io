@@ -1,17 +1,17 @@
 /**
- * 오락실 커널 — 방 하나에서 판이 굴러가게 하는 것 전부 (TASK-KL-242)
+ * 오락실 커널. 방 하나에서 판이 굴러가게 하는 것 전부 (TASK-KL-242)
  *
  * 화면도 그물망도 여기 없다. **들어오는 것은 수(action)와 시각(now), 나가는 것은 상태**뿐이다.
- * 그래서 게임 51개를 전부 사람 손 없이 돌려 볼 수 있다 — 테스트가 시계를 직접 밀어 준다.
+ * 그래서 게임 51개를 전부 사람 손 없이 돌려 볼 수 있다. 테스트가 시계를 직접 밀어 준다.
  *
  * 시계를 밖에서 받는 이유: `Date.now()` 를 안에서 부르면 테스트가 4초를 진짜로 기다려야 한다.
  * 51개짜리 검증에서 그건 못 쓴다.
  *
- * 봇 예약이 「낡아도」 그냥 둔다 — 사이에 판이 바뀌어 못 두는 수가 되면 `reduce` 가 상태를
+ * 봇 예약이 낡아도 그냥 둔다. 사이에 판이 바뀌어 못 두는 수가 되면 `reduce` 가 상태를
  * 그대로 돌려준다(게임의 약속 ①). 예약을 상태가 바뀔 때마다 지우면 실시간 게임에서 봇이
  * 영영 못 둔다(제한시간이 매 tick 상태를 바꾸므로).
  */
-import type { GameDef, GameCtx, Seat, Outcome, Note } from './types';
+import type { GameDef, GameCtx, GameOpts, Seat, Outcome, Note } from './types';
 import { mulberry32 } from './rng';
 
 export interface SeatSpec {
@@ -31,11 +31,11 @@ export interface MatchView<S> {
   note?: Note;
 }
 
-/** 판 사이 쉬는 시간 — 결과를 읽을 틈이 없으면 이긴 줄도 모른다. */
+/** 판 사이 쉬는 시간. 결과를 읽을 틈이 없으면 이긴 줄도 모른다. */
 const BREAK_MS = 900;
 
 /**
- * 커널의 한 칸. 실시간 놀이의 숫자들이 **초당 60칸**을 전제로 맞춰져 있다 — 그 전제를
+ * 커널의 한 칸. 실시간 놀이의 숫자들이 **초당 60칸**을 전제로 맞춰져 있다. 그 전제를
  * 이제 커널이 지킨다(전에는 화면 주사율이 정했다).
  */
 const TICK = 16;
@@ -63,7 +63,7 @@ export class Match<S, A> {
   /**
    * **사람이 누른 것만** 적어 둔다 (TASK-KL-264 재생).
    *
-   * 봇의 수는 안 적는다 — 씨앗이 같으면 커널이 똑같이 다시 만들어 내기 때문이다. 시각도
+   * 봇의 수는 안 적는다. 씨앗이 같으면 커널이 똑같이 다시 만들어 내기 때문이다. 시각도
    * 칸 단위라 화면 주사율이 안 남는다. 그래서 한 판이 **씨앗 하나 + 누른 것 몇 줄**로 줄어든다.
    */
   readonly tape: Array<{ at: number; seat: number; action: A }> = [];
@@ -71,43 +71,46 @@ export class Match<S, A> {
   /** 이번 판의 난수. 판이 바뀔 때만 새로 만든다 */
   private rand: () => number;
   /**
-   * **봇만 쓰는 난수** — 판의 난수와 갈라 둔다.
+   * **봇만 쓰는 난수**. 판의 난수와 갈라 둔다.
    *
-   * 봇이 판의 난수를 뽑으면 「봇에게 몇 번 물어봤나」가 판 전개를 바꾼다. 그런데 그 횟수는
-   * 자리가 몇이고 화면이 몇 번 돌았나에 따라 달라진다 — 같은 씨앗이 같은 판을 안 만든다.
+   * 봇이 판의 난수를 뽑으면 봇에게 몇 번 물어봤나가 판 전개를 바꾼다. 그런데 그 횟수는
+   * 자리가 몇이고 화면이 몇 번 돌았나에 따라 달라진다. 같은 씨앗이 같은 판을 안 만든다.
    * 그래서 흐름을 둘로 나눈다. 게임 파일은 이 사실을 몰라도 된다: `bot()` 안에서도 그냥
    * `ctx.rng` 를 부르면 되고, 커널이 그때만 이쪽 흐름을 건네준다.
    */
   private botRand: () => number;
+  /** 시작할 때 고른 값. 방과 편지와 다시보기가 씨앗과 함께 나른다 */
+  readonly opts: GameOpts;
 
-  constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[]) {
+  constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[], opts: GameOpts = {}) {
     this.game = game;
     this.seed = seed;
+    this.opts = opts;
     this.rand = mulberry32(seed);
-    /* 씨앗을 비틀어 나눈다 — 같은 씨앗에서 두 흐름이 같은 값을 내면 나눈 뜻이 없다. */
+    /* 씨앗을 비틀어 나눈다. 같은 씨앗에서 두 흐름이 같은 값을 내면 나눈 뜻이 없다. */
     this.botRand = mulberry32((seed ^ 0x5bf03635) >>> 0);
     const [min, max] = game.seats;
     const filled = seats.slice(0, max);
-    /* 사람이 모자란 자리는 봇이 앉는다 — 이 한 줄이 「싱글 모드」를 없앤다. */
+    /* 사람이 모자란 자리는 봇이 앉는다. 이 한 줄이 싱글 모드를 없앤다. */
     while (filled.length < min) filled.push({ name: `봇 ${filled.length + 1}`, bot: true });
     this.seats = filled.map((s, index) => ({ index, name: s.name, bot: s.bot, score: 0 }));
     this.state = game.init(this.ctx());
   }
 
   /**
-   * 라운드마다 씨앗을 갈라 준다 — 안 그러면 5판이 전부 같은 문제다.
+   * 라운드마다 씨앗을 갈라 준다. 안 그러면 5판이 전부 같은 문제다.
    *
    * **난수는 판마다 하나를 만들어 계속 이어 쓴다.** 부를 때마다 새로 만들면 씨앗이 같으니
-   * 늘 같은 값이 나온다 — 판을 시작할 때만 뽑는 게임은 몰라도, **주사위처럼 판 중에 굴리는
+   * 늘 같은 값이 나온다. 판을 시작할 때만 뽑는 게임은 몰라도, **주사위처럼 판 중에 굴리는
    * 게임은 영원히 같은 눈**이 나온다. 그래서 rng 는 상태다.
    */
   private ctx(): GameCtx {
-    return { seats: this.seats, rng: this.rand, now: this.now, round: this.round };
+    return { seats: this.seats, rng: this.rand, now: this.now, round: this.round, opts: this.opts };
   }
 
-  /** 봇에게 줄 자리 — 난수만 다르다. */
+  /** 봇에게 줄 자리. 난수만 다르다. */
   private botCtx(): GameCtx {
-    return { seats: this.seats, rng: this.botRand, now: this.now, round: this.round };
+    return { seats: this.seats, rng: this.botRand, now: this.now, round: this.round, opts: this.opts };
   }
 
   /** 커널의 시계. 밖에서 준 시각이 아니라 **칸으로 옮긴** 값이다. */
@@ -140,16 +143,16 @@ export class Match<S, A> {
   }
 
   /**
-   * 한 수 둔다. 못 두는 자리·때면 조용히 흘린다(예외 X — 남의 창에서 오는 수다).
+   * 한 수 둔다. 못 두는 자리, 때면 조용히 흘린다(예외 X. 남의 창에서 오는 수다).
    *
    * **없는 수는 여기서 막는다.** 그물망 너머에서 `null` 이 오는 것은 사고가 아니라 정상이고,
    * 그때마다 게임 51개가 각자 `a?.cell` 을 쓰게 하면 한 곳만 빠져도 판이 통째로 죽는다.
-   * 신뢰 경계는 커널이다 — 게임은 「무엇이 온다」만 알면 된다.
+   * 신뢰 경계는 커널이다. 게임은 무엇이 온다만 알면 된다.
    */
   dispatch(seat: number, action: A): void {
     if (action === null || action === undefined) return;
-    /* 못 두는 수도 적는다 — 되살릴 때 커널이 똑같이 흘리므로 결과가 같고,
-       「그때 이걸 눌렀는데 안 먹었다」가 그대로 남는다(버그 재현에 필요한 것이 그것이다). */
+    /* 못 두는 수도 적는다. 되살릴 때 커널이 똑같이 흘리므로 결과가 같고,
+       그때 이걸 눌렀는데 안 먹었다가 그대로 남는다(버그 재현에 필요한 것이 그것이다). */
     this.tape.push({ at: this.now, seat, action });
     if (this.finished || this.roundOverAt !== null) return;
     if (seat < 0 || seat >= this.seats.length) return;
@@ -163,7 +166,7 @@ export class Match<S, A> {
    * 시계를 여기까지 밀었다.
    *
    * **밖에서 준 시각을 그대로 안 쓴다.** 커널은 제 시계를 `TICK` 칸으로만 옮기고, 그 칸마다
-   * 한 번씩 `tick` 을 돌린다. 이유는 하나다 — 실시간 놀이 29개 중 여럿(탁구·에어하키·포탄)이
+   * 한 번씩 `tick` 을 돌린다. 이유는 하나다. 실시간 놀이 29개 중 여럿(탁구, 에어하키, 포탄)이
    * **한 프레임에 고정 거리**를 움직인다. 시각을 그대로 받으면 144Hz 화면이 60Hz 화면보다
    * 공을 2.4배 빠르게 굴린다. 같은 놀이가 기계마다 다른 놀이가 된다.
    *
@@ -171,7 +174,7 @@ export class Match<S, A> {
    * 같은 판이 다시 나온다(그리기 고리가 언제 불렀는지는 이제 판에 안 남는다).
    *
    * 한 번에 따라잡는 칸 수는 막아 둔다. 창을 한참 뒤에 뒀다 돌아오면 수만 칸이 밀려 있는데
-   * 그걸 다 돌면 창이 굳는다 — 시계가 조금 늦어지는 편이 굳는 것보다 낫다.
+   * 그걸 다 돌면 창이 굳는다. 시계가 조금 늦어지는 편이 굳는 것보다 낫다.
    */
   step(now: number): void {
     if (this.finished) return;
@@ -180,7 +183,7 @@ export class Match<S, A> {
       this.now += TICK;
       if (this.frame()) break;
     }
-    /* 아직 한 칸도 안 찼으면 아무 일도 안 일어난다 — 그래도 화면은 지금 것을 그려야 한다. */
+    /* 아직 한 칸도 안 찼으면 아무 일도 안 일어난다. 그래도 화면은 지금 것을 그려야 한다. */
     this.emit();
   }
 
@@ -228,9 +231,9 @@ export class Match<S, A> {
   private settle(): boolean {
     const out: Outcome = this.game.outcome(this.state, this.ctx());
     if (!out.over) {
-      /* **판이 안 끝나도 할 말은 나른다** (arcade-next 「놀이마다의 소리」).
-         전에는 끝날 때만 말을 받아서, 화면도 소리도 「끝났다」밖에 못 했다 — 화살이 항아리에
-         든 순간·배를 맞힌 순간이 아무 데도 안 남았다. 말이 없으면 지운다(옛말이 눌어붙지 않게). */
+      /* **판이 안 끝나도 할 말은 나른다** (arcade-next 놀이마다의 소리).
+         전에는 끝날 때만 말을 받아서, 화면도 소리도 끝났다밖에 못 했다. 화살이 항아리에
+         든 순간, 배를 맞힌 순간이 아무 데도 안 남았다. 말이 없으면 지운다(옛말이 눌어붙지 않게). */
       this.note = out.note;
       return false;
     }

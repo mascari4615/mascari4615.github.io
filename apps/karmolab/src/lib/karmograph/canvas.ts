@@ -1,20 +1,20 @@
 /**
- * lib/karmograph/canvas.ts — SVG 무한 캔버스 (pan/zoom + 노드/edge + 드래그 + 미니맵).
+ * lib/karmograph/canvas.ts. SVG 무한 캔버스 (pan/zoom + 노드/edge + 드래그 + 미니맵).
  *
  * Unity Shader Graph / Animator 스타일.
  * - 1개 <g transform="matrix(s 0 0 s tx ty)"> 안에 전체 콘텐츠.
- * - 노드: <g class="ck-node" data-id="…"> rect + text + ports.
- * - edge: 베지어 path — 두 박스의 가장 가까운 면 쌍 자동 선택.
- * - 드래그: pointerdown → pointermove → pointerup → debounce save (터치·펜 포함, 두 손가락 = 핀치 줌).
+ * - 노드: <g class="ck-node" data-id="..."> rect + text + ports.
+ * - edge: 베지어 path. 두 박스의 가장 가까운 면 쌍 자동 선택.
+ * - 드래그: pointerdown → pointermove → pointerup → debounce save (터치, 펜 포함, 두 손가락 = 핀치 줌).
  * - 미니맵: 우하단 200×150 overlay SVG.
  * - Ephemeral 노드: 외부(수집기)가 발행하는 임시 노드 (anchor bbox stack).
  *
  * 출처 = `widgets/cockpit/graph-canvas.ts` (TASK-KL-082, 1066줄).
  * TASK-KL-087 단위 0 에서 cockpit 결합 3개를 seam 으로 바꿔 이주:
  *   ① Tauri invoke 직접 호출 → `GraphPersistAdapter.save()`
- *   ② KIND_COLORS 하드코딩(domain/app/canon/…) → `options.kindColors` 주입
+ *   ② KIND_COLORS 하드코딩(domain/app/canon/...) → `options.kindColors` 주입
  *   ③ 색상 하드코딩(#131720 등) → `options.theme` (기본값 = 이주 전 값 그대로)
- * 렌더 로직·좌표 계산·이벤트는 손대지 않았다 (cockpit 회귀 0 목표).
+ * 렌더 로직, 좌표 계산, 이벤트는 손대지 않았다 (cockpit 회귀 0 목표).
  */
 import type {
   GraphSpec,
@@ -89,7 +89,7 @@ export interface ActiveSets {
   edge_ids_animated: Set<string>;
 }
 
-/** 캔버스 색상 — 전부 선택. 미지정 시 cockpit 원본 값(어두운 톤). */
+/** 캔버스 색상. 전부 선택. 미지정 시 cockpit 원본 값(어두운 톤). */
 export interface GraphCanvasTheme {
   nodeFill?: string;
   nodeText?: string;
@@ -111,40 +111,40 @@ export interface GraphCanvasOptions {
   persistAdapter?: GraphPersistAdapter;
   /** node.kind → 색. 미지정 kind 는 defaultKindColor. */
   kindColors?: Record<string, string>;
-  /** 종류별 그림(이모지) — 얼굴을 안 정한 카드의 동그라미에 들어간다. */
+  /** 종류별 그림(이모지). 얼굴을 안 정한 카드의 동그라미에 들어간다. */
   kindIcons?: Record<string, string>;
   defaultKindColor?: string;
   /** spec._edge_kinds 에 없는 edge.kind 의 fallback 정의. */
   edgeKinds?: Record<string, EdgeKindDef>;
   theme?: GraphCanvasTheme;
   /**
-   * 노드를 *클릭* 했을 때 (드래그가 아니라 — 이동 4px 미만).
+   * 노드를 *클릭* 했을 때 (드래그가 아니라. 이동 4px 미만).
    * 편집 UI 를 붙이는 위젯용 seam. cockpit 은 안 쓴다(읽기 전용 뷰).
    */
   onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
   onNodeResized?: (nodeId: string) => void;
-  /** 카드를 다른 카드 위에 떨어뜨렸을 때. 주면 「겹쳐 놓으면 잇기」가 켜진다. */
+  /** 카드를 다른 카드 위에 떨어뜨렸을 때. 주면 겹쳐 놓으면 잇기가 켜진다. */
   onNodeDropped?: (draggedId: string, overId: string) => void;
-  /** 빈 배경 클릭 — 선택 해제용. */
+  /** 빈 배경 클릭. 선택 해제용. */
   onBackgroundClick?: () => void;
-  /** 빈 배경 더블클릭 — 그 자리에 새 노드를 만드는 위젯용 (world 좌표). */
+  /** 빈 배경 더블클릭. 그 자리에 새 노드를 만드는 위젯용 (world 좌표). */
   onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   /**
-   * 노드 손잡이에서 끌어다 다른 노드에 놓았을 때. 이 콜백을 주면 손잡이가 그려진다 —
+   * 노드 손잡이에서 끌어다 다른 노드에 놓았을 때. 이 콜백을 주면 손잡이가 그려진다 . 
    * 안 주면 읽기 전용 뷰(cockpit)처럼 손잡이 자체가 없다.
    */
   onConnect?: (fromId: string, toId: string) => void;
   /**
    * 손잡이에서 끌어다 **빈 곳**에 놓았을 때 (TASK-KL-271 R1).
-   * 가장 흔한 동작(「여기서 뻗어 나가는 새 카드」)이 가장 짧아진다 — 안 주면 예전처럼 그냥 취소된다.
+   * 가장 흔한 동작(여기서 뻗어 나가는 새 카드)이 가장 짧아진다. 안 주면 예전처럼 그냥 취소된다.
    */
   onConnectToEmpty?: (fromId: string, world: { x: number; y: number }) => void;
   /**
-   * 선을 손으로 고쳤을 때(휘기·이름표 자리). 이 콜백을 주면 선에 손잡이가 생긴다 —
+   * 선을 손으로 고쳤을 때(휘기, 이름표 자리). 이 콜백을 주면 선에 손잡이가 생긴다 . 
    * 캔버스가 `spec` 의 그 선을 직접 고치고, 저장은 위젯이 한다.
    */
   onEdgeChanged?: (edgeId: string) => void;
-  /** 선을 클릭했을 때. 주면 선마다 「잡이 선」이 깔린다. */
+  /** 선을 클릭했을 때. 주면 선마다 잡이 선이 깔린다. */
   onEdgeClick?: (edgeId: string) => void;
   /** 여럿을 한 번에 골랐을 때 (Shift+배경 드래그). 이 콜백을 주면 범위 고르기가 켜진다. */
   onSelectMany?: (nodeIds: string[]) => void;
@@ -159,15 +159,15 @@ export interface GraphCanvasOptions {
 const MINIMAP_W = 200;
 const MINIMAP_H = 150;
 const SAVE_DEBOUNCE_MS = 400;
-const GUIDE_TOL = 7;          // 이웃 줄에 붙는 거리 (화면 px — 배율로 나눠 쓴다)
+const GUIDE_TOL = 7;          // 이웃 줄에 붙는 거리 (화면 px. 배율로 나눠 쓴다)
 const GRID_SIZE = 8;         // 그리드 스냅 단위 (px)
 const BG_CELL = 32;          // 배경 무늬 한 칸 (= 스냅 4칸)
-/** 이 배율보다 작아지면 배경 무늬를 끈다 — 촘촘한 무늬는 축소하면 모아레(먼지)가 된다. */
+/** 이 배율보다 작아지면 배경 무늬를 끈다. 촘촘한 무늬는 축소하면 모아레(먼지)가 된다. */
 const BG_MIN_SCALE = 0.4;
 const GROUP_HEADER_H = 20;   // 그룹 프레임 헤더 높이
 const NODE_HEADER_H = 30;    // children 있는 노드의 헤더 영역 높이
-/** 쪽지 본문 줄 간격·최대 줄 수 — 카드가 소설이 되면 그림이 안 읽힌다. */
-/** 카드에 접어 넣는 칸 줄 — 표가 되면 그림이 안 읽힌다. */
+/** 쪽지 본문 줄 간격, 최대 줄 수. 카드가 소설이 되면 그림이 안 읽힌다. */
+/** 카드에 접어 넣는 칸 줄. 표가 되면 그림이 안 읽힌다. */
 const NODE_FIELD_ROW_H = 11;
 const NODE_FIELD_MAX_ROWS = 3;
 const NOTE_BODY_LINE_H = 12;
@@ -179,7 +179,7 @@ const DEFAULT_KIND_COLOR = '#94a3b8';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-/** clipPath DOM id 충돌 방지 — 한 문서에 캔버스 2개 이상 뜰 수 있다. */
+/** clipPath DOM id 충돌 방지. 한 문서에 캔버스 2개 이상 뜰 수 있다. */
 let instanceSeq = 0;
 
 // ─── GraphCanvas ──────────────────────────────────────────────────────────────
@@ -208,11 +208,11 @@ export class GraphCanvas {
   private state: CanvasState = { scale: 1, tx: 0, ty: 0 };
 
   // 드래그 상태
-  /** 카드 크기 바꾸기 — 모서리를 끌면 사람이 정한 크기가 되고, 그 뒤로 자동 맞춤이 손대지 않는다. */
+  /** 카드 크기 바꾸기. 모서리를 끌면 사람이 정한 크기가 되고, 그 뒤로 자동 맞춤이 손대지 않는다. */
   private sizing: { nodeId: string; startX: number; startY: number; startW: number; startH: number } | null = null;
   private dragging: { nodeId: string; startMouseX: number; startMouseY: number; startNodeX: number; startNodeY: number } | null = null;
 
-  // 그룹 드래그 상태 — 멤버 node 좌표 + anchor x/y + ephemeral x/y + group bbox 모두 이동.
+  // 그룹 드래그 상태. 멤버 node 좌표 + anchor x/y + ephemeral x/y + group bbox 모두 이동.
   private draggingGroup: {
     groupId: string;
     startMouseX: number;
@@ -227,7 +227,7 @@ export class GraphCanvas {
   // 패닝 상태
   private panning: { startMouseX: number; startMouseY: number; startTx: number; startTy: number } | null = null;
 
-  /** 지금 화면에 닿아 있는 포인터들 — 손가락 두 개를 알아보려면 세고 있어야 한다. */
+  /** 지금 화면에 닿아 있는 포인터들. 손가락 두 개를 알아보려면 세고 있어야 한다. */
   private activePointers: Map<number, { x: number; y: number }> = new Map();
   private pinch: {
     startDist: number; startScale: number;
@@ -247,7 +247,7 @@ export class GraphCanvas {
   private theme: Required<GraphCanvasTheme>;
   private uid: string;
   private onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
-  /** 카드 크기를 손으로 바꾼 뒤 — 저장은 위젯이 한다(캔버스는 저장소를 모른다). */
+  /** 카드 크기를 손으로 바꾼 뒤. 저장은 위젯이 한다(캔버스는 저장소를 모른다). */
   private onNodeResized?: (nodeId: string) => void;
   private onNodeDropped?: (draggedId: string, overId: string) => void;
   private onBackgroundClick?: () => void;
@@ -262,7 +262,7 @@ export class GraphCanvas {
   private onGroupChanged?: (groupId: string) => void;
   /** 묶음 이름표를 옮기는 중. */
   private labelDrag: { groupId: string; x0: number; y0: number; dx0: number; dy0: number } | null = null;
-  /** 범위 고르기 중 — 시작점(world)과 화면에 그리는 사각형. */
+  /** 범위 고르기 중. 시작점(world)과 화면에 그리는 사각형. */
   private marquee: { x0: number; y0: number; rect: SVGRectElement } | null = null;
   /** 여러 개를 고른 상태. 하나를 끌면 이들이 함께 움직인다. */
   private selectedIds: Set<string> = new Set();
@@ -271,21 +271,21 @@ export class GraphCanvas {
   private edgeDrag: { edgeId: string; mode: 'curve' | 'label'; moved: boolean } | null = null;
   /** 선 끝점을 다른 노드로 옮기는 중. */
   private rewiring: { edgeId: string; end: 'from' | 'to'; temp: SVGPathElement } | null = null;
-  /** 지금 「여기 놓으면 붙는다」로 밝혀 둔 노드. */
+  /** 지금 여기 놓으면 붙는다로 밝혀 둔 노드. */
   private hintEl: SVGGElement | null = null;
-  /** 누른 자리가 어느 선이었나 — 뗄 때 클릭으로 칠지 판단한다. */
+  /** 누른 자리가 어느 선이었나. 뗄 때 클릭으로 칠지 판단한다. */
   private pressEdgeId: string | null = null;
   /** 겹친 선을 Shift+클릭으로 돌려 가며 고를 때, **직전에 고른 선**. */
   private lastPickedEdgeId: string | null = null;
-  /** 포커스 대상 id — null 이면 포커스 없음. */
+  /** 포커스 대상 id. null 이면 포커스 없음. */
   private focusIds: Set<string> | null = null;
   /**
-   * 거르기 (TASK-KL-202 M-3). 포커스가 「잠깐 흐리기」라면 이쪽은 **아예 안 그리기**다 —
+   * 거르기 (TASK-KL-202 M-3). 포커스가 잠깐 흐리기라면 이쪽은 **아예 안 그리기**다 . 
    * Kumu 도 focus(근접 기반)와 filter(조건 선별)를 다른 도구로 둔다.
    */
   /**
    * 데이터로 꾸미기 (TASK-KL-202 격차 S). 손으로 하나씩 키우는 대신 **규칙 한 줄**로
-   * 「많이 이어진 것이 크다」를 만든다 — 자료가 늘어도 규칙이 알아서 따라간다(Kumu 의 decoration).
+   * 많이 이어진 것이 크다를 만든다. 자료가 늘어도 규칙이 알아서 따라간다(Kumu 의 decoration).
    */
   private decorate: { sizeByDegree: boolean; colorByTag: boolean; colorByField: string } =
     { sizeByDegree: false, colorByTag: false, colorByField: '' };
@@ -295,7 +295,7 @@ export class GraphCanvas {
   private filter: {
     nodeKinds: Set<string>; edgeKinds: Set<string>; tags: Set<string>;
     hideOrphans: boolean; minDegree: number;
-    /** 칸으로 좁히기 — 「출신 = 마계」. 이름만 있고 값이 비면 **그 칸을 가진 노드만**. */
+    /** 칸으로 좁히기. 출신 = 마계. 이름만 있고 값이 비면 **그 칸을 가진 노드만**. */
     fieldName: string; fieldValue: string;
   } = {
     nodeKinds: new Set(), edgeKinds: new Set(), tags: new Set(), hideOrphans: false, minDegree: 0,
@@ -304,12 +304,12 @@ export class GraphCanvas {
   /** 손잡이에서 끌고 있는 중. 임시 선은 edgeLayer 에 그렸다가 놓을 때 지운다. */
   private linking: { fromId: string; temp: SVGPathElement } | null = null;
 
-  /** 누른 지점 — 뗄 때 이동량으로 클릭/드래그를 가른다. */
+  /** 누른 지점. 뗄 때 이동량으로 클릭/드래그를 가른다. */
   private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
 
-  /** 끌기 중 캐시 — 닿은 카드(선 부분 갱신용) · 거르기 결과(매 프레임 다시 안 센다). KL-234 */
+  /** 끌기 중 캐시. 닿은 카드(선 부분 갱신용), 거르기 결과(매 프레임 다시 안 센다). KL-234 */
   private dragTouched: Set<string> | undefined; private dragShown: Set<string> | undefined;
-  /** 끄는 동안의 무거운 다시 그리기(선·묶음·작은 판) — 프레임당 한 번으로 모은다. */
+  /** 끄는 동안의 무거운 다시 그리기(선, 묶음, 작은 판). 프레임당 한 번으로 모은다. */
   private paintDragged = frameCoalesced(() => {
     this.groupLayer.innerHTML = '';
     this.renderGroups();
@@ -347,7 +347,7 @@ export class GraphCanvas {
   }
 
   /** node.kind → 색. 주입된 맵에 없으면 기본색. */
-  /** 노드 종류 색표를 갈아 끼운다 — 사용자가 자기 종류를 만들면 표가 늘어난다. */
+  /** 노드 종류 색표를 갈아 끼운다. 사용자가 자기 종류를 만들면 표가 늘어난다. */
   /** 앱 테마가 바뀌면 색표를 갈아 끼운다. 부르는 쪽이 `themeFromCss()` 로 읽어 넘긴다. */
   setTheme(theme: GraphCanvasTheme): void {
     this.theme = { ...this.theme, ...theme };
@@ -378,7 +378,7 @@ export class GraphCanvas {
   // ── DOM 구성 ────────────────────────────────────────────────────────────────
 
   private buildDOM(): void {
-    // 뼈대(층 순서·배경 무늬·미니맵)는 canvas-dom 이 안다.
+    // 뼈대(층 순서, 배경 무늬, 미니맵)는 canvas-dom 이 안다.
     const dom = buildCanvasDom(this.container, this.uid, this.theme);
     this.svg = dom.svg;
     this.world = dom.world;
@@ -393,7 +393,7 @@ export class GraphCanvas {
 
   // ── 이벤트 ──────────────────────────────────────────────────────────────────
 
-  /** 이 자리에 겹쳐 있는 선들 — 위에 있는 것부터. */
+  /** 이 자리에 겹쳐 있는 선들. 위에 있는 것부터. */
   private edgeIdsAt(clientX: number, clientY: number): string[] {
     return edgeIdsAtPoint(clientX, clientY);
   }
@@ -409,16 +409,16 @@ export class GraphCanvas {
       const { left, top } = this.svg.getBoundingClientRect();
       const mx = e.clientX - left;
       const my = e.clientY - top;
-      // 가리킨 자리를 붙잡은 채 확대·축소 — 셈법은 canvas-math 가 안다.
+      // 가리킨 자리를 붙잡은 채 확대, 축소. 셈법은 canvas-math 가 안다.
       Object.assign(this.state, zoomAt(this.state, e.deltaY > 0 ? 0.9 : 1.1, { x: mx, y: my }));
       this.applyTransform();
     }, { passive: false });
 
     // Pan (배경 누름) / drag (노드 누름) / pinch (손가락 둘)
     this.svg.addEventListener('pointerdown', (e) => {
-      // 사람이 손을 대면 진행 중인 미끄러짐은 그 자리에서 접는다 — 손과 화면이 싸우면 안 된다.
+      // 사람이 손을 대면 진행 중인 미끄러짐은 그 자리에서 접는다. 손과 화면이 싸우면 안 된다.
       if (this.tween) { cancelAnimationFrame(this.tween); this.tween = 0; }
-      // 손가락 두 개 = 핀치 줌. 첫 손가락이 시작한 드래그는 접고 확대·축소로 넘어간다.
+      // 손가락 두 개 = 핀치 줌. 첫 손가락이 시작한 드래그는 접고 확대, 축소로 넘어간다.
       this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (this.activePointers.size === 2) {
         const [a, b] = [...this.activePointers.values()];
@@ -526,7 +526,7 @@ export class GraphCanvas {
         }
         this.svg.style.cursor = 'grabbing';
       } else if (intent.kind === 'group-drag' && this.editable) {
-        // 그룹 드래그 — 멤버 노드 + anchor 같이 이동
+        // 그룹 드래그. 멤버 노드 + anchor 같이 이동
         const groupId = intent.groupId;
         const grp = this.spec?.groups.find((g) => g.id === groupId);
         if (!grp || !this.spec) return;
@@ -592,8 +592,8 @@ export class GraphCanvas {
         const [a, b] = [...this.activePointers.values()];
         const dist = Math.hypot(b.x - a.x, b.y - a.y) || 1;
         const { left, top } = this.svg.getBoundingClientRect();
-        // 두 손가락 사이 지점을 화면에 고정한 채 배율만 바꾼다 — **휠 줌과 같은 셈법**을 쓴다
-        // (규칙이 갈리면 「마우스로는 자연스러운데 손가락으로는 튄다」가 된다).
+        // 두 손가락 사이 지점을 화면에 고정한 채 배율만 바꾼다. **휠 줌과 같은 셈법**을 쓴다
+        // (규칙이 갈리면 마우스로는 자연스러운데 손가락으로는 튄다가 된다).
         Object.assign(this.state, zoomAt(
           { tx: this.pinch.startTx, ty: this.pinch.startTy, scale: this.pinch.startScale },
           dist / this.pinch.startDist,
@@ -624,7 +624,7 @@ export class GraphCanvas {
         return;
       }
       if (this.multiDrag && this.dragging) {
-        // 고른 것들이 함께 움직인다 — 끌고 있는 노드의 이동량을 그대로 얹는다.
+        // 고른 것들이 함께 움직인다. 끌고 있는 노드의 이동량을 그대로 얹는다.
         const d = worldDelta(
           { x: this.dragging.startMouseX, y: this.dragging.startMouseY },
           { x: e.clientX, y: e.clientY }, this.state.scale);
@@ -666,7 +666,7 @@ export class GraphCanvas {
         if (!b1 || !b2) return;
         const { p1, p2 } = this.chooseAnchors(b1, b2);
         const w = this.screenToWorld(e.clientX, e.clientY);
-        // 휘는 양·이름표 자리 셈법은 canvas-edgedrag 가 안다(숫자로 잠근 규칙이다).
+        // 휘는 양, 이름표 자리 셈법은 canvas-edgedrag 가 안다(숫자로 잠근 규칙이다).
         if (this.edgeDrag.mode === 'curve') edge.curve = curveFromPointer(p1, p2, w);
         else edge.labelPos = labelPosFromPointer(p1, p2, w);
         this.redrawEdges();
@@ -691,7 +691,7 @@ export class GraphCanvas {
           const box = resizedBox(this.sizing.startW, this.sizing.startH, d, e.altKey ? 1 : GRID_SIZE);  // Alt = 격자 무시
           n.w = box.w;
           n.h = box.h;
-          n.sized = true;   // 이제부터 이 카드는 **사람 것**이다 — 자동 맞춤이 손대지 않는다.
+          n.sized = true;   // 이제부터 이 카드는 **사람 것**이다. 자동 맞춤이 손대지 않는다.
           this.render();
         }
         return;
@@ -700,7 +700,7 @@ export class GraphCanvas {
         const d = worldDelta({ x: this.dragging.startMouseX, y: this.dragging.startMouseY },
           { x: e.clientX, y: e.clientY }, this.state.scale);
         const put = snappedPoint(this.dragging.startNodeX, this.dragging.startNodeY, d, (v) => this.snap(v));
-        const me = this.getNodeBox(this.dragging.nodeId);   // 격자는 대충까지 — 맞추려는 건 옆 카드다 (Alt = 자유)
+        const me = this.getNodeBox(this.dragging.nodeId);   // 격자는 대충까지. 맞추려는 건 옆 카드다 (Alt = 자유)
         const gl = (me && !e.altKey)
           ? alignGuides({ id: this.dragging.nodeId, ...put, w: me.w, h: me.h },
             (this.dragNeighbors ??= neighborBoxes(this.visibleNodes(), this.dragging.nodeId, (id) => this.getNodeBox(id))),
@@ -717,7 +717,7 @@ export class GraphCanvas {
         const dg = this.draggingGroup;
         const raw = worldDelta({ x: dg.startMouseX, y: dg.startMouseY },
           { x: e.clientX, y: e.clientY }, this.state.scale);
-        // 기준점만 격자에 붙이고 그 이동량을 멤버 전원에게 얹는다 — 셈법은 canvas-drag 가 안다.
+        // 기준점만 격자에 붙이고 그 이동량을 멤버 전원에게 얹는다. 셈법은 canvas-drag 가 안다.
         const g = groupDelta(dg.startGroupX, dg.startGroupY, raw, (v) => this.snap(v));
         const { dx, dy } = g.d;
         const snappedGX = g.origin.x;
@@ -730,7 +730,7 @@ export class GraphCanvas {
           this.updateNodeTransform(nodeId, nx, ny);
           this.scheduleSave(nodeId);
         }
-        // 멤버 anchor 좌표 이동 (spec 직접 변경 — 영속에도 들어감)
+        // 멤버 anchor 좌표 이동 (spec 직접 변경. 영속에도 들어감)
         for (const [anchorId, start] of dg.startAnchorCoords) {
           const ax = start.x + dx;
           const ay = start.y + dy;
@@ -738,7 +738,7 @@ export class GraphCanvas {
           if (a) { a.x = ax; a.y = ay; }
           this.scheduleSaveRaw(anchorId, ax, ay, 'anchor');
         }
-        // ephemeral 노드 좌표 이동 — 시작 좌표 기반 (누적 회피)
+        // ephemeral 노드 좌표 이동. 시작 좌표 기반 (누적 회피)
         for (const [enId, start] of dg.startEphemeralCoords) {
           const en = this.ephemeralNodes.find((x) => x.id === enId);
           if (en) {
@@ -754,7 +754,7 @@ export class GraphCanvas {
           this.scheduleSaveRaw(dg.groupId, grp.bbox.x, grp.bbox.y, 'group');
         }
         this.dragTouched = new Set(dg.startNodeCoords.keys());
-        this.paintDragged();   // 묶음·닻·흘러가는 카드·선·작은 판 — 프레임당 한 번
+        this.paintDragged();   // 묶음, 닻, 흘러가는 카드, 선, 작은 판. 프레임당 한 번
       } else if (this.panning) {
         this.state.tx = this.panning.startTx + (e.clientX - this.panning.startMouseX);
         this.state.ty = this.panning.startTy + (e.clientY - this.panning.startMouseY);
@@ -785,7 +785,7 @@ export class GraphCanvas {
         const h = Number(r.getAttribute('height'));
         r.remove();
         this.marquee = null;
-        // 「조금이라도 겹치면 고른 것」 규칙은 canvas-math 가 안다.
+        // 조금이라도 겹치면 고른 것 규칙은 canvas-math 가 안다.
         const hits = (this.spec?.nodes ?? []).filter((n) => {
           const c0 = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
           return rectHits({ x, y, w, h }, { x: c0.x, y: c0.y, w: n.w, h: this.getNodeEffectiveH(n) });
@@ -817,7 +817,7 @@ export class GraphCanvas {
       if (this.edgeDrag) {
         const { edgeId, mode, moved } = this.edgeDrag;
         this.edgeDrag = null;
-        // 이름표를 「눌렀다 뗀」 것뿐이면 옮기려던 게 아니라 **그 선을 보려던** 것이다.
+        // 이름표를 눌렀다 뗀 것뿐이면 옮기려던 게 아니라 **그 선을 보려던** 것이다.
         if (mode === 'label' && !moved) { this.onEdgeClick?.(edgeId); return; }
         this.onEdgeChanged?.(edgeId);
         return;
@@ -834,7 +834,7 @@ export class GraphCanvas {
         this.svg.style.cursor = 'grab';
         return;
       }
-      // 드래그 상태를 지우기 *전에* 클릭 판정 — 판단은 canvas-release 가 한다.
+      // 드래그 상태를 지우기 *전에* 클릭 판정. 판단은 canvas-release 가 한다.
       const origin = this.pressOrigin;
       this.pressOrigin = null;
       if (origin) {
@@ -858,8 +858,8 @@ export class GraphCanvas {
         this.onNodeResized?.(this.sizing.nodeId);
         this.sizing = null;
       }
-      // 카드를 **다른 카드 위에 떨어뜨리면** 잇는다 (Scapple 계보 — 선 도구를 따로 찾지 않게).
-      // 판정은 「놓은 자리 아래에 다른 카드가 있나」 하나뿐이고, 되돌리기 한 걸음으로 남는다.
+      // 카드를 **다른 카드 위에 떨어뜨리면** 잇는다 (Scapple 계보. 선 도구를 따로 찾지 않게).
+      // 판정은 놓은 자리 아래에 다른 카드가 있나 하나뿐이고, 되돌리기 한 걸음으로 남는다.
       if (this.dragging && this.onNodeDropped) {
         const dragged = this.dragging.nodeId;
         const moved = Math.hypot(e.clientX - this.dragging.startMouseX, e.clientY - this.dragging.startMouseY);
@@ -873,8 +873,8 @@ export class GraphCanvas {
       this.svg.style.cursor = 'grab';
     });
 
-    // 손가락이 화면 밖으로 나가거나 시스템이 제스처를 가로채면 여기로 온다 —
-    // 안 지우면 「끌고 있는 중」 상태가 남아 다음 터치가 이상하게 동작한다.
+    // 손가락이 화면 밖으로 나가거나 시스템이 제스처를 가로채면 여기로 온다 . 
+    // 안 지우면 끌고 있는 중 상태가 남아 다음 터치가 이상하게 동작한다.
     window.addEventListener('pointercancel', (e) => {
       this.activePointers.delete(e.pointerId);
       if (this.activePointers.size < 2) this.pinch = null;
@@ -892,7 +892,7 @@ export class GraphCanvas {
       this.svg.style.cursor = 'grab';
     });
 
-    // 빈 배경 더블클릭 → 그 자리에 새 노드 (Scapple·FigJam 의 「그냥 두 번 눌러라」).
+    // 빈 배경 더블클릭 → 그 자리에 새 노드 (Scapple, FigJam 의 그냥 두 번 눌러라).
     this.svg.addEventListener('dblclick', (e) => {
       if (!this.onBackgroundDoubleClick || !this.editable) return;
       const target = e.target as Element;
@@ -958,7 +958,7 @@ export class GraphCanvas {
     this.applyHighlights();
   }
 
-  /** 전체 재렌더 — 노드/엣지를 외부에서 추가·삭제한 뒤 호출. */
+  /** 전체 재렌더. 노드/엣지를 외부에서 추가, 삭제한 뒤 호출. */
 
 
   render(): void {
@@ -968,8 +968,8 @@ export class GraphCanvas {
     this.edgeLayer.innerHTML = '';
     this.nodeLayer.innerHTML = '';
 
-    // 연결 수는 한 번만 센다 — 노드마다 세면 그림이 커질수록 제곱으로 느려진다.
-    // 연결 수는 「많이 이어진 것을 크게」가 켜졌을 때만 센다.
+    // 연결 수는 한 번만 센다. 노드마다 세면 그림이 커질수록 제곱으로 느려진다.
+    // 연결 수는 많이 이어진 것을 크게가 켜졌을 때만 센다.
     this.degreeCache = this.decorate.sizeByDegree
       ? degreeMap(this.spec.edges, (ref) => this.parseNodeRef(ref))
       : new Map();
@@ -981,13 +981,13 @@ export class GraphCanvas {
     this.renderLeaders();
     this.redrawMinimap();
     this.applyFocus();
-    // 다시 그리면 노드 요소가 새로 만들어진다 — 고른 표시를 여기서 되살리지 않으면
-    // 「골라 놨는데 표시가 사라지는」 상태가 된다(고른 상태 자체는 남아 있어 더 헷갈린다).
+    // 다시 그리면 노드 요소가 새로 만들어진다. 고른 표시를 여기서 되살리지 않으면
+    // 골라 놨는데 표시가 사라지는 상태가 된다(고른 상태 자체는 남아 있어 더 헷갈린다).
     this.paintSelection();
   }
 
   /**
-   * anchor 들의 effective y/h 계산 — 같은 group 안 anchors 는 spec order 로
+   * anchor 들의 effective y/h 계산. 같은 group 안 anchors 는 spec order 로
    * 위→아래 stack push (도미노). spec y = 첫 박스 base, 다음부터 = 이전 actual bottom + GAP.
    * items 따라 박스 늘림 → 다음 박스도 자동으로 밀려서 겹침 없음.
    */
@@ -1007,7 +1007,7 @@ export class GraphCanvas {
   /**
    * group bbox = max(spec bbox, content bbox).
    * content = group 멤버 노드(드래그 반영) + group 소속 anchor(effective h, stack push 반영).
-   * 근본 — spec 은 최소 hint, 실제는 자기 컨텐츠 항상 감쌈.
+   * 근본. spec 은 최소 hint, 실제는 자기 컨텐츠 항상 감쌈.
    */
   /** 이 노드가 그 묶음에 드는가. 여러 묶음에 동시에 들 수 있다(격차 D-2). */
   private isMember(n: { group: string; groups?: string[] }, groupId: string): boolean {
@@ -1038,7 +1038,7 @@ export class GraphCanvas {
    * 멤버들을 감싸는 볼록 껍질(convex hull) 경로. 각 노드의 네 모서리를 점으로 모아 껍질을 구하고,
    * 바깥으로 살짝 부풀린 뒤 모서리를 둥글린다.
    *
-   * Bubble Sets 처럼 오목한 등고선까지 가진 않는다 — 이 캔버스는 노드가 수십 개 규모라
+   * Bubble Sets 처럼 오목한 등고선까지 가진 않는다. 이 캔버스는 노드가 수십 개 규모라
    * **가장 싸면서 겹침을 확 낫게 하는 것**이 볼록 껍질이다. 멤버가 둘 이하면 네모가 낫다(껍질이 선이 된다).
    */
   private groupHullPath(g: GroupDef): string | null {
@@ -1053,12 +1053,12 @@ export class GraphCanvas {
         pad,
       ));
     }
-    if (pts.length < 12) return null;   // 멤버 2 이하 — 껍질이 선이 된다. 네모가 낫다
+    if (pts.length < 12) return null;   // 멤버 2 이하. 껍질이 선이 된다. 네모가 낫다
     return roundedHullPath(convexHull(pts));
   }
 
   /**
-   * 단계 띠 — 묶음보다 **뒤에** 깔린다(배경이라 아무것도 가리면 안 된다).
+   * 단계 띠. 묶음보다 **뒤에** 깔린다(배경이라 아무것도 가리면 안 된다).
    * 가로 범위는 노드 전체를 덮도록 자동으로 잰다: 띠 폭을 손으로 적게 하면 노드를 옮길 때마다 어긋난다.
    */
   private renderLanes(): void {
@@ -1078,7 +1078,7 @@ export class GraphCanvas {
   private renderGroups(): void {
     this.renderLanes();
     if (!this.spec) return;
-    // 「어떻게 그리나」는 canvas-group 이 안다 — 여기서는 **무엇을 그릴지**와 자리 계산만 준다.
+    // 어떻게 그리나는 canvas-group 이 안다. 여기서는 **무엇을 그릴지**와 자리 계산만 준다.
     renderGroups(this.spec.groups.filter((g) => !g.hidden), {
       layer: this.groupLayer,
       uid: this.uid,
@@ -1098,7 +1098,7 @@ export class GraphCanvas {
     const coords = this.nodeCoords.get(node.id) ?? { x: node.x, y: node.y };
     const children = node.children ?? [];
     const effH = this.getNodeEffectiveH(node);
-    // 그리는 동안은 「배율 먹인 폭」이 곧 그 노드의 폭이다. 원본 node.w 는 그대로 둔다
+    // 그리는 동안은 배율 먹인 폭이 곧 그 노드의 폭이다. 원본 node.w 는 그대로 둔다
     // (저장본을 건드리면 규칙을 껐을 때 크기가 안 돌아온다).
     const baseW = node.w;
     node = new Proxy(node, {
@@ -1108,8 +1108,8 @@ export class GraphCanvas {
     const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g.setAttribute('class', 'ck-node');
     g.dataset.id = node.id;
-    // 기울기는 상자 한가운데를 축으로 — 모서리를 축으로 돌리면 위치가 같이 밀려서
-    // 「돌렸을 뿐인데 딴 데로 갔다」가 된다.
+    // 기울기는 상자 한가운데를 축으로. 모서리를 축으로 돌리면 위치가 같이 밀려서
+    // 돌렸을 뿐인데 딴 데로 갔다가 된다.
     const rot = node.rotate ?? 0;
     g.setAttribute(
       'transform',
@@ -1122,14 +1122,14 @@ export class GraphCanvas {
     const kindColor = this.nodeColor(node);
     const shape: NodeShape = node.shape ?? 'rect';
 
-    // 배경 — 모양에 따라 카드 / 동그라미 / 말풍선.
-    // 클래스를 박아 두는 이유: 선택·활성 표시가 `rect:first-of-type` 를 집던 시절엔
-    // 동그라미·말풍선(rect 가 아님)에서 표시가 통째로 사라졌다.
+    // 배경. 모양에 따라 카드 / 동그라미 / 말풍선.
+    // 클래스를 박아 두는 이유: 선택, 활성 표시가 `rect:first-of-type` 를 집던 시절엔
+    // 동그라미, 말풍선(rect 가 아님)에서 표시가 통째로 사라졌다.
     const bg = this.buildNodeBackground(node, effH, kindColor, shape);
     bg.setAttribute('class', 'ck-node-bg');
     g.appendChild(bg);
 
-    // 좌측 색띠 — 카드 모양일 때만 (동그라미·말풍선·메모에선 띠가 어색하다)
+    // 좌측 색띠. 카드 모양일 때만 (동그라미, 말풍선, 메모에선 띠가 어색하다)
     if (shape === 'rect') {
       const bar = document.createElementNS(SVG_NS, 'rect');
       bar.setAttribute('x', '0');
@@ -1142,12 +1142,12 @@ export class GraphCanvas {
     }
 
     if (shape === 'photo' && node.avatar?.kind === 'image') {
-      // 사진이 주인공인 카드 — 그리는 규칙은 canvas-photo 가 안다.
+      // 사진이 주인공인 카드. 그리는 규칙은 canvas-photo 가 안다.
       for (const el of buildPhotoCard({
         id: node.id, label: node.label, w: node.w, effH, src: node.avatar.value, uid: this.uid,
       })) g.appendChild(el);
     } else if (shape === 'note' && this.spec && displayDoc(this.spec, node).trim()) {
-      // 쪽지에 **글이 안 보이면** 그냥 이름표다 — 접는 규칙은 canvas-shape 이 안다.
+      // 쪽지에 **글이 안 보이면** 그냥 이름표다. 접는 규칙은 canvas-shape 이 안다.
       for (const el of buildNoteCardBody(node.label, displayDoc(this.spec, node).trim(), node.w, this.theme)) {
         g.appendChild(el);
       }
@@ -1155,21 +1155,21 @@ export class GraphCanvas {
       const centered = shape === 'circle';
       const avatarEl = this.buildNodeAvatar(node, effH, kindColor, centered);
       if (avatarEl) g.appendChild(avatarEl);
-      // 이름·한마디·칸 줄의 자리 규칙은 canvas-card 가 안다.
+      // 이름, 한마디, 칸 줄의 자리 규칙은 canvas-card 가 안다.
       for (const el of buildCardText(node, effH, centered, this.theme)) g.appendChild(el);
     } else {
-      // 자식 있음 — 머리 + 구분선 + 목록. 그리는 규칙은 canvas-children 이 안다.
+      // 자식 있음. 머리 + 구분선 + 목록. 그리는 규칙은 canvas-children 이 안다.
       for (const el of buildChildCard(node.label, children, node.w, kindColor, this.theme)) {
         g.appendChild(el);
       }
     }
 
-    // 카드 모서리 표식(📄 · 🔗N · 💬N)은 canvas-badges 가 안다.
+    // 카드 모서리 표식(📄, 🔗N, 💬N)은 canvas-badges 가 안다.
     for (const b of nodeBadges(this.spec, node, effH)) g.appendChild(b);
 
-    // 연결 손잡이 — 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
-    // (Miro·FigJam 의 파란 점. 「연결 시작」 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
-    // 크기 손잡이 — **고른 카드에만**. 늘 보이면 카드가 지저분해지고 잘못 잡는다.
+    // 연결 손잡이. 노드 오른쪽 가장자리. 여기서 끌어다 다른 노드에 놓으면 선이 생긴다
+    // (Miro, FigJam 의 파란 점. 연결 시작 버튼을 누르고 다시 클릭하던 2단계를 없앤다).
+    // 크기 손잡이. **고른 카드에만**. 늘 보이면 카드가 지저분해지고 잘못 잡는다.
     if (this.editable && this.selectedIds.size === 1 && this.selectedIds.has(node.id)) {
       g.appendChild(buildSizeHandle(node.id, node.w, effH, this.theme.nodeFill, kindColor));
     }
@@ -1180,14 +1180,14 @@ export class GraphCanvas {
     return g;
   }
 
-  /** 카드 바탕 모양은 `canvas-shape.ts` 가 안다 — 여기서는 테마 색만 건네준다. */
+  /** 카드 바탕 모양은 `canvas-shape.ts` 가 안다. 여기서는 테마 색만 건네준다. */
   private buildNodeBackground(node: GraphNode, effH: number, kindColor: string, shape: NodeShape): SVGElement {
     return buildNodeBackground(node, effH, kindColor, shape, this.theme.nodeFill);
   }
 
   /**
-   * 노드 얼굴 — 이모지 / 색 원 / 사진. 사진은 `clipPath` 로 동그랗게 자른다.
-   * clip id 는 캔버스 uid + 노드 id 로 만든다 — 한 페이지에 캔버스가 둘 이상 떠도 안 섞이게.
+   * 노드 얼굴. 이모지 / 색 원 / 사진. 사진은 `clipPath` 로 동그랗게 자른다.
+   * clip id 는 캔버스 uid + 노드 id 로 만든다. 한 페이지에 캔버스가 둘 이상 떠도 안 섞이게.
    */
   private buildNodeAvatar(node: GraphNode, effH: number, kindColor: string, centered: boolean): SVGGElement | null {
     return buildNodeAvatar(node, effH, kindColor, centered, this.theme, this.uid, this.kindIcons[node.kind] ?? '');
@@ -1197,7 +1197,7 @@ export class GraphCanvas {
     this.nodeLayer.querySelectorAll('.ck-node-ephemeral').forEach((el) => el.remove());
     const layout = this.computeAnchorLayout();
     for (const en of this.ephemeralNodes) {
-      // 생김새·이름 접기는 canvas-ephemeral 이 안다. 여기서는 어느 높이에 쌓을지만 정한다.
+      // 생김새, 이름 접기는 canvas-ephemeral 이 안다. 여기서는 어느 높이에 쌓을지만 정한다.
       this.nodeLayer.appendChild(
         buildEphemeralNode(en, layout.get(en.anchorId)?.offsetY ?? 0, this.theme));
     }
@@ -1205,14 +1205,14 @@ export class GraphCanvas {
 
   // ── 엣지 렌더 ────────────────────────────────────────────────────────────────
 
-  /** `only` 를 주면 **그 카드에 닿은 선만** 다시 만든다 — 큰 판에서 끄는 손이 무겁던 이유(TASK-KL-234). */
+  /** `only` 를 주면 **그 카드에 닿은 선만** 다시 만든다. 큰 판에서 끄는 손이 무겁던 이유(TASK-KL-234). */
   private redrawEdges(only?: Set<string>): void {
     if (!this.spec) return;
     if (!only) { this.edgeLayer.innerHTML = ''; this.dragShown = undefined; }
     const touched = new Set<string>();
     const shown = only ? (this.dragShown ??= this.visibleNodeIds()) : this.visibleNodeIds();
     for (const edge0 of this.spec.edges) {
-      // ★ 시점 렌즈 (KL-271 X2) — 그릴 때만 얼굴을 갈아 끼운다(자료는 그대로). null = 이 시점엔 없는 선.
+      // ★ 시점 렌즈 (KL-271 X2). 그릴 때만 얼굴을 갈아 끼운다(자료는 그대로). null = 이 시점엔 없는 선.
       const face = this.edgeFace ? this.edgeFace(edge0) : edge0;
       if (!face) continue;
       const edge = face;
@@ -1221,7 +1221,7 @@ export class GraphCanvas {
       if (only && !only.has(from) && !only.has(to)) continue;
       // 부분 갱신은 그 선의 옛 요소를 먼저 걷어 낸다(통짜 갱신은 위에서 이미 비웠다).
       if (only) this.edgeLayer.querySelectorAll(`[data-edge-id="${CSS.escape(edge.id)}"]`).forEach((el) => el.remove());
-      // 걸러졌거나 한쪽 끝이 화면에 없으면 안 그린다 — 허공으로 뻗은 선처럼 보인다.
+      // 걸러졌거나 한쪽 끝이 화면에 없으면 안 그린다. 허공으로 뻗은 선처럼 보인다.
       if (this.filter.edgeKinds.has(edge.kind)) continue;
       if (!shown.has(from) || !shown.has(to)) continue;
       const parts = this.buildEdgeElements(edge);
@@ -1229,11 +1229,11 @@ export class GraphCanvas {
       if (only) touched.add(edge.id);
     }
     applyEdgeFlow(this.edgeLayer, this.activeSets.edge_ids_animated, only ? touched : undefined);
-    // 선을 다시 그리면 흐림 표시도 함께 날아간다 — 여기서 되살린다.
+    // 선을 다시 그리면 흐림 표시도 함께 날아간다. 여기서 되살린다.
     if (this.focusIds) this.applyFocus();
   }
 
-  /** edge = path + 2 커넥터 도트 (시작·끝 면) */
+  /** edge = path + 2 커넥터 도트 (시작, 끝 면) */
   private buildEdgeElements(edge: GraphEdge): SVGElement[] | null {
     const path = this.buildEdgePath(edge);
     if (!path) return null;
@@ -1266,14 +1266,14 @@ export class GraphCanvas {
     const out: SVGElement[] = [];
     if (this.onEdgeClick) {
       // ★ 보이지 않는 두꺼운 선을 밑에 깐다. 1.5px 짜리 선을 정확히 찍는 건 사람에게 무리다
-      //   — 눈에 보이는 굵기와 **잡을 수 있는 굵기**는 다른 값이어야 한다.
+      //  . 눈에 보이는 굵기와 **잡을 수 있는 굵기**는 다른 값이어야 한다.
       const hit = document.createElementNS(SVG_NS, 'path');
       hit.setAttribute('class', 'ck-edge-hit');
       hit.dataset.edgeId = edge.id;
       hit.setAttribute('d', path.getAttribute('d') ?? '');
       hit.setAttribute('fill', 'none');
       hit.setAttribute('stroke', 'transparent');
-      // ★ 투명한 선은 기본 규칙(visiblePainted)에서 「안 칠해진 것」으로 취급돼 클릭을 못 받는다.
+      // ★ 투명한 선은 기본 규칙(visiblePainted)에서 안 칠해진 것으로 취급돼 클릭을 못 받는다.
       //   잡이 선은 눈에 안 보이는 게 목적이므로 규칙을 stroke 로 바꿔 준다.
       hit.setAttribute('pointer-events', 'stroke');
       hit.setAttribute('stroke-width', '14');
@@ -1302,7 +1302,7 @@ export class GraphCanvas {
   }
 
   private parseNodeRef(ref: string): string {
-    // 포트 suffix(:in/:out) 가 spec 에 남아있어도 무시 — 4면 자동 라우팅.
+    // 포트 suffix(:in/:out) 가 spec 에 남아있어도 무시. 4면 자동 라우팅.
     const idx = ref.lastIndexOf(':');
     return idx < 0 ? ref : ref.slice(0, idx);
   }
@@ -1327,10 +1327,10 @@ export class GraphCanvas {
   }
 
   /**
-   * 선 하나의 기하 — 시작·끝점과 베지어 제어점. 경로·이름표·손잡이가 **같은 계산**을 쓴다
+   * 선 하나의 기하. 시작, 끝점과 베지어 제어점. 경로, 이름표, 손잡이가 **같은 계산**을 쓴다
    * (예전엔 경로와 이름표가 따로 계산해서, 한쪽만 고치면 이름표가 선을 벗어났다).
    *
-   * `edge.curve` = 휘는 정도. 0 이면 직선에 가깝고 부호가 바뀌면 반대쪽으로 휜다 —
+   * `edge.curve` = 휘는 정도. 0 이면 직선에 가깝고 부호가 바뀌면 반대쪽으로 휜다 . 
    * 같은 두 노드를 잇는 선이 여럿일 때 겹치지 않게 하는 것도 이 값이다(Kumu 와 같은 규칙).
    */
   private edgeGeom(edge: GraphEdge): {
@@ -1340,11 +1340,11 @@ export class GraphCanvas {
     const b1 = this.getNodeBox(this.parseNodeRef(edge.from));
     const b2 = this.getNodeBox(this.parseNodeRef(edge.to));
     if (!b1 || !b2) return null;
-    // 곡선 셈법은 canvas-math 가 안다 — 여기서는 **어느 상자인지**만 찾는다.
+    // 곡선 셈법은 canvas-math 가 안다. 여기서는 **어느 상자인지**만 찾는다.
     return edgeCurve(b1, b2, edge.curve ?? 0);
   }
 
-  /** 베지어 위 한 점 (t=0~1). 이름표·손잡이 자리를 잡는 데 쓴다. */
+  /** 베지어 위 한 점 (t=0~1). 이름표, 손잡이 자리를 잡는 데 쓴다. */
   private pointOnEdge(g: { p1: { x: number; y: number }; c1: { x: number; y: number }; c2: { x: number; y: number }; p2: { x: number; y: number } }, t: number): { x: number; y: number } {
     return pointOnCubic(g, t);
   }
@@ -1364,15 +1364,15 @@ export class GraphCanvas {
   }
 
   /**
-   * 물결·금 간 선. 베지어를 직접 표본으로 떠서 법선 방향으로 흔든다 —
+   * 물결, 금 간 선. 베지어를 직접 표본으로 떠서 법선 방향으로 흔든다 . 
    * `getPointAtLength` 로 재려면 DOM 에 붙어 있어야 해서(브라우저마다 다르다),
    * 수식으로 뜨는 쪽이 확실하고 빠르다.
    */
 
   /**
-   * 메모 지시선 — 메모에서 대상(노드 또는 선)까지 잇는 옅은 점선.
+   * 메모 지시선. 메모에서 대상(노드 또는 선)까지 잇는 옅은 점선.
    * 관계선 위에 그리지 않고 **선 층 맨 뒤**에 둔다: 지시선이 관계선을 가리면
-   * 「무슨 관계인지」가 안 읽힌다. 메모가 무엇을 가리키는지는 두 번째로 중요하다.
+   * 무슨 관계인지가 안 읽힌다. 메모가 무엇을 가리키는지는 두 번째로 중요하다.
    */
   private renderLeaders(): void {
     if (!this.spec) return;
@@ -1384,7 +1384,7 @@ export class GraphCanvas {
   }
 
 
-  /** 선 위 이름표 + **양쪽의 마음**(KL-271 X1). 마음의 자리·옷은 `edge-views.ts` 가 안다. */
+  /** 선 위 이름표 + **양쪽의 마음**(KL-271 X1). 마음의 자리, 옷은 `edge-views.ts` 가 안다. */
   private buildEdgeLabels(edge: GraphEdge): SVGGElement[] {
     const kind = this.edgeKindFor(edge.kind);
     const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
@@ -1417,7 +1417,7 @@ export class GraphCanvas {
 
   private worldBounds(): { minX: number; minY: number; w: number; h: number } {
     if (!this.spec) return { minX: 0, minY: 0, w: 1200, h: 1100 };
-    // 좌표는 끌어 옮긴 값(nodeCoords)이 우선 — 저장본 좌표만 보면 방금 옮긴 것이 화면 밖에 남는다.
+    // 좌표는 끌어 옮긴 값(nodeCoords)이 우선. 저장본 좌표만 보면 방금 옮긴 것이 화면 밖에 남는다.
     const boxes = [
       ...this.spec.nodes.map((n) => {
         const c = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
@@ -1449,7 +1449,7 @@ export class GraphCanvas {
       ephemeral: this.ephemeralNodes.map((en) => ({ x: en.x, y: en.y, w: en.w, h: en.h })),
     }, bounds, proj));
 
-    // 「지금 보는 곳」 상자 — 판 밖으로 삐져나간 만큼은 셈법 쪽에서 잘라 준다.
+    // 지금 보는 곳 상자. 판 밖으로 삐져나간 만큼은 셈법 쪽에서 잘라 준다.
     const vp = viewportRectOnMap(bounds, proj, {
       tx: this.state.tx, ty: this.state.ty, scale: this.state.scale,
       w: this.svg.clientWidth || 1, h: this.svg.clientHeight || 1,
@@ -1469,7 +1469,7 @@ export class GraphCanvas {
     this.redrawMinimap();
   }
 
-  /** 배경 무늬를 화면 이동·배율에 맞춘다. 너무 축소하면 아예 끈다(모아레 방지). */
+  /** 배경 무늬를 화면 이동, 배율에 맞춘다. 너무 축소하면 아예 끈다(모아레 방지). */
   private syncBackground(): void {
     if (!this.bgRect) return;
     const { scale: s, tx, ty } = this.state;
@@ -1482,8 +1482,8 @@ export class GraphCanvas {
   }
 
   /**
-   * 편집 손잡이를 통째로 끄고 켠다 (보기 전용 링크). **숨기는 게 아니라 안 만든다** —
-   * 숨기기는 CSS 한 줄만 어긋나도 새어 나오고, 「보이지만 안 먹히는 손잡이」가 제일 나쁘다.
+   * 편집 손잡이를 통째로 끄고 켠다 (보기 전용 링크). **숨기는 게 아니라 안 만든다** . 
+   * 숨기기는 CSS 한 줄만 어긋나도 새어 나오고, 보이지만 안 먹히는 손잡이가 제일 나쁘다.
    */
   setEditable(on: boolean): void {
     this.editable = on;
@@ -1494,7 +1494,7 @@ export class GraphCanvas {
     return this.editable;
   }
 
-  /** 배경 무늬 고르기 — 점 / 모눈 / 십자 / 없음. */
+  /** 배경 무늬 고르기. 점 / 모눈 / 십자 / 없음. */
   setBackground(kind: BackgroundKind): void {
     this.background = kind;
     this.syncBackground();
@@ -1533,7 +1533,7 @@ export class GraphCanvas {
   }
 
   private scheduleSave(id: string, kind: 'node' | 'anchor' | 'group' = 'node'): void {
-    // 노드면 현재 nodeCoords 에서 최신 좌표 끌어옴 — 같은 노드 N회 호출 시 마지막 좌표 우선.
+    // 노드면 현재 nodeCoords 에서 최신 좌표 끌어옴. 같은 노드 N회 호출 시 마지막 좌표 우선.
     if (kind === 'node') {
       const c = this.nodeCoords.get(id);
       if (c) queueSave(this.pendingSaves, id, c.x, c.y, kind);
@@ -1554,19 +1554,19 @@ export class GraphCanvas {
   /**
    * 그린 것 전체를 **혼자 서는 SVG 문자열**로 뽑는다 (TASK-KL-202 격차 G).
    *
-   * 화면에 보이는 만큼이 아니라 *world bbox 전체* 를 담고, 화면용 UI(연결 손잡이·선택 테두리)는
-   * 뺀다 — 레퍼런스들이 「스크린샷 모드」로 UI 를 숨기고 사람에게 캡처를 시키는 자리인데,
+   * 화면에 보이는 만큼이 아니라 *world bbox 전체* 를 담고, 화면용 UI(연결 손잡이, 선택 테두리)는
+   * 뺀다. 레퍼런스들이 스크린샷 모드로 UI 를 숨기고 사람에게 캡처를 시키는 자리인데,
    * 여기선 그럴 필요가 없다. CSS 를 문자열째 끼워 넣어야 클래스로 준 모양이 살아남는다.
    */
   exportSVGString(opts: { padding?: number; background?: string } = {}): string {
-    // 「무엇을 걷어 내는가」는 canvas-export 가 안다 — 화면 장식이 늘 때마다 여기 조건이 붙으면
+    // 무엇을 걷어 내는가는 canvas-export 가 안다. 화면 장식이 늘 때마다 여기 조건이 붙으면
     // 언젠가 그림에 손잡이가 찍혀 나간다.
     return exportSvgString(this.svg, this.worldBounds(), { ...opts, css: GRAPH_CANVAS_CSS });
   }
 
   /**
-   * 끌고 있는 끝이 어느 노드 위인지 테두리로 알린다 — draw.io·Visio 가 연결점을 초록/파랑으로
-   * 밝히는 자리. 이 표시가 없으면 「놓았는데 안 붙었다」가 자주 난다.
+   * 끌고 있는 끝이 어느 노드 위인지 테두리로 알린다. draw.io, Visio 가 연결점을 초록/파랑으로
+   * 밝히는 자리. 이 표시가 없으면 놓았는데 안 붙었다가 자주 난다.
    */
   private linkTargetHint(clientX: number, clientY: number): void {
     const under = document.elementFromPoint(clientX, clientY);
@@ -1582,7 +1582,7 @@ export class GraphCanvas {
     this.hintEl = null;
   }
 
-  /** 화면 좌표(clientX/Y) → world 좌표. 더블클릭 자리·끌고 있는 선 끝을 잡는 데 쓴다. */
+  /** 화면 좌표(clientX/Y) → world 좌표. 더블클릭 자리, 끌고 있는 선 끝을 잡는 데 쓴다. */
   screenToWorld(clientX: number, clientY: number): { x: number; y: number } {
     const { left, top } = this.svg.getBoundingClientRect();
     return {
@@ -1593,7 +1593,7 @@ export class GraphCanvas {
 
   /**
    * 노드가 지금 **화면 어디에 있는지**(캔버스 안 좌표, px). 고른 것 옆에 작은 도구 줄을 띄우려면
-   * 이것이 필요하다 — 없으면 도구가 늘 옆 패널에 갇힌다. 안 보이는 노드면 null.
+   * 이것이 필요하다. 없으면 도구가 늘 옆 패널에 갇힌다. 안 보이는 노드면 null.
    */
   nodeScreenRect(nodeId: string): { x: number; y: number; w: number; h: number } | null {
     const box = this.getNodeBox(nodeId);
@@ -1607,7 +1607,7 @@ export class GraphCanvas {
     };
   }
 
-  /** 지금 화면이 덮고 있는 world 사각형 — 「이 화면을 한 장으로」 굳힐 때 쓴다. */
+  /** 지금 화면이 덮고 있는 world 사각형. 이 화면을 한 장으로 굳힐 때 쓴다. */
   viewRectWorld(): { x: number; y: number; w: number; h: number } {
     const { scale, tx, ty } = this.state;
     const w = (this.svg.clientWidth || 800) / scale;
@@ -1631,7 +1631,7 @@ export class GraphCanvas {
       .map((n) => n.id);
   }
 
-  /** 현재 화면 중앙에 해당하는 world 좌표 — 새 노드를 "보이는 곳" 에 놓을 때. */
+  /** 현재 화면 중앙에 해당하는 world 좌표. 새 노드를 "보이는 곳" 에 놓을 때. */
   viewCenterWorld(): { x: number; y: number } {
     const svgW = this.svg.clientWidth || 800;
     const svgH = this.svg.clientHeight || 600;
@@ -1642,11 +1642,11 @@ export class GraphCanvas {
   }
 
   /**
-   * 포커스 — 준 id 들만 또렷하게 두고 나머지는 흐린다 (TASK-KL-202 격차 M).
+   * 포커스. 준 id 들만 또렷하게 두고 나머지는 흐린다 (TASK-KL-202 격차 M).
    * Kumu 의 focus 처럼 **지우지 않고 잠깐 가린다**: 노드가 수십 개를 넘으면 그리기보다
-   * 「지금 볼 것만 보기」가 문제가 된다. `null` 이면 전부 또렷.
+   * 지금 볼 것만 보기가 문제가 된다. `null` 이면 전부 또렷.
    *
-   * 선은 **양끝이 모두 포커스 안일 때만** 살린다 — 한쪽만 걸린 선을 남기면 흐린 노드로
+   * 선은 **양끝이 모두 포커스 안일 때만** 살린다. 한쪽만 걸린 선을 남기면 흐린 노드로
    * 향하는 선이 허공에 뜬 것처럼 보인다.
    */
   setFocus(ids: Set<string> | null): void {
@@ -1680,7 +1680,7 @@ export class GraphCanvas {
     this.render();
   }
 
-  /** 꾸미기 규칙. 지금은 「연결 수만큼 크게」 하나. */
+  /** 꾸미기 규칙. 지금은 연결 수만큼 크게 하나. */
   setDecorate(next: { sizeByDegree?: boolean; colorByTag?: boolean; colorByField?: string }): void {
     this.decorate = {
       sizeByDegree: next.sizeByDegree ?? false,
@@ -1691,8 +1691,8 @@ export class GraphCanvas {
   }
 
   /**
-   * 노드 색. 「꼬리표로 색 입히기」가 켜져 있고 꼬리표가 있으면 **첫 꼬리표**의 색을 쓴다.
-   * 꼬리표는 사람이 아무 말이나 붙이는 칸이라 색을 미리 정해 둘 수 없다 — 이름에서 **정해진 방식으로**
+   * 노드 색. 꼬리표로 색 입히기가 켜져 있고 꼬리표가 있으면 **첫 꼬리표**의 색을 쓴다.
+   * 꼬리표는 사람이 아무 말이나 붙이는 칸이라 색을 미리 정해 둘 수 없다. 이름에서 **정해진 방식으로**
    * 뽑아 쓴다(같은 말이면 언제나 같은 색, 맵을 바꿔도 같다).
    */
   private nodeColor(node: GraphNode): string {
@@ -1709,23 +1709,23 @@ export class GraphCanvas {
     );
   }
 
-  /** 화면에 그려지는 실제 폭 — 배율 반영. 선 앵커·묶음 상자도 이 값을 봐야 어긋나지 않는다. */
+  /** 화면에 그려지는 실제 폭. 배율 반영. 선 앵커, 묶음 상자도 이 값을 봐야 어긋나지 않는다. */
   private effW(node: GraphNode): number {
     return node.w * this.sizeScale(node.id);
   }
 
-  /** 지금 화면에 남아 있는 노드 id — 거르기까지 반영한 것. */
+  /** 지금 화면에 남아 있는 노드 id. 거르기까지 반영한 것. */
   visibleNodeIds(): Set<string> {
     return new Set(this.visibleNodes().map((n) => n.id));
   }
 
-  /** 거르기를 통과한 노드들. 렌더·선 그리기가 모두 이걸 기준으로 삼는다. */
+  /** 거르기를 통과한 노드들. 렌더, 선 그리기가 모두 이걸 기준으로 삼는다. */
   private visibleNodes(): GraphNode[] {
-    // 무엇이 남나(종류·꼬리표·칸·연결 수 하한)는 canvas-filter 가 안다.
+    // 무엇이 남나(종류, 꼬리표, 칸, 연결 수 하한)는 canvas-filter 가 안다.
     return visibleNodes(this.spec?.nodes ?? [], this.spec?.edges ?? [], this.filter, (ref) => this.parseNodeRef(ref));
   }
 
-  /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
+  /** 선택 표시. 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
   setSelectedNode(nodeId: string | null): void {
     this.selectedIds = nodeId ? new Set([nodeId]) : new Set();
     this.paintSelection();
@@ -1737,14 +1737,14 @@ export class GraphCanvas {
     this.paintSelection();
   }
 
-  /** 지금 고른 노드들. 키보드 조작이 「무엇에」 하는지 알아야 한다. */
+  /** 지금 고른 노드들. 키보드 조작이 무엇에 하는지 알아야 한다. */
   getSelectedNodes(): string[] {
     return [...this.selectedIds];
   }
 
   /**
    * 고른 노드를 방향키로 민다 (TASK-KL-202 격차 X). 마우스 드래그와 **같은 길**로 흘려보내
-   * 저장·되돌리기가 저절로 따라오게 한다.
+   * 저장, 되돌리기가 저절로 따라오게 한다.
    */
   nudgeSelected(dx: number, dy: number): boolean {
     if (this.selectedIds.size === 0) return false;
@@ -1767,8 +1767,8 @@ export class GraphCanvas {
   }
 
   /**
-   * 다음(또는 이전) 노드로 옮겨 고른다. 화면에 보이는 것만 돈다 —
-   * 걸러 놓은 것으로 옮겨 가면 「고른 게 어디 있는지」를 잃는다.
+   * 다음(또는 이전) 노드로 옮겨 고른다. 화면에 보이는 것만 돈다 . 
+   * 걸러 놓은 것으로 옮겨 가면 고른 게 어디 있는지를 잃는다.
    */
   selectStep(delta: 1 | -1): string | null {
     const list = this.visibleNodes();
@@ -1782,11 +1782,11 @@ export class GraphCanvas {
     return next.id;
   }
 
-  /** 노드가 화면 밖이면 그쪽으로 화면만 민다(배율은 그대로 — 키를 누를 때마다 줌이 바뀌면 어지럽다). */
+  /** 노드가 화면 밖이면 그쪽으로 화면만 민다(배율은 그대로. 키를 누를 때마다 줌이 바뀌면 어지럽다). */
   private fitIntoView(nodeId: string): void {
     const b = this.getNodeBox(nodeId);
     if (!b) return;
-    /* 얼마나 밀지는 canvas-camera 가 안다 — 여기는 그 값을 받아 적용만 한다. */
+    /* 얼마나 밀지는 canvas-camera 가 안다. 여기는 그 값을 받아 적용만 한다. */
     const moved = nudgeIntoView(b, { w: this.svg.clientWidth || 800, h: this.svg.clientHeight || 600 }, this.state);
     this.state.tx = moved.tx;
     this.state.ty = moved.ty;
@@ -1799,7 +1799,7 @@ export class GraphCanvas {
       const g = el as SVGGElement;
       const id = g.dataset.id ?? '';
       g.classList.toggle('is-selected', this.selectedIds.has(id));
-      // 크기 손잡이는 **고른 카드 하나에만** 붙는다. 통째 다시 그리면 타자 중에 화면이 튄다 —
+      // 크기 손잡이는 **고른 카드 하나에만** 붙는다. 통째 다시 그리면 타자 중에 화면이 튄다 . 
       // 그래서 그 카드에만 넣고 뺀다.
       const has = g.querySelector('.ck-size-handle');
       if (id === only && !has && this.editable) {
@@ -1813,12 +1813,12 @@ export class GraphCanvas {
   }
 
   /** 뷰를 world bbox 에 맞게 fit. */
-  /** 준 노드들만 화면에 꽉 채운다 — 발표에서 「이 장의 인물들」로 줌인할 때. */
+  /** 준 노드들만 화면에 꽉 채운다. 발표에서 이 장의 인물들로 줌인할 때. */
   /**
    * 화면을 목표 자리로 **미끄러뜨린다** (TASK-KL-202, Prezi 계보). 장에서 장으로 톡 끊어 점프하면
-   * 「어디에서 어디로 갔는지」가 안 남아 발표를 듣는 쪽이 매번 지도를 다시 그린다.
+   * 어디에서 어디로 갔는지가 안 남아 발표를 듣는 쪽이 매번 지도를 다시 그린다.
    *
-   * 새 이동이 들어오면 앞 이동은 그 자리에서 접는다 — 두 트윈이 겹치면 화면이 떤다.
+   * 새 이동이 들어오면 앞 이동은 그 자리에서 접는다. 두 트윈이 겹치면 화면이 떤다.
    * 사람이 손으로 끌면(=다음 pointerdown) 트윈은 스스로 물러난다.
    */
   private editable = true;
@@ -1830,7 +1830,7 @@ export class GraphCanvas {
     const t0 = performance.now();
     const step = (now: number): void => {
       const k = Math.min(1, (now - t0) / ms);
-      // ease-in-out — 시작과 끝이 부드러워야 「빨려 들어갔다 놓인다」로 읽힌다.
+      // ease-in-out. 시작과 끝이 부드러워야 빨려 들어갔다 놓인다로 읽힌다.
       const e = k < 0.5 ? 2 * k * k : 1 - ((-2 * k + 2) ** 2) / 2;
       this.state.tx = from.tx + (target.tx - from.tx) * e;
       this.state.ty = from.ty + (target.ty - from.ty) * e;
@@ -1876,20 +1876,20 @@ export class GraphCanvas {
   fitView(): void {
     const b = this.worldBounds();
     if (b.w <= 0 || b.h <= 0) return;
-    // 셈은 `cameraForRect` 하나만 안다 — 여기서 또 세면 「전체 보기」와 발표 카메라가 갈라진다.
+    // 셈은 `cameraForRect` 하나만 안다. 여기서 또 세면 전체 보기와 발표 카메라가 갈라진다.
     Object.assign(this.state, cameraForRect({ x: b.minX, y: b.minY, w: b.w, h: b.h },
       this.svg.clientWidth || 800, this.svg.clientHeight || 600, 60, 1));
     this.applyTransform();
   }
 
-  /** 화면 **가운데를 붙잡고** 확대·축소. 단추로 누를 때 쓰는 길이다(휠은 커서 자리를 붙잡는다). */
+  /** 화면 **가운데를 붙잡고** 확대, 축소. 단추로 누를 때 쓰는 길이다(휠은 커서 자리를 붙잡는다). */
   zoomBy(factor: number): void {
     const at = { x: (this.svg.clientWidth || 800) / 2, y: (this.svg.clientHeight || 600) / 2 };
     Object.assign(this.state, zoomAt(this.state, factor, at));
     this.applyTransform();
   }
 
-  /** 지금 배율. 화면에 「100%」로 보여 주려면 필요하다. */
+  /** 지금 배율. 화면에 100%로 보여 주려면 필요하다. */
   getScale(): number {
     return this.state.scale;
   }

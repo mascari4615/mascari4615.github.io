@@ -5,7 +5,7 @@ last_modified_at: "2025-05-28T21:30:00+09:00"
 categories: [컴퓨터, 소프트웨어]
 tags: [유니티]
 image: /assets/img/background/20240827-140647.jpg
-hidden: true
+board: info
 ---
 
 ## 머리말

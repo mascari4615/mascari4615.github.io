@@ -16,7 +16,7 @@
   "reaction.t13": "나보다 느려요 ㅋ",
   "reaction.t14": "초고속 반응 200ms",
   "reaction.t15": "번개 반응 150ms",
-  "reaction.triesAvg": "{n}번 시도 · 평균 {avg}ms",
+  "reaction.triesAvg": "{n}번 시도, 평균 {avg}ms",
   "reaction.best": "최고 기록: {ms}ms",
-  "reaction.avgTries": "평균: {avg}ms · {n}회 시도"
+  "reaction.avgTries": "평균: {avg}ms, {n}회 시도"
 }

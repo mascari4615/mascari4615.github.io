@@ -86,7 +86,7 @@ test('주기가 넘어가면 순서가 새로 섞인다', () => {
   assert.notDeepEqual(first, second);
 });
 
-test('숫자는 위·아래를 알려주고, 가까우면 노랑이다', () => {
+test('숫자는 위, 아래를 알려주고, 가까우면 노랑이다', () => {
   const f = topic.fields[0];
   assert.deepEqual(compareField(f, 1, 1), { state: 'exact', dir: null });
   assert.deepEqual(compareField(f, 1, 3), { state: 'wrong', dir: 'up' });
@@ -119,7 +119,7 @@ test('공유 글에 정답 이름이 안 들어간다', () => {
 });
 
 test('시도 수는 줄 수가 아니라 따로 받는다', () => {
-  // 실루엣은 한 줄에 눕혀 그린다 — 줄 수로 세면 3번 두고도 1/6 으로 찍힌다 (실제로 그랬다).
+  // 실루엣은 한 줄에 눕혀 그린다. 줄 수로 세면 3번 두고도 1/6 으로 찍힌다 (실제로 그랬다).
   const rows = [[{ state: 'wrong' }, { state: 'wrong' }, { state: 'exact' }]];
   assert.match(shareText({ title: 'x', puzzleNo: 1, rows, won: true, maxGuesses: 6, tries: 3 }), /3\/6/);
   assert.match(shareText({ title: 'x', puzzleNo: 1, rows, won: true, maxGuesses: 6 }), /1\/6/, '안 주면 줄 수로 센다');
@@ -149,7 +149,7 @@ test('모드가 다르면 같은 날에도 정답이 다르다', () => {
 });
 
 test('소금 없는 정답은 예전과 같은 값이다', () => {
-  // 씨앗 모양을 바꾸면 이미 두고 있던 사람의 오늘 정답이 바뀐다 — 회귀 차단.
+  // 씨앗 모양을 바꾸면 이미 두고 있던 사람의 오늘 정답이 바뀐다. 회귀 차단.
   assert.equal(dailyIndex('test', 100, 3), dailyIndex('test', 100, 3, ''));
 });
 
@@ -181,11 +181,11 @@ test('오늘을 아직 안 풀었어도 어제까지의 연속은 살아 있다'
   assert.equal(liveStreak(s, 32), 0, '하루 걸렀으면 죽었다');
 });
 
-test('연속은 판이 아니라 하루 단위다 — 아무 판이나 하나면 이어진다', () => {
+test('연속은 판이 아니라 하루 단위다. 아무 판이나 하나면 이어진다', () => {
   // 판마다 세면 판이 늘수록 끊기기 쉬워진다. 매일 와도 안 쌓이면 장치가 헛돈다.
   let s = touchDay(null, 10);
   assert.equal(s.streak, 1);
-  s = touchDay(s, 10); // 같은 날 다른 판 — 또 세지 않는다
+  s = touchDay(s, 10); // 같은 날 다른 판. 또 세지 않는다
   assert.equal(s.streak, 1);
   assert.equal(s.days, 1);
   s = touchDay(s, 11);
@@ -195,16 +195,16 @@ test('연속은 판이 아니라 하루 단위다 — 아무 판이나 하나면
   assert.equal(s.best, 2);
 });
 
-test('졌어도 연속은 이어진다 — 온 것 자체가 기록이다', () => {
+test('졌어도 연속은 이어진다. 온 것 자체가 기록이다', () => {
   const s = touchDay(touchDay(null, 3), 4);
   assert.equal(s.streak, 2);
   assert.equal(liveStreak(s, 5), 2, '오늘이 끝나야 끊긴다');
   assert.equal(liveStreak(s, 6), 0);
 });
 
-test('한 줄을 말로도 알려 준다 — 색과 화살표는 눈에만 보인다', () => {
-  const answer = topic.items[0]; // 가: 1세대, 풀·독, 초록, 10
-  const cells = compareItem(topic, topic.items[2], answer); // 다: 3세대, 독·물, 파랑, 11
+test('한 줄을 말로도 알려 준다. 색과 화살표는 눈에만 보인다', () => {
+  const answer = topic.items[0]; // 가: 1세대, 풀, 독, 초록, 10
+  const cells = compareItem(topic, topic.items[2], answer); // 다: 3세대, 독, 물, 파랑, 11
   const said = describeRow(topic.fields, cells, '다');
   assert.match(said, /^다: /);
   assert.match(said, /세대 3, 정답은 더 작음/);
@@ -218,7 +218,7 @@ test('맞은 칸은 맞았다고 말한다', () => {
   assert.match(describeRow(topic.fields, compareItem(topic, answer, answer), '가'), /세대 1 맞음/);
 });
 
-test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다', () => {
+test('이름 찾기는 대소문자, 공백을 봐주고, 없으면 null 이다', () => {
   const items = [{ name: 'Aatrox' }];
   assert.equal(findItem(items, ' aatrox ')?.name, 'Aatrox');
   assert.equal(findItem(items, '없음'), null);
@@ -227,7 +227,7 @@ test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다'
 test('연습으로 열 수 있는 날은 어제까지, 1번 문제 이후만', () => {
   const now = new Date('2026-08-07T10:00:00+09:00');
   assert.ok(practiceDate('2026-08-06', now), '어제는 된다');
-  assert.equal(practiceDate('2026-08-07', now), null, '오늘은 안 된다 — 열리면 오늘 답이 샌다');
+  assert.equal(practiceDate('2026-08-07', now), null, '오늘은 안 된다. 열리면 오늘 답이 샌다');
   assert.equal(practiceDate('2026-08-08', now), null, '내일도 안 된다');
   assert.equal(practiceDate('2025-12-31', now), null, '1번 문제 이전은 없던 날이다');
   assert.ok(practiceDate('2026-01-01', now), '1번 문제 당일은 된다');
@@ -240,8 +240,8 @@ test('이상한 날짜 문자열은 그냥 무시한다', () => {
 });
 
 test('띄어 쓴 이름을 붙여 쳐도 찾아진다', () => {
-  // 「누누와 윌럼프」·「미스터 마임」·「라이덴 쇼군」 처럼 띄어 쓴 이름이 22개다.
-  // 사람은 대개 붙여 친다 — 붙여 쳤다고 못 찾으면 그건 우리 잘못이다.
+  // 누누와 윌럼프, 미스터 마임, 라이덴 쇼군 처럼 띄어 쓴 이름이 22개다.
+  // 사람은 대개 붙여 친다. 붙여 쳤다고 못 찾으면 그건 우리 잘못이다.
   const items = [{ name: '누누와 윌럼프' }, { name: '미스터 마임' }, { name: '문도 박사' }];
   assert.equal(findItem(items, '누누와윌럼프')?.name, '누누와 윌럼프');
   assert.equal(suggest(items, '미스터마')[0]?.name, '미스터 마임');
@@ -256,10 +256,10 @@ test('이미 낸 답은 띄어쓰기가 달라도 다시 안 나온다', () => {
 
 
 test('남은 기회를 말이 되게 적는다', () => {
-  // 「0번째 시도」는 말이 안 된다 — 실제로 그렇게 떠 있었다.
+  // 0번째 시도는 말이 안 된다. 실제로 그렇게 떠 있었다.
   assert.equal(triesLabel(0, 8), '8번 안에 맞히기');
-  assert.equal(triesLabel(1, 8), '1번 썼다 · 7번 남음');
-  assert.equal(triesLabel(5, 6), '5번 썼다 · 마지막 한 번');
+  assert.equal(triesLabel(1, 8), '1번 썼다, 7번 남음');
+  assert.equal(triesLabel(5, 6), '5번 썼다, 마지막 한 번');
   assert.equal(triesLabel(6, 6), '6번 다 썼다');
   assert.equal(triesLabel(9, 6), '6번 다 썼다', '넘겨 세어도 음수는 안 나온다');
 });
@@ -270,7 +270,7 @@ test('첫 자음만 쳐도 찾아진다', () => {
   // 자음 하나만 쳐도 (IME 가 조합 중일 때 실제로 이렇게 들어온다) 후보가 나온다.
   // 앞에서 걸린 것이 먼저, 가운데서 걸린 것(윌럼프의 ㅍ)이 뒤.
   assert.deepEqual(suggest(items, 'ㅍ').map((i) => i.name), ['피카츄', '파이리', '누누와 윌럼프']);
-  // 띄어쓰기는 무시한다 — 사람은 대개 붙여 친다.
+  // 띄어쓰기는 무시한다. 사람은 대개 붙여 친다.
   assert.deepEqual(suggest(items, 'ㄴㄴㅇㅇㄹㅍ').map((i) => i.name), ['누누와 윌럼프']);
   // 첫 자음이 아닌 보통 검색은 그대로여야 한다.
   assert.deepEqual(suggest(items, '피카').map((i) => i.name), ['피카츄']);
@@ -289,17 +289,17 @@ test('그날로 못 가면 왜인지 말해 준다', () => {
 });
 
 test('연속이 끊기면 끊겼다고 말한다', () => {
-  // 불꽃만 조용히 사라지면 본인은 기록이 왜 없어졌는지 모른다 — 자기 기록이니 자기가 알아야 한다.
+  // 불꽃만 조용히 사라지면 본인은 기록이 왜 없어졌는지 모른다. 자기 기록이니 자기가 알아야 한다.
   assert.equal(streakLine({ streak: 3, best: 5, lastDay: 100 }, 100), '🔥 3일 연속');
   assert.equal(streakLine({ streak: 3, best: 5, lastDay: 99 }, 100), '🔥 3일 연속', '오늘이 끝나야 끊긴다');
-  assert.match(streakLine({ streak: 3, best: 5, lastDay: 96 }, 100), /끊겼어요 \(최고 5일 · 3일 걸렀다\)/);
+  assert.match(streakLine({ streak: 3, best: 5, lastDay: 96 }, 100), /끊겼어요 \(최고 5일, 3일 걸렀다\)/);
   assert.equal(streakLine(null, 100), '', '한 번도 안 온 사람에겐 아무 말도 안 한다');
   assert.equal(streakLine({ streak: 0, best: 0, lastDay: null }, 100), '');
 });
 
 // ── 나열형 (TASK-KL-197) ────────────────────────────────────────────────────
 
-/** 나열형은 정답이 여럿이라 표가 커야 성립한다 — 시험용으로 하나 더 만든다. */
+/** 나열형은 정답이 여럿이라 표가 커야 성립한다. 시험용으로 하나 더 만든다. */
 const listTopic = {
   id: 'list-test',
   title: '시험',
@@ -316,14 +316,14 @@ const listTopic = {
   })),
 };
 
-test('질문은 표에서 파생된다 — 사람이 안 쓴다', () => {
+test('질문은 표에서 파생된다. 사람이 안 쓴다', () => {
   const qs = listQuestions(listTopic);
   const byId = new Map(qs.map((q) => [q.id, q]));
   assert.equal(byId.get('color=초록').answers.length, 8);
   assert.equal(byId.get('color=초록').text, '색이 초록인 시험');
   assert.equal(byId.get('types=불').answers.length, 10, 'set 은 원소가 들어 있으면 든다');
   assert.equal(byId.get('types=불').text, '타입에 불이 있는 시험');
-  assert.ok(!byId.has('types=물'), '20개 전부가 답이면 물어볼 게 없다 — 그런 질문은 안 선다');
+  assert.ok(!byId.has('types=물'), '20개 전부가 답이면 물어볼 게 없다. 그런 질문은 안 선다');
 });
 
 test('조사는 받침을 보고 고른다', () => {
@@ -332,11 +332,11 @@ test('조사는 받침을 보고 고른다', () => {
     fields: [{ key: 'weapon', label: '무기', kind: 'category' }],
     items: listTopic.items.map((it, i) => ({ ...it, weapon: i < 10 ? '활' : '검' })),
   }).find((q) => q.id === 'weapon=활').text;
-  assert.equal(text, '무기가 활인 시험', '받침 없는 「무기」 뒤엔 「가」');
+  assert.equal(text, '무기가 활인 시험', '받침 없는 무기 뒤엔 가');
 });
 
 test('사람이 못 외우는 숫자는 질문이 안 된다', () => {
-  // 나열형은 분류 축에서만 성립한다 — 「체력 107 인 것 전부」는 답이 있어도 아무도 못 댄다.
+  // 나열형은 분류 축에서만 성립한다. 체력 107 인 것 전부는 답이 있어도 아무도 못 댄다.
   assert.equal(listQuestions(listTopic).filter((q) => q.id.startsWith('hp')).length, 0, '값이 20가지면 정렬 축이다');
   const graded = {
     ...listTopic,
@@ -353,7 +353,7 @@ test('오늘의 질문은 하루 종일 같고 판마다 다르다', () => {
   const night = listQuestionOf(listTopic, new Date('2026-08-07T23:00:00+09:00'));
   assert.equal(morning.id, night.id);
   const one = answerOf(listTopic, new Date('2026-08-07T12:00:00+09:00'));
-  assert.ok(one.name, '같은 날 「하나 맞히기」 정답과 별개로 선다');
+  assert.ok(one.name, '같은 날 하나 맞히기 정답과 별개로 선다');
 });
 
 test('오타와 조건 밖은 다른 말이다', () => {
@@ -398,7 +398,7 @@ test('나열형 공유 글에는 정답 이름이 없다', () => {
 
 // ── 격자판 (TASK-KL-199) ────────────────────────────────────────────────────
 
-/** 축 둘이 서로 다른 갈래여야 격자가 선다 — 시험용 표도 그렇게 만든다. */
+/** 축 둘이 서로 다른 갈래여야 격자가 선다. 시험용 표도 그렇게 만든다. */
 const gridTopic = {
   id: 'grid-test',
   title: '시험',
@@ -418,7 +418,7 @@ const gridTopic = {
 };
 
 test('격자는 아홉 칸 전부 답을 갖는다', () => {
-  // 한 칸이라도 비면 그 판은 못 깬다 — 만들 때 확인 안 하면 푸는 사람이 발견한다.
+  // 한 칸이라도 비면 그 판은 못 깬다. 만들 때 확인 안 하면 푸는 사람이 발견한다.
   const puzzle = gridPuzzleOf(gridTopic);
   assert.ok(puzzle, '표가 충분한데 판이 안 섰다');
   assert.equal(puzzle.rows.length, 3);
@@ -434,7 +434,7 @@ test('격자는 하루 종일 같고 날이 바뀌면 달라진다', () => {
   assert.ok(ids.size > 1, '이레 내내 같은 격자면 매일 올 이유가 없다');
 });
 
-test('축을 못 세우는 표에서는 판이 안 선다 — 억지로 만들지 않는다', () => {
+test('축을 못 세우는 표에서는 판이 안 선다. 억지로 만들지 않는다', () => {
   const flat = { id: 'flat', title: '민', fields: [{ key: 'color', label: '색', kind: 'category' }], items: [{ name: 'a', color: '빨강' }, { name: 'b', color: '빨강' }] };
   assert.equal(gridPuzzleOf(flat), null);
   assert.equal(hasGridMode(flat), false);
@@ -454,7 +454,7 @@ test('칸이 아닌 답과 표에 없는 이름은 다른 말이다', () => {
   assert.equal(gridJudge(gridTopic, puzzle, 0, 0, '없는것', []).status, 'unknown');
 });
 
-test('격자 칸의 질문 id 는 두 조건이다 — 희귀도 집계를 그대로 탄다', () => {
+test('격자 칸의 질문 id 는 두 조건이다. 희귀도 집계를 그대로 탄다', () => {
   const puzzle = gridPuzzleOf(gridTopic);
   assert.equal(gridCellQuestionId(puzzle, 1, 2), `${puzzle.rows[1].id}&${puzzle.cols[2].id}`);
 });

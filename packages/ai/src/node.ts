@@ -1,6 +1,6 @@
 /**
  * Node 전용 public entrypoint.
- * 브라우저 번들에 포함하지 말 것 — `import '@karmo/ai/node'`.
+ * 브라우저 번들에 포함하지 말 것. `import '@karmo/ai/node'`.
  */
 export type { GoogleGenerativeSurface } from './index';
 export * from './node/text';

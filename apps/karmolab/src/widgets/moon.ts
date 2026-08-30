@@ -7,7 +7,7 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'moon',
     title: t('widgets.moon.title', undefined, "달 위상"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.moon.desc', undefined, "오늘의 달 위상을 확인합니다"),
     layout: 'form',
     icon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.5" fill="none"/>',

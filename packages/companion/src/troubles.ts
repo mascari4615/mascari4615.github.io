@@ -2,18 +2,18 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 /**
- * 잘못된 것 모으기 — 고치려면 먼저 보여야 한다.
+ * 잘못된 것 모으기. 고치려면 먼저 보여야 한다.
  *
  * 레퍼런스 쪽에서 만든 사람이 하는 일이 그것이다: **실패를 보고 고친다.** 검색 결과를 그대로
  * 읊는 걸 보고 그 기능을 껐고, 무너지는 걸 보고 코드를 고쳤다. 관찰이 먼저다.
  *
- * 우리 얘도 실패한다 — 입 앞에서 걸리고(19·37·40회차), 손을 못 쓰고, 두뇌가 죽는다.
+ * 우리 얘도 실패한다. 입 앞에서 걸리고(19, 37, 40회차), 손을 못 쓰고, 두뇌가 죽는다.
  * **그런데 그게 전부 로그로만 흘러간다.** 나는 회차마다 로그를 들여다보지만 **조수님은
- * 볼 방법이 없다.** 35회차의 발동 기록은 「무엇이 켜졌나」를 보여 주고, 여기는 그 짝인
- * **「무엇이 잘못됐나」**다.
+ * 볼 방법이 없다.** 35회차의 발동 기록은 무엇이 켜졌나를 보여 주고, 여기는 그 짝인
+ * **무엇이 잘못됐나**다.
  *
- * **숫자만 세지 않는다.** 「걸림 12번」만 있으면 뭘 고쳐야 할지 모른다. 가장 최근 몇 개는
- * **실제 문장까지** 남긴다 — 고치는 데 필요한 건 셈이 아니라 그 자리다.
+ * **숫자만 세지 않는다.** 걸림 12번만 있으면 뭘 고쳐야 할지 모른다. 가장 최근 몇 개는
+ * **실제 문장까지** 남긴다. 고치는 데 필요한 건 셈이 아니라 그 자리다.
  */
 export type TroubleKind = '걸림' | '못함' | '늦음' | '죽음';
 
@@ -55,7 +55,7 @@ export class Troubles {
     this.counts.set(kind, (this.counts.get(kind) ?? 0) + 1);
     this.recent.push({ kind, what: what.trim().slice(0, 120), at: (this.options.now ?? (() => Date.now()))() });
 
-    // 종류마다 몇 개씩만 남긴다 — 한 종류가 쏟아지면 다른 종류가 통째로 밀려난다.
+    // 종류마다 몇 개씩만 남긴다. 한 종류가 쏟아지면 다른 종류가 통째로 밀려난다.
     const keep = this.options.keepEach ?? 3;
     const toKeep: Trouble[] = [];
     for (const k of ['걸림', '못함', '늦음', '죽음'] as TroubleKind[]) {
@@ -86,7 +86,7 @@ export class Troubles {
 /**
  * 사람이 읽는 표.
  *
- * **잦은 것을 위에** 둔다 — 한 번 있었던 일보다 자꾸 나는 일이 고칠 거리다.
+ * **잦은 것을 위에** 둔다. 한 번 있었던 일보다 자꾸 나는 일이 고칠 거리다.
  */
 export function troublesReport(troubles: Troubles): string {
   const kind2 = (['걸림', '못함', '늦음', '죽음'] as TroubleKind[])
@@ -96,7 +96,7 @@ export function troublesReport(troubles: Troubles): string {
 
   if (kind2.length === 0) return '아직 걸린 게 없다.';
 
-  const head = kind2.map((x) => `${x.k} ${x.n}번`).join(' · ');
+  const head = kind2.map((x) => `${x.k} ${x.n}번`).join(', ');
   const slots = [...troubles.all]
     .sort((a, b) => b.at - a.at)
     .map((t) => `  [${t.kind}] ${t.what}`)

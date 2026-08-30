@@ -55,7 +55,7 @@ export const snakeView: GameView<SnakeState, SnakeAction> = {
       if (!c) return;
       const k = cv.width / W;
       c.setTransform(k, 0, 0, k, 0, 0);
-      /* 바닥 — 어두운 판에 옅은 모눈. 새까만 사각형 하나면 어디가 한 칸인지 안 보인다. */
+      /* 바닥. 어두운 판에 옅은 모눈. 새까만 사각형 하나면 어디가 한 칸인지 안 보인다. */
       const floor = c.createLinearGradient(0, 0, W, H);
       floor.addColorStop(0, '#18202e');
       floor.addColorStop(1, '#0e141d');
@@ -70,7 +70,7 @@ export const snakeView: GameView<SnakeState, SnakeAction> = {
         c.beginPath(); c.moveTo(0, i); c.lineTo(W, i); c.stroke();
       }
 
-      /* 먹이 = 빛나는 알 — 어두운 판에서 눈이 먼저 가야 하는 것. */
+      /* 먹이 = 빛나는 알. 어두운 판에서 눈이 먼저 가야 하는 것. */
       for (const f of s.food) {
         const fx = (f % W) + 0.5;
         const fy = Math.floor(f / W) + 0.5;
@@ -87,7 +87,7 @@ export const snakeView: GameView<SnakeState, SnakeAction> = {
       s.snakes.forEach((sn, i) => {
         const col = SEAT_COLOR[i % 4];
         c.globalAlpha = sn.alive ? 1 : 0.3;
-        /* 몸은 **꼬리로 갈수록 어두워진다** — 어디가 머리인지 한눈에 보인다. */
+        /* 몸은 **꼬리로 갈수록 어두워진다**. 어디가 머리인지 한눈에 보인다. */
         sn.body.forEach((cell, k2) => {
           const x = cell % W;
           const y = Math.floor(cell / W);
@@ -99,7 +99,7 @@ export const snakeView: GameView<SnakeState, SnakeAction> = {
           c.roundRect(x + pad, y + pad, 1 - pad * 2, 1 - pad * 2, r);
           c.fill();
         });
-        /* 머리는 알로 — 몸과 같은 색이되 빛을 받는다. */
+        /* 머리는 알로. 몸과 같은 색이되 빛을 받는다. */
         const head = sn.body[0];
         if (head !== undefined) orb(c, (head % W) + 0.5, Math.floor(head / W) + 0.5, 0.42, col, '#ffffff', false);
         if (i === mySeat && sn.alive) {

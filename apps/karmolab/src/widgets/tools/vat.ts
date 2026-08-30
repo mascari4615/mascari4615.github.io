@@ -1,9 +1,9 @@
 /**
  * 부가세 계산기 (TASK-KL-088)
  *
- * 「11만원에서 부가세는 1만원」 인데 「10만원의 10%도 1만원」 이라 헷갈린다 —
+ * 11만원에서 부가세는 1만원 인데 10만원의 10%도 1만원 이라 헷갈린다 . 
  * 공급가에서 더할 때와 총액에서 뺄 때 나누는 수가 다르기 때문이다(1.1 로 나눠야 한다).
- * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가·세액·합계)을 낸다.
+ * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가, 세액, 합계)을 낸다.
  */
 import { spec, vatAdd, vatExtract,  type Rounding } from '../../core/vat';
 import { escapeHtml as esc } from './shared/text';
@@ -13,7 +13,7 @@ import { readInvocation } from '../../lib/tool-url';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
-  /* 돈은 **보는 사람의 언어로** 적되 통화는 KRW 그대로다 — 한국 부가세 계산이라 달러로
+  /* 돈은 **보는 사람의 언어로** 적되 통화는 KRW 그대로다. 한국 부가세 계산이라 달러로
    * 바꿔 적으면 거짓말이 된다. core 의 `won` 은 MCP 글자 출력이 쓰므로 안 건드린다. */
   const won = (n: number): string =>
     new Intl.NumberFormat(locale(), { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(
@@ -24,7 +24,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   Toolbox.register({
     id: 'vat',
     title: t('widgets.vat.title', undefined, "부가세 계산기"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.vat.desc', undefined, "공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로"),
     layout: 'form',
     icon: '<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 4h10a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -72,7 +72,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           const label = $<HTMLElement>('#vaLabel');
           const stats = $<HTMLElement>('#vaStats');
           const out = $<HTMLElement>('#vaOut');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(out);
           let mode = 'add';
           let last = { supply: 0, tax: 0, total: 0 };
@@ -83,8 +83,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           let rounding: Rounding = 'floor';
 
           function run(): void {
-            /* 계산은 `src/core/vat.ts` 가 한다 — 「1원 미만을 어떻게 하나」와
-               「공급가 + 세액 = 합계 를 맞추는 순서」가 거기 있다 (TASK-KL-205). */
+            /* 계산은 `src/core/vat.ts` 가 한다. 1원 미만을 어떻게 하나와
+               공급가 + 세액 = 합계 를 맞추는 순서가 거기 있다 (TASK-KL-205). */
             const v = parseFloat(amount.value) || 0;
             const ratePercent = parseFloat(rateEl.value) || 0;
             const r = mode === 'add' ? vatAdd(v, ratePercent, rounding) : vatExtract(v, ratePercent, rounding);
@@ -129,7 +129,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
               { message: t('vat.copy.done') }
             );
           };
-          // 주소로 부른 경우 (`?op=extract&amount=1100000`) — 아니면 예시 (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=extract&amount=1100000`). 아니면 예시 (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined) {
             if (call.op === 'extract') {

@@ -32,7 +32,7 @@ const infra = {
 };
 const fixture = JSON.stringify({ projects: [infra, wm] });
 
-describe('parsePortfolio (순수·견고)', () => {
+describe('parsePortfolio (순수, 견고)', () => {
   it('정상 파싱 + 필드 보존', () => {
     const p = parsePortfolio(fixture);
     expect(p.projects).toHaveLength(2);
@@ -62,7 +62,7 @@ describe('parsePortfolio (순수·견고)', () => {
   });
 });
 
-describe('topProject (weight 라우팅 — 영구기관 차단)', () => {
+describe('topProject (weight 라우팅. 영구기관 차단)', () => {
   it('weight 최대 active 선택, 도구적은 으뜸을 못 이김', () => {
     const p = parsePortfolio(fixture);
     expect(topProject(p)?.id).toBe('wm'); // 100 > 40(instrumental)
@@ -107,7 +107,7 @@ describe('validateProjectCitation (LT-2 게이트)', () => {
   });
 });
 
-describe('프롬프트/투영 (바운드·결정적)', () => {
+describe('프롬프트/투영 (바운드, 결정적)', () => {
   it('formatPortfolioBlock = weight 내림차순 + cite 강제 문구', () => {
     const b = formatPortfolioBlock(parsePortfolio(fixture));
     expect(b.indexOf('[wm]')).toBeLessThan(b.indexOf('[agent-team]')); // 100 먼저

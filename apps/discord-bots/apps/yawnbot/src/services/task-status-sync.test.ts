@@ -1,7 +1,7 @@
 /**
- * task-status-sync 단위 테스트 — TASK-KAR-092 (v2 PR-title 직접 파싱).
+ * task-status-sync 단위 테스트. TASK-KAR-092 (v2 PR-title 직접 파싱).
  *
- * 결정적: FS · push 둘 다 mock. 실 git/file IO 0.
+ * 결정적: FS, push 둘 다 mock. 실 git/file IO 0.
  * Windows path 안전: path.join 으로 키 정규화 (backslash vs forward).
  */
 import { describe, it, expect, vi } from 'vitest';
@@ -17,7 +17,7 @@ const MEMO = '/fake/memo';
 const env = { MEMO_REPO_PATH: MEMO };
 const j = (...parts: string[]): string => path.join(MEMO, ...parts);
 
-/** in-memory FS — files = absolute path → content. dirs = path → string[]. */
+/** in-memory FS. files = absolute path → content. dirs = path → string[]. */
 function makeFakeFs(setup: { files?: Record<string, string>; dirs?: Record<string, string[]> } = {}) {
   const files = { ...(setup.files ?? {}) };
   const dirs = { ...(setup.dirs ?? {}) };

@@ -1,15 +1,15 @@
 /**
  * 내 스팀 서재 → 표 (TASK-KL-153 C).
  *
- * 왜 따로인가: 우물(`karmolab-wells`)은 **모두에게 같은 표**다 — 그래서 캐시도 순위판도
+ * 왜 따로인가: 우물(`karmolab-wells`)은 **모두에게 같은 표**다. 그래서 캐시도 순위판도
  * 하나로 묶인다. 서재는 반대다. 사람마다 다르고, 그 사람 것이다. 같은 자리에 끼워 넣으면
  * 한 사람의 서재가 캐시에 눌러앉아 남에게 나간다. 그래서 자리를 나눴다.
  *
- * 열쇠가 필요하다(`STEAM_API_KEY`). 없으면 **이 기능만** 꺼진다 — 우물 다섯은 그대로 돈다.
+ * 열쇠가 필요하다(`STEAM_API_KEY`). 없으면 **이 기능만** 꺼진다. 우물 다섯은 그대로 돈다.
  * 열쇠는 하나면 된다(우리 것). 사람마다 받는 게 아니라, 공개 프로필을 읽는 열쇠다.
  *
  * 못 읽는 경우가 흔하다: 프로필이 비공개면 스팀은 **빈 목록을 성공으로** 돌려준다.
- * 그걸 「게임이 없다」로 말하면 사람은 자기 계정이 이상한 줄 안다 — 구분해서 말한다.
+ * 그걸 게임이 없다로 말하면 사람은 자기 계정이 이상한 줄 안다. 구분해서 말한다.
  */
 import type { WellField, WellItem, WellFetcher } from './karmolab-wells';
 
@@ -19,7 +19,7 @@ export interface LibraryPack {
   fields: WellField[];
   items: WellItem[];
   fetchedAt: string;
-  /** 이 서재의 주인 (steamid64) — 화면이 「누구의 서재인가」를 말할 수 있게. */
+  /** 이 서재의 주인 (steamid64). 화면이 누구의 서재인가를 말할 수 있게. */
   steamId: string;
 }
 
@@ -37,7 +37,7 @@ interface OwnedGame {
   rtime_last_played?: number;
 }
 
-/** `76561198…`(그대로) · `/id/mascari`(별명) · 전체 주소 — 사람이 붙여넣는 모든 모양을 받는다. */
+/** `76561198...`(그대로), `/id/mascari`(별명), 전체 주소. 사람이 붙여넣는 모든 모양을 받는다. */
 export function parseSteamInput(raw: string): { kind: 'id64' | 'vanity'; value: string } | null {
   const text = String(raw || '').trim();
   if (!text) return null;
@@ -49,7 +49,7 @@ export function parseSteamInput(raw: string): { kind: 'id64' | 'vanity'; value: 
   return null;
 }
 
-/** 분 → 시간(소수 한 자리). 사람은 「1200분」이 아니라 「20시간」으로 읽는다. */
+/** 분 → 시간(소수 한 자리). 사람은 1200분이 아니라 20시간으로 읽는다. */
 export function hours(minutes: number | undefined): number | null {
   if (typeof minutes !== 'number' || !isFinite(minutes) || minutes <= 0) return null;
   return Math.round((minutes / 60) * 10) / 10;
@@ -105,7 +105,7 @@ export class SteamLibrary {
     )) as { response?: { games?: OwnedGame[] } };
 
     const items = toLibraryItems(owned?.response?.games ?? []);
-    /* 비공개 프로필은 **빈 성공**으로 온다. 「게임이 없다」로 말하면 사람은 자기 계정을 의심한다 —
+    /* 비공개 프로필은 **빈 성공**으로 온다. 게임이 없다로 말하면 사람은 자기 계정을 의심한다 . 
      * 실제로 게임이 넷도 안 되는 계정보다 비공개 쪽이 훨씬 흔하므로 그렇게 안내한다. */
     if (items.length === 0) throw new LibraryError('private');
     if (items.length < MIN_ITEMS) throw new LibraryError('too_few');

@@ -12,7 +12,7 @@
   "palette.err.open": "Could not open the image.",
   "palette.copy.hex": "HEX values copied",
   "palette.copy.css": "CSS variables copied",
-  "palette.say.done": "{n} colours extracted · click a colour to copy its HEX.",
+  "palette.say.done": "{n} colours extracted, click a colour to copy its HEX.",
   "palette.copy.one": "Copied: {v}",
   "palette.value.colors": "{n} colours"
 }

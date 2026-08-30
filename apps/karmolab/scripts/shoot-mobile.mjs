@@ -1,8 +1,8 @@
 /**
- * 폰 화면 촬영·점검 (TASK-KL-088)
+ * 폰 화면 촬영, 점검 (TASK-KL-088)
  *
- * 검색 유입은 대부분 폰인데 좁은 화면을 확인할 방법이 없었다. 고치기 전에 「보는 루프」 부터 만든다.
- * 대상은 **배포된 실물** — Jekyll 을 통과한 그것이 사용자가 보는 화면이다 (로컬 파일을 그대로 열면
+ * 검색 유입은 대부분 폰인데 좁은 화면을 확인할 방법이 없었다. 고치기 전에 보는 루프 부터 만든다.
+ * 대상은 **배포된 실물**. Jekyll 을 통과한 그것이 사용자가 보는 화면이다 (로컬 파일을 그대로 열면
  * 템플릿 구문이 남아 화면이 달라진다).
  *
  * 사용:
@@ -10,7 +10,7 @@
  *   node scripts/shoot-mobile.mjs charcount qrgen # 지정
  *   BASE=http://localhost:4000 node scripts/...   # 다른 서버 대상
  *
- * 결과: .mobile-shots/<id>.png (전체 높이) + 가로 넘침·작은 터치영역 리포트
+ * 결과: .mobile-shots/<id>.png (전체 높이) + 가로 넘침, 작은 터치영역 리포트
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,7 +49,7 @@ for (const id of ids) {
       const r = el.getBoundingClientRect();
       const style = getComputedStyle(el);
       if (style.position === 'fixed' || style.display === 'none' || r.width === 0) return;
-      // 화면 밖으로 나간 요소 — 가로 스크롤·잘림의 원인
+      // 화면 밖으로 나간 요소. 가로 스크롤, 잘림의 원인
       if (r.right > docW + 2 || r.left < -2) {
         offenders.push({
           tag: el.tagName.toLowerCase(),
@@ -73,7 +73,7 @@ for (const id of ids) {
     };
   });
 
-  // 높이만 재면 「스크롤 막힘」 을 못 잡는다 — body 에 overflow:hidden 이 남아 있으면 폰에서
+  // 높이만 재면 스크롤 막힘 을 못 잡는다. body 에 overflow:hidden 이 남아 있으면 폰에서
   // 손가락 스크롤이 통째로 막히는데, 헤드리스는 JS 스크롤을 허용해 조용히 통과한다.
   // 그래서 실제로 굴려 보고 결과를 확인한다.
   const lock = await page.evaluate(() => ({
@@ -93,13 +93,13 @@ for (const id of ids) {
 
 await browser.close();
 
-console.log(`\n=== 폰 점검 (iPhone 13 · 390px) · ${BASE} ===`);
+console.log(`\n=== 폰 점검 (iPhone 13, 390px), ${BASE} ===`);
 for (const r of report) {
   const overflow = r.scrollW > r.docW + 2;
-  console.log(`\n[${r.id}] ${overflow ? `❌ 가로 넘침 ${r.scrollW} > ${r.docW}` : '✅ 가로 OK'} · 세로 ${r.bodyH}px`);
+  console.log(`\n[${r.id}] ${overflow ? `❌ 가로 넘침 ${r.scrollW} > ${r.docW}` : '✅ 가로 OK'}, 세로 ${r.bodyH}px`);
   const locked = r.bodyOverflow === 'hidden' || r.htmlOverflow === 'hidden';
   if (locked) {
-    console.log(`   ❌ 스크롤 잠김 — body:${r.bodyOverflow} html:${r.htmlOverflow} → 폰에서 손가락이 안 먹는다`);
+    console.log(`   ❌ 스크롤 잠김. body:${r.bodyOverflow} html:${r.htmlOverflow} → 폰에서 손가락이 안 먹는다`);
   } else if (r.bodyH > 700) {
     console.log(`   ${r.scrolled > 0 ? '✅' : '❌'} 실제로 굴려봄 → ${r.scrolled}px 이동`);
   }

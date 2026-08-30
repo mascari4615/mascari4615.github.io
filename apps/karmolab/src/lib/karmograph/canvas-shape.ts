@@ -1,7 +1,7 @@
 /**
- * lib/karmograph/canvas-shape.ts — 카드의 **바탕 모양** (TASK-KL-202 방향① 해체 5조각).
+ * lib/karmograph/canvas-shape.ts. 카드의 **바탕 모양** (TASK-KL-202 방향① 해체 5조각).
  *
- * 네모·동그라미·말풍선·쪽지·사진 카드. 여기서 중요한 규약 하나: 모양이 달라도 바깥에서 보는
+ * 네모, 동그라미, 말풍선, 쪽지, 사진 카드. 여기서 중요한 규약 하나: 모양이 달라도 바깥에서 보는
  * 상자 크기는 같다. 선을 잇는 셈법이 상자 크기만 보고 있기 때문이다.
  */
 import type { GraphNode, NodeShape } from './spec';
@@ -11,8 +11,8 @@ import { seedFrom, sketchyEllipse, sketchyOn, sketchyRect } from './sketchy';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
- * 노드 배경 도형. 모양이 달라도 **바깥에서 보는 상자 크기(w × effH)는 같다** —
- * 선 연결 계산이 모양마다 흔들리면 「동그라미로 바꿨더니 선이 빗나간다」가 된다.
+ * 노드 배경 도형. 모양이 달라도 **바깥에서 보는 상자 크기(w × effH)는 같다** . 
+ * 선 연결 계산이 모양마다 흔들리면 동그라미로 바꿨더니 선이 빗나간다가 된다.
  */
 export function buildNodeBackground(
 node: GraphNode,
@@ -23,7 +23,7 @@ fill: string,
 ): SVGElement {
   const stroke = kindColor + '60';
 
-  /* 손그림 질감 (TASK-KL-238 / 18 excalidraw) — 켜져 있으면 **자로 잰 도형 대신** 삐뚤빼뚤한
+  /* 손그림 질감 (TASK-KL-238 / 18 excalidraw). 켜져 있으면 **자로 잰 도형 대신** 삐뚤빼뚤한
      획을 낸다. 흔들림은 노드 id 로 정해지므로 끌거나 확대해도 같은 모양이다(춤추지 않는다).
      바깥에서 보는 상자 크기는 그대로라 선 잇는 셈법은 아무것도 모른다. */
   if (sketchyOn() && (shape === 'circle' || shape === 'rect' || shape === undefined)) {
@@ -104,13 +104,13 @@ fill: string,
 }
 
 
-/** 쪽지 본문 줄 간격·최대 줄 수 — 카드가 소설이 되면 그림이 안 읽힌다. */
+/** 쪽지 본문 줄 간격, 최대 줄 수. 카드가 소설이 되면 그림이 안 읽힌다. */
 export const NOTE_BODY_LINE_H = 12;
 export const NOTE_BODY_MAX_LINES = 6;
 
 /**
- * 글을 카드 폭에 맞춰 **접는다**. 넘치면 마지막 줄 끝을 `…` 로 바꾼다 —
- * 잘린 줄을 그대로 두면 「글이 저기까지인 줄」 알고 옆 패널을 안 연다.
+ * 글을 카드 폭에 맞춰 **접는다**. 넘치면 마지막 줄 끝을 `...` 로 바꾼다 . 
+ * 잘린 줄을 그대로 두면 글이 저기까지인 줄 알고 옆 패널을 안 연다.
  */
 export function foldNoteBody(text: string, width: number): string[] {
   const perLine = Math.max(6, Math.floor((width - 20) / 5.6));
@@ -126,7 +126,7 @@ export function foldNoteBody(text: string, width: number): string[] {
     }
   }
   if (lines.length > 0 && text.replace(/\s/g, '').length > lines.join('').replace(/\s/g, '').length) {
-    lines[lines.length - 1] = `${lines[lines.length - 1].slice(0, -1)}…`;
+    lines[lines.length - 1] = `${lines[lines.length - 1].slice(0, -1)}...`;
   }
   return lines;
 }

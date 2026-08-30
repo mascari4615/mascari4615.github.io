@@ -18,7 +18,7 @@ test('채팅 본문의 그림 마크를 화면이 쓰는 함수로 가른다', (
   assert.equal(segs[2].text, ' 뒤에');
 });
 
-test('그록 스트림 한 줄이 도구 카드·그림으로 풀린다', () => {
+test('그록 스트림 한 줄이 도구 카드, 그림으로 풀린다', () => {
   const tool = grokStreamPart(JSON.stringify({
     type: 'tool_call',
     toolCallId: 'call_1',
@@ -47,7 +47,7 @@ test('그록 스트림 한 줄이 도구 카드·그림으로 풀린다', () => 
   assert.equal(img.src, 'https://cdn.example/x.png');
 });
 
-test('미리보기 두뇌가 흘리는 도구·그림을 입이 그대로 받는다', async () => {
+test('미리보기 두뇌가 흘리는 도구, 그림을 입이 그대로 받는다', async () => {
   const seen = [];
   const body = {
     name: 'web',

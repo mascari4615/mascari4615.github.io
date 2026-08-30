@@ -1,5 +1,5 @@
 /**
- * Link Tree — 링크 인 바이오 스타일 페이지
+ * Link Tree. 링크 인 바이오 스타일 페이지
  * 프로필 + 링크 카드 목록
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -138,7 +138,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       copyAndToast(linktreeUrl, linkBtn);
     };
     introEl.appendChild(emailBtn);
-    introEl.appendChild(document.createTextNode(' · '));
+    introEl.appendChild(document.createTextNode(', '));
     introEl.appendChild(linkBtn);
     wrap.appendChild(introEl);
 
@@ -244,7 +244,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                });
            }
 
-  /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다 — 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
+  /* 메타는 `widgets-lazy-meta.ts` 한 곳에 산다. 두 곳에 적으면 목록 이름과 화면 이름이 갈라진다. */
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('linktree'),
     tabs: [{ id: 'linktree-main', label: t('linktree.t16'), build }]

@@ -2,10 +2,10 @@
  * 논문 지도 (TASK-KL-253)
  *
  * 논문 하나를 찍으면 그 논문이 **무엇을 딛고 서 있는지**를 그림으로 본다.
- * 목록이 아니라 지도인 이유: 「무엇을 먼저 읽어야 하나」가 목록에서는 안 보인다.
- * 크기가 인용 수, 가로 자리가 연도이므로 — **큰 것이 바닥이고, 왼쪽이 시작**이다.
+ * 목록이 아니라 지도인 이유: 무엇을 먼저 읽어야 하나가 목록에서는 안 보인다.
+ * 크기가 인용 수, 가로 자리가 연도이므로. **큰 것이 바닥이고, 왼쪽이 시작**이다.
  *
- * 재료는 OpenAlex(`lib/openalex.ts`). 그림은 KarmoGraph 가 읽는 모양으로 내보낸다 —
+ * 재료는 OpenAlex(`lib/openalex.ts`). 그림은 KarmoGraph 가 읽는 모양으로 내보낸다 . 
  * 새 그리기 엔진을 만들지 않는다.
  */
 import { buildMap, fetchMany, search, toCanvas, type Paper } from '../../lib/openalex';
@@ -18,7 +18,7 @@ import { download } from './shared/image';
   Toolbox.register({
     id: 'papermap',
     title: t('widgets.papermap.title', undefined, '논문 지도'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.papermap.desc',
       undefined,
@@ -54,7 +54,7 @@ import { download } from './shared/image';
       <div id="pmHits"></div>
       <div id="pmMapWrap" style="display:none;">
         <div class="tool-sublabel" id="pmMapTitle"></div>
-        <div class="pm-legend">${esc(t('papermap.legend', undefined, '큰 것 = 많이 인용된 것(이 분야의 바닥) · 왼쪽 = 옛 논문'))}</div>
+        <div class="pm-legend">${esc(t('papermap.legend', undefined, '큰 것 = 많이 인용된 것(이 분야의 바닥), 왼쪽 = 옛 논문'))}</div>
         <svg id="pmMap" class="pm-map" role="img"></svg>
         <div class="tool-actions">
           <button class="btn" id="pmExport">${esc(t('papermap.btn.export', undefined, '캔버스로 내보내기'))}</button>
@@ -68,15 +68,15 @@ import { download } from './shared/image';
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
     const status = $<HTMLElement>('#pmStatus');
-    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
     const say = statusLine(status);
 
     let lastCanvas: unknown = null;
 
     async function openMap(root: Paper): Promise<void> {
-      say(t('papermap.status.loading', undefined, '이 논문이 딛고 선 것들을 받는 중…'));
-      /* 참고문헌은 **한 번의 요청으로** 받는다 — 스무 편을 스무 번 부르면 곧 막힌다. */
+      say(t('papermap.status.loading', undefined, '이 논문이 딛고 선 것들을 받는 중...'));
+      /* 참고문헌은 **한 번의 요청으로** 받는다. 스무 편을 스무 번 부르면 곧 막힌다. */
       const refs = await fetchMany(root.refs.slice(0, 40));
       if (!refs.length) {
         say(t('papermap.status.norefs', undefined, '이 논문의 참고문헌이 공개돼 있지 않습니다'), 'warn');
@@ -105,8 +105,8 @@ import { download } from './shared/image';
         .join('');
       const boxes = map.nodes
         .map((n) => {
-          const label = n.paper.title.length> 64 ? n.paper.title.slice(0, 62) + '…' : n.paper.title;
-          const sub = `${n.paper.year || '?'} · ${n.paper.cited.toLocaleString()}`;
+          const label = n.paper.title.length> 64 ? n.paper.title.slice(0, 62) + '...' : n.paper.title;
+          const sub = `${n.paper.year || '?'}, ${n.paper.cited.toLocaleString()}`;
           return `<g class="pm-node ${n.root ? 'pm-root' : ''}" data-url="${esc(n.paper.url)}">
             <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="10"/>
             <text x="${n.x + 12}" y="${n.y + 24}" class="pm-t">${esc(label.slice(0, 40))}</text>
@@ -126,7 +126,7 @@ import { download } from './shared/image';
 
     async function doSearch(): Promise<void> {
       const q = $<HTMLInputElement>('#pmQuery').value;
-      say(t('papermap.status.searching', undefined, '찾는 중…'));
+      say(t('papermap.status.searching', undefined, '찾는 중...'));
       const hits = await search(q, 8);
       if (!hits.length) {
         $('#pmHits').innerHTML = '';
@@ -138,14 +138,14 @@ import { download } from './shared/image';
           (p, i) => `
         <button type="button" class="pm-hit" data-i="${i}">
           <span class="pm-hit-t">${esc(p.title)}</span>
-          <span class="pm-hit-s">${p.year || '?'} · ${esc(t('papermap.cited', { n: p.cited.toLocaleString() }, `인용 ${p.cited.toLocaleString()}`))} · ${esc(p.authors[0] || '')}</span>
+          <span class="pm-hit-s">${p.year || '?'}, ${esc(t('papermap.cited', { n: p.cited.toLocaleString() }, `인용 ${p.cited.toLocaleString()}`))}, ${esc(p.authors[0] || '')}</span>
         </button>`
         )
         .join('');
       container.querySelectorAll<HTMLButtonElement>('.pm-hit').forEach((b) => {
         b.onclick = (): void => void openMap(hits[Number(b.dataset.i)]);
       });
-      say(t('papermap.status.hits', { n: hits.length }, `${hits.length}편 찾았습니다 — 하나를 고르세요`), 'ok');
+      say(t('papermap.status.hits', { n: hits.length }, `${hits.length}편 찾았습니다. 하나를 고르세요`), 'ok');
     }
 
     $('#pmSearch').onclick = (): void => void doSearch();
@@ -157,7 +157,7 @@ import { download } from './shared/image';
       if (!lastCanvas) return;
       const blob = new Blob([JSON.stringify(lastCanvas, null, 2)], { type: 'application/json' });
       download(blob, 'papermap.canvas'); // 공용 한 자리(`shared/image.download`)
-      say(t('papermap.status.exported', undefined, '캔버스 파일로 내보냈습니다 — 카모그래프에서 열 수 있습니다'), 'ok');
+      say(t('papermap.status.exported', undefined, '캔버스 파일로 내보냈습니다. 카모그래프에서 열 수 있습니다'), 'ok');
     };
   }
 

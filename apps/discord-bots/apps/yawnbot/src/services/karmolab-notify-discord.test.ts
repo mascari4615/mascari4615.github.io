@@ -1,8 +1,8 @@
 /**
  * 알림 → 디스코드 DM (TASK-KL-157).
  *
- * 여기서 지키려는 것: **묶인 알림이 도배가 되지 않는다.** 사이트 종은 「답글 3개」로 묶이지만,
- * DM 은 묶이지 않는다 — 막지 않으면 답글 하나마다 한 통씩 간다. 그건 알림이 아니라 괴롭힘이다.
+ * 여기서 지키려는 것: **묶인 알림이 도배가 되지 않는다.** 사이트 종은 답글 3개로 묶이지만,
+ * DM 은 묶이지 않는다. 막지 않으면 답글 하나마다 한 통씩 간다. 그건 알림이 아니라 괴롭힘이다.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'fs';
@@ -17,7 +17,7 @@ function note(overrides: Partial<Notification> = {}): Notification {
         accountId: 'a1',
         source: 'community',
         title: '내 글에 답글이 달렸어요',
-        body: '무슨 글 — 연보라 수달',
+        body: '무슨 글. 연보라 수달',
         url: '/?p=123#community',
         groupKey: 'post-reply:123',
         count: 1,
@@ -31,7 +31,7 @@ function note(overrides: Partial<Notification> = {}): Notification {
 beforeEach(() => resetRepeatGuard());
 
 describe('DM 한 줄', () => {
-    it('알림이 가진 것만 쓴다 — 제목·몸통·눌러 들어올 주소', () => {
+    it('알림이 가진 것만 쓴다. 제목, 몸통, 눌러 들어올 주소', () => {
         const text = dmTextFor(note());
         expect(text).toContain('내 글에 답글이 달렸어요');
         expect(text).toContain('연보라 수달');
@@ -54,7 +54,7 @@ describe('도배 막기', () => {
         // 같은 글에 답글이 둘 더 달려도 DM 은 한 통이다.
         expect(shouldSend(note({ id: 'n2', count: 2 }), now + 1000)).toBe(false);
         expect(shouldSend(note({ id: 'n3', count: 3 }), now + 2000)).toBe(false);
-        // 시간이 충분히 지나면 다시 알린다 — 영영 막으면 그건 알림을 끈 것이다.
+        // 시간이 충분히 지나면 다시 알린다. 영영 막으면 그건 알림을 끈 것이다.
         expect(shouldSend(note({ id: 'n4', count: 4 }), now + 11 * 60 * 1000)).toBe(true);
     });
 
@@ -76,7 +76,7 @@ describe('어디로 받을 것인가', () => {
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kl157-notes-'));
         const file = path.join(dir, 'notes.json');
         const first = new KarmolabNotificationStore(file);
-        // 부르지도 않았는데 말 거는 일이다 — 기본은 꺼짐이어야 한다.
+        // 부르지도 않았는데 말 거는 일이다. 기본은 꺼짐이어야 한다.
         expect(first.discordEnabled('a1')).toBe(false);
         first.setDiscordEnabled('a1', true);
         first.flush();

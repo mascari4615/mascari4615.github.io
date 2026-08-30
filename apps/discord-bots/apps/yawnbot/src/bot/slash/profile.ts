@@ -1,7 +1,7 @@
 /**
- * /프로필 — 현재 활성 캐릭터 기준 유저 대시보드
+ * /프로필. 현재 활성 캐릭터 기준 유저 대시보드
  *
- * 친밀도 · 기분 · 오늘 일정 · 다가오는 기념일 · 뉴스 키워드를 한 화면에.
+ * 친밀도, 기분, 오늘 일정, 다가오는 기념일, 뉴스 키워드를 한 화면에.
  */
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
@@ -41,7 +41,7 @@ export async function handleProfile(ctx: BotContext, interaction: ChatInputComma
       ? `${relationship.conversationCount}회 / 다음 레벨 ${nextLevel.threshold}회`
       : `${relationship.conversationCount}회 (최고 레벨)`;
     const moodLine = relationship.moodScore !== 0
-      ? ` · 호감도 ${relationship.moodScore >= 0 ? '+' : ''}${relationship.moodScore}`
+      ? `, 호감도 ${relationship.moodScore >= 0 ? '+' : ''}${relationship.moodScore}`
       : '';
     relationshipField = `Lv.${info.level} **${info.label}** ${filled}${empty}\n${progressLine}${moodLine}`;
   }

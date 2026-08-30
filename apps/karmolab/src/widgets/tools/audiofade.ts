@@ -1,14 +1,14 @@
 /**
  * 소리 페이드 (TASK-KL-088)
  *
- * 잘라 낸 소리를 그냥 쓰면 시작과 끝에서 「툭」 하고 끊긴다. 파형이 0 이 아닌 자리에서
+ * 잘라 낸 소리를 그냥 쓰면 시작과 끝에서 툭 하고 끊긴다. 파형이 0 이 아닌 자리에서
  * 갑자기 끝나기 때문인데, 스피커에서는 이게 딱 소리로 들린다.
  *
  * 신경 쓴 곳:
- *  - **끊김을 먼저 짚어 준다.** 시작·끝 지점의 진폭을 재서 「여기 딱 소리가 납니다」라고 말해 주고,
+ *  - **끊김을 먼저 짚어 준다.** 시작, 끝 지점의 진폭을 재서 여기 딱 소리가 납니다라고 말해 주고,
  *    필요한 만큼만 페이드를 건다. 무턱대고 3초씩 걸면 짧은 소리가 뭉개진다.
  *  - 페이드 모양은 **귀에 맞춘 곡선**을 쓴다. 소리 크기를 곧게 줄이면 중간이 갑자기 조용해진 듯
- *    들린다 — 사람 귀는 소리 세기를 곧게 느끼지 않는다.
+ *    들린다. 사람 귀는 소리 세기를 곧게 느끼지 않는다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss } from './shared/media';
 import { escapeHtml as esc } from './shared/text';
@@ -20,7 +20,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /**
-   * 귀에 맞춘 페이드 — 곧게(선형) 줄이면 중간이 툭 꺼진 듯 들린다.
+   * 귀에 맞춘 페이드. 곧게(선형) 줄이면 중간이 툭 꺼진 듯 들린다.
    * 세기를 제곱으로 다루면 귀가 느끼는 변화가 고르게 된다.
    */
   const curve = (t: number): number => t * t;
@@ -30,11 +30,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
     title: t('widgets.audiofade.title', undefined, '소리 페이드'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.audiofade.desc',
       undefined,
-      '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다'
+      '시작, 끝의 툭 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다'
     ),
     layout: 'wide',
     icon: '<path d="M3 19L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 19v-3M11 19v-6M15 19v-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
@@ -104,11 +104,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           let outBlob: Blob | null = null;
           let baseName = t('audiofade.file.base');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 시작·끝 20ms 의 최대 진폭 — 0 에서 멀수록 「툭」 소리가 크다 */
+          /** 시작, 끝 20ms 의 최대 진폭. 0 에서 멀수록 툭 소리가 크다 */
           function edgeLevels(buf: AudioBuffer): { head: number; tail: number } {
             const n = Math.min(Math.round(buf.sampleRate * 0.02), Math.floor(buf.length / 2));
             let head = 0;
@@ -127,7 +127,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!buffer) return;
             const { head, tail } = edgeLevels(buffer);
             const pct = (v: number): string => `${Math.round(v * 100)}%`;
-            // 0.02 아래면 사실상 조용히 시작·끝나는 것이라 페이드가 필요 없다
+            // 0.02 아래면 사실상 조용히 시작, 끝나는 것이라 페이드가 필요 없다
             const rows = [
               [t('audiofade.edge.head'), head, head> 0.02],
               [t('audiofade.edge.tail'), tail, tail> 0.02]
@@ -169,7 +169,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             report();
           }
 
-          /** 끊기는 만큼만 — 진폭이 클수록 조금 더 길게, 다만 길이의 1/4 을 넘지 않게 */
+          /** 끊기는 만큼만. 진폭이 클수록 조금 더 길게, 다만 길이의 1/4 을 넘지 않게 */
           function autoSeconds(level: number): number {
             if (!buffer || level <= 0.02) return 0;
             const want = Math.min(0.6, 0.05 + level * 0.5);
@@ -198,7 +198,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               }
 
               outBlob = await encodeAudio(out, 'wav');
-              attachAudio(player, outBlob); // 공용 — 앞 주소를 거두고 물린다
+              attachAudio(player, outBlob); // 공용. 앞 주소를 거두고 물린다
               player.style.display = '';
               saveBtn.disabled = false;
               const after = edgeLevels(out);
@@ -219,11 +219,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           const fileInput = $<HTMLInputElement>('#afFile');
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('audiofade', (f: File) => void load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 여기 손으로 적던 열두 줄이
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 여기 손으로 적던 열두 줄이
            * 서른한 도구에 있었고, 그중 여덟은 **붙여넣기가 빠져 있었다**. 이제 안 빠진다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
@@ -253,7 +253,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!outBlob) return;
             const aName = baseName + t('audiofade.file.suffix') + '.wav';
             download(outBlob, aName);
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: outBlob, name: aName, from: 'audiofade' });
             say(t('audiofade.say.saved', { size: size(outBlob.size) }), 'ok');
           };

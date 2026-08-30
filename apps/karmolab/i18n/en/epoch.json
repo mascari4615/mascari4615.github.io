@@ -1,6 +1,6 @@
 {
   "epoch.tab": "Convert",
-  "epoch.label.stamp": "Timestamp — 10 digits seconds · 13 ms · 16 µs · 19 ns",
+  "epoch.label.stamp": "Timestamp. 10 digits seconds, 13 ms, 16 µs, 19 ns",
   "epoch.label.human": "Human-readable time",
   "epoch.btn.now": "Now",
   "epoch.btn.copySec": "Copy seconds",

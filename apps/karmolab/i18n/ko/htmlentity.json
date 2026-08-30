@@ -1,6 +1,6 @@
 {
   "htmlentity.t01": "줄바꿈 없는 공백",
-  "htmlentity.t02": "공백·기본",
+  "htmlentity.t02": "공백, 기본",
   "htmlentity.t03": "앰퍼샌드",
   "htmlentity.t04": "보다 작음",
   "htmlentity.t05": "보다 큼",
@@ -36,7 +36,7 @@
   "htmlentity.t35": "달러",
   "htmlentity.t36": "센트",
   "htmlentity.t37": "파운드",
-  "htmlentity.t38": "엔·위안",
+  "htmlentity.t38": "엔, 위안",
   "htmlentity.t39": "유로",
   "htmlentity.t40": "통화 기호",
   "htmlentity.t41": "왼쪽 화살표",
@@ -94,7 +94,7 @@
   "htmlentity.t93": "검은 사각",
   "htmlentity.t94": "체크",
   "htmlentity.t95": "엑스",
-  "htmlentity.t96": "엔티티·이름·문자로 찾기 (예: nbsp, 화살표, ©)",
+  "htmlentity.t96": "엔티티, 이름, 문자로 찾기 (예: nbsp, 화살표, ©)",
   "htmlentity.t97": "엔티티",
   "htmlentity.t98": "누르면 엔티티 코드가 복사됩니다 (문자 자체가 아니라 마크업에 넣는 형태).",
   "htmlentity.t101": "마크업에 그대로 붙이는 코드예요."

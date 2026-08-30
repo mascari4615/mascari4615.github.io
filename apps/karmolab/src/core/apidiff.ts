@@ -1,14 +1,14 @@
 /**
- * API 두 판을 견준다 — **깨지는 변경만 골라서** (TASK-KL-316 / 17)
+ * API 두 판을 견준다. **깨지는 변경만 골라서** (TASK-KL-316 / 17)
  *
- * 스펙이 바뀌면 「무엇이 바뀌었나」보다 **「남의 코드가 깨지나」**가 궁금하다.
+ * 스펙이 바뀌면 무엇이 바뀌었나보다 **남의 코드가 깨지나**가 궁금하다.
  * 그래서 여기서는 바뀐 것을 다 늘어놓지 않고 *깨짐/안 깨짐*을 가른다:
  *
- *   깨진다 — 있던 연산·파라미터·응답이 **사라짐** · 선택이던 게 **필수**가 됨 · 타입이 바뀜
- *   안 깨진다 — 새 연산·새 선택 파라미터·새 응답 코드가 **늘어남**
+ *   깨진다. 있던 연산, 파라미터, 응답이 **사라짐**, 선택이던 게 **필수**가 됨, 타입이 바뀜
+ *   안 깨진다. 새 연산, 새 선택 파라미터, 새 응답 코드가 **늘어남**
  *
  * 판단 기준은 **부르는 쪽**이다. 서버가 무엇을 더 받는 건 괜찮고, 덜 받거나 더 요구하면 깨진다.
- * 말은 여기서 안 짓는다 — `key` 만 돌려주고 문장은 화면(i18n)이 만든다.
+ * 말은 여기서 안 짓는다. `key` 만 돌려주고 문장은 화면(i18n)이 만든다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 import { parse as parseApi, type Doc, type Operation, type Param } from './apitest';
@@ -30,7 +30,7 @@ export interface Change {
   breaking: boolean;
   /** 어느 연산에서 */
   where: string;
-  /** 무엇이 (파라미터 이름·응답 코드 …) */
+  /** 무엇이 (파라미터 이름, 응답 코드 ...) */
   what?: string;
   from?: string;
   to?: string;
@@ -39,7 +39,7 @@ export interface Change {
 const opKey = (op: Operation): string => op.method + ' ' + op.path;
 const paramKey = (p: Param): string => p.where + ':' + p.name;
 
-/** 값의 「모양」만 본다 — 값이 달라진 건 변경이 아니다(예시일 뿐이다). */
+/** 값의 모양만 본다. 값이 달라진 건 변경이 아니다(예시일 뿐이다). */
 function shape(v: unknown): string {
   if (v === null || v === undefined) return 'null';
   if (Array.isArray(v)) return 'array<' + (v.length === 0 ? 'any' : shape(v[0])) + '>';
@@ -84,7 +84,7 @@ export function compare(before: Doc, after: Doc): Change[] {
     for (const [pk, p] of beforeParams) {
       const np = afterParams.get(pk);
       if (np === undefined) {
-        /* 선택 파라미터가 사라지는 것도 깨짐이다 — 보내던 쪽이 400 을 받을 수 있다. */
+        /* 선택 파라미터가 사라지는 것도 깨짐이다. 보내던 쪽이 400 을 받을 수 있다. */
         out.push({ key: 'paramGone', breaking: true, where: key, what: p.name });
         continue;
       }
@@ -115,7 +115,7 @@ export function compare(before: Doc, after: Doc): Change[] {
       }
       if (res.example === undefined || nr.example === undefined) continue;
       const gone = missingKeys(res.example, nr.example);
-      if (gone.length > 0) out.push({ key: 'fieldGone', breaking: true, where: key, what: code + ' · ' + gone.join(', ') });
+      if (gone.length > 0) out.push({ key: 'fieldGone', breaking: true, where: key, what: code + ', ' + gone.join(', ') });
       else if (shape(res.example) !== shape(nr.example)) out.push({ key: 'shapeChanged', breaking: true, where: key, what: code, from: shape(res.example), to: shape(nr.example) });
     }
     for (const code of afterRes.keys()) if (!beforeRes.has(code)) out.push({ key: 'responseNew', breaking: false, where: key, what: code });
@@ -123,7 +123,7 @@ export function compare(before: Doc, after: Doc): Change[] {
 
   for (const key of afterOps.keys()) if (!beforeOps.has(key)) out.push({ key: 'operationNew', breaking: false, where: key });
 
-  /* 깨지는 것부터 — 목록이 길어도 위만 보면 된다 */
+  /* 깨지는 것부터. 목록이 길어도 위만 보면 된다 */
   return out.sort((a, b) => Number(b.breaking) - Number(a.breaking));
 }
 

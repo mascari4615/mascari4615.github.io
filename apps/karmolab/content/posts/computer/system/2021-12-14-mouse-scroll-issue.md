@@ -5,6 +5,7 @@ last_modified_at: "2024-08-29T22:15:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/20230112-151539.jpg
+board: info
 ---
 
 ## 해결방법

@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:30:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/background/20240827-140647.jpg
-hidden: true
+board: me
 ---
 
 ## 머릿말

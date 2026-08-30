@@ -2,11 +2,11 @@
  * 사진 이어 붙이기가 순서와 내용을 지키는지 확인한다 (TASK-KL-088)
  *
  * 조용히 어긋나는 자리:
- *  ① 순서가 뒤바뀜 — 크기는 맞아서 눈치채기 어렵다
- *  ② 한 장이 빠지고 그 자리가 배경색으로 남음 — 파일은 멀쩡하다
+ *  ① 순서가 뒤바뀜. 크기는 맞아서 눈치채기 어렵다
+ *  ② 한 장이 빠지고 그 자리가 배경색으로 남음. 파일은 멀쩡하다
  *  ③ 폭이 다를 때 한쪽으로 쏠려 계단이 됨
  *
- * 그래서 **색이 다른 사진 세 장**을 넣고, 결과에서 위·가운데·아래 색을 읽어 순서를 확인한다.
+ * 그래서 **색이 다른 사진 세 장**을 넣고, 결과에서 위, 가운데, 아래 색을 읽어 순서를 확인한다.
  * 폭이 다른 장을 섞어 가운데 정렬까지 본다.
  *
  * 사용: node scripts/test-imgmerge.mjs
@@ -48,7 +48,7 @@ const result = await page.evaluate(async () => {
       cv.toBlob(r, 'image/png');
     });
 
-  // 폭이 서로 다르다 — 가운데 정렬이 도는지 함께 본다
+  // 폭이 서로 다르다. 가운데 정렬이 도는지 함께 본다
   const files = [
     new File([await solid(200, 100, '#ff0000')], '1.png', { type: 'image/png' }),
     new File([await solid(100, 100, '#00ff00')], '2.png', { type: 'image/png' }),
@@ -116,7 +116,7 @@ const result = await page.evaluate(async () => {
       center === '0,255,0' &&
       bottom === '0,0,255' &&
       leftOfNarrow === '255,255,255',
-    why: `크기 ${cv.width}x${cv.height} (200x300) · 위/가운데/아래 ${top} / ${center} / ${bottom} · 좁은 장 왼쪽 ${leftOfNarrow} (배경이어야 함)`
+    why: `크기 ${cv.width}x${cv.height} (200x300), 위/가운데/아래 ${top} / ${center} / ${bottom}, 좁은 장 왼쪽 ${leftOfNarrow} (배경이어야 함)`
   };
 });
 

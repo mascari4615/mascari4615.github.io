@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:26:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/isd-2nd-anniversary/isd-2nd-anniversary-banner.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [아트, 프로그래밍]
   platform: VRChat
+board: me
 ---
 
 이세돌 2주년 기념 술먹방  

@@ -1,9 +1,9 @@
 /**
- * 지구본 라디오 알맹이 — 브라우저 없이 도는 규칙들 (TASK-KL-241).
+ * 지구본 라디오 알맹이. 브라우저 없이 도는 규칙들 (TASK-KL-241).
  *
- * 왜 있나: 이 기능이 무너지는 자리는 화면이 아니라 **셈법과 실패 처리**다 —
+ * 왜 있나: 이 기능이 무너지는 자리는 화면이 아니라 **셈법과 실패 처리**다 . 
  * http 스트림을 안 걸러 조용해지거나, 뭉친 좌표를 안 묶어 점이 겹치거나,
- * 죽은 방송국에서 안 넘어가 사람이 「고장났네」 하고 닫는 것. 전부 화면 없이 잴 수 있다.
+ * 죽은 방송국에서 안 넘어가 사람이 고장났네 하고 닫는 것. 전부 화면 없이 잴 수 있다.
  *
  * 사용: node scripts/test-radio-core.mjs   (npm run test:radio)
  */
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const entry = path.join(os.tmpdir(), `radio-core-${Date.now()}.ts`);
@@ -39,7 +39,7 @@ async function load() {
   return mod;
 }
 
-/** 진짜 `Audio` 대신 끼우는 가짜 — 이벤트를 손으로 쏘아 실패/성공을 만든다.
+/** 진짜 `Audio` 대신 끼우는 가짜. 이벤트를 손으로 쏘아 실패/성공을 만든다.
     진짜와 같이 **요소 하나를 계속 쓰므로** 가짜도 하나만 만들어진다. */
 function fakeAudio() {
   const made = [];
@@ -114,7 +114,7 @@ async function main() {
 
   const many = [];
   for (let i = 0; i < 40; i += 1) many.push(R.slim(st(i, 37.5, 127)));
-  eq(R.toSpots(many)[0].stations.length, 24, '한 자리 상한 24 — 182개를 훑게 하지 않는다');
+  eq(R.toSpots(many)[0].stations.length, 24, '한 자리 상한 24. 182개를 훑게 하지 않는다');
 
   /* ── 가장 가까운 자리 ────────────────────────────────────────── */
   const world = R.toSpots([R.slim(st(1, 37.5, 127)), R.slim(st(2, 48.2, 16.3)), R.slim(st(3, 35.7, 139.7))]);
@@ -125,16 +125,16 @@ async function main() {
     R.nearestSpot(dateline, 0, -179.8, 2) !== null,
     '날짜변경선 너머도 이웃이다 (경도 179.5 와 -179.8 은 0.7° 차이)'
   );
-  /* 위도 80° 에서 경도 10° 는 실거리로 3° 남짓이다. 경도를 안 줄이면 「10° 떨어짐」으로 재서
-     3° 짜리 잡이 범위를 벗어난다 — 바로 옆 방송국을 못 잡는다. */
+  /* 위도 80° 에서 경도 10° 는 실거리로 3° 남짓이다. 경도를 안 줄이면 10° 떨어짐으로 재서
+     3° 짜리 잡이 범위를 벗어난다. 바로 옆 방송국을 못 잡는다. */
   const polar = R.toSpots([R.slim(st(1, 80, 20))]);
   check(
     R.nearestSpot(polar, 80, 30, 3) !== null,
-    '고위도에서 경도 10° 는 실거리로 짧다 — 줄여 재야 옆 방송국이 잡힌다'
+    '고위도에서 경도 10° 는 실거리로 짧다. 줄여 재야 옆 방송국이 잡힌다'
   );
   check(
     R.nearestSpot(R.toSpots([R.slim(st(1, 0, 20))]), 0, 30, 3) === null,
-    '적도에서는 같은 경도 10° 가 멀다 — 줄이는 정도가 위도를 따라야 한다'
+    '적도에서는 같은 경도 10° 가 멀다. 줄이는 정도가 위도를 따라야 한다'
   );
 
   /* ── 죽은 방송국에서 손 안 가게 넘어가기 ──────────────────────── */
@@ -149,7 +149,7 @@ async function main() {
     eq(fa.made.length, 1, '소리 그릇은 하나만 만든다(제스처 밖에서 새로 만들면 브라우저가 막는다)');
     fa.el.fire('error');
     eq(seen[seen.length - 1].station.name, 'Station 2', '죽으면 말없이 다음 국으로');
-    eq(fa.made.length, 1, '다음 국으로 가도 그릇은 그대로 — 주소만 갈아 끼운다');
+    eq(fa.made.length, 1, '다음 국으로 가도 그릇은 그대로. 주소만 갈아 끼운다');
     fa.el.succeed();
     eq(seen[seen.length - 1].kind, 'playing', '소리가 나면 재생 중');
     eq(p.current.name, 'Station 2', '지금 나오는 국을 안다');
@@ -180,7 +180,7 @@ async function main() {
   }
 
   {
-    /* 지난 시도의 메아리 — 앞 주소가 낸 실패가 다음 방송이 시작된 뒤 도착해도 죽이면 안 된다. */
+    /* 지난 시도의 메아리. 앞 주소가 낸 실패가 다음 방송이 시작된 뒤 도착해도 죽이면 안 된다. */
     const seen = [];
     const fa = fakeAudio();
     const p = new R.RadioPlayer((s2) => seen.push(s2), 50, fa.make);

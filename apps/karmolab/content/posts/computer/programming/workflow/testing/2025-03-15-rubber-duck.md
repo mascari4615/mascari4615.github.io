@@ -4,7 +4,7 @@ date: "2025-03-15T09:22:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 머리말

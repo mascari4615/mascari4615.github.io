@@ -3,10 +3,10 @@ import type { MemoryEntry } from './types';
 /**
  * **제 성적을 얘가 본다.**
  *
- * 115·116(회상)·125·126(인격)·128(누르기) — 점수판을 셋이나 지었는데 전부 **우리가** 재는
+ * 115, 116(회상), 125, 126(인격), 128(누르기). 점수판을 셋이나 지었는데 전부 **우리가** 재는
  * 것이다. 얘 자신은 제가 어떤지 모른다. 밖에서 이걸 **아는 것과 하는 것의 틈**이라 부르고,
  * 모델이 제 능력을 물으면 **체계적으로 과신**한다는 게 결론이다(MIRROR, 원장 2026-08-21).
- * 122회차에 「누를게」라고 말만 하고 안 누른 것이 우리 판의 그 틈이다.
+ * 122회차에 누를게라고 말만 하고 안 누른 것이 우리 판의 그 틈이다.
  *
  * 그래서 방금 한 말들을 세어 **한 줄**로 돌려준다. 세 가지에 조심했다:
  *
@@ -15,7 +15,7 @@ import type { MemoryEntry } from './types';
  * - **표본이 적으면 아무 말이나 하게 된다.** 넉 마디 미만이면 안 잰다.
  * - **한 가지만 말한다.** 여럿을 늘어놓으면 그게 프롬프트를 덮는다(`driftWarning` 과 같은 규율).
  *
- * 파일을 안 읽는다 — 점수판 스크립트는 수 초가 걸리고, 이건 매 turn 도는 자리다.
+ * 파일을 안 읽는다. 점수판 스크립트는 수 초가 걸리고, 이건 매 turn 도는 자리다.
  * 재료는 이미 손에 있는 최근 기억뿐이다.
  */
 export interface SelfScoreOptions {
@@ -51,14 +51,14 @@ export function selfScore(recent: readonly MemoryEntry[], options: SelfScoreOpti
     seen.set(text, count);
   }
 
-  /* 되풀이가 먼저다 — 「같은 말을 또 한다」가 사람이 가장 먼저 질리는 자리다(89회차). */
+  /* 되풀이가 먼저다. 같은 말을 또 한다가 사람이 가장 먼저 질리는 자리다(89회차). */
   if (repeated / mine.length > repeatOver) {
     return `방금 ${mine.length}마디 중 ${repeated}마디가 아까 한 말과 똑같다. 또 그 말로 가지 마라.`;
   }
 
   const average = mine.reduce((sum, text) => sum + text.length, 0) / mine.length;
   if (average > longOver) {
-    return `방금 몇 마디가 평균 ${Math.round(average)}자다 — 길어지고 있다. 짧게 말해라.`;
+    return `방금 몇 마디가 평균 ${Math.round(average)}자다. 길어지고 있다. 짧게 말해라.`;
   }
 
   return '';

@@ -2,7 +2,7 @@
  * 이미지 색상 팔레트 추출 (TASK-KL-088)
  *
  * 픽셀을 그냥 세면 거의 같은 색이 상위를 전부 차지해 팔레트가 되지 않는다.
- * 그래서 **median cut** 으로 색 공간을 쪼갠다 — 색이 몰려 있는 축을 잘라 나가므로,
+ * 그래서 **median cut** 으로 색 공간을 쪼갠다. 색이 몰려 있는 축을 잘라 나가므로,
  * 넓은 배경 하나가 결과를 독식하지 않고 사진 안의 서로 다른 색이 골고루 남는다.
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
@@ -52,7 +52,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   const hex = (c: RGB): string =>
     '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
 
-  /** 배경 위 글자를 검게 쓸지 희게 쓸지 — 상대 휘도 기준. */
+  /** 배경 위 글자를 검게 쓸지 희게 쓸지. 상대 휘도 기준. */
   function readableOn(c: RGB): string {
     const lum = c.map((v) => {
       const s = v / 255;
@@ -64,8 +64,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'palette',
     title: t('widgets.palette.title', undefined, "이미지 색상 추출"),
-    category: 'tool',
-    desc: t('widgets-desc.palette.desc', undefined, "사진에서 대표 색을 뽑아 HEX·RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사"),
+    category: 'image',
+    desc: t('widgets-desc.palette.desc', undefined, "사진에서 대표 색을 뽑아 HEX, RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사"),
     layout: 'wide',
     icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7" r="1.3" fill="currentColor"/><circle cx="7" cy="14" r="1.3" fill="currentColor"/>',
     tabs: [
@@ -109,7 +109,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const previewWrap = $<HTMLElement>('#plPreviewWrap');
           const swatches = $<HTMLElement>('#plSwatches');
           const status = $<HTMLElement>('#plStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
           let current: RGB[] = [];
@@ -187,7 +187,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           });
           countVal.textContent = t('palette.value.colors', { n: Math.pow(2, parseInt(countEl.value, 10)) });
 
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 키보드로 열기·붙여넣기가 딸려 온다. */
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 키보드로 열기, 붙여넣기가 딸려 온다. */
           wireDrop({ drop, input: file, scope: container, onFiles: (files) => void load(files[0]) });
           drop.addEventListener('dragleave', () => drop.classList.remove('over'));
           drop.addEventListener('drop', (e) => {

@@ -1,13 +1,13 @@
 /**
- * 「먹」 — 배경 지우기 (TASK-KL-240 곁가지)
+ * 먹. 배경 지우기 (TASK-KL-240 곁가지)
  *
  * 옛 편집 탭에 있던 기능을 이쪽으로 가져온다. 다른 점 하나가 전부다:
  * 옛 것은 **캔버스 한 장**을 통째로 바꿨고, 여기서는 **고른 레이어의 지금 셀**만 바꾼다.
- * 그래서 배경만 지운 뒤에도 밑그림·글자 레이어가 그대로 남는다.
+ * 그래서 배경만 지운 뒤에도 밑그림, 글자 레이어가 그대로 남는다.
  *
  * 계산은 브라우저 안에서 돈다(`@imgly/background-removal`). 처음 한 번은 모델을 받느라
  * 수십 초 걸리고, 그동안 화면이 멈추면 안 되므로 **워커**에 맡긴다. 워커가 막힌 환경
- * (모듈 워커를 못 만드는 곳)에서는 같은 일을 이 자리에서 한다 — 느리지만 되긴 된다.
+ * (모듈 워커를 못 만드는 곳)에서는 같은 일을 이 자리에서 한다. 느리지만 되긴 된다.
  */
 
 const CDN = 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
@@ -75,7 +75,7 @@ export function removeBackgroundInWorker(blob: Blob, model: RembgModel, onProgre
   return { promise, cancel: cleanup };
 }
 
-/** 워커를 못 쓰는 곳에서의 뒷길 — 화면이 잠깐 멈춘다. */
+/** 워커를 못 쓰는 곳에서의 뒷길. 화면이 잠깐 멈춘다. */
 export async function removeBackgroundHere(blob: Blob, model: RembgModel, onProgress: (p: RembgProgress) => void): Promise<Blob> {
   const mod = await import(/* @vite-ignore */ CDN) as {
     removeBackground?: (blob: Blob, options: unknown) => Promise<Blob>;

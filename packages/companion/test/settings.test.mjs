@@ -10,7 +10,7 @@ test('아무것도 없으면 기본값으로 시작한다', () => {
   for (const [k, spec] of Object.entries(toConfigure)) assert.equal(s.get(k), spec.value, k);
 });
 
-test('초를 밀리초로 바꿔 준다 — 그게 필요한 자리가 많다', () => {
+test('초를 밀리초로 바꿔 준다. 그게 필요한 자리가 많다', () => {
   assert.equal(new Settings().ms('speakFirstIntervalSec'), 300_000);
 });
 
@@ -26,7 +26,7 @@ test('아는 항목은 바뀐다', () => {
   assert.equal(s.on('speakFirst'), false);
 });
 
-test('모르는 항목은 안 받고 왜인지 말한다 — 조용히 무시하면 왜 안 바뀌는지 모른다', () => {
+test('모르는 항목은 안 받고 왜인지 말한다. 조용히 무시하면 왜 안 바뀌는지 모른다', () => {
   const s = new Settings();
   const failed = s.put({ any: 1 });
   assert.equal(failed.length, 1);
@@ -39,7 +39,7 @@ test('꼴이 다르면 안 받는다', () => {
   assert.match(s.put({ screenLookIntervalSec: '아무말' })[0], /숫자/);
 });
 
-test('범위 밖은 묶고 그렇다고 말한다 — 화면 보기를 0.1초로 두면 컴퓨터가 앓는다', () => {
+test('범위 밖은 묶고 그렇다고 말한다. 화면 보기를 0.1초로 두면 컴퓨터가 앓는다', () => {
   const s = new Settings();
   const failed2 = s.put({ speakFirstIntervalSec: 1 });
   assert.equal(s.get('speakFirstIntervalSec'), 60);
@@ -60,7 +60,7 @@ test('설정 꼴이 아니면 통째로 거절한다', () => {
 
 // ── 파일 ────────────────────────────────────────────────────────────
 
-test('파일이 정본이다 — 창을 새로 열어도 그대로다', async () => {
+test('파일이 정본이다. 창을 새로 열어도 그대로다', async () => {
   const { mkdtempSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
@@ -99,7 +99,7 @@ test('무엇을 바꿀 수 있는지 그대로 보여 준다', () => {
 
 // ── 실제로 먹나 ─────────────────────────────────────────────────────
 
-test('조용한 시간대를 바꾸면 재시작 없이 먹는다 — 고정 숫자로 받으면 켤 때 값이 박힌다', () => {
+test('조용한 시간대를 바꾸면 재시작 없이 먹는다. 고정 숫자로 받으면 켤 때 값이 박힌다', () => {
   const s = new Settings();
   let now2 = new Date(2026, 1, 10, 14, 0).getTime();
   const quiet = new Quiet({
@@ -113,7 +113,7 @@ test('조용한 시간대를 바꾸면 재시작 없이 먹는다 — 고정 숫
   assert.equal(quiet.inQuietHours, true, '바꾸자마자 먹어야 한다');
 });
 
-test('고정 숫자로 줘도 여전히 된다 — 예전 쓰임이 안 깨진다', () => {
+test('고정 숫자로 줘도 여전히 된다. 예전 쓰임이 안 깨진다', () => {
   const quiet = new Quiet({ now: () => new Date(2026, 1, 10, 2, 0).getTime(), fromHour: 23, toHour: 7 });
   assert.equal(quiet.inQuietHours, true);
 });

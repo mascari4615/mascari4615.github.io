@@ -126,7 +126,7 @@ describe('agent-bus', () => {
   describe('subscribe (tail)', () => {
     it('subscribe 후 새 publish 만 onEvent', async () => {
       const root = await freshRoot('sub');
-      // 시작 전 1건 (이건 안 잡혀야 — already-written skip)
+      // 시작 전 1건 (이건 안 잡혀야. already-written skip)
       await publishBusEvent(root, {
         type: 'channel-msg',
         channelId: 'ch1',

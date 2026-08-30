@@ -24,7 +24,7 @@ function fakeCS(core: string | null): CharacterService {
   return { resolveCore: () => core } as unknown as CharacterService;
 }
 
-describe('isTeamRoom — 코어 바인딩 채널 판정', () => {
+describe('isTeamRoom. 코어 바인딩 채널 판정', () => {
   it('DM 은 코어가 있어도 팀 방이 아니다', () => {
     expect(isTeamRoom(fakeCS('atlas'), 'dm:42', true)).toBe(false);
   });
@@ -38,7 +38,7 @@ describe('isTeamRoom — 코어 바인딩 채널 판정', () => {
   });
 });
 
-describe('isTeamRoomMessage — main.ts bot-gate 임계경로', () => {
+describe('isTeamRoomMessage. main.ts bot-gate 임계경로', () => {
   function fakeMsg(channelId: string, isDM: boolean) {
     return {
       author: { id: 'u1' },

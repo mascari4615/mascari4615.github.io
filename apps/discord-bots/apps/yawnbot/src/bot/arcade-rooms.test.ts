@@ -1,9 +1,9 @@
 /**
  * 열린 방 목록이 남의 말을 안 하고, 죽은 방을 안 보여 주는가 (arcade-next ★2)
  *
- * 여기 오르는 값은 **그대로 남에게 보인다** — 방 코드도 놀이 이름도 사람 이름도.
+ * 여기 오르는 값은 **그대로 남에게 보인다**. 방 코드도 놀이 이름도 사람 이름도.
  * 그래서 모양을 안 따지면 남의 말을 우리가 하게 된다(문패 라우트에서 막은 그 자리와 같다).
- * 그리고 죽은 방이 목록에 남으면 「아무도 없네」보다 나쁜 「눌렀는데 아무도 없네」가 된다.
+ * 그리고 죽은 방이 목록에 남으면 아무도 없네보다 나쁜 눌렀는데 아무도 없네가 된다.
  */
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import express from 'express';
@@ -43,7 +43,7 @@ describe('열린 방 목록', () => {
     expect(rooms[0]).toEqual({ code: '7CCMN', game: 'gomoku', host: '조수' });
   });
 
-  it('같은 방을 다시 올리면 하나다 — 알림이 곧 「아직 있다」다', async () => {
+  it('같은 방을 다시 올리면 하나다. 알림이 곧 아직 있다다', async () => {
     await post({ code: '7CCMN', game: 'gomoku', host: '조수' });
     await post({ code: '7CCMN', game: 'gomoku', host: '조수' });
     expect(await list()).toHaveLength(1);
@@ -55,7 +55,7 @@ describe('열린 방 목록', () => {
     expect(await list()).toHaveLength(0);
   });
 
-  it('모양이 아닌 방 코드·놀이는 안 받는다 — 그대로 남에게 보이는 값이다', async () => {
+  it('모양이 아닌 방 코드, 놀이는 안 받는다. 그대로 남에게 보이는 값이다', async () => {
     for (const bad of [
       { code: '<script>', game: 'gomoku' },
       { code: 'ab', game: 'gomoku' },
@@ -68,7 +68,7 @@ describe('열린 방 목록', () => {
     expect(await list()).toHaveLength(0);
   });
 
-  it('이름은 길이를 자르고 줄바꿈을 없앤다 (한글·이모지는 그대로)', async () => {
+  it('이름은 길이를 자르고 줄바꿈을 없앤다 (한글, 이모지는 그대로)', async () => {
     await post({ code: 'AAAAA', game: 'gomoku', host: '가'.repeat(40) });
     await post({ code: 'BBBBB', game: 'gomoku', host: '조\n수\t🎮' });
     const rooms = await list();
@@ -77,7 +77,7 @@ describe('열린 방 목록', () => {
     expect(byCode.BBBBB).toBe('조 수 🎮');
   });
 
-  it('이름이 비면 「누군가」', async () => {
+  it('이름이 비면 누군가', async () => {
     await post({ code: 'CCCCC', game: 'gomoku', host: '   ' });
     expect((await list())[0].host).toBe('누군가');
   });

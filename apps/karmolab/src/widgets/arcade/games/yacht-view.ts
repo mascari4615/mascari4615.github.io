@@ -1,7 +1,7 @@
 /**
  * 주사위 요트 화면 (TASK-KL-242)
  *
- * 칸마다 **지금 적으면 몇 점인지 미리 보여 준다** — 규칙 열두 줄을 외운 사람만 놀 수 있으면
+ * 칸마다 **지금 적으면 몇 점인지 미리 보여 준다**. 규칙 열두 줄을 외운 사람만 놀 수 있으면
  * 그건 오락실이 아니다. 0점이 되는 칸은 흐리게 두되 막지는 않는다(버리는 것도 수다).
  */
 import { t } from '../../../lib/i18n';
@@ -31,7 +31,7 @@ export const yachtView: GameView<YachtState, YachtAction> = {
       const myTurn = s.turn === mySeat;
       const mine = s.sheet[mySeat];
 
-      /* 눈은 점으로 그린다 — `⚀⚁` 글자는 우리 글꼴에 없어 두부(□)로 나왔다(`die.ts`). */
+      /* 눈은 점으로 그린다. `⚀⚁` 글자는 우리 글꼴에 없어 두부(□)로 나왔다(`die.ts`). */
       const canKeep = myTurn && s.rolled < 3;
       diceEl.innerHTML = s.dice
         .map((d, i) => die(d, { keep: s.keep[i], can: canKeep, data: { i }, label: String(d) }))

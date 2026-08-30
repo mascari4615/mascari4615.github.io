@@ -1,10 +1,10 @@
 /**
  * KarmoLab 그림 올리기 (TASK-KL-098).
  *
- * 왜 있나: 「자랑」 갤러리인데 그림을 못 올렸다. 커뮤니티에서 그림이 안 되면 자랑도 질문도
- * 반쪽이 된다 (「이렇게 나와요」를 글로만 설명해야 한다).
+ * 왜 있나: 자랑 갤러리인데 그림을 못 올렸다. 커뮤니티에서 그림이 안 되면 자랑도 질문도
+ * 반쪽이 된다 (이렇게 나와요를 글로만 설명해야 한다).
  *
- * 어떻게: 브라우저가 그림을 글자로 바꿔 보내면 서버가 파일로 떨군다. 남의 저장소를 안 쓴다 —
+ * 어떻게: 브라우저가 그림을 글자로 바꿔 보내면 서버가 파일로 떨군다. 남의 저장소를 안 쓴다 . 
  * 이 사이트의 다른 것들과 같은 원칙이다(넣은 것이 남의 서버로 안 간다).
  *
  * 지키는 것 셋:
@@ -30,7 +30,7 @@ function uploadDir(): string {
 
 /**
  * 바이트 앞머리로 진짜 종류를 알아낸다 (magic number).
- * 사람이 말한 종류는 안 믿는다 — 그게 이 함수가 있는 이유다.
+ * 사람이 말한 종류는 안 믿는다. 그게 이 함수가 있는 이유다.
  */
 export function sniffImage(bytes: Buffer): { ext: string; mime: string } | null {
     if (bytes.length < 12) return null;
@@ -47,7 +47,7 @@ export function sniffImage(bytes: Buffer): { ext: string; mime: string } | null 
     return null;
 }
 
-/** 오늘 이 사람이 몇 장 올렸나 — 파일 이름에 날짜와 사람이 들어 있어 세기만 하면 된다. */
+/** 오늘 이 사람이 몇 장 올렸나. 파일 이름에 날짜와 사람이 들어 있어 세기만 하면 된다. */
 export function uploadsTodayBy(accountId: string, now: Date = new Date()): number {
     const day = new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
     const prefix = `${day}-${accountId.slice(0, 8)}-`;

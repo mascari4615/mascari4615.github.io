@@ -1,5 +1,5 @@
 /**
- * MDD (Moe Driven Development) — 마스코트 매니저 + 호감도/스토리 모듈
+ * MDD (Moe Driven Development). 마스코트 매니저 + 호감도/스토리 모듈
  *
  * 이미지 기반 마스코트 캐릭터, 12가지 감정 표현, 말풍선, 바운스,
  * 호감도 시스템, 스토리 이벤트를 관리합니다.
@@ -14,7 +14,7 @@ const Mdd = (() => {
     /* ===== 사용자 설정 =====
      * 마스코트는 화면 위에 상주하는 물건이라 취향이 제일 크게 갈린다. 끄고 싶은
      * 사람, 크게 보고 싶은 사람, 움직임이 거슬리는 사람이 다 다르다. 값은 한 곳에
-     * 모아 두고 바뀌면 그 자리에서 반영한다 — 새로고침을 요구하지 않는다. */
+     * 모아 두고 바뀌면 그 자리에서 반영한다. 새로고침을 요구하지 않는다. */
     const PREFS_KEY = 'mdd_prefs';
 
     interface MddPrefs {
@@ -37,7 +37,7 @@ const Mdd = (() => {
     }
 
     const PREF_DEFAULTS: MddPrefs = {
-        /* 기본은 **끔**. 그림·표정·눈 배선이 아직 다듬는 중이라, 다 만들어지기 전에
+        /* 기본은 **끔**. 그림, 표정, 눈 배선이 아직 다듬는 중이라, 다 만들어지기 전에
            모든 방문자 화면에 세워 두면 미완성이 기본값이 된다. 켜는 자리는 남겨 둔다
            (환경 설정 → 마스코트). 다 다듬으면 이 한 줄만 되돌린다. */
         enabled: false, width: 300, framing: 'bust', showOnMobile: false,
@@ -46,7 +46,7 @@ const Mdd = (() => {
     };
 
     /** 폭의 아래 한계. 위 한계는 고정값으로 두면 큰 화면에서 답답하고 작은
-     *  화면에서는 화면 밖으로 나간다 — 화면에 맞춰 잰다(전신은 세로가 기니
+     *  화면에서는 화면 밖으로 나간다. 화면에 맞춰 잰다(전신은 세로가 기니
      *  높이 기준). */
     const WIDTH_MIN = 48;
 
@@ -110,25 +110,25 @@ const Mdd = (() => {
     }
 
     /* ===== 아바타 리깅 층 (원래 별도 파일이었으나, mdd.js 는 묶지 않는 전역
-     * 스크립트라 import 를 쓰면 전역 `Mdd` 가 사라진다 — 같은 파일 안에 둔다) ===== */
+     * 스크립트라 import 를 쓰면 전역 `Mdd` 가 사라진다. 같은 파일 안에 둔다) ===== */
     /**
-     * 티메토 아바타 — 부위 레이어를 값으로 움직이는 리깅 층
+     * 티메토 아바타. 부위 레이어를 값으로 움직이는 리깅 층
      *
-     * 표정이 「파일」이던 구조를 「값」으로 바꾼다. 그림 12장을 갈아 끼우면 전환할
-     * 때마다 다른 사람이 됐지만(머리 길이·복장이 서로 달랐다), 여기서는 한 장의
-     * 일러스트를 부위별로 분해한 것 하나만 쓰고 눈·눈썹·입·고개 각도를 숫자로
+     * 표정이 파일이던 구조를 값으로 바꾼다. 그림 12장을 갈아 끼우면 전환할
+     * 때마다 다른 사람이 됐지만(머리 길이, 복장이 서로 달랐다), 여기서는 한 장의
+     * 일러스트를 부위별로 분해한 것 하나만 쓰고 눈, 눈썹, 입, 고개 각도를 숫자로
      * 움직인다. 그래서 중간 표정이 존재하고, 전환이 보간되고, 가만히 있어도
      * 숨을 쉬고 눈을 깜빡인다.
      *
      * 그림 출처 = `img/mascot/parts/` (See-through 로 분해한 RGBA 레이어 17장 +
      * manifest.json 의 원본 캔버스 좌표). 화풍은 일러스트에서 오고 이 파일은
-     * 리깅만 한다 — 그림을 갈아 끼워도 매니페스트 이름만 같으면 그대로 돈다.
+     * 리깅만 한다. 그림을 갈아 끼워도 매니페스트 이름만 같으면 그대로 돈다.
      */
 
     interface AvatarPose {
         /** 눈 뜬 정도 0(감음)~1(크게 뜸) */
         eyeOpen: number;
-        /** 눈웃음 — 아래에서 눌러 올린 정도 0~1 */
+        /** 눈웃음. 아래에서 눌러 올린 정도 0~1 */
         eyeSquint: number;
         /** 눈썹 기울기(도). +면 화난 쪽, -면 곤란한 쪽 */
         browTilt: number;
@@ -136,7 +136,7 @@ const Mdd = (() => {
         browRaise: number;
         /** 입 벌린 정도 1=평소, 크면 벌어짐 */
         mouthOpen: number;
-        /** 입 가로 폭 배율 — 웃으면 넓어진다 */
+        /** 입 가로 폭 배율. 웃으면 넓어진다 */
         mouthWide: number;
         /** 볼 홍조 0~1 */
         blush: number;
@@ -144,14 +144,14 @@ const Mdd = (() => {
         tilt: number;
         /** 몸 전체 상하 오프셋(캔버스 px) */
         bob: number;
-        /** 왼팔·오른팔 회전(도). 어깨를 축으로 돈다. +면 손이 올라간다 */
+        /** 왼팔, 오른팔 회전(도). 어깨를 축으로 돈다. +면 손이 올라간다 */
         armL: number;
         armR: number;
         /** 시선 고정 방향. null 이면 커서를 따라본다 */
         gaze: { x: number; y: number } | null;
         /** 눈동자 크기 배율. 놀라면 작아지고(흰자가 넓어 보인다) 반하면 커진다 */
         irisScale: number;
-        /** 눈을 통째로 갈아 끼우는 조각(감은 눈·웃는 눈…). null 이면 기본 눈 */
+        /** 눈을 통째로 갈아 끼우는 조각(감은 눈, 웃는 눈...). null 이면 기본 눈 */
         eyeArt: string | null;
         /** 입 조각. null 이면 기본 입 */
         mouthArt: string | null;
@@ -166,19 +166,19 @@ const Mdd = (() => {
     /** 기존 12 포즈 = 이 값들의 프리셋. 사이 값도 되므로 전환이 보간된다.
      *
      * 진폭이 큰 이유: 우하단 마스코트는 92px 이고 입은 원본 1024 캔버스에서
-     * 17px 짜리 선이다. 미세한 표정차는 그 크기에서 통째로 사라진다 — 실제로
-     * 읽히는 건 고개 각도·몸 상하·눈 개폐·홍조뿐이라 그쪽으로 몰아 준다. */
+     * 17px 짜리 선이다. 미세한 표정차는 그 크기에서 통째로 사라진다. 실제로
+     * 읽히는 건 고개 각도, 몸 상하, 눈 개폐, 홍조뿐이라 그쪽으로 몰아 준다. */
     const POSE_PRESETS: Record<string, Partial<AvatarPose>> = {
         idle:     {},
         happy:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.4, tilt: -9, bob: -5 },
         sad:      { eyeOpen: 0.82, mouthArt: 'mouth-frown', tilt: 14, bob: 12, armL: 7, armR: -7 },
         /* 놀람은 **눈을 늘리는 게 아니라 눈동자를 줄이는 것**이다 (사용자 신고: 눈이 늘어져
-           이상하다). 1.35 배로 세로만 늘리면 눈이 달걀이 된다 — 24px 짜리 눈이 8px 자란다.
+           이상하다). 1.35 배로 세로만 늘리면 눈이 달걀이 된다. 24px 짜리 눈이 8px 자란다.
            크게 뜨는 건 1.12 까지만 하고, 놀란 티는 작아진 눈동자(0.72)와 올라간 눈썹이 낸다. */
         shock:    { eyeOpen: 1.12, irisScale: 0.72, browRaise: -3, mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
         think:    { eyeOpen: 0.88, mouthWide: 0.85, tilt: 16, gaze: { x: 0.9, y: -0.75 } },
         /* 감은 눈은 **0 이 아니다.** 0 이면 눈이 통째로 사라지고, 남은 속눈썹만 눈 상자
-           맨 아래로 눌려 「눈이 턱 쪽에 있는」 그림이 된다(사용자 신고). 얇게 남겨 둔다. */
+           맨 아래로 눌려 눈이 턱 쪽에 있는 그림이 된다(사용자 신고). 얇게 남겨 둔다. */
         sleep:    { eyeOpen: 0.08, eyeSquint: 0.3, mouthOpen: 1.4, tilt: 20, bob: 16 },
         angry:    { eyeOpen: 0.92, irisScale: 0.92, mouthArt: 'mouth-frown', blush: 0.45, tilt: 2, bob: -4, armL: 14, armR: -14 },
         love:     { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 1, tilt: -12, bob: -6, irisScale: 1.12 },
@@ -195,7 +195,7 @@ const Mdd = (() => {
 
     interface Manifest {
         canvas: [number, number];
-        /** 각 눈의 자리·크기. 눈동자는 그림이 아니라 이 값으로 그린다 */
+        /** 각 눈의 자리, 크기. 눈동자는 그림이 아니라 이 값으로 그린다 */
         eyes?: EyeSpot[];
         atlas: { src: string; w: number; h: number };
         order: string[];
@@ -204,7 +204,7 @@ const Mdd = (() => {
         parts: Record<string, PartBox>;
     }
 
-    /** 고개와 함께 도는 부위 — 목 아래는 안 돈다 */
+    /** 고개와 함께 도는 부위. 목 아래는 안 돈다 */
     const HEAD_PARTS = new Set(['back-hair', 'face', 'ears', 'eyewhite', 'irides',
         'eyelash', 'eyebrow', 'nose', 'mouth', 'front-hair', 'headwear']);
     const EYE_PARTS = new Set(['eyewhite', 'irides', 'eyelash']);
@@ -212,7 +212,7 @@ const Mdd = (() => {
     const ARM_PIVOT: Record<string, string> = { 'arm-l': '100% 8%', 'arm-r': '0% 8%' };
 
     /** 화면에 보여 줄 범위(원본 캔버스 좌표). 우하단 상주는 작아서 얼굴이 읽혀야 한다. */
-    /* bust 는 y=74 에서 시작했는데 **앞머리는 y=30 에서 시작한다** — 정수리 44px 가 늘
+    /* bust 는 y=74 에서 시작했는데 **앞머리는 y=30 에서 시작한다**. 정수리 44px 가 늘
        잘려 있었다(사용자 신고). 게다가 고개를 갸우뚱하면(±16°) 머리가 더 밖으로 나간다.
        머리 위로 여백을 두고, 좌우도 조금 넓힌다. 아래(y=342, 어깨선)는 그대로 둔다. */
     const FRAMING = {
@@ -255,9 +255,9 @@ const Mdd = (() => {
         stage.style.height = manifest.canvas[1] + 'px';
         el.appendChild(stage);
 
-        // 고개 회전은 부위를 감싸는 그룹이 맡는다. 회전과 부위별 변형(눈 감기·입
+        // 고개 회전은 부위를 감싸는 그룹이 맡는다. 회전과 부위별 변형(눈 감기, 입
         // 벌리기)을 한 요소에 겹쳐 쓰면 회전용 축(목덜미)을 스케일이 그대로 물려받아
-        // 눈·입이 얼굴 밖으로 튄다 — 축이 다른 두 변형은 층을 나눠야 한다.
+        // 눈, 입이 얼굴 밖으로 튄다. 축이 다른 두 변형은 층을 나눠야 한다.
         const layers = new Map<string, HTMLDivElement>();
         const variantNames = manifest.variants || [];
         const headGroups: HTMLDivElement[] = [];
@@ -265,8 +265,8 @@ const Mdd = (() => {
         for (const name of manifest.order) {
             const box = manifest.parts[name];
             if (!box) continue;
-            // 표정 조각(눈·입)도 얼굴의 일부다 — 머리 그룹 밖에 두면 고개를 갸우뚱할 때
-            // 얼굴만 돌고 눈·입은 제자리에 남는다.
+            // 표정 조각(눈, 입)도 얼굴의 일부다. 머리 그룹 밖에 두면 고개를 갸우뚱할 때
+            // 얼굴만 돌고 눈, 입은 제자리에 남는다.
             const isHead = HEAD_PARTS.has(name) || variantNames.includes(name);
             if (isHead && !group) {
                 group = document.createElement('div');
@@ -277,7 +277,7 @@ const Mdd = (() => {
                 group = null;
             }
             // 파츠를 낱장으로 받으면 첫 화면에서 요청이 15번 난다. 한 장(아틀라스)에서
-            // 필요한 칸만 꺼내 쓴다 — 브라우저가 받는 그림은 하나다.
+            // 필요한 칸만 꺼내 쓴다. 브라우저가 받는 그림은 하나다.
             const el2 = document.createElement('div');
             el2.className = 'mdd-av-part';
             el2.dataset.part = name;      // 어느 부위인지 화면에서 바로 알아볼 수 있게
@@ -295,7 +295,7 @@ const Mdd = (() => {
             layers.set(name, el2);
 
             // 눈동자는 흰자 밖으로 나가면 안 된다. 아틀라스의 흰자 칸을 그대로
-            // 마스크로 씌우면 눈 모양대로 잘린다 — 시선이 끝까지 가도 눈 안에 남는다.
+            // 마스크로 씌우면 눈 모양대로 잘린다. 시선이 끝까지 가도 눈 안에 남는다.
             // (지금은 눈동자를 코드로 그리므로 아래 마스크 코드는 안 쓴다)
             if (name === 'irides' && !(manifest.eyes && manifest.eyes.length === 2)) {
                 const w = manifest.parts['eyewhite'];
@@ -319,8 +319,8 @@ const Mdd = (() => {
 
         /* ===== 눈동자는 코드로 그린다 =====
          *
-         * 분해가 준 눈동자는 좌우가 서로 다른 모양으로 뭉개져 있었다 — 사람이 보면
-         * 바로 「짝짝이」로 읽힌다. 자리와 크기만 그림에서 받아 오고, 실제 눈동자는
+         * 분해가 준 눈동자는 좌우가 서로 다른 모양으로 뭉개져 있었다. 사람이 보면
+         * 바로 짝짝이로 읽힌다. 자리와 크기만 그림에서 받아 오고, 실제 눈동자는
          * 여기서 그린다. 그래서 좌우가 정확히 같고, 시선을 따라 움직여도 흰자 밖으로
          * 걸어 나가지 않는다(흰자 모양으로 잘라 낸다). */
         const irisEls: HTMLDivElement[] = [];
@@ -331,7 +331,7 @@ const Mdd = (() => {
 
             /* 흰자 그림에는 **원본 눈동자가 같이 찍혀 있다** (분해가 눈을 통째로 잘라 왔다).
              * 그 위에 우리 눈동자를 얹으니 시선이 움직일 때마다 원본 눈알이 밑에서 비쳐
-             * 나왔다 — 「눈이 두 겹」으로 보인다(사용자 신고 2026-08-08).
+             * 나왔다. 눈이 두 겹으로 보인다(사용자 신고 2026-08-08).
              * 그래서 흰자는 **그림을 안 쓴다**: 같은 칸을 마스크로만 써서 눈 모양을 얻고,
              * 안은 살짝 그늘진 흰색으로 직접 칠한다. 원본 눈동자는 이 순간 사라진다. */
             const whiteEl = layers.get('eyewhite');
@@ -350,7 +350,7 @@ const Mdd = (() => {
                 }
             }
             /* 크기는 분해가 준 눈동자 크기가 아니라 **흰자 높이**에서 잡는다.
-               분해된 눈동자는 실제보다 작게 잘려 있어 그대로 쓰면 「점눈」이 된다 —
+               분해된 눈동자는 실제보다 작게 잘려 있어 그대로 쓰면 점눈이 된다 . 
                셀 애니 눈은 홍채가 눈 높이를 거의 꽉 채운다. */
             const wh = manifest.parts['eyewhite'];
             const measured = (eyeSpots[0].ry + eyeSpots[1].ry) / 2;
@@ -367,8 +367,8 @@ const Mdd = (() => {
                 iris.style.width = (rx * 2) + 'px';
                 iris.style.height = (ry * 2) + 'px';
                 if (wBox) {
-                    // 흰자 모양으로 잘라 낸다 — 시선이 끝까지 가도 눈 안에 머문다
-                    // 배율은 「흰자 그림을 캔버스에 놓을 때」의 배율이다. 눈동자 크기로
+                    // 흰자 모양으로 잘라 낸다. 시선이 끝까지 가도 눈 안에 머문다
+                    // 배율은 흰자 그림을 캔버스에 놓을 때의 배율이다. 눈동자 크기로
                     // 잡으면 두 눈이 든 흰자 그림이 한쪽 눈만 한 크기로 줄어 엉뚱한
                     // 자리를 오려 낸다(눈동자가 세로 조각으로 잘렸다).
                     const kx = wBox.w / wBox.sw;
@@ -384,8 +384,8 @@ const Mdd = (() => {
                         iris.style.setProperty(pfx + '-repeat', 'no-repeat');
                     }
                 }
-                // 눈동자는 흰자 위·속눈썹 아래다. 맨 뒤에 붙이면 눈꺼풀 위로 떠올라
-                // 「눈알이 얼굴에 얹힌」 그림이 된다.
+                // 눈동자는 흰자 위, 속눈썹 아래다. 맨 뒤에 붙이면 눈꺼풀 위로 떠올라
+                // 눈알이 얼굴에 얹힌 그림이 된다.
                 const lash = layers.get('eyelash');
                 if (lash && lash.parentNode === host) host.insertBefore(iris, lash);
                 else host.appendChild(iris);
@@ -443,7 +443,7 @@ const Mdd = (() => {
         }
 
         /* 한 번이라도 화면에 붙었었나. 처음 몇 프레임은 아직 안 붙은 채로 돌 수 있어서
-           (부르는 쪽이 만들어서 나중에 붙인다) 「붙은 적 있다」를 기억해 두고 판단한다. */
+           (부르는 쪽이 만들어서 나중에 붙인다) 붙은 적 있다를 기억해 두고 판단한다. */
         let wasConnected = false;
 
         /* 아직 안 붙은 아바타를 **싸게** 기다린다.
@@ -472,18 +472,18 @@ const Mdd = (() => {
         function frame(now: number): void {
             /* **떨어졌으면 스스로 멈춘다** (TASK-KL-201).
              *
-             * `spot()` 은 `destroy()` 를 돌려주기만 하고, 부르는 위젯 대부분은 그걸 안 부른다 —
+             * `spot()` 은 `destroy()` 를 돌려주기만 하고, 부르는 위젯 대부분은 그걸 안 부른다 . 
              * 화면이 갈릴 때 DOM 은 사라지지만 이 루프는 영영 돈다. 실측: 위젯 여섯을 열었다
              * 홈으로 돌아오면 이 함수가 초당 181번(=60fps 세 벌) 돌고 있었다. 손 안 댄 화면이
              * 배터리를 먹는다.
              *
-             * `mountAvatar` 는 같은 사고를 이미 겪고 「새로 붙이기 전에 앞의 것을 끊는」 방식으로
+             * `mountAvatar` 는 같은 사고를 이미 겪고 새로 붙이기 전에 앞의 것을 끊는 방식으로
              * 고쳤다(KL-128 ㉔). 그건 부르는 쪽이 기억해야 하는 방식이라 새 사용처가 생기면 또
              * 샌다. 그래서 여기서, 아바타 자신이 판단한다. 부르는 쪽은 아무것도 안 해도 된다. */
             if (!el.isConnected) {
-                /* 예전에는 「**붙었던 적이 있고** 지금 떨어졌으면」만 멈췄다. 그래서 만들어 놓고
+                /* 예전에는 **붙었던 적이 있고** 지금 떨어졌으면만 멈췄다. 그래서 만들어 놓고
                    화면에 **한 번도 안 붙인** 아바타는 조건에 영영 안 걸려 계속 돌았다.
-                   실측(2026-08-09): 화면엔 아바타가 **하나**뿐인데 이 루프가 일곱 벌 돌고 있었다 —
+                   실측(2026-08-09): 화면엔 아바타가 **하나**뿐인데 이 루프가 일곱 벌 돌고 있었다 . 
                    나머지 여섯은 아무 데도 안 붙은 채 배터리만 먹는 유령이었다.
                    붙어 있지 않으면 그릴 곳이 없다. 붙은 적이 있든 없든 잔다. */
                 raf = 0;
@@ -492,33 +492,33 @@ const Mdd = (() => {
             }
             wasConnected = true;
 
-            /* ⚠ **여기서 「안 보이면 쉰다」를 시도했다가 되돌렸다** (TASK-KL-201, 2026-08-09).
+            /* ⚠ **여기서 안 보이면 쉰다를 시도했다가 되돌렸다** (TASK-KL-201, 2026-08-09).
              *
              * 숨긴 페이지는 지워지지 않고 남으므로(`isConnected` 는 계속 참) 위젯을 여럿 훑으면
-             * 이 루프가 여섯 벌까지 겹친다 — 실측 초당 360회. 그래서 `checkVisibility()` 로
+             * 이 루프가 여섯 벌까지 겹친다. 실측 초당 360회. 그래서 `checkVisibility()` 로
              * 재우려 했는데, **마스코트 자신이 크기 0 인 컨테이너 안에 산다**. 그 판정에 걸려
              * 홈에서도 마스코트가 잠들어 버렸다(실측: 움직임 정지).
              *
-             * 막는 자리가 답을 더 나쁘게 만들면 안 된다. 되돌렸다. 다시 손대려면 「보이나」를
-             * 요소 크기가 아니라 **셸의 화면 상태**(`.tool-page.active`)로 판단해야 한다 —
+             * 막는 자리가 답을 더 나쁘게 만들면 안 된다. 되돌렸다. 다시 손대려면 보이나를
+             * 요소 크기가 아니라 **셸의 화면 상태**(`.tool-page.active`)로 판단해야 한다 . 
              * 다만 그건 마스코트가 셸 구조를 알게 되는 결합이라, 그 값을 셸이 알려 주는 쪽이 맞다.
              */
 
             const t = (now - t0) / 1000;
 
-            // 값 보간 — 포즈가 튀지 않고 흘러간다
+            // 값 보간. 포즈가 튀지 않고 흘러간다
             const k = REDUCED ? 1 : 0.14;
             for (const key of Object.keys(NEUTRAL) as (keyof AvatarPose)[]) {
                 if (key === 'gaze' || key === 'eyeArt' || key === 'mouthArt') continue;
                 (pose[key] as number) += ((target[key] as number) - (pose[key] as number)) * k;
             }
 
-            // 시선 — 포즈가 방향을 고정하면 그쪽, 아니면 커서
+            // 시선. 포즈가 방향을 고정하면 그쪽, 아니면 커서
             const wanted = target.gaze || (motion.gaze ? gazeTarget : { x: 0, y: 0 });
             gaze.x += (wanted.x - gaze.x) * (REDUCED ? 1 : 0.1);
             gaze.y += (wanted.y - gaze.y) * (REDUCED ? 1 : 0.1);
 
-            // 눈깜빡임 — 일정 간격이면 기계처럼 보인다. 다음 시각을 매번 새로 뽑는다
+            // 눈깜빡임. 일정 간격이면 기계처럼 보인다. 다음 시각을 매번 새로 뽑는다
             if (!REDUCED && motion.blink && !target.eyeArt && target.eyeOpen > 0.15) {
                 if (blinkPhase > 0) {
                     blinkPhase -= 1 / 7;                 // 약 7 프레임에 걸쳐 감았다 뜬다
@@ -535,12 +535,12 @@ const Mdd = (() => {
             const breathe = alive ? Math.sin(t * (Math.PI * 2) / 4) * 2.2 : 0;
             const sway = alive ? Math.sin(t * (Math.PI * 2) / 5.5) * 1.1 : 0;
 
-            // 몸 전체 — 보여 줄 범위로 맞춘 뒤 숨쉬기 + 포즈 상하
+            // 몸 전체. 보여 줄 범위로 맞춘 뒤 숨쉬기 + 포즈 상하
             const ox = -view.x * scale;
             const oy = (-view.y + pose.bob + breathe) * scale;
             stage.style.transform = `translate(${ox}px, ${oy}px) scale(${scale})`;
 
-            // 고개 — 목 위쪽을 축으로 돈다
+            // 고개. 목 위쪽을 축으로 돈다
             const headPivotX = (faceBox ? faceBox.x + faceBox.w / 2 : 512);
             const headPivotY = (faceBox ? faceBox.y + faceBox.h : 512);
             const headRot = pose.tilt + sway + gaze.x * 2.2;
@@ -550,14 +550,14 @@ const Mdd = (() => {
                     `rotate(${headRot}deg) translate(${gaze.x * 3.2}px, ${gaze.y * 2.6}px)`;
             }
 
-            // 눈 — 감을 때 아래로 눌린다. 눈웃음은 아래에서 밀어 올린 모양.
-            // 축은 눈 아래쪽 — 눈꺼풀은 위에서 내려온다.
+            // 눈. 감을 때 아래로 눌린다. 눈웃음은 아래에서 밀어 올린 모양.
+            // 축은 눈 아래쪽. 눈꺼풀은 위에서 내려온다.
             const open = clamp(pose.eyeOpen * blink * (1 - pose.eyeSquint * 0.75), 0, 2);
             for (const name of EYE_PARTS) {
                 const img = layers.get(name);
                 if (!img) continue;
                 /* 감을 때 눈이 **아래로만** 눌리면 감은 눈이 눈 상자 바닥에 붙는다.
-                 * 실제로 눈꺼풀은 위에서 내려와 눈 가운데쯤에서 만난다 — 축을 아래가 아니라
+                 * 실제로 눈꺼풀은 위에서 내려와 눈 가운데쯤에서 만난다. 축을 아래가 아니라
                  * 아래쪽 3/4 지점에 두면 그 자리에서 만난다. */
                 img.style.transformOrigin = name === 'eyelash' ? '50% 76%' : '50% 88%';
                 const sq = name === 'eyelash' ? Math.max(open, 0.3) : open;
@@ -591,10 +591,10 @@ const Mdd = (() => {
                     `translate(0px, ${pose.browRaise}px) rotate(${pose.browTilt * 0.35}deg)`;
             }
 
-            // 표정 조각 — 눈·입을 통째로 갈아 끼운다.
+            // 표정 조각. 눈, 입을 통째로 갈아 끼운다.
             //
-            // 값(scaleY·scale)으로 만드는 표정에는 천장이 있다. 입은 원본에서
-            // 17px 짜리 선 하나뿐이라 아무리 늘려도 「벌린 입」이 안 된다. 같은
+            // 값(scaleY, scale)으로 만드는 표정에는 천장이 있다. 입은 원본에서
+            // 17px 짜리 선 하나뿐이라 아무리 늘려도 벌린 입이 안 된다. 같은
             // 그림의 그 부분만 다시 그려 둔 조각을 얹으면 진짜로 달라진다.
             const eyeArt = target.eyeArt;
             const mouthArt = target.mouthArt;
@@ -603,7 +603,7 @@ const Mdd = (() => {
                 if (!v) continue;
                 v.style.display = (name === eyeArt || name === mouthArt) ? '' : 'none';
             }
-            // 갈아 끼운 자리의 기본 부품은 숨긴다 — 겹치면 눈이 네 개가 된다
+            // 갈아 끼운 자리의 기본 부품은 숨긴다. 겹치면 눈이 네 개가 된다
             for (const name of EYE_PARTS) {
                 const b = layers.get(name);
                 if (b) b.style.display = eyeArt ? 'none' : '';
@@ -611,7 +611,7 @@ const Mdd = (() => {
             const baseMouth = layers.get('mouth');
             if (baseMouth) baseMouth.style.display = mouthArt ? 'none' : '';
 
-            // 팔 — 어깨를 축으로. 손 흔들기·가리키기가 여기서 나온다
+            // 팔. 어깨를 축으로. 손 흔들기, 가리키기가 여기서 나온다
             for (const [name, pivot] of Object.entries(ARM_PIVOT)) {
                 const arm = layers.get(name);
                 if (!arm) continue;
@@ -632,16 +632,16 @@ const Mdd = (() => {
 
         /* **안 보이는 화면의 마스코트는 잔다** (TASK-KL-201, 2026-08-09 2차).
          *
-         * 셸은 화면을 지우지 않고 **숨긴 채 남긴다** — `isConnected` 는 계속 참이라 위 자기중단은
+         * 셸은 화면을 지우지 않고 **숨긴 채 남긴다**. `isConnected` 는 계속 참이라 위 자기중단은
          * 안 걸린다. 그래서 위젯을 훑고 홈으로 오면 이 루프가 여러 벌 겹쳐 돈다.
          * 실측: 위젯 13개를 훑고 홈 = 초당 303회(=60fps 다섯 벌). 손 안 댄 화면이 배터리를 먹는다.
          *
-         * 앞서 `checkVisibility()` 로 재우려다 되돌렸다 — 마스코트가 **크기 0 컨테이너** 안에 살아
-         * 홈에서도 잠들어 버렸다. 요소의 크기로 「보이나」를 물으면 안 된다는 뜻이었다.
+         * 앞서 `checkVisibility()` 로 재우려다 되돌렸다. 마스코트가 **크기 0 컨테이너** 안에 살아
+         * 홈에서도 잠들어 버렸다. 요소의 크기로 보이나를 물으면 안 된다는 뜻이었다.
          *
          * 그래서 묻는 대상을 바꿨다: **자기가 올라탄 도구 화면이 지금 켜져 있나**. 셸이 이미
          * `.tool-page.active` 로 그 사실을 적고 있으니, 그 한 칸만 지켜본다. 도구 화면 밖에 사는
-         * 마스코트(홈·머리띠)는 `closest` 가 아무것도 못 찾으므로 **영향이 없다** — 앞 사고의
+         * 마스코트(홈, 머리띠)는 `closest` 가 아무것도 못 찾으므로 **영향이 없다**. 앞 사고의
          * 재발 지점이 구조적으로 닫힌다.
          *
          * 멈출 때 `raf` 를 비우고, 켜질 때 다시 건다. 중복 기동을 막으려고 `raf` 가 0 일 때만 건다.
@@ -694,22 +694,22 @@ const Mdd = (() => {
         -webkit-user-drag:none; user-drag:none; transform-box:fill-box; will-change:transform; }
     .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
 .mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
-/* 눈동자만 **코드로 그린** 것이라 다른 부위와 선명도가 안 맞았다 — 원본 그림은 부드러운데
-   눈만 벡터처럼 또렷해 「눈이 따로 논다」(사용자 신고). 아주 살짝 흐리고 채도를 낮춰
+/* 눈동자만 **코드로 그린** 것이라 다른 부위와 선명도가 안 맞았다. 원본 그림은 부드러운데
+   눈만 벡터처럼 또렷해 눈이 따로 논다(사용자 신고). 아주 살짝 흐리고 채도를 낮춰
    같은 붓으로 그린 것처럼 맞춘다. 흐림은 1024 좌표계에서 걸리므로 화면에서는 그 절반쯤이다. */
 .mdd-av-iris { position:absolute; border-radius:50%; transform-origin:50% 88%;
     overflow:hidden; will-change:transform;
     filter: blur(0.7px) saturate(0.88) brightness(0.98);
-    /* 셀 애니 눈의 구조는 정해져 있다 — 위에서부터
+    /* 셀 애니 눈의 구조는 정해져 있다. 위에서부터
        ① 속눈썹이 드리운 진한 아치  ② 홍채 본색  ③ 아래쪽 반사(가장 밝은 띠)
        ④ 한가운데 세로로 긴 동공     ⑤ 큰 하이라이트(좌상) + 작은 것(우하)
        ⑥ 홍채를 두르는 진한 테두리
-       그라디언트를 부드럽게 이으면 구슬이 된다. 경계를 끊어야 「그린 눈」이 된다. */
+       그라디언트를 부드럽게 이으면 구슬이 된다. 경계를 끊어야 그린 눈이 된다. */
     background:
-        /* ⑤ 하이라이트 — 셀 룩이라 경계는 끊되, 아주 얇게 풀어 계단을 없앤다 */
+        /* ⑤ 하이라이트. 셀 룩이라 경계는 끊되, 아주 얇게 풀어 계단을 없앤다 */
         radial-gradient(circle at 34% 25%, #ffffff 0 19%, rgba(255,255,255,0) 21%),
         radial-gradient(circle at 70% 73%, rgba(255,255,255,0.9) 0 7%, rgba(255,255,255,0) 9%),
-        /* ④ 동공 — 세로로 긴 타원 */
+        /* ④ 동공. 세로로 긴 타원 */
         radial-gradient(ellipse 24% 33% at 50% 53%, #150a22 0 92%, rgba(21,10,34,0) 100%),
         /* ③ 아래쪽 반사 */
         radial-gradient(ellipse 72% 44% at 50% 89%, #d9b8fc 0 55%, rgba(217,184,252,0) 100%),
@@ -717,47 +717,47 @@ const Mdd = (() => {
         linear-gradient(to bottom, #33144f 0 24%, #5b2a93 25% 47%, #8c52cf 48% 77%, #b483ea 78% 100%);
     box-shadow: inset 0 0 0 1.4px rgba(24,10,38,0.9); }
 
-/* 홀로그램 — 「지금 여기 있는 사람」이 아니라 **쏘아 보낸 상**.
+/* 홀로그램. 지금 여기 있는 사람이 아니라 **쏘아 보낸 상**.
  *
- * 다시 만들었다 (사용자 지시 2026-08-08 — 「지직하면서 깜빡여야 연출인지 알지」).
+ * 다시 만들었다 (사용자 지시 2026-08-08. 지직하면서 깜빡여야 연출인지 알지).
  *
  * 전에 뭐가 문제였나:
- *   ① **상시 색수차**(청록/자홍 ±1.6px)를 걸어 뒀는데, 부위가 여러 장이라 눈·코 같은
- *      안쪽 경계에도 테두리가 생겼다 — 「누끼가 잘못됐나」로 읽혔다(사용자 신고).
+ *   ① **상시 색수차**(청록/자홍 ±1.6px)를 걸어 뒀는데, 부위가 여러 장이라 눈, 코 같은
+ *      안쪽 경계에도 테두리가 생겼다. 누끼가 잘못됐나로 읽혔다(사용자 신고).
  *   ② 점 격자를 상자(::after inset:0)에 깔아서, 캐릭터가 아니라 **네모가** 떠 있었다.
- *   ③ 어긋나는 띠가 7초에 한 번 0.2초 — 눈에 걸리지만 「효과」로 안 읽히고 렌더 오류로 보였다.
+ *   ③ 어긋나는 띠가 7초에 한 번 0.2초. 눈에 걸리지만 효과로 안 읽히고 렌더 오류로 보였다.
  *
  * 지금은 이렇게 한다:
- *   ① **주사선은 실루엣 안에서만** — 그림 자체를 가로줄 마스크로 깎는다. 상자가 안 생긴다.
- *      줄이 위로 흐르면서 「투영 중」이 계속 보인다.
- *   ② **색수차는 지직할 때만** 튄다. 평소엔 청록 글로우만 — 안쪽에 테두리가 안 남는다.
+ *   ① **주사선은 실루엣 안에서만**. 그림 자체를 가로줄 마스크로 깎는다. 상자가 안 생긴다.
+ *      줄이 위로 흐르면서 투영 중이 계속 보인다.
+ *   ② **색수차는 지직할 때만** 튄다. 평소엔 청록 글로우만. 안쪽에 테두리가 안 남는다.
  *   ③ 지직은 3.6초 주기의 **짧은 연타**(두 번 튀고 멈춤). 규칙적으로 오면 고장이 아니라
- *      연출로 읽힌다. 밝기도 같이 튄다 — 빛이 흔들리는 물건이라는 뜻.
+ *      연출로 읽힌다. 밝기도 같이 튄다. 빛이 흔들리는 물건이라는 뜻.
  */
 .mdd-holo { position:relative; }
 .mdd-holo .mdd-av {
-    /* 실루엣 밖으로만 번지는 빛 — 안쪽 경계에는 아무 테두리도 안 남긴다 */
+    /* 실루엣 밖으로만 번지는 빛. 안쪽 경계에는 아무 테두리도 안 남긴다 */
     filter: drop-shadow(0 0 9px rgba(0,229,255,0.34)) saturate(1.05) brightness(1.03);
     /* 주사선: 그림을 가로줄로 깎는다 (상자가 아니라 캐릭터가 줄무늬가 된다) */
     /* 줄은 **있는지 없는지 헷갈릴 만큼** 얕게. 0.72 로 깎았더니 캐릭터가 바코드가 됐다
-       (실측 스크린샷). 4px 마다 1px 을 0.9 로만 눌러 「스캔되는 중」만 남긴다. */
+       (실측 스크린샷). 4px 마다 1px 을 0.9 로만 눌러 스캔되는 중만 남긴다. */
     -webkit-mask-image: repeating-linear-gradient(to bottom,
         #000 0 3px, rgba(0,0,0,0.9) 3px 4px);
     mask-image: repeating-linear-gradient(to bottom,
         #000 0 3px, rgba(0,0,0,0.9) 3px 4px);
     -webkit-mask-size:100% 4px; mask-size:100% 4px;
     /* 주사선은 **안 흐른다.** 흐르게 하려면 mask-position 을 매 프레임 바꿔야 하는데,
-       그건 합성기가 못 맡아서 마스코트를 60fps 로 다시 칠한다 — 아무도 안 보고 있어도.
-       화면이 영영 안 쉬는 원인을 하나 더 만드는 셈이다. 「투영된 상」은 줄무늬가 있다는
+       그건 합성기가 못 맡아서 마스코트를 60fps 로 다시 칠한다. 아무도 안 보고 있어도.
+       화면이 영영 안 쉬는 원인을 하나 더 만드는 셈이다. 투영된 상은 줄무늬가 있다는
        사실만으로 읽히고, 살아 있다는 신호는 3.6초마다 오는 지직이 낸다. */
     animation: mdd-holo-glitch 3.6s steps(1) infinite;
 }
-/* 아래로 깔리는 투영 빛 — 「어딘가에서 쏘고 있다」 */
+/* 아래로 깔리는 투영 빛. 어딘가에서 쏘고 있다 */
 .mdd-holo::before { content:''; position:absolute; inset:-8% -5%; pointer-events:none; z-index:1;
     background:radial-gradient(ellipse at 50% 82%, rgba(0,229,255,0.16) 0%, rgba(0,229,255,0) 62%);
     animation: mdd-holo-breathe 3.6s ease-in-out infinite; }
 
-/* 지직 — 3.6초에 한 번, 0.2초 동안 **두 번** 튄다. 이때만 색이 갈라진다. */
+/* 지직. 3.6초에 한 번, 0.2초 동안 **두 번** 튄다. 이때만 색이 갈라진다. */
 @keyframes mdd-holo-glitch {
     0%, 88% { transform:translateX(0); clip-path:none;
               filter:drop-shadow(0 0 9px rgba(0,229,255,0.34)) saturate(1.05) brightness(1.03); }
@@ -772,7 +772,7 @@ const Mdd = (() => {
 @keyframes mdd-holo-breathe { 0%,100% { opacity:0.75; } 50% { opacity:1; } }
 
 @media (prefers-reduced-motion: reduce) {
-    /* 움직임을 싫어하는 사람에게는 **줄무늬만** 남긴다 — 튀지 않아도 상으로는 읽힌다 */
+    /* 움직임을 싫어하는 사람에게는 **줄무늬만** 남긴다. 튀지 않아도 상으로는 읽힌다 */
     .mdd-holo .mdd-av { animation:none; }
     .mdd-holo::before { animation:none; }
 }
@@ -794,19 +794,19 @@ const Mdd = (() => {
 
     /* ===== 마스코트 그림 =====
      * 부위 레이어를 값으로 움직이는 아바타(mdd-avatar)가 본체다. 매니페스트를
-     * 아직 못 받았거나 못 읽는 동안에는 예전 그림 12장으로 버틴다 — 마스코트가
+     * 아직 못 받았거나 못 읽는 동안에는 예전 그림 12장으로 버틴다. 마스코트가
      * 통째로 사라지는 것보다 낫다. */
 
     /** 파츠를 못 받았을 때 대신 세워 두는 그림 한 장.
      *
      * 예전엔 표정마다 파일이 하나씩(12장) 있었는데 서로 다른 캐릭터로 그려져
-     * 있었다 — 표정이 바뀔 때마다 다른 사람이 됐다. 이제 표정은 값이 만들고,
+     * 있었다. 표정이 바뀔 때마다 다른 사람이 됐다. 이제 표정은 값이 만들고,
      * 폴백은 같은 일러스트에서 잘라 낸 한 장이라 무슨 일이 있어도 같은 사람이다. */
     function getMascotImgSrc(): string {
         return `${PARTS_BASE}/fallback.webp`;
     }
 
-    /** 부위 목록은 한 번만 받는다 — 화면 여러 곳에 티메토가 나와도 요청은 하나 */
+    /** 부위 목록은 한 번만 받는다. 화면 여러 곳에 티메토가 나와도 요청은 하나 */
     let manifestOnce: Promise<Manifest> | null = null;
 
     function loadManifest(): Promise<Manifest> {
@@ -820,11 +820,11 @@ const Mdd = (() => {
     }
 
     /**
-     * 화면 안 아무 자리에나 티메토를 세운다 — 우하단 상주 말고.
+     * 화면 안 아무 자리에나 티메토를 세운다. 우하단 상주 말고.
      *
-     * 로딩·빈 화면·에러는 지금까지 회색 글자 한 줄이었다. 같은 캐릭터가 그 자리에
-     * 나와서 말하면 「기다리는 시간」이 「누가 대신 봐 주는 시간」이 된다. 상주
-     * 마스코트와 같은 그림·같은 리깅을 쓰므로 얼굴이 갈리지 않는다.
+     * 로딩, 빈 화면, 에러는 지금까지 회색 글자 한 줄이었다. 같은 캐릭터가 그 자리에
+     * 나와서 말하면 기다리는 시간이 누가 대신 봐 주는 시간이 된다. 상주
+     * 마스코트와 같은 그림, 같은 리깅을 쓰므로 얼굴이 갈리지 않는다.
      */
     async function spot(host: HTMLElement, opts?: {
         mood?: string; msg?: string; width?: number; framing?: Framing;
@@ -833,10 +833,10 @@ const Mdd = (() => {
     }): Promise<{ destroy(): void } | null> {
         const o = opts || {};
         // 마스코트가 늦게 도착하면 이 부름은 줄을 섰다가 나중에 실행된다. 그 사이
-        // 기다리던 화면이 이미 다 그려졌을 수 있어서, 「아직 기다리는 중인가」를
-        // 부른 쪽이 알려 준 표시로 확인한다 — 안 그러면 완성된 화면을 덮는다.
+        // 기다리던 화면이 이미 다 그려졌을 수 있어서, 아직 기다리는 중인가를
+        // 부른 쪽이 알려 준 표시로 확인한다. 안 그러면 완성된 화면을 덮는다.
         if (o.onlyIf && !host.querySelector(o.onlyIf)) return null;
-        // 탭 내용은 화면에 붙기 *전에* 그려진다 — 그 시점에 「아직 안 붙었으니 관두자」
+        // 탭 내용은 화면에 붙기 *전에* 그려진다. 그 시점에 아직 안 붙었으니 관두자
         // 하면 영영 안 뜬다. 한 프레임 기다렸다가 다시 본다.
         if (!host.isConnected) {
             await new Promise((r) => requestAnimationFrame(() => r(null)));
@@ -869,7 +869,7 @@ const Mdd = (() => {
         try {
             const manifest = await loadManifest();
             /* 앞의 아바타를 **먼저 끊는다** (TASK-KL-128 ㉔).
-             * 안 끊으면 그 아바타의 매-프레임 루프가 화면에서 떨어진 채로 영영 돈다 —
+             * 안 끊으면 그 아바타의 매-프레임 루프가 화면에서 떨어진 채로 영영 돈다 . 
              * 다시 붙일 때마다 하나씩 늘어난다. 손을 안 대도 스타일 재계산이 초당 137회
              * (=60fps 두 벌) 돌고 있었다. 듣는 귀도 같이 늘어난다. */
             avatar?.destroy?.();
@@ -899,10 +899,10 @@ const Mdd = (() => {
     /**
      * 위젯 스타일을 한 장으로 넣는다. **이미 있으면 덮어쓴다** (2026-08-13, TASK-KL-271).
      *
-     * 전에는 「같은 id 가 있으면 아무것도 안 함」이었다. 위젯은 같은 판에서 다시 등록될 수 있고
-     * (핫 리로드·다시 열기), 그때 **옛 스타일이 그대로 남아** 새 규칙이 통째로 안 먹었다.
-     * 화면은 멀쩡히 그려지므로 「규칙을 잘못 썼나」로 읽혀, 한 번은 같은 자리를 세 번 고쳤다.
-     * 내용이 같으면 손대지 않는다 — 쓸데없이 스타일을 다시 계산시키지 않으려고.
+     * 전에는 같은 id 가 있으면 아무것도 안 함이었다. 위젯은 같은 판에서 다시 등록될 수 있고
+     * (핫 리로드, 다시 열기), 그때 **옛 스타일이 그대로 남아** 새 규칙이 통째로 안 먹었다.
+     * 화면은 멀쩡히 그려지므로 규칙을 잘못 썼나로 읽혀, 한 번은 같은 자리를 세 번 고쳤다.
+     * 내용이 같으면 손대지 않는다. 쓸데없이 스타일을 다시 계산시키지 않으려고.
      */
     function injectCSS(id: string, css: string): void {
         const domId = 'mdd-css-' + id;
@@ -926,7 +926,7 @@ const Mdd = (() => {
         if (avatar) {
             avatar.setPose(poseId);
         } else {
-            /* 폴백은 한 장뿐이라 표정이 안 바뀐다 — 값이 아니라 파일로 표정을
+            /* 폴백은 한 장뿐이라 표정이 안 바뀐다. 값이 아니라 파일로 표정을
                내던 시절의 한계다. 파츠가 오면 그때부터 진짜로 움직인다. */
         }
         resetIdleTimer();
@@ -973,11 +973,11 @@ const Mdd = (() => {
     /* ===== 지금 보고 있는 도구 =====
      *
      * 대사 프리셋은 12개뿐인데 도구는 127개다. 그래서 어느 도구를 열어도 티메토는
-     * 늘 같은 말을 했다 — 「측정 개시… 잠깐만요!」. 도구마다 대사를 손으로 적는
+     * 늘 같은 말을 했다. 측정 개시... 잠깐만요!. 도구마다 대사를 손으로 적는
      * 것은 127벌을 관리하는 일이고 새 도구가 생기면 바로 샌다.
      *
      * 대신 화면이 이미 알고 있는 것을 쓴다: 지금 열린 도구의 **이름**. 그러면
-     * 대사를 한 벌만 두고도 「JSON 포맷 꺼낼게요」처럼 그 도구의 말이 된다. */
+     * 대사를 한 벌만 두고도 JSON 포맷 꺼낼게요처럼 그 도구의 말이 된다. */
     function currentToolName(): string {
         try {
             const page = document.querySelector('[id^="page-"].active');
@@ -992,9 +992,9 @@ const Mdd = (() => {
 
     /** 도구 이름을 넣어 말할 수 있는 프리셋과 그 말투 */
     const NAMED_LINES: Record<string, string[]> = {
-        tool_run: ['{}, 꺼낼게요…', '{} 준비 중이에요!', '{} 자리 잡을게요…'],
+        tool_run: ['{}, 꺼낼게요...', '{} 준비 중이에요!', '{} 자리 잡을게요...'],
         success: ['{} 끝났어요! 노트에 적어 뒀어요.', '{}, 결과 나왔어요!'],
-        error: ['{} 가 삐끗했어요… 다시 한 번만요!', '{} 에서 걸렸어요. 한 번 더요?'],
+        error: ['{} 가 삐끗했어요... 다시 한 번만요!', '{} 에서 걸렸어요. 한 번 더요?'],
     };
 
     /**
@@ -1151,9 +1151,9 @@ const Mdd = (() => {
 
     /* ===== 드래그 ===== */
 
-    /* 자리 기억 = 「어느 벽에 붙어 있고, 그 벽을 따라 얼마쯤」.
+    /* 자리 기억 = 어느 벽에 붙어 있고, 그 벽을 따라 얼마쯤.
      *
-     * 좌표(left/top)만 저장하면 크기가 달라지는 순간 어긋난다 — 마스코트 크기를
+     * 좌표(left/top)만 저장하면 크기가 달라지는 순간 어긋난다. 마스코트 크기를
      * 바꾸거나, 폴백 그림에서 진짜 파츠로 갈아 끼우기만 해도 높이가 변해서
      * 화면 밖으로 20px 씩 삐져나갔다. 창 크기를 바꿔도 마찬가지다.
      * 벽과 비율로 적어 두면 무엇이 변하든 그 벽에 붙은 채로 따라간다. */
@@ -1202,7 +1202,7 @@ const Mdd = (() => {
         try { localStorage.setItem(POSITION_KEY, JSON.stringify(stuck)); } catch (_) {}
     }
 
-    /** 크기·창이 바뀌면 붙어 있던 벽으로 다시 붙인다 */
+    /** 크기, 창이 바뀌면 붙어 있던 벽으로 다시 붙인다 */
     function reflowPosition(): void {
         if (dragging || !stuck) return;
         placeAt(stuck.wall, stuck.ratio);
@@ -1289,7 +1289,7 @@ const Mdd = (() => {
             const wall = (Object.keys(dist) as Wall[])
                 .reduce((a, b) => (dist[b] < dist[a] ? b : a));
 
-            // 벽을 따라 어디쯤인지 = 움직일 수 있는 폭 대비 비율. 크기·창이 바뀌어도
+            // 벽을 따라 어디쯤인지 = 움직일 수 있는 폭 대비 비율. 크기, 창이 바뀌어도
             // 같은 자리로 되돌릴 수 있는 형태로 적는다.
             const freeX = Math.max(1, window.innerWidth - rect.width - WALL_MARGIN * 2);
             const freeY = Math.max(1, window.innerHeight - rect.height - WALL_MARGIN * 2);
@@ -1381,7 +1381,7 @@ const Mdd = (() => {
             .mdd-char img { width:100%; height:100%; object-fit:contain; display:block; pointer-events:none; -webkit-user-drag:none; user-drag:none; }
             .mdd-bounce { animation:mdd-bounce 0.3s ease; }
             @keyframes mdd-bounce { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 70%{transform:translateY(-3px)} }
-            /* 폰에서는 마스코트를 띄우지 않는다 — 화면이 좁아 버튼·입력을 가린다 (사용자 결정 2026-08-06). PC 전용. */
+            /* 폰에서는 마스코트를 띄우지 않는다. 화면이 좁아 버튼, 입력을 가린다 (사용자 결정 2026-08-06). PC 전용. */
             @media(max-width:768px){
                 .mdd-container{display:none}
                 /* 사용자가 폰에서도 보겠다고 하면 그 뜻이 이긴다 */

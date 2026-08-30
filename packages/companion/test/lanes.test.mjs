@@ -28,7 +28,7 @@ test('그록 세션 폴더를 레인으로 모은다', () => {
 });
 
 test('방은 말하는 자리다', () => {
-  const lane = roomLane('욘 · 말하는 자리');
+  const lane = roomLane('욘, 말하는 자리');
   assert.equal(lane.id, 'room');
   assert.equal(lane.kind, 'room');
   assert.equal(lane.live, true);

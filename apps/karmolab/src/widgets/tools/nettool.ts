@@ -1,8 +1,8 @@
 /**
- * 대역·포트 (TASK-KL-316 / 25)
+ * 대역, 포트 (TASK-KL-316 / 25)
  *
- * 「개발 도구」 작업대의 **살펴보기** 칸. 알맹이는 `core/nettool`.
- * 방화벽 규칙을 적기 전에 「이 대역이 어디부터 어디까지인가」를 확인하는 자리다 —
+ * 개발 도구 작업대의 **살펴보기** 칸. 알맹이는 `core/nettool`.
+ * 방화벽 규칙을 적기 전에 이 대역이 어디부터 어디까지인가를 확인하는 자리다 . 
  * 머리로 세면 꼭 하나 틀리고, 그 하나가 문을 열어 두거나 닫아 버린다.
  */
 import { findPort, isWellKnown, overlaps, parseCidr, split, summarize, spec } from '../../core/nettool';
@@ -15,12 +15,12 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   Toolbox.register({
     id: 'nettool',
-    title: t('widgets.nettool.title', undefined, '대역·포트'),
-    category: 'tool',
+    title: t('widgets.nettool.title', undefined, '대역, 포트'),
+    category: 'dev',
     desc: t(
       'widgets-desc.nettool.desc',
       undefined,
-      'CIDR 이 어디부터 어디까지인지·몇 대가 들어가는지 세고, 두 대역이 겹치는지 봅니다. 포트 번호도 찾습니다'
+      'CIDR 이 어디부터 어디까지인지, 몇 대가 들어가는지 세고, 두 대역이 겹치는지 봅니다. 포트 번호도 찾습니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="18" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 7h.01M7 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
@@ -62,7 +62,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       <pre id="ntBlocks" class="mono-input" style="white-space:pre-wrap; padding:10px; margin:0 0 12px; max-height:220px; overflow:auto;"></pre>
       <div class="field-group">
         <label class="field-label" for="ntPort">${esc(t('nettool.label.port'))}</label>
-        <input type="text" id="ntPort" name="port" aria-label="${esc(t('nettool.label.port'))}" class="mono-input" placeholder="5432  ·  postgres">
+        <input type="text" id="ntPort" name="port" aria-label="${esc(t('nettool.label.port'))}" class="mono-input" placeholder="5432 ,  postgres">
       </div>
       <div id="ntPorts" class="tool-list"></div>
       <div class="tool-status" id="ntStatus">${esc(t('nettool.status.idle'))}</div>
@@ -88,10 +88,10 @@ import { t, loadNamespace } from '../../lib/i18n';
       try {
         const b = parseCidr(text);
         const rows = [
-          row(t('nettool.row.range'), b.network + '  –  ' + b.broadcast),
-          b.firstHost === undefined ? '' : row(t('nettool.row.hosts'), b.firstHost + '  –  ' + String(b.lastHost)),
+          row(t('nettool.row.range'), b.network + '  -  ' + b.broadcast),
+          b.firstHost === undefined ? '' : row(t('nettool.row.hosts'), b.firstHost + '  -  ' + String(b.lastHost)),
           row(t('nettool.row.count'), b.total.toLocaleString() + '  (' + t('nettool.row.usable', { n: b.usable.toLocaleString() }) + ')'),
-          row(t('nettool.row.mask'), b.mask + '   ·   ' + t('nettool.row.wildcard') + ' ' + b.wildcard),
+          row(t('nettool.row.mask'), b.mask + '  ,   ' + t('nettool.row.wildcard') + ' ' + b.wildcard),
           row(t('nettool.row.kind'), b.private ? t('nettool.private') : t('nettool.public'))
         ].filter((s) => s !== '');
         $<HTMLElement>('#ntFacts').innerHTML = rows.join('');

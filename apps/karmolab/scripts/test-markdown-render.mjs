@@ -1,9 +1,9 @@
 /**
  * lib/markdown 렌더러 시험 (TASK-KL-354).
  *
- * 지키는 것: **user 신뢰에서 위험한 출력이 아예 안 만들어진다** — 이 모듈은 후처리 새니타이저가
+ * 지키는 것: **user 신뢰에서 위험한 출력이 아예 안 만들어진다**. 이 모듈은 후처리 새니타이저가
  * 없으므로, 이 시험이 빨간데 배포되면 커뮤니티에 스크립트가 실린다. 그래서 XSS 항목은 전부
- * 「없어야 한다」로 적는다. 브라우저 없이 도는 이유: 렌더러가 환경을 안 타게 지어졌기 때문이고,
+ * 없어야 한다로 적는다. 브라우저 없이 도는 이유: 렌더러가 환경을 안 타게 지어졌기 때문이고,
  * 그 성질 자체도 여기서 깨지면 잡힌다 (Node 에서 import 만 해도 죽는 코드가 못 들어온다).
  *
  * 사용: npm run test:markdown
@@ -15,7 +15,7 @@ import * as esbuild from 'esbuild';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
-/** vendor marked(UMD) — 브라우저 전역용이라 Node 에선 exports 를 직접 만들어 평가한다. */
+/** vendor marked(UMD). 브라우저 전역용이라 Node 에선 exports 를 직접 만들어 평가한다. */
 function loadMarked() {
     const code = fs.readFileSync(path.join(ROOT, 'js', 'vendor', 'marked.min.js'), 'utf8');
     const exports = {};
@@ -23,12 +23,12 @@ function loadMarked() {
     return exports;
 }
 
-/** 렌더러(TS)를 그 자리에서 묶어 불러온다 — 빌드 산출물 순서에 안 얽매인다. */
+/** 렌더러(TS)를 그 자리에서 묶어 불러온다. 빌드 산출물 순서에 안 얽매인다. */
 async function loadRenderer() {
     return loadTs('render.ts');
 }
 
-/** 앞머리(front matter) 모듈 — 블로그 글과 커뮤니티 글이 같이 쓰는 그 한 벌. */
+/** 앞머리(front matter) 모듈. 블로그 글과 커뮤니티 글이 같이 쓰는 그 한 벌. */
 async function loadFrontMatter() {
     return loadTs('frontmatter.ts');
 }
@@ -58,7 +58,7 @@ function check(name, ok, got) {
     console.error(`✘ ${name}\n  받은 것: ${String(got).slice(0, 200)}`);
 }
 
-// ── 기본기 — 표·코드·제목이 표준대로 나온다 (커뮤니티 개선점: 표가 이제 그려진다)
+// ── 기본기. 표, 코드, 제목이 표준대로 나온다 (커뮤니티 개선점: 표가 이제 그려진다)
 {
     const html = self_('# 제목\n\n| a | b |\n| - | - |\n| 1 | 2 |\n\n`code`');
     check('제목', html.includes('<h1>제목</h1>'), html);
@@ -82,7 +82,7 @@ function check(name, ok, got) {
     check('mermaid escape', html.includes('A--&gt;B'), html);
 }
 
-// ── 우리 문법 ③ callout — 신뢰 무관 같은 모양
+// ── 우리 문법 ③ callout. 신뢰 무관 같은 모양
 {
     for (const render of [self_, user]) {
         const html = render('> [!WARNING]\n> 조심해라');
@@ -92,7 +92,7 @@ function check(name, ok, got) {
     }
 }
 
-// ── user 신뢰 — 위험한 것이 만들어지지 않는다 (이 블록이 이 시험의 존재 이유)
+// ── user 신뢰. 위험한 것이 만들어지지 않는다 (이 블록이 이 시험의 존재 이유)
 {
     const script = user('안녕 <script>alert(1)</script> 세상');
     check('script 태그 무력화', !/<script/.test(script), script);
@@ -108,13 +108,13 @@ function check(name, ok, got) {
     check('안쪽 링크 유지', inner.includes('href="/t/qrgen/"'), inner);
 }
 
-// ── self 신뢰 — 내 글은 전 기능 (원문 HTML 이 산다)
+// ── self 신뢰. 내 글은 전 기능 (원문 HTML 이 산다)
 {
     const html = self_('<kbd>Ctrl</kbd> 를 눌러라');
     check('self 원문 HTML 유지', html.includes('<kbd>Ctrl</kbd>'), html);
 }
 
-// ── 앞머리(front matter) — 글 설정은 한 문법, 그리고 본문으로 새지 않는다
+// ── 앞머리(front matter). 글 설정은 한 문법, 그리고 본문으로 새지 않는다
 {
     const { splitFrontMatter, coverImage, coverAttrs } = await loadFrontMatter();
 
@@ -139,4 +139,4 @@ if (failed) {
     console.error(`[test-markdown] ✘ ${failed}개 실패`);
     process.exit(1);
 }
-console.log('[test-markdown] 전부 통과 — user 신뢰에서 script/javascript:/data: 전부 무력, 표·카드·callout 정상');
+console.log('[test-markdown] 전부 통과. user 신뢰에서 script/javascript:/data: 전부 무력, 표, 카드, callout 정상');

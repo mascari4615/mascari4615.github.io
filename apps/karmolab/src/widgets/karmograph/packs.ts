@@ -1,15 +1,15 @@
 /**
- * packs.ts — KarmoGraph 의 **어휘 팩** (TASK-KL-202 격차 A).
+ * packs.ts. KarmoGraph 의 **어휘 팩** (TASK-KL-202 격차 A).
  *
  * 원래 여기엔 세계관 어휘 5종이 하드코딩돼 있었다(`kinds.ts`). 그런데 레퍼런스
  * 두 개(三角関係ジェネレーター / カードゲーム展開ジェネレーター)를 나란히 보면
- * **같은 엔진에 어휘만 갈아끼운 것**이다 — 노드·선·그룹은 똑같고, 다른 건
- * 「인물/♡好き」이냐 「카드/☆召喚」이냐 뿐.
+ * **같은 엔진에 어휘만 갈아끼운 것**이다. 노드, 선, 그룹은 똑같고, 다른 건
+ * 인물/♡好き이냐 카드/☆召喚이냐 뿐.
  *
  * 그래서 어휘를 데이터로 뺐다. 캔버스(lib/graph)는 어휘를 모르고, 위젯은 팩을
  * 골라 끼운다. 새 용도가 생기면 코드가 아니라 팩 한 덩이가 늘어난다.
  *
- * 노드 종류 id 는 팩마다 겹치지 않게 prefix 를 둔다 — 팩을 바꿔도 이미 놓아둔
+ * 노드 종류 id 는 팩마다 겹치지 않게 prefix 를 둔다. 팩을 바꿔도 이미 놓아둔
  * 노드가 색을 잃지 않도록 `ALL_KIND_COLORS` 가 전 팩을 합쳐 캔버스에 넘어간다.
  */
 import type { EdgeKindDef, EdgeStyle } from '../../lib/karmograph/spec';
@@ -22,8 +22,8 @@ export interface NodeKindDef {
   color: string;
   /**
    * 이 종류가 흔히 갖는 **칸 이름들** (TASK-KL-202, World Anvil 의 template 계보).
-   * 스키마를 강요하지는 않는다 — 빈 칸에서 시작하면 사람이 무엇을 적을지 몰라 아무것도 안 적기에,
-   * 「한 벌 채우기」 버튼의 **시작값**으로만 쓴다. 지우거나 다른 이름을 적어도 된다.
+   * 스키마를 강요하지는 않는다. 빈 칸에서 시작하면 사람이 무엇을 적을지 몰라 아무것도 안 적기에,
+   * 한 벌 채우기 버튼의 **시작값**으로만 쓴다. 지우거나 다른 이름을 적어도 된다.
    */
   fields?: string[];
 }
@@ -34,9 +34,9 @@ export interface EdgeKindPreset {
   color: string;
   style: EdgeStyle;
   arrow: boolean;
-  /** 출발 쪽에도 화살표 — 서로 오가는 관계(↔). */
+  /** 출발 쪽에도 화살표. 서로 오가는 관계(↔). */
   arrowStart?: boolean;
-  /** 선 굵기(px). 없으면 1.5 — 굵을수록 「센 관계」로 읽힌다. */
+  /** 선 굵기(px). 없으면 1.5. 굵을수록 센 관계로 읽힌다. */
   width?: number;
 }
 
@@ -92,7 +92,7 @@ const WORLDVIEW: CanvasPack = {
   ],
 };
 
-/** 三角関係ジェネレーター 계열 — 팬이 최애 관계도를 그리는 용도. */
+/** 三角関係ジェネレーター 계열. 팬이 최애 관계도를 그리는 용도. */
 const RELATION: CanvasPack = {
   id: 'relation',
   get label() { return packLabel('relation'); },
@@ -121,7 +121,7 @@ const RELATION: CanvasPack = {
   ],
 };
 
-/** カードゲーム展開ジェネレーター 계열 — 콤보·전개 루트 정리. */
+/** カードゲーム展開ジェネレーター 계열. 콤보, 전개 루트 정리. */
 const CARDGAME: CanvasPack = {
   id: 'cardgame',
   get label() { return packLabel('cardgame'); },
@@ -152,7 +152,7 @@ const CARDGAME: CanvasPack = {
   ],
 };
 
-/** 전문가가 개념·논증을 설명하는 용도. */
+/** 전문가가 개념, 논증을 설명하는 용도. */
 const CONCEPT: CanvasPack = {
   id: 'concept',
   get label() { return packLabel('concept'); },
@@ -205,7 +205,7 @@ const IDEA: CanvasPack = {
   ],
 };
 
-/** 사람·팀·산출물 배치. */
+/** 사람, 팀, 산출물 배치. */
 const ORG: CanvasPack = {
   id: 'org',
   get label() { return packLabel('org'); },
@@ -236,9 +236,9 @@ export const DEFAULT_PACK_ID = WORLDVIEW.id;
 /**
  * ★ 종류는 **고르는 게 아니라 분류되는 것** (사용자 지시 2026-08-09).
  *
- * 팩을 먼저 고르게 하면 「이 맵은 세계관용」처럼 칸이 나뉘는데, 실제 세계관에는 인물도 장소도
+ * 팩을 먼저 고르게 하면 이 맵은 세계관용처럼 칸이 나뉘는데, 실제 세계관에는 인물도 장소도
  * 카드도 개념도 **같이 있다**. 그래서 종류 목록은 언제나 **전부** 내주고, 팩은 그저 **묶음 이름**
- * 으로만 남는다(고르기 창에서 「세계관 / 인물 관계도 / 카드 전개 …」 소제목).
+ * 으로만 남는다(고르기 창에서 세계관 / 인물 관계도 / 카드 전개 ... 소제목).
  */
 export function allNodeKindGroups(): { title: string; kinds: NodeKindDef[] }[] {
   return PACKS.map((pk) => ({ title: `${pk.icon} ${pk.label}`, kinds: pk.nodeKinds }));
@@ -254,14 +254,14 @@ export function packById(id: string): CanvasPack {
 
 /**
  * 전 팩의 노드 색을 합친 표. 캔버스에 이걸 넘겨야 팩을 바꿔도 **이미 놓아둔
- * 다른 팩 노드가 회색으로 죽지 않는다** — 한 캔버스에 여러 팩 어휘를 섞어
+ * 다른 팩 노드가 회색으로 죽지 않는다**. 한 캔버스에 여러 팩 어휘를 섞어
  * 쓰는 것도 막을 이유가 없다.
  */
 export const ALL_KIND_COLORS: Record<string, string> = Object.fromEntries(
   PACKS.flatMap((p) => p.nodeKinds.map((k) => [k.id, k.color] as const))
 );
 
-/** 전 팩의 아이콘 합본 — 노드 카드·사이드 패널 표시에 쓴다. */
+/** 전 팩의 아이콘 합본. 노드 카드, 사이드 패널 표시에 쓴다. */
 export const ALL_KIND_ICONS: Record<string, string> = Object.fromEntries(
   PACKS.flatMap((p) => p.nodeKinds.map((k) => [k.id, k.icon] as const))
 );
@@ -270,9 +270,9 @@ export const ALL_KIND_ICONS: Record<string, string> = Object.fromEntries(
  * 전 팩의 노드 종류 라벨 합본.
  *
  * ★ 표를 **모듈이 읽힐 때 만들면 안 된다**. 라벨은 말 묶음(`loadNamespace('karmograph')`)이
- * 들어온 뒤에야 값이 있는데, 묶음이 실행되는 시점은 그 전이다 — 실측 2026-08-12: 이 표가
+ * 들어온 뒤에야 값이 있는데, 묶음이 실행되는 시점은 그 전이다. 실측 2026-08-12: 이 표가
  * 라벨을 당겨 읽는 바람에 `t()` 가 없는 열쇠로 **던졌고**, 위젯이 통째로 등록되지 않아
- * 화면이 「장비 꺼내는 중」에서 멈췄다. 그래서 **처음 물어볼 때** 만들고 그때부터 기억한다.
+ * 화면이 장비 꺼내는 중에서 멈췄다. 그래서 **처음 물어볼 때** 만들고 그때부터 기억한다.
  */
 let kindLabelTable: Record<string, string> | null = null;
 export function allKindLabels(): Record<string, string> {
@@ -281,7 +281,7 @@ export function allKindLabels(): Record<string, string> {
   ));
 }
 
-/** 전 팩의 선 정의 합본 — 캔버스가 `_edge_kinds` 로 받는다. */
+/** 전 팩의 선 정의 합본. 캔버스가 `_edge_kinds` 로 받는다. */
 export const ALL_EDGE_KIND_DEFS: Record<string, EdgeKindDef> = Object.fromEntries(
   PACKS.flatMap((p) =>
     p.edgeKinds.map(
@@ -291,7 +291,7 @@ export const ALL_EDGE_KIND_DEFS: Record<string, EdgeKindDef> = Object.fromEntrie
   )
 );
 
-/** 전 팩의 선 라벨 합본 — 노드 쪽과 같은 이유로 처음 물어볼 때 만든다. */
+/** 전 팩의 선 라벨 합본. 노드 쪽과 같은 이유로 처음 물어볼 때 만든다. */
 let edgeLabelTable: Record<string, string> | null = null;
 export function allEdgeLabels(): Record<string, string> {
   return (edgeLabelTable ??= Object.fromEntries(

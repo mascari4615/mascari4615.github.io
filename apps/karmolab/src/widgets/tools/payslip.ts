@@ -1,8 +1,8 @@
 /**
  * 실수령액 (TASK-KL-316 / 34)
  *
- * 「계산」 작업대의 할 일 한 칸. 셈은 `core/payslip`.
- * 사이트마다 답이 갈리는 세 가지를 **화면에 드러낸다**: 비과세·보험료 상한·세금 어림 방식.
+ * 계산 작업대의 할 일 한 칸. 셈은 `core/payslip`.
+ * 사이트마다 답이 갈리는 세 가지를 **화면에 드러낸다**: 비과세, 보험료 상한, 세금 어림 방식.
  * 회사는 간이세액표로 떼므로 세금은 **어림**이라고 적고, 표의 기준 해도 같이 보여 준다.
  */
 import { fromYearly, monthly, YEAR, type Slip } from '../../core/payslip';
@@ -19,11 +19,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'payslip',
     title: t('widgets.payslip.title', undefined, '실수령액'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.payslip.desc',
       undefined,
-      '연봉·월급에서 4대보험과 세금을 떼고 통장에 들어오는 돈을 계산합니다. 비과세·부양가족까지 반영합니다'
+      '연봉, 월급에서 4대보험과 세금을 떼고 통장에 들어오는 돈을 계산합니다. 비과세, 부양가족까지 반영합니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9v6M18 9v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',

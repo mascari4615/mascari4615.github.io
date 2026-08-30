@@ -1,11 +1,11 @@
 /**
  * 표 사이의 관계를 그림으로 (TASK-KL-316 / 9)
  *
- * 스키마를 처음 받으면 제일 알고 싶은 건 「어느 표가 어느 표를 가리키나」인데,
+ * 스키마를 처음 받으면 제일 알고 싶은 건 어느 표가 어느 표를 가리키나인데,
  * `CREATE TABLE` 을 눈으로 따라가며 `REFERENCES` 를 줍는 건 사람이 할 일이 아니다.
  *
- * 여기서는 DDL·Prisma 를 읽어 **표·칸·이어짐**만 뽑고(`parse`), 그걸 mermaid `erDiagram` 으로 찍는다.
- * 그림 그리는 건 이미 있는 mermaid 에 맡긴다 — 우리가 또 그리기 엔진을 갖고 있을 이유가 없다.
+ * 여기서는 DDL, Prisma 를 읽어 **표, 칸, 이어짐**만 뽑고(`parse`), 그걸 mermaid `erDiagram` 으로 찍는다.
+ * 그림 그리는 건 이미 있는 mermaid 에 맡긴다. 우리가 또 그리기 엔진을 갖고 있을 이유가 없다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -57,7 +57,7 @@ export interface Schema {
 
 const unquote = (s: string): string => s.replace(/^[`"[\]]+|[`"[\]]+$/g, '').trim();
 
-/** 괄호 균형을 보며 `CREATE TABLE …( … )` 한 덩이를 떼어 낸다. */
+/** 괄호 균형을 보며 `CREATE TABLE ...( ... )` 한 덩이를 떼어 낸다. */
 function tableBodies(sql: string): Array<{ name: string; body: string }> {
   const out: Array<{ name: string; body: string }> = [];
   const re = /create\s+table\s+(?:if\s+not\s+exists\s+)?([`"[\]\w.]+)\s*\(/gi;
@@ -187,7 +187,7 @@ export function parse(text: string): Schema {
   return { tables: [], links: [], kind: 'unknown' };
 }
 
-/** mermaid 는 이름에 점·따옴표가 있으면 싫어한다 — 안전한 이름으로 바꾼다. */
+/** mermaid 는 이름에 점, 따옴표가 있으면 싫어한다. 안전한 이름으로 바꾼다. */
 const safe = (name: string): string => name.replace(/[^\w]/g, '_');
 
 export function toMermaid(schema: Schema): string {
@@ -213,7 +213,7 @@ export function toMermaid(schema: Schema): string {
 export function outline(schema: Schema): string {
   if (schema.tables.length === 0) return 'CREATE TABLE 이나 Prisma model 을 못 찾았습니다.';
   const rows: string[] = [];
-  rows.push('표 ' + schema.tables.length + '개 · 이어짐 ' + schema.links.length + '개');
+  rows.push('표 ' + schema.tables.length + '개, 이어짐 ' + schema.links.length + '개');
   for (const table of schema.tables) {
     const keys = table.columns.filter((c) => c.pk === true).map((c) => c.name);
     rows.push('');
@@ -221,7 +221,7 @@ export function outline(schema: Schema): string {
     for (const col of table.columns) {
       const marks = [col.pk === true ? '열쇠' : '', col.required === true ? '필수' : '', col.unique === true ? '하나뿐' : '', col.ref !== undefined ? '→ ' + col.ref : '']
         .filter((s) => s !== '')
-        .join(' · ');
+        .join(', ');
       rows.push('  ' + col.name + ' : ' + col.type + (marks === '' ? '' : '   ' + marks));
     }
   }

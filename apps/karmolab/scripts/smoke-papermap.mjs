@@ -1,7 +1,7 @@
 /**
- * 논문 지도 — 찾고, 그리고, 열리는가 (TASK-KL-253).
+ * 논문 지도. 찾고, 그리고, 열리는가 (TASK-KL-253).
  *
- * 바깥(OpenAlex)은 가짜로 세운다 — 남의 서버가 느린 날 이 검사가 빨개지면 그 빨강은 거짓말이다.
+ * 바깥(OpenAlex)은 가짜로 세운다. 남의 서버가 느린 날 이 검사가 빨개지면 그 빨강은 거짓말이다.
  * 대신 **그 서버가 실제로 주는 모양 그대로** 흉내 낸다(2026-08-12 실측한 응답 구조).
  *
  * 사용: node scripts/smoke-papermap.mjs
@@ -65,7 +65,7 @@ await page.click('#pmSearch');
 await page.waitForSelector('.pm-hit', { timeout: 15000 });
 check((await page.locator('.pm-hit').count()) === 1, '찾은 논문이 목록에 뜬다');
 const hitText = await page.locator('.pm-hit').first().innerText();
-check(/6,585|6585/.test(hitText), `인용 수가 보인다 (지금 「${hitText.slice(0, 40)}」)`);
+check(/6,585|6585/.test(hitText), `인용 수가 보인다 (지금 ${hitText.slice(0, 40)})`);
 
 /* ② 고르면 지도가 그려진다 */
 await page.locator('.pm-hit').first().click();
@@ -75,10 +75,10 @@ check(boxes === 3, `가운데 하나 + 바닥 둘이 그려져야 한다 (지금
 check((await page.locator('.pm-root').count()) === 1, '가운데 논문은 하나이고 눈에 띈다');
 check((await page.locator('.pm-edge').count()) === 2, '이은 줄이 둘');
 
-/* ③ 참고문헌은 한 번의 요청으로 받는다 — 스무 편을 스무 번 부르면 곧 막힌다 */
+/* ③ 참고문헌은 한 번의 요청으로 받는다. 스무 편을 스무 번 부르면 곧 막힌다 */
 check(fetchCalls === 1, `참고문헌은 한 번에 받아야 한다 (지금 ${fetchCalls}번)`);
 
-/* ④ 크기 = 인용 수 · 왼쪽 = 옛것 */
+/* ④ 크기 = 인용 수, 왼쪽 = 옛것 */
 const geo = await page.evaluate(() => {
   const out = {};
   document.querySelectorAll('.pm-node').forEach((g) => {

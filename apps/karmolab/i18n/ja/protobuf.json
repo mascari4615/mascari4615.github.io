@@ -9,9 +9,9 @@
   "protobuf.btn.fromJson": "JSON → バイト",
   "protobuf.err.noSchema": "先に .proto を書いてください",
   "protobuf.status.idle": "バイナリを貼ってください",
-  "protobuf.status.blind": "{bytes} バイト · 項目 {n} 個 — .proto がないので名前は付きません (番号・形式・値は正しいです)",
-  "protobuf.status.named": "{bytes} バイト · 項目 {n} 個 · {name} として読みました",
+  "protobuf.status.blind": "{bytes} バイト, 項目 {n} 個. .proto がないので名前は付きません (番号・形式・値は正しいです)",
+  "protobuf.status.named": "{bytes} バイト, 項目 {n} 個, {name} として読みました",
   "protobuf.status.toJson": "解いた結果を JSON にしました",
   "protobuf.status.fromJson": "{bytes} バイトにしました",
-  "protobuf.status.bad": "読めませんでした — {msg}"
+  "protobuf.status.bad": "読めませんでした. {msg}"
 }

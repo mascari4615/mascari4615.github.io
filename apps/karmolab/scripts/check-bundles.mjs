@@ -1,7 +1,7 @@
 /**
  * 묶음 위젯 정합 검사 (TASK-KL-088)
  *
- * 여러 도구를 탭으로 묶은 위젯은 손으로 두 곳을 맞춰야 한다 — 탭 list(부분 id)과
+ * 여러 도구를 탭으로 묶은 위젯은 손으로 두 곳을 맞춰야 한다. 탭 list(부분 id)과
  * 불러올 스크립트 list. 하나라도 빠지면 **화면이 조용히 빈다** (탭은 보이는데 내용이 없다).
  * 조용한 실패라 사람 눈으로는 늦게 발견되므로 빌드에서 막는다.
  *
@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-// 줄끝이 CRLF 인 파일이 섞여 있어 정규식이 조용히 빗나간다 — 읽는 자리에서 통일한다.
+// 줄끝이 CRLF 인 파일이 섞여 있어 정규식이 조용히 빗나간다. 읽는 자리에서 통일한다.
 const CRLF = String.fromCharCode(13, 10);
 const LF = String.fromCharCode(10);
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8').split(CRLF).join(LF);
@@ -41,10 +41,10 @@ function parseManifest() {
 }
 
 /* ★ **부분 목록은 이제 명부에 산다** (2026-08-21, 실측).
- * 여긴 위젯 소스에서 `const PARTS: Array<[string, string]> = […]` 를 읽었다.
- * 그런데 그 꼴로 적는 파일이 저장소에 **한 개도 없다** — 껍데기가 `materialShell` 로 바뀌면서
+ * 여긴 위젯 소스에서 `const PARTS: Array<[string, string]> = [...]` 를 읽었다.
+ * 그런데 그 꼴로 적는 파일이 저장소에 **한 개도 없다**. 껍데기가 `materialShell` 로 바뀌면서
  * 부분은 명부의 `bundle: '<묶음>'` 로 적히게 됐다(예: `image` 묶음 = 명부 11항목, 탭은 1개).
- * 그래서 이 검사는 「묶음 0개 · 부분 0개 정합 OK」를 찍으며 <b>아무것도 안 재고 초록</b>이었다.
+ * 그래서 이 검사는 묶음 0개, 부분 0개 정합 OK를 찍으며 <b>아무것도 안 재고 초록</b>이었다.
  * 0을 재고 낸 초록은 초록이 아니다. 부분의 출처를 지금 진실인 명부로 되돌린다. */
 function bundlesFromManifest(manifest) {
   const byBundle = {};
@@ -71,15 +71,15 @@ const seenPart = {};
 let bundleCount = 0;
 
 const byBundle = bundlesFromManifest(manifest);
-/* 잴 것이 없으면 초록이 아니라 못 돌림이다 — 0을 「이상 없음」으로 적으면 거짓이다. */
+/* 잴 것이 없으면 초록이 아니라 못 돌림이다. 0을 이상 없음으로 적으면 거짓이다. */
 if (Object.keys(byBundle).length === 0) {
-  console.error('[check-bundles] CANNOT-RUN: 명부에 `bundle:` 을 단 항목이 하나도 없다 — 이름이 바뀌었는지 확인할 것.');
+  console.error('[check-bundles] CANNOT-RUN: 명부에 `bundle:` 을 단 항목이 하나도 없다. 이름이 바뀌었는지 확인할 것.');
   process.exit(2);
 }
 
 for (const [bundleId, parts] of Object.entries(byBundle)) {
   if (!manifest[bundleId]) {
-    failures.push(`'${bundleId}' 를 가리키는 부분이 ${parts.length}개인데 그 묶음이 명부에 없다 — 눌러도 갈 곳이 없다`);
+    failures.push(`'${bundleId}' 를 가리키는 부분이 ${parts.length}개인데 그 묶음이 명부에 없다. 눌러도 갈 곳이 없다`);
     continue;
   }
   bundleCount++;
@@ -87,17 +87,17 @@ for (const [bundleId, parts] of Object.entries(byBundle)) {
 
   for (const part of parts) {
     if (!manifest[part].hidden) {
-      failures.push(`${bundleId}: 부분 '${part}' 가 hidden 이 아니다 — 사이드바에 두 번 뜬다`);
+      failures.push(`${bundleId}: 부분 '${part}' 가 hidden 이 아니다. 사이드바에 두 번 뜬다`);
     }
-    /* ⚠ 여기 「부분의 스크립트가 묶음의 `lazyScriptPaths` 에 다 있는가」 단이 있었다.
-     *   되살리며 그대로 옮겼더니 <b>8건이 빨갛게 떴다</b>(image/bgremove·idphoto·docscan·ocr,
-     *   text/tts, pdf/printkit, calc/dutchpay·payslip). 그런데 <b>실사이트에서 열어 보니 전부
-     *   멀쩡하다</b> — `#bgremove`·`#tts`·`#dutchpay` 각각 자식 95·86·92개에 글이 차고
+    /* ⚠ 여기 부분의 스크립트가 묶음의 `lazyScriptPaths` 에 다 있는가 단이 있었다.
+     *   되살리며 그대로 옮겼더니 <b>8건이 빨갛게 떴다</b>(image/bgremove, idphoto, docscan, ocr,
+     *   text/tts, pdf/printkit, calc/dutchpay, payslip). 그런데 <b>실사이트에서 열어 보니 전부
+     *   멀쩡하다</b>. `#bgremove`, `#tts`, `#dutchpay` 각각 자식 95, 86, 92개에 글이 차고
      *   페이지 오류 0 (2026-08-21 실측). 부분이 제 스크립트를 스스로 불러오는 구조로 바뀌어
      *   묶음 목록에 없어도 된다. <b>옛 구조의 가정을 그대로 옮긴 거짓 경보였으므로 뺀다.</b>
      *   되살린 검사에 옛 단을 그냥 붙이면, 안 도는 검사가 <b>틀린 말을 하는 검사</b>로 바뀔 뿐이다. */
-    /* 「부분이 두 묶음에 겹쳐 있나」는 <b>이제 물을 수 없다</b> — 명부의 `bundle:` 은 항목마다
-       하나뿐이라 겹치는 것이 구조적으로 불가능하다. 못 터지는 단은 지운다(있으면 「본다」고
+    /* 부분이 두 묶음에 겹쳐 있나는 <b>이제 물을 수 없다</b>. 명부의 `bundle:` 은 항목마다
+       하나뿐이라 겹치는 것이 구조적으로 불가능하다. 못 터지는 단은 지운다(있으면 본다고
        착각하게 만든다). 겹침은 옛 `PARTS` 목록 시절에만 날 수 있던 사고다. */
     seenPart[part] = bundleId;
   }
@@ -115,7 +115,7 @@ if (failures.length) {
   failures.forEach((f) => console.error('  - ' + f));
   process.exit(1);
 }
-console.log(`[check-bundles] 묶음 ${bundleCount}개 · 부분 ${Object.keys(seenPart).length}개 정합 OK`);
+console.log(`[check-bundles] 묶음 ${bundleCount}개, 부분 ${Object.keys(seenPart).length}개 정합 OK`);
 
 /* ── 이어짐 확인 (TASK-KL-088, 묶음을 셋으로 나눈 뒤 추가) ─────────────────────
  * 묶음을 나누거나 이름을 바꾸면 두 곳이 조용히 끊긴다:
@@ -131,17 +131,17 @@ console.log(`[check-bundles] 묶음 ${bundleCount}개 · 부분 ${Object.keys(se
   const ghostBundles = [...new Set([...metaSrc.matchAll(/bundle: '([a-z0-9]+)'/g)].map((m) => m[1]))].filter(
     (b) => !ids.has(b)
   );
-  /* ★ **같은 빚을 두 번 막지 않는다** (2026-08-16, 실측). 관련 링크가 비는 이유는 둘이다 —
+  /* ★ **같은 빚을 두 번 막지 않는다** (2026-08-16, 실측). 관련 링크가 비는 이유는 둘이다 . 
      ① **오타나 없는 도구**를 가리킨다(진짜 버그, 영원히 빈다) ③ **있는 도구인데 아직
      상세 설명을 안 썼다**(이미 `tool-data-baseline.json` 에 세어 둔 빚, 채우면 사라진다).
      둘을 같이 빨간것으로 두면 ②를 갑는 동안 **그 뒤에 미는 모든 섬션**이 남의 빚으로 빨강을
-     맞는다 — 오늘 verify 가 그렇게 세 판 연속 빨갔다. ②는 이미 한 번 세고 있으므로 여기서는
-     말만 하고 안 막는다. ①은 그대로 빨강이다 — 그건 갑을 사람이 없는 빚이다. */
+     맞는다. 오늘 verify 가 그렇게 세 판 연속 빨갔다. ②는 이미 한 번 세고 있으므로 여기서는
+     말만 하고 안 막는다. ①은 그대로 빨강이다. 그건 갑을 사람이 없는 빚이다. */
   let unused = new Set();
   try {
     unused = new Set(JSON.parse(read('data/tool-data-baseline.json')).list || []);
   } catch {
-    /* 기준선이 없으면 전부 ① 로 본다 — 없는 것을 있다고 치는 쪽이 위험하다. */
+    /* 기준선이 없으면 전부 ① 로 본다. 없는 것을 있다고 치는 쪽이 위험하다. */
   }
   const danglingRelated = [];
   const emptyByDebt = [];
@@ -153,8 +153,8 @@ console.log(`[check-bundles] 묶음 ${bundleCount}개 · 부분 ${Object.keys(se
   }
   if (emptyByDebt.length) {
     console.log(
-      `[check-bundles] 관련 링크 ${emptyByDebt.length}개가 아직 설명 안 쓴 도구를 가리킨다 (막지 않는다) — ` +
-        `${emptyByDebt.join(', ')} · 그 도구의 설명을 채우면 저절로 사라진다`
+      `[check-bundles] 관련 링크 ${emptyByDebt.length}개가 아직 설명 안 쓴 도구를 가리킨다 (막지 않는다). ` +
+        `${emptyByDebt.join(', ')}, 그 도구의 설명을 채우면 저절로 사라진다`
     );
   }
 

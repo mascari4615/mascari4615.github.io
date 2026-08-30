@@ -1,11 +1,11 @@
 /**
- * PEM 과 그 속(ASN.1 DER) 을 읽는다 (TASK-KL-316 / 22·23 공용)
+ * PEM 과 그 속(ASN.1 DER) 을 읽는다 (TASK-KL-316 / 22, 23 공용)
  *
- * 열쇠도 인증서도 CSR 도 겉모습은 같다 — `-----BEGIN ...-----` + base64. 속은 전부 **DER**이라
- * 읽는 법도 하나다. 그래서 여기 한 번만 만들고 두 도구(`cryptolab`·`certview`)가 같이 쓴다.
+ * 열쇠도 인증서도 CSR 도 겉모습은 같다. `-----BEGIN ...-----` + base64. 속은 전부 **DER**이라
+ * 읽는 법도 하나다. 그래서 여기 한 번만 만들고 두 도구(`cryptolab`, `certview`)가 같이 쓴다.
  * 두 벌로 만들면 한쪽만 고쳐지고, 그 순간 같은 파일에 두 답이 나온다.
  *
- * 알아보는 것만 이름을 대고 **모르는 OID 는 숫자 그대로** 돌려준다 — 지어내지 않는다.
+ * 알아보는 것만 이름을 대고 **모르는 OID 는 숫자 그대로** 돌려준다. 지어내지 않는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -21,7 +21,7 @@ export const spec: ToolSpec = {
 };
 
 export interface Block {
-  /** `CERTIFICATE` · `PRIVATE KEY` · `PUBLIC KEY` · `CERTIFICATE REQUEST` … */
+  /** `CERTIFICATE`, `PRIVATE KEY`, `PUBLIC KEY`, `CERTIFICATE REQUEST` ... */
   label: string;
   der: Uint8Array;
 }
@@ -61,7 +61,7 @@ export function bytesToBase64(bytes: Uint8Array): string {
   return out;
 }
 
-/** 여러 덩이가 이어 붙어 있는 파일도 있다(사슬 인증서) — 다 읽는다. */
+/** 여러 덩이가 이어 붙어 있는 파일도 있다(사슬 인증서). 다 읽는다. */
 export function readPem(text: string): Block[] {
   const out: Block[] = [];
   const re = /-----BEGIN ([^-]+)-----([\s\S]*?)-----END \1-----/g;
@@ -78,14 +78,14 @@ export function toPem(label: string, der: Uint8Array): string {
 /* ── ASN.1 DER ─────────────────────────────────────────────────────── */
 
 export interface Asn1 {
-  /** 태그 번호 (0x30 = SEQUENCE …) */
+  /** 태그 번호 (0x30 = SEQUENCE ...) */
   tag: number;
-  /** 사람이 읽는 이름 — 모르면 `[숫자]` */
+  /** 사람이 읽는 이름. 모르면 `[숫자]` */
   kind: string;
   /** 속 바이트 (원시) */
   bytes: Uint8Array;
   children?: Asn1[];
-  /** 읽을 수 있는 것은 값으로 (정수·문자열·OID·시각) */
+  /** 읽을 수 있는 것은 값으로 (정수, 문자열, OID, 시각) */
   value?: string;
 }
 
@@ -152,7 +152,7 @@ function readOid(bytes: Uint8Array): string {
 }
 
 function readTime(text: string): string {
-  /* UTCTime 은 두 자리 해다 — 50 이상이면 1900년대(RFC 5280). 이걸 틀리면 만료가 50년 어긋난다. */
+  /* UTCTime 은 두 자리 해다. 50 이상이면 1900년대(RFC 5280). 이걸 틀리면 만료가 50년 어긋난다. */
   const m = /^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?Z?$/.exec(text);
   if (m === null) return text;
   const yy = Number(m[1]);
@@ -193,10 +193,10 @@ export function parseDer(der: Uint8Array, depth = 0): Asn1[] {
       try {
         node.children = parseDer(bytes, depth + 1);
       } catch {
-        /* 속이 DER 이 아닐 수 있다 — 그건 잘못이 아니다(그냥 바이트다) */
+        /* 속이 DER 이 아닐 수 있다. 그건 잘못이 아니다(그냥 바이트다) */
       }
     }
-    /* BIT STRING·OCTET STRING 속에 또 DER 이 든 경우가 흔하다 (공개키·확장) */
+    /* BIT STRING, OCTET STRING 속에 또 DER 이 든 경우가 흔하다 (공개키, 확장) */
     if ((tag === 0x03 || tag === 0x04) && bytes.length > 2 && depth < 20) {
       const inner = tag === 0x03 ? bytes.slice(1) : bytes;
       try {

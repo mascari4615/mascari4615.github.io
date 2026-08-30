@@ -1,7 +1,7 @@
 /**
  * PDF 글자 뽑기가 읽을 수 있는 모양으로 나오는지 확인한다 (TASK-KL-088)
  *
- * 「글자가 나왔다」로는 부족하다. 이 기능이 조용히 망가지는 방식은 순서다 —
+ * 글자가 나왔다로는 부족하다. 이 기능이 조용히 망가지는 방식은 순서다 . 
  * PDF 는 글자 조각을 아무 순서로나 담을 수 있어, 좌표를 안 보면 줄이 뒤섞이거나
  * 아래에서 위로 나온다. 글자 수는 그대로라 눈치채기 어렵다.
  *
@@ -20,7 +20,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12) — 자매 검사들과 같은 처방.
+/* ★ `/apps/karmolab/js/**` 는 디스크의 진짜 산출물로 준다 (2026-08-12). 자매 검사들과 같은 처방.
  *   위젯 build() 가 말 묶음을 받아 온 뒤에 그리므로, 껍데기만 주면 화면이 영영 안 그려진다. */
 await page.route('**/*', (route) => {
   const url = new URL(route.request().url());
@@ -63,7 +63,7 @@ const result = await page.evaluate(async () => {
 
   const LINES = ['Alpha one', 'Bravo two', 'Charlie three', 'Delta four'];
 
-  // 글자가 든 PDF — 일부러 **아래 줄부터** 그린다. 좌표를 안 보면 순서가 뒤집힌다.
+  // 글자가 든 PDF. 일부러 **아래 줄부터** 그린다. 좌표를 안 보면 순서가 뒤집힌다.
   const makeTextPdf = async () => {
     const doc = await window.PDFLib.PDFDocument.create();
     const font = await doc.embedFont(window.PDFLib.StandardFonts.Helvetica);
@@ -75,7 +75,7 @@ const result = await page.evaluate(async () => {
     return new Blob([await doc.save()], { type: 'application/pdf' });
   };
 
-  // 글자가 없는 PDF (스캔 문서 흉내) — 사각형만 그린다
+  // 글자가 없는 PDF (스캔 문서 흉내). 사각형만 그린다
   const makeEmptyPdf = async () => {
     const doc = await window.PDFLib.PDFDocument.create();
     const p = doc.addPage([400, 300]);
@@ -87,7 +87,7 @@ const result = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
 
-  /* 그려질 때까지 기다린다 — build() 는 말 묶음을 받아 온 뒤에 그린다. */
+  /* 그려질 때까지 기다린다. build() 는 말 묶음을 받아 온 뒤에 그린다. */
   for (let i = 0; host.children.length === 0 && i < 320; i++) await new Promise((r) => setTimeout(r, 25));
 
   const wait = (test, ms, why) =>
@@ -101,7 +101,7 @@ const result = await page.evaluate(async () => {
       k();
     });
 
-  // 함정: 「편집 화면이 보이는가」로 기다리면 안 된다 — 첫 파일 때 이미 보이므로 두 번째는
+  // 함정: 편집 화면이 보이는가로 기다리면 안 된다. 첫 파일 때 이미 보이므로 두 번째는
   // 즉시 통과해 **앞 문서를 다시 재게 된다**(실제로 그렇게 헛다리를 짚었다).
   // 새 문서가 실렸다는 안내가 뜰 때까지 기다린다.
   const feed = async (blob, name) => {
@@ -130,14 +130,14 @@ const result = await page.evaluate(async () => {
   const status = host.querySelector('#ptStatus');
   status.textContent = '';
   host.querySelector('#ptRun').click();
-  // 고정 시간 기다리기는 성급하다 — 처리가 끝났다는 **신호**를 기다린다.
-  // (실제로 1.5초 기다렸다가 아직 안 끝난 상태를 「경고 안 함」으로 잘못 읽었다)
+  // 고정 시간 기다리기는 성급하다. 처리가 끝났다는 **신호**를 기다린다.
+  // (실제로 1.5초 기다렸다가 아직 안 끝난 상태를 경고 안 함으로 잘못 읽었다)
   await wait(() => status.textContent.length > 0 && !status.textContent.includes('찾는 중'), 20000, '두 번째 처리가 끝나지 않았다');
   const warned = status.className.includes('error') && status.textContent.includes('글자가 없');
 
   return {
     ok: orderOk && warned,
-    why: `줄 순서 ${orderOk ? '지켜짐' : '뒤섞임'} (${got.slice(0, 4).join(' / ')}) · 글자 없는 PDF 경고 ${warned ? '함' : '안 함'}`
+    why: `줄 순서 ${orderOk ? '지켜짐' : '뒤섞임'} (${got.slice(0, 4).join(' / ')}), 글자 없는 PDF 경고 ${warned ? '함' : '안 함'}`
   };
 });
 

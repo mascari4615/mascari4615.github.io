@@ -1,17 +1,17 @@
 /**
- * 반복형 글 도구의 정본. operation은 화면을 만들지 않고, 입력·선택지·순수 변환만 선언한다.
- * 작업대는 이 계약을 읽어 같은 입력·결과·복사·상태 경험을 한 번만 그린다.
+ * 반복형 글 도구의 정본. operation은 화면을 만들지 않고, 입력, 선택지, 순수 변환만 선언한다.
+ * 작업대는 이 계약을 읽어 같은 입력, 결과, 복사, 상태 경험을 한 번만 그린다.
  */
 import { t } from '../../../lib/i18n';
 
-/* ★ **작업 이름·설명·칸 이름이 코드에 한국어로 박혀 있었다** (2026-08-17 실측).
-   겉(도구 제목·빵 부스러기)은 말 묶음을 타는데 안은 안 타서, ja 로 열면
-   「テキストツール」 아래에 「단어 빈도 / 자주 나온 단어를…」 가 그대로 보였다(TASK-KL-324).
-   글을 옮기는 일은 크지만, **부르는 자리**는 여기 한 곳이다 — 작업 id 로 열쇠를 만들어 부르고
+/* ★ **작업 이름, 설명, 칸 이름이 코드에 한국어로 박혀 있었다** (2026-08-17 실측).
+   겉(도구 제목, 빵 부스러기)은 말 묶음을 타는데 안은 안 타서, ja 로 열면
+   テキストツール 아래에 단어 빈도 / 자주 나온 단어를... 가 그대로 보였다(TASK-KL-324).
+   글을 옮기는 일은 크지만, **부르는 자리**는 여기 한 곳이다. 작업 id 로 열쇠를 만들어 부르고
    없으면 지금 글을 그대로 쓴다. 그러면 코드를 더 안 고치고 묶음만 채워도 그 말이 나간다.
    (ko 는 기본값이 그대로라 글자 하나 안 바뀐다.)
    ★ **접두를 받는 이유**: 같은 작업대를 개발도구도 쓴다. 그쪽은 제 이름을 이미 `t()` 로 옮겨
-   넘겨 준다 — 거기서 또 `text.op.*` 를 찾으면 늘 헛짚는다(없는 열쇠를 매번 뒤진다).
+   넘겨 준다. 거기서 또 `text.op.*` 를 찾으면 늘 헛짚는다(없는 열쇠를 매번 뒤진다).
    그래서 **묶음을 볼지 말지는 부르는 쪽이 정한다**. 안 주면 받은 글을 그대로 쓴다. */
 const taskText = (prefix: string | undefined, id: string, kind2: string, defaultValue: string): string =>
   (prefix ? t(`${prefix}.${id}.${kind2}`, undefined, defaultValue) : defaultValue);
@@ -36,10 +36,10 @@ export interface TextOperation {
   /**
    * 주소로 부를 때 채울 값 (TASK-KL-257).
    *
-   * 왜 여기 있나: 작업대로 합칠 수 있는 도구가 「글 넣고 글 받기」뿐이 아니다. 개발 도구 쪽은
+   * 왜 여기 있나: 작업대로 합칠 수 있는 도구가 글 넣고 글 받기뿐이 아니다. 개발 도구 쪽은
    * 대부분 **주소 호출 계약**(`?op=...&칸=값`)을 이미 들고 있는데, 합치는 순간 그 계약이
-   * 사라지면 **링크·에이전트 호출이 조용히 죽는다**. 그래서 조작이 「주소에서 온 값을 내 칸에
-   * 어떻게 넣나」를 스스로 말하게 한다 — 작업대는 그걸 그대로 넣어 주기만 한다.
+   * 사라지면 **링크, 에이전트 호출이 조용히 죽는다**. 그래서 조작이 주소에서 온 값을 내 칸에
+   * 어떻게 넣나를 스스로 말하게 한다. 작업대는 그걸 그대로 넣어 주기만 한다.
    *
    * 돌려주는 것 = { 입력글, 칸값 } 중 채울 것만. 안 주면 안 바꾼다.
    */
@@ -58,7 +58,7 @@ function escapeHtml(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/** 공용 surface. 이 안에만 결과·복사·읽히는 상태 줄이 존재한다. */
+/** 공용 surface. 이 안에만 결과, 복사, 읽히는 상태 줄이 존재한다. */
 export function mountTextOperation(
   host: HTMLElement,
   operation: TextOperation,
@@ -68,7 +68,7 @@ export function mountTextOperation(
   i18nPrefix?: string
 ): void {
   const controls = operation.controls || [];
-  /* 주소에서 온 값을 **그리기 전에** 반영한다 — 그린 뒤에 넣으면 한 번 헛돌고(빈 결과가 깜빡),
+  /* 주소에서 온 값을 **그리기 전에** 반영한다. 그린 뒤에 넣으면 한 번 헛돌고(빈 결과가 깜빡),
      칸 초기값과 어긋난 채로 남는 자리가 생긴다. */
   const seeded = operation.fromUrl && call ? operation.fromUrl(call) : undefined;
   if (seeded?.input !== undefined) input = seeded.input;
@@ -120,7 +120,7 @@ export function mountTextOperation(
   }));
   get<HTMLButtonElement>('#opCopy').onclick = (): void => { if (result.value) void Toolbox.copyText?.(result.value); };
   if (operation.action) get<HTMLButtonElement>('#opAction').onclick = (): void => {
-    status.textContent = '만드는 중…';
+    status.textContent = '만드는 중...';
     void operation.action!.run(source.value, values()).then((file) => {
       const link = document.createElement('a');
       link.href = URL.createObjectURL(file.blob); link.download = file.name; link.click();

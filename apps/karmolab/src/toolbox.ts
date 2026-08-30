@@ -1,5 +1,5 @@
 /**
- * KarmoLab — 도구 레지스트리 기반 모듈 시스템
+ * KarmoLab. 도구 레지스트리 기반 모듈 시스템
  *
  * ┌─ 아키텍처 ─────────────────────────────────────────────────┐
  * │                                                            │
@@ -15,7 +15,7 @@
  * │               ─→ gemini.js (AI API)                        │
  * │               ─→ widgets/*.js (개별 도구)                   │
  * │                                                            │
- * │  카테고리:  tool (도구)  /  play (놀이)  /  lab (실험실·개발중)  /  desktop (데스크톱 앱 전용)  /  null (기타)  │
+ * │  카테고리:  tool (도구)  /  play (놀이)  /  lab (실험실, 개발중)  /  desktop (데스크톱 앱 전용)  /  null (기타)  │
  * └────────────────────────────────────────────────────────────┘
  *
  * 새 도구 추가 방법:
@@ -23,34 +23,35 @@
  * 2. widgets-manifest.js(boot) + widgets-lazy-meta.js(지연 메타 단일 출처)
  * 3. Toolbox.register({ id, title, icon, category, desc, hidden?, tabs }) 호출
  *    - icon: SVG path 문자열 (viewBox 0 0 24 24 기준)
- *    - category: 'tool' | 'play' | 'lab' | 'desktop' | null  ('desktop'은 Tauri 앱에서만 메뉴·페이지에 표시)
- *    - desc: 한 줄 설명 (검색·즐겨찾기용)
+ *    - category: 'app' | 'dev' | 'text' | 'image' | 'av' | 'file' | 'calc' | 'ai' | 'ref' | 'play'
+ *      (app 은 갈래 밖 고정 진입점. 데스크톱 전용은 category 가 아니라 desktopOnly 플래그)
+ *    - desc: 한 줄 설명 (검색, 즐겨찾기용)
  *    - hidden: true면 메뉴에 비표시 (user 등)
- *    - layout: 'form'(기본·900px 카드) | 'wide'(1200px, 표·2단 편집기) | 'full'(화면 점유)
- *      · **'full' 은 특수한 경우만** — 페이지 스크롤을 죽이므로(main-content overflow:hidden)
- *        아래로 이어지는 내용이 있으면 잘린다. 챗봇·터미널처럼 화면을 통째로 써야 하는 위젯 전용.
+ *    - layout: 'form'(기본, 900px 카드) | 'wide'(1200px, 표, 2단 편집기) | 'full'(화면 점유)
+ *     , **'full' 은 특수한 경우만**. 페이지 스크롤을 죽이므로(main-content overflow:hidden)
+ *        아래로 이어지는 내용이 있으면 잘린다. 챗봇, 터미널처럼 화면을 통째로 써야 하는 위젯 전용.
  *        도구 상세 페이지(/t/)가 있는 위젯은 gen-tool-pages.mjs 가 'full' 을 막는다.
  *    - tabs: [{ id, label, build(container) }]
- *    - tabLayout: (선택) `'sidebar'` — 탭이 많을 때 왼쪽 세로 목록 + 오른쪽 패널 (문서 위젯 등)
- *    - lazyTabs: (선택) true — 첫 탭 외에는 처음 열릴 때 그린다. 여러 도구를 탭으로 묶은
- *      위젯에 쓴다 (전부 미리 그리면 안 본 화면·타이머·저장소 접근이 헛돈다)
+ *    - tabLayout: (선택) `'sidebar'`. 탭이 많을 때 왼쪽 세로 목록 + 오른쪽 패널 (문서 위젯 등)
+ *    - lazyTabs: (선택) true. 첫 탭 외에는 처음 열릴 때 그린다. 여러 도구를 탭으로 묶은
+ *      위젯에 쓴다 (전부 미리 그리면 안 본 화면, 타이머, 저장소 접근이 헛돈다)
  *
  * 마스코트 연동:
- *   Mdd.setMood('happy')   — 감정 변경
- *   Mdd.say('메시지')       — 말풍선 표시
- *   Mdd.linePreset('success', { msg?, mood?, duration? }) — 티메토 대사 프리셋 (`mdd.js`의 LINE_PRESETS)
- *   Mdd.bounce()           — 바운스 애니메이션
- *   Mdd.addAffection(n)    — 호감도 증가 (스토리 해금 트리거)
+ *   Mdd.setMood('happy')  . 감정 변경
+ *   Mdd.say('메시지')      . 말풍선 표시
+ *   Mdd.linePreset('success', { msg?, mood?, duration? }). 티메토 대사 프리셋 (`mdd.js`의 LINE_PRESETS)
+ *   Mdd.bounce()          . 바운스 애니메이션
+ *   Mdd.addAffection(n)   . 호감도 증가 (스토리 해금 트리거)
  */
-// @ts-nocheck — core shell; narrow types incrementally
+// @ts-nocheck core shell; narrow types incrementally
 const Toolbox = (() => {
     const tools = [];
 
-    /* ★ 앱 뿌리 — 정본은 `scripts/lib/site-base.mjs` 한 곳이다 (change.karmolab-at-root ①).
+    /* ★ 앱 뿌리. 정본은 `scripts/lib/site-base.mjs` 한 곳이다 (change.karmolab-at-root ①).
      *
-     * 이 파일만 **묶지 않고** 내보낸다(build.mjs `bundle: false`) — 여기서 import 를 쓰면
+     * 이 파일만 **묶지 않고** 내보낸다(build.mjs `bundle: false`). 여기서 import 를 쓰면
      * 산출물에 `import ... from './lib/site-base'` 가 그대로 남아 브라우저가 404 를 받는다.
-     * 게다가 import 하나로 이 파일이 모듈이 되어, 전역을 나눠 쓰는 gemini.ts·palette.ts 가
+     * 게다가 import 하나로 이 파일이 모듈이 되어, 전역을 나눠 쓰는 gemini.ts, palette.ts 가
      * 통째로 안 보이게 된다(실측: 오류 60여 줄).
      * 그래서 값은 **빌드가 박아 넣는다**(`__KARMOLAB_APP_BASE__`). 아래 되돌림 값은 로컬에서
      * 소스를 그냥 열 때만 쓰이며, `test:site-base` 가 정본과 같은지 매번 확인한다. */
@@ -67,40 +68,48 @@ const Toolbox = (() => {
 
     /* ===== 카테고리 & 메타데이터 ===== */
 
-    // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039) — 위젯은 일반
+    // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039). 위젯은 일반
     // 카테고리(tool/lab/play) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
+    /* 갈래 아홉과 갈래 밖 하나. 정본은 memo 의 앱 셸 System
+       예전 넷(tool 196 / play 20 / lab 18 / ref 15)은 tool 하나가 84% 라 갈래로 못 씀
+       app 은 갈래가 아니라 왼쪽 목록 맨 위 고정 진입점 */
     const CATEGORIES = [
-        { id: 'tool', label: '도구', icon: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.15a2.1 2.1 0 0 1-3-3l6.72-6.72a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
-        // TASK-KL-088: 자료 = 입력·출력이 아니라 「찾아보고 눌러 복사」 하는 표 (특수문자·코드표 등).
-        { id: 'ref', label: '자료', icon: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7h7M8 11h7M8 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' },
+        { id: 'app', label: '앱과 내 것', icon: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>' },
+        { id: 'dev', label: '개발', icon: '<path d="M8 6 3 12l5 6M16 6l5 6-5 6M13.5 4l-3 16"/>' },
+        { id: 'text', label: '글', icon: '<path d="M5 5h14M5 5v3M19 5v3M12 5v14M9 19h6"/>' },
+        { id: 'image', label: '이미지', icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-5 4 4 3-3 4 4"/>' },
+        { id: 'av', label: '소리와 영상', icon: '<path d="M4 9v6M8 6v12M12 4v16M16 7v10M20 10v4"/>' },
+        { id: 'file', label: '문서와 파일', icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>' },
+        { id: 'calc', label: '계산과 시간', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' },
+        { id: 'ai', label: 'AI', icon: '<path d="M12 3l1.8 4.9L18.7 9.7l-4.9 1.8L12 16.4l-1.8-4.9L5.3 9.7l4.9-1.8z"/><circle cx="18" cy="18" r="2"/>' },
+        { id: 'ref', label: '참고표', icon: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7h7M8 11h7M8 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' },
         { id: 'play', label: '놀이', icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
-        { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];
 
     /* ★ **갈래 표(prefix)와 갈래 내비 목록은 걷어냈다** (2026-08-19).
-     * 머리띠에서 갈래를 뺀 데 이어 옆줄도 머리띠와 같은 칸(내 것·많이 쓰는 것·최근)을
+     * 머리띠에서 갈래를 뺀 데 이어 옆줄도 머리띠와 같은 칸(내 것, 많이 쓰는 것, 최근)을
      * 쓰기로 하면서, 이 표를 읽는 자리가 한 곳도 안 남았다. 안 읽히는 표를 남겨 두면
-     * 다음 사람이 「여기 갈래가 있으니 여기에 넣으면 되겠다」고 믿는다 — 실제로 그 표는
-     * 도구 대부분이 묶음으로 흡수된 뒤 이미 빈 껍데기였다(84개가 4·5·41 로 갈렸다).
-     * 갈래로 훑는 길 = 팔레트 「둘러보기」(`CATEGORIES` 4갈래) + 전체 목록 장. */
+     * 다음 사람이 여기 갈래가 있으니 여기에 넣으면 되겠다고 믿는다. 실제로 그 표는
+     * 도구 대부분이 묶음으로 흡수된 뒤 이미 빈 껍데기였다(84개가 4, 5, 41 로 갈렸다).
+     * 갈래로 훑는 길 = 팔레트 둘러보기(`CATEGORIES` 4갈래) + 전체 목록 장. */
     /* 갈래 이름은 **말 묶음에서 온다** (2026-08-17). 예전엔 한국어가 박혀 있어서
-       영어·일본어 장의 「열기 전 화면」에 한글 다섯이 그대로 보였다(smoke-shell-i18n 이 잡는다).
-       묶음이 아직 안 왔을 수 있어 원본 글을 fallback 으로 함께 준다 — 이 파일의 탭 이름과 같은 규율. */
+       영어, 일본어 장의 열기 전 화면에 한글 다섯이 그대로 보였다(smoke-shell-i18n 이 잡는다).
+       묶음이 아직 안 왔을 수 있어 원본 글을 fallback 으로 함께 준다. 이 파일의 탭 이름과 같은 규율. */
     /* ★ **말 묶음이 아직 없을 때도 이름은 나와야 한다** (2026-08-17 실측). 이 파일은 묶지 않고
        내보내서(bundle:false) `t` 를 **전역**으로 기대하는데, 첫 그리기가 그 전역보다 빠를 수 있다.
-       실제로 「빠른 실행」 이름을 `t(...)` 로 바꾼 뒤 첫 화면이 `ReferenceError: t is not defined`
+       실제로 빠른 실행 이름을 `t(...)` 로 바꾼 뒤 첫 화면이 `ReferenceError: t is not defined`
        로 터졌고, 말 바꾸기 검사가 그걸 콘솔 오류로 세어 **배포가 통째로 섰다**(5c9333e6).
-       이름 하나 때문에 화면이 죽으면 안 된다 — 없으면 한국어 기본값으로 간다. */
+       이름 하나 때문에 화면이 죽으면 안 된다. 없으면 한국어 기본값으로 간다. */
     /* ★ **기본값으로 떨어지면 그 자리는 영영 한국어다** (2026-08-17, 실주소로 재서 알아냈다).
        위 방어는 화면이 죽는 것은 막았지만, 이 껍데기에는 전역 `t` 가 **처음부터 끝까지 없다**
        (실측: `typeof t === 'undefined'`). 그래서 en/ja 첫 화면의 갈래 이름 여섯이 늘 한국어로
-       나갔다 — 말 묶음에는 en/ja 번역이 멀쩡히 있는데도(`i18n/en/shell.json`).
-       글은 머리말에 미리 박혀 온다(`window.__KARMO_I18N`) — 들여올 것 없이 거기서 바로 꺼낸다.
+       나갔다. 말 묶음에는 en/ja 번역이 멀쩡히 있는데도(`i18n/en/shell.json`).
+       글은 머리말에 미리 박혀 온다(`window.__KARMO_I18N`). 들여올 것 없이 거기서 바로 꺼낸다.
        순서: 지금 언어 → 원본 언어 → 한국어 기본값. */
     const text2 = (key, defaultValue2) => {
         try {
             if (typeof t === 'function') return t(key, undefined, defaultValue2);
-        } catch { /* 전역이 없다 — 아래에서 직접 꺼낸다 */ }
+        } catch { /* 전역이 없다. 아래에서 직접 꺼낸다 */ }
         try {
             const barrel = window.__KARMO_I18N || {};
             const now2 = window.__KARMO_LOCALE || document.documentElement.lang || 'ko';
@@ -110,13 +119,13 @@ const Toolbox = (() => {
         } catch { /* 통이 아직 없다 */ }
         return defaultValue2;
     };
-    /** 갈래 목록 (id·label·icon) — 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
+    /** 갈래 목록 (id, label, icon). 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
      *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
     function getCategories() {
-        return CATEGORIES.filter((c) => c.id !== 'lab').map((c) => ({ ...c }));
+        return CATEGORIES.filter((c) => c.id !== 'app').map((c) => ({ ...c }));
     }
 
-    /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등) — 각 위젯 register에서 정의 */
+    /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등). 각 위젯 register에서 정의 */
     function getToolMeta(id) {
         const t = tools.find(x => x.id === id);
         return t ? { category: t.category, desc: t.desc, hidden: t.hidden, desktopOnly: !!t.desktopOnly } : null;
@@ -126,16 +135,16 @@ const Toolbox = (() => {
     const SYSTEM_PAGES = new Set(['user', 'settings', 'status']);
 
     /* ── 내가 고른 도구 (TASK-KL-129) ────────────────────────────
-     * 별 하나가 네 곳을 같이 바꾼다: 도구 목록 · 찾는 창 · 옆줄 · 도구 화면.
+     * 별 하나가 네 곳을 같이 바꾼다: 도구 목록, 찾는 창, 옆줄, 도구 화면.
      * 저장하는 자리는 하나뿐이라 어디서 꽂든 같은 것을 가리킨다. */
     const PINNED_KEY = 'toolbox_pinned_tools';
     const HEADER_QUICK_LIMIT = 8;
     const HEADER_QUICK_IDS = ['calc', 'charcount', 'unitconv', 'jsonfmt', 'pdftool', 'imageedit', 'qrgen', 'passgen'];
 
     /* ★ **이 여덟 중 여섯이 화면에 안 나오고 있었다** (2026-08-19 실측).
-     * charcount·unitconv·jsonfmt·pdftool·imageedit·qrgen 은 그 뒤 묶음 도구로 흡수되면서
-     * `hidden: true` 가 됐다(주소는 살아 있다). 머리띠는 숨긴 것을 거르므로 「빠른 실행」에
-     * 실제로 뜬 것은 calc·passgen 둘뿐이었다 — 골라 둔 목록이 조용히 죽어 있었다.
+     * charcount, unitconv, jsonfmt, pdftool, imageedit, qrgen 은 그 뒤 묶음 도구로 흡수되면서
+     * `hidden: true` 가 됐다(주소는 살아 있다). 머리띠는 숨긴 것을 거르므로 빠른 실행에
+     * 실제로 뜬 것은 calc, passgen 둘뿐이었다. 골라 둔 목록이 조용히 죽어 있었다.
      * 숨긴 도구는 제 묶음(`bundle`)으로 바꿔 잡는다. 그러면 누른 사람은 그 도구의 탭으로 간다. */
     function resolveVisibleTool(id) {
         const t = tools.find(x => x.id === id);
@@ -144,7 +153,7 @@ const Toolbox = (() => {
         const host = t.bundle ? tools.find(x => x.id === t.bundle) : null;
         return host && !host.hidden ? host : null;
     }
-    /** 옆줄의 「내 것」 칸을 다시 그리는 손잡이 — 옆줄이 만들어질 때 채워진다. */
+    /** 옆줄의 내 것 칸을 다시 그리는 손잡이. 옆줄이 만들어질 때 채워진다. */
     let rebuildMineGroup = null;
 
     function getPins() {
@@ -161,7 +170,7 @@ const Toolbox = (() => {
         return getPins().indexOf(id) >= 0;
     }
 
-    /** 꽂거나 뺀다. 화면에 있는 별·옆줄·찾는 창을 그 자리에서 맞춘다. */
+    /** 꽂거나 뺀다. 화면에 있는 별, 옆줄, 찾는 창을 그 자리에서 맞춘다. */
     function togglePin(id) {
         const next = getPins().filter(x => x !== id);
         const on = next.length === getPins().length;   // 없던 것이면 켜는 것
@@ -185,19 +194,19 @@ const Toolbox = (() => {
     /* ── 결과를 옆 도구로 넘긴다 (TASK-KL-133) ──────────────────
      *
      * 도구가 127개인데 서로를 몰랐다. PDF 를 합친 뒤 압축하려면 받은 파일을 찾아 다른 도구를
-     * 열고 다시 집어넣어야 했다 — 사람은 한 가지 일을 하는데 도구가 세 번 끊었다.
+     * 열고 다시 집어넣어야 했다. 사람은 한 가지 일을 하는데 도구가 세 번 끊었다.
      * 이 앱의 도구는 전부 브라우저 안에서 도니까, 방금 만든 것은 이미 여기 있다. 그걸 그냥 넘긴다.
      *
      * 놓는 쪽은 `offer`, 받는 쪽은 열릴 때 `take` 로 한 번만 집어 간다(두 번 집히면 같은 파일이
      * 두 번 들어온다). 어느 도구가 받을 수 있는지는 도구가 등록할 때 밝힌 형식(`accepts`)에서
-     * 고른다 — 짝을 손으로 적어 두면 도구가 늘 때마다 그 표가 낡는다.
+     * 고른다. 짝을 손으로 적어 두면 도구가 늘 때마다 그 표가 낡는다.
      */
     let handoffItem = null;
 
     /* 넘길 것은 **화면을 옮겨도 살아남아야 한다** (TASK-KL-133).
      *
-     * 도구 상세 페이지(`/t/<id>/`)에서 「이어서」를 누르면 그건 다른 주소로 가는
-     * 진짜 이동이라, 기억에만 들고 있으면 그 순간 파일이 사라진다 — 눌렀더니 빈손으로
+     * 도구 상세 페이지(`/t/<id>/`)에서 이어서를 누르면 그건 다른 주소로 가는
+     * 진짜 이동이라, 기억에만 들고 있으면 그 순간 파일이 사라진다. 눌렀더니 빈손으로
      * 도착했다(실제로 그랬다). 파일을 잃는 단추는 없는 단추보다 나쁘다.
      * 그래서 브라우저 저장소(IndexedDB)에 한 칸 놓아둔다. 파일 자체를 그대로 담을 수 있는
      * 유일한 자리다(localStorage 는 글자만 담는다). 집어 가면 지운다.
@@ -247,7 +256,7 @@ const Toolbox = (() => {
         void handoffSave(handoffItem);
     }
 
-    /** 놓인 것을 집어 간다 — 한 번만. 없으면 null. (같은 화면 안에서 쓰는 빠른 길) */
+    /** 놓인 것을 집어 간다. 한 번만. 없으면 null. (같은 화면 안에서 쓰는 빠른 길) */
     function takeResult() {
         const it = handoffItem;
         handoffItem = null;
@@ -257,21 +266,21 @@ const Toolbox = (() => {
 
     /* ── 형식 규약: 선언이 정본 (TASK-KL-191 축6) ─────────────────
      *
-     * 「무엇을 받고 무엇을 내놓나」가 두 군데에 적혀 있었다 — 등록 메타(`accepts`/`produces`)와
+     * 무엇을 받고 무엇을 내놓나가 두 군데에 적혀 있었다. 등록 메타(`accepts`/`produces`)와
      * 도구 코드의 `onHandoff([...])` 배열. 둘이 갈라져도 아무도 안 아프다: 이어서 줄은 메타를
      * 보고, 실제로 받는 것은 코드를 본다. 실제로 갈라져 있었다(exifclean: 메타 `image/jpeg`,
      * 코드 `image/*`). **손으로 두 벌 적은 표는 반드시 샌다.**
      *
      * 그래서 자리를 하나로 줄인다: 도구는 자기 **이름만** 대고, 형식은 메타에서 읽는다.
-     *   `Toolbox.onHandoff('pdfcrop', (file) => …)`
-     * 배열을 직접 넘기는 옛 방식도 받는다(외부 도구·모래상자) — 다만 우리 도구에는
+     *   `Toolbox.onHandoff('pdfcrop', (file) => ...)`
+     * 배열을 직접 넘기는 옛 방식도 받는다(외부 도구, 모래상자). 다만 우리 도구에는
      * `check-format-contract` 게이트가 이름을 강제한다.
      */
     function metaOf(id) {
         return (window.KARMOLAB_LAZY_META || []).find(m => m.id === id) || null;
     }
 
-    /** 이 도구가 받는다고 **선언한** 형식. 선언이 없으면 빈 배열 — 몰래 다 받지 않는다. */
+    /** 이 도구가 받는다고 **선언한** 형식. 선언이 없으면 빈 배열. 몰래 다 받지 않는다. */
     function declaredAccepts(id) {
         const meta = metaOf(id);
         if (meta && Array.isArray(meta.accepts)) return meta.accepts;
@@ -287,7 +296,7 @@ const Toolbox = (() => {
         return (t && Array.isArray(t.produces)) ? t.produces : [];
     }
 
-    /** `image/*` 같은 별표를 푼 한 쌍 맞춰 보기. 이어서·흐름·공유대상이 **같은 자를 쓴다**. */
+    /** `image/*` 같은 별표를 푼 한 쌍 맞춰 보기. 이어서, 흐름, 공유대상이 **같은 자를 쓴다**. */
     function kindMatches(pattern, type) {
         const p = String(pattern || '');
         const t = String(type || '');
@@ -295,10 +304,10 @@ const Toolbox = (() => {
     }
 
     /**
-     * 놓인 것이 **이 도구가 받을 수 있는 것이면** 건네준다 — 한 번만.
+     * 놓인 것이 **이 도구가 받을 수 있는 것이면** 건네준다. 한 번만.
      *
      * 기억에 있으면 그 자리에서, 없으면 저장소에서 찾아 준다(화면을 옮겨 온 경우).
-     * 도구는 언제 오든 같은 방식으로 받는다: `Toolbox.onHandoff('pdfcrop', (file) => …)`.
+     * 도구는 언제 오든 같은 방식으로 받는다: `Toolbox.onHandoff('pdfcrop', (file) => ...)`.
      */
     function onHandoff(kinds, cb) {
         if (typeof kinds === 'string') kinds = declaredAccepts(kinds);
@@ -316,7 +325,7 @@ const Toolbox = (() => {
             return;
         }
         void handoffLoad().then((it) => {
-            /* 오래된 것은 안 집는다 — 어제 만든 파일이 오늘 연 도구에 갑자기 들어오면
+            /* 오래된 것은 안 집는다. 어제 만든 파일이 오늘 연 도구에 갑자기 들어오면
              * 그건 이어 붙이기가 아니라 유령이다. 화면을 옮기는 데 드는 시간만 허용한다. */
             if (!it || Date.now() - (it.at || 0) > 5 * 60 * 1000) return;
             if (hand(it)) void handoffClear();
@@ -327,7 +336,7 @@ const Toolbox = (() => {
         return handoffItem;
     }
 
-    /** 이 형식을 받을 수 있다고 밝힌 도구들 (자기 자신은 뺀다 — 넘길 이유가 없다). */
+    /** 이 형식을 받을 수 있다고 밝힌 도구들 (자기 자신은 뺀다. 넘길 이유가 없다). */
     function toolsAccepting(type, exceptId) {
         const t = String(type || '');
         return tools.filter(x =>
@@ -338,38 +347,38 @@ const Toolbox = (() => {
     }
 
     /**
-     * 결과 아래 「이어서」 한 줄. 갈 곳도 없고 걸 수도 없으면 아무것도 안 그린다 —
+     * 결과 아래 이어서 한 줄. 갈 곳도 없고 걸 수도 없으면 아무것도 안 그린다 . 
      * 눌러도 아무 일 없는 줄을 두지 않는다.
      */
     function offerNext(anchor, item) {
         if (!anchor || !anchor.parentElement) return;
         /* 줄은 기준 요소 **안**이 아니라 **바로 밑**에 놓는다 (TASK-KL-133).
-         * 안에 넣었더니 도구가 상태 글을 갈아 끼우는 순간(textContent) 같이 지워졌다 —
+         * 안에 넣었더니 도구가 상태 글을 갈아 끼우는 순간(textContent) 같이 지워졌다 . 
          * 만들어 놓고 곧바로 사라져서, 화면에는 한 번도 안 보였다. */
-        /* 놓아둘 수 있는 결과는 **하나뿐**이다. 그러니 화면에 남은 옛 줄도 전부 걷는다 —
+        /* 놓아둘 수 있는 결과는 **하나뿐**이다. 그러니 화면에 남은 옛 줄도 전부 걷는다 . 
          * 안 걷으면 앞 도구의 탭에 낡은 줄이 남아, 눌렀을 때 없는 것을 넘기려 든다. */
         document.querySelectorAll('.tool-next-row').forEach(n => n.remove());
         /* 선언을 **실물이 감사한다** (TASK-KL-191).
          *
-         * 게이트는 「`produces` 를 적었나」까지만 본다 — 적힌 값이 맞는지는 정적으로 못 본다.
+         * 게이트는 `produces` 를 적었나까지만 본다. 적힌 값이 맞는지는 정적으로 못 본다.
          * 그런데 실제 결과가 여기를 지나간다. 선언과 다른 것이 나오면 그 자리에서 말한다.
-         * 조용히 두면 흐름 화면의 「이어지는 도구」가 영영 틀린 줄을 세운다. */
+         * 조용히 두면 흐름 화면의 이어지는 도구가 영영 틀린 줄을 세운다. */
         if (item && item.blob && item.from) {
             const declared = declaredProduces(item.from);
             if (declared.length && !declared.some(k => kindMatches(k, item.blob.type))) {
                 console.warn(
-                    `[karmolab] 형식 규약 어긋남 — '${item.from}' 는 ${declared.join('·')} 를 내놓는다고 적었는데 실제로는 '${item.blob.type}' 가 나왔다.`,
+                    `[karmolab] 형식 규약 어긋남. '${item.from}' 는 ${declared.join(', ')} 를 내놓는다고 적었는데 실제로는 '${item.blob.type}' 가 나왔다.`,
                 );
             }
         }
         let targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
         /* 갈 곳이 없어도 **걸 수는 있다** (TASK-KL-191 축3).
-         * 예전엔 이어질 도구가 없으면 줄 자체를 안 그렸다 — 그래서 표·글처럼 받아 줄 도구가
-         * 없는 결과는 작업실에 걸 방법도 같이 사라졌다. 줄은 「보일 것이 하나라도 있으면」 선다. */
+         * 예전엔 이어질 도구가 없으면 줄 자체를 안 그렸다. 그래서 표, 글처럼 받아 줄 도구가
+         * 없는 결과는 작업실에 걸 방법도 같이 사라졌다. 줄은 보일 것이 하나라도 있으면 선다. */
         const canHang = !!(item && item.blob && window.KarmoAccount?.state.account);
         if (!item || (!targets.length && !canHang)) return;
         /* 갈 곳이 여덟 군데까지 나오는데 한 줄에는 다섯이 들어간다. 무엇을 앞에 둘지는
-         * **이 사람이 쓰는 것**으로 정한다 — 내가 꽂아 둔 것, 그다음 최근에 연 것.
+         * **이 사람이 쓰는 것**으로 정한다. 내가 꽂아 둔 것, 그다음 최근에 연 것.
          * 등록 순서대로 자르면 늘 쓰는 도구가 잘려 나가고 안 쓰는 것이 남는다. */
         const mine = getPins();
         const recent = (window.KarmoPalette?.getRecent?.() || []);
@@ -399,17 +408,17 @@ const Toolbox = (() => {
 
         /* 만든 것을 **작업실에 건다** (TASK-KL-182 F4).
          *
-         * 「이어서」 줄은 결과가 나온 자리에 이미 서 있다 — 포트폴리오를 따로 만들라고 하면
+         * 이어서 줄은 결과가 나온 자리에 이미 서 있다. 포트폴리오를 따로 만들라고 하면
          * 아무도 안 만든다. 만든 그 자리에서 한 번 누르면 프로필에 걸린다.
          * **그림만 받던 것을 고쳤다** (TASK-KL-191 축3). 도구 160개 중 그림을 내놓는 것은
-         * 스물 남짓이라, 「만든 것을 건다」고 해 놓고 만든 것의 대부분(PDF·소리·영상·표·글)을
+         * 스물 남짓이라, 만든 것을 건다고 해 놓고 만든 것의 대부분(PDF, 소리, 영상, 표, 글)을
          * 안 받고 있었다. 이제 갈래마다 걸 수 있는 만큼 건다:
-         *   그림 → 그대로 미리보기 · PDF → 첫 장을 그려서 미리보기 ·
-         *   글/표 → 앞머리 한 줄 · 소리/영상/그 밖 → 크기 한 줄.
-         * 미리보기를 못 만들면 **없다고 말한다** — 없는 그림을 부르면 깨진 칸이 남는다. */
+         *   그림 → 그대로 미리보기, PDF → 첫 장을 그려서 미리보기 , 
+         *   글/표 → 앞머리 한 줄, 소리/영상/그 밖 → 크기 한 줄.
+         * 미리보기를 못 만들면 **없다고 말한다**. 없는 그림을 부르면 깨진 칸이 남는다. */
         if (canHang) {
-            /* 무거운 일(갈래 가르기 · PDF 첫 장 그리기 · 미리보기 올리기)은 **누를 때 데려온다**
-             * (TASK-KL-191). 셸에 두었더니 첫 화면 예산(JS 39KB)을 1.3KB 넘겨 배포가 섰다 —
+            /* 무거운 일(갈래 가르기, PDF 첫 장 그리기, 미리보기 올리기)은 **누를 때 데려온다**
+             * (TASK-KL-191). 셸에 두었더니 첫 화면 예산(JS 39KB)을 1.3KB 넘겨 배포가 섰다 . 
              * 결과가 나온 뒤에야 시작되는 일을 모두가 미리 내려받을 이유가 없다.
              * 조각 = `src/workshop-hang.ts`. */
             const hang = document.createElement('button');
@@ -436,14 +445,14 @@ const Toolbox = (() => {
         /* 결과가 나왔다고 **한 번만** 알린다 (TASK-KL-183 A).
          *
          * 이 한 줄이 도구 SDK 의 전부다. 도구는 지금까지처럼 `offerNext` 만 부르면 되고,
-         * 그 순간 넷이 자동으로 이어진다: 이어서(줄) · 작업실(걸기) · 흐름(다음 단계) ·
-         * 앞으로 붙을 것들. 도구마다 배선을 늘리면 160개 중 몇 개만 참여하게 된다 —
+         * 그 순간 넷이 자동으로 이어진다: 이어서(줄), 작업실(걸기), 흐름(다음 단계) , 
+         * 앞으로 붙을 것들. 도구마다 배선을 늘리면 160개 중 몇 개만 참여하게 된다 . 
          * 참여의 문턱은 **이미 부르고 있는 함수 하나**여야 한다. */
         try {
             window.dispatchEvent(new CustomEvent('karmolab-result', {
                 detail: {
                     type: item.blob.type || '',
-                    // 크기를 함께 실어야 흐름이 「작으면 건너뛰기」를 판정할 수 있다 (TASK-KL-183 B).
+                    // 크기를 함께 실어야 흐름이 작으면 건너뛰기를 판정할 수 있다 (TASK-KL-183 B).
                     size: item.blob.size || 0,
                     name: item.name || '',
                     from: item.from || null,
@@ -455,17 +464,17 @@ const Toolbox = (() => {
     }
 
     /**
-     * 결과를 내놨다 (TASK-KL-183 A) — 도구가 부를 **하나의 이름**.
+     * 결과를 내놨다 (TASK-KL-183 A). 도구가 부를 **하나의 이름**.
      *
-     * `offerNext` 라는 이름은 「다음 도구를 권한다」는 한 가지 일만 말한다. 지금은 그 한 번이
-     * 이어서·작업실·흐름을 한꺼번에 잇는다 — 이름이 하는 일을 못 따라가고 있었다.
+     * `offerNext` 라는 이름은 다음 도구를 권한다는 한 가지 일만 말한다. 지금은 그 한 번이
+     * 이어서, 작업실, 흐름을 한꺼번에 잇는다. 이름이 하는 일을 못 따라가고 있었다.
      * 옛 이름도 그대로 둔다(23곳이 부르고 있다). 둘은 **같은 함수**라 갈라질 일이 없다.
      */
     function result(anchor, item) {
         return offerNext(anchor, item);
     }
 
-    /** 도구 화면의 별 — 쓰던 자리에서 바로 꽂는다 (목록까지 안 가도 되게). */
+    /** 도구 화면의 별. 쓰던 자리에서 바로 꽂는다 (목록까지 안 가도 되게). */
     function mountPinStar(host, toolId) {
         if (!host || host.querySelector('.tool-pin-star')) return;
         const btn = document.createElement('button');
@@ -477,20 +486,27 @@ const Toolbox = (() => {
         host.appendChild(btn);
         paintPinStars();
     }
-    /** 현재 열린 도구 id — 복사·사용 계측이 어느 도구인지 알기 위해 (TASK-KL-088) */
+    /** 현재 열린 도구 id. 복사, 사용 계측이 어느 도구인지 알기 위해 (TASK-KL-088) */
     let currentPageId = 'home';
-    const NAV_LAYOUT_KEY = 'toolbox_nav_layout';
     const SIDEBAR_GROUP_KEY = 'toolbox_sidebar_groups';
 
-    function getNavLayout() {
-        const v = localStorage.getItem(NAV_LAYOUT_KEY);
-        return (v === 'sidebar' || v === 'header') ? v : 'header';
+    /* 왼쪽 목록은 늘 있다 (2026-08-30). 고르는 것은 접힘 하나뿐: 펼침 224px <-> 레일 56px.
+       걷어낸 것 둘 . `toolbox_nav_layout` (왼쪽 목록/상단 메뉴 택일) 과
+       `toolbox_header_nav` (상단 메뉴 끄기). 둘 다 끄면 갈 길이 하나도 안 남았다. */
+    const SIDEBAR_COLLAPSED_KEY = 'toolbox_sidebar_collapsed';
+
+    function getSidebarCollapsed() {
+        try { return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'; } catch (_) { return false; }
     }
 
-    function setNavLayout(layout) {
-        document.documentElement.setAttribute('data-nav', layout);
-        try { localStorage.setItem(NAV_LAYOUT_KEY, layout); } catch (_) {}
+    function setSidebarCollapsed(collapsed) {
+        document.documentElement.setAttribute('data-sidebar', collapsed ? 'rail' : 'open');
+        try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (_) {}
+        const btn = document.getElementById('sidebarToggle');
+        if (btn) btn.setAttribute('aria-expanded', String(!collapsed));
     }
+
+    function toggleSidebar() { setSidebarCollapsed(!getSidebarCollapsed()); }
 
     function getSidebarGroupState() {
         try {
@@ -563,13 +579,13 @@ const Toolbox = (() => {
 
     /* ── 안 보는 동안은 멈춘다 (change.widget-idle-cost) ──
      *
-     * 장(`.tool-page`)은 화면을 옮겨도 **DOM 에 남는다** — 입력하던 값과 열어 둔 탭이 살아
+     * 장(`.tool-page`)은 화면을 옮겨도 **DOM 에 남는다**. 입력하던 값과 열어 둔 탭이 살아
      * 있는 것이 이 셸의 계약이라서다. 그런데 그 말은 위젯이 걸어 둔 그리기 루프도 같이
      * 남는다는 뜻이었다: 정원 하나를 열었다 나오면 rAF 콜백이 2초에 120 → 1220 이 됐다
      * (실측 2026-08-29). 브라우저는 **안 보이는 요소의 rAF 를 안 멈춘다.**
      *
      * 그래서 뒷정리(`onDispose`)와는 다른 계약을 둔다: **멈춤과 재개**.
-     * 위젯은 자기 상태를 그대로 들고 멈췄다가 이어서 돈다 — 지우는 것이 아니다. */
+     * 위젯은 자기 상태를 그대로 들고 멈췄다가 이어서 돈다. 지우는 것이 아니다. */
     const hiders = new Map();        // toolId → fn[]
     const showers = new Map();       // toolId → fn[]
     const keepAlives = new Map();    // toolId → 왜 안 멈추는가 (말로 남긴 것만 예외다)
@@ -581,7 +597,7 @@ const Toolbox = (() => {
         map.set(buildingTool, list);
     }
 
-    /** 이 장이 화면에서 물러날 때. 루프·소리·연결을 멈춘다(상태는 그대로 둔다). */
+    /** 이 장이 화면에서 물러날 때. 루프, 소리, 연결을 멈춘다(상태는 그대로 둔다). */
     function onHide(fn) { addLifecycle(hiders, fn); }
 
     /** 다시 앞으로 올 때. 이어서 돈다. */
@@ -631,14 +647,14 @@ const Toolbox = (() => {
         const list = map.get(id);
         if (!list) return;
         for (const fn of list) {
-            try { fn(); } catch (err) { console.warn('[KarmoLab] 멈춤/재개 실패 —', id, err); }
+            try { fn(); } catch (err) { console.warn('[KarmoLab] 멈춤/재개 실패 . ', id, err); }
         }
     }
 
-    /** 위젯 그리기는 **전부 이걸 거친다** — 그래야 onDispose 가 누구 것인지 안다.
+    /** 위젯 그리기는 **전부 이걸 거친다**. 그래야 onDispose 가 누구 것인지 안다.
      *  한 군데라도 빼먹으면 그 위젯만 뒷정리가 안 되고, 그건 눈에 안 보인다. */
-    /* 눈금은 여기 하나에만 붙인다 (TASK-KL-201) — 모든 위젯의 그리기가 이 문을 지난다.
-       위젯마다 따로 재면 그날부터 「그린 시간」의 뜻이 갈라진다. */
+    /* 눈금은 여기 하나에만 붙인다 (TASK-KL-201). 모든 위젯의 그리기가 이 문을 지난다.
+       위젯마다 따로 재면 그날부터 그린 시간의 뜻이 갈라진다. */
     function isI18nBuildError(err) {
         return !!err && (err.name === 'MissingTranslationError' || err.name === 'CatalogLoadError');
     }
@@ -665,7 +681,7 @@ const Toolbox = (() => {
         notice.textContent = messages[language] || messages.en;
         container.appendChild(notice);
         const log = i18nFailure ? console.error : console.warn;
-        log.call(console, '[KarmoLab] widget build failed —', toolId, err);
+        log.call(console, '[KarmoLab] widget build failed . ', toolId, err);
     }
 
     function runBuild(toolId, fn, container) {
@@ -691,7 +707,7 @@ const Toolbox = (() => {
         if (!list) return;
         disposers.delete(id);
         for (const fn of list) {
-            try { fn(); } catch (err) { console.warn('[KarmoLab] 뒷정리 실패 —', id, err); }
+            try { fn(); } catch (err) { console.warn('[KarmoLab] 뒷정리 실패 . ', id, err); }
         }
     }
 
@@ -700,12 +716,12 @@ const Toolbox = (() => {
      *
      * 예전에는 이미 있으면 조용히 무시하고 끝냈다. 그래서 위젯 코드를 새로 실행해도 화면은
      * 옛 코드 그대로였고, 고친 것을 보려면 새로고침(= 상태 전부 날림)밖에 없었다.
-     * 교체 배선은 이미 있었다 — 지연 등록이 실제 등록으로 바뀔 때 쓰던 그 길이다. 그 길을
+     * 교체 배선은 이미 있었다. 지연 등록이 실제 등록으로 바뀔 때 쓰던 그 길이다. 그 길을
      * 재등록에도 열어 주는 것이 이 함수의 전부다.
      */
     /* 누르는 것이 **불러오는 것보다 빠를 때** 그 화면을 살린다 (TASK-KL-139).
      *
-     * 실측: 첫 화면에서 부팅 3초 안에 「내 정보」로 옮기면 그 화면은 껍데기(제목만)로 남고
+     * 실측: 첫 화면에서 부팅 3초 안에 내 정보로 옮기면 그 화면은 껍데기(제목만)로 남고
      * 15초를 기다려도 안 채워졌다. `switchPage` 가 화면을 만들려 한 시점에 그 위젯이 아직
      * 등록 전이라 만들 것이 없었고, 뒤늦게 등록돼도 **아무도 다시 만들지 않았다**.
      * 등록은 늦게 와도 되지만, 그때 보고 있는 화면이 자기 것이면 그 자리는 자기가 채워야 한다. */
@@ -721,9 +737,9 @@ const Toolbox = (() => {
         const idx = tools.findIndex(t => t.id === config.id);
         if (idx < 0) {
             tools.push(config);
-            /* 처음 등록이어도 **그 자리에 화면이 이미 있을 수 있다** — 빌드 때 미리 그려 둔
+            /* 처음 등록이어도 **그 자리에 화면이 이미 있을 수 있다**. 빌드 때 미리 그려 둔
                그림이다 (TASK-KL-135). 그건 HTML 을 떠 온 것이라 어떤 단추에도 손이 안 달려 있다.
-               여기서 안 갈아 끼우면 그 도구는 **영영 죽은 채로 남는다** — 보이는데 눌러도 아무
+               여기서 안 갈아 끼우면 그 도구는 **영영 죽은 채로 남는다**. 보이는데 눌러도 아무
                일이 안 난다. 실제로 로컬에서 미리 그린 대출 상환표가 8초가 지나도 죽어 있었다.
                (목록에 미리 올라와 있는 도구는 아래 갈래로 가서 여태 이 문제가 안 보였다.) */
             rebuildToolPageIfInDom(config.id);
@@ -732,7 +748,7 @@ const Toolbox = (() => {
         }
 
         const wasDeferred = !!tools[idx]._deferred;
-        // 옛 것이 걸어 둔 타이머·리스너를 먼저 거둔다. 순서가 뒤면 새 것이 건 것까지 거둔다.
+        // 옛 것이 걸어 둔 타이머, 리스너를 먼저 거둔다. 순서가 뒤면 새 것이 건 것까지 거둔다.
         if (!wasDeferred) disposeTool(config.id);
         tools[idx] = wasDeferred ? { ...config, _deferred: false } : config;
         rebuildToolPageIfInDom(config.id);
@@ -749,12 +765,12 @@ const Toolbox = (() => {
             runBuild(id, () => tab.build(container), container);
             return true;
         } catch (err) {
-            console.warn('[KarmoLab] renderInline fail —', id, err);
+            console.warn('[KarmoLab] renderInline fail . ', id, err);
             return false;
         }
     }
 
-    /** 레지스트리·초기화용 — 스크립트는 첫 방문 시 loadDeferredWidget에서 로드 */
+    /** 레지스트리, 초기화용. 스크립트는 첫 방문 시 loadDeferredWidget에서 로드 */
     function registerDeferred(stub) {
         const { lazyScriptPaths, ...rest } = stub;
         tools.push({
@@ -763,14 +779,14 @@ const Toolbox = (() => {
             lazyScriptPaths: lazyScriptPaths || [],
             tabs: [{
                 id: '__lazy',
-                label: '…',
+                label: '...',
                 build(container) {
                     // 회색 글자 한 줄 대신 티메토가 기다려 준다. 마스코트를 아직
                     // 못 받았거나 사용자가 껐으면 원래 글자가 그대로 남는다.
-                    container.innerHTML = '<p class="tb-lazy-loading" style="padding:32px;text-align:center;color:var(--text-secondary);">불러오는 중…</p>';
+                    container.innerHTML = '<p class="tb-lazy-loading" style="padding:32px;text-align:center;color:var(--text-secondary);">불러오는 중...</p>';
                     if (typeof Mdd !== 'undefined' && Mdd.spot) {
                         void Mdd.spot(container, {
-                            mood: 'think', msg: '장비 꺼내는 중이에요…', width: 110,
+                            mood: 'think', msg: '장비 꺼내는 중이에요...', width: 110,
                             onlyIf: '.tb-lazy-loading',
                         });
                     }
@@ -780,22 +796,22 @@ const Toolbox = (() => {
     }
 
     /**
-     * 뒤늦게 도착한 아이콘·설명을 이미 있는 목록에 얹는다 (TASK-KL-128 ③).
+     * 뒤늦게 도착한 아이콘, 설명을 이미 있는 목록에 얹는다 (TASK-KL-128 ③).
      *
-     * 도구 한 장짜리 화면은 처음에 **가벼운 목록**(이름·분류·불러올 곳)만 받는다 — 원본 93KB
-     * 중 26KB. 아이콘 그림과 설명은 옆줄·찾기창이 실제로 그려질 때 필요한 것이라, 화면이 다
+     * 도구 한 장짜리 화면은 처음에 **가벼운 목록**(이름, 분류, 불러올 곳)만 받는다. 원본 93KB
+     * 중 26KB. 아이콘 그림과 설명은 옆줄, 찾기창이 실제로 그려질 때 필요한 것이라, 화면이 다
      * 그려진 뒤에 따라온다. 여기서 그 둘을 제자리에 꽂는다. 이미 그려진 아이콘 자리는 비어
-     * 있으므로 DOM 을 다시 그리지 않고 그 자리만 채운다 — 화면이 안 흔들린다.
+     * 있으므로 DOM 을 다시 그리지 않고 그 자리만 채운다. 화면이 안 흔들린다.
      */
     function upgradeMeta() {
         const full = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META) || [];
         const byId = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || null;
-        /* 가벼운 목록을 먼저 받은 화면은 **나머지(아이콘·설명)만** 따로 받는다. 전체를 한 벌 더
+        /* 가벼운 목록을 먼저 받은 화면은 **나머지(아이콘, 설명)만** 따로 받는다. 전체를 한 벌 더
            받으면 전송량이 그만큼 늘어난다. 전체를 통째로 받은 화면은 아래 `full` 쪽으로 들어온다. */
         const rest = (typeof window !== 'undefined' && (window as unknown as { KARMOLAB_META_REST?: Record<string, { icon?: string; desc?: string }> }).KARMOLAB_META_REST) || null;
         /* ★ **원본에 그대로 꽂는다** (2026-08-12). 예전에는 합친 결과를 새 배열에만 담아
-         *   아래 `tools`(이미 등록된 위젯)와 `byId` 만 고쳤다. 그런데 목록·찾기창은
-         *   `KARMOLAB_LAZY_META` 를 그대로 읽는데, 거기엔 아이콘이 끝내 안 들어갔다 —
+         *   아래 `tools`(이미 등록된 위젯)와 `byId` 만 고쳤다. 그런데 목록, 찾기창은
+         *   `KARMOLAB_LAZY_META` 를 그대로 읽는데, 거기엔 아이콘이 끝내 안 들어갔다 . 
          *   그래서 **그 위젯을 한 번 열어야만** 아이콘이 생겼다(열면 그 묶음이 자기 아이콘을
          *   들고 온다). 실측: 메타 204개 중 아이콘 꽂힌 것 0개.
          *   합친 값을 원본 항목에 직접 써 주면 읽는 쪽이 어디든 같은 것을 본다. */
@@ -820,9 +836,9 @@ const Toolbox = (() => {
             }
         }
         /* ★ 이미 만들어진 목록도 다시 그린다 (2026-08-12). 찾기창은 열 때가 아니라 **처음 한 번**
-         *   목록을 짜 두는데, 아이콘은 그보다 늦게 온다 — 그래서 아이콘이 붙어도 찾기창은
+         *   목록을 짜 두는데, 아이콘은 그보다 늦게 온다. 그래서 아이콘이 붙어도 찾기창은
          *   옛 목록을 그대로 보여 줬다(그 도구를 한 번 열어야 생기는 것처럼 보인 이유).
-         *   정본은 여전히 한 곳이고, 여기서는 「다시 읽어라」만 알린다. */
+         *   정본은 여전히 한 곳이고, 여기서는 다시 읽어라만 알린다. */
         try {
             const palette = (window as unknown as { KarmoPalette?: { refresh?: () => void } }).KarmoPalette;
             if (palette && palette.refresh) palette.refresh();
@@ -844,7 +860,7 @@ const Toolbox = (() => {
         const old = document.getElementById('page-' + pageId);
         if (!old) return;
         // 다시 그리기 **직전**이 뒷정리 자리다. 재등록 말고 다른 길로 다시 그려도 여기를 지난다
-        // — 한쪽에만 두면 그 길로 올 때마다 타이머가 쌓인다 (TASK-KL-100).
+        //. 한쪽에만 두면 그 길로 올 때마다 타이머가 쌓인다 (TASK-KL-100).
         disposeTool(pageId);
         const wasActive = old.classList.contains('active');
         const touched = takeUserState(old);
@@ -857,16 +873,16 @@ const Toolbox = (() => {
 
     /* ── 갈아 끼울 때 사람이 손댄 것을 옮긴다 (TASK-KL-135) ────────────────
      *
-     * 도구 화면은 두 번 그려진다 — 빌드 때 미리 그려 둔 그림이 먼저 오고(빠르다), 위젯이
+     * 도구 화면은 두 번 그려진다. 빌드 때 미리 그려 둔 그림이 먼저 오고(빠르다), 위젯이
      * 도착하면 그 자리를 제 화면으로 갈아 끼운다. 실사이트 실측으로 76ms 와 127ms 였다.
      * 그 사이 51ms 에 사람이 뭘 적으면 **교체와 함께 그 글이 사라진다**. 느린 회선에서는
      * 이 틈이 더 벌어진다. 실제로 검사 하나가 그 틈에 걸려 두 번 헛돌았다.
      *
-     * 「기존 DOM 을 그대로 두고 손만 붙인다」(모핑)는 여기서 못 쓴다 — 위젯이 만든 손은
+     * 기존 DOM 을 그대로 두고 손만 붙인다(모핑)는 여기서 못 쓴다. 위젯이 만든 손은
      * **자기가 만든 노드**를 붙들고 있어서, 옛 노드를 살려 두면 그 손이 딴 데를 만지게 된다.
      * 그래서 반대로 한다: 새 화면을 쓰되 **사람이 손댄 것만 옮겨 온다**.
      *
-     * 옮기는 것 = 사람이 바꾼 입력값·고른 것·켠 것 + 커서가 있던 자리. 기본값 그대로인 칸은
+     * 옮기는 것 = 사람이 바꾼 입력값, 고른 것, 켠 것 + 커서가 있던 자리. 기본값 그대로인 칸은
      * 안 옮긴다(그건 사람의 것이 아니라 그 도구의 것이고, 새 화면이 더 맞다). */
     function takeUserState(root) {
         const value2 = [];
@@ -892,11 +908,11 @@ const Toolbox = (() => {
 
     /* 손이 달리기 전에 눌린 단추 한 번을 대신 눌러 준다 (TASK-KL-135).
      *
-     * 도구 상세 페이지의 머리에 있는 짧은 조각이 「손이 안 달린 단추가 눌렸다」를 적어 둔다.
-     * 갈아 끼운 뒤 여기서 그 한 번을 쏜다 — 사람 입장에서는 「누른 것이 조금 늦게 되는」 것이
+     * 도구 상세 페이지의 머리에 있는 짧은 조각이 손이 안 달린 단추가 눌렸다를 적어 둔다.
+     * 갈아 끼운 뒤 여기서 그 한 번을 쏜다. 사람 입장에서는 누른 것이 조금 늦게 되는 것이
      * 되고, 지금처럼 **누른 적이 없던 일**이 되지는 않는다.
      *
-     * 한 번만·10초 안에만. 오래된 것은 사람이 이미 마음을 바꿨다고 본다. */
+     * 한 번만, 10초 안에만. 오래된 것은 사람이 이미 마음을 바꿨다고 본다. */
     function replayPendingClick(root) {
         const pressed = typeof window !== 'undefined' && window.KARMOLAB_PENDING_CLICK;
         if (!pressed) return;
@@ -913,7 +929,7 @@ const Toolbox = (() => {
             if (!el) return;
             if ('checked' in v) el.checked = v.checked;
             else el.value = v.value;
-            /* 값만 넣으면 도구는 모른다 — 사람이 친 것과 같은 신호를 보낸다. */
+            /* 값만 넣으면 도구는 모른다. 사람이 친 것과 같은 신호를 보낸다. */
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         });
@@ -959,23 +975,23 @@ const Toolbox = (() => {
 
     /**
      * lazyScriptPaths / ensureScript 의 한 경로를 실제 URL 로 해석 (KL-054).
-     * prefix 규약 (단일 해석기 — loadDeferredWidget·ensureScript 공용):
+     * prefix 규약 (단일 해석기. loadDeferredWidget, ensureScript 공용):
      * - `world/<x>`  → world 스크립트 base
      * - `vendor/<x>` → js/vendor/<x>.js  (예: `vendor/marked.min`)
      * - `root/<x>`   → js/<x>.js          (예: `root/gemini`)
-     * - 그 외        → js/widgets/<x>.js  (기존 위젯 경로 — 무변경)
+     * - 그 외        → js/widgets/<x>.js  (기존 위젯 경로. 무변경)
      */
     /**
      * 이 판(배포)의 표식 (TASK-KL-128 ②-b). `build.mjs` 가 빌드 시각으로 박는다.
      *
-     * 왜 필요한가: 위젯 묶음(`js/widgets/…`)은 주소를 **실행 중에** 만들어 내므로 파일 이름에
-     * 지문을 못 박는다(이름이 코드 안에 없다). 그래서 이름 대신 이 표식을 주소 뒤에 붙인다 —
+     * 왜 필요한가: 위젯 묶음(`js/widgets/...`)은 주소를 **실행 중에** 만들어 내므로 파일 이름에
+     * 지문을 못 박는다(이름이 코드 안에 없다). 그래서 이름 대신 이 표식을 주소 뒤에 붙인다 . 
      * 배포마다 값이 달라지니 옛 판을 물 일이 없고, 한 판 안에서는 주소가 고정이라
-     * 서비스 워커가 「한 번 받은 것은 그대로」로 둘 수 있다. 지금은 매번 네트워크를 탄다.
+     * 서비스 워커가 한 번 받은 것은 그대로로 둘 수 있다. 지금은 매번 네트워크를 탄다.
      */
     const BUILD_TAG = typeof __KARMOLAB_BUILD__ === 'string' ? __KARMOLAB_BUILD__ : '';
 
-    /** 위젯 묶음 주소에만 판 표식을 붙인다 (vendor·world·root 는 그대로 둔다). */
+    /** 위젯 묶음 주소에만 판 표식을 붙인다 (vendor, world, root 는 그대로 둔다). */
     function withBuildTag(url) {
         if (!BUILD_TAG || url.indexOf('/js/widgets/') === -1) return url;
         return url + (url.indexOf('?') === -1 ? '?b=' : '&b=') + BUILD_TAG;
@@ -997,7 +1013,7 @@ const Toolbox = (() => {
     /**
      * 단일 스크립트를 한 번만 주입 (load-once 캐시 = loadScriptOnce 재사용).
      * boot 위젯(docs/user 등)이 무거운 vendor lib(marked/Prism/Gemini)를
-     * boot 가 아니라 *사용 직전* 로드하도록 — 발화 「버튼 눌렀을때 그제서야」.
+     * boot 가 아니라 *사용 직전* 로드하도록. 발화 버튼 눌렀을때 그제서야.
      */
     function ensureScript(rawPath) {
         return loadScriptOnce(resolveScriptPath(rawPath));
@@ -1041,7 +1057,7 @@ const Toolbox = (() => {
             return Promise.resolve();
         }
 
-        /* 「눌러서 뜰 때까지」는 스크립트 한 장이 아니라 **이 묶음 전체**다 (TASK-KL-201) —
+        /* 눌러서 뜰 때까지는 스크립트 한 장이 아니라 **이 묶음 전체**다 (TASK-KL-201) . 
            뒤에 딸린 대기(KARMOLAB_WIDGET_LOADER_WAIT)까지 끝나야 그 위젯이 준비된 것이다.
            스크립트 한 장만 재면 여러 장짜리 위젯이 실제보다 빨라 보인다. */
         const startedAt = performance.now();
@@ -1081,11 +1097,11 @@ const Toolbox = (() => {
         return loadDeferredWidget(pageId);
     }
 
-    /** 지연 위젯용 — lazy-meta에 정의된 공개 필드만 (lazyScriptPaths 제외). 위젯 register 시 스프레드 */
+    /** 지연 위젯용. lazy-meta에 정의된 공개 필드만 (lazyScriptPaths 제외). 위젯 register 시 스프레드 */
     function getLazyWidgetPublicMeta(id) {
         const m = typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID && window.KARMOLAB_LAZY_META_BY_ID[id];
         if (!m) {
-            console.warn('[KarmoLab] getLazyWidgetPublicMeta: 정의 없음 —', id);
+            console.warn('[KarmoLab] getLazyWidgetPublicMeta: 정의 없음 . ', id);
             return { id };
         }
         const { lazyScriptPaths: _paths, ...rest } = m;
@@ -1103,12 +1119,12 @@ const Toolbox = (() => {
             const det = document.querySelector('.karmolab-notify-debug');
             const line = JSON.stringify(payload);
             if (pre) pre.textContent = JSON.stringify(payload, null, 2);
-            if (sum) sum.textContent = line.length > 100 ? line.slice(0, 97) + '…' : line;
+            if (sum) sum.textContent = line.length > 100 ? line.slice(0, 97) + '...' : line;
             if (det) det.open = true;
         } catch (_) {}
     }
 
-    /* 데스크톱 앱 껍데기(창 단추·배지·업데이트 알림)는 **데스크톱일 때만** 데려온다
+    /* 데스크톱 앱 껍데기(창 단추, 배지, 업데이트 알림)는 **데스크톱일 때만** 데려온다
      * (TASK-KL-128 ①-c). 웹에서는 첫 줄에서 돌아서는 코드 11KB 를 화면마다 받고 있었다.
      * 판단을 여기서 하므로 웹 사용자는 파일 자체를 안 받는다. 실제 코드 = `src/desktop-chrome.ts`. */
     function installDesktopChrome() {
@@ -1122,30 +1138,31 @@ const Toolbox = (() => {
         return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
     }
 
-    /* 숨긴 것 (TASK-KL-196 D) — 코나미 코드·로고 연타 같은 것은 **어느 화면에서나** 통해야
+    /* 숨긴 것 (TASK-KL-196 D). 코나미 코드, 로고 연타 같은 것은 **어느 화면에서나** 통해야
      * 하므로 셸이 건다. 다만 첫 그림에는 필요 없으므로 조각을 따로 두고 뒤에 데려온다
-     * (셸에 넣으면 화면 130장이 그날부터 같이 받는다 — 부팅 예산은 그렇게 는다). */
+     * (셸에 넣으면 화면 130장이 그날부터 같이 받는다. 부팅 예산은 그렇게 는다). */
     function installSecrets() {
         void ensureScript('root/secrets')
             .then(() => window.KarmoSecrets?.install())
             .catch(() => { /* 숨긴 것이 없다고 도구가 멈출 이유는 없다 */ });
     }
 
-    /* ── 판 표식 배지 (웹·앱 공통) ─────────────────────────────────────────────
+    /* ── 판 표식 배지 (웹, 앱 공통) ─────────────────────────────────────────────
      *
-     * 답하려는 질문: 「지금 보고 있는 이 화면이 **방금 올린 그것**인가?」
+     * 답하려는 질문: 지금 보고 있는 이 화면이 **방금 올린 그것**인가?
      * 여태 앱에만 `앱 v0.1.55` 배지가 있었고 웹에는 아무 표식이 없어서, 배포하고 열어 봐도
      * 새 판인지 옛 판인지 눈으로 알 길이 없었다.
      *
      * 표식은 **번들에 구워 박은 value**을 쓴다 (`build.mjs` 의 define). `build.json` 을 받아
-     * 보여 주는 방식은 「서버에 있는 판」을 말할 뿐, 지금 브라우저가 실행 중인 코드가 그것이라는
-     * 보장이 없다 — 캐시·서비스 워커가 옛 묶음을 주면 표식만 새것으로 보이는 거짓말이 된다.
+     * 보여 주는 방식은 서버에 있는 판을 말할 뿐, 지금 브라우저가 실행 중인 코드가 그것이라는
+     * 보장이 없다. 캐시, 서비스 워커가 옛 묶음을 주면 표식만 새것으로 보이는 거짓말이 된다.
      *
      * 그 위에 서버의 `build.json` 을 한 번 물어 **더 새 판이 올라와 있으면** 배지를 강조한다
-     * = 「올라왔는데 네 화면은 옛것」. 웹 전용 — 앱은 자체 업데이터 배너가 그 일을 한다. */
+     * = 올라왔는데 네 화면은 옛것. 웹 전용. 앱은 자체 업데이터 배너가 그 일을 한다. */
     const BUILD_COMMIT = typeof __KARMOLAB_COMMIT__ === 'string' ? __KARMOLAB_COMMIT__ : '';
 
     let versionBadgeEl = null;
+    let settingsMenuEl = null;
     let versionBadgeAppVer = null;
     let versionBadgeLiveCommit = null;
 
@@ -1165,11 +1182,13 @@ const Toolbox = (() => {
         if (BUILD_COMMIT) lines.push(`커밋 ${BUILD_COMMIT.slice(0, 8)}`);
         if (typeof window !== 'undefined' && window.__KARMOLAB_DEV_INSTANCE__) lines.push('개발 인스턴스');
         if (versionBadgeLiveCommit && versionBadgeLiveCommit !== BUILD_COMMIT) {
-            lines.push(`⚠ 서버에는 더 새 판 ${versionBadgeLiveCommit.slice(0, 8)} — 새로고침하면 받는다`);
+            lines.push(`⚠ 서버에는 더 새 판 ${versionBadgeLiveCommit.slice(0, 8)}. 새로고침하면 받는다`);
         }
         return lines.join('\n');
     }
 
+    /* 배지 수명은 설정 목록이 열린 동안뿐 (2026-08-29). 자리 없으면 조용히 return.
+       `checkLiveBuild` 는 목록과 무관하게 1회. 결과 반영은 다음 열기 때 */
     function renderVersionBadge() {
         if (!versionBadgeEl) return;
         const parts = [];
@@ -1178,12 +1197,12 @@ const Toolbox = (() => {
         if (typeof window !== 'undefined' && window.__KARMOLAB_DEV_INSTANCE__) parts.push('dev');
         const stale = !!versionBadgeLiveCommit && versionBadgeLiveCommit !== BUILD_COMMIT;
         if (stale) parts.push('↑');
-        versionBadgeEl.textContent = parts.join(' · ');
+        versionBadgeEl.textContent = parts.join(', ');
         versionBadgeEl.classList.toggle('is-stale', stale);
         versionBadgeEl.title = versionBadgeDetail() + '\n(눌러서 복사)';
     }
 
-    /** 데스크톱 껍데기가 Cargo 버전을 알려 준다 — 웹에서는 안 불린다. */
+    /** 데스크톱 껍데기가 Cargo 버전을 알려 준다. 웹에서는 안 불린다. */
     function setAppVersion(ver) {
         versionBadgeAppVer = ver || null;
         renderVersionBadge();
@@ -1191,7 +1210,7 @@ const Toolbox = (() => {
 
     function checkLiveBuild() {
         if (isDesktopApp() || !BUILD_COMMIT || BUILD_COMMIT === 'unknown') return;
-        // 캐시가 옛 답을 주면 이 확인 자체가 거짓말이 된다 — 매번 다른 주소로 묻는다.
+        // 캐시가 옛 답을 주면 이 확인 자체가 거짓말이 된다. 매번 다른 주소로 묻는다.
         const url = getJsScriptBase().replace(/js\/$/, '') + 'build.json?t=' + Date.now();
         fetch(url, { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
@@ -1203,20 +1222,107 @@ const Toolbox = (() => {
             .catch(() => { /* 못 물어봤다고 배지가 사라질 이유는 없다 */ });
     }
 
-    function installVersionBadge() {
-        const left = document.querySelector('.header-bar-left');
-        if (!left || document.getElementById('headerVersionBadge')) return;
-        const el = document.createElement('button');
-        el.type = 'button';
-        el.id = 'headerVersionBadge';
-        el.className = 'karmolab-version-badge';
-        el.addEventListener('click', () => {
+    /* 판 표식 자리 이동. 머리띠 붙박이에서 설정 목록 안으로 (2026-08-29, 사용자 결정)
+       여기 남는 일은 서버에 더 새 판이 있나 1회 조회뿐 */
+    function initVersionInfo() {
+        checkLiveBuild();
+    }
+
+    /* 머리띠 설정 목록 (2026-08-29, 사용자 결정)
+     * 전: 설정 단추는 곧장 이동, 그 옆에 언어 단추와 판 표식이 각자 자리
+     * 후: 셋 다 내 환경 축이므로 한 자리로. 머리띠 자리 3개 -> 1개
+     * 스타일은 이 파일 안에서 주입. 공용 css 회피 이유는 `lang-switch.ts` 머리말과 동일
+     * 판 표식 칸만 기존 `.karmolab-version-badge` 재사용 */
+    const SETTINGS_MENU_STYLE_ID = 'header-settings-menu-style';
+
+    function ensureSettingsMenuStyle() {
+        if (document.getElementById(SETTINGS_MENU_STYLE_ID)) return;
+        const st = document.createElement('style');
+        st.id = SETTINGS_MENU_STYLE_ID;
+        st.textContent = `
+.header-settings-menu{position:absolute;z-index:2000;min-width:11rem;padding:.3rem;border-radius:.6rem;
+  background:var(--bg-secondary);border:1px solid var(--border);
+  box-shadow:0 .5rem 1.5rem rgba(0,0,0,.35);display:flex;flex-direction:column;gap:.1rem}
+.header-settings-menu button{all:unset;cursor:pointer;padding:.45rem .6rem;border-radius:.4rem;
+  font-size:.85rem;color:var(--text-primary);display:flex;align-items:center;
+  justify-content:space-between;gap:.75rem;min-height:32px;box-sizing:border-box}
+.header-settings-menu button:hover,.header-settings-menu button:focus-visible{background:var(--bg-hover)}
+.header-settings-menu .hsm-hint{font-size:.72rem;opacity:.55;font-variant-numeric:tabular-nums}`;
+        document.head.appendChild(st);
+    }
+
+    function closeSettingsMenu() {
+        settingsMenuEl?.remove();
+        settingsMenuEl = null;
+        versionBadgeEl = null;
+        document.getElementById('settingsPageBtn')?.setAttribute('aria-expanded', 'false');
+    }
+
+    function openSettingsMenu(btn) {
+        ensureSettingsMenuStyle();
+        closeSettingsMenu();
+        /* 머리띠 목록은 한 번에 하나 (2026-08-29 버그)
+           언어 목록이나 계정 메뉴가 떠 있으면 그쪽이 스스로 닫음
+           각 버튼의 `stopPropagation` 탓에 서로의 바깥 클릭 검사가 안 도는 게 원인 */
+        dispatchEvent(new CustomEvent('karmolab:popover-open', { detail: 'settings' }));
+        const box = document.createElement('div');
+        box.id = 'settingsMenu';
+        box.className = 'header-settings-menu';
+        box.setAttribute('role', 'menu');
+
+        const item = (id, label, hint) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.id = id;
+            b.setAttribute('role', 'menuitem');
+            b.innerHTML = `<span>${escapeHtml(label)}</span><span class="hsm-hint">${hint || ''}</span>`;
+            box.appendChild(b);
+            return b;
+        };
+
+        // 1. 설정 장으로
+        item('settingsMenuOpen', text2('shell.settings', '환경 설정'))
+            .addEventListener('click', () => { closeSettingsMenu(); openSettingsModal(); });
+
+        /* 2. 언어와 지역. 목록 실체는 `lang-switch.ts` 것 하나
+           여기 한 벌 더 그리면 켜진 언어나 지역이 늘 때 한쪽만 낡음 */
+        const lang = typeof window !== 'undefined' ? window.KarmoLang : null;
+        if (lang && typeof lang.openMenu === 'function') {
+            const code = escapeHtml(String(lang.locale?.() || '').toUpperCase());
+            item('settingsMenuLang', text2('shell.settings.lang', '언어와 지역'), code)
+                .addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeSettingsMenu();
+                    lang.openMenu(btn);
+                });
+        }
+
+        // 3. 버전 정보. 누르면 자세한 표식 복사 (문의 때 붙이는 값)
+        item('settingsMenuVersion', text2('shell.settings.version', '버전 정보'));
+        // 힌트 자리 재사용. 그 span 이 곧 판 표식 배지
+        const ver = box.lastElementChild;
+        const badge = ver.querySelector('.hsm-hint');
+        badge.classList.add('karmolab-version-badge');
+        badge.id = 'headerVersionBadge';
+        ver.addEventListener('click', () => {
             void copyText(versionBadgeDetail(), { message: '판 표식 복사됨', action: 'copy-version' });
         });
-        left.appendChild(el);
-        versionBadgeEl = el;
+        versionBadgeEl = badge;
         renderVersionBadge();
-        checkLiveBuild();
+
+        document.body.appendChild(box);
+        const r = btn.getBoundingClientRect();
+        box.style.top = `${r.bottom + 6 + scrollY}px`;
+        // 오른쪽 끝 단추. 왼쪽 정렬 시 화면 밖으로 나감
+        box.style.left = `${Math.max(8, r.right - box.offsetWidth + scrollX)}px`;
+        btn.setAttribute('aria-expanded', 'true');
+        settingsMenuEl = box;
+        setTimeout(() => { addEventListener('click', onSettingsMenuAway, { once: true }); }, 0);
+    }
+
+    function onSettingsMenuAway(e) {
+        if (settingsMenuEl && !settingsMenuEl.contains(e.target)) closeSettingsMenu();
+        else if (settingsMenuEl) setTimeout(() => addEventListener('click', onSettingsMenuAway, { once: true }), 0);
     }
 
     /** decorations:false 윈도우의 헤더 컨트롤(min/max/close)을 활성화. 데스크톱 외에는 noop. */
@@ -1244,7 +1350,7 @@ const Toolbox = (() => {
         const title = String(msg).trim();
         if (!title) return;
         let body = typeof detailText === 'string' ? detailText.trim() : '';
-        if (body.length > 240) body = body.slice(0, 237) + '…';
+        if (body.length > 240) body = body.slice(0, 237) + '...';
         const payload = { title: title.slice(0, 120), body: body || 'KarmoLab' };
         if (type === 'error') payload.sound = 'Mail';
         setNotifyInvokeDebugPayload(payload);
@@ -1294,7 +1400,7 @@ const Toolbox = (() => {
             container.appendChild(a);
         }
 
-        /* TASK-KL-099 — 손가락으로 쓰는 화면에는 ⌘K 가 없다. 팔레트를 부를 길이 아예
+        /* TASK-KL-099. 손가락으로 쓰는 화면에는 ⌘K 가 없다. 팔레트를 부를 길이 아예
          * 없으면 좁은 화면 사람만 160개짜리 가로 목록에 남겨진다. 이미 있는 줄의 맨 앞에
          * 세워서 새 떠다니는 버튼을 만들지 않는다. */
         const mFind = document.createElement('a');
@@ -1312,14 +1418,14 @@ const Toolbox = (() => {
         mHome.onclick = () => switchPage('home');
         mobileNav.appendChild(mHome);
 
-        /* 헤더의 바깥 링크(도구 목록·봇·오늘의·광장…)를 폰 내비로 옮겨 온다 (TASK-KL-101).
+        /* 헤더의 바깥 링크(도구 목록, 봇, 오늘의, 광장...)를 폰 내비로 옮겨 온다 (TASK-KL-101).
          *
          * 폰 헤더는 로고 + 아이콘 둘이 들어가면 꽉 찬다. 그런데 이 링크들이 하나씩 늘어
-         * 넷이 되면서 로고 **위에 포개졌다** — 브랜드가 뭉개진 채로 나가고 있었다.
-         * 그렇다고 헤더에서 숨기기만 하면 폰에서는 갈 길이 아예 사라진다(봇·오늘의는 위젯이
+         * 넷이 되면서 로고 **위에 포개졌다**. 브랜드가 뭉개진 채로 나가고 있었다.
+         * 그렇다고 헤더에서 숨기기만 하면 폰에서는 갈 길이 아예 사라진다(봇, 오늘의는 위젯이
          * 아니라 딴 주소다). 그래서 숨기는 대신 여기로 옮긴다.
          *
-         * 목록을 여기 다시 적지 않고 **헤더에서 읽는다** — 나중에 링크가 늘어도 저절로 따라온다.
+         * 목록을 여기 다시 적지 않고 **헤더에서 읽는다**. 나중에 링크가 늘어도 저절로 따라온다.
          * 손으로 한 벌 더 적으면 그날부터 폰만 옛 목록을 보게 된다. */
         document.querySelectorAll('.header-bar-right .header-tools-link').forEach((link) => {
             const href = link.getAttribute('href') || '';
@@ -1329,7 +1435,7 @@ const Toolbox = (() => {
             m.className = 'nav-item nav-item-shell';
             m.textContent = label;
             if (href.startsWith('#')) {
-                // 앱 안의 화면 — 주소로 튀지 않고 그 자리에서 연다
+                // 앱 안의 화면. 주소로 튀지 않고 그 자리에서 연다
                 const pageId = href.slice(1);
                 m.href = '#';
                 m.onclick = (e) => { e.preventDefault(); switchPage(pageId); };
@@ -1354,7 +1460,7 @@ const Toolbox = (() => {
             const labelSpan = document.createElement('span');
             labelSpan.className = 'header-nav-trigger-label';
             labelSpan.textContent = label;
-            /* 손잡이는 **눌리는 것처럼** 보여야 한다 — 옆이 검색칸이라 맨 글자는 이름표로 읽힌다. */
+            /* 손잡이는 **눌리는 것처럼** 보여야 한다. 옆이 검색칸이라 맨 글자는 이름표로 읽힌다. */
             if (options.sections) {
                 trigger.classList.add('header-nav-trigger--list');
                 trigger.insertAdjacentHTML('afterbegin',
@@ -1371,16 +1477,16 @@ const Toolbox = (() => {
             const inner = document.createElement('div');
             inner.className = 'header-nav-panel-inner';
             /* 메뉴 속 항목은 **열 때 만든다** (TASK-KL-128 런타임).
-             * 이 판은 마우스를 올려야 나온다 — 그런데 부팅 때 도구 43개 줄(각각 그림 하나)을
+             * 이 판은 마우스를 올려야 나온다. 그런데 부팅 때 도구 43개 줄(각각 그림 하나)을
              * 미리 만들어 두고 있었다. 옆줄 차림까지 더하면 86줄이 안 보이는 채로 만들어졌다.
              * 안 보여도 브라우저는 스타일을 계산하고 자리를 잡는다. 한 번만 만들고 다음부터는 그대로 쓴다. */
             let innerFilled = false;
             function fillPanelOnce() {
                 /* ★ **칸이 있는 판은 열 때마다 새로 그린다** (2026-08-19 버그).
-                 * 여기 있던 「한 번만 만든다」는 갈래 메뉴의 규율이다 — 그 목록은 등록된 도구가
+                 * 여기 있던 한 번만 만든다는 갈래 메뉴의 규율이다. 그 목록은 등록된 도구가
                  * 곧 내용이라 절대 안 변한다. 그런데 이 판이 담는 것은 **사람이 방금 한 일**이다:
-                 * 별을 꽂고, 도구를 열고. 한 번 만들고 캐시하니 별을 꽂아도 「내 것」은 빈 채였고,
-                 * 도구를 열어도 「최근 본 것」이 안 늘었다 — 새로고침해야 나타났다.
+                 * 별을 꽂고, 도구를 열고. 한 번 만들고 캐시하니 별을 꽂아도 내 것은 빈 채였고,
+                 * 도구를 열어도 최근 본 것이 안 늘었다. 새로고침해야 나타났다.
                  * 다시 그리는 값은 줄 15개다. 여는 사람의 눈보다 훨씬 싸다. */
                 if (options.sections) {
                     innerFilled = true;
@@ -1402,11 +1508,11 @@ const Toolbox = (() => {
                         inner.appendChild(box);
                     });
                     /* 바닥 줄 = **전체 목록 장으로 가는 길** (2026-08-19).
-                     * 여기 있던 「전체 도구 찾기」(찾는 창 열기)는 지웠다 — 바로 옆에 검색칸이
+                     * 여기 있던 전체 도구 찾기(찾는 창 열기)는 지웠다. 바로 옆에 검색칸이
                      * 같은 일을 하는데 판까지 열어서 또 권하는 것은 같은 것을 두 번 두는 일이다.
-                     * 대신 머리띠 오른쪽에 있던 「전체 목록」 링크가 이 자리로 내려왔다:
+                     * 대신 머리띠 오른쪽에 있던 전체 목록 링크가 이 자리로 내려왔다:
                      * 그건 찾는 창이 아니라 **딴 장**이라 검색칸과 겹치지 않는다.
-                     * 스크롤 밖에 둔다 — 목록 안에 넣으면 320px 에서 잘려 굴려야 보인다(실측). */
+                     * 스크롤 밖에 둔다. 목록 안에 넣으면 320px 에서 잘려 굴려야 보인다(실측). */
                     if (panel.querySelector('.header-nav-panel-foot')) return;
                     const foot = document.createElement('div');
                     foot.className = 'header-nav-panel-foot';
@@ -1414,7 +1520,7 @@ const Toolbox = (() => {
                     indexLink.className = 'nav-item nav-item-find';
                     indexLink.href = toolIndexPath();
                     indexLink.textContent = text2('shell.nav.toolIndex', '전체 도구 목록 →');
-                    indexLink.title = text2('shell.nav.toolsList', '도구 전체 목록 장 — 128개를 한 장에서 훑습니다');
+                    indexLink.title = text2('shell.nav.toolsList', '도구 전체 목록 장. 128개를 한 장에서 훑습니다');
                     foot.appendChild(indexLink);
                     panel.appendChild(foot);
                     return;
@@ -1468,7 +1574,7 @@ const Toolbox = (() => {
             navParent.appendChild(wrap);
         }
 
-        /* ★ 이 셈은 **머리띠와 옆줄이 같이 쓴다** (2026-08-19) — 그래서 둘 중 어느 블록에도
+        /* ★ 이 셈은 **머리띠와 옆줄이 같이 쓴다** (2026-08-19). 그래서 둘 중 어느 블록에도
          * 속하지 않는 자리에 둔다. 목록을 두 벌 세면 규칙도 두 벌이 된다. */
         const seenList = new Set();
         const pickTools = (ids, max) => {
@@ -1484,11 +1590,11 @@ const Toolbox = (() => {
             });
             return out;
         };
-        /* 「많이 쓰는 것」의 참값은 서버가 센다 — 그건 늦게 오고 못 올 수도 있다.
+        /* 많이 쓰는 것의 참값은 서버가 센다. 그건 늦게 오고 못 올 수도 있다.
          * 못 오면 골라 둔 여덟이 그 자리를 지킨다(빈 칸을 보여 주지 않는다). */
 
         /* ★ 목록을 **여는 순간에** 센다 (2026-08-19). 부팅 때 한 번 세어 두면 그 뒤에 꽂은
-         * 별도, 방금 연 도구도 못 담는다 — 판이 어제 것을 보여 준다. */
+         * 별도, 방금 연 도구도 못 담는다. 판이 어제 것을 보여 준다. */
         const sections = () => {
             seenList.clear();
             const pins = getPins();
@@ -1503,7 +1609,7 @@ const Toolbox = (() => {
             ].filter(sec => sec.tools.length || sec.empty);
         };
 
-        /* 이름을 「도구 목록」이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /t/)와
+        /* 이름을 도구 목록이라 붙였더니 머리띠 오른쪽의 `≡ 도구`(= 도구 전체 목록 장, /t/)와
          * 무엇이 다른지 알 수 없었다 (2026-08-19 사용자 지적). 이 판은 **내 것**을 모아 둔 자리다. */
         if (headerNav) {
             const headerNavScroll = document.createElement('div');
@@ -1512,26 +1618,26 @@ const Toolbox = (() => {
 
             /* ── 머리띠 = 채널 목록 + 검색칸 (2026-08-19, 아카라이브 참고) ──────────
              *
-             * ① 왜 갈래를 뺐나. 보이는 도구 84개가 계산 4 · 개발 5 · 자료 3 · 놀이 4 ·
-             *    미디어 12 · **생성·정리 41** 로 갈려 있었다. 마지막 칸은 이름이 아니라
-             *    「나머지 전부」였고, 41개를 떨구면 화면 밖으로 나가니 12개에서 잘랐다 —
+             * ① 왜 갈래를 뺐나. 보이는 도구 84개가 계산 4, 개발 5, 자료 3, 놀이 4 , 
+             *    미디어 12, **생성, 정리 41** 로 갈려 있었다. 마지막 칸은 이름이 아니라
+             *    나머지 전부였고, 41개를 떨구면 화면 밖으로 나가니 12개에서 잘랐다 . 
              *    12 라는 수의 정체는 그 가림막이었다. 나눔이 이미 죽어 있었다.
              *
              * ② 무엇으로 바꿨나. 채널 사이트의 머리띠를 그대로 본떴다:
              *      [로고] [도구 목록 ▾] [────── 검색칸 ──────] [바깥 링크들]
-             *    · **도구 목록** = 「구독 채널 · 주요 채널」과 같은 자리다. 세 칸으로 연다 —
-             *      내 것(꽂은 것) · 많이 쓰는 것 · 최근 본 것. 84개를 다 떨구지 않는다:
+             *   , **도구 목록** = 구독 채널, 주요 채널과 같은 자리다. 세 칸으로 연다 . 
+             *      내 것(꽂은 것), 많이 쓰는 것, 최근 본 것. 84개를 다 떨구지 않는다:
              *      사람이 실제로 오가는 것은 늘 그 대여섯이고, 나머지는 ③ 이 받는다.
-             *    · **검색칸** = 늘 보인다. 예전에는 첫 화면에만 있어서, 도구를 보는 중에
+             *   , **검색칸** = 늘 보인다. 예전에는 첫 화면에만 있어서, 도구를 보는 중에
              *      다음 도구로 가려면 ⌘K 를 아는 사람만 갈 수 있었다.
-             *      제 목록은 안 그린다 — 한 글자만 쳐도 찾는 창(팔레트)에 그 글자를 넘긴다.
+             *      제 목록은 안 그린다. 한 글자만 쳐도 찾는 창(팔레트)에 그 글자를 넘긴다.
              *      표면을 둘로 늘리면 결과가 두 벌로 갈린다.
              *
-             * ③ 「전체 도구 목록 →」은 패널 맨 아래 한 줄로 남는다 (`/t/`). */
+             * ③ 전체 도구 목록 →은 패널 맨 아래 한 줄로 남는다 (`/t/`). */
             buildHeaderNavGroup(text2('shell.nav.list', '내 도구'), [], headerNavScroll, { sections });
 
             /* ── 검색칸 ── 진짜 input 이다. 흉내만 낸 단추를 두면 폰에서 자판이 안 올라오고,
-             * 붙여넣기·자동완성이 죽는다. 대신 결과는 제가 안 그리고 팔레트에 넘긴다. */
+             * 붙여넣기, 자동완성이 죽는다. 대신 결과는 제가 안 그리고 팔레트에 넘긴다. */
             const searchWrap = document.createElement('div');
             searchWrap.className = 'header-search';
             searchWrap.innerHTML =
@@ -1545,7 +1651,7 @@ const Toolbox = (() => {
             searchInput.setAttribute('aria-label', text2('shell.search.aria', '도구 찾기'));
             /* ★ **넘기기 전에 먼저 손을 뗀다** (2026-08-19 버그). 팔레트는 열릴 때 그 순간의
              * 활성 요소를 적어 뒀다가 닫을 때 거기로 초점을 되돌린다(키보드 사용자가 문서
-             * 맨 위로 떨어지지 않게). 그 요소가 이 칸이면 — 닫는 순간 이 칸이 초점을 받고,
+             * 맨 위로 떨어지지 않게). 그 요소가 이 칸이면. 닫는 순간 이 칸이 초점을 받고,
              * 그 초점이 아래 `focus` 손잡이를 다시 당겨 **팔레트가 곧바로 다시 열렸다**.
              * 닫기 단추도 바탕 누르기도 Esc 도 전부 이 고리에 걸렸다.
              * 먼저 blur 하면 팔레트가 적어 두는 것은 이 칸이 아니라 문서가 되어 고리가 끊긴다. */
@@ -1555,11 +1661,11 @@ const Toolbox = (() => {
                 searchInput.blur();
                 window.KarmoPalette?.open(seed || '');
             };
-            // 눌러서 들어오면 바로 넘긴다 — 여기서 한 글자라도 치게 두면 목록이 두 벌이 된다.
+            // 눌러서 들어오면 바로 넘긴다. 여기서 한 글자라도 치게 두면 목록이 두 벌이 된다.
             searchInput.addEventListener('focus', () => handoff(''));
             searchInput.addEventListener('input', () => handoff(searchInput.value));
             searchWrap.appendChild(searchInput);
-            // 단축키 글씨는 **칸 오른쪽 끝**이다 — 붙이는 순서가 곧 자리다 (왼쪽은 돋보기 자리)
+            // 단축키 글씨는 **칸 오른쪽 끝**이다. 붙이는 순서가 곧 자리다 (왼쪽은 돋보기 자리)
             const searchKbd = document.createElement('span');
             searchKbd.className = 'header-search-kbd';
             searchKbd.setAttribute('aria-hidden', 'true');
@@ -1567,7 +1673,7 @@ const Toolbox = (() => {
             searchWrap.appendChild(searchKbd);
             headerNavScroll.appendChild(searchWrap);
 
-            /* 「전체 도구 목록」은 이미 머리띠 오른쪽에 링크로 있다(`≡ 도구`) — 두 번 두지 않는다. */
+            /* 전체 도구 목록은 이미 머리띠 오른쪽에 링크로 있다(`≡ 도구`). 두 번 두지 않는다. */
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.header-nav')) closeAllHeaderNav();
@@ -1580,28 +1686,37 @@ const Toolbox = (() => {
         // Build sidebar nav groups
         const sidebarNavEl = document.getElementById('sidebar-nav');
         if (sidebarNavEl) {
-            function buildSidebarGroup(catId, label, catTools) {
+            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false, iconPath = '', isCategory = false) {
                 if (!catTools.length) return;
-                // 「내 것」은 처음부터 펴 둔다 — 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
+                // 내 것은 처음부터 펴 둔다. 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
                 /* 기본은 **펴 둔다** (2026-08-19). 갈래 시절에는 칸 하나가 41줄이라 접는 것이
-                 * 맞았지만, 지금 칸은 내 것·많이 쓰는 것·최근 = 열댓 줄이다. 접어 두면 옆줄에
-                 * 이름 셋만 남아 아무것도 못 고른다 — 접는 뜻이 사라졌다. */
+                 * 맞았지만, 지금 칸은 내 것, 많이 쓰는 것, 최근 = 열댓 줄이다. 접어 두면 옆줄에
+                 * 이름 셋만 남아 아무것도 못 고른다. 접는 뜻이 사라졌다. */
                 const isOpen = getSidebarGroupState()[catId] !== undefined
                     ? getSidebarGroupState()[catId]
-                    : true;
+                    : defaultOpen;
                 const wrap = document.createElement('div');
-                wrap.className = 'sidebar-group';
+                wrap.className = 'sidebar-group' + (isCategory ? ' sidebar-group--cat' : '');
                 const trigger = document.createElement('button');
                 trigger.type = 'button';
                 trigger.className = 'sidebar-group-trigger' + (isOpen ? ' open' : '');
                 trigger.setAttribute('aria-expanded', String(isOpen));
+                /* 레일에서는 라벨이 안 보인다. 아이콘만 남으므로 이름은 툴팁으로 */
+                trigger.title = label;
                 trigger.innerHTML = '<span class="chevron" aria-hidden="true"></span>'
-                    + '<span class="sidebar-group-label">' + label + '</span>';
+                    /* 갈래 아이콘. 접힌 상태에서 글자 없이도 어느 갈래인지 잡히게 */
+                    + (iconPath
+                        ? '<svg class="sidebar-group-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" '
+                          + 'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
+                          + 'aria-hidden="true">' + iconPath + '</svg>'
+                        : '')
+                    + '<span class="sidebar-group-label">' + label + '</span>'
+                    + (countBadge ? '<span class="sidebar-group-count">' + catTools.length + '</span>' : '');
                 const body = document.createElement('div');
                 body.className = 'sidebar-group-body' + (isOpen ? ' open' : '');
                 /* 옆줄 항목도 **필요할 때 만든다** (TASK-KL-128 런타임).
                  * 머리띠 차림에서는 이 옆줄 자체가 안 보이는데, 부팅 때 도구 줄을 다 만들고
-                 * 있었다. 접힌 무리는 열 때, 펴 둔 무리는 화면이 한가해진 뒤에 채운다 —
+                 * 있었다. 접힌 무리는 열 때, 펴 둔 무리는 화면이 한가해진 뒤에 채운다 . 
                  * 어느 쪽이든 사람이 보기 전에는 다 채워져 있다. */
                 let bodyFilled = false;
                 function fillBodyOnce() {
@@ -1614,6 +1729,17 @@ const Toolbox = (() => {
                     idle(fillBodyOnce);
                 }
                 trigger.onclick = () => {
+                    /* 레일에서는 갈래 몸통이 안 보인다. 접은 채로 누르면 아무 일도 안 일어난 것처럼
+                     * 보이므로, 먼저 펴 주고 그 갈래를 연다 (누른 뜻은 그 갈래를 보겠다는 것) */
+                    if (isCategory && getSidebarCollapsed()) {
+                        setSidebarCollapsed(false);
+                        fillBodyOnce();
+                        body.classList.add('open');
+                        trigger.classList.add('open');
+                        trigger.setAttribute('aria-expanded', 'true');
+                        setSidebarGroupState({ ...getSidebarGroupState(), [catId]: true });
+                        return;
+                    }
                     fillBodyOnce();
                     const open = body.classList.toggle('open');
                     trigger.classList.toggle('open', open);
@@ -1627,15 +1753,19 @@ const Toolbox = (() => {
 
             /* ── 옆줄은 **머리띠와 같은 것**을 보여 준다 (2026-08-19, 사용자 결정) ──────
              *
-             * 여기 있던 갈래 8칸은 머리띠에서 걷어낸 그 나눔이다 — 한쪽에서 「쓸모없다」고
+             * 여기 있던 갈래 8칸은 머리띠에서 걷어낸 그 나눔이다. 한쪽에서 쓸모없다고
              * 판정한 것을 다른 쪽에서 계속 그리면, 같은 사이트가 두 가지 말을 한다.
              * 게다가 목록을 두 벌 그리면 규칙도 두 벌이 되어 한쪽만 고쳐지는 날이 온다
-             * (실제로 그랬다: 머리띠에는 없던 `lab` 칸이 옆줄에만 있고, 「내 것」은 옆줄만
+             * (실제로 그랬다: 머리띠에는 없던 `lab` 칸이 옆줄에만 있고, 내 것은 옆줄만
              * 별을 즉시 반영했다).
              *
-             * 그래서 칸을 **같은 함수**(`sections()`)에서 받는다 — 내 것 · 많이 쓰는 것 ·
+             * 그래서 칸을 **같은 함수**(`sections()`)에서 받는다. 내 것, 많이 쓰는 것 , 
              * 최근 본 것. 머리띠 판을 세로로 편 것이 옆줄이고, 셈은 한 곳에서만 한다.
-             * 갈래로 훑는 길은 팔레트의 「둘러보기」와 전체 목록 장이 받는다. */
+             * 갈래로 훑는 길은 팔레트의 둘러보기와 전체 목록 장이 받는다. */
+            /* 옆줄 두 켜. 위는 내 것(별, 최근), 아래는 갈래 아홉
+             * 정본은 memo 의 앱 셸 System
+             * 도구 234개 전량 나열 시 세로 7,456px. 실측 선례 최대가 109개(shadcn 문서)
+             * 그래서 Grafana, shadcn 방식으로 갈래 접기. 지금 도구가 든 갈래만 펼침 */
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
                 sections().forEach((sec, i) => {
@@ -1643,7 +1773,7 @@ const Toolbox = (() => {
                         buildSidebarGroup('side-' + i, sec.label, sec.tools);
                         return;
                     }
-                    // 빈 칸도 남긴다 — 「내 것」이 통째로 사라지면 별을 꽂을 수 있다는 것 자체를 모른다.
+                    // 빈 칸도 남긴다. 내 것이 통째로 사라지면 별을 꽂을 수 있다는 것 자체를 모른다.
                     const wrap = document.createElement('div');
                     wrap.className = 'sidebar-group';
                     const label = document.createElement('div');
@@ -1655,12 +1785,26 @@ const Toolbox = (() => {
                     wrap.append(label, note);
                     sidebarNavEl.appendChild(wrap);
                 });
-                /* 바닥 줄은 **안 넣는다** — 옆줄 아래 링크 묶음에 「도구 전체 목록」이 이미 있다
+
+                /* 갈래. app 은 갈래가 아니라 위 고정 진입점이라 뺀다 */
+                /* 펼칠 갈래 판정은 저장값이 아니라 지금 값으로
+                 * 저장값은 화면 이동 뒤에 쓰여서 한 발 늦음 */
+                const nowTool = tools.find(t => t.id === currentPageId);
+                const nowCat = nowTool ? nowTool.category : null;
+                getCategories().forEach(cat => {
+                    const catTools = tools.filter(t => t.category === cat.id
+                        && !hiddenSet.has(t.id)
+                        && !(isDesktopOnlyTool(t) && !isDesktopApp()));
+                    if (!catTools.length) return;
+                    catTools.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
+                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true, cat.icon || '', true);
+                });
+                /* 바닥 줄은 **안 넣는다**. 옆줄 아래 링크 묶음에 도구 전체 목록이 이미 있다
                  * (2026-08-19 실측). 머리띠 판에는 그 링크가 없어서 판 안에 뒀던 것이고,
                  * 여기 또 두면 한 화면에 같은 문이 둘이다. */
             };
             rebuildMineGroup();
-            /* 별을 꽂거나 도구를 열면 그 자리에서 다시 그린다 — 머리띠 판은 열 때마다 세지만
+            /* 별을 꽂거나 도구를 열면 그 자리에서 다시 그린다. 머리띠 판은 열 때마다 세지만
              * 옆줄은 늘 떠 있어서, 스스로 다시 그리지 않으면 어제 것을 든 채로 남는다. */
             // 별 꽂기는 `togglePin` 이 이 손잡이를 직접 부른다. 도구를 열 때는 `switchPage` 가 부른다.
 
@@ -1668,11 +1812,11 @@ const Toolbox = (() => {
 
         /* TASK-KL-129: 본문이 이미 HTML 에 박혀 있는 페이지(도구 목록)에서는 화면을 앱이 안 그린다.
          * 첫 화면과 도구 126장의 빈 껍데기를 만들어 봐야 적혀 있던 목록 위에 덮이거나
-         * 안 보이는 채로 쌓이기만 한다 — 여기서 고른 도구는 그 도구의 **제 주소로 옮겨 간다**. */
+         * 안 보이는 채로 쌓이기만 한다. 여기서 고른 도구는 그 도구의 **제 주소로 옮겨 간다**. */
         const staticBody = typeof window !== 'undefined' && !!window.KARMOLAB_ENTRY_STATIC;
 
         // Build landing page
-        /* 첫 화면 본문은 **첫 화면에만** 실린다 (TASK-KL-128 ①-c 3차) — 도구 화면에서는
+        /* 첫 화면 본문은 **첫 화면에만** 실린다 (TASK-KL-128 ①-c 3차). 도구 화면에서는
            원래도 안 불렸는데 코드만 따라왔다. `index.html` 이 부르는 `home-page.js` 가 그것이다. */
         if (!staticBody) {
             const home = window.KarmoHomePage?.build();
@@ -1680,11 +1824,11 @@ const Toolbox = (() => {
                 /* **미리 그려 둔 첫 화면이 있으면 그 자리에 갈아 끼운다** (TASK-KL-201, 2026-08-10).
                  *
                  * 빌드 때 첫 화면을 HTML 에 박아 두므로(`scripts/prerender-home.mjs`) 여기서 그냥
-                 * 붙이면 **같은 id 가 두 장** 생긴다 — `#page-home` 이 둘이면 「보이는 것 하나만
-                 * 잡는다」는 코드가 엉뚱한 쪽을 잡고, 화면에는 첫 화면이 두 번 쌓인다.
+                 * 붙이면 **같은 id 가 두 장** 생긴다. `#page-home` 이 둘이면 보이는 것 하나만
+                 * 잡는다는 코드가 엉뚱한 쪽을 잡고, 화면에는 첫 화면이 두 번 쌓인다.
                  * 도구 미리 그리기에서 이미 한 번 난 사고다(TASK-KL-135).
                  *
-                 * 지우고 붙이는 대신 **한 번에 바꿔치기**한다 — 지웠다 붙이면 그 사이 한 프레임이
+                 * 지우고 붙이는 대신 **한 번에 바꿔치기**한다. 지웠다 붙이면 그 사이 한 프레임이
                  * 비어 화면이 튄다. 크기가 같은 것으로 갈아 끼우면 아무것도 안 움직인다. */
                 const baked = toolPages.querySelector('#page-home');
                 if (baked) baked.replaceWith(home);
@@ -1697,21 +1841,21 @@ const Toolbox = (() => {
         /* 도구 화면은 **열 때 만든다** (TASK-KL-128 런타임).
          *
          * 예전에는 부팅할 때 도구 168개의 화면을 전부 만들어 붙였다. 그중 보이는 것은 하나다.
-         * 재 보니 첫 화면의 DOM 이 3674개였고 그중 2509개가 안 보이는 것이었다 — 도구 화면
-         * 껍데기(제목·설명·탭·패널)가 대부분이다. 브라우저는 안 보이는 것도 스타일을 계산하고
+         * 재 보니 첫 화면의 DOM 이 3674개였고 그중 2509개가 안 보이는 것이었다. 도구 화면
+         * 껍데기(제목, 설명, 탭, 패널)가 대부분이다. 브라우저는 안 보이는 것도 스타일을 계산하고
          * 자리를 잡는다. 느린 기기에서 주 스레드가 잡힌 시간의 대부분이 여기(브라우저 내부 일)였다.
          *
          * 지금은 `switchPage` 가 그 화면이 없으면 그때 만든다. 만드는 값은 같고, **한 번에
-         * 하나만** 만든다. 옆줄 항목은 그대로 만든다 — 그건 실제로 보이는 것이다. */
+         * 하나만** 만든다. 옆줄 항목은 그대로 만든다. 그건 실제로 보이는 것이다. */
         sortedTools.forEach(tool => {
             if (!hiddenSet.has(tool.id) && (!isDesktopOnlyTool(tool) || isDesktopApp())) addMobileNavItem(tool);
         });
 
         /* 공유로 들어왔다 (TASK-KL-183 D).
          *
-         * 파일은 서비스 워커가 「이어서」 칸에 이미 놓아 뒀다 — 여기서는 **받을 수 있는 도구로
+         * 파일은 서비스 워커가 이어서 칸에 이미 놓아 뒀다. 여기서는 **받을 수 있는 도구로
          * 데려다주기만** 한다. 갈 곳이 없으면 아무 데도 안 보낸다(첫 화면 그대로).
-         * 주소에 남은 표시는 지운다: 새로고침할 때마다 「공유받았다」가 되면 안 된다. */
+         * 주소에 남은 표시는 지운다: 새로고침할 때마다 공유받았다가 되면 안 된다. */
         try {
             const params = new URLSearchParams(location.search);
             if (params.get('shared') !== null) {
@@ -1720,7 +1864,7 @@ const Toolbox = (() => {
                 history.replaceState({}, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
                 void handoffLoad().then((item) => {
                     if (!item || !item.blob) return;
-                    /* 갈 곳이 여럿이면 **이 사람이 쓰는 것**을 먼저 — 「이어서」 줄과 같은 규칙이다.
+                    /* 갈 곳이 여럿이면 **이 사람이 쓰는 것**을 먼저. 이어서 줄과 같은 규칙이다.
                      * 등록 순서대로 고르면 늘 쓰는 도구를 두고 낯선 도구로 데려간다. */
                     const mine = getPins();
                     const recent = (window.KarmoPalette?.getRecent?.() || []);
@@ -1745,17 +1889,17 @@ const Toolbox = (() => {
             /* 주소가 이상해도 앱은 그대로 뜬다 */
         }
 
-        /* 껍데기의 자리 이동 단추·링크는 **한 자리에서** 받는다 (2026-08-17).
+        /* 껍데기의 자리 이동 단추, 링크는 **한 자리에서** 받는다 (2026-08-17).
            전에는 여섯 곳이 `data-goto="community"` 처럼 글로 박혀 있었다.
-           그러면 CSP 에 `script-src` 를 못 넣는다 — 인라인 하나만 있어도 그 자물쇠는 못 건다.
+           그러면 CSP 에 `script-src` 를 못 넣는다. 인라인 하나만 있어도 그 자물쇠는 못 건다.
            `data-goto` 로 바꾸고 여기서 위임해 받으면 셋이 한꺼번에 좋아진다:
-             ① 인라인 손잡이 6개가 사라진다(14 → 8) ② 「Toolbox 가 아직 없나」를 안 물어봐도 된다
+             ① 인라인 손잡이 6개가 사라진다(14 → 8) ② Toolbox 가 아직 없나를 안 물어봐도 된다
              (이 줄이 도는 시점이 곧 있다는 뜻) ③ 나중에 생기는 자리도 표시만 달면 된다. */
-        /* ★ `data-goto` 는 **껍데기 전용**이다 — 이 대리인은 document 에 붙어 있어서
+        /* ★ `data-goto` 는 **껍데기 전용**이다. 이 대리인은 document 에 붙어 있어서
            위젯 안에서 같은 이름을 쓰면 그 누름이 그대로 올라와 **페이지를 갈아치운다.**
            실제로 스터디맵은 옆줄의 칸을 누를 때마다 `/#web-html` 로 튀겨서 강의가
            안 열렸다(2026-08-29). 위젯 안의 자리 이동은 자기 이름을 써라
-           (`data-sm-goto` · `data-atlas-goto` 처럼). */
+           (`data-sm-goto`, `data-atlas-goto` 처럼). */
         document.addEventListener('click', (e) => {
             const el = (e.target as HTMLElement | null)?.closest?.('[data-goto]') as HTMLElement | null;
             const destination = el?.dataset?.goto;
@@ -1765,10 +1909,29 @@ const Toolbox = (() => {
             switchPage(destination);
         });
 
-        // 옆줄 바닥의 찾기 — 머리띠 검색칸과 같은 창을 연다 (옆줄 차림에서는 머리띠 내비가 숨는다)
+        // 옆줄 바닥의 찾기. 머리띠 검색칸과 같은 창을 연다 (옆줄 차림에서는 머리띠 내비가 숨는다)
         document.getElementById('sidebarSearchBtn')?.addEventListener('click', () => window.KarmoPalette?.open(''));
+
+        /* 왼쪽 목록 접기. 버튼 하나와 Ctrl+B (VSCode, Claude 와 같은 자리) */
+        document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
-        document.getElementById('settingsPageBtn')?.addEventListener('click', () => switchPage('settings'));
+        /* 설정 단추는 이동이 아니라 목록 열기 (2026-08-29). 설정, 언어, 판 표식이 이 안 */
+        const settingsHeaderBtn = document.getElementById('settingsPageBtn');
+        if (settingsHeaderBtn) {
+            settingsHeaderBtn.setAttribute('aria-haspopup', 'menu');
+            settingsHeaderBtn.setAttribute('aria-expanded', 'false');
+            settingsHeaderBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (settingsMenuEl) closeSettingsMenu();
+                else openSettingsMenu(settingsHeaderBtn);
+            });
+            addEventListener('karmolab:popover-open', (e) => {
+                if (e.detail !== 'settings') closeSettingsMenu();
+            });
+        }
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && settingsMenuEl) closeSettingsMenu();
+        });
 
         window.addEventListener('gemini-active-profile-changed', () => {
             const name = typeof Gemini !== 'undefined' ? (Gemini.getActiveProfileName() || '기본') : '-';
@@ -1780,11 +1943,11 @@ const Toolbox = (() => {
 
         const hashPage = location.hash ? location.hash.slice(1) : null;
         // TASK-KL-088: /t/<id>/ 도구 상세 페이지가 심는 진입 위젯.
-        // 있으면 해시·마지막 페이지보다 우선하고, URL 에 해시를 덧붙이지 않는다.
-        /* 껍데기만 받아서 열린 경우 — 어느 도구로 가려 했는지는 **주소에 남아 있다**
+        // 있으면 해시, 마지막 페이지보다 우선하고, URL 에 해시를 덧붙이지 않는다.
+        /* 껍데기만 받아서 열린 경우. 어느 도구로 가려 했는지는 **주소에 남아 있다**
          * (TASK-KL-191 축8). 오프라인에서 서비스 워커가 첫 화면 껍데기를 대신 내주면
          * `KARMOLAB_ENTRY_TOOL` 은 비어 있지만 주소는 `/t/<도구>/` 그대로다.
-         * 그걸 안 읽으면 「도구 주소로 들어왔는데 홈이 뜬다」가 된다. */
+         * 그걸 안 읽으면 도구 주소로 들어왔는데 홈이 뜬다가 된다. */
         const pathTool = toolIdFromPath(location.pathname);
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || pathTool || null;
         const lastPage = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
@@ -1792,16 +1955,16 @@ const Toolbox = (() => {
             if (id === 'home' || SYSTEM_PAGES.has(id)) return true;
             const t = tools.find(x => x.id === id);
             if (!t) return false;
-            /* 데스크톱 전용도 **제 주소로 들어오는 것**은 유효하다 (KL-349) — 브라우저에서는
-               「앱에서만 됩니다」를 그린다(ensureToolPage). 홈으로 바꿔치우지 않는다. */
+            /* 데스크톱 전용도 **제 주소로 들어오는 것**은 유효하다 (KL-349). 브라우저에서는
+               앱에서만 됩니다를 그린다(ensureToolPage). 홈으로 바꿔치우지 않는다. */
             return true;
         };
         /* TASK-KL-129: 본문이 **이미 HTML 에 박혀 있는** 페이지(도구 목록 등).
-         * 셸의 머리띠·옆줄·테마·⌘K 는 그대로 쓰되, 화면은 앱이 그리지 않는다 —
+         * 셸의 머리띠, 옆줄, 테마, ⌘K 는 그대로 쓰되, 화면은 앱이 그리지 않는다 . 
          * 여기서 첫 화면을 그리면 적혀 있던 목록 위에 홈이 덮인다(실제로 그랬다). */
         if (staticBody) {
             installDesktopChrome();
-            installVersionBadge();
+            initVersionInfo();
             installPaletteShortcut();
             return;
         }
@@ -1813,7 +1976,7 @@ const Toolbox = (() => {
                 : (lastPage && isValidPage(lastPage) ? lastPage : 'home');
 
         /* 도구 상세 페이지에는 제목이 **서버에서 미리 박혀** 있고 앱 히어로는 접혀 있다.
-         * 별을 히어로에만 달면 그 127장에서는 꽂을 길이 없다 — 거기에도 단다. */
+         * 별을 히어로에만 달면 그 127장에서는 꽂을 길이 없다. 거기에도 단다. */
         if (entryTool) mountPinStar(document.querySelector('.tool-head'), entryTool);
 
         switchPage(initialPage, { pushHistory: false });
@@ -1828,21 +1991,21 @@ const Toolbox = (() => {
 
         installDesktopChrome();
         installSecrets();
-        installVersionBadge();
+        initVersionInfo();
         installPaletteShortcut();
         installGlobalDrop();
         installRunShortcut();
     }
 
-    /* ── 창 아무 데나 떨어뜨려도 받는다 (도구 품질 — 전 도구 공통) ────────────────
+    /* ── 창 아무 데나 떨어뜨려도 받는다 (도구 품질. 전 도구 공통) ────────────────
      *
      * 남들 기준: 파일을 다루는 도구는 **창 전체가 놓는 자리**여야 한다는 것이 정설이다
-     * (Smart Interface Design Patterns · Uploadcare). 우리는 도구 40장이 각자 작은 네모를
-     * 만들어 두었고, 나머지 파일 도구는 「파일 선택」 단추뿐이라 끌어다 놓으면 **브라우저가
+     * (Smart Interface Design Patterns, Uploadcare). 우리는 도구 40장이 각자 작은 네모를
+     * 만들어 두었고, 나머지 파일 도구는 파일 선택 단추뿐이라 끌어다 놓으면 **브라우저가
      * 그 파일을 열어 버려** 하던 작업이 통째로 날아갔다.
      *
      * 그래서 셸에 한 번 박는다. 자기 자리를 이미 만들어 둔 도구는 그쪽이 먼저 잡으므로
-     * (`e.defaultPrevented`) 여기서는 손대지 않는다 — 두 벌로 처리되지 않는다. */
+     * (`e.defaultPrevented`) 여기서는 손대지 않는다. 두 벌로 처리되지 않는다. */
     function installGlobalDrop() {
         let overlay = null;
         let depth = 0;
@@ -1912,17 +2075,27 @@ const Toolbox = (() => {
         });
     }
 
-    /* TASK-KL-099 — 어디서든 ⌘K / Ctrl+K 로 찾는 창을 부른다.
+    /* TASK-KL-099. 어디서든 ⌘K / Ctrl+K 로 찾는 창을 부른다.
      * 헤더에 상시 검색창을 두지 않는 대신, 첫 화면에서 배운 그 표면을 다시 띄운다. */
     function installPaletteShortcut() {
         document.addEventListener('keydown', (e) => {
+            /* Ctrl+B 로 왼쪽 목록 접고 펴기. 브라우저 기본은 파이어폭스 북마크 옆줄인데
+             * 앱 안에서는 이쪽이 맞는 동작이다 (VSCode, Claude 도 같은 키). */
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'b' || e.key === 'B')) {
+                const t = e.target;
+                const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+                if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+                e.preventDefault();
+                toggleSidebar();
+                return;
+            }
             if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
-                // 브라우저 기본(주소창 검색)을 뺏는다 — 이 앱 안에서는 이쪽이 맞는 동작이다.
+                // 브라우저 기본(주소창 검색)을 뺏는다. 이 앱 안에서는 이쪽이 맞는 동작이다.
                 e.preventDefault();
                 window.KarmoPalette?.toggle();
                 return;
             }
-            // 첫 화면에 이미 입력이 박혀 있다 — 거기서 또 창을 띄우면 같은 것이 두 겹이 된다.
+            // 첫 화면에 이미 입력이 박혀 있다. 거기서 또 창을 띄우면 같은 것이 두 겹이 된다.
             if (e.key === '/' && currentPageId !== 'home' && !window.KarmoPalette?.isOpen()) {
                 const t = e.target;
                 const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
@@ -1938,13 +2111,13 @@ const Toolbox = (() => {
     /* 첫 화면 배경 장식은 **첫 화면에서만** 데려온다 (TASK-KL-128 ①-c).
      *
      * 22KB 짜리 코드가 셸에 박혀 있어서 도구 화면 129장이 매번 같이 받고 있었다. 거기엔
-     * 붙을 자리도 없다. 이제 첫 화면을 그릴 때 그때 받는다 — 도구만 쓰는 사람은 평생 안 받는다.
+     * 붙을 자리도 없다. 이제 첫 화면을 그릴 때 그때 받는다. 도구만 쓰는 사람은 평생 안 받는다.
      *
      * 늦게 와도 괜찮은 것이라 기다리지 않는다(장식이다). 못 받아도 화면은 그대로 돈다.
      * 실제 코드는 `src/home-scene.ts`.
      */
     function mountHomeDecor() {
-        /* 미리 찍어 둔 화면(도구 상세·목록)에서는 장식을 **아예 안 그린다** — 원래도 안 그렸다.
+        /* 미리 찍어 둔 화면(도구 상세, 목록)에서는 장식을 **아예 안 그린다**. 원래도 안 그렸다.
            그 판단이 받아 온 코드 **안**에 있으면 안 쓸 파일을 받고 나서야 돌아선다.
            여기서 먼저 갈라야 22KB 를 진짜로 안 받는다 (TASK-KL-128 ①-c). */
         if (typeof window !== 'undefined' && (window.KARMOLAB_ENTRY_TOOL || window.KARMOLAB_ENTRY_STATIC)) return;
@@ -1958,7 +2131,7 @@ const Toolbox = (() => {
     function toolCountsOnce() {
         if (toolCountsPromise) return toolCountsPromise;
         const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-        /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
+        /* 계정 스크립트가 아직 안 왔을 수 있다. 도구 상세 페이지에서 실제로 그랬다.
          * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
          * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
         if (!base) return Promise.resolve({});
@@ -2007,7 +2180,7 @@ const Toolbox = (() => {
 
         slot.innerHTML = '지금까지 <b>' + n(row.total) + '</b>번 열렸어요'
 
-            + (row.recent ? ' · 최근 7일 <b>' + n(row.recent) + '</b>번' : '');
+            + (row.recent ? ', 최근 7일 <b>' + n(row.recent) + '</b>번' : '');
 
     }
 
@@ -2019,19 +2192,19 @@ const Toolbox = (() => {
     /**
      * 이 도구가 어느 묶음의 탭으로 들어가 있는지 (없으면 null).
      *
-     * 여러 도구를 탭으로 묶으면서 부분은 사이드바에서 숨겼다. 그런데 검색·즐겨찾기·안내 링크는
-     * 여전히 부분 이름으로 부른다 — 그때 「없는 화면」 이 되면 안 된다. 묶음으로 보내고 그 탭을 연다.
+     * 여러 도구를 탭으로 묶으면서 부분은 사이드바에서 숨겼다. 그런데 검색, 즐겨찾기, 안내 링크는
+     * 여전히 부분 이름으로 부른다. 그때 없는 화면 이 되면 안 된다. 묶음으로 보내고 그 탭을 연다.
      *
      * 소속은 매니페스트에서 읽는다. 묶음은 필요할 때 로드되므로 등록된 탭 목록으로는
      * 아직 안 연 묶음을 알 수 없다 (열어본 뒤에만 되는 반쪽 동작이 된다).
      * 도구 상세 페이지에서는 그 도구만 로드되고 묶음이 없으므로, 여기서 나온 묶음이
      * 실제로 로드돼 있을 때만 옮긴다.
      */
-    /** 묶음으로 옮겨 가며 「원래 찾던 도구」 — 껍데기가 그려질 때 집어 간다 (TASK-KL-273) */
+    /** 묶음으로 옮겨 가며 원래 찾던 도구. 껍데기가 그려질 때 집어 간다 (TASK-KL-273) */
     let bundleRequest = null;
 
     /**
-     * 찾아온 도구를 집어 간다. **한 번만 준다** — 두 번 열면 사람이 뒤로 갔다가 돌아왔을 때
+     * 찾아온 도구를 집어 간다. **한 번만 준다**. 두 번 열면 사람이 뒤로 갔다가 돌아왔을 때
      * 안 고른 도구가 저 혼자 열린다.
      */
     function takeBundleRequest(bundleId = '') {
@@ -2050,30 +2223,96 @@ const Toolbox = (() => {
     }
 
     /**
-     * 옮겨 간 도구 — 옛 이름으로 오면 새 자리로 (TASK-KL-313)
+     * 옮겨 간 도구. 옛 이름으로 오면 새 자리로 (TASK-KL-313)
      *
-     * 도구를 합치면 그 이름을 부르던 링크·북마크·즐겨찾기가 **조용히 첫 화면으로 떨어진다**.
-     * 「없는 도구」와 「옮겨 간 도구」는 다르다 — 옮겨 갔으면 데려다줘야 한다.
-     * 한 줄이 곧 「이 이름은 이제 저기다」는 선언이고, 지우는 대신 여기 남긴다.
+     * 도구를 합치면 그 이름을 부르던 링크, 북마크, 즐겨찾기가 **조용히 첫 화면으로 떨어진다**.
+     * 없는 도구와 옮겨 간 도구는 다르다. 옮겨 갔으면 데려다줘야 한다.
+     * 한 줄이 곧 이 이름은 이제 저기다는 선언이고, 지우는 대신 여기 남긴다.
      */
     const MOVED = {
         // 놀이터 → 오락실 (놀이로 들어가는 문을 하나로)
         play: 'arcade'
     };
 
+    /* 환경 설정은 도구가 아니라 창
+       Claude, Codex 처럼 보던 화면 위에 뜸. 도구 목록에도 안 섬(hidden)
+       위젯 코드는 그대로. buildToolPage 가 만든 판을 창 안에 넣을 뿐 */
+    let settingsModalEl = null;
+
+    function closeSettingsModal() {
+        if (!settingsModalEl) return;
+        settingsModalEl.remove();
+        settingsModalEl = null;
+        document.documentElement.classList.remove('has-modal');
+        document.getElementById('settingsPageBtn')?.focus();
+    }
+
+    function openSettingsModal() {
+        if (settingsModalEl) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'kl-modal-overlay';
+        overlay.innerHTML =
+            '<div class="kl-modal" role="dialog" aria-modal="true" aria-label="'
+            + escapeHtml(text2('shell.settings', '환경 설정')) + '">'
+            + '<button type="button" class="kl-modal-close" aria-label="'
+            + escapeHtml(text2('common.close', '닫기')) + '">'
+            + '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" '
+            + 'stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+            + '</button><div class="kl-modal-body"></div></div>';
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSettingsModal(); });
+        overlay.querySelector('.kl-modal-close').addEventListener('click', closeSettingsModal);
+        document.body.appendChild(overlay);
+        document.documentElement.classList.add('has-modal');
+        settingsModalEl = overlay;
+
+        const body = overlay.querySelector('.kl-modal-body');
+        const paint = () => {
+            const tool = tools.find(t => t.id === 'settings');
+            if (!tool || !tool.tabs || tool._deferred) {
+                body.innerHTML = '<div class="tool-status error">'
+                    + escapeHtml(text2('shell.settings.fail', '환경 설정을 불러오지 못했어요')) + '</div>';
+                return;
+            }
+            body.textContent = '';
+            const page = buildToolPage(tool);
+            /* .tool-page 기본값은 display:none. 화면에서는 switchPage 가 active 를 붙임
+               창에는 그 손이 없어 여기서 직접. 안 붙이면 창 높이 50px 로 납작 */
+            page.classList.add('active');
+            body.appendChild(page);
+            overlay.querySelector('.kl-modal-close')?.focus();
+        };
+        const tool0 = tools.find(t => t.id === 'settings');
+        if (tool0 && tool0._deferred) {
+            body.innerHTML = '<div class="tool-status">'
+                + escapeHtml(text2('common.loading', '불러오는 중...')) + '</div>';
+            void kickLazyLoad('settings').then(paint).catch(paint);
+        } else {
+            paint();
+        }
+    }
+
+    addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsModalEl) { e.preventDefault(); closeSettingsModal(); }
+    });
+
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
+        /* 설정은 화면이 아니라 창. 다만 /t/settings/ 로 바로 들어온 사람은 그 장이 본문이라 그대로 둔다 */
+        if (pageId === 'settings' && (window.KARMOLAB_ENTRY_TOOL || null) !== 'settings') {
+            openSettingsModal();
+            return;
+        }
         if (MOVED[pageId]) pageId = MOVED[pageId];
-        /* 화면이 바뀌는 순간 = 부팅 지표의 끝 (TASK-KL-201). 여기를 안 알려 주면 「제일 큰 그림」이
+        /* 화면이 바뀌는 순간 = 부팅 지표의 끝 (TASK-KL-201). 여기를 안 알려 주면 제일 큰 그림이
            방금 연 위젯 쪽으로 밀려서, 부팅이 아니라 그 위젯 크기를 재게 된다(실측 192ms → 2960ms). */
         (window.KLPerf?.mark ?? window.__klMark)?.('page:' + pageId);
         let { pushHistory = true, skipRecent = false } = opts;
 
         // TASK-KL-088: 도구 상세 페이지(/t/<id>/)에서 다른 도구로 옮기면
-        // 그 도구의 *자기 URL* 로 실제 이동한다. 같은 경로에 해시만 바꾸면 페이지 제목·
+        // 그 도구의 *자기 URL* 로 실제 이동한다. 같은 경로에 해시만 바꾸면 페이지 제목, 
         // 설명이 이전 도구 것으로 남아 URL 과 내용이 어긋난다.
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
-        /* TASK-KL-129: 도구 목록처럼 본문이 박혀 있는 페이지도 마찬가지다 — 여기엔 도구를 그릴
+        /* TASK-KL-129: 도구 목록처럼 본문이 박혀 있는 페이지도 마찬가지다. 여기엔 도구를 그릴
          * 자리가 없다(위젯을 하나도 안 실었다). 고른 도구의 제 주소로 실제로 옮겨 간다. */
         const entryStatic = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_STATIC) || null;
         if ((entryTool && pageId !== entryTool) || entryStatic) {
@@ -2087,27 +2326,27 @@ const Toolbox = (() => {
         // 단 도구 상세 페이지는 그 도구 하나를 보여주는 자리다 - 여기서 묶음으로 튕기면 빈 화면이 된다.
         const bundleId = findBundleFor(pageId);
         if (bundleId && !entryTool) {
-            // TASK-KL-099 — 「최근」 에는 *사람이 고른 이름* 이 남아야 한다.
-            // 「글자수 세기」를 골랐는데 최근에 「텍스트 도구」가 뜨면, 다음에 그 이름을
+            // TASK-KL-099. 최근 에는 *사람이 고른 이름* 이 남아야 한다.
+            // 글자수 세기를 골랐는데 최근에 텍스트 도구가 뜨면, 다음에 그 이름을
             // 찾을 수 없다 (실제로 검사가 이걸 잡았다). 묶음으로 옮기기 **전에** 적고,
             // 뒤이은 묶음 호출은 안 적게 막는다.
             window.KarmoPalette?.noteOpen(pageId);
             switchPage(bundleId, { ...opts, skipRecent: true });
-            /* 재료 화면(PDF·이미지·글·데이터·수·때·영상·소리)은 **탭이 아니라 할 일 격자**다
-             * (TASK-KL-273). 그래서 아래 `switchTab(도구id)` 가 찾을 탭이 없다 — 찾아온 도구가
+            /* 재료 화면(PDF, 이미지, 글, 데이터, 수, 때, 영상, 소리)은 **탭이 아니라 할 일 격자**다
+             * (TASK-KL-273). 그래서 아래 `switchTab(도구id)` 가 찾을 탭이 없다. 찾아온 도구가
              * 조용히 안 열리고 재료 첫 화면만 남는다(검사 일곱 개가 전부 빨갰다).
              * 누가 무엇을 찾아왔는지를 여기 적어 두고 알린다. 껍데기가 그려질 때 집어 간다. */
             bundleRequest = { bundle: bundleId, tool: pageId };
             try {
                 window.dispatchEvent(new CustomEvent('karmolab-open-in-bundle', { detail: bundleRequest }));
             } catch (_) {
-                /* 알림 한 번 못 쏜 것과 안 열린 것은 다른 무게다 — 적어 둔 것으로 충분하다 */
+                /* 알림 한 번 못 쏜 것과 안 열린 것은 다른 무게다. 적어 둔 것으로 충분하다 */
             }
             /* 그 탭이 **아직 없을 수 있다** (TASK-KL-133).
              * 묶음 위젯은 열 때 받아 오므로, 주소로 바로 들어온 경우 여기서 탭 단추가 아직
-             * 안 그려져 있다 — 그러면 이 호출이 조용히 아무 일도 안 하고 첫 탭이 열린 채로
-             * 남는다. 실제로 `#크기 맞추기`·`#글 → PDF` 로 들어오면 늘 엉뚱한 탭이었다.
-             * 받아 오는 것이 끝난 뒤 한 번 더 부른다 — 이미 열려 있으면 그대로다. */
+             * 안 그려져 있다. 그러면 이 호출이 조용히 아무 일도 안 하고 첫 탭이 열린 채로
+             * 남는다. 실제로 `#크기 맞추기`, `#글 → PDF` 로 들어오면 늘 엉뚱한 탭이었다.
+             * 받아 오는 것이 끝난 뒤 한 번 더 부른다. 이미 열려 있으면 그대로다. */
             if (!switchTab(pageId)) {
                 void Promise.resolve(kickLazyLoad(bundleId)).then(() => {
                     requestAnimationFrame(() => switchTab(pageId));
@@ -2118,14 +2357,14 @@ const Toolbox = (() => {
         const base = location.pathname + (location.search || '');
         /* ★ **데스크톱 전용 도구의 주소는 홈으로 튕기지 않는다** (2026-08-22, TASK-KL-349).
            여태 여기서 홈으로 돌려세웠다. 그런데 그 도구들도 상세 페이지 주소를 갖는다
-           (`/t/my-ai/`) — 검색으로 들어온 사람은 **왜 홈이 떴는지 모른 채** 떠났다.
-           목록·찾기창에서는 이미 빠져 있으므로 여기로 오는 길은 사실상 「주소를 직접 안 것」뿐이다.
-           그 사람에게 필요한 건 홈이 아니라 「앱에서만 됩니다」 한 줄이다(아래 ensureToolPage). */
+           (`/t/my-ai/`). 검색으로 들어온 사람은 **왜 홈이 떴는지 모른 채** 떠났다.
+           목록, 찾기창에서는 이미 빠져 있으므로 여기로 오는 길은 사실상 주소를 직접 안 것뿐이다.
+           그 사람에게 필요한 건 홈이 아니라 앱에서만 됩니다 한 줄이다(아래 ensureToolPage). */
         const urlWithHash = base + '#' + pageId;
         if (pushHistory) {
             history.pushState({ pageId }, '', urlWithHash);
         }
-        /* 이 화면이 아직 없으면 지금 만든다 (TASK-KL-128 런타임 — 부팅 때 전부 안 만든다). */
+        /* 이 화면이 아직 없으면 지금 만든다 (TASK-KL-128 런타임. 부팅 때 전부 안 만든다). */
         ensureToolPage(pageId);
 
         const landing = document.getElementById('page-home');
@@ -2137,10 +2376,10 @@ const Toolbox = (() => {
         const toolForPage = tools.find(t => t.id === pageId);
         if (toolForPage && toolForPage._deferred) {
             /* ★ **안 올라오면 그렇다고 말한다** (2026-08-14). 위젯 묶음이 읽히다가 던지면
-               `<script>` 는 그래도 `onload` 를 준다 — 그래서 이 자리는 「다 됐다」고 믿고
-               「장비 꺼내는 중이에요…」를 **영영** 띄운 채로 있었다. 오늘 그런 화면이 아홉이었고,
+               `<script>` 는 그래도 `onload` 를 준다. 그래서 이 자리는 다 됐다고 믿고
+               장비 꺼내는 중이에요...를 **영영** 띄운 채로 있었다. 오늘 그런 화면이 아홉이었고,
                사람이 볼 수 있는 단서는 하나도 없었다(콘솔에만 한 줄). 못 열었으면 못 열었다고
-               적는다 — 새로고침이라도 해 볼 수 있게. */
+               적는다. 새로고침이라도 해 볼 수 있게. */
             void Promise.resolve(kickLazyLoad(pageId)).then(() => {
                 const after = tools.find(t => t.id === pageId);
                 if (!after || !after._deferred) return;   /* 잘 올라왔다 */
@@ -2153,7 +2392,7 @@ const Toolbox = (() => {
                 slot.innerHTML = '';
                 const line = document.createElement('p');
                 line.style.cssText = 'padding:32px;text-align:center;color:var(--text-secondary);';
-                line.textContent = '이 화면을 못 열었어요 — 새로고침해 보세요.';
+                line.textContent = '이 화면을 못 열었어요. 새로고침해 보세요.';
                 line.setAttribute('data-kl-load-failed', pageId);
                 slot.appendChild(line);
             }).catch(() => { /* 위에서 이미 알린다 */ });
@@ -2164,14 +2403,20 @@ const Toolbox = (() => {
            도구를 여는 길이 이 함수 하나뿐이라 화면마다 따로 부를 필요가 없다. */
         if (currentPageId !== pageId) runLifecycle(hiders, currentPageId);
         currentPageId = pageId;
-        /* 지금 어느 화면인지 뿌리에 적어 둔다 — 장식은 도구 화면에서 한 겹 물러난다.
+        /* 머리띠에 지금 연 도구 이름. 왼쪽 목록이 접혀 있어도 여기가 어디인지 보인다 */
+        const nowEl = document.getElementById('headerNow');
+        if (nowEl) {
+            const nowTool = tools.find(x => x.id === pageId);
+            nowEl.textContent = (pageId === 'home' || !nowTool) ? '' : (nowTool.title || '');
+        }
+        /* 지금 어느 화면인지 뿌리에 적어 둔다. 장식은 도구 화면에서 한 겹 물러난다.
            첫 화면에선 주인공이고, 도구 화면에선 읽는 것을 방해하면 안 된다 (TASK-KL-101). */
         document.documentElement.setAttribute('data-view', pageId === 'home' ? 'home' : 'tool');
         window.KarmoStat?.page(pageId, toolForPage ? toolForPage.title : undefined);
-        // TASK-KL-099 — 「최근」 은 여기서 쌓인다. 도구를 여는 길이 이 함수 하나뿐이라
-        // 화면마다 따로 적을 필요가 없다 (팔레트·메뉴·주소·즐겨찾기 전부 여기를 지난다).
+        // TASK-KL-099. 최근 은 여기서 쌓인다. 도구를 여는 길이 이 함수 하나뿐이라
+        // 화면마다 따로 적을 필요가 없다 (팔레트, 메뉴, 주소, 즐겨찾기 전부 여기를 지난다).
         if (!skipRecent) window.KarmoPalette?.noteOpen(pageId);
-        // 옆줄은 늘 떠 있으므로 스스로 다시 그린다 — 안 그러면 「최근 본 것」이 어제 것이다 (2026-08-19)
+        // 옆줄은 늘 떠 있으므로 스스로 다시 그린다. 안 그러면 최근 본 것이 어제 것이다 (2026-08-19)
         rebuildMineGroup?.();
 
         allPages.forEach(p => p.classList.remove('active'));
@@ -2186,11 +2431,11 @@ const Toolbox = (() => {
             document.getElementById('pageTitle').textContent = 'KarmoLab';
             if (breadcrumb) breadcrumb.innerHTML = '';
             try { localStorage.setItem(LAST_PAGE_KEY, 'home'); } catch (_) {}
-            // TASK-KL-099 — 첫 화면이 실제로 보이게 된 다음에 포커스를 준다. 그리기 전에
-            // 주면 화면이 튄다. 최근 목록도 이때 다시 그린다 — 도구를 쓰고 돌아왔으면
+            // TASK-KL-099. 첫 화면이 실제로 보이게 된 다음에 포커스를 준다. 그리기 전에
+            // 주면 화면이 튄다. 최근 목록도 이때 다시 그린다. 도구를 쓰고 돌아왔으면
             // 그것이 맨 위여야 한다.
             /* 첫 화면에 들어서자마자 찾는 칸을 잡지 않는다 (TASK-KL-129, 사용자 요청).
-             * 잡으면 목록이 곧바로 펼쳐져, 접어 둔 뜻이 없어진다 — 아직 아무것도 안 물어봤는데
+             * 잡으면 목록이 곧바로 펼쳐져, 접어 둔 뜻이 없어진다. 아직 아무것도 안 물어봤는데
              * 답이 먼저 나와 화면 절반을 차지한다. 칠 마음이 있는 사람은 누르거나 ⌘K 를 쓴다. */
             requestAnimationFrame(() => {
                 window.KarmoPalette?.refresh();
@@ -2209,8 +2454,8 @@ const Toolbox = (() => {
         runLifecycle(showers, pageId);
         document.querySelectorAll(`[data-page="${pageId}"]`).forEach(n => n.classList.add('active'));
 
-        /* 계정 캡슐이 곧 「내 정보」 단추다 (통합). account.js 가 그 안을 갈아 끼우므로
-         * id 가 아니라 **자리**로 찾는다 — 갈아 끼운 뒤에도 같은 자리다. */
+        /* 계정 캡슐이 곧 내 정보 단추다 (통합). account.js 가 그 안을 갈아 끼우므로
+         * id 가 아니라 **자리**로 찾는다. 갈아 끼운 뒤에도 같은 자리다. */
         const userBtn = document.querySelector('#headerAccount .header-account-btn');
         if (userBtn) userBtn.classList.toggle('active', pageId === 'user');
         const settingsBtn = document.getElementById('settingsPageBtn');
@@ -2218,7 +2463,7 @@ const Toolbox = (() => {
 
         const tool = tools.find(t => t.id === pageId);
         /* 묶음 안의 도구는 여기서 `tool` 이 **없다**(`bmi` 는 `calc` 묶음으로 열린다).
-           `if (tool)` 안에 두었더니 묶음 도구 전부가 빠졌다 — 그쪽이 계산기의 대부분이다. */
+           `if (tool)` 안에 두었더니 묶음 도구 전부가 빠졌다. 그쪽이 계산기의 대부분이다. */
         document.documentElement.classList.toggle('is-layout-full', tool?.layout === 'full');
         offerResultCard(pageId, tool ? tool.title : pageId);
         if (tool) {
@@ -2237,24 +2482,24 @@ const Toolbox = (() => {
         }
     }
 
-    /* 「이 도구가 내가 넣은 것을 어디로 보내나」 — 도구를 여는 자리에서 (TASK-KL-352).
+    /* 이 도구가 내가 넣은 것을 어디로 보내나. 도구를 여는 자리에서 (TASK-KL-352).
      *
-     * 도구 상세 장(`/t/`)에는 이 말이 적혀 있었지만 **거기서 쓰는 사람은 적다** —
+     * 도구 상세 장(`/t/`)에는 이 말이 적혀 있었지만 **거기서 쓰는 사람은 적다** . 
      * 대부분 이 셸에서 바로 연다. 그런데 셸에는 아무 말도 없었고, 상세 장에 있던 그 한 줄은
-     * 129장 전부에 똑같이 「어디에도 전송되지 않습니다」였다(그림을 Google 로 보내는 도구에도).
+     * 129장 전부에 똑같이 어디에도 전송되지 않습니다였다(그림을 Google 로 보내는 도구에도).
      *
      * 판정 정본 = `data/tool-privacy.json`, 참인지 재는 곳 = `scripts/audit-tool-privacy.mjs`.
-     * 여기서는 **읽어서 보여 주기만** 한다 — 셸이 뜻을 새로 지으면 두 벌이 되어 갈라진다. */
+     * 여기서는 **읽어서 보여 주기만** 한다. 셸이 뜻을 새로 지으면 두 벌이 되어 갈라진다. */
     let privacyOnce = null;
     function privacyTable() {
         if (!privacyOnce) {
-            /* 스크립트 자리 = `…/apps/karmolab/js/widgets/` → 두 칸 올라가야 `…/apps/karmolab/data/` 다
-               (Tauri 에서도 같은 출처로 풀리게 되짚는다 — `bluemarble` 이 쓰는 방식과 같다). */
+            /* 스크립트 자리 = `.../apps/karmolab/js/widgets/` → 두 칸 올라가야 `.../apps/karmolab/data/` 다
+               (Tauri 에서도 같은 출처로 풀리게 되짚는다. `bluemarble` 이 쓰는 방식과 같다). */
             const url = new URL('../../data/tool-privacy.json', getWidgetScriptBase()).href;
             privacyOnce = fetch(url, { cache: 'force-cache' })
                 .then((r) => (r.ok ? r.json() : null))
-                /* 못 받아 왔다고 도구를 못 쓰게 할 이유는 없다. 다만 **모르면 아무 말도 안 한다** —
-                   여기서 「기기 안에서만」으로 넘겨짚으면 그게 곧 거짓말이 된다. */
+                /* 못 받아 왔다고 도구를 못 쓰게 할 이유는 없다. 다만 **모르면 아무 말도 안 한다** . 
+                   여기서 기기 안에서만으로 넘겨짚으면 그게 곧 거짓말이 된다. */
                 .catch(() => null);
         }
         return privacyOnce;
@@ -2269,7 +2514,7 @@ const Toolbox = (() => {
             const where = verdict?.where || p.default;
             const label = p.labels?.[where];
             if (!label) return;
-            /* 셸이 다른 도구로 넘어간 뒤에 답이 오면 엉뚱한 자리에 붙는다 — 지금 화면인지 다시 본다. */
+            /* 셸이 다른 도구로 넘어간 뒤에 답이 오면 엉뚱한 자리에 붙는다. 지금 화면인지 다시 본다. */
             const nowHost = document.getElementById('breadcrumb');
             if (!nowHost || nowHost !== host) return;
             const chip = document.createElement('span');
@@ -2281,16 +2526,16 @@ const Toolbox = (() => {
         });
     }
 
-    /* 결과를 그림으로 (TASK-KL-196 F) — 계산기 마흔 몇 개가 **같은 모양**으로 답을 그린다
+    /* 결과를 그림으로 (TASK-KL-196 F). 계산기 마흔 몇 개가 **같은 모양**으로 답을 그린다
      * (`.cc-stat` 칸). 그 모양을 읽어 카드를 만들므로 도구는 한 줄도 안 고친다.
      *
      * 셸에는 **부르는 줄만** 둔다. 단추를 붙이는 일도, 그리는 일도 조각(`src/result-card.ts`)이
-     * 한다 — 여기에 두었더니 첫 화면 부팅 JS 가 천장(40KB gz)을 넘었다. 계산기 화면에서만,
+     * 한다. 여기에 두었더니 첫 화면 부팅 JS 가 천장(40KB gz)을 넘었다. 계산기 화면에서만,
      * 그것도 첫 그림 뒤에 온다. */
     function offerResultCard(pageId, toolTitle) {
         /* 화면을 **뒤에** 찾는다. 도구는 묶음 화면으로 열리므로(`bmi` → `page-calc`)
            id 로 짐작하면 없는 칸을 잡고, 이 시점엔 아직 활성 표시도 안 붙어 있다.
-           한 박자 뒤에 「지금 활성인 화면」을 집으면 둘 다 맞는다(실측으로 여기서 헛짚었다). */
+           한 박자 뒤에 지금 활성인 화면을 집으면 둘 다 맞는다(실측으로 여기서 헛짚었다). */
         setTimeout(() => {
             const page = document.querySelector('.tool-page.active') || document.getElementById('page-' + pageId);
             if (!page) return;
@@ -2304,7 +2549,7 @@ const Toolbox = (() => {
         if (typeof btn === 'string') {
             tabId = btn;
             btn = document.querySelector(`[data-tab-id="${tabId}"]`);
-            /* 그 탭 단추가 아직 없으면 **못 열었다고 알린다** — 부르는 쪽이 다시 시도할 수 있게.
+            /* 그 탭 단추가 아직 없으면 **못 열었다고 알린다**. 부르는 쪽이 다시 시도할 수 있게.
              * 묶음 위젯을 아직 받아 오는 중이면 이런 일이 생긴다 (TASK-KL-133). */
             if (!btn) return false;
         }
@@ -2317,9 +2562,9 @@ const Toolbox = (() => {
         page.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         btn.setAttribute('aria-selected', 'true');
-        // 탭 줄은 좁은 화면에서 옆으로 밀린다 — 고른 탭이 화면 밖이면 끌어다 보여준다.
+        // 탭 줄은 좁은 화면에서 옆으로 밀린다. 고른 탭이 화면 밖이면 끌어다 보여준다.
         btn.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-        // 패널을 문서 전체에서 id 로 찾으면 안 된다 — 탭 이름은 위젯마다 겹칠 수 있어서
+        // 패널을 문서 전체에서 id 로 찾으면 안 된다. 탭 이름은 위젯마다 겹칠 수 있어서
         // (여러 도구를 탭으로 묶으면 특히) 다른 도구 페이지의 패널을 열어 버린다. 이 페이지 안에서 찾는다.
         const panel = page.querySelector('[data-tab-panel="' + tabId + '"]');
         buildLazyPanel(panel);
@@ -2327,7 +2572,7 @@ const Toolbox = (() => {
         return true;
     }
 
-    /** lazyTabs 위젯의 아직 안 그린 탭 — 처음 열릴 때 그린다 (buildToolPage 참고). */
+    /** lazyTabs 위젯의 아직 안 그린 탭. 처음 열릴 때 그린다 (buildToolPage 참고). */
     function buildLazyPanel(panel) {
         if (!panel || !panel._lazyBuild) return;
         const build = panel._lazyBuild;
@@ -2342,7 +2587,7 @@ const Toolbox = (() => {
      * 그 도구의 화면이 DOM 에 없으면 만들어 붙인다 (TASK-KL-128 런타임).
      *
      * 부팅 때 전부 만들지 않으므로, **여는 길이라면 어디로 오든** 여기를 지나야 한다.
-     * 지금 그 길은 `switchPage` 하나다 (팔레트·메뉴·주소·즐겨찾기 전부 그리로 온다).
+     * 지금 그 길은 `switchPage` 하나다 (팔레트, 메뉴, 주소, 즐겨찾기 전부 그리로 온다).
      */
     function ensureToolPage(pageId) {
         if (!pageId || pageId === 'home') return null;
@@ -2352,7 +2597,7 @@ const Toolbox = (() => {
         if (existing) return existing;
         const tool = tools.find(t => t.id === pageId);
         if (!tool) return null;
-        /* 브라우저에서 연 데스크톱 전용 도구 — 빈 화면 대신 **왜 안 되는지**를 그린다 (KL-349).
+        /* 브라우저에서 연 데스크톱 전용 도구. 빈 화면 대신 **왜 안 되는지**를 그린다 (KL-349).
            알맹이(tabs)가 아직 없어도 그린다: 그 도구의 번들은 여기서 영영 안 불린다. */
         if (isDesktopOnlyTool(tool) && !isDesktopApp()) {
             const only = document.createElement('div');
@@ -2364,7 +2609,7 @@ const Toolbox = (() => {
                 (tool.desc ? `<p class="tool-page-hero-desc">${escapeHtml(tool.desc)}</p>` : '') +
                 `</div>` +
                 `<p class="tool-desktop-only-note">${escapeHtml(
-                    text2('shell.desktop_only_note', '이 도구는 데스크톱 앱에서만 동작합니다 — 이 컴퓨터에 있는 것을 읽어야 하기 때문입니다. 아래 설명은 브라우저에서도 그대로 읽을 수 있습니다.')
+                    text2('shell.desktop_only_note', '이 도구는 데스크톱 앱에서만 동작합니다. 이 컴퓨터에 있는 것을 읽어야 하기 때문입니다. 아래 설명은 브라우저에서도 그대로 읽을 수 있습니다.')
                 )}</p>`;
             host.appendChild(only);
             return only;
@@ -2386,8 +2631,8 @@ const Toolbox = (() => {
             hero.className = 'tool-page-hero';
             /* ⚠ 제목이 없으면 <b>줄째 뺀다</b> (2026-08-21, TASK-KL-342).
                예전에는 값이 없어도 그대로 찍어 실사이트에 `<h1>undefined</h1>` 가 박혔고,
-               사람 눈에 「undefined지금까지 44번 열렸어요」로 떴다. 바로 아랫줄 `desc` 는
-               이미 없으면 빼는데 제목만 안 그랬다 — 짝이 안 맞았다.
+               사람 눈에 undefined지금까지 44번 열렸어요로 떴다. 바로 아랫줄 `desc` 는
+               이미 없으면 빼는데 제목만 안 그랬다. 짝이 안 맞았다.
                (그 장이 왜 제목을 잃었는지는 KL-342 가 따로 본다. 여기서는 <b>사람 눈에 안 보이게</b> 한다.) */
             hero.innerHTML =
                 (tool.title ? `<h1 class="tool-page-hero-title">${tool.title}</h1>` : '') +
@@ -2404,8 +2649,8 @@ const Toolbox = (() => {
             const tabRow = document.createElement('div');
             tabRow.className = 'tab-row';
             /* ★ `role="tablist"` 은 **줄 세우기와 상관없다** (2026-08-16 axe 실측: critical).
-               옆줄(sidebar) 일 때만 붙이고 있었다 — 가로줄 탭에서는 `role="tab"` 단추가
-               tablist 밖에 홀로 서서, 화면낭독기가 「탭 1/3」을 못 읽고 그냥 단추로 읽는다.
+               옆줄(sidebar) 일 때만 붙이고 있었다. 가로줄 탭에서는 `role="tab"` 단추가
+               tablist 밖에 홀로 서서, 화면낭독기가 탭 1/3을 못 읽고 그냥 단추로 읽는다.
                가로/세로는 `aria-orientation` 이 말한다. 역할은 언제나 붙는다. */
             tabRow.setAttribute('role', 'tablist');
             if (tool.tabLayout === 'sidebar') {
@@ -2445,7 +2690,7 @@ const Toolbox = (() => {
             panel.dataset.tabPanel = tab.id;
             panel.setAttribute('role', 'tabpanel');
             // 여러 도구를 탭으로 묶은 위젯은 전부 미리 그리면 안 본 탭까지 만들어진다
-            // (무거운 화면·타이머·저장소 접근이 헛돈다). lazyTabs 면 처음 열릴 때 그린다.
+            // (무거운 화면, 타이머, 저장소 접근이 헛돈다). lazyTabs 면 처음 열릴 때 그린다.
             if (tool.lazyTabs === true && i > 0) {
                 panel._lazyBuild = tab.build;
                 panel._lazyOwner = tool.id;
@@ -2463,21 +2708,21 @@ const Toolbox = (() => {
      * 도구를 다 쓴 사람에게 **다음 자리**를 알려 준다 (TASK-KL-098).
      *
      * 도구 상세 페이지 128장은 검색으로 들어오는 정문인데, 거기서 이 사이트의 나머지로 가는
-     * 길이 하나도 없었다 — 도구 하나 쓰고 닫으면 끝이다. 그 사람은 커뮤니티가 있는 줄도,
+     * 길이 하나도 없었다. 도구 하나 쓰고 닫으면 끝이다. 그 사람은 커뮤니티가 있는 줄도,
      * 숫자를 다 열어 둔 줄도 모른다.
      *
-     * 도구 화면 맨 아래에만 둔다. 위쪽은 도구의 자리다 — 일하러 온 사람을 붙잡지 않는다.
+     * 도구 화면 맨 아래에만 둔다. 위쪽은 도구의 자리다. 일하러 온 사람을 붙잡지 않는다.
      */
     function appendToolFooter(page, tool) {
         if (tool.noHero === true) return;
         /**
-         * 「여기도 있어요」는 **위젯이 스스로 켠다** (`nextLinks: true`). 기본은 끔.
+         * 여기도 있어요는 **위젯이 스스로 켠다** (`nextLinks: true`). 기본은 끔.
          * 대부분의 도구 화면에서는 군더더기고, 어울리는 자리(도구를 다 쓰고 나가는 흐름)는
-         * 그 위젯을 만든 사람이 안다 — 사용자에게 물을 일이 아니라 등록할 때 정할 일이다.
+         * 그 위젯을 만든 사람이 안다. 사용자에게 물을 일이 아니라 등록할 때 정할 일이다.
          */
         if (tool.nextLinks !== true) return;
         /* 시스템 화면에는 안 붙인다 (TASK-KL-139). 여기 온 사람은 도구를 쓰러 온 게 아니라
-         * 자기 것·자기 설정을 보러 왔다 — 계정 아래에 「여기도 있어요」를 깔면 자기 화면이
+         * 자기 것, 자기 설정을 보러 왔다. 계정 아래에 여기도 있어요를 깔면 자기 화면이
          * 아니라 광고판이 된다. (`hidden` 으로 거르면 안 된다: base64 처럼 **검색 유입 주소를
          * 살려 둔 채 목록에서만 숨긴** 진짜 도구가 같이 걸린다.) */
         if (SYSTEM_PAGES.has(tool.id)) return;
@@ -2487,7 +2732,7 @@ const Toolbox = (() => {
             '<div class="tool-page-next-head">여기도 있어요</div>' +
             '<div class="tool-page-next-links">' +
             '<button type="button" class="tool-page-next-link" data-next="community">' +
-            '<b>커뮤니티</b><span>안 되는 것·있었으면 하는 도구를 남기는 곳</span></button>' +
+            '<b>커뮤니티</b><span>안 되는 것, 있었으면 하는 도구를 남기는 곳</span></button>' +
             '<button type="button" class="tool-page-next-link" data-next="plaza">' +
             '<b>광장</b><span>이 사이트의 숫자를 전부 열어 둔 곳</span></button>' +
             '<a class="tool-page-next-link" href="' + toolIndexPath() + '">' +
@@ -2502,10 +2747,10 @@ const Toolbox = (() => {
     /* ===== Shared Helpers ===== */
 
     /**
-     * 최근 런타임 오류 링버퍼 — 에러 토스트에 「복사할 것」이 항상 있게.
+     * 최근 런타임 오류 링버퍼. 에러 토스트에 복사할 것이 항상 있게.
      * showToast(.., 'error') 호출 158곳 중 detail 을 넘기는 건 5곳뿐이었다.
-     * 그래서 복사 버튼이 어떤 오류엔 뜨고 어떤 오류엔 안 떴다 — 원인은 호출부가 아니라
-     * 「detail 이 있어야만 버튼」이라는 seam 이다. 여기서 컨텍스트를 스스로 모은다.
+     * 그래서 복사 버튼이 어떤 오류엔 뜨고 어떤 오류엔 안 떴다. 원인은 호출부가 아니라
+     * detail 이 있어야만 버튼이라는 seam 이다. 여기서 컨텍스트를 스스로 모은다.
      */
     const RECENT_ERRORS = [];
     function pushRecentError(line) {
@@ -2522,7 +2767,7 @@ const Toolbox = (() => {
         pushRecentError('unhandledrejection: ' + (r?.stack || r?.message || String(r)));
     });
 
-    /** 에러 토스트용 자동 리포트 — 호출부가 detail 을 안 줘도 붙일 컨텍스트를 만든다. */
+    /** 에러 토스트용 자동 리포트. 호출부가 detail 을 안 줘도 붙일 컨텍스트를 만든다. */
     function buildErrorReport(msg, detailText) {
         const lines = [
             '[KarmoLab 오류 리포트]',
@@ -2542,10 +2787,10 @@ const Toolbox = (() => {
         const t = document.getElementById('statusToast');
         if (!t) return;
         const rawDetail = typeof detail === 'string' ? detail : (detail && detail.message) ? detail.message + (detail.stack ? '\n' + detail.stack : '') : '';
-        // 에러는 detail 유무와 무관하게 항상 복사 가능 — 없으면 컨텍스트를 스스로 모아 붙인다.
+        // 에러는 detail 유무와 무관하게 항상 복사 가능. 없으면 컨텍스트를 스스로 모아 붙인다.
         const hasDetail = type === 'error' || (detail !== undefined && detail !== null && detail !== '');
         const detailText = type === 'error' ? buildErrorReport(msg, rawDetail) : rawDetail;
-        // 리포트를 만든 *뒤* 기록한다 — 자기 자신이 「최근 오류」에 중복으로 실리지 않게.
+        // 리포트를 만든 *뒤* 기록한다. 자기 자신이 최근 오류에 중복으로 실리지 않게.
         if (type === 'error') pushRecentError(msg + (rawDetail ? ' :: ' + rawDetail : ''));
         if (hasDetail && detailText) {
             t.className = 'status-toast visible has-detail ' + type;
@@ -2613,7 +2858,7 @@ const Toolbox = (() => {
         const box = document.getElementById(prefix + 'Result');
         const label = document.getElementById(prefix + 'ResultLabel');
         const area = document.getElementById(prefix + 'ResultContent');
-        if (label) label.textContent = title + (timeTaken ? ` · ${timeTaken.toFixed(2)}s` : '');
+        if (label) label.textContent = title + (timeTaken ? `, ${timeTaken.toFixed(2)}s` : '');
         if (label) label.className = 'result-label ' + (isError ? 'error' : 'success');
         if (area) area.textContent = content;
         if (box) box.classList.add('visible');
@@ -2625,9 +2870,9 @@ const Toolbox = (() => {
     }
 
     /**
-     * 복사 단일 seam (TASK-KL-088) — 클립보드 API + 구형 fallback + 토스트 + 계측을 한 곳에.
-     * 위젯마다 클립보드 코드를 복제하면 「실제로 결과를 얻었다」 신호가 20 갈래로 흩어진다.
-     * 보내는 것은 현재 도구 id 와 동작 이름뿐 — 복사한 내용은 절대 싣지 않는다.
+     * 복사 단일 seam (TASK-KL-088). 클립보드 API + 구형 fallback + 토스트 + 계측을 한 곳에.
+     * 위젯마다 클립보드 코드를 복제하면 실제로 결과를 얻었다 신호가 20 갈래로 흩어진다.
+     * 보내는 것은 현재 도구 id 와 동작 이름뿐. 복사한 내용은 절대 싣지 않는다.
      */
     function copyText(text, opts = {}) {
         if (!text) return Promise.resolve(false);
@@ -2655,7 +2900,7 @@ const Toolbox = (() => {
         }
     }
 
-    /** 복사 외의 「결과를 얻었다」 신호 (생성·변환·저장 등) */
+    /** 복사 외의 결과를 얻었다 신호 (생성, 변환, 저장 등) */
     function trackUse(action, toolId = null) {
         const id = toolId || currentPageId;
         if (id && id !== 'home') window.KarmoStat?.use(id, action);
@@ -2758,8 +3003,8 @@ const Toolbox = (() => {
         return 'observatory';
     }
 
-    /** 주소창·넘겨 스크롤한 자리의 색을 **지금 바탕색 그대로** 맞춘다 (TASK-KL-101).
-     *  값을 손으로 적지 않고 CSS 에서 읽는다 — 두 벌로 적으면 테마를 손볼 때 한쪽만 바뀐다.
+    /** 주소창, 넘겨 스크롤한 자리의 색을 **지금 바탕색 그대로** 맞춘다 (TASK-KL-101).
+     *  값을 손으로 적지 않고 CSS 에서 읽는다. 두 벌로 적으면 테마를 손볼 때 한쪽만 바뀐다.
      *  안 맞추면 밝은 테마에서 스크롤 끝에 검은 띠가 보인다(폰에서 그렇게 나가고 있었다). */
     function syncThemeColor() {
         const meta = document.getElementById('themeColorMeta');
@@ -2820,7 +3065,7 @@ const Toolbox = (() => {
 
         // 주소 뒤에 시각을 붙이지 않는다 (TASK-KL-088, slot-D 지적).
         // 이 파일들은 우리가 직접 담아 둔 것이라 우리가 바꿀 때만 바뀐다. 그런데 시각을 붙이면
-        // 브라우저가 저장해 둔 것을 못 써서 방문마다 다시 받았다. 빌드 번호도 마찬가지다 —
+        // 브라우저가 저장해 둔 것을 못 써서 방문마다 다시 받았다. 빌드 번호도 마찬가지다 . 
         // 파일은 그대로인데 배포할 때마다 새 주소가 된다. 떼면 평범한 캐시가 그대로 듣는다.
         const url = t.url;
         const newLink = document.createElement('link');
@@ -2842,7 +3087,7 @@ const Toolbox = (() => {
     function initTheme() {
         setTheme(getTheme());
         setBgTheme(getBgTheme());
-        setNavLayout(getNavLayout());
+        setSidebarCollapsed(getSidebarCollapsed());
         const btn = document.getElementById('themeToggle');
         if (btn) btn.onclick = toggleTheme;
         setPrismTheme(getPrismTheme(), true);
@@ -2983,22 +3228,22 @@ const Toolbox = (() => {
     function getTools() { return [...tools]; }
 
     /**
-     * 다른 위젯의 첫 탭을 이 자리에 그린다 — 여러 도구를 한 위젯의 탭으로 묶을 때 쓰는 통로.
+     * 다른 위젯의 첫 탭을 이 자리에 그린다. 여러 도구를 한 위젯의 탭으로 묶을 때 쓰는 통로.
      * 묶음 위젯이 부분의 화면을 복제하지 않게 해서, 고칠 곳이 언제나 한 군데로 남는다.
-     * (부분 위젯은 hidden 으로 두되 자기 주소는 유지하는 것이 기본 — 검색 유입을 잃지 않는다.)
+     * (부분 위젯은 hidden 으로 두되 자기 주소는 유지하는 것이 기본. 검색 유입을 잃지 않는다.)
      */
     function mountTool(id, container) {
         const tool = tools.find((t) => t.id === id);
         const tab = tool && tool.tabs && tool.tabs[0];
         const fail = () => {
-            container.innerHTML = '<div class="tool-status error">「' + id + '」 를 불러오지 못했어요.</div>';
+            container.innerHTML = '<div class="tool-status error">' + id + ' 를 불러오지 못했어요.</div>';
         };
         /* **아직 안 받은 도구**다 (TASK-KL-261).
          *
-         * 지연 위젯도 `tabs` 를 하나 갖고 있다 — 「불러오는 중…」 을 그리는 자리표다. 여기서
+         * 지연 위젯도 `tabs` 를 하나 갖고 있다. 불러오는 중... 을 그리는 자리표다. 여기서
          * 그것을 그대로 그리면 화면이 **영영 그 자리에 멈춘다**(아무도 스크립트를 안 받으니).
-         * 묶음 화면(PDF·이미지…)이 자기 묶음 **밖** 도구를 부르기 시작하면서 드러났다:
-         * 「색 뽑기」를 눌러도 마스코트만 기다리고 있었다. 받아 온 뒤에 진짜를 그린다. */
+         * 묶음 화면(PDF, 이미지...)이 자기 묶음 **밖** 도구를 부르기 시작하면서 드러났다:
+         * 색 뽑기를 눌러도 마스코트만 기다리고 있었다. 받아 온 뒤에 진짜를 그린다. */
         if (tool && tool._deferred) {
             if (tab) runBuild(id, () => tab.build(container), container); // 기다리는 그림
             void kickLazyLoad(id).then(() => {
@@ -3020,23 +3265,24 @@ const Toolbox = (() => {
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
+        openSettingsModal, closeSettingsModal,
         takeBundleRequest,
         onDispose,
-        // 안 보는 동안 멈춘다 (change.widget-idle-cost) — 상태는 살리고 그리기만 멈춘다
+        // 안 보는 동안 멈춘다 (change.widget-idle-cost). 상태는 살리고 그리기만 멈춘다
         onHide, onShow, raf, keepAlive,
         // 결과를 옆 도구로 넘기기 (TASK-KL-133)
         offerNext, result, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
-        // 형식 규약은 **한 자로 잰다** (TASK-KL-191) — 흐름 화면도 이 셋을 쓴다
+        // 형식 규약은 **한 자로 잰다** (TASK-KL-191). 흐름 화면도 이 셋을 쓴다
         declaredAccepts, declaredProduces, kindMatches,
         getCategories,
         isDesktopApp,
-        // 판 표식 배지 (TASK-KL-192) — 데스크톱 껍데기가 앱 버전을 얹는다 (그쪽은 셸 안을 못 본다).
+        // 판 표식 배지 (TASK-KL-192). 데스크톱 껍데기가 앱 버전을 얹는다 (그쪽은 셸 안을 못 본다).
         setAppVersion, getBuildInfo: () => ({ stamp: BUILD_TAG, commit: BUILD_COMMIT, app: versionBadgeAppVer }),
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,
-        // 첫 화면 본문(`home-page.js`)이 부른다 — 그쪽은 셸 안을 못 보므로 전역으로 준다.
+        // 첫 화면 본문(`home-page.js`)이 부른다. 그쪽은 셸 안을 못 보므로 전역으로 준다.
         mountHomeDecor, toolCountsOnce, whenApiBase,
         // 로더도 이 해석기를 쓴다 (KL-103). 예전에는 로더가 제 규칙으로 주소를 만들어서
-        // 앞머리(vendor/·root/·world/)를 모른 채 늘 js/widgets/ 밑을 찾았다 — 실서비스에서
+        // 앞머리(vendor/, root/, world/)를 모른 채 늘 js/widgets/ 밑을 찾았다. 실서비스에서
         // 도구 셋이 라이브러리를 못 받고 있었다. 규칙을 두 벌 두지 않는다.
         resolveScriptPath,
         showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,
@@ -3044,7 +3290,7 @@ const Toolbox = (() => {
         escapeHtml, formatTimestamp, showLightbox,
         recordUsage, getUsageStats,
         getPref, setPref,
-        getNavLayout, setNavLayout,
+        getSidebarCollapsed, setSidebarCollapsed, toggleSidebar,
         getTheme, setTheme, toggleTheme,
         getBgTheme, setBgTheme, getBgThemes,
         getPrismTheme, setPrismTheme, getPrismThemes: () => [...PRISM_THEMES],

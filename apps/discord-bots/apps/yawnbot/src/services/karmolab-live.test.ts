@@ -1,9 +1,9 @@
 /**
- * TASK-KL-196 G — 「방금 열린 도구」 시험.
+ * TASK-KL-196 G. 방금 열린 도구 시험.
  *
- * 중요한 것: **오래된 것을 「방금」이라고 부르지 않는 것**. 어제 열린 도구를 실황에 올리면
- * 그건 북적임이 아니라 거짓이다. 그리고 새로 적는 것이 없어야 한다 — 이 목록은 이미 적고
- * 있는 「마지막으로 열린 시각」에서만 나온다.
+ * 중요한 것: **오래된 것을 방금이라고 부르지 않는 것**. 어제 열린 도구를 실황에 올리면
+ * 그건 북적임이 아니라 거짓이다. 그리고 새로 적는 것이 없어야 한다. 이 목록은 이미 적고
+ * 있는 마지막으로 열린 시각에서만 나온다.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
@@ -31,13 +31,13 @@ describe('방금 열린 도구', () => {
     expect(rows.map((r) => r.toolId)).toEqual(['passgen', 'charcount']);
   });
 
-  it('오래된 것은 안 준다 — 어제 것을 「방금」이라 부르지 않는다', () => {
+  it('오래된 것은 안 준다. 어제 것을 방금이라 부르지 않는다', () => {
     const s = store();
     s.recordToolOpen('charcount', 'a', new Date('2026-08-07T01:00:00Z'));
     expect(s.recentlyOpened(8, new Date('2026-08-08T02:00:00Z'))).toEqual([]);
   });
 
-  it('한 도구는 한 번만 나온다 — 사건 기록이 아니라 마지막 시각이다', () => {
+  it('한 도구는 한 번만 나온다. 사건 기록이 아니라 마지막 시각이다', () => {
     const s = store();
     s.recordToolOpen('charcount', 'a', new Date('2026-08-08T01:00:00Z'));
     s.recordToolOpen('charcount', 'b', new Date('2026-08-08T01:30:00Z'));
@@ -55,7 +55,7 @@ describe('방금 열린 도구', () => {
     expect(s.recentlyOpened(0, new Date('2026-08-08T02:00:00Z')).length).toBe(1);
   });
 
-  it('아무도 안 열었으면 빈 목록 — 0 을 지어내지 않는다', () => {
+  it('아무도 안 열었으면 빈 목록. 0 을 지어내지 않는다', () => {
     expect(store().recentlyOpened(8, new Date())).toEqual([]);
   });
 });

@@ -1,11 +1,11 @@
 /**
- * 문서 보기 공용 — 목차(ToC) + 지금 읽는 위치 표시.
+ * 문서 보기 공용. 목차(ToC) + 지금 읽는 위치 표시.
  *
- * 왜 lib 인가: 「긴 글을 읽히는 화면」이 KarmoLab 안에 이미 둘이다(문서 위젯 · 스터디 맵 강의).
- * 각자 목차를 따로 만들면 동작이 갈리고 한쪽만 고쳐진다 — 그래서 만드는 규칙을 여기 한 곳에 둔다.
+ * 왜 lib 인가: 긴 글을 읽히는 화면이 KarmoLab 안에 이미 둘이다(문서 위젯, 스터디 맵 강의).
+ * 각자 목차를 따로 만들면 동작이 갈리고 한쪽만 고쳐진다. 그래서 만드는 규칙을 여기 한 곳에 둔다.
  *
  * 하는 일은 셋뿐이다. 제목에 id 를 박고, 목차 마크업을 만들고, 스크롤에 맞춰 현재 항목을 표시한다.
- * 마크다운 파서·문법 강조는 여기 없다 — 부르는 쪽이 이미 HTML 을 갖고 온다는 전제다.
+ * 마크다운 파서, 문법 강조는 여기 없다. 부르는 쪽이 이미 HTML 을 갖고 온다는 전제다.
  */
 
 export interface DocHeading {
@@ -16,15 +16,15 @@ export interface DocHeading {
 }
 
 export interface DocTocOptions {
-  /** 목차에 넣을 제목 선택자. 기본은 h2·h3·h4. */
+  /** 목차에 넣을 제목 선택자. 기본은 h2, h3, h4. */
   selector?: string;
   /** id 가 겹치지 않게 붙이는 접두사(문서마다 다르게). */
   prefix?: string;
-  /** 이 개수 미만이면 목차를 만들지 않는다 — 짧은 글에 목차는 소음이다. */
+  /** 이 개수 미만이면 목차를 만들지 않는다. 짧은 글에 목차는 소음이다. */
   min?: number;
   /**
    * id 를 직접 짓고 싶을 때. 문서 위젯은 제목 글자에서 뽑은 id 로 **밖에 링크가 이미 걸려 있어서**
-   * 번호를 붙이는 기본 방식으로 바꾸면 그 링크들이 깨진다 — 그래서 여는 구멍.
+   * 번호를 붙이는 기본 방식으로 바꾸면 그 링크들이 깨진다. 그래서 여는 구멍.
    */
   idFrom?: (text: string, at: number) => string;
 }
@@ -75,17 +75,17 @@ export function tocHtml(headings: DocHeading[], label: string, cls = 'doc-toc'):
 
 /**
  * 스크롤에 따라 현재 항목에 `is-here` 를 붙인다.
- * IntersectionObserver 로만 판단하면 「화면에 여럿 보일 때」 흔들려서,
+ * IntersectionObserver 로만 판단하면 화면에 여럿 보일 때 흔들려서,
  * 위에서부터 지나온 마지막 제목을 고르는 방식으로 고정했다.
  *
- * @returns 정리 함수 — 화면을 갈아엎을 때 부르면 감시를 푼다.
+ * @returns 정리 함수. 화면을 갈아엎을 때 부르면 감시를 푼다.
  */
 export interface DocWatchOptions {
   /** 글이 창이 아니라 안쪽 상자에서 굴러갈 때 그 상자. 없으면 창 스크롤로 본다. */
   scrollRoot?: HTMLElement | null;
   /** 현재 항목에 붙일 클래스. 화면마다 이름이 달라 열어 둔다. */
   activeClass?: string;
-  /** 목차 링크 선택자·id 를 읽는 방법(기본은 data-toc-to). */
+  /** 목차 링크 선택자, id 를 읽는 방법(기본은 data-toc-to). */
   linkSelector?: string;
   idOf?: (link: HTMLElement) => string;
 }
@@ -106,7 +106,7 @@ export function watchReading(
   let ticking = false;
   const mark = (): void => {
     ticking = false;
-    /* 화면(또는 상자) 위쪽 이만큼을 「읽는 줄」로 본다 */
+    /* 화면(또는 상자) 위쪽 이만큼을 읽는 줄로 본다 */
     const line = (scroller ? scroller.getBoundingClientRect().top : 0) + 96;
     let here = headings[0].id;
     for (const h of headings) {
@@ -124,9 +124,9 @@ export function watchReading(
   };
 
   /**
-   * 굴러가는 건 창이 아닐 수 있다 — KarmoLab 은 `.main-content` 안에서 굴린다.
+   * 굴러가는 건 창이 아닐 수 있다. KarmoLab 은 `.main-content` 안에서 굴린다.
    * 창에만 귀를 대면 아무 소리도 안 들려 목차 표시가 첫 항목에 굳는다(실제로 그랬다).
-   * 그래서 **잡기 단계(capture)** 로 문서 전체의 스크롤을 듣는다 — 어느 상자가 굴러도 잡힌다.
+   * 그래서 **잡기 단계(capture)** 로 문서 전체의 스크롤을 듣는다. 어느 상자가 굴러도 잡힌다.
    */
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
   window.addEventListener('resize', onScroll, { passive: true });
@@ -138,7 +138,7 @@ export function watchReading(
   };
 }
 
-/** 목차 클릭 — 부드럽게 이동하고 주소는 안 건드린다(뒤로가기가 글 밖으로 나가지 않게). */
+/** 목차 클릭. 부드럽게 이동하고 주소는 안 건드린다(뒤로가기가 글 밖으로 나가지 않게). */
 export function bindTocClicks(tocRoot: HTMLElement, root: HTMLElement, opts: DocWatchOptions = {}): void {
   const sel = opts.linkSelector || '[data-toc-to]';
   const idOf = opts.idOf || ((a: HTMLElement) => a.dataset.tocTo || '');
@@ -163,9 +163,9 @@ export function bindTocClicks(tocRoot: HTMLElement, root: HTMLElement, opts: Doc
   });
 }
 
-/* ─────────── 코드블록 — 문법 강조와 복사 ───────────
+/* ─────────── 코드블록. 문법 강조와 복사 ───────────
  * 문서 위젯이 하던 것을 여기로 올린다. 강의도 코드가 본체라 같은 대접을 받아야 하고,
- * 두 곳이 각자 Prism 을 부르면 언어 목록·복사 동작이 조용히 갈린다.
+ * 두 곳이 각자 Prism 을 부르면 언어 목록, 복사 동작이 조용히 갈린다.
  */
 
 type PrismLike = {
@@ -178,7 +178,7 @@ type PrismLike = {
  */
 declare const Toolbox: { ensureScript?: (path: string) => Promise<unknown> } | undefined;
 
-/** Prism 은 첫 사용 시에만 받는다(첫 화면을 무겁게 하지 않으려고 — KL-054 와 같은 결). */
+/** Prism 은 첫 사용 시에만 받는다(첫 화면을 무겁게 하지 않으려고. KL-054 와 같은 결). */
 export async function ensurePrism(): Promise<PrismLike | null> {
   const w = window as unknown as { Prism?: PrismLike };
   if (w.Prism) return fixLanguagesPath(w.Prism);
@@ -186,7 +186,7 @@ export async function ensurePrism(): Promise<PrismLike | null> {
     await Toolbox?.ensureScript?.('vendor/prism.min');
     await Toolbox?.ensureScript?.('vendor/prism-autoloader.min');
   } catch {
-    /* 못 받아도 코드는 글자 그대로 보인다 — 강조만 없다 */
+    /* 못 받아도 코드는 글자 그대로 보인다. 강조만 없다 */
   }
   const prism = w.Prism ?? null;
   return prism ? fixLanguagesPath(prism) : null;
@@ -201,15 +201,15 @@ function fixLanguagesPath(prism: PrismLike): PrismLike {
    * 부르는 자리에서 정하면 순서가 어긋날 일이 없다.
    */
   const auto = prism?.plugins?.autoloader;
-  /* 자동 로더가 스스로 정한 값(`js/vendor/components/`)은 틀렸다 — 언어 파일은 `prism/` 아래 있다.
-     그래서 비었을 때만이 아니라 **항상** 덮어쓴다. 안 그러면 bash·json 같은 언어가 조용히 안 칠해진다. */
+  /* 자동 로더가 스스로 정한 값(`js/vendor/components/`)은 틀렸다. 언어 파일은 `prism/` 아래 있다.
+     그래서 비었을 때만이 아니라 **항상** 덮어쓴다. 안 그러면 bash, json 같은 언어가 조용히 안 칠해진다. */
   if (auto) auto.languages_path = '/apps/karmolab/js/vendor/prism/components/';
   return prism;
 }
 
 /**
  * `pre code` 에 언어 클래스를 붙이고 강조한다.
- * 언어를 못 정하면 강조하지 않는다 — 아무 언어로나 칠하면 오히려 잘못 읽힌다.
+ * 언어를 못 정하면 강조하지 않는다. 아무 언어로나 칠하면 오히려 잘못 읽힌다.
  */
 export async function highlightCode(root: HTMLElement): Promise<void> {
   const blocks = root.querySelectorAll<HTMLElement>('pre code');
@@ -241,7 +241,7 @@ export function addCopyButtons(root: HTMLElement, label: string, doneLabel: stri
           setTimeout(() => (btn.textContent = label), 1200);
         })
         .catch(() => {
-          /* 권한이 없으면 아무 말도 하지 않는다 — 사용자는 그냥 긁어서 복사하면 된다 */
+          /* 권한이 없으면 아무 말도 하지 않는다. 사용자는 그냥 긁어서 복사하면 된다 */
         });
     });
     pre.appendChild(btn);
@@ -249,17 +249,17 @@ export function addCopyButtons(root: HTMLElement, label: string, doneLabel: stri
 }
 
 /* ─────────── 살아 있는 예제 ───────────
- * 코드만 보여 주면 「그래서 어떻게 되는데」가 안 남는다. 결과를 옆에 띄우고, 고치면 바로 다시 그린다.
+ * 코드만 보여 주면 그래서 어떻게 되는데가 안 남는다. 결과를 옆에 띄우고, 고치면 바로 다시 그린다.
  *
  * 실행은 전부 **격리된 iframe**(sandbox=allow-scripts, 같은 출처 아님) 안에서만 한다.
- * 문서에 적힌 코드가 우리 화면의 저장소·쿠키·DOM 에 손댈 수 없다는 뜻 — 이게 이 기능의 전제다.
+ * 문서에 적힌 코드가 우리 화면의 저장소, 쿠키, DOM 에 손댈 수 없다는 뜻. 이게 이 기능의 전제다.
  */
 
 export type DemoKind = 'html' | 'js' | 'shader';
 
 const DEMO_LABELS = { run: '다시 그리기', reset: '되돌리기', code: '코드', result: '결과' };
 
-/** 캔버스 한 장과 붙잡을 고리만 준 최소 판 — 예제 코드가 짧아진다. */
+/** 캔버스 한 장과 붙잡을 고리만 준 최소 판. 예제 코드가 짧아진다. */
 function jsPage(code: string): string {
   return `<!doctype html><meta charset="utf-8"><style>
     html,body{margin:0;height:100%;background:#111;color:#eee;font:13px/1.5 system-ui,sans-serif;overflow:hidden}
@@ -274,7 +274,7 @@ function jsPage(code: string): string {
   <\/script>`;
 }
 
-/** 프래그먼트 셰이더 한 장 — u_time·u_resolution 만 준다(배우는 데 그 둘이면 충분). */
+/** 프래그먼트 셰이더 한 장. u_time, u_resolution 만 준다(배우는 데 그 둘이면 충분). */
 function shaderPage(frag: string): string {
   return `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;overflow:hidden;background:#111}canvas{display:block;width:100%;height:100%}
   pre{color:#f88;font:12px/1.5 ui-monospace,monospace;padding:10px;white-space:pre-wrap;margin:0}</style><canvas id="c"></canvas><script>
@@ -313,15 +313,15 @@ function shaderPage(frag: string): string {
 function demoPage(kind: DemoKind, code: string): string {
   if (kind === 'js') return jsPage(code);
   if (kind === 'shader') return shaderPage(code);
-  /* html — 글자 크기만 맞춰 주고 나머지는 예제가 정한다 */
+  /* html. 글자 크기만 맞춰 주고 나머지는 예제가 정한다 */
   return `<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:12px;font:14px/1.6 system-ui,sans-serif;color:#222;background:#fff}</style>${code}`;
 }
 
 /**
- * `[data-demo]` 가 붙은 자리(강의 블록·문서의 ```demo-… 울타리)를 살아 있는 판으로 바꾼다.
+ * `[data-demo]` 가 붙은 자리(강의 블록, 문서의 ```demo-... 울타리)를 살아 있는 판으로 바꾼다.
  * 코드는 그 자리에서 고칠 수 있고, 멈추면 다시 그린다.
  */
-/** 예제에 붙는 손잡이 — 코드를 안 읽어도 값을 밀어 볼 수 있게. */
+/** 예제에 붙는 손잡이. 코드를 안 읽어도 값을 밀어 볼 수 있게. */
 export interface DemoControl {
   id: string;
   label: string;
@@ -333,7 +333,7 @@ export interface DemoControl {
   options?: Array<{ value: string; label: string }>;
 }
 
-/** 코드 안의 `{{id}}` 를 지금 값으로 바꾼다 — 예제 코드가 손잡이를 그대로 쓸 수 있게. */
+/** 코드 안의 `{{id}}` 를 지금 값으로 바꾼다. 예제 코드가 손잡이를 그대로 쓸 수 있게. */
 function fill(code: string, values: Record<string, string>): string {
   return code.replace(/\{\{\s*([\w-]+)\s*\}\}/g, (whole, key) => (key in values ? values[key] : whole));
 }
@@ -379,7 +379,7 @@ export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS
     editor.setAttribute('aria-label', L.code);
 
     /**
-     * 손잡이(슬라이더·토글·고르기) — 있으면 **코드 위에** 둔다.
+     * 손잡이(슬라이더, 토글, 고르기). 있으면 **코드 위에** 둔다.
      * 처음 만나는 사람은 코드를 고치기 전에 값을 밀어 본다. 그 한 번이 이해의 대부분이다.
      */
     let controls: DemoControl[] = [];
@@ -418,12 +418,12 @@ export function mountDemos(root: HTMLElement, labels: Partial<typeof DEMO_LABELS
       values[key] = el instanceof HTMLInputElement && el.type === 'checkbox' ? String(el.checked) : String(el.value);
       const out = knobs.querySelector(`[data-out="${key}"]`);
       if (out) out.textContent = values[key];
-      /* 미는 동안 계속 다시 그리면 버벅인다 — 아주 짧게 묶는다(밀고 있다는 느낌은 남게). */
+      /* 미는 동안 계속 다시 그리면 버벅인다. 아주 짧게 묶는다(밀고 있다는 느낌은 남게). */
       window.clearTimeout(knobTimer);
       knobTimer = window.setTimeout(draw, 90);
     });
     let timer = 0;
-    /* 타자 칠 때마다 다시 그리면 어지럽다 — 손이 멈춘 뒤에 한 번. */
+    /* 타자 칠 때마다 다시 그리면 어지럽다. 손이 멈춘 뒤에 한 번. */
     editor.addEventListener('input', () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(draw, 600);

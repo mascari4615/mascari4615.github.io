@@ -4,7 +4,7 @@ import { serveRepo } from './lib/serve-static.mjs';
 
 const failures = [];
 const check = (name, condition, detail) => {
-  if (!condition) failures.push(`${name} — ${detail}`);
+  if (!condition) failures.push(`${name}. ${detail}`);
 };
 const png = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR42mP8z8BQz0AEYBxVSF+FABJADveWkH6oAAAAAElFTkSuQmCC',

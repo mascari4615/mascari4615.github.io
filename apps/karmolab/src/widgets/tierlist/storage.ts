@@ -167,7 +167,7 @@ import { t } from '../../lib/i18n';
         return it;
     }
 
-    /** 후보 풀 기준 되돌리기 가능 여부(로컬 풀·URL 풀·풀 출처 카드) */
+    /** 후보 풀 기준 되돌리기 가능 여부(로컬 풀, URL 풀, 풀 출처 카드) */
     function canResetItemFromPool(list: TlListInstance, itemId: string): boolean {
         const it = list?.items?.[itemId];
         if (!it) return false;
@@ -176,7 +176,7 @@ import { t } from '../../lib/i18n';
         return it.tlOrigin === 'catalog';
     }
 
-    /** 연결된 후보 풀 항목으로 덮어쓰기(이름·이미지·라벨·수정 표시 제거). catalogEntry 는 풀 items[id] 원본 */
+    /** 연결된 후보 풀 항목으로 덮어쓰기(이름, 이미지, 라벨, 수정 표시 제거). catalogEntry 는 풀 items[id] 원본 */
     function applyCatalogEntryToItem(list: TlListInstance, itemId: string, catalogEntry: TlItem): boolean {
         if (!list?.items?.[itemId] || !catalogEntry) return false;
         const old = list.items[itemId];
@@ -194,7 +194,7 @@ import { t } from '../../lib/i18n';
     }
 
     /**
-     * 카탈로그에 있는 id는 list.items에 없으면 채우고, 어떤 티어·_pool에도 없으면 _pool 끝에 추가.
+     * 카탈로그에 있는 id는 list.items에 없으면 채우고, 어떤 티어, _pool에도 없으면 _pool 끝에 추가.
      * @returns {boolean} 변경 여부
      */
     function ensureAllCatalogItemsOnBoard(list: TlListInstance, catalogItems: Record<string, TlItem>): boolean {
@@ -228,7 +228,7 @@ import { t } from '../../lib/i18n';
         return changed;
     }
 
-    /** 동일 id가 여러 줄에 있으면 티어 표시 순·_pool 순으로 한 곳만 남김 */
+    /** 동일 id가 여러 줄에 있으면 티어 표시 순, _pool 순으로 한 곳만 남김 */
     function dedupeRankingPlacements(list: TlListInstance): boolean {
         if (!list?.rankings) return false;
         const seen = new Set<string>();
@@ -259,7 +259,7 @@ import { t } from '../../lib/i18n';
     }
 
     /**
-     * 카탈로그 items 맵과 순위 판 동기화(누락 항목·배치·중복·떠 있는 custom 정리).
+     * 카탈로그 items 맵과 순위 판 동기화(누락 항목, 배치, 중복, 떠 있는 custom 정리).
      * @returns {boolean} 변경 여부
      */
     function reconcileListWithCatalogPayload(list: TlListInstance, catalogItems: Record<string, TlItem>): boolean {
@@ -277,7 +277,7 @@ import { t } from '../../lib/i18n';
     }
 
     /**
-     * items에는 있는데 티어·미배치 어디에도 없는 id → _pool에 한 번만 추가.
+     * items에는 있는데 티어, 미배치 어디에도 없는 id → _pool에 한 번만 추가.
      * @returns {boolean} 변경 여부
      */
     function ensureFloatingItemsInPool(list: TlListInstance): boolean {
@@ -504,7 +504,7 @@ import { t } from '../../lib/i18n';
         Object.keys(items).forEach((k) => rankings._pool.push(k));
         state.instances[id] = {
             id,
-            title: `${meta?.title || catalogData.title || '순위'} · 순위`,
+            title: `${meta?.title || catalogData.title || '순위'}, 순위`,
             category: typeof catalogData.category === 'string' ? catalogData.category : '',
             createdAt: now,
             updatedAt: now,
@@ -597,7 +597,7 @@ import { t } from '../../lib/i18n';
         Object.keys(items).forEach((k) => rankings._pool.push(k));
         state.instances[id] = {
             id,
-            title: `${c.title || '순위'} · 순위`,
+            title: `${c.title || '순위'}, 순위`,
             category: c.category || '',
             catalogId,
             createdAt: now,
@@ -684,7 +684,7 @@ import { t } from '../../lib/i18n';
     }
 
     /**
-     * 티어 행(라벨·색·순서·개수) 변경. 사라진 티어에 있던 카드는 미배치로 이동.
+     * 티어 행(라벨, 색, 순서, 개수) 변경. 사라진 티어에 있던 카드는 미배치로 이동.
      */
     function applyTiers(list: TlListInstance, tiersInOrder: TlTierDef[]): boolean {
         if (!list || !Array.isArray(tiersInOrder) || tiersInOrder.length === 0) return false;
@@ -721,8 +721,8 @@ import { t } from '../../lib/i18n';
     }
 
     /**
-     * 카탈로그 items에 id가 없으면(삭제·동기화 등) 직접 추가(custom)로만 취급.
-     * itemOverrides만 있던·tlOrigin 미표기 등도 포함해 catalog 잔존 표시를 걷어냄.
+     * 카탈로그 items에 id가 없으면(삭제, 동기화 등) 직접 추가(custom)로만 취급.
+     * itemOverrides만 있던, tlOrigin 미표기 등도 포함해 catalog 잔존 표시를 걷어냄.
      */
     function promoteCatalogMissingToCustom(list: TlListInstance, catalogItemIdSet: Set<string>): boolean {
         if (!list?.items || !(catalogItemIdSet instanceof Set)) return false;
@@ -738,7 +738,7 @@ import { t } from '../../lib/i18n';
     }
 
     /**
-     * 카탈로그가 갱신·축소된 뒤: 풀에 없는 id는 후보 풀 출처가 아닌 것으로 보고 제거.
+     * 카탈로그가 갱신, 축소된 뒤: 풀에 없는 id는 후보 풀 출처가 아닌 것으로 보고 제거.
      * tlOrigin === 'custom' 인 항목(직접 추가)만 풀 밖 id를 유지한다.
      */
     function pruneStaleCatalogBindings(list: TlListInstance, catalogItems: Record<string, TlItem>): boolean {

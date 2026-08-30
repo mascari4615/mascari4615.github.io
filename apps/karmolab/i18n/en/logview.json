@@ -1,5 +1,5 @@
 {
-  "logview.mdd": "A big log — let us narrow it down.",
+  "logview.mdd": "A big log. let us narrow it down.",
   "logview.tab": "Log",
   "logview.label.file": "Log file (never leaves your browser)",
   "logview.label.paste": "or paste here",
@@ -11,10 +11,10 @@
   "logview.level.debug": "debug",
   "logview.level.trace": "trace",
   "logview.level.other": "other",
-  "logview.span": "{from} — {to}",
+  "logview.span": "{from}. {to}",
   "logview.span.none": "No timestamps were read, so there is no chart (the lines are still listed)",
   "logview.status.idle": "Pick a log file or paste one",
-  "logview.status.reading": "Reading…",
+  "logview.status.reading": "Reading...",
   "logview.status.ok": "{shown} lines shown (of {total})",
-  "logview.status.capped": "Drew {shown} lines ({all} match, {total} total) — narrow it down further"
+  "logview.status.capped": "Drew {shown} lines ({all} match, {total} total). narrow it down further"
 }

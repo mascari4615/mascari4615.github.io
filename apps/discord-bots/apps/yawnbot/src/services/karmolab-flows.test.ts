@@ -28,7 +28,7 @@ describe('흐름 원장 (KL-181)', () => {
     expect(new KarmolabFlowStore(statePath).get(flow.id)?.title).toBe('문서 정리');
   });
 
-  it('빈 흐름·이름 없는 흐름은 안 만든다', () => {
+  it('빈 흐름, 이름 없는 흐름은 안 만든다', () => {
     const store = new KarmolabFlowStore(statePath);
     expect(store.create('karmo', { title: '이름만', steps: [] })).toBeNull();
     expect(store.create('karmo', { title: '', steps })).toBeNull();
@@ -42,7 +42,7 @@ describe('흐름 원장 (KL-181)', () => {
     expect(JSON.stringify(flow)).not.toContain('script');
   });
 
-  it('남의 흐름은 못 고치고 못 지운다 — 담아서 자기 것으로 만든 뒤 고친다', () => {
+  it('남의 흐름은 못 고치고 못 지운다. 담아서 자기 것으로 만든 뒤 고친다', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: '내 것', steps })!;
     expect(store.update(flow.id, 'ring', { title: '뺏기' })).toBeNull();
@@ -56,7 +56,7 @@ describe('흐름 원장 (KL-181)', () => {
     expect(store.get(flow.id)?.title).toBe('내 것');
   });
 
-  it('돈 횟수는 실측만 — 부를 때마다 하나씩', () => {
+  it('돈 횟수는 실측만. 부를 때마다 하나씩', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: 'x', steps })!;
     expect(flow.runs).toBe(0);
@@ -65,7 +65,7 @@ describe('흐름 원장 (KL-181)', () => {
     expect(store.noteRun('없는id')).toBe(0);
   });
 
-  it('계정을 지워도 흐름은 남는다 — 남이 담아 간 것이 안 죽게 주인만 지운다', () => {
+  it('계정을 지워도 흐름은 남는다. 남이 담아 간 것이 안 죽게 주인만 지운다', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: 'x', steps })!;
     expect(store.orphanOwner('karmo')).toBe(1);
@@ -84,11 +84,11 @@ describe('흐름 원장 (KL-181)', () => {
   });
 });
 
-/** 흐름 자국 (TASK-KL-182 F5) — 어디서 막히나. */
+/** 흐름 자국 (TASK-KL-182 F5). 어디서 막히나. */
 describe('흐름 자국 (KL-182 F5)', () => {
   const steps3 = [{ toolId: 'a' }, { toolId: 'b' }, { toolId: 'c' }];
 
-  it('자국이 없으면 요약도 없다 — 모르는 것을 아는 척하지 않는다', () => {
+  it('자국이 없으면 요약도 없다. 모르는 것을 아는 척하지 않는다', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: 'x', steps: steps3 })!;
     expect(store.trailSummary(flow.id)).toBeNull();
@@ -106,7 +106,7 @@ describe('흐름 자국 (KL-182 F5)', () => {
     expect(summary.medianSeconds).toBe(40);
   });
 
-  it('단계 수를 넘는 값은 잘린다 · 자국은 20판까지', () => {
+  it('단계 수를 넘는 값은 잘린다, 자국은 20판까지', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: 'x', steps: steps3 })!;
     expect(store.noteTrail(flow.id, { reached: 99, finished: true })[0].reached).toBe(3);
@@ -115,7 +115,7 @@ describe('흐름 자국 (KL-182 F5)', () => {
   });
 });
 
-/** 예약 알림 (TASK-KL-183 B) — 서버는 알리기만 한다. */
+/** 예약 알림 (TASK-KL-183 B). 서버는 알리기만 한다. */
 describe('흐름 예약 (KL-183 B)', () => {
   const steps = [{ toolId: 'a' }, { toolId: 'b' }];
 
@@ -127,7 +127,7 @@ describe('흐름 예약 (KL-183 B)', () => {
     expect(store.setReminder(flow.id, 'karmo', { on: false })!.reminder).toBeUndefined();
   });
 
-  it('그 요일 그 시각이 지나야 알린다 · 같은 주에 두 번 안 알린다', () => {
+  it('그 요일 그 시각이 지나야 알린다, 같은 주에 두 번 안 알린다', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: 'x', steps })!;
     store.setReminder(flow.id, 'karmo', { weekday: 1, hour: 10 });
@@ -161,7 +161,7 @@ describe('스스로 이어감 (KL-191 축1)', () => {
     expect(store.setAuto(flow.id, 'karmo', false)!.auto).toBeUndefined();
   });
 
-  it('단계가 하나뿐이면 못 켠다 — 이어갈 다음이 없다', () => {
+  it('단계가 하나뿐이면 못 켠다. 이어갈 다음이 없다', () => {
     const store = new KarmolabFlowStore(statePath);
     const flow = store.create('karmo', { title: '한 단계', steps: [{ toolId: 'pdfcrop' }] })!;
     expect(store.setAuto(flow.id, 'karmo', true)).toBeNull();

@@ -1,7 +1,7 @@
 /**
  * 짝 맞추기 화면 (TASK-KL-242)
  *
- * 카드 얼굴은 **글자 하나**다 — 그림을 쓰면 화풍이 필요하고, 화풍은 코드로 못 만든다.
+ * 카드 얼굴은 **글자 하나**다. 그림을 쓰면 화풍이 필요하고, 화풍은 코드로 못 만든다.
  * 대신 여덟 짝이 서로 확실히 달라 보이게 골랐다.
  */
 import type { GameView } from '../views';
@@ -19,7 +19,7 @@ export const memoryView: GameView<MemoryState, MemoryAction> = {
     return (v, mySeat) => {
       const s = v.state;
       if (cards.length !== s.cards.length) {
-        /* 종이는 공용 부품(.ac-pc). 뒤집기는 **다시 그리지 않고** 클래스와 글자만 바꾼다 —
+        /* 종이는 공용 부품(.ac-pc). 뒤집기는 **다시 그리지 않고** 클래스와 글자만 바꾼다 . 
            매 tick innerHTML 을 새로 쓰면 뒤집는 사이 카드가 깜빡인다. */
         grid.innerHTML = s.cards
           .map((_, i) => '<button class="ac-pc ac-back" data-i="' + i + '"><span class="ac-pcm"></span></button>')

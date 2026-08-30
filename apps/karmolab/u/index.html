@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f0f12">
 <meta name="color-scheme" content="dark">
-<title>프로필 — KarmoLab</title>
+<title>프로필. KarmoLab</title>
 <meta name="description" content="KarmoLab 에서 이어 온 기록.">
 <!-- 프로필은 사람마다 다른 내용이 스크립트로 채워진다. 검색 결과에 빈 껍데기가 쌓이면
      사이트 전체 평가가 깎이므로 색인하지 않는다 (TASK-KL-098 Cycle 1).
@@ -63,8 +63,8 @@
   .profile-table th { color: var(--muted); font-weight: 600; font-size: 12px; }
   .profile-table td:not(:first-child), .profile-table th:not(:first-child) { text-align: right; }
   .profile-note { color: var(--muted); font-size: 14px; }
-  /* 명함 자리 (TASK-KL-152 C5) — 한 줄 소개 + 대표 도구. 안 채운 사람에겐 통째로 안 그려진다. */
-  /* 따라가기 (TASK-KL-152 C8) — 로그인 안 했거나 자기 프로필이면 단추 자체가 없다. */
+  /* 명함 자리 (TASK-KL-152 C5). 한 줄 소개 + 대표 도구. 안 채운 사람에겐 통째로 안 그려진다. */
+  /* 따라가기 (TASK-KL-152 C8). 로그인 안 했거나 자기 프로필이면 단추 자체가 없다. */
   .profile-follow {
     margin-left: auto; align-self: flex-start;
     padding: 8px 16px; border-radius: 999px; cursor: pointer;
@@ -83,7 +83,7 @@
   }
   .profile-block:hover { border-color: #dc2626; color: #fca5a5; }
   .profile-block[disabled] { opacity: .6; cursor: default; }
-  /* 지금 접속 중 (TASK-KL-156 D5) — 본인이 켠 사람에게만 붙는다. */
+  /* 지금 접속 중 (TASK-KL-156 D5). 본인이 켠 사람에게만 붙는다. */
   .profile-online { color: #4ade80; font-size: 12px; margin-left: 6px; }
   .profile-card-note { margin: 18px 0 0; }
   .profile-bio { margin: 0; font-size: 15px; line-height: 1.6; }
@@ -98,7 +98,7 @@
     border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px;
   }
   .profile-share:hover { border-color: var(--accent); color: var(--accent); }
-  /* 잔디 (TASK-KL-175 E6) — 안 온 날과 둘러보기만 한 날을 다르게 칠한다. */
+  /* 잔디 (TASK-KL-175 E6). 안 온 날과 둘러보기만 한 날을 다르게 칠한다. */
   .profile-grass-wrap { margin: 24px 0; }
   .profile-grass-wrap h2 { margin: 0 0 8px; font-size: 15px; }
   .profile-grass {
@@ -111,7 +111,7 @@
   .profile-grass i[data-lv="3"] { background: rgba(185, 162, 255, 0.75); }
   .profile-grass i[data-lv="4"] { background: var(--accent); }
   .profile-grass i[data-lv="x"] { background: transparent; }
-  /* 작업실 (TASK-KL-182 F3) — 건 것이 없으면 이 자리는 아예 안 그려진다. */
+  /* 작업실 (TASK-KL-182 F3). 건 것이 없으면 이 자리는 아예 안 그려진다. */
   .profile-works { margin: 24px 0; }
   .profile-works h2 { margin: 0 0 10px; font-size: 15px; }
   .profile-works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
@@ -121,7 +121,7 @@
     border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03);
   }
   .profile-works figcaption { margin-top: 5px; font-size: 12px; color: var(--text); }
-  /* 그림이 없는 작업 — PDF·소리·영상·글 (TASK-KL-191 축3). 없는 그림을 부르는 대신
+  /* 그림이 없는 작업. PDF, 소리, 영상, 글 (TASK-KL-191 축3). 없는 그림을 부르는 대신
      갈래 표시와 단서 한 줄을 같은 크기의 칸에 둔다(벽이 들쭉날쭉해지지 않게). */
   .profile-work-blank {
     width: 100%; aspect-ratio: 1; display: flex; flex-direction: column;
@@ -146,10 +146,10 @@
 </head>
 <body>
   <main id="profileRoot">
-    <div class="profile-empty"><p>불러오는 중…</p></div>
+    <div class="profile-empty"><p>불러오는 중...</p></div>
   </main>
   <!-- 도구 이름표 (TASK-KL-152 C5). 대표 도구를 `pet` 같은 id 로 보이면 남은 그게 뭔지 모른다.
-       이름은 이 목록이 정본이라 여기서 읽는다 — 프로필 쪽에 이름을 베껴 적지 않는다. -->
+       이름은 이 목록이 정본이라 여기서 읽는다. 프로필 쪽에 이름을 베껴 적지 않는다. -->
   <script defer src="/apps/karmolab/js/widgets-index.js"></script>
   <script defer src="/apps/karmolab/js/profile.js"></script>
 </body>

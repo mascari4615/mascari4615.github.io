@@ -1,4 +1,4 @@
-/* Tierlist 위젯 공유 타입 정본 — TASK-KL-101 (KL-078 follow-up).
+/* Tierlist 위젯 공유 타입 정본. TASK-KL-101 (KL-078 follow-up).
  * 3 파일(storage / publish / render)이 `const T: any = window.Tierlist` 와 다수 `: any` 파라미터로
  * 가지고 있던 type 누수를 제거. script-mode IIFE 파일이라 top-level interface 가 카르몰랩 컴파일
  * 단위 안에서 전역으로 노출된다. */
@@ -69,7 +69,7 @@ interface TlPublishedMeta {
     [k: string]: unknown;
 }
 
-/** state.openPublished 에 들어오는 raw data — catalog · slim instance · full list 모두 가능. */
+/** state.openPublished 에 들어오는 raw data. catalog, slim instance, full list 모두 가능. */
 interface TlPublishedData {
     kind?: string;
     version?: number;
@@ -237,7 +237,7 @@ interface TlDialogsAPI {
     showAssignUserLabelsDialog?: (itemId: string) => void;
 }
 
-/** namespace.ts 부트스트랩 이후 — index.ts 진입 시점엔 모든 sub-API 가 채워져 있다고 본다. */
+/** namespace.ts 부트스트랩 이후. index.ts 진입 시점엔 모든 sub-API 가 채워져 있다고 본다. */
 interface TierlistNamespace {
     injectStyles?: () => void;
     db: TlDbAPI;

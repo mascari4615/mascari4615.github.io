@@ -86,7 +86,7 @@ export async function handleScheduleList(ctx: BotContext, interaction: ChatInput
 
   const lines = entries.map((e) => {
     const unixSec = Math.floor(new Date(e.datetime).getTime() / 1000);
-    return `\`${e.id}\` **${e.title}** — <t:${unixSec}:f> (${e.notifyMinutes}분 전 알림)`;
+    return `\`${e.id}\` **${e.title}**. <t:${unixSec}:f> (${e.notifyMinutes}분 전 알림)`;
   });
 
   const embed = new EmbedBuilder()

@@ -1,9 +1,9 @@
 /**
- * 코드 사진 알맹이 — 재는 일 (TASK-KL-245).
+ * 코드 사진 알맹이. 재는 일 (TASK-KL-245).
  *
  * 여기서 지키는 규칙은 `text2img` 와 **정반대**다: 줄을 접지 않고, 글자를 줄이지 않는다.
- * 코드는 줄이 곧 뜻이라 「가장 긴 줄이 그림 폭을 정한다」가 유일하게 맞는 셈법이다.
- * 그리고 탭은 **다음 눈금까지** 편다 — 무조건 네 칸으로 바꾸면 탭과 공백이 섞인 파일에서
+ * 코드는 줄이 곧 뜻이라 가장 긴 줄이 그림 폭을 정한다가 유일하게 맞는 셈법이다.
+ * 그리고 탭은 **다음 눈금까지** 편다. 무조건 네 칸으로 바꾸면 탭과 공백이 섞인 파일에서
  * 줄이 어긋나고, 코드에서 어긋난 들여쓰기는 곧 오해다.
  *
  * 사용: node scripts/test-codeshot-core.mjs   (npm run test:codeshot)
@@ -24,7 +24,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const entry = path.join(os.tmpdir(), `cs-core-${Date.now()}.ts`);
@@ -63,7 +63,7 @@ const opts = (over = {}) => ({
 });
 
 {
-  /* 20 글자 — 너무 짧은 그림을 막는 최소 폭(120px)보다 길게 잡아야 「가장 긴 줄」 규칙이 보인다. */
+  /* 20 글자. 너무 짧은 그림을 막는 최소 폭(120px)보다 길게 잡아야 가장 긴 줄 규칙이 보인다. */
   const L = shot.layout(['ab', 'a'.repeat(20), 'abc'], opts());
   // 가장 긴 줄 20글자 × 10 + 좌우 여백(14+16) + 바깥 여백(30×2)
   eq(L.width, 20 * 10 + 14 + 16 + 60, '가장 긴 줄이 그림 폭을 정한다');
@@ -71,7 +71,7 @@ const opts = (over = {}) => ({
 }
 
 {
-  /* 한 글자짜리 코드도 알아볼 그림이 나와야 한다 — 손톱만 한 PNG 는 사고로 보인다. */
+  /* 한 글자짜리 코드도 알아볼 그림이 나와야 한다. 손톱만 한 PNG 는 사고로 보인다. */
   const tiny = shot.layout(['x'], opts());
   check(tiny.width >= 120, '아주 짧은 코드에도 최소 폭이 있다');
 }
@@ -79,7 +79,7 @@ const opts = (over = {}) => ({
 {
   const short = shot.layout(['x'], opts());
   const long = shot.layout(['x'.repeat(120)], opts());
-  check(long.width > short.width * 5, '긴 줄은 접지 않는다 — 그림이 넓어질 뿐이다');
+  check(long.width > short.width * 5, '긴 줄은 접지 않는다. 그림이 넓어질 뿐이다');
   eq(long.height, short.height, '줄을 안 접으므로 높이는 그대로다');
 }
 
@@ -99,7 +99,7 @@ function shat(mod, n) {
 {
   const L = shot.layout(['\tx'], opts());
   const L2 = shot.layout(['    x'], opts());
-  eq(L.width, L2.width, '탭은 편 뒤의 길이로 잰다 — 안 그러면 탭 쓴 파일만 좁게 나온다');
+  eq(L.width, L2.width, '탭은 편 뒤의 길이로 잰다. 안 그러면 탭 쓴 파일만 좁게 나온다');
 }
 
 {
@@ -116,7 +116,7 @@ check(
 eq(frames.frameById('없는것').id, frames.FRAMES[0].id, '모르는 껍데기를 부르면 기본값으로');
 check(
   frames.FRAMES.some((f) => !f.palette.dark),
-  '밝은 껍데기도 있어야 한다 — 어두운 것만 있으면 「테마」가 아니다'
+  '밝은 껍데기도 있어야 한다. 어두운 것만 있으면 테마가 아니다'
 );
 
 /* ── 색 ──────────────────────────────────────────────────────────── */

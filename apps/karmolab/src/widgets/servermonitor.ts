@@ -9,13 +9,13 @@ import { t, loadNamespace } from '../lib/i18n';
 
   'use strict';
 
-  /* 작업 폴더 값의 정본은 `lib/work-folder.ts` 다 (TASK-KL-332 — 환경 설정 › 이 컴퓨터 › 작업 폴더).
-     여기 입력칸은 손 닿는 자리로 남기되, 넣고 확인하는 길은 그쪽 하나를 지난다 —
+  /* 작업 폴더 값의 정본은 `lib/work-folder.ts` 다 (TASK-KL-332. 환경 설정 › 이 컴퓨터 › 작업 폴더).
+     여기 입력칸은 손 닿는 자리로 남기되, 넣고 확인하는 길은 그쪽 하나를 지난다 . 
      두 화면이 각자 넣으면 반드시 한쪽이 모르는 상태가 된다. */
 
   /**
    * dev 프로필. 두 형식 (Rust `DevProfile::resolve` 와 동형):
-   * - **npm-script 참조** (선호): `{ app, script, deployScript? }` — `app` 에서
+   * - **npm-script 참조** (선호): `{ app, script, deployScript? }`. `app` 에서
    *   `npm run <script>`. program/args/cwd 손기재 X → package.json rename 자동 추종.
    *   `servermonitor-config-audit.mjs` 가 script 실재를 verify 게이트에서 검증.
    * - **raw** (npm 스크립트 아님, 예: jekyll `bundle exec`): `{ cwd, program, args }`.
@@ -59,7 +59,7 @@ import { t, loadNamespace } from '../lib/i18n';
     };
   }
 
-  /** 카드 stdin form 단축키 프리셋 — Vite/jest/jekyll 같은 dev 러너가 stdin 으로 받는 단일 시그널. */
+  /** 카드 stdin form 단축키 프리셋. Vite/jest/jekyll 같은 dev 러너가 stdin 으로 받는 단일 시그널. */
   type StdinShortcut = { signal: string; hint: string };
 
   const VITE_SHORTCUTS: StdinShortcut[] = [
@@ -212,7 +212,7 @@ import { t, loadNamespace } from '../lib/i18n';
     return { id: m.id, title, subtitle, url, canPing };
   }
 
-  /** 카드에 자동 표시할 포트 — 실제 서비스가 듣는 곳을 한눈에 보여 주기 위함.
+  /** 카드에 자동 표시할 포트. 실제 서비스가 듣는 곳을 한눈에 보여 주기 위함.
    *  healthUrl(devProfile) 이 있으면 우선, 없으면 monitor.url 에서 추출. */
   function extractPort(...candidates: (string | undefined)[]): string | null {
     for (const raw of candidates) {
@@ -535,8 +535,8 @@ import { t, loadNamespace } from '../lib/i18n';
     const SM_LOG_MAX_LINES = 500;
     const SM_LOG_MAX_BYTES = 256 * 1024;
 
-    // 외부 PID 자동 폴링이 직전 결과와 동일하면 재마운트 skip — 사용자 stdin/스크롤 보존.
-    // 수동 새로고침·시작·종료가 호출하는 renderMergedServices 도 같은 snapshot 갱신 → 모든 경로 일관.
+    // 외부 PID 자동 폴링이 직전 결과와 동일하면 재마운트 skip. 사용자 stdin/스크롤 보존.
+    // 수동 새로고침, 시작, 종료가 호출하는 renderMergedServices 도 같은 snapshot 갱신 → 모든 경로 일관.
     const EXTERNAL_PID_POLL_MS = 30_000;
     let lastExternalPidsSnapshot: string | null = null;
     function snapshotExternalPids(map: Record<string, number[]>): string {
@@ -576,8 +576,8 @@ import { t, loadNamespace } from '../lib/i18n';
       okFallback: string
     ): Promise<void> {
       // TASK-KL-062 slice3b: inv/listen 로컬 캡처+캐스트 폐기 → seam.
-      // 비-데스크톱이면 silent return (구 inv 가드와 동일 관측동작 — listen
-      // 토스트는 inv·listen 동시 주입이라 도달 불가였던 죽은 분기).
+      // 비-데스크톱이면 silent return (구 inv 가드와 동일 관측동작. listen
+      // 토스트는 inv, listen 동시 주입이라 도달 불가였던 죽은 분기).
       if (!isDesktop()) return;
       for (const b of disableBtns) b.disabled = true;
       logPanel.replaceChildren();
@@ -613,7 +613,7 @@ import { t, loadNamespace } from '../lib/i18n';
     const rootInput = document.createElement('input');
     rootInput.type = 'text';
     rootInput.className = 'mono-input sm-root-footer-input';
-    rootInput.placeholder = '예: C:\\Users\\…\\Mascari4615.github.io';
+    rootInput.placeholder = '예: C:\\Users\\...\\Mascari4615.github.io';
     rootInput.value = savedWorkFolder();
 
     const saveRootBtn = document.createElement('button');
@@ -690,7 +690,7 @@ import { t, loadNamespace } from '../lib/i18n';
         card.className = cardClass;
         card.dataset.smServiceId = row.id;
 
-        // ━━ Row 1 (primary) — 한눈에 보이는 핵심: dot · title · port · primary action · ⋯ ━━
+        // ━━ Row 1 (primary). 한눈에 보이는 핵심: dot, title, port, primary action, ⋯ ━━
         const primary = document.createElement('div');
         primary.className = 'sm-card-primary';
 
@@ -734,7 +734,7 @@ import { t, loadNamespace } from '../lib/i18n';
           }
           appendPortChip();
 
-          // ⋯ 메뉴 토글 — 시작/종료/로그/npm i/deploy 모두 메뉴 안에.
+          // ⋯ 메뉴 토글. 시작/종료/로그/npm i/deploy 모두 메뉴 안에.
           const menuBtn = document.createElement('button');
           menuBtn.type = 'button';
           menuBtn.className = 'sm-menu-btn';
@@ -745,7 +745,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
           card.appendChild(primary);
 
-          // ━━ Log wrap (기본 접힘) — 로그 패널 + stdin form ━━
+          // ━━ Log wrap (기본 접힘). 로그 패널 + stdin form ━━
           // 시작 버튼으로 띄운 봇의 stdout/stderr 는 Rust 가 로그 파일로 redirect 하고
           // `localdev_follow_log` 가 그 파일을 tail 해서 `localdev-log` 로 emit. npm i / deploy
           // 스트림도 같은 패널을 공유한다.
@@ -763,7 +763,7 @@ import { t, loadNamespace } from '../lib/i18n';
           logWrap.appendChild(hint);
           logWrap.appendChild(logPanelEl);
 
-          // stdin 입력 — 카모랩이 띄운(추적 중인) 프로세스에만 enable.
+          // stdin 입력. 카모랩이 띄운(추적 중인) 프로세스에만 enable.
           const stdinForm = document.createElement('form');
           stdinForm.className = 'sm-stdin-form';
           const stdinInput = document.createElement('input');
@@ -786,13 +786,13 @@ import { t, loadNamespace } from '../lib/i18n';
           stdinBtn.textContent = t('servermonitor.t32');
           if (!stdinSendable) stdinBtn.disabled = true;
 
-          // dev 러너 단축키 프리셋 (Vite r/u/o/q · jest/vitest a/f/p/q · jekyll r/q · node REPL .exit).
+          // dev 러너 단축키 프리셋 (Vite r/u/o/q, jest/vitest a/f/p/q, jekyll r/q, node REPL .exit).
           // 사용자가 한 글자 직접 치는 빈도 높은 시그널을 클릭으로 대체. 매칭 안 되면 그룹 자체 숨김.
           const shortcuts = pickStdinShortcuts(p);
           if (shortcuts && shortcuts.length > 0) {
             const shortcutGroup = document.createElement('div');
             shortcutGroup.className = 'sm-stdin-shortcuts';
-            // sm-stdin-form 에 별도 CSS 가 없어 inline 정렬을 직접 잡는다 — input 옆 한 줄.
+            // sm-stdin-form 에 별도 CSS 가 없어 inline 정렬을 직접 잡는다. input 옆 한 줄.
             shortcutGroup.style.display = 'inline-flex';
             shortcutGroup.style.gap = '4px';
             shortcutGroup.style.marginRight = '6px';
@@ -842,7 +842,7 @@ import { t, loadNamespace } from '../lib/i18n';
           };
           logWrap.appendChild(stdinForm);
 
-          // ━━ Menu 드롭다운 (⋯ 클릭 시 토글) — 보조 액션 ━━
+          // ━━ Menu 드롭다운 (⋯ 클릭 시 토글). 보조 액션 ━━
           const menu = document.createElement('div');
           menu.className = 'sm-card-menu';
           menu.hidden = true;
@@ -993,7 +993,7 @@ import { t, loadNamespace } from '../lib/i18n';
             });
           }
         } else {
-          // profile 없음 — 모니터 전용 카드. 순서: subtitle → port → 상태 텍스트.
+          // profile 없음. 모니터 전용 카드. 순서: subtitle → port → 상태 텍스트.
           if (mon?.subtitle) {
             const subInline = document.createElement('span');
             subInline.className = 'sm-card-sub-inline';
@@ -1018,7 +1018,7 @@ import { t, loadNamespace } from '../lib/i18n';
     registerRefresh(renderMergedServices);
     refreshListBtn.onclick = () => void renderMergedServices();
 
-    // 외부 PID 자동 폴링 — 별도 PowerShell 에서 띄운 dev 프로세스가 30s 안에 카드에 자동 표시되게.
+    // 외부 PID 자동 폴링. 별도 PowerShell 에서 띄운 dev 프로세스가 30s 안에 카드에 자동 표시되게.
     // ping 5s 폴링과 분리한 이유: PowerShell 풀스캔이 1~2초 부담. Rust 측 30s TTL 캐시와 짝.
     // 결과가 직전과 같으면 재마운트 skip → 사용자 stdin/스크롤 보존.
     window.setInterval(() => {
@@ -1299,8 +1299,8 @@ import { t, loadNamespace } from '../lib/i18n';
     }
 
     /**
-     * @param rerenderCards true 면 ping 후 카드 전체 다시 그리기(refreshDevTable). 수동 새로고침/시작·종료 직후 트리거에서만 true.
-     *   자동 polling 은 false — 카드 그대로 두고 ping/track 만 patch 해서 사용자가 펼쳐둔 로그가 살아남음.
+     * @param rerenderCards true 면 ping 후 카드 전체 다시 그리기(refreshDevTable). 수동 새로고침/시작, 종료 직후 트리거에서만 true.
+     *   자동 polling 은 false. 카드 그대로 두고 ping/track 만 patch 해서 사용자가 펼쳐둔 로그가 살아남음.
      */
     async function fetchStatus(rerenderCards: boolean = false): Promise<void> {
       setRefreshBusy(true, t('servermonitor.t44'));
@@ -1321,7 +1321,7 @@ import { t, loadNamespace } from '../lib/i18n';
         const totalPings = normalized.filter((m) => m.canPing && m.url).length;
         let pingDone = 0;
 
-        // 모든 ping 동시 발사 — 직렬은 5개 × 2s = 10s, 병렬은 max 2s.
+        // 모든 ping 동시 발사. 직렬은 5개 × 2s = 10s, 병렬은 max 2s.
         const localResults: Array<{ meta: (typeof normalized)[0]; state: LocalCardState }> = [];
         await Promise.all(
           normalized.map(async (meta) => {
@@ -1366,7 +1366,7 @@ import { t, loadNamespace } from '../lib/i18n';
             const sub = meta.subtitle
               ? `<div class="sm-card-sub">${esc(meta.subtitle)}</div>`
               : '';
-            // 브라우저(non-Tauri) 폴백 카드는 단순 모니터 — 이미지 사이즈 맞추기 위해 기존 카드 모양 유지
+            // 브라우저(non-Tauri) 폴백 카드는 단순 모니터. 이미지 사이즈 맞추기 위해 기존 카드 모양 유지
             return `<div class="${cls}">
               <div class="sm-card-title">${esc(meta.title)}</div>
               ${sub}
@@ -1392,7 +1392,7 @@ import { t, loadNamespace } from '../lib/i18n';
           statusBox.className = 'sm-status-wrap error';
         }
       } finally {
-        // rerenderCards 가 true 일 때만 카드 전체 다시 그리기 (config 변경/시작·종료 직후 사용자 액션). polling 은 false 라 카드 유지 → 사용자가 펼쳐둔 로그 그대로.
+        // rerenderCards 가 true 일 때만 카드 전체 다시 그리기 (config 변경/시작, 종료 직후 사용자 액션). polling 은 false 라 카드 유지 → 사용자가 펼쳐둔 로그 그대로.
         if (rerenderCards && !skipFinalMergeRefresh) {
           try {
             const doRefresh = refreshDevTable as (() => Promise<void>) | null;
@@ -1446,7 +1446,7 @@ import { t, loadNamespace } from '../lib/i18n';
       {
         id: 'main',
         label: t('servermonitor.tab.status', undefined, '상태'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('servermonitor').then(function () {
             build(container);

@@ -10,8 +10,8 @@
   "photomap.undated": "때를 모르는 사진 {n}장",
   "photomap.span": "가로 약 {km} km",
   "photomap.status.idle": "사진을 여러 장 고르세요",
-  "photomap.status.reading": "{n}장 읽는 중…",
-  "photomap.status.ok": "{n}장 · 자리 {places}곳 · 위치 없는 사진 {without}장",
+  "photomap.status.reading": "{n}장 읽는 중...",
+  "photomap.status.ok": "{n}장, 자리 {places}곳, 위치 없는 사진 {without}장",
   "photomap.status.noneWithGps": "{n}장 모두 위치 정보가 없습니다 (카메라에서 위치 저장이 꺼져 있었거나 이미 지워졌습니다)",
-  "photomap.note.noTiles": "지도 그림(타일)을 받지 않습니다 — 받는 순간 「내 사진이 어디서 찍혔는지」가 지도 서버로 갑니다. 그래서 점만 그리고, 진짜 지도는 눌렀을 때만 새 창으로 엽니다. 사진과 위치는 이 브라우저를 벗어나지 않습니다."
+  "photomap.note.noTiles": "지도 그림(타일)을 받지 않습니다. 받는 순간 내 사진이 어디서 찍혔는지가 지도 서버로 갑니다. 그래서 점만 그리고, 진짜 지도는 눌렀을 때만 새 창으로 엽니다. 사진과 위치는 이 브라우저를 벗어나지 않습니다."
 }

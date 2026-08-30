@@ -1,10 +1,10 @@
 /**
- * TASK-KL-149 — 채팅을 **실제 HTTP 로** 찔러 본다.
+ * TASK-KL-149. 채팅을 **실제 HTTP 로** 찔러 본다.
  *
  * 저장소 시험(`karmolab-chat.test.ts`)은 함수가 맞는지만 본다. 여기서 보는 것은 그 위의 배선이다:
  * 흐르는 연결이 정말 흐르는가(모아 뒀다 한꺼번에 오지 않는가), 한쪽이 친 말이 다른 쪽 화면에
- * 도착하는가, 봇이 폼을 눌러 방을 채울 수 있는가. 이 층이 없으면 「함수는 맞는데 브라우저에서는
- * 안 되는」 상태를 배포까지 못 잡는다 — 실시간 기능에서 가장 흔한 실패 자리다.
+ * 도착하는가, 봇이 폼을 눌러 방을 채울 수 있는가. 이 층이 없으면 함수는 맞는데 브라우저에서는
+ * 안 되는 상태를 배포까지 못 잡는다. 실시간 기능에서 가장 흔한 실패 자리다.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import express from 'express';
@@ -18,7 +18,7 @@ import { KarmolabTraceStore } from '../services/karmolab-traces';
 import { KarmolabPlayStore } from '../services/karmolab-plays';
 import { KarmolabChatStore } from '../services/karmolab-chat';
 
-/** 사람이 쓰는 브라우저인 척. 이걸 안 보내면 서버가 「사람 아님」으로 막는다 — 그게 맞는 동작이다. */
+/** 사람이 쓰는 브라우저인 척. 이걸 안 보내면 서버가 사람 아님으로 막는다. 그게 맞는 동작이다. */
 const HUMAN_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const BOT_UA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
@@ -37,7 +37,7 @@ beforeEach(async () => {
     new KarmolabTraceStore(path.join(tmpDir, 'traces.json')),
     undefined,
     new KarmolabPlayStore(path.join(tmpDir, 'plays.json')),
-    /* 「지금 여기」는 사람이 나가도 곧바로 안 줄인다 — 화면을 옮기는 몇 초를 봐준다(기본 12초).
+    /* 지금 여기는 사람이 나가도 곧바로 안 줄인다. 화면을 옮기는 몇 초를 봐준다(기본 12초).
        여기서 재고 싶은 것은 **양쪽에 갱신이 가는가**지 그 유예의 길이가 아니라서, 짧게 준다. */
     new KarmolabChatStore(path.join(tmpDir, 'chat.json'), 200),
   );
@@ -60,14 +60,14 @@ beforeEach(async () => {
 
 afterEach(async () => {
   /* 열어 둔 연결을 먼저 끊는다. 흐르는 연결은 **안 끝나는 응답**이라, 시험이 중간에 실패해서
-   * 하나라도 남으면 `server.close()` 가 영영 안 돌아온다 — 그러면 진짜 실패 대신
-   * 「hook timed out」만 보인다(실제로 한 번 그렇게 가려졌다). */
+   * 하나라도 남으면 `server.close()` 가 영영 안 돌아온다. 그러면 진짜 실패 대신
+   * hook timed out만 보인다(실제로 한 번 그렇게 가려졌다). */
   for (const close of openStreams.splice(0)) close();
   await new Promise<void>((resolve) => server.close(() => resolve()));
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-/** 이 시험에서 연 흐르는 연결들 — 끝날 때 무조건 거둔다. */
+/** 이 시험에서 연 흐르는 연결들. 끝날 때 무조건 거둔다. */
 const openStreams: (() => void)[] = [];
 
 interface SseEvent {
@@ -78,7 +78,7 @@ interface SseEvent {
 /**
  * 흐르는 연결 하나를 연다.
  *
- * 브라우저의 `EventSource` 를 쓸 수 없으니 손으로 읽는다. 이게 오히려 낫다 —
+ * 브라우저의 `EventSource` 를 쓸 수 없으니 손으로 읽는다. 이게 오히려 낫다 . 
  * **덩어리가 언제 도착하는지**를 직접 보게 되므로, 중간에서 모아 뒀다 한꺼번에 주는 함정
  * (프록시 버퍼링과 같은 증상)이 여기서 드러난다.
  */
@@ -121,7 +121,7 @@ async function openStream(ip: string): Promise<{
         }
       }
     } catch {
-      /* 닫으면 여기로 온다 — 정상 */
+      /* 닫으면 여기로 온다. 정상 */
     }
   })();
 
@@ -135,7 +135,7 @@ async function openStream(ip: string): Promise<{
           resolve(queue.splice(found, 1)[0]);
           return;
         }
-        const timer = setTimeout(() => reject(new Error(`「${event}」 가 ${timeoutMs}ms 안에 안 왔다`)), timeoutMs);
+        const timer = setTimeout(() => reject(new Error(`${event} 가 ${timeoutMs}ms 안에 안 왔다`)), timeoutMs);
         const push = (e: SseEvent): void => {
           if (e.event !== event) {
             queue.push(e);
@@ -159,7 +159,7 @@ function say(ip: string, text: string, ua = HUMAN_UA): Promise<Response> {
 }
 
 describe('흐르는 연결', () => {
-  it('붙자마자 「너는 오늘 누구인가」와 지금까지의 줄을 준다', async () => {
+  it('붙자마자 너는 오늘 누구인가와 지금까지의 줄을 준다', async () => {
     const stream = await openStream('10.0.0.1');
     const hello = await stream.next('hello');
     const me = hello.data.me as { who: string; name: string; color: string };
@@ -195,7 +195,7 @@ describe('흐르는 연결', () => {
     listener.close();
   }, 10000);
 
-  it('사람이 들고 나면 「지금 몇 명」이 양쪽에 갱신된다', async () => {
+  it('사람이 들고 나면 지금 몇 명이 양쪽에 갱신된다', async () => {
     const first = await openStream('10.0.0.1');
     await first.next('hello');
     const second = await openStream('10.0.0.2');
@@ -203,7 +203,7 @@ describe('흐르는 연결', () => {
     const grew = await first.next('here', 2000);
     expect(grew.data.here).toBe(2);
     second.close();
-    // 유예(위에서 200ms)가 지나야 줄어든다 — 그 뒤에 온다.
+    // 유예(위에서 200ms)가 지나야 줄어든다. 그 뒤에 온다.
     const shrank = await first.next('here', 3000);
     expect(shrank.data.here).toBe(1);
     first.close();
@@ -216,7 +216,7 @@ describe('흐르는 연결', () => {
     const arrived = await listener.next('msg', 2000);
     const id = (arrived.data.message as { id: string }).id;
 
-    // 주인이 아니면 못 지운다 — 남의 말을 아무나 지우면 그 단추가 무기가 된다.
+    // 주인이 아니면 못 지운다. 남의 말을 아무나 지우면 그 단추가 무기가 된다.
     const denied = await fetch(`${baseUrl}/kl/chat/${id}`, { method: 'DELETE', headers: { 'user-agent': HUMAN_UA } });
     expect(denied.status).toBe(403);
     listener.close();
@@ -272,7 +272,7 @@ describe('익명 글쓰기 (KL-157)', () => {
     const body = (await list.json()) as { posts: { text: string; authorHandle: string; anon: { name: string; color: string } | null }[] };
     const post = body.posts.find((p) => p.text === '로그인 안 했다');
     expect(post).toBeTruthy();
-    // 이름표는 채팅과 같은 모양(「색 동물」)이고, 손잡이는 **비어 있어야** 한다.
+    // 이름표는 채팅과 같은 모양(색 동물)이고, 손잡이는 **비어 있어야** 한다.
     expect(post!.anon?.name).toMatch(/\S+ \S+/);
     expect(post!.anon?.color).toMatch(/^#[0-9a-f]{6}$/);
     expect(post!.authorHandle).toBe('');
@@ -298,7 +298,7 @@ describe('익명 글쓰기 (KL-157)', () => {
     expect((await denied.json()).error).toBe('not_human');
   });
 
-  it('익명 답글도 달리고, 「주인」 표식은 안 붙는다', async () => {
+  it('익명 답글도 달리고, 주인 표식은 안 붙는다', async () => {
     const created = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.1.1' },
@@ -323,7 +323,7 @@ describe('익명 글쓰기 (KL-157)', () => {
     expect(reply.anon?.name).toMatch(/\S+ \S+/);
     expect(reply.byOwner).toBe(false);
     expect(reply.authorHandle).toBe('');
-    // 화면이 「어떤 이름으로 올라가는가」를 미리 적으려면 이 값이 있어야 한다.
+    // 화면이 어떤 이름으로 올라가는가를 미리 적으려면 이 값이 있어야 한다.
     expect(body.myAnon?.name).toMatch(/\S+ \S+/);
   });
 

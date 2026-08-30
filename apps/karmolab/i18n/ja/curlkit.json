@@ -10,10 +10,10 @@
   "curlkit.aria.out": "変換されたコード",
   "curlkit.label.read": "読み取った内容",
   "curlkit.status.idle": "curl コマンドを貼ってください",
-  "curlkit.status.ok": "{method} リクエスト · ヘッダー {n} 件を読みました",
-  "curlkit.status.bad": "読めませんでした — {msg}",
-  "curlkit.status.sending": "送信中…",
-  "curlkit.status.sent": "{code} · {ms}ms で返事が来ました",
-  "curlkit.status.blocked": "相手がブラウザからの要求を受けません (CORS) — コードはサーバー・端末ではそのまま動きます",
+  "curlkit.status.ok": "{method} リクエスト, ヘッダー {n} 件を読みました",
+  "curlkit.status.bad": "読めませんでした. {msg}",
+  "curlkit.status.sending": "送信中...",
+  "curlkit.status.sent": "{code}, {ms}ms で返事が来ました",
+  "curlkit.status.blocked": "相手がブラウザからの要求を受けません (CORS). コードはサーバー・端末ではそのまま動きます",
   "curlkit.copy.done": "コードをコピーしました"
 }

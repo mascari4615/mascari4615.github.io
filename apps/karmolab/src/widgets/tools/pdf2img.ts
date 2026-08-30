@@ -2,7 +2,7 @@
  * PDF → 이미지 (TASK-KL-088)
  *
  * PDF 한 장을 슬라이드나 문서에 넣으려면 이미지가 필요한데, 캡처하면 화질이 화면 해상도에 묶인다.
- * PDF 는 벡터라 **원하는 배율로 다시 그릴 수 있다** — 2배로 그리면 인쇄에도 쓸 만한 그림이 나온다.
+ * PDF 는 벡터라 **원하는 배율로 다시 그릴 수 있다**. 2배로 그리면 인쇄에도 쓸 만한 그림이 나온다.
  * 파일은 브라우저 밖으로 나가지 않는다.
  */
 import { statusLine } from './shared/say';
@@ -37,8 +37,8 @@ import { openForRead, renderPage } from './shared/pdf';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdf2img.title', undefined, "PDF → 이미지"),
-    category: 'tool',
-    desc: t('widgets-desc.pdf2img.desc', undefined, "PDF 페이지를 PNG·JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지"),
+    category: 'image',
+    desc: t('widgets-desc.pdf2img.desc', undefined, "PDF 페이지를 PNG, JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지"),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M13 19l2-2 2 2 2-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
     tabs: [
@@ -90,8 +90,8 @@ import { openForRead, renderPage } from './shared/pdf';
           const scale = $<HTMLInputElement>('#p2Scale');
           let file: File | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           async function run(): Promise<void> {
@@ -112,7 +112,7 @@ import { openForRead, renderPage } from './shared/pdf';
               say(t('pdf2img.say.drawing', { n: pages.length }));
               for (const n of pages) {
                 const page = await doc.getPage(n);
-                // JPG 는 투명을 못 담아 검게 나온다 — 흰 바탕을 먼저 깔아 달라고 시킨다
+                // JPG 는 투명을 못 담아 검게 나온다. 흰 바탕을 먼저 깔아 달라고 시킨다
                 const { canvas } = await renderPage(page, s, format === 'image/jpeg' ? '#fff' : undefined);
                 const url = canvas.toDataURL(format, 0.92);
                 const cell = document.createElement('a');
@@ -138,7 +138,7 @@ import { openForRead, renderPage } from './shared/pdf';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
           {
             Toolbox.onHandoff?.('pdf2img', (f: File) => pick(f));
           }

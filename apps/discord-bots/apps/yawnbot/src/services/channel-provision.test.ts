@@ -1,7 +1,7 @@
 /**
- * 채널 프로비저닝 reconcile 행동 테스트 (실 Discord 0 — 페이크 길드 주입).
+ * 채널 프로비저닝 reconcile 행동 테스트 (실 Discord 0. 페이크 길드 주입).
  *
- * TDD tracer-bullet (quality.md): public 인터페이스로 *행동* 검증 — 멱등성 /
+ * TDD tracer-bullet (quality.md): public 인터페이스로 *행동* 검증. 멱등성 /
  * 이름 claim / 저장 ID 추적(rename 내성) / prod env-우선 폴백.
  * 결정적: 길드 ID 유니크 + afterEach 로 파생 파일 정리 (FS 격리).
  */
@@ -73,7 +73,7 @@ afterEach(() => {
   }
 });
 
-describe('reconcileGuildChannels — 멱등 desired-state', () => {
+describe('reconcileGuildChannels. 멱등 desired-state', () => {
   it('빈 길드: 카테고리 + spec 채널 전부 생성', async () => {
     const r = await reconcileGuildChannels(fakeGuild(newGuildId()), spec, PROD);
     expect(r.created).toContain('__category');
@@ -82,7 +82,7 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
     expect(Object.keys(r.map)).toContain(spec.channels[0].key);
   });
 
-  it('두 번째 reconcile: 생성 0 — 전부 재사용 (멱등)', async () => {
+  it('두 번째 reconcile: 생성 0. 전부 재사용 (멱등)', async () => {
     const guild = fakeGuild(newGuildId());
     await reconcileGuildChannels(guild, spec, PROD);
     const r2 = await reconcileGuildChannels(guild, spec, PROD);
@@ -90,7 +90,7 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
     expect(r2.reused.length).toBe(spec.channels.length + 1); // +카테고리
   });
 
-  it('이름이 이미 존재하면 생성 X — 기존 채널 claim (카테고리 하위 스코프)', async () => {
+  it('이름이 이미 존재하면 생성 X. 기존 채널 claim (카테고리 하위 스코프)', async () => {
     const seed: ChannelLike[] = [
       { id: 'cat-x', name: spec.categoryName, type: ChannelType.GuildCategory, parentId: null },
       { id: 'ch-news', name: 'news', type: ChannelType.GuildText, parentId: 'cat-x' },
@@ -102,7 +102,7 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
     expect(r.created).not.toContain('news');
   });
 
-  it('같은 이름이라도 다른 카테고리(부모)면 claim X — 새로 생성', async () => {
+  it('같은 이름이라도 다른 카테고리(부모)면 claim X. 새로 생성', async () => {
     // 다른 인스턴스 카테고리 하위의 'news' 는 가로채면 안 됨.
     const seed: ChannelLike[] = [
       { id: 'other-cat', name: '딴카테고리', type: ChannelType.GuildCategory, parentId: null },
@@ -133,7 +133,7 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
     expect(r2.map.news).toBe(newsId); // 이름 바뀌어도 같은 채널
   });
 
-  it('같은 길드 prod+dev 공존 — 카테고리 분리 + 교차 claim 0 (사용자 케이스)', async () => {
+  it('같은 길드 prod+dev 공존. 카테고리 분리 + 교차 claim 0 (사용자 케이스)', async () => {
     const gid = newGuildId();
     const channels: ChannelLike[] = []; // 한 길드를 두 인스턴스가 공유
     let seq = 5000;
@@ -179,10 +179,10 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
   });
 });
 
-describe('reconcileGuildChannels — GuildForum (범용 forum 지원)', () => {
+describe('reconcileGuildChannels. GuildForum (범용 forum 지원)', () => {
   // 실 channel-spec.json 에는 forum 채널이 없다 (TASK-YB-043 에서 #team-work 폐지).
   // forum 프로비저닝 자체는 범용 기능이라 남아 있으므로, 여기서만 쓰는 fixture 로
-  // 검증한다 — 정본 spec 의 채널 구성 변화에 이 테스트가 끌려다니지 않게.
+  // 검증한다. 정본 spec 의 채널 구성 변화에 이 테스트가 끌려다니지 않게.
   const forumSpec: ChannelSpec = {
     categoryName: spec.categoryName,
     channels: [
@@ -249,7 +249,7 @@ describe('reconcileGuildChannels — GuildForum (범용 forum 지원)', () => {
         availableTags: [{ name: 'legacy' }],
       },
     ];
-    // setAvailableTags 의 this 바인딩 보정 — seed 채널 객체 자체에 박음
+    // setAvailableTags 의 this 바인딩 보정. seed 채널 객체 자체에 박음
     const existing = seed[1];
     existing.setAvailableTags = async (tags) => {
       existing.availableTags = [...tags];
@@ -265,8 +265,8 @@ describe('reconcileGuildChannels — GuildForum (범용 forum 지원)', () => {
   });
 });
 
-describe('isProvisioningEnabled — 기본 ON, =0 opt-out (prod 무관)', () => {
-  it('prod 여도 기본 ON (옛 채널 폐기 — dev먼저 철회)', () => {
+describe('isProvisioningEnabled. 기본 ON, =0 opt-out (prod 무관)', () => {
+  it('prod 여도 기본 ON (옛 채널 폐기. dev먼저 철회)', () => {
     expect(
       isProvisioningEnabled({ YAWNBOT_ENV: 'prod' } as unknown as NodeJS.ProcessEnv),
     ).toBe(true);
@@ -286,8 +286,8 @@ describe('isProvisioningEnabled — 기본 ON, =0 opt-out (prod 무관)', () => 
   });
 });
 
-describe('shouldProvisionGuild — 허용 길드 한정 (친구 서버 사고 방지)', () => {
-  it('YAWNBOT_ALLOWED_GUILD_IDS 우선 — 본진만 true, 친구방 false', () => {
+describe('shouldProvisionGuild. 허용 길드 한정 (친구 서버 사고 방지)', () => {
+  it('YAWNBOT_ALLOWED_GUILD_IDS 우선. 본진만 true, 친구방 false', () => {
     const env = {
       YAWNBOT_ALLOWED_GUILD_IDS: '본진111',
       DISCORD_GUILD_ID: '본진111,친구방222',
@@ -306,7 +306,7 @@ describe('shouldProvisionGuild — 허용 길드 한정 (친구 서버 사고 �
   });
 });
 
-describe('channelIdFor — ON 기본, 파생 우선 / =0 시 env', () => {
+describe('channelIdFor. ON 기본, 파생 우선 / =0 시 env', () => {
   it('파생 ID 없으면 env 폴백', () => {
     const env = {
       YAWNBOT_NEWS_CHANNEL_ID: '222',

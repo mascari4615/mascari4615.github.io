@@ -1,13 +1,13 @@
 name: Resolve Merge Token
 description: >
-  머지용 토큰 단일 정본 (TASK-KL-048). GitHub App 토큰(만료 0·repo-scoped)
+  머지용 토큰 단일 정본 (TASK-KL-048). GitHub App 토큰(만료 0, repo-scoped)
   우선, App 미설정 시 PAT fallback, 둘 다 없으면 visible error.
   GITHUB_TOKEN 은 GitHub 재귀방지로 머지 시 후속 워크플로(pages-deploy/verify)
-  를 안 띄우므로 사용 불가 — App 또는 PAT 필수.
+  를 안 띄우므로 사용 불가. App 또는 PAT 필수.
 
 inputs:
   app-id:
-    description: GitHub App ID (secrets.GH_APP_ID — 미설정이면 빈 값)
+    description: GitHub App ID (secrets.GH_APP_ID. 미설정이면 빈 값)
     required: false
     default: ''
   private-key:
@@ -54,8 +54,8 @@ runs:
           echo "::add-mask::$PAT"
           echo "token=$PAT" >> "$GITHUB_OUTPUT"
           echo "source=pat" >> "$GITHUB_OUTPUT"
-          echo "[resolve-merge-token] PAT fallback — App 미설정. KL-048(GitHub App 생성+GH_APP_ID/GH_APP_PRIVATE_KEY secret) 등록 시 무중단 자동 승격."
+          echo "[resolve-merge-token] PAT fallback. App 미설정. KL-048(GitHub App 생성+GH_APP_ID/GH_APP_PRIVATE_KEY secret) 등록 시 무중단 자동 승격."
         else
-          echo "::error::GitHub App·PAT 둘 다 부재 — 머지 토큰 없음 (TASK-KL-048 / TASK-KL-029 § 사용자 액션)"
+          echo "::error::GitHub App, PAT 둘 다 부재. 머지 토큰 없음 (TASK-KL-048 / TASK-KL-029 § 사용자 액션)"
           exit 1
         fi

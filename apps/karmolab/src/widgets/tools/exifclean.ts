@@ -1,13 +1,13 @@
 /**
- * 사진 정보 보기·지우기 (TASK-KL-088)
+ * 사진 정보 보기, 지우기 (TASK-KL-088)
  *
  * 폰으로 찍은 사진에는 **찍은 곳의 좌표**가 들어 있다. 중고 거래 사진 한 장으로 집을 찾아낸
  * 이야기가 흔한 이유다. 그런데 그걸 지우겠다고 사진을 낯선 사이트에 올리는 건 앞뒤가 안 맞는다.
  *
  * 지우는 방식이 중요하다. 캔버스로 다시 그리면 정보는 사라지지만 **화질이 한 번 더 깎인다**.
- * 그래서 JPEG 안의 정보 구획만 잘라 낸다 — 그림 데이터는 한 바이트도 건드리지 않는다.
+ * 그래서 JPEG 안의 정보 구획만 잘라 낸다. 그림 데이터는 한 바이트도 건드리지 않는다.
  *
- * 무엇이 들어 있었는지 먼저 보여 준다. 「지웠다」는 말만으로는 사람이 안심하지 못한다.
+ * 무엇이 들어 있었는지 먼저 보여 준다. 지웠다는 말만으로는 사람이 안심하지 못한다.
  */
 import { statusLine } from './shared/say';
 import { escapeHtml as esc } from './shared/text';
@@ -36,7 +36,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     while (i < bytes.length - 1) {
       if (bytes[i] !== 0xff) break;
       const marker = bytes[i + 1];
-      // 그림 데이터 시작(SOS) 뒤로는 구획이 아니라 압축 데이터다 — 여기서 멈춘다
+      // 그림 데이터 시작(SOS) 뒤로는 구획이 아니라 압축 데이터다. 여기서 멈춘다
       if (marker === 0xda || marker === 0xd9) break;
       const len = (bytes[i + 2] << 8) | bytes[i + 3];
       out.push({ marker, start: i, end: i + 2 + len });
@@ -58,7 +58,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   /** EXIF 를 읽어 사람이 알아볼 항목만 뽑는다. 전부 해석할 필요는 없다. */
   /*
    * 읽는 셈은 ** 하나뿐이다** (TASK-KL-316 / 31).
-   * 사진 자리 도구가 생기면서 같은 파서가 두 벌이 될 뻔했다 — 한쪽만 고쳐지면 같은 사진에 두 답이 난다.
+   * 사진 자리 도구가 생기면서 같은 파서가 두 벌이 될 뻔했다. 한쪽만 고쳐지면 같은 사진에 두 답이 난다.
    * 여기는 화면 말투(위치를 한 줄 글로)만 맡는다. 지우는 일(strip)은 그림을 다시 잇는 일이라 여기 남는다.
    */
   function readExif(bytes: Uint8Array): Info {
@@ -73,10 +73,10 @@ import { t, loadNamespace } from '../../lib/i18n';
     };
   }
 
-  /** 정보 구획(APP1/APP13 등)만 빼고 다시 잇는다 — 그림 데이터는 그대로다. */
+  /** 정보 구획(APP1/APP13 등)만 빼고 다시 잇는다. 그림 데이터는 그대로다. */
   function strip(bytes: Uint8Array): Uint8Array {
     const segs = walkSegments(bytes);
-    // 지울 것: Exif(APP1) · Photoshop(APP13) · 주석(COM). APP0(JFIF)는 두어야 열리는 프로그램이 있다.
+    // 지울 것: Exif(APP1), Photoshop(APP13), 주석(COM). APP0(JFIF)는 두어야 열리는 프로그램이 있다.
     const drop = segs.filter((s) => s.marker === 0xe1 || s.marker === 0xed || s.marker === 0xfe);
     if (!drop.length) return bytes;
     const keep: Array<[number, number]> = [];
@@ -104,11 +104,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
     accepts: ['image/jpeg'],
     title: t('widgets.exifclean.title', undefined, '사진 정보 지우기'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.exifclean.desc',
       undefined,
-      '사진에 든 위치·카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다'
+      '사진에 든 위치, 카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6l1.5-2h5L16 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M18.5 4.5 5.5 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
@@ -127,7 +127,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /** 그리기는 **말 묶음이 온 뒤**에. */
   function draw(container: HTMLElement): void {
-          /* 번역 글에 꺾쇠·따옴표가 들어와도 화면이 안 깨지게 — 그리기 **전**에 있어야 한다. */
+          /* 번역 글에 꺾쇠, 따옴표가 들어와도 화면이 안 깨지게. 그리기 **전**에 있어야 한다. */
           container.innerHTML = `
             <div class="tool-drop" id="exDrop">
               <input type="file" id="exFile" accept="image/jpeg" hidden>
@@ -157,11 +157,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           let fileName = '';
           let raw: Uint8Array | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /* 방향 이름은 **찾을 때** 정한다 — 표를 만들 때 정하면 열쇠가 굳는다. */
+          /* 방향 이름은 **찾을 때** 정한다. 표를 만들 때 정하면 열쇠가 굳는다. */
           const orientName = (n: number): string => t(`exifclean.orient.${n}`);
 
           async function load(f: File): Promise<void> {
@@ -206,7 +206,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('exifclean', (f: File) => void load(f));
           }
@@ -221,7 +221,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             const aName = fileName.replace(/\.[^.]+$/, '') + t('exifclean.file.suffix') + '.jpg';
             download(blob, aName);
             say(`정보를 지워 받았어요 (${size(raw.length)} → ${size(cleaned.length)}). 그림 자체는 그대로입니다.`, 'ok');
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'exifclean' });
             Toolbox.trackUse?.('strip');
           };

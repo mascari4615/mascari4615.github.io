@@ -3,9 +3,9 @@ import { homedir } from 'node:os';
 import { basename, join } from 'node:path';
 
 /**
- * 레인 — 벤더 앱의 세션을 한 단 위에서 본다.
+ * 레인. 벤더 앱의 세션을 한 단 위에서 본다.
  *
- * 클로드·그록·커서 각각이 자기 세션 목록을 가진다. 이 방은 그 목록을 또 만들지 않는다.
+ * 클로드, 그록, 커서 각각이 자기 세션 목록을 가진다. 이 방은 그 목록을 또 만들지 않는다.
  * 이미 떠 있는 세션을 내려다보는 자리만 가진다.
  */
 export type LaneKind = 'room' | 'session';
@@ -39,7 +39,7 @@ export function roomLane(detail: string, at = Date.now()): Lane {
 }
 
 /** 코딩 CLI 를 모에화한 방. */
-export function workLane(detail = '코딩 CLI · 손 있음', at = Date.now()): Lane {
+export function workLane(detail = '코딩 CLI, 손 있음', at = Date.now()): Lane {
   return {
     id: 'work',
     kind: 'room',
@@ -53,7 +53,7 @@ export function workLane(detail = '코딩 CLI · 손 있음', at = Date.now()): 
 }
 
 /** 일 없이 곁에 있는 방. */
-export function talkLane(detail = '곁에 있기 · 손 없음', at = Date.now()): Lane {
+export function talkLane(detail = '곁에 있기, 손 없음', at = Date.now()): Lane {
   return {
     id: 'talk',
     kind: 'room',
@@ -115,7 +115,7 @@ function walkSessions(dir: string, encodedParent: string, out: Lane[], depth: nu
         kind: 'session',
         vendor: 'grok',
         title: folderTitle(encodedParent) || '그록',
-        detail: `Grok · ${name.slice(0, 8)}`,
+        detail: `Grok, ${name.slice(0, 8)}`,
         live: false,
         here: false,
         at: st.mtimeMs,

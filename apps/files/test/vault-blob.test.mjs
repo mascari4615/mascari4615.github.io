@@ -27,7 +27,7 @@ test('hdr 가 있으면 /blob/, 없으면 픽스처', async () => {
 });
 
 test('제 자리에 없으면 정본 도메인을 마저 본다', async () => {
-  /* 회귀 근거(2026-08-28): Pages 껍데기(`blog…/files/`)로 열면 제 origin 에 `/blob/` 이
+  /* 회귀 근거(2026-08-28): Pages 껍데기(`blog.../files/`)로 열면 제 origin 에 `/blob/` 이
      없어 픽스처로 되떨어졌고, 맞는 비밀번호로도 클라우드가 안 열렸다. */
   const asked = [];
   const base = await pickVaultBase({
@@ -141,7 +141,7 @@ test('Worker 는 클라우드 키 모양만 읽는다', async () => {
 test('청크는 오래 잡아 두고, 색인은 매번 물어본다', async () => {
   /* 회귀 근거(2026-08-29): 셋 다 60초여서 액자를 다시 열 때마다 그림을 통째로 다시 받았다.
      청크는 같은 자리에 다른 내용이 오지 않으므로(내용이 달라지면 새 id) 오래 잡아도 된다.
-     `hdr`·`idx` 는 파일이 늘 때마다 바뀌므로 잡으면 옛 목록이 굳는다. */
+     `hdr`, `idx` 는 파일이 늘 때마다 바뀌므로 잡으면 옛 목록이 굳는다. */
   const VAULT = { async get() { return { body: new Uint8Array([1]) }; } };
   const chunk = await worker.fetch(
     new Request('https://files.mascari4615.com/blob/c/abc123/0'), { VAULT });
@@ -151,4 +151,19 @@ test('청크는 오래 잡아 두고, 색인은 매번 물어본다', async () =
     const res = await worker.fetch(new Request(`https://files.mascari4615.com/blob/${key}`), { VAULT });
     assert.equal(res.headers.get('cache-control'), 'private, no-cache', `${key} 는 잡아 두면 안 된다`);
   }
+});
+
+test('답이 안 오는 도메인 때문에 화면이 멈추지 않는다', async () => {
+  /* 정본 도메인은 Access 뒤라 딴 origin 에서 물으면 답이 아예 안 올 수 있다.
+     2026-08-29 에 45초를 넘겨도 안 왔고 화면은 불러오는 중에서 멈춘 채였다 */
+  const t0 = Date.now();
+  const base = await pickVaultBase({
+    origin: 'http://127.0.0.1:8896',
+    fixture: 'v/',
+    canonical: 'https://files.example',
+    probeMs: 60,
+    fetchFn: () => new Promise(() => {}),
+  });
+  assert.equal(base, 'v/');
+  assert.ok(Date.now() - t0 < 2000, '기다리다 끝나야 한다');
 });

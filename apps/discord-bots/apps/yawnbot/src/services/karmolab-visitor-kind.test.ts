@@ -1,9 +1,9 @@
 /**
  * 누가 왔나 가려내기 시험 (TASK-KL-098).
  *
- * 여기서 틀리면 공개해 놓은 「사람 N명」이 거짓말이 된다. 특히 위험한 방향은 한쪽뿐이다 —
+ * 여기서 틀리면 공개해 놓은 사람 N명이 거짓말이 된다. 특히 위험한 방향은 한쪽뿐이다 . 
  * **봇을 사람으로 세는 것**. 사람을 못 알아보면 수가 작게 나올 뿐이지만, 봇을 사람으로 세면
- * 사이트가 실제보다 붐비는 것처럼 보인다. 그래서 애매한 것은 전부 「알 수 없음」으로 간다.
+ * 사이트가 실제보다 붐비는 것처럼 보인다. 그래서 애매한 것은 전부 알 수 없음으로 간다.
  */
 import { describe, it, expect } from 'vitest';
 import { classifyVisitor } from './karmolab-visitor-kind';
@@ -19,7 +19,7 @@ describe('누가 왔나', () => {
     expect(classifyVisitor(IPHONE)).toBe('human');
   });
 
-  it('검색엔진은 검색으로 센다 — 색인해서 사람을 보내 주는 통로다', () => {
+  it('검색엔진은 검색으로 센다. 색인해서 사람을 보내 주는 통로다', () => {
     expect(classifyVisitor('Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)')).toBe('search');
     expect(classifyVisitor('Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)')).toBe('search');
     expect(classifyVisitor('Mozilla/5.0 (compatible; Yeti/1.1; +http://naver.me/spd)')).toBe('search');
@@ -32,7 +32,7 @@ describe('누가 왔나', () => {
     expect(classifyVisitor('Mozilla/5.0 (compatible; CCBot/2.0)')).toBe('ai');
   });
 
-  it('AI 가 검색엔진 이름을 같이 달고 와도 AI 로 센다 — 순서가 뒤집히면 AI 가 검색으로 숨는다', () => {
+  it('AI 가 검색엔진 이름을 같이 달고 와도 AI 로 센다. 순서가 뒤집히면 AI 가 검색으로 숨는다', () => {
     expect(classifyVisitor('Mozilla/5.0 (compatible; GoogleOther)')).toBe('ai');
     expect(classifyVisitor('Mozilla/5.0 (compatible; Google-Extended)')).toBe('ai');
     expect(classifyVisitor('Mozilla/5.0 (compatible; Applebot-Extended/0.1)')).toBe('ai');
@@ -51,7 +51,7 @@ describe('누가 왔나', () => {
     expect(classifyVisitor('node-fetch/1.0')).toBe('unknown');
   });
 
-  it('이름을 안 밝히면 「알 수 없음」이다 — 사람 쪽에 넣지 않는다', () => {
+  it('이름을 안 밝히면 알 수 없음이다. 사람 쪽에 넣지 않는다', () => {
     expect(classifyVisitor('')).toBe('unknown');
     expect(classifyVisitor(undefined)).toBe('unknown');
     expect(classifyVisitor(null)).toBe('unknown');

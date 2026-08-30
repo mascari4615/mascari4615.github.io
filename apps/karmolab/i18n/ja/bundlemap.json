@@ -7,7 +7,7 @@
   "bundlemap.label.dupes": "二重に入ったパッケージ",
   "bundlemap.dupes.none": "二重に入ったパッケージはありません",
   "bundlemap.status.idle": "webpack の stats.json か esbuild の metafile を入れてください",
-  "bundlemap.status.reading": "読み込み中…",
-  "bundlemap.status.ok": "{total} · モジュール {n} 個 · 重複 {dupes} 件",
-  "bundlemap.status.bad": "読めませんでした — {msg}"
+  "bundlemap.status.reading": "読み込み中...",
+  "bundlemap.status.ok": "{total}, モジュール {n} 個, 重複 {dupes} 件",
+  "bundlemap.status.bad": "読めませんでした. {msg}"
 }

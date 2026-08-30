@@ -31,7 +31,7 @@
   "imagegen.opt.aiStudio": "AI Studio (기존)",
   "imagegen.t17": "Gemini 이미지: Vertex는",
   "imagegen.t18": ", Imagen은 Vertex",
-  "imagegen.t19": "(참고 스크립트와 동일 계열)입니다. Imagen+Vertex일 때 GCP 프로젝트·리전이 필요합니다.",
+  "imagegen.t19": "(참고 스크립트와 동일 계열)입니다. Imagen+Vertex일 때 GCP 프로젝트, 리전이 필요합니다.",
   "imagegen.t20": "호출에 사용합니다. (예: 스크립트의",
   "imagegen.label.igVertexProjectId": "프로젝트 ID",
   "imagegen.label.igVertexLocation": "리전",
@@ -162,7 +162,7 @@
   "imagegen.shelf": "선반",
   "imagegen.shelfHelp": "만든 것을 선반에 올린다 (CC0)",
   "imagegen.shelfKeyAsk": "선반 열쇠 (이 브라우저에만 남는다)",
-  "imagegen.shelfSending": "선반에 올리는 중…",
+  "imagegen.shelfSending": "선반에 올리는 중...",
   "imagegen.shelfDone": "선반에 올렸다",
   "imagegen.shelfUntitled": "이름 없는 그림"
 }

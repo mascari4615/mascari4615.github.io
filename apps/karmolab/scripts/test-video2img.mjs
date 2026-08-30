@@ -5,7 +5,7 @@
  * 시간 이동이 끝나기 전에 그리면 그렇게 되는데, 장수도 맞고 파일도 나오고 오류도 안 난다.
  * 그래서 뽑은 장들의 색을 실제로 재서 **서로 다른 장면이 몇 가지인지** 센다.
  *
- * 크기도 함께 본다 — 원본 해상도로 나와야 이 도구를 쓸 이유가 있다(캡처와의 차이).
+ * 크기도 함께 본다. 원본 해상도로 나와야 이 도구를 쓸 이유가 있다(캡처와의 차이).
  *
  * 사용: node scripts/test-video2img.mjs
  */
@@ -46,7 +46,7 @@ const result = await page.evaluate(async () => {
       let i = 0;
       rec.start();
       const tick = () => {
-        // 장면마다 색이 확실히 다르게 — 같은 장면이 반복되면 바로 드러나도록
+        // 장면마다 색이 확실히 다르게. 같은 장면이 반복되면 바로 드러나도록
         ctx.fillStyle = `hsl(${(i * 40) % 360} 85% 50%)`;
         ctx.fillRect(0, 0, W, H);
         i++;
@@ -106,7 +106,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: imgs.length >= 4 && distinct.length >= Math.min(4, imgs.length) && naturalW === W,
-    why: `${imgs.length}장 · 서로 다른 장면 ${distinct.length}가지 · 크기 ${naturalW}px (원본 ${W}px 이어야 함)`
+    why: `${imgs.length}장, 서로 다른 장면 ${distinct.length}가지, 크기 ${naturalW}px (원본 ${W}px 이어야 함)`
   };
 });
 

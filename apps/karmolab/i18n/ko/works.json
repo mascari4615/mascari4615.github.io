@@ -1,11 +1,11 @@
 {
-  "works.search": "제목·설명 찾기",
+  "works.search": "제목, 설명 찾기",
   "works.count": "{n}건",
   "works.failed": "작업물 목록을 못 받았습니다",
   "works.viewShelf": "진열",
   "works.viewMap": "지도",
   "works.ongoing": "지금도 만드는 중",
-  "works.minor": "그 외 참여 — 따로 글을 안 쓴 것들 {n}건",
+  "works.minor": "그 외 참여. 따로 글을 안 쓴 것들 {n}건",
   "works.mapHint": "점이나 막대에 손을 대면 여기에 나온다.",
   "works.none": "해당하는 것이 없다"
 }

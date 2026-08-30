@@ -1,7 +1,7 @@
 /**
  * 제기차기 화면 (TASK-KL-242)
  *
- * 제기가 **어디쯤 있는지**가 화면의 전부다 — 신호를 기다리는 게 아니라 내려오는 걸 보고 차는
+ * 제기가 **어디쯤 있는지**가 화면의 전부다. 신호를 기다리는 게 아니라 내려오는 걸 보고 차는
  * 놀이라, 높이가 실제 시간과 맞아야 한다. 발에 닿는 틈은 바닥의 띠로 그려서, 제기가 그 띠에
  * 들어왔을 때 차면 된다는 걸 말 없이 알 수 있게 했다.
  */
@@ -44,7 +44,7 @@ export const jegiView: GameView<JegiState, JegiAction> = {
         const h = Math.sin(p * Math.PI);
         const ball = lane.querySelector('.ac-jgball') as HTMLElement;
         ball.style.bottom = (6 + h * 78) + '%';
-        /* 닿는 틈을 바닥 띠 높이로 — 좁아지는 게 눈에 보인다. */
+        /* 닿는 틈을 바닥 띠 높이로. 좁아지는 게 눈에 보인다. */
         const band = lane.querySelector('.ac-jgband') as HTMLElement;
         band.style.height = 6 + (window_(s.count[i]) / fly) * 78 + '%';
         lane.className = 'ac-jglane' + (i === mySeat ? ' ac-me' : '') + (s.alive[i] ? '' : ' ac-dead');

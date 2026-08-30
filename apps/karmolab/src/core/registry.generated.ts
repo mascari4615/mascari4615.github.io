@@ -1,4 +1,4 @@
-/* 자동 생성 — `node scripts/gen-core-tools.mjs`. 손으로 고치지 마라. */
+/* 자동 생성. `node scripts/gen-core-tools.mjs`. 손으로 고치지 마라. */
 import type { ToolRunner } from './types';
 
 import { run as apidiffRun, spec as apidiffSpec } from './apidiff';

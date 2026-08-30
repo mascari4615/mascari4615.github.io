@@ -2,10 +2,10 @@
  * 주간 결산 자동 게시 (TASK-YB-042).
  *
  * 왜: 명령을 쳐야만 나오는 결산은 습관이 되지 않는다. 월요일 아침에 먼저 와야
- * 사람들이 "지난주 우리 뭐 했지" 를 열어 본다 — 재방문은 거기서 생긴다.
+ * 사람들이 "지난주 우리 뭐 했지" 를 열어 본다. 재방문은 거기서 생긴다.
  *
  * 시각이 딱 맞을 때만 보내면 봇이 잠깐 꺼져 있던 주는 통째로 사라진다.
- * 그래서 판단은 「월요일 10시(KST) 이후 + 이번 주 몫 미발송」 이고, 켜질 때 따라잡는다.
+ * 그래서 판단은 월요일 10시(KST) 이후 + 이번 주 몫 미발송 이고, 켜질 때 따라잡는다.
  */
 import { EmbedBuilder, type Client, type TextBasedChannel } from 'discord.js';
 import { getServerStatsRecorder } from '../server-stats';
@@ -27,7 +27,7 @@ export async function runWeeklyWrappedTick(client: Client, now = new Date()): Pr
   for (const { guildId, channelId } of due) {
     try {
       const guild = client.guilds.cache.get(guildId);
-      // 봇이 쫓겨난 서버는 조용히 건너뛴다 (설정은 남겨 둔다 — 다시 부르면 이어진다).
+      // 봇이 쫓겨난 서버는 조용히 건너뛴다 (설정은 남겨 둔다. 다시 부르면 이어진다).
       if (!guild) continue;
       const channel = await client.channels.fetch(channelId).catch(() => null);
       if (!isSendable(channel)) continue;
@@ -63,7 +63,7 @@ export function startWeeklyWrapped(client: Client): void {
   }, TICK_MS);
   timer.unref?.();
   console.log('[WeeklyWrapped] 주간 결산 자동 게시 활성 (월요일 오전 10시 KST 이후, 10분 간격 확인)');
-  // 부팅 직후에도 한 번 본다 — 주말 내내 꺼져 있었으면 지금이 그 시각이다.
+  // 부팅 직후에도 한 번 본다. 주말 내내 꺼져 있었으면 지금이 그 시각이다.
   void runWeeklyWrappedTick(client);
 }
 

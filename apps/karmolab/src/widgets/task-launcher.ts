@@ -1,5 +1,5 @@
 /**
- * TASK Launcher 위젯 (TASK-KL-025) — Tauri 데스크톱 전용 (category: 'desktop').
+ * TASK Launcher 위젯 (TASK-KL-025). Tauri 데스크톱 전용 (category: 'desktop').
  *
  * QuestLog (tree) 와 다른 axis: flat 검색 + 외부 에디터 즉시 오픈 + 새 TASK 즉석 생성.
  *
@@ -8,8 +8,8 @@
  *   - 검색은 클라이언트 측 부분 일치 (id / title / tag / status)
  *
  * 명령:
- *   - open_task_in_editor (KL-025) — 행 클릭
- *   - create_task (KL-025) — "+ 새 TASK" 모달
+ *   - open_task_in_editor (KL-025). 행 클릭
+ *   - create_task (KL-025). "+ 새 TASK" 모달
  *
  * 자동 새로고침: KL-024 'quest-tree-changed' 이벤트 listen.
  */
@@ -36,7 +36,7 @@ const esc = (v: unknown): string =>
     memoPath: string;
   }
 
-  /* 이름은 **쓸 때 정한다** — 이 배열이 모듈 뜨는 순간에 굳으면 한국어로 굳는다. */
+  /* 이름은 **쓸 때 정한다**. 이 배열이 모듈 뜨는 순간에 굳으면 한국어로 굳는다. */
   const domains = (): Array<{ value: string; label: string; prefix: string }> => [
     { value: 'wm', label: 'WitchMendokusai (WM)', prefix: 'WM' },
     { value: 'karmolab', label: 'KarmoLab (KL)', prefix: 'KL' },
@@ -61,7 +61,7 @@ const esc = (v: unknown): string =>
   const CSS = `
 .kl-task-launcher {
   /* 앱 테마 토큰의 별명. 예전엔 다크 색을 직접 박아 라이트에서 이 판만 까맣게 남았다.
-     --accent 는 일부러 안 덮는다 — 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
+     --accent 는 일부러 안 덮는다. 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
   --bg: var(--bg-void);
   --bg-2: var(--bg-primary);
   --paper: var(--bg-secondary);
@@ -201,7 +201,7 @@ const esc = (v: unknown): string =>
     listEl.innerHTML = sorted
       .map((task, i) => {
         const statusColor = STATUS_COLORS[task.status] ?? 'var(--ink-3)';
-        const tagsLabel = task.tags.length > 0 ? `[${task.tags.slice(0, 3).join(', ')}${task.tags.length > 3 ? '…' : ''}]` : '';
+        const tagsLabel = task.tags.length > 0 ? `[${task.tags.slice(0, 3).join(', ')}${task.tags.length > 3 ? '...' : ''}]` : '';
         const selectedClass = i === selectedIdx ? ' selected' : '';
         return `
           <div class="row${selectedClass}" data-file="${esc(task.filePath)}" data-idx="${i}">
@@ -347,7 +347,7 @@ const esc = (v: unknown): string =>
 
     const refilter = (): void => {
       filteredTasks = applyFilter(currentTasks, searchEl.value, statusFilter, sortMode);
-      // 검색·필터 변경 시 첫 행 자동 선택 (범위 밖이면 0)
+      // 검색, 필터 변경 시 첫 행 자동 선택 (범위 밖이면 0)
       if (selectedIdx >= filteredTasks.length) selectedIdx = 0;
       renderList(listEl, filteredTasks, selectedIdx);
     };
@@ -360,7 +360,7 @@ const esc = (v: unknown): string =>
         return;
       }
       currentTasks = tree.tasks;
-      metaEl.textContent = `${currentTasks.length} TASK · memo: ${tree.memoPath}`;
+      metaEl.textContent = `${currentTasks.length} TASK, memo: ${tree.memoPath}`;
       refilter();
     };
 
@@ -371,7 +371,7 @@ const esc = (v: unknown): string =>
       refilter();
     });
 
-    // 키보드 nav — ↑↓ Enter Esc
+    // 키보드 nav. ↑↓ Enter Esc
     searchEl.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -435,7 +435,7 @@ const esc = (v: unknown): string =>
 
     setTimeout(() => searchEl.focus(), 100);
 
-    // KL-024 file watcher 이벤트 listen — 외부 변경 시 자동 새로고침
+    // KL-024 file watcher 이벤트 listen. 외부 변경 시 자동 새로고침
     const tauriListen = window.__TAURI__?.event?.listen;
     if (typeof tauriListen === 'function') {
       void (async () => {

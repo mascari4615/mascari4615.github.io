@@ -1,17 +1,17 @@
 /**
- * 「먹」 — 문서 모델 (TASK-KL-240 · 1단계)
+ * 먹. 문서 모델 (TASK-KL-240, 1단계)
  *
  * 지금까지 이 위젯은 **캔버스 한 장**이었다. 자르기도 필터도 배경제거도 그 한 장을 덮어썼고,
- * 그래서 되돌리기가 화면 통짜 스냅샷이었다. 포토샵·클립스튜디오와 가르는 것은 도구 개수가
- * 아니라 여기 있는 것 — **레이어 · 마스크 · 셀(cel)** 이다. 도구는 그 위에 얹힌다.
+ * 그래서 되돌리기가 화면 통짜 스냅샷이었다. 포토샵, 클립스튜디오와 가르는 것은 도구 개수가
+ * 아니라 여기 있는 것. **레이어, 마스크, 셀(cel)** 이다. 도구는 그 위에 얹힌다.
  *
- * 이 파일은 **브라우저를 모른다**. document·canvas 를 안 쓰고 픽셀을 그냥 `Uint8ClampedArray`
- * 로 든다(RGBA, straight alpha). 그래서 화면 없이도 검사할 수 있고, 나중에 워커·OffscreenCanvas
+ * 이 파일은 **브라우저를 모른다**. document, canvas 를 안 쓰고 픽셀을 그냥 `Uint8ClampedArray`
+ * 로 든다(RGBA, straight alpha). 그래서 화면 없이도 검사할 수 있고, 나중에 워커, OffscreenCanvas
  * 로 옮겨도 이 모델은 그대로다.
  *
  * 애니메이션은 별도 구조가 아니라 **레이어 안의 셀 배열**이다.
- * `cels[frame] === null` = 「앞 프레임 그대로」(hold). 배경처럼 안 움직이는 레이어는 셀 하나만
- * 들고 60프레임을 버틴다 — ditherdeck 의 프레임 목록도 이 모델의 특수 경우(레이어 1장)다.
+ * `cels[frame] === null` = 앞 프레임 그대로(hold). 배경처럼 안 움직이는 레이어는 셀 하나만
+ * 들고 60프레임을 버틴다. ditherdeck 의 프레임 목록도 이 모델의 특수 경우(레이어 1장)다.
  */
 
 /** 겹칠 때 섞는 방식. CSS/포토샵과 같은 이름을 쓴다. */
@@ -25,7 +25,7 @@ export const BLEND_MODES: BlendMode[] = [
   'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion'
 ];
 
-/** 픽셀 한 판. RGBA 8비트 · straight alpha(색이 알파로 미리 곱해져 있지 않다). */
+/** 픽셀 한 판. RGBA 8비트, straight alpha(색이 알파로 미리 곱해져 있지 않다). */
 export interface Surface {
   w: number;
   h: number;
@@ -36,14 +36,14 @@ export interface Layer {
   id: string;
   name: string;
   visible: boolean;
-  /** 잠근 레이어는 붓·필터가 거부한다(합성에는 그대로 참여). */
+  /** 잠근 레이어는 붓, 필터가 거부한다(합성에는 그대로 참여). */
   locked: boolean;
   /** 0..1 */
   opacity: number;
   blend: BlendMode;
   /** 아래 레이어 모양 안에만 보이기 (클리핑 마스크). */
   clip: boolean;
-  /** 레이어 마스크 — 픽셀당 0..255 보이는 정도. 없으면 안 가린다. */
+  /** 레이어 마스크. 픽셀당 0..255 보이는 정도. 없으면 안 가린다. */
   mask: Uint8ClampedArray | null;
   /** 프레임별 그림. `null` = 앞 프레임 유지. 길이는 문서 프레임 수와 같다. */
   cels: Array<Surface | null>;
@@ -68,7 +68,7 @@ export interface Doc {
 /* ===== 만들기 ===== */
 
 let seq = 0;
-/** 레이어 id. 시각이 아니라 순번 — 같은 밀리초에 두 장 만들어도 안 겹친다. */
+/** 레이어 id. 시각이 아니라 순번. 같은 밀리초에 두 장 만들어도 안 겹친다. */
 export const nextId = (prefix = 'L'): string =>
   prefix + (seq += 1).toString(36) + Math.random().toString(36).slice(2, 6);
 
@@ -116,12 +116,12 @@ export function createDoc(w = 1024, h = 1024, name = 'untitled'): Doc {
   return base;
 }
 
-/* ===== 셀 읽기 — hold 해석 ===== */
+/* ===== 셀 읽기. hold 해석 ===== */
 
 /**
  * 그 프레임에서 **실제로 보이는** 그림.
  * `cels[frame]` 이 비어 있으면 앞으로 거슬러 올라가 가장 가까운 그림을 쓴다(hold).
- * 앞에 아무것도 없으면 `null` — 그 레이어는 그 프레임에 아직 존재하지 않는다.
+ * 앞에 아무것도 없으면 `null`. 그 레이어는 그 프레임에 아직 존재하지 않는다.
  */
 export function celAt(layer: Layer, frame: number): Surface | null {
   for (let i = Math.min(frame, layer.cels.length - 1); i >= 0; i -= 1) {
@@ -135,7 +135,7 @@ export function celAt(layer: Layer, frame: number): Surface | null {
 export const isHold = (layer: Layer, frame: number): boolean => !layer.cels[frame];
 
 /**
- * 그 프레임에 **자기 그림**을 만든다 — 물려받고 있었다면 복사해서 끊는다.
+ * 그 프레임에 **자기 그림**을 만든다. 물려받고 있었다면 복사해서 끊는다.
  * 붓질 직전에 부른다: 안 그러면 한 획이 여러 프레임을 한꺼번에 바꾼다.
  */
 export function ensureCel(doc: Doc, layer: Layer, frame: number): Surface {
@@ -163,7 +163,7 @@ export function addLayer(doc: Doc, name?: string, above?: string): Layer {
   return layer;
 }
 
-/** 마지막 한 장은 지우지 않는다 — 레이어 0장 문서는 그릴 데가 없다. */
+/** 마지막 한 장은 지우지 않는다. 레이어 0장 문서는 그릴 데가 없다. */
 export function removeLayer(doc: Doc, id: string): boolean {
   if (doc.layers.length <= 1) return false;
   const at = doc.layers.findIndex(l => l.id === id);
@@ -184,7 +184,7 @@ export function moveLayer(doc: Doc, id: string, to: number): boolean {
 }
 
 /**
- * 위 레이어를 아래 레이어에 눌러 붙인다 — 합성 결과를 아래 셀에 굽는다.
+ * 위 레이어를 아래 레이어에 눌러 붙인다. 합성 결과를 아래 셀에 굽는다.
  * 합성은 `composite.ts` 가 하지만 이 파일이 그걸 부르면 두 파일이 서로를 물게 되므로,
  * 합성 함수를 **넘겨받는다**(문서 모델은 계속 아무것도 안 부른다).
  */
@@ -199,7 +199,7 @@ export function mergeDown(
   const lower = doc.layers[at - 1];
   const baked: Surface[] = [];
   for (let f = 0; f < doc.frames; f += 1) {
-    /* 두 장만 골라 합성한다 — 아래의 아래는 안 섞는다. 밑판의 클리핑은 잠시 푼다. */
+    /* 두 장만 골라 합성한다. 아래의 아래는 안 섞는다. 밑판의 클리핑은 잠시 푼다. */
     baked.push(composite(doc, f, [{ ...lower, clip: false }, upper]));
   }
   baked.forEach((surface, f) => { lower.cels[f] = surface; });
@@ -241,7 +241,7 @@ export function removeFrame(doc: Doc, at: number): boolean {
   if (doc.frames <= 1) return false;
   const index = Math.max(0, Math.min(doc.frames - 1, at | 0));
   doc.layers.forEach(layer => {
-    /* 지우는 칸이 뒤 칸에게 물려주고 있었다면 그 그림을 뒤 칸으로 옮겨 준다 — 안 그러면
+    /* 지우는 칸이 뒤 칸에게 물려주고 있었다면 그 그림을 뒤 칸으로 옮겨 준다. 안 그러면
        뒤 칸이 갑자기 더 앞의 그림을 물려받아 그림이 튄다. */
     const own = layer.cels[index];
     if (own && index + 1 < layer.cels.length && !layer.cels[index + 1]) layer.cels[index + 1] = own;

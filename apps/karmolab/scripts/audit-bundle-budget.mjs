@@ -7,13 +7,13 @@
  * 무엇으로 재나: **gzip 크기**. 사람이 회선으로 받는 것은 압축된 바이트라, 원본 크기로 재면
  * 실제 부담과 어긋난다(실측: 원본 2.62MB ↔ gzip 0.87MB, 3배 차이).
  *
- * 어떻게 판정하나 — 절대선 하나 + **래칫** 하나:
+ * 어떻게 판정하나. 절대선 하나 + **래칫** 하나:
  *   ① 절대선: 위젯 하나가 gzip 64KB 를 넘으면 실패. 느린 회선에서 그 하나로 1초가 넘는다.
  *   ② 래칫: 기준선(`data/bundle-baseline.json`)보다 **10KB 또는 20% 이상 커지면** 실패.
- *      절대선만 두면 60KB 짜리가 63KB 가 되는 것을 아무도 못 본다 — 회귀는 늘 조금씩 온다.
+ *      절대선만 두면 60KB 짜리가 63KB 가 되는 것을 아무도 못 본다. 회귀는 늘 조금씩 온다.
  * 기준선 갱신은 사람이 의도적으로: `--update` (커밋에 그 줄이 남아 리뷰에 걸린다).
  *
- * 새 위젯은 기준선에 없다 — 그건 실패가 아니라 **처음 보는 것**이므로 절대선만 본다.
+ * 새 위젯은 기준선에 없다. 그건 실패가 아니라 **처음 보는 것**이므로 절대선만 본다.
  *
  * 사용: node scripts/audit-bundle-budget.mjs [--update]
  */
@@ -28,30 +28,30 @@ const WIDGET_DIR = path.join(root, 'js/widgets');
 const BASELINE = path.join(root, 'data/bundle-baseline.json');
 const UPDATE = process.argv.includes('--update');
 
-/** 위젯 하나의 한계 (gzip). 실측 최대가 60KB 라 64KB 는 「지금 것은 통과, 더는 안 됨」선이다. */
+/** 위젯 하나의 한계 (gzip). 실측 최대가 60KB 라 64KB 는 지금 것은 통과, 더는 안 됨선이다. */
 const HARD_LIMIT = 64 * 1024;
 /** 전부 합쳐서 (gzip).
  *
  * ★ 이 값은 **아무도 한 번에 안 받는 합계**다 (2026-08-12). 위젯은 지연 로드라 방문자는 자기가
- *   연 도구 하나만 받는다 — 방문자 비용을 지키는 것은 위젯당 한계(HARD_LIMIT)와 첫 화면
- *   예산(perf.ts 의 420KB)이고, 이 합계는 「저장소가 통째로 붓고 있나」를 보는 눈이다.
- *   도구가 74개에서 계속 늘어 1.2MB 를 넘겼다 — 성장 자체는 이 사이트의 목적이므로 선을 옮긴다.
+ *   연 도구 하나만 받는다. 방문자 비용을 지키는 것은 위젯당 한계(HARD_LIMIT)와 첫 화면
+ *   예산(perf.ts 의 420KB)이고, 이 합계는 저장소가 통째로 붓고 있나를 보는 눈이다.
+ *   도구가 74개에서 계속 늘어 1.2MB 를 넘겼다. 성장 자체는 이 사이트의 목적이므로 선을 옮긴다.
  *   대신 **위젯당 한계는 그대로 둔다**: 붓는 것을 막는 진짜 자리는 거기다. */
 /*   2026-08-17: 도구가 228개 → **272개**(새로 44개)로 늘며 합계가 1935KB 가 되어 1.8MB 선을 넘었다.
-     같은 이유로 선을 옮긴다 — 이 합계는 아무도 한 번에 안 받는 수이고, 방문자 비용을 지키는
+     같은 이유로 선을 옮긴다. 이 합계는 아무도 한 번에 안 받는 수이고, 방문자 비용을 지키는
      자리는 위젯당 64KB 와 첫 화면 420KB 다(둘 다 그대로). 지금 값 대비 여유 ~6%. */
 const TOTAL_LIMIT = 2.05 * 1024 * 1024;
-/* 래칫 — 둘 **중 하나**면 회귀다.
+/* 래칫. 둘 **중 하나**면 회귀다.
  *   ① 절대: 8KB 이상 커짐 (큰 파일이 조금씩 붓는 것)
  *   ② 비율: 20% 이상 커짐 + 최소 2KB (작은 파일이 두 배가 되는 것)
- * 처음엔 「둘 다」로 뒀다가 실제로 못 잡는 것을 봤다: 작은 위젯에 9.8KB 를 부어도 조용했다
+ * 처음엔 둘 다로 뒀다가 실제로 못 잡는 것을 봤다: 작은 위젯에 9.8KB 를 부어도 조용했다
  * (절대 10KB 미달 + 비율은 통과 → AND 라서 빠져나갔다). 막는 자리가 안 막으면 없느니만 못하다. */
 const GROW_BYTES = 8 * 1024;
 const GROW_RATIO = 1.2;
 const GROW_RATIO_MIN_BYTES = 2 * 1024;
 
 if (!fs.existsSync(WIDGET_DIR)) {
-  console.log('[bundle-budget] 못 돌림 — js/widgets 가 없다 (`node build.mjs` 먼저)');
+  console.log('[bundle-budget] 못 돌림. js/widgets 가 없다 (`node build.mjs` 먼저)');
   process.exit(0);
 }
 
@@ -78,31 +78,31 @@ if (UPDATE) {
     JSON.stringify({ note: 'gzip 바이트. audit-bundle-budget.mjs --update 로만 갱신한다.', at: new Date().toISOString(), sizes }, null, 1) + '\n',
     'utf8'
   );
-  console.log(`[bundle-budget] 기준선 갱신 — ${names.length}개 · 합계 ${kb(total)}`);
+  console.log(`[bundle-budget] 기준선 갱신. ${names.length}개, 합계 ${kb(total)}`);
   process.exit(0);
 }
 
 const baseline = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, 'utf8')).sizes || {} : null;
 if (!baseline) {
-  /* 기준선이 없으면 래칫은 「통과」가 아니라 **못 돌림**이다. 절대선만 본 결과를 그렇게 적는다. */
-  console.log('[bundle-budget] 기준선 없음 — 래칫은 못 돌린다 (`--update` 로 한 번 박아라). 절대선만 본다.');
+  /* 기준선이 없으면 래칫은 통과가 아니라 **못 돌림**이다. 절대선만 본 결과를 그렇게 적는다. */
+  console.log('[bundle-budget] 기준선 없음. 래칫은 못 돌린다 (`--update` 로 한 번 박아라). 절대선만 본다.');
 }
 
-/* 위젯당 한계를 넘은 채 **이름이 적힌** 것들 — 조용한 면제가 아니라 갚을 빚으로 둔다.
+/* 위젯당 한계를 넘은 채 **이름이 적힌** 것들. 조용한 면제가 아니라 갚을 빚으로 둔다.
  * 여기 없는 위젯이 한계를 넘으면 그 즉시 빨개진다(새 빚 유입 차단). 쪼개고 나면 줄을 지운다. */
 const OVER_LIMIT_DEBT = {
-  /* 도구 사슬은 갚았다 (87.7KB → 4.7KB, 2026-08-13) — 알맹이 122개를 묶음에 다 넣고 있었고,
+  /* 도구 사슬은 갚았다 (87.7KB → 4.7KB, 2026-08-13). 알맹이 122개를 묶음에 다 넣고 있었고,
      이제 고른 것만 따로 받아 온다. **갚은 빚은 지운다**: 면제가 남아 있으면 그 위젯이 다시
      천장을 넘어도 아무 말도 안 나온다(면제는 조용히 영원해지는 쪽이 기본값이다). */
-  'karmograph/karmograph.js': 'TASK-KL-202 — 캔버스. 그리기/편집 조각 분리할 것',
+  'karmograph/karmograph.js': 'TASK-KL-202. 캔버스. 그리기/편집 조각 분리할 것',
   /* 플래너가 React 를 걷어내면서 달력 라이브러리(FullCalendar)를 묶음 안으로 들였다
-     — 2.1KB → 88.2KB (2026-08-16, KL-321/322). 위젯 자체가 늦게 받아지므로 첫 화면 값은
-     안 건드리지만, 달력을 안 여는 사람도 「일정」 탭을 여는 순간 88KB 를 받는다.
+    . 2.1KB → 88.2KB (2026-08-16, KL-321/322). 위젯 자체가 늦게 받아지므로 첫 화면 값은
+     안 건드리지만, 달력을 안 여는 사람도 일정 탭을 여는 순간 88KB 를 받는다.
      갚는 길 = 달력 보기만 따로 늦게 받기(도구 사슬이 122개 알맹이를 그렇게 갚았다).
-     그때까지 이름을 적어 둔다 — 안 적으면 저장소 전원의 verify 가 멈춘다. */
-  'planner/planner.js': 'KL-321/322 — 달력 라이브러리 인라인. 달력 보기를 따로 늦게 받게 쪼갤 것',
+     그때까지 이름을 적어 둔다. 안 적으면 저장소 전원의 verify 가 멈춘다. */
+  'planner/planner.js': 'KL-321/322. 달력 라이브러리 인라인. 달력 보기를 따로 늦게 받게 쪼갤 것',
   /* 오락실은 놀이를 계속 더하는 중이라 천장을 넘겼다(65.3KB, 2026-08-12). 놀이별로 늦게
-     받도록 쪼개는 것이 답이고 그건 만드는 사람 몫이라, 그때까지 **빚으로 적어 둔다** —
+     받도록 쪼개는 것이 답이고 그건 만드는 사람 몫이라, 그때까지 **빚으로 적어 둔다** . 
      적어 두면 매 판 이름이 불리고, 안 적으면 전원이 멈춘다. */
 };
 
@@ -110,18 +110,18 @@ const fails = [];
 
 /* ★ **자란 이유를 물어본다** (2026-08-12, 실측으로 붙임).
  *
- * 이 래칫은 「기준선보다 커졌다」만 보고 빨개졌다. 그런데 이 저장소는 세션 여섯이 하루에도
- * 여러 번 위젯에 기능을 더한다 — **정당한 성장**이 곧 빨강이 되고, 그 빨강이 기본값이 되면
- * 아무도 안 본다(오늘 하루에만 bluemarble·karmograph·asciiart·docs·image·pdf·passgen 이 걸렸다).
+ * 이 래칫은 기준선보다 커졌다만 보고 빨개졌다. 그런데 이 저장소는 세션 여섯이 하루에도
+ * 여러 번 위젯에 기능을 더한다. **정당한 성장**이 곧 빨강이 되고, 그 빨강이 기본값이 되면
+ * 아무도 안 본다(오늘 하루에만 bluemarble, karmograph, asciiart, docs, image, pdf, passgen 이 걸렸다).
  *
- * 정작 이 검사가 잡아야 하는 것은 **아무도 안 건드렸는데 커진 것**이다 — 공용 코드가 딸려
+ * 정작 이 검사가 잡아야 하는 것은 **아무도 안 건드렸는데 커진 것**이다. 공용 코드가 딸려
  * 들어오거나 번들이 새는 그 경우. 그래서 기준선을 박은 커밋 이후 그 위젯의 소스가 바뀌었는지
- * 묻는다: 바뀌었으면 「사람이 더한 것」이라 알리기만 하고, 안 바뀌었는데 커졌으면 그때 막는다.
+ * 묻는다: 바뀌었으면 사람이 더한 것이라 알리기만 하고, 안 바뀌었는데 커졌으면 그때 막는다.
  */
-/* ★ **모르면 「안 건드렸다」고 하지 않는다** (2026-08-12, CI 에서 바로 되받았다).
+/* ★ **모르면 안 건드렸다고 하지 않는다** (2026-08-12, CI 에서 바로 되받았다).
  *   CI 체크아웃은 기본이 **커밋 하나짜리**(shallow)라 과거를 물어볼 수가 없다. 그런데 첫 판은
  *   물어보지 못한 것을 `false`(= 아무도 안 건드렸다)로 읽어, 정당한 성장 넷을 전부 막았다.
- *   못 물어보는 상태는 「아니오」가 아니라 **모름**이다 — 모르면 막지 않고 알리기만 한다. */
+ *   못 물어보는 상태는 아니오가 아니라 **모름**이다. 모르면 막지 않고 알리기만 한다. */
 const historyReachable = (() => {
   try {
     const shallow = execFileSync('git', ['rev-parse', '--is-shallow-repository'],
@@ -143,17 +143,17 @@ function sourceTouchedSince(baseCommit, name) {
       { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
     return out.trim().length > 0;
   } catch (e) {
-    /* ★ **여기도 「모름」이다** (2026-08-13). 바로 위에서 「못 물어보면 막지 않는다」로 고쳐 놓고
-       이 자리만 옛날 그대로였다 — 물어보다 던지면 `false`, 즉 **「아무도 안 건드렸다」**가 되어
+    /* ★ **여기도 모름이다** (2026-08-13). 바로 위에서 못 물어보면 막지 않는다로 고쳐 놓고
+       이 자리만 옛날 그대로였다. 물어보다 던지면 `false`, 즉 **아무도 안 건드렸다**가 되어
        정당한 성장이 곧바로 빨강이 된다. 던지는 경우는 실제로 있다: 기준선을 박은 커밋이 이
        체크아웃에 없을 때(얕게 받았거나 force-push 로 사라졌을 때) `git diff` 가 그대로 죽는다.
-       못 물어본 것은 「아니오」가 아니다. 알리기만 하고 통과시킨다. */
-    console.warn(`[bundle] ${name} — 누가 건드렸는지 물어보지 못했다(${e.code || 'git 실패'}) · 모름은 막지 않는다`);
+       못 물어본 것은 아니오가 아니다. 알리기만 하고 통과시킨다. */
+    console.warn(`[bundle] ${name}. 누가 건드렸는지 물어보지 못했다(${e.code || 'git 실패'}), 모름은 막지 않는다`);
     return true;
   }
 }
 
-/** 기준선 파일을 마지막으로 박은 커밋 — 그때 이후의 변경만 「사람이 더한 것」으로 친다. */
+/** 기준선 파일을 마지막으로 박은 커밋. 그때 이후의 변경만 사람이 더한 것으로 친다. */
 const baselineCommit = (() => {
   try {
     return execFileSync('git', ['log', '-1', '--format=%H', '--', 'data/bundle-baseline.json'],
@@ -171,12 +171,12 @@ for (const name of names) {
   }
   if (!baseline) continue;
   const was = baseline[name];
-  if (was == null) continue; // 처음 보는 위젯 — 절대선만
+  if (was == null) continue; // 처음 보는 위젯. 절대선만
   const grew = now - was;
   if (grew >= GROW_BYTES || (now >= was * GROW_RATIO && grew >= GROW_RATIO_MIN_BYTES)) {
     const line = `${name} ${kb(was)} → ${kb(now)} (+${kb(now - was)}, ${((now / was - 1) * 100).toFixed(0)}%)`;
     if (sourceTouchedSince(baselineCommit, name)) grown.push(line + (historyReachable ? '' : ' (지난 기록을 못 봐서 이유는 모름)'));
-    else fails.push(`${line} — **아무도 안 건드렸는데 커졌다**`);
+    else fails.push(`${line}. **아무도 안 건드렸는데 커졌다**`);
   }
 }
 if (total > TOTAL_LIMIT) fails.push(`합계 ${kb(total)} > 한계 ${kb(TOTAL_LIMIT)}`);
@@ -184,12 +184,12 @@ if (total > TOTAL_LIMIT) fails.push(`합계 ${kb(total)} > 한계 ${kb(TOTAL_LIM
 const gone = baseline ? Object.keys(baseline).filter((n) => sizes[n] == null) : [];
 const fresh = baseline ? names.filter((n) => baseline[n] == null) : [];
 
-console.log(`[bundle-budget] 위젯 ${names.length}개 · gzip 합계 ${kb(total)}${baseline ? ` (기준선 ${Object.keys(baseline).length}개)` : ''}`);
-if (fresh.length) console.log(`[bundle-budget] 새로 생긴 것 ${fresh.length}개 — ${fresh.slice(0, 5).join(', ')}${fresh.length > 5 ? ' …' : ''}`);
-if (gone.length) console.log(`[bundle-budget] 사라진 것 ${gone.length}개 — ${gone.slice(0, 5).join(', ')}${gone.length > 5 ? ' …' : ''}`);
+console.log(`[bundle-budget] 위젯 ${names.length}개, gzip 합계 ${kb(total)}${baseline ? ` (기준선 ${Object.keys(baseline).length}개)` : ''}`);
+if (fresh.length) console.log(`[bundle-budget] 새로 생긴 것 ${fresh.length}개. ${fresh.slice(0, 5).join(', ')}${fresh.length > 5 ? ' ...' : ''}`);
+if (gone.length) console.log(`[bundle-budget] 사라진 것 ${gone.length}개. ${gone.slice(0, 5).join(', ')}${gone.length > 5 ? ' ...' : ''}`);
 
 if (grown.length) {
-  console.log(`[bundle-budget] 사람이 더해서 커진 것 ${grown.length}개 (막지 않는다 — 기준선은 \`--update\` 로 옮긴다):`);
+  console.log(`[bundle-budget] 사람이 더해서 커진 것 ${grown.length}개 (막지 않는다. 기준선은 \`--update\` 로 옮긴다):`);
   for (const line of grown) console.log('  + ' + line);
 }
 
@@ -201,7 +201,7 @@ if (fails.length) {
 }
 for (const [name, why] of Object.entries(OVER_LIMIT_DEBT)) {
   if (sizes[name] != null && sizes[name] > HARD_LIMIT) {
-    console.log(`[bundle-budget] 갚을 빚 — ${name} ${kb(sizes[name])} (한계 ${kb(HARD_LIMIT)}): ${why}`);
+    console.log(`[bundle-budget] 갚을 빚. ${name} ${kb(sizes[name])} (한계 ${kb(HARD_LIMIT)}): ${why}`);
   }
 }
-console.log('[bundle-budget] OK — 한계 넘은 것 없음(빚으로 적힌 것 제외), 기준선 대비 회귀 없음');
+console.log('[bundle-budget] OK. 한계 넘은 것 없음(빚으로 적힌 것 제외), 기준선 대비 회귀 없음');

@@ -1,5 +1,5 @@
 /**
- * 슬래시 커맨드 레지스트리 — dispatch 단일 정본 (TASK-YB-025 slice 1).
+ * 슬래시 커맨드 레지스트리. dispatch 단일 정본 (TASK-YB-025 slice 1).
  *
  * 커맨드 1개 = 엔트리 1개 {name, run, autocomplete?}. router.ts 의 거대 switch 폐기:
  * 커맨드별 sub/group 분기 + 가드 + resolveMemory 가 *그 커맨드 엔트리 안에* colocate.
@@ -79,7 +79,7 @@ import { handleWrapped } from './wrapped';
 import { CharacterService } from '../../services/character-service';
 import { buildArcade, handleArcade, arcadeAutocomplete } from './arcade';
 
-/** toJSON() 만 요구하는 구조 타입 — SlashCommandBuilder 및 subcommand/options-only 변종 공통. */
+/** toJSON() 만 요구하는 구조 타입. SlashCommandBuilder 및 subcommand/options-only 변종 공통. */
 interface CommandBuilderLike {
   toJSON: () => RESTPostAPIChatInputApplicationCommandsJSONBody;
 }
@@ -94,7 +94,7 @@ export interface SlashCommand {
   autocomplete?: (ctx: BotContext, interaction: AutocompleteInteraction) => Promise<void>;
   /**
    * 남의 서버에서도 쓸 수 있는 명령 (TASK-YB-042).
-   * true 면 `YAWNBOT_ALLOWED_GUILD_IDS` 허용 목록을 타지 않는다 — 초대받은 서버에서
+   * true 면 `YAWNBOT_ALLOWED_GUILD_IDS` 허용 목록을 타지 않는다. 초대받은 서버에서
    * 동작해야 하는 것들만. 사적인 기능은 표시하지 않는다(기본 = 본진 전용).
    */
   public?: boolean;
@@ -149,7 +149,7 @@ async function characterSlugAutocomplete(ctx: BotContext, interaction: Autocompl
 
 export const SLASH_COMMANDS: SlashCommand[] = [
   {
-    /* TASK-KL-264 D4 — 놀자는 말을 꺼내는 데 드는 걸음을 넷에서 하나로. */
+    /* TASK-KL-264 D4. 놀자는 말을 꺼내는 데 드는 걸음을 넷에서 하나로. */
     name: '오락실',
     builder: buildArcade,
     run: async (_ctx, interaction) => handleArcade(interaction),
@@ -186,14 +186,14 @@ export const SLASH_COMMANDS: SlashCommand[] = [
           opt
             .setName('주제')
             .setNameLocalizations(enUS('topic'))
-            .setDescription('게임 · /music · AI·ping 등')
+            .setDescription('게임, /music, AI, ping 등')
             .setDescriptionLocalizations(enUS('game, music, utility, or overview'))
             .setRequired(false)
             .addChoices(
               { name: '개요', name_localizations: enUS('Overview'), value: 'overview' },
-              { name: '음성 · /music', name_localizations: enUS('Voice · /music'), value: 'music' },
-              { name: '검 · 미니게임 · 주식 · 레이드', name_localizations: enUS('Sword · minigames · stocks · raid'), value: 'game' },
-              { name: 'AI · ping · 음성 입장', name_localizations: enUS('AI · ping · voice join'), value: 'utility' },
+              { name: '음성, /music', name_localizations: enUS('Voice, /music'), value: 'music' },
+              { name: '검, 미니게임, 주식, 레이드', name_localizations: enUS('Sword, minigames, stocks, raid'), value: 'game' },
+              { name: 'AI, ping, 음성 입장', name_localizations: enUS('AI, ping, voice join'), value: 'utility' },
             ),
         ),
     run: async (ctx, interaction) => { await handleHelp(ctx, interaction); },
@@ -283,7 +283,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         .addStringOption((opt) =>
           opt
             .setName('model')
-            .setDescription('모델 ID (예: gemini-2.5-flash). 비우면 GEMINI_MODEL·패키지 기본')
+            .setDescription('모델 ID (예: gemini-2.5-flash). 비우면 GEMINI_MODEL, 패키지 기본')
             .setDescriptionLocalizations(enUS('Model id; empty = GEMINI_MODEL / package default'))
             .setMaxLength(64),
         ),
@@ -520,7 +520,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
     name: '방',
     builder: roomCommand,
     run: async (ctx, interaction) => {
-      // 방 생성·초대·해체 = mutating → owner 가드 (slice-2b core 동형).
+      // 방 생성, 초대, 해체 = mutating → owner 가드 (slice-2b core 동형).
       if (!(await guardOwner(ctx, interaction))) return;
       await handleRoom(ctx, interaction);
     },
@@ -589,7 +589,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       new SlashCommandBuilder()
         .setName('프로필')
         .setNameLocalizations(enUS('profile'))
-        .setDescription('친밀도·기분·일정·기념일·뉴스 키워드 대시보드')
+        .setDescription('친밀도, 기분, 일정, 기념일, 뉴스 키워드 대시보드')
         .setDescriptionLocalizations(enUS('Your relationship & schedule dashboard')),
     run: async (ctx, interaction) => { await handleProfile(ctx, interaction); },
   },
@@ -609,7 +609,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       new SlashCommandBuilder()
         .setName('결산')
         .setNameLocalizations(enUS('wrapped'))
-        .setDescription('우리 서버 결산 카드 — 수다왕·인기상·새벽 유령')
+        .setDescription('우리 서버 결산 카드. 수다왕, 인기상, 새벽 유령')
         .setDescriptionLocalizations(enUS('Server wrapped card'))
         .addIntegerOption((option) =>
           option
@@ -635,7 +635,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
           option
             .setName('자세히')
             .setNameLocalizations(enUS('raw'))
-            .setDescription('원시 수치 + 저장 상태 (나만 보임 · 디버그용)')
+            .setDescription('원시 수치 + 저장 상태 (나만 보임, 디버그용)')
             .setDescriptionLocalizations(enUS('Raw counters & save state (ephemeral, debug)')),
         ),
     run: async (ctx, interaction) => { await handleWrapped(ctx, interaction); },

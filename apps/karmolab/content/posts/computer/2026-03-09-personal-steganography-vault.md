@@ -5,7 +5,7 @@ date: "2026-03-09T04:48:00+09:00"
 categories: []
 tags: []
 image: /assets/img/background/chuttersnap-JxxhNRpdRaw-unsplash.jpg
-hidden: true
+board: info
 ---
 
 작업과 문서화에 VSCode - Gemini 3.1 Pro (Preview) 모델 사용.  

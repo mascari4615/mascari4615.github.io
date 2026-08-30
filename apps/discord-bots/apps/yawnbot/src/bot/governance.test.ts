@@ -12,7 +12,7 @@ import {
 
 const CEIL: BudgetCeilings = { tokens: 1000, ms: 1000, toolCalls: 10 };
 
-describe('reserveBudget — verdict ladder (D-2, 보수적 dual-start)', () => {
+describe('reserveBudget. verdict ladder (D-2, 보수적 dual-start)', () => {
   it('risk-tag 존재 → 무조건 escalate (posture 무관)', () => {
     const d = reserveBudget({ core: 'a', riskTag: 'irreversible', estTokens: 1 }, CEIL);
     expect(d.verdict).toBe('escalate');
@@ -40,7 +40,7 @@ describe('reserveBudget — verdict ladder (D-2, 보수적 dual-start)', () => {
   });
 });
 
-describe('ceilingsFromEnv — 보수 default + ENV override (dual-start)', () => {
+describe('ceilingsFromEnv. 보수 default + ENV override (dual-start)', () => {
   it('미설정 → 보수 default', () => {
     expect(ceilingsFromEnv({})).toEqual(CONSERVATIVE_CEILINGS);
   });

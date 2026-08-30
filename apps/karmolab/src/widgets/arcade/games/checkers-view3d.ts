@@ -1,8 +1,8 @@
 /**
- * 체커 — 입체 화면
+ * 체커. 입체 화면
  *
  * 무대는 `three-board.ts`. 체커만의 것 셋: 칸이 번갈아 어둡고, 말을 **집었다가** 갈 곳을
- * 누르고(그 사이 상태는 화면이 든다 — 규칙은 「어디서 어디로」만 받는다), 왕은 두껍다.
+ * 누르고(그 사이 상태는 화면이 든다. 규칙은 어디서 어디로만 받는다), 왕은 두껍다.
  */
 import type { GameView } from '../views';
 import { mountThreeBoard, type Board3d, type Stone } from '../three-board';
@@ -17,7 +17,7 @@ export const view3d: GameView<CheckersState, CheckersAction> = {
     const host = el.querySelector('#acT3') as HTMLElement;
 
     let pick = -1;
-    /* 누른 칸이 「집기」인지 「놓기」인지는 그때 판을 봐야 안다 — 마지막으로 그린 것을 들고 있는다. */
+    /* 누른 칸이 집기인지 놓기인지는 그때 판을 봐야 안다. 마지막으로 그린 것을 들고 있는다. */
     let cur: { s: CheckersState; mySeat: number } | null = null;
 
     let board: Board3d | null = mountThreeBoard(host, {
@@ -45,7 +45,7 @@ export const view3d: GameView<CheckersState, CheckersAction> = {
       const s = v.state;
       cur = { s, mySeat };
       const myTurn = s.won === -1 && s.turn === mySeat;
-      /* 연달아 뛰는 중이면 그 말이 이미 골라져 있다 — 사람이 다시 고르게 하면 헷갈린다. */
+      /* 연달아 뛰는 중이면 그 말이 이미 골라져 있다. 사람이 다시 고르게 하면 헷갈린다. */
       if (s.chain >= 0 && myTurn) pick = s.chain;
       if (!myTurn) pick = -1;
 

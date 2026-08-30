@@ -1,12 +1,12 @@
 /**
- * 가짜 데이터 만들기 — 스키마 한 줄씩 (TASK-KL-316 / 6)
+ * 가짜 데이터 만들기. 스키마 한 줄씩 (TASK-KL-316 / 6)
  *
- * 화면·표·쿼리를 시험하려면 **그럴듯한 줄 100개**가 필요한데, 손으로 적으면 열 줄에서 지치고
- * 다 「홍길동1·홍길동2」가 된다. 여기서는 칸의 **종류**만 적으면(`이름:name`) 나머지를 채운다.
+ * 화면, 표, 쿼리를 시험하려면 **그럴듯한 줄 100개**가 필요한데, 손으로 적으면 열 줄에서 지치고
+ * 다 홍길동1, 홍길동2가 된다. 여기서는 칸의 **종류**만 적으면(`이름:name`) 나머지를 채운다.
  *
- * 씨앗(`seed`)을 받는다 — 같은 씨앗이면 **같은 데이터**가 나온다. 시험이 매번 달라지면
+ * 씨앗(`seed`)을 받는다. 같은 씨앗이면 **같은 데이터**가 나온다. 시험이 매번 달라지면
  * 그 시험은 아무것도 못 잠근다(그래서 `Math.random` 을 안 쓴다).
- * 이름·주소는 ko/en/ja 를 갈라 둔다. 한국 화면을 영어 이름으로 시험하면 폭이 안 맞는다.
+ * 이름, 주소는 ko/en/ja 를 갈라 둔다. 한국 화면을 영어 이름으로 시험하면 폭이 안 맞는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -33,7 +33,7 @@ export interface Field {
   args: string[];
 }
 
-/** 씨앗을 받는 난수 — 같은 씨앗이면 같은 줄이 나온다(mulberry32). */
+/** 씨앗을 받는 난수. 같은 씨앗이면 같은 줄이 나온다(mulberry32). */
 export function rng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -77,7 +77,7 @@ const POOL: Record<Locale, Record<string, string[]>> = {
 
 const DOMAINS = ['example.com', 'example.org', 'test.dev', 'mail.example'];
 
-/** `이름:name` · `나이:int(20,40)` · `등급:enum(a|b|c)` 를 읽는다. */
+/** `이름:name`, `나이:int(20,40)`, `등급:enum(a|b|c)` 를 읽는다. */
 export function parseSchema(text: string): Field[] {
   const out: Field[] = [];
   for (const raw of text.replace(/\r\n?/g, '\n').split('\n')) {

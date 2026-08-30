@@ -1,19 +1,19 @@
 /**
  * KarmoLab 상태 파일 백업 (TASK-KL-098).
  *
- * 왜 있나: 계정·글·흔적이 전부 **노트북의 파일 몇 개**에 들어 있다. 그 파일이 깨지거나
- * 지워지면 사람들이 쓴 글이 통째로 사라진다 — 되돌릴 방법이 하나도 없었다.
+ * 왜 있나: 계정, 글, 흔적이 전부 **노트북의 파일 몇 개**에 들어 있다. 그 파일이 깨지거나
+ * 지워지면 사람들이 쓴 글이 통째로 사라진다. 되돌릴 방법이 하나도 없었다.
  * 커뮤니티는 남의 글을 맡아 두는 곳이라, 잃고 나서 만들면 늦다.
  *
  * 어떻게: 주기적으로 `data/*-state.json` 을 통째로 `data/backups/` 에 시각 이름으로 복사한다.
  *  - **내용이 안 바뀌었으면 안 만든다** (같은 파일이 수백 개 쌓이면 진짜 사본을 못 찾는다).
  *  - 최근 것만 남기고 오래된 것은 지운다.
- *  - 백업 자체가 실패해도 봇은 계속 돈다 — 백업 때문에 서비스가 멈추면 본말전도다.
+ *  - 백업 자체가 실패해도 봇은 계속 돈다. 백업 때문에 서비스가 멈추면 본말전도다.
  *
  * 되돌리는 법 (사람이 함, 몇 초):
  *  ① 봇을 멈춘다 → ② `data/backups/<시각>/` 안의 파일을 `data/` 로 덮어쓴다 → ③ 봇을 켠다.
  *
- * 이 파일은 KarmoLab 전용이 아니다 — `data/` 의 `*-state.json` 이면 무엇이든 같이 지킨다.
+ * 이 파일은 KarmoLab 전용이 아니다. `data/` 의 `*-state.json` 이면 무엇이든 같이 지킨다.
  */
 import fs from 'fs';
 import path from 'path';
@@ -65,7 +65,7 @@ export interface BackupInfo {
     count: number;
 }
 
-/** 지금 있는 사본들 — 이름이 곧 시각이라 이름만 보면 된다. */
+/** 지금 있는 사본들. 이름이 곧 시각이라 이름만 보면 된다. */
 function listBackups(): string[] {
     try {
         return fs
@@ -100,7 +100,7 @@ export function runBackup(now: Date = new Date()): string | null {
     // 마지막 사본과 내용이 같으면 새로 안 만든다.
     if (existing.some((name) => name.endsWith(`-${mark}`))) return null;
 
-    // 이름 = YYYYMMDD-HHMMSS-<지문>. 아래 `listBackups` 가 찾는 모양과 **정확히** 같아야 한다 —
+    // 이름 = YYYYMMDD-HHMMSS-<지문>. 아래 `listBackups` 가 찾는 모양과 **정확히** 같아야 한다 . 
     // 한 번 어긋나서 사본은 쌓이는데 하나도 안 세어졌고, 오래된 것도 안 지워졌다.
     const iso = now.toISOString();
     const stamp = `${iso.slice(0, 10).replace(/-/g, '')}-${iso.slice(11, 19).replace(/:/g, '')}`;
@@ -116,7 +116,7 @@ export function runBackup(now: Date = new Date()): string | null {
         return null;
     }
 
-    // 오래된 것 치우기 — 남길 개수를 넘은 만큼 앞에서부터.
+    // 오래된 것 치우기. 남길 개수를 넘은 만큼 앞에서부터.
     const all = listBackups();
     for (const old of all.slice(0, Math.max(0, all.length - KEEP))) {
         try {
@@ -131,8 +131,8 @@ export function runBackup(now: Date = new Date()): string | null {
 }
 
 /**
- * 지금 당장 한 벌 뜬다 — 주기를 기다리지 않고 사람이 부를 수 있어야 한다.
- * (자동으로만 도는 일은 「돌고 있나」를 확인할 방법이 없다. 손으로 부를 자리를 늘 같이 둔다.)
+ * 지금 당장 한 벌 뜬다. 주기를 기다리지 않고 사람이 부를 수 있어야 한다.
+ * (자동으로만 도는 일은 돌고 있나를 확인할 방법이 없다. 손으로 부를 자리를 늘 같이 둔다.)
  */
 export function triggerBackupNow(): { made: string | null; info: BackupInfo } {
     const made = runBackup();

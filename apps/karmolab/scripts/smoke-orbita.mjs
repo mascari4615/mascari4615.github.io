@@ -2,10 +2,10 @@
  * ORBITA 가 **소리를 내는지**까지 본다 (TASK-KL-193)
  *
  * 왜 이렇게 보나: 화면이 그려졌는지만 보면 **소리 없는 시퀀서**도 초록으로 지나간다.
- * 그래서 두 출구를 다 센다 —
+ * 그래서 두 출구를 다 센다 . 
  *   ① 브라우저 신스: `createOscillator` 호출 수 (음이 예약됐다는 증거)
  *   ② MIDI 출력: 가짜 장치를 하나 꽂아 `send` 로 나온 바이트를 본다
- * 여기 없는 것(실제 장비·사람 귀)은 이 검사가 대신할 수 없다 — 그건 사람 몫이다.
+ * 여기 없는 것(실제 장비, 사람 귀)은 이 검사가 대신할 수 없다. 그건 사람 몫이다.
  *
  * 사용: node scripts/smoke-orbita.mjs   (npm run test:orbita)
  */
@@ -25,9 +25,9 @@ const MIME = {
   '.ico': 'image/x-icon', '.woff2': 'font/woff2'
 };
 
-/* 묶음이 없으면 「제품 고장」이 아니라 「못 돌린다」다 — 검사가 그걸 말할 줄 알아야 한다. */
+/* 묶음이 없으면 제품 고장이 아니라 못 돌린다다. 검사가 그걸 말할 줄 알아야 한다. */
 if (!fs.existsSync(path.join(root, 'js/widgets/orbita.js'))) {
-  console.log('[smoke-orbita] 못 돌림 — js/widgets/orbita.js 가 없다 (`node build.mjs` 먼저)');
+  console.log('[smoke-orbita] 못 돌림. js/widgets/orbita.js 가 없다 (`node build.mjs` 먼저)');
   process.exit(0);
 }
 
@@ -42,7 +42,7 @@ const server = http.createServer((req, res) => {
   }
   let body = fs.readFileSync(f);
   const ext = path.extname(f);
-  // Liquid 태그까지 걷는다 — 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
+  // Liquid 태그까지 걷는다. 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
   if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
   res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
 });
@@ -55,7 +55,7 @@ const page = await ctx.newPage();
 
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
-/* 셸이 부르는 바깥 API(제안·통계)는 이 기계에서 CORS 로 막힌다 — 이 도구와 무관한 소음이다.
+/* 셸이 부르는 바깥 API(제안, 통계)는 이 기계에서 CORS 로 막힌다. 이 도구와 무관한 소음이다.
    그걸 세면 검사는 항상 빨갛고, 진짜 오류는 그 속에 묻힌다. */
 const NOISE = /CORS|ERR_FAILED|net::|Failed to load resource|yawnbot\.mascari4615\.com/;
 page.on('console', (m) => { if (m.type() === 'error' && !NOISE.test(m.text())) errors.push('console: ' + m.text()); });
@@ -65,7 +65,7 @@ await page.addInitScript(() => {
   window.__midi = [];
   const orig = window.AudioContext.prototype.createOscillator;
   window.AudioContext.prototype.createOscillator = function () { window.__osc++; return orig.call(this); };
-  // 이 기계엔 MIDI 장비가 없다 — 출력 경로를 보려면 가짜 장치를 하나 꽂아야 한다.
+  // 이 기계엔 MIDI 장비가 없다. 출력 경로를 보려면 가짜 장치를 하나 꽂아야 한다.
   navigator.requestMIDIAccess = async () => ({
     outputs: new Map([['fake-1', { id: 'fake-1', name: 'FAKE SYNTH', send: (d) => window.__midi.push([...d]) }]]),
     onstatechange: null
@@ -98,17 +98,17 @@ const seen = await page.evaluate(() => ({
   })()
 }));
 
-/* 찍기 — 클릭 한 번이 실제로 저장까지 가는지.
-   저장은 **바뀔 때만** 일어나므로, 처음엔 저장본이 아예 없다. 그 0 을 「원래 개수」로 삼으면
+/* 찍기. 클릭 한 번이 실제로 저장까지 가는지.
+   저장은 **바뀔 때만** 일어나므로, 처음엔 저장본이 아예 없다. 그 0 을 원래 개수로 삼으면
    기본 패턴 11개가 통째로 늘어난 것처럼 보인다. 그래서 한 번 찍어 저장을 깨운 뒤부터 센다. */
 const box = await page.locator('#orbitaCanvas').boundingBox();
 const outer = Math.min(box.width, box.height) * 0.44;
-/* ★ **저장될 때까지 기다린다 — 250ms 를 세지 않는다** (2026-08-19 실측).
+/* ★ **저장될 때까지 기다린다. 250ms 를 세지 않는다** (2026-08-19 실측).
    검사를 여덟 판씩 같이 돌리자 이 자리가 흔들렸다: 부하가 걸린 판에서 250ms 안에 저장이
-   안 끝나 「클릭이 안 찍혔다 (12 → 12)」로 빨개졌다 — 단독으로는 늘 초록이었다.
+   안 끝나 클릭이 안 찍혔다 (12 → 12)로 빨개졌다. 단독으로는 늘 초록이었다.
    재우는 시간에 판정을 매달면, 판정이 그 컴퓨터가 얼마나 한가한지를 잰다.
    진짜로 볼 것은 하나다: **찍은 것이 저장본에 늘었나.** 그걸 기다린다.
-   안 늘면 예전처럼 빨강이다 — 기다리는 상한(2초)까지 기다렸다가 그대로 센다. */
+   안 늘면 예전처럼 빨강이다. 기다리는 상한(2초)까지 기다렸다가 그대로 센다. */
 const readStored = () =>
   page.evaluate(() => JSON.parse(localStorage.getItem('karmolab_orbita_song_v1') || '{"rings":[]}'));
 const countIt = (s) => (s.rings || []).reduce((n, r) => n + (r.slots || []).filter(Boolean).length, 0);
@@ -128,11 +128,11 @@ const untilGrown = async (baseline) => {
 await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 - outer);
 await untilGrown(-1); // 저장 자체가 깨어날 때까지 (처음엔 저장본이 아예 없다)
 const before = await readStored();
-/* ★ **한 자리만 찍고 「안 찍혔다」라 하면 안 된다** (2026-08-22 실측).
-   줄은 **돌고 있다** — 찍히는 칸은 `ringPhase(r, songTime)` 로 정해지므로, 같은 픽셀을 눌러도
+/* ★ **한 자리만 찍고 안 찍혔다라 하면 안 된다** (2026-08-22 실측).
+   줄은 **돌고 있다**. 찍히는 칸은 `ringPhase(r, songTime)` 로 정해지므로, 같은 픽셀을 눌러도
    **언제 눌렀느냐**에 따라 다른 칸이 걸린다. 그리고 이미 음이 있는 칸을 누르면 그건 **고치기**라
    개수가 안 는다. 그래서 CI 에서는 12→12 로 빨갛고 단독으로는 초록이었다(오늘 스무 판).
-   판정은 그대로다 — **찍은 것이 저장본에 늘었나.** 대신 **빈 칸을 만날 때까지 둘레를 돌며**
+   판정은 그대로다. **찍은 것이 저장본에 늘었나.** 대신 **빈 칸을 만날 때까지 둘레를 돌며**
    눌러 본다. 운을 판정에서 뺀다. 한 바퀴를 다 눌러도 안 늘면 그건 진짜 빨강이다. */
 const TRIES = 12;
 let tries = 0;
@@ -149,7 +149,7 @@ for (let i = 0; i < TRIES; i += 1) {
 const after = await readStored();
 const placed = (s) => (s.rings || []).reduce((n, r) => n + (r.slots || []).filter(Boolean).length, 0);
 
-/* 눈으로 볼 일이 있을 때만 한 장 남긴다 — 색·글로우는 사람이 봐야 판정된다.
+/* 눈으로 볼 일이 있을 때만 한 장 남긴다. 색, 글로우는 사람이 봐야 판정된다.
    사용: node scripts/smoke-orbita.mjs --shot out.png */
 const shotIdx = process.argv.indexOf('--shot');
 if (shotIdx > 0 && process.argv[shotIdx + 1]) await page.screenshot({ path: process.argv[shotIdx + 1] });
@@ -174,9 +174,9 @@ if (!(placed(after) > placed(before))) problems.push(`둘레 ${TRIES}자리를 �
 if (stopped.after !== stopped.before) problems.push(`STOP 후에도 음이 예약된다 (+${stopped.after - stopped.before})`);
 if (errors.length) problems.push(`오류 ${errors.length}건: ${errors.slice(0, 3).join(' | ')}`);
 
-console.log(`[smoke-orbita] 신스 ${seen.osc}음 · MIDI note-on ${seen.noteOn} · 칠해진 표본 ${seen.lit} · 찍기 ${placed(before)}→${placed(after)} (빈 칸 찾기 ${tries}번째)`);
+console.log(`[smoke-orbita] 신스 ${seen.osc}음, MIDI note-on ${seen.noteOn}, 칠해진 표본 ${seen.lit}, 찍기 ${placed(before)}→${placed(after)} (빈 칸 찾기 ${tries}번째)`);
 if (problems.length) {
   console.error('[smoke-orbita] ✗\n  - ' + problems.join('\n  - '));
   process.exit(1);
 }
-console.log('[smoke-orbita] ✓ 궤도가 돌고 두 출구(신스·MIDI)로 다 나간다');
+console.log('[smoke-orbita] ✓ 궤도가 돌고 두 출구(신스, MIDI)로 다 나간다');

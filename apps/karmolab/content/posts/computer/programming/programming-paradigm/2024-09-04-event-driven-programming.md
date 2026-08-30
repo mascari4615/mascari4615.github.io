@@ -4,7 +4,7 @@ date: "2024-09-04T11:10:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## 🌒 프로그래밍 패러다임

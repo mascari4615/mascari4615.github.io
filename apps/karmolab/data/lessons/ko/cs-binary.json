@@ -8,7 +8,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "10진수 `342` 를 우리는 \"3백 4십 2\"로 읽는다. 자리마다 10의 거듭제곱이 곱해져 있기 때문이다. 2진수도 규칙이 똑같고 **밑수만 2**다. 그래서 새로 배울 것이 없다. 자리값만 바꿔 읽으면 된다."
+          "text": "10진수 `342` 를 우리는 3백 4십 2로 읽는다. 자리마다 10의 거듭제곱이 곱해져 있기 때문이다. 2진수도 규칙이 똑같고 **밑수만 2**다. 그래서 새로 배울 것이 없다. 자리값만 바꿔 읽으면 된다."
         },
         {
           "type": "demo",
@@ -90,7 +90,7 @@
       "blocks": [
         {
           "type": "p",
-          "text": "부호를 나타내는 방법은 여럿 있었다. 맨 앞 비트를 부호로 쓰는 방식(부호-크기)은 **0이 두 개**(+0, -0)가 되고, 덧셈 회로를 따로 만들어야 했다. 그래서 살아남은 것이 **2의 보수**다. \"빼기를 더하기로 만드는\" 표현."
+          "text": "부호를 나타내는 방법은 여럿 있었다. 맨 앞 비트를 부호로 쓰는 방식(부호-크기)은 **0이 두 개**(+0, -0)가 되고, 덧셈 회로를 따로 만들어야 했다. 그래서 살아남은 것이 **2의 보수**다. 빼기를 더하기로 만드는 표현."
         },
         {
           "type": "demo",
@@ -179,7 +179,7 @@
           "kind": "html",
           "label": "연산을 골라 보라. 자리마다 무슨 일이 일어나나",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const op = '{{op}}', A = {{a}}, B = 12;\n  const f = { and: (a,b)=>a&b, or:(a,b)=>a|b, xor:(a,b)=>a^b, shl:(a)=>(a<<1)&255, shr:(a)=>a>>1 }[op];\n  const R = f(A, B);\n  const b8 = (n) => (n & 255).toString(2).padStart(8, '0');\n  const label = { and:'A & B', or:'A | B', xor:'A ^ B', shl:'A << 1', shr:'A >> 1' }[op];\n  app.innerHTML =\n    '<div class=\"hint\">A = ' + A + '</div>' + bitRow(b8(A)) +\n    (op === 'shl' || op === 'shr' ? '' : '<div class=\"hint\">B = ' + B + '</div>' + bitRow(b8(B))) +\n    '<div class=\"hint\">' + label + ' = ' + R + '</div>' + bitRow(b8(R));\n  const why = {\n    and: '둘 다 1일 때만 1 — 「골라내기(마스크)」에 쓴다.',\n    or:  '하나라도 1이면 1 — 「켜기」에 쓴다.',\n    xor: '다를 때만 1 — 「뒤집기」와 「같은지 보기」에 쓴다. 같은 값을 두 번 XOR 하면 원래대로.',\n    shl: '왼쪽으로 한 칸 = 2를 곱한 것. 넘친 비트는 버려진다.',\n    shr: '오른쪽으로 한 칸 = 2로 나눈 몫(내림).',\n  }[op];\n  show(label + ' = ' + R + '\\n\\n' + why);\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const op = '{{op}}', A = {{a}}, B = 12;\n  const f = { and: (a,b)=>a&b, or:(a,b)=>a|b, xor:(a,b)=>a^b, shl:(a)=>(a<<1)&255, shr:(a)=>a>>1 }[op];\n  const R = f(A, B);\n  const b8 = (n) => (n & 255).toString(2).padStart(8, '0');\n  const label = { and:'A & B', or:'A | B', xor:'A ^ B', shl:'A << 1', shr:'A >> 1' }[op];\n  app.innerHTML =\n    '<div class=\"hint\">A = ' + A + '</div>' + bitRow(b8(A)) +\n    (op === 'shl' || op === 'shr' ? '' : '<div class=\"hint\">B = ' + B + '</div>' + bitRow(b8(B))) +\n    '<div class=\"hint\">' + label + ' = ' + R + '</div>' + bitRow(b8(R));\n  const why = {\n    and: '둘 다 1일 때만 1. 골라내기(마스크)에 쓴다.',\n    or:  '하나라도 1이면 1. 켜기에 쓴다.',\n    xor: '다를 때만 1. 뒤집기와 같은지 보기에 쓴다. 같은 값을 두 번 XOR 하면 원래대로.',\n    shl: '왼쪽으로 한 칸 = 2를 곱한 것. 넘친 비트는 버려진다.',\n    shr: '오른쪽으로 한 칸 = 2로 나눈 몫(내림).',\n  }[op];\n  show(label + ' = ' + R + '\\n\\n' + why);\n</script>",
           "controls": [
             {
               "id": "op",
@@ -224,7 +224,7 @@
           "type": "code",
           "lang": "javascript",
           "label": "실제로 쓰는 자리",
-          "text": "// 색에서 채널 뽑기 — 마스크 & 시프트\nconst r = (color >> 16) & 0xff;\nconst g = (color >> 8) & 0xff;\nconst b = color & 0xff;\n\n// 짝수인가 — 마지막 비트만 보면 된다\nconst even = (n & 1) === 0;\n\n// 두 값 비교 없이 「다른 비트 수」 세기 (해밍 거리)\nlet d = 0, x = a ^ b;\nwhile (x) { d += x & 1; x >>= 1; }"
+          "text": "// 색에서 채널 뽑기. 마스크 & 시프트\nconst r = (color >> 16) & 0xff;\nconst g = (color >> 8) & 0xff;\nconst b = color & 0xff;\n\n// 짝수인가. 마지막 비트만 보면 된다\nconst even = (n & 1) === 0;\n\n// 두 값 비교 없이 다른 비트 수 세기 (해밍 거리)\nlet d = 0, x = a ^ b;\nwhile (x) { d += x & 1; x >>= 1; }"
         },
         {
           "type": "note",
@@ -232,12 +232,12 @@
         },
         {
           "type": "try",
-          "text": "`x ^ y ^ y === x` 가 늘 참인지 아무 수로 확인하라. 이 성질이 옛 \"임시 변수 없이 두 값 바꾸기\" 트릭의 근거다."
+          "text": "`x ^ y ^ y === x` 가 늘 참인지 아무 수로 확인하라. 이 성질이 옛 임시 변수 없이 두 값 바꾸기 트릭의 근거다."
         }
       ],
       "quiz": [
         {
-          "q": "\"짝수인가\"를 비트로 확인하는 식은?",
+          "q": "짝수인가를 비트로 확인하는 식은?",
           "choices": [
             "n & 1",
             "n | 1",
@@ -309,13 +309,13 @@
         },
         {
           "type": "p",
-          "text": "값은 반드시 **2의 거듭제곱**이어야 한다(1, 2, 4, 8). 그래야 자리가 겹치지 않는다. `1 << 0`, `1 << 1`, `1 << 2` 로 적으면 실수하지 않는다."
+          "text": "값은 반드시 **2의 거듭제곱**이어야 한다(1, 2, 4, 8...). 그래야 자리가 겹치지 않는다. `1 << 0`, `1 << 1`, `1 << 2` 로 적으면 실수하지 않는다."
         },
         {
           "type": "code",
           "lang": "javascript",
           "label": "쓰는 모양",
-          "text": "const Perm = { READ: 1 << 0, WRITE: 1 << 1, EXEC: 1 << 2 };\n\nlet p = Perm.READ | Perm.WRITE;   // 읽기+쓰기\np |=  Perm.EXEC;                  // 켜기\np &= ~Perm.WRITE;                 // 끄기\np ^=  Perm.READ;                  // 뒤집기\nconst canExec = (p & Perm.EXEC) !== 0;\n\n// chmod 755 = 소유자 rwx(7) · 그룹 r-x(5) · 나머지 r-x(5)"
+          "text": "const Perm = { READ: 1 << 0, WRITE: 1 << 1, EXEC: 1 << 2 };\n\nlet p = Perm.READ | Perm.WRITE;   // 읽기+쓰기\np |=  Perm.EXEC;                  // 켜기\np &= ~Perm.WRITE;                 // 끄기\np ^=  Perm.READ;                  // 뒤집기\nconst canExec = (p & Perm.EXEC) !== 0;\n\n// chmod 755 = 소유자 rwx(7), 그룹 r-x(5), 나머지 r-x(5)"
         },
         {
           "type": "note",
@@ -376,7 +376,7 @@
           "kind": "html",
           "label": "더해 보라. 어디서 어긋나나",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const N = {{n}};\n  let sum = 0;\n  for (let i = 0; i < N; i++) sum += 0.1;\n  const want = N * 0.1;\n  app.innerHTML = '<div class=\"hint\">0.1 을 ' + N + '번 더한다</div>';\n  show('결과   ' + sum.toFixed(17) + '\\n'\n     + '기대   ' + want.toFixed(17) + '\\n'\n     + '차이   ' + Math.abs(sum - want).toExponential(3) + '\\n'\n     + '=== 로 같나?  ' + (sum === want) + '\\n\\n'\n     + '0.1 의 실제 값: ' + (0.1).toFixed(20) + '\\n'\n     + '-> 2진수로 0.000110011001100…(무한 반복). 어딘가에서 끊어야 한다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const N = {{n}};\n  let sum = 0;\n  for (let i = 0; i < N; i++) sum += 0.1;\n  const want = N * 0.1;\n  app.innerHTML = '<div class=\"hint\">0.1 을 ' + N + '번 더한다</div>';\n  show('결과   ' + sum.toFixed(17) + '\\n'\n     + '기대   ' + want.toFixed(17) + '\\n'\n     + '차이   ' + Math.abs(sum - want).toExponential(3) + '\\n'\n     + '=== 로 같나?  ' + (sum === want) + '\\n\\n'\n     + '0.1 의 실제 값: ' + (0.1).toFixed(20) + '\\n'\n     + '-> 2진수로 0.000110011001100...(무한 반복). 어딘가에서 끊어야 한다.');\n</script>",
           "controls": [
             {
               "id": "n",
@@ -397,11 +397,11 @@
           "type": "code",
           "lang": "javascript",
           "label": "그래서 이렇게 비교한다",
-          "text": "// 나쁨\nif (a === b) …\n\n// 좋음: 허용 오차로 비교\nconst near = (a, b, eps = Number.EPSILON * 8) => Math.abs(a - b) < eps;\n\n// 돈은 아예 소수를 쓰지 않는다 — 최소 단위(원·센트)의 정수로\nconst price = 1290;      // 12.90 달러가 아니라 1290 센트"
+          "text": "// 나쁨\nif (a === b) ...\n\n// 좋음: 허용 오차로 비교\nconst near = (a, b, eps = Number.EPSILON * 8) => Math.abs(a - b) < eps;\n\n// 돈은 아예 소수를 쓰지 않는다. 최소 단위(원, 센트)의 정수로\nconst price = 1290;      // 12.90 달러가 아니라 1290 센트"
         },
         {
           "type": "note",
-          "text": "**돈에 부동소수를 쓰지 마라.** 정수(최소 단위)나 십진 라이브러리를 써라. 화면에 보이는 `12.90` 이 실제로는 `12.899999` 라서, 더하고 반올림하는 순간 1원이 사라지거나 생긴다."
+          "text": "**돈에 부동소수를 쓰지 마라.** 정수(최소 단위)나 십진 라이브러리를 써라. 화면에 보이는 `12.90` 이 실제로는 `12.899999...` 라서, 더하고 반올림하는 순간 1원이 사라지거나 생긴다."
         },
         {
           "type": "try",
@@ -479,11 +479,11 @@
           "type": "code",
           "lang": "javascript",
           "label": "큰 정수를 다루는 법",
-          "text": "Number.isSafeInteger(9007199254740993);   // false\n\n// BigInt — 끝에 n, 또는 BigInt()\nconst big = 9007199254740993n;\nbig + 1n;                 // 9007199254740994n\n// 주의: Number 와 섞어 계산할 수 없다(TypeError)\n// 주의: JSON.stringify 가 BigInt 를 못 다룬다 -> 문자열로\n\n// ID 는 애초에 문자열로 받는다\n{ \"id\": \"1234567890123456789\" }"
+          "text": "Number.isSafeInteger(9007199254740993);   // false\n\n// BigInt. 끝에 n, 또는 BigInt()\nconst big = 9007199254740993n;\nbig + 1n;                 // 9007199254740994n\n// 주의: Number 와 섞어 계산할 수 없다(TypeError)\n// 주의: JSON.stringify 가 BigInt 를 못 다룬다 -> 문자열로\n\n// ID 는 애초에 문자열로 받는다\n{ \"id\": \"1234567890123456789\" }"
         },
         {
           "type": "p",
-          "text": "정밀도는 값이 커질수록 나빠진다. 2⁵³ 근처에서는 간격이 2가 되고, 더 커지면 4, 8 로 벌어진다. **큰 수일수록 \"다음 표현 가능한 수\"가 멀어진다**. 이것이 부동소수의 본질이다."
+          "text": "정밀도는 값이 커질수록 나빠진다. 2⁵³ 근처에서는 간격이 2가 되고, 더 커지면 4, 8... 로 벌어진다. **큰 수일수록 다음 표현 가능한 수가 멀어진다**. 이것이 부동소수의 본질이다."
         },
         {
           "type": "try",
@@ -540,7 +540,7 @@
           "kind": "html",
           "label": "연산을 골라 보라. 큰 수가 어떻게 잘리나",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const op = '{{op}}';\n  const V = 3000000000;   /* 30억 — 32비트 부호 있는 정수 범위(21억) 밖 */\n  const r = { or0: V | 0, shr0: V >>> 0, trunc: Math.trunc(V), big: null }[op];\n  const text = {\n    or0:   'V | 0        = ' + (V | 0) + '\\n-> 32비트 부호 있는 정수로 해석 = 음수가 됐다.',\n    shr0:  'V >>> 0      = ' + (V >>> 0) + '\\n-> 부호 없는 32비트로 해석 = 원래 값이 살아났다(0~42억까지).',\n    trunc: 'Math.trunc(V)= ' + Math.trunc(V) + '\\n-> 비트 연산이 아니라 소수만 버린다. 큰 수도 안전.',\n    big:   'BigInt(V)*2n = ' + (BigInt(V) * 2n) + 'n\\n-> 자릿수 제한이 없다. 대신 Number 와 못 섞는다.',\n  }[op];\n  app.innerHTML = '<div class=\"hint\">V = ' + V + ' (32비트 부호 있는 정수 최대 = 2147483647)</div>';\n  show(text + '\\n\\n규칙: 소수를 버리려면 Math.trunc, 비트를 다루려면 | 와 >>> 를 뜻대로 골라라.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const op = '{{op}}';\n  const V = 3000000000;   /* 30억. 32비트 부호 있는 정수 범위(21억) 밖 */\n  const r = { or0: V | 0, shr0: V >>> 0, trunc: Math.trunc(V), big: null }[op];\n  const text = {\n    or0:   'V | 0        = ' + (V | 0) + '\\n-> 32비트 부호 있는 정수로 해석 = 음수가 됐다.',\n    shr0:  'V >>> 0      = ' + (V >>> 0) + '\\n-> 부호 없는 32비트로 해석 = 원래 값이 살아났다(0~42억까지).',\n    trunc: 'Math.trunc(V)= ' + Math.trunc(V) + '\\n-> 비트 연산이 아니라 소수만 버린다. 큰 수도 안전.',\n    big:   'BigInt(V)*2n = ' + (BigInt(V) * 2n) + 'n\\n-> 자릿수 제한이 없다. 대신 Number 와 못 섞는다.',\n  }[op];\n  app.innerHTML = '<div class=\"hint\">V = ' + V + ' (32비트 부호 있는 정수 최대 = 2147483647)</div>';\n  show(text + '\\n\\n규칙: 소수를 버리려면 Math.trunc, 비트를 다루려면 | 와 >>> 를 뜻대로 골라라.');\n</script>",
           "controls": [
             {
               "id": "op",
@@ -570,7 +570,7 @@
         },
         {
           "type": "note",
-          "text": "옛 코드에서 `~~x` 나 `x | 0` 을 \"빠른 정수 변환\"으로 쓰는 것을 볼 수 있다. 값이 21억을 안 넘을 때만 맞다. 뜻을 그대로 적는 `Math.trunc(x)` 가 낫고, 요즘 엔진에서는 속도 차이도 없다."
+          "text": "옛 코드에서 `~~x` 나 `x | 0` 을 빠른 정수 변환으로 쓰는 것을 볼 수 있다. 값이 21억을 안 넘을 때만 맞다. 뜻을 그대로 적는 `Math.trunc(x)` 가 낫고, 요즘 엔진에서는 속도 차이도 없다."
         },
         {
           "type": "p",
@@ -624,14 +624,14 @@
       "blocks": [
         {
           "type": "p",
-          "text": "컴퓨터에는 글자가 없다. 번호와 **번호를 바이트로 적는 규칙**이 있을 뿐이다. 유니코드는 \"가 = U+AC00\"처럼 **번호를 정한 표**이고, UTF-8 은 그 번호를 **바이트로 적는 방법**이다. 둘은 다른 층이다."
+          "text": "컴퓨터에는 글자가 없다. 번호와 **번호를 바이트로 적는 규칙**이 있을 뿐이다. 유니코드는 가 = U+AC00처럼 **번호를 정한 표**이고, UTF-8 은 그 번호를 **바이트로 적는 방법**이다. 둘은 다른 층이다."
         },
         {
           "type": "demo",
           "kind": "html",
           "label": "글자를 골라 보라. 몇 바이트이고 length 는 얼마인가",
           "height": "300px",
-          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const s = { ascii: 'A', ko: '가', emoji: '🐱', family: '👨‍👩‍👧', flag: '🇰🇷' }[kind];\n  const bytes = new TextEncoder().encode(s);\n  const points = [...s];\n  app.innerHTML = '<div style=\"font-size:44px;text-align:center;padding:6px\">' + s + '</div>';\n  show('글자             ' + s + '\\n'\n     + 's.length         ' + s.length + '   (UTF-16 단위 수 — 「글자 수」가 아니다)\\n'\n     + '[...s].length    ' + points.length + '   (코드포인트 수)\\n'\n     + 'UTF-8 바이트 수  ' + bytes.length + '\\n'\n     + '코드포인트       ' + points.map((c) => 'U+' + c.codePointAt(0).toString(16).toUpperCase()).join(' ') + '\\n'\n     + 'UTF-8 바이트     ' + [...bytes].map((b) => b.toString(16).padStart(2, '0')).join(' ') + '\\n\\n'\n     + 's.slice(0, 1)  -> \"' + s.slice(0, 1) + '\"   <- 여기서 글자가 깨지면 그게 이 장의 요점이다.');\n</script>",
+          "text": "<style>\n  body { font: 13.5px/1.7 system-ui, sans-serif; margin:0; color:#e2e8f0; }\n  .wrap { background:#0b1220; border-radius:10px; padding:12px; }\n  .bits { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0; }\n  .bit { width:30px; text-align:center; padding:6px 0; border-radius:6px;\n         font:14px/1 ui-monospace, monospace; background:#1e293b; color:#64748b; user-select:none; }\n  .bit.on { background:#2563eb; color:#fff; }\n  .bit.sign.on { background:#ef4444; }\n  .lbl { font:10px/1 ui-monospace, monospace; color:#64748b; text-align:center; width:30px; }\n  pre { margin:8px 0 0; font:12.5px/1.7 ui-monospace, monospace; color:#cbd5e1; white-space:pre-wrap; }\n  .hint { font-size:12.5px; color:#94a3b8; }\n</style>\n<div class=\"wrap\"><div id=\"app\"></div><pre id=\"out\"></pre></div>\n<script>\n  const app = document.getElementById('app');\n  const out = document.getElementById('out');\n  const show = (s) => { out.textContent = s; };\n  /** 비트를 줄로 그린다. sign 이면 맨 앞 칸을 빨갛게(부호 자리). */\n  function bitRow(bits, opts) {\n    const o = opts || {};\n    const cells = [...bits].map((b, i) =>\n      '<div class=\"bit' + (b === '1' ? ' on' : '') + (o.sign && i === 0 ? ' sign' : '') + '\">' + b + '</div>').join('');\n    const labels = o.weights\n      ? '<div class=\"bits\">' + [...bits].map((_, i) =>\n          '<div class=\"lbl\">' + (o.sign && i === 0 ? '-' : '') + Math.pow(2, bits.length - 1 - i) + '</div>').join('') + '</div>'\n      : '';\n    return '<div class=\"bits\">' + cells + '</div>' + labels;\n  }\n</script>\n<script>\n  const kind = '{{kind}}';\n  const s = { ascii: 'A', ko: '가', emoji: '🐱', family: '👨‍👩‍👧', flag: '🇰🇷' }[kind];\n  const bytes = new TextEncoder().encode(s);\n  const points = [...s];\n  app.innerHTML = '<div style=\"font-size:44px;text-align:center;padding:6px\">' + s + '</div>';\n  show('글자             ' + s + '\\n'\n     + 's.length         ' + s.length + '   (UTF-16 단위 수. 글자 수가 아니다)\\n'\n     + '[...s].length    ' + points.length + '   (코드포인트 수)\\n'\n     + 'UTF-8 바이트 수  ' + bytes.length + '\\n'\n     + '코드포인트       ' + points.map((c) => 'U+' + c.codePointAt(0).toString(16).toUpperCase()).join(' ') + '\\n'\n     + 'UTF-8 바이트     ' + [...bytes].map((b) => b.toString(16).padStart(2, '0')).join(' ') + '\\n\\n'\n     + 's.slice(0, 1)  -> \"' + s.slice(0, 1) + '\"   <- 여기서 글자가 깨지면 그게 이 장의 요점이다.');\n</script>",
           "controls": [
             {
               "id": "kind",
@@ -675,7 +675,7 @@
           "type": "code",
           "lang": "javascript",
           "label": "글자를 세는 세 가지 층",
-          "text": "const s = '👨‍👩‍👧';\ns.length                                   // 8  (UTF-16 단위)\n[...s].length                              // 5  (코드포인트 — ZWJ 포함)\n[...new Intl.Segmenter().segment(s)].length // 1  (사람이 보는 글자 한 개)\n\n// 이름 길이 제한·글자 자르기는 세 번째 기준이어야 한다"
+          "text": "const s = '👨‍👩‍👧';\ns.length                                   // 8  (UTF-16 단위)\n[...s].length                              // 5  (코드포인트. ZWJ 포함)\n[...new Intl.Segmenter().segment(s)].length // 1  (사람이 보는 글자 한 개)\n\n// 이름 길이 제한, 글자 자르기는 세 번째 기준이어야 한다"
         },
         {
           "type": "try",
@@ -706,7 +706,7 @@
           "why": "UTF-16 서로게이트 쌍이라 두 칸."
         },
         {
-          "q": "사람이 보는 \"글자 한 개\" 단위로 세려면?",
+          "q": "사람이 보는 글자 한 개 단위로 세려면?",
           "choices": [
             "str.length",
             "[...str].length",
@@ -725,13 +725,13 @@
       "blocks": [
         {
           "type": "p",
-          "text": "이 칸의 내용은 \"몰라도 돌아가지만, 모르면 어느 날 조용히 틀리는\" 것들이다. 그 조용한 틀림이 어디서 나오는지만 기억하면 된다."
+          "text": "이 칸의 내용은 몰라도 돌아가지만, 모르면 어느 날 조용히 틀리는 것들이다. 그 조용한 틀림이 어디서 나오는지만 기억하면 된다."
         },
         {
           "type": "code",
           "lang": "text",
           "label": "숫자, 글자가 이상할 때 점검 순서",
-          "text": "값이 미세하게 다르다\n  [ ] 소수를 === 로 비교했나            -> 허용 오차 비교 (5장)\n  [ ] 돈을 소수로 다뤘나                 -> 최소 단위 정수 (5장)\n큰 수가 이상하다\n  [ ] MAX_SAFE_INTEGER 를 넘었나         -> BigInt · ID 는 문자열 (6장)\n  [ ] 비트 연산·| 0 로 32비트에 잘렸나   -> Math.trunc / >>> (7장)\n음수가 이상하다\n  [ ] 부호 비트를 부호 없는 값으로 읽었나 (2장)\n글자 수가 이상하다\n  [ ] length 로 셌나                     -> [...str] · Intl.Segmenter (8장)\n  [ ] slice 가 이모지를 반으로 잘랐나 (8장)\n플래그가 이상하다\n  [ ] 값이 2의 거듭제곱인가 · 31개를 넘었나 (4장)"
+          "text": "값이 미세하게 다르다\n  [ ] 소수를 === 로 비교했나            -> 허용 오차 비교 (5장)\n  [ ] 돈을 소수로 다뤘나                 -> 최소 단위 정수 (5장)\n큰 수가 이상하다\n  [ ] MAX_SAFE_INTEGER 를 넘었나         -> BigInt, ID 는 문자열 (6장)\n  [ ] 비트 연산, | 0 로 32비트에 잘렸나   -> Math.trunc / >>> (7장)\n음수가 이상하다\n  [ ] 부호 비트를 부호 없는 값으로 읽었나 (2장)\n글자 수가 이상하다\n  [ ] length 로 셌나                     -> [...str], Intl.Segmenter (8장)\n  [ ] slice 가 이모지를 반으로 잘랐나 (8장)\n플래그가 이상하다\n  [ ] 값이 2의 거듭제곱인가, 31개를 넘었나 (4장)"
         },
         {
           "type": "demo",
@@ -742,7 +742,7 @@
         },
         {
           "type": "note",
-          "text": "다음 칸은 메모리다. 여기까지가 \"값이 비트로 어떻게 적히나\"였다면, 다음은 **그 비트가 어디에 놓이고 언제 사라지나**다."
+          "text": "다음 칸은 메모리다. 여기까지가 값이 비트로 어떻게 적히나였다면, 다음은 **그 비트가 어디에 놓이고 언제 사라지나**다."
         },
         {
           "type": "try",

@@ -6,12 +6,12 @@ last_modified_at: "2024-10-24T01:49:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/catch-drawing/catch-drawing-logo.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 뭘까용! - 캐치드로잉 합방  

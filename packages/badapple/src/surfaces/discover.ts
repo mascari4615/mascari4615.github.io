@@ -1,8 +1,8 @@
 /**
  * 액정으로 쓸 것을 **스스로 찾는다.** 선택자를 안 받는다.
  *
- * 왜: 선택자를 박는 순간 그게 곧 「화면을 아는 코드」다. 도구는 활발하게 바뀌고, 칸 이름은
- * 개편 한 번이면 사라진다. 그러면 재생은 오류도 없이 그냥 아무것도 안 그린다 — 제일 나쁜
+ * 왜: 선택자를 박는 순간 그게 곧 화면을 아는 코드다. 도구는 활발하게 바뀌고, 칸 이름은
+ * 개편 한 번이면 사라진다. 그러면 재생은 오류도 없이 그냥 아무것도 안 그린다. 제일 나쁜
  * 종류의 고장이다(고장인 줄 모른다).
  *
  * 대신 **모양으로** 찾는다: 한 부모 밑에 크기가 고만고만한 형제가 여럿 있으면, 그게 격자다.
@@ -24,9 +24,9 @@ export interface Measured {
 }
 
 export interface DiscoverOptions {
-	/** 이보다 작은 것은 무시 (픽셀). 기본 24 — 글자 쪼가리를 거른다. */
+	/** 이보다 작은 것은 무시 (픽셀). 기본 24. 글자 쪼가리를 거른다. */
 	minSide?: number;
-	/** 화면의 이 비율보다 크면 무시. 기본 0.6 — 전체를 덮는 껍데기를 거른다. */
+	/** 화면의 이 비율보다 크면 무시. 기본 0.6. 전체를 덮는 껍데기를 거른다. */
 	maxAreaRatio?: number;
 	/** 최소 몇 개는 모여야 격자로 친다. 기본 4. */
 	minCount?: number;
@@ -42,7 +42,7 @@ export interface DiscoverOptions {
 /**
  * 잰 것들 중에서 액정으로 쓸 무리 하나를 고른다. 못 고르면 빈 배열.
  *
- * 순수 함수다 — 브라우저 없이 시험한다. 「화면에서 뭘 고르나」가 이 시스템에서 제일 자주
+ * 순수 함수다. 브라우저 없이 시험한다. 화면에서 뭘 고르나가 이 시스템에서 제일 자주
  * 틀릴 자리라, 여기만은 눈으로 보지 않고도 확인할 수 있어야 한다.
  */
 export function pickTileGroup(measured: readonly Measured[], options: DiscoverOptions): Measured[] {
@@ -66,10 +66,10 @@ export function pickTileGroup(measured: readonly Measured[], options: DiscoverOp
 /**
  * 쓸 만한 무리를 **여러 개** 골라 합친다.
  *
- * 하나만 고르면 화면을 너무 조금 쓴다 — 첫 화면에서 큰 버튼 다섯 개만 쓰고 머리줄·옆줄·아래
- * 전부를 놀렸다. 밈의 요점은 「화면이 통째로 액정이 된다」인데 구석 한 뭉치만 켜지면 약하다.
+ * 하나만 고르면 화면을 너무 조금 쓴다. 첫 화면에서 큰 버튼 다섯 개만 쓰고 머리줄, 옆줄, 아래
+ * 전부를 놀렸다. 밈의 요점은 화면이 통째로 액정이 된다인데 구석 한 뭉치만 켜지면 약하다.
  *
- * 다만 아무거나 다 넣으면 안 된다. 제일 좋은 무리 점수의 일정 비율을 넘는 것만 받는다 —
+ * 다만 아무거나 다 넣으면 안 된다. 제일 좋은 무리 점수의 일정 비율을 넘는 것만 받는다 . 
  * 들쭉날쭉한 뭉치가 끼면 그림이 지저분해진다.
  */
 export function pickTileGroups(measured: readonly Measured[], options: DiscoverOptions): Measured[] {
@@ -103,7 +103,7 @@ export function pickTileGroups(measured: readonly Measured[], options: DiscoverO
 	return out;
 }
 
-/** 무리 하나의 점수 — 개수는 이득이지만 무한정은 아니고(로그), 크기가 고를수록 좋다. */
+/** 무리 하나의 점수. 개수는 이득이지만 무한정은 아니고(로그), 크기가 고를수록 좋다. */
 function scoreOf(bucket: readonly Measured[]): number {
 	let minArea = Infinity;
 	let maxArea = 0;
@@ -138,7 +138,7 @@ function bestBucket(groups: Map<unknown, Measured[]>, minCount: number): Measure
  *
  * 왜 자동이어야 하나: 화면마다 칸 수가 전혀 다르다. 도구 목록에는 백 개가 넘게 깔리지만
  * 첫 화면에는 큰 버튼 다섯 개뿐이다 (실제로 그랬다). 쪼갬을 고정으로 박으면 한쪽은 흐릿하고
- * 다른 쪽은 쓸데없이 잘다. 칸이 적으면 잘게, 많으면 성글게 — 전체 해상도를 비슷하게 맞춘다.
+ * 다른 쪽은 쓸데없이 잘다. 칸이 적으면 잘게, 많으면 성글게. 전체 해상도를 비슷하게 맞춘다.
  *
  * @param tilesAcross 가로로 몇 칸 놓였나
  * @param tilesDown 세로로 몇 줄인가
@@ -152,7 +152,7 @@ export function subdivisionFor(
 	const across = Math.max(1, tilesAcross);
 	const down = Math.max(1, tilesDown);
 	return {
-		// 한 칸이 너무 잘아지면 그리는 값이 커지기만 하고 눈에는 차이가 없다 — 위쪽을 막는다.
+		// 한 칸이 너무 잘아지면 그리는 값이 커지기만 하고 눈에는 차이가 없다. 위쪽을 막는다.
 		cols: Math.max(1, Math.min(24, Math.round(target.cols / across))),
 		rows: Math.max(1, Math.min(24, Math.round(target.rows / down)))
 	};

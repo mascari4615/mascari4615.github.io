@@ -16,7 +16,7 @@
   "listdiff.stat.all": "Everything",
   "listdiff.copy.done": "Result copied",
   "listdiff.value.count": "{n}",
-  "listdiff.say.counts": "A {a} lines · B {b} lines — duplicates count once.",
+  "listdiff.say.counts": "A {a} lines, B {b} lines. duplicates count once.",
   "listdiff.sample.a": "apple\nbanana\ngrape\nstrawberry",
   "listdiff.sample.b": "banana\nstrawberry\nwatermelon"
 }

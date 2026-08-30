@@ -1,16 +1,16 @@
 /**
- * 작업물 — 「해온 것」 (change.blog-surfaces-as-widgets ②).
+ * 작업물. 해온 것 (change.blog-surfaces-as-widgets ②).
  *
- * 보기 둘을 **같은 자료 한 벌**로 그린다 (사용자 확정 2026-08-28: 「내가 보기엔 지도, 남이
- * 보기엔 진열」):
- *   ① 진열 — 지금 붙들고 있는 것이 큰 칸, 나머지는 연도별 그림 벽. 처음 온 사람이 읽는 순서.
- *   ② 지도 — 가로가 시간, 가로줄이 소속. 몇 해씩 이어 온 것과 한 번 스친 것이 갈려 보인다.
+ * 보기 둘을 **같은 자료 한 벌**로 그린다 (사용자 확정 2026-08-28: 내가 보기엔 지도, 남이
+ * 보기엔 진열):
+ *   ① 진열. 지금 붙들고 있는 것이 큰 칸, 나머지는 연도별 그림 벽. 처음 온 사람이 읽는 순서.
+ *   ② 지도. 가로가 시간, 가로줄이 소속. 몇 해씩 이어 온 것과 한 번 스친 것이 갈려 보인다.
  *
  * 원료 = `data/works.json` (배포 산출, `gen-post-pages.mjs`). 메타 정본은 **각 글의
  * frontmatter `work:`** 이고, 글이 없는 바깥 링크만 `apps/blog/_data/works.yml` 이 든다.
- * 「그 외 참여」 18건은 소품 목록 글에서 읽어 온 것 — 예전에는 카드 한 장 뒤에 숨어 있었다.
+ * 그 외 참여 18건은 소품 목록 글에서 읽어 온 것. 예전에는 카드 한 장 뒤에 숨어 있었다.
  *
- * 색·글꼴은 앱 토큰을 그대로 쓰되 **틀은 이 장 전용**이다 (사용자 확정: 「톤은 유지, 틀만 다르게」).
+ * 색, 글꼴은 앱 토큰을 그대로 쓰되 **틀은 이 장 전용**이다 (사용자 확정: 톤은 유지, 틀만 다르게).
  */
 import { t, loadNamespace } from '../lib/i18n';
 
@@ -43,11 +43,11 @@ export interface MinorRow {
         String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     /* 자리는 **갈래(field) + 소속(org)** 두 겹이다 (사용자 확정 2026-08-28).
-       「버추얼」 안에 왁타버스도 있고 패러블 계약도 있고, 소속을 굳이 안 적는 것도 있다 —
+       버추얼 안에 왁타버스도 있고 패러블 계약도 있고, 소속을 굳이 안 적는 것도 있다 . 
        한 줄로 늘어놓으면 성격이 다른 것들이 같은 무게로 보인다. */
-    const laneOf = (w: WorkRow): string => (w.org ? `${w.field} (${w.org})` : w.field || '·');
+    const laneOf = (w: WorkRow): string => (w.org ? `${w.field} (${w.org})` : w.field || ', ');
 
-    /** 빛깔은 소속이 정한다 — 점·배지·레인이 같은 색이어야 셋이 한 자료로 읽힌다. */
+    /** 빛깔은 소속이 정한다. 점, 배지, 레인이 같은 색이어야 셋이 한 자료로 읽힌다. */
     const ORG_HUE: Record<string, string> = {
         '개인': 'var(--accent)',
         '패러블 엔터테인먼트': '#d4a04f',
@@ -60,7 +60,7 @@ export interface MinorRow {
         `
         .wk { display:flex; flex-direction:column; gap:18px; }
 
-        /* ── 머리: 보기 전환 · 찾기 · 소속 칩 ── */
+        /* ── 머리: 보기 전환, 찾기, 소속 칩 ── */
         .wk-bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
         .wk-seg { display:flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; }
         .wk-seg button { background:none; border:0; color:var(--text-secondary); font-size:13px;
@@ -148,7 +148,7 @@ export interface MinorRow {
     }
     let cache: Payload | null = null;
 
-    /** 한 판 안에서 한 번만 받는다 — 보기를 오갈 때마다 다시 받으면 화면이 깜빡인다. */
+    /** 한 판 안에서 한 번만 받는다. 보기를 오갈 때마다 다시 받으면 화면이 깜빡인다. */
     async function loadWorks(): Promise<Payload | null> {
         if (cache) return cache;
         try {
@@ -165,7 +165,7 @@ export interface MinorRow {
     const human = (at: string): string => at.replace('-', '.');
 
     function tile(w: WorkRow): string {
-        const meta = `${human(w.at)} · ${laneOf(w)}`;
+        const meta = `${human(w.at)}, ${laneOf(w)}`;
         return (
             `<a class="wk-tile" href="${esc(w.url)}"${w.slug ? '' : ' target="_blank" rel="noopener"'}>` +
             (w.image ? `<img src="${esc(w.image)}" alt="" loading="lazy">` : '') +
@@ -174,13 +174,13 @@ export interface MinorRow {
         );
     }
 
-    /** ① 진열 — 지금 붙들고 있는 것 → 연도 벽 → 그 외 참여. */
+    /** ① 진열. 지금 붙들고 있는 것 → 연도 벽 → 그 외 참여. */
     function renderShelf(host: HTMLElement, works: WorkRow[], minor: MinorRow[]): void {
         const now = works.filter((w) => w.ongoing);
         const rest = works.filter((w) => !w.ongoing);
         const byYear = new Map<string, WorkRow[]>();
         for (const w of rest) {
-            const y = yearOf(w) || '·';
+            const y = yearOf(w) || ', ';
             if (!byYear.has(y)) byYear.set(y, []);
             byYear.get(y)!.push(w);
         }
@@ -195,7 +195,7 @@ export interface MinorRow {
                               `<a href="${esc(w.url)}">${w.image ? `<img src="${esc(w.image)}" alt="">` : ''}` +
                               `<em>${esc(t('works.ongoing', undefined, '지금도 만드는 중'))}</em>` +
                               `<span class="veil"><b>${esc(w.title)}</b>` +
-                              `<span>${esc(human(w.at))} ~ · ${esc(laneOf(w))}</span></span></a>`
+                              `<span>${esc(human(w.at))} ~, ${esc(laneOf(w))}</span></span></a>`
                       )
                       .join('') +
                   `</div>`
@@ -209,13 +209,13 @@ export interface MinorRow {
                 .join('') +
             (minor.length
                 ? `<div class="wk-tail"><h3>${esc(
-                      t('works.minor', { n: String(minor.length) }, '그 외 참여 — 따로 글을 안 쓴 것들 {n}건')
+                      t('works.minor', { n: String(minor.length) }, '그 외 참여. 따로 글을 안 쓴 것들 {n}건')
                   )}</h3><ul>` +
                   minor
                       .map(
                           (m) =>
                               `<li><i>${esc((m.when ?? '').replace('-', '.'))}</i><b>${esc(m.title)}</b>` +
-                              `${m.client ? ` · ${esc(m.client)}` : ''}${m.role ? ` · ${esc(m.role)}` : ''}` +
+                              `${m.client ? `, ${esc(m.client)}` : ''}${m.role ? `, ${esc(m.role)}` : ''}` +
                               `${m.links[0] ? ` <a href="${esc(m.links[0].href)}" target="_blank" rel="noopener">↗</a>` : ''}</li>`
                       )
                       .join('') +
@@ -223,7 +223,7 @@ export interface MinorRow {
                 : '');
     }
 
-    /** ② 지도 — 가로가 시간, 가로줄이 소속. */
+    /** ② 지도. 가로가 시간, 가로줄이 소속. */
     function renderMap(host: HTMLElement, works: WorkRow[]): void {
         const yearsAll = works.map(yearOf).filter(Boolean).map(Number);
         const from = Math.min(...yearsAll);
@@ -233,7 +233,7 @@ export interface MinorRow {
             const [y, m] = ym.split('-').map(Number);
             return ((y + ((m || 1) - 1) / 12 - from) / span) * 100;
         };
-        /* 자리 순서 — 내 것이 맨 위, 그다음 계약처, 그다음 커뮤니티, 소속을 안 적은 것이 끝.
+        /* 자리 순서. 내 것이 맨 위, 그다음 계약처, 그다음 커뮤니티, 소속을 안 적은 것이 끝.
            건수 순으로 하면 왁타버스 34건이 늘 맨 위라, 몇 해씩 이어 온 내 것이 아래로 밀린다. */
         const RANK = ['개인', '패러블 엔터테인먼트', '왁타버스', ''];
         const lanesOf = [...new Set(works.map(laneOf))].sort((a, b) => {
@@ -260,12 +260,12 @@ export interface MinorRow {
             const lane = document.createElement('div');
             lane.className = 'wk-lane';
             /* 큰 글자는 **누구와 한 일인가**(소속), 작은 글자가 갈래다. 갈래를 크게 적으면
-               「버추얼」이 네 줄에 되풀이돼, 정작 줄을 가르는 값이 안 보인다. */
+               버추얼이 네 줄에 되풀이돼, 정작 줄을 가르는 값이 안 보인다. */
             const paren = /^(.*?)\s*\((.*)\)$/.exec(name);
             const head = paren ? paren[2] : name;
             const sub = paren ? paren[1] : '';
             lane.innerHTML =
-                `<div class="who"><b>${esc(head)}</b>${sub ? `${esc(sub)} · ` : ''}${mine.length}건</div>` +
+                `<div class="who"><b>${esc(head)}</b>${sub ? `${esc(sub)}, ` : ''}${mine.length}건</div>` +
                 `<div class="wk-track"></div>`;
             const track = lane.querySelector('.wk-track') as HTMLElement;
             /* 막대끼리 겹치면 **아래 줄로 내린다**. 한 줄에 겹쳐 그리면 뒤엣것이 앞엣것의
@@ -288,7 +288,7 @@ export interface MinorRow {
                     el.style.width = `${width}%`;
                     el.style.top = `${11 + row * 30}px`;
                     el.style.color = hueOf(w.org);
-                    el.title = `${w.title} · ${w.period ?? w.at}`;
+                    el.title = `${w.title}, ${w.period ?? w.at}`;
                     el.innerHTML =
                         (w.image ? `<img src="${esc(w.image)}" alt="">` : '') + `<span>${esc(w.title)}</span>`;
                 } else {
@@ -302,7 +302,7 @@ export interface MinorRow {
                 });
                 track.appendChild(el);
             }
-            /* 줄이 늘면 **레인 자체가 커져야 한다** — 안 그러면 넘친 막대가 아래 레인을 덮는다. */
+            /* 줄이 늘면 **레인 자체가 커져야 한다**. 안 그러면 넘친 막대가 아래 레인을 덮는다. */
             const rows = Math.max(rowEnds.length, 1);
             if (rows > 1) {
                 track.style.height = `${16 + rows * 30}px`;
@@ -314,9 +314,9 @@ export interface MinorRow {
         const pick = (w: WorkRow): void => {
             (host.querySelector('#wkPick') as HTMLElement).innerHTML =
                 `<img src="${esc(w.image)}" alt=""><div class="txt"><h3>${esc(w.title)}</h3>` +
-                `<div class="sub">${esc(w.period ?? human(w.at))} · ${esc(laneOf(w))}` +
-                `${w.platform ? ` · ${esc(w.platform)}` : ''}</div>` +
-                `${w.roles.length ? `<div class="sub">${esc(w.roles.join(' · '))}</div>` : ''}</div>`;
+                `<div class="sub">${esc(w.period ?? human(w.at))}, ${esc(laneOf(w))}` +
+                `${w.platform ? `, ${esc(w.platform)}` : ''}</div>` +
+                `${w.roles.length ? `<div class="sub">${esc(w.roles.join(', '))}</div>` : ''}</div>`;
         };
         const first = works.find((w) => w.ongoing) ?? works[0];
         if (first) pick(first);
@@ -334,8 +334,8 @@ export interface MinorRow {
                     <button type="button" data-view="shelf" class="on">${esc(t('works.viewShelf', undefined, '진열'))}</button>
                     <button type="button" data-view="map">${esc(t('works.viewMap', undefined, '지도'))}</button>
                 </div>
-                <input type="search" placeholder="${esc(t('works.search', undefined, '제목·설명 찾기'))}"
-                    aria-label="${esc(t('works.search', undefined, '제목·설명 찾기'))}">
+                <input type="search" placeholder="${esc(t('works.search', undefined, '제목, 설명 찾기'))}"
+                    aria-label="${esc(t('works.search', undefined, '제목, 설명 찾기'))}">
                 ${chips
                     .map(
                         (c) =>

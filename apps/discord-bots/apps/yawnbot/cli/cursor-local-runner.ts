@@ -1,12 +1,12 @@
 // @ts-nocheck
 /**
- * Cursor local runner — `agent acp` JSON-RPC over stdio, then git summary.
+ * Cursor local runner. `agent acp` JSON-RPC over stdio, then git summary.
  * Usage: node cli/cursor-local-runner.js --cwd <dir> --prompt "<text>" [--mode agent|ask] [--timeoutMs N]
  * Env: CURSOR_LOCAL_REPO_DIR (optional whitelist), CURSOR_AGENT_COMMAND (default: agent),
  *      CURSOR_MAX_PROMPT_CHARS, CURSOR_DIFF_PREVIEW_CHARS,
  *      CURSOR_GIT_SNAPSHOT=baseline|off (baseline = git stash create -u, 작업 트리 유지)
- *      CURSOR_PROMPT_IDLE_MS — (선택) 마지막 청크 후 침묵 시 완료로 간주(ms). 근본 해결은 아님. 0=비활성(기본)
- *      CURSOR_INTERACTIVE_QUESTIONS=0 — cursor/ask_question 을 부모(stdin) 없이 자동 선택(첫 옵션 등)으로 처리
+ *      CURSOR_PROMPT_IDLE_MS. (선택) 마지막 청크 후 침묵 시 완료로 간주(ms). 근본 해결은 아님. 0=비활성(기본)
+ *      CURSOR_INTERACTIVE_QUESTIONS=0. cursor/ask_question 을 부모(stdin) 없이 자동 선택(첫 옵션 등)으로 처리
  *
  * Prints a single JSON object to stdout (logs go to stderr).
  */
@@ -95,7 +95,7 @@ function runGitSummary(cwd) {
         ]);
         const maxPreview = parseInt(process.env.CURSOR_DIFF_PREVIEW_CHARS || '8000', 10);
         const diffPreview =
-            diffFull.length > maxPreview ? diffFull.slice(0, maxPreview) + '\n…(truncated)' : diffFull;
+            diffFull.length > maxPreview ? diffFull.slice(0, maxPreview) + '\n...(truncated)' : diffFull;
         return {
             isRepo: true,
             statusPorcelain: statusPorcelain.trimEnd(),
@@ -117,14 +117,14 @@ async function isGitRepo(cwd) {
 /**
  * 작업 트리를 건드리지 않고 스냅샷 커밋만 만듭니다 (`git stash create -u`).
  * 변경이 없으면 `HEAD`를 baseline으로 씁니다.
- * 이후 `git diff <baseline>`으로 “이번 실행에서만” 바뀐 내용을 계산합니다.
+ * 이후 `git diff <baseline>`으로 "이번 실행에서만" 바뀐 내용을 계산합니다.
  */
 async function createWorkingTreeBaseline(cwd) {
     const raw = String(process.env.CURSOR_GIT_SNAPSHOT || 'baseline').toLowerCase().trim();
     if (raw === 'off' || raw === 'false' || raw === '0') {
         return { mode: 'off', ref: null };
     }
-    // 예전 이름: stash push/pop — 위험하므로 baseline(=create)로만 동작
+    // 예전 이름: stash push/pop. 위험하므로 baseline(=create)로만 동작
     if (raw === 'stash' || raw === 'baseline' || raw === 'create' || raw === 'safe') {
         if (!(await isGitRepo(cwd))) return { mode: 'no-git', ref: null };
 
@@ -179,7 +179,7 @@ function runGitSummarySince(cwd, baseRef) {
         ]);
         const maxPreview = parseInt(process.env.CURSOR_DIFF_PREVIEW_CHARS || '8000', 10);
         const diffPreview =
-            diffFull.length > maxPreview ? diffFull.slice(0, maxPreview) + '\n…(truncated)' : diffFull;
+            diffFull.length > maxPreview ? diffFull.slice(0, maxPreview) + '\n...(truncated)' : diffFull;
         return {
             isRepo: true,
             statusPorcelain: statusPorcelain.trimEnd(),
@@ -204,7 +204,7 @@ async function runAcp(opts) {
     let nextId = 1;
     const pending = new Map();
     const collectedText = [];
-    /** 완료 JSON·디스코드 임베드용: 에이전트→클라이언트 RPC 호출 횟수 */
+    /** 완료 JSON, 디스코드 임베드용: 에이전트→클라이언트 RPC 호출 횟수 */
     let askQuestionRpcCount = 0;
     let createPlanRpcCount = 0;
 
@@ -276,7 +276,7 @@ async function runAcp(opts) {
     }
 
     /**
-     * Cursor가 클라이언트로 보내는 JSON-RPC 요청(cursor/…)에 대한 최소 응답 (비대화형 폴백).
+     * Cursor가 클라이언트로 보내는 JSON-RPC 요청(cursor/...)에 대한 최소 응답 (비대화형 폴백).
      * @see https://cursor.com/docs/cli/acp (Cursor extension methods)
      */
     function defaultCursorExtensionResult(method, params) {
@@ -444,7 +444,7 @@ async function runAcp(opts) {
             return;
         }
 
-        // 에이전트가 클라이언트로 보내는 JSON-RPC 요청 (응답 필요): session/request_permission, cursor/* …
+        // 에이전트가 클라이언트로 보내는 JSON-RPC 요청 (응답 필요): session/request_permission, cursor/* ...
         if (
             msg.method &&
             msg.id != null &&

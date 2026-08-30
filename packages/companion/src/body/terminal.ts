@@ -13,10 +13,10 @@ export interface TerminalBodyOptions {
 }
 
 /**
- * 터미널 몸 — 키보드로 느끼고 화면으로 말한다.
+ * 터미널 몸. 키보드로 느끼고 화면으로 말한다.
  *
- * 가장 단순한 몸. 코어가 도는지 눈으로 확인하는 용도이자, 나중에 디스코드·화면 몸을
- * 붙일 때 「몸을 바꿔도 코어는 그대로」를 비교할 기준선.
+ * 가장 단순한 몸. 코어가 도는지 눈으로 확인하는 용도이자, 나중에 디스코드, 화면 몸을
+ * 붙일 때 몸을 바꿔도 코어는 그대로를 비교할 기준선.
  */
 export function terminalBody(options: TerminalBodyOptions = {}): Body {
   const channel = options.channel ?? 'terminal';

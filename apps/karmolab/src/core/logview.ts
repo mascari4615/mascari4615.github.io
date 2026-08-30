@@ -2,10 +2,10 @@
  * 큰 로그를 읽히게 (TASK-KL-316 / 15)
  *
  * 로그는 **찾는 게 아니라 좁히는 일**이다. 10만 줄에서 `grep` 을 다섯 번 치는 대신,
- * 시각·급(級)·정규식으로 좁히고 **언제 몰렸는지**를 먼저 본다.
+ * 시각, 급(級), 정규식으로 좁히고 **언제 몰렸는지**를 먼저 본다.
  *
- * 형식은 하나가 아니다(ISO 시각 · syslog · nginx · JSON 한 줄). 그래서 **줄마다 알아본다** —
- * 못 알아본 줄도 버리지 않고 「시각 모름」으로 남긴다. 로그에서 버려진 줄이 대개 범인이다.
+ * 형식은 하나가 아니다(ISO 시각, syslog, nginx, JSON 한 줄). 그래서 **줄마다 알아본다** . 
+ * 못 알아본 줄도 버리지 않고 시각 모름으로 남긴다. 로그에서 버려진 줄이 대개 범인이다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -44,7 +44,7 @@ const LEVEL_WORDS: Array<[Level, RegExp]> = [
   ['trace', /\b(trace|verbose)\b/i]
 ];
 
-/** 줄 앞머리에서 시각을 찾는다. 못 찾으면 없음 — **줄을 버리지는 않는다**. */
+/** 줄 앞머리에서 시각을 찾는다. 못 찾으면 없음. **줄을 버리지는 않는다**. */
 export function readTime(line: string): number | undefined {
   const iso = /\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d{1,6})?(?:Z|[+-]\d{2}:?\d{2})?/.exec(line);
   if (iso !== null) {
@@ -57,7 +57,7 @@ export function readTime(line: string): number | undefined {
     const at = Date.parse(nginx[1] + ' ' + nginx[2] + ' ' + nginx[3] + ' ' + nginx[4] + ':' + nginx[5] + ':' + nginx[6] + ' UTC');
     if (!Number.isNaN(at)) return at;
   }
-  /* 유닉스 초·밀리초가 맨 앞에 오는 경우 */
+  /* 유닉스 초, 밀리초가 맨 앞에 오는 경우 */
   const epoch = /^\[?(\d{10})(\d{3})?\]?\b/.exec(line);
   if (epoch !== null) return Number(epoch[1]) * 1000 + Number(epoch[2] ?? 0);
   return undefined;
@@ -74,7 +74,7 @@ export function parse(text: string): Row[] {
   for (const raw of text.replace(/\r\n?/g, '\n').split('\n')) {
     no++;
     if (raw === '') continue;
-    /* JSON 한 줄 로그는 속을 들여다본다 — 겉만 보면 전부 「시각 모름」이 된다. */
+    /* JSON 한 줄 로그는 속을 들여다본다. 겉만 보면 전부 시각 모름이 된다. */
     if (raw.startsWith('{') && raw.includes('"')) {
       try {
         const obj = JSON.parse(raw) as Record<string, unknown>;
@@ -113,7 +113,7 @@ export function filter(rows: Row[], f: Filter): Row[] {
     try {
       re = new RegExp(f.pattern, 'i');
     } catch {
-      /* 「(」 하나만 쳐도 화면이 빨개지면 못 쓴다 — 글자 그대로 찾는 것으로 물러선다. */
+      /* ( 하나만 쳐도 화면이 빨개지면 못 쓴다. 글자 그대로 찾는 것으로 물러선다. */
       re = new RegExp(f.pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     }
   }
@@ -135,7 +135,7 @@ export interface Bucket {
   error: number;
 }
 
-/** 시간을 칸으로 나눠 「언제 몰렸나」를 만든다. 시각 없는 줄은 안 센다(거짓 봉우리를 만든다). */
+/** 시간을 칸으로 나눠 언제 몰렸나를 만든다. 시각 없는 줄은 안 센다(거짓 봉우리를 만든다). */
 export function timeline(rows: Row[], slots = 60): Bucket[] {
   const timed = rows.filter((r) => r.at !== undefined);
   if (timed.length === 0) return [];
@@ -161,14 +161,14 @@ export interface Summary {
   to?: number;
   /** 가장 많이 몰린 칸 */
   peak?: Bucket;
-  /** 자주 나온 줄 (숫자·id 를 지운 모양으로 묶는다) */
+  /** 자주 나온 줄 (숫자, id 를 지운 모양으로 묶는다) */
   common: Array<{ shape: string; count: number }>;
 }
 
-/** 숫자·주소·id 를 지워 「같은 모양」끼리 묶는다 — 그래야 만 줄이 열 줄로 보인다. */
+/** 숫자, 주소, id 를 지워 같은 모양끼리 묶는다. 그래야 만 줄이 열 줄로 보인다. */
 export function shapeOf(line: string): string {
   return line
-    /* 자리표는 **말이 아닌 기호**로 둔다 — 알맹이가 한국어를 들면 영어·일본어 화면에서 샌다. */
+    /* 자리표는 **말이 아닌 기호**로 둔다. 알맹이가 한국어를 들면 영어, 일본어 화면에서 샌다. */
     .replace(/\d{4}-\d{2}-\d{2}[T ][\d:.,+Z-]+/g, '<ts>')
     .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '<id>')
     .replace(/\b\d+\.\d+\.\d+\.\d+\b/g, '<ip>')

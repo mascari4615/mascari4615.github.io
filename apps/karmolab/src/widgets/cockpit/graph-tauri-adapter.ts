@@ -1,10 +1,10 @@
 /**
- * graph-tauri-adapter.ts — cockpit 의 그래프 영속 구현 (TASK-KL-087 단위 0).
+ * graph-tauri-adapter.ts. cockpit 의 그래프 영속 구현 (TASK-KL-087 단위 0).
  *
  * 정본 데이터 = `memo/.claude/graph.json` (hand-curated).
  * Rust `cockpit_graph.rs` 가 read/write, 여기는 그 invoke 를 감싼다.
  *
- * 이 파일이 cockpit 의 **유일한 Tauri 접점**이다 — `lib/karmograph/` 는
+ * 이 파일이 cockpit 의 **유일한 Tauri 접점**이다. `lib/karmograph/` 는
  * 데스크톱이 있는지조차 모른다. 원본은 `graph-spec.ts` 가 타입과 invoke 를
  * 한 몸으로 갖고 있어 cockpit 밖에서 캔버스를 못 썼다 (TASK-KL-087 의 출발점).
  */
@@ -12,7 +12,7 @@ import type { GraphSpec, NodeCoord } from '../../lib/karmograph/spec';
 import type { GraphPersistAdapter } from '../../lib/karmograph/adapter';
 import { t, loadNamespace } from '../../lib/i18n';
 
-/** cockpit 의 노드 종류별 색 — KarmoGraph 등 다른 캔버스는 자기 셋을 쓴다. */
+/** cockpit 의 노드 종류별 색. KarmoGraph 등 다른 캔버스는 자기 셋을 쓴다. */
 export const COCKPIT_KIND_COLORS: Record<string, string> = {
   domain:   '#a78bfa',
   app:      '#60a5fa',

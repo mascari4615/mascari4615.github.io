@@ -1,7 +1,7 @@
 /**
  * 가위바위보 화면 (TASK-KL-242)
  *
- * **상대가 못 내는 손도 보여 준다** — 그게 이 놀이의 정보 전부다. 안 보여 주면 규칙은 있는데
+ * **상대가 못 내는 손도 보여 준다**. 그게 이 놀이의 정보 전부다. 안 보여 주면 규칙은 있는데
  * 아무도 그 규칙으로 생각하지 않는다.
  */
 import { t } from '../../../lib/i18n';
@@ -39,8 +39,8 @@ export const rpsView: GameView<RpsState, RpsAction> = {
 
       vs.innerHTML = reveal
         ? '<b>' + GLYPH[s.picks[mySeat]] + '</b><i>vs</i><b>' + GLYPH[s.picks[other]] + '</b>'
-        : '<b>' + (mine >= 0 ? GLYPH[mine] : '·') + '</b><i>vs</i><b>' +
-          (s.picks[other] === -1 ? '·' : '?') + '</b>';
+        : '<b>' + (mine >= 0 ? GLYPH[mine] : ', ') + '</b><i>vs</i><b>' +
+          (s.picks[other] === -1 ? ', ' : '?') + '</b>';
 
       hands.innerHTML = Array.from({ length: HANDS }, (_, h) => {
         const locked = s.locked[mySeat] === h;

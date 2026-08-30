@@ -6,9 +6,9 @@ YawnBot의 AI 비서(DM/전용 채널 자유 대화)와 캐릭터 카드 시스�
 
 ## 개요
 
-봇은 페르소나를 **하드코딩하지 않는다**. 실행 시 `memo/characters/<slug>/card.md` 본문을 시스템 프롬프트로 주입한다. 같은 봇 프로세스·토큰으로 **DM/채널 단위**로 다른 캐릭터를 붙일 수 있다.
+봇은 페르소나를 **하드코딩하지 않는다**. 실행 시 `memo/characters/<slug>/card.md` 본문을 시스템 프롬프트로 주입한다. 같은 봇 프로세스, 토큰으로 **DM/채널 단위**로 다른 캐릭터를 붙일 수 있다.
 
-기억은 **캐릭터별로 격리** — 서로 다른 캐릭터의 대화 로그는 공유되지 않는다.
+기억은 **캐릭터별로 격리**. 서로 다른 캐릭터의 대화 로그는 공유되지 않는다.
 
 ---
 
@@ -36,7 +36,7 @@ memo/characters/
 
 ## 슬래시 명령어
 
-### `/character` — 캐릭터 관리
+### `/character`. 캐릭터 관리
 
 | 명령 | 설명 |
 |------|------|
@@ -47,7 +47,7 @@ memo/characters/
 
 **카드 편집 반영 타이밍**: `CharacterService`가 카드를 캐시하므로 `card.md` 수정 후 `/character switch <same-slug>` 한 번 더 치거나 봇을 재시작해야 반영된다.
 
-### `/기억` — 활성 캐릭터 메모리
+### `/기억`. 활성 캐릭터 메모리
 
 모든 서브커맨드는 **현재 DM/채널의 활성 슬러그** 메모리 기준으로 동작한다.
 
@@ -88,19 +88,19 @@ AI 호출 시 프롬프트는 다음 순서로 조립된다 (`ASSISTANT_MAX_PROM
 
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
-| `MEMO_REPO_PATH` | (필수) | `memo` 레포 로컬 경로. 비우면 AI 비서·캐릭터 시스템 전부 비활성화 |
+| `MEMO_REPO_PATH` | (필수) | `memo` 레포 로컬 경로. 비우면 AI 비서, 캐릭터 시스템 전부 비활성화 |
 | `ASSISTANT_USER_ID` | (필수) | 봇이 owner DM(+팀방)에서 응답할 유저 ID. 공개 채널 경로는 YB-036 에서 폐기 |
 | `ASSISTANT_AI_PROVIDER` | `gemini` | `gemini`, `claude-cli`, `codex-cli` |
-| `ASSISTANT_AGENT_REPO_PATH` | — | CLI 프로바이더가 작업할 cwd. 비우면 텍스트 생성만 |
+| `ASSISTANT_AGENT_REPO_PATH` |. | CLI 프로바이더가 작업할 cwd. 비우면 텍스트 생성만 |
 | `ASSISTANT_DEFAULT_CHARACTER` | `yawn` | `.active.json.default` 가 없을 때 폴백 슬러그 |
-| `ASSISTANT_MORNING_HOUR` | `8` | 아침 인사 시각 (KST, 0–23) |
+| `ASSISTANT_MORNING_HOUR` | `8` | 아침 인사 시각 (KST, 0-23) |
 | `ASSISTANT_MEMORY_COMMIT_INTERVAL_MS` | `3600000` | 기억 자동 커밋 주기(ms). 기본 1시간 |
 | `ASSISTANT_MAX_PROMPT_CHARS` | `12000` | AI 프롬프트 상한 (시스템+컨텍스트+질문 포함) |
 | `CLAUDE_CLI_COMMAND` | `claude` | `claude-cli` 프로바이더 실행 파일 이름 |
 | `CLAUDE_CLI_TIMEOUT_MS` | `60000` | Claude CLI 타임아웃(ms) |
 | `CODEX_CLI_COMMAND` | `codex` | `codex-cli` 프로바이더 실행 파일 이름/경로 |
 | `CODEX_CLI_TIMEOUT_MS` | `600000` | Codex CLI 타임아웃(ms) |
-| `CODEX_CLI_BYPASS_PERMISSIONS` | — | `1/true`면 Codex `--dangerously-bypass-approvals-and-sandbox`; `0/false`면 sandbox/approval 정책 사용. 비우면 cwd 설정 시 bypass |
+| `CODEX_CLI_BYPASS_PERMISSIONS` |. | `1/true`면 Codex `--dangerously-bypass-approvals-and-sandbox`; `0/false`면 sandbox/approval 정책 사용. 비우면 cwd 설정 시 bypass |
 | `CODEX_CLI_SANDBOX` | `workspace-write` | bypass off일 때 Codex sandbox 모드 |
 | `CODEX_CLI_APPROVAL_POLICY` | `never` | bypass off일 때 Codex approval 정책 |
 
@@ -110,9 +110,9 @@ AI 호출 시 프롬프트는 다음 순서로 조립된다 (`ASSISTANT_MAX_PROM
 
 ## 새 캐릭터 추가
 
-1. `memo/characters/<slug>/card.md` 작성 — frontmatter + 본문. 본문이 비면 로드 실패(스킵).
+1. `memo/characters/<slug>/card.md` 작성. frontmatter + 본문. 본문이 비면 로드 실패(스킵).
 2. (선택) `appearance.md`, `reference/*.png`
-3. Discord에서 `/character switch <slug>` — 해당 DM/채널에서 즉시 활성화 + 카드 재로드
+3. Discord에서 `/character switch <slug>`. 해당 DM/채널에서 즉시 활성화 + 카드 재로드
 4. `/character list` 로 목록 확인
 
 frontmatter 권장 키 (전부 선택, 있으면 `/character list·info` 요약에 사용):

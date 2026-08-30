@@ -18,6 +18,6 @@
   "percent.word.isPctOfOriginal": " が元の値の ",
   "percent.word.thenOriginal": "% なら元の値は？",
   "percent.value.combined": "{price}（合わせて {pct}% 引き）",
-  "percent.label.nth": "{sentence} — {n}番目の値",
+  "percent.label.nth": "{sentence}. {n}番目の値",
   "percent.copy.one": "コピー: {v}"
 }

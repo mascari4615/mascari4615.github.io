@@ -1,5 +1,5 @@
 /**
- * 「먹」 그림 연산 검사 — 자르기·크기·회전·보정·필터 (TASK-KL-240)
+ * 먹 그림 연산 검사. 자르기, 크기, 회전, 보정, 필터 (TASK-KL-240)
  *
  * 옛 편집기에서 이 연산들은 캔버스에 직접 걸려 있어 눈으로밖에 못 봤다. 이제 판을 받아
  * 판을 내놓는 함수이므로 값으로 잠근다. 특히 두 가지를 본다:
@@ -51,7 +51,7 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   const out = O.crop(s, { x: 1, y: 1, w: 2, h: 2 });
   assert.equal(out.w, 2);
   assert.deepEqual(px(out, 1, 0), [10, 20, 30, 255], '잘라낸 자리의 색이 그대로 온다');
-  /* 판 밖으로 넓히면 그만큼 투명 — 「여백 넣기」로도 쓴다. */
+  /* 판 밖으로 넓히면 그만큼 투명. 여백 넣기로도 쓴다. */
   const bigger = O.crop(s, { x: -1, y: -1, w: 6, h: 6 });
   assert.equal(bigger.w, 6);
   assert.equal(px(bigger, 0, 0)[3], 0, '넓힌 자리는 비어 있다');
@@ -60,19 +60,19 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
 
 /* ===== 크기 ===== */
 {
-  /* 절반으로 줄이기 — 2×2 한 덩어리가 한 픽셀이 된다. */
+  /* 절반으로 줄이기. 2×2 한 덩어리가 한 픽셀이 된다. */
   const s = D.createSurface(4, 4, [200, 100, 50, 255]);
   const half = O.resize(s, 2, 2);
   assert.equal(half.w, 2);
   assert.deepEqual(px(half, 0, 0), [200, 100, 50, 255], '단색은 줄여도 같은 색');
 
-  /* 투명한 자리의 검정이 배어나지 않는다(미리 곱한 알파) — 옛 코드의 고전 버그. */
+  /* 투명한 자리의 검정이 배어나지 않는다(미리 곱한 알파). 옛 코드의 고전 버그. */
   const edge = D.createSurface(2, 1);
   paint(edge, 0, 0, [255, 255, 255, 255]);
   paint(edge, 1, 0, [0, 0, 0, 0]);
   const shrunk = O.resize(edge, 1, 1);
   assert.equal(shrunk.data[3], 128, '알파는 절반');
-  assert.ok(shrunk.data[0] > 240, '색은 흰색을 지킨다 — 투명한 검정이 안 섞인다 (실제 ' + shrunk.data[0] + ')');
+  assert.ok(shrunk.data[0] > 240, '색은 흰색을 지킨다. 투명한 검정이 안 섞인다 (실제 ' + shrunk.data[0] + ')');
 
   /* 픽셀 아트는 부드럽게 하면 안 된다. */
   const dots = D.createSurface(2, 1);
@@ -85,7 +85,7 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   assert.ok(smooth.data[4] > 0 && smooth.data[4] < 255, '부드럽게 = 중간값이 생긴다');
 }
 
-/* ===== 회전 · 뒤집기 ===== */
+/* ===== 회전, 뒤집기 ===== */
 {
   const s = D.createSurface(3, 2);
   paint(s, 0, 0, [1, 2, 3, 255]);
@@ -103,11 +103,11 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   assert.deepEqual(px(fy, 0, 1), [1, 2, 3, 255], '상하 뒤집기');
 }
 
-/* 자유 각도 — 판이 커지고, 되돌려 돌리면 그림이 제자리로 온다 */
+/* 자유 각도. 판이 커지고, 되돌려 돌리면 그림이 제자리로 온다 */
 {
   const s = D.createSurface(10, 4, [0, 0, 0, 255]);
   const tilted = O.rotateFree(s, 45);
-  assert.ok(tilted.w > 9 && tilted.h > 9, '45도면 판이 커진다 — 모서리가 안 잘린다 (' + tilted.w + '×' + tilted.h + ')');
+  assert.ok(tilted.w > 9 && tilted.h > 9, '45도면 판이 커진다. 모서리가 안 잘린다 (' + tilted.w + '×' + tilted.h + ')');
   assert.equal(px(tilted, 0, 0)[3], 0, '새로 생긴 모서리는 비어 있다');
   assert.ok(px(tilted, Math.floor(tilted.w / 2), Math.floor(tilted.h / 2))[3] > 200, '한가운데는 그림이 있다');
 
@@ -144,12 +144,12 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   const hue = O.adjust(red, { hue: 120 });
   assert.ok(hue.data[1] > hue.data[0], '색조를 돌리면 빨강이 초록 쪽으로 간다');
 
-  /* 투명한 자리는 안 건드린다 — 안 그러면 지운 자리에 색이 생긴다. */
+  /* 투명한 자리는 안 건드린다. 안 그러면 지운 자리에 색이 생긴다. */
   const empty = D.createSurface(1, 1);
   assert.deepEqual([...O.adjust(empty, { brightness: 0.5 }).data], [0, 0, 0, 0], '빈 자리는 그대로 빈다');
 }
 
-/* 선택영역 — 밖은 한 픽셀도 안 바뀐다 */
+/* 선택영역. 밖은 한 픽셀도 안 바뀐다 */
 {
   const s = D.createSurface(2, 1, [100, 100, 100, 255]);
   const selection = new Uint8Array([255, 0]);
@@ -175,7 +175,7 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   assert.ok(sepia.data[0] > sepia.data[2], '세피아는 붉은 기가 돈다');
 }
 {
-  /* 흐리기 — 점 하나가 이웃으로 번진다. 판 전체 밝기는 크게 안 바뀐다. */
+  /* 흐리기. 점 하나가 이웃으로 번진다. 판 전체 밝기는 크게 안 바뀐다. */
   const s = D.createSurface(5, 5, [0, 0, 0, 255]);
   paint(s, 2, 2, [255, 255, 255, 255]);
   const blur = O.filter(s, 'blur');
@@ -207,4 +207,4 @@ const paint = (s, x, y, rgba) => s.data.set(rgba, (y * s.w + x) * 4);
   assert.equal(O.contentBounds(D.createSurface(4, 4)), null, '빈 판은 null');
 }
 
-console.log('[test-meok-ops] ✓ 자르기(넓히기 포함) · 크기(미리곱한 알파·픽셀아트) · 회전(90도·자유 각도)·뒤집기 · 보정 5종 · 필터 8종 · 선택영역 밖 불변');
+console.log('[test-meok-ops] ✓ 자르기(넓히기 포함), 크기(미리곱한 알파, 픽셀아트), 회전(90도, 자유 각도), 뒤집기, 보정 5종, 필터 8종, 선택영역 밖 불변');

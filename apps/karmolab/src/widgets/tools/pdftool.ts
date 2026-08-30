@@ -1,8 +1,8 @@
 /**
  * PDF 편집 (TASK-KL-088)
  *
- * PDF 를 합치거나 몇 페이지만 빼내려고 인터넷에 올리는 순간, 그 파일은 내 손을 떠난다 —
- * 계약서·이력서처럼 올리면 안 되는 것이 대부분이다.
+ * PDF 를 합치거나 몇 페이지만 빼내려고 인터넷에 올리는 순간, 그 파일은 내 손을 떠난다 . 
+ * 계약서, 이력서처럼 올리면 안 되는 것이 대부분이다.
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
 import { markLive } from './shared/say';
@@ -40,9 +40,9 @@ import { parsePages } from '../../core/pdftool';
   /**
    * 내려받게 하고, **같은 것을 옆 도구에도 놓아둔다** (TASK-KL-133).
    *
-   * 예전에는 여기서 끝이었다 — 이어서 용량을 줄이려면 받은 파일을 찾아 다른 도구를 열고
+   * 예전에는 여기서 끝이었다. 이어서 용량을 줄이려면 받은 파일을 찾아 다른 도구를 열고
    * 다시 집어넣어야 했다. 방금 만든 것은 이미 이 화면 안에 있으므로 그냥 넘긴다.
-   * `after` 는 「이어서」 줄을 붙일 자리다. 받을 도구가 하나도 없으면 그 줄은 안 생긴다.
+   * `after` 는 이어서 줄을 붙일 자리다. 받을 도구가 하나도 없으면 그 줄은 안 생긴다.
    */
   function download(bytes: Uint8Array, name: string, after?: HTMLElement | null): void {
     const blob = new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' });
@@ -55,7 +55,7 @@ import { parsePages } from '../../core/pdftool';
   Toolbox.register({
     id: 'pdftool',
     title: t('widgets.pdftool.title', undefined, 'PDF 편집'),
-    category: 'tool',
+    category: 'file',
     desc: t(
       'widgets-desc.pdftool.desc',
       undefined,
@@ -122,7 +122,7 @@ import { parsePages } from '../../core/pdftool';
           const fileInput = $<HTMLInputElement>('#pdFile');
           const filesEl = $<HTMLElement>('#pdFiles');
           const status = $<HTMLElement>('#pdStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
           let files: Array<{ file: File; pages: number }> = [];
           let mode = 'merge';
@@ -133,7 +133,7 @@ import { parsePages } from '../../core/pdftool';
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
           }
 
-          /** 무거운 라이브러리는 실제로 쓸 때 받는다 — 탭만 열어 본 사람에게 500KB 를 물리지 않는다. */
+          /** 무거운 라이브러리는 실제로 쓸 때 받는다. 탭만 열어 본 사람에게 500KB 를 물리지 않는다. */
           async function loadLib(): Promise<PDFLib> {
             if (lib) return lib;
             say(t('pdftool.say.loadingLib'));

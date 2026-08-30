@@ -446,7 +446,7 @@ import { download } from '../tools/shared/image';
             }
 
             function triggerDownloadBlob(blob: Blob, mime: ImageConvertOutputMime): void {
-                // 공용 한 자리(`shared/image.download`) — 거두는 시점(2초)까지 같이 온다.
+                // 공용 한 자리(`shared/image.download`). 거두는 시점(2초)까지 같이 온다.
                 download(blob, current.baseName + '.' + core.extFromMime(mime));
             }
 
@@ -544,9 +544,9 @@ import { download } from '../tools/shared/image';
                             w +
                             ' × ' +
                             h +
-                            ' px · ' +
+                            ' px, ' +
                             (res.file.size / 1024).toFixed(1) +
-                            ' KB · ' +
+                            ' KB, ' +
                             (res.file.type || 'unknown');
                         panel.classList.add('imc-visible');
                         Mdd.linePreset('success', { mood: 'happy', msg: t('imageconvert.t56') });
@@ -769,7 +769,7 @@ import { download } from '../tools/shared/image';
                         signal: batchAbort.signal,
                         onItemStart: function (idx, file, total) {
                             batchStatus.textContent =
-                                t('imageconvert.t70') + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
+                                t('imageconvert.t70') + (idx + 1) + ' / ' + total + ', ' + (file.name || '');
                         }
                     })
                         .then(function (out) {

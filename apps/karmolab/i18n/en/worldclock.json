@@ -11,7 +11,7 @@
   "worldclock.at": "the time you set",
   "worldclock.city.seoul": "Seoul",
   "worldclock.city.tokyo": "Tokyo",
-  "worldclock.city.shanghai": "Beijing · Shanghai",
+  "worldclock.city.shanghai": "Beijing, Shanghai",
   "worldclock.city.hongkong": "Hong Kong",
   "worldclock.city.taipei": "Taipei",
   "worldclock.city.singapore": "Singapore",
@@ -35,7 +35,7 @@
   "worldclock.city.newyork": "New York",
   "worldclock.city.chicago": "Chicago",
   "worldclock.city.denver": "Denver",
-  "worldclock.city.losangeles": "LA · San Francisco",
+  "worldclock.city.losangeles": "LA, San Francisco",
   "worldclock.city.anchorage": "Anchorage",
   "worldclock.city.honolulu": "Honolulu",
   "worldclock.city.toronto": "Toronto",
@@ -59,6 +59,6 @@
   "worldclock.region.ca-west": "Canada (West)",
   "worldclock.region.au-west": "Australia (West)",
   "worldclock.region.utc": "Coordinated Universal Time",
-  "worldclock.status": "Relative to {city} · {when} · daylight saving is applied automatically.",
-  "worldclock.baseTimeHint": "Reference time — leave empty for now"
+  "worldclock.status": "Relative to {city}, {when}, daylight saving is applied automatically.",
+  "worldclock.baseTimeHint": "Reference time. leave empty for now"
 }

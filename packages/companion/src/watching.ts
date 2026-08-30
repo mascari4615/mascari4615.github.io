@@ -1,19 +1,19 @@
 /**
- * 같이 보기 — 조수님이 무엇을 얼마나 붙들고 있는지.
+ * 같이 보기. 조수님이 무엇을 얼마나 붙들고 있는지.
  *
  * 레퍼런스 쪽에서 큰 축 하나가 **같이 보고 반응하기**다. 영상을 함께 보고 한마디 얹는다.
- * 그 자리가 「곁에 있다」를 만든다 — 보고만 있는 게 아니라 **보고 있다는 걸 상대가 안다.**
+ * 그 자리가 곁에 있다를 만든다. 보고만 있는 게 아니라 **보고 있다는 걸 상대가 안다.**
  *
  * 우리 얘는 화면을 곁눈질하긴 한다(12회차). 그런데 **매번 지금 창 제목만 스친다.** 창이
  * 바뀌면 말 걸 이유가 생기지만, **같은 걸 한 시간째 붙들고 있는 것**은 아무 신호도 아니었다.
- * 그런데 곁에서 보는 사람 눈에 가장 먼저 띄는 게 바로 그거다 — 「그거 아직도 안 됐구나」.
+ * 그런데 곁에서 보는 사람 눈에 가장 먼저 띄는 게 바로 그거다. 그거 아직도 안 됐구나.
  *
  * 두 가지를 읽는다.
  * - **붙들고 있음**: 같은 것을 오래 보고 있다. 몰두했거나 막혔거나.
  * - **왔다갔다**: 두어 개를 짧게 오가며 되풀이한다. 대개 **뭘 찾거나 막힌 것**이다.
  *
- * 둘을 가르는 게 중요하다. 몰두한 사람한테 「막혔어?」라고 하면 그게 방해고, 막힌 사람한테
- * 「집중 잘 되네」라고 하면 놀리는 것이다.
+ * 둘을 가르는 게 중요하다. 몰두한 사람한테 막혔어?라고 하면 그게 방해고, 막힌 사람한테
+ * 집중 잘 되네라고 하면 놀리는 것이다.
  */
 export interface Seen {
   title: string;
@@ -49,7 +49,7 @@ export class Watching {
 
     // **같은 것인지는 짧은 이름으로 본다.**
     //
-    // 전체 제목으로 묶으면 유니티에서 씬만 바꿔도(「…- Stage_Home -…」 → 「…- World -…」)
+    // 전체 제목으로 묶으면 유니티에서 씬만 바꿔도(...- Stage_Home -... → ...- World -...)
     // 다른 것을 보는 걸로 세어, 같은 걸 두 시간 붙들고 있어도 영영 안 잡힌다(실측 34회차:
     // 실제 기록 308개가 40개로 묶였는데 그중 대부분이 같은 유니티였다).
     const last = this.seen[this.seen.length - 1];
@@ -77,7 +77,7 @@ export class Watching {
   }
 
   /**
-   * 왔다갔다 하고 있나 — 몇 개를 짧게 오가며 되풀이.
+   * 왔다갔다 하고 있나. 몇 개를 짧게 오가며 되풀이.
    *
    * **서로 다른 것을 죽 훑는 것**과 다르다. 그건 그냥 이것저것 보는 것이고, 왔다갔다는
    * **같은 것으로 돌아온다.**
@@ -89,7 +89,7 @@ export class Watching {
     const recent2 = this.seen.filter((s) => now - s.at <= window);
     if (recent2.length < min) return false;
 
-    // 묶는 기준과 세는 기준이 다르면 안 된다 — 여기서도 짧은 이름으로 센다.
+    // 묶는 기준과 세는 기준이 다르면 안 된다. 여기서도 짧은 이름으로 센다.
     const variety = new Set(recent2.map((s) => shortTitle(s.title))).size;
     // 오간 횟수는 많은데 가짓수는 적다 = 같은 것으로 돌아오고 있다.
     return variety >= 2 && variety <= Math.ceil(recent2.length / 2);
@@ -103,28 +103,30 @@ export class Watching {
 
 /** 창 제목에서 사람이 부를 만한 이름만 남긴다. */
 export function shortTitle(title: string, max = 24): string {
-  // 「파일 - 프로그램 - 어쩌고」 꼴이면 맨 앞이 대개 무엇인지를 말한다.
+  // 파일 - 프로그램 - 어쩌고 꼴이면 맨 앞이 대개 무엇인지를 말한다.
   const head = title.split(/\s+[-–—|]\s+/)[0].trim();
   const toWrite = head === '' ? title.trim() : head;
-  return toWrite.length <= max ? toWrite : `${toWrite.slice(0, max)}…`;
+  // 잘림 표시 포함 max 이내. 표시가 한 글자에서 세 글자로 바뀐 뒤
+  // 결과가 max + 3 (2026-08-29 스윕)
+  return toWrite.length <= max ? toWrite : `${toWrite.slice(0, Math.max(1, max - 3))}...`;
 }
 
 /**
  * 두뇌에 넘길 한 줄. **아무 일 없으면 조용하다.**
  *
- * 무엇을 하라고 시키지 않는다 — 봤다는 사실만 주고 말을 걸지 말지는 다른 데서 정한다.
- * 여기서 「물어봐라」까지 시키면 얘가 화면 얘기만 하는 애가 된다.
+ * 무엇을 하라고 시키지 않는다. 봤다는 사실만 주고 말을 걸지 말지는 다른 데서 정한다.
+ * 여기서 물어봐라까지 시키면 얘가 화면 얘기만 하는 애가 된다.
  */
 export function watchNote(watching: Watching, now: number): string {
   const current2 = watching.now;
   if (current2 === null) return '';
 
   if (watching.isFlipping(now)) {
-    return `조수님이 몇 군데를 왔다갔다 하고 있다 — 뭘 찾거나 막힌 것 같다. 아는 척은 하지 마라.`;
+    return `조수님이 몇 군데를 왔다갔다 하고 있다. 뭘 찾거나 막힌 것 같다. 아는 척은 하지 마라.`;
   }
   if (watching.isStuck(now)) {
     const minutes = Math.round(watching.heldFor(now) / 60_000);
-    return `조수님이 「${shortTitle(current2.title)}」 를 ${minutes}분째 붙들고 있다. 몰두한 걸 수도 있으니 함부로 끊지 마라.`;
+    return `조수님이 ${shortTitle(current2.title)} 를 ${minutes}분째 붙들고 있다. 몰두한 걸 수도 있으니 함부로 끊지 마라.`;
   }
   return '';
 }

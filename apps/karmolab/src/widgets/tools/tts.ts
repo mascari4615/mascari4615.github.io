@@ -1,13 +1,13 @@
 /**
  * 글 읽어 주기 (TASK-KL-316 / 32)
  *
- * 「글」 작업대의 **내보내기** 칸. 자르기·시간 어림은 `core/tts`.
+ * 글 작업대의 **내보내기** 칸. 자르기, 시간 어림은 `core/tts`.
  *
  * ⚠ **파일로 저장은 못 한다.** 브라우저의 읽어 주기(`speechSynthesis`)는 소리를 스피커로 보낼 뿐,
- * 그 소리를 우리에게 **주지 않는다**(오디오 스트림이 없다). 「mp3 저장」 버튼을 만들어 놓고
- * 안 되는 것보다, 안 된다고 적고 되는 길(화면 녹화·시스템 녹음)을 알려 주는 게 낫다.
+ * 그 소리를 우리에게 **주지 않는다**(오디오 스트림이 없다). mp3 저장 버튼을 만들어 놓고
+ * 안 되는 것보다, 안 된다고 적고 되는 길(화면 녹화, 시스템 녹음)을 알려 주는 게 낫다.
  *
- * 긴 글은 문장으로 잘라 하나씩 넘긴다 — 통째로 넘기면 크롬이 중간에 멎는다.
+ * 긴 글은 문장으로 잘라 하나씩 넘긴다. 통째로 넘기면 크롬이 중간에 멎는다.
  */
 import { asClock, guessLanguage, seconds, split } from '../../core/tts';
 import { escapeHtml as esc } from './shared/text';
@@ -19,11 +19,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'tts',
     title: t('widgets.tts.title', undefined, '글 읽어 주기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.tts.desc',
       undefined,
-      '적은 글을 소리 내어 읽어 줍니다. 문장마다 따라가며 보여 주고, 목소리·속도를 고를 수 있습니다'
+      '적은 글을 소리 내어 읽어 줍니다. 문장마다 따라가며 보여 주고, 목소리, 속도를 고를 수 있습니다'
     ),
     layout: 'wide',
     icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16.5 9.5a4 4 0 0 1 0 5M19 7a7.5 7.5 0 0 1 0 10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
@@ -83,7 +83,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     function fillVoices(): void {
       const voices = speechSynthesis.getVoices();
       const language = guessLanguage(textBox.value);
-      /* 글에 맞는 목소리를 앞에 둔다 — 한글을 영어 목소리로 읽으면 알아들을 수 없다. */
+      /* 글에 맞는 목소리를 앞에 둔다. 한글을 영어 목소리로 읽으면 알아들을 수 없다. */
       const sorted = [...voices].sort((a, b) => Number(b.lang.startsWith(language)) - Number(a.lang.startsWith(language)));
       $<HTMLSelectElement>('#ttVoice').innerHTML = sorted
         .map((v, i) => '<option value="' + i + '">' + esc(v.name + '  (' + v.lang + ')') + '</option>')
@@ -133,7 +133,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
       utter.rate = Number($<HTMLInputElement>('#ttRate').value);
       utter.pitch = Number($<HTMLInputElement>('#ttPitch').value);
-      /* 한 문장이 끝나면 다음 문장 — 통째로 넘기면 중간에 멎는다(크롬의 오래된 버릇). */
+      /* 한 문장이 끝나면 다음 문장. 통째로 넘기면 중간에 멎는다(크롬의 오래된 버릇). */
       utter.onend = (): void => speakFrom(index + 1);
       utter.onerror = (): void => {
         status.textContent = t('tts.status.failed');

@@ -1,9 +1,9 @@
 /**
- * lib/karmograph/canvas-children.ts — **자식 항목이 있는 카드** (TASK-KL-202 방향① 해체 11조각).
+ * lib/karmograph/canvas-children.ts. **자식 항목이 있는 카드** (TASK-KL-202 방향① 해체 11조각).
  *
- * 「서버 → 서비스 세 개」처럼 카드 안에 목록이 붙는 모양(cockpit 이 주로 쓴다).
+ * 서버 → 서비스 세 개처럼 카드 안에 목록이 붙는 모양(cockpit 이 주로 쓴다).
  * 머리(이름)와 몸(목록)을 줄 하나로 가르고, 항목은 불릿과 함께 한 줄씩.
- * 폭을 넘는 항목은 `…` — 카드가 옆으로 늘어나면 그림 전체가 흔들린다.
+ * 폭을 넘는 항목은 `...`. 카드가 옆으로 늘어나면 그림 전체가 흔들린다.
  */
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -71,7 +71,7 @@ export function buildChildCard(
     row.setAttribute('font-size', '10');
     row.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
     row.setAttribute('pointer-events', 'none');
-    row.textContent = child.length > maxChars ? `${child.slice(0, maxChars - 1)}…` : child;
+    row.textContent = child.length > maxChars ? `${child.slice(0, maxChars - 1)}...` : child;
     out.push(row);
   });
 

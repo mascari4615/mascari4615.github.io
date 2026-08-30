@@ -18,6 +18,6 @@
   "radix.verdict.fits": "들어감",
   "radix.verdict.overflow": "넘침",
   "radix.row.uint32": "부호 없는 32bit 범위",
-  "radix.say.done": "변환됨 · 칸을 눌러 그대로 복사하세요.",
+  "radix.say.done": "변환됨, 칸을 눌러 그대로 복사하세요.",
   "radix.err.digit": "{base}진수에 없는 글자가 섞여 있어요."
 }

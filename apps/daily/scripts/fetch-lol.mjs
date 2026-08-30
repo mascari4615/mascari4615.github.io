@@ -26,7 +26,7 @@ const raw = await (
 ).json();
 
 // Data Dragon 은 이벤트 스킨판을 **같은 이름의 별도 항목**으로 끼워 넣는다 (Jade_Ahri = 키 60103).
-// 그대로 두면 「아리」가 표에 두 번 들어가 자동완성도 정답 판정도 어긋난다.
+// 그대로 두면 아리가 표에 두 번 들어가 자동완성도 정답 판정도 어긋난다.
 // 규칙: 이름이 같으면 번호가 가장 작은 것 하나만 남긴다 (원본이 언제나 제일 작다).
 const canonical = new Map();
 for (const c of Object.values(raw.data)) {
@@ -42,8 +42,8 @@ const items = [...canonical.values()]
     // 자원 표기가 비어 있는 챔피언이 있다 (자원을 안 쓰는 애들). 빈칸으로 두면 비교가 이상해진다.
     resource: (c.partype ?? '').trim() || '없음',
     range: Number(c.stats?.attackrange) >= 300 ? '원거리' : '근거리',
-    // 라이엇이 안 채워 주는 값(info.attack/defense/difficulty)은 안 쓴다 — 신규 챔피언 여섯이
-    // 0 으로 비어 있어서 「난이도 0」 같은 거짓 힌트가 떴다. stats 는 전원 채워져 있다.
+    // 라이엇이 안 채워 주는 값(info.attack/defense/difficulty)은 안 쓴다. 신규 챔피언 여섯이
+    // 0 으로 비어 있어서 난이도 0 같은 거짓 힌트가 떴다. stats 는 전원 채워져 있다.
     hp: Math.round(Number(c.stats?.hp ?? 0)),
     armor: Math.round(Number(c.stats?.armor ?? 0)),
     damage: Math.round(Number(c.stats?.attackdamage ?? 0)),
@@ -57,7 +57,7 @@ const topic = {
   emoji: '⚔️',
   source: `Riot Data Dragon ${version}`,
   maxGuesses: 8,
-  // 표가 언제 만들어졌는지 — 빌드가 이걸 보고 「너무 오래됐다」를 말한다.
+  // 표가 언제 만들어졌는지. 빌드가 이걸 보고 너무 오래됐다를 말한다.
   fetchedAt: new Date().toISOString().slice(0, 10),
   fields: [
     { key: 'roles', label: '역할', kind: 'set' },

@@ -24,6 +24,7 @@ mod recall;
 mod repo_file;
 mod terminal;
 mod tray_menu;
+mod vault_open;
 mod vault_upload;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
@@ -66,6 +67,7 @@ use local_dev::{
     LocalDevState,
 };
 use files_window::{files_navigate, files_window_open, karmolab_navigate};
+use vault_open::{clear_scratch, vault_open_external};
 use vault_upload::{
     restore_upload_state, vault_upload_pick_target, vault_upload_start, vault_upload_status,
     vault_upload_stop, vault_upload_targets,
@@ -918,6 +920,21 @@ fn allow_in_webview(url: &Url) -> bool {
             if host == "blog.mascari4615.com" || host == "mascari4615.github.io" {
                 return true;
             }
+            /* Files 는 제 도메인에 산다 — 여기 없으면 머리띠 Files 단추가 창을 갈아타지
+             * 못하고 **시스템 브라우저로 튄다**(2026-08-29 조수님이 봤다). 창 안에서
+             * 여는 표면이므로 `capabilities/default.json` remote 목록에도 이미 있다. */
+            if host == "files.mascari4615.com" {
+                return true;
+            }
+            /* Files 앞을 Cloudflare Access 가 지킨다. 세션이 없으면 302 로 이 주소로
+               보내는데, 여기가 막혀 있으면 앱이 모르는 손님으로 보고 시스템 브라우저로
+               내보낸다 (2026-08-29 실측: curl -I files.mascari4615.com 이 302).
+               브라우저에서 로그인해 봐야 쿠키 창고가 달라 앱은 계속 튄다.
+               로그인 방식이 이메일 일회용 코드라 다른 로그인 사이트로 넘어가지 않는다.
+               남의 비밀번호를 앱 창에서 받지 않는다는 원칙(RFC 8252)과 어긋나지 않는다. */
+            if host == "mascari4615.cloudflareaccess.com" {
+                return true;
+            }
             // localhost/127.0.0.1 항상 허용. 트레이의 "개발 모드" 토글이 spawn 한 정적 서버를
             // production 빌드에서도 webview 가 로드해야 하므로. 외부 페이지가 localhost 로 유도해도
             // 8899 포트가 닫혀 있으면 응답 자체가 없어서 의미 없음.
@@ -1206,6 +1223,8 @@ pub fn run() {
                     restore_persisted_state(&h);
                     // 클라우드 전송기도 같은 자리에서 다시 붙인다 (PID 생존 확인 = 외부 호출).
                     restore_upload_state(&h);
+                    /* 지난 판이 재생기에 넘기려고 만든 임시 파일 정리. 재생 중 지우면 재생기가 죽으므로 시작 때만 */
+                    clear_scratch();
                 });
             }
 
@@ -1456,6 +1475,10 @@ mod tests {
     fn the_app_itself_stays_inside() {
         assert!(allows("https://blog.mascari4615.com/karmolab/?kl_login=ok"));
         assert!(allows("http://127.0.0.1:8898/apps/karmolab/"));
+        // Files = 제 도메인이지만 **앱 안에서 여는 표면**이다 (밖으로 튀면 단추가 헛돈다).
+        assert!(allows("https://files.mascari4615.com/#laptop/"));
+        // Access 로그인 주소. 막히면 창 전환이 브라우저로 샘
+        assert!(allows("https://mascari4615.cloudflareaccess.com/cdn-cgi/access/login/files.mascari4615.com"));
     }
 
     #[test]

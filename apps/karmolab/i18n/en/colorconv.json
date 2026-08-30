@@ -7,7 +7,7 @@
   "colorconv.btn.random": "Random",
   "colorconv.label.formats": "Formats",
   "colorconv.label.contrast": "Readability (WCAG contrast ratio)",
-  "colorconv.label.harmony": "Harmony palette — click to move to that colour",
+  "colorconv.label.harmony": "Harmony palette. click to move to that colour",
   "colorconv.label.shades": "Shades",
   "colorconv.label.cssVar": "CSS variables",
   "colorconv.btn.copy": "Copy",

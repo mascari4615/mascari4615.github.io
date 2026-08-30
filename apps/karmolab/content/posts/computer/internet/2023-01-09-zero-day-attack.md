@@ -4,7 +4,7 @@ date: "2023-01-09T21:24:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## Zero Day

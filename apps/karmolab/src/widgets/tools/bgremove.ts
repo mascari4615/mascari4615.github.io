@@ -1,15 +1,15 @@
 /**
- * 배경 지우기 (TASK-KL-316 / 26 · 모양 겹 = 흡혈 원장 14 / TASK-KL-238)
+ * 배경 지우기 (TASK-KL-316 / 26, 모양 겹 = 흡혈 원장 14 / TASK-KL-238)
  *
- * 「이미지」 작업대의 할 일 한 칸. 셈은 `core/bgremove`.
+ * 이미지 작업대의 할 일 한 칸. 셈은 `core/bgremove`.
  *
- * 겹이 둘이다. **색**으로 지우는 쪽(`core/bgremove`)이 기본이고 — 증명사진·상품 사진에서는
+ * 겹이 둘이다. **색**으로 지우는 쪽(`core/bgremove`)이 기본이고. 증명사진, 상품 사진에서는
  * 이게 제일 빠르고 정확하다, 받을 것도 없다. 그 위에 **모양**으로 오려내는 쪽(`lib/ai-cutout`)이
- * 얹힌다. 오래 이 파일에는 「사람 형태를 알아보는 것은 학습 모형이 필요하고 이 사이트는 그런 걸
- * 안 받는다」고 적혀 있었는데, 그건 **모델을 어디에 둘지가 안 정해져서** 그랬던 것이고
+ * 얹힌다. 오래 이 파일에는 사람 형태를 알아보는 것은 학습 모형이 필요하고 이 사이트는 그런 걸
+ * 안 받는다고 적혀 있었는데, 그건 **모델을 어디에 둘지가 안 정해져서** 그랬던 것이고
  * (`ai-engine.ts` 2026-08-10) 그 답은 이미 나와 있었다: 켠 사람만 그때 받는다.
  *
- * ★ 철칙은 그대로다 — **모양 겹이 없어도 도구는 그대로 열린다.** WebGPU 가 없으면 더 무거운
+ * ★ 철칙은 그대로다. **모양 겹이 없어도 도구는 그대로 열린다.** WebGPU 가 없으면 더 무거운
  * 판(q8)으로 내려가고, 아무 것도 못 하면 그 자리를 **아예 안 보여 준다**(오류 X).
  */
 import { apply, guessBackground, maskOf, removedRatio } from '../../core/bgremove';
@@ -35,11 +35,11 @@ import {
   Toolbox.register({
     id: 'bgremove',
     title: t('widgets.bgremove.title', undefined, '배경 지우기'),
-    category: 'tool',
+    category: 'ai',
     desc: t(
       'widgets-desc.bgremove.desc',
       undefined,
-      '배경을 지워 투명 PNG 로 만듭니다 — 색으로 지우거나, 모양을 알아보고 오려냅니다. 사진이 브라우저를 벗어나지 않습니다'
+      '배경을 지워 투명 PNG 로 만듭니다. 색으로 지우거나, 모양을 알아보고 오려냅니다. 사진이 브라우저를 벗어나지 않습니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/><path d="M8 15l3-4 2.5 3 2-2.5L18 15" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="8.5" r="1.4" fill="currentColor"/>',
@@ -110,8 +110,8 @@ import {
     let source: ImageData | undefined;
     let pick: { x: number; y: number } | undefined;
     /**
-     * 모양 겹이 찾아 준 가리개. 있으면 **색 눈금을 무시한다** — 두 겹을 섞으면 어느 쪽이
-     * 지운 건지 아무도 모르게 되고, 사람은 눈금을 돌리며 「왜 안 변하지」를 하게 된다.
+     * 모양 겹이 찾아 준 가리개. 있으면 **색 눈금을 무시한다**. 두 겹을 섞으면 어느 쪽이
+     * 지운 건지 아무도 모르게 되고, 사람은 눈금을 돌리며 왜 안 변하지를 하게 된다.
      * 그래서 눈금을 건드리는 순간 이걸 버리고 색 겹으로 돌아간다.
      */
     let aiAlpha: Uint8ClampedArray | undefined;
@@ -181,7 +181,7 @@ import {
       el.className = `tool-status${tone === '' ? '' : ' ' + tone}`;
     };
 
-    /** 겹마다 게이트가 따로다 — 사람 겹을 받아 뒀다고 물건 겹이 공짜가 되는 건 아니다. */
+    /** 겹마다 게이트가 따로다. 사람 겹을 받아 뒀다고 물건 겹이 공짜가 되는 건 아니다. */
     const gates = new Map<CutoutKind, AiGate>();
 
     /** 사진을 고른 뒤에만 보여 준다. 못 하는 자리에서는 **아예 안 보여 준다**(오류 X). */
@@ -199,10 +199,10 @@ import {
         mb: sizeMbFor(anything, webgpu)
       });
       aiSay(t('bgremove.ai.hint'));
-      /* 라이선스를 화면에 그대로 적는다 — 숨기면 나중에 곤란해지는 건 우리다. */
+      /* 라이선스를 화면에 그대로 적는다. 숨기면 나중에 곤란해지는 건 우리다. */
       $<HTMLElement>('#brAiLicense').textContent = `${t('bgremove.ai.license', {
-        person: `${person.repo} · ${person.license}`,
-        anything: `${anything.repo} · ${anything.license}`
+        person: `${person.repo}, ${person.license}`,
+        anything: `${anything.repo}, ${anything.license}`
       })} ${t('bgremove.ai.noncommercial')}`;
     }
 
@@ -259,7 +259,7 @@ import {
       const image = new Image();
       image.onload = (): void => {
         URL.revokeObjectURL(url);
-        /* 너무 큰 사진은 줄여서 셈한다 — 4000×3000 을 그대로 훑으면 화면이 멎는다. */
+        /* 너무 큰 사진은 줄여서 셈한다. 4000×3000 을 그대로 훑으면 화면이 멎는다. */
         const scale = Math.min(1, 1600 / Math.max(image.width, image.height));
         canvas.width = Math.round(image.width * scale);
         canvas.height = Math.round(image.height * scale);
@@ -279,9 +279,9 @@ import {
     });
 
     /*
-     * 눈금·색 관련 손잡이를 건드리면 **색 겹으로 돌아간다.** 안 그러면 모양 겹이 켜진 채로
-     * 눈금만 돌아가서 「왜 아무 변화가 없지」가 된다 — 고장 같지만 고장이 아닌, 제일 나쁜 종류.
-     * 「여백까지 자르기」는 어느 겹에서든 뜻이 같으므로 겹을 안 바꾼다.
+     * 눈금, 색 관련 손잡이를 건드리면 **색 겹으로 돌아간다.** 안 그러면 모양 겹이 켜진 채로
+     * 눈금만 돌아가서 왜 아무 변화가 없지가 된다. 고장 같지만 고장이 아닌, 제일 나쁜 종류.
+     * 여백까지 자르기는 어느 겹에서든 뜻이 같으므로 겹을 안 바꾼다.
      */
     container
       .querySelectorAll('input[type="range"], #brDespill, #brPickMode')
@@ -296,7 +296,7 @@ import {
       );
     $<HTMLInputElement>('#brTrim').addEventListener('input', render);
 
-    /* 배경을 콕 집기 — 모서리가 배경이 아닌 사진(가장자리에 물체가 닿는 사진)에서 필요하다. */
+    /* 배경을 콕 집기. 모서리가 배경이 아닌 사진(가장자리에 물체가 닿는 사진)에서 필요하다. */
     canvas.addEventListener('click', (event) => {
       if (!$<HTMLInputElement>('#brPickMode').checked || source === undefined) return;
       const box = canvas.getBoundingClientRect();
@@ -318,7 +318,7 @@ import {
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         status.textContent = t('bgremove.status.saved');
-        /* 다음 도구가 이어받을 수 있게 놓아 둔다 (작업대의 「이 결과로 이어서」) */
+        /* 다음 도구가 이어받을 수 있게 놓아 둔다 (작업대의 이 결과로 이어서) */
         Toolbox.offerResult?.({ blob, name: 'no-background.png', from: 'bgremove' });
       }, 'image/png');
     };

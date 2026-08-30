@@ -1,16 +1,16 @@
 /**
- * yawnbot 운영 자기보고 (ops-self-report) — TASK-YB-002-D
+ * yawnbot 운영 자기보고 (ops-self-report). TASK-YB-002-D
  *
  * 봇 라이프사이클 (시작 / 종료 / 크래시) + deploy 결과를 Discord 운영 채널에
  * 임베드로 보고. 노트북 prod 머신 GUI 부재 → 데스크탑에서 봇 상태 가시성.
  *
  * 환경:
- *   - DISCORD_TOKEN                  (필수 — 미설정 시 봇 자체가 못 떠서 무관)
- *   - YAWNBOT_OPS_REPORT_CHANNEL_ID  (선택 — 미설정 시 모든 report no-op)
- *   - YAWNBOT_ENV                    (선택 — 'dev' | 'prod' | 미설정 시 'unknown')
- *   - GIT_COMMIT                     (선택 — build 시점 주입. 없으면 'unknown')
+ *   - DISCORD_TOKEN                  (필수. 미설정 시 봇 자체가 못 떠서 무관)
+ *   - YAWNBOT_OPS_REPORT_CHANNEL_ID  (선택. 미설정 시 모든 report no-op)
+ *   - YAWNBOT_ENV                    (선택. 'dev' | 'prod' | 미설정 시 'unknown')
+ *   - GIT_COMMIT                     (선택. build 시점 주입. 없으면 'unknown')
  *
- * 모든 send 는 try/catch silent — 자기보고가 봇 자체를 죽이지 않도록.
+ * 모든 send 는 try/catch silent. 자기보고가 봇 자체를 죽이지 않도록.
  */
 import os from 'node:os';
 import { channelIdFor } from './channel-provision';
@@ -23,13 +23,13 @@ export interface OpsReportContext {
   env: string;
   hostname: string;
   gitCommit: string;
-  /** 경고(🟠/🔴) 임베드에서 핑할 Discord 유저 ID. ADMIN_IDS 정합 — 비면 핑 X (자연 off-switch). */
+  /** 경고(🟠/🔴) 임베드에서 핑할 Discord 유저 ID. ADMIN_IDS 정합. 비면 핑 X (자연 off-switch). */
   adminMentionIds: string[];
 }
 
 /**
- * ctx 로드. token 만 게이트 — **채널 ID 는 여기서 동결하지 않는다.**
- * 이 함수는 모듈 로드 시(= clientReady·reconcile *전*) 호출되므로, 채널을
+ * ctx 로드. token 만 게이트. **채널 ID 는 여기서 동결하지 않는다.**
+ * 이 함수는 모듈 로드 시(= clientReady, reconcile *전*) 호출되므로, 채널을
  * 여기서 캡처하면 프로비저닝 전 옛 env 채널로 영구 고정된다(TASK-YB-029
  * 회귀: 시작/종료/배포 알림이 옛 채널 고착). 채널은 sendEmbed 에서 매
  * send 시점 channelIdFor('ops-report') 로 lazy 해석 (reconcile 후 신선).
@@ -68,7 +68,7 @@ function hashStack(stack: string): string {
 }
 
 function buildFooter(ctx: OpsReportContext): string {
-  return `${ctx.env} · ${ctx.hostname} · ${ctx.gitCommit}`;
+  return `${ctx.env}, ${ctx.hostname}, ${ctx.gitCommit}`;
 }
 
 async function sendEmbed(
@@ -77,11 +77,11 @@ async function sendEmbed(
   opts: { mentionAdmins?: boolean; timeoutMs?: number } = {},
 ): Promise<void> {
   const { mentionAdmins = false, timeoutMs = 3000 } = opts;
-  // 채널 lazy 해석 — send 시점 (reconcile 후이므로 프로비저닝된 ops-report
+  // 채널 lazy 해석. send 시점 (reconcile 후이므로 프로비저닝된 ops-report
   // 채널로 정확히 감). 미해석 시 skip(=self-report 비활성, 크래시 0).
   const channelId = channelIdFor('ops-report');
   if (!channelId) {
-    console.warn('[OpsReport] ops-report 채널 미해석 — 이번 보고 skip (프로비저닝/env 둘 다 없음)');
+    console.warn('[OpsReport] ops-report 채널 미해석. 이번 보고 skip (프로비저닝/env 둘 다 없음)');
     return;
   }
   // mentionAdmins=true 면서 ADMIN_IDS 있으면 content 에 핑 + allowed_mentions 로 그 유저만 허용.
@@ -111,7 +111,7 @@ export async function reportStartup(
     .setDescription(
       [
         `**봇**: \`${info.botTag}\``,
-        `**서버**: ${info.guilds}개 · **유저**: ${info.users}명`,
+        `**서버**: ${info.guilds}개, **유저**: ${info.users}명`,
       ].join('\n'),
     )
     .setFooter({ text: buildFooter(ctx) })
@@ -130,7 +130,7 @@ export async function reportShutdown(ctx: OpsReportContext, reason: string): Pro
   await sendEmbed(ctx, embed);
 }
 
-/** 미처리 예외 임베드 (빨강). dedup 적용 — 동일 stack 5분 내 1회만. */
+/** 미처리 예외 임베드 (빨강). dedup 적용. 동일 stack 5분 내 1회만. */
 export async function reportError(
   ctx: OpsReportContext,
   err: unknown,
@@ -146,15 +146,15 @@ export async function reportError(
     .setColor(0xe74c3c)
     .setTitle(`🔴 YawnBot 에러 (${kind})`)
     .setDescription(`**메시지**: ${e.message.slice(0, 300)}\n\`\`\`\n${stackPreview}\n\`\`\``)
-    .setFooter({ text: `${buildFooter(ctx)} · stack:${stackHash}` })
+    .setFooter({ text: `${buildFooter(ctx)}, stack:${stackHash}` })
     .setTimestamp();
   await sendEmbed(ctx, embed, { mentionAdmins: true });
 }
 
 /**
  * heartbeat 장애/복구 임베드 (TASK-YB-021). 봇이 외부 monitor 로 ping 을
- * 못 보내는(egress 단절) 상태 전이를 ops-report 채널에 보고 — inbound
- * watcher 가 못 보는 사각(봇 alive·터널 OK·DNS/네트워크만 단절) 보완.
+ * 못 보내는(egress 단절) 상태 전이를 ops-report 채널에 보고. inbound
+ * watcher 가 못 보는 사각(봇 alive, 터널 OK, DNS/네트워크만 단절) 보완.
  * 상태 전이에서만 호출되므로 자체 dedup 불요.
  */
 export async function reportHeartbeat(
@@ -173,7 +173,7 @@ export async function reportHeartbeat(
 /**
  * 캐릭터 런타임 스냅샷 장애/복구 임베드 (TASK-KAR-CHARSTATE).
  * heartbeat 와 *다른 관심사*(liveness 가 아니라 상태 백업 무결성) 라
- * 별 임베드 — 동일 mislabel 시 운영자가 heartbeat 장애로 오인.
+ * 별 임베드. 동일 mislabel 시 운영자가 heartbeat 장애로 오인.
  * 상태 전이에서만 호출되므로 자체 dedup 불요 (reportHeartbeat 동형).
  */
 export async function reportCharStateSnapshot(
@@ -193,16 +193,16 @@ export async function reportCharStateSnapshot(
 
 /**
  * memo 자동 동기 장애/복구 임베드 (TASK-KAR-MEMOSYNC part4). 봇이 스스로
- * 주기·이벤트 전 memo `fetch+reset --hard` 하던 게 실패하면(토큰 만료·
- * 네트워크·인덱스 잠금) prod 가 옛 정본으로 돎 — silent 금지 근본(part1)
+ * 주기, 이벤트 전 memo `fetch+reset --hard` 하던 게 실패하면(토큰 만료, 
+ * 네트워크, 인덱스 잠금) prod 가 옛 정본으로 돎. silent 금지 근본(part1)
  * 정합. heartbeat/charstate 와 *다른 관심사*(정본 신선도) 라 별 임베드.
  * 상태 전이에서만 호출되므로 자체 dedup 불요.
  */
 /**
  * 배포 파수꾼 알림 (TASK-KL-210).
  *
- * heartbeat 와 **다른 관심사**다 — 봇이 살아있나가 아니라 *사이트가 최신인가*. 같은 임베드로
- * 뭉치면 「봇 문제」로 오인해 노트북부터 본다. 실제로 봐야 할 곳은 배포 실행 로그다.
+ * heartbeat 와 **다른 관심사**다. 봇이 살아있나가 아니라 *사이트가 최신인가*. 같은 임베드로
+ * 뭉치면 봇 문제로 오인해 노트북부터 본다. 실제로 봐야 할 곳은 배포 실행 로그다.
  */
 export async function reportDeployFreshness(
   ctx: OpsReportContext,
@@ -210,7 +210,7 @@ export async function reportDeployFreshness(
 ): Promise<void> {
   const embed = new EmbedBuilder()
     .setColor(alert.healthy ? 0x2ecc71 : 0xe74c3c)
-    .setTitle(alert.healthy ? '🟢 사이트가 최신 판으로 돌아왔다' : '🔴 사이트가 옛 판이다 — 배포가 안 올라간다')
+    .setTitle(alert.healthy ? '🟢 사이트가 최신 판으로 돌아왔다' : '🔴 사이트가 옛 판이다. 배포가 안 올라간다')
     .setDescription(`${alert.reason.slice(0, 700)}`)
     .setFooter({ text: buildFooter(ctx) })
     .setTimestamp();

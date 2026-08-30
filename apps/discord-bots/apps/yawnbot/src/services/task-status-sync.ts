@@ -1,16 +1,16 @@
 /**
- * TASK status PR-머지 자동 sync — TASK-KAR-092.
+ * TASK status PR-머지 자동 sync. TASK-KAR-092.
  *
  * PR merged webhook 수신 시:
  *   1. PR title + body 에서 TASK-XXX id 정규식 추출
- *   2. memo 하위 (tasks/ · wm/tasks/ · life/tasks/ · projects/*\/tasks/) 에서
+ *   2. memo 하위 (tasks/, wm/tasks/, life/tasks/, projects/*\/tasks/) 에서
  *      해당 TASK 파일 lookup
  *   3. frontmatter status 가 active (ready/seed/in_progress/active) 면 done 으로 갱신
  *   4. 파일별 commitAndPushMemoFile + #team-bus 알림 1줄
  *
- * 평행 파이프 0 — webhook 수신·memo-push 기존 substrate 위에 핸들러 1개.
+ * 평행 파이프 0. webhook 수신, memo-push 기존 substrate 위에 핸들러 1개.
  *
- * 직전 (v1, 2026-05-20): sync-task-status.mjs 호출 — 그 스크립트는
+ * 직전 (v1, 2026-05-20): sync-task-status.mjs 호출. 그 스크립트는
  * 'done' 명시 토큰만 감지 → 'feat(TASK-X)' 패턴 머지 시 누락 (LT-W1/W2 실증).
  * v2 (2026-05-21): PR merge = 정의상 done. PR title 에 적힌 TASK id 직접 처리.
  * 더 넓은 drift 검출은 별도 (sync-task-status.mjs 가 daily-stat 에 그대로 유지).
@@ -37,7 +37,7 @@ function projectIdForTask(taskId: string): string | null {
   return PREFIX_TO_PROJECT[m[1]] ?? null;
 }
 
-/** TASK id 정규식 — TASK-PREFIX-NNN[-suffix]. memo task-queue.mjs 와 정합. */
+/** TASK id 정규식. TASK-PREFIX-NNN[-suffix]. memo task-queue.mjs 와 정합. */
 const TASK_ID_REGEX = /TASK-(?:KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-[A-Z0-9][A-Z0-9-]*/g;
 /**
  * conventional-commits scope 형태: `feat(WM-109-E): ...` / `fix(KL-046): ...` 등.
@@ -84,7 +84,7 @@ export interface TaskStatusSyncResult {
 
 export interface TaskStatusSyncDeps {
   push?: (env: NodeJS.ProcessEnv, absPath: string, message: string) => Promise<MemoPushResult>;
-  /** 테스트용 — FS 주입. 기본 = node:fs. */
+  /** 테스트용. FS 주입. 기본 = node:fs. */
   fs?: {
     existsSync: (p: string) => boolean;
     readdirSync: (p: string) => string[];
@@ -251,7 +251,7 @@ export async function syncTaskStatusOnPrMerge(
       logger.warn(`[task-status-sync] appendProgress ${u.id} fail: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
-  // portfolio.json push (best-effort, 분리 commit — 별 noise 줄 1 OK)
+  // portfolio.json push (best-effort, 분리 commit. 별 noise 줄 1 OK)
   if (portfolioPushes.length > 0) {
     try {
       const portfolioAbs = path.join(memoRoot, '.claude', 'team-portfolio.json');
@@ -272,8 +272,8 @@ export async function syncTaskStatusOnPrMerge(
   const more = pushedIds.length > 5 ? ` 외 ${pushedIds.length - 5}건` : '';
   const summaryLine = pushed > 0
     ? `📝 TASK status 자동 갱신 ${pushed}건: ${headIds}${more}` +
-      (skipped > 0 ? ` · skip ${skipped}` : '') +
-      (errors.length > 0 ? ` · 오류 ${errors.length}` : '')
+      (skipped > 0 ? `, skip ${skipped}` : '') +
+      (errors.length > 0 ? `, 오류 ${errors.length}` : '')
     : '';
 
   return { outcome, updates, pushed, skipped, errors, summaryLine };

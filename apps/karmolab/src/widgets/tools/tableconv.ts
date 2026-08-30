@@ -4,7 +4,7 @@
  * 엑셀에서 복사한 표를 깃허브 글이나 노션에 붙이려면 마크다운 표로 바꿔야 하고, 반대로
  * 문서의 표를 계산기로 옮기려면 다시 엑셀 붙여넣기 꼴이 필요하다. 손으로 하면 세로줄 맞추다 끝난다.
  *
- * **엑셀에서 복사한 것이 곧바로 들어온다** — 그건 탭으로 나뉜 글자다. 그래서 붙여넣기만 하면 된다.
+ * **엑셀에서 복사한 것이 곧바로 들어온다**. 그건 탭으로 나뉜 글자다. 그래서 붙여넣기만 하면 된다.
  * 마크다운은 세로줄을 폭에 맞춰 정렬해 준다. 안 맞춰도 보이기는 하지만, 원본을 읽을 사람이 있다.
  */
 import { parse, spec, toCsv, toJson, toMarkdown, toTsv, type Rows } from '../../core/tableconv';
@@ -19,8 +19,8 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'tableconv',
     title: t('widgets.tableconv.title', undefined, "표 바꾸기"),
-    category: 'tool',
-    desc: t('widgets-desc.tableconv.desc', undefined, "엑셀에서 복사한 표를 마크다운·CSV·JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다"),
+    category: 'dev',
+    desc: t('widgets-desc.tableconv.desc', undefined, "엑셀에서 복사한 표를 마크다운, CSV, JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M3 14.5h18M9 4v16M15 4v16" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',
     tabs: [
@@ -70,8 +70,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const stats = $<HTMLElement>('#tcStats');
           const status = $<HTMLElement>('#tcStatus');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function refresh(): void {
@@ -91,14 +91,14 @@ import { t, loadNamespace } from '../../lib/i18n';
 
             const cols = Math.max(...rows.map((r) => r.length));
             const ragged = rows.some((r) => r.length !== cols);
-            /* 알맹이가 주는 `kind` 는 **기계가 쓰는 이름**이다('Excel paste' · 'Markdown table' · 'CSV').
-               그대로 찍으면 한국어 화면에 「알아본 형식 Excel paste」처럼 반쪽짜리 글이 나간다.
+            /* 알맹이가 주는 `kind` 는 **기계가 쓰는 이름**이다('Excel paste', 'Markdown table', 'CSV').
+               그대로 찍으면 한국어 화면에 알아본 형식 Excel paste처럼 반쪽짜리 글이 나간다.
                알맹이는 그 이름을 바꾸면 안 되고(다른 곳이 그걸 보고 갈린다), 사람에게 보일 말은
-               화면이 고른다 — 묶음에 없으면 원래 이름이 그대로 나가 빈칸은 안 생긴다. */
+               화면이 고른다. 묶음에 없으면 원래 이름이 그대로 나가 빈칸은 안 생긴다. */
             const kindLabel = kind ? t('tableconv.kind.' + kind.toLowerCase().replace(/[^a-z0-9]+/g, '_'), undefined, kind) : kind;
             stats.innerHTML =
               statCell(t('tableconv.stat.kind'), kindLabel, true) + statCell(t('tableconv.stat.rows'), t('tableconv.value.rows', { n: rows.length })) + statCell(t('tableconv.stat.cols'), t('tableconv.value.cols', { n: cols }));
-            // 줄마다 칸 수가 다르면 대개 붙여넣기가 잘린 것이다 — 결과는 나오지만 내용이 어긋난다
+            // 줄마다 칸 수가 다르면 대개 붙여넣기가 잘린 것이다. 결과는 나오지만 내용이 어긋난다
             if (ragged) say(t('tableconv.warn.ragged'), 'error');
             else say(t('tableconv.say.detected', { kind: kindLabel }), 'ok');
             Toolbox.trackUse?.('convert');
@@ -111,7 +111,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             void Toolbox.copyText?.(out.value, { message: t('tableconv.copy.done') });
           };
 
-          // 주소로 부른 경우 (`?op=convert&table=…&to=markdown`) (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=convert&table=...&to=markdown`) (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'convert') {
             input.value = String(call.args.table ?? input.value);

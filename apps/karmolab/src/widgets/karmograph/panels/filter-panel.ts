@@ -1,9 +1,9 @@
 /**
- * panels/filter-panel.ts — 거르기 · 데이터로 꾸미기 (TASK-KL-202 개편 2, 네 번째 이사).
+ * panels/filter-panel.ts. 거르기, 데이터로 꾸미기 (TASK-KL-202 개편 2, 네 번째 이사).
  *
  * 앞선 셋과 다른 점: 이 패널은 **상태를 들고 있다**(무엇을 껐는지, 어떤 규칙을 켰는지).
  * 그 상태를 패널 안에 두면 패널을 닫을 때마다 사라지므로, 위젯이 들고 있는 것을
- * `ctx.filterState` 로 **빌려 와 직접 고친다** — 고친 뒤 `ctx.applyFilter()` 로 알린다.
+ * `ctx.filterState` 로 **빌려 와 직접 고친다**. 고친 뒤 `ctx.applyFilter()` 로 알린다.
  */
 import type { PanelCtx } from './context';
 import { captureView, applyView, upsertView, isNameUsable } from '../views';
@@ -20,14 +20,14 @@ export function renderFilterPanel(ctx: PanelCtx): void {
   const edgeCount = (id: string): number => spec.edges.filter((e) => e.kind === id).length;
 
   // ★ 목록 = **이 맵에 실제로 쓰인 종류만**. 종류가 스물여섯인데 안 쓴 것까지 늘어놓으면
-  //   「끌 게 없는 스위치」가 대부분이 된다 — 거르기는 있는 것만 거르면 된다.
-  // 종류가 안 적힌 카드도 있다 — 그 빈 자리를 줄로 세우면 「이름 없는 갈래」가 생긴다(그리고 터진다).
+  //   끌 게 없는 스위치가 대부분이 된다. 거르기는 있는 것만 거르면 된다.
+  // 종류가 안 적힌 카드도 있다. 그 빈 자리를 줄로 세우면 이름 없는 갈래가 생긴다(그리고 터진다).
   const nodeRows = [...new Set(spec.nodes.map((n) => n.kind).filter(Boolean))]
     .map((id) => ({ id, label: ctx.kindLabel(id), icon: ctx.kindIcon(id) }));
   const edgeRows = [...new Set(spec.edges.map((e) => e.kind).filter(Boolean))]
     .map((id) => ({ id, label: ctx.edgeLabel(id) }));
   const tags = [...new Set(spec.nodes.flatMap((n) => n.tags ?? []))].sort();
-  // 이 맵에서 실제로 쓰인 칸 이름들 — 안 쓴 칸을 늘어놓으면 고를 게 없는 목록이 된다.
+  // 이 맵에서 실제로 쓰인 칸 이름들. 안 쓴 칸을 늘어놓으면 고를 게 없는 목록이 된다.
   const fieldNames = [...new Set(spec.nodes.flatMap((n) => Object.keys(n.fields ?? {})))].sort();
 
   const deg = ctx.focusDegree();
@@ -35,12 +35,12 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     <h4>${esc(t('karmograph.fieldNames.msg'))}</h4>
     <div class="km-hint">${t('karmograph.filterHide', { em: `<b>${esc(t('karmograph.fieldNames.msg2'))}</b>` })}</div>
     <div class="km-secname">${esc(t('karmograph.hideSec.head'))}</div>
-    <!-- ★ 「이웃까지만 보기」는 툴바에 따로 있던 고르개다 (TASK-KL-271 P4).
-         찾는 건 툴바에서, **덜 보는 건 전부 여기서** — 세 자리로 흩어져 있던 것을 한 자리로. -->
-    <!-- ★ **보기 저장** (TASK-KL-271 O2, Kumu 계보). 한 판은 여러 얼굴을 가진다 —
+    <!-- ★ 이웃까지만 보기는 툴바에 따로 있던 고르개다 (TASK-KL-271 P4).
+         찾는 건 툴바에서, **덜 보는 건 전부 여기서**. 세 자리로 흩어져 있던 것을 한 자리로. -->
+    <!-- ★ **보기 저장** (TASK-KL-271 O2, Kumu 계보). 한 판은 여러 얼굴을 가진다 . 
          ※ **맨 위에 둔다** (2026-08-14 실측): 아래에 뒀더니 접힌 자리 밖(867px, 보이는 높이 795px)이라
-           스크롤해야 보였다 — 저장해 둔 보기는 거르기를 *맞추기 전에* 찾는 것이라 첫 화면에 있어야 한다.
-         「1부 시점」 「적대 관계만」. 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로
+           스크롤해야 보였다. 저장해 둔 보기는 거르기를 *맞추기 전에* 찾는 것이라 첫 화면에 있어야 한다.
+         1부 시점 적대 관계만. 볼 때마다 거르기를 다시 맞추는 건 매번 같은 일을 손으로
          하는 것이고, 그러다 보면 결국 아무도 안 거른다. 지금 걸러 둔 것을 이름 붙여 재운다. -->
     <div class="km-field">
       <label>${esc(t('karmograph.views.head'))}</label>
@@ -103,7 +103,7 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       <div class="km-hint">${esc(t('karmograph.fieldNames.msg14'))}</div>
     </div>
     <!-- ★ 여기서부터는 **거르기가 아니라 꾸미기**다 (TASK-KL-271 P5).
-         색·크기·규칙이 거르기 사이에 섞여 있어서 「거르기」라는 이름과 내용이 안 맞았다 —
+         색, 크기, 규칙이 거르기 사이에 섞여 있어서 거르기라는 이름과 내용이 안 맞았다 . 
          이름과 안 맞는 칸은 두 번 다시 안 열린다(S4). 줄을 긋고 이름을 붙여 갈라 놓는다. -->
     <hr class="km-split" />
     <h4>${esc(t('karmograph.decorate.head'))}</h4>
@@ -200,7 +200,7 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     const value = (side.querySelector('[data-km="rule-value"]') as HTMLInputElement).value.trim();
     const color = (side.querySelector('[data-km="rule-color"]') as HTMLInputElement).value;
     if (on === 'field' && !key) return;         // 칸 규칙은 칸 이름이 있어야 뜻이 선다
-    if (on !== 'field' && !value) return;       // 꼬리표·종류 규칙은 값이 곧 조건이다
+    if (on !== 'field' && !value) return;       // 꼬리표, 종류 규칙은 값이 곧 조건이다
     const spec0 = ctx.spec();
     spec0.decorRules = [...(spec0.decorRules ?? []), {
       id: `rule-${Date.now().toString(36)}`, on, key: on === 'field' ? key : undefined, value: value || undefined, color,
@@ -250,9 +250,9 @@ export function renderFilterPanel(ctx: PanelCtx): void {
     ctx.applyDecorate();
     ctx.refresh();
   };
-  /* 보기 저장·되살리기 — 저장하는 것은 「무엇을 보이게 하느냐」뿐이다. 카메라(어디를 보고 있나)는
-     일부러 안 담는다: 판을 고치면 자리는 곧 달라지는데 옛 카메라로 끌려가면 「내가 보던 데가
-     아니다」가 된다(KL-271 O2). */
+  /* 보기 저장, 되살리기. 저장하는 것은 무엇을 보이게 하느냐뿐이다. 카메라(어디를 보고 있나)는
+     일부러 안 담는다: 판을 고치면 자리는 곧 달라지는데 옛 카메라로 끌려가면 내가 보던 데가
+     아니다가 된다(KL-271 O2). */
   (side.querySelector('[data-km="view-save"]') as HTMLButtonElement).onclick = () => {
     const box = side.querySelector('[data-km="view-name"]') as HTMLInputElement;
     if (!isNameUsable(box.value)) { box.focus(); return; }
@@ -267,11 +267,11 @@ export function renderFilterPanel(ctx: PanelCtx): void {
       const hit = (spec.views ?? []).find((v) => v.id === (el as HTMLElement).dataset.key);
       if (!hit) return;
       ctx.setFocusDegree(applyView(hit, st));
-      // 「1부 시점 + 인물만」처럼 **언제를 보고 있었나**까지 되살린다 (KL-271 X2).
+      // 1부 시점 + 인물만처럼 **언제를 보고 있었나**까지 되살린다 (KL-271 X2).
       if (hit.time && (spec.times ?? []).some((x) => x.id === hit.time)) {
         spec._meta = { ...spec._meta, time: hit.time };
         ctx.canvas()?.render();
-        ctx.timesChanged();   // 판 아래 줄도 따라와야 한다 — 안 그러면 화면이 서로 다른 말을 한다
+        ctx.timesChanged();   // 판 아래 줄도 따라와야 한다. 안 그러면 화면이 서로 다른 말을 한다
         ctx.persist();        // 되살린 자리는 다시 열어도 그대로여야 한다
       }
       ctx.applyFilter();

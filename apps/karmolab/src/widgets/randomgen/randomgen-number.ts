@@ -1,5 +1,5 @@
 /**
- * 랜덤 생성기 — 숫자·나이 (generator 전용)
+ * 랜덤 생성기. 숫자, 나이 (generator 전용)
  * randomgen-topics.js 로드 후 RANDOMGEN_TOPICS에 추가됨
  */
 import { t } from '../../lib/i18n';

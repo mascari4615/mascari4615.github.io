@@ -1,7 +1,7 @@
 /**
- * panels/tags-section.ts — 꼬리표 칸 (TASK-KL-202 개편 2, 노드 패널 세 번째 조각).
+ * panels/tags-section.ts. 꼬리표 칸 (TASK-KL-202 개편 2, 노드 패널 세 번째 조각).
  *
- * 이미 쓴 꼬리표를 **칩으로 늘어놓고 눌러서 붙인다** — 같은 말을 두 번 만들지 않게.
+ * 이미 쓴 꼬리표를 **칩으로 늘어놓고 눌러서 붙인다**. 같은 말을 두 번 만들지 않게.
  * 새 말은 그냥 타이핑(쉼표로 여럿).
  */
 import type { GraphNode } from '../../../lib/karmograph/spec';
@@ -34,7 +34,7 @@ export function bindTagsField(ctx: PanelCtx, node: GraphNode): void {
     node.tags = list.length > 0 ? [...new Set(list)] : undefined;
     ctx.persist();
   };
-  // 타이핑 도중마다 저장하면 「영」·「영향」 같은 조각이 꼬리표로 남는다 — 다 쓰고 나서만.
+  // 타이핑 도중마다 저장하면 영, 영향 같은 조각이 꼬리표로 남는다. 다 쓰고 나서만.
   input.onchange = apply;
   input.onblur = apply;
 
@@ -74,7 +74,7 @@ export function bindTagsField(ctx: PanelCtx, node: GraphNode): void {
       const tg = (el as HTMLElement).dataset.key ?? '';
       const cur = input.value.split(',').map((x) => x.trim()).filter(Boolean);
       if (!cur.includes(tg)) cur.push(tg);
-      // 붙일 때는 쓰던 조각을 지우고 그 자리에 넣는다 — 「영향」 치다 칩을 누르면 「영향, 영향력 큼」이 되면 안 된다.
+      // 붙일 때는 쓰던 조각을 지우고 그 자리에 넣는다. 영향 치다 칩을 누르면 영향, 영향력 큼이 되면 안 된다.
       const head = cur.slice(0, -1);
       const typing = (cur[cur.length - 1] ?? '');
       const base = typing && tg.toLowerCase().includes(typing.toLowerCase()) ? head : cur;

@@ -5,6 +5,7 @@ last_modified_at: "2024-08-29T22:17:00+09:00"
 categories: [컴퓨터, 인터넷]
 tags: [Web]
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 ## 레딧 이메일 연동 해제, 계정 삭제 오류

@@ -5,7 +5,7 @@
  *
  * 이 길을 찾는 데 두 번 헛발을 디뎠으므로 그대로 적어 둔다:
  *
- * 1. 공식 한국어 목소리는 실행기가 그냥은 못 읽는다 — 설정표에 「여러 글자로 된 발음」
+ * 1. 공식 한국어 목소리는 실행기가 그냥은 못 읽는다. 설정표에 여러 글자로 된 발음
  *    다섯 개(영어 이중모음)가 들어 있는데, 이 실행기는 한 글자짜리만 안다. 한국어는
  *    그 다섯 개를 쓰지 않으므로 빼고 쓰면 된다.
  * 2. 다른 배포본(pygoruut 용)은 소리는 나오지만 **발음이 엉망**이다. 실행기가 그 발음
@@ -31,7 +31,7 @@ async function download(url, into) {
   }
   console.log(`받는 중: ${url}`);
   const res = await fetch(url, { redirect: 'follow' });
-  if (res.ok === false) throw new Error(`${res.status} — ${url}`);
+  if (res.ok === false) throw new Error(`${res.status}. ${url}`);
   writeFileSync(into, Buffer.from(await res.arrayBuffer()));
 }
 
@@ -55,5 +55,5 @@ config.phoneme_id_map = Object.fromEntries(
 copyFileSync(rawVoice, join(root, 'ko-espeak.onnx'));
 writeFileSync(join(root, 'ko-espeak.onnx.json'), JSON.stringify(config), 'utf8');
 
-console.log(`정리했다 — 뺀 발음 ${dropped.length}개 (${dropped.join(' ')}) · 한국어엔 안 쓰인다`);
+console.log(`정리했다. 뺀 발음 ${dropped.length}개 (${dropped.join(' ')}), 한국어엔 안 쓰인다`);
 console.log(`준비 끝: ${join(root, 'ko-espeak.onnx')}`);

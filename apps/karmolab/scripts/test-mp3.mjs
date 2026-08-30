@@ -86,7 +86,7 @@ const result = await page.evaluate(async () => {
   const wav = await mod.encodeAudio(buf, 'wav');
   return {
     ok: looksMp3 && Math.abs(back.duration - seconds) < 0.25 && peak > 0.2 && blob.size < wav.size / 3,
-    why: `형식 ${looksMp3 ? 'MP3' : '아님'} · 길이 ${back.duration.toFixed(2)}초 (원본 ${seconds}초) · 소리 ${(peak * 100).toFixed(0)}% · 용량 ${(blob.size / 1024).toFixed(0)}KB (WAV ${(wav.size / 1024).toFixed(0)}KB 의 1/3 미만이어야 함)`
+    why: `형식 ${looksMp3 ? 'MP3' : '아님'}, 길이 ${back.duration.toFixed(2)}초 (원본 ${seconds}초), 소리 ${(peak * 100).toFixed(0)}%, 용량 ${(blob.size / 1024).toFixed(0)}KB (WAV ${(wav.size / 1024).toFixed(0)}KB 의 1/3 미만이어야 함)`
   };
 });
 
@@ -97,4 +97,4 @@ if (!result.ok) {
   console.error('[test-mp3] MP3 저장이 제대로 돌지 않는다');
   process.exit(1);
 }
-console.log('[test-mp3] MP3 로 만들고 다시 해독해 길이·소리·용량까지 확인');
+console.log('[test-mp3] MP3 로 만들고 다시 해독해 길이, 소리, 용량까지 확인');

@@ -5,6 +5,7 @@ last_modified_at: "2021-10-05T00:00:00+09:00"
 categories: [컴퓨터, 시스템]
 tags: []
 image: /assets/img/background/kururu-lab.jpg
+board: info
 ---
 
 > [!WARNING]

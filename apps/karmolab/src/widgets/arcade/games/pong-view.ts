@@ -2,7 +2,7 @@
  * 탁구 화면 (TASK-KL-242)
  *
  * 에어하키와 같은 손놀림(닿은 자리를 보낸다)인데 **x 하나만** 쓴다.
- * 내 라켓이 늘 아래로 오게 그린다 — 남의 라켓이 앞에 있으면 방향이 뒤집혀 헷갈린다.
+ * 내 라켓이 늘 아래로 오게 그린다. 남의 라켓이 앞에 있으면 방향이 뒤집혀 헷갈린다.
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
@@ -34,11 +34,11 @@ export const pongView: GameView<PongState, PongAction> = {
       pending = toX(e);
     });
 
-    /* 자판 길 — **누른 시간만큼** 민다 (TASK-KL-317, 2026-08-15).
+    /* 자판 길. **누른 시간만큼** 민다 (TASK-KL-317, 2026-08-15).
      * 전에는 keydown 한 번에 한 칸씩(W/24) 옮겼고, 그마저 판(canvas)에서 듣고 있어서
      * **초점이 판에 안 와 한 번도 안 먹었다**(실측: 화살표를 눌러도 40.0 에서 안 움직였다).
      * 이제 창에서 듣고, 라켓 자리를 화면이 들고 있다가 매 프레임 시간만큼 민다.
-     * 보내는 통로는 마우스와 같은 `pending` — 서버로 가는 길이 갈리면 안 된다. */
+     * 보내는 통로는 마우스와 같은 `pending`. 서버로 가는 길이 갈리면 안 된다. */
     let padX = W / 2;
     const drive = keyDrive(W);
     cv.tabIndex = 0;
@@ -58,9 +58,9 @@ export const pongView: GameView<PongState, PongAction> = {
       }
       const s = v.state;
       /* 마우스로 옮겼거나 서버가 되돌렸으면 자판 자리도 거기에 맞춘다(둘이 어긋나면 튄다).
-         단 **키를 누르고 있는 동안은 안 맞춘다** — 서버 메아리가 한 박자 늦어 라켓이 뒤로 끌린다. */
+         단 **키를 누르고 있는 동안은 안 맞춘다**. 서버 메아리가 한 박자 늦어 라켓이 뒤로 끌린다. */
       if (!key.held) padX = s.pad[mySeat] ?? padX;
-      /* 내가 자리1이면 판을 뒤집어 그린다 — 내 라켓이 늘 아래다. */
+      /* 내가 자리1이면 판을 뒤집어 그린다. 내 라켓이 늘 아래다. */
       const flip = mySeat === 1;
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -75,7 +75,7 @@ export const pongView: GameView<PongState, PongAction> = {
       if (!c) return;
       const k = cv.width / W;
       c.setTransform(k, 0, 0, k, 0, 0);
-      /* 탁구대 — 파란 천에 흰 선, 둘레는 나무. 검정 사각형 하나면 판이 아니라 배경이다. */
+      /* 탁구대. 파란 천에 흰 선, 둘레는 나무. 검정 사각형 하나면 판이 아니라 배경이다. */
       felt(c, W, H, 'blue');
       woodRail(c, W, H, 2.2);
       c.strokeStyle = 'rgba(255,255,255,.85)';
@@ -93,7 +93,7 @@ export const pongView: GameView<PongState, PongAction> = {
       const fy = (y: number): number => (flip ? H - y : y);
 
       [0, 1].forEach((i) => {
-        /* 라켓 — 판 위에 놓인 것이라 아래에 그림자가 깔린다. */
+        /* 라켓. 판 위에 놓인 것이라 아래에 그림자가 깔린다. */
         const y = i === 0 ? H - 4 : 4;
         c.fillStyle = 'rgba(0,0,0,.28)';
         c.fillRect(s.pad[i] - PAD / 2 + 0.5, fy(y) - 0.4, PAD, 2);
@@ -103,10 +103,10 @@ export const pongView: GameView<PongState, PongAction> = {
         c.fillRect(s.pad[i] - PAD / 2, fy(y) - 1, PAD, 0.6);
       });
 
-      /* 공 = 구슬(`orb`) — 판마다 같은 규칙. */
+      /* 공 = 구슬(`orb`). 판마다 같은 규칙. */
       orb(c, s.ball.x, fy(s.ball.y), 1.7, '#f4efe4');
 
-      /* 점수는 판 밖 알약 — 캔버스 안 7px 글자는 무대가 커져도 안 커진다. */
+      /* 점수는 판 밖 알약. 캔버스 안 7px 글자는 무대가 커져도 안 커진다. */
       scoreEl.innerHTML = v.seats
         .map((seat, i) =>
           '<span class="ac-plc' + (i === mySeat ? ' ac-me' : '') + '" style="--c:' + SEAT_COLOR[i] + '">' +

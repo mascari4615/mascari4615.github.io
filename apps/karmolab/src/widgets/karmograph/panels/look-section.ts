@@ -1,8 +1,8 @@
 /**
- * panels/look-section.ts — 모양과 기울기 (TASK-KL-202 개편 2, 노드 패널 다섯 번째 조각).
+ * panels/look-section.ts. 모양과 기울기 (TASK-KL-202 개편 2, 노드 패널 다섯 번째 조각).
  *
- * 모양 목록은 위젯이 쥐고 있는 것을 그대로 받는다(카드·동그라미·말풍선·메모·사진 카드).
- * 기울기는 슬라이더 — 숫자를 치게 하면 「몇 도가 삐딱한가」를 사람이 계산해야 한다.
+ * 모양 목록은 위젯이 쥐고 있는 것을 그대로 받는다(카드, 동그라미, 말풍선, 메모, 사진 카드).
+ * 기울기는 슬라이더. 숫자를 치게 하면 몇 도가 삐딱한가를 사람이 계산해야 한다.
  */
 import type { GraphNode, NodeShape } from '../../../lib/karmograph/spec';
 import type { PanelCtx } from './context';
@@ -34,7 +34,7 @@ export function tiltFieldHtml(ctx: PanelCtx, node: GraphNode): string {
     </div>`;
 }
 
-/** `touch` = 위젯의 「고치면 다시 그리고 저장」 뒷정리. */
+/** `touch` = 위젯의 고치면 다시 그리고 저장 뒷정리. */
 export function bindLookFields(ctx: PanelCtx, node: GraphNode, touch: (redrawSide: boolean) => void): void {
   const side = ctx.side;
   (side.querySelector('[data-km="edit-shape"]') as HTMLSelectElement).onchange = (ev) => {

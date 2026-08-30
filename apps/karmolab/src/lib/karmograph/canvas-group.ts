@@ -1,14 +1,14 @@
 /**
- * lib/karmograph/canvas-group.ts — 묶음 그리기 (TASK-KL-202 방향① 해체 7조각).
+ * lib/karmograph/canvas-group.ts. 묶음 그리기 (TASK-KL-202 방향① 해체 7조각).
  *
- * 묶음은 「누가 한편인가」를 눈으로 말하는 자리다. 캔버스 본체에서 떼어 내며 **그리는 순서 규약**을
- * 파일 머리에 못 박았다 — 이 규약이 깨지면 「만들었는데 안 보이는 묶음」이 생긴다.
+ * 묶음은 누가 한편인가를 눈으로 말하는 자리다. 캔버스 본체에서 떼어 내며 **그리는 순서 규약**을
+ * 파일 머리에 못 박았다. 이 규약이 깨지면 만들었는데 안 보이는 묶음이 생긴다.
  */
 import type { GroupDef } from './spec';
 
 /**
  * 묶음 상자 = **저장된 네모 + 멤버들을 다 덮은 자리**(여백 12).
- * 저장된 네모만 쓰면 멤버를 밖으로 끌어냈을 때 상자가 안 따라와 「소속인데 밖에 있는」 그림이 된다.
+ * 저장된 네모만 쓰면 멤버를 밖으로 끌어냈을 때 상자가 안 따라와 소속인데 밖에 있는 그림이 된다.
  */
 export function computeGroupBox(
   group: GroupDef,
@@ -16,11 +16,11 @@ export function computeGroupBox(
   pad = 12,
 ): { x: number; y: number; w: number; h: number } {
   /**
-   * ★ **네모가 없는 묶음도 있다** — 손으로 적은 파일, 옛 판, 남의 도구에서 옮겨 온 것.
+   * ★ **네모가 없는 묶음도 있다**. 손으로 적은 파일, 옛 판, 남의 도구에서 옮겨 온 것.
    *
    * 없는 채로 `bbox.x` 를 읽다가 판 **전체 불러오기가 통째로 실패**했다: 카드도 선도 멀쩡한데
-   * 「JSON 을 읽지 못했습니다」 한 줄만 뜨고 아무것도 안 열렸다(실측 2026-08-14, 묶음 하나짜리
-   * 파일). 자료가 조금 모자란 것과 **못 읽는 것**은 다르다 — 모자라면 있는 것으로 짓는다.
+   * JSON 을 읽지 못했습니다 한 줄만 뜨고 아무것도 안 열렸다(실측 2026-08-14, 묶음 하나짜리
+   * 파일). 자료가 조금 모자란 것과 **못 읽는 것**은 다르다. 모자라면 있는 것으로 짓는다.
    */
   const box = group.bbox;
   let minX = box ? box.x : Infinity;
@@ -33,7 +33,7 @@ export function computeGroupBox(
     maxX = Math.max(maxX, b.x + b.w + pad);
     maxY = Math.max(maxY, b.y + b.h + pad);
   }
-  // 네모도 없고 든 것도 없으면 **그릴 것이 없다** — 0 짜리 자리를 돌려주고, 그리는 쪽이 건너뛴다.
+  // 네모도 없고 든 것도 없으면 **그릴 것이 없다**. 0 짜리 자리를 돌려주고, 그리는 쪽이 건너뛴다.
   if (!Number.isFinite(minX) || !Number.isFinite(minY)) return { x: 0, y: 0, w: 0, h: 0 };
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
@@ -44,7 +44,7 @@ const GROUP_HEADER_H = 20;
 export interface GroupRenderCtx {
 /** 그릴 자리. */
 layer: SVGGElement;
-/** 이 캔버스 고유 딱지 — 한 페이지에 캔버스가 둘이면 clipPath id 가 부딪힌다. */
+/** 이 캔버스 고유 딱지. 한 페이지에 캔버스가 둘이면 clipPath id 가 부딪힌다. */
 uid: string;
 /** 묶음의 상자(멤버를 감싼 자리). */
 boxOf: (g: GroupDef) => { x: number; y: number; w: number; h: number };
@@ -53,29 +53,29 @@ hullOf: (g: GroupDef) => string | null;
 }
 
 /**
- * 묶음(진영·장소·팀)을 그린다. 규약 둘을 파일에 박아 둔다:
- *  1. **큰 묶음부터** 그린다 — SVG 는 먼저 그린 것이 아래에 깔린다. 반대로 하면 작은 묶음이
- *     통째로 가려져 「분명 만들었는데 안 보인다」가 된다(겹치는 묶음은 흔하다).
- *  2. 이름표가 겹치면 **아래로 한 칸씩** 내린다 — 겹친 묶음들의 머리는 같은 높이에 몰린다.
+ * 묶음(진영, 장소, 팀)을 그린다. 규약 둘을 파일에 박아 둔다:
+ *  1. **큰 묶음부터** 그린다. SVG 는 먼저 그린 것이 아래에 깔린다. 반대로 하면 작은 묶음이
+ *     통째로 가려져 분명 만들었는데 안 보인다가 된다(겹치는 묶음은 흔하다).
+ *  2. 이름표가 겹치면 **아래로 한 칸씩** 내린다. 겹친 묶음들의 머리는 같은 높이에 몰린다.
  */
 export function renderGroups(groups: GroupDef[], ctx: GroupRenderCtx): void {
   // ★ 큰 묶음부터 그린다. SVG 는 먼저 그린 것이 아래에 깔리므로, 큰 것을 먼저 깔아야
-  //   작은 묶음이 큰 묶음 안에 얹힌 것처럼 보인다 — 반대로 하면 작은 묶음이 통째로 가려져
-  //   「분명 만들었는데 안 보인다」가 된다(노드가 여러 묶음에 들면 겹침은 흔한 일이다).
+  //   작은 묶음이 큰 묶음 안에 얹힌 것처럼 보인다. 반대로 하면 작은 묶음이 통째로 가려져
+  //   분명 만들었는데 안 보인다가 된다(노드가 여러 묶음에 들면 겹침은 흔한 일이다).
   const boxes = groups
     .filter((g) => !g.hidden)
     .map((g) => ({ g, box: ctx.boxOf(g) }))
-    // 자리가 0 인 묶음(네모도 없고 든 것도 없다)은 **그리지 않는다** — 0×0 상자를 그리면
+    // 자리가 0 인 묶음(네모도 없고 든 것도 없다)은 **그리지 않는다**. 0×0 상자를 그리면
     // 화면 왼쪽 위에 정체 모를 점 하나가 남는다.
     .filter(({ box }) => box.w > 0 && box.h > 0)
     .sort((a, b) => b.box.w * b.box.h - a.box.w * a.box.h);
 
-  // 이름표가 서로 겹치면 아래로 한 칸씩 내린다 — 겹친 묶음들의 머리는 같은 높이에 몰린다.
+  // 이름표가 서로 겹치면 아래로 한 칸씩 내린다. 겹친 묶음들의 머리는 같은 높이에 몰린다.
   const labelRows: { x1: number; x2: number; y: number }[] = [];
 
   for (const { g, box } of boxes) {
 
-    // ── 바디 — 네모 또는 멤버를 감싸는 윤곽 ──────────────────────────────
+    // ── 바디. 네모 또는 멤버를 감싸는 윤곽 ──────────────────────────────
     const hullD = (g.shape ?? 'box') === 'hull' ? ctx.hullOf(g) : null;
     const body = document.createElementNS(SVG_NS, hullD ? 'path' : 'rect');
     body.setAttribute('class', 'ck-group');
@@ -96,11 +96,11 @@ export function renderGroups(groups: GroupDef[], ctx: GroupRenderCtx): void {
     (body as SVGElement & { style: CSSStyleDeclaration }).style.cursor = 'grab';
     ctx.layer.appendChild(body);
 
-    // ── 헤더 바 (Unity 스타일) — 네모 묶음일 때만. 윤곽 위에 네모 띠를 얹으면 어색하다.
+    // ── 헤더 바 (Unity 스타일). 네모 묶음일 때만. 윤곽 위에 네모 띠를 얹으면 어색하다.
     if (!hullD) {
 
     // clipPath 로 상단 rx 살리면서 헤더만 클리핑.
-    // id 에 인스턴스 uid 를 섞는다 — 캔버스 2개가 같은 group id 를 쓰면 충돌.
+    // id 에 인스턴스 uid 를 섞는다. 캔버스 2개가 같은 group id 를 쓰면 충돌.
     const clipId = `ck-clip-${ctx.uid}-${g.id}`;
     const clipPath = document.createElementNS(SVG_NS, 'clipPath');
     clipPath.setAttribute('id', clipId);
@@ -136,7 +136,7 @@ export function renderGroups(groups: GroupDef[], ctx: GroupRenderCtx): void {
       labelY += 14;
     }
     labelRows.push({ x1: box.x, x2: box.x + box.w, y: labelY });
-    // 이름표는 손으로 옮길 수 있다 — 겹친 묶음에서 자동 회피만으로는 늘 부족하다.
+    // 이름표는 손으로 옮길 수 있다. 겹친 묶음에서 자동 회피만으로는 늘 부족하다.
     text.setAttribute('x', String(box.x + 8 + (g.labelDx ?? 0)));
     text.setAttribute('y', String(labelY + (g.labelDy ?? 0)));
     text.style.cursor = 'grab';

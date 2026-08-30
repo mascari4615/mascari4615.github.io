@@ -1,18 +1,18 @@
 /**
- * 작은 3D — 서 있는 것을 서 있게 보여 주는 그림판 (TASK-KL-242)
+ * 작은 3D. 서 있는 것을 서 있게 보여 주는 그림판 (TASK-KL-242)
  *
  * **라이브러리 0.** three.js 는 600KB 가 넘고 이 앱은 위젯 하나에 64KB(gz)를 안 넘긴다
  * (`tools/mesh3d.ts` 도 같은 이유로 WebGL 을 손으로 쓴다). 여기 필요한 것은 **바닥 한 장과
  * 원기둥 몇 개**뿐이라 행렬 하나와 셰이더 두 장이면 끝난다.
  *
- * 왜 3D 인가: 볼링은 **핀이 서 있다.** 위에서 내려다보면 「열 개가 서 있다가 우르르 넘어간다」가
- * 안 보이고 점 열 개가 흩어질 뿐이다. 컬링은 반대라 2D 로 그렸다 — 시점은 취향이 아니라
+ * 왜 3D 인가: 볼링은 **핀이 서 있다.** 위에서 내려다보면 열 개가 서 있다가 우르르 넘어간다가
+ * 안 보이고 점 열 개가 흩어질 뿐이다. 컬링은 반대라 2D 로 그렸다. 시점은 취향이 아니라
  * 그 놀이가 무엇을 보여 줘야 하는가로 정한다.
  *
  * 규율:
  *  - **물리는 여기 없다.** 자리와 색을 받아 그리기만 한다. 판이 어떻게 굴렀는지는 커널이 안다.
  *  - **부를 때만 그린다.** 가만히 도는 60fps 는 배터리를 먹고 그 원인이 안 보인다.
- *  - WebGL 을 못 얻으면 `null` 을 돌려준다 — 부르는 쪽이 2D 로 물러설 수 있게(화면이 안 죽는다).
+ *  - WebGL 을 못 얻으면 `null` 을 돌려준다. 부르는 쪽이 2D 로 물러설 수 있게(화면이 안 죽는다).
  */
 
 export interface Piece {
@@ -25,17 +25,17 @@ export interface Piece {
   color: [number, number, number];
   /** 쓰러진 것은 눕혀 그린다 */
   fallen?: boolean;
-  /** 모서리가 있는 것(레인·테이블)은 상자로 */
+  /** 모서리가 있는 것(레인, 테이블)은 상자로 */
   boxy?: boolean;
 }
 
 export interface Scene {
   w: number;
   h: number;
-  /** 바닥판 — 없으면 안 그린다 */
+  /** 바닥판. 없으면 안 그린다 */
   floor?: { w: number; h: number; color: [number, number, number] };
   pieces: Piece[];
-  /** 겨눔 선 — 시작점과 방향, 길이 */
+  /** 겨눔 선. 시작점과 방향, 길이 */
   aim?: { x: number; y: number; dx: number; dy: number; len: number };
 }
 
@@ -54,10 +54,10 @@ uniform float lay;
 varying float light;
 void main() {
   vec3 p = vec3(pos.x * scale.x, pos.y * scale.y, pos.z * scale.z);
-  /* 쓰러진 것은 눕힌다 — 세운 채 색만 바꾸면 「넘어갔다」가 안 읽힌다. */
+  /* 쓰러진 것은 눕힌다. 세운 채 색만 바꾸면 넘어갔다가 안 읽힌다. */
   p = mix(p, vec3(p.x, p.z * 1.2, p.y * 0.5 + scale.x), lay);
   vec3 n = normalize(nrm);
-  /* 바닥광을 넉넉히 준다 — 어둡게 두면 서 있는 핀이 회색 덩어리로 뭉쳐 보인다(실측). */
+  /* 바닥광을 넉넉히 준다. 어둡게 두면 서 있는 핀이 회색 덩어리로 뭉쳐 보인다(실측). */
   light = 0.66 + 0.40 * max(0.0, dot(n, normalize(vec3(0.30, -0.55, 0.78))));
   gl_Position = mvp * vec4(p + offset, 1.0);
 }`;
@@ -68,7 +68,7 @@ uniform vec3 color;
 varying float light;
 void main() { gl_FragColor = vec4(color * light, 1.0); }`;
 
-/** 원기둥 하나. 자리·크기만 바꿔 가며 모든 것을 이걸로 그린다. */
+/** 원기둥 하나. 자리, 크기만 바꿔 가며 모든 것을 이걸로 그린다. */
 function cylinder(seg: number): { pos: Float32Array; nrm: Float32Array; count: number } {
   const pos: number[] = [];
   const nrm: number[] = [];
@@ -85,7 +85,7 @@ function cylinder(seg: number): { pos: Float32Array; nrm: Float32Array; count: n
   return { pos: new Float32Array(pos), nrm: new Float32Array(nrm), count: pos.length / 3 };
 }
 
-/** 상자 하나 — 레인처럼 **모서리가 있는 것**은 원기둥으로 그리면 덩어리로 보인다. */
+/** 상자 하나. 레인처럼 **모서리가 있는 것**은 원기둥으로 그리면 덩어리로 보인다. */
 function box(): { pos: Float32Array; nrm: Float32Array; count: number } {
   const pos: number[] = [];
   const nrm: number[] = [];
@@ -107,13 +107,13 @@ function box(): { pos: Float32Array; nrm: Float32Array; count: number } {
 const MESH = cylinder(20);
 const BOX = box();
 
-/** 던지는 쪽 뒤에서 낮게 내려다본다 — 핀이 서 있는 게 보이는 자리. */
+/** 던지는 쪽 뒤에서 낮게 내려다본다. 핀이 서 있는 게 보이는 자리. */
 function camera(out: Float32Array, w: number, h: number, aspect: number): void {
   /*
    * 던지는 사람 뒤에서, **핀 쪽으로 당겨서** 본다.
    *
    * 처음엔 레인 전체가 들어오게 잡았더니 핀 열 개가 한 덩어리로 보였다(스크린샷으로 확인).
-   * 이 놀이의 그림은 「서 있던 게 넘어간다」라서, 레인을 다 보여 주는 것보다 **핀이 크게
+   * 이 놀이의 그림은 서 있던 게 넘어간다라서, 레인을 다 보여 주는 것보다 **핀이 크게
    * 보이는 쪽**이 맞다. 그래서 눈을 낮추고 화각을 좁혀 앞쪽 레인을 일부러 잘라 낸다.
    */
   const eye = [w / 2, h * 0.72, h * 0.105];
@@ -200,7 +200,7 @@ export function createGl(canvas: HTMLCanvasElement): Gl | null {
   const uLay = gl.getUniformLocation(prog, 'lay');
   const mvp = new Float32Array(16);
   gl.enable(gl.DEPTH_TEST);
-  /* 뒷면은 안 그린다 — 안 그러면 상자 안쪽이 비쳐 줄무늬처럼 남는다. */
+  /* 뒷면은 안 그린다. 안 그러면 상자 안쪽이 비쳐 줄무늬처럼 남는다. */
   gl.enable(gl.CULL_FACE);
   gl.cullFace(gl.BACK);
 
@@ -229,7 +229,7 @@ export function createGl(canvas: HTMLCanvasElement): Gl | null {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      /* 바닥 — 상자다. 원기둥으로 그리면 레인이 아니라 둥근 덩어리로 보인다(실측). */
+      /* 바닥. 상자다. 원기둥으로 그리면 레인이 아니라 둥근 덩어리로 보인다(실측). */
       const fl = scene.floor ?? { w: scene.w * 0.92, h: scene.h, color: [0.85, 0.72, 0.5] as [number, number, number] };
       piece(scene.w / 2, scene.h / 2, -1.4, fl.w / 2, fl.h / 2, 1.4, fl.color, 0, true);
 

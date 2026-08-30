@@ -12,9 +12,9 @@ export const spec: ToolSpec = {
   ops: {
     convert: {
       desc:
-        'Convert units, including Korean/Japanese traditional ones — pyeong(평), geun(근), don(돈),' +
+        'Convert units, including Korean/Japanese traditional ones. pyeong(평), geun(근), don(돈),' +
         ' nyang(냥), doe(되), mal(말), ja(자), ri(리). Models answer these with rounded folklore' +
-        ' (1 pyeong is 3.3057851 m², not 3.3 — on an apartment that gap is visible money).' +
+        ' (1 pyeong is 3.3057851 m², not 3.3. on an apartment that gap is visible money).' +
         ' No currency here: that would need live rates.',
       in: { value: 'number', from: 'string', to: 'string', category: 'string?' },
       out: 'string'
@@ -88,11 +88,11 @@ export const run: ToolRunner = (op, args) => {
   if (op === 'list') {
     const cat = args.category === undefined ? null : String(args.category);
     if (cat === null) {
-      return CATEGORIES.map((c) => `${c}: ${(c === 'temp' ? Object.keys(TEMP) : Object.keys(FACTORS[c])).join(' · ')}`).join('\n');
+      return CATEGORIES.map((c) => `${c}: ${(c === 'temp' ? Object.keys(TEMP) : Object.keys(FACTORS[c])).join(', ')}`).join('\n');
     }
     const units = cat === 'temp' ? Object.keys(TEMP) : Object.keys(FACTORS[cat] ?? {});
     if (units.length === 0) throw new Error(`Unknown category: ${cat} (${CATEGORIES.join(', ')})`);
-    return `${cat}: ${units.join(' · ')}`;
+    return `${cat}: ${units.join(', ')}`;
   }
 
   if (op === 'convert') {

@@ -1,7 +1,7 @@
 {
   "regextest.mdd": "正規表現は怖くありません。一緒に試しましょう！",
   "regextest.label.pattern": "パターン",
-  "regextest.note.flags": "フラグ — g 全体、i 大文字小文字を無視、m 複数行、s 改行も含む(.)、u ユニコード",
+  "regextest.note.flags": "フラグ. g 全体、i 大文字小文字を無視、m 複数行、s 改行も含む(.)、u ユニコード",
   "regextest.aria.flags": "フラグ",
   "regextest.label.text": "テスト文字列",
   "regextest.aria.text": "検査する文章",
@@ -21,14 +21,14 @@
   "regextest.sample.date": "リリース 2026-08-05、終了 2027-01-01",
   "regextest.preset.spaces": "重なった空白",
   "regextest.sample.spaces": "空白が    多い   文章",
-  "regextest.err.pattern": "正規表現の誤り — ",
+  "regextest.err.pattern": "正規表現の誤り. ",
   "regextest.value.none": "（なし）",
   "regextest.hint.text": "<span style=\"color:var(--text-tertiary);\">テスト文字列を入れてください</span>",
   "regextest.err.replace": "置換の誤り: ",
   "regextest.hint.replace": "<span style=\"color:var(--text-tertiary);\">置換文字列を入れると結果が出ます</span>",
-  "regextest.label.replace": "置換（任意）— $1、$<name> が使えます",
+  "regextest.label.replace": "置換（任意）.  $1、$<name> が使えます",
   "regextest.value.matches": "{n}件の一致",
   "regextest.value.noMatch": "一致なし",
   "regextest.explain.title": "この正規表現の意味 (部分ごと・レールロード図)",
-  "regextest.explain.cannot": "読めませんでした —"
+  "regextest.explain.cannot": "読めませんでした . "
 }

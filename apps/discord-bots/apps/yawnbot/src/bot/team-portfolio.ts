@@ -1,13 +1,13 @@
 // 공유 프로젝트 상태 = 팀의 *북극성* (TASK-KAR-018-LT 기둥1).
 //
 // 발단 진단 D2/D3: cadence 가 무상태 emit → "팀이 함께 미는 프로젝트"가
-// 코드에 없어 자가정비 영구기관. 본 모듈이 그 결손을 메운다 — 모든
+// 코드에 없어 자가정비 영구기관. 본 모듈이 그 결손을 메운다. 모든
 // proposal/objective 는 *어느 프로젝트의 무엇을 전진시키는가* 를 cite 해야
 // 하고, "전진"은 PR 수가 아니라 progressLog delta 로 측정된다.
 //
 // 정본 = memo/.claude/team-portfolio.json (머신). 렌더 .md 는 파생 투영
-// (active-sessions 라이브-투영 패턴 재사용 — 새 시각 패러다임 0).
-// 형식·IO 규약 = agent-decisions.ts 와 동일(순수 코어 + best-effort IO,
+// (active-sessions 라이브-투영 패턴 재사용. 새 시각 패러다임 0).
+// 형식, IO 규약 = agent-decisions.ts 와 동일(순수 코어 + best-effort IO,
 // 평행정의 0). 사용자 결정(AskUserQuestion): 포트폴리오 다중목표, 으뜸 WM.
 import fs from 'fs';
 import path from 'path';
@@ -17,7 +17,7 @@ export interface ProgressEntry {
   projectId: string;
   /** 무엇이 전진했는가 (사람 평이체 한 줄). */
   delta: string;
-  /** 증거 (PR/commit/관측 — 날조 방지 anchor). */
+  /** 증거 (PR/commit/관측. 날조 방지 anchor). */
   evidence: string;
 }
 
@@ -31,12 +31,12 @@ export interface CurrentObjective {
 export interface PortfolioProject {
   id: string;
   title: string;
-  /** 이 프로젝트가 향하는 단 하나의 별 (사용자 영역 — 코드가 임의변경 X). */
+  /** 이 프로젝트가 향하는 단 하나의 별 (사용자 영역. 코드가 임의변경 X). */
   northStar: string;
   /** 틱 라우팅 가중치 (클수록 우선). 으뜸 WM 최대. */
   weight: number;
   status: 'active' | 'paused' | 'done';
-  /** 도구적(자가정비류) — 반드시 weight 제한 + 명시. 영구기관 차단. */
+  /** 도구적(자가정비류). 반드시 weight 제한 + 명시. 영구기관 차단. */
   instrumental?: boolean;
   currentObjective?: CurrentObjective;
   progressLog: ProgressEntry[];
@@ -119,7 +119,7 @@ export function parsePortfolio(raw: string): Portfolio {
   }
 }
 
-/** 파일 부재·이상 = 빈 포트폴리오(견고). IO. */
+/** 파일 부재, 이상 = 빈 포트폴리오(견고). IO. */
 export function loadPortfolio(memoRoot: string): Portfolio {
   try {
     return parsePortfolio(fs.readFileSync(portfolioPath(memoRoot), 'utf-8'));
@@ -143,8 +143,8 @@ export function topProject(p: Portfolio): PortfolioProject | null {
 }
 
 /**
- * proposal/objective 의 projectId cite 검증 (순수·결정적). 알려진
- * active/paused 프로젝트여야 통과 — 미매핑 = 거부(LT-2 게이트). "전진"이
+ * proposal/objective 의 projectId cite 검증 (순수, 결정적). 알려진
+ * active/paused 프로젝트여야 통과. 미매핑 = 거부(LT-2 게이트). "전진"이
  * 어느 북극성에 수렴하는지 강제 = D3 영구기관 근본.
  */
 export function validateProjectCitation(
@@ -152,20 +152,20 @@ export function validateProjectCitation(
   projectId: string,
 ): { ok: boolean; reason: string } {
   const id = (projectId || '').trim();
-  if (!id) return { ok: false, reason: 'projectId 미기재 — 북극성 미수렴' };
+  if (!id) return { ok: false, reason: 'projectId 미기재. 북극성 미수렴' };
   const proj = p.projects.find((x) => x.id === id);
   if (!proj)
     return {
       ok: false,
-      reason: `미지 projectId "${id}" — 포트폴리오 외 (자가정비는 instrumental 프로젝트 cite)`,
+      reason: `미지 projectId "${id}". 포트폴리오 외 (자가정비는 instrumental 프로젝트 cite)`,
     };
   if (proj.status === 'done')
-    return { ok: false, reason: `프로젝트 "${id}" done — 신규 전진 무의미` };
+    return { ok: false, reason: `프로젝트 "${id}" done. 신규 전진 무의미` };
   return { ok: true, reason: `→ ${proj.title}` };
 }
 
 /**
- * 프롬프트 주입 블록 (순수·바운드). producer/deliberation 코어가 이걸 보고
+ * 프롬프트 주입 블록 (순수, 바운드). producer/deliberation 코어가 이걸 보고
  * *반드시 projectId + 북극성 전진방식* 을 cite 하게 한다.
  */
 export function formatPortfolioBlock(p: Portfolio): string {
@@ -174,14 +174,14 @@ export function formatPortfolioBlock(p: Portfolio): string {
     .slice()
     .sort((a, b) => b.weight - a.weight);
   const lines = sorted.map((x) => {
-    const tag = x.instrumental ? ' (도구적·weight제한)' : '';
+    const tag = x.instrumental ? ' (도구적, weight제한)' : '';
     const obj = x.currentObjective?.text
       ? ` | 현 목표: ${x.currentObjective.text}`
       : '';
-    return `- [${x.id}] ${x.title} (w${x.weight}, ${x.status})${tag} — 북극성: ${x.northStar}${obj}`;
+    return `- [${x.id}] ${x.title} (w${x.weight}, ${x.status})${tag}. 북극성: ${x.northStar}${obj}`;
   });
   return [
-    '[팀 포트폴리오 — 북극성. 으뜸 = weight 최대]',
+    '[팀 포트폴리오. 북극성. 으뜸 = weight 최대]',
     ...lines,
     '',
     '*모든 제안은 위 projectId 하나를 cite + "이게 그 북극성/현 목표를',
@@ -196,12 +196,12 @@ export function renderPortfolioMarkdown(p: Portfolio): string {
   const head = [
     '# 팀 포트폴리오 (북극성)',
     '',
-    '> 파생 투영 — 정본 = `team-portfolio.json`. 손편집 X.',
+    '> 파생 투영. 정본 = `team-portfolio.json`. 손편집 X.',
     '> "전진" = progressLog delta vs 북극성 (PR 수 X). TASK-KAR-018-LT.',
     '',
   ];
   const body = sorted.flatMap((x) => {
-    const tag = x.instrumental ? ' · 도구적' : '';
+    const tag = x.instrumental ? ', 도구적' : '';
     const obj = x.currentObjective?.text
       ? `\n- **현 목표**: ${x.currentObjective.text}`
       : '';
@@ -210,7 +210,7 @@ export function renderPortfolioMarkdown(p: Portfolio): string {
       .map((e) => `  - ${e.ts.slice(0, 10)} ${e.delta} (${e.evidence})`)
       .join('\n');
     return [
-      `## [${x.id}] ${x.title} — w${x.weight} · ${x.status}${tag}`,
+      `## [${x.id}] ${x.title}. w${x.weight}, ${x.status}${tag}`,
       `- **북극성**: ${x.northStar}${obj}`,
       recent ? `- **최근 전진**:\n${recent}` : '- **최근 전진**: (없음)',
       '',

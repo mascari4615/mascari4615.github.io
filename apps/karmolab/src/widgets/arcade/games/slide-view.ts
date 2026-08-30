@@ -1,7 +1,7 @@
 /**
  * 조각 맞추기 화면 (TASK-KL-242)
  *
- * 빈 칸 옆 조각만 누를 수 있다 — 못 미는 조각을 눌러 보고 「고장 났나」 하지 않도록 흐리게 둔다.
+ * 빈 칸 옆 조각만 누를 수 있다. 못 미는 조각을 눌러 보고 고장 났나 하지 않도록 흐리게 둔다.
  */
 import type { GameView } from '../views';
 import { N, type SlideState, type SlideAction } from './slide';

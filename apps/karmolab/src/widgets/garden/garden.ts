@@ -1,5 +1,5 @@
 /**
- * 정원 — 손대지 않는 것을 켜 두고 구경한다 (TASK-KL-211)
+ * 정원. 손대지 않는 것을 켜 두고 구경한다 (TASK-KL-211)
  *
  * 사용자: "관찰 방향으로 가자. 그 9칸 랜덤으로 매치된거 규칙이랑 배열에 따라 자동으로 막 움직이고
  * 되는거지" (→ 세포 자동자 정원)
@@ -7,11 +7,11 @@
  * 격자에 씨앗을 뿌리고 규칙 하나만 정해 준다. 그 뒤로는 **아무도 안 건드린다.**
  * 9칸(무어 이웃)이 읽는 한 줄짜리 규칙에서 도시가 자라고, 길이 뚫리고, 무언가 흘러간다.
  *
- * 앞선 관찰물들(Sandspiel·Lenia·Physarum·Langton)은 전부 아름다운데, **무슨 일이 일어났는지는
- * 말해 주지 않는다** — 관찰자가 혼자 알아채야 한다. 여기서는 블루마블(TASK-KL-206)에서 통한 것을
- * 그대로 쓴다: 사건을 **문장**으로 흘려보낸다. 「37세대에 무언가 흘러가기 시작했다.」
+ * 앞선 관찰물들(Sandspiel, Lenia, Physarum, Langton)은 전부 아름다운데, **무슨 일이 일어났는지는
+ * 말해 주지 않는다**. 관찰자가 혼자 알아채야 한다. 여기서는 블루마블(TASK-KL-206)에서 통한 것을
+ * 그대로 쓴다: 사건을 **문장**으로 흘려보낸다. 37세대에 무언가 흘러가기 시작했다.
  *
- * 규칙은 **날짜로 뽑는다** — 같은 날 연 사람은 같은 세계를 본다(`rules.ts`).
+ * 규칙은 **날짜로 뽑는다**. 같은 날 연 사람은 같은 세계를 본다(`rules.ts`).
  */
 import { t, loadNamespace } from '../../lib/i18n';
 import { gloop, type GardenLoop } from './gloop';
@@ -41,7 +41,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
     el.id = 'gd-style';
     el.textContent = `
 /* 높이를 **부모에게 안 묻는다**. 폰에서 부모가 높이를 안 정해 주면 height 100% 가
-   내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측 — 프레임 1166ms). 화면 기준으로
+   내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측. 프레임 1166ms). 화면 기준으로
    스스로 정한다: 작은 화면에서도 420px 는 되고, 커도 900px 를 안 넘는다. */
 .gd-wrap{position:relative;width:100%;height:clamp(420px,78svh,900px);max-height:900px;
   display:flex;flex-direction:column;
@@ -65,7 +65,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
   color:rgba(255,255,255,.6);font-size:11px;line-height:1;padding:6px 9px;border-radius:999px;cursor:pointer;
   backdrop-filter:blur(6px);font-family:var(--font-mono,ui-monospace,monospace);}
 .gd-btn[aria-pressed="true"]{color:#eae6ff;border-color:rgba(170,150,255,.55);background:rgba(48,36,96,.55);}
-/* 도감 — 찾아낸 것을 모아 두는 서랍. 이름은 사람이 붙인다. */
+/* 도감. 찾아낸 것을 모아 두는 서랍. 이름은 사람이 붙인다. */
 .gd-dex{position:absolute;inset:auto 12px 64px 12px;max-height:56%;overflow:auto;z-index:4;
   background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;
   backdrop-filter:blur(8px);display:none;}
@@ -88,7 +88,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
   Toolbox.register({
     id: 'garden',
     title: 'Garden',
-    category: 'lab',
+    category: 'play',
     layout: 'full',
     icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('garden') : {}),
@@ -162,24 +162,24 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           let paused = false;
           let seedNo = 0;
           let last: Stats | null = null;
-          /* 죽은 자리에 남는 잔상. 켜고 끄는 두 색만 쓰면 화면이 잡음으로 보인다 —
-             방금까지 살아 있던 자리가 천천히 식으면, 같은 격자가 「무늬」로 읽힌다. */
+          /* 죽은 자리에 남는 잔상. 켜고 끄는 두 색만 쓰면 화면이 잡음으로 보인다 . 
+             방금까지 살아 있던 자리가 천천히 식으면, 같은 격자가 무늬로 읽힌다. */
           let heat: Uint8Array = new Uint8Array(0);
 
-          /* 카메라 — 격자 전체를 늘려 보여 주면 개체 하나하나는 점이 된다. 하나를 골라
-             따라가며 크게 보면, 같은 판이 「무늬」에서 「살고 있는 것」으로 바뀐다.
+          /* 카메라. 격자 전체를 늘려 보여 주면 개체 하나하나는 점이 된다. 하나를 골라
+             따라가며 크게 보면, 같은 판이 무늬에서 살고 있는 것으로 바뀐다.
              `scale` = 격자 한 칸이 화면 몇 px 인가. `x,y` = 화면 한가운데가 보는 격자 좌표. */
           const cam = { x: 0, y: 0, scale: 0, want: { x: 0, y: 0, scale: 0 } };
           let follow = false;
-          /** 지금 따라가는 개체 — 지문·자리·예상 속도 */
+          /** 지금 따라가는 개체. 지문, 자리, 예상 속도 */
           let target: { fp: string; x: number; y: number; vx: number; vy: number; lostAt: number } | null = null;
           const sound = new GardenSound();
-          /** 지금 판에 있는 진동자·우주선의 주기 — 이게 그대로 박자가 된다. */
+          /** 지금 판에 있는 진동자, 우주선의 주기. 이게 그대로 박자가 된다. */
           let livePeriods: number[] = [];
           const gridCv = document.createElement('canvas');
           const gridCtx = gridCv.getContext('2d');
 
-          /* 도감 — 찾아낸 개체를 지문으로 모은다. 이름은 사람이 붙이고, 그 이름이 남는다. */
+          /* 도감. 찾아낸 개체를 지문으로 모은다. 이름은 사람이 붙이고, 그 이름이 남는다. */
           interface DexEntry {
             fp: string;
             kind: Kind;
@@ -192,7 +192,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             cells: number[];
             /** 사람이 붙인 이름 (없으면 빈 문자열) */
             name: string;
-            /** 처음 본 날 · 그때의 규칙 */
+            /** 처음 본 날, 그때의 규칙 */
             day: string;
             rule: string;
             seen: number;
@@ -214,7 +214,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           }
 
           /* 셀 한 칸을 화면 몇 px 로 볼 것인가. 너무 작으면 무늬가 안 보이고, 너무 크면
-             격자가 좁아 아무 일도 안 일어난다 — 사이를 본다. */
+             격자가 좁아 아무 일도 안 일어난다. 사이를 본다. */
           const CELL = 6;
 
           function build(): void {
@@ -240,7 +240,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
 
           function reseed(): void {
             seedNo++;
-            // 씨앗도 날짜에서 뽑는다 — 「다시 심기」를 누른 횟수만 더한다
+            // 씨앗도 날짜에서 뽑는다. 다시 심기를 누른 횟수만 더한다
             const seed = (day.charCodeAt(8) * 7919 + day.charCodeAt(9) * 104729 + seedNo * 2654435761) >>> 0;
             const rand = rng(seed);
             if (rule.seed === 'point') life.seedPoint(rand, rule.density);
@@ -252,7 +252,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
 
           /* ── 그리기 ───────────────────────────────────────────────────── */
 
-          /** 나이로 칠한다 — 갓 태어난 것은 밝고 차갑게, 오래 버틴 것은 깊고 따뜻하게. */
+          /** 나이로 칠한다. 갓 태어난 것은 밝고 차갑게, 오래 버틴 것은 깊고 따뜻하게. */
           function draw(): void {
             if (!img) return;
             const d = img.data;
@@ -272,7 +272,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
               }
               heat[i] = 255;
               /* 갓 태어난 것은 **차고 밝게**, 오래 버틴 것은 **깊고 붉게**. 이 대비가 없으면
-                 화면이 그냥 잡음으로 보인다 — 무엇이 새것인지가 안 보이기 때문이다. */
+                 화면이 그냥 잡음으로 보인다. 무엇이 새것인지가 안 보이기 때문이다. */
               const a = age[i];
               const old = a > 90 ? 1 : a / 90;
               const o2 = old * old;
@@ -283,7 +283,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             }
             gridCtx!.putImageData(img, 0, 0);
 
-            /* 카메라를 부드럽게 따라가게 한다 — 순간이동하면 어디서 어디로 갔는지 안 보인다. */
+            /* 카메라를 부드럽게 따라가게 한다. 순간이동하면 어디서 어디로 갔는지 안 보인다. */
             cam.x += (cam.want.x - cam.x) * 0.06;
             cam.y += (cam.want.y - cam.y) * 0.06;
             cam.scale += (cam.want.scale - cam.scale) * 0.05;
@@ -305,7 +305,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             return t('garden.dex.ship', { n: e.size, p: e.period, d: Math.max(Math.abs(e.dx), Math.abs(e.dy)) });
           }
 
-          /** 개체 하나를 작은 판에 그린다 — 도감은 글자만으로는 안 된다. */
+          /** 개체 하나를 작은 판에 그린다. 도감은 글자만으로는 안 된다. */
           function drawThumb(cv: HTMLCanvasElement, e: DexEntry): void {
             cv.width = e.w;
             cv.height = e.h;
@@ -357,7 +357,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
 
           /** 판을 훑어 개체를 찾고, 처음 보는 것이면 도감에 넣는다. */
           function scanDex(gen: number): void {
-            // 자리는 매번 새로 적는다 — 지난번 자리를 남겨 두면 이미 사라진 것을 따라가게 된다
+            // 자리는 매번 새로 적는다. 지난번 자리를 남겨 두면 이미 사라진 것을 따라가게 된다
             lastSeenAt.clear();
             const found: Found[] = findObjects(life, table.born, table.stay, 8, lastSeenAt);
             let fresh: DexEntry | null = null;
@@ -392,7 +392,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             } else if (found.length) {
               saveDex();
             }
-            /* 지금 판에 있는 박자를 모은다 — 도감에 이미 있는 것도 「지금 울리고 있는 것」이다. */
+            /* 지금 판에 있는 박자를 모은다. 도감에 이미 있는 것도 지금 울리고 있는 것이다. */
             livePeriods = found.filter((f) => f.kind !== 'still').map((f) => f.period);
             if (sound.running && found.some((f) => f.kind === 'ship')) sound.swoosh();
 
@@ -414,7 +414,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
 
           /**
            * 볼만한 것을 하나 고른다. **움직이는 것**이 제일 볼만하고(우주선), 없으면 진동자,
-           * 그것도 없으면 안 고른다 — 가만히 있는 것을 확대해 봐야 정지 화면이다.
+           * 그것도 없으면 안 고른다. 가만히 있는 것을 확대해 봐야 정지 화면이다.
            */
           function pickTarget(found: Found[], gen: number): void {
             const ship = found.find((f) => f.kind === 'ship');
@@ -434,7 +434,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             };
           }
 
-          /** 개체가 마지막으로 있던 자리 (fp → 격자 좌표) — 찾을 때 같이 적어 둔다. */
+          /** 개체가 마지막으로 있던 자리 (fp → 격자 좌표). 찾을 때 같이 적어 둔다. */
           const lastSeenAt = new Map<string, { x: number; y: number }>();
 
           function stepFollow(gen: number): void {
@@ -446,13 +446,13 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
               cam.want = { x: life.w / 2, y: life.h / 2, scale: canvas.width / life.w };
               return;
             }
-            // 예측으로 따라간다 — 매 세대 판 전체를 훑는 것은 너무 비싸다
+            // 예측으로 따라간다. 매 세대 판 전체를 훑는 것은 너무 비싸다
             target.x += target.vx;
             target.y += target.vy;
             // 가장자리를 넘어가면 이어 붙인 판이므로 좌표도 감는다
             target.x = ((target.x % life.w) + life.w) % life.w;
             target.y = ((target.y % life.h) + life.h) % life.h;
-            /* 예측만으로 오래 끌지 않는다 — 개체는 부딪히면 그냥 사라진다.
+            /* 예측만으로 오래 끌지 않는다. 개체는 부딪히면 그냥 사라진다.
                60세대(=다시 훑는 25세대의 두 번 이상) 안에 못 찾으면 놓아 주고 다른 것을 고른다.
                안 그러면 카메라가 빈 자리를 확대한 채 멎어 있다(실측: 화면이 한 색이 됐다). */
             if (gen - target.lostAt > 60) target = null;
@@ -488,7 +488,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             /* 오래 굴리면 어떤 규칙이든 판을 다 채우고 그때부터는 잡음이다.
                언제 그렇게 되는지는 규칙마다 다르므로 **화면을 직접 재서** 판단한다
                (30세대에 한 번, `quality()`). 그래도 안 걸리는 경우를 위해 상한도 둔다. */
-            /* 개체 찾기는 판 전체를 훑고 후보마다 따로 굴려 보므로 싸지 않다 —
+            /* 개체 찾기는 판 전체를 훑고 후보마다 따로 굴려 보므로 싸지 않다 . 
                25세대에 한 번이면 놓치는 것도 거의 없고 프레임도 안 튄다. */
             if (last && last.gen % 25 === 0 && last.gen > 30) scanDex(last.gen);
             if (last && last.gen % 30 === 0 && last.gen > 60) {
@@ -509,8 +509,8 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
               const ev = watcher.observe(last);
               if (ev) {
                 say(sentence(ev));
-                // 다 죽었으면 잠시 뒤 다시 심는다 — 빈 화면을 계속 보여 줄 이유가 없다
-                /* 다 죽었거나 굳었으면 잠시 뒤 다시 심는다 — 아무 일도 안 일어나는 화면을
+                // 다 죽었으면 잠시 뒤 다시 심는다. 빈 화면을 계속 보여 줄 이유가 없다
+                /* 다 죽었거나 굳었으면 잠시 뒤 다시 심는다. 아무 일도 안 일어나는 화면을
                    계속 보여 줄 이유가 없다. 굳은 그림은 잠깐 더 보여 준다(그것도 결과다). */
                 if (ev.kind === 'extinct') window.setTimeout(() => alive && reseed(), 2600);
                 else if (ev.kind === 'frozen') window.setTimeout(() => alive && reseed(), 6000);
@@ -518,7 +518,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
             }
             stepFollow(last ? last.gen : 0);
 
-            /* 소리 — 판에 있는 주기를 그대로 친다. 세대 수가 그 주기의 배수일 때가 「돌아온 순간」이다. */
+            /* 소리. 판에 있는 주기를 그대로 친다. 세대 수가 그 주기의 배수일 때가 돌아온 순간이다. */
             if (sound.running && last) {
               for (const p of livePeriods) {
                 if (last.gen % p === 0) sound.tick(p, now);
@@ -546,7 +546,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           /* ── 단추 ─────────────────────────────────────────────────────── */
           seedBtn.onclick = () => reseed();
           soundBtn.onclick = () => {
-            // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
+            // **이 클릭 안에서** 시작해야 한다. 브라우저가 제스처 밖의 소리를 막는다
             if (sound.running) sound.stop();
             else sound.start();
             soundBtn.setAttribute('aria-pressed', String(sound.running));
@@ -584,7 +584,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
           })();
 
           /* 크기가 **실제로** 바뀐 때만 다시 짓는다. 그냥 다시 지으면 관찰 중이던 세계가
-             지워진다 — 열자마자 씨앗이 두 번 뿌려지고 있었다(실측). */
+             지워진다. 열자마자 씨앗이 두 번 뿌려지고 있었다(실측). */
           const ro = new ResizeObserver(() => {
             if (!img) return;
             const r = wrap.getBoundingClientRect();
@@ -620,7 +620,7 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
       },
       {
         id: 'reaction-diffusion',
-        label: 'Reaction–Diffusion',
+        label: 'Reaction-Diffusion',
         build: buildReactionDiffusion
       },
       {

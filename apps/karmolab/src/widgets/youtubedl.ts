@@ -214,7 +214,7 @@ import { t, loadNamespace } from '../lib/i18n';
       {
         id: 'main',
         label: t('youtubedl.tab.main', undefined, '다운로드'),
-        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('youtubedl').then(function () {
             build(container);

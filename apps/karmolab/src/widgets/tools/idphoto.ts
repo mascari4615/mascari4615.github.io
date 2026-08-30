@@ -1,9 +1,9 @@
 /**
  * 증명사진 (TASK-KL-316 / 27)
  *
- * 「이미지」 작업대의 할 일 한 칸. 셈은 `core/idphoto`(규격·배치) + `core/bgremove`(배경).
+ * 이미지 작업대의 할 일 한 칸. 셈은 `core/idphoto`(규격, 배치) + `core/bgremove`(배경).
  *
- * 얼굴을 자동으로 찾지 않는다 — **규격이 요구하는 자리를 선으로 그려 주고** 사람이 맞춘다.
+ * 얼굴을 자동으로 찾지 않는다. **규격이 요구하는 자리를 선으로 그려 주고** 사람이 맞춘다.
  * 끌어서 옮기고, 굴려서 키운다. 선 안에 들어오면 초록으로 바뀐다.
  * 자동으로 어긋나게 잘리는 것보다, 선 보고 맞춘 사진이 접수에서 안 튕긴다.
  */
@@ -25,11 +25,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'idphoto',
     title: t('widgets.idphoto.title', undefined, '증명사진'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.idphoto.desc',
       undefined,
-      '여권·주민증·이력서 규격에 맞춰 자르고, 배경을 바꾸고, 인화지 한 장에 여러 장을 놓아 줍니다'
+      '여권, 주민증, 이력서 규격에 맞춰 자르고, 배경을 바꾸고, 인화지 한 장에 여러 장을 놓아 줍니다'
     ),
     layout: 'wide',
     icon: '<rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 19c1.5-3 8.5-3 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -53,7 +53,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         <div>
           <label class="field-label" for="ipSpec">${esc(t('idphoto.label.spec'))}</label>
           <select id="ipSpec" name="spec" aria-label="${esc(t('idphoto.label.spec'))}">
-            ${SPECS.map((s) => `<option value="${s.id}">${esc(t('idphoto.country.' + s.country) + ' · ' + t('idphoto.use.' + s.use) + '  ' + s.widthMm + '×' + s.heightMm + 'mm')}</option>`).join('')}
+            ${SPECS.map((s) => `<option value="${s.id}">${esc(t('idphoto.country.' + s.country) + ', ' + t('idphoto.use.' + s.use) + '  ' + s.widthMm + '×' + s.heightMm + 'mm')}</option>`).join('')}
           </select>
         </div>
         <div>
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     markLive(status);
 
     let photo: HTMLImageElement | undefined;
-    /** 화면에서 보여 줄 배율 — 300dpi 원본은 화면보다 크다 */
+    /** 화면에서 보여 줄 배율. 300dpi 원본은 화면보다 크다 */
     let view = 1;
     let zoom = 1;
     let offset = { x: 0, y: 0 };
@@ -131,7 +131,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         ctx.drawImage(photo, offset.x * (dpi / 300), offset.y * (dpi / 300), w, h);
 
         if (bgColor !== '') {
-          /* 배경 바꾸기 = 26번의 셈을 그대로 쓴다 — 같은 일을 두 번 만들지 않는다. */
+          /* 배경 바꾸기 = 26번의 셈을 그대로 쓴다. 같은 일을 두 번 만들지 않는다. */
           const data = ctx.getImageData(0, 0, target.width, target.height);
           const background = guessBackground(data.data, target.width, target.height);
           const alpha = maskOf(data.data, target.width, target.height, { tolerance: 40, feather: 2, despill: true });
@@ -149,7 +149,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       }
 
       if (!forExport) {
-        /* 규격이 요구하는 자리 — 눈 띠와 머리 높이 */
+        /* 규격이 요구하는 자리. 눈 띠와 머리 높이 */
         ctx.strokeStyle = 'rgba(70,140,255,.9)';
         ctx.lineWidth = Math.max(1, p.heightPx / 300);
         ctx.setLineDash([6, 5]);
@@ -168,7 +168,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     function render(): void {
       const s = spec();
       const p = plan(s, 300);
-      /* 화면에는 작게 — 원본은 300dpi 그대로 둔다(내보낼 때 다시 그린다) */
+      /* 화면에는 작게. 원본은 300dpi 그대로 둔다(내보낼 때 다시 그린다) */
       view = Math.min(1, 420 / p.heightPx);
       canvas.style.width = Math.round(p.widthPx * view) + 'px';
       canvas.style.height = Math.round(p.heightPx * view) + 'px';
@@ -177,7 +177,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       const sheetPlan = sheet(s, $<HTMLSelectElement>('#ipPaper').value as Paper, 300);
       $<HTMLElement>('#ipGuide').innerHTML = [
         ['size', s.widthMm + ' × ' + s.heightMm + ' mm  (' + p.widthPx + '×' + p.heightPx + ' px @300dpi)'],
-        ['head', Math.round(s.headMin * 100) + '–' + Math.round(s.headMax * 100) + '%'],
+        ['head', Math.round(s.headMin * 100) + '-' + Math.round(s.headMax * 100) + '%'],
         ['eyes', t('idphoto.guide.eyeBand')],
         ['background', t('idphoto.bgRule.' + s.background)],
         ['sheet', sheetPlan.cols + '×' + sheetPlan.rows + ' = ' + sheetPlan.slots.length + t('idphoto.guide.sheets')]
@@ -223,7 +223,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       render();
     });
 
-    /* 끌어서 옮기기 — 규격 선에 맞추는 유일한 길이라 손에 붙어야 한다 */
+    /* 끌어서 옮기기. 규격 선에 맞추는 유일한 길이라 손에 붙어야 한다 */
     canvas.addEventListener('pointerdown', (event) => {
       dragging = { x: event.clientX, y: event.clientY };
       canvas.setPointerCapture(event.pointerId);
@@ -242,7 +242,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       canvas.style.cursor = 'grab';
     });
 
-    /* ★ **자판만으로도 얼굴을 규격 선에 맞춘다** (2026-08-17). 끌기가 「규격 선에 맞추는 유일한 길」
+    /* ★ **자판만으로도 얼굴을 규격 선에 맞춘다** (2026-08-17). 끌기가 규격 선에 맞추는 유일한 길
        이라고 바로 위에 적혀 있었는데, 그러면 마우스가 없는 사람은 이 도구를 못 쓴다.
        화살표로 옮기고(Shift = 크게), 끌기와 **같은 offset** 을 만져 두 길이 안 갈린다. */
     canvas.tabIndex = 0;
@@ -290,7 +290,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       ctx.fillRect(0, 0, out.width, out.height);
       for (const slot of layout.slots) {
         ctx.drawImage(one, slot.x, slot.y, slot.w, slot.h);
-        /* 자르는 선 — 없으면 어디를 잘라야 할지 모른다 */
+        /* 자르는 선. 없으면 어디를 잘라야 할지 모른다 */
         ctx.strokeStyle = 'rgba(0,0,0,.25)';
         ctx.lineWidth = 1;
         ctx.strokeRect(slot.x + 0.5, slot.y + 0.5, slot.w, slot.h);

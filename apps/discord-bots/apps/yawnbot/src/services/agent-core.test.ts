@@ -1,7 +1,7 @@
 /**
  * agent-core 로더 회귀 (KAR-018-V R-1).
- * 코어 정체성(누구·직무)을 회수해야 "그냥 봇"이 아니라 동료가 된다.
- * 부재·잘못된 id = null (레거시 스킨 단독 graceful fallback) 잠금.
+ * 코어 정체성(누구, 직무)을 회수해야 "그냥 봇"이 아니라 동료가 된다.
+ * 부재, 잘못된 id = null (레거시 스킨 단독 graceful fallback) 잠금.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
@@ -131,7 +131,7 @@ describe('loadCoreDef', () => {
   });
 });
 
-describe('listCoreIds (복수 동료 — 디렉토리가 정본)', () => {
+describe('listCoreIds (복수 동료. 디렉토리가 정본)', () => {
   it('core.md 있는 디렉토리만 정렬 반환', () => {
     write('atlas', CORE);
     write('echo', '---\nid: echo\n---\n\n# echo\n본문');
@@ -147,17 +147,17 @@ describe('listCoreIds (복수 동료 — 디렉토리가 정본)', () => {
   });
 });
 
-describe('resolveProposalCore (R-4 도메인 라우팅 — 결정적·순수)', () => {
+describe('resolveProposalCore (R-4 도메인 라우팅. 결정적, 순수)', () => {
   const KNOWN = ['atlas', 'echo'];
 
-  it('default = atlas (기존 전량 atlas 행동 보존 — 회귀 0)', () => {
+  it('default = atlas (기존 전량 atlas 행동 보존. 회귀 0)', () => {
     expect(resolveProposalCore(KNOWN, { text: 'WM 게임 코드 리팩터' })).toBe(
       'atlas',
     );
     expect(resolveProposalCore(KNOWN, {})).toBe('atlas');
   });
 
-  it('yb 도메인 / yawnbot·디스코드 마커 → echo', () => {
+  it('yb 도메인 / yawnbot, 디스코드 마커 → echo', () => {
     expect(resolveProposalCore(KNOWN, { domain: 'yb' })).toBe('echo');
     expect(
       resolveProposalCore(KNOWN, { text: 'apps/discord-bots 알림 개선' }),
@@ -205,13 +205,13 @@ describe('resolveProposalCore (R-4 도메인 라우팅 — 결정적·순수)', 
   });
 });
 
-describe('resolveAddressedCore (R-4-i2 이름지정 라우팅 — 결정적·순수)', () => {
+describe('resolveAddressedCore (R-4-i2 이름지정 라우팅. 결정적, 순수)', () => {
   const CORES = [
     { id: 'atlas', displayName: 'Atlas' },
     { id: 'echo', displayName: 'Echo' },
   ];
 
-  it('이름(id/displayName, 대소문자·@·구분자 무시)으로 호출 → 그 코어 + prefix 제거', () => {
+  it('이름(id/displayName, 대소문자, @, 구분자 무시)으로 호출 → 그 코어 + prefix 제거', () => {
     expect(resolveAddressedCore('echo, 안녕', CORES)).toEqual({
       coreId: 'echo',
       text: '안녕',
@@ -243,7 +243,7 @@ describe('resolveAddressedCore (R-4-i2 이름지정 라우팅 — 결정적·순
 });
 
 describe('코어 work-memory 생명주기 (KAR-018-Z-1)', () => {
-  it('append → readRecent roundtrip (discoveries 형식·최신순)', () => {
+  it('append → readRecent roundtrip (discoveries 형식, 최신순)', () => {
     expect(
       appendCoreMemory(root, 'atlas', {
         session: 's1',
@@ -274,7 +274,7 @@ describe('코어 work-memory 생명주기 (KAR-018-Z-1)', () => {
     expect(e.summary).toBe('두번째 실패');
   });
 
-  it('max 바운드 — 최신 N 개만', () => {
+  it('max 바운드. 최신 N 개만', () => {
     for (let i = 1; i <= 12; i++) {
       appendCoreMemory(root, 'echo', {
         session: 's',
@@ -297,7 +297,7 @@ describe('코어 work-memory 생명주기 (KAR-018-Z-1)', () => {
   });
 });
 
-// ── KAR-018-SO-1: readWorkerTaskOutcomes — 워커 self-recall ─────────
+// ── KAR-018-SO-1: readWorkerTaskOutcomes. 워커 self-recall ─────────
 describe('readWorkerTaskOutcomes (SO-1)', () => {
   beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'so1-'));
@@ -348,7 +348,7 @@ describe('readWorkerTaskOutcomes (SO-1)', () => {
     expect(m.has('TASK-NEW')).toBe(true);
   });
 
-  it('부재·부적합 = 빈 Map (graceful)', () => {
+  it('부재, 부적합 = 빈 Map (graceful)', () => {
     expect(readWorkerTaskOutcomes(root, 'never').size).toBe(0);
     expect(readWorkerTaskOutcomes(root, '../evil').size).toBe(0);
     expect(readWorkerTaskOutcomes('', 'atlas').size).toBe(0);

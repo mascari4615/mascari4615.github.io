@@ -1,8 +1,8 @@
 /**
  * git 명령어 모음 (TASK-KL-088)
  *
- * git 은 「무엇을 하고 싶은가」 와 명령 이름이 안 맞아서 검색으로 나가게 된다.
- * 그래서 항목의 **이름을 상황으로** 적는다 — "reset --hard" 가 아니라 "고친 걸 전부 버리고 싶다".
+ * git 은 무엇을 하고 싶은가 와 명령 이름이 안 맞아서 검색으로 나가게 된다.
+ * 그래서 항목의 **이름을 상황으로** 적는다. "reset --hard" 가 아니라 "고친 걸 전부 버리고 싶다".
  * 되돌릴 수 없는 명령은 위험 분류로 따로 묶었다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
@@ -11,7 +11,7 @@ import { markLive } from '../tools/shared/say';
 
 (function (): void {
   /** [명령, 상황(=이름), 설명] */
-  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /* 표는 **쓸 때** 짓는다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const git = (): Record<string, Array<[string, string, string]>> => ({
     [t('gitcmd.t01')]: [
       ['git status', t('gitcmd.t02'), t('gitcmd.t03')],
@@ -112,9 +112,9 @@ import { markLive } from '../tools/shared/say';
       },
       {
         /*
-         * 「망했다」 — 찾아보는 표가 아니라 **묻고 답하는 자리** (TASK-KL-316 / 12).
+         * 망했다. 찾아보는 표가 아니라 **묻고 답하는 자리** (TASK-KL-316 / 12).
          *
-         * 위 표는 「하려는 일 → 명령」이라 되돌리기에는 모자란다. 되돌리기는 **밀었냐 안 밀었냐**로
+         * 위 표는 하려는 일 → 명령이라 되돌리기에는 모자란다. 되돌리기는 **밀었냐 안 밀었냐**로
          * 답이 갈리고, 그 조건을 빼고 명령만 복사해 가는 데서 사고가 난다. 그래서 조건을 먼저 묻는다.
          * 셈은 `core/gitundo`, 말은 여기서.
          */
@@ -181,7 +181,7 @@ import { markLive } from '../tools/shared/say';
             '<div class="tool-list-row cc-copy-row" data-copy="' + esc(step.cmd) + '">' +
             '<span class="tool-list-key" style="color:' + color + '">' + (i + 1) + '</span>' +
             '<span class="tool-list-val" style="font-family:var(--font-mono)">' + esc(step.cmd) + '</span>' +
-            '<span class="tool-list-dim">' + esc(t('gitundo.step.' + step.why)) + ' · ' + esc(back) + '</span></div>'
+            '<span class="tool-list-dim">' + esc(t('gitundo.step.' + step.why)) + ', ' + esc(back) + '</span></div>'
           );
         })
         .join('');
@@ -190,7 +190,7 @@ import { markLive } from '../tools/shared/say';
     }
 
     container.querySelectorAll('select, input[type="checkbox"]').forEach((el) => el.addEventListener('change', render));
-    /* 줄을 누르면 그 명령을 복사한다 — 어차피 복사하려고 여기 온 것이다. */
+    /* 줄을 누르면 그 명령을 복사한다. 어차피 복사하려고 여기 온 것이다. */
     $<HTMLElement>('#guSteps').addEventListener('click', (event) => {
       const row = (event.target as HTMLElement).closest('.cc-copy-row');
       if (row === null) return;

@@ -2,10 +2,10 @@
  * 선반 화면 실브라우저 검사 (TASK-KL-254)
  *
  * 여기서 꼭 봐야 하는 것은 **서버가 없을 때**다. 선반은 남의 기계(노트북)를 부르는 첫 화면이라,
- * 그쪽이 꺼져 있을 때 흰 화면이 되면 「사이트가 죽었다」로 읽힌다. 못 읽었으면 그 사실을 적고
+ * 그쪽이 꺼져 있을 때 흰 화면이 되면 사이트가 죽었다로 읽힌다. 못 읽었으면 그 사실을 적고
  * 다시 할 자리를 줘야 한다.
  *
- * 서버가 있을 때의 그림·종류 나누기는 가짜 응답을 물려 확인한다 — 노트북이 켜져 있든 말든
+ * 서버가 있을 때의 그림, 종류 나누기는 가짜 응답을 물려 확인한다. 노트북이 켜져 있든 말든
  * 같은 답이 나와야 검사가 쓸모 있다.
  */
 import http from 'node:http';
@@ -52,12 +52,12 @@ page.on('console', (message) => {
 
 const problems = [];
 const check = (label, ok, extra = '') => {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok ? '' : ' — ' + extra}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok ? '' : '. ' + extra}`);
   if (!ok) problems.push(label);
 };
 
 // ★ 서버 주소를 **정확히** 잡는다. `**/foundry*` 로 하면 위젯 번들(js/widgets/foundry/foundry.js)까지
-// 걸려 화면이 아예 안 뜬다 — 「서버가 죽었을 때」를 보려다 「위젯이 없을 때」를 보게 된다(실측).
+// 걸려 화면이 아예 안 뜬다. 서버가 죽었을 때를 보려다 위젯이 없을 때를 보게 된다(실측).
 const HOST = 'https://laptop.mascari4615.com';
 const SHELF_ANY = HOST + '/foundry**';
 const SHELF_LIST = (url) => url.href.startsWith(HOST + '/foundry') && !/\/foundry\/[a-z0-9]+$/.test(url.pathname);
@@ -109,7 +109,7 @@ check('종류 칸이 생긴다(전부 + 도구 둘)', await page.evaluate(() => 
 check('어느 도구로 만들었는지 보인다', await page.evaluate(() => !!document.querySelector('.fd-tool')));
 check('내려받는 자리가 있다', await page.evaluate(() => !!document.querySelector('.fd-acts a[download]')));
 
-// 종류로 나누기 — 잡동사니 한 칸이 되지 않게
+// 종류로 나누기. 잡동사니 한 칸이 되지 않게
 await page.locator('.fd-tabs button[data-tool="meok"]').click();
 await page.waitForTimeout(250);
 check('종류를 고르면 그것만 남는다', (await cards()) === 1, String(await cards()));
@@ -134,5 +134,5 @@ check('콘솔 오류 없음', errors.length === 0, errors.slice(0, 3).join(' | '
 
 await browser.close();
 server.close();
-console.log(problems.length ? `\n[smoke-foundry] 실패 ${problems.length}건` : '\n[smoke-foundry] ✓ 서버 없음 · 카드 · 종류 나누기 · 도구로 가는 길 · 빈 선반');
+console.log(problems.length ? `\n[smoke-foundry] 실패 ${problems.length}건` : '\n[smoke-foundry] ✓ 서버 없음, 카드, 종류 나누기, 도구로 가는 길, 빈 선반');
 process.exit(problems.length ? 1 : 0);

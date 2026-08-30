@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:31:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/BVWi1NPjCBg/mqdefault.jpg"
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 아프리카 버튜버 총회  

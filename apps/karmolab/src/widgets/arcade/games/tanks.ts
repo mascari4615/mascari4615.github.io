@@ -1,11 +1,11 @@
 /**
- * 탱크 — 언덕 너머로 쏜다 (TASK-KL-242)
+ * 탱크. 언덕 너머로 쏜다 (TASK-KL-242)
  *
- * 컬링·볼링·당구가 **바닥을 미끄러지는** 물리였다면 이건 **날아가는** 물리다 — 중력이 있고,
+ * 컬링, 볼링, 당구가 **바닥을 미끄러지는** 물리였다면 이건 **날아가는** 물리다. 중력이 있고,
  * 땅이 울퉁불퉁하고, 맞은 자리가 파인다. 그래서 판이 쏠 때마다 조금씩 달라진다.
  *
- * 각도와 세기 둘을 고르고 쏜다. 빗나가면 **어디에 떨어졌는지 보고 고쳐 쏘는 것**이 이 놀이다 —
- * 그래서 지난 탄착점을 화면이 남겨 둔다(안 남기면 「감으로 또 찍기」가 된다).
+ * 각도와 세기 둘을 고르고 쏜다. 빗나가면 **어디에 떨어졌는지 보고 고쳐 쏘는 것**이 이 놀이다 . 
+ * 그래서 지난 탄착점을 화면이 남겨 둔다(안 남기면 감으로 또 찍기가 된다).
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
@@ -30,14 +30,14 @@ export interface TanksState {
   turn: number;
   /** 날아가는 중인 포탄 */
   shell: Shell | null;
-  /** 마지막으로 떨어진 자리 — 화면이 남겨 준다 */
+  /** 마지막으로 떨어진 자리. 화면이 남겨 준다 */
   marks: Array<{ x: number; y: number }>;
   over: boolean;
 }
 
 export type TanksAction = { angle: number; power: number };
 
-/** 언덕 — 씨앗으로 만든 부드러운 굴곡. 매번 다른 판이라야 외운 각도가 안 통한다. */
+/** 언덕. 씨앗으로 만든 부드러운 굴곡. 매번 다른 판이라야 외운 각도가 안 통한다. */
 function makeGround(ctx: GameCtx): number[] {
   const a = 6 + ctx.rng() * 8;
   const b = 4 + ctx.rng() * 6;
@@ -82,7 +82,7 @@ export const tanks: GameDef<TanksState, TanksAction> = {
 
     const ang = Math.max(5, Math.min(85, angle)) * (Math.PI / 180);
     const pw = Math.max(0.2, Math.min(1, power));
-    /* 45도에서 날아가는 거리 = v²/g. 두 탱크 사이가 80칸이므로 v 가 3.6 은 돼야 닿는다 —
+    /* 45도에서 날아가는 거리 = v²/g. 두 탱크 사이가 80칸이므로 v 가 3.6 은 돼야 닿는다 . 
        처음엔 최대 2.6 으로 잡아 **아무리 세게 쏴도 절반도 못 갔다**(봇끼리 붙였더니 안 끝났다). */
     const speed = 1.6 + pw * 2.8;
     const dir = seat === 0 ? 1 : -1;
@@ -119,7 +119,7 @@ export const tanks: GameDef<TanksState, TanksAction> = {
         break;
       }
 
-      /* 상대에게 맞았나 — 탱크는 두 칸 폭이다. */
+      /* 상대에게 맞았나. 탱크는 두 칸 폭이다. */
       const foe = 1 - s.turn;
       if (Math.abs(sh.x - s.tank[foe]) < 3 && sh.y <= groundAt(ground, sh.x) + 3) {
         hp = hp.map((v, i) => (i === foe ? v - 1 : v));
@@ -129,7 +129,7 @@ export const tanks: GameDef<TanksState, TanksAction> = {
         break;
       }
 
-      /* 땅에 닿으면 파인다 — 다음 판이 조금 달라진다. */
+      /* 땅에 닿으면 파인다. 다음 판이 조금 달라진다. */
       if (sh.y <= groundAt(ground, sh.x)) {
         const hit = Math.round(sh.x);
         ground = ground.map((g, x) => {
@@ -160,7 +160,7 @@ export const tanks: GameDef<TanksState, TanksAction> = {
 
   bot(s, seat, ctx): BotMove<TanksAction> | null {
     if (s.over || s.shell || s.turn !== seat) return null;
-    /* 거리에 맞춰 어림잡고 손이 떨린다 — 맞히는 데 두세 발 걸린다(사람과 비슷하게). */
+    /* 거리에 맞춰 어림잡고 손이 떨린다. 맞히는 데 두세 발 걸린다(사람과 비슷하게). */
     /* 45도 사거리 = v²/g 이므로 필요한 v 는 √(거리×g). 거기서 세기를 거꾸로 푼다. */
     const dist = Math.abs(s.tank[1 - seat] - s.tank[seat]);
     const want = Math.sqrt(dist * 0.16);

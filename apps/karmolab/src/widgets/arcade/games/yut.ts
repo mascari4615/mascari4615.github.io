@@ -1,14 +1,14 @@
 /**
- * 윷놀이 — 지름길과 잡기 (TASK-KL-242)
+ * 윷놀이. 지름길과 잡기 (TASK-KL-242)
  *
  * 주사위 게임인데 **던지는 것보다 고르는 것이 크다.** 나온 수는 어차피 하늘이 정하고, 판을
- * 가르는 건 「어느 말을 움직이나」다 — 지름길 모서리에 딱 세울지, 남을 잡으러 갈지.
+ * 가르는 건 어느 말을 움직이나다. 지름길 모서리에 딱 세울지, 남을 잡으러 갈지.
  *
  * 판은 진짜 윷판 그대로다: 네모 스무 칸 + 모서리 둘에서 갈라지는 대각 지름길 둘. 지름길은
- * **딱 그 모서리에 멈췄을 때만** 열린다 — 지나가면서 타지는 못한다. 그게 윷놀이의 긴장 전부다.
+ * **딱 그 모서리에 멈췄을 때만** 열린다. 지나가면서 타지는 못한다. 그게 윷놀이의 긴장 전부다.
  *
  * 말은 둘. 넷이면 한 판이 십 분을 넘고, 하나면 고를 것이 없어져 그냥 주사위가 된다.
- * 남을 잡으면 한 번 더 던진다 — 잡는 맛이 여기서 나온다.
+ * 남을 잡으면 한 번 더 던진다. 잡는 맛이 여기서 나온다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -41,11 +41,11 @@ export interface YutState {
   pending: number[];
   /** 지금 던질 차례인가, 옮길 차례인가 */
   phase: 'throw' | 'move';
-  /** 마지막에 나온 수 — 화면이 이름을 붙여 보여 준다 */
+  /** 마지막에 나온 수. 화면이 이름을 붙여 보여 준다 */
   rolled: number;
   /** 방금 잡혔나 (화면이 짚어 준다) */
   caught: boolean;
-  /** 방금 잡은 사람 — 잡는 맛이 이 놀이의 전부라 소리는 여기에만. */
+  /** 방금 잡은 사람. 잡는 맛이 이 놀이의 전부라 소리는 여기에만. */
   catcher?: { by: number; n: number };
   /** 여태 잡은 횟수 (검사가 사건을 세는 자리) */
   catches?: number;
@@ -54,7 +54,7 @@ export interface YutState {
 
 export type YutAction = { kind: 'throw' } | { kind: 'move'; piece: number };
 
-/** 윷 네 짝을 던진다 — 넷 다 엎어지면 모(5), 아니면 젖혀진 수만큼. */
+/** 윷 네 짝을 던진다. 넷 다 엎어지면 모(5), 아니면 젖혀진 수만큼. */
 function roll(rng: () => number): number {
   let up = 0;
   for (let i = 0; i < 4; i++) if (rng() < 0.5) up++;
@@ -67,7 +67,7 @@ function walk(from: number, n: number): number {
   for (let step = 0; step < n; step++) {
     if (at === HOME) { at = 0; continue; }
     if (at >= OUT) return OUT;
-    /* 첫 걸음에서만 갈림길을 본다 — 지나가면서 타지는 못한다. */
+    /* 첫 걸음에서만 갈림길을 본다. 지나가면서 타지는 못한다. */
     const branch = step === 0 ? (BRANCH as Record<number, number>)[at] : undefined;
     at = branch !== undefined ? branch : NEXT[at] ?? OUT;
   }
@@ -105,7 +105,7 @@ export const yut: GameDef<YutState, YutAction> = {
       if (s.phase !== 'throw') return s;
       const v = roll(ctx.rng);
       const pending = [...s.pending, v];
-      /* 윷(4)·모(5) 는 한 번 더 던진다. */
+      /* 윷(4), 모(5) 는 한 번 더 던진다. */
       return { ...s, pending, rolled: v, caught: false, phase: v >= 4 ? 'throw' : 'move' };
     }
 
@@ -119,7 +119,7 @@ export const yut: GameDef<YutState, YutAction> = {
     const to = walk(from, use);
     const pos = s.pos.map((row, i) => (i === seat ? row.map((p, k) => (k === piece ? to : p)) : row));
 
-    /* 남의 말을 밟으면 집으로 보낸다 — 그리고 한 번 더 던진다. */
+    /* 남의 말을 밟으면 집으로 보낸다. 그리고 한 번 더 던진다. */
     let caught = false;
     if (to < OUT) {
       for (let i = 0; i < pos.length; i++) {
@@ -147,14 +147,14 @@ export const yut: GameDef<YutState, YutAction> = {
 
   outcome(s, ctx): Outcome {
     if (s.won === -1) {
-      /* 던지기·움직이기는 한 판에 수십 번이라 소리를 안 붙인다 — 순간은 **잡을 때**다
+      /* 던지기, 움직이기는 한 판에 수십 번이라 소리를 안 붙인다. 순간은 **잡을 때**다
          (잡으면 한 번 더 던진다. 이 놀이의 맛이 거기서 난다). */
       if (!s.catcher) return { over: false };
       return {
         over: false,
         note: {
           key: 'arcade.yut.caughtBy',
-          /* 몇 번째 잡기인지는 안 싣는다 — 빼도 검사가 안 빨개졌다(잡기가 드물어 뭉치지 않는다). */
+          /* 몇 번째 잡기인지는 안 싣는다. 빼도 검사가 안 빨개졌다(잡기가 드물어 뭉치지 않는다). */
           params: { who: ctx.seats[s.catcher.by]?.name ?? '' },
           sound: 'good'
         }
@@ -173,7 +173,7 @@ export const yut: GameDef<YutState, YutAction> = {
     const use = s.pending[0];
     if (use === undefined) return null;
 
-    /* 잡을 수 있으면 잡는다. 아니면 제일 앞선 말을 민다 — 하나라도 빨리 빼는 게 낫다. */
+    /* 잡을 수 있으면 잡는다. 아니면 제일 앞선 말을 민다. 하나라도 빨리 빼는 게 낫다. */
     let best = -1;
     let bestScore = -Infinity;
     for (let p = 0; p < PIECES; p++) {

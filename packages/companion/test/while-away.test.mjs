@@ -5,7 +5,7 @@ import { whileAway, whileAwayNote } from '../dist/index.js';
 
 const minutes = 60_000;
 const time = 60 * minutes;
-const glance = (at, title) => ({ role: 'sensed', channel: 'screen', text: `화면을 봤다. 지금 앞에 있는 창은 「${title}」.`, at });
+const glance = (at, title) => ({ role: 'sensed', channel: 'screen', text: `화면을 봤다. 지금 앞에 있는 창은 ${title}.`, at });
 const person = (at, text = '왔어') => ({ role: 'sensed', channel: 'web', text, at });
 
 // ── 모으기 ──────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ test('자리를 비운 동안 본 것을 모은다', () => {
   assert.equal(r.awayMs, 30 * minutes);
 });
 
-test('가장 오래 떠 있던 것을 고른다 — 몇 번 쳐다봤는지가 아니다', () => {
+test('가장 오래 떠 있던 것을 고른다. 몇 번 쳐다봤는지가 아니다', () => {
   const es = [
     glance(0, '유니티'), glance(50 * minutes, '유니티'), // 50분 떠 있었다
     glance(51 * minutes, '가'), glance(52 * minutes, '나'), glance(53 * minutes, '다'), // 스치듯 셋
@@ -42,8 +42,8 @@ test('비운 구간 밖은 안 본다', () => {
   assert.equal(whileAway(es, 30 * minutes, 90 * minutes).mostSeen, '비운동안것');
 });
 
-test('나눈 말은 안 센다 — 얘기했으면 자리를 비운 게 아니다', () => {
-  assert.equal(whileAway([person(10 * minutes, '창은 「가짜」 어쩌고')], 0, 30 * minutes).mostSeen, null);
+test('나눈 말은 안 센다. 얘기했으면 자리를 비운 게 아니다', () => {
+  assert.equal(whileAway([person(10 * minutes, '창은 가짜 어쩌고')], 0, 30 * minutes).mostSeen, null);
 });
 
 test('본 게 없으면 없다고 한다', () => {
@@ -88,14 +88,14 @@ test('부산했는지 조용했는지 다르게 말한다', () => {
   assert.match(whileAwayNote(whileAway(bustle, 0, 60 * minutes)), /많이 옮겨 다녔다/);
 });
 
-test('감시가 아니라 곁에 있는 것이다 — 지켜봤다는 티를 내지 말라고 한다', () => {
+test('감시가 아니라 곁에 있는 것이다. 지켜봤다는 티를 내지 말라고 한다', () => {
   const es = [glance(0, '유니티'), glance(50 * minutes, '유니티')];
   const note = whileAwayNote(whileAway(es, 0, 60 * minutes));
   assert.match(note, /지켜봤다는 티는 내지 마라/);
   assert.match(note, /굳이 꺼낼 필요도 없다/);
 });
 
-test('시각을 읊지 않는다 — 그건 근무 기록이다', () => {
+test('시각을 읊지 않는다. 그건 근무 기록이다', () => {
   const es = [glance(0, '유니티'), glance(50 * minutes, '유니티')];
   const note = whileAwayNote(whileAway(es, 0, 60 * minutes));
   assert.equal(/\d+시 \d+분/.test(note), false);

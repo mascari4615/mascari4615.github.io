@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T21:58:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬, Divide-Conquer]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 @ N~차시  

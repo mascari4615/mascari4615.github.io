@@ -64,7 +64,7 @@ export async function handleRank(ctx: BotContext, interaction: ChatInputCommandI
     } catch {
       name = gameData.getMessage('Rank_UnknownUser');
     }
-    desc += `${medal} **${name}** — ${formatMoney(u.money)}원 (+${u.level}강)\n`;
+    desc += `${medal} **${name}**. ${formatMoney(u.money)}원 (+${u.level}강)\n`;
   }
   const embed = new EmbedBuilder()
     .setTitle(gameData.getMessage('Rank_Title'))

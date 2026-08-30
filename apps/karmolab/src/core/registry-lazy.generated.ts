@@ -1,6 +1,6 @@
-/* 자동 생성 — `node scripts/gen-core-tools.mjs`. 손으로 고치지 마라. */
-/* 「무엇을 부를 수 있나」만 든 가벼운 표 + 알맹이를 그때 받는 손. 정적 표(registry.generated)와
-   달리 이 파일은 알맹이를 끌고 오지 않는다 — 묶어 쓰기가 이걸 쓴다. */
+/* 자동 생성. `node scripts/gen-core-tools.mjs`. 손으로 고치지 마라. */
+/* 무엇을 부를 수 있나만 든 가벼운 표 + 알맹이를 그때 받는 손. 정적 표(registry.generated)와
+   달리 이 파일은 알맹이를 끌고 오지 않는다. 묶어 쓰기가 이걸 쓴다. */
 import type { ToolRunner } from './types';
 
 export const CORE_OPS: Record<string, string[]> = {

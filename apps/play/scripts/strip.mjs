@@ -1,10 +1,10 @@
 /**
  * 놀이끼리 오가는 줄 (TASK-KL-089)
  *
- * 놀이가 셋이 되면서 서로 오갈 길이 없었다 — 하나를 끝내면 거기서 끊긴다.
+ * 놀이가 셋이 되면서 서로 오갈 길이 없었다. 하나를 끝내면 거기서 끊긴다.
  * 모든 놀이 페이지의 같은 자리에 같은 줄을 박아, 어디서든 다른 놀이로 바로 건너가게 한다.
  *
- * 목록은 `apps/play/games.json` 하나뿐이다. 페이지마다 손으로 적으면 곧 갈라진다 —
+ * 목록은 `apps/play/games.json` 하나뿐이다. 페이지마다 손으로 적으면 곧 갈라진다 . 
  * 그래서 각 놀이의 빌드가 이 함수를 불러 **찍어 넣는다**(실행 시 받아오지 않는다: 스크립트를
  * 안 돌리는 크롤러와 사람에게도 길이 보여야 한다).
  */
@@ -20,7 +20,7 @@ export function games() {
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** `current` 는 지금 페이지의 놀이 id — 그 칸은 링크가 아니라 표시로 둔다. */
+/** `current` 는 지금 페이지의 놀이 id. 그 칸은 링크가 아니라 표시로 둔다. */
 export function stripHtml(current) {
   const items = games()
     .map((g) =>

@@ -2,12 +2,12 @@
  * 소리 속도 바꾸기 (TASK-KL-088)
  *
  * 강의 녹음이나 회의록을 1.5배로 줄여 듣는 일은 흔하다. 그런데 그냥 빨리 돌리면 **목소리가
- * 변한다** — 다람쥐 소리가 되면 오래 못 듣는다. 그건 소리를 통째로 늘였다 줄이는 방식이라
+ * 변한다**. 다람쥐 소리가 되면 오래 못 듣는다. 그건 소리를 통째로 늘였다 줄이는 방식이라
  * 높이(음정)까지 같이 바뀌기 때문이다.
  *
  * 그래서 기본은 **목소리를 그대로 두고 길이만 바꾼다.** 소리를 짧은 조각으로 잘라, 겹치는
  * 부분을 부드럽게 이어 붙이며 조각 사이의 간격만 조절한다(겹쳐 잇기). 높이는 건드리지 않는다.
- * 「그냥 빠르게」도 남겨 뒀다 — 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
+ * 그냥 빠르게도 남겨 뒀다. 효과음이나 배속 감상용으로 일부러 쓰는 사람이 있다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss } from './shared/media';
 import { escapeHtml as esc } from './shared/text';
@@ -19,17 +19,17 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /**
-   * 겹쳐 잇기(overlap-add) — 조각을 잘라 겹치는 자리를 서로 녹여 붙인다.
-   * 조각을 그냥 이어 붙이면 이음매마다 「딱딱」 소리가 난다. 그래서 겹치는 구간에서
+   * 겹쳐 잇기(overlap-add). 조각을 잘라 겹치는 자리를 서로 녹여 붙인다.
+   * 조각을 그냥 이어 붙이면 이음매마다 딱딱 소리가 난다. 그래서 겹치는 구간에서
    * 앞 조각은 서서히 줄이고 뒤 조각은 서서히 키워 서로 넘겨 준다.
    */
   function stretch(input: Float32Array, rate: number, sampleRate: number): Float32Array<ArrayBuffer> {
     // 속도가 1이면 그대로지만, 채널로 넘기려면 자기 버퍼를 가진 사본이어야 한다
     if (Math.abs(rate - 1) < 0.001) return input.slice();
-    const grain = Math.round(sampleRate * 0.06); // 60ms — 말소리에 무난한 조각 길이
+    const grain = Math.round(sampleRate * 0.06); // 60ms. 말소리에 무난한 조각 길이
     const overlap = Math.round(grain / 2);
     const hop = grain - overlap; // 결과에서 조각이 나아가는 폭
-    const inHop = Math.round(hop * rate); // 원본에서 읽어 나아가는 폭 — 여기서 길이가 바뀐다
+    const inHop = Math.round(hop * rate); // 원본에서 읽어 나아가는 폭. 여기서 길이가 바뀐다
     const outLen = Math.max(1, Math.floor(input.length / rate) + grain);
     const out = new Float32Array(outLen);
     const win = new Float32Array(overlap);
@@ -41,7 +41,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       for (let i = 0; i < grain; i++) {
         const s = input[readAt + i];
         if (i < overlap) {
-          // 겹치는 앞부분 — 이미 쓰인 앞 조각과 서로 넘겨받는다
+          // 겹치는 앞부분. 이미 쓰인 앞 조각과 서로 넘겨받는다
           out[writeAt + i] = out[writeAt + i] * (1 - win[i]) + s * win[i];
         } else {
           out[writeAt + i] = s;
@@ -50,11 +50,11 @@ import { t, loadNamespace } from '../../lib/i18n';
       readAt += inHop;
       writeAt += hop;
     }
-    // slice 로 새 배열을 준다 — subarray 는 원본 버퍼에 묶여 있어 나중에 채널로 못 넘긴다
+    // slice 로 새 배열을 준다. subarray 는 원본 버퍼에 묶여 있어 나중에 채널로 못 넘긴다
     return out.slice(0, Math.max(1, writeAt + overlap));
   }
 
-  /** 그냥 빨리 돌리기 — 높이까지 같이 바뀐다 (일부러 쓰는 사람이 있다) */
+  /** 그냥 빨리 돌리기. 높이까지 같이 바뀐다 (일부러 쓰는 사람이 있다) */
   function resample(input: Float32Array, rate: number): Float32Array<ArrayBuffer> {
     const outLen = Math.max(1, Math.floor(input.length / rate));
     const out = new Float32Array(outLen);
@@ -72,11 +72,11 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
     title: t('widgets.audiospeed.title', undefined, '소리 속도'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.audiospeed.desc',
       undefined,
-      '녹음을 빠르게·느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다'
+      '녹음을 빠르게, 느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다'
     ),
     layout: 'wide',
     icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 8l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -140,8 +140,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           let outBlob: Blob | null = null;
           let baseName = t('audiospeed.file.base');
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function showStats(): void {
@@ -191,7 +191,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               for (let c = 0; c < chans.length; c++) outBuf.copyToChannel(chans[c], c);
 
               outBlob = await encodeAudio(outBuf, 'wav');
-              attachAudio(player, outBlob); // 공용 — 앞 주소를 거두고 물린다
+              attachAudio(player, outBlob); // 공용. 앞 주소를 거두고 물린다
               player.style.display = '';
               saveBtn.disabled = false;
               stats.innerHTML =
@@ -216,11 +216,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           const fileInput = $<HTMLInputElement>('#asFile');
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('audiospeed', (f: File) => void load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 붙여넣기가 같이 딸려 온다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
           rateEl.addEventListener('input', () => {
@@ -243,7 +243,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!outBlob) return;
             const aName = baseName + t('audiospeed.file.suffix', { n: parseFloat(rateEl.value) }) + '.wav';
             download(outBlob, aName);
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: outBlob, name: aName, from: 'audiospeed' });
             say(t('audiospeed.say.saved', { size: size(outBlob.size) }), 'ok');
           };

@@ -1,6 +1,6 @@
 /**
  * 키보드 이벤트 코드 (TASK-KL-088)
- * 표를 외워 적는 대신 **실제로 눌러서 확인**하게 한다 — 브라우저마다 값이 다를 수 있어 이게 정확하다.
+ * 표를 외워 적는 대신 **실제로 눌러서 확인**하게 한다. 브라우저마다 값이 다를 수 있어 이게 정확하다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
@@ -12,7 +12,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'keycode',
     title: t('widgets.keycode.title', undefined, "키보드 이벤트 코드"),
     category: 'ref',
-    desc: t('widgets-desc.keycode.desc', undefined, "키를 누르면 event.key · event.code · keyCode 값을 그 자리에서 보여줍니다"),
+    desc: t('widgets-desc.keycode.desc', undefined, "키를 누르면 event.key, event.code, keyCode 값을 그 자리에서 보여줍니다"),
     layout: 'form',
     icon: '<rect x="2" y="6" width="20" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     tabs: [
@@ -48,7 +48,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           const history: string[] = [];
 
           function onKey(e: KeyboardEvent): void {
-            // 페이지가 스크롤되거나 브라우저 단축키로 새는 것을 막는다 (F5·Ctrl+W 등 일부는 불가).
+            // 페이지가 스크롤되거나 브라우저 단축키로 새는 것을 막는다 (F5, Ctrl+W 등 일부는 불가).
             e.preventDefault();
             hint.style.display = 'none';
             keyEl.textContent = e.key === ' ' ? 'Space' : e.key;

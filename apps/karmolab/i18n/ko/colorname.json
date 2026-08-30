@@ -135,7 +135,7 @@
   "colorname.t134": "진슬레이트 회색",
   "colorname.t135": "검정",
   "colorname.t136": "빨강 계열",
-  "colorname.t137": "주황·갈색",
+  "colorname.t137": "주황, 갈색",
   "colorname.t138": "노랑 계열",
   "colorname.t139": "초록 계열",
   "colorname.t140": "청록 계열",
@@ -145,6 +145,6 @@
   "colorname.t144": "무채색",
   "colorname.t147": "색상 이름",
   "colorname.t148": "이름만 적어도 되는 색들이에요.",
-  "colorname.t149": "영문 이름·한글·HEX 로 찾기 (예: sky, 하늘, #87CEEB)",
+  "colorname.t149": "영문 이름, 한글, HEX 로 찾기 (예: sky, 하늘, #87CEEB)",
   "colorname.t150": "누르면 CSS 색상 이름이 복사됩니다."
 }

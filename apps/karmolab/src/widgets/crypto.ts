@@ -6,7 +6,7 @@ import { markLive } from './tools/shared/say';
 (function() {
     async function loadFromTxt(): Promise<void> {
         try {
-            // 시각을 붙이지 않는다 — 저장소에 담긴 파일이라 우리가 바꿀 때만 바뀐다 (KL-088)
+            // 시각을 붙이지 않는다. 저장소에 담긴 파일이라 우리가 바꿀 때만 바뀐다 (KL-088)
             const res = await fetch('/apps/karmolab/data/crypto-sample.txt');
             if (!res.ok) throw new Error(t('crypto.err.01'));
             (document.getElementById('cryptoInput') as HTMLTextAreaElement).value = (await res.text()).trim();
@@ -79,7 +79,7 @@ import { markLive } from './tools/shared/say';
         const iterSlider = document.getElementById('cryptoIterSlider') as HTMLInputElement | null;
         const iterations = parseInt(iterSlider?.value || '10000', 10);
         /* ★ **왜 아무 일도 안 났는지 화면에 남긴다** (2026-08-13). 비밀번호가 비면 잠깐 뜨는
-           알림만 띄우고 끝냈다 — 알림은 사라지고, 사람 눈에는 「눌렀는데 아무 반응이 없다」로
+           알림만 띄우고 끝냈다. 알림은 사라지고, 사람 눈에는 눌렀는데 아무 반응이 없다로
            남는다(라이브 검사도 그렇게 읽었다). 결과 자리에 이유를 적어 둔다. */
         if (!pass) {
           Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t15'), null, true);
@@ -132,7 +132,7 @@ import { markLive } from './tools/shared/say';
 
         if (!CryptoJS) { Toolbox.showToast!(t('crypto.t14'), 'error'); return; }
         const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
-        /* 푸는 쪽도 같다 — 알림만 띄우고 끝내면 「눌러도 아무 반응 없음」으로 남는다. */
+        /* 푸는 쪽도 같다. 알림만 띄우고 끝내면 눌러도 아무 반응 없음으로 남는다. */
         if (!pass) {
           Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t15'), null, true);
           Toolbox.showToast!(t('crypto.t15'), 'error');
@@ -157,7 +157,7 @@ import { markLive } from './tools/shared/say';
 
             if (!result) throw new Error(t('crypto.err.27'));
 
-            Toolbox.displayResult!('crypto', `복호화 완료 · iterations: ${iterations.toLocaleString()}`, result, (performance.now() - t0) / 1000);
+            Toolbox.displayResult!('crypto', `복호화 완료, iterations: ${iterations.toLocaleString()}`, result, (performance.now() - t0) / 1000);
             Toolbox.showToast!(t('crypto.t28'));
         } catch (e) {
             Toolbox.displayResult!('crypto', t('crypto.t11'), t('crypto.t29') + (e as Error).message, null, true);
@@ -193,10 +193,10 @@ import { markLive } from './tools/shared/say';
                 build(c: HTMLElement) {
                     /* ★ **말 묶음을 먼저 받는다** (2026-08-13). 이 파일은 `loadNamespace` 를
                        들여오기만 하고 **한 번도 부르지 않았다**. `t()` 는 묶음이 없고 되받을 글도
-                       없으면 **던진다** — 그래서 화면 짓기가 첫 줄에서 통째로 엎어졌고,
-                       실사이트에서 「암호화」를 눌러도 세 방식 모두 아무 일도 안 일어났다
-                       (오류도 안 떴다 — 던진 자리가 만들기 단계라 조용했다). 실측: 라이브 점검이
-                       `MissingTranslationError: [i18n …]` 로 잡았고, 이 도구는 그 상태로 살아 있었다. */
+                       없으면 **던진다**. 그래서 화면 짓기가 첫 줄에서 통째로 엎어졌고,
+                       실사이트에서 암호화를 눌러도 세 방식 모두 아무 일도 안 일어났다
+                       (오류도 안 떴다. 던진 자리가 만들기 단계라 조용했다). 실측: 라이브 점검이
+                       `MissingTranslationError: [i18n ...]` 로 잡았고, 이 도구는 그 상태로 살아 있었다. */
                     void loadNamespace('crypto').then(function () {
 
                     Mdd.linePreset('meme_done', { msg: t('crypto.t34') });
@@ -318,8 +318,8 @@ import { markLive } from './tools/shared/say';
             {
                 /*
                  * 열쇠 다루기 (TASK-KL-316 / 22). 새 도구가 아니라 **이 도구의 탭**인 이유:
-                 * 사람은 「암호화」를 찾아 여기 오고, 열쇠는 그 옆에 있어야 한다.
-                 * 만드는 일은 브라우저의 WebCrypto 가 한다 — 우리가 난수를 만들지 않는다.
+                 * 사람은 암호화를 찾아 여기 오고, 열쇠는 그 옆에 있어야 한다.
+                 * 만드는 일은 브라우저의 WebCrypto 가 한다. 우리가 난수를 만들지 않는다.
                  * 읽는 일은 `core/pem` (인증서 도구와 **같은 것**을 쓴다).
                  */
                 id: 'keys',
@@ -332,9 +332,9 @@ import { markLive } from './tools/shared/say';
             },
             {
                 /*
-                 * 인증서 보기 (TASK-KL-316 / 23). 같은 위젯의 탭인 이유: 열쇠·인증서·CSR 은
+                 * 인증서 보기 (TASK-KL-316 / 23). 같은 위젯의 탭인 이유: 열쇠, 인증서, CSR 은
                  * **같은 봉투(PEM)** 에 담겨 오고, 사람은 그걸 가른 뒤에야 어느 도구인지 안다.
-                 * 여기서는 「누구 것 · 언제까지 · 어떤 이름들」만 앞에 세운다 — 나머지는 열쇠 탭의 나무로.
+                 * 여기서는 누구 것, 언제까지, 어떤 이름들만 앞에 세운다. 나머지는 열쇠 탭의 나무로.
                  */
                 id: 'cert',
                 label: t('crypto.cert.tab', undefined, '인증서'),
@@ -376,14 +376,14 @@ import { markLive } from './tools/shared/say';
                         const rows: string[] = [];
                         const row = (k: string, v: string): string =>
                             '<div class="tool-list-row"><span class="tool-list-key">' + esc(k) + '</span><span class="tool-list-val">' + esc(v) + '</span></div>';
-                        rows.push(row(t('crypto.cert.row.subject'), cert.subject === '' ? '—' : cert.subject));
-                        if (cert.issuer !== '') rows.push(row(t('crypto.cert.row.issuer'), cert.issuer + (cert.selfSigned ? '  · ' + t('crypto.cert.selfSigned') : '')));
+                        rows.push(row(t('crypto.cert.row.subject'), cert.subject === '' ? '. ' : cert.subject));
+                        if (cert.issuer !== '') rows.push(row(t('crypto.cert.row.issuer'), cert.issuer + (cert.selfSigned ? ' , ' + t('crypto.cert.selfSigned') : '')));
                         if (cert.notAfter !== undefined) {
-                            const left = i === 0 && chain.daysLeft !== undefined ? '  · ' + t(chain.daysLeft < 0 ? 'crypto.cert.expired' : 'crypto.cert.daysLeft', { n: Math.abs(chain.daysLeft) }) : '';
+                            const left = i === 0 && chain.daysLeft !== undefined ? ' , ' + t(chain.daysLeft < 0 ? 'crypto.cert.expired' : 'crypto.cert.daysLeft', { n: Math.abs(chain.daysLeft) }) : '';
                             rows.push(row(t('crypto.cert.row.until'), String(cert.notAfter) + left));
                         }
                         if (cert.names.length > 0) rows.push(row(t('crypto.cert.row.names'), cert.names.join(', ')));
-                        rows.push(row(t('crypto.cert.row.key'), (cert.keyAlgorithm ?? '?') + '  ·  ' + (cert.signatureAlgorithm ?? '?')));
+                        rows.push(row(t('crypto.cert.row.key'), (cert.keyAlgorithm ?? '?') + ' ,  ' + (cert.signatureAlgorithm ?? '?')));
                         if (cert.isCa === true) rows.push(row(t('crypto.cert.row.ca'), t('crypto.cert.isCa')));
                         return '<div class="tool-list" style="margin-bottom:12px;">' + rows.join('') + '</div>';
                     })

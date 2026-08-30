@@ -1,8 +1,8 @@
 /**
  * 선택영역 검사 (TASK-KL-240)
  *
- * 선택은 도구가 아니라 **바탕**이다 — 붓·채우기가 이걸 곱해서 쓴다. 그래서 여기서는
- * 「고르는 것」만이 아니라 「고른 밖으로 안 새는 것」까지 본다.
+ * 선택은 도구가 아니라 **바탕**이다. 붓, 채우기가 이걸 곱해서 쓴다. 그래서 여기서는
+ * 고르는 것만이 아니라 고른 밖으로 안 새는 것까지 본다.
  * 사용: node scripts/test-meok-selection.mjs
  */
 import assert from 'node:assert/strict';
@@ -62,7 +62,7 @@ const at = (selection, x, y) => selection.mask[y * selection.w + x];
   S.selectRect(selection, { x: 2, y: 2, w: 1, h: 1 }, 'subtract');
   assert.equal(at(selection, 2, 2), 0, '빼기');
   S.selectRect(selection, { x: 4, y: 4, w: 4, h: 4 }, 'intersect');
-  assert.equal(at(selection, 3, 3), 0, '교집합 — 겹치는 데만 남는다');
+  assert.equal(at(selection, 3, 3), 0, '교집합. 겹치는 데만 남는다');
   assert.equal(at(selection, 5, 5), 255);
 
   S.invert(selection);
@@ -75,7 +75,7 @@ const at = (selection, x, y) => selection.mask[y * selection.w + x];
   assert.equal(at(selection, 7, 7), 255);
 }
 
-/* 타원 · 올가미 */
+/* 타원, 올가미 */
 {
   const selection = S.createSelection(9, 9);
   S.selectEllipse(selection, { x: 0, y: 0, w: 9, h: 9 });
@@ -92,7 +92,7 @@ const at = (selection, x, y) => selection.mask[y * selection.w + x];
   assert.deepEqual([...selection.mask], [...before], '점 두 개짜리 실수 클릭은 선택을 안 날린다');
 }
 
-/* 마술봉 — 비슷한 색만 */
+/* 마술봉. 비슷한 색만 */
 {
   const surface = D.createSurface(4, 1, [0, 0, 0, 255]);
   surface.data.set([250, 250, 250, 255], 8);   /* 세 번째 칸만 흰색 */
@@ -136,7 +136,7 @@ const at = (selection, x, y) => selection.mask[y * selection.w + x];
   assert.equal(surface.data[4 * 4], 0, '밖은 그대로');
 }
 
-/* 오려 내기 · 지우기 */
+/* 오려 내기, 지우기 */
 {
   const surface = D.createSurface(4, 1, [9, 9, 9, 255]);
   const selection = S.createSelection(4, 1);
@@ -164,4 +164,4 @@ const at = (selection, x, y) => selection.mask[y * selection.w + x];
   assert.equal(S.edgePixels(S.createSelection(4, 4)).length, 0, '아무것도 안 골랐으면 테두리도 없다');
 }
 
-console.log('[test-meok-selection] ✓ 사각/타원/올가미/마술봉 · 더하기·빼기·교집합·뒤집기 · feather · 붓·채우기가 밖으로 안 샘 · 오려내기');
+console.log('[test-meok-selection] ✓ 사각/타원/올가미/마술봉, 더하기, 빼기, 교집합, 뒤집기, feather, 붓, 채우기가 밖으로 안 샘, 오려내기');

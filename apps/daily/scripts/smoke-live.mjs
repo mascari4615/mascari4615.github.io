@@ -1,6 +1,6 @@
 /**
  * 배포된 진짜 사이트에서 한 판 둔다 (TASK-KAR-202).
- * 로컬 스모크는 「내 dist 가 맞다」만 본다 — 「배포가 실제로 닿았다」는 여기서만 갈린다.
+ * 로컬 스모크는 내 dist 가 맞다만 본다. 배포가 실제로 닿았다는 여기서만 갈린다.
  *
  *   node scripts/smoke-live.mjs [주소]
  */
@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const app = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.argv[2] ?? 'https://blog.mascari4615.com/daily';
 // 내 기계에서는 이웃 앱의 playwright 를 빌려 쓴다. CI 에는 그 이웃이 없으니 어디 있는지 알려 준다.
-// (이게 없어서 이 검사는 여태 **내 기계에서만** 돌 수 있었다 — 내가 안 돌리면 아무도 안 봤다.)
+// (이게 없어서 이 검사는 여태 **내 기계에서만** 돌 수 있었다. 내가 안 돌리면 아무도 안 봤다.)
 const pwPath = process.env.DAILY_PLAYWRIGHT
   ? join(app, process.env.DAILY_PLAYWRIGHT)
   : join(app, '../karmolab/node_modules/playwright/index.js');
@@ -22,10 +22,10 @@ const { answerOf, findItem, kstDayNumber } = await import(pathToFileURL(join(app
 const checks = [];
 const check = (name, ok, note = '') => {
   checks.push(ok);
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${note ? `  — ${note}` : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${note ? ` . ${note}` : ''}`);
 };
 
-// 빨개졌을 때 무엇이 어떻게 보였는지가 유일한 단서다 — 폴더가 없으면 스샷이 조용히 안 남는다.
+// 빨개졌을 때 무엇이 어떻게 보였는지가 유일한 단서다. 폴더가 없으면 스샷이 조용히 안 남는다.
 mkdirSync(join(app, `.cache/shots`), { recursive: true });
 
 const browser = await pw.chromium.launch();
@@ -37,7 +37,7 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`${BASE}/${topicId}/`, { waitUntil: 'networkidle' });
 
-  // 배포본이 쓰는 표를 그대로 받아 오늘의 정답을 따로 계산한다 — 화면과 규칙이 어긋나면 여기서 갈린다.
+  // 배포본이 쓰는 표를 그대로 받아 오늘의 정답을 따로 계산한다. 화면과 규칙이 어긋나면 여기서 갈린다.
   const topic = await (await fetch(`${BASE}/data/${topicId}.json`)).json();
   const answer = answerOf(topic);
   const decoy = topic.items.find((i) => i.name !== answer.name);
@@ -72,8 +72,8 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
 }
 
 /**
- * 기본 흐름 말고 **다른 판들도 실제로 살아 있는지** — 로컬에서 되는 것과 배포된 것은 다른 일이다.
- * 실루엣·지난 문제·연습은 여태 배포 뒤 확인이 없었다.
+ * 기본 흐름 말고 **다른 판들도 실제로 살아 있는지**. 로컬에서 되는 것과 배포된 것은 다른 일이다.
+ * 실루엣, 지난 문제, 연습은 여태 배포 뒤 확인이 없었다.
  */
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
@@ -94,17 +94,17 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   await page.goto(`${BASE}/pokemon/past/`, { waitUntil: 'networkidle' });
   const past = await page.locator('#past').innerText();
   check('[지난문제] 어제 답이 보인다', past.includes(yAnswer.name), yAnswer.name);
-  /* 글자로 재면 안 된다 — 모드가 여럿이라 오늘의 속성 답이 지난 어느 날의 실루엣 답과
+  /* 글자로 재면 안 된다. 모드가 여럿이라 오늘의 속성 답이 지난 어느 날의 실루엣 답과
      같을 수 있고, 그건 새는 게 아니다. 오늘 날짜의 **줄**이 있는지로 가른다 (TASK-KL-101). */
   const pastDays = await page.$$eval('#past tr[data-day]', (els) => els.map((e) => Number(e.dataset.day)));
   check('[지난문제] 오늘 줄은 없다', pastDays.length > 0 && Math.max(...pastDays) < kstDayNumber(),
-    `가장 최근 ${Math.max(...pastDays)} · 오늘 ${kstDayNumber()}`);
+    `가장 최근 ${Math.max(...pastDays)}, 오늘 ${kstDayNumber()}`);
   check('[지난문제] 그날로 가는 길이 있다', (await page.locator('table.past .play').count()) > 5);
 
   /**
-   * ★ 답이 **HTML 원문**에 박혀 있는지. 이 페이지의 값은 「어제 답이 뭐였지」로 찾아 들어오는
+   * ★ 답이 **HTML 원문**에 박혀 있는지. 이 페이지의 값은 어제 답이 뭐였지로 찾아 들어오는
    * 사람인데, 검색 로봇은 자바스크립트를 안 돌려 주는 쪽이 많다. 브라우저로 보면 어느 쪽이든
-   * 똑같이 보여서, 굽는 게 멈춰도 로컬 검사·눈으로는 절대 안 잡힌다. 실주소 원문을 직접 본다.
+   * 똑같이 보여서, 굽는 게 멈춰도 로컬 검사, 눈으로는 절대 안 잡힌다. 실주소 원문을 직접 본다.
    */
   const rawPast = await (await fetch(`${BASE}/pokemon/past/`)).text();
   const baked = (rawPast.match(/<tr data-day=/g) ?? []).length;
@@ -122,7 +122,7 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   check('[연습] 그날 정답으로 맞혀진다', (await page.locator('.done').innerText()).includes(yAnswer.name));
 
   /**
-   * ★ 허브가 **우리 허브인지**. 블로그 쪽에 같은 주소를 쓰는 페이지가 생기면 통째로 덮인다 —
+   * ★ 허브가 **우리 허브인지**. 블로그 쪽에 같은 주소를 쓰는 페이지가 생기면 통째로 덮인다 . 
    * 실제로 사이드바 입구를 만들다 `/daily/` 를 덮어써서 무한 새로고침 페이지가 됐다.
    * 200 만 보면 절대 안 잡힌다.
    */
@@ -132,13 +132,13 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   check(
     '[허브] ★ 다른 페이지에 덮이지 않았다',
     /* 표식은 **지금 덮을 수 있는 것**이라야 한다 (2026-08-28). 예전에는 옛 테마 이름
-       (`jekyll-theme-chirpy`)을 찾았는데 그 테마는 컷오버로 사라졌다 — 그 뒤로 이 줄은
+       (`jekyll-theme-chirpy`)을 찾았는데 그 테마는 컷오버로 사라졌다. 그 뒤로 이 줄은
        무엇이 덮이든 늘 통과였다. 지금 이 주소를 먹을 수 있는 것은 KarmoLab 앱 셸이다. */
     !(await page.content()).includes('KARMOLAB_ENTRY'),
     cards === 0 ? '블로그 페이지가 이 주소를 먹었다' : '우리 허브가 맞다',
   );
   /**
-   * 블로그 사이드바 입구 — 200 만 봐서는 「빈 안내 페이지에 머무는지」를 모른다.
+   * 블로그 사이드바 입구. 200 만 봐서는 빈 안내 페이지에 머무는지를 모른다.
    * 이 자리는 한 번 게임 허브를 통째로 덮은 적이 있어서, 실제로 넘어가는지까지 본다.
    */
   const site = BASE.replace(/\/daily$/, '');
@@ -148,7 +148,7 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   check('[입구] 넘어간 곳이 게임 허브다', (await page.locator('.card').count()) > 0);
 
   check('[전체] 콘솔 오류 0', errors.length === 0, errors.join(' | '));
-  // 스샷은 곁다리다 — 이게 늦는다고 검사 전체를 죽이면 안 된다 (한 번 그렇게 죽었다).
+  // 스샷은 곁다리다. 이게 늦는다고 검사 전체를 죽이면 안 된다 (한 번 그렇게 죽었다).
   await page
     .screenshot({ path: join(app, '.cache/shots/live-hub.png'), fullPage: true, timeout: 8000 })
     .catch(() => console.log('  (허브 스샷은 건너뛴다)'));

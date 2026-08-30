@@ -1,10 +1,10 @@
 /**
  * 미리 그린 화면에 **손이 달리는지** (TASK-KL-135)
  *
- * 도구 상세 페이지는 두 번 그려진다 — 빌드 때 떠 둔 그림이 HTML 로 먼저 오고, 위젯이 도착하면
+ * 도구 상세 페이지는 두 번 그려진다. 빌드 때 떠 둔 그림이 HTML 로 먼저 오고, 위젯이 도착하면
  * 그 자리를 제 화면으로 갈아 끼운다. 갈아 끼우기가 안 일어나면 그 도구는 **보이는데 죽어 있다**:
  * 단추를 눌러도 아무 일이 안 나고, 적은 글은 아무 데도 안 간다. 화면은 멀쩡해 보이므로
- * 다른 검사(도구 129개·설명 읽힘·화면 스캔)는 전부 통과한다 — 실제로 그랬다.
+ * 다른 검사(도구 129개, 설명 읽힘, 화면 스캔)는 전부 통과한다. 실제로 그랬다.
  *
  * 여기서 보는 신호는 손이다: 미리 그린 그림은 HTML 을 떠 온 것이라 어떤 단추에도 `onclick` 이
  * 없다. 위젯이 만든 화면에는 붙어 있다.
@@ -17,9 +17,9 @@ import { chromium } from 'playwright';
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const waited = 15000;
 
-/* 갈래를 섞는다 — 계산기·글·그림·파일·놀이. 한 갈래만 보면 그 갈래만 지킨다. */
-/* 표본은 **지금 자기 장이 있는 도구**여야 한다 — `charcount` 는 작업대의 조작이 되어
-   낱개 장이 없다(그 주소는 작업대로 간다). 없는 장을 재면 404 를 「죽어 있다」로 읽는다. */
+/* 갈래를 섞는다. 계산기, 글, 그림, 파일, 놀이. 한 갈래만 보면 그 갈래만 지킨다. */
+/* 표본은 **지금 자기 장이 있는 도구**여야 한다. `charcount` 는 작업대의 조작이 되어
+   낱개 장이 없다(그 주소는 작업대로 간다). 없는 장을 재면 404 를 죽어 있다로 읽는다. */
 const base = ['loan', 'timecapsule', 'text', 'qrgen', 'imgresize', 'pdfdiff', 'ghosttype', 'worldclock'];
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : base;
 
@@ -53,7 +53,7 @@ for (const id of ids) {
       .then((h) => h.jsonValue())
       .catch(() => false);
 
-    /* 단추가 없는 도구는 이 신호로 못 본다 — 「통과」로 세지 않고 그렇게 말한다. */
+    /* 단추가 없는 도구는 이 신호로 못 본다. 통과로 세지 않고 그렇게 말한다. */
     if (isAlive === null) process.stdout.write('-');
     else if (isAlive) process.stdout.write('.');
     else {
@@ -61,7 +61,7 @@ for (const id of ids) {
       process.stdout.write('x');
     }
   } catch (e) {
-    deadOnes.push(`${id}: 여는 중 실패 — ${String(e.message).slice(0, 60)}`);
+    deadOnes.push(`${id}: 여는 중 실패. ${String(e.message).slice(0, 60)}`);
     process.stdout.write('x');
   }
   await page.close();

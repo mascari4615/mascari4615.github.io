@@ -1,7 +1,7 @@
 /**
- * 흥 — 내보내기 계산 (TASK-KL-220).
+ * 흥. 내보내기 계산 (TASK-KL-220).
  *
- * 렌더된 표본을 두고 하는 판단(피크·클리핑·정규화·모노 합치기)과 「어디부터 어디까지」 계산.
+ * 렌더된 표본을 두고 하는 판단(피크, 클리핑, 정규화, 모노 합치기)과 어디부터 어디까지 계산.
  * AudioBuffer 를 직접 만들지 않고 최소 모양(`PcmLike`)만 요구하므로 단위 테스트로 닫힌다.
  */
 
@@ -53,6 +53,97 @@ export function normalizeGain(peak: number, targetDb = -1): number {
   return Math.pow(10, targetDb / 20) / peak;
 }
 
+/**
+ * WAV 의 smpl 덩어리. 게임 엔진이 읽는 루프 지점.
+ *
+ * 단위는 초가 아니라 **표본 번호**. 손으로 적다 가장 많이 틀리는 자리라
+ * 여기서 한 번만 엮는다. 36바이트 머리 + 루프 하나 24바이트.
+ */
+export function smplChunk(sampleRate: number, loopStartSample: number, loopEndSample: number, rootPitch = 60): Uint8Array {
+  const start = Math.max(0, Math.floor(loopStartSample));
+  const end = Math.max(start + 1, Math.floor(loopEndSample));
+  const bytes = new Uint8Array(68);
+  const view = new DataView(bytes.buffer);
+  const tag = (offset: number, text: string): void => { for (let index = 0; index < text.length; index++) view.setUint8(offset + index, text.charCodeAt(index)); };
+  tag(0, 'smpl');
+  view.setUint32(4, 60, true);
+  view.setUint32(8, 0, true);
+  view.setUint32(12, 0, true);
+  view.setUint32(16, Math.round(1e9 / Math.max(1, sampleRate)), true);
+  view.setUint32(20, Math.max(0, Math.min(127, Math.round(rootPitch))), true);
+  view.setUint32(24, 0, true);
+  view.setUint32(28, 0, true);
+  view.setUint32(32, 0, true);
+  view.setUint32(36, 1, true);
+  view.setUint32(40, 0, true);
+  view.setUint32(44, 0, true);
+  view.setUint32(48, 0, true);
+  view.setUint32(52, start, true);
+  view.setUint32(56, end, true);
+  view.setUint32(60, 0, true);
+  view.setUint32(64, 0, true);
+  return bytes;
+}
+
+/** 박을 표본 번호로. 게임에 넣는 루프 지점은 초가 아니라 표본으로 적는다 */
+export function beatToSample(beat: number, bpm: number, sampleRate: number): number {
+  return Math.round(beat * (60 / bpm) * sampleRate);
+}
+
+/** 인트로, 루프, 아웃트로 세 구간. 루프 구간이 곡 전체면 루프 하나만 나온다 */
+export function loopSections(song: BeatRange, loop: BeatRange): { name: 'intro' | 'loop' | 'outro'; from: number; to: number }[] {
+  const start = Math.max(song.from, Math.min(loop.from, song.to));
+  const end = Math.min(song.to, Math.max(loop.to, start));
+  const sections: { name: 'intro' | 'loop' | 'outro'; from: number; to: number }[] = [];
+  if (start > song.from) sections.push({ name: 'intro', from: song.from, to: start });
+  sections.push({ name: 'loop', from: start, to: Math.max(start + 0.001, end) });
+  if (song.to > end) sections.push({ name: 'outro', from: end, to: song.to });
+  return sections;
+}
+
+/**
+ * 루프 이음매의 어긋남. 끝 표본과 첫 표본이 얼마나 벌어져 있나.
+ *
+ * 두 값이 멀수록 이어 붙일 때 딱 소리. 귀보다 숫자가 먼저.
+ * 기준은 -60 dBFS 아래면 안 들림, -20 dBFS 위면 대개 들림.
+ *
+ * `boundarySample` 은 **루프가 돌아가는 자리**다. 안 넘기면 버퍼 끝을 본다. 그런데 렌더 버퍼는
+ * 꼬리까지 담고 있어서 끝은 거의 무음이라, 안 넘기면 항상 이음매가 좋다고 나온다 (실측 -317 dBFS
+ * vs 실제 -25.1 dBFS). 그 자리에서 잘려 나가는 꼬리 크기도 함께 반환.
+ */
+export function seamDiscontinuity(buffer: PcmLike, boundarySample?: number): { jump: number; dbfs: number; tailDbfs: number; tailSeconds: number } {
+  const end = Math.max(1, Math.min(buffer.length, Math.floor(boundarySample ?? buffer.length)));
+  let jump = 0;
+  let tailSum = 0;
+  let tailCount = 0;
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    const data = buffer.getChannelData(channel);
+    if (data.length < 2) continue;
+    const gap = Math.abs(data[end - 1] - data[0]);
+    if (gap > jump) jump = gap;
+    for (let index = end; index < data.length; index++) { tailSum += data[index] * data[index]; tailCount += 1; }
+  }
+  const tailRms = tailCount ? Math.sqrt(tailSum / tailCount) : 0;
+  return {
+    jump,
+    dbfs: jump > 0 ? 20 * Math.log10(jump) : -Infinity,
+    tailDbfs: tailRms > 0 ? 20 * Math.log10(tailRms) : -Infinity,
+    tailSeconds: tailCount / Math.max(1, buffer.numberOfChannels) / Math.max(1, buffer.sampleRate)
+  };
+}
+
+/** 여러 벌을 한 배수로 맞춘다. 트랙마다 따로 맞추면 트랙 사이 음량 관계가 깨진다 */
+export function commonNormalizeGain(peaks: number[], targetDb = -1): number {
+  const loudest = peaks.reduce((high, peak) => (peak > high ? peak : high), 0);
+  return normalizeGain(loudest, targetDb);
+}
+
+/** 소리가 다 사라질 때까지 남길 시간(초). 가장 긴 꼬리와 잔향 중 큰 쪽 */
+export function exportTailSeconds(releases: number[], anyReverb: boolean, reverbSeconds = 1.8): number {
+  const longest = releases.reduce((high, release) => (release > high ? release : high), 0);
+  return Math.max(longest, anyReverb ? reverbSeconds : 0) + 0.2;
+}
+
 export function applyGain(buffer: PcmLike, gain: number): void {
   if (gain === 1) return;
   for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
@@ -76,7 +167,7 @@ export function clampBuffer(buffer: PcmLike): number {
 
 /**
  * 내보낼 구간. `selection` 은 고른 클립들이 덮는 범위이고, 고른 게 없으면 곡 전체로 접힌다.
- * 언제나 최소 한 박은 나오게 한다 — 길이 0 짜리 파일을 내보내지 않는다.
+ * 언제나 최소 한 박은 나오게 한다. 길이 0 짜리 파일을 내보내지 않는다.
  */
 export function exportRange(
   mode: ExportRangeMode,
@@ -106,7 +197,7 @@ export function stemFileName(trackName: string, index: number): string {
   return `${String(index + 1).padStart(2, '0')}-${clean || 'track'}.wav`;
 }
 
-/** 같은 이름이 겹치면 뒤에 번호를 붙인다 — ZIP 안에서 덮어써지면 트랙이 조용히 사라진다. */
+/** 같은 이름이 겹치면 뒤에 번호를 붙인다. ZIP 안에서 덮어써지면 트랙이 조용히 사라진다. */
 export function uniqueNames(names: string[]): string[] {
   const used = new Map<string, number>();
   return names.map((name) => {

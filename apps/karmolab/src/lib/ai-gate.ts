@@ -1,27 +1,27 @@
 /**
- * 「AI 켜기」 게이트 — 상태만 (해자④ / 흡수계획 12 § 2)
+ * AI 켜기 게이트. 상태만 (해자④ / 흡수계획 12 § 2)
  *
- * 모델은 수십~수백 MB 다. **도구를 열자마자 받으면 안 된다** — 오늘 이 도구를 쓰러 온 사람은
+ * 모델은 수십~수백 MB 다. **도구를 열자마자 받으면 안 된다**. 오늘 이 도구를 쓰러 온 사람은
  * 대개 AI 를 원해서 온 게 아니고, 남의 데이터 요금으로 실험하면 안 된다.
- * 그래서 「받겠다」를 한 번 누르게 하고, 누르기 **전에 크기와 걸리는 시간을 숫자로** 보여 준다.
+ * 그래서 받겠다를 한 번 누르게 하고, 누르기 **전에 크기와 걸리는 시간을 숫자로** 보여 준다.
  *
- * 여기에는 화면이 없다. 상태와 규칙만 담는다 — 화면은 이 상태를 그리기만 하면 되고,
- * 규칙(취소하면 어떻게 되나·실패하면 다시 누를 수 있나)은 **한 곳에서만** 정해진다.
+ * 여기에는 화면이 없다. 상태와 규칙만 담는다. 화면은 이 상태를 그리기만 하면 되고,
+ * 규칙(취소하면 어떻게 되나, 실패하면 다시 누를 수 있나)은 **한 곳에서만** 정해진다.
  *
  * ★ 이 게이트에서 가장 중요한 것은 **취소한 뒤에도 도구가 멀쩡해야 한다**는 것이다 (12 § 6).
- * 받다 만 상태가 도구를 망가뜨리면, 사람들은 「AI 켜기」를 다시는 안 누른다.
+ * 받다 만 상태가 도구를 망가뜨리면, 사람들은 AI 켜기를 다시는 안 누른다.
  */
 import { downloadNotice, explainFailure, type AiFailure } from './ai-route';
 import { t, loadNamespace } from './i18n';
 
-/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 위젯이 아니라 셸, 라이브러리. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
 if (typeof document !== 'undefined') void loadNamespace('aigate');
 
 export type GateState =
   /** 아직 아무 것도 안 했다. 도구는 그냥 도구다. */
   | 'idle'
-  /** 「이만큼 받습니다」를 보여 주고 답을 기다리는 중. */
+  /** 이만큼 받습니다를 보여 주고 답을 기다리는 중. */
   | 'asking'
   /** 받는 중. 진행률이 있고, 취소할 수 있다. */
   | 'loading'
@@ -34,7 +34,7 @@ export interface GateView {
   state: GateState;
   /** 0~100. `loading` 일 때만 뜻이 있다. */
   percent: number;
-  /** 사람에게 보여 줄 한 줄. 상태마다 반드시 있다 — 빈 화면은 고장처럼 보인다. */
+  /** 사람에게 보여 줄 한 줄. 상태마다 반드시 있다. 빈 화면은 고장처럼 보인다. */
   say: string;
   /** 실패했을 때만. */
   failure?: AiFailure;
@@ -89,7 +89,7 @@ export class AiGate {
     this.opts.onChange?.(this.view());
   }
 
-  /** 「AI 켜기」를 눌렀다 — 아직 안 받는다. 먼저 얼마나 받는지 보여 준다. */
+  /** AI 켜기를 눌렀다. 아직 안 받는다. 먼저 얼마나 받는지 보여 준다. */
   ask(): void {
     if (this.state === 'ready' || this.state === 'loading') return;
     this.state = 'asking';
@@ -97,7 +97,7 @@ export class AiGate {
     this.emit();
   }
 
-  /** 「받겠다」를 눌렀다. 여기서부터 실제로 받는다. */
+  /** 받겠다를 눌렀다. 여기서부터 실제로 받는다. */
   async accept(): Promise<boolean> {
     if (this.state === 'ready') return true;
     if (this.state === 'loading') return false;
@@ -117,7 +117,7 @@ export class AiGate {
         this.emit();
       }, signal);
     } catch (e) {
-      if (signal.aborted) return false; // 취소는 실패가 아니다 — 아래 cancel() 이 상태를 이미 정했다
+      if (signal.aborted) return false; // 취소는 실패가 아니다. 아래 cancel() 이 상태를 이미 정했다
       this.state = 'failed';
       this.failure = e instanceof Error && 'info' in e ? (e as { info: AiFailure }).info : explainFailure('download', short(e));
       this.controller = null;
@@ -135,7 +135,7 @@ export class AiGate {
 
   /**
    * 취소. **받다 만 것은 버리고 처음 상태로 돌아간다.**
-   * 「반쯤 켜진」 상태를 남기면 다음에 무엇이 될지 아무도 모른다 — 그게 도구를 망가뜨린다.
+   * 반쯤 켜진 상태를 남기면 다음에 무엇이 될지 아무도 모른다. 그게 도구를 망가뜨린다.
    */
   cancel(): void {
     if (this.state !== 'loading') return;
@@ -147,7 +147,7 @@ export class AiGate {
     this.emit();
   }
 
-  /** 실패한 뒤 다시. 「다시 해도 같은 것」이면 부르는 쪽이 버튼을 안 보여 준다. */
+  /** 실패한 뒤 다시. 다시 해도 같은 것이면 부르는 쪽이 버튼을 안 보여 준다. */
   retry(): Promise<boolean> {
     if (this.state === 'failed' && this.failure?.retryable === false) return Promise.resolve(false);
     this.state = 'asking';

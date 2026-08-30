@@ -1,7 +1,7 @@
 /**
  * 용량 단위 변환 (TASK-KL-088)
  *
- * 「1TB 하드인데 왜 931GB 로 보이지」 의 답이 여기 있다 — 제조사는 1000 배로 세고(TB)
+ * 1TB 하드인데 왜 931GB 로 보이지 의 답이 여기 있다. 제조사는 1000 배로 세고(TB)
  * 운영체제는 1024 배로 센다(TiB). 같은 이름을 두 뜻으로 쓰기 때문에 생기는 차이라,
  * **두 계열을 나란히** 보여주고 차이를 %로 적는다.
  */
@@ -19,8 +19,8 @@ import { escapeHtml as esc } from './shared/text';
   Toolbox.register({
     id: 'bytesize',
     title: t('widgets.bytesize.title', undefined, "용량 단위 변환"),
-    category: 'tool',
-    desc: t('widgets-desc.bytesize.desc', undefined, "KB·MB·GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다"),
+    category: 'calc',
+    desc: t('widgets-desc.bytesize.desc', undefined, "KB, MB, GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다"),
     layout: 'form',
     icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.4" fill="none"/>',
     tabs: [
@@ -82,7 +82,7 @@ import { escapeHtml as esc } from './shared/text';
             dec.innerHTML = DEC.map((u, i) => row(u, fmt(bytes / Math.pow(1000, i)))).join('');
             bin.innerHTML = BIN.map((u, i) => row(u, fmt(bytes / Math.pow(1024, i)))).join('');
 
-            // 같은 숫자를 두 방식으로 읽었을 때 벌어지는 차이 — 하드 용량 표기 오해의 정체
+            // 같은 숫자를 두 방식으로 읽었을 때 벌어지는 차이. 하드 용량 표기 오해의 정체
             const level = Math.min(5, Math.max(1, Math.floor(Math.log(Math.max(bytes, 1)) / Math.log(1000))));
             const decVal = bytes / Math.pow(1000, level);
             const binVal = bytes / Math.pow(1024, level);

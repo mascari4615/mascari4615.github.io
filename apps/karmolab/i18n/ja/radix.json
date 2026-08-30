@@ -18,6 +18,6 @@
   "radix.row.uint32": "符号なし 32bit の範囲",
   "radix.verdict.fits": "収まる",
   "radix.verdict.overflow": "あふれる",
-  "radix.say.done": "変換しました · 欄を押すとそのままコピーできます。",
+  "radix.say.done": "変換しました, 欄を押すとそのままコピーできます。",
   "radix.err.digit": "{base}進数にない文字が混ざっています。"
 }

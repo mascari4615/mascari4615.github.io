@@ -1,9 +1,9 @@
 /**
- * TASK-KL-194 — 오늘의 판 원장 시험.
+ * TASK-KL-194. 오늘의 판 원장 시험.
  *
  * 여기서 제일 중요한 것: **연속일이 거짓으로 늘지 않는 것**과 **아침부터 0일로 끊기지 않는 것**.
- * 전자는 새로고침 한 번에 도장이 두 번 찍히면 일어나고, 후자는 「오늘 아직 안 놂」을
- * 「끊김」으로 세면 일어난다 — 둘 다 사람이 다시 안 오게 만드는 방향이다.
+ * 전자는 새로고침 한 번에 도장이 두 번 찍히면 일어나고, 후자는 오늘 아직 안 놂을
+ * 끊김으로 세면 일어난다. 둘 다 사람이 다시 안 오게 만드는 방향이다.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
-/** KST 로 그 날짜 정오 — 시간대 경계에서 흔들리지 않게. */
+/** KST 로 그 날짜 정오. 시간대 경계에서 흔들리지 않게. */
 const at = (day: string): Date => new Date(`${day}T03:00:00.000Z`);
 
 const finish = (store: KarmolabTodayStore, handle: string, day: string): void => {
@@ -32,7 +32,7 @@ describe('연속일 셈', () => {
     expect(runOf(['2026-08-06', '2026-08-07'], '2026-08-08')).toBe(2);
   });
 
-  it('그제까지만 놀았으면 0 — 하루를 통째로 건너뛰면 끊긴다', () => {
+  it('그제까지만 놀았으면 0. 하루를 통째로 건너뛰면 끊긴다', () => {
     expect(runOf(['2026-08-05', '2026-08-06'], '2026-08-08')).toBe(0);
   });
 
@@ -104,7 +104,7 @@ describe('원장', () => {
     expect(store.finishedOn('2026-08-08')).toBe(1);
   });
 
-  it('순위는 지금 살아 있는 연속만 — 옛 기록은 안 올라온다', () => {
+  it('순위는 지금 살아 있는 연속만. 옛 기록은 안 올라온다', () => {
     const store = new KarmolabTodayStore(file);
     finish(store, 'yon', '2026-08-07');
     finish(store, 'yon', '2026-08-08');
@@ -115,7 +115,7 @@ describe('원장', () => {
     expect(ranking[0].run).toBe(2);
   });
 
-  it('파일로 이어진다 — 서버가 재시작해도 연속일이 안 사라진다', () => {
+  it('파일로 이어진다. 서버가 재시작해도 연속일이 안 사라진다', () => {
     finish(new KarmolabTodayStore(file), 'yon', '2026-08-08');
     expect(new KarmolabTodayStore(file).of('yon', at('2026-08-08')).days).toEqual(['2026-08-08']);
   });

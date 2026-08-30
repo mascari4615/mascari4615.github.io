@@ -1,8 +1,8 @@
 /**
- * 도미노 — 양 끝에 숫자를 맞춰 잇는다 (TASK-KL-242)
+ * 도미노. 양 끝에 숫자를 맞춰 잇는다 (TASK-KL-242)
  *
- * 카드 놀이들과 다른 자리: **한 수가 「무엇을·어느 쪽에」**이고, 낼 게 없으면 **더미에서 가져온다**.
- * 즉 못 낼 때 아무것도 안 하고 넘기는 게 아니라 판이 바뀐다 — 「못 두면 패스」와 다른 결이다.
+ * 카드 놀이들과 다른 자리: **한 수가 무엇을, 어느 쪽에**이고, 낼 게 없으면 **더미에서 가져온다**.
+ * 즉 못 낼 때 아무것도 안 하고 넘기는 게 아니라 판이 바뀐다. 못 두면 패스와 다른 결이다.
  *
  * 손이 먼저 비면 이긴다. 아무도 못 내고 더미도 비면 **남은 눈이 적은 쪽**이 이긴다(원래 규칙).
  */
@@ -23,7 +23,7 @@ export interface DominoesState {
   /** 아직 안 가져간 것 */
   stock: Tile[];
   turn: number;
-  /** 연달아 못 낸 사람 수 — 다 못 내면 판이 막힌다 */
+  /** 연달아 못 낸 사람 수. 다 못 내면 판이 막힌다 */
   stuck: number;
   /** 이긴 자리 (아직이면 -1) */
   won: number;
@@ -84,7 +84,7 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
     const seats = ctx.seats.length;
 
     if ((a as { kind?: string })?.kind === 'draw') {
-      /* 낼 수 있으면 못 가져간다 — 안 그러면 더미를 다 비워 버릴 수 있다. */
+      /* 낼 수 있으면 못 가져간다. 안 그러면 더미를 다 비워 버릴 수 있다. */
       if (playable(s.line, hand)) return s;
       if (!s.stock.length) {
         /* 가져올 것도 없으면 넘긴다. 다 못 내면 판이 막힌다. */
@@ -110,7 +110,7 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
     const e = ends(s.line);
     let placed: Tile = t;
     if (e) {
-      /* 이어 붙일 쪽 숫자가 맞닿게 뒤집는다 — 화면에서 「왜 안 붙지」가 안 생기게 규칙이 정한다. */
+      /* 이어 붙일 쪽 숫자가 맞닿게 뒤집는다. 화면에서 왜 안 붙지가 안 생기게 규칙이 정한다. */
       if (mv.side === 'left') placed = t[1] === e[0] ? t : [t[1], t[0]];
       else placed = t[0] === e[1] ? t : [t[1], t[0]];
     }
@@ -139,7 +139,7 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
       }
     });
     if (!moves.length) return { action: { kind: 'draw' }, delayMs: 600 + ctx.rng() * 500 };
-    /* 눈이 큰 것부터 턴다 — 막혔을 때 손에 남은 눈이 적어야 이긴다. */
+    /* 눈이 큰 것부터 턴다. 막혔을 때 손에 남은 눈이 적어야 이긴다. */
     const best = moves.reduce((a, b) => (b.weight > a.weight ? b : a), moves[0]);
     return { action: { index: best.index, side: best.side }, delayMs: 600 + ctx.rng() * 700 };
   }

@@ -1,7 +1,7 @@
 /**
  * 컵 옮기기 화면 (TASK-KL-242)
  *
- * 바꿔치기는 **커널이 정한 차례를 그대로** 그린다 — 화면이 알아서 흔들면 사람마다 다른 것을
+ * 바꿔치기는 **커널이 정한 차례를 그대로** 그린다. 화면이 알아서 흔들면 사람마다 다른 것을
  * 보게 된다. 지금 몇 번째 바꿔치기인지도 커널 시계로 센다.
  */
 import { t } from '../../../lib/i18n';
@@ -32,7 +32,7 @@ export const shellgameView: GameView<ShellState, ShellAction> = {
       const reveal = s.showAt !== 0;
       const mine = s.picks[mySeat];
 
-      /* 지금까지의 바꿔치기를 자리 배치에 반영한다 — 컵이 실제로 자리를 옮긴 것처럼 보이게. */
+      /* 지금까지의 바꿔치기를 자리 배치에 반영한다. 컵이 실제로 자리를 옮긴 것처럼 보이게. */
       const slot = [0, 1, 2];
       for (let i = 0; i < done; i++) {
         const sw = s.swaps[i];

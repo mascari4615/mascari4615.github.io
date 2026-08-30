@@ -4,7 +4,7 @@
   "blocks": [
     {
       "type": "p",
-      "text": "\"mp4 인데 왜 안 열리지?\"의 답은 하나다. **.mp4 는 상자 이름**이고, 재생 여부는 안에 든 **코덱**이 정한다."
+      "text": "mp4 인데 왜 안 열리지?의 답은 하나다. **.mp4 는 상자 이름**이고, 재생 여부는 안에 든 **코덱**이 정한다."
     },
     {
       "type": "h",
@@ -14,7 +14,7 @@
       "type": "code",
       "lang": "text",
       "label": "컨테이너 ≠ 코덱",
-      "text": "컨테이너: mp4 · webm · mkv · mov   ← 여러 트랙(영상·음성·자막)을 담는 포장\n영상 코덱: H.264(AVC) · H.265(HEVC) · VP9 · AV1\n음성 코덱: AAC · Opus · MP3\n\n같은 .mp4 라도 안이 HEVC 면 어떤 브라우저에서는 안 열린다"
+      "text": "컨테이너: mp4, webm, mkv, mov   ← 여러 트랙(영상, 음성, 자막)을 담는 포장\n영상 코덱: H.264(AVC), H.265(HEVC), VP9, AV1\n음성 코덱: AAC, Opus, MP3\n\n같은 .mp4 라도 안이 HEVC 면 어떤 브라우저에서는 안 열린다"
     },
     {
       "type": "h",
@@ -32,7 +32,7 @@
       "type": "code",
       "lang": "bash",
       "label": "안을 들여다본다",
-      "text": "ffprobe -v error -show_streams -show_format input.mp4 | head -30\n# codec_name · width/height · r_frame_rate · bit_rate · duration\n\nffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 input.mp4"
+      "text": "ffprobe -v error -show_streams -show_format input.mp4 | head -30\n# codec_name, width/height, r_frame_rate, bit_rate, duration\n\nffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 input.mp4"
     },
     {
       "type": "h",

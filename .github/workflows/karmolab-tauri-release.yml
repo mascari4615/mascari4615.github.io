@@ -17,14 +17,14 @@ concurrency:
 # push 는 paths 매칭돼도 GitHub Actions 가 run 자체를 skip. workflow_dispatch
 # 는 수동 강제(escape hatch) 로 유지.
 #
-# trigger-audit: self-exempt — 이 워크플로는 자기 파일 변경으로 돌면 안 된다. 실행 자체가
+# trigger-audit: self-exempt. 이 워크플로는 자기 파일 변경으로 돌면 안 된다. 실행 자체가
 # 부수효과(버전 patch bump + 릴리스 생성)라, 문구 한 줄 고친 커밋이 릴리스를 찍어 버린다.
-# 일반 게이트 워크플로의 「자기 파일도 트리거에」 규칙(memo/scripts/workflow-trigger-audit.mjs)의 예외.
+# 일반 게이트 워크플로의 자기 파일도 트리거에 규칙(memo/scripts/workflow-trigger-audit.mjs)의 예외.
 on:
   workflow_dispatch:
     inputs:
       bumpType:
-        description: 'Version bump (실행 전에 tauri.conf.json·Cargo.toml·package.json·Cargo.lock 동시 패치 후 main에 푸시)'
+        description: 'Version bump (실행 전에 tauri.conf.json, Cargo.toml, package.json, Cargo.lock 동시 패치 후 main에 푸시)'
         required: false
         default: 'none'
         type: choice
@@ -39,7 +39,7 @@ on:
       # Tauri 앱 디렉토리 전체 = 바이너리 빌드 계약 (src-tauri 코드/ACL +
       # scripts/build-sidecar.mjs 같은 빌드 파이프라인 + package.json).
       # 좁게 src-tauri/** 만 두면 build-sidecar.mjs 수정이 자동릴리스 안 돼
-      # 또 스큐 (KL-064 3차 발견). 단일유저·always-latest 라 churn 수용.
+      # 또 스큐 (KL-064 3차 발견). 단일유저, always-latest 라 churn 수용.
       - 'apps/karmolab-tauri/**'
 
 jobs:
@@ -57,17 +57,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 계약 해시 — 바이너리 입력이 지난 판과 같으면 안 굽는다
+      - name: 계약 해시. 바이너리 입력이 지난 판과 같으면 안 굽는다
         id: contract
         shell: bash
         # 왜 (KL-064 후속): 트리거를 `apps/karmolab-tauri/**` 로 **일부러** 넓게 쳤다.
-        # 좁혔다가 「프론트엔 있는데 앱엔 없는 command」 스큐가 세 번 났기 때문이다.
-        # 대신 주석 한 줄·문서 한 줄에도 25~30분 빌드가 돌았다.
+        # 좁혔다가 프론트엔 있는데 앱엔 없는 command 스큐가 세 번 났기 때문이다.
+        # 대신 주석 한 줄, 문서 한 줄에도 25~30분 빌드가 돌았다.
         #
         # 좁히기(=스큐 위험)와 헛빌드 중 하나를 고르지 않는다: 바이너리에 실제로 들어가는
         # 입력만 해시해(scripts/contract-hash.mjs, 판 번호는 뺀다) 지난 릴리스 값과 견준다.
         # 같으면 바이너리도 같으므로 건너뛰어도 **스큐가 원리적으로 안 생긴다**.
-        # workflow_dispatch(수동)는 항상 굽는다 — 탈출구는 남긴다.
+        # workflow_dispatch(수동)는 항상 굽는다. 탈출구는 남긴다.
         run: |
           set -e
           NOW=$(node scripts/contract-hash.mjs)
@@ -75,10 +75,10 @@ jobs:
           echo "now=$NOW" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "push" ] && [ "$NOW" = "$LAST" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::앱 입력이 지난 판과 같다 — 빌드/릴리스 건너뜀 ($NOW)"
+            echo "::notice::앱 입력이 지난 판과 같다. 빌드/릴리스 건너뜀 ($NOW)"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::앱 입력이 달라졌다 — 굽는다 (지난 판 $LAST → $NOW)"
+            echo "::notice::앱 입력이 달라졌다. 굽는다 (지난 판 $LAST → $NOW)"
           fi
 
       - name: Bump version
@@ -135,7 +135,7 @@ jobs:
             git add "$T/package.json" "$T/src-tauri/Cargo.toml" "$T/Cargo.lock" "$T/src-tauri/tauri.conf.json"
             git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
             if git push origin HEAD:main; then PUSHED=1; break; fi
-            echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
+            echo "push 거부(non-fast-forward). 최신 reset 후 재시도"
             sleep $((attempt * 3))
           done
           if [ -z "$PUSHED" ]; then echo "bump push 6회 실패" >&2; exit 1; fi
@@ -155,17 +155,17 @@ jobs:
       - name: Rust 캐시 (같은 의존성을 매판 다시 안 굽는다)
         if: steps.contract.outputs.changed == 'true'
         uses: Swatinem/rust-cache@v2
-        # 왜: 여기서 굽는 것은 두 벌이다 — ML sidecar(candle/tokenizers 등 대형 트리)와
+        # 왜: 여기서 굽는 것은 두 벌이다. ML sidecar(candle/tokenizers 등 대형 트리)와
         # 본체. 실측 sidecar 만 8분13초였고, 그 대부분이 **한 번도 안 바뀐 남의 크레이트**다.
         # 워크스페이스 하나(멤버 4개)에 target 도 하나라 캐시도 하나면 된다.
         #
         # 안 줄어드는 부분: 마지막 링크. 루트 [profile.release] 가 fat LTO +
         # codegen-units=1 (KL-051 = 바이너리 사이즈 목적)이라 매판 통째로 다시 엮는다.
-        # 그건 「사이즈 ↔ 시간」 맞바꿈이라 여기서 몰래 바꾸지 않는다.
+        # 그건 사이즈 ↔ 시간 맞바꿈이라 여기서 몰래 바꾸지 않는다.
         with:
           workspaces: apps/karmolab-tauri -> target
-          # 키는 손대지 않는다 — 기본값이 Cargo.lock + rustc 판으로 잡히고, 그게 「의존성이
-          # 바뀌었나」와 정확히 같은 물음이다. 여기에 우리 코드 해시를 섞으면 코드 한 줄마다
+          # 키는 손대지 않는다. 기본값이 Cargo.lock + rustc 판으로 잡히고, 그게 의존성이
+          # 바뀌었나와 정확히 같은 물음이다. 여기에 우리 코드 해시를 섞으면 코드 한 줄마다
           # 키가 달라져 캐시가 영영 안 맞는다(넣었다가 되돌린 자리다).
           cache-on-failure: true
 
@@ -186,10 +186,10 @@ jobs:
       - name: Build and publish release
         id: publish
         # ★ **한 번은 봐준다** (2026-08-19). 릴리스 *생성* 자리에서 GitHub 가 가끔
-        #   `Resource not accessible by integration`(403) 을 낸다 — 오늘 8판 중 2판.
+        #   `Resource not accessible by integration`(403) 을 낸다. 오늘 8판 중 2판.
         #   사이 판들은 같은 설정으로 초록이라 우리 쪽 권한 문제가 아니다(원인 미확정).
         #   빌드는 이미 다 끝난 뒤라 다시 부르면 몇 십 초다. 사람이 다시 누르는 대신
-        #   여기서 한 번 더 시도한다 — 못 고친 원인을 **회복**으로 덮는 자리임을 적어 둔다.
+        #   여기서 한 번 더 시도한다. 못 고친 원인을 **회복**으로 덮는 자리임을 적어 둔다.
         continue-on-error: true
         if: steps.contract.outputs.changed == 'true'
         uses: tauri-apps/tauri-action@action-v1.0.0
@@ -209,7 +209,7 @@ jobs:
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
 
-      - name: Build and publish release (한 번 더 — 위가 403 으로 튕겼을 때만)
+      - name: Build and publish release (한 번 더. 위가 403 으로 튕겼을 때만)
         if: steps.contract.outputs.changed == 'true' && steps.publish.outcome == 'failure'
         uses: tauri-apps/tauri-action@action-v1.0.0
         env:
@@ -228,12 +228,12 @@ jobs:
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
 
-      - name: 동반자 꾸러미·창을 굽는다 (TASK-KAR-227)
+      - name: 동반자 꾸러미, 창을 굽는다 (TASK-KAR-227)
         if: steps.contract.outputs.changed == 'true'
         shell: bash
-        # 왜 여기냐: 동반자는 저장소 안에서만 돌았다 — 프로그램만 깐 사람에게는 깔 대상도
+        # 왜 여기냐: 동반자는 저장소 안에서만 돌았다. 프로그램만 깐 사람에게는 깔 대상도
         # 방법도 없었다. 실제로 필요한 것은 4.66MB 뿐이라(실측), 앱 릴리스에 같이 얹는다.
-        # Node 런타임은 **안 넣는다** — 게임의 필수 구성 요소처럼 쓰는 쪽에서 깐다(조수님 결정).
+        # Node 런타임은 **안 넣는다**. 게임의 필수 구성 요소처럼 쓰는 쪽에서 깐다(조수님 결정).
         run: |
           set -euo pipefail
           cd ../../packages/companion
@@ -256,13 +256,13 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # 굽는 것과 올리는 것을 나눈 이유: 굽기가 죽었는데 올리기가 「올릴 게 없다」로
+        # 굽는 것과 올리는 것을 나눈 이유: 굽기가 죽었는데 올리기가 올릴 게 없다로
         # 조용히 통과하면, 릴리스에 앱만 있고 동반자는 없는 판이 나간다. 여기서는 없으면 죽는다.
         run: |
           set -euo pipefail
           cd ../..
           # 버전은 **파일에서 읽는다.** `steps.bump.outputs.version` 을 쓰려다 보니 그
-          # 단계에는 `id` 조차 없어 빈 값이 된다 — 그러면 태그가 `karmolab-v` 가 되고
+          # 단계에는 `id` 조차 없어 빈 값이 된다. 그러면 태그가 `karmolab-v` 가 되고
           # 업로드가 엉뚱한 데로 간다(조용한 실패). 굽는 쪽과 같은 자리를 본다.
           VER=$(node -p "require('./apps/karmolab-tauri/package.json').version")
           test -n "$VER" || { echo "버전을 못 읽었다"; exit 1; }
@@ -273,15 +273,15 @@ jobs:
           test -f "$WIN"  || { echo "창이 없다: $WIN"; exit 1; }
           cp "$WIN" "$PACK/companion-window.exe"
           ZIP="companion-${VER}.zip"
-          # 압축은 러너의 것을 쓴다 — 새 도구를 들이지 않는다.
+          # 압축은 러너의 것을 쓴다. 새 도구를 들이지 않는다.
           powershell -NoProfile -Command "Compress-Archive -Path '$PACK/*' -DestinationPath '$ZIP' -Force"
           ls -la "$ZIP"
           gh release upload "$TAG" "$ZIP" --repo "${{ github.repository }}" --clobber
 
       - name: Prune old releases (최신 1개만 유지, tag 보존)
         if: steps.contract.outputs.changed == 'true'
-        # 이 판은 윈도우에서 돈다 — 기본 셸이 PowerShell 이라 bash 문법(줄바꿈 \, 파이프
-        # while)이 그대로 죽는다. 실제로 릴리스는 나갔는데 이 단계에서 죽어 「빨강」으로만
+        # 이 판은 윈도우에서 돈다. 기본 셸이 PowerShell 이라 bash 문법(줄바꿈 \, 파이프
+        # while)이 그대로 죽는다. 실제로 릴리스는 나갔는데 이 단계에서 죽어 빨강으로만
         # 보였다(2026-08-06 부터). 셸을 못 박는다.
         shell: bash
         # KAR (2026-06-07): 릴리즈 무한 적층(과거 38개) 방지. updater 엔드포인트는
@@ -304,7 +304,7 @@ jobs:
               done
 
       - name: 이번 판의 계약 해시를 남긴다 (다음 push 가 헛빌드를 안 하게)
-        # 성공했을 때만 적는다 — 빌드가 죽었는데 적어 두면 다음 판이 「같으니 넘어가자」로
+        # 성공했을 때만 적는다. 빌드가 죽었는데 적어 두면 다음 판이 같으니 넘어가자로
         # 넘어가 버린다(그 순간 릴리스가 영영 안 나간다). bump 와 같은 race-safe 재시도.
         if: steps.contract.outputs.changed == 'true' && success()
         shell: bash
@@ -320,10 +320,10 @@ jobs:
             git reset --hard origin/main
             echo "${{ steps.contract.outputs.now }}" > "$T/.release-contract"
             git add "$T/.release-contract"
-            if git diff --cached --quiet; then echo "이미 같은 값 — 적을 것 없음"; PUSHED=1; break; fi
+            if git diff --cached --quiet; then echo "이미 같은 값. 적을 것 없음"; PUSHED=1; break; fi
             git commit -m "chore(karmolab-tauri): 이번 판 계약 해시 기록 [skip ci]"
             if git push origin HEAD:main; then PUSHED=1; break; fi
-            echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
+            echo "push 거부(non-fast-forward). 최신 reset 후 재시도"
             sleep $((attempt * 3))
           done
           if [ -z "$PUSHED" ]; then echo "계약 해시 기록 push 6회 실패" >&2; exit 1; fi

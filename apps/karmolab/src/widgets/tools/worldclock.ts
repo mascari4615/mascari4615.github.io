@@ -1,9 +1,9 @@
 /**
- * 세계 시간 · 시차 (TASK-KL-088)
+ * 세계 시간, 시차 (TASK-KL-088)
  *
  * 시차 계산이 틀리는 이유는 대부분 **서머타임**이다. 나라별로 시행 여부와 전환일이 달라
- * 「+9시간」 같은 고정 숫자를 외우면 연중 몇 달은 어긋난다.
- * 그래서 상수를 쓰지 않고 브라우저의 IANA 시간대 데이터에 매번 물어본다 — 서머타임이 자동 반영된다.
+ * +9시간 같은 고정 숫자를 외우면 연중 몇 달은 어긋난다.
+ * 그래서 상수를 쓰지 않고 브라우저의 IANA 시간대 데이터에 매번 물어본다. 서머타임이 자동 반영된다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { escapeHtml as esc } from './shared/text';
@@ -16,10 +16,10 @@ import { readInvocation } from '../../lib/tool-url';
   /**
    * `[IANA 시간대, 도시 열쇠, 지역]`.
    *
-   * 나라 이름을 여기 적지 않는다 — 브라우저가 `Intl.DisplayNames` 로 **모든 언어의 나라 이름**을
+   * 나라 이름을 여기 적지 않는다. 브라우저가 `Intl.DisplayNames` 로 **모든 언어의 나라 이름**을
    * 이미 알고 있다. 적어 두면 언어를 늘릴 때마다 41개를 또 옮겨야 하고, 나라 이름이 바뀌면
    * (튀르키예처럼) 우리 표만 낡는다. 지역이 `@` 로 시작하면 나라로 안 떨어지는 자리다
-   * (「미국 동부」처럼) — 그때만 말 묶음에서 가져온다.
+   * (미국 동부처럼). 그때만 말 묶음에서 가져온다.
    */
   const ZONES: Array<[string, string, string]> = [
     ['Asia/Seoul', 'seoul', 'KR'],
@@ -65,10 +65,10 @@ import { readInvocation } from '../../lib/tool-url';
     ['UTC', 'utc', '@utc'],
   ];
 
-  /** 도시 이름 — 말 묶음에서. */
+  /** 도시 이름. 말 묶음에서. */
   const cityName = (key: string): string => t(`worldclock.city.${key}`);
 
-  /** 나라 이름 — 브라우저가 안다. 못 알아보면 코드를 그대로 보여 준다(빈칸보다 낫다). */
+  /** 나라 이름. 브라우저가 안다. 못 알아보면 코드를 그대로 보여 준다(빈칸보다 낫다). */
   function regionName(region: string): string {
     if (region.startsWith('@')) return t(`worldclock.region.${region.slice(1)}`);
     try {
@@ -82,20 +82,20 @@ import { readInvocation } from '../../lib/tool-url';
 
   Toolbox.register({
     id: 'worldclock',
-    /* 도구 큰제목이 이 값을 쓴다 — 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
+    /* 도구 큰제목이 이 값을 쓴다. 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
        큰제목만 한국어로 남았다). 등록 순간이라 기다릴 수 없어 원본을 기본값으로 함께 준다. */
-    title: t('widgets.worldclock.title', undefined, '세계 시간 · 시차'),
-    category: 'tool',
-    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다 — 등록 순간이라 원본을 기본값으로 함께 준다. */
+    title: t('widgets.worldclock.title', undefined, '세계 시간, 시차'),
+    category: 'calc',
+    /* 도구 큰제목 아래 한 줄도 이 값을 쓴다. 등록 순간이라 원본을 기본값으로 함께 준다. */
     desc: t('widgets-desc.worldclock.desc', undefined, '도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영'),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" stroke="currentColor" stroke-width="1.4" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        /* 등록 순간에 쓰인다 — 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
+        /* 등록 순간에 쓰인다. 기다릴 자리가 없어 원본을 기본값으로 함께 준다. */
         label: t('worldclock.tab', undefined, '세계 시간'),
-        /* 말을 받아온 뒤에 그린다 — 안 기다리면 화면에 열쇠 이름이 뜬다. */
+        /* 말을 받아온 뒤에 그린다. 안 기다리면 화면에 열쇠 이름이 뜬다. */
         build: function (container: HTMLElement): void {
           void loadNamespace('worldclock').then(function () {
             draw(container);
@@ -134,23 +134,23 @@ import { readInvocation } from '../../lib/tool-url';
           const search = $<HTMLInputElement>('#wcSearch');
           const list = $<HTMLElement>('#wcList');
           const status = $<HTMLElement>('#wcStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다. */
           markLive(status);
 
           baseSel.innerHTML = ZONES.map(
-            ([z, key, region]) => `<option value="${z}">${esc(cityName(key))} · ${esc(regionName(region))}</option>`
+            ([z, key, region]) => `<option value="${z}">${esc(cityName(key))}, ${esc(regionName(region))}</option>`
           ).join('');
           baseSel.value = 'Asia/Seoul';
 
           /** 적힌 벽시계 시각(YYYY-MM-DDTHH:mm)을 그 도시 기준으로 읽어 실제 순간을 낸다. */
-          /* 벽시계 ↔ 순간 변환도 알맹이가 한다 — 서머타임 경계에서 한 번만 접근하면 어긋난다
+          /* 벽시계 ↔ 순간 변환도 알맹이가 한다. 서머타임 경계에서 한 번만 접근하면 어긋난다
              (`core/worldclock.ts`, TASK-KL-205). */
           const wallToInstant = wallToInstantCore;
 
           function render(): void {
             /* 적어 넣은 시각은 **기준 도시의 벽시계 시각**이다. 예전에는 `new Date(값)` 으로 읽어
-               *브라우저가 있는 시간대*로 해석했다 — 기준 도시가 서울인데 브라우저가 베를린이면
-               표 전체가 8시간씩 어긋났다. 화면 라벨은 「기준 도시 / 기준 시각」이라 사람은 도시
+               *브라우저가 있는 시간대*로 해석했다. 기준 도시가 서울인데 브라우저가 베를린이면
+               표 전체가 8시간씩 어긋났다. 화면 라벨은 기준 도시 / 기준 시각이라 사람은 도시
                기준으로 적는데, 결과만 조용히 다른 값이 나왔다.
                고치는 법: 적힌 벽시계 시각을 UTC 로 가정해 한 번 읽고, 그 시점 기준 도시의 오프셋을
                빼서 실제 순간을 얻는다. 서머타임 경계에서 흔들리지 않게 두 번 접는다. */
@@ -170,7 +170,7 @@ import { readInvocation } from '../../lib/tool-url';
                 const city = cityName(key);
                 const country = regionName(region);
                 const diff = (offsetMinutes(z, at) - baseOff) / 60;
-                /* 45분·30분짜리 시간대(네팔 +5:45, 인도 +5:30)를 `+5.8시간` 처럼 적으면 아무도 못 읽는다.
+                /* 45분, 30분짜리 시간대(네팔 +5:45, 인도 +5:30)를 `+5.8시간` 처럼 적으면 아무도 못 읽는다.
                    시간과 분으로 적는다. */
                 const diffMin = offsetMinutes(z, at) - baseOff;
                 const sign = diffMin> 0 ? '+' : '-';

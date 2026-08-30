@@ -5,7 +5,7 @@
 }
 
 /**
- * 채팅 스타일 변수 — chat-theme.css 에서 덮어쓸 수 있음.
+ * 채팅 스타일 변수. chat-theme.css 에서 덮어쓸 수 있음.
  */
 :root {
   --chat-font-family:
@@ -37,7 +37,7 @@ body {
   height: 100%;
   overflow: hidden;
   background: transparent;
-  /* 채팅용 변수(--chat-font-*)는 .log 에만 적용 — body에 두면 스타일 패널·손잡이까지 깨짐 */
+  /* 채팅용 변수(--chat-font-*)는 .log 에만 적용. body에 두면 스타일 패널, 손잡이까지 깨짐 */
   font-family: system-ui, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -161,7 +161,7 @@ body.layout-edit .resize-handle {
 }
 
 /* ---------- 옵션: 닉 숨김 / 줄마다 검정 배경 (em → 글자 크기에 비례) ----------
-   반드시 #log 안만 — body 전역 .line 에 걸리면 스타일 패널 미리보기가 깨짐 */
+   반드시 #log 안만. body 전역 .line 에 걸리면 스타일 패널 미리보기가 깨짐 */
 body.chat-opt-hide-author #log .author {
   display: none !important;
 }
@@ -396,7 +396,7 @@ body.chat-opt-text-center.chat-opt-line-dark-bg #log .line {
   line-height: 1.4;
 }
 
-/* 체크박스 행은 span 이 두 번째(라벨) — :first-child 로 잡으면 안 됨 */
+/* 체크박스 행은 span 이 두 번째(라벨). :first-child 로 잡으면 안 됨 */
 .theme-editor__row:not(.theme-editor__row--check) > span:first-of-type {
   color: rgba(255, 255, 255, 0.65);
 }

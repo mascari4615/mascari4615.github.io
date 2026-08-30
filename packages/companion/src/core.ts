@@ -13,7 +13,7 @@ import type {
 } from './types';
 
 export interface CompanionOptions {
-  /** 몸 — 여러 개 동시에 붙일 수 있다. 하나가 죽어도 나머지는 산다. */
+  /** 몸. 여러 개 동시에 붙일 수 있다. 하나가 죽어도 나머지는 산다. */
   bodies: readonly Body[];
   brain: Brain;
   memory: Memory;
@@ -21,53 +21,53 @@ export interface CompanionOptions {
   /** 두뇌에 넘길 최근 기억 개수. */
   recallSize?: number;
   /**
-   * 누구인가. 코어는 내용을 해석하지 않고 두뇌에 그대로 넘긴다 — 인격이 코어에
-   * 스며들면 「인격을 바꾸려면 코어를 고쳐야 하는」 구조가 되기 때문이다.
+   * 누구인가. 코어는 내용을 해석하지 않고 두뇌에 그대로 넘긴다. 인격이 코어에
+   * 스며들면 인격을 바꾸려면 코어를 고쳐야 하는 구조가 되기 때문이다.
    */
   character?: Character;
   /**
    * 지금이 몇 시인지. 코어가 `Date.now()` 를 직접 부르지 않는 이유는, 시각이 판단 근거이기
-   * 때문이다 — attention 이 「방금 말했나」를 기억의 시각으로 재므로, 시계를 주입할 수
+   * 때문이다. attention 이 방금 말했나를 기억의 시각으로 재므로, 시계를 주입할 수
    * 없으면 그 판단을 시험할 방법도 없다.
    */
   now?: () => number;
   /**
    * 말 말고 실제로 할 수 있는 일. 두뇌가 말 속에 표시를 남기면 코어가 걸러서 실행한다.
-   * 표시는 사람에게 보이지 않는다 — 손을 쓴 흔적이 대화를 어지럽히지 않게.
+   * 표시는 사람에게 보이지 않는다. 손을 쓴 흔적이 대화를 어지럽히지 않게.
    */
   hands?: readonly Hand[];
   /**
    * 이 채널에서 말이 들어오면 하던 말을 끊는다.
    *
    * 사람이 말을 거는데 계속 떠드는 건 대화가 아니다. 곁에 있는 존재라면 말을 멈추고
-   * 새로 듣는다 — 실제 대화가 그렇다.
+   * 새로 듣는다. 실제 대화가 그렇다.
    */
   interruptChannels?: readonly string[];
   /**
    * 끊어도 되는지 **내용까지** 보고 정한다. 안 주면 통로만 본다(예전 그대로).
    *
-   * 통로만 보면 「응」 한마디에도 하던 말이 잘린다 — 맞장구는 말을 끊으려는 게 아니라
+   * 통로만 보면 응 한마디에도 하던 말이 잘린다. 맞장구는 말을 끊으려는 게 아니라
    * 듣고 있다는 신호다(47회차).
    */
   urgentWhen?: (sensation: Sensation) => boolean;
   /**
    * 지금 기분을 한 줄로 만들어 주는 쪽. 없으면 기분 없이 간다.
    *
-   * 「대화가 매번 똑같다」가 동반자 앱 이탈 1위 이유다(조사). 기억을 잘해도 매번 같은
+   * 대화가 매번 똑같다가 동반자 앱 이탈 1위 이유다(조사). 기억을 잘해도 매번 같은
    * 상태로 같은 말을 하면 살아 있다고 느껴지지 않는다.
    */
   mood?: (recent: readonly MemoryEntry[]) => string;
   /**
    * 옛 기억을 **자동으로** 찾아 붙인다.
    *
-   * 두뇌더러 「필요하면 찾아봐라」 하는 방식은 실패했다 — 안내를 아무리 조여도 안 썼고,
+   * 두뇌더러 필요하면 찾아봐라 하는 방식은 실패했다. 안내를 아무리 조여도 안 썼고,
    * 인격을 빼도 마찬가지였다(실측). 찾을지 말지를 판단에 맡기지 않고 매번 찾아서
    * 재료로 얹는다. 없으면 빈 손으로 돌아올 뿐이라 손해가 없다.
    */
   /**
    * 두뇌를 부르기 **전에** 미리 찾아 두는 자리.
    *
-   * 옛 대화를 뒤지는 데 쓰다가, 손도 여기로 온다(43회차) — 두뇌더러 표를 적어 손을 부르라고
+   * 옛 대화를 뒤지는 데 쓰다가, 손도 여기로 온다(43회차). 두뇌더러 표를 적어 손을 부르라고
    * 하면 인격과 부딪혀 아예 안 쓴다. 그래서 **판단을 두뇌에 안 맡기고** 여기서 미리 쓴다.
    * 손은 시간이 걸리므로 기다릴 수 있어야 한다.
    */
@@ -76,16 +76,16 @@ export interface CompanionOptions {
     recent: readonly MemoryEntry[],
   ) => readonly string[] | Promise<readonly string[]>;
   /**
-   * 지금 눈에 보이는 것을 내주는 자리 — 매 turn 한 번 물어 두뇌 앞에 놓는다.
+   * 지금 눈에 보이는 것을 내주는 자리. 매 turn 한 번 물어 두뇌 앞에 놓는다.
    *
    * 코어는 그림이 어디서 오는지 모른다(화면일 수도, 카메라일 수도). 없으면 없는 채로 간다.
-   * 오래 걸리면 대답이 그만큼 늦으므로, 내주는 쪽이 「묵었으면 새로 찍는다」까지 책임진다.
+   * 오래 걸리면 대답이 그만큼 늦으므로, 내주는 쪽이 묵었으면 새로 찍는다까지 책임진다.
    */
   seeing?: () => { imagePath: string; text: string } | null | Promise<{ imagePath: string; text: string } | null>;
   /**
    * 되돌릴 수 없는 손을 쓰기 전에 사람에게 묻는 자리.
    *
-   * 없으면 그런 손은 **안 쓴다** — 모르면 안전 쪽으로. 되돌릴 수 있는 손(읽기·찾기)은
+   * 없으면 그런 손은 **안 쓴다**. 모르면 안전 쪽으로. 되돌릴 수 있는 손(읽기, 찾기)은
    * 여기까지 오지 않는다(다 물으면 아무도 안 읽는다).
    */
   askBeforeRisky?: HandGate;
@@ -93,18 +93,18 @@ export interface CompanionOptions {
    * 답이 늦어질 때 낼 뜸을 골라 준다. 없으면 뜸을 안 낸다.
    *
    * 답을 빠르게 만드는 건 우리 손 밖이었다. 비어 있는 시간을 죽어 있지 않게 하는 건
-   * 우리 몫이다 — 같은 지연도 뜸이 있으면 절반쯤으로 느껴진다.
+   * 우리 몫이다. 같은 지연도 뜸이 있으면 절반쯤으로 느껴진다.
    */
   /**
    * 생각하기 전에 나가는 반응. 답을 돌려주면 두뇌를 아예 안 부른다.
    *
-   * 「고마워」 한마디에 10초를 기다리는 건 대화가 아니다. 사람은 인사에 생각 없이 답한다.
-   * 조금이라도 애매하면 null 을 돌려주고 두뇌로 넘겨야 한다 — 정해진 말만 하면 그게 더
+   * 고마워 한마디에 10초를 기다리는 건 대화가 아니다. 사람은 인사에 생각 없이 답한다.
+   * 조금이라도 애매하면 null 을 돌려주고 두뇌로 넘겨야 한다. 정해진 말만 하면 그게 더
    * 기계 같다.
    */
   reflex?: (sensation: Sensation) => string | null;
   /**
-   * 입 앞의 관문 — 말하기 전에 한 번 거친다. null 을 돌려주면 그 말은 안 한다.
+   * 입 앞의 관문. 말하기 전에 한 번 거친다. null 을 돌려주면 그 말은 안 한다.
    *
    * 기억에 남기기도 **전에** 부른다. 안 할 말을 기억에 남기면 다음 번 재료가 되어 굳는다.
    */
@@ -114,14 +114,14 @@ export interface CompanionOptions {
       sensation: Sensation;
       input: ThinkInput;
       usedHands: readonly string[];
-      /** 이번에 미리 찾아본 것 — 「안 보고 지어낸 값」을 가리려면 이게 있어야 한다. */
+      /** 이번에 미리 찾아본 것. 안 보고 지어낸 값을 가리려면 이게 있어야 한다. */
       found: readonly string[];
     },
   ) => string | null | Promise<string | null>;
   filler?: () => string | null;
   /** 이만큼 지나도 답이 안 나오면 뜸을 낸다. 빨리 오면 안 낸다. */
   fillerAfterMs?: number;
-  /** 한 바퀴 돌 때마다 호출 — 로그·테스트 훅. */
+  /** 한 바퀴 돌 때마다 호출. 로그, 테스트 훅. */
   onCycle?: (report: CycleReport) => void;
 }
 
@@ -137,26 +137,26 @@ export class Companion {
   private readonly options: CompanionOptions;
   private readonly bodyByChannel = new Map<string, Body>();
   /**
-   * 기다리는 감각들. 한 번에 하나씩 처리한다 — 기억 타임라인이 엉키지 않게.
+   * 기다리는 감각들. 한 번에 하나씩 처리한다. 기억 타임라인이 엉키지 않게.
    *
    * 다만 **사람이 건넨 말은 맨 앞에 세운다.** 화면을 보는 일처럼 오래 걸리는 것이 돌고
    * 있으면 내 말이 그 뒤에서 기다렸다(실측: 첫 소리까지 35초). 곁에 있는 사람이 딴 일
    * 하느라 내 말을 못 듣는 건 곁에 있는 게 아니다.
    */
-  /** 판을 몇 번 돌았나 — 판 이름의 씨앗. */
+  /** 판을 몇 번 돌았나. 판 이름의 씨앗. */
   private turns = 0;
   private waiting: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
   private working = false;
   /**
-   * **줄이 둘이다** — 사람 말(말 줄)과 나머지(일 줄).
+   * **줄이 둘이다**. 사람 말(말 줄)과 나머지(일 줄).
    *
-   * 8회차에 「사람 말 앞지르기」로 35.5초를 18.3초까지 줄였는데, 그건 *줄 서 있는 것들*
+   * 8회차에 사람 말 앞지르기로 35.5초를 18.3초까지 줄였는데, 그건 *줄 서 있는 것들*
    * 사이에서 앞으로 보내는 수였다. **이미 돌고 있는** 무거운 일 뒤에서는 여전히 통째로
    * 기다렸다(실측 2026-08-08: 3초짜리 일이 돌 때 2793ms). 곁에 있는 사람이 딴 일 하느라
    * 내 말을 못 듣는 건 곁에 있는 게 아니다.
    *
    * 그래서 줄을 갈랐다. 말 줄은 일 줄이 무엇을 하든 **바로 시작한다.** 대신 두뇌는 하나뿐이라
-   * 일 줄은 **말 줄이 비어 있을 때만 새 turn 을 연다** — 둘이 동시에 두뇌를 부르면 자원이
+   * 일 줄은 **말 줄이 비어 있을 때만 새 turn 을 연다**. 둘이 동시에 두뇌를 부르면 자원이
    * 겹치고, 무엇보다 사람 말이 또 밀린다.
    */
   private workLines: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
@@ -188,7 +188,7 @@ export class Companion {
     await this.drain();
   }
 
-  /** 처리 중인 감각이 모두 끝날 때까지 대기 (테스트·데모 종료용). */
+  /** 처리 중인 감각이 모두 끝날 때까지 대기 (테스트, 데모 종료용). */
   async drain(): Promise<void> {
     while (this.working || this.waiting.length > 0 || this.workBusy || this.workLines.length > 0) {
       await new Promise((r) => setTimeout(r, 5));
@@ -201,14 +201,14 @@ export class Companion {
   }
 
   /**
-   * 누구인지 바꾼다. 기억은 그대로 둔다 — 인격이 바뀌었다고 함께 지낸 시간까지
+   * 누구인지 바꾼다. 기억은 그대로 둔다. 인격이 바뀌었다고 함께 지낸 시간까지
    * 없던 일이 되지는 않는다.
    */
   setCharacter(character: Character | undefined): void {
     this.options.character = character;
   }
 
-  /** 몸 없이 감각 하나를 직접 밀어넣는다 — 테스트와 외부 트리거용. */
+  /** 몸 없이 감각 하나를 직접 밀어넣는다. 테스트와 외부 트리거용. */
   feed(sensation: Sensation): Promise<void> {
     const body = this.bodyByChannel.get(sensation.channel) ?? null;
     return this.enqueue(body, sensation);
@@ -239,7 +239,7 @@ export class Companion {
     });
   }
 
-  /** 말 줄 — 사람이 건넨 말. 일 줄이 무엇을 하든 바로 시작한다. */
+  /** 말 줄. 사람이 건넨 말. 일 줄이 무엇을 하든 바로 시작한다. */
   private async pump(): Promise<void> {
     if (this.working) return;
     this.working = true;
@@ -258,7 +258,7 @@ export class Companion {
   }
 
   /**
-   * 일 줄 — 화면 보기·되새김처럼 사람이 기다리지 않는 것들.
+   * 일 줄. 화면 보기, 되새김처럼 사람이 기다리지 않는 것들.
    *
    * **말 줄이 비어 있을 때만 새 turn 을 연다.** 두뇌가 하나뿐이라 겹치면 사람 말이 또
    * 밀린다. 이미 돌고 있는 일은 못 끊지만(찍고 옮기는 중이면 어차피 끊을 게 없다),
@@ -269,7 +269,7 @@ export class Companion {
     this.workBusy = true;
     try {
       while (this.workLines.length > 0) {
-        if (this.working || this.waiting.length > 0) break; // 사람이 말하는 중 — 양보한다
+        if (this.working || this.waiting.length > 0) break; // 사람이 말하는 중. 양보한다
         const next = this.workLines.shift();
         if (next === undefined) break;
         await this.cycle(next.body, next.sensation);
@@ -282,23 +282,23 @@ export class Companion {
 
   private async cycle(body: Body | null, sensation: Sensation): Promise<void> {
     const { brain, memory, attention } = this.options;
-    /* **한 판에 이름을 하나.** 흩어진 로그(손·두뇌·입·말함)를 이 실로 꿴다.
-       짧게 — 로그 앞에 붙는 것이라 길면 줄을 덮는다. */
+    /* **한 판에 이름을 하나.** 흩어진 로그(손, 두뇌, 입, 말함)를 이 실로 꿴다.
+       짧게. 로그 앞에 붙는 것이라 길면 줄을 덮는다. */
     const turn = (this.turns += 1).toString(36).padStart(3, '0').slice(-4);
     const onCycle = this.options.onCycle === undefined
       ? undefined
       : (report: CycleReport) => this.options.onCycle?.({ turn, ...report });
     const recallSize = this.options.recallSize ?? 10;
 
-    /* 시험이 만든 감각은 기억에 안 담는다 — 사람의 상이 검사 찌꺼기로 만들어지면 안 된다.
-       처리는 그대로 한다(대답·반응). 담기지만 않는다. */
+    /* 시험이 만든 감각은 기억에 안 담는다. 사람의 상이 검사 찌꺼기로 만들어지면 안 된다.
+       처리는 그대로 한다(대답, 반응). 담기지만 않는다. */
     if (sensation.test !== true) {
       await memory.remember({
         role: 'sensed',
         channel: sensation.channel,
         text: sensation.text,
         at: sensation.at,
-        // 누가 한 말인지 같이 담는다 — 여럿이 있는 자리에서는 이게 없으면 독백이 된다.
+        // 누가 한 말인지 같이 담는다. 여럿이 있는 자리에서는 이게 없으면 독백이 된다.
         ...(sensation.who === undefined ? {} : { who: sensation.who }),
       });
     }
@@ -312,7 +312,7 @@ export class Companion {
       character: this.options.character,
       mood: this.options.mood?.(recent),
       found: await this.options.recall?.(sensation, recent),
-      // 눈은 매 turn 뜬다 — 물어본 그 순간에 감겨 있으면 창 제목으로 답하게 된다.
+      // 눈은 매 turn 뜬다. 물어본 그 순간에 감겨 있으면 창 제목으로 답하게 된다.
       seeing: (await this.options.seeing?.()) ?? null,
       turn,
     };
@@ -332,7 +332,7 @@ export class Companion {
 
     const target = body ?? this.bodyByChannel.get(sensation.channel) ?? null;
 
-    // 생각 없이 답해도 되는 말이면 여기서 끝낸다 — 두뇌를 안 부르므로 즉답이고,
+    // 생각 없이 답해도 되는 말이면 여기서 끝낸다. 두뇌를 안 부르므로 즉답이고,
     // 구독 할당량도 안 먹는다.
     const knee = this.options.reflex?.(sensation) ?? null;
     if (knee !== null && knee !== '') {
@@ -353,7 +353,7 @@ export class Companion {
     const mine = { cancelled: false };
     this.inFlight = mine;
 
-    /* 답이 늦으면 뜸을 낸다 — 빨리 오면 아무 일도 안 일어난다.
+    /* 답이 늦으면 뜸을 낸다. 빨리 오면 아무 일도 안 일어난다.
        뜸이 늘 나오면 그게 더 기계 같으므로, 실제로 늦을 때만. */
     let hummed = false;
     const fillerTimer = this.options.filler === undefined || target?.voice.filler === undefined
@@ -379,7 +379,7 @@ export class Companion {
           // **글자가 나온 것과 소리가 난 것은 다르다.**
           //
           // 예전엔 여기서 뜸을 껐다. 글자는 금방 흐르기 시작하지만 소리는 만드는 데
-          // 시간이 걸린다 — 목소리를 흉내 내는 쪽으로 바꾸자 그 사이가 2초로 벌어졌고,
+          // 시간이 걸린다. 목소리를 흉내 내는 쪽으로 바꾸자 그 사이가 2초로 벌어졌고,
           // 그 2초를 메우라고 만든 뜸이 정작 그때 꺼져 있었다. 뜸은 **소리가 실제로 날
           // 때까지** 살려 둔다. 이미 소리가 나가는 중이면 창이 알아서 삼킨다.
           soFar += chunk;
@@ -393,7 +393,7 @@ export class Companion {
     } catch (e) {
       stopHumming();
       this.inFlight = null;
-      // 끊긴 바퀴가 남긴 에러는 사고가 아니다 — 우리가 끊었으니까.
+      // 끊긴 바퀴가 남긴 에러는 사고가 아니다. 우리가 끊었으니까.
       if (mine.cancelled === false) onCycle?.({ sensation, decision, utterance: null, error: asError(e) });
       return;
     }
@@ -407,8 +407,8 @@ export class Companion {
 
     // 말 속의 손 표시를 걷어내고, 걷어낸 일들을 실제로 한다.
     //
-    // **무슨 손을 썼는지 기억해 둔다.** 입 앞 관문이 「안 한 걸 했다고 말하는지」를 보려면
-    // 이걸 알아야 한다 — 표는 여기서 이미 걷어내지므로 뒤에서는 알 길이 없다.
+    // **무슨 손을 썼는지 기억해 둔다.** 입 앞 관문이 안 한 걸 했다고 말하는지를 보려면
+    // 이걸 알아야 한다. 표는 여기서 이미 걷어내지므로 뒤에서는 알 길이 없다.
     const writer: string[] = [];
     const hands = this.options.hands ?? [];
     if (text !== null && hands.length > 0) {
@@ -445,7 +445,7 @@ export class Companion {
       return;
     }
 
-    // 입 앞의 관문 — 말하기 **전에** 한 번 거친다.
+    // 입 앞의 관문. 말하기 **전에** 한 번 거친다.
     //
     // 표류 감시는 새고 나서 다음 번에 짚어 준다. 그건 이미 조수님이 그 말을 들은 뒤다.
     // 여기서 막으면 애초에 그 말이 나가지 않는다. 관문이 없으면 그냥 지나간다.
@@ -458,14 +458,14 @@ export class Companion {
         }
         text = filtered;
       } catch (e) {
-        // 관문이 고장 나도 입을 막지는 않는다 — 말 못 하는 것보다 새는 편이 낫다.
+        // 관문이 고장 나도 입을 막지는 않는다. 말 못 하는 것보다 새는 편이 낫다.
         onCycle?.({ sensation, decision, utterance: null, error: asError(e) });
       }
     }
 
     const now = this.options.now ?? Date.now;
     const utterance: Utterance = { text: text.trim(), channel: sensation.channel, at: now() };
-    // 시험에 대고 한 말도 기억에 안 담는다 — 담기면 그게 다음 재료가 되어 결이 굳는다.
+    // 시험에 대고 한 말도 기억에 안 담는다. 담기면 그게 다음 재료가 되어 결이 굳는다.
     if (sensation.test !== true) {
       await memory.remember({ role: 'said', channel: utterance.channel, text: utterance.text, at: utterance.at, via: 'brain' });
     }

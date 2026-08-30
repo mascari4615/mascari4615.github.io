@@ -1,7 +1,7 @@
 /**
- * 내 정보 — 프로필 · 성과 · 활동 · 계정 (TASK-KL-139).
+ * 내 정보. 프로필, 성과, 활동, 계정 (TASK-KL-139).
  *
- * 환경 설정(테마·API 키·저장소)은 여기 없다 → `widgets/settings.ts`.
+ * 환경 설정(테마, API 키, 저장소)은 여기 없다 → `widgets/settings.ts`.
  */
 import { t, loadNamespace, locale } from '../lib/i18n';
 import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
@@ -25,7 +25,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         source: string;
         /**
          * 얼마나 왔나를 셀 수 있는 것만 (TASK-KL-175 E7).
-         * `track` = 누적 카운터 이름, `goal` = 목표치. 없으면 잠김/열림 두 상태 그대로다 —
+         * `track` = 누적 카운터 이름, `goal` = 목표치. 없으면 잠김/열림 두 상태 그대로다 . 
          * 셀 수 없는 것에 가짜 막대를 그리지 않는다.
          */
         track?: string;
@@ -93,7 +93,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
         .user-link { font-size:var(--font-size-sm); color:var(--accent); text-decoration:none; }
         .user-link:hover { text-decoration:underline; }
-        /* 계정 자리 (TASK-KL-098)— 서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
+        /* 계정 자리 (TASK-KL-098).  서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
         .user-account-slot:empty { display:none; }
         .user-account-card { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;
             margin-top:16px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; background:var(--bg-secondary); }
@@ -134,7 +134,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-account-btn-danger:hover { background:rgba(220,38,38,.12); }
         .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent); }
 
-        /* 신원 배지 (TASK-KL-139) — 「내 정보」의 나와 「계정」의 나는 한 사람이다.
+        /* 신원 배지 (TASK-KL-139). 내 정보의 나와 계정의 나는 한 사람이다.
            두 칸으로 나뉘어 있으면 로그인한 뒤에도 위쪽에는 여전히 남이 서 있다. */
         .user-id { display:flex; align-items:center; gap:20px; flex-wrap:wrap;
             padding:22px 24px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-lg); }
@@ -155,8 +155,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-stat b { display:block; font-size:20px; font-weight:700; color:var(--accent); font-family:var(--font-mono, monospace); }
         .user-stat span { display:block; margin-top:2px; font-size:var(--font-size-xs); color:var(--text-secondary); }
 
-        /* 잔디 (TASK-KL-152 C2) — 세로 7칸(일~토)으로 흘러 한 열이 한 주다.
-           안 온 날과 「둘러보기만 한 날」을 다르게 칠한다: 둘을 같게 칠하면 온 날이 사라진다. */
+        /* 잔디 (TASK-KL-152 C2). 세로 7칸(일~토)으로 흘러 한 열이 한 주다.
+           안 온 날과 둘러보기만 한 날을 다르게 칠한다: 둘을 같게 칠하면 온 날이 사라진다. */
         .fp-recap { margin-bottom:14px; }
         .fp-grass { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7, 11px);
             gap:3px; overflow-x:auto; padding:4px 0 8px; }
@@ -185,7 +185,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .fp-session-when, .fp-event-when { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
         .fp-event-meta { flex:2 1 160px; font-size:11px; color:var(--text-secondary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        /* 얼마나 왔나 (TASK-KL-175 E7) — 잠긴 것에만 붙는다. 연 것에 막대는 뜻이 없다. */
+        /* 얼마나 왔나 (TASK-KL-175 E7). 잠긴 것에만 붙는다. 연 것에 막대는 뜻이 없다. */
         .user-item-progress { position:relative; height:14px; margin-top:8px; border-radius:999px;
             background:var(--bg-secondary); overflow:hidden; }
         .user-item-progress i { display:block; height:100%; background:var(--accent); opacity:.55; }
@@ -220,8 +220,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     /**
      * 프로필 (TASK-KL-139).
      *
-     * 예전에는 이 화면 맨 위에 「Toolbox 사용자 👤」가 서 있고, **그 아래 따로** 계정 칸이 있었다.
-     * 로그인을 해도 위쪽은 여전히 남이었다 — 한 사람을 두 칸으로 그리면 둘 중 하나는 늘 거짓말이다.
+     * 예전에는 이 화면 맨 위에 Toolbox 사용자 👤가 서 있고, **그 아래 따로** 계정 칸이 있었다.
+     * 로그인을 해도 위쪽은 여전히 남이었다. 한 사람을 두 칸으로 그리면 둘 중 하나는 늘 거짓말이다.
      * 이제 신원 배지는 하나뿐이고, 로그인하면 그 배지가 곧 내 계정이다.
      */
     function buildProfile(container: HTMLElement): void {
@@ -273,9 +273,9 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     }
 
     /**
-     * 신원 배지 — 로그인 여부에 따라 **같은 자리**가 달라진다 (칸이 새로 생기지 않는다).
+     * 신원 배지. 로그인 여부에 따라 **같은 자리**가 달라진다 (칸이 새로 생기지 않는다).
      *
-     * 서버에 못 닿으면 이름·마스코트만 남고 단추가 사라진다. 눌러도 아무 일 없는 단추가 제일 나쁘다.
+     * 서버에 못 닿으면 이름, 마스코트만 남고 단추가 사라진다. 눌러도 아무 일 없는 단추가 제일 나쁘다.
      */
     function mountIdentity(slot: HTMLElement | null): void {
         if (!slot) return;
@@ -284,7 +284,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             paintIdentity(slot, null);
             return;
         }
-        /*  로 막으면 안 된다 (실측): 위젯은 패널을 **DOM 에 붙이기 전에** 그린다 —
+        /*  로 막으면 안 된다 (실측): 위젯은 패널을 **DOM 에 붙이기 전에** 그린다 . 
          * 첫 호출이 그 검사에 걸려 한 번도 안 그려지고, 상태가 더 바뀌지 않으면 영영 빈칸이었다.
          * 대신 화면이 갈릴 때 구독을 끊는다(핫리로드 규약과 같은 자리). */
         const off = account.subscribe((state) => paintIdentity(slot, state));
@@ -300,7 +300,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         const avatar = me && account ? account.avatarUrl(me.avatarPath) : null;
 
         const sub = me
-            ? `@${escapeHtml(me.handle)} · <a href="${escapeHtml(me.profileUrl)}">${esc(t('user.t02'))}</a>`
+            ? `@${escapeHtml(me.handle)}, <a href="${escapeHtml(me.profileUrl)}">${esc(t('user.t02'))}</a>`
             : canOffer
               ? t('user.t96')
               : t('user.t97');
@@ -311,7 +311,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
                 <div class="user-id-main">
                     <h2>${escapeHtml(me ? me.displayName : t('user.t98'))}</h2>
                     <p class="user-id-sub">${sub}</p>
-                    <p class="user-id-mascot">${esc(t('user.t03'))} <strong style="color:var(--secondary)">${Mdd.getRelationshipTitle()}</strong> · 호감도 ${Mdd.getAffection()}</p>
+                    <p class="user-id-mascot">${esc(t('user.t03'))} <strong style="color:var(--secondary)">${Mdd.getRelationshipTitle()}</strong>, 호감도 ${Mdd.getAffection()}</p>
                 </div>
                 <div class="user-id-actions">
                     ${me ? t('user.t99') : ''}
@@ -328,8 +328,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     /**
      * 서버가 들고 있는 내 것 (TASK-KL-098).
      *
-     * 지금까지 「내 정보」는 **이 브라우저 안의 것**만 보여 줬다. 그런데 내가 쓴 글·답글은
-     * 서버에 있고, 그건 남의 공개 프로필에서만 볼 수 있었다 — 내 것을 남의 화면으로 봐야 했다.
+     * 지금까지 내 정보는 **이 브라우저 안의 것**만 보여 줬다. 그런데 내가 쓴 글, 답글은
+     * 서버에 있고, 그건 남의 공개 프로필에서만 볼 수 있었다. 내 것을 남의 화면으로 봐야 했다.
      *
      * 로그인 안 했거나 서버에 못 닿으면 **아무것도 안 그린다**. 여기 없는 게 정상인 상태다.
      */
@@ -337,7 +337,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         if (!slot) return;
         const account = window.KarmoAccount;
         if (!account) return;
-        // 로그인 상태는 처음엔 「아직 모름」이다. 한 번만 물어보면 늘 「없음」으로 끝난다.
+        // 로그인 상태는 처음엔 아직 모름이다. 한 번만 물어보면 늘 없음으로 끝난다.
         let drawnFor: string | null = null;
         const off = account.subscribe((state) => {
             const handle = state.account?.handle ?? null;
@@ -389,7 +389,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         slot.innerHTML = `
             <div class="user-section">
                 <h3>${esc(t('user.t04'))}</h3>
-                <p class="user-act-lead">글 ${posts.length}개 · 답글 ${replies.length}개 — 이건 기기를 바꿔도 남습니다.</p>
+                <p class="user-act-lead">글 ${posts.length}개, 답글 ${replies.length}개. 이건 기기를 바꿔도 남습니다.</p>
                 <div class="user-acts">${rows}</div>
                 <a class="user-act-more" href="${profilePath(handle)}">${esc(t('user.t05'))}</a>
             </div>`;
@@ -398,7 +398,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     /**
      * 계정 탭 (TASK-KL-098 → KL-135).
      *
-     * 서버에 못 닿으면 **아무것도 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+     * 서버에 못 닿으면 **아무것도 안 그린다**. 눌러도 아무 일 없는 단추가 제일 나쁘다.
      * 로그인은 기록을 옮기는 일이지 기능을 여는 일이 아니므로, 없어도 화면이 멀쩡해야 한다.
      */
     function buildAccount(container: HTMLElement): void {
@@ -461,8 +461,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
      * 계정을 **내 것으로** 다루는 자리 (TASK-KL-098).
      *
      * 지금까지 할 수 있는 일이 로그아웃 하나였다. 이름은 디스코드에서 온 것으로 고정이고,
-     * 내 기록을 가지고 나갈 방법도, 그만두는 방법도 없었다. 「기록이 남는다」는 약속은
-     * **가지고 나갈 수 있고 지울 수 있을 때** 비로소 약속이 된다 — 못 가지고 나가는 기록은
+     * 내 기록을 가지고 나갈 방법도, 그만두는 방법도 없었다. 기록이 남는다는 약속은
+     * **가지고 나갈 수 있고 지울 수 있을 때** 비로소 약속이 된다. 못 가지고 나가는 기록은
      * 맡긴 것이 아니라 잡힌 것이다.
      */
     function mountAccountTools(slot: Element, displayName: string): void {
@@ -504,7 +504,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             </div>
             <div class="user-acct-row">
                 <span class="user-acct-label">${esc(t('user.t25'))}</span>
-                <span class="user-acct-value" data-link-out>—</span>
+                <span class="user-acct-value" data-link-out>. </span>
                 <button type="button" class="user-account-btn user-account-btn-quiet" data-link-new>${esc(t('user.t26'))}</button>
                 <span class="user-acct-hint">${esc(t('user.t27'))}</span>
             </div>
@@ -611,7 +611,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
                 const body = (await res.json()) as { codes: string[] };
                 const out = box.querySelector<HTMLElement>('[data-recovery-out]');
                 if (!out) return;
-                // 여기서 못 옮겨 적으면 영영 못 본다 — 그 사실을 화면에도 적는다.
+                // 여기서 못 옮겨 적으면 영영 못 본다. 그 사실을 화면에도 적는다.
                 out.hidden = false;
                 out.innerHTML =
                     t('user.t110') +
@@ -677,17 +677,17 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     }
 
     /**
-     * 활동 (TASK-KL-152 C2·C3).
+     * 활동 (TASK-KL-152 C2, C3).
      *
-     * 위 = **내 발자국**(잔디 + 돌아보기). 서버는 오래전부터 「어느 도구가 열렸나」를 세고
-     * 있었지만 익명 집계뿐이라 「내가 무엇을 했나」는 아무도 못 봤다 — 모으기만 하고
+     * 위 = **내 발자국**(잔디 + 돌아보기). 서버는 오래전부터 어느 도구가 열렸나를 세고
+     * 있었지만 익명 집계뿐이라 내가 무엇을 했나는 아무도 못 봤다. 모으기만 하고
      * 안 돌려주면 없는 것과 같다.
      * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
      */
     /**
      * 이번 주 미션 (TASK-KL-182 F1).
      *
-     * 발자국은 「무엇을 했나」를 보여 준다 — 미션은 그 옆에서 **무엇을 해 볼까**를 말한다.
+     * 발자국은 무엇을 했나를 보여 준다. 미션은 그 옆에서 **무엇을 해 볼까**를 말한다.
      * 도구가 160개면 고르는 것 자체가 일이라, 한 줄 제안이 있는 편이 낫다.
      * 로그인 안 했으면 안 그린다(진행도를 셀 수 없는 미션은 광고일 뿐이다).
      */
@@ -730,7 +730,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
 
         slot.innerHTML = `
             <div class="user-section">
-                <h3>${esc(t('user.t50'))} <span class="fp-season">시즌 ${body.seasonWeek}/4주차 · ${body.clearedThisWeek}/${body.missions.length} 깸</span></h3>
+                <h3>${esc(t('user.t50'))} <span class="fp-season">시즌 ${body.seasonWeek}/4주차, ${body.clearedThisWeek}/${body.missions.length} 깸</span></h3>
                 <div class="fp-missions">
                     ${body.missions
                         .map((mission) => {
@@ -748,10 +748,10 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     }
 
     /**
-     * 내 피드 (TASK-KL-152 C8) — 내가 따라가는 사람들이 남긴 것.
+     * 내 피드 (TASK-KL-152 C8). 내가 따라가는 사람들이 남긴 것.
      *
-     * 아무도 안 따라가면 **빈 목록이 아니라 「아직 없다」**다. 그 둘을 같게 그리면
-     * 「따라가는데 글이 없다」와 「아무도 안 따라간다」가 한 화면이 된다.
+     * 아무도 안 따라가면 **빈 목록이 아니라 아직 없다**다. 그 둘을 같게 그리면
+     * 따라가는데 글이 없다와 아무도 안 따라간다가 한 화면이 된다.
      */
     function mountFeed(slot: HTMLElement | null): void {
         if (!slot) return;
@@ -772,7 +772,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         Toolbox.onDispose?.(off);
     }
 
-    /** 내가 따라가는 사람 얼굴 줄 (TASK-KL-175 E5). 못 받아 오면 빈 문자열 — 피드는 그대로 뜬다. */
+    /** 내가 따라가는 사람 얼굴 줄 (TASK-KL-175 E5). 못 받아 오면 빈 문자열. 피드는 그대로 뜬다. */
     async function followRows(): Promise<string> {
         const base = window.KarmoAccount?.apiBase;
         const handle = window.KarmoAccount?.state.account?.handle;
@@ -818,7 +818,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         }
         if (!body || body.following === 0) {
             slot.innerHTML = '';
-            return; // 아무도 안 따라가면 이 자리는 통째로 없다 — 빈 상자를 두지 않는다.
+            return; // 아무도 안 따라가면 이 자리는 통째로 없다. 빈 상자를 두지 않는다.
         }
 
         const rows = body.posts
@@ -831,7 +831,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             })
             .join('');
 
-        // 누구를 따라가는지 얼굴로 보여 준다 (TASK-KL-175 E5) — 수만 보이면 계기판이지 사회가 아니다.
+        // 누구를 따라가는지 얼굴로 보여 준다 (TASK-KL-175 E5). 수만 보이면 계기판이지 사회가 아니다.
         const people = await followRows();
         slot.innerHTML = `
             <div class="user-section">
@@ -842,7 +842,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             </div>`;
     }
 
-    /** 사람이 읽는 상대 시각 — 「3일 전」이 「2026-08-05T…」보다 판단하기 쉽다. */
+    /** 사람이 읽는 상대 시각. 3일 전이 2026-08-05T...보다 판단하기 쉽다. */
     function whenText(iso: string | null): string {
         if (!iso) return t('user.t120');
         const then = new Date(iso).getTime();
@@ -860,8 +860,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     /**
      * 로그인한 기기 목록 (TASK-KL-152 C6).
      *
-     * 예전에는 「2곳」이라는 숫자 하나였다 — 그것만 보고는 끊을 결심을 못 한다.
-     * 무엇이 어디서 언제 쓰였는지가 보여야 「이건 내가 아니다」를 알아본다.
+     * 예전에는 2곳이라는 숫자 하나였다. 그것만 보고는 끊을 결심을 못 한다.
+     * 무엇이 어디서 언제 쓰였는지가 보여야 이건 내가 아니다를 알아본다.
      */
     async function renderSessions(slot: HTMLElement | null, base: string): Promise<void> {
         if (!slot) return;
@@ -906,7 +906,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         });
     }
 
-    /** 보안 기록 (TASK-KL-152 C7) — 남이 내 계정에 들어와도 알 방법이 지금까지 없었다. */
+    /** 보안 기록 (TASK-KL-152 C7). 남이 내 계정에 들어와도 알 방법이 지금까지 없었다. */
     /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 다섯 건).
        파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
        그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
@@ -932,7 +932,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             return;
         }
         if (!events.length) {
-            // 「없다」와 「못 봤다」를 구별해서 말한다.
+            // 없다와 못 봤다를 구별해서 말한다.
             slot.textContent = t('user.t132');
             return;
         }
@@ -942,7 +942,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
                 (event) => `
                 <div class="fp-event">
                     <span class="fp-event-kind">${escapeHtml(eventLabels()[event.kind] ?? event.kind)}</span>
-                    <span class="fp-event-meta">${escapeHtml([event.device, event.detail].filter(Boolean).join(' · '))}</span>
+                    <span class="fp-event-meta">${escapeHtml([event.device, event.detail].filter(Boolean).join(', '))}</span>
                     <span class="fp-event-when">${escapeHtml(whenText(event.at))}</span>
                 </div>`,
             )
@@ -952,7 +952,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     /**
      * 프로필 꾸미기 (TASK-KL-152 C5).
      *
-     * 고를 수 있는 도구는 **내가 실제로 쓴 것**에서 나온다 — 도구가 160개인데 목록을 통째로
+     * 고를 수 있는 도구는 **내가 실제로 쓴 것**에서 나온다. 도구가 160개인데 목록을 통째로
      * 늘어놓으면 아무도 안 고른다. 아직 아무것도 안 쓴 사람에겐 고를 것이 없다고 말한다.
      */
     async function mountCard(box: Element, base: string): Promise<void> {
@@ -984,7 +984,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
 
         if (bioInput) bioInput.value = card.bio;
 
-        // 이미 고른 것은 지금 안 쓰는 도구여도 목록에 남는다 — 안 그러면 저장한 것이 사라져 보인다.
+        // 이미 고른 것은 지금 안 쓰는 도구여도 목록에 남는다. 안 그러면 저장한 것이 사라져 보인다.
         const choices = [...new Set([...card.pins, ...usedTools])];
         if (pinSlot) {
             pinSlot.innerHTML = choices.length
@@ -1026,7 +1026,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
                     Toolbox.showToast?.(t('user.t105'));
                     return;
                 }
-                // 서버가 답한 목록으로 다시 칠한다 — 화면과 서버가 갈라지지 않게.
+                // 서버가 답한 목록으로 다시 칠한다. 화면과 서버가 갈라지지 않게.
                 pinSlot?.querySelectorAll<HTMLButtonElement>('[data-pin]').forEach((other) => {
                     other.classList.toggle('on', card.pins.includes(other.dataset.pin ?? ''));
                 });
@@ -1053,7 +1053,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     const NOTIFY_LABELS: Array<[string, string]> = [
         ['community', t('user.t136', undefined, '커뮤니티 안')],
         ['follow', t('user.t137', undefined, '사람 사이')],
-        ['system', t('user.t138', undefined, '그 밖(계정·도구·봇)')],
+        ['system', t('user.t138', undefined, '그 밖(계정, 도구, 봇)')],
     ];
 
     async function mountNotifyPrefs(slot: HTMLElement | null, base: string): Promise<void> {
@@ -1094,11 +1094,11 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
 
     /* ── 패스키 (TASK-KL-156 D7) ─────────────────────────────────────
      *
-     * 이 브라우저가 패스키를 모르면 **단추 자체를 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+     * 이 브라우저가 패스키를 모르면 **단추 자체를 안 그린다**. 눌러도 아무 일 없는 단추가 제일 나쁘다.
      */
     /* 반환형을 `Uint8Array<ArrayBuffer>` 로 못 박는다.
      * 기본형(`Uint8Array<ArrayBufferLike>`)은 공유 버퍼일 수도 있다고 보여서 `BufferSource`
-     * 자리에 못 넣는다 — 타입 검사가 통째로 빨개지고, 그러면 배포가 전부 멈춘다(TS 5.7+). */
+     * 자리에 못 넣는다. 타입 검사가 통째로 빨개지고, 그러면 배포가 전부 멈춘다(TS 5.7+). */
     function b64urlToBytes(value: string): Uint8Array<ArrayBuffer> {
         const padded = value.replace(/-/g, '+').replace(/_/g, '/');
         const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
@@ -1198,7 +1198,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
                 });
                 Toolbox.showToast?.(res.ok ? t('user.t146') : t('user.t147'));
             } catch {
-                // 사용자가 취소한 것과 고장은 다르지만, 둘 다 여기서는 「안 됐다」로 충분하다.
+                // 사용자가 취소한 것과 고장은 다르지만, 둘 다 여기서는 안 됐다로 충분하다.
                 Toolbox.showToast?.(t('user.t147'));
             } finally {
                 addButton.disabled = false;
@@ -1209,7 +1209,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         void paint();
     }
 
-    /** 주간 발자국 DM (TASK-KL-156 D6) — 켠 사람에게만 간다. 디스코드가 안 붙어 있으면 못 켠다. */
+    /** 주간 발자국 DM (TASK-KL-156 D6). 켠 사람에게만 간다. 디스코드가 안 붙어 있으면 못 켠다. */
     async function mountWeekly(box: Element, base: string): Promise<void> {
         const input = box.querySelector<HTMLInputElement>('[data-weekly]');
         const hint = box.querySelector<HTMLElement>('[data-weekly-hint]');
@@ -1246,7 +1246,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         });
     }
 
-    /** 막은 사람 (TASK-KL-156 D2) — 푸는 길이 같은 자리에 있어야 막는 것도 마음 편하다. */
+    /** 막은 사람 (TASK-KL-156 D2). 푸는 길이 같은 자리에 있어야 막는 것도 마음 편하다. */
     async function renderBlocked(slot: HTMLElement | null, base: string): Promise<void> {
         if (!slot) return;
         let blocked: string[] = [];
@@ -1287,7 +1287,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         });
     }
 
-    /** 공개 범위 (TASK-KL-152 C4) — 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
+    /** 공개 범위 (TASK-KL-152 C4). 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
     const VISIBILITY_LABELS: Array<[string, string]> = [
         ['profile', t('user.t154', undefined, '프로필')],
         ['achievements', t('user.t90', undefined, '도전과제')],
@@ -1295,7 +1295,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         ['streaks', t('user.t155', undefined, '스트릭')],
         ['community', t('user.t156', undefined, '커뮤니티')],
         ['activity', t('user.t157', undefined, '활동')],
-        // 이것만 기본이 꺼짐이다 — 새로 생기는 노출은 켜는 사람만 켠다 (TASK-KL-156 D5).
+        // 이것만 기본이 꺼짐이다. 새로 생기는 노출은 켜는 사람만 켠다 (TASK-KL-156 D5).
         ['presence', t('user.t158', undefined, '지금 하고 있는 것')],
     ];
 
@@ -1331,7 +1331,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
                         if (!res.ok) throw new Error(String(res.status));
                         Toolbox.showToast?.(input.checked ? t('user.t159') : t('user.t160'));
                     } catch {
-                        // 못 바꿨으면 **화면도 되돌린다** — 껐다고 믿는데 안 꺼진 것이 제일 나쁘다.
+                        // 못 바꿨으면 **화면도 되돌린다**. 껐다고 믿는데 안 꺼진 것이 제일 나쁘다.
                         input.checked = !input.checked;
                         Toolbox.showToast?.(t('user.t105'));
                     }
@@ -1343,9 +1343,9 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     function buildUsage(container: HTMLElement): void {
         container.innerHTML = '<div class="user-layout"><div id="userFootprint"></div><div id="userDash"></div></div>';
         const dash = container.querySelector<HTMLElement>('#userDash');
-        /* 쓰임새 표는 **이 자리에서만** 쓰인다 — 그런데 그 코드가 부팅에 딸려 왔다(첫 화면에서
+        /* 쓰임새 표는 **이 자리에서만** 쓰인다. 그런데 그 코드가 부팅에 딸려 왔다(첫 화면에서
            받고 한 번도 안 그린다). 여기서 데려온다: 이 탭을 연 사람만 받는다 (TASK-KL-204).
-           못 받아도 이 화면의 나머지는 그대로 뜬다 — 표 자리만 비어 있다. */
+           못 받아도 이 화면의 나머지는 그대로 뜬다. 표 자리만 비어 있다. */
         if (dash) {
             void Promise.resolve(Toolbox.ensureScript?.('dashboard'))
                 .then(() => {
@@ -1365,7 +1365,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         lastSeenAt: string | null;
     };
 
-    /** 로그인해야만 있는 자리다. 안 했으면 **아무것도 안 그린다** — 빈 잔디는 「기록이 없다」로 읽힌다. */
+    /** 로그인해야만 있는 자리다. 안 했으면 **아무것도 안 그린다**. 빈 잔디는 기록이 없다로 읽힌다. */
     function mountFootprint(slot: HTMLElement | null): void {
         if (!slot) return;
         const account = window.KarmoAccount;
@@ -1394,7 +1394,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             if (!response.ok) return;
             activity = ((await response.json()) as { activity?: Footprint }).activity ?? null;
         } catch {
-            return; // 못 받아 온 것과 「기록이 없다」는 다르다 — 못 받았으면 이 자리는 통째로 없다.
+            return; // 못 받아 온 것과 기록이 없다는 다르다. 못 받았으면 이 자리는 통째로 없다.
         }
         if (!activity) return;
 
@@ -1444,7 +1444,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             t('user.streak', { now: activity.streak.current, best: activity.streak.longest }),
             t('user.totals', { days: activity.totals.activeDays, opens: activity.totals.opens, tools: activity.totals.distinctTools }),
         ];
-        if (top.length) lines.push(`${t('user.topUsed')}: ${top.slice(0, 3).map(([id, n]) => `${toolTitle(id)}(${n})`).join(' · ')}`);
+        if (top.length) lines.push(`${t('user.topUsed')}: ${top.slice(0, 3).map(([id, n]) => `${toolTitle(id)}(${n})`).join(', ')}`);
         lines.push(appUrl());
         return lines.join('\n');
     }
@@ -1456,8 +1456,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
     }
 
     /**
-     * 돌아보기 (C3) — 실측값만. 없는 값은 칸 자체를 안 만든다.
-     * 「처음 온 날」은 계정 만든 날이 아니라 **실제 첫 발자국**이다.
+     * 돌아보기 (C3). 실측값만. 없는 값은 칸 자체를 안 만든다.
+     * 처음 온 날은 계정 만든 날이 아니라 **실제 첫 발자국**이다.
      */
     function recapHtml(activity: Footprint): string {
         const cells: Array<[string, string]> = [
@@ -1478,7 +1478,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             ${firstText ? `<p class="user-act-lead">${t('user.sinceFirst', { when: escapeHtml(firstText) })}</p>` : ''}`;
     }
 
-    /** 잔디 — 오늘까지 53주. 값이 0 인 날과 안 온 날은 **다르게** 칠한다(둘러보기만 한 날도 온 날이다). */
+    /** 잔디. 오늘까지 53주. 값이 0 인 날과 안 온 날은 **다르게** 칠한다(둘러보기만 한 날도 온 날이다). */
     function grassHtml(days: Record<string, number>): string {
         const today = new Date(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()));
         const cells: string[] = [];
@@ -1493,14 +1493,14 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             const future = d > today;
             const value = days[key];
             const level = future ? 'x' : value === undefined ? '0' : value === 0 ? '1' : value < 3 ? '2' : value < 8 ? '3' : '4';
-            const title = future ? '' : `${key} · ${value === undefined ? t('user.t167') : value === 0 ? t('user.t168') : `${value}번`}`;
+            const title = future ? '' : `${key}, ${value === undefined ? t('user.t167') : value === 0 ? t('user.t168') : `${value}번`}`;
             cells.push(`<i class="fp-cell" data-lv="${level}"${title ? ` title="${title}"` : ''}></i>`);
         }
         return `<div class="fp-grass" role="img" aria-label="${esc(t('user.t01'))}">${cells.join('')}</div>`;
     }
 
     /**
-     * 성과 (TASK-KL-139) — 도전과제·뱃지·스트릭은 「내가 쌓은 것」 하나의 이야기다.
+     * 성과 (TASK-KL-139). 도전과제, 뱃지, 스트릭은 내가 쌓은 것 하나의 이야기다.
      * 탭 셋으로 흩어 두면 어느 탭에 뭐가 있었는지를 사람이 외워야 한다 (Steam 도 한 화면이다).
      */
     function buildAchievements(container: HTMLElement): void {
@@ -1508,7 +1508,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         renderAchievements(container);
     }
 
-    /** 도전과제 희귀도 (TASK-KL-156 D1) — 전체 중 몇 %가 가졌나. 못 받아 오면 아무 말도 안 한다. */
+    /** 도전과제 희귀도 (TASK-KL-156 D1). 전체 중 몇 %가 가졌나. 못 받아 오면 아무 말도 안 한다. */
     async function paintRarity(container: HTMLElement): Promise<void> {
         const base = window.KarmoAccount?.apiBase;
         if (!base) return;
@@ -1520,7 +1520,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         } catch {
             return;
         }
-        if (!rarity || !rarity.enough) return; // 계정이 적으면 비율은 착시다 — 아예 안 적는다.
+        if (!rarity || !rarity.enough) return; // 계정이 적으면 비율은 착시다. 아예 안 적는다.
         container.querySelectorAll<HTMLElement>('[data-ach]').forEach((cell) => {
             const count = rarity!.counts[cell.dataset.ach ?? ''] ?? 0;
             const percent = Math.round((count / rarity!.total) * 1000) / 10;
@@ -1539,8 +1539,8 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         const progress = data.progress ?? {};
         const achGrid = DEFS.achievements.map((a) => {
             const unlocked = achievements.includes(a.id);
-            /* 얼마나 왔나 (TASK-KL-175 E7) — 셀 수 있는 것만. 잠김/열림 두 상태뿐이면
-             * 「쓰담 100번」이 1번 한 사람에게도 10,000번 한 사람에게도 똑같이 보인다. */
+            /* 얼마나 왔나 (TASK-KL-175 E7). 셀 수 있는 것만. 잠김/열림 두 상태뿐이면
+             * 쓰담 100번이 1번 한 사람에게도 10,000번 한 사람에게도 똑같이 보인다. */
             const now = a.track ? progress[a.track] ?? 0 : null;
             const bar =
                 !unlocked && a.track && a.goal && now !== null
@@ -1573,7 +1573,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             return `<div class="user-item" title="${escapeHtml(id)}">
                 <div class="user-item-icon">🔥</div>
                 <div class="user-item-title">${escapeHtml(STREAK_TRACK_LABELS[id] || id)}</div>
-                <div class="user-item-desc">현재 ${s.current ?? 0}일 · 최장 ${s.longest ?? 0}일 · ${escapeHtml(s.lastActivityDate || '—')}</div>
+                <div class="user-item-desc">현재 ${s.current ?? 0}일, 최장 ${s.longest ?? 0}일, ${escapeHtml(s.lastActivityDate || '. ')}</div>
             </div>`;
         }).join('');
 
@@ -1607,13 +1607,13 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
             .replace(/"/g, '&quot;');
     }
 
-    /* 탭 구성 (TASK-KL-139) — 계정이 있는 사이트들의 공통 골격을 따른다:
-     * 프로필(나) · 성과(내가 쌓은 것) · 활동(내가 쓴 만큼) · 계정(로그인·내 것 다루기).
-     * 환경 설정은 여기 없다 — 그건 「나」가 아니라 「이 브라우저」다 (#settings). */
+    /* 탭 구성 (TASK-KL-139). 계정이 있는 사이트들의 공통 골격을 따른다:
+     * 프로필(나), 성과(내가 쌓은 것), 활동(내가 쓴 만큼), 계정(로그인, 내 것 다루기).
+     * 환경 설정은 여기 없다. 그건 나가 아니라 이 브라우저다 (#settings). */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('user'),
         tabs: [
-            /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다.
+            /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 그 안에서 만들어진다.
              * 탭 이름만은 **등록하는 순간** 쓰이므로 기본값을 함께 준다 (S9-b). */
             {
                 id: 'user-overview',

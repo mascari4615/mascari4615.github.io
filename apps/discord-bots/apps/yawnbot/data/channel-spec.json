@@ -1,53 +1,53 @@
 {
-	"_doc": "선언적 채널 구조 (정본 — 커밋). ID 가 아니라 *원하는 구조* 만 적는다. 봇이 부팅 시 dev 길드에서 reconcile: 저장된 ID 가 살아있으면 그대로, 없으면 이름으로 기존 채널 claim, 그것도 없으면 생성. 결과 ID 는 data/provisioned-channels.<guildId>.json (런타임·gitignore) 에 파생 저장. prod 는 env *_CHANNEL_ID 가 우선이라 본 spec 영향 없음 (YAWNBOT_ENV=prod 시 프로비저닝 OFF).",
-	"categoryName": "욘봇",
-	"channels": [
-		{
-			"key": "github-webhook",
-			"name": "github-webhook",
-			"topic": "GitHub · 로컬 webhook 이벤트"
-		},
-		{
-			"key": "ops-report",
-			"name": "ops-report",
-			"topic": "봇 운영 자기보고 (시작·에러·메트릭)"
-		},
-		{
-			"key": "unity-free",
-			"name": "unity-free",
-			"topic": "Unity 무료 에셋 세일 알림"
-		},
-		{
-			"key": "news",
-			"name": "news",
-			"topic": "관심사 뉴스 + Hacker News 크론 (YB-036)"
-		},
-		{
-			"key": "agent-team",
-			"name": "team-bus",
-			"topic": "에이전트 팀 #team-bus (발굴·거버넌스 escalate)"
-		},
-		{
-			"key": "digest",
-			"name": "digest",
-			"topic": "레포 digest 요약 (chore(digests))"
-		},
-		{
-			"_doc": "WM 노트북 빌드머신 결과 채널 (TASK-WM-197). 게시자는 봇이 아니라 laptop-ops /notify → 채널 webhook (env LAPTOP_OPS_WEBHOOK_BUILD, 노트북 .env 안에만 존재). 봇은 이 채널을 읽지도 쓰지도 않지만, 「어떤 채널이 있는가」의 정본은 이 spec 이라 선언만 남긴다.",
-			"key": "wm-build",
-			"name": "wm-build",
-			"topic": "WM 빌드 · 결과 요약과 APK 설치 링크 (노트북 빌드머신)"
-		},
-		{
-			"_doc": "폰 실기 실행 로그 알림 채널 (TASK-WM-201). 전체 로그는 웹 뷰어(/device-log)에 있고, 이 채널엔 *에러급만* 접어서(같은 지문 쿨다운) 올린다. prod 매핑 미설정 시 localDefault 로 폴백하므로 채널을 안 만들어도 알림은 안 끊긴다.",
-			"key": "wm-device-log",
-			"name": "wm-device-log",
-			"topic": "WM 폰 실행 로그 — 에러 알림 (전체 로그는 /device-log 웹)"
-		},
-		{
-			"key": "dashboard",
-			"name": "dashboard",
-			"topic": "에이전트 팀 현황 대시보드 — edit-in-place (KAR-077)"
-		}
-	]
+  "_doc": "선언적 채널 구조 (정본. 커밋). ID 가 아니라 *원하는 구조* 만 적는다. 봇이 부팅 시 dev 길드에서 reconcile: 저장된 ID 가 살아있으면 그대로, 없으면 이름으로 기존 채널 claim, 그것도 없으면 생성. 결과 ID 는 data/provisioned-channels.<guildId>.json (런타임, gitignore) 에 파생 저장. prod 는 env *_CHANNEL_ID 가 우선이라 본 spec 영향 없음 (YAWNBOT_ENV=prod 시 프로비저닝 OFF).",
+  "categoryName": "욘봇",
+  "channels": [
+    {
+      "key": "github-webhook",
+      "name": "github-webhook",
+      "topic": "GitHub, 로컬 webhook 이벤트"
+    },
+    {
+      "key": "ops-report",
+      "name": "ops-report",
+      "topic": "봇 운영 자기보고 (시작, 에러, 메트릭)"
+    },
+    {
+      "key": "unity-free",
+      "name": "unity-free",
+      "topic": "Unity 무료 에셋 세일 알림"
+    },
+    {
+      "key": "news",
+      "name": "news",
+      "topic": "관심사 뉴스 + Hacker News 크론 (YB-036)"
+    },
+    {
+      "key": "agent-team",
+      "name": "team-bus",
+      "topic": "에이전트 팀 #team-bus (발굴, 거버넌스 escalate)"
+    },
+    {
+      "key": "digest",
+      "name": "digest",
+      "topic": "레포 digest 요약 (chore(digests))"
+    },
+    {
+      "_doc": "WM 노트북 빌드머신 결과 채널 (TASK-WM-197). 게시자는 봇이 아니라 laptop-ops /notify → 채널 webhook (env LAPTOP_OPS_WEBHOOK_BUILD, 노트북 .env 안에만 존재). 봇은 이 채널을 읽지도 쓰지도 않지만, 어떤 채널이 있는가의 정본은 이 spec 이라 선언만 남긴다.",
+      "key": "wm-build",
+      "name": "wm-build",
+      "topic": "WM 빌드, 결과 요약과 APK 설치 링크 (노트북 빌드머신)"
+    },
+    {
+      "_doc": "폰 실기 실행 로그 알림 채널 (TASK-WM-201). 전체 로그는 웹 뷰어(/device-log)에 있고, 이 채널엔 *에러급만* 접어서(같은 지문 쿨다운) 올린다. prod 매핑 미설정 시 localDefault 로 폴백하므로 채널을 안 만들어도 알림은 안 끊긴다.",
+      "key": "wm-device-log",
+      "name": "wm-device-log",
+      "topic": "WM 폰 실행 로그. 에러 알림 (전체 로그는 /device-log 웹)"
+    },
+    {
+      "key": "dashboard",
+      "name": "dashboard",
+      "topic": "에이전트 팀 현황 대시보드. edit-in-place (KAR-077)"
+    }
+  ]
 }

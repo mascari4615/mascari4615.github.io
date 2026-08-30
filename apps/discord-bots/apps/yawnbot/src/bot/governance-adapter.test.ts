@@ -38,7 +38,7 @@ describe('isGloballyKilled (parent ④ Kill Switch)', () => {
   });
 });
 
-describe('appendTrace — discoveries jsonl 형식', () => {
+describe('appendTrace. discoveries jsonl 형식', () => {
   it('jsonl 한 줄 append', () => {
     appendTrace(env(), { ts: 't', type: 'budget', core: 'a', reason: 'ok' });
     appendTrace(env(), { ts: 't2', type: 'kill', core: 'b', reason: 'kill' });
@@ -57,7 +57,7 @@ describe('appendTrace — discoveries jsonl 형식', () => {
   });
 });
 
-describe('buildGovernanceReserve — verdict→bool + trace', () => {
+describe('buildGovernanceReserve. verdict→bool + trace', () => {
   it('전역 kill 활성 → deny(false) + kill trace', () => {
     fs.writeFileSync(killFilePath(env()), '');
     const reserve = buildGovernanceReserve(env());
@@ -69,7 +69,7 @@ describe('buildGovernanceReserve — verdict→bool + trace', () => {
     expect(t).toContain('"type":"kill"');
   });
 
-  it('정상(추정·risk 미상) → allow(true) + budget trace', () => {
+  it('정상(추정, risk 미상) → allow(true) + budget trace', () => {
     const reserve = buildGovernanceReserve(env());
     expect(reserve({ core: 'a', channelId: 'c' })).toBe(true);
     const t = fs.readFileSync(

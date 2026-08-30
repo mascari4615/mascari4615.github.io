@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * audit-atlas-trail — **궤적이 흐름인가, 튀는 점인가** (TASK-KAR-233).
+ * audit-atlas-trail. **궤적이 흐름인가, 튀는 점인가** (TASK-KAR-233).
  *
- * 시간 지도의 근본 문제는 「때마다 공간이 달라진다」인데 우리는 그걸 안 겪는다 —
+ * 시간 지도의 근본 문제는 때마다 공간이 달라진다인데 우리는 그걸 안 겪는다 . 
  * 한 판에 한 번 임베딩하고 판이 바뀌면 지난 그림에 포갠다(어긋남 0.000). 기준틀이
  * 하나라, 시간은 다시 그릴 일이 아니라 **얹을 일**이다: 달마다 무게중심을 찍어 잇는다.
  *
@@ -12,7 +12,7 @@
  *
  * 합격선(재기 **전 바퀴에** TASK 문서에 박아 뒀다):
  *  ① 달마다 점을 찍고 잇는다
- *  ② **글이 적은 달은 안 찍고 그렇게 말한다** — 찍힌 달은 전부 글 셋 이상이다
+ *  ② **글이 적은 달은 안 찍고 그렇게 말한다**. 찍힌 달은 전부 글 셋 이상이다
  *  ③ 총 이동거리를 **지도 폭 대비 %** 로 적는다
  *  ④ 한 달의 글을 딴 자리로 옮기면 그 달 점이 따라 움직인다
  */
@@ -27,12 +27,12 @@ const KARMOLAB = path.resolve(HERE, '..');
 const ATLAS = atlasPath(HERE);
 const BUNDLE = path.join(KARMOLAB, 'js/widgets/memo-atlas.js');
 if (!fs.existsSync(ATLAS) || !fs.existsSync(BUNDLE)) {
-  console.log('[trail] 지도나 번들이 없다 — 검사 건너뜀');
+  console.log('[trail] 지도나 번들이 없다. 검사 건너뜀');
   process.exit(0);
 }
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch {
-  console.log('[trail] playwright 가 없다 — 검사 건너뜀');
+  console.log('[trail] playwright 가 없다. 검사 건너뜀');
   process.exit(0);
 }
 
@@ -85,12 +85,12 @@ if (!base.t) {
   await browser.close();
   process.exit(1);
 }
-console.log(`  ①③ 달 ${base.t.months}개를 이었다 · 못 찍은 달 ${base.t.skipped}개 · 이동 ${(base.t.moved * 100).toFixed(0)}% (지도 폭 대비)`);
+console.log(`  ①③ 달 ${base.t.months}개를 이었다, 못 찍은 달 ${base.t.skipped}개, 이동 ${(base.t.moved * 100).toFixed(0)}% (지도 폭 대비)`);
 console.log(`     ${base.t.at.join(' → ')}`);
-console.log(`     화면: 「${base.say.slice(0, 70)}」`);
+console.log(`     화면: ${base.say.slice(0, 70)}`);
 if (base.t.months < 2) bad.push('이을 달이 둘도 안 된다');
 if (!base.say.includes(String(base.t.months))) bad.push('화면이 이은 달 수를 안 적는다');
-if (!base.say.includes(String(base.t.skipped))) bad.push('화면이 **못 찍은 달**을 안 적는다 — 조용히 빼면 없는 흐름이 보인다');
+if (!base.say.includes(String(base.t.skipped))) bad.push('화면이 **못 찍은 달**을 안 적는다. 조용히 빼면 없는 흐름이 보인다');
 if (!/%/.test(base.say)) bad.push('화면이 이동거리를 % 로 안 적는다');
 
 // ── ② 찍힌 달은 전부 글 셋 이상인가 ──────────────────────────────────
@@ -102,7 +102,7 @@ for (const d of atlas.docs) {
 const thin = base.t.at.filter((m) => (byMonth.get(m) || 0) < MIN_DOCS);
 console.log(`  ② 찍힌 달의 글 수: ${base.t.at.map((m) => `${m}:${byMonth.get(m) || 0}`).join(' ')}`);
 if (thin.length) {
-  bad.push(`글이 ${MIN_DOCS}편도 안 되는 달을 찍었다: ${thin.join(', ')} — 그 무게중심은 글 한 편의 자리다`);
+  bad.push(`글이 ${MIN_DOCS}편도 안 되는 달을 찍었다: ${thin.join(', ')}. 그 무게중심은 글 한 편의 자리다`);
 }
 
 // ── ④ 한 달의 글을 옮기면 그 달 점이 따라 움직인다 ───────────────────
@@ -111,11 +111,11 @@ const moved = await run((a) => {
   for (const d of a.docs) if (d.born === target && d.xy) d.xy = [0.95, 0.95];
 });
 const sameLen = moved.t && moved.t.months === base.t.months;
-console.log(`  ④ 「${target}」 글을 한 귀퉁이로 → 이동 ${(base.t.moved * 100).toFixed(0)}% → ${moved.t ? (moved.t.moved * 100).toFixed(0) : '?'}%`);
+console.log(`  ④ ${target} 글을 한 귀퉁이로 → 이동 ${(base.t.moved * 100).toFixed(0)}% → ${moved.t ? (moved.t.moved * 100).toFixed(0) : '?'}%`);
 if (!moved.t || Math.abs(moved.t.moved - base.t.moved) < 0.05) {
-  bad.push('한 달을 통째로 옮겨도 궤적이 그대로다 — 자리를 안 보고 있다');
+  bad.push('한 달을 통째로 옮겨도 궤적이 그대로다. 자리를 안 보고 있다');
 }
-if (!sameLen) console.log('     (그 달이 옮겨지며 찍힌 달 수도 달라졌다 — 흩어짐이 바뀌니 그럴 수 있다)');
+if (!sameLen) console.log('     (그 달이 옮겨지며 찍힌 달 수도 달라졌다. 흩어짐이 바뀌니 그럴 수 있다)');
 
 await browser.close();
 

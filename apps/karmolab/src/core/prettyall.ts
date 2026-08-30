@@ -1,12 +1,12 @@
 /**
- * CSS·HTML 을 펴고 누른다 (TASK-KL-316 / 21)
+ * CSS, HTML 을 펴고 누른다 (TASK-KL-316 / 21)
  *
- * 원래 계획은 「여러 언어 한 칸」이었는데, 열어 보니 **이미 있는 것이 많았다**:
+ * 원래 계획은 여러 언어 한 칸이었는데, 열어 보니 **이미 있는 것이 많았다**:
  * JSON 은 `jsonfmt`, SQL 은 `sqlfmt`(16), XML 은 `xmlfmt`. 같은 일을 또 만들면 두 답이 갈린다.
- * 그래서 여기서는 **비어 있던 둘**만 맡는다 — CSS 와 HTML.
+ * 그래서 여기서는 **비어 있던 둘**만 맡는다. CSS 와 HTML.
  *
  * 자바스크립트는 **일부러 안 한다.** 제대로 하려면 진짜 파서가 필요하고(무게), 어설프게 하면
- * 세미콜론 없는 코드에서 **뜻이 바뀐다**. 「대충 되는 포맷터」는 안 하느니만 못하다 —
+ * 세미콜론 없는 코드에서 **뜻이 바뀐다**. 대충 되는 포맷터는 안 하느니만 못하다 . 
  * 화면에서도 그렇게 말한다.
  */
 import type { ToolRunner, ToolSpec } from './types';
@@ -29,7 +29,7 @@ export const spec: ToolSpec = {
 
 export type Kind = 'css' | 'html' | 'json' | 'sql' | 'xml' | 'unknown';
 
-/** 무엇인지 알아본다. 우리가 안 맡는 것(JSON·SQL·XML)도 **이름을 대 준다** — 화면이 그 도구로 보낸다. */
+/** 무엇인지 알아본다. 우리가 안 맡는 것(JSON, SQL, XML)도 **이름을 대 준다**. 화면이 그 도구로 보낸다. */
 export function detect(text: string): Kind {
   const body = text.trim();
   if (body === '') return 'unknown';
@@ -51,7 +51,7 @@ export function detect(text: string): Kind {
 
 /* ── CSS ───────────────────────────────────────────────────────────── */
 
-/** 따옴표·주석 안은 건드리지 않는다 — 안 그러면 `content: "}"` 하나에 파일이 무너진다. */
+/** 따옴표, 주석 안은 건드리지 않는다. 안 그러면 `content: "}"` 하나에 파일이 무너진다. */
 function cssTokens(css: string): string[] {
   const out: string[] = [];
   let cur = '';
@@ -141,7 +141,7 @@ export function minifyCss(css: string): string {
   for (const token of cssTokens(css)) {
     if (token.startsWith('/*')) continue;
     if (token === '{' || token === '}' || token === ';') {
-      /* 마지막 `;` 는 브라우저가 안 따진다 — 지운다. 다만 `}` 앞에서만. */
+      /* 마지막 `;` 는 브라우저가 안 따진다. 지운다. 다만 `}` 앞에서만. */
       if (token === '}' && parts[parts.length - 1] === ';') parts.pop();
       parts.push(token);
       continue;
@@ -154,7 +154,7 @@ export function minifyCss(css: string): string {
 /* ── HTML ──────────────────────────────────────────────────────────── */
 
 const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
-/** 속을 건드리면 안 되는 것들 — 여기 안의 빈칸은 **뜻이 있다**. */
+/** 속을 건드리면 안 되는 것들. 여기 안의 빈칸은 **뜻이 있다**. */
 const RAW_TAGS = new Set(['pre', 'textarea', 'script', 'style', 'code']);
 
 interface HtmlToken {
@@ -261,17 +261,17 @@ export function format(text: string, as?: Kind, indent = 2): string {
   const kind = as ?? detect(text);
   if (kind === 'css') return formatCss(text, indent);
   if (kind === 'html' || kind === 'xml') return formatHtml(text, indent);
-  throw new Error('여기서는 CSS·HTML 만 폅니다 (' + kind + ')');
+  throw new Error('여기서는 CSS, HTML 만 폅니다 (' + kind + ')');
 }
 
 export function minify(text: string, as?: Kind): string {
   const kind = as ?? detect(text);
   if (kind === 'css') return minifyCss(text);
   if (kind === 'html' || kind === 'xml') return minifyHtml(text);
-  throw new Error('여기서는 CSS·HTML 만 누릅니다 (' + kind + ')');
+  throw new Error('여기서는 CSS, HTML 만 누릅니다 (' + kind + ')');
 }
 
-/** 우리가 안 맡는 것은 **어느 도구로 가면 되는지** 알려 준다 (id 만 — 말은 화면이 만든다). */
+/** 우리가 안 맡는 것은 **어느 도구로 가면 되는지** 알려 준다 (id 만. 말은 화면이 만든다). */
 export function goTo(kind: Kind): string | undefined {
   if (kind === 'json') return 'jsonfmt';
   if (kind === 'sql') return 'sqlfmt';

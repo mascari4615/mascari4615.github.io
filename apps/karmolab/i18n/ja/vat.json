@@ -8,7 +8,7 @@
   "vat.round.floor": "切り捨て（実務の既定）",
   "vat.round.half": "四捨五入",
   "vat.btn.copy": "3行をコピー",
-  "vat.status.idle": "韓国の付加価値税（既定10%）です。合計から抜くときは 1.1 で割ります — 10% を引くのとは違います。",
+  "vat.status.idle": "韓国の付加価値税（既定10%）です。合計から抜くときは 1.1 で割ります. 10% を引くのとは違います。",
   "vat.stat.tax": "付加価値税",
   "vat.stat.total": "合計（受け取る額）",
   "vat.row.rate": "税率",

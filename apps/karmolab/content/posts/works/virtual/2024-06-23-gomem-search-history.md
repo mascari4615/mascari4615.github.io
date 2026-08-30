@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:34:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/gomem-search-history/240621-000000.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [프로그래밍]
   platform: VRChat
+board: me
 ---
 
 고멤들은 평소에 어떤 유튜브를 보고 지낼까?  

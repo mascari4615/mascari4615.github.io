@@ -19,7 +19,7 @@
   "youtubedl.t15": "動画の情報を読み込みました。",
   "youtubedl.t16": "情報の取得に失敗",
   "youtubedl.t17": "yt-api サーバの URL を入力してください。",
-  "youtubedl.t18": "ダウンロードを要求中… (サーバで処理中だと時間がかかることがあります)",
+  "youtubedl.t18": "ダウンロードを要求中... (サーバで処理中だと時間がかかることがあります)",
   "youtubedl.t19": "ダウンロードの要求を送りました。新しいタブを確認してください。",
   "youtubedl.requested": "{fmt} のダウンロードを要求",
   "youtubedl.tab.main": "ダウンロード"

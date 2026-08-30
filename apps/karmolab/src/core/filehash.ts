@@ -1,15 +1,15 @@
 /**
- * 파일 검사값(체크섬) — 알맹이 (TASK-KL-088 / S1)
+ * 파일 검사값(체크섬). 알맹이 (TASK-KL-088 / S1)
  *
  * 내려받은 설치 파일이 중간에 바뀌지 않았는지 확인하려면 배포처가 적어 둔 값과 내 파일의 값을
- * 비교해야 한다. 그런데 **눈으로 대조하면 반드시 놓친다** — 64자리다. 그래서 기계가 맞춘다.
+ * 비교해야 한다. 그런데 **눈으로 대조하면 반드시 놓친다**. 64자리다. 그래서 기계가 맞춘다.
  *
- * MCP 로 내놓는 이유(A등급): 해시는 LLM 이 **지어낸다**. 「이 파일 sha256 뭐야」에 그럴듯한
+ * MCP 로 내놓는 이유(A등급): 해시는 LLM 이 **지어낸다**. 이 파일 sha256 뭐야에 그럴듯한
  * 64자리를 내놓고, 그걸 믿으면 손상된 파일을 멀쩡하다고 판단한다. 그리고 배포처가 준 값은
  * 대문자거나 `sha256:` 머리말이 붙거나 줄바꿈이 섞여 오는데, 그대로 비교하면 **같은 파일인데
- * 「다르다」**가 나온다 — 그 정리도 여기서 한다.
+ * 다르다**가 나온다. 그 정리도 여기서 한다.
  *
- * ★ **바이트 규약** (TASK-KL-205 P4): 파일을 다루는 알맹이는 `File`·`Blob` 이 아니라
+ * ★ **바이트 규약** (TASK-KL-205 P4): 파일을 다루는 알맹이는 `File`, `Blob` 이 아니라
  * `Uint8Array` 를 주고받는다. 그래야 화면(File→ArrayBuffer)과 Node(fs.readFile) 양쪽에서 같은
  * 코드가 돈다. 감싸고 내려받는 일은 화면 몫이다.
  */
@@ -22,8 +22,8 @@ export const spec: ToolSpec = {
     verify: {
       desc:
         'Compare two checksum strings. Publishers hand out values in mixed case, with a `sha256:` prefix,' +
-        ' or wrapped across lines — comparing those literally reports "different" for identical files.' +
-        ' / 체크섬 두 개를 맞춰 본다. 대문자·머리말·줄바꿈을 정리해서.',
+        ' or wrapped across lines. comparing those literally reports "different" for identical files.' +
+        ' / 체크섬 두 개를 맞춰 본다. 대문자, 머리말, 줄바꿈을 정리해서.',
       in: { actual: 'string', expected: 'string' },
       out: 'string'
     }
@@ -31,7 +31,7 @@ export const spec: ToolSpec = {
 };
 
 /*
- * 「파일의 해시를 내라」는 연산은 **일부러 안 냈다.**
+ * 파일의 해시를 내라는 연산은 **일부러 안 냈다.**
  * 해시 계산은 비동기(`crypto.subtle`)인데 우리 창구(`ToolRunner`)는 동기다. 억지로 끼우면
  * 항상 던지는 연산이 목록에 남아, 에이전트가 부르고 실패하는 죽은 칸이 된다.
  * 문자열 해시는 `hashgen_text` 가 이미 같은 값을 낸다. 파일 바이트는 화면 도구가 다룬다.
@@ -39,8 +39,8 @@ export const spec: ToolSpec = {
 
 /** 화면이 보여 주는 순서. 이름은 WebCrypto 가 아는 표기 그대로다. */
 export const FILE_ALGOS: Array<[string, string]> = [
-  ['SHA-256', 'SHA-256 — 가장 널리 쓰임'],
-  ['SHA-1', 'SHA-1 — 옛 배포처'],
+  ['SHA-256', 'SHA-256. 가장 널리 쓰임'],
+  ['SHA-1', 'SHA-1. 옛 배포처'],
   ['SHA-512', 'SHA-512']
 ];
 
@@ -53,8 +53,8 @@ export const size = (n: number): string =>
   n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
 
 /**
- * 바이트의 체크섬들. `crypto.subtle` 은 브라우저·Node 둘 다에 있어서 이 함수는 양쪽에서 돈다.
- * 브라우저가 못 하는 방식은 조용히 건너뛴다 — 하나라도 나오면 대조는 된다.
+ * 바이트의 체크섬들. `crypto.subtle` 은 브라우저, Node 둘 다에 있어서 이 함수는 양쪽에서 돈다.
+ * 브라우저가 못 하는 방식은 조용히 건너뛴다. 하나라도 나오면 대조는 된다.
  */
 export async function hashBytes(bytes: Uint8Array): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
@@ -88,18 +88,18 @@ export const run: ToolRunner = (op, args) => {
     if (actual === '' || expected === '') throw new Error('맞춰 볼 값 두 개가 필요합니다');
     const same = actual === expected;
     return [
-      same ? '같습니다 — 같은 파일입니다.' : '다릅니다 — 받다가 깨졌거나 다른 파일입니다.',
+      same ? '같습니다. 같은 파일입니다.' : '다릅니다. 받다가 깨졌거나 다른 파일입니다.',
       `내 값:   ${actual}`,
       `기대값: ${expected}`,
       actual.length !== expected.length
-        ? `길이가 다릅니다 (${actual.length} vs ${expected.length}) — 방식이 서로 다를 수 있습니다(SHA-256 은 64자리).`
+        ? `길이가 다릅니다 (${actual.length} vs ${expected.length}). 방식이 서로 다를 수 있습니다(SHA-256 은 64자리).`
         : ''
     ]
       .filter((l) => l !== '')
       .join('\n');
   }
 
-  throw new Error(`filehash 에 「${op}」 는 없습니다`);
+  throw new Error(`filehash 에 ${op} 는 없습니다`);
 };
 
 /** 문자열 → 체크섬. 화면과 시험이 쓴다 (`run` 은 동기라 여기 못 담는다). */
@@ -110,19 +110,19 @@ export async function hashText(text: string): Promise<Record<string, string>> {
 /**
  * 해시로 남에게 물어보기 (TASK-KL-238 / 24 virustotal)
  *
- * 파일을 올리지 않는다. **이미 계산한 64자리만** 주소에 실어 남의 창고를 열어 준다 —
- * 그 창고들이 아는 것은 「누가 이 해시를 물어봤다」뿐이고, 파일도 이름도 안 나간다.
+ * 파일을 올리지 않는다. **이미 계산한 64자리만** 주소에 실어 남의 창고를 열어 준다 . 
+ * 그 창고들이 아는 것은 누가 이 해시를 물어봤다뿐이고, 파일도 이름도 안 나간다.
  *
  * ★ 여기서 주의할 것은 `passgen` 의 유출 조회와 **다르다**는 점이다. 그쪽은 앞 다섯 글자만
- * 보내 서버가 어느 것인지 모르게 한다(k-익명). 여기는 완전한 해시가 나간다 — 대신 그 해시는
+ * 보내 서버가 어느 것인지 모르게 한다(k-익명). 여기는 완전한 해시가 나간다. 대신 그 해시는
  * *파일을 되돌릴 수 없는* 값이라 성립한다. 화면은 이 차이를 사람에게 그대로 말해야 한다.
  *
  * 왜 열어 주기만 하나(직접 조회 X): VirusTotal 의 조회 API 는 **열쇠가 있어야 하고** 브라우저에서
- * 부를 수 없다(CORS). 열쇠를 우리 쪽에 두면 사용자의 파일 해시가 우리를 거쳐 가게 된다 —
- * 그건 이 도구가 지키는 「아무것도 안 보낸다」와 부딪힌다. 그래서 **누르면 그쪽으로 간다.**
+ * 부를 수 없다(CORS). 열쇠를 우리 쪽에 두면 사용자의 파일 해시가 우리를 거쳐 가게 된다 . 
+ * 그건 이 도구가 지키는 아무것도 안 보낸다와 부딪힌다. 그래서 **누르면 그쪽으로 간다.**
  */
 export interface HashLookup {
-  /** 화면·시험이 쓰는 열쇠. 말은 화면이 고른다. */
+  /** 화면, 시험이 쓰는 열쇠. 말은 화면이 고른다. */
   id: 'virustotal' | 'bazaar';
   url: string;
 }
@@ -130,8 +130,8 @@ export interface HashLookup {
 const SHA256_RE = /^[0-9a-f]{64}$/;
 
 /**
- * 넘겨줄 자리들. 64자리 SHA-256 이 아니면 **빈 목록**을 낸다 —
- * 반쪽 값으로 남의 창고를 열면 아무것도 못 찾고 「없다」로 오해한다.
+ * 넘겨줄 자리들. 64자리 SHA-256 이 아니면 **빈 목록**을 낸다 . 
+ * 반쪽 값으로 남의 창고를 열면 아무것도 못 찾고 없다로 오해한다.
  */
 export function hashLookups(sha256: string): HashLookup[] {
   const h = String(sha256 ?? '').trim().toLowerCase();

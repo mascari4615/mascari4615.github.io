@@ -1,6 +1,6 @@
 import { REST, Routes } from 'discord.js';
 
-/** `.env`에서 쉼표로 나열한 ID·값 목록 (공백 허용). 길드·채널·유저 ID 등 공통. */
+/** `.env`에서 쉼표로 나열한 ID, 값 목록 (공백 허용). 길드, 채널, 유저 ID 등 공통. */
 export function parseCommaSeparatedEnv(raw: string | undefined): string[] {
   if (!raw?.trim()) return [];
   return raw
@@ -9,7 +9,7 @@ export function parseCommaSeparatedEnv(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
-/** 길드 ID 목록 — `parseCommaSeparatedEnv`와 동일. */
+/** 길드 ID 목록. `parseCommaSeparatedEnv`와 동일. */
 export const parseDiscordGuildIds = parseCommaSeparatedEnv;
 
 export async function deployApplicationCommands(opts: {

@@ -1,13 +1,13 @@
 name: Yawnbot Health Watcher
 
-# TASK-YB-020 사후 인프라 — yawnbot prod health endpoint 외부 감시.
-# 「monitoring 주체 ≠ monitoring 대상」 원칙: github-hosted ubuntu runner 사용
+# TASK-YB-020 사후 인프라. yawnbot prod health endpoint 외부 감시.
+# monitoring 주체 ≠ monitoring 대상 원칙: github-hosted ubuntu runner 사용
 # (self-hosted runner = prod 노트북 = 감시 대상이라 같이 죽음).
 # alert 채널 = 봇 의존 X Discord Incoming Webhook URL (secret).
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # GH Actions schedule 실 발동 5~15분 지연 — yawnbot 분단위 SLA 아님, 충분.
+    - cron: '*/5 * * * *'   # GH Actions schedule 실 발동 5~15분 지연. yawnbot 분단위 SLA 아님, 충분.
   workflow_dispatch: {}
 
 permissions:
@@ -40,7 +40,7 @@ jobs:
           echo "$BODY"
           echo "::endgroup::"
 
-          # YB-020 Step 2 — status code 뿐 아니라 body 의 ok:true 도 검증.
+          # YB-020 Step 2. status code 뿐 아니라 body 의 ok:true 도 검증.
           # gateway disconnected = HTTP 503 (code 로 잡힘) + body ok:false (이중 방어).
           BODY_OK=$(echo "$BODY" | grep -oE '"ok"[[:space:]]*:[[:space:]]*(true|false)' | grep -oE '(true|false)' | tail -1)
 
@@ -49,10 +49,10 @@ jobs:
           echo "body_ok=$BODY_OK" >> "$GITHUB_OUTPUT"
 
           if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_CODE" != "200" ] || [ "$BODY_OK" != "true" ]; then
-            # 한 번 못 받았다고 바로 부르지 않는다. 재시작·배포·터널 재연결은 1분이면 지나가는데,
+            # 한 번 못 받았다고 바로 부르지 않는다. 재시작, 배포, 터널 재연결은 1분이면 지나가는데,
             # 그때마다 알리면 알림이 배경 소음이 되고 진짜 사고 때 아무도 안 본다.
             # 45초 뒤 한 번 더 묻고, 두 번 다 안 되면 그때 부른다.
-            echo "::notice::한 번 실패 — 45초 뒤 다시 묻는다 (curl_exit=$CURL_EXIT http_code=$HTTP_CODE body_ok=$BODY_OK)"
+            echo "::notice::한 번 실패. 45초 뒤 다시 묻는다 (curl_exit=$CURL_EXIT http_code=$HTTP_CODE body_ok=$BODY_OK)"
             sleep 45
             BODY=$(curl -sS -m 10 -w "\nHTTP_CODE:%{http_code}\n" "$HEALTH_URL" 2>&1)
             CURL_EXIT=$?
@@ -75,7 +75,7 @@ jobs:
         if: steps.probe.outputs.status == 'fail'
         run: |
           if [ -z "$ALERT_WEBHOOK" ]; then
-            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL secret 미설정 — alert skip (probe 는 fail 검출)"
+            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL secret 미설정. alert skip (probe 는 fail 검출)"
             exit 0
           fi
           TS=$(date -Iseconds)
@@ -98,10 +98,10 @@ jobs:
             }')
           curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "$PAYLOAD" "$ALERT_WEBHOOK"
 
-  # TASK-YB-021 — push 모델 heartbeat 신선도 감시 (inbound check job 과 공존).
+  # TASK-YB-021. push 모델 heartbeat 신선도 감시 (inbound check job 과 공존).
   # 봇이 memo orphan 브랜치 .heartbeat/yawnbot.json 의 ts 를 N분마다 갱신.
   # 터널이 죽어도 봇이 살아 egress 가능하면 ts 가 신선 → inbound false
-  # negative 보완. 둘 중 하나만 fail 해도 alert. 인증·alert = 기존 재사용
+  # negative 보완. 둘 중 하나만 fail 해도 alert. 인증, alert = 기존 재사용
   # (새 secret 0): MEMO_GITHUB_PAT(deploy 가 쓰는 그 secret) + 같은 webhook.
   heartbeat-freshness:
     runs-on: ubuntu-latest
@@ -121,7 +121,7 @@ jobs:
         run: |
           set +e
           if [ -z "$MEMO_PAT" ]; then
-            echo "::warning::MEMO_GITHUB_PAT secret 미설정 — heartbeat 감시 skip"
+            echo "::warning::MEMO_GITHUB_PAT secret 미설정. heartbeat 감시 skip"
             echo "status=skip" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -136,7 +136,7 @@ jobs:
           BODY=$(echo "$RESP" | sed 's/HTTP_CODE:[0-9]*//')
           if [ "$HTTP_CODE" != "200" ]; then
             echo "status=fail" >> "$GITHUB_OUTPUT"
-            echo "reason=heartbeat 파일 읽기 실패 (HTTP $HTTP_CODE) — 브랜치/경로/PAT 권한 확인" >> "$GITHUB_OUTPUT"
+            echo "reason=heartbeat 파일 읽기 실패 (HTTP $HTTP_CODE). 브랜치/경로/PAT 권한 확인" >> "$GITHUB_OUTPUT"
             echo "::warning::heartbeat read FAIL http=$HTTP_CODE"
             exit 0
           fi
@@ -158,18 +158,18 @@ jobs:
           echo "ts=$TS" >> "$GITHUB_OUTPUT"
           if [ "$AGE" -gt "$HB_STALE_SECONDS" ]; then
             echo "status=fail" >> "$GITHUB_OUTPUT"
-            echo "reason=heartbeat stale — 마지막 신호 ${AGE}s 전 (임계 ${HB_STALE_SECONDS}s). 봇 죽음 또는 egress 단절 의심." >> "$GITHUB_OUTPUT"
+            echo "reason=heartbeat stale. 마지막 신호 ${AGE}s 전 (임계 ${HB_STALE_SECONDS}s). 봇 죽음 또는 egress 단절 의심." >> "$GITHUB_OUTPUT"
             echo "::warning::heartbeat STALE age=${AGE}s"
           else
             echo "status=ok" >> "$GITHUB_OUTPUT"
-            echo "heartbeat fresh — age=${AGE}s (ts=$TS)"
+            echo "heartbeat fresh. age=${AGE}s (ts=$TS)"
           fi
 
       - name: Alert on stale/fail
         if: steps.hb.outputs.status == 'fail'
         run: |
           if [ -z "$ALERT_WEBHOOK" ]; then
-            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL 미설정 — alert skip (감시는 fail 검출)"
+            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL 미설정. alert skip (감시는 fail 검출)"
             exit 0
           fi
           TS_NOW=$(date -Iseconds)

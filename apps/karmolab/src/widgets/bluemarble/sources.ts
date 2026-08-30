@@ -1,20 +1,20 @@
 /**
- * 지구가 지금 무슨 일을 겪고 있나 — 바깥에서 받아오는 것들 (TASK-KL-206)
+ * 지구가 지금 무슨 일을 겪고 있나. 바깥에서 받아오는 것들 (TASK-KL-206)
  *
  * 채택 기준 딱 둘: **열쇠(API key)가 필요 없을 것**, **브라우저에서 바로 부를 수 있을 것**
  * (`Access-Control-Allow-Origin`).
  *
  * **예외 둘 (2026-08-12, TASK-KL-241)**: 우주 관련 두 곳은 우리 서버를 거친다.
- * `celestrak.org` 는 자동 접근을 아예 잠갔고(403 — 우리 서버에서 쳐도 마찬가지),
+ * `celestrak.org` 는 자동 접근을 아예 잠갔고(403. 우리 서버에서 쳐도 마찬가지),
  * `thespacedevs` 는 IP 당 한도라 **화면을 여는 사람마다 각자 부르는 구조 자체**가 한도를
  * 넘긴다(429). 사람이 늘수록 반드시 터지는 모양이었다. 그래서 그 둘만 뒷단이 대신 받아
- * 여럿이 나눠 쓴다 — 한도는 이제 사람 수가 아니라 서버 하나에만 걸린다.
+ * 여럿이 나눠 쓴다. 한도는 이제 사람 수가 아니라 서버 하나에만 걸린다.
  *
  * 이 기준을 *문서*가 아니라 *응답 헤더*로 확인했다. 실제로 한 곳(pocketworld.org)은
- * 문서에 「CORS 개방」이라 적어 두고도 응답에 그 헤더가 없었다. 그대로 믿고 붙였으면
+ * 문서에 CORS 개방이라 적어 두고도 응답에 그 헤더가 없었다. 그대로 믿고 붙였으면
  * 화면이 빈 채로 배포됐을 것이다. 새 출처를 더할 때도 **재 보고** 더한다.
  *
- * 못 받아오는 것은 **조용히 없는 셈**으로 둔다. 지구본은 계속 돌아야 한다 — 창문 하나가
+ * 못 받아오는 것은 **조용히 없는 셈**으로 둔다. 지구본은 계속 돌아야 한다. 창문 하나가
  * 안 열렸다고 방을 나가지는 않는다.
  */
 
@@ -39,9 +39,9 @@ interface CacheEntry {
 const cache = new Map<string, CacheEntry>();
 
 /**
- * 받아오기 한 겹 — 실패는 `null` 이고 예외를 밖으로 안 던진다.
+ * 받아오기 한 겹. 실패는 `null` 이고 예외를 밖으로 안 던진다.
  * 실패했을 때 **직전에 받아 둔 것을 그대로 쓴다**: 인터넷이 잠깐 끊겼다고 지진이 화면에서
- * 사라지면 「방금 아무 일도 없었던 것」처럼 보인다 — 그게 더 나쁜 거짓말이다.
+ * 사라지면 방금 아무 일도 없었던 것처럼 보인다. 그게 더 나쁜 거짓말이다.
  */
 async function fetchJson<T>(key: string, url: string, ttl: number): Promise<T | null> {
   const hit = cache.get(key);
@@ -77,8 +77,8 @@ interface UsgsFeature {
 }
 
 /**
- * 지난 하루 · 규모 2.5 이상. 「전부」(all_day)는 하루 수천 건이라 화면이 파문으로 덮인다 —
- * 느낌이 「지구가 살아있다」에서 「경보판」으로 바뀐다. 2.5 는 사람이 느끼기 시작하는 언저리다.
+ * 지난 하루, 규모 2.5 이상. 전부(all_day)는 하루 수천 건이라 화면이 파문으로 덮인다 . 
+ * 느낌이 지구가 살아있다에서 경보판으로 바뀐다. 2.5 는 사람이 느끼기 시작하는 언저리다.
  */
 export async function quakes(): Promise<Quake[] | null> {
   const data = await fetchJson<{ features: UsgsFeature[] }>(
@@ -110,7 +110,7 @@ export interface AuroraPoint {
 }
 
 /**
- * NOAA OVATION — 1° 격자로 「지금부터 30~90분 뒤 오로라가 보일 확률」. 원본이 920KB 라
+ * NOAA OVATION. 1° 격자로 지금부터 30~90분 뒤 오로라가 보일 확률. 원본이 920KB 라
  * **받자마자 걸러서 버린다**(6만5천 점 → 보통 수백 점). 원본을 들고 있으면 매 프레임
  * 훑게 되고, 그건 자취방 노트북 팬이 도는 이유가 된다.
  */
@@ -182,11 +182,11 @@ interface LlLaunch {
 }
 
 /**
- * TheSpaceDevs — 다음에 사람이 지구 밖으로 뭘 보낼 예정인가.
+ * TheSpaceDevs. 다음에 사람이 지구 밖으로 뭘 보낼 예정인가.
  * 지구본 위 발사대에 표를 하나 꽂아 두는 용도라 열 건이면 충분하다.
  */
 export async function launches(): Promise<Launch[] | null> {
-  /* 뒷단 경유 — 여기서 바로 부르면 사람마다 한 번씩이라 곧 429 다(위 § 예외 둘). */
+  /* 뒷단 경유. 여기서 바로 부르면 사람마다 한 번씩이라 곧 429 다(위 § 예외 둘). */
   const d = await fetchJson<{ results: LlLaunch[] }>('launches', `${RELAY}/launches`, TTL.launches);
   if (!d?.results) return null;
   const out: Launch[] = [];
@@ -214,18 +214,18 @@ export async function launches(): Promise<Launch[] | null> {
  * (`orbit.ts`). 하루쯤 지나도 쓸 만해서 여섯 시간에 한 번이면 충분하다.
  */
 export async function issOmm(): Promise<import('./orbit').Omm | null> {
-  /* 뒷단 경유 — 원래 자리(CelesTrak)는 자동 접근을 잠갔다(403). 뒷단이 열린 곳에서 받아
+  /* 뒷단 경유. 원래 자리(CelesTrak)는 자동 접근을 잠갔다(403). 뒷단이 열린 곳에서 받아
      **같은 모양**으로 돌려주므로 이 아래 코드는 그대로다. */
   const rows = await fetchJson<import('./orbit').Omm[]>('omm-iss', `${RELAY}/iss`, TTL.omm);
   return rows && rows.length ? rows[0] : null;
 }
 
 /**
- * 그날 하루의 지진 (시간을 되감았을 때). 규모 4.5 이상 — 과거를 볼 땐 「그날 무슨 일이
- * 있었나」가 궁금한 것이지 미세 지진 목록이 궁금한 게 아니다.
+ * 그날 하루의 지진 (시간을 되감았을 때). 규모 4.5 이상. 과거를 볼 땐 그날 무슨 일이
+ * 있었나가 궁금한 것이지 미세 지진 목록이 궁금한 게 아니다.
  *
  * **큰 것부터** 가져온다(`orderby=magnitude`). 기본값은 최신순이라, 400건 제한에 걸리는 날
- * (2011-03-11 같은 날)에는 **본진이 잘려 나가고 여진만 남는다** — 그날 최대가 규모 6.6 이라고
+ * (2011-03-11 같은 날)에는 **본진이 잘려 나가고 여진만 남는다**. 그날 최대가 규모 6.6 이라고
  * 말하게 된다. 실측으로 그랬다.
  */
 export async function quakesOn(day: string): Promise<Quake[] | null> {
@@ -254,7 +254,7 @@ export async function quakesOn(day: string): Promise<Quake[] | null> {
 
 const CATALOG_KEY = 'karmolab_bluemarble_catalog_v1';
 /** CelesTrak 은 두 시간에 한 번 갱신하고, **그 사이 다시 받으면 403 을 준다**(실측).
- *  그래서 받은 것을 담아 두고 그동안은 안 묻는다 — 예의이기도 하고, 안 그러면 그냥 안 된다. */
+ *  그래서 받은 것을 담아 두고 그동안은 안 묻는다. 예의이기도 하고, 안 그러면 그냥 안 된다. */
 const CATALOG_TTL = 2.5 * 3600 * 1000;
 
 interface CachedCatalog {
@@ -277,10 +277,10 @@ export async function catalog(): Promise<import('./orbit').Omm[] | null> {
     /* 담아 둔 것이 깨졌으면 새로 받는다 */
   }
 
-  /* CelesTrak 은 **두 시간 안에 같은 목록을 또 받으면 403** 을 준다 (실측 — 문서가 아니라
+  /* CelesTrak 은 **두 시간 안에 같은 목록을 또 받으면 403** 을 준다 (실측. 문서가 아니라
      응답으로 확인했다). 화면마다 각자 부르면 서로를 막는 구조라, 이제 **뒷단이 대신 받아
-     나눠 준다**(TASK-KL-241). 무리(active)가 비면 밝은 것들(visual)로 내려가는 것은 그대로 —
-     목록마다 셈이 따로다. 만 개가 아니라 백여 개지만, 「머리 위가 비어 있지 않다」는 보인다. */
+     나눠 준다**(TASK-KL-241). 무리(active)가 비면 밝은 것들(visual)로 내려가는 것은 그대로 . 
+     목록마다 셈이 따로다. 만 개가 아니라 백여 개지만, 머리 위가 비어 있지 않다는 보인다. */
   const GROUPS = ['active', 'visual'];
   let rows: import('./orbit').Omm[] | null = null;
   for (const g of GROUPS) {
@@ -338,7 +338,7 @@ function expand(r: CachedCatalog['rows'][number]): import('./orbit').Omm {
 /* ── 태양 ──────────────────────────────────────────────────────────────── */
 
 /**
- * 지금 부는 태양풍의 속도 (km/s). 재는 자리는 L1 — 지구에서 태양 쪽으로 150만 km 앞이다.
+ * 지금 부는 태양풍의 속도 (km/s). 재는 자리는 L1. 지구에서 태양 쪽으로 150만 km 앞이다.
  * 그래서 이 바람이 **여기 닿기까지** 남은 시간을 셀 수 있다. 그게 이 값의 쓸모다.
  */
 export async function solarWind(): Promise<{ speed: number; at: number } | null> {
@@ -377,7 +377,7 @@ const APOD_KEY = 'karmolab_bluemarble_apod_v1';
  * NASA 가 매일 한 장씩 고르는 우주 사진.
  *
  * 열쇠 없이 쓰는 `DEMO_KEY` 는 **한 시간에 열 번**이 한도다(응답 헤더로 확인). 화면을 몇 번
- * 열었다 닫으면 금방 닿는다 — 그래서 **날짜별로 담아 두고 하루에 한 번만 묻는다**.
+ * 열었다 닫으면 금방 닿는다. 그래서 **날짜별로 담아 두고 하루에 한 번만 묻는다**.
  * 어차피 하루에 한 장 바뀌는 것이라 이게 맞는 주기이기도 하다.
  */
 export async function apod(): Promise<Apod | null> {

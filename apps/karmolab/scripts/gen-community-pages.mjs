@@ -2,7 +2,7 @@
  * 커뮤니티 글의 정적 페이지 찍기 (TASK-KL-098).
  *
  * 왜 있나: 커뮤니티 글은 화면이 스크립트로 그린다. 검색엔진은 그 화면을 못 읽으므로 **글이
- * 하나도 색인되지 않는다** — 도구는 검색으로 사람이 오는데 커뮤니티는 올 길이 없었다.
+ * 하나도 색인되지 않는다**. 도구는 검색으로 사람이 오는데 커뮤니티는 올 길이 없었다.
  *
  * 어떻게: 배포할 때 서버에서 글을 받아 `/c/<글id>/` 에 **읽을 수 있는 HTML**로 찍는다.
  * 도구 상세(`/t/<도구id>/`)와 같은 규약이라 새 개념이 아니다.
@@ -35,11 +35,11 @@ const MAX_PAGES = 300;
  *
  * `JSON.stringify` 는 `<` 를 안 바꾼다. 글 제목에 `</script>` 가 들어 있으면 그 자리에서
  * 스크립트 태그가 끊기고, 뒤에 오는 것이 진짜 스크립트로 실행된다.
- * 시험이 이걸 잡았다 — 눈으로는 절대 안 보인다.
+ * 시험이 이걸 잡았다. 눈으로는 절대 안 보인다.
  */
 function jsonLd(value) {
   // 태그를 끊는 글자를 여섯 글자 표기로 바꾼다. 여기에 진짜 꺾쇠를 쓰면 같은 글자라
-  // 아무것도 안 바뀌고 태그가 그대로 끊긴다 — 실제로 한 번 그렇게 새어 나갔다.
+  // 아무것도 안 바뀌고 태그가 그대로 끊긴다. 실제로 한 번 그렇게 새어 나갔다.
   return JSON.stringify(value)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
@@ -60,7 +60,7 @@ async function getJson(url) {
   return response.json();
 }
 
-/** 크롤러가 읽을 한 장. 화면 흉내를 내지 않는다 — 글이 읽히는 것이 전부다. */
+/** 크롤러가 읽을 한 장. 화면 흉내를 내지 않는다. 글이 읽히는 것이 전부다. */
 function page(post, galleryLabel) {
   const title = post.title || post.text.slice(0, 40);
   const appUrl = `/?p=${encodeURIComponent(post.id)}#community`;
@@ -87,7 +87,7 @@ permalink: /c/${post.id}/
 <meta name="viewport" content="width=device-width, initial-scale=1">
 ${CSP_META}
 <meta name="color-scheme" content="dark">
-<title>${escapeHtml(title)} — KarmoLab 커뮤니티</title>
+<title>${escapeHtml(title)}. KarmoLab 커뮤니티</title>
 <meta name="description" content="${escapeHtml(desc)}">
 <link rel="canonical" href="${canonical}">
 <meta property="og:type" content="article">
@@ -132,11 +132,11 @@ ${jsonLd({
 </head>
 <body>
   <main>
-    <p class="meta"><a href="/">KarmoLab</a> · ${escapeHtml(galleryLabel)}</p>
+    <p class="meta"><a href="/">KarmoLab</a>, ${escapeHtml(galleryLabel)}</p>
     <h1>${escapeHtml(title)}</h1>
-    <p class="meta">@${escapeHtml(post.authorHandle)} ·
+    <p class="meta">@${escapeHtml(post.authorHandle)} , 
       <time datetime="${escapeHtml(post.createdAt)}">${escapeHtml(post.createdAt.slice(0, 10))}</time>
-      · 조회 ${post.views ?? 0} · 좋아요 ${post.likes ?? 0}</p>
+     , 조회 ${post.views ?? 0}, 좋아요 ${post.likes ?? 0}</p>
     <div class="body">${escapeHtml(post.text)}</div>
     ${replies ? `<h2 style="font-size:15px;margin-top:28px">답글 ${post.replyCount ?? 0}</h2><ul>${replies}</ul>` : ''}
     <a class="go" href="${appUrl}">커뮤니티에서 이어서 보기 →</a>
@@ -159,7 +159,7 @@ async function main() {
     galleries = (await getJson(`${API}/kl/boards`)).boards ?? [];
   } catch (error) {
     // 노트북이 꺼져 있다고 사이트 배포를 막지 않는다. 대신 조용히 넘어가지도 않는다.
-    console.log(`[gen-community-pages] 건너뜀 — 커뮤니티 서버에 못 닿았다 (${String(error.message).slice(0, 40)})`);
+    console.log(`[gen-community-pages] 건너뜀. 커뮤니티 서버에 못 닿았다 (${String(error.message).slice(0, 40)})`);
     return;
   }
 
@@ -170,7 +170,7 @@ async function main() {
       const listed = await getJson(`${API}/kl/posts?board=${encodeURIComponent(gallery.id)}`);
       for (const post of listed.posts ?? []) posts.push({ post, galleryLabel: gallery.label });
     } catch {
-      console.log(`[gen-community-pages] ${gallery.id} 목록을 못 받았다 — 그 갤러리만 건너뛴다`);
+      console.log(`[gen-community-pages] ${gallery.id} 목록을 못 받았다. 그 갤러리만 건너뛴다`);
     }
   }
 

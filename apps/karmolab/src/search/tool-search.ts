@@ -54,11 +54,11 @@ function fuzzyToken(query: string, candidates: string[]): number | null {
  *
  * 왜: 점수 계산이 글자를 칠 때마다 도구마다 `compactSearchText`/`searchTokens` 를 다섯 번씩
  * 다시 돌리고 있었다. 그 안은 `normalize('NFC')` + `toLocaleLowerCase('ko-KR')` + 정규식 두 번이라
- * 싸지 않다. 문서가 250개면 한 글자에 1,250번이다 — 그런데 **그 결과는 질문과 아무 상관이 없다.**
- * 실측(폰 폭, 로컬): 한 글자당 화면이 바뀌기까지 450~520ms. 사람이 「굼뜨다」고 느끼는 값이다.
+ * 싸지 않다. 문서가 250개면 한 글자에 1,250번이다. 그런데 **그 결과는 질문과 아무 상관이 없다.**
+ * 실측(폰 폭, 로컬): 한 글자당 화면이 바뀌기까지 450~520ms. 사람이 굼뜨다고 느끼는 값이다.
  *
- * 도구 객체를 열쇠로 삼는다(WeakMap) — 목록을 새로 지으면 새 객체라 저절로 새 값이 되고,
- * 옛 것은 알아서 사라진다. 「언제 캐시를 비우나」를 사람이 기억할 필요가 없다.
+ * 도구 객체를 열쇠로 삼는다(WeakMap). 목록을 새로 지으면 새 객체라 저절로 새 값이 되고,
+ * 옛 것은 알아서 사라진다. 언제 캐시를 비우나를 사람이 기억할 필요가 없다.
  */
 type PreparedTool = {
   id: string; title: string; initials: string; aliases: string; description: string;
@@ -68,7 +68,7 @@ type PreparedTool = {
 
 const prepared = new WeakMap<SearchableTool, PreparedTool>();
 
-/** 첫 글자를 치기 **전에** 미리 다듬어 둔다 — 안 그러면 첫 글자만 유독 굼뜨다(실측 305ms). */
+/** 첫 글자를 치기 **전에** 미리 다듬어 둔다. 안 그러면 첫 글자만 유독 굼뜨다(실측 305ms). */
 export function warmSearchable(tool: SearchableTool): void { prepare(tool); }
 
 function prepare(tool: SearchableTool): PreparedTool {

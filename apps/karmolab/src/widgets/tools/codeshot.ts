@@ -2,11 +2,11 @@
  * 코드 사진 (TASK-KL-245)
  *
  * 코드 한 조각을 남에게 보이려고 바깥 사이트를 열지 않게. 껍데기는 **갈아 끼운다**
- * (`shared/code-frames.ts`) — carbon·ray.so 는 「둥근 창 + 신호등」 하나뿐이지만,
+ * (`shared/code-frames.ts`). carbon, ray.so 는 둥근 창 + 신호등 하나뿐이지만,
  * 그건 그 사이트가 정한 것이지 쓰는 사람이 정한 게 아니다.
  *
  * 문법 색칠은 이미 우리 안에 있는 Prism(34개 언어)에 맡기고, 그 결과를 **캔버스에 우리 손으로**
- * 그린다. 그래야 글꼴·줄 높이를 우리가 정하고, 한글 주석이 섞여도 글자마다 재서 그리므로
+ * 그린다. 그래야 글꼴, 줄 높이를 우리가 정하고, 한글 주석이 섞여도 글자마다 재서 그리므로
  * 정렬이 안 무너진다(한글 등폭 글꼴은 우리에게 없다).
  */
 import { FRAMES } from './shared/code-frames';
@@ -19,7 +19,7 @@ import { fileSize } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /** 화면에 내놓을 언어. Prism 이 아는 것 중 자주 쓰는 것만 — 34개를 다 늘어놓으면 고르기가 일이 된다. */
+  /** 화면에 내놓을 언어. Prism 이 아는 것 중 자주 쓰는 것만. 34개를 다 늘어놓으면 고르기가 일이 된다. */
   const LANGS: Array<[string, string]> = [
     ['typescript', 'TypeScript'],
     ['javascript', 'JavaScript'],
@@ -55,7 +55,7 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'codeshot',
     title: t('widgets.codeshot.title', undefined, '코드 사진'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.codeshot.desc',
       undefined,
@@ -138,12 +138,12 @@ import { t, loadNamespace } from '../../lib/i18n';
     const stats = $<HTMLElement>('#csStats');
     const status = $<HTMLElement>('#csStatus');
 
-    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-     * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+    /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+     * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
     const say = statusLine(status);
 
     /**
-     * 색칠. Prism 이 없거나 그 언어를 모르면 **색 없이** 그린다 — 그림이 안 나오는 것보다
+     * 색칠. Prism 이 없거나 그 언어를 모르면 **색 없이** 그린다. 그림이 안 나오는 것보다
      * 검은 글씨로라도 나오는 편이 낫다.
      */
     async function segsOf(code: string, lang: string): Promise<Seg[][]> {
@@ -161,13 +161,13 @@ import { t, loadNamespace } from '../../lib/i18n';
       el.className = 'language-' + lang;
       el.textContent = code;
       pre.appendChild(el);
-      /* 화면 밖에 두고 색칠만 시킨다 — 보이지 않지만 `display:none` 은 아니어야 한다
+      /* 화면 밖에 두고 색칠만 시킨다. 보이지 않지만 `display:none` 은 아니어야 한다
          (autoloader 가 뒤늦게 언어를 받아 와 다시 칠하는 경우가 있다). */
       pre.style.cssText = 'position:absolute;left:-9999px;top:0;white-space:pre;';
       document.body.appendChild(pre);
       try {
         P.highlightElement(el);
-        /* autoloader 는 언어 파일을 받아 온 **뒤에** 다시 칠한다. 한 박자 기다렸다가 읽는다 —
+        /* autoloader 는 언어 파일을 받아 온 **뒤에** 다시 칠한다. 한 박자 기다렸다가 읽는다 . 
            안 기다리면 처음 고른 언어만 색이 없다(그게 더 헷갈린다). */
         if (!el.querySelector('.token')) {
           await new Promise((r) => setTimeout(r, 260));
@@ -228,29 +228,29 @@ import { t, loadNamespace } from '../../lib/i18n';
     numsEl.addEventListener('change', bump);
 
     $('#csSave').onclick = (): void => {
-      // 공용 한 자리(`shared/image.encode`) — JPG 흰 바탕 규칙이 거기 있다.
+      // 공용 한 자리(`shared/image.encode`). JPG 흰 바탕 규칙이 거기 있다.
       encode(canvas, 'png').then((blob) => {
         const name = (fileEl.value.trim().replace(/\W+/g, '-') || 'code') + '.png';
         download(blob, name);
         say(t('codeshot.status.saved', undefined, '저장했습니다') + ` (${fileSize(blob.size)})`, 'ok');
-        /* 만든 사진은 크기 맞추기·PDF 로 이어질 수 있다 (TASK-KL-298). */
+        /* 만든 사진은 크기 맞추기, PDF 로 이어질 수 있다 (TASK-KL-298). */
         Toolbox.offerNext?.(status, { blob, name, from: 'codeshot' });
       });
     };
 
     $('#csCopy').onclick = (): void => {
-      // 공용 한 자리(`shared/image.encode`) — JPG 흰 바탕 규칙이 거기 있다.
+      // 공용 한 자리(`shared/image.encode`). JPG 흰 바탕 규칙이 거기 있다.
       encode(canvas, 'png').then((blob) => {
         const anyNav = navigator as unknown as { clipboard?: { write?: (d: unknown[]) => Promise<void> } };
         const CI = (window as unknown as { ClipboardItem?: new (d: Record<string, Blob>) => unknown }).ClipboardItem;
         if (!anyNav.clipboard?.write || !CI) {
-          say(t('codeshot.status.noclip', undefined, '이 브라우저는 그림 복사를 막습니다 — 저장을 쓰세요'), 'warn');
+          say(t('codeshot.status.noclip', undefined, '이 브라우저는 그림 복사를 막습니다. 저장을 쓰세요'), 'warn');
           return;
         }
         void anyNav.clipboard
           .write([new CI({ 'image/png': blob })])
           .then(() => say(t('codeshot.status.copied', undefined, '클립보드에 넣었습니다'), 'ok'))
-          .catch(() => say(t('codeshot.status.noclip', undefined, '이 브라우저는 그림 복사를 막습니다 — 저장을 쓰세요'), 'warn'));
+          .catch(() => say(t('codeshot.status.noclip', undefined, '이 브라우저는 그림 복사를 막습니다. 저장을 쓰세요'), 'warn'));
       });
     };
 

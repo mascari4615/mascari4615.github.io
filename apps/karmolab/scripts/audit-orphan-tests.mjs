@@ -2,19 +2,19 @@
  * **아무도 안 돌리는 검사**를 센다 (TASK-KL-301)
  *
  * 검사를 만들어 놓고 어느 묶음에도 안 넣으면, 그 검사는 **없는 것과 같다**. 빨개져도 아무도
- * 모른다 — `test:pdfdiff` 가 그렇게 며칠 「원래 깨진 것」으로 살았고, 이번 세션에 만든 재료
+ * 모른다. `test:pdfdiff` 가 그렇게 며칠 원래 깨진 것으로 살았고, 이번 세션에 만든 재료
  * 화면검사 여덟은 게이트 밖이었으며, 이미지 재료 검사는 **npm 이름조차 없어** 손으로 부르지
  * 않으면 절대 안 돌았다.
  *
- * 그래서 「돌려지는 자리」를 전부 펼쳐 훑는다:
- *   package.json 의 묶음(`build`·`gates`·`verify:*`) 을 **재귀로** 펼치고,
+ * 그래서 돌려지는 자리를 전부 펼쳐 훑는다:
+ *   package.json 의 묶음(`build`, `gates`, `verify:*`) 을 **재귀로** 펼치고,
  *   `scripts/live-checks.mjs`(라이브 목록)와 `.github/workflows/*.yml`(CI 가 직접 부르는 것)까지.
  *
  * **톱니(ratchet)**: 지금 밖에 있는 것들은 기준선에 적어 두고 통과시킨다. 대신
  *   ① 기준선에 없는 **새 고아**가 생기면 막고
  *   ② 기준선에 적혀 있는데 이제 묶음에 들어간 것은 **기준선에서 빼라**고 막는다.
  * 그래서 이 수는 **줄기만 한다**. (전부 당장 묶으면 게이트가 몇 배로 느려지고, 실주소를 보는
- * 검사는 배포 시점에 빨개져 아무도 안 믿게 된다 — 그건 따로 볼 판이다.)
+ * 검사는 배포 시점에 빨개져 아무도 안 믿게 된다. 그건 따로 볼 판이다.)
  *
  * 사용: node scripts/audit-orphan-tests.mjs [--update]
  */
@@ -25,8 +25,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASELINE = path.join(root, 'data/orphan-tests.json');
-/* ★ **push 전에 부를 때는 「올라갈 커밋」의 package.json 을 읽는다** (2026-08-13).
- *   이 나무는 세션 여럿이 함께 쓴다 — 작업 폴더의 `package.json` 에는 남이 만들다 만 검사
+/* ★ **push 전에 부를 때는 올라갈 커밋의 package.json 을 읽는다** (2026-08-13).
+ *   이 나무는 세션 여럿이 함께 쓴다. 작업 폴더의 `package.json` 에는 남이 만들다 만 검사
  *   이름이 늘 몇 개 들어 있다. 그걸 읽으면 내 push 마다 남의 미완성으로 빨개져, 곧 아무도
  *   안 보는 경고가 된다. 반대로 **내가 올리는 커밋**만 보면 오늘 실제로 났던 사고
  *   (게이트 줄에서만 뺀 이름이 고아로 남아 verify 가 섰다)를 3초에 잡는다.
@@ -39,7 +39,7 @@ const pkgText = (() => {
     for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX']) delete env[k];
     return execFileSync('git', ['show', `${REF}:./package.json`], { cwd: root, env, encoding: 'utf8' });
   } catch {
-    /* 못 물어보면 「모른다」다 — 작업 폴더로 물러선다(모름을 빨강으로 만들지 않는다) */
+    /* 못 물어보면 모른다다. 작업 폴더로 물러선다(모름을 빨강으로 만들지 않는다) */
     return fs.readFileSync(path.join(root, 'package.json'), 'utf8');
   }
 })();
@@ -47,7 +47,7 @@ const pkg = JSON.parse(pkgText);
 const scripts = pkg.scripts || {};
 const isCheck = (name) => /^(test|smoke|audit):/.test(name);
 
-/** 묶음 하나를 펼친다 — 묶음이 묶음을 부르므로 재귀. */
+/** 묶음 하나를 펼친다. 묶음이 묶음을 부르므로 재귀. */
 const covered = new Set();
 function expand(name, depth = 0) {
   const body = scripts[name];
@@ -58,15 +58,15 @@ function expand(name, depth = 0) {
   }
   /* ★ **이름 목록을 파일로 뺀 묶음도 있다** (2026-08-14): `run-gates.mjs --from data/gate-list.json`.
      한 줄에 백스물다섯 개를 적어 두니 세션들이 동시에 늘릴 때마다 충돌했고, 손으로 합치다
-     승격 하나가 조용히 사라졌다. 그래서 파일로 뺐다 — 여기서도 그 파일을 읽어야 한다.
-     안 읽으면 「아무도 안 돌리는 검사 119개」라는 거짓 경보가 난다(옮기자마자 실측). */
+     승격 하나가 조용히 사라졌다. 그래서 파일로 뺐다. 여기서도 그 파일을 읽어야 한다.
+     안 읽으면 아무도 안 돌리는 검사 119개라는 거짓 경보가 난다(옮기자마자 실측). */
   const from = body.match(/--from\s+(\S+)/);
   if (from) {
     try {
       const raw = JSON.parse(fs.readFileSync(path.join(root, from[1]), 'utf8'));
-      /* 한 줄은 이름 문자열이거나 `{이름, 볼것}` 이다 (TASK-KL-331 — 발판을 적으면
+      /* 한 줄은 이름 문자열이거나 `{이름, 볼것}` 이다 (TASK-KL-331. 발판을 적으면
          `gates:changed` 가 그 검사를 건너뛸 수 있다). 문자열로만 읽으면 발판을 적은
-         검사들이 통째로 「아무도 안 돌린다」로 뒤집힌다 — 실측으로 열 개가 그랬다. */
+         검사들이 통째로 아무도 안 돌린다로 뒤집힌다. 실측으로 열 개가 그랬다. */
       for (const entry of raw.list ?? []) {
         const n = typeof entry === 'string' ? entry : entry?.name;
         if (typeof n !== 'string') continue;
@@ -80,8 +80,8 @@ function expand(name, depth = 0) {
 
   /* ★ **이름 목록이 .mjs 안에 사는 묶음도 있다** (2026-08-17 실측). `verify:prepush` 의 몸통은
      `node scripts/run-prepush.mjs` 한 줄이고, 무엇을 도는지는 `scripts/lib/gate-sets.mjs` 의
-     PREPUSH 배열이 정한다. 그 파일을 안 읽으면 **거기에만 있는 검사가 「아무도 안 돌린다」로
-     빨개진다** — 실제로 방금 그랬다(audit:spec-locales 는 prepush 에서 멀쩡히 돌고 있었다).
+     PREPUSH 배열이 정한다. 그 파일을 안 읽으면 **거기에만 있는 검사가 아무도 안 돌린다로
+     빨개진다**. 실제로 방금 그랬다(audit:spec-locales 는 prepush 에서 멀쩡히 돌고 있었다).
      검사의 세계 모형이 실제와 다르면 그 검사가 거짓말을 한다. 그 파일도 입구로 읽는다. */
   if (/run-prepush\.mjs|gate-sets\.mjs/.test(body)) {
     try {
@@ -94,20 +94,20 @@ function expand(name, depth = 0) {
     }
   }
 
-  /* ★ **묶음이 부르는 스크립트가 또 다른 검사를 「경로로」 부른다** (2026-08-17 실측).
+  /* ★ **묶음이 부르는 스크립트가 또 다른 검사를 경로로 부른다** (2026-08-17 실측).
      `verify:karmograph` → `run-karmograph-live.mjs` → `node scripts/smoke-karmograph.mjs`.
      npm 이름을 안 거치므로 여태 안 보였고, `smoke:karmograph` 는 **날마다 CI 에서 도는데도**
-     「아무도 안 돌린다」로 기준선에 얹혀 있었다(사유란에는 「빨개져서 안 묶는다」고 적혀
+     아무도 안 돌린다로 기준선에 얹혀 있었다(사유란에는 빨개져서 안 묶는다고 적혀
      있었지만 사실이 아니었다). 뿌리 verify.mjs 에만 있던 경로-되짚기를 여기로 올린다. */
   for (const m of body.matchAll(/scripts\/([\w-]+)\.mjs/g)) {
     const f = path.join(root, `scripts/${m[1]}.mjs`);
     if (!fs.existsSync(f)) continue;
     let inner;
     try { inner = fs.readFileSync(f, 'utf8'); } catch { continue; }
-    /* ★ **「읽는다」와 「돌린다」는 다르다** (2026-08-17, 같은 판에서 바로 데임).
+    /* ★ **읽는다와 돌린다는 다르다** (2026-08-17, 같은 판에서 바로 데임).
        `audit-scripts.mjs` 는 `audit-all.mjs` 를 **열어 읽기만** 한다(그 안의 목록을 보려고).
-       그걸 「부른다」로 세면 아무도 안 돌리는 묶음이 「돈다」가 되어 기준선이 헐거워진다.
-       그래서 **띄우는 줄**에 있을 때만 센다 — spawn/execFile/`node ` 처럼 프로세스를 만드는 줄. */
+       그걸 부른다로 세면 아무도 안 돌리는 묶음이 돈다가 되어 기준선이 헐거워진다.
+       그래서 **띄우는 줄**에 있을 때만 센다. spawn/execFile/`node ` 처럼 프로세스를 만드는 줄. */
     for (const line of inner.split(String.fromCharCode(10))) {
       if (!/spawn|execFile|[.\s]exec\(|[.\s]run\(|node\s/.test(line)) continue;
       for (const call of line.matchAll(/scripts\/([\w-]+)\.mjs/g)) {
@@ -130,8 +130,8 @@ function expand(name, depth = 0) {
   }
 }
 /* ★ **아무도 안 부르는 이름을 입구로 세면 안 된다** (2026-08-16). 여기 `verify:quality` 가
-   들어 있었는데 그 이름을 부르는 워크플로가 하나도 없다 — 그 아래 검사들(성능 예산 등)이
-   「물려 있다」로 세어져 몇 달간 orphan 목록에 안 떴다. 실제로 성능 예산은 한 번도 안 돌았다.
+   들어 있었는데 그 이름을 부르는 워크플로가 하나도 없다. 그 아래 검사들(성능 예산 등)이
+   물려 있다로 세어져 몇 달간 orphan 목록에 안 떴다. 실제로 성능 예산은 한 번도 안 돌았다.
    입구는 **정말로 도는 것**만 적는다. */
 for (const entry of ['build', 'gates', 'verify:prepush', 'verify:live']) {
   covered.add(entry);
@@ -140,8 +140,8 @@ for (const entry of ['build', 'gates', 'verify:prepush', 'verify:live']) {
 
 /* 라이브 목록은 배열이라 이름이 따옴표 안에 있다 */
 /* ★ **볼 것을 한 자리에서 본다** (2026-08-13). 밀 커밋 기준으로 판정할 때 `package.json` 만
-   커밋에서 읽고 라이브 목록·워크플로는 **작업 폴더**에서 읽고 있었다 — 그 어긋남 때문에
-   「이건 이제 묶음에 들었다」고 잘못 읽고 기준선을 줄였다가 CI 를 여러 판 세웠다(오늘 실측).
+   커밋에서 읽고 라이브 목록, 워크플로는 **작업 폴더**에서 읽고 있었다. 그 어긋남 때문에
+   이건 이제 묶음에 들었다고 잘못 읽고 기준선을 줄였다가 CI 를 여러 판 세웠다(오늘 실측).
    `KL_PUSH_SHA` 가 있으면 셋 다 그 커밋에서 읽는다. 못 읽으면 폴더로 물러선다. */
 const atRef = (relFromApp) => {
   if (!REF) return null;
@@ -160,10 +160,10 @@ for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
   expand(name);
 }
 
-/* CI 가 워크플로에서 직접 부르는 것도 「돌려지는 것」이다 */
+/* CI 가 워크플로에서 직접 부르는 것도 돌려지는 것이다 */
 /* ★ **뿌리의 `verify.mjs` 도 검사를 부른다** (2026-08-14). 이 파일은 npm 묶음이 아니라
-   경로로 부르는 자리라 여태 안 봤다 — 그래서 `audit:pages`(도구 장 최신 여부)처럼 **매 verify 마다
-   도는 검사**가 「아무도 안 돌린다」로 기준선에 얹혀 있었다. 부르는 자리는 다 세야 수가 맞는다. */
+   경로로 부르는 자리라 여태 안 봤다. 그래서 `audit:pages`(도구 장 최신 여부)처럼 **매 verify 마다
+   도는 검사**가 아무도 안 돌린다로 기준선에 얹혀 있었다. 부르는 자리는 다 세야 수가 맞는다. */
 {
   const vf = path.join(root, '../../scripts/verify.mjs');
   if (fs.existsSync(vf)) {
@@ -172,7 +172,7 @@ for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
       covered.add(m[1]);
       expand(m[1]);
     }
-    /* `node scripts/<이름>.mjs` 로 부르는 것도 있다 — 그 파일을 가리키는 npm 이름을 찾아 덮는다. */
+    /* `node scripts/<이름>.mjs` 로 부르는 것도 있다. 그 파일을 가리키는 npm 이름을 찾아 덮는다. */
     for (const m of src.matchAll(/node\s+scripts\/([\w-]+)\.mjs/g)) {
       for (const [name, line] of Object.entries(pkg.scripts || {})) {
         if (line.includes(`scripts/${m[1]}.mjs`)) {
@@ -184,19 +184,19 @@ for (const m of live.matchAll(/["'](?:test|smoke|audit):[\w:.-]+["']/g)) {
   }
 }
 
-/* ★ **부르는 자리를 못 보면 「모른다」다 — 빨강이 아니다** (2026-08-15 실측).
-   이 감사는 검사를 부르는 자리를 셋에서 읽는다: npm 묶음 · 뿌리 `scripts/verify.mjs` ·
-   `.github/workflows`. 그런데 push 훅은 **커밋을 임시 폴더에 앱 서브트리만** 풀어 놓고 돌린다 —
-   거기엔 뒤의 둘이 없다. 그러면 「verify 가 매 판 부르는」 검사(`audit:pages`)가 갑자기
+/* ★ **부르는 자리를 못 보면 모른다다. 빨강이 아니다** (2026-08-15 실측).
+   이 감사는 검사를 부르는 자리를 셋에서 읽는다: npm 묶음, 뿌리 `scripts/verify.mjs` , 
+   `.github/workflows`. 그런데 push 훅은 **커밋을 임시 폴더에 앱 서브트리만** 풀어 놓고 돌린다 . 
+   거기엔 뒤의 둘이 없다. 그러면 verify 가 매 판 부르는 검사(`audit:pages`)가 갑자기
    고아로 보여 **멀쩡한 커밋이 막힌다**. 오늘 실제로 그렇게 막혔고, 사유도 안 보였다.
-   이 파일 위쪽이 스스로 정한 규율(「못 물어보면 모른다 — 모름을 빨강으로 만들지 않는다」)을
-   여기서도 지킨다. exit 2 = 「못 돌림」 = `run-gates` 가 빨강으로 안 센다. */
+   이 파일 위쪽이 스스로 정한 규율(못 물어보면 모른다. 모름을 빨강으로 만들지 않는다)을
+   여기서도 지킨다. exit 2 = 못 돌림 = `run-gates` 가 빨강으로 안 센다. */
 const callSites = [path.join(root, '../../scripts/verify.mjs'), path.join(root, '../../.github/workflows')];
 const missingSites = callSites.filter((one) => !fs.existsSync(one));
 if (missingSites.length) {
-  console.error('[audit-orphan-tests] CANNOT-RUN: 검사를 부르는 자리를 못 본다 —');
+  console.error('[audit-orphan-tests] CANNOT-RUN: 검사를 부르는 자리를 못 본다 . ');
   for (const one of missingSites) console.error(`  없음: ${path.relative(root, one)}`);
-  console.error('  이건 「아무도 안 돌린다」가 아니라 **아무것도 못 봤다**는 뜻이다. 빨강으로 세지 않는다.');
+  console.error('  이건 아무도 안 돌린다가 아니라 **아무것도 못 봤다**는 뜻이다. 빨강으로 세지 않는다.');
   process.exit(2);
 }
 
@@ -204,8 +204,8 @@ const wfDir = path.join(root, '../../.github/workflows');
 if (fs.existsSync(wfDir)) {
   for (const file of fs.readdirSync(wfDir)) {
     if (!/\.ya?ml$/.test(file)) continue;
-    /* `npm run --silent <이름>` 처럼 **깃발이 앞에 오는** 부름도 있다 — 깃발을 이름으로 읽으면
-       진짜 이름은 못 보고 「아무도 안 돌린다」로 잡는다(2026-08-14 실측: `audit:deploy-health`
+    /* `npm run --silent <이름>` 처럼 **깃발이 앞에 오는** 부름도 있다. 깃발을 이름으로 읽으면
+       진짜 이름은 못 보고 아무도 안 돌린다로 잡는다(2026-08-14 실측: `audit:deploy-health`
        를 워크플로가 부르는데도 고아로 걸려 master 가 빨개졌다). 깃발은 건너뛴다. */
     for (const m of fs.readFileSync(path.join(wfDir, file), 'utf8').matchAll(/npm run (?:--[\w-]+\s+)*([\w:.-]+)/g)) {
       covered.add(m[1]);
@@ -214,19 +214,19 @@ if (fs.existsSync(wfDir)) {
   }
 }
 
-/** 갈래로 안 잡히는 것은 손으로 적는다 — 실측해 보고 안 것들. */
+/** 갈래로 안 잡히는 것은 손으로 적는다. 실측해 보고 안 것들. */
 const reasonNote = {
-  'test:garden': '알맹이지만 19초 걸린다 — 게이트 한 판이 그만큼 길어진다 (실측 2026-08-13)',
+  'test:garden': '알맹이지만 19초 걸린다. 게이트 한 판이 그만큼 길어진다 (실측 2026-08-13)',
   'test:studymap': '알맹이지만 24초 걸린다 (실측 2026-08-13)',
-  'test:heung': '60초를 넘겨도 안 끝난다 — 멈추는 자리가 있다 (실측 2026-08-13, 그 슬롯 몫)'
+  'test:heung': '60초를 넘겨도 안 끝난다. 멈추는 자리가 있다 (실측 2026-08-13, 그 슬롯 몫)'
 };
 
 const all = Object.keys(scripts).filter(isCheck);
 const orphans = all.filter((k) => !covered.has(k)).sort();
 
 /**
- * 왜 못 묶는지를 **기준선이 스스로 적게** 한다 — 이름만 늘어놓은 목록은 반년 뒤 아무도 못 읽는다.
- * 갈래는 검사 파일을 읽어 가른다(브라우저를 쓰나 · 실주소를 보나 · 다른 검사를 부르나).
+ * 왜 못 묶는지를 **기준선이 스스로 적게** 한다. 이름만 늘어놓은 목록은 반년 뒤 아무도 못 읽는다.
+ * 갈래는 검사 파일을 읽어 가른다(브라우저를 쓰나, 실주소를 보나, 다른 검사를 부르나).
  */
 function branch(name) {
   const file = (scripts[name].match(/scripts\/[\w.-]+\.mjs/) || [])[0];
@@ -238,26 +238,26 @@ function branch(name) {
   }
   const browser = /from ['"]playwright['"]/.test(src);
   const resolvedUrl = /blog\.mascari4615\.com|mascari4615\.github\.io|process\.env\.(URL|BASE)/.test(src);
-  if (/child_process/.test(src) && /npm/.test(src)) return '묶음 — 다른 검사들을 불러 모으는 것이라 게이트에 또 넣으면 겹친다';
-  if (browser && resolvedUrl) return '화면 + 실주소 — 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다';
-  if (browser) return '화면 — 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)';
-  if (resolvedUrl) return '실주소 — 배포 상태에 달렸다';
-  return '알맹이인데 아직 안 묶었다 — 빠르면 그냥 gates 에 넣어라';
+  if (/child_process/.test(src) && /npm/.test(src)) return '묶음. 다른 검사들을 불러 모으는 것이라 게이트에 또 넣으면 겹친다';
+  if (browser && resolvedUrl) return '화면 + 실주소. 배포 시점에 따라 빨개져서 막는 자리에 두면 아무도 안 믿게 된다';
+  if (browser) return '화면. 브라우저를 띄워 무겁다 (묶으려면 시간을 재고 넣어라)';
+  if (resolvedUrl) return '실주소. 배포 상태에 달렸다';
+  return '알맹이인데 아직 안 묶었다. 빠르면 그냥 gates 에 넣어라';
 }
 
 /* ★ **손으로 적은 사유를 자동 문구로 덮지 마라** (2026-08-17 실측). 목록이 하나 줄었을 뿐인데
-   다시 쓰면서 남은 항목의 사유까지 갈래 기본값으로 갈아 끼웠다 — 「rc 2 로 스스로 못 돌았다고
-   끝난다」·「마스코트 rAF 때문에 지금 빨갛다, TASK-KL-318」 같은 **재 본 값**이 「브라우저를 띄워
-   무겁다」로 뭉개졌다. 그 문장들이 기준선의 값어치 전부다. 이미 적힌 사유가 있으면 그것을 남긴다. */
+   다시 쓰면서 남은 항목의 사유까지 갈래 기본값으로 갈아 끼웠다. rc 2 로 스스로 못 돌았다고
+   끝난다, 마스코트 rAF 때문에 지금 빨갛다, TASK-KL-318 같은 **재 본 값**이 브라우저를 띄워
+   무겁다로 뭉개졌다. 그 문장들이 기준선의 값어치 전부다. 이미 적힌 사유가 있으면 그것을 남긴다. */
 function existingReason() {
   try { return JSON.parse(fs.readFileSync(BASELINE, 'utf8')).reason || {}; } catch { return {}; }
 }
 
 /* ── ★ **이름조차 없는 검사** (2026-08-17 실측) ───────────────────────────────
    위 셈은 **npm 이름이 있는 검사**만 본다. 그래서 `scripts/smoke-bon.mjs` 처럼
-   **이름이 아예 없는 파일**은 이 감사의 눈에 안 보였다 — 아무 데서도 안 불리고,
+   **이름이 아예 없는 파일**은 이 감사의 눈에 안 보였다. 아무 데서도 안 불리고,
    실제로 돌려 보니 화면이 안 떠서 **깨진 채로** 있었다(README 에만 쓰는 법이 적혀 있었다).
-   「안 도는 검사」의 가장 조용한 얼굴이다. 여기서 같이 센다. */
+   안 도는 검사의 가장 조용한 얼굴이다. 여기서 같이 센다. */
 const gatePattern = /^(smoke|test|audit|check)[-.]|\.test\.mjs$/;
 const callers = [pkgText];
 for (const f of fs.readdirSync(path.join(root, 'scripts'))) {
@@ -279,16 +279,16 @@ function writeBaseline() {
     BASELINE,
     JSON.stringify(
       {
-        note: '아무 묶음에도 없는 검사 — 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
+        note: '아무 묶음에도 없는 검사. 줄기만 한다. 늘리려면 왜 못 묶는지 적어라 (audit-orphan-tests.mjs)',
         updated: new Date().toISOString().slice(0, 10),
         list: orphans,
         reason: Object.fromEntries(orphans.map((n) => [n, previous[n] || reasonNote[n] || branch(n)])),
         /* ★ **새 칸을 안 적으면 자동 조임이 그것을 날린다** (2026-08-17 실측). 어제 넣은
-           「이름조차 없는 검사」 칸을 여기서 안 적었더니, `ratchet:tighten` 이 이 파일을
-           `--update` 로 다시 써서 그 칸이 통째로 사라졌다 — 그러고는 「새로 생겼다」로 빨개졌다.
+           이름조차 없는 검사 칸을 여기서 안 적었더니, `ratchet:tighten` 이 이 파일을
+           `--update` 로 다시 써서 그 칸이 통째로 사라졌다. 그러고는 새로 생겼다로 빨개졌다.
            기준선을 쓰는 자리는 **한 곳**이므로, 이 파일이 아는 칸은 전부 여기서 적는다. */
         unnamed,
-        unnamedNote: 'npm 이름조차 없어 아무 데서도 안 불리는 검사 파일 — 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영).'
+        unnamedNote: 'npm 이름조차 없어 아무 데서도 안 불리는 검사 파일. 2026-08-17 에 처음 셌다. 늘리지 마라(줄이는 것은 언제나 환영).'
       },
       null,
       2
@@ -298,7 +298,7 @@ function writeBaseline() {
 
 if (process.argv.includes('--update')) {
   writeBaseline();
-  console.log(`[audit-orphan-tests] 기준선 갱신 — ${orphans.length}개`);
+  console.log(`[audit-orphan-tests] 기준선 갱신. ${orphans.length}개`);
   process.exit(0);
 }
 
@@ -308,11 +308,11 @@ const fixed = base.filter((k) => !orphans.includes(k));
 
 if (added.length) {
   console.log(`[audit-orphan-tests] 아무도 안 돌리는 새 검사 ${added.length}개`);
-  for (const a of added) console.log(`  - ${a} — 만들어 놓고 어느 묶음에도 안 넣었다`);
-  console.log('  넣을 자리: `data/gate-list.json` (전체 묶음) · `scripts/lib/gate-sets.mjs` 의 PREPUSH (push 전) · `live-checks.mjs` (실주소를 보는 것)');
+  for (const a of added) console.log(`  - ${a}. 만들어 놓고 어느 묶음에도 안 넣었다`);
+  console.log('  넣을 자리: `data/gate-list.json` (전체 묶음), `scripts/lib/gate-sets.mjs` 의 PREPUSH (push 전), `live-checks.mjs` (실주소를 보는 것)');
   process.exit(1);
 }
-/** 작업 폴더의 `package.json` 이 origin 과 다르면 — 남의 미커밋이 섞였을 수 있다 */
+/** 작업 폴더의 `package.json` 이 origin 과 다르면. 남의 미커밋이 섞였을 수 있다 */
 function worktreeDiffersFromOrigin() {
   try {
     const env = { ...process.env };
@@ -327,16 +327,16 @@ function worktreeDiffersFromOrigin() {
 }
 
 /* ★ **여기서 갈리는 이유를 적어 준다** (2026-08-13). 이 감사는 작업 폴더를 읽는데, 이 저장소는
-   세션 여럿이 한 폴더를 쓴다 — 남의 **미커밋** 게이트 줄 때문에 「이제 묶음에 들었다」가 뜨고,
+   세션 여럿이 한 폴더를 쓴다. 남의 **미커밋** 게이트 줄 때문에 이제 묶음에 들었다가 뜨고,
    그 말을 믿고 기준선을 줄이면 CI 가 커밋 기준으로 다시 빨개진다(오늘 실측, 여러 판). */
 if (!REF && (added.length || fixed.length) && worktreeDiffersFromOrigin()) {
-  console.log('[audit-orphan-tests] ⚠ 작업 폴더의 package.json 이 origin 과 다르다 — 남의 미커밋이 섞였을 수 있다.');
+  console.log('[audit-orphan-tests] ⚠ 작업 폴더의 package.json 이 origin 과 다르다. 남의 미커밋이 섞였을 수 있다.');
   console.log('  커밋 기준으로 보려면: KL_PUSH_SHA=origin/main npm run audit:orphans');
 }
 
-/* ★ **조인 쪽은 사람을 부르지 않는다 — 스스로 줄이고 지나간다** (2026-08-14).
+/* ★ **조인 쪽은 사람을 부르지 않는다. 스스로 줄이고 지나간다** (2026-08-14).
    여태 이 자리는 빨강이었다: 누가 검사를 묶음에 넣으면 기준선이 그만큼 낡고, 그 사실만으로
-   master 가 빨개졌다. 그런데 **그건 좋아진 것**이다 — 나쁜 쪽(묶음에서 빠짐)만 막으면 된다.
+   master 가 빨개졌다. 그런데 **그건 좋아진 것**이다. 나쁜 쪽(묶음에서 빠짐)만 막으면 된다.
    실제로 오늘만 두 판이 이걸로 빨갰고, 고치는 일은 언제나 `--update` 한 줄이었다.
    좋아졌다고 부르는 알람은 사람을 길들여 **진짜 빨강도 무시하게** 만든다.
    그래서 여기서 바로 줄인다. 내 자리에서 돌면 파일이 남아 다음 커밋에 실리고,
@@ -344,25 +344,25 @@ if (!REF && (added.length || fixed.length) && worktreeDiffersFromOrigin()) {
 if (fixed.length) {
   writeBaseline();
   console.log(`[audit-orphan-tests] 이제 묶음에 든 것 ${fixed.length}개를 기준선에서 뺐다: ${fixed.join(', ')}`);
-  console.log(`  기준선 ${orphans.length}개 — 톱니는 조이는 쪽으로만 돈다(막지 않는다).`);
+  console.log(`  기준선 ${orphans.length}개. 톱니는 조이는 쪽으로만 돈다(막지 않는다).`);
 }
-console.log(`[audit-orphan-tests] 검사 ${all.length}개 · 묶음 밖 ${orphans.length}개 (기준선과 같음 — 늘지 않았다)`);
+console.log(`[audit-orphan-tests] 검사 ${all.length}개, 묶음 밖 ${orphans.length}개 (기준선과 같음. 늘지 않았다)`);
 
 const unnamedBaseline = new Set(JSON.parse(fs.readFileSync(BASELINE, 'utf8')).unnamed || []);
 const newlyAdded = unnamed.filter((f) => !unnamedBaseline.has(f));
 console.log(`[audit-orphan-tests] 이름조차 없는 검사 파일 ${unnamed.length}개 (기준선 ${unnamedBaseline.size})`);
-/* ★ **톱니는 조이는 쪽으로만 돈다 — 그러려면 조이라고 말해야 한다** (2026-08-17).
+/* ★ **톱니는 조이는 쪽으로만 돈다. 그러려면 조이라고 말해야 한다** (2026-08-17).
    여기는 늘어난 것만 막고 줄어든 것은 아무 말도 안 했다. 그러면 기준선은 **느슨해진 채로**
-   남고, 나중에 다시 늘어도 그 안이라 초록이다. 위 「묶음 밖」 셈에는 이미 그 규칙이 있는데
+   남고, 나중에 다시 늘어도 그 안이라 초록이다. 위 묶음 밖 셈에는 이미 그 규칙이 있는데
    (기준선에 있는데 이제 들어간 것은 빼라고 막는다) 이쪽에만 없었다. 같은 규칙을 준다. */
 const nowNamed = [...unnamedBaseline].filter((f) => !unnamed.includes(f));
 if (nowNamed.length) {
-  console.error(`[audit-orphan-tests] ❌ 기준선에 적힌 ${nowNamed.length}개는 이제 이름이 있다 — 기준선에서 빼라(data/orphan-tests.json 의 이름없는것):`);
+  console.error(`[audit-orphan-tests] ❌ 기준선에 적힌 ${nowNamed.length}개는 이제 이름이 있다. 기준선에서 빼라(data/orphan-tests.json 의 이름없는것):`);
   for (const f of nowNamed) console.error('  - ' + f);
   process.exit(1);
 }
 if (newlyAdded.length) {
-  console.error('[audit-orphan-tests] ❌ 아무 데서도 안 불리는 검사 파일이 새로 생겼다 — 이름을 주고 묶음에 넣어라:');
+  console.error('[audit-orphan-tests] ❌ 아무 데서도 안 불리는 검사 파일이 새로 생겼다. 이름을 주고 묶음에 넣어라:');
   for (const f of newlyAdded) console.error('  - scripts/' + f);
   process.exit(1);
 }

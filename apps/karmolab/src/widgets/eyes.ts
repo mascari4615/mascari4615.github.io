@@ -67,7 +67,7 @@ import { t, loadNamespace } from '../lib/i18n';
 
           let mx = 0;
           let my = 0;
-          /* 「어디를 보나」를 함수로 뽑는다 — 마우스든 자판이든 **같은 계산**이다
+          /* 어디를 보나를 함수로 뽑는다. 마우스든 자판이든 **같은 계산**이다
            * (2026-08-14, `audit:mouse-only`: 마우스만 받으면 눈이 영영 한 곳만 본다). */
           function lookAt(x: number, y: number): void {
             mx = x;
@@ -95,7 +95,7 @@ import { t, loadNamespace } from '../lib/i18n';
             });
           };
 
-          /* 자판 길 — 화살표로 보는 자리를 옮기고 Enter 로 깜빡인다. 걸음은 마당의 1/12. */
+          /* 자판 길. 화살표로 보는 자리를 옮기고 Enter 로 깜빡인다. 걸음은 마당의 1/12. */
           arena.tabIndex = 0;
           arena.setAttribute('role', 'application');
           arena.setAttribute('aria-label', t('eyes.kb.label'));

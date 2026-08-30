@@ -26,7 +26,7 @@ async function replyOrUpdate(
   }
 }
 
-/** 강화/판매/도움말 카드 — 버튼·슬래시 공용 (`ephemeral`: 나만 보기, `/도움말` 주제·게임 등) */
+/** 강화/판매/도움말 카드. 버튼, 슬래시 공용 (`ephemeral`: 나만 보기, `/도움말` 주제, 게임 등) */
 export async function showHelpPage(
   ctx: BotContext,
   interaction: AnyInteraction,

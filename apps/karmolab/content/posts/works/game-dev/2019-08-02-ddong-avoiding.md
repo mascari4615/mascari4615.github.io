@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:21:00+09:00"
 categories: [작업물, 게임 개발]
 tags: [작업물, 게임 개발, 유니티]
 image: /assets/img/post/works/ddong-avoiding/190802-000013.png
-hidden: true
+board: me
 ---
 
 > [!WARNING]

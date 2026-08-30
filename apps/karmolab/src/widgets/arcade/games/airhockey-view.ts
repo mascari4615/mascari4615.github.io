@@ -1,7 +1,7 @@
 /**
  * 에어하키 화면 (TASK-KL-242)
  *
- * 손가락이 닿은 자리를 그대로 보낸다 — 이 놀이의 액션은 「눌렀다」가 아니라 **「여기 있다」**다.
+ * 손가락이 닿은 자리를 그대로 보낸다. 이 놀이의 액션은 눌렀다가 아니라 **여기 있다**다.
  * 그래서 `pointermove` 를 그대로 흘려보내되, 소식이 너무 잦으면 그물망이 막히므로 프레임당 하나만.
  */
 import { t } from '../../../lib/i18n';
@@ -20,7 +20,7 @@ export const airhockeyView: GameView<AirState, AirAction> = {
     const cv = el.querySelector('#acAhCv') as HTMLCanvasElement;
     const scoreEl = el.querySelector('#acAhScore') as HTMLElement;
 
-    /** 프레임당 하나만 보낸다 — 손가락은 1초에 수백 번 움직인다. */
+    /** 프레임당 하나만 보낸다. 손가락은 1초에 수백 번 움직인다. */
     let pending: { x: number; y: number } | null = null;
     const toBoard = (e: PointerEvent): { x: number; y: number } => {
       const r = cv.getBoundingClientRect();
@@ -35,9 +35,9 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       pending = toBoard(e);
     });
 
-    /* 자판 길 — **누른 시간만큼** 민다 (TASK-KL-317, 2026-08-15).
+    /* 자판 길. **누른 시간만큼** 민다 (TASK-KL-317, 2026-08-15).
      * 전에는 keydown 한 번에 한 칸씩이었고 판(canvas)에서 듣고 있어 초점이 안 와 안 먹었다.
-     * 이제 창에서 듣고 두 축을 함께 민다 — 대각은 정규화한다(안 하면 비스듬할 때만 1.41배 빠르다). */
+     * 이제 창에서 듣고 두 축을 함께 민다. 대각은 정규화한다(안 하면 비스듬할 때만 1.41배 빠르다). */
     let mallet: { x: number; y: number } | null = null;
     const drive = keyDrive(W, H);
     cv.tabIndex = 0;
@@ -61,8 +61,8 @@ export const airhockeyView: GameView<AirState, AirAction> = {
         act(pending);
         pending = null;
       }
-      /* 자판이 아는 자리를 **서버가 말한 내 채 자리**로 맞춘다 — 어긋나면 채가 튄다.
-         단 **누르고 있는 동안은 안 맞춘다** — 서버 메아리가 한 박자 늦어 채가 뒤로 끌린다. */
+      /* 자판이 아는 자리를 **서버가 말한 내 채 자리**로 맞춘다. 어긋나면 채가 튄다.
+         단 **누르고 있는 동안은 안 맞춘다**. 서버 메아리가 한 박자 늦어 채가 뒤로 끌린다. */
       if (mine && !key.held) mallet = { x: mine.x, y: mine.y };
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -78,7 +78,7 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       const k = cv.width / W;
       c.setTransform(k, 0, 0, k, 0, 0);
 
-      /* 얼음판 — 공용 붓(`paint.ts`). 평평한 청록 하나면 판이 종이가 된다. */
+      /* 얼음판. 공용 붓(`paint.ts`). 평평한 청록 하나면 판이 종이가 된다. */
       ice(c, W, H);
       woodRail(c, W, H, 2.6);
       c.strokeStyle = 'rgba(40,80,120,.35)';
@@ -97,7 +97,7 @@ export const airhockeyView: GameView<AirState, AirAction> = {
       }
 
       s.paddles.forEach((p, i) => {
-        /* 손잡이는 **얼음 위에 놓인 알**이다(`orb`) — 그림자와 빛이 한 규칙. */
+        /* 손잡이는 **얼음 위에 놓인 알**이다(`orb`). 그림자와 빛이 한 규칙. */
         orb(c, p.x, p.y, PADDLE_R, SEAT_COLOR[i]);
         if (i === mySeat) {
           c.beginPath();
@@ -107,10 +107,10 @@ export const airhockeyView: GameView<AirState, AirAction> = {
         }
       });
 
-      /* 퍽은 검은 고무 — 빛을 조금만 받는다. */
+      /* 퍽은 검은 고무. 빛을 조금만 받는다. */
       orb(c, s.puck.x, s.puck.y, PUCK_R, '#2b3446', '#7c8798');
 
-      /* 점수는 판 밖 알약으로 — 캔버스 안 글자는 무대가 커져도 안 커진다. */
+      /* 점수는 판 밖 알약으로. 캔버스 안 글자는 무대가 커져도 안 커진다. */
       scoreEl.innerHTML = v.seats
         .map((seat, i) =>
           '<span class="ac-plc' + (i === mySeat ? ' ac-me' : '') + '" style="--c:' + SEAT_COLOR[i] + '">' +

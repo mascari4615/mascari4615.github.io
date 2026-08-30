@@ -1,8 +1,8 @@
 {
   "ladder.ph.names": "가나\\n다라\\n마바\\n사아",
   "ladder.ph.prizes": "커피\\n꽝\\n꽝\\n꽝",
-  "ladder.label.names": "참가자 — 한 줄에 한 명",
-  "ladder.label.prizes": "결과 — 한 줄에 하나 (비우면 당첨/꽝)",
+  "ladder.label.names": "참가자. 한 줄에 한 명",
+  "ladder.label.prizes": "결과. 한 줄에 하나 (비우면 당첨/꽝)",
   "ladder.btn.new": "사다리 새로 만들기",
   "ladder.btn.all": "전체 결과 보기",
   "ladder.btn.copy": "결과 복사",
@@ -12,7 +12,7 @@
   "ladder.prize.win": "당첨",
   "ladder.prize.lose": "꽝",
   "ladder.copy.done": "결과를 복사했어요",
-  "ladder.say.ready": "{n}명 · 위쪽 이름을 누르면 경로를 따라갑니다.",
+  "ladder.say.ready": "{n}명, 위쪽 이름을 누르면 경로를 따라갑니다.",
   "ladder.sample.names": "가나\n다라\n마바\n사아",
   "ladder.sample.prizes": "커피\n꽝\n꽝\n꽝",
   "ladder.name": "사다리"

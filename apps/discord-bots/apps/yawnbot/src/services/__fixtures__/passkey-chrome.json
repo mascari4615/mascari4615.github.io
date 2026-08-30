@@ -1,5 +1,5 @@
 {
-  "note": "크롬 가상 인증기(CDP WebAuthn)가 만든 것. 손으로 지어낸 값이 아니다 — scripts/gen-passkey-fixture.mjs 로 다시 뜬다.",
+  "note": "크롬 가상 인증기(CDP WebAuthn)가 만든 것. 손으로 지어낸 값이 아니다. scripts/gen-passkey-fixture.mjs 로 다시 뜬다.",
   "madeAt": "2026-08-08T05:14:52.982Z",
   "rpId": "localhost",
   "origin": "http://localhost:8813",

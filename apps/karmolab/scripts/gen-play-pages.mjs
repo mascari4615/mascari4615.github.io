@@ -1,12 +1,12 @@
 /**
- * 놀이마다 한 장씩 — 검색으로 들어오는 문 (TASK-KL-151 ⑪)
+ * 놀이마다 한 장씩. 검색으로 들어오는 문 (TASK-KL-151 ⑪)
  *
  * 왜 있나: 놀이는 전부 앱 안 해시 주소(`/#worldcup`)로만 살았다. 크롤러는 해시를
  * 안 보므로 **검색에 걸릴 글이 한 줄도 없었고**, 링크를 붙여도 미리보기가 안 떴다.
- * 관문(`/play/`)이 있긴 하지만 사람은 「놀이터」로 검색하지 않는다 —
- * 「이상형 월드컵」, 「반응속도 테스트」로 검색한다.
+ * 관문(`/play/`)이 있긴 하지만 사람은 놀이터로 검색하지 않는다 . 
+ * 이상형 월드컵, 반응속도 테스트로 검색한다.
  *
- * 왜 도구 상세 페이지 틀을 안 쓰나: 한 번 그렇게 했다가 「쓰는 법·자주 묻는 것」 틀이 딸려 와
+ * 왜 도구 상세 페이지 틀을 안 쓰나: 한 번 그렇게 했다가 쓰는 법, 자주 묻는 것 틀이 딸려 와
  * 놀이가 글에 파묻혔다(higher.ts 주석). 여기는 **짧은 소개 + 바로 시작**만 있는 제 틀이다.
  *
  * 무엇이 정본인가: 어떤 놀이가 있나 = `apps/play/games.json`. 그 놀이를 뭐라고 설명하나 =
@@ -43,7 +43,7 @@ const shell = loadShell(root);
 /**
  * 한 장의 본문.
  *
- * 첫 화면에 **시작 단추**가 있어야 한다 — 검색으로 온 사람은 설명을 읽으러 온 게 아니다.
+ * 첫 화면에 **시작 단추**가 있어야 한다. 검색으로 온 사람은 설명을 읽으러 온 게 아니다.
  * 글은 그 아래에 둔다(크롤러는 순서를 안 따진다).
  */
 function body(game, text) {
@@ -105,6 +105,32 @@ const STYLE = `<style>
   .play-card span:last-child { font-size: var(--font-size-xs); color: var(--text-tertiary); }
 </style>`;
 
+/**
+ * 놀이 한 장의 구조화 데이터 (2026-08-29)
+ *   - 왜: 도구 장에는 있는데 놀이 장에는 하나도 없었음. 검색 결과에서 그냥 파란 줄 하나
+ *   - 지어내지 않음. 이름, 설명, 주소, 무료, 웹, 한국어, 어느 사이트 것인지만
+ *   - 별점, 평가 수 같은 없는 값은 안 적음. 없는 것을 적으면 통째로 무시당함
+ */
+function jsonLdBlock(game, text, permalink) {
+  const card = `img/og/${game.id}.jpg`;
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name: text.title,
+    url: `${SITE}${permalink}`,
+    description: text.description,
+    applicationCategory: 'GameApplication',
+    gamePlatform: 'Web',
+    operatingSystem: 'Web',
+    inLanguage: 'ko-KR',
+    isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
+    ...(fs.existsSync(path.join(root, card)) ? { image: `${SITE}/apps/karmolab/${card}` } : {}),
+  };
+  return `
+<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+}
+
 let made = 0;
 for (const game of roster) {
   const text = copy[game.id];
@@ -115,7 +141,19 @@ for (const game of roster) {
   html = replaceMeta(html, 'property', 'og:title', text.title);
   html = replaceMeta(html, 'property', 'og:description', text.description);
   html = replaceMeta(html, 'property', 'og:url', `${SITE}${permalink}`);
-  html = asStaticPage(html, { kind: 'play', bodyHtml: body(game, text), head: STYLE });
+  /* 놀이마다 찍어 둔 공유 카드를 쓴다 (2026-08-29). 카드가 있는데도 default.jpg 가 나가고 있었음 */
+  const card = `img/og/${game.id}.jpg`;
+  if (fs.existsSync(path.join(root, card))) {
+    html = replaceMeta(html, 'property', 'og:image', `${SITE}/apps/karmolab/${card}`);
+  }
+  /* 대표 주소를 제 주소로 (2026-08-29). 셸에서 온 뿌리 canonical 을 안 갈면 이 장은
+     뿌리의 사본 취급이라 색인에서 통째로 빠진다. `/play/worldcup/` 이 그렇게 빠져 있었고
+     그 검색어 수요가 3개월 93.1K 다 */
+  html = html.replace(
+    `<link rel="canonical" href="${SITE}/">`,
+    `<link rel="canonical" href="${SITE}${permalink}">`
+  );
+  html = asStaticPage(html, { kind: 'play', bodyHtml: body(game, text), head: STYLE + jsonLdBlock(game, text, permalink) });
 
   const dir = path.join(OUT, 'play', game.id);
   fs.mkdirSync(dir, { recursive: true });
@@ -123,4 +161,4 @@ for (const game of roster) {
   made += 1;
 }
 
-console.log(`[gen-play-pages] 놀이 소개 ${made}장 (${roster.map((g) => g.id).join(' · ')})`);
+console.log(`[gen-play-pages] 놀이 소개 ${made}장 (${roster.map((g) => g.id).join(', ')})`);

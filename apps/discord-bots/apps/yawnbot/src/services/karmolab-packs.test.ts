@@ -1,8 +1,8 @@
 /**
- * TASK-KL-150 — 사람이 만든 표 원장 시험.
+ * TASK-KL-150. 사람이 만든 표 원장 시험.
  *
- * 여기는 **아무나 글을 보낼 수 있는 자리**다. 그래서 「돌아가나」보다 「이상한 걸 보내면
- * 어떻게 되나」를 먼저 본다 — 남의 화면에서 도는 스크립트, 원장을 통째로 채우는 표,
+ * 여기는 **아무나 글을 보낼 수 있는 자리**다. 그래서 돌아가나보다 이상한 걸 보내면
+ * 어떻게 되나를 먼저 본다. 남의 화면에서 도는 스크립트, 원장을 통째로 채우는 표,
  * 남의 표를 고치는 일.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -57,8 +57,8 @@ describe('믿을 수 없는 입력 다듬기', () => {
     expect(clean.items.map((i) => i.img)).toEqual([undefined, undefined, 'https://example.com/u.png', undefined]);
   });
 
-  it('눈에 안 보이는 글자·줄바꿈은 지운다 — 한 줄이 목록을 밀어내면 안 된다', () => {
-    const clean = sanitizePack(goodPack({ title: '아​주\n긴‮제목' }));
+  it('눈에 안 보이는 글자, 줄바꿈은 지운다. 한 줄이 목록을 밀어내면 안 된다', () => {
+    const clean = sanitizePack(goodPack({ title: '아주\n긴‮제목' }));
     expect(clean.title).toBe('아주긴제목');
   });
 
@@ -96,7 +96,7 @@ describe('믿을 수 없는 입력 다듬기', () => {
   });
 });
 
-describe('올리기·고치기·내리기', () => {
+describe('올리기, 고치기, 내리기', () => {
   it('올리면 짧은 주소가 생기고 그대로 다시 읽힌다', () => {
     const s = store();
     const made = s.create('yon', goodPack());
@@ -106,7 +106,7 @@ describe('올리기·고치기·내리기', () => {
     expect(new KarmolabPackStore(statePath).get(made.id)!.items).toHaveLength(4);
   });
 
-  it('남의 표는 못 고치고 못 내린다 — 고치려면 이어받는다', () => {
+  it('남의 표는 못 고치고 못 내린다. 고치려면 이어받는다', () => {
     const s = store();
     const made = s.create('yon', goodPack());
     expect(() => s.update('ring', made.id, goodPack({ title: '가로챈 표' }))).toThrow(/not_owner/);
@@ -121,7 +121,7 @@ describe('올리기·고치기·내리기', () => {
     expect(s.get(made.id)).toBeNull();
   });
 
-  it('이어받기는 있는 표에서만 갈라진다 — 없는 주소로 족보를 지어낼 수 없다', () => {
+  it('이어받기는 있는 표에서만 갈라진다. 없는 주소로 족보를 지어낼 수 없다', () => {
     const s = store();
     const origin = s.create('yon', goodPack());
     expect(s.create('ring', goodPack(), origin.id).forkOf).toBe(origin.id);
@@ -138,7 +138,7 @@ describe('올리기·고치기·내리기', () => {
 });
 
 describe('목록', () => {
-  it('인기순은 **연 횟수**로 선다 — 자랑해도 안 열리면 안 오른다', () => {
+  it('인기순은 **연 횟수**로 선다. 자랑해도 안 열리면 안 오른다', () => {
     const s = store();
     const quiet = s.create('yon', goodPack({ title: '조용한 표' }));
     const loud = s.create('yon', goodPack({ title: '많이 열린 표' }));
@@ -156,7 +156,7 @@ describe('목록', () => {
     expect(s.get(made.id)!.opens).toBe(1);
   });
 
-  it('놀이가 「내가 걸 수 있는 표만」 물으면 못 거는 표는 안 준다', () => {
+  it('놀이가 내가 걸 수 있는 표만 물으면 못 거는 표는 안 준다', () => {
     const s = store();
     s.create('yon', goodPack({ title: '숫자 있는 표' }));
     s.create('yon', {
@@ -192,7 +192,7 @@ describe('목록', () => {
     const s = store();
     s.create('yon', goodPack());
     const row = s.list()[0] as unknown as Record<string, unknown>;
-    expect(row.items).toBe(4); // 항목 「수」지 항목 목록이 아니다
+    expect(row.items).toBe(4); // 항목 수지 항목 목록이 아니다
     expect(row.fields).toBe(1);
     expect(Array.isArray(row.items)).toBe(false);
   });
@@ -201,8 +201,8 @@ describe('목록', () => {
 /**
  * 월드컵 집계 (TASK-KL-151).
  *
- * 여기서 틀리면 **불공정한 순위가 예쁘게** 나온다 — 골라진 횟수만 세면 대진운 좋게 여러 번
- * 올라온 항목이 무조건 1등이 된다. 그래서 「마주친 판으로 나누는가」를 먼저 본다.
+ * 여기서 틀리면 **불공정한 순위가 예쁘게** 나온다. 골라진 횟수만 세면 대진운 좋게 여러 번
+ * 올라온 항목이 무조건 1등이 된다. 그래서 마주친 판으로 나누는가를 먼저 본다.
  */
 describe('월드컵 집계', () => {
   const imgPack = {
@@ -212,7 +212,7 @@ describe('월드컵 집계', () => {
     items: ['가', '나', '다', '라'].map((n) => ({ name: n, img: `https://example.com/${encodeURIComponent(n)}.png` })),
   };
 
-  it('승률은 **마주친 판**으로 나눈다 — 많이 올라온 항목이 그냥 1등이 되면 안 된다', () => {
+  it('승률은 **마주친 판**으로 나눈다. 많이 올라온 항목이 그냥 1등이 되면 안 된다', () => {
     const s = store();
     const pack = s.create('yon', imgPack);
     s.recordTournament(
@@ -235,7 +235,7 @@ describe('월드컵 집계', () => {
     expect(ra.champion).toBe(1);
   });
 
-  it('표에 없는 이름·자기 자신과의 대결은 안 센다 (아무나 보낼 수 있는 자리다)', () => {
+  it('표에 없는 이름, 자기 자신과의 대결은 안 센다 (아무나 보낼 수 있는 자리다)', () => {
     const s = store();
     const pack = s.create('yon', imgPack);
     const counted = s.recordTournament(
@@ -274,8 +274,8 @@ describe('월드컵 집계', () => {
 /**
  * 처음부터 있는 표 (TASK-KL-151 ④).
  *
- * 빈 원장은 「아직 아무도 없다」가 아니라 「죽은 곳」으로 읽힌다. 다만 심는 것은 **표**뿐이고
- * 열린 횟수·승률까지 심으면 그건 지어낸 수다 — 그 경계를 여기서 지킨다.
+ * 빈 원장은 아직 아무도 없다가 아니라 죽은 곳으로 읽힌다. 다만 심는 것은 **표**뿐이고
+ * 열린 횟수, 승률까지 심으면 그건 지어낸 수다. 그 경계를 여기서 지킨다.
  */
 describe('처음부터 있는 표', () => {
   const siteTable = {
@@ -292,7 +292,7 @@ describe('처음부터 있는 표', () => {
     return dir;
   }
 
-  it('사이트 표를 우리 표 모양으로 심는다 — 그림과 숫자 칸이 그대로 온다', () => {
+  it('사이트 표를 우리 표 모양으로 심는다. 그림과 숫자 칸이 그대로 온다', () => {
     const dir = seedDirWith('higher-pokemon.json', siteTable);
     const s = new KarmolabPackStore(statePath, dir);
     const list = s.list();
@@ -300,7 +300,7 @@ describe('처음부터 있는 표', () => {
     expect(list[0]).toMatchObject({ title: '포켓몬', items: 5, images: 5, numberFields: 1, ownerHandle: 'karmolab' });
   });
 
-  it('심는 건 표뿐이다 — 열린 횟수·승률은 0 에서 시작한다 (지어낸 수 0)', () => {
+  it('심는 건 표뿐이다. 열린 횟수, 승률은 0 에서 시작한다 (지어낸 수 0)', () => {
     const dir = seedDirWith('higher-pokemon.json', siteTable);
     const s = new KarmolabPackStore(statePath, dir);
     expect(s.list()[0].opens).toBe(0);
@@ -358,7 +358,7 @@ describe('씨앗 표의 글자 칸', () => {
 });
 
 describe('씨앗을 나중에 늘렸을 때', () => {
-  it('새로 늘린 씨앗 표가 실제로 합류한다 — 「심었음」 한 칸으로 막으면 영영 안 들어간다', () => {
+  it('새로 늘린 씨앗 표가 실제로 합류한다. 심었음 한 칸으로 막으면 영영 안 들어간다', () => {
     const dir = path.join(tmpRoot, 'later');
     fs.mkdirSync(dir, { recursive: true });
     const table = (title: string) => ({
@@ -371,7 +371,7 @@ describe('씨앗을 나중에 늘렸을 때', () => {
     fs.writeFileSync(path.join(dir, 'higher-pokemon.json'), JSON.stringify(table('첫 표')), 'utf-8');
     expect(new KarmolabPackStore(statePath, dir).list()).toHaveLength(1);
 
-    // 나중에 도구 월드컵 표가 생긴다 — 다시 뜨면 그것도 심겨야 한다
+    // 나중에 도구 월드컵 표가 생긴다. 다시 뜨면 그것도 심겨야 한다
     fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('나중 표')), 'utf-8');
     const after = new KarmolabPackStore(statePath, dir).list().map((p) => p.title).sort();
     expect(after).toEqual(['나중 표', '첫 표']);
@@ -386,7 +386,7 @@ describe('사이트 붙박이 판의 사본 표시 (siteBoard)', () => {
     items: [1, 2, 3, 4].map((n) => ({ n: `${title}${n}`, i: `https://example.com/${n}.png`, v: { n1: n } })),
   });
 
-  it('붙박이 판에서 옮겨 심은 씨앗은 어느 판인지 밝힌다 — 사이트가 이걸로 중복을 뺀다', () => {
+  it('붙박이 판에서 옮겨 심은 씨앗은 어느 판인지 밝힌다. 사이트가 이걸로 중복을 뺀다', () => {
     const dir = path.join(tmpRoot, 'mark');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'higher-pokemon.json'), JSON.stringify(table('포켓몬')), 'utf-8');
@@ -395,7 +395,7 @@ describe('사이트 붙박이 판의 사본 표시 (siteBoard)', () => {
     const rows = new KarmolabPackStore(statePath, dir).list();
     const byTitle = Object.fromEntries(rows.map((p) => [p.title, p.siteBoard]));
     expect(byTitle['포켓몬']).toBe('pokemon');
-    // 우리가 구운 표는 사이트에 붙박이로 없다 — 표시가 붙으면 목록에서 통째로 사라진다
+    // 우리가 구운 표는 사이트에 붙박이로 없다. 표시가 붙으면 목록에서 통째로 사라진다
     expect(byTitle['도구 월드컵']).toBeNull();
   });
 
@@ -404,7 +404,7 @@ describe('사이트 붙박이 판의 사본 표시 (siteBoard)', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'higher-lol.json'), JSON.stringify(table('롤 챔피언')), 'utf-8');
 
-    // 옛 원장 흉내 — 씨앗은 심겨 있는데 `siteBoard` 칸이 없다
+    // 옛 원장 흉내. 씨앗은 심겨 있는데 `siteBoard` 칸이 없다
     new KarmolabPackStore(statePath, dir);
     const old = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
     for (const pack of old.packs) delete pack.siteBoard;

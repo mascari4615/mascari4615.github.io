@@ -11,5 +11,5 @@
   "jqplay.status.ok": "{n} results",
   "jqplay.copy.done": "Copied",
   "jqplay.help.title": "What works",
-  "jqplay.help.limits": "This is not all of jq — the common parts are here; variables ($x), def, reduce and try/catch are not yet."
+  "jqplay.help.limits": "This is not all of jq. the common parts are here; variables ($x), def, reduce and try/catch are not yet."
 }

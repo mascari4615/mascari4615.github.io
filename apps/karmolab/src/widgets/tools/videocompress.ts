@@ -1,13 +1,13 @@
 /**
  * 영상 용량 줄이기 (TASK-KL-088)
  *
- * 폰으로 찍은 1분 영상이 200MB인데 메일·메신저·제출 창구는 대개 그보다 작은 것만 받는다.
- * 그래서 사람들은 낯선 사이트에 영상을 통째로 올린다 — 얼굴과 집이 찍힌 파일을.
+ * 폰으로 찍은 1분 영상이 200MB인데 메일, 메신저, 제출 창구는 대개 그보다 작은 것만 받는다.
+ * 그래서 사람들은 낯선 사이트에 영상을 통째로 올린다. 얼굴과 집이 찍힌 파일을.
  *
  * 브라우저에는 영상을 다시 엮는 기능이 없다. 대신 **재생하면서 작은 화면에 다시 그려 담을** 수 있다.
  * 즉 영상 길이만큼 시간이 걸린다. 우회가 아니라 유일한 길이라 숨기지 않고 남은 시간을 보여 준다.
  *
- * 「얼마나 줄지」는 해 봐야 알기에, 시작 전 어림값을 보여 주고 끝나면 실제 값으로 바꾼다.
+ * 얼마나 줄지는 해 봐야 알기에, 시작 전 어림값을 보여 주고 끝나면 실제 값으로 바꾼다.
  * 이미 잘 눌린 영상은 오히려 커질 수 있는데, 그때 줄었다고 우기지 않는다.
  */
 import { attachMedia, download, fileSize as size, mmss } from './shared/media';
@@ -20,7 +20,7 @@ import { pickRecordType, attachVideo } from './shared/video';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  // captureStream 은 브라우저마다 있고 없고가 갈려 표준 타입에 없다 — 있는지 보고 쓴다.
+  // captureStream 은 브라우저마다 있고 없고가 갈려 표준 타입에 없다. 있는지 보고 쓴다.
   type Capturable = HTMLCanvasElement & { captureStream?: (fps?: number) => MediaStream };
 
   Toolbox.register({
@@ -28,7 +28,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
     title: t('widgets.videocompress.title', undefined, '영상 용량 줄이기'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.videocompress.desc',
       undefined,
@@ -127,13 +127,13 @@ import { t, loadNamespace } from '../../lib/i18n';
           let made: Blob | null = null;
           let recorder: MediaRecorder | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function outSize(): { w: number; h: number } {
             const s = SCALES[parseInt(scaleEl.value, 10) - 1][0];
-            // 짝수로 맞춘다 — 홀수 크기를 싫어하는 코덱이 있다
+            // 짝수로 맞춘다. 홀수 크기를 싫어하는 코덱이 있다
             const w = Math.max(2, Math.round((video.videoWidth * s) / 2) * 2);
             const h = Math.max(2, Math.round((video.videoHeight * s) / 2) * 2);
             return { w, h };
@@ -154,7 +154,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               statCell(t('videocompress.stat.srcSize'), size(sourceSize), true) +
               statCell(t('videocompress.stat.outDim'), `${w}×${h}`) +
               statCell(t('videocompress.stat.guess'), t('videocompress.value.about', { v: size(guess) })) +
-              // 실시간으로 다시 담기 때문에 영상 길이만큼 걸린다. 미리 알려야 「멈춘 건가」 오해가 없다.
+              // 실시간으로 다시 담기 때문에 영상 길이만큼 걸린다. 미리 알려야 멈춘 건가 오해가 없다.
               statCell(t('videocompress.stat.time'), t('videocompress.value.about', { v: mmss(duration) }));
           }
 
@@ -164,7 +164,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             made = null;
             saveBtn.disabled = true;
             $<HTMLElement>('#vcResult').style.display = 'none';
-            /* 공용 `attachVideo` 로 (TASK-KL-281) — 녹화한 webm 은 길이가 안 적혀 있어
+            /* 공용 `attachVideo` 로 (TASK-KL-281). 녹화한 webm 은 길이가 안 적혀 있어
              * 그냥 물리면 `duration` 이 NaN/Infinity 로 온다. 그 되감기가 공용 쪽에 있다. */
             void attachVideo(video, f).then(() => {
               duration = video.duration;
@@ -231,7 +231,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             };
             draw();
 
-            // 다른 탭으로 가면 브라우저가 화면 그리기를 멈춘다 — 그 사이 구간이 정지 화면으로 담긴다.
+            // 다른 탭으로 가면 브라우저가 화면 그리기를 멈춘다. 그 사이 구간이 정지 화면으로 담긴다.
             // 막을 방법이 없으므로 **일어난 사실을 알린다**. 모르고 받아 가는 게 제일 나쁘다.
             let leftTab = false;
             const onHide = (): void => {
@@ -264,7 +264,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               say(t('videocompress.err.empty'), 'error');
               return;
             }
-            attachMedia(preview, made); // 공용 — 앞 주소를 거두고 물린다
+            attachMedia(preview, made); // 공용. 앞 주소를 거두고 물린다
             $<HTMLElement>('#vcResult').style.display = '';
             saveBtn.disabled = false;
 
@@ -277,7 +277,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 t(made.size < sourceSize ? 'videocompress.value.smaller' : 'videocompress.value.bigger', { pct })
               ) +
               statCell(t('videocompress.stat.dim'), `${w}×${h}`);
-            // 이미 잘 눌린 영상은 다시 담으면 커진다 — 그때 줄었다고 말하면 거짓이 된다
+            // 이미 잘 눌린 영상은 다시 담으면 커진다. 그때 줄었다고 말하면 거짓이 된다
             if (leftTab) {
               say(t('videocompress.err.hidden'), 'error');
             } else if (made.size>= sourceSize) {
@@ -290,7 +290,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('videocompress', (f: File) => load(f));
           }
@@ -306,7 +306,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!made) return;
             const aName = fileName.replace(/\.[^.]+$/, '') + t('videocompress.file.suffix') + '.webm';
             download(made, aName);
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'videocompress' });
             say(t('videocompress.say.saved'), 'ok');
           };

@@ -2,8 +2,8 @@
 /**
  * 화면이 부르는데 **소스가 없는 파일**을 push 전에 잡는다 (2026-08-12)
  *
- * 왜 있나: 오늘 하루에만 다섯 번 같은 사고가 났다 — `widgets-meta-rest` · `smoke-meong` ·
- * `heung.ts` · `meong.ts` · `WorldKeyStore` 의 짝. 전부 **부르는 쪽만 올라가고 불리는 쪽이
+ * 왜 있나: 오늘 하루에만 다섯 번 같은 사고가 났다. `widgets-meta-rest`, `smoke-meong` , 
+ * `heung.ts`, `meong.ts`, `WorldKeyStore` 의 짝. 전부 **부르는 쪽만 올라가고 불리는 쪽이
  * 안 올라간** 상태다. 내 기계에는 파일이 있으니 로컬은 멀쩡하고, 새 체크아웃(CI)만 죽는다.
  * 그 사이 배포가 서고, 고친 화면이 사람에게 안 나간다.
  *
@@ -27,14 +27,14 @@ import { discoverEntryPoints } from './entry-points.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SPECIAL = new Set(['src/mdd.ts', 'src/gemini.ts', 'src/toolbox.ts', 'src/sw.ts']);
 
-/* 어느 커밋을 보나 — 훅이 알려 준 「지금 밀려는 커밋」, 없으면 로컬 HEAD.
+/* 어느 커밋을 보나. 훅이 알려 준 지금 밀려는 커밋, 없으면 로컬 HEAD.
  * ★ 검사 **전부**가 이 하나를 써야 한다 (2026-08-12). 한 칸만 HEAD 로 굳어 있었더니,
  *   격리된 자리에서 만든 커밋으로 그 파일을 **고치는 push** 를 자기 게이트가 막았다. */
 const REF = process.env.KL_PUSH_SHA || 'HEAD';
 
 /* ★ **훅이 물려준 git 환경을 벗고 본다** (2026-08-12 네 번째).
- *   훅 안에서는 `GIT_DIR`·`GIT_WORK_TREE`·`GIT_INDEX_FILE` 이 박혀 있다. 그 상태로 상대 경로
- *   (`src`)를 주면 git 은 **다른 자리 기준**으로 읽어 「올라간 파일 0개」를 돌려준다 —
+ *   훅 안에서는 `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE` 이 박혀 있다. 그 상태로 상대 경로
+ *   (`src`)를 주면 git 은 **다른 자리 기준**으로 읽어 올라간 파일 0개를 돌려준다 . 
  *   격리된 자리에서 미는 push 가 그래서 통째로 막혔다. 여기서는 늘 `cwd` 만 기준이면 된다. */
 const gitEnv = { ...process.env };
 delete gitEnv.GIT_DIR;
@@ -48,8 +48,8 @@ let tracked;
 try {
   tracked = new Set(
     /* ★ **인덱스가 아니라 커밋을 본다** (2026-08-12). `git ls-files` 는 지금 인덱스를 읽는데,
-     *   세션이 여럿인 이 저장소에서는 남이 편집 중인 파일이 인덱스에 「삭제」로 잠깐 박혀 있다 —
-     *   그 순간을 재면 멀쩡히 올라가 있는 파일을 「없다」고 말한다(실측: 남의 작업 중 위젯).
+     *   세션이 여럿인 이 저장소에서는 남이 편집 중인 파일이 인덱스에 삭제로 잠깐 박혀 있다 . 
+     *   그 순간을 재면 멀쩡히 올라가 있는 파일을 없다고 말한다(실측: 남의 작업 중 위젯).
      *   push 로 나갈 것은 **커밋(HEAD)** 이므로 그것을 본다. */
     /* ★ 어느 커밋을 보나 (2026-08-12 두 번째). 훅이 `KL_PUSH_SHA` 로 **지금 밀려는 커밋**을
      *   알려 주면 그걸 본다. 로컬 HEAD 만 보면, 격리된 자리에서 커밋을 만들어 미는 방식
@@ -61,12 +61,12 @@ try {
       .filter(Boolean)
   );
 } catch (error) {
-  console.error(`[entry-sources] CANNOT-RUN — git ls-files 를 못 돌렸다: ${String(error.message).split('\n')[0]}`);
+  console.error(`[entry-sources] CANNOT-RUN. git ls-files 를 못 돌렸다: ${String(error.message).split('\n')[0]}`);
   process.exit(2);
 }
 
 if (tracked.size < 50) {
-  console.error(`[entry-sources] CANNOT-RUN — src 아래 올라간 파일이 ${tracked.size}개뿐이다. 경로 확인.`);
+  console.error(`[entry-sources] CANNOT-RUN. src 아래 올라간 파일이 ${tracked.size}개뿐이다. 경로 확인.`);
   process.exit(2);
 }
 
@@ -82,13 +82,13 @@ const registryAtRef = (() => {
   let joined = '';
   for (const f of files) {
     try {
-      /* `./` 를 붙여야 **지금 폴더 기준**으로 읽는다 — 없으면 저장소 뿌리 기준이라 전부 실패하고,
-         그러면 「아무것도 안 부른다」가 되어 이 검사가 통째로 무력해진다(조용히 초록). */
+      /* `./` 를 붙여야 **지금 폴더 기준**으로 읽는다. 없으면 저장소 뿌리 기준이라 전부 실패하고,
+         그러면 아무것도 안 부른다가 되어 이 검사가 통째로 무력해진다(조용히 초록). */
       joined += git(['show', `${REF}:./${f}`], { stdio: ['ignore', 'pipe', 'ignore'] });
     } catch { /* 그 커밋에 없는 파일은 건너뛴다 */ }
   }
   if (joined.length < 1000) {
-    console.error(`[entry-sources] CANNOT-RUN — ${REF} 의 등록 파일을 못 읽었다(${joined.length}자). 무력한 초록을 내지 않는다.`);
+    console.error(`[entry-sources] CANNOT-RUN. ${REF} 의 등록 파일을 못 읽었다(${joined.length}자). 무력한 초록을 내지 않는다.`);
     process.exit(2);
   }
   return joined;
@@ -97,8 +97,8 @@ const registryAtRef = (() => {
  * 밀려는 커밋이 이것을 실제로 부르나 (안 부르면 새 체크아웃도 안 부른다).
  *
  * ★ **이름 조각이 아니라 부르는 경로로 맞춘다** (2026-08-14 실측). 예전에는 파일 이름을
- *   그대로 `includes` 했다 — 그러면 남이 안 올린 `tools/diff.ts` 하나가 이미 올라가 있는
- *   `listdiff`·`textdiff`·`pdfdiff` 에 걸려 「부른다」가 되고, **나와 무관한 push 가 전부
+ *   그대로 `includes` 했다. 그러면 남이 안 올린 `tools/diff.ts` 하나가 이미 올라가 있는
+ *   `listdiff`, `textdiff`, `pdfdiff` 에 걸려 부른다가 되고, **나와 무관한 push 가 전부
  *   막힌다**(이 파일이 세 번이나 고친 바로 그 사고의 네 번째 판이다).
  *   등록은 언제나 따옴표 안의 경로(`'tools/diff'`)나 주소(`/js/widgets/tools/diff.js`)로
  *   적히므로, 그 모양으로만 맞힌다.
@@ -122,14 +122,14 @@ for (const rel of entryPoints) {
   missing.push(`${rel} (셸이 부른다)`);
 }
 
-/* ② 위젯 메타가 가리키는 것 — `lazyScriptPaths: ['heung/heung', …]` */
+/* ② 위젯 메타가 가리키는 것. `lazyScriptPaths: ['heung/heung', ...]` */
 const metaPath = path.join(root, 'src/widgets-lazy-meta.ts');
 if (fs.existsSync(metaPath)) {
   const meta = fs.readFileSync(metaPath, 'utf8');
   for (const m of meta.matchAll(/lazyScriptPaths:\s*\[([^\]]*)\]/g)) {
     for (const p of m[1].matchAll(/'([^']+)'/g)) {
       const raw = p[1];
-      /* 형식이 다른 앞머리는 각자 자리에서 산다 — 여기서는 위젯 소스만 본다. */
+      /* 형식이 다른 앞머리는 각자 자리에서 산다. 여기서는 위젯 소스만 본다. */
       if (raw.startsWith('vendor/') || raw.startsWith('root/') || raw.startsWith('world/')) continue;
       const rel = `src/widgets/${raw}.ts`;
       if (tracked.has(rel) || !calledAtRef(rel)) continue;
@@ -139,12 +139,25 @@ if (fs.existsSync(metaPath)) {
 }
 
 /* ③ 위젯이 쓰는 **원본 언어 말 묶음**도 저장소에 있어야 한다 (2026-08-12).
- *   위젯 소스만 보다가 `meong` 에서 또 당했다 — 코드는 올라갔는데 `i18n/ko/meong.json` 이
- *   안 올라가, 새 체크아웃에서 「없는 열쇠 3개」로 배포가 섰다. 부르는 쪽과 불리는 쪽은
+ *   위젯 소스만 보다가 `meong` 에서 또 당했다. 코드는 올라갔는데 `i18n/ko/meong.json` 이
+ *   안 올라가, 새 체크아웃에서 없는 열쇠 3개로 배포가 섰다. 부르는 쪽과 불리는 쪽은
  *   말 묶음에도 똑같이 있다. 원본 언어만 본다(다른 언어는 배포를 막지 않는 정책). */
 {
   const SOURCE = 'ko';
   const seen = new Set();
+  /* ★ **묶음마다 git 을 띄우지 않는다** (2026-08-29 실측). 위젯 이름마다 `ls-tree` 를 한 번씩
+     불러 윈도우에서 판당 400ms 씩 먹었고, 이 검사가 게이트 판의 꼬리(328초)였다.
+     그 커밋의 `i18n/<원본언어>` 목록을 **한 번에** 받아 두고 있나만 본다. 보는 것은 같다.
+     못 물어보면 예전처럼 그 칸을 넘어간다(모르는 것을 빨강으로 만들지 않는다). */
+  let catalogsAtRef = null;
+  try {
+    catalogsAtRef = new Set(
+      git(['ls-tree', '-r', '--name-only', REF, `i18n/${SOURCE}`])
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+    );
+  } catch { /* 못 물어보면 넘어간다 */ }
   for (const rel of entryPoints) {
     const m = /^src\/widgets\/(?:tools\/|ref\/)?([\w-]+)(?:\/[\w-]+)?\.ts$/.exec(rel);
     if (!m) continue;
@@ -156,16 +169,13 @@ if (fs.existsSync(metaPath)) {
     if (!src.includes(`t('${ns}.`)) continue; // 그 묶음을 안 쓰면 없어도 된다
     const catalogRel = `i18n/${SOURCE}/${ns}.json`;
     if (!fs.existsSync(path.join(root, catalogRel))) continue; // 아예 안 만든 것은 다른 검사 몫
-    try {
-      git(['ls-tree', '-r', '--name-only', REF, catalogRel])
-        .trim() || missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
-    } catch { /* 못 물어보면 넘어간다 */ }
+    if (catalogsAtRef && !catalogsAtRef.has(catalogRel)) missing.push(`${catalogRel} (${ns} 위젯이 쓰는 한국어 말 묶음)`);
   }
 }
 
 /* ④ **`package.json` 이 부르는 검사 파일**도 그 커밋에 있어야 한다 (2026-08-13).
- *   `audit:scripts` 가 같은 것을 보지만 **내 작업 폴더**를 본다 — 내 기계엔 파일이 있으니 초록,
- *   그런데 그 파일을 같이 안 올리면 CI 는 「Cannot find module」로 죽는다.
+ *   `audit:scripts` 가 같은 것을 보지만 **내 작업 폴더**를 본다. 내 기계엔 파일이 있으니 초록,
+ *   그런데 그 파일을 같이 안 올리면 CI 는 Cannot find module로 죽는다.
  *   실측: `smoke:wrongkind` 가 게이트 줄에만 올라가 그 뒤 판이 전부 빨강이 됐다(run 31687274295).
  *   여기는 **밀려는 커밋**을 보므로 그 상태를 push 전에 잡는다. */
 {
@@ -177,12 +187,12 @@ if (fs.existsSync(metaPath)) {
         .map((l) => l.trim())
         .filter(Boolean)
     );
-  } catch { /* 못 물어보면 넘어간다 — 모르는 것을 빨강으로 만들지 않는다 */ }
+  } catch { /* 못 물어보면 넘어간다. 모르는 것을 빨강으로 만들지 않는다 */ }
   let pkgAtRef = null;
   try {
     pkgAtRef = JSON.parse(git(['show', `${REF}:./package.json`]));
   } catch { /* 위와 같다 */ }
-  /** origin 에서 이미 없던 것들 — 내 잘못이 아닌 것을 가려내려고 미리 센다 */
+  /** origin 에서 이미 없던 것들. 내 잘못이 아닌 것을 가려내려고 미리 센다 */
   const brokenAtOrigin = new Set();
   try {
     const at = new Set(
@@ -197,13 +207,13 @@ if (fs.existsSync(metaPath)) {
     for (const [name, line] of Object.entries(pkgAtRef.scripts)) {
       for (const m of String(line).matchAll(/node\s+(scripts\/[\w.-]+\.(?:mjs|js))/g)) {
         if (scriptsAtRef.has(m[1])) continue;
-        /* **이미 origin 에서 깨져 있던 것은 내 push 를 막지 않는다** — 남이 올린 빠뜨림 하나가
+        /* **이미 origin 에서 깨져 있던 것은 내 push 를 막지 않는다**. 남이 올린 빠뜨림 하나가
            다른 세션 전부의 push 를 잠그면, 고치러 가는 길까지 같이 막힌다. 대신 크게 알린다. */
         if (brokenAtOrigin.has(m[1])) {
-          console.warn(`[entry-sources] ⚠ 이미 origin 에도 없다: ${m[1]} (「${name}」) — 올린 세션이 마저 올려야 한다`);
+          console.warn(`[entry-sources] ⚠ 이미 origin 에도 없다: ${m[1]} (${name}). 올린 세션이 마저 올려야 한다`);
           continue;
         }
-        missing.push(`${m[1]} (package.json 의 「${name}」 이 부른다)`);
+        missing.push(`${m[1]} (package.json 의 ${name} 이 부른다)`);
       }
     }
   }
@@ -212,8 +222,8 @@ if (fs.existsSync(metaPath)) {
 if (missing.length) {
   console.error('[entry-sources] 부르는데 **저장소에 없는** 소스:');
   for (const line of [...new Set(missing)]) console.error(`  - ${line}`);
-  console.error('  내 기계에는 있어도 안 올렸으면 없는 것이다 — `git add` 하고 같이 올려라.');
+  console.error('  내 기계에는 있어도 안 올렸으면 없는 것이다. `git add` 하고 같이 올려라.');
   process.exit(1);
 }
 
-console.log(`[entry-sources] OK — 부르는 소스 ${entryPoints.length}개 모두 저장소에 있다`);
+console.log(`[entry-sources] OK. 부르는 소스 ${entryPoints.length}개 모두 저장소에 있다`);

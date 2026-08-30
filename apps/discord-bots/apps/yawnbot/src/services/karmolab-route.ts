@@ -1,20 +1,20 @@
 /**
- * 말로 부리기 (TASK-KL-196 E) — 「하려는 일」을 적으면 도구를 고른다.
+ * 말로 부리기 (TASK-KL-196 E). 하려는 일을 적으면 도구를 고른다.
  *
  * 왜 있나: 도구가 160개인데 사람들이 여는 건 늘 같은 열몇 개다. 병목은 만드는 것이 아니라
- * **닿는 것**이다. 찾는 칸은 이름으로만 찾으므로 「사진에서 글자 빼줘」는 0건이 나온다 —
+ * **닿는 것**이다. 찾는 칸은 이름으로만 찾으므로 사진에서 글자 빼줘는 0건이 나온다 . 
  * 그 도구가 있는데도.
  *
- * 왜 낱말표를 안 쓰나: 「배경 지우기 → bgremove」 같은 표를 손으로 적으면 **반드시 샌다**.
+ * 왜 낱말표를 안 쓰나: 배경 지우기 → bgremove 같은 표를 손으로 적으면 **반드시 샌다**.
  * 사람이 쓰는 말은 표보다 넓고, 도구가 늘 때마다 그 표도 같이 늘려야 한다(그리고 안 는다).
  *
  * 왜 서버인가: 브라우저 쪽 AI 는 **각자의 열쇠**를 요구한다(`toolbox_vertex_api_key`).
  * 그러면 열쇠를 넣은 사람만 쓰는 기능이 되는데, 이건 처음 온 사람에게 제일 필요한 것이다.
  *
  * 아끼는 방법 셋 (노트북 한 대가 서버다):
- *  1. **이름으로 찾아지면 여기까지 안 온다** — 화면이 0건일 때만 부른다.
+ *  1. **이름으로 찾아지면 여기까지 안 온다**. 화면이 0건일 때만 부른다.
  *  2. 같은 물음은 **한 번만** 묻는다(답 캐시).
- *  3. 사람마다 초·일 단위 상한.
+ *  3. 사람마다 초, 일 단위 상한.
  *
  * 도구 목록의 정본은 **사이트**다(`data/tools-seo.json`). 여기서 한 벌 더 적으면 도구가 늘 때
  * 서버도 같이 고쳐야 하고, 안 고치면 새 도구는 영영 안 골린다.
@@ -33,7 +33,7 @@ export interface RoutePick {
 /** 도구 목록을 어디서 길어 오나. 사이트가 정본. */
 const CATALOG_URL = 'https://blog.mascari4615.com/apps/karmolab/data/tools-seo.json';
 
-/** 목록은 배포될 때만 바뀐다 — 한 시간이면 충분하고, 그 사이 새 도구가 하나 늦게 걸릴 뿐이다. */
+/** 목록은 배포될 때만 바뀐다. 한 시간이면 충분하고, 그 사이 새 도구가 하나 늦게 걸릴 뿐이다. */
 const CATALOG_TTL_MS = 60 * 60 * 1000;
 
 /** 물음 하나의 최대 길이. 이보다 길면 물음이 아니라 붙여넣기다. */
@@ -49,7 +49,7 @@ export const DAILY_LIMIT = 60;
 let catalog: { at: number; items: RouteCatalogEntry[] } | null = null;
 
 /**
- * 도구 목록. 못 받아 오면 **빈 배열** — 그러면 이 기능은 조용히 없는 셈이 된다
+ * 도구 목록. 못 받아 오면 **빈 배열**. 그러면 이 기능은 조용히 없는 셈이 된다
  * (찾는 칸은 지금까지처럼 그대로 돈다).
  */
 export async function loadCatalog(now = Date.now(), fetchImpl: typeof fetch = fetch): Promise<RouteCatalogEntry[]> {
@@ -66,7 +66,7 @@ export async function loadCatalog(now = Date.now(), fetchImpl: typeof fetch = fe
     if (items.length) catalog = { at: now, items };
     return catalog?.items ?? [];
   } catch {
-    // 낡은 목록이라도 있으면 그것을 쓴다 — 없는 것보다 낫다(도구는 잘 안 사라진다).
+    // 낡은 목록이라도 있으면 그것을 쓴다. 없는 것보다 낫다(도구는 잘 안 사라진다).
     return catalog?.items ?? [];
   }
 }
@@ -77,16 +77,16 @@ export function setCatalogForTest(items: RouteCatalogEntry[] | null, at = Date.n
 }
 
 /**
- * 물음 정규화 — 캐시 열쇠. 띄어쓰기·대소문자·물음표 차이로 같은 물음을 두 번 묻지 않는다.
+ * 물음 정규화. 캐시 열쇠. 띄어쓰기, 대소문자, 물음표 차이로 같은 물음을 두 번 묻지 않는다.
  */
 export function normalizeQuery(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[?？!！.。]+$/, '');
 }
 
 /**
- * 모델에게 줄 말. **도구 id 만 고르게 한다** — 문장을 지어내게 하면 그 문장이 곧 우리 화면의
+ * 모델에게 줄 말. **도구 id 만 고르게 한다**. 문장을 지어내게 하면 그 문장이 곧 우리 화면의
  * 말이 되고, 우리가 안 쓴 말이 사이트에 뜬다.
- * 「없다」를 고를 수 있게 한다 — 억지로 하나를 고르게 하면 엉뚱한 도구로 보낸다.
+ * 없다를 고를 수 있게 한다. 억지로 하나를 고르게 하면 엉뚱한 도구로 보낸다.
  */
 export function buildPrompt(question: string, items: RouteCatalogEntry[]): string {
   const list = items.map((item) => `${item.id}: ${item.lead}`).join('\n');
@@ -107,8 +107,8 @@ export function buildPrompt(question: string, items: RouteCatalogEntry[]): strin
 }
 
 /**
- * 모델 답에서 고른 도구를 꺼낸다. **목록에 없는 id 는 버린다** — 모델이 그럴듯한 이름을
- * 지어내는 일이 있고, 그대로 열면 「없는 화면」으로 떨어진다.
+ * 모델 답에서 고른 도구를 꺼낸다. **목록에 없는 id 는 버린다**. 모델이 그럴듯한 이름을
+ * 지어내는 일이 있고, 그대로 열면 없는 화면으로 떨어진다.
  */
 export function parsePick(raw: string, items: RouteCatalogEntry[]): RoutePick | null {
   const text = String(raw || '');
@@ -127,7 +127,7 @@ export function parsePick(raw: string, items: RouteCatalogEntry[]): RoutePick | 
   return { toolId, why };
 }
 
-/** 답 캐시 + 사람별 상한. 서버가 살아 있는 동안만 산다(껐다 켜면 처음부터 — 그래도 된다). */
+/** 답 캐시 + 사람별 상한. 서버가 살아 있는 동안만 산다(껐다 켜면 처음부터. 그래도 된다). */
 export class RouteMemory {
   private answers = new Map<string, RoutePick | null>();
   private seen = new Map<string, { last: number; day: string; count: number }>();
@@ -137,7 +137,7 @@ export class RouteMemory {
     return this.answers.has(key) ? { hit: true, pick: this.answers.get(key) ?? null } : { hit: false, pick: null };
   }
 
-  /** 「없다」도 기억한다 — 안 그러면 답 없는 물음이 매번 모델을 부른다. */
+  /** 없다도 기억한다. 안 그러면 답 없는 물음이 매번 모델을 부른다. */
   put(query: string, pick: RoutePick | null): void {
     const key = normalizeQuery(query);
     this.answers.set(key, pick);
@@ -148,7 +148,7 @@ export class RouteMemory {
     }
   }
 
-  /** 물어도 되나. 상한은 **캐시에 없을 때만** 센다 — 아낀 물음까지 세면 아낀 보람이 없다. */
+  /** 물어도 되나. 상한은 **캐시에 없을 때만** 센다. 아낀 물음까지 세면 아낀 보람이 없다. */
   allow(who: string, now = Date.now()): boolean {
     const day = new Date(now + 9 * 3600e3).toISOString().slice(0, 10);
     const row = this.seen.get(who);

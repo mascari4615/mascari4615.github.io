@@ -1,13 +1,13 @@
 /**
- * 이미지·영상 → 아스키 아트 (TASK-KL-088 / 영상 = TASK-KL-244)
+ * 이미지, 영상 → 아스키 아트 (TASK-KL-088 / 영상 = TASK-KL-244)
  *
  * 캔버스로 축소 → 픽셀 밝기를 글자 농도에 매핑. 두 가지가 결과를 좌우한다:
- *  1) 글자는 세로로 길다 — 가로:세로 비를 보정하지 않으면 그림이 위아래로 늘어난다 (CHAR_ASPECT)
+ *  1) 글자는 세로로 길다. 가로:세로 비를 보정하지 않으면 그림이 위아래로 늘어난다 (CHAR_ASPECT)
  *  2) 밝기 = 단순 평균이 아니라 시감 가중(0.299/0.587/0.114). 평균을 쓰면 초록이 지나치게 밝게 잡힌다
  *
- * 영상을 넣으면 `badapple` 묶음으로 넘어간다 — 거기에 이미 「영상 → 격자 → 한 파일 → 재생」이
+ * 영상을 넣으면 `badapple` 묶음으로 넘어간다. 거기에 이미 영상 → 격자 → 한 파일 → 재생이
  * 다 있고, 여기서 다시 짜면 두 벌이 된다. 이 도구가 더하는 것은 **계조와 색**이다(평면 확장).
- * 굽는 것도 트는 것도 브라우저 안에서만 돈다 — 영상은 아무 데도 안 올라간다.
+ * 굽는 것도 트는 것도 브라우저 안에서만 돈다. 영상은 아무 데도 안 올라간다.
  *
  * 영상 미리보기가 `<pre>` 가 아니라 캔버스인 이유: 색을 켜면 칸마다 `<span>` 이 필요한데
  * 100×40 이면 4천 개다. 그걸 매 프레임 새로 만들면 브라우저가 못 따라온다. 캔버스는 같은
@@ -22,7 +22,7 @@ import { acceptPastedFiles } from './shared/paste';
 
 import { t, loadNamespace, locale } from '../../lib/i18n';
 import { attachMedia } from './shared/media';
-/** 이미 있는 GIF 인코더(`tools/gifenc`)를 그대로 쓴다 — 약속은 `lib/karmogif`, 코드는 늦게 받는다. */
+/** 이미 있는 GIF 인코더(`tools/gifenc`)를 그대로 쓴다. 약속은 `lib/karmogif`, 코드는 늦게 받는다. */
 import { getKarmoGif } from '../../lib/karmogif';
 
 (function (): void {
@@ -34,12 +34,12 @@ import { getKarmoGif } from '../../lib/karmogif';
     binary: '#. ',
     braille: '⣿⣷⣯⣟⡿⢿⣻⣽⣾⠿⠟⠏⠆⠄ '
   };
-  /** 고정폭 글자 한 칸의 가로/세로 비 — 이 값으로 세로 샘플 수를 줄인다 */
+  /** 고정폭 글자 한 칸의 가로/세로 비. 이 값으로 세로 샘플 수를 줄인다 */
   const CHAR_ASPECT = 0.5;
 
   /**
    * 위 램프는 **진한 것부터**인데 `AsciiSurface` 규약은 **어두운 것부터**다. 뒤집어 넘긴다.
-   * 안 뒤집어도 그림은 그럴듯하게 나오고 밝고 어두움만 반대가 된다 — 그래서 눈으로는
+   * 안 뒤집어도 그림은 그럴듯하게 나오고 밝고 어두움만 반대가 된다. 그래서 눈으로는
    * 한참 못 잡는다. 변환을 한 군데로 몰아 둔다.
    */
   const toDarkFirst = (ramp: string): string => [...ramp].reverse().join('');
@@ -47,17 +47,17 @@ import { getKarmoGif } from '../../lib/karmogif';
   /**
    * 글자에 먹이는 효과.
    *
-   * **CSS 가 아니라 캔버스에 먹인다** — 문법은 같지만(`filter`) 자리가 다르다. CSS 로 걸면
-   * 화면만 빛나고 내보낸 GIF·PNG 는 맨숭맨숭해서, 「보이는 것」과 「저장한 것」이 갈린다.
+   * **CSS 가 아니라 캔버스에 먹인다**. 문법은 같지만(`filter`) 자리가 다르다. CSS 로 걸면
+   * 화면만 빛나고 내보낸 GIF, PNG 는 맨숭맨숭해서, 보이는 것과 저장한 것이 갈린다.
    * 캔버스에 걸면 그림 자체에 구워지므로 둘이 항상 같다.
    *
-   * 글자로 그린 그림이라 효과가 잘 먹는다 — 획이 가늘고 사이가 비어 있어서, 번짐이 글자
+   * 글자로 그린 그림이라 효과가 잘 먹는다. 획이 가늘고 사이가 비어 있어서, 번짐이 글자
    * 모양을 따라 퍼진다(사진에 걸면 그냥 뿌예진다). ASCILINE 이 내세운 것도 이 지점이다.
    */
   interface Effect {
     /** 글자를 찍는 동안 걸어 둘 `ctx.filter`. */
     filter?: (accent: string) => string;
-    /** 글자 위에 한 겹 더 — 주사선 같은 것. */
+    /** 글자 위에 한 겹 더. 주사선 같은 것. */
     overlay?: 'scanline';
   }
   const EFFECTS: Record<string, Effect> = {
@@ -72,10 +72,10 @@ import { getKarmoGif } from '../../lib/karmogif';
    * 글자판 + 칸 색 → 터미널이 색으로 읽는 글 (24비트 ANSI).
    *
    * 왜 넣나: 이 그림의 원래 자리는 터미널이다. `.txt` 로 내보내면 색이 통째로 사라지고,
-   * HTML 로 내보내면 터미널에서는 태그가 그대로 보인다. 둘 다 「글자로 그린 그림」을
+   * HTML 로 내보내면 터미널에서는 태그가 그대로 보인다. 둘 다 글자로 그린 그림을
    * 원래 자리에 못 갖다 놓는다.
    *
-   * 줄 끝마다 초기화(`\u001b[0m`)를 넣는다 — 안 넣으면 마지막 칸 색이 그 뒤 셸 프롬프트까지
+   * 줄 끝마다 초기화(`\u001b[0m`)를 넣는다. 안 넣으면 마지막 칸 색이 그 뒤 셸 프롬프트까지
    * 물들인다. 색이 안 바뀌는 동안은 코드를 다시 안 적어서, 대개 원본보다 짧다.
    */
   function toAnsi(text: string, cols: number, colors: Int32Array | null): string {
@@ -102,11 +102,11 @@ import { getKarmoGif } from '../../lib/karmogif';
   Toolbox.register({
     id: 'asciiart',
     title: t('widgets.asciiart.title', undefined, '이미지 → 아스키 아트'),
-    category: 'tool',
+    category: 'image',
     desc: t(
       'widgets-desc.asciiart.desc',
       undefined,
-      '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절'
+      '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭, 문자 세트, 반전 조절'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 12h6M6 15h4M14 9h4M15 12h3M13 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -227,8 +227,8 @@ import { getKarmoGif } from '../../lib/karmogif';
           const nameEl = $<HTMLElement>('#aaName');
           const out = $<HTMLElement>('#aaOut');
           const status = $<HTMLElement>('#aaStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           const widthInput = $<HTMLInputElement>('#aaWidth');
           const stageCanvas = $<HTMLCanvasElement>('#aaCanvas');
@@ -240,7 +240,7 @@ import { getKarmoGif } from '../../lib/karmogif';
           const babBtn = $<HTMLButtonElement>('#aaBab');
           let image: HTMLImageElement | null = null;
           let plainText = '';
-          /** 지금 화면에 있는 그림의 칸 색 — ANSI 로 낼 때 쓴다. 색을 안 켰으면 `null`. */
+          /** 지금 화면에 있는 그림의 칸 색. ANSI 로 낼 때 쓴다. 색을 안 켰으면 `null`. */
           let cellColors: Int32Array | null = null;
 
           // ── 영상 ─────────────────────────────────────────────────────────
@@ -249,16 +249,16 @@ import { getKarmoGif } from '../../lib/karmogif';
           let player: Player | null = null;
           let raf = 0;
           let clipFrames = 0;
-          /** 마지막으로 그려진 한 장 — 복사·저장은 「지금 화면」을 낸다. */
+          /** 마지막으로 그려진 한 장. 복사, 저장은 지금 화면을 낸다. */
           let current: AsciiFrame | null = null;
           let baking = false;
-          /** 구운 클립의 초당 장수 — 재생 위치를 장 번호로 바꿀 때 쓴다. */
+          /** 구운 클립의 초당 장수. 재생 위치를 장 번호로 바꿀 때 쓴다. */
           let clipFps = 12;
 
           const isVideoMode = (): boolean => video !== null;
 
           /**
-           * 아스키 한 장을 캔버스에 찍는다. 같은 색이 이어지는 동안 붓을 안 바꾼다 —
+           * 아스키 한 장을 캔버스에 찍는다. 같은 색이 이어지는 동안 붓을 안 바꾼다 . 
            * 붓 교체가 글자 찍기보다 훨씬 비싸서, 이 한 줄이 색을 켠 재생을 살린다.
            */
           /** 글자를 찍어 둘 투명한 겹. 크기가 그대로면 쓰던 것을 다시 쓴다. */
@@ -297,7 +297,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             // 글자는 **투명한 딴 겹**에 먼저 찍고, 그 겹을 한 번에 옮겨 그리면서 효과를 건다.
             // 글자마다 거는 방법도 되긴 되는데 한 장에 필터 연산이 수천 번이라 재생이 기어간다
             // (실측: 재생이 멈춘 것처럼 보일 만큼). 한 겹으로 모으면 한 장에 딱 한 번이고,
-            // 번짐이 글자 모양을 따라 퍼지는 결과는 오히려 이쪽이 맞다 — 이웃 글자의 빛이
+            // 번짐이 글자 모양을 따라 퍼지는 결과는 오히려 이쪽이 맞다. 이웃 글자의 빛이
             // 서로 겹쳐야 진짜 발광처럼 보인다.
             const layer = effect.filter ? glyphLayer(width, height) : null;
             const paintTo = layer ?? ctx;
@@ -333,7 +333,7 @@ import { getKarmoGif } from '../../lib/karmogif';
 
             ctx.filter = 'none';
             if (effect.overlay === 'scanline') {
-              // 한 줄 걸러 한 줄 어둡게. 옛 브라운관의 주사선 — 글자 그림과 유난히 잘 맞는다.
+              // 한 줄 걸러 한 줄 어둡게. 옛 브라운관의 주사선. 글자 그림과 유난히 잘 맞는다.
               ctx.fillStyle = 'rgba(0,0,0,0.28)';
               for (let y = 0; y < height; y += 2) ctx.fillRect(0, y, width, 1);
             }
@@ -371,7 +371,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             playBtn.disabled = false;
             gifBtn.hidden = false;
             babBtn.hidden = false;
-            // 첫 장을 바로 보여 준다 — 굽고 나서 검은 화면이면 실패한 줄 안다.
+            // 첫 장을 바로 보여 준다. 굽고 나서 검은 화면이면 실패한 줄 안다.
             player.seek(0, performance.now());
             player.play(performance.now());
             startLoop();
@@ -442,19 +442,19 @@ import { getKarmoGif } from '../../lib/karmogif';
             }
           }
 
-          /** 마지막으로 구운 파일 — `.bab` 저장에 쓴다. */
+          /** 마지막으로 구운 파일. `.bab` 저장에 쓴다. */
           let baked: Uint8Array | null = null;
 
           /**
            * 재생이 켜지면 이 도구도 **자기 문자 세트로** 한 조각을 그린다 (TASK-KL-131).
            *
-           * 재생기가 도는지 여기서는 모른다 — 신고만 해 두면 창구가 알아서 붙였다 뗀다.
+           * 재생기가 도는지 여기서는 모른다. 신고만 해 두면 창구가 알아서 붙였다 뗀다.
            * 이미지를 넣어 쓰는 중이면 `null` 을 답해 빠진다: 남의 작업물을 덮으면 안 된다.
            */
           const idlePlaceholder = out.textContent ?? '';
           const stopDrawing = window.KarmoLabBadApple?.add({
             measure: () => {
-              if (image || isVideoMode()) return null; // 쓰는 중 — 이번 판은 빠진다
+              if (image || isVideoMode()) return null; // 쓰는 중. 이번 판은 빠진다
               const cols = Math.max(20, Math.min(160, parseInt(widthInput.value, 10) || 100));
               return { cols, rows: Math.max(8, Math.round(cols * CHAR_ASPECT * 0.75)) };
             },
@@ -476,7 +476,7 @@ import { getKarmoGif } from '../../lib/karmogif';
           });
           Toolbox.onDispose?.(() => {
             stopDrawing?.();
-            // 화면 갱신 고리와 영상 주소는 위젯이 사라져도 안 죽는다 — 직접 걷는다.
+            // 화면 갱신 고리와 영상 주소는 위젯이 사라져도 안 죽는다. 직접 걷는다.
             resetVideo();
           });
 
@@ -498,11 +498,11 @@ import { getKarmoGif } from '../../lib/karmogif';
             ctx.drawImage(image, 0, 0, cols, rows);
             const data = ctx.getImageData(0, 0, cols, rows).data;
 
-            // 대비 계수 — 표준 대비 곡선
+            // 대비 계수. 표준 대비 곡선
             const c = (259 * (contrast + 255)) / (255 * (259 - contrast));
             const lines: string[] = [];
             const colorLines: string[] = [];
-            // 색을 켰을 때만 칸 색을 들고 있는다 — ANSI 로 낼 때 쓴다.
+            // 색을 켰을 때만 칸 색을 들고 있는다. ANSI 로 낼 때 쓴다.
             const tones = colorize ? new Int32Array(cols * rows) : null;
 
             for (let y = 0; y < rows; y++) {
@@ -535,7 +535,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             plainText = lines.join('\n');
             cellColors = tones;
             // 효과를 고르면 글자판도 캔버스로 그린다. `<pre>` 에 CSS 로 걸 수도 있지만 그러면
-            // 화면과 저장한 PNG 가 갈린다 — 같은 그리는 길을 쓰면 갈릴 자리가 없다.
+            // 화면과 저장한 PNG 가 갈린다. 같은 그리는 길을 쓰면 갈릴 자리가 없다.
             const wantEffect = ($<HTMLSelectElement>('#aaEffect').value ?? 'none') !== 'none';
             if (wantEffect) {
               out.hidden = true;
@@ -565,10 +565,10 @@ import { getKarmoGif } from '../../lib/karmogif';
           }
 
           function load(src: string, label: string): void {
-            // 공용 한 자리(`shared/image`)를 쓴다 — 주소 거두는 시점이 거기 맞춰져 있다.
+            // 공용 한 자리(`shared/image`)를 쓴다. 주소 거두는 시점이 거기 맞춰져 있다.
             loadImage(src).then((img) => {
               image = img;
-              nameEl.textContent = `${label} · ${img.naturalWidth}×${img.naturalHeight}`;
+              nameEl.textContent = `${label}, ${img.naturalWidth}×${img.naturalHeight}`;
               Toolbox.trackUse?.('convert');
               render();
             }).catch(() => {
@@ -591,7 +591,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             reader.readAsDataURL(file);
           }
 
-          /** 영상 모드에서 이미지로 돌아올 때 — 틀어 놓은 것과 캔버스를 걷는다. */
+          /** 영상 모드에서 이미지로 돌아올 때. 틀어 놓은 것과 캔버스를 걷는다. */
           function resetVideo(): void {
             stopLoop();
             player?.dispose();
@@ -611,7 +611,7 @@ import { getKarmoGif } from '../../lib/karmogif';
           }
 
           /**
-           * 영상은 파일을 통째로 글자로 바꾸지 않고 **주소만** 만들어 건다 —
+           * 영상은 파일을 통째로 글자로 바꾸지 않고 **주소만** 만들어 건다 . 
            * 몇십 MB 짜리를 base64 로 펴면 그 자리에서 탭이 죽는다.
            */
           function loadVideo(file: File): void {
@@ -621,13 +621,13 @@ import { getKarmoGif } from '../../lib/karmogif';
             element.muted = true;
             element.playsInline = true;
             element.preload = 'auto';
-            attachMedia(element, file); // 공용 — 앞 주소를 거두고 물린다
+            attachMedia(element, file); // 공용. 앞 주소를 거두고 물린다
             element.addEventListener('loadedmetadata', () => {
               video = element;
               videoBox.hidden = false;
               const seconds = Number.isFinite(element.duration) ? element.duration : 0;
               const span = $<HTMLInputElement>('#aaSpan');
-              // 구간 상한을 영상 길이에 맞춘다 — 없는 뒤쪽을 굽겠다고 하면 빈 장이 나온다.
+              // 구간 상한을 영상 길이에 맞춘다. 없는 뒤쪽을 굽겠다고 하면 빈 장이 나온다.
               span.max = String(Math.max(1, Math.ceil(seconds)));
               span.value = String(Math.max(1, Math.min(10, Math.floor(seconds) || 1)));
               $<HTMLElement>('#aaSpanVal').textContent = t('asciiart.value.seconds', { n: span.value });
@@ -679,10 +679,10 @@ import { getKarmoGif } from '../../lib/karmogif';
               $<HTMLElement>('#aaContrastVal').textContent = $<HTMLInputElement>('#aaContrast').value;
               $<HTMLElement>('#aaFpsVal').textContent = $<HTMLInputElement>('#aaFps').value;
               $<HTMLElement>('#aaSpanVal').textContent = t('asciiart.value.seconds', { n: $<HTMLInputElement>('#aaSpan').value });
-              // 이미 구운 게 있으면 글자 수·램프·색은 **다시 굽지 않고** 표면만 갈아 끼우면 된다.
-              // 초당 장수·구간은 파일 자체를 바꾸므로 그때만 다시 굽는다.
+              // 이미 구운 게 있으면 글자 수, 램프, 색은 **다시 굽지 않고** 표면만 갈아 끼우면 된다.
+              // 초당 장수, 구간은 파일 자체를 바꾸므로 그때만 다시 굽는다.
               if (baked) mount(baked);
-              // 영상이 멈춰 있으면 다시 칠할 사람이 없다 — 지금 장을 그대로 한 번 더 찍는다.
+              // 영상이 멈춰 있으면 다시 칠할 사람이 없다. 지금 장을 그대로 한 번 더 찍는다.
               if (current && !raf) paintCanvas(current);
               render();
             });
@@ -703,7 +703,7 @@ import { getKarmoGif } from '../../lib/karmogif';
           seek.addEventListener('input', () => {
             if (!player) return;
             player.seek(parseInt(seek.value, 10) / Math.max(1, clipFps), performance.now());
-            // 멈춰 있어도 그 자리 한 장은 보여 준다 — 안 그러면 끌어도 화면이 안 변한다.
+            // 멈춰 있어도 그 자리 한 장은 보여 준다. 안 그러면 끌어도 화면이 안 변한다.
             const wasStopped = raf === 0;
             if (wasStopped) {
               player.play(performance.now());
@@ -748,7 +748,7 @@ import { getKarmoGif } from '../../lib/karmogif';
             Toolbox.trackUse?.('save-png');
             downloadUrl(canvas.toDataURL('image/png'), 'ascii-art.png');
           };
-          /* 내려주기는 `shared/image` 것을 쓴다 (TASK-KL-270) — 여기 있던 지역 사본은 지웠다. */
+          /* 내려주기는 `shared/image` 것을 쓴다 (TASK-KL-270). 여기 있던 지역 사본은 지웠다. */
           const save = download;
 
           $<HTMLButtonElement>('#aaAnsi').onclick = async () => {
@@ -769,7 +769,7 @@ import { getKarmoGif } from '../../lib/karmogif';
 
           /**
            * 구운 것을 GIF 한 장으로. **글자판을 다시 그리지 않고** 재생기를 한 장씩 몰아
-           * 화면에 나오는 그림 그대로를 걷는다 — 화면과 저장물이 어긋날 자리를 안 만든다.
+           * 화면에 나오는 그림 그대로를 걷는다. 화면과 저장물이 어긋날 자리를 안 만든다.
            */
           gifBtn.onclick = async () => {
             const gif = getKarmoGif();
@@ -826,7 +826,7 @@ import { getKarmoGif } from '../../lib/karmogif';
 
           $<HTMLButtonElement>('#aaSample').onclick = () => {
             resetVideo();
-            // 외부 요청 0 — 캔버스로 그린 도형을 샘플로 쓴다.
+            // 외부 요청 0. 캔버스로 그린 도형을 샘플로 쓴다.
             const c = document.createElement('canvas');
             c.width = 240;
             c.height = 240;

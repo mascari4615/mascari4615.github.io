@@ -1,10 +1,10 @@
 /**
  * 글로 그리는 그림판 (TASK-KL-316 / 10)
  *
- * 「개발 도구」 작업대의 **만들기** 칸. 알맹이는 `core/mermaidlite`.
- * 치는 동안 바로 그려지고, SVG·PNG 로 내려받는다. 아무것도 올리지 않는다.
+ * 개발 도구 작업대의 **만들기** 칸. 알맹이는 `core/mermaidlite`.
+ * 치는 동안 바로 그려지고, SVG, PNG 로 내려받는다. 아무것도 올리지 않는다.
  *
- * 진짜 mermaid 를 안 쓴다 — 이 저장소엔 그 꾸러미가 없고(3MB), 우리가 그리는 건
+ * 진짜 mermaid 를 안 쓴다. 이 저장소엔 그 꾸러미가 없고(3MB), 우리가 그리는 건
  * 흐름도와 표 관계 둘이다. 못 읽는 줄은 **숨기지 않고** 아래에 적는다.
  */
 import { check, parse, toSvg, spec } from '../../core/mermaidlite';
@@ -20,11 +20,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'mermaidlite',
     title: t('widgets.mermaidlite.title', undefined, '글로 그리는 그림판'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.mermaidlite.desc',
       undefined,
-      'mermaid 문법으로 흐름도·표 관계를 그리고 SVG·PNG 로 저장합니다. 치는 동안 바로 그려집니다'
+      'mermaid 문법으로 흐름도, 표 관계를 그리고 SVG, PNG 로 저장합니다. 치는 동안 바로 그려집니다'
     ),
     layout: 'wide',
     icon: '<rect x="3" y="3" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="16" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="16" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6.5 8v4h11v4M6.5 12v4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -103,7 +103,7 @@ import { t, loadNamespace } from '../../lib/i18n';
       download(new Blob([svg], { type: 'image/svg+xml' }), 'diagram.svg');
       status.textContent = t('mermaidlite.status.savedSvg');
     };
-    /* PNG 는 SVG 를 그림으로 한 번 그려서 만든다 — 밖으로 아무것도 안 보낸다. */
+    /* PNG 는 SVG 를 그림으로 한 번 그려서 만든다. 밖으로 아무것도 안 보낸다. */
     $<HTMLButtonElement>('#mlPng').onclick = (): void => {
       if (svg === '') return;
       const el = pic.querySelector('svg');

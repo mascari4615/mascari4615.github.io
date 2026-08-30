@@ -1,10 +1,10 @@
 /**
  * chat-adapter 단위 smoke (TASK-KAR-110 Phase 2).
  *
- * 원래 `node:test` 로 쓰여 있었다. 그런데 이 패키지의 시험은 vitest 로 돈다 — vitest 는 이
- * 파일에서 스위트를 못 찾아 **매번 「1 파일 실패」로 빨갛게** 떴고, 정작 이 검사들은 아무 데서도
+ * 원래 `node:test` 로 쓰여 있었다. 그런데 이 패키지의 시험은 vitest 로 돈다. vitest 는 이
+ * 파일에서 스위트를 못 찾아 **매번 1 파일 실패로 빨갛게** 떴고, 정작 이 검사들은 아무 데서도
  * 안 돌았다(= 없는 검사인데 경보만 울리는 상태). 전체가 늘 1건 빨가면 진짜 실패가 그 속에 묻힌다.
- * 그래서 vitest 로 옮긴다 — 제외하는 게 아니라 **실제로 돌게** 한다 (TASK-KL-160).
+ * 그래서 vitest 로 옮긴다. 제외하는 게 아니라 **실제로 돌게** 한다 (TASK-KL-160).
  */
 import { test, expect } from 'vitest';
 import { detectKind, buildPayload, createAdapter, richToDiscordWebhook, richToSlackBlocks, richToPlainText, buildRichPayload } from './chat-adapter';

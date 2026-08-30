@@ -4,7 +4,7 @@
   "blocks": [
     {
       "type": "p",
-      "text": "\"글자\"는 생각보다 복잡하다. 그리고 그 복잡함이 **길이 계산, 자르기, 정렬**에서 조용히 사고를 낸다."
+      "text": "글자는 생각보다 복잡하다. 그리고 그 복잡함이 **길이 계산, 자르기, 정렬**에서 조용히 사고를 낸다."
     },
     {
       "type": "h",
@@ -36,7 +36,7 @@
       "type": "code",
       "lang": "js",
       "label": "보이는 것이 같아도 다를 수 있다",
-      "text": "const a = '한';           // 완성형 (NFC)\nconst b = 'ᄒ' + 'ᅡ' + 'ᆫ';  // 조합형 (NFD)\na === b;                   // false!\na.normalize('NFC') === b.normalize('NFC');   // true\n\n// macOS 파일명은 NFD 경향 → 검색·비교 전에 NFC 로 통일"
+      "text": "const a = '한';           // 완성형 (NFC)\nconst b = 'ᄒ' + 'ᅡ' + 'ᆫ';  // 조합형 (NFD)\na === b;                   // false!\na.normalize('NFC') === b.normalize('NFC');   // true\n\n// macOS 파일명은 NFD 경향 → 검색, 비교 전에 NFC 로 통일"
     },
     {
       "type": "h",

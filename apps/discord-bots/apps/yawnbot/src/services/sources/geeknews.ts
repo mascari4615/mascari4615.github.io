@@ -1,11 +1,11 @@
 /**
  * GeekNews (news.hada.io) 피드 소스.
  *
- * 순수 데이터/포맷 — discord 채널·env 비의존. 스케줄 news notifier
- * (`notifiers/news.ts`)가 3번째 소스로 폴링·게시한다.
+ * 순수 데이터/포맷. discord 채널, env 비의존. 스케줄 news notifier
+ * (`notifiers/news.ts`)가 3번째 소스로 폴링, 게시한다.
  *
  * - 피드 URL = FeedBurner (news.hada.io/rss 는 redirect 체인 끝에 여기로 옴 +
- *   직접 fetch 시 403; FeedBurner 는 인증·UA 불요 200).
+ *   직접 fetch 시 403; FeedBurner 는 인증, UA 불요 200).
  * - 포맷 = Atom XML (`<entry>`). RSS 2.0 (`<item>`) 도 dual 지원 (소스 포맷 변경 대비).
  * - 안정 dedup 키 = URL 내 topic id (예: ?id=12345). 없으면 link 전체.
  */
@@ -15,7 +15,7 @@ const GN_COLOR = 0x00b386;
 const FEED_URL = 'http://feeds.feedburner.com/geeknews-feed';
 
 export interface GnStoryLine {
-  /** topic id — 안정 식별자. URL ?id=NNN 에서 추출. */
+  /** topic id. 안정 식별자. URL ?id=NNN 에서 추출. */
   id: string;
   title: string;
   href: string;
@@ -74,7 +74,7 @@ export async function fetchGnTopStories(limit: number): Promise<GnStoryLine[]> {
     xml.match(/<item[\s\S]*?<\/item>/g) ??
     [];
   if (blocks.length === 0) {
-    console.warn('[News/GN] 피드 파싱 0건 — XML 구조 확인 필요 (entry·item 둘 다 없음)');
+    console.warn('[News/GN] 피드 파싱 0건. XML 구조 확인 필요 (entry, item 둘 다 없음)');
   }
 
   const results: GnStoryLine[] = [];
@@ -90,7 +90,7 @@ export function buildGnEmbed(s: GnStoryLine): EmbedBuilder {
   const embed = new EmbedBuilder()
     .setTitle(`📰 ${s.title.slice(0, 250)}`)
     .setColor(GN_COLOR)
-    .setFooter({ text: 'YawnBot · GeekNews' });
+    .setFooter({ text: 'YawnBot, GeekNews' });
   if (/^https?:\/\//i.test(s.href)) embed.setURL(s.href);
   const pub = s.pubDate ? new Date(s.pubDate).getTime() : 0;
   if (pub) embed.setTimestamp(new Date(pub));

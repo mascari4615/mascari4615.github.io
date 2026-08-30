@@ -1,9 +1,9 @@
 /**
- * 뒤집기 — 사이에 낀 돌이 전부 내 것이 된다 (TASK-KL-242)
+ * 뒤집기. 사이에 낀 돌이 전부 내 것이 된다 (TASK-KL-242)
  *
- * 오목·사목과 같은 「차례·보드」지만 **둘 수 있는 자리가 판마다 바뀐다** — 아무 데나 못 둔다.
- * 그래서 `canAct` 만으로는 부족하고, 「둘 데가 없으면 차례가 넘어간다」는 규칙이 필요하다.
- * 양쪽 다 둘 데가 없으면 끝. 커널은 이걸 모른다 — 게임이 제 차례를 갖기 때문에 그냥 된다.
+ * 오목, 사목과 같은 차례, 보드지만 **둘 수 있는 자리가 판마다 바뀐다**. 아무 데나 못 둔다.
+ * 그래서 `canAct` 만으로는 부족하고, 둘 데가 없으면 차례가 넘어간다는 규칙이 필요하다.
+ * 양쪽 다 둘 데가 없으면 끝. 커널은 이걸 모른다. 게임이 제 차례를 갖기 때문에 그냥 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -13,7 +13,7 @@ const DIRS: Array<[number, number]> = [
 ];
 
 export interface ReversiState {
-  /** 0 = 빈 칸, 1·2 = 자리 번호+1 */
+  /** 0 = 빈 칸, 1, 2 = 자리 번호+1 */
   board: number[];
   turn: number;
   last: number;
@@ -50,7 +50,7 @@ export function flips(b: number[], cell: number, who: number): number[] {
 const legal = (b: number[], who: number): number[] =>
   b.map((_, i) => i).filter((i) => flips(b, i, who).length > 0);
 
-/** 모서리는 뒤집히지 않는다 — 이 놀이에서 제일 값진 자리다. */
+/** 모서리는 뒤집히지 않는다. 이 놀이에서 제일 값진 자리다. */
 const WEIGHT = (() => {
   const w = new Array(N * N).fill(1);
   for (const c of [0, N - 1, (N - 1) * N, N * N - 1]) w[c] = 30;
@@ -60,7 +60,7 @@ const WEIGHT = (() => {
     if (w[i * N] === 1) w[i * N] = 4;
     if (w[i * N + N - 1] === 1) w[i * N + N - 1] = 4;
   }
-  /* 모서리 옆은 오히려 독이다 — 거기 두면 상대가 모서리를 가져간다. */
+  /* 모서리 옆은 오히려 독이다. 거기 두면 상대가 모서리를 가져간다. */
   for (const c of [1, N, N + 1, N - 2, 2 * N - 1, 2 * N - 2,
                    (N - 2) * N, (N - 2) * N + 1, (N - 1) * N + 1,
                    (N - 1) * N - 1, (N - 1) * N - 2, N * N - 2]) w[c] = -6;
@@ -130,7 +130,7 @@ export const reversi: GameDef<ReversiState, ReversiAction> = {
     const who = seat + 1;
     const moves = legal(s.board, who);
     if (!moves.length) return null;
-    /* 많이 뒤집는 수보다 **좋은 자리**를 고른다 — 초반에 많이 먹으면 나중에 다 뺏긴다. */
+    /* 많이 뒤집는 수보다 **좋은 자리**를 고른다. 초반에 많이 먹으면 나중에 다 뺏긴다. */
     let best = moves[0];
     let bestV = -Infinity;
     for (const c of moves) {

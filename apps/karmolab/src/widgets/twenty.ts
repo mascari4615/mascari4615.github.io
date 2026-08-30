@@ -1,15 +1,15 @@
 /**
- * 스무고개 (TASK-KL-089) — 사람이 하나를 마음에 정하고, 여기가 물어서 맞힌다.
+ * 스무고개 (TASK-KL-089). 사람이 하나를 마음에 정하고, 여기가 물어서 맞힌다.
  *
  * 왜 이 놀이인가: 있던 놀이 셋은 전부 **사람이 맞히는** 쪽이었다. 방향을 뒤집으면 같은 표로
- * 전혀 다른 재미가 나온다 — 「어떻게 알았지?」가 이 놀이의 전부다.
+ * 전혀 다른 재미가 나온다. 어떻게 알았지?가 이 놀이의 전부다.
  *
  * 질문은 손으로 안 적는다. 표의 칸에서 **저절로** 나온다:
- *   - 여럿 중 하나(타입·색·원소 …) → 「타입에 전기가 있나요?」
- *   - 숫자(세대·키·체력 …) → 남은 후보의 중앙값을 기준으로 「1.0m 보다 큰가요?」
+ *   - 여럿 중 하나(타입, 색, 원소 ...) → 타입에 전기가 있나요?
+ *   - 숫자(세대, 키, 체력 ...) → 남은 후보의 중앙값을 기준으로 1.0m 보다 큰가요?
  * 그중에서 **후보를 가장 반으로 가르는** 질문을 고른다. 그래서 표가 늘면 질문도 같이 는다.
  *
- * 표는 「오늘의 하나 맞히기」의 것을 그대로 쓴다(/daily/data/<주제>.json) — 놀이마다 표를
+ * 표는 오늘의 하나 맞히기의 것을 그대로 쓴다(/daily/data/<주제>.json). 놀이마다 표를
  * 따로 두면 그날부터 서로 다른 세상을 말한다.
  */
 import { mountCourseNext } from './play-course';
@@ -41,7 +41,7 @@ import { appHost } from '../lib/site-base';
     fields: Field[];
     items: Item[];
   }
-  /** 하나의 질문 — 후보를 「예」쪽과 「아니오」쪽으로 가른다. */
+  /** 하나의 질문. 후보를 예쪽과 아니오쪽으로 가른다. */
   interface Ask {
     text: string;
     hit: (it: Item) => boolean;
@@ -50,9 +50,9 @@ import { appHost } from '../lib/site-base';
   }
 
   /**
-   * 「몸무게가 28kg 보다 큰가요?」로 시작하면 사람이 답을 못 한다 — 포켓몬 몸무게를 외운
-   * 사람은 없다(첫 질문이 실제로 그거였다). 눈에 보이는 것(타입·색·원소·무기)이 먼저고,
-   * 세대·등급처럼 어렴풋이 아는 것이 그다음, 정확한 수치는 맨 뒤다.
+   * 몸무게가 28kg 보다 큰가요?로 시작하면 사람이 답을 못 한다. 포켓몬 몸무게를 외운
+   * 사람은 없다(첫 질문이 실제로 그거였다). 눈에 보이는 것(타입, 색, 원소, 무기)이 먼저고,
+   * 세대, 등급처럼 어렴풋이 아는 것이 그다음, 정확한 수치는 맨 뒤다.
    */
   const HARD: Record<string, number> = {
     height: 1,
@@ -66,16 +66,16 @@ import { appHost } from '../lib/site-base';
     rank: 0.15
   };
 
-  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장 — `higher.ts` 와 같은 병).
+  /* ★ **말은 묶음이 온 뒤에 읽는다** (2026-08-14, 실서비스 고장. `higher.ts` 와 같은 병).
      여기서 `t()` 를 바로 부르면 파일이 읽히는 순간 부른 것이 되고, 그때는 아직
      `loadNamespace('twenty')` 전이라 되받을 글 없는 `t()` 가 던진다 → 위젯이 통째로 안 올라간다.
-     실측: 「유령 타자」 화면이 `[i18n] Missing translation: ko/twenty.t09` 로 죽어 있었다. */
+     실측: 유령 타자 화면이 `[i18n] Missing translation: ko/twenty.t09` 로 죽어 있었다. */
   const topicList = (): Array<{ id: string; title: string; emoji: string }> => [
     { id: 'pokemon', title: t('twenty.t09'), emoji: '🔴' },
     { id: 'lol', title: t('twenty.t10'), emoji: '⚔️' },
     { id: 'genshin', title: t('twenty.t11'), emoji: '🌠' }
   ];
-  /** 「세대이(가)」는 사람이 쓰는 말이 아니다 — 받침을 보고 이/가를 고른다. */
+  /** 세대이(가)는 사람이 쓰는 말이 아니다. 받침을 보고 이/가를 고른다. */
   function ga(word: string): string {
     const last = word.charCodeAt(word.length - 1);
     const hangul = last >= 0xac00 && last <= 0xd7a3;
@@ -88,9 +88,9 @@ import { appHost } from '../lib/site-base';
   Toolbox.register({
     id: 'twenty',
     title: t('widgets.twenty.title', undefined, "스무고개"),
-    category: 'tool',
-    desc: t('widgets-desc.twenty.desc', undefined, "하나를 마음에 정하세요. 스무 번 안에 맞혀 보겠습니다 — 포켓몬·롤·원신"),
-    // 커뮤니티와 같은 틀 — 넓게 쓰고 도구 제목 카드는 안 그린다.
+    category: 'play',
+    desc: t('widgets-desc.twenty.desc', undefined, "하나를 마음에 정하세요. 스무 번 안에 맞혀 보겠습니다. 포켓몬, 롤, 원신"),
+    // 커뮤니티와 같은 틀. 넓게 쓰고 도구 제목 카드는 안 그린다.
     layout: 'wide',
     noHero: true,
     icon:
@@ -139,16 +139,16 @@ import { appHost } from '../lib/site-base';
           let guessing: Item | null = null;
           const history: string[] = [];
           /* 이미 물어본 질문은 다시 안 묻는다. 기록(history)에는 대답까지 붙어 있어서
-           * 그걸로 견주면 **영영 안 걸린다** — 같은 질문이 세 번 나왔다(실측). 질문만 따로 센다. */
+           * 그걸로 견주면 **영영 안 걸린다**. 같은 질문이 세 번 나왔다(실측). 질문만 따로 센다. */
           const askedText = new Set<string>();
-          /** 몇 번째 불러오기인가 — 늦게 온 표를 버리는 표식. */
+          /** 몇 번째 불러오기인가. 늦게 온 표를 버리는 표식. */
           let loadSeq = 0;
-          const refused: string[] = []; // 「아니에요」를 들은 추측 — 다시 내밀지 않는다
+          const refused: string[] = []; // 아니에요를 들은 추측. 다시 내밀지 않는다
 
 
           /* ── 질문 만들기 ─────────────────────────────
-           * 남은 후보만 보고 만든다. 「전기 타입인가요?」를 물어도 남은 후보에 전기가 하나도
-           * 없으면 아무것도 못 가른다 — 그런 질문은 애초에 후보에 안 오른다. */
+           * 남은 후보만 보고 만든다. 전기 타입인가요?를 물어도 남은 후보에 전기가 하나도
+           * 없으면 아무것도 못 가른다. 그런 질문은 애초에 후보에 안 오른다. */
           function asksFor(items: Item[], fields: Field[]): Ask[] {
             const out: Ask[] = [];
             for (const f of fields) {
@@ -160,7 +160,7 @@ import { appHost } from '../lib/site-base';
                   .sort((a, b) => a - b);
                 if (nums.length < 2) continue;
                 const mid = nums[Math.floor(nums.length / 2)];
-                if (mid === nums[0]) continue; // 다 같은 값 — 못 가른다
+                if (mid === nums[0]) continue; // 다 같은 값. 못 가른다
                 const shown = Number.isInteger(mid) ? String(mid) : mid.toFixed(1);
                 out.push({
                   text: t('twenty.q.greater', { subject: ga(f.label), label: f.label, n: shown, unit: f.unit || '' }),
@@ -169,7 +169,7 @@ import { appHost } from '../lib/site-base';
                 });
                 continue;
               }
-              // 값마다 「그 값인가요?」 하나씩. 흔한 값일수록 잘 가른다 — 고르는 건 아래가 한다.
+              // 값마다 그 값인가요? 하나씩. 흔한 값일수록 잘 가른다. 고르는 건 아래가 한다.
               const seen = new Map<string, number>();
               for (const it of items) {
                 const v = it[f.key];
@@ -177,7 +177,7 @@ import { appHost } from '../lib/site-base';
                 for (const one of list) seen.set(String(one), (seen.get(String(one)) || 0) + 1);
               }
               for (const [v, n] of seen) {
-                if (n === items.length) continue; // 전부가 그렇다 — 못 가른다
+                if (n === items.length) continue; // 전부가 그렇다. 못 가른다
                 out.push({
                   text:
                     kind === 'set'
@@ -196,15 +196,15 @@ import { appHost } from '../lib/site-base';
 
           /**
            * 후보를 반으로 가르되, **사람이 답할 수 있는** 질문을 먼저 고른다.
-           * 잘 가르는 정도만 보면 늘 수치 질문이 이긴다(경계를 딱 반으로 놓을 수 있으니까) —
+           * 잘 가르는 정도만 보면 늘 수치 질문이 이긴다(경계를 딱 반으로 놓을 수 있으니까) . 
            * 그런데 답을 못 하면 아무리 잘 가르는 질문도 쓸모가 없다.
            * 어려운 질문은 후보가 몇 안 남아 정말 필요할 때 저절로 올라온다(벌점이 후보 수에 비례).
            */
           function bestAsk(): Ask | null {
             if (!topic) return null;
             const all = asksFor(pool, topic.fields).filter((a) => !askedText.has(a.text));
-            /* 첫 질문이 「세대가 5 보다 큰가요?」였다(실사이트). 세대를 아는 건 팬뿐이고,
-             * 처음 온 사람은 첫 판에서 막힌다. 후보가 많은 초반에는 **눈에 보이는 것**만 묻는다 —
+            /* 첫 질문이 세대가 5 보다 큰가요?였다(실사이트). 세대를 아는 건 팬뿐이고,
+             * 처음 온 사람은 첫 판에서 막힌다. 후보가 많은 초반에는 **눈에 보이는 것**만 묻는다 . 
              * 어려운 것은 후보가 줄어 정말 필요할 때 열린다. 그런 질문이 없으면 그때는 전부에서 고른다. */
             const ceiling = pool.length > 200 ? 0 : pool.length > 40 ? 0.4 : 1;
             const easy = all.filter((a) => a.hard <= ceiling);
@@ -224,7 +224,7 @@ import { appHost } from '../lib/site-base';
             return best;
           }
 
-          /** 오늘 이 놀이를 했다는 한 줄 — 코스가 나중에 이걸 읽는다. */
+          /** 오늘 이 놀이를 했다는 한 줄. 코스가 나중에 이걸 읽는다. */
           function markToday(): void {
             const k = new Date(Date.now() + 9 * 3600e3);
             const day = `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
@@ -264,7 +264,7 @@ import { appHost } from '../lib/site-base';
             $('twAfter').hidden = false;
             $('twLeft').textContent = '';
             markToday();
-            /* 이긴 판만 기록에 남긴다 (TASK-KL-148 ②) — 「못 맞힘」은 몇 개를 물었든 기록이 아니다.
+            /* 이긴 판만 기록에 남긴다 (TASK-KL-148 ②). 못 맞힘은 몇 개를 물었든 기록이 아니다.
                적게 물수록 잘한 것이므로 순위는 작은 쪽이 위다. 판(표)마다 갈린다: 항목이 넷인
                표에서 3번 만에 맞히는 것과 천 개짜리에서 3번은 같은 일이 아니다. */
             if (win && asked >= 1) {
@@ -321,7 +321,7 @@ import { appHost } from '../lib/site-base';
             history.push(`${q.text} → ${kind === 'yes' ? t('twenty.t03') : kind === 'no' ? t('twenty.t04') : t('twenty.t05')}`);
             if (kind !== 'skip') {
               const keep = pool.filter((it) => (kind === 'yes' ? q.hit(it) : !q.hit(it)));
-              // 대답이 표와 어긋나 후보가 0이 되면 놀이가 죽는다 — 그 대답만 흘려보낸다.
+              // 대답이 표와 어긋나 후보가 0이 되면 놀이가 죽는다. 그 대답만 흘려보낸다.
               if (keep.length) pool = keep;
               else $('twMsg').textContent = t('twenty.t23');
             }
@@ -344,7 +344,7 @@ import { appHost } from '../lib/site-base';
               endRound(t('twenty.gotItIn', { n: asked }), true);
               return;
             }
-            // 아니라면 그것만 빼고 계속 — 남은 것이 없으면 그때 진다.
+            // 아니라면 그것만 빼고 계속. 남은 것이 없으면 그때 진다.
             refused.push(guessing.name);
             pool = pool.filter((it) => it.name !== guessing!.name);
             $('twMsg').textContent = t('twenty.t24');
@@ -355,14 +355,14 @@ import { appHost } from '../lib/site-base';
           $('twAgain').addEventListener('click', () => start(topicId));
           $('twShare').addEventListener('click', () => {
             const chip = chips.filter((x) => x.id === topicId)[0];
-            /* 내 표로 논 결과를 자랑하면 받은 사람에게는 그 표가 없다 — 열어도 남의 표로 놀게 된다.
+            /* 내 표로 논 결과를 자랑하면 받은 사람에게는 그 표가 없다. 열어도 남의 표로 놀게 된다.
              * 그래서 내 표일 때는 **표를 실은 주소**를 준다. 그러면 누르는 순간 표까지 따라온다. */
             const mine = topicId.indexOf('pack:') === 0 ? getPack(topicId.slice(5)) : null;
             const url = mine
               ? `${appHost()}?pack=${packToCode(mine)}#twenty`
               : `${appHost()}#twenty`;
             const text =
-              `KarmoLab 스무고개 — ${chip ? chip.title : ''}\n` +
+              `KarmoLab 스무고개. ${chip ? chip.title : ''}\n` +
               `${asked}번 만에 ${$('twQ').textContent === t('twenty.t19') ? t('twenty.t25') : t('twenty.t26')}\n` +
               url;
             void navigator.clipboard.writeText(text).then(() => {
@@ -406,7 +406,7 @@ import { appHost } from '../lib/site-base';
               });
           }
 
-          /* 사람이 만든 표도 주제 칩으로 나란히 선다 — 우리 표와 남의 표를 놀이가 안 가린다.
+          /* 사람이 만든 표도 주제 칩으로 나란히 선다. 우리 표와 남의 표를 놀이가 안 가린다.
            * 표는 놀다가도 새로 생기므로 목록은 화면이 보일 때마다 다시 그린다. */
           let chips: Array<{ id: string; title: string; emoji: string }> = [];
 
@@ -441,7 +441,7 @@ import { appHost } from '../lib/site-base';
             drawChips(active);
             void sharedChoices('number').then((rows) => {
               if (!container.isConnected || !rows.length) return;
-              chips = chips.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? t('twenty.t30')}`, emoji: c.emoji })));
+              chips = chips.concat(rows.map((c) => ({ id: c.id, title: `${c.title}, ${c.owner ?? t('twenty.t30')}`, emoji: c.emoji })));
               drawChips(active);
             });
           }

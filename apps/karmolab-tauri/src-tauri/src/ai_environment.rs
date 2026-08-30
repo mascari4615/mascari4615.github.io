@@ -62,6 +62,15 @@ fn state(
     }
 }
 
+fn unknown(vendor: &'static str, reason: impl Into<String>, evidence: Vec<PathBuf>) -> VendorState {
+    VendorState {
+        vendor,
+        status: "unknown",
+        reason: reason.into(),
+        evidence: evidence.into_iter().map(|path| path.display().to_string()).collect(),
+    }
+}
+
 #[tauri::command]
 pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
     let home = PathBuf::from(
@@ -91,13 +100,14 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
 
     let claude_skills = claude.join("skills");
     let codex_skills = agents.join("skills");
+    let codex_bundled_skills = codex.join("skills");
     let skills = EnvironmentFeature {
         id: "skills",
         label: "스킬",
         description: "반복 작업을 위한 SKILL.md 워크플로",
         vendors: vec![
             state("claude", has_entries(&claude_skills), false, "Claude 사용자 스킬", vec![claude_skills.clone()]),
-            state("codex", has_entries(&codex_skills), false, "Codex 사용자 스킬 검색 경로", vec![codex_skills.clone()]),
+            state("codex", has_entries(&codex_skills) && has_entries(&codex_bundled_skills), has_entries(&codex_skills) || has_entries(&codex_bundled_skills), "Codex 사용자, 시스템 스킬 검색 경로", vec![codex_skills.clone(), codex_bundled_skills.clone()]),
             state("grok", has_entries(&claude_skills), true, "Claude 호환 스킬 스캔에 의존", vec![claude_skills.clone()]),
         ],
     };
@@ -110,7 +120,7 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         description: "세션·프롬프트·도구 호출 전후의 기계적 집행",
         vendors: vec![
             state("claude", has_entries(&claude_hooks) && contains(&claude_settings, "\"hooks\""), false, "Claude hooks와 settings 배선", vec![claude_hooks.clone(), claude_settings.clone()]),
-            state("codex", exists(&codex_hooks) || contains(&codex_config, "[hooks]"), false, "Codex hooks.json 또는 config.toml hooks", vec![codex_hooks.clone(), codex_config.clone()]),
+            state("codex", (exists(&codex_hooks) || contains(&codex_config, "[hooks]")) && !contains(&codex_config, "hooks = false"), false, "Codex hooks.json 또는 config.toml hooks", vec![codex_hooks.clone(), codex_config.clone()]),
             state("grok", exists(&grok_hooks), false, "Grok vendor-wrap 훅 등록", vec![grok_hooks.clone()]),
         ],
     };
@@ -122,7 +132,7 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         description: "사용자가 직접 부르는 반복 명령과 프롬프트",
         vendors: vec![
             state("claude", has_entries(&claude_commands), false, "Claude slash commands", vec![claude_commands.clone()]),
-            state("codex", false, false, "Claude command를 Codex skill로 가져온 흔적 없음", vec![codex_skills.clone()]),
+            state("codex", has_entries(&codex_skills), has_entries(&codex_bundled_skills), "Codex는 skill을 명시 호출하는 방식", vec![codex_skills.clone(), codex_bundled_skills.clone()]),
             state("grok", has_entries(&claude_commands), true, "Claude 호환 command 스캔에 의존", vec![claude_commands.clone()]),
         ],
     };
@@ -133,7 +143,7 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         description: "세션을 넘어 유지되는 개인화와 작업 기억",
         vendors: vec![
             state("claude", exists(&claude.join("projects")), false, "Claude project memory", vec![claude.join("projects")]),
-            state("codex", exists(&codex.join("memories")), false, "Codex memory store", vec![codex.join("memories")]),
+            state("codex", has_entries(&codex.join("memories")) && contains(&codex_config, "memories = true"), exists(&codex.join("memories")), "Codex local memory 설정과 생성 상태", vec![codex.join("memories"), codex_config.clone()]),
             state("grok", exists(&grok.join("last-session-start.md")), true, "SessionStart 파일 기반 기억만 확인", vec![grok.join("last-session-start.md")]),
         ],
     };
@@ -154,9 +164,31 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         label: "권한 · 샌드박스",
         description: "파일·명령·네트워크 허용 범위",
         vendors: vec![
-            state("claude", contains(&claude_settings, "permissions"), false, "Claude permissions 설정", vec![claude_settings]),
-            state("codex", exists(&codex_config), false, "Codex config와 프로젝트 trust", vec![codex_config]),
+            state("claude", contains(&claude_settings, "permissions"), false, "Claude permissions 설정", vec![claude_settings.clone()]),
+            state("codex", exists(&codex_config), false, "Codex config와 프로젝트 trust", vec![codex_config.clone()]),
             state("grok", exists(&grok.join("settings.json")), true, "Grok 설정 존재만 확인", vec![grok.join("settings.json")]),
+        ],
+    };
+
+    let plugins = EnvironmentFeature {
+        id: "plugins",
+        label: "플러그인",
+        description: "스킬, MCP, 표현 자산을 함께 배포하는 확장 묶음",
+        vendors: vec![
+            state("claude", has_entries(&claude.join("plugins")), false, "Claude plugin 저장소", vec![claude.join("plugins")]),
+            state("codex", has_entries(&codex.join("plugins")), false, "Codex plugin 저장소", vec![codex.join("plugins")]),
+            state("grok", has_entries(&grok.join("plugins")), false, "Grok plugin 저장소", vec![grok.join("plugins")]),
+        ],
+    };
+
+    let subagents = EnvironmentFeature {
+        id: "subagents",
+        label: "서브에이전트",
+        description: "독립 하위 세션으로 나눠 병렬 처리하는 위임",
+        vendors: vec![
+            unknown("claude", "제품 지원 여부는 로컬 파일만으로 판정하지 않음", vec![claude_settings.clone()]),
+            unknown("codex", "제품 지원 여부는 로컬 파일만으로 판정하지 않음", vec![codex_config.clone()]),
+            unknown("grok", "제품 지원 여부는 로컬 파일만으로 판정하지 않음", vec![grok.join("config.toml")]),
         ],
     };
 
@@ -166,15 +198,15 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         .as_secs();
     Ok(EnvironmentAudit {
         checked_at,
-        features: vec![instructions, skills, hooks, commands, memory, mcp, permissions, EnvironmentFeature {
+        features: vec![instructions, skills, hooks, commands, memory, mcp, plugins, permissions, EnvironmentFeature {
             id: "automation",
-            label: "자동화",
+            label: "예약, 무인 실행",
             description: "사용자 호출 없이 예약·반복 실행되는 AI 작업",
             vendors: vec![
-                state("claude", false, false, "Claude 예약 자동화 배포 계약 없음", vec![claude.join("automations")]),
-                state("codex", has_entries(&codex.join("automations")), false, "Codex automations 저장소", vec![codex.join("automations")]),
-                state("grok", false, false, "Grok 예약 자동화 배포 계약 없음", vec![grok.join("automations")]),
+                unknown("claude", "예약 실행의 계정, 앱 상태는 로컬 파일만으로 판정하지 않음", vec![claude.join("automations")]),
+                unknown("codex", "Codex 예약 작업은 데스크톱, 웹 Scheduled에서 관리됨", vec![codex.join("automations")]),
+                unknown("grok", "예약 실행의 계정, 앱 상태는 로컬 파일만으로 판정하지 않음", vec![grok.join("automations")]),
             ],
-        }],
+        }, subagents],
     })
 }

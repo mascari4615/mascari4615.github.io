@@ -1,18 +1,18 @@
 /**
- * 말로 부리기 — 고르는 쪽 (TASK-KL-196 E).
+ * 말로 부리기. 고르는 쪽 (TASK-KL-196 E).
  *
- * 팔레트에서 **누를 때만** 온다. 이름으로 못 찾은 자리에서 「하려는 일」을 서버에 보내면
+ * 팔레트에서 **누를 때만** 온다. 이름으로 못 찾은 자리에서 하려는 일을 서버에 보내면
  * 서버가 도구를 하나 고른다(목록 정본 = 사이트, 고르는 것 = 서버의 AI).
  *
  * 왜 팔레트 묶음에 안 넣었나: 첫 화면 부팅 JS 가 이미 천장(40KB gz)에 닿아 있다.
  * 눌러 본 사람만 받으면 되는 것을 모두가 받을 이유가 없다.
  *
- * 못 하면 못 한다고 말한다 — 자격이 없거나 못 고르면 그렇게 적는다. 억지로 아무 도구나
+ * 못 하면 못 한다고 말한다. 자격이 없거나 못 고르면 그렇게 적는다. 억지로 아무 도구나
  * 내밀면 다음부터 이 자리는 아무도 안 누른다.
  */
 import { t, loadNamespace } from './lib/i18n';
 
-/* 위젯이 아니라 셸·라이브러리 — 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
+/* 위젯이 아니라 셸, 라이브러리. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다.
    빌드는 브라우저 밖에서도 읽으므로 document 가 있을 때만. */
 if (typeof document !== 'undefined') void loadNamespace('ask');
 interface AskArgs {
@@ -21,12 +21,12 @@ interface AskArgs {
     close: () => void;
     byId: (id: string) => { title: string } | undefined;
     esc: (s: string) => string;
-    /** 화면을 옮기는 손잡이는 **넘겨받는다** — `window.Toolbox` 는 없다(셸의 지역 이름이다).
+    /** 화면을 옮기는 손잡이는 **넘겨받는다**. `window.Toolbox` 는 없다(셸의 지역 이름이다).
         전역으로 짐작하고 불렀다가 누른 순간 죽었다(검사가 잡았다). */
     go: (id: string) => void;
 }
 
-/** 이미 고른 물음 — 같은 물음을 두 번 묻지 않는다(서버도 안 두들긴다). */
+/** 이미 고른 물음. 같은 물음을 두 번 묻지 않는다(서버도 안 두들긴다). */
 const answered = new Map<string, string>();
 
 async function run(args: AskArgs): Promise<void> {

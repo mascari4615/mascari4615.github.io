@@ -1,12 +1,12 @@
 /**
- * 논문 재료 — OpenAlex (TASK-KL-253)
+ * 논문 재료. OpenAlex (TASK-KL-253)
  *
  * 원래 여기 쓰려던 곳은 Semantic Scholar 였는데, **키 없이는 429** 다(2026-08-12 실측:
  * 우리 서버에서 쳐도 마찬가지). 문서가 아니라 응답으로 확인해서 다행이지, 그대로 지었으면
  * 화면이 빈 채로 배포됐을 것이다.
  *
  * OpenAlex 는 키 없이 200 이고 `Access-Control-Allow-Origin: *` 이며, 무엇보다
- * **참고문헌 목록을 그대로 준다** — 「이 논문이 무엇 위에 서 있나」를 그리려면 그게 필요하다.
+ * **참고문헌 목록을 그대로 준다**. 이 논문이 무엇 위에 서 있나를 그리려면 그게 필요하다.
  *
  * 예의 하나: 요청에 연락처를 실어 보낸다(`mailto`). 그쪽이 문서로 부탁하는 것이고,
  * 그래야 한도가 넉넉한 줄에 선다.
@@ -20,14 +20,14 @@ export interface Paper {
   id: string;
   title: string;
   year: number;
-  /** 몇 번 인용됐나 — 그림에서 **크기**가 된다 */
+  /** 몇 번 인용됐나. 그림에서 **크기**가 된다 */
   cited: number;
   authors: string[];
   /** 이 논문이 딛고 선 것들 (짧은 이름) */
   refs: string[];
   /** 열어 볼 수 있는 주소 (없을 수 있다) */
   url: string;
-  /** 초록. OpenAlex 는 **뒤집힌 목록**으로 준다 — 여기서는 이미 되돌린 글이다 (TASK-KL-238 / 34) */
+  /** 초록. OpenAlex 는 **뒤집힌 목록**으로 준다. 여기서는 이미 되돌린 글이다 (TASK-KL-238 / 34) */
   abstract?: string;
 }
 
@@ -51,7 +51,7 @@ export function shortId(url: string): string {
 }
 
 const FIELDS = 'id,title,display_name,publication_year,cited_by_count,referenced_works,authorships,doi,primary_location';
-/** 초록까지 받는 목록 — 「논문에게 묻기」(34·35·38)는 제목만으로는 아무 답도 못 한다. */
+/** 초록까지 받는 목록. 논문에게 묻기(34, 35, 38)는 제목만으로는 아무 답도 못 한다. */
 const FIELDS_ABS = `${FIELDS},abstract_inverted_index`;
 
 export function toPaper(r: RawWork): Paper | null {
@@ -85,7 +85,7 @@ async function get<T>(path: string): Promise<T | null> {
   }
 }
 
-/** 제목·낱말로 찾는다. 인용 많은 순 — 처음 보는 분야에서는 그게 곧 「어디서 시작하나」다. */
+/** 제목, 낱말로 찾는다. 인용 많은 순. 처음 보는 분야에서는 그게 곧 어디서 시작하나다. */
 export async function search(query: string, limit = 10): Promise<Paper[]> {
   const q = query.trim();
   if (!q) return [];
@@ -101,7 +101,7 @@ export async function search(query: string, limit = 10): Promise<Paper[]> {
   return out;
 }
 
-/** 여러 편을 한 번에. **한 번의 요청으로** 가져온다 — 스무 편을 스무 번 부르면 곧 막힌다. */
+/** 여러 편을 한 번에. **한 번의 요청으로** 가져온다. 스무 편을 스무 번 부르면 곧 막힌다. */
 export async function fetchMany(ids: string[]): Promise<Paper[]> {
   const list = ids.filter(Boolean).slice(0, 50);
   if (!list.length) return [];
@@ -139,7 +139,7 @@ export interface PaperMap {
  *
  * 두 가지가 규칙의 전부다:
  *   - **크기 = 인용 수.** 어느 것이 이 분야의 바닥인지가 한눈에 보인다(그게 먼저 읽을 것).
- *   - **가로 자리 = 연도.** 왼쪽이 옛것 — 「이 흐름이 어디서 왔나」가 자리로 읽힌다.
+ *   - **가로 자리 = 연도.** 왼쪽이 옛것. 이 흐름이 어디서 왔나가 자리로 읽힌다.
  * 목록으로는 둘 다 안 보인다. 그래서 지도다.
  */
 export function buildMap(root: Paper, refs: Paper[], opts?: { width?: number; rowGap?: number }): PaperMap {
@@ -148,7 +148,7 @@ export function buildMap(root: Paper, refs: Paper[], opts?: { width?: number; ro
   const nodes: MapNode[] = [];
   const edges: Array<{ from: string; to: string }> = [];
 
-  /* 인용 수는 몇 배씩 벌어진다(28 과 60,000 이 한 화면에 있다) — 그대로 크기에 쓰면
+  /* 인용 수는 몇 배씩 벌어진다(28 과 60,000 이 한 화면에 있다). 그대로 크기에 쓰면
      하나만 거대해지고 나머지는 점이 된다. 그래서 자릿수로 눌러 담는다. */
   const sizeOf = (cited: number): { w: number; h: number } => {
     const k = Math.log10(Math.max(1, cited) + 1) / 5; // 0 ~ 1 남짓
@@ -171,7 +171,7 @@ export function buildMap(root: Paper, refs: Paper[], opts?: { width?: number; ro
   const maxY = years.length ? Math.max(...years) : 0;
   const span = Math.max(1, maxY - minY);
 
-  /* 같은 해가 여럿이면 겹친다 — 줄을 내려 쌓는다(가로 자리는 연도가 정하므로 못 옮긴다). */
+  /* 같은 해가 여럿이면 겹친다. 줄을 내려 쌓는다(가로 자리는 연도가 정하므로 못 옮긴다). */
   const rowOf = new Map<number, number>();
   sorted.forEach((p) => {
     const s = sizeOf(p.cited);
@@ -198,7 +198,7 @@ export function toCanvas(map: PaperMap): {
       type: 'text',
       text:
         `**${n.paper.title}**\n\n` +
-        `${n.paper.year || '?'} · 인용 ${n.paper.cited.toLocaleString()}` +
+        `${n.paper.year || '?'}, 인용 ${n.paper.cited.toLocaleString()}` +
         (n.paper.authors.length ? `\n${n.paper.authors.slice(0, 3).join(', ')}` : '') +
         (n.paper.url ? `\n\n${n.paper.url}` : ''),
       x: n.x,
@@ -214,10 +214,10 @@ export function toCanvas(map: PaperMap): {
 /**
  * **뒤집힌 초록을 되돌린다** (TASK-KL-238 / 34 elicit).
  *
- * OpenAlex 는 저작권 때문에 초록을 그대로 안 준다 — 대신 `{낱말: [자리들]}` 로 준다.
+ * OpenAlex 는 저작권 때문에 초록을 그대로 안 준다. 대신 `{낱말: [자리들]}` 로 준다.
  * 자리를 도로 맞추면 원문이 나온다. 이 되돌리기는 **순수 계산**이라 검사가 그대로 본다.
  *
- * 자리가 비어 있으면(빠진 낱말) 그 칸은 비워 둔다 — 지어내면 없던 말이 논문의 말이 된다.
+ * 자리가 비어 있으면(빠진 낱말) 그 칸은 비워 둔다. 지어내면 없던 말이 논문의 말이 된다.
  */
 export function abstractOf(inverted?: Record<string, number[]> | null): string | undefined {
   if (!inverted) return undefined;
@@ -241,8 +241,8 @@ export function abstractOf(inverted?: Record<string, number[]> | null): string |
 }
 
 /**
- * 물음에 답이 될 만한 논문들. **인용 순이 아니라 관련도 순**이다 —
- * 「무엇부터 읽나」(지도)와 「그래서 답이 뭔가」(묻기)는 고르는 기준이 다르다.
+ * 물음에 답이 될 만한 논문들. **인용 순이 아니라 관련도 순**이다 . 
+ * 무엇부터 읽나(지도)와 그래서 답이 뭔가(묻기)는 고르는 기준이 다르다.
  */
 export async function searchWithAbstracts(query: string, limit = 8): Promise<Paper[]> {
   const q = query.trim();

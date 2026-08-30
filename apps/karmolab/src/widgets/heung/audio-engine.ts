@@ -1,5 +1,6 @@
 import type { AutomationPoint, StudioAsset, StudioClip, StudioProject, StudioTrack } from './model';
-import { automationValueAt, swingBeat } from './model';
+import { automationValueAt, drumPieceFor, samplePlaybackRate, swingBeat } from './model';
+import { exportTailSeconds } from './export';
 
 type AudioContextLike = AudioContext | OfflineAudioContext;
 
@@ -16,7 +17,7 @@ interface TrackGraph {
   pan: StereoPannerNode;
   output: GainNode;
   reverbSend: GainNode;
-  /** 미터용 — 실제 소리 길에 끼지 않고 output 을 엿듣는다. */
+  /** 미터용. 실제 소리 길에 끼지 않고 output 을 엿듣는다. */
   analyser: AnalyserNode | null;
 }
 
@@ -24,15 +25,87 @@ function noteFrequency(note: number): number {
   return 440 * Math.pow(2, (note - 69) / 12);
 }
 
-function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
+const impulseCache = new WeakMap<AudioContextLike, AudioBuffer>();
+/** 고정 씨앗 난수. 잔향이 매번 달라지면 같은 곡을 두 번 뽑아도 다른 파일이 나온다 */
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const noiseCache = new WeakMap<AudioContextLike, AudioBuffer>();
+
+/** 잡음 1초. 타악기의 재료 */
+function noiseBuffer(context: AudioContextLike): AudioBuffer {
+  const cached = noiseCache.get(context);
+  if (cached) return cached;
+  const length = Math.floor(context.sampleRate);
+  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  /* 고정 씨앗. 난수로 구우면 같은 곡을 두 번 뽑을 때 타악기가 매번 달라진다 */
+  const random = seededRandom(0x4b41524d);
+  for (let index = 0; index < length; index++) data[index] = random() * 2 - 1;
+  noiseCache.set(context, buffer);
+  return buffer;
+}
+
+/** 타악기 한 소리. 음높이가 악기를 고르고, 길이는 소리마다 정해져 있다 */
+export function scheduleDrum(context: AudioContextLike, input: AudioNode, pitch: number, velocity: number, at: number, sources: AudioScheduledSourceNode[]): void {
+  const piece = drumPieceFor(pitch);
+  const level = Math.max(0.001, velocity * 0.5);
+  const tone = (from: number, to: number, sweep: number, hold: number, type: OscillatorType = 'sine'): void => {
+    const oscillator = context.createOscillator();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(from, at);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, to), at + sweep);
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(level, at);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + hold);
+    oscillator.connect(gain).connect(input);
+    oscillator.start(at); oscillator.stop(at + hold + 0.02);
+    sources.push(oscillator);
+  };
+  const noise = (filterType: BiquadFilterType, frequency: number, hold: number, amount = 1): void => {
+    const source = context.createBufferSource();
+    source.buffer = noiseBuffer(context);
+    const filter = context.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.value = frequency;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(level * amount, at);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + hold);
+    source.connect(filter).connect(gain).connect(input);
+    source.start(at); source.stop(at + hold + 0.02);
+    sources.push(source);
+  };
+  if (piece === 36) { tone(150, 45, 0.09, 0.34); noise('lowpass', 320, 0.02, 0.5); }
+  else if (piece === 38) { tone(190, 120, 0.06, 0.14, 'triangle'); noise('highpass', 1400, 0.18, 0.9); }
+  else if (piece === 39) { for (const offset of [0, 0.012, 0.026]) { const shifted = at + offset; const source = context.createBufferSource(); source.buffer = noiseBuffer(context); const filter = context.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1650; filter.Q.value = 1.4; const gain = context.createGain(); gain.gain.setValueAtTime(level * 0.7, shifted); gain.gain.exponentialRampToValueAtTime(0.0001, shifted + 0.12); source.connect(filter).connect(gain).connect(input); source.start(shifted); source.stop(shifted + 0.14); sources.push(source); } }
+  else if (piece === 42) noise('highpass', 7200, 0.045, 0.55);
+  else if (piece === 46) noise('highpass', 6800, 0.32, 0.5);
+  else if (piece === 45) tone(130, 62, 0.16, 0.32);
+  else if (piece === 48) tone(232, 112, 0.14, 0.26);
+  else noise('highpass', 4600, 1.15, 0.42);
+}
+
+
+export function makeImpulse(context: AudioContextLike, seconds = 1.8): AudioBuffer {
+  const cached = impulseCache.get(context);
+  if (cached) return cached;
   const length = Math.floor(context.sampleRate * seconds);
   const impulse = context.createBuffer(2, length, context.sampleRate);
   for (let channel = 0; channel < 2; channel++) {
     const data = impulse.getChannelData(channel);
+    const random = seededRandom(0x48554e47 + channel);
     for (let index = 0; index < length; index++) {
-      data[index] = (Math.random() * 2 - 1) * Math.pow(1 - index / length, 2.8);
+      data[index] = (random() * 2 - 1) * Math.pow(1 - index / length, 2.8);
     }
   }
+  impulseCache.set(context, impulse);
   return impulse;
 }
 
@@ -48,8 +121,9 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
   const output = context.createGain(); output.gain.value = track.mute ? 0 : track.volume;
   const reverbSend = context.createGain(); reverbSend.gain.value = track.reverb;
   input.connect(low).connect(mid).connect(high).connect(compressor).connect(pan).connect(output).connect(destination);
-  pan.connect(reverbSend).connect(reverb);
-  /* 오프라인 렌더에는 미터가 필요 없다 — 표본을 읽는 노드를 달면 렌더만 느려진다. */
+  /* send 는 페이더 **뒤**, 앞에서 갈리면 mute, solo 무력화, 스템 교차 오염 */
+  output.connect(reverbSend).connect(reverb);
+  /* 오프라인 렌더에는 미터가 필요 없다. 표본을 읽는 노드를 달면 렌더만 느려진다. */
   let analyser: AnalyserNode | null = null;
   if (typeof (context as AudioContext).createAnalyser === 'function' && !('startRendering' in context)) {
     analyser = (context as AudioContext).createAnalyser();
@@ -61,7 +135,7 @@ function connectTrack(context: AudioContextLike, track: StudioTrack, destination
 
 /**
  * 볼륨 자동화를 그래프에 그린다. 구간 안의 점마다 직선으로 잇고, 구간 시작값은 보간으로 채운다.
- * 점이 없으면 아무것도 안 한다 — 트랙 볼륨이 그대로 산다.
+ * 점이 없으면 아무것도 안 한다. 트랙 볼륨이 그대로 산다.
  */
 function scheduleAutomation(graph: TrackGraph, track: StudioTrack, fromBeat: number, toBeat: number, fromTime: number, secondsPerBeat: number, muted: boolean): void {
   const draw = (points: AutomationPoint[], param: AudioParam, fallback: number): void => {
@@ -79,7 +153,7 @@ function scheduleAutomation(graph: TrackGraph, track: StudioTrack, fromBeat: num
 }
 
 function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean, at: number): void {
-  /* 자동화가 있는 트랙의 출력 볼륨은 scheduleAutomation 이 쥐고 있다 — 여기서 덮으면 자동화가 죽는다. */
+  /* 자동화가 있는 트랙의 출력 볼륨은 scheduleAutomation 이 쥐고 있다. 여기서 덮으면 자동화가 죽는다. */
   graph.low.gain.setTargetAtTime(track.eqLow, at, 0.015);
   graph.mid.gain.setTargetAtTime(track.eqMid, at, 0.015);
   graph.high.gain.setTargetAtTime(track.eqHigh, at, 0.015);
@@ -90,18 +164,49 @@ function updateTrackGraph(graph: TrackGraph, track: StudioTrack, muted: boolean,
   if(!track.automation.reverb.length)graph.reverbSend.gain.setTargetAtTime(track.reverb, at, 0.015);
 }
 
-function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0): void {
+export function scheduleMidi(context: AudioContextLike, input: AudioNode, track: StudioTrack, clip: StudioClip, fromBeat: number, toBeat: number, startTime: number, secondsPerBeat: number, sources: AudioScheduledSourceNode[], swing = 0, assets?: Map<string, StudioAssetRuntime>): void {
   for (const note of clip.notes) {
     if (note.muted === true) continue;
-    /* 스윙은 **소리 낼 때만** 민다 — 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
+    /* 스윙은 **소리 낼 때만** 민다. 저장된 위치는 그대로라 껐다 켜면 정박으로 돌아온다. */
     const absoluteBeat = swingBeat(clip.start + note.beat, swing);
     if (absoluteBeat + note.duration <= fromBeat || absoluteBeat >= toBeat) continue;
     const audibleStart = Math.max(absoluteBeat, fromBeat);
-    const audibleEnd = Math.min(absoluteBeat + note.duration, toBeat);
+    if (track.instrument === 'drum') {
+      /* 타악기는 한 방. 음 길이가 아니라 소리가 스스로 끝난다 */
+      if (absoluteBeat >= fromBeat) scheduleDrum(context, input, note.pitch, note.velocity * clip.gain, startTime + (absoluteBeat - fromBeat) * secondsPerBeat, sources);
+      continue;
+    }
+    if (track.instrument === 'sampler') {
+      /* 내 소리를 악기로. 본디 음높이에서 반음 하나가 재생 속도 한 칸 */
+      const buffer = track.sampleAssetId ? assets?.get(track.sampleAssetId)?.buffer : undefined;
+      if (!buffer) continue;
+      const root = track.sampleRootPitch ?? 60;
+      const at = startTime + (Math.max(absoluteBeat, fromBeat) - fromBeat) * secondsPerBeat;
+      const endBeat = Math.min(absoluteBeat + note.duration, clip.start + clip.duration, toBeat);
+      const stopAt = startTime + (endBeat - fromBeat) * secondsPerBeat;
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.playbackRate.value = samplePlaybackRate(note.pitch, root);
+      const gain = context.createGain();
+      const peak = Math.max(0.0001, note.velocity * clip.gain);
+      const release = Math.max(0.01, track.envelope.release);
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(peak, at + Math.max(0.002, track.envelope.attack));
+      gain.gain.setValueAtTime(peak, Math.max(at + 0.004, stopAt));
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt + release);
+      source.connect(gain).connect(input);
+      const offset = Math.max(0, (fromBeat - absoluteBeat) * secondsPerBeat);
+      source.start(at, Math.min(offset, Math.max(0, buffer.duration - 0.01)));
+      source.stop(stopAt + release + 0.01);
+      sources.push(source);
+      continue;
+    }
+    /* 클립 경계 상한. toBeat 만 보던 탓에 잘린 클립의 음이 계속 울던 자리 */
+    const audibleEnd = Math.min(absoluteBeat + note.duration, clip.start + clip.duration, toBeat);
     const at = startTime + (audibleStart - fromBeat) * secondsPerBeat;
     const end = startTime + (audibleEnd - fromBeat) * secondsPerBeat;
     const gain = context.createGain();
-    /* 저역 통과 — 음을 칠 때 잠깐 열렸다 닫히면서 「띵」 하는 결이 생긴다. */
+    /* 저역 통과. 음을 칠 때 잠깐 열렸다 닫히면서 띵 하는 결이 생긴다. */
     const filter = context.createBiquadFilter();
     filter.type = 'lowpass';
     filter.Q.value = 0.9;
@@ -109,13 +214,26 @@ function scheduleMidi(context: AudioContextLike, input: AudioNode, track: Studio
     const open = Math.max(120, Math.min(18000, base * (1 + track.filter.envelope * note.velocity)));
     filter.frequency.setValueAtTime(open, at);
     filter.frequency.exponentialRampToValueAtTime(base, at + Math.max(0.02, track.envelope.decay));
-    /* 두툼하게 — 살짝 어긋난 두 목소리. 0 이면 하나만 쓴다(옛 소리 그대로). */
+    /* 두툼하게. 살짝 어긋난 두 목소리. 0 이면 하나만 쓴다(옛 소리 그대로). */
     const voices: OscillatorNode[] = [];
+    const carrierHz = noteFrequency(note.pitch);
     for (const cents of track.detune > 0 ? [-track.detune, track.detune] : [0]) {
       const oscillator = context.createOscillator();
       oscillator.type = track.instrument;
-      oscillator.frequency.value = noteFrequency(note.pitch);
+      oscillator.frequency.value = carrierHz;
       oscillator.detune.value = cents;
+      /* 흔들기. 두 번째 오실레이터가 첫째의 **주파수**를 흔든다. 벨과 일렉피아노가 여기서 나온다 */
+      if (track.fm.amount > 0) {
+        const modulator = context.createOscillator();
+        modulator.type = 'sine';
+        modulator.frequency.value = carrierHz * track.fm.ratio;
+        const depth = context.createGain();
+        depth.gain.value = carrierHz * track.fm.amount * 4;
+        modulator.connect(depth).connect(oscillator.frequency);
+        modulator.start(at);
+        modulator.stop(end + Math.max(0.01, track.envelope.release) + 0.01);
+        sources.push(modulator);
+      }
       voices.push(oscillator);
     }
     const peak = Math.max(0.001, note.velocity * clip.gain * 0.18 / voices.length);
@@ -173,7 +291,7 @@ function scheduleProject(context: AudioContextLike, project: StudioProject, asse
     scheduleAutomation(graph, track, fromBeat, toBeat, startTime, secondsPerBeat, muted);
     for (const clip of track.clips) {
       if (clip.mute) continue;
-      if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources, project.swing);
+      if (clip.kind === 'midi') scheduleMidi(context, graph.input, track, clip, fromBeat, toBeat, startTime, secondsPerBeat, sources, project.swing, assets);
       else scheduleAudio(context, graph.input, clip, clip.assetId ? assets.get(clip.assetId) : undefined, fromBeat, toBeat, startTime, secondsPerBeat, sources);
     }
   }
@@ -195,11 +313,14 @@ export class HeungEngine {
   private assets = new Map<string, StudioAssetRuntime>();
   private scheduled = new Set<string>();
   onEnded: (() => void) | null = null;
-  /** 박자 소리 — 녹음·연습용. 마디 첫 박은 높게 친다. */
+  /** 미리듣기 실패 통보, 조용한 죽음 방지 */
+  onPreviewError: ((message: string) => void) | null = null;
+  private previewContext: AudioContext | null = null;
+  /** 박자 소리. 녹음, 연습용. 마디 첫 박은 높게 친다. */
   metronome = false;
 
   setAssets(assets: Map<string, StudioAssetRuntime>): void { this.assets = assets; }
-  /** 트랙별 지금 소리 크기 — 0~1 의 peak/rms. 재생 중이 아니면 빈 값. */
+  /** 트랙별 지금 소리 크기. 0~1 의 peak/rms. 재생 중이 아니면 빈 값. */
   levels(): Map<string, { peak: number; rms: number }> {
     const out = new Map<string, { peak: number; rms: number }>();
     if (!this.playing) return out;
@@ -242,21 +363,35 @@ export class HeungEngine {
     if (this.context) void this.context.close();
     this.context = null;
   }
+  /** 음 하나 미리듣기, 컨텍스트 **1개 재사용**. 호출마다 생성 시 문서당 상한(크롬 약 6개) 초과로 무음 */
   async preview(track: StudioTrack, pitch: number, velocity = 0.8): Promise<void> {
-    const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    const context = new AC();
-    const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
-    scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, new Map(), 0, 1, context.currentTime + 0.01, context.destination);
-    window.setTimeout(() => void context.close(), 700);
+    try {
+      if (!this.previewContext) {
+        const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        this.previewContext = new AC();
+      }
+      const context = this.previewContext;
+      if (context.state === 'suspended') await context.resume();
+      const clip: StudioClip = { id: 'preview', trackId: track.id, kind: 'midi', name: '', start: 0, duration: 1, offset: 0, gain: 1, fadeIn: 0, fadeOut: 0, mute: false, locked: false, notes: [{ id: 'note', beat: 0, duration: 0.35, pitch, velocity }] };
+      /* 미리듣기도 실제 자산을 쓴다. 빈 Map 이면 샘플러가 소리를 잃는다 */
+      scheduleProject(context, { ...({} as StudioProject), bpm: 120, masterVolume: 0.8, tracks: [{ ...track, clips: [clip] }] }, this.assets, 0, 1, context.currentTime + 0.01, context.destination);
+    } catch (error) {
+      this.previewContext = null;
+      this.onPreviewError?.(error instanceof Error ? error.message : '미리듣기 실패');
+    }
   }
-  dispose(): void { this.stop(); }
+  dispose(): void {
+    this.stop();
+    if (this.previewContext) void this.previewContext.close();
+    this.previewContext = null;
+  }
 
   private scheduleTick(): void {
     const context=this.context,project=this.project;if(!this.playing||!context||!project)return;
     const beat=this.currentBeat();const endBeat=this.endBeat(project);
     if(beat>=endBeat-.001){if(project.loop){for(const source of this.sources){try{source.stop();}catch(_){}}this.sources=[];this.scheduled.clear();this.startedBeat=project.loopStart;this.startedAt=context.currentTime+0.012;this.scheduledThroughBeat=project.loopStart;}else{this.stop();this.onEnded?.();return;}}
     const secondsPerBeat=60/project.bpm;const horizonBeat=Math.min(endBeat,this.currentBeat()+0.24/secondsPerBeat);const from=Math.max(this.scheduledThroughBeat,this.currentBeat());if(horizonBeat<=from)return;const fromTime=this.startedAt+(from-this.startedBeat)*secondsPerBeat;
-      for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){if(note.muted===true)continue;const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources,project.swing);}}}
+      for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph)continue;for(const clip of track.clips){if(clip.mute)continue;if(clip.kind==='audio'){const key=`audio:${clip.id}`;if(this.scheduled.has(key)||clip.start+clip.duration<=from||clip.start>=horizonBeat)continue;this.scheduled.add(key);scheduleAudio(context,graph.input,clip,clip.assetId?this.assets.get(clip.assetId):undefined,from,endBeat,fromTime,secondsPerBeat,this.sources);}else for(const note of clip.notes){if(note.muted===true)continue;const absolute=clip.start+note.beat;const key=`note:${clip.id}:${note.id}`;if(this.scheduled.has(key)||absolute+note.duration<=from||absolute>=horizonBeat)continue;this.scheduled.add(key);scheduleMidi(context,graph.input,track,{...clip,notes:[note]},from,endBeat,fromTime,secondsPerBeat,this.sources,project.swing,this.assets);}}}
     for(const track of project.tracks){const graph=this.graphs.get(track.id);if(!graph||!(['volume','pan','reverb'] as const).some((key)=>track.automation[key].length))continue;const anySolo=project.tracks.some((item)=>item.solo);scheduleAutomation(graph,track,from,horizonBeat,fromTime,secondsPerBeat,track.mute||(anySolo&&!track.solo));}
     if(this.metronome){
       for(let beat=Math.ceil(from-1e-6);beat<horizonBeat;beat++){
@@ -267,7 +402,7 @@ export class HeungEngine {
     this.scheduledThroughBeat=horizonBeat;
   }
 
-  /** 짧은 딸깍 — 트랙 그래프를 안 거치고 마스터로 바로 간다 (믹서에 안 섞인다). */
+  /** 짧은 딸깍. 트랙 그래프를 안 거치고 마스터로 바로 간다 (믹서에 안 섞인다). */
   private click(context: AudioContext, when: number, accent: boolean): void {
     const osc=context.createOscillator();const gain=context.createGain();
     osc.type='square';osc.frequency.value=accent?1600:1000;
@@ -285,7 +420,9 @@ export class HeungEngine {
 }
 
 export async function renderProject(project: StudioProject, assets: Map<string, StudioAssetRuntime>, fromBeat: number, toBeat: number, sampleRate = 44100, channels = 2): Promise<AudioBuffer> {
-  const duration = Math.max(0.1, (toBeat - fromBeat) * (60 / project.bpm) + 1.8);
+  /* 꼬리는 실제 소리 길이로. 1.8초 고정이라 release 가 긴 패드의 마지막 화음이 잘렸다 */
+  const tail = exportTailSeconds(project.tracks.map((track) => track.envelope.release), project.tracks.some((track) => track.reverb > 0));
+  const duration = Math.max(0.1, (toBeat - fromBeat) * (60 / project.bpm) + tail);
   const context = new OfflineAudioContext(Math.max(1, Math.min(2, channels)), Math.ceil(duration * sampleRate), sampleRate);
   scheduleProject(context, project, assets, fromBeat, toBeat, 0, context.destination);
   return context.startRendering();

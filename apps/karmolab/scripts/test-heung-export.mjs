@@ -9,7 +9,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
 const module = { exports: {} };
 vm.runInNewContext(`(function(exports,module){${compiled}\n})(module.exports,module);`, { module, console, Math, Float32Array });
-const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames } = module.exports;
+const { analysePeak, normalizeGain, applyGain, clampBuffer, exportRange, toDbfs, stemFileName, uniqueNames, commonNormalizeGain, exportTailSeconds, smplChunk, beatToSample, loopSections, seamDiscontinuity } = module.exports;
 
 const pcm = (channels) => ({
   numberOfChannels: channels.length,
@@ -27,10 +27,10 @@ assert.ok(report.dbfs > 0, '1 을 넘으면 dBFS 는 양수');
 
 const silent = pcm([Float32Array.from([0, 0, 0])]);
 assert.equal(analysePeak(silent).peak, 0);
-assert.equal(analysePeak(silent).dbfs, -120, '무음은 바닥값 — -Infinity 로 새지 않는다');
+assert.equal(analysePeak(silent).dbfs, -120, '무음은 바닥값. -Infinity 로 새지 않는다');
 assert.equal(toDbfs(1), 0, '풀 스케일 = 0 dBFS');
 
-// normalize — 무음을 0 으로 나누지 않는다
+// normalize. 무음을 0 으로 나누지 않는다
 assert.equal(normalizeGain(0), 1, '무음은 그대로 둔다');
 assert.ok(Math.abs(normalizeGain(1, 0) - 1) < 1e-9);
 const halfGain = normalizeGain(0.5, 0);
@@ -49,7 +49,7 @@ const wild = pcm([Float32Array.from([0.3, -1.7, 0.8])]);
 applyGain(wild, normalizeGain(analysePeak(wild).peak, -1));
 assert.ok(Math.abs(analysePeak(wild).dbfs - -1) < 1e-6, '정규화 뒤 피크 = -1 dBFS');
 
-// clamp — 정규화를 껐을 때의 마지막 방어
+// clamp. 정규화를 껐을 때의 마지막 방어
 const overs = pcm([Float32Array.from([1.5, -2, 0.5])]);
 assert.equal(clampBuffer(overs), 2);
 assert.deepEqual([...overs.getChannelData(0)], [1, -1, 0.5]);
@@ -63,7 +63,7 @@ assert.deepEqual({ ...exportRange('song', song, loop, clips) }, { from: 0, to: 3
 assert.deepEqual({ ...exportRange('loop', song, loop, clips) }, { from: 4, to: 8 });
 assert.deepEqual({ ...exportRange('selection', song, loop, clips) }, { from: 6, to: 16 }, '고른 클립 전체를 덮는다');
 assert.deepEqual({ ...exportRange('selection', song, loop, []) }, { from: 0, to: 32 }, '고른 게 없으면 곡 전체');
-// 뒤집힌 구간·0 길이 방어
+// 뒤집힌 구간, 0 길이 방어
 assert.deepEqual({ ...exportRange('loop', song, { from: 9, to: 3 }, []) }, { from: 3, to: 9 }, '뒤집혀 들어와도 바로 세운다');
 assert.deepEqual({ ...exportRange('loop', song, { from: 5, to: 5 }, []) }, { from: 5, to: 6 }, '길이 0 짜리 파일은 안 만든다');
 
@@ -75,10 +75,76 @@ assert.equal(stemFileName('   ', 2), '03-track.wav', '이름이 비면 대신 �
 assert.equal(stemFileName(null, 0), '01-track.wav');
 assert.ok(stemFileName('x'.repeat(200), 0).length < 70, '너무 긴 이름은 자른다');
 
-// 같은 이름이 겹치면 번호를 붙인다 — 안 그러면 ZIP 안에서 덮어써진다
+// 같은 이름이 겹치면 번호를 붙인다. 안 그러면 ZIP 안에서 덮어써진다
 assert.deepEqual(uniqueNames(['a.wav', 'b.wav']), ['a.wav', 'b.wav']);
 assert.deepEqual(uniqueNames(['a.wav', 'a.wav', 'a.wav']), ['a.wav', 'a (2).wav', 'a (3).wav']);
 assert.deepEqual(uniqueNames(['noext', 'noext']), ['noext', 'noext (2)']);
 assert.deepEqual(uniqueNames([]), []);
 
-console.log('[test-heung-export] ✓ 피크·클리핑 · 정규화 · clamp · 구간 · 트랙별 파일 이름');
+// 스템은 한 배수로. 따로 맞추면 큰 소리와 작은 소리가 같아짐
+const shared = commonNormalizeGain([0.1, 0.5, 0.25], -1);
+assert.ok(Math.abs(shared - normalizeGain(0.5, -1)) < 1e-12, '순서와 무관하게 가장 큰 벌 기준');
+assert.ok(shared * 0.1 < shared * 0.25, '작은 벌은 작게 남는다');
+assert.equal(commonNormalizeGain([0, 0], -1), 1, '무음이면 건드리지 않는다');
+
+// 꼬리. 가장 긴 release 와 잔향 중 큰 쪽
+assert.ok(Math.abs(exportTailSeconds([0.1, 0.2], false) - 0.4) < 1e-9, '잔향이 없으면 가장 긴 꼬리');
+assert.ok(Math.abs(exportTailSeconds([4, 0.1], false) - 4.2) < 1e-9, '긴 패드는 4초까지');
+assert.ok(Math.abs(exportTailSeconds([0.1], true) - 2) < 1e-9, '잔향이 있으면 최소 잔향 길이');
+assert.ok(exportTailSeconds([0.1], false) < exportTailSeconds([0.1], true), '잔향이 켜지면 더 길다');
+
+// 표본 번호. 게임 루프 지점의 단위는 초가 아니라 표본
+assert.equal(beatToSample(0, 120, 44100), 0);
+assert.equal(beatToSample(2, 120, 44100), 44100, '120 BPM 에서 두 박이 1초');
+assert.equal(beatToSample(4, 60, 48000), 4 * 48000, '60 BPM 에서 한 박이 1초');
+
+// smpl 덩어리. 게임 엔진이 읽는 자리
+const chunk = smplChunk(44100, 0, 88200);
+assert.equal(chunk.length, 68, '머리 36 + 루프 24 + 이름표 8');
+const chunkView = new DataView(chunk.buffer);
+assert.equal(String.fromCharCode(...chunk.slice(0, 4)), 'smpl');
+assert.equal(chunkView.getUint32(4, true), 60, '덩어리 길이');
+assert.equal(chunkView.getUint32(36, true), 1, '루프 한 개');
+assert.equal(chunkView.getUint32(52, true), 0, '루프 시작 표본');
+assert.equal(chunkView.getUint32(56, true), 88200, '루프 끝 표본');
+assert.equal(chunkView.getUint32(16, true), Math.round(1e9 / 44100), '표본 주기(ns)');
+const backwards = smplChunk(44100, 500, 100);
+assert.ok(new DataView(backwards.buffer).getUint32(56, true) > new DataView(backwards.buffer).getUint32(52, true), '끝이 시작보다 앞이면 바로잡는다');
+
+// 세 구간. 루프가 곡 안쪽이면 인트로와 아웃트로까지
+const three = loopSections({ from: 0, to: 32 }, { from: 8, to: 24 });
+assert.equal(three.map((section) => section.name).join(), 'intro,loop,outro');
+assert.equal(JSON.stringify(three.map((section) => [section.from, section.to])), '[[0,8],[8,24],[24,32]]');
+const whole = loopSections({ from: 0, to: 16 }, { from: 0, to: 16 });
+assert.equal(whole.map((section) => section.name).join(), 'loop', '루프가 곡 전체면 하나');
+const tailOnly = loopSections({ from: 0, to: 16 }, { from: 0, to: 8 });
+assert.equal(tailOnly.map((section) => section.name).join(), 'loop,outro');
+
+// 이음매. 끝 표본과 첫 표본이 벌어질수록 커지는 딱 소리
+const fakeBuffer = (channels) => ({ numberOfChannels: channels.length, length: channels[0].length, sampleRate: 44100, getChannelData: (index) => channels[index] });
+const seamless = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 0])]));
+assert.equal(seamless.jump, 0, '끝과 시작이 같으면 어긋남 0');
+assert.equal(seamless.dbfs, -Infinity, '어긋남이 없으면 잴 값이 없다');
+const rough = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 1])]));
+assert.ok(Math.abs(rough.jump - 1) < 1e-6);
+assert.ok(Math.abs(rough.dbfs - 0) < 1e-6, '한 칸 다 벌어지면 0 dBFS');
+const quiet = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.5, 0.9, 0.001])]));
+assert.ok(quiet.dbfs < -50 && quiet.dbfs > -70, '작은 어긋남은 -60 dBFS 근처');
+const twoEars = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0, 0, 0.5]), Float32Array.from([0, 0, 0, 0])]));
+// 재는 자리는 루프가 도는 지점. 버퍼 끝은 꼬리라 늘 조용해서 안 넘기면 늘 좋게 나옴
+const withTail = fakeBuffer([Float32Array.from([0.0005, 0.5, 0.9, 0.6, 0.02, 0.001])]);
+const wholeBuffer = seamDiscontinuity(withTail);
+assert.ok(wholeBuffer.dbfs < -40, '버퍼 끝으로 재면 꼬리 때문에 좋게 나온다');
+const atBoundary = seamDiscontinuity(withTail, 4);
+assert.ok(Math.abs(atBoundary.jump - 0.5995) < 1e-3, '루프 자리에서 재면 실제 어긋남이 보인다');
+assert.ok(atBoundary.dbfs > -10, '들릴 만한 크기로 잡힌다');
+
+// 그 자리에서 잘려 나가는 꼬리 크기도 함께
+assert.ok(atBoundary.tailDbfs > -80 && atBoundary.tailDbfs < 0, `꼬리 크기를 잰다 (${atBoundary.tailDbfs})`);
+assert.ok(atBoundary.tailSeconds > 0, '꼬리 길이도 준다');
+const noTail = seamDiscontinuity(fakeBuffer([Float32Array.from([0, 0.2, 0.4])]), 3);
+assert.equal(noTail.tailDbfs, -Infinity, '자를 꼬리가 없으면 없다고 한다');
+
+assert.ok(Math.abs(twoEars.jump - 0.5) < 1e-6, '두 귀 중 더 벌어진 쪽으로 잰다');
+
+console.log('[test-heung-export] ✓ 피크, 클리핑, 정규화, clamp, 구간, 트랙별 파일 이름, 공통 배수, 꼬리 길이, 루프 지점, 세 구간, 이음매, 잘리는 꼬리');

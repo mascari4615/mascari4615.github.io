@@ -5,7 +5,7 @@ last_modified_at: "2024-08-30T00:06:00+09:00"
 categories: [컴퓨터, 프로그래밍]
 tags: [CSharp]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 ## [lock](https://learn.microsoft.com/ko-kr/dotnet/csharp/language-reference/statements/lock)

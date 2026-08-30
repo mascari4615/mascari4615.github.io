@@ -1,14 +1,14 @@
 /**
  * 이모지 찾기 (TASK-KL-088)
  *
- * 이모지는 이름이 영어라 「웃는 얼굴」 로는 안 잡힌다. 그래서 항목마다 **한국어 검색어**를 붙인다 —
- * 표의 값이 목록 길이가 아니라 「찾아지느냐」 에 있기 때문이다.
+ * 이모지는 이름이 영어라 웃는 얼굴 로는 안 잡힌다. 그래서 항목마다 **한국어 검색어**를 붙인다 . 
+ * 표의 값이 목록 길이가 아니라 찾아지느냐 에 있기 때문이다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
   /** [문자, 이름, 검색 키워드] */
-  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  /* 표는 **쓸 때** 짓는다. 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
   const emojis = (): Record<string, Array<[string, string, string]>> => ({
     [t('emoji.g1')]: [
       ['😀', t('emoji.t01'), t('emoji.t02')],
@@ -267,7 +267,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     id: 'emoji',
     title: t('widgets.emoji.title', undefined, "이모지 찾기"),
     category: 'ref',
-    desc: t('widgets-desc.emoji.desc', undefined, "한국어로 검색해서 이모지를 찾고 눌러서 복사합니다. 표정·손짓·기호 등 분류별"),
+    desc: t('widgets-desc.emoji.desc', undefined, "한국어로 검색해서 이모지를 찾고 눌러서 복사합니다. 표정, 손짓, 기호 등 분류별"),
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="9" cy="10" r="1.2" fill="currentColor"/><circle cx="15" cy="10" r="1.2" fill="currentColor"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: [
@@ -288,8 +288,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   /* ★ 표를 **묶음이 실릴 때 미리** 등록해 둔다 (2026-08-12).
    *   여태는 이 도구의 탭이 열릴 때만 등록했다. 그런데 문자표(charmap)는 네 표를 한자리에
-   *   모아 보여 주는 도구라, 자기 탭을 열자마자 `RefTable.get(...)` 을 묻는다 — 아무도
-   *   안 열어 본 표는 그때 없다. 그래서 실주소 문자표가 통째로 「표를 불러오지 못했어요」였다
+   *   모아 보여 주는 도구라, 자기 탭을 열자마자 `RefTable.get(...)` 을 묻는다. 아무도
+   *   안 열어 본 표는 그때 없다. 그래서 실주소 문자표가 통째로 표를 불러오지 못했어요였다
    *   (컴파일도 통과하고 이 도구 단독 화면은 멀쩡했다). 등록은 덮어쓰기라 두 번 해도 안전하다. */
   void loadNamespace('emoji').then(defineTable);
 })();

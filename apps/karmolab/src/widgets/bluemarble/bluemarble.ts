@@ -1,19 +1,19 @@
 /**
- * 블루마블 — 살아있는 지구본 (TASK-KL-206)
+ * 블루마블. 살아있는 지구본 (TASK-KL-206)
  *
  * 사용자: "그냥 말 그대로 블루마블이 이 공허한 우주속에서 살아있음을 느끼는거야.
  * 나처럼 자취방에서 고독을 느낄때, 지구는 살아있음을 느끼는거지."
  *
  * 그래서 이건 **계기판이 아니라 창문**이다. 숫자를 늘어놓지 않는다. 지구가 돌고, 낮과 밤의
  * 경계가 기어가고, 밤이 된 쪽에 도시가 켜지고, 방금 어딘가가 흔들리면 그 자리에 파문이 인다.
- * 아래 한 줄이 그걸 문장으로 말해 준다 — 「규모 4.1」이 아니라 「방금 티모르 앞바다가 흔들렸다」.
+ * 아래 한 줄이 그걸 문장으로 말해 준다. 규모 4.1이 아니라 방금 티모르 앞바다가 흔들렸다.
  *
  * 그리는 법: **정사영(orthographic) 지구본을 손으로 그린다.** three.js/globe.gl 을 안 쓴다.
- * 표면은 폴리곤이 아니라 **픽셀 단위 구면 샘플링**이다 (`surface.ts` 머리말에 이유가 있다 —
+ * 표면은 폴리곤이 아니라 **픽셀 단위 구면 샘플링**이다 (`surface.ts` 머리말에 이유가 있다 . 
  * 폴리곤 시절엔 돌리다 보면 땅이 화면을 통째로 덮었고, 땅이 초록 한 색이었고, 구름을 얹을
  * 자리가 없었다). 표면 그림은 `data/earth/` 에 담아 두고, **구름만 오늘 것을 받아 온다**.
  *
- * 안 보이면 멈춘다 — 켜 두는 물건이라 더 중요하다(탭이 가려지면 rAF·받아오기 둘 다 정지).
+ * 안 보이면 멈춘다. 켜 두는 물건이라 더 중요하다(탭이 가려지면 rAF, 받아오기 둘 다 정지).
  */
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
@@ -23,7 +23,7 @@ import { paintSurface, type Tex, type Region, type View as SurfaceView } from '.
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { paleoTex } from './paleo';
 /* 관은 **셸이 한 번만** 띄운다(`copresence.js`). 여기서 import 하면 이 위젯 묶음 안에 관이
-   한 벌 더 들어가 연결이 둘이 된다 — 창 하나가 두 사람으로 세어진다. 그래서 창에 얹힌
+   한 벌 더 들어가 연결이 둘이 된다. 창 하나가 두 사람으로 세어진다. 그래서 창에 얹힌
    손잡이를 쓴다 (change.copresence-hardening 1단계). */
 const sendRoomOp = (op: unknown): void => window.KarmoCopresence?.sendOp(op);
 const onRoomOp = (fn: (op: unknown, from: string) => void): (() => void) =>
@@ -41,16 +41,16 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
   const NS = 'bluemarble';
   const RAD = Math.PI / 180;
 
-  /** 데이터 파일 주소 — Tauri 에서도 같은 출처로 풀리게 위젯 스크립트 자리에서 되짚는다. */
+  /** 데이터 파일 주소. Tauri 에서도 같은 출처로 풀리게 위젯 스크립트 자리에서 되짚는다. */
   function dataUrl(name: string): string {
     const w = window as unknown as { KARMOLAB_WIDGET_SCRIPT_BASE?: string };
-    // 스크립트 자리 = `…/apps/karmolab/js/widgets/` → 두 칸 올라가야 `…/apps/karmolab/data/` 다
+    // 스크립트 자리 = `.../apps/karmolab/js/widgets/` → 두 칸 올라가야 `.../apps/karmolab/data/` 다
     if (w.KARMOLAB_WIDGET_SCRIPT_BASE) return new URL('../../data/' + name, w.KARMOLAB_WIDGET_SCRIPT_BASE).href;
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
   type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'radio' | 'air' | 'sun' | 'clock' | 'apod' | 'tour' | 'dusk' | 'deep' | 'together';
-  /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
+  /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달, 화성에선 단추 자체를 감춘다 . 
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
     { id: 'me', earthOnly: true, glyph: '◉' },
@@ -78,7 +78,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
   interface Prefs {
     on: Record<LayerId, boolean>;
     spin: boolean;
-    /** 조작부를 펼쳐 둔 채로 쓰는 사람도 있다 — 그 선택을 기억한다. */
+    /** 조작부를 펼쳐 둔 채로 쓰는 사람도 있다. 그 선택을 기억한다. */
     panel: boolean;
   }
   function loadPrefs(): Prefs {
@@ -97,27 +97,27 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
     if (document.getElementById('bm-style')) return;
     const el = document.createElement('style');
     el.id = 'bm-style';
-    /* 지구본 안쪽은 우주다 — 여기만은 테마 색을 안 따른다(밝은 테마에서 흰 우주는 우주가 아니다).
-       바깥 껍데기·단추는 전부 공용 토큰을 쓴다. */
+    /* 지구본 안쪽은 우주다. 여기만은 테마 색을 안 따른다(밝은 테마에서 흰 우주는 우주가 아니다).
+       바깥 껍데기, 단추는 전부 공용 토큰을 쓴다. */
     el.textContent = `
 /* 높이를 **부모에게 안 묻는다**. 폰에서 부모가 높이를 안 정해 주면 height 100% 가
-   내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측 — 프레임 1166ms). 화면 기준으로
+   내용 높이로 풀려, 캔버스가 87,000px 짜리로 자랐다(실측. 프레임 1166ms). 화면 기준으로
    스스로 정한다: 작은 화면에서도 420px 는 되고, 커도 900px 를 안 넘는다. */
-/* 위쪽 띠(헤더)는 비치는 유리다 — 지구를 그 **뒤까지** 올리면 위 칸만 배경색으로 남던 어색함이
+/* 위쪽 띠(헤더)는 비치는 유리다. 지구를 그 **뒤까지** 올리면 위 칸만 배경색으로 남던 어색함이
    사라진다. 조작부는 그대로 띠 아래에 둔다(가려지면 누를 수 없다). */
 .bm-wrap{--bm-head:52px;position:relative;width:100%;
   margin-top:calc(var(--bm-head) * -1);
   height:100svh;max-height:100svh;
   display:flex;flex-direction:column;
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
-/* 머리띠는 비치는 유리라 지구가 그대로 보인다 — 그 위의 글자가 묻히지 않게 **띠 높이만큼**
+/* 머리띠는 비치는 유리라 지구가 그대로 보인다. 그 위의 글자가 묻히지 않게 **띠 높이만큼**
    옅은 그늘을 깐다(지구는 여전히 보이고, 글자만 또렷해진다). */
 .bm-scrim{position:absolute;top:0;left:0;right:0;height:calc(var(--bm-head) + 28px);z-index:1;
   pointer-events:none;background:linear-gradient(to bottom,rgba(2,4,10,.66),rgba(2,4,10,0));}
 .bm-wrap:fullscreen .bm-scrim{display:none;}
 .bm-canvas{flex:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
 .bm-canvas.bm-drag{cursor:grabbing;}
-/* 첫 화면은 **조용해야 한다** — 지구와 한 줄. 조작부는 「⋯」 뒤에 접어 둔다.
+/* 첫 화면은 **조용해야 한다**. 지구와 한 줄. 조작부는 ⋯ 뒤에 접어 둔다.
    (칩이 12개가 되자 화면이 창문이 아니라 계기판이 됐다.) */
 .bm-menu{position:absolute;top:calc(10px + var(--bm-head));left:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
   background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 11px;
@@ -137,14 +137,14 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 .bm-line{display:block;color:#dbe6ff;font-size:14px;line-height:1.5;letter-spacing:-.01em;
   opacity:0;transition:opacity .8s ease;text-shadow:0 1px 12px rgba(0,0,0,.9);}
 .bm-line.bm-show{opacity:1;}
-/* 상시 모드 — 켜 두는 물건이 되면 조작부는 사라져야 한다. 지구와 한 줄만 남는다.
-   사라지는 것은 **투명도**지 존재가 아니다(포커스·탭 이동이 끊기지 않게). */
+/* 상시 모드. 켜 두는 물건이 되면 조작부는 사라져야 한다. 지구와 한 줄만 남는다.
+   사라지는 것은 **투명도**지 존재가 아니다(포커스, 탭 이동이 끊기지 않게). */
 .bm-wrap.bm-ambient .bm-chips,.bm-wrap.bm-ambient .bm-time{opacity:0;pointer-events:none;
   transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-sub{opacity:0;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient{border-radius:0;}
 .bm-wrap:fullscreen{--bm-head:0px;margin-top:0;height:100%;max-height:none;}
-/* 해 — 지구를 보는 창 옆에 붙은 **두 번째 창**. SDO 가 30초마다 새로 찍는 실사다.
+/* 해. 지구를 보는 창 옆에 붙은 **두 번째 창**. SDO 가 30초마다 새로 찍는 실사다.
    픽셀을 읽지 않으므로 교차 출처 허가가 필요 없다(그냥 그림으로 붙인다). */
 .bm-sun{position:absolute;right:14px;bottom:96px;width:96px;height:96px;border-radius:50%;z-index:3;
   object-fit:cover;box-shadow:0 0 38px rgba(255,170,60,.42),0 0 0 1px rgba(255,200,120,.28) inset;
@@ -162,7 +162,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 .bm-wrap.bm-ambient .bm-card,.bm-wrap.bm-ambient .bm-day{opacity:0;pointer-events:none;}
 .bm-wrap.bm-ambient .bm-link{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-wrap.bm-ambient .bm-body{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
-/* 오늘의 우주 사진 — 지구 창 곁에 붙은 작은 액자. 누르면 원본으로 간다. */
+/* 오늘의 우주 사진. 지구 창 곁에 붙은 작은 액자. 누르면 원본으로 간다. */
 .bm-apod{position:absolute;left:14px;bottom:96px;width:132px;border-radius:10px;z-index:3;cursor:pointer;
   border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.55);opacity:.92;
   transition:opacity .5s ease,transform .5s ease;}
@@ -190,15 +190,15 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
     document.head.appendChild(el);
   }
 
-  /* 이름과 설명은 여기 안 적는다 — `widgets-lazy-meta.ts` 가 정본이고 거기서 말 묶음으로
+  /* 이름과 설명은 여기 안 적는다. `widgets-lazy-meta.ts` 가 정본이고 거기서 말 묶음으로
      뽑혀 나간다. 여기 한 벌 더 적으면 그날부터 두 벌이 갈라진다. 그래서 아래 기본값은
      **정본을 못 읽었을 때만** 쓰이도록 폈다(`...meta` 를 뒤에 둔다). */
   Toolbox.register({
     id: 'bluemarble',
     title: 'Blue Marble',
-    category: 'lab',
+    category: 'play',
     layout: 'full',
-    /* 이 위젯은 **창문**이다 — 제목·설명·방문수·「여기도 있어요」가 붙으면 창문이 아니라
+    /* 이 위젯은 **창문**이다. 제목, 설명, 방문수, 여기도 있어요가 붙으면 창문이 아니라
        도구 상세 페이지가 된다. 이름은 지구 뒤에서 한 번 지나가는 것으로 충분하다. */
     noHero: true,
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 10h17M4.2 15h15.6" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/><path d="M12 3c3 3.6 3 13.4 0 18M12 3C9 6.6 9 16.4 12 21" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/>',
@@ -232,7 +232,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           sub.className = 'bm-sub';
           ticker.append(line, sub);
 
-          /* 시간 손잡이 — 지구를 과거로 되감는다. 오른쪽 끝이 오늘이다. */
+          /* 시간 손잡이. 지구를 과거로 되감는다. 오른쪽 끝이 오늘이다. */
           const timeBar = document.createElement('div');
           timeBar.className = 'bm-time';
           const slider = document.createElement('input');
@@ -286,8 +286,8 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /* ── 상태 ─────────────────────────────────────────────────────── */
           let camLon = 126; // 처음 보이는 곳 = 우리가 있는 자리
           let camLat = 20;
-          /* 처음엔 **작은 파란 구슬**이다 — 이름 그대로. 꽉 찬 지구는 「지구본」이 아니라
-             「땅 사진」이 된다(2026-08-12: 「지구 너무 커서 잘 안 보이네」). */
+          /* 처음엔 **작은 파란 구슬**이다. 이름 그대로. 꽉 찬 지구는 지구본이 아니라
+             땅 사진이 된다(2026-08-12: 지구 너무 커서 잘 안 보이네). */
           /** 얼마나 멀리 물러날 수 있나. 작을수록 구슬이 작아진다(0.2 = 화면 짧은 변의 20%). */
           const MIN_ZOOM = 0.2;
           let zoom = 0.4;
@@ -314,13 +314,13 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           let me: Me | null = null;
           let issEl: Elements | null = null;
           let issPass: Pass | null = null;
-          let seenQuakes: Set<string> | null = null; // null = 첫 판(전부 「새 것」이 아니다)
-          /* 되감은 시각. null = 지금. 이 값 하나가 해·구름·지진·실사 타일을 전부 그날로 옮긴다. */
+          let seenQuakes: Set<string> | null = null; // null = 첫 판(전부 새 것이 아니다)
+          /* 되감은 시각. null = 지금. 이 값 하나가 해, 구름, 지진, 실사 타일을 전부 그날로 옮긴다. */
           let atTime: number | null = null;
           let liveCloud: { w: number; h: number; a: Uint8ClampedArray } | null = null;
           let liveQuakes: Quake[] = [];
           let pastDay = '';
-          /* 궤도 위의 것 전부 — 요소 목록과, 그것을 굴려 담아 두는 한 덩어리 배열 */
+          /* 궤도 위의 것 전부. 요소 목록과, 그것을 굴려 담아 두는 한 덩어리 배열 */
           let satEls: Elements[] = [];
           let satXyz: Float32Array | null = null;
           let satAt = 0;
@@ -328,8 +328,8 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           let wind: { speed: number; at: number } | null = null;
           let pic: Apod | null = null;
 
-          /* 지구 뉴스 상영 — 오늘 지구에 일어난 일을 카메라가 차례로 찾아가 읽어 준다.
-             지구본은 「보는 것」이었는데, 이걸 켜면 「들려주는 것」이 된다. */
+          /* 지구 뉴스 상영. 오늘 지구에 일어난 일을 카메라가 차례로 찾아가 읽어 준다.
+             지구본은 보는 것이었는데, 이걸 켜면 들려주는 것이 된다. */
           interface TourStop {
             lat: number;
             lon: number;
@@ -339,18 +339,18 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           let tour: TourStop[] = [];
           let tourIdx = -1;
           let tourAt = 0;
-          /* 노을 따라가기 — 카메라를 낮과 밤의 경계 위에 두고 남북으로 훑는다.
+          /* 노을 따라가기. 카메라를 낮과 밤의 경계 위에 두고 남북으로 훑는다.
              경계선은 실시간으로는 시간당 15° 씩만 움직여 거의 멎어 보인다. 그래서 지구를
              빨리 돌리는 대신(그건 거짓말이 된다) **우리가 그 선을 따라 오르내린다**. */
           let duskAt = 0;
           let duskSaid = 0;
 
-          /* 아주 먼 과거 — 사진이 없는 시간. 대륙 배치만 아는 만큼 그린다. */
+          /* 아주 먼 과거. 사진이 없는 시간. 대륙 배치만 아는 만큼 그린다. */
           const DEEP_AGES = [0, 60, 120, 180, 240, 300];
           let deepIdx = 0;
           let deepTex: Tex | null = null;
 
-          /* 같이 보는 사람들 — 지금 이 화면을 열어 둔 다른 사람이 지구 **어디를** 보고 있나.
+          /* 같이 보는 사람들. 지금 이 화면을 열어 둔 다른 사람이 지구 **어디를** 보고 있나.
              좌표만 흐르고 아무것도 남지 않는다(서버는 흘려보내기만 한다). */
           interface Watcher2 {
             lat: number;
@@ -369,7 +369,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
           /* ── 사람의 소리 (TASK-KL-241) ─────────────────────────────────
              이 별의 소리(`sound`)와 나란히 선다. 목록은 겹을 켤 때 한 번만 받아 두고,
-             재생은 `RadioPlayer` 가 혼자 책임진다 — 여기서는 **그리기와 말하기**만 한다. */
+             재생은 `RadioPlayer` 가 혼자 책임진다. 여기서는 **그리기와 말하기**만 한다. */
           const radio = {
             spots: [] as Spot[],
             loaded: false,
@@ -380,7 +380,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
           /* ── 지금 저 하늘 (TASK-KL-336) ────────────────────────────────
              라디오와 나란히 선다. 다만 **한 자리씩**이다: 온 지구의 비행기를 주는 데는 없고,
-             원천이 자원봉사 수신기 망이라 「안 보이는 하늘」이 진짜로 있다. 그래서 카메라가
+             원천이 자원봉사 수신기 망이라 안 보이는 하늘이 진짜로 있다. 그래서 카메라가
              보고 있는 자리만 묻고, 그 자리를 벗어나면 다시 묻는다. */
           const air = {
             planes: [] as Plane[],
@@ -390,7 +390,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             asked: 0,
             /** 지금 묻는 중인가. 겹쳐 물으면 한 화면에서 열 번을 부른다. */
             busy: false,
-            /** 한 번이라도 받아 봤나 — 「아직」과 「없다」를 갈라 말하려고 들고 있는다. */
+            /** 한 번이라도 받아 봤나. 아직과 없다를 갈라 말하려고 들고 있는다. */
             everGot: false,
             /** 눌러서 고른 한 대. 지구를 돌려도 무엇을 봤는지 안 잃는다. */
             live: null as Plane | null,
@@ -400,13 +400,13 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /**
            * 지금 화면 한가운데 하늘을 받아 온다.
            *
-           * **실패와 「0대」를 갈라 말한다** — 태평양 한가운데는 진짜로 0대일 수 있고 그건
-           * 고장이 아니다. 여기서 뭉치면 사람은 늘 「고장인가?」를 의심하게 된다.
+           * **실패와 0대를 갈라 말한다**. 태평양 한가운데는 진짜로 0대일 수 있고 그건
+           * 고장이 아니다. 여기서 뭉치면 사람은 늘 고장인가?를 의심하게 된다.
            */
           function refreshAir(force = false): void {
             if (!prefs.on.air || body !== 'earth') return;
             /* `camLon` 은 한 바퀴 넘게 쌓일 수 있다(계속 돌리면). ±180 으로 접어야
-               뒷단 눈금 열쇠와 맞는다 — 안 접으면 같은 하늘을 계속 새로 묻는다. */
+               뒷단 눈금 열쇠와 맞는다. 안 접으면 같은 하늘을 계속 새로 묻는다. */
             const here = { lat: camLat, lon: ((((camLon + 180) % 360) + 360) % 360) - 180 };
             const fresh = air.at !== null && sameSky(air.at, here) && performance.now() - air.asked < REFRESH_MS;
             if (!force && (air.busy || fresh)) return;
@@ -423,14 +423,14 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               air.at = asking;
               air.planes = list;
               air.everGot = true;
-              /* 고른 기체가 이번 목록에 없으면 놓는다 — 사라진 기체를 계속 가리키면
-                 지구본이 「없는 것을 있다」고 말하게 된다. */
+              /* 고른 기체가 이번 목록에 없으면 놓는다. 사라진 기체를 계속 가리키면
+                 지구본이 없는 것을 있다고 말하게 된다. */
               if (air.live && !list.some((p) => p.hex === air.live!.hex)) air.live = null;
               say(list.length ? t('bluemarble.air.ready', { n: list.length }) : t('bluemarble.air.empty'));
             });
           }
           /* 소리 내는 요소는 **창문 안에** 붙인다. 떠 있는 객체로 두면 위젯이 닫혀도 남을 수 있고,
-             무엇보다 밖에서 「지금 울리고 있나」를 볼 수 없다(검사도 사람도). */
+             무엇보다 밖에서 지금 울리고 있나를 볼 수 없다(검사도 사람도). */
           const makeAudio = (url: string): HTMLAudioElement => {
             const el = new Audio();
             el.preload = 'none';
@@ -462,20 +462,20 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /**
            * 아무 데나 한 곳을 틀고 그리로 날아간다.
            *
-           * 겹을 켜 놓고 「이제 뭘 하지」가 되면 그 기능은 없는 것과 같다 — 켜자마자 소리가 나야
-           * 「아, 이게 라디오구나」가 된다. 고른 자리로 카메라도 옮긴다: 소리만 나고 화면이
+           * 겹을 켜 놓고 이제 뭘 하지가 되면 그 기능은 없는 것과 같다. 켜자마자 소리가 나야
+           * 아, 이게 라디오구나가 된다. 고른 자리로 카메라도 옮긴다: 소리만 나고 화면이
            * 그대로면 어디 것인지 알 길이 없다.
            */
           function tuneSomewhere(): void {
             if (!radio.spots.length) return;
-            /* 앞쪽(방송국이 많은 자리)에서 고른다 — 완전 무작위는 꺼진 서버를 뽑을 확률이 높다. */
+            /* 앞쪽(방송국이 많은 자리)에서 고른다. 완전 무작위는 꺼진 서버를 뽑을 확률이 높다. */
             const pool = Math.min(radio.spots.length, 220);
             const spot = radio.spots[Math.floor(Math.random() * pool)];
             flyTo(spot.lat, spot.lon, 2200);
             player.play(spot);
           }
 
-          /** 저기는 지금 몇 시인가 — 경도만으로 낸다(시간대 표를 들고 올 만큼 정확할 일이 아니다). */
+          /** 저기는 지금 몇 시인가. 경도만으로 낸다(시간대 표를 들고 올 만큼 정확할 일이 아니다). */
           function localClock(lon: number): string {
             const ms = clockMs() + Math.round((lon / 15) * 3600) * 1000;
             const d = new Date(ms);
@@ -483,11 +483,11 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           }
           let raf: number | undefined;
           let alive = true;
-          /** 창문을 처음 연 시각 — 제목이 한 번 지나가는 데만 쓴다. */
+          /** 창문을 처음 연 시각. 제목이 한 번 지나가는 데만 쓴다. */
           const introAt = performance.now();
 
-          /* 표면 판 — 화면 해상도로 안 그린다. 작은 판에 그린 뒤 늘여 덮는다
-             (한 점마다 asin·atan2 가 드니, 계산량을 화면 크기에서 떼어 놓는다).
+          /* 표면 판. 화면 해상도로 안 그린다. 작은 판에 그린 뒤 늘여 덮는다
+             (한 점마다 asin, atan2 가 드니, 계산량을 화면 크기에서 떼어 놓는다).
              판이 덮는 화면 영역 = **지구가 화면보다 작으면 지구, 크면 화면**. 확대해 들어가면
              지구 대부분이 화면 밖이므로, 원판 기준으로 잡으면 안 보이는 곳을 계산하게 된다. */
           let surfW = 0;
@@ -497,7 +497,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           let surfImg: ImageData | null = null;
           let surfView: SurfaceView | null = null;
           let surfAt = 0;
-          /** 크기·그림이 바뀌면 다음 프레임에 반드시 다시 계산한다 */
+          /** 크기, 그림이 바뀌면 다음 프레임에 반드시 다시 계산한다 */
           let surfDirty = true;
 
           function ensureSurface(): void {
@@ -507,8 +507,8 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             const y1 = Math.min(H, cy + R);
             const rectW = Math.max(1, x1 - x0);
             const rectH = Math.max(1, y1 - y0);
-            // 긴 변이 384칸을 넘지 않게 — 여기서 프레임 시간이 정해진다
-            // 폰은 더 작은 판에 그린다 — 여기서 프레임 시간이 정해진다
+            // 긴 변이 384칸을 넘지 않게. 여기서 프레임 시간이 정해진다
+            // 폰은 더 작은 판에 그린다. 여기서 프레임 시간이 정해진다
             const step = Math.max(1, Math.max(rectW, rectH) / (small ? 256 : 384));
             const w = Math.max(1, Math.round(rectW / step));
             const h = Math.max(1, Math.round(rectH / step));
@@ -526,7 +526,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /* ── 화면 크기 ────────────────────────────────────────────────── */
           function resize(): void {
             const r = wrap.getBoundingClientRect();
-            /* 폰에서는 아낀다. 화면이 작고 화소 밀도가 높으면 같은 그림에 픽셀이 세 배 든다 —
+            /* 폰에서는 아낀다. 화면이 작고 화소 밀도가 높으면 같은 그림에 픽셀이 세 배 든다 . 
                지구는 부드러운 물체라 촘촘하게 그려도 티가 안 나고, 팬만 돈다. */
             small = r.width < 620 || (window.devicePixelRatio || 1) > 2;
             dpr = Math.min(small ? 1.6 : 2, window.devicePixelRatio || 1);
@@ -538,7 +538,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             stars = makeStars(W, H);
           }
 
-          /** 별은 매 프레임 다시 찍지 않는다 — 한 번 찍어 두고 통째로 깐다. */
+          /** 별은 매 프레임 다시 찍지 않는다. 한 번 찍어 두고 통째로 깐다. */
           function makeStars(w: number, h: number): HTMLCanvasElement {
             const cv = document.createElement('canvas');
             cv.width = Math.round(w * dpr);
@@ -600,7 +600,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /* ── 반응하는 카메라 ──────────────────────────────────────────── */
 
           /* 사건이 들어오면 지구가 **천천히 그쪽으로 돈다**. 순간이동시키면 사람이 방향을
-             잃는다 — 어디서 어디로 갔는지가 안 보이면 그건 새 화면이지 같은 지구가 아니다.
+             잃는다. 어디서 어디로 갔는지가 안 보이면 그건 새 화면이지 같은 지구가 아니다.
              그래서 각도로 보간하고(짧은 쪽으로), 다 돌면 다시 제 속도로 자전한다. */
           let fly: {
             lon: number;
@@ -636,7 +636,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; // ease-in-out
             camLon = fly.startLon + (fly.lon - fly.startLon) * e;
             camLat = fly.startLat + (fly.lat - fly.startLat) * e;
-            // 멀어졌다 가까워지는 것까지 같이 보간해야 「찾아간다」로 보인다
+            // 멀어졌다 가까워지는 것까지 같이 보간해야 찾아간다로 보인다
             zoom = fly.startZoom + (fly.zoom - fly.startZoom) * e;
             if (p >= 1) {
               fly = null;
@@ -661,7 +661,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
           /**
            * 지금 보이는 자리를 경위도 상자로. 화면을 격자로 훑어 실제로 지구에 닿는 점만 모은다
-           * (원 밖·뒤쪽은 애초에 안 나온다). 경도는 **가운데를 기준으로 이어 붙인다** —
+           * (원 밖, 뒤쪽은 애초에 안 나온다). 경도는 **가운데를 기준으로 이어 붙인다** . 
            * 안 그러면 날짜변경선을 걸칠 때 상자가 지구 한 바퀴로 부풀어 타일 수천 장이 된다.
            */
           function visibleBox(): BBox | null {
@@ -692,12 +692,12 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             return { west: west - padX, east: east + padX, south: south - padY, north: north + padY };
           }
 
-          /** 화면 한 픽셀이 몇 도인가 — 이 값이 몇 층짜리 타일을 받을지 정한다. */
+          /** 화면 한 픽셀이 몇 도인가. 이 값이 몇 층짜리 타일을 받을지 정한다. */
           const degPerScreenPx = (): number => 57.29578 / R;
 
           function scheduleRegion(): void {
             if (regionTimer !== undefined) window.clearTimeout(regionTimer);
-            // 손을 놀리는 동안엔 안 받는다 — 끌 때마다 받으면 회선이 타일로 가득 찬다
+            // 손을 놀리는 동안엔 안 받는다. 끌 때마다 받으면 회선이 타일로 가득 찬다
             regionTimer = window.setTimeout(() => {
               regionTimer = undefined;
               if (!alive || !prefs.on.zoom || body !== 'earth') return;
@@ -712,7 +712,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               const box = visibleBox();
               if (!box) return;
 
-              /* 이 자리가 밤이면 참색 사진은 새까맣다 — 밤의 눈(주야간 밴드)으로 바꿔 받는다. */
+              /* 이 자리가 밤이면 참색 사진은 새까맣다. 밤의 눈(주야간 밴드)으로 바꿔 받는다. */
               const sun = subsolar(new Date(clockMs()));
               const midLat = (box.north + box.south) / 2;
               const midLon = (box.east + box.west) / 2;
@@ -725,7 +725,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               regionWanted = key;
 
               void (async () => {
-                /* 계단식 — 아직 아무 조각도 없으면 **성긴 층을 먼저** 깐다.
+                /* 계단식. 아직 아무 조각도 없으면 **성긴 층을 먼저** 깐다.
                    타일이 적어 금방 오고, 그 위에 촘촘한 층이 도착하면 갈아 낀다.
                    이게 없으면 확대한 순간부터 도착할 때까지 뭉갠 그림만 보인다. */
                 if (!region && wantZ >= 3) {
@@ -747,13 +747,13 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             }, 320);
           }
 
-          /* ── 겹쳐 그리는 것들의 크기·수명 ─────────────────────────────
+          /* ── 겹쳐 그리는 것들의 크기, 수명 ─────────────────────────────
            *
            * 표식은 **지리가 아니라 주석**이다. 그런데 크기를 지구 반지름에 비례시켜 두었더니
            * 확대할수록 같이 부풀어, 도시 하나를 들여다보는데 지진 파문 하나가 화면을 덮었다.
            * 그래서 두 가지를 나눈다:
-           *   markerScale() — 점·고리의 크기. 조금만 자라고 **거기서 멈춘다**.
-           *   globeFade()   — 「지구 전체를 볼 때만 뜻이 있는 것」(시간대 링·궤도 무리·발사대)의
+           *   markerScale(). 점, 고리의 크기. 조금만 자라고 **거기서 멈춘다**.
+           *   globeFade()  . 지구 전체를 볼 때만 뜻이 있는 것(시간대 링, 궤도 무리, 발사대)의
            *                   투명도. 표면을 들여다보는 배율이 되면 조용히 사라진다.
            */
           const markerScale = (): number => Math.max(0.6, Math.min(2, R / 280));
@@ -773,7 +773,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             const sv = toVec(sun.lat, sun.lon);
             const S: [number, number, number] = [dot(sv, ex), dot(sv, ey), dot(sv, ez)];
 
-            /* 대기 — 지구 바깥으로 새어 나오는 파란 테. 이게 없으면 종이에 오린 원처럼 보인다.
+            /* 대기. 지구 바깥으로 새어 나오는 파란 테. 이게 없으면 종이에 오린 원처럼 보인다.
                달은 대기가 없어 테가 없고(그래서 가장자리가 칼같다), 화성은 얇고 붉다. */
             const halo = c.createRadialGradient(cx, cy, R * 0.94, cx, cy, R * 1.16);
             if (body === 'moon') {
@@ -793,16 +793,16 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             c.arc(cx, cy, R * 1.16, 0, Math.PI * 2);
             c.fill();
 
-            /* 이름은 여기서 한 번만 지나간다 — **지구를 그리기 전에** 찍으므로 가운데가 가려지고
+            /* 이름은 여기서 한 번만 지나간다. **지구를 그리기 전에** 찍으므로 가운데가 가려지고
                양 끝만 남는다. 제목이 지구 뒤에 있는 것처럼 보이는 건 정말로 뒤에 있기 때문이다. */
             drawIntro(now);
 
-            /* 표면 — 땅·바다·구름·도시 불빛·명암을 한 번에. 픽셀마다 구면 위 한 점을 되짚는다.
-               (자를 것이 없으므로 「돌리면 땅이 화면을 덮는」 사고가 원리적으로 안 생긴다) */
+            /* 표면. 땅, 바다, 구름, 도시 불빛, 명암을 한 번에. 픽셀마다 구면 위 한 점을 되짚는다.
+               (자를 것이 없으므로 돌리면 땅이 화면을 덮는 사고가 원리적으로 안 생긴다) */
             ensureSurface();
             /* 표면은 **매 프레임 다시 계산하지 않는다.** 지구는 천천히 돌고, 사람 눈은 30번이면
-               충분하다. 파문·궤도처럼 빠른 것만 매 프레임 위에 덧그린다. (폰에서 프레임의
-               대부분이 이 한 겹에 들어가고 있었다 — 4배 느린 기기에서 233ms.) */
+               충분하다. 파문, 궤도처럼 빠른 것만 매 프레임 위에 덧그린다. (폰에서 프레임의
+               대부분이 이 한 겹에 들어가고 있었다. 4배 느린 기기에서 233ms.) */
             const needSurface = now - surfAt > (small ? 42 : 33) || surfDirty;
             if (needSurface) surfAt = now;
             surfDirty = false;
@@ -834,7 +834,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             }
 
             /* 아주 먼 과거에는 **오늘의 것**을 얹지 않는다. 3억 년 전 지구 위에 오늘 지진을
-               찍으면 그건 그림이 아니라 거짓말이다. 시간대 링도 마찬가지 — 그때의 도시가 아니다. */
+               찍으면 그건 그림이 아니라 거짓말이다. 시간대 링도 마찬가지. 그때의 도시가 아니다. */
             const live = body === 'earth' && !prefs.on.deep;
             if (live && prefs.on.aurora && !isPast()) drawAurora(S);
             if (live && prefs.on.quake) drawQuakes(now);
@@ -877,7 +877,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             return dot(v, ex) * S[0] + dot(v, ey) * S[1] + dot(v, ez) * S[2];
           }
 
-          /** 처음 들어온 순간에만. 6.5초에 걸쳐 떴다 진다 — 두 번째부터는 창문이 조용해야 한다. */
+          /** 처음 들어온 순간에만. 6.5초에 걸쳐 떴다 진다. 두 번째부터는 창문이 조용해야 한다. */
           function drawIntro(now: number): void {
             const age = now - introAt;
             if (age > 6500) return;
@@ -885,20 +885,20 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             const a = age < 1400 ? age / 1400 : age > 4600 ? Math.max(0, 1 - (age - 4600) / 1900) : 1;
             if (a <= 0.01) return;
             const c = ctx!;
-            /* 이름은 읽는 사람의 말로 적는다 — 한국어로 보고 있는데 라틴 글자만 뜨면 그건 남의 창문이다. */
+            /* 이름은 읽는 사람의 말로 적는다. 한국어로 보고 있는데 라틴 글자만 뜨면 그건 남의 창문이다. */
             const label = t('bluemarble.intro.title', undefined, 'BLUE MARBLE');
             const hangul = /[가-힣㄰-㆏]/.test(label);
             c.save();
             c.textAlign = 'center';
             c.textBaseline = 'middle';
             try {
-              // 한글은 자간을 벌리면 낱자가 흩어져 보인다 — 라틴만 넓게
+              // 한글은 자간을 벌리면 낱자가 흩어져 보인다. 라틴만 넓게
               (c as unknown as { letterSpacing: string }).letterSpacing = hangul ? '0.08em' : '0.28em';
             } catch {
-              /* 이 손잡이가 없는 브라우저는 자간 없이 나온다 — 못 읽을 정도는 아니다 */
+              /* 이 손잡이가 없는 브라우저는 자간 없이 나온다. 못 읽을 정도는 아니다 */
             }
-            /* 캔버스는 **CSS 변수를 못 읽는다** — `var(--font-sans)` 를 넣으면 글꼴 지정 자체가
-               버려지고 10px 기본값으로 그려진다(2026-08-12: 「제목이 안 보인다」의 정체).
+            /* 캔버스는 **CSS 변수를 못 읽는다**. `var(--font-sans)` 를 넣으면 글꼴 지정 자체가
+               버려지고 10px 기본값으로 그려진다(2026-08-12: 제목이 안 보인다의 정체).
                `KarmoSans` 는 100~900 을 담은 한 벌이라 **가장 두꺼운 900** 을 그대로 쓸 수 있다. */
             const FACE = 'KarmoSans, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif';
             /* 화면 폭에 **맞춰 키운다.** 한 번 재고 그 비율로 되돌리면 폰이든 넓은 화면이든
@@ -917,10 +917,10 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           }
 
           /* 한 프레임에 그리는 고리 수 상한. 자리가 3,200 개가 넘는데 전부 그리면
-             폰에서 이 한 겹이 프레임을 먹는다 — 방송국이 많은 자리부터 채운다. */
+             폰에서 이 한 겹이 프레임을 먹는다. 방송국이 많은 자리부터 채운다. */
           const RING_MAX = 460;
 
-          /** 평소 — 도시 불빛 위에 얹는 얇은 고리. 크기는 그 자리에 묶인 방송국 수를 말한다. */
+          /** 평소. 도시 불빛 위에 얹는 얇은 고리. 크기는 그 자리에 묶인 방송국 수를 말한다. */
           function drawRadioRings(now: number): void {
             if (!radio.spots.length) return;
             const c = ctx!;
@@ -934,14 +934,14 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               drawn += 1;
               const rr = 2 + Math.min(5.5, Math.sqrt(spot.stations.length) * 1.6);
               const lit = spot === radio.live;
-              /* 가장자리로 갈수록 옅어진다 — 안 그러면 지구 테두리가 고리로 뒤덮인다 */
+              /* 가장자리로 갈수록 옅어진다. 안 그러면 지구 테두리가 고리로 뒤덮인다 */
               const a = (lit ? 0.95 : 0.34) * Math.min(1, p.z * 2.2);
               c.strokeStyle = lit ? `rgba(255,236,190,${a})` : `rgba(180,225,255,${a})`;
               c.beginPath();
               c.arc(p.x, p.y, rr, 0, Math.PI * 2);
               c.stroke();
               if (lit) {
-                // 맥박 — 2.6초에 한 번 퍼진다. 「지금 이걸 듣는다」
+                // 맥박. 2.6초에 한 번 퍼진다. 지금 이걸 듣는다
                 const ph = ((now - radio.since) % 2600) / 2600;
                 c.strokeStyle = `rgba(255,236,190,${(1 - ph) * 0.55})`;
                 c.beginPath();
@@ -953,10 +953,10 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           }
 
           /**
-           * 지금 저 하늘 — 비행기 한 대 = 나아가는 쪽을 향한 작은 삼각형 (TASK-KL-336).
+           * 지금 저 하늘. 비행기 한 대 = 나아가는 쪽을 향한 작은 삼각형 (TASK-KL-336).
            *
-           * 점으로 찍으면 별·도시·방송국과 구별이 안 된다. **방향이 있는 모양**이라야
-           * 「지나가는 중」으로 읽힌다 — 그게 이 겹이 말하려는 것 전부다.
+           * 점으로 찍으면 별, 도시, 방송국과 구별이 안 된다. **방향이 있는 모양**이라야
+           * 지나가는 중으로 읽힌다. 그게 이 겹이 말하려는 것 전부다.
            * 방향을 모르는 기체와 땅에 선 기체는 삼각형이 아니라 **작은 네모**다.
            * 모르는 것을 아는 척(0도=북)하면 온 하늘이 북쪽을 보게 된다.
            */
@@ -968,7 +968,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               const q = project(p.lat, p.lon);
               if (q.z <= 0.02) continue; // 지구 반대편
               const lit = air.live !== null && air.live.hex === p.hex;
-              /* 가장자리로 갈수록 옅어진다 — 안 그러면 테두리가 삼각형으로 뒤덮인다 */
+              /* 가장자리로 갈수록 옅어진다. 안 그러면 테두리가 삼각형으로 뒤덮인다 */
               const a = (lit ? 1 : 0.72) * Math.min(1, q.z * 2.2);
               c.fillStyle = lit ? `rgba(255,236,190,${a})` : `rgba(214,238,255,${a})`;
               if (p.onGround || p.trackDeg === null) {
@@ -976,12 +976,12 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
                 c.fillRect(q.x - r, q.y - r, r * 2, r * 2);
                 continue;
               }
-              /* 높이 나는 기체를 조금 크게 — 지도가 아니라 하늘이라는 걸 크기로도 말한다. */
+              /* 높이 나는 기체를 조금 크게. 지도가 아니라 하늘이라는 걸 크기로도 말한다. */
               const size = 3.2 + Math.min(2.2, ((p.altFt ?? 0) / 40000) * 2.2);
               c.save();
               c.translate(q.x, q.y);
               /* 화면 위쪽이 북쪽이 아니다(지구가 기울어 보인다). 그래도 이 겹에서 방향은
-                 「어느 쪽으로 간다」는 느낌이면 충분하다 — 정확한 도법 보정은 과하다. */
+                 어느 쪽으로 간다는 느낌이면 충분하다. 정확한 도법 보정은 과하다. */
               c.rotate((p.trackDeg * Math.PI) / 180);
               c.beginPath();
               c.moveTo(0, -size);
@@ -1003,7 +1003,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             c.restore();
           }
 
-          /** 듣는 중 — 그 자리에서만 빛기둥이 지구 밖으로 솟는다. 언제나 한 개뿐이다. */
+          /** 듣는 중. 그 자리에서만 빛기둥이 지구 밖으로 솟는다. 언제나 한 개뿐이다. */
           function drawRadioBeam(now: number): void {
             const spot = radio.live;
             if (!spot) return;
@@ -1011,7 +1011,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             if (p.z <= 0) return;
             const c = ctx!;
             /* 뻗는 쪽 = 지구 중심에서 바깥. 다만 화면 한가운데(정면)에서는 그 방향이 사라지므로
-               위쪽으로 부드럽게 넘긴다 — 방향이 흔들리는 기둥은 기둥으로 안 보인다. */
+               위쪽으로 부드럽게 넘긴다. 방향이 흔들리는 기둥은 기둥으로 안 보인다. */
             let dx = p.x - cx;
             let dy = p.y - cy;
             const len = Math.hypot(dx, dy) || 1;
@@ -1042,7 +1042,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             c.save();
             c.globalCompositeOperation = 'lighter';
             for (const pt of au) {
-              /* 격자가 1°라 극으로 갈수록 경도 방향으로 점이 촘촘해진다 — 그대로 찍으면
+              /* 격자가 1°라 극으로 갈수록 경도 방향으로 점이 촘촘해진다. 그대로 찍으면
                  오로라가 아니라 **빗살무늬**가 된다. 위도에 따라 솎아 실제 밀도로 되돌린다. */
               const keep = Math.max(1, Math.round(1 / Math.max(0.06, Math.cos(pt.lat * RAD))));
               if (keep > 1 && Math.abs(Math.round(pt.lon)) % keep !== 0) continue;
@@ -1077,7 +1077,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               const p = project(q.lat, q.lon);
               const base = (2 + Math.max(0, q.mag - 2.5) * 2.6) * markerScale();
 
-              // 파문 — 규모가 클수록 크게, 최근일수록 진하게. 계속 반복해 「지금도 살아있음」을 만든다
+              // 파문. 규모가 클수록 크게, 최근일수록 진하게. 계속 반복해 지금도 살아있음을 만든다
               const period = 2600;
               const phase = ((now + q.time) % period) / period;
               const rr = base * (1 + phase * 4.2);
@@ -1096,11 +1096,11 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           }
 
           /**
-           * 궤도 위의 것 전부. 지금 지구를 도는 물체가 만 개가 넘는다 —
-           * 한 점씩 찍으면 그게 곧 「머리 위가 이렇게 붐빈다」는 그림이 된다.
+           * 궤도 위의 것 전부. 지금 지구를 도는 물체가 만 개가 넘는다 . 
+           * 한 점씩 찍으면 그게 곧 머리 위가 이렇게 붐빈다는 그림이 된다.
            *
            * 매 프레임 다시 굴리지 않는다(만 번의 케플러 계산이다). 0.4초에 한 번만 굴리고
-           * 그 사이에는 같은 자리를 그린다 — 초속 7.6km 라도 0.4초면 지구본에서 0.2px 다.
+           * 그 사이에는 같은 자리를 그린다. 초속 7.6km 라도 0.4초면 지구본에서 0.2px 다.
            */
           function drawSats(now: number): void {
             if (!satEls.length || !satXyz) return;
@@ -1143,9 +1143,9 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           }
 
           /**
-           * 시간대 링 — 지구를 두른 시계.
+           * 시간대 링. 지구를 두른 시계.
            *
-           * 지구본만 보면 「저기가 밤이구나」까지는 알아도 「지금 새벽 3시인 사람들이 있다」는
+           * 지구본만 보면 저기가 밤이구나까지는 알아도 지금 새벽 3시인 사람들이 있다는
            * 안 보인다. 그래서 24시간을 원으로 펴서 지구 밖에 두른다. 큰 도시를 자기 시각 자리에
            * 점으로 찍으면, 새벽 쪽에 점이 몇 개 몰려 있는지가 그냥 보인다.
            * 맨 위가 자정, 아래가 정오다.
@@ -1164,7 +1164,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             for (let i = 0; i < 96; i++) {
               const h0 = (i / 96) * 24;
               const h1 = ((i + 1) / 96) * 24;
-              // 그 시각의 하늘색 — 밤은 남색, 여명은 호박색, 낮은 옅은 하늘색
+              // 그 시각의 하늘색. 밤은 남색, 여명은 호박색, 낮은 옅은 하늘색
               const dist = Math.min(Math.abs(h0 - 12), 24 - Math.abs(h0 - 12));
               const dayness = Math.max(0, Math.min(1, (7.5 - dist) / 5));
               const dawn = Math.max(0, 1 - Math.abs(dist - 6.2) / 1.5);
@@ -1190,7 +1190,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               c.stroke();
             }
 
-            // 큰 도시를 제 시각 자리에 — 새벽 쪽에 몇 개나 몰려 있나
+            // 큰 도시를 제 시각 자리에. 새벽 쪽에 몇 개나 몰려 있나
             for (const city of CITIES) {
               const a = ang(solarHour(city.lon, sun.lon));
               const x = cx + Math.cos(a) * rr;
@@ -1201,7 +1201,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               c.fill();
             }
 
-            // 나 — 링 위에서 지금 내가 서 있는 시각
+            // 나. 링 위에서 지금 내가 서 있는 시각
             if (me) {
               const a = ang(solarHour(me.lon, sun.lon));
               const x = cx + Math.cos(a) * rr;
@@ -1219,7 +1219,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             c.restore();
           }
 
-          /** 내 자리 — 숨 쉬듯 커졌다 작아지는 고리 하나. 이름표는 안 붙인다(문장이 말한다). */
+          /** 내 자리. 숨 쉬듯 커졌다 작아지는 고리 하나. 이름표는 안 붙인다(문장이 말한다). */
           function drawMe(now: number): void {
             if (!me) return;
             const v = toVec(me.lat, me.lon);
@@ -1302,7 +1302,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             c.stroke();
           }
 
-          /* ── 말 — 사건을 문장으로 ─────────────────────────────────────── */
+          /* ── 말. 사건을 문장으로 ─────────────────────────────────────── */
           function nearestCity(lat: number, lon: number, withinKm: number): string | null {
             let best: string | null = null;
             let bestD = withinKm;
@@ -1390,7 +1390,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               );
             }
 
-            /* 나 — 이 지구본의 주제는 「나는 여기 혼자인데 지구는 살아있다」다.
+            /* 나. 이 지구본의 주제는 나는 여기 혼자인데 지구는 살아있다다.
                그래서 내 자리 이야기가 문장 목록의 한가운데 있어야 한다. */
             if (me) {
               const sv2 = toVec(sun.lat, sun.lon);
@@ -1459,7 +1459,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           }
           function cycleLine(): void {
             if (!alive) return;
-            // 상영·노을 따라가기 중에는 그쪽이 말한다 — 두 목소리가 겹치면 안 된다
+            // 상영, 노을 따라가기 중에는 그쪽이 말한다. 두 목소리가 겹치면 안 된다
             if ((prefs.on.tour || prefs.on.dusk) && body === 'earth' && !isPast()) return;
             lines = sentences();
             if (sound.running) {
@@ -1483,7 +1483,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /**
            * 날짜를 하나 받아 그날의 지구로 가고, **그 화면을 카드로 굽는다.**
            *
-           * 위성이 지구를 찍기 시작한 건 2000-02-24 다. 그 앞의 날은 사진이 없다 — 지어내지 않고
+           * 위성이 지구를 찍기 시작한 건 2000-02-24 다. 그 앞의 날은 사진이 없다. 지어내지 않고
            * 고를 수 없게 막는다(`min`). 있는 것만 보여 주는 편이 없는 것을 그럴듯하게 그리는 것보다 낫다.
            */
           async function bakeCard(): Promise<void> {
@@ -1536,7 +1536,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             say(t('bluemarble.card.saved'));
           }
 
-          /** 그날로 간다 — 시간 손잡이와 같은 길을 쓴다(딴 길을 내면 둘이 갈라진다). */
+          /** 그날로 간다. 시간 손잡이와 같은 길을 쓴다(딴 길을 내면 둘이 갈라진다). */
           async function goToDay(day: string): Promise<void> {
             const ms = Date.parse(day + 'T12:00:00Z');
             if (!Number.isFinite(ms)) return;
@@ -1544,17 +1544,17 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             atTime = ms;
             slider.value = String(Math.floor(ms / 86400000));
             await applyTime();
-            /* 카드에 지구가 통째로 담기게 배율을 낮춘다 — 확대된 채로 구우면 잘린 조각이 남는다(실측). */
+            /* 카드에 지구가 통째로 담기게 배율을 낮춘다. 확대된 채로 구우면 잘린 조각이 남는다(실측). */
             if (me) flyTo(me.lat, me.lon, 2200, 1.15);
           }
 
           /* ── 자리 링크 ────────────────────────────────────────────────── */
 
           /**
-           * **주소 하나가 곧 그 자리다.** `?bm=위도,경도,배율` 을 달아 두면 그 자리에서 열린다 —
-           * 블로그 글이든 메모든 남에게 보내는 말이든, 「여기」를 가리킬 수 있게 된다.
+           * **주소 하나가 곧 그 자리다.** `?bm=위도,경도,배율` 을 달아 두면 그 자리에서 열린다 . 
+           * 블로그 글이든 메모든 남에게 보내는 말이든, 여기를 가리킬 수 있게 된다.
            *
-           * 셸은 주소에서 `shared` 만 지우고 나머지는 그대로 둔다(toolbox.ts) — 그래서 쿼리에 실었다.
+           * 셸은 주소에서 `shared` 만 지우고 나머지는 그대로 둔다(toolbox.ts). 그래서 쿼리에 실었다.
            * 해시는 이미 어느 도구를 열지를 가리키고 있어 자리까지 실을 수 없다.
            */
           function readLink(): boolean {
@@ -1580,7 +1580,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
           async function copyLink(): Promise<void> {
             const url = linkHere();
-            // 주소창도 같이 바꾼다 — 새로고침해도 같은 자리가 되어야 링크가 진짜다
+            // 주소창도 같이 바꾼다. 새로고침해도 같은 자리가 되어야 링크가 진짜다
             try {
               history.replaceState({}, '', url.slice(location.origin.length));
             } catch (_) {
@@ -1598,14 +1598,14 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
           /* ── 같이 보기 ────────────────────────────────────────────────── */
 
-          /** 내가 보고 있는 자리를 알린다. 2초에 한 번이면 충분하다 — 지구는 천천히 돈다. */
+          /** 내가 보고 있는 자리를 알린다. 2초에 한 번이면 충분하다. 지구는 천천히 돈다. */
           function shareView(now: number): void {
             if (!prefs.on.together || body !== 'earth' || now - sentAt < 2000) return;
             sentAt = now;
             sendRoomOp({ k: 'bm', lat: +camLat.toFixed(2), lon: +camLon.toFixed(2), z: +zoom.toFixed(2) });
           }
 
-          /** 남이 보고 있는 자리 — 옅은 고리로. 4초 넘게 소식이 없으면 지운다(나간 것이다). */
+          /** 남이 보고 있는 자리. 옅은 고리로. 4초 넘게 소식이 없으면 지운다(나간 것이다). */
           function drawOthers(now: number): void {
             if (!prefs.on.together || !others.size) return;
             const c = ctx!;
@@ -1662,7 +1662,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
           /**
            * 화면 한가운데가 보고 있는 자리를 **그림에서 직접 읽어** 소리로 넘긴다.
-           * 바다인지 사막인지를 목록으로 들고 있지 않는다 — 표면 그림이 이미 알고 있다.
+           * 바다인지 사막인지를 목록으로 들고 있지 않는다. 표면 그림이 이미 알고 있다.
            */
           function updatePlaceSound(): void {
             if (!sound.running || body !== 'earth') return;
@@ -1676,7 +1676,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               const [r, g, b] = day;
               const max = Math.max(r, g, b);
               const min = Math.min(r, g, b);
-              // 바다 = 파랑이 가장 세고 어둡다 · 마른 땅 = 밝고 붉은 기가 도는 곳
+              // 바다 = 파랑이 가장 세고 어둡다, 마른 땅 = 밝고 붉은 기가 도는 곳
               ocean = b === max && max < 140 ? Math.min(1, (b - min + 20) / 70) : 0;
               dry = r >= g && g > b && max > 110 ? Math.min(1, (max - b) / 70) : 0;
             }
@@ -1699,7 +1699,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
            * 해가 지는 선 위에 카메라를 세운다.
            *
            * 해가 바로 위인 경도에서 **동쪽으로 90°** 떨어진 자오선이 지금 해가 지고 있는 선이다
-           * (지구는 동쪽으로 돌고, 그래서 해는 서쪽으로 진다 — 지표 입장에서 해가 지평선에 닿는
+           * (지구는 동쪽으로 돌고, 그래서 해는 서쪽으로 진다. 지표 입장에서 해가 지평선에 닿는
            * 자리가 그 선이다). 위도는 천천히 오르내려, 그 선 위를 북에서 남으로 훑는다.
            */
           function stepDusk(now: number): void {
@@ -1708,7 +1708,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             /* +90° 가 기하학적 경계지만, 여명을 넓게 칠하고 대기 테까지 있어 화면에서는
                낮 쪽으로 치우쳐 보인다(실측: 가로줄의 70% 가 밝았다). 조금 더 밤 쪽으로 민다. */
             const lon = ((((sun.lon + 104) % 360) + 540) % 360) - 180;
-            // 60초에 한 번 남북을 오간다 — 더 빠르면 어지럽고, 더 느리면 멎은 것처럼 보인다
+            // 60초에 한 번 남북을 오간다. 더 빠르면 어지럽고, 더 느리면 멎은 것처럼 보인다
             const lat = Math.sin(now / 9500) * 52;
             camLon = lon;
             camLat = lat;
@@ -1726,8 +1726,8 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /* ── 지구 뉴스 상영 ───────────────────────────────────────────── */
 
           /**
-           * 오늘 무슨 일이 있었나를 **자리와 함께** 모은다. 문장만 흘리면 「어디」가 안 남는다 —
-           * 카메라가 그 자리로 찾아가야 「거기서 일어난 일」이 된다.
+           * 오늘 무슨 일이 있었나를 **자리와 함께** 모은다. 문장만 흘리면 어디가 안 남는다 . 
+           * 카메라가 그 자리로 찾아가야 거기서 일어난 일이 된다.
            */
           function buildTour(): TourStop[] {
             const stops: TourStop[] = [];
@@ -1783,7 +1783,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
                 : t('bluemarble.line.sunSea', { lat: sun.lat.toFixed(0), lon: sun.lon.toFixed(0) })
             });
 
-            // 마지막은 나 — 돌고 돌아 자기 자리로 온다
+            // 마지막은 나. 돌고 돌아 자기 자리로 온다
             if (me) {
               const night = dot(toVec(me.lat, me.lon), toVec(sun.lat, sun.lon)) < 0.05;
               const clock = new Date(clockMs()).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
@@ -1824,7 +1824,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             const [q, k, i] = await Promise.all([quakes(), kpIndex(), iss()]);
             if (!alive) return;
             if (q) {
-              /* 첫 판은 「전부 새 것」이 아니다 — 열자마자 24시간 치 지진으로 카메라가
+              /* 첫 판은 전부 새 것이 아니다. 열자마자 24시간 치 지진으로 카메라가
                  튀면 그건 사건이 아니라 소음이다. 두 번째 판부터가 진짜 새 소식이다. */
               if (seenQuakes) {
                 const fresh = q.filter((x) => !seenQuakes!.has(x.id) && Date.now() - x.time < 3600000);
@@ -1868,8 +1868,8 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           /**
            * 가벼운 것들은 **줄을 안 선다**.
            *
-           * 처음엔 태양풍·오늘의 사진을 무거운 갱신(오로라 920KB)과 한 줄에 세워 뒀다. 그랬더니
-           * 몇 바이트짜리 값이 1MB 짜리 내려받기가 끝날 때까지 화면에 안 나왔다 — 실측으로
+           * 처음엔 태양풍, 오늘의 사진을 무거운 갱신(오로라 920KB)과 한 줄에 세워 뒀다. 그랬더니
+           * 몇 바이트짜리 값이 1MB 짜리 내려받기가 끝날 때까지 화면에 안 나왔다. 실측으로
            * 30초 넘게 액자가 비어 있었다. 크기가 다른 것을 같은 줄에 세우면 항상 이렇게 된다.
            */
           async function refreshLight(): Promise<void> {
@@ -1912,7 +1912,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             sunImg.src = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_0193.jpg?t=${Math.floor(Date.now() / 300000)}`;
           }
 
-          /** 목록은 6.9MB 다 — 켤 때만 받는다. 받은 뒤 담아 두므로 다음부터는 즉시 뜬다. */
+          /** 목록은 6.9MB 다. 켤 때만 받는다. 받은 뒤 담아 두므로 다음부터는 즉시 뜬다. */
           async function loadSats(): Promise<void> {
             if (satLoading || satEls.length) return;
             satLoading = true;
@@ -1925,7 +1925,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             lines = sentences();
           }
 
-          /** 다음 통과는 24시간을 30초 간격으로 훑는다(2,880번) — 몇 ms 라 매번 새로 내도 된다. */
+          /** 다음 통과는 24시간을 30초 간격으로 훑는다(2,880번). 몇 ms 라 매번 새로 내도 된다. */
           function recomputePass(): void {
             if (!issEl || !me) {
               issPass = null;
@@ -1955,7 +1955,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             drag = null;
             canvas.classList.remove('bm-drag');
           };
-          /** 끌지 않고 톡 눌렀을 때만 자리를 고른다 — 지구를 돌리다 손을 떼면 소리가 나면 안 된다. */
+          /** 끌지 않고 톡 눌렀을 때만 자리를 고른다. 지구를 돌리다 손을 떼면 소리가 나면 안 된다. */
           function pickAt(e: PointerEvent): void {
             if (!drag || body !== 'earth') return;
             if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) return;
@@ -1965,7 +1965,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               (e.clientY - rect.top) * (canvas.height / rect.height) / dpr
             );
             if (!hit) return;
-            /* 하늘 겹이 켜져 있으면 **비행기를 먼저** 본다 — 라디오 고리는 도시 위에 크게
+            /* 하늘 겹이 켜져 있으면 **비행기를 먼저** 본다. 라디오 고리는 도시 위에 크게
                있고 비행기는 작아서, 순서가 반대면 비행기를 영영 못 집는다.
                잡이 범위는 화면 기준이라야 한다: 확대할수록 좁게 집혀야 나란한 둘을 가른다. */
             if (prefs.on.air && air.planes.length) {
@@ -1978,11 +1978,11 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               }
             }
             if (!prefs.on.radio || !radio.spots.length) return;
-            /* 잡이 범위는 화면 기준으로 일정해야 한다 — 확대할수록 좁게 집을 수 있어야
+            /* 잡이 범위는 화면 기준으로 일정해야 한다. 확대할수록 좁게 집을 수 있어야
                나란한 도시 둘을 갈라 고를 수 있다. */
             const spot = nearestSpot(radio.spots, hit.lat, hit.lon, 9 / zoom);
             if (!spot) return;
-            player.play(spot); // 이 클릭 안에서 — 브라우저가 제스처 밖의 소리를 막는다
+            player.play(spot); // 이 클릭 안에서. 브라우저가 제스처 밖의 소리를 막는다
           }
           canvas.addEventListener('pointerup', (e: PointerEvent) => {
             pickAt(e);
@@ -1991,13 +1991,13 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           canvas.addEventListener('pointercancel', endDrag);
           /* ★ **자판만으로도 지구를 돌린다** (2026-08-17). 여기는 끌기 말고는 길이 없어서
              마우스가 없으면 첫 화면에서 한 발짝도 못 갔다(접근성 감사가 이름으로 짚은 자리).
-             화살표 = 돌리기 · +/- = 당기고 밀기 · Home = 처음 자리 · Enter = 한가운데 라디오.
+             화살표 = 돌리기, +/- = 당기고 밀기, Home = 처음 자리, Enter = 한가운데 라디오.
              끌기와 **같은 상태**(camLon/camLat/zoom)를 만지므로 두 길이 갈라지지 않는다. */
           canvas.tabIndex = 0;
           canvas.setAttribute('role', 'application');
           /* ★ 이름은 **말 묶음을 받은 뒤에** 붙인다 (2026-08-17 실측). 여기는 묶음을 받기 전에
-             도는 자리라, `t()` 를 부르면 「그 말이 없다」로 터지고 **위젯이 통째로 안 뜬다**.
-             실제로 그렇게 올려서 지구본이 한 판 죽었다 — 먼저 밋밋한 이름을 달아 두고 아래에서 바꾼다. */
+             도는 자리라, `t()` 를 부르면 그 말이 없다로 터지고 **위젯이 통째로 안 뜬다**.
+             실제로 그렇게 올려서 지구본이 한 판 죽었다. 먼저 밋밋한 이름을 달아 두고 아래에서 바꾼다. */
           canvas.setAttribute('aria-label', '지구본');
           canvas.addEventListener('keydown', (e: KeyboardEvent) => {
             const step2 = (e.shiftKey ? 12 : 4) / Math.max(1, Math.sqrt(zoom));
@@ -2040,7 +2040,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
               b.setAttribute('aria-pressed', String(prefs.on[l.id]));
               b.textContent = `${l.glyph} ${t('bluemarble.layer.' + l.id)}`;
               b.onclick = () => {
-                /* 「내 자리」를 켤 때만 정확한 위치를 묻는다 — 열자마자 권한 창을 띄우지 않는다.
+                /* 내 자리를 켤 때만 정확한 위치를 묻는다. 열자마자 권한 창을 띄우지 않는다.
                    이미 켜져 있는데 또 누르면 끄는 것이므로 묻지 않는다. */
                 const turningOn = !prefs.on[l.id];
                 prefs.on[l.id] = turningOn;
@@ -2078,19 +2078,19 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
                 if (l.id === 'radio') {
                   if (turningOn) {
                     /* 도는 지구는 못 누른다. 라디오는 **찍어서 고르는** 겹이므로 자전을 세운다
-                       (2026-08-12 실사용: 「지 혼자 막 돌아서 뭐가 되는 건지 모르겠다」). */
+                       (2026-08-12 실사용: 지 혼자 막 돌아서 뭐가 되는 건지 모르겠다). */
                     spin = false;
                     save();
                     renderChips();
-                    /* **이 클릭 안에서** 그릇을 잡는다 — 목록을 받아 온 뒤에 만들면
-                       브라우저가 「제스처 밖의 소리」로 보고 막는다(2026-08-12 실측). */
+                    /* **이 클릭 안에서** 그릇을 잡는다. 목록을 받아 온 뒤에 만들면
+                       브라우저가 제스처 밖의 소리로 보고 막는다(2026-08-12 실측). */
                     player.unlock();
                     if (!radio.loaded) {
                       radio.loaded = true;
                       say(t('bluemarble.radio.loading'));
                       void loadStations().then((list) => {
                         if (!alive) return;
-                        /* 방송국이 많은 자리를 앞에 둔다 — 고리 상한에 걸려도 큰 자리부터 남는다. */
+                        /* 방송국이 많은 자리를 앞에 둔다. 고리 상한에 걸려도 큰 자리부터 남는다. */
                         radio.spots = toSpots(list).sort((a2, b2) => b2.stations.length - a2.stations.length);
                         if (!radio.spots.length) {
                           say(t('bluemarble.radio.fail'));
@@ -2108,7 +2108,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
                 }
                 if (l.id === 'air') {
                   if (turningOn) {
-                    /* 라디오와 같은 이유로 자전을 세운다 — 하늘은 **찍어서 보는** 겹이고,
+                    /* 라디오와 같은 이유로 자전을 세운다. 하늘은 **찍어서 보는** 겹이고,
                        무엇보다 지구가 계속 돌면 자리가 바뀌어 끝없이 다시 묻게 된다. */
                     spin = false;
                     save();
@@ -2116,7 +2116,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
                     say(t('bluemarble.air.loading'));
                     refreshAir(true);
                   } else {
-                    /* 끌 때는 들고 있던 것을 놓는다 — 다시 켰을 때 몇 분 전 하늘을 지금인 양
+                    /* 끌 때는 들고 있던 것을 놓는다. 다시 켰을 때 몇 분 전 하늘을 지금인 양
                        보여 주면 그건 실시간이 아니라 거짓말이다. */
                     air.planes = [];
                     air.at = null;
@@ -2124,7 +2124,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
                   }
                 }
                 if (l.id === 'sound') {
-                  // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
+                  // **이 클릭 안에서** 시작해야 한다. 브라우저가 제스처 밖의 소리를 막는다
                   if (turningOn) sound.start();
                   else sound.stop();
                 }
@@ -2202,7 +2202,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             if (prefs.on.deep) {
               // 먼 과거 모드에서는 손잡이가 **시대**를 고른다
               const n = DEEP_AGES.length - 1;
-              /* 왼쪽이 과거다 — 손잡이 값이 클수록 지금에 가깝다(시간 손잡이와 같은 방향). */
+              /* 왼쪽이 과거다. 손잡이 값이 클수록 지금에 가깝다(시간 손잡이와 같은 방향). */
               const ratio = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));
               const idx = Math.round((1 - ratio) * n);
               if (idx !== deepIdx) void loadDeep(idx);
@@ -2234,7 +2234,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             body = next;
             renderBodyBtn();
             renderChips();
-            /* 대기 테는 지구의 것이다 — 달·화성엔 없다. 그리기 쪽에서 본다. */
+            /* 대기 테는 지구의 것이다. 달, 화성엔 없다. 그리기 쪽에서 본다. */
             if (next !== 'earth' && !bodyTex[next]) {
               const tex = await loadTex(dataUrl(`earth/${next}.webp`), next === 'mars' ? 2048 : 1024, next === 'mars' ? 1024 : 512);
               if (!alive) return;
@@ -2258,7 +2258,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           function showUi(): void {
             wrap.classList.remove('bm-ambient');
             if (idleHide !== undefined) window.clearTimeout(idleHide);
-            // 전체화면일 때만 다시 숨는다 — 창 안에서는 조작부가 계속 보여야 한다
+            // 전체화면일 때만 다시 숨는다. 창 안에서는 조작부가 계속 보여야 한다
             if (document.fullscreenElement === wrap) {
               idleHide = window.setTimeout(() => wrap.classList.add('bm-ambient'), 3500);
             }
@@ -2342,9 +2342,9 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             raf = requestAnimationFrame(loop);
             const dt = Math.min(100, now - last);
             last = now;
-            // 손을 뗀 뒤 4초쯤 지나면 다시 스스로 돈다 — 만지던 자리에서 이어서 돈다
-            /* 확대해 들어갔으면 자전을 멈춘다 — 들여다보는 중에 화면이 흘러가면 못 본다.
-               (그리고 자전 중 실사 조각을 계속 새로 받는 것은 회선 낭비였다 — 실측으로 멎었다) */
+            // 손을 뗀 뒤 4초쯤 지나면 다시 스스로 돈다. 만지던 자리에서 이어서 돈다
+            /* 확대해 들어갔으면 자전을 멈춘다. 들여다보는 중에 화면이 흘러가면 못 본다.
+               (그리고 자전 중 실사 조각을 계속 새로 받는 것은 회선 낭비였다. 실측으로 멎었다) */
             stepFly(now);
             stepTour(now);
             stepDusk(now);
@@ -2395,7 +2395,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             sub.textContent = t('bluemarble.hint');
             canvas.setAttribute('aria-label', t('bluemarble.a11y.globe'));
             /* 아무것도 안 물어보고 알 수 있는 만큼은 바로 안다 (시간대 → 도시).
-               정확한 자리는 사용자가 「내 자리」를 눌렀을 때만 묻는다. */
+               정확한 자리는 사용자가 내 자리를 눌렀을 때만 묻는다. */
             const DAY0 = 86400000;
             slider.max = String(Math.floor(Date.now() / DAY0));
             slider.value = slider.max;
@@ -2405,7 +2405,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             dayInput.max = new Date().toISOString().slice(0, 10);
             renderDate();
 
-            /* 링크로 들어왔으면 그 자리가 이긴다 — 남이 가리킨 자리를 시간대로 덮으면 안 된다. */
+            /* 링크로 들어왔으면 그 자리가 이긴다. 남이 가리킨 자리를 시간대로 덮으면 안 된다. */
             const fromLink = readLink();
             me = fromTimezone();
             if (!fromLink && me) {
@@ -2414,7 +2414,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
             }
             resize();
 
-            /* 표면 그림 — 담아 둔 것이라 빠르다. 못 읽어도 멈추지 않는다(맨 파란 구슬이 된다). */
+            /* 표면 그림. 담아 둔 것이라 빠르다. 못 읽어도 멈추지 않는다(맨 파란 구슬이 된다). */
             const [d, n] = await Promise.all([
               loadTex(dataUrl('earth/day.webp'), 2048, 1024),
               loadTex(dataUrl('earth/night.webp'), 1024, 512)
@@ -2425,14 +2425,14 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
 
             start();
 
-            /* 구름은 밖에서 온다 — 늦게 와도 되니 지구부터 띄우고 뒤따라 얹는다 */
+            /* 구름은 밖에서 온다. 늦게 와도 되니 지구부터 띄우고 뒤따라 얹는다 */
             void loadClouds().then((cm) => {
               if (!alive) return;
               liveCloud = cm;
               if (!isPast()) cloudTex = cm;
             });
 
-            /* 가벼운 것 먼저 띄운다 — 지진·ISS 를 기다리는 동안 액자가 비어 있을 이유가 없다 */
+            /* 가벼운 것 먼저 띄운다. 지진, ISS 를 기다리는 동안 액자가 비어 있을 이유가 없다 */
             void refreshLight();
             await refresh();
             void refreshSlow();

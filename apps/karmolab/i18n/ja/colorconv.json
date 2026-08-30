@@ -7,7 +7,7 @@
   "colorconv.btn.random": "ランダム",
   "colorconv.label.formats": "表記",
   "colorconv.label.contrast": "読みやすさ（WCAG コントラスト比）",
-  "colorconv.label.harmony": "調和パレット — 押すとその色に移ります",
+  "colorconv.label.harmony": "調和パレット. 押すとその色に移ります",
   "colorconv.label.shades": "明るさの段階",
   "colorconv.label.cssVar": "CSS 変数",
   "colorconv.btn.copy": "コピー",

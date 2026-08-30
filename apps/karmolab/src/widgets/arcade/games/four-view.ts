@@ -1,7 +1,7 @@
 /**
  * 사목 화면 (TASK-KL-242)
  *
- * 누르는 곳은 칸이 아니라 **줄**이다 — 중력이 자리를 정하므로 칸을 고르게 하면 거짓말이 된다.
+ * 누르는 곳은 칸이 아니라 **줄**이다. 중력이 자리를 정하므로 칸을 고르게 하면 거짓말이 된다.
  */
 import type { GameView } from '../views';
 import { W, H, type FourState, type FourAction } from './four';

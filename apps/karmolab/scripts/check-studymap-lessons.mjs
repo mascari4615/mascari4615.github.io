@@ -1,10 +1,10 @@
 /**
  * 스터디 맵 강의 검사 + 목록 만들기 (TASK-KL-233).
  *
- * 강의는 표(JSON)로 늘어난다. 그래서 표가 틀리면 화면에서 조용히 깨진다 —
+ * 강의는 표(JSON)로 늘어난다. 그래서 표가 틀리면 화면에서 조용히 깨진다 . 
  * 없는 칸 id, 범위 밖 정답 번호, 모르는 블록 종류. 사람이 아니라 여기서 잡는다.
  *
- * 겸사겸사 `data/lessons/index.json` 을 만든다. 위젯이 「이 칸에 강의가 있나」를
+ * 겸사겸사 `data/lessons/index.json` 을 만든다. 위젯이 이 칸에 강의가 있나를
  * 134번 물어볼 수는 없으니, 목록 한 장을 미리 만들어 둔다.
  *
  * 사용: node scripts/check-studymap-lessons.mjs
@@ -12,6 +12,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+const WRITE = process.argv.includes('--write');
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const dataDir = path.join(root, 'data');
@@ -40,24 +42,24 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
     try {
       lesson = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
     } catch (err) {
-      fail.push(`${where}: JSON 이 깨졌다 — ${(err && err.message) || err}`);
+      fail.push(`${where}: JSON 이 깨졌다. ${(err && err.message) || err}`);
       continue;
     }
     if (!nodeIds.has(id)) fail.push(`${where}: 지도에 없는 칸 id (studymap.json 과 짝이 안 맞는다)`);
     if (lesson.id !== id) fail.push(`${where}: 파일 이름과 안의 id 가 다르다 (${lesson.id})`);
     /**
      * 칸 하나가 **여러 장(章)** 일 수 있다. 장이 있으면 장을 검사하고, 없으면 옛 모양(blocks 하나)을 검사한다.
-     * 어느 쪽이든 아래 검사는 같으므로 「검사할 묶음들」로 펴서 한 번만 적는다.
+     * 어느 쪽이든 아래 검사는 같으므로 검사할 묶음들로 펴서 한 번만 적는다.
      */
     const parts = Array.isArray(lesson.parts) && lesson.parts.length > 0 ? lesson.parts : null;
     if (parts) {
       const seen = new Set();
       for (const [pi, part] of parts.entries()) {
         if (!part || typeof part.id !== 'string' || part.id.trim() === '') fail.push(`${where}: parts[${pi}] id 가 없다`);
-        if (seen.has(part?.id)) fail.push(`${where}: parts[${pi}] id 「${part.id}」 가 겹친다`);
+        if (seen.has(part?.id)) fail.push(`${where}: parts[${pi}] id ${part.id} 가 겹친다`);
         seen.add(part?.id);
         if (typeof part?.title !== 'string' || part.title.trim() === '') fail.push(`${where}: parts[${pi}] 제목이 없다`);
-        /* 장마다 확인 문제가 있어야 「공부」가 된다 — 읽고 넘어가는 장을 못 만들게 막는다. */
+        /* 장마다 확인 문제가 있어야 공부가 된다. 읽고 넘어가는 장을 못 만들게 막는다. */
         if (!Array.isArray(part?.quiz) || part.quiz.length < 2) fail.push(`${where}: parts[${pi}] 확인 문제가 2개 미만`);
       }
     } else if (!Array.isArray(lesson.blocks) || lesson.blocks.length === 0) {
@@ -82,21 +84,21 @@ for (const locale of fs.existsSync(lessonsDir) ? fs.readdirSync(lessonsDir) : []
     const at0 = tagPrefix;
     if (parts && (!Array.isArray(chunk.blocks) || chunk.blocks.length === 0)) fail.push(`${where}: ${at0}blocks 가 비었다`);
     for (const [at, block] of (chunk.blocks || []).entries()) {
-      if (!BLOCK_TYPES.has(block.type)) fail.push(`${where}: ${at0}blocks[${at}] 모르는 종류 「${block.type}」`);
+      if (!BLOCK_TYPES.has(block.type)) fail.push(`${where}: ${at0}blocks[${at}] 모르는 종류 ${block.type}`);
       if (typeof block.text !== 'string' || block.text.trim() === '') fail.push(`${where}: ${at0}blocks[${at}] 글이 비었다`);
       if (block.type === 'demo' && Array.isArray(block.controls)) {
         for (const c of block.controls) {
           if (!c || !c.id || !c.label || !['range', 'toggle', 'select'].includes(c.type)) {
-            fail.push(`${where}: ${at0}blocks[${at}] 손잡이는 id·label·type(range/toggle/select) 이 필요하다`);
+            fail.push(`${where}: ${at0}blocks[${at}] 손잡이는 id, label, type(range/toggle/select) 이 필요하다`);
           }
-          /* 손잡이를 만들었는데 코드가 안 쓰면 아무 일도 안 일어난다 — 조용한 실패를 막는다. */
+          /* 손잡이를 만들었는데 코드가 안 쓰면 아무 일도 안 일어난다. 조용한 실패를 막는다. */
           if (c && c.id && !String(block.text).includes(`{{${c.id}}}`)) {
-            fail.push(`${where}: ${at0}blocks[${at}] 손잡이 「${c.id}」 를 예제 코드가 안 쓴다 ({{${c.id}}} 자리 없음)`);
+            fail.push(`${where}: ${at0}blocks[${at}] 손잡이 ${c.id} 를 예제 코드가 안 쓴다 ({{${c.id}}} 자리 없음)`);
           }
         }
       }
       if (block.type === 'demo' && !DEMO_KINDS.has(block.kind)) {
-        fail.push(`${where}: ${at0}blocks[${at}] demo 는 kind 가 html·js·shader 중 하나여야 한다 (지금 「${block.kind}」)`);
+        fail.push(`${where}: ${at0}blocks[${at}] demo 는 kind 가 html, js, shader 중 하나여야 한다 (지금 ${block.kind})`);
       }
     }
     for (const [at, item] of (chunk.quiz || []).entries()) {
@@ -119,14 +121,25 @@ if (fail.length > 0) {
   process.exit(1);
 }
 
+/* ★ **검사가 작업 트리를 쓰면 옆 검사의 판정이 흔들린다** (2026-08-29 실측).
+   이 스크립트는 게이트이면서 생성기였다. 검사 도중 색인을 새로 구워 놓으니,
+   같은 차례의 `audit:generated` 가 그 파일을 낡았다고 했다가 다음번에는 초록이었다.
+   같은 커밋인데 결과가 갈리는 검사는 아무 말도 안 하는 것과 같다.
+   이제 굽는 것은 `--write` 를 준 자리(`gen:studymap-lessons`)뿐이고, 낡음 판정은
+   `audit:generated` 한 곳이 한다. */
+if (!WRITE) {
+  console.log(`[studymap-lessons] 강의 ${Object.values(index).reduce((sum, ids) => sum + ids.length, 0)}편 정상, 지도 칸 ${nodeIds.size}개 (색인은 안 굽는다. 굽기는 gen:studymap-lessons)`);
+  process.exit(0);
+}
+
 fs.writeFileSync(
   path.join(lessonsDir, 'index.json'),
-  JSON.stringify({ $comment: '자동 생성 — check-studymap-lessons.mjs. 위젯이 「강의 있는 칸」을 표시하는 데 쓴다.', lessons: index }, null, 2) + '\n',
+  JSON.stringify({ $comment: '자동 생성. check-studymap-lessons.mjs. 위젯이 강의 있는 칸을 표시하는 데 쓴다.', lessons: index }, null, 2) + '\n',
 );
 for (const [locale, documents] of Object.entries(searchIndex)) {
   fs.writeFileSync(path.join(lessonsDir, `search-index.${locale}.json`),
-    JSON.stringify({ $comment: '자동 생성 — check-studymap-lessons.mjs. 통합 검색용 강의·장 색인.', documents }, null, 2) + '\n');
+    JSON.stringify({ $comment: '자동 생성. check-studymap-lessons.mjs. 통합 검색용 강의, 장 색인.', documents }, null, 2) + '\n');
 }
 
 const total = Object.values(index).reduce((sum, ids) => sum + ids.length, 0);
-console.log(`[studymap-lessons] 강의 ${total}편 정상 · 지도 칸 ${nodeIds.size}개 · 목록 갱신 (${Object.entries(index).map(([l, ids]) => `${l} ${ids.length}`).join(' · ')})`);
+console.log(`[studymap-lessons] 강의 ${total}편 정상, 지도 칸 ${nodeIds.size}개, 목록 갱신 (${Object.entries(index).map(([l, ids]) => `${l} ${ids.length}`).join(', ')})`);

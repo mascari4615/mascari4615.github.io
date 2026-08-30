@@ -1,38 +1,38 @@
 /**
- * 뜬 **뒤**의 빠르기를 잰다 — 반응·애니메이션 (TASK-KL-128 ⑭)
+ * 뜬 **뒤**의 빠르기를 잰다. 반응, 애니메이션 (TASK-KL-128 ⑭)
  *
  * 왜 따로 있나: `measure-speed.mjs` 는 **뜨는 데 걸리는 시간**만 잰다. 사용자가 말한
- * 「전반적인 반응이나 애니메이션이 버벅인다」는 다 뜬 뒤의 문제라 그 값에는 안 나온다.
+ * 전반적인 반응이나 애니메이션이 버벅인다는 다 뜬 뒤의 문제라 그 값에는 안 나온다.
  *
  * 이 하네스를 만들면서 앞선 네 가지 재는 법이 **거짓 초록**을 냈다. 다시 쓰지 마라:
  *  - `requestAnimationFrame` 간격 → 늘 60fps 로 나온다. 화면을 못 그려도 rAF 는 온다.
  *  - 헤드리스 브라우저 → 애니메이션이 있어도 3초에 16프레임만 그린다. 애니 비용이 안 보인다.
  *  - 한 변형씩 몰아서 재기 → 이 기계는 다른 작업이 붙었다 떨어졌다 해서, 같은 조건을 몇 분
- *    뒤에 재면 값이 20배까지 달라진다. 「고쳤더니 나빠졌다」가 그냥 잡음이었다.
- *  - CPU 를 재면서 「기기 느리게」를 켜 두기 → 느리게 만드는 방법이 **일부러 CPU 를 태우는**
+ *    뒤에 재면 값이 20배까지 달라진다. 고쳤더니 나빠졌다가 그냥 잡음이었다.
+ *  - CPU 를 재면서 기기 느리게를 켜 두기 → 느리게 만드는 방법이 **일부러 CPU 를 태우는**
  *    것이라, 그 태운 값이 그대로 섞인다(전 대상이 8초에 8초씩 나왔다).
  *
  * 그래서 여기서는 **대상을 번갈아** 돌리고(round-robin), 중앙값과 함께 **흔들림**을 같이 낸다.
- * 차이가 흔들림보다 작으면 「모름」이라고 말한다 — 없는 개선을 있다고 하지 않기 위해서다.
+ * 차이가 흔들림보다 작으면 모름이라고 말한다. 없는 개선을 있다고 하지 않기 위해서다.
  *
  * 재는 것:
- *  - 쉬는가       손 안 대고 8초 동안 브라우저가 쓴 **CPU 초**. ★ 이 값이 KL-128 ⑭ 를 잡아냈다 —
+ *  - 쉬는가       손 안 대고 8초 동안 브라우저가 쓴 **CPU 초**. ★ 이 값이 KL-128 ⑭ 를 잡아냈다 . 
  *                주 스레드 값은 전부 깨끗한데 이것만 10배 차이가 났다. 배경이 계속 움직이면
  *                페이지가 영영 안 쉬고, 그 값은 여기에만 나온다.
- *  - 긴프레임     같은 8초의 긴 프레임(>50ms) 합 — **주 스레드** 몫.
- *  - 타이핑       화면의 첫 글자칸에 여러 글자 — 글자 하나가 화면에 뜨기까지 최악 시간.
+ *  - 긴프레임     같은 8초의 긴 프레임(>50ms) 합. **주 스레드** 몫.
+ *  - 타이핑       화면의 첫 글자칸에 여러 글자. 글자 하나가 화면에 뜨기까지 최악 시간.
  *  - 스크롤       한 화면씩 여덟 번 내리는 동안의 최악 응답.
  *
  * CPU 는 **같은 PID 집합만** 빼서 잰다. 프로세스가 뜨고 죽는 사이 합계끼리 빼면 음수가 나온다.
  *
- * 주의: 도구 화면(`/t/…`)은 배포 때 찍히는 생성물이라 **소스 경로에 없다**.
+ * 주의: 도구 화면(`/t/...`)은 배포 때 찍히는 생성물이라 **소스 경로에 없다**.
  *       그래서 기본 대상은 실서비스다. 셸만 볼 거면 `BASE=http://127.0.0.1:8801/apps/karmolab`.
  *       (로컬 `/apps/blog/` 은 지문이 박힌 **낡은 사본**이라 고친 코드가 안 보인다.)
  *
  * 사용: node scripts/measure-runtime.mjs [반복수]
  *       TARGETS=홈,도구허브 node scripts/measure-runtime.mjs 5
  *       VARIANTS=base,noanim node scripts/measure-runtime.mjs 5     # 원인 가르기(셸 한정)
- *       창이 뜬다 — 헤드리스로는 못 잰다.
+ *       창이 뜬다. 헤드리스로는 못 잰다.
  */
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
@@ -106,11 +106,13 @@ async function once(path, variant) {
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
 
   await page.goto(`${BASE}${path}`, { waitUntil: 'load' });
-  await page.waitForTimeout(3500);           // 늦게 따라오는 것들(아이콘·꾸밈)이 다 앉을 때까지
+  // 재움-의도: 늦게 따라오는 것들(아이콘, 꾸밈)이 앉은 뒤의 런타임 비용
+  await page.waitForTimeout(3500);
   await page.evaluate(VARIANTS[variant]).catch(() => {});
+  // 재움-의도: 조작 뒤 600ms 시점의 비용 측정
   await page.waitForTimeout(600);
 
-  /* ① 쉬는가 — 이 구간만 「기기 느리게」를 끈다. 켠 채로 재면 느리게 만드느라 태운 CPU 가 섞인다. */
+  /* ① 쉬는가. 이 구간만 기기 느리게를 끈다. 켠 채로 재면 느리게 만드느라 태운 CPU 가 섞인다. */
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   await page.evaluate(() => { window.__loaf = []; }).catch(() => {});
   const c0 = cpuSnap();
@@ -120,22 +122,22 @@ async function once(path, variant) {
   const idle = (await page.evaluate(() => window.__loaf).catch(() => []))
     .filter((f) => f.d > 50).reduce((s, f) => s + f.d, 0);
 
-  /* ② 타이핑 — 화면마다 첫 글자칸이 다르다. 없으면 건너뛴다(0 = 잴 게 없었다). */
+  /* ② 타이핑. 화면마다 첫 글자칸이 다르다. 없으면 건너뛴다(0 = 잴 게 없었다). */
   await page.evaluate(() => { window.__ev = []; }).catch(() => {});
   let typing = 0;
   const input = page.locator('input[type="text"], input[type="search"], input:not([type]), textarea').first();
   if (await input.count().catch(() => 0)) {
     await input.click({ timeout: 3000 }).catch(() => {});
     for (const c of '이미지를 변환') { await page.keyboard.type(c, { delay: 0 }); await page.waitForTimeout(90); }
-    /* 재움-의도: 마지막 글자 뒤에도 **늦게 오는 반응**이 있다 — 그게 쌓이라고 흘려보낸다.
-       기다릴 「된 상태」가 없다(멈추면 그때가 끝이 아니라, 안 온 것일 수 있다). */
+    /* 재움-의도: 마지막 글자 뒤에도 **늦게 오는 반응**이 있다. 그게 쌓이라고 흘려보낸다.
+       기다릴 된 상태가 없다(멈추면 그때가 끝이 아니라, 안 온 것일 수 있다). */
     await page.waitForTimeout(300);
     const ev = await page.evaluate(() => window.__ev).catch(() => []);
     typing = ev.length ? Math.max(...ev) : 0;
   }
 
-  /* ③ 스크롤 — 굴러가는 자리를 **찾아서** 굴린다. 셸은 문서가 아니라 `.main-content` 가 구른다.
-        문서만 보고 「스크롤할 게 없다」로 넘기면 정작 사람이 겪는 자리를 한 번도 안 재게 된다. */
+  /* ③ 스크롤. 굴러가는 자리를 **찾아서** 굴린다. 셸은 문서가 아니라 `.main-content` 가 구른다.
+        문서만 보고 스크롤할 게 없다로 넘기면 정작 사람이 겪는 자리를 한 번도 안 재게 된다. */
   await page.evaluate(() => { window.__ev = []; window.__loaf = []; }).catch(() => {});
   const spot = await page.evaluate(() => {
     const cands = [document.scrollingElement, ...document.querySelectorAll('*')]
@@ -165,7 +167,7 @@ const key = (t, v) => (VARIANT.length > 1 ? `${t} [${v}]` : t);
 const acc = {};
 for (const t of TARGETS) for (const v of VARIANT) acc[key(t, v)] = { cpu: [], idle: [], typing: [], scroll: [] };
 
-console.log(`[measure-runtime] ${BASE} · 기기 ${CPU}배 느리게 · 대상 ${TARGETS.length}종을 **번갈아** ${REPS}회`);
+console.log(`[measure-runtime] ${BASE}, 기기 ${CPU}배 느리게, 대상 ${TARGETS.length}종을 **번갈아** ${REPS}회`);
 for (let r = 0; r < REPS; r++) {
   for (const t of TARGETS) {
     if (!ALL_TARGETS[t]) { console.error(`모르는 대상: ${t}`); process.exit(1); }
@@ -185,4 +187,4 @@ console.log(`\n${'화면'.padEnd(w)} 쉬는가(8초 CPU)   긴프레임 합    �
 for (const k of Object.keys(acc))
   console.log(`${k.padEnd(w)} ${fmtS(acc[k].cpu)}   ${fmt(acc[k].idle)}   ${fmt(acc[k].typing)}   ${fmt(acc[k].scroll)}`);
 console.log('\n± = 가운데 절반이 걸친 폭. 두 줄의 차이가 이 폭보다 작으면 **차이가 있다고 말하면 안 된다.**');
-console.log('타이핑 0ms = 그 화면엔 글자칸이 없다 · 스크롤 0ms = 굴릴 것이 없다.');
+console.log('타이핑 0ms = 그 화면엔 글자칸이 없다, 스크롤 0ms = 굴릴 것이 없다.');

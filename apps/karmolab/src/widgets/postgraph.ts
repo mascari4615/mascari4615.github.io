@@ -1,10 +1,10 @@
 /**
- * 글 그래프 — 블로그 글 사이 링크를 힘-배치로 (change.blog-finish ②).
+ * 글 그래프. 블로그 글 사이 링크를 힘-배치로 (change.blog-finish ②).
  *
  * 원래 Chirpy 테마의 별도 모듈(`/assets/js/graph-view/graph-view.js`, rollup 산출)을 동적
- * import 했는데, 테마 철거로 그 모듈은 더 안 지어진다. 그리기를 위젯 안으로 들였다 —
+ * import 했는데, 테마 철거로 그 모듈은 더 안 지어진다. 그리기를 위젯 안으로 들였다 . 
  * d3(vendor, lazyScriptPaths 선적재) + 캔버스. 데이터 = `/assets/js/data/post-graph.json`
- * (`gen-post-pages.mjs` 가 공개 글로 매 배포 새로 굽는다 — hidden 은 안 실린다).
+ * (`gen-post-pages.mjs` 가 공개 글로 매 배포 새로 굽는다. hidden 은 안 실린다).
  */
 import { t, loadNamespace } from '../lib/i18n';
 
@@ -198,7 +198,7 @@ interface GraphLink {
 
     Toolbox.register({
         ...(Toolbox.getLazyWidgetPublicMeta?.('postgraph') ?? {}),
-        /* ★ 등록 때 읽는 말은 되받을 글을 반드시 준다 (2026-08-14) — 묶음이 아직 없다. */
+        /* ★ 등록 때 읽는 말은 되받을 글을 반드시 준다 (2026-08-14). 묶음이 아직 없다. */
         tabs: [{ id: 'graph', label: t('postgraph.t03', undefined, '그래프'), build }],
     });
 })();

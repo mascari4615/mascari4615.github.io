@@ -1,5 +1,5 @@
 /**
- * brain-resurface — 외장 뇌 회수 알림 (TASK-KAR-147 Phase 3).
+ * brain-resurface. 외장 뇌 회수 알림 (TASK-KAR-147 Phase 3).
  *
  * memo/brain/ 에서 랜덤 항목을 골라 news 채널에 "이거 기억해?" embed 전송.
  * - 하루 1회 (24h grace window, KST 10:00~22:00 사이 grace)
@@ -82,13 +82,13 @@ function buildEmbed(filePath: string, meta: Record<string, string>, body: string
   const typeEmoji: Record<string, string> = { link: '🔗', idea: '💡', reference: '📖', note: '📝' };
   const emoji = typeEmoji[type] || '🧠';
 
-  const preview = body.slice(0, 300) + (body.length > 300 ? '…' : '');
+  const preview = body.slice(0, 300) + (body.length > 300 ? '...' : '');
 
   const embed = new EmbedBuilder()
     .setTitle(`${emoji} 이거 기억해?`)
     .setDescription(`**${summary}**\n\n${preview}`)
     .setColor(EMBED_COLOR)
-    .setFooter({ text: `외장 뇌 · ${source}${tags ? ` · ${tags}` : ''}` })
+    .setFooter({ text: `외장 뇌, ${source}${tags ? `, ${tags}` : ''}` })
     .setTimestamp();
 
   // 링크면 URL 버튼 대신 embed URL
@@ -159,7 +159,7 @@ async function pollOnce(
 async function dmOwner(client: Client, text: string): Promise<void> {
   const userId = process.env.ASSISTANT_USER_ID?.trim();
   if (!userId) {
-    console.error('[BrainResurface] ASSISTANT_USER_ID 도 없음 — 알릴 곳이 없다');
+    console.error('[BrainResurface] ASSISTANT_USER_ID 도 없음. 알릴 곳이 없다');
     return;
   }
   try {
@@ -176,19 +176,19 @@ export function startBrainResurface(client: Client, memoRepoPath: string): void 
   if (timer) return;
 
   // 보낼 곳이 없으면 **조용히 넘어가지 않는다.** 조용한 skip 이 세 달 동안
-  // 회수 0건을 만든 자리다 — 로그에 한 줄 남기고 아무도 안 봤다 (TASK-KAR-233).
+  // 회수 0건을 만든 자리다. 로그에 한 줄 남기고 아무도 안 봤다 (TASK-KAR-233).
   // 이제 주인에게 DM 으로 한 번 알린다. 알림은 프로세스당 1회 (반복 X).
   let warnedNoChannel = false;
 
   const run = async (): Promise<void> => {
     const newsChannelId = channelIdFor('news');
     if (!newsChannelId) {
-      console.error('[BrainResurface] news 채널 ID 없음 — 회수 알림이 아무 데도 안 간다');
+      console.error('[BrainResurface] news 채널 ID 없음. 회수 알림이 아무 데도 안 간다');
       if (!warnedNoChannel) {
         warnedNoChannel = true;
         await dmOwner(
           client,
-          '외장 뇌 회수 알림이 갈 곳이 없어요. `news` 채널 번호가 안 잡혀서 「이거 기억해?」 를 못 보내는 중.',
+          '외장 뇌 회수 알림이 갈 곳이 없어요. `news` 채널 번호가 안 잡혀서 이거 기억해? 를 못 보내는 중.',
         );
       }
       return;
@@ -203,7 +203,7 @@ export function startBrainResurface(client: Client, memoRepoPath: string): void 
 
   void run();
   timer = setInterval(() => void run(), RESURFACE_INTERVAL_MS);
-  console.log(`[BrainResurface] ON — ${RESURFACE_INTERVAL_MS / 60000}분 간격 폴링, ${RESURFACE_COOLDOWN_H}h cooldown`);
+  console.log(`[BrainResurface] ON. ${RESURFACE_INTERVAL_MS / 60000}분 간격 폴링, ${RESURFACE_COOLDOWN_H}h cooldown`);
 }
 
 export function stopBrainResurface(): void {

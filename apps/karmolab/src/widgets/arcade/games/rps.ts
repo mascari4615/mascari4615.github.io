@@ -1,13 +1,13 @@
 /**
- * 가위바위보 — 이긴 손은 봉인된다 (TASK-KL-242)
+ * 가위바위보. 이긴 손은 봉인된다 (TASK-KL-242)
  *
  * 그냥 가위바위보는 놀이가 아니라 동전 던지기다(수가 없다). 규칙 한 줄을 얹으면 달라진다:
  * **이긴 손은 다음 판에 못 낸다.**
  *
- * 그러면 상대가 무엇을 못 내는지가 판마다 드러나고, 「이긴 손을 버리고 무엇을 남길까」가
- * 수가 된다 — 초월 틱택토에서 쓴 것과 같은 수법이다(새 소재 대신 규칙 하나를 얹는다).
+ * 그러면 상대가 무엇을 못 내는지가 판마다 드러나고, 이긴 손을 버리고 무엇을 남길까가
+ * 수가 된다. 초월 틱택토에서 쓴 것과 같은 수법이다(새 소재 대신 규칙 하나를 얹는다).
  *
- * 다섯 판. 동시에 내므로 `redact` 가 낸 손을 가린다 — 안 그러면 늦게 낸 사람이 다 이긴다.
+ * 다섯 판. 동시에 내므로 `redact` 가 낸 손을 가린다. 안 그러면 늦게 낸 사람이 다 이긴다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
@@ -52,7 +52,7 @@ export const rps: GameDef<RpsState, RpsAction> = {
     };
   },
 
-  /** 낸 손은 둘 다 낼 때까지 안 보인다 — 이게 없으면 늦게 내는 쪽이 늘 이긴다. */
+  /** 낸 손은 둘 다 낼 때까지 안 보인다. 이게 없으면 늦게 내는 쪽이 늘 이긴다. */
   redact(s, seat) {
     if (s.showAt !== 0) return s;
     return { ...s, picks: s.picks.map((v, i) => (i === seat ? v : v === -1 ? -1 : -2)) };
@@ -66,7 +66,7 @@ export const rps: GameDef<RpsState, RpsAction> = {
     if (s.over || s.showAt !== 0 || s.picks[seat] !== -1) return s;
     const hand = a?.hand;
     if (!Number.isInteger(hand) || hand < 0 || hand >= HANDS) return s;
-    /* 봉인된 손은 못 낸다 — 이 한 줄이 이 놀이의 전부다. */
+    /* 봉인된 손은 못 낸다. 이 한 줄이 이 놀이의 전부다. */
     if (hand === s.locked[seat]) return s;
 
     const picks = s.picks.map((v, i) => (i === seat ? hand : v));

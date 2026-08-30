@@ -5,7 +5,7 @@ last_modified_at: "2024-08-29T22:19:00+09:00"
 categories: [컴퓨터, 알고리즘]
 tags: [알고리듬, Dynamic-Programming]
 image: /assets/img/background/kururu-lab.jpg
-hidden: true
+board: info
 ---
 
 단일 시작점 최단경로  

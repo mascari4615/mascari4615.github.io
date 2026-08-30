@@ -1,5 +1,5 @@
 /**
- * 명령줄 뜯어보기 알맹이 — 자르는 일 (TASK-KL-250).
+ * 명령줄 뜯어보기 알맹이. 자르는 일 (TASK-KL-250).
  *
  * 이 도구가 틀리는 자리는 전부 **자르기**다. 공백으로 나누면 따옴표 안이 쪼개지고,
  * 붙은 옵션(`-xzvf`)이 한 덩어리로 남고, 파이프 너머가 같은 명령으로 보인다.
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const entry = path.join(os.tmpdir(), `sh-core-${Date.now()}.ts`);
@@ -61,7 +61,7 @@ eq(S.tokenize('   ').length, 0, '빈 줄은 빈 손');
 eq(S.expandFlags('-xzvf').join(' '), '-x -z -v -f', '붙은 짧은 옵션을 하나씩 편다');
 eq(S.expandFlags('--all').join(' '), '--all', '긴 옵션은 건드리지 않는다');
 eq(S.expandFlags('-1').join(' '), '-1', '한 글자짜리는 그대로');
-eq(S.expandFlags('--').join(' '), '--', '「여기부터 옵션 아님」 표시는 그대로');
+eq(S.expandFlags('--').join(' '), '--', '여기부터 옵션 아님 표시는 그대로');
 eq(S.expandFlags('-2.5').join(' '), '-2.5', '음수처럼 보이는 값은 옵션이 아니다');
 eq(S.expandFlags('file.txt').join(' '), 'file.txt', '옵션이 아닌 것은 그대로');
 
@@ -77,7 +77,7 @@ eq(S.expandFlags('file.txt').join(' '), 'file.txt', '옵션이 아닌 것은 그
 {
   const segs = S.explain('npm test && git push');
   eq(segs.length, 2, '&& 도 명령을 나눈다');
-  check(/성공/.test(segs[1].joinWhat), '&& 는 「앞이 성공했을 때만」');
+  check(/성공/.test(segs[1].joinWhat), '&& 는 앞이 성공했을 때만');
 }
 
 /* ── 뜻 붙이기 ────────────────────────────────────────────────────── */
@@ -95,7 +95,7 @@ eq(S.expandFlags('file.txt').join(' '), 'file.txt', '옵션이 아닌 것은 그
   check(/메시지/.test(m.what), '하위 명령의 옵션 표를 먼저 본다');
 }
 {
-  /* `git push -f` 의 `-f` 는 `git -f` 가 아니다 — 하위 명령마다 뜻이 다르다. */
+  /* `git push -f` 의 `-f` 는 `git -f` 가 아니다. 하위 명령마다 뜻이 다르다. */
   const [seg] = S.explain('git push -f');
   const f = seg.parts.find((p) => p.text === '-f');
   check(/덮어/.test(f.what), '하위 명령이 다르면 같은 글자도 다른 뜻');
@@ -119,7 +119,7 @@ check(S.dangersOf(S.explain('git reset --hard')).length > 0, '고치던 것을 �
 check(S.dangersOf(S.explain('chmod 777 file')).length > 0, '아무나 쓰게 여는 것은 위험하다');
 check(S.dangersOf(S.explain('dd if=a of=/dev/sda')).length > 0, '디스크 통째 덮어쓰기는 위험하다');
 {
-  /* 「받아서 바로 실행」은 도막 **둘이 만나야** 생기는 위험이라 조각 하나만 봐선 안 보인다. */
+  /* 받아서 바로 실행은 도막 **둘이 만나야** 생기는 위험이라 조각 하나만 봐선 안 보인다. */
   const d = S.dangersOf(S.explain('curl -s https://x.sh | sh'));
   check(/읽어 보지도 않고/.test(d.join(' ')), '받아서 바로 실행하는 것을 잡아낸다');
   check(S.dangersOf(S.explain('curl -s https://x.sh -o x.sh')).length === 0, '받기만 하는 것은 겁주지 않는다');

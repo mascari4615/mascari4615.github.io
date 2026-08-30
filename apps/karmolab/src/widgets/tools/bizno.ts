@@ -2,7 +2,7 @@
  * 사업자등록번호 검사 (TASK-KL-088)
  *
  * 열 자리 중 마지막 한 자리는 앞 아홉 자리에서 계산되는 **검증 숫자**다.
- * 그래서 오타는 대부분 계산만으로 걸러진다 — 국세청에 묻지 않아도 「형식상 불가능한 번호」 를 안다.
+ * 그래서 오타는 대부분 계산만으로 걸러진다. 국세청에 묻지 않아도 형식상 불가능한 번호 를 안다.
  * 다만 계산이 맞아도 실제로 등록된 번호인지는 알 수 없다. 그 경계를 화면에 분명히 적는다.
  */
 import { checkBiz, checkCorp, formatBiz, formatCorp, kindKeyOf, onlyDigits, spec } from '../../core/bizno';
@@ -14,11 +14,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'bizno',
     title: t('widgets.bizno.title', undefined, '사업자번호 검사'),
-    category: 'tool',
+    category: 'calc',
     desc: t(
       'widgets-desc.bizno.desc',
       undefined,
-      '사업자등록번호·법인등록번호가 형식상 올바른지 계산으로 확인합니다'
+      '사업자등록번호, 법인등록번호가 형식상 올바른지 계산으로 확인합니다'
     ),
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6V4h8v2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h5M7 16h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
@@ -35,7 +35,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     ]
   });
 
-  /** 그리기는 **말 묶음이 온 뒤**에 — 파일 실릴 때 그리면 이름 자리에 열쇠가 굳는다. */
+  /** 그리기는 **말 묶음이 온 뒤**에. 파일 실릴 때 그리면 이름 자리에 열쇠가 굳는다. */
   function draw(container: HTMLElement): void {
           /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
           const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -45,7 +45,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <label class="field-label">${esc(t('bizno.label.number'))}</label>
               <input type="text" id="bzIn" spellcheck="false" placeholder="123-45-67890" inputmode="numeric">
             </div>
-            <div class="tool-display" id="bzMark">—</div>
+            <div class="tool-display" id="bzMark">. </div>
             <div class="tool-list" id="bzOut"></div>
             <div class="tool-status" id="bzStatus">${esc(t('bizno.status.idle'))}</div>
           `;
@@ -55,8 +55,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           const mark = $<HTMLElement>('#bzMark');
           const out = $<HTMLElement>('#bzOut');
           const status = $<HTMLElement>('#bzStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
@@ -64,7 +64,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           function run(): void {
             const digits = onlyDigits(input.value);
             if (!digits) {
-              mark.textContent = '—';
+              mark.textContent = '. ';
               out.innerHTML = '';
               status.textContent = t('bizno.status.idle');
               status.className = 'tool-status';
@@ -102,7 +102,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               status.textContent = t(r.ok ? 'bizno.status.corpOk' : 'bizno.status.corpBad');
               status.className = 'tool-status' + (r.ok ? ' ok' : ' error');
             } else {
-              mark.textContent = '—';
+              mark.textContent = '. ';
               out.innerHTML = row(t('bizno.row.digits'), t('bizno.value.length', { n: digits.length }));
               status.textContent = t('bizno.status.length');
               status.className = 'tool-status';
@@ -112,7 +112,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           input.addEventListener('input', run);
 
-          // 주소로 부른 경우 (`?op=check&number=…`) — 링크만으로 결과가 보인다 (TASK-KL-205).
+          // 주소로 부른 경우 (`?op=check&number=...`). 링크만으로 결과가 보인다 (TASK-KL-205).
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined && call.op === 'check') {
             input.value = String(call.args.number ?? '');

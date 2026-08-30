@@ -1,5 +1,5 @@
 /**
- * ⚠ 자동 생성 — 손으로 고치지 말 것 (TASK-KL-203).
+ * ⚠ 자동 생성. 손으로 고치지 말 것 (TASK-KL-203).
  * 정본은 `data/locales.json` 이고, `node scripts/build-i18n.mjs` 가 여기에 찍는다.
  * 어긋나면 `npm run test:i18n` 이 잡는다.
  */
@@ -9,7 +9,7 @@ export interface LocaleMeta {
   prefix: string;
   htmlLang: string;
   ogLocale: string;
-  /** 그 언어를 쓰는 사람이 부르는 이름 — 언어 단추에는 이걸 보여 준다. */
+  /** 그 언어를 쓰는 사람이 부르는 이름. 언어 단추에는 이걸 보여 준다. */
   endonym: string;
   source: boolean;
   enabled: boolean;

@@ -18,7 +18,7 @@ test('화면이 부르는 조각을 하나도 안 흘린다', async () => {
         for (const rel of ['index.html', 'app.mjs', 'src/vault.mjs', 'src/vault-base.mjs', 'src/gallery.mjs']) {
             assert.ok(existsSync(join(dir, rel)), `${rel} 이 안 옮겨졌다`);
         }
-        /* 서버 전용 조각은 화면이 안 부르므로 따라오지 않는다 — 나가는 것이 적을수록 좋다. */
+        /* 서버 전용 조각은 화면이 안 부르므로 따라오지 않는다. 나가는 것이 적을수록 좋다. */
         const src = await readdir(join(dir, 'src'));
         for (const nope of ['upload.mjs', 'store-rclone.mjs', 'env-file.mjs', 'mirror-backfill.mjs']) {
             assert.ok(!src.includes(nope), `${nope} 은 나가면 안 된다`);

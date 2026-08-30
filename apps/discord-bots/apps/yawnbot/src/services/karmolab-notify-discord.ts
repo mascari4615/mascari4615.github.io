@@ -1,32 +1,32 @@
 /**
  * 알림을 디스코드로도 보낸다 (TASK-KL-157).
  *
- * 왜 있나: 답글이 달려도 사이트에 다시 들어와야만 안다. 종은 사이트 안에서만 울린다 —
+ * 왜 있나: 답글이 달려도 사이트에 다시 들어와야만 안다. 종은 사이트 안에서만 울린다 . 
  * 그 사람이 사이트를 안 열고 있으면 그 알림은 없는 것과 같고, 커뮤니티는 거기서 식는다.
  * 그런데 우리는 **그 사람과 이미 대화하는 창**을 가지고 있다. 남들이 메일 시스템을 붙여
  * 푸는 자리를, 우리는 이미 가진 것으로 푼다 (주간 발자국 DM 과 같은 생각).
  *
  * 왜 여기인가 (합성 지점): 알림 저장소는 디스코드를 몰라야 한다. 저장소가 discord.js 를
- * 끌고 들어오면 시험조차 못 돌린다. 그래서 저장소는 「알림이 생겼다」만 알리고(sink),
+ * 끌고 들어오면 시험조차 못 돌린다. 그래서 저장소는 알림이 생겼다만 알리고(sink),
  * 봇이 살아 있는 이 자리에서 그것을 DM 으로 옮긴다.
  *
  * 규율 셋:
  *  ① **켠 사람에게만** 간다 (기본 꺼짐).
- *  ② 묶인 알림은 **한 번만** 보낸다 — 「답글 3개」로 묶이는 알림이 세 번 오면 그게 곧 도배다.
+ *  ② 묶인 알림은 **한 번만** 보낸다. 답글 3개로 묶이는 알림이 세 번 오면 그게 곧 도배다.
  *  ③ 보내다 실패해도 사이트 알림은 그대로다. DM 은 덤이지 본체가 아니다.
  */
 import type { Client, DMChannel } from 'discord.js';
 import type { KarmolabAccountStore } from './karmolab-accounts';
 import type { KarmolabNotificationStore, Notification } from './karmolab-notifications';
 
-/** 이 사이트 주소 — DM 한 줄에서 바로 눌러 들어올 수 있게. */
+/** 이 사이트 주소. DM 한 줄에서 바로 눌러 들어올 수 있게. */
 const SITE = 'https://blog.mascari4615.com';
 
 /** 같은 알림을 짧은 시간에 다시 보내지 않는다. 열쇠 → 마지막으로 보낸 시각. */
 const lastSent = new Map<string, number>();
 const REPEAT_GUARD_MS = 10 * 60 * 1000;
 
-/** DM 한 줄. 알림이 가진 것만 쓴다 — 여기서 새로 지어내지 않는다. */
+/** DM 한 줄. 알림이 가진 것만 쓴다. 여기서 새로 지어내지 않는다. */
 export function dmTextFor(notification: Notification): string {
     const head = notification.count > 1 ? `${notification.title} (${notification.count})` : notification.title;
     const body = notification.body ? `\n${notification.body}` : '';
@@ -48,7 +48,7 @@ export function shouldSend(notification: Notification, now: number = Date.now())
     return true;
 }
 
-/** 시험에서 상태를 비운다 — 안 그러면 앞 시험이 남긴 열쇠가 뒤 시험을 막는다. */
+/** 시험에서 상태를 비운다. 안 그러면 앞 시험이 남긴 열쇠가 뒤 시험을 막는다. */
 export function resetRepeatGuard(): void {
     lastSent.clear();
 }

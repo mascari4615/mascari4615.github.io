@@ -1,5 +1,5 @@
 // 사용자 → TASK 스레드 답변을 워커가 읽는 결정 저장소 (KAR-018-Y).
-// 발단 완료조건 #2 "escalation 승인 루프 닫힘" — 워커가 "A/B?" 물으면
+// 발단 완료조건 #2 "escalation 승인 루프 닫힘". 워커가 "A/B?" 물으면
 // 사용자가 그 TASK 디스코드 스레드에 답글 → 봇이 여기 기록 → 다음 워커
 // pickup 시 buildWorkerPrompt 가 임베드 → claude 가 답 갖고 이어감.
 //
@@ -46,7 +46,7 @@ export function formatDecisionsBlock(decisions: Decision[]): string {
     (d, i) => `${i + 1}. (${d.by}) ${d.text.replace(/\s+/g, ' ').trim()}`,
   );
   return [
-    '[사용자 결정 — 디스코드 스레드 답변. *이 지시대로* 진행, 재질문 X]',
+    '[사용자 결정. 디스코드 스레드 답변. *이 지시대로* 진행, 재질문 X]',
     ...lines,
   ].join('\n');
 }

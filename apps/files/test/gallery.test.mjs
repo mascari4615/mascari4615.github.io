@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { previewKind } from '../src/vault.mjs';
-import { mountGallery, worthGallery } from '../src/gallery.mjs';
+import { mountGallery, worthGallery, CELL_SIZES, cellSize } from '../src/gallery.mjs';
 
 test('그림이 하나도 없으면 액자 보기를 권하지 않는다', () => {
     const kind = previewKind;
@@ -9,8 +9,8 @@ test('그림이 하나도 없으면 액자 보기를 권하지 않는다', () =>
     assert.equal(worthGallery([{ path: 'a.zip' }, { path: 'p/c.png' }], kind), true);
 });
 
-/* mountGallery 는 브라우저 것을 쓴다 — 필요한 만큼만 흉내 낸다.
-   여기서 재는 것은 「동시에 몇 개나 부르나」와 「뜰 때 되돌려 주나」 둘이다. */
+/* mountGallery 는 브라우저 것을 쓴다. 필요한 만큼만 흉내 낸다.
+   여기서 재는 것은 동시에 몇 개나 부르나와 뜰 때 되돌려 주나 둘이다. */
 function fakeDom() {
     const made = [];
     class El {
@@ -28,7 +28,7 @@ function fakeDom() {
         }
         replaceChildren() {}
         set innerHTML(html) {
-            /* 칸 하나에 data-path·data-kind 가 있다는 계약만 흉내 낸다. */
+            /* 칸 하나에 data-path, data-kind 가 있다는 계약만 흉내 낸다. */
             made.length = 0;
             for (const m of html.matchAll(/data-path="([^"]+)" data-kind="([^"]+)"/g)) {
                 const el = new El();
@@ -48,7 +48,7 @@ function fakeDom() {
             observed.push(this);
         }
         observe(el) {
-            /* 곧바로 「보인다」로 친다 — 지연 자체가 아니라 동시 개수를 재는 시험이다. */
+            /* 곧바로 보인다로 친다. 지연 자체가 아니라 동시 개수를 재는 시험이다. */
             this.cb([{ isIntersecting: true, target: el }]);
         }
         unobserve() {}
@@ -108,4 +108,14 @@ test('그림이 아닌 칸은 받지 않는다', async () => {
     });
     await new Promise((r) => setTimeout(r, 60));
     assert.equal(called, 0);
+});
+
+test('칸 크기는 넷. 모르는 값은 보통으로', () => {
+    assert.equal(CELL_SIZES.length, 4);
+    assert.equal(cellSize('lg').px, 220);
+    assert.equal(cellSize(null).id, 'md');
+    assert.equal(cellSize('없는값').id, 'md');
+    /* 작은 것부터 큰 것 순. 버튼이 그 차례로 선다 */
+    const px = CELL_SIZES.map((c) => c.px);
+    assert.deepEqual(px, [...px].sort((a, b) => a - b));
 });

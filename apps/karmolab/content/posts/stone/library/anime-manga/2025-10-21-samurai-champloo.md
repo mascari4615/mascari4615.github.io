@@ -5,7 +5,7 @@ last_modified_at: "2025-10-21T07:21:00+09:00"
 categories: [수필, 생각]
 tags: [문화]
 image: /assets/img/background/backtop.gif
-hidden: true
+board: me
 ---
 
 ## 머리말

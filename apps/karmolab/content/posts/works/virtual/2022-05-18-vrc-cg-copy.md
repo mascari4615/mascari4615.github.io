@@ -4,7 +4,7 @@ date: "2022-05-18T00:00:00+09:00"
 last_modified_at: "2024-11-09T08:11:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
-hidden: true
+board: me
 ---
 
 ## 머리말

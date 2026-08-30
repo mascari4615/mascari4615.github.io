@@ -1,4 +1,4 @@
-/** TASK-WM-201 — 기기 로그 저장소. 폰이 보내는 값은 외부 입력이라 경계값이 본체. */
+/** TASK-WM-201. 기기 로그 저장소. 폰이 보내는 값은 외부 입력이라 경계값이 본체. */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
@@ -32,7 +32,7 @@ function line(msg: string, level = 'log', t = 1_700_000_000_000) {
   return { t, level, msg };
 }
 
-describe('parseBatch — 외부 입력 방어', () => {
+describe('parseBatch. 외부 입력 방어', () => {
   it('세션 이름에 경로 조작이 오면 거절한다', () => {
     for (const bad of ['../etc/passwd', 'a/b', 'a\\b', '', '.hidden', 'x'.repeat(65)]) {
       expect(isValidSession(bad), bad).toBe(false);
@@ -58,7 +58,7 @@ describe('parseBatch — 외부 입력 방어', () => {
     expect(result.dropped).toBe(2);
   });
 
-  it('배치 줄 수·길이 상한을 넘기면 잘라내고 버린 수를 알려준다', () => {
+  it('배치 줄 수, 길이 상한을 넘기면 잘라내고 버린 수를 알려준다', () => {
     const many = Array.from({ length: DEFAULT_LIMITS.maxLinesPerBatch + 10 }, (_, i) => line(`m${i}`));
     const result = parseBatch({ session: 's1', lines: many });
     expect(result.batch?.lines).toHaveLength(DEFAULT_LIMITS.maxLinesPerBatch);
@@ -105,7 +105,7 @@ describe('appendBatch / tailSession', () => {
     expect(tail.map((l) => l.msg.split(' ')[0])).toEqual(['line-4998', 'line-4999']);
   });
 
-  it('레벨·검색 필터가 먹는다 (파일 전체를 훑어서라도 찾는다)', () => {
+  it('레벨, 검색 필터가 먹는다 (파일 전체를 훑어서라도 찾는다)', () => {
     appendBatch(dir, {
       session: 's1',
       lines: [
@@ -183,7 +183,7 @@ describe('pruneSessions', () => {
 });
 
 describe('deleteSession', () => {
-  it('시험용 세션을 지우고, 없는 세션·경로조작은 false', () => {
+  it('시험용 세션을 지우고, 없는 세션, 경로조작은 false', () => {
     appendBatch(dir, { session: 'smoke', lines: [line('a')] });
     expect(deleteSession(dir, 'smoke')).toBe(true);
     expect(listSessions(dir)).toEqual([]);
@@ -192,13 +192,13 @@ describe('deleteSession', () => {
   });
 });
 
-describe('에러 판정 · 지문', () => {
+describe('에러 판정, 지문', () => {
   it('에러급 레벨만 참', () => {
     expect(['error', 'exception', 'assert'].every(isErrorLevel)).toBe(true);
     expect(['log', 'warning'].some(isErrorLevel)).toBe(false);
   });
 
-  it('같은 에러의 반복은 같은 지문 — 뒷줄이 달라도 접힌다', () => {
+  it('같은 에러의 반복은 같은 지문. 뒷줄이 달라도 접힌다', () => {
     const a = { t: 1, level: 'exception', msg: 'NullReferenceException\n어쩌고', stack: 'at Foo() line 1\nat Bar()' };
     const b = { t: 2, level: 'exception', msg: 'NullReferenceException\n다른 뒷줄', stack: 'at Foo() line 1\nat Baz()' };
     const c = { t: 3, level: 'exception', msg: 'IndexOutOfRange', stack: 'at Foo() line 1' };

@@ -1,8 +1,8 @@
 /**
- * panels/doc-section.ts — 설명 (TASK-KL-202 개편 2 일곱째 조각 + 노트 1급 객체).
+ * panels/doc-section.ts. 설명 (TASK-KL-202 개편 2 일곱째 조각 + 노트 1급 객체).
  *
  * 칸은 그대로 하나지만 **글의 집이 둘**이다: 이 노드 안(제자리) 또는 공용 글(`spec.notes`).
- * 참조 중이면 「타자 = 공용 글 수정」이라 다른 자리도 함께 바뀐다 — 그 사실을 칸 위에
+ * 참조 중이면 타자 = 공용 글 수정이라 다른 자리도 함께 바뀐다. 그 사실을 칸 위에
  * 눈에 띄게 적어 둔다. 모르고 고치면 남의 카드가 바뀌는 것이 가장 나쁜 놀람이다.
  */
 import { notesOf, resolveDoc, setDocText, shareDoc, useNote, unlinkNote, noteUsers, noteBlocks } from '../../../lib/karmograph/notes';
@@ -11,15 +11,15 @@ import type { PanelCtx } from './context';
 import { t, loadNamespace } from '../../../lib/i18n';
 
 /**
- * 칸 하나의 겉모습만 다르다 — 노드는 「설명」, 선은 「이 관계의 이야기」.
- * 속(공용 글 승격·불러쓰기·떼기)은 **완전히 같다**: 글에게 노드인지 선인지는 상관없다.
+ * 칸 하나의 겉모습만 다르다. 노드는 설명, 선은 이 관계의 이야기.
+ * 속(공용 글 승격, 불러쓰기, 떼기)은 **완전히 같다**: 글에게 노드인지 선인지는 상관없다.
  */
 export interface DocFieldSkin {
   /** 칸 이름. */
   label: string;
   /** 빈 칸에 뜨는 안내. */
   placeholder: string;
-  /** `data-km` 열쇠 앞머리 — 노드 패널과 선 패널의 칸이 한 화면에 같이 뜨진 않지만 열쇠는 갈라 둔다. */
+  /** `data-km` 열쇠 앞머리. 노드 패널과 선 패널의 칸이 한 화면에 같이 뜨진 않지만 열쇠는 갈라 둔다. */
   key: string;
   /** 칸 밑 설명 한 줄(HTML 허용). */
   hint?: string;
@@ -28,7 +28,7 @@ export interface DocFieldSkin {
 /**
  * ★ 겉모습은 **부를 때 만든다**(상수가 아니라 함수).
  *
- * 상수로 두면 `t()` 가 **파일을 읽어 들이는 순간** 돈다 — 말 묶음이 아직 안 온 시점이라
+ * 상수로 두면 `t()` 가 **파일을 읽어 들이는 순간** 돈다. 말 묶음이 아직 안 온 시점이라
  * 예전에는 한국어를 곁들여 두는 것으로 때웠고(그래서 한국어가 코드에 남았다), 그걸 걷어내자
  * 위젯이 통째로 안 떴다(실측 2026-08-14). 그릴 때 부르면 두 문제가 함께 사라진다.
  */
@@ -46,8 +46,8 @@ export const edgeDocSkin = (): DocFieldSkin => ({
 });
 
 /**
- * 이 글을 쓰는 자리들 — **패널을 옮기지 않고 그 자리에서** 편다 (Roam 의 linked references).
- * 「N곳이 씁니다」만 있으면 그 N곳이 어디인지 확인하러 목록 패널까지 가야 하고, 대개 안 간다.
+ * 이 글을 쓰는 자리들. **패널을 옮기지 않고 그 자리에서** 편다 (Roam 의 linked references).
+ * N곳이 씁니다만 있으면 그 N곳이 어디인지 확인하러 목록 패널까지 가야 하고, 대개 안 간다.
  */
 function sharedUsersHtml(ctx: PanelCtx, noteId: string, key: string): string {
   const esc = ctx.esc;
@@ -78,9 +78,9 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
   const shared = node.docRef ? notesOf(spec).find((n) => n.id === node.docRef) : undefined;
   const others = notesOf(spec).filter((n) => n.id !== node.docRef);
   const users = shared ? noteUsers(spec, shared.id) : 0;
-  // 다른 맵에서 쓰던 글도 고를 수 있어야 한다 — 맵마다 복붙하면 그 순간 갈라진다.
+  // 다른 맵에서 쓰던 글도 고를 수 있어야 한다. 맵마다 복붙하면 그 순간 갈라진다.
   const foreign = ctx.foreignNotes();
-  // 이 글이 **실어 나르고 있는** 공용 글들 — 실은 자리에서 그대로 고치게 한다(Logseq 임베드).
+  // 이 글이 **실어 나르고 있는** 공용 글들. 실은 자리에서 그대로 고치게 한다(Logseq 임베드).
   const embedded = [...resolveDoc(spec, node).matchAll(/\{\{note:([^}]+)\}\}/g)]
     .map((m) => notesOf(spec).find((n) => n.id === m[1].trim().split('#')[0]))
     .filter((n): n is NonNullable<typeof n> => Boolean(n));
@@ -109,7 +109,7 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
       ${others.length === 0 ? '' : `<select data-km="${skin.key}-embed">
         <option value="">${esc(t('karmograph.embedded.msg5'))}</option>
         ${others.map((n) => {
-          // 글에 `^표식`이 달려 있으면 **그 대목만** 고를 수 있게 함께 편다 — 열 줄짜리 규칙에서
+          // 글에 `^표식`이 달려 있으면 **그 대목만** 고를 수 있게 함께 편다. 열 줄짜리 규칙에서
           // 한 줄만 싣고 싶은 일이 훨씬 잦다 (Obsidian 블록 참조 계보).
           const blocks = noteBlocks(n.text);
           return `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))} ${esc(t('karmograph.docWhole'))}</option>`
@@ -122,15 +122,15 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
           ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))} ${esc(t('karmograph.docUsedIn', { n: noteUsers(spec, n.id) }))}</option>`).join('')}
         </optgroup>`}
         ${foreign.length === 0 ? '' : `<optgroup label="${esc(t('karmograph.docOtherMap'))}">
-          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))} — ${esc(n.from ?? t('karmograph.embedded.msg7'))}</option>`).join('')}
+          ${foreign.slice(0, 20).map((n) => `<option value="${esc(n.id)}">${esc(n.title || t('karmograph.noteLabel'))}. ${esc(n.from ?? t('karmograph.embedded.msg7'))}</option>`).join('')}
         </optgroup>`}
       </select>`}
     </div>`;
 }
 
 /**
- * @param touch 구조가 바뀐 뒤 저장·다시 그리기. `true` 를 주면 패널도 다시 그린다
- *   — 타자 중에는 절대 `true` 를 주면 안 된다(커서가 날아간다).
+ * @param touch 구조가 바뀐 뒤 저장, 다시 그리기. `true` 를 주면 패널도 다시 그린다
+ *  . 타자 중에는 절대 `true` 를 주면 안 된다(커서가 날아간다).
  * @param redrawLinks 설명 안 `[[이름]]` 목록만 다시 그리는 손.
  */
 export function bindDocField(
@@ -194,7 +194,7 @@ export function bindDocField(
   if (useSel) {
     useSel.onchange = () => {
       if (!useSel.value) return;
-      // 이 맵에 없는 글이면 먼저 데려온다(id 는 그대로 — 그래야 두 맵이 같은 글을 쓴다).
+      // 이 맵에 없는 글이면 먼저 데려온다(id 는 그대로. 그래야 두 맵이 같은 글을 쓴다).
       if (!notesOf(spec).some((n) => n.id === useSel.value)) ctx.adoptNote(useSel.value);
       useNote(spec, node, useSel.value);
       touch(true);

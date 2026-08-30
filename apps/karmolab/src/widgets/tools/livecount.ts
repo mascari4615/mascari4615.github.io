@@ -1,11 +1,11 @@
 /**
- * 흐른 시간 카운터 — 화면 (흡수 ⓐ 「라이브 카운터」)
+ * 흐른 시간 카운터. 화면 (흡수 ⓐ 라이브 카운터)
  *
  * 숫자가 **계속 올라가는 것**이 이 도구의 전부다. 멈춘 숫자는 그냥 날짜 계산기고, 그건 이미 있다.
  *
  * 계산은 `core/livecount.ts`. 여기서는 1초마다 다시 그리기만 한다.
  *
- * ★ 화면을 떠나면 타이머를 끈다 — 안 그러면 도구를 닫아도 초당 한 번씩 계속 돈다.
+ * ★ 화면을 떠나면 타이머를 끈다. 안 그러면 도구를 닫아도 초당 한 번씩 계속 돈다.
  * 그런 게 열 개 쌓이면 배터리가 닳고, 원인은 아무 데도 안 보인다(가만히 둔 화면이 초당 300번
  * 그리던 사고를 하루 전에 겪었다). `Toolbox.onDispose` 가 그 자리를 위해 있다.
  */
@@ -20,7 +20,7 @@ import { intervalWhileVisible } from '../../lib/tick';
   Toolbox.register({
     id: 'livecount',
     title: t('widgets.livecount.title', undefined, "흐른 시간 카운터"),
-    category: 'tool',
+    category: 'calc',
     desc: t('widgets-desc.livecount.desc', undefined, "그날 이후 흐른 시간이 초 단위로 올라갑니다. 하루 몇 번 기준으로 어림도 냅니다"),
     layout: 'wide',
     tabs: [
@@ -36,7 +36,7 @@ import { intervalWhileVisible } from '../../lib/tick';
                 <label class="tool-label" for="lcAt">${esc(t('livecount.label.lcAt'))}</label>
                 <input id="lcAt" class="tool-input" type="datetime-local" />
               </div>
-              <div id="lcBig" class="tool-display" style="font-variant-numeric:tabular-nums;">—</div>
+              <div id="lcBig" class="tool-display" style="font-variant-numeric:tabular-nums;">. </div>
               <div id="lcSub" class="tool-hint"></div>
               <div class="tool-row" style="margin-top:var(--space-md);">
                 <label class="tool-label" for="lcRate">${esc(t('livecount.label.lcRate'))}</label>
@@ -51,14 +51,14 @@ import { intervalWhileVisible } from '../../lib/tick';
           const rateInput = $<HTMLInputElement>('#lcRate');
           const unitInput = $<HTMLInputElement>('#lcUnit');
 
-          /* 기본값 = 올해 1월 1일. 빈 화면보다 「지금 뭐가 보이는지」가 먼저다. */
+          /* 기본값 = 올해 1월 1일. 빈 화면보다 지금 뭐가 보이는지가 먼저다. */
           const start = new Date(new Date().getFullYear(), 0, 1);
           atInput.value = `${start.getFullYear()}-01-01T00:00`;
 
           const tick = (): void => {
             const at = new Date(atInput.value);
             if (Number.isNaN(at.getTime())) {
-              $('#lcBig').textContent = '—';
+              $('#lcBig').textContent = '. ';
               $('#lcSub').textContent = t('livecount.t04');
               return;
             }
@@ -91,10 +91,10 @@ import { intervalWhileVisible } from '../../lib/tick';
           tick();
 
           /*
-           * 초마다 다시 그린다. 화면을 떠나면 반드시 멈춘다 — 안 멈추면 닫은 도구가 계속 돈다.
+           * 초마다 다시 그린다. 화면을 떠나면 반드시 멈춘다. 안 멈추면 닫은 도구가 계속 돈다.
            * (숨겨진 탭에서는 브라우저가 알아서 늦춰 주므로 따로 더 하지 않는다.)
            */
-          // 보이는 동안만 돈다 (`lib/tick`) — 돌아오면 한 번 바로 다시 세므로 숫자가 안 뒤처진다.
+          // 보이는 동안만 돈다 (`lib/tick`). 돌아오면 한 번 바로 다시 세므로 숫자가 안 뒤처진다.
           const stopTick = intervalWhileVisible(tick, 1000);
           Toolbox.onDispose?.(stopTick);
                   });

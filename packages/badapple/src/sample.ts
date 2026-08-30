@@ -1,11 +1,11 @@
 /**
- * 굽기 — 영상 한 편에서 흑백 격자 프레임을 뽑는다.
+ * 굽기. 영상 한 편에서 흑백 격자 프레임을 뽑는다.
  *
- * 브라우저에서 한다. ffmpeg 을 깔라고 요구하는 순간 「아무나 자기 영상을 넣어 본다」가 죽고,
+ * 브라우저에서 한다. ffmpeg 을 깔라고 요구하는 순간 아무나 자기 영상을 넣어 본다가 죽고,
  * 이 시스템은 내 컴퓨터에서만 도는 물건이 된다. 레포에 이미 영상에서 그림을 뽑는 것과
  * 밝기를 재는 것이 있어서, 같은 방식을 그대로 따른다:
  *   - 그 시각으로 옮기고 옮겨질 때까지 기다린다 (이미 도착해 있으면 신호가 안 오므로 바로 진행)
- *   - 밝기는 단순 평균이 아니라 시감 가중 — 평균을 쓰면 초록이 지나치게 밝게 잡힌다
+ *   - 밝기는 단순 평균이 아니라 시감 가중. 평균을 쓰면 초록이 지나치게 밝게 잡힌다
  */
 
 /** 시감 가중 밝기 (0~255). */
@@ -22,7 +22,7 @@ export interface SampleOptions {
 	fps?: number;
 	/** 이 밝기보다 밝으면 켜진 칸 (0~255). 기본 128. */
 	threshold?: number;
-	/** 밝고 어두움을 뒤집는다. 원본이 「흰 배경에 검은 실루엣」이면 켜 준다. */
+	/** 밝고 어두움을 뒤집는다. 원본이 흰 배경에 검은 실루엣이면 켜 준다. */
 	invert?: boolean;
 	/** 여기부터 (초). 기본 0. */
 	startSec?: number;
@@ -32,10 +32,10 @@ export interface SampleOptions {
 	onProgress?: (done: number, total: number) => void;
 	/**
 	 * 밝기 평면(칸당 0~255)도 같이 뽑을지. 계조가 있어야 아스키 아트가 그림처럼 보인다.
-	 * 실루엣 표면은 이걸 몰라도 되므로 기본은 끔 — 파일이 커지기 때문이다.
+	 * 실루엣 표면은 이걸 몰라도 되므로 기본은 끔. 파일이 커지기 때문이다.
 	 */
 	levels?: boolean;
-	/** 색 평면(칸당 R·G·B)도 같이 뽑을지. */
+	/** 색 평면(칸당 R, G, B)도 같이 뽑을지. */
 	colors?: boolean;
 }
 
@@ -114,7 +114,7 @@ export async function sampleVideo(video: HTMLVideoElement, options: SampleOption
 			const bright = luma(red, green, blue);
 			const on = invert ? bright < threshold : bright >= threshold;
 			cells[c] = on ? 1 : 0;
-			// 반전은 밝기에도 같이 먹인다 — 안 그러면 실루엣과 계조가 서로 반대로 그려진다.
+			// 반전은 밝기에도 같이 먹인다. 안 그러면 실루엣과 계조가 서로 반대로 그려진다.
 			if (level) level[c] = Math.max(0, Math.min(255, Math.round(invert ? 255 - bright : bright)));
 			if (color) {
 				color[c * 3] = invert ? 255 - red : red;

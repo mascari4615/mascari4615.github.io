@@ -1,20 +1,27 @@
 /**
- * 「먹」 — 그림 화면 (TASK-KL-240 · 2b)
+ * 먹. 그림 화면 (TASK-KL-240, 2b)
  *
- * 문서 모델(`doc`)·합성(`composite`)·붓(`brush`)·픽셀(`pixel`)을 사람 손에 잇는 자리.
- * 여기서만 DOM 을 안다 — 아래 파일들은 계속 브라우저를 모른다.
+ * 문서 모델(`doc`), 합성(`composite`), 붓(`brush`), 픽셀(`pixel`)을 사람 손에 잇는 자리.
+ * 여기서만 DOM 을 안다. 아래 파일들은 계속 브라우저를 모른다.
  *
- * 화면은 네 칸이다: 왼쪽 도구 · 가운데 그림 · 오른쪽 레이어 · 아래 타임라인.
+ * 화면은 네 칸이다: 왼쪽 도구, 가운데 그림, 오른쪽 레이어, 아래 타임라인.
  * 그림을 다시 그리는 길은 **하나**(`repaint`)뿐이다. 붓질 중에는 더러워진 사각형만 다시 섞고,
- * 레이어를 바꾸면 전체를 다시 섞는다 — 두 경우가 같은 함수를 지나므로 화면이 어긋날 수 없다.
+ * 레이어를 바꾸면 전체를 다시 섞는다. 두 경우가 같은 함수를 지나므로 화면이 어긋날 수 없다.
  */
 
 import { loadNamespace, t } from '../../lib/i18n';
-// 내려주기·굽기는 공용 한 자리(`tools/shared/image`) — 여기 있던 지역 download 는 그것과 같은 네 줄이었다.
+// 내려주기, 굽기는 공용 한 자리(`tools/shared/image`). 여기 있던 지역 download 는 그것과 같은 네 줄이었다.
 import { download, encode } from '../tools/shared/image';
 import { intervalWhileVisible } from '../../lib/tick';
 import { Stroke, defaultBrush, pickColor, type BrushSettings } from './brush';
-import { composite, spriteSheet } from './composite';
+import { composite, compositeAll, spriteSheet } from './composite';
+/* GIF 인코더. 약속만 여기서 받고 코드는 늦게 온다. 이미지 묶음이 `tools/gifenc` 를 같이 실으므로
+   먹이 뜬 시점에는 이미 와 있다 (`widgets-lazy-meta.ts` 의 image 묶음 lazyScriptPaths). */
+import { getKarmoGif } from '../../lib/karmogif';
+import { encodeApng } from './apng';
+import { injectStyles } from './styles';
+import { meokMarkup } from './markup';
+import { EMOTE_PRESETS, emoteName, fitBox, findPreset, limitRatio, overBudgetHint, type EmotePreset } from './emote';
 import {
   BLEND_MODES, activeLayer, addLayer, celAt, cloneSurface, createDoc, createSurface,
   ensureCel, findLayer, insertFrame, isHold, mergeDown, moveLayer, removeFrame, removeLayer,
@@ -37,7 +44,7 @@ declare const Toolbox: {
   register(spec: unknown): void;
   getLazyWidgetPublicMeta?(id: string): unknown;
   onDispose?(fn: () => void): void;
-  /** 남이 넘긴 파일을 받는 창구 (TASK-KL-238 / 2) — 선언(`accepts`)만 하고 안 받으면 빈 화면이 뜬다. */
+  /** 남이 넘긴 파일을 받는 창구 (TASK-KL-238 / 2). 선언(`accepts`)만 하고 안 받으면 빈 화면이 뜬다. */
   onHandoff?(id: string, cb: (file: File) => void): void;
 };
 
@@ -48,15 +55,9 @@ const esc = (value: unknown): string =>
 
 const T = (key: string, fallback: string): string => t('meok.' + key, undefined, fallback);
 
-/** 도구 단추 하나 — 아이콘은 글리프가 아니라 선 그림이다(글꼴 따라 안 달라진다). */
-const toolButton = (id: string, hotkey: string, label: string, path: string, active = false): string =>
-  '<button data-tool="' + id + '"' + (active ? ' class="active"' : '') + ' title="' + esc(label + ' (' + hotkey + ')') + '">' +
-  '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>' +
-  '<small>' + esc(label) + '</small></button>';
-
 /* ===== 판 ↔ 캔버스 ===== */
 
-/** 판을 캔버스로 — 저장·내보내기에서 쓴다. */
+/** 판을 캔버스로. 저장, 내보내기에서 쓴다. */
 function surfaceToCanvas(surface: Surface): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = surface.w;
@@ -85,7 +86,7 @@ const safeName = (name: string): string => name.trim().replace(/[^a-z0-9가-힣_
 
 /**
  * 글자를 판에 굽는다. 글꼴 그리기는 브라우저만 할 수 있으므로 여기(화면 파일)에 둔다.
- * 새 레이어로 얹으므로, 굳힌 뒤에도 위치·크기를 레이어째로 옮길 수 있다.
+ * 새 레이어로 얹으므로, 굳힌 뒤에도 위치, 크기를 레이어째로 옮길 수 있다.
  */
 function textSurface(text: string, size: number, color: string, w: number, h: number): Surface {
   const canvas = document.createElement('canvas');
@@ -97,7 +98,7 @@ function textSurface(text: string, size: number, color: string, w: number, h: nu
   ctx.font = '600 ' + size + 'px "Pretendard Variable", Pretendard, system-ui, sans-serif';
   const lines = text.split(String.fromCharCode(10));
   const lineHeight = size * 1.28;
-  /* 판 한가운데에 놓는다 — 어디에 놓을지는 레이어를 끌어 정하는 게 자연스럽다. */
+  /* 판 한가운데에 놓는다. 어디에 놓을지는 레이어를 끌어 정하는 게 자연스럽다. */
   let top = Math.max(0, (h - lines.length * lineHeight) / 2);
   lines.forEach(line => {
     const width = ctx.measureText(line).width;
@@ -113,7 +114,7 @@ function textSurface(text: string, size: number, color: string, w: number, h: nu
 /* ===== 자동 저장 창고 =====
  *
  * localStorage 는 5MB 언저리라 그림 한 장에도 넘친다. IndexedDB 에 접은 문서를 그대로 넣는다.
- * 판 하나(`last`)만 쓴다 — 「이 브라우저에서 마지막에 그리던 것」이 다음에 열 때 그대로 뜨는 것,
+ * 판 하나(`last`)만 쓴다. 이 브라우저에서 마지막에 그리던 것이 다음에 열 때 그대로 뜨는 것,
  * 그게 여기서 필요한 전부다(여러 판 관리는 파일로 내보내는 쪽이 정직하다).
  */
 
@@ -158,136 +159,32 @@ async function loadLast(): Promise<StoredDoc | null> {
 
 function buildMeok(container: HTMLElement): void {
   let doc: Doc = createDoc(1024, 1024, T('untitled', '새 그림'));
-  const history = new History(300);
+  /* 되돌리기 300 단계, 그리고 무게로 512MB. 개수만 두면 큰 판에서 터진다 (2048^2 전면 필터
+     하나가 전과 후 두 벌로 32MB). 무게가 넘으면 오래된 것부터 버리고 한 단계는 남긴다. */
+  const history = new History(300, 900, 512 * 1024 * 1024);
   let brush: BrushSettings = defaultBrush();
   let tool: ToolId = 'brush';
   let onionBefore = 0;
   let onionAfter = 0;
-  /** 프레임 넘겨 보기를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다 — 그리기만 하는 시계다. */
+  /** 프레임 넘겨 보기를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. 그리기만 하는 시계다. */
   let stopPlaying: (() => void) | null = null;
   let stroke: Stroke | null = null;
-  let strokeBase: Surface | null = null;
   let panning: { x: number; y: number } | null = null;
   let spaceDown = false;
   let selection: Selection = createSelection(doc.w, doc.h);
-  /* 고르는 중인 몸짓 — 사각형은 시작점, 올가미는 지나온 점들. */
+  /* 고르는 중인 몸짓. 사각형은 시작점, 올가미는 지나온 점들. */
   let picking: { from: { x: number; y: number }; points: Array<{ x: number; y: number }> } | null = null;
   /** 고른 자리 점선(개미) 애니메이션을 멈추는 함수 (`lib/tick`). 이것도 그리기만 한다. */
   let stopAnts: (() => void) | null = null;
 
-  container.innerHTML =
-    '<div class="meok">' +
-    '<header class="meok-bar">' +
-      '<strong class="meok-logo">먹</strong>' +
-      '<input class="meok-name" data-name aria-label="' + esc(T('docName', '그림 이름')) + '">' +
-      '<span class="meok-sep"></span>' +
-      '<button data-act="new" title="' + esc(T('newHelp', '빈 그림을 새로 시작한다')) + '">' + esc(T('new', '새로')) + '</button>' +
-      '<button data-act="new-pixel" title="' + esc(T('newPixelHelp', '격자에 붙는 픽셀 그림 — 도트 애니메이션용')) + '">' + esc(T('newPixel', '픽셀')) + '</button>' +
-      '<label class="meok-file">' + esc(T('open', '열기')) +
-        '<input data-open type="file" accept="image/*,application/json,.json,.meok,.ditherdeck.json" hidden></label>' +
-      '<button data-act="add-text" title="' + esc(T('addTextHelp', '글자를 새 레이어로 얹는다')) + '">' + esc(T('addText', '글자')) + '</button>' +
-      '<button data-act="add-image" title="' + esc(T('addImageHelp', '그림 파일을 새 레이어로 얹는다')) + '">' + esc(T('addImage', '붙이기')) + '</button>' +
-      '<input data-place type="file" accept="image/*" hidden>' +
-      '<button data-act="undo" data-hot="Ctrl+Z">' + esc(T('undo', '되돌리기')) + '</button>' +
-      '<button data-act="redo" data-hot="Ctrl+Shift+Z">' + esc(T('redo', '다시')) + '</button>' +
-      '<span class="meok-sep"></span>' +
-      '<button data-act="save-png">' + esc(T('savePng', 'PNG')) + '</button>' +
-      '<button data-act="to-shelf" title="' + esc(T('toShelfHelp', '만든 것을 선반에 올린다 (CC0)')) + '">' + esc(T('toShelf', '선반')) + '</button>' +
-      '<button data-act="save-sheet">' + esc(T('saveSheet', '시트')) + '</button>' +
-      '<button data-act="save-meok" title="' + esc(T('saveMeokHelp', '레이어·프레임까지 그대로 담은 파일')) + '">' + esc(T('saveMeok', '.meok')) + '</button>' +
-      '<button data-act="save-project">' + esc(T('saveProject', '프로젝트')) + '</button>' +
-      '<span class="meok-status" data-status></span>' +
-    '</header>' +
-    '<div class="meok-body">' +
-      '<aside class="meok-tools">' +
-        toolButton('brush', 'B', T('toolBrush', '붓'), '<path d="M4 20c2.5.4 4.6-.6 5.4-2.6.5-1.3 0-2.6-1-3.3-1.2-.8-2.8-.5-3.5.8C4 16.4 4.2 18.3 4 20z"/><path d="M10.5 14.8 19.2 5.4a1.7 1.7 0 0 0-2.4-2.4L7.3 11.6"/>', true) +
-        toolButton('eraser', 'E', T('toolEraser', '지우개'), '<path d="m5.5 15.5 6-6a2 2 0 0 1 2.8 0l3.7 3.7a2 2 0 0 1 0 2.8l-4 4H8l-2.5-2.5a2 2 0 0 1 0-2z"/><path d="M9.5 20h10"/>') +
-        toolButton('fill', 'F', T('toolFill', '채우기'), '<path d="m10 3 8.2 8.2a1.4 1.4 0 0 1 0 2L12 19.4a1.4 1.4 0 0 1-2 0l-6.2-6.2a1.4 1.4 0 0 1 0-2L10 5"/><path d="M20.5 15.5c1 1.4 1.5 2.4 1.5 3a1.5 1.5 0 1 1-3 0c0-.6.5-1.6 1.5-3z" fill="currentColor"/>') +
-        toolButton('pick', 'I', T('toolPick', '스포이드'), '<path d="m13.5 7.5 3 3M4 20l1-3.2 8-8 2.2 2.2-8 8z"/><path d="M15 4.6a2 2 0 0 1 2.8 0l1.6 1.6a2 2 0 0 1 0 2.8l-1.5 1.5-4.4-4.4z"/>') +
-        toolButton('marquee', 'M', T('toolMarquee', '사각 선택'), '<rect x="3.5" y="5.5" width="17" height="13" rx="1" stroke-dasharray="3 2.5"/>') +
-        toolButton('lasso', 'L', T('toolLasso', '올가미'), '<path d="M12 4.5c4.4 0 8 2.5 8 5.6 0 3-3.6 5.5-8 5.5-1.3 0-2.6-.2-3.7-.6-1.4 1.2-1.6 2.6-1 4.5-2-1.3-2.6-3.4-1.6-5.5C4.4 13 4 11.6 4 10.1c0-3.1 3.6-5.6 8-5.6z"/>') +
-        toolButton('wand', 'W', T('toolWand', '마술봉'), '<path d="m4 20 9.5-9.5M15 4l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9zM19.5 12.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/>') +
-        toolButton('pan', 'Space', T('toolPan', '이동'), '<path d="M12 3v18M3 12h18M12 3 9.5 5.8M12 3l2.5 2.8M12 21l-2.5-2.8M12 21l2.5-2.8M3 12l2.8-2.5M3 12l2.8 2.5M21 12l-2.8-2.5M21 12l-2.8 2.5"/>') +
-        '<hr>' +
-        '<input data-color type="color" value="#18202c" aria-label="' + esc(T('color', '색')) + '">' +
-        '<div class="meok-palette" data-palette></div>' +
-        '<button data-act="pick-palette" class="meok-mini">' + esc(T('paletteFromArt', '그림에서 색 뽑기')) + '</button>' +
-        '<hr>' +
-        '<div class="meok-presets" data-presets></div>' +
-        '<button data-act="brush-save" class="meok-mini">' + esc(T('brushSave', '이 붓 담기')) + '</button>' +
-      '</aside>' +
-      '<section class="meok-stage">' +
-        '<div class="meok-brush">' +
-          '<label>' + esc(T('size', '굵기')) + '<input data-brush="size" type="range" min="1" max="200" step="1"><b data-out="size"></b></label>' +
-          '<label>' + esc(T('hardness', '단단함')) + '<input data-brush="hardness" type="range" min="0" max="1" step="0.01"><b data-out="hardness"></b></label>' +
-          '<label>' + esc(T('opacity', '짙기')) + '<input data-brush="opacity" type="range" min="0" max="1" step="0.01"><b data-out="opacity"></b></label>' +
-          '<label>' + esc(T('flow', '흐름')) + '<input data-brush="flow" type="range" min="0.02" max="1" step="0.01"><b data-out="flow"></b></label>' +
-          '<label>' + esc(T('smoothing', '손떨림')) + '<input data-brush="smoothing" type="range" min="0" max="0.95" step="0.01"><b data-out="smoothing"></b></label>' +
-          '<span class="meok-selbar">' +
-            '<button data-act="deselect" data-needs-selection class="meok-mini" title="Ctrl+D">' + esc(T('deselect', '선택 풀기')) + '</button>' +
-            '<button data-act="feather-selection" data-needs-selection class="meok-mini">' + esc(T('featherEdge', '가장자리 부드럽게')) + '</button>' +
-            '<button data-act="clear-selection" data-needs-selection class="meok-mini" title="Delete">' + esc(T('clearSelection', '고른 자리 지우기')) + '</button>' +
-          '</span>' +
-          '<span class="meok-zoom" data-zoom></span>' +
-          '<button data-act="fit" class="meok-mini">' + esc(T('fit', '맞춤')) + '</button>' +
-        '</div>' +
-        '<div class="meok-canvas" data-canvas-wrap><canvas data-canvas></canvas></div>' +
-        '<div class="meok-timeline">' +
-          '<button data-act="play">▶</button>' +
-          '<label>' + esc(T('fps', '초당')) + '<input data-fps type="number" min="1" max="60" value="12"></label>' +
-          '<label class="meok-onion"><input data-onion type="checkbox"> ' + esc(T('onion', '어니언스킨')) + '</label>' +
-          '<div class="meok-frames" data-frames></div>' +
-          '<button data-act="add-frame" title="' + esc(T('addFrameHelp', '지금 프레임을 복사해 뒤에 끼운다')) + '">＋</button>' +
-          '<button data-act="del-frame">－</button>' +
-        '</div>' +
-      '</section>' +
-      '<aside class="meok-layers">' +
-        '<div class="meok-layer-head">' +
-          '<b>' + esc(T('layers', '레이어')) + '</b>' +
-          '<button data-act="add-layer" title="' + esc(T('addLayerHelp', '위에 새 레이어')) + '">＋</button>' +
-          '<button data-act="merge-layer" title="' + esc(T('mergeHelp', '아래 레이어에 눌러 붙인다')) + '">⇩</button>' +
-          '<button data-act="del-layer">🗑</button>' +
-        '</div>' +
-        '<div class="meok-layer-props">' +
-          '<label>' + esc(T('layerOpacity', '불투명도')) + '<input data-layer="opacity" type="range" min="0" max="1" step="0.01"></label>' +
-          '<label>' + esc(T('blend', '섞기')) + '<select data-layer="blend"></select></label>' +
-          '<label class="meok-check"><input data-layer="clip" type="checkbox"> ' + esc(T('clip', '아래에 끼우기')) + '</label>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="mask-from-selection" data-needs-selection title="' + esc(T('maskFromSelectionHelp', '고른 자리만 보이게 가림막을 만든다 — 그림은 안 지운다')) + '">' + esc(T('maskFromSelection', '가림막')) + '</button>' +
-            '<button data-act="mask-invert" data-needs-mask title="' + esc(T('maskInvertHelp', '보이는 자리와 가린 자리를 맞바꾼다')) + '">' + esc(T('maskInvert', '뒤집기')) + '</button>' +
-            '<button data-act="mask-apply" data-needs-mask title="' + esc(T('maskApplyHelp', '가림막대로 그림을 실제로 지운다')) + '">' + esc(T('maskApply', '굳히기')) + '</button>' +
-            '<button data-act="mask-clear" data-needs-mask>' + esc(T('maskClear', '없애기')) + '</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="meok-layer-list" data-layers></div>' +
-        '<details class="meok-fix"><summary>' + esc(T('fix', '고치기')) + '</summary>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="crop-selection" data-needs-selection title="' + esc(T('cropToSelection', '고른 자리로 자르기')) + '">' + esc(T('cropShort', '고른 자리')) + '</button>' +
-            '<button data-act="trim" title="' + esc(T('trim', '여백 자르기')) + '">' + esc(T('trimShort', '여백')) + '</button>' +
-            '<button data-act="resize">' + esc(T('resizeDoc', '크기…')) + '</button>' +
-          '</div>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="rot-left" title="' + esc(T('rotLeft', '왼쪽으로 90도')) + '">↺</button>' +
-            '<button data-act="rot-right" title="' + esc(T('rotRight', '오른쪽으로 90도')) + '">↻</button>' +
-            '<button data-act="flip-x" title="' + esc(T('flipX', '좌우 뒤집기')) + '">⇋</button>' +
-            '<button data-act="flip-y" title="' + esc(T('flipY', '상하 뒤집기')) + '">⇅</button>' +
-            '<button data-act="rotate-free" title="' + esc(T('rotateFreeHelp', '원하는 각도로 기울여 돌린다')) + '">∠</button>' +
-          '</div>' +
-          '<label>' + esc(T('brightness', '밝기')) + '<input data-adjust="brightness" type="range" min="-1" max="1" step="0.01" value="0"></label>' +
-          '<label>' + esc(T('contrast', '대비')) + '<input data-adjust="contrast" type="range" min="-0.9" max="0.9" step="0.01" value="0"></label>' +
-          '<label>' + esc(T('saturation', '채도')) + '<input data-adjust="saturation" type="range" min="-1" max="1" step="0.01" value="0"></label>' +
-          '<label>' + esc(T('hue', '색조')) + '<input data-adjust="hue" type="range" min="-180" max="180" step="1" value="0"></label>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="adjust-apply">' + esc(T('applyAdjust', '보정 굳히기')) + '</button>' +
-            '<button data-act="adjust-reset">' + esc(T('resetAdjust', '되돌리기')) + '</button>' +
-          '</div>' +
-          '<div class="meok-fix-row">' +
-            '<button data-act="rembg" title="' + esc(T('rembgHelp', '이 레이어에서 배경을 지운다 — 기기 안에서 계산한다(처음 한 번은 모델을 받느라 느리다)')) + '">' + esc(T('rembg', '배경 지우기')) + '</button>' +
-          '</div>' +
-          '<div class="meok-filters" data-filters></div>' +
-        '</details>' +
-      '</aside>' +
-    '</div></div>';
+  /* 셸이 준 자리를 그림판까지 전달. 이 한 겹이 안 늘어나면 그림판은 내용 높이로 쪼그라듦.
+     이미지 묶음 안 탭이라 위에 `material-shell` 껍질 세 겹. 그중 `.pf-body` 의 `align-items:start`
+     에서 세로가 끊김. 껍질은 다른 묶음도 쓰므로 **먹 탭일 때만** 잇는다. */
+  container.classList.add('meok-host');
+  const page = container.closest('.tool-page') as HTMLElement | null;
+  page?.classList.add('meok-page');
+  Toolbox.onDispose?.(() => { page?.classList.remove('meok-page'); });
+  container.innerHTML = meokMarkup();
 
   injectStyles();
 
@@ -301,25 +198,25 @@ function buildMeok(container: HTMLElement): void {
   let flat: Surface = createSurface(doc.w, doc.h);
 
   const say = (message: string): void => { status.textContent = message; };
-  /** 확대율 표시 — 판 크기가 바뀌면 화면 맞춤도 바뀌므로 한 곳에서만 적는다. */
+  /** 확대율 표시. 판 크기가 바뀌면 화면 맞춤도 바뀌므로 한 곳에서만 적는다. */
   const syncZoom = (): void => { pick<HTMLElement>('[data-zoom]').textContent = Math.round(view.scale * 100) + '%'; };
 
   /* ===== 그리기 한 길 ===== */
 
   function repaint(rect?: { x: number; y: number; w: number; h: number }): void {
-    const onion = onionBefore || onionAfter;
-    /* 어니언스킨이 켜져 있으면 부분 갱신이 유령까지 다시 그려야 하므로 그냥 전체를 섞는다. */
-    const area = onion ? undefined : rect;
+    /* 어니언스킨을 켜도 사각형만 다시 섞는다. `composite` 가 유령도 그 사각형 안에서만 그리므로
+       밖으로 번질 자리가 없다. 예전에는 여기서 전체로 돌렸고, 그래서 **애니를 그리는 동안**
+       (곧 어니언을 켜 두는 그 시간에) 붓질마다 판 전체가 다시 섞였다. */
     composite(doc, doc.activeFrame, undefined, {
       into: flat,
-      rect: area,
+      rect,
       onionBefore, onionAfter
     });
-    view.blit(flat, area);
+    view.blit(flat, rect);
     view.invalidate();
   }
 
-  /** 고른 자리가 바뀌면 테두리와 개미 시계가 따라온다 — 한 길로만 지나가게 묶어 둔다. */
+  /** 고른 자리가 바뀌면 테두리와 개미 시계가 따라온다. 한 길로만 지나가게 묶어 둔다. */
   function selectionChanged(): void {
     view.setSelectionEdges(edgePixels(selection));
     if (stopAnts) { stopAnts(); stopAnts = null; }
@@ -332,7 +229,62 @@ function buildMeok(container: HTMLElement): void {
     view.invalidate();
   }
 
-  /** 가림막이 있는 레이어에서만 뒤집기·굳히기·없애기가 눌린다. */
+  /** 가림막이 있는 레이어에서만 뒤집기, 굳히기, 없애기가 눌린다. */
+  /* ===== 이모트 ===== */
+
+  let emotePreset: EmotePreset = EMOTE_PRESETS[0];
+  let shotTimer = 0;
+
+  /** 규격 고르는 줄. 고른 것이 미리보기와 뽑기에 그대로 이어진다. */
+  function renderEmotePicks(): void {
+    const box = pick<HTMLElement>('[data-emote-picks]');
+    box.innerHTML = EMOTE_PRESETS.map(preset =>
+      '<button data-emote-pick="' + preset.id + '"' + (preset.id === emotePreset.id ? ' class="active"' : '') + '>'
+      + esc(T('emote.' + preset.id, preset.label)) + '</button>'
+    ).join('');
+    box.querySelectorAll<HTMLButtonElement>('[data-emote-pick]').forEach(button => {
+      button.onclick = () => {
+        emotePreset = findPreset(button.dataset.emotePick || '');
+        renderEmotePicks();
+        renderEmoteShots();
+      };
+    });
+  }
+
+  /**
+   * 올라갈 크기 그대로 미리 보기. 28 에서 뭉개진 것을 **올린 뒤에** 아는 것이 이모트 만드는
+   * 사람의 가장 흔한 낭비. 굽는 것은 지금 프레임 하나뿐 (장수만큼 구우면 손이 끊김).
+   */
+  function renderEmoteShots(): void {
+    const box = pick<HTMLElement>('[data-emote-shots]');
+    const note = pick<HTMLElement>('[data-emote-note]');
+    box.innerHTML = '';
+    const baked = composite(doc, doc.activeFrame);
+    const source = surfaceToCanvas(baked);
+    emotePreset.sizes.forEach(size => {
+      const fit = fitBox(doc.w, doc.h, size);
+      const shot = document.createElement('canvas');
+      shot.width = fit.w;
+      shot.height = fit.h;
+      const ctx = shot.getContext('2d');
+      if (ctx) {
+        /* 격자 그림은 뭉개면 안 된다. 그 외에는 부드럽게 줄이는 쪽이 실물에 가깝다. */
+        ctx.imageSmoothingEnabled = doc.grid === 0;
+        ctx.drawImage(source, 0, 0, fit.w, fit.h);
+      }
+      const cell = document.createElement('div');
+      cell.className = 'meok-emote-shot';
+      shot.style.width = fit.w + 'px';
+      shot.style.height = fit.h + 'px';
+      cell.appendChild(shot);
+      const caption = document.createElement('small');
+      caption.textContent = fit.w + 'x' + fit.h;
+      cell.appendChild(caption);
+      box.appendChild(cell);
+    });
+    note.textContent = T('emote.' + emotePreset.id + '.note', emotePreset.note);
+  }
+
   function syncMaskButtons(): void {
     const layer = activeLayer(doc);
     const has = !!(layer && layer.mask);
@@ -355,6 +307,8 @@ function buildMeok(container: HTMLElement): void {
     renderLayers();
     renderFrames();
     renderPalette();
+    renderEmotePicks();
+    renderEmoteShots();
     repaint();
   }
 
@@ -363,7 +317,7 @@ function buildMeok(container: HTMLElement): void {
   function renderLayers(): void {
     const list = pick<HTMLElement>('[data-layers]');
     list.innerHTML = '';
-    /* 목록 뒤가 화면 위 — 사람이 보는 순서는 반대다. */
+    /* 목록 뒤가 화면 위. 사람이 보는 순서는 반대다. */
     [...doc.layers].reverse().forEach(layer => {
       const row = document.createElement('div');
       row.className = 'meok-layer' + (layer.id === doc.activeLayer ? ' active' : '');
@@ -411,9 +365,9 @@ function buildMeok(container: HTMLElement): void {
         if (moveLayer(doc, moved, to)) { renderLayers(); repaint(); }
       };
       /* ★ **끌기밖에 없으면 못 쓰는 사람이 생긴다** (2026-08-17). 레이어 순서 바꾸기가
-         끌기 하나뿐이었다 — 키보드만 쓰는 사람, 손떨림, 트랙패드에서 끌기가 힘든 사람은
-         순서를 아예 못 바꾼다(WCAG 2.2 「끌기 동작」 — 끌기에는 한 번 누름으로 되는 길이 같이 있어야 한다).
-         같은 저장소의 pdf 장 순서 바꾸기는 이미 화살표를 함께 두고 있다 — 그 꼴을 맞춘다. */
+         끌기 하나뿐이었다. 키보드만 쓰는 사람, 손떨림, 트랙패드에서 끌기가 힘든 사람은
+         순서를 아예 못 바꾼다(WCAG 2.2 끌기 동작. 끌기에는 한 번 누름으로 되는 길이 같이 있어야 한다).
+         같은 저장소의 pdf 장 순서 바꾸기는 이미 화살표를 함께 두고 있다. 그 꼴을 맞춘다. */
       row.tabIndex = 0;
       row.onkeydown = (event) => {
         const step = event.key === 'ArrowUp' ? 1 : event.key === 'ArrowDown' ? -1 : 0;
@@ -426,13 +380,13 @@ function buildMeok(container: HTMLElement): void {
           doc.activeLayer = layer.id;
           renderLayers();
           repaint();
-          /* 옮긴 줄에 초점을 다시 준다 — 안 그러면 한 번 옮기고 나서 키가 안 먹는다. */
+          /* 옮긴 줄에 초점을 다시 준다. 안 그러면 한 번 옮기고 나서 키가 안 먹는다. */
           const again = list.querySelector(`[data-layer="${layer.id}"]`);
           if (again instanceof HTMLElement) again.focus();
         }
       };
       row.dataset.layer = layer.id;
-      row.title = `${row.title || ''} · 위/아래 화살표로 순서 바꾸기`.trim();
+      row.title = `${row.title || ''}, 위/아래 화살표로 순서 바꾸기`.trim();
       list.append(row);
     });
     syncLayerProps();
@@ -467,7 +421,7 @@ function buildMeok(container: HTMLElement): void {
       const button = document.createElement('button');
       button.className = 'meok-frame' + (f === doc.activeFrame ? ' active' : '');
       const held = doc.layers.every(layer => isHold(layer, f));
-      button.innerHTML = '<canvas width="34" height="34"></canvas><small>' + (f + 1) + (held && f > 0 ? '·' : '') + '</small>';
+      button.innerHTML = '<canvas width="34" height="34"></canvas><small>' + (f + 1) + (held && f > 0 ? ', ' : '') + '</small>';
       const thumb = button.querySelector('canvas') as HTMLCanvasElement;
       const ctx = thumb.getContext('2d') as CanvasRenderingContext2D;
       ctx.drawImage(surfaceToCanvas(composite(doc, f)), 0, 0, 34, 34);
@@ -517,7 +471,7 @@ function buildMeok(container: HTMLElement): void {
       return;
     }
     if (tool === 'marquee' || tool === 'lasso') {
-      /* Shift = 더하기, Alt = 빼기 — 포토샵과 같은 손버릇. */
+      /* Shift = 더하기, Alt = 빼기. 포토샵과 같은 손버릇. */
       picking = { from: point, points: [point] };
       return;
     }
@@ -553,8 +507,9 @@ function buildMeok(container: HTMLElement): void {
       }
       return;
     }
-    /* 붓·지우개 — 획이 끝날 때 한 단계로 굳는다. */
-    strokeBase = cloneSurface(cel);
+    /* 붓, 지우개. 획이 끝날 때 한 단계로 굳는다. */
+    /* 원본 사본은 `Stroke` 가 이미 하나 들고 있다 (`stroke.base`). 여기서 또 뜨면 획 하나에
+       판이 두 장 뜬다 (4096^2 이면 128MB). 되돌리기 패치도 그 한 장을 기준으로 만든다. */
     stroke = new Stroke(cel, {
       ...brush,
       mode: tool === 'eraser' ? 'erase' : 'paint',
@@ -576,7 +531,7 @@ function buildMeok(container: HTMLElement): void {
       const point = toDoc(event);
       if (tool === 'lasso') picking.points.push(point);
       else picking.points = [point];
-      /* 끄는 동안 보이는 테두리 — 아직 확정 아니다(놓을 때 굳는다). */
+      /* 끄는 동안 보이는 테두리. 아직 확정 아니다(놓을 때 굳는다). */
       previewSelection(event);
       return;
     }
@@ -589,11 +544,11 @@ function buildMeok(container: HTMLElement): void {
     if (now) repaint(previous ? union(previous, now) : now);
   });
 
-  /** Shift = 더하기 · Alt = 빼기 · 둘 다 = 교집합. */
+  /** Shift = 더하기, Alt = 빼기, 둘 다 = 교집합. */
   const pickMode = (event: { shiftKey: boolean; altKey: boolean }): SelectMode =>
     (event.shiftKey && event.altKey) ? 'intersect' : event.shiftKey ? 'add' : event.altKey ? 'subtract' : 'replace';
 
-  /** 끄는 중 미리보기 — 확정과 같은 함수를 쓰되 되돌리기에는 안 쌓는다. */
+  /** 끄는 중 미리보기. 확정과 같은 함수를 쓰되 되돌리기에는 안 쌓는다. */
   function previewSelection(event: PointerEvent): void {
     if (!picking) return;
     const backup = selection;
@@ -618,7 +573,7 @@ function buildMeok(container: HTMLElement): void {
       x: Math.min(picking.from.x, to.x), y: Math.min(picking.from.y, to.y),
       w: Math.abs(to.x - picking.from.x), h: Math.abs(to.y - picking.from.y)
     };
-    /* 톡 누르기만 하면 선택을 푼다 — 「밖을 눌러 해제」가 몸에 배어 있다. */
+    /* 톡 누르기만 하면 선택을 푼다. 밖을 눌러 해제가 몸에 배어 있다. */
     if (rect.w < 1 || rect.h < 1) selectNone(selection);
     else selectRect(selection, rect, mode);
   }
@@ -631,16 +586,16 @@ function buildMeok(container: HTMLElement): void {
       selectionChanged();
       return;
     }
-    if (!stroke || !strokeBase) { stroke = null; strokeBase = null; return; }
+    if (!stroke) return;
     const layer = activeLayer(doc);
     const cel = layer ? layer.cels[doc.activeFrame] : null;
+    const before = stroke.base;
     stroke.end();
     if (cel) {
-      const patch = pixelPatch(cel, strokeBase, tool === 'eraser' ? T('toolEraser', '지우개') : T('toolBrush', '붓'));
+      const patch = pixelPatch(cel, before, tool === 'eraser' ? T('toolEraser', '지우개') : T('toolBrush', '붓'));
       if (patch) history.push(patch);
     }
     stroke = null;
-    strokeBase = null;
     renderLayers();
     renderFrames();
     touched();
@@ -738,7 +693,7 @@ function buildMeok(container: HTMLElement): void {
   });
 
   /* ===== 붓 담아 두기 =====
-   * 굵기·단단함·짙기·흐름·손떨림을 매번 다시 맞추는 것이 그리기에서 제일 지겨운 일이다.
+   * 굵기, 단단함, 짙기, 흐름, 손떨림을 매번 다시 맞추는 것이 그리기에서 제일 지겨운 일이다.
    * 그림은 무거워 IndexedDB 로 갔지만, 붓 설정은 작으므로 localStorage 로 충분하다.
    */
   const PRESET_KEY = 'meok:brushes:v1';
@@ -758,7 +713,7 @@ function buildMeok(container: HTMLElement): void {
     loadPresets().forEach(preset => {
       const button = document.createElement('button');
       button.textContent = preset.name;
-      button.title = T('brushApply', '이 붓으로 바꾸기 — 오래 누르면 지운다');
+      button.title = T('brushApply', '이 붓으로 바꾸기. 오래 누르면 지운다');
       button.onclick = () => {
         brush = { ...brush, ...preset.brush, color: brush.color };
         brushOut();
@@ -778,9 +733,9 @@ function buildMeok(container: HTMLElement): void {
    */
   let saveTimer = 0;
   let saving = false;
-  /* 쓰는 중에 또 바뀌었나 — 그러면 다 쓴 뒤 **한 번 더** 쓴다.
-     예전엔 이 경우를 그냥 버렸다(재시도 없음). 화면엔 「저장됨」이 떠 있는데 마지막 획만
-     빠진 판이 남아, 새로고침해야 알 수 있었다 — 실브라우저 검사가 이걸 잡았다. */
+  /* 쓰는 중에 또 바뀌었나. 그러면 다 쓴 뒤 **한 번 더** 쓴다.
+     예전엔 이 경우를 그냥 버렸다(재시도 없음). 화면엔 저장됨이 떠 있는데 마지막 획만
+     빠진 판이 남아, 새로고침해야 알 수 있었다. 실브라우저 검사가 이걸 잡았다. */
   let dirtyAgain = false;
   function writeNow(): void {
     if (saving) { dirtyAgain = true; return; }
@@ -788,7 +743,7 @@ function buildMeok(container: HTMLElement): void {
     dirtyAgain = false;
     void saveLast(packDoc(doc))
       .then(() => { savedMark(); })
-      .catch(() => { say(T('saveFailed', '자동 저장이 막혔다 — 파일로 내보내 두는 게 좋다')); })
+      .catch(() => { say(T('saveFailed', '자동 저장이 막혔다. 파일로 내보내 두는 게 좋다')); })
       .then(() => {
         saving = false;
         if (dirtyAgain) writeNow();
@@ -797,6 +752,11 @@ function buildMeok(container: HTMLElement): void {
   function touched(): void {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = window.setTimeout(() => { saveTimer = 0; writeNow(); }, 1200);
+    /* 이모트 미리보기는 **펴 놓았을 때만** 다시 굽는다. 접힌 것을 굽는 것은 버리는 시간.
+       획마다 굽지 않고 저장과 같은 박자로 미룸. */
+    if (shotTimer) clearTimeout(shotTimer);
+    const panel = root.querySelector<HTMLDetailsElement>('.meok-emote');
+    if (panel && panel.open) shotTimer = window.setTimeout(() => { shotTimer = 0; renderEmoteShots(); }, 400);
   }
   const savedMark = (): void => {
     const now = new Date();
@@ -808,7 +768,7 @@ function buildMeok(container: HTMLElement): void {
   /* ===== 고치기 ===== */
 
   /**
-   * 크기가 바뀌는 연산은 **문서 전체**에 건다 — 레이어마다 크기가 다르면 합성이 성립하지 않는다.
+   * 크기가 바뀌는 연산은 **문서 전체**에 건다. 레이어마다 크기가 다르면 합성이 성립하지 않는다.
    * 되돌리기는 셀 배열을 통째로 들고 있는다(자르기 한 번 = 판 한 장 값. 붓질과 달리 드물다).
    */
   function transformDoc(label: string, fn: (surface: Surface) => Surface, size: (w: number, h: number) => [number, number]): void {
@@ -817,7 +777,7 @@ function buildMeok(container: HTMLElement): void {
     const before = doc.layers.map(layer => layer.cels.slice());
     const beforeMasks = doc.layers.map(layer => layer.mask);
     const after = doc.layers.map(layer => layer.cels.map(cel => (cel ? fn(cel) : null)));
-    /* 레이어 마스크도 같이 옮긴다 — 안 그러면 판만 잘리고 가림막은 옛 크기로 남아 어긋난다. */
+    /* 레이어 마스크도 같이 옮긴다. 안 그러면 판만 잘리고 가림막은 옛 크기로 남아 어긋난다. */
     const afterMasks = doc.layers.map((layer, index) => {
       if (!layer.mask) return null;
       const wrapped = createSurface(oldW, oldH);
@@ -869,7 +829,7 @@ function buildMeok(container: HTMLElement): void {
   });
   const noAdjust = (values: Adjust): boolean =>
     !values.brightness && !values.contrast && !values.saturation && !values.hue;
-  /** 미리보기 — 굳히기 전까지는 원본을 안 건드린다. */
+  /** 미리보기. 굳히기 전까지는 원본을 안 건드린다. */
   let adjustBase: { layerId: string; frame: number; surface: Surface } | null = null;
 
   function previewAdjust(): void {
@@ -905,6 +865,12 @@ function buildMeok(container: HTMLElement): void {
     'undo': () => { if (history.undo()) { renderLayers(); renderFrames(); repaint(); touched(); } },
     'redo': () => { if (history.redo()) { renderLayers(); renderFrames(); repaint(); touched(); } },
     'fit': () => { view.fit(); syncZoom(); view.invalidate(); },
+    /* 전체화면. 도구 화면째 던진다 (timer, arcade 와 같은 손). 나올 때 화면 맞춤은 ResizeObserver 가 한다. */
+    'fullscreen': () => {
+      const page = (root.closest('.tool-page') || root) as HTMLElement;
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void page.requestFullscreen?.();
+    },
     'add-layer': () => { addLayer(doc); renderLayers(); repaint(); touched(); },
     'del-layer': () => {
       if (doc.activeLayer && removeLayer(doc, doc.activeLayer)) { renderLayers(); repaint(); }
@@ -980,7 +946,7 @@ function buildMeok(container: HTMLElement): void {
       const layer = canDraw();
       if (!layer || !layer.mask) return;
       const mask = layer.mask;
-      /* 가림막대로 알파를 깎고 가림막은 치운다 — 「지금 보이는 대로」가 그림이 된다. */
+      /* 가림막대로 알파를 깎고 가림막은 치운다. 지금 보이는 대로가 그림이 된다. */
       paintOp(T('maskApply', '굳히기'), surface => {
         const out = cloneSurface(surface);
         for (let p = 0; p < mask.length; p += 1) out.data[p * 4 + 3] = surface.data[p * 4 + 3] * (mask[p] / 255);
@@ -996,7 +962,7 @@ function buildMeok(container: HTMLElement): void {
       const color = pick<HTMLInputElement>('[data-color]').value;
       const layer = addLayer(doc, text.trim().slice(0, 18));
       layer.cels[doc.activeFrame] = textSurface(text, size, color, doc.w, doc.h);
-      /* 글자는 **레이어 한 장**이다 — 나중에 옮기고 지우고 섞기 위해. */
+      /* 글자는 **레이어 한 장**이다. 나중에 옮기고 지우고 섞기 위해. */
       renderLayers(); renderFrames(); repaint(); touched();
       say(T('textAdded', '글자를 새 레이어로 얹었다'));
     },
@@ -1008,7 +974,7 @@ function buildMeok(container: HTMLElement): void {
       const degrees = Number(answer);
       if (!answer || !isFinite(degrees) || !degrees) return;
       const smooth = doc.grid <= 0;
-      /* 돌리면 판이 커진다 — 새 크기를 미리 재서 문서에 알려 준다. */
+      /* 돌리면 판이 커진다. 새 크기를 미리 재서 문서에 알려 준다. */
       const rad = (degrees * Math.PI) / 180;
       const nextW = Math.ceil(Math.abs(doc.w * Math.cos(rad)) + Math.abs(doc.h * Math.sin(rad)));
       const nextH = Math.ceil(Math.abs(doc.w * Math.sin(rad)) + Math.abs(doc.h * Math.cos(rad)));
@@ -1031,7 +997,7 @@ function buildMeok(container: HTMLElement): void {
       const button = pick<HTMLButtonElement>('[data-act="rembg"]');
       if (button.disabled) return;
       button.disabled = true;
-      say(T('rembgStart', '배경을 지우는 중 — 처음 한 번은 모델을 받느라 오래 걸린다'));
+      say(T('rembgStart', '배경을 지우는 중. 처음 한 번은 모델을 받느라 오래 걸린다'));
       void encode(surfaceToCanvas(before), 'png').then(blob => {
         const run = removeBackground(blob, 'isnet_fp16', progress => {
           if (progress.ratio >= 0) {
@@ -1041,7 +1007,7 @@ function buildMeok(container: HTMLElement): void {
         void run.promise
           .then(result => createImageBitmap(result))
           .then(bitmap => {
-            /* 결과는 배경이 지워진 그림 한 장 — 지금 셀에 그대로 덮는다(레이어는 그대로다). */
+            /* 결과는 배경이 지워진 그림 한 장. 지금 셀에 그대로 덮는다(레이어는 그대로다). */
             const cut = imageToSurface(bitmap, doc.w, doc.h);
             cel.data.set(cut.data);
             const patch = pixelPatch(cel, before, T('rembg', '배경 지우기'));
@@ -1049,12 +1015,12 @@ function buildMeok(container: HTMLElement): void {
             renderLayers(); renderFrames(); repaint(); touched();
             say(T('rembgDone', '배경을 지웠다'));
           })
-          .catch(() => { say(T('rembgFailed', '배경을 못 지웠다 — 잠시 뒤 다시')); })
+          .catch(() => { say(T('rembgFailed', '배경을 못 지웠다. 잠시 뒤 다시')); })
           .then(() => { button.disabled = false; });
       }).catch(() => {
-        // 구우려다 실패해도 단추는 돌려준다 — 안 돌려주면 그 자리에서 영영 못 누른다.
+        // 구우려다 실패해도 단추는 돌려준다. 안 돌려주면 그 자리에서 영영 못 누른다.
         button.disabled = false;
-        say(T('rembgFailed', '배경을 못 지웠다 — 잠시 뒤 다시'));
+        say(T('rembgFailed', '배경을 못 지웠다. 잠시 뒤 다시'));
       });
     },
     'crop-selection': () => {
@@ -1064,7 +1030,7 @@ function buildMeok(container: HTMLElement): void {
     },
     'trim': () => {
       const bounds = contentBounds(flat);
-      if (!bounds) { say(T('nothingToTrim', '자를 여백이 없다 — 판이 비었다')); return; }
+      if (!bounds) { say(T('nothingToTrim', '자를 여백이 없다. 판이 비었다')); return; }
       if (bounds.w === doc.w && bounds.h === doc.h) { say(T('noMargin', '여백이 없다')); return; }
       transformDoc(T('trim', '여백 자르기'), surface => crop(surface, bounds), () => [bounds.w, bounds.h]);
     },
@@ -1074,7 +1040,7 @@ function buildMeok(container: HTMLElement): void {
       if (!answer || !isFinite(nextW) || nextW < 1 || nextW > 8000) return;
       const nextH = Math.max(1, Math.round(doc.h * (nextW / doc.w)));
       const smooth = doc.grid <= 0;   /* 픽셀 그림은 부드럽게 하면 도트가 죽는다 */
-      transformDoc(T('resizeDoc', '크기…'), surface => resize(surface, nextW, nextH, smooth), () => [nextW, nextH]);
+      transformDoc(T('resizeDoc', '크기...'), surface => resize(surface, nextW, nextH, smooth), () => [nextW, nextH]);
     },
     'rot-left': () => transformDoc(T('rotLeft', '왼쪽으로 90도'), surface => rotateQuarter(surface, 3), (w, h) => [h, w]),
     'rot-right': () => transformDoc(T('rotRight', '오른쪽으로 90도'), surface => rotateQuarter(surface, 1), (w, h) => [h, w]),
@@ -1084,7 +1050,7 @@ function buildMeok(container: HTMLElement): void {
       const values = adjustValues();
       if (noAdjust(values)) { say(T('nothingToAdjust', '움직인 손잡이가 없다')); return; }
       const base = adjustBase;
-      /* 미리보기로 이미 화면이 바뀌어 있다 — 원본을 되돌린 뒤 한 단계로 굳힌다. */
+      /* 미리보기로 이미 화면이 바뀌어 있다. 원본을 되돌린 뒤 한 단계로 굳힌다. */
       const layer = activeLayer(doc);
       if (base && layer) {
         const cel = ensureCel(doc, layer, doc.activeFrame);
@@ -1114,15 +1080,15 @@ function buildMeok(container: HTMLElement): void {
         .then(blob => download(blob, safeName(doc.name) + '.png'));
     },
     'to-shelf': () => {
-      // 선반은 남의 기계(노트북)가 받는다. 열쇠가 없으면 넣는 자리를 먼저 알려 준다 —
-      // 눌렀다가 「권한 없음」을 보는 것보다 낫다(「본」과 같은 결).
+      // 선반은 남의 기계(노트북)가 받는다. 열쇠가 없으면 넣는 자리를 먼저 알려 준다 . 
+      // 눌렀다가 권한 없음을 보는 것보다 낫다(본과 같은 결).
       if (!canUpload()) {
         const key = window.prompt(T('shelfKeyAsk', '선반 열쇠 (이 브라우저에만 남는다)'), '') ?? '';
         if (!key.trim()) return;
         setFoundryToken(key.trim());
       }
       void encode(surfaceToCanvas(composite(doc, doc.activeFrame)), 'png').then(blob => {
-        say(T('shelfSending', '선반에 올리는 중…'));
+        say(T('shelfSending', '선반에 올리는 중...'));
         void blob.arrayBuffer()
           .then(buffer => uploadToFoundry({
             tool: 'meok',
@@ -1130,7 +1096,7 @@ function buildMeok(container: HTMLElement): void {
             mime: 'image/png',
             bytes: new Uint8Array(buffer)
           }))
-          .then(item => say(T('shelfDone', '선반에 올렸다') + ' — ' + item.title))
+          .then(item => say(T('shelfDone', '선반에 올렸다') + '. ' + item.title))
           .catch(error => say(String(error instanceof Error ? error.message : error)));
       });
     },
@@ -1139,23 +1105,165 @@ function buildMeok(container: HTMLElement): void {
       void encode(surfaceToCanvas(spriteSheet(doc, undefined, scale)), 'png')
         .then(blob => download(blob, safeName(doc.name) + '-' + doc.frames + 'f.png'));
     },
+    /**
+     * 프레임을 움직이는 GIF 한 장으로. 굽는 재료는 `compositeAll` 이 내놓는 그림 그대로,
+     * 즉 화면과 저장물이 어긋날 자리 없음. 속도는 타임라인의 초당 값.
+     *
+     * 인코더는 `window.KarmoGif` 로 늦게 옴. 못 받았으면 그 사실을 말한다. 몰래 기다리면
+     * 누른 뒤 몇 초 있다 반응하는 버튼이 됨.
+     */
+    'save-gif': () => {
+      const gif = getKarmoGif();
+      if (!gif) { say(T('gifNoEncoder', 'GIF 만드는 것을 아직 못 받았다. 잠시 뒤 다시')); return; }
+      if (doc.frames < 2) { say(T('gifNeedsFrames', '프레임이 두 장은 있어야 움직인다')); return; }
+      const button = root.querySelector<HTMLButtonElement>('[data-act="save-gif"]');
+      if (button) button.disabled = true;
+      const delayMs = Math.max(20, Math.round(1000 / Math.max(1, doc.fps)));
+      /* 긴 변 상한. 인코딩 시간이 픽셀 수를 따라 가파르게 는다 (같은 기계 3프레임 실측:
+         512^2 1.4초, 1024^2 9.9초). 512 로 줄여 구우면 1024^2 문서 3프레임이 5.1초
+         (합성 2.0 + 줄이기 2.1 + 인코딩 1.0). GIF 는 움직이는 것을 보여 주는 그림이라
+         512 면 충분하고, 원본 크기가 필요하면 PNG 와 시트가 그 자리에 있다. */
+      const LONG_EDGE = 512;
+      const long = Math.max(doc.w, doc.h);
+      const scale = long > LONG_EDGE ? LONG_EDGE / long : 1;
+      const outW = Math.max(1, Math.round(doc.w * scale));
+      const outH = Math.max(1, Math.round(doc.h * scale));
+      say(scale < 1 ? T('gifShrunk', '굽는 중') + ' ' + outW + 'x' + outH : T('gifBaking', '굽는 중'));
+      /* 굽기 전에 한 번 쉰다. 안 그러면 위 문구가 화면에 못 뜨고 바로 긴 계산에 들어간다. */
+      setTimeout(() => {
+        const frames = compositeAll(doc).map(surface => ({
+          data: (scale < 1 ? resize(surface, outW, outH, doc.grid === 0) : surface).data,
+          delayMs
+        }));
+        void gif.encodeAsync({
+          width: outW, height: outH, frames,
+          onProgress: ratio => say(T('gifBaking', '굽는 중') + ' ' + Math.round(ratio * 100) + '%')
+        }).then(blob => {
+          download(blob, safeName(doc.name) + '.gif');
+          say(T('gifDone', 'GIF 나왔다') + ' ' + Math.round(blob.size / 1024) + 'KB');
+        }).catch(() => {
+          say(T('gifFailed', 'GIF 를 못 구웠다'));
+        }).finally(() => {
+          if (button) button.disabled = false;
+        });
+      }, 0);
+    },
+    /**
+     * 움직이는 PNG. GIF 와 재료도 상한도 같고 형식만 다름.
+     * GIF 는 색 256개에 투명이 켜짐과 꺼짐 둘뿐이라 반투명 가장자리가 계단.
+     * APNG 는 그 가장자리를 그대로 들고 감. 대신 파일이 큼.
+     */
+    'save-apng': () => {
+      if (doc.frames < 2) { say(T('gifNeedsFrames', '프레임이 두 장은 있어야 움직인다')); return; }
+      const button = root.querySelector<HTMLButtonElement>('[data-act="save-apng"]');
+      if (button) button.disabled = true;
+      const delayMs = Math.max(20, Math.round(1000 / Math.max(1, doc.fps)));
+      const long = Math.max(doc.w, doc.h);
+      const scale = long > 512 ? 512 / long : 1;
+      const outW = Math.max(1, Math.round(doc.w * scale));
+      const outH = Math.max(1, Math.round(doc.h * scale));
+      say(T('gifBaking', '굽는 중') + (scale < 1 ? ' ' + outW + 'x' + outH : ''));
+      setTimeout(() => {
+        const frames = compositeAll(doc).map(surface => ({
+          data: (scale < 1 ? resize(surface, outW, outH, doc.grid === 0) : surface).data,
+          delayMs
+        }));
+        void encodeApng({
+          width: outW, height: outH, frames,
+          onProgress: ratio => say(T('gifBaking', '굽는 중') + ' ' + Math.round(ratio * 100) + '%')
+        }).then(blob => {
+          download(blob, safeName(doc.name) + '.png');
+          say(T('apngDone', 'APNG 나왔다') + ' ' + Math.round(blob.size / 1024) + 'KB');
+        }).catch(() => {
+          say(T('apngFailed', 'APNG 를 못 구웠다'));
+        }).finally(() => {
+          if (button) button.disabled = false;
+        });
+      }, 0);
+    },
+    /**
+     * 고른 규격대로 한 벌 뽑는다. 장이 하나면 멈춘 PNG, 둘 이상이면 규격이 정한 움직이는 형식.
+     * 크기마다 파일 하나씩, 사이는 조금 띄움 (한꺼번에 내리면 브라우저가 뒤엣것을 막는다).
+     * 뽑은 뒤에는 **실제 용량**을 한도와 나란히 적는다. 어림이 아니라 올라갈 그 파일의 크기.
+     */
+    'emote-save': () => {
+      const button = root.querySelector<HTMLButtonElement>('[data-act="emote-save"]');
+      if (button) button.disabled = true;
+      const preset = emotePreset;
+      const animated = doc.frames > 1;
+      const format = animated ? preset.animated : 'png';
+      const delayMs = Math.max(20, Math.round(1000 / Math.max(1, doc.fps)));
+      const base = safeName(doc.name);
+      const report: string[] = [];
+      say(T('emoteBaking', '뽑는 중'));
+
+      /* 원본은 **한 번만** 굽는다. 크기마다 다시 구우면 1024^2 세 장을 세 번 섞게 되고,
+         그동안 손이 멈춘다 (Twitch 세 크기에서 합성 3회가 1회로). 줄이는 것만 크기마다. */
+      const baked = animated ? compositeAll(doc) : [composite(doc, doc.activeFrame)];
+
+      const bakeOne = async (size: number): Promise<void> => {
+        const fit = fitBox(doc.w, doc.h, size);
+        const smooth = doc.grid === 0;
+        if (!animated) {
+          const one = resize(baked[0], fit.w, fit.h, smooth);
+          const blob = await encode(surfaceToCanvas(one), 'png');
+          report.push(size + ': ' + Math.round(blob.size / 1024) + 'KB');
+          download(blob, emoteName(base, size, 'png', preset.sizes.length));
+          return;
+        }
+        const frames = baked.map(surface => ({
+          data: resize(surface, fit.w, fit.h, smooth).data,
+          delayMs
+        }));
+        let blob: Blob;
+        if (format === 'apng') {
+          blob = await encodeApng({ width: fit.w, height: fit.h, frames });
+        } else {
+          const gif = getKarmoGif();
+          if (!gif) throw new Error('no gif encoder');
+          blob = await gif.encodeAsync({ width: fit.w, height: fit.h, frames });
+        }
+        const over = overBudgetHint(blob.size, doc.frames, preset, true);
+        report.push(size + ': ' + Math.round(blob.size / 1024) + 'KB'
+          + (limitRatio(blob.size, preset, true) > 1 ? ' ' + T('emoteOver', '한도 넘음') : ''));
+        if (over) say(over);
+        download(blob, emoteName(base, size, format, preset.sizes.length));
+      };
+
+      void (async () => {
+        try {
+          for (const size of preset.sizes) {
+            say(T('emoteBaking', '뽑는 중') + ' ' + size);
+            await bakeOne(size);
+            /* 사이를 띄운다. 브라우저가 잇단 내려받기를 막는 자리다. */
+            await new Promise(resolve => { setTimeout(resolve, 350); });
+          }
+          const limit = Math.round((animated ? preset.limitAnimated : preset.limitStill) / 1024);
+          say(report.join(', ') + ' (' + T('emoteLimit', '한도') + ' ' + limit + 'KB)');
+        } catch {
+          say(T('emoteFailed', '이모트를 못 뽑았다'));
+        } finally {
+          if (button) button.disabled = false;
+        }
+      })();
+    },
     'save-meok': () => {
       const stored = packDoc(doc);
       download(new Blob([JSON.stringify(stored)], { type: 'application/json' }), safeName(doc.name) + '.meok');
       say(T('savedFile', '파일로 내보냈다'));
     },
     'save-project': () => {
-      /* 픽셀 그림은 옛 Ditherdeck 형식으로도 내보낸다 — 그 도구로도 계속 열린다. */
+      /* 픽셀 그림은 옛 Ditherdeck 형식으로도 내보낸다. 그 도구로도 계속 열린다. */
       if (doc.grid > 0) {
         const project = ditherdeckFromDoc(doc, (d, f) => composite(d, f));
         download(new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' }), safeName(doc.name) + '.ditherdeck.json');
         say(T('savedProject', '프로젝트를 저장했다'));
         return;
       }
-      say(T('projectPixelOnly', '지금은 픽셀 그림만 프로젝트로 저장된다 — 그림은 PNG 로'));
+      say(T('projectPixelOnly', '지금은 픽셀 그림만 프로젝트로 저장된다. 그림은 PNG 로'));
     }
   };
-  /* 필터 — 이름만 있으면 되므로 표로 그린다. 세기는 반씩(약하게 두 번 = 사람이 쓰는 법). */
+  /* 필터. 이름만 있으면 되므로 표로 그린다. 세기는 반씩(약하게 두 번 = 사람이 쓰는 법). */
   const FILTERS: Array<[FilterName, string, string]> = [
     ['grayscale', '흑백', '1'], ['sepia', '세피아', '1'], ['invert', '반전', '1'],
     ['blur', '흐리게', '1'], ['sharpen', '선명하게', '1'], ['edge', '윤곽', '1'],
@@ -1179,6 +1287,14 @@ function buildMeok(container: HTMLElement): void {
   root.querySelectorAll<HTMLButtonElement>('[data-act]').forEach(button => {
     button.onclick = () => actions[button.dataset.act || '']?.();
   });
+
+  /* 이모트 판 첫 그림. `reflowDoc` 은 새 그림과 파일 열기에서만 돌아 첫 진입을 못 덮음.
+     미리보기는 접혀 있으면 안 굽고, 펴는 순간 굽는다. */
+  renderEmotePicks();
+  const emotePanel = root.querySelector<HTMLDetailsElement>('.meok-emote');
+  if (emotePanel) {
+    emotePanel.ontoggle = () => { if (emotePanel.open) renderEmoteShots(); };
+  }
 
   pick<HTMLInputElement>('[data-open]').onchange = async (event) => {
     const input = event.target as HTMLInputElement;
@@ -1218,14 +1334,14 @@ function buildMeok(container: HTMLElement): void {
   /**
    * 그림 한 장을 **새 레이어로** 얹는다 (TASK-KL-238 / 2 photopea).
    *
-   * 파일 고르기 말고 **다른 도구가 넘겨 준 것**도 같은 길로 들어온다 — 예전엔 이 일이 `onchange`
-   * 안에만 있어서, 「이미지 편집」이 넘긴 그림은 받을 손이 없었다(먹은 `accepts: image/*` 라고
+   * 파일 고르기 말고 **다른 도구가 넘겨 준 것**도 같은 길로 들어온다. 예전엔 이 일이 `onchange`
+   * 안에만 있어서, 이미지 편집이 넘긴 그림은 받을 손이 없었다(먹은 `accepts: image/*` 라고
    * 적어 두고도 실제로는 안 받았다 = 눌러도 빈 화면). 선언과 실물은 같아야 한다.
    */
   const placeImageFile = async (file: File): Promise<void> => {
     try {
       const bitmap = await createImageBitmap(file);
-      /* 판보다 크면 판에 맞춰 줄인다 — 붙였는데 화면 밖이면 붙인 줄도 모른다. */
+      /* 판보다 크면 판에 맞춰 줄인다. 붙였는데 화면 밖이면 붙인 줄도 모른다. */
       const scale = Math.min(1, doc.w / bitmap.width, doc.h / bitmap.height);
       const w = Math.max(1, Math.round(bitmap.width * scale));
       const h = Math.max(1, Math.round(bitmap.height * scale));
@@ -1253,12 +1369,12 @@ function buildMeok(container: HTMLElement): void {
     await placeImageFile(file);
   };
 
-  /* 남이 넘긴 그림도 같은 자리로 (TASK-KL-238 / 2). 「이어서」 줄에서 먹을 고르면 여기로 온다. */
+  /* 남이 넘긴 그림도 같은 자리로 (TASK-KL-238 / 2). 이어서 줄에서 먹을 고르면 여기로 온다. */
   Toolbox.onHandoff?.('meok', (file: File) => {
     if (file.type.startsWith('image/')) void placeImageFile(file);
   });
 
-  /* 단축키 — 입력칸에 글자를 치는 중이면 안 가로챈다. */
+  /* 단축키. 입력칸에 글자를 치는 중이면 안 가로챈다. */
   const keydown = (event: KeyboardEvent): void => {
     const target = event.target as HTMLElement;
     if (target && ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return;
@@ -1302,7 +1418,7 @@ function buildMeok(container: HTMLElement): void {
     fitViewport();
     reflowDoc();
     syncZoom();
-    /* 지난번에 그리던 것을 되살린다 — 새로고침 한 번에 다 날아가는 게 이 도구의 제일 아픈 구멍이었다. */
+    /* 지난번에 그리던 것을 되살린다. 새로고침 한 번에 다 날아가는 게 이 도구의 제일 아픈 구멍이었다. */
     void loadLast().then(stored => {
       if (!stored || !root.isConnected) return;
       try {
@@ -1312,7 +1428,7 @@ function buildMeok(container: HTMLElement): void {
         syncZoom();
         say(T('restored', '지난번에 그리던 그림을 되살렸다'));
       } catch {
-        say(T('restoreFailed', '지난 그림을 되살리지 못했다 — 새 판으로 시작한다'));
+        say(T('restoreFailed', '지난 그림을 되살리지 못했다. 새 판으로 시작한다'));
       }
     }).catch(() => undefined);
   });
@@ -1329,79 +1445,6 @@ function buildMeok(container: HTMLElement): void {
   });
 }
 
-function injectStyles(): void {
-  if (document.getElementById('meok-style')) return;
-  const style = document.createElement('style');
-  style.id = 'meok-style';
-  style.textContent = [
-    '.meok{--meok-gap:8px;display:flex;flex-direction:column;height:min(78vh,820px);min-height:520px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;font-size:12px}',
-    '.meok *{box-sizing:border-box}',
-    '.meok button{border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-primary);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}',
-    '.meok button:hover{border-color:var(--accent,#4f7cff)}',
-    '.meok button.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 18%,transparent)}',
-    '.meok-bar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--bg-secondary);border-bottom:1px solid var(--border);flex-wrap:wrap}',
-    '.meok-logo{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--text-primary);color:var(--bg-primary);font-size:13px;font-weight:700;flex:0 0 auto}',
-    '.meok-name{flex:0 1 180px;min-width:90px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:6px;padding:5px 7px}',
-    '.meok-sep{width:1px;height:20px;background:var(--border)}',
-    '.meok-file{border:1px solid var(--border);background:var(--bg-tertiary);border-radius:6px;padding:5px 8px;cursor:pointer}',
-    '.meok-status{margin-left:auto;color:var(--text-tertiary);font-size:11px}',
-    '.meok-body{flex:1;display:grid;grid-template-columns:76px minmax(0,1fr) 216px;min-height:0}',
-    '.meok-tools{display:flex;flex-direction:column;gap:5px;padding:8px;background:var(--bg-secondary);border-right:1px solid var(--border);overflow:auto}',
-    '.meok-tools button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;line-height:1.1}',
-    '.meok-tools small{font-size:9px;color:var(--text-tertiary);white-space:nowrap}',
-    '.meok-tools svg{width:19px;height:19px}',
-    '.meok-tools button.active svg{color:var(--accent,#4f7cff)}',
-    '.meok-tools hr{width:100%;border:0;border-top:1px solid var(--border);margin:4px 0}',
-    '.meok-tools input[type=color]{width:100%;height:30px;padding:0;border:1px solid var(--border);border-radius:6px;background:none}',
-    '.meok-palette{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}',
-    '.meok-swatch{aspect-ratio:1;padding:0;border-radius:4px}',
-    '.meok-mini{font-size:10px!important;padding:5px 4px!important;line-height:1.25;white-space:normal}',
-    '.meok-presets{display:flex;flex-direction:column;gap:3px;margin-bottom:4px}',
-    '.meok-presets button{font-size:10px;padding:4px 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.meok-stage{display:flex;flex-direction:column;min-width:0;min-height:0}',
-    '.meok-brush{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap}',
-    '.meok-brush label{display:flex;align-items:center;gap:5px;color:var(--text-secondary)}',
-    '.meok-brush input[type=range]{width:74px}',
-    '.meok-brush b{min-width:26px;color:var(--text-tertiary);font-weight:500}',
-    '.meok-zoom{margin-left:auto;color:var(--text-tertiary)}',
-    '.meok-selbar{display:flex;gap:4px}',
-    '.meok-selbar button[disabled]{opacity:.35;cursor:default}',
-    '.meok-canvas{flex:1;min-height:0;position:relative;overflow:hidden;background:var(--bg-primary);background-image:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--border) 60%,transparent) 1px,transparent 0);background-size:18px 18px}',
-    '.meok-canvas canvas{position:absolute;inset:0;touch-action:none}',
-    '.meok-timeline{display:flex;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border);background:var(--bg-secondary)}',
-    '.meok-timeline label{display:flex;align-items:center;gap:4px;color:var(--text-secondary)}',
-    '.meok-timeline input[type=number]{width:52px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px 5px}',
-    '.meok-frames{flex:1;display:flex;gap:5px;overflow-x:auto;padding:2px}',
-    '.meok-frame{padding:2px;display:flex;flex-direction:column;align-items:center;gap:1px}',
-    '.meok-frame canvas{width:34px;height:34px;image-rendering:pixelated;background:#fff;border-radius:3px}',
-    '.meok-frame small{font-size:9px;color:var(--text-tertiary)}',
-    '.meok-layers{display:flex;flex-direction:column;background:var(--bg-secondary);border-left:1px solid var(--border);min-height:0;overflow:hidden}',
-    '.meok-layer-head{display:flex;align-items:center;gap:4px;padding:8px}',
-    '.meok-layer-head b{flex:1;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary)}',
-    '.meok-layer-props{display:flex;flex-direction:column;gap:5px;padding:0 8px 8px;border-bottom:1px solid var(--border)}',
-    '.meok-layer-props label{display:flex;align-items:center;gap:6px;color:var(--text-secondary)}',
-    '.meok-layer-props input[type=range]{flex:1}',
-    '.meok-layer-props select{flex:1;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-radius:5px;padding:3px}',
-    '.meok-layer-list{flex:0 1 auto;min-height:74px;max-height:38%;overflow:auto;padding:6px}',
-    '.meok-fix{border-top:1px solid var(--border);padding:6px 8px 10px;flex:1;min-height:0;overflow:auto}',
-    '.meok-fix summary{cursor:pointer;font-size:11px;letter-spacing:.1em;color:var(--text-tertiary);padding:2px 0}',
-    '.meok-fix label{display:flex;align-items:center;gap:6px;margin:4px 0;color:var(--text-secondary)}',
-    '.meok-fix label input{flex:1}',
-    '.meok-fix-row{display:flex;gap:4px;margin:5px 0;flex-wrap:wrap}',
-    '.meok-fix-row button{flex:1 1 0;min-width:0;font-size:10.5px;padding:5px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.meok-fix-row button[disabled]{opacity:.35;cursor:default}',
-    '.meok-filters{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}',
-    '.meok-filters button{font-size:11px;padding:5px 4px}',
-    '.meok-layer{display:flex;align-items:center;gap:5px;padding:4px;border:1px solid transparent;border-radius:6px;cursor:pointer}',
-    '.meok-layer.active{border-color:var(--accent,#4f7cff);background:color-mix(in srgb,var(--accent,#4f7cff) 12%,transparent)}',
-    '.meok-layer canvas{width:34px;height:34px;background:#fff;border-radius:4px;image-rendering:pixelated}',
-    '.meok-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-    '.meok-maskmark{color:var(--accent,#4f7cff);font-weight:400}',
-    '.meok-eye,.meok-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:10px;color:var(--text-tertiary);opacity:.8}',
-    '@media(max-width:860px){.meok-body{grid-template-columns:60px minmax(0,1fr)}.meok-layers{grid-column:1/-1;border-left:0;border-top:1px solid var(--border);max-height:210px}.meok{height:auto}}'
-  ].join('');
-  document.head.append(style);
-}
 
 (function register(): void {
   if (typeof Toolbox === 'undefined') return;
@@ -1411,7 +1454,7 @@ function injectStyles(): void {
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta?.('meok') || {}),
     id: 'meok',
-    category: 'tool',
+    category: 'image',
     layout: 'full',
     icon,
     tabs: [{

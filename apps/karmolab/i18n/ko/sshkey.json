@@ -14,8 +14,8 @@
   "sshkey.problem.noKey": "⚠ 열쇠가 없습니다",
   "sshkey.problem.noType": "⚠ 종류를 못 찾았습니다",
   "sshkey.status.idle": "authorized_keys 를 붙여넣으세요",
-  "sshkey.status.ok": "{n}줄 · 지문까지 냈습니다",
+  "sshkey.status.ok": "{n}줄, 지문까지 냈습니다",
   "sshkey.status.some": "{n}줄 중 {bad}줄이 이상합니다",
   "sshkey.status.converted": "OpenSSH 줄로 바꿨습니다",
-  "sshkey.note.local": "열쇠는 브라우저 안에서만 읽습니다 — 어디에도 올리지 않습니다. 지문은 서버에서 그 줄을 고를 때 쓰는 그 값(SHA256:…)입니다."
+  "sshkey.note.local": "열쇠는 브라우저 안에서만 읽습니다. 어디에도 올리지 않습니다. 지문은 서버에서 그 줄을 고를 때 쓰는 그 값(SHA256:...)입니다."
 }

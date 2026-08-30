@@ -2,7 +2,7 @@
   "grade.tab": "GPA",
   "grade.scale.45": "out of 4.5 (Korea)",
   "grade.scale.43": "out of 4.3 (Korea)",
-  "grade.label.courses": "Courses — one per line, “credits grade” (e.g. 3 A+)",
+  "grade.label.courses": "Courses. one per line, \"credits grade\" (e.g. 3 A+)",
   "grade.label.target": "Reach a target GPA",
   "grade.aria.target": "Target GPA",
   "grade.aria.future": "Credits still to take",
@@ -24,6 +24,6 @@
   "grade.value.points": "{n}%",
   "grade.value.courses": "{n}",
   "grade.value.andMore": " and {n} more",
-  "grade.value.impossible": "{n} — impossible even with perfect scores",
-  "grade.say.unreadable": "{n} lines could not be read. Write them like “3 A+” — credits, a space, then the grade."
+  "grade.value.impossible": "{n}. impossible even with perfect scores",
+  "grade.say.unreadable": "{n} lines could not be read. Write them like \"3 A+\". credits, a space, then the grade."
 }

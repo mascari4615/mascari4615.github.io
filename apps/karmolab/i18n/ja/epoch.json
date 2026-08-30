@@ -1,6 +1,6 @@
 {
   "epoch.tab": "変換",
-  "epoch.label.stamp": "タイムスタンプ — 10桁は秒 · 13桁はミリ秒 · 16桁はマイクロ秒 · 19桁はナノ秒",
+  "epoch.label.stamp": "タイムスタンプ. 10桁は秒, 13桁はミリ秒, 16桁はマイクロ秒, 19桁はナノ秒",
   "epoch.label.human": "人が読む時刻",
   "epoch.btn.now": "今",
   "epoch.btn.copySec": "秒をコピー",

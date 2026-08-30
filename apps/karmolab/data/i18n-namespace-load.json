@@ -1,5 +1,5 @@
 {
-  "note": "아직 안 고친 자리 — 새로 생기는 것만 막는다",
+  "note": "아직 안 고친 자리. 새로 생기는 것만 막는다",
   "list": [
     "src/widgets/bluemarble/bluemarble.ts :: bluemarble",
     "src/widgets/favorites-defaults.ts :: favorites",

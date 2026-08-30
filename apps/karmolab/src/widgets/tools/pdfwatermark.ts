@@ -1,8 +1,8 @@
 /**
  * PDF 워터마크 (TASK-KL-088)
  *
- * 신분증 사본이나 계약서를 보낼 때 「○○ 제출용」 을 박아 두면 다른 데 재사용되는 걸 막는다.
- * 그런데 워터마크를 넣겠다고 문서를 낯선 사이트에 올리는 건 앞뒤가 안 맞는다 — 여기서는 안 올린다.
+ * 신분증 사본이나 계약서를 보낼 때 ○○ 제출용 을 박아 두면 다른 데 재사용되는 걸 막는다.
+ * 그런데 워터마크를 넣겠다고 문서를 낯선 사이트에 올리는 건 앞뒤가 안 맞는다. 여기서는 안 올린다.
  *
  * 한글은 PDF 기본 글꼴에 없어 그대로 그리면 오류가 난다. 글자를 그림으로 그려 얹는 방식을 쓴다.
  */
@@ -16,7 +16,7 @@ import { encode } from './shared/image';
 (function (): void {
 
 
-  /** 글자를 캔버스에 그려 PNG 로 — PDF 기본 글꼴은 한글을 담지 못한다. */
+  /** 글자를 캔버스에 그려 PNG 로. PDF 기본 글꼴은 한글을 담지 못한다. */
   function textToPng(text: string, color: string, fontSize: number): Promise<Uint8Array> {
     const pad = 24;
     const probe = document.createElement('canvas').getContext('2d');
@@ -33,7 +33,7 @@ import { encode } from './shared/image';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     ctx.fillText(text, pad, h / 2);
-    // 공용 한 자리(`shared/image.encode`) — 굽기 규칙을 여기 또 적지 않는다.
+    // 공용 한 자리(`shared/image.encode`). 굽기 규칙을 여기 또 적지 않는다.
     return encode(cv, 'png')
       .then((b) => b.arrayBuffer())
       .then((ab) => new Uint8Array(ab));
@@ -44,7 +44,7 @@ import { encode } from './shared/image';
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
     title: t('widgets.pdfwatermark.title', undefined, "PDF 워터마크"),
-    category: 'tool',
+    category: 'file',
     desc: t('widgets-desc.pdfwatermark.desc', undefined, "PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다"),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 17 16 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>',
@@ -105,8 +105,8 @@ import { encode } from './shared/image';
           const status = $<HTMLElement>('#pwStatus');
           let file: File | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           async function run(): Promise<void> {
@@ -149,7 +149,7 @@ import { encode } from './shared/image';
               const name = suffixName(file.name, t('pdfwatermark.file.suffix').replace(/^-|\.pdf$/gi, ''));
               download(blob, name);
               say(t('pdfwatermark.say.done'), 'ok');
-              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name, from: 'pdfwatermark' });
               Toolbox.trackUse?.('watermark');
             } catch (e) {
@@ -164,7 +164,7 @@ import { encode } from './shared/image';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
           {
             Toolbox.onHandoff?.('pdfwatermark', (f: File) => pick(f));
           }

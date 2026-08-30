@@ -1,16 +1,16 @@
 /**
- * 서버 대시보드 (TASK-YB-042) — `/w/<공유키>/board`.
+ * 서버 대시보드 (TASK-YB-042). `/w/<공유키>/board`.
  *
- * 결산 카드가 *자랑용 요약*이라면 이 페이지는 *분석판*이다 — 방문 통계 도구를 보는 감각.
- * KPI 타일(직전 같은 기간 대비 증감) · 날짜별 추이 · 요일×시각 히트맵 · 사람/채널/이모지 표.
+ * 결산 카드가 *자랑용 요약*이라면 이 페이지는 *분석판*이다. 방문 통계 도구를 보는 감각.
+ * KPI 타일(직전 같은 기간 대비 증감), 날짜별 추이, 요일×시각 히트맵, 사람/채널/이모지 표.
  *
- * 색 규칙(dataviz): 한 계열 막대 = 한 색, 히트맵 = 파랑 단일 계열 5단계(검증 통과 —
- * 이 페이지의 어두운 표면 기준 단조·간격·최저대비 전부 PASS). 색은 크기만 나타내고,
- * 정체(사람·채널)는 색이 아니라 이름표로 구분한다.
+ * 색 규칙(dataviz): 한 계열 막대 = 한 색, 히트맵 = 파랑 단일 계열 5단계(검증 통과 . 
+ * 이 페이지의 어두운 표면 기준 단조, 간격, 최저대비 전부 PASS). 색은 크기만 나타내고,
+ * 정체(사람, 채널)는 색이 아니라 이름표로 구분한다.
  */
 import type { Analytics } from '../services/server-stats';
 
-/** 검증된 파랑 단일 계열 — 어두운 순(작다) → 밝은 순(크다). */
+/** 검증된 파랑 단일 계열. 어두운 순(작다) → 밝은 순(크다). */
 const RAMP = ['#184f95', '#2a78d6', '#5598e7', '#9ec5f4', '#cde2fb'];
 /** 한 계열 막대의 색. */
 const SERIES = '#3987e5';
@@ -48,7 +48,7 @@ function hourLabel(hour: number): string {
 
 /**
  * 증감 표시. 이전 기간이 0 이면 퍼센트가 무한이 되므로 그때는 "새로 시작" 으로 적는다.
- * 화살표만 쓰지 않고 말(늘었다/줄었다)을 붙인다 — 색만으로 뜻을 전달하지 않기 위해.
+ * 화살표만 쓰지 않고 말(늘었다/줄었다)을 붙인다. 색만으로 뜻을 전달하지 않기 위해.
  */
 function delta(current: number, previous: number): string {
   if (previous === 0) return current === 0 ? '<span class="flat">변화 없음</span>' : '<span class="up">새로 시작</span>';
@@ -73,13 +73,13 @@ function shareBar(ratio: number): string {
   return `<span class="track"><i style="width:${pct}%;background:${SERIES}"></i></span>`;
 }
 
-/** 날짜별 세로 막대 — 한 계열이라 범례가 필요 없다(제목이 계열 이름). */
+/** 날짜별 세로 막대. 한 계열이라 범례가 필요 없다(제목이 계열 이름). */
 function dailyChart(analytics: Analytics): string {
   const max = Math.max(...analytics.daily.map((d) => d.msgs), 1);
   const bars = analytics.daily
     .map((d) => {
       const pct = (d.msgs / max) * 100;
-      const label = `${d.dayKey} (${WEEKDAYS[weekdayOfKey(d.dayKey)]}) · 메시지 ${num(d.msgs)}개 · ${num(d.users)}명`;
+      const label = `${d.dayKey} (${WEEKDAYS[weekdayOfKey(d.dayKey)]}), 메시지 ${num(d.msgs)}개, ${num(d.users)}명`;
       return `<div class="dbar" title="${escapeHtml(label)}" tabindex="0" aria-label="${escapeHtml(label)}">
         <i style="height:${d.msgs === 0 ? 0 : Math.max(pct, 3)}%"></i></div>`;
     })
@@ -95,7 +95,7 @@ function weekdayOfKey(dayKey: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-/** 요일×시각 히트맵 — 크기를 5단계로 끊어 칠한다. 0 은 칠하지 않는다(빈칸 = 없음). */
+/** 요일×시각 히트맵. 크기를 5단계로 끊어 칠한다. 0 은 칠하지 않는다(빈칸 = 없음). */
 function heatmap(analytics: Analytics): string {
   const flat = analytics.weekdayHour.flat();
   const max = Math.max(...flat, 0);
@@ -105,7 +105,7 @@ function heatmap(analytics: Analytics): string {
         .map((count, hour) => {
           const step = max === 0 || count === 0 ? -1 : Math.min(Math.floor((count / max) * RAMP.length), RAMP.length - 1);
           const style = step < 0 ? '' : ` style="background:${RAMP[step]}"`;
-          const label = `${WEEKDAYS[weekday]}요일 ${hourLabel(hour)} · ${num(count)}개`;
+          const label = `${WEEKDAYS[weekday]}요일 ${hourLabel(hour)}, ${num(count)}개`;
           return `<i class="cell${step < 0 ? ' zero' : ''}"${style} title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></i>`;
         })
         .join('');
@@ -152,7 +152,7 @@ export function renderDashboardPage(data: DashboardData): string {
     tile('처음 온 사람', num(a.newUsers), `<span class="dim">돌아온 사람 ${num(a.returningUsers)}</span>`),
     tile(
       '가장 바빴던 날',
-      a.busiestDay ? escapeHtml(a.busiestDay.dayKey.slice(5)) : '—',
+      a.busiestDay ? escapeHtml(a.busiestDay.dayKey.slice(5)) : '. ',
       a.busiestDay ? `<span class="dim">메시지 ${num(a.busiestDay.msgs)}개</span>` : '<span class="dim">아직 없음</span>',
     ),
   ].join('');
@@ -183,7 +183,7 @@ export function renderDashboardPage(data: DashboardData): string {
     ]),
   );
 
-  // 이모지는 표보다 칩이 읽기 쉽다 — 한 줄에 여럿 들어가 카드가 비지 않는다.
+  // 이모지는 표보다 칩이 읽기 쉽다. 한 줄에 여럿 들어가 카드가 비지 않는다.
   const emojis = a.emojis.length
     ? `<div class="chips">${a.emojis
         .slice(0, 24)
@@ -191,7 +191,7 @@ export function renderDashboardPage(data: DashboardData): string {
         .join('')}</div>`
     : '<p class="empty">아직 없음</p>';
 
-  // 30일이면 30줄 — 펴 두면 표가 페이지를 통째로 삼킨다(위 그래프가 이미 같은 값을 보여줌).
+  // 30일이면 30줄. 펴 두면 표가 페이지를 통째로 삼킨다(위 그래프가 이미 같은 값을 보여줌).
   const dailyTable = `<details><summary>날짜별 표 펼치기 (${a.daily.length}일)</summary>${table(
     ['날짜', '요일', '메시지', '사람'],
     a.daily
@@ -227,7 +227,7 @@ export function renderDashboardPage(data: DashboardData): string {
   .tile { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 16px; }
   .tile-label { font-size: 12px; color: #8f87a8; }
   .tile-value { font-size: 27px; font-weight: 700; letter-spacing: -0.03em; margin: 4px 0 3px; }
-  /* 두 줄로 접히면 타일 높이가 제각각이 된다 — 넘치면 줄이지 말고 잘라 낸다. */
+  /* 두 줄로 접히면 타일 높이가 제각각이 된다. 넘치면 줄이지 말고 잘라 낸다. */
   .tile-sub { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .up { color: #0ca30c; } .down { color: #e66767; } .flat, .dim { color: #8f87a8; }
   section { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; }
@@ -251,7 +251,7 @@ export function renderDashboardPage(data: DashboardData): string {
   th { color: #8f87a8; font-weight: 500; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.1); }
   td { border-bottom: 1px solid rgba(255,255,255,0.045); }
   th.r, td.r { text-align: right; }
-  /* 고정 폭 트랙 — 표 칸이 좁아도 막대 길이가 뜻을 잃지 않는다. */
+  /* 고정 폭 트랙. 표 칸이 좁아도 막대 길이가 뜻을 잃지 않는다. */
   .track { display: inline-block; width: 64px; height: 7px; border-radius: 4px; background: rgba(255,255,255,0.08); vertical-align: middle; }
   .track i { display: block; height: 100%; border-radius: 4px; }
   .chips { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -276,7 +276,7 @@ export function renderDashboardPage(data: DashboardData): string {
 </head><body><div class="wrap">
 <header>
   <div><h1>📊 ${escapeHtml(guildName)} 대시보드</h1>
-    <div class="period">${escapeHtml(a.from)} ~ ${escapeHtml(a.to)} · 직전 같은 기간과 비교</div></div>
+    <div class="period">${escapeHtml(a.from)} ~ ${escapeHtml(a.to)}, 직전 같은 기간과 비교</div></div>
   <nav class="ranges">${ranges}</nav>
 </header>
 
@@ -295,9 +295,9 @@ export function renderDashboardPage(data: DashboardData): string {
 </div>
 
 <footer>
-  메시지 내용은 저장하지 않습니다 — 길이·시각·이모지만 셉니다.<br>
-  <a href="${escapeHtml(basePath.replace(/\/board$/, ''))}">← 결산 카드로</a> ·
-  욘봇 · <a href="https://mascari4615.github.io/">KarmoLab</a>
+  메시지 내용은 저장하지 않습니다. 길이, 시각, 이모지만 셉니다.<br>
+  <a href="${escapeHtml(basePath.replace(/\/board$/, ''))}">← 결산 카드로</a> , 
+  욘봇, <a href="https://mascari4615.github.io/">KarmoLab</a>
 </footer>
 </div></body></html>`;
 }

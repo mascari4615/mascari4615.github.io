@@ -1,12 +1,12 @@
 /**
  * 소리 크기 맞추기 (TASK-KL-088)
  *
- * 강의 녹음이나 회의 녹음은 「어떤 대목은 안 들리고 어떤 대목은 귀가 아픈」 상태가 되기 쉽다.
- * 볼륨을 올리는 것만으로는 안 된다 — 큰 데가 먼저 찌그러지기 때문이다.
+ * 강의 녹음이나 회의 녹음은 어떤 대목은 안 들리고 어떤 대목은 귀가 아픈 상태가 되기 쉽다.
+ * 볼륨을 올리는 것만으로는 안 된다. 큰 데가 먼저 찌그러지기 때문이다.
  *
  * 그래서 두 단계로 한다:
- *  ① **고르게(압축)** — 큰 소리만 눌러 큰 데와 작은 데의 차이를 좁힌다
- *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
+ *  ① **고르게(압축)**. 큰 소리만 눌러 큰 데와 작은 데의 차이를 좁힌다
+ *  ② **키우기(정규화)**. 그 뒤에 전체를 목표 크기까지 올린다
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
 import { attachAudio, audioCtx, download, encodeAudio, fileSize as size, loadAudio, mmss, toWav } from './shared/media';
@@ -18,7 +18,7 @@ import { wireDrop } from './shared/drop-well';
 import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
-  /** 소리의 「체감 크기」. 순간 최대값이 아니라 평균 에너지라 사람이 느끼는 크기에 가깝다. */
+  /** 소리의 체감 크기. 순간 최대값이 아니라 평균 에너지라 사람이 느끼는 크기에 가깝다. */
   function rms(data: Float32Array): number {
     let sum = 0;
     for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
@@ -33,7 +33,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   const db = (v: number): string => (v <= 0.00001 ? '-∞' : `${(20 * Math.log10(v)).toFixed(1)}`);
 
-  /** 파형을 그린다. 숫자만으로는 「고르게 됐다」가 안 와닿는다. */
+  /** 파형을 그린다. 숫자만으로는 고르게 됐다가 안 와닿는다. */
   function drawWave(canvas: HTMLCanvasElement, data: Float32Array, color: string): void {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*', 'video/*'],
     title: t('widgets.audiolevel.title', undefined, '소리 크기 맞추기'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.audiolevel.desc',
       undefined,
@@ -147,8 +147,8 @@ import { t, loadNamespace } from '../../lib/i18n';
           let made: Blob | null = null;
           let processed: AudioBuffer | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function labels(): void {
@@ -161,7 +161,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             made = null;
             saveBtn.disabled = true;
             $<HTMLElement>('#alResult').style.display = 'none';
-            say(`${f.name} · ${size(f.size)} 를 읽는 중…`);
+            say(`${f.name}, ${size(f.size)} 를 읽는 중...`);
             try {
               source = await loadAudio(f);
             } catch {
@@ -181,7 +181,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           /**
            * 큰 소리를 눌러 크고 작음의 차이를 좁힌 뒤(①) 전체를 목표까지 올린다(②).
-           * 누르는 정도는 지수로 준다 — 곱셈으로 줄이면 작은 소리까지 같이 줄어 아무 소용이 없다.
+           * 누르는 정도는 지수로 준다. 곱셈으로 줄이면 작은 소리까지 같이 줄어 아무 소용이 없다.
            */
           async function process(buffer: AudioBuffer, ctx: AudioContext): Promise<AudioBuffer> {
             const ratio = EVEN[parseInt(evenEl.value, 10)][0];
@@ -189,12 +189,12 @@ import { t, loadNamespace } from '../../lib/i18n';
             const out = ctx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
 
             // 표본 하나하나를 만지는 일이라 1시간 녹음이면 3억 번이 넘는다. 한 번에 돌면 그동안
-            // 화면이 통째로 멈춰 「먹통이 됐나」 싶어진다 — 조금씩 끊어 돌며 진행률을 보여 준다.
+            // 화면이 통째로 멈춰 먹통이 됐나 싶어진다. 조금씩 끊어 돌며 진행률을 보여 준다.
             const CHUNK = 2_000_000;
             const total = buffer.length * buffer.numberOfChannels * 2; // 두 번 훑는다
             let done = 0;
             const breathe = async (): Promise<void> => {
-              say(`맞추는 중… ${Math.min(99, Math.round((done / total) * 100))}%`);
+              say(`맞추는 중... ${Math.min(99, Math.round((done / total) * 100))}%`);
               await new Promise((r) => setTimeout(r, 0));
             };
 
@@ -240,11 +240,11 @@ import { t, loadNamespace } from '../../lib/i18n';
             // 미리 듣기는 손실 없는 쪽으로. 저장 형식은 받을 때 고른다(소리 자체를 들고 있어야 한다).
             processed = out;
             made = toWav(out);
-            attachAudio($<HTMLAudioElement>('#alPreview'), made); // 공용 — 앞 주소를 거두고 물린다
+            attachAudio($<HTMLAudioElement>('#alPreview'), made); // 공용. 앞 주소를 거두고 물린다
             $<HTMLElement>('#alResult').style.display = '';
             saveBtn.disabled = false;
 
-            // 「고르게 됐다」는 큰 소리와 체감 크기의 **간격이 좁아진 것**으로 재는 게 정확하다
+            // 고르게 됐다는 큰 소리와 체감 크기의 **간격이 좁아진 것**으로 재는 게 정확하다
             const spanBefore = 20 * Math.log10(peakOf(before) / Math.max(1e-6, rms(before)));
             const spanAfter = 20 * Math.log10(peakOf(after) / Math.max(1e-6, rms(after)));
             stats.innerHTML =
@@ -261,7 +261,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('audiolevel', (f: File) => void load(f));
           }
@@ -283,7 +283,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               .then((blob) => {
                 const aName = name;
                 download(blob, aName);
-                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'audiolevel' });
                 say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
               })

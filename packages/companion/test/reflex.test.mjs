@@ -3,19 +3,19 @@ import test from 'node:test';
 
 import { Companion, InMemoryMemory, alwaysRespond, reflexFor } from '../dist/index.js';
 
-test('인사·작별·고마움·짧은 호응은 생각 없이 답한다', () => {
+test('인사, 작별, 고마움, 짧은 호응은 생각 없이 답한다', () => {
   for (const said of ['안녕', '잘 자', '고마워', '응']) {
     assert.notEqual(reflexFor(said), null, `${said} 는 반사로 답해야 한다`);
   }
 });
 
-test('사연 있는 말은 반사하지 않는다 — 두뇌로 넘긴다', () => {
+test('사연 있는 말은 반사하지 않는다. 두뇌로 넘긴다', () => {
   for (const said of ['오늘 좀 힘들었어', '나 저번에 말한 그거 어떻게 됐지?', '이거 어떻게 생각해?']) {
     assert.equal(reflexFor(said), null);
   }
 });
 
-test('길면 반사하지 않는다 — 짧아 보여도 사연이 있을 수 있다', () => {
+test('길면 반사하지 않는다. 짧아 보여도 사연이 있을 수 있다', () => {
   assert.equal(reflexFor('안녕 오늘 뭐 하고 있었어'), null);
 });
 
@@ -75,7 +75,7 @@ test('반사할 말이 아니면 평소대로 두뇌가 답한다', async () => 
   assert.deepEqual(said, ['깊은 생각']);
 });
 
-test('반사로 한 말도 기억에는 남는다 — 나눈 말이니까', async () => {
+test('반사로 한 말도 기억에는 남는다. 나눈 말이니까', async () => {
   const memory = new InMemoryMemory();
   const body = {
     name: 'web',

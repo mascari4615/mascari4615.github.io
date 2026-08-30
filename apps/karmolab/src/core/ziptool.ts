@@ -1,8 +1,8 @@
 /**
- * ZIP 만들기·살펴보기·꺼내기 — 알맹이 (TASK-KL-205 P4)
+ * ZIP 만들기, 살펴보기, 꺼내기. 알맹이 (TASK-KL-205 P4)
  *
  * ZIP 구현은 환경이 준다. 브라우저는 기존 vendor JSZip, Node MCP는 npm jszip을 쓰되
- * 파일 계약은 양쪽 모두 base64 문자열이다. File·Blob을 코어에 들이지 않는다.
+ * 파일 계약은 양쪽 모두 base64 문자열이다. File, Blob을 코어에 들이지 않는다.
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -73,5 +73,5 @@ export const run: ToolRunner = async (op, args, deps) => {
     if (!name) throw new Error('꺼낼 파일 이름이 필요합니다');
     return backend.extract(data, name);
   }
-  throw new Error(`ziptool 에 「${op}」 는 없습니다`);
+  throw new Error(`ziptool 에 ${op} 는 없습니다`);
 };

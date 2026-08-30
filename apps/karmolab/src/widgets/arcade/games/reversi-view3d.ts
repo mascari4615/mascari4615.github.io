@@ -1,8 +1,8 @@
 /**
- * 뒤집기(오델로) — 입체 화면
+ * 뒤집기(오델로). 입체 화면
  *
  * 무대는 `three-board.ts`. 오목과 달리 **칸 안**에 둔다(교차점 아님).
- * 둘 수 있는 자리는 판 위에 옅은 점으로 미리 보인다 — 오델로는 놓을 자리가 몇 개뿐이라
+ * 둘 수 있는 자리는 판 위에 옅은 점으로 미리 보인다. 오델로는 놓을 자리가 몇 개뿐이라
  * 표시해 주지 않으면 사람이 아무 데나 눌러 보고 헤맨다.
  */
 import type { GameView } from '../views';
@@ -17,7 +17,7 @@ export const view3d: GameView<ReversiState, ReversiAction> = {
 
     let board: Board3d | null = mountThreeBoard(host, {
       n: N,
-      /* 오델로판은 칸이 어둡고 밝은 것이 아니라 한 색이다 — 대신 칸 안에 둔다. */
+      /* 오델로판은 칸이 어둡고 밝은 것이 아니라 한 색이다. 대신 칸 안에 둔다. */
       onCell: (i) => act({ cell: i })
     });
     if (!board.ok) {

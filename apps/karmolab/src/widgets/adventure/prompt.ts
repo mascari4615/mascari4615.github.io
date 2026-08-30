@@ -1,5 +1,5 @@
 /**
- * 무한 텍스트 어드벤처 prompt builder — KL-032 결정 4 (자유+선택지 N개) + 7 (티메토 narrative 통합).
+ * 무한 텍스트 어드벤처 prompt builder. KL-032 결정 4 (자유+선택지 N개) + 7 (티메토 narrative 통합).
  *
  * system instruction = 티메토 GM 1인칭 톤. NPC 만남 시 컨텍스트 합성.
  * 출력 형식 = narrative + ▼ 선택지 + (선택) [NPC:slug] / [SCENE:title] 토큰.
@@ -10,7 +10,7 @@ const TURN_OUTPUT_FORMAT = `
 당신의 출력은 정확히 다음 구조여야 합니다:
 
 \`\`\`
-<narrative — 한국어 서술. 2-6 문단. 티메토 1인칭 GM 톤. 조수님 = 사용자 호칭, 존댓말. 사용자가 직전에 박은 행동의 결과를 묘사>
+<narrative. 한국어 서술. 2-6 문단. 티메토 1인칭 GM 톤. 조수님 = 사용자 호칭, 존댓말. 사용자가 직전에 박은 행동의 결과를 묘사>
 
 ▼
 1. <짧은 선택지 1>
@@ -21,8 +21,8 @@ const TURN_OUTPUT_FORMAT = `
 규칙:
 - ▼ 줄 하나 박고 그 아래 1번부터 N번 (보통 3개, 상황에 따라 2-4개) 선택지.
 - 선택지는 짧게 (한 줄). 각 선택지가 *다른 결과* 를 약속해야 함.
-- 사용자가 선택지 외 자유 입력도 가능 — 그 경우 narrative 가 자유 행동을 받아주세요.
-- NPC 만남 시 narrative 안에 \`[NPC:slug]\` 토큰 박음 (slug 는 등록된 캐릭터 — alisa / ling / timeto / yon / fourth).
+- 사용자가 선택지 외 자유 입력도 가능. 그 경우 narrative 가 자유 행동을 받아주세요.
+- NPC 만남 시 narrative 안에 \`[NPC:slug]\` 토큰 박음 (slug 는 등록된 캐릭터. alisa / ling / timeto / yon / fourth).
 - 새 장소 진입 시 \`[SCENE:title]\` 토큰 박음 (선택).
 - 모험 종료 트리거: 사용자가 명시적으로 종료 의사 표시 (예: "여기서 일단 마무리할게요") 한 경우만. narrative 끝에 \`[END]\` 토큰 박음. 그 외엔 모험 계속.
 `.trim();
@@ -45,7 +45,7 @@ KarmoWorld 무대:
 export interface BuildSystemInstructionOpts {
   /** 모험 시작 시 cast 박은 NPC slug 들. 모험 도중 NPC 새로 등장할 때 prompt 갱신 가능 */
   castSlugs?: string[];
-  /** 사용 가능한 NPC slug 목록 노출 — LLM 이 [NPC:slug] 토큰 박을 때 참고 */
+  /** 사용 가능한 NPC slug 목록 노출. LLM 이 [NPC:slug] 토큰 박을 때 참고 */
   exposeCharacterRoster?: boolean;
 }
 
@@ -79,7 +79,7 @@ export interface ParsedTurn {
   ended: boolean;
 }
 
-/** LLM 응답 파싱 — narrative / 선택지 / NPC / SCENE / END 토큰 추출 */
+/** LLM 응답 파싱. narrative / 선택지 / NPC / SCENE / END 토큰 추출 */
 export function parseTurnResponse(text: string): ParsedTurn {
   const ended = /\[END\]/i.test(text);
   const npcSlugs = Array.from(text.matchAll(/\[NPC:([a-z0-9_-]+)\]/gi)).map((m) => m[1]);

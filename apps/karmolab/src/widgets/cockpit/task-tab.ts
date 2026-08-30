@@ -1,5 +1,5 @@
 /**
- * task-tab.ts — TASK Launcher 로직 이식 (TASK-KL-082 단위 I).
+ * task-tab.ts. TASK Launcher 로직 이식 (TASK-KL-082 단위 I).
  */
 import { t } from '../../lib/i18n';
 
@@ -43,12 +43,12 @@ const DOMAIN_ICON: Record<string, string> = {
 };
 
 const DOMAIN_SUBTITLE: Record<string, string> = {
-  wm:       t('cockpit.t40', undefined, '메인 프로젝트 · 주황머리 마녀와 인형들'),
+  wm:       t('cockpit.t40', undefined, '메인 프로젝트, 주황머리 마녀와 인형들'),
   karmolab: t('cockpit.t41', undefined, 'Tauri 데스크톱 + 웹 위젯 + AI'),
-  yawnbot:  t('cockpit.t42', undefined, 'Discord 봇 · 캐릭터 호스트'),
-  life:     t('cockpit.t43', undefined, '인생 일반 — 건강·금융·집·관계'),
-  hobby:    t('cockpit.t44', undefined, '취미 — 음악·독서·게임·여행'),
-  learning: t('cockpit.t45', undefined, '학습 — 책·강의·언어·기술'),
+  yawnbot:  t('cockpit.t42', undefined, 'Discord 봇, 캐릭터 호스트'),
+  life:     t('cockpit.t43', undefined, '인생 일반. 건강, 금융, 집, 관계'),
+  hobby:    t('cockpit.t44', undefined, '취미. 음악, 독서, 게임, 여행'),
+  learning: t('cockpit.t45', undefined, '학습. 책, 강의, 언어, 기술'),
 };
 
 const DOMAIN_IMAGE: Record<string, string> = {
@@ -200,7 +200,7 @@ function renderList(
         <span class="ckt-id">${esc(task.id)}</span>
         <span class="ckt-status" style="color:${sc}">${esc(task.status)}</span>
         <span class="ckt-title">${esc(task.title)}${subBadge}</span>
-        <span class="ckt-tags">${task.tags.length > 0 ? esc(`[${task.tags.slice(0, 3).join(', ')}${task.tags.length > 3 ? '…' : ''}]`) : ''}</span>
+        <span class="ckt-tags">${task.tags.length > 0 ? esc(`[${task.tags.slice(0, 3).join(', ')}${task.tags.length > 3 ? '...' : ''}]`) : ''}</span>
         ${cardHint}
       </div>`;
     })
@@ -217,7 +217,7 @@ function buildStatusBar(tasks: MemoTaskNode[]): string {
   const parts = STATUS_ORDER
     .filter((s) => counts[s] > 0)
     .map((s) => `<span class="ckt-qstat-item" style="color:${STATUS_COLORS[s] ?? '#9a9a94'}">${s.toUpperCase()} <b>${counts[s]}</b></span>`);
-  return parts.join('<span class="ckt-qstat-sep">·</span>');
+  return parts.join('<span class="ckt-qstat-sep">, </span>');
 }
 
 function svgStarField(seed: number): string {
@@ -335,7 +335,7 @@ function openDrawer(
 
   crumbEl.innerHTML = `COCKPIT / <b>${esc(task.id)}</b>`;
 
-  const priorityLabel: Record<string, string> = { high: '! HIGH', normal: '○ NORMAL', low: '· LOW' };
+  const priorityLabel: Record<string, string> = { high: '! HIGH', normal: '○ NORMAL', low: ',  LOW' };
   const pri = task.priority ?? 'normal';
 
   bodyEl.innerHTML = `
@@ -349,11 +349,11 @@ function openDrawer(
     <div class="ckt-dr-meta">
       <div class="ckt-dr-meta-row">
         <span class="ckt-dr-k">DOMAIN</span>
-        <span class="ckt-dr-v">${esc(DOMAIN_ICON[domain] ?? '')} ${esc(domainLabel)}${pathStr ? ' · ' + esc(pathStr) : ''}</span>
+        <span class="ckt-dr-v">${esc(DOMAIN_ICON[domain] ?? '')} ${esc(domainLabel)}${pathStr ? ', ' + esc(pathStr) : ''}</span>
       </div>
       ${parentTask ? `<div class="ckt-dr-meta-row">
         <span class="ckt-dr-k">PARENT</span>
-        <span class="ckt-dr-v ckt-dr-link" data-task-id="${esc(parentTask.id)}">${esc(parentTask.id)} — ${esc(parentTask.title)}</span>
+        <span class="ckt-dr-v ckt-dr-link" data-task-id="${esc(parentTask.id)}">${esc(parentTask.id)}. ${esc(parentTask.title)}</span>
       </div>` : ''}
       ${task.tags.length > 0 ? `<div class="ckt-dr-meta-row">
         <span class="ckt-dr-k">TAGS</span>
@@ -367,7 +367,7 @@ function openDrawer(
 
     ${children.length > 0 ? `
     <div class="ckt-dr-section">
-      <div class="ckt-dr-section-head">SUB-TASKS · ${children.length}</div>
+      <div class="ckt-dr-section-head">SUB-TASKS, ${children.length}</div>
       ${children.map((c) => {
         const csc = STATUS_COLORS[c.status] ?? '#55555a';
         return `<div class="ckt-dr-child" data-task-id="${esc(c.id)}">
@@ -382,7 +382,7 @@ function openDrawer(
       const busEntries = busMap.get(task.id) ?? [];
       if (busEntries.length === 0) return '';
       return `<div class="ckt-dr-section">
-        <div class="ckt-dr-section-head">슬롯 메시지 · ${busEntries.length}</div>
+        <div class="ckt-dr-section-head">슬롯 메시지, ${busEntries.length}</div>
         ${busEntries.map((b) => `<div class="ckt-dr-bus-entry">
           <span class="ckt-dr-bus-slot">[${esc(b.slot)}]</span>
           <span class="ckt-dr-bus-head">${esc(b.headline)}</span>
@@ -466,7 +466,7 @@ const TASK_TAB_STYLE_ID = 'ck-task-tab-styles';
 const TASK_TAB_CSS = `
 .ckt-wrap {
   /* 앱 테마 토큰의 별명. 예전엔 다크 색을 직접 박아 라이트에서 이 판만 까맣게 남았다.
-     --accent 는 일부러 안 덮는다 — 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
+     --accent 는 일부러 안 덮는다. 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
   --bg: var(--bg-void); --bg2: var(--bg-primary); --paper: var(--bg-secondary);
   --ink: var(--text-primary); --ink2: var(--text-secondary); --ink3: var(--text-tertiary);
   --line: var(--bg-tertiary); --line2: var(--bg-hover); --line3: var(--bg-active);
@@ -526,8 +526,8 @@ const TASK_TAB_CSS = `
 .ckt-sub-badge { font-family: 'KarmoMono', monospace; font-size: 10px; color: var(--ink3); margin-left: 5px; }
 .ckt-tags { font-size: 10px; color: var(--ink3); white-space: nowrap; }
 .ckt-empty { padding: 40px; text-align: center; color: var(--ink3); font-family: 'KarmoMono', monospace; letter-spacing: 0.2em; font-size: 12px; }
-.ckt-empty::before { content: '— '; opacity: 0.5; }
-.ckt-empty::after { content: ' —'; opacity: 0.5; }
+.ckt-empty::before { content: '.  '; opacity: 0.5; }
+.ckt-empty::after { content: ' . '; opacity: 0.5; }
 
 /* QUEST 섹션 */
 .ckt-qsection { margin-bottom: 28px; position: relative; }
@@ -785,7 +785,7 @@ export function buildTaskTab(container: HTMLElement): void {
       <div class="ckt-backdrop" data-backdrop></div>
       <aside class="ckt-drawer" data-drawer>
         <div class="ckt-drawer-head">
-          <div class="ckt-drawer-crumb" data-drawer-crumb>COCKPIT / <b>—</b></div>
+          <div class="ckt-drawer-crumb" data-drawer-crumb>COCKPIT / <b>. </b></div>
           <button class="ckt-drawer-close" data-drawer-close>✕</button>
         </div>
         <div class="ckt-drawer-body" data-drawer-body></div>

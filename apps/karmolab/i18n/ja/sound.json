@@ -15,11 +15,11 @@
   "sound.btn.back": "作業を選ぶ",
   "sound.btn.chain": "この結果で続ける",
   "sound.preview.fail": "この音はプレビューできません",
-  "sound.meta": "{time} · {ch}ch · {khz}kHz · {size}",
+  "sound.meta": "{time}, {ch}ch, {khz}kHz, {size}",
   "sound.part.video2audio": "動画から音を取り出す",
   "sound.part.soundscape": "環境音",
   "sound.part.morse": "モールス",
   "sound.more": "{name} 他{n}件",
-  "sound.wave.aria": "波形 — 矢印で移動、スペースで再生",
+  "sound.wave.aria": "波形. 矢印で移動、スペースで再生",
   "sound.btn.recent": "さっきの作業"
 }

@@ -1,12 +1,12 @@
 /**
- * 「편집 · 형식 변환」이 약속대로 바꾸는가 (TASK-KL-280).
+ * 편집, 형식 변환이 약속대로 바꾸는가 (TASK-KL-280).
  *
- * 이 도구는 이번에 속을 공용 것(`loadImage`·`toCanvas`·`encode`)으로 갈아 끼웠다.
+ * 이 도구는 이번에 속을 공용 것(`loadImage`, `toCanvas`, `encode`)으로 갈아 끼웠다.
  * 겉보기는 같아야 하므로, **바꾼 결과의 성질**을 재서 못 박는다:
  *   ① 긴 변이 준 기준 아래로 내려가고 비율이 유지된다
  *   ② 원본보다 키우지 않는다
  *   ③ PNG 로 뽑으면 **투명이 살아 있고**, JPG 로 뽑으면 **흰 바탕**이 깔린다
- *      (JPG 는 투명을 못 담아 그냥 두면 검게 나온다 — [[TASK-KL-272]] 와 같은 자리)
+ *      (JPG 는 투명을 못 담아 그냥 두면 검게 나온다. [[TASK-KL-272]] 와 같은 자리)
  *
  * 사용: node scripts/test-imgbatch.mjs
  */
@@ -27,7 +27,7 @@ await page.evaluate(() => {
   window.__reg = {};
   window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, mountTool() { return true; }, ensureScript: async () => {}, copyText() {} };
   window.Mdd = new Proxy({}, { get: () => () => {} });
-  /* 결과는 화면에 링크로 안 남고 곧바로 내려받아진다 — 만들어진 blob 을 여기서 주워 둔다
+  /* 결과는 화면에 링크로 안 남고 곧바로 내려받아진다. 만들어진 blob 을 여기서 주워 둔다
    * (도구를 고치지 않고 결과를 재는 유일한 자리다). */
   window.__blobs = [];
   const realCreate = URL.createObjectURL.bind(URL);
@@ -71,7 +71,7 @@ const out = await page.evaluate(async () => {
     maxEl.dispatchEvent(new Event('input'));
     window.__blobs.length = 0;
     host.querySelector('#ibRun').click();
-    /* 바뀐 그림은 **줄을 눌러야** 파일이 된다(그때 blob 주소가 생긴다) — 사람이 하는 그대로 한다. */
+    /* 바뀐 그림은 **줄을 눌러야** 파일이 된다(그때 blob 주소가 생긴다). 사람이 하는 그대로 한다. */
     for (let i = 0; i < 200; i += 1) {
       const row = host.querySelector('#ibList [data-name]');
       if (row) {
@@ -121,7 +121,7 @@ const check = (ok, why) => {
 };
 
 check(!!out.pngPx, 'PNG 로 뽑힌다');
-check(out.pngPx && out.pngPx.w === 200 && out.pngPx.h === 100, `긴 변 200 · 비율 유지 (지금 ${out.pngPx?.w}x${out.pngPx?.h})`);
+check(out.pngPx && out.pngPx.w === 200 && out.pngPx.h === 100, `긴 변 200, 비율 유지 (지금 ${out.pngPx?.w}x${out.pngPx?.h})`);
 check(out.pngPx && out.pngPx.rgba[3] === 0, `PNG 는 투명이 살아 있다 (지금 알파 ${out.pngPx?.rgba[3]})`);
 check(out.jpgPx && out.jpgPx.rgba[0] > 200 && out.jpgPx.rgba[2] > 200, `JPG 는 흰 바탕 (지금 rgb(${out.jpgPx?.rgba.slice(0, 3)}))`);
 check(out.bigPx && out.bigPx.w === 400, `기준이 커도 원본보다 키우지 않는다 (지금 ${out.bigPx?.w})`);
@@ -132,4 +132,4 @@ if (failures.length) {
   failures.forEach((f) => console.error('  - ' + f));
   process.exit(1);
 }
-console.log('[test-imgbatch] 크기·비율·투명/흰바탕까지 확인');
+console.log('[test-imgbatch] 크기, 비율, 투명/흰바탕까지 확인');

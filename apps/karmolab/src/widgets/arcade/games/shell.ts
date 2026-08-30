@@ -1,8 +1,8 @@
 /**
- * 컵 옮기기 — 눈으로 쫓는다 (TASK-KL-242)
+ * 컵 옮기기. 눈으로 쫓는다 (TASK-KL-242)
  *
- * 서른다섯 개가 전부 **머리로 하는** 놀이였다(반응 측정조차 「고르는」 놀이다). 이건 처음으로
- * **눈으로 따라가는** 놀이다 — 아는 것도 셈하는 것도 없고, 놓치지 않는 것이 전부다.
+ * 서른다섯 개가 전부 **머리로 하는** 놀이였다(반응 측정조차 고르는 놀이다). 이건 처음으로
+ * **눈으로 따라가는** 놀이다. 아는 것도 셈하는 것도 없고, 놓치지 않는 것이 전부다.
  *
  * 그래서 이 게임만 **섞는 차례가 상태에 들어 있다.** 화면이 알아서 흔들면 사람마다 다른
  * 것을 보게 되므로, 어떤 순서로 몇 번 바꿔치기했는지를 커널이 정해 두고 화면은 그대로 그린다.
@@ -25,7 +25,7 @@ export interface Swap {
 export interface ShellState {
   /** 처음에 공이 있던 컵 */
   start: number;
-  /** 바꿔치기 차례 — **커널이 정한다** */
+  /** 바꿔치기 차례. **커널이 정한다** */
   swaps: Swap[];
   /** 한 번에 걸리는 시간 */
   swapMs: number;
@@ -43,9 +43,9 @@ export interface ShellState {
 
 export type ShellAction = { cup: number };
 
-/** 섞기가 끝난 뒤 공이 있는 컵. 화면도 이 함수로 그린다 — 두 곳에서 따로 세면 어긋난다. */
+/** 섞기가 끝난 뒤 공이 있는 컵. 화면도 이 함수로 그린다. 두 곳에서 따로 세면 어긋난다. */
 export function ballAt(s: ShellState, upto = s.swaps.length): number {
-  if (s.start < 0) return -1; /* 손님은 시작 자리를 모른다 — 결과가 나올 때까지 못 센다 */
+  if (s.start < 0) return -1; /* 손님은 시작 자리를 모른다. 결과가 나올 때까지 못 센다 */
   let at = s.start;
   for (let i = 0; i < upto; i++) {
     const { a, b } = s.swaps[i];
@@ -99,7 +99,7 @@ export const shellgame: GameDef<ShellState, ShellAction> = {
   /**
    * 감출 것은 **공이 처음 어디 있었나** 하나뿐이다.
    *
-   * 바꿔치기 차례는 감추면 안 된다 — 그건 모두가 보는 공연이고, 가리면 손님 화면에서 컵이
+   * 바꿔치기 차례는 감추면 안 된다. 그건 모두가 보는 공연이고, 가리면 손님 화면에서 컵이
    * 안 움직인다. 시작 자리를 모르면 끝 자리도 못 셈하므로 이 한 줄로 충분하다.
    */
   redact(s) {
@@ -114,7 +114,7 @@ export const shellgame: GameDef<ShellState, ShellAction> = {
   reduce(s, a, seat, ctx) {
     if (s.over || s.showAt !== 0) return s;
     if (s.picks[seat] !== -1) return s;
-    /* 섞는 동안에는 못 고른다 — 중간에 찍으면 눈으로 쫓을 이유가 없다. */
+    /* 섞는 동안에는 못 고른다. 중간에 찍으면 눈으로 쫓을 이유가 없다. */
     if (progress(s, ctx.now) < s.swaps.length) return s;
     const cup = a?.cup;
     if (!Number.isInteger(cup) || cup < 0 || cup >= CUPS) return s;
@@ -150,7 +150,7 @@ export const shellgame: GameDef<ShellState, ShellAction> = {
   bot(s, seat, ctx): BotMove<ShellAction> | null {
     if (s.over || s.showAt !== 0 || s.picks[seat] !== -1) return null;
     if (progress(s, ctx.now) < s.swaps.length) return null;
-    /* 봇도 눈으로 쫓는 셈 친다 — 판이 빨라질수록 더 자주 놓친다. */
+    /* 봇도 눈으로 쫓는 셈 친다. 판이 빨라질수록 더 자주 놓친다. */
     const right = ballAt(s);
     const keep = Math.max(0.25, 0.9 - s.round * 0.14);
     const cup = ctx.rng() < keep ? right : Math.floor(ctx.rng() * CUPS);

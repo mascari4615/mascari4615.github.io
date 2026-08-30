@@ -328,7 +328,7 @@ const esc = (v: unknown): string =>
         if (item.tokens) stats.push(`${Number(item.tokens).toLocaleString()} tokens`);
         if (item.elapsed) stats.push(`${item.elapsed}s`);
         const statsEl = document.getElementById('ilDetailStats');
-        if (statsEl) statsEl.textContent = stats.join(' · ') || '';
+        if (statsEl) statsEl.textContent = stats.join(', ') || '';
 
         const actionsEl = document.getElementById('ilDetailActions');
         if (!actionsEl) return;
@@ -385,7 +385,7 @@ const esc = (v: unknown): string =>
             {
                 id: 'imagelib-main',
                 label: t('imagelib.tab.main', undefined, '라이브러리'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('imagelib').then(function () {
                         buildMain(container);

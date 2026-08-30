@@ -19,7 +19,7 @@ test('인격 파일은 이름과 본문으로 갈린다', () => {
   assert.equal(character.instruction, '짧게 말해라.\n반말 쓴다.');
 });
 
-test('머리말 없는 파일도 읽힌다 — 이름은 파일명이 된다', () => {
+test('머리말 없는 파일도 읽힌다. 이름은 파일명이 된다', () => {
   const path = tempFile('이름없음.md', '그냥 본문만 있다.');
   const character = loadCharacter(path);
   assert.equal(character.name, '이름없음');

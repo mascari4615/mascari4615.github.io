@@ -6,12 +6,12 @@ last_modified_at: "2024-11-09T08:24:00+09:00"
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: /assets/img/post/works/vtuber-soccer-tournament/230313-032705.png
-hidden: true
 work:
   field: 버추얼
   org: 왁타버스
   role: [아트]
   platform: VRChat
+board: me
 ---
 
 Counting Stars - 버축대 카오닝스타즈 MV  

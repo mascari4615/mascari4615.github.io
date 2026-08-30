@@ -1,14 +1,14 @@
 /**
- * 낚시 — 기다렸다가, 당긴다 (TASK-KL-242)
+ * 낚시. 기다렸다가, 당긴다 (TASK-KL-242)
  *
- * 다트가 「흔들리는 겨눔을 멈추는」 놀이였다면 이건 **기다리는 놀이**다. 아무 일도 안 일어나는
+ * 다트가 흔들리는 겨눔을 멈추는 놀이였다면 이건 **기다리는 놀이**다. 아무 일도 안 일어나는
  * 동안 손가락을 참는 것이 수고, 입질이 오면 짧은 창 안에 당겨야 한다.
  *
  * 그래서 이 게임에서만 **아무것도 안 하는 것이 옳은 때가 있다.** 앞의 서른은 늘 뭔가 할 수
- * 있었다(못 두면 그건 막힌 것이었다). 여기서는 「지금은 가만히 있는 게 맞다」가 규칙이다.
+ * 있었다(못 두면 그건 막힌 것이었다). 여기서는 지금은 가만히 있는 게 맞다가 규칙이다.
  *
- * 씨앗으로 정해진 시각에 입질이 온다 — 난수로 그때그때 뽑으면 창마다 다른 때에 물어
- * 여럿이 할 때 「내가 본 것」과 「맞은 것」이 갈린다(다트에서 배운 자리).
+ * 씨앗으로 정해진 시각에 입질이 온다. 난수로 그때그때 뽑으면 창마다 다른 때에 물어
+ * 여럿이 할 때 내가 본 것과 맞은 것이 갈린다(다트에서 배운 자리).
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
@@ -33,14 +33,14 @@ export interface FishState {
   biteAt: number[];
   /** 자리별: 이번에 걸릴 물고기 */
   next: Fish[];
-  /** 자리별 마지막 결과 — 1 잡음, -1 놓침, 0 없음 */
+  /** 자리별 마지막 결과. 1 잡음, -1 놓침, 0 없음 */
   last: number[];
   over: boolean;
 }
 
 export type FishAction = { kind: 'cast' } | { kind: 'pull' };
 
-/** 물고기 종류 수 — 화면이 넣어 준다. */
+/** 물고기 종류 수. 화면이 넣어 준다. */
 let KINDS = 5;
 export function useFishKinds(n: number): void {
   KINDS = Math.max(1, n);
@@ -48,7 +48,7 @@ export function useFishKinds(n: number): void {
 
 function rollFish(rng: () => number): Fish {
   const kind = Math.floor(rng() * KINDS);
-  /* 작은 것이 흔하고 큰 것이 드물다 — 세제곱으로 눌러 준다. */
+  /* 작은 것이 흔하고 큰 것이 드물다. 세제곱으로 눌러 준다. */
   const r = rng();
   return { kind, size: Math.max(1, Math.round(r * r * r * 40) + 1) };
 }
@@ -79,7 +79,7 @@ export const fishing: GameDef<FishState, FishAction> = {
 
     if (a?.kind === 'cast') {
       if (s.biteAt[seat] !== 0) return s;
-      /* 1.2초에서 4.5초 사이에 문다. 언제인지는 **미리 정해 둔다** — 그래야 모두가 같은 때를 본다. */
+      /* 1.2초에서 4.5초 사이에 문다. 언제인지는 **미리 정해 둔다**. 그래야 모두가 같은 때를 본다. */
       const wait = 1200 + ctx.rng() * 3300;
       return {
         ...s,
@@ -109,7 +109,7 @@ export const fishing: GameDef<FishState, FishAction> = {
     };
   },
 
-  /** 창을 놓치면 물고기가 달아난다 — 안 당기고 버티는 것도 실패다. */
+  /** 창을 놓치면 물고기가 달아난다. 안 당기고 버티는 것도 실패다. */
   tick(s, ctx) {
     if (s.over) return s;
     let changed = false;

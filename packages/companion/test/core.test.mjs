@@ -11,7 +11,7 @@ import {
   silentBrain,
 } from '../dist/index.js';
 
-/** 감각을 코어가 직접 받게 하는 최소 몸 — 말한 것을 배열에 모아둔다. */
+/** 감각을 코어가 직접 받게 하는 최소 몸. 말한 것을 배열에 모아둔다. */
 function recordingBody(name = 'test') {
   const spoken = [];
   return {
@@ -43,7 +43,7 @@ test('한 바퀴: 느낀 것이 기억에 남고, 두뇌의 말이 그 몸으로
   assert.equal(entries[0].text, '안녕');
 });
 
-test('말을 참으면(attention) 두뇌를 아예 부르지 않는다 — 기억에는 남는다', async () => {
+test('말을 참으면(attention) 두뇌를 아예 부르지 않는다. 기억에는 남는다', async () => {
   const { body, spoken } = recordingBody();
   const memory = new InMemoryMemory();
   let thoughtCount = 0;
@@ -162,14 +162,14 @@ test('사람이 직접 말 건 채널은 쿨다운을 건너뛴다', async () =>
   assert.equal(tick.spoken.length, 0, '혼잣말은 쿨다운에 걸려 참는다');
 });
 
-test('시험이 만든 감각은 기억에 안 담긴다 — 사람 상이 검사 찌꺼기로 만들어지면 안 된다', async () => {
+test('시험이 만든 감각은 기억에 안 담긴다. 사람 상이 검사 찌꺼기로 만들어지면 안 된다', async () => {
   const { body, spoken } = recordingBody();
   const memory = new InMemoryMemory();
   const companion = new Companion({ bodies: [body], brain: echoBrain, memory, attention: alwaysRespond });
   await companion.start();
 
   await companion.feed({ ...sensation('스모크 12345'), test: true });
-  // 처리는 그대로 한다 — 검사가 진짜 길을 안 밟으면 검사가 아니다.
+  // 처리는 그대로 한다. 검사가 진짜 길을 안 밟으면 검사가 아니다.
   assert.deepEqual(spoken, ['(echo) 스모크 12345']);
   // 다만 기억에는 없어야 한다.
   assert.deepEqual(memory.all(), []);
@@ -178,7 +178,7 @@ test('시험이 만든 감각은 기억에 안 담긴다 — 사람 상이 검�
   assert.deepEqual(memory.all().map((e) => e.text), ['진짜 말', '(echo) 진짜 말']);
 });
 
-test('줄이 둘이다 — 무거운 일이 도는 중에도 사람 말은 바로 시작한다', async () => {
+test('줄이 둘이다. 무거운 일이 도는 중에도 사람 말은 바로 시작한다', async () => {
   const producedText = [];
   const body2 = {
     name: 'web',
@@ -214,10 +214,10 @@ test('줄이 둘이다 — 무거운 일이 도는 중에도 사람 말은 바�
   await companion.stop();
 
   // 갈라 두기 전에는 무거운 일이 끝날 때까지 통째로 기다렸다(실측 3초 중 2793ms).
-  assert.ok(waitedMs >= 0 && waitedMs < 150, `사람 말이 ${waitedMs}ms 기다렸다 — 일 줄 뒤에서 밀린 것`);
+  assert.ok(waitedMs >= 0 && waitedMs < 150, `사람 말이 ${waitedMs}ms 기다렸다. 일 줄 뒤에서 밀린 것`);
 });
 
-test('일 줄은 사람이 말하는 중에는 새 turn 을 안 연다 — 두뇌는 하나다', async () => {
+test('일 줄은 사람이 말하는 중에는 새 turn 을 안 연다. 두뇌는 하나다', async () => {
   const order = [];
   const body3 = {
     name: 'web',
@@ -248,6 +248,6 @@ test('일 줄은 사람이 말하는 중에는 새 turn 을 안 연다 — 두�
   await Promise.all(events);
   await companion.stop();
 
-  // 사람 말이 일 셋을 다 기다리지 않았어야 한다 — 맨 뒤면 안 된다.
+  // 사람 말이 일 셋을 다 기다리지 않았어야 한다. 맨 뒤면 안 된다.
   assert.ok(order.indexOf('web') <= 1, `두뇌를 부른 순서: ${order.join(' → ')}`);
 });

@@ -2,7 +2,7 @@
  * 오디오 이어붙이기 (TASK-KL-088)
  *
  * 여러 음원을 하나로 잇는 일은 단순해 보이지만 **표본율과 채널 수가 제각각**이면
- * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
+ * 그대로 이어 붙일 수 없다. 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
 import { encodeAudio, fileSize as size, mmss, download, audioCtx, loadAudioInfo } from './shared/media';
@@ -19,7 +19,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*'],
     title: t('widgets.audiojoin.title', undefined, "오디오 이어붙이기"),
-    category: 'tool',
+    category: 'av',
     desc: t('widgets-desc.audiojoin.desc', undefined, "여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다"),
     layout: 'wide',
     icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',
@@ -64,15 +64,15 @@ import { t, loadNamespace } from '../../lib/i18n';
           const gap = $<HTMLInputElement>('#ajGap');
           let items: Array<{ name: string; buffer: AudioBuffer; rate: number }> = [];
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
           function render(): void {
             listEl.innerHTML = items
               .map(
                 (it, i) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${esc(t('audiojoin.value.nth', { n: i + 1 }))}</span><span class="tool-list-val">${esc(it.name)} <span class="tool-list-dim">${mmss(it.buffer.duration)} · ${(it.rate / 1000).toFixed(1)}kHz · ${it.buffer.numberOfChannels === 1 ? t('audiojoin.value.mono') : t('audiojoin.value.stereo')}</span></span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(t('audiojoin.value.nth', { n: i + 1 }))}</span><span class="tool-list-val">${esc(it.name)} <span class="tool-list-dim">${mmss(it.buffer.duration)}, ${(it.rate / 1000).toFixed(1)}kHz, ${it.buffer.numberOfChannels === 1 ? t('audiojoin.value.mono') : t('audiojoin.value.stereo')}</span></span></div>`
               )
               .join('');
             if (!items.length) {
@@ -100,8 +100,8 @@ import { t, loadNamespace } from '../../lib/i18n';
             for (const f of Array.from(list)) {
               if (!f.type.startsWith('audio/')) continue;
               try {
-                /* 표본률은 **파일 머리**에서 읽는다 — 푼 소리의 값은 전부 재생 장치 값이라 다 같아 보인다.
-                 * 그러면 「섞였다」는 알림이 영영 안 뜬다(그게 이 도구가 조심하려던 바로 그 일이다). */
+                /* 표본률은 **파일 머리**에서 읽는다. 푼 소리의 값은 전부 재생 장치 값이라 다 같아 보인다.
+                 * 그러면 섞였다는 알림이 영영 안 뜬다(그게 이 도구가 조심하려던 바로 그 일이다). */
                 const { buffer, rate } = await loadAudioInfo(f);
                 items.push({ name: f.name, buffer, rate });
               } catch {
@@ -113,7 +113,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             Toolbox.trackUse?.('add');
           }
 
-          /** 표본율이 다르면 그대로 이으면 안 된다 — 가장 높은 쪽 기준으로 다시 표본을 찍는다. */
+          /** 표본율이 다르면 그대로 이으면 안 된다. 가장 높은 쪽 기준으로 다시 표본을 찍는다. */
           function resample(src: AudioBuffer, rate: number, ch: number, ctx: AudioContext): AudioBuffer {
             if (src.sampleRate === rate && src.numberOfChannels === ch) return src;
             const len = Math.round(src.duration * rate);
@@ -135,7 +135,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           /**
            * 표본을 하나하나 옮기는 일이라 긴 음원 여러 개면 수억 번이 된다.
-           * 한 번에 돌면 그동안 화면이 통째로 멈춰 「먹통이 됐나」 싶어지므로,
+           * 한 번에 돌면 그동안 화면이 통째로 멈춰 먹통이 됐나 싶어지므로,
            * **파일 하나를 옮길 때마다** 숨 쉴 틈을 주고 어디까지 왔는지 알려 준다.
            */
           async function join(): Promise<AudioBuffer | null> {
@@ -177,7 +177,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('audiojoin', (f: File) => void add([f]));
           }
@@ -201,7 +201,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               .then((blob) => {
                 const aName = t('audiojoin.file.name') + format;
                 download(blob, aName);
-                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: aName, from: 'audiojoin' });
                 say(t('audiojoin.say.done', { len: mmss(out.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('join');

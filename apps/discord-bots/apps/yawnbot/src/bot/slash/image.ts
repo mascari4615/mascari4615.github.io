@@ -33,7 +33,7 @@ const MAX_PROMPT_CHARS = 1500;
 
 /**
  * Vertex Imagen 이미지당 단가 (USD, 2026-04 기준 공개 가격).
- * 알 수 없는 모델은 null — embed에서 "비용" 필드 생략.
+ * 알 수 없는 모델은 null. embed에서 "비용" 필드 생략.
  * 가격 변경 시 업데이트.
  */
 export const IMAGEN_PRICE_PER_IMAGE: Record<string, number> = {
@@ -72,7 +72,7 @@ export function loadAppearance(card: CharacterCard): string {
 
 /**
  * appearance(+image_style) + 상황을 결합.
- * - 상황 비어 있으면 외형만 (기본 포즈·프로필 이미지)
+ * - 상황 비어 있으면 외형만 (기본 포즈, 프로필 이미지)
  * - 외형만 있으면 외형
  * - 상황만 있으면 상황
  * - 둘 다 비면 "{name} portrait" 폴백

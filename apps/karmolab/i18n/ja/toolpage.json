@@ -22,7 +22,7 @@
   "toolpage.hub.pinOff": "自分のものから外す",
   "toolpage.hub.playTail": "遊んでいってください",
   "toolpage.hub.count": "{n}件",
-  "toolpage.hub.title": "道具の一覧 — テキスト · 画像 · 計算 · 開発 | KarmoLab",
+  "toolpage.hub.title": "道具の一覧. テキスト, 画像, 計算, 開発 | KarmoLab",
   "toolpage.hub.description": "KarmoLab の道具 {n} 種。どれも独立したページですぐ使え、入力した内容はブラウザから出ません。",
   "toolpage.hub.ogAlt": "KarmoLab 道具一覧",
   "toolpage.hub.listName": "KarmoLab の道具",
@@ -42,9 +42,9 @@
   "toolpage.privacy.label.yours": "あなたが入力した宛先へ送信",
   "toolpage.privacy.note.local": "入力した内容はブラウザの中だけで処理され、どこにも保存・送信されません。",
   "toolpage.privacy.note.assets": "入力した内容はブラウザの中だけで処理されます。最初に必要なデータ・モデルだけを取得します。",
-  "toolpage.privacy.note.ours": "一部の機能は KarmoLab のサーバーとやり取りします — 詳細は下記。",
-  "toolpage.privacy.note.third-party": "一部の機能は外部サービスに接続します — 送信先と内容は下記。",
-  "toolpage.privacy.note.ai": "AI 機能を使うと、入力した内容が AI プロバイダに送信されます — 下記を確認してください。",
-  "toolpage.privacy.note.yours": "入力した宛先へ実際にリクエストが送られます — その宛先の持ち主に内容が渡ります。",
+  "toolpage.privacy.note.ours": "一部の機能は KarmoLab のサーバーとやり取りします. 詳細は下記。",
+  "toolpage.privacy.note.third-party": "一部の機能は外部サービスに接続します. 送信先と内容は下記。",
+  "toolpage.privacy.note.ai": "AI 機能を使うと、入力した内容が AI プロバイダに送信されます. 下記を確認してください。",
+  "toolpage.privacy.note.yours": "入力した宛先へ実際にリクエストが送られます. その宛先の持ち主に内容が渡ります。",
   "toolpage.privacy.to": "送信先"
 }

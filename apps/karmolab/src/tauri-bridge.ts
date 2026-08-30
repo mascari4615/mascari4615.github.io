@@ -2,8 +2,8 @@
  * Tauri 데스크톱 셸 단일 seam (TASK-KL-062 slice 1).
  *
  * `window.__TAURI__?.core?.invoke` / `?.event?.listen` / `?.window` 와
- * `__KARMOLAB_DESKTOP__` 데스크톱 판정이 7+ 파일에 인라인 캐스팅·로컬 타입으로 산재.
- * 본 모듈이 그 캐스팅·타입·미주입 가드를 단일 정본으로 집약 (deletion test:
+ * `__KARMOLAB_DESKTOP__` 데스크톱 판정이 7+ 파일에 인라인 캐스팅, 로컬 타입으로 산재.
+ * 본 모듈이 그 캐스팅, 타입, 미주입 가드를 단일 정본으로 집약 (deletion test:
  * 제거 시 N caller 로 복잡도 재출현 → deep). 비-데스크톱(웹)에서는
  * isDesktop()=false, invoke=reject, listen=no-op.
  *
@@ -48,7 +48,7 @@ export function invoke<T = unknown>(cmd: string, args?: unknown): Promise<T> {
 
 /**
  * Tauri 이벤트 listen. 미주입이면 no-op unlisten 반환 (호출자 분기 불요).
- * 핸들러는 *원본 이벤트* `{ payload }` 를 받는다 — 기존 위젯(servermonitor/terminal)이
+ * 핸들러는 *원본 이벤트* `{ payload }` 를 받는다. 기존 위젯(servermonitor/terminal)이
  * `e.payload` 접근에 이미 의존하므로 언랩하지 않고 그대로 전달 (seam 이 콜러가
  * 의존하는 형태를 숨기지 X = 정직한 계약).
  */

@@ -15,7 +15,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "패·타일 4종을 공용 종이로 - 판마다 제 카드를 그리던 것 폐기"
+      "text": "패, 타일 4종을 공용 종이로 - 판마다 제 카드를 그리던 것 폐기"
     },
     {
       "sha": "e82f19cbdf",
@@ -23,7 +23,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "글 장이 커뮤니티 글과 같은 집이 된다 — 앱 셸 + 겉모습 SSOT (change.board-unify ②)"
+      "text": "글 장이 커뮤니티 글과 같은 집이 된다. 앱 셸 + 겉모습 SSOT (change.board-unify ②)"
     },
     {
       "sha": "4d0f6a481a",
@@ -39,7 +39,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "판 놀이 4종을 three 무대로 — CSS 원근 층 폐기"
+      "text": "판 놀이 4종을 three 무대로. CSS 원근 층 폐기"
     },
     {
       "sha": "bbd88630b3",
@@ -47,7 +47,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "오목 입체 화면을 three 로 · 알은 교차점에 · 결 무늬는 코드로 굽는다"
+      "text": "오목 입체 화면을 three 로, 알은 교차점에, 결 무늬는 코드로 굽는다"
     },
     {
       "sha": "97f33d9db7",
@@ -55,7 +55,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "글 장이 게시판 안처럼 보인다 — 판 프레임·목록 복귀 (change.board-unify ②)"
+      "text": "글 장이 게시판 안처럼 보인다. 판 프레임, 목록 복귀 (change.board-unify ②)"
     },
     {
       "sha": "3c171c3109",
@@ -71,7 +71,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "핑퐁도 공용 붓으로 — 탁구대·라켓 그림자·구슬 공"
+      "text": "핑퐁도 공용 붓으로. 탁구대, 라켓 그림자, 구슬 공"
     },
     {
       "sha": "22a5023c44",
@@ -79,7 +79,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "캔버스 재질 붓 하나로 — 당구·컬링·에어하키 (캔버스 계열 2·3호)"
+      "text": "캔버스 재질 붓 하나로. 당구, 컬링, 에어하키 (캔버스 계열 2, 3호)"
     },
     {
       "sha": "cfe84128ae",
@@ -87,7 +87,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "「비슷한 글」 — KarmoMeaning 의 두 번째 사용처 (change.motion-3d-cores 5단계)"
+      "text": "비슷한 글. KarmoMeaning 의 두 번째 사용처 (change.motion-3d-cores 5단계)"
     },
     {
       "sha": "92d7820f54",
@@ -95,7 +95,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "게시판이 흔들리고 안 내려가던 것 — 폭 규격·스크롤 주인·제목 칸 (change.board-unify ①)"
+      "text": "게시판이 흔들리고 안 내려가던 것. 폭 규격, 스크롤 주인, 제목 칸 (change.board-unify ①)"
     },
     {
       "sha": "90202a3fca",
@@ -103,7 +103,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "당구에 재질 — 천·쿠션·구슬 (캔버스 계열 1호)"
+      "text": "당구에 재질. 천, 쿠션, 구슬 (캔버스 계열 1호)"
     },
     {
       "sha": "48d1b7d59e",
@@ -111,7 +111,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "주사위 눈이 두부(네모)로 나오던 것 — 점으로 그린다 + 하이로우 펠트"
+      "text": "주사위 눈이 두부(네모)로 나오던 것. 점으로 그린다 + 하이로우 펠트"
     },
     {
       "sha": "59700d3cab",
@@ -119,7 +119,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "3D 지형도를 손으로 — 합류 (change.motion-3d-cores 4단계)"
+      "text": "3D 지형도를 손으로. 합류 (change.motion-3d-cores 4단계)"
     },
     {
       "sha": "bb3664f98b",
@@ -127,7 +127,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블랙잭·스피드도 펠트 위 공용 카드로 (카드 계열 2·3호)"
+      "text": "블랙잭, 스피드도 펠트 위 공용 카드로 (카드 계열 2, 3호)"
     },
     {
       "sha": "867324a9e8",
@@ -135,7 +135,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "KarmoPose — 손·폰·마우스를 한 그릇으로 (change.motion-3d-cores 3단계)"
+      "text": "KarmoPose. 손, 폰, 마우스를 한 그릇으로 (change.motion-3d-cores 3단계)"
     },
     {
       "sha": "1a170e2528",
@@ -143,7 +143,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "궤도 카메라·점 구름 + 지형도 돌려 보기 장 (change.motion-3d-cores 2단계)"
+      "text": "궤도 카메라, 점 구름 + 지형도 돌려 보기 장 (change.motion-3d-cores 2단계)"
     },
     {
       "sha": "b8a067722d",
@@ -159,7 +159,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "입체 판 부품 하나로 판 놀이 4종 3D (오목·오델로·체커·따내기 바둑)"
+      "text": "입체 판 부품 하나로 판 놀이 4종 3D (오목, 오델로, 체커, 따내기 바둑)"
     },
     {
       "sha": "f45be7d58e",
@@ -167,7 +167,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "표현을 규칙에서 떼어낸다 — 2D/3D 를 사람이 고른다 (오목 3D 1호)"
+      "text": "표현을 규칙에서 떼어낸다. 2D/3D 를 사람이 고른다 (오목 3D 1호)"
     },
     {
       "sha": "d848e7519e",
@@ -175,7 +175,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "KarmoMeaning — 뜻 재기를 굽기에서 꺼내 재사용 코어로 (change.motion-3d-cores)"
+      "text": "KarmoMeaning. 뜻 재기를 굽기에서 꺼내 재사용 코어로 (change.motion-3d-cores)"
     },
     {
       "sha": "cf4a142cee",
@@ -183,7 +183,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블로그가 게시판의 한 판이 된다 — 「글」 탭 폐지, 판 목록 합류 (change.board-unify ①)"
+      "text": "블로그가 게시판의 한 판이 된다. 글 탭 폐지, 판 목록 합류 (change.board-unify ①)"
     },
     {
       "sha": "f72f0a6ccc",
@@ -191,7 +191,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "무대를 화면 크기에 맞춰 키운다 — 넓은 화면 2열 + 오목 화점"
+      "text": "무대를 화면 크기에 맞춰 키운다. 넓은 화면 2열 + 오목 화점"
     },
     {
       "sha": "30e405c15c",
@@ -215,7 +215,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "지형도 굽기 소스 일반화 — 화이트리스트 폐기 (change.atlas-sources)"
+      "text": "지형도 굽기 소스 일반화. 화이트리스트 폐기 (change.atlas-sources)"
     },
     {
       "sha": "f9f0708c64",
@@ -239,7 +239,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "대비 훑기 3연속 빨강 — 생 체크아웃엔 js/ 산출물이 없어 셸이 안 떴다"
+      "text": "대비 훑기 3연속 빨강. 생 체크아웃엔 js/ 산출물이 없어 셸이 안 떴다"
     },
     {
       "sha": "f6c8f23aac",
@@ -295,7 +295,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "돌아가는 줄에 한 자리만 찍고 「안 찍혔다」라 하지 않는다"
+      "text": "돌아가는 줄에 한 자리만 찍고 안 찍혔다라 하지 않는다"
     },
     {
       "sha": "445eb08188",
@@ -303,7 +303,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "자가 보기 전에 도구 장을 찍는다 — shell-i18n 이 다섯 달 만에 실제로 돈다"
+      "text": "자가 보기 전에 도구 장을 찍는다. shell-i18n 이 다섯 달 만에 실제로 돈다"
     },
     {
       "sha": "56d464e191",
@@ -311,7 +311,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "오타 자가 잡은 것들 — 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다"
+      "text": "오타 자가 잡은 것들. 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다"
     },
     {
       "sha": "0f7e229b77",
@@ -319,7 +319,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "지형도를 master 환경에 맞춘다 — 자 열 개를 초록으로"
+      "text": "지형도를 master 환경에 맞춘다. 자 열 개를 초록으로"
     },
     {
       "sha": "7cb56d6878",
@@ -335,7 +335,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "/works/ 전시 장 + 앱 「글」 탭 안 읽기 (change.blog-finish ③⑤)"
+      "text": "/works/ 전시 장 + 앱 글 탭 안 읽기 (change.blog-finish ③⑤)"
     },
     {
       "sha": "326fba7fd1",
@@ -343,7 +343,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "수식 = 빌드타임 KaTeX · 글 그래프 = 위젯 내장 D3 (change.blog-finish ④②)"
+      "text": "수식 = 빌드타임 KaTeX, 글 그래프 = 위젯 내장 D3 (change.blog-finish ④②)"
     },
     {
       "sha": "eafb2071ac",
@@ -351,7 +351,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "사이트 조립 Jekyll → Node — 이 저장소에서 Ruby 소멸 (change.blog-finish ①)"
+      "text": "사이트 조립 Jekyll → Node. 이 저장소에서 Ruby 소멸 (change.blog-finish ①)"
     },
     {
       "sha": "e3993b59ff",
@@ -359,7 +359,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블로그 컷오버 — Chirpy 철거, 글 = KarmoLab 파이프 (change.blog-cutover)"
+      "text": "블로그 컷오버. Chirpy 철거, 글 = KarmoLab 파이프 (change.blog-cutover)"
     },
     {
       "sha": "7315d126e7",
@@ -367,7 +367,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "/posts/ 목록 장에 last_modified_at — 없으면 사이트맵 감사가 배포를 세운다"
+      "text": "/posts/ 목록 장에 last_modified_at. 없으면 사이트맵 감사가 배포를 세운다"
     },
     {
       "sha": "1dd9ff9330",
@@ -375,7 +375,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "커뮤니티 「글」 탭 + /posts/ 목록 장 + 피드 + 배포 결선"
+      "text": "커뮤니티 글 탭 + /posts/ 목록 장 + 피드 + 배포 결선"
     },
     {
       "sha": "91a9fde53e",
@@ -391,7 +391,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블로그 글 표준 md 변환기 — Jekyll 방언을 걷어낸다"
+      "text": "블로그 글 표준 md 변환기. Jekyll 방언을 걷어낸다"
     },
     {
       "sha": "db2d0860d3",
@@ -415,7 +415,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "도구 명부가 두 벌이라 문 없는 도구가 샜다 — 그물을 명부 기준으로"
+      "text": "도구 명부가 두 벌이라 문 없는 도구가 샜다. 그물을 명부 기준으로"
     },
     {
       "sha": "6e7922bd2d",
@@ -439,7 +439,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "채팅을 헤더로 올린다 — 왼쪽 아래에서 화면을 가리던 것을 없앴다"
+      "text": "채팅을 헤더로 올린다. 왼쪽 아래에서 화면을 가리던 것을 없앴다"
     },
     {
       "sha": "e5d574a15d",
@@ -447,7 +447,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "5xx 를 「링크가 죽었다」로 셌다 — 상대가 아픈 것이다"
+      "text": "5xx 를 링크가 죽었다로 셌다. 상대가 아픈 것이다"
     },
     {
       "sha": "b0fa19700c",
@@ -463,7 +463,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "지도 깜빡임의 뿌리 둘을 고친다 — 미리 받기 + 스며들기"
+      "text": "지도 깜빡임의 뿌리 둘을 고친다. 미리 받기 + 스며들기"
     },
     {
       "sha": "4ff247998a",
@@ -471,7 +471,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "지도에 밑바탕 한 겹을 깐다 — 어디서든 칸이 비지 않게"
+      "text": "지도에 밑바탕 한 겹을 깐다. 어디서든 칸이 비지 않게"
     },
     {
       "sha": "8ae09c6921",
@@ -487,7 +487,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "축소할 때도 깜빡였다 — 아랫 층으로 메운다"
+      "text": "축소할 때도 깜빡였다. 아랫 층으로 메운다"
     },
     {
       "sha": "c82f423118",
@@ -495,7 +495,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "확대할 때 지도가 깜빡였다 — 안 온 칸을 윗 층으로 메운다"
+      "text": "확대할 때 지도가 깜빡였다. 안 온 칸을 윗 층으로 메운다"
     },
     {
       "sha": "ac6e77b0ac",
@@ -503,7 +503,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "지도가 화면의 절반 속도로만 그려졌다 — 30fps → 55fps"
+      "text": "지도가 화면의 절반 속도로만 그려졌다. 30fps → 55fps"
     },
     {
       "sha": "0b76b7046a",
@@ -511,7 +511,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "영토 글을 넣고 en/ja 를 안 넣었다 — 빠진 번역 15줄 채움"
+      "text": "영토 글을 넣고 en/ja 를 안 넣었다. 빠진 번역 15줄 채움"
     },
     {
       "sha": "6c6915c444",
@@ -519,7 +519,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "지도 자판 조작이 뚝뚝 끊겼다 — 누른 동안 미끄러지게"
+      "text": "지도 자판 조작이 뚝뚝 끊겼다. 누른 동안 미끄러지게"
     },
     {
       "sha": "1b3f711e43",
@@ -527,7 +527,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "영토 도구의 상세 페이지 글·공유 카드·자리 높이를 채운다"
+      "text": "영토 도구의 상세 페이지 글, 공유 카드, 자리 높이를 채운다"
     },
     {
       "sha": "2193f6ed48",
@@ -543,7 +543,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "붙박이 자리 번호를 쓰던 검사 넷 — 남의 서버를 보고 거짓 빨강을 냈다"
+      "text": "붙박이 자리 번호를 쓰던 검사 넷. 남의 서버를 보고 거짓 빨강을 냈다"
     },
     {
       "sha": "5390e7d515",
@@ -551,7 +551,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "접근성·대비 검사가 「문제 0건」을 아무것도 안 보고도 말할 수 있었다"
+      "text": "접근성, 대비 검사가 문제 0건을 아무것도 안 보고도 말할 수 있었다"
     },
     {
       "sha": "ba4154ad87",
@@ -559,7 +559,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "셸 다국어 검사가 남의 서버에 물어보고 「정상」이라 답해 왔다"
+      "text": "셸 다국어 검사가 남의 서버에 물어보고 정상이라 답해 왔다"
     },
     {
       "sha": "437152592e",
@@ -567,7 +567,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "장이 404 여도 「한글 0개 = 정상」이라 답하던 검사에 바닥을 넣는다"
+      "text": "장이 404 여도 한글 0개 = 정상이라 답하던 검사에 바닥을 넣는다"
     },
     {
       "sha": "681d7a0299",
@@ -575,7 +575,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "묶음 정합 검사가 0개를 재고 초록이었다 — 14개 · 부분 134개를 실제로 잰다"
+      "text": "묶음 정합 검사가 0개를 재고 초록이었다. 14개, 부분 134개를 실제로 잰다"
     },
     {
       "sha": "667e167675",
@@ -583,7 +583,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "오늘의 월드컵 — 하루에 하나, 모두 같은 판"
+      "text": "오늘의 월드컵. 하루에 하나, 모두 같은 판"
     },
     {
       "sha": "8ace420fad",
@@ -607,7 +607,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "타자 대결 자리를 큰 쪽으로 잠근다 — 판마다 문장이 달라 34px 갈렸다"
+      "text": "타자 대결 자리를 큰 쪽으로 잠근다. 판마다 문장이 달라 34px 갈렸다"
     },
     {
       "sha": "5a6ee9f2b1",
@@ -623,7 +623,7 @@
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "즐겨찾기 덱 자리를 자판으로도 바꾼다 (Ctrl/⌘ + 화살표·Home·End)"
+      "text": "즐겨찾기 덱 자리를 자판으로도 바꾼다 (Ctrl/⌘ + 화살표, Home, End)"
     },
     {
       "sha": "ac3d939d0a",
@@ -631,7 +631,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "로또 장을 고치고 「언제 바뀌었나」 기록을 안 담았다"
+      "text": "로또 장을 고치고 언제 바뀌었나 기록을 안 담았다"
     },
     {
       "sha": "6a4ab80d35",
@@ -639,7 +639,7 @@
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "기준선 셋이 통째로 안 읽혀, 죄 없는 파일 11개가 「새로 늘었다」로 세어졌다"
+      "text": "기준선 셋이 통째로 안 읽혀, 죄 없는 파일 11개가 새로 늘었다로 세어졌다"
     }
   ]
 }

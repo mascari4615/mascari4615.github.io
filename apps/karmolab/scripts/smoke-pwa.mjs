@@ -1,7 +1,7 @@
 /**
  * 앱으로 설치할 때 쓰는 정보가 성한지 확인 (TASK-KL-089)
  *
- * 실제로 셋이 한꺼번에 틀어져 있었다 — 아이콘 파일이 아예 없었고(404), 설치하면 열리는
+ * 실제로 셋이 한꺼번에 틀어져 있었다. 아이콘 파일이 아예 없었고(404), 설치하면 열리는
  * 주소가 앱 주소가 아니라 자산 경로였고, 설명이 이 사이트와 무관한 옛 문구였다.
  * 눈에 안 띄는 자리라 아무도 모른 채 오래 있었다.
  *
@@ -10,7 +10,7 @@
  *  - 가리키는 아이콘이 실제로 있는가 (여기서 404 가 나면 설치가 막힌다)
  *  - 설치하면 열리는 주소와 맡는 범위가 **앱 주소**인가 (자산 경로면 오프라인 저장이 어긋난다)
  *  - 범위가 도구 상세 페이지까지 덮는가
- *  - 이름·설명이 비어 있지 않은가
+ *  - 이름, 설명이 비어 있지 않은가
  *
  * 그림 없이 주소만 받아 보므로 빠르다.
  *
@@ -40,7 +40,7 @@ if (m.scope !== APP) problems.push(`맡는 범위가 앱 주소가 아니다 (${
 if (m.scope && !`${APP}t/loan/`.startsWith(m.scope)) problems.push('범위가 도구 상세 페이지를 덮지 않는다');
 
 const icons = m.icons || [];
-if (icons.length < 2) problems.push(`아이콘이 ${icons.length}개뿐이다 (192·512 가 필요하다)`);
+if (icons.length < 2) problems.push(`아이콘이 ${icons.length}개뿐이다 (192, 512 가 필요하다)`);
 for (const icon of icons) {
   const url = icon.src.startsWith('http') ? icon.src : `${ORIGIN}${icon.src}`;
   try {
@@ -51,7 +51,7 @@ for (const icon of icons) {
       if (buf.length < 500) problems.push(`아이콘 ${icon.sizes} 가 너무 작다 (${buf.length}바이트)`);
     }
   } catch (e) {
-    problems.push(`아이콘 ${icon.sizes} 를 받다 실패 — ${String(e.message).slice(0, 40)}`);
+    problems.push(`아이콘 ${icon.sizes} 를 받다 실패. ${String(e.message).slice(0, 40)}`);
   }
 }
 
@@ -65,22 +65,22 @@ for (const icon of icons) {
 
 /* ── 바로가기 ───────────────────────────────────────
  * 설치한 앱 아이콘을 길게 누르면 나오는 목록이다. 여기 걸린 주소가 죽으면 눌러도 아무 일이
- * 없거나 없는 페이지로 간다 — 도구 이름이 바뀌면 조용히 그렇게 된다. */
+ * 없거나 없는 페이지로 간다. 도구 이름이 바뀌면 조용히 그렇게 된다. */
 for (const s of m.shortcuts || []) {
   if (!s.url?.startsWith(APP)) {
-    problems.push(`바로가기 「${s.name}」 의 주소가 앱 범위 밖이다 (${s.url})`);
+    problems.push(`바로가기 ${s.name} 의 주소가 앱 범위 밖이다 (${s.url})`);
     continue;
   }
-  // 바로가기는 **페이지**라 BASE 기준이다(설치 정보·아이콘은 사이트 뿌리 기준이라 ORIGIN 을 썼다).
+  // 바로가기는 **페이지**라 BASE 기준이다(설치 정보, 아이콘은 사이트 뿌리 기준이라 ORIGIN 을 썼다).
   const r = await fetch(`${BASE}${s.url}`);
-  if (!r.ok) problems.push(`바로가기 「${s.name}」 가 없는 페이지를 가리킨다 (http ${r.status})`);
+  if (!r.ok) problems.push(`바로가기 ${s.name} 가 없는 페이지를 가리킨다 (http ${r.status})`);
 }
 
 /* ── 끊고도 열리는가 ────────────────────────────────
  * 앱으로 설치하는 이유가 이것이다. 서비스 워커가 죽거나 범위가 어긋나면 설치해도 빈 화면이 된다.
  * 워커는 https 에서만 돌고 로컬 사본은 주소 범위가 달라 등록되지 않으므로, 실제 사이트일 때만 본다. */
 const isLive = ORIGIN.startsWith('https://');
-let offlineNote = '끊고 열기는 실제 사이트에서만 본다 — 건너뜀';
+let offlineNote = '끊고 열기는 실제 사이트에서만 본다. 건너뜀';
 
 if (isLive) {
   const { chromium } = await import('playwright');
@@ -106,7 +106,7 @@ if (isLive) {
     else offlineNote = `끊어도 열린다 (글 ${r.text}자)`;
     await ctx.setOffline(false);
   } catch (e) {
-    problems.push(`끊고 열다 실패 — ${String(e.message).slice(0, 60)}`);
+    problems.push(`끊고 열다 실패. ${String(e.message).slice(0, 60)}`);
   }
   await browser.close();
 }
@@ -117,5 +117,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(
-  `[smoke-pwa] 설치 정보 정상 — 이름 "${m.name}" · 시작 ${m.start_url} · 아이콘 ${icons.length}개 모두 있음 · ${offlineNote}`
+  `[smoke-pwa] 설치 정보 정상. 이름 "${m.name}", 시작 ${m.start_url}, 아이콘 ${icons.length}개 모두 있음, ${offlineNote}`
 );

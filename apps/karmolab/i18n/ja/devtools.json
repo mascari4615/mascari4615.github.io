@@ -18,13 +18,13 @@
   "devtools.t19": "デスクトップアプリでなければ無効です。",
   "devtools.t20": "通知の要求に失敗",
   "devtools.t21": "リリースのワークフロー",
-  "devtools.t22": "none (バージョンそのまま — 同じタグを上書き)",
+  "devtools.t22": "none (バージョンそのまま. 同じタグを上書き)",
   "devtools.t23": "ワークフローを実行",
   "devtools.t24": "実行すると GitHub Actions の workflow_dispatch を呼びます。bump≠none ならワークフローが main にバージョン bump のコミットを直接 push します。",
   "devtools.t25": "リリースの実行に失敗",
   "devtools.t26": "配布・利用者向けの機能ではなく、デスクトップのシェルや連携を点検するための集まりです。",
   "devtools.releaseNote": "現在のインストール版: <code>{version}</code><br>GitHub CLI(<code>gh</code>)で <code>KarmoLab Tauri Release</code> ワークフローをリモート実行します。この PC で <code>gh auth login</code> が済んでいる必要があります。",
   "devtools.bumpLabel": "{label} ({from} → {to})",
-  "devtools.requesting": "要求中…\nworkflow: KarmoLab Tauri Release\nref: {ref}\nbump: {bump}",
+  "devtools.requesting": "要求中...\nworkflow: KarmoLab Tauri Release\nref: {ref}\nbump: {bump}",
   "devtools.tab.panel": "パネル"
 }

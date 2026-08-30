@@ -1,9 +1,9 @@
 /**
- * 음성·음악 관련 슬래시 빌더 — deploy-commands.ts 에서 분리.
+ * 음성, 음악 관련 슬래시 빌더. deploy-commands.ts 에서 분리.
  *
  * 서브커맨드 구조:
- *   /music join   — 음성 채널 입장 (구 voice-join)
- *   /music leave  — 음성 채널 퇴장 (구 voice-leave)
+ *   /music join  . 음성 채널 입장 (구 voice-join)
+ *   /music leave . 음성 채널 퇴장 (구 voice-leave)
  *   /music play, speak, sound, skip, stop, shuffle, remove, loop, queue
  */
 import { SlashCommandBuilder, ChannelType, Locale } from 'discord.js';
@@ -11,18 +11,18 @@ import { SlashCommandBuilder, ChannelType, Locale } from 'discord.js';
 const EN = Locale.EnglishUS;
 const enUS = (s: string): Record<string, string> => ({ [EN]: s });
 
-/** 음성 재생·대기열 — join/leave + YouTube·TTS·클립·skip/stop/shuffle/remove/loop/queue 서브커맨드 */
+/** 음성 재생, 대기열. join/leave + YouTube, TTS, 클립, skip/stop/shuffle/remove/loop/queue 서브커맨드 */
 export const musicCommandGroup = () =>
   new SlashCommandBuilder()
     .setName('music')
-    .setDescription('음성 채널 입퇴장 · YouTube·TTS·클립 재생 및 대기열')
+    .setDescription('음성 채널 입퇴장, YouTube, TTS, 클립 재생 및 대기열')
     .setDescriptionLocalizations(
-      enUS('Voice join/leave · YouTube, TTS, and clip playback with a shared queue'),
+      enUS('Voice join/leave, YouTube, TTS, and clip playback with a shared queue'),
     )
     .addSubcommand((sc) =>
       sc
         .setName('join')
-        .setDescription('봇을 음성·스테이지 채널에 연결')
+        .setDescription('봇을 음성, 스테이지 채널에 연결')
         .setDescriptionLocalizations(enUS('Connect the bot to a voice/stage channel'))
         .addChannelOption((opt) =>
           opt
@@ -44,14 +44,14 @@ export const musicCommandGroup = () =>
     .addSubcommand((sc) =>
       sc
         .setName('play')
-        .setDescription('YouTube 동영상·플레이리스트 URL 또는 검색어로 재생 (음성 채널 필수)')
+        .setDescription('YouTube 동영상, 플레이리스트 URL 또는 검색어로 재생 (음성 채널 필수)')
         .setDescriptionLocalizations(
           enUS('Play from YouTube URL, playlist, or search (voice channel required)'),
         )
         .addStringOption((opt) =>
           opt
             .setName('query')
-            .setDescription('동영상/playlist?list= URL, watch?…&list=, 또는 검색어')
+            .setDescription('동영상/playlist?list= URL, watch?...&list=, 또는 검색어')
             .setDescriptionLocalizations(
               enUS('Video or playlist URL, or search text'),
             )
@@ -61,7 +61,7 @@ export const musicCommandGroup = () =>
     .addSubcommand((sc) =>
       sc
         .setName('speak')
-        .setDescription('Edge TTS로 문장을 읽어 재생 (YouTube·클립과 동일 대기열, 디스코드 내장 TTS 아님)')
+        .setDescription('Edge TTS로 문장을 읽어 재생 (YouTube, 클립과 동일 대기열, 디스코드 내장 TTS 아님)')
         .setDescriptionLocalizations(
           enUS('Speak text via Edge TTS (same queue as music; not built-in Discord TTS)'),
         )
@@ -76,7 +76,7 @@ export const musicCommandGroup = () =>
     .addSubcommand((sc) =>
       sc
         .setName('sound')
-        .setDescription('첨부·URL·로컬 클립 오디오 재생 (YouTube·TTS와 동일 대기열, file/url/clip 중 하나)')
+        .setDescription('첨부, URL, 로컬 클립 오디오 재생 (YouTube, TTS와 동일 대기열, file/url/clip 중 하나)')
         .setDescriptionLocalizations(
           enUS('Play attachment, URL, or packaged clip (exactly one of file/url/clip)'),
         )
@@ -84,7 +84,7 @@ export const musicCommandGroup = () =>
           opt
             .setName('file')
             .setDescription('오디오 첨부 (mp3, wav, ogg 등)')
-            .setDescriptionLocalizations(enUS('Audio attachment (mp3, wav, ogg, …)'))
+            .setDescriptionLocalizations(enUS('Audio attachment (mp3, wav, ogg, ...)'))
             .setRequired(false),
         )
         .addStringOption((opt) =>
@@ -125,7 +125,7 @@ export const musicCommandGroup = () =>
     .addSubcommand((sc) =>
       sc
         .setName('remove')
-        .setDescription('대기열에서 번호로 곡 제거 (/music queue 목록의 1·2·3… 과 동일)')
+        .setDescription('대기열에서 번호로 곡 제거 (/music queue 목록의 1, 2, 3... 과 동일)')
         .setDescriptionLocalizations(
           enUS('Remove a track by queue index (same numbers as /music queue)'),
         )
@@ -160,7 +160,7 @@ export const musicCommandGroup = () =>
     .addSubcommand((sc) =>
       sc
         .setName('queue')
-        .setDescription('대기열 확인 (페이지·이전/다음 버튼)')
+        .setDescription('대기열 확인 (페이지, 이전/다음 버튼)')
         .setDescriptionLocalizations(enUS('View queue with paging buttons'))
         .addIntegerOption((opt) =>
           opt

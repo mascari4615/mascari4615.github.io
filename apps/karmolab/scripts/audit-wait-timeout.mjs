@@ -2,12 +2,12 @@
  * **기다림이 진짜 그만큼 기다리는지** (TASK-KL-301)
  *
  * Playwright 의 `waitForFunction(함수, 넘길값, 옵션)` 은 자리가 셋이다. 그런데 넘길 값이 없을 때
- * 사람은 자연스럽게 `waitForFunction(함수, { timeout: 90000 })` 이라고 적는다 — 그러면 그 객체는
+ * 사람은 자연스럽게 `waitForFunction(함수, { timeout: 90000 })` 이라고 적는다. 그러면 그 객체는
  * **옵션이 아니라 함수에 넘길 값**이 되고, 기다림은 조용히 **기본 30초**로 돌아간다.
  *
  * 조용한 게 문제다: 대개는 30초 안에 끝나서 초록이고, 무거운 판에서만 가끔 빨개진다. 판본 대조
- * 검사가 그렇게 「원래 깨져 있는 것」으로 며칠 방치됐다(실측: 12번 중 1번 빨강).
- * 틀린 기다림은 **눈으로는 절대 안 보인다** — 그래서 센다.
+ * 검사가 그렇게 원래 깨져 있는 것으로 며칠 방치됐다(실측: 12번 중 1번 빨강).
+ * 틀린 기다림은 **눈으로는 절대 안 보인다**. 그래서 센다.
  *
  * 사용: node scripts/audit-wait-timeout.mjs
  */
@@ -40,7 +40,7 @@ function callAt(src, open) {
   return '';
 }
 
-/** 맨 바깥 쉼표로만 자른다 — 함수 안의 쉼표에 속으면 안 된다. */
+/** 맨 바깥 쉼표로만 자른다. 함수 안의 쉼표에 속으면 안 된다. */
 function topArgs(call) {
   const inner = call.slice(1, -1);
   const out = [];
@@ -86,10 +86,10 @@ for (const dir of dirs) {
     const file = path.join(dir, name);
     /* ★ **자기 자신은 세지 않는다** (2026-08-16). 주석은 이미 지우고 보는데, 이 파일의
        **코드**에도 `waitForFunction` 문자열이 들어 있다(찾는 말 자체다). 그래서 아무것도
-       못 찾는 판에서도 seen 이 2 로 남아, 「0곳이면 못 돌린 것」 바닥이 영영 안 울린다.
+       못 찾는 판에서도 seen 이 2 로 남아, 0곳이면 못 돌린 것 바닥이 영영 안 울린다.
        바닥이 울릴 수 없으면 그건 바닥이 아니다. */
     if (path.resolve(file) === path.resolve(fileURLToPath(import.meta.url))) continue;
-    /* 주석 속 글자에 속으면 안 된다 — 이 검사 자신의 머리말에도 `waitForFunction` 이 적혀 있다.
+    /* 주석 속 글자에 속으면 안 된다. 이 검사 자신의 머리말에도 `waitForFunction` 이 적혀 있다.
        (첫 판이 저를 잡고 빨개졌다.) 자리는 그대로 두려고 **같은 길이의 공백**으로 지운다. */
     const src = strip(fs.readFileSync(file, 'utf8'));
     let at = 0;
@@ -107,7 +107,7 @@ for (const dir of dirs) {
          **넘길 값**으로 들어간 것. 기다림은 기본 30초로 돌아간다. */
       if (args.length === 2 && /^\{[\s\S]*\b(timeout|polling)\s*:/.test(args[1])) {
         const line = src.slice(0, hit).split('\n').length;
-        bad.push(`${path.relative(root, file)}:${line} — 옵션이 두 번째 자리에 있다 (기다림이 기본 30초로 돌아간다)`);
+        bad.push(`${path.relative(root, file)}:${line}. 옵션이 두 번째 자리에 있다 (기다림이 기본 30초로 돌아간다)`);
       }
     }
   }
@@ -116,18 +116,18 @@ for (const dir of dirs) {
 if (bad.length) {
   console.log(`[audit-wait-timeout] 기다림 ${seen}곳 중 잘못 준 곳 ${bad.length}곳`);
   for (const b of bad) console.log('  - ' + b);
-  console.log('  고치는 법: waitForFunction(함수, undefined, { timeout: … })');
+  console.log('  고치는 법: waitForFunction(함수, undefined, { timeout: ... })');
   process.exit(1);
 }
-/* ★ **0곳을 「전부 제자리」로 말하면 안 된다** (2026-08-16).
-   이 검사가 잡는 병 자체가 「조용해서 며칠 방치됐다」인데, 찾는 자리(waitForFunction 류)가
-   0건이면 그건 통과가 아니라 **못 돌린 것**이다 — 부르는 이름이 바뀌었거나 위 정규식이 낡았다.
+/* ★ **0곳을 전부 제자리로 말하면 안 된다** (2026-08-16).
+   이 검사가 잡는 병 자체가 조용해서 며칠 방치됐다인데, 찾는 자리(waitForFunction 류)가
+   0건이면 그건 통과가 아니라 **못 돌린 것**이다. 부르는 이름이 바뀌었거나 위 정규식이 낡았다.
    실제로 이 저장소에는 수십 곳이 있다. 0 이 나오면 검사가 눈을 감은 것이다. */
 if (seen === 0) {
   console.error('[audit-wait-timeout] CANNOT-RUN: 기다리는 자리를 한 곳도 못 찾았다');
-  console.error('  → 부르는 이름이 바뀌었거나(playwright API·helper) 이 검사의 정규식이 낡았다.');
+  console.error('  → 부르는 이름이 바뀌었거나(playwright API, helper) 이 검사의 정규식이 낡았다.');
   console.error('  → 0곳은 통과가 아니다. 이 병은 조용해서 며칠씩 방치된 적이 있다.');
   process.exit(2);
 }
 
-console.log(`[audit-wait-timeout] 기다림 ${seen}곳 — 시간 지정이 전부 제자리`);
+console.log(`[audit-wait-timeout] 기다림 ${seen}곳. 시간 지정이 전부 제자리`);

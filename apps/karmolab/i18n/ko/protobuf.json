@@ -9,9 +9,9 @@
   "protobuf.btn.fromJson": "JSON → 바이트",
   "protobuf.err.noSchema": ".proto 를 먼저 적어 주세요",
   "protobuf.status.idle": "바이너리를 붙여넣으세요",
-  "protobuf.status.blind": "{bytes}바이트 · 칸 {n}개 — .proto 가 없어 이름은 못 붙입니다 (번호·형식·값은 맞습니다)",
-  "protobuf.status.named": "{bytes}바이트 · 칸 {n}개 · {name} 로 읽었습니다",
+  "protobuf.status.blind": "{bytes}바이트, 칸 {n}개. .proto 가 없어 이름은 못 붙입니다 (번호, 형식, 값은 맞습니다)",
+  "protobuf.status.named": "{bytes}바이트, 칸 {n}개, {name} 로 읽었습니다",
   "protobuf.status.toJson": "뜯은 것을 JSON 으로 옮겼습니다",
   "protobuf.status.fromJson": "{bytes}바이트로 만들었습니다",
-  "protobuf.status.bad": "못 읽었습니다 — {msg}"
+  "protobuf.status.bad": "못 읽었습니다. {msg}"
 }

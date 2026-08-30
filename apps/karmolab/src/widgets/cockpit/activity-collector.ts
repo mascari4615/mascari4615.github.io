@@ -1,5 +1,5 @@
 /**
- * activity-collector.ts — 5 신호 poll → 통합 state → 콜백 (TASK-KL-082 단위 F).
+ * activity-collector.ts. 5 신호 poll → 통합 state → 콜백 (TASK-KL-082 단위 F).
  *
  * 15s 폴링. 탭 hidden(document.hidden) 시 일시 정지.
  * 각 신호를 graph spec 의 live.source 에 매핑해 node_ids_active / edge_ids_animated 산출.
@@ -193,7 +193,7 @@ export class ActivityCollector {
       const items = this.anchorItems(anchor, snap);
       if (items.length === 0) continue;
 
-      // 단일 컬럼 list — Unity Animator sub-state 느낌. 라벨 ellipsis 는 render 쪽에서.
+      // 단일 컬럼 list. Unity Animator sub-state 느낌. 라벨 ellipsis 는 render 쪽에서.
       // anchor 박스 밖으로 넘치면 visual overflow OK (캔버스 자유 배치).
       const cellW = anchor.w - 8;
       const cellH = 22;
@@ -244,7 +244,7 @@ export class ActivityCollector {
           id: anchor.id_template.replace('{id}', t.id),
           label: anchor.label_template
             .replace('{id}', t.id)
-            .replace('{short_title}', t.title.length > 24 ? t.title.slice(0, 22) + '…' : t.title)
+            .replace('{short_title}', t.title.length > 24 ? t.title.slice(0, 22) + '...' : t.title)
             .replace('{domain}', t.domain),
         }));
       default:

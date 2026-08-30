@@ -30,7 +30,7 @@ test('두뇌 이름과 도구 모드는 표에서만 고른다', () => {
   assert.equal(parseToolMode('talk'), 'talk');
 });
 
-test('고른 두뇌의 이름이 맞다 — 새 백엔드는 여기 한 줄', () => {
+test('고른 두뇌의 이름이 맞다. 새 백엔드는 여기 한 줄', () => {
   assert.equal(pickBrain('echo').name, 'echo');
   assert.match(pickBrain('grok', { tools: 'talk' }).name, /grok-cli\(talk/);
   assert.match(pickBrain('grok', { tools: 'work' }).name, /grok-cli\(work/);

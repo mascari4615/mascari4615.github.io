@@ -137,6 +137,8 @@ apps/discord-bots/apps/data/
 .DS_Store
 Thumbs.db
 *.stackdump
+# 유니티가 그 덤프에 붙인 짝 파일 — 위 규칙이 못 잡는다 (apps/handheld/unity).
+*.stackdump.meta
 
 # 폰 점검 스크린샷 (scripts/shoot-mobile.mjs) — 로컬 산출물
 apps/karmolab/.mobile-shots/
@@ -218,3 +220,6 @@ apps/blog/assets/img/post/
 apps/files/v/
 apps/files/.upload-progress.json
 apps/files/.upload-*.log
+
+# 개발 서버 로그. 레인마다 생기고 커밋할 것이 아니다
+dev.log

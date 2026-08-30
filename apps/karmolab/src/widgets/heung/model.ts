@@ -18,9 +18,9 @@ export interface StudioClip {
   duration: number;
   offset: number;
   assetId?: string;
-  /** 이 클립만 소리를 끈다 — 트랙 전체를 끄지 않고 한 부분만 빼 보려고. */
+  /** 이 클립만 소리를 끈다. 트랙 전체를 끄지 않고 한 부분만 빼 보려고. */
   mute: boolean;
-  /** 잠그면 옮기거나 길이를 바꾸거나 지울 수 없다 — 다 짠 부분을 실수로 건드리지 않게. */
+  /** 잠그면 옮기거나 길이를 바꾸거나 지울 수 없다. 다 짠 부분을 실수로 건드리지 않게. */
   locked: boolean;
   /** 트랙 색 대신 쓸 색. 없으면 트랙 색을 따른다. */
   color?: string;
@@ -30,7 +30,7 @@ export interface StudioClip {
   fadeOut: number;
 }
 
-/** 자동화할 수 있는 값. 눈금 범위가 달라서 뷰·엔진이 이 이름으로 갈라진다. */
+/** 자동화할 수 있는 값. 눈금 범위가 달라서 뷰, 엔진이 이 이름으로 갈라진다. */
 export type AutomationParam = 'volume' | 'pan' | 'reverb';
 
 export const AUTOMATION_RANGE: Record<AutomationParam, { min: number; max: number }> = {
@@ -42,8 +42,116 @@ export const AUTOMATION_RANGE: Record<AutomationParam, { min: number; max: numbe
 export interface AutomationPoint {
   id: string;
   beat: number;
-  /** 0~1.2 — 트랙 볼륨과 같은 눈금. */
+  /** 0~1.2. 트랙 볼륨과 같은 눈금. */
   value: number;
+}
+
+/** 트랙 악기. 파형 4종에 타악기 한 벌. */
+export type TrackInstrument = OscillatorType | 'drum' | 'sampler';
+
+export const TRACK_INSTRUMENTS: TrackInstrument[] = ['sine', 'triangle', 'sawtooth', 'square', 'drum', 'sampler'];
+
+/** 타악기 한 벌. 열쇠는 MIDI 음높이, GM 배치를 따른다. 음높이 하나가 소리 하나 */
+export const DRUM_PIECES: Record<number, string> = {
+  36: '킥', 38: '스네어', 39: '클랩', 42: '닫은 하이햇', 45: '로우 톰', 46: '열린 하이햇', 48: '하이 톰', 49: '크래시'
+};
+
+/** 악기 프리셋. 파형과 소리 모양과 흔들기를 묶어 이름을 붙인 것 */
+export interface InstrumentPreset {
+  id: string;
+  name: string;
+  instrument: TrackInstrument;
+  envelope: StudioTrack['envelope'];
+  filter: StudioTrack['filter'];
+  detune: number;
+  fm: { ratio: number; amount: number };
+}
+
+const preset = (id: string, name: string, instrument: TrackInstrument, attack: number, decay: number, sustain: number, release: number, cutoff: number, filterEnvelope: number, detune: number, ratio = 1, amount = 0): InstrumentPreset =>
+  ({ id, name, instrument, envelope: { attack, decay, sustain, release }, filter: { cutoff, envelope: filterEnvelope }, detune, fm: { ratio, amount } });
+
+/** 고르면 바로 소리가 되는 열두 가지. 노브를 몰라도 시작할 수 있어야 한다 */
+export const INSTRUMENT_PRESETS: InstrumentPreset[] = [
+  preset('pluck', '플럭', 'triangle', 0.004, 0.22, 0.04, 0.14, 4200, 1.6, 0),
+  preset('lead', '신스 리드', 'sawtooth', 0.01, 0.18, 0.78, 0.14, 5200, 1.1, 12),
+  preset('bass', '베이스', 'square', 0.006, 0.16, 0.72, 0.1, 900, 0.8, 0),
+  preset('sub', '서브 베이스', 'sine', 0.012, 0.2, 0.9, 0.18, 420, 0.2, 0),
+  preset('pad', '패드', 'triangle', 0.42, 0.6, 0.85, 1.7, 2100, 0.5, 9),
+  preset('strings', '스트링', 'sawtooth', 0.26, 0.5, 0.9, 0.9, 3200, 0.6, 7),
+  preset('brass', '브라스', 'sawtooth', 0.07, 0.24, 0.82, 0.22, 2600, 1.8, 4, 1, 0.12),
+  preset('organ', '오르간', 'square', 0.006, 0.05, 1, 0.06, 6000, 0.2, 3),
+  preset('epiano', '일렉피아노', 'sine', 0.004, 0.85, 0.18, 0.4, 5200, 1.2, 0, 2, 0.42),
+  preset('bell', '벨', 'sine', 0.002, 1.35, 0.02, 0.9, 8000, 0.6, 0, 3.5, 0.62),
+  preset('chip', '8비트 리드', 'square', 0.001, 0.05, 1, 0.02, 18000, 0, 0),
+  preset('wobble', '흔들 베이스', 'sawtooth', 0.008, 0.3, 0.7, 0.14, 1400, 1.4, 0, 0.5, 0.55)
+];
+
+export function findPreset(id: string): InstrumentPreset | undefined {
+  return INSTRUMENT_PRESETS.find((item) => item.id === id);
+}
+
+/** 프리셋을 트랙에 붓는다. 클립과 믹서 값은 안 건드린다 */
+export function applyPreset(track: StudioTrack, item: InstrumentPreset): void {
+  track.instrument = item.instrument;
+  track.envelope = { ...item.envelope };
+  track.filter = { ...item.filter };
+  track.detune = item.detune;
+  track.fm = { ...item.fm };
+}
+
+/**
+ * 격자 칸 하나를 켜고 끄기. 있으면 삭제, 없으면 추가.
+ *
+ * 리듬은 켜고 끄는 일. 음높이도 길이도 안 정함.
+ */
+export function toggleStepNote(notes: StudioNote[], pitch: number, beat: number, step: number, velocity = 0.8): 'added' | 'removed' {
+  const half = step / 2;
+  const index = notes.findIndex((note) => note.pitch === pitch && Math.abs(note.beat - beat) < half);
+  if (index >= 0) { notes.splice(index, 1); return 'removed'; }
+  notes.push({ id: studioId('note'), beat, duration: Math.max(0.05, step * 0.9), pitch, velocity });
+  return 'added';
+}
+
+/** 격자에서 이 칸이 켜져 있나 */
+export function stepNoteAt(notes: StudioNote[], pitch: number, beat: number, step: number): StudioNote | undefined {
+  const half = step / 2;
+  return notes.find((note) => note.pitch === pitch && Math.abs(note.beat - beat) < half);
+}
+
+/** 음계 목록. 반음 간격을 0 부터의 거리로 */
+export const SCALES: { id: string; name: string; steps: number[] }[] = [
+  { id: 'off', name: '표시 안 함', steps: [] },
+  { id: 'major', name: '장음계', steps: [0, 2, 4, 5, 7, 9, 11] },
+  { id: 'minor', name: '단음계', steps: [0, 2, 3, 5, 7, 8, 10] },
+  { id: 'harmonic', name: '화성 단음계', steps: [0, 2, 3, 5, 7, 8, 11] },
+  { id: 'dorian', name: '도리안', steps: [0, 2, 3, 5, 7, 9, 10] },
+  { id: 'mixolydian', name: '믹솔리디안', steps: [0, 2, 4, 5, 7, 9, 10] },
+  { id: 'pentatonic', name: '5음계', steps: [0, 2, 4, 7, 9] },
+  { id: 'minorPentatonic', name: '단 5음계', steps: [0, 3, 5, 7, 10] },
+  { id: 'blues', name: '블루스', steps: [0, 3, 5, 6, 7, 10] }
+];
+
+export const PITCH_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+/** 이 음이 음계 안에 드나. 표시 안 함이면 전부 안쪽으로 본다 */
+export function pitchInScale(pitch: number, root: number, scaleId: string): boolean {
+  const scale = SCALES.find((item) => item.id === scaleId);
+  if (!scale || !scale.steps.length) return true;
+  const distance = (((pitch - root) % 12) + 12) % 12;
+  return scale.steps.includes(distance);
+}
+
+/** 샘플러 재생 속도. 본디 음에서 반음 하나가 한 칸. 12칸이면 두 배 */
+export function samplePlaybackRate(pitch: number, rootPitch: number): number {
+  return Math.pow(2, (pitch - rootPitch) / 12);
+}
+
+/** 아무 음높이나 가장 가까운 타악기로. 격자 어디를 찍어도 소리는 난다 */
+export function drumPieceFor(pitch: number): number {
+  const keys = Object.keys(DRUM_PIECES).map(Number);
+  let best = keys[0];
+  for (const key of keys) if (Math.abs(key - pitch) < Math.abs(best - pitch)) best = key;
+  return best;
 }
 
 export interface StudioTrack {
@@ -60,17 +168,25 @@ export interface StudioTrack {
   eqHigh: number;
   compressor: number;
   reverb: number;
-  instrument: OscillatorType;
-  /** 소리의 모양 — 붙는 속도·줄어드는 속도·버티는 크기·꼬리 길이(초). */
+  instrument: TrackInstrument;
+  /** 샘플러가 울릴 소리. 프로젝트 자산 id */
+  sampleAssetId?: string;
+  /** 그 소리의 본디 음높이. 이 음을 찍으면 원래 속도로 난다 */
+  sampleRootPitch?: number;
+  /** 소리의 모양. 붙는 속도, 줄어드는 속도, 버티는 크기, 꼬리 길이(초). */
   envelope: { attack: number; decay: number; sustain: number; release: number };
-  /** 저역 통과 필터 — 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
+  /** 저역 통과 필터. 자르는 지점(Hz)과 음을 칠 때 열리는 정도(배). */
   filter: { cutoff: number; envelope: number };
   /** 살짝 어긋난 두 번째 오실레이터로 두툼하게 (0 = 끔, 센트). */
   detune: number;
+  /** 소리를 흔드는 두 번째 오실레이터. 비율은 음높이의 몇 배, 세기는 0 이면 끔 */
+  fm: { ratio: number; amount: number };
+  /** 지금 고른 프리셋 이름표. 노브를 손대면 빈 값이 된다 */
+  presetId?: string;
   clips: StudioClip[];
   /** 시간에 따라 움직이는 값들. 점이 0개인 항목은 트랙의 고정값을 그대로 쓴다. */
   automation: Record<AutomationParam, AutomationPoint[]>;
-  /** 접으면 클립 미리보기 대신 얇은 띠만 남는다 — 곡이 길어지면 세로가 부족해진다. */
+  /** 접으면 클립 미리보기 대신 얇은 띠만 남는다. 곡이 길어지면 세로가 부족해진다. */
   folded: boolean;
   /** 줄 높이(px). 드럼처럼 촘촘한 트랙은 키우고 배경은 줄인다. */
   height: number;
@@ -103,9 +219,11 @@ export interface StudioProject {
   snap: number;
   tracks: StudioTrack[];
   assets: StudioAsset[];
-  /** 구간 이름표 — 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
+  /** 구간 이름표. 곡의 어디쯤인지 표시하고 그 자리로 건너뛴다. */
   markers: StudioMarker[];
-  /** 스윙 0~0.6 — 뒷박을 얼마나 늦게 칠지. 0 이면 정박. */
+  /** 피아노롤 음계 표시. root 는 0-11, id 는 SCALES 의 것 */
+  scale?: { root: number; id: string };
+  /** 스윙 0~0.6. 뒷박을 얼마나 늦게 칠지. 0 이면 정박. */
   swing: number;
   updatedAt: string;
 }
@@ -116,10 +234,10 @@ export type StudioSelection =
   | { type: 'note'; trackId: string; clipId: string; noteId: string }
   | null;
 
-/** 줄 높이 규칙 — 뷰·제스처가 같은 숫자를 본다. */
+/** 줄 높이 규칙. 뷰, 제스처가 같은 숫자를 본다. */
 export const TRACK_HEIGHT = { min: 44, max: 260, default: 84 } as const;
 
-/** 저장본·드래그에서 온 값을 쓸 수 있는 높이로 접는다. 숫자가 아니면 기본값. */
+/** 저장본, 드래그에서 온 값을 쓸 수 있는 높이로 접는다. 숫자가 아니면 기본값. */
 export function clampTrackHeight(value: unknown): number {
   const number = Number(value);
   if (!Number.isFinite(number)) return TRACK_HEIGHT.default;
@@ -128,7 +246,7 @@ export function clampTrackHeight(value: unknown): number {
 
 const COLORS = ['#8b7cf6', '#42b9a8', '#ed8b55', '#e15d8a', '#5d9cec', '#c5a34e'];
 
-/** 클립에 골라 줄 수 있는 색 — 트랙 색과 같은 묶음이라 화면이 안 튄다. */
+/** 클립에 골라 줄 수 있는 색. 트랙 색과 같은 묶음이라 화면이 안 튄다. */
 export const CLIP_COLORS = COLORS;
 
 /** 다음 색으로 한 칸. 트랙 색을 따르던 것(undefined)이면 첫 색부터. */
@@ -152,6 +270,7 @@ export function newTrack(kind: TrackKind, index: number): StudioTrack {
     color: COLORS[(index - 1) % COLORS.length], volume: 0.82, pan: 0, mute: false, solo: false,
     eqLow: 0, eqMid: 0, eqHigh: 0, compressor: 0.25, reverb: 0.08,
     instrument: kind === 'midi' ? 'sawtooth' : 'sine',
+    fm: { ratio: 1, amount: 0 },
     envelope: { attack: 0.01, decay: 0.12, sustain: 0.68, release: 0.12 },
     filter: { cutoff: 6800, envelope: 1.6 }, detune: 8,
     clips: [], automation: { volume: [], pan: [], reverb: [] }, folded: false, height: TRACK_HEIGHT.default
@@ -169,7 +288,7 @@ export function newProject(): StudioProject {
   midi.clips.push(clip);
   return {
     version: 1, id: studioId('project'), name: 'Untitled Song', bpm: 120, beatsPerBar: 4,
-    masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 8, snap: 0.25, swing: 0,
+    masterVolume: 0.86, loop: true, loopStart: 0, loopEnd: 4, snap: 0.25, swing: 0,
     tracks: [midi, newTrack('audio', 2)], assets: [], markers: [], updatedAt: new Date().toISOString()
   };
 }
@@ -243,15 +362,26 @@ export function normalizeProject(input: unknown): StudioProject {
             };
           }))
       : [],
+    scale: {
+      root: Number.isFinite(Number((value as { scale?: { root?: unknown } }).scale?.root)) ? ((Math.round(Number((value as { scale?: { root?: unknown } }).scale?.root)) % 12) + 12) % 12 : 0,
+      id: SCALES.some((item) => item.id === (value as { scale?: { id?: unknown } }).scale?.id) ? String((value as { scale?: { id?: string } }).scale?.id) : 'off'
+    },
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : new Date().toISOString()
   };
   project.tracks = value.tracks.map((raw, index) => {
     const source = raw as Partial<StudioTrack>;
     const track = { ...newTrack(source.kind === 'audio' ? 'audio' : 'midi', index + 1), ...source } as StudioTrack;
+    /* 모르는 악기 이름은 톱니로. 옛 저장본과 손으로 고친 파일이 소리를 잃지 않게 */
+    if (!TRACK_INSTRUMENTS.includes(track.instrument)) track.instrument = 'sawtooth';
     const clamp = (value: unknown, low: number, high: number, fallback: number): number => {
       const number = Number(value);
       return Number.isFinite(number) ? Math.max(low, Math.min(high, number)) : fallback;
     };
+    const fm = (source as { fm?: Partial<StudioTrack['fm']> }).fm;
+    track.fm = { ratio: clamp(fm?.ratio, 0.125, 12, 1), amount: clamp(fm?.amount, 0, 1, 0) };
+    if (typeof track.presetId !== 'string' || !findPreset(track.presetId)) track.presetId = '';
+    if (typeof track.sampleAssetId !== 'string') delete track.sampleAssetId;
+    track.sampleRootPitch = clamp(track.sampleRootPitch, 0, 127, 60);
     const envelope = (source as { envelope?: Partial<StudioTrack['envelope']> }).envelope;
     track.envelope = {
       attack: clamp(envelope?.attack, 0, 2, 0.01),
@@ -264,7 +394,7 @@ export function normalizeProject(input: unknown): StudioProject {
     track.detune = clamp((source as { detune?: unknown }).detune, 0, 60, 8);
     track.folded = source.folded === true;
     track.height = source.height === undefined ? TRACK_HEIGHT.default : clampTrackHeight(source.height);
-    /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다 — 새 자리로 옮겨 담는다. */
+    /* 옛 저장본은 볼륨 자동화를 `volumeAutomation` 한 줄로 들고 있었다. 새 자리로 옮겨 담는다. */
     const legacyVolume = (raw as { volumeAutomation?: unknown }).volumeAutomation;
     const storedAutomation = (source as { automation?: Partial<Record<AutomationParam, unknown>> }).automation;
     track.automation = {
@@ -293,7 +423,7 @@ export function projectJson(project: StudioProject, pretty = true): string {
 }
 
 /**
- * 음 편집 연산 — 피아노롤 도구가 쓰는 순수 변형.
+ * 음 편집 연산. 피아노롤 도구가 쓰는 순수 변형.
  * 전부 제자리 변형이지만 프로젝트/DOM 을 모르므로 단위 테스트로 닫힌다.
  */
 
@@ -345,7 +475,7 @@ export function legatoNotes(notes: StudioNote[], limit: number): number {
   return changed;
 }
 
-/** 점을 시간순으로 세운다 — 편집이 어디에 점을 놓든 읽는 쪽은 정렬을 전제한다. */
+/** 점을 시간순으로 세운다. 편집이 어디에 점을 놓든 읽는 쪽은 정렬을 전제한다. */
 /** 저장본에서 온 점들을 값 범위에 맞춰 걸러 낸다. 숫자가 아닌 위치는 버린다. */
 export function cleanAutomation(input: unknown, param: AutomationParam): AutomationPoint[] {
   if (!Array.isArray(input)) return [];
@@ -387,7 +517,7 @@ export function automationValueAt(points: AutomationPoint[], beat: number, fallb
   return last.value;
 }
 
-/** 같은 자리에 점을 겹쳐 놓지 않는다 — 가까우면 그 점의 값을 바꾼다. */
+/** 같은 자리에 점을 겹쳐 놓지 않는다. 가까우면 그 점의 값을 바꾼다. */
 export function putAutomationPoint(points: AutomationPoint[], beat: number, value: number, param: AutomationParam = 'volume', tolerance = 0.05): AutomationPoint[] {
   const range = AUTOMATION_RANGE[param];
   const clean = Math.max(0, beat);
@@ -399,7 +529,7 @@ export function putAutomationPoint(points: AutomationPoint[], beat: number, valu
 }
 
 /**
- * 트랙 순서 바꾸기 — 잡은 자리에서 놓은 자리로 옮긴다.
+ * 트랙 순서 바꾸기. 잡은 자리에서 놓은 자리로 옮긴다.
  * 범위를 벗어난 자리는 양 끝으로 접고, 제자리면 원래 배열을 그대로 돌려준다.
  */
 export function moveTrack(tracks: StudioTrack[], from: number, to: number): StudioTrack[] {
@@ -416,7 +546,7 @@ export function sortMarkers(markers: StudioMarker[]): StudioMarker[] {
   return [...markers].sort((a, b) => a.beat - b.beat);
 }
 
-/** 같은 자리에 겹쳐 놓지 않는다 — 가까우면 이름만 바꾼다. */
+/** 같은 자리에 겹쳐 놓지 않는다. 가까우면 이름만 바꾼다. */
 export function putMarker(markers: StudioMarker[], beat: number, name: string, tolerance = 0.05): StudioMarker[] {
   const at = Math.max(0, beat);
   const existing = markers.find((marker) => Math.abs(marker.beat - at) <= tolerance);
@@ -426,8 +556,8 @@ export function putMarker(markers: StudioMarker[], beat: number, name: string, t
 }
 
 /**
- * 지금 자리에서 앞/뒤 이름표. 없으면 `null` — 곡 처음/끝으로 튕기지 않는다.
- * 바로 그 자리에 있는 이름표는 「같은 자리」로 보고 건너뛴다.
+ * 지금 자리에서 앞/뒤 이름표. 없으면 `null`. 곡 처음/끝으로 튕기지 않는다.
+ * 바로 그 자리에 있는 이름표는 같은 자리로 보고 건너뛴다.
  */
 export function stepMarker(markers: StudioMarker[], beat: number, direction: 1 | -1, tolerance = 0.001): StudioMarker | null {
   const sorted = sortMarkers(markers);
@@ -440,7 +570,7 @@ export function stepMarker(markers: StudioMarker[], beat: number, direction: 1 |
 
 /**
  * 손으로 두드린 시각들에서 BPM 을 낸다. 오래된 두드림과 튀는 간격은 빼고 평균을 쓴다.
- * 두 번 미만이면 `null` — 아직 셀 수 없다.
+ * 두 번 미만이면 `null`. 아직 셀 수 없다.
  */
 export function tapTempo(times: number[], maxGapMs = 2500): number | null {
   if (times.length < 2) return null;
@@ -469,7 +599,7 @@ export function selectionRange(clips: { start: number; duration: number }[]): { 
 }
 
 /**
- * 스윙 — 격자의 **뒷칸**을 뒤로 민다. `unit` 은 스윙을 먹일 칸(기본 8분음표 = 0.5박).
+ * 스윙. 격자의 **뒷칸**을 뒤로 민다. `unit` 은 스윙을 먹일 칸(기본 8분음표 = 0.5박).
  * 앞칸은 그대로 두고 뒷칸만 미는 게 사람이 치는 느낌에 가깝다.
  */
 export function swingBeat(beat: number, swing: number, unit = 0.5): number {
@@ -488,7 +618,7 @@ export function swingBeat(beat: number, swing: number, unit = 0.5): number {
 }
 
 /**
- * 컴퓨터 자판을 건반으로 — 트래커 배열. 아랫줄이 낮은 옥타브, 윗줄이 한 옥타브 위.
+ * 컴퓨터 자판을 건반으로. 트래커 배열. 아랫줄이 낮은 옥타브, 윗줄이 한 옥타브 위.
  * 모르는 자판은 `null` (그 키는 원래 하던 일을 계속한다).
  */
 const KEY_ROWS: Record<string, number> = {
@@ -503,7 +633,7 @@ export function keyToPitch(key: string, octave: number, low = 0, high = 127): nu
   return pitch < low || pitch > high ? null : pitch;
 }
 
-/** 자판 건반이 덮는 키인지 — 도구 단축키와 겹치는지 미리 알아야 한다. */
+/** 자판 건반이 덮는 키인지. 도구 단축키와 겹치는지 미리 알아야 한다. */
 export function isPianoKey(key: string): boolean {
   return KEY_ROWS[String(key).toLowerCase()] !== undefined;
 }

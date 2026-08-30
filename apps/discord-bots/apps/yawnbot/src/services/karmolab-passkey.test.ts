@@ -1,7 +1,7 @@
 /**
  * 패스키 검증 (TASK-KL-156 D7).
  *
- * 여기가 틀리면 **아무나 남의 계정으로 들어온다** — 화면에는 아무 표시도 안 난다.
+ * 여기가 틀리면 **아무나 남의 계정으로 들어온다**. 화면에는 아무 표시도 안 난다.
  * 그래서 진짜 P-256 열쇠를 만들어 실제 서명으로 왕복을 돌리고, 막아야 할 것들을 하나씩 찌른다.
  */
 import { describe, it, expect } from 'vitest';
@@ -15,7 +15,7 @@ import {
   decodeCbor,
 } from './karmolab-passkey';
 
-/** CBOR 로 적는다 — 시험이 진짜 브라우저가 보내는 모양을 만들어야 의미가 있다. */
+/** CBOR 로 적는다. 시험이 진짜 브라우저가 보내는 모양을 만들어야 의미가 있다. */
 function cborBytes(buf: Buffer): Buffer {
   const head = Buffer.from([0x58, buf.length]);
   return buf.length < 24 ? Buffer.concat([Buffer.from([0x40 + buf.length]), buf]) : Buffer.concat([head, buf]);
@@ -88,7 +88,7 @@ describe('패스키 (KL-156 D7)', () => {
     expect((value as Map<string, number>).get('a')).toBe(7);
   });
 
-  it('등록 왕복 — 진짜 키로 만든 것을 담을 모양으로 돌려준다', () => {
+  it('등록 왕복. 진짜 키로 만든 것을 담을 모양으로 돌려준다', () => {
     const key = makeKey();
     const stored = verifyRegistration({
       challenge: 'chal-1',
@@ -125,7 +125,7 @@ describe('패스키 (KL-156 D7)', () => {
     ).toThrow();
   });
 
-  it('로그인 왕복 — 서명이 맞으면 새 사용 횟수를 준다', () => {
+  it('로그인 왕복. 서명이 맞으면 새 사용 횟수를 준다', () => {
     const key = makeKey();
     const stored = verifyRegistration({
       challenge: 'c1',
@@ -151,7 +151,7 @@ describe('패스키 (KL-156 D7)', () => {
     expect(() => verifyAssertion({ challenge: 'c2', passkey: stored, ...parts })).toThrow();
   });
 
-  it('사용 횟수가 뒤로 가면 막는다 — 열쇠가 복제됐다는 신호다', () => {
+  it('사용 횟수가 뒤로 가면 막는다. 열쇠가 복제됐다는 신호다', () => {
     const key = makeKey();
     const stored = verifyRegistration({
       challenge: 'c1',

@@ -2,11 +2,11 @@
  * 병음이 **사람 화면에서** 되는가 (흡수 ⓒ)
  *
  * 이 갈래는 다른 도구와 다르다: 소리 표(167KB)가 묶음 안에 없고 **주소로 받아 온다.**
- * 그래서 알맹이 시험이 아무리 초록이어도, 그 주소가 배포판에서 404 면 화면은 「받는 중」에서
- * 영원히 멈춘다. 그건 오직 진짜 서버에 띄워 봐야 잡힌다 — 여기서 그걸 한다.
+ * 그래서 알맹이 시험이 아무리 초록이어도, 그 주소가 배포판에서 404 면 화면은 받는 중에서
+ * 영원히 멈춘다. 그건 오직 진짜 서버에 띄워 봐야 잡힌다. 여기서 그걸 한다.
  *
  * 보는 것 셋:
- *   ① 「병음」을 누르면 표를 받아 오고 (주소가 살아 있다)
+ *   ① 병음을 누르면 표를 받아 오고 (주소가 살아 있다)
  *   ② 汉字 를 넣으면 hàn zì 가 나오고 (표를 제대로 편다)
  *   ③ 성조를 숫자로 바꾸면 han4 zi4 가 된다 (고르개가 붙어 있다)
  *
@@ -25,18 +25,18 @@ const repoRoot = path.dirname(path.dirname(appRoot));
    `listen(포트)` 는 IPv6(`::`)로 잡히는데, 남이 이미 IPv4(`0.0.0.0`)로 같은 번호를 쥐고 있어도
    <b>부딪히지 않고 성공한다</b>. 그리고 `127.0.0.1` 로 물으면 <b>남의 서버가 답한다</b>.
    작은 판으로 재현했다: ① 0.0.0.0:45999 잡음 → ② listen(45999) 도 성공 → ③ 127.0.0.1 = 먼저 잡은 쪽.
-   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다 — `smoke-region` 을 그렇게 재 보니
-   <b>멀쩡한 판이 「페이스 단위가 그 나라 것이 아니다」로 빨개졌다</b>(거짓 빨강).
-   0 을 주면 운영체제가 빈 자리를 준다 — 충돌 자체가 없어진다. */
+   여러 책상이 동시에 검사를 돌리는 저장소라 실제로 일어난다. `smoke-region` 을 그렇게 재 보니
+   <b>멀쩡한 판이 페이스 단위가 그 나라 것이 아니다로 빨개졌다</b>(거짓 빨강).
+   0 을 주면 운영체제가 빈 자리를 준다. 충돌 자체가 없어진다. */
 const PORT = Number(process.env.PORT || 0);
 
-/* 볼 대상이 아직 없으면 「못 돌렸다」다 — 배포 길목에서 이걸 실패로 세면 안 된다. */
-/* 소리 표는 **찍어서 커밋한 자산**이다 — 없으면 「아직 안 만들었다」가 아니라 고장이다.
+/* 볼 대상이 아직 없으면 못 돌렸다다. 배포 길목에서 이걸 실패로 세면 안 된다. */
+/* 소리 표는 **찍어서 커밋한 자산**이다. 없으면 아직 안 만들었다가 아니라 고장이다.
    그래서 여기 안 넣는다(여기 넣으면 표가 사라진 날 검사가 조용히 건너뛴다). */
 const NEEDED = ['js/widgets/tools/charconv.js'];
 const missing = NEEDED.filter((rel) => fs.existsSync(path.join(appRoot, rel)) === false);
 if (missing.length > 0) {
-  console.log(`[charconv-pinyin] CANNOT-RUN(건너뜀) — 아직 없다: ${missing.join(' · ')}`);
+  console.log(`[charconv-pinyin] CANNOT-RUN(건너뜀). 아직 없다: ${missing.join(', ')}`);
   console.log('  `node build.mjs` 뒤에 돌려라.');
   process.exit(2);
 }
@@ -67,7 +67,7 @@ let browser;
 try {
   browser = await chromium.launch();
 } catch (error) {
-  console.error('[charconv-pinyin] CANNOT-RUN — 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
+  console.error('[charconv-pinyin] CANNOT-RUN. 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
   console.error(String(error?.message ?? error).split(NL)[0]);
   server.close();
   process.exit(1);
@@ -105,7 +105,7 @@ if (seen === null) {
   await page.fill('#ccIn', '汉字');
   const btn = await page.$('#ccModes button[data-mode="pinyin"]');
   if (btn === null) {
-    fails.push('「병음」 단추가 없다');
+    fails.push('병음 단추가 없다');
   } else {
     await btn.click();
 
@@ -116,14 +116,14 @@ if (seen === null) {
 
     if (marked === null) {
       const warn = await page.textContent('#ccWarn').catch(() => '');
-      fails.push(`「병음」을 눌러도 결과가 안 나온다 (15초) — 화면 알림: ${String(warn).trim()}`);
+      fails.push(`병음을 눌러도 결과가 안 나온다 (15초). 화면 알림: ${String(warn).trim()}`);
     } else if (marked.trim() !== 'hàn zì') {
       fails.push(`汉字 → hàn zì 가 아니다: ${JSON.stringify(marked)}`);
     }
 
-    /* 표를 **주소로 받아 왔는지**까지 본다 — 이 검사의 존재 이유다. */
+    /* 표를 **주소로 받아 왔는지**까지 본다. 이 검사의 존재 이유다. */
     if (asked.some((u) => u.endsWith('/data/han-pinyin.json')) === false) {
-      fails.push('소리 표를 주소로 받아 오지 않았다 — 묶음에 박혀 있거나 아예 안 부른다');
+      fails.push('소리 표를 주소로 받아 오지 않았다. 묶음에 박혀 있거나 아예 안 부른다');
     }
 
     await page.selectOption('#ccTone', 'number');
@@ -145,4 +145,4 @@ if (fails.length > 0) {
   for (const f of fails) console.error('  - ' + f);
   process.exit(1);
 }
-console.log('[charconv-pinyin] 화면에서 소리 표를 주소로 받아 汉字 → hàn zì · han4 zi4 확인');
+console.log('[charconv-pinyin] 화면에서 소리 표를 주소로 받아 汉字 → hàn zì, han4 zi4 확인');

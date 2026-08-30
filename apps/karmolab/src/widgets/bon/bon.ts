@@ -1,7 +1,7 @@
 /**
- * 「본」 — 화면 (TASK-KL-254 · 2단계)
+ * 본. 화면 (TASK-KL-254, 2단계)
  *
- * 도형을 직접 만들고 만지는 자리. 여기서만 DOM 을 안다 — 아래 파일들(`model`·`geom`·`svg`·`parts`)은
+ * 도형을 직접 만들고 만지는 자리. 여기서만 DOM 을 안다. 아래 파일들(`model`, `geom`, `svg`, `parts`)은
  * 계속 브라우저를 모른다. 그래서 화면 없이도 답을 맞출 수 있다.
  *
  * 다시 그리는 길은 **하나**(`repaint`)뿐이다. 도형을 만들든 끌든 숫자를 바꾸든 같은 함수를 지나므로
@@ -38,7 +38,7 @@ const ICONS: Record<Tool, string> = {
   node: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 17l7-10 7 6"/><rect x="3" y="15" width="4" height="4"/><rect x="10" y="5" width="4" height="4"/><rect x="17" y="11" width="4" height="4"/></svg>',
   slice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M8 5v14M16 5v14M3 10h18M3 15h18" stroke-dasharray="2 2"/></svg>'
 };
-const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', line: '선 (L)', pen: '펜 (P) — 눌러서 점, 두 번 눌러 마침', node: '점 고치기 (N) — 경로의 점을 잡아 옮긴다', slice: '9-slice 경계 (S)' };
+const TOOL_LABEL: Record<Tool, string> = { select: '고르기 (V)', rect: '사각형 (R)', ellipse: '타원 (E)', line: '선 (L)', pen: '펜 (P). 눌러서 점, 두 번 눌러 마침', node: '점 고치기 (N). 경로의 점을 잡아 옮긴다', slice: '9-slice 경계 (S)' };
 
 function buildBon(container: HTMLElement): void {
   injectBonStyles();
@@ -81,7 +81,7 @@ function buildBon(container: HTMLElement): void {
         '<button data-seed="button">버튼</button>' +
         '<button data-seed="panel">패널</button>' +
         '<button data-seed="gauge">게이지</button>' +
-        '<span class="bon-foot-hint">얹고 나서 손으로 고쳐라 — 정답이 아니라 출발점이다</span>' +
+        '<span class="bon-foot-hint">얹고 나서 손으로 고쳐라. 정답이 아니라 출발점이다</span>' +
       '</div>' +
     '</div>';
 
@@ -103,7 +103,7 @@ function buildBon(container: HTMLElement): void {
     '<input type="range" data-num="' + key + '" value="' + value + '" min="' + min + '" max="' + Math.round(max) + '" step="1">' +
     '<output>' + Math.round(value) + '</output></div>';
 
-  /* ── 오른쪽 — 고른 도형의 숫자. 도형 종류에 따라 통째로 바뀐다 ── */
+  /* ── 오른쪽. 고른 도형의 숫자. 도형 종류에 따라 통째로 바뀐다 ── */
   function drawSide(): void {
     const node = activeNode();
     if (!node) {
@@ -152,7 +152,7 @@ function buildBon(container: HTMLElement): void {
         '<button data-act="del">지우기</button></div></div>';
   }
 
-  /** 레이어 목록 — 위가 앞이다(배열은 뒤가 위라 뒤집어 보인다). */
+  /** 레이어 목록. 위가 앞이다(배열은 뒤가 위라 뒤집어 보인다). */
   function drawLayers(): void {
     const rows: string[] = [];
     for (let i = doc.layers.length - 1; i >= 0; i -= 1) {
@@ -178,7 +178,7 @@ function buildBon(container: HTMLElement): void {
       '</div>';
   }
 
-  /* ── 다시 그리기 — 하나뿐인 길 ───────────────────── */
+  /* ── 다시 그리기. 하나뿐인 길 ───────────────────── */
   function repaint(): void {
     if (activeLayer >= doc.layers.length) activeLayer = doc.layers.length - 1;
     view.draw(doc, selected);
@@ -192,9 +192,9 @@ function buildBon(container: HTMLElement): void {
 
   /* ── 펜 ────────────────────────────────────── */
   /**
-   * 끌어서 만드는 도형들과 **다루는 결이 다르다** — 누를 때마다 점이 하나씩 붙고, 두 번 누르거나
+   * 끌어서 만드는 도형들과 **다루는 결이 다르다**. 누를 때마다 점이 하나씩 붙고, 두 번 누르거나
    * Enter 를 치면 끝난다. 그동안 그리던 것은 문서 안에 이미 들어가 있어야 화면에 보이므로,
-   * 「짓는 중」인 도형을 들고 있다가 마칠 때 되돌리기에 한 번만 담는다(점마다 담으면 되돌리기가
+   * 짓는 중인 도형을 들고 있다가 마칠 때 되돌리기에 한 번만 담는다(점마다 담으면 되돌리기가
    * 점 개수만큼 쌓여 쓸모없어진다).
    */
   let pen: null | { node: Node & { kind: 'path' }; points: { x: number; y: number }[]; layer: number } = null;
@@ -225,14 +225,14 @@ function buildBon(container: HTMLElement): void {
     repaint();
   }
 
-  /** 마침. 점이 셋 이상이면 닫아서 채울 수 있게 한다 — 부품 모양은 대개 닫힌 도형이다. */
+  /** 마침. 점이 셋 이상이면 닫아서 채울 수 있게 한다. 부품 모양은 대개 닫힌 도형이다. */
   function penFinish(closed: boolean): void {
     if (!pen) return;
     const { node, points, layer: layerIndex } = pen;
     pen = null;
     const layer = doc.layers[layerIndex];
     if (points.length < 2) {
-      // 한 점짜리는 안 보인다 — 목록에만 쌓이므로 버린다.
+      // 한 점짜리는 안 보인다. 목록에만 쌓이므로 버린다.
       const at = layer.nodes.indexOf(node);
       if (at >= 0) layer.nodes.splice(at, 1);
       selected = null;
@@ -276,7 +276,7 @@ function buildBon(container: HTMLElement): void {
     }
 
     if (tool === 'node') {
-      // 고른 것이 없으면 먼저 경로를 하나 고른다 — 점만 잡으려 들면 「아무 일도 안 일어남」이 된다.
+      // 고른 것이 없으면 먼저 경로를 하나 고른다. 점만 잡으려 들면 아무 일도 안 일어남이 된다.
       const current = activeNode();
       if (!current || current.kind !== 'path') {
         const hit = hitTest(doc, p.x, p.y);
@@ -334,14 +334,14 @@ function buildBon(container: HTMLElement): void {
       return;
     }
 
-    // 그리기 — 누른 자리에 크기 0 으로 놓고, 끄는 동안 오른쪽 아래 손잡이를 잡은 것과 같게 다룬다.
+    // 그리기. 누른 자리에 크기 0 으로 놓고, 끄는 동안 오른쪽 아래 손잡이를 잡은 것과 같게 다룬다.
     const x = snap > 0 ? Math.round(p.x / snap) * snap : p.x;
     const y = snap > 0 ? Math.round(p.y / snap) * snap : p.y;
     const fresh: Node = tool === 'rect'
       ? { kind: 'rect', x, y, w: 0, h: 0, radius: 0, fill: { kind: 'solid', color: '#3b4a6b' } }
       : tool === 'ellipse'
         ? { kind: 'ellipse', cx: x, cy: y, rx: 0, ry: 0, fill: { kind: 'solid', color: '#3b4a6b' } }
-        // 선은 칠이 아니라 **테두리**로 보인다 — 채우기를 주면 두 점 사이가 메워져 안 보인다.
+        // 선은 칠이 아니라 **테두리**로 보인다. 채우기를 주면 두 점 사이가 메워져 안 보인다.
         : { kind: 'path', d: 'M' + x + ' ' + y + 'L' + x + ' ' + y,
             stroke: { paint: { kind: 'solid', color: '#8fa6d8' }, width: 2, align: 'center' } };
     const layer = doc.layers[activeLayer];
@@ -427,7 +427,7 @@ function buildBon(container: HTMLElement): void {
         ? Math.hypot(b.w, b.h) < 1
         : b.w < 1 || b.h < 1;
       if (tooSmall) {
-        // 살짝 눌렀다 뗀 것 — 크기 0 짜리를 남기지 않는다(안 보이는데 목록에만 쌓인다).
+        // 살짝 눌렀다 뗀 것. 크기 0 짜리를 남기지 않는다(안 보이는데 목록에만 쌓인다).
         layer.nodes.pop();
         selected = null;
         repaint();
@@ -484,7 +484,7 @@ function buildBon(container: HTMLElement): void {
     } else {
       return;
     }
-    // 끄는 동안에는 그림만 다시 그린다 — 오른쪽까지 다시 만들면 잡고 있던 손잡이가 사라진다.
+    // 끄는 동안에는 그림만 다시 그린다. 오른쪽까지 다시 만들면 잡고 있던 손잡이가 사라진다.
     view.draw(doc, selected);
     const out = el.parentElement ? el.parentElement.querySelector('output') : null;
     if (out) out.textContent = String(Math.round(Number(el.value)));
@@ -601,7 +601,7 @@ function buildBon(container: HTMLElement): void {
       selected = null;
       history.push({ label: '레이어 옮기기', redo: () => moveLayer(doc, at, to), undo: () => moveLayer(doc, to, at) });
     } else if (act === 'merge') {
-      // 합치기는 되돌리려면 옛 모습이 통째로 필요하다 — 겹이 사라지므로 자리만으론 못 되돌린다.
+      // 합치기는 되돌리려면 옛 모습이 통째로 필요하다. 겹이 사라지므로 자리만으론 못 되돌린다.
       const before = JSON.stringify(doc.layers);
       if (!mergeDown(doc, at)) return;
       const after = JSON.stringify(doc.layers);
@@ -622,7 +622,7 @@ function buildBon(container: HTMLElement): void {
     const holder = (event.target as HTMLElement).closest<HTMLElement>('[data-seed]');
     if (!holder) return;
     const part = holder.dataset.seed as PartName;
-    // 판 크기에 맞춰 얹는다 — 판보다 큰 부품이 튀어나와 있으면 손대기 전에 헤맨다.
+    // 판 크기에 맞춰 얹는다. 판보다 큰 부품이 튀어나와 있으면 손대기 전에 헤맨다.
     const knobs = { ...defaultKnobs(), w: doc.w, h: doc.h };
     const node = PARTS[part](knobs);
     const layer = doc.layers[activeLayer];
@@ -647,7 +647,7 @@ function buildBon(container: HTMLElement): void {
   }
 
   /**
-   * PNG 는 SVG 를 그림으로 한 번 거쳐 굽는다. **`scale` 배로 크게 굽는다** — 게임은 보통
+   * PNG 는 SVG 를 그림으로 한 번 거쳐 굽는다. **`scale` 배로 크게 굽는다**. 게임은 보통
    * 2~4 배 짜리를 쓰고, 벡터라 크게 구워도 안 뭉개진다.
    */
   async function renderPng(scale = 1): Promise<Blob> {
@@ -678,8 +678,8 @@ function buildBon(container: HTMLElement): void {
   }
 
   /**
-   * 묶음 — 게임에 넣을 때 필요한 것을 한 번에. SVG(원본) · PNG(2배) · 9-slice 값(json).
-   * 값을 따로 적어 두지 않으면 「이 그림의 경계가 어디였더라」가 며칠 뒤에 사라진다.
+   * 묶음. 게임에 넣을 때 필요한 것을 한 번에. SVG(원본), PNG(2배), 9-slice 값(json).
+   * 값을 따로 적어 두지 않으면 이 그림의 경계가 어디였더라가 며칠 뒤에 사라진다.
    */
   async function exportPack(): Promise<void> {
     download(new Blob([toSvg(doc)], { type: 'image/svg+xml' }), 'bon.svg');
@@ -700,7 +700,7 @@ function buildBon(container: HTMLElement): void {
       '<button data-shelf="close">닫기</button></div>';
   }
 
-  /** 올리기 — 열쇠가 없으면 넣는 자리를 먼저 보여 준다(눌렀다가 「권한 없음」을 보는 것보다 낫다). */
+  /** 올리기. 열쇠가 없으면 넣는 자리를 먼저 보여 준다(눌렀다가 권한 없음을 보는 것보다 낫다). */
   async function putOnShelf(): Promise<void> {
     if (!canUpload()) {
       shelf.hidden = false;
@@ -712,7 +712,7 @@ function buildBon(container: HTMLElement): void {
     }
     const title = window.prompt('선반에 올릴 이름', '부품') ?? '';
     if (!title.trim()) return;
-    shelfMessage('올리는 중…');
+    shelfMessage('올리는 중...');
     try {
       const svg = toSvg(doc);
       const item = await uploadToFoundry({
@@ -720,18 +720,18 @@ function buildBon(container: HTMLElement): void {
         title: title.trim(),
         mime: 'image/svg+xml',
         bytes: new TextEncoder().encode(svg),
-        // 다시 열 수 있게 문서와 9-slice 값을 함께 담는다 — 그림만 남으면 고칠 수가 없다.
+        // 다시 열 수 있게 문서와 9-slice 값을 함께 담는다. 그림만 남으면 고칠 수가 없다.
         recipe: { doc: JSON.parse(JSON.stringify(doc)) as unknown, slice: view.slice }
       });
-      shelfMessage('올렸다 — ' + item.title + ' (CC0, 아무나 가져다 쓴다)');
+      shelfMessage('올렸다. ' + item.title + ' (CC0, 아무나 가져다 쓴다)');
     } catch (error) {
       shelfMessage(String(error instanceof Error ? error.message : error), true);
     }
   }
 
-  /** 구경하기 — 남이 올린 것도 함께 보인다. 누르면 그 설정 그대로 내 판에 열린다. */
+  /** 구경하기. 남이 올린 것도 함께 보인다. 누르면 그 설정 그대로 내 판에 열린다. */
   async function openShelf(): Promise<void> {
-    shelfMessage('선반을 여는 중…');
+    shelfMessage('선반을 여는 중...');
     try {
       const { items, total } = await listFoundry({ limit: 40 });
       if (items.length === 0) {
@@ -739,7 +739,7 @@ function buildBon(container: HTMLElement): void {
         return;
       }
       shelf.innerHTML =
-        '<div class="bon-shelf-head">선반 <small>' + total + '개 · CC0</small>' +
+        '<div class="bon-shelf-head">선반 <small>' + total + '개, CC0</small>' +
           '<button data-shelf="close">닫기</button></div>' +
         '<div class="bon-shelf-grid">' +
           items.map((item) =>
@@ -843,7 +843,7 @@ function buildBon(container: HTMLElement): void {
     else if (event.key === 'n') { tool = 'node'; view.nodesOn = true; repaint(); }
     else if (event.key === 'Enter' && pen) { event.preventDefault(); penFinish(false); }
     else if (event.key === 'Escape' && pen) {
-      // 취소 — 짓던 것을 통째로 버린다(되돌리기에 담기 전이라 남는 게 없다).
+      // 취소. 짓던 것을 통째로 버린다(되돌리기에 담기 전이라 남는 게 없다).
       const layer = doc.layers[pen.layer];
       const at = layer.nodes.indexOf(pen.node);
       if (at >= 0) layer.nodes.splice(at, 1);
@@ -871,7 +871,7 @@ function buildBon(container: HTMLElement): void {
   document.addEventListener('keydown', keydown);
   if (Toolbox.onDispose) Toolbox.onDispose(() => document.removeEventListener('keydown', keydown));
 
-  // 처음부터 겹을 둘 준다 — 부품은 바탕·빛·그늘로 겹쳐 만드는 것이라 하나로는 좁다.
+  // 처음부터 겹을 둘 준다. 부품은 바탕, 빛, 그늘로 겹쳐 만드는 것이라 하나로는 좁다.
   addLayer(doc, '위');
   repaint();
 }
@@ -880,7 +880,7 @@ function buildBon(container: HTMLElement): void {
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('bon') || {} : {}),
     id: 'bon',
-    category: 'tool',
+    category: 'play',
     layout: 'full',
     icon: '<rect x="3" y="7" width="18" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="3" cy="7" r="1.6" fill="currentColor"/><circle cx="21" cy="17" r="1.6" fill="currentColor"/>',
     tabs: [{ id: 'bon-main', label: '본', build: buildBon }]

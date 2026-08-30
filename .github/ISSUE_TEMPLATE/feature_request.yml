@@ -19,7 +19,7 @@ body:
     id: problem
     attributes:
       label: 어떤 문제가 있나요? (또는 불편한 점)
-      placeholder: "지금은 ___ 때문에 불편합니다…"
+      placeholder: "지금은 ___ 때문에 불편합니다..."
 
   - type: textarea
     id: solution
@@ -38,7 +38,7 @@ body:
     attributes:
       label: 해당 영역
       options:
-        - 블로그(글·작업물·소개)
+        - 블로그(글, 작업물, 소개)
         - KarmoLab 앱
         - Discord 봇
         - Chat Overlay

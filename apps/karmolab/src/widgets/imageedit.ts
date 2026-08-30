@@ -49,7 +49,7 @@ const esc = (v: unknown): string =>
         /* Body (tool sidebar + canvas) */
         .ie-body { display:flex; flex:1; overflow:hidden; }
 
-        /* Tool sidebar — 기본 접힘, 호버·포커스 시 라벨 펼침 (메인 앱 헤더 메뉴와 비슷한 접힘 UX) */
+        /* Tool sidebar. 기본 접힘, 호버, 포커스 시 라벨 펼침 (메인 앱 헤더 메뉴와 비슷한 접힘 UX) */
         .ie-tools {
             width:var(--sidebar-collapsed-width, 56px); flex-shrink:0; display:flex; flex-direction:column; gap:2px;
             padding:8px 6px; border-right:1px solid var(--border); background:var(--bg-secondary);
@@ -123,7 +123,7 @@ const esc = (v: unknown): string =>
         .ie-pan-inner .ie-crop-overlay {
             position:absolute; left:0; top:0;
         }
-        /* EXIF: 편집 영역(체크 무늬 래퍼) 좌상단 고정 — 이미지 줌/팬과 무관 */
+        /* EXIF: 편집 영역(체크 무늬 래퍼) 좌상단 고정. 이미지 줌/팬과 무관 */
         .ie-canvas-wrap > .ie-exif-overlay {
             position:absolute; left:8px; top:8px; z-index:6;
             max-width:min(300px, 42vw); max-height:min(220px, 38vh);
@@ -222,7 +222,7 @@ const esc = (v: unknown): string =>
         .ie-crop-handle.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
         .ie-crop-handle.se { bottom:-5px; right:-5px; cursor:se-resize; }
 
-        /* Options — 우측 사이드바 (좁은 폭에서 줄바꿈) */
+        /* Options. 우측 사이드바 (좁은 폭에서 줄바꿈) */
         .ie-options {
             box-sizing:border-box;
             width:min(300px, 36vw); min-width:240px; max-width:100%;
@@ -490,7 +490,7 @@ const esc = (v: unknown): string =>
     let cropState: any = null;
     let cropAspect: any = null;
     let adjustValues = { brightness: 100, contrast: 100, saturate: 100, hue: 0, sharpen: 0 };
-    /** 조정 도구 진입 시점의 픽셀 (선명도 실시간 미리보기·취소 시 복원용) */
+    /** 조정 도구 진입 시점의 픽셀 (선명도 실시간 미리보기, 취소 시 복원용) */
     let adjustSnapshot: any = null;
     let adjustPreviewRaf = 0;
     let ieAdjSrcCanvas: any = null;
@@ -509,7 +509,7 @@ const esc = (v: unknown): string =>
     let brushMode = 'bg';
     let brushSize = 20;
     let brushDrawing = false;
-    /** 툴바·변환 미리보기 — bytesKind: file | dataUrl | null. natural = 마지막으로 디코드된 원본 픽셀 크기 */
+    /** 툴바, 변환 미리보기. bytesKind: file | dataUrl | null. natural = 마지막으로 디코드된 원본 픽셀 크기 */
     let ieImageSourceMeta: any = {
         displayName: '',
         sourceBytes: null,
@@ -518,9 +518,9 @@ const esc = (v: unknown): string =>
         sourceNaturalH: null,
         exifLines: null
     };
-    /** 이미지 로드 경쟁 시 EXIF·디코드 순서 보정 */
+    /** 이미지 로드 경쟁 시 EXIF, 디코드 순서 보정 */
     let ieImageLoadGen = 0;
-    /** 형식·변환 탭 — 여러 파일 일괄 처리 중 취소용 */
+    /** 형식, 변환 탭. 여러 파일 일괄 처리 중 취소용 */
     let ieCvBatchAbort: any = null;
     /** 일괄 변환 대기 파일(패널을 다시 그려도 드롭으로 채운 목록 유지) */
     let ieCvBatchState: any = { files: [] };
@@ -622,7 +622,7 @@ const esc = (v: unknown): string =>
         }
     }
 
-    /** MP = 화소 수 ÷ 1,000,000 (카메라·이미지 업계 관례). 1 미만이면 소수로 표시되는 것이 정상. */
+    /** MP = 화소 수 ÷ 1,000,000 (카메라, 이미지 업계 관례). 1 미만이면 소수로 표시되는 것이 정상. */
     function ieFormatMegapixels(w: any, h: any) {
         const px = w * h;
         const mp = px / 1e6;
@@ -807,7 +807,7 @@ const esc = (v: unknown): string =>
         return null;
     }
 
-    /** JPEG · PNG(eXIf) · WebP(EXIF) 순으로 시도 */
+    /** JPEG, PNG(eXIf), WebP(EXIF) 순으로 시도 */
     function ieExtractExifLinesFromArrayBuffer(ab: any) {
         return ieParseJpegExifLines(ab) || ieParsePngExifLines(ab) || ieParseWebpExifLines(ab);
     }
@@ -899,7 +899,7 @@ const esc = (v: unknown): string =>
         if (typeof fl === 'number' && fl > 0) photo.push(Math.round(fl) + ' mm');
         const fl35 = (tags as any)[0xa405];
         if (typeof fl35 === 'number' && fl35 > 0) photo.push(t('imageedit.t67') + fl35 + ' mm');
-        if (photo.length) lines.push(photo.join(' · '));
+        if (photo.length) lines.push(photo.join(', '));
         return lines.length ? lines : null;
     }
 
@@ -917,14 +917,14 @@ const esc = (v: unknown): string =>
         el.style.display = 'block';
         const lines = ieImageSourceMeta.exifLines;
         if (lines === null) {
-            el.textContent = 'EXIF\n읽는 중…';
+            el.textContent = 'EXIF\n읽는 중...';
             el.setAttribute('aria-label', t('imageedit.t68'));
             return;
         }
         if (!(lines as any).length) {
             el.textContent =
                 'EXIF\n이 파일에는 읽을 수 있는 EXIF가 없습니다.\n' +
-                '(카메라 JPEG에 흔하고, PNG·WebP·재저장본에는 없을 수 있어요.)\n' +
+                '(카메라 JPEG에 흔하고, PNG, WebP, 재저장본에는 없을 수 있어요.)\n' +
                 t('imageedit.t69');
             el.setAttribute('aria-label', t('imageedit.t70'));
             return;
@@ -976,25 +976,25 @@ const esc = (v: unknown): string =>
         } else {
             bytesPart = '≈' + ieFormatToolbarBytes(uncomp) + t('imageedit.t75');
             bytesTitleExtra =
-                '\n파일 용량을 알 수 없어, 현재 캔버스 픽셀 기준 무압축(RGBA·가로×세로×4) 추정치입니다. JPEG/PNG 등 압축 파일은 실제보다 클 수 있어요.';
+                '\n파일 용량을 알 수 없어, 현재 캔버스 픽셀 기준 무압축(RGBA, 가로×세로×4) 추정치입니다. JPEG/PNG 등 압축 파일은 실제보다 클 수 있어요.';
         }
         const parts = [];
         if (nameRaw) {
             if (extWithDot) {
                 const stemMax = 36;
                 let stemShown = stem;
-                if (stem.length > stemMax) stemShown = stem.slice(0, stemMax - 1) + '…';
+                if (stem.length > stemMax) stemShown = stem.slice(0, stemMax - 1) + '...';
                 if (stemShown) parts.push(stemShown);
                 parts.push(extWithDot);
             } else {
-                const nameShort = nameRaw.length > 42 ? nameRaw.slice(0, 41) + '…' : nameRaw;
+                const nameShort = nameRaw.length > 42 ? nameRaw.slice(0, 41) + '...' : nameRaw;
                 parts.push(nameShort);
             }
         }
         parts.push(w + '×' + h);
         parts.push(mpStr);
         parts.push(bytesPart);
-        el.textContent = parts.join(' · ');
+        el.textContent = parts.join(', ');
         const mpVal = px / 1e6;
         el.title =
             (nameRaw ? t('imageedit.t76') + nameRaw + '\n' : '') +
@@ -1006,7 +1006,7 @@ const esc = (v: unknown): string =>
             px.toLocaleString() +
             ' 화소)\n' +
             t('imageedit.t78') +
-            (mpVal < 0.01 ? '—' : mpVal.toFixed(3).replace(/\.?0+$/, '') + ' MP') +
+            (mpVal < 0.01 ? '. ' : mpVal.toFixed(3).replace(/\.?0+$/, '') + ' MP') +
             ' (= 가로×세로÷1,000,000)\n' +
             t('imageedit.t79') +
             bytesTitleExtra;
@@ -1022,7 +1022,7 @@ const esc = (v: unknown): string =>
         return false;
     }
 
-    /** 형식·변환 — 캔버스 미리보기/저장 전용 (빈 캔버스일 때 일괄 변환 안내) */
+    /** 형식, 변환. 캔버스 미리보기/저장 전용 (빈 캔버스일 때 일괄 변환 안내) */
     function requireImageForConvertCanvas() {
         if (hasImage()) return true;
         if (window.KarmoLabImageBatch) {
@@ -1047,7 +1047,7 @@ const esc = (v: unknown): string =>
         } else {
             text.textContent = t('imageedit.t51');
             sub.innerHTML =
-                '클릭, 드래그&드롭, Ctrl+V 붙여넣기, 또는 \'가져오기\' 사용<br><span style="opacity:0.75">보기: 휠 줌 · 스페이스+드래그 또는 가운데 클릭으로 이동</span>';
+                '클릭, 드래그&드롭, Ctrl+V 붙여넣기, 또는 \'가져오기\' 사용<br><span style="opacity:0.75">보기: 휠 줌, 스페이스+드래그 또는 가운데 클릭으로 이동</span>';
         }
     }
 
@@ -1235,7 +1235,7 @@ const esc = (v: unknown): string =>
     }
 
     /* ===== Tool Panels ===== */
-    /* 이름은 **쓸 때** 정한다 — 표로 굳히면 말 묶음이 오기 전이라 열쇠가 그대로 박힌다. */
+    /* 이름은 **쓸 때** 정한다. 표로 굳히면 말 묶음이 오기 전이라 열쇠가 그대로 박힌다. */
     const cropRatios = () => [
         { label: t('imageedit.t95'), value: null },
         { label: '1:1', value: 1 },
@@ -1506,7 +1506,7 @@ const esc = (v: unknown): string =>
         return s;
     }
 
-    /** 인접 4방 라플라시안 계열 샤프닝 (브라우저 전용, strength 0–120) */
+    /** 인접 4방 라플라시안 계열 샤프닝 (브라우저 전용, strength 0-120) */
     function sharpenImageData(srcData: any, strength: any) {
         const w = srcData.width;
         const h = srcData.height;
@@ -1721,7 +1721,7 @@ const esc = (v: unknown): string =>
         Toolbox.showToast(dir === 'h' ? t('imageedit.t117') : t('imageedit.t118'));
     }
 
-    /* ===== Background Removal — Common ===== */
+    /* ===== Background Removal. Common ===== */
     function destroyBrush() {
         const ov = document.getElementById('ieBrushOverlay');
         if (ov) { ov.style.display = 'none'; ov.onpointerdown = null; ov.onpointermove = null; ov.onpointerup = null; }
@@ -1771,7 +1771,7 @@ const esc = (v: unknown): string =>
         }
     }
 
-    /* ===== Mode 1 — Chromakey ===== */
+    /* ===== Mode 1. Chromakey ===== */
     function buildChromaBody(body: any) {
         body.innerHTML = `
             <span class="ie-opt-label">${esc(t('imageedit.t16'))}</span>
@@ -1839,7 +1839,7 @@ const esc = (v: unknown): string =>
         Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t124') });
     }
 
-    /* ===== Mode 2 — Brush ===== */
+    /* ===== Mode 2. Brush ===== */
     function buildBrushBody(body: any) {
         body.innerHTML = `
             <span class="ie-opt-label">${esc(t('imageedit.t19'))}</span>
@@ -1948,7 +1948,7 @@ const esc = (v: unknown): string =>
         Mdd.linePreset('success', { mood: 'happy', msg: t('imageedit.t127') });
     }
 
-    /* ===== Mode 3 — AI (ONNX) ===== */
+    /* ===== Mode 3. AI (ONNX) ===== */
     function buildAiBody(body: any) {
         body.innerHTML = `
             <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
@@ -2122,7 +2122,7 @@ const esc = (v: unknown): string =>
         }
     }
 
-    /* ===== Mode 4 — Gemini ===== */
+    /* ===== Mode 4. Gemini ===== */
     let lastGeminiMaskDataUrl: any = null;
 
     function buildGeminiBody(body: any) {
@@ -2179,7 +2179,7 @@ const esc = (v: unknown): string =>
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`;
             const reqBody = {
                 contents: [{ parts: [
-                    { text: 'Generate a binary segmentation mask for this image. The mask must be the EXACT same dimensions as the input image. The foreground subject should be pure white (#FFFFFF) and the background should be pure black (#000000). No gray, no gradients, no antialiasing — strictly black and white only. Output ONLY the mask image, nothing else.' },
+                    { text: 'Generate a binary segmentation mask for this image. The mask must be the EXACT same dimensions as the input image. The foreground subject should be pure white (#FFFFFF) and the background should be pure black (#000000). No gray, no gradients, no antialiasing. strictly black and white only. Output ONLY the mask image, nothing else.' },
                     { inlineData: { mimeType: 'image/png', data: base64 } }
                 ]}],
                 generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
@@ -2258,7 +2258,7 @@ const esc = (v: unknown): string =>
         return best;
     }
 
-    /* ===== Mode 4b — Gemini 업스케일 ===== */
+    /* ===== Mode 4b. Gemini 업스케일 ===== */
     let upscaleBusy = false;
 
     function buildUpscaleBody(body: any) {
@@ -2289,7 +2289,7 @@ const esc = (v: unknown): string =>
         });
     }
 
-    /** 보간만 사용하는 업스케일 (서버·API 없음). 초해상도(Real-ESRGAN 등)와는 다릅니다. */
+    /** 보간만 사용하는 업스케일 (서버, API 없음). 초해상도(Real-ESRGAN 등)와는 다릅니다. */
     function applyLocalUpscale() {
         if (!requireImage()) return;
         if (upscaleBusy) { Toolbox.showToast(t('imageedit.t129'), 'error'); return; }
@@ -2402,7 +2402,7 @@ const esc = (v: unknown): string =>
         }
     }
 
-    /* ===== Mode 5 — 배경색 변경 (Gemini) ===== */
+    /* ===== Mode 5. 배경색 변경 (Gemini) ===== */
     let bggBusy = false;
 
     function buildBggBody(body: any) {
@@ -3401,9 +3401,9 @@ const esc = (v: unknown): string =>
             URL.revokeObjectURL(url);
             const sizeKB = (blob.size / 1024).toFixed(1);
             Toolbox.showToast(t('imageedit.t186') + sizeKB + ' KB)');
-            /* 손본 그림은 대개 **거기서 안 끝난다** — 레이어가 필요해지는 순간 「먹」으로 가야 하는데
+            /* 손본 그림은 대개 **거기서 안 끝난다**. 레이어가 필요해지는 순간 먹으로 가야 하는데
              * 여태 그 길이 없어 저장했다 다시 열었다 (TASK-KL-238 / 2 photopea).
-             * 이 도구는 한 장짜리 보정이고 레이어·마스크는 「먹」이 갖고 있다. 그러니 이어 준다. */
+             * 이 도구는 한 장짜리 보정이고 레이어, 마스크는 먹이 갖고 있다. 그러니 이어 준다. */
             const nextAnchor = document.getElementById('ieSizeLabel');
             if (nextAnchor) {
                 Toolbox.offerNext?.(nextAnchor, {
@@ -3594,7 +3594,7 @@ const esc = (v: unknown): string =>
     }
 
     function ieCvFormatLbBytes(n: any) {
-        if (n == null || n < 0 || !Number.isFinite(n)) return '—';
+        if (n == null || n < 0 || !Number.isFinite(n)) return '. ';
         if (n < 1024) return n + ' B';
         if (n < 1024 * 1024) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB';
         return (n / (1024 * 1024)).toFixed(n < 10485760 ? 2 : 1) + ' MB';
@@ -3602,22 +3602,22 @@ const esc = (v: unknown): string =>
 
     /** @param {{ w?: number, h?: number, bytes?: number }|null|undefined} m */
     function ieCvFormatLbMetaLine(label: any, m: any) {
-        if (!m) return label + ': —';
+        if (!m) return label + ': . ';
         const parts = [];
         if (m.w > 0 && m.h > 0) parts.push(m.w + ' × ' + m.h + ' px');
         else if (m.w > 0) parts.push(m.w + ' px');
         if (m.bytes != null && m.bytes >= 0) parts.push(ieCvFormatLbBytes(m.bytes));
-        if (!parts.length) return label + ': —';
-        return label + ': ' + parts.join(' · ');
+        if (!parts.length) return label + ': . ';
+        return label + ': ' + parts.join(', ');
     }
 
     /**
-     * 변환 전 패널 — 해상도는 실제 인코딩 입력(캔버스), 용량은 불러온 파일·data 근사 우선(캔버스 PNG 재인코딩 크기는 쓰지 않음)
+     * 변환 전 패널. 해상도는 실제 인코딩 입력(캔버스), 용량은 불러온 파일, data 근사 우선(캔버스 PNG 재인코딩 크기는 쓰지 않음)
      * @param {{ w?: number, h?: number, bytes?: number|null, bytesKind?: string|null, naturalW?: number, naturalH?: number }|null|undefined} m
      */
     function ieCvFormatOriginalMetaLine(m: any) {
         const label = t('imageedit.t198');
-        if (!m || !(m.w > 0) || !(m.h > 0)) return label + ': —';
+        if (!m || !(m.w > 0) || !(m.h > 0)) return label + ': . ';
         const parts = [m.w + ' × ' + m.h + ' px'];
         const nw = m.naturalW,
             nh = m.naturalH;
@@ -3632,7 +3632,7 @@ const esc = (v: unknown): string =>
         } else {
             parts.push(t('imageedit.t200'));
         }
-        return label + ': ' + parts.join(' · ');
+        return label + ': ' + parts.join(', ');
     }
 
     function ieCvLightboxUpdateMeta(lb: any, mode: any) {
@@ -3746,7 +3746,7 @@ const esc = (v: unknown): string =>
 
     /**
      * @param {string} previewUrl
-     * @param {string} [originalUrl] 비교용 — 현재 캔버스를 PNG로 뗀 blob URL(표시만, 메타 용량은 meta.original 기준)
+     * @param {string} [originalUrl] 비교용. 현재 캔버스를 PNG로 뗀 blob URL(표시만, 메타 용량은 meta.original 기준)
      * @param {{ original?: { w?: number, h?: number, bytes?: number|null, bytesKind?: string|null, naturalW?: number, naturalH?: number }, preview?: { w?: number, h?: number, bytes?: number } }} [meta]
      */
     function ieCvOpenLightbox(previewUrl: any, originalUrl: any, meta: any) {
@@ -4072,7 +4072,7 @@ const esc = (v: unknown): string =>
                     signal: ieCvBatchAbort.signal,
                     onItemStart(idx, file, total) {
                         batchStatus!.textContent =
-                            t('imageedit.t227') + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
+                            t('imageedit.t227') + (idx + 1) + ' / ' + total + ', ' + (file.name || '');
                     }
                 })
                     .then(out => {
@@ -4194,7 +4194,7 @@ const esc = (v: unknown): string =>
                     const p = item.prompt != null ? String(item.prompt) : '';
                     const g = ++ieImageLoadGen;
                     ieImageSourceMeta = {
-                        displayName: p ? (p.length > 48 ? p.slice(0, 47) + '…' : p) : t('imageedit.t242'),
+                        displayName: p ? (p.length > 48 ? p.slice(0, 47) + '...' : p) : t('imageedit.t242'),
                         sourceBytes: null,
                         bytesKind: null,
                         sourceNaturalW: null,
@@ -4425,7 +4425,7 @@ const esc = (v: unknown): string =>
                 selectTool(activeTool);
             };
 
-            /* Dropdown toggles — fix: close other menus first */
+            /* Dropdown toggles. fix: close other menus first */
             const setupDropdown = (btnId: any, menuId: any) => {
                 const btn = document.getElementById(btnId);
                 const menu = document.getElementById(menuId);
@@ -4471,7 +4471,7 @@ const esc = (v: unknown): string =>
                 (btn as any).onclick = () => selectTool((btn as any).dataset.tool);
             });
 
-            /* Placeholder → 단일 파일(캔버스). 일괄은 오른쪽 「여러 파일」또는 2장 이상 드롭만. */
+            /* Placeholder → 단일 파일(캔버스). 일괄은 오른쪽 여러 파일또는 2장 이상 드롭만. */
             document!.getElementById('iePlaceholder')!.onclick = e => {
                 e.stopPropagation();
                 fileInput!.click();
@@ -4488,7 +4488,7 @@ const esc = (v: unknown): string =>
                     const seg = u.pathname.split('/').filter(Boolean).pop();
                     if (seg) disp = decodeURIComponent(seg);
                 } catch (_) {
-                    disp = url.length > 48 ? url.slice(0, 47) + '…' : url;
+                    disp = url.length > 48 ? url.slice(0, 47) + '...' : url;
                 }
                 const g = ++ieImageLoadGen;
                 ieImageSourceMeta = {
@@ -4678,7 +4678,7 @@ const esc = (v: unknown): string =>
             overlay!.onpointermove = onCropPointerMove;
             overlay!.onpointerup = onCropPointerUp;
 
-            /* Chromakey color picker — canvas click */
+            /* Chromakey color picker. canvas click */
             wrap!.addEventListener('click', onCanvasClickForChroma);
 
             /* Window resize => re-init crop/brush/caption if active */
@@ -4713,7 +4713,7 @@ const esc = (v: unknown): string =>
             {
                 id: 'imageedit-main',
                 label: t('imageedit.tab.editor', undefined, '편집'),
-                /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+                /* 그리기 전에 말 묶음을 받는다. 화면 글자가 전부 이 안에서 만들어진다. */
                 build: function (container: HTMLElement): void {
                     void loadNamespace('imageedit').then(function () {
                         buildEditor(container);

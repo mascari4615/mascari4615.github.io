@@ -1,11 +1,11 @@
 /**
- * 소리 페이드가 「툭」 소리를 실제로 없애는지 확인한다 (TASK-KL-088)
+ * 소리 페이드가 툭 소리를 실제로 없애는지 확인한다 (TASK-KL-088)
  *
- * 끊김은 시작·끝의 파형이 0 이 아니라서 난다. 그러니 **가장자리 진폭**을 재면 된다.
+ * 끊김은 시작, 끝의 파형이 0 이 아니라서 난다. 그러니 **가장자리 진폭**을 재면 된다.
  *
- *  ① 시작·끝이 최대 진폭인 소리를 넣으면 「툭」 난다고 짚어 주는가
+ *  ① 시작, 끝이 최대 진폭인 소리를 넣으면 툭 난다고 짚어 주는가
  *  ② 페이드를 넣으면 가장자리 진폭이 실제로 0 에 가까워지는가
- *  ③ 대조: 가운데는 그대로인가 — 전체를 조용하게 만들어 놓고 성공이라 할 수는 없다
+ *  ③ 대조: 가운데는 그대로인가. 전체를 조용하게 만들어 놓고 성공이라 할 수는 없다
  *
  * 사용: node scripts/test-audiofade.mjs
  */
@@ -37,7 +37,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
   await window.__karmoWaitDrawn(host);
-  // 시작·끝이 최댓값인 사각파에 가까운 소리 — 「툭」이 확실히 나는 최악의 경우
+  // 시작, 끝이 최댓값인 사각파에 가까운 소리. 툭이 확실히 나는 최악의 경우
   const n = SR * SECONDS;
   const pcm = new Int16Array(n);
   for (let i = 0; i < n; i++) pcm[i] = Math.sin((2 * Math.PI * 200 * i) / SR) >= 0 ? 30000 : -30000;
@@ -57,7 +57,7 @@ const out = await page.evaluate(async () => {
   for (let i = 0; i < 100 && host.querySelector('#afRun').disabled; i++) {
     await new Promise((r) => setTimeout(r, 100));
   }
-  const warned = /「툭」/.test(host.querySelector('#afFound').textContent);
+  const warned = /툭/.test(host.querySelector('#afFound').textContent);
 
   host.querySelector('#afAuto').click();
   host.querySelector('#afRun').click();
@@ -84,8 +84,8 @@ const out = await page.evaluate(async () => {
   return {
     ok: warned && first < 0.1 && last < 0.1 && middle > 0.8,
     why:
-      `끊김 짚어 줌 ${warned ? '✓' : '✗'} · ` +
-      `시작 ${first.toFixed(3)} / 끝 ${last.toFixed(3)} (0.1 미만이어야) ${first < 0.1 && last < 0.1 ? '✓' : '✗'} · ` +
+      `끊김 짚어 줌 ${warned ? '✓' : '✗'}, ` +
+      `시작 ${first.toFixed(3)} / 끝 ${last.toFixed(3)} (0.1 미만이어야) ${first < 0.1 && last < 0.1 ? '✓' : '✗'}, ` +
       `가운데 ${middle.toFixed(2)} (0.8 넘어야) ${middle > 0.8 ? '✓' : '✗'}`
   };
 });

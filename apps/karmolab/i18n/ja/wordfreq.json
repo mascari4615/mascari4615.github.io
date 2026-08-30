@@ -5,7 +5,7 @@
   "wordfreq.opt.particle": "韓国語の助詞を外す",
   "wordfreq.opt.stop": "よくある語を除く",
   "wordfreq.opt.case": "大文字と小文字を区別",
-  "wordfreq.label.phrases": "繰り返した句 — 2回以上",
+  "wordfreq.label.phrases": "繰り返した句. 2回以上",
   "wordfreq.btn.copy": "表をコピー",
   "wordfreq.status.idle": "同じ言葉をどれだけ繰り返しているか見えると、文章は短くなります。",
   "wordfreq.status.done": "上位 {n} 件を表示しています。同じ言葉をどれだけ繰り返しているか見えると、文章は短くなります。",

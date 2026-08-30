@@ -1,30 +1,30 @@
 /**
- * 방을 든 채 게임을 갈아탄다 — 두 창으로 실측 (TASK-KL-264 D3)
+ * 방을 든 채 게임을 갈아탄다. 두 창으로 실측 (TASK-KL-264 D3)
  *
- * 이건 창 하나로는 못 잰다. 「방이 유지되나」는 **손님 쪽 창이 따라오는가**로만 확인되고,
+ * 이건 창 하나로는 못 잰다. 방이 유지되나는 **손님 쪽 창이 따라오는가**로만 확인되고,
  * 손님 창은 주인이 보낸 것만 본다. 그래서 창을 둘 연다.
  *
  * 보는 것:
  *   ① 주인이 방을 열고 손님이 링크로 들어오면 둘 다 같은 판을 본다
- *   ② 판이 끝나면 주인에게 「다른 게임」이 뜬다 (손님에게는 안 뜬다)
- *   ③ 주인이 그걸 누르면 **방은 그대로**고 손님 화면엔 「고르는 중」이 뜬다
- *   ④ 주인이 다른 게임을 고르면 손님이 **그 게임으로 따라온다** — 링크를 다시 안 보냈는데도
- *   ⑤ 자리가 둘뿐인 판에 셋째가 들어오면 **구경꾼**이 된다 (자리 -1 · 눌러도 판이 안 바뀐다)
+ *   ② 판이 끝나면 주인에게 다른 게임이 뜬다 (손님에게는 안 뜬다)
+ *   ③ 주인이 그걸 누르면 **방은 그대로**고 손님 화면엔 고르는 중이 뜬다
+ *   ④ 주인이 다른 게임을 고르면 손님이 **그 게임으로 따라온다**. 링크를 다시 안 보냈는데도
+ *   ⑤ 자리가 둘뿐인 판에 셋째가 들어오면 **구경꾼**이 된다 (자리 -1, 눌러도 판이 안 바뀐다)
  *
- * 그물망(trystero/nostr)을 실제로 탄다 — 붙는 데 몇 초 걸린다. 못 붙으면 「못 돌았다」(2)다.
+ * 그물망(trystero/nostr)을 실제로 탄다. 붙는 데 몇 초 걸린다. 못 붙으면 못 돌았다(2)다.
  */
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
-   CI 에서는 늘 「못 돌림」이었다 — 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
-/* 잴 자리는 한 곳에서 정한다 — `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
+   CI 에서는 늘 못 돌림이었다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
+/* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
 const server = await smokeBase();
 const BASE = server.base;
 const PAGE = `${BASE}/apps/karmolab/index.html`;
 const fails = [];
 const check = (name, cond, detail = '') => {
-  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : ' — ' + detail}`);
+  console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : '. ' + detail}`);
   if (!cond) fails.push(name);
 };
 
@@ -52,7 +52,7 @@ await guest.route('**/__dev', (r) => r.abort());
 await guest.goto(link, { waitUntil: 'domcontentloaded', timeout: 20000 });
 await guest.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
 
-/* 둘이 붙을 때까지 — 그물망은 즉시가 아니다. */
+/* 둘이 붙을 때까지. 그물망은 즉시가 아니다. */
 const paired = await host
   .waitForFunction(() => document.querySelectorAll('#acWaitSeats .ac-seat').length >= 2, null, { timeout: 60000 })
   .then(() => true)
@@ -68,23 +68,23 @@ if (!cantRun) {
     .catch(() => false);
   check('손님이 같은 판을 본다', followed, String(await guest.evaluate(() => window.__arcade?.game)));
 
-  /* 판이 끝날 때까지 아무도 안 눌러도 된다 — 반응 측정은 제한시간으로 넘어간다. */
+  /* 판이 끝날 때까지 아무도 안 눌러도 된다. 반응 측정은 제한시간으로 넘어간다. */
   await host.waitForFunction(() => window.__arcade?.finished, null, { timeout: 120000 });
   await host.waitForTimeout(500);
-  check('주인에게 「다른 게임」이 뜬다', (await host.locator('#acSwap').isVisible()), '');
+  check('주인에게 다른 게임이 뜬다', (await host.locator('#acSwap').isVisible()), '');
   check('손님에게는 안 뜬다', !(await guest.locator('#acSwap').isVisible()), '');
 
   await host.click('#acSwap');
   await host.waitForTimeout(800);
   check('방 유지 띠가 로비에 선다', (await host.locator('#acRoom').isVisible()));
-  /* 소식은 그물망을 타고 온다 — 한 번 읽고 판단하면 「아직 안 왔다」를 「안 온다」로 적는다. */
+  /* 소식은 그물망을 타고 온다. 한 번 읽고 판단하면 아직 안 왔다를 안 온다로 적는다. */
   const told = await guest
     .waitForFunction(() => (document.querySelector('#acOverHead')?.textContent || '').includes('⏳'), null, { timeout: 20000 })
     .then(() => true)
     .catch(() => false);
-  check('손님에게 「고르는 중」이 뜬다', told, await guest.locator('#acOverHead').textContent());
+  check('손님에게 고르는 중이 뜬다', told, await guest.locator('#acOverHead').textContent());
 
-  /* 다른 게임을 고른다 — 링크를 다시 안 보냈는데 손님이 따라와야 한다. */
+  /* 다른 게임을 고른다. 링크를 다시 안 보냈는데 손님이 따라와야 한다. */
   await host.click('[data-obj="nunchi"]');
   await host.click('[data-host="nunchi"]');
   const swapped = await guest
@@ -114,15 +114,15 @@ if (!cantRun) {
     .catch(() => false);
   check('셋째 창도 판을 본다', saw, String(await watcher.evaluate(() => window.__arcade?.game)));
   if (saw) {
-    /* **누가 구경꾼인지는 미리 못 정한다** — 자리를 나눠 주는 것은 주인이고, 들어온 차례가
-       그물망에서 늘 같지는 않다. 그래서 「셋째 창」이 아니라 「둘 중 하나」로 본다. */
+    /* **누가 구경꾼인지는 미리 못 정한다**. 자리를 나눠 주는 것은 주인이고, 들어온 차례가
+       그물망에서 늘 같지는 않다. 그래서 셋째 창이 아니라 둘 중 하나로 본다. */
     const seats = await Promise.all([guest, watcher].map((p) => p.evaluate(() => window.__arcade?.mySeat)));
     const outs = [guest, watcher].filter((_, i) => seats[i] === -1);
     check('둘 중 하나만 자리가 없다 (-1)', outs.length === 1, JSON.stringify(seats));
     if (outs.length === 1) {
       const w = outs[0];
       check('구경 중이라고 적힌다', (await w.locator('.ac-seat.ac-watch').count()) === 1);
-      /* 눌러도 판이 안 바뀌어야 한다 — 구경꾼의 손은 나가기 전에 멈춘다. */
+      /* 눌러도 판이 안 바뀌어야 한다. 구경꾼의 손은 나가기 전에 멈춘다. */
       const before = JSON.stringify(await w.evaluate(() => window.__arcade?.state));
       await w.locator('.ac-cell').nth(40).click().catch(() => {});
       await w.waitForTimeout(1500);
@@ -134,6 +134,6 @@ if (!cantRun) {
 
 await br.close();
 if (server) await server.close();
-if (cantRun) { console.log(`[arcade-room] 못 돌았다 — ${cantRun} (통과 아님)`); process.exit(2); }
+if (cantRun) { console.log(`[arcade-room] 못 돌았다. ${cantRun} (통과 아님)`); process.exit(2); }
 if (fails.length) { console.log(`[arcade-room] 실패 ${fails.length}건`); process.exit(1); }
-console.log('[arcade-room] 통과 — 방을 든 채 게임을 갈아탔고 손님이 따라왔다');
+console.log('[arcade-room] 통과. 방을 든 채 게임을 갈아탔고 손님이 따라왔다');

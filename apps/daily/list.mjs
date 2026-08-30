@@ -1,7 +1,7 @@
 /**
- * 전부대기 — 브라우저 껍데기 (TASK-KL-197).
+ * 전부대기. 브라우저 껍데기 (TASK-KL-197).
  *
- * 「하나를 맞힌다」(app.mjs) 옆에 「조건에 드는 것을 전부 대본다」를 둔다.
+ * 하나를 맞힌다(app.mjs) 옆에 조건에 드는 것을 전부 대본다를 둔다.
  * 규칙은 전부 engine.mjs 에 있다. 여기는 화면과 저장만 한다.
  *
  * 왜 파일이 따로인가: 판이 다르면 화면이 다르다. app.mjs 는 추측 한 줄씩 표를 쌓는 물건이고
@@ -83,7 +83,7 @@ const read = (key, fallback) => {
 const write = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch { /* 사생활 모드 — 놀이는 그대로 돈다 */ }
+  } catch { /* 사생활 모드. 놀이는 그대로 돈다 */ }
 };
 
 const saved = read(storeKey, null);
@@ -108,27 +108,27 @@ if ($streak) $streak.innerHTML = liveStreak(streak ?? {}, dayNumber) > 0 ? `🔥
 
 root.querySelector('.no').textContent = `#${puzzleNo}`;
 if (practice) {
-  // 판을 바꿔도 날이 안 바뀌어야 한다 — 지난 날을 풀다 「속성」을 누른 순간 오늘 판으로 튕기면
+  // 판을 바꿔도 날이 안 바뀌어야 한다. 지난 날을 풀다 속성을 누른 순간 오늘 판으로 튕기면
   // 본인은 왜 문제가 달라졌는지 모른다 (app.mjs 와 같은 규칙).
-  root.querySelector('.tabs')?.insertAdjacentHTML('afterbegin', `<span class="tab practice">연습 · ${dayKey}</span>`);
+  root.querySelector('.tabs')?.insertAdjacentHTML('afterbegin', `<span class="tab practice">연습, ${dayKey}</span>`);
   root.querySelector('.lede').textContent = `${dayKey} 의 문제입니다. 연습이라 기록에는 안 들어갑니다.`;
   for (const a of root.querySelectorAll('.tabs a.tab')) a.href = `${a.getAttribute('href')}?d=${dayKey}`;
 }
 
-// 연습으로 못 여는 날이면 왜인지 말한다 — 조용히 오늘 판을 열면 본인은 끝까지 모른다.
+// 연습으로 못 여는 날이면 왜인지 말한다. 조용히 오늘 판을 열면 본인은 끝까지 모른다.
 const why = whyNoPractice(askedDay);
 if (why) {
   const said = { bad: '날짜를 못 읽었어요', today: '오늘 문제는 아래에서 바로 풀 수 있어요', future: '아직 안 나온 날이에요', before: '첫 문제 이전이에요' }[why];
-  root.querySelector('.lede')?.insertAdjacentElement('afterend', el(`<p class="warn">${esc(said)} — 오늘 판을 엽니다.</p>`));
+  root.querySelector('.lede')?.insertAdjacentElement('afterend', el(`<p class="warn">${esc(said)}. 오늘 판을 엽니다.</p>`));
 }
 
 /**
- * 군중의 답 — 어제까지 이 문제에 사람들이 무엇을 냈는가.
+ * 군중의 답. 어제까지 이 문제에 사람들이 무엇을 냈는가.
  *
  * **없으면 없는 대로 논다.** 서버가 죽었든 아직 아무도 안 풀었든, 점수는 개수로 매겨지고
  * 집계가 붙는 순간 희귀도가 살아난다. 놀이의 생사를 노트북 한 대에 걸지 않는다.
  */
-//  아래로 부른다 — 거기 이미 CORS 가 달려 있다. 새 경로를 파면 그 설정을 또 적게 된다.
+//  아래로 부른다. 거기 이미 CORS 가 달려 있다. 새 경로를 파면 그 설정을 또 적게 된다.
 const API = 'https://yawnbot.mascari4615.com';
 let shares = null;
 fetch(`${API}/kl/daily-list/shares?topic=${encodeURIComponent(topicId)}&q=${encodeURIComponent(question.id)}`, { signal: AbortSignal.timeout(4000) })
@@ -151,7 +151,7 @@ function report() {
 function paint() {
   const score = listScore(question, state.given, shares);
   $bar.style.width = `${Math.round((score.found / score.total) * 100)}%`;
-  $tally.textContent = `${score.found} / ${score.total}${score.rated ? ` · ${score.points}점` : ''}`;
+  $tally.textContent = `${score.found} / ${score.total}${score.rated ? `, ${score.points}점` : ''}`;
   $found.replaceChildren(
     ...state.given.map((name) => {
       const hit = question.answers.some((a) => a === name);
@@ -173,7 +173,7 @@ function tick() {
 }
 
 function start() {
-  // 새로고침으로 돌아온 사람도 여기로 들어온다 — 시계가 이미 돌고 있으면 두 번 걸지 않는다.
+  // 새로고침으로 돌아온 사람도 여기로 들어온다. 시계가 이미 돌고 있으면 두 번 걸지 않는다.
   if (ended || timer) return;
   state.status = 'playing';
   $clock.hidden = false;
@@ -190,10 +190,10 @@ function submit(raw) {
   if (ended) return;
   start();
   const v = listJudge(topic, question, raw, state.given);
-  if (v.status === 'unknown') return say(`「${v.name}」 는 표에 없어요 — 이름을 확인해 주세요`, 'off');
-  if (v.status === 'dup') return say(`「${v.name}」 는 이미 냈어요`, 'off');
+  if (v.status === 'unknown') return say(`${v.name} 는 표에 없어요. 이름을 확인해 주세요`, 'off');
+  if (v.status === 'dup') return say(`${v.name} 는 이미 냈어요`, 'off');
   state.given.push(v.name);
-  say(v.status === 'hit' ? `⭕ ${v.name}` : `❌ ${v.name} — 조건 밖`, v.status === 'hit' ? 'hit' : 'off');
+  say(v.status === 'hit' ? `⭕ ${v.name}` : `❌ ${v.name}. 조건 밖`, v.status === 'hit' ? 'hit' : 'off');
   $input.value = '';
   $sug.replaceChildren();
   paint();
@@ -201,7 +201,7 @@ function submit(raw) {
 }
 
 /**
- * 끝을 두 번 그리지 않게 막는 표식. **저장된 상태(`status`)로 막으면 안 된다** —
+ * 끝을 두 번 그리지 않게 막는 표식. **저장된 상태(`status`)로 막으면 안 된다** . 
  * 새로고침해서 돌아온 사람은 이미 `done` 인 채로 들어오므로, 그걸로 막으면 결과 화면이
  * 아예 안 그려진다 (90초짜리 판에서 진행이 증발한 것처럼 보인다).
  */
@@ -235,8 +235,8 @@ function finish() {
   $done.hidden = false;
   $done.replaceChildren(
     el(`<h2>${score.found} / ${score.total} 찾았다</h2>`),
-    // 연속 표기는 다른 판과 **같은 말**로 적는다 — 여기만 다르게 적으면 같은 사이트로 안 읽힌다.
-    el(`<div class="tally">${esc(question.text)} · ${seconds}초${score.rated ? ` · ${score.points}점` : ''} · 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
+    // 연속 표기는 다른 판과 **같은 말**로 적는다. 여기만 다르게 적으면 같은 사이트로 안 읽힌다.
+    el(`<div class="tally">${esc(question.text)}, ${seconds}초${score.rated ? `, ${score.points}점` : ''}, 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
     el(`<div class="missed"><b>놓친 것 ${missed.length}개</b><div>${missed.map((n) => `<span class="chip">${esc(n)}</span>`).join('')}</div></div>`),
   );
 
@@ -263,9 +263,9 @@ function finish() {
   $done.append(btn);
 
   /**
-   * 끝낸 사람을 그냥 보내지 않는다 — 오늘 아직 안 푼 판을 건넨다.
+   * 끝낸 사람을 그냥 보내지 않는다. 오늘 아직 안 푼 판을 건넨다.
    * 이미 끝낸 판은 안 건넨다(다 푼 것을 또 누르게 하는 게 이 자리의 가장 흔한 낭비다).
-   * 가까운 것부터: 같은 주제의 다른 판 → 나머지. 셋만 — 여섯을 쏟으면 아무것도 안 고른다.
+   * 가까운 것부터: 같은 주제의 다른 판 → 나머지. 셋만. 여섯을 쏟으면 아무것도 안 고른다.
    */
   const open = others.filter((o) => {
     const s = read(`daily:${o.topic}:${o.mode}`, null);
@@ -312,7 +312,7 @@ $input.addEventListener('keydown', (e) => {
   }
   if (e.key !== 'Enter') return;
   e.preventDefault();
-  // 고른 것이 있으면 그것, 없으면 친 그대로 — 이름을 다 아는 사람이 목록을 거치게 하면 느리다.
+  // 고른 것이 있으면 그것, 없으면 친 그대로. 이름을 다 아는 사람이 목록을 거치게 하면 느리다.
   submit(picked >= 0 && list[picked] ? list[picked].dataset.name : $input.value);
 });
 $sug.addEventListener('click', (e) => {

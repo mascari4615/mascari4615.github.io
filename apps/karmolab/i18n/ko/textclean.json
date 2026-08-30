@@ -3,7 +3,7 @@
   "textclean.label.in": "원본",
   "textclean.label.out": "결과",
   "textclean.ph.in": "한 줄에 하나씩 붙여 넣으세요",
-  "textclean.label.ops": "처리 — 위에서부터 순서대로 적용됩니다",
+  "textclean.label.ops": "처리. 위에서부터 순서대로 적용됩니다",
   "textclean.op.trim": "양끝 공백 제거",
   "textclean.op.squeeze": "중간 공백 하나로",
   "textclean.op.dropEmpty": "빈 줄 제거",
@@ -15,7 +15,7 @@
   "textclean.op.join": "문단 잇기 (PDF 복사)",
   "textclean.label.sort": "정렬",
   "textclean.sort.none": "그대로",
-  "textclean.sort.asc": "가나다·ABC 순",
+  "textclean.sort.asc": "가나다, ABC 순",
   "textclean.sort.desc": "역순",
   "textclean.sort.len": "짧은 줄부터",
   "textclean.sort.shuffle": "무작위 섞기",
@@ -32,6 +32,6 @@
   "textclean.btn.swap": "결과를 원본으로",
   "textclean.btn.clear": "지우기",
   "textclean.status.idle": "붙여 넣으면 바로 정리됩니다.",
-  "textclean.status.done": "{before}줄 → {after}줄 · {chars}자",
+  "textclean.status.done": "{before}줄 → {after}줄, {chars}자",
   "textclean.copy.done": "정리한 텍스트를 복사했어요"
 }

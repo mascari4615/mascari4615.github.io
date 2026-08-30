@@ -1,8 +1,8 @@
 /**
- * 이미지 스튜디오 — 진짜 브라우저에서 그려 본다 (TASK-KL-240)
+ * 이미지 스튜디오. 진짜 브라우저에서 그려 본다 (TASK-KL-240)
  *
- * 단위 검사는 붓·합성이 **맞는 답**을 낸다는 것까지만 말해 준다. 화면에 붙은 뒤로는
- * 「눌러서 그어도 아무 일도 안 일어난다」가 얼마든지 가능하다(좌표 변환·포인터 이벤트·
+ * 단위 검사는 붓, 합성이 **맞는 답**을 낸다는 것까지만 말해 준다. 화면에 붙은 뒤로는
+ * 눌러서 그어도 아무 일도 안 일어난다가 얼마든지 가능하다(좌표 변환, 포인터 이벤트, 
  * 캔버스 크기). 그래서 여기서는 마우스로 실제로 긋고, 캔버스 픽셀이 달라졌는지 본다.
  *
  * 사용: node scripts/smoke-meok.mjs [--shot]
@@ -18,7 +18,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
 const bundle = path.join(root, 'js/widgets/meok/meok.js');
 if (!fs.existsSync(bundle)) {
-  console.error('[smoke-meok] 묶음이 없다 — 먼저 node build.mjs');
+  console.error('[smoke-meok] 묶음이 없다. 먼저 node build.mjs');
   process.exit(1);
 }
 
@@ -56,7 +56,7 @@ const problems = [];
 /**
  * ★ 화면에 `.meok` 이 **여럿** 있을 수 있다(묶음이 판을 미리 만들어 두고 숨긴다).
  *   그냥 `querySelector` 로 집으면 **숨은 첫 판**을 보게 되고, 무엇을 재든 0 이 나온다
- *   — 「가림막을 걸었는데 화면이 그대로다 (0 → 0)」가 바로 그 증상이었다(2026-08-13).
+ *  . 가림막을 걸었는데 화면이 그대로다 (0 → 0)가 바로 그 증상이었다(2026-08-13).
  *   그래서 브라우저 안에서 쓰는 헬퍼를 심어 두고, 모든 조회가 이걸 지나게 한다.
  */
 await page.addInitScript(() => {
@@ -71,10 +71,10 @@ await page.addInitScript(() => {
 });
 
 await page.goto(base + '/apps/karmolab/index.html#meok', { waitUntil: 'load', timeout: 30000 });
-// ★ 먹은 「이미지」 묶음의 한 탭이다(lazy-meta 의 bundle:'image'). 주소로 들어가면 묶음이
-//   열릴 뿐이고, 「먹」 단추를 한 번 눌러야 그림판이 뜬다. 예전엔 주소만으로 떴는데 묶음
+// ★ 먹은 이미지 묶음의 한 탭이다(lazy-meta 의 bundle:'image'). 주소로 들어가면 묶음이
+//   열릴 뿐이고, 먹 단추를 한 번 눌러야 그림판이 뜬다. 예전엔 주소만으로 떴는데 묶음
 //   구조가 바뀌면서 조용히 안 뜨게 됐고, 이 검사가 그때부터 빨갰다(2026-08-13 에 고침).
-//   ★ `.meok` 은 **처음부터 DOM 에 있지만 숨겨져** 있다 — 개수로 판단하면 「이미 있다」고 읽고
+//   ★ `.meok` 은 **처음부터 DOM 에 있지만 숨겨져** 있다. 개수로 판단하면 이미 있다고 읽고
 //   단추를 안 누른다. **보이는지**로 봐야 한다. 그리고 단추는 한 번만 누른다(다시 누르면 닫힌다).
 await page.waitForTimeout(3000);
 if (!(await page.locator('.meok:visible').isVisible().catch(() => false))) {
@@ -86,20 +86,24 @@ if (!(await page.locator('.meok:visible').isVisible().catch(() => false))) {
 }
 try {
   // ★ **첫 진입에도 탭을 눌러야 한다** (2026-08-12). 아래 새로고침 자리에는 이미 그렇게 돼
-  //   있는데 여기만 빠져 있었다 — 먹은 「이미지」 묶음의 탭이라 주소만으로는 안 만들어진다.
-  //   그래서 이 검사는 매 판 첫 20초를 헛되이 기다리다 「화면이 안 떴다」로 죽었다(master 실측).
+  //   있는데 여기만 빠져 있었다. 먹은 이미지 묶음의 탭이라 주소만으로는 안 만들어진다.
+  //   그래서 이 검사는 매 판 첫 20초를 헛되이 기다리다 화면이 안 떴다로 죽었다(master 실측).
   await page.waitForTimeout(2000);
   await page.evaluate(() => {
     const button = [...document.querySelectorAll('button')].find((b) => (b.textContent || '').trim() === '먹');
     if (button) button.click();
   });
-  // ★ 붙어 있기(attached)만 기다린다 — 「보이기」로 기다리면 **숨은 첫 판**을 붙들고 시간이 다 간다.
+  // ★ 붙어 있기(attached)만 기다린다. 보이기로 기다리면 **숨은 첫 판**을 붙들고 시간이 다 간다.
   //   실제로 보이는지는 바로 아래에서 크기로 판정한다(그게 사람이 보는 것과 같은 뜻이다).
   await page.waitForSelector('.meok', { state: 'attached', timeout: 20000 });
 } catch (error) {
   console.error('[smoke-meok] 화면이 안 떴다', errors);
   throw error;
 }
+/* 오프라인 쪽지를 치운다. 검사판은 서버가 없어 이 쪽지가 늘 뜨고, `position:fixed; bottom:64px`
+   라 그림판이 화면을 다 쓰면 타임라인 위에 앉아 클릭을 가로챈다(2026-08-29 실측: 프레임 버튼
+   클릭이 30초 시간초과). 재는 것은 그리기지 쪽지가 아니다. 겹침 자체는 정본의 공백으로 남겼다. */
+await page.addStyleTag({ content: '#kl-offline-note{display:none!important}' }).catch(() => {});
 const shown = await page.evaluate(() => {
   const boxes = [...document.querySelectorAll('.meok')].map((el) => el.getBoundingClientRect());
   return boxes.some((r) => r.width > 200 && r.height > 200);
@@ -107,7 +111,7 @@ const shown = await page.evaluate(() => {
 if (!shown) problems.push('먹 화면이 붙어는 있는데 안 보인다 (탭이 안 열렸다)');
 await page.waitForTimeout(600);
 
-/** 캔버스 한가운데 언저리 픽셀 — 그림이 실제로 들어갔는지 본다. */
+/** 캔버스 한가운데 언저리 픽셀. 그림이 실제로 들어갔는지 본다. */
 const canvasInk = () => page.evaluate(() => {
   const canvas = window.__meokQ('[data-canvas]');
   const ctx = canvas.getContext('2d');
@@ -119,8 +123,8 @@ const canvasInk = () => page.evaluate(() => {
 
 
 /**
- * 그림이 화면 어느 사각형에 놓였나 — 캔버스 밖은 아예 비어 있으므로(투명) 그걸로 잰다.
- * 이걸 안 쓰고 캔버스 비율로 찍으면 창 모양에 따라 **그림 밖**을 눌러 「아무 일도 안 일어남」이
+ * 그림이 화면 어느 사각형에 놓였나. 캔버스 밖은 아예 비어 있으므로(투명) 그걸로 잰다.
+ * 이걸 안 쓰고 캔버스 비율로 찍으면 창 모양에 따라 **그림 밖**을 눌러 아무 일도 안 일어남이
  * 되고, 검사는 그걸 기능 고장으로 잘못 읽는다(실제로 한 번 그랬다).
  */
 const artRect = async () => {
@@ -141,14 +145,14 @@ const artRect = async () => {
     return maxX < 0 ? null : { x: minX / dpr, y: minY / dpr, w: (maxX - minX) / dpr, h: (maxY - minY) / dpr };
   });
   if (!inner) throw new Error('그림이 화면에 없다');
-  /* width/height 로도 읽히게 둔다 — boundingBox() 를 받던 자리들이 그대로 쓴다. */
+  /* width/height 로도 읽히게 둔다. boundingBox() 를 받던 자리들이 그대로 쓴다. */
   return { x: box.x + inner.x, y: box.y + inner.y, w: inner.w, h: inner.h, width: inner.w, height: inner.h };
 };
 
 const box = await artRect();
 const before = await canvasInk();
 
-/* ① 붓 — 눌러서 긋는다. */
+/* ① 붓. 눌러서 긋는다. */
 await page.mouse.move(box.x + box.width * 0.35, box.y + box.height * 0.4);
 await page.mouse.down();
 for (let i = 1; i <= 12; i += 1) {
@@ -159,7 +163,7 @@ await page.waitForTimeout(250);
 const painted = await canvasInk();
 if (painted <= before + 200) problems.push('붓으로 그었는데 화면이 안 바뀐다 (' + before + ' → ' + painted + ')');
 
-/* ② 되돌리기 — 획 하나가 한 단계로 사라진다. */
+/* ② 되돌리기. 획 하나가 한 단계로 사라진다. */
 await page.click('.meok:visible [data-act="undo"]');
 await page.waitForTimeout(250);
 const undone = await canvasInk();
@@ -169,7 +173,7 @@ await page.waitForTimeout(250);
 const redone = await canvasInk();
 if (redone <= before + 200) problems.push('다시 하기가 획을 되살리지 못했다');
 
-/* ③ 레이어 — 늘고, 고른 것이 바뀐다. */
+/* ③ 레이어. 늘고, 고른 것이 바뀐다. */
 const layersBefore = await page.locator('.meok:visible .meok-layer').count();
 await page.click('.meok:visible [data-act="add-layer"]');
 await page.waitForTimeout(120);
@@ -178,7 +182,7 @@ if (layersAfter !== layersBefore + 1) problems.push('레이어가 안 늘었다 
 if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.push('고른 레이어 표시가 없다');
 
 /* ★ **끌지 않고도 순서를 바꿀 수 있나** (2026-08-17). 순서 바꾸기가 끌기 하나뿐이라
-   키보드만 쓰는 사람은 아예 못 바꿨다(WCAG 2.2 「끌기 동작」). 화살표 길을 냈으니 여기서 지킨다 —
+   키보드만 쓰는 사람은 아예 못 바꿨다(WCAG 2.2 끌기 동작). 화살표 길을 냈으니 여기서 지킨다 . 
    끌기는 playwright 로도 잘 안 재지지만 키는 사람이 하는 그대로 잴 수 있다. */
 {
   const names = () => page.locator('.meok:visible .meok-layer').evaluateAll(
@@ -187,15 +191,15 @@ if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.
   const before2 = await names();
   if (before2.length >= 2 && before2.every(Boolean)) {
     await page.locator('.meok:visible .meok-layer').nth(1).focus();
-    /* ★ **시간을 박지 말고 「일어났나」를 봐라** (2026-08-17). 눌러 놓고 150ms 재우고 읽으면
-       느린 판에서 0 을 읽는다 — 같은 꼴로 오락실 자판 검사가 라이브에서 빨갰다.
+    /* ★ **시간을 박지 말고 일어났나를 봐라** (2026-08-17). 눌러 놓고 150ms 재우고 읽으면
+       느린 판에서 0 을 읽는다. 같은 꼴로 오락실 자판 검사가 라이브에서 빨갰다.
        바뀔 때까지 기다리고, 안 바뀌면 그때가 진짜 빨강이다(아래 판정이 그대로 말한다). */
     await page.keyboard.press('ArrowUp');
     const previousLine = before2.join('|');
     await page
       .waitForFunction(
-        /* 창 안에서 도는 코드다 — `:visible` 은 playwright 만 아는 말이라 여기서 쓰면 통째로 깨진다
-           (2026-08-17 실측: 「올바른 선택자가 아니다」로 검사가 죽었다). 보이는 것만 손으로 가른다. */
+        /* 창 안에서 도는 코드다. `:visible` 은 playwright 만 아는 말이라 여기서 쓰면 통째로 깨진다
+           (2026-08-17 실측: 올바른 선택자가 아니다로 검사가 죽었다). 보이는 것만 손으로 가른다. */
         (before) => [...document.querySelectorAll('.meok .meok-layer')]
           .filter((r) => r.offsetParent !== null)
           .map((r) => r.getAttribute('data-layer') || '').join('|') !== before,
@@ -205,8 +209,8 @@ if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.
       .catch(() => {});
     const after = await names();
     if (after.join('|') === before2.join('|')) problems.push('화살표로 레이어 순서가 안 바뀐다 (끌기 말고는 길이 없다)');
-    /* 뒤 검사들이 「몇 번째 줄」로 레이어를 집으므로 **순서를 되돌려 놓는다** —
-       안 그러면 다음 검사가 엉뚱한 레이어를 숨기고 「그림이 그대로다」로 죽는다(방금 겪었다). */
+    /* 뒤 검사들이 몇 번째 줄로 레이어를 집으므로 **순서를 되돌려 놓는다** . 
+       안 그러면 다음 검사가 엉뚱한 레이어를 숨기고 그림이 그대로다로 죽는다(방금 겪었다). */
     await page.keyboard.press('ArrowDown');
     await page
       .waitForFunction(
@@ -220,11 +224,11 @@ if (!(await page.locator('.meok:visible .meok-layer.active').count())) problems.
     const reverted = await names();
     if (reverted.join('|') !== before2.join('|')) problems.push('화살표로 되돌리기가 안 된다 (한 방향만 먹는다)');
   } else {
-    problems.push('레이어 줄에 data-layer 표가 없다 — 키로 옮긴 뒤 초점을 되돌릴 수 없다');
+    problems.push('레이어 줄에 data-layer 표가 없다. 키로 옮긴 뒤 초점을 되돌릴 수 없다');
   }
 }
 
-/* ④ 숨기면 화면에서 사라진다 — 합성이 화면까지 이어져 있는가. */
+/* ④ 숨기면 화면에서 사라진다. 합성이 화면까지 이어져 있는가. */
 await page.locator('.meok:visible .meok-layer').nth(1).locator('.meok-eye').click();
 await page.waitForTimeout(250);
 const hidden = await canvasInk();
@@ -232,7 +236,7 @@ if (hidden > before + 200) problems.push('레이어를 숨겼는데 그림이 �
 await page.locator('.meok:visible .meok-layer').nth(1).locator('.meok-eye').click();
 await page.waitForTimeout(200);
 
-/* ⑤ 프레임 — 늘고, 눌러서 옮겨 간다. */
+/* ⑤ 프레임. 늘고, 눌러서 옮겨 간다. */
 const framesBefore = await page.locator('.meok:visible .meok-frame').count();
 await page.click('.meok:visible [data-act="add-frame"]');
 await page.waitForTimeout(200);
@@ -242,7 +246,7 @@ await page.locator('.meok:visible .meok-frame').first().click();
 await page.waitForTimeout(150);
 if (!(await page.locator('.meok:visible .meok-frame.active').first().isVisible())) problems.push('고른 프레임 표시가 없다');
 
-/* ⑥ 픽셀 모드 — 격자에 붙는 도트 그림으로 갈아탄다. */
+/* ⑥ 픽셀 모드. 격자에 붙는 도트 그림으로 갈아탄다. */
 page.once('dialog', dialog => dialog.accept());
 await page.click('.meok:visible [data-act="new-pixel"]');
 await page.waitForTimeout(400);
@@ -254,7 +258,7 @@ await page.waitForTimeout(250);
 const dotted = await canvasInk();
 if (dotted < 20) problems.push('픽셀 모드에서 한 칸도 안 찍힌다 (' + dotted + ')');
 
-/* ⑦ 선택영역 — 골라 놓으면 붓이 그 밖으로 안 샌다. */
+/* ⑦ 선택영역. 골라 놓으면 붓이 그 밖으로 안 샌다. */
 page.once('dialog', dialog => dialog.accept());
 await page.click('.meok:visible [data-act="new"]');
 await page.waitForTimeout(400);
@@ -269,11 +273,11 @@ await page.mouse.move(ax(0.45), ay(0.80), { steps: 6 });
 await page.mouse.up();
 await page.waitForTimeout(250);
 if (!(await page.locator('.meok:visible [data-act="deselect"]').isEnabled())) {
-  problems.push('사각형을 골랐는데 「선택 풀기」가 안 켜진다 (= 선택이 안 잡혔다)');
+  problems.push('사각형을 골랐는데 선택 풀기가 안 켜진다 (= 선택이 안 잡혔다)');
 }
 
 const canvasBox = await page.locator('.meok:visible [data-canvas]').boundingBox();
-/** 그림의 오른쪽 절반에 묻은 잉크 — 고른 자리(왼쪽) 밖이다. */
+/** 그림의 오른쪽 절반에 묻은 잉크. 고른 자리(왼쪽) 밖이다. */
 const rightHalf = { x: art.x - canvasBox.x + art.w * 0.55, w: art.w * 0.42 };
 const inkRightHalf = () => page.evaluate((rect) => {
   const canvas = window.__meokQ('[data-canvas]');
@@ -307,11 +311,11 @@ await page.mouse.up();
 await page.waitForTimeout(300);
 if ((await inkRightHalf()) <= outsideAfter + 20) problems.push('선택을 풀었는데도 밖에 안 그려진다');
 
-/* ⑧ 고치기 — 색 보정·필터가 화면에 닿고, 회전이 판 모양을 바꾼다. */
+/* ⑧ 고치기. 색 보정, 필터가 화면에 닿고, 회전이 판 모양을 바꾼다. */
 await page.locator('.meok-fix summary').click();
 await page.waitForTimeout(150);
 
-/* 필터: 반전 — 어두운 획이 밝아지므로 「어두운 픽셀 수」가 확 준다. */
+/* 필터: 반전. 어두운 획이 밝아지므로 어두운 픽셀 수가 확 준다. */
 const darkAll = () => page.evaluate(() => {
   const canvas = window.__meokQ('[data-canvas]');
   const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
@@ -351,7 +355,7 @@ if (Math.abs(ratioBefore - 1) > 0.05 && Math.abs(ratioAfter - 1 / ratioBefore) >
 await page.click('.meok:visible [data-act="undo"]');
 await page.waitForTimeout(400);
 
-/* ⑨ 자동 저장 — 새로고침해도 그리던 게 남아 있다(이 도구의 제일 아픈 구멍이었다). */
+/* ⑨ 자동 저장. 새로고침해도 그리던 게 남아 있다(이 도구의 제일 아픈 구멍이었다). */
 page.once('dialog', dialog => dialog.accept());
 await page.click('.meok:visible [data-act="new"]');
 await page.waitForTimeout(400);
@@ -362,10 +366,10 @@ await page.mouse.down();
 await page.mouse.move(saveArt.x + saveArt.w * 0.7, saveArt.y + saveArt.h * 0.7, { steps: 10 });
 await page.mouse.up();
 /* 표시를 **획이 끝난 뒤에** 지우고 기다린다. 그리기 전에 지우면, 그리는 도중에 밀려 있던
-   저장이 끝나며 뜬 표시를 보고 곧장 새로고침해 「획이 반만 남았다」는 거짓 빨강이 난다
-   (실제로 그랬다 — 화면을 보고서야 알았다). */
+   저장이 끝나며 뜬 표시를 보고 곧장 새로고침해 획이 반만 남았다는 거짓 빨강이 난다
+   (실제로 그랬다. 화면을 보고서야 알았다). */
 await page.evaluate(() => { const el = window.__meokQ('[data-status]'); if (el) el.textContent = ''; });
-/* 쉬는 순간에 한 번만 쓴다 — 그 순간을 기다린다. */
+/* 쉬는 순간에 한 번만 쓴다. 그 순간을 기다린다. */
 await page.waitForFunction(() => /저장됨|Saved|保存/.test(window.__meokQ('[data-status]')?.textContent || ''), null, { timeout: 8000 })
   .catch(() => problems.push('자동 저장 표시가 안 뜬다'));
 /* 잉크를 **화면 픽셀 수**로 재면 확대율이 조금만 달라져도 몇 배씩 튄다(획 굵기가 확대율을
@@ -377,8 +381,8 @@ const inkDensity = async () => {
 const densityBefore = await inkDensity();
 
 await page.reload({ waitUntil: 'load' });
-// 새로고침하면 다시 묶음 첫 화면이고, 「먹」은 **아직 DOM 에 없다**(탭을 눌러야 만들어진다).
-// 그래서 기다리기 전에 먼저 연다 — 순서를 반대로 하면 20 초를 헛되이 기다린다.
+// 새로고침하면 다시 묶음 첫 화면이고, 먹은 **아직 DOM 에 없다**(탭을 눌러야 만들어진다).
+// 그래서 기다리기 전에 먼저 연다. 순서를 반대로 하면 20 초를 헛되이 기다린다.
 await page.waitForTimeout(3000);
 await page.evaluate(() => {
   const button = [...document.querySelectorAll('button')].find((b) => (b.textContent || '').trim() === '먹');
@@ -386,7 +390,7 @@ await page.evaluate(() => {
 });
 await page.waitForSelector('.meok', { state: 'attached', timeout: 20000 });
 await page.waitForTimeout(1200);
-/* 되살리기는 창고(IndexedDB)를 거치므로 화면이 뜬 뒤에 온다 — 말이 뜰 때까지 기다린다. */
+/* 되살리기는 창고(IndexedDB)를 거치므로 화면이 뜬 뒤에 온다. 말이 뜰 때까지 기다린다. */
 await page.waitForFunction(() => /되살렸|Restored|復元/.test(window.__meokQ('[data-status]')?.textContent || ''), null, { timeout: 10000 })
   .catch(() => problems.push('새로고침 뒤 되살렸다는 말이 안 뜬다'));
 await page.waitForTimeout(500);
@@ -396,15 +400,15 @@ if (densityAfter < densityBefore * 0.6 || densityAfter > densityBefore * 1.6) {
 }
 if (densityAfter < 0.0005) problems.push('새로고침 뒤 그림이 사라졌다');
 
-/* ⑩ 가림막 — 고른 자리만 보이고, 그림 자체는 안 지워진다(되돌리면 다 돌아온다). */
+/* ⑩ 가림막. 고른 자리만 보이고, 그림 자체는 안 지워진다(되돌리면 다 돌아온다). */
 page.once('dialog', dialog => dialog.accept());
 await page.click('.meok:visible [data-act="new"]');
 await page.waitForTimeout(400);
-// ★ 방금 「새로」를 눌러 판이 **비어 있다** — 그림 기준(`artRect`)으로 자리를 잡으면
+// ★ 방금 새로를 눌러 판이 **비어 있다**. 그림 기준(`artRect`)으로 자리를 잡으면
 //   잡을 그림이 없다. 빈 판에서는 캔버스 자체가 기준이고, 가운데 쪽 안전한 자리만 쓴다.
-//   (여기서 그림 기준을 쓰다가 붓질이 판 밖으로 나가 잉크가 0 → 0 이 됐다 — 2026-08-13.)
+//   (여기서 그림 기준을 쓰다가 붓질이 판 밖으로 나가 잉크가 0 → 0 이 됐다. 2026-08-13.)
 /* ★ **화면 밖에 있는 자리에는 붓이 안 닿는다** (2026-08-13, KL-254 가 남긴 그 줄).
-   먹이 묶음 탭 안으로 들어가면서 판이 아래로 내려갔다 — 잰 자리(y 638 + 높이 531)가
+   먹이 묶음 탭 안으로 들어가면서 판이 아래로 내려갔다. 잰 자리(y 638 + 높이 531)가
    창(1000px) 밖으로 나가, 붓질 좌표가 허공에 찍히고 잉크가 0 이었다. 그림 영역을 먼저
    화면 안으로 끌어온 **뒤에** 자리를 잰다. (실측: 이 두 줄로 잉크 0 → 1179) */
 await page.locator('.meok:visible [data-canvas]').scrollIntoViewIfNeeded();
@@ -431,9 +435,9 @@ await page.waitForTimeout(400);
 const inkMasked = await canvasInk();
 // ⚠ 남은 하나 (2026-08-13): 여기서 붓질이 안 먹어 잉크가 0 → 0 이다. 묶음 구조로 바뀌면서
 //   그림 영역의 자리를 재는 방식이 어긋난 것으로 보인다(셀렉터는 보이는 판으로 다 옮겼는데도
-//   0 이다). 화면이 아예 안 뜨던 것은 고쳤고 나머지 19 건은 지나간다 — 이 한 건만 남았다.
-//   잉크가 처음부터 0 이면 「가림막이 안 먹었다」가 아니라 「그리지도 못했다」이므로, 그렇게 적는다.
-if (inkFull === 0) problems.push('가림막 검사 전에 붓질이 안 먹는다 — 그림 영역 자리를 다시 재야 한다 (KL-254 에서 남김)');
+//   0 이다). 화면이 아예 안 뜨던 것은 고쳤고 나머지 19 건은 지나간다. 이 한 건만 남았다.
+//   잉크가 처음부터 0 이면 가림막이 안 먹었다가 아니라 그리지도 못했다이므로, 그렇게 적는다.
+if (inkFull === 0) problems.push('가림막 검사 전에 붓질이 안 먹는다. 그림 영역 자리를 다시 재야 한다 (KL-254 에서 남김)');
 else if (inkMasked >= inkFull * 0.8) problems.push('가림막을 걸었는데 화면이 그대로다 (' + inkFull + ' → ' + inkMasked + ')');
 if (!(await page.locator('.meok:visible .meok-maskmark').count())) problems.push('레이어 줄에 가림막 표식이 없다');
 
@@ -446,9 +450,9 @@ if (Math.abs(inkInverted + inkMasked - inkFull) > inkFull * 0.35) {
 
 await page.click('.meok:visible [data-act="mask-clear"]');
 await page.waitForTimeout(350);
-if ((await canvasInk()) < inkFull * 0.8) problems.push('가림막을 없앴는데 그림이 안 돌아온다 — 픽셀이 지워졌다는 뜻');
+if ((await canvasInk()) < inkFull * 0.8) problems.push('가림막을 없앴는데 그림이 안 돌아온다. 픽셀이 지워졌다는 뜻');
 
-/* ⑪ 글자 · 붓 담기 · 기울여 돌리기 */
+/* ⑪ 글자, 붓 담기, 기울여 돌리기 */
 const layersBeforeText = await page.locator('.meok:visible .meok-layer').count();
 page.once('dialog', dialog => dialog.accept('먹 테스트'));
 await page.click('.meok:visible [data-act="add-text"]');
@@ -466,11 +470,11 @@ if (!(await page.locator('.meok:visible .meok-presets button', { hasText: '검�
   problems.push('담아 둔 붓이 목록에 안 뜬다');
 }
 
-/* 「고치기」는 접혀 있을 수 있다(새로고침하면 닫힌 채로 뜬다) — 열고 나서 누른다. */
+/* 고치기는 접혀 있을 수 있다(새로고침하면 닫힌 채로 뜬다). 열고 나서 누른다. */
 await page.evaluate(() => { const box = document.querySelector('.meok-fix'); if (box) box.open = true; });
 await page.waitForTimeout(150);
-/* 판이 커졌는지는 **화면 크기**로 재면 안 된다 — 커진 판을 화면에 맞춰 다시 줄이므로
-   정사각 그림은 화면 위 크기가 그대로다. 대신 「몇 %로 보고 있나」가 내려간다. */
+/* 판이 커졌는지는 **화면 크기**로 재면 안 된다. 커진 판을 화면에 맞춰 다시 줄이므로
+   정사각 그림은 화면 위 크기가 그대로다. 대신 몇 %로 보고 있나가 내려간다. */
 const zoomText = () => page.locator('.meok:visible [data-zoom]').textContent();
 const zoomBefore = parseFloat((await zoomText()) || '0');
 page.once('dialog', dialog => dialog.accept('30'));
@@ -478,7 +482,7 @@ await page.click('.meok:visible [data-act="rotate-free"]');
 await page.waitForTimeout(700);
 const zoomAfter = parseFloat((await zoomText()) || '0');
 if (!(zoomAfter < zoomBefore * 0.95)) {
-  problems.push('기울여 돌렸는데 판이 안 커졌다 — 모서리가 잘렸다는 뜻 (' + zoomBefore + '% → ' + zoomAfter + '%)');
+  problems.push('기울여 돌렸는데 판이 안 커졌다. 모서리가 잘렸다는 뜻 (' + zoomBefore + '% → ' + zoomAfter + '%)');
 }
 await page.click('.meok:visible [data-act="undo"]');
 await page.waitForTimeout(500);
@@ -502,4 +506,4 @@ if (problems.length) {
   console.error('[smoke-meok] ✗\n - ' + problems.join('\n - '));
   process.exit(1);
 }
-console.log('[smoke-meok] ✓ 붓·되돌리기·레이어(숨김 반영)·프레임·픽셀 모드·선택영역(밖으로 안 샘)·고치기(필터·보정·회전)·자동 저장(새로고침 생존)·가림막·글자·붓 담기·기울여 돌리기·레이어 순서(화살표) — 실제 브라우저');
+console.log('[smoke-meok] ✓ 붓, 되돌리기, 레이어(숨김 반영), 프레임, 픽셀 모드, 선택영역(밖으로 안 샘), 고치기(필터, 보정, 회전), 자동 저장(새로고침 생존), 가림막, 글자, 붓 담기, 기울여 돌리기, 레이어 순서(화살표). 실제 브라우저');

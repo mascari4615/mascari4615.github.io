@@ -1,7 +1,7 @@
 /**
  * 나눴다 합친 파일이 원본과 같은지 확인한다 (TASK-KL-088)
  *
- * 이 도구의 값어치는 오직 하나 — **합친 결과가 원본과 한 바이트도 다르지 않은 것**이다.
+ * 이 도구의 값어치는 오직 하나. **합친 결과가 원본과 한 바이트도 다르지 않은 것**이다.
  * 한 조각이라도 어긋나면 파일은 나오지만 열리지 않는다. 크기가 같아도 내용이 밀려 있을 수 있어
  * 길이 비교로는 부족하다. 그래서 **검사값(SHA-256)** 으로 잰다.
  *
@@ -41,7 +41,7 @@ const result = await page.evaluate(async () => {
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
 
-  // 규칙 있는 잡음 — 한 조각만 어긋나도 검사값이 달라진다
+  // 규칙 있는 잡음. 한 조각만 어긋나도 검사값이 달라진다
   const N = 700_000;
   const src = new Uint8Array(N);
   let s = 12345;
@@ -52,7 +52,7 @@ const result = await page.evaluate(async () => {
   const original = new Blob([src]);
   const originalHash = await digestOf(original);
 
-  // ① 나누기 — 내려받기를 가로채 조각을 모은다
+  // ① 나누기. 내려받기를 가로채 조각을 모은다
   const pieces = [];
   const origCreate = URL.createObjectURL;
   const origClick = HTMLAnchorElement.prototype.click;
@@ -93,7 +93,7 @@ const result = await page.evaluate(async () => {
   const parts = pieces.filter((p) => p.__name && p.__name.endsWith('.part'));
   if (parts.length < 2) return { ok: false, why: `조각이 ${parts.length}개뿐이다` };
 
-  // ② 합치기 — 일부러 순서를 뒤섞어 넣는다
+  // ② 합치기. 일부러 순서를 뒤섞어 넣는다
   host.querySelector('#fsModeJoin').click();
   const shuffled = parts.slice().reverse().map((b) => new File([b], b.__name, { type: 'application/octet-stream' }));
   const dt2 = new DataTransfer();
@@ -133,7 +133,7 @@ const result = await page.evaluate(async () => {
 
   return {
     ok: joinedHash === originalHash && joined.size === original.size && warned,
-    why: `조각 ${parts.length}개 · 크기 ${joined.size}/${original.size} · 검사값 ${joinedHash === originalHash ? '같음' : '다름'} · 조각 빠짐 경고 ${warned ? '함' : '안 함'}`
+    why: `조각 ${parts.length}개, 크기 ${joined.size}/${original.size}, 검사값 ${joinedHash === originalHash ? '같음' : '다름'}, 조각 빠짐 경고 ${warned ? '함' : '안 함'}`
   };
 });
 
@@ -141,7 +141,7 @@ await browser.close();
 
 console.log(`${result.ok ? '  OK' : '  X '} ${result.why}`);
 if (!result.ok) {
-  console.error('[test-filesplit] 나누기·합치기가 원본을 지키지 못한다');
+  console.error('[test-filesplit] 나누기, 합치기가 원본을 지키지 못한다');
   process.exit(1);
 }
 console.log('[test-filesplit] 순서를 뒤섞어 합쳐도 원본과 완전히 같은 것까지 확인');

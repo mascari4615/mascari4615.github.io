@@ -1,8 +1,8 @@
 /**
  * protobuf 뜯어보기 (TASK-KL-316 / 18)
  *
- * 「개발 도구」 작업대의 **뜯어보기** 칸. 알맹이는 `core/protobuf`.
- * `.proto` 가 없어도 번호·형식·값까지는 보여 준다 — 로그에 찍힌 base64 한 덩이가
+ * 개발 도구 작업대의 **뜯어보기** 칸. 알맹이는 `core/protobuf`.
+ * `.proto` 가 없어도 번호, 형식, 값까지는 보여 준다. 로그에 찍힌 base64 한 덩이가
  * 무엇인지 알아내는 게 대부분의 상황이라서다. 스키마를 주면 이름이 붙는다.
  */
 import { decode, encode, parseProto, readBytes, toHex, spec, type Message, type Piece } from '../../core/protobuf';
@@ -17,11 +17,11 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'protobuf',
     title: t('widgets.protobuf.title', undefined, 'protobuf 뜯어보기'),
-    category: 'tool',
+    category: 'dev',
     desc: t(
       'widgets-desc.protobuf.desc',
       undefined,
-      'protobuf 바이너리를 16진수·base64 로 붙여넣으면 칸별로 풀어 줍니다. .proto 를 주면 이름까지 붙습니다'
+      'protobuf 바이너리를 16진수, base64 로 붙여넣으면 칸별로 풀어 줍니다. .proto 를 주면 이름까지 붙습니다'
     ),
     layout: 'wide',
     icon: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" stroke="currentColor" stroke-width="1.4" fill="none"/>',
@@ -81,11 +81,11 @@ import { t, loadNamespace } from '../../lib/i18n';
               rowsOf(p.children, depth + 1)
             );
           }
-          const alt = p.alternatives === undefined ? '' : Object.entries(p.alternatives).map(([k, v]) => k + '=' + String(v)).join(' · ');
+          const alt = p.alternatives === undefined ? '' : Object.entries(p.alternatives).map(([k, v]) => k + '=' + String(v)).join(', ');
           return (
             '<div class="tool-list-row"><span class="tool-list-key">' + pad + '#' + p.no + (p.name === undefined ? '' : ' ' + esc(p.name)) + '</span>' +
             '<span class="mono tool-list-val">' + esc(String(p.value)) + '</span>' +
-            '<span class="tool-list-dim">' + esc(p.declared ?? p.kind) + (alt === '' ? '' : ' · ' + esc(alt)) + '</span></div>'
+            '<span class="tool-list-dim">' + esc(p.declared ?? p.kind) + (alt === '' ? '' : ', ' + esc(alt)) + '</span></div>'
           );
         })
         .join('');
@@ -123,7 +123,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     [data, proto].forEach((el) => el.addEventListener('input', render));
     messageBox.addEventListener('change', render);
 
-    /* 뜯은 것을 JSON 으로 — 스키마가 있어야 이름이 붙으니 그때가 쓸 만하다 */
+    /* 뜯은 것을 JSON 으로. 스키마가 있어야 이름이 붙으니 그때가 쓸 만하다 */
     $<HTMLButtonElement>('#pbToJson').onclick = (): void => {
       try {
         const schema = all.find((m) => m.name === messageBox.value) ?? all[0];

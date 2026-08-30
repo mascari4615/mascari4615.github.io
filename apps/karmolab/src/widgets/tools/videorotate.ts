@@ -1,12 +1,12 @@
 /**
- * 영상 돌리기·뒤집기 (TASK-KL-088)
+ * 영상 돌리기, 뒤집기 (TASK-KL-088)
  *
  * 폰을 옆으로 들고 찍었는데 컴퓨터에서 열면 누워 있는 영상. 흔하고, 그때마다 편집기를 깔기는 아깝다.
  *
  * 신경 쓴 곳:
  *  - **돌리면 가로세로가 바뀐다.** 90도 돌린 뒤에도 원래 틀에 우겨넣으면 찌그러지거나 잘린다.
- *    그래서 90·270도에서는 내보내는 틀 자체를 뒤집는다.
- *  - 소리는 원본에서 그대로 가져온다 — 다시 그리는 건 화면뿐이다.
+ *    그래서 90, 270도에서는 내보내는 틀 자체를 뒤집는다.
+ *  - 소리는 원본에서 그대로 가져온다. 다시 그리는 건 화면뿐이다.
  *  - 담는 동안 다른 탭으로 가면 브라우저가 화면 그리기를 멈춰 그 구간이 정지 화면이 된다.
  *    막을 방법이 없으므로 **일어났으면 알려 준다.** 모르고 받아 가는 게 제일 나쁘다.
  */
@@ -27,7 +27,7 @@ import { t, loadNamespace } from '../../lib/i18n';
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
     title: t('widgets.videorotate.title', undefined, '영상 돌리기'),
-    category: 'tool',
+    category: 'av',
     desc: t(
       'widgets-desc.videorotate.desc',
       undefined,
@@ -102,11 +102,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           let baseName = t('videorotate.file.base');
           let recorder: MediaRecorder | null = null;
 
-          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291) — `aria-live` 가 여기 붙어 있어서
-           * 화면낭독기가 「다 됐습니다」·「못 엽니다」를 실제로 읽어 준다. */
+          /* 상태 줄은 **공용 하나**를 쓴다 (TASK-KL-291). `aria-live` 가 여기 붙어 있어서
+           * 화면낭독기가 다 됐습니다, 못 엽니다를 실제로 읽어 준다. */
           const say = statusLine(status);
 
-          /** 90·270도에서는 가로세로가 바뀐다 — 안 바꾸면 찌그러지거나 잘린다 */
+          /** 90, 270도에서는 가로세로가 바뀐다. 안 바꾸면 찌그러지거나 잘린다 */
           function outSize(): { w: number; h: number } {
             const vw = video.videoWidth || 0;
             const vh = video.videoHeight || 0;
@@ -141,14 +141,14 @@ import { t, loadNamespace } from '../../lib/i18n';
           }
 
           function load(file: File): void {
-            attachMedia(video, file); // 공용 — 앞 주소를 거두고 물린다
+            attachMedia(video, file); // 공용. 앞 주소를 거두고 물린다
             baseName = (file.name || t('videorotate.file.base')).replace(/\.[^.]+$/, '');
             video.onloadeddata = () => {
               $<HTMLElement>('#vrStage').style.display = '';
               $<HTMLElement>('#vrControls').style.display = '';
               runBtn.disabled = false;
               showStats();
-              // 자리를 옮기면 그림이 바로 오지 않는다 — 도착했다고 알려 줄 때 그린다.
+              // 자리를 옮기면 그림이 바로 오지 않는다. 도착했다고 알려 줄 때 그린다.
               // 곧바로 그리면 첫 미리보기가 빈 화면이 된다 (시험이 잡았다).
               video.onseeked = () => paint();
               video.currentTime = 0;
@@ -195,7 +195,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             };
             draw();
 
-            // 다른 탭으로 가면 그리기가 멈춰 그 구간이 정지 화면으로 담긴다 — 막을 수 없으니 알린다
+            // 다른 탭으로 가면 그리기가 멈춰 그 구간이 정지 화면으로 담긴다. 막을 수 없으니 알린다
             let leftTab = false;
             const onHide = (): void => {
               if (document.hidden) leftTab = true;
@@ -234,11 +234,11 @@ import { t, loadNamespace } from '../../lib/i18n';
           const fileInput = $<HTMLInputElement>('#vrFile');
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
-           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+           * 한 번만 집어 간다. 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
               Toolbox.onHandoff?.('videorotate', (f: File) => load(f));
           }
-          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290) — 붙여넣기가 같이 딸려 온다. */
+          /* 파일 받는 자리는 **공용 하나**를 쓴다 (TASK-KL-290). 붙여넣기가 같이 딸려 온다. */
           wireDrop({ drop, input: fileInput, scope: container, onFiles: (files) => void load(files[0]) });
 
           container.querySelectorAll('#vrTurns .tool-chip').forEach((chip) => {
@@ -260,7 +260,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             if (!made) return;
             const aName = baseName + t('videorotate.file.suffix') + '.webm';
             download(made, aName);
-            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133). 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: aName, from: 'videorotate' });
             say(t('videorotate.say.saved', { size: size(made.size) }), 'ok');
           };

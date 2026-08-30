@@ -1,6 +1,6 @@
 /**
  * 캐릭터 런타임 스냅샷 순수부 + 스케줄링 회귀 (TASK-KAR-CHARSTATE).
- * heartbeat.test 패턴 미러 — 실 네트워크·실 fs·실 GitHub 무관(전부 주입).
+ * heartbeat.test 패턴 미러. 실 네트워크, 실 fs, 실 GitHub 무관(전부 주입).
  * 핵심 잠금:
  *  ① collectBundle = characters/ 결정적 walk, path 오름차순, 누락 skip
  *  ② bundleHash = entries 만 (ts 제외 → 시각만 바뀌어도 skip)
@@ -45,7 +45,7 @@ function res(status: number, json?: unknown): Response {
 }
 
 /**
- * 가짜 fs — 절대 경로(또는 POSIX 정규화) → 파일 내용/디렉토리.
+ * 가짜 fs. 절대 경로(또는 POSIX 정규화) → 파일 내용/디렉토리.
  * path.join 이 win32 면 '\\' 를 쓰므로 정규화 후 조회.
  */
 type Dirent = { name: string; isDirectory: () => boolean; isFile: () => boolean };
@@ -107,14 +107,14 @@ const SAMPLE_FILES = {
   '/memo/characters/yawn/memory/daily/2026-05-17.md': '어제 요약',
   '/memo/characters/alisa/relationship.json': '{"count":3}',
   '/memo/characters/alisa/memory/mood.json': '{"mood":"orderly"}',
-  // scope 제외 — 번들에 들어오면 안 됨
+  // scope 제외. 번들에 들어오면 안 됨
   '/memo/characters/yawn/image-cache/abc.png': 'BINARY',
   '/memo/characters/yawn/image-cache/index.json': '{}',
   '/memo/characters/yawn/card.md': '# 정의 (tracked, scope X)',
 };
 
-describe('collectBundle — characters/ 결정적 walk', () => {
-  it('스냅샷 대상만 path 오름차순 수집, image-cache·card.md 제외', () => {
+describe('collectBundle. characters/ 결정적 walk', () => {
+  it('스냅샷 대상만 path 오름차순 수집, image-cache, card.md 제외', () => {
     const entries = collectBundle('/memo', { fsImpl: makeFs(SAMPLE_FILES) });
     const paths = entries.map((e) => e.path);
     expect(paths).toEqual([
@@ -129,7 +129,7 @@ describe('collectBundle — characters/ 결정적 walk', () => {
       'characters/yawn/memory/user.md',
       'characters/yawn/relationship.json',
     ]);
-    // image-cache·card.md 미포함
+    // image-cache, card.md 미포함
     expect(paths.some((p) => p.includes('image-cache'))).toBe(false);
     expect(paths.some((p) => p.endsWith('card.md'))).toBe(false);
     // 내용 보존
@@ -143,7 +143,7 @@ describe('collectBundle — characters/ 결정적 walk', () => {
   });
 });
 
-describe('bundleHash / planSnapshot — skip-if-unchanged', () => {
+describe('bundleHash / planSnapshot. skip-if-unchanged', () => {
   it('ts 만 달라도 동일 entries → 동일 hash → skip', () => {
     const fsImpl = makeFs(SAMPLE_FILES);
     const a = planSnapshot({ memoRepoPath: '/memo' }, null, { fsImpl, now: () => new Date('2026-05-18T10:00:00Z') });
@@ -173,7 +173,7 @@ describe('bundleHash / planSnapshot — skip-if-unchanged', () => {
   });
 });
 
-describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
+describe('writeSnapshotOnce. Contents API GET sha → PUT', () => {
   it('skip 시 PUT 0 (fetch 미호출)', async () => {
     const fsImpl = makeFs(SAMPLE_FILES);
     const seed = planSnapshot({ memoRepoPath: '/memo' }, null, { fsImpl, now: fixedNow });
@@ -295,7 +295,7 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
   });
 });
 
-describe('runSnapshotTick — 상태 전이 alert + hash carry', () => {
+describe('runSnapshotTick. 상태 전이 alert + hash carry', () => {
   const okFetch = (): typeof fetch =>
     vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(200),
@@ -360,7 +360,7 @@ describe('runSnapshotTick — 상태 전이 alert + hash carry', () => {
   });
 });
 
-describe('startCharacterStateSnapshot — 스케줄링', () => {
+describe('startCharacterStateSnapshot. 스케줄링', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => {
     stopCharacterStateSnapshot();
@@ -441,7 +441,7 @@ describe('startCharacterStateSnapshot — 스케줄링', () => {
   });
 });
 
-describe('serializeBundle — 결정성', () => {
+describe('serializeBundle. 결정성', () => {
   it('동일 입력 → 동일 출력', () => {
     const b: CharacterStateBundle = {
       schema: 1,

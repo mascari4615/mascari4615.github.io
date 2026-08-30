@@ -1,8 +1,8 @@
 /**
  * 숨은 도구의 **직접 주소**가 그 도구로 가는가 (TASK-KL-273).
  *
- * 도구 예순 남짓은 재료 묶음(PDF·이미지·글·데이터·수·때·영상·소리) 안으로 들어갔지만
- * **자기 주소는 살아 있다**(검색으로 들어오는 길이다 — `/t/imgresize/`).
+ * 도구 예순 남짓은 재료 묶음(PDF, 이미지, 글, 데이터, 수, 때, 영상, 소리) 안으로 들어갔지만
+ * **자기 주소는 살아 있다**(검색으로 들어오는 길이다. `/t/imgresize/`).
  * 예전에는 묶음이 탭이었고 `switchTab(도구id)` 로 그 탭이 열렸다. 재료 화면을 **한 탭**으로
  * 바꾸면서 그 길이 끊겼다: 열리는 건 묶음의 첫 화면뿐이고, 찾아온 도구는 안 열린다.
  *
@@ -25,13 +25,13 @@ const check = (ok, why) => {
   }
 };
 
-/** [숨은 도구, 그 도구가 열렸다는 표시] — 재료마다 하나씩 */
+/** [숨은 도구, 그 도구가 열렸다는 표시]. 재료마다 하나씩 */
 const CASES = [
   ['imgresize', '#irFile'],
   ['pdfcrop', '#pfHost input[type=file]'],
   /* 글 정리는 **글 작업대의 조작**이 됐다 (2026-08-13). 예전엔 표 변환과 한 묶음이라 그 묶음의
-     표시(`#tcIn`)를 봤는데, 이제 `#textclean` 로 들어오면 작업대가 열려야 맞다 —
-     사람 북마크가 걸린 자리라 「열리기만 하면 된다」가 아니라 **이 주소가 살아 있나**를 본다. */
+     표시(`#tcIn`)를 봤는데, 이제 `#textclean` 로 들어오면 작업대가 열려야 맞다 . 
+     사람 북마크가 걸린 자리라 열리기만 하면 된다가 아니라 **이 주소가 살아 있나**를 본다. */
   ['textclean', '#pfText'],
   ['jsonfmt', '#pfHost textarea'],
   ['videotrim', '#pfHost input[type=file]'],
@@ -47,7 +47,7 @@ for (const [tool, marker] of CASES) {
     .waitForSelector(marker, { timeout: 15000, state: 'attached' })
     .then(() => true)
     .catch(() => false);
-  check(found, `「${tool}」 주소로 들어오면 그 도구가 열려야 한다 (표시 ${marker})`);
+  check(found, `${tool} 주소로 들어오면 그 도구가 열려야 한다 (표시 ${marker})`);
   await page.close();
 }
 

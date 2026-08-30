@@ -1,10 +1,10 @@
 /**
- * panels/comments-section.ts — 코멘트 (TASK-KL-202 방향③, Milanote 계보).
+ * panels/comments-section.ts. 코멘트 (TASK-KL-202 방향③, Milanote 계보).
  *
- * 설명(`doc`)은 「그것이 무엇인가」, 코멘트는 「보다가 든 생각」이다. 한 칸에 몰면 설명이 잡담으로
- * 더러워지거나 잡담이 설명인 척한다. 그래서 **여러 개 · 시간순**으로 따로 쌓고, 카드에는 개수만 뱃지로.
+ * 설명(`doc`)은 그것이 무엇인가, 코멘트는 보다가 든 생각이다. 한 칸에 몰면 설명이 잡담으로
+ * 더러워지거나 잡담이 설명인 척한다. 그래서 **여러 개, 시간순**으로 따로 쌓고, 카드에는 개수만 뱃지로.
  *
- * 남과 함께 볼 때를 위한 자리이기도 하다 — 보기 전용으로 받은 사람이 「여기 이상해요」를 남길
+ * 남과 함께 볼 때를 위한 자리이기도 하다. 보기 전용으로 받은 사람이 여기 이상해요를 남길
  * 유일한 칸이다(다음 조각에서 보기 전용에도 열어 줄 예정).
  */
 import type { GraphComment } from '../../../lib/karmograph/spec';
@@ -17,7 +17,7 @@ function listOf(ctx: PanelCtx): GraphComment[] {
   return spec.comments;
 }
 
-/** 시간을 사람 말로 — 몇 분 전인지가 날짜보다 훨씬 자주 필요하다. */
+/** 시간을 사람 말로. 몇 분 전인지가 날짜보다 훨씬 자주 필요하다. */
 function ago(at: number): string {
   const s = Math.max(0, Math.round((Date.now() - at) / 1000));
   if (s < 60) return t('karmograph.s.msg');

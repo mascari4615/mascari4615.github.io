@@ -1,8 +1,8 @@
 /**
  * 숫자 ↔ 한글 (TASK-KL-088)
  *
- * 계약서·영수증에 「금 일천이백삼십사만원」 처럼 적어야 하는데, 사람이 옮겨 적다 자리를 빠뜨린다.
- * 만·억·조 단위가 네 자리씩 끊기는 반면 우리가 숫자를 쓸 때는 세 자리마다 콤마라
+ * 계약서, 영수증에 금 일천이백삼십사만원 처럼 적어야 하는데, 사람이 옮겨 적다 자리를 빠뜨린다.
+ * 만, 억, 조 단위가 네 자리씩 끊기는 반면 우리가 숫자를 쓸 때는 세 자리마다 콤마라
  * **눈으로 세는 자리와 읽는 자리가 어긋나는** 게 실수의 원인이다. 기계가 끊게 한다.
  */
 import { t, loadNamespace, locale } from '../../lib/i18n';
@@ -19,7 +19,7 @@ import { markLive } from './shared/say';
     for (let i = 3; i>= 0; i--) {
       const d = Math.floor(n / Math.pow(10, i)) % 10;
       if (!d) continue;
-      // 일십·일백은 보통 「십·백」 으로 읽는다. 금액 표기(formal)에서는 붙여 적기도 한다.
+      // 일십, 일백은 보통 십, 백 으로 읽는다. 금액 표기(formal)에서는 붙여 적기도 한다.
       out += (d === 1 && i> 0 && !formal ? '' : DIGIT[d]) + SMALL[i];
     }
     return out;
@@ -32,7 +32,7 @@ import { markLive } from './shared/say';
     if (digits === '0') return '영';
     if (digits.length> 20) return t('numword.err.tooBig');
 
-    // 뒤에서 네 자리씩 끊는다 — 만·억·조가 네 자리 주기라서.
+    // 뒤에서 네 자리씩 끊는다. 만, 억, 조가 네 자리 주기라서.
     const chunks: string[] = [];
     for (let i = digits.length; i> 0; i -= 4) chunks.unshift(digits.slice(Math.max(0, i - 4), i));
 
@@ -77,11 +77,11 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'numword',
     title: t('widgets.numword.title', undefined, '숫자 ↔ 한글'),
-    category: 'tool',
+    category: 'text',
     desc: t(
       'widgets-desc.numword.desc',
       undefined,
-      '숫자를 한글로 읽고 한글 수를 숫자로 되돌립니다. 계약서·영수증 금액 표기'
+      '숫자를 한글로 읽고 한글 수를 숫자로 되돌립니다. 계약서, 영수증 금액 표기'
     ),
     layout: 'form',
     icon: '<path d="M4 8h6M7 5v11M14 5h4a2 2 0 0 1 0 4h-2a2 2 0 0 0 0 4h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -98,7 +98,7 @@ import { markLive } from './shared/say';
     ]
   });
 
-  /** 그리기는 **말 묶음이 온 뒤**에 — 파일 실릴 때 그리면 이름 자리에 열쇠가 굳는다. */
+  /** 그리기는 **말 묶음이 온 뒤**에. 파일 실릴 때 그리면 이름 자리에 열쇠가 굳는다. */
   function draw(container: HTMLElement): void {
           /* 번역 글에 꺾쇠가 들어와도 화면이 안 깨지게. */
           const esc = (v: string): string => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -132,8 +132,8 @@ import { markLive } from './shared/say';
           const formal = $<HTMLInputElement>('#nwFormal');
           const out = $<HTMLElement>('#nwOut');
           const status = $<HTMLElement>('#nwStatus');
-          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291) — 표시가 없으면 화면낭독기가 아무 말도 안 한다.
-           * 결과 상자가 아니라 **상태 줄**에 붙인다 — 결과를 통째로 읽어 주면 오히려 시끄럽다. */
+          /* 이 줄은 **읽히는 자리**다 (TASK-KL-291). 표시가 없으면 화면낭독기가 아무 말도 안 한다.
+           * 결과 상자가 아니라 **상태 줄**에 붙인다. 결과를 통째로 읽어 주면 오히려 시끄럽다. */
           markLive(status);
           let syncing = false;
 

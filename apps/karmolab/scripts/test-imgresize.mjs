@@ -1,15 +1,15 @@
 /**
  * 사진 크기 맞추기가 기준을 진짜로 맞추는지 확인한다 (TASK-KL-088)
  *
- * 「줄였다」는 쉽다. 이 도구의 약속은 **준 기준 아래로 떨어뜨린다**이므로 그걸 재야 한다.
+ * 줄였다는 쉽다. 이 도구의 약속은 **준 기준 아래로 떨어뜨린다**이므로 그걸 재야 한다.
  *
  *  ① 긴 변 맞추기: 큰 사진을 640 으로 → 긴 변이 정확히 640, 비율 유지
  *  ② 용량 맞추기: 1MB 기준 → 결과가 1MB 이하
  *  ③ 원본보다 키우지 않기: 작은 사진에 4000px 를 걸어도 커지지 않는가
- *     — 「줄이려고 눌렀는데 커졌다」가 이 도구에서 가장 나쁜 결과다
+ *    . 줄이려고 눌렀는데 커졌다가 이 도구에서 가장 나쁜 결과다
  *  ④ 투명한 PNG 를 JPG 로 저장하면 **흰 바탕**이어야 한다 (TASK-KL-272)
- *     — JPG 는 투명을 못 담는다. 바탕을 안 깔면 투명하던 데가 **새까맣게** 나온다.
- *       「크기를 줄였을 뿐인데 그림이 검게 됐다」는 조용한 고장이라 눈으로만 보면 놓친다.
+ *    . JPG 는 투명을 못 담는다. 바탕을 안 깔면 투명하던 데가 **새까맣게** 나온다.
+ *       크기를 줄였을 뿐인데 그림이 검게 됐다는 조용한 고장이라 눈으로만 보면 놓친다.
  *
  * 사용: node scripts/test-imgresize.mjs
  */
@@ -39,7 +39,7 @@ const out = await page.evaluate(async () => {
   document.body.appendChild(host);
   tool.tabs[0].build(host);
   await window.__karmoWaitDrawn(host);
-  /** 잘 안 눌리는(용량 큰) 사진을 만든다 — 매끈한 그림은 몇 KB 라 용량 시험이 안 된다 */
+  /** 잘 안 눌리는(용량 큰) 사진을 만든다. 매끈한 그림은 몇 KB 라 용량 시험이 안 된다 */
   const makePhoto = async (w, h) => {
     const cv = document.createElement('canvas');
     cv.width = w; cv.height = h;
@@ -135,9 +135,9 @@ const out = await page.evaluate(async () => {
   return {
     ok: sideOk && bytesOk && noUpOk && clearOk,
     why:
-      `긴 변 640 → ${side.w}x${side.h} ${sideOk ? '✓' : '✗'} · ` +
-      `1MB 기준 → ${(bytes.bytes / 1048576).toFixed(2)}MB ${bytesOk ? '✓' : '✗'} · ` +
-      `작은 사진에 4000px → ${noUp.w}x${noUp.h} (안 커져야) ${noUpOk ? '✓' : '✗'} · ` +
+      `긴 변 640 → ${side.w}x${side.h} ${sideOk ? '✓' : '✗'}, ` +
+      `1MB 기준 → ${(bytes.bytes / 1048576).toFixed(2)}MB ${bytesOk ? '✓' : '✗'}, ` +
+      `작은 사진에 4000px → ${noUp.w}x${noUp.h} (안 커져야) ${noUpOk ? '✓' : '✗'}, ` +
       `투명 PNG → JPG 바탕 rgb(${corner.join(',')}) (흰색이어야) ${clearOk ? '✓' : '✗'}`
   };
 });
@@ -149,4 +149,4 @@ if (!out.ok) {
   console.error('[test-imgresize] 기준을 못 맞췄거나, 줄이랬는데 키웠다');
   process.exit(1);
 }
-console.log('[test-imgresize] 긴 변·용량 기준을 맞추고 원본보다 키우지 않는 것까지 확인');
+console.log('[test-imgresize] 긴 변, 용량 기준을 맞추고 원본보다 키우지 않는 것까지 확인');

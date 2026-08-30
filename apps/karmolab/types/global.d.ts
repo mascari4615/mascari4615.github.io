@@ -21,23 +21,23 @@ export {};
 
 declare global {
   /**
-   * 이 판(배포) 표식 — `build.mjs` 가 esbuild define 으로 치환한다.
+   * 이 판(배포) 표식. `build.mjs` 가 esbuild define 으로 치환한다.
    * 선언은 **여기 한 곳**이다: 파일마다 `declare const` 를 두면 두 벌이 되어
-   * 「같은 이름을 두 번 선언했다」로 typecheck 이 선다 (`sw.ts` 와 `perf.ts` 가 실제로 부딪혔다).
+   * 같은 이름을 두 번 선언했다로 typecheck 이 선다 (`sw.ts` 와 `perf.ts` 가 실제로 부딪혔다).
    */
   const __KARMOLAB_BUILD__: string;
   const __KARMOLAB_COMMIT__: string;
-  /** 앱 뿌리 — 정본 `scripts/lib/site-base.mjs`. build.mjs 가 esbuild define 으로 박는다. */
+  /** 앱 뿌리. 정본 `scripts/lib/site-base.mjs`. build.mjs 가 esbuild define 으로 박는다. */
   const __KARMOLAB_APP_BASE__: string;
 
   interface Window {
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;
     KarmoLabImageBatch?: KarmoLabImageBatchAPI;
     KarmoWorld?: KarmoWorldNamespace;
-    /** tierlist 네임스페이스 — `namespace.js` */
+    /** tierlist 네임스페이스. `namespace.js` */
     Tierlist?: Record<string, unknown>;
     RANDOMGEN_TOPICS?: _RandomGenTopic[];
-    /** randomgen.ts — `id → label` 매핑. tab UI 가 채움. */
+    /** randomgen.ts. `id → label` 매핑. tab UI 가 채움. */
     RANDOMGEN_TOPIC_LABELS?: Record<string, string>;
     KARMOLAB_WIDGET_LOADER_WAIT?: Promise<unknown>[];
     KARMOLAB_WIDGET_SCRIPT_BASE?: string;
@@ -46,7 +46,7 @@ declare global {
     KARMOLAB_LAZY_META?: KarmoLabLazyWidgetStub[];
 
     /**
-     * 성능 계측 이음매 — `src/perf.ts` (TASK-KL-201). 셸이 받아 적고 계기판 위젯이 읽는다.
+     * 성능 계측 이음매. `src/perf.ts` (TASK-KL-201). 셸이 받아 적고 계기판 위젯이 읽는다.
      * 계측기가 아직 안 실렸어도 셸은 그대로 돌아야 하므로 전부 optional 이다.
      */
     /** 계측기가 오기 전 셸이 눈금을 담아 두는 통 (TASK-KL-201). */
@@ -62,31 +62,31 @@ declare global {
       /** 지연 위젯 하나가 눌러서 준비되기까지 (ms) + 그때 받은 스크립트 주소. */
       widget: (id: string, urls: string[], ms: number) => void;
       snapshot: () => Record<string, unknown>;
-      /** 값비싸다 — 계기판이 「지금 재기」를 누를 때만. */
+      /** 값비싸다. 계기판이 지금 재기를 누를 때만. */
       frameProbe: (durationMs: number) => Promise<{
         windowMs: number; frames: number; fps: number; fpsLow: number; janks: number; worstMs: number;
       }>;
       clearBoots: () => void;
     };
 
-    /** 도구 상세 페이지(/t/&lt;id&gt;/)가 심는 진입 위젯 id — toolbox.init 이 첫 페이지로 연다 (TASK-KL-088) */
+    /** 도구 상세 페이지(/t/&lt;id&gt;/)가 심는 진입 위젯 id. toolbox.init 이 첫 페이지로 연다 (TASK-KL-088) */
     KARMOLAB_ENTRY_TOOL?: string;
-    /** 본문이 HTML 에 이미 박혀 있는 정적 페이지 표식(예: 도구 목록 `hub`) — 셸의 머리띠·옆줄·
-     *  테마·⌘K 는 그대로 쓰되 화면은 앱이 그리지 않는다 (TASK-KL-129) */
+    /** 본문이 HTML 에 이미 박혀 있는 정적 페이지 표식(예: 도구 목록 `hub`). 셸의 머리띠, 옆줄, 
+     *  테마, ⌘K 는 그대로 쓰되 화면은 앱이 그리지 않는다 (TASK-KL-129) */
     KARMOLAB_ENTRY_STATIC?: string;
-    /** 상세 페이지가 존재하는 도구 id 목록 — 도구 간 이동 시 각자의 URL 로 보내기 위해 (TASK-KL-088) */
+    /** 상세 페이지가 존재하는 도구 id 목록. 도구 간 이동 시 각자의 URL 로 보내기 위해 (TASK-KL-088) */
     KARMOLAB_TOOL_PAGES?: string[];
-    /** 계측 — analytics.ts (TASK-KL-088). 입력 내용은 절대 싣지 않는다. */
+    /** 계측. analytics.ts (TASK-KL-088). 입력 내용은 절대 싣지 않는다. */
     KarmoStat?: { page: (toolId: string, title?: string) => void; use: (toolId: string, action: string) => void; disabled: boolean };
     /** GoatCounter 카운터 (count.js 가 주입) */
     goatcounter?: { count?: (opts: { path?: string; title?: string; event?: boolean }) => void };
-    /** 자료표 공용 렌더러 — widgets/ref/reftable.ts (TASK-KL-088) */
+    /** 자료표 공용 렌더러. widgets/ref/reftable.ts (TASK-KL-088) */
     RefTable?: RefTableAPI;
-    /** tools/hangulkey.ts — 변환 함수 노출 (스모크 테스트 + 다른 위젯 재사용) */
+    /** tools/hangulkey.ts. 변환 함수 노출 (스모크 테스트 + 다른 위젯 재사용) */
     KarmoHangulKey?: { engToKor: (s: string) => string; korToEng: (s: string) => string };
     KarmoMorse?: { encode: (text: string, korean: boolean) => string; decode: (code: string, korean: boolean) => string };
 
-    /** imagegen/* 공용 네임스페이스 — config.ts 가 세션/히스토리 키를 채움 */
+    /** imagegen/* 공용 네임스페이스. config.ts 가 세션/히스토리 키를 채움 */
     ImageGen?: KarmoLabImageGenNamespace;
 
     /** chatbot/markdown.ts */
@@ -98,10 +98,10 @@ declare global {
     /** chatbot/characters.ts */
     ChatbotCharacters?: ChatbotCharactersAPI;
 
-    /** dashboard.ts — 내 정보 탭에서 호출 */
+    /** dashboard.ts. 내 정보 탭에서 호출 */
     DashboardBuild?: (container: HTMLElement) => void;
 
-    /** imagegen 위젯 내부 함수 — HTML onclick 핸들러에서 사용 */
+    /** imagegen 위젯 내부 함수. HTML onclick 핸들러에서 사용 */
     _ig?: {
       generate: () => void;
       cancel: () => void;
@@ -115,7 +115,7 @@ declare global {
 
     /** KarmoLab Tauri 셸에서 주입 */
     __KARMOLAB_DESKTOP__?: boolean;
-    /** KarmoLab Tauri 셸에서 주입 — Cargo.toml 패키지 버전 */
+    /** KarmoLab Tauri 셸에서 주입. Cargo.toml 패키지 버전 */
     __KARMOLAB_VERSION__?: string;
     /** Tauri 데스크톱 셸 (devtools 알림 테스트) */
     __TAURI__?: {
@@ -126,7 +126,7 @@ declare global {
           cb: (e: { payload: unknown }) => void
         ) => Promise<() => void>;
       };
-      /** Tauri 2 window plugin — `decorations: false`인 윈도우의 컨트롤(min/max/close)에 사용 */
+      /** Tauri 2 window plugin. `decorations: false`인 윈도우의 컨트롤(min/max/close)에 사용 */
       window?: {
         getCurrentWindow?: () => {
           minimize: () => Promise<void>;
@@ -139,14 +139,14 @@ declare global {
     };
     __karmolabSetNotifyInvokeDebug?: (payload: unknown) => void;
 
-    /** crypto.ts — 위젯 내부 함수를 onclick 핸들러에서 호출하기 위해 게재 */
+    /** crypto.ts. 위젯 내부 함수를 onclick 핸들러에서 호출하기 위해 게재 */
     loadFromTxt?: () => Promise<void>;
     toggleCryptoFields?: () => void;
     swapResultToInput?: () => void;
     doCrypto?: () => void;
   }
 
-  /** crypto-js (vendor script-mode) — 위젯에서 사용하는 면만 명시. 그 외 면은 도구 차원에서 점진 확장. */
+  /** crypto-js (vendor script-mode). 위젯에서 사용하는 면만 명시. 그 외 면은 도구 차원에서 점진 확장. */
   var CryptoJS: {
     lib: { WordArray: { random: (nBytes: number) => unknown }; CipherParams: { create: (cfg: { ciphertext: unknown }) => unknown } };
     enc: { Hex: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Base64: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Utf8: unknown };
@@ -165,14 +165,14 @@ declare global {
     | {
         parse: (src: string) => string;
         setOptions: (opts: Record<string, unknown>) => void;
-        /** v14 — 전역을 안 더럽히는 인스턴스 문. `lib/markdown/render` 가 쓴다. */
+        /** v14. 전역을 안 더럽히는 인스턴스 문. `lib/markdown/render` 가 쓴다. */
         Marked: new () => { parse(markdown: string): string; use(options: unknown): void };
       }
     | undefined;
   var Prism: { highlightElement: (el: Element) => void } | undefined;
 
   /**
-   * `gemini.js` 번들이 노출하는 전역 — `user.ts` 설정 탭 등에서 `typeof Gemini` 가드와 함께 사용.
+   * `gemini.js` 번들이 노출하는 전역. `user.ts` 설정 탭 등에서 `typeof Gemini` 가드와 함께 사용.
    * (전체 API는 `gemini.ts`가 크므로 필요한 면만 점진적으로 확장)
    */
   var Gemini:
@@ -194,14 +194,14 @@ declare global {
           modelId: string,
           options?: Record<string, unknown>
         ) => Promise<GeminiImageResult>;
-        /** Imagen (AI Studio) — N 장 반환 (dataUrl 배열) */
+        /** Imagen (AI Studio). N 장 반환 (dataUrl 배열) */
         callImagen?: (
           prompt: string,
           modelId: string,
           count: number,
           options?: Record<string, unknown>
         ) => Promise<string[]>;
-        /** Imagen (Vertex) — N 장 반환 */
+        /** Imagen (Vertex). N 장 반환 */
         callVertexImagen?: (
           prompt: string,
           modelId: string,
@@ -212,7 +212,7 @@ declare global {
         getVertexApiKey: () => string;
         requireApiKey: () => string | null;
         fetchWithRetry: (url: string, body: unknown, options?: RequestInit) => Promise<Response>;
-        /** `packages/ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
+        /** `packages/ai` MODEL_CATALOG 재노출. `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
         MODELS: GeminiModelsCatalog;
         GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
         DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
@@ -229,45 +229,45 @@ declare global {
         enhancePrompt?: (prompt: string) => Promise<string>;
       };
 
-  /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
+  /** `gemini.ts` 내부 정의. IndexedDB 이미지 라이브러리 공유 모듈 */
   var ImageDB: ImageDBAPI | undefined;
 
-  /** `gemini.ts` ImageDB 항목 — script-mode 위젯이 타입으로 사용 */
+  /** `gemini.ts` ImageDB 항목. script-mode 위젯이 타입으로 사용 */
   type ImageDBItem = _ImageDBItem;
 
-  /** randomgen 위젯 주제 — script-mode 에서 타입으로 사용 */
+  /** randomgen 위젯 주제. script-mode 에서 타입으로 사용 */
   type RandomGenTopic = _RandomGenTopic;
 
   /** chatbot/characters.ts → 위젯 내부에서 타입으로 사용 (script-mode) */
   type ChatbotCharacter = _ChatbotCharacter;
 
-  /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
+  /** toolbox.js. global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
-    /** 결과를 옆 도구로 넘기기 (TASK-KL-133) — 놓아두기 · 건네받기 · 「이어서」 줄 */
+    /** 결과를 옆 도구로 넘기기 (TASK-KL-133). 놓아두기, 건네받기, 이어서 줄 */
     offerNext?: (anchor: HTMLElement | null, item: { blob: Blob; name?: string; from?: string }) => void;
     offerResult?: (item: { blob: Blob; name?: string; from?: string }) => void;
     takeResult?: () => { blob: Blob; name?: string; from?: string } | null;
     peekResult?: () => { blob: Blob; name?: string; from?: string } | null;
     toolsAccepting?: (type: string, exceptId?: string) => Array<{ id: string; title?: string }>;
     /**
-     * 놓인 것이 이 도구가 받을 수 있는 것이면 건네준다 — 한 번만. 화면을 옮겨 와도 받는다.
+     * 놓인 것이 이 도구가 받을 수 있는 것이면 건네준다. 한 번만. 화면을 옮겨 와도 받는다.
      *
-     * 첫 인자는 **도구 이름**이다 (TASK-KL-191) — 형식은 등록 메타의 `accepts` 에서 읽는다.
+     * 첫 인자는 **도구 이름**이다 (TASK-KL-191). 형식은 등록 메타의 `accepts` 에서 읽는다.
      * 형식을 두 군데 적으면 갈라진다(실제로 갈라져 있었다). 배열도 받지만 그건 우리 도구
-     * 밖의 것(모래상자·외부)만 쓴다 — `check-format-contract` 게이트가 이름을 강제한다.
+     * 밖의 것(모래상자, 외부)만 쓴다. `check-format-contract` 게이트가 이름을 강제한다.
      */
     onHandoff?: (toolIdOrKinds: string | string[], cb: (file: File) => void) => void;
-    /** 이 도구가 받는다고 **선언한** 형식 (TASK-KL-191 — 선언이 정본) */
+    /** 이 도구가 받는다고 **선언한** 형식 (TASK-KL-191. 선언이 정본) */
     declaredAccepts?: (id: string) => string[];
     /** 이 도구가 내놓는다고 **선언한** 형식 */
     declaredProduces?: (id: string) => string[];
-    /** `image/*` 별표를 푼 한 쌍 맞춰 보기 — 이어서·흐름·공유대상이 같은 자를 쓴다 */
+    /** `image/*` 별표를 푼 한 쌍 맞춰 보기. 이어서, 흐름, 공유대상이 같은 자를 쓴다 */
     kindMatches?: (pattern: string, type: string) => boolean;
     registerDeferred?: (stub: KarmoLabLazyWidgetStub) => void;
     getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
-    /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */
+    /** KL-054. vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */
     ensureScript?: (path: string) => Promise<void>;
-    /** KL-103 — 앞머리(world/·vendor/·root/) 규약을 실제 URL 로 푸는 **단일** 해석기. 로더도 이걸 쓴다. */
+    /** KL-103. 앞머리(world/, vendor/, root/) 규약을 실제 URL 로 푸는 **단일** 해석기. 로더도 이걸 쓴다. */
     resolveScriptPath?: (rawPath: string) => string;
     register: (config: {
       id: string;
@@ -294,11 +294,11 @@ declare global {
     findBundleFor: (id: string) => string | null;
     /** 묶음으로 옮겨 오며 원래 찾던 도구 id (한 번만 준다, TASK-KL-273) */
     takeBundleRequest?: (bundleId?: string) => string | null;
-    /** 갈래 목록 (id·label·icon) — 라벨의 단일 출처 */
+    /** 갈래 목록 (id, label, icon). 라벨의 단일 출처 */
     getCategories?: () => Array<{ id: string; label: string; icon: string }>;
     /**
-     * 위젯이 건 타이머·전역 리스너를 거두는 뒷정리 (TASK-KL-100).
-     * `build(container)` **안에서** 부른다 — 그때만 누구 것인지 알 수 있다.
+     * 위젯이 건 타이머, 전역 리스너를 거두는 뒷정리 (TASK-KL-100).
+     * `build(container)` **안에서** 부른다. 그때만 누구 것인지 알 수 있다.
      * 도구를 다시 그리거나 같은 id 로 다시 등록하면(핫 교체) 그 직전에 불린다.
      * DOM 리스너는 노드가 갈리며 같이 죽으므로 적을 필요 없다. 타이머가 진짜 대상이다.
      */
@@ -306,13 +306,13 @@ declare global {
     /**
      * 안 보는 동안 멈춘다 (change.widget-idle-cost).
      *
-     * 장은 화면을 옮겨도 DOM 에 남는다(입력하던 값이 살아 있는 것이 계약이다) — 그래서 위젯이
+     * 장은 화면을 옮겨도 DOM 에 남는다(입력하던 값이 살아 있는 것이 계약이다). 그래서 위젯이
      * 건 그리기 루프도 같이 남았다. 정원 하나로 rAF 콜백이 2초에 120 → 1220 이 됐다(실측).
      * `onDispose` 와 다르다: **지우는 것이 아니라 멈추는 것**이고, 다시 오면 이어서 돈다.
      */
     onHide?: (fn: () => void) => void;
     onShow?: (fn: () => void) => void;
-    /** 보이는 동안만 도는 rAF 루프 — `requestAnimationFrame` 을 직접 쓰는 자리를 이걸로 바꾼다. */
+    /** 보이는 동안만 도는 rAF 루프. `requestAnimationFrame` 을 직접 쓰는 자리를 이걸로 바꾼다. */
     raf?: (fn: (time: number) => void) => { stop: () => void; start: () => void; readonly running: boolean };
     /** 안 보여도 계속 돌아야 하면 **이유를 적는다**(소리 깔개처럼). 이유 없는 예외는 없다. */
     keepAlive?: (why: string) => void;
@@ -334,9 +334,9 @@ declare global {
     displayResult?: (prefix: string, title: string, content: string, timeTaken: number | null, isError?: boolean) => void;
     /** 컨테이너 안에 결과 박스 (`<pre>` + 복사 버튼) 생성 */
     resultBox?: (container: HTMLElement, prefix: string) => void;
-    /** 복사 단일 seam (TASK-KL-088) — 클립보드 + 토스트 + 사용 계측. 복사한 내용은 계측에 안 실린다. */
+    /** 복사 단일 seam (TASK-KL-088). 클립보드 + 토스트 + 사용 계측. 복사한 내용은 계측에 안 실린다. */
     copyText?: (text: string, opts?: { message?: string; action?: string; toolId?: string }) => Promise<boolean>;
-    /** 복사 외의 「결과를 얻었다」 신호 (생성·변환·저장 등) */
+    /** 복사 외의 결과를 얻었다 신호 (생성, 변환, 저장 등) */
     trackUse?: (action: string, toolId?: string) => void;
     /** id 의 textContent 를 클립보드로 복사 + 토스트 */
     copyResult?: (contentId: string) => void;

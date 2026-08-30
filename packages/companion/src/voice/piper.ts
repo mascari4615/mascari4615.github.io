@@ -16,7 +16,7 @@ export interface PiperSpeechOptions {
   defaultVoice?: string;
   /** 말 길이 배수. 1보다 크면 느긋해진다. */
   lengthScale?: number;
-  /** 목소리마다 다른 말 길이 — 같은 모델을 결이 다른 여럿으로 갈라 쓴다. */
+  /** 목소리마다 다른 말 길이. 같은 모델을 결이 다른 여럿으로 갈라 쓴다. */
   lengthScaleFor?: Readonly<Record<string, number>>;
   log?: (message: string) => void;
 }
@@ -24,7 +24,7 @@ export interface PiperSpeechOptions {
 /**
  * 내 컴퓨터에서 도는 목소리.
  *
- * 여태 쓰던 것은 인터넷 건너편의 남의 목소리였다. 이건 파일 하나로 여기서 돈다 —
+ * 여태 쓰던 것은 인터넷 건너편의 남의 목소리였다. 이건 파일 하나로 여기서 돈다 . 
  * 인터넷이 끊겨도 말하고, 무슨 말을 했는지 밖으로 나가지 않는다.
  * 실측: 6초 분량을 0.45초에 만든다.
  *
@@ -38,7 +38,7 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
   const scratch = mkdtempSync(join(tmpdir(), 'companion-voice-'));
 
   function modelFor(voiceId?: string): string | null {
-    // `name@결` 이면 결을 떼고 모델을 찾는다 — 안 그러면 결이 붙는 순간 목소리가 사라진다.
+    // `name@결` 이면 결을 떼고 모델을 찾는다. 안 그러면 결이 붙는 순간 목소리가 사라진다.
     const bare = voiceId === undefined ? undefined : splitTone(voiceId).name;
     const wanted = bare && options.voices[bare] ? bare : fallback;
     const model = options.voices[wanted];
@@ -50,14 +50,14 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
     /**
      * 미리 한 번 돌려 둔다.
      *
-     * 첫 호출은 모델을 올리느라 느리다 — 그 느림이 하필 **처음 말 걸었을 때** 온다.
+     * 첫 호출은 모델을 올리느라 느리다. 그 느림이 하필 **처음 말 걸었을 때** 온다.
      * 첫인상이 제일 중요한 자리에서 제일 느린 셈이라, 창이 뜰 때 미리 데운다.
      */
     async warmUp(): Promise<void> {
       try {
         await this.synthesize('음', undefined);
       } catch {
-        // 못 데워도 말은 한다 — 조금 느릴 뿐이다.
+        // 못 데워도 말은 한다. 조금 느릴 뿐이다.
       }
     },
     // wav 다. 형식을 틀리게 알려주면 브라우저가 소리를 아예 안 낸다.
@@ -77,8 +77,8 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
       const args = ['--model', model, '--output_file', out];
       // 결은 그 목소리 고유의 빠르기를 **덮어쓰지 않고 곱한다.**
       //
-      // 처음엔 덮어썼는데, 「느긋한」처럼 원래 느린 목소리에서는 처진 결이 거의 티가 안 났다
-      // (실측: 없음 99KB vs 처짐 101KB — 1.5% 차이). 결은 그 목소리가 원래 가진 결에서
+      // 처음엔 덮어썼는데, 느긋한처럼 원래 느린 목소리에서는 처진 결이 거의 티가 안 났다
+      // (실측: 없음 99KB vs 처짐 101KB. 1.5% 차이). 결은 그 목소리가 원래 가진 결에서
       // 얼마나 벗어나느냐지, 모든 목소리를 같은 속도로 만드는 게 아니다.
       const { name: bare, tone } = voiceId === undefined ? { name: undefined, tone: null } : splitTone(voiceId);
       const base = (bare ? options.lengthScaleFor?.[bare] : undefined) ?? options.lengthScale ?? 1;
@@ -103,7 +103,7 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
             } catch (e) {
               reject(e instanceof Error ? e : new Error(String(e)));
             } finally {
-              // 만든 소리는 바로 지운다 — 한 말이 디스크에 쌓이지 않게.
+              // 만든 소리는 바로 지운다. 한 말이 디스크에 쌓이지 않게.
               try { unlinkSync(out); } catch { /* 이미 없으면 그만 */ }
             }
           },

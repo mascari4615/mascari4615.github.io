@@ -1,8 +1,8 @@
 /**
- * 우주 데이터 중계 — 셈법과 「바깥이 죽었을 때」 (TASK-KL-241 follow-up).
+ * 우주 데이터 중계. 셈법과 바깥이 죽었을 때 (TASK-KL-241 follow-up).
  *
  * 여기서 지키는 것은 두 가지다: TLE 두 줄을 **자리로 잘라** 제대로 읽는가(공백으로 나누면
- * 값이 붙어 나오는 줄에서 조용히 어긋난다), 그리고 바깥이 403·429 로 막혔을 때
+ * 값이 붙어 나오는 줄에서 조용히 어긋난다), 그리고 바깥이 403, 429 로 막혔을 때
  * **낡은 값이라도 나오는가**(그게 이 파일이 생긴 이유다).
  */
 import { describe, expect, it } from 'vitest';
@@ -28,11 +28,11 @@ describe('TLE 읽기', () => {
 
   it('시각은 연도 두 자리 + 그 해 몇째 날', () => {
     expect(epochFromTle('26224.11681231').slice(0, 10)).toBe('2026-08-12');
-    // 57 보다 작으면 2000 년대 — 위성 시대가 1957 년에 시작해서 정해진 규칙이다
+    // 57 보다 작으면 2000 년대. 위성 시대가 1957 년에 시작해서 정해진 규칙이다
     expect(epochFromTle('98067.5').slice(0, 4)).toBe('1998');
   });
 
-  it('망가진 줄은 null — 반쯤 읽은 값으로 궤도를 그리면 위성이 엉뚱한 데 뜬다', () => {
+  it('망가진 줄은 null. 반쯤 읽은 값으로 궤도를 그리면 위성이 엉뚱한 데 뜬다', () => {
     expect(ommFromTle('ISS', '너무 짧다', L2)).toBeNull();
     expect(ommFromTle('ISS', L1, '2 25544  없음')).toBeNull();
   });
@@ -74,7 +74,7 @@ describe('나눠 쓰는 곳간', () => {
     expect([a.value, b.value, d.value]).toEqual([1, 1, 1]);
   });
 
-  it('바깥이 막히면 낡은 값이라도 준다 — 403·429 가 곧 빈 화면이 되면 안 된다', async () => {
+  it('바깥이 막히면 낡은 값이라도 준다. 403, 429 가 곧 빈 화면이 되면 안 된다', async () => {
     let alive = true;
     let now = 0;
     const c = new SharedCache<string>(100, 5000, async () => (alive ? 'fresh' : null), () => now);

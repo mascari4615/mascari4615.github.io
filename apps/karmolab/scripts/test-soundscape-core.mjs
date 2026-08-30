@@ -1,5 +1,5 @@
 /**
- * 소리 풍경 알맹이 — 겹과 크기의 규칙 (TASK-KL-248).
+ * 소리 풍경 알맹이. 겹과 크기의 규칙 (TASK-KL-248).
  *
  * 소리는 귀로 확인해야 하지만, **무너지는 자리는 대개 귀 앞에서 정해진다**:
  * 겹이 빠졌거나, 크기가 곱셈이 아니라 덧셈으로 걸렸거나, 프리셋이 없는 겹을 부르거나.
@@ -23,7 +23,7 @@ const check = (ok, why) => {
     failures.push(why);
   }
 };
-const eq = (got, want, label) => check(got === want, `${label}: 「${got}」 (기대 「${want}」)`);
+const eq = (got, want, label) => check(got === want, `${label}: ${got} (기대 ${want})`);
 
 async function load() {
   const entry = path.join(os.tmpdir(), `ss-core-${Date.now()}.ts`);
@@ -36,7 +36,7 @@ async function load() {
   return mod;
 }
 
-/** 소리를 내지 않는 가짜 장치 — 마디를 잇고 값을 기억하기만 한다. */
+/** 소리를 내지 않는 가짜 장치. 마디를 잇고 값을 기억하기만 한다. */
 function fakeAudio() {
   const started = [];
   const param = () => ({
@@ -104,7 +104,7 @@ for (const want of ['fire', 'brook', 'hum']) {
 eq(S.levelToGain('rain', 0), 0, '0 은 완전한 무음');
 check(S.levelToGain('rain', 1) > 0, '1 은 그 겹의 최대');
 {
-  /* 귀는 크기를 곱셈으로 느낀다 — 반으로 내리면 넷의 하나가 되어야 「반만큼 작아졌다」로 들린다. */
+  /* 귀는 크기를 곱셈으로 느낀다. 반으로 내리면 넷의 하나가 되어야 반만큼 작아졌다로 들린다. */
   const half = S.levelToGain('rain', 0.5);
   const full = S.levelToGain('rain', 1);
   check(Math.abs(half / full - 0.25) < 0.01, `반으로 내리면 네 배 작아진다 (지금 ${(half / full).toFixed(3)})`);
@@ -117,7 +117,7 @@ eq(S.levelToGain('없는겹', 1), 0, '모르는 겹은 소리가 안 난다');
 {
   const s = new S.Soundscape();
   check(!s.running, '만들자마자는 꺼져 있다');
-  /* 켜기 전에 정한 크기도 기억해야 한다 — 슬라이더를 먼저 올리는 사람이 있다. */
+  /* 켜기 전에 정한 크기도 기억해야 한다. 슬라이더를 먼저 올리는 사람이 있다. */
   s.set('rain', 0.6);
   eq(s.get('rain'), 0.6, '꺼져 있어도 크기를 기억한다');
   s.start();
@@ -134,11 +134,11 @@ eq(S.levelToGain('없는겹', 1), 0, '모르는 겹은 소리가 안 난다');
 }
 
 {
-  /* 지구본은 여섯 겹만 쓴다 — 모닥불은 이 별의 소리가 아니다. */
+  /* 지구본은 여섯 겹만 쓴다. 모닥불은 이 별의 소리가 아니다. */
   const s = new S.Soundscape(['drone', 'wave']);
   s.start();
   s.set('fire', 1);
-  /* 예전엔 「없거나, 있어도 값이 1이면 통과」였다 — 뒷줄이 **고장 난 경우를 그대로 통과**시켰다
+  /* 예전엔 없거나, 있어도 값이 1이면 통과였다. 뒷줄이 **고장 난 경우를 그대로 통과**시켰다
    * (안 고른 겹이 생기면 값이 1일 테니까). 조건 하나로 못 박는다. */
   check(!s.active().includes('fire'), '고르지 않은 겹은 만들지 않는다');
   s.stop();
@@ -154,7 +154,7 @@ eq(S.levelToGain('없는겹', 1), 0, '모르는 겹은 소리가 안 난다');
 }
 
 /* ── 미리 섞어 둔 것 ─────────────────────────────────────────────── */
-check(S.PRESETS.length >= 5, '프리셋이 다섯 이상 — 아홉 개 슬라이더는 시작점이 아니다');
+check(S.PRESETS.length >= 5, '프리셋이 다섯 이상. 아홉 개 슬라이더는 시작점이 아니다');
 const ids = new Set(S.LAYERS.map((l) => l.id));
 for (const p of S.PRESETS) {
   const bad = Object.keys(p.mix).filter((k) => !ids.has(k));

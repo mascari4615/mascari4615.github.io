@@ -1,14 +1,14 @@
 /**
- * 사진을 스캔처럼 — 비뚤어진 종이를 반듯하게 (TASK-KL-316 / 28)
+ * 사진을 스캔처럼. 비뚤어진 종이를 반듯하게 (TASK-KL-316 / 28)
  *
  * 책상 위 서류를 찍으면 **사다리꼴**이 된다. 그걸 접수처에 내면 되돌아온다.
- * 네 모서리를 알면 반듯한 직사각형으로 되돌릴 수 있다 — 그게 원근 되돌리기(homography)다.
+ * 네 모서리를 알면 반듯한 직사각형으로 되돌릴 수 있다. 그게 원근 되돌리기(homography)다.
  *
- * 모서리는 **사람이 끌어서** 잡는다. 자동으로 찾는 건 조명·무늬에 잘 속고, 한 번 어긋나면
+ * 모서리는 **사람이 끌어서** 잡는다. 자동으로 찾는 건 조명, 무늬에 잘 속고, 한 번 어긋나면
  * 사람이 왜 틀렸는지 알 수 없다. 네 점을 끄는 건 3초면 되고 늘 맞는다.
  *
- * 그다음 「스캔처럼」 보이게 손본다: 회색으로 바꾸고 **자리마다 밝기 기준을 따로** 잡는다
- * (책 그림자 아래도 안 뭉개지게 — 한 기준으로 자르면 그림자 쪽이 통째로 까맣게 된다).
+ * 그다음 스캔처럼 보이게 손본다: 회색으로 바꾸고 **자리마다 밝기 기준을 따로** 잡는다
+ * (책 그림자 아래도 안 뭉개지게. 한 기준으로 자르면 그림자 쪽이 통째로 까맣게 된다).
  */
 import type { ToolRunner, ToolSpec } from './types';
 
@@ -24,10 +24,10 @@ export const spec: ToolSpec = {
 };
 
 export type Point = { x: number; y: number };
-/** 왼위 · 오른위 · 오른아래 · 왼아래 */
+/** 왼위, 오른위, 오른아래, 왼아래 */
 export type Corners = [Point, Point, Point, Point];
 
-/** 여덟 개 미지수를 푸는 작은 가우스 소거 — 라이브러리를 들일 만한 크기가 아니다. */
+/** 여덟 개 미지수를 푸는 작은 가우스 소거. 라이브러리를 들일 만한 크기가 아니다. */
 function solve(matrix: number[][], rhs: number[]): number[] {
   const n = rhs.length;
   const a = matrix.map((row, i) => [...row, rhs[i]]);
@@ -69,7 +69,7 @@ export function homography(corners: Corners, width: number, height: number): num
   return [...h, 1];
 }
 
-/** 네 점이 이루는 종이의 대략적인 크기 — 결과 크기를 여기서 정한다(늘어나 보이지 않게). */
+/** 네 점이 이루는 종이의 대략적인 크기. 결과 크기를 여기서 정한다(늘어나 보이지 않게). */
 export function guessSize(corners: Corners): { width: number; height: number } {
   const len = (a: Point, b: Point): number => Math.hypot(a.x - b.x, a.y - b.y);
   const width = Math.round(Math.max(len(corners[0], corners[1]), len(corners[3], corners[2])));
@@ -114,7 +114,7 @@ export function warp(pixels: Uint8ClampedArray, srcW: number, srcH: number, corn
 export type Look = 'color' | 'gray' | 'scan';
 
 /**
- * 스캔처럼 보이게. `scan` 은 **자리마다 기준을 따로** 잡는다 —
+ * 스캔처럼 보이게. `scan` 은 **자리마다 기준을 따로** 잡는다 . 
  * 한 기준으로 자르면 그림자 쪽이 통째로 까맣게 된다(책 사진에서 늘 그렇다).
  */
 export function enhance(pixels: Uint8ClampedArray, width: number, height: number, look: Look, strength = 12): Uint8ClampedArray {
@@ -172,7 +172,7 @@ export function enhance(pixels: Uint8ClampedArray, width: number, height: number
   return out;
 }
 
-/** A4 에 얹을 때의 크기(mm) — 긴 쪽을 맞추고 비율은 지킨다. */
+/** A4 에 얹을 때의 크기(mm). 긴 쪽을 맞추고 비율은 지킨다. */
 export function fitA4(width: number, height: number): { widthMm: number; heightMm: number; landscape: boolean } {
   const landscape = width > height;
   const pageW = landscape ? 297 : 210;

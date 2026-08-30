@@ -1,7 +1,7 @@
 /**
  * 소리 크기 맞추기를 진짜 소리로 확인한다 (TASK-KL-088)
  *
- * 이 도구는 「했다」는 말이 쉬운 종류다. 파일은 항상 나오고 파형도 항상 그려진다.
+ * 이 도구는 했다는 말이 쉬운 종류다. 파일은 항상 나오고 파형도 항상 그려진다.
  * 진짜로 봐야 할 것은 셋이다:
  *  ① 큰 대목과 작은 대목의 **차이가 실제로 좁아졌는지** (이게 이 도구의 존재 이유)
  *  ② 목표 크기를 **넘지 않았는지** (넘으면 찌그러진다)
@@ -88,7 +88,7 @@ const result = await page.evaluate(async () => {
 
   // 결과 파일을 직접 잰다.
   // 이 시험이 보는 것은 **소리 처리 계산**이므로 손실 없는 쪽으로 받는다 (MP3 길은 test-mp3 가 본다).
-  // 저장은 형식을 만드느라 비동기다 — 누르자마자 읽으면 아직 아무것도 없다.
+  // 저장은 형식을 만드느라 비동기다. 누르자마자 읽으면 아직 아무것도 없다.
   host.querySelector('#alFormat').value = 'wav';
   let outBlob = null;
   const orig = URL.createObjectURL;
@@ -112,13 +112,13 @@ const result = await page.evaluate(async () => {
   const gapAfter = loudAfter / Math.max(1e-6, quietAfter);
   const target = Math.pow(10, -1 / 20);
 
-  // 부호가 유지되는지 — 사인파의 앞부분이 양수로 시작해야 한다
+  // 부호가 유지되는지. 사인파의 앞부분이 양수로 시작해야 한다
   let firstNonZero = 0;
   for (let i = 1; i < 200; i++) if (Math.abs(out[i]) > 1e-4) { firstNonZero = out[i]; break; }
 
   return {
     ok: gapAfter < gapBefore * 0.6 && loudAfter <= target + 0.02 && firstNonZero > 0,
-    why: `차이 ${gapBefore.toFixed(1)}배 → ${gapAfter.toFixed(1)}배 (40% 이상 좁아져야 함) · 가장 큰 소리 ${loudAfter.toFixed(3)} (목표 ${target.toFixed(3)} 이하) · 부호 ${firstNonZero > 0 ? '유지' : '뒤집힘'}`
+    why: `차이 ${gapBefore.toFixed(1)}배 → ${gapAfter.toFixed(1)}배 (40% 이상 좁아져야 함), 가장 큰 소리 ${loudAfter.toFixed(3)} (목표 ${target.toFixed(3)} 이하), 부호 ${firstNonZero > 0 ? '유지' : '뒤집힘'}`
   };
 });
 
@@ -129,4 +129,4 @@ if (!result.ok) {
   console.error('[test-audiolevel] 소리 크기 맞추기가 제대로 돌지 않는다');
   process.exit(1);
 }
-console.log('[test-audiolevel] 큰·작은 소리 차이가 실제로 좁아지고 목표를 넘지 않는 것까지 확인');
+console.log('[test-audiolevel] 큰, 작은 소리 차이가 실제로 좁아지고 목표를 넘지 않는 것까지 확인');

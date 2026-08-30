@@ -36,7 +36,7 @@ const DEFAULTS: Record<string, string> = {
 
 const SLUGS = Object.keys(SLUG_TO_VAR);
 
-/** 빈 문자열은 무시하고 DEFAULTS 유지 (저장·불러오기 깨짐 방지) */
+/** 빈 문자열은 무시하고 DEFAULTS 유지 (저장, 불러오기 깨짐 방지) */
 function mergeThemeData(raw: Record<string, string>): Record<string, string> {
   const out = { ...DEFAULTS };
   for (const s of SLUGS) {

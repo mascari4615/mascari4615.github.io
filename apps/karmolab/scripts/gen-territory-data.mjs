@@ -1,18 +1,18 @@
 /**
- * 영토 지도의 원자료 만들기 — 전국 브랜드 점포 위치 (TASK-KL-334)
+ * 영토 지도의 원자료 만들기. 전국 브랜드 점포 위치 (TASK-KL-334)
  *
  * 왜 스크립트인가: 이 자료는 **하루에 몇 번 바뀌는 것이 아니라 분기에 한 번** 바뀐다.
  * 방문자가 열 때마다 OSM 에 물으면 남의 서버를 때리고, 느리고, 오프라인에서 죽는다.
  * 그래서 여기서 한 번 받아 `data/territory/*.json` 으로 굳혀 둔다.
  *
- * ## 지금 자료는 OSM 이다 — 그리고 그건 표본이다 (중요)
+ * ## 지금 자료는 OSM 이다. 그리고 그건 표본이다 (중요)
  *
  * OSM 한국 편의점은 **16,310곳**인데 실제는 5만 곳이 넘는다(CU 3,194 ↔ 실제 1만7천).
  * 브랜드 **비율**은 실제와 얼추 맞지만(CU≈GS25 > 세븐 > 이마트24), **내 동네의 진짜 최근접
- * 가게가 빠져 있을 수 있다.** 그러니 화면에 「표본」이라고 적는다 — 안 적으면 지도가 거짓말을 한다.
+ * 가게가 빠져 있을 수 있다.** 그러니 화면에 표본이라고 적는다. 안 적으면 지도가 거짓말을 한다.
  *
- * 정본으로 갈아탈 자리는 공공데이터포털 「소상공인시장진흥공단_상가(상권)정보」 CSV 다
- * (전국 상가 전수, 상호명·업종·위경도, 분기 갱신). 받으려면 **로그인이 필요해서** AI 가 못 받는다 —
+ * 정본으로 갈아탈 자리는 공공데이터포털 소상공인시장진흥공단_상가(상권)정보 CSV 다
+ * (전국 상가 전수, 상호명, 업종, 위경도, 분기 갱신). 받으려면 **로그인이 필요해서** AI 가 못 받는다 . 
  * 사람이 한 번 받아 `--csv <경로>` 로 물려 주면 그때부터 같은 파이프라인이다.
  *
  * ## 쓰는 법
@@ -24,10 +24,10 @@
  * `--dump` 는 `<폴더>/<업종>.osm.json` 을 읽는다. Overpass 한 번 긁는 데 몇 분이 걸리고 실패도 잦아서,
  * 받아 둔 것으로 다시 짓는 길을 열어 둔다 (사전을 고쳐 다시 돌릴 때 여기가 없으면 매번 몇 분을 버린다).
  *
- * ## 파일 모양 — 왜 좌표를 정수로 접나
+ * ## 파일 모양. 왜 좌표를 정수로 접나
  *
  * 소수점 5자리(≈1m)면 충분한데 `37.4979123456` 을 그대로 쓰면 한 점이 20바이트다. 5자리 정수로
- * 접고(3749791) **정렬한 뒤 앞 점과의 차이만** 적으면 대부분 서너 자리로 줄어든다 —
+ * 접고(3749791) **정렬한 뒤 앞 점과의 차이만** 적으면 대부분 서너 자리로 줄어든다 . 
  * 같은 자료가 3분의 1 크기가 되고, gzip 이 한 번 더 줄인다.
  */
 import fs from 'node:fs';
@@ -68,7 +68,7 @@ async function overpass(body) {
       return JSON.parse(text);
     } catch (e) {
       lastErr = e;
-      console.error('  [overpass] ' + url + ' 실패 — ' + String(e).slice(0, 100));
+      console.error('  [overpass] ' + url + ' 실패. ' + String(e).slice(0, 100));
     }
   }
   throw lastErr;
@@ -100,11 +100,11 @@ function shapeOsm(data, industry) {
     if (typeof lat !== 'number' || typeof lon !== 'number') continue;
     out.push({ lat, lng: lon, brand });
   }
-  return { stores: out, source: 'OpenStreetMap (ODbL) — 표본', sample: true, scanned: data.elements.length };
+  return { stores: out, source: 'OpenStreetMap (ODbL). 표본', sample: true, scanned: data.elements.length };
 }
 
 /**
- * 상가정보 CSV. 칸 이름이 판마다 조금씩 달라서 **머리글에서 찾아 쓴다** — 자리(index)로 읽으면
+ * 상가정보 CSV. 칸 이름이 판마다 조금씩 달라서 **머리글에서 찾아 쓴다**. 자리(index)로 읽으면
  * 다음 분기에 조용히 어긋난다.
  */
 function fromCsv(file, industry) {
@@ -139,7 +139,7 @@ function fromCsv(file, industry) {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
     out.push({ lat, lng, brand });
   }
-  return { stores: out, source: '소상공인시장진흥공단 상가(상권)정보 — 전수', sample: false, scanned };
+  return { stores: out, source: '소상공인시장진흥공단 상가(상권)정보. 전수', sample: false, scanned };
 }
 
 /** 따옴표 안의 쉼표를 지키는 최소 CSV 쪼개기. */
@@ -208,7 +208,7 @@ async function build(industry, csv, dumpDir) {
   fs.writeFileSync(out, JSON.stringify(file));
   const kb = (fs.statSync(out).size / 1024).toFixed(0);
   console.log(
-    industry.padEnd(12) + got.stores.length + '곳 / ' + got.scanned + '건 훑음 · ' + kb + 'KB · ' +
+    industry.padEnd(12) + got.stores.length + '곳 / ' + got.scanned + '건 훑음, ' + kb + 'KB, ' +
       Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + v).join(', ')
   );
 }

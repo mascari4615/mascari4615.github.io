@@ -1,14 +1,14 @@
 /**
- * 문자 변환 허브 — 알맹이 (흡수 ⓒ / 02 문서 「한·일·중 공통 수요」)
+ * 문자 변환 허브. 알맹이 (흡수 ⓒ / 02 문서 한, 일, 중 공통 수요)
  *
- * 한 화면에서 끝나야 하는 변환들이 지금은 흩어져 있거나 없다. 규칙으로 되는 것(전각·반각,
- * 로마자, 자모)과 **표가 있어야 되는 것(간체↔번체·병음)** 을 함께 담는다. 표는 유니코드
+ * 한 화면에서 끝나야 하는 변환들이 지금은 흩어져 있거나 없다. 규칙으로 되는 것(전각, 반각,
+ * 로마자, 자모)과 **표가 있어야 되는 것(간체↔번체, 병음)** 을 함께 담는다. 표는 유니코드
  * Unihan 에서 찍어 왔다. 간체↔번체 표(31KB)는 함께 실어 인터넷 없이 돌고, 소리 표(167KB)는
- * 커서 **건네받는다** — 전각·반각만 쓰러 온 사람에게까지 물릴 수는 없다.
+ * 커서 **건네받는다**. 전각, 반각만 쓰러 온 사람에게까지 물릴 수는 없다.
  *
- * MCP 로 내놓는 이유: 전각·반각은 눈으로 **거의 구분이 안 된다**. ＡＢ 와 AB 는 다른 글자인데
- * 화면에서는 폭만 다르게 보이고, 그래서 「검색이 안 된다 / 로그인이 안 된다 / 엑셀 조회가
- * 0건이다」로 나타난다. 모델에게 물으면 「같은 글자입니다」라고 답하는 일이 잦다.
+ * MCP 로 내놓는 이유: 전각, 반각은 눈으로 **거의 구분이 안 된다**. ＡＢ 와 AB 는 다른 글자인데
+ * 화면에서는 폭만 다르게 보이고, 그래서 검색이 안 된다 / 로그인이 안 된다 / 엑셀 조회가
+ * 0건이다로 나타난다. 모델에게 물으면 같은 글자입니다라고 답하는 일이 잦다.
  */
 import { SIMP_TO_TRAD, SIMP_TO_TRAD_AMBIGUOUS, TRAD_TO_SIMP, TRAD_TO_SIMP_AMBIGUOUS } from './han-table.generated';
 import { compose, decompose } from './jamo';
@@ -19,10 +19,10 @@ export const spec: ToolSpec = {
   ops: {
     width: {
       desc:
-        'Convert between full-width (ＡＢ１２) and half-width (AB12) characters — they look almost' +
+        'Convert between full-width (ＡＢ１２) and half-width (AB12) characters. they look almost' +
         ' identical on screen but are different code points, which is why a search, a login, or an' +
         ' Excel lookup silently returns nothing. mode = half (default) or full.' +
-        ' / 전각↔반각. 눈으로 거의 구분이 안 돼 검색·로그인·조회가 조용히 실패하는 자리.',
+        ' / 전각↔반각. 눈으로 거의 구분이 안 돼 검색, 로그인, 조회가 조용히 실패하는 자리.',
       in: { text: 'string', mode: 'string?' },
       out: 'string'
     },
@@ -69,7 +69,7 @@ export const spec: ToolSpec = {
 
 /**
  * 아스키 33~126 은 전각 영역(FF01~FF5E)과 **일대일**로 대응한다. 그래서 표가 필요 없다.
- * 공백만 예외 — 전각 공백은 U+3000 이라 그 자리에 없다.
+ * 공백만 예외. 전각 공백은 U+3000 이라 그 자리에 없다.
  */
 const FULL_START = 0xff01;
 const FULL_END = 0xff5e;
@@ -98,7 +98,7 @@ export function toFullWidth(text: string): string {
   return out;
 }
 
-/** 전각이 섞여 있나 — 「왜 검색이 안 되지」의 답이 대개 여기다. */
+/** 전각이 섞여 있나. 왜 검색이 안 되지의 답이 대개 여기다. */
 export function hasFullWidth(text: string): boolean {
   for (const ch of text) {
     const c = ch.codePointAt(0) ?? 0;
@@ -110,10 +110,10 @@ export function hasFullWidth(text: string): boolean {
 /* ── 한글 → 로마자 ───────────────────────────────────────────────────────── */
 
 /**
- * 국어의 로마자 표기법(2000 고시)의 **글자 대응표**. 초성·중성·종성 순서는 `jamo` 것과 같다.
+ * 국어의 로마자 표기법(2000 고시)의 **글자 대응표**. 초성, 중성, 종성 순서는 `jamo` 것과 같다.
  *
- * ★ 한계를 먼저 적는다 — 이 변환은 **음운 변화를 적용하지 않는다.**
- * 「신라」는 규정상 Silla 인데 여기서는 sinra 가 나온다. 자음동화·구개음화·된소리되기를
+ * ★ 한계를 먼저 적는다. 이 변환은 **음운 변화를 적용하지 않는다.**
+ * 신라는 규정상 Silla 인데 여기서는 sinra 가 나온다. 자음동화, 구개음화, 된소리되기를
  * 제대로 하려면 형태소 경계를 알아야 하고, 그건 사전이 필요한 일이다.
  * 그래서 **틀린 값을 맞다고 내놓는 대신, 무엇을 안 했는지 답에 적는다.**
  */
@@ -146,7 +146,7 @@ export function romanize(text: string): string {
   return out;
 }
 
-/** 음운 변화가 걸릴 만한 자리가 있나 — 있으면 답에 「그대로 쓰면 안 될 수 있다」를 붙인다. */
+/** 음운 변화가 걸릴 만한 자리가 있나. 있으면 답에 그대로 쓰면 안 될 수 있다를 붙인다. */
 export function needsSoundChange(text: string): boolean {
   const chars = [...text].filter((c) => c >= '가' && c <= '힣');
   for (let i = 0; i + 1 < chars.length; i++) {
@@ -155,7 +155,7 @@ export function needsSoundChange(text: string): boolean {
     if (jong === '') continue;
     /*
      * 받침 뒤에 자음이 오면 대개 소리가 바뀐다. 초성 ㅇ 앞은 연음이라 표기가 안 바뀐다.
-     * (여기서 `cho` 는 **자모 글자**다 — 처음에 빈 문자열과 견주는 바람에 「강아지」까지
+     * (여기서 `cho` 는 **자모 글자**다. 처음에 빈 문자열과 견주는 바람에 강아지까지
      *  경고가 붙었다. 시험이 잡았다.)
      */
     if (cho !== 'ㅇ') return true;
@@ -166,7 +166,7 @@ export function needsSoundChange(text: string): boolean {
 /* ── 간체 ⟷ 번체 ─────────────────────────────────────────────────────────── */
 
 /**
- * 찍어 낸 짝 글(`가나다라…`)을 두 글자씩 끊어 표로 편다. 파일을 켤 때 한 번만 한다 —
+ * 찍어 낸 짝 글(`가나다라...`)을 두 글자씩 끊어 표로 편다. 파일을 켤 때 한 번만 한다 . 
  * 글자마다 문자열을 뒤지면 긴 글에서 눈에 띄게 느려진다.
  */
 const pairMap = (pairs: string): Map<string, string> => {
@@ -180,7 +180,7 @@ const pairMap = (pairs: string): Map<string, string> => {
 const TO_SIMP = pairMap(TRAD_TO_SIMP);
 const TO_TRAD = pairMap(SIMP_TO_TRAD);
 
-/** 갈림 글(`发發髮 …`) — 첫 글자가 원본, 나머지가 후보다. */
+/** 갈림 글(`发發髮 ...`). 첫 글자가 원본, 나머지가 후보다. */
 const ambMap = (packed: string): Map<string, string[]> => {
   const map = new Map<string, string[]>();
   for (const group of packed.split(' ')) {
@@ -207,7 +207,7 @@ export function toTraditional(text: string): string {
 /**
  * **뜻을 봐야 정해지는 글자**들을 골라낸다.
  *
- * 간체 한 글자가 번체 여럿으로 갈리는 일이 있다 — 发 는 「보내다(發)」와 「머리카락(髮)」이
+ * 간체 한 글자가 번체 여럿으로 갈리는 일이 있다. 发 는 보내다(發)와 머리카락(髮)이
  * 같은 글자로 합쳐진 것이다. 낱말 사전 없이 하나를 고르면 **조용히 틀린 글**이 나온다.
  * 그래서 고르되(첫 후보), 어떤 글자가 갈렸는지 반드시 함께 말한다.
  */
@@ -229,19 +229,19 @@ export function ambiguousChars(text: string, toTrad: boolean): { ch: string; can
 
 export interface PinyinTable {
   read: Map<string, string>;
-  /** 소리가 여럿이라고 Unihan 이 적어 둔 글자 — 화면이 「뜻을 봐야 한다」고 말할 자리. */
+  /** 소리가 여럿이라고 Unihan 이 적어 둔 글자. 화면이 뜻을 봐야 한다고 말할 자리. */
   many: Map<string, string[]>;
 }
 
 /**
- * 표를 편다. 표는 **묶음에 안 박고 건네받는다** — 2만 자짜리(170KB)라, 전각·반각만 쓰러 온
- * 사람에게까지 물릴 수는 없다. 화면은 「병음」을 고를 때 받아 오고, MCP 는 파일에서 읽는다.
+ * 표를 편다. 표는 **묶음에 안 박고 건네받는다**. 2만 자짜리(170KB)라, 전각, 반각만 쓰러 온
+ * 사람에게까지 물릴 수는 없다. 화면은 병음을 고를 때 받아 오고, MCP 는 파일에서 읽는다.
  */
 export function parsePinyinTable(raw: { chars: string; readings: string; many?: string }): PinyinTable {
   const chars = [...raw.chars];
   const readings = raw.readings.split(' ');
   if (chars.length !== readings.length) {
-    throw new Error(`병음 표가 어긋났습니다 — 글자 ${chars.length}개인데 소리 ${readings.length}개입니다`);
+    throw new Error(`병음 표가 어긋났습니다. 글자 ${chars.length}개인데 소리 ${readings.length}개입니다`);
   }
   const read = new Map<string, string>();
   for (let i = 0; i < chars.length; i++) read.set(chars[i], readings[i]);
@@ -258,8 +258,8 @@ export function parsePinyinTable(raw: { chars: string; readings: string; many?: 
 /**
  * 성조를 숫자로. `hàn` → `han4`.
  *
- * 글자를 낱낱으로 풀면(NFD) 성조는 **모음에 붙은 별도 부호**가 된다 — 그 부호 하나만 보면
- * 되니 모음 표를 손으로 적을 필요가 없다(적으면 ü·ê 같은 데서 빠뜨린다).
+ * 글자를 낱낱으로 풀면(NFD) 성조는 **모음에 붙은 별도 부호**가 된다. 그 부호 하나만 보면
+ * 되니 모음 표를 손으로 적을 필요가 없다(적으면 ü, ê 같은 데서 빠뜨린다).
  */
 const TONE_MARKS: Record<string, string> = {
   '̄': '1',
@@ -278,7 +278,7 @@ export function toneNumber(syllable: string): string {
       tone = mark;
       continue;
     }
-    /* ü 의 두 점(U+0308)은 성조가 아니라 **글자의 일부**다 — 버리면 lǜ 가 lu 가 된다(다른 소리다). */
+    /* ü 의 두 점(U+0308)은 성조가 아니라 **글자의 일부**다. 버리면 lǜ 가 lu 가 된다(다른 소리다). */
     if (ch === '̈') {
       out += ch;
       continue;
@@ -289,9 +289,9 @@ export function toneNumber(syllable: string): string {
   return out.normalize('NFC') + tone;
 }
 
-/** 성조를 아예 뺀다. `hàn` → `han`. 파일 이름·아이디에 쓰는 사람이 이걸 찾는다. */
+/** 성조를 아예 뺀다. `hàn` → `han`. 파일 이름, 아이디에 쓰는 사람이 이걸 찾는다. */
 export function stripTone(syllable: string): string {
-  /* U+0308(ü 의 두 점)만 남긴다 — 성조가 아니라 글자다. */
+  /* U+0308(ü 의 두 점)만 남긴다. 성조가 아니라 글자다. */
   return syllable
     .normalize('NFD')
     .replace(/[̀-̇̉-ͯ]/g, '')
@@ -301,7 +301,7 @@ export function stripTone(syllable: string): string {
 export type ToneStyle = 'mark' | 'number' | 'none';
 
 /**
- * 한자를 소리로 바꾼다. 한자가 아닌 글자는 **그대로 둔다** — 사이에 낀 쉼표·숫자를 지우면
+ * 한자를 소리로 바꾼다. 한자가 아닌 글자는 **그대로 둔다**. 사이에 낀 쉼표, 숫자를 지우면
  * 사람이 원문과 대조를 못 한다. 표에 없는 한자도 그대로 둔다(지우면 없어진 줄도 모른다).
  */
 export function pinyinOf(table: PinyinTable, text: string, tone: ToneStyle = 'mark'): string {
@@ -329,7 +329,7 @@ export function pinyinOf(table: PinyinTable, text: string, tone: ToneStyle = 'ma
   return out.trim();
 }
 
-/** 소리가 여럿인 글자 골라내기 — 간체·번체의 갈림 알림과 같은 약속이다. */
+/** 소리가 여럿인 글자 골라내기. 간체, 번체의 갈림 알림과 같은 약속이다. */
 export function manyReadings(table: PinyinTable, text: string): { ch: string; readings: string[] }[] {
   const seen = new Set<string>();
   const out: { ch: string; readings: string[] }[] = [];
@@ -353,7 +353,7 @@ export const run: ToolRunner = (op, args, deps) => {
     const result = toFull ? toFullWidth(text) : toHalfWidth(text);
     const lines = [result];
     if (toFull === false && hasFullWidth(text)) {
-      lines.push('', 'Note: full-width characters were mixed in — that is often why search, login, or lookups silently failed.');
+      lines.push('', 'Note: full-width characters were mixed in. that is often why search, login, or lookups silently failed.');
     }
     return lines.join('\n');
   }
@@ -385,11 +385,11 @@ export const run: ToolRunner = (op, args, deps) => {
   }
 
   if (op === 'pinyin') {
-    /* 표는 부르는 쪽이 준다. 없으면 **원문을 그대로 돌려주지 않는다** — 그러면 「안 바뀌었네」
+    /* 표는 부르는 쪽이 준다. 없으면 **원문을 그대로 돌려주지 않는다**. 그러면 안 바뀌었네
        하고 넘어가게 된다. 못 한다고 말하는 편이 낫다. */
     const raw = deps?.hanPinyin as { chars?: string; readings?: string; many?: string } | undefined;
     if (raw === undefined || raw === null || typeof raw.chars !== 'string' || typeof raw.readings !== 'string') {
-      throw new Error('Pinyin table missing — pass data/han-pinyin.json separately because the table is large');
+      throw new Error('Pinyin table missing. pass data/han-pinyin.json separately because the table is large');
     }
     const table = parsePinyinTable({ chars: raw.chars, readings: raw.readings, many: raw.many });
     const tone: ToneStyle = mode === 'number' || mode === 'none' ? mode : 'mark';

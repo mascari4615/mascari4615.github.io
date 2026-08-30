@@ -1,5 +1,5 @@
 {
-  "$comment": "apps/play/games.json 에서 만들어진다 — 여기를 고치지 마라 (npm run gen:play-roster).",
+  "$comment": "apps/play/games.json 에서 만들어진다. 여기를 고치지 마라 (npm run gen:play-roster).",
   "games": [
     {
       "id": "daily",
@@ -13,7 +13,7 @@
       "title": "높은 쪽 고르기",
       "emoji": "📈",
       "url": "/#higher",
-      "lead": "둘 중 큰 쪽만 고른다 — 한 번 틀리면 끝"
+      "lead": "둘 중 큰 쪽만 고른다. 한 번 틀리면 끝"
     },
     {
       "id": "quest",
@@ -34,14 +34,14 @@
       "title": "유령 타자 대결",
       "emoji": "👻",
       "url": "/#ghosttype",
-      "lead": "앞선 사람의 유령과 나란히 달린다 — 기록이 주소가 된다"
+      "lead": "앞선 사람의 유령과 나란히 달린다. 기록이 주소가 된다"
     },
     {
       "id": "worldcup",
       "title": "이상형 월드컵",
       "emoji": "👑",
       "url": "/#worldcup",
-      "lead": "둘 중 하나만 고른다 — 표를 만들면 그대로 내 월드컵"
+      "lead": "둘 중 하나만 고른다. 표를 만들면 그대로 내 월드컵"
     },
     {
       "id": "reaction",
@@ -62,14 +62,14 @@
       "title": "오늘의 한글 타자",
       "emoji": "⌨️",
       "url": "/t/dailytype/",
-      "lead": "모두 같은 다섯 줄 — 오늘 하루만 나오는 문장"
+      "lead": "모두 같은 다섯 줄. 오늘 하루만 나오는 문장"
     },
     {
       "id": "dailycho",
       "title": "오늘의 초성",
       "emoji": "🔤",
       "url": "/t/dailycho/",
-      "lead": "초성만 보고 낱말 다섯 — 답은 이 사이트의 도구 이름"
+      "lead": "초성만 보고 낱말 다섯. 답은 이 사이트의 도구 이름"
     }
   ]
 }
