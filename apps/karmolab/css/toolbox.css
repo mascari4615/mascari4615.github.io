@@ -52,6 +52,8 @@
        `var(--accent-fg)` 로 흰 글자를 썼는데, 어두운 판의 accent 는 **밝은 라벤더**라
        흰 글자는 2.45:1 이다. 사실상 안 읽힌다. 판마다 반대 색을 쓴다: 어두운 판 7.76, 밝은 판 6.31. */
     --accent-fg: #0f1016;
+    /* 상태색으로 칠한 자리의 글자. 칠이 밝으면 어두운 잉크로 바꿔 끼운다 */
+    --status-fg: #ffffff;
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.10);
     --accent-subtle: rgba(167, 155, 239, 0.07);
@@ -186,6 +188,7 @@
     --accent: #5f4dc2;         /* 연보라 잉크. 다크(#a99bf5)와 같은 hue, 흰 위에서 읽히게 어둡게 */
     --accent-ink: var(--accent);
     --accent-fg: #ffffff;      /* 밝은 판 accent 는 어두우므로 글자는 흰색 (6.31:1) */
+    --status-fg: #ffffff;
     --accent-hover: #4f3eb0;
     --accent-dim: rgba(95, 77, 194, 0.10);
     --accent-subtle: rgba(95, 77, 194, 0.07);
@@ -3608,6 +3611,7 @@ html[data-skin="field"] {
 
     --accent: #e8963a;
     --accent-fg: #2a2a27;
+    --status-fg: #ffffff;      /* 밝은 판. 상태색이 어두우므로 흰 글자 6.7:1 */
     --accent-hover: #d9783a;
     --accent-dim: rgba(232, 150, 58, 0.12);
     --accent-subtle: rgba(232, 150, 58, 0.07);
@@ -3695,6 +3699,7 @@ html[data-skin="field"][data-theme="dark"] {
     --accent-ink: #f3bd70;      /* 주황 글자용. 세 번째 판 위 5.0:1 */
 
     --accent-fg: #2a2a27;
+    --status-fg: #2a2a27;      /* 어두운 판. 상태색이 밝으므로 어두운 잉크 6.2:1 */
     --accent-dim: rgba(232, 150, 58, 0.16);
     --accent-glow: rgba(232, 150, 58, 0.3);
 

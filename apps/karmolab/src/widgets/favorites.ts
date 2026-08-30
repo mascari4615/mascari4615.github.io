@@ -333,7 +333,7 @@ import { t, loadNamespace } from '../lib/i18n';
         .fav-add-form .form-group { display:flex; flex-direction:column; gap:4px; }
         .fav-add-form label { font-size:var(--font-size-2xs); color:var(--text-tertiary); }
         .fav-item-wrap { position:relative; }
-        .fav-item-wrap .fav-remove { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:var(--error); color:#fff; border:none; cursor:pointer; font-size:var(--font-size-2xs); line-height:1; opacity:0; transition:opacity var(--transition); display:flex; align-items:center; justify-content:center; z-index:1; }
+        .fav-item-wrap .fav-remove { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:var(--error); color:var(--status-fg); border:none; cursor:pointer; font-size:var(--font-size-2xs); line-height:1; opacity:0; transition:opacity var(--transition); display:flex; align-items:center; justify-content:center; z-index:1; }
         .fav-item-wrap:hover .fav-remove { opacity:1; }
         .fav-remove:hover { background:#dc2626; }
         .fav-view-toggle-btn { padding:8px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:var(--transition); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; }

@@ -244,7 +244,7 @@ function injectStyle(): void {
     }
     .karmo-ctx-item[disabled] { color:var(--text-tertiary); cursor:default; }
     .karmo-ctx-item.danger { color:var(--error); }
-    .karmo-ctx-item.danger:hover:not([disabled]) { background:var(--error); color:#fff; }
+    .karmo-ctx-item.danger:hover:not([disabled]) { background:var(--error); color:var(--status-fg); }
     .karmo-ctx-sep { height:1px; margin:4px 2px; background:var(--border); }
     `;
     document.head.appendChild(style);

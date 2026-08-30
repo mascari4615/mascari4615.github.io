@@ -67,7 +67,7 @@
 
         .cb-msg { max-width:80%; padding:10px 14px; border-radius:var(--radius-xl); font-size:var(--font-size-sm); line-height:1.6; animation:fadeIn 0.3s ease; word-break:break-word; }
         .cb-msg-user {
-            align-self:flex-end; background:var(--accent); color:#fff;
+            align-self:flex-end; background:var(--accent); color:var(--accent-fg);
             border-bottom-right-radius:4px; white-space:pre-wrap;
         }
         .cb-msg-bot {
@@ -98,7 +98,7 @@
         .cb-cursor-blink { animation:cbCursorBlink 0.8s step-end infinite; color:var(--accent-ink); }
         @keyframes cbCursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-        .cb-stop-btn { background:var(--error); color:#fff; border:none; border-radius:var(--radius-md); cursor:pointer; font-size:var(--font-size-xs); padding:6px 14px; font-family:inherit; font-weight:600; }
+        .cb-stop-btn { background:var(--error); color:var(--status-fg); border:none; border-radius:var(--radius-md); cursor:pointer; font-size:var(--font-size-xs); padding:6px 14px; font-family:inherit; font-weight:600; }
 
         .cb-typing span {
             display:inline-block; width:5px; height:5px; background:var(--text-tertiary);
@@ -113,7 +113,7 @@
         .cb-input-row { display:flex; gap:8px; }
         .cb-input-row textarea { flex:1; min-height:40px; max-height:80px; resize:none; font-size:var(--font-size-sm); padding:8px 12px; }
         .cb-send-btn {
-            width:40px; background:var(--accent); color:#fff; border:none;
+            width:40px; background:var(--accent); color:var(--accent-fg); border:none;
             border-radius:var(--radius-md); cursor:pointer; font-size:var(--font-size-sm);
             display:flex; align-items:center; justify-content:center;
             transition:background var(--transition);
@@ -127,13 +127,13 @@
             display:flex; align-items:center; justify-content:center; transition:all var(--transition);
         }
         .cb-mic-btn:hover { border-color:var(--accent); color:var(--accent-ink); }
-        .cb-mic-btn.recording { background:var(--error); color:#fff; border-color:var(--error); animation:cbMicPulse 1s infinite; }
+        .cb-mic-btn.recording { background:var(--error); color:var(--status-fg); border-color:var(--error); animation:cbMicPulse 1s infinite; }
         @keyframes cbMicPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
         .cb-attach-area { display:flex; gap:6px; align-items:center; margin-bottom:4px; flex-wrap:wrap; }
         .cb-attach-thumb { width:48px; height:48px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--border); position:relative; }
         .cb-attach-wrap { position:relative; display:inline-block; }
-        .cb-attach-remove { position:absolute; top:-4px; right:-4px; width:16px; height:16px; border-radius:50%; background:var(--error); color:#fff; border:none; font-size:var(--font-size-2xs); line-height:16px; text-align:center; cursor:pointer; padding:0; }
+        .cb-attach-remove { position:absolute; top:-4px; right:-4px; width:16px; height:16px; border-radius:50%; background:var(--error); color:var(--status-fg); border:none; font-size:var(--font-size-2xs); line-height:16px; text-align:center; cursor:pointer; padding:0; }
         .cb-attach-btn { background:none; border:1px dashed var(--border); border-radius:var(--radius-sm); width:40px; height:40px; font-size:var(--font-size-md); cursor:pointer; color:var(--text-tertiary); display:flex; align-items:center; justify-content:center; }
         .cb-attach-btn:hover { border-color:var(--accent); color:var(--accent-ink); }
         .cb-input-area.drag-over { outline:2px dashed var(--accent); outline-offset:-2px; border-radius:var(--radius-md); }

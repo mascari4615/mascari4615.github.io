@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../lib/i18n';
           Mdd.linePreset('tool_run', { msg: t('news.t04') });
           container.innerHTML = `
                     <div style="height:350px; background:#111; border:4px solid #333; border-radius:var(--radius-xl); overflow:hidden; display:flex; flex-direction:column; position:relative;">
-                        <div style="background:var(--error); color:#fff; font-weight:bold; padding:10px; text-align:center; letter-spacing:2px; z-index:10; box-shadow:0 2px 10px rgba(0,0,0,0.5);">${esc(t('news.t01'))}</div>
+                        <div style="background:var(--error); color:var(--status-fg); font-weight:bold; padding:10px; text-align:center; letter-spacing:2px; z-index:10; box-shadow:0 2px 10px rgba(0,0,0,0.5);">${esc(t('news.t01'))}</div>
                         <div id="newsMarquee" style="flex:1; position:relative; overflow:hidden; background:#0a0a0a; color:#ccc; font-family:serif;">
                             <div id="newsContent" style="position:absolute; width:100%; padding:20px; font-size:var(--font-size-sm); line-height:1.8; text-align:justify;">
                             </div>
