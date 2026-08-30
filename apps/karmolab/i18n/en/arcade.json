@@ -4,7 +4,7 @@
   "arcade.lobby.hint": "Pick an experiment. Empty seats are filled by bots.",
   "arcade.label.name": "Name",
   "arcade.aria.name": "Name to use in the arcade",
-  "arcade.name.default": "Assistant",
+  "arcade.name.default": "Guest",
   "arcade.btn.menu": "Menu",
   "arcade.btn.emote": "Send a reaction",
   "arcade.btn.quit": "Back to the lab",

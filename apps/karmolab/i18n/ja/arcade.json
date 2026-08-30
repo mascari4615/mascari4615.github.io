@@ -4,7 +4,7 @@
   "arcade.lobby.hint": "実験をひとつ選んでください。空いた席にはボットが座ります。",
   "arcade.label.name": "名前",
   "arcade.aria.name": "ゲームコーナーで使う名前",
-  "arcade.name.default": "助手",
+  "arcade.name.default": "ゲスト",
   "arcade.btn.menu": "メニュー",
   "arcade.btn.emote": "リアクション",
   "arcade.btn.quit": "研究室へ",
