@@ -640,7 +640,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ychudname{font-size:var(--font-size-sm);white-space:nowrap}',
       '.ac-ychudcard.ac-me .ac-ychudname{font-weight:700}',
       '.ac-ychudname small{font-size:var(--font-size-4xs);color:#8a7050;letter-spacing:.08em;margin-left:3px}',
-      '.ac-ychudscore{font-size:var(--font-size-xl);font-variant-numeric:tabular-nums;line-height:1.1}',
+      '.ac-ychudscore{font-size:var(--font-size-title);font-variant-numeric:tabular-nums;line-height:1.1}',
       '.ac-ychudsub{margin-top:4px;padding-top:4px;border-top:1px dashed rgba(80,55,30,.35);font-size:var(--font-size-xs);color:#8a5a1a;white-space:nowrap}',
       '.ac-ychudsub i{display:inline-block;width:1px;height:10px;background:rgba(80,55,30,.4);vertical-align:middle;margin:0 4px}',
       /* 카드의 얼굴과 말풍선(MDD). 얼굴은 카드 왼쪽 위 도형, 말풍선은 카드 위 종이쪽 */
