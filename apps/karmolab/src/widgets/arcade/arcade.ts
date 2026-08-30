@@ -723,6 +723,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '  .ac-yccombo b{font-size:clamp(22px,7vw,40px)}',
       '  .ac-yccombo.ac-lv3 b{font-size:clamp(30px,10vw,56px)}',
       '  .ac-ycresult{min-width:0;width:calc(100vw - 48px);max-width:360px}',
+      /* 판이 끝나면 종이를 접는다. 폰에서는 종이가 결과 상자의 1위 줄을 덮었다(실측) */
+      '  #acPlay:has(#acOver:not([style*="none"])) .ac-ycpaper.ac-pin{display:none}',
       '}',
       /* 최근 여덟 판 막대 */
       '.ac-ycspark{display:flex;align-items:flex-end;gap:4px;height:38px;margin-top:6px}',
