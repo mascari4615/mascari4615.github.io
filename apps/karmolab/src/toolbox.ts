@@ -1446,125 +1446,70 @@ const Toolbox = (() => {
         // Build sidebar nav groups
         const sidebarNavEl = document.getElementById('sidebar-nav');
         if (sidebarNavEl) {
-            function buildSidebarGroup(catId, label, catTools, defaultOpen = true, countBadge = false, iconPath = '', isCategory = false) {
-                if (!catTools.length) return;
-                // 내 것은 처음부터 펴 둔다. 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
-                /* 기본은 **펴 둔다** (2026-08-19). 갈래 시절에는 칸 하나가 41줄이라 접는 것이
-                 * 맞았지만, 지금 칸은 내 것, 많이 쓰는 것, 최근 = 열댓 줄이다. 접어 두면 옆줄에
-                 * 이름 셋만 남아 아무것도 못 고른다. 접는 뜻이 사라졌다. */
-                const isOpen = getSidebarGroupState()[catId] !== undefined
-                    ? getSidebarGroupState()[catId]
-                    : defaultOpen;
-                const wrap = document.createElement('div');
-                wrap.className = 'sidebar-group' + (isCategory ? ' sidebar-group--cat' : '');
-                const trigger = document.createElement('button');
-                trigger.type = 'button';
-                trigger.className = 'sidebar-group-trigger' + (isOpen ? ' open' : '');
-                trigger.setAttribute('aria-expanded', String(isOpen));
-                /* 레일에서는 라벨이 안 보인다. 아이콘만 남으므로 이름은 툴팁으로 */
-                trigger.title = label;
-                trigger.innerHTML = '<span class="chevron" aria-hidden="true"></span>'
-                    /* 갈래 아이콘. 접힌 상태에서 글자 없이도 어느 갈래인지 잡히게 */
-                    + (iconPath
-                        ? '<svg class="sidebar-group-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" '
-                          + 'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
-                          + 'aria-hidden="true">' + iconPath + '</svg>'
-                        : '')
-                    + '<span class="sidebar-group-label">' + label + '</span>'
-                    + (countBadge ? '<span class="sidebar-group-count">' + catTools.length + '</span>' : '');
-                const body = document.createElement('div');
-                body.className = 'sidebar-group-body' + (isOpen ? ' open' : '');
-                /* 옆줄 항목도 **필요할 때 만든다** (TASK-KL-128 런타임).
-                 * 머리띠 차림에서는 이 옆줄 자체가 안 보이는데, 부팅 때 도구 줄을 다 만들고
-                 * 있었다. 접힌 무리는 열 때, 펴 둔 무리는 화면이 한가해진 뒤에 채운다 . 
-                 * 어느 쪽이든 사람이 보기 전에는 다 채워져 있다. */
-                let bodyFilled = false;
-                function fillBodyOnce() {
-                    if (bodyFilled) return;
-                    bodyFilled = true;
-                    catTools.forEach(tool => addNavItem(body, tool));
-                }
-                if (isOpen) {
-                    const idle = window.requestIdleCallback || function (f) { setTimeout(f, 200); };
-                    idle(fillBodyOnce);
-                }
-                trigger.onclick = () => {
-                    /* 레일에서는 갈래 몸통이 안 보인다. 접은 채로 누르면 아무 일도 안 일어난 것처럼
-                     * 보이므로, 먼저 펴 주고 그 갈래를 연다 (누른 뜻은 그 갈래를 보겠다는 것) */
-                    if (isCategory && getSidebarCollapsed()) {
-                        setSidebarCollapsed(false);
-                        fillBodyOnce();
-                        body.classList.add('open');
-                        trigger.classList.add('open');
-                        trigger.setAttribute('aria-expanded', 'true');
-                        setSidebarGroupState({ ...getSidebarGroupState(), [catId]: true });
-                        return;
-                    }
-                    fillBodyOnce();
-                    const open = body.classList.toggle('open');
-                    trigger.classList.toggle('open', open);
-                    trigger.setAttribute('aria-expanded', String(open));
-                    setSidebarGroupState({ ...getSidebarGroupState(), [catId]: open });
-                };
-                wrap.appendChild(trigger);
-                wrap.appendChild(body);
-                sidebarNavEl.appendChild(wrap);
+            /* 옆줄은 갈래 탭 줄 + 고른 갈래의 도구 목록 (change.karmolab-shell-redesign, 2026-08-30)
+             * 예전 접힘 목록(갈래 아홉 아코디언)은 폐기. R12 짜임: 위 아이콘 탭, 아래 38px 행
+             * 탭 첫 칸은 내 것(별). 고른 탭은 저장, 도구를 열면 그 갈래로 따라감 */
+            const SIDEBAR_TAB_KEY = 'toolbox_sidebar_tab';
+            const STAR_ICON = '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>';
+            let sidebarTab = localStorage.getItem(SIDEBAR_TAB_KEY) || 'mine';
+            function catToolsOf(catId) {
+                const list = tools.filter(t => t.category === catId
+                    && !hiddenSet.has(t.id)
+                    && !(isDesktopOnlyTool(t) && !isDesktopApp()));
+                list.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
+                return list;
             }
-
-            /* ── 옆줄은 **머리띠와 같은 것**을 보여 준다 (2026-08-19, 사용자 결정) ──────
-             *
-             * 여기 있던 갈래 8칸은 머리띠에서 걷어낸 그 나눔이다. 한쪽에서 쓸모없다고
-             * 판정한 것을 다른 쪽에서 계속 그리면, 같은 사이트가 두 가지 말을 한다.
-             * 게다가 목록을 두 벌 그리면 규칙도 두 벌이 되어 한쪽만 고쳐지는 날이 온다
-             * (실제로 그랬다: 머리띠에는 없던 `lab` 칸이 옆줄에만 있고, 내 것은 옆줄만
-             * 별을 즉시 반영했다).
-             *
-             * 그래서 칸을 **같은 함수**(`sections()`)에서 받는다. 내 것, 많이 쓰는 것 , 
-             * 최근 본 것. 머리띠 판을 세로로 편 것이 옆줄이고, 셈은 한 곳에서만 한다.
-             * 갈래로 훑는 길은 팔레트의 둘러보기와 전체 목록 장이 받는다. */
-            /* 옆줄 두 켜. 위는 내 것(별, 최근), 아래는 갈래 아홉
-             * 정본은 memo 의 앱 셸 System
-             * 도구 234개 전량 나열 시 세로 7,456px. 실측 선례 최대가 109개(shadcn 문서)
-             * 그래서 Grafana, shadcn 방식으로 갈래 접기. 지금 도구가 든 갈래만 펼침 */
-            /* 옆줄 위 칸은 **내 것(별) 하나만** (2026-08-30). 많이 쓰는 것 6줄과 최근 6줄까지
-             * 얹으니 1600x900 에서 갈래 아홉 중 여섯이 첫 화면 밖으로 밀렸다. 갈래가 지도인데
-             * 지도가 스크롤 아래 있었다. 둘은 팔레트(Ctrl K)와 첫 화면이 그대로 맡는다. */
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
-                sections().slice(0, 1).forEach((sec, i) => {
-                    if (sec.tools.length) {
-                        buildSidebarGroup('side-' + i, sec.label, sec.tools);
-                        return;
-                    }
-                    // 빈 칸도 남긴다. 내 것이 통째로 사라지면 별을 꽂을 수 있다는 것 자체를 모른다.
-                    const wrap = document.createElement('div');
-                    wrap.className = 'sidebar-group';
-                    const label = document.createElement('div');
-                    label.className = 'sidebar-group-label sidebar-group-label--flat';
-                    label.textContent = sec.label;
+                const mine = sections().slice(0, 1)[0];
+                const nowTool = tools.find(t => t.id === currentPageId);
+                if (nowTool && nowTool.category && nowTool.category !== 'app') sidebarTab = nowTool.category;
+                const tabs = [{ id: 'mine', label: mine ? mine.label : '', icon: STAR_ICON, tools: mine ? mine.tools : [], empty: mine ? mine.empty : '' }]
+                    .concat(getCategories().map(cat => ({ id: cat.id, label: cat.label, icon: cat.icon || '', tools: catToolsOf(cat.id), empty: '' }))
+                        .filter(t => t.tools.length));
+                if (!tabs.some(t => t.id === sidebarTab)) sidebarTab = 'mine';
+                const row = document.createElement('div');
+                row.className = 'sidebar-tabs';
+                row.setAttribute('role', 'tablist');
+                tabs.forEach(t => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const on = t.id === sidebarTab;
+                    btn.className = 'sidebar-tab' + (on ? ' active' : '');
+                    btn.setAttribute('role', 'tab');
+                    btn.setAttribute('aria-selected', String(on));
+                    btn.title = t.label;
+                    btn.innerHTML = '<svg class="sidebar-tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" '
+                        + 'stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + t.icon + '</svg>'
+                        + '<span class="sidebar-tab-label">' + t.label + '</span>';
+                    btn.onclick = () => {
+                        /* 레일에서 누르면 먼저 펴기. 누른 뜻은 그 갈래 보기 */
+                        if (getSidebarCollapsed()) setSidebarCollapsed(false);
+                        sidebarTab = t.id;
+                        localStorage.setItem(SIDEBAR_TAB_KEY, t.id);
+                        rebuildMineGroup();
+                    };
+                    row.appendChild(btn);
+                });
+                sidebarNavEl.appendChild(row);
+                const cur = tabs.find(t => t.id === sidebarTab) || tabs[0];
+                const head = document.createElement('div');
+                head.className = 'sidebar-list-head';
+                head.innerHTML = '<span class="sidebar-list-label">' + cur.label + '</span><span class="sidebar-list-count">' + cur.tools.length + '</span>';
+                sidebarNavEl.appendChild(head);
+                const list = document.createElement('div');
+                list.className = 'sidebar-list';
+                if (cur.tools.length) {
+                    cur.tools.forEach(tool => addNavItem(list, tool));
+                } else {
                     const note = document.createElement('p');
                     note.className = 'header-nav-section-empty';
-                    note.textContent = sec.empty;
-                    wrap.append(label, note);
-                    sidebarNavEl.appendChild(wrap);
-                });
-
-                /* 갈래. app 은 갈래가 아니라 위 고정 진입점이라 뺀다 */
-                /* 펼칠 갈래 판정은 저장값이 아니라 지금 값으로
-                 * 저장값은 화면 이동 뒤에 쓰여서 한 발 늦음 */
-                const nowTool = tools.find(t => t.id === currentPageId);
-                const nowCat = nowTool ? nowTool.category : null;
-                getCategories().forEach(cat => {
-                    const catTools = tools.filter(t => t.category === cat.id
-                        && !hiddenSet.has(t.id)
-                        && !(isDesktopOnlyTool(t) && !isDesktopApp()));
-                    if (!catTools.length) return;
-                    catTools.sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
-                    buildSidebarGroup('cat-' + cat.id, cat.label, catTools, cat.id === nowCat, true, cat.icon || '', true);
-                });
-                /* 바닥 줄은 **안 넣는다**. 옆줄 아래 링크 묶음에 도구 전체 목록이 이미 있다
-                 * (2026-08-19 실측). 머리띠 판에는 그 링크가 없어서 판 안에 뒀던 것이고,
-                 * 여기 또 두면 한 화면에 같은 문이 둘이다. */
+                    note.textContent = cur.empty;
+                    list.appendChild(note);
+                }
+                sidebarNavEl.appendChild(list);
+                const active = list.querySelector('.nav-item[data-page="' + currentPageId + '"]');
+                if (active) active.classList.add('active');
             };
             rebuildMineGroup();
             /* 별을 꽂거나 도구를 열면 그 자리에서 다시 그린다. 머리띠 판은 열 때마다 세지만

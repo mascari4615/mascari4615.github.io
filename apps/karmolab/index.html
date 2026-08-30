@@ -60,6 +60,9 @@ permalink: /
     <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/">
     <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/">
     <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/">
+    <link rel="alternate" hreflang="en" href="https://blog.mascari4615.com/en/">
+    <link rel="alternate" hreflang="ja" href="https://blog.mascari4615.com/ja/">
+    <link rel="alternate" hreflang="x-default" href="https://blog.mascari4615.com/">
     <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
          기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
          도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
@@ -267,10 +270,18 @@ permalink: /
                 <button type="button" class="header-btn sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-controls="sidebar" title="사이드바 접기 (Ctrl+B)" aria-label="사이드바 접기" data-i18n-title="shell.sidebar.collapse" data-i18n-aria-label="shell.sidebar.collapse">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
                 </button>
+                <div class="header-crumb">
                 <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" data-goto="home" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
+                <span class="header-crumb-sep" aria-hidden="true">/</span>
                 <span class="header-now" id="headerNow" aria-live="polite"></span>
+                </div>
             </div>
             <div class="header-bar-right">
+                <button type="button" class="header-search-box" id="sidebarSearchBtn" title="도구 찾기 (Ctrl+K)" aria-label="도구 찾기" data-i18n-title="shell.nav.all.hint" data-i18n-aria-label="shell.search.aria">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <span class="sidebar-search-text" data-i18n="shell.search.placeholder">도구 찾기</span>
+                        <span class="sidebar-search-kbd" aria-hidden="true">Ctrl K</span>
+                    </button>
                 <div class="window-controls" id="windowControls" data-desktop-only aria-hidden="true">
                     <button type="button" class="wc-btn wc-min" id="wcMinimize" title="최소화" aria-label="최소화" data-i18n-title="shell.window.min" data-i18n-aria-label="shell.window.min">
                         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6 H10" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
@@ -300,13 +311,6 @@ permalink: /
                 <!-- 찾기는 옆줄 맨 위 (2026-08-30). 예전엔 머리띠 가운데 입력칸이었고 옆줄
                      바닥에도 같은 문이 하나 더 있었다. 머리띠를 걷으면서 위로 올려 하나로 합친다.
                      입력칸이 아니라 버튼. 어차피 한 글자만 쳐도 찾는 창으로 넘기고 있었다. -->
-                <div class="sidebar-head">
-                    <button type="button" class="sidebar-search-box" id="sidebarSearchBtn" title="도구 찾기 (Ctrl+K)" aria-label="도구 찾기" data-i18n-title="shell.nav.all.hint" data-i18n-aria-label="shell.search.aria">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                        <span class="sidebar-search-text" data-i18n="shell.search.placeholder">도구 찾기</span>
-                        <span class="sidebar-search-kbd" aria-hidden="true">Ctrl K</span>
-                    </button>
-                </div>
                 <nav class="sidebar-nav" role="navigation" aria-label="도구 목록" data-i18n-aria-label="shell.sidebar.tools">
                     <div id="sidebar-nav"></div>
                 </nav>

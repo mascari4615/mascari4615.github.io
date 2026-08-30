@@ -3826,3 +3826,144 @@ html[data-skin="field"] .app-bg::after {
 }
 /* 클래식 첫 화면 꾸미기(떠다니는 그림)는 필드 장면과 중복. 필드에서 소거 */
 html[data-skin="field"] .home-decor { display: none; }
+
+/* ===================================================================
+   머리띠와 옆줄, 새 짜임 (change.karmolab-shell-redesign 3, 4단계)
+   레이아웃 하나. 스킨은 아래 토큰(--row-*, --band*, --cut, --skew)만 교체
+   =================================================================== */
+:root {
+    --row-h: 32px;
+    --row-gap: 1px;
+    --row-bg: transparent;
+    --row-bg-hover: var(--accent-subtle);
+    --tab-h: 28px;
+}
+html[data-skin="field"] {
+    --row-h: 38px;
+    --row-gap: 4px;
+    --row-bg: rgba(110, 108, 102, 0.30);
+    --row-bg-hover: rgba(110, 108, 102, 0.42);
+    --tab-h: 26px;
+}
+html[data-skin="field"][data-theme="dark"] {
+    --row-bg: rgba(239, 237, 230, 0.10);
+    --row-bg-hover: rgba(239, 237, 230, 0.18);
+}
+
+/* 경로 칩: 로고(홈) / 지금 도구. R12 의 흰 칩 */
+.header-crumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px 0 8px;
+    min-width: 0;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+}
+.header-crumb .header-logo { padding: 0; height: auto; }
+.header-crumb-sep { color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+.header-crumb .header-now { font-size: var(--font-size-2xs); font-weight: 700; color: var(--text-primary); }
+.header-crumb .header-now:empty, .header-crumb .header-now:empty + .header-crumb-sep, .header-crumb-sep:has(+ .header-now:empty) { display: none; }
+
+/* 검색은 머리띠 오른쪽 (R12). 옆줄 위에서 옮김 */
+.header-search-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 26px;
+    width: 220px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    font-size: var(--font-size-2xs);
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+}
+.header-search-box:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.header-search-box .sidebar-search-text { flex: 1; text-align: left; white-space: nowrap; }
+.header-search-box .sidebar-search-kbd { font-family: var(--font-mono); font-size: var(--font-size-4xs); opacity: .7; }
+@media (max-width: 768px) { .header-search-box { width: auto; } .header-search-box .sidebar-search-text { display: none; } }
+
+/* 갈래 탭 줄. 고른 탭만 이름이 붙고 띠 색으로 반전 */
+.sidebar-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 10px 8px 6px;
+}
+.sidebar-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: var(--tab-h);
+    min-width: var(--tab-h);
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-2xs);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+}
+.sidebar-tab:hover { color: var(--text-primary); background: var(--bg-hover); }
+.sidebar-tab .sidebar-tab-label { display: none; white-space: nowrap; }
+.sidebar-tab.active { background: var(--band); color: var(--band-ink); border-color: var(--band); padding-right: 10px; }
+.sidebar-tab.active .sidebar-tab-label { display: inline; }
+.sidebar-list-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 6px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-4xs);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+}
+.sidebar-list-count { opacity: .6; }
+.sidebar-list { display: flex; flex-direction: column; gap: var(--row-gap); padding: 0 8px; }
+
+/* 행. 필드: 회색 사각 38, 고른 것은 띠 반전 + 왼쪽 강조 3px (R12). 클래식은 토큰이 예전 값 */
+.sidebar-list .nav-item {
+    min-height: var(--row-h);
+    margin: 0;
+    padding: 0 10px 0 36px;
+    background: var(--row-bg);
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+}
+.sidebar-list .nav-item:hover { background: var(--row-bg-hover); }
+.sidebar-list .nav-item.active {
+    background: var(--band);
+    color: var(--band-ink);
+    border-left-color: var(--accent);
+    font-weight: 700;
+}
+.sidebar-list .nav-item.active .nav-icon { opacity: 1; }
+.sidebar-list .nav-icon { left: 13px; }
+
+/* 레일: 탭은 세로 아이콘만, 목록은 숨김 */
+html[data-sidebar="rail"] .sidebar-tabs { flex-direction: column; align-items: center; padding: 8px 0; }
+html[data-sidebar="rail"] .sidebar-tab { width: 32px; height: 32px; padding: 0; justify-content: center; }
+html[data-sidebar="rail"] .sidebar-tab.active { padding: 0; }
+html[data-sidebar="rail"] .sidebar-tab .sidebar-tab-label,
+html[data-sidebar="rail"] .sidebar-list-head,
+html[data-sidebar="rail"] .sidebar-list { display: none; }
+
+/* 필드는 도구 화면에서도 같은 장면. 클래식의 도구 화면 평면화는 안 받음 */
+html[data-skin="field"][data-view="tool"] .app-bg {
+    background-image:
+        radial-gradient(ellipse 520px 300px at 80% 20%, var(--scene-blob-a) 0%, transparent 70%),
+        radial-gradient(ellipse 480px 260px at 20% 92%, var(--scene-blob-b) 0%, transparent 70%),
+        radial-gradient(var(--scene-dot) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 20px 20px;
+}
+html[data-skin="field"][data-view="tool"] .app-bg::before { display: block; }
+html[data-skin="field"][data-view="tool"] .main-content { background: transparent; }
