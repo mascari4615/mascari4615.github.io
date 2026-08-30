@@ -45,7 +45,7 @@ function filter(ctx: AudioContext, type: BiquadFilterType, hz: number, q = 1): B
 /* 풍경 음. 높은 오음계. 낮으면 종이고, 이 높이라야 풍경이다 */
 const CHIME = [1568, 1760, 2093, 2349, 2637];
 
-export type Voice = 'day' | 'night' | 'study';
+export type Voice = 'day' | 'night' | 'study' | 'living';
 
 export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience {
   let ctx: AudioContext | null = null;
@@ -84,6 +84,30 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
     };
     (env as GainNode & { cry?: () => void }).cry = cry;
     return env;
+  };
+
+  /* 새 한 마리. 짧은 삐 서너 개. 높이가 위로 미끄러지면 새고, 아래로 미끄러지면 전자음(실측) */
+  const bird = (out: AudioNode): void => {
+    const c = ctx as AudioContext;
+    const base = 2400 + Math.random() * 1400;
+    const notes = 2 + Math.floor(Math.random() * 4);
+    let at = c.currentTime;
+    for (let k = 0; k < notes; k += 1) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      const f = base * (0.9 + Math.random() * 0.25);
+      o.frequency.setValueAtTime(f, at);
+      o.frequency.exponentialRampToValueAtTime(f * 1.35, at + 0.05);
+      o.frequency.exponentialRampToValueAtTime(f * 1.1, at + 0.11);
+      const a = c.createGain();
+      a.gain.setValueAtTime(0.0001, at);
+      a.gain.exponentialRampToValueAtTime(0.02, at + 0.012);
+      a.gain.exponentialRampToValueAtTime(0.0001, at + 0.13);
+      o.connect(a).connect(out);
+      o.start(at);
+      o.stop(at + 0.15);
+      at += 0.14 + Math.random() * 0.12;
+    }
   };
 
   const chime = (out: AudioNode): void => {
@@ -141,6 +165,9 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
     } else if (voice === 'night') {
       voices.push(cicadaVoice(master, 4300, 24, 0.022), cicadaVoice(master, 3800, 19, 0.014));
       windGain.gain.value = 0.06;
+    } else if (voice === 'living') {
+      /* 거실은 창밖 새와 옅은 바람. 매미도 비도 없다 */
+      windGain.gain.value = 0.07;
     } else {
       /* 비. 높은 잡음이 아주 천천히 세졌다 약해진다 */
       const rain = noise(c);
@@ -181,6 +208,10 @@ export function roomAmbience(host: HTMLElement, voice: Voice = 'day'): Ambience 
       if (voice === 'study' && now >= nextChime) {
         tick();
         nextChime = now + 1;
+      }
+      if (voice === 'living' && now >= nextChime) {
+        bird(master as GainNode);
+        nextChime = now + 3 + Math.random() * 9;
       }
     }, 500);
   };

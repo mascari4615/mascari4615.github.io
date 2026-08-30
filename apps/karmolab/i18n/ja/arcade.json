@@ -503,5 +503,6 @@
   "arcade.btn.scene": "部屋を変える",
   "arcade.scene.tatami": "和室",
   "arcade.scene.desk": "夜の机",
+  "arcade.scene.living": "居間",
   "arcade.scene.study": "書斎"
 }

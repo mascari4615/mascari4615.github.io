@@ -15,6 +15,7 @@ import {
   AmbientLight,
   BoxGeometry,
   CanvasTexture,
+  CylinderGeometry,
   CircleGeometry,
   Color,
   DirectionalLight,
@@ -46,7 +47,7 @@ import {
   WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
-import { cloudTexture, leatherTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
+import { cloudTexture, clothTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 import type { SceneId } from './scenes';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
@@ -139,10 +140,11 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const cross = opts.onCross === true;
   const room = opts.room === true;
   const sceneId: SceneId = room ? (opts.scene ?? 'tatami') : 'tatami';
-  /* 셋 중 하나. 다다미방은 오후 햇살, 밤 책상은 등불 하나, 서재는 저녁 창가 */
+  /* 넷 중 하나. 다다미방은 오후 햇살, 밤 책상은 등불 하나, 서재는 저녁 창가, 거실은 큰 창의 낮빛과 탁자 */
   const tatami = room && sceneId === 'tatami';
   const desk = room && sceneId === 'desk';
   const study = room && sceneId === 'study';
+  const lounge = room && sceneId === 'living';
   if (room) host.classList.add('ac-scene-' + sceneId);
   /* 살아 있는 방의 손잡이. 아래 breathe 가 매 프레임 만진다 */
   const living: { spot: SpotLight | null; cloud: SpotLight | null; lamp: PointLight | null; motes: Points | null; shafts: Mesh[]; seed: number } = { spot: null, cloud: null, lamp: null, motes: null, shafts: [], seed: Math.random() * 1000 };
@@ -218,11 +220,12 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 화면 밖에도 방이 이어진다는 신호. 오히려 방이 넓어 보임
    */
   /* 방 표현은 판을 비스듬히 보므로 앞줄이 가깝다. 1.06 으로 두니 앞줄이 프레임 밖으로 나갔다(실측). */
-  const reach = size * 0.5 * (opts.bowls && !room ? 1.42 : room ? 1.2 : 1.06);
+  /* 거실은 판이 소품. 한 걸음 더 물러서서 탁자 끝과 소파가 들어오게 */
+  const reach = size * 0.5 * (opts.bowls && !room ? 1.42 : lounge ? 1.36 : room ? 1.2 : 1.06);
   const fit = reach / Math.tan((fov * Math.PI) / 180 / 2);
   /* 카메라가 앉을 자리. 판이 끝나면 여기서 한 걸음 다가선다(`finish`) */
   /* 밤 책상은 거의 정수리 부감(레퍼런스 실측). 나머지는 앉은 눈높이 */
-  const seat = new Vector3(0, fit * (desk ? 0.98 : room ? 0.88 : 0.93), fit * (desk ? 0.22 : room ? 0.45 : 0.36));
+  const seat = new Vector3(0, fit * (desk ? 0.98 : lounge ? 0.8 : room ? 0.88 : 0.93), fit * (desk ? 0.22 : lounge ? 0.58 : room ? 0.45 : 0.36));
   /* 지금 향해 가는 자리. 들어올 때와 끝날 때만 움직인다 */
   const goal = seat.clone();
   camera.position.copy(seat);
@@ -241,13 +244,14 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 색이 갈려야 그림에 온도. 해는 뒤쪽(툇마루 쪽)에서 들어 그림자가 앞으로 누움
    */
   /* 전부 노란 빛으로 두면 방 전체에 노란 필터가 낀다(사용자 지적). 해만 살짝 따뜻하고 나머지는 흰 쪽 */
-  scene.add(new AmbientLight(0xffffff, desk ? 0.35 : room ? 0.28 : 1.45));
-  const hemi = desk ? new HemisphereLight(0x8fa3c4, 0x2a2018, 0.6) : study ? new HemisphereLight(0xe8eef5, 0x4a3a2c, 0.65) : new HemisphereLight(0xdde8f4, 0x4a3823, 0.8);
+  scene.add(new AmbientLight(0xffffff, desk ? 0.35 : lounge ? 0.34 : room ? 0.28 : 1.45));
+  const hemi = desk ? new HemisphereLight(0x8fa3c4, 0x2a2018, 0.6) : study ? new HemisphereLight(0xe8eef5, 0x4a3a2c, 0.65) : lounge ? new HemisphereLight(0xe9f0fa, 0x6a5a48, 0.9) : new HemisphereLight(0xdde8f4, 0x4a3823, 0.8);
   if (room) scene.add(hemi);
   /* 해. 밤 책상은 위에서 곧게(등불의 그림자 몫), 서재는 왼쪽 뒤 창에서 저녁 빛 */
-  const sun = new DirectionalLight(desk ? 0xfff1e0 : study ? 0xffe6cc : room ? 0xfff0dc : 0xfff3e0, desk ? 1.8 : study ? 2.0 : room ? 2.3 : 1.9);
+  const sun = new DirectionalLight(desk ? 0xfff1e0 : study ? 0xffe6cc : lounge ? 0xfff8ee : room ? 0xfff0dc : 0xfff3e0, desk ? 1.8 : study ? 2.0 : lounge ? 2.1 : room ? 2.3 : 1.9);
   if (desk) sun.position.set(size * 0.25, size * 2.2, size * 0.35);
   else if (study) sun.position.set(-size * 1.0, size * 1.0, -size * 0.35);
+  else if (lounge) sun.position.set(size * 1.25, size * 1.35, -size * 0.2);
   else if (room) sun.position.set(size * 0.9, size * 1.05, -size * 0.75);
   else sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
   sun.castShadow = true;
@@ -267,7 +271,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   sun.shadow.camera.top = shadowSpan;
   sun.shadow.camera.bottom = -shadowSpan;
   sun.shadow.camera.near = size * 0.4;
-  sun.shadow.camera.far = size * 3.2;
+  sun.shadow.camera.far = size * (lounge ? 4.2 : 3.2);
   sun.shadow.bias = -0.0008;
   sun.shadow.normalBias = 0.02;
   scene.add(sun);
@@ -277,7 +281,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 어두운 나무. 판보다 훨씬 어두워야 판이 앞으로 나옴
    */
   /* 방 표현은 다다미. 판만 나무면 판이 어디 놓였는지 모르고, 바닥까지 나무면 한 덩이가 된다 */
-  const floorMap = new CanvasTexture(desk ? plankTexture(29, 512) : study ? parquetTexture(53, 512) : room ? tatamiTexture(19, 512) : woodTexture(31, 256));
+  const floorMap = new CanvasTexture(desk ? plankTexture(29, 512) : study ? parquetTexture(53, 512) : lounge ? oakTexture(71, 512) : room ? tatamiTexture(19, 512) : woodTexture(31, 256));
   floorMap.colorSpace = SRGBColorSpace;
   if (room) {
     floorMap.wrapS = RepeatWrapping;
@@ -285,12 +289,17 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     /* 한 장이 다다미 반 장. 판 옆으로 여러 장이 이어져야 방이 된다. 밤 책상은 널 넉 장, 서재는 쪽매 여섯 */
     if (desk) floorMap.repeat.set(4, 4);
     else if (study) floorMap.repeat.set(5, 5);
+    else if (lounge) floorMap.repeat.set(6, 6);
     else floorMap.repeat.set(6, 3);
     floorMap.anisotropy = 4;
   }
-  const floorMat = new MeshStandardMaterial({ map: floorMap, color: desk ? 0x5a3b22 : room ? 0xffffff : 0x2b1d10, roughness: desk ? 0.5 : study ? 0.6 : room ? 0.94 : 0.98, metalness: desk ? 0.08 : 0 });
+  const floorMat = new MeshStandardMaterial({ map: floorMap, color: desk ? 0x5a3b22 : room ? 0xffffff : 0x2b1d10, roughness: desk ? 0.5 : study ? 0.6 : lounge ? 0.55 : room ? 0.94 : 0.98, metalness: desk ? 0.08 : 0 });
   const floor = new Mesh(new PlaneGeometry(size * 6, size * 6), floorMat);
   floor.rotation.x = -Math.PI / 2;
+  /* 거실은 판이 탁자 위 소품(레퍼런스). 마루는 탁자 다리만큼 아래 */
+  const legH = size * 0.42;
+  const floorY = lounge ? -legH - 0.1 : 0;
+  floor.position.y = floorY;
   floor.receiveShadow = true;
   scene.add(floor);
 
@@ -377,6 +386,71 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     scene.add(lamp);
     living.lamp = lamp;
   }
+  /* ── 거실의 소품: 낮은 탁자, 융단, 소파, 찻잔 ── (레퍼런스: 판이 탁자 위 소품, 앉기 전 장면) */
+  if (lounge) {
+    const walnutMap = new CanvasTexture(woodTexture(23, 256));
+    walnutMap.colorSpace = SRGBColorSpace;
+    const walnut = new MeshStandardMaterial({ map: walnutMap, color: 0x6a4630, roughness: 0.45, metalness: 0.06 });
+    /* 탁자 판. 오목판보다 넉넉히 넓고 낮다 */
+    const top = new Mesh(new BoxGeometry(size * 2.1, 0.1, size * 1.45), walnut);
+    top.position.set(0, -0.05, 0);
+    top.castShadow = true;
+    top.receiveShadow = true;
+    scene.add(top);
+    for (const [lx, lz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const leg = new Mesh(new BoxGeometry(0.12, legH, 0.12), walnut);
+      leg.position.set(lx * size * 0.95, -0.1 - legH / 2, lz * size * 0.62);
+      leg.castShadow = true;
+      scene.add(leg);
+    }
+    /* 융단. 탁자 밑 바닥에 한 장. 색은 서재보다 옅게 */
+    const rug = new Mesh(new PlaneGeometry(size * 3.4, size * 2.6), new MeshStandardMaterial({ map: rugMap, color: 0xd8d0c4, roughness: 1 }));
+    rug.rotation.x = -Math.PI / 2;
+    rug.position.set(0, floorY + 0.008, size * 0.1);
+    rug.receiveShadow = true;
+    scene.add(rug);
+    /* 소파. 탁자 뒤에 등받이 낮은 3인용. 앉는 자리 하나, 등받이 하나, 팔걸이 둘, 방석 셋 */
+    const clothMap = new CanvasTexture(clothTexture(73, 256));
+    clothMap.colorSpace = SRGBColorSpace;
+    clothMap.wrapS = RepeatWrapping;
+    clothMap.wrapT = RepeatWrapping;
+    clothMap.repeat.set(3, 3);
+    const cloth = new MeshStandardMaterial({ map: clothMap, color: 0xffffff, roughness: 1 });
+    const seatH = size * 0.3;
+    const sofaZ = -size * 1.35;
+    const seat = new Mesh(new BoxGeometry(size * 2.8, seatH, size * 0.85), cloth);
+    seat.position.set(0, floorY + seatH / 2, sofaZ);
+    seat.castShadow = true;
+    seat.receiveShadow = true;
+    scene.add(seat);
+    const back = new Mesh(new BoxGeometry(size * 2.8, size * 0.5, size * 0.22), cloth);
+    back.position.set(0, floorY + seatH + size * 0.25, sofaZ - size * 0.32);
+    back.castShadow = true;
+    scene.add(back);
+    for (const ax of [-1, 1]) {
+      const arm = new Mesh(new BoxGeometry(size * 0.22, size * 0.2, size * 0.85), cloth);
+      arm.position.set(ax * size * 1.29, floorY + seatH + size * 0.1, sofaZ);
+      arm.castShadow = true;
+      scene.add(arm);
+    }
+    for (const cx3 of [-0.85, 0, 0.85]) {
+      const cushion = new Mesh(new BoxGeometry(size * 0.78, size * 0.08, size * 0.75), cloth);
+      cushion.position.set(cx3 * size, floorY + seatH + size * 0.04, sofaZ + size * 0.02);
+      cushion.castShadow = true;
+      cushion.receiveShadow = true;
+      scene.add(cushion);
+    }
+    /* 찻잔. 탁자 오른쪽 앞 귀퉁이. 흰 사기 */
+    const china = new MeshStandardMaterial({ color: 0xf6f1ea, roughness: 0.35 });
+    const cup = new Mesh(new CylinderGeometry(size * 0.055, size * 0.045, size * 0.07, 24), china);
+    cup.position.set(size * 0.82, size * 0.035, size * 0.5);
+    cup.castShadow = true;
+    scene.add(cup);
+    const saucer = new Mesh(new CylinderGeometry(size * 0.095, size * 0.085, 0.012, 24), china);
+    saucer.position.set(size * 0.82, 0.006, size * 0.5);
+    saucer.receiveShadow = true;
+    scene.add(saucer);
+  }
   /* ── 서재의 소품: 판 밑 융단, 곁의 스탠드 ── */
   if (study) {
     /* 융단은 판보다 한 뼘 크게만. 바닥을 다 덮으면 쪽매 마루가 없는 방(실측) */
@@ -448,7 +522,7 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     scene.add(spot.target);
     living.spot = spot;
   }
-  if (tatami || study) {
+  if (tatami || study || lounge) {
     /* 구름 그늘. 위에서 넓게 비추는 등에 구름 무늬를 물린다. 등이 천천히 자리를 옮기면 그늘이 흘러간다 */
     const cloudMap = new CanvasTexture(cloudTexture(41, 512));
     cloudMap.colorSpace = SRGBColorSpace;
@@ -813,8 +887,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
     const s = t / 1000 + living.seed;
     /* 구름. 두 사인의 합. 0.5~1.0 사이를 40~90초 주기로. 해가 구름에 들면 방이 눈에 띄게 어두워진다 */
     const cloud = desk ? 1 : 0.75 + 0.25 * Math.sin(s * 0.09) * Math.cos(s * 0.043 + 1.3);
-    sun.intensity = (desk ? 1.8 : study ? 2.0 : 2.3) * cloud;
-    hemi.intensity = (desk ? 0.6 : study ? 0.65 : 0.8) * (0.8 + 0.2 * cloud);
+    sun.intensity = (desk ? 1.8 : study ? 2.0 : lounge ? 2.1 : 2.3) * cloud;
+    hemi.intensity = (desk ? 0.6 : study ? 0.65 : lounge ? 0.9 : 0.8) * (0.8 + 0.2 * cloud);
     if (living.lamp) {
       /* 등불은 숨쉬듯. 눈에 띄면 고장 난 전구다 */
       living.lamp.intensity = (desk ? 3.4 : 1.6) * (0.965 + 0.035 * Math.sin(s * 1.3) * Math.sin(s * 0.37 + 0.8));

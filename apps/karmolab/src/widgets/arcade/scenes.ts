@@ -5,22 +5,23 @@
  * (판은 커널이 들고 있으므로 화면만 새로 세우면 된다).
  *
  * 레퍼런스(스팀 오목 게임, `memo/projects/karmolab/reference/omok-gaja.md`)는 다다미방, 서재, 거실,
- * 밤 책상 넷. 여기서는 셋으로 시작한다. 그림과 소리는 전부 코드로 굽는다(파일 0)
+ * 밤 책상 넷. 넷 다 있다. 그림과 소리는 전부 코드로 굽는다(파일 0)
  */
-export type SceneId = 'tatami' | 'desk' | 'study';
+export type SceneId = 'tatami' | 'desk' | 'study' | 'living';
 
 export interface SceneSpec {
   id: SceneId;
   /** i18n 키 */
   label: string;
   /** 소리 목소리 (`ambience.ts`) */
-  voice: 'day' | 'night' | 'study';
+  voice: 'day' | 'night' | 'study' | 'living';
 }
 
 export const SCENES: readonly SceneSpec[] = [
   { id: 'tatami', label: 'arcade.scene.tatami', voice: 'day' },
   { id: 'desk', label: 'arcade.scene.desk', voice: 'night' },
-  { id: 'study', label: 'arcade.scene.study', voice: 'study' }
+  { id: 'study', label: 'arcade.scene.study', voice: 'study' },
+  { id: 'living', label: 'arcade.scene.living', voice: 'living' }
 ];
 
 const KEY = 'karmolab.arcade.scene';

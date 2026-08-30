@@ -503,5 +503,6 @@
   "arcade.btn.scene": "Change room",
   "arcade.scene.tatami": "Tatami room",
   "arcade.scene.desk": "Night desk",
+  "arcade.scene.living": "Living room",
   "arcade.scene.study": "Study"
 }

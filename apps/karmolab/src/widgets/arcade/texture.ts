@@ -236,6 +236,61 @@ export function plankTexture(seed = 29, size = 512): HTMLCanvasElement {
 }
 
 /**
+ * 밝은 참나무 널. 거실 마루. `plankTexture` 는 밤 책상의 어두운 호두나무라 색 곱하기로는 못 밝힘
+ */
+export function oakTexture(seed = 71, size = 512): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#c9a476';
+  c.fillRect(0, 0, size, size);
+  for (let i = 0; i < 220; i += 1) {
+    const y = r() * size;
+    c.strokeStyle = `rgba(${r() > 0.5 ? '232,204,160' : '120,84,48'},${(0.05 + r() * 0.16).toFixed(3)})`;
+    c.lineWidth = 0.6 + r() * 2.6;
+    c.beginPath();
+    c.moveTo(0, y);
+    c.bezierCurveTo(size * 0.33, y + (r() - 0.5) * 14, size * 0.66, y + (r() - 0.5) * 14, size, y + (r() - 0.5) * 8);
+    c.stroke();
+  }
+  /* 널 다섯 장. 틈은 어둡되 호두나무만큼 검지 않다 */
+  for (let k = 1; k < 5; k += 1) {
+    const y = (k / 5) * size;
+    c.fillStyle = 'rgba(70,44,20,.7)';
+    c.fillRect(0, y - 1.2, size, 2.4);
+    c.fillStyle = 'rgba(255,240,210,.22)';
+    c.fillRect(0, y + 1.2, size, 1.2);
+  }
+  return cv;
+}
+
+/**
+ * 천. 소파와 방석. 씨실과 날실 격자에 잔 잡음
+ */
+export function clothTexture(seed = 73, size = 256): HTMLCanvasElement {
+  const { cv, c } = make(size);
+  const r = rng(seed);
+  c.fillStyle = '#8c98a4';
+  c.fillRect(0, 0, size, size);
+  c.strokeStyle = 'rgba(0,0,0,.09)';
+  c.lineWidth = 1;
+  for (let i = 0; i < size; i += 3) {
+    c.beginPath();
+    c.moveTo(i, 0);
+    c.lineTo(i, size);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(0, i);
+    c.lineTo(size, i);
+    c.stroke();
+  }
+  for (let i = 0; i < 4000; i += 1) {
+    c.fillStyle = `rgba(${r() > 0.5 ? '255,255,255' : '0,0,0'},${(r() * 0.08).toFixed(3)})`;
+    c.fillRect(r() * size, r() * size, 1.5, 1.5);
+  }
+  return cv;
+}
+
+/**
  * 구름. 빛에 물려 바닥에 **지나가는 구름 그늘**을 만든다(SpotLight.map). 밝은 바탕에 옅은 덩어리 몇.
  * 진하면 얼룩, 옅어야 구름. 등이 천천히 자리를 옮기면 그늘이 흘러감
  */

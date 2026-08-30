@@ -541,6 +541,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 밤 책상은 등불 밖이 곧 밤. 가장자리를 훨씬 어둡게 */
       '.ac-t3.ac-t3room.ac-scene-desk::after{background:radial-gradient(ellipse 72% 66% at 50% 46%,transparent 45%,rgba(4,2,1,.6) 100%)}',
       '.ac-t3.ac-t3room.ac-scene-study::after{background:radial-gradient(ellipse 80% 74% at 48% 50%,transparent 50%,rgba(20,10,4,.6) 100%)}',
+      /* 거실은 낮. 가장자리를 살짝만 */
+      '.ac-t3.ac-t3room.ac-scene-living::after{background:radial-gradient(ellipse 84% 78% at 50% 50%,transparent 58%,rgba(30,22,14,.38) 100%)}',
       /* 방은 정사각이 아니다. 무대 폭을 다 쓰고 세로는 화면에 맞춘다. 카메라가 세로 화각을 지키므로 옆이 넓어지면 통과 다다미가 더 보인다(레퍼런스는 16:9) */
       '#acPlay.ac-bare .ac-stage:has(.ac-t3room){max-width:none;width:100%}',
       '.ac-t3.ac-t3room{aspect-ratio:auto;height:min(78vh,calc(100vh - 140px));max-width:none}',
