@@ -510,6 +510,8 @@
   "arcade.rank.applied": "点数 {d}. 今 {n}点",
   "arcade.rank.waiting.other": "相手が終了を伝えると点数が入ります",
   "arcade.rank.disagreed": "両者の結果が食い違い, 点数はつきませんでした",
+  "arcade.rank.gone": "相手が退出しました. 点数は両者が終了を伝えると入ります",
+  "arcade.rank.nopoint": "相手からの報告が来ず, この対局は点数がつきませんでした",
   "arcade.rank.tier.0": "初心",
   "arcade.rank.tier.1": "修練",
   "arcade.rank.tier.2": "手練",

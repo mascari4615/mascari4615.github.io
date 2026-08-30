@@ -510,6 +510,8 @@
   "arcade.rank.applied": "점수 {d}. 이제 {n}점",
   "arcade.rank.waiting.other": "상대가 끝났다고 알리면 점수가 오릅니다",
   "arcade.rank.disagreed": "양쪽 결과가 어긋나 점수를 안 매겼습니다",
+  "arcade.rank.gone": "상대가 나갔습니다. 점수는 양쪽이 끝났다고 알려야 매겨집니다",
+  "arcade.rank.nopoint": "상대 쪽 알림이 오지 않아 이 판은 점수가 안 매겨졌습니다",
   "arcade.rank.tier.0": "초심",
   "arcade.rank.tier.1": "수련",
   "arcade.rank.tier.2": "능수",

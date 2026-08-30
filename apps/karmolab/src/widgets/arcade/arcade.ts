@@ -1264,6 +1264,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-overscore{font-variant-numeric:tabular-nums;font-weight:600}',
       '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-overtape{margin-top:8px;text-align:center;font-size:var(--font-size-2xs)}',
+      '.ac-gonebar{margin:8px auto 0;padding:8px 16px;max-width:min(520px,92%);text-align:center;border-radius:var(--radius-pill);background:rgba(164,66,58,.14);color:#a4423a;font-size:var(--font-size-2xs);font-weight:700}',
       '.ac-keybtn{background:none;border:0;padding:0 4px;color:#8b897b;font-size:var(--font-size-2xs);text-decoration:underline;cursor:pointer}',
       '.ac-keybtn:hover{color:#3c3a30}',
       '.ac-keybox{margin:10px 0 0;padding:12px 14px;background:#f4f3ea;border-radius:var(--radius-md);font-size:var(--font-size-2xs);color:#5b5949}',
@@ -1544,6 +1545,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-primary" id="acOfferYes">' + esc(t('arcade.btn.accept')) + '</button>' +
       '<button class="btn btn-ghost" id="acOfferNo">' + esc(t('arcade.btn.decline')) + '</button></div>' +
       '<div class="tool-status" id="acStatus"></div>' +
+      /* 판 도중의 굵은 알림. 상대가 나감 같은 것. 매 프레임 다시 적는 자리와 따로 */
+      '<div class="ac-gonebar" id="acGoneBar" hidden></div>' +
       /* 방의 버튼은 하나(메뉴). 나머지는 메뉴 종이 안에 줄로. 레퍼런스(오목 가자) 실측: 대국 중 우상단 버튼은 일시정지 하나 */
       '<button class="ac-menubtn" id="acMenu" aria-expanded="false" title="' + esc(t('arcade.btn.menu')) + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>' +
@@ -3351,6 +3354,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         }
         if (tries === 0) say(t('arcade.rank.waiting.other'));
       }
+      /* 여기까지 왔으면 상대 보고가 끝내 안 옴. 조용히 두면 점수가 붙은 줄 앎 */
+      if (rankedMatch === m) say(t('arcade.rank.nopoint'), 'warn');
     }
 
     /** 등급전 줄. 서 있는 동안만 */
@@ -3376,9 +3381,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       paintWait(code, true);
       net = connect(code, true, myName(), {
         onPeers: (list) => {
+          const was = peers.length;
           peers = list;
           paintWait(code, true);
           paintRoom();
+          if (was > 0 && !list.length) rivalGone();
           /* 등급전: 서버가 붙여 준 상대 도착 시 즉시 시작. 둘째 사람 대기 없음 */
           if (autoStart && peers.length >= 1 && !match) {
             autoStart = false;
@@ -3411,6 +3418,26 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * - 서버가 죽으면 여기만 멈춤. 같이, 같이 찾기는 그대로 */
     const roomLabel = (room: RankRoom): string => t('arcade.rank.room.' + room);
 
+    /**
+     * 등급전 상대가 창을 닫음
+     * - 사실만 알림. 이겼다 졌다는 안 정함. 한쪽 말로 점수를 안 매기는 규칙과 같은 자리
+     * - 점수는 양쪽 보고가 맞아야 움직임. 상대가 안 돌아오면 그 판은 점수 없이 끝
+     * - 방치(자기 차례에 안 두는 것) 처리는 아직 사용자 결정 대기. 여기서 안 정함
+     */
+    function rivalGone(): void {
+      if (!rankedMatch) return;
+      const bar = container.querySelector<HTMLElement>('#acGoneBar');
+      if (!bar) return;
+      bar.textContent = t('arcade.rank.gone');
+      bar.hidden = false;
+    }
+
+    /** 알림 띠 접기. 새 판을 열 때 */
+    function hideGoneBar(): void {
+      const bar = container.querySelector<HTMLElement>('#acGoneBar');
+      if (bar) bar.hidden = true;
+    }
+
     /** 줄에 선 때. 기다린 시간을 세는 자리 */
     let rankedSince = 0;
     let rankedTick = 0;
@@ -3429,6 +3456,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     function startRanked(id: string): void {
       if (net) quit();
+      hideGoneBar();
       gameId = id;
       peers = [];
       show('wait');
@@ -3481,8 +3509,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       paintWait(code, false);
       net = connect(code, false, myName(), {
         onPeers: (list) => {
+          const was = peers.length;
           peers = list;
           paintWait(code, false);
+          if (was > 0 && !list.length) rivalGone();
         },
         onAct: () => {
           /* 손님은 남의 손을 안 받는다 */
@@ -3910,6 +3940,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       autoStart = false;
       window.clearInterval(rankedTick);
       rankedTick = 0;
+      hideGoneBar();
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
       dropOpen?.();

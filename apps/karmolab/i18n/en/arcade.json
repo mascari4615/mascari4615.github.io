@@ -510,6 +510,8 @@
   "arcade.rank.applied": "Rating {d}. Now {n}",
   "arcade.rank.waiting.other": "Your score lands once your rival reports too",
   "arcade.rank.disagreed": "The two reports disagreed, so no rating changed",
+  "arcade.rank.gone": "Your rival left. A rating only lands when both sides report",
+  "arcade.rank.nopoint": "No report came from the other side, so this game changed no rating",
   "arcade.rank.tier.0": "Novice",
   "arcade.rank.tier.1": "Student",
   "arcade.rank.tier.2": "Skilled",
