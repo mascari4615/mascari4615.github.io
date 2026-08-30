@@ -91,12 +91,21 @@ if (!cantRun) {
     /* 적으면 그 칸이 굳는다 */
     const before = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
     await page.click('.ac-yccell');
-    await page.waitForTimeout(1400);
-    const after = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
+    /* 시간으로 기다리면 게이트 통짜에서 밀려 흔들린다(2026-08-31 실측: 단독은 통과, 동시는 실패).
+       칸이 굳는 것을 조건으로 기다린다 */
+    let after = before;
+    for (let i = 0; i < 40 && after <= before; i += 1) {
+      await page.waitForTimeout(250);
+      after = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
+    }
     check('적으면 칸이 굳는다', after > before, `${before} -> ${after}`);
 
     /* 남의 차례가 되면 내 칸 버튼이 사라진다(남의 차례에 못 적는다) */
-    const cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
+    let cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
+    for (let i = 0; i < 40 && cells > 0; i += 1) {
+      await page.waitForTimeout(250);
+      cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
+    }
     check('남의 차례에는 적는 칸이 없다', cells === 0, `${cells}개`);
   }
 }

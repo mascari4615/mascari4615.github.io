@@ -105,7 +105,9 @@ export const yacht: GameDef<YachtState, YachtAction> = {
   },
 
   canAct(s, seat) {
-    return s.turn === seat && s.sheet.some((sh) => CATS.some((c) => sh[c] === null));
+    const mine = s.sheet[seat];
+    /* 내 열두 칸이 다 차면 내 판은 끝. 남의 빈 칸은 내 차례의 근거가 아니다 */
+    return s.turn === seat && !!mine && CATS.some((c) => mine[c] === null);
   },
 
   reduce(s, a, seat, ctx) {
@@ -134,7 +136,14 @@ export const yacht: GameDef<YachtState, YachtAction> = {
       if (!mine || mine[cat] !== null) return s;
 
       const sheet = s.sheet.map((sh, i) => (i === seat ? { ...sh, [cat]: scoreOf(cat, s.dice) } : sh));
-      const next = (seat + 1) % ctx.seats.length;
+      /* 다 적은 자리는 건너뛴다. 안 건너뛰면 그 자리에서 차례가 멈춰 판이 안 끝난다(2026-08-31 실측:
+         두 판째에 한 칸이 남은 채 세 자리가 굴리기만 반복했다) */
+      let next = (seat + 1) % ctx.seats.length;
+      for (let i = 0; i < ctx.seats.length; i += 1) {
+        const sh = sheet[next];
+        if (sh && CATS.some((c) => sh[c] === null)) break;
+        next = (next + 1) % ctx.seats.length;
+      }
       return {
         sheet,
         turn: next,
