@@ -34,7 +34,7 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
           (y === n - 1 ? ' ac-e-b' : '') +
           (x === 0 ? ' ac-e-l' : '') +
           (x === n - 1 ? ' ac-e-r' : '');
-        return `<button class="ac-cell${edge}${stars.has(i) ? ' ac-star' : ''}" data-c="${i}"><i></i><b class="ac-mk"></b></button>`;
+        return `<button class="ac-cell${edge}${stars.has(i) ? ' ac-star' : ''}" data-c="${i}" data-col="${String.fromCharCode(65 + x)}" data-row="${n - y}"><i></i><b class="ac-mk"></b></button>`;
       };
       el.innerHTML =
         '<div class="ac-goban">' +
@@ -51,6 +51,8 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
       });
       marks = cells.map((b) => b.querySelector('b') as HTMLElement);
     };
+    /* 놓인 차례를 기억한다. 무르면 빠진다 */
+    const order: number[] = [];
     build(DEFAULT_SIZE);
 
     return (v, mySeat) => {
@@ -58,6 +60,23 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
       if (s.n !== n) build(s.n);
       /* 힌트 자리. 평면 화면에서는 칸에 금색 고리 클래스(`ac-tip`)로 (`arcade.ts` 가 `v.hint` 를 채운다) */
       const tip = (v.hint as { cell?: number } | undefined)?.cell ?? -1;
+      /* 좌표와 수 번호. 설정은 방과 같은 열쇠(`arcade.ts` 의 메뉴) */
+      const pref = (key: string): boolean => {
+        try {
+          return localStorage.getItem(key) === 'on';
+        } catch {
+          return false;
+        }
+      };
+      board?.classList.toggle('ac-coords', pref('karmolab.arcade.coords'));
+      /* 놓인 차례. 대국 중에는 상태에 없으니 화면이 기억. 복기는 `v.review.order` */
+      const present = new Set<number>();
+      for (let i = 0; i < s.board.length; i += 1) if (s.board[i]) present.add(i);
+      for (let k = order.length - 1; k >= 0; k -= 1) if (!present.has(order[k])) order.splice(k, 1);
+      for (const c of present) if (order.indexOf(c) < 0) order.push(c);
+      const numOf = new Map<number, number>();
+      if (v.review) v.review.order.forEach((cell, i) => numOf.set(cell, i + 1));
+      else if (pref('karmolab.arcade.numbers')) order.forEach((cell, i) => numOf.set(cell, i + 1));
       const myTurn = s.won === -1 && s.turn === mySeat;
       /* 금수는 흑만, 그리고 흑 차례일 때만 표시한다. 백 차례에 띄우면 남의 사정이다 */
       const banned = new Set(s.turn === 0 ? s.banned : []);
@@ -73,6 +92,8 @@ export const gomokuView: GameView<GomokuState, GomokuAction> = {
         b.disabled = !myTurn || who !== 0 || no;
         b.classList.toggle('ac-last', i === s.last);
         b.classList.toggle('ac-tip', i === tip);
+        const label = numOf.get(i) === undefined ? '' : String(numOf.get(i));
+        if (b.dataset.no !== label) b.dataset.no = label;
       });
       board?.classList.toggle('ac-waiting', !myTurn);
     };

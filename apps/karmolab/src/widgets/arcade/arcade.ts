@@ -553,6 +553,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 힌트 자리(평면). 금색 고리가 숨 쉰다. 방에서는 판 위 과녁(`three-board.ts` 의 advise) */
       '.ac-root .ac-cell.ac-tip::after{content:"";position:absolute;left:50%;top:50%;width:62%;height:62%;transform:translate(-50%,-50%);border-radius:50%;border:3px solid rgba(240,190,110,.95);box-shadow:0 0 10px rgba(240,190,110,.6);animation:ac-tip 1.1s ease-in-out infinite;pointer-events:none}',
       '@keyframes ac-tip{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.95}50%{transform:translate(-50%,-50%) scale(1.14);opacity:.7}}',
+      /* 수 번호(평면). 알 위 숫자. 흑은 흰 글자, 백은 검은 글자 */
+      '.ac-root .ac-cell[data-no]:not([data-no=""])::before{content:attr(data-no);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:min(2.4vh,13px);font-weight:700;line-height:1;z-index:2;pointer-events:none}',
+      '.ac-root .ac-cell.ac-s1[data-no]:not([data-no=""])::before{color:#f6efe2}',
+      '.ac-root .ac-cell.ac-s2[data-no]:not([data-no=""])::before{color:#1a1612}',
+      /* 좌표(평면). 가장자리 칸 **안쪽 귀퉁이**에 작게. 판 밖에 두면 그늘에 묻힌다(실측) */
+      '.ac-root .ac-board.ac-coords .ac-cell.ac-e-t::after,.ac-root .ac-board.ac-coords .ac-cell.ac-e-l::after{position:absolute;font-size:min(1.7vh,10px);color:rgba(60,40,20,.72);pointer-events:none;font-weight:700;z-index:1}',
+      '.ac-root .ac-board.ac-coords .ac-cell.ac-e-t::after{content:attr(data-col);left:50%;top:2px;transform:translateX(-50%)}',
+      '.ac-root .ac-board.ac-coords .ac-cell.ac-e-l::after{content:attr(data-row);left:2px;top:50%;transform:translateY(-50%)}',
+      /* 알이 놓인 칸에서는 좌표를 감춘다. 번호와 겹친다 */
+      '.ac-root .ac-board.ac-coords .ac-cell.ac-s1::after,.ac-root .ac-board.ac-coords .ac-cell.ac-s2::after{content:none}',
       /* 화료 화면의 전신(작혼 실측: 캐릭터 전신 왼쪽 60%, 오른쪽에 내역과 점수). 그림 자리 1024x1536 비율 */
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody{display:block;position:absolute;left:3%;bottom:0;width:auto;height:72%;aspect-ratio:2/3;pointer-events:none;z-index:2}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-overbody[hidden]{display:none}',
@@ -2707,7 +2717,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       for (const [sel, key] of [['#acCoords', 'karmolab.arcade.coords'], ['#acNums', 'karmolab.arcade.numbers']] as const) {
         const b = container.querySelector<HTMLButtonElement>(sel);
         if (!b) continue;
-        b.style.display = on && cardById(id)?.kind === 'board' ? '' : 'none';
+        /* 좌표와 수 번호는 평면에도 있다(2026-08-31). 판놀이면 표현과 무관하게 */
+        b.style.display = cardById(id)?.kind === 'board' ? '' : 'none';
         let v = false;
         try {
           v = localStorage.getItem(key) === 'on';
