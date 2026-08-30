@@ -304,3 +304,96 @@ export function sample(track: Track, t: number, outPos: Vector3, outQuat: Quater
   outQuat.copy(a.quat).slerp(b.quat, k);
   return true;
 }
+
+/**
+ * ── 컵 안 ── 같은 강체를 컵 좌표계에서. 바닥은 컵 바닥, 벽은 원통, 위는 열림.
+ * 컵이 흔들리고 기울면 그 가속과 기울기가 **관성력**으로 들어온다(`gAt`). 그래서 안에서 튀고,
+ * 기울면 입 쪽으로 미끄러진다. 위치만 옮겨 놓은 주사위는 쌓이지도 흔들리지도 않는다(사용자 지적)
+ */
+export interface CupWorld {
+  radius: number;
+  height: number;
+  /** 시각 t(초)의 중력 + 관성력, 컵 좌표계 */
+  gAt: (t: number, out: Vector3) => void;
+  duration: number;
+  /** 이 시각까지 입을 손바닥이 막는다. 흔들 때 튀어나오면 안 된다 */
+  lidUntil: number;
+}
+
+export function simulateInCup(inputs: RollInput[], cup: CupWorld): Track[] {
+  const bodies: Body[] = inputs.map((i) => ({
+    live: false, done: false, t0: i.t0, pos: i.pos.clone(), vel: i.vel.clone(), quat: i.quat.clone(), ang: i.ang.clone(), still: 0
+  }));
+  const tracks: Track[] = inputs.map(() => ({ frames: [], hits: [], upLocal: new Vector3(0, 1, 0), end: cup.duration }));
+  const corner = new Vector3();
+  const n = new Vector3();
+  const g = new Vector3();
+  let t = 0;
+  let nextFrame = 0;
+  while (t < cup.duration) {
+    cup.gAt(t, g);
+    bodies.forEach((b) => {
+      if (!b.live && t >= b.t0) b.live = true;
+    });
+    for (let bi = 0; bi < bodies.length; bi += 1) {
+      const b = bodies[bi];
+      if (!b.live) continue;
+      b.vel.addScaledVector(g, DT);
+      b.vel.multiplyScalar(1 - 0.4 * DT);
+      b.ang.multiplyScalar(1 - 1.2 * DT);
+      b.pos.addScaledVector(b.vel, DT);
+      const w = b.ang.length();
+      if (w > 1e-6) {
+        tq.setFromAxisAngle(tmp.copy(b.ang).divideScalar(w), w * DT);
+        b.quat.premultiply(tq).normalize();
+      }
+      for (let pass = 0; pass < 2; pass += 1) {
+        for (const c of CORNERS) {
+          corner.copy(c).applyQuaternion(b.quat).add(b.pos);
+          if (corner.y < 0) contact(b, corner, n.set(0, 1, 0), -corner.y, tracks[bi].hits, t);
+          corner.copy(c).applyQuaternion(b.quat).add(b.pos);
+          const r = Math.hypot(corner.x, corner.z);
+          if (r > cup.radius && corner.y < cup.height && r > 1e-6) {
+            contact(b, corner, n.set(-corner.x / r, 0, -corner.z / r), r - cup.radius, tracks[bi].hits, t);
+          }
+          corner.copy(c).applyQuaternion(b.quat).add(b.pos);
+          if (t < cup.lidUntil && corner.y > cup.height) contact(b, corner, n.set(0, -1, 0), corner.y - cup.height, tracks[bi].hits, t);
+        }
+      }
+    }
+    for (let i = 0; i < bodies.length; i += 1) {
+      const a = bodies[i];
+      if (!a.live) continue;
+      for (let j = i + 1; j < bodies.length; j += 1) {
+        const c = bodies[j];
+        if (!c.live) continue;
+        tmp.subVectors(c.pos, a.pos);
+        const dist = tmp.length();
+        const min = 1.1;
+        if (dist >= min || dist < 1e-6) continue;
+        tmp.divideScalar(dist);
+        const push = (min - dist) / 2;
+        a.pos.addScaledVector(tmp, -push);
+        c.pos.addScaledVector(tmp, push);
+        const va = a.vel.dot(tmp);
+        const vc = c.vel.dot(tmp);
+        if (va - vc > 0) {
+          const jn = (va - vc) * 0.6;
+          a.vel.addScaledVector(tmp, -jn);
+          c.vel.addScaledVector(tmp, jn);
+          a.ang.add(tmp2.set(tmp.z, 0, -tmp.x).multiplyScalar(jn * 2));
+          c.ang.add(tmp2.set(-tmp.z, 0, tmp.x).multiplyScalar(jn * 2));
+          if (va - vc > 2) tracks[i].hits.push({ t, force: Math.min(1, (va - vc) / 10) });
+        }
+      }
+    }
+    t += DT;
+    if (t >= nextFrame) {
+      bodies.forEach((b, i) => {
+        if (b.live) tracks[i].frames.push({ t, pos: b.pos.clone(), quat: b.quat.clone() });
+      });
+      nextFrame += 1 / FPS;
+    }
+  }
+  return tracks;
+}

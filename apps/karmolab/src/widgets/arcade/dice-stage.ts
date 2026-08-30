@@ -46,7 +46,7 @@ import {
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
 import { dieFaceTexture, feltTexture, leatherTexture, paperTexture, plankTexture, woodTexture } from './texture';
-import { simulateRoll, sample, type Track } from './dice-physics';
+import { simulateRoll, simulateInCup, sample, type Track } from './dice-physics';
 
 export interface DiceStageOpts {
   /** 주사위 몇 개 */
@@ -133,9 +133,10 @@ interface Die {
   moveFrom: Vector3 | null;
   /* 이 이동이 끝나면 컵 안 */
   gather: boolean;
-  /* 컵 안에 있다. 컵을 따라 움직이고 살짝 흔들린다. 위에서 보면 입으로 보인다 */
+  /* 컵 안에 있다. 컵 좌표계 녹화본을 컵을 따라 재생한다 */
   inCup: boolean;
-  cupOffset: Vector3;
+  cupTrack: Track | null;
+  cupT0: number;
   moveTo: Vector3;
   moveT0: number;
   hover: boolean;
@@ -445,7 +446,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       mesh, value: 1, kept: false,
       spot: new Vector3(0, REST_Y, 1), pos: new Vector3(0, REST_Y, 1), quat: new Quaternion(),
       track: null, released: 0, hitIdx: 0, faces,
-      moveFrom: null, gather: false, inCup: false, cupOffset: new Vector3(), moveTo: new Vector3(), moveT0: 0, hover: false
+      moveFrom: null, gather: false, inCup: false, cupTrack: null, cupT0: 0, moveTo: new Vector3(), moveT0: 0, hover: false
     });
   }
   const slotX = (i: number): number => -TRAY_W / 2 + 1.6 + i * ((TRAY_W - 3.2) / Math.max(1, opts.count - 1));
@@ -523,7 +524,25 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
   /* 컵이 도는 중에 온 다음 굴림. 봇은 컵이 돌아오기 전에 또 굴린다(0.5~0.9초). 끝나면 이어서 */
   let queued: number[] = [];
   const TIP_U = easeInOut(0.75);
-  const GATHER_MS = 380;
+  /* 모으기 0.3초 뒤 컵 바닥까지 떨어질 시간까지. 짧으면 입에 얹힌 채 흔든다(실측) */
+  const GATHER_MS = 720;
+  /** 흔들기 시작부터 k ms 뒤 컵의 자리와 z 기울기. `cupAt` 도 이것을 그린다 */
+  const cupPose = (k: number, out: Vector3): number => {
+    if (k < 0) {
+      out.copy(CUP_REST);
+      return 0;
+    }
+    if (k < SHAKE_MS) {
+      const sh = k / 1000;
+      out.set(CUP_REST.x + Math.sin(sh * 95) * 0.14, CUP_REST.y + Math.abs(Math.sin(sh * 47)) * 0.4, CUP_REST.z + Math.cos(sh * 71) * 0.1);
+      return Math.sin(sh * 88) * 0.14;
+    }
+    const u = easeInOut(Math.min(1, (k - SHAKE_MS) / TIP_MS));
+    out.set(CUP_REST.x - 2.8 * u, CUP_REST.y + 2.6 * u, CUP_REST.z - 0.5 * u);
+    return 1.95 * u;
+  };
+  const G_SIM = 26;
+  const Z_AXIS = new Vector3(0, 0, 1);
   const shake = (which: number[], t: number): void => {
     /* 컵이 놓는 자리. `cupAt` 의 기울기 식과 같은 값 */
     const tilt = 1.95 * TIP_U;
@@ -553,17 +572,51 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       d.gather = d.moveFrom !== null;
       d.moveTo.copy(mouthTop).add(new Vector3((Math.random() - 0.5) * 0.6, 0, (Math.random() - 0.5) * 0.6));
       d.moveT0 = t + n * 40;
-      const a = (n / which.length) * Math.PI * 2 + Math.random();
-      const r = n === 0 ? 0 : CUP_R * 0.5;
-      /* 입 가까이. 바닥에 두면 위에서 볼 때 컵 벽에 가려 빈 컵으로 보인다(실측) */
-      d.cupOffset.set(Math.cos(a) * r, CUP_H * 0.5 + n * 0.28, Math.sin(a) * r);
       d.inCup = d.moveFrom === null;
+      d.cupT0 = t;
       /* 멎은 자세에서 위로 온 면에 정해진 눈 */
       faceUp(d, tr.upLocal, d.value);
       const end = tr.frames[tr.frames.length - 1];
       d.spot.copy(end.pos);
       d.quat.copy(end.quat);
     });
+    /* 컵 안. 입에서 떨어져 쌓이고, 컵이 흔들리면 관성으로 튀고, 기울면 입 쪽으로 미끄러진다 */
+    const pa = new Vector3();
+    const pb = new Vector3();
+    const pc = new Vector3();
+    const cupInputs = which.map((i, n) => {
+      const d = dice[i];
+      return {
+        t0: (n * 40 + MOVE_MS) / 1000,
+        pos: new Vector3(d.moveTo.x - CUP_REST.x, CUP_H + 0.7, d.moveTo.z - CUP_REST.z),
+        vel: new Vector3(0, -5, 0),
+        quat: d.quat.clone(),
+        ang: new Vector3((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6)
+      };
+    });
+    const cupTracks = simulateInCup(cupInputs, {
+      radius: CUP_R * 0.86,
+      height: CUP_H,
+      duration: (GATHER_MS + RELEASE_AT + 150) / 1000,
+      /* 손바닥. 기울기 시작하고 한 뼘 돌 때까지 입을 막는다 */
+      lidUntil: (GATHER_MS + SHAKE_MS + TIP_MS * 0.35) / 1000,
+      gAt: (ts, out) => {
+        const k = ts * 1000 - GATHER_MS;
+        /* 컵의 가속을 수치 미분. 관성력은 그 반대 방향. 흔드는 진폭이 실물보다 커서 0.06 배 */
+        const dk = 8;
+        cupPose(k - dk, pa);
+        const rz = cupPose(k, pb);
+        cupPose(k + dk, pc);
+        out.copy(pa).add(pc).addScaledVector(pb, -2).multiplyScalar(1e6 / (dk * dk));
+        out.multiplyScalar(-0.06);
+        const len = out.length();
+        if (len > 70) out.multiplyScalar(70 / len);
+        /* 중력은 컵 좌표계로. 컵이 기울면 바닥 쪽이 아니라 입 쪽으로 */
+        pa.set(0, -G_SIM, 0).applyAxisAngle(Z_AXIS, -rz);
+        out.add(pa);
+      }
+    });
+    which.forEach((i, n) => { dice[i].cupTrack = cupTracks[n]; });
     pendingRelease = which;
     cupT0 = t + GATHER_MS;
     window.setTimeout(() => opts.onSound?.('rattle', 1), GATHER_MS);
@@ -627,17 +680,11 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     if (d.track && d.released) {
       const k = (t - d.released) / 1000;
       if (k < d.track.frames[0].t) {
-        /* 아직 컵 안. 컵을 따라가며 조금 흔들린다(빈 컵을 흔들면 어색하다. 사용자 지적) */
-        if (d.inCup) {
-          const s = t / 1000;
-          const n = dice.indexOf(d);
-          tmpV.copy(d.cupOffset);
-          tmpV.x += Math.sin(s * 41 + n) * 0.08;
-          tmpV.z += Math.cos(s * 37 + n * 2) * 0.08;
-          tmpV.y += Math.abs(Math.sin(s * 53 + n * 3)) * 0.35;
+        /* 아직 컵 안. 컵 좌표계 녹화본을 컵을 따라 재생한다(빈 컵을 흔들면 어색하다. 사용자 지적) */
+        if (d.inCup && d.cupTrack && d.cupTrack.frames.length) {
+          sample(d.cupTrack, (t - d.cupT0) / 1000, tmpV, tmpQ);
           cup.localToWorld(tmpV);
           d.mesh.position.copy(tmpV);
-          tmpQ.setFromAxisAngle(UP, s * 3 + n).multiply(d.quat);
           d.mesh.quaternion.copy(cup.quaternion).multiply(tmpQ);
           d.mesh.visible = true;
         } else {

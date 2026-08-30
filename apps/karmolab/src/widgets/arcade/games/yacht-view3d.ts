@@ -306,7 +306,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
     let busyUntil = 0;
     let seqTimer = 0;
     let shown: YachtState | null = null;
-    const ROLL_MS = 3700; /* 모으기 0.38 + 흔들기와 기울이기 0.62 + 굴림 최대 2.6 */
+    const ROLL_MS = 4000; /* 모으기와 낙하 0.72 + 흔들기와 기울이기 0.62 + 굴림 최대 2.6 */
     const KEEP_MS = 380;
     const present = (s: YachtState, fin: boolean): void => {
       if (!stage) return;
