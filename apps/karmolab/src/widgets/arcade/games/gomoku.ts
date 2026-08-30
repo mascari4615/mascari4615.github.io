@@ -343,7 +343,7 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
   },
 
   /** 방금 둔 수(`last`)로 다음에 다섯이 되는 빈 칸이 생겼나. 컷인의 리치 */
-  cue(s, mover): 'four' | null {
+  cue(s, mover): 'four' | 'open3' | null {
     if (s.last < 0 || s.won !== -1) return null;
     const who = mover + 1;
     const n = s.n;
@@ -362,6 +362,10 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
         t[e] = who;
         if (wins(t, n, e, who, s.renju)) return 'four';
       }
+    }
+    /* 넷이 아니면 열린 셋인가. 한 수로 열린 넷이 되는 줄 */
+    for (const [dx, dy] of DIRS) {
+      if (makesOpenThree(s.board, n, s.last, dx, dy)) return 'open3';
     }
     return null;
   },

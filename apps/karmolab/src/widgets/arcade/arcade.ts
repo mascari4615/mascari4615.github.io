@@ -2026,6 +2026,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
     /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
     let seenMoves = 0;
+    /** 재촉을 이미 한 수. 한 차례에 한 번만 */
+    let hurriedAt = -1;
     /** 힌트. 규칙이 고른 수와 언제까지 보일지. 복기에서는 그 장면 동안 */
     let hintAt: { action: unknown; until: number } | null = null;
     function canHint(): boolean {
@@ -2258,14 +2260,27 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (match && match.moves !== seenMoves && tutorAt === null) {
         hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
+        /* 봇이 둔 뒤 한마디. 아래 좋은 수와 겹치면 그쪽이 이긴다(덮어쓰기라 마지막이 남는다) */
         if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
         /* 방금 둔 수가 넷이면 컷인. 사람이 만들면 리치, 내가 만들면 사람의 위기 */
         if (match.moves > seenMoves && !v.finished && v.seats.length === 2 && typeof turn === 'number') {
           const mover = 1 - turn;
           const cue = gameById(gameId)?.cue?.(v.state, mover) ?? null;
           if (cue === 'four') cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
+          /* 내가 좋은 수를 두면 상대가 한마디. 컷인까지는 아니고 말풍선. 봇의 둔 뒤 한마디보다 이것이 먼저 */
+          else if (cue === 'open3' && mover === mySeat) castSay(1 - mySeat, 'good', 1);
         }
         seenMoves = match.moves;
+      }
+      /* 내 시계가 10초 아래면 상대가 재촉한다. 한 차례에 한 번 */
+      if (match && !v.finished && tutorAt === null) {
+        const st = v.state as { limit?: number; turnEndsAt?: number; turn?: number } | null;
+        if (st?.limit && st.turn === mySeat && st.turnEndsAt && st.turnEndsAt - now <= 10000) {
+          if (hurriedAt !== match.moves) {
+            hurriedAt = match.moves;
+            castSay(1 - mySeat, 'hurry', 0.8);
+          }
+        }
       }
       /* 복기 장면. 결과와 알림과 기록은 안 건드린다. 곁가지(살아 있는 판)는 보통 판처럼 간다 */
       if (review && !review.branch) {

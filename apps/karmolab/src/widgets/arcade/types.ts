@@ -125,7 +125,7 @@ export interface GameDef<S, A> {
    * 방금 둔 수가 무엇을 만들었나. 화면의 컷인(MDD)이 묻는다. 오목이면 넷(다음에 이김).
    * 없으면 null. 규칙은 이걸로 판을 안 바꿈, 말만
    */
-  cue?(s: S, mover: number): 'four' | null;
+  cue?(s: S, mover: number): 'four' | 'open3' | null;
 
   /** 힌트. 이 자리에서 두면 좋을 수 하나. 없으면 null. 봇 세기와 무관하게 제일 센 머리로 */
   hint?(s: S, seat: number): A | null;
