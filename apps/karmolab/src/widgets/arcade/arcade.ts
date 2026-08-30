@@ -418,7 +418,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 화면 채움(`ac-roomfill`)이 fixed 를 걸므로 여기서는 비켜 준다. 특이도가 이쪽이 높아 안 비키면 fixed 가 진다(실측: 높이 0) */
       '#acPlay.ac-bare:has(.ac-t3room):not(.ac-roomfill){position:relative}',
       /* 그리드 안의 absolute 는 **제 칸**이 기준이다(실측: 단추가 top -66px 로 튀었다). 전체 칸으로 펴서 #acPlay 를 기준으로 */
-      '#acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls,#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}',
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:absolute;left:18px;bottom:18px;top:auto;right:auto;margin:0;z-index:3}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{background:rgba(18,12,8,.62);border:1px solid rgba(255,230,190,.16);color:#f6ecdc;backdrop-filter:blur(6px);padding:8px 14px 8px 10px;font-size:var(--font-size-sm);gap:10px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{border-color:rgba(255,214,150,.6);background:rgba(40,26,12,.72)}',
@@ -446,11 +446,36 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(1)::before{background:radial-gradient(circle at 35% 30%,#fff,#cfc6b4 75%)}',
       '#acPlay.ac-bare:has(.ac-t3room) #acStatus{display:block;position:absolute;left:50%;top:14px;right:auto;bottom:auto;width:max-content;max-width:60%;transform:translateX(-50%);margin:0;padding:6px 14px;border-radius:var(--radius-pill);background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);font-size:var(--font-size-sm);z-index:3;backdrop-filter:blur(6px)}',
       '#acPlay.ac-bare:has(.ac-t3room) #acStatus:empty{display:none}',
-      /* 버튼은 우상단. 늘 보이되 옅게, 손이 가면 또렷하게 */
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls{position:absolute;right:14px;top:12px;left:auto;bottom:auto;margin:0;opacity:.55;z-index:3;justify-content:flex-end}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls:hover,#acPlay.ac-bare:has(.ac-t3room) #acControls:focus-within{opacity:1}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);backdrop-filter:blur(6px)}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{flex:0 0 auto;width:auto}',
+      /**
+       * ── 방의 버튼은 하나 ── (사용자: 알약 6개 다 마음에 안 듦, UI/UX 문제). 레퍼런스 실측: 대국 중 우상단 버튼 하나
+       * 우상단 둥근 메뉴 하나. 누르면 종이 한 장이 내려오고 그 안에 줄로. 판 위에 늘 떠 있는 글자 없음
+       */
+      '.ac-menubtn,.ac-sep,.ac-lbl{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn{display:grid;place-items:center;position:absolute;right:16px;top:14px;left:auto;bottom:auto;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid rgba(217,168,90,.45);background:rgba(24,15,8,.66);color:#f1e3c8;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;z-index:7;opacity:.8;transition:opacity .15s,border-color .15s,background .15s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn svg{width:20px;height:20px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn:hover,#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn[aria-expanded="true"]{opacity:1;border-color:#e6bd7a;background:rgba(46,30,14,.85)}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls{display:none!important;position:absolute;right:16px;top:66px;left:auto;bottom:auto;margin:0;z-index:7;flex-direction:column;align-items:stretch;gap:2px;width:236px;padding:8px;border-radius:8px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 0 0 1px rgba(120,80,40,.25);opacity:1;transform:none}',
+      '#acPlay.ac-bare.ac-menu-open:has(.ac-t3room) #acControls{display:flex!important}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;height:auto;flex:0 0 auto;padding:9px 12px;border:0;border-radius:6px;background:none;color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:15px;letter-spacing:.04em;line-height:1.3;text-align:left;box-shadow:none;backdrop-filter:none;transform:none;transition:background .12s}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:hover{background:rgba(120,80,40,.12);transform:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{color:#8f4f1c;font-weight:600}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-sep{display:block;height:1px;margin:6px 4px;background:rgba(120,80,40,.22)}',
+      /* 소리와 전체화면은 선으로 그린 그림 + 글자. 이모지는 방의 물건이 아니다 */
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-emoji{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-lbl{display:inline}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound::before,#acPlay.ac-bare:has(.ac-t3room) #acFull::before{content:"";width:18px;height:18px;flex:0 0 auto;background:#5a4028;-webkit-mask:var(--ac-ico) center/contain no-repeat;mask:var(--ac-ico) center/contain no-repeat}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9a4 4 0 0 1 0 6%27/><path d=%27M18.5 6.5a8 8 0 0 1 0 11%27/></svg>")}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"]{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9l5 6M21 9l-5 6%27/></svg>")}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"] .ac-lbl{opacity:.55}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acFull{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5%27/></svg>")}',
+      /* 결과 종이 아래 행동 셋. 한 판 더는 옻칠에 금박, 나머지는 금테 알약 */
+      '.ac-overacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}',
+      '.ac-overacts:empty{display:none}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts{margin-top:14px}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn{height:40px;padding:0 22px;border-radius:999px;background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:14px;letter-spacing:.08em;line-height:38px;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);transition:border-color .15s,background .15s,transform .15s}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn:hover{border-color:#e6bd7a;background:rgba(46,30,14,.8);transform:translateY(-1px)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn-primary{background:linear-gradient(180deg,#c9863d,#8f4f1c);border-color:#f0c98a;color:#fff6e4;font-weight:600;box-shadow:0 6px 18px rgba(120,60,10,.45)}',
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-overacts .btn-primary:hover{background:linear-gradient(180deg,#d8954a,#9d5a22)}',
       /* ── 콘텐츠 창 채우기 (위 `fill`) ── 헤더 아래, 사이드바 오른쪽을 전부 방으로 */
       '#acPlay.ac-roomfill{position:fixed;left:var(--ac-roomfill-x,0px);top:var(--ac-roomfill-y,0px);right:0;bottom:0;width:auto;height:auto;z-index:30;margin:0;padding:0;display:block;background:#0d0906}',
       '#acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}',
@@ -459,23 +484,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}',
       '#acPlay.ac-roomfill .ac-intro{border-radius:0}',
       '#acPlay.ac-roomfill .ac-over{border-radius:0}',
-      /**
-       * ── 방의 버튼 ── 검은 네모에 이모지는 그 방의 물건이 아니다(사용자 지적: 최악).
-       * 얇은 금테 알약, 명조 글자, 아이콘은 선으로 그린 것(SVG). 소리와 전체화면은 글자 대신 그림
-       */
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls{gap:8px;opacity:.85}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{height:38px;padding:0 18px;border-radius:999px;background:rgba(24,15,8,.66);border:1px solid rgba(217,168,90,.42);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:14px;letter-spacing:.08em;line-height:36px;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);transition:border-color .15s,background .15s,transform .15s}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:hover{border-color:#e6bd7a;background:rgba(46,30,14,.8);transform:translateY(-1px)}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:active{transform:translateY(0)}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{background:linear-gradient(180deg,#c9863d,#8f4f1c);border-color:#f0c98a;color:#fff6e4;font-weight:600;box-shadow:0 6px 18px rgba(120,60,10,.45)}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary:hover{background:linear-gradient(180deg,#d8954a,#9d5a22)}',
-      /* 아이콘 버튼 셋. 글자(이모지)를 지우고 선으로 그린 아이콘을 마스크로 */
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound,#acPlay.ac-bare:has(.ac-t3room) #acFull{width:38px;padding:0;font-size:0;position:relative}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound::before,#acPlay.ac-bare:has(.ac-t3room) #acFull::before{content:"";position:absolute;inset:9px;background:#f1e3c8;-webkit-mask:var(--ac-ico) center/contain no-repeat;mask:var(--ac-ico) center/contain no-repeat}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9a4 4 0 0 1 0 6%27/><path d=%27M18.5 6.5a8 8 0 0 1 0 11%27/></svg>")}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"]{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9l5 6M21 9l-5 6%27/></svg>");opacity:.6}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acFull{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5%27/></svg>")}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acDim{font-family:Georgia,serif;letter-spacing:.04em;font-size:13px}',
       /* ── 바 카운터(주사위) ── 자리 카드의 흑백 알 대신 놋쇠 점. 종이 점수표는 카메라가 내려온 뒤 종이 위에 겹친다 */
       '#acPlay.ac-bare:has(.ac-t3bar) .ac-seat:not(.ac-watch)::before{background:radial-gradient(circle at 35% 30%,#f5d58a,#8a5a1a 75%)}',
       '#acPlay.ac-bare:has(.ac-t3bar) .ac-seat .ac-rule{padding-left:26px;font-variant-numeric:tabular-nums}',
@@ -518,10 +526,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-yccell:hover{background:rgba(245,213,138,.7);transform:scale(1.04)}',
       '.ac-yccell.ac-zero{color:#9a8a72;border-color:rgba(120,100,70,.4);background:none}',
       '.ac-yccell.ac-zero:hover{background:rgba(120,100,70,.12)}',
-      /* 판이 끝나 결과창이 떠 있으면 버튼 줄이 결과창 아래로 내려온다. 우상단에 "한 판 더" 가 걸려 있으면 눈이 두 군데로 간다 */
-      '#acPlay.ac-bare:has(.ac-t3room):has(.ac-over:not([style*="none"])) #acControls{top:auto;bottom:11%;right:auto;left:50%;transform:translateX(-50%);opacity:1;gap:10px}',
-      /* 한 판 더 같은 주 버튼은 옻칠에 금박. 셸의 보라 강조색은 이 방에 없다 */
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{background:linear-gradient(180deg,#b9702f,#8f4f1c);color:#fff3de;border-color:rgba(255,214,150,.6);font-weight:700}',
       /**
        * 결과창. 셸의 카드가 아니라 **종이 한 장**. 어두운 방에 등불처럼
        * 글꼴은 명조. 방이 명조를 부른다(레퍼런스 결과창도 붓글씨 계열)
@@ -1244,6 +1248,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div class="ac-overhead" id="acOverHead"></div>' +
       '<ol class="ac-overlist" id="acOverList"></ol>' +
       '<div class="ac-overnote" id="acOverNote"></div>' +
+      '<div class="ac-overacts" id="acOverActs"></div>' +
       '</div>' +
       '</div>' +
       '<div class="ac-letter" id="acLetter" style="display:none">' +
@@ -1257,25 +1262,31 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-primary" id="acOfferYes">' + esc(t('arcade.btn.accept')) + '</button>' +
       '<button class="btn btn-ghost" id="acOfferNo">' + esc(t('arcade.btn.decline')) + '</button></div>' +
       '<div class="tool-status" id="acStatus"></div>' +
+      /* 방의 버튼은 하나(메뉴). 나머지는 메뉴 종이 안에 줄로. 레퍼런스(오목 가자) 실측: 대국 중 우상단 버튼은 일시정지 하나 */
+      '<button class="ac-menubtn" id="acMenu" aria-expanded="false" title="' + esc(t('arcade.btn.menu')) + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>' +
       '<div class="ac-controls" id="acControls" style="display:flex;gap:6px;margin-top:var(--space-lg)">' +
-      '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
-      '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '">🔊</button>' +
-      '<button class="btn btn-ghost" id="acFull" title="' + esc(t('arcade.btn.full')) + '">⛶</button>' +
-      /* 표현 고르기. 규칙은 그대로, 보는 법만 바뀐다. 입체 화면이 있는 판에서만 뜬다. */
-      '<button class="btn btn-ghost" id="acDim" style="display:none" aria-pressed="false" title="' +
-      esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
       /* 무르기. 혼자 노는 판(봇 상대)에서만. 남과 두는 판은 합의가 필요해 아직 없다 */
       '<button class="btn btn-ghost" id="acUndo" style="display:none">' + esc(t('arcade.btn.undo')) + '</button>' +
       /* 남과 두는 판의 예의. 무승부 제안과 기권. 둘이 둘 때만 */
       '<button class="btn btn-ghost" id="acDraw" style="display:none">' + esc(t('arcade.btn.draw')) + '</button>' +
       '<button class="btn btn-ghost" id="acResign" style="display:none">' + esc(t('arcade.btn.resign')) + '</button>' +
-      /* 끝나면 색을 바꿔 한 판 더. 레퍼런스의 결과 화면 첫 버튼 */
-      '<button class="btn btn-ghost" id="acSwapColor" style="display:none">' + esc(t('arcade.btn.swapcolor')) + '</button>' +
+      '<i class="ac-sep"></i>' +
+      '<button class="btn btn-ghost" id="acSound" aria-pressed="true" title="' + esc(t('arcade.btn.sound')) + '"><span class="ac-emoji">🔊</span><span class="ac-lbl">' + esc(t('arcade.btn.sound')) + '</span></button>' +
+      '<button class="btn btn-ghost" id="acFull" title="' + esc(t('arcade.btn.full')) + '"><span class="ac-emoji">⛶</span><span class="ac-lbl">' + esc(t('arcade.btn.full')) + '</span></button>' +
+      /* 표현 고르기. 규칙은 그대로, 보는 법만 바뀐다. 입체 화면이 있는 판에서만 뜬다. */
+      '<button class="btn btn-ghost" id="acDim" style="display:none" aria-pressed="false" title="' +
+      esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
       /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
       '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
-      '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
+      '<i class="ac-sep"></i>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
+      '<button class="btn btn-ghost" id="acQuit">' + esc(t('arcade.btn.quit')) + '</button>' +
+      /* 끝난 판의 행동 셋. 방에서는 결과 종이 아래로 옮겨 간다(`placeEndButtons`) */
       '<button class="btn btn-primary" id="acAgain" style="display:none">' + esc(t('arcade.btn.again')) + '</button>' +
+      /* 끝나면 색을 바꿔 한 판 더. 레퍼런스의 결과 화면 첫 버튼 */
+      '<button class="btn btn-ghost" id="acSwapColor" style="display:none">' + esc(t('arcade.btn.swapcolor')) + '</button>' +
+      '<button class="btn btn-ghost" id="acReplay" style="display:none">' + esc(t('arcade.btn.replay')) + '</button>' +
       '</div></div>';
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -1781,6 +1792,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           .join('');
         $<HTMLElement>('#acOverNote').textContent = note;
         $<HTMLElement>('#acOver').style.display = '';
+        placeEndButtons(true);
         return;
       }
       const order = ranks(v.seats.map((x) => x.score));
@@ -1815,6 +1827,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const count = meta && meta.moves > 0 ? t('arcade.result.moves', { n: String(meta.moves), t: clockText(meta.ms) }) : '';
       $<HTMLElement>('#acOverNote').textContent = [note, count, record].filter(Boolean).join(', ');
       $<HTMLElement>('#acOver').style.display = '';
+      placeEndButtons(true);
     }
 
     /** 1:03 꼴. 한 시간 넘는 판은 없다고 본다 */
@@ -1826,6 +1839,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 다음 판, 나가기 전에 걷는다. 안 걷으면 다음 판이 지난 결과 뒤에서 돈다. */
     function hideResult(): void {
       $<HTMLElement>('#acOver').style.display = 'none';
+      placeEndButtons(false);
+    }
+
+    /** 끝난 판의 버튼 셋(한 판 더, 색 바꿔, 다시 보기). 방에서는 결과 종이 아래로, 아니면 원래 줄로 */
+    function placeEndButtons(inOver: boolean): void {
+      const acts = $<HTMLElement>('#acOverActs');
+      const room = inOver && !!play.querySelector('.ac-t3room');
+      const btns = ['#acAgain', '#acSwapColor', '#acReplay'].map((q) => $<HTMLButtonElement>(q));
+      if (room) acts.append(...btns);
+      else $<HTMLElement>('#acControls').append(...btns);
     }
 
     function paint(v: MatchView<unknown>, now: number): void {
@@ -2854,11 +2877,48 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitStage));
 
     const controls = $<HTMLElement>('#acControls');
+    const menuBtn = $<HTMLButtonElement>('#acMenu');
     const controlsHome = controls.parentElement;
     document.addEventListener('fullscreenchange', () => {
       const stage = $<HTMLElement>('#acStage');
-      if (document.fullscreenElement === stage) stage.appendChild(controls);
-      else controlsHome?.appendChild(controls);
+      if (document.fullscreenElement === stage) stage.append(menuBtn, controls);
+      else controlsHome?.append(menuBtn, controls);
+    });
+    /* 방의 메뉴. 버튼 하나가 종이를 내리고 올린다. 줄 하나를 고르면 닫힘(소리 켜고 끄기는 열린 채) */
+    const setMenu = (open: boolean): void => {
+      if (open) tidySeps();
+      play.classList.toggle('ac-menu-open', open);
+      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    /* 구분선은 양쪽에 보이는 줄이 있을 때만. 숨은 버튼만 낀 무리 뒤의 선은 빈 선 */
+    const tidySeps = (): void => {
+      let seen = false;
+      let lastSep: HTMLElement | null = null;
+      for (const el of Array.from(controls.children) as HTMLElement[]) {
+        if (el.classList.contains('ac-sep')) {
+          el.hidden = !seen || !!lastSep;
+          if (!el.hidden) lastSep = el;
+          continue;
+        }
+        if (el.style.display !== 'none') {
+          seen = true;
+          lastSep = null;
+        }
+      }
+      if (lastSep) lastSep.hidden = true;
+    };
+    menuBtn.onclick = () => setMenu(!play.classList.contains('ac-menu-open'));
+    controls.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest('button');
+      if (b && b.id !== 'acSound') setMenu(false);
+    });
+    document.addEventListener('pointerdown', (ev) => {
+      if (!play.classList.contains('ac-menu-open')) return;
+      const el = ev.target as HTMLElement;
+      if (!controls.contains(el) && !menuBtn.contains(el)) setMenu(false);
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && play.classList.contains('ac-menu-open')) setMenu(false);
     });
 
     /* 표현 갈아 끼우기. 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
@@ -2921,7 +2981,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /* 소리 끄기. 껐다 켠 것은 이 브라우저에만 남는다. */
     const soundBtn = $<HTMLButtonElement>('#acSound');
     const paintSound = (): void => {
-      soundBtn.textContent = soundOn() ? '🔊' : '🔇';
+      const emoji = soundBtn.querySelector('.ac-emoji');
+      if (emoji) emoji.textContent = soundOn() ? '🔊' : '🔇';
       soundBtn.setAttribute('aria-pressed', soundOn() ? 'true' : 'false');
     };
     paintSound();

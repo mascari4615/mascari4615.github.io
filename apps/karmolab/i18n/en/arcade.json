@@ -5,6 +5,7 @@
   "arcade.label.name": "Name",
   "arcade.aria.name": "Name to use in the arcade",
   "arcade.name.default": "Assistant",
+  "arcade.btn.menu": "Menu",
   "arcade.btn.quit": "Back to the lab",
   "arcade.btn.again": "One more",
   "arcade.seats": "{min}-{max} players",

@@ -5,6 +5,7 @@
   "arcade.label.name": "이름",
   "arcade.aria.name": "오락실에서 쓸 이름",
   "arcade.name.default": "조수",
+  "arcade.btn.menu": "메뉴",
   "arcade.btn.quit": "실험실로",
   "arcade.btn.again": "한 판 더",
   "arcade.seats": "{min}~{max}명",

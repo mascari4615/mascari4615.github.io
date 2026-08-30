@@ -5,6 +5,7 @@
   "arcade.label.name": "名前",
   "arcade.aria.name": "ゲームコーナーで使う名前",
   "arcade.name.default": "助手",
+  "arcade.btn.menu": "メニュー",
   "arcade.btn.quit": "研究室へ",
   "arcade.btn.again": "もう一回",
   "arcade.seats": "{min}〜{max}人",
