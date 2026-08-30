@@ -121,6 +121,11 @@ assets/js/graph-view/
 # 글롭 = 새 notifier 가 같은 함정 반복 안 하게. TASK-YB-007 / YB-027.
 apps/discord-bots/apps/yawnbot/data/*-state.json
 
+# 등급전 장부. 사람들의 점수와 패보 (change.arcade-online).
+# 여기 없으면 배포마다 git clean -fd 가 지워 모든 점수가 1500 으로 돌아간다.
+apps/discord-bots/apps/yawnbot/data/arcade-ratings.json
+apps/discord-bots/apps/yawnbot/data/arcade-tapes.json
+
 # 채널 프로비저닝 파생 ID 맵 (정본=channel-spec.json, 본 파일=길드별 런타임 캐시).
 apps/discord-bots/apps/yawnbot/data/provisioned-channels.*.json
 
