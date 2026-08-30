@@ -40,7 +40,7 @@
   "src/widgets/tools/payslip.ts": 1,
   "src/widgets/user.ts": 2
  },
- "colorTotal": 1450,
+ "colorTotal": 1438,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 3,
@@ -126,7 +126,7 @@
   "src/widgets/terminal/terminal.ts": 9,
   "src/widgets/territory/territory.ts": 21,
   "src/widgets/tierlist/render.ts": 1,
-  "src/widgets/tierlist/styles.ts": 61,
+  "src/widgets/tierlist/styles.ts": 49,
   "src/widgets/tools/barcode.ts": 1,
   "src/widgets/tools/burnnote.ts": 2,
   "src/widgets/tools/calc.ts": 1,
