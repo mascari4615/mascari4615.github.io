@@ -15,7 +15,7 @@ export const view3d: GameView<GomokuState, GomokuAction> = {
   bare: true,
   mount(el, act) {
     /* 무대는 제 자리를 다 쓴다. 크기는 무대 계약(`--ac-stage`)이 정한다. */
-    el.innerHTML = '<div class="ac-t3 ac-room" id="acT3"></div>';
+    el.innerHTML = '<div class="ac-t3 ac-t3room" id="acT3"></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
 
     /* 오목은 **줄이 만나는 점**에 둔다. 칸 안에 두면 그건 다른 놀이다. */

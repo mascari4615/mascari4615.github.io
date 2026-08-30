@@ -407,8 +407,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-t3{width:100%;aspect-ratio:1;max-width:100%;margin:0 auto;border-radius:16px;overflow:hidden}',
       '.ac-t3.ac-waiting{opacity:.92}',
       /* 방 표현의 비네팅. 네 귀를 어둡게 눌러야 판 위의 빛이 등에서 온 빛으로 읽힌다(레퍼런스 실측: 귀가 가운데보다 40% 어둡다) */
-      '.ac-t3.ac-room{position:relative;border-radius:0}',
-      '.ac-t3.ac-room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
+      /* 이름이 `ac-t3room` 인 이유: `ac-room` 은 온라인 방 패널이 이미 쓴다. 같은 이름을 쓰니 캔버스에 테두리와 flex 가 붙었다(실측) */
+      '.ac-t3.ac-t3room{position:relative;border-radius:0}',
+      '.ac-t3.ac-t3room::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 50%,rgba(8,5,3,.55) 100%)}',
+      /* 방은 정사각이 아니다. 무대 폭을 다 쓰고 세로는 화면에 맞춘다. 카메라가 세로 화각을 지키므로 옆이 넓어지면 통과 다다미가 더 보인다(레퍼런스는 16:9) */
+      '#acPlay.ac-bare .ac-stage:has(.ac-t3room){max-width:none;width:100%}',
+      '.ac-t3.ac-t3room{aspect-ratio:auto;height:min(78vh,calc(100vh - 140px));max-width:none}',
       /* 화점. **자리는 판이 정한다**. 여기 칸 번호를 박으면 칸 수가 다른 판에 엉뚱한 점이
          찍힌다(9칸 번호가 15칸 판에 그대로 찍혀 있었다. 2026-08-29 실측).
          2D 오목판은 화면이 `ac-star` 를 붙이고(`gomoku-view.ts`), 입체 판은 `three-board.ts` 가 그린다. */
@@ -980,10 +984,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-stage:fullscreen{--ac-goban-cap:96vh}',
       '.ac-stage:fullscreen .ac-goban{padding:3%}',
       /* 방 표현은 풀스크린에서 **화면이 곧 방**이다. 정사각을 버리고 화면 비율을 그대로 쓴다(카메라가 세로 화각을 지키므로 옆으로 넓어지면 통과 다다미가 더 보인다) */
-      '.ac-stage:fullscreen:has(.ac-room){padding:0}',
-      '.ac-stage:fullscreen #acView:has(.ac-room){max-width:none;height:100vh}',
-      '.ac-stage:fullscreen #acView:has(.ac-room)>*{margin:0}',
-      '.ac-stage:fullscreen .ac-t3.ac-room{aspect-ratio:auto;height:100vh;max-width:none;border-radius:0}',
+      '.ac-stage:fullscreen:has(.ac-t3room){padding:0}',
+      '.ac-stage:fullscreen #acView:has(.ac-t3room){max-width:none;height:100vh}',
+      '.ac-stage:fullscreen #acView:has(.ac-t3room)>*{margin:0}',
+      '.ac-stage:fullscreen .ac-t3.ac-t3room{height:100vh}',
       '.ac-stage:fullscreen #acView{width:100%;max-width:min(92vmin,100%);margin:0 auto}',
       /* 풀스크린이면 단추 줄이 무대 **안으로 들어온다**. 아래 § 참고. 판 위에 뜨되 가리지 않게. */
       '.ac-stage:fullscreen .ac-controls{position:absolute;left:0;right:0;bottom:var(--space-lg);justify-content:center;margin:0;z-index:4}',
