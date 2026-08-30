@@ -30,7 +30,12 @@ if (!fs.existsSync(cssPath)) {
     const rel = u.replace('/apps/karmolab/', '');
     const f = path.join(root, rel);
     if (!fs.existsSync(f)) bad.push(`적혀 있는데 파일이 없다. ${rel}`);
-    else if (fs.statSync(f).size < 5000) bad.push(`파일이 너무 작다(잘못 구워짐). ${rel}`);
+    /* 라틴 글자만 담은 표시 글꼴은 원래 4KB 아래다 (`display-latin.woff2` 3.6KB, 대문자와 숫자뿐).
+       한글이 든 것과 같은 잣대로 재면 멀쩡한 파일을 잘못 구워졌다고 한다 (2026-08-31) */
+    else {
+      const min = /-latin\.woff2$/.test(rel) ? 1500 : 5000;
+      if (fs.statSync(f).size < min) bad.push(`파일이 너무 작다(잘못 구워짐). ${rel}`);
+    }
   }
 }
 
