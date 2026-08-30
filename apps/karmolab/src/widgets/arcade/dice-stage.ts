@@ -174,9 +174,21 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
    * 45~60도 부감). 왼쪽에 종이, 오른쪽에 컵. **종이**는 종이 바로 위에서 부감
    */
   const PAPER_AT = new Vector3(-5.3, 0.02, 0.9);
-  /* 레퍼런스 실측: 주사위 한 변이 화면 폭의 7~8%, 쟁반이 폭의 42%. 가까이 두니 주사위가 폭의 19% 였다 */
-  const tableSeat = new Vector3(0.3, 10.6, 8.9);
+  /**
+   * 레퍼런스 실측: 주사위 한 변이 화면 폭의 7~8%, 쟁반이 폭의 42%. 가까이 두면 폭의 19% (실측)
+   * 거리는 **창 비율로 결정**. 세로 화각만 고정하면 좁은 창에서 가로가 잘려 주사위가 큼
+   * (실측: 1280 폭에서 14%, 1920 폭에서 10%). 종이 왼끝부터 컵 오른끝까지(18) 가 가로에,
+   * 쟁반 앞뒤(10) 가 세로에 들어오는 거리 중 먼 쪽
+   */
   const tableLook = new Vector3(0.1, 0, 0.5);
+  const tableDir = new Vector3(0.2, 10.6, 8.4).normalize();
+  const tableSeat = new Vector3();
+  const fitTable = (): Vector3 => {
+    const half = Math.tan((camera.fov * Math.PI) / 360);
+    const d = Math.max(9 / (half * camera.aspect), 5 / half);
+    return tableSeat.copy(tableLook).addScaledVector(tableDir, d);
+  };
+  fitTable();
   const sheetSeat = new Vector3(PAPER_AT.x + 0.05, 4.9, PAPER_AT.z + 1.1);
   const sheetLook = new Vector3(PAPER_AT.x, 0, PAPER_AT.z + 0.1);
   const goal = tableSeat.clone();
@@ -376,7 +388,30 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     return m;
   });
   const faceMats = faceMaps.map((map) => new MeshStandardMaterial({ map, roughness: 0.34, metalness: 0.02 }));
-  const dieGeo = new BoxGeometry(D, D, D);
+  /**
+   * 둥근 주사위. 상자를 잘게 나눈 뒤 꼭짓점을 **안쪽 작은 상자에서 반지름만큼 밀어낸 자리**로 옮김
+   * (사용자 지적: 직각 정육면체는 도형이지 주사위가 아님). three 의 RoundedBoxGeometry 는
+   * 예제 모듈이라 받아 둔 것에 없음. 면 그룹은 그대로라 눈 재질 여섯 장이 그대로 붙음
+   */
+  const roundedBox = (size: number, radius: number, segs: number): BoxGeometry => {
+    const g = new BoxGeometry(size, size, size, segs, segs, segs);
+    const pos = g.getAttribute('position') as { count: number; getX(i: number): number; getY(i: number): number; getZ(i: number): number; setXYZ(i: number, x: number, y: number, z: number): void; needsUpdate: boolean };
+    const inner = size / 2 - radius;
+    const v = new Vector3();
+    const c = new Vector3();
+    for (let i = 0; i < pos.count; i += 1) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+      c.set(Math.max(-inner, Math.min(inner, v.x)), Math.max(-inner, Math.min(inner, v.y)), Math.max(-inner, Math.min(inner, v.z)));
+      v.sub(c);
+      if (v.lengthSq() > 0) v.normalize().multiplyScalar(radius);
+      v.add(c);
+      pos.setXYZ(i, v.x, v.y, v.z);
+    }
+    pos.needsUpdate = true;
+    g.computeVertexNormals();
+    return g;
+  };
+  const dieGeo = roundedBox(D, D * 0.14, 7);
   const dice: Die[] = [];
   for (let i = 0; i < opts.count; i += 1) {
     const mesh = new Mesh(dieGeo, faceMats);
@@ -633,6 +668,9 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
 
   /* ── 그리기 ── 부를 때만. 방은 30fps 로 산다 */
   let need = true;
+  let camFrom: Vector3 | null = null;
+  let sheetOn = false;
+  let done = false;
   let compiled = false;
   const render = (): void => {
     if (!need || !compiled) return;
@@ -646,17 +684,21 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    /* 창이 바뀌면 탁자 자리도 바뀐다. 탁자를 보고 있고 움직이는 중이 아니면 바로 옮긴다 */
+    fitTable();
+    if (!sheetOn && !camFrom && !done) {
+      goal.copy(tableSeat);
+      camera.position.copy(tableSeat);
+      camera.lookAt(look);
+    }
     need = true;
     render();
   };
 
   let loop: GardenLoop | null = null;
-  let camFrom: Vector3 | null = null;
   let lookFrom: Vector3 | null = null;
   let camT0 = 0;
   let camMs = 0;
-  let sheetOn = false;
-  let done = false;
   let lastLive = 0;
   const seed = Math.random() * 1000;
   const breathe = (t: number): void => {

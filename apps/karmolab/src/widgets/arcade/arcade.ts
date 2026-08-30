@@ -480,6 +480,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3bar) .ac-seat .ac-rule{padding-left:26px;font-variant-numeric:tabular-nums}',
       '.ac-ycpaper{position:absolute;inset:0;z-index:4;display:grid;place-items:center;background:rgba(6,4,2,.22);opacity:0;transition:opacity .28s ease}',
       '.ac-ycpaper.ac-show{opacity:1}',
+      /* 작성자 display 가 hidden 의 UA display:none 을 이긴다. 안 적으면 투명한 채 캔버스를 덮어 클릭을 전부 먹는다(실측) */
+      '.ac-ycpaper[hidden]{display:none}',
       '.ac-ycpaperin{width:min(440px,92%);max-height:92%;overflow:auto;padding:16px 18px 18px;border-radius:var(--radius-sm);background:linear-gradient(172deg,#f7efdc 0%,#efe4cb 70%,#e6d8ba 100%);box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(120,80,40,.22);color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;transform:rotate(-.6deg)}',
       '.ac-ychead{display:flex;align-items:center;gap:10px;margin-bottom:10px}',
       '.ac-ychead .ac-ycdice{display:flex;gap:6px;--ac-die:30px}',
