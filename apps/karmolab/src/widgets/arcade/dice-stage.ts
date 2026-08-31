@@ -13,7 +13,6 @@
  * 규칙은 이 파일을 모름. 상태를 받아 놓고, 손을 밖으로
  */
 import {
-  ACESFilmicToneMapping,
   AmbientLight,
   BoxGeometry,
   CanvasTexture,
@@ -25,7 +24,6 @@ import {
   LatheGeometry,
   Mesh,
   MeshStandardMaterial,
-  PCFSoftShadowMap,
   PerspectiveCamera,
   Plane,
   PointLight,
@@ -43,9 +41,9 @@ import {
   SRGBColorSpace,
   Vector2,
   Vector3,
-  WebGLRenderer
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
+import { mountStageCore } from './stage-core';
 import { dieFaceTexture, feltTexture, leatherTexture, paperTexture, plankTexture, woodTexture } from './texture';
 import { simulateRoll, simulateInCup, sample, type Track } from './dice-physics';
 import { buildRoom, type Room } from './rooms';
@@ -156,38 +154,17 @@ interface Die {
 }
 
 export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStage {
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'display:block;width:100%;height:100%;outline:none';
-  canvas.tabIndex = 0;
-  host.appendChild(canvas);
-
-  let renderer: WebGLRenderer;
-  try {
-    renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
-  } catch {
-    host.removeChild(canvas);
+  /* 밑동은 `stage-core.ts`. 캔버스, 그리개, GPU 판별, 색공간, 그림자, 톤 매핑, 크기 맞추기
+     주사위 다섯이라 부드러운 그림자를 감당(오목은 알 200개라 hard)
+     노출 1.0 은 컵이 어둠에 묻혀 있는지도 몰랐음(사용자 지적). 등불 아래만 밝되 물건은 다 보이게 */
+  const core = mountStageCore(host, { shadow: 'soft', exposure: 1.15 });
+  if (!core) {
     return {
       ok: false, software: false,
       set: () => {}, speed: () => {}, rollsLeft: () => {}, canAct: () => {}, sheetMode: () => {}, sheetDirty: () => {}, finish: () => {}, write: () => {}, resize: () => {}, dispose: () => {}
     };
   }
-  const gpuName = ((): string => {
-    try {
-      const gl = renderer.getContext();
-      const ext = gl.getExtension('WEBGL_debug_renderer_info');
-      return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'gpu ?';
-    } catch {
-      return 'gpu ?';
-    }
-  })();
-  const software = /Basic Render Driver|SwiftShader|llvmpipe|Software/i.test(gpuName);
-  renderer.outputColorSpace = SRGBColorSpace;
-  renderer.shadowMap.enabled = true;
-  /* 주사위 다섯이라 부드러운 그림자를 감당한다(오목은 알 200개라 PCF) */
-  renderer.shadowMap.type = PCFSoftShadowMap;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  /* 1.0 은 컵이 어둠에 묻혀 있는지도 몰랐다(사용자 지적). 등불 아래만 밝되 물건은 다 보이게 */
-  renderer.toneMappingExposure = 1.15;
+  const { canvas, renderer, software, gpuName } = core;
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(38, 1, 0.1, 80);
@@ -943,11 +920,8 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     renderer.render(scene, camera);
   };
   const resize = (): void => {
-    const w = host.clientWidth || 1;
-    const h = host.clientHeight || 1;
-    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
+    const { aspect } = core.fit();
+    camera.aspect = aspect;
     camera.updateProjectionMatrix();
     /* 창이 바뀌면 탁자 자리도 바뀐다. 탁자를 보고 있고 움직이는 중이 아니면 바로 옮긴다 */
     fitTable();
@@ -1176,8 +1150,7 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
       [...faceMats, ...bottleMats, counterMat, wallMat, shelfMat, feltMat, trayWood, slotMat, brassOff, brassOn, leather, lipMat, paperMat, pencilMat, moteMat].forEach((m) => m.dispose());
       [...faceMaps, counterMap, feltMap, trayWoodMap, leatherMap, sheetMap].forEach((m) => m.dispose());
       room?.dispose();
-      renderer.dispose();
-      canvas.remove();
+      core.dispose();
     }
   };
 }
