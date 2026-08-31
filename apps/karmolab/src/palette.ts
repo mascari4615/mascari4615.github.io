@@ -391,6 +391,9 @@ const KarmoPalette = (() => {
     entries = all
       // 데스크톱 앱 전용 도구는 브라우저에서 열 수 없다. 찾아져 봐야 빈 화면이다.
       .filter((t) => !(t.desktopOnly || t.category === 'desktop') || isDesktop)
+      // 감춘 도구는 여기서도 안 나온다 (2026-08-31 사용자 결정). 옆줄과 찾기 판 둘 다에서 뺀다.
+      // 주소(`#id`)와 도구 목록 장(`/t/`)으로는 그대로 들어간다.
+      .filter((t) => !t.hidden)
       // 내 정보는 헤더에 제 버튼이 있다. 여기서 또 나오면 결과가 지저분해진다.
       .filter((t) => t.id !== 'user')
       .map((t) => ({

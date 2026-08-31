@@ -176,6 +176,7 @@ window.KARMOLAB_LAZY_META = [
     /* 브라우저 안에서 도는 AI (TASK-KL-209). 서버를 한 번도 안 부른다.
        안 되는 브라우저에서는 없는 척하지 않고 이 브라우저는 아직이라고 적는다. */
     id: 'localai',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.localai.title', undefined, "기기 안 AI"); },
     category: 'ai',
     get desc() { return t('widgets-desc.localai.desc', undefined, "번역, 요약을 서버 없이 이 기기 안에서. 글이 밖으로 안 나갑니다 (크롬 계열 최신판)"); },
@@ -269,6 +270,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'passgen',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.passgen.title', undefined, "비밀번호 만들기, 확인"); },
     category: 'dev',
     get desc() { return t('widgets-desc.passgen.desc', undefined, "안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다"); },
@@ -402,6 +404,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'logview',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.logview.title', undefined, "로그 보기"); },
     category: 'dev',
     get desc() { return t('widgets-desc.logview.desc', undefined, "큰 로그를 끌어다 놓으면 언제 몰렸는지 보여 주고, 급, 정규식으로 좁혀 봅니다. 파일은 브라우저를 벗어나지 않습니다"); },
@@ -411,6 +414,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'bundlemap',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.bundlemap.title', undefined, "번들 지도"); },
     category: 'dev',
     get desc() { return t('widgets-desc.bundlemap.desc', undefined, "webpack stats.json 이나 esbuild metafile 을 넣으면 어디가 무거운지 넓이로 보여 주고, 두 번 들어간 꾸러미를 찾아 줍니다"); },
@@ -420,6 +424,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'dupphoto',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.dupphoto.title', undefined, "닮은 사진 찾기"); },
     category: 'image',
     get desc() { return t('widgets-desc.dupphoto.desc', undefined, "사진을 여러 장 넣으면 닮은 것끼리 묶어 어느 것을 남기면 되는지 알려 줍니다. 사진이 브라우저를 벗어나지 않습니다"); },
@@ -429,6 +434,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'photomap',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.photomap.title', undefined, "사진 자리 보기"); },
     category: 'image',
     get desc() { return t('widgets-desc.photomap.desc', undefined, "사진에 든 위치, 날짜를 읽어 어디서 언제 찍었는지 보여 줍니다. 지도 타일을 받지 않아 위치가 밖으로 안 나갑니다"); },
@@ -438,6 +444,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'codegraph',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.codegraph.title', undefined, "부름 지도"); },
     category: 'dev',
     get desc() { return t('widgets-desc.codegraph.desc', undefined, "zip 을 넣으면 파일이 서로 무엇을 부르는지 그리고, 고리, 많이 불리는 파일, 아무도 안 부르는 파일을 짚습니다"); },
@@ -497,6 +504,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'livecount',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.livecount.title', undefined, "흐른 시간 카운터"); },
     category: 'calc',
     get desc() { return t('widgets-desc.livecount.desc', undefined, "그날 이후 흐른 시간이 초 단위로 올라간다. 하루 몇 번 기준 어림도"); },
@@ -506,6 +514,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'comparepic',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.comparepic.title', undefined, "비교 슬라이더"); },
     category: 'image',
     get desc() { return t('widgets-desc.comparepic.desc', undefined, "사진 두 장을 겹쳐 밀어 보며 비교. 파일은 기기 밖으로 나가지 않는다"); },
@@ -516,6 +525,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'charconv',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.charconv.title', undefined, "문자 변환"); },
     category: 'text',
     get desc() { return t('widgets-desc.charconv.desc', undefined, "전각, 반각, 한글, 로마자, 한글, 자모, 간체, 번체, 한자, 병음을 한 곳에서"); },
@@ -525,6 +535,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'mesh3d',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.mesh3d.title', undefined, "3D 뷰어"); },
     category: 'image',
     get desc() { return t('widgets-desc.mesh3d.desc', undefined, "STL, OBJ 를 열어 돌려 본다. 삼각형 수, 크기까지, 파일은 기기 밖으로 안 나간다"); },
@@ -593,6 +604,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'chatbot',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.chatbot.title', undefined, "챗봇"); },
     category: 'ai',
     get desc() { return t('widgets-desc.chatbot.desc', undefined, "AI와 대화합니다"); },
@@ -739,6 +751,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pulse',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.pulse.title', undefined, "박동"); },
     category: 'play',
     get desc() { return t('widgets-desc.pulse.desc', undefined, "아무 의미 없는 것을 아주 규칙적으로 내보내는 방송국 7개. 세 글자, 종, 눈금, 낱말, 한 줄, 무늬, 점 (TASK-KL-207)"); },
@@ -748,6 +761,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'adventure',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.adventure.title', undefined, "무한 텍스트 어드벤처"); },
     category: 'ai',
     get desc() { return t('widgets-desc.adventure.desc', undefined, "티메토 GM 의 무한 텍스트 어드벤처 (KL-032). 무대 = KarmoWorld, history → wiki entity 누적"); },
@@ -784,6 +798,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'terminal',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.terminal.title', undefined, "PowerShell 터미널"); },
     category: 'dev',
     desktopOnly: true,
@@ -992,6 +1007,7 @@ window.KARMOLAB_LAZY_META = [
   {
     // 진짜로 못 여는 편지. 목록에서 바로 보여야 한다 (TASK-KL-134).
     id: 'timecapsule',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.timecapsule.title', undefined, "타임캡슐 편지"); },
     category: 'play',
     get desc() { return t('widgets-desc.timecapsule.desc', undefined, "정한 날 전에는 아무도 못 여는 편지를 만듭니다. 맡아 두는 서버가 없어 잠긴 편지 자체가 주소가 됩니다"); },
@@ -1024,6 +1040,7 @@ window.KARMOLAB_LAZY_META = [
     // 묶음에 넣지 않는다. 다른 PDF 도구가 한 파일을 고친다면 이건 두 판본을 견준다라
     // 하는 일의 결이 다르고, 목록에서 바로 보여야 하는 도구다 (TASK-KL-130).
     id: 'pdfdiff',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.pdfdiff.title', undefined, "PDF 판본 대조"); },
     category: 'file',
     get desc() { return t('widgets-desc.pdfdiff.desc', undefined, "문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표, 도장이 밀린 것도 잡습니다"); },
@@ -1322,6 +1339,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdf',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.pdf.title', undefined, "PDF 도구"); },
     category: 'file',
     get desc() { return t('widgets-desc.pdf.desc', undefined, "PDF 를 합치고 나누고 줄이고, 서명, 워터마크를 넣습니다. 문서가 브라우저를 벗어나지 않습니다"); },
@@ -1332,6 +1350,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'sound',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.sound.title', undefined, "소리 도구"); },
     category: 'av',
     get desc() { return t('widgets-desc.sound.desc', undefined, "녹음하고 자르고 크기를 맞추고 잇습니다. MP3, WAV 로 저장하며 파일이 브라우저를 벗어나지 않습니다"); },
@@ -1342,6 +1361,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'filetool',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.filetool.title', undefined, "파일 도구"); },
     category: 'file',
     get desc() { return t('widgets-desc.filetool.desc', undefined, "사진 변환, 이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다"); },
@@ -1453,6 +1473,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'videotool',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.videotool.title', undefined, "영상 도구"); },
     category: 'av',
     get desc() { return t('widgets-desc.videotool.desc', undefined, "영상을 GIF 로 만들고, 구간을 자르고, 소리를 뽑고, 화면을 녹화합니다. 영상이 브라우저를 벗어나지 않습니다"); },
@@ -1530,6 +1551,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'qr',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.qr.title', undefined, "QR 도구"); },
     category: 'image',
     get desc() { return t('widgets-desc.qr.desc', undefined, "QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다"); },
@@ -1626,6 +1648,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'time',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.time.title', undefined, "시간"); },
     category: 'calc',
     get desc() { return t('widgets-desc.time.desc', undefined, "날짜 계산, D-Day, 타이머, 스톱워치, 세계 시차를 한 곳에서"); },
@@ -1738,6 +1761,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'color',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.color.title', undefined, "색상 도구"); },
     category: 'image',
     get desc() { return t('widgets-desc.color.desc', undefined, "HEX, RGB, HSL 변환, 이미지에서 색 추출, CSS 색 이름표를 한 곳에서"); },
@@ -1792,6 +1816,7 @@ window.KARMOLAB_LAZY_META = [
 
   {
     id: 'papermap',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.papermap.title', undefined, "논문 지도"); },
     category: 'ai',
     get desc() { return t('widgets-desc.papermap.desc', undefined, "논문 하나가 무엇 위에 서 있는지 지도로 봅니다. 크기가 인용 수, 왼쪽이 옛 논문이라 무엇부터 읽을지가 한눈에 보입니다"); },
@@ -1801,6 +1826,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'burnnote',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.burnnote.title', undefined, "사라지는 쪽지"); },
     category: 'dev',
     get desc() { return t('widgets-desc.burnnote.desc', undefined, "비밀번호 같은 것을 한 번만 열리는 링크로 건넵니다. 브라우저에서 잠그고 열쇠는 주소에만 담겨 서버는 내용을 볼 수 없습니다"); },
@@ -1810,6 +1836,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'explainshell',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.explainshell.title', undefined, "명령줄 뜯어보기"); },
     category: 'dev',
     get desc() { return t('widgets-desc.explainshell.desc', undefined, "명령줄을 붙여넣으면 조각마다 무슨 뜻인지 알려 줍니다. 되돌릴 수 없는 명령에는 경고가 붙고, 붙여넣은 줄은 브라우저 밖으로 나가지 않습니다"); },
@@ -1819,6 +1846,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'soundscape',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.soundscape.title', undefined, "소리 풍경"); },
     category: 'av',
     get desc() { return t('widgets-desc.soundscape.desc', undefined, "비, 파도, 모닥불을 섞어 집중용 배경음을 만듭니다. 음원을 내려받지 않고 그 자리에서 소리를 만들어 같은 소리가 반복되지 않습니다"); },
@@ -1828,6 +1856,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'codeshot',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.codeshot.title', undefined, "코드 사진"); },
     category: 'dev',
     get desc() { return t('widgets-desc.codeshot.desc', undefined, "코드를 붙여넣으면 문법 색칠된 이미지로 만듭니다. 껍데기를 골라 쓰며 파일이 브라우저를 벗어나지 않습니다"); },
@@ -1927,6 +1956,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'barcode',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.barcode.title', undefined, "바코드 만들기"); },
     category: 'image',
     get desc() { return t('widgets-desc.barcode.desc', undefined, "재고, 도서, 물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다"); },
@@ -1937,6 +1967,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'icsmake',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.icsmake.title', undefined, "일정 파일 만들기"); },
     category: 'calc',
     get desc() { return t('widgets-desc.icsmake.desc', undefined, "모임, 공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다"); },
@@ -1946,6 +1977,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'subtitle',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.subtitle.title', undefined, "자막 시간 맞추기"); },
     category: 'av',
     get desc() { return t('widgets-desc.subtitle.desc', undefined, "어긋난 자막을 밀거나 늘려 맞춥니다. SRT, VTT 를 서로 바꿉니다"); },
@@ -1980,6 +2012,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'calc',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.calc.title', undefined, "계산기"); },
     category: 'calc',
     get desc() { return t('widgets-desc.calc.desc', undefined, "퍼센트, 이자, BMI, 단위, 진법 계산을 한 곳에서"); },
@@ -2174,6 +2207,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'morse',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.morse.title', undefined, "모스 부호 변환"); },
     category: 'text',
     get desc() { return t('widgets-desc.morse.desc', undefined, "글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리, 불빛 재생 지원"); },
@@ -2384,6 +2418,7 @@ window.KARMOLAB_LAZY_META = [
   /* 잡동사니 위젯 본체 */
   {
     id: 'stash',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.stash.title', undefined, "잡동사니"); },
     category: 'file',
     get desc() { return t('widgets-desc.stash.desc', undefined, "정리 안 된 실험들이 한 상자에 살아 움직임"); },
@@ -2420,6 +2455,7 @@ window.KARMOLAB_LAZY_META = [
   /* ORBITA (TASK-KL-193). 순서를 줄이 아니라 궤도로 적는 시퀀서. 색이 곧 음이다. */
   {
     id: 'orbita',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.orbita.title', undefined, "ORBITA"); },
     category: 'play',
     get desc() { return t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서. 브라우저 신스 + MIDI 출력"); },
@@ -2495,6 +2531,7 @@ window.KARMOLAB_LAZY_META = [
   /* 도감 (TASK-KL-196). 써 본 도구에 도장이 찍힌다. 새로 만드는 것 없이 160개를 채울 것으로. */
   {
     id: 'collection',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     noPage: true,
     get title() { return t('widgets.collection.title', undefined, "도감"); },
     category: 'play',
@@ -2546,6 +2583,7 @@ window.KARMOLAB_LAZY_META = [
    * 못 닿고 있었다(`audit:registry-impl` 이 꺼져 있어 아무도 몰랐다). */
   {
     id: 'askpapers',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.askpapers.title', undefined, "논문에게 묻기"); },
     category: 'ai',
     get desc() { return t('widgets-desc.askpapers.desc', undefined, "물음을 던지면 논문이 답합니다. 지어낸 요약이 아니라 초록에 실제로 있는 문장을 그대로 뽑아 링크와 함께 보여 줍니다"); },
@@ -2560,6 +2598,7 @@ window.KARMOLAB_LAZY_META = [
   /* 나만 안 되나?. 위와 같은 사유로 못 닿고 있었다. */
   {
     id: 'isitdown',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.isitdown.title', undefined, "나만 안 되나?"); },
     category: 'dev',
     get desc() { return t('widgets-desc.isitdown.desc', undefined, "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다"); },
@@ -2575,6 +2614,7 @@ window.KARMOLAB_LAZY_META = [
   /* 지우개. 칠한 자리를 주변 색으로 덮는다 (흡혈 원장 15). */
   {
     id: 'cleanup',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.cleanup.title', undefined, "지우개"); },
     category: 'file',
     get desc() { return t('widgets-desc.cleanup.desc', undefined, "사진에서 거슬리는 것을 칠해서 지웁니다. 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다"); },
@@ -2589,6 +2629,7 @@ window.KARMOLAB_LAZY_META = [
   /* 영상 배경 빼기. 14 의 바닥을 프레임마다 (흡혈 원장 16). */
   {
     id: 'videobg',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.videobg.title', undefined, "영상 배경 빼기"); },
     category: 'ai',
     get desc() { return t('widgets-desc.videobg.desc', undefined, "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다"); },
@@ -2603,6 +2644,7 @@ window.KARMOLAB_LAZY_META = [
   /* 잠깐 쓰는 메일 */
   {
     id: 'tempmail',
+    hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.tempmail.title', undefined, "잠깐 쓰는 메일"); },
     category: 'dev',
     get desc() { return t('widgets-desc.tempmail.desc', undefined, "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"); },
