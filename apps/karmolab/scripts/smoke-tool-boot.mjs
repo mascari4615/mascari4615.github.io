@@ -73,8 +73,13 @@ let opened = 0;
 const browser = await chromium.launch({ headless: true });
 
 /** 한 판씩 여러 개를 동시에. 하나씩 열면 도구 231개에 7분이다 */
-async function openOne(id) {
+/* 판(밝음, 어두움)마다 다른 코드가 도는 위젯이 있다. 두 판 다 연다
+   (2026-08-31: 어두운 판만 죽는 자리를 지금은 아무도 안 봤다) */
+const THEMES = (process.env.KL_BOOT_THEMES || 'light,dark').split(',');
+
+async function openOne(id, theme) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.addInitScript((t) => { try { localStorage.setItem('toolbox_theme', t); } catch { /* 저장이 막힌 판 */ } }, theme);
   const hits = new Set();
   page.on('pageerror', (e) => hits.add('오류 ' + String(e).split('\n')[0].slice(0, 90)));
   page.on('response', (r) => {
@@ -92,30 +97,31 @@ async function openOne(id) {
       .waitForFunction(() => !!document.querySelector('.tool-page.active'), undefined, { timeout: 25000 })
       .then(() => true)
       .catch(() => false);
-    if (!drew) { skipped.push(`${id}: 도구 판이 안 그려졌다`); return; }
+    if (!drew) { skipped.push(`${id}(${theme}): 도구 판이 안 그려졌다`); return; }
     /* 여기 재움은 값을 기다리는 게 아니라 **오류가 날 시간을 준다**. 무엇이 될지가 아니라
        무엇이 깨지나를 보는 자리라 기다릴 상태가 없다. 멎기를 기다리게 해 봤더니 1분 7초가
        2분 52초가 되고 무거운 도구 둘이 시간 초과로 빠졌다 (2026-08-31 실측) */
     // 재움-의도: 오류가 터질 틈을 준다. 읽어서 판정하는 값이 없다
     await page.waitForTimeout(900);
     opened++;
-    if (hits.size) failures.push(`${id}: ${[...hits].slice(0, 3).join(' | ')}`);
+    if (hits.size) failures.push(`${id}(${theme}): ${[...hits].slice(0, 3).join(' | ')}`);
   } catch (err) {
-    skipped.push(`${id}: 화면을 못 열었다 (${String(err).slice(0, 60)})`);
+    skipped.push(`${id}(${theme}): 화면을 못 열었다 (${String(err).slice(0, 60)})`);
   } finally {
     await page.close();
   }
 }
 
-const LANES = 4;
+const LANES = Number(process.env.KL_BOOT_LANES || 6);   // 판 둘을 도니 레인을 늘린다
 try {
-  const queue = [...ids];
+  const queue = [];
+  for (const theme of THEMES) for (const id of ids) queue.push([id, theme]);
   await Promise.all(
     Array.from({ length: LANES }, async () => {
       for (;;) {
-        const id = queue.shift();
-        if (!id) return;
-        await openOne(id);
+        const next = queue.shift();
+        if (!next) return;
+        await openOne(next[0], next[1]);
       }
     })
   );
@@ -131,4 +137,4 @@ if (failures.length) {
   console.error('  부르는 파일이 지어지나(`scripts/entry-points.mjs`), 그리는 순간 부르는 값이 이미 섰나를 본다.');
   process.exit(1);
 }
-console.log(`[tool-boot] OK. 도구 ${opened}개가 오류 없이 열린다 (건너뜀 ${skipped.length}개)`);
+console.log(`[tool-boot] OK. 도구 ${ids.length}개가 ${THEMES.join(', ')} 판에서 오류 없이 열린다 (연 것 ${opened}, 건너뜀 ${skipped.length})`);
