@@ -114,8 +114,19 @@ function valueOf(cat: Cat, dice: number[], sheet: Sheet, level: Level): number {
     /* 덤은 눈마다 셋(par)씩 모으면 정확히 63. par 와의 차이를 값에 얹고, 63 을 넘기는 순간 35 를 그대로 */
     const upperSoFar = UPPER.reduce((a, c) => a + (sheet[c] ?? 0), 0);
     if (upperSoFar < 63) {
-      v += (raw - 3 * face) * 1.2;
-      if (upperSoFar + raw >= 63) v += 35;
+      /* 아직 덤이 닿나. 잣대는 남은 위 칸을 다섯 개씩 채웠을 때의 최대치.
+         못 닿으면 웃돈 없음. 닿지도 않을 덤 때문에 낮은 눈을 붙들고 있었음
+         닿으면 여유가 적을수록 절박하게. 고치기 전 실측은 위 합 55.9, 덤 23.5% */
+      const need = 63 - upperSoFar;
+      const most = UPPER.reduce((a, c) => a + (sheet[c] === null ? 5 * FACE[c] : 0), 0);
+      if (most >= need) {
+        const slack = most - need;
+        const over = raw - 3 * face;
+        /* 미달과 초과는 다른 잣대. par 를 밑도는 칸은 덤을 통째로 날리는 쪽이라 더 아프게 */
+        const w = over >= 0 ? Math.max(1, Math.min(2.6, 2.6 - slack / 30)) : Math.max(4.5, Math.min(9, 9 - slack / 12));
+        v += over * w;
+        if (upperSoFar + raw >= 63) v += 35;
+      }
     }
     return v;
   }
