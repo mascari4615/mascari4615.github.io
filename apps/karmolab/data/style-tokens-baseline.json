@@ -40,7 +40,7 @@
   "src/widgets/tools/payslip.ts": 1,
   "src/widgets/user.ts": 2
  },
- "colorTotal": 1450,
+ "colorTotal": 1444,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 3,
@@ -59,7 +59,7 @@
   "src/secrets.ts": 2,
   "src/toolbox.ts": 1,
   "src/widgets/alarm.ts": 2,
-  "src/widgets/arcade/arcade.ts": 417,
+  "src/widgets/arcade/arcade.ts": 411,
   "src/widgets/arcade/three-board.ts": 2,
   "src/widgets/bluemarble/bluemarble.ts": 36,
   "src/widgets/bon/styles.ts": 9,

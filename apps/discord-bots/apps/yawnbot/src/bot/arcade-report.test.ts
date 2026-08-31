@@ -9,22 +9,31 @@ import express from 'express';
 import os from 'node:os';
 import path from 'node:path';
 import type { Server } from 'http';
-import { registerArcadeQueue, resetQueue, idOf } from './arcade-queue';
+import { registerArcadeQueue, resetQueue } from './arcade-queue';
 import { registerArcadeReport, resetReports } from './arcade-report';
 import { ratingOf, resetRatings } from './arcade-rating';
 
 let server: Server;
 let base = '';
 
-const A = 'aaaaaaaaaaaaaaaaaaaa';
-const B = 'bbbbbbbbbbbbbbbbbbbb';
-const C = 'cccccccccccccccccccc';
+/** 가짜 로그인. `x-test-user` 머리에 적은 이름이 곧 그 사람 */
+const fakeWho = (req: { headers: Record<string, unknown> }): { id: string; handle: string } | null => {
+  const raw = req.headers['x-test-user'];
+  const id = typeof raw === 'string' ? raw.trim() : '';
+  return id ? { id, handle: id } : null;
+};
+/** 그 사람으로 보내는 머리 */
+const as = (id: string): Record<string, string> => ({ 'x-test-user': id, 'Content-Type': 'application/json' });
+
+const A = 'account-a';
+const B = 'account-b';
+const C = 'account-c';
 
 beforeAll(async () => {
   process.env.ARCADE_RATING_FILE = path.join(os.tmpdir(), 'arcade-report-test.json');
   const app = express();
-  registerArcadeQueue(app);
-  registerArcadeReport(app);
+  registerArcadeQueue(app, fakeWho as never);
+  registerArcadeReport(app, fakeWho as never);
   await new Promise<void>((resolve) => {
     server = app.listen(0, '127.0.0.1', () => resolve());
   });
@@ -44,8 +53,8 @@ const stand = async (key: string, game = 'gomoku'): Promise<Answer> =>
   (await (
     await fetch(`${base}/kl/arcade/queue`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, game, name: key[0] })
+      headers: as(key),
+      body: JSON.stringify({ game, name: key.slice(-1) })
     })
   ).json()) as Answer;
 
@@ -53,8 +62,8 @@ type Report = { ok?: boolean; applied?: boolean; waiting?: number; disagreed?: b
 const report = async (key: string, code: string, ranks: string[], draw = false): Promise<{ status: number; body: Report }> => {
   const res = await fetch(`${base}/kl/arcade/report`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, code, ranks, draw })
+    headers: as(key),
+    body: JSON.stringify({ code, ranks, draw })
   });
   return { status: res.status, body: (await res.json()) as Report };
 };
@@ -63,7 +72,7 @@ const report = async (key: string, code: string, ranks: string[], draw = false):
 async function match(): Promise<{ code: string; a: string; b: string }> {
   await stand(A);
   const answer = await stand(B);
-  return { code: String(answer.code), a: idOf(A), b: idOf(B) };
+  return { code: String(answer.code), a: A, b: B };
 }
 
 describe('결과 보고', () => {
@@ -109,13 +118,26 @@ describe('결과 보고', () => {
   });
 
   it('없는 판, 모양이 아닌 값은 거절', async () => {
-    expect((await report(A, 'ZZZZZ', [idOf(A), idOf(B)])).status).toBe(404);
-    expect((await report('short', 'ZZZZZ', [])).status).toBe(400);
+    expect((await report(A, 'ZZZZZ', [A, B])).status).toBe(404);
+    expect((await report(A, '!!', [])).status).toBe(400);
+  });
+
+  it('로그인 안 하면 보고도 점수 보기도 못 한다', async () => {
+    const { code, a, b } = await match();
+    const res = await fetch(`${base}/kl/arcade/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, ranks: [a, b] })
+    });
+    expect(res.status).toBe(401);
+    const mine = await fetch(`${base}/kl/arcade/rating/me?game=gomoku`);
+    expect(mine.status).toBe(200);
+    expect((await mine.json()) as { signedIn: boolean }).toEqual({ signedIn: false });
   });
 
   it('그 판에 없던 사람을 순서에 끼우면 거절', async () => {
     const { code, a } = await match();
-    expect((await report(A, code, [a, idOf(C)])).status).toBe(400);
+    expect((await report(A, code, [a, C])).status).toBe(400);
   });
 
   it('무승부는 양쪽 다 무승부라고 해야 반영', async () => {
@@ -126,9 +148,9 @@ describe('결과 보고', () => {
     expect(ratingOf('gomoku', a)).toBe(1500);
   });
 
-  it('내 점수를 열쇠로 본다', async () => {
-    const res = await fetch(`${base}/kl/arcade/rating/${A}?game=gomoku`);
+  it('로그인한 사람은 제 점수를 본다', async () => {
+    const res = await fetch(`${base}/kl/arcade/rating/me?game=gomoku`, { headers: as(A) });
     expect(res.status).toBe(200);
-    expect((await res.json()) as { rating: number }).toEqual({ rating: 1500, games: 0, wins: 0 });
+    expect((await res.json()) as { rating: number }).toEqual({ signedIn: true, rating: 1500, games: 0, wins: 0 });
   });
 });

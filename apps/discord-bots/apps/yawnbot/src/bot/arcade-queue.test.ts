@@ -4,15 +4,25 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import express from 'express';
 import type { Server } from 'http';
-import { registerArcadeQueue, resetQueue, idOf } from './arcade-queue';
+import { registerArcadeQueue, resetQueue } from './arcade-queue';
 import { resetRatings, applyResult } from './arcade-rating';
 
 let server: Server;
 let base = '';
 
+
+/** 가짜 로그인. `x-test-user` 머리에 적은 이름이 곧 그 사람 */
+const fakeWho = (req: { headers: Record<string, unknown> }): { id: string; handle: string } | null => {
+  const raw = req.headers['x-test-user'];
+  const id = typeof raw === 'string' ? raw.trim() : '';
+  return id ? { id, handle: id } : null;
+};
+/** 그 사람으로 보내는 머리 */
+const as = (id: string): Record<string, string> => ({ 'x-test-user': id, 'Content-Type': 'application/json' });
+
 beforeAll(async () => {
   const app = express();
-  registerArcadeQueue(app);
+  registerArcadeQueue(app, fakeWho as never);
   await new Promise<void>((resolve) => {
     server = app.listen(0, '127.0.0.1', () => resolve());
   });
@@ -23,22 +33,19 @@ beforeAll(async () => {
 afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 beforeEach(() => { resetQueue(); resetRatings(); });
 
-const A = 'aaaaaaaaaaaaaaaaaaaa';
-const B = 'bbbbbbbbbbbbbbbbbbbb';
-const C = 'cccccccccccccccccccc';
+const A = 'account-a';
+const B = 'account-b';
+const C = 'account-c';
 
 type Answer = { status: string; code?: string; host?: boolean; room?: string; opponent?: string; others?: number };
-const stand = async (key: string, name = key[0], game = 'gomoku'): Promise<Answer> =>
+const stand = async (key: string, name = key.slice(-1), game = 'gomoku'): Promise<Answer> =>
   (await (
-    await fetch(`${base}/kl/arcade/queue`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, game, name })
-    })
+    await fetch(`${base}/kl/arcade/queue`, { method: 'POST', headers: as(key), body: JSON.stringify({ game, name }) })
   ).json()) as Answer;
 const look = async (key: string): Promise<Answer> =>
-  (await (await fetch(`${base}/kl/arcade/queue/${key}`)).json()) as Answer;
-const leave = (key: string): Promise<Response> => fetch(`${base}/kl/arcade/queue/${key}`, { method: 'DELETE' });
+  (await (await fetch(`${base}/kl/arcade/queue/me`, { headers: as(key) })).json()) as Answer;
+const leave = (key: string): Promise<Response> =>
+  fetch(`${base}/kl/arcade/queue/me`, { method: 'DELETE', headers: as(key) });
 
 describe('등급전 대기열', () => {
   it('혼자면 기다린다. 초심 방', async () => {
@@ -76,7 +83,7 @@ describe('등급전 대기열', () => {
 
   it('점수 방이 다르면 안 만난다', async () => {
     /* 초심 1500 에서 순위점을 여러 번 얹어 윗방으로 올림 */
-    for (let i = 0; i < 12; i++) applyResult('gomoku', [idOf(A), 'dummy-rival']);
+    for (let i = 0; i < 12; i++) applyResult('gomoku', [A, 'dummy-rival']);
     expect((await stand(A)).room).toBe('upper');
     expect((await stand(B)).status).toBe('waiting');
   });
@@ -109,20 +116,27 @@ describe('등급전 대기열', () => {
     expect((await look(A)).status).toBe('none');
   });
 
-  it('모양이 아닌 열쇠와 놀이는 안 받는다', async () => {
-    for (const bad of [{ key: 'short', game: 'gomoku' }, { key: A, game: '../x' }, { key: '<' + A, game: 'gomoku' }, {}]) {
+  it('모양이 아닌 놀이는 안 받는다', async () => {
+    for (const bad of [{ game: '../x' }, { game: '' }, {}]) {
       const res = await fetch(`${base}/kl/arcade/queue`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: as(A),
         body: JSON.stringify(bad)
       });
       expect(res.status).toBe(400);
     }
   });
 
-  it('열쇠는 상대에게 안 간다. id 는 열쇠의 해시다', () => {
-    expect(idOf(A)).not.toContain('aaaa');
-    expect(idOf(A)).toHaveLength(12);
-    expect(idOf(A)).toBe(idOf(A));
+  it('로그인 안 했으면 줄서기 거절. 등급전은 로그인 필수', async () => {
+    const res = await fetch(`${base}/kl/arcade/queue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game: 'gomoku', name: '나그네' })
+    });
+    expect(res.status).toBe(401);
+    expect((await fetch(`${base}/kl/arcade/queue/me`)).status).toBe(401);
+    expect((await fetch(`${base}/kl/arcade/queue/me`, { method: 'DELETE' })).status).toBe(401);
+    /* 아무도 안 섰다 */
+    expect(await (await fetch(`${base}/kl/arcade/queue/count/gomoku`)).json()).toEqual({ beginner: 0, upper: 0 });
   });
 });

@@ -1,49 +1,31 @@
 /**
- * 등급전. 게스트 열쇠와 대기열 (change.arcade-online 1번)
+ * 등급전. 줄서기, 점수, 패보 (change.arcade-online)
  *
  * - 같이 찾기는 열린 방 목록에서 사람이 고름. 등급전은 서버(욘봇)가 붙여 줌
  * - 점수 구간으로 방을 나누고 같은 방의 둘을 짝지음. 판은 그대로 브라우저끼리
  * - 서버가 죽으면 등급전만 멈춤. 친선전은 그대로 (사용자 결정)
  *
- * 게스트 열쇠:
- * - 기기마다 비밀 글자 하나. 서버는 그 해시를 이 사람으로 씀
- * - 열쇠를 내보내 다른 기기에 붙이면 같은 사람
- * - 계정(4번)이 붙으면 열쇠가 계정에 매달림. 모바일 게임의 게스트 계정과 같은 꼴
+ * 신원:
+ * - **로그인한 KarmoLab 계정 하나** (사용자 결정 2026-08-31). 점수가 붙는 자리라 신원이 하나여야 함
+ * - 세션 쿠키로 감. 그래서 모든 요청에 `credentials: 'include'`
+ * - 기기 열쇠는 폐기. 기기마다 다른 사람이 되어 점수를 옮길 길이 따로 필요했음
  */
-
 import { intervalWhileVisible } from '../../lib/tick';
 
 const HOST = 'https://yawnbot.mascari4615.com';
-const KEY = 'karmolab.arcade.key';
 /** 알림 주기. 서버 제외 한계 15초보다 넉넉히 자주 */
 const BEAT_MS = 5 * 1000;
 
-const KEY_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-
-/** 이 기기의 열쇠. 없으면 생성 */
-export function guestKey(): string {
-  const have = (localStorage.getItem(KEY) || '').trim();
-  if (/^[A-Za-z0-9_-]{16,64}$/.test(have)) return have;
-  const buf = new Uint8Array(24);
-  crypto.getRandomValues(buf);
-  const key = [...buf].map((n) => KEY_ALPHABET[n % KEY_ALPHABET.length]).join('');
-  localStorage.setItem(KEY, key);
-  return key;
-}
-
-/** 다른 기기에서 가져온 열쇠 붙이기. 모양이 아니면 거절 */
-export function importKey(raw: string): boolean {
-  const key = raw.trim();
-  if (!/^[A-Za-z0-9_-]{16,64}$/.test(key)) return false;
-  localStorage.setItem(KEY, key);
-  return true;
-}
+/** 쿠키를 실어 보낸다. 이게 빠지면 서버는 늘 로그인 안 했다고 답한다 */
+const WITH_COOKIE: RequestInit = { credentials: 'include' };
 
 export type RankRoom = 'beginner' | 'upper';
 
 export interface Matched {
   code: string;
+  /** 내 공개 id (계정 id) */
   you: string;
+  /** 상대 공개 id */
   rival: string;
   host: boolean;
   room: RankRoom;
@@ -56,6 +38,8 @@ export interface RankedHooks {
   onMatched(m: Matched): void;
   /** 서버 무응답. 등급전만 종료, 친선전은 그대로 */
   onDown(): void;
+  /** 로그인이 안 돼 있음. 등급전은 로그인 필수 */
+  onNeedSignIn(): void;
 }
 
 export interface Ranked {
@@ -78,7 +62,6 @@ type Answer = {
  * - 알림 하나가 곧 물어보기. `POST` 답에 짝 여부가 실려 옴
  */
 export function enterQueue(game: string, name: string, hooks: RankedHooks): Ranked {
-  const key = guestKey();
   let alive = true;
   let misses = 0;
   let timer: () => void = () => {};
@@ -91,10 +74,17 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
     let a: Answer;
     try {
       const res = await fetch(`${HOST}/kl/arcade/queue`, {
+        ...WITH_COOKIE,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, game, name })
+        body: JSON.stringify({ game, name })
       });
+      /* 로그인이 아니면 다시 던져도 같은 답. 그 자리에서 그만두고 사람에게 말함 */
+      if (res.status === 401) {
+        stop();
+        hooks.onNeedSignIn();
+        return;
+      }
       if (!res.ok) throw new Error(String(res.status));
       a = (await res.json()) as Answer;
       misses = 0;
@@ -129,71 +119,20 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
       if (!alive) return;
       stop();
       /* 창 닫는 길에도 가야 하므로 `keepalive`. 안 빼면 15초간 유령과 짝 */
-      void fetch(`${HOST}/kl/arcade/queue/${encodeURIComponent(key)}`, { method: 'DELETE', keepalive: true }).catch(() => {});
+      void fetch(`${HOST}/kl/arcade/queue/me`, { ...WITH_COOKIE, method: 'DELETE', keepalive: true }).catch(() => {});
     }
   };
 }
 
-/** 등급전 판 하나. 결과 보고가 이걸로 누구의 판인지 적음 */
-export interface RankedMatch {
-  code: string;
-  /** 내 공개 id (서버가 열쇠에서 뽑은 것) */
-  you: string;
-  /** 상대 공개 id */
-  rival: string;
-}
-
-export interface Reported {
-  applied: boolean;
-  /** 아직 상대 말을 기다리는 중 */
-  waiting: number;
-  /** 양쪽 말이 어긋남 */
-  disagreed: boolean;
-  /** 반영됐으면 내 점수 변화 */
-  delta: number | null;
-  rating: number | null;
-}
-
 /**
- * 판이 끝났다고 알림. `ranks` 는 잘한 순서 (첫째가 1위)
- * - 양쪽이 각자 보냄. 서버는 둘이 같은 말을 할 때만 점수를 움직임
- * - 못 보내도 판은 이미 끝났음. 조용히 없음을 돌려줌
+ * 지금 등급전 줄에 몇이 서 있나. 로비가 문 옆에 적는 값
+ * - 로그인 없이 봄. 사람 수는 감출 것이 아님
  */
-export async function reportResult(m: RankedMatch, ranks: string[], draw: boolean): Promise<Reported | null> {
+export async function queueCount(game: string): Promise<{ beginner: number; upper: number } | null> {
   try {
-    const res = await fetch(`${HOST}/kl/arcade/report`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: guestKey(), code: m.code, ranks, draw })
-    });
+    const res = await fetch(`${HOST}/kl/arcade/queue/count/${encodeURIComponent(game)}`, { cache: 'no-store' });
     if (!res.ok) return null;
-    const body = (await res.json()) as {
-      applied?: boolean;
-      waiting?: number;
-      disagreed?: boolean;
-      result?: Array<{ id: string; after: number; delta: number }>;
-    };
-    const mine = body.result?.find((r) => r.id === m.you) ?? null;
-    return {
-      applied: Boolean(body.applied),
-      waiting: Number(body.waiting ?? 0),
-      disagreed: Boolean(body.disagreed),
-      delta: mine ? mine.delta : null,
-      rating: mine ? mine.after : null
-    };
-  } catch {
-    return null;
-  }
-}
-
-/** 내 점수. 로비에 보여 줄 때. 못 물어보면 없음 */
-export async function myRating(game: string): Promise<{ rating: number; games: number; wins: number } | null> {
-  try {
-    const res = await fetch(`${HOST}/kl/arcade/rating/${encodeURIComponent(guestKey())}?game=${encodeURIComponent(game)}`, {
-      cache: 'no-store'
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as { rating: number; games: number; wins: number };
+    return (await res.json()) as { beginner: number; upper: number };
   } catch {
     return null;
   }
@@ -230,8 +169,85 @@ export function gradeOf(rating: number): Grade {
   return { tier, level, toNext: Math.ceil(TIER_FLOOR + tier * TIER_SPAN + level * step - rating) };
 }
 
+export interface MyRating {
+  /** 로그인 안 했으면 거짓. 그때 나머지 값은 없음 */
+  signedIn: boolean;
+  rating: number;
+  games: number;
+  wins: number;
+}
+
+/** 내 점수. 로비에 보여 줄 때. 못 물어보면 없음 */
+export async function myRating(game: string): Promise<MyRating | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/rating/me?game=${encodeURIComponent(game)}`, {
+      ...WITH_COOKIE,
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as Partial<MyRating>;
+    if (!body.signedIn) return { signedIn: false, rating: 0, games: 0, wins: 0 };
+    return { signedIn: true, rating: Number(body.rating ?? 0), games: Number(body.games ?? 0), wins: Number(body.wins ?? 0) };
+  } catch {
+    return null;
+  }
+}
+
+/** 등급전 판 하나. 결과 보고가 이걸로 누구의 판인지 적음 */
+export interface RankedMatch {
+  code: string;
+  /** 내 공개 id */
+  you: string;
+  /** 상대 공개 id */
+  rival: string;
+}
+
+export interface Reported {
+  applied: boolean;
+  /** 아직 상대 말을 기다리는 중 */
+  waiting: number;
+  /** 양쪽 말이 어긋남 */
+  disagreed: boolean;
+  /** 반영됐으면 내 점수 변화 */
+  delta: number | null;
+  rating: number | null;
+}
+
 /**
- * 패보. 끝난 판을 서버에 두고 링크로 다시 편다 (change.arcade-online 3번)
+ * 판이 끝났다고 알림. `ranks` 는 잘한 순서 (첫째가 1위)
+ * - 양쪽이 각자 보냄. 서버는 둘이 같은 말을 할 때만 점수를 움직임
+ * - 못 보내도 판은 이미 끝났음. 조용히 없음을 돌려줌
+ */
+export async function reportResult(m: RankedMatch, ranks: string[], draw: boolean): Promise<Reported | null> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/report`, {
+      ...WITH_COOKIE,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: m.code, ranks, draw })
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as {
+      applied?: boolean;
+      waiting?: number;
+      disagreed?: boolean;
+      result?: Array<{ id: string; after: number; delta: number }>;
+    };
+    const mine = body.result?.find((r) => r.id === m.you) ?? null;
+    return {
+      applied: Boolean(body.applied),
+      waiting: Number(body.waiting ?? 0),
+      disagreed: Boolean(body.disagreed),
+      delta: mine ? mine.delta : null,
+      rating: mine ? mine.after : null
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 패보. 끝난 판을 서버에 두고 링크로 다시 편다 (3번)
  *
  * - 판 전체를 안 보냄. 씨앗과 누른 것 몇 줄(`Tape`)
  * - 양쪽이 각자 보내도 서버가 한 판에 하나만 적고 같은 id 를 돌려줌
@@ -240,9 +256,10 @@ export function gradeOf(rating: number): Grade {
 export async function saveTape(code: string, tape: unknown): Promise<string | null> {
   try {
     const res = await fetch(`${HOST}/kl/arcade/tape`, {
+      ...WITH_COOKIE,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: guestKey(), code, tape })
+      body: JSON.stringify({ code, tape })
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { id?: string };
@@ -291,18 +308,4 @@ export function tapeFromUrl(): string | null {
 /** 복기 링크. 방 이름과 같은 규칙으로 물음표 뒤에 (셸이 `#` 뒤를 덮어씀) */
 export function tapeLink(id: string): string {
   return `${location.origin}${location.pathname}?g=${encodeURIComponent(id)}`;
-}
-
-/**
- * 지금 등급전 줄에 몇이 서 있나. 로비가 문 옆에 적는 값
- * - 못 물어보면 없음. 아무 것도 안 그림
- */
-export async function queueCount(game: string): Promise<{ beginner: number; upper: number } | null> {
-  try {
-    const res = await fetch(`${HOST}/kl/arcade/queue/count/${encodeURIComponent(game)}`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    return (await res.json()) as { beginner: number; upper: number };
-  } catch {
-    return null;
-  }
 }

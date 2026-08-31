@@ -6,13 +6,14 @@
  * - 어긋나면 아무 점수도 안 움직이고 그대로 남음. 한쪽이 안 보내도 마찬가지
  *
  * 규율:
- *  ① 보고하는 사람은 열쇠로 자기를 증명. 남의 판에 못 끼어듦
+ *  ① 보고하는 사람은 로그인으로 자기를 증명. 남의 판에 못 끼어듦
  *  ② 순서에 적힌 id 는 그 판의 사람 그대로여야 함. 하나라도 다르면 400
  *  ③ 같은 판은 한 번만 반영. 다시 보내면 이미 반영된 결과를 그대로 돌려줌
  */
 import express from 'express';
 import type { Application, Request, Response } from 'express';
-import { idOf, rosterOf } from './arcade-queue';
+import { rosterOf } from './arcade-queue';
+import { whoOf, type WhoOf } from './arcade-who';
 import { applyResult, recordOf, type Applied } from './arcade-rating';
 
 interface Pending {
@@ -37,19 +38,22 @@ function sweep(now = Date.now()): void {
 }
 
 const CODE_RE = /^[A-Z0-9]{4,12}$/;
-const KEY_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
-export function registerArcadeReport(app: Application): void {
+export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void {
   /**
    * 판이 끝났다고 알림. `ranks` 는 잘한 순서, 첫째가 1위
    * - 답의 `applied` 는 점수가 실제로 움직였을 때만 참
    */
   app.post('/kl/arcade/report', express.json({ limit: '4kb' }), (req: Request, res: Response) => {
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const key = String(body.key ?? '').trim();
     const code = String(body.code ?? '').trim().toUpperCase();
-    if (!KEY_RE.test(key) || !CODE_RE.test(code)) {
-      res.status(400).json({ error: 'key, code 모양이 아니다' });
+    if (!CODE_RE.test(code)) {
+      res.status(400).json({ error: 'code 모양이 아니다' });
+      return;
+    }
+    const signed = who(req);
+    if (!signed) {
+      res.status(401).json({ error: 'not_signed_in' });
       return;
     }
     const roster = rosterOf(code);
@@ -57,7 +61,7 @@ export function registerArcadeReport(app: Application): void {
       res.status(404).json({ error: '그런 판이 없다' });
       return;
     }
-    const me = idOf(key);
+    const me = signed.id;
     /* ① 그 판의 사람만 */
     if (!roster.ids.includes(me)) {
       res.status(403).json({ error: '그 판의 사람이 아니다' });
@@ -100,15 +104,20 @@ export function registerArcadeReport(app: Application): void {
     res.json({ ok: true, applied: true, result });
   });
 
-  /** 내 점수. 열쇠를 아는 사람만 자기 것을 봄 */
-  app.get('/kl/arcade/rating/:key', (req: Request, res: Response) => {
-    const key = String(req.params.key ?? '').trim();
+  /** 내 점수. 로그인한 사람만 자기 것을 봄. 안 했으면 없다고 답함(401 아님) */
+  app.get('/kl/arcade/rating/me', (req: Request, res: Response) => {
     const game = String(req.query.game ?? '').trim();
-    if (!KEY_RE.test(key) || !/^[a-z0-9]{2,24}$/.test(game)) {
-      res.status(400).json({ error: 'key, game 모양이 아니다' });
+    if (!/^[a-z0-9]{2,24}$/.test(game)) {
+      res.status(400).json({ error: 'game 모양이 아니다' });
       return;
     }
     res.setHeader('Cache-Control', 'no-store');
-    res.json(recordOf(game, idOf(key)));
+    const me = who(req);
+    /* 로비가 로그인 여부를 이 한 번으로 안다. 여기서 401 을 내면 로비가 콘솔만 더럽힘 */
+    if (!me) {
+      res.json({ signedIn: false });
+      return;
+    }
+    res.json({ signedIn: true, ...recordOf(game, me.id) });
   });
 }

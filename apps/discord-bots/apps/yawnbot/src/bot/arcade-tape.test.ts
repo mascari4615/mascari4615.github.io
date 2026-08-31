@@ -16,16 +16,25 @@ import { resetRatings } from './arcade-rating';
 let server: Server;
 let base = '';
 
-const A = 'aaaaaaaaaaaaaaaaaaaa';
-const B = 'bbbbbbbbbbbbbbbbbbbb';
-const C = 'cccccccccccccccccccc';
+/** 가짜 로그인. `x-test-user` 머리에 적은 이름이 곧 그 사람 */
+const fakeWho = (req: { headers: Record<string, unknown> }): { id: string; handle: string } | null => {
+  const raw = req.headers['x-test-user'];
+  const id = typeof raw === 'string' ? raw.trim() : '';
+  return id ? { id, handle: id } : null;
+};
+/** 그 사람으로 보내는 머리 */
+const as = (id: string): Record<string, string> => ({ 'x-test-user': id, 'Content-Type': 'application/json' });
+
+const A = 'account-a';
+const B = 'account-b';
+const C = 'account-c';
 
 beforeAll(async () => {
   process.env.ARCADE_TAPE_FILE = path.join(os.tmpdir(), 'arcade-tapes-test.json');
   process.env.ARCADE_RATING_FILE = path.join(os.tmpdir(), 'arcade-tape-ratings-test.json');
   const app = express();
-  registerArcadeQueue(app);
-  registerArcadeTape(app);
+  registerArcadeQueue(app, fakeWho as never);
+  registerArcadeTape(app, fakeWho as never);
   await new Promise<void>((resolve) => {
     server = app.listen(0, '127.0.0.1', () => resolve());
   });
@@ -43,8 +52,8 @@ beforeEach(() => {
 const stand = (key: string): Promise<{ code?: string }> =>
   fetch(`${base}/kl/arcade/queue`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, game: 'gomoku', name: key[0] })
+    headers: as(key),
+    body: JSON.stringify({ game: 'gomoku', name: key.slice(-1) })
   }).then((r) => r.json() as Promise<{ code?: string }>);
 
 async function match(): Promise<string> {
@@ -64,8 +73,8 @@ const TAPE = {
 const put = (key: string, code: string, tape: unknown): Promise<{ status: number; body: { id?: string; again?: boolean; error?: string } }> =>
   fetch(`${base}/kl/arcade/tape`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, code, tape })
+    headers: as(key),
+    body: JSON.stringify({ code, tape })
   }).then(async (r) => ({ status: r.status, body: (await r.json()) as { id?: string; again?: boolean; error?: string } }));
 
 describe('패보', () => {

@@ -50,8 +50,6 @@ import {
   enterQueue,
   gradeOf,
   findTape,
-  guestKey,
-  importKey,
   loadTape,
   myRating,
   queueCount,
@@ -1271,15 +1269,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-overnote{font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-overtape{margin-top:8px;text-align:center;font-size:var(--font-size-2xs)}',
       '.ac-gonebar{margin:8px auto 0;padding:8px 16px;max-width:min(520px,92%);text-align:center;border-radius:var(--radius-pill);background:rgba(164,66,58,.14);color:#a4423a;font-size:var(--font-size-2xs);font-weight:700}',
-      '.ac-keybtn{background:none;border:0;padding:0 4px;color:#8b897b;font-size:var(--font-size-2xs);text-decoration:underline;cursor:pointer}',
-      '.ac-keybtn:hover{color:#3c3a30}',
-      '.ac-keybox{margin:10px 0 0;padding:12px 14px;background:#f4f3ea;border-radius:var(--radius-md);font-size:var(--font-size-2xs);color:#5b5949}',
-      '.ac-keybox p{margin:0 0 8px}',
-      '.ac-keywarn{color:#a4423a;margin:8px 0 0}',
-      '.ac-keyrow{display:flex;gap:6px;margin-top:6px}',
-      '.ac-keyrow input{flex:1;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--font-size-2xs);padding:6px 10px;border:1px solid rgba(60,58,48,.2);border-radius:var(--radius-sm);background:#fdfcf7;color:#3c3a30}',
-      '.ac-keyrow button{border:0;border-radius:var(--radius-pill);padding:6px 14px;font-size:var(--font-size-2xs);font-weight:700;background:#3c3a30;color:#fdfcf7;cursor:pointer}',
-      '.ac-keyrow button:hover{filter:brightness(1.15)}',
+      /* 로그인하라는 한 줄. 등급전 문 아래 단위 줄 자리에 그린다 */
+      '#acDetail .ac-grade button{background:none;border:0;padding:0;color:#a4423a;font-weight:900;text-decoration:underline;cursor:pointer;font-size:inherit}',
       '.ac-overtape button{background:none;border:0;padding:0;color:var(--text-secondary);text-decoration:underline;cursor:pointer;font-size:inherit}',
       '.ac-overtape button:hover{color:var(--text-primary)}',
       '.ac-find{width:100%;max-width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--bg-secondary);color:var(--text-primary);margin:var(--space-md) 0}',
@@ -1470,20 +1461,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<label class="ac-namechip">' + esc(t('arcade.label.name')) +
       '<input type="text" id="acName" maxlength="12" placeholder="' + esc(t('arcade.name.default')) +
       '" aria-label="' + esc(t('arcade.aria.name')) + '"></label>' +
-      '<button type="button" class="ac-keybtn" id="acKeyBtn">' + esc(t('arcade.key.btn')) + '</button>' +
-      '</div>' +
-      /* 등급전 열쇠. 기기를 옮길 때만 여는 자리라 접어 둠 */
-      '<div class="ac-keybox" id="acKeyBox" hidden>' +
-      '<p>' + esc(t('arcade.key.why')) + '</p>' +
-      '<div class="ac-keyrow">' +
-      '<input type="text" id="acKeyMine" readonly aria-label="' + esc(t('arcade.key.mine')) + '">' +
-      '<button type="button" id="acKeyCopy">' + esc(t('arcade.key.copy')) + '</button>' +
-      '</div>' +
-      '<div class="ac-keyrow">' +
-      '<input type="text" id="acKeyIn" placeholder="' + esc(t('arcade.key.paste')) + '" aria-label="' + esc(t('arcade.key.paste')) + '">' +
-      '<button type="button" id="acKeyUse">' + esc(t('arcade.key.use')) + '</button>' +
-      '</div>' +
-      '<p class="ac-keywarn">' + esc(t('arcade.key.warn')) + '</p>' +
       '</div>' +
       /* 진열장과 그 딸린 것들. 물건을 집으면(#acDetail) 통째로 접힌다. */
       '<div id="acShelfAll">' +
@@ -3235,31 +3212,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 목록에 올린 방을 내리는 손. 방을 닫을 때 부른다. */
     let dropOpen: (() => void) | null = null;
 
-    /* ── 등급전 열쇠 ────────────────────────────────────────────────
-     *
-     * - 열쇠가 곧 등급전의 나. 기기마다 달라 옮기려면 글자를 나름
-     * - 계정(4번)이 붙으면 이 자리가 로그인으로 바뀜. 그때까지의 길
-     * - 바꾸면 점수도 그 열쇠의 것. 되돌리려면 옛 열쇠를 도로 붙임 */
-    const keyBox = $<HTMLElement>('#acKeyBox');
-    $<HTMLButtonElement>('#acKeyBtn').onclick = (): void => {
-      keyBox.hidden = !keyBox.hidden;
-      if (!keyBox.hidden) $<HTMLInputElement>('#acKeyMine').value = guestKey();
-    };
-    $<HTMLButtonElement>('#acKeyCopy').onclick = (): void => {
-      void Toolbox.copyText?.(guestKey(), { message: t('arcade.copy.done') });
-    };
-    $<HTMLButtonElement>('#acKeyUse').onclick = (): void => {
-      const box = $<HTMLInputElement>('#acKeyIn');
-      if (!importKey(box.value)) {
-        say(t('arcade.key.bad'), 'warn');
+    /**
+     * 로그인 창을 연다. 등급전은 로그인 필수 (사용자 결정 2026-08-31)
+     * - 셸의 account 묶음이 늦게 실리므로 없으면 내 정보 화면으로 보냄
+     */
+    function askSignIn(): void {
+      const account = (window as unknown as { KarmoAccount?: { signIn?: () => void } }).KarmoAccount;
+      if (account?.signIn) {
+        account.signIn();
         return;
       }
-      box.value = '';
-      $<HTMLInputElement>('#acKeyMine').value = guestKey();
-      say(t('arcade.key.done'), 'ok');
-      /* 상세 화면이 열려 있으면 그 사람의 점수로 다시 그림 */
-      if (gameId) void paintGrade(gameId);
-    };
+      Toolbox.switchPage?.('user');
+    }
 
     /**
      * 내 단위와 점수 한 줄. 상세 화면을 연 뒤 물어서 채움
@@ -3275,6 +3239,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 줄에 선 사람이 있으면 그 수부터. 아무도 없는 문을 누르게 두면 안 됨 */
       const waiting = count ? count.beginner + count.upper : 0;
       const line = waiting > 0 ? ' ' + t('arcade.rank.queued', { n: String(waiting) }) : '';
+      /* 로그인 안 했으면 점수 대신 로그인 문. 누르면 그 자리에서 로그인 */
+      if (!rec.signedIn) {
+        box.innerHTML =
+          esc(t('arcade.rank.signin.why')) + ' <button type="button" id="acSignIn">' + esc(t('arcade.rank.signin.go')) + '</button>' +
+          (line ? '<b class="ac-queued">' + esc(line.trim()) + '</b>' : '');
+        const btn = container.querySelector<HTMLButtonElement>('#acSignIn');
+        if (btn) btn.onclick = askSignIn;
+        return;
+      }
       if (rec.games === 0) {
         box.textContent = t('arcade.rank.first') + line;
         return;
@@ -3510,6 +3483,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           ranked = null;
           say(t('arcade.rank.down'), 'warn');
           quit();
+        },
+        onNeedSignIn: () => {
+          ranked = null;
+          quit();
+          say(t('arcade.rank.signin.why'), 'warn');
+          askSignIn();
         }
       });
     }

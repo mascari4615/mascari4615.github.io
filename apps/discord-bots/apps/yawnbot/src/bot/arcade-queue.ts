@@ -5,9 +5,9 @@
  * - 판은 여전히 브라우저끼리(nostr 중계). 서버 몫은 셋뿐 - 누가 기다리나, 방 코드 하나, 누가 주인
  *
  * 규율:
- *  ① 신원은 열쇠 하나. 브라우저가 만든 비밀 글자(게스트 열쇠)의 해시가 공개 id
- *     - 비밀은 남에게 안 감. 같은 열쇠면 어느 기기에서든 같은 사람
- *     - 계정(4번)이 붙어도 이 id 는 그대로
+ *  ① 신원은 **로그인한 계정 하나** (사용자 결정 2026-08-31)
+ *     - 세션 쿠키(`kl_session`)로 옴. 디스코드와 패스키가 이미 있는 그 계정
+ *     - 점수가 붙는 자리라 신원이 하나여야 함. 기기가 바뀌어도 같은 사람
  *  ② 방은 점수가 정함. 사람이 방을 안 고름. 지금은 방 둘(초심, 그 위)
  *     - 사람 적을 때 방이 많으면 아무도 못 만남 (사용자 결정)
  *  ③ 금방 사라짐. 15초 무소식이면 대기열에서 제외
@@ -16,7 +16,8 @@
  */
 import express from 'express';
 import type { Application, Request, Response } from 'express';
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import { whoOf, type WhoOf } from './arcade-who';
 import { ratingOf, roomOf, type RoomName } from './arcade-rating';
 export type { RoomName } from './arcade-rating';
 
@@ -34,10 +35,7 @@ function makeCode(len = 5): string {
   return [...buf].map((n) => CODE_ALPHABET[n % CODE_ALPHABET.length]).join('');
 }
 
-/** 게스트 열쇠 -> 공개 id. 열쇠는 서버 밖으로 안 나감, 상대에게는 id 만 */
-export function idOf(key: string): string {
-  return createHash('sha256').update(key).digest('base64url').slice(0, 12);
-}
+
 
 
 interface Waiting {
@@ -123,21 +121,27 @@ function answer(id: string): Record<string, unknown> {
   return { status: 'none' };
 }
 
-export function registerArcadeQueue(app: Application): void {
+export function registerArcadeQueue(app: Application, who: WhoOf = whoOf): void {
   /**
    * 줄서기 겸 알림. 같은 열쇠면 덮어씀
    * - 같은 놀이, 같은 방에 다른 사람이 있으면 그 자리에서 짝
    */
   app.post('/kl/arcade/queue', express.json({ limit: '2kb' }), (req: Request, res: Response) => {
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const key = clean(body.key, /^[A-Za-z0-9_-]{16,64}$/, 64);
     const game = clean(body.game, /^[a-z0-9]{2,24}$/, 24);
-    if (!key || !game) {
-      res.status(400).json({ error: 'key, game 모양이 아니다' });
+    if (!game) {
+      res.status(400).json({ error: 'game 모양이 아니다' });
       return;
     }
-    const id = idOf(key);
-    const name = String(body.name ?? '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX) || '누군가';
+    /* 등급전은 로그인 필수. 점수가 붙는 자리라 신원이 하나여야 함 */
+    const me = who(req);
+    if (!me) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const id = me.id;
+    /* 이름은 사람이 로비에 적은 것. 없으면 계정 이름 */
+    const name = String(body.name ?? '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX) || me.handle || '누군가';
     sweep();
     /* 이미 짝이 났으면 그 답 그대로. 줄에 다시 세우면 한 사람이 두 판에 걸림 */
     if (matched.has(id)) {
@@ -188,14 +192,14 @@ export function registerArcadeQueue(app: Application): void {
   });
 
   /** 짝이 났나. 먼저 선 사람이 아는 길 */
-  app.get('/kl/arcade/queue/:key', (req: Request, res: Response) => {
-    const key = clean(req.params.key, /^[A-Za-z0-9_-]{16,64}$/, 64);
-    if (!key) {
-      res.status(400).json({ error: 'key 모양이 아니다' });
+  app.get('/kl/arcade/queue/me', (req: Request, res: Response) => {
+    const me = who(req);
+    if (!me) {
+      res.status(401).json({ error: 'not_signed_in' });
       return;
     }
     sweep();
-    const id = idOf(key);
+    const id = me.id;
     const w = waiting.get(id);
     if (w) w.at = Date.now();
     res.setHeader('Cache-Control', 'no-store');
@@ -203,13 +207,13 @@ export function registerArcadeQueue(app: Application): void {
   });
 
   /** 줄에서 나감. 짝이 난 뒤면 짝도 해제, 상대는 다음 알림에 `none` */
-  app.delete('/kl/arcade/queue/:key', (req: Request, res: Response) => {
-    const key = clean(req.params.key, /^[A-Za-z0-9_-]{16,64}$/, 64);
-    if (!key) {
-      res.status(400).json({ error: 'key 모양이 아니다' });
+  app.delete('/kl/arcade/queue/me', (req: Request, res: Response) => {
+    const me = who(req);
+    if (!me) {
+      res.status(401).json({ error: 'not_signed_in' });
       return;
     }
-    const id = idOf(key);
+    const id = me.id;
     waiting.delete(id);
     const m = matched.get(id);
     if (m) {

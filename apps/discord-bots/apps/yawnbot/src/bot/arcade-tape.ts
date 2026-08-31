@@ -6,7 +6,7 @@
  * - 옵션(`opts`)과 자리(`seats`)까지 같이 적음. 빠지면 딴 판이 펴짐 (2026-08-30 사고)
  *
  * 규율:
- *  ① 그 판의 사람만 올림. 열쇠로 자기를 증명
+ *  ① 그 판의 사람만 올림. 로그인으로 자기를 증명
  *  ② 한 판에 하나. 창이 여럿이라 여럿이 보냄. 먼저 온 것만 적고 같은 id 를 돌려줌
  *  ③ 보는 것은 아무나. 링크를 아는 사람이 복기를 봄. 감출 것은 안 실림(자리 이름뿐)
  *  ④ 무한정 안 쌓음. 최근 500판만
@@ -17,7 +17,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { PKG_ROOT } from '../paths';
-import { idOf, rosterOf } from './arcade-queue';
+import { rosterOf } from './arcade-queue';
+import { whoOf, type WhoOf } from './arcade-who';
 
 /** 자리는 부를 때 정함. 검사가 임시 파일로 돌릴 수 있어야 함 */
 const file = (): string => process.env.ARCADE_TAPE_FILE?.trim() || path.join(PKG_ROOT, 'data', 'arcade-tapes.json');
@@ -132,14 +133,18 @@ function prune(): void {
   for (const e of all.slice(MAX)) delete s[e.id];
 }
 
-export function registerArcadeTape(app: Application): void {
+export function registerArcadeTape(app: Application, who: WhoOf = whoOf): void {
   /** 끝난 판을 올림. 그 판의 사람만. 한 판에 하나 */
   app.post('/kl/arcade/tape', express.json({ limit: BODY_LIMIT }), (req: Request, res: Response) => {
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const key = String(body.key ?? '').trim();
     const code = String(body.code ?? '').trim().toUpperCase();
-    if (!/^[A-Za-z0-9_-]{16,64}$/.test(key) || !/^[A-Z0-9]{4,12}$/.test(code)) {
-      res.status(400).json({ error: 'key, code 모양이 아니다' });
+    if (!/^[A-Z0-9]{4,12}$/.test(code)) {
+      res.status(400).json({ error: 'code 모양이 아니다' });
+      return;
+    }
+    const me = who(req);
+    if (!me) {
+      res.status(401).json({ error: 'not_signed_in' });
       return;
     }
     const roster = rosterOf(code);
@@ -147,7 +152,7 @@ export function registerArcadeTape(app: Application): void {
       res.status(404).json({ error: '그런 판이 없다' });
       return;
     }
-    if (!roster.ids.includes(idOf(key))) {
+    if (!roster.ids.includes(me.id)) {
       res.status(403).json({ error: '그 판의 사람이 아니다' });
       return;
     }
