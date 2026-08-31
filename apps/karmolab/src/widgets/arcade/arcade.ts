@@ -670,6 +670,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ychudbubble{position:absolute;left:8px;bottom:calc(100% + 12px);max-width:260px;padding:7px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-size:var(--font-size-sm);line-height:1.35;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4);z-index:2}',
       '.ac-ychudbubble::after{content:"";position:absolute;left:20px;top:100%;border:7px solid transparent;border-top-color:rgba(238,225,200,.97);border-bottom:0}',
       /* 끝의 의식. 카드 순위 배지, 승자 카드 금빛, 결과창 내역 줄 */
+      /* 구르는 중 자리지킴. 눈 대신 빈 주사위가 떨린다. 자리를 그대로 차지해 표가 안 흔들린다 */
+      '.ac-die-roll{background:linear-gradient(160deg,#f6efe0,#ded2ba);border-radius:22%;box-shadow:inset 0 -2px 4px rgba(90,60,30,.25);animation:ac-ycshake .34s ease-in-out infinite}',
+      '@keyframes ac-ycshake{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-2px) rotate(4deg)}}',
+      '.ac-yccell[disabled]{opacity:.35;cursor:default}',
       '.ac-ychudrank{position:absolute;right:10px;top:-10px;padding:2px 8px;border-radius:var(--radius-pill);background:#5c4630;color:#f7e9cf;font-size:var(--font-size-4xs);letter-spacing:.08em}',
       '.ac-ychudrank.ac-first{background:linear-gradient(180deg,#e6bd7a,#b8781a);color:#2a1a08}',
       '.ac-ychudcard.ac-winner{opacity:1;box-shadow:0 0 0 2px #e6bd7a,0 0 24px rgba(230,189,122,.45),0 14px 30px rgba(0,0,0,.5)}',

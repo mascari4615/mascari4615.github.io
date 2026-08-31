@@ -627,5 +627,6 @@
   "arcade.yacht.rule.fullhouse": "셋 + 둘이면 다섯 눈의 합",
   "arcade.yacht.rule.sstraight": "이어지는 눈 넷이면 15점",
   "arcade.yacht.rule.lstraight": "이어지는 눈 다섯이면 30점",
-  "arcade.yacht.rule.yacht": "다섯이 같으면 50점"
+  "arcade.yacht.rule.yacht": "다섯이 같으면 50점",
+  "arcade.yacht.sheet.rolling": "구르는 중"
 }

@@ -627,5 +627,6 @@
   "arcade.yacht.rule.fullhouse": "3個+2個なら5個の合計",
   "arcade.yacht.rule.sstraight": "4個連続で15点",
   "arcade.yacht.rule.lstraight": "5個連続で30点",
-  "arcade.yacht.rule.yacht": "5個同じで50点"
+  "arcade.yacht.rule.yacht": "5個同じで50点",
+  "arcade.yacht.sheet.rolling": "転がり中"
 }

@@ -98,6 +98,9 @@ export const view3d: GameView<YachtState, YachtAction> = {
       window.setTimeout(() => { if (moods.get(seat) === m) { moods.set(seat, 'calm'); hudKey = ''; if (shown) paintHud(shown, lastFin); } }, ms);
     };
     let lastFin = false;
+    /* 주사위가 구르는 동안은 결과를 안 보여 준다. 표의 미리보기와 카드의 최고 칸이 먼저 답을
+       알려 줘서, 굴림을 볼 이유가 없었다(2026-08-31 사용자 지적: 다 멈추기도 전에 스포당함) */
+    let rolling = false;
     /* 끝의 의식. 순위는 합계로, 같으면 같은 순위 */
     let ranks: number[] = [];
     let lastStats: ReturnType<typeof readYachtStats> | null = null;
@@ -164,12 +167,12 @@ export const view3d: GameView<YachtState, YachtAction> = {
       lastFin = fin;
       const now = performance.now();
       bubbles.forEach((b, i) => { if (b.until <= now) bubbles.delete(i); });
-      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat, fin, seatNames, [...bubbles.entries()].map(([i, b]) => i + b.text), [...moods.entries()]]);
+      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat, fin, rolling, seatNames, [...bubbles.entries()].map(([i, b]) => i + b.text), [...moods.entries()]]);
       if (key === hudKey) return;
       hudKey = key;
       const done0 = s.sheet[0] ? CATS.filter((c) => s.sheet[0][c] !== null).length : 0;
       const round = Math.min(CATS.length, done0 + 1);
-      const best = fin ? null : bestOpen(s, s.turn);
+      const best = fin || rolling ? null : bestOpen(s, s.turn);
       /* 화면 아래 한 줄. 차례 순서대로 카드, 지금 차례는 금테(사용자 구상). 라운드는 줄 왼쪽 끝 */
       hudEl.innerHTML =
         '<div class="ac-ychudround">' + esc(t('arcade.yacht.hud.round', { n: String(round), m: String(CATS.length) })) + '</div>' +
@@ -420,18 +423,20 @@ export const view3d: GameView<YachtState, YachtAction> = {
     function paintPaper(): void {
       const s = last;
       if (!s || (!sheetOpen && !pinned)) return;
-      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat]);
+      const key = JSON.stringify([s.sheet, s.dice, s.turn, s.rolled, mySeat, rolling]);
       if (key === paperKey) return;
       paperKey = key;
       const mine = s.sheet[mySeat];
       const my = myTurn();
       /* 지금 제일 값진 칸. 레퍼런스 클론이 최고 칸을 색으로 짚어 준다. 눈이 표를 훑지 않아도 된다 */
-      const top = my && mine ? bestOpen(s, mySeat) : null;
+      const top = my && mine && !rolling ? bestOpen(s, mySeat) : null;
       const cell = (i: number, cat: Cat): string => {
         const sheet = s.sheet[i];
         const done = sheet?.[cat];
         if (done !== null && done !== undefined) return '<td class="ac-ycdone' + (justWrote && justWrote.seat === i && justWrote.cat === cat ? ' ac-ink' : '') + '" data-done="1">' + done + '</td>';
         if (i === mySeat && my && mine) {
+          /* 구르는 중에는 칸을 자리만 남기고 비운다. 레이아웃은 그대로(사용자 지적: 글자 유무로 표가 달라지면 안 된다) */
+          if (rolling) return '<td><button type="button" class="ac-yccell ac-zero" disabled></button></td>';
           const would = scoreOf(cat, s.dice);
           /* 0점 칸은 숫자를 안 적는다(레퍼런스 bloob: 빈 칸에 옅은 강조만). 0 이 열두 개면 표가 시끄럽다 */
           return '<td><button type="button" class="ac-yccell' + (would === 0 ? ' ac-zero' : '') + (top && top.cat === cat && would > 0 ? ' ac-top' : '') + '" data-c="' + cat + '">' + (would === 0 ? '' : would) + '</button></td>';
@@ -446,8 +451,8 @@ export const view3d: GameView<YachtState, YachtAction> = {
       paperEl.innerHTML =
         '<div class="ac-ycpaperin">' +
         '<div class="ac-ychead">' +
-        '<div class="ac-ycdice">' + s.dice.map((d, i) => die(d, { keep: s.keep[i], can: false, label: String(d) })).join('') + '</div>' +
-        '<div class="ac-ycleft">' + esc(lastFin ? t('arcade.yacht.sheet.done') : my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : (comboOf(s.dice) ? t('arcade.yacht.sheet.combo', { cat: t('arcade.yacht.cat.' + (comboOf(s.dice) as Cat)) }) : t('arcade.yacht.sheet.pick'))) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
+        '<div class="ac-ycdice' + (rolling ? ' ac-ycrolling' : '') + '">' + s.dice.map((d, i) => (rolling ? '<span class="ac-die ac-die-roll" aria-hidden="true"></span>' : die(d, { keep: s.keep[i], can: false, label: String(d) }))).join('') + '</div>' +
+        '<div class="ac-ycleft">' + esc(rolling ? t('arcade.yacht.sheet.rolling') : lastFin ? t('arcade.yacht.sheet.done') : my ? (s.rolled < 3 ? t('arcade.yacht.sheet.keep', { n: String(3 - s.rolled) }) : (comboOf(s.dice) ? t('arcade.yacht.sheet.combo', { cat: t('arcade.yacht.cat.' + (comboOf(s.dice) as Cat)) }) : t('arcade.yacht.sheet.pick'))) : t('arcade.yacht.sheet.wait', { who: seatNames[s.turn] ?? '' })) + '</div>' +
         '<button type="button" class="ac-ycclose" aria-label="' + esc(t('arcade.yacht.sheet.close')) + '">×</button>' +
         '</div>' +
         '<table class="ac-yctable"><thead><tr><th></th>' +
@@ -579,6 +584,7 @@ export const view3d: GameView<YachtState, YachtAction> = {
       }
       stage.set(s.dice, s.keep, rolled);
       stage.rollsLeft(fin ? 0 : Math.max(0, 3 - s.rolled));
+      if (rolled) rolling = true;
       paintHud(s, fin);
       prevTurn = s.turn;
       prevRolled = s.rolled;
@@ -598,6 +604,17 @@ export const view3d: GameView<YachtState, YachtAction> = {
          사용자 지적: 배치도 안 하고 점수판부터 띄운다). 그 뒤 조합 이름을 알린다 */
       /* 굴린 다섯은 멎은 뒤 전부 홈으로(규칙이 그렇다). 세 번째면 손이 완성된 것이라 조합을 알린다 */
       if (rolled) busyUntil += 500 / mul;
+      /* 다섯이 멎고 홈에 들어간 뒤에 결과를 편다 */
+      if (rolled) {
+        window.setTimeout(() => {
+          if (shown !== s || !host.isConnected) return;
+          rolling = false;
+          hudKey = '';
+          paperKey = '';
+          paintHud(s, fin);
+          paintPaper();
+        }, ROLL_MS / mul + 500 / mul);
+      }
       if (rolled && s.rolled >= 3) {
         window.setTimeout(() => {
           if (shown !== s || !stage || !host.isConnected) return;
