@@ -11,6 +11,8 @@
  * - 계정(4번)이 붙으면 열쇠가 계정에 매달림. 모바일 게임의 게스트 계정과 같은 꼴
  */
 
+import { intervalWhileVisible } from '../../lib/tick';
+
 const HOST = 'https://yawnbot.mascari4615.com';
 const KEY = 'karmolab.arcade.key';
 /** 알림 주기. 서버 제외 한계 15초보다 넉넉히 자주 */
@@ -79,9 +81,10 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
   const key = guestKey();
   let alive = true;
   let misses = 0;
+  let timer: () => void = () => {};
   const stop = (): void => {
     alive = false;
-    window.clearInterval(timer);
+    timer();
   };
   const beat = async (): Promise<void> => {
     if (!alive) return;
@@ -117,7 +120,9 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
     }
     hooks.onWaiting(a.room === 'upper' ? 'upper' : 'beginner', Math.max(0, Number(a.others ?? 0)));
   };
-  const timer = window.setInterval(() => void beat(), BEAT_MS);
+  /* 숨은 탭에서는 안 알림. 배터리도 배터리고, 안 보는 사람을 줄에 세워 두면
+     상대가 빈 자리와 짝이 남. 서버는 15초 뒤 줄에서 빼고, 돌아오면 다시 섬 */
+  timer = intervalWhileVisible(() => void beat(), BEAT_MS);
   void beat();
   return {
     cancel: () => {

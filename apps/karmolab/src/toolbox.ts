@@ -539,11 +539,21 @@ const Toolbox = (() => {
     const disposers = new Map();     // toolId → fn[]
     let buildingTool = null;         // 지금 build 중인 도구 (onDispose 가 누구 것인지 알려면 필요)
 
+    /**
+     * 뒷정리를 맡긴다. **build 뒤에 맡겨도 받는다** (2026-08-31 실측)
+     *
+     * 예전에는 `buildingTool` 이 있을 때만 받았다. 그래서 사람이 판을 시작하고 나서 건
+     * 루프와 소리는 맡길 곳이 없어 조용히 버려졌다: 오락실 판을 열고 딴 도구로 가면 그리기
+     * 고리가 계속 돌았다(이동 4초에 rAF 482회). 맡기는 쪽은 맡겼다고 믿으므로 이게 제일 나쁨.
+     * build 중이 아니면 **지금 보고 있는 도구**의 것으로 본다. 그 사람이 지금 쓰는 도구가
+     * 그 손을 부른 것이라 그럼.
+     */
     function onDispose(fn) {
-        if (typeof fn !== 'function' || !buildingTool) return;
-        const list = disposers.get(buildingTool) || [];
+        const owner = buildingTool || currentPageId;
+        if (typeof fn !== 'function' || !owner || owner === 'home') return;
+        const list = disposers.get(owner) || [];
         list.push(fn);
-        disposers.set(buildingTool, list);
+        disposers.set(owner, list);
     }
 
     /* ── 안 보는 동안은 멈춘다 (change.widget-idle-cost) ──
@@ -559,11 +569,13 @@ const Toolbox = (() => {
     const showers = new Map();       // toolId → fn[]
     const keepAlives = new Map();    // toolId → 왜 안 멈추는가 (말로 남긴 것만 예외다)
 
+    /* 멈춤과 재개도 build 뒤에 맡길 수 있다. 이유는 `onDispose` 와 같다 */
     function addLifecycle(map, fn) {
-        if (typeof fn !== 'function' || !buildingTool) return;
-        const list = map.get(buildingTool) || [];
+        const owner = buildingTool || currentPageId;
+        if (typeof fn !== 'function' || !owner || owner === 'home') return;
+        const list = map.get(owner) || [];
         list.push(fn);
-        map.set(buildingTool, list);
+        map.set(owner, list);
     }
 
     /** 이 장이 화면에서 물러날 때. 루프, 소리, 연결을 멈춘다(상태는 그대로 둔다). */
@@ -678,6 +690,21 @@ const Toolbox = (() => {
         for (const fn of list) {
             try { fn(); } catch (err) { console.warn('[KarmoLab] 뒷정리 실패 . ', id, err); }
         }
+    }
+
+    /**
+     * 이 도구 내리기. 뒷정리를 돌리고 화면을 DOM 에서 걷어 냄
+     *
+     * - 걷어 내야 소리가 멈춤. 방의 소리는 제 주인이 문서에 붙어 있나로 살아 있음을 판단
+     * - 다시 열면 `ensureToolPage` 가 새로 세움. 그래서 상태는 안 남음. 페이지 이동이라 그게 맞음
+     * - 이유를 적어 둔 것(`keepAlive`)과 첫 화면은 안 건드림
+     * - 도구 상세 페이지(`/t/<id>/`)는 여기 안 옴. 그쪽은 주소로 아예 옮겨 감
+     */
+    function unloadTool(id) {
+        if (!id || id === 'home') return;
+        if (keepAlives.has(id)) return;
+        disposeTool(id);
+        document.getElementById('page-' + id)?.remove();
     }
 
     /**
@@ -2124,9 +2151,16 @@ const Toolbox = (() => {
         }
 
         // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
-        /* 떠나는 장은 멈추고 들어오는 장은 이어서 돈다 (change.widget-idle-cost).
-           도구를 여는 길이 이 함수 하나뿐이라 화면마다 따로 부를 필요가 없다. */
-        if (currentPageId !== pageId) runLifecycle(hiders, currentPageId);
+        /* 떠나는 장은 **내린다**. 들어오는 장은 새로 세운다 (사용자 결정 2026-08-31).
+           멈춤과 재개만으로는 안 멈추는 것이 남았다. 화면이 DOM 에 그대로 있어서다:
+           방의 소리는 `host.isConnected` 로 제 주인이 아직 붙어 있나를 보는데, 감춘 화면도
+           붙어 있는 화면이라 오락실 판을 열고 딴 도구로 가면 소리가 계속 났다(사용자 실측).
+           페이지 이동이면 이동이다. 뒷정리를 돌리고 화면을 걷어 낸다. 돌아오면 새 판이다.
+           계속 돌아야 할 이유를 적어 둔 것(`keepAlive`)만 그대로 둔다. */
+        if (currentPageId !== pageId) {
+            runLifecycle(hiders, currentPageId);
+            unloadTool(currentPageId);
+        }
         currentPageId = pageId;
         /* 머리띠에 지금 연 도구 이름. 왼쪽 목록이 접혀 있어도 여기가 어디인지 보인다 */
         const nowEl = document.getElementById('headerNow');

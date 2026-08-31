@@ -329,7 +329,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 내 단위 한 줄. 점수를 못 물어보면 아예 안 그림(빈 자리는 고장으로 보임) */
       '#acDetail .ac-grade{margin-top:10px;font-size:var(--font-size-2xs);color:#8b897b}',
       '#acDetail .ac-grade b{color:#a4423a;font-weight:900}',
-      '#acDetail .ac-grade b.ac-queued{display:block;margin-top:4px;color:#3c3a30}',
+      '#acDetail .ac-grade b.ac-queued{display:block;margin-top:4px;color:var(--text-primary)}',
       '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
       '#acDetail .ac-more{display:flex;gap:16px;margin-top:14px}',
       '#acDetail .ac-more button{background:none;border:0;padding:0;font-size:var(--font-size-2xs);color:#8b897b;text-decoration:underline;cursor:pointer}',
@@ -2074,7 +2074,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       at: number;
       playing: boolean;
       speed: number;
-      timer: number;
+      /** 자동 넘김을 멈추는 손. 숨은 탭에서는 스스로 쉰다 */
+      timer: (() => void) | null;
       branch: boolean;
     } | null = null;
     let render: Render<unknown> | null = null;
@@ -3450,7 +3451,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /** 줄에 선 때. 기다린 시간을 세는 자리 */
     let rankedSince = 0;
-    let rankedTick = 0;
+    let rankedTick: (() => void) | null = null;
     /** 지금 줄에 선 방과 그 방의 나 말고 몇. 시계가 이 값을 다시 그림 */
     let rankedRoom: RankRoom = 'beginner';
     let rankedOthers = 0;
@@ -3477,8 +3478,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       paintRankWait();
       /* 나가기가 로비로 가는 문이 아니라 줄에서 빠지는 문임을 글자로 */
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.rank.leave');
-      window.clearInterval(rankedTick);
-      rankedTick = window.setInterval(paintRankWait, 1000);
+      rankedTick?.();
+      rankedTick = intervalWhileVisible(paintRankWait, 1000);
       startBtn.style.display = 'none';
       $<HTMLElement>('.ac-share').style.display = 'none';
       ranked?.cancel();
@@ -3490,8 +3491,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         },
         onMatched: (m) => {
           ranked = null;
-          window.clearInterval(rankedTick);
-          rankedTick = 0;
+          rankedTick?.();
+          rankedTick = null;
           rankedMatch = { code: m.code, you: m.you, rival: m.rival };
           if (m.host) {
             /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
@@ -3716,7 +3717,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       cancelAnimationFrame(raf);
       match = null;
       replaying = true;
-      review = { frames, order, at: frames.length - 1, playing: false, speed: 1, timer: 0, branch: false };
+      review = { frames, order, at: frames.length - 1, playing: false, speed: 1, timer: null, branch: false };
       ended = false;
       hideResult();
       againBtn.style.display = 'none';
@@ -3764,12 +3765,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     function tlPlay(on: boolean): void {
       if (!review) return;
-      if (review.timer) window.clearInterval(review.timer);
-      review.timer = 0;
+      review.timer?.();
+      review.timer = null;
       review.playing = on;
       if (on) {
         if (review.at >= review.frames.length - 1) review.at = 0;
-        review.timer = window.setInterval(() => {
+        review.timer = intervalWhileVisible(() => {
           if (!review || review.branch) return;
           if (review.at >= review.frames.length - 1) {
             tlPlay(false);
@@ -3948,8 +3949,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ranked = null;
       rankedMatch = null;
       autoStart = false;
-      window.clearInterval(rankedTick);
-      rankedTick = 0;
+      rankedTick?.();
+      rankedTick = null;
       hideGoneBar();
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
