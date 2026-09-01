@@ -1,7 +1,12 @@
-//! Files 전용 창 — 파일 화면은 카모랩 안이 아니라 자기 창에서 산다.
+//! Files 전환과 Files 전용 창.
 //!
-//! 왜 별도 창인가: Files 는 카모랩 위젯이 아니라 독립 제품 표면(`files.mascari4615.com`)이다.
-//! 카모랩 화면 안에 끼워 넣으면 「위젯 하나」로 보이고, 뒤로가기·주소·크기가 카모랩에 묶인다.
+//! 기본 Files 버튼은 창을 늘리지 않는다. `files_navigate`가 **현재 main WebView**를
+//! 독립 제품 표면(`files.mascari4615.com`)으로 바꾸고, Files 안의 새 창 손잡이만
+//! `files_window_open`으로 별도 WebView를 만든다. 두 길을 혼동하지 마라.
+//!
+//! `blog.mascari4615.com/files/`는 GitHub Pages의 정적 배포 원본이다. Tauri의 같은-창
+//! 전환 때문에 만든 주소가 아니며, Tauri의 제품 목적지는 Worker 기능(`/blob`, `/pc-api`)이
+//! Worker 기능(`/blob`, `/pc-api`) 부착: `files.mascari4615.com`
 //!
 //! 주소는 **main 창의 실제 URL 에서 파생**한다 — dev(127.0.0.1:8898) / prod 를
 //! 하드코딩하면 한쪽에서 죽는다. alarm 창이 같은 이유로 같은 방식을 쓴다.

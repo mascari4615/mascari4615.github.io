@@ -221,6 +221,10 @@ import { installContextMenu } from './lib/context-menu';
      *  들어가는 길로 너무 멀다. 되돌아오는 길은 Files 화면의 ← KarmoLab이다
      *  (뒤로가기가 아니라 `karmolab_navigate` 로 한 번에 돌아온다). */
     function installFilesButton() {
+        // `files_navigate`는 새 창을 만들지 않고 현재 main WebView를
+        // `https://files.mascari4615.com/`로 바꾼다. 새 창은 Files 화면의
+        // 별도 손잡이(`files_window_open`)만 쓴다. Pages의
+        // Pages 정적 앱 배포 원본: `https://blog.mascari4615.com/files/`, 이 버튼의 목적지 제외
         if (!isDesktopApp()) return;
         const btn = document.getElementById('filesBtn');
         if (!btn) return;

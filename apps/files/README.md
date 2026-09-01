@@ -2,8 +2,9 @@
 
 개인 파일 시스템 화면. GitHub Pages에 올라가고, 노트북은 확장(목록 API)일 뿐이다.
 
-- 주소(Pages): `/files/`
-- 제품 호스트: `files.mascari4615.com`. Cloudflare가 붙임. 노트북 터널 금지. GH Pages 커스텀 도메인은 `blog.` 하나라 `files.` → 이 앱(`/files/`) rewrite.
+- 주소(Pages): `https://blog.mascari4615.com/files/` (정적 앱의 배포 원본이자 웹 진입 주소). 이 주소를 `files.`로 강제 이동시키지 않는다.
+- 제품 호스트: `https://files.mascari4615.com/`. Cloudflare Worker가 위 Pages 앱을 받아 `/blob/*`, `/pc-api/*`를 더한다. GH Pages 커스텀 도메인은 `blog.` 하나라 `files.`는 이 앱(`/files/`)을 Worker가 rewrite한다.
+- Tauri: 머리띠 Files 버튼은 **현재 메인 창을** 제품 호스트로 바꾸는 `files_navigate`다. Files 화면의 `새 창`만 별도 창 명령 `files_window_open`을 쓴다. 따라서 Pages 주소의 존재 이유는 같은-창 전환이 아니다.
 - 노트북 확장: `https://laptop.mascari4615.com/files/api/list`
 - 클라우드 규격: `src/vault.mjs` (WebCrypto AES-GCM). 시험: `npm test`
 - 클라우드 탭: `/blob/hdr` 가 있으면 그 암호문, 없으면 픽스처 `v/` (열쇠 `fixture`)
