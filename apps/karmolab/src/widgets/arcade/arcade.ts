@@ -624,6 +624,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-roomfill:not(:has(.ac-t3room)){background:var(--bg-primary)}',
       '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px}',
       '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>*{width:100%;max-width:min(1180px,100%)}',
+      /* 판을 다 쓰면 `#acView` 가 판 전체를 덮어 아래 깔린 버튼줄이 안 눌림
+         2026-09-01 실측: 무르기가 사이드바와 판 밑으로 들어가 클릭이 사이드바로 감
+         방 화면은 버튼이 메뉴 종이 안이라 무관. 평평한 화면만 아래 줄을 띄움 */
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:var(--ac-barh,48px);height:auto}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:var(--ac-barh,48px);margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:var(--ac-barh,48px);z-index:8;margin:0}',
       '#acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}',
       '#acPlay.ac-roomfill .ac-intro{border-radius:0}',
       '#acPlay.ac-roomfill .ac-over{border-radius:0}',
@@ -1753,8 +1759,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const fillVars = (): void => {
       const head = document.getElementById('headerBar')?.getBoundingClientRect();
       const main = document.querySelector('.main-content')?.getBoundingClientRect();
-      play.style.setProperty('--ac-roomfill-y', `${Math.round(head?.bottom ?? 0)}px`);
-      play.style.setProperty('--ac-roomfill-x', `${Math.round(main?.left ?? 0)}px`);
+      /* 사이드바가 본문 위로 겹치는 폭이 있다. 본문 왼쪽만 보면 판이 사이드바 밑으로 들어가
+         거기 있는 버튼이 사이드바로 눌린다 (2026-09-01 실측: 1280 폭에서 본문 143, 사이드바 179) */
+      const side = document.getElementById('sidebar')?.getBoundingClientRect();
+      const left = Math.max(main?.left ?? 0, side && side.width > 0 ? side.right : 0);
+      /* 셸이 좁은 창에서 통째로 축소된다. 잰 값은 화면 자, 넣는 값은 축소 전 자라 그대로 넣으면
+         그 배율만큼 왼쪽으로 밀린다 (2026-09-01 실측: 1280 폭 배율 0.8, 사이드바 179 인데 판이 143) */
+      const scale = play.offsetWidth > 0 ? play.getBoundingClientRect().width / play.offsetWidth : 1;
+      const k = scale > 0.05 ? scale : 1;
+      play.style.setProperty('--ac-roomfill-y', `${Math.round((head?.bottom ?? 0) / k)}px`);
+      play.style.setProperty('--ac-roomfill-x', `${Math.round(left / k)}px`);
     };
     const fill = (on: boolean): void => {
       if (on) fillVars();

@@ -73,8 +73,30 @@ if (!cantRun) {
     return !!e && getComputedStyle(e).display !== 'none';
   });
   check('무르기가 열린다', undoOn);
-  /* 되돌아오는지는 아직 안 잰다. 눌러도 상태가 그대로다(2026-09-01 실측). 원인 미상이라
-     거짓 초록을 내지 않으려고 항목을 뺐다. change.arcade-cards 의 Todo 에 적어 둠 */
+
+  /* **사람처럼 누르기**. `.click()` 으로 부르면 가려진 버튼도 눌려 초록이 남
+     2026-09-01 실측: 판을 다 쓰게 한 뒤 `#acView` 가 버튼줄을 덮어 진짜 클릭이 안 닿음 */
+  const stockBefore = await page.evaluate(() => document.querySelector('#acSolStock small')?.textContent ?? '');
+  await page.click('#acUndo');
+  await page.waitForTimeout(500);
+  const stockAfter = await page.evaluate(() => document.querySelector('#acSolStock small')?.textContent ?? '');
+  const wasteGone = await page.evaluate(() => !document.querySelector('#acSolWaste .ac-sol-card'));
+  check('무르기가 뽑은 수를 되돌린다', stockBefore !== stockAfter && wasteGone, `더미 ${stockBefore} -> ${stockAfter}`);
+
+  /* 버튼줄이 판에 안 가린다. 위 클릭이 닿았다는 것과 같은 말이지만 자리를 따로 잰다 */
+  const barOk = await page.evaluate(() => {
+    const e = document.getElementById('acUndo');
+    if (!e) return false;
+    const b = e.getBoundingClientRect();
+    if (b.width < 4) return true;
+    const top = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
+    return !!top && (top === e || e.contains(top));
+  });
+  check('버튼줄이 판에 안 가린다', barOk);
+
+  /* 다시 뽑아 놓는다. 아래 검사가 뽑은 카드를 본다 */
+  await page.click('#acSolStock', { force: true });
+  await page.waitForTimeout(400);
 
   /* 못 놓는 자리. 뒤집힌 카드를 누르면 까닭을 말한다 */
   const downCard = await page.evaluate(() => {
