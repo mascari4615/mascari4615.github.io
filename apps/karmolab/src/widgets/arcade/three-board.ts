@@ -51,6 +51,7 @@ import {
 import { gloop, type GardenLoop } from '../garden/gloop';
 import { cloudTexture, clothTexture, contactTexture, coordTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 import type { SceneId } from './scenes';
+import { buildRoom, type Room } from './rooms';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
@@ -155,7 +156,6 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const lounge = room && sceneId === 'living';
   if (room) host.classList.add('ac-scene-' + sceneId);
   /* 살아 있는 방의 손잡이. 아래 breathe 가 매 프레임 만진다 */
-  const living: { spot: SpotLight | null; cloud: SpotLight | null; lamp: PointLight | null; motes: Points | null; shafts: Mesh[]; seed: number } = { spot: null, cloud: null, lamp: null, motes: null, shafts: [], seed: Math.random() * 1000 };
   /**
    * 줄이 덮는 거리. **교차점 판은 줄이 n 개**(칸은 n−1 개)고, 칸 판은 줄이 n+1 개다.
    * 여기를 한 줄로 갈라 두면 아래(줄 긋기, 알 자리, 손 짚기)가 전부 따라온다.
@@ -253,226 +253,59 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    */
   /* 전부 노란 빛으로 두면 방 전체에 노란 필터가 낀다(사용자 지적). 해만 살짝 따뜻하고 나머지는 흰 쪽 */
   /* 채움광은 해의 1/5 아래. 0.28+0.8 로 두니 해(2.3)와 맞먹어 알 그림자가 얼룩으로 씻겼다(2026-08-30 실측, 사용자 지적) */
-  scene.add(new AmbientLight(0xffffff, desk ? 0.2 : lounge ? 0.18 : room ? 0.14 : 1.45));
-  const hemi = desk ? new HemisphereLight(0x8fa3c4, 0x2a2018, 0.38) : study ? new HemisphereLight(0xe8eef5, 0x4a3a2c, 0.38) : lounge ? new HemisphereLight(0xe9f0fa, 0x6a5a48, 0.48) : new HemisphereLight(0xdde8f4, 0x4a3823, 0.42);
-  if (room) scene.add(hemi);
-  /* 해. 밤 책상은 위에서 곧게(등불의 그림자 몫), 서재는 왼쪽 뒤 창에서 저녁 빛 */
-  const sun = new DirectionalLight(desk ? 0xfff1e0 : study ? 0xffe6cc : lounge ? 0xfff8ee : room ? 0xfff0dc : 0xfff3e0, desk ? 2.2 : study ? 2.9 : lounge ? 2.9 : room ? 3.1 : 1.9);
-  /* 해 고도 28~32도. 42도로 두니 알(높이 0.2) 그림자가 알 밑에 숨었다. 레퍼런스는 긴 그림자(실측) */
-  if (desk) sun.position.set(size * 1.0, size * 1.05, size * 0.85);
-  else if (study) sun.position.set(-size * 1.25, size * 0.8, -size * 0.5);
-  else if (lounge) sun.position.set(size * 1.3, size * 0.9, -size * 0.45);
-  else if (room) sun.position.set(size * 1.05, size * 0.78, -size * 0.85);
-  else sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
-  sun.castShadow = true;
   /**
-   * 그림자 틀을 **판에 딱 맞춘다**. 넉넉히 잡아 두면 남는 자리가 판 위에 각진 무늬로 남는다
-   * (실측: 판 가운데를 가로지르는 삼각형이 보였다. 그림자가 아니라 그림자 틀의 모서리였다).
-   * 알만 그림자를 지므로 틀은 판 크기면 충분하다.
+   * 방(4종)은 `rooms.ts` 한 곳에서 짓는다 (2026-09-01)
+   *
+   * - 같은 그림을 여기와 `rooms.ts` 가 따로 들고 있었다. 야추 주사위 무대가 먼저 옮겨 갔고,
+   *   오목이 남아 두 벌이었음. 두 벌은 언젠가 갈림(실제로 하늘빛 한 값이 이미 갈려 있었음)
+   * - 방이 아닌 표현(판만, 통 놓은 판)은 여기 그대로. 방과 다른 빛이라 합칠 것 없음
    */
-  sun.shadow.mapSize.set(2048, 2048);
-  /* PCF 의 번짐 반경. 1 이면 가장자리가 계단, 3 이면 햇빛 그림자다운 반그늘(실측 비용 차이 없음) */
-  sun.shadow.radius = room ? 2 : 1;
-  /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
-  /* 낮은 해는 그림자가 길다. 방 표현은 틀을 더 넓게 */
-  const shadowSpan = size * (room ? 1.4 : opts.bowls ? 0.95 : 0.62);
-  sun.shadow.camera.left = -shadowSpan;
-  sun.shadow.camera.right = shadowSpan;
-  sun.shadow.camera.top = shadowSpan;
-  sun.shadow.camera.bottom = -shadowSpan;
-  sun.shadow.camera.near = size * 0.4;
-  sun.shadow.camera.far = size * (lounge ? 4.2 : 3.2);
-  sun.shadow.bias = -0.0008;
-  sun.shadow.normalBias = 0.02;
-  scene.add(sun);
-
-  /**
-   * ── 바닥 ── 판이 놓인 자리. 없으면 판이 허공에 뜬다(그림자가 받을 면이 없다).
-   * 어두운 나무. 판보다 훨씬 어두워야 판이 앞으로 나옴
-   */
-  /* 방 표현은 다다미. 판만 나무면 판이 어디 놓였는지 모르고, 바닥까지 나무면 한 덩이가 된다 */
-  const floorMap = new CanvasTexture(desk ? plankTexture(29, 512) : study ? parquetTexture(53, 512) : lounge ? oakTexture(71, 512) : room ? tatamiTexture(19, 512) : woodTexture(31, 256));
-  floorMap.colorSpace = SRGBColorSpace;
+  let roomKit: Room | null = null;
+  let floorY = 0;
+  let sun: DirectionalLight;
+  let hemi: HemisphereLight;
   if (room) {
-    floorMap.wrapS = RepeatWrapping;
-    floorMap.wrapT = RepeatWrapping;
-    /* 한 장이 다다미 반 장. 판 옆으로 여러 장이 이어져야 방이 된다. 밤 책상은 널 넉 장, 서재는 쪽매 여섯 */
-    if (desk) floorMap.repeat.set(4, 4);
-    else if (study) floorMap.repeat.set(5, 5);
-    else if (lounge) floorMap.repeat.set(6, 6);
-    else floorMap.repeat.set(6, 3);
-    floorMap.anisotropy = 4;
-  }
-  const floorMat = new MeshStandardMaterial({ map: floorMap, color: desk ? 0x5a3b22 : room ? 0xffffff : 0x2b1d10, roughness: desk ? 0.5 : study ? 0.6 : lounge ? 0.55 : room ? 0.94 : 0.98, metalness: desk ? 0.08 : 0 });
-  const floor = new Mesh(new PlaneGeometry(size * 6, size * 6), floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  /* 거실은 판이 탁자 위 소품(레퍼런스). 마루는 탁자 다리만큼 아래 */
-  const legH = size * 0.42;
-  const floorY = lounge ? -legH - 0.1 : 0;
-  floor.position.y = floorY;
-  floor.receiveShadow = true;
-  scene.add(floor);
+    roomKit = buildRoom(scene, sceneId, size);
+    sun = roomKit.sun;
+    hemi = roomKit.hemi;
+    floorY = roomKit.floorY;
+  } else {
+    /* 판만 있는 표현. 방이 아니라 진열대에 가깝다. 밝은 채움광에 해 하나 */
+    scene.add(new AmbientLight(0xffffff, 1.45));
+    hemi = new HemisphereLight(0xdde8f4, 0x4a3823, 0.42);
+    sun = new DirectionalLight(0xfff3e0, 1.9);
+    sun.position.set(-size * 0.5, size * 1.7, size * 0.55);
+    sun.castShadow = true;
+    /**
+     * 그림자 틀은 **판에 딱**. 넉넉히 잡아 두면 남는 자리가 판 위에 각진 무늬로 남음
+     * (실측: 판 가운데를 가로지르는 삼각형이 보였다. 그림자가 아니라 그림자 틀의 모서리였다).
+     * 알만 그림자를 지므로 틀은 판 크기면 충분
+     */
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.radius = 1;
+    /* 통을 놓으면 판 밖으로 나가므로 틀도 그만큼 넓힌다. 안 넓히면 통 그림자가 잘린다 */
+    const shadowSpan = size * (opts.bowls ? 0.95 : 0.62);
+    sun.shadow.camera.left = -shadowSpan;
+    sun.shadow.camera.right = shadowSpan;
+    sun.shadow.camera.top = shadowSpan;
+    sun.shadow.camera.bottom = -shadowSpan;
+    sun.shadow.camera.near = size * 0.4;
+    sun.shadow.camera.far = size * 3.2;
+    sun.shadow.bias = -0.0008;
+    sun.shadow.normalBias = 0.02;
+    scene.add(sun);
 
-  /**
-   * ── 툇마루와 바깥 ── 판 뒤쪽. 다다미가 끝나고 어두운 널마루가 한 폭, 그 너머는 해가 든 바깥.
-   * 카메라 위쪽 가장자리에 걸려야 하므로 판 뒤 0.8 판 거리에 둔다. 레퍼런스도 판 옆에
-   * 어두운 마루가 있음(실측). 방이 사방으로 다다미면 창고, 마루가 있어야 집
-   */
-  const plankMap = new CanvasTexture(plankTexture(29, 512));
-  plankMap.colorSpace = SRGBColorSpace;
-  plankMap.wrapS = RepeatWrapping;
-  plankMap.repeat.set(5, 1);
-  const plankMat = new MeshStandardMaterial({ map: plankMap, color: 0xffffff, roughness: 0.42, metalness: 0.05 });
-  const outsideMat = new MeshStandardMaterial({ color: 0xfff1d6, emissive: 0xffe9c8, emissiveIntensity: 0.9, roughness: 1 });
-  if (tatami) {
-    const edge = -size * 0.66;
-    const plank = new Mesh(new PlaneGeometry(size * 6, size * 0.7), plankMat);
-    plank.rotation.x = -Math.PI / 2;
-    plank.position.set(0, 0.012, edge - size * 0.35);
-    plank.receiveShadow = true;
-    scene.add(plank);
-    /* 마루 턱. 다다미보다 한 뼘 높다 */
-    const step = new Mesh(new BoxGeometry(size * 6, 0.06, 0.05), plankMat);
-    step.position.set(0, 0.03, edge);
-    scene.add(step);
-    /* 바깥. 빛나는 면 하나. 디테일을 그리면 눈이 거기로 간다 */
-    const outside = new Mesh(new PlaneGeometry(size * 6, size * 3), outsideMat);
-    outside.rotation.x = -Math.PI / 2;
-    outside.position.set(0, 0.011, edge - size * 0.7 - size * 1.5);
-    scene.add(outside);
-  }
-  if (room) {
-    /* 먼지. 햇살이 드는 자리(판 뒤쪽) 공중에 점 120개. 밤 책상은 등불 아래 */
-    const n = 120;
-    const pos = new Float32Array(n * 3);
-    for (let i = 0; i < n; i += 1) {
-      pos[i * 3] = (Math.random() - 0.5) * size * (desk ? 0.9 : 1.6);
-      pos[i * 3 + 1] = Math.random() * size * 0.5 + 0.1;
-      pos[i * 3 + 2] = desk ? (Math.random() - 0.5) * size * 0.9 : -size * 0.2 - Math.random() * size * 0.9;
-    }
-    const moteGeo = new BufferGeometry();
-    moteGeo.setAttribute('position', new Float32BufferAttribute(pos, 3));
-    const moteMat = new PointsMaterial({ color: 0xffe9c0, size: 0.035, transparent: true, opacity: 0.55, blending: AdditiveBlending, depthWrite: false, sizeAttenuation: true });
-    const motes = new Points(moteGeo, moteMat);
-    scene.add(motes);
-    living.motes = motes;
-
-    /* 햇살 줄기 셋. 장지문 쪽에서 판 앞으로 비스듬히 누운 반투명 띠. 구름이 지나면 옅어진다 */
-    const shaftMap = new CanvasTexture(shaftTexture(256));
-    shaftMap.colorSpace = SRGBColorSpace;
-    const shaftMat = new MeshBasicMaterial({ map: shaftMap, transparent: true, opacity: 0.55, blending: AdditiveBlending, depthWrite: false, side: DoubleSide });
-    for (let k = 0; k < (tatami ? 3 : 0); k += 1) {
-      const shaft = new Mesh(new PlaneGeometry(size * (0.7 + k * 0.2), size * 2.2), shaftMat);
-      shaft.position.set(-size * 0.55 + k * size * 0.55, size * 0.55, -size * 0.35 + k * 0.08 * size);
-      /* 뒤 위에서 앞 아래로 눕힌다. 해와 같은 기울기 */
-      shaft.rotation.set(-0.95, 0.18 - k * 0.12, 0.25);
-      scene.add(shaft);
-      living.shafts.push(shaft);
-    }
-  }
-
-  /* ── 밤 책상의 소품: 가죽 수첩과 등불 ── (레퍼런스 실측: 왼쪽 위 수첩, 낮은 등불) */
-  const leatherMap = new CanvasTexture(leatherTexture(67, 256));
-  leatherMap.colorSpace = SRGBColorSpace;
-  const leatherMat = new MeshStandardMaterial({ map: leatherMap, color: 0xffffff, roughness: 0.75 });
-  const rugMap = new CanvasTexture(rugTexture(61, 512));
-  rugMap.colorSpace = SRGBColorSpace;
-  const rugMat = new MeshStandardMaterial({ map: rugMap, color: 0xffffff, roughness: 1 });
-  if (desk) {
-    /* 수첩은 판 왼쪽 위 귀퉁이 곁. 멀리 두면 정수리 부감 프레임 밖(실측) */
-    const book = new Mesh(new BoxGeometry(size * 0.4, 0.07, size * 0.58), leatherMat);
-    book.position.set(-size * 0.72, 0.035, -size * 0.55);
-    book.rotation.y = 0.06;
-    book.castShadow = true;
-    book.receiveShadow = true;
-    scene.add(book);
-    const strap = new Mesh(new BoxGeometry(size * 0.06, 0.09, size * 0.8), leatherMat);
-    strap.position.set(-size * 0.72 + size * 0.1, 0.045, -size * 0.55);
-    strap.rotation.y = 0.06;
-    scene.add(strap);
-    /* 등불. 판 위 한 점. 멀어질수록 급히 어두워져 가장자리가 밤이 된다 */
-    const lamp = new PointLight(0xffe2c0, 3.4, size * 4.2, 1.15);
-    lamp.position.set(size * 0.15, size * 1.3, size * 0.1);
-    scene.add(lamp);
-    living.lamp = lamp;
-  }
-  /* ── 거실의 소품: 낮은 탁자, 융단, 소파, 찻잔 ── (레퍼런스: 판이 탁자 위 소품, 앉기 전 장면) */
-  if (lounge) {
-    const walnutMap = new CanvasTexture(woodTexture(23, 256));
-    walnutMap.colorSpace = SRGBColorSpace;
-    const walnut = new MeshStandardMaterial({ map: walnutMap, color: 0x6a4630, roughness: 0.45, metalness: 0.06 });
-    /* 탁자 판. 오목판보다 넉넉히 넓고 낮다 */
-    const top = new Mesh(new BoxGeometry(size * 2.1, 0.1, size * 1.45), walnut);
-    top.position.set(0, -0.05, 0);
-    top.castShadow = true;
-    top.receiveShadow = true;
-    scene.add(top);
-    for (const [lx, lz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-      const leg = new Mesh(new BoxGeometry(0.12, legH, 0.12), walnut);
-      leg.position.set(lx * size * 0.95, -0.1 - legH / 2, lz * size * 0.62);
-      leg.castShadow = true;
-      scene.add(leg);
-    }
-    /* 융단. 탁자 밑 바닥에 한 장. 색은 서재보다 옅게 */
-    const rug = new Mesh(new PlaneGeometry(size * 3.4, size * 2.6), new MeshStandardMaterial({ map: rugMap, color: 0xd8d0c4, roughness: 1 }));
-    rug.rotation.x = -Math.PI / 2;
-    rug.position.set(0, floorY + 0.008, size * 0.1);
-    rug.receiveShadow = true;
-    scene.add(rug);
-    /* 소파. 탁자 뒤에 등받이 낮은 3인용. 앉는 자리 하나, 등받이 하나, 팔걸이 둘, 방석 셋 */
-    const clothMap = new CanvasTexture(clothTexture(73, 256));
-    clothMap.colorSpace = SRGBColorSpace;
-    clothMap.wrapS = RepeatWrapping;
-    clothMap.wrapT = RepeatWrapping;
-    clothMap.repeat.set(3, 3);
-    const cloth = new MeshStandardMaterial({ map: clothMap, color: 0xffffff, roughness: 1 });
-    const seatH = size * 0.3;
-    const sofaZ = -size * 1.35;
-    const seat = new Mesh(new BoxGeometry(size * 2.8, seatH, size * 0.85), cloth);
-    seat.position.set(0, floorY + seatH / 2, sofaZ);
-    seat.castShadow = true;
-    seat.receiveShadow = true;
-    scene.add(seat);
-    const back = new Mesh(new BoxGeometry(size * 2.8, size * 0.5, size * 0.22), cloth);
-    back.position.set(0, floorY + seatH + size * 0.25, sofaZ - size * 0.32);
-    back.castShadow = true;
-    scene.add(back);
-    for (const ax of [-1, 1]) {
-      const arm = new Mesh(new BoxGeometry(size * 0.22, size * 0.2, size * 0.85), cloth);
-      arm.position.set(ax * size * 1.29, floorY + seatH + size * 0.1, sofaZ);
-      arm.castShadow = true;
-      scene.add(arm);
-    }
-    for (const cx3 of [-0.85, 0, 0.85]) {
-      const cushion = new Mesh(new BoxGeometry(size * 0.78, size * 0.08, size * 0.75), cloth);
-      cushion.position.set(cx3 * size, floorY + seatH + size * 0.04, sofaZ + size * 0.02);
-      cushion.castShadow = true;
-      cushion.receiveShadow = true;
-      scene.add(cushion);
-    }
-    /* 찻잔. 탁자 오른쪽 앞 귀퉁이. 흰 사기 */
-    const china = new MeshStandardMaterial({ color: 0xf6f1ea, roughness: 0.35 });
-    const cup = new Mesh(new CylinderGeometry(size * 0.055, size * 0.045, size * 0.07, 24), china);
-    cup.position.set(size * 0.82, size * 0.035, size * 0.5);
-    cup.castShadow = true;
-    scene.add(cup);
-    const saucer = new Mesh(new CylinderGeometry(size * 0.095, size * 0.085, 0.012, 24), china);
-    saucer.position.set(size * 0.82, 0.006, size * 0.5);
-    saucer.receiveShadow = true;
-    scene.add(saucer);
-  }
-  /* ── 서재의 소품: 판 밑 융단, 곁의 스탠드 ── */
-  if (study) {
-    /* 융단은 판보다 한 뼘 크게만. 바닥을 다 덮으면 쪽매 마루가 없는 방(실측) */
-    const rug = new Mesh(new PlaneGeometry(size * 1.7, size * 1.45), rugMat);
-    rug.rotation.x = -Math.PI / 2;
-    rug.position.set(0, 0.008, size * 0.05);
-    rug.receiveShadow = true;
-    scene.add(rug);
-    const lamp = new PointLight(0xffe8d0, 1.6, size * 3.2, 1.3);
-    lamp.position.set(-size * 1.1, size * 0.9, -size * 0.45);
-    scene.add(lamp);
-    living.lamp = lamp;
+    /**
+     * ── 바닥 ── 판이 놓인 자리. 없으면 판이 허공에 뜬다(그림자가 받을 면이 없다).
+     * 어두운 나무. 판보다 훨씬 어두워야 판이 앞으로 나옴
+     */
+    const floorMap = new CanvasTexture(woodTexture(31, 256));
+    floorMap.colorSpace = SRGBColorSpace;
+    const floorMat = new MeshStandardMaterial({ map: floorMap, color: 0x2b1d10, roughness: 0.98 });
+    const floor = new Mesh(new PlaneGeometry(size * 6, size * 6), floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
   }
 
   /* ── 판 ── 나무 상자 한 덩이. 윗면이 두께만큼 올라와 있다.
@@ -541,36 +374,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
    * 격자 빛을 떨어뜨림. 판 뒤(툇마루 쪽) 높은 데서 앞으로 비스듬히. 그림자는 없음
    * (해가 이미 그림자를 지므로, 둘이면 알마다 그림자가 둘이라 가짜로 보임)
    */
-  /**
-   * ── 살아 있는 방 ── (사용자 요구: 너무 정적이다. 그림자가 움직이든 구름이 있든)
-   * 셋이 느리게 움직인다. ① 구름이 지나며 해가 어두워졌다 밝아짐(수십 초 주기)
-   * ② 장지문 빛이 바람에 살짝 흔들림 ③ 햇살 속 먼지가 떠다님. 셋 다 눈에 띄지 않을 만큼.
-   * 이게 도는 동안은 30fps 로 그린다(가만히 있을 때 0 이던 것이 30 으로. 그림 한 장 1ms)
-   */
-  const shojiMap = new CanvasTexture(shojiTexture(512));
-  shojiMap.colorSpace = SRGBColorSpace;
-  if (tatami) {
-    /* 세기 2.6, 각 0.58 로 두니 판 위까지 굵은 격자가 덮여 판이 지저분했다(실측). 옅게, 좁게, 판 뒤로 */
-    const spot = new SpotLight(0xfff4e6, 1.9, 0, 0.4, 0.5, 0);
-    spot.map = shojiMap;
-    spot.position.set(size * 0.35, size * 1.7, -size * 1.7);
-    spot.target.position.set(-size * 0.2, 0, -size * 0.35);
-    scene.add(spot);
-    scene.add(spot.target);
-    living.spot = spot;
-  }
-  if (tatami || study || lounge) {
-    /* 구름 그늘. 위에서 넓게 비추는 등에 구름 무늬를 물린다. 등이 천천히 자리를 옮기면 그늘이 흘러간다 */
-    const cloudMap = new CanvasTexture(cloudTexture(41, 512));
-    cloudMap.colorSpace = SRGBColorSpace;
-    const cloud = new SpotLight(0xffffff, 0.9, 0, 0.95, 0.15, 0);
-    cloud.map = cloudMap;
-    cloud.position.set(0, size * 3.2, size * 0.3);
-    cloud.target.position.set(0, 0, 0);
-    scene.add(cloud);
-    scene.add(cloud.target);
-    living.cloud = cloud;
-  }
+  /* 살아 있는 방(장지문 빛, 구름 그늘, 먼지)은 `rooms.ts` 가 짓고 숨쉬게 한다 */
+
 
   /* 줄. 얇은 판으로 긋는다. 선 하나가 메시 하나면 9칸에 20개, 가볍다. */
   /* 줄은 먹이다. 나무보다 조금 진한 갈색으로 그으면 결에 묻혀 판이 흐려 보인다(레퍼런스는 검정) */
@@ -986,45 +791,14 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   };
 
   let lastLive = 0;
+  /* 방의 숨쉬기(해, 구름, 등불, 햇살 줄기)는 `rooms.ts` 몫. 여기 남는 것은 판 위의 것 */
   const breathe = (t: number): void => {
-    const s = t / 1000 + living.seed;
-    /* 구름. 두 사인의 합. 0.5~1.0 사이를 40~90초 주기로. 해가 구름에 들면 방이 눈에 띄게 어두워진다 */
-    const cloud = desk ? 1 : 0.84 + 0.16 * Math.sin(s * 0.09) * Math.cos(s * 0.043 + 1.3);
-    sun.intensity = (desk ? 2.2 : study ? 2.9 : lounge ? 2.9 : 3.1) * cloud;
-    hemi.intensity = (desk ? 0.38 : study ? 0.38 : lounge ? 0.48 : 0.42) * (0.8 + 0.2 * cloud);
-    if (living.lamp) {
-      /* 등불은 숨쉬듯. 눈에 띄면 고장 난 전구다 */
-      living.lamp.intensity = (desk ? 3.4 : 1.6) * (0.965 + 0.035 * Math.sin(s * 1.3) * Math.sin(s * 0.37 + 0.8));
-    }
-    if (living.cloud) {
-      /* 구름 그늘은 한 바퀴 50초 남짓. 앉아서 보이는 속도 */
-      living.cloud.position.x = Math.sin(s * 0.12) * size * 1.4;
-      living.cloud.position.z = size * 0.3 + Math.cos(s * 0.083) * size * 1.0;
-      living.cloud.intensity = 1.1;
-    }
-    for (const sh of living.shafts) {
-      const m = sh.material as MeshBasicMaterial;
-      m.opacity = 0.25 + 0.6 * Math.max(0, cloud - 0.5) * 2;
-    }
-    if (living.spot) {
-      living.spot.intensity = 2.0 * (0.8 + 0.2 * cloud);
-      /* 바람. 장지문 빛이 살짝 흔들린다 */
-      living.spot.target.position.x = -size * 0.2 + Math.sin(s * 0.7) * size * 0.012 + Math.sin(s * 1.9) * size * 0.004;
-    }
+    const s = t / 1000;
+    roomKit?.breathe(t);
     if (adviseRing.visible) {
       const k = 1 + Math.sin(s * 4) * 0.16;
       adviseRing.scale.set(k, k, 1);
       adviseMat.opacity = 0.7 + 0.3 * (0.5 + 0.5 * Math.sin(s * 4));
-    }
-    if (living.motes) {
-      const arr = living.motes.geometry.getAttribute('position') as { array: Float32Array; needsUpdate: boolean };
-      const a = arr.array;
-      for (let i = 0; i < a.length; i += 3) {
-        a[i] += Math.sin(s * 0.5 + i) * 0.0006;
-        a[i + 1] += 0.0004 + Math.sin(s * 0.3 + i * 0.7) * 0.0003;
-        if (a[i + 1] > size * 0.55) a[i + 1] = 0.1;
-      }
-      arr.needsUpdate = true;
     }
   };
 
@@ -1274,14 +1048,11 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
         const m = o as Mesh;
         if (m.geometry) m.geometry.dispose();
       });
-      [...mats.values(), ...bowlMats, wood, side, ink, dot, darkMat, markMat, hintMat, pickMat, floorMat, plankMat, outsideMat, leatherMat, rugMat].forEach((mm) => mm.dispose());
-      leatherMap.dispose();
-      rugMap.dispose();
-      plankMap.dispose();
-      shojiMap.dispose();
+      [...mats.values(), ...bowlMats, wood, side, ink, dot, darkMat, markMat, hintMat, pickMat].forEach((mm) => mm.dispose());
       woodMap.dispose();
       sideMap.dispose();
-      floorMap.dispose();
+      /* 방 재료는 방이 거둔다 */
+      roomKit?.dispose();
       renderer.dispose();
       canvas.remove();
     }
