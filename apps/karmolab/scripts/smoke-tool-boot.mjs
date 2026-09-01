@@ -76,10 +76,16 @@ const browser = await chromium.launch({ headless: true });
 /* 판(밝음, 어두움)마다 다른 코드가 도는 위젯이 있다. 두 판 다 연다
    (2026-08-31: 어두운 판만 죽는 자리를 지금은 아무도 안 봤다) */
 const THEMES = (process.env.KL_BOOT_THEMES || 'light,dark').split(',');
+/* 스킨은 기본값(필드)으로 돈다. 클래식까지 재려면 KL_BOOT_SKIN=classic */
 
 async function openOne(id, theme) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  await page.addInitScript((t) => { try { localStorage.setItem('toolbox_theme', t); } catch { /* 저장이 막힌 판 */ } }, theme);
+  await page.addInitScript((v) => {
+    try {
+      localStorage.setItem('toolbox_theme', v.theme);
+      if (v.skin) localStorage.setItem('toolbox_skin', v.skin);
+    } catch { /* 저장이 막힌 판 */ }
+  }, { theme, skin: process.env.KL_BOOT_SKIN || '' });
   const hits = new Set();
   page.on('pageerror', (e) => hits.add('오류 ' + String(e).split('\n')[0].slice(0, 90)));
   page.on('response', (r) => {

@@ -352,6 +352,19 @@
     "data/gate-list.json"
    ]
   },
+  {
+   "name": "smoke:skin-parity",
+   "watch": [
+    "css/toolbox.css",
+    "css/tools.css",
+    "index.html",
+    "src/toolbox.ts",
+    "src/home-page.ts",
+    "scripts/smoke-skin-parity.mjs",
+    "package.json",
+    "data/gate-list.json"
+   ]
+  },
   "smoke:sndshell",
   "audit:loose",
   "test:audiorate",
