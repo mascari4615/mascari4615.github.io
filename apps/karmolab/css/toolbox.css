@@ -2750,7 +2750,7 @@ html.has-modal, html.has-modal body { overflow: hidden; }
     .landing-hero { padding: var(--space-lg) 0 var(--space-md); }
     .prism-theme-select { width: 100px; font-size: var(--font-size-2xs); }
     .tool-page-hero { padding: var(--space-md) 0 var(--space-sm); }
-    .tool-page-hero-title { font-size: 28px; }
+    .tool-page-hero-title { font-size: var(--font-size-display-md); }
     .field-group { padding: var(--space-sm); }
     .tool-page.layout-form { padding: var(--space-sm); }
 }

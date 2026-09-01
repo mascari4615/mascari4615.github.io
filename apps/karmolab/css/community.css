@@ -201,7 +201,7 @@
 
     /* 갤러리 안. 여기가 어딘지가 제일 크게 보여야 한다. */
     .c-gal-head { margin-bottom:14px; }
-    .c-gal-head h2 { margin:6px 0 2px; font-size:24px; color:var(--text-primary); }
+    .c-gal-head h2 { margin:6px 0 2px; font-size:var(--font-size-display-sm); color:var(--text-primary); }
     .c-gal-head p { margin:0; font-size:var(--font-size-xs); color:var(--text-secondary); }
 
     /* 목록. 국내 게시판(디시, 아카) 골격: 번호, 제목, 글쓴이, 날짜, 조회, 추천이 한 줄에 선다.

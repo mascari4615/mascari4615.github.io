@@ -21,7 +21,7 @@ import { t, loadNamespace } from '../lib/i18n';
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:380px; gap:16px; text-align:center;">
                     <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('font.t01'))}</div>
-                    <div id="fontDisplay" style="font-size:24px; font-weight:bold; margin:10px 0; min-height:36px; transition:all 0.3s;">${esc(t('font.label.display'))}</div>
+                    <div id="fontDisplay" style="font-size:var(--font-size-display-sm); font-weight:bold; margin:10px 0; min-height:36px; transition:all 0.3s;">${esc(t('font.label.display'))}</div>
                     <div id="fontGrade" style="font-size:40px; min-height:50px; transition:transform 0.3s;"></div>
                     <button class="btn btn-accent" id="drawFontBtn">${esc(t('font.btn.drawFontBtn'))}</button>
                     <div id="fontResult" style="font-size:var(--font-size-xs); font-weight:bold; color:var(--accent-ink); min-height:18px;"></div>

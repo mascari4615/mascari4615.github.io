@@ -572,8 +572,8 @@ declare const Toolbox: { register: (m: unknown) => void } | undefined;
     karmoddrine: 6,   // 우산 = 육각
     '룰': 0,           // 룰 = 동그라미
     '외장뇌': 0,
-    '노트': 0,
-    '시스템': 4,
+    '노트': 5,          // 색 2번에서 changes 와 짝이 겹쳐 오각으로 (2026-09-01)
+    '시스템': 5,         // 색 1번에서 career 와 짝이 겹쳐 오각으로 (2026-09-01)
     '인생': 3,
     '블로그': 0,
     assistant: 0, learning: 3, stuff: 4,       // 같은 색(0번) 세 갈래

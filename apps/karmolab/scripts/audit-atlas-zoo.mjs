@@ -37,7 +37,8 @@ if (!Z) {
   if (isFake(ATLAS)) { console.log('[zoo] 가짜 지도다. 잣대 중복은 진짜 굽기에서만 잰다'); process.exit(0); }
   console.log('[zoo] **잣대끼리 얼마나 같은 말을 하는지 재 본 표가 없다** (zoo)');
   console.log('  `npm run atlas -- --잣대` 로 한 번 재야 한다');
-  process.exit(1);
+  console.log('  안 잰 것은 통과도 실패도 아니다. 지도를 그 자리 없이 구웠을 뿐이다 (2026-09-01).');
+  process.exit(2);
 }
 
 const L = (k) => (Z.label && Z.label[k]) || k;

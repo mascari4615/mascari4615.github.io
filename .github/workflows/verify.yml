@@ -225,3 +225,12 @@ jobs:
       - name: Contrast sweep (light/dark)
         if: ${{ github.event_name != 'push' }}
         run: cd apps/karmolab && npm run test:contrast
+
+      # ★ 전제를 안 구우면 그 검사는 **영영 못 돌림**이다 (2026-09-01).
+      #   `test:related` 는 글 장과 이웃 표가 있어야 도는데, 생 체크아웃에는 둘 다 없다.
+      #   그래서 통짜 판에서 늘 CANNOT-RUN 으로 끝났고, 아무도 이 검사가 안 돈다는 것을 몰랐다.
+      #   로컬에서 처음 구워 돌려 보니 경계 부호가 어긋나 있었다(생성기 `>` 대 검사 `<=`).
+      #   굽기가 2분이라 push 마다는 안 돌린다. 시계, PR, 수동에서 돈다.
+      - name: Bake related posts, then measure
+        if: ${{ github.event_name != 'push' }}
+        run: cd apps/karmolab && npm run gen:post-pages && npm run gen:related && npm run test:related

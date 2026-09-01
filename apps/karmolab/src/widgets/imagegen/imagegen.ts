@@ -514,7 +514,7 @@ const esc = (v: unknown): string =>
         if (state.currentContextTab === 'custom') {
             const addCard = document.createElement('div');
             addCard.className = 'ig-card';
-            addCard.innerHTML = `<div class="ig-card-icon" style="font-size:24px">+</div><div class="ig-card-label">${esc(t('imagegen.t08'))}</div>`;
+            addCard.innerHTML = `<div class="ig-card-icon" style="font-size:var(--font-size-display-sm)">+</div><div class="ig-card-label">${esc(t('imagegen.t08'))}</div>`;
             addCard.onclick = () => showCustomFormInPopup(null, -1, bodyEl, state.currentContextTab);
             grid.appendChild(addCard);
         }

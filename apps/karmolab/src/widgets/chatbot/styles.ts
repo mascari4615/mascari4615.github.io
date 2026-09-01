@@ -192,7 +192,7 @@
         .cb-char-profile-btn:hover { border-color:var(--accent); }
         .cb-char-profile-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
         .cb-char-profile-avatar { width:100%; height:100%; object-fit:cover; }
-        .cb-char-profile-placeholder { font-size:32px; line-height:1; user-select:none; }
+        .cb-char-profile-placeholder { font-size:var(--font-size-display-lg); line-height:1; user-select:none; }
         .cb-char-profile-name {
             margin:0; font-size:var(--font-size-xs); font-weight:600; color:var(--text-secondary);
             text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;

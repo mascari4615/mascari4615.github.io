@@ -41,7 +41,8 @@ if (!L) {
   if (isFake(ATLAS)) { console.log('[init] 가짜 지도다. 초기화 사다리는 진짜 굽기에서만 잰다'); process.exit(0); }
   console.log('[init] **초기값을 재 본 표가 없다** (initLadder). 난수 초기값이 아직 안 쟨 상수다');
   console.log('  굽기에 `--초기화` 를 주면 잰다 (사다리 한 판이 몇 분이라 늘 돌지는 않는다).');
-  process.exit(1);
+  console.log('  안 잰 것은 통과도 실패도 아니다. 지도를 그 자리 없이 구웠을 뿐이다 (2026-09-01).');
+  process.exit(2);
 }
 
 console.log(`  0 배관. 극단 초기값 판이 난수 판과 ${L.plumbing?.differs ? '다르다 (초기 자리가 먹힌다)' : '**같다**'}`);

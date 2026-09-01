@@ -583,7 +583,7 @@ const TASK_TAB_CSS = `
 }
 .ckt-qoverlay-title {
   font-family: 'KarmoSerif', serif; font-style: italic; font-weight: 700;
-  font-size: 28px; color: var(--ink); line-height: 1.05;
+  font-size: var(--font-size-display-md); color: var(--ink); line-height: 1.05;
   letter-spacing: -0.01em; text-shadow: 0 2px 20px rgba(0,0,0,0.9);
 }
 .ckt-qstatbar {

@@ -12,6 +12,8 @@
  *  ② 2.5.8 누를 크기. 누르는 것의 상자가 24x24 CSS px 이상인가 (AA 값)
  *  ③ 키보드만으로 도는 길. 마우스 없이 옆줄과 머리띠와 도구 판에 닿나
  *  ④ 움직임 줄이기. `prefers-reduced-motion: reduce` 를 켠 판에서 끝없는 움직임이 남나
+ *  ⑤ 2.5.7 끌기 대안. 끌 수 있는 것이 밟히지도 않고 곁에 버튼도 없나
+ *  ⑥ 3.3.8 인증 접근성. 열쇠 칸이 자동 채우기나 붙여넣기를 막나
  *
  * 기준선은 래칫이다. 처음 켰을 때 이미 어겨진 자리가 있으므로, 지금보다 늘면 빨강.
  * `--bless` 로만 다시 적음
@@ -39,6 +41,16 @@ try {
 } catch {
   console.log('[wcag22] 못 돌림. 이 기계에 브라우저가 없다. 이건 통과가 아니다.');
   process.exit(2);
+}
+
+/* 도구 전수로 넓히는 길 (2026-09-01). 기본은 셸 조작이 다 나오는 넷.
+   `KL_WCAG_ALL=1` 이면 등록된 도구 전부를 본다. 도구마다 제 버튼과 입력이 있어
+   누를 크기와 초점 표시는 거기서 어긋난다 */
+const ALL = process.env.KL_WCAG_ALL === "1";
+function allToolScreens() {
+  const src = fs.readFileSync(path.join(root, "src/widgets-lazy-meta.ts"), "utf8");
+  const ids = [...new Set([...src.matchAll(/(?:^|[{,]\s*)id: '([a-z0-9-]+)'/gm)].map((m) => m[1]))];
+  return ids.map((id) => [id, `/apps/karmolab/#${id}`]);
 }
 
 /* 볼 화면. 셸의 조작이 다 나오는 자리 */
@@ -105,7 +117,8 @@ const add = (screen, rule, n, sample) => {
   detail.push(`${screen} [${rule}] ${n}개  예: ${sample}`);
 };
 
-for (const [name, url] of SCREENS) {
+const RUN = ALL ? allToolScreens() : SCREENS;
+for (const [name, url] of RUN) {
   const { ctx, page } = await open(url, false);
 
   /* ① 2.4.11 초점 표시. 밟았을 때 그림이 실제로 달라지나.
@@ -185,6 +198,42 @@ for (const [name, url] of SCREENS) {
   });
   add(name, 'keyboard-reach', trap.reachable === 0 ? 1 : 0, `밟히는 것 ${trap.reachable}개`);
 
+  /* ⑤ 2.5.7 끌기 대안. 끌어야만 되는 것은 한 손가락 조작으로도 되어야 함
+     끌 수 있는 것이 밟히지도 않고(tabindex) 곁에 버튼도 없으면 마우스 없이는 못 쓴다 */
+  const drag = await page.evaluate(() => {
+    const bad = [];
+    for (const el of document.querySelectorAll('[draggable="true"]')) {
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+      const focusable = el.tabIndex >= 0
+        || el.matches('a[href], button, input, select, textarea')
+        || !!el.querySelector('a[href], button, [tabindex]:not([tabindex="-1"])');
+      if (focusable) continue;
+      /* 곁에 대신 누를 것이 있으면 대안이 있는 것이다 */
+      if (el.parentElement?.querySelector('button, [role="button"]')) continue;
+      const cls = (el.getAttribute('class') || '').split(/s+/).filter(Boolean).slice(0, 2).join('.');
+      bad.push(`${el.tagName.toLowerCase()}${cls ? '.' + cls : ''}`);
+    }
+    return [...new Set(bad)];
+  });
+  add(name, 'drag-alternative', drag.length, drag.slice(0, 20).join(', ') || '-');
+
+  /* ⑥ 3.3.8 인증 접근성. 열쇠 칸이 붙여넣기와 자동 채우기를 막으면 사람이 외워야 함
+     `autocomplete="off"` 는 열쇠 관리기를 막고, paste 를 막는 손잡이는 붙여넣기를 막는다 */
+  const auth = await page.evaluate(() => {
+    const bad = [];
+    for (const el of document.querySelectorAll('input[type="password"]')) {
+      const ac = (el.getAttribute('autocomplete') || '').toLowerCase();
+      const ev = new ClipboardEvent("paste", { bubbles: true, cancelable: true });
+      const blocked = !el.dispatchEvent(ev);
+      if (ac === 'off' || ac === 'new-password-off' || blocked) {
+        bad.push(`${el.name || el.id || 'input[type=password]'} autocomplete=${ac || '(없음)'}${blocked ? ' paste 막힘' : ''}`);
+      }
+    }
+    return bad;
+  });
+  add(name, 'auth-paste', auth.length, auth.slice(0, 20).join(', ') || '-');
+
   await ctx.close();
 
   /* ④ 움직임 줄이기. 그 설정을 켠 판에서 끝없이 도는 움직임이 남나 */
@@ -255,4 +304,4 @@ if (total < baseTotal) {
   console.log(`[wcag22] 줄었다 ${baseTotal} -> ${total}곳. 기준선을 조여라: npm run test:wcag -- --bless`);
   process.exit(0);
 }
-console.log(`[wcag22] 화면 ${SCREENS.length}장. 안 늘었다 (남은 빚 ${total}곳)`);
+console.log(`[wcag22] 화면 ${RUN.length}장. 안 늘었다 (남은 빚 ${total}곳)`);

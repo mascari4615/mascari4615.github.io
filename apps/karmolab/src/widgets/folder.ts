@@ -100,7 +100,7 @@ import { t, loadNamespace } from '../lib/i18n';
                         </div>
                         <div style="padding:15px; text-align:center; color:#000; cursor:default; user-select:none;">
                             <div style="margin-bottom:15px; font-size:var(--font-size-xs); display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:24px;">⚠️</span>
+                                <span style="font-size:var(--font-size-display-sm);">⚠️</span>
                                 <span>${esc(t('folder.t01'))}</span>
                             </div>
                             <button class="win-ok" style="background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; padding:4px 15px; cursor:default; color:#000;">${esc(t('folder.t02'))}</button>

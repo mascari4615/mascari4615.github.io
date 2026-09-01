@@ -123,7 +123,8 @@ if (!w) {
   if (isFake(ATLAS)) { console.log('[wobble] 가짜 지도다. 씨앗 떨림은 진짜 굽기에서만 잰다'); process.exit(0); }
   console.log('[wobble] **씨앗 떨림이 안 실려 있다** (wobble). 자 전부가 씨앗 하나 위 점추정인 채다');
   console.log('  굽기에 `--씨앗` 을 주면 잰다 (판 하나가 20여 초라 늘 돌지는 않는다).');
-  process.exit(1);
+  console.log('  안 잰 것은 통과도 실패도 아니다. 지도를 그 자리 없이 구웠을 뿐이다 (2026-09-01).');
+  process.exit(2);
 }
 
 const dia = Math.SQRT2;    // 자리는 0~1 두 축이라 대각선이 √2

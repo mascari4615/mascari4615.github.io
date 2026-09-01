@@ -1337,7 +1337,7 @@ const Mdd = (() => {
             .mdd-log-panel { background:var(--bg-secondary); border:1px solid var(--border); max-width:360px; width:100%; max-height:70vh; display:flex; flex-direction:column; border-radius:var(--radius-lg); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
             .mdd-log-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
             .mdd-log-header h3 { margin:0; font-size:var(--font-size-xs); font-weight:600; color:var(--text-primary); }
-            .mdd-log-close { background:none; border:none; color:var(--text-tertiary); font-size:24px; cursor:pointer; padding:0 4px; line-height:1; }
+            .mdd-log-close { background:none; border:none; color:var(--text-tertiary); font-size:var(--font-size-display-sm); cursor:pointer; padding:0 4px; line-height:1; }
             .mdd-log-close:hover { color:var(--text-primary); }
             .mdd-log-body { overflow-y:auto; padding:12px; }
 

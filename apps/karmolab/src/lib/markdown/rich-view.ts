@@ -66,7 +66,7 @@ export function injectRichViewStyles(): void {
           .docs-md-toc { max-height:min(38vh, 280px); top:0; z-index:3; }
         }
         .docs-body { font-size:var(--font-size-xs); line-height:1.8; color:var(--text-primary); max-width:800px; }
-        .docs-body h1 { font-size:24px; font-weight:800; letter-spacing:-0.03em; margin:0 0 16px; padding-bottom:12px; border-bottom:2px solid var(--border); }
+        .docs-body h1 { font-size:var(--font-size-display-sm); font-weight:800; letter-spacing:-0.03em; margin:0 0 16px; padding-bottom:12px; border-bottom:2px solid var(--border); }
         .docs-body h2 { font-size:var(--font-size-md); font-weight:700; letter-spacing:-0.02em; margin:32px 0 12px; color:var(--accent-ink); }
         .docs-body h3 { font-size:var(--font-size-xs); font-weight:600; margin:24px 0 8px; }
         .docs-body p { margin:0 0 12px; color:var(--text-secondary); }
