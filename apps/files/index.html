@@ -332,12 +332,28 @@ input.pick { width: 16px; height: 16px; accent-color: var(--accent); cursor: poi
   font-weight: 600; padding: 9px 20px; border-radius: 8px;
 }
 
+.build-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 11px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.build-toolbar .fb-gap { flex: 1; }
+.build-note { color: var(--mute); font-size: .82rem; }
+.build-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 14px; border-top: 1px solid var(--line); }
+.build-toolbar + .build-card { border-top: 0; }
+.build-card:hover { background: var(--surface-2); }
+.build-title { min-width: 0; font-weight: 650; word-break: break-all; }
+.build-meta { color: var(--mute); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.build-acts { grid-column: 2; grid-row: 1 / span 2; display: flex; align-items: center; gap: 6px; }
+.build-state { display: inline-block; margin-right: 7px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--mute); font-size: .72rem; font-weight: 700; }
+.build-state.running, .build-state.stalling { background: var(--accent-soft); color: var(--accent); }
+.build-state.dead { color: var(--danger); }
+.build-log { margin: 0; padding: 14px; max-height: 65vh; overflow: auto; white-space: pre-wrap; word-break: break-all; font: .78rem/1.55 ui-monospace, "Cascadia Mono", Consolas, monospace; }
+
 @media (max-width: 720px) {
   .head { display: none; }
   .row { grid-template-columns: 30px 1fr auto; }
   .row .when { display: none; }
   .row .size { grid-column: 2; margin-top: -4px; }
   .acts { grid-row: 1; grid-column: 3; }
+  .build-card { grid-template-columns: 1fr; }
+  .build-acts { grid-column: 1; grid-row: auto; justify-content: flex-start; }
 }
 </style>
 </head>
@@ -353,6 +369,7 @@ input.pick { width: 16px; height: 16px; accent-color: var(--accent); cursor: poi
   <div class="sources">
     <button class="tab on" type="button" id="tab-laptop">내 PC</button>
     <button class="tab" type="button" id="tab-vault">클라우드</button>
+    <button class="tab" type="button" id="tab-builds">빌드</button>
   </div>
   <div class="uploader" id="uploader" hidden></div>
   <nav class="crumb" id="crumb"></nav>

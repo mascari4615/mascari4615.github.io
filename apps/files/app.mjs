@@ -34,10 +34,12 @@ const box = document.getElementById('box');
 const crumb = document.getElementById('crumb');
 const tabLaptop = document.getElementById('tab-laptop');
 const tabVault = document.getElementById('tab-vault');
+const tabBuilds = document.getElementById('tab-builds');
 
 let lastBlob = '';
 let vaultSession = null;
 let vaultListing = null;
+let buildsTimer = 0;
 /* 액자 보기는 폴더를 뜰 때 되돌려 줘야 한다. 칸마다 blob 을 들고 있다. */
 let gallery = null;
 const VIEW_KEY = 'files.vault.view';
@@ -158,6 +160,7 @@ function abs(u) {
 function extFromHash() {
   const h = location.hash.replace(/^#/, '');
   if (h.startsWith('vault')) return 'vault';
+  if (h.startsWith('builds')) return 'builds';
   return 'laptop';
 }
 function laptopPath() {
@@ -174,6 +177,7 @@ function setTabs() {
   const on = extFromHash();
   tabLaptop.classList.toggle('on', on === 'laptop');
   tabVault.classList.toggle('on', on === 'vault');
+  tabBuilds.classList.toggle('on', on === 'builds');
 }
 function revokeBlob() {
   if (lastBlob) URL.revokeObjectURL(lastBlob);
@@ -185,6 +189,9 @@ tabLaptop.addEventListener('click', () => {
 });
 tabVault.addEventListener('click', () => {
   location.hash = '#vault/';
+});
+tabBuilds.addEventListener('click', () => {
+  location.hash = '#builds';
 });
 
 function laptopAuth() {
@@ -202,6 +209,126 @@ function showLaptopGate(msg) {
     sessionStorage.setItem(LAPTOP_KEY, document.getElementById('pass').value);
     load();
   });
+}
+
+function stopBuildPolling() {
+  if (buildsTimer) clearTimeout(buildsTimer);
+  buildsTimer = 0;
+}
+
+function scheduleBuildPolling(fn, live) {
+  stopBuildPolling();
+  if (!live || extFromHash() !== 'builds') return;
+  buildsTimer = setTimeout(fn, 10000);
+}
+
+function buildLogName() {
+  const h = location.hash.replace(/^#builds\/log\/?/, '');
+  return location.hash.startsWith('#builds/log/') ? decodeURIComponent(h) : '';
+}
+
+function fmtDuration(ms) {
+  const seconds = Math.max(0, Math.round(Number(ms || 0) / 1000));
+  if (seconds < 60) return seconds + '초';
+  return Math.floor(seconds / 60) + '분 ' + (seconds % 60) + '초';
+}
+
+function buildState(state) {
+  return ({ running: '빌드 중', stalling: '응답 대기', done: '완료', dead: '중단' })[state] || state || '대기';
+}
+
+async function buildFetch(path, options = {}) {
+  const auth = laptopAuth();
+  if (!auth) {
+    showLaptopGate();
+    return null;
+  }
+  const headers = { ...(options.headers || {}), Authorization: auth };
+  const response = await fetch(LAPTOP + path, { ...options, headers });
+  if (response.status === 401 || response.status === 403) {
+    sessionStorage.removeItem(LAPTOP_KEY);
+    showLaptopGate('비밀번호가 틀렸거나 만료되었습니다.');
+    return null;
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data.message || '요청 실패 (' + response.status + ')');
+  return data;
+}
+
+async function startBuild(platform, button) {
+  const status = document.getElementById('build-status');
+  const buttons = [...box.querySelectorAll('[data-build-start]')];
+  buttons.forEach((item) => { item.disabled = true; });
+  if (status) status.textContent = platform === 'android' ? 'Android 빌드를 요청하는 중...' : 'PC 빌드를 요청하는 중...';
+  try {
+    const data = await buildFetch('/builds/api/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform }),
+    });
+    if (!data) return;
+    if (status) status.textContent = data.message || '빌드를 시작했습니다.';
+    setTimeout(loadBuilds, 1200);
+  } catch (error) {
+    if (status) status.textContent = error.message;
+    buttons.forEach((item) => { item.disabled = false; });
+    if (button) button.focus();
+  }
+}
+
+async function loadBuildLog(name) {
+  crumb.innerHTML = '<a href="#builds">빌드</a><span class="sep">/</span><a>' + esc(name) + '</a>';
+  box.innerHTML = '<p class="none">로그를 불러오는 중...</p>';
+  try {
+    const data = await buildFetch('/builds/api/log?p=' + encodeURIComponent(name));
+    if (!data) return;
+    box.innerHTML = '<div class="filebar"><a class="fb-btn" href="#builds">목록</a>' +
+      '<span class="fb-at">' + esc(buildState(data.state)) + '</span><span class="fb-gap"></span>' +
+      '<span class="fb-at">' + fmtSize(data.bytes || 0) + '</span></div>' +
+      '<pre class="build-log">' + esc(data.tail || '로그가 아직 없습니다.') + '</pre>';
+    scheduleBuildPolling(() => loadBuildLog(name), data.live);
+  } catch (error) {
+    box.innerHTML = '<p class="err">' + esc(error.message) + '</p>';
+  }
+}
+
+async function loadBuilds() {
+  stopBuildPolling();
+  const logName = buildLogName();
+  if (logName) return loadBuildLog(logName);
+  crumb.innerHTML = '<a href="#builds">빌드</a>';
+  box.innerHTML = '<p class="none">빌드 목록을 불러오는 중...</p>';
+  try {
+    const data = await buildFetch('/builds/api/list');
+    if (!data) return;
+    const actions = data.canStart
+      ? '<button class="fb-btn" type="button" data-build-start="android">Android 빌드</button>' +
+        '<button class="fb-btn" type="button" data-build-start="windows">PC 빌드</button>'
+      : '';
+    const note = data.live ? '빌드 진행 중, 10초마다 갱신' : (data.queued ? '대기 ' + data.queued + '건' : '대기 중인 빌드 없음');
+    const rows = (data.rows || []).map((item) => {
+      const meta = [item.platform, item.version, item.builtAt ? fmtTime(item.builtAt) : '', item.durationMs ? fmtDuration(item.durationMs) : '',
+        item.warnings ? '경고 ' + item.warnings : '', item.errors ? '오류 ' + item.errors : '', item.artifact ? fmtSize(item.artifact.size || 0) : '']
+        .filter(Boolean).join(', ');
+      return '<div class="build-card"><div class="build-title"><span class="build-state ' + esc(item.state) + '">' +
+        esc(buildState(item.state)) + '</span>' + esc(item.name) + '</div><div class="build-meta">' + esc(meta) + '</div>' +
+        '<div class="build-acts"><button class="fb-btn sm" type="button" data-build-log="' + encodeURIComponent(item.name) + '">로그</button>' +
+        (item.download ? '<a class="fb-btn sm" href="' + esc(item.download) + '">받기</a>' : '') + '</div></div>';
+    }).join('');
+    box.innerHTML = '<div class="build-toolbar"><span class="build-note" id="build-status">' + esc(note) + '</span>' +
+      '<span class="fb-gap"></span>' + actions + '</div>' + (rows || '<p class="none">완료된 빌드가 없습니다.</p>');
+    for (const button of box.querySelectorAll('[data-build-start]')) {
+      button.addEventListener('click', () => startBuild(button.dataset.buildStart, button));
+    }
+    for (const button of box.querySelectorAll('[data-build-log]')) {
+      button.addEventListener('click', () => {
+        location.hash = '#builds/log/' + button.dataset.buildLog;
+      });
+    }
+    scheduleBuildPolling(loadBuilds, data.live);
+  } catch (error) {
+    box.innerHTML = '<p class="err">' + esc(error.message) + '</p>';
+  }
 }
 function showVaultGate(msg) {
   crumb.textContent = '';
@@ -1252,6 +1379,7 @@ async function loadVault() {
 function load() {
   setTabs();
   revokeBlob();
+  stopBuildPolling();
   if (extFromHash() === 'vault') {
     /* 업로드 패널은 **연 뒤에만**. 전에는 비번을 치기도 전에 폴더 고르기와 시작이 떴다.
        전송기는 그 기계의 .env 에서 열쇠를 읽으므로, 그 화면만으로 올리기가 돌았다
@@ -1259,6 +1387,9 @@ function load() {
     if (vaultSession) mountUploader();
     else unmountUploader();
     loadVault();
+  } else if (extFromHash() === 'builds') {
+    unmountUploader();
+    loadBuilds();
   } else {
     unmountUploader();
     loadLaptop();
