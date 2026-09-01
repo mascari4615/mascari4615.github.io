@@ -87,7 +87,7 @@ try {
   browser = await chromium.launch();
   const page = await (await browser.newContext({ viewport: { width: 390, height: 780 }, serviceWorkers: 'block' })).newPage();
   await page.goto(`${BASE}/t/${SAMPLE}/`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1200);
+  await page.waitForSelector('.tool-sponsor', { state: 'visible', timeout: 10000 });
 
   const seen = await page.evaluate((toolId) => {
     const slots = [...document.querySelectorAll('.tool-sponsor')];

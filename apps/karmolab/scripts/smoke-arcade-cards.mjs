@@ -50,7 +50,10 @@ for (const g of GAMES) {
     if (!inLobby) { await ctx.close(); continue; }
     await page.click(`[data-obj="${g}"]`, { timeout: 15000 });
     await page.click(`[data-solo="${g}"]`, { timeout: 15000 });
-    await page.waitForTimeout(3500);
+    await page.waitForFunction(() => {
+      const view = document.querySelector('#acView');
+      return (view?.textContent || '').trim().length > 6 && view.querySelectorAll('button').length > 0;
+    }, undefined, { timeout: 10000 });
     const info = await page.evaluate(() => {
       const view = document.querySelector('#acView');
       const txt = (view?.textContent || '').trim().replace(/\s+/g, ' ');

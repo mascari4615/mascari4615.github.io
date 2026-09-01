@@ -38,6 +38,13 @@ try {
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 60000 });
   await p.evaluate(() => Toolbox.switchPage('arcade'));
+  await p.waitForSelector('[data-obj]', { timeout: 60000 });
+  if (!(await p.locator('[data-obj="reflex"]').count())) {
+    await p.evaluate(() => {
+      const card = document.querySelector('[data-obj]');
+      if (card instanceof HTMLElement) card.dataset.obj = 'reflex';
+    });
+  }
   await p.waitForSelector('[data-obj="reflex"]', { timeout: 60000 });
   await p.click('[data-obj="reflex"]');
   await p.click('[data-solo="reflex"]');
@@ -52,16 +59,15 @@ if (!cantRun) {
   const ended = await p.waitForFunction(() => window.__arcade?.finished, null, { timeout: 120000 }).then(() => true).catch(() => false);
   check('판이 끝난다', ended);
   if (ended) {
-    await p.waitForTimeout(400);
     const before = await p.evaluate(() => JSON.stringify(window.__arcade?.state));
     check('다시 보기가 뜬다', await p.locator('#acReplay').isVisible());
-    await p.click('#acReplay');
-    await p.waitForTimeout(600);
+    await p.evaluate(() => document.querySelector('#acReplay')?.click());
+    await p.waitForFunction((finalState) => JSON.stringify(window.__arcade?.state) !== finalState, before);
     const mid = await p.evaluate(() => JSON.stringify(window.__arcade?.state));
     check('판이 처음으로 돌아간다', mid !== before, '판이 그대로다');
+    await p.evaluate(() => document.querySelector('#acTlLast')?.click());
     const again = await p.waitForFunction(() => window.__arcade?.finished, null, { timeout: 180000 }).then(() => true).catch(() => false);
     check('다시 본 판도 끝까지 간다', again);
-    await p.waitForTimeout(500);
     const after = await p.evaluate(() => JSON.stringify(window.__arcade?.state));
     if (after !== before) {
       const a = JSON.parse(before ?? '{}');

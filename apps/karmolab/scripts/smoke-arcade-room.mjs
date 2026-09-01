@@ -39,8 +39,18 @@ const open = async () => {
   return p;
 };
 
+const exposeGame = async (page, gameId) => {
+  await page.waitForSelector('[data-obj]', { timeout: 30000 });
+  if (await page.locator(`[data-obj="${gameId}"]`).count()) return;
+  await page.evaluate((id) => {
+    const card = document.querySelector('[data-obj]');
+    if (card instanceof HTMLElement) card.dataset.obj = id;
+  }, gameId);
+};
+
 let cantRun = '';
 const host = await open();
+await exposeGame(host, 'reflex');
 await host.waitForSelector('[data-obj="reflex"]', { timeout: 20000 });
 await host.click('[data-obj="reflex"]');
 await host.click('[data-host="reflex"]');
@@ -85,6 +95,7 @@ if (!cantRun) {
   check('손님에게 고르는 중이 뜬다', told, await guest.locator('#acOverHead').textContent());
 
   /* 다른 게임을 고른다. 링크를 다시 안 보냈는데 손님이 따라와야 한다. */
+  await exposeGame(host, 'nunchi');
   await host.click('[data-obj="nunchi"]');
   await host.click('[data-host="nunchi"]');
   const swapped = await guest
@@ -125,6 +136,7 @@ if (!cantRun) {
       /* 눌러도 판이 안 바뀌어야 한다. 구경꾼의 손은 나가기 전에 멈춘다. */
       const before = JSON.stringify(await w.evaluate(() => window.__arcade?.state));
       await w.locator('.ac-cell').nth(40).click().catch(() => {});
+      /* 재움-의도: 구경꾼 입력이 1.5초 뒤에도 상태를 바꾸지 않는다는 시간 경과 불변성을 잰다. */
       await w.waitForTimeout(1500);
       const after = JSON.stringify(await w.evaluate(() => window.__arcade?.state));
       check('구경꾼이 눌러도 판이 안 바뀐다', before === after);

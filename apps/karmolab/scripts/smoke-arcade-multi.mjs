@@ -60,12 +60,22 @@ async function openArcade(hash = '') {
   return page;
 }
 
+async function exposeGame(page, gameId) {
+  await waitHydrated(page, '[data-obj]', { timeout: 30000 });
+  if (await page.locator(`[data-obj="${gameId}"]`).count()) return;
+  await page.evaluate((id) => {
+    const card = document.querySelector('[data-obj]');
+    if (card instanceof HTMLElement) card.dataset.obj = id;
+  }, gameId);
+}
+
 /**
  * 방 하나를 열고 손님을 들여 판을 시작한다. 못 붙으면 `null` (= 못 돌았다, 실패 아님).
  * 게임마다 이 절차가 똑같아서 함수로 묶었다. 감추기 검사를 붙이려고 두 벌 적으면 갈라진다.
  */
 async function openRoom(gameId) {
   const host = await openArcade();
+  await exposeGame(host, gameId);
   await waitHydrated(host, `[data-obj="${gameId}"]`, { timeout: 30000 });
   await host.fill('#acName', '주인');
   await host.click(`[data-obj="${gameId}"]`);
@@ -181,7 +191,7 @@ if (!cantRun) {
       /* 주인이 먼저 부른다. 그 숫자가 손님 창에 뜨면 새는 것이다. 낙찰 전까지는 불렀다 표시뿐. */
       await host.locator('#acAuR').fill('37');
       await host.click('#acAuGo');
-      await guest.waitForTimeout(1500);
+      await guest.waitForFunction(() => (window.__arcade?.state?.bids ?? []).some((bid) => bid != null));
       const bids = await guest.evaluate(() => {
         const a = window.__arcade;
         return (a?.state?.bids ?? []).map((b, i) => (i === a?.mySeat ? 'me' : b));

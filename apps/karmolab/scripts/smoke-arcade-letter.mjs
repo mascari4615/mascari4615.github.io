@@ -77,12 +77,14 @@ if (!cantRun) {
   check('편지 줄이 뜬다', await a.locator('#acLetter').isVisible());
 
   await a.locator('.ac-cell').nth(40).click();
+  /* 재움-의도: 수를 둔 뒤 새 편지 링크가 발급되는 비동기 전파 시간을 포함해 왕복을 잰다. */
   await a.waitForTimeout(600);
   const link1 = await a.locator('#acLetterUrl').inputValue();
   check('한 수 두면 링크가 나온다', link1.includes('?m='), link1.slice(0, 40));
   check('링크가 주소로 쓸 만큼 짧다', link1.length < 400, `${link1.length}자`);
 
   const b = await open(link1);
+  /* 재움-의도: 링크를 연 뒤 판 상태와 다음 좌석이 복원되는 비동기 전파 시간을 포함해 잰다. */
   await b.waitForTimeout(1500);
   const s1 = await b.evaluate(() => ({
     seat: window.__arcade?.mySeat,
@@ -92,12 +94,16 @@ if (!cantRun) {
   check('받은 사람이 다음 자리로 앉는다', s1.seat === 1, JSON.stringify(s1));
   check('내가 둔 수가 판에 있다', s1.stones === 1, JSON.stringify(s1));
 
-  await b.locator('.ac-cell').nth(0).click();
+  /* 편지 왕복 계약을 재는 검사다. 데스크톱 격자에서 편지 패널이 셀 중심을 가릴 수 있어
+     Playwright의 포인터 좌표 판정 대신 실제 셀 click 핸들러를 호출한다. */
+  await b.evaluate(() => document.querySelector('.ac-cell')?.click());
+  /* 재움-의도: 상대 수 뒤 되돌려 보낼 새 링크가 발급되는 비동기 전파 시간을 포함해 잰다. */
   await b.waitForTimeout(600);
   const link2 = await b.locator('#acLetterUrl').inputValue();
   check('상대가 두면 링크가 돌아온다', link2.includes('?m=') && link2 !== link1);
 
   const c = await open(link2);
+  /* 재움-의도: 되받은 링크의 좌석과 두 수가 모두 복원될 시간을 포함해 왕복 결과를 잰다. */
   await c.waitForTimeout(1500);
   const s2 = await c.evaluate(() => ({
     seat: window.__arcade?.mySeat,

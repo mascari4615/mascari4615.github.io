@@ -56,7 +56,10 @@ const LANES = 4;
 async function auditOne(page, id) {
   {
     await page.goto(`${BASE}/t/${id}/`, { waitUntil: 'networkidle', timeout: 25000 });
-    await page.waitForTimeout(400);
+    await page.waitForFunction((toolId) => {
+      const el = document.getElementById('page-' + toolId);
+      return !!el && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0;
+    }, id, { timeout: 10000 });
     const r = await page.evaluate((toolId) => {
       const el = document.getElementById('page-' + toolId);
       if (!el) return { missing: true };

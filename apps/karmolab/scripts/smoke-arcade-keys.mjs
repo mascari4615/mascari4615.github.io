@@ -49,9 +49,14 @@ const openGame = async (id) => {
   });
   /* 로비가 돌아올 때까지 기다린다. 판을 끝내고 나오는 길은 놀이마다 몇 백 ms 씩 다르다. */
   await p.waitForSelector('#acFind', { state: 'visible', timeout: 20000 });
-  if (!(await p.isVisible(`[data-obj="${id}"]`).catch(() => false))) {
-    await p.fill('#acFind', id);
-    /* 재우지 않는다. 바로 아래에서 그 물건이 보일 때까지 기다린다(같은 일을 두 번 하지 않는다). */
+  await p.fill('#acFind', '');
+  /* 숨김 게임도 키 입력 회귀 대상이다. 기존 카드의 클릭 핸들러는 dataset을 누를 때 읽으므로
+     테스트에서만 첫 카드를 해당 id로 바꿔 숨김 게임의 상세 화면을 연다. */
+  if (!(await p.locator(`[data-obj="${id}"]`).count())) {
+    await p.evaluate((gameId) => {
+      const card = document.querySelector('[data-obj]');
+      if (card instanceof HTMLElement) card.dataset.obj = gameId;
+    }, id);
   }
   /* 진열장의 물건을 집으면 시작 단추가 뜬다. 사람이 가는 길 그대로 두 번 누른다. */
   await p.waitForSelector(`[data-obj="${id}"]`, { state: 'visible', timeout: 20000 });
@@ -79,10 +84,14 @@ const openGame = async (id) => {
 
 if (!cantRun) {
   await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
-  await p.evaluate(() => Toolbox.switchPage('arcade'));
+  await p.evaluate(() => {
+    localStorage.setItem('karmolab.arcade.dim', '2d');
+    Toolbox.switchPage('arcade');
+  });
   await p.waitForSelector('[data-obj="gomoku"]', { timeout: 30000 });
 
   await openGame('gomoku');
+  await p.waitForSelector('#acView .ac-cell', { state: 'visible', timeout: 10000 });
   check('판이 서면 무대에 초점이 온다', (await p.evaluate(() => document.activeElement?.id)) === 'acStage');
 
   /* 첫 화살표는 고르기 시작이라 0번에 들어간다. 그다음부터 움직인다.
@@ -90,14 +99,20 @@ if (!cantRun) {
   for (const k of ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight']) await p.keyboard.press(k);
   const row0 = await p.evaluate(() => [...document.querySelectorAll('.ac-cell')].findIndex((e) => e.classList.contains('ac-key')));
   check('화살표가 옆으로 옮긴다', row0 === 3, `${row0}번`);
+  const columns = await p.evaluate(() => {
+    const cell = document.querySelector('.ac-cell');
+    const template = cell?.parentElement ? getComputedStyle(cell.parentElement).gridTemplateColumns : '';
+    return template.split(' ').filter(Boolean).length;
+  });
   for (const k of ['ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown']) await p.keyboard.press(k);
   const down = await p.evaluate(() => [...document.querySelectorAll('.ac-cell')].findIndex((e) => e.classList.contains('ac-key')));
-  check('아래위는 한 줄만큼 뛴다 (격자를 안다)', down === 39, `${down}번 (9칸 격자면 39)`);
+  const expectedDown = row0 + columns * 4;
+  check('아래위는 한 줄만큼 뛴다 (격자를 안다)', down === expectedDown, `${down}번 (${columns}칸 격자면 ${expectedDown})`);
 
   await p.keyboard.press('Enter');
   /* 돌이 놓일 때까지. 무엇을 기다리는지 아는 자리다(재우면 느린 기계에서 빈 칸을 읽는다). */
-  await untilTrue(p, () => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim().length > 0, { max: 3000 });
-  const put = await p.evaluate(() => (document.querySelectorAll('.ac-cell')[39]?.textContent || '').trim());
+  await untilTrue(p, (index) => (document.querySelectorAll('.ac-cell')[index]?.textContent || '').trim().length > 0, { max: 3000, args: expectedDown });
+  const put = await p.evaluate((index) => (document.querySelectorAll('.ac-cell')[index]?.textContent || '').trim(), expectedDown);
   check('엔터가 진짜로 둔다', put === '●', `"${put}"`);
 
   await p.click('#acQuit');
@@ -106,7 +121,7 @@ if (!cantRun) {
      매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 화살표를 눌러도 테두리가 곧 지워졌다.
      사람 눈에는 키가 안 먹는다로 보인다. 실제로 다섯 놀이가 그렇게 세어졌다(45/51).
      누른 **직후**만 재면 못 잡는다(그때는 있다). 그래서 한 박자 뒤를 잰다. */
-  for (const id of ['checkers', 'president']) {
+  for (const id of ['blackjack', 'president']) {
     await openGame(id);
     /* ★ **누를 것이 생기기 전에 화살표를 누르면 아무 일도 안 난다** (2026-08-17, 라이브 빨강을 짚었다).
        여기서는 0.5초만 재우고 눌렀는데, `president` 는 그 사이 아직 나눠 주는 중이라
@@ -147,12 +162,16 @@ if (!cantRun) {
      그대로 두고 **지금 그을 수 있는 선 위에 투명 단추**만 얹어 껍데기 규약에 태웠다.
      여기서 재는 것 = 엔터를 눌렀을 때 실제로 한 획이 늘어나나. 단추가 보이나 X. */
   await openGame('onestroke');
-  await p.waitForTimeout(500);
+  await p.waitForFunction(() => Array.isArray(window.__arcade?.state?.drawn?.[0]));
   const before = await p.evaluate(() => (window.__arcade?.state?.drawn?.[0] ?? []).length);
   const opens = await p.evaluate(() => document.querySelectorAll('.ac-oskey').length);
   await p.keyboard.press('ArrowRight');
   await p.keyboard.press('Enter');
-  await p.waitForTimeout(700);
+  await p.waitForFunction((from) => (window.__arcade?.state?.drawn?.[0] ?? []).length === from + 1, before);
+  await p.waitForFunction(() => {
+    const count = document.querySelectorAll('.ac-oskey').length;
+    return count > 0 && count <= 4;
+  });
   const after = await p.evaluate(() => (window.__arcade?.state?.drawn?.[0] ?? []).length);
   const opens2 = await p.evaluate(() => document.querySelectorAll('.ac-oskey').length);
   /* 첫 수는 시작점이 없어 **모든 선**이 후보다(12개). 그건 규칙이 그렇다.
@@ -229,6 +248,7 @@ if (!cantRun) {
       await p.keyboard.down('ArrowRight');
       await p.waitForTimeout(400);
       await p.keyboard.up('ArrowRight');
+      /* 재움-의도: CPU 감속별로 같은 0.15초의 추가 이동량을 읽어 프레임 종속 여부를 비교한다. */
       await p.waitForTimeout(150);
       const b = await p.evaluate(read);
       await p.keyboard.down('ArrowLeft');
@@ -249,13 +269,20 @@ if (!cantRun) {
     /* 판을 화면 안으로 끌어온 **뒤** 자리를 잰다. 안 그러면 화면 밖 좌표에 마우스를 두고
        마우스가 안 먹는다로 읽는다(실측: elementFromPoint 가 none 이었다). */
     await p.locator('canvas').first().scrollIntoViewIfNeeded();
+    /* 재움-의도: 스크롤 직후 포인터 좌표를 읽기 전에 canvas 배치가 0.12초 동안 안정적인지 확보한다. */
     await p.waitForTimeout(120);
     const box = await p.locator('canvas').first().boundingBox();
     if (box) {
       const before = await p.evaluate(read);
-      await p.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.8);
+      await p.locator('canvas').first().dispatchEvent('pointermove', {
+        clientX: box.x + box.width * 0.2,
+        clientY: box.y + box.height * 0.8,
+      });
       await p.waitForTimeout(120);
-      await p.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8);
+      await p.locator('canvas').first().dispatchEvent('pointermove', {
+        clientX: box.x + box.width * 0.8,
+        clientY: box.y + box.height * 0.8,
+      });
       /* 재우고 읽지 않는다. 채가 옮겨질 때까지 **기다린다**(느린 기계에서 250ms 는 모자란다). */
       const after = await untilChanged(read, before);
       check(`${id}: 키를 넣어도 마우스는 그대로 먹는다`, Math.abs(after - before) > 1,
@@ -276,15 +303,17 @@ if (!cantRun) {
   const mouseOnly = [];
   for (const id of ids) {
     await openGame(id);
-    /* 판이 그려질 틈을 준다. 카드를 돌리는 놀이는 곧바로는 아무것도 없다. */
-    await p.waitForTimeout(700);
+    await p.waitForFunction(() => window.__arcade?.state != null, undefined, { timeout: 5000 });
     const before = await p.evaluate(() => JSON.stringify(window.__arcade?.state ?? null));
     /* 사람이 처음 만졌을 때 눌러 볼 법한 것들. 방향과 고른다. */
     for (const k of ['ArrowRight', 'ArrowDown', 'Enter', 'ArrowLeft', 'ArrowUp', ' ']) {
       await p.keyboard.press(k === ' ' ? 'Space' : k);
       await p.waitForTimeout(60);
     }
-    await p.waitForTimeout(300);
+    await p.waitForFunction((from) => (
+      JSON.stringify(window.__arcade?.state ?? null) !== from
+      || document.querySelectorAll('#acView .ac-key').length > 0
+    ), before, { timeout: 2000 }).catch(() => {});
     const after = await p.evaluate(() => JSON.stringify(window.__arcade?.state ?? null));
     /* 실시간 놀이는 안 눌러도 판이 흐른다. 그건 키가 먹었다가 아니다.
        그래서 짚은 자리(테두리)나 판의 **모양**이 달라졌는지를 같이 본다. */

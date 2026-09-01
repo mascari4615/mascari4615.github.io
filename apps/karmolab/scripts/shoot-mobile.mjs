@@ -40,7 +40,7 @@ for (const id of ids) {
   await page.goto(url, { waitUntil: 'networkidle' });
   // 배포 전 수정안을 미리 보기 위한 주입 (실물 위에 CSS 만 덮어쓴다)
   if (injectCss) await page.addStyleTag({ content: injectCss });
-  await page.waitForTimeout(900);
+  await page.waitForFunction(() => document.fonts?.status === 'loaded', undefined, { timeout: 10000 });
 
   const audit = await page.evaluate(() => {
     const docW = document.documentElement.clientWidth;
@@ -82,10 +82,10 @@ for (const id of ids) {
   }));
   await page.mouse.move(200, 500);
   await page.mouse.wheel(0, 700);
-  await page.waitForTimeout(300);
+  await page.waitForFunction(() => window.scrollY > 0, undefined, { timeout: 3000 }).catch(() => {});
   const scrolled = await page.evaluate(() => window.scrollY);
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(200);
+  await page.waitForFunction(() => window.scrollY === 0, undefined, { timeout: 3000 });
 
   await page.screenshot({ path: path.join(outDir, `${id}.png`), fullPage: true });
   report.push({ id, url, ...audit, ...lock, scrolled });

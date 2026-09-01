@@ -107,7 +107,7 @@ async function drawOne(id) {
       }, undefined,
       { timeout: 30000 }
     );
-    await page.waitForTimeout(500);
+    await page.waitForFunction(() => document.fonts?.status === 'loaded', undefined, { timeout: 10000 });
     markup = await page.evaluate(() => {
       const host = document.getElementById('tool-pages');
       const active = host && host.querySelector('.tool-page.active');
