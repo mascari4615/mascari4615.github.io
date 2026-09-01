@@ -84,6 +84,13 @@ function save(): void {
   saveTimer.unref?.();
 }
 
+/** 그 판의 패보. 서버가 다시 셈할 때 쓴다. 없으면 null */
+export function tapeOfCode(code: string): StoredTape | null {
+  const c = String(code ?? '').trim().toUpperCase();
+  if (!/^[A-Z0-9]{4,12}$/.test(c)) return null;
+  return load()[idFor(c)]?.tape ?? null;
+}
+
 export function resetTapes(): void {
   store = {};
 }

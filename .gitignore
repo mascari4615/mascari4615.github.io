@@ -125,6 +125,7 @@ apps/discord-bots/apps/yawnbot/data/*-state.json
 # 여기 없으면 배포마다 git clean -fd 가 지워 모든 점수가 1500 으로 돌아간다.
 apps/discord-bots/apps/yawnbot/data/arcade-ratings.json
 apps/discord-bots/apps/yawnbot/data/arcade-pairs.json
+apps/discord-bots/apps/yawnbot/data/arcade-verifier.cjs
 apps/discord-bots/apps/yawnbot/data/arcade-tapes.json
 
 # 채널 프로비저닝 파생 ID 맵 (정본=channel-spec.json, 본 파일=길드별 런타임 캐시).

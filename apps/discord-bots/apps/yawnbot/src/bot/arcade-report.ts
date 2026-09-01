@@ -15,6 +15,8 @@ import type { Application, Request, Response } from 'express';
 import { rosterOf } from './arcade-queue';
 import { whoOf, type WhoOf } from './arcade-who';
 import { applyResult, pairFactor, recordOf, type Applied } from './arcade-rating';
+import { agreesWithTape } from './arcade-verify';
+import { tapeOfCode } from './arcade-tape';
 
 interface Pending {
   game: string;
@@ -98,12 +100,27 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
       res.json({ ok: true, applied: false, disagreed: true });
       return;
     }
+    /**
+     * 서버가 그 판을 **다시 셈한다** (2026-09-01)
+     *
+     * 전원이 같은 말을 해도 그 말이 다 거짓일 수 있다. 판을 굴리는 주인이 커널을 손대면
+     * 나머지는 그 화면을 그대로 받아 보므로 전원 일치가 그대로 통과함.
+     * 커널이 결정적이라 서버가 패보로 같은 판을 다시 굴려 승자를 제 손으로 셈
+     *
+     * 못 셌을 때는 통과시킨다. 묶음이 안 구워진 배포나 안 올라온 패보 때문에
+     * 점수가 통째로 멈추면 그게 더 나쁨
+     */
+    const judged = agreesWithTape(tapeOfCode(code), roster.ids, ranks);
+    if (judged.checked && !judged.agrees) {
+      res.json({ ok: true, applied: false, forged: true });
+      return;
+    }
     /* 계수는 반영 전에 봄. applyResult 가 이 판을 장부에 더함 */
     const damped = pairFactor(roster.game, ranks) < 1;
     const result = applyResult(roster.game, ranks, draw);
     done.set(code, result);
     pending.delete(code);
-    res.json({ ok: true, applied: true, result, damped });
+    res.json({ ok: true, applied: true, result, damped, verified: judged.checked });
   });
 
   /** 내 점수. 로그인한 사람만 자기 것을 봄. 안 했으면 없다고 답함(401 아님) */

@@ -475,7 +475,9 @@
     "audit:sidebar-shelf": "node scripts/audit-sidebar-shelf.mjs",
     "smoke:skin-parity": "node scripts/smoke-skin-parity.mjs",
     "audit:style-tokens": "node scripts/audit-style-tokens.mjs",
-    "test:arcade:bots": "node scripts/bench-gomoku-ai.mjs --quick"
+    "test:arcade:bots": "node scripts/bench-gomoku-ai.mjs --quick",
+    "test:arcade:verify": "node scripts/test-arcade-verify.mjs",
+    "build:arcade-verifier": "node scripts/build-arcade-verifier.mjs"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",

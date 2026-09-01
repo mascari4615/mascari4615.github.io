@@ -3,7 +3,7 @@
   "private": true,
   "main": "dist/src/main.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run audit:counters && npm run check:notify",
+    "build": "npm run build:verifier && tsc -p tsconfig.json && npm run audit:counters && npm run check:notify",
     "test": "vitest run",
     "start": "node dist/src/main.js",
     "deploy": "node dist/src/deploy-commands.js",
@@ -23,7 +23,8 @@
     "kakao-export-watch-stop": "node scripts/kakao-export-watch-stop.mjs",
     "audit:counters": "node scripts/audit-public-counters.mjs",
     "check:notify": "node scripts/check-notify-gate.mjs",
-    "smoke:arcade-invite": "node scripts/smoke-arcade-invite.mjs"
+    "smoke:arcade-invite": "node scripts/smoke-arcade-invite.mjs",
+    "build:verifier": "node ../../../karmolab/scripts/build-arcade-verifier.mjs"
   },
   "dependencies": {
     "@karmo/ai": "file:../../../../packages/ai",
