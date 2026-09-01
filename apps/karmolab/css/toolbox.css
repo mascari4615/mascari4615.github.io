@@ -3584,6 +3584,7 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
 :root {
     --skin: classic;
     --chip-radius: var(--radius-pill);   /* 칩과 별 칩의 둥글기. 필드는 0 */
+    --chip-clip: none;                   /* 칩을 깎는 꼴. 필드는 평행사변형 */
     --hero-font: inherit;                /* 도구 판 큰 번호의 글꼴. 필드는 표시 글꼴 */
     --skew: 0deg;
     --cut: 0px;
@@ -3604,6 +3605,7 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
 html[data-skin="field"] {
     --skin: field;
     --chip-radius: 0;
+    --chip-clip: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
     --hero-font: var(--font-display);
     color-scheme: light;
 
@@ -4256,18 +4258,20 @@ html[data-skin="field"] .header-crumb-sep { font-size: 0; }
 html[data-skin="field"] .header-crumb-sep::before { font-size: var(--font-size-4xs); }
 html[data-skin="field"] .header-crumb .header-now { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; font-weight: 500; }
 
-/* 재료 도구 판 (material-shell). 왼쪽 재료는 귀퉁이 깎인 유리 판 + 번호 머리, 오른쪽 할 일은 번호 절 + 평행사변형 칩 */
-html[data-skin="field"] .pf-shell { counter-reset: pf 1; }
-html[data-skin="field"] .pf-shell .pf-head {
+/* 재료 도구 판 (material-shell). **짜임은 스킨과 무관하다** (2026-09-01).
+   왼쪽 재료는 번호 머리를 단 판, 오른쪽 할 일은 번호 절과 칩. 스킨은 깎임(--cut), 칩 꼴(--chip-clip),
+   테두리 진하기, 번호 글꼴(--hero-font)만 바꾼다 */
+.pf-shell { counter-reset: pf 1; }
+.pf-shell .pf-head {
     /* position 은 원래 규칙(sticky)을 둔다. relative 로 덮으면 top 52px 가 살아 판이 52px 내려앉는다 (실측) */
     background: linear-gradient(180deg, var(--glass) 0%, color-mix(in srgb, var(--glass) 70%, transparent) 70%, transparent 100%);
     backdrop-filter: blur(6px);
-    border: 1px solid var(--text-primary);
+    border: 1px solid var(--border-hover);
     border-bottom: 0;
     padding: 40px 14px 14px;
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
 }
-html[data-skin="field"] .pf-shell .pf-head::before {
+.pf-shell .pf-head::before {
     content: '01 재료 / 붙여넣기 / 파일';
     position: absolute;
     left: 0; right: 0; top: 0;
@@ -4280,7 +4284,7 @@ html[data-skin="field"] .pf-shell .pf-head::before {
     letter-spacing: .16em;
     color: var(--text-tertiary);
 }
-html[data-skin="field"] .pf-shell .pf-head::after {
+.pf-shell .pf-head::after {
     content: '';
     position: absolute;
     left: -1px; top: -1px;
@@ -4288,12 +4292,12 @@ html[data-skin="field"] .pf-shell .pf-head::after {
     border-left: 2px solid var(--accent);
     border-top: 2px solid var(--accent);
 }
-html[data-skin="field"] .pf-shell .pf-paste textarea,
-html[data-skin="field"] .pf-shell .pf-drop { border-radius: 0; border: 0; background: transparent; padding: 6px 4px; font-size: var(--font-size-sm); }
-html[data-skin="field"] .pf-shell.pf-shell .pf-paste textarea { min-height: 420px; }
-html[data-skin="field"] .pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; color: var(--text-tertiary); }
-html[data-skin="field"] .pf-shell .pf-group { counter-increment: pf; margin-bottom: 18px; }
-html[data-skin="field"] .pf-shell .pf-group-label {
+.pf-shell .pf-paste textarea,
+.pf-shell .pf-drop { border-radius: 0; border: 0; background: transparent; padding: 6px 4px; font-size: var(--font-size-sm); }
+.pf-shell.pf-shell .pf-paste textarea { min-height: 420px; }
+.pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; color: var(--text-tertiary); }
+.pf-shell .pf-group { counter-increment: pf; margin-bottom: 18px; }
+.pf-shell .pf-group-label {
     display: flex; align-items: center; gap: 8px;
     opacity: 1;
     text-transform: none;
@@ -4302,22 +4306,25 @@ html[data-skin="field"] .pf-shell .pf-group-label {
     color: var(--text-primary);
     margin-bottom: 8px;
 }
-html[data-skin="field"] .pf-shell .pf-group-label::before {
+.pf-shell .pf-group-label::before {
     content: counter(pf, decimal-leading-zero);
-    font-family: var(--font-display);
+    font-family: var(--hero-font);
     font-size: var(--font-size-md);
     color: var(--text-tertiary);
 }
-html[data-skin="field"] .pf-shell .pf-group-label::after { content: ''; flex: 1; height: 1px; background: var(--border-hover); margin-left: 4px; }
-html[data-skin="field"] .pf-shell .pf-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-html[data-skin="field"] .pf-shell .pf-job {
-    border-radius: 0;
+.pf-shell .pf-group-label::after { content: ''; flex: 1; height: 1px; background: var(--border-hover); margin-left: 4px; }
+.pf-shell .pf-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.pf-shell .pf-job {
     border: 1px solid var(--border-hover);
     background: var(--glass);
     padding: 8px 16px;
-    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+    clip-path: var(--chip-clip);
 }
-html[data-skin="field"] .pf-shell .pf-job:hover { background: var(--bg-hover); border-color: var(--text-primary); }
+.pf-shell .pf-job:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+/* 필드만의 것. 잉크로 진한 테두리, 각진 칩 */
+html[data-skin="field"] .pf-shell .pf-head { border-color: var(--text-primary); }
+html[data-skin="field"] .pf-shell .pf-job { border-radius: 0; }
+html[data-skin="field"] .pf-shell .pf-job:hover { border-color: var(--text-primary); }
 html[data-skin="field"] .pf-shell .pf-job.pf-hot { background: var(--band); color: var(--band-ink); border-color: var(--band); font-weight: 700; }
 /* 제목 블록에 별만 직접 붙는 옛 경로(정적 장). 오른쪽 끝에 붙지 않게 여백 */
 html[data-skin="field"] .tool-page-hero > .tool-pin-star { position: static; margin-left: auto; margin-right: 24px; align-self: flex-start; transform: none; }

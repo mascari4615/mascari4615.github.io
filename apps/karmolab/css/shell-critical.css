@@ -2816,6 +2816,7 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
 :root {
     --skin: classic;
     --chip-radius: var(--radius-pill);
+    --chip-clip: none;
     --hero-font: inherit;
     --skew: 0deg;
     --cut: 0px;
@@ -2835,6 +2836,7 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
 html[data-skin="field"] {
     --skin: field;
     --chip-radius: 0;
+    --chip-clip: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
     --hero-font: var(--font-display);
     color-scheme: light;
 
@@ -3448,17 +3450,17 @@ html[data-skin="field"] .header-crumb-sep { font-size: 0; }
 html[data-skin="field"] .header-crumb-sep::before { font-size: var(--font-size-4xs); }
 html[data-skin="field"] .header-crumb .header-now { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; font-weight: 500; }
 
-html[data-skin="field"] .pf-shell { counter-reset: pf 1; }
-html[data-skin="field"] .pf-shell .pf-head {
+.pf-shell { counter-reset: pf 1; }
+.pf-shell .pf-head {
     
     background: linear-gradient(180deg, var(--glass) 0%, color-mix(in srgb, var(--glass) 70%, transparent) 70%, transparent 100%);
     backdrop-filter: blur(6px);
-    border: 1px solid var(--text-primary);
+    border: 1px solid var(--border-hover);
     border-bottom: 0;
     padding: 40px 14px 14px;
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
 }
-html[data-skin="field"] .pf-shell .pf-head::before {
+.pf-shell .pf-head::before {
     content: '01 재료 / 붙여넣기 / 파일';
     position: absolute;
     left: 0; right: 0; top: 0;
@@ -3471,7 +3473,7 @@ html[data-skin="field"] .pf-shell .pf-head::before {
     letter-spacing: .16em;
     color: var(--text-tertiary);
 }
-html[data-skin="field"] .pf-shell .pf-head::after {
+.pf-shell .pf-head::after {
     content: '';
     position: absolute;
     left: -1px; top: -1px;
@@ -3479,12 +3481,12 @@ html[data-skin="field"] .pf-shell .pf-head::after {
     border-left: 2px solid var(--accent);
     border-top: 2px solid var(--accent);
 }
-html[data-skin="field"] .pf-shell .pf-paste textarea,
-html[data-skin="field"] .pf-shell .pf-drop { border-radius: 0; border: 0; background: transparent; padding: 6px 4px; font-size: var(--font-size-sm); }
-html[data-skin="field"] .pf-shell.pf-shell .pf-paste textarea { min-height: 420px; }
-html[data-skin="field"] .pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; color: var(--text-tertiary); }
-html[data-skin="field"] .pf-shell .pf-group { counter-increment: pf; margin-bottom: 18px; }
-html[data-skin="field"] .pf-shell .pf-group-label {
+.pf-shell .pf-paste textarea,
+.pf-shell .pf-drop { border-radius: 0; border: 0; background: transparent; padding: 6px 4px; font-size: var(--font-size-sm); }
+.pf-shell.pf-shell .pf-paste textarea { min-height: 420px; }
+.pf-shell .pf-paste-hint { font-family: var(--font-mono); font-size: var(--font-size-4xs); letter-spacing: .16em; text-transform: uppercase; color: var(--text-tertiary); }
+.pf-shell .pf-group { counter-increment: pf; margin-bottom: 18px; }
+.pf-shell .pf-group-label {
     display: flex; align-items: center; gap: 8px;
     opacity: 1;
     text-transform: none;
@@ -3493,22 +3495,25 @@ html[data-skin="field"] .pf-shell .pf-group-label {
     color: var(--text-primary);
     margin-bottom: 8px;
 }
-html[data-skin="field"] .pf-shell .pf-group-label::before {
+.pf-shell .pf-group-label::before {
     content: counter(pf, decimal-leading-zero);
-    font-family: var(--font-display);
+    font-family: var(--hero-font);
     font-size: var(--font-size-md);
     color: var(--text-tertiary);
 }
-html[data-skin="field"] .pf-shell .pf-group-label::after { content: ''; flex: 1; height: 1px; background: var(--border-hover); margin-left: 4px; }
-html[data-skin="field"] .pf-shell .pf-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-html[data-skin="field"] .pf-shell .pf-job {
-    border-radius: 0;
+.pf-shell .pf-group-label::after { content: ''; flex: 1; height: 1px; background: var(--border-hover); margin-left: 4px; }
+.pf-shell .pf-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.pf-shell .pf-job {
     border: 1px solid var(--border-hover);
     background: var(--glass);
     padding: 8px 16px;
-    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+    clip-path: var(--chip-clip);
 }
-html[data-skin="field"] .pf-shell .pf-job:hover { background: var(--bg-hover); border-color: var(--text-primary); }
+.pf-shell .pf-job:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+
+html[data-skin="field"] .pf-shell .pf-head { border-color: var(--text-primary); }
+html[data-skin="field"] .pf-shell .pf-job { border-radius: 0; }
+html[data-skin="field"] .pf-shell .pf-job:hover { border-color: var(--text-primary); }
 html[data-skin="field"] .pf-shell .pf-job.pf-hot { background: var(--band); color: var(--band-ink); border-color: var(--band); font-weight: 700; }
 
 html[data-skin="field"] .tool-page-hero > .tool-pin-star { position: static; margin-left: auto; margin-right: 24px; align-self: flex-start; transform: none; }
