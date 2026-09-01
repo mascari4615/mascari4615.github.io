@@ -39,6 +39,7 @@ import { registerArcadeRooms, wasOpen } from './bot/arcade-rooms';
 import { registerArcadeResult } from './bot/arcade-result';
 import { registerArcadeQueue } from './bot/arcade-queue';
 import { makeLfgCaller } from './bot/arcade-lfg';
+import { moveCard } from './bot/arcade-invite';
 import { registerArcadeReport } from './bot/arcade-report';
 import { registerArcadeTape } from './bot/arcade-tape';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
@@ -387,7 +388,7 @@ registerKarmolabApi(app);
 /* TASK-KL-264. 오락실 방 링크의 얼굴. 자기 파일에 사는 이유는 위와 같다. */
 registerArcadeRoomCard(app);
 /* arcade-next ★2. 지금 열린 방 목록. 방은 브라우저끼리 돌고 여기 남는 건 쪽지뿐이다. */
-registerArcadeRooms(app);
+registerArcadeRooms(app, (code) => void moveCard(client, code, 'done', '방 닫힘'));
 /* change.arcade-online 1번. 등급전 대기열. 서버가 둘을 붙여 방 코드를 줌
  * 줄에 오래 서 있으면 채널이 부름. 등급전이 안 도는 이유가 만난 적이 없어서 */
 registerArcadeQueue(app, undefined, makeLfgCaller(client));

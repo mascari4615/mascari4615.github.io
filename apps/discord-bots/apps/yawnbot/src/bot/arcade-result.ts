@@ -18,6 +18,7 @@ import express from 'express';
 import type { Application, Request, Response } from 'express';
 import type { Client } from 'discord.js';
 import { sendLocalEvent } from './local-webhook';
+import { moveCard } from './arcade-invite';
 
 /** 이 방의 결과를 이미 적었나. 창 여럿이 같은 판을 보낸다. */
 const told = new Map<string, number>();
@@ -73,6 +74,9 @@ export function registerArcadeResult(app: Application, client: Client, isOpenRoo
     const top = Math.max(...seats.map((s) => s.score));
     const win = seats.filter((s) => s.score === top);
     const title = win.length === seats.length ? '비겼다' : `${win.map((w) => w.name).join(', ')} 이겼다`;
+
+    /* /오락실 이 뿌린 카드가 있으면 거기에도 결과를 적음 */
+    void moveCard(client, code, 'done', title);
 
     void sendLocalEvent(client, {
       kind: 'arcade-result',

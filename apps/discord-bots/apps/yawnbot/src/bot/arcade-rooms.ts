@@ -67,7 +67,7 @@ export function resetRooms(): void {
   closed.clear();
 }
 
-export function registerArcadeRooms(app: Application): void {
+export function registerArcadeRooms(app: Application, onClose?: (code: string) => void): void {
   /**
    * 방을 올린다 / 살아 있다고 알린다. 같은 코드면 덮어쓴다. 알림이 곧 아직 있다다.
    */
@@ -91,7 +91,11 @@ export function registerArcadeRooms(app: Application): void {
   /** 방을 닫는다. 안 불러도 10분이면 사라지지만, 부르면 그 자리에서 깨끗해진다. */
   app.delete('/kl/arcade/rooms/:code', (req: Request, res: Response) => {
     const code = clean(req.params.code, /^[A-Z0-9]{4,12}$/, 12);
-    if (code && rooms.delete(code)) closed.set(code, Date.now());
+    if (code && rooms.delete(code)) {
+      closed.set(code, Date.now());
+      /* 그 코드로 뿌린 초대가 있으면 같이 접음. 죽은 링크를 누르는 사람이 없게 */
+      onClose?.(code);
+    }
     res.json({ ok: true });
   });
 

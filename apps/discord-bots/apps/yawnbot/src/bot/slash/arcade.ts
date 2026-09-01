@@ -11,8 +11,9 @@
  * **방을 서버가 들고 있지 않다.** 코드만 만들어 준다. 판은 브라우저끼리(P2P) 돌고, 봇은
  * 이 코드로 모이자고 말할 뿐이다. 그래서 봇이 죽어도 이미 뿌린 링크는 그대로 산다.
  */
-import { SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
+import { rememberCard, inviteEmbed } from '../arcade-invite';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -59,6 +60,10 @@ export function buildArcade(): SlashCommandBuilder {
         .setDescription('무엇을 할까 (안 고르면 아무거나)')
         .setAutocomplete(true)
         .setRequired(false),
+    )
+    /* 부를 사람. 방만 열고 아무도 안 부르면 링크는 흘러감 */
+    .addUserOption((opt) =>
+      opt.setName('상대').setDescription('같이 할 사람 (안 고르면 아무나)').setRequired(false),
     ) as SlashCommandBuilder;
 }
 
@@ -83,10 +88,30 @@ export async function handleArcade(interaction: ChatInputCommandInteraction): Pr
   const code = makeCode();
   const link = pick ? `${CARD}/${code}?g=${encodeURIComponent(pick.id)}` : `${CARD}/${code}`;
 
+  const gameName = pick ? pick.name : '오락실';
+  const foe = interaction.options.getUser('상대');
+
+  /* 링크 버튼. 누르면 그냥 열리므로 봇이 안 깨어 있어도 됨 */
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder().setLabel('들어가기').setStyle(ButtonStyle.Link).setURL(link),
+  );
+
   await interaction.reply({
-    content:
-      (pick ? `🎮 **${pick.name}**, 방 \`${code}\`` : `🎮 오락실, 방 \`${code}\``) +
-      '\n' + link +
-      '\n-# 눌러서 들어오면 됩니다. 자리가 비면 봇이 앉아요.',
+    /* 멘션은 글 본문에. 카드 안에 넣으면 알림이 안 감 */
+    content: foe ? `${foe} 한 판?` : '-# 눌러서 들어오면 됩니다. 자리가 비면 봇이 앉아요.',
+    embeds: [inviteEmbed(gameName, code, 'waiting')],
+    components: [row],
   });
+
+  /* 이 글이 방을 따라 살게. 고치기는 arcade-invite 가 함 */
+  const sent = await interaction.fetchReply().catch(() => null);
+  if (sent && pick) {
+    rememberCard(code, {
+      channelId: sent.channelId,
+      messageId: sent.id,
+      game: pick.id,
+      gameName,
+      link,
+    });
+  }
 }
