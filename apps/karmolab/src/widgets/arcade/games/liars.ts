@@ -12,8 +12,15 @@
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 
-const START_DICE = 4;
+/** 시작 주사위. 레퍼런스는 다섯 개 */
+const START_DICE = 5;
 const FACES = 6;
+
+/**
+ * 이 눈이 판에 몇 개나 있을 만한가. 1 이 만능이라 한 주사위가 걸릴 확률은 2/6
+ * 레퍼런스 팁: 기대 개수를 내림한 값이 참일 확률은 반 이상
+ */
+export const expectOf = (total: number): number => Math.floor((total * 2) / FACES);
 
 export interface LiarsState {
   /** 자리별 주사위 눈 (남의 것은 `redact` 가 지운다) */

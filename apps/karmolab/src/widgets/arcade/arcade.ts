@@ -933,6 +933,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-root .ac-prsay{font-size:var(--font-size-sm);color:#ffd66b;transition:transform var(--transition-fast)}',
       '.ac-root .ac-prsay.ac-hit{transform:scale(1.12);font-weight:800}',
       /* 하이로우 두 단추는 같은 위계. 확률이 높은 쪽만 테를 준다(색으로 갈면 하나가 정답처럼 보인다) */
+      '.ac-root .ac-lihint{margin:6px 0 2px;font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-root .ac-autime{height:5px;border-radius:3px;background:rgba(0,0,0,.12);overflow:hidden;margin:8px auto 4px;max-width:420px}',
       '.ac-root .ac-autime i{display:block;height:100%;background:var(--accent-color);transition:width .2s linear}',
       '.ac-root .ac-autime.ac-warn i{background:#d9534f}',

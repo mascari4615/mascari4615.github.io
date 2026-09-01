@@ -665,5 +665,6 @@
   "arcade.highlow.bankNone": "確保なし",
   "arcade.highlow.bankWhy": "一度当ててから",
   "arcade.dominoes.mypips": "自分の目 {n}",
-  "arcade.dominoes.stock": "山 {n}枚"
+  "arcade.dominoes.stock": "山 {n}枚",
+  "arcade.liars.hint": "場に{n}個。ある目は{m}個ほど（1は万能）"
 }

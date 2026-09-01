@@ -665,5 +665,6 @@
   "arcade.highlow.bankNone": "Nothing to bank",
   "arcade.highlow.bankWhy": "Guess right at least once first",
   "arcade.dominoes.mypips": "My pips {n}",
-  "arcade.dominoes.stock": "Boneyard {n}"
+  "arcade.dominoes.stock": "Boneyard {n}",
+  "arcade.liars.hint": "{n} dice in play. Expect about {m} of a face (1s are wild)"
 }

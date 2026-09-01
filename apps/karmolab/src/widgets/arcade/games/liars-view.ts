@@ -7,7 +7,7 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { die, diePip } from '../die';
-import type { LiarsState, LiarsAction } from './liars';
+import { expectOf, type LiarsState, type LiarsAction } from './liars';
 
 
 export const liarsView: GameView<LiarsState, LiarsAction> = {
@@ -17,16 +17,21 @@ export const liarsView: GameView<LiarsState, LiarsAction> = {
       '<div class="ac-li">' +
       '<div class="ac-libid" id="acLiBid"></div>' +
       '<div class="ac-lidice" id="acLiDice"></div>' +
+      '<div class="ac-lihint" id="acLiHint"></div>' +
       '<div class="ac-liwho" id="acLiWho"></div>' +
       '<div class="ac-libar" id="acLiBar"></div>' +
       '</div>';
     const bidEl = el.querySelector('#acLiBid') as HTMLElement;
     const diceEl = el.querySelector('#acLiDice') as HTMLElement;
+    /* 판에 주사위가 몇 개고 한 눈이 몇 개쯤 있을 만한지. 1 이 만능이라 기대는 전체의 3분의 1 */
+    const hintEl = el.querySelector('#acLiHint') as HTMLElement;
     const whoEl = el.querySelector('#acLiWho') as HTMLElement;
     const bar = el.querySelector('#acLiBar') as HTMLElement;
 
     return (v, mySeat) => {
       const s = v.state;
+      const total = s.dice.reduce((a, d) => a + d.length, 0);
+      hintEl.textContent = t('arcade.liars.hint', { n: String(total), m: String(expectOf(total)) });
       const myTurn = s.showAt === 0 && s.alive[mySeat] && s.turn === mySeat && !v.finished;
 
       bidEl.innerHTML = s.bid

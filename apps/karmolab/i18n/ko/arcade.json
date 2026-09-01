@@ -665,5 +665,6 @@
   "arcade.highlow.bankNone": "챙길 것 없음",
   "arcade.highlow.bankWhy": "한 번은 맞혀야 챙긴다",
   "arcade.dominoes.mypips": "내 남은 눈 {n}",
-  "arcade.dominoes.stock": "더미 {n}장"
+  "arcade.dominoes.stock": "더미 {n}장",
+  "arcade.liars.hint": "판에 주사위 {n}개. 한 눈은 {m}개쯤 (1은 만능)"
 }
