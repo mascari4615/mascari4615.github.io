@@ -2886,7 +2886,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         withCrew[gseat] = { name: GHOST_NAME, bot: true };
         def = withGhost(def, gseat, past as never) as typeof def;
       }
-      match = new Match(def, seed, withCrew, optsFor(id)) as Match<unknown, unknown>;
+      match = new Match(def, seed, withCrew, matchOpts(id)) as Match<unknown, unknown>;
       /* 되살릴 재료. 씨앗과 자리. 이 둘과 누른 것이면 판이 다시 만들어진다(`replay.ts`). */
       lastSeed = seed;
       lastSeats = withCrew;
@@ -3315,6 +3315,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       startReview();
     }
 
+    /**
+     * 등급전 한 수의 제한. 초과하면 커널이 상대 승으로 끝냄(`gomoku.ts` 의 `tick`)
+     *
+     * - 이게 없으면 상대가 창을 열어 둔 채 자리를 비웠을 때 판이 영영 안 끝남
+     * - 작혼 등급전은 수당 5초 + 예비 20초로 한 수 최대 25초(실측). 우리는 아직 예비가 없어
+     *   한 단이라, 생각할 여유를 주고 60초. 예비가 생기면 20+60 꼴로 나눔
+     * - 친선전과 혼자 판은 그대로 사람이 고름(없음, 30, 60, 120초)
+     */
+    const RANKED_LIMIT = 60;
+
+    /** 이 판에 쓸 옵션. 등급전이면 시간 제한을 덮어씀 */
+    function matchOpts(id: string): ReturnType<typeof optsFor> {
+      const base = optsFor(id);
+      return rankedMatch || autoStart ? { ...base, limit: RANKED_LIMIT } : base;
+    }
+
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
     let rankedMatch: RankedMatch | null = null;
 
@@ -3446,7 +3462,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acCode').textContent = roomLabel(rankedRoom);
       $<HTMLElement>('#acWaitStatus').textContent =
         t('arcade.rank.waiting', { room: roomLabel(rankedRoom), n: String(rankedOthers) }) +
-        ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) });
+        ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) }) +
+        ', ' + t('arcade.rank.limit', { n: String(RANKED_LIMIT) });
     }
 
     function startRanked(id: string): void {

@@ -505,6 +505,7 @@
   "arcade.rank.waiting": "{room}卓. 相手を探し中, 同じ卓に{n}人",
   "arcade.rank.matched": "{name}さんと対局. 部屋を開いています",
   "arcade.rank.waited": "{t} 待機中",
+  "arcade.rank.limit": "一手 {n}秒",
   "arcade.rank.leave": "待機をやめる",
   "arcade.rank.down": "段位戦サーバーが応答しません. みんなで と 相手を探す は使えます",
   "arcade.rank.applied": "点数 {d}. 今 {n}点",
