@@ -480,7 +480,9 @@
     "audit:style-tokens": "node scripts/audit-style-tokens.mjs",
     "test:arcade:bots": "node scripts/bench-gomoku-ai.mjs --quick",
     "test:arcade:verify": "node scripts/test-arcade-verify.mjs",
-    "test:arcade:ranked-live": "node scripts/smoke-arcade-ranked-live.mjs"
+    "test:arcade:ranked-live": "node scripts/smoke-arcade-ranked-live.mjs",
+    "test:wcag": "node scripts/smoke-wcag22.mjs",
+    "test:a11y:all": "node scripts/run-a11y-all.mjs"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",

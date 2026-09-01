@@ -43,6 +43,11 @@
     --font-size-md: 18px;
     --font-size-title: 20px;
     --font-size-lg: 22px;
+    /* 표시용 큰 글자 (2026-09-01). 도구가 결과를 크게 보일 때 쓰던 24, 28, 32px 을 이름으로.
+       값은 그대로라 픽셀이 안 바뀐다. 이보다 큰 것(48px 이상)은 도구마다 뜻이 달라 그대로 둔다 */
+    --font-size-display-sm: 24px;
+    --font-size-display-md: 28px;
+    --font-size-display-lg: 32px;
 
     /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기. 두 테마가 같은 색을 공유한다. */
     --accent: #a79bef;         /* quiet lavender */
@@ -722,6 +727,8 @@ html[data-intro="off"] .intro-overlay {
 
 .header-logo {
     /* 글꼴, 굵기, 자간은 브랜드 글자 규칙(.header-logo-text)이 정한다. 여기서 또 적으면 갈라진다 */
+    /* 누를 크기 24px (WCAG 2.2 AA 2.5.8). 글자 높이만 있어 16px 이었다 */
+    display: inline-flex; align-items: center; min-height: 24px;
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     background: none;
@@ -1556,7 +1563,9 @@ a.landing-cta-card:hover { color: inherit; }
     border-left: 1px solid var(--border);
 }
 
-/* 화면 낭독기에만 읽히는 줄. 결과 수가 바뀐 것을 알린다. */
+/* 화면 낭독기에만 읽히는 줄. 결과 수가 바뀐 것을 알리는 자리
+   `.kl-sr` 은 같은 값을 이름으로. 머리를 안 그리는 도구의 h1 이 이걸 쓴다 */
+.kl-sr,
 .kp-live {
     position: absolute; width: 1px; height: 1px;
     margin: -1px; padding: 0; overflow: hidden;
@@ -1939,6 +1948,24 @@ a.landing-cta-card:hover { color: inherit; }
 .field-label.is-inline { margin-bottom: 0; white-space: nowrap; font-weight: 500; }
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
+/* 누를 크기 (WCAG 2.2 AA 2.5.8, 2026-09-01)
+   체크 상자와 라디오는 상자 자체가 13px 이다. 그 크기를 키우면 생김새가 달라지므로,
+   **이어진 이름표를 누를 곳으로** 키운다. `for` 로 이어져 있어 눌러도 같은 일
+   설정 판의 홀로 선 링크도 같은 값으로. 글줄 안에 든 링크는 조항이 봐주므로 안 건드린다 */
+.field-row > label,
+.tool-checkline,
+.settings-row > label {
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+}
+.settings-section a:not([class]),
+.settings-row a:not([class]) {
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+}
+
 /* number, date, url, search 가 빠져 있어서 그 칸들만 브라우저 기본 모양(밝은 배경, 낮은 높이)으로
    튀었다. :not() 으로 뒤집으면 특이도가 부풀어 위젯의 클래스 규칙(폭 지정 등)을 이겨 버리므로,
    타입을 그대로 열거해 특이도를 유지한다. 새 타입을 쓰면 여기 한 줄 추가. */
@@ -2049,6 +2076,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 .btn-ghost {
     background: none; color: var(--text-secondary);
     padding: 4px 10px; font-size: var(--font-size-xs); border-color: transparent;
+    /* 누를 크기 24px (WCAG 2.2 AA 2.5.8). 4px 안 여백에 12px 글자라 22px 이었다 */
+    min-height: 24px;
 }
 .btn-ghost:hover { color: var(--accent); background: var(--accent-subtle); }
 
@@ -3862,7 +3891,10 @@ html[data-skin="field"][data-theme="dark"] {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    /* 안 여백까지 재면 26px 이지만 상자 자체가 23px 이었다 (WCAG 2.2 AA 2.5.8) */
     height: 26px;
+    min-height: 24px;
+    box-sizing: border-box;
     width: 220px;
     padding: 0 10px;
     border: 1px solid var(--border);

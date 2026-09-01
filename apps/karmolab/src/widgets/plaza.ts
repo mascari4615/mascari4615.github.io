@@ -70,7 +70,7 @@ import { profilePath, toolPage } from '../lib/site-base';
         .plaza-big { display:flex; gap:12px; flex-wrap:wrap; }
         .plaza-big-item { flex:1 1 150px; padding:16px 18px; border:1px solid var(--border);
             border-radius:var(--radius-lg); background:var(--bg-secondary); }
-        .plaza-big-item strong { display:block; font-size:28px; font-weight:700; color:var(--accent-ink);
+        .plaza-big-item strong { display:block; font-size:var(--font-size-display-md); font-weight:700; color:var(--accent-ink);
             font-variant-numeric:tabular-nums; line-height:1.15; }
         .plaza-big-item span { display:block; margin-top:4px; font-size:var(--font-size-xs); color:var(--text-secondary); }
         .plaza-big-item em { display:block; margin-top:2px; font-size:var(--font-size-3xs); color:var(--text-tertiary);

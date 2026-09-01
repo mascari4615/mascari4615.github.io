@@ -837,7 +837,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .drawer-body .lane-pill .sw { width: 6px; height: 6px; border-radius: 50%; }
 .kl-quest-log .drawer-body h2 {
   margin: 16px 0 10px; font-family: 'KarmoSerif', serif; font-weight: 700;
-  font-size: 32px; line-height: 1.1; letter-spacing: -0.02em;
+  font-size: var(--font-size-display-lg); line-height: 1.1; letter-spacing: -0.02em;
 }
 .kl-quest-log .drawer-body h2 em { font-style: italic; font-weight: 400; color: var(--ink-2); }
 .kl-quest-log .drawer-body .lede {

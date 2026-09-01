@@ -255,7 +255,19 @@ try {
   await a.page.mouse.move(360, 360);
   await a.page.waitForTimeout(500);
   await a.page.evaluate(() => window.KarmoCopresence.set(false));
-  await a.page.waitForTimeout(1500);
+  /* 끈 뒤에 방을 **한 번만 보면 안 된다**. 방 명부는 서버가 들고 있고, 끄는 순간과
+     명부가 잠잠해지는 순간 사이에 틈이 있다. 고정 1.5초로 재던 2026-09-01 에 같은 판이
+     한 번은 빨강, 한 번은 초록이었다. 잠잠해질 때까지 기다렸다가 잰다 */
+  {
+    const until = Date.now() + 5000;
+    let stable = 0;
+    while (Date.now() < until) {
+      // 재움-의도: 잠잠해지기를 세는 자리. 이 250ms 자체가 재는 단위
+      await a.page.waitForTimeout(250);
+      stable = mine() === 1 ? stable + 1 : 0;
+      if (stable >= 4) break;   // 1초 내리 그대로면 잠잠해진 것
+    }
+  }
   check('꺼도 방에 남는다', mine() === 1, '커서를 껐더니 방에서 나가 버렸다 (관까지 끈 것이다)');
   await b.page.bringToFront();
   await b.page.mouse.move(250, 250);

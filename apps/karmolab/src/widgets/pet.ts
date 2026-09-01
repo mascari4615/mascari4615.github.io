@@ -113,7 +113,7 @@ import { t, loadNamespace } from '../lib/i18n';
               'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; color:#fff;';
             overlay.innerHTML = `
                     <div style="font-size:60px; animation:mdd-bounce 1s infinite;">💖💍🎉</div>
-                    <div style="font-size:32px; font-weight:bold; margin-top:20px;">${esc(t('pet.t04'))}</div>
+                    <div style="font-size:var(--font-size-display-lg); font-weight:bold; margin-top:20px;">${esc(t('pet.t04'))}</div>
                     <div style="font-size:var(--font-size-xs); margin-top:10px; color:pink;">${esc(t('pet.t05'))}</div>
                 `;
             document.body.appendChild(overlay);

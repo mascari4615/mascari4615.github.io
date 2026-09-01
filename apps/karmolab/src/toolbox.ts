@@ -2384,6 +2384,16 @@ const Toolbox = (() => {
         if (tool.layout) div.classList.add('layout-' + tool.layout);
         div.id = 'page-' + tool.id;
 
+        /* 머리를 안 그리는 도구도 **큰제목 하나는 있어야 한다** (2026-09-01, WCAG 2.4.6, 1.3.1).
+           도구 233개를 axe 로 훑어 보니 여섯이 h1 없이 떴다 (지구본, 멍, 오락실, 수집, 그래프, 되새김).
+           눈에는 안 보이고 낭독기에만 읽히는 줄로 둔다. 화면 짜임은 그대로다 */
+        if (tool.noHero === true && tool.title) {
+            const sr = document.createElement("h1");
+            sr.className = "kl-sr";
+            sr.textContent = String(tool.title);
+            div.appendChild(sr);
+        }
+
         if (tool.noHero !== true) {
             const hero = document.createElement('div');
             hero.className = 'tool-page-hero';

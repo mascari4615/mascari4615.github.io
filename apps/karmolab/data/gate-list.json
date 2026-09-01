@@ -1265,6 +1265,19 @@
     "src/pwa-update.ts",
     "scripts/test-pwa-update.mjs"
    ]
+  },
+  {
+   "name": "test:wcag",
+   "watch": [
+    "css/toolbox.css",
+    "css/tools.css",
+    "src/**",
+    "index.html",
+    "scripts/smoke-wcag22.mjs",
+    "data/wcag22-baseline.json",
+    "package.json",
+    "data/gate-list.json"
+   ]
   }
  ]
 }

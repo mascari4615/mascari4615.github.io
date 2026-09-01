@@ -40,6 +40,17 @@ const SKINS = (process.env.SKINS || 'classic,field').split(',');
 const AXE = path.join(root, 'node_modules', 'axe-core', 'axe.min.js');
 
 /* 핵심 3장. 첫 화면, 도구 한 장(입력칸이 많은 것), 도구 목록. */
+/* 도구 전수로 넓히는 길 (2026-09-01). 기본은 좁고 깊게 여섯 장이다. 전부 재려면
+   `KL_A11Y_ALL=1`. 그때는 스킨과 판을 하나로 줄인다(classic, dark). 안 그러면 도구 233개에
+   스킨 둘 판 둘이라 932판이 되고 사십 분이 넘는다. 넓게 한 번 훑는 것이 목적이지
+   스킨마다 다시 재는 것이 목적이 아니다. 좁고 깊은 쪽은 기본 여섯 장이 맡는다 */
+const ALL = process.env.KL_A11Y_ALL === "1";
+function allToolScreens() {
+  const src = fs.readFileSync(path.join(root, "src/widgets-lazy-meta.ts"), "utf8");
+  const ids = [...new Set([...src.matchAll(/(?:^|[{,]\s*)id: '([a-z0-9-]+)'/gm)].map((m) => m[1]))];
+  return ids.map((id) => [id, `/apps/karmolab/#${id}`]);
+}
+
 const SCREENS = [
   ['첫 화면', '/apps/karmolab/'],
   ['도구 한 장', '/apps/karmolab/#passgen'],
@@ -127,8 +138,14 @@ try {
   process.exit(2);
 }
 
+/** 실제로 돌 화면. 전수 판에서는 도구 전부 */
+const RUN_SCREENS = ALL ? allToolScreens() : SCREENS;
+/** 전수 판은 스킨과 판을 하나로 줄인다 */
+const RUN_SKINS = ALL ? [SKINS[0]] : SKINS;
+const RUN_THEMES = ALL ? [THEMES[THEMES.length - 1]] : THEMES;
+
 const failures = [];
-for (const skin of SKINS) for (const theme of THEMES) {
+for (const skin of RUN_SKINS) for (const theme of RUN_THEMES) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   await page.addInitScript((v) => {
@@ -137,7 +154,7 @@ for (const skin of SKINS) for (const theme of THEMES) {
       localStorage.setItem('toolbox_skin', v.skin);
     } catch { /* 사생활 모드 */ }
   }, { theme, skin });
-  for (const [name, url] of SCREENS) {
+  for (const [name, url] of RUN_SCREENS) {
     const res = await page.goto(`http://localhost:${PORT_IN_USE}${url}`, { waitUntil: 'load' });
     /* ★ **여기서 문제 0건은 안 봤다일 수 있다** (2026-08-21).
      * 이 검사의 합격 조건이 <b>문제 0건</b>이라, 장이 안 열려 화면이 비면 그대로 초록이 된다.
@@ -153,7 +170,9 @@ for (const skin of SKINS) for (const theme of THEMES) {
       console.error('  이건 문제 없음이 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
       process.exit(2);
     }
-    await page.waitForTimeout(1800);   // 늦게 오는 조각까지 붙은 뒤에 본다
+    /* 재움-의도: 늦게 오는 조각(장식, 지연 위젯)이 다 붙기를 기다린다. 읽어서 판정할
+       상태가 없다. axe 는 그 순간의 화면 전체를 재는 것이라 기다릴 표식이 없다 */
+    await page.waitForTimeout(1800);
     await page.addScriptTag({ content: axeSource });
     const violations = await page.evaluate(async () => {
       const r = await window.axe.run(document, { resultTypes: ['violations'] });
@@ -231,4 +250,4 @@ if (shrunk.length > 0) {
   console.log(`[smoke-a11y] 줄었다 ${baseline} → ${total}곳. 기준선을 다시 적어라: npm run test:a11y -- --bless`);
   process.exit(0);
 }
-console.log(`[smoke-a11y] ${SCREENS.length}장 x ${SKINS.join('/')} x ${THEMES.join('/')} = ${SCREENS.length*SKINS.length*THEMES.length}판. 늘지 않았다 (남은 빚 ${total}곳)`);
+console.log(`[smoke-a11y] ${RUN_SCREENS.length}장 x ${RUN_SKINS.join('/')} x ${RUN_THEMES.join('/')} = ${RUN_SCREENS.length*RUN_SKINS.length*RUN_THEMES.length}판. 늘지 않았다 (남은 빚 ${total}곳)`);

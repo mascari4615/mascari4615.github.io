@@ -87,7 +87,7 @@ import { appPath, appQuery, appUrl, profilePath } from '../lib/site-base';
         .user-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
         .user-item { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; transition:opacity 0.2s; }
         .user-item.locked { opacity:0.5; filter:grayscale(0.8); }
-        .user-item .user-item-icon { font-size:32px; margin-bottom:8px; }
+        .user-item .user-item-icon { font-size:var(--font-size-display-lg); margin-bottom:8px; }
         .user-item .user-item-title { font-size:var(--font-size-xs); font-weight:600; color:var(--text-primary); margin-bottom:4px; }
         .user-item .user-item-desc { font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .user-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }

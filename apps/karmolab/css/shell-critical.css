@@ -31,6 +31,10 @@
     --font-size-title: 20px;
     --font-size-lg: 22px;
 
+    --font-size-display-sm: 24px;
+    --font-size-display-md: 28px;
+    --font-size-display-lg: 32px;
+
     --accent: #a79bef;
 
     --accent-ink: var(--accent);
@@ -576,6 +580,7 @@ html[data-intro="off"] .intro-overlay {
 
 .header-logo {
 
+    display: inline-flex; align-items: center; min-height: 24px;
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     background: none;
@@ -1324,6 +1329,20 @@ a.landing-cta-card:hover { color: inherit; }
 .field-label.is-inline { margin-bottom: 0; white-space: nowrap; font-weight: 500; }
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
+.field-row > label,
+.tool-checkline,
+.settings-row > label {
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+}
+.settings-section a:not([class]),
+.settings-row a:not([class]) {
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+}
+
 textarea,
 input[type="text"], input[type="password"], input[type="number"], input[type="search"],
 input[type="url"], input[type="email"], input[type="tel"],
@@ -1422,6 +1441,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 .btn-ghost {
     background: none; color: var(--text-secondary);
     padding: 4px 10px; font-size: var(--font-size-xs); border-color: transparent;
+
+    min-height: 24px;
 }
 .btn-ghost:hover { color: var(--accent); background: var(--accent-subtle); }
 
@@ -3077,7 +3098,10 @@ html[data-skin="field"][data-theme="dark"] {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+
     height: 26px;
+    min-height: 24px;
+    box-sizing: border-box;
     width: 220px;
     padding: 0 10px;
     border: 1px solid var(--border);

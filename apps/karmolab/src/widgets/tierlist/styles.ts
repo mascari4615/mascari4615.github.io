@@ -196,7 +196,7 @@
         .tl-stats { display:flex; flex-direction:column; gap:16px; }
         .tl-stat-cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:10px; }
         .tl-stat-card { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; }
-        .tl-stat-card-value { font-size:28px; font-weight:700; color:var(--accent-ink); }
+        .tl-stat-card-value { font-size:var(--font-size-display-md); font-weight:700; color:var(--accent-ink); }
         .tl-stat-card-label { font-size:var(--font-size-xs); color:var(--text-tertiary); margin-top:4px; }
         .tl-stat-section { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; }
         .tl-stat-section h4 { margin:0 0 12px; font-size:var(--font-size-xs); color:var(--text-primary); }

@@ -75,7 +75,7 @@ import { t, loadNamespace } from '../../lib/i18n';
         </div>
         <div>
           <div class="tool-sublabel">${esc(t('payslip.label.net'))}</div>
-          <div id="psNet" style="font-size:28px; font-weight:700; padding:12px 0;"></div>
+          <div id="psNet" style="font-size:var(--font-size-display-md); font-weight:700; padding:12px 0;"></div>
           <div id="psYearly" class="tool-list"></div>
         </div>
       </div>

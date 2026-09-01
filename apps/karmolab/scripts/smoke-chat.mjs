@@ -148,20 +148,38 @@ async function openWindow(userAgent) {
 const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 const FIREFOX = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0';
 
+/** 채팅을 사람이 여는 길로 연다 (2026-09-01).
+ *  셸을 다시 짜면서 채팅 버튼이 계정 메뉴 안으로 들어갔다. `#klChatDock` 은 옆줄 밑에
+ *  `visibility:hidden` 으로 남은 닻이라, 직접 누르려 하면 늘 시간 초과
+ *  이 검사는 그래서 2026-09-01 까지 한 번도 안 돌았다 (yawnbot 미빌드로 못 돌림이었다가,
+ *  구워서 돌리자마자 이 자리에서 멈췄다). */
+async function openChat(page) {
+  await page.waitForSelector('#klChatDock', { state: 'attached', timeout: 15000 });
+  const menuBtn = page.locator('#klHeaderMe');
+  if (await menuBtn.isVisible().catch(() => false)) {
+    await menuBtn.click();
+    const item = page.locator('[data-chat]');
+    if (await item.isVisible().catch(() => false)) { await item.click(); return; }
+    await page.keyboard.press('Escape').catch(() => {});
+  }
+  /* 계정 메뉴가 아직 안 붙은 판에서는 닻을 코드로 누른다. 사람 길이 막힌 게 아니라
+     그 창이 아직 덜 그려진 것이다 */
+  await page.evaluate(() => document.getElementById('klChatDock')?.click());
+}
 try {
   const a = await openWindow(CHROME);
   const b = await openWindow(FIREFOX);
 
   // ① 껍데기가 어느 화면에서든 붙는다 (도구를 안 열어도).
-  await a.page.waitForSelector('#klChatDock', { timeout: 15000 });
+  await a.page.waitForSelector('#klChatDock', { state: 'attached', timeout: 15000 });
   /* 두 번째 창도 **기다렸다가** 본다. 첫 창이 붙는 순간 두 번째를 바로 물으면, 아직 안 그린
      것을 없다고 읽는다. 두 창은 같이 열렸을 뿐 같은 속도로 그려지지 않는다. */
-  await b.page.waitForSelector('#klChatDock', { timeout: 15000 }).catch(() => {});
-  check('상주', await b.page.locator('#klChatDock').isVisible(), '두 번째 창에 채팅 단추가 없다');
+  await b.page.waitForSelector('#klChatDock', { state: 'attached', timeout: 15000 }).catch(() => {});
+  check('상주', await b.page.locator('#klChatDock').count() > 0, '두 번째 창에 채팅 버튼이 없다');
 
   // ② 열면 오늘의 이름표가 있다. 이게 없으면 익명 규칙 자체가 안 붙은 것이다.
-  await a.page.click('#klChatDock');
-  await b.page.click('#klChatDock');
+  await openChat(a.page);
+  await openChat(b.page);
   await a.page.waitForSelector('#klChatMe .klchat-who', { timeout: 10000 });
   const nameA = (await a.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   const nameB = (await b.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
@@ -223,7 +241,7 @@ try {
 
   // ⑧ 채팅 줄을 글로 옮긴다 (KL-157). 초안이 커뮤니티 자리에 놓이고 글쓰기가 펴진 채 도착한다.
   // ⑦에서 닫아 뒀다. 닫힌 창의 줄은 안 보이므로 hover 도 안 먹는다. 다시 편다.
-  await b.page.click('#klChatDock');
+  await openChat(b.page);
   const keepLine = b.page.locator('#klChatLog .klchat-line').last();
   await keepLine.hover();
   await keepLine.locator('button[data-act="keep"]').click();
@@ -247,10 +265,10 @@ try {
     const c = await openWindow(CHROME);
     await c.page.goto(`${siteOrigin}/apps/blog/t/qrread/index.html`, { waitUntil: 'domcontentloaded' });
     try {
-      await c.page.waitForSelector('#klChatDock', { timeout: 15000 });
+      await c.page.waitForSelector('#klChatDock', { state: 'attached', timeout: 15000 });
       check('도구 화면', true, '');
     } catch {
-      check('도구 화면', false, '도구 화면(qrread)에 채팅 단추가 안 떴다');
+      check('도구 화면', false, '도구 화면(qrread)에 채팅 버튼이 안 떴다');
     }
     await c.context.close();
   }
@@ -259,7 +277,7 @@ try {
   const errors = [];
   a.page.on('pageerror', (error) => errors.push(String(error)));
   await a.page.reload({ waitUntil: 'domcontentloaded' });
-  await a.page.waitForSelector('#klChatDock', { timeout: 15000 });
+  await a.page.waitForSelector('#klChatDock', { state: 'attached', timeout: 15000 });
   check('오류 없음', errors.length === 0, `콘솔 오류: ${errors.join(' / ')}`);
 
   await a.context.close();

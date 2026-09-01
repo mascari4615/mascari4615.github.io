@@ -708,7 +708,7 @@ function injectStyles(): void {
 .rc-card { display: flex; flex-direction: column; gap: 16px; padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--bg-secondary); }
 .rc-card.rc-open { background: var(--accent-subtle); border-color: var(--accent); }
 .rc-tag { font-size: var(--font-size-3xs); letter-spacing: .08em; color: var(--accent-ink); font-weight: 700; }
-.rc-title { font-size: 28px; font-weight: 700; line-height: 1.25; margin: 0; letter-spacing: -0.02em; }
+.rc-title { font-size: var(--font-size-display-md); font-weight: 700; line-height: 1.25; margin: 0; letter-spacing: -0.02em; }
 .rc-q { font-size: var(--font-size-lg); font-weight: 700; line-height: 1.4; margin: 0; }
 .rc-lede, .rc-hint { font-size: var(--font-size-2xs); color: var(--text-secondary); margin: 0; line-height: 1.75; }
 .rc-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

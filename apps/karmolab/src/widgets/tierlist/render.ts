@@ -174,7 +174,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
         if (!list) {
             editorContainer.innerHTML = `<div class="tl-wrap"><div style="text-align:center; padding:48px 16px; color:var(--text-tertiary);">
-                <div style="font-size:32px; margin-bottom:12px;">📋</div>
+                <div style="font-size:var(--font-size-display-lg); margin-bottom:12px;">📋</div>
                 <div>${esc(t('tierlist.t08'))}</div>
                 <div style="margin-top:12px;"><button class="btn btn-outline btn-accent" id="tl-empty-create">${esc(t('tierlist.btn.tlemptycreate'))}</button></div>
             </div></div>`;
@@ -569,7 +569,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             });
 
             if (instGrid) {
-                instHtml = instHtml || '<div class="tl-list-empty" style="grid-column:1/-1;"><div style="font-size:28px;margin-bottom:8px;">📋</div><div>로컬 순위가 없습니다. 후보 풀 카드를 누르거나 빈 순위 만들기를 쓰세요.</div></div>';
+                instHtml = instHtml || '<div class="tl-list-empty" style="grid-column:1/-1;"><div style="font-size:var(--font-size-display-md);margin-bottom:8px;">📋</div><div>로컬 순위가 없습니다. 후보 풀 카드를 누르거나 빈 순위 만들기를 쓰세요.</div></div>';
                 instGrid.innerHTML = instHtml;
             }
 
