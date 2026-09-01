@@ -240,6 +240,14 @@
     "d3": true
   },
   {
+    "id": "solitaire",
+    "chunk": "solitaire",
+    "view": "solitaire-view",
+    "defVar": "solitaire",
+    "viewVar": "solitaireView",
+    "d3": false
+  },
+  {
     "id": "president",
     "chunk": "president",
     "view": "president-view",

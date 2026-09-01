@@ -77,6 +77,8 @@ import { foxhoundsView } from './games/foxhounds-view';
 import { capturego } from './games/capturego';
 import { capturegoView } from './games/capturego-view';
 import { blackjack } from './games/blackjack';
+import { solitaire } from './games/solitaire';
+import { solitaireView } from './games/solitaire-view';
 import { blackjackView } from './games/blackjack-view';
 import { president } from './games/president';
 import { presidentView } from './games/president-view';
@@ -163,6 +165,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: foxhounds, view: foxhoundsView, icon: '🦊', kind: 'board' , hidden: true },
   { def: capturego, view: capturegoView, icon: '⚫', kind: 'board' , hidden: true },
   { def: blackjack, view: blackjackView, icon: '♠️', kind: 'card' },
+  { def: solitaire, view: solitaireView, icon: '🃏', kind: 'card' },
   { def: president, view: presidentView, icon: '👑', kind: 'card' , hidden: true },
   { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' , hidden: true },
   { def: yacht, view: yachtView, icon: '🎲', kind: 'card' },
