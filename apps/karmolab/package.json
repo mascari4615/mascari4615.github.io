@@ -472,7 +472,8 @@
     "smoke:shell-layout": "node scripts/smoke-shell-layout.mjs",
     "smoke:tool-boot": "node scripts/smoke-tool-boot.mjs",
     "audit:sidebar-shelf": "node scripts/audit-sidebar-shelf.mjs",
-    "audit:style-tokens": "node scripts/audit-style-tokens.mjs"
+    "audit:style-tokens": "node scripts/audit-style-tokens.mjs",
+    "test:arcade:bots": "node scripts/bench-gomoku-ai.mjs --quick"
   },
   "devDependencies": {
     "@huggingface/transformers": "^4.2.0",

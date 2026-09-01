@@ -12,7 +12,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const N = Number((process.argv.find((a) => a.startsWith('--n=')) || '').slice(4)) || 40;
+/**
+ * 빠른 판(`--quick`)은 게이트용. 8판이면 12초라 push 전에 돌릴 수 있음
+ * - 8판은 인접 단계를 가르기엔 흔들림이 큼 (4 vs 2 가 63% 로 내려간 적 있음)
+ * - 그래서 빠른 판은 **뒤집힘만** 봄. 두 단계 위가 아래에게 지면 그건 회귀
+ * - 촘촘한 수치는 손으로 `--n=30` 이상을 돌려 잼
+ */
+const QUICK = process.argv.includes('--quick');
+const N = Number((process.argv.find((a) => a.startsWith('--n=')) || '').slice(4)) || (QUICK ? 8 : 40);
 const dir = mkdtempSync(join(tmpdir(), 'gomoku-ai-'));
 const out = join(dir, 'engine.mjs');
 await build({ entryPoints: ['src/widgets/arcade/games/gomoku-engine.ts'], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent' });
@@ -66,7 +73,8 @@ for (const [hi, lo] of pairs) {
   }
   const rate = Math.round((hiWins / N) * 100);
   /* 두 단계 위는 65. 처음 75 로 뒀더니 4 vs 2 가 65% 로 걸렸다. 2 는 코앞의 다섯을 보는 봇이라 25% 는 판 초반 운이다 */
-  const need = hi - lo >= 2 ? 65 : 60;
+  /* 빠른 판은 뒤집힘만. 인접은 아예 안 따지고, 두 단계 위는 절반만 넘으면 됨 */
+  const need = QUICK ? (hi - lo >= 2 ? 55 : 0) : hi - lo >= 2 ? 65 : 60;
   rows.push({ pair: `${hi} vs ${lo}`, hiWins, draws, rate, need, ok: rate >= need });
 }
 console.log(`[gomoku-ai] ${N}판씩, 15줄, 색 번갈아`);
@@ -78,4 +86,4 @@ const fails = rows.filter((r) => !r.ok);
 const LIMIT_MS = { 5: 160 };
 const slow = Object.entries(timing).filter(([lv, a]) => avg(a) > (LIMIT_MS[lv] ?? 100));
 if (fails.length || slow.length) { console.log(`[gomoku-ai] 실패 ${fails.length + slow.length}건`); process.exit(1); }
-console.log('[gomoku-ai] 통과. 위가 아래를 이기고, 한 수 100ms 안');
+console.log(QUICK ? '[gomoku-ai] 빠른 판 통과. 단계가 안 뒤집혔고, 한 수 100ms 안' : '[gomoku-ai] 통과. 위가 아래를 이기고, 한 수 100ms 안');

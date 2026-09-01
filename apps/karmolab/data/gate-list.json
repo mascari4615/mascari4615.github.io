@@ -278,6 +278,16 @@
   "test:arcade",
   "test:arcade:tutor",
   "test:arcade:ghost",
+  {
+   "name": "test:arcade:bots",
+   "watch": [
+    "src/widgets/arcade/games/gomoku-engine.ts",
+    "src/widgets/arcade/games/gomoku.ts",
+    "scripts/bench-gomoku-ai.mjs",
+    "package.json",
+    "data/gate-list.json"
+   ]
+  },
   "test:arcade:solitaire",
   "test:drift",
   "test:arcade:solo",
