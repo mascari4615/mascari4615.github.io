@@ -86,7 +86,11 @@ if (!(real.rate > shuffled.rate * TIMES)) {
 console.log(`  ③ 바닥 ${data.floor} (아무 쌍 ${data.strangerTries}번), 남긴 ${data.kept}, 버린 ${data.dropped}`);
 if (data.floor == null) bad.push('바닥이 안 실려 있다. 문턱을 재서 골랐는지 알 수 없다');
 else {
-  const under = Object.values(related).flat().filter((x) => x.sim <= data.floor).length;
+  /* 부호는 생성기와 같아야 한다. 거기는 `sim > floor` 로 남긴다 (gen-related-posts.mjs).
+     여기서 `<=` 로 재면 **바닥과 같은 값이 위반이 된다**. 실제로 그랬다: 둘 다 소수 넷째까지
+     반올림해 싣는 탓에 바닥보다 조금 큰 값이 바닥과 같은 수로 적힌다 (0.3002 하나).
+     이 검사는 2026-09-01 까지 전제를 안 구워 한 번도 안 돌았고, 굽자마자 이 자리가 빨갛게 떴다 */
+  const under = Object.values(related).flat().filter((x) => x.sim < data.floor).length;
   if (under) bad.push(`바닥(${data.floor}) 밑인 이웃이 ${under}개 남아 있다`);
 }
 if (!(data.dropped > 0)) {

@@ -44,6 +44,8 @@ const SCENE_ONLY = [
   'bg-swatch',
   'settings-row-stack',
   'kl-cursor',   // 같이 쓰기 커서. 서버에서 늦게 와 판마다 뜨고 안 뜬다
+  'landing-pulse',   // 첫 화면 방문 수. 서버에서 늦게 오고 비면 `:empty` 로 숨는다.
+                     // 통짜 게이트에서 한 판만 빈 채로 잡혀 거짓 빨강이 났다 (2026-09-01)
 ];
 
 /* 볼 화면. 셸의 뼈대가 다 나오는 자리
