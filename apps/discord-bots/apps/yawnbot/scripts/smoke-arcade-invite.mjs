@@ -90,6 +90,14 @@ const check = (name, ok, detail = '') => {
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * **다시 받아온 것**으로 본다. edit 이 돌려준 것은 이쪽이 보낸 값이라,
+ * 디스코드가 실제로 무엇을 저장했는지는 말해 주지 않음
+ */
+const reread = async (channel, id) => channel.messages.fetch({ message: id, force: true });
+const labelsOf = (m) => (m.components ?? []).flatMap((row) => (row.components ?? []).map((c) => c.label ?? c.data?.label ?? ''));
+const textOf = (m) => (m.embeds ?? []).map((e) => `${e.title ?? ''} ${e.description ?? ''}`).join(' ');
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 let msg = null;
 
@@ -110,30 +118,44 @@ try {
     check('카드를 올린다', !!msg?.id);
     check('버튼이 하나 붙었다', msg.components?.[0]?.components?.length === 1, JSON.stringify(msg.components ?? []));
 
+    /* 올린 것도 다시 받아와 본다. 여기까지가 디스코드에 진짜 남은 값 */
+    const fresh = await reread(channel, msg.id);
+    check('올린 카드에 방 코드가 있다', textOf(fresh).includes(CODE), textOf(fresh));
+    check('올린 카드 버튼이 들어가기다', labelsOf(fresh).join() === '들어가기', labelsOf(fresh).join());
+
     await wait(700);
-    const playing = await msg.edit({ embeds: [card('playing', '2명')], components: row('playing') }).catch((e) => {
-      check('두는 중으로 고친다', false, String(e?.message ?? e));
-      return null;
-    });
-    if (playing) {
+    const edited = await msg
+      .edit({ embeds: [card('playing', '2명')], components: row('playing') })
+      .then(() => true)
+      .catch((e) => {
+        check('두는 중으로 고친다', false, String(e?.message ?? e));
+        return false;
+      });
+    if (edited) {
       check('두는 중으로 고친다', true);
-      check(
-        '버튼 글자가 구경하기로 바뀐다',
-        playing.components?.[0]?.components?.[0]?.label === '구경하기',
-        JSON.stringify(playing.components?.[0]?.components?.[0] ?? {})
-      );
+      const after = await reread(channel, msg.id);
+      check('고친 것이 진짜 남았다', textOf(after).includes('두는 중'), textOf(after));
+      check('버튼 글자가 구경하기로 바뀐다', labelsOf(after).join() === '구경하기', labelsOf(after).join());
     }
 
     await wait(700);
     const done = await msg.edit({ embeds: [card('done', '검은 돌 이겼다')], components: [] }).catch(() => null);
     check('끝난 판으로 고친다', !!done);
-    check('끝난 판은 버튼이 없다', (done?.components?.length ?? 0) === 0);
+    if (done) {
+      const last = await reread(channel, msg.id);
+      check('끝난 판은 버튼이 없다', labelsOf(last).length === 0, labelsOf(last).join());
+      check('결과가 적혀 있다', textOf(last).includes('검은 돌 이겼다'), textOf(last));
+    }
   }
 
   if (msg && !keep) {
     await wait(700);
     const gone = await msg.delete().then(() => true).catch(() => false);
     check('치운다', gone, '지우기 권한이 없다. --keep 으로 남겨 두고 손으로 지워라');
+    if (gone) {
+      const still = await channel.messages.fetch({ message: msg.id, force: true }).then(() => true).catch(() => false);
+      check('진짜로 없어졌다', !still);
+    }
   } else if (msg) {
     console.log(`[smoke] --keep 이라 글을 남겼다. 채널에서 눈으로 봐라: ${msg.url}`);
   }
