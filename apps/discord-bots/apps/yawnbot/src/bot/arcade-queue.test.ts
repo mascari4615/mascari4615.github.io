@@ -1,10 +1,10 @@
 /**
  * 등급전 대기열이 둘을 붙이고, 셋째는 안 끼우고, 방이 다르면 안 만나는가 (change.arcade-online 1번)
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import express from 'express';
 import type { Server } from 'http';
-import { registerArcadeQueue, resetQueue, matchRange } from './arcade-queue';
+import { registerArcadeQueue, resetQueue, matchRange, YACHT_FORM_MS } from './arcade-queue';
 import { resetRatings, applyResult } from './arcade-rating';
 
 let server: Server;
@@ -76,6 +76,30 @@ describe('등급전 대기열', () => {
     await stand(B);
     const c = await stand(C);
     expect(c.status).toBe('waiting');
+  });
+
+  it('야추는 넷이 모이면 한 판으로 붙이고, 전원에게 자리와 명단을 준다', async () => {
+    const a = await stand(A, 'a', 'yacht');
+    expect(a.status).toBe('waiting');
+    await stand(B, 'b', 'yacht');
+    await stand(C, 'c', 'yacht');
+    const d = await stand('account-d', 'd', 'yacht');
+    expect(d.status).toBe('matched');
+    expect((d as Answer & { ids?: string[]; seat?: number }).ids).toEqual([A, B, C, 'account-d']);
+    expect((d as Answer & { seat?: number }).seat).toBe(3);
+    expect((await look(A) as Answer & { seat?: number }).seat).toBe(0);
+  });
+
+  it('야추는 8초 뒤 최소 인원 둘로 출발한다', async () => {
+    const clock = vi.spyOn(Date, 'now');
+    clock.mockReturnValue(1_000);
+    await stand(A, 'a', 'yacht');
+    await stand(B, 'b', 'yacht');
+    clock.mockReturnValue(1_000 + YACHT_FORM_MS);
+    const a = await look(A);
+    expect(a.status).toBe('matched');
+    expect((a as Answer & { ids?: string[] }).ids).toEqual([A, B]);
+    clock.mockRestore();
   });
 
   it('놀이가 다르면 안 만난다', async () => {

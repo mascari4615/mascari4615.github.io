@@ -44,6 +44,8 @@ export function matchRange(waitedMs: number): number {
 const TTL_MS = 15 * 1000;
 /** 짝이 난 뒤 두 사람이 코드를 가져갈 시간 */
 const MATCH_KEEP_MS = 2 * 60 * 1000;
+/** 야추는 2명만 있어도 시작하되, 들어온 사람을 잠깐 더 받는다. */
+export const YACHT_FORM_MS = 8 * 1000;
 /** 등급전 방. 이름은 자리표 (사용자 결정: 이름은 나중) */
 export const ROOMS = ['beginner', 'upper'] as const;
 
@@ -76,7 +78,7 @@ interface Matched {
   room: RoomName;
   /** 주인 id. 먼저 선 쪽 */
   host: string;
-  guest: string;
+  ids: string[];
   names: Record<string, string>;
   at: number;
 }
@@ -133,9 +135,13 @@ export function queueCounts(game: string): Record<RoomName, number> {
 function answer(id: string): Record<string, unknown> {
   const m = matched.get(id);
   if (m) {
-    const other = m.host === id ? m.guest : m.host;
+    const seat = m.ids.indexOf(id);
+    const other = m.ids.find((who) => who !== id) ?? '';
     /* 내 id 와 상대 id 를 같이 줌. 결과 보고가 순서를 id 로 적음 */
-    return { status: 'matched', code: m.code, host: m.host === id, room: m.room, you: id, rival: other, opponent: m.names[other] ?? '누군가' };
+    return {
+      status: 'matched', code: m.code, host: m.host === id, room: m.room, you: id,
+      rival: other, opponent: m.names[other] ?? '누군가', ids: m.ids, seat
+    };
   }
   const w = waiting.get(id);
   if (w) {
@@ -144,6 +150,43 @@ function answer(id: string): Record<string, unknown> {
     return { status: 'waiting', room: w.room, others: counts.beginner + counts.upper - 1 };
   }
   return { status: 'none' };
+}
+
+function match(ids: Waiting[], game: string, room: RoomName, now: number): void {
+  const code = makeCode();
+  const names = Object.fromEntries(ids.map((w) => [w.id, w.name]));
+  const m: Matched = { code, game, room, host: ids[0].id, ids: ids.map((w) => w.id), names, at: now };
+  for (const w of ids) {
+    waiting.delete(w.id);
+    matched.set(w.id, m);
+  }
+  rosters.set(code, { game, ids: m.ids, at: now });
+  for (const [oldCode, r] of rosters) if (now - r.at > ROSTER_KEEP_MS) rosters.delete(oldCode);
+}
+
+/**
+ * 야추 순위전, 2~4명 한 판
+ *
+ * 첫 둘은 즉시 판을 열지 않고 8초 동안 같은 점수 폭의 셋째, 넷째를 더 받는다. 넷이 모이면
+ * 즉시 4인 결성, 창 종료 때 2~3인 결성. 사람 적은 서비스의 대기와 순위전 사이 절충.
+ */
+function queueYacht(me: Waiting, now: number): void {
+  const all = [...waiting.values()]
+    .filter((w) => w.game === 'yacht')
+    .sort((a, b) => a.since - b.since || a.id.localeCompare(b.id));
+  const group: Waiting[] = [];
+  for (const w of all) {
+    if (group.length >= 4) break;
+    if (group.every((other) => {
+      const gap = Math.abs(other.rating - w.rating);
+      return gap <= matchRange(now - other.since) && gap <= matchRange(now - w.since);
+    })) group.push(w);
+  }
+  if (!group.some((w) => w.id === me.id)) return;
+  const oldest = group[0];
+  if (group.length === 4 || (group.length >= 2 && now - oldest.since >= YACHT_FORM_MS)) {
+    match(group, 'yacht', roomOf(oldest.rating), now);
+  }
 }
 
 export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait?: OnWait): void {
@@ -185,22 +228,16 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait
         return gap <= myRange && gap <= matchRange(now - w.since);
       })
       .sort((a, b) => a.since - b.since || Math.abs(a.rating - rating) - Math.abs(b.rating - rating))[0];
-    if (other) {
+    if (game === 'yacht') {
+      const since = waiting.get(id)?.since ?? now;
+      const mine = { id, game, room, rating, name, since, at: now };
+      waiting.set(id, mine);
+      queueYacht(mine, now);
+      if (waiting.has(id)) onWait?.({ game, name, since });
+    } else if (other) {
       waiting.delete(other.id);
       waiting.delete(id);
-      const m: Matched = {
-        code: makeCode(),
-        game,
-        room,
-        host: other.id,
-        guest: id,
-        names: { [other.id]: other.name, [id]: name },
-        at: now
-      };
-      matched.set(other.id, m);
-      matched.set(id, m);
-      rosters.set(m.code, { game, ids: [other.id, id], at: now });
-      for (const [code, r] of rosters) if (now - r.at > ROSTER_KEEP_MS) rosters.delete(code);
+      match([other, { id, game, room, rating, name, since: now, at: now }], game, room, now);
     } else {
       /* 처음 선 때 보존. 알림마다 줄 맨 뒤면 오래 기다린 사람이 계속 밀림 */
       const since = waiting.get(id)?.since ?? now;
@@ -235,7 +272,12 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait
     sweep();
     const id = me.id;
     const w = waiting.get(id);
-    if (w) w.at = Date.now();
+    if (w) {
+      const now = Date.now();
+      w.at = now;
+      /* 야추의 합류 창은 알림 요청으로 닫는다. 별도 타이머가 죽어도 유령 판을 만들지 않는다. */
+      if (w.game === 'yacht') queueYacht(w, now);
+    }
     res.setHeader('Cache-Control', 'no-store');
     res.json(answer(id));
   });
@@ -251,8 +293,7 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait
     waiting.delete(id);
     const m = matched.get(id);
     if (m) {
-      matched.delete(m.host);
-      matched.delete(m.guest);
+      for (const who of m.ids) matched.delete(who);
     }
     res.json({ ok: true });
   });

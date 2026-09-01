@@ -30,6 +30,10 @@ export interface Matched {
   host: boolean;
   room: RankRoom;
   opponent: string;
+  /** 서버가 정한 전원 순서. 0번은 방 주인 */
+  ids: string[];
+  /** 이 계정이 앉을 자리 */
+  seat: number;
 }
 
 export interface RankedHooks {
@@ -55,6 +59,8 @@ type Answer = {
   others?: number;
   you?: string;
   rival?: string;
+  ids?: string[];
+  seat?: number;
 };
 
 /**
@@ -104,7 +110,9 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
         rival: String(a.rival ?? ''),
         host: Boolean(a.host),
         room: a.room === 'upper' ? 'upper' : 'beginner',
-        opponent: String(a.opponent ?? '')
+        opponent: String(a.opponent ?? ''),
+        ids: Array.isArray(a.ids) ? a.ids.map(String) : [String(a.you ?? ''), String(a.rival ?? '')],
+        seat: Math.max(0, Number(a.seat ?? 0))
       });
       return;
     }
@@ -198,8 +206,68 @@ export interface RankedMatch {
   code: string;
   /** 내 공개 id */
   you: string;
-  /** 상대 공개 id */
-  rival: string;
+  /** 서버가 정한 참가자 순서. 야추는 2~4명 */
+  ids: string[];
+  /** 내 자리. 각 참가자는 이 값으로 주인에게 자기 자리를 알린다 */
+  seat: number;
+}
+
+/**
+ * 등급전 참가자와 브라우저 방 자리를 잇는 작은 세션.
+ *
+ * 대기열의 계정 id와 WebRTC peer id는 다른 값이다. 이 경계 밖에서 둘을 섞으면 게임 공통
+ * 네트워크 코드가 특정 놀이의 인원 규칙을 알게 된다. 참가자는 서버가 준 자기 자리만 알리고,
+ * 주인 확정 명단 동기화. 2인과 2~4인 순위전 공통 계약.
+ */
+const ROSTER_META = 'ranked-roster:';
+
+export class RankedRoster {
+  private idsBySeat: string[];
+  private readonly peers = new Map<string, number>();
+
+  constructor(readonly match: RankedMatch, readonly host: boolean) {
+    this.idsBySeat = host ? [match.you] : [];
+  }
+
+  get seats(): number { return this.match.ids.length; }
+  get ready(): boolean {
+    return this.idsBySeat.length === this.seats && this.idsBySeat.filter(Boolean).length === this.seats;
+  }
+
+  joinMeta(): string { return ROSTER_META + String(this.match.seat); }
+
+  /** 주인만 부른다. 같은 peer가 두 자리를 차지하거나 남의 자리를 주장할 수 없다. */
+  acceptPeerMeta(peerId: string, meta: string | undefined): boolean {
+    if (!this.host || !meta?.startsWith(ROSTER_META)) return false;
+    const seat = Number(meta.slice(ROSTER_META.length));
+    if (!Number.isInteger(seat) || seat <= 0 || seat >= this.seats || this.idsBySeat[seat] || this.peers.has(peerId)) return true;
+    this.peers.set(peerId, seat);
+    this.idsBySeat[seat] = this.match.ids[seat];
+    return true;
+  }
+
+  /** 주인이 상태 동기화에 실을 값. 준비 전에는 빈 명단을 보낸다. */
+  sync(): string[] { return this.ready ? [...this.idsBySeat] : []; }
+
+  /** 손님은 주인이 준, 서버 대기열과 정확히 같은 순서의 명단만 받는다. */
+  applySync(ids: unknown): void {
+    if (!Array.isArray(ids) || ids.length !== this.seats) return;
+    const next = ids.map(String);
+    if (next.every((id, i) => id === this.match.ids[i])) this.idsBySeat = next;
+  }
+
+  /** WebRTC 연결 순서는 참가자가 방에 들어온 순서일 뿐, 서버가 준 자리 순서가 아니다. */
+  orderPeers<T extends { id: string }>(peers: readonly T[]): T[] {
+    return [...peers].sort((a, b) => (this.peers.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (this.peers.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+  }
+
+  /** 점수와 동률일 때는 서버가 준 자리 순서를 써서 전원이 같은 보고를 만든다. */
+  orderFor(scores: readonly number[]): string[] | null {
+    if (!this.ready || scores.length !== this.seats) return null;
+    return scores.map((score, i) => ({ id: this.idsBySeat[i], score, i }))
+      .sort((a, b) => b.score - a.score || a.i - b.i)
+      .map((row) => row.id);
+  }
 }
 
 export interface Reported {

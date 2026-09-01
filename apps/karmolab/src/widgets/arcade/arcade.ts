@@ -59,6 +59,7 @@ import {
   saveTape,
   tapeFromUrl,
   tapeLink,
+  RankedRoster,
   type Ranked,
   type RankedMatch,
   type RankRoom
@@ -2681,7 +2682,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function sendBoard(v: MatchView<unknown>, now: number): void {
       if (!net?.host) return;
       const g = gameById(gameId);
-      const base = { game: gameId, now, seatOf };
+      const base = { game: gameId, now, seatOf, rankRoster: rankedRoster?.sync() ?? [] };
       if (!g?.redact) {
         net.sync({ ...base, v: v as unknown as Json });
         return;
@@ -3588,6 +3589,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
     let rankedMatch: RankedMatch | null = null;
+    let rankedRoster: RankedRoster | null = null;
 
     /**
      * 짝이 났는데 못 붙는 경우 (2026-09-01, 레퍼런스 대조)
@@ -3635,10 +3637,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      */
     async function tellRanked(v: MatchView<unknown>, draw: boolean): Promise<void> {
       const m = rankedMatch;
-      if (!m || mySeat < 0 || v.seats.length !== 2) return;
-      const mine = v.seats[mySeat]?.score ?? 0;
-      const yours = v.seats[1 - mySeat]?.score ?? 0;
-      const order = mine >= yours ? [m.you, m.rival] : [m.rival, m.you];
+      const order = rankedRoster?.orderFor(v.seats.map((seat) => seat.score));
+      if (!m || mySeat < 0 || !order) return;
       /* 먼저 보고한 쪽은 그 자리에서 답을 못 받음. 상대가 아직 안 보냈기 때문
          - 같은 보고를 다시 던져 확인. 서버는 같은 판을 두 번 안 적고 결과만 돌려줌
          - 세 번(약 12초)까지. 그 안에 상대가 안 보내면 점수는 그대로 대기 */
@@ -3667,6 +3667,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let ranked: Ranked | null = null;
     /** 등급전 방은 상대 도착 순간 시작. 시작 버튼을 누를 사람이 없음 */
     let autoStart = false;
+
+    function maybeAutoStart(): void {
+      if (!autoStart || match || !rankedRoster || peers.length < rankedRoster.seats - 1 || !rankedRoster.ready) return;
+      autoStart = false;
+      startTogether();
+    }
 
     function openRoom(id: string, publicly = false, fixed?: string): void {
       /* 이미 방을 들고 있으면 새로 파지 않는다. 그게 방 유지의 전부다. */
@@ -3704,15 +3710,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           /* 사람이 드나든 그 순간에 알린다. 주기를 기다리면 초대 카드가 한동안 거짓말을 함 */
           if (was !== list.length) held?.poke();
           /* 등급전: 서버가 붙여 준 상대 도착 시 즉시 시작. 둘째 사람 대기 없음 */
-          if (autoStart && peers.length >= 1 && !match) {
-            autoStart = false;
-            startTogether();
-          }
+          maybeAutoStart();
         },
         onAct: (peerId, data) => {
+          const meta = (data as { meta?: string }).meta;
+          if (rankedRoster?.acceptPeerMeta(peerId, meta)) { maybeAutoStart(); return; }
           const seat = seatOf[peerId];
           if (seat === undefined) return;
-          const meta = (data as { meta?: string }).meta;
           if (meta) {
             onMeta(seat, meta);
             return;
@@ -3800,7 +3804,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           ranked = null;
           rankedTick?.();
           rankedTick = null;
-          rankedMatch = { code: m.code, you: m.you, rival: m.rival };
+          rankedMatch = { code: m.code, you: m.you, ids: m.ids, seat: m.seat };
+          rankedRoster = new RankedRoster(rankedMatch, m.host);
           watchLink();
           if (m.host) {
             /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
@@ -3873,7 +3878,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           $<HTMLElement>('#acOver').style.display = '';
         },
         onSync: (data) => {
-          const p = data as unknown as { game: string; now: number; seatOf: Record<string, number>; v: MatchView<unknown> };
+          const p = data as unknown as { game: string; now: number; seatOf: Record<string, number>; rankRoster?: string[]; v: MatchView<unknown> };
           if (!p?.v) return;
           if (gameId !== p.game) {
             gameId = p.game;
@@ -3884,6 +3889,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
             loop();
           }
           seatOf = p.seatOf || {};
+          rankedRoster?.applySync(p.rankRoster);
           /* **자리가 없으면 -1.** 0 으로 두면 구경꾼이 제가 1번 자리인 줄 알고 수를 두려 든다
              (주인이 흘리므로 판은 안 깨지지만, 화면은 내 차례라고 말한다). */
           mySeat = seatOf[net?.selfId ?? ''] ?? -1;
@@ -3891,6 +3897,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           shadow = { v: p.v, now: p.now, at: performance.now() };
         }
       });
+      if (rankedRoster) net.act({ meta: rankedRoster.joinMeta() });
     }
 
     /** 주인이 판을 연다. 자리를 정하는 것은 주인 하나뿐이다. */
@@ -3908,7 +3915,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!card) return;
       /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로.
          색을 바꾸면 손님들이 앞에, 주인이 맨 뒤(둘이면 손님이 흑) */
-      const take = peers.slice(0, card.seats[1] - 1);
+      const take = (rankedRoster ? rankedRoster.orderPeers(peers) : peers).slice(0, card.seats[1] - 1);
       seatOf = {};
       take.forEach((p, i) => {
         seatOf[p.id] = swap ? i : i + 1;
@@ -4283,6 +4290,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ranked?.cancel();
       ranked = null;
       rankedMatch = null;
+      rankedRoster = null;
       autoStart = false;
       rankedTick?.();
       rankedTick = null;
