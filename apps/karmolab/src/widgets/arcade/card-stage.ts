@@ -212,7 +212,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
    * 18~32% 였다 (Classic Blackjack 18.5, 247 28, Arkadium 32). 우리는 10.4% 라
    * 무늬가 안 읽혔음. 상은 그대로 두고 카드만 키움
    */
-  const cardScale = casino ? tune('card', 1.6) : 1;
+  const cardScale = casino ? tune('card', 1.25) : 1;
   const TABLE_W = casino ? CASINO_W * deform : (opts.board?.w ?? TABLE_W_DEFAULT);
   const TABLE_D = casino ? CASINO_D * deform : (opts.board?.d ?? TABLE_D_DEFAULT);
   const TOP_Y = casino ? CASINO_TOP_Y * deform : TOP_Y_DEFAULT;
@@ -397,12 +397,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const rowOf = (seat: number, others: number[]): { x: number; z: number; s: number } => {
     if (casino && dressed) {
       /* 카지노 상. 사람은 반원 위에 나란히, 카드는 제 베팅 서클보다 딜러 쪽 */
-      if (seat < 0) return { x: 0, z: dressed.dealerZ - CARD_H * cardScale * 0.55, s: 1 };
+      if (seat < 0) return { x: 0, z: dressed.dealerZ - CARD_H * cardScale * 0.3, s: 1 };
       const n = seatCount;
       const order = seatOrder(n);
       const sp = dressed.spot(order.indexOf(seat), n);
       /* 손패는 제 서클보다 딜러 쪽으로 카드 한 장 반. 실물 상에서 카드를 놓는 자리 */
-      return { x: sp.x, z: sp.z - CARD_H * cardScale * 0.16, s: 1 };
+      return { x: sp.x, z: sp.z - CARD_H * cardScale * 0.62, s: 1 };
     }
     if (seat < 0) return { x: 0, z: rowZ(-1), s: 1 };
     if (seat === mySeat) return { x: 0, z: rowZ(seat), s: 1 };
@@ -586,14 +586,13 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       }
       /* 더 당긴다. 상이 다 보일 이유가 없다는 사용자 확정(2026-09-01, 세 번 지적).
          Classic Blackjack 도 상 좌우가 화면 밖으로 잘린다 */
-      dist *= 0.82;
+      dist *= 0.74;
       camera.position.set(0, TOP_Y + dist * sy, lookZ + dist * cz);
       camera.lookAt(0, TOP_Y, lookZ);
       /* 카드 면이 시선축과 직각이 되게. 상은 기울고 카드는 정면 */
-      /* 부호에 주의. 카드 면 법선(+Y)을 X 축으로 +만큼 돌려야 카메라 쪽
-         (2026-09-01 실측: 음수로 두니 카드가 칼날처럼 섰다) */
-      cardTilt = Math.PI / 2 - pitch;
-      for (const c of live) c.mesh.rotation.x = cardTilt;
+      /* 카드는 상에 눕힌다 (2026-09-01 사용자 확정). 카메라 쪽으로 세워 봤더니
+         상 위 물건이 아니라 화면에 붙인 그림이 됐다. 크기로만 읽히게 한다 */
+      cardTilt = 0;
     } else {
       camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
       /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
@@ -737,7 +736,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
            나가 잘린다 (2026-09-01 화면 실측 두 번) */
         /* 세운 카드는 뒤가 아니라 위로 솟는다. 이름표는 카드 앞(사람 쪽) 바닥에 */
         const up = h.seat < 0 ? -1 : 1;
-        const gap = cardTilt > 0.01 ? CARD_H * cardScale * Math.cos(cardTilt) * 0.5 + 0.3 : CARD_H / 2 + 0.24;
+        /* 카드가 커진 만큼 이름표도 물러난다. 안 그러면 카드에 깔림 */
+        const gap = (CARD_H * cardScale) / 2 + 0.34;
         tag.position.set(row.x, TOP_Y + 0.004, row.z + up * gap * row.s);
         labelGroup.add(tag);
       }
