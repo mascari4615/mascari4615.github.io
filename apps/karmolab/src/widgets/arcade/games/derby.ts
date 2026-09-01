@@ -165,10 +165,14 @@ export const derby: GameDef<DerbyState, DerbyAction> = {
 
   bot(s, seat, ctx): BotMove<DerbyAction> | null {
     if (s.over || s.since !== 0 || s.bet[seat] !== null) return null;
-    /* 봇은 배당이 큰 말을 좋아한다. 사람과 다른 쪽에 걸어야 판이 재밌다. */
-    const pick = s.horses
-      .map((_, i) => ({ i, o: odds(s.horses, i) }))
-      .sort((a, b) => b.o - a.o)[Math.floor(ctx.rng() * 2)];
+    /**
+     * 배당이 제일 큰 말만 고르면 봇이 매번 다 잃어 아무도 못 딴 채 끝남
+     * (2026-09-01 실측: 저울 무승부율 0.665). 가운데 배당을 좋아하되 가끔 크게 지름
+     */
+    const ranked = s.horses.map((_, i) => ({ i, o: odds(s.horses, i) })).sort((a, b) => a.o - b.o);
+    const roll = ctx.rng();
+    const at = roll < 0.55 ? 1 + Math.floor(ctx.rng() * 2) : roll < 0.85 ? 0 : ranked.length - 1 - Math.floor(ctx.rng() * 2);
+    const pick = ranked[Math.max(0, Math.min(ranked.length - 1, at))];
     const amount = 20 + Math.floor(ctx.rng() * 40);
     return { action: { horse: pick.i, amount }, delayMs: 800 + ctx.rng() * 800 };
   }
