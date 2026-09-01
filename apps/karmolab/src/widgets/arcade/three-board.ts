@@ -11,7 +11,7 @@
  * 이 파일도, three 도 안 받는다.
  */
 import {
-  ACESFilmicToneMapping,
+  
   AmbientLight,
   BoxGeometry,
   CanvasTexture,
@@ -27,7 +27,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   PCFShadowMap,
-  PCFSoftShadowMap,
+  
   PerspectiveCamera,
   PlaneGeometry,
   Raycaster,
@@ -46,12 +46,13 @@ import {
   SRGBColorSpace,
   Vector2,
   Vector3,
-  WebGLRenderer
+  
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
 import { cloudTexture, clothTexture, contactTexture, coordTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 import type { SceneId } from './scenes';
 import { buildRoom, type Room } from './rooms';
+import { mountStageCore } from './stage-core';
 
 /** 판 위 한 알. 색은 자리 번호(1, 2...)가 정한다. */
 export interface Stone {
@@ -165,42 +166,25 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const margin = cross ? CELL * 0.62 : 0;
   const size = span + margin * 2;
 
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'display:block;width:100%;height:100%;outline:none';
-  canvas.tabIndex = 0;
-  host.appendChild(canvas);
-
-  let renderer: WebGLRenderer;
-  try {
-    renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
-  } catch {
-    host.removeChild(canvas);
+  /**
+   * 판의 밑동은 `stage-core.ts` 한 곳 (2026-09-01)
+   *
+   * - 캔버스와 초점, 그리개, GPU 판별, 색공간, 그림자, 톤 매핑, 크기 맞추기, 치우기
+   * - 야추 주사위 무대(`dice-stage.ts`)가 먼저 옮겨 갔고 여기가 남아 두 벌이었음
+   * - 방은 PCF 와 톤 매핑. PCFSoft 는 화소마다 표본이 몇 배라 1648x842 캔버스에서
+   *   프레임이 40~100ms 로 튐(실측). 톤 매핑이 없으면 나무와 흰 알의 밝은 면이 뭉개짐
+   *   노출 1.0. 1.22 로 두니 나무가 하얗게 떴음(실측)
+   */
+  const core = mountStageCore(host, {
+    shadow: room ? 'hard' : 'soft',
+    exposure: room ? 1.0 : 0,
+    /* 방은 화소 상한 1.5. 2 로 두면 1648x842 가 3.1M 화소. 판만이면 2 */
+    maxPixelRatio: room ? 1.5 : 2
+  });
+  if (!core) {
     return { place: () => {}, finish: () => {}, ghost: () => {}, coords: () => {}, advise: () => {}, resize: () => {}, dispose: () => {}, ok: false, software: false };
   }
-  /* GPU 이름. WARP(Basic Render Driver), SwiftShader, llvmpipe 면 CPU 로 그리는 중 */
-  const gpuName = ((): string => {
-    try {
-      const gl = renderer.getContext();
-      const ext = gl.getExtension('WEBGL_debug_renderer_info');
-      return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : 'gpu ?';
-    } catch {
-      return 'gpu ?';
-    }
-  })();
-  const software = /Basic Render Driver|SwiftShader|llvmpipe|Software/i.test(gpuName);
-  renderer.outputColorSpace = SRGBColorSpace;
-  renderer.shadowMap.enabled = true;
-  /* 방 표현은 PCF. PCFSoft 는 화소마다 표본이 몇 배라 1648x842 캔버스에서 프레임이 40~100ms 로 튀었다(실측) */
-  renderer.shadowMap.type = room ? PCFShadowMap : PCFSoftShadowMap;
-  /**
-   * 톤 매핑. 이게 없으면 밝은 데가 흰색으로 뭉개지고 어두운 데는 그냥 검다 . 
-   * 나무와 흰 알처럼 **밝은 면이 넓은** 그림에서 차이가 크다(레퍼런스는 흰 알의 하이라이트가
-   * 타지 않고 결이 남아 있음). 노출은 1.0. 1.22 로 두니 나무가 하얗게 떴다(실측)
-   */
-  if (room) {
-    renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
-  }
+  const { canvas, renderer, software, gpuName } = core;
 
   const scene = new Scene();
   /* 방 표현은 화각을 조금 넓힌다. 판 옆면과 앞줄, 뒷줄의 차이가 보여야 판이 두께를 가진다 */
@@ -694,12 +678,8 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   let resizes = 0;
   const resize = (): void => {
     resizes += 1;
-    const w = host.clientWidth || 1;
-    const h = host.clientHeight || 1;
-    /* 방 표현은 화소 상한 1.5. 2 로 두면 1648x842 가 3.1M 화소가 된다 */
-    renderer.setPixelRatio(Math.min(room ? 1.5 : 2, window.devicePixelRatio || 1));
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
+    const { aspect } = core.fit();
+    camera.aspect = aspect;
     camera.updateProjectionMatrix();
     need = true;
     render();
@@ -1053,8 +1033,7 @@ ${jit}  screen ${screen.width}x${screen.height}  move ${moves * 4}/s  hidden ${d
       sideMap.dispose();
       /* 방 재료는 방이 거둔다 */
       roomKit?.dispose();
-      renderer.dispose();
-      canvas.remove();
+      core.dispose();
     }
   };
 }
