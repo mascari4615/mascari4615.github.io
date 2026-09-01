@@ -6,7 +6,7 @@ export interface OpenAiCompatOptions {
     apiKey?: string;
     /** Optional default model id (override 가능) */
     defaultModel?: string;
-    /** OpenRouter 추천 헤더 (app 식별·랭킹) */
+    /** OpenRouter 추천 헤더 (app 식별, 랭킹) */
     httpReferer?: string;
     appTitle?: string;
 }

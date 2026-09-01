@@ -1,9 +1,9 @@
 "use strict";
-// TASK-KAR-115-A — Ollama (local self-host) 어댑터.
+// TASK-KAR-115-A. Ollama (local self-host) 어댑터.
 //
 // Ollama HTTP API: POST {base}/api/chat. messages = [{role,content}] OpenAI-호환.
 // 별도 SDK 의존 X. API key 불요 (로컬). vLLM/SGLang 은 OpenAI-호환이라
-// openai-compat.ts 사용 — Ollama 만 응답 shape 가 다르므로 분리.
+// openai-compat.ts 사용. Ollama 만 응답 shape 가 다르므로 분리.
 //
 // 정본 cross-cut: assistant-provider.ts § P1-A.
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -53,7 +53,7 @@ function ollamaConfigFromEnv(env) {
     const explicitUrl = env.OLLAMA_BASE_URL?.trim();
     const explicitModel = env.OLLAMA_MODEL?.trim();
     // explicit URL 또는 model 둘 중 하나라도 있으면 활성. 둘 다 없으면 비활성
-    // (로컬 Ollama 미사용 환경 — silent skip).
+    // (로컬 Ollama 미사용 환경. silent skip).
     if (!explicitUrl && !explicitModel)
         return null;
     return {

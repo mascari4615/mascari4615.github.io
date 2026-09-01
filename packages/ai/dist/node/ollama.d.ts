@@ -10,7 +10,7 @@ export declare function generateOllamaText(opts: {
     modelId?: string | null;
     messages: OpenAiMessage[];
     signal?: AbortSignal;
-    /** Ollama options (temperature / num_predict 등) — 그대로 전달 */
+    /** Ollama options (temperature / num_predict 등). 그대로 전달 */
     options?: Record<string, unknown>;
 }): Promise<{
     text: string;

@@ -162,13 +162,13 @@ async function generateAssistantText(env, prompt, opts = {}) {
         }
         catch (e) {
             lastError = e instanceof Error ? e : new Error(String(e));
-            // 다음 fallback 으로 진행 — silent. caller 가 chain 결과만 받음.
+            // 다음 fallback 으로 진행. silent. caller 가 chain 결과만 받음.
             // (debug 시 process.env.ASSISTANT_AI_DEBUG=1 로 stderr.)
             if (env.ASSISTANT_AI_DEBUG === '1') {
                 process.stderr.write(`[assistant-provider] ${provider} 실패: ${lastError.message}\n`);
             }
         }
     }
-    // 체인 모두 실패 — 마지막 에러 throw (caller 가 진단 가능).
+    // 체인 모두 실패. 마지막 에러 throw (caller 가 진단 가능).
     throw lastError ?? new Error('assistant-provider: 사용 가능한 provider 가 없습니다.');
 }

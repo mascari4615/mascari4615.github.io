@@ -1,6 +1,6 @@
 /**
- * KarmoLabAI — Google Generative AI 공통 계약 (AI Studio + Vertex AI).
- * 브라우저/Node 공통: 모델 카탈로그, REST URL 조립, 문서·기본 리전 등. fetch·키 저장 없음.
+ * KarmoLabAI. Google Generative AI 공통 계약 (AI Studio + Vertex AI).
+ * 브라우저/Node 공통: 모델 카탈로그, REST URL 조립, 문서, 기본 리전 등. fetch, 키 저장 없음.
  * Node에서 `@google/generative-ai` 호출까지 맞출 때는 서브패스 `@karmo/ai/node` 참고.
  */
 export type GoogleGenerativeSurface = 'aiStudio' | 'vertex';
@@ -25,12 +25,12 @@ export declare function buildVertexPublisherModelUrl(opts: {
 }): string;
 export declare const DOC_URL_AI_STUDIO_API_KEY = "https://aistudio.google.com/app/apikey";
 export declare const DOC_URL_VERTEX_API_KEYS = "https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys";
-/** 스크립트·봇 env 이름 (참고용, 런타임 읽기 없음) */
+/** 스크립트, 봇 env 이름 (참고용, 런타임 읽기 없음) */
 export declare const ENV_GOOGLE_AI: {
-    /** AI Studio 스타일 API 키 (욘봇·카카오 스크립트 등) */
+    /** AI Studio 스타일 API 키 (욘봇, 카카오 스크립트 등) */
     readonly apiKey: "GEMINI_API_KEY";
     readonly modelOverride: "GEMINI_MODEL";
-    /** `aiStudio`(기본) 또는 `vertex` — `KARMO_AI_SURFACE` 우선, 없으면 `GEMINI_SURFACE` */
+    /** `aiStudio`(기본) 또는 `vertex`. `KARMO_AI_SURFACE` 우선, 없으면 `GEMINI_SURFACE` */
     readonly surfacePrimary: "KARMO_AI_SURFACE";
     readonly surfaceAlt: "GEMINI_SURFACE";
     readonly vertexApiKey: "VERTEX_API_KEY";
@@ -39,11 +39,11 @@ export declare const ENV_GOOGLE_AI: {
 };
 export type ModelProvider = 'gemini' | 'geminiImage' | 'imagen' | 'embedding';
 /**
- * 텍스트 모델 가격·품질 tier (provider-agnostic 라벨).
+ * 텍스트 모델 가격, 품질 tier (provider-agnostic 라벨).
  *
- * - **lite**: 짧은 voicing/말투 보정·요약·라벨링. 응답 ≤ 200자. 가격 최저(2.5-flash 대비 ~1/3).
- * - **standard**: 일반 챗봇·QA·코드 설명. 사용자 가시 응답. (현 default — 2.5-flash)
- * - **pro**: 복잡 추론·긴 컨텍스트. /yawn 「깊게」 모드 등.
+ * - **lite**: 짧은 voicing/말투 보정, 요약, 라벨링. 응답 ≤ 200자. 가격 최저(2.5-flash 대비 ~1/3).
+ * - **standard**: 일반 챗봇, QA, 코드 설명. 사용자 가시 응답. (현 default. 2.5-flash)
+ * - **pro**: 복잡 추론, 긴 컨텍스트. /yawn 깊게 모드 등.
  *
  * env 오버라이드 `GEMINI_MODEL_LITE` / `GEMINI_MODEL_STANDARD` / `GEMINI_MODEL_PRO`.
  * 다른 provider 추가 시 동일 라벨 매핑 (예: OpenAI lite=gpt-4o-mini / standard=gpt-4o).
@@ -53,12 +53,12 @@ export interface ModelEntry {
     id: string;
     name: string;
     isDefault?: boolean;
-    /** 텍스트 Gemini 한정: 가격·품질 tier 라벨. 미지정 = standard 폴백 X (resolver 가 isDefault 사용). */
+    /** 텍스트 Gemini 한정: 가격, 품질 tier 라벨. 미지정 = standard 폴백 X (resolver 가 isDefault 사용). */
     tier?: GeminiTextTier;
 }
 export declare const MODEL_CATALOG: Record<ModelProvider, ModelEntry[]>;
 export declare function getDefaultModelId(provider: ModelProvider): string;
-/** 텍스트 generateContent 기본 모델 (AI Studio·Vertex 동일 모델 ID 문자열) */
+/** 텍스트 generateContent 기본 모델 (AI Studio, Vertex 동일 모델 ID 문자열) */
 export declare const DEFAULT_TEXT_MODEL_ID: string;
 /**
  * tier 라벨 → Gemini 모델 id 해소. 우선순위:
@@ -67,7 +67,7 @@ export declare const DEFAULT_TEXT_MODEL_ID: string;
  *  3. tier=standard 면 `DEFAULT_TEXT_MODEL_ID`, 그 외엔 default 폴백
  *
  * tier 별 보장: lite ≥ 1/3 가격, pro ≥ 표준 품질. 새 모델 추가 시 `tier` 만 박으면
- * 자동 채택 — caller 코드 변경 불요 (확장성 핵심).
+ * 자동 채택. caller 코드 변경 불요 (확장성 핵심).
  */
 export declare function getGeminiModelIdForTier(tier: GeminiTextTier, env?: {
     GEMINI_MODEL_LITE?: string;

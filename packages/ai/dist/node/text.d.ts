@@ -5,7 +5,7 @@ export type ChatContent = {
         text: string;
     }];
 };
-/** generate 호출 결과 — text + usage 한 묶음. (TASK-KAR-145) */
+/** generate 호출 결과. text + usage 한 묶음. (TASK-KAR-145) */
 export interface GeminiGenerateResult {
     text: string;
     usage: GenerationUsage;
@@ -14,7 +14,7 @@ export interface GeminiGenerateResult {
 }
 export declare function resolveAiStudioTextModelId(modelFromEnv?: string | null): string;
 /**
- * model id 해소 — tier(있으면) → env override(GEMINI_MODEL_*) → modelId param → GEMINI_MODEL env → default.
+ * model id 해소. tier(있으면) → env override(GEMINI_MODEL_*) → modelId param → GEMINI_MODEL env → default.
  * 우선순위 정렬: explicit modelId param 이 tier 보다 위. tier 는 caller 의 "용도 라벨", modelId 는 강제 지정.
  */
 export declare function resolveGeminiModelId(opts: {
@@ -66,7 +66,7 @@ export declare function generateVertexText(opts: {
     modelId: string;
 }>;
 /**
- * `vertex` | `vertex_ai` | `gcp_vertex` → Vertex, 그 외·비어 있음 → AI Studio.
+ * `vertex` | `vertex_ai` | `gcp_vertex` → Vertex, 그 외, 비어 있음 → AI Studio.
  */
 export declare function parseGenerativeSurfaceFromEnv(env?: NodeJS.ProcessEnv): GoogleGenerativeSurface;
 export type GenerativeTextClient = {
@@ -81,7 +81,7 @@ export type GenerativeSurfaceOverride = 'inherit' | 'aiStudio' | 'vertex';
  * `surface: inherit` 이면 `KARMO_AI_SURFACE` 등과 동일 규칙.
  *
  * **TASK-KAR-145 확장**: `tier`/`tag`/`onUsage`/`systemInstruction` 추가.
- * - `tier`: lite/standard/pro 라벨 — `getGeminiModelIdForTier` 로 해소.
+ * - `tier`: lite/standard/pro 라벨. `getGeminiModelIdForTier` 로 해소.
  *   `modelId` 명시 시 tier 무시 (explicit > tier).
  * - `tag`: telemetry 분류 라벨 (`yawnbot/voiced-worker` 등). usage 로그에 포함.
  * - `onUsage`: per-call 콜백. 전역 recorder(`KARMOLAB_AI_USAGE_LOG=1`) 와 둘 다 호출.
@@ -105,9 +105,9 @@ export declare function generateBlobTextFromEnvWithOptions(env: NodeJS.ProcessEn
  * `.env` 기준으로 호출 가능한 텍스트 클라이언트를 만듦. 자격이 없으면 `null`.
  *
  * - **AI Studio (기본):** `GEMINI_API_KEY` 필수, `GEMINI_MODEL` 선택
- * - **Vertex:** `KARMO_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`·`GEMINI_MODEL` 선택
+ * - **Vertex:** `KARMO_AI_SURFACE=vertex`(또는 `GEMINI_SURFACE`) + `VERTEX_API_KEY`, `VERTEX_PROJECT_ID` 필수, `VERTEX_LOCATION`, `GEMINI_MODEL` 선택
  *
- * TASK-KAR-145: tier 옵션 추가. 클라이언트 생성 시점에 tier 고정 — 호출별 가변 케이스는
+ * TASK-KAR-145: tier 옵션 추가. 클라이언트 생성 시점에 tier 고정. 호출별 가변 케이스는
  * `generateBlobTextFromEnvWithOptions` 직접 사용.
  */
 export declare function tryCreateGenerativeTextFromEnv(env?: NodeJS.ProcessEnv, opts?: {

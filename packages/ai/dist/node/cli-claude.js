@@ -57,7 +57,7 @@ async function generateClaudeCliText(opts) {
             // 고정 세션: 항상 같은 세션 이름으로 영구 세션 유지
             // 첫 호출: --continue --name yawnbot-assistant (세션 생성 + 이름 지정)
             // 이후 호출: --resume yawnbot-assistant (이름으로 재개)
-            // oneShot: 세션 미사용 단발(워커 — 공유세션 충돌 0).
+            // oneShot: 세션 미사용 단발(워커. 공유세션 충돌 0).
             const args = opts.oneShot
                 ? opts.cwd
                     ? ['--print', '--no-session-persistence', '--dangerously-skip-permissions']
@@ -87,19 +87,19 @@ async function generateClaudeCliText(opts) {
             }, timeout);
             child.on('close', (code) => {
                 clearTimeout(timer);
-                // KAR-018-Y: agentic 모드(opts.cwd)는 도구로 파일·git 작업 →
+                // KAR-018-Y: agentic 모드(opts.cwd)는 도구로 파일, git 작업 →
                 // stdout prose 가 비어도 exit 0 = 성공(산출물=git 커밋/브랜치,
                 // stdout 아님). prod WM-109 실증: exit0+빈stdout 을 error 로
-                // 오분류해 성공 agentic 실작업이 폐기·쿨다운됐음. text-gen
+                // 오분류해 성공 agentic 실작업이 폐기, 쿨다운됐음. text-gen
                 // 모드(cwd 없음)는 빈 stdout=실패 유지(불변).
                 if (code === 0 && (stdout.trim() || opts.cwd)) {
                     resolve(stdout.trim());
                 }
                 else {
                     // KAR-CLAUDE-DIAG: claude CLI 가 인증 실패 등 silent failure 시
-                    // stderr 비고 stdout 으로 'Not logged in · Please run /login' 박는
+                    // stderr 비고 stdout 으로 'Not logged in, Please run /login' 박는
                     // 케이스 실증(LocalSystem nssm 컨텍스트, 2026-05-20). stderr 만
-                    // 박으면 「종료 코드 1: 」 휑한 메시지 → 진단 12h 마비. stdout/cwd/
+                    // 박으면 종료 코드 1:  휑한 메시지 → 진단 12h 마비. stdout/cwd/
                     // exit 함께 박아 silent failure 본문이 디스코드까지 도달하게.
                     const stderrSnip = (stderr || '').trim().slice(0, 1200) || '<stderr empty>';
                     const stdoutSnip = (stdout || '').trim().slice(0, 600) || '<stdout empty>';
@@ -139,23 +139,23 @@ async function generateClaudeCliText(opts) {
 /**
  * ⑦' 자율 발굴 전용 *비-agentic* claude CLI 인자 (KAR-018-W 안전 근본).
  *
- * 황금의 정신 — 가설 X, 2026-05-17 실 dev 봇 관측 + 로컬 재현으로 확정:
- *  · `--bare` 채택 → **EXIT 1 "Not logged in"**: --bare 는 OAuth/keychain
+ * 황금의 정신. 가설 X, 2026-05-17 실 dev 봇 관측 + 로컬 재현으로 확정:
+ * , `--bare` 채택 → **EXIT 1 "Not logged in"**: --bare 는 OAuth/keychain
  *    을 절대 안 읽음(help 명시). 사용자 환경=Claude Max OAuth(API키 없음)
  *    → 인증 불가. `--bare` *제거* 가 근본 (안전 요건 아니었음).
- *  · 그러나 --bare 없으면 claude 가 *프로젝트 CLAUDE.md(거대 karmoddrine
- *    거버넌스) 자동탐색* → 모델이 풀-에이전트로 거부·역질문(발굴 불성립).
- *  · 해소: cwd = **함수 내부 생성 빈 임시 디렉토리**. CLAUDE.md walk-up
+ * , 그러나 --bare 없으면 claude 가 *프로젝트 CLAUDE.md(거대 karmoddrine
+ *    거버넌스) 자동탐색* → 모델이 풀-에이전트로 거부, 역질문(발굴 불성립).
+ * , 해소: cwd = **함수 내부 생성 빈 임시 디렉토리**. CLAUDE.md walk-up
  *    이 karmoddrine 트리 밖이라 오염 0 + OAuth 생존 + `--disallowedTools`
  *    + skip-perm 없음 → 빈 throwaway dir 라 agentic 불가(실측: 파일 0).
  * 결정적 하드 보장:
- *  · 시그니처에 cwd 파라미터 *부재* → caller 가 repo 를 못 가리킴 (임시
- *    dir 은 함수가 소유·생성·정리). 런타임 플래그 아닌 타입레벨 안전.
- *  · `--disallowedTools <쓰기·실행 전부>` → 도구 명시 거부
- *  · `--dangerously-skip-permissions` 미부여 (cwd=빈 dir 라 무의미)
- *  · `--no-session-persistence` → 공유 `yawnbot-assistant` 세션 경합 0
- *  · `--strict-mcp-config` (+ --mcp-config 미부여) → MCP 서버 spawn 0
- *  · `--continue`/`--resume`/`--name` 없음 → 무상태 단발
+ * , 시그니처에 cwd 파라미터 *부재* → caller 가 repo 를 못 가리킴 (임시
+ *    dir 은 함수가 소유, 생성, 정리). 런타임 플래그 아닌 타입레벨 안전.
+ * , `--disallowedTools <쓰기, 실행 전부>` → 도구 명시 거부
+ * , `--dangerously-skip-permissions` 미부여 (cwd=빈 dir 라 무의미)
+ * , `--no-session-persistence` → 공유 `yawnbot-assistant` 세션 경합 0
+ * , `--strict-mcp-config` (+ --mcp-config 미부여) → MCP 서버 spawn 0
+ * , `--continue`/`--resume`/`--name` 없음 → 무상태 단발
  */
 const DISCOVERY_DISALLOWED_TOOLS = 'Bash Edit Write Read NotebookEdit Glob Grep Task WebFetch WebSearch';
 function buildDiscoveryArgs() {
@@ -169,28 +169,28 @@ function buildDiscoveryArgs() {
 }
 /**
  * 로컬 `claude` CLI 로 *비-agentic* 단발 텍스트 생성 (⑦' 발굴 전용).
- * cwd 인자가 시그니처에 *없다* — 함수가 빈 임시 디렉토리를 만들어 cwd 로
+ * cwd 인자가 시그니처에 *없다*. 함수가 빈 임시 디렉토리를 만들어 cwd 로
  * 쓰고(청정 컨텍스트 = CLAUDE.md 오염 차단, agentic 차단) 종료 시 정리.
- * 무상태 — resume/세션 저장 X (공유 세션 비경합).
+ * 무상태. resume/세션 저장 X (공유 세션 비경합).
  */
 async function generateDiscoveryText(opts) {
     const cmd = process.env.CLAUDE_CLI_COMMAND?.trim() || 'claude';
     const timeout = opts.timeoutMs ?? parseInt(process.env.CLAUDE_CLI_TIMEOUT_MS || '60000', 10);
-    // 함수 소유 빈 임시 cwd — caller 불가침. 청정 컨텍스트 + agentic 차단.
+    // 함수 소유 빈 임시 cwd. caller 불가침. 청정 컨텍스트 + agentic 차단.
     const cleanCwd = fs.mkdtempSync(path.join(os.tmpdir(), 'yb-discovery-'));
     const cleanup = () => {
         try {
             fs.rmSync(cleanCwd, { recursive: true, force: true });
         }
         catch {
-            /* best-effort — OS tmp 가 결국 회수 */
+            /* best-effort. OS tmp 가 결국 회수 */
         }
     };
     return new Promise((resolve, reject) => {
         const child = (0, child_process_1.spawn)(cmd, buildDiscoveryArgs(), {
             stdio: ['pipe', 'pipe', 'pipe'],
             windowsHide: true,
-            cwd: cleanCwd, // 빈 dir — 도구 거부 + skip-perm 없음 → agentic 불가
+            cwd: cleanCwd, // 빈 dir. 도구 거부 + skip-perm 없음 → agentic 불가
         });
         let stdout = '';
         let stderr = '';

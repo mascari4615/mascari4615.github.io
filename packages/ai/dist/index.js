@@ -1,7 +1,7 @@
 "use strict";
 /**
- * KarmoLabAI — Google Generative AI 공통 계약 (AI Studio + Vertex AI).
- * 브라우저/Node 공통: 모델 카탈로그, REST URL 조립, 문서·기본 리전 등. fetch·키 저장 없음.
+ * KarmoLabAI. Google Generative AI 공통 계약 (AI Studio + Vertex AI).
+ * 브라우저/Node 공통: 모델 카탈로그, REST URL 조립, 문서, 기본 리전 등. fetch, 키 저장 없음.
  * Node에서 `@google/generative-ai` 호출까지 맞출 때는 서브패스 `@karmo/ai/node` 참고.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -47,12 +47,12 @@ function buildVertexPublisherModelUrl(opts) {
 // ─── 문서 / 온보딩 URL ───────────────────────────────────────────────────
 exports.DOC_URL_AI_STUDIO_API_KEY = 'https://aistudio.google.com/app/apikey';
 exports.DOC_URL_VERTEX_API_KEYS = 'https://cloud.google.com/vertex-ai/generative-ai/docs/start/api-keys';
-/** 스크립트·봇 env 이름 (참고용, 런타임 읽기 없음) */
+/** 스크립트, 봇 env 이름 (참고용, 런타임 읽기 없음) */
 exports.ENV_GOOGLE_AI = {
-    /** AI Studio 스타일 API 키 (욘봇·카카오 스크립트 등) */
+    /** AI Studio 스타일 API 키 (욘봇, 카카오 스크립트 등) */
     apiKey: 'GEMINI_API_KEY',
     modelOverride: 'GEMINI_MODEL',
-    /** `aiStudio`(기본) 또는 `vertex` — `KARMO_AI_SURFACE` 우선, 없으면 `GEMINI_SURFACE` */
+    /** `aiStudio`(기본) 또는 `vertex`. `KARMO_AI_SURFACE` 우선, 없으면 `GEMINI_SURFACE` */
     surfacePrimary: 'KARMO_AI_SURFACE',
     surfaceAlt: 'GEMINI_SURFACE',
     vertexApiKey: 'VERTEX_API_KEY',
@@ -100,7 +100,7 @@ function getDefaultModelId(provider) {
     const def = models.find((m) => m.isDefault);
     return def ? def.id : models[0].id;
 }
-/** 텍스트 generateContent 기본 모델 (AI Studio·Vertex 동일 모델 ID 문자열) */
+/** 텍스트 generateContent 기본 모델 (AI Studio, Vertex 동일 모델 ID 문자열) */
 exports.DEFAULT_TEXT_MODEL_ID = getDefaultModelId('gemini');
 /**
  * tier 라벨 → Gemini 모델 id 해소. 우선순위:
@@ -109,7 +109,7 @@ exports.DEFAULT_TEXT_MODEL_ID = getDefaultModelId('gemini');
  *  3. tier=standard 면 `DEFAULT_TEXT_MODEL_ID`, 그 외엔 default 폴백
  *
  * tier 별 보장: lite ≥ 1/3 가격, pro ≥ 표준 품질. 새 모델 추가 시 `tier` 만 박으면
- * 자동 채택 — caller 코드 변경 불요 (확장성 핵심).
+ * 자동 채택. caller 코드 변경 불요 (확장성 핵심).
  */
 function getGeminiModelIdForTier(tier, env) {
     if (env) {

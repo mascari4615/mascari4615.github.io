@@ -1,5 +1,5 @@
 "use strict";
-// TASK-KAR-115-A — OpenAI Chat Completions 호환 어댑터.
+// TASK-KAR-115-A. OpenAI Chat Completions 호환 어댑터.
 //
 // OpenAI / OpenRouter / vLLM / SGLang 등 OpenAI-API 호환 백엔드 공용.
 // 별도 SDK 의존 X (fetch 만). yawnbot 의 generateAssistantText 호출 경로에서
@@ -39,7 +39,7 @@ async function generateOpenAiCompatText(opts) {
     };
     if (opts.config.apiKey)
         headers['Authorization'] = `Bearer ${opts.config.apiKey}`;
-    // OpenRouter 권장 헤더 — 다른 백엔드는 무시.
+    // OpenRouter 권장 헤더. 다른 백엔드는 무시.
     if (opts.config.httpReferer)
         headers['HTTP-Referer'] = opts.config.httpReferer;
     if (opts.config.appTitle)

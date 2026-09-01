@@ -173,7 +173,7 @@ export async function generateVertexText(opts: {
 
 function readSurfaceRaw(env: NodeJS.ProcessEnv): string {
   /**
-   * 옛 이름(`KARMOLAB_AI_SURFACE`)은 **안 받는다**. 둘 다 받아 주면 이관이 영영 안 끝난다.
+   * 옛 이름(`KARMOLAB_AI_SURFACE`) 미지원. 동시 지원 시 이관 종료 불가
    *
    * 다만 **조용히 기본값으로 떨어지지도 않는다.** 옛 이름만 있는 기계는 설정이 깨진 것이므로
    * 여기서 소리 내어 죽인다. 안 그러면 그 기계는 Vertex 로 간다고 믿으면서 AI Studio 로 돌고,
