@@ -67,7 +67,7 @@ export const HEUNG_CSS = `
     .hu-guide[hidden] { display:none; }
     .hu-guide b { color:var(--accent-ink); letter-spacing:.06em; }
     .hu-guide em { font-style:normal; color:var(--text-primary); }
-    .hu-guide small { color:var(--text-tertiary); font:10px/1.35 var(--font-mono); }
+    .hu-guide small { color:var(--text-secondary); font:10px/1.35 var(--font-mono); }   /* 10px 라 4.5:1 이 필요하다. 흐린 잉크로는 4.4 (2026-09-01 실측) */
     .hu-lane-hint { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); font:10px var(--font-mono); opacity:.62; pointer-events:none; white-space:nowrap; }
     .hu-lane { position:relative; }
     .hu-track-row.is-folded .hu-lane-hint { display:none; }

@@ -53,7 +53,7 @@
        흰 글자는 2.45:1 이다. 사실상 안 읽힌다. 판마다 반대 색을 쓴다: 어두운 판 7.76, 밝은 판 6.31. */
     --accent-fg: #0f1016;
     /* 상태색으로 칠한 자리의 글자. 칠이 밝으면 어두운 잉크로 바꿔 끼운다 */
-    --status-fg: #ffffff;
+    --status-fg: #0f1016;   /* 어두운 판의 상태색은 밝다. 그 위 글자는 어두운 잉크 (흰 글자 3.84:1) */
     --modal-scrim: rgba(8, 8, 12, 0.62);
     --accent-hover: #bdb4f4;
     --accent-dim: rgba(167, 155, 239, 0.10);
@@ -4147,9 +4147,9 @@ html[data-skin="field"] .landing-title {
 html[data-skin="field"] .landing-pulse-line b { font-family: var(--font-display); font-size: var(--font-size-lg); }
 
 /* 옆줄. 번호, 계정 띠 */
-.nav-item-num { display: none; }
-html[data-skin="field"] .sidebar-list .nav-item { padding-right: 12px; }
-html[data-skin="field"] .nav-item-num {
+/* 줄 번호는 짜임이다. 스킨과 무관하게 뜬다 (2026-09-01) */
+.sidebar-list .nav-item { padding-right: 12px; }
+.nav-item-num {
     display: inline;
     margin-left: auto;
     font-family: var(--font-mono);
