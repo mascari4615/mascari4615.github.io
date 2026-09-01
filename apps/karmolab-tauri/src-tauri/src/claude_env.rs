@@ -1,11 +1,11 @@
-//! Claude 환경 컨트롤 위젯 — TASK-KL-056.
+//! AI 에이전트 환경 컨트롤 위젯. 기존 API 식별자 호환 유지.
 //!
-//! v1 = Claude Code Stop/Notification hook 의 사운드 알림 설정을 GUI 로 노출.
-//! 정본 = `karmoddrine/memo/dotfiles/claude-hooks/notify-{stop,notification}.ps1`.
-//! 변경 흐름: GUI → 정본 .ps1 편집 → `sync-claude-hooks.ps1` 호출 → `~/.claude/hooks/` 배포.
+//! 공통 Stop 및 지원 클라이언트의 Notification hook 사운드 설정을 GUI 로 노출.
+//! 정본: `karmoddrine/memo/dotfiles/agent-hooks/notify-{stop,notification}.ps1`.
+//! 변경 흐름: GUI → 정본 .ps1 편집 → `sync-agent-runtime.ps1` 호출 → `~/.karmoddrine/agent-hooks/` 배포.
 //!
 //! Step 1 = read 명령 (skeleton).
-//! Step 2 = write + sync (정본 .ps1 한 줄 교체 + sync-claude-hooks.ps1 호출).
+//! Step 2: write + sync (정본 .ps1 한 줄 교체 + sync-agent-runtime.ps1 호출).
 //! Step 3 = 미리듣기 (PowerShell shell-out, mode/sound 즉시 재생).
 //! Step 4 (별 PR / sub TASK) = .wav drag-drop.
 //!
@@ -59,11 +59,15 @@ const HOOK_WHITELIST: &[&str] = &["stop", "notification"];
 
 /// `karmoddrine/memo/dotfiles/` 정본 디렉토리 (sync 스크립트 부모).
 fn karmoddrine_dotfiles_dir() -> Result<PathBuf, String> {
-    let userprofile = std::env::var("USERPROFILE")
-        .map_err(|_| "USERPROFILE 환경 변수 없음 (Windows 전용)".to_string())?;
-    let dir = PathBuf::from(userprofile)
-        .join("repos")
-        .join("karmoddrine")
+    let workspace = match std::env::var("KARMODDRINE_ROOT") {
+        Ok(root) if !root.trim().is_empty() => PathBuf::from(root),
+        _ => {
+            let userprofile = std::env::var("USERPROFILE")
+                .map_err(|_| "USERPROFILE 환경 변수 없음 (Windows 전용)".to_string())?;
+            PathBuf::from(userprofile).join("repos").join("karmoddrine")
+        }
+    };
+    let dir = workspace
         .join("memo")
         .join("dotfiles");
     if !dir.exists() {
@@ -75,9 +79,9 @@ fn karmoddrine_dotfiles_dir() -> Result<PathBuf, String> {
     Ok(dir)
 }
 
-/// `karmoddrine/memo/dotfiles/claude-hooks/` 정본 디렉토리.
+/// `karmoddrine/memo/dotfiles/agent-hooks/` 정본 디렉토리.
 fn karmoddrine_dotfiles_root() -> Result<PathBuf, String> {
-    let root = karmoddrine_dotfiles_dir()?.join("claude-hooks");
+    let root = karmoddrine_dotfiles_dir()?.join("agent-hooks");
     if !root.exists() {
         return Err(format!(
             "정본 디렉토리 없음: {} — karmoddrine 레포 위치 확인.",
@@ -291,9 +295,9 @@ fn write_notify_ps1(path: &Path, hook: &NotifyHookConfig) -> Result<(), String> 
     Ok(())
 }
 
-/// `sync-claude-hooks.ps1` 호출 → (stdout, stderr).
-fn run_sync_claude_hooks() -> Result<(String, String), String> {
-    let script = karmoddrine_dotfiles_dir()?.join("sync-claude-hooks.ps1");
+/// `sync-agent-runtime.ps1` 호출 → (stdout, stderr).
+fn run_sync_agent_runtime() -> Result<(String, String), String> {
+    let script = karmoddrine_dotfiles_dir()?.join("sync-agent-runtime.ps1");
     if !script.exists() {
         return Err(format!("sync 스크립트 없음: {}", script.display()));
     }
@@ -303,7 +307,7 @@ fn run_sync_claude_hooks() -> Result<(String, String), String> {
     // (`복사 1, 동일 12` → `????`). -File 대신 -Command 로 OutputEncoding 을 UTF-8
     // 강제 후 script 호출 (정본 스크립트 본문은 안 건드림 — 다른 호출처와 분리).
     let ps_command = format!(
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & '{}'",
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & '{}' -Only hooks",
         script_str.replace('\'', "''")
     );
     let mut cmd = Command::new("powershell");
@@ -323,12 +327,12 @@ fn run_sync_claude_hooks() -> Result<(String, String), String> {
     }
     let output = cmd
         .output()
-        .map_err(|e| format!("sync-claude-hooks.ps1 spawn 실패: {}", e))?;
+        .map_err(|e| format!("sync-agent-runtime.ps1 spawn 실패: {}", e))?;
     let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
     let stderr = String::from_utf8_lossy(&output.stderr).into_owned();
     if !output.status.success() {
         return Err(format!(
-            "sync-claude-hooks.ps1 exit {} — stderr: {}",
+            "sync-agent-runtime.ps1 exit {}, stderr: {}",
             output.status, stderr
         ));
     }
@@ -341,7 +345,7 @@ fn write_notify_config_blocking(input: NotifyConfigInput) -> Result<WriteResultD
     let root = karmoddrine_dotfiles_root()?;
     write_notify_ps1(&root.join("notify-stop.ps1"), &input.stop)?;
     write_notify_ps1(&root.join("notify-notification.ps1"), &input.notification)?;
-    let (sync_stdout, sync_stderr) = run_sync_claude_hooks()?;
+    let (sync_stdout, sync_stderr) = run_sync_agent_runtime()?;
     Ok(WriteResultDto {
         canonical_root: root.to_string_lossy().into_owned(),
         sync_stdout,
@@ -459,7 +463,7 @@ pub async fn claude_env_read_notify_config() -> Result<NotifyConfigDto, String> 
     .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
 }
 
-/// 정본 .ps1 두 개를 받은 config 로 편집 + `sync-claude-hooks.ps1` 호출.
+/// 정본 .ps1 두 개를 받은 config 로 편집 + `sync-agent-runtime.ps1` 호출.
 /// IO 무거움 (.ps1 R/W + external PowerShell spawn) — async + spawn_blocking (KL-043 룰).
 #[tauri::command]
 pub async fn claude_env_write_notify_config(
@@ -588,7 +592,7 @@ mod tests {
         let ok = NotifyHookConfig {
             mode: "wav".into(),
             system_sound: Some("Asterisk".into()),
-            wav_path: Some(r"C:\Users\masca\.claude\hooks\sounds\stop.wav".into()),
+            wav_path: Some(r"C:\Users\tester\.karmoddrine\agent-hooks\sounds\stop.wav".into()),
         };
         assert!(validate_hook_config("stop", &ok).is_ok());
     }

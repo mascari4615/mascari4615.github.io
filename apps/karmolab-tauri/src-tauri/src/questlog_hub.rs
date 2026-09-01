@@ -5,7 +5,7 @@
 //   - ~/repos/karmoddrine/memo/.claude/active-sessions.md  (보드)
 //   - ~/repos/karmoddrine/memo/INDEX.md                    (룰 단일 출처 표)
 //   - 3 레포 git log -10                                    (memo / Mascari4615.github.io / WitchMendokusai)
-//   - ~/.claude/commands/, ~/.claude/hooks/                (도구 인벤토리)
+//   - ~/.claude/commands/, ~/.karmoddrine/agent-hooks/                (도구 인벤토리)
 //   - ~/.claude/settings.json                              (hooks 등록)
 //
 // 클라이언트는 invoke('get_questlog_hub') 로 호출, 주기 폴링.

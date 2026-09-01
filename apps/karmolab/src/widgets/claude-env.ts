@@ -1,10 +1,10 @@
 /**
- * Claude 환경 컨트롤 위젯. TASK-KL-056.
+ * AI 에이전트 환경 컨트롤 위젯. 파일명과 command ID 기존 설치 호환 유지.
  *
  * v1 = read + write/sync + 미리듣기 + 파일 선택 다이얼로그.
  * Stop/Notification hook 각각 mode (system/beep/wav) + system sound + sound file
- * (.wav/.mp3) 편집, 저장 시 정본 (memo/dotfiles/claude-hooks/notify-*.ps1) 편집
- * + sync-claude-hooks.ps1 호출.
+ * (.wav/.mp3) 편집, 저장 시 정본 (memo/dotfiles/agent-hooks/notify-*.ps1) 편집
+ * + sync-agent-runtime.ps1 호출.
  *
  * wav 모드: .wav = SoundPlayer / .mp3 = WPF MediaPlayer (KL-059).
  * .wav/.mp3 drag-drop (TASK-KL-059): 카드 전체 drop → path 자동입력 +

@@ -2,6 +2,21 @@
 
 This file provides context and operating rules for AI coding agents working in this repository.
 
+## Required shared rules
+
+Paths named here are not loaded automatically. Before editing, read:
+
+- `../memo/UMBRELLA.md`
+- `../memo/rules/process.md`
+- `../memo/rules/git.md`
+- `../memo/rules/quality.md`
+- `../memo/rules/persona.md`
+- `../memo/rules/code-style.md` for code changes
+- `../memo/rules/docs.md` for documentation changes
+- `../memo/rules/commit.md` before commit or push
+
+Start every change in a repository lane. The shared rules apply even when the AI client has no lifecycle-hook support. If this file conflicts with `CLAUDE.md`, the shared rules and this file take precedence for vendor-neutral behavior.
+
 ## Project Snapshot
 
 - Repository: mascari4615.github.io (monorepo; the site is assembled by Node. `apps/karmolab/scripts/assemble-site.mjs`. Jekyll/Chirpy were removed in the cutover)

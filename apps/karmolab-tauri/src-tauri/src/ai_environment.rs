@@ -83,6 +83,7 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
     let codex = home.join(".codex");
     let agents = home.join(".agents");
     let grok = home.join(".grok");
+    let agent_hooks = home.join(".karmoddrine").join("agent-hooks");
     let claude_settings = claude.join("settings.json");
     let codex_config = codex.join("config.toml");
     let grok_hooks = grok.join("hooks").join("karmoddrine.json");
@@ -112,16 +113,15 @@ pub fn ai_environment_audit() -> Result<EnvironmentAudit, String> {
         ],
     };
 
-    let claude_hooks = claude.join("hooks");
     let codex_hooks = codex.join("hooks.json");
     let hooks = EnvironmentFeature {
         id: "hooks",
         label: "훅",
         description: "세션·프롬프트·도구 호출 전후의 기계적 집행",
         vendors: vec![
-            state("claude", has_entries(&claude_hooks) && contains(&claude_settings, "\"hooks\""), false, "Claude hooks와 settings 배선", vec![claude_hooks.clone(), claude_settings.clone()]),
-            state("codex", (exists(&codex_hooks) || contains(&codex_config, "[hooks]")) && !contains(&codex_config, "hooks = false"), false, "Codex hooks.json 또는 config.toml hooks", vec![codex_hooks.clone(), codex_config.clone()]),
-            state("grok", exists(&grok_hooks), false, "Grok vendor-wrap 훅 등록", vec![grok_hooks.clone()]),
+            state("claude", has_entries(&agent_hooks) && contains(&claude_settings, "\"hooks\""), false, "공통 hook runtime과 Claude 배선", vec![agent_hooks.clone(), claude_settings.clone()]),
+            state("codex", has_entries(&agent_hooks) && (exists(&codex_hooks) || contains(&codex_config, "[hooks]")) && !contains(&codex_config, "hooks = false"), false, "공통 hook runtime과 Codex 배선", vec![agent_hooks.clone(), codex_hooks.clone(), codex_config.clone()]),
+            state("grok", has_entries(&agent_hooks) && exists(&grok_hooks), false, "공통 hook runtime과 Grok adapter", vec![agent_hooks.clone(), grok_hooks.clone()]),
         ],
     };
 

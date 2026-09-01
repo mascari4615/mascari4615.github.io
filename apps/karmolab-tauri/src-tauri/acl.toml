@@ -162,7 +162,7 @@ commands = [
 [[group]]
 name = "claude-env"
 identifier = "allow-claude-env"
-description = "Claude 환경 컨트롤 위젯 (TASK-KL-056) — karmoddrine/memo/dotfiles/claude-hooks 정본의 notify-*.ps1 설정 read/write + 미리듣기."
+description = "AI 에이전트 환경 컨트롤 위젯. karmoddrine/memo/dotfiles/agent-hooks 정본의 notify-*.ps1 설정 read/write + 미리듣기."
 commands = ["claude_env_read_notify_config", "claude_env_write_notify_config", "claude_env_preview_sound"]
 
 [[group]]
@@ -222,4 +222,3 @@ name = "files-window"
 identifier = "allow-files-window"
 description = "Files 전용 창을 연다 — 파일 화면은 카모랩 위젯이 아니라 자기 창에서 산다."
 commands = ["files_window_open", "files_navigate", "karmolab_navigate"]
-
