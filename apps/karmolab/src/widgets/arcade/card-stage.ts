@@ -316,7 +316,10 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       const e = 1 - (1 - k) * (1 - k) * (1 - k);
       c.mesh.position.lerpVectors(c.from, c.to, e);
       /* 날아가는 동안 살짝 뜬다. 멀리 갈수록 높이. 한 칸 옮기는데 크게 뜨면 과장스럽다 */
-      const hop = Math.min(0.35, c.from.distanceTo(c.to) * 0.11);
+      /* 뜨는 높이는 거리에 비례. 다만 제자리에서 도는 카드(딜러가 감춘 것을 여는 순간)는
+         거리가 0 이라 그냥 두면 상을 뚫고 도는 것처럼 보인다. 도는 값이 있으면 조금 띄운다 */
+      const spin = Math.abs(c.rTo - c.rFrom) > 0.1 ? 0.16 : 0;
+      const hop = Math.min(0.35, Math.max(c.from.distanceTo(c.to) * 0.11, spin));
       c.mesh.position.y += Math.sin(Math.PI * k) * hop;
       c.mesh.rotation.z = c.rFrom + (c.rTo - c.rFrom) * e;
       if (k < 1 || now < c.t0) busy = true;
