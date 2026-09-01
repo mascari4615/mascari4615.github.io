@@ -933,6 +933,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-root .ac-prsay{font-size:var(--font-size-sm);color:#ffd66b;transition:transform var(--transition-fast)}',
       '.ac-root .ac-prsay.ac-hit{transform:scale(1.12);font-weight:800}',
       /* 하이로우 두 단추는 같은 위계. 확률이 높은 쪽만 테를 준다(색으로 갈면 하나가 정답처럼 보인다) */
+      '.ac-root .ac-autime{height:5px;border-radius:3px;background:rgba(0,0,0,.12);overflow:hidden;margin:8px auto 4px;max-width:420px}',
+      '.ac-root .ac-autime i{display:block;height:100%;background:var(--accent-color);transition:width .2s linear}',
+      '.ac-root .ac-autime.ac-warn i{background:#d9534f}',
       '.ac-root .ac-dmnums{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;font-size:var(--font-size-sm);color:var(--text-secondary)}',
       '.ac-root .ac-hlbar .btn-primary{background:rgba(255,214,107,.18);color:#ffd66b;border:1px solid rgba(255,214,107,.5);font-weight:700}',
       '.ac-root .ac-hlbar .btn-primary.ac-good{background:#ffd66b;color:#23201c;border-color:transparent}',

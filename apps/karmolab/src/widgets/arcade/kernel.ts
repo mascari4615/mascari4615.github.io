@@ -28,6 +28,8 @@ export interface MatchView<S> {
   finished: boolean;
   /** 이번 판이 끝나고 다음 판을 기다리는 중인가 */
   roundOver: boolean;
+  /** 판이 선 뒤 흐른 시각(ms). 실시간 판의 화면이 남은 시간을 잰다 */
+  now: number;
   note?: Note;
   /** 복기 중이면. 화면이 알에 수 번호를 얹고 알림을 참는다(`arcade.ts` 가 채움) */
   review?: { order: number[]; at: number; total: number };
@@ -188,6 +190,7 @@ export class Match<S, A> {
       seats: this.seats,
       finished: this.finished,
       roundOver: this.roundOverAt !== null,
+      now: this.now,
       note: this.note
     };
   }

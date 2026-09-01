@@ -15,6 +15,7 @@ export const auctionView: GameView<AuctionState, AuctionAction> = {
     el.innerHTML =
       '<div class="ac-au">' +
       '<div class="ac-aulot"><span id="acAuNo"></span><b id="acAuVal"></b></div>' +
+      '<div class="ac-autime" id="acAuTime" aria-hidden="true"><i></i></div>' +
       '<div class="ac-aumsg" id="acAuMsg"></div>' +
       '<div class="ac-aubid">' +
       '<input type="range" id="acAuR" min="0" max="100" value="0">' +
@@ -33,8 +34,17 @@ export const auctionView: GameView<AuctionState, AuctionAction> = {
     range.oninput = () => { num.textContent = range.value; };
     go.onclick = () => act({ bid: Number(range.value) });
 
+    /* 한 물건에 열넉 초. 남은 시간이 안 보이면 갑자기 끝나 억울하다 */
+    const timeEl = el.querySelector('#acAuTime') as HTMLElement;
+    const bar = timeEl.firstElementChild as HTMLElement;
+
     return (v, mySeat) => {
       const s = v.state;
+      /* 남은 시간 띠. 커널의 시계(`v.now`)와 상태의 마감(`until`)으로 잰다 */
+      const total = s.phase === 'bid' ? 14000 : 2200;
+      const rest = Math.max(0, Math.min(total, s.until - v.now));
+      bar.style.width = ((rest / total) * 100).toFixed(1) + '%';
+      timeEl.classList.toggle('ac-warn', s.phase === 'bid' && rest < 4000);
       const mine = s.bids[mySeat];
       const bidding = s.phase === 'bid' && !s.over && !v.finished;
 

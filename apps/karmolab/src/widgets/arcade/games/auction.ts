@@ -123,10 +123,18 @@ export const auction: GameDef<AuctionState, AuctionAction> = {
     if (s.over || s.phase !== 'bid' || s.bids[seat] !== null) return null;
     const lot = s.lots[s.at];
     const left = s.lots.length - s.at;
-    /* 남은 물건 수로 지갑을 나눠 이번 몫을 잡고, 값어치에 비례해 늘린다.
-       거기에 흔들림을 얹는다. 봇들이 늘 같은 숫자를 부르면 매번 겹쳐서 아무도 못 산다. */
-    const share = s.money[seat] / Math.max(1, left);
-    const want = share * (lot / ((LOW + HIGH) / 2)) * (0.65 + ctx.rng() * 0.7);
+    const n = ctx.seats.length;
+    /**
+     * 봉인 입찰의 균형가는 **값어치의 (n-1)/n** 이다(경매 이론. 셋이면 0.67배, 넷이면 0.75배)
+     * 값어치와 돈의 단위가 달라 환율을 먼저 잡는다. 남은 지갑을 남은 물건의 값어치 합으로 나눈 것
+     * 거기에 흔들림. 봇들이 늘 같은 숫자를 부르면 매번 겹쳐 아무도 못 삼
+     */
+    const restValue = s.lots.slice(s.at).reduce((a2, v) => a2 + v, 0) || 1;
+    const rate = s.money[seat] / restValue;
+    const fair = lot * rate * ((n - 1) / n);
+    /* 물건이 얼마 안 남았으면 아껴 둘 이유가 없다. 남은 돈은 십분의 일 값뿐이라 */
+    const urgency = left <= 2 ? 1.35 : 1;
+    const want = fair * urgency * (0.78 + ctx.rng() * 0.44);
     const bid = Math.max(0, Math.min(s.money[seat], Math.round(want)));
     return { action: { bid }, delayMs: 900 + ctx.rng() * 2600 };
   }

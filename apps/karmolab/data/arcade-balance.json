@@ -2,7 +2,7 @@
   "note": "봇끼리 돌려 잰 오락실 저울. 자리 편향, drawRate, 판 길이. 다시 재기: npm run bench:arcade",
   "measuredOn": "2026-09-01",
   "roundCount": 200,
-  "elapsedSec": 25.5,
+  "elapsedSec": 26.2,
   "game": [
     {
       "id": "airhockey",
@@ -26,15 +26,15 @@
       "seats": 3,
       "roundCount": 200,
       "seatWinRate": [
-        0.318,
-        0.313,
-        0.36
+        0.36,
+        0.3,
+        0.34
       ],
-      "slope": 0.027,
-      "drawRate": 0.01,
+      "slope": 0.033,
+      "drawRate": 0,
       "singleRound": false,
       "avgSeconds": 41.4,
-      "scoreSpread": 6.36,
+      "scoreSpread": 7.53,
       "unfinished": 0
     },
     {
