@@ -14,7 +14,7 @@
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
 const HORSES = 5;
-const TRACK = 24;
+const TRACK = 16;
 const ROUNDS = 3;
 const PURSE = 100;
 /** 한 걸음 나아가는 데 걸리는 시간 */
@@ -46,18 +46,35 @@ export interface DerbyState {
 
 export type DerbyAction = { horse: number; amount: number };
 
-/** 그 말이 이길 것 같은 정도 → 배당. 빠른 말일수록 적게 준다. */
+/**
+ * 그 말이 이길 것 같은 정도. 걸음이 빠를수록 큼
+ *
+ * 걸음 비율을 그대로 쓰면 안 됨. 달리는 동안 차이가 쌓여 **승률은 걸음보다 훨씬
+ * 가파르게** 갈림(2026-09-01 실측: 걸음 비율로 잰 3배 말이 실제로 75% 이김)
+ * 그래서 지수로 세움. 들쭉날쭉한 말은 그만큼 평평해짐
+ */
+function winShare(horses: Horse[], i: number): number {
+  const w = (h: Horse): number => Math.pow(Math.max(0.05, h.pace), 6.0 / (1 + h.wild * 1.2));
+  const total = horses.reduce((a, h) => a + w(h), 0);
+  return w(horses[i]) / Math.max(1e-6, total);
+}
+
+/**
+ * 배당. 1/승률 에서 집 몫을 뗌
+ * 레퍼런스(경마 파리뮤추얼): 집이 15~16% 를 먼저 떼고 남은 것을 맞힌 사람이 나눔
+ */
 export function odds(horses: Horse[], i: number): number {
-  const total = horses.reduce((a, h) => a + h.pace, 0);
-  const share = horses[i].pace / total;
-  /* 배당 = 1/기대확률 을 조금 깎은 것(집 몫). 들쭉날쭉한 말은 조금 더 준다. */
-  return Math.max(1.2, Math.round((0.86 / share + horses[i].wild * 1.5) * 10) / 10);
+  const share = winShare(horses, i);
+  /* 승률이 낮은 말일수록 실제로는 더 안 이김. 지수를 살짝 얹어 낮은 쪽 배당을 벌림 */
+  return Math.max(1.2, Math.round((0.85 / Math.pow(Math.max(0.02, share), 1.2)) * 10) / 10);
 }
 
 function makeHorses(ctx: GameCtx): Horse[] {
+  /* 걸음 폭이 넓으면 경주가 뻔해짐. 실측에서 여섯 배 이상 말의 승률이 2% 아래
+     좁게 잡고 들쭉날쭉함을 키워 판마다 결과가 갈리게 */
   return Array.from({ length: HORSES }, () => ({
-    pace: 0.7 + ctx.rng() * 0.9,
-    wild: Math.round(ctx.rng() * 10) / 10,
+    pace: 0.95 + ctx.rng() * 0.35,
+    wild: Math.round((0.2 + ctx.rng() * 0.8) * 10) / 10,
     at: 0
   }));
 }
@@ -118,7 +135,7 @@ export const derby: GameDef<DerbyState, DerbyAction> = {
       for (let k = 0; k < steps; k++) {
         /* 같은 씨앗, 같은 걸음이면 같은 결과. 판을 다시 그려도 경주가 안 바뀐다. */
         const r = Math.abs(Math.sin((i + 1) * 12.9898 + (k + 1) * 78.233 + s.round * 37.719)) % 1;
-        at += Math.max(0.1, h.pace + (r - 0.5) * h.wild * 2);
+        at += Math.max(0.05, h.pace + (r - 0.5) * h.wild * 3.2);
       }
       return { ...h, at: Math.min(TRACK, at) };
     });
