@@ -659,5 +659,7 @@
   "arcade.president.rev": "革命！{who}が引っくり返した",
   "arcade.president.unrev": "革命返し。{who}",
   "arcade.president.cut": "{who}の8切り。場が流れる",
-  "arcade.president.revOn": "革命中"
+  "arcade.president.revOn": "革命中",
+  "arcade.highlow.bankNone": "確保なし",
+  "arcade.highlow.bankWhy": "一度当ててから"
 }

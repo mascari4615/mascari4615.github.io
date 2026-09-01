@@ -7,7 +7,7 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { cardMark } from '../card';
-import type { HanafudaState, HanafudaAction } from './hanafuda';
+import { monthOf, pointOf, type HanafudaState, type HanafudaAction } from './hanafuda';
 
 /** 달마다 다른 꽃. 그림 없이 글자와 색만으로 열둘을 구분한다. */
 const FLOWER = ['松', '梅', '桜', '藤', '菖', '牡', '萩', '芒', '菊', '楓', '柳', '桐'];
@@ -33,13 +33,17 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
     let picked = -1;
 
     /* 종이는 공용 부품이 정한다. 여기서는 **무엇이 적혀 있는지**(꽃, 달, 색)만 준다. */
-    const card = (m: number, o: { can?: boolean; pick?: boolean; data: Record<string, number> }): string =>
-      cardMark(FLOWER[m], {
+    /* 카드 번호에서 달을 떼고, 끗수를 종이에 적는다. 광 스물과 피 하나가 같아 보이면 고를 것이 없다 */
+    const card = (n: number, o: { can?: boolean; pick?: boolean; data: Record<string, number> }): string => {
+      const m = monthOf(n);
+      const pt = pointOf(n);
+      return cardMark(FLOWER[m], {
         ...o,
         hue: HUE[m],
-        note: String(m + 1),
-        label: FLOWER[m] + ' ' + (m + 1)
+        note: (m + 1) + '월 ' + pt,
+        label: FLOWER[m] + ' ' + (m + 1) + '월 ' + pt + '끗'
       });
+    };
 
     return (v, mySeat) => {
       const s = v.state;
@@ -53,7 +57,7 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
       (el.querySelector('#acHfMl') as HTMLElement).textContent = t('arcade.hana.mine');
 
       floorEl.innerHTML = s.floor
-        .map((m, i) => card(m, { can: myTurn && m === wanted, data: { f: i } }))
+        .map((c, i) => card(c, { can: myTurn && wanted >= 0 && monthOf(c) === monthOf(wanted), data: { f: i } }))
         .join('');
       floorEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
         const i = Number(b.dataset.f);
@@ -72,7 +76,7 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
           picked = picked === i ? -1 : i;
           /* 짝이 하나뿐이면 두 번 누르게 하지 않는다. */
           if (picked >= 0) {
-            const only = s.floor.map((m, k) => (m === hand[picked] ? k : -1)).filter((k) => k >= 0);
+            const only = s.floor.map((c, k) => (monthOf(c) === monthOf(hand[picked]) ? k : -1)).filter((k) => k >= 0);
             if (only.length === 1) {
               act({ hand: picked, floor: only[0] });
               picked = -1;
@@ -81,7 +85,7 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
         };
       });
 
-      const none = picked >= 0 && !s.floor.includes(hand[picked]);
+      const none = picked >= 0 && !s.floor.some((c) => monthOf(c) === monthOf(hand[picked]));
       bar.innerHTML = none
         ? '<button class="btn btn-ghost" id="acHfDrop">' + t('arcade.hana.drop') + '</button>'
         : '<small>' + (myTurn ? t('arcade.hana.hint') : t('arcade.hana.waiting')) + '</small>';

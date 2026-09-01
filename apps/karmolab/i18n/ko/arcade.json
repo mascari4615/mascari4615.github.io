@@ -659,5 +659,7 @@
   "arcade.president.rev": "혁명! {who} 이(가) 판을 뒤집었다. 이제 약한 수가 세다",
   "arcade.president.unrev": "혁명이 풀렸다. {who}. 세기가 되돌아왔다",
   "arcade.president.cut": "{who} 의 8. 판을 걷고 다시 시작",
-  "arcade.president.revOn": "혁명 중"
+  "arcade.president.revOn": "혁명 중",
+  "arcade.highlow.bankNone": "챙길 것 없음",
+  "arcade.highlow.bankWhy": "한 번은 맞혀야 챙긴다"
 }

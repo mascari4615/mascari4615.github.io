@@ -50,12 +50,20 @@ export const highlowView: GameView<HighLowState, HighLowAction> = {
         ? t('arcade.highlow.pot', { n: String(s.pot) })
         : t('arcade.highlow.nopot');
 
-      up.textContent = t('arcade.highlow.high');
-      dn.textContent = t('arcade.highlow.low');
-      bank.textContent = t('arcade.highlow.bank', { n: String(s.pot) });
+      /* 위, 아래가 나올 확률. 한 벌 열세 끗에서 지금 카드 위와 아래가 몇 끗인가
+         같은 끗은 맞은 것으로 치므로 양쪽에 다 센다. 카드가 K 면 위가 8%, 아래가 100% */
+      const upPct = Math.round(((13 - s.card + 1) / 13) * 100);
+      const dnPct = Math.round((s.card / 13) * 100);
+      up.textContent = t('arcade.highlow.high') + ' ' + upPct + '%';
+      dn.textContent = t('arcade.highlow.low') + ' ' + dnPct + '%';
+      up.classList.toggle('ac-good', myTurn && upPct >= dnPct);
+      dn.classList.toggle('ac-good', myTurn && dnPct > upPct);
+      bank.textContent = s.pot ? t('arcade.highlow.bank', { n: String(s.pot) }) : t('arcade.highlow.bankNone');
       up.disabled = !myTurn;
       dn.disabled = !myTurn;
       bank.disabled = !myTurn || s.pot === 0;
+      /* 왜 못 누르나. 흐린 단추만 두면 고장으로 읽는다 */
+      bank.title = s.pot === 0 ? t('arcade.highlow.bankWhy') : '';
 
       el.querySelector('#acHlLeft')!.innerHTML = v.seats
         .map((seat, i) =>

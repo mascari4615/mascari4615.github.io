@@ -659,5 +659,7 @@
   "arcade.president.rev": "Revolution! {who} flipped it. Low beats high now",
   "arcade.president.unrev": "Counter-revolution by {who}. Back to normal",
   "arcade.president.cut": "{who} played an 8. Pile cleared",
-  "arcade.president.revOn": "Revolution"
+  "arcade.president.revOn": "Revolution",
+  "arcade.highlow.bankNone": "Nothing to bank",
+  "arcade.highlow.bankWhy": "Guess right at least once first"
 }

@@ -932,6 +932,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-root .ac-sphand{display:flex;gap:0;justify-content:center;flex-wrap:wrap;padding-top:12px}',
       '.ac-root .ac-prsay{font-size:var(--font-size-sm);color:#ffd66b;transition:transform var(--transition-fast)}',
       '.ac-root .ac-prsay.ac-hit{transform:scale(1.12);font-weight:800}',
+      /* 하이로우 두 단추는 같은 위계. 확률이 높은 쪽만 테를 준다(색으로 갈면 하나가 정답처럼 보인다) */
+      '.ac-root .ac-hlbar .btn-primary{background:rgba(255,214,107,.18);color:#ffd66b;border:1px solid rgba(255,214,107,.5);font-weight:700}',
+      '.ac-root .ac-hlbar .btn-primary.ac-good{background:#ffd66b;color:#23201c;border-color:transparent}',
       '.ac-root .ac-prtop{display:flex;align-items:center;justify-content:center;gap:10px;min-height:22px;margin-bottom:8px}',
       '.ac-root .ac-prrev{padding:2px 10px;border-radius:var(--radius-pill);background:#ffd66b;color:#23201c;font-size:var(--font-size-4xs);font-weight:800;letter-spacing:.06em}',
       '.ac-root .ac-spmine{margin-top:10px;font-size:var(--font-size-sm);opacity:.8}',

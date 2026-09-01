@@ -172,7 +172,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: highlow, view: highlowView, icon: '🔺', kind: 'card' },
   { def: lanterns, view: lanternsView, icon: '🏮', kind: 'card' , hidden: true },
   { def: liars, view: liarsView, icon: '🎲', kind: 'card' , hidden: true },
-  { def: hanafuda, view: hanafudaView, icon: '🌸', kind: 'card' , hidden: true },
+  { def: hanafuda, view: hanafudaView, icon: '🌸', kind: 'card' },
   { def: derby, view: derbyView, icon: '🐎', kind: 'card' , hidden: true },
   { def: curling, view: curlingView, icon: '🥌', kind: 'sport' , hidden: true },
   { def: bowling, view: bowlingView, icon: '🎳', kind: 'sport' , hidden: true },
