@@ -11,7 +11,7 @@
  * 고치기는 **실패해도 조용하다.** 글이 지워졌거나 권한이 없을 수 있고,
  * 그건 판과 아무 상관 없음
  */
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { Client } from 'discord.js';
 
 /** 이만큼 지나면 잊는다. 방 TTL 과 같은 자리 */
@@ -53,6 +53,23 @@ export function lineOf(stage: Stage, extra?: string): string {
   return '자리 기다리는 중';
 }
 
+/**
+ * 버튼. 판이 돌고 있으면 들어가기가 아니라 **구경하기**
+ * - 자리가 차면 들어가도 구경이라 (arcade.ts 의 자리 없으면 -1), 글자가 그걸 미리 말해 줌
+ * - 끝난 판은 누를 것이 없으므로 버튼을 뗌
+ */
+export function inviteRow(link: string, stage: Stage): ActionRowBuilder<ButtonBuilder>[] {
+  if (stage === 'done') return [];
+  return [
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setLabel(stage === 'playing' ? '구경하기' : '들어가기')
+        .setStyle(ButtonStyle.Link)
+        .setURL(link)
+    )
+  ];
+}
+
 export function inviteEmbed(gameName: string, code: string, stage: Stage, extra?: string): EmbedBuilder {
   return new EmbedBuilder()
     .setTitle(`🎮 ${gameName}`)
@@ -75,7 +92,10 @@ export async function moveCard(client: Client, code: string, stage: Stage, extra
     const channel = await client.channels.fetch(c.channelId);
     if (!channel?.isTextBased()) return false;
     const msg = await channel.messages.fetch(c.messageId);
-    await msg.edit({ embeds: [inviteEmbed(c.gameName, code, stage, extra)] });
+    await msg.edit({
+      embeds: [inviteEmbed(c.gameName, code, stage, extra)],
+      components: inviteRow(c.link, stage)
+    });
     return true;
   } catch {
     /* 글이 지워졌거나 권한이 없음. 판과 상관없다 */

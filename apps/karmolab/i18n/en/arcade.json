@@ -537,6 +537,7 @@
   "arcade.open.title": "rooms open now",
   "arcade.open.none": "",
   "arcade.open.card": "{game}, {host}",
+  "arcade.open.watch": "{game}, watch {host} play",
   "arcade.mine.kb": "Keyboard: Enter/Space opens, F or Shift+Enter flags",
   "arcade.pong.kb": "Keyboard: left/right arrows move the paddle (Shift for bigger steps)",
   "arcade.ah.kb": "Keyboard: arrow keys move the mallet (Shift for bigger steps)",

@@ -11,9 +11,9 @@
  * **방을 서버가 들고 있지 않다.** 코드만 만들어 준다. 판은 브라우저끼리(P2P) 돌고, 봇은
  * 이 코드로 모이자고 말할 뿐이다. 그래서 봇이 죽어도 이미 뿌린 링크는 그대로 산다.
  */
-import { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import type { ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
-import { rememberCard, inviteEmbed } from '../arcade-invite';
+import { rememberCard, inviteEmbed, inviteRow } from '../arcade-invite';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -91,16 +91,12 @@ export async function handleArcade(interaction: ChatInputCommandInteraction): Pr
   const gameName = pick ? pick.name : '오락실';
   const foe = interaction.options.getUser('상대');
 
-  /* 링크 버튼. 누르면 그냥 열리므로 봇이 안 깨어 있어도 됨 */
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder().setLabel('들어가기').setStyle(ButtonStyle.Link).setURL(link),
-  );
 
   await interaction.reply({
     /* 멘션은 글 본문에. 카드 안에 넣으면 알림이 안 감 */
     content: foe ? `${foe} 한 판?` : '-# 눌러서 들어오면 됩니다. 자리가 비면 봇이 앉아요.',
     embeds: [inviteEmbed(gameName, code, 'waiting')],
-    components: [row],
+    components: inviteRow(link, 'waiting'),
   });
 
   /* 이 글이 방을 따라 살게. 고치기는 arcade-invite 가 함 */

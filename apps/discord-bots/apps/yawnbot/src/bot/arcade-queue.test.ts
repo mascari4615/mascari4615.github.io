@@ -85,8 +85,9 @@ describe('등급전 대기열', () => {
 
   it('점수 차가 크면 처음엔 안 만난다. 방 벽이 아니라 폭이다', async () => {
     /* 1500 에서 순위점을 여러 번 얹어 폭 밖으로 보냄 */
-    /* 상대를 매번 갈아 끼움. 같은 짝만 12판이면 부스팅 감쇠에 걸려 안 오름 */
-    for (let i = 0; i < 12; i++) applyResult('gomoku', [A, 'dummy-rival-' + i]);
+    /* 상대를 매번 갈아 끼움. 같은 짝만 여러 판이면 부스팅 감쇠에 걸려 안 오름.
+       판 수가 넉넉해야 함. 열두 판이면 1607 이라 폭 120 안에 들어와 붙어 버림 */
+    for (let i = 0; i < 30; i++) applyResult('gomoku', [A, 'dummy-rival-' + i]);
     expect((await stand(A)).room).toBe('upper');
     expect((await stand(B)).status).toBe('waiting');
   });

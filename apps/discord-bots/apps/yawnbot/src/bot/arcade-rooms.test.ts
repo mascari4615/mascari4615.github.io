@@ -40,7 +40,7 @@ describe('열린 방 목록', () => {
     expect((await post({ code: '7CCMN', game: 'gomoku', host: '조수' })).status).toBe(200);
     const rooms = await list();
     expect(rooms).toHaveLength(1);
-    expect(rooms[0]).toEqual({ code: '7CCMN', game: 'gomoku', host: '조수' });
+    expect(rooms[0]).toEqual({ code: '7CCMN', game: 'gomoku', host: '조수', seats: 1, playing: false });
   });
 
   it('같은 방을 다시 올리면 하나다. 알림이 곧 아직 있다다', async () => {
@@ -80,5 +80,41 @@ describe('열린 방 목록', () => {
   it('이름이 비면 누군가', async () => {
     await post({ code: 'CCCCC', game: 'gomoku', host: '   ' });
     expect((await list())[0].host).toBe('누군가');
+  });
+});
+
+/**
+ * 사람 수와 판 여부 (관전, 2026-09-01)
+ *
+ * - 이 둘이 없으면 로비도 초대 카드도 방이 열린 첫 순간에 멈춰 있음
+ * - 아무 숫자나 받으면 그대로 남에게 보임
+ */
+describe('방 상태', () => {
+  it('안 적으면 혼자, 안 두는 중', async () => {
+    await post({ code: '7CCMN', game: 'gomoku', host: '조수' });
+    const rooms = await list();
+    expect(rooms[0].seats).toBe(1);
+    expect(rooms[0].playing).toBe(false);
+  });
+
+  it('사람 수와 판 여부가 그대로 올라간다', async () => {
+    await post({ code: '7CCMN', game: 'gomoku', host: '조수', seats: 2, playing: true });
+    const rooms = await list();
+    expect(rooms[0].seats).toBe(2);
+    expect(rooms[0].playing).toBe(true);
+  });
+
+  it('말이 안 되는 사람 수는 잘린다', async () => {
+    await post({ code: '7CCMN', game: 'gomoku', host: '조수', seats: 900 });
+    expect((await list())[0].seats).toBe(8);
+    await post({ code: '7CCMN', game: 'gomoku', host: '조수', seats: -3 });
+    expect((await list())[0].seats).toBe(1);
+    await post({ code: '7CCMN', game: 'gomoku', host: '조수', seats: '둘' });
+    expect((await list())[0].seats).toBe(1);
+  });
+
+  it('판 여부는 참일 때만 참. 아무 값이나 참이 되면 안 됨', async () => {
+    await post({ code: '7CCMN', game: 'gomoku', host: '조수', playing: 'yes' });
+    expect((await list())[0].playing).toBe(false);
   });
 });

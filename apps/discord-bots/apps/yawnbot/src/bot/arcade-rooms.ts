@@ -30,6 +30,10 @@ export interface OpenRoom {
   code: string;
   game: string;
   host: string;
+  /** 지금 방에 있는 사람 수. 주인 포함. 모르면 1 */
+  seats: number;
+  /** 판이 이미 돌고 있나. 참이면 들어가도 구경 */
+  playing: boolean;
   /** 마지막으로 살아 있다고 알린 때 */
   at: number;
 }
@@ -67,7 +71,12 @@ export function resetRooms(): void {
   closed.clear();
 }
 
-export function registerArcadeRooms(app: Application, onClose?: (code: string) => void): void {
+export function registerArcadeRooms(
+  app: Application,
+  onClose?: (code: string) => void,
+  /* 방이 바뀌었다. 초대 카드가 이걸 듣고 따라간다 */
+  onBeat?: (room: OpenRoom) => void
+): void {
   /**
    * 방을 올린다 / 살아 있다고 알린다. 같은 코드면 덮어쓴다. 알림이 곧 아직 있다다.
    */
@@ -83,8 +92,15 @@ export function registerArcadeRooms(app: Application, onClose?: (code: string) =
     }
     /* 이름은 모양을 안 따진다(한글, 이모지가 온다). 대신 길이를 자르고 줄바꿈을 없앤다. */
     const host = String(body.host ?? '').replace(/\s+/g, ' ').trim().slice(0, NAME_MAX) || '누군가';
+    /* 사람 수는 여덟까지. 아무 숫자나 받으면 그대로 남에게 보인다 */
+    const seats = Math.min(8, Math.max(1, Math.trunc(Number(body.seats)) || 1));
+    const playing = body.playing === true;
     sweep();
-    rooms.set(code, { code, game, host, at: Date.now() });
+    const before = rooms.get(code);
+    const room: OpenRoom = { code, game, host, seats, playing, at: Date.now() };
+    rooms.set(code, room);
+    /* 바뀐 것이 있을 때만 알린다. 알림은 1분마다 오고 대개 그대로다 */
+    if (!before || before.seats !== seats || before.playing !== playing) onBeat?.(room);
     res.json({ ok: true, until: TTL_MS });
   });
 
@@ -104,6 +120,6 @@ export function registerArcadeRooms(app: Application, onClose?: (code: string) =
     sweep();
     const list = [...rooms.values()].sort((a, b) => b.at - a.at).slice(0, MAX);
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ rooms: list.map(({ code, game, host }) => ({ code, game, host })) });
+    res.json({ rooms: list.map(({ code, game, host, seats, playing }) => ({ code, game, host, seats, playing })) });
   });
 }

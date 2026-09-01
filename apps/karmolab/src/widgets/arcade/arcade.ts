@@ -45,7 +45,7 @@ import { readPlays, notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
-import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
+import { listRooms, holdRoom, type Held, type OpenRoom } from './open-rooms';
 import {
   enterQueue,
   gradeOf,
@@ -2012,9 +2012,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<div class="ac-openstrip">' +
         list
           .map((r: OpenRoom) =>
+            /* 판이 이미 돌면 들어가도 구경이다. 그걸 누르기 전에 말해 준다 */
             '<button class="ac-opencard" data-join="' + esc(r.code) + '">' +
             '<span>' + iconOf(r.game) + '</span>' +
-            esc(t('arcade.open.card', {
+            esc(t(r.playing ? 'arcade.open.watch' : 'arcade.open.card', {
               game: gameById(r.game) ? t('arcade.game.' + r.game + '.name') : r.game,
               host: r.host
             })) + '</button>')
@@ -3362,8 +3363,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('.ac-share').style.display = host && !autoStart ? '' : 'none';
     }
 
-    /** 목록에 올린 방을 내리는 손. 방을 닫을 때 부른다. */
-    let dropOpen: (() => void) | null = null;
+    /** 목록에 올린 방. 내리는 손과, 지금 알리는 손 */
+    let held: Held | null = null;
 
     /**
      * 로그인 창을 연다. 등급전은 로그인 필수 (사용자 결정 2026-08-31)
@@ -3617,8 +3618,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       }
       const code = fixed ?? makeCode();
       /* 같이 찾기로 연 방만 목록에 올린다. 같이는 그대로 링크 아는 사람만이다. */
-      dropOpen?.();
-      dropOpen = publicly ? holdRoom({ code, game: id, host: myName() }) : null;
+      held?.stop();
+      /* 값이 아니라 **부를 것**을 준다. 사람이 들어오고 판이 시작된 것이 그대로 올라가게 */
+      held = publicly
+        ? holdRoom(() => ({
+            code,
+            game: id,
+            host: myName(),
+            /* 나까지 세어야 사람 수다. peers 는 나 말고 */
+            seats: peers.length + 1,
+            playing: !!match
+          }))
+        : null;
       gameId = id;
       peers = [];
       show('wait');
@@ -3632,6 +3643,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           paintRoom();
           if (was > 0 && !list.length) rivalGone();
           if (list.length) stopLinkWatch();
+          /* 사람이 드나든 그 순간에 알린다. 주기를 기다리면 초대 카드가 한동안 거짓말을 함 */
+          if (was !== list.length) held?.poke();
           /* 등급전: 서버가 붙여 준 상대 도착 시 즉시 시작. 둘째 사람 대기 없음 */
           if (autoStart && peers.length >= 1 && !match) {
             autoStart = false;
@@ -3846,7 +3859,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const others = take.map((p) => ({ name: p.name, bot: false }));
       const seats: SeatSpec[] = swap ? [...others, me] : [me, ...others];
       show('play');
-      withIntro(gameId, () => beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), undefined, swap ? others.length : 0));
+      withIntro(gameId, () => {
+        beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), undefined, swap ? others.length : 0);
+        /* 판이 시작된 것을 그 자리에서 알린다. 들어오는 사람이 구경이라는 것을 미리 알게 */
+        held?.poke();
+      });
     }
 
     /* 단추는 마우스 사건을 넘긴다. 그게 게임 이름 자리에 들어가면 안 된다. */
@@ -4199,8 +4216,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       hideGoneBar();
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
-      dropOpen?.();
-      dropOpen = null;
+      held?.stop();
+      held = null;
       cancelAnimationFrame(raf);
       net?.leave();
       net = null;

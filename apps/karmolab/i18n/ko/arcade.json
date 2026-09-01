@@ -537,6 +537,7 @@
   "arcade.open.title": "지금 열린 방",
   "arcade.open.none": "",
   "arcade.open.card": "{game}, {host}",
+  "arcade.open.watch": "{game}, {host} 두는 중 구경",
   "arcade.mine.kb": "자판: Enter, 스페이스로 열고, F 또는 Shift+Enter 로 깃발",
   "arcade.pong.kb": "자판: 좌우 화살표로 라켓을 움직입니다 (Shift 는 크게)",
   "arcade.ah.kb": "자판: 화살표로 채를 움직입니다 (Shift 는 크게)",

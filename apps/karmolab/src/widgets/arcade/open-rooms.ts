@@ -11,12 +11,16 @@
 
 const HOST = 'https://yawnbot.mascari4615.com';
 /** 살아 있다고 알리는 주기. 서버가 10분에 지우므로 그보다 넉넉히 자주. */
-const BEAT_MS = 3 * 60 * 1000;
+const BEAT_MS = 60 * 1000;
 
 export interface OpenRoom {
   code: string;
   game: string;
   host: string;
+  /** 지금 방에 있는 사람 수. 주인 포함 */
+  seats?: number;
+  /** 판이 이미 돌고 있나. 참이면 들어가도 구경 */
+  playing?: boolean;
 }
 
 /** 지금 열린 방들. 못 물어보면 **빈 목록**. 로비가 그 때문에 멈추면 안 된다. */
@@ -31,34 +35,50 @@ export async function listRooms(): Promise<OpenRoom[]> {
   }
 }
 
+export interface Held {
+  /** 방을 내린다 */
+  stop: () => void;
+  /** 지금 바로 알린다. 사람이 들어오거나 판이 시작된 그 순간에 부른다 */
+  poke: () => void;
+}
+
 /**
- * 방을 올리고 **계속 살아 있다고 알린다.** 돌려주는 것을 부르면 내려간다.
+ * 방을 올리고 **계속 살아 있다고 알림**. `stop` 을 부르면 내려감
  *
  * 알림을 안 하면 서버가 10분 뒤에 지운다. 창을 닫고 간 사람의 방이 목록에 남지 않게.
  * 그래서 이 자리는 올리기가 아니라 들고 있기다.
+ *
+ * 주기가 느린 것은 값이 안 든다는 뜻이지 늦어도 된다는 뜻이 아니다. 바뀐 순간은
+ * `poke` 로 그 자리에서 알림. 안 그러면 초대 카드가 1분 동안 거짓말
  */
-export function holdRoom(room: OpenRoom): () => void {
+export function holdRoom(now: () => OpenRoom): Held {
   let alive = true;
+  /* 방을 값이 아니라 **부를 것**으로 받는다. 사람이 들어오고 판이 시작돼도
+     같은 값을 계속 올리면 목록과 초대 카드가 첫 순간에 멈춘다 */
+  const room = (): OpenRoom => now();
   const beat = (): void => {
     if (!alive) return;
     void fetch(`${HOST}/kl/arcade/rooms`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(room)
+      body: JSON.stringify(room())
     }).catch(() => {
       /* 못 올려도 방은 돈다. 목록에 안 뜰 뿐이다 */
     });
   };
   beat();
   const timer = window.setInterval(beat, BEAT_MS);
-  return () => {
-    alive = false;
-    window.clearInterval(timer);
-    /* 창을 닫는 길에도 가야 하므로 `keepalive`. 안 붙이면 브라우저가 중간에 끊는다. */
-    void fetch(`${HOST}/kl/arcade/rooms/${encodeURIComponent(room.code)}`, {
-      method: 'DELETE',
-      keepalive: true
-    }).catch(() => {});
+  return {
+    poke: beat,
+    stop: () => {
+      alive = false;
+      window.clearInterval(timer);
+      /* 창을 닫는 길에도 가야 하므로 `keepalive`. 안 붙이면 브라우저가 중간에 끊는다. */
+      void fetch(`${HOST}/kl/arcade/rooms/${encodeURIComponent(room().code)}`, {
+        method: 'DELETE',
+        keepalive: true
+      }).catch(() => {});
+    }
   };
 }
 

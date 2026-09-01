@@ -5,7 +5,7 @@
  * - 진짜로 글이 고쳐지는지는 실서버에서 눈으로
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { rememberCard, cardOf, lineOf, moveCard, resetInvites, inviteEmbed } from './arcade-invite';
+import { rememberCard, cardOf, lineOf, moveCard, resetInvites, inviteEmbed, inviteRow } from './arcade-invite';
 
 const CODE = 'K7QMR';
 const put = (): void =>
@@ -50,5 +50,33 @@ describe('초대 카드', () => {
     const json = inviteEmbed('오목', CODE, 'waiting').toJSON();
     expect(json.title).toContain('오목');
     expect(json.description).toContain(CODE);
+  });
+});
+
+/**
+ * 버튼이 상태를 따라가는가
+ *
+ * - 자리가 차면 들어가도 구경. 누르기 전에 글자가 그걸 말해야 함
+ * - 끝난 판은 누를 것이 없음
+ */
+describe('초대 버튼', () => {
+  const link = 'https://example.test/r/K7QMR';
+  const label = (stage: 'waiting' | 'playing' | 'done'): string | undefined => {
+    const rows = inviteRow(link, stage);
+    if (!rows.length) return undefined;
+    const one = rows[0].toJSON().components[0] as { label?: string };
+    return one.label;
+  };
+
+  it('기다리는 중이면 들어가기', () => {
+    expect(label('waiting')).toBe('들어가기');
+  });
+
+  it('두는 중이면 구경하기', () => {
+    expect(label('playing')).toBe('구경하기');
+  });
+
+  it('끝난 판은 버튼이 없다', () => {
+    expect(inviteRow(link, 'done')).toHaveLength(0);
   });
 });
