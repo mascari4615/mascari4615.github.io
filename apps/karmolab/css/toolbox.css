@@ -67,8 +67,11 @@
 
     --success: #22C55E;
     --success-subtle: rgba(34, 197, 94, 0.08);
-    --error: #ED4245;
-    --error-subtle: rgba(237, 66, 69, 0.08);
+    /* WCAG AA (2026-09-01). 옛 #ED4245 는 어두운 판에서 4.31:1 로 4.5 아래
+       .tool-status.error 와 .btn-danger 글자가 전부 그 색이라 도구 전체에 걸림
+       지금 값: 판(#1d1e28) 위 5.07, 옅은 빨강(#2e212a) 위 4.70 */
+    --error: #F4595C;
+    --error-subtle: rgba(244, 89, 92, 0.08);
     --warning: #F59E0B;
     --warning-subtle: rgba(245, 158, 11, 0.08);
 
@@ -4103,7 +4106,7 @@ html[data-skin="field"] .status-toast.success { color: var(--band-ink); border-l
 html[data-skin="field"] .status-toast.error { color: var(--band-ink); border-left: 3px solid var(--error); }
 
 html[data-skin="field"] .settings-control { border-radius: 0; }
-html[data-skin="field"] .settings-section h3 {
+html[data-skin="field"] .settings-section h2 {
     font-family: var(--font-mono);
     font-size: var(--font-size-4xs);
     letter-spacing: .16em;

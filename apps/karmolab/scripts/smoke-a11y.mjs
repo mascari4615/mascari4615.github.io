@@ -34,6 +34,9 @@ const repoRoot = path.dirname(path.dirname(root));
    0 을 주면 운영체제가 빈 자리를 준다. 충돌 자체가 없어진다. */
 const PORT = Number(process.env.PORT || 0);
 const THEMES = (process.env.THEMES || 'light,dark').split(',');
+/* 스킨 축 (2026-09-01). 스킨은 색과 모서리를 갈아 끼우므로 대비가 스킨마다 다름
+   한 스킨만 재면 다른 스킨의 WCAG 위반이 통째로 안 보임 */
+const SKINS = (process.env.SKINS || 'classic,field').split(',');
 const AXE = path.join(root, 'node_modules', 'axe-core', 'axe.min.js');
 
 /* 핵심 3장. 첫 화면, 도구 한 장(입력칸이 많은 것), 도구 목록. */
@@ -46,6 +49,10 @@ const SCREENS = [
      더 붙어 나간다. 그래서 껍데기에 없는 위반이 거기에만 있었다(실측: 129장 전부에
      landmark-unique 하나씩, 같은 이름의 nav 가 둘이라). 한 장을 표본으로 넣는다. */
   ['도구 상세 한 장', '/apps/blog/t/loan/'],
+  /* 부품 킷 장 (2026-09-01). 여기 위반 하나는 그 부품을 쓰는 도구 전부의 위반
+     좁고 깊게 보는 이 검사에 값이 가장 큰 한 장 */
+  ['부품 킷', '/apps/karmolab/#uikit'],
+  ['설정', '/apps/karmolab/#settings'],
 ];
 
 const MIME = {
@@ -121,10 +128,15 @@ try {
 }
 
 const failures = [];
-for (const theme of THEMES) {
+for (const skin of SKINS) for (const theme of THEMES) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
-  await page.addInitScript((t) => { try { localStorage.setItem('toolbox_theme', t); } catch { /* 사생활 모드 */ } }, theme);
+  await page.addInitScript((v) => {
+    try {
+      localStorage.setItem('toolbox_theme', v.theme);
+      localStorage.setItem('toolbox_skin', v.skin);
+    } catch { /* 사생활 모드 */ }
+  }, { theme, skin });
   for (const [name, url] of SCREENS) {
     const res = await page.goto(`http://localhost:${PORT_IN_USE}${url}`, { waitUntil: 'load' });
     /* ★ **여기서 문제 0건은 안 봤다일 수 있다** (2026-08-21).
@@ -158,7 +170,7 @@ for (const theme of THEMES) {
           sample: (n0?.target || []).join(' '), measured };
       });
     });
-    for (const v of violations) failures.push({ theme, name, ...v });
+    for (const v of violations) failures.push({ theme: `${skin}/${theme}`, name, ...v });
   }
   await ctx.close();
 }
@@ -219,4 +231,4 @@ if (shrunk.length > 0) {
   console.log(`[smoke-a11y] 줄었다 ${baseline} → ${total}곳. 기준선을 다시 적어라: npm run test:a11y -- --bless`);
   process.exit(0);
 }
-console.log(`[smoke-a11y] ${SCREENS.length}장 × ${THEMES.join('/')}. 늘지 않았다 (남은 빚 ${total}곳)`);
+console.log(`[smoke-a11y] ${SCREENS.length}장 x ${SKINS.join('/')} x ${THEMES.join('/')} = ${SCREENS.length*SKINS.length*THEMES.length}판. 늘지 않았다 (남은 빚 ${total}곳)`);

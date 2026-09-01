@@ -51,8 +51,9 @@
 
     --success: #22C55E;
     --success-subtle: rgba(34, 197, 94, 0.08);
-    --error: #ED4245;
-    --error-subtle: rgba(237, 66, 69, 0.08);
+
+    --error: #F4595C;
+    --error-subtle: rgba(244, 89, 92, 0.08);
     --warning: #F59E0B;
     --warning-subtle: rgba(245, 158, 11, 0.08);
 
@@ -3305,7 +3306,7 @@ html[data-skin="field"] .status-toast.success { color: var(--band-ink); border-l
 html[data-skin="field"] .status-toast.error { color: var(--band-ink); border-left: 3px solid var(--error); }
 
 html[data-skin="field"] .settings-control { border-radius: 0; }
-html[data-skin="field"] .settings-section h3 {
+html[data-skin="field"] .settings-section h2 {
     font-family: var(--font-mono);
     font-size: var(--font-size-4xs);
     letter-spacing: .16em;

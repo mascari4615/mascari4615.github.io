@@ -549,7 +549,7 @@ body.tool-detail .tool-head {
     display: inline-block;
     margin-right: 8px;
     padding: 2px 8px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--bg-tertiary);
     color: var(--text-primary);
     font-weight: 700;
@@ -1185,7 +1185,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     display: inline-block;
     margin-left: 6px;
     padding: 1px 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--accent-dim);
     color: var(--accent-ink);
     /* 눈금의 가장 작은 값(12px)에 맞춘다. 폰에서 읽히게. */
@@ -1201,7 +1201,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     display: inline-block;
     margin-left: 6px;
     padding: 1px 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--bg-tertiary);
     color: var(--text-secondary);
     font-size: var(--font-size-2xs);
@@ -1214,7 +1214,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tool-hub-count {
     margin-left: 8px;
     padding: 1px 7px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--bg-tertiary);
     color: var(--text-secondary);
     /* 11px 로 박혀 있었다. 글자 눈금의 가장 작은 값(12px)보다 작아 폰에서 읽기 힘들었다. */
@@ -1233,7 +1233,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tool-hub-toc a {
     padding: 5px 11px;
     border: 1px solid var(--bg-tertiary);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--bg-secondary);
     color: var(--text-secondary);
     font-size: var(--font-size-xs);
@@ -1419,7 +1419,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pl-mine {
     grid-column: 2; justify-self: start; margin-top: 6px;
     padding: 1px 8px; font-size: var(--font-size-2xs);
-    color: var(--accent-ink); border: 1px solid var(--border-strong); border-radius: 999px;
+    color: var(--accent-ink); border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
 }
 
 /* 오늘 성적 줄. 연습을 시작해도 이 줄은 안 사라진다 (TASK-KL-089). */
@@ -1446,12 +1446,12 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pl-stamp {
     margin-left: auto; padding: 2px 10px;
     color: var(--accent-ink); border: 1px solid var(--accent);
-    border-radius: 999px; font-size: var(--font-size-2xs);
+    border-radius: var(--radius-pill); font-size: var(--font-size-2xs);
 }
 .pl-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .pl-step {
     padding: 3px 10px; font-size: var(--font-size-2xs);
-    color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-tertiary); border: 1px solid var(--border); border-radius: var(--radius-pill);
 }
 .pl-step.is-done { color: var(--accent-ink); border-color: var(--border-strong); }
 .pl-course-note { margin: 10px 0 0; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
@@ -1519,7 +1519,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     border-radius: var(--radius-xl);
 }
 .pc-line[hidden] { display: none; }
-.pc-tag { padding: 1px 8px; color: var(--accent-ink); border: 1px solid var(--border-strong); border-radius: 999px; }
+.pc-tag { padding: 1px 8px; color: var(--accent-ink); border: 1px solid var(--border-strong); border-radius: var(--radius-pill); }
 .pc-go { margin-left: auto; color: var(--accent-ink); text-decoration: none; }
 .pc-go:hover { text-decoration: underline; }
 /* 좌우 화살표로도 고를 수 있다는 표시. 조용히 옆에만 (TASK-KL-089). */
@@ -1616,7 +1616,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .pl-chip {
     padding: 3px 10px; font-size: var(--font-size-2xs);
-    color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-pill);
 }
 /* 고른 칩은 바탕이 강조색이다. 거기서도 글자를 강조색으로 칠하면 **글자가 사라진다**
    (대비 1.0, 실측 2026-08-12). 강조는 안 고른 칩에서만 한다. */
@@ -1651,7 +1651,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wb-kind {
     padding: 5px 11px;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: transparent;
     color: var(--text-secondary);
     font-size: var(--font-size-xs);
@@ -1681,7 +1681,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     display: inline-block;
     padding: 2px 8px;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     font-size: var(--font-size-2xs);
     color: var(--text-tertiary);
 }
@@ -1713,7 +1713,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wm-nav-btn {
     padding: 6px 14px;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: transparent;
     color: var(--text-secondary);
     font-size: var(--font-size-xs);
@@ -1731,7 +1731,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wm-news-date { margin: 0 0 8px; font-size: var(--font-size-xs); color: var(--accent-ink); letter-spacing: .06em; }
 .wm-news-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
 .wm-news-list li { display: grid; grid-template-columns: minmax(5.5em, auto) 1fr; gap: 10px; align-items: baseline; }
-.wm-news-kind { font-size: var(--font-size-2xs); color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; text-align: center; }
+.wm-news-kind { font-size: var(--font-size-2xs); color: var(--text-tertiary); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 1px 8px; text-align: center; }
 .wm-news-feat { color: var(--accent-ink); border-color: var(--accent); }
 .wm-news-text { font-size: var(--font-size-sm); line-height: 1.65; word-break: keep-all; }
 .wm-news-quiet { margin: 8px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
@@ -1849,7 +1849,7 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 
 /* 체질량지수 눈금. 내가 어디쯤을 한눈에 (상위 계산기는 전부 있고 우리만 없었다) */
 .bmi-scale { position: relative; margin: 10px 0 18px; }
-.bmi-scale-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+.bmi-scale-bar { display: flex; height: 10px; border-radius: var(--radius-pill); overflow: hidden; border: 1px solid var(--border); }
 .bmi-seg { background: var(--bg-tertiary); }
 .bmi-seg.bmi-ok { background: color-mix(in srgb, var(--accent) 55%, transparent); }
 .bmi-seg.bmi-warn { background: color-mix(in srgb, var(--warning) 55%, transparent); }
@@ -1858,7 +1858,7 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .bmi-pin { position: absolute; top: -4px; width: 3px; height: 18px; background: var(--text-primary); border-radius: 2px; transform: translateX(-1px); transition: left 120ms ease; }
 
 /* 타이머 진행 바 + 전체화면일 때 숫자 크게 */
-.tm-track { height: 8px; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: var(--bg-secondary); margin: 8px 0 4px; }
+.tm-track { height: 8px; border: 1px solid var(--border); border-radius: var(--radius-pill); overflow: hidden; background: var(--bg-secondary); margin: 8px 0 4px; }
 .tm-fill { height: 100%; width: 100%; background: var(--accent); transition: width 120ms linear; }
 .tool-page:fullscreen { padding: 4vh 4vw; background: var(--bg-primary); overflow: auto; }
 .tool-page:fullscreen .tool-display { font-size: min(22vw, 30vh); line-height: 1.05; }

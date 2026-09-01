@@ -27,7 +27,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         .settings-row-stack { display:block; }
         .settings-row-stack label { display:block; margin-bottom:10px; }
         .settings-section { margin-bottom:0; }
-        .settings-section h3 { font-size:var(--font-size-3xs); font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-tertiary); margin:0 0 4px; }
+        .settings-section h2 { font-size:var(--font-size-3xs); font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-tertiary); margin:0 0 4px; }
         .settings-danger { border-color:var(--error-subtle); background:var(--error-subtle); }
         .settings-danger .btn-ghost { color:var(--error); }
         .settings-code-preview { margin-top:12px; font-size:var(--font-size-xs); }
@@ -83,7 +83,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         container.innerHTML = `
             <div class="settings-layout">
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t01'))}</h3>
+                    <h2>${esc(t('settings.t01'))}</h2>
                     <div class="settings-row">
                         <label for="setTheme">${esc(t('settings.label.setTheme'))}</label>
                         <select id="setTheme" class="settings-control">
@@ -132,7 +132,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     </div>
                 </div>
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t02'))}</h3>
+                    <h2>${esc(t('settings.t02'))}</h2>
                     <div class="settings-row">
                         <label for="setCopresence">${esc(t('settings.label.setCopresence'))}</label>
                         <select id="setCopresence" class="settings-control">
@@ -145,7 +145,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     </p>
                 </div>
                 <div class="settings-section">
-                    <h3>API</h3>
+                    <h2>API</h2>
                     ${apiUI.html}
                 </div>
             </div>`;
@@ -296,7 +296,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     ${esc(t('settings.t07'))}
                 </p>
                 <div class="settings-section">
-                    <h3>localStorage (${ls.items.length}개)</h3>
+                    <h2>localStorage (${ls.items.length}개)</h2>
                     <div style="overflow-x:auto;">
                         <table class="storage-table">
                             <thead><tr><th>${esc(t('settings.t08'))}</th><th>${esc(t('settings.t09'))}</th><th>${esc(t('settings.t10'))}</th></tr></thead>
@@ -305,7 +305,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     </div>
                 </div>
                 <div class="settings-section">
-                    <h3>sessionStorage (${ss.items.length}개)</h3>
+                    <h2>sessionStorage (${ss.items.length}개)</h2>
                     <div style="overflow-x:auto;">
                         <table class="storage-table">
                             <thead><tr><th>${esc(t('settings.t08'))}</th><th>${esc(t('settings.t09'))}</th><th>${esc(t('settings.t10'))}</th></tr></thead>
@@ -314,7 +314,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                     </div>
                 </div>
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t11'))}</h3>
+                    <h2>${esc(t('settings.t11'))}</h2>
                     <div class="settings-row settings-danger">
                         <label>${esc(t('settings.t12'))}</label>
                         <button type="button" class="btn btn-danger" id="setResetUser">${esc(t('settings.btn.setResetUser'))}</button>
@@ -377,7 +377,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
         container.innerHTML = `
             <div class="settings-layout">
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t14'))}</h3>
+                    <h2>${esc(t('settings.t14'))}</h2>
                     <div class="settings-row">
                         <label for="mdEnabled">${esc(t('settings.label.mdEnabled'))}</label>
                         <select id="mdEnabled" class="settings-control">
@@ -422,7 +422,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                 </div>
 
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t16'))}</h3>
+                    <h2>${esc(t('settings.t16'))}</h2>
                     <div class="settings-row">
                         <label for="mdMotion">${esc(t('settings.label.mdMotion'))}</label>
                         <select id="mdMotion" class="settings-control">
@@ -454,7 +454,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                 </div>
 
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t17'))}</h3>
+                    <h2>${esc(t('settings.t17'))}</h2>
                     <div class="settings-row">
                         <label for="mdBubble">${esc(t('settings.label.mdBubble'))}</label>
                         <select id="mdBubble" class="settings-control">
@@ -489,7 +489,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
                 </div>
 
                 <div class="settings-section">
-                    <h3>${esc(t('settings.t18'))}</h3>
+                    <h2>${esc(t('settings.t18'))}</h2>
                     <div class="settings-row">
                         <label>${esc(t('settings.t19'))}</label>
                         <button type="button" class="btn-ghost" id="mdResetPrefs">${esc(t('settings.btn.mdResetPrefs'))}</button>
@@ -580,7 +580,7 @@ import { currentWorkFolder, guessWorkFolder, pickWorkFolder, savedWorkFolder, se
 
         wrap.innerHTML = `
             <div class="settings-section">
-                <h3>${esc(t('settings.machine.folder', undefined, '작업 폴더'))}</h3>
+                <h2>${esc(t('settings.machine.folder', undefined, '작업 폴더'))}</h2>
                 <div class="settings-row">
                     <input type="text" id="work-folder-input" class="settings-control" style="min-width:min(560px,60vw);"
                            placeholder="C:\\...\\Mascari4615.github.io" />

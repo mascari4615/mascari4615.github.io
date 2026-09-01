@@ -89,16 +89,16 @@ import { t, loadNamespace } from '../lib/i18n';
             classes: '.field-group > .field-label + input | select | textarea',
             note: '라벨은 모노 대문자. 묶음 하나에 입력 하나. 쓰임 229, 194',
             html: `<div class="field-group">
-  <label class="field-label">글</label>
-  <input type="text" placeholder="여기에 적기">
+  <label class="field-label" for="uk-text">글</label>
+  <input id="uk-text" type="text" placeholder="여기에 적기">
 </div>
 <div class="field-group">
-  <label class="field-label">고르기</label>
-  <select><option>첫째</option><option>둘째</option></select>
+  <label class="field-label" for="uk-select">고르기</label>
+  <select id="uk-select"><option>첫째</option><option>둘째</option></select>
 </div>
 <div class="field-group">
-  <label class="field-label">긴 글</label>
-  <textarea rows="3" placeholder="여러 줄"></textarea>
+  <label class="field-label" for="uk-textarea">긴 글</label>
+  <textarea id="uk-textarea" rows="3" placeholder="여러 줄"></textarea>
 </div>`
         },
         {
@@ -106,7 +106,7 @@ import { t, loadNamespace } from '../lib/i18n';
             name: '한 줄 묶음',
             classes: '.field-row',
             note: '라벨과 조작을 한 줄에 좌우로. 쓰임 7',
-            html: `<div class="field-row"><span class="tool-sublabel">가로 세로 묶기</span><input type="checkbox" checked></div>`
+            html: `<div class="field-row"><label class="tool-sublabel" for="uk-lock">가로 세로 묶기</label><input id="uk-lock" type="checkbox" checked></div>`
         },
         {
             group: '입력',
@@ -114,8 +114,8 @@ import { t, loadNamespace } from '../lib/i18n';
             classes: 'input.mono-input',
             note: '값을 그대로 보여 줄 때. 쓰임 69',
             html: `<div class="field-group">
-  <label class="field-label">색 값</label>
-  <input type="text" class="mono-input" value="#5f4dc2">
+  <label class="field-label" for="uk-mono">색 값</label>
+  <input id="uk-mono" type="text" class="mono-input" value="#5f4dc2">
 </div>`
         },
         {
@@ -124,8 +124,8 @@ import { t, loadNamespace } from '../lib/i18n';
             classes: 'input[type=range] + .range-value',
             note: '값은 밀개 옆에 숫자로. 쓰임 79',
             html: `<div class="field-group">
-  <div class="tool-sublabel">길이 <span class="range-value">20자</span></div>
-  <input type="range" min="4" max="40" value="20">
+  <label class="tool-sublabel" for="uk-range">길이 <span class="range-value">20자</span></label>
+  <input id="uk-range" type="range" min="4" max="40" value="20">
 </div>`
         },
         {
@@ -133,7 +133,7 @@ import { t, loadNamespace } from '../lib/i18n';
             name: '설정 줄',
             classes: '.settings-control',
             note: '설정 창 오른쪽의 조작. 쓰임 22',
-            html: `<div class="field-row"><span>테마</span><select class="settings-control"><option>다크</option><option>라이트</option></select></div>`
+            html: `<div class="field-row"><label for="uk-theme">테마</label><select id="uk-theme" class="settings-control"><option>다크</option><option>라이트</option></select></div>`
         },
         {
             group: '입력',
@@ -231,8 +231,8 @@ import { t, loadNamespace } from '../lib/i18n';
             classes: '.tool-grid-2',
             note: '좁아지면 한 칸으로 접힌다. 쓰임 98',
             html: `<div class="tool-grid-2">
-  <div class="field-group"><label class="field-label">너비</label><input type="number" value="1440"></div>
-  <div class="field-group"><label class="field-label">높이</label><input type="number" value="900"></div>
+  <div class="field-group"><label class="field-label" for="uk-w">너비</label><input id="uk-w" type="number" value="1440"></div>
+  <div class="field-group"><label class="field-label" for="uk-h">높이</label><input id="uk-h" type="number" value="900"></div>
 </div>`
         },
         {
@@ -241,8 +241,8 @@ import { t, loadNamespace } from '../lib/i18n';
             classes: '.tool-split > .tool-split-pane',
             note: '재료와 결과를 나란히. 쓰임 4',
             html: `<div class="tool-split">
-  <div class="tool-split-pane"><div class="tool-sublabel">넣을 것</div><textarea rows="3"></textarea></div>
-  <div class="tool-split-pane"><div class="tool-sublabel">나온 것</div><textarea rows="3" readonly></textarea></div>
+  <div class="tool-split-pane"><label class="tool-sublabel" for="uk-in">넣을 것</label><textarea id="uk-in" rows="3"></textarea></div>
+  <div class="tool-split-pane"><label class="tool-sublabel" for="uk-out">나온 것</label><textarea id="uk-out" rows="3" readonly></textarea></div>
 </div>`
         },
         {
@@ -284,7 +284,8 @@ import { t, loadNamespace } from '../lib/i18n';
             classes: 'button, input[type=file], table, details (클래스 없을 때)',
             note: '위젯이 아무것도 안 정한 자리는 셸이 킷 모양으로 채운다. 클래스를 하나라도 붙이면 그쪽이 이긴다',
             html: `<button>맨 버튼</button>
-<input type="file">
+<label class="field-label" for="uk-file">파일 고르기</label>
+<input id="uk-file" type="file">
 <table><tr><th>키</th><td>값</td></tr><tr><th>키</th><td>값</td></tr></table>
 <details><summary>접힌 것</summary><p class="tool-hint">펼치면 이 글</p></details>`
         }
@@ -318,7 +319,7 @@ import { t, loadNamespace } from '../lib/i18n';
 </section>`
                     )
                     .join('');
-                return `<h3 class="tool-sublabel">${esc(g)}</h3><div class="kit-parts">${inner}</div>`;
+                return `<h2 class="tool-sublabel">${esc(g)}</h2><div class="kit-parts">${inner}</div>`;
             })
             .join('');
         const cs = getComputedStyle(document.documentElement);
@@ -328,7 +329,7 @@ import { t, loadNamespace } from '../lib/i18n';
 </section>`).join('');
         container.innerHTML = `<p class="tool-hint">${esc(t('uikit.hint', { n: PARTS.length }))}</p>
 ${cards}
-<h3 class="tool-sublabel">${esc(t('uikit.tokens', undefined, '토큰'))}</h3>
+<h2 class="tool-sublabel">${esc(t('uikit.tokens', undefined, '토큰'))}</h2>
 <div class="kit-parts">${swatches}</div>`;
         container.querySelectorAll<HTMLButtonElement>('[data-toast]').forEach((btn) => {
             btn.onclick = () => Toolbox.showToast(`${btn.textContent} 알림`, btn.dataset.toast);

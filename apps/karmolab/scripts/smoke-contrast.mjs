@@ -156,9 +156,15 @@ for (const theme of THEMES) {
      *   못 닿으면 대체 문구만 남아 128자다. 화면은 멀쩡히 떠 있다. 대신 **JS 가 채우는
      *   셸 표식**(#header-nav 의 카테고리 버튼)을 본다. js/ 산출물이 없어 셸이 통째로 안 뜨면
      *   저 nav 는 빈 채로 남는다. 그때가 진짜 아무것도 안 봤다다. */
-    const navChildren = await page.evaluate(() => document.querySelector('#header-nav')?.children.length || 0);
+    /* ⚠ 표식이 죽으면 검사도 죽는다 (2026-09-01). 여기는 `#header-nav` 의 자식 수를 봤는데,
+     *   2026-08-19 에 머리띠에서 갈래를 걷어내면서 그 자리가 **늘 0개**. 그날부터
+     *   이 검사는 도구 한 장도 못 재고 CANNOT-RUN 으로 끝남. 아무도 안 봄
+     *   지금 보는 것은 셸이 실제로 그리는 것 중 안 없어질 자리. 도구 판이 섰나. */
+    const navChildren = await page.evaluate(() =>
+      (document.querySelector('.tool-page.active') ? 1 : 0)
+      + (document.querySelector('#sidebar-nav')?.children.length || 0));
     if ((res && res.status() !== 200) || navChildren === 0) {
-      console.error(`[smoke-contrast] CANNOT-RUN: #${id} 장을 못 열었다 (http ${res && res.status()}, 셸 nav ${navChildren}개).`);
+      console.error(`[smoke-contrast] CANNOT-RUN: #${id} 장을 못 열었다 (http ${res && res.status()}, 셸 표식 ${navChildren}개).`);
       console.error('  이건 문제 없음이 아니라 **아무것도 안 봤다**는 뜻이다. 통과로 안 센다.');
       process.exit(2);
     }

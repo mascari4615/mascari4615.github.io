@@ -17,7 +17,8 @@
  *   병렬 세션이 다른 파일을 손대도 서로 안 걸림
  *
  * exit 0 안 늘음, 1 늘음, 2 못 잼
- *   --bless: 지금 값을 기준선으로 (줄인 뒤에만)
+ *   --bless: 지금 값을 기준선으로 (줄인 뒤에만). 두 축을 함께 덮어씀
+ *   --bless-px, --bless-color: 한 축만. 남이 늘린 축을 같이 받아 적지 않으려고
  *   --list [파일 일부]: 자리 목록
  */
 import fs from 'node:fs';
@@ -117,10 +118,24 @@ if (listIdx >= 0) {
   process.exit(0);
 }
 
-if (process.argv.includes('--bless')) {
+/* 축을 갈라 조인다 (2026-09-01). 통짜 --bless 는 두 축을 함께 덮어써서, 크기 부채를 줄인 사람이
+   남이 늘린 색 부채까지 조용히 받아 적음. 그럴 뻔한 자리 (arcade.ts 456 -> 465) */
+const blessAll = process.argv.includes('--bless');
+const blessPx = blessAll || process.argv.includes('--bless-px');
+const blessColor = blessAll || process.argv.includes('--bless-color');
+if (blessPx || blessColor) {
+  let prev = {};
+  try { prev = JSON.parse(fs.readFileSync(BASELINE, 'utf8')); } catch { /* 첫 판 */ }
+  const next = {
+    total: blessPx ? total : (prev.total ?? total),
+    files: blessPx ? now : (prev.files ?? now),
+    colorTotal: blessColor ? colorTotal : (prev.colorTotal ?? colorTotal),
+    colorFiles: blessColor ? colorNow : (prev.colorFiles ?? colorNow),
+  };
   fs.mkdirSync(path.dirname(BASELINE), { recursive: true });
-  fs.writeFileSync(BASELINE, JSON.stringify({ total, files: now, colorTotal, colorFiles: colorNow }, null, 1) + '\n', 'utf8');
-  console.log(`[style-tokens] 기준선을 다시 적었다. 직접 값 ${total}개, 직접 색 ${colorTotal}개`);
+  fs.writeFileSync(BASELINE, JSON.stringify(next, null, 1) + '\n', 'utf8');
+  const axes = [blessPx ? '크기' : null, blessColor ? '색' : null].filter(Boolean);
+  console.log(`[style-tokens] 기준선을 다시 적었다. 직접 값 ${next.total}개, 직접 색 ${next.colorTotal}개 (조인 축: ${axes.join(", ")})`);
   process.exit(0);
 }
 
