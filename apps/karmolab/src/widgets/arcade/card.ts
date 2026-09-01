@@ -14,6 +14,7 @@
  * 빨강과 검정이 갈림. 주사위 눈(⚀⚁)처럼 두부(□)로 빠지는 글자가 아님
  */
 import { deckSkin, isRedSuit, rankLabel, suitMark, type DeckSkin } from './deck';
+import { COURT_BOX, courtPaths, pips } from './card-art';
 
 export { isRedSuit, rankLabel, suitMark, deckSkin, applyDeckSkin, suitOf, DECK_SKINS, setDeckSkin } from './deck';
 export type { DeckSkin, SuitIndex } from './deck';
@@ -79,22 +80,89 @@ export function cardFace(rank: string, suit: string, o: CardOpts = {}): string {
 /**
  * 끗수와 무늬를 **숫자로** 받는 앞면. `deck.ts` 의 셈법 그대로다 (끗수 1~13, 무늬 0~3).
  * 카드 번호 하나로 들고 있는 판(솔리테어, 블랙잭)이 씀
- * 스킨이 바뀌면 무늬 글자와 색이 같이 바뀜
+ *
+ * 실물 한 벌을 따른다. 끗수만큼 핍을 놓고(자리는 `card-art.ts`), 그림 카드는 위아래가
+ * 맞물리는 그림. 가운데 무늬 하나만 크게 찍던 옛 그림은 7 과 9 가 같아 보였음.
+ * 안쪽은 SVG 라 어느 크기에서도 안 흐림. 입체(`texture.ts`)와 같은 자리
  */
 export function cardOf(rank: number, suit: number, o: CardOpts = {}): string {
   const skin = deckSkin();
   const mark = suitMark(suit, skin);
   const label = rankLabel(rank);
   const red = isRedSuit(suit) ? ' ac-red' : '';
-  const corner = esc(label) + '<span class="ac-pcs">' + esc(mark) + '</span>';
+  const spots = pips(rank);
+  const B = { x: 21.5, y: 6, w: 57, h: 85 };
+
+  let inner = '';
+  if (spots.length) {
+    inner = spots
+      .map((sp) => {
+        const x = B.x + sp.x * B.w;
+        const y = B.y + sp.y * B.h;
+        const size = 16.5 * sp.s;
+        const turn = sp.flip ? ' transform="rotate(180 ' + x.toFixed(2) + ' ' + y.toFixed(2) + ')"' : '';
+        return (
+          '<text x="' + x.toFixed(2) + '" y="' + y.toFixed(2) + '" font-size="' + size.toFixed(2) + '"' +
+          turn + '>' + esc(mark) + '</text>'
+        );
+      })
+      .join('');
+  } else {
+    const cx = COURT_BOX.x * 100;
+    const cy = COURT_BOX.y * 100;
+    const cw = COURT_BOX.w * 100;
+    const ch = COURT_BOX.h * 100;
+    const art = courtPaths(rank);
+    /* 반쪽을 그리고 판 한가운데를 축으로 뒤집어 한 번 더. 실물처럼 맞물림 */
+    const half = (flip: boolean): string => {
+      const turn = flip
+        ? ' transform="rotate(180 ' + (cx + cw / 2).toFixed(2) + ' ' + (cy + ch / 2).toFixed(2) + ')"'
+        : '';
+      const g =
+        art.fill.map((d) => '<path d="' + d + '" fill="currentColor" stroke="none" opacity=".28"/>').join('') +
+        art.line.map((d) => '<path d="' + d + '" fill="none" stroke-width=".012" stroke-linejoin="round"/>').join('');
+      return (
+        '<g' + turn + '><g transform="translate(' + cx.toFixed(2) + ' ' + cy.toFixed(2) +
+        ') scale(' + cw.toFixed(2) + ' ' + ch.toFixed(2) + ')">' + g + '</g></g>'
+      );
+    };
+    inner =
+      '<rect x="' + cx.toFixed(2) + '" y="' + cy.toFixed(2) + '" width="' + cw.toFixed(2) +
+      '" height="' + ch.toFixed(2) + '" rx="3" fill="none" stroke-width="1"/>' +
+      '<rect x="' + (cx + 1.6).toFixed(2) + '" y="' + (cy + 1.6).toFixed(2) + '" width="' + (cw - 3.2).toFixed(2) +
+      '" height="' + (ch - 3.2).toFixed(2) + '" rx="2.2" fill="none" stroke-width=".7" opacity=".5"/>' +
+      half(false) +
+      half(true) +
+      '<rect x="' + cx.toFixed(2) + '" y="' + (cy + ch / 2 - 0.4).toFixed(2) + '" width="' + cw.toFixed(2) +
+      '" height=".8" stroke="none" fill="currentColor" opacity=".45"/>' +
+      '<text x="' + (cx + cw * 0.18).toFixed(2) + '" y="' + (cy + ch * 0.5).toFixed(2) + '" font-size="10">' + esc(mark) + '</text>' +
+      '<text x="' + (cx + cw * 0.82).toFixed(2) + '" y="' + (cy + ch * 0.5).toFixed(2) + '" font-size="10">' + esc(mark) + '</text>';
+  }
+
+  const corner = (x: number, y: number, flip: boolean): string => {
+    const turn = flip ? ' transform="rotate(180 ' + x + ' ' + y + ')"' : '';
+    return (
+      '<g' + turn + '>' +
+      '<text x="' + x + '" y="' + y + '" font-size="15" font-weight="700" font-family="Noto Serif KR, Georgia, serif">' +
+      esc(label) + '</text>' +
+      '<text x="' + x + '" y="' + (y + 12) + '" font-size="11">' + esc(mark) + '</text>' +
+      '</g>'
+    );
+  };
+
+  const svg =
+    '<svg class="ac-pcsvg" viewBox="0 0 100 140" aria-hidden="true" focusable="false" ' +
+    'fill="currentColor" stroke="currentColor" text-anchor="middle" dominant-baseline="central" ' +
+    'font-family="Segoe UI Symbol, Apple Symbols, sans-serif">' +
+    corner(11, 12, false) +
+    corner(89, 128, true) +
+    inner +
+    '</svg>';
+
   return (
     '<button' +
-    attrs({ ...o, label: o.label ?? label + mark }).replace('ac-pc', 'ac-pc' + red) +
-    '>' +
-    '<span class="ac-pcc">' + corner + '</span>' +
-    '<span class="ac-pcm">' + esc(mark) + '</span>' +
-    '<span class="ac-pcc ac-br">' + corner + '</span>' +
-    '</button>'
+    attrs({ ...o, label: o.label ?? label + mark }).replace('ac-pc', 'ac-pc ac-pcart' + red) +
+    '>' + svg + '</button>'
   );
 }
 

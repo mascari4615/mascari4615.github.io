@@ -3,12 +3,16 @@
  *
  * 규칙(`blackjack.ts`)은 이 파일을 모른다. 무대는 `card-stage.ts`(방 안 탁자).
  *
+ * 손맛 계약(`memo/projects/karmolab/features/play.md`). 소리, 막힘 반응, 끌기를 여기도.
+ * 끌기는 무대 위에서. 위로 밀면 한 장 더, 아래로 밀면 그만
+ *
  * 옛 화면이 놓친 것 셋
  *  1. **감춘 카드 뒤집기.** 규칙이 카드를 실제로 뽑아 두므로 열리는 순간 그 자리에서 돎
  *  2. **줄 이름표.** 누구 줄인지와 합계를 상 위에 눕힌다. 아래 HUD 한 줄만 보고 치지 않게
  *  3. **결과 빛깔.** 이긴 줄, 죽은 줄, 비긴 줄이 이름표 색으로 갈림
  */
 import { t } from '../../../lib/i18n';
+import { blip } from '../../../lib/blip';
 import type { GameView } from '../views';
 import { mountCardStage, type CardHand, type CardStage } from '../card-stage';
 import { roomAmbience } from '../ambience';
@@ -49,9 +53,13 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
   mount(el, act) {
     el.innerHTML =
       '<div class="ac-t3 ac-t3room" id="acT3"></div>' +
-      '<div class="ac-bjhud" id="acBjHud"></div>';
+      '<div class="ac-bjhud" id="acBjHud">' +
+      '<div class="ac-bjlines" id="acBjLines"></div><div class="ac-bjacts" id="acBjActs"></div>' +
+      '</div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     const hudEl = el.querySelector('#acBjHud') as HTMLElement;
+    const lineBox = el.querySelector('#acBjLines') as HTMLElement;
+    const actBox = el.querySelector('#acBjActs') as HTMLElement;
 
     const scene = sceneOf('blackjack');
     const stage: CardStage | null = mountCardStage(host, { scene });
@@ -60,28 +68,69 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
 
     if (!stage.ok) {
       /* WebGL 이 없는 창. 셸이 평면으로 내려 준다 */
-      hudEl.textContent = t('arcade.no3d');
+      lineBox.textContent = t('arcade.no3d');
       return () => {};
     }
 
-    hudEl.onclick = (ev) => {
-      const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
-      if (!b || b.disabled) return;
+    /* 지금 무엇을 할 수 있나. 끌기가 보는 값 */
+    let can = { hit: false, stand: false };
+
+    const send = (a: BlackjackAction): void => {
       amb.stone();
-      const kind = b.dataset.do as string;
-      if (kind === 'bet') act({ kind: 'bet', amount: Number(b.dataset.n || 1) });
-      else if (kind === 'insure') act({ kind: 'insure', take: b.dataset.n === '1' });
-      else act({ kind } as BlackjackAction);
+      blip('tap');
+      act(a);
     };
 
-    let hudKey = '';
+    /** 안 되는 것. 삑 소리와 그 자리 빨간 흔들림 */
+    const nope = (el: HTMLElement): void => {
+      blip('bad');
+      el.classList.remove('ac-bjnope');
+      void el.offsetWidth;
+      el.classList.add('ac-bjnope');
+    };
+
+    hudEl.onclick = (ev) => {
+      const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
+      if (!b) return;
+      if (b.disabled) {
+        nope(b);
+        return;
+      }
+      const kind = b.dataset.do as string;
+      if (kind === 'bet') send({ kind: 'bet', amount: Number(b.dataset.n || 1) });
+      else if (kind === 'insure') send({ kind: 'insure', take: b.dataset.n === '1' });
+      else send({ kind } as BlackjackAction);
+    };
+    /* 꺼진 버튼는 click 이 안 옴 */
+    hudEl.addEventListener('pointerdown', (ev) => {
+      const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
+      if (b && b.disabled) nope(b);
+    });
+
+    /* 끌기. 상 위에서 위로 밀면 한 장 더, 아래로 밀면 그만 */
+    let from: { x: number; y: number } | null = null;
+    host.addEventListener('pointerdown', (ev) => {
+      from = { x: ev.clientX, y: ev.clientY };
+    });
+    host.addEventListener('pointerup', (ev) => {
+      if (!from) return;
+      const dx = ev.clientX - from.x;
+      const dy = ev.clientY - from.y;
+      from = null;
+      if (Math.abs(dy) < 40 || Math.abs(dy) < Math.abs(dx)) return;
+      if (dy < 0 && can.hit) send({ kind: 'hit' });
+      else if (dy > 0 && can.stand) send({ kind: 'stand' });
+      else nope(hudEl);
+    });
+
+    /* 알림 줄과 버튼을 따로 고쳐 쓴다. 한 덩이로 두면 봇이 걸 때마다 버튼이 새로 생겨
+       사람이 누르던 버튼이 손 밑에서 사라진다 (2026-09-01 실측: 누르기가 30초 동안 안 먹었다) */
+    let lineKey = '';
+    let actKey = '';
+    let toldHand = -1;
 
     const paintHud = (s: BlackjackState, mySeat: number, names: readonly string[]): void => {
       const me = s.seats[mySeat];
-      const key = JSON.stringify([s.phase, s.hand, s.next, s.revealed, s.over, mySeat, s.seats, s.dealer]);
-      if (key === hudKey) return;
-      hudKey = key;
-
       const lines: string[] = [];
       lines.push(
         '<div class="ac-bjline"><span>' +
@@ -136,6 +185,7 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
             btn('insure', t('arcade.blackjack.insureNo'), !me.answered, true, ' data-n="0"');
         } else if (s.phase === 'play') {
           const o = options(s, mySeat);
+          can = { hit: o.hit, stand: o.stand };
           acts =
             btn('hit', t('arcade.blackjack.hit'), o.hit) +
             btn('stand', t('arcade.blackjack.stand'), o.stand, true) +
@@ -144,7 +194,25 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
             btn('surrender', t('arcade.blackjack.surrender'), o.surrender, true);
         }
       }
-      hudEl.innerHTML = lines.join('') + (acts ? '<div class="ac-bjacts">' + acts + '</div>' : '');
+      if (s.phase !== 'play') can = { hit: false, stand: false };
+      const lineHtml =
+        lines.join('') +
+        (can.hit ? '<div class="ac-bjline ac-bjother"><span>' + esc(t('arcade.blackjack.swipe')) + '</span></div>' : '');
+      if (lineHtml !== lineKey) {
+        lineKey = lineHtml;
+        lineBox.innerHTML = lineHtml;
+      }
+      if (acts !== actKey) {
+        actKey = acts;
+        actBox.innerHTML = acts;
+      }
+
+      /* 결과가 난 순간 한 번만 욺 */
+      if (s.phase === 'done' && me && toldHand !== s.hand) {
+        toldHand = s.hand;
+        const best = me.hands.find((h) => h.res === 'bj' || h.res === 'win') ?? me.hands[0];
+        if (best?.res) blip(best.res === 'bj' || best.res === 'win' ? 'good' : best.res === 'push' ? 'tap' : 'bad');
+      }
     };
 
     return (v, mySeat) => {

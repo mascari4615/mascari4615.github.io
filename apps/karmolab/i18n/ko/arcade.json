@@ -694,5 +694,6 @@
   "arcade.blackjack.chipHouse": "딜러가 다 가져갔다",
   "arcade.deck.classic": "기본",
   "arcade.deck.ink": "먹",
-  "arcade.deck.night": "밤"
+  "arcade.deck.night": "밤",
+  "arcade.blackjack.swipe": "위로 밀면 한 장 더, 아래로 밀면 그만"
 }

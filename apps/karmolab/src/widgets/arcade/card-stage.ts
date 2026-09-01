@@ -31,7 +31,7 @@ import { gloop, type GardenLoop } from '../garden/gloop';
 import { mountStageCore } from './stage-core';
 import { buildRoom, type Room } from './rooms';
 import type { SceneId } from './scenes';
-import { cardBackTexture, cardFaceTexture, feltTexture } from './texture';
+import { cardBackTexture, cardEdgeTexture, cardFaceTexture, feltTexture } from './texture';
 import { suitOf } from './deck';
 
 /** 카드 한 장의 3D 치수 */
@@ -157,18 +157,21 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   scene.add(lamp);
 
   /* 카드 재료. 앞면은 값마다 다르므로 만들어 두고 쓴다(52장을 미리 굽지 않는다) */
-  const backMap = new CanvasTexture(cardBackTexture(256));
+  const backMap = new CanvasTexture(cardBackTexture(512));
   backMap.colorSpace = SRGBColorSpace;
-  const backMat = new MeshStandardMaterial({ map: backMap, roughness: 0.75, metalness: 0 });
-  const edgeMat = new MeshStandardMaterial({ color: 0xf6f1e6, roughness: 0.9, metalness: 0 });
+  /* 질감이 모서리 밖을 지운다. 알파를 켜야 상자 모서리가 안 각져 보임 */
+  const backMat = new MeshStandardMaterial({ map: backMap, roughness: 0.75, metalness: 0, transparent: true, alphaTest: 0.5 });
+  /* 옆면. 모서리에서 앞뒤가 지워지므로 여기도 알파 질감으로 잘라 냄 */
+  const edgeMap = new CanvasTexture(cardEdgeTexture(256));
+  const edgeMat = new MeshStandardMaterial({ map: edgeMap, color: 0xf6f1e6, roughness: 0.9, metalness: 0, transparent: true, alphaTest: 0.5 });
   const faceCache = new Map<string, MeshStandardMaterial>();
   const faceMatOf = (rank: number, suit: number): MeshStandardMaterial => {
     const k = rank + ':' + suit;
     const hit = faceCache.get(k);
     if (hit) return hit;
-    const map = new CanvasTexture(cardFaceTexture(rank, suit, 256));
+    const map = new CanvasTexture(cardFaceTexture(rank, suit, 512));
     map.colorSpace = SRGBColorSpace;
-    const m = new MeshStandardMaterial({ map, roughness: 0.72, metalness: 0 });
+    const m = new MeshStandardMaterial({ map, roughness: 0.72, metalness: 0, transparent: true, alphaTest: 0.5 });
     faceCache.set(k, m);
     return m;
   };
@@ -389,7 +392,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       }
       const xs = spread(h.cards.length);
       h.cards.forEach((card, i) => {
-        const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + 0.13 + i * 0.004, row.z);
+        /* 상 윗면이 TOP_Y. 카드 두께 절반만 띄움 (2026-09-01 사용자 지적. 카드가 공중에 떠 있었음) */
+        const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + CARD_T / 2 + i * 0.004, row.z);
         const wasUp = before ? had.get(keyOf(h.seat, nth, i)) : undefined;
         const old = wasUp !== undefined;
         const mesh = mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
@@ -429,10 +433,11 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       if (tag) {
         const wide = Math.min(1.9, 0.7 + (h.label ?? '').length * 0.115) * row.s;
         tag.scale.set(wide, 1, row.s);
-        /* 내 줄 이름표만 앞으로. 남의 줄과 딜러는 제 카드 뒤
-           앞에 두면 화면 앞쪽 내 카드가 그 위를 덮는다 (2026-09-01 화면 실측) */
-        const front = h.seat >= 0 && h.seat === mySeat;
-        tag.position.set(row.x, TOP_Y + 0.14, row.z + (front ? 0.92 : -0.92) * row.s);
+        /* 이름표 자리. 딜러는 제 카드 위(상 안쪽), 사람은 제 카드 아래.
+           같은 쪽에 몰면 앞줄 카드가 뒷줄 이름표를 덮고, 딜러 것을 더 올리면 상 밖으로
+           나가 잘린다 (2026-09-01 화면 실측 두 번) */
+        const up = h.seat < 0 ? -1 : 1;
+        tag.position.set(row.x, TOP_Y + 0.004, row.z + up * (CARD_H / 2 + 0.24) * row.s);
         labelGroup.add(tag);
       }
     }
@@ -476,7 +481,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
 
     for (const sp of spots) {
       const layer = sp.layer ?? 0;
-      const to = new Vector3(sp.x, TOP_Y + 0.02 + layer * 0.006 + (sp.held ? 0.2 : 0), sp.z);
+      const to = new Vector3(sp.x, TOP_Y + CARD_T / 2 + layer * 0.006 + (sp.held ? 0.2 : 0), sp.z);
       const face = sp.rank > 0;
       /* 앞뒤가 갈리면 다른 물건이라 새로 만든다. 그 밖에는 있던 것을 옮긴다 */
       const name = sp.id + '|' + (face ? sp.rank + ':' + (sp.suit ?? 0) : 'b');
@@ -593,6 +598,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       redMat.dispose();
       feltMap.dispose();
       backMap.dispose();
+      edgeMap.dispose();
       [feltMat, backMat, edgeMat].forEach((m) => m.dispose());
       faceCache.forEach((m) => {
         m.map?.dispose();

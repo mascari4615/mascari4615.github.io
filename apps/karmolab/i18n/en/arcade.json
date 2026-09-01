@@ -694,5 +694,6 @@
   "arcade.blackjack.chipHouse": "The house took it all",
   "arcade.deck.classic": "Classic",
   "arcade.deck.ink": "Ink",
-  "arcade.deck.night": "Night"
+  "arcade.deck.night": "Night",
+  "arcade.blackjack.swipe": "Swipe up to hit, down to stand"
 }

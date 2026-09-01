@@ -150,7 +150,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '--ac-stone-w:radial-gradient(circle at 34% 28%,#ffffff 0%,#f3efe6 45%,#cfc7b8 100%);' +
       /* 카드 한 벌. 같은 카드가 판마다 7가지 치수였다(64×88, 64×90, 52×72, 44×62, 38×52, 34×48, 34×46).
          종이는 한 종류다: 치수, 모서리, 뒷면을 여기서 한 번 정하고 열여섯 판이 같이 쓴다. */
-      '--ac-card-w:64px;--ac-card-h:90px;--ac-card-r:9px;' +
+      '--ac-card-w:64px;--ac-card-h:90px;--ac-card-r:5px;' +
       '--ac-card-face:linear-gradient(168deg,#ffffff 0%,#fbf8f2 62%,#f0ebe0 100%);' +
       '--ac-card-back:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 4px,rgba(255,255,255,0) 4px 8px),linear-gradient(150deg,#2f6f5e 0%,#245647 100%);' +
       '--ac-card-sh:0 6px 12px rgba(10,40,30,.3),inset 0 0 0 1px rgba(20,40,32,.1);' +
@@ -283,6 +283,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-root .ac-pc .ac-pcn{position:absolute;left:0;right:0;bottom:6px;font-size:var(--font-size-3xs);font-weight:600;opacity:.72}',
       /* 패 고유의 색. 글자가 물들고 안쪽에 그 색 테가 한 겹 돈다(종이는 흰 채로). */
       '.ac-root .ac-pc[style*="--hue"]{color:var(--hue);box-shadow:var(--ac-card-sh),inset 0 0 0 2px var(--hue)}',
+      /* 실물처럼 그린 앞면. 안쪽이 SVG 라 어느 치수에서도 안 흐림 */
+      '.ac-root .ac-pcart{overflow:hidden;padding:0}',
+      '.ac-root .ac-pcart .ac-pcsvg{display:block;width:100%;height:100%;stroke-width:0}',
       /* 집은 패의 금테는 제 색 테보다 위다. 안 그러면 지금 고른 것이 안 보인다. */
       '.ac-root .ac-pc.ac-pick[style*="--hue"]{box-shadow:0 14px 22px rgba(10,40,30,.38),inset 0 0 0 2px #ffd66b}',
       '.ac-root #acLobby{background:radial-gradient(ellipse 120% 90% at 50% 18%,#f2f1e8 0%,#e9e8de 60%,#dedcd0 100%);border-radius:18px;padding:20px 28px 28px;color:#3c3a30;' +
@@ -727,12 +730,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-sol-bar .btn-ghost{color:#e8f2ec;border-color:rgba(232,242,236,.4)}',
       '.ac-sol-slot small{color:#dfeee6}',
       /* 블랙잭 입체. 판 아래 한 줄에 딜러와 내 합계, 그리고 버튼 둘 */
-      '.ac-bjhud{position:absolute;left:0;right:0;bottom:16px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:6}',
+      /* 알림 줄은 왼쪽 위, 버튼은 아래 가운데. 한 덩이로 아래에 쌓으면 상 위 이름표를 덮음
+         (2026-09-01 화면 실측) */
+      '.ac-bjhud{position:absolute;inset:0;pointer-events:none;z-index:6}',
+      '.ac-bjlines{position:absolute;left:14px;top:12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px}',
+      '.ac-bjacts{position:absolute;left:0;right:0;bottom:16px}',
       '.ac-bjline{padding:4px 14px;border-radius:var(--radius-pill);background:rgba(24,20,16,.62);color:#f3ead8;font-size:var(--font-size-sm);backdrop-filter:blur(3px)}',
       '.ac-bjline.ac-me{background:rgba(40,32,22,.78);font-weight:700}',
       '.ac-bjline.ac-bjother{font-size:var(--font-size-xs);opacity:.82}',
       '.ac-bjline b{color:#e2a0a0;margin-left:4px}',
-      '.ac-bjacts{display:flex;gap:8px;margin-top:4px;pointer-events:auto;flex-wrap:wrap;justify-content:center}',
+      '.ac-bjacts{display:flex;gap:8px;pointer-events:auto;flex-wrap:wrap;justify-content:center}',
+      '.ac-bjacts:empty{display:none}',
+      
       '.ac-bjbtn{padding:9px 20px;border:0;border-radius:var(--radius-pill);background:linear-gradient(180deg,#8a6a3a,#5d4522);color:#fdf6e6;font-size:var(--font-size-md);font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.4)}',
       '.ac-bjbtn.ac-ghost{background:rgba(30,26,20,.7);color:#e8dcc4;box-shadow:0 4px 12px rgba(0,0,0,.35)}',
       '.ac-bjbtn[disabled]{opacity:.4;cursor:default}',
@@ -1042,8 +1051,19 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-bjwait{min-height:var(--ac-card-h);display:grid;place-items:center;font-size:var(--font-size-xs);opacity:.6}',
       '.ac-bjask{align-self:center;font-size:var(--font-size-sm);opacity:.86;margin-right:4px}',
       '.ac-bjbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:38px;align-items:center}',
-      /* 단추가 줄을 다 먹지 않게. 셸의 .btn 이 늘어난다 (2026-09-01 화면 실측: 한 장 더가 줄 전체) */
+      /* 버튼이 줄을 다 먹지 않게. 셸의 .btn 이 늘어난다 (2026-09-01 화면 실측: 한 장 더가 줄 전체) */
       '.ac-root .ac-bj .ac-bjbar .btn{flex:0 0 auto;width:auto;min-width:88px}',
+      '.ac-bjhint{display:block;margin-top:6px;font-size:var(--font-size-2xs);opacity:.55}',
+      /* 손맛. 새로 온 카드는 카드집에서 날아와 앉고, 뒤집히는 카드는 그 자리에서 돎.
+         줄을 통째로 새로 쓰면 이 그림이 매번 처음으로 돌아가므로 화면이 새 장만 붙인다 */
+      '@keyframes acBjIn{from{transform:translate(26px,-38px) rotate(9deg) scale(.92);opacity:0}to{transform:none;opacity:1}}',
+      '@keyframes acBjFlip{from{transform:rotateY(90deg) scale(.96)}to{transform:none}}',
+      '@keyframes acBjNope{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}',
+      '.ac-root .ac-bjcards .ac-bjin{animation:acBjIn .28s cubic-bezier(.2,.9,.3,1) both}',
+      '.ac-root .ac-bjcards .ac-bjflip{animation:acBjFlip .3s ease-out both}',
+      /* 안 되는 것에도 반응. 흔들림과 빨간 테. 소리는 화면 몫 */
+      '.ac-bjnope{animation:acBjNope .32s ease-in-out;box-shadow:0 0 0 2px var(--error) inset}',
+      '@media (prefers-reduced-motion:reduce){.ac-root .ac-bjcards .ac-bjin,.ac-root .ac-bjcards .ac-bjflip,.ac-bjnope{animation:none}}',
       /* 카드 판은 **펠트 위**에서 논다. 판마다 다른 바닥을 쓰면 열여섯 판이 열여섯 방이 된다. */
       '.ac-root .ac-pr{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
       '.ac-root .ac-pr small{color:rgba(234,242,238,.7)}',

@@ -14568,7 +14568,8 @@
     "arcade.blackjack.chipHouse": "eff6e1449b",
     "arcade.deck.classic": "7f1d8c413d",
     "arcade.deck.ink": "6c3f5d5422",
-    "arcade.deck.night": "5706f15200"
+    "arcade.deck.night": "5706f15200",
+    "arcade.blackjack.swipe": "4ed5894ae6"
   },
   "ja": {
     "account.title.klBell": "e29d147ed5",
@@ -29139,6 +29140,7 @@
     "arcade.blackjack.chipHouse": "eff6e1449b",
     "arcade.deck.classic": "7f1d8c413d",
     "arcade.deck.ink": "6c3f5d5422",
-    "arcade.deck.night": "5706f15200"
+    "arcade.deck.night": "5706f15200",
+    "arcade.blackjack.swipe": "4ed5894ae6"
   }
 }

@@ -694,5 +694,6 @@
   "arcade.blackjack.chipHouse": "ディーラーの総取り",
   "arcade.deck.classic": "標準",
   "arcade.deck.ink": "墨",
-  "arcade.deck.night": "夜"
+  "arcade.deck.night": "夜",
+  "arcade.blackjack.swipe": "上に払うとヒット、下でスタンド"
 }
