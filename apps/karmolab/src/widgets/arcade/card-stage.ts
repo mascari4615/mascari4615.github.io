@@ -130,6 +130,15 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
+  /* 이방성 거르기. 카드는 상에 눕고 카메라는 40도쯤 위에서 내려보므로 화면에서 세로가
+     크게 줄어든다. 이방성이 없으면 밉맵이 그 방향을 뭉개 글자와 무늬가 흐려진다.
+     오목은 4, 야추는 8 을 걸고 있었고 여기만 안 걸려 있었다 (2026-09-01 실측) */
+  const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const sharp = <T extends { anisotropy: number }>(m: T): T => {
+    m.anisotropy = ANISO;
+    return m;
+  };
+
   const scene = new Scene();
   const camera = new PerspectiveCamera(40, 1, 0.1, 80);
   const sceneId: SceneId = opts.scene ?? 'tatami';
@@ -138,7 +147,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const room: Room | null = buildRoom(scene, sceneId, TABLE_W);
 
   /* 탁자. 방이 제 바닥을 들고 오므로 여기서는 천을 씌운 상만 놓는다 */
-  const feltMap = new CanvasTexture(feltTexture(23, 256));
+  const feltMap = sharp(new CanvasTexture(feltTexture(23, 512)));
   feltMap.colorSpace = SRGBColorSpace;
   feltMap.wrapS = feltMap.wrapT = 1000; /* RepeatWrapping */
   feltMap.repeat.set(3, 2);
@@ -153,23 +162,24 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const lamp = new DirectionalLight(0xfff0dc, 1.15);
   lamp.position.set(2.2, 6.5, 3.2);
   lamp.castShadow = true;
-  lamp.shadow.mapSize.set(1024, 1024);
+  /* 오목과 야추가 2048. 1024 면 카드 그림자 테두리가 계단으로 보인다 */
+  lamp.shadow.mapSize.set(2048, 2048);
   scene.add(lamp);
 
   /* 카드 재료. 앞면은 값마다 다르므로 만들어 두고 쓴다(52장을 미리 굽지 않는다) */
-  const backMap = new CanvasTexture(cardBackTexture(512));
+  const backMap = sharp(new CanvasTexture(cardBackTexture(512)));
   backMap.colorSpace = SRGBColorSpace;
   /* 질감이 모서리 밖을 지운다. 알파를 켜야 상자 모서리가 안 각져 보임 */
   const backMat = new MeshStandardMaterial({ map: backMap, roughness: 0.75, metalness: 0, transparent: true, alphaTest: 0.5 });
   /* 옆면. 모서리에서 앞뒤가 지워지므로 여기도 알파 질감으로 잘라 냄 */
-  const edgeMap = new CanvasTexture(cardEdgeTexture(256));
+  const edgeMap = sharp(new CanvasTexture(cardEdgeTexture(256)));
   const edgeMat = new MeshStandardMaterial({ map: edgeMap, color: 0xf6f1e6, roughness: 0.9, metalness: 0, transparent: true, alphaTest: 0.5 });
   const faceCache = new Map<string, MeshStandardMaterial>();
   const faceMatOf = (rank: number, suit: number): MeshStandardMaterial => {
     const k = rank + ':' + suit;
     const hit = faceCache.get(k);
     if (hit) return hit;
-    const map = new CanvasTexture(cardFaceTexture(rank, suit, 512));
+    const map = sharp(new CanvasTexture(cardFaceTexture(rank, suit, 512)));
     map.colorSpace = SRGBColorSpace;
     const m = new MeshStandardMaterial({ map, roughness: 0.72, metalness: 0, transparent: true, alphaTest: 0.5 });
     faceCache.set(k, m);
@@ -205,37 +215,53 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   };
   const labelGroup = new Group();
   scene.add(labelGroup);
-  const labelGeo = new BoxGeometry(1, 0.004, 0.26);
+  /* 이름표 한 장. 글자 길이에 맞춰 캔버스를 잡는다. 고정 512x128 을 늘려 쓰면 가로로
+     늘어나 글자가 뭉개진다 (2026-09-01 사용자 지적: 글자 해상도가 낮다) */
+  const LABEL_H = 0.26;
+  /* 월드 한 단위에 몇 화소인가. 야추 점수표가 111, 오목 좌표가 그 언저리 */
+  const LABEL_PPU = 620;
+  const labelGeo = new BoxGeometry(1, 0.004, 1);
   const labelMats: MeshStandardMaterial[] = [];
   const mkLabel = (text: string, tone: string): Mesh | null => {
     if (!text) return null;
+    const ch = Math.round(LABEL_H * LABEL_PPU);
+    const font = '700 ' + Math.round(ch * 0.52) + 'px "Noto Sans KR", system-ui, sans-serif';
+    const probe = document.createElement('canvas').getContext('2d');
+    if (!probe) return null;
+    probe.font = font;
+    const pad = ch * 0.42;
+    const cw = Math.max(ch * 2, Math.ceil(probe.measureText(text).width + pad * 2));
     const cv = document.createElement('canvas');
-    cv.width = 512;
-    cv.height = 128;
+    cv.width = cw;
+    cv.height = ch;
     const c = cv.getContext('2d');
     if (!c) return null;
-    c.clearRect(0, 0, 512, 128);
-    c.fillStyle = 'rgba(16,14,11,.62)';
-    c.beginPath();
+    c.clearRect(0, 0, cw, ch);
     /* 알약 모양. 상 위에서 글자가 천에 묻히지 않게 */
-    const r = 52;
-    c.moveTo(r, 12);
-    c.arcTo(500, 12, 500, 116, r);
-    c.arcTo(500, 116, 12, 116, r);
-    c.arcTo(12, 116, 12, 12, r);
-    c.arcTo(12, 12, 500, 12, r);
+    c.fillStyle = 'rgba(16,14,11,.66)';
+    const r = ch * 0.44;
+    const m = ch * 0.06;
+    c.beginPath();
+    c.moveTo(m + r, m);
+    c.arcTo(cw - m, m, cw - m, ch - m, r);
+    c.arcTo(cw - m, ch - m, m, ch - m, r);
+    c.arcTo(m, ch - m, m, m, r);
+    c.arcTo(m, m, cw - m, m, r);
     c.closePath();
     c.fill();
     c.fillStyle = TONE[tone] ?? TONE.idle;
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    c.font = '700 56px "Noto Sans KR", system-ui, sans-serif';
-    c.fillText(text, 256, 66, 468);
-    const map = new CanvasTexture(cv);
+    c.font = font;
+    c.fillText(text, cw / 2, ch * 0.54);
+    const map = sharp(new CanvasTexture(cv));
     map.colorSpace = SRGBColorSpace;
     const mat = new MeshStandardMaterial({ map, transparent: true, roughness: 1, metalness: 0 });
     labelMats.push(mat);
-    return new Mesh(labelGeo, mat);
+    const mesh = new Mesh(labelGeo, mat);
+    /* 캔버스와 같은 비를 준다. 늘리지 않으므로 글자가 안 뭉개진다 */
+    mesh.scale.set((cw / ch) * LABEL_H, 1, LABEL_H);
+    return mesh;
   };
   const clearLabels = (): void => {
     while (labelGroup.children.length) labelGroup.remove(labelGroup.children[0]);
@@ -431,8 +457,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       /* 줄 이름표. 카드 줄 앞쪽에 눕힘 */
       const tag = mkLabel(h.label ?? '', h.tone ?? 'idle');
       if (tag) {
-        const wide = Math.min(1.9, 0.7 + (h.label ?? '').length * 0.115) * row.s;
-        tag.scale.set(wide, 1, row.s);
+        /* 크기는 `mkLabel` 이 글자 길이로 이미 잡았다. 줄 배율만 곱한다 */
+        tag.scale.multiplyScalar(row.s);
         /* 이름표 자리. 딜러는 제 카드 위(상 안쪽), 사람은 제 카드 아래.
            같은 쪽에 몰면 앞줄 카드가 뒷줄 이름표를 덮고, 딜러 것을 더 올리면 상 밖으로
            나가 잘린다 (2026-09-01 화면 실측 두 번) */
