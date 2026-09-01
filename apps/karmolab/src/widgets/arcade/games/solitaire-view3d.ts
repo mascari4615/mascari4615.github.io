@@ -17,6 +17,7 @@ import { roomAmbience } from '../ambience';
 import { sceneOf } from '../scenes';
 import {
   bestMove,
+  canDraw,
   canFound,
   canStack,
   doneCount,
@@ -26,6 +27,8 @@ import {
   type SolitaireAction,
   type SolitaireState
 } from './solitaire';
+/* 안내 문구는 평면과 **같은 글**. 두 화면이 다른 말을 하면 안 된다 */
+import { hintText } from './solitaire-view';
 
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -91,7 +94,7 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       if (!s) return;
       if (id === 'stock') {
         held = null;
-        if (!s.stock.length && (!s.waste.length || s.passes >= 3)) {
+        if (!canDraw(s)) {
           nope(t('arcade.solitaire.nodraw'), 'stock');
           return;
         }
@@ -191,6 +194,13 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       /* 끌기가 시작되면 들고 있던 것을 물린다. 새로 잡은 카드가 놓기로 읽히면 안 된다 */
       onDrop: () => {
         held = null;
+      },
+      /* 빈 데를 누르면 내려놓기. 물릴 길이 없으면 갇힌다(평면과 같은 길) */
+      onMiss: () => {
+        if (!held) return;
+        held = null;
+        blip('tap');
+        say(t('arcade.solitaire.dropped'));
       }
     });
 
@@ -199,25 +209,15 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       return () => {};
     }
 
-    /* 빈 자리 테두리. 더미, 뽑은 자리, 쌓는 자리 넷, 일곱 열 */
-    stage.setSlots([
-      { x: colX(0), z: TOP_Z, id: 'stock' },
-      { x: colX(1), z: TOP_Z, id: 'waste' },
-      { x: colX(3), z: TOP_Z, id: 'f0' },
-      { x: colX(4), z: TOP_Z, id: 'f1' },
-      { x: colX(5), z: TOP_Z, id: 'f2' },
-      { x: colX(6), z: TOP_Z, id: 'f3' },
-      ...Array.from({ length: 7 }, (_, c) => ({ x: colX(c), z: TAB_Z, id: 'c' + c + ':-1' }))
-    ]);
-
     function paint(): void {
       const s = last;
       if (!s) return;
       const spots: CardSpotAt[] = [];
 
+      const hc = heldCard(s);
       /* 더미. 남은 게 있으면 뒷면 한 장 */
       if (s.stock.length) spots.push({ id: 'stock', x: colX(0), z: TOP_Z, rank: 0, up: false });
-      /* 뽑은 자리 */
+      /* 뽑은 자리. 새로 나온 카드는 **더미에서 날아온다**. 뚝 나오면 어디서 왔는지 모른다 */
       if (s.waste.length) {
         const card = s.waste[s.waste.length - 1];
         spots.push({
@@ -227,10 +227,11 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
           rank: rankOf(card) + 1,
           suit: suitOf(card),
           up: true,
-          held: held?.kind === 'waste'
+          held: held?.kind === 'waste',
+          from: { x: colX(0), z: TOP_Z }
         });
       }
-      /* 쌓는 자리 넷 */
+      /* 쌓는 자리 넷. 든 카드가 갈 수 있으면 자리를 짚어 준다(평면의 `ac-can`) */
       s.foundation.forEach((f, i) => {
         if (!f.length) return;
         const card = f[f.length - 1];
@@ -241,7 +242,8 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
           rank: rankOf(card) + 1,
           suit: suitOf(card),
           up: true,
-          held: held?.kind === 'found' && held.pile === i
+          held: held?.kind === 'found' && held.pile === i,
+          can: hc !== null && canFound(f, hc)
         });
       });
       /* 일곱 열 */
@@ -263,7 +265,45 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
         /* 빈 열도 누를 수 있어야 K 를 놓음 */
         if (!p.cards.length) spots.push({ id: 'c' + c + ':-1', x: colX(c), z: TAB_Z, rank: 0, up: false, layer: -1 });
       });
+      /* 열 맨 아래 카드에 놓을 수 있다는 표시. 빈 열은 아래 테두리가 맡는다 */
+      if (hc !== null) {
+        s.tableau.forEach((p, c) => {
+          if (!p.cards.length || !canStack(p, hc)) return;
+          const at = spots.find((sp) => sp.id === 'c' + c + ':' + (p.cards.length - 1));
+          if (at) at.can = true;
+        });
+      }
       stage.setBoard(spots);
+
+      /* 빈 자리 테두리. 놓을 수 있는 곳이 바뀌면 다시 그린다 */
+      stage.setSlots([
+        { x: colX(0), z: TOP_Z, id: 'stock' },
+        { x: colX(1), z: TOP_Z, id: 'waste' },
+        ...Array.from({ length: 4 }, (_, i) => ({
+          x: colX(3 + i),
+          z: TOP_Z,
+          id: 'f' + i,
+          can: hc !== null && !s.foundation[i].length && canFound(s.foundation[i], hc)
+        })),
+        ...Array.from({ length: 7 }, (_, c) => ({
+          x: colX(c),
+          z: TAB_Z,
+          id: 'c' + c + ':-1',
+          can: hc !== null && !s.tableau[c].cards.length && canStack(s.tableau[c], hc)
+        }))
+      ]);
+
+      /* 상 위 글자. 남은 장수와 되돌린 바퀴. 평면은 더미 밑에 숫자를 적는다 */
+      const recycle = !s.stock.length && canDraw(s);
+      stage.setNotes([
+        {
+          x: colX(0),
+          z: TOP_Z + 0.72,
+          text: s.stock.length ? String(s.stock.length) : recycle ? t('arcade.solitaire.recycle') : t('arcade.solitaire.empty'),
+          tone: recycle ? 'turn' : 'idle'
+        },
+        ...(s.passes > 0 ? [{ x: colX(1), z: TOP_Z + 0.72, text: t('arcade.solitaire.passes', { n: String(s.passes) }) }] : [])
+      ]);
 
       const done = doneCount(s);
       const msg =
@@ -278,7 +318,8 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
         hb.onclick = () => {
           const now = last;
           if (!now) return;
-          if (bestMove(now)) { blip('good'); say(t('arcade.solitaire.hintOn')); }
+          const mv = bestMove(now);
+          if (mv) { blip('good'); say(hintText(mv, now)); }
           else nope(t('arcade.solitaire.nohint'));
         };
       }

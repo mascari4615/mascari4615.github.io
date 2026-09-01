@@ -96,10 +96,12 @@ function flip(pile: Pile): Pile {
 }
 
 /**
- * 더미를 몇 바퀴까지 돌리나. 레퍼런스(`solitr.com`)는 한 장 뽑기면 무제한, 세 장이면 제한
- * 한 장 뽑기에서 세 바퀴로 막으니 이길 판도 막혔다(2026-09-01 실측: 이김 7.7%, 막힘 92%)
+ * 더미를 몇 바퀴까지 돌리나. 레퍼런스(solitaired.com)는 **한 장과 세 장 둘 다 무제한**
+ * 이라고 밝히고 그것이 흔하다고 적는다. 이김은 한 장 무제한에서 40~55%
+ * 세 바퀴로 막았더니 이길 판도 막혔다(2026-09-01 실측: 이김 7.7%, 막힘 92%)
+ * 판이 안 끝나는 것은 바퀴 수가 아니라 헛바퀴(`dry`)와 수 상한이 막음
  */
-const passLimit = (draw: number): number => (draw === 1 ? 99 : 3);
+const passLimit = (draw: number): number => 99;
 
 export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
   id: 'solitaire',

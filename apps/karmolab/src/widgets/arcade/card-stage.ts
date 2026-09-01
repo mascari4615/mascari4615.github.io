@@ -98,6 +98,8 @@ export interface CardStageOpts {
   onPick?(id: string): void;
   /** 끌기가 시작될 때. 들고 있던 것을 물리라는 뜻 */
   onDrop?(): void;
+  /** 카드도 자리도 아닌 데를 눌렀을 때. 들고 있던 것을 내려놓으라는 뜻 */
+  onMiss?(): void;
   /**
    * 상을 어떻게 차릴까. `casino` 면 반원 상판과 가죽 레일과 베팅 서클과 슈와
    * 디스카드 트레이를 세움 (`card-table.ts`). 블랙잭이 쓰는 값
@@ -121,6 +123,13 @@ export interface CardSpotAt {
   suit?: number;
   /** 지금 들려 있나. 살짝 뜬다 */
   held?: boolean;
+  /**
+   * 처음 나온 카드가 날아올 자리. 안 주면 제 자리에서 그냥 나타남
+   * 더미에서 뽑은 카드가 뚝 나오면 뽑은 줄을 모름 (2026-09-01 사용자 지적)
+   */
+  from?: { x: number; z: number };
+  /** 든 카드를 여기 놓을 수 있나. 자리 밑이 밝아짐 */
+  can?: boolean;
 }
 
 export interface CardStage {
@@ -131,7 +140,9 @@ export interface CardStage {
   /** 자리를 직접 잡아 놓는다(솔리테어). 빈 자리 표시는 부르는 쪽이 `rank: 0` 으로 */
   setBoard(spots: CardSpotAt[]): void;
   /** 빈 자리 테두리. 이름을 주면 그 자리에 놓을 수 있음(빈 열에 K 놓기) */
-  setSlots(slots: Array<{ x: number; z: number; id?: string }>): void;
+  setSlots(slots: Array<{ x: number; z: number; id?: string; can?: boolean }>): void;
+  /** 상 위 글자. 남은 장수처럼 카드가 아닌 것 */
+  setNotes(notes: Array<{ x: number; z: number; text: string; tone?: string }>): void;
   /** 자리마다 걸린 판돈. 베팅 서클 위에 칩으로 쌓는다 (카지노 상에서만) */
   setChips(bets: Array<{ seat: number; amount: number }>): void;
   /**
@@ -168,7 +179,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
      뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
   const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05, maxPixelRatio: 2 });
-  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
+  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setNotes: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
   /* 이방성 거르기. 카드는 상에 눕고 카메라는 40도쯤 위에서 내려보므로 화면에서 세로가
@@ -274,7 +285,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const LABEL_PPU = 620;
   const labelGeo = new BoxGeometry(1, 0.004, 1);
   const labelMats: MeshStandardMaterial[] = [];
-  const mkLabel = (text: string, tone: string): Mesh | null => {
+  const mkLabel = (text: string, tone: string, sink: MeshStandardMaterial[] = labelMats): Mesh | null => {
     if (!text) return null;
     const ch = Math.round(LABEL_H * LABEL_PPU);
     const font = '700 ' + Math.round(ch * 0.52) + 'px "Noto Sans KR", system-ui, sans-serif';
@@ -309,7 +320,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     const map = sharp(new CanvasTexture(cv));
     map.colorSpace = SRGBColorSpace;
     const mat = new MeshStandardMaterial({ map, transparent: true, roughness: 1, metalness: 0 });
-    labelMats.push(mat);
+    sink.push(mat);
     const mesh = new Mesh(labelGeo, mat);
     /* 캔버스와 같은 비를 준다. 늘리지 않으므로 글자가 안 뭉개진다 */
     mesh.scale.set((cw / ch) * LABEL_H, 1, LABEL_H);
@@ -640,15 +651,50 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const slotGeo = new BoxGeometry(CARD_W * 1.02, 0.01, CARD_H * 1.02);
   const slotMat = new MeshStandardMaterial({ color: 0x1d4a3a, roughness: 1, metalness: 0, transparent: true, opacity: 0.55 });
   const slotNames = new Map<Mesh, string>();
-  const setSlots = (slots: Array<{ x: number; z: number; id?: string }>): void => {
+  /* 놓을 수 있는 자리. 평면의 `ac-can` 과 같은 뜻 */
+  const canMat = new MeshStandardMaterial({ color: 0xe7c96a, roughness: 0.9, metalness: 0, transparent: true, opacity: 0.5, emissive: new Color(0x6a5417) });
+  const setSlots = (slots: Array<{ x: number; z: number; id?: string; can?: boolean }>): void => {
     while (slotGroup.children.length) slotGroup.remove(slotGroup.children[0]);
     slotNames.clear();
     for (const sl of slots) {
-      const m = new Mesh(slotGeo, slotMat);
+      const m = new Mesh(slotGeo, sl.can ? canMat : slotMat);
       m.position.set(sl.x, TOP_Y + 0.005, sl.z);
       m.receiveShadow = true;
       slotGroup.add(m);
       if (sl.id) slotNames.set(m, sl.id);
+    }
+    need = true;
+    render();
+  };
+
+  /* 놓을 수 있는 카드 자리 표시. 카드보다 조금 크게 깔린다 */
+  const canGroup = new Group();
+  scene.add(canGroup);
+  const canGeo = new BoxGeometry(CARD_W * 1.18, 0.008, CARD_H * 1.18);
+  const canGlowMat = new MeshStandardMaterial({ color: 0xe7c96a, roughness: 0.9, metalness: 0, transparent: true, opacity: 0.42, emissive: new Color(0x6a5417) });
+
+  /* 상 위 글자. 남은 장수처럼 카드가 아닌 것 */
+  const noteGroup = new Group();
+  scene.add(noteGroup);
+  const noteMats: MeshStandardMaterial[] = [];
+  let noteKey = '';
+  const setNotes = (notes: Array<{ x: number; z: number; text: string; tone?: string }>): void => {
+    const key = JSON.stringify(notes);
+    if (key === noteKey) return;
+    noteKey = key;
+    while (noteGroup.children.length) noteGroup.remove(noteGroup.children[0]);
+    for (const m of noteMats) {
+      m.map?.dispose();
+      m.dispose();
+    }
+    noteMats.length = 0;
+    for (const n of notes) {
+      const tag = mkLabel(n.text, n.tone ?? 'idle', noteMats);
+      if (!tag) continue;
+      /* 카드보다 조금 위. 상에 붙이면 그 자리 카드 밑
+         2026-09-01 실측: 더미 밑 숫자가 첫 열 카드에 가려 한 번도 안 보였음 */
+      tag.position.set(n.x, TOP_Y + 0.14, n.z);
+      noteGroup.add(tag);
     }
     need = true;
     render();
@@ -669,6 +715,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     const now = performance.now();
     const keep = new Set<string>();
     const next: Live[] = [];
+    const canAt: Array<{ x: number; z: number }> = [];
 
     for (const sp of spots) {
       const layer = sp.layer ?? 0;
@@ -683,9 +730,15 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       mesh.userData.name = name;
       if (!same) {
         if (had) holder.remove(had);
-        /* 새로 나온 카드는 있던 자리가 없다. 그 자리에서 시작한다 */
-        mesh.position.copy(to);
-        mesh.rotation.z = sp.up ? 0 : Math.PI;
+        /**
+         * 처음 나온 카드. `from` 이 있으면 거기서 날아옴
+         * 없으면 제 자리에서 시작. 뽑은 카드가 뚝 나오면 어디서 왔는지 모름
+         * 2026-09-01 사용자 지적: 새 카드 뽑을 때 애니메이션 없이 뚝 나옴
+         */
+        if (sp.from) mesh.position.set(sp.from.x, TOP_Y + CARD_T / 2 + 0.24, sp.from.z);
+        else mesh.position.copy(to);
+        /* 날아오는 동안 뒤집힌다. 뽑기는 뒷면이 앞면이 되는 동작이다 */
+        mesh.rotation.z = sp.from && sp.up ? Math.PI : sp.up ? 0 : Math.PI;
         holder.add(mesh);
       }
       mesh.rotation.y = sp.held ? 0.06 : 0;
@@ -696,10 +749,11 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         from: mesh.position.clone(),
         to,
         t0: now,
-        ms: same ? 240 : 1,
+        ms: same ? 240 : sp.from ? 300 : 1,
         rFrom: mesh.rotation.z,
         rTo: sp.up ? 0 : Math.PI
       });
+      if (sp.can) canAt.push({ x: sp.x, z: sp.z });
     }
 
     /* 없어진 자리는 치운다 */
@@ -708,6 +762,14 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       holder.remove(mesh);
       picks.delete(mesh);
       byName.delete(id);
+    }
+
+    /* 놓을 수 있는 자리 밑에 빛. 카드 위에 얹으면 카드를 가린다 */
+    while (canGroup.children.length) canGroup.remove(canGroup.children[0]);
+    for (const c of canAt) {
+      const m = new Mesh(canGeo, canGlowMat);
+      m.position.set(c.x, TOP_Y + 0.006, c.z);
+      canGroup.add(m);
     }
 
     live.length = 0;
@@ -785,6 +847,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       const id = hit ? picks.get(hit) : undefined;
       downAt = { x: ev.clientX, y: ev.clientY };
       lift = hit && id ? { mesh: hit, id, home: hit.position.clone() } : null;
+      /* 카드도 자리도 아닌 데. 들고 있던 것을 내려놓는다. 평면은 빈 데를 누르면 물린다 */
+      if (!lift && !under()) opts.onMiss?.();
     });
 
     core.canvas.addEventListener('pointermove', (ev: PointerEvent) => {
@@ -858,6 +922,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     setChips,
     setSeats,
     setSlots,
+    setNotes,
     nope,
     resize: fit,
     dispose(): void {

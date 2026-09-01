@@ -19,6 +19,7 @@ import { sceneOf } from '../scenes';
 import type { GameView } from '../views';
 import {
   bestMove,
+  canDraw,
   canFound,
   canStack,
   doneCount,
@@ -206,13 +207,15 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       fit();
 
       /* 스톡과 웨이스트. 스톡이 비면 되돌릴 수 있는지 보인다 */
-      const canRecycle = !s.stock.length && s.waste.length > 0 && s.passes < 3;
+      const canRecycle = !s.stock.length && canDraw(s);
       dealEl.innerHTML =
         '<button type="button" class="ac-sol-slot ac-stock' + (s.stock.length || canRecycle ? '' : ' ac-dead') + '" id="acSolStock" aria-label="' + esc(t('arcade.solitaire.stock')) + '">' +
         (s.stock.length ? card(s.stock[s.stock.length - 1], false) : canRecycle ? '<span class="ac-sol-recycle">↺</span>' : '') +
-        '<small>' + s.stock.length + '</small></button>' +
+        '<small>' + (s.stock.length ? s.stock.length : canRecycle ? esc(t('arcade.solitaire.recycle')) : esc(t('arcade.solitaire.empty'))) + '</small></button>' +
         '<button type="button" class="ac-sol-slot ac-waste' + (held?.kind === 'waste' ? ' ac-held' : '') + '" id="acSolWaste" aria-label="' + esc(t('arcade.solitaire.waste')) + '">' +
-        (s.waste.length ? card(s.waste[s.waste.length - 1], true) : '') + '</button>';
+        (s.waste.length ? card(s.waste[s.waste.length - 1], true) : '') +
+        (s.passes > 0 ? '<small>' + esc(t('arcade.solitaire.passes', { n: String(s.passes) })) + '</small>' : '') +
+        '</button>';
 
       /* 파운데이션 넷. 든 카드가 갈 수 있으면 자리를 짚어 준다 */
       foundEl.innerHTML = s.foundation
@@ -351,7 +354,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       const stock = target.closest('#acSolStock');
       if (stock) {
         held = null;
-        if (!s.stock.length && (!s.waste.length || s.passes >= 3)) { nope(t('arcade.solitaire.nodraw'), stock as HTMLElement); return; }
+        if (!canDraw(s)) { nope(t('arcade.solitaire.nodraw'), stock as HTMLElement); return; }
         amb.stone();
         act({ kind: 'draw' });
         return;
@@ -433,7 +436,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
   }
 };
 
-function hintText(mv: SolitaireAction, s: SolitaireState): string {
+export function hintText(mv: SolitaireAction, s: SolitaireState): string {
   if (mv.kind === 'draw') return t('arcade.solitaire.hint.draw');
   if (mv.kind === 'waste') return t(mv.to === 'foundation' ? 'arcade.solitaire.hint.wasteFound' : 'arcade.solitaire.hint.wasteTab', { n: String(mv.at + 1) });
   if (mv.kind === 'unfound') return t('arcade.solitaire.hint.unfound', { n: String(mv.at + 1) });

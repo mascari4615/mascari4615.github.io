@@ -525,6 +525,35 @@ console.log('[arcade] 오목. 판 크기와 렌주 금수');
   }
 }
 
+/* 솔리테어 되돌리기. 레퍼런스(solitaired.com)는 한 장과 세 장 둘 다 무제한
+   세 바퀴로 막으면 이길 판도 막힘 (2026-09-01 실측: 이김 7.7%, 막힘 92%)
+   화면 둘이 각자 세 바퀴를 손으로 적어 규칙과 어긋남. 그것도 여기서 잼 */
+console.log('[arcade] 솔리테어 더미 되돌리기');
+{
+  const g = gameById('solitaire');
+  const m = new Match(g, 4242, [{ name: 'me', bot: false }]);
+  m.step(0);
+  let passes = 0;
+  let stuck = 0;
+  for (let i = 0; i < 4000 && passes < 6; i += 1) {
+    const before = m.view().state;
+    m.dispatch(0, { kind: 'draw' });
+    m.step(i * 50 + 50);
+    const now = m.view().state;
+    if (now.passes === before.passes && now.stock.length === before.stock.length) {
+      stuck += 1;
+      if (stuck > 2) break;
+    } else stuck = 0;
+    passes = now.passes;
+  }
+  ok(passes >= 6, '더미를 여섯 바퀴 넘게 되돌린다 (레퍼런스는 무제한)', `${passes} 바퀴에서 막혔다`);
+
+  const src = readFileSync('src/widgets/arcade/games/solitaire-view.ts', 'utf8');
+  const src3 = readFileSync('src/widgets/arcade/games/solitaire-view3d.ts', 'utf8');
+  const hard = [src, src3].filter((c) => /passes\s*>=\s*\d/.test(c)).length;
+  ok(hard === 0, '화면이 바퀴 수를 손으로 안 적는다 (canDraw 하나만 본다)', `${hard}개 파일`);
+}
+
 console.log(fails ? `[arcade] 실패 ${fails}건` : '[arcade] 커널 통과. 씨앗, 실시간, 차례, 봇, 못 두는 수');
 rmSync(dir, { recursive: true, force: true });
 process.exit(fails ? 1 : 0);
