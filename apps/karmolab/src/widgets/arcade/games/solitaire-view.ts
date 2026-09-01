@@ -98,9 +98,16 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
     applyDeckSkin(root);
     const fit = (): void => {
       const w = root.clientWidth || el.clientWidth || 0;
+      const h = root.clientHeight || el.clientHeight || 0;
       if (!w) return;
       /* 일곱 열에 사이 여섯. 사이는 카드 폭의 0.2 배라 폭 = (판 - 좌우 여백) / 8.2 */
-      const sw = Math.max(38, Math.min(96, Math.floor((w - 40) / 8.2)));
+      const byW = (w - 40) / 8.2;
+      /* 세로도 본다. 윗줄 한 장, 사이 0.25, 아래 열 한 장에 겹친 만큼
+         칸을 다 쓰라는 계약이라 폭만 보면 긴 열이 아래로 넘친다 */
+      const rows = Math.max(7, ...(last ? last.tableau.map((p) => p.cards.length) : [7]));
+      const units = 1 + 0.25 + 1 + 0.18 * (rows - 1);
+      const byH = h > 120 ? (h - 78) / units / 1.4 : byW;
+      const sw = Math.max(38, Math.min(180, Math.floor(Math.min(byW, byH))));
       root.style.setProperty('--sw', sw + 'px');
     };
     const ro = new ResizeObserver(fit);

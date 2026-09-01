@@ -50,6 +50,21 @@ const STEP_Z = 0.3;
 const TOP_Z = -2.5;
 const TAB_Z = -1.1;
 
+/** 카드 반 폭과 반 높이. 카메라가 담을 구역을 잴 때 씀 */
+const CARD_HALF_W = 0.41;
+const CARD_HALF_H = 0.574;
+
+/**
+ * 열이 `rows` 장일 때 카메라가 담을 깊이와 가운데
+ * 처음 일곱 장에서 시작해 열이 길어지면 넓어진다. 고정으로 잡으면 처음 판 아래가 비어 보임
+ * (2026-09-01 사용자 지적: 구도가 최악)
+ */
+const depthFor = (rows: number): { halfD: number; z: number } => {
+  const back = TOP_Z - CARD_HALF_H;
+  const front = TAB_Z + Math.max(0, rows - 1) * STEP_Z + CARD_HALF_H;
+  return { halfD: (front - back) / 2, z: (front + back) / 2 };
+};
+
 /** 열 x 자리. 일곱 열을 가운데 맞춤 */
 const colX = (c: number): number => (c - 3) * COL_X;
 
@@ -231,7 +246,12 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
 
     const stage: CardStage = mountCardStage(host, {
       scene,
-      board: { w: BOARD_W, d: BOARD_D },
+      board: {
+        w: BOARD_W,
+        d: BOARD_D,
+        /* 카메라가 담을 구역. 일곱 열 폭과 윗줄에서 열 열 장까지. 상 전체가 아니다 */
+        focus: { halfW: 3 * COL_X + CARD_HALF_W, ...depthFor(7), pitch: 64 }
+      },
       onPick: pick,
       /* 끌기가 시작되면 들고 있던 것을 물린다. 새로 잡은 카드가 놓기로 읽히면 안 된다 */
       onDrop: () => {
@@ -345,6 +365,11 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
           can: hc !== null && !s.tableau[c].cards.length && canStack(s.tableau[c], hc)
         }))
       ]);
+
+      /* 가장 긴 열에 맞춰 담을 깊이를 다시 잡는다. 일곱 장보다 짧아지지는 않는다 */
+      const rows = Math.max(7, ...s.tableau.map((p) => p.cards.length));
+      const d = depthFor(rows);
+      stage.setFocus(d.halfD, d.z);
 
       /* 상 위 글자. 남은 장수와 되돌린 바퀴. 평면은 더미 밑에 숫자를 적는다 */
       const recycle = !s.stock.length && canDraw(s);

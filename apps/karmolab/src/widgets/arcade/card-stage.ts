@@ -93,7 +93,16 @@ export interface CardStageOpts {
    * 자리를 손패 줄이 아니라 **직접 잡는** 판(솔리테어). 상은 넓고 카메라는 위에서 내려봄
    * 블랙잭처럼 마주 앉는 판과 달리 판 전체가 한 사람 것
    */
-  board?: { w: number; d: number };
+  board?: {
+    w: number;
+    d: number;
+    /**
+     * 카메라가 꼭 담아야 할 구역. 상 전체가 아니라 **놀이가 벌어지는 자리**
+     * 안 주면 상 전체를 담는다. 상이 구역보다 크면 카드가 작아져 안 읽힘
+     * (2026-09-01 사용자 지적: 입체 구도가 최악이고 카드가 안 보임)
+     */
+    focus?: { halfW: number; halfD: number; z: number; pitch?: number };
+  };
   /** 카드를 눌렀을 때. `id` 는 부르는 쪽이 스폿에 붙인 이름 */
   onPick?(id: string): void;
   /** 끌기가 시작될 때. 들고 있던 것을 물리라는 뜻 */
@@ -150,6 +159,11 @@ export interface CardStage {
    * 베팅 서클 수가 여기서 갈림
    */
   setSeats(n: number): void;
+  /**
+   * 카메라가 담을 구역 다시 잡기. 열이 길어지면 담을 깊이도 늚
+   * 안 부르면 붙일 때 준 값 그대로. 값이 그대로면 아무 일도 안 함
+   */
+  setFocus(halfD: number, z: number): void;
   /** 안 되는 것. 그 자리 카드가 빨갛게 떨린다 */
   nope(id: string): void;
   resize(): void;
@@ -199,7 +213,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
      뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
   const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05, maxPixelRatio: 2 });
-  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setNotes: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
+  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setNotes: () => {}, setFocus: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
   /* 이방성 거르기. 카드는 상에 눕고 카메라는 40도쯤 위에서 내려보므로 화면에서 세로가
@@ -461,7 +475,42 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     camera.updateProjectionMatrix();
     /* 세로로 긴 창이면 뒤로 물러선다. 탁자 폭이 다 들어와야 손패가 안 잘린다 */
     const tall = aspect < 0.95;
-    if (opts.board) {
+    if (opts.board?.focus) {
+      /**
+       * 놀이 구역만 담음. 상 전체를 담으면 남는 천이 화면을 먹고 카드가 작아짐
+       * 내림각은 카지노 상과 같은 뜻. 카드 앞면을 읽어야 하므로 거의 위에서,
+       * 두께와 겹침이 보일 만큼만 눕힘
+       */
+      const f = opts.board.focus;
+      const pitch = ((tall ? 5 : 0) + (f.pitch ?? 58)) * (Math.PI / 180);
+      const sy = Math.sin(pitch);
+      const cz = Math.cos(pitch);
+      const half = Math.tan((camera.fov * Math.PI) / 360);
+      const halfH = half * aspect;
+      const pts: Array<[number, number]> = [
+        [f.halfW, -f.halfD], [-f.halfW, -f.halfD], [f.halfW, f.halfD], [-f.halfW, f.halfD],
+        [0, f.halfD], [0, -f.halfD], [f.halfW, 0], [-f.halfW, 0]
+      ];
+      let dist = Math.max(f.halfW, f.halfD) * 2;
+      for (let it = 0; it < 12; it += 1) {
+        const cy = TOP_Y + dist * sy;
+        const cZ = f.z + dist * cz;
+        let over = 1;
+        for (const [px, pz] of pts) {
+          const vx = px;
+          const vy = TOP_Y - cy;
+          const vz = pz + f.z - cZ;
+          const fz = -(vy * sy + vz * cz);
+          const fy = vy * cz - vz * sy;
+          if (fz <= 0.05) continue;
+          over = Math.max(over, Math.abs(vx) / (halfH * fz * 0.94), Math.abs(fy) / (half * fz * 0.94));
+        }
+        if (over <= 1.001) break;
+        dist *= over;
+      }
+      camera.position.set(0, TOP_Y + dist * sy, f.z + dist * cz);
+      camera.lookAt(0, TOP_Y, f.z);
+    } else if (opts.board) {
       /* 판 전체가 한 사람 것이라 위에서 내려본다. 상 폭이 화면에 다 들어와야 한다 */
       /* 상 폭과 깊이가 다 들어와야 한다. 시야각 40도라 깊이 쪽이 더 멀다 */
       const need = Math.max(TABLE_W / Math.max(0.6, aspect), TABLE_D * 0.92);
@@ -933,6 +982,16 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     core.canvas.addEventListener('pointercancel', finish);
   }
 
+  /* 열이 길어지면 담을 깊이가 는다. 같은 값이면 카메라를 안 흔든다 */
+  const setFocus = (halfD: number, z: number): void => {
+    const f = opts.board?.focus;
+    if (!f) return;
+    if (Math.abs(f.halfD - halfD) < 0.01 && Math.abs(f.z - z) < 0.01) return;
+    f.halfD = halfD;
+    f.z = z;
+    fit();
+  };
+
   const ro = new ResizeObserver(fit);
   ro.observe(host);
   fit();
@@ -947,6 +1006,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     setSeats,
     setSlots,
     setNotes,
+    setFocus,
     nope,
     resize: fit,
     dispose(): void {

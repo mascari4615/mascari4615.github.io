@@ -622,8 +622,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-roomfill #acView>*{margin:0}',
       /* 평면 판도 다 편다. 방이 아니면 셸 바탕색을 쓰고 내용은 가운데. 방은 어두운 바탕 그대로 */
       '#acPlay.ac-roomfill:not(:has(.ac-t3room)){background:var(--bg-primary)}',
-      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px}',
-      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>*{width:100%;max-width:min(1180px,100%)}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{display:flex;align-items:stretch;justify-content:center;overflow:auto;padding:0}',
+      /* 칸을 다 씀 (사용자 확정). 1180px 로 묶으면 넓은 창에서 판이 가운데 좁게 뜸
+         2026-09-01 사용자 지적: 2D 는 왜 전체화면 안 쓰냐 */
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>*{width:100%;max-width:100%;height:100%;box-sizing:border-box}',
       /* 판을 다 쓰면 `#acView` 가 판 전체를 덮어 아래 깔린 버튼줄이 안 눌림
          2026-09-01 실측: 무르기가 사이드바와 판 밑으로 들어가 클릭이 사이드바로 감
          방 화면은 버튼이 메뉴 종이 안이라 무관. 평평한 화면만 아래 줄을 띄움 */
@@ -698,6 +700,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 끝의 의식. 카드 순위 배지, 승자 카드 금빛, 결과창 내역 줄 */
       /* 솔리테어. 레퍼런스(solitr.com) 배치. 좌상 더미와 뽑은 자리, 우상 쌓는 자리 넷, 아래 일곱 열
          카드 폭은 열 일곱이 다 들어가게 창에서 잰다. 겹침은 카드 높이의 18% */
+      '#acPlay.ac-roomfill .ac-sol{height:100%;border-radius:0;justify-content:space-between}',
       '.ac-sol{--sw:64px;--gap:calc(var(--sw) * 0.2);--sh:calc(var(--sw) * 1.4);display:flex;flex-direction:column;gap:16px;padding:20px 18px 14px;width:100%;box-sizing:border-box;border-radius:var(--radius-md);background:radial-gradient(120% 90% at 50% 0%,#2f7358 0%,#215240 62%,#1a4234 100%);box-shadow:inset 0 0 40px rgba(0,0,0,.35)}',
       '.ac-sol-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}',
       '.ac-sol-deal,.ac-sol-found{display:flex;gap:10px}',
