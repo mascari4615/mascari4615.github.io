@@ -14,13 +14,19 @@
  *
  * 판마다 다른 것은 여기 없음. 카메라, 빛, 물건, 조작은 부르는 쪽 몫
  */
-import { ACESFilmicToneMapping, PCFShadowMap, PCFSoftShadowMap, SRGBColorSpace, WebGLRenderer } from '/packages/3d/vendor/three.module.min.js';
+import { ACESFilmicToneMapping, NeutralToneMapping, PCFShadowMap, PCFSoftShadowMap, SRGBColorSpace, WebGLRenderer } from '/packages/3d/vendor/three.module.min.js';
 
 export interface StageCoreOpts {
   /** 그림자 결. 물건이 적으면 `soft`, 많으면 `hard` (오목은 알 200개라 hard) */
   shadow?: 'soft' | 'hard';
   /** 톤 매핑 노출. 0 이면 톤 매핑 안 검 */
   exposure?: number;
+  /**
+   * 밝기 눌러 담는 법. 기본 `aces` 는 흰 데를 회색으로 굴려 사진처럼 만듦
+   * `neutral` 은 흰 것을 희게 둠. 카드 종이와 잉크처럼 **읽어야 할 면**이 있는 판에 씀
+   * (2026-09-02 사용자 지적: 카드가 뿌옇고 잘 안 보임)
+   */
+  tone?: 'aces' | 'neutral';
   /** 화소 배율 상한. 기본 1.5 */
   maxPixelRatio?: number;
 }
@@ -70,7 +76,7 @@ export function mountStageCore(host: HTMLElement, opts: StageCoreOpts = {}): Sta
   renderer.shadowMap.type = opts.shadow === 'hard' ? PCFShadowMap : PCFSoftShadowMap;
   if (opts.exposure) {
     /* 톤 매핑이 없으면 밝은 데는 흰색으로 뭉개지고 어두운 데는 그냥 검정 */
-    renderer.toneMapping = ACESFilmicToneMapping;
+    renderer.toneMapping = opts.tone === 'neutral' ? NeutralToneMapping : ACESFilmicToneMapping;
     renderer.toneMappingExposure = opts.exposure;
   }
 

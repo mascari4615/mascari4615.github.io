@@ -218,7 +218,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const TOP_Y = casino ? CASINO_TOP_Y * deform : TOP_Y_DEFAULT;
   /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
      뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
-  const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05, maxPixelRatio: 2 });
+  const core = mountStageCore(host, { shadow: 'soft', exposure: 0.84, maxPixelRatio: 2, tone: 'neutral' });
   if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setNotes: () => {}, setFocus: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
@@ -262,7 +262,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   }
 
   /* 빛. 방이 제 빛을 들고 오지만 탁자 위 카드가 읽히려면 한 줄기 더 */
-  const lamp = new DirectionalLight(0xfff0dc, 1.15);
+  const lamp = new DirectionalLight(0xfff0dc, 0.72);
   lamp.position.set(2.2, 6.5, 3.2);
   lamp.castShadow = true;
   /* 오목과 야추가 2048. 1024 면 카드 그림자 테두리가 계단으로 보인다 */
@@ -380,7 +380,9 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     const face = rank > 0 ? faceMatOf(rank, suit) : backMat;
     const m = new Mesh(cardGeo, [edgeMat, edgeMat, face, backMat, edgeMat, edgeMat]);
     m.castShadow = true;
-    m.receiveShadow = true;
+    /* 카드 면은 그림자를 안 받음. 방 창살이 얼굴에 지면 값과 무늬가 안 읽힘
+       (2026-09-02 사용자 지적: 카드가 뿌옇고 잘 안 보임) */
+    m.receiveShadow = false;
     m.rotation.z = faceUp ? 0 : Math.PI;
     return m;
   };
@@ -751,7 +753,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const slotGroup = new Group();
   scene.add(slotGroup);
   const slotGeo = new BoxGeometry(CARD_W * 1.02, 0.01, CARD_H * 1.02);
-  const slotMat = new MeshStandardMaterial({ color: 0x1d4a3a, roughness: 1, metalness: 0, transparent: true, opacity: 0.55 });
+  /* 빈 자리. 천보다 밝아야 어디에 놓는지 보임. 어두우면 쌓는 자리 넷이 안 보임 (실측) */
+  const slotMat = new MeshStandardMaterial({ color: 0x5d9c86, roughness: 1, metalness: 0, transparent: true, opacity: 0.42 });
   const slotNames = new Map<Mesh, string>();
   /* 놓을 수 있는 자리. 평면의 `ac-can` 과 같은 뜻 */
   const canMat = new MeshStandardMaterial({ color: 0xe7c96a, roughness: 0.9, metalness: 0, transparent: true, opacity: 0.5, emissive: new Color(0x6a5417) });

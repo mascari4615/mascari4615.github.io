@@ -509,7 +509,9 @@ export function cardFaceTexture(rank: number, suit: number, w = 512): HTMLCanvas
   const { cv, c, h } = makeCard(w);
   /* 무늬 글자, 색, 종이는 `deck.ts` 의 한 벌이 정한다. 평면 카드와 같은 값 */
   const skin = deckSkin();
-  const mark = suitMark(suit, skin);
+  /* 글자꼴에 U+FE0E 를 붙여 **색 이모지 대신 글자**로 그림
+     안 붙이면 윈도우가 다이아를 분홍 이모지로 그려 하트만 빨감 (2026-09-02 실측) */
+  const mark = suitMark(suit, skin) + '︎';
   const red = isRedSuit(suit);
   const label = rankLabel(rank);
   const ink = red ? skin.red : skin.ink;
