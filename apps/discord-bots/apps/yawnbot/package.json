@@ -24,7 +24,7 @@
     "audit:counters": "node scripts/audit-public-counters.mjs",
     "check:notify": "node scripts/check-notify-gate.mjs",
     "smoke:arcade-invite": "node scripts/smoke-arcade-invite.mjs",
-    "build:verifier": "node ../../../karmolab/scripts/build-arcade-verifier.mjs"
+    "build:verifier": "node scripts/build-arcade-verifier.mjs"
   },
   "dependencies": {
     "@karmo/ai": "file:../../../../packages/ai",

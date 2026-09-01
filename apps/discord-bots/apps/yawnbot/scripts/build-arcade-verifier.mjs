@@ -10,6 +10,10 @@
  * 나온 파일은 커밋 안 함. 소스에서 나오는 것이라 두 벌이 되면 언젠가 갈림
  * 욘봇이 빌드할 때 이 스크립트를 부름
  *
+ * **karmolab 이 아니라 여기 사는 이유**: Node 는 `esbuild` 를 이 파일 자리에서 찾음.
+ * karmolab 쪽에 두면 CI 가 못 찾는다. 러너는 `apps/discord-bots` 만 설치하기 때문
+ * (2026-09-01 실측, 배포 두 판 빨감)
+ *
  * `node scripts/build-arcade-verifier.mjs [--out <경로>]`
  */
 import { build } from 'esbuild';
@@ -17,13 +21,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const APP = path.resolve(HERE, '..');
+/** 이 꾸러미(yawnbot) */
+const PKG = path.resolve(HERE, '..');
+/** 커널이 사는 곳 */
+const APP = path.resolve(PKG, '..', '..', '..', 'karmolab');
 const args = process.argv.slice(2);
 const at = args.indexOf('--out');
 const OUT =
   at >= 0 && args[at + 1]
     ? path.resolve(args[at + 1])
-    : path.resolve(APP, '..', 'discord-bots', 'apps', 'yawnbot', 'data', 'arcade-verifier.cjs');
+    : path.resolve(PKG, 'data', 'arcade-verifier.cjs');
 
 const res = await build({
   entryPoints: [path.join(APP, 'src/widgets/arcade/verify-entry.ts')],
