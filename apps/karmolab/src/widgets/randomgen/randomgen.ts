@@ -109,7 +109,7 @@ import { inkOn } from '../../lib/ink-on';
                     t('randomgen.t04') +
                     '<div class="randomgen-row randomgen-row-options">' +
                     t('randomgen.t05') +
-                    '<div class="randomgen-count-wrap"><input type="number" id="randomCountInput" min="1" max="99" value="5" class="field-input"><div class="randomgen-presets"><button type="button" class="btn btn-ghost random-count-preset" data-value="1">1</button><button type="button" class="btn btn-ghost random-count-preset" data-value="3">3</button><button type="button" class="btn btn-ghost random-count-preset" data-value="5">5</button><button type="button" class="btn btn-ghost random-count-preset" data-value="10">10</button></div></div>' +
+                    '<div class="randomgen-count-wrap"><input type="number" id="randomCountInput" min="1" max="99" value="5" class="field-input" aria-label="몇 개 뽑을까"><div class="randomgen-presets"><button type="button" class="btn btn-ghost random-count-preset" data-value="1">1</button><button type="button" class="btn btn-ghost random-count-preset" data-value="3">3</button><button type="button" class="btn btn-ghost random-count-preset" data-value="5">5</button><button type="button" class="btn btn-ghost random-count-preset" data-value="10">10</button></div></div>' +
                     t('randomgen.t06') +
                     t('randomgen.t07') +
                     t('randomgen.t08') +

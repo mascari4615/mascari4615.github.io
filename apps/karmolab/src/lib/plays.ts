@@ -249,7 +249,7 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
             `<li style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;align-items:center;` +
             `${isMe ? 'font-weight:700;color:var(--accent-ink);' : ''}">` +
             `<span style="display:flex;align-items:center;gap:7px;min-width:0">` +
-            `<span style="opacity:.7">${e.rank}.</span>${face}` +
+            `<span class="play-rank-no">${e.rank}.</span>${face}` +
             `<a href="${appPath(`u/${encodeURIComponent(e.handle)}/`)}" style="color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(e.handle)}</a>` +
             `</span>` +
             `<span style="flex:0 0 auto">${formatScore(spec, e.score)}</span></li>`

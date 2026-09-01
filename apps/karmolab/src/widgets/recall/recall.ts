@@ -714,7 +714,7 @@ function injectStyles(): void {
 .rc-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .rc-go, .rc-skip, .rc-vd { font: inherit; font-size: var(--font-size-xs); cursor: pointer; padding: 10px 18px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--bg-primary); color: var(--text-secondary); }
-.rc-go { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.rc-go { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
 .rc-skip:hover, .rc-vd:hover { border-color: var(--accent); color: var(--accent-ink); }
 .rc-skip[data-rc="drop"] { margin-left: auto; border-color: transparent; color: var(--text-tertiary); }
 .rc-skip[data-rc="drop"]:hover { border-color: var(--border); color: var(--text-secondary); }

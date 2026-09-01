@@ -1475,7 +1475,10 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .gt-track { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-lg); }
 .gt-lane { display: grid; grid-template-columns: 4.5rem 1fr 4.5rem; align-items: center; gap: 8px; }
-.gt-lane-off { opacity: 0.4; }
+/* 꺼진 줄이라도 글자는 읽혀야 한다. 통째로 흐리게 하면 1.86:1 (2026-09-01 실측).
+   흐리게 하는 것은 달리는 길만, 글자는 흐린 잉크 토큰으로 */
+.gt-lane-off .gt-rail { opacity: 0.4; }
+.gt-lane-off .gt-lane-label, .gt-lane-off .gt-lane-stat { color: var(--text-tertiary); }
 .gt-lane-label {
     font-size: var(--font-size-xs);
     color: var(--text-secondary);
@@ -1875,3 +1878,6 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
     background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
 .tool-card-btn:hover { color: var(--accent-ink); border-color: var(--accent); }
 .tool-card-btn[disabled] { color: var(--text-tertiary); cursor: default; }
+
+/* 놀이 순위표의 등수. 인라인 흐림(0.7)으로 3.32:1 이었다 (2026-09-01 실측). 흐린 잉크 토큰으로 */
+.play-rank-no { color: var(--text-tertiary); }

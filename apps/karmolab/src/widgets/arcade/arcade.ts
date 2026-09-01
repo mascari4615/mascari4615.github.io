@@ -1287,6 +1287,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-level button{padding:6px 14px;font-size:var(--font-size-xs);font-weight:700;border:1px solid var(--border);background:var(--bg-secondary);cursor:pointer;margin-left:-1px}',
       '.ac-level button:first-child{border-radius:var(--radius-pill) 0 0 var(--radius-pill);margin-left:0}',
       '.ac-level button:nth-child(3){border-radius:0 var(--radius-pill) var(--radius-pill) 0}',
+      /* 안 고른 단계 버튼에 글자색이 없어 어두운 판에서 3:1 아래였다 (2026-09-01 실측) */
+      '.ac-level button{color:var(--text-primary)}',
       '.ac-level button.ac-on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);position:relative;z-index:1}',
       '.ac-level small{color:var(--text-secondary);font-size:var(--font-size-3xs);margin-left:10px}',
       '.ac-intro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--bg-primary);text-align:center;padding:var(--space-lg)}',

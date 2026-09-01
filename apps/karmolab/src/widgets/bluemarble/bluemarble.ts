@@ -237,6 +237,7 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
           timeBar.className = 'bm-time';
           const slider = document.createElement('input');
           slider.type = 'range';
+          slider.setAttribute('aria-label', '보는 때');   // 이름표 없는 손잡이는 낭독기가 뭘 미는지 못 말한다
           const dateLabel = document.createElement('span');
           dateLabel.className = 'bm-date';
           const nowBtn = document.createElement('button');

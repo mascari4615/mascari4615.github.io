@@ -40,7 +40,7 @@
   "src/widgets/tools/payslip.ts": 1,
   "src/widgets/user.ts": 2
  },
- "colorTotal": 1444,
+ "colorTotal": 1443,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 3,
@@ -116,7 +116,6 @@
   "src/widgets/planner/planner.ts": 5,
   "src/widgets/plaza.ts": 5,
   "src/widgets/quest-log/quest-log.ts": 16,
-  "src/widgets/recall/recall.ts": 1,
   "src/widgets/servermonitor.ts": 1,
   "src/widgets/shylink.ts": 7,
   "src/widgets/speed.ts": 5,
