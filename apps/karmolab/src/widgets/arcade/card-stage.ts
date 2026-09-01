@@ -524,7 +524,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
    * 안 되는 것. 그 자리 카드를 잠깐 빨갛게 물들이고 흔듦
    * 평면은 CSS 로 하지만 입체는 재료와 자리를 직접 건드림
    */
-  const redMat = new MeshStandardMaterial({ color: 0xd9534f, roughness: 0.7, metalness: 0 });
+  /* 완전히 빨간 카드가 아니라 붉은 기운만. 단색 점멸은 과하다(사용자 지적) */
+  const redMat = new MeshStandardMaterial({ color: 0xe8a9a5, roughness: 0.72, metalness: 0 });
   const nope = (id: string): void => {
     const mesh = byName.get(id);
     if (!mesh) return;

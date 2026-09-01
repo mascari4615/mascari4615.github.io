@@ -261,39 +261,71 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
     };
 
     /**
-     * 끌기. 누르기와 **둘 다** 된다(`features/play.md`)
-     * 끌어서 놓으면 그 자리에 놓고, 그냥 누르면 집기와 놓기로
-     * 끌기만 두면 마우스 없는 사람이 막히고, 누르기만 두면 카드 놀이의 손맛이 없음
+     * 끌기. 누르기와 **둘 다** (`features/play.md`)
+     *
+     * 누르는 순간 집고, 손끝을 따라 **그림자 카드**가 붙어 다니고, 떼는 자리에 놓기
+     * 다시 그리기가 요소를 갈아치우므로 처음 잡은 요소를 들고 있으면 안 됨(실측: 안 먹음)
      */
-    let dragFrom: { x: number; y: number; el: HTMLElement } | null = null;
-    let dragging = false;
+    let dragAt: { x: number; y: number } | null = null;
+    let ghost: HTMLElement | null = null;
+    let dragged = false;
+
+    const dropGhost = (): void => {
+      ghost?.remove();
+      ghost = null;
+    };
+
     el.addEventListener('pointerdown', (ev) => {
-      const cell = (ev.target as HTMLElement).closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]');
-      if (!cell || ev.button !== 0) return;
-      dragFrom = { x: ev.clientX, y: ev.clientY, el: cell };
-      dragging = false;
+      if (ev.button !== 0) return;
+      const hit = (ev.target as HTMLElement).closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]');
+      if (!hit) return;
+      dragAt = { x: ev.clientX, y: ev.clientY };
+      dragged = false;
     });
+
     window.addEventListener('pointermove', (ev) => {
-      if (!dragFrom) return;
-      if (!dragging && Math.hypot(ev.clientX - dragFrom.x, ev.clientY - dragFrom.y) < 6) return;
-      if (!dragging) {
-        dragging = true;
-        /* 끌기 시작. 아직 안 들었으면 집기 */
-        if (!held) dragFrom.el.click();
+      if (!dragAt) return;
+      if (!dragged) {
+        if (Math.hypot(ev.clientX - dragAt.x, ev.clientY - dragAt.y) < 6) return;
+        dragged = true;
+        /* 든 것이 없으면 이제 집기. 그 자리에서 눌린 것으로 침 */
+        if (!held) {
+          const under = document.elementFromPoint(dragAt.x, dragAt.y) as HTMLElement | null;
+          under?.closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]')?.click();
+        }
+        if (held) {
+          const src = el.querySelector<HTMLElement>('.ac-held .ac-sol-card');
+          if (src) {
+            ghost = src.cloneNode(true) as HTMLElement;
+            ghost.classList.add('ac-drag');
+            const r = src.getBoundingClientRect();
+            ghost.style.width = r.width + 'px';
+            ghost.style.height = r.height + 'px';
+            document.body.appendChild(ghost);
+          }
+        }
       }
-      el.classList.add('ac-dragging');
+      if (ghost) {
+        ghost.style.left = ev.clientX - ghost.offsetWidth / 2 + 'px';
+        ghost.style.top = ev.clientY - ghost.offsetHeight / 2 + 'px';
+      }
     });
+
     window.addEventListener('pointerup', (ev) => {
-      const from = dragFrom;
-      dragFrom = null;
-      el.classList.remove('ac-dragging');
-      if (!from || !dragging) return;
-      dragging = false;
-      /* 놓은 자리 찾기. 카드 위든 빈 자리든 */
+      const was = dragged;
+      dragAt = null;
+      dragged = false;
+      dropGhost();
+      if (!was || !held) return;
+      /* 놓은 자리. 카드 위든 빈 자리든 열 전체든 */
       const drop = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
       const target = drop?.closest<HTMLElement>('.ac-sol-cell, .ac-sol-col, .ac-sol-slot, [data-f]');
-      if (!target) return;
-      /* 열 전체에 놓으면 그 열 맨 아래 칸으로 */
+      if (!target) {
+        held = null;
+        blip('tap');
+        say(t('arcade.solitaire.dropped'));
+        return;
+      }
       const cell = target.classList.contains('ac-sol-col')
         ? (target.querySelector<HTMLElement>('.ac-sol-cell:last-child') ?? target)
         : target;

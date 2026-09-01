@@ -711,10 +711,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 안 되는 것. 빨갛게 떨린다. 글자만 바꾸면 눈이 딴 데 있을 때 못 본다 */
       '@keyframes ac-nope{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}45%{transform:translateX(4px)}70%{transform:translateX(-2px)}}',
       '.ac-nope{animation:ac-nope .4s ease-out}',
-      '.ac-nope .ac-sol-card,.ac-sol-slot.ac-nope{box-shadow:0 0 0 2px #d9534f,0 6px 14px rgba(160,40,40,.4)!important}',
+      /* 완전히 빨갛게 칠하지 않는다. 테와 옅은 기운만(사용자 지적) */
+      '.ac-nope .ac-sol-card,.ac-sol-slot.ac-nope{box-shadow:0 0 0 2px rgba(217,83,79,.85),0 6px 16px rgba(160,40,40,.32)!important}',
+      '.ac-nope .ac-sol-card::after{content:"";position:absolute;inset:0;border-radius:8px;background:rgba(217,83,79,.16);animation:ac-nopefade .4s ease-out forwards}',
+      '@keyframes ac-nopefade{0%{opacity:1}100%{opacity:0}}',
       '.ac-sol-slot.ac-nope{border-color:#d9534f}',
       /* 끌고 있는 카드. 손끝을 따라간다 */
-      '.ac-sol-card.ac-drag{position:fixed;z-index:60;pointer-events:none;box-shadow:0 12px 26px rgba(0,0,0,.5);transform:rotate(2deg)}',
+      '.ac-sol-card.ac-drag{position:fixed;inset:auto;z-index:60;pointer-events:none;box-shadow:0 14px 30px rgba(0,0,0,.5);transform:rotate(3deg) scale(1.04);opacity:.94}',
       '.ac-sol-card.ac-back{background:var(--ac-card-back)}',
       '.ac-sol-card.ac-red{color:#b3242c}',
       '.ac-sol-card b{position:absolute;left:5px;top:3px;font-size:calc(var(--sw) * 0.28);line-height:1.1}',
