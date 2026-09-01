@@ -236,9 +236,17 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
     return { over: true, scores: [done * 4], note: { key: 'arcade.solitaire.stuck', params: { n: String(done) } } };
   },
 
-  bot(): BotMove<SolitaireAction> | null {
-    /* 혼자 하는 놀이. 대신 둘 사람이 없다 */
-    return null;
+  /**
+   * 혼자 하는 놀이지만 봇을 둠. 자리에 사람이 앉으면 안 돌고 자리가 봇일 때만 돎
+   * 이게 있어야 `test:arcade` 의 "봇만으로 끝까지 간다" 가 이 판도 잼. 그 검사가 막는 것이
+   * 바로 **혼자 두다 영영 갇히는 것**. 솔리테어에 더 요긴함
+   */
+  bot(s): BotMove<SolitaireAction> | null {
+    if (!anyMove(s)) return null;
+    const mv = bestMove(s) ?? (canDraw(s) ? ({ kind: 'draw' } as SolitaireAction) : null);
+    /* 안 먹히는 수를 내면 상태가 그대로라 판이 영영 안 끝난다 */
+    if (!mv) return null;
+    return { action: mv, delayMs: 220 };
   },
 
   hint(s): SolitaireAction | null {
@@ -248,12 +256,19 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
 
 /** 지금 둘 수 있는 수가 하나라도 있나 */
 export function anyMove(s: SolitaireState): boolean {
-  /* 한 바퀴를 통째로 헛돌았으면 더 볼 것이 없다. 같은 카드가 같은 차례로 또 나온다 */
-  /* 두 바퀴를 헛돌아야 끝. 한 바퀴만 보고 끊으면 둘 수 있는 판을 막는다(보수적으로) */
+  /* 두 바퀴를 헛돌면 끝. 한 바퀴만 보고 끊으면 둘 수 있는 판을 막으므로 보수적으로 */
   if (s.dry >= 2 && !bestMove(s) && !anyStackMove(s)) return false;
-  if (s.stock.length) return true;
-  if (s.waste.length && s.passes < passLimit(s.draw)) return true;
+  /* 수 상한. 레퍼런스의 한 판은 백에서 이백 수. 오백을 넘으면 같은 자리를 맴도는 중
+     (씨앗 8919 에서 봇이 468수를 두고도 안 끝났음. 2026-09-01 실측) */
+  if (s.moves >= 500) return false;
+  if (canDraw(s)) return true;
   return bestMove(s) !== null || anyStackMove(s) !== null;
+}
+
+/** 지금 더미에서 뽑거나 되돌릴 수 있나 */
+export function canDraw(s: SolitaireState): boolean {
+  if (s.stock.length) return true;
+  return s.waste.length > 0 && s.passes < passLimit(s.draw);
 }
 
 /**
@@ -365,7 +380,9 @@ export function bestMove(s: SolitaireState): SolitaireAction | null {
       for (let f = 0; f < 4; f += 1) if (canFound(s.foundation[f], card)) return { kind: 'waste', to: 'foundation', at: f };
     }
   }
-  return null;
+  /* 6. 그 밖의 태블로 이동. `anyMove` 가 이걸 세는데 여기서 안 내면 아무도 안 두고 판이 멈춤
+     (2026-09-01 실측: 씨앗 8919 에서 468수째부터 아무도 못 두는 채로 안 끝남) */
+  return anyStackMove(s);
 }
 
 /** 파운데이션에 올라간 장수. 화면이 진도를 보여 준다 */

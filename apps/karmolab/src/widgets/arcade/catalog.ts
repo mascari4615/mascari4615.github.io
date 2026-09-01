@@ -180,7 +180,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: darts, view: dartsView, icon: '🎯', kind: 'sport' , hidden: true },
   { def: fishing, view: fishingView, icon: '🎣', kind: 'sport' , hidden: true },
   { def: tanks, view: tanksView, icon: '💥', kind: 'sport' , hidden: true },
-  { def: memory, view: memoryView, icon: '🃏', kind: 'puzzle' , hidden: true },
+  { def: memory, view: memoryView, icon: '🃏', kind: 'puzzle' },
   { def: hitblow, view: hitblowView, icon: '🔢', kind: 'puzzle' , hidden: true },
   { def: slide, view: slideView, icon: '🧩', kind: 'puzzle' , hidden: true },
   { def: minesweeper, view: minesweeperView, icon: '💣', kind: 'puzzle' , hidden: true },

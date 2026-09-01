@@ -66,7 +66,7 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'darts', icon: '🎯', kind: 'sport', seats: [1, 4], realtime: true, chunk: 'darts', hidden: true },
   { id: 'fishing', icon: '🎣', kind: 'sport', seats: [1, 4], realtime: true, chunk: 'fishing', hidden: true },
   { id: 'tanks', icon: '💥', kind: 'sport', seats: [2, 2], realtime: true, chunk: 'tanks', hidden: true },
-  { id: 'memory', icon: '🃏', kind: 'puzzle', seats: [2, 4], realtime: true, chunk: 'memory', hidden: true },
+  { id: 'memory', icon: '🃏', kind: 'puzzle', seats: [2, 4], realtime: true, chunk: 'memory' },
   { id: 'hitblow', icon: '🔢', kind: 'puzzle', seats: [2, 4], realtime: false, chunk: 'hitblow', hidden: true },
   { id: 'slide', icon: '🧩', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'slide', hidden: true },
   { id: 'minesweeper', icon: '💣', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'minesweeper', hidden: true },

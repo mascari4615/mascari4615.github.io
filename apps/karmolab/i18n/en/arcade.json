@@ -549,8 +549,8 @@
   "arcade.lanterns.told": "{who} gave a hint",
   "arcade.lanterns.tossed": "{who} discarded",
   "arcade.liars.lost": "{who} got caught",
-  "arcade.memory.hit": "{who}. match",
-  "arcade.memory.miss": "{who}. no match",
+  "arcade.memory.hit": "{who} took a pair",
+  "arcade.memory.miss": "{who} missed",
   "arcade.tuho.in": "{who}. in the pot",
   "arcade.tuho.ear": "{who}. on the ear",
   "arcade.tuho.out": "{who}. missed",
@@ -650,5 +650,6 @@
   "arcade.solitaire.win": "Cleared in {n} moves",
   "arcade.solitaire.stuck": "Stuck. {n} up",
   "arcade.game.solitaire.name": "Solitaire",
-  "arcade.game.solitaire.desc": "Stack all 52 by suit, A to K"
+  "arcade.game.solitaire.desc": "Stack all 52 by suit, A to K",
+  "arcade.memory.me": "me"
 }

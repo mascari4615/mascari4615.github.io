@@ -871,7 +871,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-four.ac-waiting{opacity:.75}',
       /* 열여섯 장이 **한눈에** 들어와야 하는 판이다. 폭 상한이 없으면 무대가 넓어질수록
          카드가 커져 세로로 화면을 뚫는다(실측: 4행 900px+). */
-      '.ac-mem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:min(100%,calc(58vh * .75));margin:var(--space-lg) auto}',
+      '.ac-mem{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-width:min(100%,calc(48vh * 1.6));margin:var(--space-lg) auto}',
+      '@media (max-width:560px){.ac-mem{grid-template-columns:repeat(4,1fr);max-width:100%}}',
+      /* 판 아래 한 줄. 누구 차례이고 누가 몇 짝을 가져갔나 */
+      '.ac-memhud{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:var(--space-sm) auto 0;font-size:var(--font-size-sm)}',
+      '.ac-memseat{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--radius-pill);background:var(--bg-secondary);border:1px solid transparent}',
+      '.ac-memseat.ac-cur{border-color:var(--accent-color);font-weight:700}',
+      '.ac-memseat b{font-variant-numeric:tabular-nums}',
+      '.ac-memsay{min-height:20px;text-align:center;margin-top:6px;font-size:var(--font-size-sm);color:var(--text-secondary)}',
       '.ac-mem.ac-waiting{opacity:.75}',
       /* 격자에 맞춰 늘어나는 종이. 여기서는 칸이 폭을 정한다(고정 치수를 덮는다). */
       '.ac-root .ac-mem .ac-pc{width:100%;height:auto;aspect-ratio:3/4}',

@@ -549,8 +549,8 @@
   "arcade.lanterns.told": "{who}. 教えた",
   "arcade.lanterns.tossed": "{who}. 捨てた",
   "arcade.liars.lost": "{who}. 見破られた",
-  "arcade.memory.hit": "{who}. 一致",
-  "arcade.memory.miss": "{who}. 不一致",
+  "arcade.memory.hit": "{who}が一組取った",
+  "arcade.memory.miss": "{who}は外した",
   "arcade.tuho.in": "{who}. 壺に入った",
   "arcade.tuho.ear": "{who}. 耳に掛かった",
   "arcade.tuho.out": "{who}. 外れた",
@@ -650,5 +650,6 @@
   "arcade.solitaire.win": "{n}手でクリア",
   "arcade.solitaire.stuck": "詰み。{n}枚",
   "arcade.game.solitaire.name": "ソリティア",
-  "arcade.game.solitaire.desc": "52枚を絵柄ごとにAからKまで"
+  "arcade.game.solitaire.desc": "52枚を絵柄ごとにAからKまで",
+  "arcade.memory.me": "自分"
 }

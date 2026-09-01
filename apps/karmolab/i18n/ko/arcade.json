@@ -549,8 +549,8 @@
   "arcade.lanterns.told": "{who}. 알려 줬다",
   "arcade.lanterns.tossed": "{who}. 버렸다",
   "arcade.liars.lost": "{who}. 걸렸다",
-  "arcade.memory.hit": "{who}. 맞혔다",
-  "arcade.memory.miss": "{who}. 못 맞혔다",
+  "arcade.memory.hit": "{who} 이(가) 한 짝 가져갔다",
+  "arcade.memory.miss": "{who} 빗나감",
   "arcade.tuho.in": "{who}. 통에 넣었다",
   "arcade.tuho.ear": "{who}. 귀에 걸렸다",
   "arcade.tuho.out": "{who}. 빗나갔다",
@@ -650,5 +650,6 @@
   "arcade.solitaire.win": "다 치웠다. {n} 수",
   "arcade.solitaire.stuck": "막혔다. {n} 장 올림",
   "arcade.game.solitaire.name": "솔리테어",
-  "arcade.game.solitaire.desc": "한 벌을 무늬별로 A 부터 K 까지 다 쌓으면 이긴다"
+  "arcade.game.solitaire.desc": "한 벌을 무늬별로 A 부터 K 까지 다 쌓으면 이긴다",
+  "arcade.memory.me": "나"
 }

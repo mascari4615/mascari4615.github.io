@@ -13,8 +13,11 @@
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
 
-/** 짝의 수. 8쌍 = 16장. 4×4 로 떨어져 폰에서도 한 화면에 들어간다. */
-const PAIRS = 8;
+/**
+ * 짝의 수. 레퍼런스가 모두 열두 쌍(스물네 장, 6x4)을 두 사람 기준으로 삼음
+ * 여덟 쌍은 한 판이 너무 짧았음. 폰에서는 4x6 세로
+ */
+const PAIRS = 12;
 /** 못 맞힌 두 장을 얼마나 보여 주고 덮나. 너무 짧으면 기억할 틈이 없다. */
 const PEEK_MS = 900;
 
