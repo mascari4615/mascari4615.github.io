@@ -25,14 +25,15 @@
  *
  *   node scripts/smoke-arcade-invite.mjs [--keep] [--channel <id>]
  *
- * 채널을 안 주면 `data/webhook-routes.json` 의 `localDefault` 첫 자리
- * 이미 오락실 결과가 나가는 곳이라 새 채널을 안 만듦
+ * 채널은 **제 것**을 쓴다. 길드에 `arcade-smoke` 가 있으면 그것, 없으면 만듦.
+ * 검사 부스러기를 남 보는 채널에 쌓지 않으려고 (사용자 2026-09-01).
+ * 못 만들면 `data/webhook-routes.json` 의 `localDefault` 로 물러섬
  */
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType } from 'discord.js';
 
 const require_ = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -50,9 +51,12 @@ if (!token) {
 }
 
 const routes = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'webhook-routes.json'), 'utf8'));
-const channelId = (askedChannel && /^\d+$/.test(askedChannel) ? askedChannel : null) ?? routes.localDefault?.[0];
-if (!channelId) {
-  console.log('[smoke] 못 돌림: 보낼 채널을 모른다 (--channel <id> 또는 webhook-routes.json 의 localDefault)');
+/* 여기 글은 검사 부스러기다. 남 보는 채널에 쌓이면 그 채널이 못 쓰게 됨.
+   그래서 제 채널을 하나 두고 없으면 만든다 (사용자 2026-09-01) */
+const SMOKE_CHANNEL = 'arcade-smoke';
+const fallbackId = (askedChannel && /^[0-9]+$/.test(askedChannel) ? askedChannel : null) ?? routes.localDefault?.[0];
+if (!fallbackId) {
+  console.log('[smoke] 못 돌림: 길드를 알 자리가 없다 (--channel <id> 또는 webhook-routes.json 의 localDefault)');
   process.exit(2);
 }
 
@@ -103,10 +107,45 @@ let msg = null;
 
 try {
   await client.login(token);
-  console.log(`[smoke] 붙었다: ${client.user?.tag}, 채널 ${channelId}`);
+  console.log(`[smoke] 붙었다: ${client.user?.tag}`);
 
-  const channel = await client.channels.fetch(channelId).catch(() => null);
-  check('채널을 찾는다', !!channel, '없는 채널이거나 봇이 못 본다');
+  /* 길드는 물러설 채널에서 알아냄. 검사 채널은 그 길드 안에 만듦 */
+  const anchor = await client.channels.fetch(fallbackId).catch(() => null);
+  check('길드를 찾는다', !!anchor?.guild, '없는 채널이거나 봇이 못 본다');
+
+  let channel = anchor;
+  if (anchor?.guild && !askedChannel) {
+    const guild = anchor.guild;
+    const found =
+      guild.channels.cache.find((c) => c.name === SMOKE_CHANNEL && c.type === ChannelType.GuildText) ??
+      (await guild.channels
+        .fetch()
+        .then((all) => all.find((c) => c?.name === SMOKE_CHANNEL && c.type === ChannelType.GuildText) ?? null)
+        .catch(() => null));
+
+    if (found) {
+      channel = found;
+      console.log(`[smoke] 검사 채널 그대로 씀: #${found.name} (${found.id})`);
+    } else {
+      const made = await guild.channels
+        .create({
+          name: SMOKE_CHANNEL,
+          type: ChannelType.GuildText,
+          parent: anchor.parentId ?? undefined,
+          topic: '오락실 초대 카드 연기 검사. 여기 글은 전부 검사 부스러기라 지워도 됨'
+        })
+        .catch((e) => {
+          console.log(`[smoke] 검사 채널을 못 만들었다(${e?.message ?? e}). 물러설 채널을 씀`);
+          return null;
+        });
+      if (made) {
+        channel = made;
+        console.log(`[smoke] 검사 채널 새로 만듦: #${made.name} (${made.id})`);
+      }
+    }
+  }
+
+  check('채널을 찾는다', !!channel);
   check('보낼 수 있는 채널이다', !!channel?.isSendable?.(), '권한이 없다');
 
   if (channel?.isSendable?.()) {
@@ -145,6 +184,24 @@ try {
       const last = await reread(channel, msg.id);
       check('끝난 판은 버튼이 없다', labelsOf(last).length === 0, labelsOf(last).join());
       check('결과가 적혀 있다', textOf(last).includes('검은 돌 이겼다'), textOf(last));
+    }
+  }
+
+  if (msg) {
+    /* 사람 대신 이쪽이 보려면 실제로 남은 값을 봐야 함. 그림은 못 보지만 값은 전부 봄 */
+    const shown = await reread(channel, msg.id).catch(() => null);
+    if (shown) {
+      console.log('[smoke] 지금 그 글에 남은 것:');
+      console.log(
+        JSON.stringify(
+          {
+            embeds: shown.embeds.map((e) => e.toJSON()),
+            components: shown.components.map((r) => (r.components ?? []).map((c) => c.toJSON?.() ?? c.data ?? c))
+          },
+          null,
+          2
+        )
+      );
     }
   }
 
