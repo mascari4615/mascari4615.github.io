@@ -366,17 +366,55 @@ export function mountThreeBoard(host: HTMLElement, opts: Board3dOpts): Board3d {
   const ink = new MeshStandardMaterial({ color: room ? 0x1d1611 : 0x6b4518, roughness: 0.9 });
   const g0 = -span / 2; /* 첫 줄 자리 */
   const lineW = room ? 0.026 : 0.035;
+  /**
+   * 줄 전부를 **메시 하나**로 (2026-09-01)
+   *
+   * 줄마다 판 하나면 15줄에서 그림 명령이 30개 늘어난다. 실측: 다다미방 오목이 102개였고,
+   * 레퍼런스 기준은 100 아래가 대부분 기기에서 60fps, 폰은 50 아래(threejs 계열 실측 글).
+   * 합치면 30이 1로. 색도 두께도 자리도 그대로라 그림은 같음
+   *
+   * 정점을 손으로 쌓는 이유: 판 하나에 사각형 서른. 도구를 들일 값이 아님
+   */
   const lines = cross ? n : n + 1;
-  for (let i = 0; i < lines; i += 1) {
-    const at = g0 + i * CELL;
-    const h = new Mesh(new PlaneGeometry(span, lineW), ink);
-    h.rotation.x = -Math.PI / 2;
-    h.position.set(0, boardTop + 0.002, at);
-    scene.add(h);
-    const v = new Mesh(new PlaneGeometry(lineW, span), ink);
-    v.rotation.x = -Math.PI / 2;
-    v.position.set(at, boardTop + 0.002, 0);
-    scene.add(v);
+  {
+    const y = boardTop + 0.002;
+    const half = lineW / 2;
+    const quads = lines * 2;
+    const pos = new Float32Array(quads * 6 * 3);
+    const nor = new Float32Array(quads * 6 * 3);
+    const uv = new Float32Array(quads * 6 * 2);
+    let at3 = 0;
+    /* 사각형 하나 = 삼각형 둘. 위에서 내려다보는 면이라 법선은 전부 위 */
+    const quad = (x0: number, z0: number, x1: number, z1: number): void => {
+      /* 위에서 볼 때 반시계로 감아야 앞면이 위를 본다. 뒤집으면 판 재질이 컬링돼
+         줄이 통째로 안 보임 (2026-09-01 실측: 격자가 사라졌다) */
+      const corners = [
+        [x0, z0], [x0, z1], [x1, z1],
+        [x0, z0], [x1, z1], [x1, z0]
+      ];
+      for (const [x, z] of corners) {
+        pos[at3] = x;
+        pos[at3 + 1] = y;
+        pos[at3 + 2] = z;
+        nor[at3] = 0;
+        nor[at3 + 1] = 1;
+        nor[at3 + 2] = 0;
+        at3 += 3;
+      }
+    };
+    for (let i = 0; i < lines; i += 1) {
+      const at = g0 + i * CELL;
+      /* 가로줄 */
+      quad(-span / 2, at - half, span / 2, at + half);
+      /* 세로줄 */
+      quad(at - half, -span / 2, at + half, span / 2);
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    geo.setAttribute('normal', new Float32BufferAttribute(nor, 3));
+    geo.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+    const grid = new Mesh(geo, ink);
+    scene.add(grid);
   }
 
   /* 알 자리. **교차점이면 줄 위**, 아니면 칸 한가운데. 화점도 같은 자리를 쓴다. */
