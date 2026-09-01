@@ -188,8 +188,6 @@ const Toolbox = (() => {
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
             btn.title = on ? '내 것에서 빼기' : '내 것으로 두기';
             btn.setAttribute('aria-label', btn.title);
-            /* 필드 스킨의 별 칩 글자 (CSS 가 attr 로 읽음). 시안 Z1 의 "별 꽂기" 자리 */
-            btn.dataset.label = on ? '내 것' : '별 꽂기';
         });
     }
 
@@ -489,7 +487,8 @@ const Toolbox = (() => {
         const on = isPinned(toolId);
         btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         btn.title = on ? '내 것에서 빼기' : '내 것으로 두기';
-        btn.dataset.label = on ? '내 것' : '별 꽂기';
+        /* 글자가 별 하나뿐이라 낭독기에는 이름이 없는 것과 같다. 이름을 따로 준다 (2026-09-01) */
+        btn.setAttribute('aria-label', btn.title);
         host.appendChild(btn);
         paintPinStars();
     }

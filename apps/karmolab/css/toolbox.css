@@ -4329,7 +4329,8 @@ html[data-skin="field"] .pf-shell .pf-job.pf-hot { background: var(--band); colo
 /* 제목 블록에 별만 직접 붙는 옛 경로(정적 장). 오른쪽 끝에 붙지 않게 여백 */
 html[data-skin="field"] .tool-page-hero > .tool-pin-star { position: static; margin-left: auto; margin-right: 24px; align-self: flex-start; transform: none; }
 /* 별 칩에 글자 (시안 Z1 의 "별 꽂기"). 글자는 이미 있는 title 을 그대로 씀 */
-.tool-page-hero-actions .tool-pin-star::after { content: attr(data-label); margin-left: 8px; font-weight: 700; }
+/* 별만 남긴다. 글자는 안 붙인다 (2026-09-01 사용자 결정). 뜻은 title 과 낭독기 이름이 말한다 */
+.tool-page-hero-actions .tool-pin-star { padding: 0 12px; }
 html[data-skin="field"] .tool-page-hero-actions .tool-pin-star { opacity: 1; }
 
 /* ===================================================================
