@@ -526,6 +526,7 @@
   "arcade.rank.queued": "{n} looking for a rival right now",
   "arcade.rank.record": "{n} pts, {games} games {wins} wins",
   "arcade.rank.tonext": "{n} to the next step",
+  "arcade.rank.settling": "still settling, {n}/{of} games",
   "arcade.tape.copy": "Copy replay link",
   "arcade.past.title": "Past games",
   "arcade.recent.title": "Just played",

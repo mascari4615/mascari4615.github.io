@@ -3428,10 +3428,23 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       }
       const g = gradeOf(rec.rating);
       const name = t('arcade.rank.tier.' + g.tier) + (g.level ? ' ' + g.level : '');
+      /**
+       * 아직 자리를 찾는 중 (2026-09-01, 레퍼런스 대조)
+       *
+       * - 판이 적으면 점수가 크게 흔들림. 우리 K값이 20판 미만 40, 그 뒤 32
+       * - 체스판들도 같은 자리에 임시(provisional)를 붙인다. lichess 는 대개 15에서 20판,
+       *   그동안 점수가 큰 걸음으로 움직여 제자리를 빨리 찾게 함
+       * - 안 적으면 다섯 판 둔 사람이 그 단위를 제 실력으로 읽음. 그건 거짓말
+       */
+      const settling = rec.games < RANK_SETTLE;
       box.innerHTML =
         '<b>' + esc(name) + '</b> ' +
         esc(t('arcade.rank.record', { n: String(rec.rating), games: String(rec.games), wins: String(rec.wins) })) +
-        (g.toNext !== null ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) })) : '') +
+        (settling
+          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(RANK_SETTLE) }))
+          : g.toNext !== null
+            ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) }))
+            : '') +
         (line ? '<b class="ac-queued">' + esc(line.trim()) + '</b>' : '');
     }
 
@@ -3487,6 +3500,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * - 친선전과 혼자 판은 그대로 사람이 고름(없음, 30, 60, 120초)
      */
     const RANKED_LIMIT = 60;
+
+    /**
+     * 이만큼 두기 전에는 점수가 아직 자리를 찾는 중
+     * - 서버 K값이 20판을 경계로 40에서 32 로 내려감. 화면도 같은 경계
+     * - lichess 는 대개 15에서 20판이면 임시가 풀린다(실측)
+     */
+    const RANK_SETTLE = 20;
 
     /** 이 판에 쓸 옵션. 등급전이면 시간 제한을 덮어씀 */
     function matchOpts(id: string): ReturnType<typeof optsFor> {
