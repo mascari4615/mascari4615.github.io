@@ -74,15 +74,18 @@ type Report = {
   error?: string;
   forged?: boolean;
   verified?: boolean;
+  result?: Array<Record<string, unknown>>;
 };
-const report = async (key: string, code: string, ranks: string[], draw = false): Promise<{ status: number; body: Report }> => {
+const reportOutcome = async (key: string, code: string, placements: string[][]): Promise<{ status: number; body: Report }> => {
   const res = await fetch(`${base}/kl/arcade/report`, {
     method: 'POST',
     headers: as(key),
-    body: JSON.stringify({ code, ranks, draw })
+    body: JSON.stringify({ code, placements })
   });
   return { status: res.status, body: (await res.json()) as Report };
 };
+const report = (key: string, code: string, ranks: string[], draw = false) =>
+  reportOutcome(key, code, draw ? [ranks] : ranks.map((id) => [id]));
 
 /** 둘을 붙이고 그 판의 코드와 두 사람 id */
 async function match(): Promise<{ code: string; a: string; b: string }> {
@@ -126,8 +129,19 @@ describe('결과 보고', () => {
     expect((await report(C, code, ids)).body.waiting).toBe(1);
     const last = await report(D, code, ids);
     expect(last.body.applied).toBe(true);
+    expect(last.body.result?.some((row) => 'mmr' in row || 'mmrBefore' in row || 'mmrAfter' in row)).toBe(false);
     expect(ids.map((id) => ratingOf('yacht', id))).toEqual([1550, 1520, 1505, 1500]);
     expect((await report(A, code, ids)).body.again).toBe(true);
+  });
+
+  it('야추 공동 1위는 둘에게 1, 2위 평균 점수를 준다', async () => {
+    const { code, ids } = await matchYacht();
+    const placements = [[ids[0], ids[1]], [ids[2]], [ids[3]]];
+    await reportOutcome(A, code, placements);
+    await reportOutcome(B, code, placements);
+    await reportOutcome(C, code, placements);
+    expect((await reportOutcome(D, code, placements)).body.applied).toBe(true);
+    expect(ids.map((id) => ratingOf('yacht', id))).toEqual([1535, 1535, 1505, 1500]);
   });
 
   it('말이 어긋나면 아무 점수도 안 움직인다', async () => {
@@ -164,7 +178,7 @@ describe('결과 보고', () => {
     const res = await fetch(`${base}/kl/arcade/report`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, ranks: [a, b] })
+      body: JSON.stringify({ code, placements: [[a], [b]] })
     });
     expect(res.status).toBe(401);
     const mine = await fetch(`${base}/kl/arcade/rating/me?game=gomoku`);

@@ -12,11 +12,13 @@
  */
 import express from 'express';
 import type { Application, Request, Response } from 'express';
+import { flattenOutcome, normalizeOutcome, outcomeKey } from '@karmo/arcade';
 import { rosterOf } from './arcade-queue';
 import { whoOf, type WhoOf } from './arcade-who';
 import { applyResult, pairFactor, recordOf, type Applied } from './arcade-rating';
 import { agreesWithTape } from './arcade-verify';
 import { tapeOfCode } from './arcade-tape';
+import { rulesFor } from './arcade-ranked/registry';
 
 interface Pending {
   game: string;
@@ -27,7 +29,8 @@ interface Pending {
 }
 
 const pending = new Map<string, Pending>();
-const done = new Map<string, Applied[]>();
+type PublicApplied = Pick<Applied, 'id' | 'before' | 'after' | 'delta'>;
+const done = new Map<string, PublicApplied[]>();
 const KEEP_MS = 3 * 60 * 60 * 1000;
 
 export function resetReports(): void {
@@ -43,7 +46,7 @@ const CODE_RE = /^[A-Z0-9]{4,12}$/;
 
 export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void {
   /**
-   * 판이 끝났다고 알림. `ranks` 는 잘한 순서, 첫째가 1위
+   * 판이 끝났다고 알림. `placements` 는 잘한 자리 순서
    * - 답의 `applied` 는 점수가 실제로 움직였을 때만 참
    */
   app.post('/kl/arcade/report', express.json({ limit: '4kb' }), (req: Request, res: Response) => {
@@ -75,18 +78,15 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
       res.json({ ok: true, applied: true, again: true, result: already });
       return;
     }
-    const ranks = (Array.isArray(body.ranks) ? body.ranks : []).map((v) => String(v));
-    const draw = body.draw === true;
-    /* ② 순서에 적힌 사람이 그 판의 사람 그대로여야 함 */
-    const same =
-      ranks.length === roster.ids.length && [...ranks].sort().join() === [...roster.ids].sort().join();
-    if (!same) {
-      res.status(400).json({ error: 'ranks 가 그 판의 사람과 다르다' });
+    const outcome = normalizeOutcome({ placements: body.placements }, roster.ids);
+    /* ② 공동 순위에 그 판의 사람이 한 번씩 있어야 함 */
+    if (!outcome) {
+      res.status(400).json({ error: 'placements 가 그 판의 사람과 다르다' });
       return;
     }
     sweep();
     const p = pending.get(code) ?? { game: roster.game, said: new Map<string, string>(), ids: roster.ids, at: Date.now() };
-    p.said.set(me, (draw ? 'D:' : 'W:') + ranks.join(','));
+    p.said.set(me, outcomeKey(outcome));
     pending.set(code, p);
 
     /* 전원이 말했고 전부 같은 말이어야 반영 */
@@ -110,14 +110,15 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
      * 못 셌을 때는 통과시킨다. 묶음이 안 구워진 배포나 안 올라온 패보 때문에
      * 점수가 통째로 멈추면 그게 더 나쁨
      */
-    const judged = agreesWithTape(tapeOfCode(code), roster.ids, ranks);
+    const judged = agreesWithTape(tapeOfCode(code), roster.ids, outcome);
     if (judged.checked && !judged.agrees) {
       res.json({ ok: true, applied: false, forged: true });
       return;
     }
     /* 계수는 반영 전에 봄. applyResult 가 이 판을 장부에 더함 */
-    const damped = pairFactor(roster.game, ranks) < 1;
-    const result = applyResult(roster.game, ranks, draw);
+    const ids = flattenOutcome(outcome);
+    const damped = pairFactor(roster.game, ids) < 1;
+    const result = applyResult(roster.game, outcome).map(({ id, before, after, delta }) => ({ id, before, after, delta }));
     done.set(code, result);
     pending.delete(code);
     res.json({ ok: true, applied: true, result, damped, verified: judged.checked });
@@ -130,6 +131,10 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
       res.status(400).json({ error: 'game 모양이 아니다' });
       return;
     }
+    if (!rulesFor(game)) {
+      res.status(400).json({ error: 'unsupported_ranked_game' });
+      return;
+    }
     res.setHeader('Cache-Control', 'no-store');
     const me = who(req);
     /* 로비가 로그인 여부를 이 한 번으로 안다. 여기서 401 을 내면 로비가 콘솔만 더럽힘 */
@@ -137,6 +142,7 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
       res.json({ signedIn: false });
       return;
     }
-    res.json({ signedIn: true, ...recordOf(game, me.id) });
+    const record = recordOf(game, me.id);
+    res.json({ signedIn: true, rating: record.rating, games: record.games, wins: record.wins });
   });
 }

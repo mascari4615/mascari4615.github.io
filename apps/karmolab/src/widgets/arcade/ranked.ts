@@ -11,6 +11,7 @@
  * - 기기 열쇠는 폐기. 기기마다 다른 사람이 되어 점수를 옮길 길이 따로 필요했음
  */
 import { intervalWhileVisible } from '../../lib/tick';
+import { outcomeFromScores, type RankedOutcome } from '@karmo/arcade';
 
 const HOST = 'https://yawnbot.mascari4615.com';
 /** 알림 주기. 서버 제외 한계 15초보다 넉넉히 자주 */
@@ -271,12 +272,10 @@ export class RankedRoster {
     return [...peers].sort((a, b) => (this.peers.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (this.peers.get(b.id) ?? Number.MAX_SAFE_INTEGER));
   }
 
-  /** 점수와 동률일 때는 서버가 준 자리 순서를 써서 전원이 같은 보고를 만든다. */
-  orderFor(scores: readonly number[]): string[] | null {
+  /** 점수가 같으면 같은 자리. 서버 자리 순서는 동률 그룹 안에서만 유지 */
+  outcomeFor(scores: readonly number[]): RankedOutcome | null {
     if (!this.ready || scores.length !== this.seats) return null;
-    return scores.map((score, i) => ({ id: this.idsBySeat[i], score, i }))
-      .sort((a, b) => b.score - a.score || a.i - b.i)
-      .map((row) => row.id);
+    return outcomeFromScores(this.idsBySeat, scores);
   }
 }
 
@@ -298,17 +297,17 @@ export interface Reported {
 }
 
 /**
- * 판이 끝났다고 알림. `ranks` 는 잘한 순서 (첫째가 1위)
+ * 판이 끝났다고 알림. 같은 자리는 한 그룹
  * - 양쪽이 각자 보냄. 서버는 둘이 같은 말을 할 때만 점수를 움직임
  * - 못 보내도 판은 이미 끝났음. 조용히 없음을 돌려줌
  */
-export async function reportResult(m: RankedMatch, ranks: string[], draw: boolean): Promise<Reported | null> {
+export async function reportResult(m: RankedMatch, outcome: RankedOutcome): Promise<Reported | null> {
   try {
     const res = await fetch(`${HOST}/kl/arcade/report`, {
       ...WITH_COOKIE,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: m.code, ranks, draw })
+      body: JSON.stringify({ code: m.code, placements: outcome.placements })
     });
     if (!res.ok) return null;
     const body = (await res.json()) as {

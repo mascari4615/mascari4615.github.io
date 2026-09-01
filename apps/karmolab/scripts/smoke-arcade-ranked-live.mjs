@@ -174,7 +174,7 @@ try {
   const order = truth.ranks.map((seat) => seatIds[seat]);
   const said = (p, m) =>
     p.page.evaluate(
-      ([mm, o]) => window.__ranked.reportResult(mm, o, false),
+      ([mm, o]) => window.__ranked.reportResult(mm, { placements: o.map((id) => [id]) }),
       [m, order]
     );
   const first = await said(A, ra.m);
@@ -209,8 +209,8 @@ try {
     const seat2 = [rc.m.host ? rc.m.you : rd.m.you, rc.m.host ? rd.m.you : rc.m.you];
     /* 서버가 센 것과 거꾸로 말한다. 둘 다 같은 거짓말을 해도 막혀야 함 */
     const wrong = truth2.ranks.map((seat) => seat2[seat]).reverse();
-    await C.page.evaluate(([m, o]) => window.__ranked.reportResult(m, o, false), [rc.m, wrong]);
-    const caught = await D.page.evaluate(([m, o]) => window.__ranked.reportResult(m, o, false), [rd.m, wrong]);
+    await C.page.evaluate(([m, o]) => window.__ranked.reportResult(m, { placements: o.map((id) => [id]) }), [rc.m, wrong]);
+    const caught = await D.page.evaluate(([m, o]) => window.__ranked.reportResult(m, { placements: o.map((id) => [id]) }), [rd.m, wrong]);
     check('거짓 보고는 점수가 안 붙는다', caught?.applied === false, JSON.stringify(caught));
     check('거짓이라고 말해 준다', caught?.forged === true, JSON.stringify(caught));
     const still = await C.page.evaluate(() => window.__ranked.myRating('gomoku'));

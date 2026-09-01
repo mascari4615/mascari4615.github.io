@@ -23,7 +23,8 @@ import express from 'express';
 import type { Application, Request, Response } from 'express';
 import { randomBytes } from 'node:crypto';
 import { whoOf, type WhoOf } from './arcade-who';
-import { ratingOf, roomOf, type RoomName } from './arcade-rating';
+import { mmrOf, ratingOf, roomOf, type RoomName } from './arcade-rating';
+import { rulesFor } from './arcade-ranked/registry';
 import type { OnWait } from './arcade-lfg';
 export type { RoomName } from './arcade-rating';
 
@@ -44,8 +45,6 @@ export function matchRange(waitedMs: number): number {
 const TTL_MS = 15 * 1000;
 /** 짝이 난 뒤 두 사람이 코드를 가져갈 시간 */
 const MATCH_KEEP_MS = 2 * 60 * 1000;
-/** 야추는 2명만 있어도 시작하되, 들어온 사람을 잠깐 더 받는다. */
-export const YACHT_FORM_MS = 8 * 1000;
 /** 등급전 방. 이름은 자리표 (사용자 결정: 이름은 나중) */
 export const ROOMS = ['beginner', 'upper'] as const;
 
@@ -63,8 +62,8 @@ interface Waiting {
   id: string;
   game: string;
   room: RoomName;
-  /** 지금 점수. 짝을 고를 때 이 차이를 봄 */
-  rating: number;
+  /** 매칭 전용 점수 */
+  mmr: number;
   name: string;
   /** 처음 선 때. 줄 순서의 근거 */
   since: number;
@@ -164,29 +163,19 @@ function match(ids: Waiting[], game: string, room: RoomName, now: number): void 
   for (const [oldCode, r] of rosters) if (now - r.at > ROSTER_KEEP_MS) rosters.delete(oldCode);
 }
 
-/**
- * 야추 순위전, 2~4명 한 판
- *
- * 첫 둘은 즉시 판을 열지 않고 8초 동안 같은 점수 폭의 셋째, 넷째를 더 받는다. 넷이 모이면
- * 즉시 4인 결성, 창 종료 때 2~3인 결성. 사람 적은 서비스의 대기와 순위전 사이 절충.
- */
-function queueYacht(me: Waiting, now: number): void {
-  const all = [...waiting.values()]
-    .filter((w) => w.game === 'yacht')
-    .sort((a, b) => a.since - b.since || a.id.localeCompare(b.id));
-  const group: Waiting[] = [];
-  for (const w of all) {
-    if (group.length >= 4) break;
-    if (group.every((other) => {
-      const gap = Math.abs(other.rating - w.rating);
-      return gap <= matchRange(now - other.since) && gap <= matchRange(now - w.since);
-    })) group.push(w);
-  }
-  if (!group.some((w) => w.id === me.id)) return;
-  const oldest = group[0];
-  if (group.length === 4 || (group.length >= 2 && now - oldest.since >= YACHT_FORM_MS)) {
-    match(group, 'yacht', roomOf(oldest.rating), now);
-  }
+function tryFormation(me: Waiting, now: number): void {
+  const rules = rulesFor(me.game);
+  if (!rules) return;
+  const selected = rules.formation({
+    candidates: [...waiting.values()].filter((candidate) => candidate.game === me.game),
+    focusId: me.id,
+    now,
+    rangeOf: matchRange
+  });
+  if (!selected) return;
+  const group = selected.map((candidate) => waiting.get(candidate.id)).filter((candidate): candidate is Waiting => Boolean(candidate));
+  if (group.length !== selected.length || !rules.supportedSeats.has(group.length)) return;
+  match(group, me.game, group[0].room, now);
 }
 
 export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait?: OnWait): void {
@@ -199,6 +188,11 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait
     const game = clean(body.game, /^[a-z0-9]{2,24}$/, 24);
     if (!game) {
       res.status(400).json({ error: 'game 모양이 아니다' });
+      return;
+    }
+    const rules = rulesFor(game);
+    if (!rules) {
+      res.status(400).json({ error: 'unsupported_ranked_game' });
       return;
     }
     /* 등급전은 로그인 필수. 점수가 붙는 자리라 신원이 하나여야 함 */
@@ -217,34 +211,15 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait
       return;
     }
     const rating = ratingOf(game, id);
+    const mmr = mmrOf(game, id);
     const room = roomOf(rating);
     const now = Date.now();
-    const myRange = matchRange(now - (waiting.get(id)?.since ?? now));
-    /* 서로의 폭 안에 드는 사람 중 **오래 기다린 쪽** 먼저. 같은 값이면 점수가 가까운 쪽 */
-    const other = [...waiting.values()]
-      .filter((w) => {
-        if (w.id === id || w.game !== game) return false;
-        const gap = Math.abs(w.rating - rating);
-        return gap <= myRange && gap <= matchRange(now - w.since);
-      })
-      .sort((a, b) => a.since - b.since || Math.abs(a.rating - rating) - Math.abs(b.rating - rating))[0];
-    if (game === 'yacht') {
-      const since = waiting.get(id)?.since ?? now;
-      const mine = { id, game, room, rating, name, since, at: now };
-      waiting.set(id, mine);
-      queueYacht(mine, now);
-      if (waiting.has(id)) onWait?.({ game, name, since });
-    } else if (other) {
-      waiting.delete(other.id);
-      waiting.delete(id);
-      match([other, { id, game, room, rating, name, since: now, at: now }], game, room, now);
-    } else {
-      /* 처음 선 때 보존. 알림마다 줄 맨 뒤면 오래 기다린 사람이 계속 밀림 */
-      const since = waiting.get(id)?.since ?? now;
-      waiting.set(id, { id, game, room, rating, name, since, at: now });
-      /* 오래 기다리면 채널이 부른다. 부를지 말지는 저쪽이 판단함 (arcade-lfg 가 판단) */
-      onWait?.({ game, name, since });
-    }
+    /* 처음 선 때 보존. 알림마다 줄 맨 뒤면 오래 기다린 사람이 계속 밀림 */
+    const since = waiting.get(id)?.since ?? now;
+    const mine = { id, game, room, mmr, name, since, at: now };
+    waiting.set(id, mine);
+    tryFormation(mine, now);
+    if (waiting.has(id)) onWait?.({ game, name, since });
     res.json({ ...answer(id), until: TTL_MS });
   });
 
@@ -275,8 +250,8 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait
     if (w) {
       const now = Date.now();
       w.at = now;
-      /* 야추의 합류 창은 알림 요청으로 닫는다. 별도 타이머가 죽어도 유령 판을 만들지 않는다. */
-      if (w.game === 'yacht') queueYacht(w, now);
+      /* 별도 타이머 없이 알림 요청에서 결성을 다시 판단 */
+      tryFormation(w, now);
     }
     res.setHeader('Cache-Control', 'no-store');
     res.json(answer(id));

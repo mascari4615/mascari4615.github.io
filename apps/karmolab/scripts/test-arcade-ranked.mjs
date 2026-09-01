@@ -32,14 +32,20 @@ for (const count of [2, 3, 4]) {
   assert.deepEqual(roster.orderPeers(peers).map((peer) => peer.id), ids.slice(1).map((_, seat) => `peer-${seat + 1}`));
 
   const scores = ids.map((_, seat) => seat === 1 ? 99 : 10 - seat);
-  assert.deepEqual(roster.orderFor(scores), [ids[1], ...ids.filter((_, seat) => seat !== 1)]);
+  const expected = { placements: [[ids[1]], ...ids.filter((_, seat) => seat !== 1).map((id) => [id])] };
+  assert.deepEqual(roster.outcomeFor(scores), expected);
+
+  const tied = ids.map((_, seat) => seat < 2 ? 99 : 10 - seat);
+  assert.deepEqual(roster.outcomeFor(tied), {
+    placements: [ids.slice(0, 2), ...ids.slice(2).map((id) => [id])]
+  });
 
   for (let seat = 1; seat < count; seat++) {
     const guest = new ranked.RankedRoster({ code: 'ABCDE', you: ids[seat], ids, seat }, false);
     guest.applySync(roster.sync());
     assert.equal(guest.ready, true, `${count}인 ${seat}번 손님도 같은 명단을 받아야 한다`);
-    assert.deepEqual(guest.orderFor(scores), roster.orderFor(scores));
+    assert.deepEqual(guest.outcomeFor(scores), roster.outcomeFor(scores));
   }
 }
 
-console.log('[arcade-ranked] 통과. 등급전 지원 정책, 2, 3, 4인 좌석 동기화, 결과 순서');
+console.log('[arcade-ranked] 통과. 등급전 지원 정책, 2, 3, 4인 좌석 동기화, 동률 결과');

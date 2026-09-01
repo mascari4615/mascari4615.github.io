@@ -3656,21 +3656,21 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /**
      * 등급전 결과를 서버에 보고
-     * - 점수 높은 순서를 id 로 적음. 2인 판이라 내 자리와 상대 자리 둘뿐
+     * - 점수 높은 자리 순서로 적고 동점자는 한 자리에 묶음
      * - 양쪽이 각자 보냄. 한쪽 말만으로는 점수가 안 움직임
      * - 못 보내도 판은 이미 끝났음. 조용히 넘어감
      */
     async function tellRanked(v: MatchView<unknown>, draw: boolean): Promise<void> {
       const m = rankedMatch;
-      const order = rankedRoster?.orderFor(v.seats.map((seat) => seat.score));
-      if (!m || mySeat < 0 || !order) return;
+      const outcome = rankedRoster?.outcomeFor(v.seats.map((seat) => seat.score));
+      if (!m || mySeat < 0 || !outcome) return;
       /* 먼저 보고한 쪽은 그 자리에서 답을 못 받음. 상대가 아직 안 보냈기 때문
          - 같은 보고를 다시 던져 확인. 서버는 같은 판을 두 번 안 적고 결과만 돌려줌
          - 세 번(약 12초)까지. 그 안에 상대가 안 보내면 점수는 그대로 대기 */
       for (let tries = 0; tries < 4; tries++) {
         if (tries > 0) await new Promise((r) => setTimeout(r, 4000));
         if (rankedMatch !== m) return;
-        const said = await reportResult(m, order, draw);
+        const said = await reportResult(m, outcome);
         if (!said) return;
         if (said.disagreed) {
           say(t('arcade.rank.disagreed'), 'warn');

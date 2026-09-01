@@ -7,7 +7,12 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import os from 'node:os';
 import path from 'node:path';
-import { applyResult, methodFor, pairFactor, ratingOf, recordOf, resetPairs, resetRatings, roomOf } from './arcade-rating';
+import { applyResult as applyOutcome, mmrOf, pairFactor, ratingOf, recordOf, resetPairs, resetRatings, roomOf } from './arcade-rating';
+import { rulesFor } from './arcade-ranked/registry';
+import { seedStoredRatingForTest } from './arcade-ranked/rating-store';
+
+const applyResult = (game: string, ranks: string[], draw = false) =>
+  applyOutcome(game, { placements: draw ? [ranks] : ranks.map((id) => [id]) });
 
 /* 진짜 장부를 안 건드림. 임시 자리로 돌림 */
 beforeAll(() => {
@@ -20,11 +25,16 @@ beforeEach(() => {
 });
 
 describe('점수 방식', () => {
-  it('오목은 ELO, 야추는 순위점, 모르는 놀이는 자리 수로', () => {
-    expect(methodFor('gomoku')).toBe('elo');
-    expect(methodFor('yacht')).toBe('place');
-    expect(methodFor('someboard', 2)).toBe('elo');
-    expect(methodFor('someboard', 4)).toBe('place');
+  it('오목과 야추만 명시적으로 등록하고 기본 정책은 두지 않는다', () => {
+    expect(rulesFor('gomoku')?.supportedSeats).toEqual(new Set([2]));
+    expect(rulesFor('yacht')?.supportedSeats).toEqual(new Set([2, 3, 4]));
+    expect(rulesFor('someboard')).toBeNull();
+  });
+
+  it('미등록 게임과 미지원 야추 인원은 계산하지 않는다', () => {
+    expect(() => applyOutcome('someboard', { placements: [['a'], ['b']] })).toThrow('unsupported_ranked_game');
+    expect(() => applyOutcome('yacht', { placements: [['a'], ['b'], ['c'], ['d'], ['e']] })).toThrow('unsupported_seats:5');
+    expect(ratingOf('yacht', 'a')).toBe(1500);
   });
 
   it('처음은 1500, 초심 방', () => {
@@ -66,6 +76,47 @@ describe('점수 방식', () => {
     expect(out[2].delta).toBeGreaterThanOrEqual(out[3].delta);
     /* 초심 방은 꼴찌 감점 없음 (작혼 초심 강등 없음과 같은 뜻) */
     expect(out[3].delta).toBe(0);
+  });
+
+  it('공동 순위는 점유한 자리의 평균 점수를 받는다', () => {
+    const out = applyOutcome('yacht', { placements: [['a', 'b'], ['c'], ['d']] });
+    expect(out.map((row) => row.delta)).toEqual([35, 35, 5, 0]);
+    expect(recordOf('yacht', 'a').wins).toBe(0);
+    expect(recordOf('yacht', 'b').wins).toBe(0);
+  });
+
+  it('2, 3, 4인 어느 자리의 동률도 점유 자리 평균을 쓴다', () => {
+    const cases = [
+      { placements: [['a', 'b']], deltas: [15, 15] },
+      { placements: [['a', 'b'], ['c']], deltas: [25, 25, 0] },
+      { placements: [['a'], ['b', 'c']], deltas: [40, 5, 5] },
+      { placements: [['a'], ['b', 'c'], ['d']], deltas: [50, 12.5, 12.5, 0] },
+      { placements: [['a'], ['b'], ['c', 'd']], deltas: [50, 20, 2.5, 2.5] }
+    ];
+    for (const row of cases) {
+      resetRatings();
+      resetPairs();
+      expect(applyOutcome('yacht', { placements: row.placements }).map((item) => item.delta)).toEqual(row.deltas);
+    }
+  });
+
+  it('전원 공동 순위는 같은 점수를 받고 매칭 점수 합은 보존된다', () => {
+    const out = applyOutcome('yacht', { placements: [['a', 'b', 'c', 'd']] });
+    expect(out.map((row) => row.delta)).toEqual([18.75, 18.75, 18.75, 18.75]);
+    expect(out.reduce((sum, row) => sum + (row.mmrDelta ?? 0), 0)).toBeCloseTo(0, 10);
+    expect(['a', 'b', 'c', 'd'].map((id) => mmrOf('yacht', id))).toEqual([1500, 1500, 1500, 1500]);
+  });
+
+  it('표시 점수와 매칭 점수는 서로 다른 장부다', () => {
+    applyOutcome('yacht', { placements: [['a'], ['b'], ['c'], ['d']] });
+    expect(ratingOf('yacht', 'a')).toBe(1550);
+    expect(mmrOf('yacht', 'a')).toBeGreaterThan(1500);
+    expect(mmrOf('yacht', 'a')).not.toBe(ratingOf('yacht', 'a'));
+  });
+
+  it('옛 야추 점수는 표시 점수로 보존하고 MMR은 새로 시작한다', () => {
+    seedStoredRatingForTest('yacht', 'old', { rating: 1675, games: 12, wins: 4 });
+    expect(recordOf('yacht', 'old')).toEqual({ rating: 1675, mmr: 1500, games: 12, wins: 4 });
   });
 
   it('순위점: 윗방은 꼴찌가 깎인다', () => {

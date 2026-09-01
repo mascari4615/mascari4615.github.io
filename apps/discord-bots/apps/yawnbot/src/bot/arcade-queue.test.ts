@@ -4,8 +4,12 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import express from 'express';
 import type { Server } from 'http';
-import { registerArcadeQueue, resetQueue, matchRange, YACHT_FORM_MS } from './arcade-queue';
-import { resetRatings, applyResult } from './arcade-rating';
+import { registerArcadeQueue, resetQueue, matchRange } from './arcade-queue';
+import { YACHT_FORM_MS } from './arcade-ranked/games/yacht';
+import { resetPairs, resetRatings, applyResult as applyOutcome } from './arcade-rating';
+
+const applyResult = (game: string, ranks: string[]) =>
+  applyOutcome(game, { placements: ranks.map((id) => [id]) });
 
 let server: Server;
 let base = '';
@@ -33,7 +37,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
-beforeEach(() => { resetQueue(); resetRatings(); called.length = 0; });
+beforeEach(() => { resetQueue(); resetRatings(); resetPairs(); called.length = 0; });
 
 const A = 'account-a';
 const B = 'account-b';
@@ -116,9 +120,30 @@ describe('등급전 대기열', () => {
     clock.mockRestore();
   });
 
+  it('야추 매칭은 표시 점수가 아니라 숨은 매칭 점수를 쓴다', async () => {
+    for (let i = 0; i < 6; i++) {
+      applyOutcome('yacht', { placements: [[A, 'tie-b', 'tie-c', 'tie-d']] });
+    }
+    const clock = vi.spyOn(Date, 'now');
+    clock.mockReturnValue(3_000);
+    expect((await stand(A, 'a', 'yacht')).room).toBe('upper');
+    expect((await stand(B, 'b', 'yacht')).room).toBe('beginner');
+    clock.mockReturnValue(3_000 + YACHT_FORM_MS);
+    expect((await look(A)).status).toBe('matched');
+    clock.mockRestore();
+  });
+
   it('놀이가 다르면 안 만난다', async () => {
     await stand(A, 'a', 'gomoku');
-    expect((await stand(B, 'b', 'yut')).status).toBe('waiting');
+    expect((await stand(B, 'b', 'yacht')).status).toBe('waiting');
+  });
+
+  it('등록하지 않은 놀이는 등급전 기본 정책으로 받지 않는다', async () => {
+    const response = await fetch(`${base}/kl/arcade/queue`, {
+      method: 'POST', headers: as(A), body: JSON.stringify({ game: 'unknown', name: 'a' })
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'unsupported_ranked_game' });
   });
 
   it('점수 차가 크면 처음엔 안 만난다. 방 벽이 아니라 폭이다', async () => {

@@ -113,9 +113,9 @@ try {
   await pages[0].waitForFunction(() => document.querySelector('#acOver')?.textContent?.trim().length > 0, null, { timeout: 10000 });
   const deadline = Date.now() + 20000;
   while (reports.size < ids.length && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 100));
-  const words = [...reports.values()].map((body) => JSON.stringify(body.ranks));
+  const words = [...reports.values()].map((body) => JSON.stringify(body.placements));
   const completed = reports.size === ids.length && new Set(words).size === 1 &&
-    Array.isArray([...reports.values()][0]?.ranks) && [...reports.values()][0].ranks.length === ids.length;
+    Array.isArray([...reports.values()][0]?.placements) && [...reports.values()][0].placements.flat().length === ids.length;
   if (!completed) failures.push(`전원 결과 보고가 다르다: ${JSON.stringify([...reports.entries()])}`);
   else console.log(`  [O] ${requestedPlayers}개 창이 판을 완주하고 같은 순위를 보고한다`);
 } catch (error) {

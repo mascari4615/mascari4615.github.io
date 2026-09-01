@@ -10,6 +10,7 @@
     "@fullcalendar/interaction": "^6.1.21",
     "@fullcalendar/timegrid": "^6.1.21",
     "@karmo/meaning": "file:../../packages/meaning",
+    "@karmo/arcade": "file:../../packages/arcade",
     "badapple": "file:../../packages/badapple",
     "@karmo/ai": "file:../../packages/ai",
     "qrcode-generator": "^1.4.4",

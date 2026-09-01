@@ -13,6 +13,12 @@
  */
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import {
+  normalizeOutcome,
+  outcomeFromScores,
+  outcomeKey,
+  type RankedOutcome
+} from '@karmo/arcade';
 import { PKG_ROOT } from '../paths';
 
 /* 이 패키지는 CommonJS 로 굽는다. 그래서 자리는 PKG_ROOT 에서 잡는다 */
@@ -61,40 +67,28 @@ export function verifierReady(): boolean {
  *
  * @param tape 그 판의 패보. 없으면 못 셈
  * @param seatOf 자리 번호를 사람 id 로. 서버가 든 roster 순서
- * @param ranks 브라우저가 보고한 순서 (사람 id)
+ * @param outcome 브라우저가 보고한 공동 순위
  */
 export function agreesWithTape(
   tape: unknown,
   seatOf: string[],
-  ranks: string[]
-): { checked: boolean; agrees: boolean; why?: string; served?: string[] } {
+  outcome: RankedOutcome
+): { checked: boolean; agrees: boolean; why?: string; served?: RankedOutcome } {
   const v = verifier();
   if (!v) return { checked: false, agrees: true, why: '묶음이 없다' };
   if (!tape) return { checked: false, agrees: true, why: '패보가 없다' };
 
   const out = v(tape);
-  if (!out.ok || !out.ranks) return { checked: false, agrees: true, why: out.why ?? '못 셌다' };
+  if (!out.ok) return { checked: false, agrees: true, why: out.why ?? '못 셌다' };
   if (out.finished === false) return { checked: false, agrees: true, why: '안 끝난 판' };
-  if (out.ranks.length !== seatOf.length) return { checked: false, agrees: true, why: '자리 수가 다르다' };
+  const reported = normalizeOutcome(outcome, seatOf);
+  if (!reported) return { checked: true, agrees: false };
 
-  const served = out.ranks.map((seat) => seatOf[seat]);
-  const score = new Map(seatOf.map((id, i) => [id, out.scores?.[i] ?? 0]));
-
-  /* 보고에 그 판 사람이 빠짐없이, 한 번씩 있어야 함 */
-  if (ranks.length !== seatOf.length || new Set(ranks).size !== ranks.length) {
-    return { checked: true, agrees: false, served };
+  let served: RankedOutcome | null = null;
+  if (out.scores?.length === seatOf.length) served = outcomeFromScores(seatOf, out.scores);
+  else if (out.ranks?.length === seatOf.length) {
+    served = normalizeOutcome({ placements: out.ranks.map((seat) => [seatOf[seat]]) }, seatOf);
   }
-  if (ranks.some((id) => !score.has(id))) return { checked: true, agrees: false, served };
-
-  /**
-   * **보고된 순서를 따라가며 점수가 안 오르면 맞다.**
-   *
-   * 서버가 센 순서와 글자 그대로 같아야 한다고 하면 안 된다. 같은 점수는 같은 등수라
-   * 무승부의 순서는 아무래도 좋고, 그걸 거짓말로 몰면 비긴 판마다 점수가 멈춤
-   */
-  let agrees = true;
-  for (let i = 1; i < ranks.length; i++) {
-    if ((score.get(ranks[i - 1]) ?? 0) < (score.get(ranks[i]) ?? 0)) agrees = false;
-  }
-  return { checked: true, agrees, served };
+  if (!served) return { checked: false, agrees: true, why: '자리 수가 다르다' };
+  return { checked: true, agrees: outcomeKey(reported) === outcomeKey(served), served };
 }

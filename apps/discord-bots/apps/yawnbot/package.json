@@ -27,6 +27,7 @@
     "build:verifier": "node scripts/build-arcade-verifier.mjs"
   },
   "dependencies": {
+    "@karmo/arcade": "file:../../../../packages/arcade",
     "@karmo/ai": "file:../../../../packages/ai",
     "@discord-bots/common": "*",
     "@discordjs/voice": "^0.19.2",
