@@ -655,5 +655,9 @@
   "arcade.memory.me": "自分",
   "arcade.speed.mine": "自分の山 {n}枚",
   "arcade.speed.deal": "両方詰み。中央を配り直す",
-  "arcade.speed.foe": "相手 手{h}枚 山{d}枚"
+  "arcade.speed.foe": "相手 手{h}枚 山{d}枚",
+  "arcade.president.rev": "革命！{who}が引っくり返した",
+  "arcade.president.unrev": "革命返し。{who}",
+  "arcade.president.cut": "{who}の8切り。場が流れる",
+  "arcade.president.revOn": "革命中"
 }

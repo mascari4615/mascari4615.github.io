@@ -8,12 +8,24 @@
  * 나만 빼고 다 넘기면 판이 비고, 내가 새로 시작한다. **손이 먼저 비는 사람이 대부호.**
  *
  * 2 가 제일 세다(원래 놀이 그대로). 1(A) 다음이 아니라 맨 위다. 그 한 줄이 판을 뒤집는 재미다.
+ *
+ * 레퍼런스(pagat, 위키, 2026-09-01 조사)의 두 규칙을 넣었다. 이 놀이를 이 놀이답게 하는 것들
+ *  - **혁명**. 같은 수 넉 장 이상을 한 번에 내면 세기가 뒤집힘. 또 나오면 되돌아옴
+ *  - **8 자르기**. 8 을 내면 그 자리에서 판이 걷히고 낸 사람이 다시 시작(잇기에는 안 통함)
  */
 import type { GameDef, BotMove, Outcome } from '../types';
 import { shuffle } from '../rng';
 
-/** 세기 순서. 3 이 제일 약하고 2 가 제일 세다. */
-export const power = (rank: number): number => (rank === 2 ? 15 : rank === 1 ? 14 : rank);
+/** 세기 순서. 3 이 제일 약하고 2 가 제일 세다. 혁명 중이면 뒤집힌다 */
+export const power = (rank: number, rev = false): number => {
+  const base = rank === 2 ? 15 : rank === 1 ? 14 : rank;
+  return rev ? -base : base;
+};
+
+/** 혁명이 되는 장수. 레퍼런스는 넉 장 이상 */
+const REVOLUTION = 4;
+/** 판을 걷는 수. 8 을 내면 그 자리에서 끝난다 */
+const CUT = 8;
 
 export interface PresidentState {
   /** 자리별 손패 (남의 것은 `redact` 가 지운다) */
@@ -27,6 +39,10 @@ export interface PresidentState {
   passed: boolean[];
   /** 손이 빈 차례대로 */
   out: number[];
+  /** 혁명 중인가. 세기가 뒤집힌 상태 */
+  rev: boolean;
+  /** 방금 무슨 일이 있었나. 화면이 알린다. 시각으로 같은 일을 두 번 안 말하게 */
+  bang?: { kind: 'rev' | 'unrev' | 'cut'; by: number; at: number };
 }
 
 export type PresidentAction = { kind: 'play'; rank: number; count: number } | { kind: 'pass' };
@@ -42,7 +58,7 @@ export function options(s: PresidentState, seat: number): Array<{ rank: number; 
     const have = countOf(hand, r);
     if (!s.pile) {
       for (let n = 1; n <= have; n++) out.push({ rank: r, count: n });
-    } else if (have >= s.pile.count && power(r) > power(s.pile.rank)) {
+    } else if (have >= s.pile.count && power(r, s.rev) > power(s.pile.rank, s.rev)) {
       out.push({ rank: r, count: s.pile.count });
     }
   }
@@ -79,7 +95,8 @@ export const president: GameDef<PresidentState, PresidentAction> = {
       leader: first < 0 ? 0 : first,
       turn: first < 0 ? 0 : first,
       passed: ctx.seats.map(() => false),
-      out: []
+      out: [],
+      rev: false
     };
   },
 
@@ -119,7 +136,21 @@ export const president: GameDef<PresidentState, PresidentAction> = {
     });
     const hands = s.hands.map((h, i) => (i === seat ? rest : h));
     const out = rest.length === 0 ? [...s.out, seat] : s.out;
-    const base = { ...s, hands, pile: { rank, count }, leader: seat, passed: s.passed.map(() => false), out };
+    const at = ctx.now;
+
+    /* 혁명. 넉 장 이상이면 세기가 뒤집힌다. 판은 그대로 이어진다 */
+    const rev = count >= REVOLUTION ? !s.rev : s.rev;
+    const bang: PresidentState['bang'] =
+      count >= REVOLUTION ? { kind: s.rev ? 'unrev' : 'rev', by: seat, at } : rank === CUT ? { kind: 'cut', by: seat, at } : undefined;
+
+    /* 8 자르기. 판을 걷고 낸 사람이 다시 시작한다. 손이 비었으면 다음 사람 */
+    if (rank === CUT) {
+      const base = { ...s, hands, pile: null, leader: seat, passed: s.passed.map(() => false), out, rev, bang };
+      const turn = rest.length === 0 ? nextSeat(base, seat, seats) : seat;
+      return { ...base, turn };
+    }
+
+    const base = { ...s, hands, pile: { rank, count }, leader: seat, passed: s.passed.map(() => false), out, rev, bang };
     return { ...base, turn: nextSeat(base, seat, seats) };
   },
 
@@ -138,10 +169,16 @@ export const president: GameDef<PresidentState, PresidentAction> = {
     const opts = options(s, seat);
     if (!opts.length) return { action: { kind: 'pass' }, delayMs: 700 + ctx.rng() * 600 };
 
-    /* 제일 약한 것부터 턴다. 세게 나가면 당장은 이기지만 마지막에 쓸 카드가 없다. */
+    /* 제일 약한 것부터 텀. 세게 나가면 당장은 이기지만 마지막에 쓸 카드가 없음
+       다만 넉 장이 모이면 혁명. 약한 패만 남았을 때 판을 뒤집는 것이 이 놀이의 한 수 */
+    const revChance = opts.filter((o) => o.count >= REVOLUTION);
+    if (revChance.length && ctx.rng() < 0.7) {
+      const pick = revChance[Math.floor(ctx.rng() * revChance.length)];
+      return { action: { kind: 'play', ...pick }, delayMs: 800 + ctx.rng() * 600 };
+    }
     const best = opts.reduce((a, b) => {
-      const av = power(a.rank) * 10 - a.count;
-      const bv = power(b.rank) * 10 - b.count;
+      const av = power(a.rank, s.rev) * 10 - a.count;
+      const bv = power(b.rank, s.rev) * 10 - b.count;
       return bv < av ? b : a;
     }, opts[0]);
     return { action: { kind: 'play', ...best }, delayMs: 700 + ctx.rng() * 700 };
