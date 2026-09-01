@@ -36,6 +36,8 @@ export interface TableSpec {
   seats: number;
   /** 이방성 상한 */
   aniso: number;
+  /** 한 밀리미터가 몇 단위인가. 부품 치수를 실물로 잡는 눈금 */
+  mm: number;
 }
 
 export interface CasinoTable {
@@ -48,18 +50,25 @@ export interface CasinoTable {
   dispose(): void;
 }
 
-/** 상판 두께 */
-const TOP_T = 0.16;
+/** 상판 두께. 실물 40mm */
+let TOP_T = 0.16;
 
 /**
  * 앉는 자리 하나의 자리. 반원 위에 나란히.
  * 가운데가 화면 앞쪽이라 사람 자리
  */
 export function seatSpot(i: number, n: number, w: number, d: number): { x: number; z: number } {
-  const k = n <= 1 ? 0.5 : i / (n - 1);
-  /* 0.80파이 에서 0.20파이 까지. 양 끝은 상 밖으로 안 나가게 안쪽으로 */
-  const t = Math.PI * (0.8 - 0.6 * k);
-  return { x: w * 0.4 * Math.cos(t), z: -d / 2 + d * 0.86 * Math.sin(t) };
+  /**
+   * 실물은 반원을 **30도씩 여섯 조각**으로 나눈다 (레퍼런스: 오하이오주립 제작 안내,
+   * 호 길이 18.8인치). 자리는 그 조각의 한가운데. 여섯 자리면 15, 45, 75, 105, 135, 165도.
+   * 자리가 여섯보다 적으면 가운데 조각부터 채워 좌우로 퍼짐
+   */
+  /* 조각 한가운데. 자리가 여섯보다 적으면 90도(반원 한가운데)를 축으로 좌우로 퍼짐 */
+  const deg = 90 + (i - (n - 1) / 2) * 30;
+  const t = Math.PI - (deg * Math.PI) / 180;
+  /* 상판 반지름은 폭의 절반. 서클은 레일에서 카드 두 장쯤 안으로 */
+  const r = w / 2 - 210 * (w / 1829);
+  return { x: r * Math.cos(t), z: -d / 2 + r * Math.sin(t) };
 }
 
 /** 상판 윤곽. 딜러 쪽이 곧은 변, 사람 쪽이 반원 */
@@ -73,7 +82,7 @@ function tableShape(w: number, d: number, grow = 0): Shape {
 }
 
 /** 상판 질감. 펠트에 인쇄 문구와 베팅 서클을 함께 구움 */
-function feltPrint(w: number, d: number, seats: number, px = 2048): HTMLCanvasElement {
+function feltPrint(w: number, d: number, seats: number, mm: number, px = 2048): HTMLCanvasElement {
   const cv = document.createElement('canvas');
   cv.width = px;
   cv.height = Math.round((px * d) / w);
@@ -109,7 +118,7 @@ function feltPrint(w: number, d: number, seats: number, px = 2048): HTMLCanvasEl
     c.globalAlpha = alpha;
     c.translate(X(0), Z(-d / 2));
     c.font = '600 ' + Math.round(size * S) + 'px "Noto Serif KR", Georgia, serif';
-    const step = 0.055;
+    const step = (size * 1.05) / Math.max(0.001, r);
     const start = -((text.length - 1) * step) / 2;
     for (let i = 0; i < text.length; i++) {
       const a = start + i * step;
@@ -124,19 +133,19 @@ function feltPrint(w: number, d: number, seats: number, px = 2048): HTMLCanvasEl
     }
     c.restore();
   };
-  arcText('BLACKJACK PAYS 3 TO 2', d * 0.5, 0.17, 0.8);
-  arcText('DEALER MUST STAND ON 17', d * 0.34, 0.115, 0.55);
+  arcText('BLACKJACK PAYS 3 TO 2', d * 0.62, 34 * mm, 0.82);
+  arcText('DEALER MUST DRAW TO 16 AND STAND ON ALL 17s', d * 0.44, 20 * mm, 0.55);
 
   /* 보험 띠. 딜러와 사람 사이를 가름 */
   c.save();
   c.globalAlpha = 0.5;
-  c.lineWidth = 0.02 * S;
+  c.lineWidth = 4 * mm * S;
   c.beginPath();
-  c.ellipse(X(0), Z(-d / 2), d * 0.26 * S, d * 0.56 * S, 0, 0, Math.PI);
+  c.ellipse(X(0), Z(-d / 2), d * 0.32 * S, d * 0.32 * S, 0, 0, Math.PI);
   c.stroke();
-  c.font = '600 ' + Math.round(0.11 * S) + 'px "Noto Serif KR", Georgia, serif';
+  c.font = '600 ' + Math.round(19 * mm * S) + 'px "Noto Serif KR", Georgia, serif';
   c.globalAlpha = 0.55;
-  c.fillText('INSURANCE PAYS 2 TO 1', X(0), Z(-d / 2 + d * 0.535));
+  c.fillText('INSURANCE PAYS 2 TO 1', X(0), Z(-d / 2 + d * 0.27));
   c.restore();
 
   /* 베팅 서클. 자리마다 두 겹 */
@@ -144,14 +153,14 @@ function feltPrint(w: number, d: number, seats: number, px = 2048): HTMLCanvasEl
     const sp = seatSpot(i, seats, w, d);
     c.save();
     c.globalAlpha = 0.72;
-    c.lineWidth = 0.028 * S;
+    c.lineWidth = 5 * mm * S;
     c.beginPath();
-    c.arc(X(sp.x), Z(sp.z), 0.42 * S, 0, Math.PI * 2);
+    c.arc(X(sp.x), Z(sp.z), 65 * mm * S, 0, Math.PI * 2);
     c.stroke();
     c.globalAlpha = 0.34;
-    c.lineWidth = 0.014 * S;
+    c.lineWidth = 2.5 * mm * S;
     c.beginPath();
-    c.arc(X(sp.x), Z(sp.z), 0.36 * S, 0, Math.PI * 2);
+    c.arc(X(sp.x), Z(sp.z), 57 * mm * S, 0, Math.PI * 2);
     c.stroke();
     c.restore();
   }
@@ -166,7 +175,8 @@ const CHIP: Array<{ v: number; face: number; edge: number }> = [
   { v: 1, face: 0xf4f1e8, edge: 0x2a2a2a }
 ];
 
-const chipGeo = new CylinderGeometry(0.19, 0.19, 0.035, 24);
+/** 칩. 실물 지름 39mm, 두께 3.3mm. 눈금은 `setChipScale` 이 넣음 */
+let chipGeo = new CylinderGeometry(0.19, 0.19, 0.035, 24);
 const chipMats = new Map<number, MeshStandardMaterial>();
 const chipMat = (hex: number): MeshStandardMaterial => {
   const hit = chipMats.get(hex);
@@ -180,7 +190,15 @@ const chipMat = (hex: number): MeshStandardMaterial => {
  * 판돈만큼 칩을 쌓음. 큰 값부터.
  * 열둘을 넘으면 두 줄. 한 줄로 쌓으면 화면 밖까지 솟음
  */
-export function chipStack(amount: number): Group {
+/** 칩 꼴을 눈금에 맞춘다. 상을 세울 때 한 번 */
+export function setChipScale(mm: number): void {
+  const r = (39 / 2) * mm;
+  const h = 3.3 * mm;
+  chipGeo.dispose();
+  chipGeo = new CylinderGeometry(r, r, h, 28);
+}
+
+export function chipStack(amount: number, mm = 0.0129): Group {
   const g = new Group();
   let left = Math.max(0, Math.floor(amount));
   const list: number[] = [];
@@ -193,7 +211,7 @@ export function chipStack(amount: number): Group {
   list.forEach((hex, i) => {
     const col = Math.floor(i / 12);
     const m = new Mesh(chipGeo, chipMat(hex));
-    m.position.set(col * 0.42, 0.018 + (i % 12) * 0.036, 0);
+    m.position.set(col * 44 * mm, 3.3 * mm * 0.5 + (i % 12) * 3.3 * mm, 0);
     m.castShadow = true;
     m.receiveShadow = true;
     g.add(m);
@@ -203,7 +221,9 @@ export function chipStack(amount: number): Group {
 
 /** 상과 상 위 물건 세우기 */
 export function buildCasinoTable(scene: { add(o: object): void; remove(o: object): void }, spec: TableSpec): CasinoTable {
-  const { w, d, topY, seats, aniso } = spec;
+  const { w, d, topY, seats, aniso, mm } = spec;
+  TOP_T = 40 * mm;
+  setChipScale(mm);
   const root = new Group();
   scene.add(root);
   const kill: Array<{ dispose(): void }> = [];
@@ -227,7 +247,7 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
   }
   uv.needsUpdate = true;
 
-  const feltMap = new CanvasTexture(feltPrint(w, d, seats));
+  const feltMap = new CanvasTexture(feltPrint(w, d, seats, spec.mm));
   feltMap.colorSpace = SRGBColorSpace;
   feltMap.anisotropy = aniso;
   const topMat = new MeshStandardMaterial({ map: feltMap, roughness: 0.96, metalness: 0 });
@@ -238,12 +258,12 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
   kill.push(topGeo, feltMap, topMat);
 
   /* 가죽 레일. 상판 둘레를 두른 팔걸이 */
-  const railShape = tableShape(w, d, 0.3);
-  railShape.holes.push(new Path(tableShape(w, d, 0.02).getPoints(64)));
-  const railGeo = new ExtrudeGeometry(railShape, { depth: 0.2, bevelEnabled: true, bevelSize: 0.06, bevelThickness: 0.06, bevelSegments: 3 });
+  const railShape = tableShape(w, d, 76 * mm);
+  railShape.holes.push(new Path(tableShape(w, d, 6 * mm).getPoints(96)));
+  const railGeo = new ExtrudeGeometry(railShape, { depth: 46 * mm, bevelEnabled: true, bevelSize: 14 * mm, bevelThickness: 14 * mm, bevelSegments: 3 });
   railGeo.rotateX(-Math.PI / 2);
   /* 레일은 펠트보다 조금 솟음. 팔을 얹는 자리 */
-  railGeo.translate(0, topY - 0.08, 0);
+  railGeo.translate(0, topY - 18 * mm, 0);
   const railMap = new CanvasTexture(leatherTexture(29, 512));
   railMap.colorSpace = SRGBColorSpace;
   railMap.anisotropy = aniso;
@@ -255,9 +275,9 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
   kill.push(railGeo, railMap, railMat);
 
   /* 상 다리 대신 두꺼운 몸통. 아래가 비면 상이 떠 보임 */
-  const bodyGeo = new ExtrudeGeometry(tableShape(w, d, -0.25), { depth: 0.9, bevelEnabled: false });
+  const bodyGeo = new ExtrudeGeometry(tableShape(w, d, -90 * mm), { depth: topY - TOP_T, bevelEnabled: false });
   bodyGeo.rotateX(-Math.PI / 2);
-  bodyGeo.translate(0, topY - TOP_T - 0.9, 0);
+  bodyGeo.translate(0, 0, 0);
   const bodyMat = new MeshStandardMaterial({ color: new Color(0x2a2018), roughness: 0.9, metalness: 0 });
   const body = new Mesh(bodyGeo, bodyMat);
   body.receiveShadow = true;
@@ -265,7 +285,7 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
   kill.push(bodyGeo, bodyMat);
 
   /* 슈. 딜러 오른쪽에 비스듬히 놓인 카드집 */
-  const shoePos = new Vector3(w * 0.3, topY, -d / 2 + 0.55);
+  const shoePos = new Vector3(w * 0.3, topY, -d / 2 + 210 * mm);
   const shoeGroup = new Group();
   const shoeMat = new MeshStandardMaterial({ color: new Color(0x23303a), roughness: 0.45, metalness: 0.25 });
   kill.push(shoeMat);
@@ -274,15 +294,15 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
     (() => {
       const sh = new Shape();
       sh.moveTo(0, 0);
-      sh.lineTo(0.62, 0);
-      sh.lineTo(0.62, 0.34);
-      sh.lineTo(0, 0.12);
+      sh.lineTo(250 * mm, 0);
+      sh.lineTo(250 * mm, 130 * mm);
+      sh.lineTo(0, 45 * mm);
       sh.closePath();
       return sh;
     })(),
     { depth: 0.5, bevelEnabled: false }
   );
-  boxGeo.translate(-0.31, 0, -0.25);
+  boxGeo.translate(-125 * mm, 0, -65 * mm);
   const shoeMesh = new Mesh(boxGeo, shoeMat);
   shoeMesh.rotation.y = -0.22;
   shoeMesh.castShadow = true;
@@ -297,15 +317,15 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
     (() => {
       const sh = new Shape();
       sh.moveTo(0, 0);
-      sh.lineTo(0.5, 0);
-      sh.lineTo(0.5, 0.26);
-      sh.lineTo(0, 0.1);
+      sh.lineTo(205 * mm, 0);
+      sh.lineTo(205 * mm, 100 * mm);
+      sh.lineTo(0, 34 * mm);
       sh.closePath();
       return sh;
     })(),
-    { depth: 0.42, bevelEnabled: false }
+    { depth: 105 * mm, bevelEnabled: false }
   );
-  deckGeo.translate(-0.25, 0.03, -0.21);
+  deckGeo.translate(-102 * mm, 10 * mm, -52 * mm);
   const deck = new Mesh(deckGeo, deckMat);
   deck.rotation.y = -0.22;
   deck.castShadow = true;
@@ -321,21 +341,21 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
     (() => {
       const sh = new Shape();
       sh.moveTo(0, 0);
-      sh.lineTo(0.6, 0);
-      sh.lineTo(0.6, 0.3);
-      sh.lineTo(0.52, 0.3);
-      sh.lineTo(0.52, 0.06);
-      sh.lineTo(0.08, 0.06);
-      sh.lineTo(0.08, 0.3);
-      sh.lineTo(0, 0.3);
+      sh.lineTo(240 * mm, 0);
+      sh.lineTo(240 * mm, 115 * mm);
+      sh.lineTo(210 * mm, 115 * mm);
+      sh.lineTo(210 * mm, 22 * mm);
+      sh.lineTo(30 * mm, 22 * mm);
+      sh.lineTo(30 * mm, 115 * mm);
+      sh.lineTo(0, 115 * mm);
       sh.closePath();
       return sh;
     })(),
-    { depth: 0.46, bevelEnabled: false }
+    { depth: 120 * mm, bevelEnabled: false }
   );
-  trayGeo.translate(-0.3, 0, -0.23);
+  trayGeo.translate(-120 * mm, 0, -60 * mm);
   const tray = new Mesh(trayGeo, trayMat);
-  tray.position.set(-w * 0.3, topY, -d / 2 + 0.55);
+  tray.position.set(-w * 0.3, topY, -d / 2 + 210 * mm);
   tray.rotation.y = 0.22;
   tray.castShadow = true;
   tray.receiveShadow = true;
@@ -344,8 +364,8 @@ export function buildCasinoTable(scene: { add(o: object): void; remove(o: object
 
   return {
     spot: (i, n) => seatSpot(i, n, w, d),
-    shoe: new Vector3(shoePos.x, topY + 0.34, shoePos.z),
-    dealerZ: -d / 2 + 0.62,
+    shoe: new Vector3(shoePos.x, topY + 130 * mm, shoePos.z),
+    dealerZ: -d / 2 + 330 * mm,
     dispose(): void {
       scene.remove(root);
       for (const k of kill) k.dispose();

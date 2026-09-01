@@ -44,7 +44,23 @@ const CARD_T = 0.02;
 /** 탁자. 카드 다섯 장 줄이 폭의 6할쯤 차지하게. 방이 보이려면 상이 화면을 덮으면 안 된다 */
 const TABLE_W_DEFAULT = 6.6;
 const TABLE_D_DEFAULT = 4.2;
-const TOP_Y = 0.9;
+const TOP_Y_DEFAULT = 0.9;
+
+/**
+ * 한 밀리미터가 몇 단위인가. 카드 폭이 실물 63.5mm 라 여기서 나옴.
+ * 카지노 상은 이 눈금으로 실물 치수를 그대로 쓴다 (2026-09-01 사용자 확정).
+ * 전에는 상 폭이 카드 폭의 8배. 실물은 28.8배라 상이 3.6배 작았음
+ */
+export const MM = CARD_W / 63.5;
+/**
+ * 블랙잭 상 실물. 폭 1829mm(72인치), 깊이 914mm(36인치), 높이 762mm(30인치).
+ * **깊이가 폭의 절반**이다. 반지름 36인치 정확한 반원 (레퍼런스: 오하이오주립 제작 안내).
+ * 2026-09-01 전에는 깊이를 1220 으로 잡아 1.5:1. 사용자가 상 모양을 지적함.
+ * 정본: `memo/projects/karmolab/reference/blackjack.md`
+ */
+const CASINO_W = 1829 * MM;
+const CASINO_D = 914 * MM;
+const CASINO_TOP_Y = 762 * MM;
 
 export interface CardSpot {
   /** 카드 값 1~13. 0 이면 뒷면만 보이는 카드(아직 안 뽑힌 것) */
@@ -145,8 +161,10 @@ const spread = (n: number, tight = false): number[] => {
 };
 
 export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): CardStage {
-  const TABLE_W = opts.board?.w ?? TABLE_W_DEFAULT;
-  const TABLE_D = opts.board?.d ?? TABLE_D_DEFAULT;
+  const casino = opts.table === 'casino';
+  const TABLE_W = casino ? CASINO_W : (opts.board?.w ?? TABLE_W_DEFAULT);
+  const TABLE_D = casino ? CASINO_D : (opts.board?.d ?? TABLE_D_DEFAULT);
+  const TOP_Y = casino ? CASINO_TOP_Y : TOP_Y_DEFAULT;
   /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
      뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
   const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05, maxPixelRatio: 2 });
@@ -171,13 +189,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
 
   /* 상. 카지노 상은 반원 상판과 가죽 레일과 인쇄 문구까지.
      그 밖의 판은 천 씌운 네모 상 하나 */
-  const casino = opts.table === 'casino';
   let seatCount = Math.max(1, opts.seats ?? 3);
   let dressed: CasinoTable | null = null;
   let feltMap: { dispose(): void } | null = null;
   let feltMat: { dispose(): void } | null = null;
   if (casino) {
-    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO });
+    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO, mm: MM });
   } else {
     const fm = sharp(new CanvasTexture(feltTexture(23, 512)));
     fm.colorSpace = SRGBColorSpace;
@@ -329,11 +346,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const rowOf = (seat: number, others: number[]): { x: number; z: number; s: number } => {
     if (casino && dressed) {
       /* 카지노 상. 사람은 반원 위에 나란히, 카드는 제 베팅 서클보다 딜러 쪽 */
-      if (seat < 0) return { x: 0, z: dressed.dealerZ, s: 0.92 };
+      if (seat < 0) return { x: 0, z: dressed.dealerZ, s: 1 };
       const n = seatCount;
       const order = seatOrder(n);
       const sp = dressed.spot(order.indexOf(seat), n);
-      return { x: sp.x * 0.9, z: sp.z - 0.86, s: seat === mySeat ? 0.86 : 0.7 };
+      /* 손패는 제 서클보다 딜러 쪽으로 카드 한 장 반. 실물 상에서 카드를 놓는 자리 */
+      return { x: sp.x, z: sp.z - CARD_H * 1.15, s: 1 };
     }
     if (seat < 0) return { x: 0, z: rowZ(-1), s: 1 };
     if (seat === mySeat) return { x: 0, z: rowZ(seat), s: 1 };
@@ -372,7 +390,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     for (const b of bets) {
       if (b.amount <= 0) continue;
       const sp = dressed.spot(order.indexOf(b.seat), seatCount);
-      const st = chipStack(b.amount);
+      const st = chipStack(b.amount, MM);
       st.position.set(sp.x, TOP_Y, sp.z);
       chipGroup.add(st);
     }
@@ -387,7 +405,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     if (!casino || want === seatCount) return;
     seatCount = want;
     dressed?.dispose();
-    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO });
+    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO, mm: MM });
     shoe.copy(dressed.shoe);
     shownKey = '';
     chipKey = '';
@@ -419,9 +437,57 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       camera.position.set(0, TOP_Y + need * 1.42, need * 0.86);
       camera.lookAt(0, TOP_Y, 0.35);
     } else if (casino) {
-      /* 낮게 앉아 상이 화면을 채움. 높이서 보면 상 너머 빈 바닥이 절반 */
-      camera.position.set(0, tall ? 4.5 : 3.6, tall ? 5.0 : 4.3);
-      camera.lookAt(0, TOP_Y, 0.25);
+      /**
+       * **위에서 내려다본다** (2026-09-01 사용자 확정). 블랙잭에서 사람이 읽을 것은
+       * 전부 상 위 평면이다. 카드 앞면, 베팅 서클, 인쇄 문구, 칩 무더기.
+       * 사선으로 보면 그것이 다 찌그러지고 앞줄 카드가 뒷줄의 두 배.
+       * 사선이 주는 것은 카드 두께와 칩 높이뿐. 조금만 눕혀 그 둘만 남김.
+       *
+       * 자리는 상 크기에서 **유도한다**. 값을 손으로 박아 두면 창 비율이 바뀔 때 상이
+       * 잘린다 (2026-09-01 실측: 상 폭이 가로 화각의 133%, 레일 바깥이 시선축에서
+       * 21.2도로 세로 반화각 20도를 넘김)
+       */
+      const half = Math.tan((camera.fov * Math.PI) / 360);
+      const halfH = half * aspect;
+      /* 내림각. 거의 수직이되 칩 무더기와 카드 두께가 보일 만큼만 */
+      const pitch = tall ? 1.40 : 1.30;
+      const sy = Math.sin(pitch);
+      const cz = Math.cos(pitch);
+      /**
+       * 화면에 꼭 들어와야 하는 것은 **놀이 구역**. 상 전체가 아님.
+       * 실물 비율(상 폭이 카드 폭의 28.8배)로 상을 통째로 담으면 카드가 화면의 3%가 되어
+       * 못 읽음 (2026-09-01 실측). 실물 상에서 사람이 보는 자리도 상 전체가 아님
+       */
+      const pw = dressed ? Math.abs(dressed.spot(0, seatCount).x) + CARD_W * 1.6 : TABLE_W / 2;
+      const z0 = dressed ? dressed.dealerZ - CARD_H * 0.9 : -TABLE_D / 2;
+      const z1 = dressed ? dressed.spot(Math.floor(seatCount / 2), seatCount).z + CARD_H * 1.1 : TABLE_D / 2;
+      const zc = (z0 + z1) / 2;
+      const pd = (z1 - z0) / 2;
+      const lookZ = zc;
+      const pts: Array<[number, number]> = [
+        [pw, -pd], [-pw, -pd], [pw, pd], [-pw, pd], [0, pd], [0, -pd], [pw, 0], [-pw, 0]
+      ];
+      let dist = TABLE_W;
+      for (let it = 0; it < 12; it++) {
+        const cy = TOP_Y + dist * sy;
+        const cZ = lookZ + dist * cz;
+        let over = 1;
+        for (const [px, pz] of pts) {
+          /* 카메라 자리에서 본 점. 시선축은 -z 를 pitch 만큼 내린 것 */
+          const vx = px;
+          const vy = TOP_Y - cy;
+          const vz = pz - cZ;
+          /* 시선축 기준으로 돌림 */
+          const fz = -(vy * sy + vz * cz);
+          const fy = vy * cz - vz * sy;
+          if (fz <= 0.05) continue;
+          over = Math.max(over, Math.abs(vx) / (halfH * fz * 0.92), Math.abs(fy) / (half * fz * 0.92));
+        }
+        if (over <= 1.001) break;
+        dist *= over;
+      }
+      camera.position.set(0, TOP_Y + dist * sy, lookZ + dist * cz);
+      camera.lookAt(0, TOP_Y, lookZ);
     } else {
       camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
       /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
