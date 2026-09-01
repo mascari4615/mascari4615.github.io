@@ -106,8 +106,16 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 let msg = null;
 
 try {
+  /* login 은 READY 전에 끝난다. 그 사이에는 길드 캐시가 비어 있어
+     채널의 guild 가 undefined 로 나오고, 검사 채널을 만들 자리를 못 찾는다 (실측) */
+  const ready = new Promise((resolve, reject) => {
+    client.once('clientReady', resolve);
+    client.once('ready', resolve);
+    client.once('error', reject);
+  });
   await client.login(token);
-  console.log(`[smoke] 붙었다: ${client.user?.tag}`);
+  await Promise.race([ready, wait(15000)]);
+  console.log(`[smoke] 붙었다: ${client.user?.tag}, 길드 ${client.guilds.cache.size}개`);
 
   /* 길드는 물러설 채널에서 알아냄. 검사 채널은 그 길드 안에 만듦 */
   const anchor = await client.channels.fetch(fallbackId).catch(() => null);
