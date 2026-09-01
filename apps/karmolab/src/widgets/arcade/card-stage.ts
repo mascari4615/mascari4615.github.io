@@ -21,8 +21,10 @@ import {
   Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
+  Raycaster,
   Scene,
   SRGBColorSpace,
+  Vector2,
   Vector3
 } from '/packages/3d/vendor/three.module.min.js';
 import { gloop, type GardenLoop } from '../garden/gloop';
@@ -36,8 +38,8 @@ const CARD_W = 0.82;
 const CARD_H = 1.148;
 const CARD_T = 0.02;
 /** 탁자. 카드 다섯 장 줄이 폭의 6할쯤 차지하게. 방이 보이려면 상이 화면을 덮으면 안 된다 */
-const TABLE_W = 6.6;
-const TABLE_D = 4.2;
+const TABLE_W_DEFAULT = 6.6;
+const TABLE_D_DEFAULT = 4.2;
 const TOP_Y = 0.9;
 
 export interface CardSpot {
@@ -60,6 +62,31 @@ export interface CardStageOpts {
   /** 사람이 앉은 자리. 그 줄이 화면 앞쪽에 온다 */
   mySeat?: number;
   seats?: number;
+  /**
+   * 자리를 손패 줄이 아니라 **직접 잡는** 판(솔리테어). 상은 넓고 카메라는 위에서 내려봄
+   * 블랙잭처럼 마주 앉는 판과 달리 판 전체가 한 사람 것
+   */
+  board?: { w: number; d: number };
+  /** 카드를 눌렀을 때. `id` 는 부르는 쪽이 스폿에 붙인 이름 */
+  onPick?(id: string): void;
+}
+
+/** 자리를 직접 잡는 카드 한 장. 솔리테어처럼 줄이 아니라 판이 있는 놀이 */
+export interface CardSpotAt {
+  /** 부르는 쪽이 붙인 이름. 누르면 이게 돌아온다 */
+  id: string;
+  /** 상 위 자리. 가운데가 0, 오른쪽이 +x, 앞이 +z */
+  x: number;
+  z: number;
+  /** 카드 값 1~13. 0 이면 뒷면만 */
+  rank: number;
+  up: boolean;
+  /** 겹쳐 쌓을 때 몇 번째인가. 높이와 그림 순서에 쓴다 */
+  layer?: number;
+  /** 무늬 0~3. 안 주면 값으로 정한다 */
+  suit?: number;
+  /** 지금 들려 있나. 살짝 뜬다 */
+  held?: boolean;
 }
 
 export interface CardStage {
@@ -67,6 +94,10 @@ export interface CardStage {
   software: boolean;
   /** 손패를 통째로 새로 놓는다. 늘어난 카드는 날아와서 앉는다 */
   set(hands: CardHand[], mySeat?: number): void;
+  /** 자리를 직접 잡아 놓는다(솔리테어). 빈 자리 표시는 부르는 쪽이 `rank: 0` 으로 */
+  setBoard(spots: CardSpotAt[]): void;
+  /** 빈 자리 테두리. 스톡, 웨이스트, 파운데이션, 빈 열 */
+  setSlots(slots: Array<{ x: number; z: number }>): void;
   resize(): void;
   dispose(): void;
 }
@@ -84,8 +115,10 @@ const spread = (n: number): number[] => {
 };
 
 export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): CardStage {
+  const TABLE_W = opts.board?.w ?? TABLE_W_DEFAULT;
+  const TABLE_D = opts.board?.d ?? TABLE_D_DEFAULT;
   const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05 });
-  if (!core) return { ok: false, software: false, set: () => {}, resize: () => {}, dispose: () => {} };
+  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
   const scene = new Scene();
@@ -196,9 +229,17 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     camera.updateProjectionMatrix();
     /* 세로로 긴 창이면 뒤로 물러선다. 탁자 폭이 다 들어와야 손패가 안 잘린다 */
     const tall = aspect < 0.95;
-    camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
-    /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
-    camera.lookAt(0, TOP_Y, 0.5);
+    if (opts.board) {
+      /* 판 전체가 한 사람 것이라 위에서 내려본다. 상 폭이 화면에 다 들어와야 한다 */
+      /* 상 폭과 깊이가 다 들어와야 한다. 시야각 40도라 깊이 쪽이 더 멀다 */
+      const need = Math.max(TABLE_W / Math.max(0.6, aspect), TABLE_D * 0.92);
+      camera.position.set(0, TOP_Y + need * 1.42, need * 0.86);
+      camera.lookAt(0, TOP_Y, 0.35);
+    } else {
+      camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
+      /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
+      camera.lookAt(0, TOP_Y, 0.5);
+    }
     need = true;
     render();
   };
@@ -282,6 +323,63 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     wake();
   };
 
+  /* ── 자리를 직접 잡는 판(솔리테어) ── */
+  const slotGroup = new Group();
+  scene.add(slotGroup);
+  const slotGeo = new BoxGeometry(CARD_W * 1.02, 0.01, CARD_H * 1.02);
+  const slotMat = new MeshStandardMaterial({ color: 0x1d4a3a, roughness: 1, metalness: 0, transparent: true, opacity: 0.55 });
+  const setSlots = (slots: Array<{ x: number; z: number }>): void => {
+    while (slotGroup.children.length) slotGroup.remove(slotGroup.children[0]);
+    for (const sl of slots) {
+      const m = new Mesh(slotGeo, slotMat);
+      m.position.set(sl.x, TOP_Y + 0.005, sl.z);
+      m.receiveShadow = true;
+      slotGroup.add(m);
+    }
+    need = true;
+    render();
+  };
+
+  /** 눌린 카드를 찾으려고 이름을 들고 있는다 */
+  const picks = new Map<Mesh, string>();
+  let boardKey = '';
+  const setBoard = (spots: CardSpotAt[]): void => {
+    const key = JSON.stringify(spots);
+    if (key === boardKey) return;
+    boardKey = key;
+    while (holder.children.length) holder.remove(holder.children[0]);
+    live.length = 0;
+    picks.clear();
+    for (const sp of spots) {
+      const layer = sp.layer ?? 0;
+      const mesh = mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
+      mesh.position.set(sp.x, TOP_Y + 0.02 + layer * 0.006 + (sp.held ? 0.18 : 0), sp.z);
+      mesh.rotation.z = sp.up ? 0 : Math.PI;
+      if (sp.held) mesh.rotation.y = 0.06;
+      holder.add(mesh);
+      picks.set(mesh, sp.id);
+    }
+    need = true;
+    render();
+  };
+
+  /* 카드 누르기. 화면이 이름만 받으면 되고 무대는 규칙을 모른다 */
+  if (opts.onPick) {
+    const ray = new Raycaster();
+    const ndc = new Vector2();
+    core.canvas.addEventListener('pointerdown', (ev: PointerEvent) => {
+      if (ev.button !== 0) return;
+      const r = core.canvas.getBoundingClientRect();
+      ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+      ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+      ray.setFromCamera(ndc, camera);
+      const hits = ray.intersectObjects(holder.children, false);
+      const first = hits[0]?.object as Mesh | undefined;
+      const id = first ? picks.get(first) : undefined;
+      if (id) opts.onPick?.(id);
+    });
+  }
+
   const ro = new ResizeObserver(fit);
   ro.observe(host);
   fit();
@@ -291,6 +389,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     ok: true,
     software: core.software,
     set,
+    setBoard,
+    setSlots,
     resize: fit,
     dispose(): void {
       ro.disconnect();
@@ -298,6 +398,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       loop = null;
       room?.dispose();
       cardGeo.dispose();
+      slotGeo.dispose();
+      slotMat.dispose();
       feltMap.dispose();
       backMap.dispose();
       [feltMat, backMat, edgeMat].forEach((m) => m.dispose());

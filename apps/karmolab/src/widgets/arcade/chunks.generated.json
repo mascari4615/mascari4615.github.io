@@ -245,7 +245,7 @@
     "view": "solitaire-view",
     "defVar": "solitaire",
     "viewVar": "solitaireView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "president",

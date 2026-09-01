@@ -40,6 +40,14 @@ try {
 
 if (!cantRun) {
   await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  /* 평면을 잰다. 입체가 기본이라 안 내려놓으면 `.ac-sol` 이 아예 없다(2026-09-01 실측) */
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('karmolab.arcade.dim', '2d');
+    } catch {
+      /* 못 써도 검사는 돈다 */
+    }
+  });
   await page.evaluate(() => Toolbox.switchPage('arcade'));
   await page.waitForSelector('[data-obj="solitaire"]', { timeout: 15000 });
   await page.click('[data-obj="solitaire"]');
@@ -85,6 +93,30 @@ if (!cantRun) {
   await page.waitForTimeout(500);
   const hint = await page.evaluate(() => (document.querySelector('#acSolNote')?.textContent || '').trim());
   check('한 수 짚어 준다', hint.length > 0 && !/장 올림/.test(hint), hint);
+
+  /* 입체도 선다. 모든 놀이가 2D 와 3D 를 다 갖춘다(`features/play.md`) */
+  await page.evaluate(() => {
+    try {
+      localStorage.setItem('karmolab.arcade.dim', '3d');
+    } catch {
+      /* 못 써도 검사는 돈다 */
+    }
+  });
+  await page.goto(PAGE, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+  await page.evaluate(() => Toolbox.switchPage('arcade'));
+  await page.waitForSelector('[data-obj="solitaire"]', { timeout: 20000 });
+  await page.click('[data-obj="solitaire"]');
+  await page.click('[data-solo="solitaire"]');
+  const got3d = await page.waitForSelector('#acT3 canvas', { timeout: 25000 }).then(() => true).catch(() => false);
+  check('입체도 뜬다', got3d);
+  if (got3d) {
+    await page.waitForTimeout(2500);
+    const bar = await page.evaluate(() => (document.querySelector('#acSol3d')?.textContent || '').trim());
+    check('입체에도 진도 줄이 있다', /52/.test(bar), bar);
+    const full = await page.evaluate(() => document.querySelector('#acPlay')?.classList.contains('ac-roomfill'));
+    check('입체가 콘텐츠 칸을 채운다', !!full);
+  }
 }
 
 await browser.close();
