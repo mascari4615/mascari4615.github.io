@@ -4127,8 +4127,8 @@ html[data-view="tool"] .app-wm::before { content: 'TOOL'; }
 html[data-skin="field"] .app-wm::after { opacity: 1; }
 
 /* 첫 화면. 라벨 줄 + 표시 글꼴 대문자 제목 (시안 HA) */
-.landing-label { display: none; }
-html[data-skin="field"] .landing-label {
+/* 첫 화면의 날짜와 도구 수. 짜임이라 스킨과 무관하게 뜬다 (2026-09-01) */
+.landing-label {
     display: block;
     margin: 0 0 8px;
     font-family: var(--font-mono);

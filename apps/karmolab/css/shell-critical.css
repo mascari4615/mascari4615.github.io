@@ -3326,8 +3326,7 @@ html[data-view="tool"] .app-wm::before { content: 'TOOL'; }
 }
 html[data-skin="field"] .app-wm::after { opacity: 1; }
 
-.landing-label { display: none; }
-html[data-skin="field"] .landing-label {
+.landing-label {
     display: block;
     margin: 0 0 8px;
     font-family: var(--font-mono);
