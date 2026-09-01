@@ -22,7 +22,7 @@ export interface GameCard {
 /** 감춘 것까지 전부. 이름표를 찾을 때만 쓴다 */
 export const ALL_CARDS: GameCard[] = [
   { id: 'reflex', icon: '⚡', kind: 'quick', seats: [2, 8], realtime: true, chunk: 'reflex', hidden: true },
-  { id: 'speed', icon: '⚡', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'speed', hidden: true },
+  { id: 'speed', icon: '⚡', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'speed' },
   { id: 'airhockey', icon: '🏒', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'airhockey', hidden: true },
   { id: 'pong', icon: '🏓', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'pong', hidden: true },
   { id: 'whack', icon: '🐹', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'whack', hidden: true },
@@ -55,7 +55,7 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'president', icon: '👑', kind: 'card', seats: [3, 4], realtime: false, chunk: 'president', hidden: true },
   { id: 'dominoes', icon: '🀄', kind: 'card', seats: [2, 4], realtime: false, chunk: 'dominoes', hidden: true },
   { id: 'yacht', icon: '🎲', kind: 'card', seats: [2, 4], realtime: false, chunk: 'yacht', d3: true },
-  { id: 'highlow', icon: '🔺', kind: 'card', seats: [1, 4], realtime: false, chunk: 'highlow', hidden: true },
+  { id: 'highlow', icon: '🔺', kind: 'card', seats: [1, 4], realtime: false, chunk: 'highlow' },
   { id: 'lanterns', icon: '🏮', kind: 'card', seats: [2, 3], realtime: false, chunk: 'lanterns', hidden: true },
   { id: 'liars', icon: '🎲', kind: 'card', seats: [2, 4], realtime: true, chunk: 'liars', hidden: true },
   { id: 'hanafuda', icon: '🌸', kind: 'card', seats: [2, 4], realtime: false, chunk: 'hanafuda', hidden: true },

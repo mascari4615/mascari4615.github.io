@@ -136,7 +136,7 @@ export interface CatalogEntry {
 
 export const CATALOG: CatalogEntry[] = [
   { def: reflex, view: reflexView, icon: '⚡', kind: 'quick' , hidden: true },
-  { def: speed, view: speedView, icon: '⚡', kind: 'quick' , hidden: true },
+  { def: speed, view: speedView, icon: '⚡', kind: 'quick' },
   { def: airhockey, view: airhockeyView, icon: '🏒', kind: 'quick' , hidden: true },
   { def: pong, view: pongView, icon: '🏓', kind: 'quick' , hidden: true },
   { def: whack, view: whackView, icon: '🐹', kind: 'quick' , hidden: true },
@@ -169,7 +169,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: president, view: presidentView, icon: '👑', kind: 'card' , hidden: true },
   { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' , hidden: true },
   { def: yacht, view: yachtView, icon: '🎲', kind: 'card' },
-  { def: highlow, view: highlowView, icon: '🔺', kind: 'card' , hidden: true },
+  { def: highlow, view: highlowView, icon: '🔺', kind: 'card' },
   { def: lanterns, view: lanternsView, icon: '🏮', kind: 'card' , hidden: true },
   { def: liars, view: liarsView, icon: '🎲', kind: 'card' , hidden: true },
   { def: hanafuda, view: hanafudaView, icon: '🌸', kind: 'card' , hidden: true },

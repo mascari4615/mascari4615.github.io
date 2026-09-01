@@ -651,5 +651,8 @@
   "arcade.solitaire.stuck": "詰み。{n}枚",
   "arcade.game.solitaire.name": "ソリティア",
   "arcade.game.solitaire.desc": "52枚を絵柄ごとにAからKまで",
-  "arcade.memory.me": "自分"
+  "arcade.memory.me": "自分",
+  "arcade.speed.mine": "自分の山 {n}枚",
+  "arcade.speed.deal": "両方詰み。中央を配り直す",
+  "arcade.speed.foe": "相手 手{h}枚 山{d}枚"
 }

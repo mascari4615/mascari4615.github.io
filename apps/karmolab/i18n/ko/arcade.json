@@ -651,5 +651,8 @@
   "arcade.solitaire.stuck": "막혔다. {n} 장 올림",
   "arcade.game.solitaire.name": "솔리테어",
   "arcade.game.solitaire.desc": "한 벌을 무늬별로 A 부터 K 까지 다 쌓으면 이긴다",
-  "arcade.memory.me": "나"
+  "arcade.memory.me": "나",
+  "arcade.speed.mine": "내 더미 {n}장",
+  "arcade.speed.deal": "양쪽 다 막혔다. 가운데를 새로 깐다",
+  "arcade.speed.foe": "상대 손 {h}장, 더미 {d}장"
 }

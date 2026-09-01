@@ -30,6 +30,8 @@ export interface SpeedState {
   won: number;
   /** 마지막으로 낸 사람 (화면이 반짝일 자리). 없으면 -1 */
   last: number;
+  /** 가운데를 새로 깐 횟수. 화면이 그 순간을 알린다 */
+  deals: number;
 }
 
 export type SpeedAction = { card: number; pile: number };
@@ -62,7 +64,8 @@ export const speed: GameDef<SpeedState, SpeedAction> = {
       hands,
       center: [piles[0].pop() ?? 1, piles[1].pop() ?? 7] as [number, number],
       won: -1,
-      last: -1
+      last: -1,
+      deals: 0
     };
   },
 
@@ -94,7 +97,7 @@ export const speed: GameDef<SpeedState, SpeedAction> = {
     if (drawn !== undefined) hands[seat].push(drawn);
 
     const won = hands[seat].length === 0 && decks[seat].length === 0 ? seat : -1;
-    return { decks, hands, center, won, last: seat };
+    return { decks, hands, center, won, last: seat, deals: s.deals ?? 0 };
   },
 
   /** 양쪽 다 낼 게 없으면 가운데를 새로 깐다. 시간이 아니라 **셈**으로 안다. */
@@ -111,7 +114,7 @@ export const speed: GameDef<SpeedState, SpeedAction> = {
       const left = s.hands.map((h, i) => h.length + s.decks[i].length);
       return { ...s, won: left[0] <= left[1] ? 0 : 1 };
     }
-    return { ...s, decks, center: [a, b] as [number, number] };
+    return { ...s, decks, center: [a, b] as [number, number], deals: (s.deals ?? 0) + 1 };
   },
 
   outcome(s, ctx): Outcome {

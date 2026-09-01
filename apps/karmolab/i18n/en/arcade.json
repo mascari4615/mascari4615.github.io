@@ -651,5 +651,8 @@
   "arcade.solitaire.stuck": "Stuck. {n} up",
   "arcade.game.solitaire.name": "Solitaire",
   "arcade.game.solitaire.desc": "Stack all 52 by suit, A to K",
-  "arcade.memory.me": "me"
+  "arcade.memory.me": "me",
+  "arcade.speed.mine": "My pile {n}",
+  "arcade.speed.deal": "Both stuck. New center",
+  "arcade.speed.foe": "Rival hand {h}, pile {d}"
 }
