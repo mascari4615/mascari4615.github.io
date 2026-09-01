@@ -21,6 +21,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
+  Plane,
   Raycaster,
   Scene,
   SRGBColorSpace,
@@ -595,6 +596,10 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     const ndc = new Vector2();
     let lift: { mesh: Mesh; id: string; home: Vector3 } | null = null;
     let downAt: { x: number; y: number } | null = null;
+    /** 든 카드가 떠 있는 높이. 그 평면에서 손끝 자리를 푼다 */
+    const LIFT_Y = TOP_Y + 0.45;
+    const liftPlane = new Plane(new Vector3(0, 1, 0), -LIFT_Y);
+    const at = new Vector3();
 
     const aim = (ev: PointerEvent): void => {
       const r = core.canvas.getBoundingClientRect();
@@ -603,8 +608,10 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       ray.setFromCamera(ndc, camera);
     };
     /** 손끝 아래 카드 이름. 없으면 빈 자리 이름 */
-    const under = (): string | undefined => {
-      const hit = ray.intersectObjects(holder.children, false)[0]?.object as Mesh | undefined;
+    const under = (skip?: Mesh): string | undefined => {
+      /* 든 카드 자신은 뺀다. 손끝 아래 있는 것은 그 카드가 아니라 놓을 자리다 */
+      const cards = holder.children.filter((o) => o !== skip);
+      const hit = ray.intersectObjects(cards, false)[0]?.object as Mesh | undefined;
       if (hit) return picks.get(hit);
       const slot = ray.intersectObjects(slotGroup.children, false)[0]?.object as Mesh | undefined;
       return slot ? slotNames.get(slot) : undefined;
@@ -622,12 +629,24 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     core.canvas.addEventListener('pointermove', (ev: PointerEvent) => {
       if (!lift || !downAt) return;
       if (Math.hypot(ev.clientX - downAt.x, ev.clientY - downAt.y) < 5) return;
-      /* 든 카드는 **제자리에서 뜨고 기움**. 손끝을 따라 옮기면 상 밖으로 새어 나가고
-         다시 그리기와 싸움(2026-09-01 실측: 카드가 화면에서 사라졌음) */
+      /* 든 카드가 **손끝을 따라온다**. 인벤토리에서 물건 끄는 그 느낌(사용자 요청)
+         카드가 떠 있는 높이의 평면에서 손끝이 가리키는 자리를 푼다 */
+      aim(ev);
+      if (!ray.ray.intersectPlane(liftPlane, at)) return;
+      /* 옮기는 애니메이션이 도로 끌어내리지 않게 그 카드는 셈에서 뺀다 */
       const i = live.findIndex((c) => c.mesh === lift?.mesh);
       if (i >= 0) live.splice(i, 1);
-      lift.mesh.position.set(lift.home.x, lift.home.y + 0.3, lift.home.z);
+      /* 상 밖으로는 안 나간다. 나가면 어디 갔는지 모른다 */
+      const w = TABLE_W / 2 - CARD_W * 0.4;
+      const d = TABLE_D / 2 - CARD_H * 0.4;
+      lift.mesh.position.set(
+        Math.max(-w, Math.min(w, at.x)),
+        LIFT_Y,
+        Math.max(-d, Math.min(d, at.z))
+      );
       lift.mesh.rotation.y = 0.1;
+      /* 그 카드가 맨 위에 그려지게. 다른 카드에 파묻히면 안 든 것처럼 보인다 */
+      lift.mesh.renderOrder = 10;
       need = true;
       render();
     });
@@ -646,9 +665,10 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         return;
       }
       /* 끌어서 뗀 자리. 든 카드는 셈에서 빠져 있으니 그 아래가 잡힘 */
-      const to = under();
+      const to = under(held.mesh);
       held.mesh.position.copy(held.home);
       held.mesh.rotation.y = 0;
+      held.mesh.renderOrder = 0;
       need = true;
       render();
       /* 집고 놓는 두 걸음으로. 화면 쪽 규칙이 그대로 돎 */
