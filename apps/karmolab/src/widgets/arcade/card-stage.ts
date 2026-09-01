@@ -171,11 +171,31 @@ const spread = (n: number, tight = false): number[] => {
   return Array.from({ length: n }, (_, i) => start + i * gap);
 };
 
+/**
+ * 손으로 맞춰 보는 값. 브라우저에 적어 두면 다시 켤 때까지 그 값.
+ * `localStorage['kl.bj.deform']` 은 상 크기 배수(1 이 실물), `kl.bj.pitch` 는 내림각(도).
+ * 눈으로 고르는 값이라 숫자만으로는 못 정함. 정한 뒤에는 여기 기본값을 고침
+ */
+const tune = (key: string, fallback: number): number => {
+  try {
+    const v = Number(localStorage.getItem('kl.bj.' + key));
+    return Number.isFinite(v) && v > 0 ? v : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): CardStage {
   const casino = opts.table === 'casino';
-  const TABLE_W = casino ? CASINO_W : (opts.board?.w ?? TABLE_W_DEFAULT);
-  const TABLE_D = casino ? CASINO_D : (opts.board?.d ?? TABLE_D_DEFAULT);
-  const TOP_Y = casino ? CASINO_TOP_Y : TOP_Y_DEFAULT;
+  /**
+   * 데포르메 (2026-09-01 사용자 확정 0.55). 실물 그대로면 상 폭이 카드의 28.8배라
+   * 카드가 화면에서 40px 라 무늬가 안 읽힘. 0.55 면 16배, 카드가 90px 언저리.
+   * 브라우저에서 `localStorage['kl.bj.deform']` 으로 바로 바꿔 봄
+   */
+  const deform = casino ? tune('deform', 0.55) : 1;
+  const TABLE_W = casino ? CASINO_W * deform : (opts.board?.w ?? TABLE_W_DEFAULT);
+  const TABLE_D = casino ? CASINO_D * deform : (opts.board?.d ?? TABLE_D_DEFAULT);
+  const TOP_Y = casino ? CASINO_TOP_Y * deform : TOP_Y_DEFAULT;
   /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
      뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
   const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05, maxPixelRatio: 2 });
@@ -205,7 +225,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   let feltMap: { dispose(): void } | null = null;
   let feltMat: { dispose(): void } | null = null;
   if (casino) {
-    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO, mm: MM });
+    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO, mm: MM * deform });
   } else {
     const fm = sharp(new CanvasTexture(feltTexture(23, 512)));
     fm.colorSpace = SRGBColorSpace;
@@ -416,7 +436,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     if (!casino || want === seatCount) return;
     seatCount = want;
     dressed?.dispose();
-    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO, mm: MM });
+    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO, mm: MM * deform });
     shoe.copy(dressed.shoe);
     shownKey = '';
     chipKey = '';
@@ -461,7 +481,9 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       const half = Math.tan((camera.fov * Math.PI) / 360);
       const halfH = half * aspect;
       /* 내림각. 거의 수직이되 칩 무더기와 카드 두께가 보일 만큼만 */
-      const pitch = tall ? 1.40 : 1.30;
+      /* 내림각 62도 (2026-09-01 사용자 확정). 위쪽 5분의 1에 방과 딜러 자리가 남음.
+         세로 창은 6도 더 세움. `localStorage['kl.bj.pitch']` 로 바꿔 봄 */
+      const pitch = ((tall ? 6 : 0) + tune('pitch', 62)) * (Math.PI / 180);
       const sy = Math.sin(pitch);
       const cz = Math.cos(pitch);
       /**
@@ -469,9 +491,11 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
        * 실물 비율(상 폭이 카드 폭의 28.8배)로 상을 통째로 담으면 카드가 화면의 3%가 되어
        * 못 읽음 (2026-09-01 실측). 실물 상에서 사람이 보는 자리도 상 전체가 아님
        */
-      const pw = dressed ? Math.abs(dressed.spot(0, seatCount).x) + CARD_W * 1.6 : TABLE_W / 2;
-      const z0 = dressed ? dressed.dealerZ - CARD_H * 0.9 : -TABLE_D / 2;
-      const z1 = dressed ? dressed.spot(Math.floor(seatCount / 2), seatCount).z + CARD_H * 1.1 : TABLE_D / 2;
+      /* 상이 다 보일 필요는 없다 (2026-09-01 사용자 확정). 자리와 카드만 들어오면
+         나머지는 화면 밖으로. 그래야 상이 커 보이고 카드도 읽힘 */
+      const pw = dressed ? Math.abs(dressed.spot(0, seatCount).x) + CARD_W * 1.15 : TABLE_W / 2;
+      const z0 = dressed ? dressed.dealerZ - CARD_H * 0.75 : -TABLE_D / 2;
+      const z1 = dressed ? dressed.spot(Math.floor(seatCount / 2), seatCount).z + CARD_H * 0.55 : TABLE_D / 2;
       const zc = (z0 + z1) / 2;
       const pd = (z1 - z0) / 2;
       const lookZ = zc;
