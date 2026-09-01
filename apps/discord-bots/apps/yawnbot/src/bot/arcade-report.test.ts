@@ -30,6 +30,7 @@ const as = (id: string): Record<string, string> => ({ 'x-test-user': id, 'Conten
 const A = 'account-a';
 const B = 'account-b';
 const C = 'account-c';
+const D = 'account-d';
 
 beforeAll(async () => {
   process.env.ARCADE_RATING_FILE = path.join(os.tmpdir(), 'arcade-report-test.json');
@@ -90,6 +91,15 @@ async function match(): Promise<{ code: string; a: string; b: string }> {
   return { code: String(answer.code), a: A, b: B };
 }
 
+/** 야추 넷을 즉시 붙이고 서버가 정한 전원 명단을 반환 */
+async function matchYacht(): Promise<{ code: string; ids: string[] }> {
+  await stand(A, 'yacht');
+  await stand(B, 'yacht');
+  await stand(C, 'yacht');
+  const answer = await stand(D, 'yacht') as Answer & { ids?: string[] };
+  return { code: String(answer.code), ids: answer.ids ?? [] };
+}
+
 describe('결과 보고', () => {
   it('한쪽 말만으로는 점수가 안 움직인다', async () => {
     const { code, a, b } = await match();
@@ -106,6 +116,18 @@ describe('결과 보고', () => {
     expect(second.body.applied).toBe(true);
     expect(ratingOf('gomoku', a)).toBeGreaterThan(1500);
     expect(ratingOf('gomoku', b)).toBeLessThan(1500);
+  });
+
+  it('야추는 네 사람 모두 같은 순위를 보고해야 한 번 반영된다', async () => {
+    const { code, ids } = await matchYacht();
+    expect(ids).toEqual([A, B, C, D]);
+    expect((await report(A, code, ids)).body.waiting).toBe(3);
+    expect((await report(B, code, ids)).body.waiting).toBe(2);
+    expect((await report(C, code, ids)).body.waiting).toBe(1);
+    const last = await report(D, code, ids);
+    expect(last.body.applied).toBe(true);
+    expect(ids.map((id) => ratingOf('yacht', id))).toEqual([1550, 1520, 1505, 1500]);
+    expect((await report(A, code, ids)).body.again).toBe(true);
   });
 
   it('말이 어긋나면 아무 점수도 안 움직인다', async () => {

@@ -3936,7 +3936,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const seats: SeatSpec[] = swap ? [...others, me] : [me, ...others];
       show('play');
       withIntro(gameId, () => {
-        beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), undefined, swap ? others.length : 0);
+        /* 등급전 명단이 있으면 그 수가 정본. 일반 파티 기본값(셋)으로 봇을 더 앉히면
+           서버 명단과 판의 인원이 달라져 결과 합의가 불가능해짐 */
+        beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), rankedRoster?.seats, swap ? others.length : 0);
         /* 판이 시작된 것을 그 자리에서 알린다. 들어오는 사람이 구경이라는 것을 미리 알게 */
         held?.poke();
       });

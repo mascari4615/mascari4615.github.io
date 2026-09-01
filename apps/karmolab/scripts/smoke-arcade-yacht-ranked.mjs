@@ -1,11 +1,24 @@
-/** 야추 등급전의 서버 명단을 네 브라우저 창의 실제 P2P 좌석으로 잇는 통합 스모크. */
+/** 야추 등급전의 서버 명단을 2~4개 브라우저 창의 실제 P2P 좌석으로 잇는 통합 스모크. */
 import { chromium } from 'playwright';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { smokeBase } from './lib/smoke-base.mjs';
+
+const requestedPlayers = Number(process.argv[2] ?? 0);
+if (requestedPlayers === 0) {
+  for (const players of [2, 3, 4]) {
+    const run = spawnSync(process.execPath, [fileURLToPath(import.meta.url), String(players)], { stdio: 'inherit', env: process.env });
+    if (run.status !== 0) process.exit(run.status ?? 1);
+  }
+  console.log('[arcade-yacht-ranked] 2인, 3인, 4인 시나리오 모두 통과');
+  process.exit(0);
+}
+if (![2, 3, 4].includes(requestedPlayers)) throw new Error('참가자는 2명, 3명 또는 4명이어야 한다');
 
 const server = await smokeBase();
 const pageUrl = `${server.base}/apps/karmolab/index.html`;
-const ids = ['rank-a', 'rank-b', 'rank-c', 'rank-d'];
-const code = 'Y4RANK';
+const ids = Array.from({ length: requestedPlayers }, (_, index) => `rank-${String.fromCharCode(97 + index)}`);
+const code = `Y${requestedPlayers}${Date.now().toString(36).toUpperCase().slice(-6)}`;
 const browser = await chromium.launch({
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']
 });
@@ -13,6 +26,7 @@ const failures = [];
 const consoleErrors = [];
 const contexts = [];
 let pages = [];
+const reports = new Map();
 
 try {
   pages = await Promise.all(ids.map(async (id, seat) => {
@@ -32,6 +46,23 @@ try {
         host: seat === 0, room: 'beginner', opponent: '등급전 상대', ids, seat
       })
     }));
+    await context.route('**/kl/arcade/tape', (route) => route.fulfill({
+      contentType: 'application/json', body: JSON.stringify({ id: 'ranked-yacht-tape' })
+    }));
+    await context.route('**/kl/arcade/report', async (route) => {
+      const body = JSON.parse(route.request().postData() ?? '{}');
+      reports.set(id, body);
+      const applied = reports.size === ids.length;
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          applied,
+          waiting: ids.length - reports.size,
+          result: applied ? ids.map((account, rank) => ({ id: account, after: 1550 - rank * 10, delta: 50 - rank * 10 })) : undefined
+        })
+      });
+    });
     const page = await context.newPage();
     page.on('pageerror', (error) => failures.push(`${id}: ${error.message}`));
     page.on('console', (message) => {
@@ -53,10 +84,40 @@ try {
     seats: window.__arcade?.state?.sheet?.length ?? 0,
     mySeat: window.__arcade?.mySeat ?? -1
   }))));
-  const ok = states.every((state) => state.seats === 4) &&
-    states.map((state) => state.mySeat).sort((a, b) => a - b).join(',') === '0,1,2,3';
-  if (!ok) failures.push(`네 창의 좌석이 다르다: ${JSON.stringify(states)}`);
-  else console.log('  [O] 네 창 모두 같은 4인 야추 판과 고유 좌석을 받는다');
+  const expectedSeats = Array.from({ length: requestedPlayers }, (_, seat) => seat).join(',');
+  const ok = states.every((state) => state.seats === requestedPlayers) &&
+    states.map((state) => state.mySeat).sort((a, b) => a - b).join(',') === expectedSeats;
+  if (!ok) failures.push(`${requestedPlayers}개 창의 좌석이 다르다: ${JSON.stringify(states)}`);
+  else console.log(`  [O] ${requestedPlayers}개 창 모두 같은 야추 판과 고유 좌석을 받는다`);
+
+  const pagesBySeat = new Map(states.map((state, index) => [state.mySeat, pages[index]]));
+  const cats = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes', 'choice', 'fourkind', 'fullhouse', 'sstraight', 'lstraight', 'yacht'];
+  for (const cat of cats) {
+    for (let seat = 0; seat < ids.length; seat++) {
+      const player = pagesBySeat.get(seat);
+      if (!player) throw new Error(`${seat}번 좌석 창이 없다`);
+      await player.waitForFunction(
+        ({ seat: expected, cat: category }) => window.__arcade?.state?.turn === expected && window.__arcade?.state?.sheet?.[expected]?.[category] === null,
+        { seat, cat },
+        { timeout: 15000 }
+      );
+      await player.evaluate((category) => window.__arcade?.tap?.({ kind: 'write', cat: category }), cat);
+      await pagesBySeat.get(0).waitForFunction(
+        ({ seat: expected, cat: category }) => window.__arcade?.state?.sheet?.[expected]?.[category] !== null,
+        { seat, cat },
+        { timeout: 15000 }
+      );
+    }
+  }
+  await Promise.all(pages.map((page) => page.waitForSelector('#acOver', { state: 'visible', timeout: 30000 })));
+  await pages[0].waitForFunction(() => document.querySelector('#acOver')?.textContent?.trim().length > 0, null, { timeout: 10000 });
+  const deadline = Date.now() + 20000;
+  while (reports.size < ids.length && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 100));
+  const words = [...reports.values()].map((body) => JSON.stringify(body.ranks));
+  const completed = reports.size === ids.length && new Set(words).size === 1 &&
+    Array.isArray([...reports.values()][0]?.ranks) && [...reports.values()][0].ranks.length === ids.length;
+  if (!completed) failures.push(`전원 결과 보고가 다르다: ${JSON.stringify([...reports.entries()])}`);
+  else console.log(`  [O] ${requestedPlayers}개 창이 판을 완주하고 같은 순위를 보고한다`);
 } catch (error) {
   failures.push(error instanceof Error ? error.message : String(error));
   const diagnostics = await Promise.all(pages.map(async (page, seat) => page.evaluate(() => ({
@@ -79,4 +140,4 @@ if (failures.length) {
   console.error(`[arcade-yacht-ranked] 실패 ${failures.length}건\n${failures.join('\n')}`);
   process.exit(1);
 }
-console.log('[arcade-yacht-ranked] 통과. 4인 매칭 응답, P2P 명단 동기화, 좌석 배정');
+console.log(`[arcade-yacht-ranked] 통과. ${requestedPlayers}인 매칭, P2P 좌석, 판 완주, 전원 결과 합의`);
