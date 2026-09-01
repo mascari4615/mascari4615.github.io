@@ -42,7 +42,10 @@ applyYawnbotDotenvLayers(ROOT);
 
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
-const askedChannel = args[args.indexOf('--channel') + 1];
+/* indexOf 가 -1 이면 +1 이 0 이라 첫 인자를 채널로 잡음.
+   실제로 --keep 이 채널 이름이 돼서 검사 채널 만들기를 건너뛰었음 (실측) */
+const at = args.indexOf('--channel');
+const askedChannel = at >= 0 ? args[at + 1] : undefined;
 
 const token = process.env.DISCORD_TOKEN?.trim();
 if (!token) {
