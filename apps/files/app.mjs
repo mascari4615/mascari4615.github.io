@@ -578,6 +578,12 @@ function loadLaptop() {
       showLaptopGate('비밀번호가 틀렸거나 만료됐습니다.');
       return null;
     }
+    if (r.status === 404) {
+      crumb.innerHTML = link('#laptop/', '내 PC');
+      box.innerHTML = '<p class="err">내 PC의 공유 폴더를 찾을 수 없습니다.</p>' +
+        '<p class="none">노트북에서 공유 폴더 설정을 확인해 주세요.</p>';
+      return null;
+    }
     if (!r.ok) throw new Error('list ' + r.status);
     return r.json();
   }).then((data) => {
