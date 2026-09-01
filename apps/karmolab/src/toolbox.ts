@@ -2744,7 +2744,8 @@ const Toolbox = (() => {
     /* ===== 테마 (라이트/다크) ===== */
     const THEME_KEY = 'toolbox_theme';
 
-    function getTheme() { return localStorage.getItem(THEME_KEY) || 'light'; }
+    /* 기본은 어두움 (2026-09-01 사용자 결정) */
+    function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
 
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
@@ -2771,8 +2772,8 @@ const Toolbox = (() => {
         if (q && SKINS.some(s => s.id === q)) return q;
         const saved = localStorage.getItem(SKIN_KEY);
         if (saved && SKINS.some(s => s.id === saved)) return saved;
-        /* 기본은 필드 (2026-08-30 확정). 클래식은 설정에서 고를 수 있는 스킨으로 남김 */
-        return 'field';
+        /* 기본은 클래식 (2026-09-01 사용자 결정. 필드는 설정에서 고를 수 있는 스킨으로 남김) */
+        return 'classic';
     }
 
     function setSkin(skinId) {
