@@ -9,6 +9,8 @@ import { resetRatings, applyResult } from './arcade-rating';
 
 let server: Server;
 let base = '';
+/** 줄에 선 사람을 채널에 부르라고 온 것들 */
+const called: Array<{ game: string; name: string; since: number }> = [];
 
 
 /** 가짜 로그인. `x-test-user` 머리에 적은 이름이 곧 그 사람 */
@@ -22,7 +24,7 @@ const as = (id: string): Record<string, string> => ({ 'x-test-user': id, 'Conten
 
 beforeAll(async () => {
   const app = express();
-  registerArcadeQueue(app, fakeWho as never);
+  registerArcadeQueue(app, fakeWho as never, (info) => called.push(info));
   await new Promise<void>((resolve) => {
     server = app.listen(0, '127.0.0.1', () => resolve());
   });
@@ -31,7 +33,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
-beforeEach(() => { resetQueue(); resetRatings(); });
+beforeEach(() => { resetQueue(); resetRatings(); called.length = 0; });
 
 const A = 'account-a';
 const B = 'account-b';
@@ -156,5 +158,35 @@ describe('등급전 대기열', () => {
     expect((await fetch(`${base}/kl/arcade/queue/me`, { method: 'DELETE' })).status).toBe(401);
     /* 아무도 안 섰다 */
     expect(await (await fetch(`${base}/kl/arcade/queue/count/gomoku`)).json()).toEqual({ beginner: 0, upper: 0 });
+  });
+});
+
+/**
+ * 줄에 혼자 서면 채널이 부를 수 있게 알린다 (change.arcade-online)
+ *
+ * - 부를지 말지는 여기서 안 정한다. 그건 arcade-lfg 의 몫
+ * - 여기서 지킬 것은 하나. **짝이 난 판은 안 알림**. 이미 붙었는데 부르면 헛걸음
+ */
+describe('기다린다는 알림', () => {
+  it('혼자 서면 알린다. 처음 선 시각이 그대로 실린다', async () => {
+    const before = Date.now();
+    await stand(A);
+    expect(called).toHaveLength(1);
+    expect(called[0].game).toBe('gomoku');
+    expect(called[0].since).toBeGreaterThanOrEqual(before);
+  });
+
+  it('짝이 나면 안 알린다', async () => {
+    await stand(A);
+    called.length = 0;
+    await stand(B);
+    expect(called).toHaveLength(0);
+  });
+
+  it('다시 알려도 처음 선 시각은 안 밀린다. 5초마다 오는 알림이 기다린 시간을 0으로 되돌리면 안 됨', async () => {
+    await stand(A);
+    const first = called[0].since;
+    await stand(A);
+    expect(called[1].since).toBe(first);
   });
 });

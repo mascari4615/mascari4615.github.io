@@ -38,6 +38,7 @@ import { registerArcadeRoomCard } from './bot/arcade-room-card';
 import { registerArcadeRooms, wasOpen } from './bot/arcade-rooms';
 import { registerArcadeResult } from './bot/arcade-result';
 import { registerArcadeQueue } from './bot/arcade-queue';
+import { makeLfgCaller } from './bot/arcade-lfg';
 import { registerArcadeReport } from './bot/arcade-report';
 import { registerArcadeTape } from './bot/arcade-tape';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
@@ -387,8 +388,9 @@ registerKarmolabApi(app);
 registerArcadeRoomCard(app);
 /* arcade-next ★2. 지금 열린 방 목록. 방은 브라우저끼리 돌고 여기 남는 건 쪽지뿐이다. */
 registerArcadeRooms(app);
-/* change.arcade-online 1번. 등급전 대기열. 서버가 둘을 붙여 방 코드를 준다. */
-registerArcadeQueue(app);
+/* change.arcade-online 1번. 등급전 대기열. 서버가 둘을 붙여 방 코드를 줌
+ * 줄에 오래 서 있으면 채널이 부름. 등급전이 안 도는 이유가 만난 적이 없어서 */
+registerArcadeQueue(app, undefined, makeLfgCaller(client));
 /* change.arcade-online 2번. 결과 보고와 점수. 양쪽 말이 맞아야 반영 */
 registerArcadeReport(app);
 /* change.arcade-online 3번. 패보. 끝난 판을 들고 링크로 다시 편다 */

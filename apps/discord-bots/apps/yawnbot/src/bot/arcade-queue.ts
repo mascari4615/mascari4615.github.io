@@ -24,6 +24,7 @@ import type { Application, Request, Response } from 'express';
 import { randomBytes } from 'node:crypto';
 import { whoOf, type WhoOf } from './arcade-who';
 import { ratingOf, roomOf, type RoomName } from './arcade-rating';
+import type { OnWait } from './arcade-lfg';
 export type { RoomName } from './arcade-rating';
 
 /**
@@ -145,7 +146,7 @@ function answer(id: string): Record<string, unknown> {
   return { status: 'none' };
 }
 
-export function registerArcadeQueue(app: Application, who: WhoOf = whoOf): void {
+export function registerArcadeQueue(app: Application, who: WhoOf = whoOf, onWait?: OnWait): void {
   /**
    * 줄서기 겸 알림. 같은 열쇠면 덮어씀
    * - 같은 놀이, 같은 방에 다른 사람이 있으면 그 자리에서 짝
@@ -204,6 +205,8 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf): void 
       /* 처음 선 때 보존. 알림마다 줄 맨 뒤면 오래 기다린 사람이 계속 밀림 */
       const since = waiting.get(id)?.since ?? now;
       waiting.set(id, { id, game, room, rating, name, since, at: now });
+      /* 오래 기다리면 채널이 부른다. 부를지 말지는 저쪽이 판단함 (arcade-lfg 가 판단) */
+      onWait?.({ game, name, since });
     }
     res.json({ ...answer(id), until: TTL_MS });
   });
