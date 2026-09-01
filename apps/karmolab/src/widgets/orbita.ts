@@ -129,7 +129,8 @@ import { t, loadNamespace } from '../lib/i18n';
        놓는 계기판이라 폭을 되찾아야 한다. 안 그러면 컨트롤 하나가 한 줄을 차지한다. */
     .orbita-panel select, .orbita-panel input[type=number],
     .orbita-ring-row select {
-      width:auto; min-width:0; flex:0 0 auto; margin:0;
+      /* 누를 크기 24px (WCAG 2.5.8). min-width:0 이면 화살표만 남아 22px 이 된다 */
+      width:auto; min-width:24px; flex:0 0 auto; margin:0;
       background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border);
       border-radius:var(--radius-md); padding:4px 6px; font-size:var(--font-size-2xs); font-family:var(--font-mono);
     }

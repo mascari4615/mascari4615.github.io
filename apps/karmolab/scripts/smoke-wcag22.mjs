@@ -126,6 +126,7 @@ for (const [name, url] of RUN) {
   const focus = await page.evaluate(() => {
     const sel = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const seen = [];
+    const skipped = [];
     const list = [...document.querySelectorAll(sel)].filter((el) => {
       const cs = getComputedStyle(el);
       return cs.display !== 'none' && cs.visibility !== 'hidden' && el.getClientRects().length > 0;
@@ -143,6 +144,13 @@ for (const [name, url] of RUN) {
       return parts.join(">>");
     };
     for (const el of list) {
+      /* 이미 초점이 가 있는 칸이 있다(도구가 열리며 스스로 잡는다). 그대로 재면 전후가 같아
+         표시가 없다고 잘못 읽는다. 재기 전에 초점을 뗀다 (2026-09-02 실측, password 도구) */
+      /* 도구가 열리며 스스로 초점을 잡는 칸이 있다. 떼려 해도 곧바로 되잡는 곳이 있어
+         전후가 같아진다. 그건 표시가 없는 것이 아니라 **못 잰 것**이라 안 센다
+         (2026-09-02 실측: password 의 pwInput, 오늘의 문제의 qsAns) */
+      if (document.activeElement === el) { skipped.push(el.id || el.tagName.toLowerCase()); continue; }
+      el.blur();
       const before = shotUp(el);
       el.focus({ preventScroll: true });
       const after = shotUp(el);
@@ -153,7 +161,7 @@ for (const [name, url] of RUN) {
         seen.push(tag + (cls ? '.' + cls : '') + (el.id ? '#' + el.id : ''));
       }
     }
-    return { total: list.length, bad: seen };
+    return { total: list.length, bad: seen, skipped };
   });
   add(name, 'focus-visible', focus.bad.length, focus.bad.slice(0, 20).join(', ') || '-');
 
@@ -168,14 +176,16 @@ for (const [name, url] of RUN) {
       if (r.width === 0 || r.height === 0) continue;
       /* 글줄 안에 든 링크는 조항이 봐준다. 부모가 글 문단이면 넘긴다 */
       if (el.tagName === 'A' && el.closest('p, li, .tool-hint, .tool-seo')) continue;
-      if (r.width >= 24 && r.height >= 24) continue;
+      /* 반올림해서 잰다. 상자는 23.996px 로 떨어지는데 사람 눈에도 CSS 에도 24px
+         날값으로 재면 24px 로 고친 자리가 영영 안 통과한다 (2026-09-02 실측) */
+      if (Math.round(r.width) >= 24 && Math.round(r.height) >= 24) continue;
       /* 체크 상자와 라디오는 **감싼 이름표가 누를 곳**. 상자만 재면 늘 13px
          이름표가 24px 을 넘으면 사람이 누를 곳은 그만큼이다 (WCAG 2.2 2.5.8) */
       if (el.type === 'checkbox' || el.type === 'radio') {
         const label = el.closest('label') || (el.id && document.querySelector(`label[for="${el.id}"]`));
         if (label) {
           const lr = label.getBoundingClientRect();
-          if (lr.width >= 24 && lr.height >= 24) continue;
+          if (Math.round(lr.width) >= 24 && Math.round(lr.height) >= 24) continue;
         }
       }
       const cls = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean).slice(0, 2).join('.');

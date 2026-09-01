@@ -60,6 +60,8 @@ import { download, encode } from '../tools/shared/image';
     el.textContent = `
 .meong-root { position: relative; width: 100%; height: 100%; min-height: 420px; flex: 1;
   overflow: hidden; border-radius: var(--radius-md, 10px); background: #0b0d12; outline: none; }
+/* 밟히는 판인데 outline: none 이라 초점이 안 보이던 자리 (WCAG 2.4.11) */
+.meong-root:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .meong-root:fullscreen { border-radius: 0; }
 .meong-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .meong-ui { position: absolute; inset: 0; pointer-events: none;

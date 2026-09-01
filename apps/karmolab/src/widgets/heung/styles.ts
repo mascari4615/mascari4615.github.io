@@ -31,7 +31,8 @@ export const HEUNG_CSS = `
     .hu-track-color { width:9px; height:9px; border-radius:50%; flex:none; }
     .hu-track-title input { min-width:0; width:100%; border:0; padding:2px; background:transparent; color:var(--text-primary); font-size:var(--font-size-2xs); }
     .hu-track-actions { display:flex; gap:3px; margin:5px 0; }
-    .hu-mini { width:25px; height:23px; padding:0; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary); border-radius:var(--radius-sm); font:10px var(--font-mono); cursor:pointer; }
+    /* 높이 24px (WCAG 2.5.8). 23px 이라 1px 모자랐다 */
+    .hu-mini { width:25px; height:24px; padding:0; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary); border-radius:var(--radius-sm); font:10px var(--font-mono); cursor:pointer; }
     .hu-mini.is-on { background:var(--accent-dim); color:var(--accent-hover); border-color:var(--accent); }
     .hu-mini { white-space:nowrap; }
     /* 녹음 중인 버튼. 켬 표시(.is-on)와 색이 달라야 한다 */

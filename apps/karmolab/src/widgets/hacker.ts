@@ -10,6 +10,8 @@ import { t, loadNamespace } from '../lib/i18n';
         .hacker-container { width:100%; flex:1; min-height:300px; background:#000; color:#00ff00; font-family:'SF Mono','Cascadia Code','Consolas',monospace; font-size:var(--font-size-xs); padding:24px; border:1px solid var(--border); border-radius:var(--radius-lg); overflow-y:auto; white-space:pre-wrap; word-break:break-all; position:relative; user-select:none; }
         .hacker-cursor { display:inline-block; width:8px; height:16px; background:#00ff00; animation:hacker-blink 1s step-end infinite; vertical-align:middle; margin-left:2px; }
         @keyframes hacker-blink { 50% { opacity:0; } }
+        /* 움직임 줄이기를 켠 사람에게는 안 깜빡인다 (WCAG 2.2.2). 커서 자리는 그대로 */
+        @media (prefers-reduced-motion: reduce) { .hacker-cursor { animation:none; } }
     `
   );
 

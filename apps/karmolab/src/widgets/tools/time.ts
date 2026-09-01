@@ -255,15 +255,18 @@ import { t, loadNamespace } from '../../lib/i18n';
 .tm-city.tm-meh{background:rgba(220,190,120,.14);}
 .tm-city.tm-bad{background:var(--bg-tertiary);opacity:.65;}
 .tm-grid{margin-top:10px;display:grid;gap:2px;font-size:var(--font-size-4xs);overflow-x:auto;}
-.tm-grid-row{display:grid;grid-template-columns:56px repeat(24,1fr);gap:1px;align-items:center;}
+.tm-grid-row{display:grid;grid-template-columns:56px repeat(24,minmax(24px,1fr));gap:1px;align-items:center;}
 .tm-grid-row>span{font-size:var(--font-size-4xs);opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tm-grid-head b{font-size:var(--font-size-4xs);opacity:.5;text-align:center;font-weight:400;}
 .tm-grid-head b.tm-good{opacity:1;color:var(--accent);font-weight:700;}
-.tm-cell{appearance:none;border:0;padding:2px 0;border-radius:var(--radius-sm);font-size:var(--font-size-4xs);line-height:1.4;cursor:pointer;color:inherit;}
+/* 누를 크기 24px (WCAG 2.2 AA 2.5.8). 칸이 16x18 이었다. 판이 넓으면 가로로 밀린다 */
+.tm-cell{appearance:none;border:0;padding:2px 0;min-width:24px;min-height:24px;border-radius:var(--radius-sm);font-size:var(--font-size-4xs);line-height:1.4;cursor:pointer;color:inherit;}
 .tm-cell.tm-ok{background:rgba(120,200,140,.28);}
 .tm-cell.tm-meh{background:rgba(220,190,120,.26);}
 .tm-cell.tm-bad{background:var(--border);opacity:.5;}
 .tm-cell.tm-pick{outline:1px solid var(--accent);}
+/* 초점 표시. 밟히는데 그림이 안 바뀌던 자리 (WCAG 2.4.11) */
+.tm-cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
 .tm-cell:hover{filter:brightness(1.25);}
 `;
     document.head.appendChild(el);

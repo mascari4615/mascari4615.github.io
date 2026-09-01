@@ -144,7 +144,8 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         /* 단추는 **그 칸 안에서** 자리를 잡아야 한다. 칸에 자리 기준이 없으면 표 전체를 기준으로
            잡혀 모든 날의 단추가 한 자리에 겹쳐 쌓인다(실제로 그래서 옆 날 단추가 눌렸다). */
         .fc .fc-daygrid-day, .fc .fc-daygrid-day-frame { position: relative; }
-        .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: var(--font-size-3xs); line-height: 1; padding: 2px 3px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
+        /* 누를 크기 24px (WCAG 2.2 AA 2.5.8). 17x15 였다 */
+        .pl-daycell-diary { position: absolute; left: 4px; top: 2px; z-index: 2; border: none; background: none; cursor: pointer; font-size: var(--font-size-3xs); line-height: 1; padding: 2px 3px; min-width: 24px; min-height: 24px; border-radius: var(--radius-sm); color: var(--text-tertiary); opacity: 0; }
         .fc-daygrid-day:hover .pl-daycell-diary, .pl-daycell-diary:focus-visible { opacity: 1; }
         .pl-daycell-diary--on { opacity: 1; color: var(--accent); }
         .pl-daycell-diary:hover { background: var(--bg-tertiary); color: var(--text-primary); }

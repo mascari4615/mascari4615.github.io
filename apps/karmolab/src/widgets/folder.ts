@@ -96,7 +96,7 @@ import { t, loadNamespace } from '../lib/i18n';
             win.innerHTML = `
                         <div class="win-title" tabindex="0" role="application" aria-label="${esc(t('folder.kb.title'))}" style="background:#000080; color:#fff; padding:2px 4px; font-size:var(--font-size-xs); font-weight:bold; display:flex; justify-content:space-between; cursor:default; user-select:none;">
                             <span>Error</span>
-                            <button class="win-close" style="background:#c0c0c0; color:#000; border:1px solid; border-color:#fff #808080 #808080 #fff; width:16px; height:16px; font-size:var(--font-size-2xs); line-height:1; cursor:default;">X</button>
+                            <button class="win-close" style="background:#c0c0c0; color:#000; border:1px solid; border-color:#fff #808080 #808080 #fff; min-width:24px; min-height:24px; font-size:var(--font-size-2xs); line-height:1; cursor:default;">X</button>
                         </div>
                         <div style="padding:15px; text-align:center; color:#000; cursor:default; user-select:none;">
                             <div style="margin-bottom:15px; font-size:var(--font-size-xs); display:flex; align-items:center; gap:10px;">
