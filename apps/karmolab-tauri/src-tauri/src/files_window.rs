@@ -84,6 +84,21 @@ pub fn open_files_window(app: &tauri::AppHandle) -> Result<(), String> {
         // 화면이 그린 창 단추가 **둘 다** 보인다 (2026-08-27 조수님이 봤다).
         .decorations(false)
         .focused(true)
+        // Files Cloudflare Access 복귀 경로, 메인 전용 정책이면 새 창 리다이렉트 중 빈 WebView
+        .on_navigation(|url| {
+            if crate::allow_in_webview(url) {
+                true
+            } else {
+                if matches!(url.scheme(), "mailto" | "tel" | "sms" | "http" | "https") {
+                    let _ = open::that(url.as_str());
+                }
+                false
+            }
+        })
+        .on_new_window(|url, _features| {
+            let _ = open::that(url.as_str());
+            tauri::webview::NewWindowResponse::Deny
+        })
         .build()
         {
             Ok(_) => {}

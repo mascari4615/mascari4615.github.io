@@ -44,12 +44,12 @@ const VIEW_KEY = 'files.vault.view';
 const CELL_KEY = 'files.vault.cell';
 const LOOP_KEY = 'files.vault.loop';
 
-/* 되풀이. 한 번 켜면 다음 영상에서도 켜져 있다 */
+/* 되풀이. 기본은 켜고, 사람이 끈 선택만 다음 영상에서도 따른다. */
 function loopOn() {
   try {
-    return sessionStorage.getItem(LOOP_KEY) === '1';
+    return sessionStorage.getItem(LOOP_KEY) !== '0';
   } catch {
-    return false;
+    return true;
   }
 }
 function setLoop(on) {
@@ -1157,7 +1157,9 @@ async function renderVaultFile(path) {
           setInfoOpen(on);
           b.classList.toggle('on', on);
           if (on) paintInfo(path, entry, kind, el);
-        } else if (go) goSibling(path, go);
+        } else if (go === 'prev' || go === 'next') {
+          goSibling(path, go);
+        }
       });
     }
   };
