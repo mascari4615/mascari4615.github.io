@@ -104,8 +104,8 @@ export interface CardStage {
   set(hands: CardHand[], mySeat?: number): void;
   /** 자리를 직접 잡아 놓는다(솔리테어). 빈 자리 표시는 부르는 쪽이 `rank: 0` 으로 */
   setBoard(spots: CardSpotAt[]): void;
-  /** 빈 자리 테두리. 스톡, 웨이스트, 파운데이션, 빈 열 */
-  setSlots(slots: Array<{ x: number; z: number }>): void;
+  /** 빈 자리 테두리. 이름을 주면 그 자리에 놓을 수 있음(빈 열에 K 놓기) */
+  setSlots(slots: Array<{ x: number; z: number; id?: string }>): void;
   /** 안 되는 것. 그 자리 카드가 빨갛게 떨린다 */
   nope(id: string): void;
   resize(): void;
@@ -477,13 +477,16 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   scene.add(slotGroup);
   const slotGeo = new BoxGeometry(CARD_W * 1.02, 0.01, CARD_H * 1.02);
   const slotMat = new MeshStandardMaterial({ color: 0x1d4a3a, roughness: 1, metalness: 0, transparent: true, opacity: 0.55 });
-  const setSlots = (slots: Array<{ x: number; z: number }>): void => {
+  const slotNames = new Map<Mesh, string>();
+  const setSlots = (slots: Array<{ x: number; z: number; id?: string }>): void => {
     while (slotGroup.children.length) slotGroup.remove(slotGroup.children[0]);
+    slotNames.clear();
     for (const sl of slots) {
       const m = new Mesh(slotGeo, slotMat);
       m.position.set(sl.x, TOP_Y + 0.005, sl.z);
       m.receiveShadow = true;
       slotGroup.add(m);
+      if (sl.id) slotNames.set(m, sl.id);
     }
     need = true;
     render();
@@ -581,21 +584,79 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     shake();
   };
 
-  /* 카드 누르기. 화면이 이름만 받으면 되고 무대는 규칙을 모른다 */
+  /**
+   * 누르기와 끌기. 화면은 이름만 받고 무대는 규칙을 모름
+   *
+   * 끌면 그 카드가 제자리에서 떠오름. 떼는 자리의 카드나 빈 자리 이름을 냄
+   * 입체가 정본이라 평면에 있는 손놀림은 여기에도 있어야 함(`features/play.md`)
+   */
   if (opts.onPick) {
     const ray = new Raycaster();
     const ndc = new Vector2();
-    core.canvas.addEventListener('pointerdown', (ev: PointerEvent) => {
-      if (ev.button !== 0) return;
+    let lift: { mesh: Mesh; id: string; home: Vector3 } | null = null;
+    let downAt: { x: number; y: number } | null = null;
+
+    const aim = (ev: PointerEvent): void => {
       const r = core.canvas.getBoundingClientRect();
       ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
       ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
       ray.setFromCamera(ndc, camera);
-      const hits = ray.intersectObjects(holder.children, false);
-      const first = hits[0]?.object as Mesh | undefined;
-      const id = first ? picks.get(first) : undefined;
-      if (id) opts.onPick?.(id);
+    };
+    /** 손끝 아래 카드 이름. 없으면 빈 자리 이름 */
+    const under = (): string | undefined => {
+      const hit = ray.intersectObjects(holder.children, false)[0]?.object as Mesh | undefined;
+      if (hit) return picks.get(hit);
+      const slot = ray.intersectObjects(slotGroup.children, false)[0]?.object as Mesh | undefined;
+      return slot ? slotNames.get(slot) : undefined;
+    };
+
+    core.canvas.addEventListener('pointerdown', (ev: PointerEvent) => {
+      if (ev.button !== 0) return;
+      aim(ev);
+      const hit = ray.intersectObjects(holder.children, false)[0]?.object as Mesh | undefined;
+      const id = hit ? picks.get(hit) : undefined;
+      downAt = { x: ev.clientX, y: ev.clientY };
+      lift = hit && id ? { mesh: hit, id, home: hit.position.clone() } : null;
     });
+
+    core.canvas.addEventListener('pointermove', (ev: PointerEvent) => {
+      if (!lift || !downAt) return;
+      if (Math.hypot(ev.clientX - downAt.x, ev.clientY - downAt.y) < 5) return;
+      /* 든 카드는 **제자리에서 뜨고 기움**. 손끝을 따라 옮기면 상 밖으로 새어 나가고
+         다시 그리기와 싸움(2026-09-01 실측: 카드가 화면에서 사라졌음) */
+      const i = live.findIndex((c) => c.mesh === lift?.mesh);
+      if (i >= 0) live.splice(i, 1);
+      lift.mesh.position.set(lift.home.x, lift.home.y + 0.3, lift.home.z);
+      lift.mesh.rotation.y = 0.1;
+      need = true;
+      render();
+    });
+
+    const finish = (ev: PointerEvent): void => {
+      const held = lift;
+      const from = downAt;
+      lift = null;
+      downAt = null;
+      if (!held || !from) return;
+      const moved = Math.hypot(ev.clientX - from.x, ev.clientY - from.y) >= 5;
+      aim(ev);
+      if (!moved) {
+        /* 그냥 누른 것 */
+        opts.onPick?.(held.id);
+        return;
+      }
+      /* 끌어서 뗀 자리. 든 카드는 셈에서 빠져 있으니 그 아래가 잡힘 */
+      const to = under();
+      held.mesh.position.copy(held.home);
+      held.mesh.rotation.y = 0;
+      need = true;
+      render();
+      /* 집고 놓는 두 걸음으로. 화면 쪽 규칙이 그대로 돎 */
+      opts.onPick?.(held.id);
+      if (to && to !== held.id) opts.onPick?.(to);
+    };
+    core.canvas.addEventListener('pointerup', finish);
+    core.canvas.addEventListener('pointercancel', finish);
   }
 
   const ro = new ResizeObserver(fit);

@@ -197,13 +197,13 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
 
     /* 빈 자리 테두리. 더미, 뽑은 자리, 쌓는 자리 넷, 일곱 열 */
     stage.setSlots([
-      { x: colX(0), z: TOP_Z },
-      { x: colX(1), z: TOP_Z },
-      { x: colX(3), z: TOP_Z },
-      { x: colX(4), z: TOP_Z },
-      { x: colX(5), z: TOP_Z },
-      { x: colX(6), z: TOP_Z },
-      ...Array.from({ length: 7 }, (_, c) => ({ x: colX(c), z: TAB_Z }))
+      { x: colX(0), z: TOP_Z, id: 'stock' },
+      { x: colX(1), z: TOP_Z, id: 'waste' },
+      { x: colX(3), z: TOP_Z, id: 'f0' },
+      { x: colX(4), z: TOP_Z, id: 'f1' },
+      { x: colX(5), z: TOP_Z, id: 'f2' },
+      { x: colX(6), z: TOP_Z, id: 'f3' },
+      ...Array.from({ length: 7 }, (_, c) => ({ x: colX(c), z: TAB_Z, id: 'c' + c + ':-1' }))
     ]);
 
     function paint(): void {
