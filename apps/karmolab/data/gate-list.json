@@ -289,6 +289,7 @@
    ]
   },
   "test:arcade:solitaire",
+  "test:arcade:cards",
   "test:drift",
   "test:arcade:solo",
   "test:play-i18n",
