@@ -331,6 +331,16 @@
     "data/gate-list.json"
    ]
   },
+  {
+   "name": "audit:sidebar-shelf",
+   "watch": [
+    "src/widgets-lazy-meta.ts",
+    "scripts/audit-sidebar-shelf.mjs",
+    "data/sidebar-shelf-baseline.json",
+    "package.json",
+    "data/gate-list.json"
+   ]
+  },
   "smoke:sndshell",
   "audit:loose",
   "test:audiorate",
