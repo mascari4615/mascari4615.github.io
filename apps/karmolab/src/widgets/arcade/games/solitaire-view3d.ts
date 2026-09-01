@@ -10,6 +10,7 @@
  * 진도와 안내는 판 아래 한 줄. 입체에서도 지금 무엇을 하는지는 글자가 말해야 함
  */
 import { t } from '../../../lib/i18n';
+import { blip } from '../../../lib/blip';
 import type { GameView } from '../views';
 import { mountCardStage, type CardSpotAt, type CardStage } from '../card-stage';
 import { roomAmbience } from '../ambience';
@@ -77,32 +78,40 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       paint();
     };
 
+    /** 안 되는 것. 삑 소리와 그 자리 카드가 빨갛게 떨림 */
+    const nope = (msg: string, id?: string): void => {
+      blip('bad');
+      if (id) stage.nope(id);
+      say(msg);
+    };
+
     /** 누른 이름을 규칙의 수로 푼다 */
     const pick = (id: string): void => {
       const s = last;
       if (!s) return;
-      amb.stone();
       if (id === 'stock') {
         held = null;
         if (!s.stock.length && (!s.waste.length || s.passes >= 3)) {
-          say(t('arcade.solitaire.nodraw'));
+          nope(t('arcade.solitaire.nodraw'), 'stock');
           return;
         }
+        amb.stone();
         act({ kind: 'draw' });
         return;
       }
       const hc = heldCard(s);
       if (id === 'waste') {
         if (held && hc !== null && held.kind !== 'waste') {
-          say(t('arcade.solitaire.nostack'));
+          nope(t('arcade.solitaire.nostack'), 'waste');
           return;
         }
         if (!s.waste.length) {
-          say(t('arcade.solitaire.nowaste'));
+          nope(t('arcade.solitaire.nowaste'), 'waste');
           return;
         }
         const same = held?.kind === 'waste';
         held = same ? null : { kind: 'waste' };
+        blip('tap');
         if (same) say(t('arcade.solitaire.dropped'));
         paint();
         return;
@@ -111,12 +120,13 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
         const at = Number(id.slice(1));
         if (held && hc !== null) {
           if (!canFound(s.foundation[at], hc)) {
-            say(t('arcade.solitaire.nofound'));
+            nope(t('arcade.solitaire.nofound'), 'f' + at);
             return;
           }
           const h = held;
           held = null;
-          if (h.kind === 'waste') act({ kind: 'waste', to: 'foundation', at });
+          amb.stone();
+        if (h.kind === 'waste') act({ kind: 'waste', to: 'foundation', at });
           else if (h.kind === 'run') act({ kind: 'move', col: h.col, from: h.from, to: 'foundation', at });
           return;
         }
@@ -127,6 +137,7 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
         }
         if (s.foundation[at].length) {
           held = { kind: 'found', pile: at };
+          blip('tap');
           paint();
         }
         return;
@@ -144,11 +155,12 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       }
       if (held && hc !== null) {
         if (!canStack(s.tableau[c], hc)) {
-          say(t('arcade.solitaire.nostack'));
+          nope(t('arcade.solitaire.nostack'), id);
           return;
         }
         const h = held;
         held = null;
+        amb.stone();
         if (h.kind === 'waste') act({ kind: 'waste', to: 'tableau', at: c });
         else if (h.kind === 'found') act({ kind: 'unfound', pile: h.pile, at: c });
         else act({ kind: 'move', col: h.col, from: h.from, to: 'tableau', at: c });
@@ -158,15 +170,16 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       const p = s.tableau[c];
       const hidden = p.cards.length - p.up;
       if (i < hidden) {
-        say(t('arcade.solitaire.facedown'));
+        nope(t('arcade.solitaire.facedown'), id);
         return;
       }
       if (!runOk(p, i)) {
-        say(t('arcade.solitaire.norun'));
+        nope(t('arcade.solitaire.norun'), id);
         return;
       }
       const same = held?.kind === 'run' && held.col === c && held.from === i;
       held = same ? null : { kind: 'run', col: c, from: i };
+      blip('tap');
       if (same) say(t('arcade.solitaire.dropped'));
       paint();
     };
@@ -261,7 +274,8 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
         hb.onclick = () => {
           const now = last;
           if (!now) return;
-          say(bestMove(now) ? t('arcade.solitaire.hintOn') : t('arcade.solitaire.nohint'));
+          if (bestMove(now)) { blip('good'); say(t('arcade.solitaire.hintOn')); }
+          else nope(t('arcade.solitaire.nohint'));
         };
       }
     }

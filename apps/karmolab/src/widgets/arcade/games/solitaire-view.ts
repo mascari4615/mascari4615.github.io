@@ -11,6 +11,9 @@
  * 카드가 갈 곳이 하나뿐일 때가 많음. 고른 뒤 갈 곳을 화면이 짚어 줌
  */
 import { t } from '../../../lib/i18n';
+import { blip } from '../../../lib/blip';
+import { roomAmbience } from '../ambience';
+import { sceneOf } from '../scenes';
 import type { GameView } from '../views';
 import {
   bestMove,
@@ -94,6 +97,35 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
     Toolbox.onDispose?.(() => ro.disconnect());
     let flash = '';
     let flashUntil = 0;
+
+    /* 방 소리. 카드를 놓고 집는 소리로 씀 */
+    const amb = roomAmbience(el, sceneOf('solitaire') === 'bar' ? 'night' : 'day');
+
+    /**
+     * 안 되는 것에는 **삑 소리와 빨간 점등**. 글자만 바뀌면 눈이 딴 데 있을 때 못 봄
+     * `at` 은 그 순간 눌린 자리. 없으면 아무 데도 안 깜빡임
+     */
+    const nope = (msg: string, at?: HTMLElement | null): void => {
+      blip('bad');
+      /* 자리를 이름으로 기억. 곧 다시 그려서 이 요소는 사라짐(실측: 클래스가 날아갔음) */
+      const mark = at
+        ? at.id
+          ? '#' + at.id
+          : at.dataset.f !== undefined
+            ? '[data-f="' + at.dataset.f + '"]'
+            : at.dataset.c !== undefined
+              ? '.ac-sol-cell[data-c="' + at.dataset.c + '"][data-i="' + at.dataset.i + '"]'
+              : ''
+        : '';
+      flash = msg;
+      flashUntil = performance.now() + 2200;
+      paint(true);
+      if (!mark) return;
+      const now = el.querySelector<HTMLElement>(mark);
+      if (!now) return;
+      now.classList.add('ac-nope');
+      window.setTimeout(() => now.classList.remove('ac-nope'), 420);
+    };
 
     const say = (msg: string): void => {
       flash = msg;
@@ -224,6 +256,46 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       hintBtn.textContent = t('arcade.solitaire.hint');
     };
 
+    /**
+     * 끌기. 누르기와 **둘 다** 된다(`features/play.md`)
+     * 끌어서 놓으면 그 자리에 놓고, 그냥 누르면 집기와 놓기로
+     * 끌기만 두면 마우스 없는 사람이 막히고, 누르기만 두면 카드 놀이의 손맛이 없음
+     */
+    let dragFrom: { x: number; y: number; el: HTMLElement } | null = null;
+    let dragging = false;
+    el.addEventListener('pointerdown', (ev) => {
+      const cell = (ev.target as HTMLElement).closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]');
+      if (!cell || ev.button !== 0) return;
+      dragFrom = { x: ev.clientX, y: ev.clientY, el: cell };
+      dragging = false;
+    });
+    window.addEventListener('pointermove', (ev) => {
+      if (!dragFrom) return;
+      if (!dragging && Math.hypot(ev.clientX - dragFrom.x, ev.clientY - dragFrom.y) < 6) return;
+      if (!dragging) {
+        dragging = true;
+        /* 끌기 시작. 아직 안 들었으면 집기 */
+        if (!held) dragFrom.el.click();
+      }
+      el.classList.add('ac-dragging');
+    });
+    window.addEventListener('pointerup', (ev) => {
+      const from = dragFrom;
+      dragFrom = null;
+      el.classList.remove('ac-dragging');
+      if (!from || !dragging) return;
+      dragging = false;
+      /* 놓은 자리 찾기. 카드 위든 빈 자리든 */
+      const drop = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
+      const target = drop?.closest<HTMLElement>('.ac-sol-cell, .ac-sol-col, .ac-sol-slot, [data-f]');
+      if (!target) return;
+      /* 열 전체에 놓으면 그 열 맨 아래 칸으로 */
+      const cell = target.classList.contains('ac-sol-col')
+        ? (target.querySelector<HTMLElement>('.ac-sol-cell:last-child') ?? target)
+        : target;
+      cell.click();
+    });
+
     /* 누르기 하나로 다 한다. 든 것이 없으면 집고, 있으면 놓는다 */
     el.addEventListener('click', (ev) => {
       const s = last;
@@ -232,20 +304,23 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       /* 카드도 자리도 아닌 데를 누르면 들었던 것을 내려놓기. 물릴 길이 없으면 갇힘 */
       if (held && !target.closest('.ac-sol-cell, .ac-sol-slot, #acSolStock, #acSolWaste, [data-f]')) {
         held = null;
+        blip('tap');
         say(t('arcade.solitaire.dropped'));
         return;
       }
       const stock = target.closest('#acSolStock');
       if (stock) {
         held = null;
-        if (!s.stock.length && (!s.waste.length || s.passes >= 3)) { say(t('arcade.solitaire.nodraw')); return; }
+        if (!s.stock.length && (!s.waste.length || s.passes >= 3)) { nope(t('arcade.solitaire.nodraw'), stock as HTMLElement); return; }
+        amb.stone();
         act({ kind: 'draw' });
         return;
       }
       const waste = target.closest('#acSolWaste');
       if (waste) {
-        if (!s.waste.length) { say(t('arcade.solitaire.nowaste')); return; }
+        if (!s.waste.length) { nope(t('arcade.solitaire.nowaste'), waste as HTMLElement); return; }
         held = held?.kind === 'waste' ? null : { kind: 'waste' };
+        blip('tap');
         if (!held) say(t('arcade.solitaire.dropped'));
         paint();
         return;
@@ -255,13 +330,14 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
         const at = Number(f.dataset.f);
         const hc = heldCard(s);
         if (held && hc !== null) {
-          if (!canFound(s.foundation[at], hc)) { say(t('arcade.solitaire.nofound')); return; }
+          if (!canFound(s.foundation[at], hc)) { nope(t('arcade.solitaire.nofound'), f); return; }
+          amb.stone();
           drop('foundation', at);
           return;
         }
         /* 든 것이 없으면 파운데이션 맨 위를 든다(되돌리기) */
         if (held?.kind === 'found' && held.pile === at) { held = null; say(t('arcade.solitaire.dropped')); return; }
-        if (s.foundation[at].length) { held = { kind: 'found', pile: at }; paint(); }
+        if (s.foundation[at].length) { held = { kind: 'found', pile: at }; blip('tap'); paint(); }
         return;
       }
       const cell = target.closest<HTMLElement>('.ac-sol-cell');
@@ -273,21 +349,24 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
            소리만 나오고 영영 못 물림(2026-09-01 실측) */
         if (held?.kind === 'run' && held.col === c && i >= held.from) {
           held = null;
+          blip('tap');
           say(t('arcade.solitaire.dropped'));
           return;
         }
         if (held && hc !== null) {
-          if (!canStack(s.tableau[c], hc)) { say(t('arcade.solitaire.nostack')); return; }
+          if (!canStack(s.tableau[c], hc)) { nope(t('arcade.solitaire.nostack'), cell); return; }
+          amb.stone();
           drop('tableau', c);
           return;
         }
         if (i < 0) return;
         const p = s.tableau[c];
         const hidden = p.cards.length - p.up;
-        if (i < hidden) { say(t('arcade.solitaire.facedown')); return; }
-        if (!runOk(p, i)) { say(t('arcade.solitaire.norun')); return; }
+        if (i < hidden) { nope(t('arcade.solitaire.facedown'), cell); return; }
+        if (!runOk(p, i)) { nope(t('arcade.solitaire.norun'), cell); return; }
         const same = held?.kind === 'run' && held.col === c && held.from === i;
         held = same ? null : { kind: 'run', col: c, from: i };
+        blip('tap');
         if (same) say(t('arcade.solitaire.dropped'));
         paint();
       }
@@ -297,7 +376,8 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       const s = last;
       if (!s) return;
       const mv = bestMove(s);
-      if (!mv) { say(t('arcade.solitaire.nohint')); return; }
+      if (!mv) { nope(t('arcade.solitaire.nohint'), hintBtn); return; }
+      blip('good');
       say(hintText(mv, s));
     };
 

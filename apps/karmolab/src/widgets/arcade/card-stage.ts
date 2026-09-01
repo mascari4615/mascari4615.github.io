@@ -98,6 +98,8 @@ export interface CardStage {
   setBoard(spots: CardSpotAt[]): void;
   /** 빈 자리 테두리. 스톡, 웨이스트, 파운데이션, 빈 열 */
   setSlots(slots: Array<{ x: number; z: number }>): void;
+  /** 안 되는 것. 그 자리 카드가 빨갛게 떨린다 */
+  nope(id: string): void;
   resize(): void;
   dispose(): void;
 }
@@ -118,7 +120,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const TABLE_W = opts.board?.w ?? TABLE_W_DEFAULT;
   const TABLE_D = opts.board?.d ?? TABLE_D_DEFAULT;
   const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05 });
-  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, resize: () => {}, dispose: () => {} };
+  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
   const scene = new Scene();
@@ -403,6 +405,35 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     wake();
   };
 
+  /**
+   * 안 되는 것. 그 자리 카드를 잠깐 빨갛게 물들이고 흔듦
+   * 평면은 CSS 로 하지만 입체는 재료와 자리를 직접 건드림
+   */
+  const redMat = new MeshStandardMaterial({ color: 0xd9534f, roughness: 0.7, metalness: 0 });
+  const nope = (id: string): void => {
+    const mesh = byName.get(id);
+    if (!mesh) return;
+    const was = mesh.material;
+    mesh.material = redMat;
+    const x0 = mesh.position.x;
+    const t0 = performance.now();
+    const shake = (): void => {
+      const k = (performance.now() - t0) / 380;
+      if (k >= 1) {
+        mesh.position.x = x0;
+        mesh.material = was;
+        need = true;
+        render();
+        return;
+      }
+      mesh.position.x = x0 + Math.sin(k * Math.PI * 6) * 0.09 * (1 - k);
+      need = true;
+      render();
+      requestAnimationFrame(shake);
+    };
+    shake();
+  };
+
   /* 카드 누르기. 화면이 이름만 받으면 되고 무대는 규칙을 모른다 */
   if (opts.onPick) {
     const ray = new Raycaster();
@@ -431,6 +462,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     set,
     setBoard,
     setSlots,
+    nope,
     resize: fit,
     dispose(): void {
       ro.disconnect();
@@ -440,6 +472,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       cardGeo.dispose();
       slotGeo.dispose();
       slotMat.dispose();
+      redMat.dispose();
       feltMap.dispose();
       backMap.dispose();
       [feltMat, backMat, edgeMat].forEach((m) => m.dispose());
