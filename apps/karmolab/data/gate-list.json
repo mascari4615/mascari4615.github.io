@@ -278,6 +278,7 @@
   "test:arcade",
   "test:arcade:tutor",
   "test:arcade:ghost",
+  "test:arcade:solitaire",
   "test:drift",
   "test:arcade:solo",
   "test:play-i18n",

@@ -40,6 +40,11 @@ export interface SolitaireState {
   draw: number;
   /** 둔 수. 점수와 기록에 쓴다 */
   moves: number;
+  /**
+   * 마지막으로 뜻있는 수(뽑기 말고)를 둔 뒤 더미를 몇 바퀴 헛돌았나
+   * 한 장 뽑기는 바퀴가 무제한이라 이것이 없으면 판이 영영 안 끝난다(실측: 막힘 0%인데 이김 8.3%)
+   */
+  dry: number;
 }
 
 export type SolitaireAction =
@@ -86,7 +91,11 @@ function flip(pile: Pile): Pile {
   return pile;
 }
 
-const MAX_PASS = 3;
+/**
+ * 더미를 몇 바퀴까지 돌리나. 레퍼런스(`solitr.com`)는 한 장 뽑기면 무제한, 세 장이면 제한
+ * 한 장 뽑기에서 세 바퀴로 막으니 이길 판도 막혔다(2026-09-01 실측: 이김 7.7%, 막힘 92%)
+ */
+const passLimit = (draw: number): number => (draw === 1 ? 99 : 3);
 
 export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
   id: 'solitaire',
@@ -116,7 +125,8 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
       tableau,
       passes: 0,
       draw: ctx.opts.draw === 3 ? 3 : 1,
-      moves: 0
+      moves: 0,
+      dry: 0
     };
   },
 
@@ -131,12 +141,13 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
           ...s,
           stock: s.stock.slice(0, s.stock.length - n),
           waste: s.waste.concat(s.stock.slice(s.stock.length - n).reverse()),
-          moves: s.moves + 1
+          moves: s.moves + 1,
+          dry: 0
         };
       }
       /* 더미가 비면 웨이스트를 뒤집어 되돌린다. 정해진 바퀴까지만 */
-      if (!s.waste.length || s.passes >= MAX_PASS) return s;
-      return { ...s, stock: s.waste.slice().reverse(), waste: [], passes: s.passes + 1, moves: s.moves + 1 };
+      if (!s.waste.length || s.passes >= passLimit(s.draw)) return s;
+      return { ...s, stock: s.waste.slice().reverse(), waste: [], passes: s.passes + 1, dry: s.dry + 1, moves: s.moves + 1 };
     }
 
     if (kind === 'waste') {
@@ -148,7 +159,8 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
           ...s,
           waste: s.waste.slice(0, -1),
           foundation: s.foundation.map((f, i) => (i === a.at ? f.concat(card) : f)),
-          moves: s.moves + 1
+          moves: s.moves + 1,
+          dry: 0
         };
       }
       const pile = s.tableau[a.at];
@@ -157,7 +169,8 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
         ...s,
         waste: s.waste.slice(0, -1),
         tableau: s.tableau.map((p, i) => (i === a.at ? { cards: p.cards.concat(card), up: p.up + 1 } : p)),
-        moves: s.moves + 1
+        moves: s.moves + 1,
+        dry: 0
       };
     }
 
@@ -174,7 +187,8 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
           tableau: s.tableau.map((p, i) =>
             i === a.col ? flip({ cards: p.cards.slice(0, a.from), up: Math.max(0, p.up - 1) }) : p
           ),
-          moves: s.moves + 1
+          moves: s.moves + 1,
+          dry: 0
         };
       }
       if (a.at === a.col) return s;
@@ -187,7 +201,8 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
           if (i === a.at) return { cards: p.cards.concat(run), up: p.up + run.length };
           return p;
         }),
-        moves: s.moves + 1
+        moves: s.moves + 1,
+        dry: 0
       };
     }
 
@@ -201,7 +216,8 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
         ...s,
         foundation: s.foundation.map((x, i) => (i === a.pile ? x.slice(0, -1) : x)),
         tableau: s.tableau.map((p, i) => (i === a.at ? { cards: p.cards.concat(card), up: p.up + 1 } : p)),
-        moves: s.moves + 1
+        moves: s.moves + 1,
+        dry: 0
       };
     }
 
@@ -232,9 +248,42 @@ export const solitaire: GameDef<SolitaireState, SolitaireAction> = {
 
 /** 지금 둘 수 있는 수가 하나라도 있나 */
 export function anyMove(s: SolitaireState): boolean {
+  /* 한 바퀴를 통째로 헛돌았으면 더 볼 것이 없다. 같은 카드가 같은 차례로 또 나온다 */
+  /* 두 바퀴를 헛돌아야 끝. 한 바퀴만 보고 끊으면 둘 수 있는 판을 막는다(보수적으로) */
+  if (s.dry >= 2 && !bestMove(s) && !anyStackMove(s)) return false;
   if (s.stock.length) return true;
-  if (s.waste.length && s.passes < MAX_PASS) return true;
-  return bestMove(s) !== null;
+  if (s.waste.length && s.passes < passLimit(s.draw)) return true;
+  return bestMove(s) !== null || anyStackMove(s) !== null;
+}
+
+/**
+ * 파운데이션에 올려도 되나. 무턱대고 올리면 나중에 태블로에서 그 카드가 필요할 때 없음
+ * 규칙: A 와 2 는 늘 안전. 그 위는 **반대 색 두 무늬가 그 값 아래까지 올라와 있을 때**만
+ * (그 값 아래 카드를 태블로에 붙일 일이 이제 없다는 뜻)
+ */
+function safeToFound(s: SolitaireState, card: number): boolean {
+  const r = rankOf(card);
+  if (r <= 1) return true;
+  const other = isRed(card) ? [0, 1] : [2, 3];
+  return other.every((suit) => s.foundation[suit].length >= r - 1);
+}
+
+/** 태블로 안에서 옮길 만한 수. 뒤집힌 카드를 여는 것을 가장 값지게 본다 */
+function anyStackMove(s: SolitaireState): SolitaireAction | null {
+  for (let c = 0; c < s.tableau.length; c += 1) {
+    const p = s.tableau[c];
+    if (!p.up) continue;
+    const from = p.cards.length - p.up;
+    if (!runOk(p, from)) continue;
+    for (let d = 0; d < s.tableau.length; d += 1) {
+      if (d === c) continue;
+      if (!canStack(s.tableau[d], p.cards[from])) continue;
+      /* 빈 열로 옮기는 것은 그 열이 이미 비어 있지 않을 때만 뜻이 있다 */
+      if (!s.tableau[d].cards.length && from === 0) continue;
+      return { kind: 'move', col: c, from, to: 'tableau', at: d };
+    }
+  }
+  return null;
 }
 
 /**
@@ -242,45 +291,78 @@ export function anyMove(s: SolitaireState): boolean {
  * 고르는 차례: 파운데이션에 올리기, 뒤집힌 카드를 여는 이동, 웨이스트 내려놓기, 그 밖의 이동
  */
 export function bestMove(s: SolitaireState): SolitaireAction | null {
-  /* 1. 파운데이션. 태블로 맨 위와 웨이스트 맨 위 */
+  /* 1. 안전하게 올릴 수 있는 카드. A 와 2 는 늘, 그 위는 반대 색이 따라왔을 때만 */
   for (let c = 0; c < s.tableau.length; c += 1) {
     const p = s.tableau[c];
     if (!p.cards.length || !p.up) continue;
     const card = p.cards[p.cards.length - 1];
+    if (!safeToFound(s, card)) continue;
     for (let f = 0; f < 4; f += 1) {
       if (canFound(s.foundation[f], card)) return { kind: 'move', col: c, from: p.cards.length - 1, to: 'foundation', at: f };
     }
   }
   if (s.waste.length) {
     const card = s.waste[s.waste.length - 1];
-    for (let f = 0; f < 4; f += 1) if (canFound(s.foundation[f], card)) return { kind: 'waste', to: 'foundation', at: f };
+    if (safeToFound(s, card)) {
+      for (let f = 0; f < 4; f += 1) if (canFound(s.foundation[f], card)) return { kind: 'waste', to: 'foundation', at: f };
+    }
   }
-  /* 2. 뒤집힌 카드를 여는 이동. 줄을 통째로 옮겨 그 아래가 열리면 이득 */
+
+  /* 2. 뒤집힌 카드를 여는 이동. 가린 장수가 많은 열부터 연다 */
+  const openers: Array<{ mv: SolitaireAction; gain: number }> = [];
   for (let c = 0; c < s.tableau.length; c += 1) {
     const p = s.tableau[c];
     const from = p.cards.length - p.up;
-    if (!p.up || from <= 0) continue;
-    if (!runOk(p, from)) continue;
+    if (!p.up || from <= 0 || !runOk(p, from)) continue;
     for (let d = 0; d < s.tableau.length; d += 1) {
-      if (d === c) continue;
-      if (canStack(s.tableau[d], p.cards[from])) return { kind: 'move', col: c, from, to: 'tableau', at: d };
+      if (d === c || !s.tableau[d].cards.length) continue;
+      if (canStack(s.tableau[d], p.cards[from])) openers.push({ mv: { kind: 'move', col: c, from, to: 'tableau', at: d }, gain: from });
     }
   }
-  /* 3. 웨이스트를 태블로로 */
+  if (openers.length) {
+    openers.sort((a, b) => b.gain - a.gain);
+    return openers[0].mv;
+  }
+
+  /* 3. 빈 열이 있으면 K 줄을 옮겨 자리를 쓴다. 제자리 도로는 안 한다 */
+  const empty = s.tableau.findIndex((p) => !p.cards.length);
+  if (empty >= 0) {
+    for (let c = 0; c < s.tableau.length; c += 1) {
+      const p = s.tableau[c];
+      const from = p.cards.length - p.up;
+      if (c === empty || !p.up || from === 0) continue;
+      if (rankOf(p.cards[from]) === 12 && runOk(p, from)) return { kind: 'move', col: c, from, to: 'tableau', at: empty };
+    }
+    /* 뽑은 카드가 K 면 빈 열로 */
+    if (s.waste.length && rankOf(s.waste[s.waste.length - 1]) === 12) return { kind: 'waste', to: 'tableau', at: empty };
+  }
+
+  /* 4. 뽑은 카드를 태블로로. 뒤집힌 카드가 남은 열 위에 붙이는 쪽을 먼저 */
   if (s.waste.length) {
     const card = s.waste[s.waste.length - 1];
+    let plain = -1;
     for (let d = 0; d < s.tableau.length; d += 1) {
-      if (canStack(s.tableau[d], card)) return { kind: 'waste', to: 'tableau', at: d };
+      if (!canStack(s.tableau[d], card)) continue;
+      const p = s.tableau[d];
+      if (p.cards.length - p.up > 0) return { kind: 'waste', to: 'tableau', at: d };
+      if (plain < 0) plain = d;
     }
+    if (plain >= 0) return { kind: 'waste', to: 'tableau', at: plain };
   }
-  /* 4. 빈 열로 K 옮기기. 줄 맨 앞이 K 이고 그 열이 K 로 시작하지 않을 때만(제자리 도로 금지) */
-  for (let c = 0; c < s.tableau.length; c += 1) {
-    const p = s.tableau[c];
-    const from = p.cards.length - p.up;
-    if (!p.up || from === 0) continue;
-    if (rankOf(p.cards[from]) !== 12 || !runOk(p, from)) continue;
-    for (let d = 0; d < s.tableau.length; d += 1) {
-      if (d !== c && !s.tableau[d].cards.length) return { kind: 'move', col: c, from, to: 'tableau', at: d };
+
+  /* 5. 안 안전해도 올릴 수 있으면 올린다. 더 둘 것이 없을 때만 */
+  if (!s.stock.length && (!s.waste.length || s.passes >= passLimit(s.draw))) {
+    for (let c = 0; c < s.tableau.length; c += 1) {
+      const p = s.tableau[c];
+      if (!p.cards.length || !p.up) continue;
+      const card = p.cards[p.cards.length - 1];
+      for (let f = 0; f < 4; f += 1) {
+        if (canFound(s.foundation[f], card)) return { kind: 'move', col: c, from: p.cards.length - 1, to: 'foundation', at: f };
+      }
+    }
+    if (s.waste.length) {
+      const card = s.waste[s.waste.length - 1];
+      for (let f = 0; f < 4; f += 1) if (canFound(s.foundation[f], card)) return { kind: 'waste', to: 'foundation', at: f };
     }
   }
   return null;

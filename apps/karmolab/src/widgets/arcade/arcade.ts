@@ -2783,7 +2783,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /** 무를 수 있는 판인가. 혼자, 봇 상대, 다시보기 아님, 편지 아님, 판 놀이 */
     function canUndo(): boolean {
-      return !!match && !net && !letter && !replaying && !tour && tutorAt === null && cardById(gameId)?.kind === 'board' && match.tape.length > 0 && !match.view().finished;
+      /* 판류와 혼자 하는 놀이. 솔리테어는 레퍼런스(solitr.com)도 Undo 를 머리 줄에 둠
+         남과 붙는 판에서는 상대 수까지 되감기므로 안 엶 */
+      const card = cardById(gameId);
+      const solo = card?.seats?.[1] === 1;
+      return !!match && !net && !letter && !replaying && !tour && tutorAt === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
     }
     function paintUndo(): void {
       const btn = container.querySelector<HTMLButtonElement>('#acUndo');
