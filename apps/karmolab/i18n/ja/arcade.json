@@ -668,5 +668,6 @@
   "arcade.dominoes.mypips": "自分の目 {n}",
   "arcade.dominoes.stock": "山 {n}枚",
   "arcade.liars.hint": "場に{n}個。ある目は{m}個ほど（1は万能）",
-  "arcade.solitaire.hintOn": "打てる手がある"
+  "arcade.solitaire.hintOn": "打てる手がある",
+  "arcade.solitaire.dropped": "戻した"
 }

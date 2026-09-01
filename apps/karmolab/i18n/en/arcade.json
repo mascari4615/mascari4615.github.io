@@ -668,5 +668,6 @@
   "arcade.dominoes.mypips": "My pips {n}",
   "arcade.dominoes.stock": "Boneyard {n}",
   "arcade.liars.hint": "{n} dice in play. Expect about {m} of a face (1s are wild)",
-  "arcade.solitaire.hintOn": "There is a move. Check the flat view"
+  "arcade.solitaire.hintOn": "There is a move. Check the flat view",
+  "arcade.solitaire.dropped": "Put back"
 }

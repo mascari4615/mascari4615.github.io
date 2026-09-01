@@ -29,13 +29,19 @@ const MARKS = ['♠', '♣', '♥', '♦'];
 const LABELS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** 카드 한 장. 앞면이면 값과 무늬, 뒷면이면 등무늬 */
+/**
+ * 카드 한 장. 앞면이면 값과 무늬, 뒷면이면 등무늬
+ *
+ * `data-k` 는 그 카드의 이름(0~51). 다시 그린 뒤에도 **같은 카드를 알아보려고** 붙임
+ * 이게 있어야 옛 자리에서 새 자리로 미끄러지는 손맛이 삼(`features/play.md` 의 손맛)
+ */
 function card(n: number, up: boolean, cls = ''): string {
-  if (!up) return '<span class="ac-sol-card ac-back ' + cls + '"></span>';
+  /* 뒤집힌 카드도 **같은 이름**. 그래야 뒤집히면서 자리를 옮겨도 한 장으로 이어짐 */
+  if (!up) return '<span class="ac-sol-card ac-back ' + cls + '" data-k="' + n + '"></span>';
   const r = LABELS[rankOf(n)];
   const m = MARKS[suitOf(n)];
   return (
-    '<span class="ac-sol-card' + (isRed(n) ? ' ac-red' : '') + ' ' + cls + '">' +
+    '<span class="ac-sol-card' + (isRed(n) ? ' ac-red' : '') + ' ' + cls + '" data-k="' + n + '">' +
     '<b>' + esc(r) + '</b><i>' + esc(m) + '</i><em>' + esc(m) + '</em></span>'
   );
 }
@@ -118,6 +124,40 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       } else act({ kind: 'move', col: h.col, from: h.from, to, at });
     };
 
+    /**
+     * 다시 그리면 CSS 전환이 매번 처음부터라 카드가 순간이동(사용자 지적)
+     * 그리기 **전에** 자리를 재 두고, 그린 **뒤에** 그만큼 되돌린 채로 시작해 0 으로 보냄
+     * 흔히 FLIP 이라 부르는 길. 다시 그려도 미끄러짐
+     */
+    const spots = new Map<string, DOMRect>();
+    const snap = (): void => {
+      spots.clear();
+      el.querySelectorAll<HTMLElement>('.ac-sol-card[data-k]').forEach((c) => {
+        spots.set(c.dataset.k as string, c.getBoundingClientRect());
+      });
+    };
+    const slide = (): void => {
+      const moved: HTMLElement[] = [];
+      el.querySelectorAll<HTMLElement>('.ac-sol-card[data-k]').forEach((c) => {
+        const was = spots.get(c.dataset.k as string);
+        if (!was) return;
+        const now = c.getBoundingClientRect();
+        const dx = was.x - now.x;
+        const dy = was.y - now.y;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        c.style.transition = 'none';
+        c.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+        moved.push(c);
+      });
+      if (!moved.length) return;
+      requestAnimationFrame(() => {
+        for (const c of moved) {
+          c.style.transition = 'transform .22s cubic-bezier(.2,.9,.3,1)';
+          c.style.transform = '';
+        }
+      });
+    };
+
     const paint = (force = false): void => {
       const s = last;
       if (!s) return;
@@ -125,13 +165,14 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       const key = JSON.stringify([s.stock.length, s.waste, s.foundation, s.tableau, s.passes, s.moves, held, flash, flashUntil > performance.now()]);
       if (!force && key === paintKey) return;
       paintKey = key;
+      snap();
       fit();
 
       /* 스톡과 웨이스트. 스톡이 비면 되돌릴 수 있는지 보인다 */
       const canRecycle = !s.stock.length && s.waste.length > 0 && s.passes < 3;
       dealEl.innerHTML =
         '<button type="button" class="ac-sol-slot ac-stock' + (s.stock.length || canRecycle ? '' : ' ac-dead') + '" id="acSolStock" aria-label="' + esc(t('arcade.solitaire.stock')) + '">' +
-        (s.stock.length ? card(0, false) : canRecycle ? '<span class="ac-sol-recycle">↺</span>' : '') +
+        (s.stock.length ? card(s.stock[s.stock.length - 1], false) : canRecycle ? '<span class="ac-sol-recycle">↺</span>' : '') +
         '<small>' + s.stock.length + '</small></button>' +
         '<button type="button" class="ac-sol-slot ac-waste' + (held?.kind === 'waste' ? ' ac-held' : '') + '" id="acSolWaste" aria-label="' + esc(t('arcade.solitaire.waste')) + '">' +
         (s.waste.length ? card(s.waste[s.waste.length - 1], true) : '') + '</button>';
@@ -173,6 +214,8 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
         })
         .join('');
 
+      slide();
+
       const done = doneCount(s);
       noteEl.textContent =
         performance.now() < flashUntil && flash
@@ -186,6 +229,12 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       const s = last;
       if (!s) return;
       const target = ev.target as HTMLElement;
+      /* 카드도 자리도 아닌 데를 누르면 들었던 것을 내려놓기. 물릴 길이 없으면 갇힘 */
+      if (held && !target.closest('.ac-sol-cell, .ac-sol-slot, #acSolStock, #acSolWaste, [data-f]')) {
+        held = null;
+        say(t('arcade.solitaire.dropped'));
+        return;
+      }
       const stock = target.closest('#acSolStock');
       if (stock) {
         held = null;
@@ -197,6 +246,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       if (waste) {
         if (!s.waste.length) { say(t('arcade.solitaire.nowaste')); return; }
         held = held?.kind === 'waste' ? null : { kind: 'waste' };
+        if (!held) say(t('arcade.solitaire.dropped'));
         paint();
         return;
       }
@@ -210,6 +260,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
           return;
         }
         /* 든 것이 없으면 파운데이션 맨 위를 든다(되돌리기) */
+        if (held?.kind === 'found' && held.pile === at) { held = null; say(t('arcade.solitaire.dropped')); return; }
         if (s.foundation[at].length) { held = { kind: 'found', pile: at }; paint(); }
         return;
       }
@@ -218,6 +269,13 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
         const c = Number(cell.dataset.c);
         const i = Number(cell.dataset.i);
         const hc = heldCard(s);
+        /* 든 것을 다시 누르면 내려놓기. 놓기보다 먼저 봄. 안 그러면 제 자리에 못 놓는다는
+           소리만 나오고 영영 못 물림(2026-09-01 실측) */
+        if (held?.kind === 'run' && held.col === c && i >= held.from) {
+          held = null;
+          say(t('arcade.solitaire.dropped'));
+          return;
+        }
         if (held && hc !== null) {
           if (!canStack(s.tableau[c], hc)) { say(t('arcade.solitaire.nostack')); return; }
           drop('tableau', c);
@@ -228,7 +286,9 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
         const hidden = p.cards.length - p.up;
         if (i < hidden) { say(t('arcade.solitaire.facedown')); return; }
         if (!runOk(p, i)) { say(t('arcade.solitaire.norun')); return; }
-        held = held?.kind === 'run' && held.col === c && held.from === i ? null : { kind: 'run', col: c, from: i };
+        const same = held?.kind === 'run' && held.col === c && held.from === i;
+        held = same ? null : { kind: 'run', col: c, from: i };
+        if (same) say(t('arcade.solitaire.dropped'));
         paint();
       }
     });

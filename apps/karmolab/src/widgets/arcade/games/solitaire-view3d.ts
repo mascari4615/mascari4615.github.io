@@ -101,7 +101,9 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
           say(t('arcade.solitaire.nowaste'));
           return;
         }
-        held = held?.kind === 'waste' ? null : { kind: 'waste' };
+        const same = held?.kind === 'waste';
+        held = same ? null : { kind: 'waste' };
+        if (same) say(t('arcade.solitaire.dropped'));
         paint();
         return;
       }
@@ -118,6 +120,11 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
           else if (h.kind === 'run') act({ kind: 'move', col: h.col, from: h.from, to: 'foundation', at });
           return;
         }
+        if (held?.kind === 'found' && held.pile === at) {
+          held = null;
+          say(t('arcade.solitaire.dropped'));
+          return;
+        }
         if (s.foundation[at].length) {
           held = { kind: 'found', pile: at };
           paint();
@@ -129,6 +136,12 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       if (!m) return;
       const c = Number(m[1]);
       const i = Number(m[2]);
+      /* 든 것을 다시 누르면 내려놓기. 놓기보다 먼저 */
+      if (held?.kind === 'run' && held.col === c && i >= held.from) {
+        held = null;
+        say(t('arcade.solitaire.dropped'));
+        return;
+      }
       if (held && hc !== null) {
         if (!canStack(s.tableau[c], hc)) {
           say(t('arcade.solitaire.nostack'));
@@ -152,7 +165,9 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
         say(t('arcade.solitaire.norun'));
         return;
       }
-      held = held?.kind === 'run' && held.col === c && held.from === i ? null : { kind: 'run', col: c, from: i };
+      const same = held?.kind === 'run' && held.col === c && held.from === i;
+      held = same ? null : { kind: 'run', col: c, from: i };
+      if (same) say(t('arcade.solitaire.dropped'));
       paint();
     };
 
