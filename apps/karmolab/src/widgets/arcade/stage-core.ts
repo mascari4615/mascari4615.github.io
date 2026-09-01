@@ -76,8 +76,12 @@ export function mountStageCore(host: HTMLElement, opts: StageCoreOpts = {}): Sta
 
   const cap = opts.maxPixelRatio ?? 1.5;
   const fit = (): { w: number; h: number; aspect: number } => {
-    const w = host.clientWidth || 1;
-    const h = host.clientHeight || 1;
+    /* 담는 칸이 아니라 **캔버스가 실제로 차지한 자리**를 잰다. 둘이 어긋나면 그린 그림을
+       브라우저가 다시 늘리거나 줄여 흐려진다 (2026-09-01 실측: 버퍼 1236 을 1162 칸에
+       넣고 있었다. 6% 축소) */
+    const r = canvas.getBoundingClientRect();
+    const w = Math.round(r.width) || host.clientWidth || 1;
+    const h = Math.round(r.height) || host.clientHeight || 1;
     renderer.setPixelRatio(Math.min(cap, window.devicePixelRatio || 1));
     renderer.setSize(w, h, false);
     return { w, h, aspect: w / h };

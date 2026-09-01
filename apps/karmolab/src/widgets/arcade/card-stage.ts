@@ -35,6 +35,7 @@ import { handNow } from './hands';
 import type { SceneId } from './scenes';
 import { cardBackTexture, cardEdgeTexture, cardFaceTexture, feltTexture } from './texture';
 import { suitOf } from './deck';
+import { buildCasinoTable, chipStack, type CasinoTable } from './card-table';
 
 /** 카드 한 장의 3D 치수 */
 const CARD_W = 0.82;
@@ -81,6 +82,11 @@ export interface CardStageOpts {
   onPick?(id: string): void;
   /** 끌기가 시작될 때. 들고 있던 것을 물리라는 뜻 */
   onDrop?(): void;
+  /**
+   * 상을 어떻게 차릴까. `casino` 면 반원 상판과 가죽 레일과 베팅 서클과 슈와
+   * 디스카드 트레이를 세움 (`card-table.ts`). 블랙잭이 쓰는 값
+   */
+  table?: 'box' | 'casino';
 }
 
 /** 자리를 직접 잡는 카드 한 장. 솔리테어처럼 줄이 아니라 판이 있는 놀이 */
@@ -110,6 +116,13 @@ export interface CardStage {
   setBoard(spots: CardSpotAt[]): void;
   /** 빈 자리 테두리. 이름을 주면 그 자리에 놓을 수 있음(빈 열에 K 놓기) */
   setSlots(slots: Array<{ x: number; z: number; id?: string }>): void;
+  /** 자리마다 걸린 판돈. 베팅 서클 위에 칩으로 쌓는다 (카지노 상에서만) */
+  setChips(bets: Array<{ seat: number; amount: number }>): void;
+  /**
+   * 몇 자리 상인가. 붙일 때는 아직 모르므로 화면이 첫 그림에서 알려 줌.
+   * 베팅 서클 수가 여기서 갈림
+   */
+  setSeats(n: number): void;
   /** 안 되는 것. 그 자리 카드가 빨갛게 떨린다 */
   nope(id: string): void;
   resize(): void;
@@ -119,10 +132,14 @@ export interface CardStage {
 /* 값과 자리로 정해지는 무늬는 `deck.ts` 의 `suitOf`. 평면 카드와 같은 셈법 */
 
 /** 한 줄에 카드가 몇 장이든 가운데를 맞춰 늘어놓는다. 많아지면 겹친다 */
-const spread = (n: number): number[] => {
+const spread = (n: number, tight = false): number[] => {
   if (n <= 0) return [];
-  /* 다섯 장까지는 사이를 벌리고, 그 뒤로는 겹쳐서 줄 길이를 지킨다 */
-  const gap = n <= 5 ? CARD_W * 1.24 : (CARD_W * 6.2) / n;
+  /* 카지노 상에서는 실물처럼 겹쳐 놓음. 벌려 놓으면 한 손이 상 절반을 먹음 */
+  const gap = tight
+    ? (n <= 4 ? CARD_W * 0.44 : (CARD_W * 1.9) / n)
+    : n <= 5
+      ? CARD_W * 1.24
+      : (CARD_W * 6.2) / n;
   const start = -((n - 1) * gap) / 2;
   return Array.from({ length: n }, (_, i) => start + i * gap);
 };
@@ -130,8 +147,10 @@ const spread = (n: number): number[] => {
 export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): CardStage {
   const TABLE_W = opts.board?.w ?? TABLE_W_DEFAULT;
   const TABLE_D = opts.board?.d ?? TABLE_D_DEFAULT;
-  const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05 });
-  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
+  /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
+     뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
+  const core = mountStageCore(host, { shadow: 'soft', exposure: 1.05, maxPixelRatio: 2 });
+  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
   /* 이방성 거르기. 카드는 상에 눕고 카메라는 40도쯤 위에서 내려보므로 화면에서 세로가
@@ -150,17 +169,29 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
 
   const room: Room | null = buildRoom(scene, sceneId, TABLE_W);
 
-  /* 탁자. 방이 제 바닥을 들고 오므로 여기서는 천을 씌운 상만 놓는다 */
-  const feltMap = sharp(new CanvasTexture(feltTexture(23, 512)));
-  feltMap.colorSpace = SRGBColorSpace;
-  feltMap.wrapS = feltMap.wrapT = 1000; /* RepeatWrapping */
-  feltMap.repeat.set(3, 2);
-  const feltMat = new MeshStandardMaterial({ map: feltMap, color: new Color(0x2f6f5e), roughness: 0.95, metalness: 0 });
-  const table = new Mesh(new BoxGeometry(TABLE_W, 0.24, TABLE_D), feltMat);
-  table.position.set(0, TOP_Y - 0.12, 0);
-  table.receiveShadow = true;
-  table.castShadow = true;
-  scene.add(table);
+  /* 상. 카지노 상은 반원 상판과 가죽 레일과 인쇄 문구까지.
+     그 밖의 판은 천 씌운 네모 상 하나 */
+  const casino = opts.table === 'casino';
+  let seatCount = Math.max(1, opts.seats ?? 3);
+  let dressed: CasinoTable | null = null;
+  let feltMap: { dispose(): void } | null = null;
+  let feltMat: { dispose(): void } | null = null;
+  if (casino) {
+    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO });
+  } else {
+    const fm = sharp(new CanvasTexture(feltTexture(23, 512)));
+    fm.colorSpace = SRGBColorSpace;
+    fm.wrapS = fm.wrapT = 1000; /* RepeatWrapping */
+    fm.repeat.set(3, 2);
+    const mat = new MeshStandardMaterial({ map: fm, color: new Color(0x2f6f5e), roughness: 0.95, metalness: 0 });
+    const table = new Mesh(new BoxGeometry(TABLE_W, 0.24, TABLE_D), mat);
+    table.position.set(0, TOP_Y - 0.12, 0);
+    table.receiveShadow = true;
+    table.castShadow = true;
+    scene.add(table);
+    feltMap = fm;
+    feltMat = mat;
+  }
 
   /* 빛. 방이 제 빛을 들고 오지만 탁자 위 카드가 읽히려면 한 줄기 더 */
   const lamp = new DirectionalLight(0xfff0dc, 1.15);
@@ -287,7 +318,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   };
 
   /* 카드가 나오는 자리. 딜러 뒤 카드집 */
-  const shoe = new Vector3(TABLE_W / 2 - 0.9, TOP_Y + 0.4, -TABLE_D / 2 + 0.7);
+  const shoe = dressed ? dressed.shoe.clone() : new Vector3(TABLE_W / 2 - 0.9, TOP_Y + 0.4, -TABLE_D / 2 + 0.7);
 
   let mySeat = opts.mySeat ?? 0;
   /* 줄 자리. 딜러는 안쪽, 사람은 앞쪽.
@@ -296,6 +327,14 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const rowZ = (seat: number): number => (seat < 0 ? -TABLE_D * 0.3 : TABLE_D * 0.24);
   /* 내 줄은 앞 가운데, 남의 줄은 그 뒤 좌우로. 내 손패가 늘 같은 자리에 있어야 눈이 안 헤맨다 */
   const rowOf = (seat: number, others: number[]): { x: number; z: number; s: number } => {
+    if (casino && dressed) {
+      /* 카지노 상. 사람은 반원 위에 나란히, 카드는 제 베팅 서클보다 딜러 쪽 */
+      if (seat < 0) return { x: 0, z: dressed.dealerZ, s: 0.92 };
+      const n = seatCount;
+      const order = seatOrder(n);
+      const sp = dressed.spot(order.indexOf(seat), n);
+      return { x: sp.x * 0.9, z: sp.z - 0.86, s: seat === mySeat ? 0.86 : 0.7 };
+    }
     if (seat < 0) return { x: 0, z: rowZ(-1), s: 1 };
     if (seat === mySeat) return { x: 0, z: rowZ(seat), s: 1 };
     const i = others.indexOf(seat);
@@ -305,6 +344,55 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     const w = TABLE_W * 0.52;
     const x = n === 1 ? 0 : -w / 2 + (i * w) / (n - 1);
     return { x, z: rowZ(seat) - TABLE_D * 0.16, s: 0.58 };
+  };
+
+  /**
+   * 자리를 반원 어디에 앉힐까. 내가 가운데, 나머지가 좌우로.
+   * 사람이 늘 화면 앞 가운데를 봐야 눈이 안 헤맴
+   */
+  const seatOrder = (n: number): number[] => {
+    const rest: number[] = [];
+    for (let i = 0; i < n; i++) if (i !== mySeat) rest.push(i);
+    const out: number[] = [];
+    const mid = Math.floor(n / 2);
+    for (let i = 0; i < n; i++) out.push(i === mid ? mySeat : (rest.shift() as number));
+    return out;
+  };
+
+  /* 칩 무더기. 자리마다 하나 */
+  const chipGroup = new Group();
+  scene.add(chipGroup);
+  const setChips = (bets: Array<{ seat: number; amount: number }>): void => {
+    if (!casino || !dressed) return;
+    const key = JSON.stringify(bets);
+    if (key === chipKey) return;
+    chipKey = key;
+    while (chipGroup.children.length) chipGroup.remove(chipGroup.children[0]);
+    const order = seatOrder(seatCount);
+    for (const b of bets) {
+      if (b.amount <= 0) continue;
+      const sp = dressed.spot(order.indexOf(b.seat), seatCount);
+      const st = chipStack(b.amount);
+      st.position.set(sp.x, TOP_Y, sp.z);
+      chipGroup.add(st);
+    }
+    need = true;
+    render();
+  };
+  let chipKey = '';
+
+  /* 자리 수가 바뀌면 상판 인쇄를 다시 굽는다는 뜻. 판마다 한 번뿐이라 값이 쌈 */
+  const setSeats = (n: number): void => {
+    const want = Math.max(1, n);
+    if (!casino || want === seatCount) return;
+    seatCount = want;
+    dressed?.dispose();
+    dressed = buildCasinoTable(scene, { w: TABLE_W, d: TABLE_D, topY: TOP_Y, seats: seatCount, aniso: ANISO });
+    shoe.copy(dressed.shoe);
+    shownKey = '';
+    chipKey = '';
+    need = true;
+    render();
   };
 
   let shown: CardHand[] = [];
@@ -330,6 +418,10 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       const need = Math.max(TABLE_W / Math.max(0.6, aspect), TABLE_D * 0.92);
       camera.position.set(0, TOP_Y + need * 1.42, need * 0.86);
       camera.lookAt(0, TOP_Y, 0.35);
+    } else if (casino) {
+      /* 낮게 앉아 상이 화면을 채움. 높이서 보면 상 너머 빈 바닥이 절반 */
+      camera.position.set(0, tall ? 4.5 : 3.6, tall ? 5.0 : 4.3);
+      camera.lookAt(0, TOP_Y, 0.25);
     } else {
       camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
       /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
@@ -420,7 +512,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         row.s *= Math.max(0.5, share + 0.2);
         row.x += (nth - (many - 1) / 2) * (TABLE_W * 0.3) * share * 2;
       }
-      const xs = spread(h.cards.length);
+      const xs = spread(h.cards.length, casino);
       h.cards.forEach((card, i) => {
         /* 상 윗면이 TOP_Y. 카드 두께 절반만 띄움 (2026-09-01 사용자 지적. 카드가 공중에 떠 있었음) */
         const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + CARD_T / 2 + i * 0.004, row.z);
@@ -697,6 +789,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     software: core.software,
     set,
     setBoard,
+    setChips,
+    setSeats,
     setSlots,
     nope,
     resize: fit,
@@ -711,10 +805,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       slotGeo.dispose();
       slotMat.dispose();
       redMat.dispose();
-      feltMap.dispose();
+      feltMap?.dispose();
+      dressed?.dispose();
       backMap.dispose();
       edgeMap.dispose();
-      [feltMat, backMat, edgeMat].forEach((m) => m.dispose());
+      feltMat?.dispose();
+      [backMat, edgeMat].forEach((m) => m.dispose());
       faceCache.forEach((m) => {
         m.map?.dispose();
         m.dispose();

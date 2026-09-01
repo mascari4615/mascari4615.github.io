@@ -62,7 +62,7 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
     const actBox = el.querySelector('#acBjActs') as HTMLElement;
 
     const scene = sceneOf('blackjack');
-    const stage: CardStage | null = mountCardStage(host, { scene });
+    const stage: CardStage | null = mountCardStage(host, { scene, table: 'casino' });
     /* 방 소리. 알이 놓이는 소리를 카드 놓는 소리로 쓴다 */
     const amb = roomAmbience(host);
 
@@ -256,7 +256,17 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
           });
         });
       });
+      stage.setSeats(s.seats.length);
       stage.set(hands, mySeat);
+      /* 베팅 서클 위 칩. 아직 안 치른 판돈만 */
+      stage.setChips(
+        s.seats.map((st, i) => ({
+          seat: i,
+          /* 값을 치르기 전까지 칩은 서클 위에 남음. 결과가 나자마자 걷으면
+             무엇을 걸었는지 볼 새가 없음 */
+          amount: s.phase === 'bet' ? st.bet : st.hands.reduce((a, h) => a + h.bet, 0)
+        }))
+      );
       paintHud(s, mySeat, names);
     };
   }
