@@ -3497,6 +3497,44 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let rankedMatch: RankedMatch | null = null;
 
     /**
+     * 짝이 났는데 못 붙는 경우 (2026-09-01, 레퍼런스 대조)
+     *
+     * 판은 브라우저끼리(nostr 중계로 짝짓고 WebRTC 로) 돈다. 그런데 **누구나 붙는 것이 아니다**:
+     * 제작사들 실측으로 10에서 30%가 직접 연결에 실패해 릴레이(TURN)로 넘어간다. 대칭 NAT 뒤가
+     * 11%, ICE 실패의 85%가 NAT 와 방화벽 탓. 우리는 TURN 이 없으니 그만큼은 못 붙음.
+     * 서버가 짝을 지어 줬는데 못 붙으면 사람은 빈 판 앞에서 영영 기다림. 그 자리에 말을 줌
+     */
+    const LINK_WAIT_MS = 25000;
+    let linkTimer = 0;
+
+    function stopLinkWatch(): void {
+      window.clearTimeout(linkTimer);
+      linkTimer = 0;
+    }
+
+    /** 짝이 난 뒤부터 센다. 상대가 방에 들어오면 멈춘다 */
+    function watchLink(): void {
+      stopLinkWatch();
+      linkTimer = window.setTimeout(() => {
+        linkTimer = 0;
+        if (!rankedMatch || match || peers.length) return;
+        const word = t('arcade.rank.nolink');
+        /* 아직 판이 안 떴으면 대기 화면에 적는다. 판 위의 띠는 그때 안 보인다 */
+        const waiting = $<HTMLElement>('#acWait').style.display !== 'none';
+        if (waiting) {
+          $<HTMLElement>('#acWaitStatus').textContent = word;
+        } else {
+          const bar = container.querySelector<HTMLElement>('#acGoneBar');
+          if (bar) {
+            bar.textContent = word;
+            bar.hidden = false;
+          }
+        }
+        say(word, 'warn');
+      }, LINK_WAIT_MS);
+    }
+
+    /**
      * 등급전 결과를 서버에 보고
      * - 점수 높은 순서를 id 로 적음. 2인 판이라 내 자리와 상대 자리 둘뿐
      * - 양쪽이 각자 보냄. 한쪽 말만으로는 점수가 안 움직임
@@ -3559,6 +3597,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           paintWait(code, true);
           paintRoom();
           if (was > 0 && !list.length) rivalGone();
+          if (list.length) stopLinkWatch();
           /* 등급전: 서버가 붙여 준 상대 도착 시 즉시 시작. 둘째 사람 대기 없음 */
           if (autoStart && peers.length >= 1 && !match) {
             autoStart = false;
@@ -3657,6 +3696,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           rankedTick?.();
           rankedTick = null;
           rankedMatch = { code: m.code, you: m.you, rival: m.rival };
+          watchLink();
           if (m.host) {
             /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
             autoStart = true;
@@ -3692,6 +3732,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           const was = peers.length;
           peers = list;
           paintWait(code, false);
+          if (list.length) stopLinkWatch();
           if (was > 0 && !list.length) rivalGone();
         },
         onAct: () => {
@@ -4120,6 +4161,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       autoStart = false;
       rankedTick?.();
       rankedTick = null;
+      stopLinkWatch();
       hideGoneBar();
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
