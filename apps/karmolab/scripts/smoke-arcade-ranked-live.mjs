@@ -21,7 +21,22 @@ import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { build } from 'esbuild';
+import { createRequire } from 'node:module';
 import { smokeBase } from './lib/smoke-base.mjs';
+
+/**
+ * **끝나는 판이어야 한다.** 사람 자리 둘에 수가 비면 오목은 영영 안 끝나고,
+ * 서버는 옳게 못 셌다고 답함(실측). 봇 둘이면 커널이 스스로 끝까지 밈
+ */
+const TAPE = (seed) => ({
+  game: 'gomoku',
+  seed,
+  seats: [{ name: '앨리스', bot: true }, { name: '밥', bot: true }],
+  opts: {},
+  moves: [],
+  /* 되살리기는 이 시각까지만 민다. 봇 판은 길어서 넉넉히 잡아야 끝까지 감 */
+  end: 200000
+});
 
 const PORT = 4703;
 const LOCAL = `http://127.0.0.1:${PORT}`;
@@ -60,6 +75,12 @@ const built = await build({
   bundle: true, format: 'iife', globalName: '__ranked', platform: 'browser', write: false
 });
 const rankedSrc = built.outputFiles[0].text;
+
+/* 서버가 셀 답을 이쪽도 미리 안다. 같은 묶음을 부르므로 답이 갈릴 수 없다 */
+const verifierPath = path.resolve(
+  'src/../..', 'discord-bots', 'apps', 'yawnbot', 'data', 'arcade-verifier.cjs'
+);
+const { verifyTape } = createRequire(import.meta.url)(verifierPath);
 
 const site = await smokeBase();
 const browser = await chromium.launch();
@@ -141,19 +162,16 @@ try {
 
   /* ② 주인이 패보를 올린다. 서버가 그 패보로 판을 다시 셈함 */
   const host = ra.m.host ? A : B;
-  const tapeId = await host.page.evaluate(
-    (c) =>
-      window.__ranked.saveTape(c, {
-        game: 'gomoku', seed: 7,
-        seats: [{ name: '앨리스', bot: false }, { name: '밥', bot: false }],
-        opts: {}, moves: [], end: 1000
-      }),
-    code
-  );
+  const tape = TAPE(7);
+  const truth = verifyTape(tape);
+  check('그 패보는 끝나는 판이다', truth.ok && truth.finished === true, JSON.stringify(truth));
+  const tapeId = await host.page.evaluate(([c, t]) => window.__ranked.saveTape(c, t), [code, tape]);
   check('패보가 올라갔다', !!tapeId, String(tapeId));
 
   /* ③ 둘이 같은 순서를 보고하면 점수가 움직인다 */
-  const order = [ra.m.you, rb.m.you];
+  /* 서버가 셀 순서 그대로 보고한다. 자리 번호를 사람 이름으로 옮김 */
+  const seatIds = [ra.m.host ? ra.m.you : rb.m.you, ra.m.host ? rb.m.you : ra.m.you];
+  const order = truth.ranks.map((seat) => seatIds[seat]);
   const said = (p, m) =>
     p.page.evaluate(
       ([mm, o]) => window.__ranked.reportResult(mm, o, false),
@@ -164,9 +182,42 @@ try {
   const second = await said(B, rb.m);
   check('둘 다 보고하면 반영된다', second?.applied === true, JSON.stringify(second));
 
-  const mine = await A.page.evaluate(() => window.__ranked.myRating('gomoku'));
+  check('서버가 다시 세어 봤다고 말한다', second?.verified === true, JSON.stringify(second));
+
+  const winner = order[0] === ra.m.you ? A : B;
+  const mine = await winner.page.evaluate(() => window.__ranked.myRating('gomoku'));
   check('이긴 쪽 점수가 올랐다', (mine?.rating ?? 0) > 1500, JSON.stringify(mine));
   check('판 수가 늘었다', (mine?.games ?? 0) === 1, JSON.stringify(mine));
+
+  /**
+   * 둘이 짜고 거꾸로 보고하면 서버가 막는다. 등급 점수의 마지막 자물쇠
+   *
+   * **사람을 새로 부른다.** 짝이 난 뒤에도 서버는 그 답을 얼마간 들고 있어서,
+   * 같은 둘이 다시 서면 **같은 방 코드**가 돌아온다(실측). 그러면 이미 끝난 판에
+   * 다시 보고하는 꼴이라 아무것도 안 재게 됨
+   */
+  const C = await open('e2e-carol');
+  const D = await open('e2e-dave');
+  const [rc, rd] = await Promise.all([stand(C, '캐럴'), stand(D, '데이브')]);
+  check('새 둘도 짝이 났다', rc.how === '짝' && rd.how === '짝', `${rc.how} / ${rd.how}`);
+
+  if (rc.how === '짝' && rd.how === '짝') {
+    const tape2 = TAPE(9);
+    const truth2 = verifyTape(tape2);
+    const host2 = rc.m.host ? C : D;
+    await host2.page.evaluate(([c, t]) => window.__ranked.saveTape(c, t), [rc.m.code, tape2]);
+    const seat2 = [rc.m.host ? rc.m.you : rd.m.you, rc.m.host ? rd.m.you : rc.m.you];
+    /* 서버가 센 것과 거꾸로 말한다. 둘 다 같은 거짓말을 해도 막혀야 함 */
+    const wrong = truth2.ranks.map((seat) => seat2[seat]).reverse();
+    await C.page.evaluate(([m, o]) => window.__ranked.reportResult(m, o, false), [rc.m, wrong]);
+    const caught = await D.page.evaluate(([m, o]) => window.__ranked.reportResult(m, o, false), [rd.m, wrong]);
+    check('거짓 보고는 점수가 안 붙는다', caught?.applied === false, JSON.stringify(caught));
+    check('거짓이라고 말해 준다', caught?.forged === true, JSON.stringify(caught));
+    const still = await C.page.evaluate(() => window.__ranked.myRating('gomoku'));
+    check('거짓 보고 뒤 점수가 그대로다', still?.rating === 1500, JSON.stringify(still));
+  }
+  await C.ctx.close();
+  await D.ctx.close();
 
   await A.ctx.close();
   await B.ctx.close();

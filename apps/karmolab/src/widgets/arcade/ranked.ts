@@ -286,6 +286,12 @@ export interface Reported {
   waiting: number;
   /** 양쪽 말이 어긋남 */
   disagreed: boolean;
+  /** 서버가 패보로 다시 셈한 것과 어긋남. 점수가 안 움직임 */
+  forged: boolean;
+  /** 서버가 실제로 다시 세어 봤나. 거짓이면 셀 것이 없었다는 뜻 */
+  verified: boolean;
+  /** 같은 짝끼리 반복이라 폭이 깎였나 */
+  damped: boolean;
   /** 반영됐으면 내 점수 변화 */
   delta: number | null;
   rating: number | null;
@@ -309,6 +315,9 @@ export async function reportResult(m: RankedMatch, ranks: string[], draw: boolea
       applied?: boolean;
       waiting?: number;
       disagreed?: boolean;
+      forged?: boolean;
+      verified?: boolean;
+      damped?: boolean;
       result?: Array<{ id: string; after: number; delta: number }>;
     };
     const mine = body.result?.find((r) => r.id === m.you) ?? null;
@@ -316,6 +325,9 @@ export async function reportResult(m: RankedMatch, ranks: string[], draw: boolea
       applied: Boolean(body.applied),
       waiting: Number(body.waiting ?? 0),
       disagreed: Boolean(body.disagreed),
+      forged: Boolean(body.forged),
+      verified: Boolean(body.verified),
+      damped: Boolean(body.damped),
       delta: mine ? mine.delta : null,
       rating: mine ? mine.after : null
     };

@@ -3659,9 +3659,21 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           say(t('arcade.rank.disagreed'), 'warn');
           return;
         }
+        /* 서버가 패보로 다시 세어 보고 어긋난 판. 점수가 안 움직였다는 것을 사람이 알아야 함 */
+        if (said.forged) {
+          say(t('arcade.rank.forged'), 'warn');
+          return;
+        }
         if (said.applied) {
           const d = said.delta ?? 0;
-          say(t('arcade.rank.applied', { d: (d > 0 ? '+' : '') + String(d), n: String(said.rating ?? 0) }), d >= 0 ? 'ok' : 'warn');
+          /* 왜 이 점수인가를 같이 적는다. 폭이 깎였는데 말이 없으면 셈이 틀린 것으로 읽힘 */
+          const why =
+            (said.damped ? ' ' + t('arcade.rank.damped') : '') +
+            (said.verified ? ' ' + t('arcade.rank.verified') : '');
+          say(
+            t('arcade.rank.applied', { d: (d > 0 ? '+' : '') + String(d), n: String(said.rating ?? 0) }) + why,
+            d >= 0 ? 'ok' : 'warn'
+          );
           return;
         }
         if (tries === 0) say(t('arcade.rank.waiting.other'));

@@ -41,7 +41,9 @@ function verifier(): VerifyFn | null {
   if (looked) return fn;
   looked = true;
   try {
-    const mod = req(path.join(PKG_ROOT, 'data', 'arcade-verifier.cjs')) as { verifyTape?: VerifyFn };
+    /* 자리를 밖에서 줄 수 있게. 묶여 돌 때는 PKG_ROOT 가 어긋난다(검사 서버에서 실측) */
+    const at = process.env.ARCADE_VERIFIER_FILE?.trim() || path.join(PKG_ROOT, 'data', 'arcade-verifier.cjs');
+    const mod = req(at) as { verifyTape?: VerifyFn };
     fn = typeof mod.verifyTape === 'function' ? mod.verifyTape : null;
   } catch {
     /* 안 구워진 배포. 물러선다 */

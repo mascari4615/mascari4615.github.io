@@ -30,6 +30,8 @@ const PORT = at >= 0 ? Number(args[at + 1]) : 4699;
 const box = fs.mkdtempSync(path.join(os.tmpdir(), 'arcade-e2e-'));
 process.env.ARCADE_RATING_FILE = path.join(box, 'ratings.json');
 process.env.ARCADE_PAIR_FILE = path.join(box, 'pairs.json');
+/* 서버가 판을 다시 셈하는 묶음. 묶인 채로 돌면 제 자리를 못 찾으므로 여기서 짚어 준다 */
+process.env.ARCADE_VERIFIER_FILE = path.join(PKG, 'data', 'arcade-verifier.cjs');
 
 /* 묶음은 이 꾸러미 안에 둔다. 임시 자리에 두면 express 를 못 찾는다(실측) */
 const out = path.join(PKG, 'data', 'arcade-e2e-routes.cjs');
