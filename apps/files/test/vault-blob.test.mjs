@@ -90,6 +90,26 @@ test('Worker /blob 은 바인딩 없으면 503', async () => {
   assert.equal(res.status, 503);
 });
 
+test('Worker 는 PC API를 같은 출처에서 노트북으로 중계한다', async () => {
+  const orig = globalThis.fetch;
+  let seen;
+  globalThis.fetch = async (request, options) => {
+    seen = { url: String(request), options };
+    return Response.json({ ok: true });
+  };
+  try {
+    const res = await worker.fetch(new Request(
+      'https://files.mascari4615.com/pc-api/files/api/list?p=%EC%82%AC%EC%A7%84',
+      { headers: { Authorization: 'Basic test' } },
+    ), {});
+    assert.equal(res.status, 200);
+    assert.equal(seen.url, 'https://laptop.mascari4615.com/files/api/list?p=%EC%82%AC%EC%A7%84');
+    assert.equal(seen.options.headers.get('Authorization'), 'Basic test');
+  } finally {
+    globalThis.fetch = orig;
+  }
+});
+
 test('Worker /blob 은 R2 키를 그대로 읽는다', async () => {
   const res = await worker.fetch(new Request('https://files.mascari4615.com/blob/hdr'), {
     VAULT: {

@@ -24,6 +24,7 @@
 import { allowedKey, immutableKey, writableKey } from './src/blob-key.mjs';
 
 const PAGES = 'https://blog.mascari4615.com/files';
+const LAPTOP = 'https://laptop.mascari4615.com';
 
 /** 휴지통은 경로 목록뿐이다. 이보다 크면 뭔가 잘못된 것이다 */
 const TRASH_MAX = 2 * 1024 * 1024;
@@ -31,6 +32,16 @@ const TRASH_MAX = 2 * 1024 * 1024;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/pc-api' || url.pathname.startsWith('/pc-api/')) {
+      const path = url.pathname.replace(/^\/pc-api/, '') || '/';
+      const upstream = new URL(path + url.search, LAPTOP);
+      return fetch(upstream, {
+        method: request.method,
+        headers: request.headers,
+        body: request.method === 'GET' || request.method === 'HEAD' ? null : request.body,
+        redirect: 'manual',
+      });
+    }
     if (url.pathname === '/blob' || url.pathname.startsWith('/blob/')) {
       const key = decodeURIComponent(url.pathname.replace(/^\/blob\/?/, ''));
       if (!allowedKey(key)) {

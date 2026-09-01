@@ -28,6 +28,7 @@ import {
 } from './src/viewer.mjs';
 
 const LAPTOP = 'https://laptop.mascari4615.com';
+const LAPTOP_API = location.hostname === 'files.mascari4615.com' ? '/pc-api' : LAPTOP;
 const LAPTOP_KEY = 'files.laptop.pass';
 const VAULT_KEY = 'files.vault.pass';
 const box = document.getElementById('box');
@@ -244,7 +245,7 @@ async function buildFetch(path, options = {}) {
     return null;
   }
   const headers = { ...(options.headers || {}), Authorization: auth };
-  const response = await fetch(LAPTOP + path, { ...options, headers });
+  const response = await fetch(LAPTOP_API + path, { ...options, headers });
   if (response.status === 401 || response.status === 403) {
     sessionStorage.removeItem(LAPTOP_KEY);
     showLaptopGate('비밀번호가 틀렸거나 만료되었습니다.');
@@ -570,7 +571,7 @@ function loadLaptop() {
     return;
   }
   box.innerHTML = '<p class="none">불러오는 중...</p>';
-  fetch(LAPTOP + '/files/api/list?p=' + encodeURIComponent(p), {
+  fetch(LAPTOP_API + '/files/api/list?p=' + encodeURIComponent(p), {
     headers: { Authorization: auth },
   }).then((r) => {
     if (r.status === 401 || r.status === 403) {
