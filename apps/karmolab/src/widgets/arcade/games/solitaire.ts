@@ -13,11 +13,15 @@
  * 혼자 하는 놀이라 새는 곳이 없음(블랙잭과 달리 남의 창이 없음)
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { codeRank, codeSuit, isRedSuit } from '../deck';
 
-/** 카드 한 벌 쉰두 장. 값은 0(A)~12(K), 무늬는 0~3 */
-export const rankOf = (card: number): number => card % 13;
-export const suitOf = (card: number): number => Math.floor(card / 13);
-export const isRed = (card: number): boolean => suitOf(card) >= 2;
+/**
+ * 카드 한 벌 쉰두 장. 셈법은 `deck.ts` 한 곳(2D 와 3D 가 같은 값을 읽음)
+ * 값은 0(A)~12(K). `deck.codeRank` 는 1~13 이라 하나를 뺌
+ */
+export const rankOf = (card: number): number => codeRank(card) - 1;
+export const suitOf = (card: number): number => codeSuit(card);
+export const isRed = (card: number): boolean => isRedSuit(suitOf(card));
 
 export interface Pile {
   cards: number[];

@@ -12,6 +12,7 @@
  */
 import { t } from '../../../lib/i18n';
 import { blip } from '../../../lib/blip';
+import { applyDeckSkin, rankLabel, suitMark } from '../deck';
 import { roomAmbience } from '../ambience';
 import { sceneOf } from '../scenes';
 import type { GameView } from '../views';
@@ -28,8 +29,9 @@ import {
   type SolitaireState
 } from './solitaire';
 
-const MARKS = ['♠', '♣', '♥', '♦'];
-const LABELS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+/* 무늬 글자와 값 이름은 `deck.ts` 한 곳. 스킨을 갈면 여기도 따라감 */
+const mark = (suit: number): string => suitMark(suit);
+const label = (rank0: number): string => rankLabel(rank0 + 1);
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
@@ -41,8 +43,8 @@ const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;'
 function card(n: number, up: boolean, cls = ''): string {
   /* 뒤집힌 카드도 **같은 이름**. 그래야 뒤집히면서 자리를 옮겨도 한 장으로 이어짐 */
   if (!up) return '<span class="ac-sol-card ac-back ' + cls + '" data-k="' + n + '"></span>';
-  const r = LABELS[rankOf(n)];
-  const m = MARKS[suitOf(n)];
+  const r = label(rankOf(n));
+  const m = mark(suitOf(n));
   return (
     '<span class="ac-sol-card' + (isRed(n) ? ' ac-red' : '') + ' ' + cls + '" data-k="' + n + '">' +
     '<b>' + esc(r) + '</b><i>' + esc(m) + '</i><em>' + esc(m) + '</em></span>'
@@ -85,6 +87,8 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
      * 카드가 0px 이 되고, `vw` 로 잡으면 사이드바를 못 빼 판이 오른쪽으로 넘친다(둘 다 실측)
      */
     const root = el.querySelector('.ac-sol') as HTMLElement;
+    /* 카드 앞뒤 색은 스킨이 정함(`deck.ts`). 2D 와 3D 가 같은 값을 읽음 */
+    applyDeckSkin(root);
     const fit = (): void => {
       const w = root.clientWidth || el.clientWidth || 0;
       if (!w) return;
@@ -216,7 +220,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
           return (
             '<button type="button" class="ac-sol-slot ac-found' + (ok ? ' ac-can' : '') + (held?.kind === 'found' && held.pile === i ? ' ac-held' : '') +
             '" data-f="' + i + '" aria-label="' + esc(t('arcade.solitaire.found')) + '">' +
-            (f.length ? card(f[f.length - 1], true) : '<span class="ac-sol-ghost">' + MARKS[i] + '</span>') +
+            (f.length ? card(f[f.length - 1], true) : '<span class="ac-sol-ghost">' + mark(i) + '</span>') +
             '</button>'
           );
         })
@@ -398,6 +402,6 @@ function hintText(mv: SolitaireAction, s: SolitaireState): string {
   if (mv.kind === 'waste') return t(mv.to === 'foundation' ? 'arcade.solitaire.hint.wasteFound' : 'arcade.solitaire.hint.wasteTab', { n: String(mv.at + 1) });
   if (mv.kind === 'unfound') return t('arcade.solitaire.hint.unfound', { n: String(mv.at + 1) });
   const p = s.tableau[mv.col];
-  const label = p && p.cards[mv.from] !== undefined ? LABELS[rankOf(p.cards[mv.from])] + MARKS[suitOf(p.cards[mv.from])] : '';
-  return t(mv.to === 'foundation' ? 'arcade.solitaire.hint.toFound' : 'arcade.solitaire.hint.toTab', { c: label, n: String(mv.at + 1) });
+  const name = p && p.cards[mv.from] !== undefined ? label(rankOf(p.cards[mv.from])) + mark(suitOf(p.cards[mv.from])) : '';
+  return t(mv.to === 'foundation' ? 'arcade.solitaire.hint.toFound' : 'arcade.solitaire.hint.toTab', { c: name, n: String(mv.at + 1) });
 }
