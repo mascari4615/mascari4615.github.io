@@ -3583,13 +3583,15 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
    =================================================================== */
 :root {
     --skin: classic;
+    --chip-radius: var(--radius-pill);   /* 칩과 별 칩의 둥글기. 필드는 0 */
+    --hero-font: inherit;                /* 도구 판 큰 번호의 글꼴. 필드는 표시 글꼴 */
     --skew: 0deg;
     --cut: 0px;
     --shadow-hard: none;
     --band: var(--bg-tertiary);
     --band-ink: var(--text-primary);
     --band-mute: var(--text-tertiary);
-    --accent-mix: var(--accent);
+    --accent-mix: linear-gradient(var(--accent), var(--accent));   /* 칠 그림. 색 하나만 쓰는 스킨도 그림 꼴로 둔다 */
     --scene-blob-a: transparent;
     --scene-blob-b: transparent;
     --scene-shard: transparent;
@@ -3601,6 +3603,8 @@ html.is-layout-full .tool-page.layout-full.active > .tab-panel.active {
 /* 필드: 밝은 회백 판 + 주황 키. 캔버스 "확정 Y4" 값 */
 html[data-skin="field"] {
     --skin: field;
+    --chip-radius: 0;
+    --hero-font: var(--font-display);
     color-scheme: light;
 
     --bg-void: #dedcd6;
@@ -4167,9 +4171,10 @@ html[data-skin="field"] .sidebar-user .header-account-blank { background: var(--
 
 /* 도구 판 제목. 큰 제목 + 괄호 설명 + 자(1px 선 + 강조 띠) (시안 Z1) */
 /* 제목 블록 (시안 Z1). 큰 번호 96 | 라벨 10 모노 + 제목 30 + 괄호 설명 | 별 칩. 아래 자 1px + 강조 띠 120x6 */
-.tool-page-hero-no, .tool-page-hero-label, .tool-page-hero-rule { display: none; }
+/* 제목 블록. **짜임은 스킨과 무관하다** (2026-09-01). 큰 번호, 라벨, 제목, 설명, 별 칩, 자.
+   스킨은 칠과 모양 토큰만 바꾼다: `--hero-font`, `--chip-radius`, `--skew`, `--accent-mix`, `--glass` */
 .tool-page-hero-actions { display: contents; }
-html[data-skin="field"] .tool-page-hero {
+.tool-page-hero {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -4177,17 +4182,17 @@ html[data-skin="field"] .tool-page-hero {
     padding-bottom: 0;
     margin-bottom: var(--space-lg);
 }
-html[data-skin="field"] .tool-page-hero-no {
+.tool-page-hero-no {
     display: block;
-    font-family: var(--font-display);
+    font-family: var(--hero-font);
     font-weight: 800;
     font-size: 96px;
     line-height: .8;
     letter-spacing: -.02em;
     color: var(--text-primary);
 }
-html[data-skin="field"] .tool-page-hero-main { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; min-width: 0; }
-html[data-skin="field"] .tool-page-hero-label {
+.tool-page-hero-main { display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; min-width: 0; }
+.tool-page-hero-label {
     display: block;
     margin: 0;
     font-family: var(--font-mono);
@@ -4196,13 +4201,13 @@ html[data-skin="field"] .tool-page-hero-label {
     text-transform: uppercase;
     color: var(--text-tertiary);
 }
-html[data-skin="field"] .tool-page-hero-title { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -.02em; line-height: 1; }
-html[data-skin="field"] .tool-page-hero-desc { margin: 0; display: flex; align-items: center; gap: 8px; }
-html[data-skin="field"] .tool-page-hero-desc::before { content: ''; width: 8px; height: 8px; background: var(--accent); background-image: var(--accent-mix); flex: none; }
-html[data-skin="field"] .tool-page-hero-desc::after { content: none; }
+.tool-page-hero-title { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -.02em; line-height: 1; }
+.tool-page-hero-desc { margin: 0; display: flex; align-items: center; gap: 8px; }
+.tool-page-hero-desc::before { content: ''; width: 8px; height: 8px; background: var(--accent); background-image: var(--accent-mix); flex: none; border-radius: var(--chip-radius); }
+.tool-page-hero-desc::after { content: none; }
 /* 기울인 칩은 상자 밖으로 36 x tan(12도) = 8px 삐져나온다. 그만큼 오른쪽 여백 */
-html[data-skin="field"] .tool-page-hero-actions { display: flex; align-items: flex-end; gap: 8px; margin-left: auto; padding: 0 10px 8px 0; }
-html[data-skin="field"] .tool-page-hero-actions .tool-pin-star {
+.tool-page-hero-actions { display: flex; align-items: flex-end; gap: 8px; margin-left: auto; padding: 0 10px 8px 0; }
+.tool-page-hero-actions .tool-pin-star {
     position: static;
     width: auto;
     display: inline-flex;
@@ -4211,24 +4216,26 @@ html[data-skin="field"] .tool-page-hero-actions .tool-pin-star {
     line-height: 1;
     height: 36px;
     padding: 0 16px;
-    border: 1px solid var(--text-primary);
+    border: 1px solid var(--border-strong);
     background: var(--glass);
     color: var(--text-primary);
     font-size: var(--font-size-2xs);
     transform: skewX(var(--skew));
-    border-radius: 0;
+    border-radius: var(--chip-radius);
 }
-html[data-skin="field"] .tool-page-hero-rule {
+.tool-page-hero-rule {
     display: block;
     flex: 1 1 100%;
     height: 6px;
     margin-top: 18px;
-    border-bottom: 1px solid var(--text-primary);
+    border-bottom: 1px solid var(--border-strong);
     background-image: var(--accent-mix);
     background-size: 120px 6px;
     background-repeat: no-repeat;
 }
-
+/* 필드만의 것. 테두리를 잉크로 진하게 */
+html[data-skin="field"] .tool-page-hero-actions .tool-pin-star { border-color: var(--text-primary); }
+html[data-skin="field"] .tool-page-hero-rule { border-bottom-color: var(--text-primary); }
 /* 머리띠 글자 (시안 Z1). 로고는 표시 글꼴 대문자, 경로는 모노 라벨. 흰 칩은 뺌 */
 html[data-skin="field"] .header-crumb { background: transparent; border: 0; padding: 0 0 0 4px; gap: 10px; }
 html[data-skin="field"] .header-crumb .header-logo-text,
@@ -4315,7 +4322,7 @@ html[data-skin="field"] .pf-shell .pf-job.pf-hot { background: var(--band); colo
 /* 제목 블록에 별만 직접 붙는 옛 경로(정적 장). 오른쪽 끝에 붙지 않게 여백 */
 html[data-skin="field"] .tool-page-hero > .tool-pin-star { position: static; margin-left: auto; margin-right: 24px; align-self: flex-start; transform: none; }
 /* 별 칩에 글자 (시안 Z1 의 "별 꽂기"). 글자는 이미 있는 title 을 그대로 씀 */
-html[data-skin="field"] .tool-page-hero-actions .tool-pin-star::after { content: attr(data-label); margin-left: 8px; font-weight: 700; }
+.tool-page-hero-actions .tool-pin-star::after { content: attr(data-label); margin-left: 8px; font-weight: 700; }
 html[data-skin="field"] .tool-page-hero-actions .tool-pin-star { opacity: 1; }
 
 /* ===================================================================
