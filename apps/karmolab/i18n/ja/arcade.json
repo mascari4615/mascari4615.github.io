@@ -163,7 +163,7 @@
   "arcade.dominoes.right": "右端に",
   "arcade.dominoes.draw": "山から引く",
   "arcade.dominoes.pass": "パス",
-  "arcade.dominoes.win": "{who} が先に出し切った",
+  "arcade.dominoes.win": "{who}の勝ち。残り{n}",
   "arcade.game.curling.name": "カーリング",
   "arcade.game.curling.desc": "中心に近づける。弾き出してもいい",
   "arcade.curling.aim": "左右",
@@ -662,5 +662,7 @@
   "arcade.president.cut": "{who}の8切り。場が流れる",
   "arcade.president.revOn": "革命中",
   "arcade.highlow.bankNone": "確保なし",
-  "arcade.highlow.bankWhy": "一度当ててから"
+  "arcade.highlow.bankWhy": "一度当ててから",
+  "arcade.dominoes.mypips": "自分の目 {n}",
+  "arcade.dominoes.stock": "山 {n}枚"
 }

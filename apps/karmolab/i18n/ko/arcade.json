@@ -163,7 +163,7 @@
   "arcade.dominoes.right": "오른쪽에",
   "arcade.dominoes.draw": "더미에서",
   "arcade.dominoes.pass": "넘기기",
-  "arcade.dominoes.win": "{who} 이(가) 먼저 털었다",
+  "arcade.dominoes.win": "{who} 승리. 남은 눈 {n}",
   "arcade.game.curling.name": "컬링",
   "arcade.game.curling.desc": "밀어서 가운데에 가깝게. 부딪혀 밀어내도 된다",
   "arcade.curling.aim": "좌우",
@@ -662,5 +662,7 @@
   "arcade.president.cut": "{who} 의 8. 판을 걷고 다시 시작",
   "arcade.president.revOn": "혁명 중",
   "arcade.highlow.bankNone": "챙길 것 없음",
-  "arcade.highlow.bankWhy": "한 번은 맞혀야 챙긴다"
+  "arcade.highlow.bankWhy": "한 번은 맞혀야 챙긴다",
+  "arcade.dominoes.mypips": "내 남은 눈 {n}",
+  "arcade.dominoes.stock": "더미 {n}장"
 }

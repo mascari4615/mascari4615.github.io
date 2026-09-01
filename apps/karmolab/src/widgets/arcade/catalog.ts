@@ -167,7 +167,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: blackjack, view: blackjackView, icon: '♠️', kind: 'card' },
   { def: solitaire, view: solitaireView, icon: '🃏', kind: 'card' },
   { def: president, view: presidentView, icon: '👑', kind: 'card' },
-  { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' , hidden: true },
+  { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' },
   { def: yacht, view: yachtView, icon: '🎲', kind: 'card' },
   { def: highlow, view: highlowView, icon: '🔺', kind: 'card' },
   { def: lanterns, view: lanternsView, icon: '🏮', kind: 'card' , hidden: true },

@@ -11,7 +11,13 @@ import { shuffle } from '../rng';
 
 /** 0~6 짝. 스물여덟 장이 한 벌이다. */
 const MAX = 6;
-const HAND = 5;
+/**
+ * 손패 장수. 레퍼런스(double-six)는 두 사람에 일곱 장, 셋넷이면 다섯 장
+ * 스물여덟 장이라 넷이 일곱 장씩 들면 더미가 너무 얇아짐
+ */
+const handSize = (seats: number): number => (seats <= 2 ? 7 : 5);
+/** 짝 하나의 눈 합. 6-6 이 열둘로 제일 무겁다 */
+export const weightOf = (t: Tile): number => t[0] + t[1];
 
 export type Tile = [number, number];
 
@@ -54,11 +60,12 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
     const all: Tile[] = [];
     for (let a = 0; a <= MAX; a++) for (let b = a; b <= MAX; b++) all.push([a, b]);
     const mixed = shuffle(ctx.rng, all) as Tile[];
-    const hands = ctx.seats.map((_, i) => mixed.slice(i * HAND, i * HAND + HAND));
+    const n = handSize(ctx.seats.length);
+    const hands = ctx.seats.map((_, i) => mixed.slice(i * n, i * n + n));
     return {
       hands,
       line: [],
-      stock: mixed.slice(ctx.seats.length * HAND),
+      stock: mixed.slice(ctx.seats.length * n),
       turn: 0,
       stuck: 0,
       won: -1
@@ -122,10 +129,14 @@ export const dominoes: GameDef<DominoesState, DominoesAction> = {
 
   outcome(s, ctx): Outcome {
     if (s.won === -1) return { over: false };
+    /* 레퍼런스대로 이긴 사람이 **남들 손에 남은 눈 합**을 가져간다. 이겼나 아니냐만 세면
+       크게 이긴 판과 겨우 이긴 판이 같은 값이 되고, 무엇을 먼저 낼지 고를 것이 없다 */
+    const left = s.hands.map((h) => h.reduce((a2, t) => a2 + weightOf(t), 0));
+    const gain = left.reduce((a2, v, i) => a2 + (i === s.won ? 0 : v), 0);
     return {
       over: true,
-      scores: ctx.seats.map((_, i) => (i === s.won ? 1 : 0)),
-      note: { key: 'arcade.dominoes.win', params: { who: ctx.seats[s.won]?.name ?? '' } }
+      scores: ctx.seats.map((_, i) => (i === s.won ? gain : 0)),
+      note: { key: 'arcade.dominoes.win', params: { who: ctx.seats[s.won]?.name ?? '', n: String(gain) } }
     };
   },
 

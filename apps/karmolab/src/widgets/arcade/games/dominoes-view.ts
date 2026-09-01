@@ -7,12 +7,14 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { diePip } from '../die';
-import { canPlace, type DominoesState, type DominoesAction, type Tile } from './dominoes';
+import { canPlace, weightOf, type DominoesState, type DominoesAction, type Tile } from './dominoes';
 
 /**
  * 타일 하나. 눈은 **점으로 찍는다**(주사위와 같은 부품). 숫자 3과 5로 적으면
  * 도미노가 아니라 표가 된다. 가운데 홈이 두 눈을 가른다.
  */
+const esc = (x: string): string => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 const pip = (t: Tile): string =>
   '<span class="ac-dm">' + diePip(t[0]) + '<i></i>' + diePip(t[1]) + '</span>';
 
@@ -24,11 +26,14 @@ export const dominoesView: GameView<DominoesState, DominoesAction> = {
       '<div class="ac-dmline" id="acDmLine"></div>' +
       '<div class="ac-dmhand" id="acDmHand"></div>' +
       '<div class="ac-dmbar"><span id="acDmSides"></span><button class="btn btn-ghost" id="acDmDraw"></button></div>' +
+      '<div class="ac-dmnums" id="acDmNums"></div>' +
       '</div>';
     const lineEl = el.querySelector('#acDmLine') as HTMLElement;
     const handEl = el.querySelector('#acDmHand') as HTMLElement;
     const sidesEl = el.querySelector('#acDmSides') as HTMLElement;
     const drawBtn = el.querySelector('#acDmDraw') as HTMLButtonElement;
+    /* 남은 눈과 더미. 점수가 남들 눈 합이라 그 숫자가 지금 얼마인지 보여야 고를 것이 생긴다 */
+    const numsEl = el.querySelector('#acDmNums') as HTMLElement;
     drawBtn.onclick = () => act({ kind: 'draw' });
     let picked = -1;
 
@@ -71,6 +76,13 @@ export const dominoesView: GameView<DominoesState, DominoesAction> = {
           picked = -1;
         };
       });
+
+      numsEl.innerHTML =
+        '<span>' + esc(t('arcade.dominoes.mypips', { n: String(hand.reduce((a2, x) => a2 + weightOf(x), 0)) })) + '</span>' +
+        '<span>' + esc(t('arcade.dominoes.stock', { n: String(s.stock.length) })) + '</span>' +
+        v.seats
+          .map((seat, i) => (i === mySeat ? '' : '<span>' + esc(seat.name || '') + ' ' + (s.hands[i]?.length ?? 0) + '</span>'))
+          .join('');
 
       const stuck = !hand.some((tile) => canPlace(s.line, tile, 'left') || canPlace(s.line, tile, 'right'));
       drawBtn.textContent = s.stock.length ? t('arcade.dominoes.draw') : t('arcade.dominoes.pass');

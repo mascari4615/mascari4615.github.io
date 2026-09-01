@@ -163,7 +163,7 @@
   "arcade.dominoes.right": "Right end",
   "arcade.dominoes.draw": "Draw",
   "arcade.dominoes.pass": "Pass",
-  "arcade.dominoes.win": "{who} went out first",
+  "arcade.dominoes.win": "{who} wins. {n} pips",
   "arcade.game.curling.name": "Curling",
   "arcade.game.curling.desc": "Slide close to the button. Knocking others out is fair game",
   "arcade.curling.aim": "Line",
@@ -662,5 +662,7 @@
   "arcade.president.cut": "{who} played an 8. Pile cleared",
   "arcade.president.revOn": "Revolution",
   "arcade.highlow.bankNone": "Nothing to bank",
-  "arcade.highlow.bankWhy": "Guess right at least once first"
+  "arcade.highlow.bankWhy": "Guess right at least once first",
+  "arcade.dominoes.mypips": "My pips {n}",
+  "arcade.dominoes.stock": "Boneyard {n}"
 }
