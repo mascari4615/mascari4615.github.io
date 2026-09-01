@@ -101,11 +101,12 @@ export async function handleArcade(interaction: ChatInputCommandInteraction): Pr
 
   /* 이 글이 방을 따라 살게. 고치기는 arcade-invite 가 함 */
   const sent = await interaction.fetchReply().catch(() => null);
-  if (sent && pick) {
+  /* 놀이 이름을 못 읽었어도 방은 진짜다. 카드는 그 방을 따라가야 함 */
+  if (sent) {
     rememberCard(code, {
       channelId: sent.channelId,
       messageId: sent.id,
-      game: pick.id,
+      game: pick ? pick.id : '',
       gameName,
       link,
     });

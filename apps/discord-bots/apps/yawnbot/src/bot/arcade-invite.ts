@@ -86,6 +86,9 @@ export async function moveCard(client: Client, code: string, stage: Stage, extra
   if (!c) return false;
   const order: Stage[] = ['waiting', 'playing', 'done'];
   if (order.indexOf(stage) < order.indexOf(c.stage)) return false;
+  /* 끝난 판은 끝이다. 결과를 적어 둔 자리를 방 닫힘이 덮으면 이긴 사람이 사라짐
+     (방을 내리는 알림이 결과보다 늦게 온다. 실제로 그 순서였다) */
+  if (c.stage === 'done') return false;
   c.stage = stage;
   c.at = Date.now();
   try {
