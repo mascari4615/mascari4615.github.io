@@ -32,6 +32,7 @@ import { mountStageCore } from './stage-core';
 import { buildRoom, type Room } from './rooms';
 import type { SceneId } from './scenes';
 import { cardBackTexture, cardFaceTexture, feltTexture } from './texture';
+import { suitOf } from './deck';
 
 /** 카드 한 장의 3D 치수 */
 const CARD_W = 0.82;
@@ -47,6 +48,8 @@ export interface CardSpot {
   rank: number;
   /** 앞면이 위인가 */
   up: boolean;
+  /** 무늬 0~3. 안 주면 값과 자리로 정함 */
+  suit?: number;
 }
 
 export interface CardHand {
@@ -55,6 +58,11 @@ export interface CardHand {
   cards: CardSpot[];
   /** 줄 옆에 적을 글. 합계나 이름 */
   label?: string;
+  /**
+   * 이 줄이 지금 어떤가. 이름표 빛깔이 갈림
+   * 옛 무대는 `label` 을 받고도 안 그림. 누구 줄인지, 얼마인지 상 위에 없었음
+   */
+  tone?: 'idle' | 'turn' | 'win' | 'lose' | 'push';
 }
 
 export interface CardStageOpts {
@@ -104,8 +112,7 @@ export interface CardStage {
   dispose(): void;
 }
 
-/** 값과 자리로 정해지는 무늬. 판정에 안 쓰이니 화면이 정한다 */
-const suitOf = (rank: number, seat: number, i: number): number => (rank * 7 + seat * 3 + i * 5) % 4;
+/* 값과 자리로 정해지는 무늬는 `deck.ts` 의 `suitOf`. 평면 카드와 같은 셈법 */
 
 /** 한 줄에 카드가 몇 장이든 가운데를 맞춰 늘어놓는다. 많아지면 겹친다 */
 const spread = (n: number): number[] => {
@@ -182,6 +189,59 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const live: Live[] = [];
   const holder = new Group();
   scene.add(holder);
+
+  /* ── 줄 이름표 ──
+     `CardHand.label` 을 받고도 안 그리던 자리. 누구 줄인지, 합계가 얼마인지 상 위에 없어
+     사람이 아래 HUD 한 줄만 보고 쳤다. 상에 눕혀 놓는다. 카메라가 위에서 내려보므로 읽힌다 */
+  const TONE: Record<string, string> = {
+    idle: '#efe7d4',
+    turn: '#ffd66b',
+    win: '#8fe0a6',
+    lose: '#f0938f',
+    push: '#cfd6e0'
+  };
+  const labelGroup = new Group();
+  scene.add(labelGroup);
+  const labelGeo = new BoxGeometry(1, 0.004, 0.26);
+  const labelMats: MeshStandardMaterial[] = [];
+  const mkLabel = (text: string, tone: string): Mesh | null => {
+    if (!text) return null;
+    const cv = document.createElement('canvas');
+    cv.width = 512;
+    cv.height = 128;
+    const c = cv.getContext('2d');
+    if (!c) return null;
+    c.clearRect(0, 0, 512, 128);
+    c.fillStyle = 'rgba(16,14,11,.62)';
+    c.beginPath();
+    /* 알약 모양. 상 위에서 글자가 천에 묻히지 않게 */
+    const r = 52;
+    c.moveTo(r, 12);
+    c.arcTo(500, 12, 500, 116, r);
+    c.arcTo(500, 116, 12, 116, r);
+    c.arcTo(12, 116, 12, 12, r);
+    c.arcTo(12, 12, 500, 12, r);
+    c.closePath();
+    c.fill();
+    c.fillStyle = TONE[tone] ?? TONE.idle;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.font = '700 56px "Noto Sans KR", system-ui, sans-serif';
+    c.fillText(text, 256, 66, 468);
+    const map = new CanvasTexture(cv);
+    map.colorSpace = SRGBColorSpace;
+    const mat = new MeshStandardMaterial({ map, transparent: true, roughness: 1, metalness: 0 });
+    labelMats.push(mat);
+    return new Mesh(labelGeo, mat);
+  };
+  const clearLabels = (): void => {
+    while (labelGroup.children.length) labelGroup.remove(labelGroup.children[0]);
+    for (const m of labelMats) {
+      m.map?.dispose();
+      m.dispose();
+    }
+    labelMats.length = 0;
+  };
 
   const mkCard = (rank: number, suit: number, faceUp: boolean): Mesh => {
     /* 상자 재료 여섯. 오른, 왼, 위, 아래, 앞, 뒤 순서 */
@@ -291,24 +351,65 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     /* `live` 에 없는 자식이 하나라도 남으면 영영 안 지워진다. 담는 자리를 통째로 비운다 */
     while (holder.children.length) holder.remove(holder.children[0]);
     live.length = 0;
+    clearLabels();
 
     /* 앞 화면에 그 자리 카드가 이미 있었으면 그대로 놓고, 새로 온 것만 카드집에서 날아온다 */
+    /* 한 자리가 줄을 여럿 낼 수 있다(블랙잭 스플릿). 자리 번호만으로는 같은 열쇠가 되어
+       옛 카드가 남의 줄로 새므로, 그 자리에서 몇 번째 줄인지까지 열쇠에 넣는다 */
+    const rowNo = new Map<number, number>();
+    const keyOf = (seat: number, nth: number, i: number): string => seat + '/' + nth + ':' + i;
     const had = new Map<string, boolean>();
-    for (const h of shown) h.cards.forEach((_, i) => had.set(h.seat + ':' + i, true));
+    {
+      const seen = new Map<number, number>();
+      for (const h of shown) {
+        const nth = seen.get(h.seat) ?? 0;
+        seen.set(h.seat, nth + 1);
+        h.cards.forEach((c, i) => had.set(keyOf(h.seat, nth, i), c.up));
+      }
+    }
 
     let dealt = 0;
-    const others = hands.map((h) => h.seat).filter((n) => n >= 0 && n !== mySeat);
+    const others = [...new Set(hands.map((h) => h.seat).filter((n) => n >= 0 && n !== mySeat))];
+    /* 한 자리의 줄이 여럿이면 그만큼 좌우로 벌림. 안 벌리면 겹쳐서 한 줄로 보임 */
+    const rows = new Map<number, number>();
+    for (const h of hands) rows.set(h.seat, (rows.get(h.seat) ?? 0) + 1);
     for (const h of hands) {
+      const nth = rowNo.get(h.seat) ?? 0;
+      rowNo.set(h.seat, nth + 1);
+      const many = rows.get(h.seat) ?? 1;
       const row = rowOf(h.seat, others);
+      if (many > 1) {
+        /* 줄 폭을 나눠 씀. 카드도 같이 작아짐 */
+        const share = 1 / many;
+        row.s *= Math.max(0.5, share + 0.2);
+        row.x += (nth - (many - 1) / 2) * (TABLE_W * 0.3) * share * 2;
+      }
       const xs = spread(h.cards.length);
       h.cards.forEach((card, i) => {
         const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + 0.13 + i * 0.004, row.z);
-        const old = before ? had.get(h.seat + ':' + i) : false;
-        const mesh = mkCard(card.rank, suitOf(card.rank, h.seat, i), card.up);
+        const wasUp = before ? had.get(keyOf(h.seat, nth, i)) : undefined;
+        const old = wasUp !== undefined;
+        const mesh = mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
         if (row.s !== 1) mesh.scale.setScalar(row.s);
         if (old) {
-          /* 있던 카드. 그 자리에 그대로 */
           mesh.position.copy(to);
+          if (wasUp !== card.up) {
+            /* 그 자리에서 뒤집음. 딜러가 감춘 카드를 여는 순간
+               (옛 판은 감춘 카드를 아예 안 뽑아서 뒤집는 그림이 통째로 없었다) */
+            mesh.rotation.z = wasUp ? 0 : Math.PI;
+            holder.add(mesh);
+            live.push({
+              mesh,
+              from: to.clone(),
+              to,
+              t0: now,
+              ms: 460,
+              rFrom: wasUp ? 0 : Math.PI,
+              rTo: card.up ? 0 : Math.PI
+            });
+            return;
+          }
+          /* 있던 카드. 그 자리에 그대로 */
           mesh.rotation.z = card.up ? 0 : Math.PI;
           holder.add(mesh);
           live.push({ mesh, from: to.clone(), to, t0: now - 1000, ms: 1, rFrom: mesh.rotation.z, rTo: mesh.rotation.z });
@@ -320,8 +421,19 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         live.push({ mesh, from: shoe.clone(), to, t0: now + dealt * 130, ms: 460, rFrom: Math.PI, rTo: card.up ? 0 : Math.PI });
         dealt += 1;
       });
+      /* 줄 이름표. 카드 줄 앞쪽에 눕힘 */
+      const tag = mkLabel(h.label ?? '', h.tone ?? 'idle');
+      if (tag) {
+        const wide = Math.min(1.9, 0.7 + (h.label ?? '').length * 0.115) * row.s;
+        tag.scale.set(wide, 1, row.s);
+        /* 내 줄 이름표만 앞으로. 남의 줄과 딜러는 제 카드 뒤
+           앞에 두면 화면 앞쪽 내 카드가 그 위를 덮는다 (2026-09-01 화면 실측) */
+        const front = h.seat >= 0 && h.seat === mySeat;
+        tag.position.set(row.x, TOP_Y + 0.14, row.z + (front ? 0.92 : -0.92) * row.s);
+        labelGroup.add(tag);
+      }
     }
-    shown = hands.map((h) => ({ seat: h.seat, label: h.label, cards: h.cards.map((c) => ({ ...c })) }));
+    shown = hands.map((h) => ({ seat: h.seat, label: h.label, tone: h.tone, cards: h.cards.map((c) => ({ ...c })) }));
     need = true;
     wake();
   };
@@ -466,6 +578,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     resize: fit,
     dispose(): void {
       ro.disconnect();
+      clearLabels();
+      labelGeo.dispose();
       loop?.stop();
       loop = null;
       room?.dispose();

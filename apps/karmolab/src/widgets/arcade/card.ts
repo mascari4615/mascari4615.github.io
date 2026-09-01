@@ -1,18 +1,27 @@
 /**
  * 카드 한 벌. 카드 놀이가 함께 쓰는 **부품** (change.arcade-redesign)
  *
- * 같은 카드가 판마다 일곱 가지 치수였다(64×88, 64×90, 52×72, 44×62, 38×52, 34×48, 34×46).
+ * 같은 카드가 판마다 일곱 가지 치수였다(64x88, 64x90, 52x72, 44x62, 38x52, 34x48, 34x46).
  * 종이는 한 종류다. 치수, 모서리, 뒷면은 `arcade.ts` 의 `--ac-card-*` 가 정하고,
  * 여기서는 **그 종이에 무엇을 적을지**만 만든다.
  *
- * 무늬(♠♥♦♣)는 글자로 그린다: 우리 글꼴에 있고, 어느 크기에서도 또렷하고, 색만 바꾸면
- * 빨강/검정이 갈린다. 주사위 눈(⚀⚁)처럼 두부(□)로 빠지는 글자가 아니다. 그건 점으로 그린다.
+ * 무늬와 끗수와 색은 이 파일이 안 정한다. 정본은 `deck.ts` 다 (2026-09-01).
+ * 전에는 무늬가 세 곳에 흩어져 있었다. 여기 `SUITS`, `card-stage.ts` 의 `suitOf`,
+ * `texture.ts` 의 `marks`. 그래서 평면 블랙잭에 무늬가 아예 없었음
+ * **평면과 입체가 같은 `DeckSkin` 하나를 읽음**
+ *
+ * 무늬는 글자로 그린다. 우리 글꼴에 있고, 어느 크기에서도 또렷하고, 색만 바꾸면
+ * 빨강과 검정이 갈림. 주사위 눈(⚀⚁)처럼 두부(□)로 빠지는 글자가 아님
  */
+import { deckSkin, isRedSuit, rankLabel, suitMark, type DeckSkin } from './deck';
 
-/** 무늬 넷. 순서는 브리지 관례(♣♦♥♠)가 아니라 **읽는 순서**다. 검정 둘, 빨강 둘. */
-export const SUITS = ['♠', '♣', '♥', '♦'] as const;
-export type Suit = (typeof SUITS)[number];
+export { isRedSuit, rankLabel, suitMark, deckSkin, applyDeckSkin, suitOf, DECK_SKINS, setDeckSkin } from './deck';
+export type { DeckSkin, SuitIndex } from './deck';
 
+/** 무늬 넷. 차례는 브리지 관례(♣♦♥♠)가 아니라 **읽는 순서**다. 검정 둘, 빨강 둘 */
+export const suits = (skin: DeckSkin = deckSkin()): readonly string[] => skin.marks;
+
+/** 글자로 받은 무늬가 빨강인가. 옛 부름말이라 남겨 둠 */
 export const isRed = (s: string): boolean => s === '♥' || s === '♦';
 
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -52,8 +61,8 @@ const attrs = (o: CardOpts): string => {
 };
 
 /**
- * 앞면. 모서리 두 곳에 끗수, 무늬, 가운데 큰 무늬.
- * `rank` 는 글자 그대로다(`A`, `10`, `K`). 숫자로 받으면 판마다 A/1 을 다르게 적는다.
+ * 앞면. 모서리 두 곳에 끗수와 무늬, 가운데 큰 무늬.
+ * `rank` 는 글자 그대로(`A`, `10`, `K`). 숫자로 받으면 판마다 A 와 1 이 갈림
  */
 export function cardFace(rank: string, suit: string, o: CardOpts = {}): string {
   const red = isRed(suit) ? ' ac-red' : '';
@@ -67,7 +76,29 @@ export function cardFace(rank: string, suit: string, o: CardOpts = {}): string {
   );
 }
 
-/** 뒷면. 남의 패, 아직 안 뒤집은 것. */
+/**
+ * 끗수와 무늬를 **숫자로** 받는 앞면. `deck.ts` 의 셈법 그대로다 (끗수 1~13, 무늬 0~3).
+ * 카드 번호 하나로 들고 있는 판(솔리테어, 블랙잭)이 씀
+ * 스킨이 바뀌면 무늬 글자와 색이 같이 바뀜
+ */
+export function cardOf(rank: number, suit: number, o: CardOpts = {}): string {
+  const skin = deckSkin();
+  const mark = suitMark(suit, skin);
+  const label = rankLabel(rank);
+  const red = isRedSuit(suit) ? ' ac-red' : '';
+  const corner = esc(label) + '<span class="ac-pcs">' + esc(mark) + '</span>';
+  return (
+    '<button' +
+    attrs({ ...o, label: o.label ?? label + mark }).replace('ac-pc', 'ac-pc' + red) +
+    '>' +
+    '<span class="ac-pcc">' + corner + '</span>' +
+    '<span class="ac-pcm">' + esc(mark) + '</span>' +
+    '<span class="ac-pcc ac-br">' + corner + '</span>' +
+    '</button>'
+  );
+}
+
+/** 뒷면. 남의 패, 아직 안 뒤집은 것 */
 export function cardBack(o: CardOpts = {}): string {
   return '<button' + attrs({ ...o, label: o.label ?? '뒤집힌 카드' }).replace('ac-pc', 'ac-pc ac-back') + '></button>';
 }

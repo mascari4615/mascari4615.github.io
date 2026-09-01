@@ -727,8 +727,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-bjhud{position:absolute;left:0;right:0;bottom:16px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:6}',
       '.ac-bjline{padding:4px 14px;border-radius:var(--radius-pill);background:rgba(24,20,16,.62);color:#f3ead8;font-size:var(--font-size-sm);backdrop-filter:blur(3px)}',
       '.ac-bjline.ac-me{background:rgba(40,32,22,.78);font-weight:700}',
+      '.ac-bjline.ac-bjother{font-size:var(--font-size-xs);opacity:.82}',
       '.ac-bjline b{color:#e2a0a0;margin-left:4px}',
-      '.ac-bjacts{display:flex;gap:10px;margin-top:4px;pointer-events:auto}',
+      '.ac-bjacts{display:flex;gap:8px;margin-top:4px;pointer-events:auto;flex-wrap:wrap;justify-content:center}',
       '.ac-bjbtn{padding:9px 20px;border:0;border-radius:var(--radius-pill);background:linear-gradient(180deg,#8a6a3a,#5d4522);color:#fdf6e6;font-size:var(--font-size-md);font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.4)}',
       '.ac-bjbtn.ac-ghost{background:rgba(30,26,20,.7);color:#e8dcc4;box-shadow:0 4px 12px rgba(0,0,0,.35)}',
       '.ac-bjbtn[disabled]{opacity:.4;cursor:default}',
@@ -1011,15 +1012,35 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 블랙잭도 펠트 위. 카드 판은 한 방을 쓴다. */
       '.ac-root .ac-bj{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
       '.ac-root .ac-bj small{color:rgba(234,242,238,.72)}',
-      '.ac-root .ac-bjrow>div{gap:0}',
-      '.ac-root .ac-bjrow .ac-pc{margin-left:calc(var(--ac-card-w) / -5)}',
-      '.ac-root .ac-bjrow .ac-pc:first-child{margin-left:0}',
-      '.ac-bjrow{margin:var(--space-lg) 0}',
-      '.ac-bjrow small{display:block;color:var(--text-secondary);font-size:var(--font-size-xs);margin-bottom:6px}',
-      '.ac-bjrow>div{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}',
-      '.ac-bjc{width:44px;height:62px;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--bg-primary);display:grid;place-items:center;font-size:var(--font-size-title);font-weight:700}',
-      '.ac-bjc.ac-back{background:color-mix(in srgb,var(--accent) 22%,var(--bg-primary));color:var(--text-secondary)}',
-      '.ac-bjbar{display:flex;gap:8px;justify-content:center}',
+      /* 머리 줄. 몇 번째 손인가와 슈에 남은 장수.
+         빛깔은 전부 스킨 토큰과 흐리기로 낸다. `.ac-bj` 가 이미 밝은 잉크를 쥐고 있어
+         자식은 색을 새로 적을 이유가 없다 */
+      '.ac-bjtop{display:flex;justify-content:space-between;gap:12px;font-size:var(--font-size-xs);opacity:.7;margin-bottom:var(--space-sm)}',
+      /* 카드 줄. 블랙잭은 손이 두세 장이라 겹칠 이유가 없음. 겹치면 가운데 무늬가 가려짐 */
+      '.ac-root .ac-bjcards{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;min-height:var(--ac-card-h)}',
+      '.ac-bjrow{margin:var(--space-md) 0}',
+      '.ac-bjrow small{display:block;font-size:var(--font-size-xs);opacity:.72;margin-bottom:6px}',
+      /* 자리 판. 내 자리에 테 */
+      '.ac-bjseats{display:flex;gap:var(--space-md);justify-content:center;flex-wrap:wrap;margin:var(--space-md) 0}',
+      '.ac-bjseat{flex:1 1 220px;max-width:100%;padding:8px;border:1px solid var(--border);border-radius:14px}',
+      '.ac-bjseat.ac-me{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent-dim)}',
+      '.ac-bjseat small{display:block;margin-bottom:6px;font-size:var(--font-size-xs);opacity:.82}',
+      '.ac-bjseat small b{color:var(--accent);opacity:1}',
+      '.ac-bjseat small i{font-style:normal;color:var(--warning)}',
+      '.ac-bjhands{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}',
+      /* 손 하나. 지금 치는 손에 테 */
+      '.ac-bjhand{padding:6px;border-radius:12px;border:2px solid transparent}',
+      '.ac-bjhand.ac-live{border-color:var(--accent)}',
+      '.ac-bjmeta{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:4px;font-size:var(--font-size-xs)}',
+      '.ac-bjbet{padding:1px 7px;border-radius:var(--radius-pill);border:1px solid var(--accent-dim);color:var(--accent)}',
+      '.ac-bjres{padding:1px 8px;border-radius:var(--radius-pill);border:1px solid var(--border);font-weight:700}',
+      '.ac-bjhand.ac-res-win .ac-bjres,.ac-bjhand.ac-res-bj .ac-bjres{color:var(--success);border-color:var(--success)}',
+      '.ac-bjhand.ac-res-lose .ac-bjres,.ac-bjhand.ac-res-bust .ac-bjres,.ac-bjhand.ac-res-surrender .ac-bjres{color:var(--error);border-color:var(--error)}',
+      '.ac-bjwait{min-height:var(--ac-card-h);display:grid;place-items:center;font-size:var(--font-size-xs);opacity:.6}',
+      '.ac-bjask{align-self:center;font-size:var(--font-size-sm);opacity:.86;margin-right:4px}',
+      '.ac-bjbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:38px;align-items:center}',
+      /* 단추가 줄을 다 먹지 않게. 셸의 .btn 이 늘어난다 (2026-09-01 화면 실측: 한 장 더가 줄 전체) */
+      '.ac-root .ac-bj .ac-bjbar .btn{flex:0 0 auto;width:auto;min-width:88px}',
       /* 카드 판은 **펠트 위**에서 논다. 판마다 다른 바닥을 쓰면 열여섯 판이 열여섯 방이 된다. */
       '.ac-root .ac-pr{max-width:100%;margin:var(--space-lg) auto;text-align:center;background:var(--ac-felt);border-radius:18px;padding:var(--space-lg) var(--space-md);box-shadow:inset 0 6px 18px rgba(0,0,0,.34);color:#eaf2ee}',
       '.ac-root .ac-pr small{color:rgba(234,242,238,.7)}',

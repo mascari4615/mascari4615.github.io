@@ -7,6 +7,8 @@
  *
  * 난수는 **씨앗을 받는다**. 판을 다시 열 때마다 나뭇결이 달라지면 같은 판이 아닌 것처럼 보인다.
  */
+import { deckSkin, isRedSuit, rankLabel, suitMark } from './deck';
+
 
 /** 작고 빠른 씨앗 난수 (mulberry32). 같은 씨앗이면 같은 무늬. */
 function rng(seed: number): () => number {
@@ -468,25 +470,26 @@ const roundRect = (c: CanvasRenderingContext2D, x: number, y: number, w: number,
  */
 export function cardFaceTexture(rank: number, suit: number, w = 256): HTMLCanvasElement {
   const { cv, c, h } = makeCard(w);
-  const marks = ['♠', '♣', '♥', '♦'];
-  const mark = marks[((suit % 4) + 4) % 4];
-  const red = suit >= 2;
-  const label = rank === 1 ? 'A' : rank === 11 ? 'J' : rank === 12 ? 'Q' : rank === 13 ? 'K' : String(rank);
+  /* 무늬 글자, 색, 종이는 `deck.ts` 의 한 벌이 정한다. 평면 카드와 같은 값 */
+  const skin = deckSkin();
+  const mark = suitMark(suit, skin);
+  const red = isRedSuit(suit);
+  const label = rankLabel(rank);
 
   /* 종이. 가운데가 조금 밝은 상아빛 */
   const g = c.createLinearGradient(0, 0, w * 0.4, h);
-  g.addColorStop(0, '#ffffff');
-  g.addColorStop(0.62, '#fbf8f2');
-  g.addColorStop(1, '#f0ebe0');
+  g.addColorStop(0, skin.paper[0]);
+  g.addColorStop(0.62, skin.paper[1]);
+  g.addColorStop(1, skin.paper[2]);
   c.fillStyle = g;
   c.fillRect(0, 0, w, h);
   /* 테두리 한 줄. 실물 카드의 흰 여백과 인쇄 경계 */
-  c.strokeStyle = 'rgba(30,26,20,.14)';
+  c.strokeStyle = skin.edge;
   c.lineWidth = Math.max(1, w * 0.012);
   roundRect(c, w * 0.045, h * 0.032, w * 0.91, h * 0.936, w * 0.07);
   c.stroke();
 
-  c.fillStyle = red ? '#b3242c' : '#1b1714';
+  c.fillStyle = red ? skin.red : skin.ink;
   c.textAlign = 'center';
   c.textBaseline = 'middle';
   /* 귀퉁이. 값 위에 무늬. 손에 부채꼴로 들었을 때 왼쪽 위만 보인다 */
@@ -518,13 +521,14 @@ export function cardFaceTexture(rank: number, suit: number, w = 256): HTMLCanvas
 /** 카드 뒷면. 초록 바탕에 빗금. 2D 판의 `--ac-card-back` 과 같은 그림 */
 export function cardBackTexture(w = 256): HTMLCanvasElement {
   const { cv, c, h } = makeCard(w);
+  const skin = deckSkin();
   const g = c.createLinearGradient(0, 0, w * 0.5, h);
-  g.addColorStop(0, '#2f6f5e');
-  g.addColorStop(1, '#245647');
+  g.addColorStop(0, skin.back[0]);
+  g.addColorStop(1, skin.back[1]);
   c.fillStyle = g;
   c.fillRect(0, 0, w, h);
   /* 45도 빗금. 실물 카드 뒷면의 반복 무늬 */
-  c.strokeStyle = 'rgba(255,255,255,.13)';
+  c.strokeStyle = skin.backLine;
   c.lineWidth = Math.max(1, w * 0.016);
   for (let i = -h; i < w + h; i += w * 0.062) {
     c.beginPath();
