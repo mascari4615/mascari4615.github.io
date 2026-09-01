@@ -48,6 +48,12 @@
       "key": "dashboard",
       "name": "dashboard",
       "topic": "에이전트 팀 현황 대시보드. edit-in-place (KAR-077)"
+    },
+    {
+      "_doc": "오락실 초대 카드 연기 검사(scripts/smoke-arcade-invite.mjs)가 쓰는 채널. 검사 부스러기가 남 보는 채널에 쌓이지 않게 따로 둔다. prod 는 프로비저닝이 꺼져 있어 그 검사가 이름으로 찾고 없으면 스스로 만든다.",
+      "key": "arcade-smoke",
+      "name": "arcade-smoke",
+      "topic": "오락실 초대 카드 연기 검사. 여기 글은 전부 검사 부스러기라 지워도 됨"
     }
   ]
 }

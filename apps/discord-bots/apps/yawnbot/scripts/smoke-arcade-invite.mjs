@@ -56,7 +56,10 @@ if (!token) {
 const routes = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'webhook-routes.json'), 'utf8'));
 /* 여기 글은 검사 부스러기다. 남 보는 채널에 쌓이면 그 채널이 못 쓰게 됨.
    그래서 제 채널을 하나 두고 없으면 만든다 (사용자 2026-09-01) */
-const SMOKE_CHANNEL = 'arcade-smoke';
+/* 이름은 `data/channel-spec.json` 이 정본. 여기 또 적으면 언젠가 갈라짐 */
+const spec = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'channel-spec.json'), 'utf8'));
+const SMOKE_CHANNEL = spec.channels.find((c) => c.key === 'arcade-smoke')?.name ?? 'arcade-smoke';
+const SMOKE_TOPIC = spec.channels.find((c) => c.key === 'arcade-smoke')?.topic ?? '';
 const fallbackId = (askedChannel && /^[0-9]+$/.test(askedChannel) ? askedChannel : null) ?? routes.localDefault?.[0];
 if (!fallbackId) {
   console.log('[smoke] 못 돌림: 길드를 알 자리가 없다 (--channel <id> 또는 webhook-routes.json 의 localDefault)');
@@ -143,7 +146,7 @@ try {
           name: SMOKE_CHANNEL,
           type: ChannelType.GuildText,
           parent: anchor.parentId ?? undefined,
-          topic: '오락실 초대 카드 연기 검사. 여기 글은 전부 검사 부스러기라 지워도 됨'
+          topic: SMOKE_TOPIC
         })
         .catch((e) => {
           console.log(`[smoke] 검사 채널을 못 만들었다(${e?.message ?? e}). 물러설 채널을 씀`);
