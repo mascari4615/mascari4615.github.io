@@ -1729,7 +1729,7 @@ const Toolbox = (() => {
 
         /* 도구 상세 페이지에는 제목이 **서버에서 미리 박혀** 있고 앱 히어로는 접혀 있다.
          * 별을 히어로에만 달면 그 127장에서는 꽂을 길이 없다. 거기에도 단다. */
-        if (entryTool) mountPinStar(document.querySelector('.tool-head'), entryTool);
+        if (entryTool) mountPinStar(document.querySelector('.tool-head .tool-page-hero-actions') || document.querySelector('.tool-head'), entryTool);
 
         switchPage(initialPage, { pushHistory: false });
         if (!entryTool) {

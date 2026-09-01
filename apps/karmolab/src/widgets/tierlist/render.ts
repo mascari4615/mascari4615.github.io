@@ -147,8 +147,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 <div class="tl-toolbar">
                     ${selector}
                     <div class="tl-toolbar-spacer"></div>
-                    <button class="tl-btn tl-btn-primary" id="tl-fork-catalog">${esc(t('tierlist.btn.tlforkcatalog'))}</button>
-                    <button class="tl-btn" id="tl-btn-export-json">JSON</button>
+                    <button class="btn btn-outline btn-accent" id="tl-fork-catalog">${esc(t('tierlist.btn.tlforkcatalog'))}</button>
+                    <button class="btn btn-outline" id="tl-btn-export-json">JSON</button>
                 </div>
                 <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 12px;line-height:1.45;">
                     ${esc(t('tierlist.t04'))} <strong>${esc(t('tierlist.t05'))}</strong> ${esc(t('tierlist.t06'))} <strong>${esc(t('tierlist.btn.tlforkcatalog'))}</strong>${esc(t('tierlist.t07'))}
@@ -176,7 +176,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             editorContainer.innerHTML = `<div class="tl-wrap"><div style="text-align:center; padding:48px 16px; color:var(--text-tertiary);">
                 <div style="font-size:32px; margin-bottom:12px;">📋</div>
                 <div>${esc(t('tierlist.t08'))}</div>
-                <div style="margin-top:12px;"><button class="tl-btn tl-btn-primary" id="tl-empty-create">${esc(t('tierlist.btn.tlemptycreate'))}</button></div>
+                <div style="margin-top:12px;"><button class="btn btn-outline btn-accent" id="tl-empty-create">${esc(t('tierlist.btn.tlemptycreate'))}</button></div>
             </div></div>`;
             editorContainer.querySelector('#tl-empty-create')?.addEventListener('click', () => T.dialogs.showNewListDialog?.());
             return;
@@ -269,12 +269,12 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
                 ${selector}
                 <div class="tl-toolbar-spacer"></div>
                 ${localBadge}
-                <button class="tl-btn" id="tl-btn-tiers" title="${esc(t('tierlist.title.tlbtntiers'))}">${esc(t('tierlist.btn.tlbtntiers'))}</button>
-                <button class="tl-btn" id="tl-btn-userlabels" title="${esc(t('tierlist.title.tlbtnuserlabels'))}">${esc(t('tierlist.btn.tlbtnuserlabels'))}</button>
-                <button class="tl-btn" id="tl-btn-add">${esc(t('tierlist.btn.tlbtnadd'))}</button>
-                <button type="button" class="tl-btn${editorDeleteMode ? ' tl-btn-toggle-on' : ''}" id="tl-btn-delete-mode" aria-pressed="${editorDeleteMode ? 'true' : 'false'}" title="${esc(t('tierlist.title.tlbtndeletemode'))}">${esc(t('tierlist.btn.tlbtndeletemode'))}</button>
-                <button class="tl-btn" id="tl-btn-export-img">${esc(t('tierlist.btn.tlbtnexportimg'))}</button>
-                <button class="tl-btn" id="tl-btn-export-json" title="${esc(t('tierlist.title.tlbtnexportjson'))}">JSON</button>
+                <button class="btn btn-outline" id="tl-btn-tiers" title="${esc(t('tierlist.title.tlbtntiers'))}">${esc(t('tierlist.btn.tlbtntiers'))}</button>
+                <button class="btn btn-outline" id="tl-btn-userlabels" title="${esc(t('tierlist.title.tlbtnuserlabels'))}">${esc(t('tierlist.btn.tlbtnuserlabels'))}</button>
+                <button class="btn btn-outline" id="tl-btn-add">${esc(t('tierlist.btn.tlbtnadd'))}</button>
+                <button type="button" class="btn btn-outline${editorDeleteMode ? ' btn-danger is-on' : ''}" id="tl-btn-delete-mode" aria-pressed="${editorDeleteMode ? 'true' : 'false'}" title="${esc(t('tierlist.title.tlbtndeletemode'))}">${esc(t('tierlist.btn.tlbtndeletemode'))}</button>
+                <button class="btn btn-outline" id="tl-btn-export-img">${esc(t('tierlist.btn.tlbtnexportimg'))}</button>
+                <button class="btn btn-outline" id="tl-btn-export-json" title="${esc(t('tierlist.title.tlbtnexportjson'))}">JSON</button>
             </div>
             <div class="tl-board" id="tl-editor-board">`;
 
@@ -439,9 +439,9 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
         const meta = T.state.currentMeta();
 
         let html = `<div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-            <button class="tl-btn tl-btn-primary" id="tl-list-new-cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> ${esc(t('tierlist.t11'))}</button>
-            <button class="tl-btn" id="tl-list-new">${esc(t('tierlist.btn.tllistnew'))}</button>
-            <button class="tl-btn" id="tl-list-import">${esc(t('tierlist.btn.tllistimport'))}</button>
+            <button class="btn btn-outline btn-accent" id="tl-list-new-cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> ${esc(t('tierlist.t11'))}</button>
+            <button class="btn btn-outline" id="tl-list-new">${esc(t('tierlist.btn.tllistnew'))}</button>
+            <button class="btn btn-outline" id="tl-list-import">${esc(t('tierlist.btn.tllistimport'))}</button>
         </div>
         <div class="tl-list-section">
             <h3 class="tl-list-section-title">${esc(t('tierlist.t12'))}</h3>

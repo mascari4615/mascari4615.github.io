@@ -7,11 +7,6 @@ export const HEUNG_CSS = `
       border-bottom:1px solid var(--border); background:var(--bg-secondary); position:relative; z-index:8; }
     .hu-toolbar > * { width:auto; flex:0 0 auto; margin:0; }
     .hu-brand { font:700 12px/1 var(--font-mono); letter-spacing:.13em; margin-right:5px; color:var(--accent-ink); }
-    .hu-btn { border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-primary);
-      min-height:30px; padding:4px 9px; font:11px var(--font-mono); cursor:pointer; }
-    .hu-btn:hover { border-color:var(--border-hover); background:var(--bg-hover); }
-    .hu-btn.is-on, .hu-btn.is-recording { color:var(--accent-hover); background:var(--accent-dim); border-color:var(--accent); }
-    .hu-btn.is-recording { color:#ff7a86; }
     .hu-project-name { width:150px !important; border:0; background:transparent; color:var(--text-primary); font-weight:650; padding:4px; }
     .hu-number { width:74px !important; min-width:74px; flex:none; padding:5px; background:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-sm); }
     .hu-time { min-width:82px; font:12px var(--font-mono); text-align:center; color:var(--text-secondary); }
@@ -38,6 +33,9 @@ export const HEUNG_CSS = `
     .hu-track-actions { display:flex; gap:3px; margin:5px 0; }
     .hu-mini { width:25px; height:23px; padding:0; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text-secondary); border-radius:var(--radius-sm); font:10px var(--font-mono); cursor:pointer; }
     .hu-mini.is-on { background:var(--accent-dim); color:var(--accent-hover); border-color:var(--accent); }
+    .hu-mini { white-space:nowrap; }
+    /* 녹음 중인 버튼. 켬 표시(.is-on)와 색이 달라야 한다 */
+    .btn-tool.is-recording { color:#ff7a86; background:var(--accent-dim); border-color:var(--accent); }
     .hu-track-head input[type=range] { width:72px; height:14px; margin:0; accent-color:var(--accent); }
     .hu-lane { position:relative; height:84px; background-image:linear-gradient(to right, var(--border) 1px, transparent 1px);
       background-size:var(--hu-beat) 100%; }
@@ -93,7 +91,6 @@ export const HEUNG_CSS = `
     .hu-clip.is-locked .hu-clip-name::after { content:' 🔒'; }
     .hu-clip.is-locked .hu-handle { display:none; }
     .hu-clip.is-muted .hu-clip-name::before { content:'🔇 '; }
-    .hu-btn, .hu-mini { white-space:nowrap; }
     /* 셸이 상태줄 옆에 붙이는 이어서 줄. 다섯 단추가 390px 를 넘겨 화면 밖으로 나갔다 . 
        내 판 안에 들어온 것이니 여기서 접거나 굴러가게 한다. */
     .hu-root .tool-next-row { max-width:100%; overflow-x:auto; flex-wrap:nowrap; }
@@ -198,5 +195,5 @@ export const HEUNG_CSS = `
     .hu-drag-feedback { position:fixed; z-index:1300; pointer-events:none; padding:4px 7px; border:1px solid var(--accent); border-radius:var(--radius-sm); background:var(--bg-primary); color:var(--text-primary); font:10px var(--font-mono); }
     .hu-empty { padding:18px 8px; text-align:center; color:var(--text-tertiary); font-size:var(--font-size-3xs); line-height:1.6; }
     .hu-status { margin-left:auto; width:260px; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-tertiary); font:10px var(--font-mono); }
-    @media(max-width:850px) { .hu-root{height:auto;min-height:720px;--hu-head:132px}.hu-toolbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}.hu-toolbar .hu-spacer{display:none}.hu-btn{min-height:38px}.hu-track-head{padding:5px 4px}.hu-track-head input[type=range]{height:18px}.hu-track-title input{font-size:var(--font-size-3xs)}.hu-track-actions .hu-mini{width:32px;height:32px}.hu-editor.is-empty{height:96px}.hu-work{grid-template-columns:1fr}.hu-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.hu-scroll{height:420px}.hu-editor{height:340px}.hu-editor.is-expanded{inset:2dvh 2vw;height:auto}.hu-audio-controls{grid-template-columns:1fr 1fr}.hu-toolbar .hu-status{display:none}.hu-guide{align-items:flex-start;gap:7px}.hu-guide span,.hu-guide small{flex:1 0 100%}.hu-note-handle,.hu-handle{width:16px} }
+    @media(max-width:850px) { .hu-root{height:auto;min-height:720px;--hu-head:132px}.hu-toolbar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain}.hu-toolbar .hu-spacer{display:none}.hu-track-head{padding:5px 4px}.hu-track-head input[type=range]{height:18px}.hu-track-title input{font-size:var(--font-size-3xs)}.hu-track-actions .hu-mini{width:32px;height:32px}.hu-editor.is-empty{height:96px}.hu-work{grid-template-columns:1fr}.hu-side{border-left:0;border-top:1px solid var(--border);max-height:250px}.hu-scroll{height:420px}.hu-editor{height:340px}.hu-editor.is-expanded{inset:2dvh 2vw;height:auto}.hu-audio-controls{grid-template-columns:1fr 1fr}.hu-toolbar .hu-status{display:none}.hu-guide{align-items:flex-start;gap:7px}.hu-guide span,.hu-guide small{flex:1 0 100%}.hu-note-handle,.hu-handle{width:16px} }
 `;

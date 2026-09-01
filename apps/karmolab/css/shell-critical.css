@@ -1319,6 +1319,8 @@ a.landing-cta-card:hover { color: inherit; }
     align-items: stretch;
     gap: 4px;
 }
+
+.field-label.is-inline { margin-bottom: 0; white-space: nowrap; font-weight: 500; }
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
 textarea,
@@ -1421,6 +1423,25 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     padding: 4px 10px; font-size: var(--font-size-xs); border-color: transparent;
 }
 .btn-ghost:hover { color: var(--accent); background: var(--accent-subtle); }
+
+.btn-outline {
+    background: var(--bg-secondary); border-color: var(--border); color: var(--text-primary);
+    border-radius: var(--radius-sm); padding: 6px 12px; white-space: nowrap;
+}
+.btn-outline:hover { background: var(--bg-hover); border-color: var(--text-tertiary); }
+
+.btn-tool {
+    border-color: var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-tertiary); color: var(--text-primary);
+    min-height: 30px; padding: 4px 9px;
+    font: 11px var(--font-mono); font-weight: 400; letter-spacing: normal;
+    white-space: nowrap;
+}
+.btn-tool:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.btn-tool.is-on { color: var(--accent-hover); background: var(--accent-dim); border-color: var(--accent); }
+
+.btn-danger.is-on { background: var(--error-subtle); border-color: var(--error); }
+@media (max-width: 850px) { .btn-tool { min-height: 38px; } }
 .random-count-preset.active { color: var(--accent); background: var(--accent-subtle); }
 
 .btn-accent {
@@ -3729,9 +3750,7 @@ html[data-skin="field"] .kp-browse-chip--index:hover { background: none; color: 
 html[data-skin="field"] .kp-browse-tools .kp-browse-chip { border-color: var(--border); border-left: 3px solid var(--accent); }
 html[data-skin="field"] .kp-row { border-radius: 0; }
 
-html[data-skin="field"] .hu-btn,
-html[data-skin="field"] .tl-btn,
 html[data-skin="field"] .ie-apply-btn,
 html[data-skin="field"] .ie-tool-btn { border-radius: 0; }
-html[data-skin="field"] .hu-btn.is-on,
-html[data-skin="field"] .tl-btn-primary { background: var(--band); color: var(--band-ink); border-color: var(--band); }
+
+html[data-skin="field"] .btn-tool.is-on { background: var(--band); color: var(--band-ink); border-color: var(--band); }

@@ -1932,6 +1932,8 @@ a.landing-cta-card:hover { color: inherit; }
     align-items: stretch;
     gap: 4px;
 }
+/* 한 줄 안에 놓는 이름표. 아래 여백이 있으면 가로 줄에서 4px 떠 보인다 */
+.field-label.is-inline { margin-bottom: 0; white-space: nowrap; font-weight: 500; }
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
 /* number, date, url, search 가 빠져 있어서 그 칸들만 브라우저 기본 모양(밝은 배경, 낮은 높이)으로
@@ -2046,6 +2048,28 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     padding: 4px 10px; font-size: var(--font-size-xs); border-color: transparent;
 }
 .btn-ghost:hover { color: var(--accent); background: var(--accent-subtle); }
+
+/* 곁들이 버튼 (테두리 있는 보통 크기)
+   옛 tl-btn 과 그 밖 도구가 같은 모양을 따로 적던 자리. 킷에 이 모양이 없던 탓 */
+.btn-outline {
+    background: var(--bg-secondary); border-color: var(--border); color: var(--text-primary);
+    border-radius: var(--radius-sm); padding: 6px 12px; white-space: nowrap;
+}
+.btn-outline:hover { background: var(--bg-hover); border-color: var(--text-tertiary); }
+
+/* 머리띠 버튼. 좁고 고정폭 글씨. 흥이 옛 hu-btn 으로 쓰던 모양 */
+.btn-tool {
+    border-color: var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-tertiary); color: var(--text-primary);
+    min-height: 30px; padding: 4px 9px;
+    font: 11px var(--font-mono); font-weight: 400; letter-spacing: normal;
+    white-space: nowrap;
+}
+.btn-tool:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.btn-tool.is-on { color: var(--accent-hover); background: var(--accent-dim); border-color: var(--accent); }
+/* 켠 상태의 위험 버튼(지우기 모드 등). 테두리만으로는 켜졌는지 안 보인다 */
+.btn-danger.is-on { background: var(--error-subtle); border-color: var(--error); }
+@media (max-width: 850px) { .btn-tool { min-height: 38px; } }
 .random-count-preset.active { color: var(--accent); background: var(--accent-subtle); }
 
 .btn-accent {
@@ -4567,11 +4591,8 @@ html[data-skin="field"] .kp-browse-chip:hover { background: var(--band); color: 
 html[data-skin="field"] .kp-browse-chip--index:hover { background: none; color: var(--text-primary); border-color: var(--border-strong); }
 html[data-skin="field"] .kp-browse-tools .kp-browse-chip { border-color: var(--border); border-left: 3px solid var(--accent); }
 html[data-skin="field"] .kp-row { border-radius: 0; }
-/* 위젯이 제 이름으로 만든 버튼들. 이름은 그대로 두고 모양만 킷과 맞춘다.
-   이름을 바꾸는 것은 그 위젯을 손볼 때 (README 부품 킷 절) */
-html[data-skin="field"] .hu-btn,
-html[data-skin="field"] .tl-btn,
+/* 아직 제 이름으로 남은 버튼 둘. 킷으로 옮길 때까지 모양만 맞춘다 */
 html[data-skin="field"] .ie-apply-btn,
 html[data-skin="field"] .ie-tool-btn { border-radius: 0; }
-html[data-skin="field"] .hu-btn.is-on,
-html[data-skin="field"] .tl-btn-primary { background: var(--band); color: var(--band-ink); border-color: var(--band); }
+/* 켠 머리띠 버튼은 띠 색으로 채운다. 필드는 옅은 강조색이 안 보인다 */
+html[data-skin="field"] .btn-tool.is-on { background: var(--band); color: var(--band-ink); border-color: var(--band); }

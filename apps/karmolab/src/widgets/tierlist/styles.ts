@@ -24,12 +24,6 @@
         .tl-toolbar select,
         .tl-toolbar input[type="text"] { background:var(--bg-secondary); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); padding:6px 10px; font-size:var(--font-size-sm); }
         .tl-toolbar-spacer { flex:1; }
-        .tl-btn { display:inline-flex; align-items:center; gap:6px; background:var(--bg-secondary); border:1px solid var(--border); color:var(--text-primary); border-radius:var(--radius-sm); padding:6px 12px; font-size:var(--font-size-xs); font-weight:600; cursor:pointer; transition:all var(--transition); white-space:nowrap; }
-        .tl-btn:hover { background:var(--bg-hover); border-color:var(--text-tertiary); }
-        .tl-btn-primary { background:var(--accent); border-color:var(--accent); color:var(--accent-fg); }
-        .tl-btn-primary:hover { background:var(--accent-hover); border-color:var(--accent-hover); }
-        .tl-btn-toggle-on { border-color:var(--error); background:var(--error-subtle); color:var(--error); }
-        .tl-btn-toggle-on:hover { border-color:var(--error); background:var(--error-subtle); }
         .tl-wrap.tl-delete-mode .tl-item:not(.tl-item--static) { box-shadow:inset 0 0 0 2px var(--error); cursor:crosshair; }
         .tl-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:var(--radius-pill); font-size:var(--font-size-2xs); font-weight:700; border:1px solid var(--border); background:var(--glass); }
         .tl-badge.tl-badge-local { border-color: var(--border); color: var(--text-secondary); font-size:var(--font-size-3xs); }
@@ -135,7 +129,7 @@
         .tl-tier-row .tl-tier-label { width:72px; flex-shrink:0; margin-bottom:0 !important; padding:6px 8px; font-size:var(--font-size-xs); }
         .tl-tier-color { width:44px; height:36px; padding:0; border:1px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; flex-shrink:0; }
         .tl-tier-row-btns { display:flex; gap:4px; margin-left:auto; }
-        .tl-tier-row-btns .tl-btn { padding:4px 10px; min-width:auto; font-size:var(--font-size-2xs); }
+        .tl-tier-row-btns .btn { padding:4px 10px; min-width:auto; font-size:var(--font-size-2xs); }
         .tl-tier-actions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
         .tl-ul-manager-body { margin-bottom:12px; max-height:min(50vh, 380px); overflow-y:auto; }
         .tl-ul-empty { font-size:var(--font-size-2xs); color:var(--text-tertiary); padding:12px 0; line-height:1.45; }

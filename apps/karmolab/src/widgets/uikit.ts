@@ -2,7 +2,8 @@
  * 부품 킷 카탈로그 (change.karmolab-ui-kit). 우리가 실제로 쓰는 공용 부품을 한 자리에 다 늘어놓는다.
  *
  * 목록의 근거는 실측이다 (2026-09-01). 셸 CSS(`toolbox.css`, `tools.css`)가 규칙을 가진 클래스 가운데
- * 위젯이 세 번 이상 쓰는 것 66개를 뽑고, 그중 위젯 하나만 쓰는 자체 클래스(`hu-btn`, `tl-btn` 등)를 뺐다.
+ * 위젯이 세 번 이상 쓰는 것 66개를 뽑았다. 위젯이 저마다 만들던 모양(옛 `hu-btn`, `tl-btn`, `ie-opt-label`)은
+ * 2026-09-01 에 킷으로 올린 뒤 이름은 `.btn-outline`, `.btn-tool`, `.field-label.is-inline`
  * 옆에 적은 숫자가 그 쓰임 수다. 새 부품을 만들면 여기와 `src/widgets/README.md` 와 `css/toolbox.css` 셋을 같이 고친다.
  *
  * 주소는 `#uikit`. 목록에는 안 뜬다(hidden). 만드는 사람이 보는 장이다.
@@ -45,6 +46,21 @@ import { t, loadNamespace } from '../lib/i18n';
   <button class="btn btn-accent">강조</button>
   <button class="btn btn-secondary">보조</button>
   <button class="btn btn-danger">지우기</button>
+</div>`
+        },
+        {
+            group: '기본',
+            name: '곁들이 버튼과 머리띠 버튼',
+            classes: '.btn-outline .btn-tool',
+            note: 'outline 은 창과 도구 머리의 보통 버튼, tool 은 좁은 머리띠. 켬은 .is-on. 쓰임 56, 39',
+            html: `<div class="tool-actions">
+  <button class="btn btn-outline">곁들이</button>
+  <button class="btn btn-outline btn-accent">그중 하나</button>
+  <button class="btn btn-outline btn-danger is-on">켠 위험</button>
+</div>
+<div class="tool-actions">
+  <button class="btn btn-tool">머리띠</button>
+  <button class="btn btn-tool is-on">켬</button>
 </div>`
         },
         {

@@ -75,8 +75,8 @@ import { t } from '../../lib/i18n';
                 <label>${esc(t('tierlist.t83'))}</label>
                 <input type="text" id="tl-add-name" placeholder="${esc(t('tierlist.ph.tladdname'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-add-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-add-ok">${esc(t('tierlist.btn.tladdok'))}</button>
+                    <button class="btn btn-outline" id="tl-add-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-add-ok">${esc(t('tierlist.btn.tladdok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -122,8 +122,8 @@ import { t } from '../../lib/i18n';
                 <input type="text" id="tl-edit-name" value="${Toolbox.escapeHtml?.(item.name || '') ?? ''}">
                 ${showReset ? t('tierlist.t99') : ''}
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-edit-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-edit-ok">${esc(t('tierlist.btn.tleditok'))}</button>
+                    <button class="btn btn-outline" id="tl-edit-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-edit-ok">${esc(t('tierlist.btn.tleditok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -167,8 +167,8 @@ import { t } from '../../lib/i18n';
                 <label>${esc(t('tierlist.t86'))}</label>
                 <input type="text" id="tl-new-cat" placeholder="${esc(t('tierlist.ph.tlnewcat'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-new-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-new-ok">${esc(t('tierlist.btn.tlnewok'))}</button>
+                    <button class="btn btn-outline" id="tl-new-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-new-ok">${esc(t('tierlist.btn.tlnewok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -199,8 +199,8 @@ import { t } from '../../lib/i18n';
                 <label>${esc(t('tierlist.t88'))}</label>
                 <input type="text" id="tl-cat-cat" placeholder="${esc(t('tierlist.ph.tlnewcat'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-cat-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-cat-ok">${esc(t('tierlist.btn.tlcatok'))}</button>
+                    <button class="btn btn-outline" id="tl-cat-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-cat-ok">${esc(t('tierlist.btn.tlcatok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -235,8 +235,8 @@ import { t } from '../../lib/i18n';
                 <label>${esc(t('tierlist.t83'))}</label>
                 <input type="text" id="tl-cat-add-name" placeholder="${esc(t('tierlist.ph.tlcataddname'))}">
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-cat-add-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-cat-add-ok">${esc(t('tierlist.btn.tladdok'))}</button>
+                    <button class="btn btn-outline" id="tl-cat-add-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-cat-add-ok">${esc(t('tierlist.btn.tladdok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -284,9 +284,9 @@ import { t } from '../../lib/i18n';
             <input type="text" class="tl-tier-label" value="${lab}" maxlength="12" aria-label="${esc(t('tierlist.t75'))}">
             <input type="color" class="tl-tier-color" value="${col}" aria-label="${esc(t('tierlist.t76'))}">
             <div class="tl-tier-row-btns">
-                <button type="button" class="tl-btn tl-tier-up" title="${esc(t('tierlist.t77'))}">↑</button>
-                <button type="button" class="tl-btn tl-tier-down" title="${esc(t('tierlist.t78'))}">↓</button>
-                <button type="button" class="tl-btn tl-tier-del" title="${esc(t('tierlist.t79'))}">✕</button>
+                <button type="button" class="btn btn-outline tl-tier-up" title="${esc(t('tierlist.t77'))}">↑</button>
+                <button type="button" class="btn btn-outline tl-tier-down" title="${esc(t('tierlist.t78'))}">↓</button>
+                <button type="button" class="btn btn-outline tl-tier-del" title="${esc(t('tierlist.t79'))}">✕</button>
             </div>
         </div>`;
     }
@@ -306,12 +306,12 @@ import { t } from '../../lib/i18n';
                 <p class="tl-tier-hint">${t('tierlist.tierHint', { unplaced: `<strong>${esc(t('tierlist.t90'))}</strong>` })}</p>
                 <div id="tl-tier-rows" class="tl-tier-rows"></div>
                 <div class="tl-tier-actions">
-                    <button type="button" class="tl-btn" id="tl-tier-add">${esc(t('tierlist.btn.tltieradd'))}</button>
-                    <button type="button" class="tl-btn" id="tl-tier-default">${esc(t('tierlist.btn.tltierdefault'))}</button>
+                    <button type="button" class="btn btn-outline" id="tl-tier-add">${esc(t('tierlist.btn.tltieradd'))}</button>
+                    <button type="button" class="btn btn-outline" id="tl-tier-default">${esc(t('tierlist.btn.tltierdefault'))}</button>
                 </div>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-tier-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-tier-ok">${esc(t('tierlist.btn.tleditok'))}</button>
+                    <button class="btn btn-outline" id="tl-tier-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-tier-ok">${esc(t('tierlist.btn.tleditok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -407,9 +407,9 @@ import { t } from '../../lib/i18n';
             bodyHtml: `
                 <p class="tl-tier-hint">${t('tierlist.labelHint', { path: `<strong>${esc(t('tierlist.t93'))}</strong>` })}</p>
                 <div id="tl-ul-manager-body" class="tl-ul-manager-body"></div>
-                <button type="button" class="tl-btn" id="tl-ul-add">${esc(t('tierlist.btn.tluladd'))}</button>
+                <button type="button" class="btn btn-outline" id="tl-ul-add">${esc(t('tierlist.btn.tluladd'))}</button>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn tl-btn-primary" id="tl-ul-done">${esc(t('tierlist.btn.tluldone'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-ul-done">${esc(t('tierlist.btn.tluldone'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
@@ -436,7 +436,7 @@ import { t } from '../../lib/i18n';
                             <input type="text" class="tl-ul-name" value="${nm}" maxlength="32" aria-label="${esc(t('tierlist.t80'))}">
                             <input type="color" class="tl-ul-color" value="${col}" aria-label="${esc(t('tierlist.t81'))}">
                             <span class="tl-ul-usage" title="${esc(t('tierlist.t82'))}">${n}장</span>
-                            <button type="button" class="tl-btn tl-ul-del" title="${esc(t('tierlist.t79'))}">✕</button>
+                            <button type="button" class="btn btn-outline tl-ul-del" title="${esc(t('tierlist.t79'))}">✕</button>
                         </div>`;
                     }).join('');
                 }
@@ -520,8 +520,8 @@ import { t } from '../../lib/i18n';
             bodyHtml: `
                 <div id="tl-ul-assign-list" class="tl-ul-assign-list">${checks}</div>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-ul-assign-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-ul-assign-ok">${esc(t('tierlist.btn.tlulassignok'))}</button>
+                    <button class="btn btn-outline" id="tl-ul-assign-cancel">${esc(t('tierlist.btn.tladdcancel'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-ul-assign-ok">${esc(t('tierlist.btn.tlulassignok'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {

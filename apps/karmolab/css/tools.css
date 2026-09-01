@@ -476,24 +476,14 @@
 .tool-seo ol, .tool-seo ul { margin: 0; padding-left: 20px; }
 .tool-seo li { margin-bottom: 8px; }
 .tool-seo .tool-seo-lead { margin-bottom: 4px; }
-/* 도구 위에 미리 박아 두는 제목. 스크립트를 기다리지 않고 바로 읽힌다 */
+/* 미리 박아 두는 도구 제목. 스크립트 없이 바로 읽히는 자리
+   짜임과 클래스는 앱 안 히어로와 같음 (scripts/gen-tool-pages.mjs 의 heroBlock). 여기는 폭만
+   2026-09-01 이전: 이 자리만 제목 18px, 번호와 라벨과 자 없음 */
 body.tool-detail .tool-head {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 20px 20px 4px;
-}
-body.tool-detail .tool-head h1 {
-    font-size: var(--font-size-lg);
-    color: var(--text-primary);
-    margin: 0 0 4px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-}
-body.tool-detail .tool-head p {
+    max-width: none;
     margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    line-height: 1.7;
+    /* 본문(.content-body)과 같은 좌우 여백. 이 머리는 그 통 밖이라 제 몫을 따로 */
+    padding: var(--space-lg) var(--space-lg) 0;
 }
 
 /* 달리 부르는 이름 한 줄. 본문보다 한 톤 낮게, 숨기지는 않는다 */
@@ -1143,7 +1133,8 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 
 /* 도구 상세 페이지에서는 앱 히어로를 접는다. 바로 아래 설명 블록이 같은 제목, 설명을
    더 자세히 담고 있어 폰에서 같은 문장을 두 번 읽게 된다 (TASK-KL-088). */
-body.tool-detail .tool-page-hero { display: none; }
+/* 스크립트가 그리는 히어로만 접는다. 미리 박은 것(.tool-head)은 그대로 보인다 */
+body.tool-detail .tool-page > .tool-page-hero { display: none; }
 
 /* 상세 페이지에서는 사용자 위젯을 싣지 않는다(TASK-KL-089). 눌러도 아무 일 없는 단추를 숨긴다. */
 body.tool-detail #userPageBtn { display: none; }

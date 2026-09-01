@@ -56,5 +56,5 @@ export function shortcutKeys(): string[] {
 
 export function shortcutsHtml(esc: (value: unknown) => string): string {
   const groups = SHORTCUTS.map((group) => `<section><h5>${esc(group.title)}</h5>${group.items.map((item) => `<p><span class="hu-keys">${item.keys.map((key) => `<kbd>${esc(key)}</kbd>`).join('')}</span><span>${esc(item.what)}</span></p>`).join('')}</section>`).join('');
-  return `<div class="hu-help" role="dialog" aria-modal="true" aria-label="단축키"><div class="hu-help-head"><strong>단축키</strong><button class="hu-btn" data-help-act="close">닫기</button></div><div class="hu-help-body">${groups}</div></div>`;
+  return `<div class="hu-help" role="dialog" aria-modal="true" aria-label="단축키"><div class="hu-help-head"><strong>단축키</strong><button class="btn btn-tool" data-help-act="close">닫기</button></div><div class="hu-help-body">${groups}</div></div>`;
 }

@@ -234,13 +234,12 @@ const esc = (v: unknown): string =>
             -webkit-overflow-scrolling:touch;
             background:var(--bg-secondary);
         }
-        .ie-options > .ie-opt-label { white-space:normal; max-width:100%; line-height:1.4; }
+        .ie-options > .field-label { white-space:normal; max-width:100%; line-height:1.4; }
         .ie-options .ie-opt-row,
         .ie-options-stack {
             flex:1 1 100%; width:100%; min-width:0; box-sizing:border-box;
         }
         .ie-options > .ie-filter-grid { flex:1 1 100%; width:100%; }
-        .ie-opt-label { font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:500; white-space:nowrap; }
         .ie-opt-input {
             width:72px; padding:4px 8px; font-size:var(--font-size-xs); font-family:monospace;
             border:1px solid var(--border); border-radius:var(--radius-sm);
@@ -1269,7 +1268,7 @@ const esc = (v: unknown): string =>
         container.appendChild(sep);
 
         const info = document.createElement('span');
-        info.className = 'ie-opt-label';
+        info.className = 'field-label is-inline';
         info.textContent = t('imageedit.t96');
         info.id = 'ieCropInfo';
         container.appendChild(info);
@@ -1283,13 +1282,13 @@ const esc = (v: unknown): string =>
 
     function buildResizeOptions(container: any) {
         container.innerHTML = `
-            <span class="ie-opt-label">${esc(t('imageedit.t12'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t12'))}</span>
             <input type="number" class="ie-opt-input" id="ieResizeW" min="1">
-            <span class="ie-opt-label">${esc(t('imageedit.t13'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t13'))}</span>
             <input type="number" class="ie-opt-input" id="ieResizeH" min="1">
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
                 <input type="checkbox" class="ie-opt-check" id="ieResizeLock" checked>
-                <span class="ie-opt-label">${esc(t('imageedit.t14'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t14'))}</span>
             </label>
             <span class="ie-toolbar-sep"></span>
             <button class="ie-opt-btn" data-pct="50">50%</button>
@@ -1335,10 +1334,10 @@ const esc = (v: unknown): string =>
             <button class="ie-opt-btn" id="ieFlipH">${esc(t('imageedit.btn.ieFlipH'))}</button>
             <button class="ie-opt-btn" id="ieFlipV">${esc(t('imageedit.btn.ieFlipV'))}</button>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">${esc(t('imageedit.t15'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t15'))}</span>
             <input type="range" class="ie-opt-range" id="ieRotRange" min="-180" max="180" value="0" style="width:140px;">
             <input type="number" class="ie-opt-input" id="ieRotDeg" value="0" min="-360" max="360" style="width:56px;">
-            <span class="ie-opt-label">°</span>
+            <span class="field-label is-inline">°</span>
             <button class="ie-apply-btn" id="ieRotApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
 
         requestAnimationFrame(() => {
@@ -1392,7 +1391,7 @@ const esc = (v: unknown): string =>
             { id: 'sharpen', label: t('imageedit.t101'), min: 0, max: 120, val: 0, unit: '' },
         ];
         container.innerHTML = sliders.map(s => `
-            <span class="ie-opt-label">${s.label}${(s as any).suffix || ''}</span>
+            <span class="field-label is-inline">${s.label}${(s as any).suffix || ''}</span>
             <input type="range" class="ie-opt-range" id="ieAdj_${s.id}" min="${s.min}" max="${s.max}" value="${s.val}">
             <span class="ie-opt-range-val" id="ieAdjVal_${s.id}">${s.val}${s.unit}</span>
         `).join('') + t('imageedit.t102');
@@ -1777,15 +1776,15 @@ const esc = (v: unknown): string =>
     /* ===== Mode 1. Chromakey ===== */
     function buildChromaBody(body: any) {
         body.innerHTML = `
-            <span class="ie-opt-label">${esc(t('imageedit.t16'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t16'))}</span>
             <span class="ie-chroma-swatch" id="ieChromaSwatch"></span>
-            <span class="ie-opt-label" id="ieChromaHex" style="font-family:monospace;min-width:60px;">${esc(t('imageedit.label.ieChromaHex'))}</span>
+            <span class="field-label is-inline" id="ieChromaHex" style="font-family:monospace;min-width:60px;">${esc(t('imageedit.label.ieChromaHex'))}</span>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">${esc(t('imageedit.t17'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t17'))}</span>
             <input type="range" class="ie-opt-range" id="ieChromaTol" min="1" max="120" value="${chromaTolerance}" style="width:100px;">
             <span class="ie-opt-range-val" id="ieChromaTolVal">${chromaTolerance}</span>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">${esc(t('imageedit.t18'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t18'))}</span>
             <input type="range" class="ie-opt-range" id="ieChromaFeather" min="0" max="30" value="${chromaFeather}" style="width:80px;">
             <span class="ie-opt-range-val" id="ieChromaFeatherVal">${chromaFeather}</span>
             <button class="ie-apply-btn" id="ieChromaApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
@@ -1845,11 +1844,11 @@ const esc = (v: unknown): string =>
     /* ===== Mode 2. Brush ===== */
     function buildBrushBody(body: any) {
         body.innerHTML = `
-            <span class="ie-opt-label">${esc(t('imageedit.t19'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t19'))}</span>
             <button class="ie-opt-btn${brushMode === 'bg' ? ' active' : ''}" id="ieBrushBg">${esc(t('imageedit.btn.ieBrushBg'))}</button>
             <button class="ie-opt-btn${brushMode === 'fg' ? ' active' : ''}" id="ieBrushFg">${esc(t('imageedit.btn.ieBrushFg'))}</button>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">${esc(t('imageedit.t20'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t20'))}</span>
             <input type="range" class="ie-opt-range" id="ieBrushSize" min="4" max="80" value="${brushSize}" style="width:100px;">
             <span class="ie-opt-range-val" id="ieBrushSizeVal">${brushSize}px</span>
             <button class="ie-opt-btn" id="ieBrushClear">${esc(t('imageedit.btn.ieBrushClear'))}</button>
@@ -1954,17 +1953,17 @@ const esc = (v: unknown): string =>
     /* ===== Mode 3. AI (ONNX) ===== */
     function buildAiBody(body: any) {
         body.innerHTML = `
-            <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t21'))}</span>
             <button class="ie-opt-btn${rembgModel === 'isnet_quint8' ? ' active' : ''}" id="ieRembgSmall">${esc(t('imageedit.btn.ieRembgSmall'))}</button>
             <button class="ie-opt-btn${rembgModel === 'isnet_fp16' ? ' active' : ''}" id="ieRembgMedium">${esc(t('imageedit.btn.ieRembgMedium'))}</button>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">${esc(t('imageedit.t22'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t22'))}</span>
             <select class="ie-opt-input" id="ieRembgSize" style="width:auto;">
                 <option value="512"${rembgMaxSize === 512 ? ' selected' : ''}>512</option>
                 <option value="768"${rembgMaxSize === 768 ? ' selected' : ''}>768</option>
                 <option value="1024"${rembgMaxSize === 1024 ? ' selected' : ''}>1024</option>
             </select>
-            <span class="ie-opt-label ie-rembg-note">${esc(t('imageedit.t23'))}</span>
+            <span class="field-label is-inline ie-rembg-note">${esc(t('imageedit.t23'))}</span>
             <button class="ie-apply-btn" id="ieRembgApply">${esc(t('imageedit.btn.ieRembgApply'))}</button>`;
         requestAnimationFrame(() => {
             const s = document.getElementById('ieRembgSmall'), m = document.getElementById('ieRembgMedium');
@@ -2131,12 +2130,12 @@ const esc = (v: unknown): string =>
     function buildGeminiBody(body: any) {
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
-            <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t21'))}</span>
             <select class="ie-opt-input" id="ieGeminiModel" style="width:auto;">
                 ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
             </select>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
+            <span class="field-label is-inline ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
                 <button class="ie-apply-btn" id="ieGeminiApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiApply'))}</button>
                 <button class="ie-apply-btn ie-apply-btn-quiet" id="ieGeminiDownloadMask"  ${lastGeminiMaskDataUrl ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiDownloadMask'))}</button>
@@ -2268,20 +2267,20 @@ const esc = (v: unknown): string =>
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;">
-                <span class="ie-opt-label">${esc(t('imageedit.t24'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t24'))}</span>
                 <select class="ie-opt-input" id="ieUpscaleFactor" style="width:auto;">
                     <option value="2">2×</option>
                     <option value="4">4×</option>
                 </select>
                 <button type="button" class="ie-opt-btn" id="ieUpscaleLocal">${esc(t('imageedit.btn.ieUpscaleLocal'))}</button>
                 <span class="ie-toolbar-sep"></span>
-                <span class="ie-opt-label">${esc(t('imageedit.t25'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t25'))}</span>
                 <select class="ie-opt-input" id="ieUpscaleModel" style="width:auto;">
                     ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
                 </select>
                 <button type="button" class="ie-apply-btn" id="ieUpscaleApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieUpscaleApply'))}</button>
             </div>
-            <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
+            <span class="field-label is-inline ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="font-size:var(--font-size-xs);opacity:0.85;max-width:600px;line-height:1.45;">
                 <strong>${esc(t('imageedit.t26'))}</strong> ${esc(t('imageedit.t27'))}<br>
                 <strong>AI</strong> ${esc(t('imageedit.t28'))}
@@ -2411,16 +2410,16 @@ const esc = (v: unknown): string =>
     function buildBggBody(body: any) {
         const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
-            <span class="ie-opt-label">${esc(t('imageedit.t29'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t29'))}</span>
             <input type="color" id="ieBggColor" value="#ffffff" style="width:40px;height:28px;padding:2px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
             <input type="text" id="ieBggColorText" placeholder="${esc(t('imageedit.ph.ieBggColorText'))}" style="width:120px;padding:4px 8px;font-size:var(--font-size-xs);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-tertiary);color:var(--text-primary);" title="${esc(t('imageedit.title.ieBggColorText'))}">
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label">${esc(t('imageedit.t21'))}</span>
+            <span class="field-label is-inline">${esc(t('imageedit.t21'))}</span>
             <select class="ie-opt-input" id="ieBggModel" style="width:auto;">
                 ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
             </select>
             <span class="ie-toolbar-sep"></span>
-            <span class="ie-opt-label ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t159')}</span>
+            <span class="field-label is-inline ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t159')}</span>
             <button class="ie-apply-btn" id="ieBggApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieBggApply'))}</button>`;
         requestAnimationFrame(() => {
             const textEl = document.getElementById('ieBggColorText');
@@ -2695,11 +2694,11 @@ const esc = (v: unknown): string =>
     function buildCaptionOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;gap:8px;">
-                <span class="ie-opt-label">${esc(t('imageedit.t30'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t30'))}</span>
                 <div class="ie-filter-grid" id="ieCaptionPresets" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
             </div>
             <div class="ie-opt-row" style="flex-direction:column;align-items:stretch;">
-                <span class="ie-opt-label">${esc(t('imageedit.t31'))} <span style="color:var(--text-tertiary);font-weight:400;">${esc(t('imageedit.t32'))}</span></span>
+                <span class="field-label is-inline">${esc(t('imageedit.t31'))} <span style="color:var(--text-tertiary);font-weight:400;">${esc(t('imageedit.t32'))}</span></span>
                 <textarea class="ie-opt-input" id="ieCaptionText" placeholder="${esc(t('imageedit.ph.ieCaptionText'))}" style="min-height:60px;resize:vertical;"></textarea>
             </div>
             <div class="ie-opt-row">
@@ -2710,7 +2709,7 @@ const esc = (v: unknown): string =>
             const btn = document.createElement('button');
             btn.className = 'ie-opt-btn' + (i === 0 ? ' active' : '');
             btn.dataset.preset = p.id;
-            btn.innerHTML = `<span style="font-size:1.2em;">${p.icon}</span><span class="ie-opt-label" style="font-size:var(--font-size-2xs);">${p.label}</span>`;
+            btn.innerHTML = `<span style="font-size:1.2em;">${p.icon}</span><span class="field-label is-inline" style="font-size:var(--font-size-2xs);">${p.label}</span>`;
             btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;';
             presetWrap!.appendChild(btn);
         });
@@ -2827,11 +2826,11 @@ const esc = (v: unknown): string =>
     function buildStickerOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;gap:8px;">
-                <span class="ie-opt-label">${esc(t('imageedit.t10'))} <span style="color:var(--text-tertiary);font-weight:400;">${esc(t('imageedit.t32'))}</span></span>
+                <span class="field-label is-inline">${esc(t('imageedit.t10'))} <span style="color:var(--text-tertiary);font-weight:400;">${esc(t('imageedit.t32'))}</span></span>
                 <div class="ie-filter-grid" id="ieStickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px;max-height:120px;overflow-y:auto;"></div>
             </div>
             <div class="ie-opt-row" style="align-items:center;gap:8px;">
-                <span class="ie-opt-label">${esc(t('imageedit.t20'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t20'))}</span>
                 <input type="range" class="ie-opt-range" id="ieStickerScale" min="5" max="50" value="20" style="width:100px;">
                 <span id="ieStickerScaleVal" class="ie-opt-range-val">20%</span>
             </div>
@@ -2912,15 +2911,15 @@ const esc = (v: unknown): string =>
         optPanel.innerHTML = `
             <div class="ie-options-stack" style="display:flex;flex-direction:column;gap:10px;width:100%;">
                 <div style="padding-bottom:8px;border-bottom:1px solid var(--border);">
-                    <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t33'))}</span>
+                    <span class="field-label is-inline" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t33'))}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">
                         <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskLoadFile" >${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
                         <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskPaste" >${esc(t('imageedit.btn.ieMaskPaste'))}</button>
                         <div id="ieMaskPreviewWrap" style="display:none; align-items:center; gap:6px;">
                             <canvas id="ieMaskPreview" style="max-width:60px; max-height:40px; border:1px solid var(--border); border-radius:var(--radius-sm);"></canvas>
-                            <span id="ieMaskInfo" class="ie-opt-label" style="font-size:var(--font-size-xs);"></span>
+                            <span id="ieMaskInfo" class="field-label is-inline" style="font-size:var(--font-size-xs);"></span>
                         </div>
-                        <span class="ie-opt-label">${esc(t('imageedit.t34'))}</span>
+                        <span class="field-label is-inline">${esc(t('imageedit.t34'))}</span>
                         <select class="ie-opt-input" id="ieMaskInterpret" style="width:auto;">
                             <option value="alpha">${esc(t('imageedit.opt.alpha'))}</option>
                             <option value="luminance">${esc(t('imageedit.opt.luminance'))}</option>
@@ -2933,19 +2932,19 @@ const esc = (v: unknown): string =>
                     </div>
                 </div>
                 <div>
-                    <span class="ie-opt-label" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t35'))}</span>
+                    <span class="field-label is-inline" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t35'))}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-                        <span class="ie-opt-label">${esc(t('imageedit.t36'))}</span>
+                        <span class="field-label is-inline">${esc(t('imageedit.t36'))}</span>
                         <select class="ie-opt-input" id="ieSelfMaskTarget" style="width:auto;">
                             <option value="dark">${esc(t('imageedit.opt.dark'))}</option>
                             <option value="light">${esc(t('imageedit.opt.light'))}</option>
                         </select>
-                        <span class="ie-opt-label">${esc(t('imageedit.t17'))}</span>
+                        <span class="field-label is-inline">${esc(t('imageedit.t17'))}</span>
                         <input type="range" class="ie-opt-range" id="ieSelfMaskTol" min="1" max="128" value="30" style="width:80px;">
-                        <span id="ieSelfMaskTolVal" class="ie-opt-label" style="min-width:28px;">30</span>
-                        <span class="ie-opt-label">${esc(t('imageedit.t18'))}</span>
+                        <span id="ieSelfMaskTolVal" class="field-label is-inline" style="min-width:28px;">30</span>
+                        <span class="field-label is-inline">${esc(t('imageedit.t18'))}</span>
                         <input type="range" class="ie-opt-range" id="ieSelfMaskFeather" min="0" max="64" value="10" style="width:60px;">
-                        <span id="ieSelfMaskFeatherVal" class="ie-opt-label" style="min-width:28px;">10</span>
+                        <span id="ieSelfMaskFeatherVal" class="field-label is-inline" style="min-width:28px;">10</span>
                         <button class="ie-apply-btn" id="ieSelfMaskApply">${esc(t('imageedit.btn.ieSelfMaskApply'))}</button>
                     </div>
                 </div>
@@ -3852,23 +3851,23 @@ const esc = (v: unknown): string =>
 
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;width:100%;">
-                <span class="ie-opt-label">${esc(t('imageedit.t37'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t37'))}</span>
                 <label class="ie-cv-fmt"><input type="radio" name="ieCvFmt" value="png" ${st.outFmt === 'png' ? 'checked' : ''}> PNG</label>
                 <label class="ie-cv-fmt"><input type="radio" name="ieCvFmt" value="jpeg" ${st.outFmt === 'jpeg' ? 'checked' : ''}> JPEG</label>
                 <label class="ie-cv-fmt${webpOk ? '' : ' ie-cv-off'}"><input type="radio" name="ieCvFmt" value="webp" ${st.outFmt === 'webp' && webpOk ? 'checked' : ''} ${webpOk ? '' : 'disabled'}> WebP</label>
             </div>
             <div class="ie-opt-row" id="ieCvQlRow" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label" id="ieCvQlLabel">${esc(t('imageedit.label.ieCvQlLabel'))}</span>
+                <span class="field-label is-inline" id="ieCvQlLabel">${esc(t('imageedit.label.ieCvQlLabel'))}</span>
                 <input type="range" class="ie-opt-range" id="ieCvQuality" min="5" max="100" value="${st.quality}" style="width:120px;">
                 <span class="ie-opt-range-val" id="ieCvQualityVal">${st.quality}%</span>
             </div>
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label">${esc(t('imageedit.t38'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t38'))}</span>
                 <select class="ie-opt-input" id="ieCvMaxPreset" style="width:auto;min-width:132px;font-family:inherit;">${maxOpts}</select>
                 <input type="number" class="ie-opt-input" id="ieCvMaxCustom" min="64" max="16384" value="${st.maxCustom}" title="px" style="width:88px;">
             </div>
             <div class="ie-opt-row" id="ieCvResampleRow" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label">${esc(t('imageedit.t39'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t39'))}</span>
                 <select class="ie-opt-input" id="ieCvSmooth" style="width:auto;min-width:120px;font-family:inherit;">
                     <option value="high" ${st.smoothing === 'high' ? 'selected' : ''}>${esc(t('imageedit.opt.high'))}</option>
                     <option value="medium" ${st.smoothing === 'medium' ? 'selected' : ''}>${esc(t('imageedit.opt.medium'))}</option>
@@ -3876,7 +3875,7 @@ const esc = (v: unknown): string =>
                 </select>
             </div>
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;">
-                <span class="ie-opt-label">${esc(t('imageedit.t40'))}</span>
+                <span class="field-label is-inline">${esc(t('imageedit.t40'))}</span>
                 <input type="color" id="ieCvBg" value="${st.bg}" style="width:44px;height:28px;padding:2px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;vertical-align:middle;">
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:var(--font-size-2xs);color:var(--text-secondary);white-space:nowrap;">
                     <input type="checkbox" class="ie-opt-check" id="ieCvFillAlpha" ${st.fillAlpha ? 'checked' : ''}> ${esc(t('imageedit.label.ieCvFillAlpha'))}
@@ -3887,20 +3886,20 @@ const esc = (v: unknown): string =>
                 <button type="button" class="ie-apply-btn" id="ieCvDownload">${esc(t('imageedit.btn.ieCvDownload'))}</button>
             </div>
             <div class="ie-opt-row" style="width:100%;">
-                <span class="ie-opt-label" id="ieCvHint" style="white-space:normal;font-weight:400;line-height:1.45;max-width:720px;"></span>
+                <span class="field-label is-inline" id="ieCvHint" style="white-space:normal;font-weight:400;line-height:1.45;max-width:720px;"></span>
             </div>
             ${
                 Batch
                     ? `<div class="ie-opt-row ie-cv-batch" style="flex-direction:column;align-items:stretch;gap:10px;padding-top:12px;border-top:1px solid var(--border);width:100%;">
-                <span class="ie-opt-label" style="font-weight:600;">${esc(t('imageedit.t41'))}</span>
-                <span class="ie-opt-label" style="white-space:normal;font-weight:400;line-height:1.45;">${esc(t('imageedit.t42'))} <strong>${esc(t('imageedit.t43'))}</strong>${esc(t('imageedit.t44'))}</span>
+                <span class="field-label is-inline" style="font-weight:600;">${esc(t('imageedit.t41'))}</span>
+                <span class="field-label is-inline" style="white-space:normal;font-weight:400;line-height:1.45;">${esc(t('imageedit.t42'))} <strong>${esc(t('imageedit.t43'))}</strong>${esc(t('imageedit.t44'))}</span>
                 <input type="file" id="ieCvBatchInput" accept="image/*" multiple style="display:none">
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                     <button type="button" class="ie-opt-btn" id="ieCvBatchPick">${esc(t('imageedit.btn.ieCvBatchPick'))}</button>
                     <button type="button" class="ie-opt-btn" id="ieCvBatchRun" disabled>${esc(t('imageedit.btn.ieCvBatchRun'))}</button>
                     <button type="button" class="ie-opt-btn" id="ieCvBatchCancel" disabled style="display:none">${esc(t('imageedit.btn.ieRembgCancel'))}</button>
                 </div>
-                <span class="ie-opt-label" id="ieCvBatchStatus" style="white-space:normal;font-weight:400;">${esc(t('imageedit.label.ieCvBatchStatus'))}</span>
+                <span class="field-label is-inline" id="ieCvBatchStatus" style="white-space:normal;font-weight:400;">${esc(t('imageedit.label.ieCvBatchStatus'))}</span>
             </div>`
                     : ''
             }`;

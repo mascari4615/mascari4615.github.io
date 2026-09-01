@@ -142,6 +142,49 @@ function ogImageUrl(id) {
   return `${SITE}/apps/karmolab/img/og/${has ? id : 'default'}.jpg`;
 }
 
+/* 도구 판 머리(히어로)를 앱 안과 **같은 짜임**으로 미리 박는다 (2026-09-01).
+ * 예전: 상세 장만 `.tool-head` 라는 다른 짜임 (제목 30px 대 18px, 번호와 라벨과 자와 별 없음)
+ *
+ * 갈래 이름은 `src/toolbox.ts` 의 CATEGORIES 가 정본이다. 여기서 한 벌 더 적으면 갈라지므로
+ * 구운 `js/toolbox.js` 에서 그대로 꺼내 온다. 못 꺼내면 빌드를 세운다. */
+const CATEGORY_LABEL = (() => {
+  const src = fs.readFileSync(path.join(root, 'js/toolbox.js'), 'utf8');
+  const out = {};
+  for (const m of src.matchAll(/id:"([a-z]+)",label:"((?:[^"\\]|\\.)*)"/g)) {
+    try { out[m[1]] = JSON.parse('"' + m[2] + '"'); } catch { /* 라벨이 아닌 짝 */ }
+  }
+  if (!out.dev || !out.text) {
+    console.error('[gen-tool-pages] js/toolbox.js 에서 갈래 이름을 못 꺼냈다. CATEGORIES 짜임이 바뀌었는지 확인.');
+    process.exit(1);
+  }
+  return out;
+})();
+
+/** 갈래 안 순번. 앱 안 히어로(`buildToolPage`)와 같은 셈법이라야 두 화면의 번호가 맞는다 */
+function heroNo(id) {
+  const cat = widgetById[id] && widgetById[id].category;
+  const peers = widgets
+    .filter((w) => w.category === cat && !w.hidden)
+    .sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
+  return String(Math.max(0, peers.findIndex((w) => w.id === id)) + 1).padStart(2, '0');
+}
+
+/** 앱 안과 같은 히어로 markup. 클래스 이름까지 같아야 스킨과 검사가 한 벌로 돈다 */
+function heroBlock(id) {
+  const no = heroNo(id);
+  const cat = CATEGORY_LABEL[widgetById[id] && widgetById[id].category] || '';
+  return `<header class="tool-head tool-page-hero">
+            <div class="tool-page-hero-no" aria-hidden="true">${no}</div>
+            <div class="tool-page-hero-main">
+              <p class="tool-page-hero-label" aria-hidden="true">// ${esc(cat)} / ${no}</p>
+              <h1 class="tool-page-hero-title">${esc(heading(id))}</h1>
+              <p class="tool-page-hero-desc">${esc(seo[id].lead)}</p>
+            </div>
+            <div class="tool-page-hero-actions"></div>
+            <div class="tool-page-hero-rule" aria-hidden="true"></div>
+          </header>`;
+}
+
 /** 도구 이름의 단일 정본 = 위젯 매니페스트의 title. 사이드바, 페이지 제목이 갈라지지 않게 한다. */
 function heading(id) {
   return widgetById[id].title;
@@ -769,7 +812,8 @@ function buildToolPage(id) {
    * 제목과 한 줄 소개를 미리 박아 두면 스크립트를 기다리지 않고 바로 읽힌다. */
   html = html.replace(
     '<div class="content-body" id="tool-pages">',
-    `${crumbLine(id)}<header class="tool-head">\n            <h1>${esc(heading(id))}</h1>\n            <p>${esc(seo[id].lead)}</p>\n          </header>\n                <div class="content-body" id="tool-pages">`
+    `${crumbLine(id)}${heroBlock(id)}
+                <div class="content-body" id="tool-pages">`
   );
 
   const anchor = html.match(/<!-- KARMOLAB_TOOL_SEO[\s\S]*?-->/);

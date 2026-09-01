@@ -9,6 +9,7 @@
 | 부품 | 클래스 | 쓰임 (2026-08-30 실측 사용 수) |
 | --- | --- | --- |
 | 버튼 | `.btn` `.btn-primary` `.btn-ghost` `.btn-sm` | 기본 601, 실행 143 (필 + 강조 밑선), 조용한 413, 작은 25 |
+| 곁들이 버튼 | `.btn-outline` `.btn-tool` (`.is-on`) | 56 / 39. outline 은 창과 도구 머리, tool 은 좁은 머리띠(고정폭 11px) |
 | 입력 묶음 | `.field-group` > `.field-label` + input/select/textarea | 210 / 187. 라벨은 모노 대문자 |
 | 고정폭 입력 | `.mono-input` | 66 |
 | 상태 줄 | `.tool-status` (`.ok` `.error`) | 167 |
@@ -23,7 +24,9 @@
 | 큰 수 | `.tool-display` | 타이머, 계산 |
 | 클래스 없이도 되는 것 | 맨 `button`, `input[type=file]`, `table`, `details` | 셸이 킷 모양으로 채운다. 클래스를 하나라도 붙이면 그쪽이 이긴다 |
 
-- 아직 위젯 자체 클래스(`hu-btn` 84, `tl-btn` 71, `ie-opt-label` 49)가 남아 있다. `km-field` 는 킷으로 옮겼다. 새 코드는 위 표로, 옛 것은 만날 때 바꾼다
+- 위젯 자체 클래스는 2026-09-01 에 킷으로 올렸다. `hu-btn` -> `.btn .btn-tool`, `tl-btn` -> `.btn .btn-outline`,
+  `tl-btn-primary` -> `.btn-accent`, `tl-btn-toggle-on` -> `.btn-danger.is-on`, `ie-opt-label` -> `.field-label.is-inline`.
+  `km-field` 도 앞서 옮겼다. 남은 것은 `ie-apply-btn`, `ie-tool-btn` 둘. 새 코드는 위 표로
 - 살아 있는 견본 장은 `#uikit` (`src/widgets/uikit.ts`). 부품 24종을 갈래 여섯(기본, 입력, 알림과 값, 고르기, 짜임, 그 밖)으로,
   아래에 스킨 토큰 견본. 목록의 근거는 실측이다: 셸 CSS 가 규칙을 가진 클래스 중 위젯이 세 번 이상 쓰는 것 66개에서
   위젯 하나만 쓰는 자체 클래스를 뺐다. 부품을 더하면 이 표, `toolbox.css`, `uikit.ts` 셋을 같이 고친다

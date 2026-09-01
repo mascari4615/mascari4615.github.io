@@ -305,12 +305,25 @@ function localizeToolPage(source, id, code) {
     `$1${esc(`${title}. KarmoLab`)}$2`
   );
 
-  /* 큰제목과 한 줄 소개. */
+  /* 큰제목과 한 줄 소개. 짜임은 한국어 장과 같은 히어로다(`gen-tool-pages.mjs` 의 heroBlock).
+     번호는 그대로 두고 글만 갈아 끼운다. 갈래 이름은 아직 안 옮겼으므로 라벨은 번호만 남긴다. */
   html = html.replace(
-    /<header class="tool-head">[\s\S]*?<\/header>/,
-    `<header class="tool-head">\n            <h1>${esc(title)}</h1>\n            <p>${esc(
-      lead
-    )}</p>\n          </header>`
+    /<header class="tool-head tool-page-hero">[\s\S]*?<\/header>/,
+    (whole) => {
+      const no = (whole.match(/tool-page-hero-no" aria-hidden="true">([^<]*)</) || [, ''])[1];
+      return [
+        '<header class="tool-head tool-page-hero">',
+        `            <div class="tool-page-hero-no" aria-hidden="true">${no}</div>`,
+        '            <div class="tool-page-hero-main">',
+        `              <p class="tool-page-hero-label" aria-hidden="true">// ${no}</p>`,
+        `              <h1 class="tool-page-hero-title">${esc(title)}</h1>`,
+        `              <p class="tool-page-hero-desc">${esc(lead)}</p>`,
+        '            </div>',
+        '            <div class="tool-page-hero-actions"></div>',
+        '            <div class="tool-page-hero-rule" aria-hidden="true"></div>',
+        '          </header>'
+      ].join('\n');
+    }
   );
 
   /* 위쪽 빵부스러기. 분류 링크의 이름은 원본 언어라 통째로 다시 짓는다(분류 이름은 아직 안 옮겼다). */

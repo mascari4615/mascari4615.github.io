@@ -440,9 +440,9 @@ import { isAppPath } from '../../lib/site-base';
                 </div>
                 <textarea id="tl-json-preview" spellcheck="false" readonly style="min-height:360px; white-space:pre; overflow:auto;"></textarea>
                 <div class="tl-dialog-actions">
-                    <button class="tl-btn" id="tl-json-copy">${esc(t('tierlist.btn.tljsoncopy'))}</button>
-                    <button class="tl-btn tl-btn-primary" id="tl-json-download">${esc(t('tierlist.btn.tljsondownload'))}</button>
-                    <button class="tl-btn" id="tl-json-close">${esc(t('tierlist.btn.tljsonclose'))}</button>
+                    <button class="btn btn-outline" id="tl-json-copy">${esc(t('tierlist.btn.tljsoncopy'))}</button>
+                    <button class="btn btn-outline btn-accent" id="tl-json-download">${esc(t('tierlist.btn.tljsondownload'))}</button>
+                    <button class="btn btn-outline" id="tl-json-close">${esc(t('tierlist.btn.tljsonclose'))}</button>
                 </div>
             `,
             onMount: ({ dialog, close }) => {
