@@ -682,7 +682,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 끝의 의식. 카드 순위 배지, 승자 카드 금빛, 결과창 내역 줄 */
       /* 솔리테어. 레퍼런스(solitr.com) 배치. 좌상 더미와 뽑은 자리, 우상 쌓는 자리 넷, 아래 일곱 열
          카드 폭은 열 일곱이 다 들어가게 창에서 잰다. 겹침은 카드 높이의 18% */
-      '.ac-sol{--sw:clamp(40px,8vw,74px);--sh:calc(var(--sw) * 1.4);display:flex;flex-direction:column;gap:16px;padding:18px 16px 12px;width:100%;border-radius:var(--radius-md);background:radial-gradient(120% 90% at 50% 0%,#2f7358 0%,#215240 62%,#1a4234 100%);box-shadow:inset 0 0 40px rgba(0,0,0,.35)}',
+      '.ac-sol{--sw:64px;--gap:calc(var(--sw) * 0.2);--sh:calc(var(--sw) * 1.4);display:flex;flex-direction:column;gap:16px;padding:20px 18px 14px;width:100%;box-sizing:border-box;border-radius:var(--radius-md);background:radial-gradient(120% 90% at 50% 0%,#2f7358 0%,#215240 62%,#1a4234 100%);box-shadow:inset 0 0 40px rgba(0,0,0,.35)}',
       '.ac-sol-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}',
       '.ac-sol-deal,.ac-sol-found{display:flex;gap:10px}',
       '.ac-sol-slot{position:relative;width:var(--sw);height:var(--sh);border:1px dashed rgba(255,255,255,.34);border-radius:8px;background:rgba(0,0,0,.14);padding:0;cursor:pointer}',
@@ -693,7 +693,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-sol-slot.ac-held{box-shadow:0 0 0 2px #e0b95f}',
       '.ac-sol-recycle{display:grid;place-items:center;width:100%;height:100%;font-size:var(--font-size-lg);color:#eaf4ee;opacity:.7}',
       '.ac-sol-ghost{display:grid;place-items:center;width:100%;height:100%;font-size:var(--font-size-lg);color:#eaf4ee;opacity:.32}',
-      '.ac-sol-tab{display:grid;grid-template-columns:repeat(7,var(--sw));gap:calc(var(--sw) * 0.24);justify-content:center}',
+      '.ac-sol-tab{display:grid;grid-template-columns:repeat(7,var(--sw));gap:var(--gap);justify-content:center}',
       '.ac-sol-col{position:relative;min-height:var(--sh);height:calc(var(--sh) + (var(--n) - 1) * var(--sh) * 0.18)}',
       '.ac-sol-col.ac-can::after{content:"";position:absolute;inset:-3px;border-radius:10px;border:2px solid #7fd6a8;pointer-events:none}',
       '.ac-sol-cell{position:absolute;left:0;top:calc(var(--k) * var(--sh) * 0.18);width:var(--sw);height:var(--sh);border:0;background:none;padding:0;cursor:pointer}',

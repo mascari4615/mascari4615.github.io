@@ -64,13 +64,35 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
 
     let held: Held = null;
     let last: SolitaireState | null = null;
+    /**
+     * 다시 그린 마지막 모양. 이게 없으면 매 프레임 `innerHTML` 이 갈려서
+     * 누르는 사이에 카드가 사라진다. 그러면 누름이 성립을 안 해 **아무 반응이 없다**
+     * (2026-09-01 배포판 실측: 스물여덟 칸이 다 눌리는 상태인데 눌러도 안 들림)
+     */
+    let paintKey = '';
+
+    /**
+     * 카드 폭을 판 폭에서 잰다. CSS 만으로는 안 된다. `calc()` 안의 100% 가 안 풀려
+     * 카드가 0px 이 되고, `vw` 로 잡으면 사이드바를 못 빼 판이 오른쪽으로 넘친다(둘 다 실측)
+     */
+    const root = el.querySelector('.ac-sol') as HTMLElement;
+    const fit = (): void => {
+      const w = root.clientWidth || el.clientWidth || 0;
+      if (!w) return;
+      /* 일곱 열에 사이 여섯. 사이는 카드 폭의 0.2 배라 폭 = (판 - 좌우 여백) / 8.2 */
+      const sw = Math.max(38, Math.min(96, Math.floor((w - 40) / 8.2)));
+      root.style.setProperty('--sw', sw + 'px');
+    };
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    Toolbox.onDispose?.(() => ro.disconnect());
     let flash = '';
     let flashUntil = 0;
 
     const say = (msg: string): void => {
       flash = msg;
       flashUntil = performance.now() + 2200;
-      paint();
+      paint(true);
     };
 
     /** 든 카드가 무엇인가 */
@@ -96,10 +118,14 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       } else act({ kind: 'move', col: h.col, from: h.from, to, at });
     };
 
-    const paint = (): void => {
+    const paint = (force = false): void => {
       const s = last;
       if (!s) return;
       const hc = heldCard(s);
+      const key = JSON.stringify([s.stock.length, s.waste, s.foundation, s.tableau, s.passes, s.moves, held, flash, flashUntil > performance.now()]);
+      if (!force && key === paintKey) return;
+      paintKey = key;
+      fit();
 
       /* 스톡과 웨이스트. 스톡이 비면 되돌릴 수 있는지 보인다 */
       const canRecycle = !s.stock.length && s.waste.length > 0 && s.passes < 3;
