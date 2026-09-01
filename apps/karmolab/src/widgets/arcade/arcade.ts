@@ -60,6 +60,7 @@ import {
   tapeFromUrl,
   tapeLink,
   RankedRoster,
+  supportsRanked,
   type Ranked,
   type RankedMatch,
   type RankRoom
@@ -1838,14 +1839,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         '<div class="ac-go">' +
         '<button data-solo="' + g.id + '">' + esc(t('arcade.btn.solo')) + '</button>' +
         '<button data-host="' + g.id + '">' + esc(t('arcade.btn.together')) + '</button>' +
-        /* 등급전은 2인 놀이만 (1번). 셋, 넷 순위전(야추)은 매칭 규칙 확정 뒤 */
-        (g.seats[0] === 2 && g.seats[1] === 2
+        (supportsRanked(g.id, g.seats)
           ? '<button data-rank="' + g.id + '">' + esc(t('arcade.btn.rank')) + '</button>'
           : '') +
         /* 배우기(`tutor.ts`)는 처음 온 사람의 길이라 밑줄 글자가 아니라 버튼으로. 지금은 오목만 */
         (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '') +
         '</div>' +
-        (g.seats[0] === 2 && g.seats[1] === 2 ? '<div class="ac-grade" id="acGrade"></div>' : '') +
+        (supportsRanked(g.id, g.seats) ? '<div class="ac-grade" id="acGrade"></div>' : '') +
         '<div class="ac-past" id="acPast" hidden></div>' +
         '<div class="ac-more">' + more + '</div>' +
         '</div></div>';
@@ -3843,6 +3843,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           peers = list;
           paintWait(code, false);
           if (list.length) stopLinkWatch();
+          /* act 는 연결 전 메시지를 보관하지 않는다. 처음 joinRoomAs 에서 보낸 등급전 자리표가
+             유실될 수 있으므로 peer 발견 뒤 다시 보내 주인이 명단을 확정하게 한다. */
+          if (rankedRoster && list.length) net?.act({ meta: rankedRoster.joinMeta() });
           if (was > 0 && !list.length) rivalGone();
         },
         onAct: () => {

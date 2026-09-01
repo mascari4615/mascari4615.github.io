@@ -102,6 +102,20 @@ describe('등급전 대기열', () => {
     clock.mockRestore();
   });
 
+  it('야추는 8초 뒤 기다리던 셋을 한 판으로 묶는다', async () => {
+    const clock = vi.spyOn(Date, 'now');
+    clock.mockReturnValue(2_000);
+    await stand(A, 'a', 'yacht');
+    await stand(B, 'b', 'yacht');
+    await stand(C, 'c', 'yacht');
+    clock.mockReturnValue(2_000 + YACHT_FORM_MS);
+    const c = await look(C);
+    expect(c.status).toBe('matched');
+    expect((c as Answer & { ids?: string[]; seat?: number }).ids).toEqual([A, B, C]);
+    expect((c as Answer & { seat?: number }).seat).toBe(2);
+    clock.mockRestore();
+  });
+
   it('놀이가 다르면 안 만난다', async () => {
     await stand(A, 'a', 'gomoku');
     expect((await stand(B, 'b', 'yut')).status).toBe('waiting');

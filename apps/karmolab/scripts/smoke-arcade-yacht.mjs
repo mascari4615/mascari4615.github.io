@@ -53,6 +53,7 @@ if (!cantRun) {
   await page.evaluate(() => Toolbox.switchPage('arcade'));
   await page.waitForSelector('[data-obj="yacht"]', { timeout: 10000 });
   await page.click('[data-obj="yacht"]');
+  check('야추 상세에 등급전 문이 있다', await page.locator('[data-rank="yacht"]').isVisible());
   await page.click('[data-solo="yacht"]');
 
   let gl = true;

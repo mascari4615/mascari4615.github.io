@@ -262,6 +262,8 @@
     "test:arcade": "node scripts/test-arcade.mjs",
     "test:arcade-limits": "node --test scripts/lib/arcade-limits.test.mjs",
     "test:arcade:multi": "node scripts/smoke-arcade-multi.mjs",
+    "test:arcade:ranked": "node scripts/test-arcade-ranked.mjs",
+    "test:arcade:yacht-ranked": "node scripts/smoke-arcade-yacht-ranked.mjs",
     "test:arcade:solo": "node scripts/smoke-arcade-solo.mjs",
     "test:arcade:ui": "node scripts/smoke-arcade.mjs",
     "test:arcade:yacht": "node scripts/smoke-arcade-yacht.mjs",

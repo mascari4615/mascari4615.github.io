@@ -50,6 +50,16 @@ export interface Ranked {
   cancel(): void;
 }
 
+/**
+ * 현재 서버가 결과 합의를 받을 수 있는 등급전 게임인가.
+ *
+ * 화면이 게임별 예외를 직접 알지 않도록 등급전 정책을 이 모듈이 소유한다. 고정 2인전은
+ * 기존 계약. 야추는 서버의 2~4인 모집, 순위 합의 계약을 구현한 첫 가변 인원전
+ */
+export function supportsRanked(game: string, seats: readonly [number, number]): boolean {
+  return (seats[0] === 2 && seats[1] === 2) || (game === 'yacht' && seats[0] === 2 && seats[1] === 4);
+}
+
 type Answer = {
   status?: 'waiting' | 'matched' | 'none';
   code?: string;
