@@ -29,6 +29,10 @@ import {
 
 const LAPTOP = 'https://laptop.mascari4615.com';
 const LAPTOP_API = location.hostname === 'files.mascari4615.com' ? '/pc-api' : LAPTOP;
+const FILES_HOST = 'https://files.mascari4615.com/';
+if (location.hostname === 'blog.mascari4615.com' || location.hostname === 'mascari4615.github.io') {
+  location.replace(FILES_HOST + location.search + location.hash);
+}
 const LAPTOP_KEY = 'files.laptop.pass';
 const VAULT_KEY = 'files.vault.pass';
 const box = document.getElementById('box');
