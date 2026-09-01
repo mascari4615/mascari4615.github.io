@@ -62,7 +62,9 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
   if (path.extname(file) === '.html') { res.end(stripFrontMatter(fs.readFileSync(file, 'utf8'))); return; }
-  fs.createReadStream(file).pipe(res);
+  const stream = fs.createReadStream(file);
+  stream.on('error', () => { try { res.destroy(); } catch { /* 이미 닫힘 */ } });
+  stream.pipe(res);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
@@ -76,16 +78,26 @@ const browser = await chromium.launch({ headless: true });
 /* 판(밝음, 어두움)마다 다른 코드가 도는 위젯이 있다. 두 판 다 연다
    (2026-08-31: 어두운 판만 죽는 자리를 지금은 아무도 안 봤다) */
 const THEMES = (process.env.KL_BOOT_THEMES || 'light,dark').split(',');
-/* 스킨은 기본값(필드)으로 돈다. 클래식까지 재려면 KL_BOOT_SKIN=classic */
+/* 스킨 축 (2026-09-01). 스킨마다 다른 CSS. 한쪽만 재면 다른 쪽이 안 열려도 모름
+   기본 스킨(클래식)은 밝음과 어두움 둘, 필드는 어두움 하나. 넷이면 4분
+   전부 재려면 KL_BOOT_SKINS=classic,field 와 KL_BOOT_THEMES=light,dark */
+const SKINS = (process.env.KL_BOOT_SKINS || 'classic,field').split(',');
+/** 돌 짝. 기본은 classic x (light, dark) 와 field x dark */
+function combos() {
+  if (process.env.KL_BOOT_SKINS || process.env.KL_BOOT_THEMES) {
+    return SKINS.flatMap((skin) => THEMES.map((theme) => [skin, theme]));
+  }
+  return [['classic', 'light'], ['classic', 'dark'], ['field', 'dark']];
+}
 
-async function openOne(id, theme) {
+async function openOne(id, theme, skin) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.addInitScript((v) => {
     try {
       localStorage.setItem('toolbox_theme', v.theme);
       if (v.skin) localStorage.setItem('toolbox_skin', v.skin);
     } catch { /* 저장이 막힌 판 */ }
-  }, { theme, skin: process.env.KL_BOOT_SKIN || '' });
+  }, { theme, skin });
   const hits = new Set();
   page.on('pageerror', (e) => hits.add('오류 ' + String(e).split('\n')[0].slice(0, 90)));
   page.on('response', (r) => {
@@ -103,16 +115,16 @@ async function openOne(id, theme) {
       .waitForFunction(() => !!document.querySelector('.tool-page.active'), undefined, { timeout: 25000 })
       .then(() => true)
       .catch(() => false);
-    if (!drew) { skipped.push(`${id}(${theme}): 도구 판이 안 그려졌다`); return; }
+    if (!drew) { skipped.push(`${id}(${skin}/${theme}): 도구 판이 안 그려졌다`); return; }
     /* 여기 재움은 값을 기다리는 게 아니라 **오류가 날 시간을 준다**. 무엇이 될지가 아니라
        무엇이 깨지나를 보는 자리라 기다릴 상태가 없다. 멎기를 기다리게 해 봤더니 1분 7초가
        2분 52초가 되고 무거운 도구 둘이 시간 초과로 빠졌다 (2026-08-31 실측) */
     // 재움-의도: 오류가 터질 틈을 준다. 읽어서 판정하는 값이 없다
     await page.waitForTimeout(900);
     opened++;
-    if (hits.size) failures.push(`${id}(${theme}): ${[...hits].slice(0, 3).join(' | ')}`);
+    if (hits.size) failures.push(`${id}(${skin}/${theme}): ${[...hits].slice(0, 3).join(' | ')}`);
   } catch (err) {
-    skipped.push(`${id}(${theme}): 화면을 못 열었다 (${String(err).slice(0, 60)})`);
+    skipped.push(`${id}(${skin}/${theme}): 화면을 못 열었다 (${String(err).slice(0, 60)})`);
   } finally {
     await page.close();
   }
@@ -121,13 +133,13 @@ async function openOne(id, theme) {
 const LANES = Number(process.env.KL_BOOT_LANES || 6);   // 판 둘을 도니 레인을 늘린다
 try {
   const queue = [];
-  for (const theme of THEMES) for (const id of ids) queue.push([id, theme]);
+  for (const [skin, theme] of combos()) for (const id of ids) queue.push([id, theme, skin]);
   await Promise.all(
     Array.from({ length: LANES }, async () => {
       for (;;) {
         const next = queue.shift();
         if (!next) return;
-        await openOne(next[0], next[1]);
+        await openOne(next[0], next[1], next[2]);
       }
     })
   );
@@ -143,4 +155,4 @@ if (failures.length) {
   console.error('  부르는 파일이 지어지나(`scripts/entry-points.mjs`), 그리는 순간 부르는 값이 이미 섰나를 본다.');
   process.exit(1);
 }
-console.log(`[tool-boot] OK. 도구 ${ids.length}개가 ${THEMES.join(', ')} 판에서 오류 없이 열린다 (연 것 ${opened}, 건너뜀 ${skipped.length})`);
+console.log(`[tool-boot] OK. 도구 ${ids.length}개가 ${combos().map((c) => c.join('/')).join(', ')} 에서 오류 없이 열린다 (연 것 ${opened}, 건너뜀 ${skipped.length})`);

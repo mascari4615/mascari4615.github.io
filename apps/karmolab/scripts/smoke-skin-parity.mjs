@@ -46,8 +46,10 @@ const SCENE_ONLY = [
   'kl-cursor',   // 같이 쓰기 커서. 서버에서 늦게 와 판마다 뜨고 안 뜬다
 ];
 
-/* 볼 화면. 셸의 뼈대가 다 나오는 자리로 고른다 */
-const DEFAULT_SCREENS = ['', '#calc', '#pdf', '#uikit', '#settings'];
+/* 볼 화면. 셸의 뼈대가 다 나오는 자리
+   `/t/<id>/` 는 앱 셸이 아니라 미리 구운 상세 장이다. 2026-09-01 에 그 머리를 앱 안과
+   같은 짜임으로 맞췄으므로 여기서도 지킨다 (한쪽 생성기만 고치면 다시 갈라진다) */
+const DEFAULT_SCREENS = ['', '#calc', '#pdf', '#uikit', '#settings', '/apps/blog/t/loan/'];
 const screens = process.argv.slice(2).filter((x) => !x.startsWith('--'));
 const list = screens.length ? screens : DEFAULT_SCREENS;
 
@@ -66,7 +68,9 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
   if (path.extname(file) === '.html') { res.end(stripFrontMatter(fs.readFileSync(file, 'utf8'))); return; }
-  fs.createReadStream(file).pipe(res);
+  const stream = fs.createReadStream(file);
+  stream.on('error', () => { try { res.destroy(); } catch { /* 이미 닫힘 */ } });
+  stream.pipe(res);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
@@ -79,7 +83,8 @@ async function labels(skin, hash) {
   await page.addInitScript((s) => {
     try { localStorage.setItem('toolbox_skin', s); localStorage.setItem('toolbox_theme', 'light'); } catch { /* 막힌 판 */ }
   }, skin);
-  await page.goto(`${BASE}/apps/karmolab/${hash}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const url = hash.startsWith('/') ? `${BASE}${hash}` : `${BASE}/apps/karmolab/${hash}`;
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page
     .waitForFunction(() => !!document.querySelector('.tool-page.active') || !!document.querySelector('#page-home'), undefined, { timeout: 25000 })
     .catch(() => null);

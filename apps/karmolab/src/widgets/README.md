@@ -26,7 +26,8 @@
 
 - 위젯 자체 클래스는 2026-09-01 에 킷으로 올렸다. `hu-btn` -> `.btn .btn-tool`, `tl-btn` -> `.btn .btn-outline`,
   `tl-btn-primary` -> `.btn-accent`, `tl-btn-toggle-on` -> `.btn-danger.is-on`, `ie-opt-label` -> `.field-label.is-inline`.
-  `km-field` 도 앞서 옮겼다. 남은 것은 `ie-apply-btn`, `ie-tool-btn` 둘. 새 코드는 위 표로
+  `km-field` 도 앞서 옮겼다. `ie-apply-btn` 은 `.btn .btn-accent` 와 `.btn .btn-outline` 으로 (남은 이름은 폭만 잡는다).
+  자체 이름으로 남긴 것은 `ie-tool-btn` 하나. 아이콘 줄이라 킷 버튼과 짜임이 다르다. 새 코드는 위 표로
 - 살아 있는 견본 장은 `#uikit` (`src/widgets/uikit.ts`). 부품 24종을 갈래 여섯(기본, 입력, 알림과 값, 고르기, 짜임, 그 밖)으로,
   아래에 스킨 토큰 견본. 목록의 근거는 실측이다: 셸 CSS 가 규칙을 가진 클래스 중 위젯이 세 번 이상 쓰는 것 66개에서
   위젯 하나만 쓰는 자체 클래스를 뺐다. 부품을 더하면 이 표, `toolbox.css`, `uikit.ts` 셋을 같이 고친다

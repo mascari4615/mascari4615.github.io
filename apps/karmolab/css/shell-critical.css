@@ -3750,7 +3750,6 @@ html[data-skin="field"] .kp-browse-chip--index:hover { background: none; color: 
 html[data-skin="field"] .kp-browse-tools .kp-browse-chip { border-color: var(--border); border-left: 3px solid var(--accent); }
 html[data-skin="field"] .kp-row { border-radius: 0; }
 
-html[data-skin="field"] .ie-apply-btn,
 html[data-skin="field"] .ie-tool-btn { border-radius: 0; }
 
 html[data-skin="field"] .btn-tool.is-on { background: var(--band); color: var(--band-ink); border-color: var(--band); }

@@ -255,16 +255,8 @@ const esc = (v: unknown): string =>
         }
         .ie-opt-btn:hover { border-color:var(--accent); color:var(--text-primary); }
         .ie-opt-btn.active { background:var(--band); color:var(--band-ink); border-color:var(--band); }
-        .ie-apply-btn {
-            padding:5px 16px; font-size:var(--font-size-xs); font-weight:600; border:none;
-            border-radius:var(--radius-sm); background:var(--fill-strong); color:var(--fill-strong-ink);
-            cursor:pointer; font-family:inherit; transition:all var(--transition);
-            margin-left:0; flex:1 1 100%; width:100%; box-sizing:border-box; text-align:center;
-        }
-        .ie-apply-btn:hover { background:var(--fill-strong-hover); }
-        /* 보조 버튼. 실행 버튼과 같은 틀에 조용한 칠 */
-        .ie-apply-btn-quiet { background:var(--bg-tertiary); color:var(--text-primary); }
-        .ie-apply-btn-quiet:hover { background:var(--bg-hover); }
+        /* 모양은 킷(.btn-accent, .btn-outline). 여기는 자리만 잡는다 */
+        .ie-apply-btn { margin-left:0; flex:1 1 100%; width:100%; box-sizing:border-box; text-align:center; }
 
         /* Filter grid */
         .ie-filter-grid { display:flex; gap:6px; flex-wrap:wrap; }
@@ -1274,7 +1266,7 @@ const esc = (v: unknown): string =>
         container.appendChild(info);
 
         const applyBtn = document.createElement('button');
-        applyBtn.className = 'ie-apply-btn';
+        applyBtn.className = 'btn btn-accent ie-apply-btn';
         applyBtn.textContent = t('imageedit.t97');
         applyBtn.onclick = applyCrop;
         container.appendChild(applyBtn);
@@ -1295,7 +1287,7 @@ const esc = (v: unknown): string =>
             <button class="ie-opt-btn" data-pct="75">75%</button>
             <button class="ie-opt-btn" data-pct="150">150%</button>
             <button class="ie-opt-btn" data-pct="200">200%</button>
-            <button class="ie-apply-btn" id="ieResizeApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
+            <button class="btn btn-accent ie-apply-btn" id="ieResizeApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
 
         requestAnimationFrame(() => {
             if (!hasImage()) return;
@@ -1338,7 +1330,7 @@ const esc = (v: unknown): string =>
             <input type="range" class="ie-opt-range" id="ieRotRange" min="-180" max="180" value="0" style="width:140px;">
             <input type="number" class="ie-opt-input" id="ieRotDeg" value="0" min="-360" max="360" style="width:56px;">
             <span class="field-label is-inline">°</span>
-            <button class="ie-apply-btn" id="ieRotApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
+            <button class="btn btn-accent ie-apply-btn" id="ieRotApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
 
         requestAnimationFrame(() => {
             document!.getElementById('ieRot90cw')!.onclick = () => applyRotate(90);
@@ -1494,7 +1486,7 @@ const esc = (v: unknown): string =>
         container.appendChild(grid);
 
         const applyBtn = document.createElement('button');
-        applyBtn.className = 'ie-apply-btn';
+        applyBtn.className = 'btn btn-accent ie-apply-btn';
         applyBtn.textContent = t('imageedit.t110');
         applyBtn.onclick = applyFilter;
         container.appendChild(applyBtn);
@@ -1787,7 +1779,7 @@ const esc = (v: unknown): string =>
             <span class="field-label is-inline">${esc(t('imageedit.t18'))}</span>
             <input type="range" class="ie-opt-range" id="ieChromaFeather" min="0" max="30" value="${chromaFeather}" style="width:80px;">
             <span class="ie-opt-range-val" id="ieChromaFeatherVal">${chromaFeather}</span>
-            <button class="ie-apply-btn" id="ieChromaApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
+            <button class="btn btn-accent ie-apply-btn" id="ieChromaApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
         requestAnimationFrame(() => {
             const swatch = document.getElementById('ieChromaSwatch');
             if (chromaColor) swatch!.style.backgroundColor = `rgb(${chromaColor.join(',')})`;
@@ -1852,7 +1844,7 @@ const esc = (v: unknown): string =>
             <input type="range" class="ie-opt-range" id="ieBrushSize" min="4" max="80" value="${brushSize}" style="width:100px;">
             <span class="ie-opt-range-val" id="ieBrushSizeVal">${brushSize}px</span>
             <button class="ie-opt-btn" id="ieBrushClear">${esc(t('imageedit.btn.ieBrushClear'))}</button>
-            <button class="ie-apply-btn" id="ieBrushApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
+            <button class="btn btn-accent ie-apply-btn" id="ieBrushApply">${esc(t('imageedit.btn.ieResizeApply'))}</button>`;
         requestAnimationFrame(() => {
             const bgBtn = document.getElementById('ieBrushBg');
             const fgBtn = document.getElementById('ieBrushFg');
@@ -1964,7 +1956,7 @@ const esc = (v: unknown): string =>
                 <option value="1024"${rembgMaxSize === 1024 ? ' selected' : ''}>1024</option>
             </select>
             <span class="field-label is-inline ie-rembg-note">${esc(t('imageedit.t23'))}</span>
-            <button class="ie-apply-btn" id="ieRembgApply">${esc(t('imageedit.btn.ieRembgApply'))}</button>`;
+            <button class="btn btn-accent ie-apply-btn" id="ieRembgApply">${esc(t('imageedit.btn.ieRembgApply'))}</button>`;
         requestAnimationFrame(() => {
             const s = document.getElementById('ieRembgSmall'), m = document.getElementById('ieRembgMedium');
             s!.onclick = () => { rembgModel = 'isnet_quint8'; s!.classList.add('active'); m!.classList.remove('active'); };
@@ -2137,8 +2129,8 @@ const esc = (v: unknown): string =>
             <span class="ie-toolbar-sep"></span>
             <span class="field-label is-inline ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="ie-apply-btn" id="ieGeminiApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiApply'))}</button>
-                <button class="ie-apply-btn ie-apply-btn-quiet" id="ieGeminiDownloadMask"  ${lastGeminiMaskDataUrl ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiDownloadMask'))}</button>
+                <button class="btn btn-accent ie-apply-btn" id="ieGeminiApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiApply'))}</button>
+                <button class="btn btn-outline ie-apply-btn" id="ieGeminiDownloadMask"  ${lastGeminiMaskDataUrl ? '' : 'disabled'}>${esc(t('imageedit.btn.ieGeminiDownloadMask'))}</button>
             </div>`;
         requestAnimationFrame(() => {
             document!.getElementById('ieGeminiApply')!.onclick = applyGeminiRemoveBg;
@@ -2278,7 +2270,7 @@ const esc = (v: unknown): string =>
                 <select class="ie-opt-input" id="ieUpscaleModel" style="width:auto;">
                     ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
                 </select>
-                <button type="button" class="ie-apply-btn" id="ieUpscaleApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieUpscaleApply'))}</button>
+                <button type="button" class="btn btn-accent ie-apply-btn" id="ieUpscaleApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieUpscaleApply'))}</button>
             </div>
             <span class="field-label is-inline ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t141')}</span>
             <div style="font-size:var(--font-size-xs);opacity:0.85;max-width:600px;line-height:1.45;">
@@ -2420,7 +2412,7 @@ const esc = (v: unknown): string =>
             </select>
             <span class="ie-toolbar-sep"></span>
             <span class="field-label is-inline ie-rembg-note">${hasKey ? t('imageedit.t140') : t('imageedit.t159')}</span>
-            <button class="ie-apply-btn" id="ieBggApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieBggApply'))}</button>`;
+            <button class="btn btn-accent ie-apply-btn" id="ieBggApply" ${hasKey ? '' : 'disabled'}>${esc(t('imageedit.btn.ieBggApply'))}</button>`;
         requestAnimationFrame(() => {
             const textEl = document.getElementById('ieBggColorText');
             textEl?.addEventListener('input', () => {
@@ -2702,7 +2694,7 @@ const esc = (v: unknown): string =>
                 <textarea class="ie-opt-input" id="ieCaptionText" placeholder="${esc(t('imageedit.ph.ieCaptionText'))}" style="min-height:60px;resize:vertical;"></textarea>
             </div>
             <div class="ie-opt-row">
-                <button class="ie-apply-btn" id="ieCaptionApply">${esc(t('imageedit.btn.ieCaptionApply'))}</button>
+                <button class="btn btn-accent ie-apply-btn" id="ieCaptionApply">${esc(t('imageedit.btn.ieCaptionApply'))}</button>
             </div>`;
         const presetWrap = document.getElementById('ieCaptionPresets');
         captionPresets().forEach((p, i) => {
@@ -2835,7 +2827,7 @@ const esc = (v: unknown): string =>
                 <span id="ieStickerScaleVal" class="ie-opt-range-val">20%</span>
             </div>
             <div class="ie-opt-row">
-                <button class="ie-apply-btn" id="ieStickerApply">${esc(t('imageedit.btn.ieStickerApply'))}</button>
+                <button class="btn btn-accent ie-apply-btn" id="ieStickerApply">${esc(t('imageedit.btn.ieStickerApply'))}</button>
             </div>`;
         const grid = document.getElementById('ieStickerGrid');
         const scaleSlider = document.getElementById('ieStickerScale');
@@ -2913,8 +2905,8 @@ const esc = (v: unknown): string =>
                 <div style="padding-bottom:8px;border-bottom:1px solid var(--border);">
                     <span class="field-label is-inline" style="font-weight:600;margin-bottom:4px;">${esc(t('imageedit.t33'))}</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px;">
-                        <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskLoadFile" >${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
-                        <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskPaste" >${esc(t('imageedit.btn.ieMaskPaste'))}</button>
+                        <button class="btn btn-outline ie-apply-btn" id="ieMaskLoadFile" >${esc(t('imageedit.btn.ieMaskLoadFile'))}</button>
+                        <button class="btn btn-outline ie-apply-btn" id="ieMaskPaste" >${esc(t('imageedit.btn.ieMaskPaste'))}</button>
                         <div id="ieMaskPreviewWrap" style="display:none; align-items:center; gap:6px;">
                             <canvas id="ieMaskPreview" style="max-width:60px; max-height:40px; border:1px solid var(--border); border-radius:var(--radius-sm);"></canvas>
                             <span id="ieMaskInfo" class="field-label is-inline" style="font-size:var(--font-size-xs);"></span>
@@ -2927,8 +2919,8 @@ const esc = (v: unknown): string =>
                         <label id="ieMaskInvertLabel" style="display:none; align-items:center; gap:4px; font-size:var(--font-size-sm); color:var(--text-secondary); cursor:pointer;">
                             <input type="checkbox" id="ieMaskInvertCb"> ${esc(t('imageedit.label.ieMaskInvertCb'))}
                         </label>
-                        <button class="ie-apply-btn ie-apply-btn-quiet" id="ieMaskPreviewBtn" disabled >${esc(t('imageedit.btn.ieMaskPreviewBtn'))}</button>
-                        <button class="ie-apply-btn" id="ieMaskApplyBtn" disabled>${esc(t('imageedit.btn.ieMaskApplyBtn'))}</button>
+                        <button class="btn btn-outline ie-apply-btn" id="ieMaskPreviewBtn" disabled >${esc(t('imageedit.btn.ieMaskPreviewBtn'))}</button>
+                        <button class="btn btn-accent ie-apply-btn" id="ieMaskApplyBtn" disabled>${esc(t('imageedit.btn.ieMaskApplyBtn'))}</button>
                     </div>
                 </div>
                 <div>
@@ -2945,7 +2937,7 @@ const esc = (v: unknown): string =>
                         <span class="field-label is-inline">${esc(t('imageedit.t18'))}</span>
                         <input type="range" class="ie-opt-range" id="ieSelfMaskFeather" min="0" max="64" value="10" style="width:60px;">
                         <span id="ieSelfMaskFeatherVal" class="field-label is-inline" style="min-width:28px;">10</span>
-                        <button class="ie-apply-btn" id="ieSelfMaskApply">${esc(t('imageedit.btn.ieSelfMaskApply'))}</button>
+                        <button class="btn btn-accent ie-apply-btn" id="ieSelfMaskApply">${esc(t('imageedit.btn.ieSelfMaskApply'))}</button>
                     </div>
                 </div>
             </div>`;
@@ -3883,7 +3875,7 @@ const esc = (v: unknown): string =>
             </div>
             <div class="ie-opt-row" style="flex-wrap:wrap;align-items:center;gap:8px;">
                 <button type="button" class="ie-opt-btn" id="ieCvPreview">${esc(t('imageedit.btn.ieCvPreview'))}</button>
-                <button type="button" class="ie-apply-btn" id="ieCvDownload">${esc(t('imageedit.btn.ieCvDownload'))}</button>
+                <button type="button" class="btn btn-accent ie-apply-btn" id="ieCvDownload">${esc(t('imageedit.btn.ieCvDownload'))}</button>
             </div>
             <div class="ie-opt-row" style="width:100%;">
                 <span class="field-label is-inline" id="ieCvHint" style="white-space:normal;font-weight:400;line-height:1.45;max-width:720px;"></span>

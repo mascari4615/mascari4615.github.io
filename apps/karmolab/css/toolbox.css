@@ -4591,8 +4591,7 @@ html[data-skin="field"] .kp-browse-chip:hover { background: var(--band); color: 
 html[data-skin="field"] .kp-browse-chip--index:hover { background: none; color: var(--text-primary); border-color: var(--border-strong); }
 html[data-skin="field"] .kp-browse-tools .kp-browse-chip { border-color: var(--border); border-left: 3px solid var(--accent); }
 html[data-skin="field"] .kp-row { border-radius: 0; }
-/* 아직 제 이름으로 남은 버튼 둘. 킷으로 옮길 때까지 모양만 맞춘다 */
-html[data-skin="field"] .ie-apply-btn,
+/* 이미지 편집 왼쪽 도구 줄. 아이콘 칸이라 킷 버튼과 짜임이 다르다 (제 이름으로 남김) */
 html[data-skin="field"] .ie-tool-btn { border-radius: 0; }
 /* 켠 머리띠 버튼은 띠 색으로 채운다. 필드는 옅은 강조색이 안 보인다 */
 html[data-skin="field"] .btn-tool.is-on { background: var(--band); color: var(--band-ink); border-color: var(--band); }

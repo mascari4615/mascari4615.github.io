@@ -64,6 +64,26 @@ import { t, loadNamespace } from '../lib/i18n';
 </div>`
         },
         {
+            group: '기본',
+            name: '버튼의 상태',
+            classes: 'disabled aria-disabled .is-on .active',
+            note: '켬과 못 누름은 클래스와 속성으로. 마우스 올림과 초점은 위 견본에 올려 보거나 Tab 으로',
+            html: `<div class="tool-actions">
+  <button class="btn btn-outline">보통</button>
+  <button class="btn btn-outline" disabled>못 누름 (disabled)</button>
+  <button class="btn btn-outline" aria-disabled="true">못 누름 (aria)</button>
+</div>
+<div class="tool-actions">
+  <button class="btn btn-tool">머리띠</button>
+  <button class="btn btn-tool is-on">켬 (.is-on)</button>
+  <button class="btn btn-danger is-on">켠 위험</button>
+</div>
+<div class="tool-chips">
+  <button class="tool-chip">칩</button>
+  <button class="tool-chip active">고른 칩 (.active)</button>
+</div>`
+        },
+        {
             group: '입력',
             name: '입력 묶음',
             classes: '.field-group > .field-label + input | select | textarea',
