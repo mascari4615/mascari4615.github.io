@@ -29,10 +29,6 @@ import {
 
 const LAPTOP = 'https://laptop.mascari4615.com';
 const LAPTOP_API = location.hostname === 'files.mascari4615.com' ? '/pc-api' : LAPTOP;
-const FILES_HOST = 'https://files.mascari4615.com/';
-if (location.hostname === 'blog.mascari4615.com' || location.hostname === 'mascari4615.github.io') {
-  location.replace(FILES_HOST + location.search + location.hash);
-}
 const LAPTOP_KEY = 'files.laptop.pass';
 const VAULT_KEY = 'files.vault.pass';
 const box = document.getElementById('box');
@@ -625,8 +621,10 @@ function loadLaptop() {
       if (e.get) acts += link(abs(e.get), '다운로드');
       return row(iconFor(e.name), esc(e.name), fmtSize(e.size), fmtTime(e.at), acts);
     }).join('');
-  }).catch(() => {
-    box.innerHTML = '<p class="err">내 PC에 연결할 수 없습니다.</p>';
+  }).catch((error) => {
+    const detail = error instanceof Error ? error.message : String(error || 'unknown error');
+    box.innerHTML = '<p class="err">내 PC에 연결할 수 없습니다.</p>' +
+      '<p class="none">' + esc(detail) + '</p>';
   });
 }
 
