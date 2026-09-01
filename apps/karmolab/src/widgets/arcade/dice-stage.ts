@@ -900,6 +900,52 @@ export function mountDiceStage(host: HTMLElement, opts: DiceStageOpts): DiceStag
     need = true;
     kick();
   };
+  /**
+   * 자판으로도 홈 바꾸기. 끌기만 두면 마우스가 없는 사람은 순서를 못 바꿈
+   * 1~5 로 그 자리 주사위를 고르고 좌우 화살표로 홈 옮기기. Home 과 End 는 양 끝
+   */
+  let picked = -1;
+  const swapSlot = (i: number, to: number): void => {
+    const slot = Math.max(0, Math.min(dice.length - 1, to));
+    if (slot === slotOf[i]) return;
+    const t = performance.now();
+    const other = slotOf.findIndex((sl, j) => sl === slot && j !== i);
+    if (other >= 0) {
+      slotOf[other] = slotOf[i];
+      const o = dice[other];
+      if (o.kept) {
+        o.moveFrom = o.mesh.position.clone();
+        o.moveTo.copy(railPos(other));
+        o.moveT0 = t;
+      }
+    }
+    slotOf[i] = slot;
+    const d = dice[i];
+    d.moveFrom = d.mesh.position.clone();
+    d.moveTo.copy(railPos(i));
+    d.moveT0 = t;
+    opts.onSound?.('slide', 0.5);
+    need = true;
+    kick();
+  };
+  const onCanvasKey = (ev: KeyboardEvent): void => {
+    if (sheetOn || !actable) return;
+    const n = Number(ev.key);
+    if (n >= 1 && n <= dice.length) {
+      picked = n - 1;
+      ev.preventDefault();
+      return;
+    }
+    if (picked < 0 || !dice[picked]?.kept) return;
+    if (ev.key === 'ArrowLeft') swapSlot(picked, slotOf[picked] - 1);
+    else if (ev.key === 'ArrowRight') swapSlot(picked, slotOf[picked] + 1);
+    else if (ev.key === 'Home') swapSlot(picked, 0);
+    else if (ev.key === 'End') swapSlot(picked, dice.length - 1);
+    else return;
+    ev.preventDefault();
+  };
+  canvas.addEventListener('keydown', onCanvasKey);
+  canvas.setAttribute('role', 'listbox');
   canvas.addEventListener('pointermove', onMove, { passive: true });
   /* 끌기는 창 전체에서 듣는다. 캔버스 밖에서 놓아도 끝나야 하고, 포인터 캡처는 셸과 엉켰다(실측: 놓음이 안 왔다) */
   window.addEventListener('pointermove', onDragMove, { passive: true });

@@ -441,6 +441,105 @@ export function dieFaceTexture(n: number, size = 128): HTMLCanvasElement {
   return cv;
 }
 
+/** 카드 한 장 크기의 천. 실물 포커 카드 63.5x88.9mm 를 따라 1:1.4 */
+const makeCard = (w: number): { cv: HTMLCanvasElement; c: CanvasRenderingContext2D; h: number } => {
+  const cv = document.createElement('canvas');
+  const h = Math.round(w * 1.4);
+  cv.width = w;
+  cv.height = h;
+  return { cv, c: cv.getContext('2d') as CanvasRenderingContext2D, h };
+};
+
+/** 모서리 둥근 네모 길. 카드는 모서리가 둥글다 */
+const roundRect = (c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void => {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+};
+
+/**
+ * 카드 앞면. 값과 무늬를 네 귀퉁이 중 둘(좌상, 우하 뒤집힘)에 적고 가운데 큰 무늬.
+ * 무늬는 글자로 그림(`card.ts` 와 같은 방침). 우리 글꼴에 있고 크기를 안 탐
+ * `rank` 는 1~13. A, 2~10, J, Q, K. `suit` 는 0~3 (스페이드, 클로버, 하트, 다이아)
+ */
+export function cardFaceTexture(rank: number, suit: number, w = 256): HTMLCanvasElement {
+  const { cv, c, h } = makeCard(w);
+  const marks = ['♠', '♣', '♥', '♦'];
+  const mark = marks[((suit % 4) + 4) % 4];
+  const red = suit >= 2;
+  const label = rank === 1 ? 'A' : rank === 11 ? 'J' : rank === 12 ? 'Q' : rank === 13 ? 'K' : String(rank);
+
+  /* 종이. 가운데가 조금 밝은 상아빛 */
+  const g = c.createLinearGradient(0, 0, w * 0.4, h);
+  g.addColorStop(0, '#ffffff');
+  g.addColorStop(0.62, '#fbf8f2');
+  g.addColorStop(1, '#f0ebe0');
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, h);
+  /* 테두리 한 줄. 실물 카드의 흰 여백과 인쇄 경계 */
+  c.strokeStyle = 'rgba(30,26,20,.14)';
+  c.lineWidth = Math.max(1, w * 0.012);
+  roundRect(c, w * 0.045, h * 0.032, w * 0.91, h * 0.936, w * 0.07);
+  c.stroke();
+
+  c.fillStyle = red ? '#b3242c' : '#1b1714';
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  /* 귀퉁이. 값 위에 무늬. 손에 부채꼴로 들었을 때 왼쪽 위만 보인다 */
+  const corner = (x: number, y: number, flip: boolean): void => {
+    c.save();
+    c.translate(x, y);
+    if (flip) c.rotate(Math.PI);
+    c.font = `700 ${Math.round(w * 0.2)}px "Noto Serif KR", Georgia, serif`;
+    c.fillText(label, 0, 0);
+    c.font = `${Math.round(w * 0.16)}px "Segoe UI Symbol", "Apple Symbols", sans-serif`;
+    c.fillText(mark, 0, w * 0.21);
+    c.restore();
+  };
+  corner(w * 0.17, h * 0.11, false);
+  corner(w * 0.83, h * 0.89, true);
+
+  /* 가운데 큰 무늬. 그림 카드(J, Q, K)는 글자를 크게 얹어 구분 */
+  c.font = `${Math.round(w * 0.52)}px "Segoe UI Symbol", "Apple Symbols", sans-serif`;
+  c.globalAlpha = rank >= 11 ? 0.22 : 0.9;
+  c.fillText(mark, w * 0.5, h * 0.52);
+  c.globalAlpha = 1;
+  if (rank >= 11) {
+    c.font = `700 ${Math.round(w * 0.42)}px "Noto Serif KR", Georgia, serif`;
+    c.fillText(label, w * 0.5, h * 0.52);
+  }
+  return cv;
+}
+
+/** 카드 뒷면. 초록 바탕에 빗금. 2D 판의 `--ac-card-back` 과 같은 그림 */
+export function cardBackTexture(w = 256): HTMLCanvasElement {
+  const { cv, c, h } = makeCard(w);
+  const g = c.createLinearGradient(0, 0, w * 0.5, h);
+  g.addColorStop(0, '#2f6f5e');
+  g.addColorStop(1, '#245647');
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, h);
+  /* 45도 빗금. 실물 카드 뒷면의 반복 무늬 */
+  c.strokeStyle = 'rgba(255,255,255,.13)';
+  c.lineWidth = Math.max(1, w * 0.016);
+  for (let i = -h; i < w + h; i += w * 0.062) {
+    c.beginPath();
+    c.moveTo(i, 0);
+    c.lineTo(i + h, h);
+    c.stroke();
+  }
+  /* 흰 테. 인쇄된 카드는 뒷면에도 여백이 있다 */
+  c.strokeStyle = 'rgba(250,246,236,.85)';
+  c.lineWidth = Math.max(2, w * 0.028);
+  roundRect(c, w * 0.06, h * 0.043, w * 0.88, h * 0.914, w * 0.07);
+  c.stroke();
+  return cv;
+}
+
 /** 종이. 상아빛에 섬유 자국. 점수표를 그 위에 그린다 */
 export function paperTexture(seed = 53, size = 256): HTMLCanvasElement {
   const { cv, c } = make(size);

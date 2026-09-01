@@ -621,5 +621,6 @@
   "arcade.yacht.rule.sstraight": "Four in a row: 15",
   "arcade.yacht.rule.lstraight": "Five in a row: 30",
   "arcade.yacht.rule.yacht": "All five the same: 50",
-  "arcade.yacht.sheet.rolling": "Rolling..."
+  "arcade.yacht.sheet.rolling": "Rolling...",
+  "arcade.no3d": "No 3D here. Playing flat"
 }

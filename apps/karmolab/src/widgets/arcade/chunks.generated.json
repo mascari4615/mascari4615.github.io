@@ -237,7 +237,7 @@
     "view": "blackjack-view",
     "defVar": "blackjack",
     "viewVar": "blackjackView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "president",

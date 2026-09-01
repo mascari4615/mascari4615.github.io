@@ -621,5 +621,6 @@
   "arcade.yacht.rule.sstraight": "4個連続で15点",
   "arcade.yacht.rule.lstraight": "5個連続で30点",
   "arcade.yacht.rule.yacht": "5個同じで50点",
-  "arcade.yacht.sheet.rolling": "転がり中"
+  "arcade.yacht.sheet.rolling": "転がり中",
+  "arcade.no3d": "立体が使えない。平面で遊ぶ"
 }

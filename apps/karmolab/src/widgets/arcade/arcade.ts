@@ -668,6 +668,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-ychudbubble{position:absolute;left:8px;bottom:calc(100% + 12px);max-width:260px;padding:7px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-size:var(--font-size-sm);line-height:1.35;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4);z-index:2}',
       '.ac-ychudbubble::after{content:"";position:absolute;left:20px;top:100%;border:7px solid transparent;border-top-color:rgba(238,225,200,.97);border-bottom:0}',
       /* 끝의 의식. 카드 순위 배지, 승자 카드 금빛, 결과창 내역 줄 */
+      /* 블랙잭 입체. 판 아래 한 줄에 딜러와 내 합계, 그리고 버튼 둘 */
+      '.ac-bjhud{position:absolute;left:0;right:0;bottom:16px;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:6}',
+      '.ac-bjline{padding:4px 14px;border-radius:var(--radius-pill);background:rgba(24,20,16,.62);color:#f3ead8;font-size:var(--font-size-sm);backdrop-filter:blur(3px)}',
+      '.ac-bjline.ac-me{background:rgba(40,32,22,.78);font-weight:700}',
+      '.ac-bjline b{color:#e2a0a0;margin-left:4px}',
+      '.ac-bjacts{display:flex;gap:10px;margin-top:4px;pointer-events:auto}',
+      '.ac-bjbtn{padding:9px 20px;border:0;border-radius:var(--radius-pill);background:linear-gradient(180deg,#8a6a3a,#5d4522);color:#fdf6e6;font-size:var(--font-size-md);font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.4)}',
+      '.ac-bjbtn.ac-ghost{background:rgba(30,26,20,.7);color:#e8dcc4;box-shadow:0 4px 12px rgba(0,0,0,.35)}',
+      '.ac-bjbtn[disabled]{opacity:.4;cursor:default}',
       /* 구르는 중 자리지킴. 눈 대신 빈 주사위가 떨린다. 자리를 그대로 차지해 표가 안 흔들린다 */
       '.ac-die-roll{background:linear-gradient(160deg,#f6efe0,#ded2ba);border-radius:22%;box-shadow:inset 0 -2px 4px rgba(90,60,30,.25);animation:ac-ycshake .34s ease-in-out infinite}',
       '@keyframes ac-ycshake{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-2px) rotate(4deg)}}',
