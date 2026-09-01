@@ -116,6 +116,31 @@ describe('패보', () => {
     expect(((await found.json()) as { id: string }).id).toBe(id);
   });
 
+  it('내 판 목록. 내가 낀 판만 최근 것부터', async () => {
+    const code = await match();
+    const id = (await put(A, code, TAPE)).body.id as string;
+    const mine = await fetch(`${base}/kl/arcade/tapes/me`, { headers: as(A) });
+    expect(mine.status).toBe(200);
+    const body = (await mine.json()) as { tapes: Array<{ id: string; game: string; who: string[] }> };
+    expect(body.tapes).toHaveLength(1);
+    expect(body.tapes[0]).toMatchObject({ id, game: 'gomoku' });
+    expect(body.tapes[0].who).toEqual(['갑', '을']);
+    /* 그 판에 없던 사람에게는 안 보임 */
+    const others = await fetch(`${base}/kl/arcade/tapes/me`, { headers: as(C) });
+    expect(((await others.json()) as { tapes: unknown[] }).tapes).toHaveLength(0);
+    /* 로그인 안 하면 401 */
+    expect((await fetch(`${base}/kl/arcade/tapes/me`)).status).toBe(401);
+  });
+
+  it('내 판 목록. 다른 놀이는 안 섞인다', async () => {
+    const code = await match();
+    await put(A, code, TAPE);
+    const yut = await fetch(`${base}/kl/arcade/tapes/me?game=yut`, { headers: as(A) });
+    expect(((await yut.json()) as { tapes: unknown[] }).tapes).toHaveLength(0);
+    const bad = await fetch(`${base}/kl/arcade/tapes/me?game=../x`, { headers: as(A) });
+    expect(bad.status).toBe(400);
+  });
+
   it('그 판의 사람이 아니면 거절', async () => {
     const code = await match();
     expect((await put(C, code, TAPE)).status).toBe(403);

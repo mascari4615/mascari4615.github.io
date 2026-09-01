@@ -309,3 +309,31 @@ export function tapeFromUrl(): string | null {
 export function tapeLink(id: string): string {
   return `${location.origin}${location.pathname}?g=${encodeURIComponent(id)}`;
 }
+
+export interface PastGame {
+  id: string;
+  game: string;
+  /** 끝난 때 (epoch ms) */
+  at: number;
+  /** 그 판의 자리 이름, 자리 순서대로 */
+  who: string[];
+}
+
+/**
+ * 내가 낀 지난 판들. 최근 것부터 (change.arcade-online, 레퍼런스 replay-archives)
+ * - 판 끝의 링크를 놓치면 다시 못 찾는 것이 제일 큰 구멍이었음
+ * - 로그인 안 했으면 빈 목록. 로비가 그것 때문에 멈추면 안 됨
+ */
+export async function myTapes(game: string, limit = 3): Promise<PastGame[]> {
+  try {
+    const res = await fetch(`${HOST}/kl/arcade/tapes/me?game=${encodeURIComponent(game)}&limit=${limit}`, {
+      ...WITH_COOKIE,
+      cache: 'no-store'
+    });
+    if (!res.ok) return [];
+    const body = (await res.json()) as { tapes?: PastGame[] };
+    return Array.isArray(body.tapes) ? body.tapes : [];
+  } catch {
+    return [];
+  }
+}

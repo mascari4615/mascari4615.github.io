@@ -52,6 +52,7 @@ import {
   findTape,
   loadTape,
   myRating,
+  myTapes,
   queueCount,
   reportResult,
   saveTape,
@@ -328,6 +329,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acDetail .ac-grade{margin-top:10px;font-size:var(--font-size-2xs);color:#8b897b}',
       '#acDetail .ac-grade b{color:#a4423a;font-weight:900}',
       '#acDetail .ac-grade b.ac-queued{display:block;margin-top:4px;color:var(--text-primary)}',
+      /* 지난 판. 단위 줄 아래 한 줄씩 */
+      '#acDetail .ac-past{margin-top:8px;font-size:var(--font-size-2xs);color:#8b897b}',
+      '#acDetail .ac-past b{display:block;margin-bottom:3px;color:#5b5949;font-weight:700}',
+      '#acDetail .ac-past button{display:block;background:none;border:0;padding:2px 0;color:#5b5949;text-decoration:underline;cursor:pointer;font-size:inherit;text-align:left}',
+      '#acDetail .ac-past button:hover{color:#3c3a30}',
       '#acDetail .ac-go button:hover{filter:brightness(1.06);transform:translateY(-1px)}',
       '#acDetail .ac-more{display:flex;gap:16px;margin-top:14px}',
       '#acDetail .ac-more button{background:none;border:0;padding:0;font-size:var(--font-size-2xs);color:#8b897b;text-decoration:underline;cursor:pointer}',
@@ -1718,6 +1724,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         (g.id === 'gomoku' ? '<button data-tutor="' + g.id + '">' + esc(t('arcade.btn.tutor')) + '</button>' : '') +
         '</div>' +
         (g.seats[0] === 2 && g.seats[1] === 2 ? '<div class="ac-grade" id="acGrade"></div>' : '') +
+        '<div class="ac-past" id="acPast" hidden></div>' +
         '<div class="ac-more">' + more + '</div>' +
         '</div></div>';
       $<HTMLElement>('#acShelfAll').style.display = 'none';
@@ -1725,6 +1732,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       wireCards();
       wireSetup(g.id);
       void paintGrade(g.id);
+      void paintPast(g.id);
       const back = container.querySelector<HTMLButtonElement>('#acBack');
       if (back) back.onclick = closeDetail;
     }
@@ -3234,6 +3242,40 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         return;
       }
       Toolbox.switchPage?.('user');
+    }
+
+    /**
+     * 지난 판 몇 개. 끝의 링크를 놓쳐도 여기서 다시 엶
+     * - 로그인 안 했거나 판이 없으면 아예 안 그림
+     * - 시각은 상대 시간으로. 어제 몇 시였나보다 얼마 전인가가 먼저 읽힘
+     */
+    async function paintPast(id: string): Promise<void> {
+      const box = container.querySelector<HTMLElement>('#acPast');
+      if (!box) return;
+      const past = await myTapes(id, 3);
+      if (!past.length || container.querySelector('#acPast') !== box) return;
+      box.hidden = false;
+      box.innerHTML =
+        '<b>' + esc(t('arcade.past.title')) + '</b>' +
+        past
+          .map(
+            (x) =>
+              '<button type="button" data-tape="' + esc(x.id) + '">' +
+              esc(t('arcade.past.row', { who: x.who.join(', '), ago: agoText(x.at) })) +
+              '</button>'
+          )
+          .join('');
+      container.querySelectorAll<HTMLButtonElement>('#acPast button[data-tape]').forEach((b) => {
+        b.onclick = (): void => void openTape(String(b.dataset.tape));
+      });
+    }
+
+    /** 얼마 전인가. 분, 시간, 날 셋이면 충분 */
+    function agoText(at: number): string {
+      const secs = Math.max(0, Math.round((Date.now() - at) / 1000));
+      if (secs < 3600) return t('arcade.past.min', { n: String(Math.max(1, Math.round(secs / 60))) });
+      if (secs < 86400) return t('arcade.past.hour', { n: String(Math.round(secs / 3600)) });
+      return t('arcade.past.day', { n: String(Math.round(secs / 86400)) });
     }
 
     /**

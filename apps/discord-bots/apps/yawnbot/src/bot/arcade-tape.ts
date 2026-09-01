@@ -10,6 +10,9 @@
  *  ② 한 판에 하나. 창이 여럿이라 여럿이 보냄. 먼저 온 것만 적고 같은 id 를 돌려줌
  *  ③ 보는 것은 아무나. 링크를 아는 사람이 복기를 봄. 감출 것은 안 실림(자리 이름뿐)
  *  ④ 무한정 안 쌓음. 최근 500판만
+ *  ⑤ 그 판의 사람을 같이 적음. 안 적으면 **판 끝의 링크를 놓친 사람이 다시 못 찾음**
+ *     (lichess 는 사용자 페이지에서 시각순, chess.com 은 거르기까지. 실측은
+ *     `memo/projects/karmolab/reference/replay-archives.md`)
  */
 import express from 'express';
 import type { Application, Request, Response } from 'express';
@@ -44,6 +47,8 @@ interface Entry {
   id: string;
   code: string;
   at: number;
+  /** 그 판에 있던 사람들. 내 판 목록이 이걸로 걸러짐 */
+  ids: string[];
   tape: StoredTape;
 }
 
@@ -168,10 +173,44 @@ export function registerArcadeTape(app: Application, who: WhoOf = whoOf): void {
       res.status(400).json({ error: 'tape 모양이 아니다' });
       return;
     }
-    s[id] = { id, code, at: Date.now(), tape };
+    s[id] = { id, code, at: Date.now(), ids: [...roster.ids], tape };
     prune();
     save();
     res.json({ ok: true, id });
+  });
+
+  /**
+   * 내가 낀 지난 판들. 최근 것부터
+   *
+   * - 판 끝의 링크를 놓치면 다시 못 찾는 것이 제일 큰 구멍이었음(레퍼런스 대조)
+   * - 로그인한 사람 것만. 남의 판 목록은 안 줌
+   * - 놀이를 주면 그 놀이만
+   */
+  app.get('/kl/arcade/tapes/me', (req: Request, res: Response) => {
+    const me = who(req);
+    if (!me) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const game = String(req.query.game ?? '').trim();
+    if (game && !/^[a-z0-9]{2,24}$/.test(game)) {
+      res.status(400).json({ error: 'game 모양이 아니다' });
+      return;
+    }
+    const limit = Math.max(1, Math.min(20, Number(req.query.limit) || 5));
+    const mine = Object.values(load())
+      .filter((e) => e.ids?.includes(me.id) && (!game || e.tape.game === game))
+      .sort((a, b) => b.at - a.at)
+      .slice(0, limit)
+      .map((e) => ({
+        id: e.id,
+        game: e.tape.game,
+        at: e.at,
+        /* 누구와 두었나. 이름만. 자리 순서 그대로 */
+        who: e.tape.seats.map((x) => x.name)
+      }));
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ tapes: mine });
   });
 
   /**
