@@ -135,6 +135,79 @@ export interface Applied {
   delta: number;
 }
 
+/* 같은 짝 반복 감쇠 (2026-09-01, 레퍼런스 대조)
+ *
+ * - 둘이 짜고 한쪽만 이겨 주면 점수를 얼마든지 올릴 수 있음. 체스판들이 부스팅이라 부르는 것
+ * - 그쪽 대응은 탐지와 경고와 계정 정지. 사람이 판정함. 우리는 그럴 손이 없음
+ * - 대신 이득을 깎음. 같은 짝끼리 하루에 여러 판이면 점수 폭이 줄어듦
+ * - 막지는 않음. 우리는 사람이 적어 같은 상대와 하루 열 판도 정상임
+ * - 셈에 드는 판 수는 24시간 창 안의 지난 판. 자정 기준이 아니라 미끄러지는 창 */
+const PAIR_WINDOW_MS = 24 * 60 * 60 * 1000;
+/** 이만큼까지는 그대로. 그 뒤 절반, 그 뒤 5분의 1 */
+const PAIR_FULL = 5;
+const PAIR_HALF = 10;
+
+type Pairs = Record<string, number[]>;
+const pairFile = (): string =>
+  process.env.ARCADE_PAIR_FILE?.trim() || path.join(PKG_ROOT, 'data', 'arcade-pairs.json');
+
+let pairs: Pairs | null = null;
+
+function loadPairs(): Pairs {
+  if (pairs) return pairs;
+  try {
+    pairs = JSON.parse(fs.readFileSync(pairFile(), 'utf8')) as Pairs;
+  } catch {
+    pairs = {};
+  }
+  return pairs;
+}
+
+function savePairs(): void {
+  try {
+    const f = pairFile();
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    const tmp = f + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(pairs ?? {}), 'utf8');
+    fs.renameSync(tmp, f);
+  } catch {
+    /* 못 적어도 판은 끝났음. 다음 판에 다시 */
+  }
+}
+
+/** 사람 순서를 안 타게 정렬해서 붙임 */
+function pairKey(game: string, ids: string[]): string {
+  return game + '|' + [...ids].sort().join('|');
+}
+
+function recentPairGames(game: string, ids: string[]): number {
+  if (ids.length < 2) return 0;
+  const cut = Date.now() - PAIR_WINDOW_MS;
+  return (loadPairs()[pairKey(game, ids)] ?? []).filter((t) => t >= cut).length;
+}
+
+/** 이 판에 곱할 계수. 1 이면 그대로 */
+export function pairFactor(game: string, ids: string[]): number {
+  const n = recentPairGames(game, ids);
+  if (n < PAIR_FULL) return 1;
+  if (n < PAIR_HALF) return 0.5;
+  return 0.2;
+}
+
+function notePair(game: string, ids: string[]): void {
+  if (ids.length < 2) return;
+  const key = pairKey(game, ids);
+  const cut = Date.now() - PAIR_WINDOW_MS;
+  const p = loadPairs();
+  p[key] = [...(p[key] ?? []).filter((t) => t >= cut), Date.now()];
+  savePairs();
+}
+
+/** 검사용 뒷문. 파일은 안 건드림 */
+export function resetPairs(): void {
+  pairs = {};
+}
+
 /**
  * 한 판 반영. `ranks` 는 잘한 순서 (첫째가 1위)
  * - 무승부는 같은 자리에 둘을 넣은 배열로 표현하지 않음. `draw` 로 따로 받음
@@ -143,6 +216,9 @@ export function applyResult(game: string, ranks: string[], draw = false): Applie
   const method = methodFor(game, ranks.length);
   const before = new Map(ranks.map((id) => [id, recordOf(game, id)]));
   const out: Applied[] = [];
+  /* 같은 짝 반복이면 폭을 줄임. 세는 것은 이 판 전까지 */
+  const f = pairFactor(game, ranks);
+  notePair(game, ranks);
 
   if (method === 'elo' && ranks.length === 2) {
     const [a, b] = ranks;
@@ -150,8 +226,8 @@ export function applyResult(game: string, ranks: string[], draw = false): Applie
     const rb = before.get(b) as Record_;
     const expA = 1 / (1 + 10 ** ((rb.rating - ra.rating) / 400));
     const scoreA = draw ? 0.5 : 1;
-    const nextA = ra.rating + kOf(ra) * (scoreA - expA);
-    const nextB = rb.rating + kOf(rb) * (1 - scoreA - (1 - expA));
+    const nextA = ra.rating + f * kOf(ra) * (scoreA - expA);
+    const nextB = rb.rating + f * kOf(rb) * (1 - scoreA - (1 - expA));
     put(game, a, { rating: nextA, games: ra.games + 1, wins: ra.wins + (draw ? 0 : 1) });
     put(game, b, { rating: nextB, games: rb.games + 1, wins: rb.wins });
     out.push({ id: a, before: ra.rating, after: ratingOf(game, a), delta: ratingOf(game, a) - ra.rating });
@@ -164,7 +240,7 @@ export function applyResult(game: string, ranks: string[], draw = false): Applie
     const room = roomOf((before.get(ranks[0]) as Record_).rating);
     ranks.forEach((id, i) => {
       const rec = before.get(id) as Record_;
-      const next = rec.rating + placePoints(room, ranks.length, i);
+      const next = rec.rating + f * placePoints(room, ranks.length, i);
       put(game, id, { rating: next, games: rec.games + 1, wins: rec.wins + (i === 0 && !draw ? 1 : 0) });
       out.push({ id, before: rec.rating, after: ratingOf(game, id), delta: ratingOf(game, id) - rec.rating });
     });

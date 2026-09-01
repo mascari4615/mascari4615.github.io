@@ -7,11 +7,17 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import os from 'node:os';
 import path from 'node:path';
-import { applyResult, methodFor, ratingOf, recordOf, resetRatings, roomOf } from './arcade-rating';
+import { applyResult, methodFor, pairFactor, ratingOf, recordOf, resetPairs, resetRatings, roomOf } from './arcade-rating';
 
 /* 진짜 장부를 안 건드림. 임시 자리로 돌림 */
-beforeAll(() => { process.env.ARCADE_RATING_FILE = path.join(os.tmpdir(), 'arcade-ratings-test.json'); });
-beforeEach(() => resetRatings());
+beforeAll(() => {
+  process.env.ARCADE_RATING_FILE = path.join(os.tmpdir(), 'arcade-ratings-test.json');
+  process.env.ARCADE_PAIR_FILE = path.join(os.tmpdir(), 'arcade-pairs-test.json');
+});
+beforeEach(() => {
+  resetRatings();
+  resetPairs();
+});
 
 describe('점수 방식', () => {
   it('오목은 ELO, 야추는 순위점, 모르는 놀이는 자리 수로', () => {
@@ -79,5 +85,49 @@ describe('점수 방식', () => {
   it('점수는 바닥 아래로 안 간다', () => {
     for (let i = 0; i < 200; i++) applyResult('gomoku', ['win', 'lose']);
     expect(ratingOf('gomoku', 'lose')).toBeGreaterThanOrEqual(100);
+  });
+});
+
+/**
+ * 같은 짝끼리 반복 (부스팅) 감쇠
+ *
+ * - 둘이 짜고 한쪽만 이겨 주면 점수를 얼마든지 올릴 수 있음
+ * - 막지는 않고 이득을 깎음. 사람이 적어 같은 상대와 여러 판이 정상이기 때문
+ */
+describe('같은 짝 반복', () => {
+  it('다섯 판까지는 그대로, 그 뒤 절반, 열 판부터 5분의 1', () => {
+    expect(pairFactor('gomoku', ['a', 'b'])).toBe(1);
+    for (let i = 0; i < 5; i++) applyResult('gomoku', ['a', 'b']);
+    expect(pairFactor('gomoku', ['a', 'b'])).toBe(0.5);
+    for (let i = 0; i < 5; i++) applyResult('gomoku', ['a', 'b']);
+    expect(pairFactor('gomoku', ['a', 'b'])).toBe(0.2);
+  });
+
+  it('짝이 다르면 안 깎인다', () => {
+    for (let i = 0; i < 12; i++) applyResult('gomoku', ['a', 'b']);
+    expect(pairFactor('gomoku', ['a', 'c'])).toBe(1);
+    expect(pairFactor('yacht', ['a', 'b'])).toBe(1);
+  });
+
+  it('사람 순서를 안 탄다', () => {
+    for (let i = 0; i < 6; i++) applyResult('gomoku', ['a', 'b']);
+    expect(pairFactor('gomoku', ['b', 'a'])).toBe(0.5);
+  });
+
+  it('열두 판째 오름폭이 첫 판보다 작다', () => {
+    const first = applyResult('gomoku', ['a', 'b'])[0].delta;
+    for (let i = 0; i < 10; i++) applyResult('gomoku', ['a', 'b']);
+    const late = applyResult('gomoku', ['a', 'b'])[0].delta;
+    expect(late).toBeLessThan(first);
+    expect(late).toBeGreaterThan(0);
+  });
+
+  it('순위점도 같이 깎인다', () => {
+    const first = applyResult('yacht', ['p', 'q', 'r', 's'])[0].delta;
+    for (let i = 0; i < 10; i++) applyResult('yacht', ['p', 'q', 'r', 's']);
+    const late = applyResult('yacht', ['p', 'q', 'r', 's'])[0].delta;
+    expect(first).toBe(50);
+    /* 열한 판을 이겨 윗방으로 올라감. 윗방 1위 60 의 5분의 1 */
+    expect(late).toBe(12);
   });
 });

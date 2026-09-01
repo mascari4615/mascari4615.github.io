@@ -14,7 +14,7 @@ import express from 'express';
 import type { Application, Request, Response } from 'express';
 import { rosterOf } from './arcade-queue';
 import { whoOf, type WhoOf } from './arcade-who';
-import { applyResult, recordOf, type Applied } from './arcade-rating';
+import { applyResult, pairFactor, recordOf, type Applied } from './arcade-rating';
 
 interface Pending {
   game: string;
@@ -98,10 +98,12 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
       res.json({ ok: true, applied: false, disagreed: true });
       return;
     }
+    /* 계수는 반영 전에 봄. applyResult 가 이 판을 장부에 더함 */
+    const damped = pairFactor(roster.game, ranks) < 1;
     const result = applyResult(roster.game, ranks, draw);
     done.set(code, result);
     pending.delete(code);
-    res.json({ ok: true, applied: true, result });
+    res.json({ ok: true, applied: true, result, damped });
   });
 
   /** 내 점수. 로그인한 사람만 자기 것을 봄. 안 했으면 없다고 답함(401 아님) */
