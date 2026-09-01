@@ -111,6 +111,11 @@ function row(kind, nameHtml, size, when, acts) {
     '</div><div class="size">' + (size || '') + '</div><div class="when">' + (when || '') +
     '</div><div class="acts">' + (acts || '') + '</div></div>';
 }
+
+/* 노트북 목록: 서버 순서 유지. 금고용 정렬 머리글(sortHead) 재사용 금지 */
+function listHead() {
+  return '<div class="head"><div></div><div>이름</div><div>크기</div><div>수정한 때</div><div></div></div>';
+}
 /**
  * 목록 머리글을 눌러 정렬한다.
  *
