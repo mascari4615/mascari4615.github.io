@@ -2619,10 +2619,18 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           /* 다시 보기는 **내 커널이 있을 때만**. 손님은 판을 받아 그리기만 해서 되살릴 것이 없다. */
           replayBtn.style.display = tape && tape.moves.length >= 0 && !replaying && !review ? '' : 'none';
           showResult(v, draw, top, note);
-          /* 등급전이면 점수에 반영. 양쪽이 각자 보내고 서버가 둘을 맞춰 봄 */
+          /**
+           * 등급전이면 점수에 반영. 양쪽이 각자 보내고 서버가 둘을 맞춰 봄
+           *
+           * **패보를 먼저 올림.** 서버는 그 패보로 판을 다시 굴려 승자를 제 손으로 셈
+           * (`arcade-verify.ts`). 둘을 나란히 보내면 보고가 먼저 닿는 판이 생기고,
+           * 그때는 셀 것이 없어 그냥 통과한다. 그러면 재검증이 있으나 마나가 됨
+           */
           if (rankedMatch && !replaying && !review) {
-            void tellRanked(v, draw);
-            void keepTape();
+            void (async () => {
+              await keepTape();
+              await tellRanked(v, draw);
+            })();
           }
         }
       } else if (v.note) {

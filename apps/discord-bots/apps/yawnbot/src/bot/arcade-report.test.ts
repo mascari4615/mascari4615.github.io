@@ -12,6 +12,8 @@ import type { Server } from 'http';
 import { registerArcadeQueue, resetQueue } from './arcade-queue';
 import { registerArcadeReport, resetReports } from './arcade-report';
 import { ratingOf, resetRatings } from './arcade-rating';
+import { registerArcadeTape, resetTapes } from './arcade-tape';
+import { setVerifier } from './arcade-verify';
 
 let server: Server;
 let base = '';
@@ -34,6 +36,7 @@ beforeAll(async () => {
   const app = express();
   registerArcadeQueue(app, fakeWho as never);
   registerArcadeReport(app, fakeWho as never);
+  registerArcadeTape(app, fakeWho as never);
   await new Promise<void>((resolve) => {
     server = app.listen(0, '127.0.0.1', () => resolve());
   });
@@ -46,6 +49,9 @@ beforeEach(() => {
   resetQueue();
   resetRatings();
   resetReports();
+  resetTapes();
+  /* 기본은 묶음 없음. 옛 검사들이 재검증에 걸리지 않게 */
+  setVerifier(null);
 });
 
 type Answer = { status: string; code?: string; you?: string; rival?: string };
@@ -58,7 +64,16 @@ const stand = async (key: string, game = 'gomoku'): Promise<Answer> =>
     })
   ).json()) as Answer;
 
-type Report = { ok?: boolean; applied?: boolean; waiting?: number; disagreed?: boolean; again?: boolean; error?: string };
+type Report = {
+  ok?: boolean;
+  applied?: boolean;
+  waiting?: number;
+  disagreed?: boolean;
+  again?: boolean;
+  error?: string;
+  forged?: boolean;
+  verified?: boolean;
+};
 const report = async (key: string, code: string, ranks: string[], draw = false): Promise<{ status: number; body: Report }> => {
   const res = await fetch(`${base}/kl/arcade/report`, {
     method: 'POST',
@@ -152,5 +167,56 @@ describe('결과 보고', () => {
     const res = await fetch(`${base}/kl/arcade/rating/me?game=gomoku`, { headers: as(A) });
     expect(res.status).toBe(200);
     expect((await res.json()) as { rating: number }).toEqual({ signedIn: true, rating: 1500, games: 0, wins: 0 });
+  });
+});
+
+/**
+ * 서버가 그 판을 다시 셈한 것과 어긋나면 점수가 안 움직이는가 (2026-09-01)
+ *
+ * - 전원 일치는 주인이 커널을 손대면 그대로 통과한다. 나머지는 그 화면을 받아 보기 때문
+ * - 그래서 마지막 자물쇠는 서버가 제 손으로 세는 것
+ * - **패보가 없으면 통과시켜야 한다.** 안 그러면 못 올린 판마다 점수가 멈춤
+ */
+describe('서버가 다시 셈하기', () => {
+  const putTape = async (key: string, code: string): Promise<Response> =>
+    fetch(`${base}/kl/arcade/tape`, {
+      method: 'POST',
+      headers: as(key),
+      body: JSON.stringify({
+        code,
+        tape: { game: 'gomoku', seed: 7, seats: [{ name: 'a', bot: false }, { name: 'b', bot: false }], opts: {}, moves: [], end: 100 }
+      })
+    });
+
+  it('패보가 있고 보고가 맞으면 반영되고 잰 것으로 표시된다', async () => {
+    const { code, a, b } = await match();
+    await putTape(a, code);
+    setVerifier(() => ({ ok: true, ranks: [0, 1], scores: [1, 0], finished: true }));
+    await report(a, code, [a, b]);
+    const said = await report(b, code, [a, b]);
+    expect(said.body.applied).toBe(true);
+    expect(said.body.verified).toBe(true);
+    expect(ratingOf('gomoku', a)).toBeGreaterThan(1500);
+  });
+
+  it('둘이 짜고 거꾸로 보고해도 서버가 막는다', async () => {
+    const { code, a, b } = await match();
+    await putTape(a, code);
+    /* 서버가 센 것은 a 가 이긴 판. 그런데 둘 다 b 가 이겼다고 말함 */
+    setVerifier(() => ({ ok: true, ranks: [0, 1], scores: [1, 0], finished: true }));
+    await report(a, code, [b, a]);
+    const said = await report(b, code, [b, a]);
+    expect(said.body.applied).toBe(false);
+    expect(said.body.forged).toBe(true);
+    expect(ratingOf('gomoku', b)).toBe(1500);
+  });
+
+  it('패보가 안 올라왔으면 그냥 반영한다. 점수가 멈추면 그게 더 나쁘다', async () => {
+    const { code, a, b } = await match();
+    setVerifier(() => ({ ok: true, ranks: [0, 1], scores: [1, 0], finished: true }));
+    await report(a, code, [b, a]);
+    const said = await report(b, code, [b, a]);
+    expect(said.body.applied).toBe(true);
+    expect(said.body.verified).toBe(false);
   });
 });
