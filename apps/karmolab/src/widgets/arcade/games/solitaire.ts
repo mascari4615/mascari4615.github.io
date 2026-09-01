@@ -393,3 +393,33 @@ export function bestMove(s: SolitaireState): SolitaireAction | null {
 
 /** 파운데이션에 올라간 장수. 화면이 진도를 보여 준다 */
 export const doneCount = (s: SolitaireState): number => s.foundation.reduce((a, f) => a + f.length, 0);
+
+/**
+ * 이 카드가 갈 쌓는 자리. 없으면 null
+ * 두 번 눌러 바로 올리기에 씀. 레퍼런스 넷 다 두 번 누르면 알아서 올라감
+ */
+export function foundationFor(s: SolitaireState, card: number): number | null {
+  for (let i = 0; i < 4; i += 1) if (canFound(s.foundation[i], card)) return i;
+  return null;
+}
+
+/**
+ * 이제 실수할 자리가 없나. 뒤집힌 카드도 안 뽑은 카드도 없는 상태
+ * 이때부터는 남은 것을 순서대로 올리기만 하면 이김. 레퍼런스는 이 자리에서 자동 마무리를 엶
+ */
+export function allFaceUp(s: SolitaireState): boolean {
+  if (s.stock.length || s.waste.length) return false;
+  return s.tableau.every((p) => p.up >= p.cards.length);
+}
+
+/** 자동 마무리의 다음 한 수. 태블로 맨 위에서 올릴 수 있는 것 하나 */
+export function autoStep(s: SolitaireState): SolitaireAction | null {
+  for (let c = 0; c < s.tableau.length; c += 1) {
+    const p = s.tableau[c];
+    if (!p.cards.length) continue;
+    const card = p.cards[p.cards.length - 1];
+    const at = foundationFor(s, card);
+    if (at !== null) return { kind: 'move', col: c, from: p.cards.length - 1, to: 'foundation', at };
+  }
+  return null;
+}

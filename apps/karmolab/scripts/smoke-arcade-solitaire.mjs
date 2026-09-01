@@ -55,6 +55,12 @@ if (!cantRun) {
   await page.waitForSelector('.ac-sol', { timeout: 15000 });
   await page.waitForTimeout(1200);
 
+  /* 시계. 레퍼런스 셋이 머리에 둔다. 안 흐르면 멈춘 판처럼 보인다 */
+  const clock1 = await page.evaluate(() => document.querySelector('#acSolNote')?.textContent ?? '');
+  await page.waitForTimeout(2200);
+  const clock2 = await page.evaluate(() => document.querySelector('#acSolNote')?.textContent ?? '');
+  check('시계가 흐른다', /\d\d:\d\d/.test(clock1) && clock1 !== clock2, `${clock1} -> ${clock2}`);
+
   const cols = await page.evaluate(() => document.querySelectorAll('.ac-sol-col').length);
   check('일곱 열이 뜬다', cols === 7, `${cols}열`);
   const cards = await page.evaluate(() => document.querySelectorAll('.ac-sol-cell').length);
@@ -97,6 +103,23 @@ if (!cantRun) {
   /* 다시 뽑아 놓는다. 아래 검사가 뽑은 카드를 본다 */
   await page.click('#acSolStock', { force: true });
   await page.waitForTimeout(400);
+
+  /* 두 번 누르면 쌓는 자리로. 레퍼런스 넷 다 있는 손놀림 */
+  const dbl = await page.evaluate(async () => {
+    const found = () => document.querySelectorAll('.ac-sol-found .ac-sol-card').length;
+    const before = found();
+    for (let i = 0; i < 40; i += 1) {
+      if (document.querySelector('#acSolWaste .ac-sol-card b')?.textContent === 'A') {
+        document.querySelector('#acSolWaste').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+        await new Promise((r) => setTimeout(r, 400));
+        return { before, after: found() };
+      }
+      document.querySelector('#acSolStock').click();
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    return { skip: true };
+  });
+  check('두 번 누르면 쌓는 자리로 간다', dbl.skip || dbl.after > dbl.before, JSON.stringify(dbl));
 
   /* 못 놓는 자리. 뒤집힌 카드를 누르면 까닭을 말한다 */
   const downCard = await page.evaluate(() => {

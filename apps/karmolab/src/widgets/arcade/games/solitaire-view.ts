@@ -18,9 +18,12 @@ import { roomAmbience } from '../ambience';
 import { sceneOf } from '../scenes';
 import type { GameView } from '../views';
 import {
+  allFaceUp,
+  autoStep,
   bestMove,
   canDraw,
   canFound,
+  foundationFor,
   canStack,
   doneCount,
   isRed,
@@ -67,6 +70,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       '</div>' +
       '<div class="ac-sol-tab" id="acSolTab"></div>' +
       '<div class="ac-sol-bar"><span id="acSolNote"></span>' +
+      '<button type="button" class="btn btn-ghost" id="acSolAuto" style="display:none"></button>' +
       '<button type="button" class="btn btn-ghost" id="acSolHint"></button></div>' +
       '</div>';
     const dealEl = el.querySelector('#acSolDeal') as HTMLElement;
@@ -74,6 +78,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
     const tabEl = el.querySelector('#acSolTab') as HTMLElement;
     const noteEl = el.querySelector('#acSolNote') as HTMLElement;
     const hintBtn = el.querySelector('#acSolHint') as HTMLButtonElement;
+    const autoBtn = el.querySelector('#acSolAuto') as HTMLButtonElement;
 
     let held: Held = null;
     let last: SolitaireState | null = null;
@@ -196,11 +201,18 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       });
     };
 
+    /** 판이 얼마나 흘렀나. 레퍼런스 셋이 머리에 시계를 둔다(solitaired 00:00) */
+    let elapsed = 0;
+    const clock = (): string => {
+      const sec = Math.floor(elapsed / 1000);
+      return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+    };
+
     const paint = (force = false): void => {
       const s = last;
       if (!s) return;
       const hc = heldCard(s);
-      const key = JSON.stringify([s.stock.length, s.waste, s.foundation, s.tableau, s.passes, s.moves, held, flash, flashUntil > performance.now()]);
+      const key = JSON.stringify([s.stock.length, s.waste, s.foundation, s.tableau, s.passes, s.moves, held, flash, flashUntil > performance.now(), Math.floor(elapsed / 1000)]);
       if (!force && key === paintKey) return;
       paintKey = key;
       snap();
@@ -260,8 +272,11 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       noteEl.textContent =
         performance.now() < flashUntil && flash
           ? flash
-          : t('arcade.solitaire.progress', { n: String(done), m: String(s.moves) });
+          : t('arcade.solitaire.progress', { n: String(done), m: String(s.moves) }) + '  ' + clock();
       hintBtn.textContent = t('arcade.solitaire.hint');
+      /* 자동 마무리. 뒤집힌 카드도 안 뽑은 카드도 없을 때만 뜬다(레퍼런스와 같은 자리) */
+      autoBtn.textContent = t('arcade.solitaire.auto');
+      autoBtn.style.display = allFaceUp(s) && autoStep(s) ? '' : 'none';
     };
 
     /**
@@ -338,6 +353,54 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
         : target;
       cell.click();
     });
+
+    /**
+     * 두 번 누르면 바로 쌓는 자리로. 레퍼런스 넷 다 있는 손놀림
+     * 갈 곳이 없으면 삑 소리와 빨간 점등. 아무 말 없이 안 되는 것이 제일 나쁨
+     */
+    el.addEventListener('dblclick', (ev) => {
+      const s = last;
+      if (!s) return;
+      const target = ev.target as HTMLElement;
+      const cell = target.closest<HTMLElement>('.ac-sol-cell');
+      const waste = target.closest<HTMLElement>('#acSolWaste');
+      let card = -1;
+      if (waste && s.waste.length) card = s.waste[s.waste.length - 1];
+      else if (cell) {
+        const c = Number(cell.dataset.c);
+        const i = Number(cell.dataset.i);
+        const p = s.tableau[c];
+        if (!p || i !== p.cards.length - 1 || i < p.cards.length - p.up) return;
+        card = p.cards[i];
+      } else return;
+      const at = card >= 0 ? foundationFor(s, card) : null;
+      if (at === null) {
+        nope(t('arcade.solitaire.nofound'), (waste ?? cell) as HTMLElement);
+        return;
+      }
+      held = null;
+      amb.stone();
+      if (waste) act({ kind: 'waste', to: 'foundation', at });
+      else act({ kind: 'move', col: Number(cell?.dataset.c), from: Number(cell?.dataset.i), to: 'foundation', at });
+    });
+
+    /* 자동 마무리. 한 장씩 시차를 두고 올린다. 한꺼번에 올리면 무슨 일이 났는지 안 보인다 */
+    let autoTimer = 0;
+    const autoRun = (): void => {
+      const s = last;
+      if (!s) return;
+      const mv = autoStep(s);
+      if (!mv) return;
+      amb.stone();
+      act(mv);
+      autoTimer = window.setTimeout(autoRun, 140);
+    };
+    autoBtn.onclick = () => {
+      blip('good');
+      say(t('arcade.solitaire.autoOn'));
+      autoRun();
+    };
+    Toolbox.onDispose?.(() => window.clearTimeout(autoTimer));
 
     /* 누르기 하나로 다 한다. 든 것이 없으면 집고, 있으면 놓는다 */
     el.addEventListener('click', (ev) => {
@@ -426,6 +489,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
 
     return (v) => {
       last = v.state;
+      elapsed = v.now;
       /* 상태가 바뀌면 들고 있던 것을 놓는다. 그 자리가 이미 없을 수 있다 */
       if (held) {
         const hc = heldCard(v.state);

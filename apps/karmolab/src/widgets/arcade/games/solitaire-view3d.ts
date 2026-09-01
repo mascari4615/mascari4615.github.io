@@ -16,11 +16,14 @@ import { mountCardStage, type CardSpotAt, type CardStage } from '../card-stage';
 import { roomAmbience } from '../ambience';
 import { sceneOf } from '../scenes';
 import {
+  allFaceUp,
+  autoStep,
   bestMove,
   canDraw,
   canFound,
   canStack,
   doneCount,
+  foundationFor,
   rankOf,
   runOk,
   suitOf,
@@ -62,6 +65,11 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
 
     let last: SolitaireState | null = null;
     let held: Held = null;
+    /** 판이 얼마나 흘렀나. 평면과 같은 시계 */
+    let elapsed = 0;
+    /** 마지막으로 누른 자리와 때. 같은 자리를 곧바로 다시 누르면 두 번 누른 것 */
+    let tapAt = { id: '', t: 0 };
+    let autoTimer = 0;
     let flash = '';
     let flashUntil = 0;
 
@@ -93,10 +101,39 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       say(msg);
     };
 
+    /** 그 자리의 카드. 두 번 눌러 바로 올릴 때 무엇인지 알아야 함 */
+    const cardAt = (s: SolitaireState, id: string): number => {
+      if (id === 'waste') return s.waste.length ? s.waste[s.waste.length - 1] : -1;
+      const m = /^c(\d+):(\d+)$/.exec(id);
+      if (!m) return -1;
+      const p = s.tableau[Number(m[1])];
+      const i = Number(m[2]);
+      if (!p || i !== p.cards.length - 1 || i < p.cards.length - p.up) return -1;
+      return p.cards[i];
+    };
+
     /** 누른 이름을 규칙의 수로 푼다 */
     const pick = (id: string): void => {
       const s = last;
       if (!s) return;
+      /* 같은 자리를 곧바로 다시 누르면 쌓는 자리로 바로. 평면의 두 번 누르기와 같은 손놀림 */
+      const now = performance.now();
+      const twice = tapAt.id === id && now - tapAt.t < 340;
+      tapAt = { id, t: now };
+      if (twice) {
+        const card = cardAt(s, id);
+        const at = card >= 0 ? foundationFor(s, card) : null;
+        if (at !== null) {
+          held = null;
+          amb.stone();
+          if (id === 'waste') act({ kind: 'waste', to: 'foundation', at });
+          else {
+            const m = /^c(\d+):(\d+)$/.exec(id);
+            if (m) act({ kind: 'move', col: Number(m[1]), from: Number(m[2]), to: 'foundation', at });
+          }
+          return;
+        }
+      }
       if (id === 'stock') {
         held = null;
         if (!canDraw(s)) {
@@ -214,6 +251,17 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       return () => {};
     }
 
+    /* 자동 마무리. 한 장씩 시차를 두고. 한꺼번에 올리면 무슨 일이 났는지 안 보인다 */
+    function autoRun(): void {
+      const s = last;
+      if (!s) return;
+      const mv = autoStep(s);
+      if (!mv) return;
+      amb.stone();
+      act(mv);
+      autoTimer = window.setTimeout(autoRun, 140);
+    }
+
     function paint(): void {
       const s = last;
       if (!s) return;
@@ -311,13 +359,25 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       ]);
 
       const done = doneCount(s);
+      const sec = Math.floor(elapsed / 1000);
+      const clock = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
       const msg =
         performance.now() < flashUntil && flash
           ? flash
-          : t('arcade.solitaire.progress', { n: String(done), m: String(s.moves) });
+          : t('arcade.solitaire.progress', { n: String(done), m: String(s.moves) }) + '  ' + clock;
+      const canAuto = allFaceUp(s) && autoStep(s);
       barEl.innerHTML =
         '<span>' + esc(msg) + '</span>' +
+        (canAuto ? '<button type="button" class="ac-sol3dhint" id="acSol3dAuto">' + esc(t('arcade.solitaire.auto')) + '</button>' : '') +
         '<button type="button" class="ac-sol3dhint" id="acSol3dHint">' + esc(t('arcade.solitaire.hint')) + '</button>';
+      const ab = barEl.querySelector<HTMLButtonElement>('#acSol3dAuto');
+      if (ab) {
+        ab.onclick = () => {
+          blip('good');
+          say(t('arcade.solitaire.autoOn'));
+          autoRun();
+        };
+      }
       const hb = barEl.querySelector<HTMLButtonElement>('#acSol3dHint');
       if (hb) {
         hb.onclick = () => {
@@ -330,8 +390,11 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
       }
     }
 
+    Toolbox.onDispose?.(() => window.clearTimeout(autoTimer));
+
     return (v) => {
       last = v.state;
+      elapsed = v.now;
       if (held && heldCard(v.state) === null) held = null;
       paint();
     };

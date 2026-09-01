@@ -25,6 +25,19 @@ export interface Choice {
 
 /** 놀이마다 고를 것. 없으면 고를 게 없다는 뜻이다 */
 export const SETUPS: Record<string, Choice[]> = {
+  /* 솔리테어 한 장 뽑기와 세 장 뽑기. 레퍼런스 넷 다 첫 화면에 Turn 1 / Turn 3
+     한 장이 쉽고(이김 40~55%) 세 장이 정석 */
+  solitaire: [
+    {
+      key: 'draw',
+      label: 'arcade.setup.draw',
+      options: [
+        { value: 1, label: 'arcade.setup.draw.1' },
+        { value: 3, label: 'arcade.setup.draw.3' }
+      ],
+      fallback: 1
+    }
+  ],
   yacht: [
     {
       key: 'ai',

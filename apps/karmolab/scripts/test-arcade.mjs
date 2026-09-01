@@ -25,6 +25,10 @@ await build({
   bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent'
 });
 const { Match, GAMES, gameById, seedFrom, META, CATALOG, partySize } = await import(pathToFileURL(out).href);
+/* 솔리테어 규칙 도우미. 화면 둘이 같이 쓰므로 여기서 잰다 */
+const solOut = join(dir, 'sol.mjs');
+await build({ entryPoints: ['src/widgets/arcade/games/solitaire.ts'], bundle: true, format: 'esm', platform: 'node', outfile: solOut, logLevel: 'silent' });
+const { allFaceUp, autoStep, foundationFor } = await import(pathToFileURL(solOut).href);
 const VIEWS = CATALOG.map((e) => e.view);
 
 let fails = 0;
@@ -547,6 +551,25 @@ console.log('[arcade] 솔리테어 더미 되돌리기');
     passes = now.passes;
   }
   ok(passes >= 6, '더미를 여섯 바퀴 넘게 되돌린다 (레퍼런스는 무제한)', `${passes} 바퀴에서 막혔다`);
+
+  /* 자동 마무리. 뒤집힌 카드도 안 뽑은 카드도 없으면 남은 것을 순서대로 올려 끝
+     사람이 손으로 쉰 번 누르게 두면 놀이가 아니라 일. 레퍼런스 넷 다 자동으로 끝냄 */
+  const m2 = new Match(g, 777, [{ name: 'me', bot: false }]);
+  m2.step(0);
+  const st = m2.view().state;
+  /* 다 뒤집힌 판을 손으로 만든다. 실제 판에서 여기까지 가려면 수백 수가 든다 */
+  const rigged = {
+    ...st,
+    stock: [],
+    waste: [],
+    foundation: [[], [], [], []],
+    tableau: Array.from({ length: 7 }, (_, i) => ({ cards: i < 4 ? [i * 13] : [], up: i < 4 ? 1 : 0 }))
+  };
+  ok(allFaceUp(rigged), '다 뒤집힌 판을 알아본다');
+  ok(!allFaceUp(st), '처음 판은 아직 아니다');
+  ok(autoStep(rigged) !== null, '자동 마무리가 올릴 수를 낸다');
+  ok(foundationFor(rigged, 0) === 0, '에이스가 갈 자리를 짚는다');
+  ok(foundationFor(rigged, 12) === null, 'K 는 빈 쌓는 자리에 못 간다');
 
   const src = readFileSync('src/widgets/arcade/games/solitaire-view.ts', 'utf8');
   const src3 = readFileSync('src/widgets/arcade/games/solitaire-view3d.ts', 'utf8');
