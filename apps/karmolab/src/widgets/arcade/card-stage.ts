@@ -253,8 +253,9 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       /* 끝에서 부드럽게 멎는다. 카드는 던지는 것이 아니라 미끄러뜨리는 것 */
       const e = 1 - (1 - k) * (1 - k) * (1 - k);
       c.mesh.position.lerpVectors(c.from, c.to, e);
-      /* 날아가는 동안 살짝 뜬다 */
-      c.mesh.position.y += Math.sin(Math.PI * k) * 0.35;
+      /* 날아가는 동안 살짝 뜬다. 멀리 갈수록 높이. 한 칸 옮기는데 크게 뜨면 과장스럽다 */
+      const hop = Math.min(0.35, c.from.distanceTo(c.to) * 0.11);
+      c.mesh.position.y += Math.sin(Math.PI * k) * hop;
       c.mesh.rotation.z = c.rFrom + (c.rTo - c.rFrom) * e;
       if (k < 1 || now < c.t0) busy = true;
     }
@@ -343,24 +344,63 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   /** 눌린 카드를 찾으려고 이름을 들고 있는다 */
   const picks = new Map<Mesh, string>();
   let boardKey = '';
+  /**
+   * 이름표로 물건을 들고 있는다. 같은 카드는 **다시 만들지 않고 옮긴다**
+   * 새로 만들면 순간이동이라 손맛이 죽는다(`features/play.md` 의 손맛)
+   */
+  const byName = new Map<string, Mesh>();
   const setBoard = (spots: CardSpotAt[]): void => {
     const key = JSON.stringify(spots);
     if (key === boardKey) return;
     boardKey = key;
-    while (holder.children.length) holder.remove(holder.children[0]);
-    live.length = 0;
-    picks.clear();
+    const now = performance.now();
+    const keep = new Set<string>();
+    const next: Live[] = [];
+
     for (const sp of spots) {
       const layer = sp.layer ?? 0;
-      const mesh = mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
-      mesh.position.set(sp.x, TOP_Y + 0.02 + layer * 0.006 + (sp.held ? 0.18 : 0), sp.z);
-      mesh.rotation.z = sp.up ? 0 : Math.PI;
-      if (sp.held) mesh.rotation.y = 0.06;
-      holder.add(mesh);
+      const to = new Vector3(sp.x, TOP_Y + 0.02 + layer * 0.006 + (sp.held ? 0.2 : 0), sp.z);
+      const face = sp.rank > 0;
+      /* 앞뒤가 갈리면 다른 물건이라 새로 만든다. 그 밖에는 있던 것을 옮긴다 */
+      const name = sp.id + '|' + (face ? sp.rank + ':' + (sp.suit ?? 0) : 'b');
+      keep.add(sp.id);
+      const had = byName.get(sp.id);
+      const same = had && had.userData.name === name;
+      const mesh = same ? (had as Mesh) : mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
+      mesh.userData.name = name;
+      if (!same) {
+        if (had) holder.remove(had);
+        /* 새로 나온 카드는 있던 자리가 없다. 그 자리에서 시작한다 */
+        mesh.position.copy(to);
+        mesh.rotation.z = sp.up ? 0 : Math.PI;
+        holder.add(mesh);
+      }
+      mesh.rotation.y = sp.held ? 0.06 : 0;
+      byName.set(sp.id, mesh);
       picks.set(mesh, sp.id);
+      next.push({
+        mesh,
+        from: mesh.position.clone(),
+        to,
+        t0: now,
+        ms: same ? 240 : 1,
+        rFrom: mesh.rotation.z,
+        rTo: sp.up ? 0 : Math.PI
+      });
     }
+
+    /* 없어진 자리는 치운다 */
+    for (const [id, mesh] of [...byName.entries()]) {
+      if (keep.has(id)) continue;
+      holder.remove(mesh);
+      picks.delete(mesh);
+      byName.delete(id);
+    }
+
+    live.length = 0;
+    live.push(...next);
     need = true;
-    render();
+    wake();
   };
 
   /* 카드 누르기. 화면이 이름만 받으면 되고 무대는 규칙을 모른다 */
