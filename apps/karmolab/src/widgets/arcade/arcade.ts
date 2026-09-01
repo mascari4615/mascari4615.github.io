@@ -330,6 +330,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acDetail .ac-grade b{color:#a4423a;font-weight:900}',
       '#acDetail .ac-grade b.ac-queued{display:block;margin-top:4px;color:var(--text-primary)}',
       /* 지난 판. 단위 줄 아래 한 줄씩 */
+      '.ac-recent{margin:0 0 var(--space-lg)}',
+      '.ac-recent .ac-kind{margin-bottom:8px}',
+      '.ac-recentstrip{display:flex;gap:8px;flex-wrap:wrap}',
+      '.ac-recentcard{display:flex;align-items:center;gap:7px;border:0;border-radius:var(--radius-pill);padding:7px 15px 7px 11px;background:var(--bg-primary);color:var(--text-primary);font-size:var(--font-size-2xs);font-weight:700;cursor:pointer;box-shadow:var(--shadow-float)}',
+      '.ac-recentcard:hover{transform:translateY(-1px);filter:brightness(1.04)}',
+      '.ac-recentcard span{font-size:var(--font-size-sm)}',
       '#acDetail .ac-past{margin-top:8px;font-size:var(--font-size-2xs);color:#8b897b}',
       '#acDetail .ac-past b{display:block;margin-bottom:3px;color:#5b5949;font-weight:700}',
       '#acDetail .ac-past button{display:block;background:none;border:0;padding:2px 0;color:#5b5949;text-decoration:underline;cursor:pointer;font-size:inherit;text-align:left}',
@@ -1520,6 +1526,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<div id="acShelfAll">' +
       '<div class="ac-room" id="acRoom" style="display:none"></div>' +
       '<div id="acOpen"></div>' +
+      /* 방금 논 것으로 돌아가는 줄. 오늘의 세 판보다 위에 둔다. 이미 마음먹고 온 사람이 먼저다 */
+      '<div class="ac-recent" id="acRecent"></div>' +
       '<div class="ac-today" id="acToday"></div>' +
       '<div id="acPicks"></div>' +
       '<div id="acGames" class="ac-shelf"></div>' +
@@ -1827,6 +1835,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /* 오늘의 세 판. 51개 앞에서 뭘 하지를 대신 정해 준다 (TASK-KL-264). */
+    paintRecent();
     const picks = todayPicks(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id) })));
     const paintToday = (): void => {
       const st = dailyState();
@@ -1869,6 +1878,68 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       } catch {
         /* 못 적어도 그만 */
       }
+    }
+
+    /**
+     * 방금 논 놀이 (2026-09-01, 레퍼런스 대조)
+     *
+     * - 진열장에 쉰한 개. 어제 놀던 것을 다시 찾으려면 눈으로 훑거나 검색해야 했음
+     * - CrazyGames 는 옆줄 맨 위에 최근 플레이를 둔다(홈, 최근, 새것, 인기 순. 게임 4,500개)
+     * - 오늘의 세 판보다 **위**에 둔다. 오늘의 세 판은 뭘 할지 모르는 사람을 위한 것이고,
+     *   최근은 이미 마음먹고 온 사람의 것
+     */
+    const RECENT_KEY = 'karmolab.arcade.recent';
+    const RECENT_MAX = 5;
+
+    function recentList(): string[] {
+      try {
+        const raw = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') as unknown;
+        return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string').slice(0, RECENT_MAX) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    /** 논 놀이를 맨 앞으로. 같은 것을 두 번 안 담는다 */
+    function noteRecent(id: string): void {
+      if (!id || !cardById(id)) return;
+      try {
+        const next = [id, ...recentList().filter((x) => x !== id)].slice(0, RECENT_MAX);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+      } catch {
+        /* 못 적어도 그만 */
+      }
+      paintRecent();
+    }
+
+    /** 최근 줄. 없으면 아예 안 그린다 */
+    function paintRecent(): void {
+      const box = container.querySelector<HTMLElement>('#acRecent');
+      if (!box) return;
+      const list = recentList().filter((id) => cardById(id));
+      if (!list.length) {
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML =
+        '<h3 class="ac-kind">' + esc(t('arcade.recent.title')) + '</h3>' +
+        '<div class="ac-recentstrip">' +
+        list
+          .map(
+            (id) =>
+              '<button class="ac-recentcard" data-recent="' + esc(id) + '">' +
+              '<span>' + iconOf(id) + '</span>' +
+              esc(t('arcade.game.' + id + '.name')) +
+              '</button>'
+          )
+          .join('') +
+        '</div>';
+      container.querySelectorAll<HTMLButtonElement>('[data-recent]').forEach((b) => {
+        b.onclick = (): void => {
+          remember();
+          openDetail(String(b.dataset.recent));
+        };
+      });
     }
 
     /** 카드는 찾을 때마다 다시 그려지므로 배선도 그때마다 다시 한다. */
@@ -2935,6 +3006,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         withCrew[gseat] = { name: GHOST_NAME, bot: true };
         def = withGhost(def, gseat, past as never) as typeof def;
       }
+      noteRecent(id);
       match = new Match(def, seed, withCrew, matchOpts(id)) as Match<unknown, unknown>;
       /* 되살릴 재료. 씨앗과 자리. 이 둘과 누른 것이면 판이 다시 만들어진다(`replay.ts`). */
       lastSeed = seed;

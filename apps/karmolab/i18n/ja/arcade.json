@@ -527,6 +527,7 @@
   "arcade.rank.tonext": "次の段まで{n}点",
   "arcade.tape.copy": "この対局の再生リンクをコピー",
   "arcade.past.title": "前の対局",
+  "arcade.recent.title": "さっき遊んだ",
   "arcade.past.row": "{who}, {ago}",
   "arcade.past.min": "{n}分前",
   "arcade.past.hour": "{n}時間前",

@@ -527,6 +527,7 @@
   "arcade.rank.tonext": "다음 계단까지 {n}점",
   "arcade.tape.copy": "이 판 복기 링크 복사",
   "arcade.past.title": "지난 판",
+  "arcade.recent.title": "방금 논 것",
   "arcade.past.row": "{who}, {ago}",
   "arcade.past.min": "{n}분 전",
   "arcade.past.hour": "{n}시간 전",
