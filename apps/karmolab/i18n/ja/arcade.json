@@ -695,5 +695,9 @@
   "arcade.deck.classic": "標準",
   "arcade.deck.ink": "墨",
   "arcade.deck.night": "夜",
-  "arcade.blackjack.swipe": "上に払うとヒット、下でスタンド"
+  "arcade.blackjack.swipe": "上に払うとヒット、下でスタンド",
+  "arcade.btn.hand": "操作。タップかドラッグ",
+  "arcade.hand.auto": "操作 自動",
+  "arcade.hand.tap": "タップ",
+  "arcade.hand.drag": "ドラッグ"
 }

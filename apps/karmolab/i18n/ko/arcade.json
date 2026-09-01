@@ -695,5 +695,9 @@
   "arcade.deck.classic": "기본",
   "arcade.deck.ink": "먹",
   "arcade.deck.night": "밤",
-  "arcade.blackjack.swipe": "위로 밀면 한 장 더, 아래로 밀면 그만"
+  "arcade.blackjack.swipe": "위로 밀면 한 장 더, 아래로 밀면 그만",
+  "arcade.btn.hand": "손놀림. 누르기와 끌기",
+  "arcade.hand.auto": "손놀림 자동",
+  "arcade.hand.tap": "눌러서",
+  "arcade.hand.drag": "끌어서"
 }

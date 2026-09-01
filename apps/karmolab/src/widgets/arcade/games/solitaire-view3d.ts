@@ -187,7 +187,11 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
     const stage: CardStage = mountCardStage(host, {
       scene,
       board: { w: BOARD_W, d: BOARD_D },
-      onPick: pick
+      onPick: pick,
+      /* 끌기가 시작되면 들고 있던 것을 물린다. 새로 잡은 카드가 놓기로 읽히면 안 된다 */
+      onDrop: () => {
+        held = null;
+      }
     });
 
     if (!stage.ok) {

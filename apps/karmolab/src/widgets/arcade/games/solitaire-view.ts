@@ -13,6 +13,7 @@
 import { t } from '../../../lib/i18n';
 import { blip } from '../../../lib/blip';
 import { applyDeckSkin, rankLabel, suitMark } from '../deck';
+import { handNow } from '../hands';
 import { roomAmbience } from '../ambience';
 import { sceneOf } from '../scenes';
 import type { GameView } from '../views';
@@ -276,7 +277,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
     };
 
     el.addEventListener('pointerdown', (ev) => {
-      if (ev.button !== 0) return;
+      if (ev.button !== 0 || handNow() !== 'drag') return;
       const hit = (ev.target as HTMLElement).closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]');
       if (!hit) return;
       dragAt = { x: ev.clientX, y: ev.clientY };
@@ -288,11 +289,14 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       if (!dragged) {
         if (Math.hypot(ev.clientX - dragAt.x, ev.clientY - dragAt.y) < 6) return;
         dragged = true;
-        /* 든 것이 없으면 이제 집기. 그 자리에서 눌린 것으로 침 */
-        if (!held) {
-          const under = document.elementFromPoint(dragAt.x, dragAt.y) as HTMLElement | null;
-          under?.closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]')?.click();
-        }
+        /**
+         * 끌기 시작. **들고 있던 것이 있어도 새로 잡은 카드로 갈아탐**
+         * 안 그러면 그것이 놓기로 읽혀 못 놓는다는 소리만 나오고, 먼저 든 것을 물려야
+         * 다시 시작할 수 있었음(2026-09-01 사용자 실측)
+         */
+        held = null;
+        const under = document.elementFromPoint(dragAt.x, dragAt.y) as HTMLElement | null;
+        under?.closest<HTMLElement>('.ac-sol-cell, #acSolWaste, [data-f]')?.click();
         if (held) {
           const src = el.querySelector<HTMLElement>('.ac-held .ac-sol-card');
           if (src) {

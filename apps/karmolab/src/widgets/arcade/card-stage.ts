@@ -31,6 +31,7 @@ import {
 import { gloop, type GardenLoop } from '../garden/gloop';
 import { mountStageCore } from './stage-core';
 import { buildRoom, type Room } from './rooms';
+import { handNow } from './hands';
 import type { SceneId } from './scenes';
 import { cardBackTexture, cardEdgeTexture, cardFaceTexture, feltTexture } from './texture';
 import { suitOf } from './deck';
@@ -78,6 +79,8 @@ export interface CardStageOpts {
   board?: { w: number; d: number };
   /** 카드를 눌렀을 때. `id` 는 부르는 쪽이 스폿에 붙인 이름 */
   onPick?(id: string): void;
+  /** 끌기가 시작될 때. 들고 있던 것을 물리라는 뜻 */
+  onDrop?(): void;
 }
 
 /** 자리를 직접 잡는 카드 한 장. 솔리테어처럼 줄이 아니라 판이 있는 놀이 */
@@ -627,7 +630,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     });
 
     core.canvas.addEventListener('pointermove', (ev: PointerEvent) => {
-      if (!lift || !downAt) return;
+      if (!lift || !downAt || handNow() !== 'drag') return;
       if (Math.hypot(ev.clientX - downAt.x, ev.clientY - downAt.y) < 5) return;
       /* 든 카드가 **손끝을 따라온다**. 인벤토리에서 물건 끄는 그 느낌(사용자 요청)
          카드가 떠 있는 높이의 평면에서 손끝이 가리키는 자리를 푼다 */
@@ -657,7 +660,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       lift = null;
       downAt = null;
       if (!held || !from) return;
-      const moved = Math.hypot(ev.clientX - from.x, ev.clientY - from.y) >= 5;
+      const moved = handNow() === 'drag' && Math.hypot(ev.clientX - from.x, ev.clientY - from.y) >= 5;
       aim(ev);
       if (!moved) {
         /* 그냥 누른 것 */
@@ -671,7 +674,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       held.mesh.renderOrder = 0;
       need = true;
       render();
-      /* 집고 놓는 두 걸음으로. 화면 쪽 규칙이 그대로 돎 */
+      /**
+       * 집고 놓는 두 걸음으로. 화면 쪽 규칙이 그대로 돎
+       * `drop` 을 먼저 보내 들고 있던 것을 물림. 안 그러면 새로 잡은 카드가 놓기로 읽힘
+       * (2026-09-01 사용자 실측: 먼저 든 것을 물려야 다시 끌 수 있었음)
+       */
+      opts.onDrop?.();
       opts.onPick?.(held.id);
       if (to && to !== held.id) opts.onPick?.(to);
     };

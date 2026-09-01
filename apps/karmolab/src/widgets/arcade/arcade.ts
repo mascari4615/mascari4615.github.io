@@ -32,6 +32,7 @@ import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room';
 import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
+import { handMode, handNow, nextHandMode } from './hands';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
@@ -1685,6 +1686,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
       '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
       /* 좌표와 수 번호(레퍼런스의 접근성 설정). 브라우저에 남고, 화면이 매 그림마다 읽는다 */
+      /* 손놀림. 누르기와 끌기가 섞이면 오동작이라 사람이 고름(`arcade/hands.ts`) */
+      '<button class="btn btn-ghost" id="acHand" title="' + esc(t('arcade.btn.hand')) + '"></button>' +
       '<button class="btn btn-ghost" id="acCoords" style="display:none" aria-pressed="false">' + esc(t('arcade.btn.coords')) + '</button>' +
       '<button class="btn btn-ghost" id="acNums" style="display:none" aria-pressed="false">' + esc(t('arcade.btn.numbers')) + '</button>' +
       '<i class="ac-sep"></i>' +
@@ -4172,6 +4175,22 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (gameId) paintScene(gameId);
       };
     }
+    /* 손놀림. 누르기와 끌기를 사람이 고름. 셋을 돌림(자동, 누르기, 끌기) */
+    function paintHand(): void {
+      const b = container.querySelector<HTMLButtonElement>('#acHand');
+      if (!b) return;
+      const m = handMode();
+      const now = handNow();
+      b.textContent = t('arcade.hand.' + m) + (m === 'auto' ? ' (' + t('arcade.hand.' + now) + ')' : '');
+      b.title = t('arcade.btn.hand');
+    }
+    $<HTMLButtonElement>('#acHand').onclick = () => {
+      nextHandMode();
+      paintHand();
+      blip('tap');
+    };
+    paintHand();
+
     $<HTMLButtonElement>('#acMdd').onclick = () => {
       try {
         localStorage.setItem('karmolab.arcade.mdd', mddOn() ? 'off' : 'on');
@@ -4384,7 +4403,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     menuBtn.onclick = () => setMenu(!play.classList.contains('ac-menu-open'));
     controls.addEventListener('click', (ev) => {
       const b = (ev.target as HTMLElement).closest('button');
-      if (b && b.id !== 'acSound' && b.id !== 'acMdd' && b.id !== 'acCoords' && b.id !== 'acNums') setMenu(false);
+      if (b && b.id !== 'acSound' && b.id !== 'acMdd' && b.id !== 'acCoords' && b.id !== 'acNums' && b.id !== 'acHand') setMenu(false);
     });
     document.addEventListener('pointerdown', (ev) => {
       if (!play.classList.contains('ac-menu-open')) return;

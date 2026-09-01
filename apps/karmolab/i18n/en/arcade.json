@@ -695,5 +695,9 @@
   "arcade.deck.classic": "Classic",
   "arcade.deck.ink": "Ink",
   "arcade.deck.night": "Night",
-  "arcade.blackjack.swipe": "Swipe up to hit, down to stand"
+  "arcade.blackjack.swipe": "Swipe up to hit, down to stand",
+  "arcade.btn.hand": "Input: tap or drag",
+  "arcade.hand.auto": "Input auto",
+  "arcade.hand.tap": "Tap",
+  "arcade.hand.drag": "Drag"
 }
