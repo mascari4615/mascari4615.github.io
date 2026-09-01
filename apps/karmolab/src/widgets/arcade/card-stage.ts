@@ -207,6 +207,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
    * 브라우저에서 `localStorage['kl.bj.deform']` 으로 바로 바꿔 봄
    */
   const deform = casino ? tune('deform', 0.55) : 1;
+  /**
+   * 카드 배율 (2026-09-01 화면 실측). 실제 게임 셋에서 카드 높이가 화면 높이의
+   * 18~32% 였다 (Classic Blackjack 18.5, 247 28, Arkadium 32). 우리는 10.4% 라
+   * 무늬가 안 읽혔음. 상은 그대로 두고 카드만 키움
+   */
+  const cardScale = casino ? tune('card', 1.6) : 1;
   const TABLE_W = casino ? CASINO_W * deform : (opts.board?.w ?? TABLE_W_DEFAULT);
   const TABLE_D = casino ? CASINO_D * deform : (opts.board?.d ?? TABLE_D_DEFAULT);
   const TOP_Y = casino ? CASINO_TOP_Y * deform : TOP_Y_DEFAULT;
@@ -391,12 +397,12 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const rowOf = (seat: number, others: number[]): { x: number; z: number; s: number } => {
     if (casino && dressed) {
       /* 카지노 상. 사람은 반원 위에 나란히, 카드는 제 베팅 서클보다 딜러 쪽 */
-      if (seat < 0) return { x: 0, z: dressed.dealerZ, s: 1 };
+      if (seat < 0) return { x: 0, z: dressed.dealerZ - CARD_H * cardScale * 0.55, s: 1 };
       const n = seatCount;
       const order = seatOrder(n);
       const sp = dressed.spot(order.indexOf(seat), n);
       /* 손패는 제 서클보다 딜러 쪽으로 카드 한 장 반. 실물 상에서 카드를 놓는 자리 */
-      return { x: sp.x, z: sp.z - CARD_H * 1.15, s: 1 };
+      return { x: sp.x, z: sp.z - CARD_H * cardScale * 0.16, s: 1 };
     }
     if (seat < 0) return { x: 0, z: rowZ(-1), s: 1 };
     if (seat === mySeat) return { x: 0, z: rowZ(seat), s: 1 };
@@ -457,6 +463,14 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     need = true;
     render();
   };
+
+  /**
+   * 카드를 카메라 쪽으로 세우는 각 (2026-09-01 화면 실측).
+   * 실제 게임 셋은 **카드를 원근으로 안 눕힌다**. Classic Blackjack 은 상만 기울어
+   * 보이고 카드는 정면이라 어느 카드든 무늬가 다 읽힌다. 우리만 상 평면에 눕혀
+   * 세로를 더 찌그러뜨리고 있었음
+   */
+  let cardTilt = 0;
 
   let shown: CardHand[] = [];
   /* 화면은 매 프레임 같은 손패를 다시 준다. 그때마다 새로 놓으면 애니메이션이 늘 처음으로
@@ -542,9 +556,9 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
        */
       /* 상이 다 보일 필요는 없다 (2026-09-01 사용자 확정). 자리와 카드만 들어오면
          나머지는 화면 밖으로. 그래야 상이 커 보이고 카드도 읽힘 */
-      const pw = dressed ? Math.abs(dressed.spot(0, seatCount).x) + CARD_W * 1.15 : TABLE_W / 2;
-      const z0 = dressed ? dressed.dealerZ - CARD_H * 0.75 : -TABLE_D / 2;
-      const z1 = dressed ? dressed.spot(Math.floor(seatCount / 2), seatCount).z + CARD_H * 0.55 : TABLE_D / 2;
+      const pw = dressed ? Math.abs(dressed.spot(0, seatCount).x) + CARD_W * cardScale * 1.3 : TABLE_W / 2;
+      const z0 = dressed ? dressed.dealerZ - CARD_H * cardScale * 0.62 : -TABLE_D / 2;
+      const z1 = dressed ? dressed.spot(Math.floor(seatCount / 2), seatCount).z + CARD_H * cardScale * 0.45 : TABLE_D / 2;
       const zc = (z0 + z1) / 2;
       const pd = (z1 - z0) / 2;
       const lookZ = zc;
@@ -570,8 +584,16 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         if (over <= 1.001) break;
         dist *= over;
       }
+      /* 더 당긴다. 상이 다 보일 이유가 없다는 사용자 확정(2026-09-01, 세 번 지적).
+         Classic Blackjack 도 상 좌우가 화면 밖으로 잘린다 */
+      dist *= 0.82;
       camera.position.set(0, TOP_Y + dist * sy, lookZ + dist * cz);
       camera.lookAt(0, TOP_Y, lookZ);
+      /* 카드 면이 시선축과 직각이 되게. 상은 기울고 카드는 정면 */
+      /* 부호에 주의. 카드 면 법선(+Y)을 X 축으로 +만큼 돌려야 카메라 쪽
+         (2026-09-01 실측: 음수로 두니 카드가 칼날처럼 섰다) */
+      cardTilt = Math.PI / 2 - pitch;
+      for (const c of live) c.mesh.rotation.x = cardTilt;
     } else {
       camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
       /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
@@ -662,14 +684,19 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         row.s *= Math.max(0.5, share + 0.2);
         row.x += (nth - (many - 1) / 2) * (TABLE_W * 0.3) * share * 2;
       }
-      const xs = spread(h.cards.length, casino);
+      const xs = spread(h.cards.length, casino).map((v) => v * cardScale);
       h.cards.forEach((card, i) => {
         /* 상 윗면이 TOP_Y. 카드 두께 절반만 띄움 (2026-09-01 사용자 지적. 카드가 공중에 떠 있었음) */
-        const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + CARD_T / 2 + i * 0.004, row.z);
+        /* 세운 카드는 아래 모서리가 상에 닿아야 함. 눕힌 카드는 두께 절반만 */
+        const lift = cardTilt > 0.01
+          ? (CARD_H * cardScale * row.s * Math.sin(cardTilt)) / 2
+          : CARD_T / 2;
+        const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + lift + i * 0.004, row.z);
         const wasUp = before ? had.get(keyOf(h.seat, nth, i)) : undefined;
         const old = wasUp !== undefined;
         const mesh = mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
-        if (row.s !== 1) mesh.scale.setScalar(row.s);
+        mesh.scale.setScalar(row.s * cardScale);
+        mesh.rotation.x = cardTilt;
         if (old) {
           mesh.position.copy(to);
           if (wasUp !== card.up) {
@@ -708,8 +735,10 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         /* 이름표 자리. 딜러는 제 카드 위(상 안쪽), 사람은 제 카드 아래.
            같은 쪽에 몰면 앞줄 카드가 뒷줄 이름표를 덮고, 딜러 것을 더 올리면 상 밖으로
            나가 잘린다 (2026-09-01 화면 실측 두 번) */
+        /* 세운 카드는 뒤가 아니라 위로 솟는다. 이름표는 카드 앞(사람 쪽) 바닥에 */
         const up = h.seat < 0 ? -1 : 1;
-        tag.position.set(row.x, TOP_Y + 0.004, row.z + up * (CARD_H / 2 + 0.24) * row.s);
+        const gap = cardTilt > 0.01 ? CARD_H * cardScale * Math.cos(cardTilt) * 0.5 + 0.3 : CARD_H / 2 + 0.24;
+        tag.position.set(row.x, TOP_Y + 0.004, row.z + up * gap * row.s);
         labelGroup.add(tag);
       }
     }
@@ -990,6 +1019,23 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     f.halfD = halfD;
     f.z = z;
     fit();
+  };
+
+  /* 재는 갈고리. 카드가 화면에서 몇 화소인지 (2026-09-01 실측용) */
+  (window as unknown as { __bjMeasure?: () => unknown }).__bjMeasure = () => {
+    const w = host.clientWidth || 1;
+    const h = host.clientHeight || 1;
+    const at = new Vector3(0, TOP_Y, 0);
+    const a = at.clone().setX(-CARD_W / 2).project(camera);
+    const b2 = at.clone().setX(CARD_W / 2).project(camera);
+    const c2 = at.clone().setZ(-CARD_H / 2).project(camera);
+    const d2 = at.clone().setZ(CARD_H / 2).project(camera);
+    return {
+      cardW: Math.round((Math.abs(b2.x - a.x) / 2) * w),
+      cardH: Math.round((Math.abs(d2.y - c2.y) / 2) * h),
+      canvas: [w, h],
+      table: [Math.round(TABLE_W * 100) / 100, Math.round(TABLE_D * 100) / 100]
+    };
   };
 
   const ro = new ResizeObserver(fit);

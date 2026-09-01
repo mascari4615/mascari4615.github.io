@@ -112,40 +112,51 @@ function feltPrint(w: number, d: number, seats: number, mm: number, px = 2048): 
   c.textAlign = 'center';
   c.textBaseline = 'middle';
 
-  /* 딜러 쪽 곧은 변을 따라 도는 두 줄. 실물 상의 인쇄 문구 */
-  const arcText = (text: string, r: number, size: number, alpha: number): void => {
-    c.save();
-    c.globalAlpha = alpha;
-    c.translate(X(0), Z(-d / 2));
-    c.font = '600 ' + Math.round(size * S) + 'px "Noto Serif KR", Georgia, serif';
-    const step = (size * 1.05) / Math.max(0.001, r);
-    const start = -((text.length - 1) * step) / 2;
-    for (let i = 0; i < text.length; i++) {
-      const a = start + i * step;
-      c.save();
-      /* 캔버스에서 +y 는 아래다. `rotate(a)` 로 돌리면 (0, r) 이 왼쪽으로 가서 글자가
-         오른쪽에서 왼쪽으로 놓임. 그래서 BLACKJACK 이 KCAJKCALB 로 찍힘
-         (2026-09-01 실측. 질감을 꺼내 보고 알아냄. UV 는 애초에 멀쩡) */
-      c.rotate(-a);
-      c.translate(0, r * S);
-      c.fillText(text[i], 0, 0);
-      c.restore();
-    }
-    c.restore();
-  };
-  arcText('BLACKJACK PAYS 3 TO 2', d * 0.62, 34 * mm, 0.82);
-  arcText('DEALER MUST DRAW TO 16 AND STAND ON ALL 17s', d * 0.44, 20 * mm, 0.55);
-
-  /* 보험 띠. 딜러와 사람 사이를 가름 */
+  /**
+   * 인쇄 문구. 리본 배너 하나에 세 줄을 모은다 (2026-09-01 화면 실측).
+   * Classic Blackjack 이 그 모양이다. 호를 따라 흩뿌리면 글자가 상 절반을 가로지르고
+   * 카드에 깔려 안 읽힘
+   */
+  const bx = X(0);
+  const by = Z(-d / 2 + d * 0.26);
+  const bw = 640 * mm * S;
+  const bh = 62 * mm * S;
   c.save();
-  c.globalAlpha = 0.5;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+
+  c.globalAlpha = 0.85;
+  c.font = '600 ' + Math.round(34 * mm * S) + 'px "Noto Serif KR", Georgia, serif';
+  c.fillText('BLACKJACK PAYS 3 TO 2', bx, by - bh * 0.95);
+
+  /* 리본. 가운데 띠와 양 끝 제비꼬리 */
+  c.globalAlpha = 0.8;
   c.lineWidth = 4 * mm * S;
   c.beginPath();
-  c.ellipse(X(0), Z(-d / 2), d * 0.32 * S, d * 0.32 * S, 0, 0, Math.PI);
+  c.moveTo(bx - bw / 2, by - bh / 2);
+  c.lineTo(bx + bw / 2, by - bh / 2);
+  c.lineTo(bx + bw / 2, by + bh / 2);
+  c.lineTo(bx - bw / 2, by + bh / 2);
+  c.closePath();
   c.stroke();
-  c.font = '600 ' + Math.round(19 * mm * S) + 'px "Noto Serif KR", Georgia, serif';
-  c.globalAlpha = 0.55;
-  c.fillText('INSURANCE PAYS 2 TO 1', X(0), Z(-d / 2 + d * 0.27));
+  const tail = (side: number): void => {
+    c.beginPath();
+    c.moveTo(bx + side * (bw / 2), by - bh / 2);
+    c.lineTo(bx + side * (bw / 2 + bh * 0.62), by - bh / 2);
+    c.lineTo(bx + side * (bw / 2 + bh * 0.34), by);
+    c.lineTo(bx + side * (bw / 2 + bh * 0.62), by + bh / 2);
+    c.lineTo(bx + side * (bw / 2), by + bh / 2);
+    c.stroke();
+  };
+  tail(1);
+  tail(-1);
+  c.globalAlpha = 0.9;
+  c.font = '600 ' + Math.round(36 * mm * S) + 'px "Noto Serif KR", Georgia, serif';
+  c.fillText('INSURANCE PAYS 2 TO 1', bx, by + 2 * mm * S);
+
+  c.globalAlpha = 0.7;
+  c.font = '600 ' + Math.round(28 * mm * S) + 'px "Noto Serif KR", Georgia, serif';
+  c.fillText('Dealer stands on all 17s', bx, by + bh * 1.05);
   c.restore();
 
   /* 베팅 서클. 자리마다 두 겹 */
@@ -155,12 +166,12 @@ function feltPrint(w: number, d: number, seats: number, mm: number, px = 2048): 
     c.globalAlpha = 0.72;
     c.lineWidth = 5 * mm * S;
     c.beginPath();
-    c.arc(X(sp.x), Z(sp.z), 65 * mm * S, 0, Math.PI * 2);
+    c.arc(X(sp.x), Z(sp.z), 108 * mm * S, 0, Math.PI * 2);
     c.stroke();
     c.globalAlpha = 0.34;
     c.lineWidth = 2.5 * mm * S;
     c.beginPath();
-    c.arc(X(sp.x), Z(sp.z), 57 * mm * S, 0, Math.PI * 2);
+    c.arc(X(sp.x), Z(sp.z), 96 * mm * S, 0, Math.PI * 2);
     c.stroke();
     c.restore();
   }
