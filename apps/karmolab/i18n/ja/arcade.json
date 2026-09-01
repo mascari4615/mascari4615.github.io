@@ -502,7 +502,7 @@
   "arcade.btn.rank": "段位戦",
   "arcade.rank.room.beginner": "初心",
   "arcade.rank.room.upper": "上級",
-  "arcade.rank.waiting": "{room}卓. 相手を探し中, 同じ卓に{n}人",
+  "arcade.rank.waiting": "相手を探し中. 今 {n}人が一緒に待っています",
   "arcade.rank.matched": "{name}さんと対局. 部屋を開いています",
   "arcade.rank.waited": "{t} 待機中",
   "arcade.rank.limit": "一手 {n}秒",

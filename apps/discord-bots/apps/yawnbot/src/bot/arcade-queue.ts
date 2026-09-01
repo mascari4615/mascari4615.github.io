@@ -8,8 +8,13 @@
  *  ① 신원은 **로그인한 계정 하나** (사용자 결정 2026-08-31)
  *     - 세션 쿠키(`kl_session`)로 옴. 디스코드와 패스키가 이미 있는 그 계정
  *     - 점수가 붙는 자리라 신원이 하나여야 함. 기기가 바뀌어도 같은 사람
- *  ② 방은 점수가 정함. 사람이 방을 안 고름. 지금은 방 둘(초심, 그 위)
- *     - 사람 적을 때 방이 많으면 아무도 못 만남 (사용자 결정)
+ *  ② 짝은 **점수 차**로 고름. 기다릴수록 폭이 넓어짐 (2026-09-01, 레퍼런스 대조)
+ *     - 전에는 방 둘(초심, 그 위)로 갈랐음. 그러면 1599 와 1601 이 영영 못 만남.
+ *       사람이 적은 우리 규모에서는 그 벽이 곧 아무도 못 만남
+ *     - chess.com 실측: ±25 시작, 기본 상한 ±200
+ *     - lichess: 완벽한 짝보다 짧은 기다림 우선
+ *     - 우리: 사람이 훨씬 적어 더 빨리 넓히고 끝에는 아무나
+ *     - 방 이름(초심, 상급)은 **화면에만** 남음. 매칭 기준에서는 뺌
  *  ③ 금방 사라짐. 15초 무소식이면 대기열에서 제외
  *     - 창 닫고 간 사람과 짝을 지으면 눌렀는데 아무도 없네
  *  ④ 저장은 메모리뿐. 대기열은 배포를 넘겨 살 이유 없음. 점수(2번)는 다름
@@ -20,6 +25,19 @@ import { randomBytes } from 'node:crypto';
 import { whoOf, type WhoOf } from './arcade-who';
 import { ratingOf, roomOf, type RoomName } from './arcade-rating';
 export type { RoomName } from './arcade-rating';
+
+/**
+ * 기다린 만큼 넓어지는 점수 폭. 처음 ±120, 15초마다 +120, 60초 넘으면 아무나
+ *
+ * chess.com 실측은 ±25 시작에 상한 ±200. 거기는 동시 접속이 수만이라 좁게 시작해도
+ * 금방 만남. 우리는 한 자리 수라 좁게 잡으면 그냥 아무도 못 만남. 그래서 시작을 넓게
+ * 잡고 1분이면 폭을 아예 없앰. 사람이 늘면 이 두 수를 좁힐 것
+ */
+export function matchRange(waitedMs: number): number {
+  const steps = Math.floor(Math.max(0, waitedMs) / 15000);
+  if (steps >= 4) return Infinity;
+  return 120 * (steps + 1);
+}
 
 /** 무소식 한계. 브라우저 알림 주기는 5초 */
 const TTL_MS = 15 * 1000;
@@ -42,6 +60,8 @@ interface Waiting {
   id: string;
   game: string;
   room: RoomName;
+  /** 지금 점수. 짝을 고를 때 이 차이를 봄 */
+  rating: number;
   name: string;
   /** 처음 선 때. 줄 순서의 근거 */
   since: number;
@@ -117,7 +137,11 @@ function answer(id: string): Record<string, unknown> {
     return { status: 'matched', code: m.code, host: m.host === id, room: m.room, you: id, rival: other, opponent: m.names[other] ?? '누군가' };
   }
   const w = waiting.get(id);
-  if (w) return { status: 'waiting', room: w.room, others: queueCounts(w.game)[w.room] - 1 };
+  if (w) {
+    /* 같은 방이 아니라 **그 놀이에서 기다리는 사람 전부**. 방 벽이 없어졌으므로 */
+    const counts = queueCounts(w.game);
+    return { status: 'waiting', room: w.room, others: counts.beginner + counts.upper - 1 };
+  }
   return { status: 'none' };
 }
 
@@ -148,11 +172,18 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf): void 
       res.json(answer(id));
       return;
     }
-    const room = roomOf(ratingOf(game, id));
+    const rating = ratingOf(game, id);
+    const room = roomOf(rating);
     const now = Date.now();
+    const myRange = matchRange(now - (waiting.get(id)?.since ?? now));
+    /* 서로의 폭 안에 드는 사람 중 **오래 기다린 쪽** 먼저. 같은 값이면 점수가 가까운 쪽 */
     const other = [...waiting.values()]
-      .filter((w) => w.id !== id && w.game === game && w.room === room)
-      .sort((a, b) => a.since - b.since)[0];
+      .filter((w) => {
+        if (w.id === id || w.game !== game) return false;
+        const gap = Math.abs(w.rating - rating);
+        return gap <= myRange && gap <= matchRange(now - w.since);
+      })
+      .sort((a, b) => a.since - b.since || Math.abs(a.rating - rating) - Math.abs(b.rating - rating))[0];
     if (other) {
       waiting.delete(other.id);
       waiting.delete(id);
@@ -172,7 +203,7 @@ export function registerArcadeQueue(app: Application, who: WhoOf = whoOf): void 
     } else {
       /* 처음 선 때 보존. 알림마다 줄 맨 뒤면 오래 기다린 사람이 계속 밀림 */
       const since = waiting.get(id)?.since ?? now;
-      waiting.set(id, { id, game, room, name, since, at: now });
+      waiting.set(id, { id, game, room, rating, name, since, at: now });
     }
     res.json({ ...answer(id), until: TTL_MS });
   });

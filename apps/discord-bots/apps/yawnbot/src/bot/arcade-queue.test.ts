@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import express from 'express';
 import type { Server } from 'http';
-import { registerArcadeQueue, resetQueue } from './arcade-queue';
+import { registerArcadeQueue, resetQueue, matchRange } from './arcade-queue';
 import { resetRatings, applyResult } from './arcade-rating';
 
 let server: Server;
@@ -81,11 +81,28 @@ describe('등급전 대기열', () => {
     expect((await stand(B, 'b', 'yut')).status).toBe('waiting');
   });
 
-  it('점수 방이 다르면 안 만난다', async () => {
-    /* 초심 1500 에서 순위점을 여러 번 얹어 윗방으로 올림 */
+  it('점수 차가 크면 처음엔 안 만난다. 방 벽이 아니라 폭이다', async () => {
+    /* 1500 에서 순위점을 여러 번 얹어 폭 밖으로 보냄 */
     for (let i = 0; i < 12; i++) applyResult('gomoku', [A, 'dummy-rival']);
     expect((await stand(A)).room).toBe('upper');
     expect((await stand(B)).status).toBe('waiting');
+  });
+
+  it('폭은 기다린 만큼 넓어진다. 1분이면 아무나', () => {
+    expect(matchRange(0)).toBe(120);
+    expect(matchRange(14_000)).toBe(120);
+    expect(matchRange(15_000)).toBe(240);
+    expect(matchRange(30_000)).toBe(360);
+    expect(matchRange(45_000)).toBe(480);
+    expect(matchRange(60_000)).toBe(Infinity);
+    expect(matchRange(-5)).toBe(120);
+  });
+
+  it('폭 안이면 점수가 달라도 만난다', async () => {
+    /* 한 번만 얹으면 1520 대. 120 폭 안 */
+    applyResult('gomoku', [A, 'dummy-rival']);
+    await stand(A);
+    expect((await stand(B)).status).toBe('matched');
   });
 
   it('짝이 난 뒤 다시 알려도 같은 답이다. 두 판에 안 걸린다', async () => {

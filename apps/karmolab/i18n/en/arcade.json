@@ -502,7 +502,7 @@
   "arcade.btn.rank": "Ranked",
   "arcade.rank.room.beginner": "Novice",
   "arcade.rank.room.upper": "Adept",
-  "arcade.rank.waiting": "{room} room. Looking for a rival, {n} others here",
+  "arcade.rank.waiting": "Looking for a rival. {n} others waiting",
   "arcade.rank.matched": "Matched with {name}. Opening the room",
   "arcade.rank.waited": "waiting {t}",
   "arcade.rank.limit": "{n}s per move",

@@ -3531,7 +3531,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const secs = Math.max(0, Math.round((Date.now() - rankedSince) / 1000));
       $<HTMLElement>('#acCode').textContent = roomLabel(rankedRoom);
       $<HTMLElement>('#acWaitStatus').textContent =
-        t('arcade.rank.waiting', { room: roomLabel(rankedRoom), n: String(rankedOthers) }) +
+        t('arcade.rank.waiting', { n: String(rankedOthers) }) +
         ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) }) +
         ', ' + t('arcade.rank.limit', { n: String(RANKED_LIMIT) });
     }

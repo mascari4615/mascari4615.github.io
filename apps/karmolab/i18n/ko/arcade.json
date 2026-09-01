@@ -502,7 +502,7 @@
   "arcade.btn.rank": "등급전",
   "arcade.rank.room.beginner": "초심",
   "arcade.rank.room.upper": "상급",
-  "arcade.rank.waiting": "{room} 방. 상대를 찾는 중, 같은 방에 {n}명",
+  "arcade.rank.waiting": "상대를 찾는 중. 지금 {n}명이 같이 기다립니다",
   "arcade.rank.matched": "{name} 님과 붙습니다. 방을 여는 중",
   "arcade.rank.waited": "{t} 기다림",
   "arcade.rank.limit": "한 수 {n}초",
