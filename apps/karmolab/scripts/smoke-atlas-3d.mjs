@@ -59,6 +59,8 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
 
 const bad = [];
+/** 손 인식 연장이 이 기계에 깔려 있나. 아래 ⑤ 에서 정해진다 */
+let hasTool = false;
 const browser = await chromium.launch({
   args: [
     '--use-gl=swiftshader', '--enable-unsafe-swiftshader',
@@ -70,7 +72,15 @@ const page = await (await browser.newContext({ viewport: { width: 900, height: 6
 const errors = [];
 /* 손 인식 연장은 **알림을 error 자리로 뱉는다**(TensorFlow 계열 관례). 그건 사고가 아니다.
    여기서 거르지 않으면 INFO: ... 한 줄에 자가 빨개진다(2026-08-23 실측). */
+/* 손 인식 연장이 없는 기계에서는 그 묶음 404 가 **정답이다**. 이 검사는 바로 아래에서
+   그때 못 켰다고 말하나를 따로 재고, 그 자리는 통과한다. 그런데 같은 일이 화면 오류로도
+   올라와 자를 빨갛게 만들었다. 2026-09-01 에 이 검사를 처음 돌려 보고 알았다 (지도를 안
+   구워 여태 못 돌림이었다). 연장이 없을 때만 거른다 */
+const HAND_MISS = /hand|mediapipe|vision_bundle|Failed to fetch dynamically imported module/i;
 const NOISE = /^INFO:|XNNPACK|Created TensorFlow|GL Driver Message|Context (Lost|Restored)/;
+/** 못 받은 주소. 콘솔의 404 한 줄에는 무엇을 못 받았는지가 안 실린다 */
+const notFound = [];
+page.on('response', (r) => { if (r.status() >= 400) notFound.push(r.url()); });
 page.on('pageerror', (e) => errors.push(String(e.message)));
 page.on('console', (m) => { if (m.type() === 'error' && !NOISE.test(m.text())) errors.push(m.text()); });
 
@@ -135,7 +145,8 @@ if (!got) {
 
   /* ⑤ **손 조작 단추**. 연장이 있으면 진짜로 켜지나, 없으면 그렇게 말하나.
      (카메라는 headless 에 없으니 가짜 카메라로 띄운다. 켜지는 길이 살아 있는지만 본다.) */
-  const hasHand = fs.existsSync(path.join(KARMOLAB, '.handsrc', 'hand_landmarker.task'));
+  hasTool = fs.existsSync(path.join(KARMOLAB, '.handsrc', 'hand_landmarker.task'));
+  const hasHand = hasTool;
   await page.evaluate(() => document.getElementById('handBtn').click());
   await page.waitForFunction(() => {
     const say = document.getElementById('handSay').textContent;
@@ -162,7 +173,17 @@ if (!got) {
   }
 }
 
-if (errors.length) bad.push(`화면에서 던진 것: ${errors.slice(0, 2).join(' | ')}`);
+/* 연장이 없는 판에서는 그 묶음을 못 받은 것을 안 센다. 나머지 오류는 그대로 빨강 */
+/* 연장이 없는 판에서 못 받은 것이 손 묶음뿐이면, 그 404 한 줄은 정답이라 안 센다 */
+const onlyHandMissing = !hasTool && notFound.length > 0 && notFound.every((u) => HAND_MISS.test(u));
+const realErrors = errors.filter((e) => {
+  if (hasTool) return true;
+  if (HAND_MISS.test(e)) return false;
+  if (onlyHandMissing && /404|Failed to load resource/.test(e)) return false;
+  return true;
+});
+if (!hasTool && notFound.length) console.log(`     ↳ 못 받은 것 ${notFound.length}개, 전부 손 묶음: ${onlyHandMissing}`);
+if (realErrors.length) bad.push(`화면에서 던진 것: ${realErrors.slice(0, 2).join(' | ')}`);
 await browser.close();
 server.close();
 
