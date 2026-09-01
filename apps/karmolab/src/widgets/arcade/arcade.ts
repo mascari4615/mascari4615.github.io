@@ -614,6 +614,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-roomfill .ac-stage{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;min-height:0;margin:0;padding:0;display:block;border-radius:0}',
       '#acPlay.ac-roomfill #acView{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none}',
       '#acPlay.ac-roomfill #acView>*{margin:0}',
+      /* 평면 판도 다 편다. 방이 아니면 셸 바탕색을 쓰고 내용은 가운데. 방은 어두운 바탕 그대로 */
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)){background:var(--bg-primary)}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>*{width:100%;max-width:min(1180px,100%)}',
       '#acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}',
       '#acPlay.ac-roomfill .ac-intro{border-radius:0}',
       '#acPlay.ac-roomfill .ac-over{border-radius:0}',
@@ -2722,9 +2726,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       render = gv && !wait3d ? (gv.mount(viewEl, (a: unknown) => sendAct(a)) as Render<unknown>) : null;
       /* 껍데기를 걷을지는 표현이 정한다(`views.ts` 의 `bare`). 판 하나가 다 말하는 놀이가 있다 */
       play.classList.toggle('ac-bare', gv?.bare === true || wait3d);
-      /* 2D 로 갈아타면 방이 아니다. 화면 채움과 목소리를 되돌린다 */
+      /* 방인가는 소리와 바탕만 가름. 화면 채움은 평면이든 입체든 늘 켬
+         (2026-09-01 사용자 확정: 모든 놀이가 콘텐츠 칸을 다 씀) */
       const roomNow = dim() === '3d' && !!cardById(id)?.d3;
-      fill(roomNow);
+      fill(true);
       setBlipVoice(roomNow ? 'room' : 'default');
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
          그 사이 `render` 는 null 이고 `paint` 는 그걸 이미 견딘다. 판은 커널이 들고 있어서
@@ -3075,7 +3080,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       introEl.classList.toggle('ac-intro-room', roomBound);
       /* 방으로 가는 판이면 소리도 방 것(나무, 풍경). 인트로 셋, 둘, 하나부터 */
       setBlipVoice(roomBound ? 'room' : 'default');
-      fill(roomBound);
+      /* 판은 평면이든 입체든 콘텐츠 칸을 다 씀(2026-09-01 사용자 확정). 방 표현만 폈더니
+         나머지 마흔여섯 판이 가운데 좁은 상자에 갇혀 있었음 */
+      fill(true);
       /* 입체 조각도 셋둘하나 동안 미리 받는다. 안 받으면 판이 서고 나서 기다린다 */
       if (roomBound) void ensureView3d(id);
       introEl.style.display = '';
