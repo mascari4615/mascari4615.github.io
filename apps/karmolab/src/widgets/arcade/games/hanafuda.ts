@@ -38,6 +38,35 @@ export function pointOf(card: number): number {
 /** 같은 달인가. 카드 번호에서 달만 뗀다 */
 export const monthOf = (card: number): number => card >> 2;
 
+/**
+ * 족보(야쿠). 레퍼런스 코이코이의 기본 족보를 끗수 위에 얹는다 (감사 D3, 2026-09-03)
+ * - 광: 석 장 5, 넉 장 8, 다섯 장 15 (비광 구분 없음. 한 달에 넉 장인 우리 패라 비광이 없음)
+ * - 열끗(동물): 다섯 장 1, 한 장 늘 때마다 1
+ * - 띠: 다섯 장 1, 한 장 늘 때마다 1
+ * - 피: 열 장 1, 한 장 늘 때마다 1
+ * 코이코이 선언(계속할지 멈출지)은 아직 없음. 판은 손이 비면 끝
+ */
+export function yakuOf(taken: readonly number[]): Array<{ key: string; n: number; pts: number }> {
+  let lights = 0;
+  let animals = 0;
+  let ribbons = 0;
+  let plains = 0;
+  for (const c of taken) {
+    const slot = c & 3;
+    if (slot === 0) {
+      if (LIGHT_MONTHS.includes(c >> 2)) lights += 1;
+      else animals += 1;
+    } else if (slot === 1) ribbons += 1;
+    else plains += 1;
+  }
+  const out: Array<{ key: string; n: number; pts: number }> = [];
+  if (lights >= 3) out.push({ key: 'lights', n: lights, pts: lights >= 5 ? 15 : lights === 4 ? 8 : 5 });
+  if (animals >= 5) out.push({ key: 'animals', n: animals, pts: 1 + (animals - 5) });
+  if (ribbons >= 5) out.push({ key: 'ribbons', n: ribbons, pts: 1 + (ribbons - 5) });
+  if (plains >= 10) out.push({ key: 'plains', n: plains, pts: 1 + (plains - 10) });
+  return out;
+}
+
 export interface HanafudaState {
   /** 자리별 손패 (달 번호). 남의 것은 `redact` 가 지운다 */
   hands: number[][];
@@ -125,8 +154,8 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
 
   outcome(s, ctx): Outcome {
     if (!s.over) return { over: false };
-    /* 장수가 아니라 끗수. 광 스무 끗과 피 한 끗이 같은 값이면 고를 것이 없다 */
-    const scores = s.taken.map((t) => t.reduce((a2, c) => a2 + pointOf(c), 0));
+    /* 장수가 아니라 끗수. 광 스무 끗과 피 한 끗이 같은 값이면 고를 것이 없다. 족보 점수는 그 위에 */
+    const scores = s.taken.map((t) => t.reduce((a2, c) => a2 + pointOf(c), 0) + yakuOf(t).reduce((a2, y) => a2 + y.pts, 0));
     const top = Math.max(...scores);
     const winners = ctx.seats.filter((_, i) => scores[i] === top);
     return {

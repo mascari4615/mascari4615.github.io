@@ -8,7 +8,7 @@ import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { cardMark } from '../card';
 import { mountTable } from '../table2d';
-import { monthOf, pointOf, type HanafudaState, type HanafudaAction } from './hanafuda';
+import { monthOf, pointOf, yakuOf, type HanafudaState, type HanafudaAction } from './hanafuda';
 
 /** 달마다 꽃 이름 한 글자. 실물 화투의 열두 달 */
 const FLOWER = ['松', '梅', '桜', '藤', '菖', '牡', '萩', '芒', '菊', '楓', '柳', '桐'];
@@ -54,7 +54,11 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
       tb.paint(v as never, mySeat, (i) => s.hands[i]?.length ?? 0, v.finished ? -1 : s.turn);
       tb.toast(
         (v.finished ? '' : myTurn ? t('arcade.table.myTurn') + '. ' : t('arcade.table.turnOf', { who: v.seats[s.turn]?.name ?? '' }) + '. ') +
-        v.seats.map((seat, i) => seat.name + ' ' + (s.taken[i]?.length ?? 0)).join(', ')
+        v.seats.map((seat, i) => {
+          /* 가져간 장수와 족보. 족보가 서면 그 이름을 붙인다 (광3, 피10) */
+          const yaku = yakuOf(s.taken[i] ?? []).map((y) => t('arcade.hana.yaku.' + y.key, { n: String(y.n) })).join(' ');
+          return seat.name + ' ' + (s.taken[i]?.length ?? 0) + (yaku ? ' (' + yaku + ')' : '');
+        }).join(', ')
       );
 
       const fk = s.floor.join(',') + '|' + wanted + '|' + (myTurn ? 1 : 0);
