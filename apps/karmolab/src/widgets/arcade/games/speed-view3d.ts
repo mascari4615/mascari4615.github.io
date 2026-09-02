@@ -2,8 +2,8 @@
  * 스피드 입체 (2026-09-03, D1)
  *
  * 방 상(`card-stage`)에 둘이 마주 앉음. 가운데 두 장, 내 손패 앞면, 상대는 뒷면.
- * 차례가 없어 빠른 손이 이김. 고르기는 HUD 의 카드 버튼, 양쪽 다 되면 자리 버튼 둘.
- * 상 위 카드 집기는 아직 없음(`card-stage.set` 에 집는 손이 없음)
+ * 차례 없는 빠른 손 승부. 상 위 내 카드와, 양쪽 다 되면 가운데 더미까지 직접 선택
+ * HUD 버튼은 키보드용 보조 경로
  */
 import { t } from '../../../lib/i18n';
 import { blip } from '../../../lib/blip';
@@ -30,15 +30,42 @@ export const view3d: GameView<SpeedState, SpeedAction> = {
     const lineBox = el.querySelector('#acSpLines') as HTMLElement;
     const actBox = el.querySelector('#acSpActs') as HTMLElement;
 
-    const stage: CardStage = mountCardStage(host, { scene: sceneOf('speed') });
     const amb = roomAmbience(host);
+    let picking = -1;
+    let actsKey = '';
+    let latest: { mine: number[]; center: [number, number] } = { mine: [], center: [0, 0] };
+    const chooseCard = (n: number): void => {
+      const fits = [0, 1].filter((p) => near(latest.mine[n], latest.center[p]));
+      if (fits.length === 1) {
+        amb.stone();
+        act({ card: n, pile: fits[0] });
+        picking = -1;
+      } else {
+        picking = picking === n ? -1 : n;
+        blip('tap');
+      }
+      actsKey = '';
+    };
+    const choosePile = (n: number): void => {
+      if (picking < 0 || !near(latest.mine[picking], latest.center[n])) return;
+      amb.stone();
+      act({ card: picking, pile: n });
+      picking = -1;
+      actsKey = '';
+    };
+    const stage: CardStage = mountCardStage(host, {
+      scene: sceneOf('speed'),
+      onPick(id) {
+        const n = Number(id.split(':')[1]);
+        if (id.startsWith('hand:')) chooseCard(n);
+        else if (id.startsWith('pile:')) choosePile(n);
+      }
+    });
     if (!stage.ok) {
       lineBox.textContent = t('arcade.no3d');
       return () => {};
     }
 
-    let picking = -1;
-    let actsKey = '';
     let linesKey = '';
     let sawDeals = 0;
     let dealUntil = 0;
@@ -49,7 +76,6 @@ export const view3d: GameView<SpeedState, SpeedAction> = {
       void b.offsetWidth;
       b.classList.add('ac-bjnope');
     };
-    let latest: { mine: number[]; center: [number, number] } = { mine: [], center: [0, 0] };
     hudEl.onclick = (ev) => {
       const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
       if (!b) return;
@@ -60,21 +86,10 @@ export const view3d: GameView<SpeedState, SpeedAction> = {
       const kind = b.dataset.do;
       const n = Number(b.dataset.n);
       if (kind === 'card') {
-        const fits = [0, 1].filter((p) => near(latest.mine[n], latest.center[p]));
-        if (fits.length === 1) {
-          amb.stone();
-          act({ card: n, pile: fits[0] });
-          picking = -1;
-        } else {
-          picking = picking === n ? -1 : n;
-          blip('tap');
-        }
+        chooseCard(n);
       } else if (kind === 'pile') {
-        amb.stone();
-        act({ card: picking, pile: n });
-        picking = -1;
+        choosePile(n);
       }
-      actsKey = '';
     };
     hudEl.addEventListener('pointerdown', (ev) => {
       const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
@@ -94,10 +109,25 @@ export const view3d: GameView<SpeedState, SpeedAction> = {
 
       /* 상 위. 가운데 두 장, 내 손패 앞면, 상대 손패 뒷면 */
       const hands: CardHand[] = [
-        { seat: -1, cards: s.center.map((c) => ({ rank: c, up: true })), tone: 'idle' },
+        {
+          seat: -1,
+          cards: s.center.map((c, i) => ({
+            rank: c,
+            up: true,
+            id: 'pile:' + i,
+            can: picking >= 0 && near(mine[picking], c)
+          })),
+          tone: 'idle'
+        },
         {
           seat: mySeat,
-          cards: mine.map((c) => ({ rank: c, up: true })),
+          cards: mine.map((c, i) => ({
+            rank: c,
+            up: true,
+            id: 'hand:' + i,
+            can: !v.finished && s.center.some((p) => near(c, p)),
+            held: i === picking
+          })),
           label: (names[mySeat] ?? '') + ' ' + t('arcade.speed.mine', { n: String(s.decks[mySeat]?.length ?? 0) }),
           tone: v.finished ? (s.won === mySeat ? 'win' : 'lose') : 'idle'
         },

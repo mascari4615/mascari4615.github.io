@@ -37,6 +37,7 @@ import { cardBackTexture, cardEdgeTexture, cardFaceTexture, dominoBackTexture, d
 import { hanaBackTexture, hanaFaceTexture } from './hana';
 import { suitOf } from './deck';
 import { buildCasinoTable, chipStack, type CasinoTable } from './card-table';
+import { dealStaggerMs, spreadRow, wrappedColumns } from './card-layout';
 
 /** 카드 한 장의 3D 치수 */
 const CARD_W = 0.82;
@@ -64,6 +65,12 @@ const CASINO_D = 914 * MM;
 const CASINO_TOP_Y = 762 * MM;
 
 export interface CardSpot {
+  /** 상 위에서 직접 고를 때 화면이 돌려주는 이름. */
+  id?: string;
+  /** 지금 고를 수 있는 카드인가. 카드 밑에 금빛 자리를 보인다. */
+  can?: boolean;
+  /** 지금 고른 카드인가. 한 단계 밝은 자리로 구분한다. */
+  held?: boolean;
   /** 카드 값 1~13. 0 이면 뒷면만 보이는 카드(아직 안 뽑힌 것) */
   rank: number;
   /** 도미노 짝이면 [위, 아래]. 카드 대신 타일 메시 (감사 D1) */
@@ -87,6 +94,8 @@ export interface CardHand {
    * 옛 무대는 `label` 을 받고도 안 그림. 누구 줄인지, 얼마인지 상 위에 없었음
    */
   tone?: 'idle' | 'turn' | 'win' | 'lose' | 'push';
+  /** 긴 가운데 줄을 이 수마다 다음 줄로 감는다. 손패는 감지 않는다. */
+  wrap?: number;
 }
 
 export interface CardStageOpts {
@@ -182,19 +191,6 @@ export interface CardStage {
 }
 
 /* 값과 자리로 정해지는 무늬는 `deck.ts` 의 `suitOf`. 평면 카드와 같은 셈법 */
-
-/** 한 줄에 카드가 몇 장이든 가운데를 맞춰 늘어놓는다. 많아지면 겹친다 */
-const spread = (n: number, tight = false): number[] => {
-  if (n <= 0) return [];
-  /* 카지노 상에서는 실물처럼 겹쳐 놓음. 벌려 놓으면 한 손이 상 절반을 먹음 */
-  const gap = tight
-    ? (n <= 4 ? CARD_W * 0.44 : (CARD_W * 1.9) / n)
-    : n <= 5
-      ? CARD_W * 1.24
-      : (CARD_W * 6.2) / n;
-  const start = -((n - 1) * gap) / 2;
-  return Array.from({ length: n }, (_, i) => start + i * gap);
-};
 
 /**
  * 손으로 맞춰 보는 값. 브라우저에 적어 두면 다시 켤 때까지 그 값.
@@ -539,6 +535,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   /* 화면은 매 프레임 같은 손패를 다시 준다. 그때마다 새로 놓으면 애니메이션이 늘 처음으로
      돌아가 카드가 중간 자세로 굳는다(2026-09-01 실측: 카드가 선 채로 멈춤) */
   let shownKey = '';
+  let lastDealSpan = 0;
   let need = true;
   let loop: GardenLoop | null = null;
 
@@ -714,6 +711,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     while (holder.children.length) holder.remove(holder.children[0]);
     live.length = 0;
     clearLabels();
+    picks.clear();
+    while (canGroup.children.length) canGroup.remove(canGroup.children[0]);
 
     /* 앞 화면에 그 자리 카드가 이미 있었으면 그대로 놓고, 새로 온 것만 카드집에서 날아온다 */
     /* 한 자리가 줄을 여럿 낼 수 있다(블랙잭 스플릿). 자리 번호만으로는 같은 열쇠가 되어
@@ -731,6 +730,9 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     }
 
     let dealt = 0;
+    const dealTotal = hands.reduce((n, row) => n + row.cards.length, 0);
+    const dealStagger = dealStaggerMs(dealTotal);
+    lastDealSpan = Math.max(0, dealTotal - 1) * dealStagger;
     const others = [...new Set(hands.map((h) => h.seat).filter((n) => n >= 0 && n !== mySeat))];
     /* 한 자리의 줄이 여럿이면 그만큼 좌우로 벌림. 안 벌리면 겹쳐서 한 줄로 보임 */
     const rows = new Map<number, number>();
@@ -746,19 +748,39 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         row.s *= Math.max(0.5, share + 0.2);
         row.x += (nth - (many - 1) / 2) * (TABLE_W * 0.3) * share * 2;
       }
-      const xs = spread(h.cards.length, casino).map((v) => v * cardScale);
+      const tileRow = h.cards.some((card) => card.tile !== undefined);
+      const hanaRow = !tileRow && h.cards.some((card) => card.hana !== undefined);
+      const itemW = tileRow ? TILE_W : hanaRow ? CARD_W * 0.72 : CARD_W;
+      const itemD = tileRow ? TILE_W * 2 : hanaRow ? CARD_W * 0.72 * 1.4 : CARD_H;
+      const cols = wrappedColumns(h.cards.length, h.wrap);
+      const wrappedRows = Math.ceil(h.cards.length / Math.max(1, cols));
+      const xs = spreadRow(cols, itemW, casino, TABLE_W).map((v) => v * cardScale);
       h.cards.forEach((card, i) => {
         /* 상 윗면이 TOP_Y. 카드 두께 절반만 띄움 (2026-09-01 사용자 지적. 카드가 공중에 떠 있었음) */
         /* 세운 카드는 아래 모서리가 상에 닿아야 함. 눕힌 카드는 두께 절반만 */
         const lift = cardTilt > 0.01
           ? (CARD_H * cardScale * row.s * Math.sin(cardTilt)) / 2
           : CARD_T / 2;
-        const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + lift + i * 0.004, row.z);
+        const col = i % cols;
+        const wrappedRow = Math.floor(i / cols);
+        const rowOffset = (wrappedRow - (wrappedRows - 1) / 2) * itemD * cardScale * row.s * 0.72;
+        const to = new Vector3(row.x + xs[col] * row.s, TOP_Y + lift + i * 0.004, row.z + rowOffset);
         const wasUp = before ? had.get(keyOf(h.seat, nth, i)) : undefined;
         const old = wasUp !== undefined;
         const mesh = card.hana !== undefined ? mkHana(card.hana, card.up) : card.tile ? mkTile(card.tile, card.up) : mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
         mesh.scale.setScalar(row.s * cardScale);
         mesh.rotation.x = cardTilt;
+        if (card.id && (card.can || card.held)) picks.set(mesh, card.id);
+        if (card.can || card.held) {
+          const glow = new Mesh(canGeo, card.held ? heldGlowMat : canGlowMat);
+          glow.position.set(to.x, TOP_Y + 0.006, to.z);
+          glow.scale.set(
+            row.s * cardScale * (itemW / CARD_W),
+            1,
+            row.s * cardScale * (itemD / CARD_H)
+          );
+          canGroup.add(glow);
+        }
         if (old) {
           mesh.position.copy(to);
           if (wasUp !== card.up) {
@@ -786,7 +808,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         mesh.position.copy(shoe);
         mesh.rotation.z = Math.PI;
         holder.add(mesh);
-        live.push({ mesh, from: shoe.clone(), to, t0: now + dealt * 130, ms: 460, rFrom: Math.PI, rTo: card.up ? 0 : Math.PI });
+        live.push({ mesh, from: shoe.clone(), to, t0: now + dealt * dealStagger, ms: 460, rFrom: Math.PI, rTo: card.up ? 0 : Math.PI });
         dealt += 1;
       });
       /* 줄 이름표. 카드 줄 앞쪽에 눕힘 */
@@ -838,6 +860,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   scene.add(canGroup);
   const canGeo = new BoxGeometry(CARD_W * 1.18, 0.008, CARD_H * 1.18);
   const canGlowMat = new MeshStandardMaterial({ color: 0xe7c96a, roughness: 0.9, metalness: 0, transparent: true, opacity: 0.42, emissive: new Color(0x6a5417) });
+  const heldGlowMat = new MeshStandardMaterial({ color: 0xffe08a, roughness: 0.8, metalness: 0, transparent: true, opacity: 0.72, emissive: new Color(0x9a731d) });
 
   /* 상 위 글자. 남은 장수처럼 카드가 아닌 것 */
   const noteGroup = new Group();
@@ -1099,8 +1122,9 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
 
   /* 재는 갈고리. 카드가 화면에서 몇 화소인지 (2026-09-01 실측용) */
   (window as unknown as { __bjMeasure?: () => unknown }).__bjMeasure = () => {
-    const w = host.clientWidth || 1;
-    const h = host.clientHeight || 1;
+    const rect = core.canvas.getBoundingClientRect();
+    const w = rect.width || 1;
+    const h = rect.height || 1;
     const at = new Vector3(0, TOP_Y, 0);
     const a = at.clone().setX(-CARD_W / 2).project(camera);
     const b2 = at.clone().setX(CARD_W / 2).project(camera);
@@ -1110,7 +1134,14 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       cardW: Math.round((Math.abs(b2.x - a.x) / 2) * w),
       cardH: Math.round((Math.abs(d2.y - c2.y) / 2) * h),
       canvas: [w, h],
-      table: [Math.round(TABLE_W * 100) / 100, Math.round(TABLE_D * 100) / 100]
+      canvasRect: [Math.round(rect.left), Math.round(rect.top), Math.round(rect.width), Math.round(rect.height)],
+      table: [Math.round(TABLE_W * 100) / 100, Math.round(TABLE_D * 100) / 100],
+      dealSpan: Math.round(lastDealSpan),
+      glows: canGroup.children.length,
+      pickables: [...picks.entries()].map(([mesh, id]) => {
+        const p = mesh.position.clone().project(camera);
+        return { id, x: Math.round(rect.left + ((p.x + 1) / 2) * w), y: Math.round(rect.top + ((1 - p.y) / 2) * h) };
+      })
     };
   };
 
@@ -1140,8 +1171,13 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       loop = null;
       room?.dispose();
       cardGeo.dispose();
+      tileGeo.dispose();
+      hanaGeo.dispose();
       slotGeo.dispose();
+      canGeo.dispose();
       slotMat.dispose();
+      canGlowMat.dispose();
+      heldGlowMat.dispose();
       redMat.dispose();
       feltMap?.dispose();
       dressed?.dispose();

@@ -3,7 +3,7 @@
  *
  * 방 상(`card-stage`)에 사람들이 둘러앉음. 남의 짝은 뒷면 타일로 개수만, 내 짝은 앞면,
  * 가운데 줄에는 깔린 타일 (왼쪽 끝이 첫 타일 위 눈, 오른쪽 끝이 마지막 타일 아래 눈).
- * 고르기는 상 아래 HUD (대부호 입체와 같은 손). 놓을 쪽이 하나면 바로, 둘이면 왼쪽 오른쪽 버튼
+ * 상 위 내 타일을 직접 고른다. 놓을 쪽이 하나면 바로, 둘이면 HUD의 왼쪽/오른쪽 버튼
  */
 import { t } from '../../../lib/i18n';
 import { blip } from '../../../lib/blip';
@@ -29,18 +29,47 @@ export const view3d: GameView<DominoesState, DominoesAction> = {
     const lineBox = el.querySelector('#acDmLines') as HTMLElement;
     const actBox = el.querySelector('#acDmActs') as HTMLElement;
 
-    const stage: CardStage = mountCardStage(host, { scene: sceneOf('dominoes') });
     const amb = roomAmbience(host);
+    let picked = -1;
+    let actsKey = '';
+    let latest: DominoesState | null = null;
+    let mine = 0;
+    const chooseTile = (i: number): void => {
+      if (!latest) return;
+      const hand = latest.hands[mine] ?? [];
+      const tile = hand[i];
+      if (!tile) return;
+      const sides = (['left', 'right'] as const).filter((side) => canPlace(latest!.line, tile, side));
+      if (!sides.length) return;
+      blip('tap');
+      if (sides.length === 1) {
+        amb.stone();
+        act({ index: i, side: sides[0] });
+        picked = -1;
+      } else picked = picked === i ? -1 : i;
+      actsKey = '';
+    };
+    const chooseSide = (side: 'left' | 'right'): void => {
+      const tile = latest?.hands[mine]?.[picked];
+      if (!latest || picked < 0 || !tile || !canPlace(latest.line, tile, side)) return;
+      amb.stone();
+      blip('tap');
+      act({ index: picked, side });
+      picked = -1;
+      actsKey = '';
+    };
+    const stage: CardStage = mountCardStage(host, {
+      scene: sceneOf('dominoes'),
+      onPick(id) {
+        if (id.startsWith('tile:')) chooseTile(Number(id.split(':')[1]));
+      }
+    });
     if (!stage.ok) {
       lineBox.textContent = t('arcade.no3d');
       return () => {};
     }
 
-    let picked = -1;
-    let actsKey = '';
     let linesKey = '';
-    let latest: DominoesState | null = null;
-    let mine = 0;
 
     const nope = (b: HTMLElement): void => {
       blip('bad');
@@ -56,26 +85,14 @@ export const view3d: GameView<DominoesState, DominoesAction> = {
         return;
       }
       const kind = b.dataset.do;
-      const hand = latest.hands[mine] ?? [];
       if (kind === 'tile') {
-        const i = Number(b.dataset.n);
-        const sides = (['left', 'right'] as const).filter((sd) => canPlace(latest!.line, hand[i], sd));
-        blip('tap');
-        if (sides.length === 1) {
-          amb.stone();
-          act({ index: i, side: sides[0] });
-          picked = -1;
-        } else picked = picked === i ? -1 : i;
+        chooseTile(Number(b.dataset.n));
       } else if (kind === 'side') {
-        amb.stone();
-        blip('tap');
-        act({ index: picked, side: b.dataset.s as 'left' | 'right' });
-        picked = -1;
+        chooseSide(b.dataset.s as 'left' | 'right');
       } else if (kind === 'draw') {
         blip('tap');
         act({ kind: 'draw' });
       }
-      actsKey = '';
     };
     hudEl.addEventListener('pointerdown', (ev) => {
       const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
@@ -100,6 +117,7 @@ export const view3d: GameView<DominoesState, DominoesAction> = {
         hands.push({
           seat: -1,
           cards: s.line.map((tile) => ({ rank: 0, tile, up: true })),
+          wrap: 10,
           label: t('arcade.dominoes.stock', { n: String(s.stock.length) }),
           tone: 'idle'
         });
@@ -109,7 +127,14 @@ export const view3d: GameView<DominoesState, DominoesAction> = {
         const isMe = i === mySeat;
         hands.push({
           seat: i,
-          cards: (isMe ? h : h.slice(0, 7)).map((tile) => ({ rank: 0, tile: isMe ? tile : [0, 0], up: isMe })),
+          cards: (isMe ? h : h.slice(0, 7)).map((tile, j) => ({
+            rank: 0,
+            tile: isMe ? tile : [0, 0],
+            up: isMe,
+            id: isMe ? 'tile:' + j : undefined,
+            can: isMe && myTurn && (canPlace(s.line, tile, 'left') || canPlace(s.line, tile, 'right')),
+            held: isMe && j === picked
+          })),
           label: (names[i] ?? '') + ' ' + t('arcade.president.cards', { n: String(h.length) }),
           tone: s.won === i ? 'win' : s.won === -1 && s.turn === i ? 'turn' : 'idle'
         });

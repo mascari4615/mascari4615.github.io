@@ -35,6 +35,9 @@ const { OnlineRun } = await import(pathToFileURL(netOut).href);
 const lobbyOut = join(dir, 'lobby.mjs');
 await build({ entryPoints: ['src/widgets/arcade/lobby.ts'], bundle: true, format: 'esm', platform: 'node', outfile: lobbyOut, logLevel: 'silent' });
 const { LobbyRun } = await import(pathToFileURL(lobbyOut).href);
+const layoutOut = join(dir, 'card-layout.mjs');
+await build({ entryPoints: ['src/widgets/arcade/card-layout.ts'], bundle: true, format: 'esm', platform: 'node', outfile: layoutOut, logLevel: 'silent' });
+const { dealStaggerMs, spreadRow, wrappedColumns } = await import(pathToFileURL(layoutOut).href);
 const VIEWS = CATALOG.map((e) => e.view);
 
 let fails = 0;
@@ -42,6 +45,22 @@ const ok = (cond, name, detail = '') => {
   if (cond) console.log(`  [O] ${name}`);
   else { console.log(`  [X] ${name}${detail ? '. ' + detail : ''}`); fails++; }
 };
+
+console.log('[arcade] 입체 카드 상 배치');
+{
+  const tileW = 0.82 * 0.62;
+  const xs = spreadRow(10, tileW, false, 6.6);
+  const gap = Math.min(...xs.slice(1).map((x, i) => x - xs[i]));
+  ok(wrappedColumns(23, 10) === 10 && Math.ceil(23 / wrappedColumns(23, 10)) === 3, '도미노 긴 줄을 열 장씩 세 줄로 감는다');
+  ok(gap >= tileW, '열 장짜리 도미노 줄의 타일이 겹치지 않는다', `${gap} < ${tileW}`);
+  ok((30 - 1) * dealStaggerMs(30) <= 1000.001, '서른 장 첫 배분의 마지막 카드가 1초 안에 출발한다');
+  const direct = [['president', 'hand'], ['speed', 'hand'], ['dominoes', 'tile'], ['hanafuda', 'hand']];
+  const unwired = direct.filter(([id, prefix]) => {
+    const src = readFileSync(`src/widgets/arcade/games/${id}-view3d.ts`, 'utf8');
+    return !src.includes('onPick(id)') || !src.includes(`'${prefix}:' +`);
+  }).map(([id]) => id);
+  ok(unwired.length === 0, '손패형 네 판이 상 위 카드 선택을 잇는다', unwired.join(', '));
+}
 
 console.log('[arcade] 온라인 방 수명');
 {

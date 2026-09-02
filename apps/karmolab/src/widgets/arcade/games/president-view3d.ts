@@ -2,8 +2,7 @@
  * 대부호 입체 (2026-09-03, C1 과 D1. 입체가 정본)
  *
  * 방 상(`card-stage`)에 사람들이 둘러앉음. 남의 손패는 뒷면으로 장수만, 내 손패는 앞면,
- * 가운데에 깔린 것. 고르기는 상 아래 HUD 의 끗수 버튼과 장수 버튼 (블랙잭 입체와 같은 손).
- * 상 위 카드 집기는 아직 없음(`card-stage.set` 에 집는 손이 없음. 다음 걸음)
+ * 가운데에 깔린 것. 상 위 내 카드를 직접 고르고 장수만 HUD에서 정한다. HUD 끗수 버튼은 키보드용으로 남김.
  */
 import { t } from '../../../lib/i18n';
 import { blip } from '../../../lib/blip';
@@ -30,15 +29,25 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
     const lineBox = el.querySelector('#acPrLines') as HTMLElement;
     const actBox = el.querySelector('#acPrActs') as HTMLElement;
 
-    const stage: CardStage = mountCardStage(host, { scene: sceneOf('president') });
     const amb = roomAmbience(host);
+    let picked = -1;
+    let pickable = new Set<number>();
+    let actsKey = '';
+    const stage: CardStage = mountCardStage(host, {
+      scene: sceneOf('president'),
+      onPick(id) {
+        const rank = Number(id.split(':')[1]);
+        if (!id.startsWith('hand:') || !pickable.has(rank)) return;
+        picked = picked === rank ? -1 : rank;
+        actsKey = '';
+        blip('tap');
+      }
+    });
     if (!stage.ok) {
       lineBox.textContent = t('arcade.no3d');
       return () => {};
     }
 
-    let picked = -1;
-    let actsKey = '';
     let linesKey = '';
     let sawBang = 0;
     let bangUntil = 0;
@@ -88,6 +97,7 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
       const myTurn = s.turn === mySeat && !v.finished;
       const hand = s.hands[mySeat] ?? [];
       const opts = myTurn ? options(s, mySeat) : [];
+      pickable = new Set(opts.map((o) => o.rank));
 
       /* 상 위. 남의 손패는 뒷면, 내 것은 앞면, 가운데는 깔린 것 */
       const hands: CardHand[] = [];
@@ -106,7 +116,13 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
         hands.push({
           seat: i,
           /* 남의 손패는 뒷면 일곱 장까지. 열여덟 장을 다 깔면 상을 다 먹고, 장수는 이름표가 말함 */
-          cards: (mine ? sorted : sorted.slice(0, 7)).map((c) => ({ rank: mine ? c : 1, up: mine })),
+          cards: (mine ? sorted : sorted.slice(0, 7)).map((c) => ({
+            rank: mine ? c : 1,
+            up: mine,
+            id: mine ? 'hand:' + c : undefined,
+            can: mine && myTurn && pickable.has(c),
+            held: mine && c === picked
+          })),
           label: (names[i] ?? '') + ' ' + t('arcade.president.cards', { n: String(h.length) }) + (s.passed[i] && !v.finished ? ' ' + t('arcade.president.passed') : ''),
           tone: v.finished ? (s.out[0] === i ? 'win' : 'idle') : s.turn === i ? 'turn' : 'idle'
         });

@@ -67,6 +67,21 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
     });
     check(`${g}: 화면이 그려진다`, info.canvas || info.len > 6, info.canvas ? '입체' : `글자 ${info.len}자`);
     check(`${g}: 누를 것이 있다`, info.canvas || info.btns > 0, info.canvas ? '상 위 카드' : `${info.btns}개`);
+    if (g === 'president' && info.canvas) {
+      await page.waitForFunction(() => {
+        const measure = window.__bjMeasure?.();
+        return Array.isArray(measure?.pickables) && measure.pickables.length > 0;
+      }, undefined, { timeout: 8000 });
+      if (await page.locator('#acIntro').isVisible()) await page.click('#acIntro');
+      await page.waitForFunction(() => getComputedStyle(document.querySelector('#acIntro')).display === 'none');
+      await page.waitForTimeout(1500);
+      const measure = await page.evaluate(() => window.__bjMeasure?.());
+      check('president: 첫 배분의 마지막 카드가 1초 안에 출발한다', measure.dealSpan <= 1000);
+      check('president: 상 위에서 고를 카드가 금빛으로 보인다', measure.glows > 0);
+      await page.mouse.click(measure.pickables[0].x, measure.pickables[0].y);
+      const selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 2000 }).then(() => true).catch(() => false);
+      check('president: 상 위 카드를 직접 눌러 고른다', selected);
+    }
     check(`${g}: 안 터진다`, boom.length === 0, boom[0] || '');
   } catch (e) {
     check(`${g}: 열린다`, false, String(e).slice(0, 90));

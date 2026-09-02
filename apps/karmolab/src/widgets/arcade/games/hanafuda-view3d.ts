@@ -2,8 +2,8 @@
  * 화투 짝맞추기 입체 (2026-09-03, D1. 입체가 정본)
  *
  * 방 상(`card-stage`)에 둘러앉음. 바닥은 딜러 줄(앞면), 남의 패는 뒷면, 내 패는 앞면.
- * 종이는 `hana.ts` 의 약도(꽃 글자, 달 색, 광 열끗 띠 표식). 고르기는 HUD 버튼 (평면과 같은 손).
- * 내 패를 고르면 같은 달 바닥 버튼만 켜지고, 짝이 하나면 바로, 없으면 버리기
+ * 종이: `hana.ts` 의 열두 달 소재와 광, 열끗, 띠 코드 작화. 내 패와 같은 달 바닥패를 상에서 직접 선택
+ * 한 짝은 즉시 가져오기, 짝이 없으면 HUD에서 버리기
  */
 import { t } from '../../../lib/i18n';
 import { blip } from '../../../lib/blip';
@@ -29,18 +29,46 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
     const lineBox = el.querySelector('#acHfLines') as HTMLElement;
     const actBox = el.querySelector('#acHfActs') as HTMLElement;
 
-    const stage: CardStage = mountCardStage(host, { scene: sceneOf('hanafuda') });
     const amb = roomAmbience(host);
+    let picked = -1;
+    let actsKey = '';
+    let latest: HanafudaState | null = null;
+    let mine = 0;
+    const chooseHand = (i: number): void => {
+      if (!latest) return;
+      const hand = latest.hands[mine] ?? [];
+      if (!hand[i]) return;
+      const same = latest.floor.filter((f) => monthOf(f) === monthOf(hand[i]));
+      blip('tap');
+      if (same.length === 1) {
+        amb.stone();
+        act({ hand: i, floor: latest.floor.indexOf(same[0]) });
+        picked = -1;
+      } else picked = picked === i ? -1 : i;
+      actsKey = '';
+    };
+    const chooseFloor = (i: number): void => {
+      const hand = latest?.hands[mine] ?? [];
+      if (!latest || picked < 0 || monthOf(latest.floor[i] ?? -1) !== monthOf(hand[picked] ?? -2)) return;
+      amb.stone();
+      act({ hand: picked, floor: i });
+      picked = -1;
+      actsKey = '';
+    };
+    const stage: CardStage = mountCardStage(host, {
+      scene: sceneOf('hanafuda'),
+      onPick(id) {
+        const n = Number(id.split(':')[1]);
+        if (id.startsWith('hand:')) chooseHand(n);
+        else if (id.startsWith('floor:')) chooseFloor(n);
+      }
+    });
     if (!stage.ok) {
       lineBox.textContent = t('arcade.no3d');
       return () => {};
     }
 
-    let picked = -1;
-    let actsKey = '';
     let linesKey = '';
-    let latest: HanafudaState | null = null;
-    let mine = 0;
 
     const nope = (b: HTMLElement): void => {
       blip('bad');
@@ -56,25 +84,16 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
         return;
       }
       const kind = b.dataset.do;
-      const hand = latest.hands[mine] ?? [];
-      blip('tap');
       if (kind === 'hand') {
-        const i = Number(b.dataset.n);
-        const same = latest.floor.filter((f) => monthOf(f) === monthOf(hand[i] ?? -1));
-        if (same.length === 1) {
-          amb.stone();
-          act({ hand: i, floor: latest.floor.indexOf(same[0]) });
-          picked = -1;
-        } else picked = picked === i ? -1 : i;
+        chooseHand(Number(b.dataset.n));
       } else if (kind === 'floor') {
-        amb.stone();
-        act({ hand: picked, floor: Number(b.dataset.n) });
-        picked = -1;
+        chooseFloor(Number(b.dataset.n));
       } else if (kind === 'drop') {
+        blip('tap');
         act({ hand: picked, floor: -1 });
         picked = -1;
+        actsKey = '';
       }
-      actsKey = '';
     };
     hudEl.addEventListener('pointerdown', (ev) => {
       const b = (ev.target as HTMLElement).closest('button[data-do]') as HTMLButtonElement | null;
@@ -99,7 +118,13 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
       if (s.floor.length) {
         hands.push({
           seat: -1,
-          cards: s.floor.map((n) => ({ rank: 0, hana: n, up: true })),
+          cards: s.floor.map((n, j) => ({
+            rank: 0,
+            hana: n,
+            up: true,
+            id: picked >= 0 && monthOf(n) === monthOf(hand[picked] ?? -1) ? 'floor:' + j : undefined,
+            can: myTurn && picked >= 0 && monthOf(n) === monthOf(hand[picked] ?? -1)
+          })),
           label: t('arcade.lanterns.deck', { n: String(s.deck.length) }),
           tone: 'idle'
         });
@@ -110,7 +135,14 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
         const yaku = yakuOf(s.taken[i] ?? []).map((y) => t('arcade.hana.yaku.' + y.key, { n: String(y.n) })).join(' ');
         hands.push({
           seat: i,
-          cards: h.map((n) => ({ rank: 0, hana: isMe ? n : 0, up: isMe })),
+          cards: h.map((n, j) => ({
+            rank: 0,
+            hana: isMe ? n : 0,
+            up: isMe,
+            id: isMe ? 'hand:' + j : undefined,
+            can: isMe && myTurn,
+            held: isMe && j === picked
+          })),
           label: (names[i] ?? '') + ' ' + (s.taken[i]?.length ?? 0) + (yaku ? ' (' + yaku + ')' : ''),
           tone: v.finished ? 'idle' : s.turn === i ? 'turn' : 'idle'
         });
