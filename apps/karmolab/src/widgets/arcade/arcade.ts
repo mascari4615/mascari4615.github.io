@@ -50,7 +50,7 @@ import { notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
-import { listRooms, holdRoom, type Held, type OpenRoom } from './open-rooms';
+import { listRooms, holdRoom, type OpenRoom } from './open-rooms';
 import {
   enterQueue,
   gradeOf,
@@ -76,7 +76,7 @@ import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
 import type { Render } from './views';
-import type { Net, Peer, Json } from './net';
+import { OnlineRun, type Json } from './net';
 import { ensureNet } from './net-loader';
 
 declare const Toolbox: {
@@ -662,7 +662,7 @@ interface Session {
       const box = $<HTMLElement>('#acOpen');
       const rooms = await listRooms();
       /* 내 방은 빼고 보여 준다. 내가 연 방에 내가 들어가는 단추는 뜻이 없다. */
-      const mine = new Set(net ? [$<HTMLElement>('#acCode').textContent ?? ''] : []);
+      const mine = new Set(online.connection ? [$<HTMLElement>('#acCode').textContent ?? ''] : []);
       const list = rooms.filter((r) => !mine.has(r.code));
       if (!list.length) { box.innerHTML = ''; return; }
       box.innerHTML =
@@ -856,14 +856,14 @@ interface Session {
      */
     let review: ReviewRun<unknown> | null = null;
     let render: Render<unknown> | null = null;
-    let net: Net | null = null;
+    const online = new OnlineRun();
     /* 저택 사람의 얼굴, 말풍선, 컷인. 판의 그림은 물어서 씀 (`mdd.ts`) */
     const mdd = mountMdd({ container, view: () => match?.view() ?? shadow?.v ?? null, mySeat: () => mySeat });
     /** 힌트. 규칙이 고른 수와 언제까지 보일지. 복기에서는 그 장면 동안 */
     let hintAt: { action: unknown; until: number } | null = null;
     function canHint(): boolean {
       const g = gameById(gameId);
-      return !!g?.hint && !net && !letter && !tour && !watching && tutor.at === null && (review !== null || (!!match && !match.view().finished));
+      return !!g?.hint && !online.connection && !letter && !tour && !watching && tutor.at === null && (review !== null || (!!match && !match.view().finished));
     }
     function paintHint(): void {
       const b = container.querySelector<HTMLButtonElement>('#acHint');
@@ -885,9 +885,6 @@ interface Session {
     let t0 = 0;
     let gameId = '';
     let mySeat = 0;
-    let peers: Peer[] = [];
-    /** 주인이 정한 자리 지도. 손님은 여기서 제 자리를 찾는다. */
-    let seatOf: Record<string, number> = {};
     /** 봇 세기. 고른 것은 이 브라우저에만 남는다. */
     const LEVEL_KEY = 'karmolab.arcade.level';
     const levelNow = (): BotLevel => {
@@ -958,7 +955,7 @@ interface Session {
         .join('');
       /* 어제 N. 기록이 있고 혼자 논 판일 때만. 남과 논 판의 점수는 내 기록과 견줄 것이 아니다. */
       const mineNow = v.seats[mySeat]?.score ?? 0;
-      const record = session.lastBest !== null && !net && !watching
+      const record = session.lastBest !== null && !online.connection && !watching
         ? (mineNow > session.lastBest
             ? t('arcade.best.new', { n: String(mineNow), was: String(session.lastBest) })
             : t('arcade.best.was', { n: String(session.lastBest) }))
@@ -1071,14 +1068,14 @@ interface Session {
       if (v.finished) {
         const top = Math.max(...v.seats.map((s) => s.score));
         const win = v.seats.filter((s) => s.score === top);
-        againBtn.style.display = net && !net.host ? 'none' : '';
+        againBtn.style.display = online.connection && !online.connection.host ? 'none' : '';
         /* 방을 든 주인에게는 다른 게임이 하나 더 뜬다. 방을 닫지 않고 갈아탄다. */
-        swapBtn.style.display = net?.host ? '' : 'none';
+        swapBtn.style.display = online.connection?.host ? '' : 'none';
         /* 끝난 판의 말은 **한 번만** 적는다. 매 프레임 다시 적으면 대회 점수판을 적어 놔도
            다음 프레임에 이겼다/졌다로 덮인다(실측. 점수판이 안 보였다). */
         if (!session.ended) {
           session.ended = true;
-          if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
+          if (online.connection?.host && match) online.connection.say({ kind: 'result', moves: match.moves, ms: match.clock() });
           v.seats.forEach((sq, i) => { if (i !== mySeat) mdd.cutIn(i, sq.score === top ? 'win' : 'lose'); });
           const draw = win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
@@ -1114,7 +1111,7 @@ interface Session {
           /* 여태 가장 잘한 판이면 남긴다. 다음 판에 이 사람이 옆자리에 앉는다 (`ghost.ts`).
              혼자 둔 판만 남긴다: 여럿이 둔 판의 내 수는 남의 수에 기대어 나온 것이라
              혼자 하는 판에 옮겨 놓으면 어제의 나가 아니라 딴사람이 된다. */
-          if (tape && !net && !replaying && !review && mySeat >= 0) {
+          if (tape && !online.connection && !replaying && !review && mySeat >= 0) {
             const mine = tape.moves.filter((mv) => mv.seat === mySeat).map((mv) => ({ at: mv.at, action: mv.action }));
             if (mine.length) noteBest(gameId, v.seats[mySeat]?.score ?? 0, mine);
           }
@@ -1230,23 +1227,23 @@ interface Session {
      * 통째로 뿌리면 화면이 안 그려도 값은 이미 건너간 뒤다(개발자 도구로 다 보인다).
      */
     function sendBoard(v: MatchView<unknown>, now: number): void {
-      if (!net?.host) return;
+      if (!online.connection?.host) return;
       const g = gameById(gameId);
-      const base = { game: gameId, now, seatOf, rankRoster: rankedRun.roster?.sync() ?? [] };
+      const base = { game: gameId, now, seatOf: online.seatOf, rankRoster: rankedRun.roster?.sync() ?? [] };
       if (!g?.redact) {
-        net.sync({ ...base, v: v as unknown as Json });
+        online.connection.sync({ ...base, v: v as unknown as Json });
         return;
       }
-      for (const [peerId, seat] of Object.entries(seatOf)) {
+      for (const [peerId, seat] of Object.entries(online.seatOf)) {
         const safe = { ...v, state: g.redact(v.state, seat) };
-        net.sync({ ...base, v: safe as unknown as Json }, peerId);
+        online.connection.sync({ ...base, v: safe as unknown as Json }, peerId);
       }
       /* 자리를 못 받은 사람 = 구경꾼. **빼먹으면 빈 화면 앞에 앉아 있게 된다**. 위 고리는
          자리 있는 사람에게만 보내기 때문이다. 구경꾼 몫은 자리마다 겹쳐 지운 판이다. */
-      const watchers = peers.filter((p) => seatOf[p.id] === undefined);
+      const watchers = online.peers.filter((p) => online.seatOf[p.id] === undefined);
       if (!watchers.length) return;
       const shown = { ...v, state: forWatcher(g, v.state, v.seats.length) };
-      for (const w of watchers) net.sync({ ...base, v: shown as unknown as Json }, w.id);
+      for (const w of watchers) online.connection.sync({ ...base, v: shown as unknown as Json }, w.id);
     }
 
     /* ── 키로 논다 (TASK-KL-314 다음, arcade-next ★1) ───────────────
@@ -1384,7 +1381,7 @@ interface Session {
     /** 둘이 두는 판인가(사람 둘). 무승부와 기권은 여기서만 뜻이 있다 */
     function twoHumans(): boolean {
       const v = match?.view() ?? shadow?.v;
-      return !!v && v.seats.length === 2 && v.seats.every((s) => !s.bot) && !!net && mySeat >= 0;
+      return !!v && v.seats.length === 2 && v.seats.every((s) => !s.bot) && !!online.connection && mySeat >= 0;
     }
 
     function paintRitual(v: MatchView<unknown>): void {
@@ -1392,7 +1389,7 @@ interface Session {
       $<HTMLButtonElement>('#acDraw').style.display = live && twoHumans() ? '' : 'none';
       $<HTMLButtonElement>('#acResign').style.display = live && twoHumans() ? '' : 'none';
       /* 색 바꿔 한 판 더: 끝난 판, 두 자리 판, 혼자거나 주인. 대회와 편지는 아님 */
-      const canSwap = v.finished && v.seats.length === 2 && !tour && !letter && !replaying && (!net || net.host);
+      const canSwap = v.finished && v.seats.length === 2 && !tour && !letter && !replaying && (!online.connection || online.connection.host);
       $<HTMLButtonElement>('#acSwapColor').style.display = canSwap ? '' : 'none';
     }
 
@@ -1418,7 +1415,7 @@ interface Session {
         case 'draw':
           /* 상대에게 묻는다. 상대가 주인이면 상자를, 손님이면 소식을 */
           if (other === 0) showOffer('draw', who);
-          else net?.say({ kind: 'offer', what: 'draw', from: who });
+          else online.connection?.say({ kind: 'offer', what: 'draw', from: who });
           break;
         case 'accept-draw':
           hideOffer();
@@ -1427,7 +1424,7 @@ interface Session {
         case 'decline-draw':
         case 'decline-again':
           hideOffer();
-          if (seat === 0) net?.say({ kind: 'declined' });
+          if (seat === 0) online.connection?.say({ kind: 'declined' });
           else say(t('arcade.offer.declined'), 'warn');
           break;
         case 'resign':
@@ -1435,7 +1432,7 @@ interface Session {
           break;
         case 'again':
           if (other === 0) showOffer('again', who);
-          else net?.say({ kind: 'offer', what: 'again', from: who });
+          else online.connection?.say({ kind: 'offer', what: 'again', from: who });
           break;
         case 'accept-again':
           hideOffer();
@@ -1445,7 +1442,7 @@ interface Session {
           if (meta.startsWith('emote:')) {
             const text = meta.slice(6);
             mdd.sayAs(seat, text);
-            net?.say({ kind: 'emote', seat, text });
+            online.connection?.say({ kind: 'emote', seat, text });
           }
           break;
       }
@@ -1453,9 +1450,9 @@ interface Session {
 
     /** 내 손. 주인이면 바로 처리, 손님이면 주인에게 보낸다 */
     function meta(what: string): void {
-      if (!net) return;
-      if (net.host) onMeta(mySeat, what);
-      else net.act({ meta: what });
+      if (!online.connection) return;
+      if (online.connection.host) onMeta(mySeat, what);
+      else online.connection.act({ meta: what });
     }
 
     $<HTMLButtonElement>('#acDraw').onclick = (): void => {
@@ -1467,7 +1464,7 @@ interface Session {
     $<HTMLButtonElement>('#acResign').onclick = (): void => meta('resign');
     $<HTMLButtonElement>('#acSwapColor').onclick = (): void => {
       if (!gameId) return;
-      if (!net) {
+      if (!online.connection) {
         startSolo(gameId, true);
         return;
       }
@@ -1495,7 +1492,7 @@ interface Session {
          남과 붙는 판에서는 상대 수까지 되감기므로 안 엶 */
       const card = cardById(gameId);
       const solo = card?.seats?.[1] === 1;
-      return !!match && !net && !letter && !replaying && !tour && tutor.at === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
+      return !!match && !online.connection && !letter && !replaying && !tour && tutor.at === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
     }
     function paintUndo(): void {
       const btn = container.querySelector<HTMLButtonElement>('#acUndo');
@@ -1582,7 +1579,7 @@ interface Session {
          51개가 한꺼번에 소리를 얻는다(게임 파일은 소리를 몰라도 된다). */
       blip('tap');
       if (match) match.dispatch(mySeat, a);
-      else net?.act({ a: a as Json });
+      else online.connection?.act({ a: a as Json });
     }
 
     /** 대회가 돌고 있으면 여기 있다 (혼자 하는 대회. 여럿 대회는 다음 걸음). */
@@ -1630,7 +1627,7 @@ interface Session {
          혼자 놀 때만. 여럿이 있는 방에 내 지난 판을 끼워 넣으면 자리가 하나 줄어든다. */
       /* 판놀이(오목처럼 둘이 번갈아 두는 것)에는 안 앉힌다. 고스트는 남의 판 수를 시각대로 흉내 낼 뿐이라
          판놀이에서는 엉뚱한 자리를 찌르다 수가 떨어지면 가만히 있고, 판이 안 끝난다(2026-08-30 실측) */
-      const past = !net && !tour && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
+      const past = !online.connection && !tour && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
       /* 끝나면 `noteBest` 가 덮으므로 **시작할 때** 챙겨 둔다. 결과에 어제 N을 적으려면 필요하다. */
       session.lastBest = bestOf(id)?.score ?? null;
       const level = levelNow();
@@ -1742,8 +1739,7 @@ interface Session {
 
     /** 대회. 다섯 판을 이어서. 점수는 판마다 등수로 매긴다(점수의 뜻이 판마다 달라서다). */
     function startTour(): void {
-      net?.leave();
-      net = null;
+      online.leave();
       tour = {
         games: pickGames(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id), seats: g.seats }))),
         at: 0,
@@ -1778,8 +1774,7 @@ interface Session {
         void ensureGame(id).then(() => { if (run === epoch && gameById(id)) startTutor(id, run); });
         return;
       }
-      net?.leave();
-      net = null;
+      online.leave();
       plan = null;
       letter = null;
       tour = null;
@@ -1883,8 +1878,7 @@ interface Session {
         });
         return;
       }
-      net?.leave();
-      net = null;
+      online.leave();
       tour = null;
       letter = post;
       gameId = post.game;
@@ -1922,8 +1916,7 @@ interface Session {
     function startTeam(id: string): void {
       const card = cardById(id);
       if (!card) return;
-      net?.leave();
-      net = null;
+      online.leave();
       letter = null;
       const n = Math.min(4, card.seats[1]);
       plan = split(n);
@@ -1935,8 +1928,7 @@ interface Session {
 
     /** 혼자. 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
     function startSolo(id: string, swap = false): void {
-      net?.leave();
-      net = null;
+      online.leave();
       plan = null;
       show('play');
       /* 색을 바꾸면 봇이 먼저 앉는다(0 번 = 흑). 나는 1 번 */
@@ -1952,22 +1944,19 @@ interface Session {
       $<HTMLElement>('#acCode').textContent = code;
       $<HTMLElement>('#acWaitSeats').innerHTML = [
         '<span class="ac-seat ac-me">' + esc(myName()) + '</span>',
-        ...peers.map((p) => '<span class="ac-seat">' + esc(p.name) + '</span>')
+        ...online.peers.map((p) => '<span class="ac-seat">' + esc(p.name) + '</span>')
       ].join('');
       /* 자리가 몇이고 지금 몇이 넘치는지를 **기다리는 동안** 말해 준다. 시작하고 나서
          나는 왜 못 두지를 겪게 하면 그건 관전이 아니라 고장으로 느껴진다. */
       const cap = cardById(gameId)?.seats[1] ?? 0;
-      const over = Math.max(0, peers.length + 1 - cap);
+      const over = Math.max(0, online.peers.length + 1 - cap);
       $<HTMLElement>('#acWaitStatus').textContent =
-        (host ? t('arcade.wait.host', { n: String(peers.length + 1) }) : t('arcade.wait.guest')) +
+        (host ? t('arcade.wait.host', { n: String(online.peers.length + 1) }) : t('arcade.wait.guest')) +
         (over > 0 ? ', ' + t('arcade.watch.over', { n: String(over) }) : '');
       /* 등급전 방은 시작 버튼도 링크도 없음. 상대는 서버가 정함, 오면 바로 판 */
       startBtn.style.display = host && !rankedRun.autoStart ? '' : 'none';
       $<HTMLElement>('.ac-share').style.display = host && !rankedRun.autoStart ? '' : 'none';
     }
-
-    /** 목록에 올린 방. 내리는 손과, 지금 알리는 손 */
-    let held: Held | null = null;
 
     /**
      * 로그인 창을 연다. 등급전은 로그인 필수 (사용자 결정 2026-08-31)
@@ -2133,7 +2122,7 @@ interface Session {
     function watchLink(): void {
       stopLinkWatch();
       rankedRun.watchLink(() => {
-        if (!rankedRun.paired || match || peers.length) return;
+        if (!rankedRun.paired || match || online.peers.length) return;
         const word = t('arcade.rank.nolink');
         /* 아직 판이 안 떴으면 대기 화면에 적는다. 판 위의 띠는 그때 안 보인다 */
         const waiting = $<HTMLElement>('#acWait').style.display !== 'none';
@@ -2198,57 +2187,57 @@ interface Session {
     /** 등급전 줄. 서 있는 동안만 */
 
     function maybeAutoStart(): void {
-      if (!rankedRun.autoStart || match || !rankedRun.roster || peers.length < rankedRun.roster.seats - 1 || !rankedRun.roster.ready) return;
+      if (!rankedRun.autoStart || match || !rankedRun.roster || online.peers.length < rankedRun.roster.seats - 1 || !rankedRun.roster.ready) return;
       rankedRun.autoStart = false;
       startTogether();
     }
 
     function openRoom(id: string, publicly = false, fixed?: string): void {
       /* 이미 방을 들고 있으면 새로 파지 않는다. 그게 방 유지의 전부다. */
-      if (net?.host) {
+      if (online.connection?.host) {
         startTogether(id);
         return;
       }
       const code = fixed ?? makeCode();
       /* 같이 찾기로 연 방만 목록에 올린다. 같이는 그대로 링크 아는 사람만이다. */
-      held?.stop();
+      online.closeListing();
       /* 값이 아니라 **부를 것**을 준다. 사람이 들어오고 판이 시작된 것이 그대로 올라가게 */
-      held = publicly
+      online.listing = publicly
         ? holdRoom(() => ({
             code,
             game: id,
             host: myName(),
             /* 나까지 세어야 사람 수다. peers 는 나 말고 */
-            seats: peers.length + 1,
+            seats: online.peers.length + 1,
             playing: !!match
           }))
         : null;
       gameId = id;
-      peers = [];
+      online.peers = [];
       show('wait');
       $<HTMLInputElement>('#acUrl').value = inviteLink('arcade', code);
       paintWait(code, true);
       /* P2P 조각은 여기서 처음 받는다. 받는 사이 나갔으면(세대가 바뀜) 방을 안 연다 */
       const e = epoch;
       void ensureNet().then((connect) => {
-      if (e !== epoch || net) return;
-      net = connect(code, true, myName(), {
+      if (e !== epoch || online.connection) return;
+      online.connection = connect(code, true, myName(), {
         onPeers: (list) => {
-          const was = peers.length;
-          peers = list;
+          const was = online.peers.length;
+          online.peers = list;
           paintWait(code, true);
           paintRoom();
           if (was > 0 && !list.length) rivalGone();
           if (list.length) stopLinkWatch();
           /* 사람이 드나든 그 순간에 알린다. 주기를 기다리면 초대 카드가 한동안 거짓말을 함 */
-          if (was !== list.length) held?.poke();
+          if (was !== list.length) online.listing?.poke();
           /* 등급전: 서버가 붙여 준 상대 도착 시 즉시 시작. 둘째 사람 대기 없음 */
           maybeAutoStart();
         },
         onAct: (peerId, data) => {
           const meta = (data as { meta?: string }).meta;
           if (rankedRun.roster?.acceptPeerMeta(peerId, meta)) { maybeAutoStart(); return; }
-          const seat = seatOf[peerId];
+          const seat = online.seatOf[peerId];
           if (seat === undefined) return;
           if (meta) {
             onMeta(seat, meta);
@@ -2304,10 +2293,10 @@ interface Session {
     }
 
     function startRanked(id: string): void {
-      if (net) quit();
+      if (online.connection) quit();
       hideGoneBar();
       gameId = id;
-      peers = [];
+      online.peers = [];
       show('wait');
       rankedRun.reset();
       rankedRun.startWaiting(paintRankWait);
@@ -2358,21 +2347,21 @@ interface Session {
     }
 
     function joinRoomAs(code: string): void {
-      peers = [];
+      online.peers = [];
       show('wait');
       paintWait(code, false);
       const e = epoch;
       void ensureNet().then((connect) => {
-      if (e !== epoch || net) return;
-      net = connect(code, false, myName(), {
+      if (e !== epoch || online.connection) return;
+      online.connection = connect(code, false, myName(), {
         onPeers: (list) => {
-          const was = peers.length;
-          peers = list;
+          const was = online.peers.length;
+          online.peers = list;
           paintWait(code, false);
           if (list.length) stopLinkWatch();
           /* act 는 연결 전 메시지를 보관하지 않는다. 처음 joinRoomAs 에서 보낸 등급전 자리표가
              유실될 수 있으므로 peer 발견 뒤 다시 보내 주인이 명단을 확정하게 한다. */
-          if (rankedRun.roster && list.length) net?.act({ meta: rankedRun.roster.joinMeta() });
+          if (rankedRun.roster && list.length) online.connection?.act({ meta: rankedRun.roster.joinMeta() });
           if (was > 0 && !list.length) rivalGone();
         },
         onAct: () => {
@@ -2418,16 +2407,16 @@ interface Session {
             match = null;
             loop();
           }
-          seatOf = p.seatOf || {};
+          online.seatOf = p.seatOf || {};
           rankedRun.roster?.applySync(p.rankRoster);
           /* **자리가 없으면 -1.** 0 으로 두면 구경꾼이 제가 1번 자리인 줄 알고 수를 두려 든다
              (주인이 흘리므로 판은 안 깨지지만, 화면은 내 차례라고 말한다). */
-          mySeat = seatOf[net?.selfId ?? ''] ?? -1;
+          mySeat = online.seatOf[online.connection?.selfId ?? ''] ?? -1;
           watching = mySeat < 0;
           shadow = { v: p.v, now: p.now, at: performance.now() };
         }
       });
-      if (rankedRun.roster) net.act({ meta: rankedRun.roster.joinMeta() });
+      if (rankedRun.roster) online.connection.act({ meta: rankedRun.roster.joinMeta() });
       }, () => say(t('arcade.room.nonet'), 'warn'));
     }
 
@@ -2446,10 +2435,10 @@ interface Session {
       if (!card) return;
       /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로.
          색을 바꾸면 손님들이 앞에, 주인이 맨 뒤(둘이면 손님이 흑) */
-      const take = (rankedRun.roster ? rankedRun.roster.orderPeers(peers) : peers).slice(0, card.seats[1] - 1);
-      seatOf = {};
+      const take = (rankedRun.roster ? rankedRun.roster.orderPeers(online.peers) : online.peers).slice(0, card.seats[1] - 1);
+      online.seatOf = {};
       take.forEach((p, i) => {
-        seatOf[p.id] = swap ? i : i + 1;
+        online.seatOf[p.id] = swap ? i : i + 1;
       });
       const me: SeatSpec = { name: myName(), bot: false };
       const others = take.map((p) => ({ name: p.name, bot: false }));
@@ -2460,7 +2449,7 @@ interface Session {
            서버 명단과 판의 인원이 달라져 결과 합의가 불가능해짐 */
         beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), rankedRun.roster?.seats, swap ? others.length : 0);
         /* 판이 시작된 것을 그 자리에서 알린다. 들어오는 사람이 구경이라는 것을 미리 알게 */
-        held?.poke();
+        online.listing?.poke();
       });
     }
 
@@ -2503,21 +2492,19 @@ interface Session {
      */
     function paintRoom(): void {
       const box = $<HTMLElement>('#acRoom');
-      if (!net?.host) {
+      if (!online.connection?.host) {
         box.style.display = 'none';
         return;
       }
       box.style.display = '';
       box.innerHTML =
-        '<b>🔗 ' + esc(t('arcade.room.kept', { n: String(peers.length + 1) })) + '</b>' +
+        '<b>🔗 ' + esc(t('arcade.room.kept', { n: String(online.peers.length + 1) })) + '</b>' +
         '<span style="flex:1"></span>' +
         '<button class="btn btn-ghost" id="acRoomClose">' + esc(t('arcade.room.close')) + '</button>';
       const close = container.querySelector<HTMLButtonElement>('#acRoomClose');
       if (close) {
         close.onclick = (): void => {
-          net?.leave();
-          net = null;
-          peers = [];
+          online.reset();
           paintRoom();
         };
       }
@@ -2698,9 +2685,9 @@ interface Session {
       const text = EMOTES[Number(b.dataset.emote)] ?? '';
       emotesEl.hidden = true;
       mdd.sayAs(mySeat, text);
-      if (!net) return;
-      if (net.host) net.say({ kind: 'emote', seat: mySeat, text });
-      else net.act({ meta: 'emote:' + text });
+      if (!online.connection) return;
+      if (online.connection.host) online.connection.say({ kind: 'emote', seat: mySeat, text });
+      else online.connection.act({ meta: 'emote:' + text });
     });
     $<HTMLButtonElement>('#acLessonQuit').onclick = () => {
       tutor.stop();
@@ -2745,8 +2732,8 @@ interface Session {
 
     /** 다른 게임. 방을 든 채 로비로. 손님에게는 고르는 중이라고 알린다. */
     swapBtn.onclick = (): void => {
-      if (!net?.host) return;
-      net.say({ kind: 'picking' });
+      if (!online.connection?.host) return;
+      online.connection.say({ kind: 'picking' });
       dropPlay();
       replayBtn.style.display = 'none';
       hideResult();
@@ -2801,10 +2788,7 @@ interface Session {
       hideGoneBar();
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
-      held?.stop();
-      held = null;
-      net?.leave();
-      net = null;
+      online.reset();
       dropPlay();
       hideResult();
       paintRoom();
@@ -2888,14 +2872,14 @@ interface Session {
         return;
       }
       if (!gameId) return;
-      if (net?.host) startTogether();
+      if (online.connection?.host) startTogether();
       else startSolo(gameId);
     };
 
     Toolbox.onDispose?.(() => {
       nextEpoch();
       cancelAnimationFrame(raf);
-      net?.leave();
+      online.reset();
       /* 문서와 창의 리스너, 무대 관찰자, 복기와 등급전 타이머까지. 남기면 핫리로드마다 쌓인다 */
       gone.abort();
       chrome.dispose();

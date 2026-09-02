@@ -29,6 +29,9 @@ const { Match, GAMES, gameById, seedFrom, META, CATALOG, partySize } = await imp
 const solOut = join(dir, 'sol.mjs');
 await build({ entryPoints: ['src/widgets/arcade/games/solitaire.ts'], bundle: true, format: 'esm', platform: 'node', outfile: solOut, logLevel: 'silent' });
 const { allFaceUp, autoStep, foundationFor } = await import(pathToFileURL(solOut).href);
+const netOut = join(dir, 'net.mjs');
+await build({ entryPoints: ['src/widgets/arcade/net.ts'], bundle: true, format: 'esm', platform: 'browser', outfile: netOut, logLevel: 'silent' });
+const { OnlineRun } = await import(pathToFileURL(netOut).href);
 const VIEWS = CATALOG.map((e) => e.view);
 
 let fails = 0;
@@ -36,6 +39,21 @@ const ok = (cond, name, detail = '') => {
   if (cond) console.log(`  [O] ${name}`);
   else { console.log(`  [X] ${name}${detail ? '. ' + detail : ''}`); fails++; }
 };
+
+console.log('[arcade] 온라인 방 수명');
+{
+  const online = new OnlineRun();
+  let left = 0;
+  let closed = 0;
+  online.connection = { leave: () => { left += 1; } };
+  online.listing = { stop: () => { closed += 1; }, poke: () => {} };
+  online.peers = [{ id: 'peer', name: '상대' }];
+  online.seatOf = { peer: 1 };
+  online.reset();
+  ok(left === 1 && closed === 1, '방을 접으면 연결과 공개 목록을 함께 닫는다');
+  ok(online.connection === null && online.listing === null, '닫은 연결 손잡이가 남지 않는다');
+  ok(online.peers.length === 0 && Object.keys(online.seatOf).length === 0, '참가자와 자리표가 다음 방으로 새지 않는다');
+}
 
 console.log('[arcade] 판 위 말. 네 판이 같은 표현 부품을 쓴다');
 {
