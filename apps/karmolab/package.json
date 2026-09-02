@@ -259,6 +259,7 @@
     "test:answers": "node scripts/smoke-tool-behavior.mjs",
     "test:apicache": "node scripts/check-api-cache-rule.mjs",
     "test:arcade:tutor": "node scripts/test-arcade-tutor.mjs",
+    "test:arcade:lifecycle": "node scripts/smoke-arcade-lifecycle.mjs",
     "test:arcade:ghost": "node scripts/test-arcade-ghost.mjs",
     "test:arcade:solitaire": "node scripts/smoke-arcade-solitaire.mjs",
     "test:arcade:cards": "node scripts/smoke-arcade-cards.mjs",

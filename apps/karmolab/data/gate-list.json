@@ -282,6 +282,7 @@
   "test:arcade:ranked-live",
   "test:arcade:verify",
   "test:arcade:tutor",
+  "test:arcade:lifecycle",
   "test:arcade:ghost",
   {
    "name": "test:arcade:bots",

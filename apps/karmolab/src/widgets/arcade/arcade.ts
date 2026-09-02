@@ -138,6 +138,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        없던 때의 사고 둘: 배우기 끝 타이머가 나간 뒤 로비에서 판을 엶, 조각을 받는 사이 다른 판을
        고르면 먼저 고른 판이 나중에 덮어씀 (2026-09-02 감사) */
     let epoch = 0;
+    let tutorDoneTimer = 0;
+    const nextEpoch = (): number => {
+      epoch += 1;
+      if (tutorDoneTimer) window.clearTimeout(tutorDoneTimer);
+      tutorDoneTimer = 0;
+      return epoch;
+    };
     /* 문서와 창에 건 리스너는 위젯이 내려갈 때 한 번에 끊는다. 핫리로드마다 쌓이던 것 */
     const gone = new AbortController();
     const dying = { signal: gone.signal };
@@ -328,9 +335,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (on) fillVars();
       play.classList.toggle('ac-roomfill', on);
     };
-    window.addEventListener('resize', () => {
+    const onFillResize = (): void => {
       if (play.classList.contains('ac-roomfill')) fillVars();
-    }, dying);
+    };
+    window.addEventListener('resize', onFillResize, dying);
 
     const show = (which: 'lobby' | 'wait' | 'play'): void => {
       lobby.style.display = which === 'lobby' ? '' : 'none';
@@ -1119,6 +1127,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       paintUndo();
       paintRitual(v);
 
+      /* 배우기 정답은 판의 승리가 아니라 다음 장으로 넘기는 손짓 */
+      if (v.finished && tutorAt !== null) {
+        hideResult();
+        return;
+      }
       if (v.finished) {
         const top = Math.max(...v.seats.map((s) => s.score));
         const win = v.seats.filter((s) => s.score === top);
@@ -1631,18 +1644,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     /** 대회가 돌고 있으면 여기 있다 (혼자 하는 대회. 여럿 대회는 다음 걸음). */
     let tour: TourState | null = null;
 
-    function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number, mine = 0): void {
+    function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number, mine = 0, run = nextEpoch()): void {
       const g = gameById(id);
       /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
          저마다 기다리게 하면 언젠가 한 곳을 빠뜨린다. 문을 하나로 두고 여기서만 기다린다. */
       if (!g) {
-        const e = epoch;
         void ensureGame(id).then(() => {
-          if (e === epoch && gameById(id)) beginMatch(id, seats, seed, want, mine);
+          if (run === epoch && gameById(id)) beginMatch(id, seats, seed, want, mine, run);
         });
         return;
       }
-      epoch += 1;
       gameId = id;
       mySeat = mine;
       offerOpen = null;
@@ -1806,9 +1817,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function nextTourGame(): void {
       if (!tour || isOver(tour)) return;
       const id = tour.games[tour.at];
+      const run = nextEpoch();
       show('play');
       withIntro(id, () =>
-        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now()))));
+        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now())), undefined, 0, run));
     }
 
     /* ── 편지로 두기 (TASK-KL-264 D5) ─────────────────────────────
@@ -1824,14 +1836,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 배우기 시작. 봇이 안 두는 판을 세우고 첫 장을 깖
      * 씨앗은 아무거나. 장면은 `dispatch` 로 심으므로 난수가 판을 안 바꿈
      */
-    function startTutor(id: string): void {
+    function startTutor(id: string, run = nextEpoch()): void {
       const g = gameById(id);
       if (!g) {
-        const e = epoch;
-        void ensureGame(id).then(() => { if (e === epoch && gameById(id)) startTutor(id); });
+        void ensureGame(id).then(() => { if (run === epoch && gameById(id)) startTutor(id, run); });
         return;
       }
-      epoch += 1;
       net?.leave();
       net = null;
       plan = null;
@@ -1860,9 +1870,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         cancelAnimationFrame(raf);
         match = null;
         say(t('arcade.tutor.done'), 'ok');
-        /* 그 사이 나갔으면(세대가 바뀜) 로비에서 판을 저 혼자 열지 않는다 */
-        const e = epoch;
-        window.setTimeout(() => { if (e === epoch && tutorAt === null) startSolo(id); }, 900);
+        const run = epoch;
+        tutorDoneTimer = window.setTimeout(() => {
+          tutorDoneTimer = 0;
+          if (run === epoch && tutorAt === null) startSolo(id);
+        }, 900);
         return;
       }
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
@@ -1939,16 +1951,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 링크로 들어왔다. 적힌 수를 다 두고, 다음 차례면 내가 둘 수 있게 연다. */
-    function openLetter(post: Letter): void {
+    function openLetter(post: Letter, run = nextEpoch()): void {
       const g = gameById(post.game);
       if (!g) {
-        const e = epoch;
         void ensureGame(post.game).then(() => {
-          if (e === epoch && gameById(post.game)) openLetter(post);
+          if (run === epoch && gameById(post.game)) openLetter(post, run);
         });
         return;
       }
-      epoch += 1;
       net?.leave();
       net = null;
       tour = null;
@@ -1993,9 +2003,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       letter = null;
       const n = Math.min(4, card.seats[1]);
       plan = split(n);
+      const run = nextEpoch();
       show('play');
       withIntro(id, () =>
-        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now())), n));
+        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now())), n, 0, run));
     }
 
     /** 혼자. 그물망 없이 커널만. 빈 자리는 봇이 앉는다. */
@@ -2008,7 +2019,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const seats: SeatSpec[] = swap
         ? [{ name: pickBots(1)[0]?.name ?? '봇', bot: true }, { name: myName(), bot: false }]
         : [{ name: myName(), bot: false }];
-      withIntro(id, () => beginMatch(id, seats, seedFrom(id + String(Date.now())), undefined, swap ? 1 : 0));
+      const run = nextEpoch();
+      withIntro(id, () => beginMatch(id, seats, seedFrom(id + String(Date.now())), undefined, swap ? 1 : 0, run));
     }
 
     /* ── 여럿 ────────────────────────────────────────────────────── */
@@ -2872,7 +2884,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       tlPlay(false);
       seek(review.at + (ev.deltaY > 0 ? 1 : -1));
     }, { passive: false });
-    document.addEventListener('keydown', (ev) => {
+    const onReviewKeydown = (ev: KeyboardEvent): void => {
       if (!review || review.branch) return;
       const tag = (ev.target as HTMLElement).tagName;
       if (tag === 'INPUT' && (ev.target as HTMLInputElement).type !== 'range') return;
@@ -2883,7 +2895,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       else if (ev.key === ' ') { tlPlay(!review.playing); }
       else return;
       ev.preventDefault();
-    }, dying);
+    };
+    document.addEventListener('keydown', onReviewKeydown, dying);
 
     /** 다른 게임. 방을 든 채 로비로. 손님에게는 고르는 중이라고 알린다. */
     swapBtn.onclick = (): void => {
@@ -2905,20 +2918,30 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      * 편 색이 샐 자리 (2026-09-02 감사). 세대(`epoch`)를 올려 늦게 오는 타이머도 손 뗌
      */
     function dropPlay(): void {
-      epoch += 1;
+      nextEpoch();
       endReview(false);
       cancelAnimationFrame(raf);
       match = null;
       shadow = null;
       render = null;
       replaying = false;
+      tape = null;
       tutorAt = null;
       $<HTMLElement>('#acLesson').hidden = true;
       plan = null;
+      tour = null;
       letter = null;
       $<HTMLElement>('#acLetter').style.display = 'none';
       watching = false;
       hintAt = null;
+      offerOpen = null;
+      $<HTMLElement>('#acOffer').style.display = 'none';
+      resultMeta = null;
+      ended = false;
+      soundedRound = -1;
+      gameId = '';
+      mySeat = 0;
+      $<HTMLElement>('#acTimeline').hidden = true;
       bubbles.clear();
       if (cutTimer) {
         window.clearTimeout(cutTimer);
@@ -3023,11 +3046,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const controls = $<HTMLElement>('#acControls');
     const menuBtn = $<HTMLButtonElement>('#acMenu');
     const controlsHome = controls.parentElement;
-    document.addEventListener('fullscreenchange', () => {
+    const onFullscreenControls = (): void => {
       const stage = $<HTMLElement>('#acStage');
       if (document.fullscreenElement === stage) stage.append(menuBtn, controls);
       else controlsHome?.append(menuBtn, controls);
-    }, dying);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenControls, dying);
     /* 방의 메뉴. 버튼 하나가 종이를 내리고 올린다. 줄 하나를 고르면 닫힘(소리 켜고 끄기는 열린 채) */
     const setMenu = (open: boolean): void => {
       if (open) tidySeps();
@@ -3056,14 +3080,16 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const b = (ev.target as HTMLElement).closest('button');
       if (b && b.id !== 'acSound' && b.id !== 'acMdd' && b.id !== 'acCoords' && b.id !== 'acNums' && b.id !== 'acHand') setMenu(false);
     });
-    document.addEventListener('pointerdown', (ev) => {
+    const onMenuPointerdown = (ev: PointerEvent): void => {
       if (!play.classList.contains('ac-menu-open')) return;
       const el = ev.target as HTMLElement;
       if (!controls.contains(el) && !menuBtn.contains(el)) setMenu(false);
-    }, dying);
-    document.addEventListener('keydown', (ev) => {
+    };
+    document.addEventListener('pointerdown', onMenuPointerdown, dying);
+    const onMenuKeydown = (ev: KeyboardEvent): void => {
       if (ev.key === 'Escape' && play.classList.contains('ac-menu-open')) setMenu(false);
-    }, dying);
+    };
+    document.addEventListener('keydown', onMenuKeydown, dying);
 
     /* 표현 갈아 끼우기. 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
     $<HTMLButtonElement>('#acUndo').onclick = undo;
@@ -3155,6 +3181,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
 
     Toolbox.onDispose?.(() => {
+      nextEpoch();
       cancelAnimationFrame(raf);
       net?.leave();
       /* 문서와 창의 리스너, 무대 관찰자, 복기와 등급전 타이머까지. 남기면 핫리로드마다 쌓인다 */
