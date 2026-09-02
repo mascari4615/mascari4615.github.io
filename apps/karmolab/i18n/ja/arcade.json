@@ -612,6 +612,7 @@
   "arcade.result.resign": "{who} が投了",
   "arcade.result.moves": "{n}手, {t}",
   "arcade.btn.scene": "部屋を変える",
+  "arcade.btn.deck": "カードの柄",
   "arcade.scene.tatami": "和室",
   "arcade.scene.desk": "夜の机",
   "arcade.scene.living": "居間",
