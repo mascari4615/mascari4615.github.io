@@ -19,6 +19,11 @@ export interface GameView<S, A> {
    * 무엇을 걷을지는 규칙이 아니라 **표현**이 정함. 같은 오목이 다른 표현에서는 껍데기를 씀
    */
   bare?: boolean;
+  /**
+   * **2D 공용 상을 탄다** (`table2d.ts`). 셸이 자리 카드를 위 줄에 펼치고 나는 좌하단.
+   * 카드 갈래처럼 사람들이 상에 둘러앉는 판. 입체 방에서는 무시됨
+   */
+  table?: boolean;
   mount(el: HTMLElement, act: (a: A) => void): Render<S>;
 }
 

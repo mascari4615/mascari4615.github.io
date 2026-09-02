@@ -47,8 +47,8 @@
 .ac-root .ac-piece-flip{transform:rotate(180deg)}
 .ac-root .ac-piece-compact{width:16px;height:20px;filter:drop-shadow(0 1px 1px rgba(44,28,17,.28))}
 .ac-root .ac-piece-compact>span{font-size:var(--font-size-4xs)}
-.ac-root .ac-pr .btn-primary,.ac-root .ac-bj .btn-primary,.ac-root .ac-sp .btn-primary{background:#ffd66b;background-image:none;color:#23201c;border-color:transparent;font-weight:900}
-.ac-root .ac-pr .btn-ghost,.ac-root .ac-bj .btn-ghost,.ac-root .ac-sp .btn-ghost{color:#eaf2ee;border-color:rgba(234,242,238,.4)}
+.ac-root .ac-pr .btn-primary,.ac-root .ac-tb .btn-primary,.ac-root .ac-bj .btn-primary,.ac-root .ac-sp .btn-primary{background:#ffd66b;background-image:none;color:#23201c;border-color:transparent;font-weight:900}
+.ac-root .ac-pr .btn-ghost,.ac-root .ac-tb .btn-ghost,.ac-root .ac-bj .btn-ghost,.ac-root .ac-sp .btn-ghost{color:#eaf2ee;border-color:rgba(234,242,238,.4)}
 .ac-root .ac-pc{position:relative;width:var(--ac-card-w);height:var(--ac-card-h);border:0;border-radius:var(--ac-card-r);background:var(--ac-card-face);box-shadow:var(--ac-card-sh);color:var(--ac-black);font-weight:700;padding:0;cursor:default;transition:transform var(--transition-fast)}
 .ac-root .ac-pc.ac-red{color:var(--ac-red)}
 .ac-root .ac-pc.ac-back{background:var(--ac-card-back);color:transparent}
@@ -169,25 +169,25 @@
 .ac-t3.ac-t3room{position:relative;border-radius:0}
 #acPlay.ac-bare:has(.ac-t3room):not(.ac-roomfill){position:relative}
 #acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls,#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}
-#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:block;position:absolute;inset:0;margin:0;padding:0;background:none;border:0;box-shadow:none;pointer-events:none;z-index:3}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat{position:absolute;left:18px;display:grid;grid-template-columns:56px 1fr auto;grid-template-rows:auto auto;column-gap:12px;row-gap:1px;align-items:center;width:300px;max-width:calc(100% - 36px);padding:10px 14px 10px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(30,19,10,.8),rgba(16,10,6,.84));border:1px solid rgba(217,168,90,.38);color:#f6ecdc;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.42);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-weight:400;pointer-events:auto;opacity:.78;transition:opacity .2s,border-color .2s,box-shadow .2s}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{bottom:18px}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me):not(.ac-watch){top:calc(14px + var(--ac-row,0) * 92px)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-watch{top:auto;bottom:130px;width:auto;display:inline-flex;gap:6px;padding:6px 12px;font-size:12px;border-radius:999px}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn{opacity:1;border-color:#e6bd7a;box-shadow:0 0 0 1px rgba(230,189,122,.45),0 10px 28px rgba(0,0,0,.5)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn::after{content:"";position:absolute;right:0;top:0;width:0;height:0;border-style:solid;border-width:0 20px 20px 0;border-color:transparent #e6bd7a transparent transparent;border-top-right-radius:9px}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-watch)::before{content:"";grid-column:1;grid-row:1/3;width:56px;height:56px;border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(2)::before{background:radial-gradient(circle at 35% 30%,#6a6560,#141210 70%)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:nth-last-child(1)::before{background:radial-gradient(circle at 35% 30%,#fff,#cfc6b4 75%)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-seatname{grid-column:2;grid-row:1;font-size:20px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat>b{grid-column:3;grid-row:1;font-size:22px;font-weight:600;color:#ffd696;font-variant-numeric:tabular-nums;line-height:1.2}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule{grid-column:2;grid-row:2;font-size:12px;letter-spacing:.06em;color:rgba(240,225,200,.68);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-rule:empty{display:none}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock{grid-column:3;grid-row:2;justify-self:end;position:relative;display:inline-grid;place-items:center;width:38px;height:38px;margin-top:2px;font-size:14px;font-variant-numeric:tabular-nums;color:#f7e9cf}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#d9a85a calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 15px,#000 16px);mask:radial-gradient(circle,transparent 15px,#000 16px)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock:empty{display:none}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry{color:#ffb4a0}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-clock.ac-hurry::before{background:conic-gradient(#e0553c calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acSeats{display:block;position:absolute;inset:0;margin:0;padding:0;background:none;border:0;box-shadow:none;pointer-events:none;z-index:3}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat{position:absolute;left:18px;display:grid;grid-template-columns:56px 1fr auto;grid-template-rows:auto auto;column-gap:12px;row-gap:1px;align-items:center;width:300px;max-width:calc(100% - 36px);padding:10px 14px 10px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(30,19,10,.8),rgba(16,10,6,.84));border:1px solid rgba(217,168,90,.38);color:#f6ecdc;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.42);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-weight:400;pointer-events:auto;opacity:.78;transition:opacity .2s,border-color .2s,box-shadow .2s}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-me{bottom:18px}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:not(.ac-me):not(.ac-watch){top:calc(14px + var(--ac-row,0) * 92px)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-watch{top:auto;bottom:130px;width:auto;display:inline-flex;gap:6px;padding:6px 12px;font-size:12px;border-radius:999px}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-turn{opacity:1;border-color:#e6bd7a;box-shadow:0 0 0 1px rgba(230,189,122,.45),0 10px 28px rgba(0,0,0,.5)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-turn::after{content:"";position:absolute;right:0;top:0;width:0;height:0;border-style:solid;border-width:0 20px 20px 0;border-color:transparent #e6bd7a transparent transparent;border-top-right-radius:9px}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:not(.ac-watch)::before{content:"";grid-column:1;grid-row:1/3;width:56px;height:56px;border-radius:50%;box-shadow:0 3px 8px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:nth-last-child(2)::before{background:radial-gradient(circle at 35% 30%,#6a6560,#141210 70%)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:nth-last-child(1)::before{background:radial-gradient(circle at 35% 30%,#fff,#cfc6b4 75%)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-seatname{grid-column:2;grid-row:1;font-size:20px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat>b{grid-column:3;grid-row:1;font-size:22px;font-weight:600;color:#ffd696;font-variant-numeric:tabular-nums;line-height:1.2}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-rule{grid-column:2;grid-row:2;font-size:12px;letter-spacing:.06em;color:rgba(240,225,200,.68);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-rule:empty{display:none}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-clock{grid-column:3;grid-row:2;justify-self:end;position:relative;display:inline-grid;place-items:center;width:38px;height:38px;margin-top:2px;font-size:14px;font-variant-numeric:tabular-nums;color:#f7e9cf}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-clock::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#d9a85a calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 15px,#000 16px);mask:radial-gradient(circle,transparent 15px,#000 16px)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-clock:empty{display:none}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-clock.ac-hurry{color:#ffb4a0}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-clock.ac-hurry::before{background:conic-gradient(#e0553c calc(var(--ac-left,1) * 360deg),rgba(255,255,255,.12) 0)}
 .ac-offer{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--accent);border-radius:12px;background:var(--bg-secondary);margin:var(--space-md) 0;font-size:var(--font-size-sm)}
 #acPlay.ac-bare:has(.ac-t3room) .ac-offer{position:absolute;left:50%;top:60px;transform:translateX(-50%);z-index:6;margin:0;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;border:0;box-shadow:0 14px 30px rgba(0,0,0,.45);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif}
 #acPlay.ac-bare:has(.ac-t3room) .ac-offer .btn{height:32px;line-height:30px;padding:0 14px;border-radius:999px;font-family:inherit}
@@ -242,17 +242,17 @@
 #acPlay.ac-bare:has(.ac-t3room) .ac-tlbranch{color:#ffd696;letter-spacing:.04em}
 .ac-face,.ac-bubble,.ac-emotes{display:none}
 #acPlay.ac-bare:has(.ac-t3room) #acControls #acMdd[aria-pressed="false"],#acPlay.ac-bare:has(.ac-t3room) #acControls #acCoords[aria-pressed="false"],#acPlay.ac-bare:has(.ac-t3room) #acControls #acNums[aria-pressed="false"]{opacity:.55}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face{display:block;grid-column:1;grid-row:1/3;width:56px;height:56px}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg{display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));transition:transform .3s}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="think"]{transform:rotate(-6deg)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="glad"]{transform:scale(1.08)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-face svg[data-mood="sad"]{transform:rotate(8deg) translateY(3px);opacity:.85}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:has(.ac-face)::before{display:none}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat .ac-bubble{display:block;position:absolute;left:14px;max-width:280px;padding:8px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:15px;line-height:1.4;box-shadow:0 8px 20px rgba(0,0,0,.4);white-space:nowrap}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me .ac-bubble{bottom:calc(100% + 10px)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me) .ac-bubble{top:calc(100% + 10px)}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me .ac-bubble::after{content:"";position:absolute;left:22px;top:100%;border:8px solid transparent;border-top-color:rgba(238,225,200,.97);border-bottom:0}
-#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me) .ac-bubble::after{content:"";position:absolute;left:22px;bottom:100%;border:8px solid transparent;border-bottom-color:rgba(250,240,222,.97);border-top:0}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face{display:block;grid-column:1;grid-row:1/3;width:56px;height:56px}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face svg{display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));transition:transform .3s}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face svg[data-mood="think"]{transform:rotate(-6deg)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face svg[data-mood="glad"]{transform:scale(1.08)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face svg[data-mood="sad"]{transform:rotate(8deg) translateY(3px);opacity:.85}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:has(.ac-face)::before{display:none}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-bubble{display:block;position:absolute;left:14px;max-width:280px;padding:8px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:15px;line-height:1.4;box-shadow:0 8px 20px rgba(0,0,0,.4);white-space:nowrap}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-me .ac-bubble{bottom:calc(100% + 10px)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:not(.ac-me) .ac-bubble{top:calc(100% + 10px)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-me .ac-bubble::after{content:"";position:absolute;left:22px;top:100%;border:8px solid transparent;border-top-color:rgba(238,225,200,.97);border-bottom:0}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat:not(.ac-me) .ac-bubble::after{content:"";position:absolute;left:22px;bottom:100%;border:8px solid transparent;border-bottom-color:rgba(250,240,222,.97);border-top:0}
 #acPlay.ac-bare:has(.ac-t3room) .ac-emotes{display:flex;flex-wrap:wrap;gap:6px;position:absolute;left:18px;bottom:130px;width:300px;z-index:6}
 #acPlay.ac-bare:has(.ac-t3room) .ac-emotes[hidden]{display:none}
 #acPlay.ac-bare:has(.ac-t3room) .ac-emotebtn{height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(217,168,90,.42);background:rgba(24,15,8,.72);color:#f1e3c8;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:14px;cursor:pointer;backdrop-filter:blur(8px)}
@@ -1094,3 +1094,30 @@
 .ac-solocard:hover .ac-objname{color:#3c3a30}
 .ac-solocourse{margin:0 0 6px;font-size:var(--font-size-xs);color:var(--text-secondary)}
 .ac-packrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--space-lg)}
+
+/* 2D 공용 상 (2026-09-02 감사 C1, 사용자 결정 B 상 둘레 배치). 자리 카드는 방과 같은 생김새.
+   상대는 위 줄에 고르게 (칸 수는 paintSeats 가 --ac-rows 로 알림), 나는 좌하단. 뒷면 부채는 화면(table2d)이 자리 카드 아래에 */
+#acPlay.ac-table{--ac-tb-seat-w:300px}
+#acPlay.ac-table.ac-roomfill #acSeats{display:block}
+#acPlay.ac-table.ac-roomfill #acSeats .ac-seat:not(.ac-me):not(.ac-watch){top:14px;left:calc(18px + (100% - 36px - var(--ac-tb-seat-w)) * (var(--ac-row,0) + 1) / (var(--ac-rows,1) + 1))}
+#acPlay.ac-table.ac-roomfill #acSeats .ac-seat.ac-me{bottom:66px}
+#acPlay.ac-table.ac-roomfill #acView{background:var(--ac-felt)}
+#acPlay.ac-table.ac-roomfill #acView>*{width:100%;max-width:100%;height:100%}
+#acPlay.ac-table.ac-roomfill #acStatus{display:none}
+.ac-tb{position:relative;width:100%;height:100%;display:grid;grid-template-rows:170px 1fr auto;color:#eaf2ee;box-sizing:border-box}
+.ac-tb-fans{position:relative;pointer-events:none}
+.ac-tb-fan{position:absolute;top:100px;display:flex;align-items:flex-end;height:52px}
+.ac-root .ac-tb-fan .ac-pc.ac-back{width:34px;height:48px;margin-left:-14px;pointer-events:none;box-shadow:0 2px 4px rgba(0,0,0,.35)}
+.ac-root .ac-tb-fan .ac-pc.ac-back:first-child{margin-left:0}
+.ac-tb-fan b{margin-left:8px;font-size:12px;color:#f6ecdc;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:9px}
+.ac-tb-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:0}
+.ac-tb-toast{padding:6px 14px;border-radius:999px;background:rgba(24,20,16,.62);color:#f3ead8;font-size:var(--font-size-sm);backdrop-filter:blur(3px)}
+.ac-tb-toast:empty{display:none}
+.ac-tb-mine{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 24px 12px;box-sizing:border-box}
+.ac-tb-hand{display:flex;justify-content:center;flex-wrap:wrap;max-width:100%}
+.ac-root .ac-tb-hand .ac-pc{margin-left:calc(var(--ac-card-w) / -6)}
+.ac-root .ac-tb-hand .ac-pc:first-child{margin-left:0}
+.ac-tb-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:38px}
+@media (max-width:1100px){.ac-tb-mine{padding:0 12px 92px}}
+/* 뒷면 부채 줄과 판 사이 여백. 부채가 자리 카드 아래 100px 에 서므로 그 아래부터 판 */
+.ac-tb-center{padding-top:8px}

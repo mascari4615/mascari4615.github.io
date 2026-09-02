@@ -1171,6 +1171,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         })
       );
       while (seatsEl.children.length > items.length) seatsEl.lastElementChild?.remove();
+      /* 상대 자리 수. 공용 상이 위 줄을 고르게 나눌 때 씀 */
+      seatsEl.style.setProperty('--ac-rows', String(items.filter((it) => !it.cls.includes('ac-me') && !it.cls.includes('ac-watch')).length));
       let row = 0;
       items.forEach((it, i) => {
         let el = seatsEl.children[i] as HTMLElement | undefined;
@@ -1330,6 +1332,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방인가는 소리와 바탕만 가름. 화면 채움은 평면이든 입체든 늘 켬
          (2026-09-01 사용자 확정: 모든 놀이가 콘텐츠 칸을 다 씀) */
       const roomNow = dim() === '3d' && !!cardById(id)?.d3;
+      /* 2D 공용 상. 표현이 켜면 자리 카드가 상 둘레로 (C1, 사용자 결정 B) */
+      play.classList.toggle('ac-table', gv?.table === true && !roomNow && !wait3d);
       fill(true);
       setBlipVoice(roomNow ? 'room' : 'default');
       /* 조각이 아직 안 왔으면 받아서 **그때 다시 붙인다** (TASK-KL-242 쪼개기).
