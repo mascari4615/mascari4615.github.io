@@ -2517,6 +2517,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     const posted = letterFromUrl();
     if (posted) openLetter(posted);
 
+    /* 판 장(`/t/arcade/<game>/`)으로 들어왔으면 그 판의 상세를 연다 (감사 E1). 주소 `?play=<id>` 도 같음.
+       방, 패보, 편지가 먼저면 그쪽이 이김 */
+    const entryGame = (window as unknown as { KARMOLAB_ARCADE_GAME?: string }).KARMOLAB_ARCADE_GAME
+      || location.search.match(/[?&]play=([a-z0-9-]+)/)?.[1] || '';
+    if (entryGame && !joined && !taped && !posted && cardById(entryGame)) openDetail(entryGame);
+
     $<HTMLButtonElement>('#acLetterCopy').onclick = (): void => {
       void Toolbox.copyText?.($<HTMLInputElement>('#acLetterUrl').value, { message: t('arcade.copy.done') });
     };

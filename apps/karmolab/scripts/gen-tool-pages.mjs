@@ -1348,6 +1348,64 @@ for (const id of ids) {
   fs.writeFileSync(path.join(dir, 'index.html'), buildToolPage(id), 'utf8');
 }
 
+/* ── 오락실 판마다 한 장 (감사 E1, 사용자 결정 2026-09-03: 화면 글자 0, 머리 메타만) ──
+   `/t/arcade/<game>/`. 로비에 뜨는 판만. 열면 오락실이 그 판의 상세로 열림(`KARMOLAB_ARCADE_GAME`).
+   도구 장의 설명 덩어리(.tool-seo)는 안 넣음. 사람 눈에는 지금 오락실과 똑같음.
+   이름과 한 줄은 오락실 번역 파일(i18n/ko/arcade.json)의 그 판 값 그대로. 새 글은 없음 */
+const arcadeGames = (() => {
+  const meta = fs.readFileSync(path.join(root, 'src/widgets/arcade/catalog-meta.generated.ts'), 'utf8');
+  const out = [];
+  for (const m of meta.matchAll(/\{ id: '([a-z0-9-]+)', icon: '[^']*', kind: '([a-z]+)', seats: \[(\d+), (\d+)\][^}]*?\}/g)) {
+    if (/hidden: true/.test(m[0])) continue;
+    out.push({ id: m[1], kind: m[2], seats: [Number(m[3]), Number(m[4])] });
+  }
+  return out;
+})();
+const arcadeWords = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/arcade.json'), 'utf8'));
+function buildArcadeGamePage(g) {
+  const name = arcadeWords[`arcade.game.${g.id}.name`] || g.id;
+  const desc = arcadeWords[`arcade.game.${g.id}.desc`] || '';
+  const seats = g.seats[0] === g.seats[1] ? `${g.seats[0]}명` : `${g.seats[0]}~${g.seats[1]}명`;
+  const url = `${SITE}${BASE_PATH}/arcade/${g.id}/`;
+  let html = buildToolPage('arcade');
+  html = html.replace(/^---\nlayout: none\npermalink: [^\n]*\n/, `---\nlayout: none\npermalink: ${BASE_PATH}/arcade/${g.id}/\n`);
+  html = replaceTitle(html, esc(`${name}, 오락실 | KarmoLab`));
+  html = html.replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`);
+  const line = `${name}. ${desc}. ${seats}. 혼자서도 여럿이서도, 빈 자리는 봇이 앉는 KarmoLab 오락실`;
+  html = replaceMeta(html, 'name', 'description', line);
+  html = replaceMeta(html, 'property', 'og:title', `${name}, 오락실 | KarmoLab`);
+  html = replaceMeta(html, 'property', 'og:description', line);
+  html = replaceMeta(html, 'property', 'og:url', url);
+  html = replaceMeta(html, 'name', 'twitter:title', `${name}, 오락실 | KarmoLab`);
+  html = replaceMeta(html, 'name', 'twitter:description', line);
+  /* 셸이 오락실을 열고, 오락실이 이 판의 상세를 연다 */
+  html = html.replace('window.KARMOLAB_ENTRY_TOOL="arcade";', `window.KARMOLAB_ENTRY_TOOL="arcade";window.KARMOLAB_ARCADE_GAME=${JSON.stringify(g.id)};`);
+  if (!html.includes('KARMOLAB_ARCADE_GAME')) throw new Error(`[arcade page] 진입 표식을 못 심었다: ${g.id}`);
+  /* 구조화 데이터는 이 판 것으로 갈아 끼움. 도구 장의 JSON-LD 는 오락실 전체를 말함 */
+  html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name,
+    description: line,
+    url,
+    inLanguage: 'ko',
+    applicationCategory: 'GameApplication',
+    numberOfPlayers: { '@type': 'QuantitativeValue', minValue: g.seats[0], maxValue: g.seats[1] },
+    isPartOf: { '@type': 'WebApplication', name: 'KarmoLab 오락실', url: `${SITE}${BASE_PATH}/arcade/` },
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }
+  })}</script>`);
+  /* 화면 글자 0. 도구 장의 설명 덩어리와 머리글은 뺀다 */
+  html = html.replace(/<section class="tool-seo">[\s\S]*?<\/section>/, '');
+  html = html.replace(/<nav class="tool-seo-crumb"[\s\S]*?<\/nav>/, '');
+  return html;
+}
+for (const g of arcadeGames) {
+  const dir = path.join(outDir, 'arcade', g.id);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'index.html'), buildArcadeGamePage(g), 'utf8');
+}
+console.log(`[gen-tool-pages] 오락실 판 장 ${arcadeGames.length}개 → ${BASE_PATH}/arcade/<game>/`);
+
 /* ★ **합쳐진 옛 도구 주소는 404 가 아니라 그 자리로 보낸다** (2026-08-13).
    열여섯을 작업대의 조작으로 합치면서 그 장들이 안 찍히게 됐고, 실사이트에서 그대로
    404 가 났다(라이브 검사가 text2img, text2pdf, textredact, textdiff, lorem 에서 잡았다).
