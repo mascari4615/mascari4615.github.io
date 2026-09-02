@@ -31,13 +31,14 @@ import { seedFrom } from './rng';
 import { iconOf, kindOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room-code';
-import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
+import { blip, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { handMode, handNow, nextHandMode } from './hands';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf } from './cast';
 import { mountMdd } from './mdd';
+import { mountChrome } from './chrome';
 import { LESSONS, TUTOR_SIZE, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
@@ -2865,111 +2866,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
     $<HTMLButtonElement>('#acQuit').onclick = quit;
 
-    /**
-     * 풀스크린. **무대만** 키운다 (TASK-KL-314).
-     *
-     * 창 전체가 아니라 `.ac-stage` 하나를 키우는 이유: 자리줄, 상태글, 단추가 같이 커지면
-     * 판이 오히려 작아진다. 무대만 키우면 그 안의 51개가 그대로 커진다. 게임 화면은 이걸 모른다.
-     *
-     * 안 되는 곳(iOS 사파리의 일부)에서는 조용히 아무 일도 안 일어난다. 단추를 숨기지는 않는다 . 
-     * 눌러 보고 안 되는 것과 아예 없는 것 중, 없는 쪽이 더 오래 헷갈린다.
-     */
-    /**
-     * 풀스크린이면 단추 줄을 **무대 안으로 옮긴다** (TASK-KL-314).
-     *
-     * 브라우저는 풀스크린 대상 **밖을 아예 안 그린다.** 그래서 무대만 키웠더니 나가기, 한 판
-     * 더, 소리가 통째로 사라졌다. 판이 끝나도 아무것도 못 하고, 나가려면 ESC 를 알아야 했다
-     * (실측: 그 자리를 눌러 보면 무대가 잡힌다). 화면에 안 보이는 단추는 없는 단추다.
-     *
-     * 옮기는 것으로 푼다. 복제가 아니라 이동이라 붙여 둔 손잡이(onclick)가 그대로 따라온다.
-     * ESC 로 나가는 길도 있으므로 되돌리는 것은 `fullscreenchange` 가 맡는다(단추만 보면 샌다).
-     */
-    /* ── 눕힌 좁은 화면: 무대 크기를 **남은 자리에서** 정한다 (2026-08-15 실측) ──────
-     *
-     * 여태 `78vh` 라는 **손으로 맞춘 상수**였다. 그 값은 폰 둘(390×844, 844×390)에서 재서
-     * 고른 것인데, 셸 머리띠가 세로를 먼저 먹는 양이 **화면 너비마다 다르다**:
-     *   844 폭 → 머리띠 76px, 남는 세로 314 (=80vh)
-     *   740 폭 → 머리띠 **123px**, 남는 세로 237 (=66vh)   ← 머리띠가 한 줄 더 접힌다
-     * 한 개의 vh 상수로는 둘을 동시에 만족시킬 수 없다. 740×360 에서 판이 **44px** 밀렸다.
-     * 상수를 더 내리면 큰 폰에서 판이 쓸데없이 작아진다.
-     *
-     * 그래서 몇 vh를 맞히려 들지 않고, **무대 위가 실제로 얼마를 먹었는지 그 자리에서
-     * 재서** 남은 만큼만 준다.
-     *
-     * ★ **안 보일 때 재면 안 된다** (첫 판에 이걸로 데었다): 화면이 숨어 있으면 무대의 위치가
-     *   0 으로 잡혀 남은 세로 = 화면 전체가 되고, 그러면 판이 머리띠 높이만큼 **더** 밀린다
-     *   (44px → 121px 로 악화). 그래서 ⓐ 보이는지 먼저 확인하고 ⓑ 판이 실제로 그려지는
-     *   순간에 다시 잰다.
-     */
-    const stageEl = $<HTMLElement>('#acStage');
-    const landscapeNarrow = (): boolean => window.matchMedia('(orientation:landscape) and (max-height:560px)').matches;
-    const fitStage = (): void => {
-      if (!stageEl.isConnected) return;
-      if (!landscapeNarrow() || document.fullscreenElement) {
-        stageEl.style.removeProperty('--ac-stage');
-        return;
-      }
-      const box = stageEl.getBoundingClientRect();
-      /* 안 보이면 재지 않는다. 0 을 진짜 위치로 읽으면 위 주석의 그 사고가 난다. */
-      if (stageEl.offsetParent === null || box.height === 0) return;
-      /* 무대 위가 먹은 세로 = 무대의 화면상 위치. 아래로는 2px 만 남긴다(경계선 반올림 몫). */
-      const remainingHeight = Math.max(120, Math.round(window.innerHeight - box.top - 2));
-      stageEl.style.setProperty('--ac-stage', `min(62vw, ${remainingHeight}px, 640px)`);
-    };
-    /* 판이 그려질 때마다 다시 잰다. 그때가 무대가 확실히 보이는 시점이다. */
-    const viewWatch = new MutationObserver(() => requestAnimationFrame(fitStage));
-    viewWatch.observe($<HTMLElement>('#acView'), { childList: true, subtree: false });
-    window.addEventListener('resize', () => requestAnimationFrame(fitStage), dying);
-    window.addEventListener('orientationchange', () => requestAnimationFrame(fitStage), dying);
-    document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitStage), dying);
-
-    const controls = $<HTMLElement>('#acControls');
-    const menuBtn = $<HTMLButtonElement>('#acMenu');
-    const controlsHome = controls.parentElement;
-    const onFullscreenControls = (): void => {
-      const stage = $<HTMLElement>('#acStage');
-      if (document.fullscreenElement === stage) stage.append(menuBtn, controls);
-      else controlsHome?.append(menuBtn, controls);
-    };
-    document.addEventListener('fullscreenchange', onFullscreenControls, dying);
-    /* 방의 메뉴. 버튼 하나가 종이를 내리고 올린다. 줄 하나를 고르면 닫힘(소리 켜고 끄기는 열린 채) */
-    const setMenu = (open: boolean): void => {
-      if (open) tidySeps();
-      play.classList.toggle('ac-menu-open', open);
-      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    };
-    /* 구분선은 양쪽에 보이는 줄이 있을 때만. 숨은 버튼만 낀 무리 뒤의 선은 빈 선 */
-    const tidySeps = (): void => {
-      let seen = false;
-      let lastSep: HTMLElement | null = null;
-      for (const el of Array.from(controls.children) as HTMLElement[]) {
-        if (el.classList.contains('ac-sep')) {
-          el.hidden = !seen || !!lastSep;
-          if (!el.hidden) lastSep = el;
-          continue;
-        }
-        if (el.style.display !== 'none') {
-          seen = true;
-          lastSep = null;
-        }
-      }
-      if (lastSep) lastSep.hidden = true;
-    };
-    menuBtn.onclick = () => setMenu(!play.classList.contains('ac-menu-open'));
-    controls.addEventListener('click', (ev) => {
-      const b = (ev.target as HTMLElement).closest('button');
-      if (b && b.id !== 'acSound' && b.id !== 'acMdd' && b.id !== 'acCoords' && b.id !== 'acNums' && b.id !== 'acHand') setMenu(false);
-    });
-    const onMenuPointerdown = (ev: PointerEvent): void => {
-      if (!play.classList.contains('ac-menu-open')) return;
-      const el = ev.target as HTMLElement;
-      if (!controls.contains(el) && !menuBtn.contains(el)) setMenu(false);
-    };
-    document.addEventListener('pointerdown', onMenuPointerdown, dying);
-    const onMenuKeydown = (ev: KeyboardEvent): void => {
-      if (ev.key === 'Escape' && play.classList.contains('ac-menu-open')) setMenu(false);
-    };
-    document.addEventListener('keydown', onMenuKeydown, dying);
+    /* 무대 크기, 메뉴, 전체화면, 소리 버튼 (`chrome.ts`) */
+    const chrome = mountChrome({ container, play, dying });
 
     /* 표현 갈아 끼우기. 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
     $<HTMLButtonElement>('#acUndo').onclick = undo;
@@ -2996,17 +2894,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (gameId) mountView(gameId);
     };
 
-    $<HTMLButtonElement>('#acFull').onclick = (): void => {
-      /* 방(화면 채움)이면 판 영역 통째로. 무대만 키우면 자리 카드와 버튼이 무대 밖이라 안 보인다(사용자 실측) */
-      const stage = play.classList.contains('ac-roomfill') ? play : $<HTMLElement>('#acStage');
-      try {
-        if (document.fullscreenElement) void document.exitFullscreen();
-        else void stage.requestFullscreen?.();
-      } catch {
-        /* 못 키워도 판은 돈다 */
-      }
-    };
-
     /* 봇 세기 고르기. 판을 시작할 때 규칙 겉에 씌운다. */
     const paintLevel = (): void => {
       const now = levelNow();
@@ -3028,19 +2915,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     });
     paintLevel();
 
-    /* 소리 끄기. 껐다 켠 것은 이 브라우저에만 남는다. */
-    const soundBtn = $<HTMLButtonElement>('#acSound');
-    const paintSound = (): void => {
-      const emoji = soundBtn.querySelector('.ac-emoji');
-      if (emoji) emoji.textContent = soundOn() ? '🔊' : '🔇';
-      soundBtn.setAttribute('aria-pressed', soundOn() ? 'true' : 'false');
-    };
-    paintSound();
-    soundBtn.onclick = () => {
-      setSoundOn(!soundOn());
-      paintSound();
-      if (soundOn()) blip('good');
-    };
     $<HTMLButtonElement>('#acWaitQuit').onclick = quit;
 
     againBtn.onclick = (): void => {
@@ -3066,7 +2940,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       net?.leave();
       /* 문서와 창의 리스너, 무대 관찰자, 복기와 등급전 타이머까지. 남기면 핫리로드마다 쌓인다 */
       gone.abort();
-      viewWatch.disconnect();
+      chrome.dispose();
       review?.timer?.();
       rankedTick?.();
       stopLinkWatch();
