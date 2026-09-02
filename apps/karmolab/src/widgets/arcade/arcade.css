@@ -1135,6 +1135,11 @@
 .ac-root .ac-tb .ac-tb-hand.ac-dmhand{gap:12px;margin:0}
 .ac-root .ac-tb .ac-dmt{zoom:1.35}
 .ac-root .ac-tb .ac-dmnums{display:flex;gap:12px;color:#eaf2ee;font-size:var(--font-size-sm)}
+/* 등불잇기. 남의 패 줄을 가로로 나란히 */
+.ac-root .ac-tb .ac-hbothers{display:flex;gap:28px;flex-wrap:wrap;justify-content:center}
+.ac-root .ac-tb .ac-hbrow small{display:block;text-align:center;margin-bottom:4px;color:#eaf2ee}
+.ac-root .ac-tb .ac-hbrow>div{display:flex;gap:4px}
+.ac-root .ac-tb .ac-dbtrack{width:min(100%,720px)}
 /* 셸의 btn-primary 는 폭 100%. 상 위 버튼은 제 글자 폭만큼 */
 .ac-root .ac-tb-acts .btn{width:auto;margin:0}
 @media (max-width:1100px){.ac-tb-mine{padding:0 12px 92px}}
