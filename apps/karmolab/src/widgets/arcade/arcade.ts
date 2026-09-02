@@ -42,7 +42,7 @@ import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { loadPacks } from '../pack-store';
 import { courseSteps, courseRun } from '../play-course';
 import { lengthOf, secondsOf } from './length';
-import { readPlays, notePlay, noteBest, bestOf } from './plays';
+import { notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
 import { fold, deal, turnOf, letterLink, letterFromUrl, type Letter } from './mail';
 import { split, isTeamy, teamScores, TEAM_NAMES, type Plan } from './teams';
@@ -474,7 +474,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) #acSeats{display:block;position:absolute;inset:0;margin:0;padding:0;background:none;border:0;box-shadow:none;pointer-events:none;z-index:3}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat{position:absolute;left:18px;display:grid;grid-template-columns:56px 1fr auto;grid-template-rows:auto auto;column-gap:12px;row-gap:1px;align-items:center;width:300px;max-width:calc(100% - 36px);padding:10px 14px 10px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(30,19,10,.8),rgba(16,10,6,.84));border:1px solid rgba(217,168,90,.38);color:#f6ecdc;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.42);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-weight:400;pointer-events:auto;opacity:.78;transition:opacity .2s,border-color .2s,box-shadow .2s}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-me{bottom:18px}',
-      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me):not(.ac-watch){top:14px}',
+      /* 상대 자리는 위에서부터 한 장씩. 셋 이상인 판(블랙잭)에서 같은 자리에 겹쳐 하나만 보였다 (2026-09-02 실측) */
+      '#acPlay.ac-bare:has(.ac-t3room) .ac-seat:not(.ac-me):not(.ac-watch){top:calc(14px + var(--ac-row,0) * 92px)}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-watch{top:auto;bottom:130px;width:auto;display:inline-flex;gap:6px;padding:6px 12px;font-size:12px;border-radius:999px}',
       '#acPlay.ac-bare:has(.ac-t3room) .ac-seat.ac-turn{opacity:1;border-color:#e6bd7a;box-shadow:0 0 0 1px rgba(230,189,122,.45),0 10px 28px rgba(0,0,0,.5)}',
       /* 차례인 카드의 귀퉁이 금색 삼각(Chess Ultra). 글자 화살표보다 멀리서 보인다 */
@@ -514,14 +515,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:hover{background:rgba(120,80,40,.12);transform:none}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{color:#8f4f1c;font-weight:600}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-sep{display:block;height:1px;margin:6px 4px;background:rgba(120,80,40,.22)}',
-      /* 소리와 전체화면은 선으로 그린 그림 + 글자. 이모지는 방의 물건이 아니다 */
-      '#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-emoji{display:none}',
+      /* 소리와 전체화면은 어디서나 선으로 그린 그림. 이모지 ⛶ 는 명조에서 깨진 상자로 떴다 (방은 2026-08-30, 평면은 2026-09-02 실측) */
+      '#acControls .ac-emoji{display:none}',
       '#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-lbl{display:inline}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound::before,#acPlay.ac-bare:has(.ac-t3room) #acFull::before{content:"";width:18px;height:18px;flex:0 0 auto;background:#5a4028;-webkit-mask:var(--ac-ico) center/contain no-repeat;mask:var(--ac-ico) center/contain no-repeat}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9a4 4 0 0 1 0 6%27/><path d=%27M18.5 6.5a8 8 0 0 1 0 11%27/></svg>")}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"]{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9l5 6M21 9l-5 6%27/></svg>")}',
+      '#acSound::before,#acFull::before{content:"";width:18px;height:18px;flex:0 0 auto;background:currentColor;opacity:.85;-webkit-mask:var(--ac-ico) center/contain no-repeat;mask:var(--ac-ico) center/contain no-repeat}',
+      '#acPlay.ac-bare:has(.ac-t3room) #acSound::before,#acPlay.ac-bare:has(.ac-t3room) #acFull::before{background:#5a4028;opacity:1}',
+      '#acSound{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9a4 4 0 0 1 0 6%27/><path d=%27M18.5 6.5a8 8 0 0 1 0 11%27/></svg>")}',
+      '#acSound[aria-pressed="false"]{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9l5 6M21 9l-5 6%27/></svg>")}',
       '#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"] .ac-lbl{opacity:.55}',
-      '#acPlay.ac-bare:has(.ac-t3room) #acFull{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5%27/></svg>")}',
+      '#acFull{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5%27/></svg>")}',
       /* 결과 종이 아래 행동 셋. 한 판 더는 옻칠에 금박, 나머지는 금테 알약 */
       '.ac-overacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}',
       '.ac-overacts:empty{display:none}',
@@ -745,7 +747,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 알림 줄은 왼쪽 위, 버튼은 아래 가운데. 한 덩이로 아래에 쌓으면 상 위 이름표를 덮음
          (2026-09-01 화면 실측) */
       '.ac-bjhud{position:absolute;inset:0;pointer-events:none;z-index:6}',
-      '.ac-bjlines{position:absolute;left:14px;top:12px;display:flex;flex-direction:column;align-items:flex-start;gap:5px}',
+      /* 칩과 패 줄은 오른쪽 위, 메뉴 아래. 왼쪽 위는 자리 카드가 쓴다(겹쳐서 가려졌다, 2026-09-02 실측) */
+      '.ac-bjlines{position:absolute;right:14px;top:64px;display:flex;flex-direction:column;align-items:flex-end;gap:5px}',
       '.ac-bjacts{position:absolute;left:0;right:0;bottom:16px}',
       '.ac-bjline{padding:4px 14px;border-radius:var(--radius-pill);background:rgba(24,20,16,.62);color:#f3ead8;font-size:var(--font-size-sm);backdrop-filter:blur(3px)}',
       '.ac-bjline.ac-me{background:rgba(40,32,22,.78);font-weight:700}',
@@ -1590,6 +1593,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
   function draw(container: HTMLElement): void {
     injectStyles();
+    /* 판 세대. 나가기와 새 판 시작이 올림. 늦게 오는 타이머와 조각 로딩은 제 세대가 아니면 손 뗌.
+       없던 때의 사고 둘: 배우기 끝 타이머가 나간 뒤 로비에서 판을 엶, 조각을 받는 사이 다른 판을
+       고르면 먼저 고른 판이 나중에 덮어씀 (2026-09-02 감사) */
+    let epoch = 0;
+    /* 문서와 창에 건 리스너는 위젯이 내려갈 때 한 번에 끊는다. 핫리로드마다 쌓이던 것 */
+    const gone = new AbortController();
+    const dying = { signal: gone.signal };
     /* 오락실 전용 스킨의 뿌리. 이 클래스 아래에서만 토큰이 바뀐다(다른 위젯 불변). */
     container.classList.add('ac-root');
     if (typeof Mdd !== 'undefined') Mdd?.linePreset?.('tool_run', { msg: t('arcade.mdd') });
@@ -1779,7 +1789,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
     window.addEventListener('resize', () => {
       if (play.classList.contains('ac-roomfill')) fillVars();
-    });
+    }, dying);
 
     const show = (which: 'lobby' | 'wait' | 'play'): void => {
       lobby.style.display = which === 'lobby' ? '' : 'none';
@@ -2261,8 +2271,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     let plan: Plan | null = null;
     /** 지금 화면에 도는 것이 **다시 보기**인가. 그렇다면 손이 안 먹는다. */
     let replaying = false;
-    /** 되살리는 중 아직 안 넣은 수의 자리 */
-    let tapeAt = 0;
     /**
      * 복기. 판을 씨앗으로 다시 굴려 **수마다 장면**을 잡아 두고 타임라인으로 넘김
      * `branch` 는 Try Play. 그 수까지 굴린 살아 있는 판에서 다른 수를 이어 두는 것
@@ -2530,20 +2538,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
          밖에서 기다리는 검사가 그걸 모르면 제 맘대로 잡은 참을성으로 안 끝났다고 적는다(2026-08-17 실측:
          참을성 60초인데 지뢰찾기 제한이 180초라, 그 놀이가 뽑히면 무조건 빨강이었다). */
       (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tap: (a: unknown) => sendAct(a), tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
-      seatsEl.innerHTML =
-        (watching ? '<span class="ac-seat ac-watch">👀 ' + esc(t('arcade.watch.now')) + '</span>' : '') +
-        v.seats
-          .map(
-            (s, i) =>
-              /* 봇 자리에는 표를 단다. 이름이 사람 이름(캐릭터)이라 글자로는 못 가른다 */
-              '<span class="ac-seat' + (i === mySeat ? ' ac-me' : '') +
-              (plan ? ' ac-team' + plan[i] : '') + '"' + (s.bot ? ' data-bot="1"' : '') + '>' +
-              (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
-              faceOf(v, i) +
-              '<span class="ac-seatname">' + esc(s.name) + (s.bot && !castByName(s.name) ? ' 🤖' : '') + '</span> <b>' + s.score + '</b>' +
-              bubbleOf(i, now) + '</span>'
-          )
-          .join('');
+      paintSeats(v, now);
       render?.(v, mySeat, now);
       if (match && match.moves !== seenMoves && tutorAt === null) {
         hintAt = null;
@@ -2671,18 +2666,56 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       }
     }
 
+    /**
+     * 자리 카드. **바뀐 자리만** 고쳐 씀
+     *
+     * 전에는 매 프레임 `innerHTML` 통째 교체. CSS 전환(.2s, .3s)과 얼굴 애니메이션이 매번
+     * 처음부터라 아무것도 안 움직임, 말풍선은 그래서 상태로 들고 얹는 우회 (2026-09-02 감사).
+     * 자리마다 그린 글자를 `data-k` 에 남기고 같으면 손대지 않음.
+     * 화면이 얹는 `ac-turn` 은 그대로 (매 프레임 화면이 다시 판정)
+     */
+    function paintSeats(v: MatchView<unknown>, now: number): void {
+      const items: { cls: string; bot: boolean; html: string }[] = [];
+      if (watching) items.push({ cls: 'ac-seat ac-watch', bot: false, html: '👀 ' + esc(t('arcade.watch.now')) });
+      v.seats.forEach((s, i) =>
+        items.push({
+          cls: 'ac-seat' + (i === mySeat ? ' ac-me' : '') + (plan ? ' ac-team' + plan[i] : ''),
+          /* 봇 자리에는 표를 단다. 이름이 사람 이름(캐릭터)이라 글자로는 못 가른다 */
+          bot: !!s.bot,
+          html:
+            (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
+            faceOf(v, i) +
+            '<span class="ac-seatname">' + esc(s.name) + (s.bot && !castByName(s.name) ? ' 🤖' : '') + '</span> <b>' + s.score + '</b>' +
+            bubbleOf(i, now)
+        })
+      );
+      while (seatsEl.children.length > items.length) seatsEl.lastElementChild?.remove();
+      let row = 0;
+      items.forEach((it, i) => {
+        let el = seatsEl.children[i] as HTMLElement | undefined;
+        if (!el) {
+          el = document.createElement('span');
+          seatsEl.append(el);
+        }
+        /* 상대 자리의 줄 번호. 방 표현이 위에서부터 한 장씩 내려 놓는다 */
+        const mine = it.cls.includes('ac-me') || it.cls.includes('ac-watch');
+        el.style.setProperty('--ac-row', String(mine ? 0 : row));
+        if (!mine) row += 1;
+        const key = it.cls + '|' + (it.bot ? 1 : 0) + '|' + it.html;
+        if (el.dataset.k === key) return;
+        el.dataset.k = key;
+        const turn = el.classList.contains('ac-turn');
+        el.className = it.cls + (turn ? ' ac-turn' : '');
+        if (it.bot) el.dataset.bot = '1';
+        else delete el.dataset.bot;
+        el.innerHTML = it.html;
+      });
+    }
+
     function loop(): void {
       raf = requestAnimationFrame(loop);
       if (match) {
         const now = performance.now() - t0;
-        /* 다시 보기 중이면 **적어 둔 수를 그때가 되면 다시 넣는다.** 봇의 수는 안 넣는다 . 
-           커널이 같은 씨앗에서 똑같이 만들어 내기 때문이다(`replay.ts` 와 같은 규율). */
-        if (replaying && tape) {
-          while (tapeAt < tape.moves.length && tape.moves[tapeAt].at <= match.clock()) {
-            const mv = tape.moves[tapeAt++];
-            match.dispatch(mv.seat, mv.action);
-          }
-        }
         match.step(now);
         const v0 = match.view();
         if (hintAt && performance.now() > hintAt.until) hintAt = null;
@@ -3062,11 +3095,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
          저마다 기다리게 하면 언젠가 한 곳을 빠뜨린다. 문을 하나로 두고 여기서만 기다린다. */
       if (!g) {
+        const e = epoch;
         void ensureGame(id).then(() => {
-          if (gameById(id)) beginMatch(id, seats, seed, want, mine);
+          if (e === epoch && gameById(id)) beginMatch(id, seats, seed, want, mine);
         });
         return;
       }
+      epoch += 1;
       gameId = id;
       mySeat = mine;
       offerOpen = null;
@@ -3251,9 +3286,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function startTutor(id: string): void {
       const g = gameById(id);
       if (!g) {
-        void ensureGame(id).then(() => { if (gameById(id)) startTutor(id); });
+        const e = epoch;
+        void ensureGame(id).then(() => { if (e === epoch && gameById(id)) startTutor(id); });
         return;
       }
+      epoch += 1;
       net?.leave();
       net = null;
       plan = null;
@@ -3282,7 +3319,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         cancelAnimationFrame(raf);
         match = null;
         say(t('arcade.tutor.done'), 'ok');
-        window.setTimeout(() => { if (tutorAt === null) startSolo(id); }, 900);
+        /* 그 사이 나갔으면(세대가 바뀜) 로비에서 판을 저 혼자 열지 않는다 */
+        const e = epoch;
+        window.setTimeout(() => { if (e === epoch && tutorAt === null) startSolo(id); }, 900);
         return;
       }
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
@@ -3329,8 +3368,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (isAnswer(lesson, cell)) {
         match.dispatch(mySeat, { cell });
         blip('good');
+        const e = epoch;
         window.setTimeout(() => {
-          if (tutorAt === null) return;
+          if (e !== epoch || tutorAt === null) return;
           tutorAt += 1;
           layTutor();
         }, 1100);
@@ -3361,11 +3401,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function openLetter(post: Letter): void {
       const g = gameById(post.game);
       if (!g) {
+        const e = epoch;
         void ensureGame(post.game).then(() => {
-          if (gameById(post.game)) openLetter(post);
+          if (e === epoch && gameById(post.game)) openLetter(post);
         });
         return;
       }
+      epoch += 1;
       net?.leave();
       net = null;
       tour = null;
@@ -4300,30 +4342,53 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       else if (ev.key === ' ') { tlPlay(!review.playing); }
       else return;
       ev.preventDefault();
-    });
+    }, dying);
 
     /** 다른 게임. 방을 든 채 로비로. 손님에게는 고르는 중이라고 알린다. */
     swapBtn.onclick = (): void => {
       if (!net?.host) return;
       net.say({ kind: 'picking' });
-      cancelAnimationFrame(raf);
-      match = null;
-      render = null;
-      againBtn.style.display = 'none';
-      swapBtn.style.display = 'none';
+      dropPlay();
       replayBtn.style.display = 'none';
-      endReview(false);
-      tutorAt = null;
-      $<HTMLElement>('#acLesson').hidden = true;
-      replaying = false;
-      plan = null;
-      letter = null;
-      $<HTMLElement>('#acLetter').style.display = 'none';
       hideResult();
       paintRoom();
       paintPicks();
       show('lobby');
     };
+
+    /**
+     * 판 내려놓기. 나가기와 다른 게임이 같이 씀
+     *
+     * 전에는 나가기가 `match` 만 비우고 복기 타이머, 배우기 장, 편지, 팀 편성, 컷인, 말풍선은
+     * 그대로. 복기 중에 나가면 그 타이머가 로비에서도 돌며 자리 카드를 덮어씀, 팀전 뒤 개인전에
+     * 편 색이 샐 자리 (2026-09-02 감사). 세대(`epoch`)를 올려 늦게 오는 타이머도 손 뗌
+     */
+    function dropPlay(): void {
+      epoch += 1;
+      endReview(false);
+      cancelAnimationFrame(raf);
+      match = null;
+      shadow = null;
+      render = null;
+      replaying = false;
+      tutorAt = null;
+      $<HTMLElement>('#acLesson').hidden = true;
+      plan = null;
+      letter = null;
+      $<HTMLElement>('#acLetter').style.display = 'none';
+      watching = false;
+      hintAt = null;
+      bubbles.clear();
+      if (cutTimer) {
+        window.clearTimeout(cutTimer);
+        cutTimer = 0;
+      }
+      const cut = $<HTMLElement>('#acCutin');
+      cut.classList.remove('ac-on');
+      cut.hidden = true;
+      againBtn.style.display = 'none';
+      swapBtn.style.display = 'none';
+    }
 
     const quit = (): void => {
       dropIntro?.();
@@ -4342,14 +4407,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
       held?.stop();
       held = null;
-      cancelAnimationFrame(raf);
       net?.leave();
       net = null;
-      match = null;
-      shadow = null;
-      render = null;
-      againBtn.style.display = 'none';
-      swapBtn.style.display = 'none';
+      dropPlay();
       hideResult();
       paintRoom();
       /* 방금 논 것이 **로비 전체**에 바로 반영돼야 한다. 추천 여섯의 차례뿐 아니라
@@ -4413,11 +4473,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       stageEl.style.setProperty('--ac-stage', `min(62vw, ${remainingHeight}px, 640px)`);
     };
     /* 판이 그려질 때마다 다시 잰다. 그때가 무대가 확실히 보이는 시점이다. */
-    new MutationObserver(() => requestAnimationFrame(fitStage))
-      .observe($<HTMLElement>('#acView'), { childList: true, subtree: false });
-    window.addEventListener('resize', () => requestAnimationFrame(fitStage));
-    window.addEventListener('orientationchange', () => requestAnimationFrame(fitStage));
-    document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitStage));
+    const viewWatch = new MutationObserver(() => requestAnimationFrame(fitStage));
+    viewWatch.observe($<HTMLElement>('#acView'), { childList: true, subtree: false });
+    window.addEventListener('resize', () => requestAnimationFrame(fitStage), dying);
+    window.addEventListener('orientationchange', () => requestAnimationFrame(fitStage), dying);
+    document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitStage), dying);
 
     const controls = $<HTMLElement>('#acControls');
     const menuBtn = $<HTMLButtonElement>('#acMenu');
@@ -4426,7 +4486,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const stage = $<HTMLElement>('#acStage');
       if (document.fullscreenElement === stage) stage.append(menuBtn, controls);
       else controlsHome?.append(menuBtn, controls);
-    });
+    }, dying);
     /* 방의 메뉴. 버튼 하나가 종이를 내리고 올린다. 줄 하나를 고르면 닫힘(소리 켜고 끄기는 열린 채) */
     const setMenu = (open: boolean): void => {
       if (open) tidySeps();
@@ -4459,10 +4519,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!play.classList.contains('ac-menu-open')) return;
       const el = ev.target as HTMLElement;
       if (!controls.contains(el) && !menuBtn.contains(el)) setMenu(false);
-    });
+    }, dying);
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape' && play.classList.contains('ac-menu-open')) setMenu(false);
-    });
+    }, dying);
 
     /* 표현 갈아 끼우기. 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
     $<HTMLButtonElement>('#acUndo').onclick = undo;
@@ -4556,6 +4616,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     Toolbox.onDispose?.(() => {
       cancelAnimationFrame(raf);
       net?.leave();
+      /* 문서와 창의 리스너, 무대 관찰자, 복기와 등급전 타이머까지. 남기면 핫리로드마다 쌓인다 */
+      gone.abort();
+      viewWatch.disconnect();
+      review?.timer?.();
+      rankedTick?.();
+      stopLinkWatch();
+      if (cutTimer) window.clearTimeout(cutTimer);
     });
   }
 })();
