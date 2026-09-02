@@ -516,6 +516,7 @@
   "arcade.rank.damped": "Many games with the same opponent, so the rating change is smaller",
   "arcade.rank.gone": "Your rival left. A rating only lands when both sides report",
   "arcade.rank.nolink": "Could not reach your rival. Some networks block a direct link. Leave and queue again",
+  "arcade.room.nonet": "Could not load the room module. Reload and open the room again",
   "arcade.rank.nopoint": "No report came from the other side, so this game changed no rating",
   "arcade.rank.tier.0": "Novice",
   "arcade.rank.tier.1": "Student",

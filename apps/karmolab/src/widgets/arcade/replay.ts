@@ -16,7 +16,7 @@
  * 봇의 수는 **안 적는다.** 적으면 두 벌이 되고, 두 벌은 언젠가 갈린다. 커널이 같은 씨앗에서
  * 똑같이 만들어 내는 것을 굳이 받아 적을 이유가 없다.
  */
-import { Match, type SeatSpec } from './kernel';
+import { Match, type MatchView, type SeatSpec } from './kernel';
 import type { GameDef, GameOpts } from './types';
 
 /** 한 판을 되살리는 데 필요한 전부. */
@@ -74,4 +74,76 @@ export function sameAs<S, A>(a: Match<S, A>, b: Match<S, A>): boolean {
   const strip = (m: Match<S, A>): string =>
     JSON.stringify({ state: m.view().state, scores: m.view().seats.map((s) => s.score), fin: m.view().finished });
   return strip(a) === strip(b);
+}
+
+/** 복기 장면 하나. 그 수까지 둔 판의 그림과 그때 시각 */
+export interface Scene<S> {
+  at: number;
+  v: MatchView<S>;
+}
+
+/**
+ * 복기 장면들. 판을 씨앗으로 다시 굴리며 **수가 먹힐 때마다** 장면 하나
+ *
+ * `order` 는 판 칸이 있는 놀이에서 알이 놓인 칸의 차례(수 번호 표시용). 판이 없으면 빈 배열.
+ * 장면 0 은 빈 판. 마지막 장면은 끝났다는 판정까지.
+ * 전에는 `arcade.ts` 의 복기와 곁가지가 같은 되감기 고리를 각자 소유 (2026-09-02 감사 B2)
+ */
+export function scenes<S, A>(game: GameDef<S, A>, tape: Tape<A>): { frames: Scene<S>[]; order: number[] } {
+  const m = new Match(game, tape.seed, tape.seats, tape.opts ?? {});
+  const snap = (): MatchView<S> => {
+    const v = m.view();
+    return { ...v, seats: v.seats.map((s) => ({ ...s })) };
+  };
+  const frames: Scene<S>[] = [{ at: 0, v: snap() }];
+  const order: number[] = [];
+  const boardOf = (v: MatchView<S>): number[] | null => {
+    const b = (v.state as { board?: unknown } | null)?.board;
+    return Array.isArray(b) ? (b as number[]) : null;
+  };
+  const take = (): void => {
+    while (frames.length - 1 < m.moves) {
+      const v = snap();
+      const prev = boardOf(frames[frames.length - 1].v);
+      const next = boardOf(v);
+      if (prev && next) {
+        let cell = -1;
+        for (let i = 0; i < next.length; i += 1) if (next[i] !== prev[i] && next[i]) { cell = i; break; }
+        order.push(cell);
+      }
+      frames.push({ at: m.clock(), v });
+    }
+  };
+  let i = 0;
+  const STEP = 16;
+  for (let guard = 0; guard < 200000; guard += 1) {
+    while (i < tape.moves.length && tape.moves[i].at <= m.clock()) {
+      const mv = tape.moves[i++];
+      m.dispatch(mv.seat, mv.action);
+      take();
+    }
+    m.step(m.clock() + STEP);
+    take();
+    if (m.view().finished) break;
+    if (m.clock() > tape.end + STEP && i >= tape.moves.length) break;
+  }
+  const last = frames[frames.length - 1];
+  last.v = snap();
+  last.at = m.clock();
+  return { frames, order };
+}
+
+/** 그 수까지만 굴린 **살아 있는** 판. Try Play(곁가지)가 여기서 이어 둔다 */
+export function matchAt<S, A>(game: GameDef<S, A>, tape: Tape<A>, k: number): Match<S, A> {
+  const m = new Match(game, tape.seed, tape.seats, tape.opts ?? {});
+  let i = 0;
+  for (let guard = 0; guard < 200000 && m.moves < k; guard += 1) {
+    while (i < tape.moves.length && tape.moves[i].at <= m.clock() && m.moves < k) {
+      const mv = tape.moves[i++];
+      m.dispatch(mv.seat, mv.action);
+    }
+    if (m.moves >= k) break;
+    m.step(m.clock() + 16);
+  }
+  return m;
 }

@@ -516,6 +516,7 @@
   "arcade.rank.damped": "같은 상대와 여러 판이라 점수 폭이 줄었습니다",
   "arcade.rank.gone": "상대가 나갔습니다. 점수는 양쪽이 끝났다고 알려야 매겨집니다",
   "arcade.rank.nolink": "상대와 연결이 안 됩니다. 회선이 서로를 막는 경우가 있습니다. 나갔다가 다시 서 보세요",
+  "arcade.room.nonet": "방 부품을 못 받았습니다. 새로고침한 뒤 다시 여세요",
   "arcade.rank.nopoint": "상대 쪽 알림이 오지 않아 이 판은 점수가 안 매겨졌습니다",
   "arcade.rank.tier.0": "초심",
   "arcade.rank.tier.1": "수련",

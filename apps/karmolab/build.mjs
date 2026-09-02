@@ -334,6 +334,29 @@ for (const rel of entryPoints) {
   }
   if (table.length) console.log(`[build] 오락실 게임 ${table.length}판 → arcade/games/*.js (누를 때 하나만 받는다)`);
 
+  /* P2P(trystero) 는 방을 열 때만. 로비 묶음에서 55KB 를 덜어낸다 (`arcade/net-loader.ts`) */
+  await esbuild.build({
+    stdin: {
+      contents:
+        `import { connect } from './src/widgets/arcade/net';
+` +
+        `const w = window;
+` +
+        `w.__ARCADE_NET = { connect };
+`,
+      resolveDir: root,
+      loader: 'ts'
+    },
+    outfile: join(root, 'arcade/net.js'),
+    ...FULL_MINIFY,
+    bundle: true,
+    format: 'iife',
+    platform: 'browser',
+    target: ['es2020'],
+    logLevel: 'silent'
+  });
+  console.log('[build] 오락실 P2P → arcade/net.js (방을 열 때 받는다)');
+
   /*
    * ★ **입체 화면은 따로 굽는다**. 같은 규칙, 다른 표현.
    *

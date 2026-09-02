@@ -57,6 +57,8 @@ apps/karmolab/core/*.js
 apps/karmolab/arcade/games/*.js
 # 같은 조각의 **입체 표현** — 3D 로 볼 때만 받는다. 소스는 `games/*-view3d.ts`.
 apps/karmolab/arcade/games3d/*.js
+# P2P 조각. 방을 열 때만 받는다. 소스는 `src/widgets/arcade/net.ts`
+apps/karmolab/arcade/net.js
 apps/karmolab/sw.js
 
 # 손 인식 연장 (change.motion-3d-cores) — wasm 12MB + 손 모델 7MB. `npm run fetch:hand` 로 받는다.

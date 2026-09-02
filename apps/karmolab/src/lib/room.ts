@@ -17,7 +17,6 @@
  * 사람들 사이에서만 흐른다.
  */
 import { joinRoom, selfId, type DataPayload } from 'trystero/nostr';
-import { toolPage } from './site-base';
 
 /**
  * 짝짓기를 거칠 **중계 목록**. 기본값에 맡기면 앱 이름으로 뽑기 때문에 항상 같은 다섯 곳이
@@ -39,43 +38,10 @@ const RELAY_URLS = [
   'wss://nostr-01.yakihonne.com'
 ];
 
-export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
-export type Payload = { [k: string]: Json };
-
-export interface Peer {
-  id: string;
-  name: string;
-}
-
-/** 사람이 불러 주기 쉬운 글자만. `0, O, 1, I` 는 뺀다(전화로 불러 주다 늘 틀린다). */
-const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-/** 방 코드 하나. 다섯 글자면 같은 순간에 겹칠 일이 사실상 없고, 외워서 부를 수 있다. */
-export function makeCode(len = 5): string {
-  const buf = new Uint8Array(len);
-  crypto.getRandomValues(buf);
-  return [...buf].map((n) => CODE_ALPHABET[n % CODE_ALPHABET.length]).join('');
-}
-
-/**
- * 초대 링크. **방 이름은 물음표 뒤에 단다**. `#` 뒤는 셸이 어느 화면인가를 적는 자리라,
- * `#r=CODE` 로 열면 그 순간 `#arcade` 로 덮여 사라진다(오락실에서 실측했다).
- */
-export function inviteLink(toolPath: string, code: string): string {
-  const path = toolPath.startsWith('/') ? toolPath : toolPage(toolPath);
-  return `${location.origin}${path}?r=${code}`;
-}
-
-/**
- * 주소에서 방 코드를 읽는다. 물음표 뒤가 정본이고, `#r=` 는 **옛 링크만** 위해 같이 본다
- * (번개 대결이 그렇게 뿌린 링크가 아직 돌아다닌다).
- */
-export function codeFromUrl(): string | null {
-  const q = new URLSearchParams(location.search).get('r');
-  if (q) return q.trim().toUpperCase();
-  const m = location.hash.match(/[#&]r=([^&]+)/);
-  return m ? decodeURIComponent(m[1]).trim() : null;
-}
+/* 코드와 링크는 가벼운 쪽(`room-code.ts`)에. 여기서는 그대로 내보내 부르던 자리를 안 건드린다 */
+export { makeCode, inviteLink, codeFromUrl } from './room-code';
+export type { Json, Payload, Peer } from './room-code';
+import type { Json, Payload, Peer } from './room-code';
 
 export interface Channel<T> {
   send(data: T, target?: string): void;

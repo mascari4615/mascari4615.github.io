@@ -516,6 +516,7 @@
   "arcade.rank.damped": "同じ相手と何局も打ったので変動幅を小さくしました",
   "arcade.rank.gone": "相手が退出しました. 点数は両者が終了を伝えると入ります",
   "arcade.rank.nolink": "相手とつながりません. 回線が互いを塞ぐことがあります. 出てから並び直してください",
+  "arcade.room.nonet": "部屋の部品を受け取れませんでした. 再読み込みして開き直してください",
   "arcade.rank.nopoint": "相手からの報告が来ず, この対局は点数がつきませんでした",
   "arcade.rank.tier.0": "初心",
   "arcade.rank.tier.1": "修練",

@@ -30,7 +30,7 @@ import type { GameDef } from './types';
 import { seedFrom } from './rng';
 import { iconOf, kindOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
-import { makeCode, inviteLink } from '../../lib/room';
+import { makeCode, inviteLink } from '../../lib/room-code';
 import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { handMode, handNow, nextHandMode } from './hands';
@@ -69,12 +69,13 @@ import {
 import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
-import { record, type Tape } from './replay';
+import { record, scenes, matchAt, type Tape } from './replay';
 import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
 import type { Render } from './views';
-import { connect, type Net, type Peer, type Json } from './net';
+import type { Net, Peer, Json } from './net';
+import { ensureNet } from './net-loader';
 
 declare const Toolbox: {
   register: (w: unknown) => void;
@@ -2331,6 +2332,10 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       show('wait');
       $<HTMLInputElement>('#acUrl').value = inviteLink('arcade', code);
       paintWait(code, true);
+      /* P2P 조각은 여기서 처음 받는다. 받는 사이 나갔으면(세대가 바뀜) 방을 안 연다 */
+      const e = epoch;
+      void ensureNet().then((connect) => {
+      if (e !== epoch || net) return;
       net = connect(code, true, myName(), {
         onPeers: (list) => {
           const was = peers.length;
@@ -2362,6 +2367,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           /* 주인은 제 소식을 안 받는다 */
         }
       });
+      }, () => say(t('arcade.room.nonet'), 'warn'));
     }
 
     /* ── 등급전 ────────────────────────────────────────────────────
@@ -2469,6 +2475,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       peers = [];
       show('wait');
       paintWait(code, false);
+      const e = epoch;
+      void ensureNet().then((connect) => {
+      if (e !== epoch || net) return;
       net = connect(code, false, myName(), {
         onPeers: (list) => {
           const was = peers.length;
@@ -2533,6 +2542,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         }
       });
       if (rankedRoster) net.act({ meta: rankedRoster.joinMeta() });
+      }, () => say(t('arcade.room.nonet'), 'warn'));
     }
 
     /** 주인이 판을 연다. 자리를 정하는 것은 주인 하나뿐이다. */
@@ -2636,47 +2646,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function startReview(): void {
       const g = gameById(gameId);
       if (!g || !tape) return;
-      const tp = tape;
-      const m = new Match(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
-      const snap = (): MatchView<unknown> => {
-        const v = m.view();
-        return { ...v, seats: v.seats.map((s) => ({ ...s })) };
-      };
-      const frames: Array<{ at: number; v: MatchView<unknown> }> = [{ at: 0, v: snap() }];
-      const order: number[] = [];
-      const boardOf = (v: MatchView<unknown>): number[] | null => {
-        const b = (v.state as { board?: unknown } | null)?.board;
-        return Array.isArray(b) ? (b as number[]) : null;
-      };
-      const take = (): void => {
-        while (frames.length - 1 < m.moves) {
-          const v = snap();
-          const prev = boardOf(frames[frames.length - 1].v);
-          const next = boardOf(v);
-          if (prev && next) {
-            let cell = -1;
-            for (let i = 0; i < next.length; i += 1) if (next[i] !== prev[i] && next[i]) { cell = i; break; }
-            order.push(cell);
-          }
-          frames.push({ at: m.clock(), v });
-        }
-      };
-      let i = 0;
-      for (let guard = 0; guard < 200000; guard += 1) {
-        while (i < tp.moves.length && tp.moves[i].at <= m.clock()) {
-          const mv = tp.moves[i++];
-          m.dispatch(mv.seat, mv.action);
-          take();
-        }
-        m.step(m.clock() + 16);
-        take();
-        if (m.view().finished) break;
-        if (m.clock() > tp.end + 16 && i >= tp.moves.length) break;
-      }
-      /* 끝 장면은 마지막 수 뒤의 판정(끝났다)까지 담는다 */
-      const last = frames[frames.length - 1];
-      last.v = snap();
-      last.at = m.clock();
+      /* 판을 만든 정의(고스트 등)로 굴린다. 맨 정의로 굴리면 딴 판이 된다 (2026-08-30 사고) */
+      const { frames, order } = scenes(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tape);
       cancelAnimationFrame(raf);
       match = null;
       replaying = true;
@@ -2752,17 +2723,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function branchFrom(k: number): boolean {
       const g = gameById(gameId);
       if (!g || !tape || !review) return false;
-      const tp = tape;
-      const m = new Match(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tp.seed, tp.seats, tp.opts ?? {}) as Match<unknown, unknown>;
-      let i = 0;
-      for (let guard = 0; guard < 200000 && m.moves < k; guard += 1) {
-        while (i < tp.moves.length && tp.moves[i].at <= m.clock() && m.moves < k) {
-          const mv = tp.moves[i++];
-          m.dispatch(mv.seat, mv.action);
-        }
-        if (m.moves >= k) break;
-        m.step(m.clock() + 16);
-      }
+      const m = matchAt(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tape, k) as Match<unknown, unknown>;
       if (m.view().finished) return false;
       /* 내 차례인 수에서만. 봇 차례에서 갈라지면 봇이 먼저 두어 무엇이 내 수인지 헷갈린다(실측) */
       if (g.canAct && !g.canAct(m.view().state as never, mySeat)) return false;
