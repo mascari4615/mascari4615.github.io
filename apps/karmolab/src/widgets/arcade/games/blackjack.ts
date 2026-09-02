@@ -20,7 +20,7 @@
  * 그래서 뒤집는 연출이 통째로 없었음. 지금은 넣어 두고 `redact` 로 남의 창에서 지움
  */
 import type { GameDef, BotMove, Outcome, GameCtx } from '../types';
-import { makeShoe, codeRank } from '../deck';
+import { makeShoe, codeRank, codeSuit, isRedSuit } from '../deck';
 
 /** 슈 몇 벌. 카지노는 6~8 */
 const DECKS = 6;
@@ -33,6 +33,8 @@ export const START_CHIPS = 100;
  * (2026-09-01 화면 실측). 보험과 서렌더의 절반도 짝수라야 딱 떨어짐
  */
 export const BETS: readonly number[] = [2, 4, 10, 20, 50];
+/** 퍼펙트 페어 곁수는 본판과 따로 2칩만 건다. */
+export const PAIR_BET = 2;
 /** 결과를 보여 주고 다음 손으로 넘어가기까지 */
 const SHOW_MS = 2600;
 /** 스플릿 상한. 손 넷까지 */
@@ -41,6 +43,17 @@ const MAX_HANDS = 4;
 /** 한 손의 결과 여섯. 화면은 이 목록을 읽지 다시 적지 않는다 */
 export const BJ_RESULTS = ['bj', 'win', 'push', 'lose', 'bust', 'surrender'] as const;
 export type BjRes = (typeof BJ_RESULTS)[number];
+export type PairRes = 'perfect' | 'colored' | 'mixed' | 'none';
+
+/** 첫 두 장의 퍼펙트 페어 판정. 같은 무늬 25:1, 같은 색 12:1, 다른 색 6:1. */
+export function perfectPair(cards: readonly number[]): { res: PairRes; odds: number } {
+  if (cards.length < 2 || codeRank(cards[0]) !== codeRank(cards[1])) return { res: 'none', odds: 0 };
+  const a = codeSuit(cards[0]);
+  const b = codeSuit(cards[1]);
+  if (a === b) return { res: 'perfect', odds: 25 };
+  if (isRedSuit(a) === isRedSuit(b)) return { res: 'colored', odds: 12 };
+  return { res: 'mixed', odds: 6 };
+}
 
 export interface BjHand {
   /** 카드 번호 0~51 (`deck.ts` 의 셈법) */
@@ -67,6 +80,11 @@ export interface BjSeat {
   bet: number;
   /** 보험에 넣은 값 */
   insurance: number;
+  /** 첫 두 장 퍼펙트 페어에 따로 건 값 */
+  pairBet: number;
+  pairRes?: PairRes;
+  /** 곁수의 순이익. 지면 음수 */
+  pairPay?: number;
   /** 보험 물음에 답했나 */
   answered: boolean;
 }
@@ -91,6 +109,7 @@ export interface BlackjackState {
 
 export type BlackjackAction =
   | { kind: 'bet'; amount: number }
+  | { kind: 'pair'; take: boolean }
   | { kind: 'insure'; take: boolean }
   | { kind: 'hit' }
   | { kind: 'stand' }
@@ -154,6 +173,7 @@ const mkSeat = (chips: number): BjSeat => ({
   chips,
   bet: 0,
   insurance: 0,
+  pairBet: 0,
   answered: false
 });
 
@@ -293,6 +313,14 @@ const deal = (s: BlackjackState, now: number): void => {
     for (const st of s.seats) st.hands[0].cards.push(take(s));
     s.dealer.push(take(s));
   }
+  /* 곁수는 첫 두 장이 놓인 즉시 본판과 독립해 끝난다. */
+  for (const st of s.seats) {
+    if (st.pairBet < 1) continue;
+    const pair = perfectPair(st.hands[0].cards);
+    st.pairRes = pair.res;
+    st.pairPay = pair.odds > 0 ? st.pairBet * pair.odds : -st.pairBet;
+    if (pair.odds > 0) st.chips += st.pairBet + st.pairPay;
+  }
   /* 딜러가 에이스를 보이면 보험을 물음 */
   if (codeRank(s.dealer[0]) === 1) {
     s.phase = 'insure';
@@ -325,6 +353,9 @@ const nextHand = (s: BlackjackState): void => {
   for (const st of s.seats) {
     st.bet = 0;
     st.insurance = 0;
+    st.pairBet = 0;
+    delete st.pairRes;
+    delete st.pairPay;
     st.answered = false;
   }
 };
@@ -368,6 +399,21 @@ export const blackjack: GameDef<BlackjackState, BlackjackAction> = {
     if (!st0 || !a) return s0;
 
     if (s0.phase === 'bet') {
+      if (a.kind === 'pair') {
+        if (st0.bet !== 0) return s0;
+        const s = clone(s0);
+        const st = s.seats[seat];
+        if (a.take) {
+          if (st.pairBet > 0 || st.chips < PAIR_BET + BETS[0]) return s0;
+          st.pairBet = PAIR_BET;
+          st.chips -= PAIR_BET;
+        } else {
+          if (st.pairBet < 1) return s0;
+          st.chips += st.pairBet;
+          st.pairBet = 0;
+        }
+        return s;
+      }
       if (a.kind !== 'bet') return s0;
       if (st0.bet !== 0) return s0;
       const want = Math.floor(a.amount);

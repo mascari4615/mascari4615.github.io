@@ -32,6 +32,9 @@ const { allFaceUp, autoStep, foundationFor } = await import(pathToFileURL(solOut
 const hanaOut = join(dir, 'hana.mjs');
 await build({ entryPoints: ['src/widgets/arcade/games/hanafuda.ts'], bundle: true, format: 'esm', platform: 'node', outfile: hanaOut, logLevel: 'silent' });
 const { hanafuda, yakuPoints } = await import(pathToFileURL(hanaOut).href);
+const blackjackOut = join(dir, 'blackjack.mjs');
+await build({ entryPoints: ['src/widgets/arcade/games/blackjack.ts'], bundle: true, format: 'esm', platform: 'node', outfile: blackjackOut, logLevel: 'silent' });
+const { blackjack, perfectPair } = await import(pathToFileURL(blackjackOut).href);
 const netOut = join(dir, 'net.mjs');
 await build({ entryPoints: ['src/widgets/arcade/net.ts'], bundle: true, format: 'esm', platform: 'browser', outfile: netOut, logLevel: 'silent' });
 const { OnlineRun } = await import(pathToFileURL(netOut).href);
@@ -94,6 +97,26 @@ console.log('[arcade] 화투 코이코이 결정');
   const stopped = hanafuda.reduce(offered, { kind: 'koi', continue: false }, 0, ctx);
   ok(stopped.over && hanafuda.outcome(stopped, ctx).over, '그만두면 손패가 남아도 즉시 점수를 확정한다');
   ok(hanafuda.bot(offered, 0, ctx)?.action.kind === 'koi', '봇도 코이코이 결정을 내린다');
+}
+
+console.log('[arcade] 블랙잭 퍼펙트 페어 곁수');
+{
+  const spade8 = 7;
+  const club8 = 20;
+  const heart8 = 33;
+  ok(perfectPair([spade8, spade8]).res === 'perfect' && perfectPair([spade8, spade8]).odds === 25, '같은 무늬 페어는 25:1');
+  ok(perfectPair([spade8, club8]).res === 'colored' && perfectPair([spade8, club8]).odds === 12, '같은 색 페어는 12:1');
+  ok(perfectPair([spade8, heart8]).res === 'mixed' && perfectPair([spade8, heart8]).odds === 6, '다른 색 페어는 6:1');
+  ok(perfectPair([spade8, heart8 + 1]).res === 'none', '끗수가 다르면 곁수를 잃는다');
+
+  const seats = [{ index: 0, name: '나', bot: false, score: 0 }];
+  const ctx = { seats, opts: {}, rng: () => 0.5, now: 0, round: 0 };
+  const ready = blackjack.init(ctx);
+  ready.shoe = [spade8, 9, spade8, 8];
+  const side = blackjack.reduce(ready, { kind: 'pair', take: true }, 0, ctx);
+  ok(side.seats[0].pairBet === 2 && side.seats[0].chips === 98, '본판 전에 곁수 2칩을 따로 건다');
+  const dealt = blackjack.reduce(side, { kind: 'bet', amount: 2 }, 0, ctx);
+  ok(dealt.seats[0].pairRes === 'perfect' && dealt.seats[0].pairPay === 50 && dealt.seats[0].chips === 148, '첫 두 장을 놓자마자 원금과 25배 순이익을 돌려준다');
 }
 
 console.log('[arcade] 온라인 방 수명');

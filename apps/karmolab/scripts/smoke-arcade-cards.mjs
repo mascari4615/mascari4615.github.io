@@ -69,6 +69,13 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
     });
     check(`${g}: 화면이 그려진다`, info.canvas || info.len > 6, info.canvas ? '입체' : `글자 ${info.len}자`);
     check(`${g}: 누를 것이 있다`, info.canvas || info.btns > 0, info.canvas ? '상 위 카드' : `${info.btns}개`);
+    if (g === 'blackjack') {
+      await page.waitForSelector('#acBjActs [data-do="pair"]');
+      await page.click('#acBjActs [data-do="pair"]');
+      await page.waitForSelector('#acBjActs [data-do="pair"][data-n="0"]');
+      const picked = await page.evaluate(() => window.__arcade?.state.seats[window.__arcade.mySeat]?.pairBet);
+      check('blackjack: 입체에서 퍼펙트 페어 곁수 2칩을 고른다', picked === 2, String(picked));
+    }
     if (g === 'president' && info.canvas) {
       await page.waitForFunction(() => {
         const measure = window.__bjMeasure?.();
@@ -104,6 +111,31 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
 }
 
 if (!cantRun) {
+  console.log('[arcade-cards] 블랙잭 평면 곁수');
+  {
+    const ctx = await browser.newContext({ serviceWorkers: 'block' });
+    const page = await ctx.newPage();
+    try {
+      await page.route('**/__dev', (r) => r.abort());
+      await page.goto(PAGE.replace(/#.*$/, ''), { waitUntil: 'domcontentloaded', timeout: 20000 });
+      await page.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
+      await page.evaluate(() => {
+        localStorage.setItem('karmolab.arcade.dim', '2d');
+        Toolbox.switchPage('arcade');
+      });
+      await page.click('[data-obj="blackjack"]');
+      await page.click('[data-solo="blackjack"]');
+      await page.waitForSelector('#acBjBar [data-do="pair"]');
+      await page.click('#acBjBar [data-do="pair"]');
+      await page.waitForSelector('#acBjBar [data-do="pair"][data-n="0"]');
+      const picked = await page.evaluate(() => window.__arcade?.state.seats[window.__arcade.mySeat]?.pairBet);
+      check('blackjack: 평면에서도 퍼펙트 페어 곁수 2칩을 고른다', picked === 2, String(picked));
+    } catch (e) {
+      check('blackjack: 평면 곁수 버튼이 열린다', false, String(e).slice(0, 90));
+    }
+    await ctx.close();
+  }
+
   console.log('[arcade-cards] 평면 공용 상. 내 자리와 손패');
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' });
   const page = await ctx.newPage();

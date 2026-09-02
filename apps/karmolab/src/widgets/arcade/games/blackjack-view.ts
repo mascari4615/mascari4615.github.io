@@ -22,6 +22,7 @@ import { cardBack, cardOf, applyDeckSkin } from '../card';
 import { codeRank, codeSuit } from '../deck';
 import {
   BETS,
+  PAIR_BET,
   HANDS,
   activeHand,
   options,
@@ -125,6 +126,7 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
       }
       const kind = b.dataset.do as string;
       if (kind === 'bet') send({ kind: 'bet', amount: Number(b.dataset.n || 1) });
+      else if (kind === 'pair') send({ kind: 'pair', take: b.dataset.n === '1' });
       else if (kind === 'insure') send({ kind: 'insure', take: b.dataset.n === '1' });
       else send({ kind } as BlackjackAction);
     };
@@ -228,7 +230,13 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
           const html =
             esc(v.seats[i]?.name ?? '') +
             ' <b>' + esc(t('arcade.blackjack.chips', { n: String(st.chips) })) + '</b>' +
-            (st.insurance > 0 ? ' <i>' + esc(t('arcade.blackjack.insure')) + '</i>' : '');
+            (st.insurance > 0 ? ' <i>' + esc(t('arcade.blackjack.insure')) + '</i>' : '') +
+            (st.pairPay !== undefined
+              ? ' <i>' + esc(t('arcade.blackjack.pairResult', {
+                  result: t('arcade.blackjack.pair.' + st.pairRes),
+                  n: String(st.pairPay)
+                })) + '</i>'
+              : '');
           if (head.innerHTML !== html) head.innerHTML = html;
         }
         const cur = activeHand(st);
@@ -275,7 +283,12 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
               (b) =>
                 '<button class="btn btn-primary" data-do="bet" data-n="' + b + '"' +
                 (me.bet > 0 || me.chips < b ? ' disabled' : '') + '>' + b + '</button>'
-            ).join('') + rebet;
+            ).join('') + rebet +
+            '<button class="btn btn-ghost" data-do="pair" data-n="' + (me.pairBet > 0 ? '0' : '1') + '"' +
+            (me.bet > 0 || (me.pairBet < 1 && me.chips < PAIR_BET + BETS[0]) ? ' disabled' : '') + '>' +
+            esc(me.pairBet > 0
+              ? t('arcade.blackjack.pairCancel', { n: String(PAIR_BET) })
+              : t('arcade.blackjack.pairBet', { n: String(PAIR_BET) })) + '</button>';
         } else if (me.bet > 0) {
           lastBet = me.bet;
         } else if (s.phase === 'insure') {
