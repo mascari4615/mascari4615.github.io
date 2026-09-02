@@ -39,9 +39,36 @@ function outcomeKey(outcome) {
   return outcome.placements.map((group) => [...group].sort().join('\u001f')).join('\u001e');
 }
 
+/*
+ * 등급전 양쪽 경계의 공용 계약. 브라우저의 버튼, 시계와 서버의 좌석, 배치 판 수.
+ * 게임 규칙과 점수 계산은 각 모듈 소유.
+ */
+const RANKED_CAPABILITIES = Object.freeze({
+  gomoku: Object.freeze({ minSeats: 2, maxSeats: 2, turnLimitSeconds: 60, settlingGames: 20 }),
+  yacht: Object.freeze({ minSeats: 2, maxSeats: 4, turnLimitSeconds: 60, settlingGames: 20 })
+});
+
+function rankedCapability(game) {
+  return RANKED_CAPABILITIES[game] ?? null;
+}
+
+function rankedSeatCounts(game) {
+  const capability = rankedCapability(game);
+  if (!capability) return [];
+  return Array.from({ length: capability.maxSeats - capability.minSeats + 1 }, (_, i) => capability.minSeats + i);
+}
+
+function supportsRanked(game, seats) {
+  const capability = rankedCapability(game);
+  return !!capability && seats[0] === capability.minSeats && seats[1] === capability.maxSeats;
+}
+
 module.exports = {
   flattenOutcome,
   normalizeOutcome,
   outcomeFromScores,
-  outcomeKey
+  outcomeKey,
+  rankedCapability,
+  rankedSeatCounts,
+  supportsRanked
 };

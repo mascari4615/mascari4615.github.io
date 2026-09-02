@@ -95,6 +95,7 @@
   "arcade.yacht.total": "合計 {n}",
   "arcade.yacht.win": "{who}の勝ち。{n}点",
   "arcade.yacht.draw": "{n}点で同じ",
+  "arcade.yacht.timeout": "{who} が時間切れで棄権した",
   "arcade.yacht.cat.ones": "1の目",
   "arcade.yacht.cat.twos": "2の目",
   "arcade.yacht.cat.threes": "3の目",

@@ -14,6 +14,35 @@ const ranked = await import(`data:text/javascript;base64,${Buffer.from(source).t
 assert.equal(ranked.supportsRanked('gomoku', [2, 2]), true);
 assert.equal(ranked.supportsRanked('yacht', [2, 4]), true);
 assert.equal(ranked.supportsRanked('fleet', [2, 4]), false);
+assert.equal(ranked.supportsRanked('speed', [2, 2]), false);
+assert.equal(ranked.rankedCapability('gomoku').turnLimitSeconds, 60);
+assert.equal(ranked.rankedCapability('yacht').settlingGames, 20);
+
+const yachtBuilt = await build({
+  entryPoints: ['src/widgets/arcade/games/yacht.ts'],
+  bundle: true,
+  format: 'esm',
+  platform: 'browser',
+  write: false
+});
+const yachtModule = await import(`data:text/javascript;base64,${Buffer.from(yachtBuilt.outputFiles[0].text).toString('base64')}`);
+const seats = ['A', 'B', 'C'].map((name, index) => ({ index, name, bot: false, score: 0 }));
+const ctx = (now) => ({ seats, opts: { limit: 60 }, rng: () => 0, now, round: 0 });
+let yachtState = yachtModule.yacht.init(ctx(0));
+assert.equal(yachtState.turnEndsAt, 60_000);
+assert.equal(yachtModule.yacht.tick(yachtState, ctx(59_999)), yachtState);
+yachtState = yachtModule.yacht.tick(yachtState, ctx(60_000));
+assert.deepEqual(yachtState.forfeited, [true, false, false]);
+assert.equal(yachtState.turn, 1);
+assert.equal(yachtState.turnEndsAt, 120_000);
+assert.equal(yachtModule.yacht.outcome(yachtState, ctx(60_000)).over, false);
+yachtState = yachtModule.yacht.tick(yachtState, ctx(120_000));
+assert.deepEqual(yachtState.forfeited, [true, true, false]);
+assert.deepEqual(yachtModule.yacht.outcome(yachtState, ctx(120_000)), {
+  over: true,
+  scores: [-1, -1, 0],
+  note: { key: 'arcade.yacht.timeout', params: { who: 'B' } }
+});
 
 for (const count of [2, 3, 4]) {
   const ids = Array.from({ length: count }, (_, seat) => `account-${seat}`);
@@ -48,4 +77,4 @@ for (const count of [2, 3, 4]) {
   }
 }
 
-console.log('[arcade-ranked] 통과. 등급전 지원 정책, 2, 3, 4인 좌석 동기화, 동률 결과');
+console.log('[arcade-ranked] 통과. 서버 공용 지원 정책, Yacht 시간 초과, 2~4인 좌석 동기화, 동률 결과');

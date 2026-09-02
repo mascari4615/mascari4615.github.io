@@ -11,7 +11,14 @@
  * - 기기 열쇠는 폐기. 기기마다 다른 사람이 되어 점수를 옮길 길이 따로 필요했음
  */
 import { intervalWhileVisible } from '../../lib/tick';
-import { outcomeFromScores, type RankedOutcome } from '@karmo/arcade';
+import {
+  outcomeFromScores,
+  rankedCapability,
+  supportsRanked as supportsRankedContract,
+  type RankedOutcome
+} from '@karmo/arcade';
+
+export { rankedCapability } from '@karmo/arcade';
 
 const HOST = 'https://yawnbot.mascari4615.com';
 /** 알림 주기. 서버 제외 한계 15초보다 넉넉히 자주 */
@@ -58,7 +65,7 @@ export interface Ranked {
  * 기존 계약. 야추는 서버의 2~4인 모집, 순위 합의 계약을 구현한 첫 가변 인원전
  */
 export function supportsRanked(game: string, seats: readonly [number, number]): boolean {
-  return (seats[0] === 2 && seats[1] === 2) || (game === 'yacht' && seats[0] === 2 && seats[1] === 4);
+  return supportsRankedContract(game, seats);
 }
 
 type Answer = {

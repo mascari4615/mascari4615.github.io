@@ -1,10 +1,12 @@
-import { flattenOutcome, type RankedOutcome } from '@karmo/arcade';
+import { flattenOutcome, rankedCapability, rankedSeatCounts, type RankedOutcome } from '@karmo/arcade';
 import { accumulatingFormation } from '../formation';
 import type { RankedGameRules, RatingContext, RatingState, StoredRating } from '../types';
 
 const START = 1500;
 const FLOOR = 100;
 const MMR_K = 24;
+const CAPABILITY = rankedCapability('yacht');
+if (!CAPABILITY) throw new Error('missing_ranked_capability:yacht');
 
 const formMs = Number.parseInt(process.env.ARCADE_YACHT_FORM_MS ?? '', 10);
 export const YACHT_FORM_MS = Number.isFinite(formMs) && formMs >= 0 ? formMs : 8 * 1000;
@@ -100,8 +102,8 @@ const calculate = ({ outcome, before, factor }: RatingContext): ReadonlyMap<stri
 
 export const yachtRules: RankedGameRules = {
   gameId: 'yacht',
-  supportedSeats: new Set([2, 3, 4]),
-  formation: accumulatingFormation(2, 4, YACHT_FORM_MS),
+  supportedSeats: new Set(rankedSeatCounts('yacht')),
+  formation: accumulatingFormation(CAPABILITY.minSeats, CAPABILITY.maxSeats, YACHT_FORM_MS),
   initial,
   hydrate,
   serialize,

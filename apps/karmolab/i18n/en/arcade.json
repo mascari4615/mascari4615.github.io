@@ -95,6 +95,7 @@
   "arcade.yacht.total": "Total {n}",
   "arcade.yacht.win": "{who} wins. {n}",
   "arcade.yacht.draw": "Tied at {n}",
+  "arcade.yacht.timeout": "{who} ran out of time and forfeited",
   "arcade.yacht.cat.ones": "Ones",
   "arcade.yacht.cat.twos": "Twos",
   "arcade.yacht.cat.threes": "Threes",

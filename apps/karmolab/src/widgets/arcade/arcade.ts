@@ -61,6 +61,7 @@ import {
   tapeFromUrl,
   tapeLink,
   RankedRoster,
+  rankedCapability,
   supportsRanked,
   type Ranked,
   type RankedMatch,
@@ -2130,12 +2131,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        *   그동안 점수가 큰 걸음으로 움직여 제자리를 빨리 찾게 함
        * - 안 적으면 다섯 판 둔 사람이 그 단위를 제 실력으로 읽음. 그건 거짓말
        */
-      const settling = rec.games < RANK_SETTLE;
+      const settlingGames = rankedCapability(id)?.settlingGames ?? 0;
+      const settling = rec.games < settlingGames;
       box.innerHTML =
         '<b>' + esc(name) + '</b> ' +
         esc(t('arcade.rank.record', { n: String(rec.rating), games: String(rec.games), wins: String(rec.wins) })) +
         (settling
-          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(RANK_SETTLE) }))
+          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(settlingGames) }))
           : g.toNext !== null
             ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) }))
             : '') +
@@ -2193,19 +2195,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
      *   한 단이라, 생각할 여유를 주고 60초. 예비가 생기면 20+60 꼴로 나눔
      * - 친선전과 혼자 판은 그대로 사람이 고름(없음, 30, 60, 120초)
      */
-    const RANKED_LIMIT = 60;
-
-    /**
-     * 이만큼 두기 전에는 점수가 아직 자리를 찾는 중
-     * - 서버 K값이 20판을 경계로 40에서 32 로 내려감. 화면도 같은 경계
-     * - lichess 는 대개 15에서 20판이면 임시가 풀린다(실측)
-     */
-    const RANK_SETTLE = 20;
-
     /** 이 판에 쓸 옵션. 등급전이면 시간 제한을 덮어씀 */
     function matchOpts(id: string): ReturnType<typeof optsFor> {
       const base = optsFor(id);
-      return rankedMatch || autoStart ? { ...base, limit: RANKED_LIMIT } : base;
+      const limit = rankedCapability(id)?.turnLimitSeconds ?? 0;
+      return rankedMatch || autoStart ? { ...base, limit } : base;
     }
 
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
@@ -2411,7 +2405,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acWaitStatus').textContent =
         t('arcade.rank.waiting', { n: String(rankedOthers) }) +
         ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) }) +
-        ', ' + t('arcade.rank.limit', { n: String(RANKED_LIMIT) });
+        ', ' + t('arcade.rank.limit', { n: String(rankedCapability(gameId)?.turnLimitSeconds ?? 0) });
     }
 
     function startRanked(id: string): void {

@@ -1,9 +1,11 @@
-import { flattenOutcome } from '@karmo/arcade';
+import { flattenOutcome, rankedCapability, rankedSeatCounts } from '@karmo/arcade';
 import { immediatePairFormation } from '../formation';
 import type { RankedGameRules, RatingContext, RatingState, StoredRating } from '../types';
 
 const START = 1500;
 const FLOOR = 100;
+const CAPABILITY = rankedCapability('gomoku');
+if (!CAPABILITY) throw new Error('missing_ranked_capability:gomoku');
 
 const numberOf = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -28,7 +30,7 @@ const serialize = (state: RatingState): StoredRating => ({
 });
 
 const kOf = (state: RatingState): number => {
-  if (state.games < 20) return 40;
+  if (state.games < CAPABILITY.settlingGames) return 40;
   if (state.publicRating >= 2200) return 24;
   return 32;
 };
@@ -60,7 +62,7 @@ const calculate = ({ outcome, before, factor }: RatingContext): ReadonlyMap<stri
 
 export const gomokuRules: RankedGameRules = {
   gameId: 'gomoku',
-  supportedSeats: new Set([2]),
+  supportedSeats: new Set(rankedSeatCounts('gomoku')),
   formation: immediatePairFormation(),
   initial,
   hydrate,

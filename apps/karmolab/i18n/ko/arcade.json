@@ -95,6 +95,7 @@
   "arcade.yacht.total": "합계 {n}",
   "arcade.yacht.win": "{who} 승리. {n}점",
   "arcade.yacht.draw": "{n}점으로 똑같다",
+  "arcade.yacht.timeout": "{who} 이(가) 시간을 넘겨 기권했다",
   "arcade.yacht.cat.ones": "일",
   "arcade.yacht.cat.twos": "이",
   "arcade.yacht.cat.threes": "삼",

@@ -32,12 +32,37 @@ export interface YachtState {
   turn: number;
   /** 자리별 칸 점수. null = 아직 안 씀 */
   sheet: Array<Record<Cat, number | null>>;
+  /** 이 판의 차례 제한(초). 0이면 친선 무제한 */
+  limit: number;
+  /** 현재 차례의 마감 시각. 제한이 없거나 판이 끝났으면 -1 */
+  turnEndsAt: number;
+  /** 시간을 넘겨 점수표가 0으로 닫힌 자리 */
+  forfeited: boolean[];
+  /** 가장 최근에 시간을 넘긴 자리. 없으면 -1 */
+  timedOut: number;
 }
 
 export type YachtAction = { kind: 'roll' } | { kind: 'keep'; index: number } | { kind: 'write'; cat: Cat };
 
 const emptySheet = (): Record<Cat, number | null> =>
   Object.fromEntries(CATS.map((c) => [c, null])) as Record<Cat, number | null>;
+
+const limitOf = (value: unknown): number => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+};
+
+const hasOpen = (sheet: Record<Cat, number | null> | undefined): boolean =>
+  !!sheet && CATS.some((cat) => sheet[cat] === null);
+
+const nextSeat = (sheets: YachtState['sheet'], forfeited: boolean[], seat: number): number => {
+  let next = seat;
+  for (let i = 0; i < sheets.length; i += 1) {
+    next = (next + 1) % sheets.length;
+    if (!forfeited[next] && hasOpen(sheets[next])) return next;
+  }
+  return seat;
+};
 
 const counts = (d: number[]): number[] => {
   const c = new Array(7).fill(0);
@@ -95,19 +120,45 @@ export const yacht: GameDef<YachtState, YachtAction> = {
   rounds: 1,
 
   init(ctx) {
+    const limit = limitOf(ctx.opts.limit);
     return {
       dice: Array.from({ length: DICE }, () => Math.floor(ctx.rng() * 6) + 1),
       keep: new Array(DICE).fill(true),
       rolled: 1,
       turn: 0,
-      sheet: ctx.seats.map(() => emptySheet())
+      sheet: ctx.seats.map(() => emptySheet()),
+      limit,
+      turnEndsAt: limit ? ctx.now + limit * 1000 : -1,
+      forfeited: ctx.seats.map(() => false),
+      timedOut: -1
+    };
+  },
+
+  clocked: true,
+  tick(s, ctx) {
+    if (!s.limit || ctx.now < s.turnEndsAt) return s;
+    const forfeited = s.forfeited.map((value, seat) => seat === s.turn ? true : value);
+    const sheet = s.sheet.map((current, seat) => seat === s.turn
+      ? Object.fromEntries(CATS.map((cat) => [cat, current[cat] ?? 0])) as Record<Cat, number | null>
+      : current);
+    const turn = nextSeat(sheet, forfeited, s.turn);
+    return {
+      ...s,
+      sheet,
+      forfeited,
+      timedOut: s.turn,
+      turn,
+      dice: Array.from({ length: DICE }, () => Math.floor(ctx.rng() * 6) + 1),
+      keep: new Array(DICE).fill(true),
+      rolled: 1,
+      turnEndsAt: turn === s.turn ? -1 : ctx.now + s.limit * 1000
     };
   },
 
   canAct(s, seat) {
     const mine = s.sheet[seat];
     /* 내 열두 칸이 다 차면 내 판은 끝. 남의 빈 칸은 내 차례의 근거가 아니다 */
-    return s.turn === seat && !!mine && CATS.some((c) => mine[c] === null);
+    return s.turn === seat && !s.forfeited[seat] && hasOpen(mine);
   },
 
   reduce(s, a, seat, ctx) {
@@ -138,18 +189,15 @@ export const yacht: GameDef<YachtState, YachtAction> = {
       const sheet = s.sheet.map((sh, i) => (i === seat ? { ...sh, [cat]: scoreOf(cat, s.dice) } : sh));
       /* 다 적은 자리는 건너뛴다. 안 건너뛰면 그 자리에서 차례가 멈춰 판이 안 끝난다(2026-08-31 실측:
          두 판째에 한 칸이 남은 채 세 자리가 굴리기만 반복했다) */
-      let next = (seat + 1) % ctx.seats.length;
-      for (let i = 0; i < ctx.seats.length; i += 1) {
-        const sh = sheet[next];
-        if (sh && CATS.some((c) => sh[c] === null)) break;
-        next = (next + 1) % ctx.seats.length;
-      }
+      const next = nextSeat(sheet, s.forfeited, seat);
       return {
+        ...s,
         sheet,
         turn: next,
         dice: Array.from({ length: DICE }, () => Math.floor(ctx.rng() * 6) + 1),
         keep: new Array(DICE).fill(true),
-        rolled: 1
+        rolled: 1,
+        turnEndsAt: next === seat ? -1 : (s.limit ? ctx.now + s.limit * 1000 : -1)
       };
     }
 
@@ -157,15 +205,18 @@ export const yacht: GameDef<YachtState, YachtAction> = {
   },
 
   outcome(s, ctx): Outcome {
-    if (s.sheet.some((sh) => CATS.some((c) => sh[c] === null))) return { over: false };
-    const scores = s.sheet.map(totalOf);
+    const active = s.forfeited.filter((value) => !value).length;
+    if (active > 1 && s.sheet.some((sh, seat) => !s.forfeited[seat] && hasOpen(sh))) return { over: false };
+    const scores = s.sheet.map((sheet, seat) => s.forfeited[seat] ? -1 : totalOf(sheet));
     const top = Math.max(...scores);
     const winners = ctx.seats.filter((_, i) => scores[i] === top);
     return {
       over: true,
       scores,
       note:
-        winners.length === ctx.seats.length
+        s.timedOut >= 0 && active <= 1
+          ? { key: 'arcade.yacht.timeout', params: { who: ctx.seats[s.timedOut]?.name ?? '' } }
+          : winners.length === ctx.seats.length
           ? { key: 'arcade.yacht.draw', params: { n: String(top) } }
           : { key: 'arcade.yacht.win', params: { who: winners.map((w) => w.name).join(', '), n: String(top) } }
     };
