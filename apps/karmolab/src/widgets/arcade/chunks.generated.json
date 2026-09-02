@@ -253,7 +253,7 @@
     "view": "president-view",
     "defVar": "president",
     "viewVar": "presidentView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "dominoes",

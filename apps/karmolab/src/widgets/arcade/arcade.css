@@ -168,7 +168,7 @@
 .ac-t3.ac-waiting{opacity:.92}
 .ac-t3.ac-t3room{position:relative;border-radius:0}
 #acPlay.ac-bare:has(.ac-t3room):not(.ac-roomfill){position:relative}
-#acPlay.ac-bare:has(.ac-t3room) #acSeats,#acPlay.ac-bare:has(.ac-t3room) #acStatus,#acPlay.ac-bare:has(.ac-t3room) #acControls,#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acSeats,#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acStatus,#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls,#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-menubtn{grid-column:1/-1;grid-row:1/-1;align-self:auto;justify-self:auto}
 #acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acSeats{display:block;position:absolute;inset:0;margin:0;padding:0;background:none;border:0;box-shadow:none;pointer-events:none;z-index:3}
 #acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat{position:absolute;left:18px;display:grid;grid-template-columns:56px 1fr auto;grid-template-rows:auto auto;column-gap:12px;row-gap:1px;align-items:center;width:300px;max-width:calc(100% - 36px);padding:10px 14px 10px 12px;border-radius:10px;background:linear-gradient(180deg,rgba(30,19,10,.8),rgba(16,10,6,.84));border:1px solid rgba(217,168,90,.38);color:#f6ecdc;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.42);font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-weight:400;pointer-events:auto;opacity:.78;transition:opacity .2s,border-color .2s,box-shadow .2s}
 #acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat.ac-me{bottom:18px}
@@ -195,22 +195,22 @@
 #acPlay.ac-bare:has(.ac-t3room) #acStatus{display:block;position:absolute;left:50%;top:14px;right:auto;bottom:auto;width:max-content;max-width:60%;transform:translateX(-50%);margin:0;padding:6px 14px;border-radius:var(--radius-pill);background:rgba(18,12,8,.62);color:#f6ecdc;border:1px solid rgba(255,230,190,.16);font-size:var(--font-size-sm);z-index:3;backdrop-filter:blur(6px)}
 #acPlay.ac-bare:has(.ac-t3room) #acStatus:empty{display:none}
 .ac-menubtn,.ac-sep,.ac-lbl{display:none}
-#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn{display:grid;place-items:center;position:absolute;right:16px;top:14px;left:auto;bottom:auto;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid rgba(217,168,90,.45);background:rgba(24,15,8,.66);color:#f1e3c8;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;z-index:7;opacity:.8;transition:opacity .15s,border-color .15s,background .15s}
-#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn svg{width:20px;height:20px}
-#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn:hover,#acPlay.ac-bare:has(.ac-t3room) .ac-menubtn[aria-expanded="true"]{opacity:1;border-color:#e6bd7a;background:rgba(46,30,14,.85)}
-#acPlay.ac-bare:has(.ac-t3room) #acControls{display:none!important;position:absolute;right:16px;top:66px;left:auto;bottom:auto;margin:0;z-index:7;flex-direction:column;align-items:stretch;gap:2px;width:236px;padding:8px;border-radius:8px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 0 0 1px rgba(120,80,40,.25);opacity:1;transform:none}
-#acPlay.ac-bare.ac-menu-open:has(.ac-t3room) #acControls{display:flex!important}
-#acPlay.ac-bare:has(.ac-t3room) #acControls .btn{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;height:auto;flex:0 0 auto;padding:9px 12px;border:0;border-radius:6px;background:none;color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:15px;letter-spacing:.04em;line-height:1.3;text-align:left;box-shadow:none;backdrop-filter:none;transform:none;transition:background .12s}
-#acPlay.ac-bare:has(.ac-t3room) #acControls .btn:hover{background:rgba(120,80,40,.12);transform:none}
-#acPlay.ac-bare:has(.ac-t3room) #acControls .btn-primary{color:#8f4f1c;font-weight:600}
-#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-sep{display:block;height:1px;margin:6px 4px;background:rgba(120,80,40,.22)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-menubtn{display:grid;place-items:center;position:absolute;right:16px;top:14px;left:auto;bottom:auto;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid rgba(217,168,90,.45);background:rgba(24,15,8,.66);color:#f1e3c8;backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;z-index:7;opacity:.8;transition:opacity .15s,border-color .15s,background .15s}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-menubtn svg{width:20px;height:20px}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-menubtn:hover,#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-menubtn[aria-expanded="true"]{opacity:1;border-color:#e6bd7a;background:rgba(46,30,14,.85)}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls{display:none!important;position:absolute;right:16px;top:66px;left:auto;bottom:auto;margin:0;z-index:7;flex-direction:column;align-items:stretch;gap:2px;width:236px;padding:8px;border-radius:8px;background:linear-gradient(180deg,rgba(250,240,222,.97),rgba(236,222,196,.97));box-shadow:0 18px 40px rgba(0,0,0,.5),inset 0 0 0 1px rgba(120,80,40,.25);opacity:1;transform:none}
+#acPlay.ac-menu-open:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls{display:flex!important}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls .btn{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;height:auto;flex:0 0 auto;padding:9px 12px;border:0;border-radius:6px;background:none;color:#3a2a18;font-family:"Noto Serif KR","Nanum Myeongjo","Yu Mincho",Georgia,serif;font-size:15px;letter-spacing:.04em;line-height:1.3;text-align:left;box-shadow:none;backdrop-filter:none;transform:none;transition:background .12s}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls .btn:hover{background:rgba(120,80,40,.12);transform:none}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls .btn-primary{color:#8f4f1c;font-weight:600}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls .ac-sep{display:block;height:1px;margin:6px 4px;background:rgba(120,80,40,.22)}
 #acControls .ac-emoji{display:none}
-#acPlay.ac-bare:has(.ac-t3room) #acControls .ac-lbl{display:inline}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls .ac-lbl{display:inline}
 #acSound::before,#acFull::before{content:"";width:18px;height:18px;flex:0 0 auto;background:currentColor;opacity:.85;-webkit-mask:var(--ac-ico) center/contain no-repeat;mask:var(--ac-ico) center/contain no-repeat}
-#acPlay.ac-bare:has(.ac-t3room) #acSound::before,#acPlay.ac-bare:has(.ac-t3room) #acFull::before{background:#5a4028;opacity:1}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acSound::before,#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acFull::before{background:#5a4028;opacity:1}
 #acSound{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9a4 4 0 0 1 0 6%27/><path d=%27M18.5 6.5a8 8 0 0 1 0 11%27/></svg>")}
 #acSound[aria-pressed="false"]{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9v6h4l5 4V5L8 9H4z%27/><path d=%27M16 9l5 6M21 9l-5 6%27/></svg>")}
-#acPlay.ac-bare:has(.ac-t3room) #acSound[aria-pressed="false"] .ac-lbl{opacity:.55}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acSound[aria-pressed="false"] .ac-lbl{opacity:.55}
 #acFull{--ac-ico:url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27black%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><path d=%27M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5%27/></svg>")}
 .ac-overacts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .ac-overacts:empty{display:none}
@@ -241,7 +241,7 @@
 #acPlay.ac-bare:has(.ac-t3room) .ac-tlnum{color:#ffd696;font-size:15px}
 #acPlay.ac-bare:has(.ac-t3room) .ac-tlbranch{color:#ffd696;letter-spacing:.04em}
 .ac-face,.ac-bubble,.ac-emotes{display:none}
-#acPlay.ac-bare:has(.ac-t3room) #acControls #acMdd[aria-pressed="false"],#acPlay.ac-bare:has(.ac-t3room) #acControls #acCoords[aria-pressed="false"],#acPlay.ac-bare:has(.ac-t3room) #acControls #acNums[aria-pressed="false"]{opacity:.55}
+#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls #acMdd[aria-pressed="false"],#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls #acCoords[aria-pressed="false"],#acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) #acControls #acNums[aria-pressed="false"]{opacity:.55}
 #acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face{display:block;grid-column:1;grid-row:1/3;width:56px;height:56px}
 #acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face svg{display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5));transition:transform .3s}
 #acPlay:is(.ac-bare:has(.ac-t3room),.ac-table) .ac-seat .ac-face svg[data-mood="think"]{transform:rotate(-6deg)}
@@ -396,6 +396,10 @@
 .ac-bjline b{color:#e2a0a0;margin-left:4px}
 .ac-bjacts{display:flex;gap:8px;pointer-events:auto;flex-wrap:wrap;justify-content:center}
 .ac-bjacts:empty{display:none}
+/* 손패 고르기 줄. 바닥(밝은 나무) 위에 뜨므로 어두운 띠를 깔고, 좌하단 자리 카드를 비켜 선다 (대부호 입체) */
+.ac-root .ac-bjacts.ac-tbacts{left:330px;right:16px;bottom:14px;padding:8px 12px;border-radius:12px;background:rgba(16,10,6,.58);backdrop-filter:blur(3px)}
+/* 고른 끗수. 대부호 입체의 손패 버튼 */
+.ac-root .ac-bjacts .ac-bjbtn.ac-on{border-color:#e6bd7a;box-shadow:0 0 0 2px rgba(230,189,122,.6);color:#f2d28b}
 .ac-bjbtn{padding:9px 20px;border:0;border-radius:var(--radius-pill);background:linear-gradient(180deg,#8a6a3a,#5d4522);color:#fdf6e6;font-size:var(--font-size-md);font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.4)}
 .ac-bjbtn.ac-ghost{background:rgba(30,26,20,.7);color:#e8dcc4;box-shadow:0 4px 12px rgba(0,0,0,.35)}
 .ac-bjbtn[disabled]{opacity:.4;cursor:default}
@@ -1104,6 +1108,9 @@
 #acPlay.ac-table.ac-roomfill #acView{background:var(--ac-felt)}
 #acPlay.ac-table.ac-roomfill #acView>*{width:100%;max-width:100%;height:100%}
 #acPlay.ac-table.ac-roomfill #acStatus{display:none}
+/* 상에서는 아래 버튼 줄 대신 방과 같은 우상단 메뉴 하나 (사용자 지적 2026-09-03: 2D 상에 메뉴가 없었다) */
+#acPlay.ac-table.ac-roomfill #acView{bottom:0;height:100%}
+#acPlay.ac-table.ac-roomfill #acSeats .ac-seat.ac-me{bottom:18px}
 .ac-tb{position:relative;width:100%;height:100%;display:grid;grid-template-rows:170px 1fr auto;color:#eaf2ee;box-sizing:border-box}
 .ac-tb-fans{position:relative;pointer-events:none}
 .ac-tb-fan{position:absolute;top:100px;display:flex;align-items:flex-end;height:52px}
