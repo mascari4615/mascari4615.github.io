@@ -166,6 +166,8 @@ export interface CardStage {
   setFocus(halfD: number, z: number): void;
   /** 안 되는 것. 그 자리 카드가 빨갛게 떨린다 */
   nope(id: string): void;
+  /** 이김 연출. 상 위 카드가 차례로 뛰며 한 바퀴 돎 (솔리테어 레퍼런스의 foundation splash) */
+  celebrate(): void;
   resize(): void;
   dispose(): void;
 }
@@ -219,7 +221,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   /* 화소 배율 상한 2. 1.5 로 두면 200% 화면에서 native 의 75% 로만 그려 카드 글자가
      뭉갠다 (2026-09-01 실측: dpr 2 에서 표본배율 1.6). 오목이 방 없을 때 쓰는 값과 같다 */
   const core = mountStageCore(host, { shadow: 'soft', exposure: 0.84, maxPixelRatio: 2, tone: 'neutral' });
-  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setNotes: () => {}, setFocus: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, resize: () => {}, dispose: () => {} };
+  if (!core) return { ok: false, software: false, set: () => {}, setBoard: () => {}, setSlots: () => {}, setNotes: () => {}, setFocus: () => {}, setChips: () => {}, setSeats: () => {}, nope: () => {}, celebrate: () => {}, resize: () => {}, dispose: () => {} };
   const { renderer } = core;
 
   /* 이방성 거르기. 카드는 상에 눕고 카메라는 40도쯤 위에서 내려보므로 화면에서 세로가
@@ -301,6 +303,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     /* 뒤집는 중이면 어느 각에서 어느 각으로 */
     rFrom: number;
     rTo: number;
+    /* 정해진 높이로 뛰기. 없으면 거리로 셈. 이김 연출이 제자리에서 뛸 때 */
+    hop?: number;
   }
   const live: Live[] = [];
   const holder = new Group();
@@ -617,7 +621,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       /* 뜨는 높이는 거리에 비례. 다만 제자리에서 도는 카드(딜러가 감춘 것을 여는 순간)는
          거리가 0 이라 그냥 두면 상을 뚫고 도는 것처럼 보인다. 도는 값이 있으면 조금 띄운다 */
       const spin = Math.abs(c.rTo - c.rFrom) > 0.1 ? 0.16 : 0;
-      const hop = Math.min(0.35, Math.max(c.from.distanceTo(c.to) * 0.11, spin));
+      const hop = c.hop ?? Math.min(0.35, Math.max(c.from.distanceTo(c.to) * 0.11, spin));
       c.mesh.position.y += Math.sin(Math.PI * k) * hop;
       c.mesh.rotation.z = c.rFrom + (c.rTo - c.rFrom) * e;
       if (k < 1 || now < c.t0) busy = true;
@@ -889,6 +893,18 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
    */
   /* 완전히 빨간 카드가 아니라 붉은 기운만. 단색 점멸은 과하다(사용자 지적) */
   const redMat = new MeshStandardMaterial({ color: 0xe8a9a5, roughness: 0.72, metalness: 0 });
+  /* 이김 연출. 지금 놓인 카드가 차례로 제자리에서 뛰며 한 바퀴. 놓인 순서(배열 차례)대로 60ms 씩 */
+  const celebrate = (): void => {
+    const now = performance.now();
+    const cards = live.map((c) => c.mesh);
+    live.length = 0;
+    cards.forEach((mesh, i) => {
+      const at = mesh.position.clone();
+      live.push({ mesh, from: at, to: at, t0: now + i * 60, ms: 720, rFrom: mesh.rotation.z, rTo: mesh.rotation.z + Math.PI * 2, hop: 0.9 });
+    });
+    wake();
+  };
+
   const nope = (id: string): void => {
     const mesh = byName.get(id);
     if (!mesh) return;
@@ -1057,6 +1073,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     setNotes,
     setFocus,
     nope,
+    celebrate,
     resize: fit,
     dispose(): void {
       ro.disconnect();

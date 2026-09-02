@@ -82,6 +82,8 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
 
     let held: Held = null;
     let last: SolitaireState | null = null;
+    /* 판이 끝났나. 이김 연출은 이걸로 */
+    let over = false;
     /**
      * 다시 그린 마지막 모양. 이게 없으면 매 프레임 `innerHTML` 이 갈려서
      * 누르는 사이에 카드가 사라진다. 그러면 누름이 성립을 안 해 **아무 반응이 없다**
@@ -236,7 +238,8 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
         (s.passes > 0 ? '<small>' + esc(t('arcade.solitaire.passes', { n: String(s.passes) })) + '</small>' : '') +
         '</button>';
 
-      /* 파운데이션 넷. 든 카드가 갈 수 있으면 자리를 짚어 준다 */
+      /* 파운데이션 넷. 든 카드가 갈 수 있으면 자리를 짚어 준다. 다 쌓였으면 뛰는 연출(CSS) */
+      foundEl.classList.toggle('ac-won', over && s.foundation.every((f) => f.length === 13));
       foundEl.innerHTML = s.foundation
         .map((f, i) => {
           const ok = hc !== null && canFound(f, hc);
@@ -497,6 +500,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
     return (v) => {
       last = v.state;
       elapsed = v.now;
+      over = v.finished;
       /* 상태가 바뀌면 들고 있던 것을 놓는다. 그 자리가 이미 없을 수 있다 */
       if (held) {
         const hc = heldCard(v.state);

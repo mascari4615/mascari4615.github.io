@@ -417,9 +417,16 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
 
     Toolbox.onDispose?.(() => window.clearTimeout(autoTimer));
 
+    /* 이겼을 때 한 번. 결과 종이 앞에 카드가 뛰는 연출 (레퍼런스 foundation splash) */
+    let cheered = false;
     return (v) => {
       last = v.state;
       elapsed = v.now;
+      if (v.finished && !cheered && v.state.foundation.every((f) => f.length === 13)) {
+        cheered = true;
+        stage.celebrate();
+        blip('good');
+      }
       if (held && heldCard(v.state) === null) held = null;
       paint();
     };
