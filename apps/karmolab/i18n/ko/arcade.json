@@ -612,6 +612,7 @@
   "arcade.result.resign": "{who} 이(가) 기권했다",
   "arcade.result.moves": "{n}수, {t}",
   "arcade.btn.scene": "방 바꾸기",
+  "arcade.btn.deck": "카드 무늬",
   "arcade.scene.tatami": "다다미방",
   "arcade.scene.desk": "밤 책상",
   "arcade.scene.living": "거실",

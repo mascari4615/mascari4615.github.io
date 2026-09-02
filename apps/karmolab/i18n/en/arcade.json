@@ -612,6 +612,7 @@
   "arcade.result.resign": "{who} resigned",
   "arcade.result.moves": "{n} moves, {t}",
   "arcade.btn.scene": "Change room",
+  "arcade.btn.deck": "Card back",
   "arcade.scene.tatami": "Tatami room",
   "arcade.scene.desk": "Night desk",
   "arcade.scene.living": "Living room",

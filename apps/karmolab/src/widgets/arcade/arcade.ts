@@ -39,6 +39,7 @@ import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
 import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf } from './cast';
 import { mountMdd } from './mdd';
 import { mountChrome } from './chrome';
+import { DECK_SKINS, deckSkin, setDeckSkin } from './deck';
 import { LESSONS, TUTOR_SIZE, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
@@ -277,6 +278,7 @@ interface Session {
       esc(t('arcade.btn.dim', undefined, '2D / 3D 로 보기')) + '">2D</button>' +
       /* 방 갈아 끼우기. 입체 방이 있는 판에서만. 누를 때마다 다음 방 */
       '<button class="btn btn-ghost" id="acScene" style="display:none" title="' + esc(t('arcade.btn.scene')) + '"></button>' +
+      '<button class="btn btn-ghost" id="acDeck" style="display:none" title="' + esc(t('arcade.btn.deck')) + '"></button>' +
       /* 좌표와 수 번호(레퍼런스의 접근성 설정). 브라우저에 남고, 화면이 매 그림마다 읽는다 */
       /* 손놀림. 누르기와 끌기가 섞이면 오동작이라 사람이 고름(`arcade/hands.ts`) */
       '<button class="btn btn-ghost" id="acHand" title="' + esc(t('arcade.btn.hand')) + '"></button>' +
@@ -1520,6 +1522,13 @@ interface Session {
     }
 
     function paintScene(id: string): void {
+      /* 카드 무늬 고르기 (감사 D4). 값과 저장은 deck.ts 에 다 있었고 고르는 자리만 없었다. 카드 갈래에서만 */
+      const deckBtn = container.querySelector<HTMLButtonElement>('#acDeck');
+      if (deckBtn) {
+        const cardGame = cardById(id)?.kind === 'card';
+        deckBtn.style.display = cardGame ? '' : 'none';
+        if (cardGame) deckBtn.textContent = t('arcade.btn.deck') + '. ' + t(deckSkin().nameKey);
+      }
       const btn = container.querySelector<HTMLButtonElement>('#acScene');
       if (!btn) return;
       const on = dim() === '3d' && !!cardById(id)?.d3;
@@ -2884,6 +2893,13 @@ interface Session {
       undo();
     });
 
+    $<HTMLButtonElement>('#acDeck').onclick = (): void => {
+      const all = DECK_SKINS;
+      const at = all.findIndex((k) => k.id === deckSkin().id);
+      setDeckSkin(all[(at + 1) % all.length].id);
+      /* 판은 커널이 들고 있다. 화면만 새로 세우면 같은 판이 다른 무늬로 */
+      if (gameId) mountView(gameId);
+    };
     $<HTMLButtonElement>('#acScene').onclick = (): void => {
       setScene(nextScene(sceneOf(gameId), gameId));
       /* 판은 커널이 들고 있다. 화면만 새로 세우면 같은 판이 다른 방에 놓인다 */

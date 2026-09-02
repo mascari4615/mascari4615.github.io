@@ -874,8 +874,9 @@
 .ac-dbrow{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:var(--font-size-xs)}
 .ac-dbrow.ac-mine .ac-dblane{box-shadow:inset 0 0 0 1px var(--accent)}
 .ac-dbrow.ac-won .ac-dblane{background:color-mix(in srgb,#22c55e 25%,var(--bg-primary))}
-.ac-dblane{position:relative;flex:1;height:20px;border-radius:var(--radius-xl);background:color-mix(in srgb,#a16207 12%,var(--bg-primary));overflow:hidden}
-.ac-dblane i{position:absolute;top:1px;font-style:normal;transition:left .2s linear}
+.ac-dblane{position:relative;flex:1;height:34px;border-radius:var(--radius-xl);background:color-mix(in srgb,#a16207 12%,var(--bg-primary));overflow:hidden}
+.ac-dblane i{position:absolute;top:2px;font-style:normal;transition:left .2s linear;line-height:0}
+.ac-dblane i svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
 .ac-dbodds{min-width:34px;text-align:right;color:var(--text-secondary)}
 .ac-dbbar{margin:var(--space-lg) 0;text-align:center;min-height:40px}
 .ac-dbamt{display:flex;align-items:center;gap:8px;justify-content:center;font-size:var(--font-size-xs);margin-bottom:8px}
@@ -1104,12 +1105,10 @@
 #acPlay.ac-table{--ac-tb-seat-w:300px}
 #acPlay.ac-table.ac-roomfill #acSeats{display:block}
 #acPlay.ac-table.ac-roomfill #acSeats .ac-seat:not(.ac-me):not(.ac-watch){top:14px;left:calc(18px + (100% - 36px - var(--ac-tb-seat-w)) * (var(--ac-row,0) + 1) / (var(--ac-rows,1) + 1))}
-#acPlay.ac-table.ac-roomfill #acSeats .ac-seat.ac-me{bottom:66px}
-#acPlay.ac-table.ac-roomfill #acView{background:var(--ac-felt)}
+#acPlay.ac-table.ac-roomfill #acView{background:var(--ac-felt);bottom:0;height:100%}
 #acPlay.ac-table.ac-roomfill #acView>*{width:100%;max-width:100%;height:100%}
 #acPlay.ac-table.ac-roomfill #acStatus{display:none}
 /* 상에서는 아래 버튼 줄 대신 방과 같은 우상단 메뉴 하나 (사용자 지적 2026-09-03: 2D 상에 메뉴가 없었다) */
-#acPlay.ac-table.ac-roomfill #acView{bottom:0;height:100%}
 #acPlay.ac-table.ac-roomfill #acSeats .ac-seat.ac-me{bottom:18px}
 .ac-tb{position:relative;width:100%;height:100%;display:grid;grid-template-rows:170px 1fr auto;color:#eaf2ee;box-sizing:border-box}
 .ac-tb-fans{position:relative;pointer-events:none}
@@ -1117,7 +1116,7 @@
 .ac-root .ac-tb-fan .ac-pc.ac-back{width:34px;height:48px;margin-left:-14px;pointer-events:none;box-shadow:0 2px 4px rgba(0,0,0,.35)}
 .ac-root .ac-tb-fan .ac-pc.ac-back:first-child{margin-left:0}
 .ac-tb-fan b{margin-left:8px;font-size:12px;color:#f6ecdc;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:9px}
-.ac-tb-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:0}
+.ac-tb-center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:0;padding-top:8px}
 .ac-tb-toast{padding:6px 14px;border-radius:999px;background:rgba(24,20,16,.62);color:#f3ead8;font-size:var(--font-size-sm);backdrop-filter:blur(3px)}
 .ac-tb-toast:empty{display:none}
 /* 판 상자는 상 폭을 다 받아야 안의 격자와 줄이 % 로 폭을 잡음 (짝맞추기 격자가 40px 로 접혔다, 실측) */
@@ -1143,8 +1142,6 @@
 /* 셸의 btn-primary 는 폭 100%. 상 위 버튼은 제 글자 폭만큼 */
 .ac-root .ac-tb-acts .btn{width:auto;margin:0}
 @media (max-width:1100px){.ac-tb-mine{padding:0 12px 92px}}
-/* 뒷면 부채 줄과 판 사이 여백. 부채가 자리 카드 아래 100px 에 서므로 그 아래부터 판 */
-.ac-tb-center{padding-top:8px}
 
 /* 솔리테어 이김 연출 (감사 D2). 쌓는 자리 넷의 카드가 차례로 뛴다 */
 .ac-root .ac-sol-found.ac-won .ac-found .ac-pc{animation:acSolWon 1.1s ease-in-out infinite}
