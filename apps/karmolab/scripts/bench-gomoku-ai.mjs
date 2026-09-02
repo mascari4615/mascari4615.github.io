@@ -44,9 +44,12 @@ function play(levelBlack, levelWhite, seed, n = 15) {
   let who = 1;
   for (let moves = 0; moves < n * n; moves++) {
     const level = who === 1 ? levelBlack : levelWhite;
-    const t0 = performance.now();
+    /* CPU 시간으로 잼. 벽시계는 통짜 게이트에서 남의 검사와 겹치면 3배(55 -> 322ms)로 부풀어
+       단독 통과가 통짜에서 빨강이었다 (2026-09-01 실측). 봇의 값은 노드 예산이라 CPU 시간이 그 값 */
+    const c0 = process.cpuUsage();
     const c = think({ board: b, n, who, renju: false, banned: [], level, rng });
-    ms[level].push(performance.now() - t0);
+    const cu = process.cpuUsage(c0);
+    ms[level].push((cu.user + cu.system) / 1000);
     if (c < 0 || b[c] !== 0) return { winner: 3 - who, ms, moves };
     b[c] = who;
     if (won(b, n, c, who)) return { winner: who, ms, moves: moves + 1 };
@@ -79,7 +82,7 @@ for (const [hi, lo] of pairs) {
 }
 console.log(`[gomoku-ai] ${N}판씩, 15줄, 색 번갈아`);
 for (const r of rows) console.log(`  [${r.ok ? 'O' : 'X'}] ${r.pair}: 위 ${r.rate}% (${r.hiWins}/${N}, 무승부 ${r.draws}) 기준 ${r.need}%`);
-console.log('  한 수 평균 ms:', Object.entries(timing).map(([lv, a]) => `${lv}단계 ${avg(a).toFixed(1)}ms (최대 ${Math.max(...a).toFixed(0)})`).join(', '));
+console.log('  한 수 평균 CPU ms:', Object.entries(timing).map(([lv, a]) => `${lv}단계 ${avg(a).toFixed(1)}ms (최대 ${Math.max(...a).toFixed(0)})`).join(', '));
 const fails = rows.filter((r) => !r.ok);
 /* 한 수 시간 한도. 5단계만 160ms. 봇은 어차피 600~1300ms 뜸을 들이므로 그 안에 숨음
    4000 노드로 줄이면 시간은 그대로(106ms)고 힘만 빠졌다(90 -> 70%). 시간은 예산이 아니라 평가에서 온다(실측 2026-08-31) */

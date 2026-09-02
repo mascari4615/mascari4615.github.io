@@ -631,9 +631,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 판을 다 쓰면 `#acView` 가 판 전체를 덮어 아래 깔린 버튼줄이 안 눌림
          2026-09-01 실측: 무르기가 사이드바와 판 밑으로 들어가 클릭이 사이드바로 감
          방 화면은 버튼이 메뉴 종이 안이라 무관. 평평한 화면만 아래 줄을 띄움 */
-      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:var(--ac-barh,48px);height:auto}',
-      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:var(--ac-barh,48px);margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border-subtle,rgba(255,255,255,.08))}',
-      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:var(--ac-barh,48px);z-index:8;margin:0}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:48px;height:auto}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:48px;margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border)}',
+      '#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:48px;z-index:8;margin:0}',
       '#acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}',
       '#acPlay.ac-roomfill .ac-intro{border-radius:0}',
       '#acPlay.ac-roomfill .ac-over{border-radius:0}',
@@ -925,7 +925,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 판 아래 한 줄. 누구 차례이고 누가 몇 짝을 가져갔나 */
       '.ac-memhud{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:var(--space-sm) auto 0;font-size:var(--font-size-sm)}',
       '.ac-memseat{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--radius-pill);background:var(--bg-secondary);border:1px solid transparent}',
-      '.ac-memseat.ac-cur{border-color:var(--accent-color);font-weight:700}',
+      '.ac-memseat.ac-cur{border-color:var(--accent);font-weight:700}',
       '.ac-memseat b{font-variant-numeric:tabular-nums}',
       '.ac-memsay{min-height:20px;text-align:center;margin-top:6px;font-size:var(--font-size-sm);color:var(--text-secondary)}',
       '.ac-mem.ac-waiting{opacity:.75}',
@@ -980,7 +980,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-sol3dhint{padding:6px 14px;border:0;border-radius:var(--radius-pill);background:rgba(30,26,20,.72);color:#e8dcc4;font-size:var(--font-size-sm);cursor:pointer}',
       '.ac-root .ac-lihint{margin:6px 0 2px;font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center}',
       '.ac-root .ac-autime{height:5px;border-radius:3px;background:rgba(0,0,0,.12);overflow:hidden;margin:8px auto 4px;max-width:420px}',
-      '.ac-root .ac-autime i{display:block;height:100%;background:var(--accent-color);transition:width .2s linear}',
+      '.ac-root .ac-autime i{display:block;height:100%;background:var(--accent);transition:width .2s linear}',
       '.ac-root .ac-autime.ac-warn i{background:#d9534f}',
       '.ac-root .ac-dmnums{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;font-size:var(--font-size-sm);color:var(--text-secondary)}',
       '.ac-root .ac-hlbar .btn-primary{background:rgba(255,214,107,.18);color:#ffd66b;border:1px solid rgba(255,214,107,.5);font-weight:700}',
@@ -1314,7 +1314,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '.ac-gos.ac-me{color:var(--accent-ink)}',
       '.ac-goboard{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:0;aspect-ratio:1;background:color-mix(in srgb,#a16207 22%,var(--bg-primary));border-radius:var(--radius-md);padding:4px}',
       '.ac-goc{aspect-ratio:1;border:0;background:none;padding:0;display:grid;place-items:center;position:relative;cursor:default}',
-      '.ac-goc::after{content:"";position:absolute;inset:0;background:linear-gradient(var(--border),var(--border)) center/100% 1px no-repeat,linear-gradient(var(--border),var(--border)) center/1px 100% no-repeat;opacity:.5}',
+      '.ac-goc::after{content:"";position:absolute;inset:0;background:linear-gradient(var(--border),var(--border) center/100% 1px no-repeat,linear-gradient(var(--border),var(--border) center/1px 100% no-repeat;opacity:.5}',
       '.ac-goc i{position:relative;z-index:1;width:82%;aspect-ratio:1;border-radius:50%;display:block}',
       '.ac-goc.ac-p1 i{background:#111827}',
       '.ac-goc.ac-p2 i{background:#f8fafc;box-shadow:inset 0 0 0 1px #94a3b8}',
