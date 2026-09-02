@@ -143,6 +143,7 @@ export function registerArcadeReport(app: Application, who: WhoOf = whoOf): void
       return;
     }
     const record = recordOf(game, me.id);
-    res.json({ signedIn: true, rating: record.rating, games: record.games, wins: record.wins });
+    /* 임시 경계도 서버가 내려 줌. 화면이 20 을 따로 적지 않게 (감사 B6) */
+    res.json({ signedIn: true, rating: record.rating, games: record.games, wins: record.wins, settleGames: rulesFor(game)?.settleGames ?? null });
   });
 }

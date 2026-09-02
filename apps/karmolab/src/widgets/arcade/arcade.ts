@@ -2056,12 +2056,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        *   그동안 점수가 큰 걸음으로 움직여 제자리를 빨리 찾게 함
        * - 안 적으면 다섯 판 둔 사람이 그 단위를 제 실력으로 읽음. 그건 거짓말
        */
-      const settling = rec.games < RANK_SETTLE;
+      const settling = rec.settleGames !== null && rec.games < rec.settleGames;
       box.innerHTML =
         '<b>' + esc(name) + '</b> ' +
         esc(t('arcade.rank.record', { n: String(rec.rating), games: String(rec.games), wins: String(rec.wins) })) +
         (settling
-          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(RANK_SETTLE) }))
+          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(rec.settleGames) }))
           : g.toNext !== null
             ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) }))
             : '') +
@@ -2111,27 +2111,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       startReview();
     }
 
-    /**
-     * 등급전 한 수의 제한. 초과하면 커널이 상대 승으로 끝냄(`gomoku.ts` 의 `tick`)
-     *
-     * - 이게 없으면 상대가 창을 열어 둔 채 자리를 비웠을 때 판이 영영 안 끝남
-     * - 작혼 등급전은 수당 5초 + 예비 20초로 한 수 최대 25초(실측). 우리는 아직 예비가 없어
-     *   한 단이라, 생각할 여유를 주고 60초. 예비가 생기면 20+60 꼴로 나눔
-     * - 친선전과 혼자 판은 그대로 사람이 고름(없음, 30, 60, 120초)
-     */
-    const RANKED_LIMIT = 60;
-
-    /**
-     * 이만큼 두기 전에는 점수가 아직 자리를 찾는 중
-     * - 서버 K값이 20판을 경계로 40에서 32 로 내려감. 화면도 같은 경계
-     * - lichess 는 대개 15에서 20판이면 임시가 풀린다(실측)
-     */
-    const RANK_SETTLE = 20;
+    /* 등급전 한 수 제한과 임시 경계는 **서버 규칙이 내려 줌** (감사 B6). 전에는 60 과 20 을 여기 적어
+       서버 K 경계와 어긋날 자리였음. 짝이 나면 그 답의 값(`moveLimitSec`), 점수를 물으면 그 답의 값(`settleGames`).
+       초과하면 커널이 상대 승으로 끝냄(`gomoku.ts` 의 `tick`). 친선전과 혼자 판은 사람이 고름 */
+    let rankedLimit: number | null = null;
 
     /** 이 판에 쓸 옵션. 등급전이면 시간 제한을 덮어씀 */
     function matchOpts(id: string): ReturnType<typeof optsFor> {
       const base = optsFor(id);
-      return rankedMatch || autoStart ? { ...base, limit: RANKED_LIMIT } : base;
+      return (rankedMatch || autoStart) && rankedLimit ? { ...base, limit: rankedLimit } : base;
     }
 
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
@@ -2337,7 +2325,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acWaitStatus').textContent =
         t('arcade.rank.waiting', { n: String(rankedOthers) }) +
         ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) }) +
-        ', ' + t('arcade.rank.limit', { n: String(RANKED_LIMIT) });
+        (rankedLimit ? ', ' + t('arcade.rank.limit', { n: String(rankedLimit) }) : '');
     }
 
     function startRanked(id: string): void {
@@ -2359,7 +2347,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('.ac-share').style.display = 'none';
       ranked?.cancel();
       ranked = enterQueue(id, myName(), {
-        onWaiting: (room, others) => {
+        onWaiting: (room, others, limitSec) => {
+          rankedLimit = limitSec;
           rankedRoom = room;
           rankedOthers = others;
           paintRankWait();
@@ -2369,6 +2358,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           rankedTick?.();
           rankedTick = null;
           rankedMatch = { code: m.code, you: m.you, ids: m.ids, seat: m.seat };
+          rankedLimit = m.moveLimitSec;
           rankedRoster = new RankedRoster(rankedMatch, m.host);
           watchLink();
           if (m.host) {
@@ -2843,6 +2833,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ranked = null;
       rankedMatch = null;
       rankedRoster = null;
+      rankedLimit = null;
       autoStart = false;
       rankedTick?.();
       rankedTick = null;

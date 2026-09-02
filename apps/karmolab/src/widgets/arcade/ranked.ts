@@ -35,11 +35,13 @@ export interface Matched {
   ids: string[];
   /** 이 계정이 앉을 자리 */
   seat: number;
+  /** 서버 규칙의 한 수 제한(초). 없으면 제한 없음 */
+  moveLimitSec: number | null;
 }
 
 export interface RankedHooks {
   /** 줄에 서 있음. 같은 방의 나 말고 몇 */
-  onWaiting(room: RankRoom, others: number): void;
+  onWaiting(room: RankRoom, others: number, moveLimitSec: number | null): void;
   onMatched(m: Matched): void;
   /** 서버 무응답. 등급전만 종료, 친선전은 그대로 */
   onDown(): void;
@@ -72,6 +74,7 @@ type Answer = {
   rival?: string;
   ids?: string[];
   seat?: number;
+  moveLimitSec?: number | null;
 };
 
 /**
@@ -123,11 +126,12 @@ export function enterQueue(game: string, name: string, hooks: RankedHooks): Rank
         room: a.room === 'upper' ? 'upper' : 'beginner',
         opponent: String(a.opponent ?? ''),
         ids: Array.isArray(a.ids) ? a.ids.map(String) : [String(a.you ?? ''), String(a.rival ?? '')],
-        seat: Math.max(0, Number(a.seat ?? 0))
+        seat: Math.max(0, Number(a.seat ?? 0)),
+        moveLimitSec: typeof a.moveLimitSec === 'number' && a.moveLimitSec > 0 ? a.moveLimitSec : null
       });
       return;
     }
-    hooks.onWaiting(a.room === 'upper' ? 'upper' : 'beginner', Math.max(0, Number(a.others ?? 0)));
+    hooks.onWaiting(a.room === 'upper' ? 'upper' : 'beginner', Math.max(0, Number(a.others ?? 0)), typeof a.moveLimitSec === 'number' && a.moveLimitSec > 0 ? a.moveLimitSec : null);
   };
   /* 숨은 탭에서는 안 알림. 배터리도 배터리고, 안 보는 사람을 줄에 세워 두면
      상대가 빈 자리와 짝이 남. 서버는 15초 뒤 줄에서 빼고, 돌아오면 다시 섬 */
@@ -194,6 +198,8 @@ export interface MyRating {
   rating: number;
   games: number;
   wins: number;
+  /** 서버 규칙의 임시 경계(판 수). 없으면 임시 표시 안 함 */
+  settleGames: number | null;
 }
 
 /** 내 점수. 로비에 보여 줄 때. 못 물어보면 없음 */
@@ -205,8 +211,9 @@ export async function myRating(game: string): Promise<MyRating | null> {
     });
     if (!res.ok) return null;
     const body = (await res.json()) as Partial<MyRating>;
-    if (!body.signedIn) return { signedIn: false, rating: 0, games: 0, wins: 0 };
-    return { signedIn: true, rating: Number(body.rating ?? 0), games: Number(body.games ?? 0), wins: Number(body.wins ?? 0) };
+    if (!body.signedIn) return { signedIn: false, rating: 0, games: 0, wins: 0, settleGames: null };
+    const settle = (body as { settleGames?: unknown }).settleGames;
+    return { signedIn: true, rating: Number(body.rating ?? 0), games: Number(body.games ?? 0), wins: Number(body.wins ?? 0), settleGames: typeof settle === 'number' && settle > 0 ? settle : null };
   } catch {
     return null;
   }

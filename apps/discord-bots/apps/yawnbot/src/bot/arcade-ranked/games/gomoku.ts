@@ -27,8 +27,13 @@ const serialize = (state: RatingState): StoredRating => ({
   wins: state.wins
 });
 
+/* K 경계. 화면의 임시(settling) 표시도 서버가 내려 주는 이 값을 읽음 (2026-09-02 감사 B6) */
+const SETTLE_GAMES = 20;
+/* 한 수 제한. 작혼 실측(수당 5 + 예비 20)에 견줘 예비가 없어 한 단 60 */
+const MOVE_LIMIT_SEC = 60;
+
 const kOf = (state: RatingState): number => {
-  if (state.games < 20) return 40;
+  if (state.games < SETTLE_GAMES) return 40;
   if (state.publicRating >= 2200) return 24;
   return 32;
 };
@@ -61,6 +66,8 @@ const calculate = ({ outcome, before, factor }: RatingContext): ReadonlyMap<stri
 export const gomokuRules: RankedGameRules = {
   gameId: 'gomoku',
   supportedSeats: new Set([2]),
+  settleGames: SETTLE_GAMES,
+  moveLimitSec: MOVE_LIMIT_SEC,
   formation: immediatePairFormation(),
   initial,
   hydrate,
