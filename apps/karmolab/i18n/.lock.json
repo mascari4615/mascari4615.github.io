@@ -14569,7 +14569,16 @@
     "arcade.deck.classic": "7f1d8c413d",
     "arcade.deck.ink": "6c3f5d5422",
     "arcade.deck.night": "5706f15200",
-    "arcade.blackjack.swipe": "4ed5894ae6"
+    "arcade.blackjack.swipe": "4ed5894ae6",
+    "arcade.situation.recommend": "4ec0970551",
+    "arcade.situation.recommendLine": "da940bf9a2",
+    "arcade.situation.together": "65683add00",
+    "arcade.situation.together.note": "e0c4bf89f4",
+    "arcade.situation.challenge": "f2372ebfb2",
+    "arcade.situation.challenge.note": "35eca2410e",
+    "arcade.situation.relax": "5ede000b24",
+    "arcade.situation.relax.note": "74642844b6",
+    "arcade.situation.all": "11f31766dc"
   },
   "ja": {
     "account.title.klBell": "e29d147ed5",
@@ -29141,6 +29150,15 @@
     "arcade.deck.classic": "7f1d8c413d",
     "arcade.deck.ink": "6c3f5d5422",
     "arcade.deck.night": "5706f15200",
-    "arcade.blackjack.swipe": "4ed5894ae6"
+    "arcade.blackjack.swipe": "4ed5894ae6",
+    "arcade.situation.recommend": "4ec0970551",
+    "arcade.situation.recommendLine": "da940bf9a2",
+    "arcade.situation.together": "65683add00",
+    "arcade.situation.together.note": "e0c4bf89f4",
+    "arcade.situation.challenge": "f2372ebfb2",
+    "arcade.situation.challenge.note": "35eca2410e",
+    "arcade.situation.relax": "5ede000b24",
+    "arcade.situation.relax.note": "74642844b6",
+    "arcade.situation.all": "11f31766dc"
   }
 }

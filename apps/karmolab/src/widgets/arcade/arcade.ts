@@ -189,7 +189,9 @@ interface Session {
       '<div class="ac-recent" id="acRecent"></div>' +
       '<div class="ac-today" id="acToday"></div>' +
       '<div id="acPicks"></div>' +
-      '<div id="acGames" class="ac-shelf"></div>' +
+      '<section class="ac-catalog" aria-labelledby="acCatalogTitle">' +
+      '<h2 class="ac-kind" id="acCatalogTitle">' + esc(t('arcade.situation.all')) + '</h2>' +
+      '<div id="acGames" class="ac-shelf"></div></section>' +
       /* 혼자 놀이. 오락실이 놀이의 **유일한 문**이 되는 자리 (TASK-KL-313).
          방 게임 뒤에 둔다: 여기는 오락실이고, 혼자 놀이는 각자 제 페이지로 나가는 손님이다. */
       '<div id="acSolo"></div>' +
@@ -510,10 +512,10 @@ interface Session {
     const paintToday = (): void => {
       const st = dailyState();
       $<HTMLElement>('#acToday').innerHTML =
-        '<h3 class="ac-kind">' + esc(t('arcade.today.title')) +
+        '<h2 class="ac-kind">' + esc(t('arcade.today.title')) +
         ' <i>' + st.done.length + '/' + PICKS + '</i>' +
         (st.streak > 0 ? '<b class="ac-streak">🔥 ' + esc(t('arcade.today.streak', { n: String(st.streak) })) + '</b>' : '') +
-        '</h3>' +
+        '</h2>' +
         '<div class="ac-todaystrip">' +
         picks
           .map((id) =>
@@ -570,7 +572,7 @@ interface Session {
         return;
       }
       box.innerHTML =
-        '<h3 class="ac-kind">' + esc(t('arcade.recent.title')) + '</h3>' +
+        '<h2 class="ac-kind">' + esc(t('arcade.recent.title')) + '</h2>' +
         '<div class="ac-recentstrip">' +
         list
           .map(
@@ -601,6 +603,7 @@ interface Session {
         });
       };
       on('data-obj', 'obj', openDetail);
+      on('data-situation', 'situation', openDetail);
       on('data-solo', 'solo', startSolo);
       on('data-pick', 'pick', startSolo);
       on('data-host', 'host', openRoom);
@@ -638,7 +641,7 @@ interface Session {
       const list = rooms.filter((r) => !mine.has(r.code));
       if (!list.length) { box.innerHTML = ''; return; }
       box.innerHTML =
-        '<h3 class="ac-kind">' + esc(t('arcade.open.title')) + ' <i>' + list.length + '</i></h3>' +
+        '<h2 class="ac-kind">' + esc(t('arcade.open.title')) + ' <i>' + list.length + '</i></h2>' +
         '<div class="ac-openstrip">' +
         list
           .map((r: OpenRoom) =>
@@ -659,9 +662,53 @@ interface Session {
       });
     };
 
-    /* 추천 칸은 접었다. 진열장은 전부를 한눈에 놓으므로 여섯 개 골라 주기가 할 일이 없다. */
+    const situationObjOf = (g: (typeof CARDS)[number]): string =>
+      '<button type="button" class="ac-situationobj" data-situation="' + esc(g.id) + '">' +
+      '<span>' + iconOf(g.id) + '</span><b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b></button>';
+
+    /* 전 종목 원장은 그대로 두고, 그 앞에서 지금의 마음에 맞는 작은 갈래만 먼저 고르게 한다. */
     const paintPicks = (): void => {
-      $<HTMLElement>('#acPicks').innerHTML = '';
+      const box = $<HTMLElement>('#acPicks');
+      if (findEl.value.trim()) { box.innerHTML = ''; return; }
+      const recommended = cardById(picks[0]);
+      const people = [CAST.yawn, CAST.alisa, CAST.ling];
+      const person = people[picks[0].split('').reduce((n, ch) => n + ch.charCodeAt(0), 0) % people.length];
+      const six = (...groups: Array<Array<(typeof CARDS)[number]>>): Array<(typeof CARDS)[number]> => {
+        const seen = new Set<string>();
+        return groups.flat().filter((g) => {
+          if (seen.has(g.id)) return false;
+          seen.add(g.id);
+          return true;
+        }).slice(0, 6);
+      };
+      const situations = [
+        { key: 'together', games: six(CARDS.filter((g) => g.seats[1] >= 4)) },
+        { key: 'challenge', games: six(
+          CARDS.filter((g) => supportsRanked(g.id, g.seats)),
+          CARDS.filter((g) => !g.realtime && g.seats[0] >= 2)
+        ) },
+        { key: 'relax', games: six(
+          CARDS.filter((g) => g.seats[0] === 1),
+          CARDS.filter((g) => !g.realtime)
+        ) }
+      ];
+      box.innerHTML =
+        (recommended
+          ? '<button type="button" class="ac-recommend" data-situation="' + esc(recommended.id) + '">' +
+            '<span class="ac-recommendface">' + faceSvg(person, 'glad') + '</span>' +
+            '<span><b>' + esc(t('arcade.situation.recommend', { who: person.name })) + '</b>' +
+            '<small>' + esc(t('arcade.situation.recommendLine', {
+              game: t('arcade.game.' + recommended.id + '.name')
+            })) + '</small></span><i>' + iconOf(recommended.id) + '</i></button>'
+          : '') +
+        '<div class="ac-situations">' +
+        situations.map((s) =>
+          '<section class="ac-situation" aria-labelledby="acSituation-' + s.key + '">' +
+          '<h2 id="acSituation-' + s.key + '">' + esc(t('arcade.situation.' + s.key)) + '</h2>' +
+          '<p>' + esc(t('arcade.situation.' + s.key + '.note')) + '</p>' +
+          '<div>' + s.games.map(situationObjOf).join('') + '</div></section>'
+        ).join('') + '</div>';
+      wireCards();
     };
 
     /* 진열장. 갈래 제목 없이 전부 한 탁자에. 찾는 중에는 걸리는 물건만 남긴다. */
@@ -741,7 +788,7 @@ interface Session {
       if (findEl.value.trim()) { box.innerHTML = ''; return; }
       const packs = loadPacks();
       box.innerHTML =
-        '<h3 class="ac-kind">' + esc(t('arcade.packs.title')) + '</h3>' +
+        '<h2 class="ac-kind">' + esc(t('arcade.packs.title')) + '</h2>' +
         '<p class="ac-solocourse">' +
         esc(packs.length ? t('arcade.packs.mine', { n: String(packs.length) }) : t('arcade.packs.none')) +
         '</p>' +

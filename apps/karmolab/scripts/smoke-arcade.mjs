@@ -96,6 +96,18 @@ if (!cantRun) {
   /* 로비 = 진열장. 카드 대신 물건(`data-obj`)이 서고, 시작 단추는 물건을 집은 화면에 뜬다. */
   const objs = await page.locator('[data-obj]').count();
   check('진열장에 물건이 선다', objs >= 2, `${objs}개`);
+  const situationCounts = await page.locator('.ac-situation').evaluateAll((rows) =>
+    rows.map((row) => row.querySelectorAll('[data-situation]').length)
+  );
+  check('같이, 도전, 쉬기 세 선반', situationCounts.length === 3 && situationCounts.every((n) => n === 6), situationCounts.join(','));
+  const recommendation = page.locator('.ac-recommend');
+  check('저택 사람의 오늘 추천', await recommendation.count() === 1);
+  if (await recommendation.count()) {
+    const id = await recommendation.getAttribute('data-situation');
+    await recommendation.click();
+    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: 10000 });
+    await page.click('#acBack');
+  }
 
   /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 . 
    * 새 게임을 넣을 때 화면 검사를 새로 짤 필요가 없다는 뜻이다.
