@@ -31,12 +31,42 @@ const { SETUPS } = await import(pathToFileURL(sp).href);
 
 const rp = join(dir, 'r.mjs');
 await build({ entryPoints: ['src/widgets/arcade/replay.ts'], bundle: true, format: 'esm', platform: 'node', outfile: rp, logLevel: 'silent' });
-const { record, playback, sameAs } = await import(pathToFileURL(rp).href);
+const { record, playback, sameAs, ReviewRun } = await import(pathToFileURL(rp).href);
 
 let bad = 0;
 const ok = (cond, name, detail = '') => {
   if (!cond) { console.log(`  [X] ${name}${detail ? '. ' + detail : ''}`); bad++; }
 };
+
+const review = new ReviewRun([
+  { at: 0, v: {} },
+  { at: 100, v: {} },
+  { at: 200, v: {} }
+], [3, 4]);
+ok(review.at === 2 && review.total === 2, '복기는 마지막 장면에서 준비된다');
+review.seek(-1);
+ok(review.at === 0, '복기 위치는 장면 범위를 벗어나지 않는다');
+review.seek(review.total);
+let tick = () => {};
+let delay = 0;
+let drops = 0;
+const clock = (next, ms) => {
+  tick = next;
+  delay = ms;
+  return () => { drops += 1; };
+};
+review.setPlaying(true, () => review.seek(review.at + 1), clock);
+ok(review.playing && review.at === 0 && delay === 900, '끝에서 재생하면 처음으로 감는다');
+tick();
+ok(review.at === 1, '재생 시계가 한 장면을 넘긴다');
+review.cycleSpeed();
+review.setPlaying(true, () => review.seek(review.at + 1), clock);
+ok(review.speed === 2 && delay === 450 && drops === 1, '속도를 바꾸면 앞 시계를 끊고 박자를 고친다');
+review.branch = true;
+review.seek(0);
+ok(review.at === 1, '곁가지에서는 복기 위치가 움직이지 않는다');
+review.stop();
+ok(!review.playing && drops === 2, '복기를 접으면 재생 시계를 끊는다');
 
 /** 씨앗에서 나오는 난수. 아무렇게나도 다시 돌릴 수 있어야 검사가 흔들리지 않는다. */
 function lcg(seed) {

@@ -82,6 +82,54 @@ export interface Scene<S> {
   v: MatchView<S>;
 }
 
+type ReviewSpeed = 0.5 | 1 | 2;
+type ReviewClock = (tick: () => void, delayMs: number) => () => void;
+
+/** 복기 한 번의 위치, 갈래, 재생 시계를 함께 지킨다. */
+export class ReviewRun<S> {
+  at: number;
+  playing = false;
+  speed: ReviewSpeed = 1;
+  branch = false;
+  private dropClock: (() => void) | null = null;
+
+  constructor(readonly frames: Scene<S>[], readonly order: number[]) {
+    this.at = Math.max(0, frames.length - 1);
+  }
+
+  get total(): number {
+    return Math.max(0, this.frames.length - 1);
+  }
+
+  get current(): Scene<S> {
+    return this.frames[this.at];
+  }
+
+  seek(k: number): Scene<S> {
+    if (!this.branch) this.at = Math.max(0, Math.min(this.total, k));
+    return this.current;
+  }
+
+  cycleSpeed(): ReviewSpeed {
+    this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 0.5 : 1;
+    return this.speed;
+  }
+
+  setPlaying(on: boolean, tick: () => void, clock: ReviewClock): void {
+    this.stop();
+    this.playing = on;
+    if (!on) return;
+    if (this.at >= this.total) this.at = 0;
+    this.dropClock = clock(tick, 900 / this.speed);
+  }
+
+  stop(): void {
+    this.dropClock?.();
+    this.dropClock = null;
+    this.playing = false;
+  }
+}
+
 /**
  * 복기 장면들. 판을 씨앗으로 다시 굴리며 **수가 먹힐 때마다** 장면 하나
  *

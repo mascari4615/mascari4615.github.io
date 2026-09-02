@@ -72,7 +72,7 @@ import {
 import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
-import { record, scenes, matchAt, type Tape } from './replay';
+import { record, scenes, matchAt, ReviewRun, type Tape } from './replay';
 import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
@@ -855,16 +855,7 @@ interface Session {
      * 복기. 판을 씨앗으로 다시 굴려 **수마다 장면**을 잡아 두고 타임라인으로 넘김
      * `branch` 는 Try Play. 그 수까지 굴린 살아 있는 판에서 다른 수를 이어 두는 것
      */
-    let review: {
-      frames: Array<{ at: number; v: MatchView<unknown> }>;
-      order: number[];
-      at: number;
-      playing: boolean;
-      speed: number;
-      /** 자동 넘김을 멈추는 손. 숨은 탭에서는 스스로 쉰다 */
-      timer: (() => void) | null;
-      branch: boolean;
-    } | null = null;
+    let review: ReviewRun<unknown> | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
     /* 저택 사람의 얼굴, 말풍선, 컷인. 판의 그림은 물어서 씀 (`mdd.ts`) */
@@ -2578,7 +2569,7 @@ interface Session {
       cancelAnimationFrame(raf);
       match = null;
       replaying = true;
-      review = { frames, order, at: frames.length - 1, playing: false, speed: 1, timer: null, branch: false };
+      review = new ReviewRun(frames, order);
       session.ended = false;
       hideResult();
       againBtn.style.display = 'none';
@@ -2594,12 +2585,10 @@ interface Session {
     /** 그 수의 장면으로. 자리 카드의 시계도 그때 값 */
     function seek(k: number): void {
       if (!review || review.branch) return;
-      const n = review.frames.length - 1;
-      const next = Math.max(0, Math.min(n, k));
-      if (next !== review.at) hintAt = null;
-      review.at = next;
-      const f = review.frames[review.at];
-      const v: MatchView<unknown> = { ...f.v, review: { order: review.order, at: review.at, total: n }, hint: hintAt?.action };
+      const before = review.at;
+      const f = review.seek(k);
+      if (review.at !== before) hintAt = null;
+      const v: MatchView<unknown> = { ...f.v, review: { order: review.order, at: review.at, total: review.total }, hint: hintAt?.action };
       paint(v, f.at);
     }
 
@@ -2611,7 +2600,7 @@ interface Session {
       }
       tlEl.hidden = false;
       tlEl.classList.toggle('ac-branch', review.branch);
-      const n = review.frames.length - 1;
+      const n = review.total;
       const bar = $<HTMLInputElement>('#acTlBar');
       if (bar.max !== String(n)) bar.max = String(n);
       if (bar.value !== String(review.at)) bar.value = String(review.at);
@@ -2626,20 +2615,14 @@ interface Session {
 
     function tlPlay(on: boolean): void {
       if (!review) return;
-      review.timer?.();
-      review.timer = null;
-      review.playing = on;
-      if (on) {
-        if (review.at >= review.frames.length - 1) review.at = 0;
-        review.timer = intervalWhileVisible(() => {
-          if (!review || review.branch) return;
-          if (review.at >= review.frames.length - 1) {
-            tlPlay(false);
-            return;
-          }
-          seek(review.at + 1);
-        }, 900 / review.speed);
-      }
+      review.setPlaying(on, () => {
+        if (!review || review.branch) return;
+        if (review.at >= review.total) {
+          tlPlay(false);
+          return;
+        }
+        seek(review.at + 1);
+      }, intervalWhileVisible);
       paintTimeline();
     }
 
@@ -2681,8 +2664,8 @@ interface Session {
     function endReview(showOver = true): void {
       if (!review) return;
       tlPlay(false);
-      const last = review.frames[review.frames.length - 1];
-      session.resultMeta = { moves: review.frames.length - 1, ms: last.at };
+      const last = review.frames[review.total];
+      session.resultMeta = { moves: review.total, ms: last.at };
       review = null;
       replaying = false;
       cancelAnimationFrame(raf);
@@ -2754,11 +2737,11 @@ interface Session {
     $<HTMLButtonElement>('#acTlFirst').onclick = () => { tlPlay(false); seek(0); };
     $<HTMLButtonElement>('#acTlPrev').onclick = () => { tlPlay(false); if (review) seek(review.at - 1); };
     $<HTMLButtonElement>('#acTlNext').onclick = () => { tlPlay(false); if (review) seek(review.at + 1); };
-    $<HTMLButtonElement>('#acTlLast').onclick = () => { tlPlay(false); if (review) seek(review.frames.length - 1); };
+    $<HTMLButtonElement>('#acTlLast').onclick = () => { tlPlay(false); if (review) seek(review.total); };
     $<HTMLButtonElement>('#acTlPlay').onclick = () => tlPlay(!review?.playing);
     $<HTMLButtonElement>('#acTlSpeed').onclick = () => {
       if (!review) return;
-      review.speed = review.speed === 1 ? 2 : review.speed === 2 ? 0.5 : 1;
+      review.cycleSpeed();
       if (review.playing) tlPlay(true);
       else paintTimeline();
     };
@@ -2779,7 +2762,7 @@ interface Session {
       if (ev.key === 'ArrowLeft') { tlPlay(false); seek(review.at - 1); }
       else if (ev.key === 'ArrowRight') { tlPlay(false); seek(review.at + 1); }
       else if (ev.key === 'Home') { tlPlay(false); seek(0); }
-      else if (ev.key === 'End') { tlPlay(false); seek(review.frames.length - 1); }
+      else if (ev.key === 'End') { tlPlay(false); seek(review.total); }
       else if (ev.key === ' ') { tlPlay(!review.playing); }
       else return;
       ev.preventDefault();
@@ -2950,7 +2933,7 @@ interface Session {
       /* 문서와 창의 리스너, 무대 관찰자, 복기와 등급전 타이머까지. 남기면 핫리로드마다 쌓인다 */
       gone.abort();
       chrome.dispose();
-      review?.timer?.();
+      review?.stop();
       rankedTick?.();
       stopLinkWatch();
       mdd.stop();
