@@ -698,6 +698,7 @@
   "arcade.blackjack.insureYes": "든다",
   "arcade.blackjack.insureNo": "안 든다",
   "arcade.blackjack.bet": "얼마 걸까",
+  "arcade.blackjack.rebet": "다시 {n}",
   "arcade.blackjack.betting": "거는 중",
   "arcade.blackjack.betPlaced": "{n} 걸었다",
   "arcade.blackjack.waiting": "다들 거는 중",

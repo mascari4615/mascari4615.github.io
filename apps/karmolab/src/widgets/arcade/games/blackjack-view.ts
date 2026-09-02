@@ -110,6 +110,8 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
 
     /* 지금 무엇을 할 수 있나. 끌기가 보는 값 */
     let can = { hit: false, stand: false };
+    /* 지난 판돈. 다음 판 거는 자리에 다시 걸기 버튼으로 */
+    let lastBet = 0;
 
     const send = (a: BlackjackAction): void => {
       blip('tap');
@@ -263,13 +265,19 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
       can = { hit: false, stand: false };
       if (me && !s.over) {
         if (s.phase === 'bet') {
+          /* 지난 판돈 다시 걸기. 디지털 블랙잭 관례(레퍼런스 실측) */
+          const rebet = lastBet > 0 && me.bet === 0 && me.chips >= lastBet
+            ? '<button class="btn btn-ghost" data-do="bet" data-n="' + lastBet + '">' + esc(t('arcade.blackjack.rebet', { n: String(lastBet) })) + '</button>'
+            : '';
           bar =
             '<span class="ac-bjask">' + esc(t('arcade.blackjack.bet')) + '</span>' +
             BETS.map(
               (b) =>
                 '<button class="btn btn-primary" data-do="bet" data-n="' + b + '"' +
                 (me.bet > 0 || me.chips < b ? ' disabled' : '') + '>' + b + '</button>'
-            ).join('');
+            ).join('') + rebet;
+        } else if (me.bet > 0) {
+          lastBet = me.bet;
         } else if (s.phase === 'insure') {
           const half = Math.floor(me.bet / 2);
           bar =

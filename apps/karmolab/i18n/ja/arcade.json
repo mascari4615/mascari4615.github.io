@@ -698,6 +698,7 @@
   "arcade.blackjack.insureYes": "掛ける",
   "arcade.blackjack.insureNo": "掛けない",
   "arcade.blackjack.bet": "いくら賭ける",
+  "arcade.blackjack.rebet": "もう一度 {n}",
   "arcade.blackjack.betting": "ベット中",
   "arcade.blackjack.betPlaced": "{n} 賭けた",
   "arcade.blackjack.waiting": "ベット待ち",

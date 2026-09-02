@@ -74,6 +74,8 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
 
     /* 지금 무엇을 할 수 있나. 끌기가 보는 값 */
     let can = { hit: false, stand: false };
+    /* 지난 판돈. 다음 판 거는 자리에 다시 걸기 버튼으로 */
+    let lastBet = 0;
 
     const send = (a: BlackjackAction): void => {
       amb.stone();
@@ -177,7 +179,11 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
         if (s.phase === 'bet') {
           acts = BETS.map((b) =>
             btn('bet', String(b), me.bet === 0 && me.chips >= b, false, ' data-n="' + b + '"')
-          ).join('');
+          ).join('') +
+            /* 지난 판돈 다시 걸기. 디지털 블랙잭 관례(레퍼런스 실측) */
+            (lastBet > 0 ? btn('bet', t('arcade.blackjack.rebet', { n: String(lastBet) }), me.bet === 0 && me.chips >= lastBet, true, ' data-n="' + lastBet + '"') : '');
+        } else if (me.bet > 0) {
+          lastBet = me.bet;
         } else if (s.phase === 'insure') {
           const half = Math.floor(me.bet / 2);
           acts =

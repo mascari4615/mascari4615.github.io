@@ -698,6 +698,7 @@
   "arcade.blackjack.insureYes": "Insure",
   "arcade.blackjack.insureNo": "No thanks",
   "arcade.blackjack.bet": "Your bet",
+  "arcade.blackjack.rebet": "Again {n}",
   "arcade.blackjack.betting": "Betting",
   "arcade.blackjack.betPlaced": "Bet {n}",
   "arcade.blackjack.waiting": "Waiting for bets",
