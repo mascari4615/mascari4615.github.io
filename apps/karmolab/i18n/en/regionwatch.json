@@ -30,5 +30,8 @@
   "regionwatch.err.unsupported": "This browser does not support screen sharing. Try Chrome or Edge.",
   "regionwatch.err.notStarted": "Screen sharing was not started.",
   "regionwatch.err.pip": "Could not open the floating window.",
-  "regionwatch.err.run": "Something went wrong while watching: "
+  "regionwatch.err.run": "Something went wrong while watching: ",
+  "regionwatch.label.name": "Slot name",
+  "regionwatch.label.mode": "Alert condition",
+  "regionwatch.label.sound": "Alert sound"
 }

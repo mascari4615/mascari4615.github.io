@@ -30,5 +30,8 @@
   "regionwatch.err.unsupported": "このブラウザは画面共有に対応していません。Chrome か Edge で開いてください。",
   "regionwatch.err.notStarted": "画面共有を開始しませんでした。",
   "regionwatch.err.pip": "浮かぶウィンドウを開けませんでした。",
-  "regionwatch.err.run": "見守り中に問題が起きました: "
+  "regionwatch.err.run": "見守り中に問題が起きました: ",
+  "regionwatch.label.name": "場所の名前",
+  "regionwatch.label.mode": "通知条件",
+  "regionwatch.label.sound": "通知音"
 }

@@ -30,5 +30,8 @@
   "regionwatch.err.unsupported": "이 브라우저는 화면 공유를 지원하지 않아요. 크롬, 엣지에서 열어 보세요.",
   "regionwatch.err.notStarted": "화면 공유를 시작하지 않았어요.",
   "regionwatch.err.pip": "떠 있는 창을 열지 못했어요.",
-  "regionwatch.err.run": "지켜보다 문제가 생겼어요: "
+  "regionwatch.err.run": "지켜보다 문제가 생겼어요: ",
+  "regionwatch.label.name": "자리 이름",
+  "regionwatch.label.mode": "알림 조건",
+  "regionwatch.label.sound": "알림 소리"
 }

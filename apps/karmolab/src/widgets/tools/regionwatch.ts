@@ -151,26 +151,26 @@ interface DocPipLike {
       <div class="rw-slot" data-i="${i}">
         <div class="rw-slot-head">
           <label class="tool-chip rw-on"><input type="checkbox" data-k="enabled" checked> ${i + 1}</label>
-          <input type="text" class="mono-input rw-name" data-k="name" maxlength="16">
+          <input type="text" class="mono-input rw-name" data-k="name" maxlength="16" aria-label="${esc(t('regionwatch.label.name'))}">
           <button class="btn btn-sm btn-outline" data-act="pick">${esc(t('regionwatch.btn.pick'))}</button>
           <button class="btn btn-sm btn-outline" data-act="ref">${esc(t('regionwatch.btn.ref'))}</button>
           <span class="rw-thumb" title="${esc(t('regionwatch.label.ref'))}"></span>
           <span class="rw-sim"><i></i><b>-</b></span>
         </div>
         <div class="rw-slot-body">
-          <select data-k="mode">
+          <select data-k="mode" aria-label="${esc(t('regionwatch.label.mode'))}">
             <option value="match">${esc(t('regionwatch.mode.match'))}</option>
             <option value="change">${esc(t('regionwatch.mode.change'))}</option>
           </select>
           <label class="tool-sublabel">${esc(t('regionwatch.label.threshold'))} <output data-o="threshold">92%</output></label>
-          <input type="range" min="50" max="99" step="1" data-k="threshold">
-          <select data-k="sound">
+          <input type="range" min="50" max="99" step="1" data-k="threshold" aria-label="${esc(t('regionwatch.label.threshold'))}">
+          <select data-k="sound" aria-label="${esc(t('regionwatch.label.sound'))}">
             <option value="ping">${esc(t('regionwatch.sound.ping'))}</option>
             <option value="double">${esc(t('regionwatch.sound.double'))}</option>
             <option value="chime">${esc(t('regionwatch.sound.chime'))}</option>
           </select>
           <label class="tool-sublabel">${esc(t('regionwatch.label.rearm'))}</label>
-          <input type="number" class="mono-input rw-rearm" min="0" max="3600" step="1" data-k="rearm">
+          <input type="number" class="mono-input rw-rearm" min="0" max="3600" step="1" data-k="rearm" aria-label="${esc(t('regionwatch.label.rearm'))}">
           <label class="tool-chip"><input type="checkbox" data-k="randomDelay"> ${esc(t('regionwatch.opt.randomDelay'))}</label>
         </div>
       </div>`).join('');
@@ -182,7 +182,7 @@ interface DocPipLike {
         <button class="btn btn-ghost" id="rwPip" disabled>${esc(t('regionwatch.btn.pip'))}</button>
         <button class="btn btn-ghost" id="rwTest">${esc(t('regionwatch.btn.test'))}</button>
         <label class="tool-chip"><input type="checkbox" id="rwNotify"> ${esc(t('regionwatch.opt.notify'))}</label>
-        <label class="tool-sublabel rw-vol">${esc(t('regionwatch.label.volume'))} <input type="range" id="rwVolume" min="0" max="100" step="5"></label>
+        <label class="tool-sublabel rw-vol">${esc(t('regionwatch.label.volume'))} <input type="range" id="rwVolume" min="0" max="100" step="5" aria-label="${esc(t('regionwatch.label.volume'))}"></label>
       </div>
       <div class="rw-grid">
         <div class="rw-left">
