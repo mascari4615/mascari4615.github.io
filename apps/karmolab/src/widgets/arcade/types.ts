@@ -97,7 +97,11 @@ export interface GameDef<S, A> {
   /** 이 게임이 시간을 쓰나. 쓰면 커널이 `tick` 을 계속 불러 준다 */
   realtime?: boolean;
 
-  init(ctx: GameCtx): S;
+  /**
+   * 첫 상태. 둘째 판부터는 지난 판의 끝 상태(`prev`)가 같이 옴
+   * 대부호의 계급 교환처럼 지난 판이 다음 판을 정하는 놀이가 읽는다. 첫 판과 다시 시작은 없음
+   */
+  init(ctx: GameCtx, prev?: S): S;
 
   /**
    * 한 수. **못 두는 수면 상태를 그대로 돌려준다** (예외를 던지지 X . 

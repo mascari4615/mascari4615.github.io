@@ -32,13 +32,14 @@ export const presidentView: GameView<PresidentState, PresidentAction> = {
     let sawBang = 0;
     let bangUntil = 0;
     let bangText = '';
+    let swapKey = -1;
     let picked = -1;
     let pileKey = '';
     let handKey = '';
 
     return (v, mySeat, now) => {
       const s = v.state;
-      const myTurn = s.turn === mySeat && !v.finished;
+      const myTurn = s.turn === mySeat && !s.over && !v.finished;
       const hand = s.hands[mySeat] ?? [];
       const opts = myTurn ? options(s, mySeat) : [];
 
@@ -47,6 +48,12 @@ export const presidentView: GameView<PresidentState, PresidentAction> = {
         const who = v.seats[s.bang.by]?.name ?? '';
         bangText = t('arcade.president.' + s.bang.kind, { who });
         bangUntil = now + 1600;
+      }
+      /* 판 시작의 카드 교환. 한 판에 한 번만 알린다 */
+      if (s.swaps && s.swaps.length && swapKey !== v.round) {
+        swapKey = v.round;
+        bangText = s.swaps.map((w) => t('arcade.president.swap', { poor: v.seats[w.poor]?.name ?? '', rich: v.seats[w.rich]?.name ?? '', n: String(w.n) })).join('. ');
+        bangUntil = now + 2600;
       }
       /* 가운데 위 한 줄. 사건이 있으면 그것, 아니면 누구 차례인지 */
       const turnText = v.finished ? '' : myTurn ? t('arcade.table.myTurn') : t('arcade.table.turnOf', { who: v.seats[s.turn]?.name ?? '' });

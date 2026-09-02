@@ -730,5 +730,11 @@
   "arcade.btn.hand": "Input: tap or drag",
   "arcade.hand.auto": "Input auto",
   "arcade.hand.tap": "Tap",
-  "arcade.hand.drag": "Drag"
+  "arcade.hand.drag": "Drag",
+  "arcade.president.rank.top": "President",
+  "arcade.president.rank.rich": "Vice",
+  "arcade.president.rank.mid": "Citizen",
+  "arcade.president.rank.poor": "Vice scum",
+  "arcade.president.rank.bottom": "Scum",
+  "arcade.president.swap": "{poor} handed {n} to {rich}"
 }

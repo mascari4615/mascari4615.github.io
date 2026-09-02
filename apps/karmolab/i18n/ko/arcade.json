@@ -730,5 +730,11 @@
   "arcade.btn.hand": "손놀림. 누르기와 끌기",
   "arcade.hand.auto": "손놀림 자동",
   "arcade.hand.tap": "눌러서",
-  "arcade.hand.drag": "끌어서"
+  "arcade.hand.drag": "끌어서",
+  "arcade.president.rank.top": "대부호",
+  "arcade.president.rank.rich": "부호",
+  "arcade.president.rank.mid": "평민",
+  "arcade.president.rank.poor": "빈민",
+  "arcade.president.rank.bottom": "대빈민",
+  "arcade.president.swap": "{poor} 이(가) {rich} 에게 {n}장을 바쳤다"
 }

@@ -730,5 +730,11 @@
   "arcade.btn.hand": "操作。タップかドラッグ",
   "arcade.hand.auto": "操作 自動",
   "arcade.hand.tap": "タップ",
-  "arcade.hand.drag": "ドラッグ"
+  "arcade.hand.drag": "ドラッグ",
+  "arcade.president.rank.top": "大富豪",
+  "arcade.president.rank.rich": "富豪",
+  "arcade.president.rank.mid": "平民",
+  "arcade.president.rank.poor": "貧民",
+  "arcade.president.rank.bottom": "大貧民",
+  "arcade.president.swap": "{poor} が {rich} に {n}枚を献上"
 }

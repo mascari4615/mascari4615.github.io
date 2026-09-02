@@ -10,7 +10,7 @@ import type { GameView } from '../views';
 import { mountCardStage, type CardHand, type CardStage } from '../card-stage';
 import { roomAmbience } from '../ambience';
 import { sceneOf } from '../scenes';
-import { options, power, type PresidentState, type PresidentAction } from './president';
+import { options, power, rankKey, type PresidentState, type PresidentAction } from './president';
 
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -52,6 +52,7 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
     let sawBang = 0;
     let bangUntil = 0;
     let bangText = '';
+    let swapKey = -1;
 
     const nope = (b: HTMLElement): void => {
       blip('bad');
@@ -94,7 +95,7 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
     return (v, mySeat, now) => {
       const s = v.state;
       const names = v.seats.map((x) => x.name);
-      const myTurn = s.turn === mySeat && !v.finished;
+      const myTurn = s.turn === mySeat && !s.over && !v.finished;
       const hand = s.hands[mySeat] ?? [];
       const opts = myTurn ? options(s, mySeat) : [];
       pickable = new Set(opts.map((o) => o.rank));
@@ -123,8 +124,8 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
             can: mine && myTurn && pickable.has(c),
             held: mine && c === picked
           })),
-          label: (names[i] ?? '') + ' ' + t('arcade.president.cards', { n: String(h.length) }) + (s.passed[i] && !v.finished ? ' ' + t('arcade.president.passed') : ''),
-          tone: v.finished ? (s.out[0] === i ? 'win' : 'idle') : s.turn === i ? 'turn' : 'idle'
+          label: (s.ranks ? t(rankKey(s.ranks[i] ?? 0, s.hands.length)) + ' ' : '') + (names[i] ?? '') + ' ' + t('arcade.president.cards', { n: String(h.length) }) + (s.passed[i] && !v.finished ? ' ' + t('arcade.president.passed') : ''),
+          tone: s.over ? (s.out[0] === i ? 'win' : 'idle') : s.turn === i ? 'turn' : 'idle'
         });
       });
       stage.setSeats(s.hands.length);
@@ -135,6 +136,12 @@ export const view3d: GameView<PresidentState, PresidentAction> = {
         sawBang = s.bang.at;
         bangText = t('arcade.president.' + s.bang.kind, { who: names[s.bang.by] ?? '' });
         bangUntil = now + 1600;
+      }
+      /* 판 시작의 카드 교환. 한 판에 한 번만 알린다 */
+      if (s.swaps && s.swaps.length && swapKey !== v.round) {
+        swapKey = v.round;
+        bangText = s.swaps.map((w) => t('arcade.president.swap', { poor: names[w.poor] ?? '', rich: names[w.rich] ?? '', n: String(w.n) })).join('. ');
+        bangUntil = now + 2600;
       }
       const line = now < bangUntil ? bangText : v.finished ? '' : myTurn ? t('arcade.table.myTurn') : t('arcade.table.turnOf', { who: names[s.turn] ?? '' });
       const lk = line + '|' + (s.rev ? 'r' : '');

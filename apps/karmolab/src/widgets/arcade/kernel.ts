@@ -323,7 +323,8 @@ export class Match<S, A> {
     }
     this.rand = mulberry32(this.seed + this.round * 0x9e3779b9);
     this.botRand = mulberry32(((this.seed ^ 0x5bf03635) + this.round * 0x85ebca6b) >>> 0);
-    this.state = this.game.init(this.ctx());
+    /* 지난 판의 끝 상태를 넘긴다. 계급 교환(대부호)처럼 판을 잇는 놀이가 읽는다 */
+    this.state = this.game.init(this.ctx(), this.state);
     this.scheduleBots();
   }
 
