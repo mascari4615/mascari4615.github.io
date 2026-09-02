@@ -1712,7 +1712,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       '<button class="btn btn-ghost" id="acCoords" style="display:none" aria-pressed="false">' + esc(t('arcade.btn.coords')) + '</button>' +
       '<button class="btn btn-ghost" id="acNums" style="display:none" aria-pressed="false">' + esc(t('arcade.btn.numbers')) + '</button>' +
       '<i class="ac-sep"></i>' +
-      /* MDD 는 확장. 끄면 이름 있는 봇, 얼굴과 말풍선과 컷인 없음. 지금은 켬이 기본(개발 편의), 출시 기본은 끔 */
+      /* MDD 는 확장. 끄면 이름 있는 봇, 얼굴과 말풍선과 컷인 없음. 기본 켬 (사용자 결정 2026-09-02. 저택 사람이 오락실의 얼굴) */
       '<button class="btn btn-ghost" id="acMdd" aria-pressed="true" title="' + esc(t('arcade.btn.mdd')) + '">' + esc(t('arcade.btn.mdd')) + '</button>' +
       '<button class="btn btn-ghost" id="acEmote" style="display:none">' + esc(t('arcade.btn.emote')) + '</button>' +
       '<button class="btn btn-ghost" id="acSwap" style="display:none">' + esc(t('arcade.btn.swap')) + '</button>' +
@@ -2287,7 +2287,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     } | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
-    /** MDD 켜짐. 사람이 고른 것이 브라우저에 남는다. 기본 켬(개발 편의, 사용자 결정 2026-08-30) */
+    /** MDD 켜짐. 사람이 고른 것이 브라우저에 남음. 기본 켬 (사용자 결정 2026-09-02. 끄는 길은 메뉴의 캐릭터 버튼, 반응 버튼은 paintScene 이 되살림) */
     function mddOn(): boolean {
       try {
         return localStorage.getItem('karmolab.arcade.mdd') !== 'off';
