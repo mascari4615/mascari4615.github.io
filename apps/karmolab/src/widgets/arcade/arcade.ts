@@ -89,6 +89,15 @@ declare const Toolbox: {
 };
 declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | undefined;
 
+/** 방금 판을 같은 규칙, 자리, 씨앗으로 되살릴 재료. */
+interface MatchRecipe {
+  seed: number;
+  seats: SeatSpec[];
+  personas: Record<number, BotPersona>;
+  level: BotLevel;
+  def: GameDef<unknown, unknown> | null;
+}
+
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
 
@@ -808,14 +817,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     /* ── 판 ──────────────────────────────────────────────────────── */
     let match: Match<unknown, unknown> | null = null;
-    /** 방금 끝난 판을 되살릴 재료 (TASK-KL-264 다시 보기). */
-    let lastSeed = 0;
-    let lastSeats: SeatSpec[] = [];
-    /* 봇의 손버릇, 세기까지 같아야 같은 판이 나온다. 뜸 들이는 시간이 곧 수의 시각이다. */
-    let lastPersonas: Record<number, BotPersona> = {};
-    let lastLevel: BotLevel = 'normal';
     /** 판을 만든 규칙 정의 그대로(봇 세기, 고스트까지). 복기와 곁가지는 이걸로 다시 굴려야 같은 판(2026-08-30 실측: 고스트를 빼고 굴려 딴 판이 됐다) */
-    let lastDef: GameDef<unknown, unknown> | null = null;
+    let lastRecipe: MatchRecipe = { seed: 0, seats: [], personas: {}, level: 'normal', def: null };
     /** 이 판을 시작할 때의 내 최고 기록. 결과에 어제 N으로 적는다. */
     let lastBest: number | null = null;
     let tape: Tape<unknown> | null = null;
@@ -1100,7 +1103,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           /* 곁가지(Try Play)의 끝은 원래 판의 기록을 덮어쓰지 않는다 */
           if (match && !replaying && !review) {
             const g0 = gameById(gameId);
-            if (g0) tape = record(g0, match as never, lastSeats, lastSeed) as Tape<unknown>;
+            if (g0) tape = record(g0, match as never, lastRecipe.seats, lastRecipe.seed) as Tape<unknown>;
           }
           /* 여태 가장 잘한 판이면 남긴다. 다음 판에 이 사람이 옆자리에 앉는다 (`ghost.ts`).
              혼자 둔 판만 남긴다: 여럿이 둔 판의 내 수는 남의 수에 기대어 나온 것이라
@@ -1622,7 +1625,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const past = !net && !tour && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
       /* 끝나면 `noteBest` 가 덮으므로 **시작할 때** 챙겨 둔다. 결과에 어제 N을 적으려면 필요하다. */
       lastBest = bestOf(id)?.score ?? null;
-      let def = withBotLevel(g, levelNow(), personas);
+      const level = levelNow();
+      let def = withBotLevel(g, level, personas);
       if (past && withCrew.length > seats.length) {
         const gseat = withCrew.length - 1;
         withCrew[gseat] = { name: GHOST_NAME, bot: true };
@@ -1631,11 +1635,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       noteRecent(id);
       match = new Match(def, seed, withCrew, matchOpts(id)) as Match<unknown, unknown>;
       /* 되살릴 재료. 씨앗과 자리. 이 둘과 누른 것이면 판이 다시 만들어진다(`replay.ts`). */
-      lastSeed = seed;
-      lastSeats = withCrew;
-      lastPersonas = personas;
-      lastLevel = levelNow();
-      lastDef = def as GameDef<unknown, unknown>;
+      lastRecipe = { seed, seats: withCrew, personas, level, def: def as GameDef<unknown, unknown> };
       mdd.clearBubbles();
       seenMoves = 0;
       withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) mdd.sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
@@ -1814,9 +1814,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mdd.on() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
       cancelAnimationFrame(raf);
       match = new Match(def, 1, seats, { size: TUTOR_SIZE, renju: true, limit: 0, ai: 1 }) as Match<unknown, unknown>;
-      lastDef = def as GameDef<unknown, unknown>;
-      lastSeed = 1;
-      lastSeats = seats;
+      lastRecipe = { seed: 1, seats, personas: {}, level: 'normal', def: def as GameDef<unknown, unknown> };
       ended = false;
       soundedRound = -1;
       mdd.clearBubbles();
@@ -2105,9 +2103,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!gameById(raw.game)) return;
       gameId = raw.game;
       mountView(raw.game);
-      lastDef = null;
-      lastSeats = raw.seats;
-      lastSeed = raw.seed;
+      lastRecipe = { seed: raw.seed, seats: raw.seats, personas: {}, level: 'normal', def: null };
       tape = raw;
       mySeat = -1;
       watching = true;
@@ -2573,7 +2569,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const g = gameById(gameId);
       if (!g || !tape) return;
       /* 판을 만든 정의(고스트 등)로 굴린다. 맨 정의로 굴리면 딴 판이 된다 (2026-08-30 사고) */
-      const { frames, order } = scenes(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tape);
+      const { frames, order } = scenes(lastRecipe.def ?? withBotLevel(g, lastRecipe.level, lastRecipe.personas), tape);
       cancelAnimationFrame(raf);
       match = null;
       replaying = true;
@@ -2649,7 +2645,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function branchFrom(k: number): boolean {
       const g = gameById(gameId);
       if (!g || !tape || !review) return false;
-      const m = matchAt(lastDef ?? withBotLevel(g, lastLevel, lastPersonas), tape, k) as Match<unknown, unknown>;
+      const m = matchAt(lastRecipe.def ?? withBotLevel(g, lastRecipe.level, lastRecipe.personas), tape, k) as Match<unknown, unknown>;
       if (m.view().finished) return false;
       /* 내 차례인 수에서만. 봇 차례에서 갈라지면 봇이 먼저 두어 무엇이 내 수인지 헷갈린다(실측) */
       if (g.canAct && !g.canAct(m.view().state as never, mySeat)) return false;
