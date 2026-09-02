@@ -750,3 +750,67 @@ export function cardEdgeTexture(w = 256): HTMLCanvasElement {
   c.fillRect(cut, 0, w - cut * 2, h);
   return cv;
 }
+
+/* ── 도미노 (감사 D1, 2026-09-03) ──
+   상아 타일 1:2. 위 칸 a, 아래 칸 b. 눈 배치는 주사위와 같은 아홉 자리 */
+export function dominoFaceTexture(a: number, b: number, w = 256): HTMLCanvasElement {
+  const cv = document.createElement('canvas');
+  const h = w * 2;
+  cv.width = w;
+  cv.height = h;
+  const c = cv.getContext('2d') as CanvasRenderingContext2D;
+  const g = c.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, '#fbf6ea');
+  g.addColorStop(1, '#e6dcc4');
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, h);
+  /* 가운데 홈. 위아래 칸을 가름 */
+  c.strokeStyle = 'rgba(60,40,20,.55)';
+  c.lineWidth = Math.max(2, w * 0.03);
+  c.beginPath();
+  c.moveTo(w * 0.12, h / 2);
+  c.lineTo(w * 0.88, h / 2);
+  c.stroke();
+  c.fillStyle = 'rgba(60,40,20,.35)';
+  c.beginPath();
+  c.arc(w / 2, h / 2, w * 0.03, 0, Math.PI * 2);
+  c.fill();
+  const spots: number[][] = [[], [4], [0, 8], [0, 4, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 3, 5, 6, 8]];
+  const half = (n: number, top: number): void => {
+    const on = spots[Math.max(0, Math.min(6, n))] ?? [];
+    const pad = w * 0.24;
+    const step = (w - pad * 2) / 2;
+    for (const sp of on) {
+      const x = pad + (sp % 3) * step;
+      const y = top + pad + Math.floor(sp / 3) * step;
+      c.fillStyle = 'rgba(255,255,255,.5)';
+      c.beginPath();
+      c.arc(x, y + w * 0.012, w * 0.085, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = '#17120f';
+      c.beginPath();
+      c.arc(x, y, w * 0.082, 0, Math.PI * 2);
+      c.fill();
+    }
+  };
+  half(a, 0);
+  half(b, w);
+  return cv;
+}
+
+/** 도미노 뒷면. 짙은 나무 */
+export function dominoBackTexture(w = 256): HTMLCanvasElement {
+  const cv = document.createElement('canvas');
+  cv.width = w;
+  cv.height = w * 2;
+  const c = cv.getContext('2d') as CanvasRenderingContext2D;
+  const g = c.createLinearGradient(0, 0, w, w * 2);
+  g.addColorStop(0, '#3b2a1c');
+  g.addColorStop(1, '#241811');
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, w * 2);
+  c.strokeStyle = 'rgba(230,200,150,.35)';
+  c.lineWidth = Math.max(2, w * 0.025);
+  c.strokeRect(w * 0.08, w * 0.06, w * 0.84, w * 1.88);
+  return cv;
+}

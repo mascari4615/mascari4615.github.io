@@ -261,7 +261,7 @@
     "view": "dominoes-view",
     "defVar": "dominoes",
     "viewVar": "dominoesView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "yacht",

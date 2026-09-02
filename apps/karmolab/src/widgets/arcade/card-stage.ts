@@ -33,7 +33,7 @@ import { mountStageCore } from './stage-core';
 import { buildRoom, type Room } from './rooms';
 import { handNow } from './hands';
 import type { SceneId } from './scenes';
-import { cardBackTexture, cardEdgeTexture, cardFaceTexture, feltTexture } from './texture';
+import { cardBackTexture, cardEdgeTexture, cardFaceTexture, dominoBackTexture, dominoFaceTexture, feltTexture } from './texture';
 import { suitOf } from './deck';
 import { buildCasinoTable, chipStack, type CasinoTable } from './card-table';
 
@@ -65,6 +65,8 @@ const CASINO_TOP_Y = 762 * MM;
 export interface CardSpot {
   /** 카드 값 1~13. 0 이면 뒷면만 보이는 카드(아직 안 뽑힌 것) */
   rank: number;
+  /** 도미노 짝이면 [위, 아래]. 카드 대신 타일 메시 (감사 D1) */
+  tile?: [number, number];
   /** 앞면이 위인가 */
   up: boolean;
   /** 무늬 0~3. 안 주면 값과 자리로 정함 */
@@ -120,6 +122,8 @@ export interface CardStageOpts {
 export interface CardSpotAt {
   /** 부르는 쪽이 붙인 이름. 누르면 이게 돌아온다 */
   id: string;
+  /** 도미노 짝이면 [위, 아래]. 카드 대신 타일 */
+  tile?: [number, number];
   /** 상 위 자리. 가운데가 0, 오른쪽이 +x, 앞이 +z */
   x: number;
   z: number;
@@ -293,6 +297,31 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
 
   /* 한 장. 앞면은 +Y, 뒷면은 -Y (탁자에 눕혀 놓는다) */
   const cardGeo = new BoxGeometry(CARD_W, CARD_T, CARD_H);
+  /* 도미노 타일. 카드 폭의 0.62, 세로는 그 두 배, 두께는 카드 셋 (감사 D1) */
+  const TILE_W = CARD_W * 0.62;
+  const tileGeo = new BoxGeometry(TILE_W, CARD_T * 3, TILE_W * 2);
+  const tileBackMap = sharp(new CanvasTexture(dominoBackTexture(256)));
+  tileBackMap.colorSpace = SRGBColorSpace;
+  const tileBackMat = new MeshStandardMaterial({ map: tileBackMap, roughness: 0.6, metalness: 0 });
+  const tileEdgeMat = new MeshStandardMaterial({ color: 0xefe6d2, roughness: 0.55, metalness: 0 });
+  const tileCache = new Map<string, MeshStandardMaterial>();
+  const tileMatOf = (a: number, b: number): MeshStandardMaterial => {
+    const k = a + '|' + b;
+    const hit = tileCache.get(k);
+    if (hit) return hit;
+    const map = sharp(new CanvasTexture(dominoFaceTexture(a, b, 256)));
+    map.colorSpace = SRGBColorSpace;
+    const m = new MeshStandardMaterial({ map, roughness: 0.5, metalness: 0 });
+    tileCache.set(k, m);
+    return m;
+  };
+  const mkTile = (tile: [number, number], faceUp: boolean): Mesh => {
+    const m = new Mesh(tileGeo, [tileEdgeMat, tileEdgeMat, tileMatOf(tile[0], tile[1]), tileBackMat, tileEdgeMat, tileEdgeMat]);
+    m.castShadow = true;
+    m.receiveShadow = false;
+    m.rotation.z = faceUp ? 0 : Math.PI;
+    return m;
+  };
   interface Live {
     mesh: Mesh;
     /* 날아가는 중이면 어디서 어디로 */
@@ -699,7 +728,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + lift + i * 0.004, row.z);
         const wasUp = before ? had.get(keyOf(h.seat, nth, i)) : undefined;
         const old = wasUp !== undefined;
-        const mesh = mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
+        const mesh = card.tile ? mkTile(card.tile, card.up) : mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
         mesh.scale.setScalar(row.s * cardScale);
         mesh.rotation.x = cardTilt;
         if (old) {
@@ -831,11 +860,11 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       const to = new Vector3(sp.x, TOP_Y + CARD_T / 2 + layer * 0.006 + (sp.held ? 0.2 : 0), sp.z);
       const face = sp.rank > 0;
       /* 앞뒤가 갈리면 다른 물건이라 새로 만든다. 그 밖에는 있던 것을 옮긴다 */
-      const name = sp.id + '|' + (face ? sp.rank + ':' + (sp.suit ?? 0) : 'b');
+      const name = sp.id + '|' + (sp.tile ? 't' + sp.tile.join(':') + (sp.up ? 'u' : 'd') : face ? sp.rank + ':' + (sp.suit ?? 0) : 'b');
       keep.add(sp.id);
       const had = byName.get(sp.id);
       const same = had && had.userData.name === name;
-      const mesh = same ? (had as Mesh) : mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
+      const mesh = same ? (had as Mesh) : sp.tile ? mkTile(sp.tile, sp.up) : mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
       mesh.userData.name = name;
       if (!same) {
         if (had) holder.remove(had);
