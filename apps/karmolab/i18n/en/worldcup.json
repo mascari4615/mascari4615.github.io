@@ -49,5 +49,8 @@
   "worldcup.sameRate": "You chose the same way at <b>{rate}%</b> of the same forks. ",
   "worldcup.roomWaiting": "Room code: {code}. it starts when the other person joins. The set and the number of rounds follow your choice.",
   "worldcup.roomCopied": "Room code {code} copied. send it to the other person.",
-  "worldcup.loading": "Loading the table..."
+  "worldcup.loading": "Loading the table...",
+  "worldcup.taste.near": "Closest taste: {who} ({pct}% same)",
+  "worldcup.taste.far": "Most different: {who} ({pct}% same)",
+  "worldcup.taste.alone": "Nobody to compare yet. Someone else needs five rounds on this list"
 }

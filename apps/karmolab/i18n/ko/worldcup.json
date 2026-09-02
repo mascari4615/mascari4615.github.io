@@ -49,5 +49,8 @@
   "worldcup.theirChampion": "상대 우승",
   "worldcup.sameRate": "같은 갈림길에서 <b>{rate}%</b> 를 같게 골랐습니다. ",
   "worldcup.roomWaiting": "방 코드: {code}. 상대가 들어오면 시작합니다. 표와 몇 강은 내가 고른 대로 갑니다.",
-  "worldcup.roomCopied": "방 코드 {code} 를 복사했습니다. 상대에게 보내세요."
+  "worldcup.roomCopied": "방 코드 {code} 를 복사했습니다. 상대에게 보내세요.",
+  "worldcup.taste.near": "취향이 닮은 사람. {who} ({pct}% 같음)",
+  "worldcup.taste.far": "제일 다른 사람. {who} ({pct}% 같음)",
+  "worldcup.taste.alone": "아직 견줄 사람이 없습니다. 같은 표를 다섯 판 넘게 돌린 사람이 생기면 닮은 사람이 뜹니다"
 }

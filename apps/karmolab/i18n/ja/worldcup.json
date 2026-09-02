@@ -49,5 +49,8 @@
   "worldcup.sameRate": "同じ分かれ道で <b>{rate}%</b> を同じように選びました. ",
   "worldcup.roomWaiting": "部屋コード: {code}. 相手が入ると始まります。セットと回戦数は自分が選んだ通りに進みます。",
   "worldcup.roomCopied": "部屋コード {code} をコピーしました. 相手に送ってください。",
-  "worldcup.loading": "表を読み込んでいます..."
+  "worldcup.loading": "表を読み込んでいます...",
+  "worldcup.taste.near": "好みが近い人: {who} ({pct}% 一致)",
+  "worldcup.taste.far": "いちばん違う人: {who} ({pct}% 一致)",
+  "worldcup.taste.alone": "まだ比べる人がいません. 同じ表を5回以上回した人が現れると表示されます"
 }

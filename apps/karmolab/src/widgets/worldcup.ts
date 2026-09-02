@@ -405,6 +405,37 @@ const BUILTIN = [
             paintHistory();
             if (typeof Mdd !== 'undefined') Mdd.linePreset?.('success', { msg: t('worldcup.championIs', { name: champion.name }) });
             sendTournament(champion);
+            sendTaste();
+          }
+
+          /**
+           * 취향 지문 (감사 D7). 이 판의 이긴 짝과 진 짝을 서버에 남기고, 같은 표를 돌린 남과 얼마나 같은지 받음.
+           * 서버(`/kl/taste`)는 있었는데 화면이 안 부르던 자리. 로그인 안 했으면 조용히 없음
+           */
+          function sendTaste(): void {
+            const sharedId = picked?.sharedId;
+            if (!sharedId || !matches.length) return;
+            fetch(`${API_BASE}/kl/taste`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ variant: sharedId, matches: matches.map((m) => ({ win: m.win, lose: m.lose })) }),
+            })
+              .then((r) => (r.ok ? r.json() : null))
+              .then((body: { signedIn?: boolean; closest?: Array<{ handle: string; agreePct: number }>; opposite?: Array<{ handle: string; agreePct: number }> } | null) => {
+                if (!container.isConnected || !body || !body.signedIn) return;
+                const near = body.closest?.[0];
+                const far = body.opposite?.[0];
+                const line = near
+                  ? t('worldcup.taste.near', { who: near.handle, pct: String(near.agreePct) }) +
+                    (far && far.handle !== near.handle ? '. ' + t('worldcup.taste.far', { who: far.handle, pct: String(far.agreePct) }) : '')
+                  : t('worldcup.taste.alone');
+                const box = document.createElement('p');
+                box.className = 'tool-status wc-taste';
+                box.textContent = line;
+                $('wcTally').prepend(box);
+              })
+              .catch(() => {});
           }
 
           /** 판 결과를 표의 통계로 보낸다. 서버 없으면 통계 칸만 없다. */
