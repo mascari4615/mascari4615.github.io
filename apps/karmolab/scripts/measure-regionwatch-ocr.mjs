@@ -2,7 +2,7 @@
  * 화면 영역 지켜보기의 숫자 읽기를 **실제 화면 한 장**으로 측정
  *
  * 화면 사진(PNG)과 숫자가 있는 영역들을 주면, 도구가 쓰는 길 그대로(캔버스 스트림, 이진화, tesseract)
- * 몇 초 동안 읽어 무엇이 읽혔는지 출력. 게임, 대시보드, 진행 막대 등 어떤 화면이든 같은 길
+ * 몇 초 동안 읽어 무엇이 읽혔는지 출력. 대시보드, 진행 막대, 시계 등 어떤 화면이든 같은 길
  *
  * 사용: node scripts/measure-regionwatch-ocr.mjs <png> <x,y,w,h[:기대값]> [<x,y,w,h[:기대값]> ...] [--seconds 6]
  *   예: node scripts/measure-regionwatch-ocr.mjs shot.png 1200,880,28,18:12 1240,880,28,18:7

@@ -452,6 +452,8 @@
     "test:trim": "node scripts/test-videotrim.mjs",
     "test:regionwatch": "node scripts/test-regionwatch.mjs",
     "smoke:regionwatch": "node scripts/smoke-regionwatch.mjs",
+    "soak:regionwatch": "node scripts/soak-regionwatch.mjs",
+    "measure:regionwatch": "node scripts/measure-regionwatch-ocr.mjs",
     "test:typing": "node scripts/smoke-typing.mjs",
     "test:usertool": "node scripts/smoke-usertool-trust.mjs",
     "test:v2i": "node scripts/test-video2img.mjs",

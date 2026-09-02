@@ -206,6 +206,7 @@ interface TesseractLike {
         <div class="rw-right" id="rwSlots">${slotRows}</div>
       </div>
       <div class="tool-status" id="rwStatus">${esc(t('regionwatch.status.idle'))}</div>
+      <div class="tool-hint" id="rwRate"></div>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -218,6 +219,7 @@ interface TesseractLike {
     const preview = $<HTMLCanvasElement>('#rwPreview');
     const hint = $<HTMLElement>('#rwHint');
     const slotsBox = $<HTMLElement>('#rwSlots');
+    const rateEl = $<HTMLElement>('#rwRate');
     const say = statusLine($<HTMLElement>('#rwStatus'));
 
     const pctx = preview.getContext('2d') as CanvasRenderingContext2D;
@@ -250,9 +252,24 @@ interface TesseractLike {
     const pending: Array<number | null> = new Array(SLOTS).fill(null);
     let pip: PipWindowLike | null = null;
     let pipBody: HTMLElement | null = null;
+    let pipRate: HTMLElement | null = null;
     let ocr: OcrWorker | null = null;
     let ocrLoading: Promise<OcrWorker | null> | null = null;
     let reading = false;
+    /* 덮어 둔 탭에서도 도는지 사용자가 눈으로 확인하는 수치. 최근 1분의 판정과 읽기 횟수 */
+    const stamps: { checks: number[]; reads: number[] } = { checks: [], reads: [] };
+    let rateAt = 0;
+
+    function bump(kind: 'checks' | 'reads', now: number): void {
+      const arr = stamps[kind];
+      arr.push(now);
+      while (arr.length && now - arr[0] > 60000) arr.shift();
+      if (now - rateAt < 1000) return;
+      rateAt = now;
+      const text = t('regionwatch.label.rate').replace('{checks}', String(stamps.checks.length)).replace('{reads}', String(stamps.reads.length));
+      rateEl.textContent = text;
+      if (pipRate) pipRate.textContent = text;
+    }
 
     /* ── 저장, 복구 ───────────────────────────────────────── */
     function save(): void {
@@ -573,6 +590,7 @@ interface TesseractLike {
             text = '';
           }
           const secs = parseSeconds(text);
+          bump('reads', performance.now());
           window.dispatchEvent(new CustomEvent('regionwatch:read', { detail: { slot: i, text: text.trim(), secs } }));
           const res = decideCount(count[i], secs, { lead: s.lead, rearm: s.rearm }, now);
           count[i] = res.state;
@@ -625,6 +643,7 @@ interface TesseractLike {
       if (now - lastCheck < CHECK_MS) return;
       lastCheck = now;
       check(now);
+      bump('checks', now);
       if (now - lastRead >= READ_MS) {
         lastRead = now;
         void readCounts(now);
@@ -723,6 +742,9 @@ interface TesseractLike {
       }
       hint.textContent = t('regionwatch.hint.idle');
       say(t('regionwatch.status.idle'));
+      stamps.checks.length = 0;
+      stamps.reads.length = 0;
+      rateEl.textContent = '';
       closePip();
     }
 
@@ -751,10 +773,16 @@ interface TesseractLike {
       style.textContent = '.is-hit{background:#1f6b3a}';
       d.head.appendChild(style);
       d.body.appendChild(box);
+      const rate = d.createElement('div');
+      rate.style.cssText = 'padding:2px 14px 6px;font-size:11px;opacity:.7;';
+      rate.textContent = rateEl.textContent || '';
+      d.body.appendChild(rate);
       pipBody = box;
+      pipRate = rate;
       pip.addEventListener('pagehide', () => {
         pip = null;
         pipBody = null;
+        pipRate = null;
         pipBtn.classList.remove('is-on');
       });
     }
@@ -767,6 +795,7 @@ interface TesseractLike {
       }
       pip = null;
       pipBody = null;
+      pipRate = null;
       pipBtn.classList.remove('is-on');
     }
 

@@ -41,5 +41,6 @@
   "regionwatch.ocr.fail": "数字読み取りを準備できませんでした: ",
   "regionwatch.read.none": "数字なし",
   "regionwatch.say.count": "{name} 残り {secs}秒。",
-  "regionwatch.hint.count": "残り秒モードはその領域の数字だけ読みます。数字の周りを狭く選んでください。"
+  "regionwatch.hint.count": "残り秒モードはその領域の数字だけ読みます。数字の周りを狭く選んでください。",
+  "regionwatch.label.rate": "毎分 判定 {checks}, 読み取り {reads}"
 }
