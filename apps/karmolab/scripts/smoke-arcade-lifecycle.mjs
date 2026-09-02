@@ -95,6 +95,7 @@ try {
   }
   if (await page.locator('#acMenu').isVisible()) await page.click('#acMenu');
   await page.click('#acQuit');
+  // 재움-의도: 예약 시작 900ms 뒤에도 로비인지 확인
   await page.waitForTimeout(1300);
   const stayed = await page.evaluate(() => ({
     lobby: document.querySelector('#acLobby')?.style.display !== 'none',
@@ -103,11 +104,13 @@ try {
   check('배우기를 마치고 나가도 로비에 머문다', stayed.lobby && !stayed.play, JSON.stringify(stayed));
 
   await page.evaluate(() => Toolbox.switchPage('home'));
+  // 재움-의도: 화면 교체 뒤 cleanup 반영 대기
   await page.waitForTimeout(100);
   const warm = await page.evaluate(() => window.__arcadeLifecycle.snapshot());
   await page.evaluate(() => Toolbox.switchPage('arcade'));
   await page.waitForSelector('[data-obj="gomoku"]', { timeout: 30000 });
   await page.evaluate(() => Toolbox.switchPage('home'));
+  // 재움-의도: 두 번째 화면 교체 뒤 cleanup 반영 대기
   await page.waitForTimeout(100);
   const disposed = await page.evaluate(() => window.__arcadeLifecycle.snapshot());
   check('다시 열어도 전역 리스너가 쌓이지 않는다', disposed.listeners === warm.listeners, JSON.stringify({ warm, disposed }));
