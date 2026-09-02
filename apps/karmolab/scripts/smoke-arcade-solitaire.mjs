@@ -53,10 +53,10 @@ if (!cantRun) {
   await page.click('[data-obj="solitaire"]');
   await page.click('[data-solo="solitaire"]');
   await page.waitForSelector('.ac-sol', { timeout: 15000 });
-  await page.waitForTimeout(1200);
 
   /* 시계. 레퍼런스 셋이 머리에 둔다. 안 흐르면 멈춘 판처럼 보인다 */
   const clock1 = await page.evaluate(() => document.querySelector('#acSolNote')?.textContent ?? '');
+  /* 재움-의도: 초 단위 시계가 실제 시간의 흐름 뒤에도 바뀌는지를 잰다. */
   await page.waitForTimeout(2200);
   const clock2 = await page.evaluate(() => document.querySelector('#acSolNote')?.textContent ?? '');
   check('시계가 흐른다', /\d\d:\d\d/.test(clock1) && clock1 !== clock2, `${clock1} -> ${clock2}`);
@@ -69,7 +69,7 @@ if (!cantRun) {
   check('쌓는 자리 넷', found === 4, `${found}개`);
 
   await page.click('#acSolStock', { force: true });
-  await page.waitForTimeout(600);
+  await page.waitForSelector('#acSolWaste .ac-sol-card', { timeout: 3000 });
   const waste = await page.evaluate(() => !!document.querySelector('#acSolWaste .ac-sol-card'));
   check('더미를 누르면 뽑은 자리에 카드', waste);
 
@@ -84,7 +84,10 @@ if (!cantRun) {
      2026-09-01 실측: 판을 다 쓰게 한 뒤 `#acView` 가 버튼줄을 덮어 진짜 클릭이 안 닿음 */
   const stockBefore = await page.evaluate(() => document.querySelector('#acSolStock small')?.textContent ?? '');
   await page.click('#acUndo');
-  await page.waitForTimeout(500);
+  await page.waitForFunction((before) => {
+    const stock = document.querySelector('#acSolStock small')?.textContent ?? '';
+    return stock !== before && !document.querySelector('#acSolWaste .ac-sol-card');
+  }, stockBefore, { timeout: 3000 });
   const stockAfter = await page.evaluate(() => document.querySelector('#acSolStock small')?.textContent ?? '');
   const wasteGone = await page.evaluate(() => !document.querySelector('#acSolWaste .ac-sol-card'));
   check('무르기가 뽑은 수를 되돌린다', stockBefore !== stockAfter && wasteGone, `더미 ${stockBefore} -> ${stockAfter}`);
@@ -102,24 +105,29 @@ if (!cantRun) {
 
   /* 다시 뽑아 놓는다. 아래 검사가 뽑은 카드를 본다 */
   await page.click('#acSolStock', { force: true });
-  await page.waitForTimeout(400);
+  await page.waitForSelector('#acSolWaste .ac-sol-card', { timeout: 3000 });
 
   /* 두 번 누르면 쌓는 자리로. 레퍼런스 넷 다 있는 손놀림 */
-  const dbl = await page.evaluate(async () => {
-    const found = () => document.querySelectorAll('.ac-sol-found .ac-sol-card').length;
-    const before = found();
-    for (let i = 0; i < 40; i += 1) {
-      if (document.querySelector('#acSolWaste .ac-sol-card b')?.textContent === 'A') {
-        document.querySelector('#acSolWaste').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-        await new Promise((r) => setTimeout(r, 400));
-        return { before, after: found() };
-      }
-      document.querySelector('#acSolStock').click();
-      await new Promise((r) => setTimeout(r, 80));
-    }
-    return { skip: true };
+  await page.evaluate(() => {
+    const state = window.__arcade?.state;
+    if (!state) return;
+    state.stock = state.stock.filter((c) => c !== 0);
+    state.waste = [0];
+    state.foundation = state.foundation.map((pile) => pile.filter((c) => c !== 0));
+    state.tableau = state.tableau.map((pile) => {
+      const cards = pile.cards.filter((c) => c !== 0);
+      return { ...pile, cards, up: Math.min(pile.up, cards.length) };
+    });
+    window.__arcade.refresh();
   });
-  check('두 번 누르면 쌓는 자리로 간다', dbl.skip || dbl.after > dbl.before, JSON.stringify(dbl));
+  await page.waitForFunction(() => document.querySelector('#acSolWaste .ac-sol-card b')?.textContent === 'A');
+  const foundBefore = await page.locator('.ac-sol-found .ac-sol-card').count();
+  /* 첫 click이 든 카드 상태를 다시 그려 노드를 바꾸므로 Playwright의 두 click 합성 대신,
+     브라우저가 최종적으로 내는 dblclick 이벤트를 같은 표적에 보낸다. */
+  await page.dispatchEvent('#acSolWaste', 'dblclick');
+  const doubleMoved = await page.waitForFunction((before) => document.querySelectorAll('.ac-sol-found .ac-sol-card').length > before, foundBefore, { timeout: 3000 })
+    .then(() => true).catch(() => false);
+  check('두 번 누르면 쌓는 자리로 간다', doubleMoved, String(foundBefore));
 
   /* 못 놓는 자리. 뒤집힌 카드를 누르면 까닭을 말한다 */
   const downCard = await page.evaluate(() => {
@@ -129,13 +137,17 @@ if (!cantRun) {
     return true;
   });
   if (downCard) {
-    await page.waitForTimeout(400);
+    await page.waitForFunction(() => /뒤집힌|face down|裏/.test(document.querySelector('#acSolNote')?.textContent ?? ''), null, { timeout: 2000 });
     const said = await page.evaluate(() => (document.querySelector('#acSolNote')?.textContent || '').trim());
     check('못 드는 카드는 까닭을 말한다', /뒤집힌|face down|裏/.test(said), said);
   }
 
+  const noteBeforeHint = await page.evaluate(() => document.querySelector('#acSolNote')?.textContent ?? '');
   await page.click('#acSolHint', { force: true });
-  await page.waitForTimeout(500);
+  await page.waitForFunction((before) => {
+    const note = (document.querySelector('#acSolNote')?.textContent ?? '').trim();
+    return note.length > 0 && note !== before && !/장 올림/.test(note);
+  }, noteBeforeHint, { timeout: 3000 });
   const hint = await page.evaluate(() => (document.querySelector('#acSolNote')?.textContent || '').trim());
   check('한 수 짚어 준다', hint.length > 0 && !/장 올림/.test(hint), hint);
 
@@ -173,7 +185,7 @@ if (!cantRun) {
   const got3d = await page.waitForSelector('#acT3 canvas', { timeout: 25000 }).then(() => true).catch(() => false);
   check('입체도 뜬다', got3d);
   if (got3d) {
-    await page.waitForTimeout(2500);
+    await page.waitForFunction(() => /52/.test(document.querySelector('#acSol3d')?.textContent ?? ''), null, { timeout: 5000 });
     const bar = await page.evaluate(() => (document.querySelector('#acSol3d')?.textContent || '').trim());
     check('입체에도 진도 줄이 있다', /52/.test(bar), bar);
     const full = await page.evaluate(() => document.querySelector('#acPlay')?.classList.contains('ac-roomfill'));

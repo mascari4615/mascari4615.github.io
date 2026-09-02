@@ -67,8 +67,10 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       const txt = (view?.textContent || '').trim().replace(/\s+/g, ' ');
       return { btns: document.querySelectorAll('#acView button').length, len: txt.length, canvas: !!view?.querySelector('canvas') };
     });
-    check(`${g}: 화면이 그려진다`, info.canvas || info.len > 6, info.canvas ? '입체' : `글자 ${info.len}자`);
-    check(`${g}: 누를 것이 있다`, info.canvas || info.btns > 0, info.canvas ? '상 위 카드' : `${info.btns}개`);
+    const rendered = info.canvas ? true : info.len > 6;
+    const interactive = info.canvas ? true : info.btns > 0;
+    check(`${g}: 화면이 그려진다`, rendered, info.canvas ? '입체' : `글자 ${info.len}자`);
+    check(`${g}: 누를 것이 있다`, interactive, info.canvas ? '상 위 카드' : `${info.btns}개`);
     if (g === 'blackjack') {
       await page.waitForSelector('#acBjActs [data-do="pair"]');
       await page.click('#acBjActs [data-do="pair"]');
@@ -83,6 +85,8 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       }, undefined, { timeout: 8000 });
       if (await page.locator('#acIntro').isVisible()) await page.click('#acIntro');
       await page.waitForFunction(() => getComputedStyle(document.querySelector('#acIntro')).display === 'none');
+      /* 재움-의도: 배분 애니메이션이 실제로 흐르는 동안 마지막 카드의 출발 시각과
+         포인터 집기가 유지되는지를 함께 본다. 즉시 읽으면 애니메이션 검사가 아니다. */
       await page.waitForTimeout(1500);
       const measure = await page.evaluate(() => window.__bjMeasure?.());
       check('president: 첫 배분의 마지막 카드가 1초 안에 출발한다', measure.dealSpan <= 1000);

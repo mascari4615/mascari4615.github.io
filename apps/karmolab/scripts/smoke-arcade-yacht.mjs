@@ -65,7 +65,10 @@ if (!cantRun) {
   if (!gl) {
     cantRun = 'WebGL 을 못 얻어 야추 입체 방이 안 섰다';
   } else {
-    await page.waitForTimeout(3200);
+    await page.waitForFunction(() => {
+      const roll = document.querySelector('#acYcRoll');
+      return !!roll && !roll.disabled && document.querySelectorAll('.ac-yctable tbody tr').length === 15;
+    }, null, { timeout: 10000 });
     check('입체 방이 뜬다', true);
 
     /* 점수표는 늘 보인다(레퍼런스 넷 다 한 화면). 열두 칸 + 위 합, 덤, 합계 */
@@ -81,9 +84,19 @@ if (!cantRun) {
     check('굴리기 버튼이 남은 횟수를 말한다', /\/\s*3/.test(btn), btn || '버튼 없음');
 
     await page.click('#acYcRoll');
-    await page.waitForTimeout(5200);
-    const btn2 = await page.evaluate(() => document.querySelector('#acYcRoll')?.textContent || '');
-    check('굴리면 횟수가 오른다', /3\s*\/\s*3/.test(btn2), btn2 || '버튼 없음');
+    await page.waitForFunction(() => {
+      const roll = document.querySelector('#acYcRoll');
+      return window.__arcade?.state?.rolled === 2 && !!roll && !roll.disabled && !/굴리는 중|rolling/i.test(roll.textContent ?? '');
+    }, null, { timeout: 10000 });
+    const rolled2 = await page.evaluate(() => window.__arcade?.state?.rolled);
+    check('한 번 더 굴리면 횟수가 오른다', rolled2 === 2, String(rolled2));
+    await page.click('#acYcRoll');
+    await page.waitForFunction(() => {
+      const hud = document.querySelector('.ac-ychudsub')?.textContent ?? '';
+      return /3\s*\/\s*3/.test(hud) && !!document.querySelector('.ac-yccell:not([disabled])');
+    }, null, { timeout: 10000 });
+    const btn3 = await page.evaluate(() => document.querySelector('.ac-ychudsub')?.textContent || '');
+    check('세 번째 굴림까지 실제로 간다', /3\s*\/\s*3/.test(btn3), btn3 || '횟수 없음');
 
     /* 굴린 다섯은 전부 손에 들어온다(손 모델). 점수표 머리의 주사위가 다섯 개 */
     const dice = await page.evaluate(() => document.querySelectorAll('.ac-ychead .ac-die').length);
@@ -94,20 +107,16 @@ if (!cantRun) {
     await page.click('.ac-yccell');
     /* 시간으로 기다리면 게이트 통짜에서 밀려 흔들린다(2026-08-31 실측: 단독은 통과, 동시는 실패).
        칸이 굳는 것을 조건으로 기다린다 */
-    let after = before;
-    for (let i = 0; i < 40 && after <= before; i += 1) {
-      await page.waitForTimeout(250);
-      after = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
-    }
-    check('적으면 칸이 굳는다', after > before, `${before} -> ${after}`);
+    const wrote = await page.waitForFunction((n) => document.querySelectorAll('.ac-ycdone').length > n, before, { timeout: 10000 })
+      .then(() => true).catch(() => false);
+    const after = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
+    check('적으면 칸이 굳는다', wrote, `${before} -> ${after}`);
 
     /* 남의 차례가 되면 내 칸 버튼이 사라진다(남의 차례에 못 적는다) */
-    let cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
-    for (let i = 0; i < 40 && cells > 0; i += 1) {
-      await page.waitForTimeout(250);
-      cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
-    }
-    check('남의 차례에는 적는 칸이 없다', cells === 0, `${cells}개`);
+    const leftTurn = await page.waitForFunction(() => document.querySelectorAll('.ac-yccell').length === 0, null, { timeout: 10000 })
+      .then(() => true).catch(() => false);
+    const cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
+    check('남의 차례에는 적는 칸이 없다', leftTurn, `${cells}개`);
   }
 }
 

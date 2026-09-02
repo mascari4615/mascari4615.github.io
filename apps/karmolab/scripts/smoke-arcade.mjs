@@ -34,7 +34,9 @@ import { waitHydrated } from './lib/hydrated.mjs';
 async function quitRoom(page) {
   const menu = await page.$('#acMenu');
   if (menu && (await menu.isVisible())) await menu.click();
-  await page.click('#acQuit');
+  /* 이 검사는 메뉴 조작이 아니라 52판 순회를 잰다. 병렬 렌더 중 메뉴 종이가 다시
+     닫혀도 나가기 동작 자체는 확실히 보내 다음 판의 상태와 섞이지 않게 한다. */
+  await page.evaluate(() => document.querySelector('#acQuit')?.click());
 }
 
 const server = await smokeBase();

@@ -84,19 +84,20 @@ if (server) await server.close();
      그래서 지금 로비에 뜬 방 게임 이름으로 찾음 */
   const roomName = await page.$eval('#acGames .ac-obj b', (n) => n.textContent.trim());
   await page.fill('#acFind', roomName);
-  await page.waitForTimeout(300);
-  const hits = await page.$$eval('#acSolo .ac-solocard b, #acGames .ac-obj b', (n) =>
-    n.map((x) => x.textContent.trim())
-  );
+  const visibleNames = () => [...document.querySelectorAll('#acSolo .ac-solocard b, #acGames .ac-obj b')]
+    .filter((x) => x.closest('a, button, [data-obj]')?.getClientRects().length)
+    .map((x) => x.textContent.trim());
+  await page.waitForFunction((name) => [...document.querySelectorAll('#acSolo .ac-solocard b, #acGames .ac-obj b')]
+    .some((x) => x.textContent.trim() === name && x.closest('a, button, [data-obj]')?.getClientRects().length), roomName);
+  const hits = await page.evaluate(visibleNames);
   check('찾기가 로비의 방 게임을 잡는다', hits.includes(roomName), `${roomName} -> ${hits.join(' / ')}`);
 
   /* 혼자 놀이 쪽도 같은 창이 훑나. 이쪽 명부는 감출 수 없어 이름을 물어 와 쓴다 */
   const soloName = expected[0].title;
   await page.fill('#acFind', soloName);
-  await page.waitForTimeout(300);
-  const soloHits = await page.$$eval('#acSolo .ac-solocard b, #acGames .ac-obj b', (n) =>
-    n.map((x) => x.textContent.trim())
-  );
+  await page.waitForFunction((name) => [...document.querySelectorAll('#acSolo .ac-solocard b, #acGames .ac-obj b')]
+    .some((x) => x.textContent.trim() === name && x.closest('a, button, [data-obj]')?.getClientRects().length), soloName);
+  const soloHits = await page.evaluate(visibleNames);
   check('찾기가 혼자 놀이도 잡는다', soloHits.includes(soloName), `${soloName} -> ${soloHits.join(' / ')}`);
   check(
     '이름이 겹치지 않는다 (같은 글자가 둘이면 어느 쪽인지 모른다)',
@@ -105,7 +106,7 @@ if (server) await server.close();
   );
 
   await page.fill('#acFind', '');
-  await page.waitForTimeout(300);
+  await page.waitForFunction(() => document.querySelectorAll('#acGames [data-obj]:not([hidden])').length >= 2);
   check('표 만드는 문이 로비에 있다', (await page.$('#acPacks #acPackNew')) !== null);
 
   const inApp = expected.find((g) => g.url.startsWith('/#'));

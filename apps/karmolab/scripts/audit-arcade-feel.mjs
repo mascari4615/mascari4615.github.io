@@ -79,8 +79,10 @@ if (!cantRun) {
         const v = document.querySelector('#acView');
         return !!v && v.children.length > 0;
       }, null, { timeout: 10000 });
-      await page.waitForTimeout(3600);
+      await page.waitForSelector('#acSeats .ac-seat', { timeout: 10000 });
       const seatA = await page.evaluateHandle(() => document.querySelector('#acSeats .ac-seat'));
+      /* 재움-의도: 자리 카드를 한 프레임이 아니라 여러 렌더 틱에 걸쳐 같은 DOM으로
+         유지하는지 재는 시간 표본이다. 상태 도착을 기다리는 자리가 아니다. */
       await page.waitForTimeout(700);
       const got = await page.evaluate((a) => {
         const view = document.querySelector('#acView');

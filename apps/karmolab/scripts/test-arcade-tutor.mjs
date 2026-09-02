@@ -86,7 +86,8 @@ LESSONS.forEach((lesson, i) => {
   if (forbidden) {
     const cell = cellOf(forbidden[0], forbidden[1]);
     const after = gomoku.reduce(laid, { cell }, 0, ctx);
-    check(`${tag}: ${forbidden[0]},${forbidden[1]} 가 금수다`, after === laid || after.board[cell] === 0);
+    const blocked = after.board[cell] === 0;
+    check(`${tag}: ${forbidden[0]},${forbidden[1]} 가 금수다`, blocked);
   }
 });
 
