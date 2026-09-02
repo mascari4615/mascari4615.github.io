@@ -36,7 +36,8 @@ import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { handMode, handNow, nextHandMode } from './hands';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
-import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
+import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf } from './cast';
+import { mountMdd } from './mdd';
 import { LESSONS, TUTOR_SIZE, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
@@ -837,39 +838,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     } | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
-    /** MDD 켜짐. 사람이 고른 것이 브라우저에 남음. 기본 켬 (사용자 결정 2026-09-02. 끄는 길은 메뉴의 캐릭터 버튼, 반응 버튼은 paintScene 이 되살림) */
-    function mddOn(): boolean {
-      try {
-        return localStorage.getItem('karmolab.arcade.mdd') !== 'off';
-      } catch {
-        return true;
-      }
-    }
-    function paintMdd(): void {
-      const b = container.querySelector<HTMLButtonElement>('#acMdd');
-      if (b) b.setAttribute('aria-pressed', mddOn() ? 'true' : 'false');
-      const em = container.querySelector<HTMLButtonElement>('#acEmote');
-      if (em && !mddOn()) em.style.display = 'none';
-      if (!mddOn()) {
-        bubbles.clear();
-        $<HTMLElement>('#acEmotes').hidden = true;
-        $<HTMLElement>('#acCutin').hidden = true;
-      }
-    }
-    /** 자리마다 지금 떠 있는 말. 카드는 매 프레임 다시 그려지므로 여기 들고 있다가 얹는다 */
-    const bubbles = new Map<number, { text: string; until: number }>();
-    /** 그 사람이 한마디. 카드가 있는 판에서만 보인다 */
-    function sayAs(seat: number, text: string, ms = 2600): void {
-      if (!text) return;
-      bubbles.set(seat, { text, until: performance.now() + ms });
-    }
-    /** 봇 자리의 사람이 그 상황의 말을 한다. 사람이 아니면 조용 */
-    function castSay(seat: number, key: Parameters<typeof lineOf>[1], chance = 1): void {
-      const v = match?.view() ?? shadow?.v;
-      const c = v && mddOn() ? castByName(v.seats[seat]?.name ?? '') : null;
-      if (!c || Math.random() > chance) return;
-      sayAs(seat, lineOf(c, key, v?.seats[mySeat]?.name ?? ''));
-    }
+    /* 저택 사람의 얼굴, 말풍선, 컷인. 판의 그림은 물어서 씀 (`mdd.ts`) */
+    const mdd = mountMdd({ container, view: () => match?.view() ?? shadow?.v ?? null, mySeat: () => mySeat });
     /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
     let seenMoves = 0;
     /** 재촉을 이미 한 수. 한 차례에 한 번만 */
@@ -895,28 +865,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (action === null || action === undefined) return;
       hintAt = { action, until: performance.now() + (review && !review.branch ? 60000 : 3500) };
       if (review && !review.branch) seek(review.at);
-    }
-    /** 컷인. 그 자리의 사람이 큰 얼굴로 한 줄. 1.7초 뒤 나간다 */
-    let cutTimer = 0;
-    function cutIn(seat: number, key: Parameters<typeof lineOf>[1]): void {
-      const v = match?.view() ?? shadow?.v;
-      const c = v && mddOn() ? castByName(v.seats[seat]?.name ?? '') : null;
-      if (!c || !v) return;
-      const text = lineOf(c, key, v.seats[mySeat]?.name ?? '');
-      if (!text) return;
-      const mood: Mood = key === 'win' ? 'glad' : key === 'lose' ? 'sad' : key === 'four' ? 'tease' : key === 'danger' ? 'think' : 'calm';
-      const el = $<HTMLElement>('#acCutin');
-      el.innerHTML = '<span class="ac-cutface">' + faceSvg(c, mood) + '</span><div><b>' + esc(c.name) + '</b><p>' + esc(text) + '</p></div>';
-      el.hidden = false;
-      /* 컷인에 소리 한 번. 끝의 이김과 짐은 결과 화면이 이미 울리므로 빼고, 리치와 위기만 */
-      if (key === 'four' || key === 'danger') blip('start');
-      el.classList.remove('ac-on');
-      if (cutTimer) window.clearTimeout(cutTimer);
-      window.requestAnimationFrame(() => el.classList.add('ac-on'));
-      cutTimer = window.setTimeout(() => {
-        el.classList.remove('ac-on');
-        cutTimer = window.setTimeout(() => { el.hidden = true; cutTimer = 0; }, 350);
-      }, 1700);
     }
     let raf = 0;
     let t0 = 0;
@@ -1018,7 +966,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function paintOverBody(v: MatchView<unknown>, top: number): void {
       const el = $<HTMLElement>('#acOverBody');
       const room = !!play.querySelector('.ac-t3room');
-      if (!room || !mddOn()) {
+      if (!room || !mdd.on()) {
         el.hidden = true;
         return;
       }
@@ -1055,29 +1003,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 얼굴 한 장. 내 자리는 조수, 봇 자리는 그 사람. 표정은 차례와 결과에서 */
-    function faceOf(v: MatchView<unknown>, i: number): string {
-      const seat = v.seats[i];
-      /* 플레이어는 캐릭터가 아니다. 얼굴은 저택 사람만. MDD 가 꺼져 있으면 아무도 */
-      const c = i === mySeat || !mddOn() ? null : castByName(seat?.name ?? '');
-      if (!c) return '';
-      const turn = (v.state as { turn?: number } | null)?.turn;
-      let mood: Mood = 'calm';
-      if (v.finished) {
-        const top = Math.max(...v.seats.map((x) => x.score));
-        mood = seat.score === top ? 'glad' : 'sad';
-      } else if (turn === i) mood = 'think';
-      return '<span class="ac-face">' + faceSvg(c, mood) + '</span>';
-    }
-    function bubbleOf(i: number, now: number): string {
-      const b = bubbles.get(i);
-      if (!b) return '';
-      if (performance.now() > b.until) {
-        bubbles.delete(i);
-        return '';
-      }
-      return '<span class="ac-bubble">' + esc(b.text) + '</span>';
-    }
-
     function paint(v: MatchView<unknown>, now: number): void {
       /* 지금 이 창이 **들고 있는 판**을 밖에서 볼 수 있게 둔다 (TASK-KL-264).
          감추기가 새는지는 화면으로 못 잡는다. 화면은 남의 배를 애초에 안 그리므로,
@@ -1094,14 +1019,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
         /* 봇이 둔 뒤 한마디. 아래 좋은 수와 겹치면 그쪽이 이긴다(덮어쓰기라 마지막이 남는다) */
-        if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
+        if (match.moves > seenMoves && turn === mySeat && !v.finished) mdd.castSay(1 - mySeat, 'move', 0.3);
         /* 방금 둔 수가 넷이면 컷인. 사람이 만들면 리치, 내가 만들면 사람의 위기 */
         if (match.moves > seenMoves && !v.finished && v.seats.length === 2 && typeof turn === 'number') {
           const mover = 1 - turn;
           const cue = gameById(gameId)?.cue?.(v.state, mover) ?? null;
-          if (cue === 'four') cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
+          if (cue === 'four') mdd.cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
           /* 내가 좋은 수를 두면 상대가 한마디. 컷인까지는 아니고 말풍선. 봇의 둔 뒤 한마디보다 이것이 먼저 */
-          else if (cue === 'open3' && mover === mySeat) castSay(1 - mySeat, 'good', 1);
+          else if (cue === 'open3' && mover === mySeat) mdd.castSay(1 - mySeat, 'good', 1);
         }
         seenMoves = match.moves;
       }
@@ -1111,7 +1036,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (st?.limit && st.turn === mySeat && st.turnEndsAt && st.turnEndsAt - now <= 10000) {
           if (hurriedAt !== match.moves) {
             hurriedAt = match.moves;
-            castSay(1 - mySeat, 'hurry', 0.8);
+            mdd.castSay(1 - mySeat, 'hurry', 0.8);
           }
         }
       }
@@ -1144,7 +1069,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (!ended) {
           ended = true;
           if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
-          v.seats.forEach((sq, i) => { if (i !== mySeat) cutIn(i, sq.score === top ? 'win' : 'lose'); });
+          v.seats.forEach((sq, i) => { if (i !== mySeat) mdd.cutIn(i, sq.score === top ? 'win' : 'lose'); });
           const draw = win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(
@@ -1239,9 +1164,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           bot: !!s.bot,
           html:
             (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
-            faceOf(v, i) +
+            mdd.faceOf(v, i) +
             '<span class="ac-seatname">' + esc(s.name) + (s.bot && !castByName(s.name) ? ' 🤖' : '') + '</span> <b>' + s.score + '</b>' +
-            bubbleOf(i, now)
+            mdd.bubbleOf(i)
         })
       );
       while (seatsEl.children.length > items.length) seatsEl.lastElementChild?.remove();
@@ -1508,7 +1433,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         default:
           if (meta.startsWith('emote:')) {
             const text = meta.slice(6);
-            sayAs(seat, text);
+            mdd.sayAs(seat, text);
             net?.say({ kind: 'emote', seat, text });
           }
           break;
@@ -1571,7 +1496,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       match.rewind(1);
       blip('tap');
       paintUndo();
-      castSay(1 - mySeat, 'undo');
+      mdd.castSay(1 - mySeat, 'undo');
     }
 
     function paintScene(id: string): void {
@@ -1580,9 +1505,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const on = dim() === '3d' && !!cardById(id)?.d3;
       btn.style.display = on ? '' : 'none';
       const em = container.querySelector<HTMLButtonElement>('#acEmote');
-      if (em) em.style.display = on && mddOn() ? '' : 'none';
+      if (em) em.style.display = on && mdd.on() ? '' : 'none';
       if (!on) $<HTMLElement>('#acEmotes').hidden = true;
-      paintMdd();
+      mdd.paint();
       for (const [sel, key] of [['#acCoords', 'karmolab.arcade.coords'], ['#acNums', 'karmolab.arcade.numbers']] as const) {
         const b = container.querySelector<HTMLButtonElement>(sel);
         if (!b) continue;
@@ -1672,7 +1597,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       /* 판놀이는 저택 사람이 앉는다(MDD). 단계가 사람을 고른다(임시 대응, `cast.ts`) */
       /* 단계(`ai`)가 있는 놀이 전부(오목, 야추). 봇이 여럿이면 남은 사람도 차례로 앉는다(야추는 넷까지). MDD 스위치를 따른다 */
-      if (mddOn() && !tour && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
+      if (mdd.on() && !tour && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
         const first = castOfLevel(Number(optsFor(id).ai) || 3);
         const rest = Object.values(CAST).filter((c) => c.slug !== first.slug);
         crew[0] = { ...crew[0], name: first.name };
@@ -1706,9 +1631,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastPersonas = personas;
       lastLevel = levelNow();
       lastDef = def as GameDef<unknown, unknown>;
-      bubbles.clear();
+      mdd.clearBubbles();
       seenMoves = 0;
-      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
+      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) mdd.sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
       tape = null;
       endReview(false);
       replaying = false;
@@ -1881,7 +1806,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
       const def = { ...g, bot: () => null } as typeof g;
       /* 가르치는 자리. MDD 를 끄면 캐릭터 이름 대신 중립 이름 */
-      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mddOn() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
+      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mdd.on() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
       cancelAnimationFrame(raf);
       match = new Match(def, 1, seats, { size: TUTOR_SIZE, renju: true, limit: 0, ai: 1 }) as Match<unknown, unknown>;
       lastDef = def as GameDef<unknown, unknown>;
@@ -1889,7 +1814,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastSeats = seats;
       ended = false;
       soundedRound = -1;
-      bubbles.clear();
+      mdd.clearBubbles();
       hintAt = null;
       /* 돌 심기. 차례를 번갈아 맞추려고 빈 곳을 채우는 대신 **그 색 차례일 때만** 둔다 */
       const want = lesson.board.slice();
@@ -1903,7 +1828,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 내 차례(흑)가 아니면 한 수 더 심어 맞춘다. 장면 표가 흑 차례로 끝나게 짜 두는 것이 먼저 */
       /* 장면 심기는 사람이 둔 것이 아니다. 알림과 컷인을 안 깨운다 */
       seenMoves = match.moves;
-      bubbles.clear();
+      mdd.clearBubbles();
       $<HTMLElement>('#acCutin').hidden = true;
       const box = $<HTMLElement>('#acLesson');
       box.hidden = false;
@@ -2507,7 +2432,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           }
           if (kind === 'emote') {
             const d = data as { seat?: number; text?: string };
-            if (typeof d.seat === 'number' && d.seat !== mySeat) sayAs(d.seat, String(d.text ?? ''));
+            if (typeof d.seat === 'number' && d.seat !== mySeat) mdd.sayAs(d.seat, String(d.text ?? ''));
             return;
           }
           if (kind === 'result') {
@@ -2798,13 +2723,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     $<HTMLButtonElement>('#acMdd').onclick = () => {
       try {
-        localStorage.setItem('karmolab.arcade.mdd', mddOn() ? 'off' : 'on');
+        localStorage.setItem('karmolab.arcade.mdd', mdd.on() ? 'off' : 'on');
       } catch {
         /* 못 적어도 이 판에서는 바뀐다 */
       }
-      paintMdd();
+      mdd.paint();
       if (gameId) paintScene(gameId);
-      say(t(mddOn() ? 'arcade.mdd.on' : 'arcade.mdd.off'), 'ok');
+      say(t(mdd.on() ? 'arcade.mdd.on' : 'arcade.mdd.off'), 'ok');
     };
     const emotesEl = $<HTMLElement>('#acEmotes');
     $<HTMLButtonElement>('#acEmote').onclick = () => { emotesEl.hidden = !emotesEl.hidden; };
@@ -2813,7 +2738,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!b) return;
       const text = EMOTES[Number(b.dataset.emote)] ?? '';
       emotesEl.hidden = true;
-      sayAs(mySeat, text);
+      mdd.sayAs(mySeat, text);
       if (!net) return;
       if (net.host) net.say({ kind: 'emote', seat: mySeat, text });
       else net.act({ meta: 'emote:' + text });
@@ -2903,14 +2828,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       gameId = '';
       mySeat = 0;
       $<HTMLElement>('#acTimeline').hidden = true;
-      bubbles.clear();
-      if (cutTimer) {
-        window.clearTimeout(cutTimer);
-        cutTimer = 0;
-      }
-      const cut = $<HTMLElement>('#acCutin');
-      cut.classList.remove('ac-on');
-      cut.hidden = true;
+      mdd.clearBubbles();
+      mdd.stop();
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
     }
@@ -3151,7 +3070,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       review?.timer?.();
       rankedTick?.();
       stopLinkWatch();
-      if (cutTimer) window.clearTimeout(cutTimer);
+      mdd.stop();
     });
   }
 })();
