@@ -93,6 +93,10 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
         act({ hand: picked, floor: -1 });
         picked = -1;
         actsKey = '';
+      } else if (kind === 'stop' || kind === 'koi') {
+        blip(kind === 'stop' ? 'good' : 'tap');
+        act({ kind: 'koi', continue: kind === 'koi' });
+        actsKey = '';
       }
     };
     hudEl.addEventListener('pointerdown', (ev) => {
@@ -110,7 +114,8 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
       mine = mySeat;
       const names = v.seats.map((x) => x.name);
       const hand = s.hands[mySeat] ?? [];
-      const myTurn = s.turn === mySeat && !v.finished && hand.length > 0;
+      const deciding = s.pending?.seat === mySeat && !v.finished;
+      const myTurn = !s.pending && s.turn === mySeat && !v.finished && hand.length > 0;
       if (!myTurn) picked = -1;
 
       /* 상 위. 바닥은 딜러 줄, 남의 패는 뒷면, 내 패는 앞면. 가져간 것은 이름표 숫자 */
@@ -143,14 +148,21 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
             can: isMe && myTurn,
             held: isMe && j === picked
           })),
-          label: (names[i] ?? '') + ' ' + (s.taken[i]?.length ?? 0) + (yaku ? ' (' + yaku + ')' : ''),
-          tone: v.finished ? 'idle' : s.turn === i ? 'turn' : 'idle'
+          label: (names[i] ?? '') + ' ' + (s.taken[i]?.length ?? 0) + (yaku ? ' (' + yaku + ')' : '') +
+        (s.koi[i] ? ', ' + t('arcade.hana.koi.count', { n: String(s.koi[i]) }) : ''),
+          tone: v.finished ? 'idle' : (s.pending?.seat ?? s.turn) === i ? 'turn' : 'idle'
         });
       });
       stage.setSeats(s.hands.length);
       stage.set(hands, mySeat);
 
-      const line = v.finished ? '' : myTurn ? t('arcade.table.myTurn') : t('arcade.table.turnOf', { who: names[s.turn] ?? '' });
+      const line = v.finished
+        ? ''
+        : s.pending
+          ? t('arcade.hana.koi.turn', { who: names[s.pending.seat] ?? '' })
+          : myTurn
+            ? t('arcade.table.myTurn')
+            : t('arcade.table.turnOf', { who: names[s.turn] ?? '' });
       const lk = line + '|' + s.taken.map((x) => x.length).join(',');
       if (lk !== linesKey) {
         linesKey = lk;
@@ -160,10 +172,13 @@ export const view3d: GameView<HanafudaState, HanafudaAction> = {
       /* 내 패 버튼. 고르면 같은 달 바닥 버튼, 짝이 없으면 버리기 */
       const wanted = picked >= 0 ? hand[picked] : -1;
       const floorSame = wanted >= 0 ? s.floor.map((f, j) => (monthOf(f) === monthOf(wanted) ? j : -1)).filter((j) => j >= 0) : [];
-      const ak = myTurn ? hand.map((n, i) => n + (i === picked ? 'p' : '')).join(',') + '|' + floorSame.join(',') : 'off';
+      const ak = deciding ? 'koi:' + s.pending?.pts : myTurn ? hand.map((n, i) => n + (i === picked ? 'p' : '')).join(',') + '|' + floorSame.join(',') : 'off';
       if (ak !== actsKey) {
         actsKey = ak;
-        actBox.innerHTML = myTurn
+        actBox.innerHTML = deciding
+          ? '<span class="ac-bjline">' + esc(t('arcade.hana.koi.offer', { n: String(s.pending?.pts ?? 0) })) + '</span>' +
+            btn('stop', t('arcade.hana.koi.stop'), true, false) + btn('koi', t('arcade.hana.koi.go'), true, true)
+          : myTurn
           ? hand.map((n, i) => btn('hand', name(n), true, true, ' data-n="' + i + '"', i === picked)).join('') +
             (picked >= 0
               ? floorSame.length

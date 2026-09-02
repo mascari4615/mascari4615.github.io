@@ -29,6 +29,9 @@ const { Match, GAMES, gameById, seedFrom, META, CATALOG, partySize } = await imp
 const solOut = join(dir, 'sol.mjs');
 await build({ entryPoints: ['src/widgets/arcade/games/solitaire.ts'], bundle: true, format: 'esm', platform: 'node', outfile: solOut, logLevel: 'silent' });
 const { allFaceUp, autoStep, foundationFor } = await import(pathToFileURL(solOut).href);
+const hanaOut = join(dir, 'hana.mjs');
+await build({ entryPoints: ['src/widgets/arcade/games/hanafuda.ts'], bundle: true, format: 'esm', platform: 'node', outfile: hanaOut, logLevel: 'silent' });
+const { hanafuda, yakuPoints } = await import(pathToFileURL(hanaOut).href);
 const netOut = join(dir, 'net.mjs');
 await build({ entryPoints: ['src/widgets/arcade/net.ts'], bundle: true, format: 'esm', platform: 'browser', outfile: netOut, logLevel: 'silent' });
 const { OnlineRun } = await import(pathToFileURL(netOut).href);
@@ -60,6 +63,37 @@ console.log('[arcade] 입체 카드 상 배치');
     return !src.includes('onPick(id)') || !src.includes(`'${prefix}:' +`);
   }).map(([id]) => id);
   ok(unwired.length === 0, '손패형 네 판이 상 위 카드 선택을 잇는다', unwired.join(', '));
+}
+
+console.log('[arcade] 화투 코이코이 결정');
+{
+  const seats = [
+    { index: 0, name: '나', bot: false, score: 0 },
+    { index: 1, name: '봇', bot: true, score: 0 }
+  ];
+  const ctx = { seats, opts: {}, rng: () => 0.5, now: 0, round: 0 };
+  const ready = {
+    hands: [[28], [1]],
+    floor: [29],
+    deck: [],
+    taken: [[0, 8], []],
+    claimed: [0, 0],
+    koi: [0, 0],
+    pending: null,
+    turn: 0,
+    over: false
+  };
+  const offered = hanafuda.reduce(ready, { hand: 0, floor: 0 }, 0, ctx);
+  ok(yakuPoints(offered.taken[0]) === 5 && offered.pending?.pts === 5, '광 셋을 만들면 5점 코이코이 결정을 연다');
+  ok(hanafuda.canAct(offered, 0) && !hanafuda.canAct(offered, 1), '결정 중에는 족보를 만든 사람만 누를 수 있다');
+  const ignored = hanafuda.reduce(offered, { hand: 0, floor: -1 }, 1, ctx);
+  ok(ignored === offered, '결정 중에 다음 사람의 패 내기를 받지 않는다');
+  const continued = hanafuda.reduce(offered, { kind: 'koi', continue: true }, 0, ctx);
+  ok(!continued.pending && continued.koi[0] === 1 && continued.claimed[0] === 5 && !continued.over, '코이코이는 족보 점수를 기억하고 판을 계속한다');
+  ok(hanafuda.canAct(continued, 1), '코이코이 뒤에는 미뤄 둔 다음 차례가 이어진다');
+  const stopped = hanafuda.reduce(offered, { kind: 'koi', continue: false }, 0, ctx);
+  ok(stopped.over && hanafuda.outcome(stopped, ctx).over, '그만두면 손패가 남아도 즉시 점수를 확정한다');
+  ok(hanafuda.bot(offered, 0, ctx)?.action.kind === 'koi', '봇도 코이코이 결정을 내린다');
 }
 
 console.log('[arcade] 온라인 방 수명');

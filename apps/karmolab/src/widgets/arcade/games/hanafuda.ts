@@ -44,7 +44,7 @@ export const monthOf = (card: number): number => card >> 2;
  * - 열끗(동물): 다섯 장 1, 한 장 늘 때마다 1
  * - 띠: 다섯 장 1, 한 장 늘 때마다 1
  * - 피: 열 장 1, 한 장 늘 때마다 1
- * 코이코이 선언(계속할지 멈출지)은 아직 없음. 판은 손이 비면 끝
+ * 새 족보가 생기거나 커질 때 멈추기/코이코이 선택
  */
 export function yakuOf(taken: readonly number[]): Array<{ key: string; n: number; pts: number }> {
   let lights = 0;
@@ -67,6 +67,8 @@ export function yakuOf(taken: readonly number[]): Array<{ key: string; n: number
   return out;
 }
 
+export const yakuPoints = (taken: readonly number[]): number => yakuOf(taken).reduce((sum, yaku) => sum + yaku.pts, 0);
+
 export interface HanafudaState {
   /** 자리별 손패 (달 번호). 남의 것은 `redact` 가 지운다 */
   hands: number[][];
@@ -75,12 +77,20 @@ export interface HanafudaState {
   deck: number[];
   /** 자리별로 가져간 것 */
   taken: number[][];
+  /** 마지막으로 코이코이 결정을 마친 족보 점수 */
+  claimed: number[];
+  /** 자리별 코이코이 선언 횟수 */
+  koi: number[];
+  /** 새 족보를 만든 사람이 멈출지 계속할지 고르는 중 */
+  pending: { seat: number; pts: number } | null;
   turn: number;
   over: boolean;
 }
 
-/** 내 패 한 장(hand) + 바닥 한 장(floor). 바닥이 -1 이면 그냥 버린다. */
-export type HanafudaAction = { hand: number; floor: number };
+/** 옛 복기에는 kind 없는 play가 남아 있으므로 play의 kind는 선택 값이다. */
+export type HanafudaAction =
+  | { kind?: 'play'; hand: number; floor: number }
+  | { kind: 'koi'; continue: boolean };
 
 export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
   id: 'hanafuda',
@@ -95,7 +105,17 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
     const n = handSize(ctx.seats.length);
     const hands = ctx.seats.map(() => mixed.splice(0, n));
     const floor = mixed.splice(0, FLOOR);
-    return { hands, floor, deck: mixed, taken: ctx.seats.map(() => []), turn: 0, over: false };
+    return {
+      hands,
+      floor,
+      deck: mixed,
+      taken: ctx.seats.map(() => []),
+      claimed: ctx.seats.map(() => 0),
+      koi: ctx.seats.map(() => 0),
+      pending: null,
+      turn: 0,
+      over: false
+    };
   },
 
   redact(s, seat) {
@@ -107,11 +127,21 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
   },
 
   canAct(s, seat) {
-    return !s.over && s.turn === seat && (s.hands[seat]?.length ?? 0) > 0;
+    if (s.over) return false;
+    if (s.pending) return s.pending.seat === seat;
+    return s.turn === seat && (s.hands[seat]?.length ?? 0) > 0;
   },
 
   reduce(s, a, seat, ctx) {
-    if (s.over || s.turn !== seat) return s;
+    if (s.over) return s;
+    if (s.pending) {
+      if (s.pending.seat !== seat || a?.kind !== 'koi') return s;
+      if (!a.continue) return { ...s, pending: null, over: true };
+      const claimed = s.claimed.map((n, i) => (i === seat ? s.pending?.pts ?? n : n));
+      const koi = s.koi.map((n, i) => (i === seat ? n + 1 : n));
+      return { ...s, claimed, koi, pending: null };
+    }
+    if (a?.kind === 'koi' || s.turn !== seat) return s;
     const hand = s.hands[seat];
     if (!hand?.length) return s;
     const hi = a?.hand;
@@ -148,8 +178,12 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
     }
 
     const over = hands.every((h) => h.length === 0);
+    const pts = yakuPoints(taken[seat]);
+    const pending = !over && pts > yakuPoints(s.taken[seat]) && pts > (s.claimed[seat] ?? 0)
+      ? { seat, pts }
+      : null;
     const seats = ctx.seats.length;
-    return { hands, floor, deck, taken, turn: (seat + 1) % seats, over };
+    return { ...s, hands, floor, deck, taken, pending, turn: (seat + 1) % seats, over };
   },
 
   outcome(s, ctx): Outcome {
@@ -166,7 +200,13 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
   },
 
   bot(s, seat, ctx): BotMove<HanafudaAction> | null {
-    if (s.over || s.turn !== seat) return null;
+    if (s.over) return null;
+    if (s.pending) {
+      if (s.pending.seat !== seat) return null;
+      const cardsLeft = s.hands.reduce((sum, hand) => sum + hand.length, 0);
+      return { action: { kind: 'koi', continue: s.pending.pts < 5 && cardsLeft > 4 }, delayMs: 700 + ctx.rng() * 600 };
+    }
+    if (s.turn !== seat) return null;
     const hand = s.hands[seat] ?? [];
     if (!hand.length) return null;
     /* 짝이 있으면 가져간다. 없으면 제일 흔한 달을 버린다(쓸 데가 남아 있을 확률이 낮다). */

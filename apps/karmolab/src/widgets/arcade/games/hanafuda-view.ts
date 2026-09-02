@@ -40,18 +40,26 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
 
     return (v, mySeat) => {
       const s = v.state;
-      const myTurn = s.turn === mySeat && !v.finished && (s.hands[mySeat]?.length ?? 0) > 0;
+      const deciding = s.pending?.seat === mySeat && !v.finished;
+      const myTurn = !s.pending && s.turn === mySeat && !v.finished && (s.hands[mySeat]?.length ?? 0) > 0;
       const hand = s.hands[mySeat] ?? [];
       if (!myTurn) picked = -1;
       const wanted = picked >= 0 ? hand[picked] : -1;
 
-      tb.paint(v as never, mySeat, (i) => s.hands[i]?.length ?? 0, v.finished ? -1 : s.turn);
+      tb.paint(v as never, mySeat, (i) => s.hands[i]?.length ?? 0, v.finished ? -1 : s.pending?.seat ?? s.turn);
       tb.toast(
-        (v.finished ? '' : myTurn ? t('arcade.table.myTurn') + '. ' : t('arcade.table.turnOf', { who: v.seats[s.turn]?.name ?? '' }) + '. ') +
+        (v.finished
+          ? ''
+          : s.pending
+            ? t('arcade.hana.koi.turn', { who: v.seats[s.pending.seat]?.name ?? '' }) + '. '
+            : myTurn
+              ? t('arcade.table.myTurn') + '. '
+              : t('arcade.table.turnOf', { who: v.seats[s.turn]?.name ?? '' }) + '. ') +
         v.seats.map((seat, i) => {
           /* 가져간 장수와 족보. 족보가 서면 그 이름을 붙인다 (광3, 피10) */
           const yaku = yakuOf(s.taken[i] ?? []).map((y) => t('arcade.hana.yaku.' + y.key, { n: String(y.n) })).join(' ');
-          return seat.name + ' ' + (s.taken[i]?.length ?? 0) + (yaku ? ' (' + yaku + ')' : '');
+      const koi = s.koi[i] ? ', ' + t('arcade.hana.koi.count', { n: String(s.koi[i]) }) : '';
+          return seat.name + ' ' + (s.taken[i]?.length ?? 0) + (yaku ? ' (' + yaku + ')' : '') + koi;
         }).join(', ')
       );
 
@@ -93,12 +101,20 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
       }
 
       const none = picked >= 0 && !s.floor.some((c) => monthOf(c) === monthOf(hand[picked]));
-      const bk = (none ? 'drop' : myTurn ? 'hint' : 'wait');
+      const bk = deciding ? 'koi:' + s.pending?.pts : none ? 'drop' : myTurn ? 'hint' : 'wait';
       if (bk !== barKey) {
         barKey = bk;
-        bar.innerHTML = none
+        bar.innerHTML = deciding
+          ? '<span>' + t('arcade.hana.koi.offer', { n: String(s.pending?.pts ?? 0) }) + '</span>' +
+            '<button class="btn btn-primary" id="acHfStop">' + t('arcade.hana.koi.stop') + '</button>' +
+            '<button class="btn btn-ghost" id="acHfKoi">' + t('arcade.hana.koi.go') + '</button>'
+          : none
           ? '<button class="btn btn-ghost" id="acHfDrop">' + t('arcade.hana.drop') + '</button>'
           : '<small>' + (myTurn ? t('arcade.hana.hint') : t('arcade.hana.waiting')) + '</small>';
+        const stop = bar.querySelector('#acHfStop') as HTMLButtonElement | null;
+        const koi = bar.querySelector('#acHfKoi') as HTMLButtonElement | null;
+        if (stop) stop.onclick = () => act({ kind: 'koi', continue: false });
+        if (koi) koi.onclick = () => act({ kind: 'koi', continue: true });
         const drop = bar.querySelector('#acHfDrop') as HTMLButtonElement | null;
         if (drop) {
           drop.onclick = () => {

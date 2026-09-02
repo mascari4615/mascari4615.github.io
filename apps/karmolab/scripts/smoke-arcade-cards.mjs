@@ -19,6 +19,8 @@ const GAMES = [
 ];
 const TABLE_GAMES = GAMES.filter((id) => id !== 'blackjack' && id !== 'solitaire');
 const TABLE_ONLY = process.argv.includes('--table-only');
+const FOCUSED_GAME = process.argv.find((arg) => arg.startsWith('--game='))?.slice('--game='.length) ?? '';
+const TABLE_RUN = FOCUSED_GAME ? TABLE_GAMES.filter((id) => id === FOCUSED_GAME) : TABLE_GAMES;
 
 const failures = [];
 const check = (name, ok, detail = '') => {
@@ -82,6 +84,18 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       const selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 2000 }).then(() => true).catch(() => false);
       check('president: 상 위 카드를 직접 눌러 고른다', selected);
     }
+    if (g === 'hanafuda' && info.canvas) {
+      await page.evaluate(() => {
+        window.__arcade.state.pending = { seat: window.__arcade.mySeat, pts: 5 };
+        window.__arcade.refresh();
+      });
+      await page.waitForSelector('#acHfActs [data-do="stop"]');
+      await page.waitForSelector('#acHfActs [data-do="koi"]');
+      check('hanafuda: 입체에서 족보를 멈추거나 코이코이로 잇는다', true);
+      await page.click('#acHfActs [data-do="koi"]');
+      await page.waitForFunction(() => window.__arcade?.state.pending === null && window.__arcade?.state.koi[window.__arcade.mySeat] === 1);
+      check('hanafuda: 입체 코이코이 선언이 다음 차례를 잇는다', true);
+    }
     check(`${g}: 안 터진다`, boom.length === 0, boom[0] || '');
   } catch (e) {
     check(`${g}: 열린다`, false, String(e).slice(0, 90));
@@ -104,13 +118,31 @@ if (!cantRun) {
       Toolbox.switchPage('arcade');
     });
     const overlaps = [];
-    for (const game of TABLE_GAMES) {
+    for (const game of TABLE_RUN) {
       measuring = game;
       await page.waitForSelector(`[data-obj="${game}"]`, { timeout: 20000 });
       await page.click(`[data-obj="${game}"]`);
       await page.click(`[data-solo="${game}"]`);
       /* 짝맞추기는 손패가 없어 높이 0 이다. 보여야 함이 아니라 공용 상에 붙었나를 잰다. */
       await page.waitForSelector('#acPlay.ac-table .ac-tb-hand', { state: 'attached', timeout: 10000 });
+      if (game === 'hanafuda') {
+        await page.waitForFunction(() => {
+          window.__arcade.state.pending = { seat: window.__arcade.mySeat, pts: 5 };
+          window.__arcade.refresh();
+          return !!document.querySelector('#acHfStop') && !!document.querySelector('#acHfKoi');
+        });
+        const forced = await page.evaluate(() => ({
+          mySeat: window.__arcade.mySeat,
+          pending: window.__arcade.state.pending,
+          refresh: typeof window.__arcade.refresh
+        }));
+        check('hanafuda: 평면 결정 상태를 검사 화면에 세운다', forced.pending?.pts === 5 && forced.refresh === 'function', JSON.stringify(forced));
+        check('hanafuda: 평면에서도 족보를 멈추거나 코이코이로 잇는다', true);
+        await page.evaluate(() => {
+          window.__arcade.state.pending = null;
+          window.__arcade.refresh();
+        });
+      }
       const hit = await page.evaluate(() => {
         const rect = (selector) => document.querySelector(selector)?.getBoundingClientRect() ?? null;
         const overlap = (a, b) => !!a && !!b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
@@ -119,7 +151,7 @@ if (!cantRun) {
       });
       if (hit) overlaps.push(game);
       await page.click('#acMenu');
-      await page.click('#acQuit');
+      await page.evaluate(() => document.querySelector('#acQuit')?.click());
       await page.waitForSelector('#acLobby:visible', { timeout: 10000 });
     }
     check('내 자리 카드가 열 판의 손패와 행동 줄을 가리지 않는다', overlaps.length === 0, overlaps.join(', '));
