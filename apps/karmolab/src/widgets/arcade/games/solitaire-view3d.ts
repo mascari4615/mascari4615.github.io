@@ -74,6 +74,8 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
   id: 'solitaire',
   bare: true,
   mount(el, act) {
+    const play = el.closest<HTMLElement>('#acPlay');
+    Toolbox.onDispose?.(() => play?.classList.remove('ac-solitaire-win'));
     el.innerHTML = '<div class="ac-t3 ac-t3room" id="acT3"></div><div class="ac-sol3d" id="acSol3d"></div>';
     const host = el.querySelector('#acT3') as HTMLElement;
     const barEl = el.querySelector('#acSol3d') as HTMLElement;
@@ -422,6 +424,7 @@ export const view3d: GameView<SolitaireState, SolitaireAction> = {
     return (v) => {
       last = v.state;
       elapsed = v.now;
+      play?.classList.toggle('ac-solitaire-win', v.finished && v.state.foundation.every((f) => f.length === 13));
       if (v.finished && !cheered && v.state.foundation.every((f) => f.length === 13)) {
         cheered = true;
         stage.celebrate();

@@ -62,6 +62,8 @@ type Held = { kind: 'run'; col: number; from: number } | { kind: 'waste' } | { k
 export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
   id: 'solitaire',
   mount(el, act) {
+    const play = el.closest<HTMLElement>('#acPlay');
+    Toolbox.onDispose?.(() => play?.classList.remove('ac-solitaire-win'));
     el.innerHTML =
       '<div class="ac-sol">' +
       '<div class="ac-sol-top">' +
@@ -221,7 +223,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       const s = last;
       if (!s) return;
       const hc = heldCard(s);
-      const key = JSON.stringify([s.stock.length, s.waste, s.foundation, s.tableau, s.passes, s.moves, held, flash, flashUntil > performance.now(), Math.floor(elapsed / 1000)]);
+      const key = JSON.stringify([s.stock.length, s.waste, s.foundation, s.tableau, s.passes, s.moves, held, flash, flashUntil > performance.now(), Math.floor(elapsed / 1000), over]);
       if (!force && key === paintKey) return;
       paintKey = key;
       snap();
@@ -501,6 +503,7 @@ export const solitaireView: GameView<SolitaireState, SolitaireAction> = {
       last = v.state;
       elapsed = v.now;
       over = v.finished;
+      play?.classList.toggle('ac-solitaire-win', over && v.state.foundation.every((f) => f.length === 13));
       /* 상태가 바뀌면 들고 있던 것을 놓는다. 그 자리가 이미 없을 수 있다 */
       if (held) {
         const hc = heldCard(v.state);

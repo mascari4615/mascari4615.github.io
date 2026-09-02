@@ -536,6 +536,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
      돌아가 카드가 중간 자세로 굳는다(2026-09-01 실측: 카드가 선 채로 멈춤) */
   let shownKey = '';
   let lastDealSpan = 0;
+  let celebrationCount = 0;
   let need = true;
   let loop: GardenLoop | null = null;
 
@@ -975,6 +976,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
   const redMat = new MeshStandardMaterial({ color: 0xe8a9a5, roughness: 0.72, metalness: 0 });
   /* 이김 연출. 지금 놓인 카드가 차례로 제자리에서 뛰며 한 바퀴. 놓인 순서(배열 차례)대로 60ms 씩 */
   const celebrate = (): void => {
+    celebrationCount += 1;
     const now = performance.now();
     const cards = live.map((c) => c.mesh);
     live.length = 0;
@@ -1137,6 +1139,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       canvasRect: [Math.round(rect.left), Math.round(rect.top), Math.round(rect.width), Math.round(rect.height)],
       table: [Math.round(TABLE_W * 100) / 100, Math.round(TABLE_D * 100) / 100],
       dealSpan: Math.round(lastDealSpan),
+      celebrations: celebrationCount,
       glows: canGroup.children.length,
       pickables: [...picks.entries()].map(([mesh, id]) => {
         const p = mesh.position.clone().project(camera);

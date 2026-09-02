@@ -139,6 +139,23 @@ if (!cantRun) {
   const hint = await page.evaluate(() => (document.querySelector('#acSolNote')?.textContent || '').trim());
   check('한 수 짚어 준다', hint.length > 0 && !/장 올림/.test(hint), hint);
 
+  /* 승리 직전 상태. 실제 Match가 다음 step에서 outcome을 내고 화면이 연출을 붙이는지 잰다 */
+  await page.evaluate(() => {
+    const state = window.__arcade?.state;
+    state.stock = [];
+    state.waste = [];
+    state.tableau = Array.from({ length: 7 }, () => ({ cards: [], up: 0 }));
+    state.foundation = Array.from({ length: 4 }, (_, suit) => Array.from({ length: 13 }, (_, rank) => suit * 13 + rank));
+    window.__arcade?.tap({ kind: 'draw' });
+  });
+  await page.waitForFunction(() => window.__arcade?.finished === true, undefined, { timeout: 3000 });
+  const flatWin = await page.evaluate(() => ({
+    won: document.querySelector('.ac-sol-found')?.classList.contains('ac-won'),
+    animated: [...document.querySelectorAll('.ac-sol-found .ac-found .ac-sol-card')].filter((el) => getComputedStyle(el).animationName !== 'none').length,
+    visible: getComputedStyle(document.querySelector('#acOver')).backdropFilter === 'none'
+  }));
+  check('평면 승리는 쌓는 자리 넷을 눈앞에서 뛰게 한다', flatWin.won && flatWin.animated === 4 && flatWin.visible, JSON.stringify(flatWin));
+
   /* 입체도 선다. 모든 놀이가 2D 와 3D 를 다 갖춘다(`features/play.md`) */
   await page.evaluate(() => {
     try {
@@ -161,6 +178,22 @@ if (!cantRun) {
     check('입체에도 진도 줄이 있다', /52/.test(bar), bar);
     const full = await page.evaluate(() => document.querySelector('#acPlay')?.classList.contains('ac-roomfill'));
     check('입체가 콘텐츠 칸을 채운다', !!full);
+    await page.evaluate(() => {
+      const state = window.__arcade?.state;
+      state.stock = [];
+      state.waste = [];
+      state.tableau = Array.from({ length: 7 }, () => ({ cards: [], up: 0 }));
+      state.foundation = Array.from({ length: 4 }, (_, suit) => Array.from({ length: 13 }, (_, rank) => suit * 13 + rank));
+      window.__arcade?.tap({ kind: 'draw' });
+    });
+    await page.waitForFunction(() => window.__arcade?.finished === true && window.__bjMeasure?.().celebrations === 1, undefined, { timeout: 3000 });
+    /* 재움-의도: 끝난 뒤에도 도는 여러 렌더 틱에 축하가 중복되지 않는지 쌓아 본다 */
+    await page.waitForTimeout(500);
+    const roomWin = await page.evaluate(() => ({
+      celebrations: window.__bjMeasure?.().celebrations,
+      visible: getComputedStyle(document.querySelector('#acOver')).backdropFilter === 'none'
+    }));
+    check('입체 승리는 카드 점프를 눈앞에서 한 번만 시작한다', roomWin.celebrations === 1 && roomWin.visible, JSON.stringify(roomWin));
   }
 }
 
