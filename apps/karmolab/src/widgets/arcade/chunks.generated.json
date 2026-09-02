@@ -85,7 +85,7 @@
     "view": "auction-view",
     "defVar": "auction",
     "viewVar": "auctionView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "jegi",
@@ -285,7 +285,7 @@
     "view": "lanterns-view",
     "defVar": "lanterns",
     "viewVar": "lanternsView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "liars",
