@@ -293,7 +293,7 @@
     "view": "liars-view",
     "defVar": "liars",
     "viewVar": "liarsView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "hanafuda",

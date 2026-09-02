@@ -57,7 +57,7 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'yacht', icon: '🎲', kind: 'card', seats: [2, 4], realtime: false, chunk: 'yacht', d3: true },
   { id: 'highlow', icon: '🔺', kind: 'card', seats: [1, 4], realtime: false, chunk: 'highlow', d3: true },
   { id: 'lanterns', icon: '🏮', kind: 'card', seats: [2, 3], realtime: false, chunk: 'lanterns' },
-  { id: 'liars', icon: '🎲', kind: 'card', seats: [2, 4], realtime: true, chunk: 'liars' },
+  { id: 'liars', icon: '🎲', kind: 'card', seats: [2, 4], realtime: true, chunk: 'liars', d3: true },
   { id: 'hanafuda', icon: '🌸', kind: 'card', seats: [2, 4], realtime: false, chunk: 'hanafuda' },
   { id: 'derby', icon: '🐎', kind: 'card', seats: [1, 4], realtime: true, chunk: 'derby' },
   { id: 'curling', icon: '🥌', kind: 'sport', seats: [2, 4], realtime: true, chunk: 'curling', hidden: true },
