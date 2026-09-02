@@ -265,6 +265,7 @@
     "test:arcade:cards": "node scripts/smoke-arcade-cards.mjs",
     "test:arcade": "node scripts/test-arcade.mjs",
     "audit:arcade-contract": "node scripts/arcade-contract-audit.mjs",
+    "audit:arcade-feel": "node scripts/audit-arcade-feel.mjs",
     "test:arcade-limits": "node --test scripts/lib/arcade-limits.test.mjs",
     "test:arcade:multi": "node scripts/smoke-arcade-multi.mjs",
     "test:arcade:ranked": "node scripts/test-arcade-ranked.mjs",
