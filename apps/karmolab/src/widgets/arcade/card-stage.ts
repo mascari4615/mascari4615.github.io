@@ -34,6 +34,7 @@ import { buildRoom, type Room } from './rooms';
 import { handNow } from './hands';
 import type { SceneId } from './scenes';
 import { cardBackTexture, cardEdgeTexture, cardFaceTexture, dominoBackTexture, dominoFaceTexture, feltTexture } from './texture';
+import { hanaBackTexture, hanaFaceTexture } from './hana';
 import { suitOf } from './deck';
 import { buildCasinoTable, chipStack, type CasinoTable } from './card-table';
 
@@ -67,6 +68,8 @@ export interface CardSpot {
   rank: number;
   /** 도미노 짝이면 [위, 아래]. 카드 대신 타일 메시 (감사 D1) */
   tile?: [number, number];
+  /** 화투면 카드 번호(0~47). 0 이고 뒷면이면 남의 패 */
+  hana?: number;
   /** 앞면이 위인가 */
   up: boolean;
   /** 무늬 0~3. 안 주면 값과 자리로 정함 */
@@ -124,6 +127,8 @@ export interface CardSpotAt {
   id: string;
   /** 도미노 짝이면 [위, 아래]. 카드 대신 타일 */
   tile?: [number, number];
+  /** 화투면 카드 번호(0~47) */
+  hana?: number;
   /** 상 위 자리. 가운데가 0, 오른쪽이 +x, 앞이 +z */
   x: number;
   z: number;
@@ -313,6 +318,29 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     map.colorSpace = SRGBColorSpace;
     const m = new MeshStandardMaterial({ map, roughness: 0.5, metalness: 0 });
     tileCache.set(k, m);
+    return m;
+  };
+  /* 화투. 카드보다 작고 두꺼운 종이 (감사 D1) */
+  const hanaGeo = new BoxGeometry(CARD_W * 0.72, CARD_T * 2, CARD_W * 0.72 * 1.4);
+  const hanaBackMap = sharp(new CanvasTexture(hanaBackTexture(256)));
+  hanaBackMap.colorSpace = SRGBColorSpace;
+  const hanaBackMat = new MeshStandardMaterial({ map: hanaBackMap, roughness: 0.7, metalness: 0 });
+  const hanaEdgeMat = new MeshStandardMaterial({ color: 0x17120f, roughness: 0.7, metalness: 0 });
+  const hanaCache = new Map<number, MeshStandardMaterial>();
+  const hanaMatOf = (card: number): MeshStandardMaterial => {
+    const hit = hanaCache.get(card);
+    if (hit) return hit;
+    const map = sharp(new CanvasTexture(hanaFaceTexture(card, 256)));
+    map.colorSpace = SRGBColorSpace;
+    const m = new MeshStandardMaterial({ map, roughness: 0.6, metalness: 0 });
+    hanaCache.set(card, m);
+    return m;
+  };
+  const mkHana = (card: number, faceUp: boolean): Mesh => {
+    const m = new Mesh(hanaGeo, [hanaEdgeMat, hanaEdgeMat, faceUp ? hanaMatOf(card) : hanaBackMat, hanaBackMat, hanaEdgeMat, hanaEdgeMat]);
+    m.castShadow = true;
+    m.receiveShadow = false;
+    m.rotation.z = faceUp ? 0 : Math.PI;
     return m;
   };
   const mkTile = (tile: [number, number], faceUp: boolean): Mesh => {
@@ -728,7 +756,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
         const to = new Vector3(row.x + xs[i] * row.s, TOP_Y + lift + i * 0.004, row.z);
         const wasUp = before ? had.get(keyOf(h.seat, nth, i)) : undefined;
         const old = wasUp !== undefined;
-        const mesh = card.tile ? mkTile(card.tile, card.up) : mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
+        const mesh = card.hana !== undefined ? mkHana(card.hana, card.up) : card.tile ? mkTile(card.tile, card.up) : mkCard(card.rank, card.suit ?? suitOf(card.rank, h.seat, i), card.up);
         mesh.scale.setScalar(row.s * cardScale);
         mesh.rotation.x = cardTilt;
         if (old) {
@@ -860,11 +888,11 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       const to = new Vector3(sp.x, TOP_Y + CARD_T / 2 + layer * 0.006 + (sp.held ? 0.2 : 0), sp.z);
       const face = sp.rank > 0;
       /* 앞뒤가 갈리면 다른 물건이라 새로 만든다. 그 밖에는 있던 것을 옮긴다 */
-      const name = sp.id + '|' + (sp.tile ? 't' + sp.tile.join(':') + (sp.up ? 'u' : 'd') : face ? sp.rank + ':' + (sp.suit ?? 0) : 'b');
+      const name = sp.id + '|' + (sp.hana !== undefined ? 'h' + sp.hana + (sp.up ? 'u' : 'd') : sp.tile ? 't' + sp.tile.join(':') + (sp.up ? 'u' : 'd') : face ? sp.rank + ':' + (sp.suit ?? 0) : 'b');
       keep.add(sp.id);
       const had = byName.get(sp.id);
       const same = had && had.userData.name === name;
-      const mesh = same ? (had as Mesh) : sp.tile ? mkTile(sp.tile, sp.up) : mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
+      const mesh = same ? (had as Mesh) : sp.hana !== undefined ? mkHana(sp.hana, sp.up) : sp.tile ? mkTile(sp.tile, sp.up) : mkCard(sp.rank, sp.suit ?? suitOf(sp.rank, 0, layer), sp.up);
       mesh.userData.name = name;
       if (!same) {
         if (had) holder.remove(had);

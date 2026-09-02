@@ -301,7 +301,7 @@
     "view": "hanafuda-view",
     "defVar": "hanafuda",
     "viewVar": "hanafudaView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "derby",

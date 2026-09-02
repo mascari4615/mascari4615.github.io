@@ -8,14 +8,8 @@ import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { cardMark } from '../card';
 import { mountTable } from '../table2d';
+import { FLOWER, HUE } from '../hana';
 import { monthOf, pointOf, yakuOf, type HanafudaState, type HanafudaAction } from './hanafuda';
-
-/** 달마다 꽃 이름 한 글자. 실물 화투의 열두 달 */
-const FLOWER = ['松', '梅', '桜', '藤', '菖', '牡', '萩', '芒', '菊', '楓', '柳', '桐'];
-const HUE = [
-  '#2f7358', '#b3242c', '#d46a8a', '#6b4bbf', '#2a8bb8', '#c0392b',
-  '#8a5a1e', '#5b6770', '#c08a1e', '#b8571e', '#2e8f6f', '#6f3fa0'
-];
 
 export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
   id: 'hanafuda',
