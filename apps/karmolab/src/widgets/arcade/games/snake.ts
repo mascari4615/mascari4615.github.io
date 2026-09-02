@@ -9,6 +9,7 @@
  * 자리를 다툰다. 앞서 나가면 유리한 게 아니라 길을 더 많이 막아 놓은 쪽이 유리하다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { STEP_DIRS } from '../grid';
 
 export const W = 21;
 export const H = 21;
@@ -41,7 +42,6 @@ export type SnakeAction = { dir: number };
 const xy = (c: number): [number, number] => [c % W, Math.floor(c / W)];
 const idx = (x: number, y: number): number => ((y + H) % H) * W + ((x + W) % W);
 
-const DIRS: Array<[number, number]> = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
 function spawnFood(taken: Set<number>, rng: () => number): number {
   for (let n = 0; n < 200; n++) {
@@ -65,7 +65,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
       const y = 3 + Math.floor(i / 2) * (H - 7);
       const dir = i % 2 === 0 ? 1 : 3;
       const body = Array.from({ length: START_LEN }, (_, k) =>
-        idx(x - DIRS[dir][0] * k, y - DIRS[dir][1] * k)
+        idx(x - STEP_DIRS[dir][0] * k, y - STEP_DIRS[dir][1] * k)
       );
       return { body, dir, alive: true, ate: 0 };
     });
@@ -96,7 +96,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     const heads = s.snakes.map((sn) => {
       if (!sn.alive) return -1;
       const [hx, hy] = xy(sn.body[0]);
-      const [dx, dy] = DIRS[sn.dir];
+      const [dx, dy] = STEP_DIRS[sn.dir];
       return idx(hx + dx, hy + dy);
     });
 
@@ -153,7 +153,7 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     const blocked = new Set(s.snakes.flatMap((sn) => (sn.alive ? sn.body.slice(0, -1) : [])));
     const safe = [0, 1, 2, 3].filter((d) => {
       if ((d + 2) % 4 === me.dir) return false;
-      const [dx, dy] = DIRS[d];
+      const [dx, dy] = STEP_DIRS[d];
       return !blocked.has(idx(hx + dx, hy + dy));
     });
     if (!safe.length) return null;
@@ -165,8 +165,8 @@ export const snake: GameDef<SnakeState, SnakeAction> = {
     const target = s.food[0] ?? 0;
     const [fx, fy] = xy(target);
     const best = safe.reduce((a, d) => {
-      const [dx, dy] = DIRS[d];
-      const da = Math.abs(hx + DIRS[a][0] - fx) + Math.abs(hy + DIRS[a][1] - fy);
+      const [dx, dy] = STEP_DIRS[d];
+      const da = Math.abs(hx + STEP_DIRS[a][0] - fx) + Math.abs(hy + STEP_DIRS[a][1] - fy);
       const db = Math.abs(hx + dx - fx) + Math.abs(hy + dy - fy);
       return db < da ? d : a;
     }, safe[0]);

@@ -8,9 +8,8 @@ import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { W, H, PAD, type PongState, type PongAction } from './pong';
 import { keyDrive } from '../key-drive';
-import { felt, orb, woodRail } from '../paint';
+import { felt, orb, woodRail, SEAT_COLOR } from '../paint';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6'];
 
 export const pongView: GameView<PongState, PongAction> = {
   id: 'pong',

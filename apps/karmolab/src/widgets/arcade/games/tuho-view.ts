@@ -12,12 +12,12 @@ import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { createGl, type Gl } from '../gl';
 import { W, H, FROM, POT, EAR_DX, EAR_R, type TuhoState, type TuhoAction } from './tuho';
+import { SEAT_COLOR as SEAT_CSS } from '../paint';
 
 const SEAT_COLOR: Array<[number, number, number]> = [
   [0.93, 0.27, 0.27], [0.23, 0.51, 0.96], [0.13, 0.77, 0.37], [0.92, 0.7, 0.03],
   [0.66, 0.33, 0.97], [0.02, 0.71, 0.83]
 ];
-const CSS_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#06b6d4'];
 
 export const tuhoView: GameView<TuhoState, TuhoAction> = {
   id: 'tuho',
@@ -102,7 +102,7 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
           }
           for (const sh of s.shots) {
             c.beginPath(); c.arc(sh.x, sh.y, 1.4, 0, Math.PI * 2);
-            c.fillStyle = CSS_COLOR[sh.seat % 6]; c.fill();
+            c.fillStyle = SEAT_CSS[sh.seat % 6]; c.fill();
           }
           if (air) { c.beginPath(); c.arc(air.x, air.y, 1.8, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); }
         }
@@ -111,7 +111,7 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
       scoreEl.innerHTML = v.seats
         .map((seat, i) =>
           '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + (i === s.turn ? ' ac-now' : '') + '">' +
-          '<i style="background:' + CSS_COLOR[i % 6] + '"></i> ' + seat.name +
+          '<i style="background:' + SEAT_CSS[i % 6] + '"></i> ' + seat.name +
           ' <b>' + s.score[i] + '</b>, ' + t('arcade.tuho.left', { n: String(s.left[i]) }) + '</span>')
         .join('');
 

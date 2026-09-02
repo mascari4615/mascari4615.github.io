@@ -11,6 +11,7 @@
  * **맞히면 한 번 더**. 맞은 다음이 제일 재밌는 순간인데 거기서 차례를 넘기면 김이 샌다.
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
+import { grid } from '../grid';
 
 export const N = 8;
 const FLEET = [4, 3, 3, 2];
@@ -29,7 +30,7 @@ export interface FleetState {
 
 export type FleetAction = { at: number; cell: number };
 
-const xy = (c: number): [number, number] => [c % N, Math.floor(c / N)];
+const { xy } = grid(N);
 
 /** 배를 다 놓는다. 겹치면 다시 고른다. */
 function place(rng: () => number): number[] {

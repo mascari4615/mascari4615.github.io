@@ -5,6 +5,7 @@ import type { RankedGameRules, RatingContext, RatingState, StoredRating } from '
 const START = 1500;
 const FLOOR = 100;
 const MMR_K = 24;
+const MOVE_LIMIT_SEC = 60;
 const CAPABILITY = rankedCapability('yacht');
 if (!CAPABILITY) throw new Error('missing_ranked_capability:yacht');
 
@@ -103,6 +104,7 @@ const calculate = ({ outcome, before, factor }: RatingContext): ReadonlyMap<stri
 export const yachtRules: RankedGameRules = {
   gameId: 'yacht',
   supportedSeats: new Set(rankedSeatCounts('yacht')),
+  moveLimitSec: MOVE_LIMIT_SEC,
   formation: accumulatingFormation(CAPABILITY.minSeats, CAPABILITY.maxSeats, YACHT_FORM_MS),
   initial,
   hydrate,

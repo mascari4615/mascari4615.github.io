@@ -15,6 +15,7 @@
  * 상대의 무엇보다 커야 함. 아래 WEIGHT 가 그 관계
  */
 import { bestOf } from '../pick-best';
+import { LINE_DIRS } from '../grid';
 
 export type Level = 1 | 2 | 3 | 4 | 5;
 export const LEVELS: readonly Level[] = [1, 2, 3, 4, 5];
@@ -37,7 +38,6 @@ export const PLAN: Record<Level, { depth: number; width: number; nodes: number; 
   5: { depth: 4, width: 12, nodes: 4000, vcf: 14, guard: false, vct: 0, safe: true, combo: true }
 };
 
-const DIRS: ReadonlyArray<readonly [number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
 /* ── 줄 ── 판 크기마다 네 방향의 모든 줄(칸 번호 배열). 한 번 만들어 둔다 */
 const LINES = new Map<number, number[][]>();
@@ -193,7 +193,7 @@ function winsAt(b: number[], n: number, cell: number, who: number, renju: boolea
   const exact = renju && who === 1;
   b[cell] = who;
   let ok = false;
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     const len = runLen(b, n, cell, who, dx, dy);
     if (exact ? len === 5 : len >= 5) {
       ok = true;
@@ -222,7 +222,7 @@ function pointValue(b: number[], n: number, cell: number, who: number): number {
   const y = Math.floor(cell / n);
   let v = 0;
   for (const side of [who, 3 - who]) {
-    for (const [dx, dy] of DIRS) {
+    for (const [dx, dy] of LINE_DIRS) {
       let s = '';
       for (let k = -4; k <= 4; k += 1) {
         const c = k === 0 ? side : at(b, n, x + dx * k, y + dy * k);
@@ -410,7 +410,7 @@ function isBanned(b: number[], n: number, cell: number): boolean {
   let over = false;
   let fours = 0;
   let threes = 0;
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     const len = runLen(b, n, cell, 1, dx, dy);
     if (len === 5) five = true;
     else if (len > 5) over = true;
@@ -418,7 +418,7 @@ function isBanned(b: number[], n: number, cell: number): boolean {
   if (!five && !over) {
     const x = cell % n;
     const y = Math.floor(cell / n);
-    for (const [dx, dy] of DIRS) {
+    for (const [dx, dy] of LINE_DIRS) {
       let s = '';
       for (let k = -4; k <= 4; k += 1) {
         const c = at(b, n, x + dx * k, y + dy * k);

@@ -6,10 +6,9 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import { orb } from '../paint';
+import { orb, SEAT_COLOR } from '../paint';
 import { R, SECTORS, aimAt, scoreAt, type DartsState, type DartsAction } from './darts';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
 
 export const dartsView: GameView<DartsState, DartsAction> = {
   id: 'darts',

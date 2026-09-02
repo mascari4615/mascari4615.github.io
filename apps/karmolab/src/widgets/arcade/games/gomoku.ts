@@ -16,6 +16,7 @@
 import { bestOf } from '../pick-best';
 import type { GameDef, BotMove, GameOpts } from '../types';
 import { think, LEVELS, type Level } from './gomoku-engine';
+import { LINE_DIRS } from '../grid';
 
 export interface GomokuState {
   /** 0 = 빈 칸, 1 = 첫째 자리, 2 = 둘째 자리 */
@@ -49,7 +50,6 @@ export const DEFAULT_SIZE: Size = 15;
 /** 예전 화면이 `N` 하나만 알던 시절의 이름. 새 코드는 상태의 `n` 을 본다 */
 export const N = DEFAULT_SIZE;
 const NEED = 5;
-const DIRS: Array<[number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
 /** 고른 값 읽기. 모르는 값이 오면 표준으로 되돌린다 (그물망 너머에서 아무 값이나 온다) */
 /** 봇 단계. 기본 3(학도). 1 은 둘레 아무 데나, 5 는 여섯 수 앞과 VCF */
@@ -117,7 +117,7 @@ function runLen(b: number[], n: number, cell: number, who: number, dx: number, d
  */
 function wins(b: number[], n: number, cell: number, who: number, renju: boolean): boolean {
   const exact = renju && who === 1;
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     const len = runLen(b, n, cell, who, dx, dy);
     if (exact ? len === NEED : len >= NEED) return true;
   }
@@ -161,7 +161,7 @@ function bannedFor(b: number[], n: number, cell: number, renju: boolean): boolea
   let fours = 0;
   let openThrees = 0;
 
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     const len = runLen(next, n, cell, who, dx, dy);
     if (len === NEED) five = true;
     if (len > NEED) over = true;
@@ -169,7 +169,7 @@ function bannedFor(b: number[], n: number, cell: number, renju: boolean): boolea
   if (five) return false;
   if (over) return true;
 
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     if (makesFour(next, n, cell, dx, dy)) fours += 1;
     else if (makesOpenThree(next, n, cell, dx, dy)) openThrees += 1;
   }
@@ -264,7 +264,7 @@ function score(b: number[], n: number, cell: number, who: number, renju: boolean
   if (wins(theirs, n, cell, foe, renju)) return 1e8;
 
   let total = 0;
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     const a = shape(mine, n, cell, who, dx, dy);
     const d = shape(theirs, n, cell, foe, dx, dy);
     total += shapeScore(a.len, a.open);
@@ -349,7 +349,7 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
     const n = s.n;
     const x = s.last % n;
     const y = Math.floor(s.last / n);
-    for (const [dx, dy] of DIRS) {
+    for (const [dx, dy] of LINE_DIRS) {
       for (let k = -4; k <= 4; k += 1) {
         if (!k) continue;
         const cx = x + dx * k;
@@ -364,7 +364,7 @@ export const gomoku: GameDef<GomokuState, GomokuAction> = {
       }
     }
     /* 넷이 아니면 열린 셋인가. 한 수로 열린 넷이 되는 줄 */
-    for (const [dx, dy] of DIRS) {
+    for (const [dx, dy] of LINE_DIRS) {
       if (makesOpenThree(s.board, n, s.last, dx, dy)) return 'open3';
     }
     return null;

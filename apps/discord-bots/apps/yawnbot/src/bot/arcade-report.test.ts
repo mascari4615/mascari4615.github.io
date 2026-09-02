@@ -202,7 +202,8 @@ describe('결과 보고', () => {
   it('로그인한 사람은 제 점수를 본다', async () => {
     const res = await fetch(`${base}/kl/arcade/rating/me?game=gomoku`, { headers: as(A) });
     expect(res.status).toBe(200);
-    expect((await res.json()) as { rating: number }).toEqual({ signedIn: true, rating: 1500, games: 0, wins: 0 });
+    /* 임시 경계(settleGames)는 서버 규칙이 내려 준다. 화면이 20 을 따로 적지 않는다 (감사 B6) */
+    expect((await res.json()) as { rating: number }).toEqual({ signedIn: true, rating: 1500, games: 0, wins: 0, settleGames: 20 });
   });
 });
 

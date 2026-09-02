@@ -31,12 +31,14 @@ import { seedFrom } from './rng';
 import { iconOf, kindOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room-code';
-import { blip, soundOn, setSoundOn, setBlipVoice } from '../../lib/blip';
+import { blip, setBlipVoice } from '../../lib/blip';
 import { sceneOf, setScene, nextScene, specOf } from './scenes';
 import { handMode, handNow, nextHandMode } from './hands';
 import { buzz } from '../../lib/haptic';
 import { pickBots, withBotLevel, type BotLevel, type BotPersona } from './bots';
-import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf, type Mood } from './cast';
+import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf } from './cast';
+import { mountMdd } from './mdd';
+import { mountChrome } from './chrome';
 import { LESSONS, TUTOR_SIZE, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
@@ -61,7 +63,6 @@ import {
   tapeFromUrl,
   tapeLink,
   RankedRoster,
-  rankedCapability,
   supportsRanked,
   type Ranked,
   type RankedMatch,
@@ -838,39 +839,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     } | null = null;
     let render: Render<unknown> | null = null;
     let net: Net | null = null;
-    /** MDD 켜짐. 사람이 고른 것이 브라우저에 남음. 기본 켬 (사용자 결정 2026-09-02. 끄는 길은 메뉴의 캐릭터 버튼, 반응 버튼은 paintScene 이 되살림) */
-    function mddOn(): boolean {
-      try {
-        return localStorage.getItem('karmolab.arcade.mdd') !== 'off';
-      } catch {
-        return true;
-      }
-    }
-    function paintMdd(): void {
-      const b = container.querySelector<HTMLButtonElement>('#acMdd');
-      if (b) b.setAttribute('aria-pressed', mddOn() ? 'true' : 'false');
-      const em = container.querySelector<HTMLButtonElement>('#acEmote');
-      if (em && !mddOn()) em.style.display = 'none';
-      if (!mddOn()) {
-        bubbles.clear();
-        $<HTMLElement>('#acEmotes').hidden = true;
-        $<HTMLElement>('#acCutin').hidden = true;
-      }
-    }
-    /** 자리마다 지금 떠 있는 말. 카드는 매 프레임 다시 그려지므로 여기 들고 있다가 얹는다 */
-    const bubbles = new Map<number, { text: string; until: number }>();
-    /** 그 사람이 한마디. 카드가 있는 판에서만 보인다 */
-    function sayAs(seat: number, text: string, ms = 2600): void {
-      if (!text) return;
-      bubbles.set(seat, { text, until: performance.now() + ms });
-    }
-    /** 봇 자리의 사람이 그 상황의 말을 한다. 사람이 아니면 조용 */
-    function castSay(seat: number, key: Parameters<typeof lineOf>[1], chance = 1): void {
-      const v = match?.view() ?? shadow?.v;
-      const c = v && mddOn() ? castByName(v.seats[seat]?.name ?? '') : null;
-      if (!c || Math.random() > chance) return;
-      sayAs(seat, lineOf(c, key, v?.seats[mySeat]?.name ?? ''));
-    }
+    /* 저택 사람의 얼굴, 말풍선, 컷인. 판의 그림은 물어서 씀 (`mdd.ts`) */
+    const mdd = mountMdd({ container, view: () => match?.view() ?? shadow?.v ?? null, mySeat: () => mySeat });
     /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
     let seenMoves = 0;
     /** 재촉을 이미 한 수. 한 차례에 한 번만 */
@@ -896,28 +866,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (action === null || action === undefined) return;
       hintAt = { action, until: performance.now() + (review && !review.branch ? 60000 : 3500) };
       if (review && !review.branch) seek(review.at);
-    }
-    /** 컷인. 그 자리의 사람이 큰 얼굴로 한 줄. 1.7초 뒤 나간다 */
-    let cutTimer = 0;
-    function cutIn(seat: number, key: Parameters<typeof lineOf>[1]): void {
-      const v = match?.view() ?? shadow?.v;
-      const c = v && mddOn() ? castByName(v.seats[seat]?.name ?? '') : null;
-      if (!c || !v) return;
-      const text = lineOf(c, key, v.seats[mySeat]?.name ?? '');
-      if (!text) return;
-      const mood: Mood = key === 'win' ? 'glad' : key === 'lose' ? 'sad' : key === 'four' ? 'tease' : key === 'danger' ? 'think' : 'calm';
-      const el = $<HTMLElement>('#acCutin');
-      el.innerHTML = '<span class="ac-cutface">' + faceSvg(c, mood) + '</span><div><b>' + esc(c.name) + '</b><p>' + esc(text) + '</p></div>';
-      el.hidden = false;
-      /* 컷인에 소리 한 번. 끝의 이김과 짐은 결과 화면이 이미 울리므로 빼고, 리치와 위기만 */
-      if (key === 'four' || key === 'danger') blip('start');
-      el.classList.remove('ac-on');
-      if (cutTimer) window.clearTimeout(cutTimer);
-      window.requestAnimationFrame(() => el.classList.add('ac-on'));
-      cutTimer = window.setTimeout(() => {
-        el.classList.remove('ac-on');
-        cutTimer = window.setTimeout(() => { el.hidden = true; cutTimer = 0; }, 350);
-      }, 1700);
     }
     let raf = 0;
     let t0 = 0;
@@ -1019,7 +967,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     function paintOverBody(v: MatchView<unknown>, top: number): void {
       const el = $<HTMLElement>('#acOverBody');
       const room = !!play.querySelector('.ac-t3room');
-      if (!room || !mddOn()) {
+      if (!room || !mdd.on()) {
         el.hidden = true;
         return;
       }
@@ -1056,29 +1004,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     }
 
     /** 얼굴 한 장. 내 자리는 조수, 봇 자리는 그 사람. 표정은 차례와 결과에서 */
-    function faceOf(v: MatchView<unknown>, i: number): string {
-      const seat = v.seats[i];
-      /* 플레이어는 캐릭터가 아니다. 얼굴은 저택 사람만. MDD 가 꺼져 있으면 아무도 */
-      const c = i === mySeat || !mddOn() ? null : castByName(seat?.name ?? '');
-      if (!c) return '';
-      const turn = (v.state as { turn?: number } | null)?.turn;
-      let mood: Mood = 'calm';
-      if (v.finished) {
-        const top = Math.max(...v.seats.map((x) => x.score));
-        mood = seat.score === top ? 'glad' : 'sad';
-      } else if (turn === i) mood = 'think';
-      return '<span class="ac-face">' + faceSvg(c, mood) + '</span>';
-    }
-    function bubbleOf(i: number, now: number): string {
-      const b = bubbles.get(i);
-      if (!b) return '';
-      if (performance.now() > b.until) {
-        bubbles.delete(i);
-        return '';
-      }
-      return '<span class="ac-bubble">' + esc(b.text) + '</span>';
-    }
-
     function paint(v: MatchView<unknown>, now: number): void {
       /* 지금 이 창이 **들고 있는 판**을 밖에서 볼 수 있게 둔다 (TASK-KL-264).
          감추기가 새는지는 화면으로 못 잡는다. 화면은 남의 배를 애초에 안 그리므로,
@@ -1095,14 +1020,14 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
         /* 봇이 둔 뒤 한마디. 아래 좋은 수와 겹치면 그쪽이 이긴다(덮어쓰기라 마지막이 남는다) */
-        if (match.moves > seenMoves && turn === mySeat && !v.finished) castSay(1 - mySeat, 'move', 0.3);
+        if (match.moves > seenMoves && turn === mySeat && !v.finished) mdd.castSay(1 - mySeat, 'move', 0.3);
         /* 방금 둔 수가 넷이면 컷인. 사람이 만들면 리치, 내가 만들면 사람의 위기 */
         if (match.moves > seenMoves && !v.finished && v.seats.length === 2 && typeof turn === 'number') {
           const mover = 1 - turn;
           const cue = gameById(gameId)?.cue?.(v.state, mover) ?? null;
-          if (cue === 'four') cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
+          if (cue === 'four') mdd.cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
           /* 내가 좋은 수를 두면 상대가 한마디. 컷인까지는 아니고 말풍선. 봇의 둔 뒤 한마디보다 이것이 먼저 */
-          else if (cue === 'open3' && mover === mySeat) castSay(1 - mySeat, 'good', 1);
+          else if (cue === 'open3' && mover === mySeat) mdd.castSay(1 - mySeat, 'good', 1);
         }
         seenMoves = match.moves;
       }
@@ -1112,7 +1037,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (st?.limit && st.turn === mySeat && st.turnEndsAt && st.turnEndsAt - now <= 10000) {
           if (hurriedAt !== match.moves) {
             hurriedAt = match.moves;
-            castSay(1 - mySeat, 'hurry', 0.8);
+            mdd.castSay(1 - mySeat, 'hurry', 0.8);
           }
         }
       }
@@ -1145,7 +1070,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         if (!ended) {
           ended = true;
           if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
-          v.seats.forEach((sq, i) => { if (i !== mySeat) cutIn(i, sq.score === top ? 'win' : 'lose'); });
+          v.seats.forEach((sq, i) => { if (i !== mySeat) mdd.cutIn(i, sq.score === top ? 'win' : 'lose'); });
           const draw = win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(
@@ -1240,9 +1165,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           bot: !!s.bot,
           html:
             (plan ? esc(TEAM_NAMES[plan[i]] ?? '') + ' ' : '') +
-            faceOf(v, i) +
+            mdd.faceOf(v, i) +
             '<span class="ac-seatname">' + esc(s.name) + (s.bot && !castByName(s.name) ? ' 🤖' : '') + '</span> <b>' + s.score + '</b>' +
-            bubbleOf(i, now)
+            mdd.bubbleOf(i)
         })
       );
       while (seatsEl.children.length > items.length) seatsEl.lastElementChild?.remove();
@@ -1509,7 +1434,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
         default:
           if (meta.startsWith('emote:')) {
             const text = meta.slice(6);
-            sayAs(seat, text);
+            mdd.sayAs(seat, text);
             net?.say({ kind: 'emote', seat, text });
           }
           break;
@@ -1572,7 +1497,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       match.rewind(1);
       blip('tap');
       paintUndo();
-      castSay(1 - mySeat, 'undo');
+      mdd.castSay(1 - mySeat, 'undo');
     }
 
     function paintScene(id: string): void {
@@ -1581,9 +1506,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const on = dim() === '3d' && !!cardById(id)?.d3;
       btn.style.display = on ? '' : 'none';
       const em = container.querySelector<HTMLButtonElement>('#acEmote');
-      if (em) em.style.display = on && mddOn() ? '' : 'none';
+      if (em) em.style.display = on && mdd.on() ? '' : 'none';
       if (!on) $<HTMLElement>('#acEmotes').hidden = true;
-      paintMdd();
+      mdd.paint();
       for (const [sel, key] of [['#acCoords', 'karmolab.arcade.coords'], ['#acNums', 'karmolab.arcade.numbers']] as const) {
         const b = container.querySelector<HTMLButtonElement>(sel);
         if (!b) continue;
@@ -1673,7 +1598,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
       /* 판놀이는 저택 사람이 앉는다(MDD). 단계가 사람을 고른다(임시 대응, `cast.ts`) */
       /* 단계(`ai`)가 있는 놀이 전부(오목, 야추). 봇이 여럿이면 남은 사람도 차례로 앉는다(야추는 넷까지). MDD 스위치를 따른다 */
-      if (mddOn() && !tour && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
+      if (mdd.on() && !tour && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
         const first = castOfLevel(Number(optsFor(id).ai) || 3);
         const rest = Object.values(CAST).filter((c) => c.slug !== first.slug);
         crew[0] = { ...crew[0], name: first.name };
@@ -1707,9 +1632,9 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastPersonas = personas;
       lastLevel = levelNow();
       lastDef = def as GameDef<unknown, unknown>;
-      bubbles.clear();
+      mdd.clearBubbles();
       seenMoves = 0;
-      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
+      withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) mdd.sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
       tape = null;
       endReview(false);
       replaying = false;
@@ -1882,7 +1807,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
       const def = { ...g, bot: () => null } as typeof g;
       /* 가르치는 자리. MDD 를 끄면 캐릭터 이름 대신 중립 이름 */
-      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mddOn() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
+      const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mdd.on() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
       cancelAnimationFrame(raf);
       match = new Match(def, 1, seats, { size: TUTOR_SIZE, renju: true, limit: 0, ai: 1 }) as Match<unknown, unknown>;
       lastDef = def as GameDef<unknown, unknown>;
@@ -1890,7 +1815,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       lastSeats = seats;
       ended = false;
       soundedRound = -1;
-      bubbles.clear();
+      mdd.clearBubbles();
       hintAt = null;
       /* 돌 심기. 차례를 번갈아 맞추려고 빈 곳을 채우는 대신 **그 색 차례일 때만** 둔다 */
       const want = lesson.board.slice();
@@ -1904,7 +1829,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       /* 내 차례(흑)가 아니면 한 수 더 심어 맞춘다. 장면 표가 흑 차례로 끝나게 짜 두는 것이 먼저 */
       /* 장면 심기는 사람이 둔 것이 아니다. 알림과 컷인을 안 깨운다 */
       seenMoves = match.moves;
-      bubbles.clear();
+      mdd.clearBubbles();
       $<HTMLElement>('#acCutin').hidden = true;
       const box = $<HTMLElement>('#acLesson');
       box.hidden = false;
@@ -2131,13 +2056,12 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
        *   그동안 점수가 큰 걸음으로 움직여 제자리를 빨리 찾게 함
        * - 안 적으면 다섯 판 둔 사람이 그 단위를 제 실력으로 읽음. 그건 거짓말
        */
-      const settlingGames = rankedCapability(id)?.settlingGames ?? 0;
-      const settling = rec.games < settlingGames;
+      const settling = rec.settleGames !== null && rec.games < rec.settleGames;
       box.innerHTML =
         '<b>' + esc(name) + '</b> ' +
         esc(t('arcade.rank.record', { n: String(rec.rating), games: String(rec.games), wins: String(rec.wins) })) +
         (settling
-          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(settlingGames) }))
+          ? ', ' + esc(t('arcade.rank.settling', { n: String(rec.games), of: String(rec.settleGames) }))
           : g.toNext !== null
             ? ', ' + esc(t('arcade.rank.tonext', { n: String(g.toNext) }))
             : '') +
@@ -2187,19 +2111,15 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       startReview();
     }
 
-    /**
-     * 등급전 한 수의 제한. 초과하면 커널이 상대 승으로 끝냄(`gomoku.ts` 의 `tick`)
-     *
-     * - 이게 없으면 상대가 창을 열어 둔 채 자리를 비웠을 때 판이 영영 안 끝남
-     * - 작혼 등급전은 수당 5초 + 예비 20초로 한 수 최대 25초(실측). 우리는 아직 예비가 없어
-     *   한 단이라, 생각할 여유를 주고 60초. 예비가 생기면 20+60 꼴로 나눔
-     * - 친선전과 혼자 판은 그대로 사람이 고름(없음, 30, 60, 120초)
-     */
+    /* 등급전 한 수 제한과 임시 경계는 **서버 규칙이 내려 줌** (감사 B6). 전에는 60 과 20 을 여기 적어
+       서버 K 경계와 어긋날 자리였음. 짝이 나면 그 답의 값(`moveLimitSec`), 점수를 물으면 그 답의 값(`settleGames`).
+       초과하면 커널이 상대 승으로 끝냄(`gomoku.ts` 의 `tick`). 친선전과 혼자 판은 사람이 고름 */
+    let rankedLimit: number | null = null;
+
     /** 이 판에 쓸 옵션. 등급전이면 시간 제한을 덮어씀 */
     function matchOpts(id: string): ReturnType<typeof optsFor> {
       const base = optsFor(id);
-      const limit = rankedCapability(id)?.turnLimitSeconds ?? 0;
-      return rankedMatch || autoStart ? { ...base, limit } : base;
+      return (rankedMatch || autoStart) && rankedLimit ? { ...base, limit: rankedLimit } : base;
     }
 
     /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
@@ -2405,7 +2325,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('#acWaitStatus').textContent =
         t('arcade.rank.waiting', { n: String(rankedOthers) }) +
         ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) }) +
-        ', ' + t('arcade.rank.limit', { n: String(rankedCapability(gameId)?.turnLimitSeconds ?? 0) });
+        (rankedLimit ? ', ' + t('arcade.rank.limit', { n: String(rankedLimit) }) : '');
     }
 
     function startRanked(id: string): void {
@@ -2427,7 +2347,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       $<HTMLElement>('.ac-share').style.display = 'none';
       ranked?.cancel();
       ranked = enterQueue(id, myName(), {
-        onWaiting: (room, others) => {
+        onWaiting: (room, others, limitSec) => {
+          rankedLimit = limitSec;
           rankedRoom = room;
           rankedOthers = others;
           paintRankWait();
@@ -2437,6 +2358,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           rankedTick?.();
           rankedTick = null;
           rankedMatch = { code: m.code, you: m.you, ids: m.ids, seat: m.seat };
+          rankedLimit = m.moveLimitSec;
           rankedRoster = new RankedRoster(rankedMatch, m.host);
           watchLink();
           if (m.host) {
@@ -2501,7 +2423,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
           }
           if (kind === 'emote') {
             const d = data as { seat?: number; text?: string };
-            if (typeof d.seat === 'number' && d.seat !== mySeat) sayAs(d.seat, String(d.text ?? ''));
+            if (typeof d.seat === 'number' && d.seat !== mySeat) mdd.sayAs(d.seat, String(d.text ?? ''));
             return;
           }
           if (kind === 'result') {
@@ -2792,13 +2714,13 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
 
     $<HTMLButtonElement>('#acMdd').onclick = () => {
       try {
-        localStorage.setItem('karmolab.arcade.mdd', mddOn() ? 'off' : 'on');
+        localStorage.setItem('karmolab.arcade.mdd', mdd.on() ? 'off' : 'on');
       } catch {
         /* 못 적어도 이 판에서는 바뀐다 */
       }
-      paintMdd();
+      mdd.paint();
       if (gameId) paintScene(gameId);
-      say(t(mddOn() ? 'arcade.mdd.on' : 'arcade.mdd.off'), 'ok');
+      say(t(mdd.on() ? 'arcade.mdd.on' : 'arcade.mdd.off'), 'ok');
     };
     const emotesEl = $<HTMLElement>('#acEmotes');
     $<HTMLButtonElement>('#acEmote').onclick = () => { emotesEl.hidden = !emotesEl.hidden; };
@@ -2807,7 +2729,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (!b) return;
       const text = EMOTES[Number(b.dataset.emote)] ?? '';
       emotesEl.hidden = true;
-      sayAs(mySeat, text);
+      mdd.sayAs(mySeat, text);
       if (!net) return;
       if (net.host) net.say({ kind: 'emote', seat: mySeat, text });
       else net.act({ meta: 'emote:' + text });
@@ -2897,14 +2819,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       gameId = '';
       mySeat = 0;
       $<HTMLElement>('#acTimeline').hidden = true;
-      bubbles.clear();
-      if (cutTimer) {
-        window.clearTimeout(cutTimer);
-        cutTimer = 0;
-      }
-      const cut = $<HTMLElement>('#acCutin');
-      cut.classList.remove('ac-on');
-      cut.hidden = true;
+      mdd.clearBubbles();
+      mdd.stop();
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
     }
@@ -2917,6 +2833,7 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       ranked = null;
       rankedMatch = null;
       rankedRoster = null;
+      rankedLimit = null;
       autoStart = false;
       rankedTick?.();
       rankedTick = null;
@@ -2940,111 +2857,8 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     };
     $<HTMLButtonElement>('#acQuit').onclick = quit;
 
-    /**
-     * 풀스크린. **무대만** 키운다 (TASK-KL-314).
-     *
-     * 창 전체가 아니라 `.ac-stage` 하나를 키우는 이유: 자리줄, 상태글, 단추가 같이 커지면
-     * 판이 오히려 작아진다. 무대만 키우면 그 안의 51개가 그대로 커진다. 게임 화면은 이걸 모른다.
-     *
-     * 안 되는 곳(iOS 사파리의 일부)에서는 조용히 아무 일도 안 일어난다. 단추를 숨기지는 않는다 . 
-     * 눌러 보고 안 되는 것과 아예 없는 것 중, 없는 쪽이 더 오래 헷갈린다.
-     */
-    /**
-     * 풀스크린이면 단추 줄을 **무대 안으로 옮긴다** (TASK-KL-314).
-     *
-     * 브라우저는 풀스크린 대상 **밖을 아예 안 그린다.** 그래서 무대만 키웠더니 나가기, 한 판
-     * 더, 소리가 통째로 사라졌다. 판이 끝나도 아무것도 못 하고, 나가려면 ESC 를 알아야 했다
-     * (실측: 그 자리를 눌러 보면 무대가 잡힌다). 화면에 안 보이는 단추는 없는 단추다.
-     *
-     * 옮기는 것으로 푼다. 복제가 아니라 이동이라 붙여 둔 손잡이(onclick)가 그대로 따라온다.
-     * ESC 로 나가는 길도 있으므로 되돌리는 것은 `fullscreenchange` 가 맡는다(단추만 보면 샌다).
-     */
-    /* ── 눕힌 좁은 화면: 무대 크기를 **남은 자리에서** 정한다 (2026-08-15 실측) ──────
-     *
-     * 여태 `78vh` 라는 **손으로 맞춘 상수**였다. 그 값은 폰 둘(390×844, 844×390)에서 재서
-     * 고른 것인데, 셸 머리띠가 세로를 먼저 먹는 양이 **화면 너비마다 다르다**:
-     *   844 폭 → 머리띠 76px, 남는 세로 314 (=80vh)
-     *   740 폭 → 머리띠 **123px**, 남는 세로 237 (=66vh)   ← 머리띠가 한 줄 더 접힌다
-     * 한 개의 vh 상수로는 둘을 동시에 만족시킬 수 없다. 740×360 에서 판이 **44px** 밀렸다.
-     * 상수를 더 내리면 큰 폰에서 판이 쓸데없이 작아진다.
-     *
-     * 그래서 몇 vh를 맞히려 들지 않고, **무대 위가 실제로 얼마를 먹었는지 그 자리에서
-     * 재서** 남은 만큼만 준다.
-     *
-     * ★ **안 보일 때 재면 안 된다** (첫 판에 이걸로 데었다): 화면이 숨어 있으면 무대의 위치가
-     *   0 으로 잡혀 남은 세로 = 화면 전체가 되고, 그러면 판이 머리띠 높이만큼 **더** 밀린다
-     *   (44px → 121px 로 악화). 그래서 ⓐ 보이는지 먼저 확인하고 ⓑ 판이 실제로 그려지는
-     *   순간에 다시 잰다.
-     */
-    const stageEl = $<HTMLElement>('#acStage');
-    const landscapeNarrow = (): boolean => window.matchMedia('(orientation:landscape) and (max-height:560px)').matches;
-    const fitStage = (): void => {
-      if (!stageEl.isConnected) return;
-      if (!landscapeNarrow() || document.fullscreenElement) {
-        stageEl.style.removeProperty('--ac-stage');
-        return;
-      }
-      const box = stageEl.getBoundingClientRect();
-      /* 안 보이면 재지 않는다. 0 을 진짜 위치로 읽으면 위 주석의 그 사고가 난다. */
-      if (stageEl.offsetParent === null || box.height === 0) return;
-      /* 무대 위가 먹은 세로 = 무대의 화면상 위치. 아래로는 2px 만 남긴다(경계선 반올림 몫). */
-      const remainingHeight = Math.max(120, Math.round(window.innerHeight - box.top - 2));
-      stageEl.style.setProperty('--ac-stage', `min(62vw, ${remainingHeight}px, 640px)`);
-    };
-    /* 판이 그려질 때마다 다시 잰다. 그때가 무대가 확실히 보이는 시점이다. */
-    const viewWatch = new MutationObserver(() => requestAnimationFrame(fitStage));
-    viewWatch.observe($<HTMLElement>('#acView'), { childList: true, subtree: false });
-    window.addEventListener('resize', () => requestAnimationFrame(fitStage), dying);
-    window.addEventListener('orientationchange', () => requestAnimationFrame(fitStage), dying);
-    document.addEventListener('fullscreenchange', () => requestAnimationFrame(fitStage), dying);
-
-    const controls = $<HTMLElement>('#acControls');
-    const menuBtn = $<HTMLButtonElement>('#acMenu');
-    const controlsHome = controls.parentElement;
-    const onFullscreenControls = (): void => {
-      const stage = $<HTMLElement>('#acStage');
-      if (document.fullscreenElement === stage) stage.append(menuBtn, controls);
-      else controlsHome?.append(menuBtn, controls);
-    };
-    document.addEventListener('fullscreenchange', onFullscreenControls, dying);
-    /* 방의 메뉴. 버튼 하나가 종이를 내리고 올린다. 줄 하나를 고르면 닫힘(소리 켜고 끄기는 열린 채) */
-    const setMenu = (open: boolean): void => {
-      if (open) tidySeps();
-      play.classList.toggle('ac-menu-open', open);
-      menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    };
-    /* 구분선은 양쪽에 보이는 줄이 있을 때만. 숨은 버튼만 낀 무리 뒤의 선은 빈 선 */
-    const tidySeps = (): void => {
-      let seen = false;
-      let lastSep: HTMLElement | null = null;
-      for (const el of Array.from(controls.children) as HTMLElement[]) {
-        if (el.classList.contains('ac-sep')) {
-          el.hidden = !seen || !!lastSep;
-          if (!el.hidden) lastSep = el;
-          continue;
-        }
-        if (el.style.display !== 'none') {
-          seen = true;
-          lastSep = null;
-        }
-      }
-      if (lastSep) lastSep.hidden = true;
-    };
-    menuBtn.onclick = () => setMenu(!play.classList.contains('ac-menu-open'));
-    controls.addEventListener('click', (ev) => {
-      const b = (ev.target as HTMLElement).closest('button');
-      if (b && b.id !== 'acSound' && b.id !== 'acMdd' && b.id !== 'acCoords' && b.id !== 'acNums' && b.id !== 'acHand') setMenu(false);
-    });
-    const onMenuPointerdown = (ev: PointerEvent): void => {
-      if (!play.classList.contains('ac-menu-open')) return;
-      const el = ev.target as HTMLElement;
-      if (!controls.contains(el) && !menuBtn.contains(el)) setMenu(false);
-    };
-    document.addEventListener('pointerdown', onMenuPointerdown, dying);
-    const onMenuKeydown = (ev: KeyboardEvent): void => {
-      if (ev.key === 'Escape' && play.classList.contains('ac-menu-open')) setMenu(false);
-    };
-    document.addEventListener('keydown', onMenuKeydown, dying);
+    /* 무대 크기, 메뉴, 전체화면, 소리 버튼 (`chrome.ts`) */
+    const chrome = mountChrome({ container, play, dying });
 
     /* 표현 갈아 끼우기. 판은 커널이 들고 있으므로 그리는 법만 바꿔 다시 붙이면 그대로 이어진다. */
     $<HTMLButtonElement>('#acUndo').onclick = undo;
@@ -3071,17 +2885,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       if (gameId) mountView(gameId);
     };
 
-    $<HTMLButtonElement>('#acFull').onclick = (): void => {
-      /* 방(화면 채움)이면 판 영역 통째로. 무대만 키우면 자리 카드와 버튼이 무대 밖이라 안 보인다(사용자 실측) */
-      const stage = play.classList.contains('ac-roomfill') ? play : $<HTMLElement>('#acStage');
-      try {
-        if (document.fullscreenElement) void document.exitFullscreen();
-        else void stage.requestFullscreen?.();
-      } catch {
-        /* 못 키워도 판은 돈다 */
-      }
-    };
-
     /* 봇 세기 고르기. 판을 시작할 때 규칙 겉에 씌운다. */
     const paintLevel = (): void => {
       const now = levelNow();
@@ -3103,19 +2906,6 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
     });
     paintLevel();
 
-    /* 소리 끄기. 껐다 켠 것은 이 브라우저에만 남는다. */
-    const soundBtn = $<HTMLButtonElement>('#acSound');
-    const paintSound = (): void => {
-      const emoji = soundBtn.querySelector('.ac-emoji');
-      if (emoji) emoji.textContent = soundOn() ? '🔊' : '🔇';
-      soundBtn.setAttribute('aria-pressed', soundOn() ? 'true' : 'false');
-    };
-    paintSound();
-    soundBtn.onclick = () => {
-      setSoundOn(!soundOn());
-      paintSound();
-      if (soundOn()) blip('good');
-    };
     $<HTMLButtonElement>('#acWaitQuit').onclick = quit;
 
     againBtn.onclick = (): void => {
@@ -3141,11 +2931,11 @@ declare const Mdd: { linePreset?: (k: string, o?: { msg?: string }) => void } | 
       net?.leave();
       /* 문서와 창의 리스너, 무대 관찰자, 복기와 등급전 타이머까지. 남기면 핫리로드마다 쌓인다 */
       gone.abort();
-      viewWatch.disconnect();
+      chrome.dispose();
       review?.timer?.();
       rankedTick?.();
       stopLinkWatch();
-      if (cutTimer) window.clearTimeout(cutTimer);
+      mdd.stop();
     });
   }
 })();

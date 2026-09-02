@@ -27,8 +27,7 @@ test('ranked capabilities are explicit and shared', () => {
   assert.deepEqual(rankedSeatCounts('gomoku'), [2]);
   assert.deepEqual(rankedSeatCounts('yacht'), [2, 3, 4]);
   assert.deepEqual(rankedSeatCounts('speed'), []);
-  assert.equal(rankedCapability('yacht').turnLimitSeconds, 60);
-  assert.equal(rankedCapability('gomoku').settlingGames, 20);
+  assert.deepEqual(rankedCapability('yacht'), { minSeats: 2, maxSeats: 4 });
   assert.equal(supportsRanked('gomoku', [2, 2]), true);
   assert.equal(supportsRanked('yacht', [2, 4]), true);
   assert.equal(supportsRanked('speed', [2, 2]), false);

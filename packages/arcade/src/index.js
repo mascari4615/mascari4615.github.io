@@ -40,12 +40,12 @@ function outcomeKey(outcome) {
 }
 
 /*
- * 등급전 양쪽 경계의 공용 계약. 브라우저의 버튼, 시계와 서버의 좌석, 배치 판 수.
- * 게임 규칙과 점수 계산은 각 모듈 소유.
+ * 등급전 양쪽 경계의 공용 계약. 브라우저의 버튼과 서버의 좌석 수.
+ * 시간, 점수 계산은 서버 게임 규칙 소유.
  */
 const RANKED_CAPABILITIES = Object.freeze({
-  gomoku: Object.freeze({ minSeats: 2, maxSeats: 2, turnLimitSeconds: 60, settlingGames: 20 }),
-  yacht: Object.freeze({ minSeats: 2, maxSeats: 4, turnLimitSeconds: 60, settlingGames: 20 })
+  gomoku: Object.freeze({ minSeats: 2, maxSeats: 2 }),
+  yacht: Object.freeze({ minSeats: 2, maxSeats: 4 })
 });
 
 function rankedCapability(game) {

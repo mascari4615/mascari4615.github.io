@@ -67,6 +67,8 @@ describe('등급전 대기열', () => {
     expect(b.status).toBe('matched');
     expect(b.host).toBe(false);
     expect(b.opponent).toBe('a');
+    /* 한 수 제한은 서버 규칙(오목 60초)이 내려 준다. 화면이 따로 안 적는다 (감사 B6) */
+    expect(b.moveLimitSec).toBe(60);
     const a = await look(A);
     expect(a.status).toBe('matched');
     expect(a.host).toBe(true);
@@ -89,6 +91,7 @@ describe('등급전 대기열', () => {
     await stand(C, 'c', 'yacht');
     const d = await stand('account-d', 'd', 'yacht');
     expect(d.status).toBe('matched');
+    expect(d.moveLimitSec).toBe(60);
     expect((d as Answer & { ids?: string[]; seat?: number }).ids).toEqual([A, B, C, 'account-d']);
     expect((d as Answer & { seat?: number }).seat).toBe(3);
     expect((await look(A) as Answer & { seat?: number }).seat).toBe(0);

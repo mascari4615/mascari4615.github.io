@@ -10,8 +10,6 @@ export function outcomeKey(outcome: RankedOutcome): string;
 export interface RankedCapability {
   minSeats: number;
   maxSeats: number;
-  turnLimitSeconds: number;
-  settlingGames: number;
 }
 
 export function rankedCapability(game: string): Readonly<RankedCapability> | null;

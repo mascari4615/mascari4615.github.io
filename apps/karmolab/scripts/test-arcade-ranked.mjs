@@ -15,8 +15,6 @@ assert.equal(ranked.supportsRanked('gomoku', [2, 2]), true);
 assert.equal(ranked.supportsRanked('yacht', [2, 4]), true);
 assert.equal(ranked.supportsRanked('fleet', [2, 4]), false);
 assert.equal(ranked.supportsRanked('speed', [2, 2]), false);
-assert.equal(ranked.rankedCapability('gomoku').turnLimitSeconds, 60);
-assert.equal(ranked.rankedCapability('yacht').settlingGames, 20);
 
 const yachtBuilt = await build({
   entryPoints: ['src/widgets/arcade/games/yacht.ts'],

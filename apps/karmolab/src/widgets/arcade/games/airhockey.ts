@@ -11,6 +11,7 @@
  * 먼저 다섯 골. 판이 안 끝나는 일이 없게 시간 상한도 둔다(앞선 네 게임에서 배운 자리).
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { duel } from '../grid';
 
 export const W = 80;
 export const H = 140;
@@ -143,7 +144,7 @@ export const airhockey: GameDef<AirState, AirAction> = {
     const win = s.score[0] > s.score[1] ? 0 : 1;
     return {
       over: true,
-      scores: win === 0 ? [1, 0] : [0, 1],
+      scores: duel(win),
       note: {
         key: 'arcade.air.win',
         params: { who: ctx.seats[win]?.name ?? '', a: String(Math.max(...s.score)), b: String(Math.min(...s.score)) }

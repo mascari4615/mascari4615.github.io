@@ -8,6 +8,7 @@
  * 화면이 그 자리를 미리 보여 주면 셈이 눈으로 되고, 안 보여 주면 손가락으로 세게 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { duel } from '../grid';
 
 /** 한 쪽 구덩이 수 */
 export const PITS = 6;
@@ -108,7 +109,7 @@ export const mancala: GameDef<MancalaState, MancalaAction> = {
     const win = a > b ? 0 : 1;
     return {
       over: true,
-      scores: win === 0 ? [1, 0] : [0, 1],
+      scores: duel(win),
       note: {
         key: 'arcade.man.win',
         params: { who: ctx.seats[win]?.name ?? '', a: String(Math.max(a, b)), b: String(Math.min(a, b)) }

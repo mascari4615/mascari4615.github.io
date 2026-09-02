@@ -139,14 +139,16 @@ function answer(id: string): Record<string, unknown> {
     /* 내 id 와 상대 id 를 같이 줌. 결과 보고가 순서를 id 로 적음 */
     return {
       status: 'matched', code: m.code, host: m.host === id, room: m.room, you: id,
-      rival: other, opponent: m.names[other] ?? '누군가', ids: m.ids, seat
+      rival: other, opponent: m.names[other] ?? '누군가', ids: m.ids, seat,
+      /* 한 수 제한은 서버 규칙이 정함. 화면이 60 을 따로 적지 않게 (감사 B6) */
+      moveLimitSec: rulesFor(m.game)?.moveLimitSec ?? null
     };
   }
   const w = waiting.get(id);
   if (w) {
     /* 같은 방이 아니라 **그 놀이에서 기다리는 사람 전부**. 방 벽이 없어졌으므로 */
     const counts = queueCounts(w.game);
-    return { status: 'waiting', room: w.room, others: counts.beginner + counts.upper - 1 };
+    return { status: 'waiting', room: w.room, others: counts.beginner + counts.upper - 1, moveLimitSec: rulesFor(w.game)?.moveLimitSec ?? null };
   }
   return { status: 'none' };
 }

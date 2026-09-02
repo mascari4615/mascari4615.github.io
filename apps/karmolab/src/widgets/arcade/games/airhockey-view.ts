@@ -7,10 +7,9 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { keyDrive } from '../key-drive';
-import { ice, orb, woodRail } from '../paint';
+import { ice, orb, woodRail, SEAT_COLOR } from '../paint';
 import { W, H, PUCK_R, PADDLE_R, GOAL_W, type AirState, type AirAction } from './airhockey';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6'];
 
 export const airhockeyView: GameView<AirState, AirAction> = {
   id: 'airhockey',

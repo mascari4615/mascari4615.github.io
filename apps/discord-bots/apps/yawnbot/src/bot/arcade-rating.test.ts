@@ -28,6 +28,7 @@ describe('점수 방식', () => {
   it('오목과 야추만 명시적으로 등록하고 기본 정책은 두지 않는다', () => {
     expect(rulesFor('gomoku')?.supportedSeats).toEqual(new Set([2]));
     expect(rulesFor('yacht')?.supportedSeats).toEqual(new Set([2, 3, 4]));
+    expect(rulesFor('yacht')?.moveLimitSec).toBe(60);
     expect(rulesFor('someboard')).toBeNull();
   });
 

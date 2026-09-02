@@ -10,6 +10,7 @@
  * 다섯 판. 동시에 내므로 `redact` 가 낸 손을 가린다. 안 그러면 늦게 낸 사람이 다 이긴다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { duel } from '../grid';
 
 /** 0 바위, 1 보, 2 가위 */
 export const HANDS = 3;
@@ -104,7 +105,7 @@ export const rps: GameDef<RpsState, RpsAction> = {
     const win = s.score[0] > s.score[1] ? 0 : 1;
     return {
       over: true,
-      scores: win === 0 ? [1, 0] : [0, 1],
+      scores: duel(win),
       note: {
         key: 'arcade.rps.win',
         params: { who: ctx.seats[win]?.name ?? '', a: String(Math.max(...s.score)), b: String(Math.min(...s.score)) }

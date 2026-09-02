@@ -38,4 +38,8 @@ export interface RankedGameRules {
   hydrate(stored: StoredRating | null): RatingState;
   serialize(state: RatingState): StoredRating;
   calculate(context: RatingContext): ReadonlyMap<string, RatingState>;
+  /** 이만큼 두기 전에는 점수가 자리를 찾는 중. 화면의 임시 표시가 이 값을 읽음. 없으면 안 보여 줌 */
+  settleGames?: number;
+  /** 등급전 한 수 제한(초). 화면이 판을 열 때 씌움. 없으면 제한 없음 */
+  moveLimitSec?: number;
 }
