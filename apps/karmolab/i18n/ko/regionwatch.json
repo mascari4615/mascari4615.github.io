@@ -33,5 +33,13 @@
   "regionwatch.err.run": "지켜보다 문제가 생겼어요: ",
   "regionwatch.label.name": "자리 이름",
   "regionwatch.label.mode": "알림 조건",
-  "regionwatch.label.sound": "알림 소리"
+  "regionwatch.label.sound": "알림 소리",
+  "regionwatch.mode.count": "남은 초가 N 이하가 되면",
+  "regionwatch.label.lead": "N초 전",
+  "regionwatch.ocr.loading": "숫자 읽기 준비 중 (처음 한 번, 6MB)",
+  "regionwatch.ocr.ready": "숫자 읽기 준비됨",
+  "regionwatch.ocr.fail": "숫자 읽기를 준비하지 못했어요: ",
+  "regionwatch.read.none": "숫자 없음",
+  "regionwatch.say.count": "{name} 남은 {secs}초.",
+  "regionwatch.hint.count": "남은 초 모드는 그 영역의 숫자만 읽습니다. 숫자 주변을 좁게 고르세요."
 }

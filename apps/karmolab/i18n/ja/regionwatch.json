@@ -33,5 +33,13 @@
   "regionwatch.err.run": "見守り中に問題が起きました: ",
   "regionwatch.label.name": "場所の名前",
   "regionwatch.label.mode": "通知条件",
-  "regionwatch.label.sound": "通知音"
+  "regionwatch.label.sound": "通知音",
+  "regionwatch.mode.count": "残り秒が N 以下になったら",
+  "regionwatch.label.lead": "N秒前",
+  "regionwatch.ocr.loading": "数字読み取りを準備中 (初回のみ、6MB)",
+  "regionwatch.ocr.ready": "数字読み取りの準備完了",
+  "regionwatch.ocr.fail": "数字読み取りを準備できませんでした: ",
+  "regionwatch.read.none": "数字なし",
+  "regionwatch.say.count": "{name} 残り {secs}秒。",
+  "regionwatch.hint.count": "残り秒モードはその領域の数字だけ読みます。数字の周りを狭く選んでください。"
 }

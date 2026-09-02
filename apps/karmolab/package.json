@@ -449,6 +449,8 @@
     "test:tools": "node scripts/smoke-tools.mjs",
     "test:tour": "node scripts/test-tour.mjs",
     "test:trim": "node scripts/test-videotrim.mjs",
+    "test:regionwatch": "node scripts/test-regionwatch.mjs",
+    "smoke:regionwatch": "node scripts/smoke-regionwatch.mjs",
     "test:typing": "node scripts/smoke-typing.mjs",
     "test:usertool": "node scripts/smoke-usertool-trust.mjs",
     "test:v2i": "node scripts/test-video2img.mjs",

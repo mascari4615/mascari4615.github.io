@@ -2,37 +2,47 @@
  * 화면 영역 지켜보기
  *
  * - 화면 한 곳을 골라 두고, 그 자리가 **기준 모습과 같아지거나 달라지면** 소리로 알림
+ * - 남은 초 모드: 그 자리의 숫자를 읽어 N초 이하로 내려오면 알림 (tesseract, 동일 출처 vendor)
  * - 쓰임: 빌드 진행 막대, 내려받기 완료, 대시보드 숫자 변화처럼 눈으로 지키기 아까운 자리
  * - 입력: 브라우저 화면 공유(`getDisplayMedia`). 화면 녹화와 같은 길
  * - 프레임은 **이 탭 안에서만** 비교, 외부 전송 0. 기준 그림과 영역은 localStorage
- * - 비교: 작게 줄인 두 그림의 평균 색 차이. 라이브러리 없이 canvas 만
- * - 슬롯 여섯. 슬롯마다 영역, 기준 그림, 같아지면/달라지면, 닮은 정도 문턱, 소리, 다시 무장 시간
+ * - 판정 로직은 `shared/regionwatch-core.ts`. 화면 없이 `scripts/test-regionwatch.mjs` 가 실행
  * - 덮어 둔 탭: `MediaStreamTrackProcessor` 프레임 스트림, 시계 없음. 없는 브라우저는 워커 시계
  * - 떠 있는 창(Document Picture-in-Picture): 상태 판을 다른 창 위에
+ * - 시험용 신호: `regionwatch:fire`, `regionwatch:read` CustomEvent (window)
  */
 import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
 import { audioCtx } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
+import {
+  type Rect,
+  type Mode,
+  type EdgeState,
+  type CountState,
+  similarity,
+  smallSize,
+  decideEdge,
+  decideCount,
+  parseSeconds,
+  binarize
+} from './shared/regionwatch-core';
 
-interface Rect { x: number; y: number; w: number; h: number }
-
-type Mode = 'match' | 'change';
 type Sound = 'ping' | 'double' | 'chime';
 
 interface Slot {
   name: string;
   enabled: boolean;
   rect: Rect | null;
-  /** 기준 그림. 작게 줄인 픽셀. */
+  /** 기준 그림. 작게 줄인 픽셀 */
   ref: Uint8ClampedArray | null;
-  refW: number;
-  refH: number;
   /** 보여 주는 용 작은 그림 */
   thumb: string;
   mode: Mode;
   /** 0.5 ~ 0.99 */
   threshold: number;
+  /** 남은 초 모드: 이 값 이하가 되면 */
+  lead: number;
   sound: Sound;
   /** 다시 무장까지 초 */
   rearm: number;
@@ -48,20 +58,36 @@ interface Saved {
 }
 
 /* 브라우저 전용 API. lib.dom 에 아직 없는 것만 여기서 좁게 선언 */
-interface TrackProcessorLike {
-  readable: ReadableStream<{ close(): void; displayWidth: number; displayHeight: number }>;
+interface VideoFrameLike {
+  close(): void;
+  displayWidth: number;
+  displayHeight: number;
 }
-interface PipWindowLike extends Window { document: Document }
+interface TrackProcessorLike {
+  readable: ReadableStream<VideoFrameLike>;
+}
+interface PipWindowLike extends Window {
+  document: Document;
+}
 interface DocPipLike {
   requestWindow(o: { width: number; height: number }): Promise<PipWindowLike>;
+}
+interface OcrWorker {
+  setParameters(p: Record<string, string>): Promise<unknown>;
+  recognize(img: HTMLCanvasElement): Promise<{ data: { text: string } }>;
+  terminate(): Promise<unknown>;
+}
+interface TesseractLike {
+  createWorker(lang: string, oem: number, opts: Record<string, unknown>): Promise<OcrWorker>;
 }
 
 (function (): void {
   const SLOTS = 6;
-  const SMALL = 40;
   const CHECK_MS = 250;
+  const READ_MS = 1000;
   const STORE = 'regionwatch.v1';
   const MAX_DELAY_MS = 3000;
+  const VENDOR = '/apps/karmolab/js/vendor/tesseract/';
 
   const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
@@ -71,33 +97,14 @@ interface DocPipLike {
       enabled: true,
       rect: null,
       ref: null,
-      refW: 0,
-      refH: 0,
       thumb: '',
       mode: 'match',
       threshold: 0.92,
+      lead: 5,
       sound: (['ping', 'double', 'chime'] as Sound[])[i % 3],
       rearm: 5,
       randomDelay: false
     };
-  }
-
-  /** 두 작은 그림의 닮은 정도. 1 이 같음. */
-  function similarity(a: Uint8ClampedArray, b: Uint8ClampedArray): number {
-    const n = Math.min(a.length, b.length);
-    if (!n) return 0;
-    let sum = 0;
-    let cnt = 0;
-    for (let i = 0; i < n; i += 4) {
-      sum += Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]);
-      cnt += 3;
-    }
-    return 1 - sum / (cnt * 255);
-  }
-
-  function smallSize(r: Rect): [number, number] {
-    const k = SMALL / Math.max(r.w, r.h);
-    return [Math.max(1, Math.round(r.w * k)), Math.max(1, Math.round(r.h * k))];
   }
 
   function play(kind: Sound, volume: number): void {
@@ -161,9 +168,16 @@ interface DocPipLike {
           <select data-k="mode" aria-label="${esc(t('regionwatch.label.mode'))}">
             <option value="match">${esc(t('regionwatch.mode.match'))}</option>
             <option value="change">${esc(t('regionwatch.mode.change'))}</option>
+            <option value="count">${esc(t('regionwatch.mode.count'))}</option>
           </select>
-          <label class="tool-sublabel">${esc(t('regionwatch.label.threshold'))} <output data-o="threshold">92%</output></label>
-          <input type="range" min="50" max="99" step="1" data-k="threshold" aria-label="${esc(t('regionwatch.label.threshold'))}">
+          <span class="rw-if-edge">
+            <label class="tool-sublabel">${esc(t('regionwatch.label.threshold'))} <output data-o="threshold">92%</output></label>
+            <input type="range" min="50" max="99" step="1" data-k="threshold" aria-label="${esc(t('regionwatch.label.threshold'))}">
+          </span>
+          <span class="rw-if-count">
+            <label class="tool-sublabel">${esc(t('regionwatch.label.lead'))}</label>
+            <input type="number" class="mono-input rw-rearm" min="0" max="3600" step="1" data-k="lead" aria-label="${esc(t('regionwatch.label.lead'))}">
+          </span>
           <select data-k="sound" aria-label="${esc(t('regionwatch.label.sound'))}">
             <option value="ping">${esc(t('regionwatch.sound.ping'))}</option>
             <option value="double">${esc(t('regionwatch.sound.double'))}</option>
@@ -212,6 +226,9 @@ interface DocPipLike {
     const sctx = src.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
     const small = document.createElement('canvas');
     const smctx = small.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+    /* 숫자 읽기용. 키워서 이진화 */
+    const ocrCanvas = document.createElement('canvas');
+    const ocrCtx = ocrCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
     const slots: Slot[] = Array.from({ length: SLOTS }, (_, i) => newSlot(i));
     let savedSize: [number, number] = [0, 0];
@@ -222,14 +239,20 @@ interface DocPipLike {
     let video: HTMLVideoElement | null = null;
     let stopFrames: (() => void) | null = null;
     let lastCheck = 0;
+    let lastRead = 0;
     let picking = -1;
     let drag: { x0: number; y0: number; x1: number; y1: number } | null = null;
-    const wasHit: boolean[] = new Array(SLOTS).fill(false);
-    const firedAt: number[] = new Array(SLOTS).fill(0);
+    const edge: EdgeState[] = Array.from({ length: SLOTS }, () => ({ wasHit: false, firedAt: -1e9 }));
+    const count: CountState[] = Array.from({ length: SLOTS }, () => ({ last: null, streak: 0, firedAt: -1e9, done: false }));
     const lastSim: number[] = new Array(SLOTS).fill(-1);
+    /* 기준을 찍은 직후나 시작 직후의 첫 판정은 상태만 맞추고 침묵. 기준은 지금 모습이라 늘 같음 */
+    const primed: boolean[] = new Array(SLOTS).fill(false);
     const pending: Array<number | null> = new Array(SLOTS).fill(null);
     let pip: PipWindowLike | null = null;
     let pipBody: HTMLElement | null = null;
+    let ocr: OcrWorker | null = null;
+    let ocrLoading: Promise<OcrWorker | null> | null = null;
+    let reading = false;
 
     /* ── 저장, 복구 ───────────────────────────────────────── */
     function save(): void {
@@ -282,6 +305,7 @@ interface DocPipLike {
       (el.querySelector('[data-k="mode"]') as HTMLSelectElement).value = s.mode;
       (el.querySelector('[data-k="threshold"]') as HTMLInputElement).value = String(Math.round(s.threshold * 100));
       (el.querySelector('[data-o="threshold"]') as HTMLOutputElement).value = Math.round(s.threshold * 100) + '%';
+      (el.querySelector('[data-k="lead"]') as HTMLInputElement).value = String(s.lead);
       (el.querySelector('[data-k="sound"]') as HTMLSelectElement).value = s.sound;
       (el.querySelector('[data-k="rearm"]') as HTMLInputElement).value = String(s.rearm);
       (el.querySelector('[data-k="randomDelay"]') as HTMLInputElement).checked = s.randomDelay;
@@ -290,27 +314,23 @@ interface DocPipLike {
       pick.classList.toggle('is-on', picking === i);
       const thumb = el.querySelector('.rw-thumb') as HTMLElement;
       thumb.innerHTML = s.thumb ? `<img src="${s.thumb}" alt="">` : '';
-      (el.querySelector('[data-act="ref"]') as HTMLButtonElement).disabled = !s.rect || !stream;
+      (el.querySelector('[data-act="ref"]') as HTMLButtonElement).disabled = !s.rect || !stream || s.mode === 'count';
       el.classList.toggle('is-off', !s.enabled);
+      el.classList.toggle('is-count', s.mode === 'count');
     }
 
-    function paintSim(i: number, sim: number, hit: boolean): void {
+    function paintSim(i: number, sim: number, hit: boolean, label?: string): void {
       const el = slotEl(i).querySelector('.rw-sim') as HTMLElement;
       const bar = el.querySelector('i') as HTMLElement;
       const txt = el.querySelector('b') as HTMLElement;
-      if (sim < 0) {
-        bar.style.width = '0';
-        txt.textContent = '-';
-        el.classList.remove('is-hit');
-        return;
-      }
-      bar.style.width = Math.round(sim * 100) + '%';
-      txt.textContent = Math.round(sim * 100) + '%';
+      const text = label ?? (sim < 0 ? '-' : Math.round(sim * 100) + '%');
+      bar.style.width = sim < 0 ? '0' : Math.round(clamp(sim, 0, 1) * 100) + '%';
+      txt.textContent = text;
       el.classList.toggle('is-hit', hit);
       if (pipBody) {
         const row = pipBody.children[i] as HTMLElement | undefined;
         if (row) {
-          (row.querySelector('b') as HTMLElement).textContent = Math.round(sim * 100) + '%';
+          (row.querySelector('b') as HTMLElement).textContent = text;
           row.classList.toggle('is-hit', hit);
         }
       }
@@ -325,14 +345,18 @@ interface DocPipLike {
       const k = target.dataset.k;
       if (k === 'enabled') s.enabled = (target as HTMLInputElement).checked;
       else if (k === 'name') s.name = target.value;
-      else if (k === 'mode') s.mode = target.value as Mode;
-      else if (k === 'threshold') {
+      else if (k === 'mode') {
+        s.mode = target.value as Mode;
+        paintSlot(i);
+        if (s.mode === 'count' && stream) void ensureOcr();
+      } else if (k === 'threshold') {
         s.threshold = clamp(Number(target.value) / 100, 0.5, 0.99);
         (el.querySelector('[data-o="threshold"]') as HTMLOutputElement).value = target.value + '%';
-      } else if (k === 'sound') s.sound = target.value as Sound;
+      } else if (k === 'lead') s.lead = clamp(Number(target.value) || 0, 0, 3600);
+      else if (k === 'sound') s.sound = target.value as Sound;
       else if (k === 'rearm') s.rearm = clamp(Number(target.value) || 0, 0, 3600);
       else if (k === 'randomDelay') s.randomDelay = (target as HTMLInputElement).checked;
-      wasHit[i] = false;
+      resetState(i);
       el.classList.toggle('is-off', !s.enabled);
       save();
     });
@@ -351,6 +375,12 @@ interface DocPipLike {
       }
     });
 
+    function resetState(i: number): void {
+      edge[i] = { wasHit: false, firedAt: edge[i].firedAt };
+      count[i] = { last: null, streak: 0, firedAt: count[i].firedAt, done: false };
+      primed[i] = false;
+    }
+
     /* ── 기준 그림 ────────────────────────────────────────── */
     function cropSmall(r: Rect): Uint8ClampedArray {
       const [w, h] = smallSize(r);
@@ -364,14 +394,13 @@ interface DocPipLike {
       const s = slots[i];
       if (!s.rect || !src.width) return;
       s.ref = cropSmall(s.rect);
-      [s.refW, s.refH] = smallSize(s.rect);
       const th = document.createElement('canvas');
-      const k = 96 / Math.max(s.rect.w, s.rect.h);
-      th.width = Math.max(1, Math.round(s.rect.w * Math.min(1, k)));
-      th.height = Math.max(1, Math.round(s.rect.h * Math.min(1, k)));
+      const k = Math.min(1, 96 / Math.max(s.rect.w, s.rect.h));
+      th.width = Math.max(1, Math.round(s.rect.w * k));
+      th.height = Math.max(1, Math.round(s.rect.h * k));
       (th.getContext('2d') as CanvasRenderingContext2D).drawImage(src, s.rect.x, s.rect.y, s.rect.w, s.rect.h, 0, 0, th.width, th.height);
       s.thumb = th.toDataURL('image/png');
-      wasHit[i] = false;
+      resetState(i);
       paintSlot(i);
       save();
       say(t('regionwatch.say.ref').replace('{name}', s.name), 'ok');
@@ -388,13 +417,12 @@ interface DocPipLike {
       drag = { x0: x, y0: y, x1: x, y1: y };
       ev.preventDefault();
     });
-    window.addEventListener('mousemove', (ev) => {
+    const onMove = (ev: MouseEvent): void => {
       if (!drag) return;
       [drag.x1, drag.y1] = toPreview(ev);
-      if (document.hidden) return;
-      paintPreview();
-    });
-    window.addEventListener('mouseup', () => {
+      if (!document.hidden) paintPreview();
+    };
+    const onUp = (): void => {
       if (!drag || picking < 0) {
         drag = null;
         return;
@@ -415,10 +443,12 @@ interface DocPipLike {
       const i = picking;
       picking = -1;
       paintSlot(i);
-      takeRef(i);
-      hint.textContent = t('regionwatch.hint.running');
+      if (s.mode !== 'count') takeRef(i);
+      hint.textContent = s.mode === 'count' ? t('regionwatch.hint.count') : t('regionwatch.hint.running');
       save();
-    });
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
 
     /* ── 그리기 ───────────────────────────────────────────── */
     function fitPreview(): void {
@@ -441,7 +471,8 @@ interface DocPipLike {
       pctx.font = '12px var(--font-mono, monospace)';
       slots.forEach((s, i) => {
         if (!s.rect) return;
-        pctx.strokeStyle = wasHit[i] ? '#3ddc84' : s.enabled ? '#ffb020' : '#888';
+        const hot = s.mode === 'count' ? count[i].done : edge[i].wasHit;
+        pctx.strokeStyle = hot ? '#3ddc84' : s.enabled ? '#ffb020' : '#888';
         pctx.strokeRect(s.rect.x * kx, s.rect.y * ky, s.rect.w * kx, s.rect.h * ky);
         pctx.fillStyle = pctx.strokeStyle;
         pctx.fillText(String(i + 1), s.rect.x * kx + 3, s.rect.y * ky + 13);
@@ -457,6 +488,7 @@ interface DocPipLike {
     /* ── 판정 ─────────────────────────────────────────────── */
     function check(now: number): void {
       slots.forEach((s, i) => {
+        if (s.mode === 'count') return;
         if (!s.enabled || !s.rect || !s.ref) {
           if (lastSim[i] !== -1) {
             lastSim[i] = -1;
@@ -464,44 +496,115 @@ interface DocPipLike {
           }
           return;
         }
-        const cur = cropSmall(s.rect);
-        const sim = similarity(cur, s.ref);
-        const hit = s.mode === 'match' ? sim >= s.threshold : sim < s.threshold;
+        const sim = similarity(cropSmall(s.rect), s.ref);
+        const r = decideEdge(edge[i], sim, { mode: s.mode, threshold: s.threshold, rearm: s.rearm }, now);
         lastSim[i] = sim;
-        paintSim(i, sim, hit);
-        if (!hit) {
-          wasHit[i] = false;
+        paintSim(i, sim, r.hit);
+        if (!primed[i]) {
+          primed[i] = true;
+          edge[i] = { wasHit: r.hit, firedAt: edge[i].firedAt };
           return;
         }
-        if (wasHit[i]) return;
-        wasHit[i] = true;
-        if (now - firedAt[i] < s.rearm * 1000) return;
-        firedAt[i] = now;
-        fire(i);
+        edge[i] = r.state;
+        if (r.fire) fire(i, { sim });
       });
     }
 
-    function fire(i: number): void {
+    /* ── 숫자 읽기 ────────────────────────────────────────── */
+    function ensureOcr(): Promise<OcrWorker | null> {
+      if (ocr) return Promise.resolve(ocr);
+      if (ocrLoading) return ocrLoading;
+      say(t('regionwatch.ocr.loading'));
+      ocrLoading = (async () => {
+        try {
+          await Toolbox.ensureScript('vendor/tesseract/tesseract.min');
+          const T = (window as unknown as { Tesseract?: TesseractLike }).Tesseract;
+          if (!T) throw new Error('Tesseract global');
+          const w = await T.createWorker('eng', 1, {
+            workerPath: VENDOR + 'worker.min.js',
+            corePath: VENDOR + 'tesseract-core-simd-lstm.wasm.js',
+            langPath: VENDOR + 'lang',
+            workerBlobURL: false,
+            gzip: true
+          });
+          await w.setParameters({ tessedit_char_whitelist: '0123456789:', tessedit_pageseg_mode: '7' });
+          ocr = w;
+          say(t('regionwatch.ocr.ready'), 'ok');
+          return w;
+        } catch (err) {
+          say(t('regionwatch.ocr.fail') + (err as Error).message, 'error');
+          return null;
+        } finally {
+          ocrLoading = null;
+        }
+      })();
+      return ocrLoading;
+    }
+
+    async function readCounts(now: number): Promise<void> {
+      if (reading) return;
+      const targets = slots.map((s, i) => ({ s, i })).filter(({ s }) => s.mode === 'count' && s.enabled && s.rect);
+      if (!targets.length) return;
+      const w = await ensureOcr();
+      if (!w || !stream) return;
+      reading = true;
+      try {
+        for (const { s, i } of targets) {
+          if (!stream || !s.rect) break;
+          const r = s.rect;
+          const k = Math.max(1, Math.min(4, Math.round(96 / Math.max(1, r.h))));
+          ocrCanvas.width = r.w * k;
+          ocrCanvas.height = r.h * k;
+          ocrCtx.imageSmoothingEnabled = true;
+          ocrCtx.drawImage(src, r.x, r.y, r.w, r.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
+          const img = ocrCtx.getImageData(0, 0, ocrCanvas.width, ocrCanvas.height);
+          binarize(img.data);
+          ocrCtx.putImageData(img, 0, 0);
+          let text = '';
+          try {
+            text = (await w.recognize(ocrCanvas)).data.text;
+          } catch {
+            text = '';
+          }
+          const secs = parseSeconds(text);
+          window.dispatchEvent(new CustomEvent('regionwatch:read', { detail: { slot: i, text: text.trim(), secs } }));
+          const res = decideCount(count[i], secs, { lead: s.lead, rearm: s.rearm }, now);
+          count[i] = res.state;
+          const shown = secs === null ? t('regionwatch.read.none') : `${secs}s`;
+          paintSim(i, secs === null ? -1 : clamp(1 - secs / Math.max(1, s.lead * 4), 0.05, 1), res.state.done, shown);
+          if (res.fire) fire(i, { secs });
+        }
+      } finally {
+        reading = false;
+      }
+    }
+
+    function fire(i: number, detail: { sim?: number; secs?: number | null }): void {
       const s = slots[i];
       const delay = s.randomDelay ? Math.random() * MAX_DELAY_MS : 0;
       if (pending[i] !== null) window.clearTimeout(pending[i] as number);
       pending[i] = window.setTimeout(() => {
         pending[i] = null;
         play(s.sound, vol);
-        say(t('regionwatch.say.fired').replace('{name}', s.name), 'ok');
+        const msg =
+          detail.secs !== undefined && detail.secs !== null
+            ? t('regionwatch.say.count').replace('{name}', s.name).replace('{secs}', String(detail.secs))
+            : t('regionwatch.say.fired').replace('{name}', s.name);
+        say(msg, 'ok');
         if (notifyBox.checked && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           try {
-            new Notification(t('regionwatch.notify.title'), { body: s.name, silent: true });
+            new Notification(t('regionwatch.notify.title'), { body: msg, silent: true });
           } catch {
             /* 알림이 막힌 자리 */
           }
         }
+        window.dispatchEvent(new CustomEvent('regionwatch:fire', { detail: { slot: i, name: s.name, mode: s.mode, ...detail } }));
         Toolbox.trackUse?.('fire');
       }, delay);
     }
 
     /* ── 프레임 받기 ──────────────────────────────────────── */
-    function onFrame(draw: () => void, w: number, h: number): void {
+    function onFrame(paint: () => void, w: number, h: number): void {
       if (src.width !== w || src.height !== h) {
         src.width = w;
         src.height = h;
@@ -511,11 +614,15 @@ interface DocPipLike {
         }
         for (let i = 0; i < SLOTS; i++) paintSlot(i);
       }
-      draw();
+      paint();
       const now = performance.now();
       if (now - lastCheck < CHECK_MS) return;
       lastCheck = now;
       check(now);
+      if (now - lastRead >= READ_MS) {
+        lastRead = now;
+        void readCounts(now);
+      }
       if (!document.hidden) paintPreview();
     }
 
@@ -543,6 +650,9 @@ interface DocPipLike {
         Notification.requestPermission().catch(() => undefined);
       }
       lastCheck = 0;
+      lastRead = 0;
+      for (let i = 0; i < SLOTS; i++) resetState(i);
+      if (slots.some((x) => x.mode === 'count' && x.enabled)) void ensureOcr();
 
       const Proc = (window as unknown as { MediaStreamTrackProcessor?: new (o: { track: MediaStreamTrack }) => TrackProcessorLike }).MediaStreamTrackProcessor;
       if (Proc) {
@@ -600,7 +710,7 @@ interface DocPipLike {
       picking = -1;
       drag = null;
       for (let i = 0; i < SLOTS; i++) {
-        wasHit[i] = false;
+        resetState(i);
         lastSim[i] = -1;
         paintSim(i, -1, false);
         paintSlot(i);
@@ -639,6 +749,7 @@ interface DocPipLike {
       pip.addEventListener('pagehide', () => {
         pip = null;
         pipBody = null;
+        pipBtn.classList.remove('is-on');
       });
     }
 
@@ -653,7 +764,7 @@ interface DocPipLike {
       pipBtn.classList.remove('is-on');
     }
 
-    /* ── 버튼 ───────────────────────────────────────────── */
+    /* ── 버튼 ─────────────────────────────────────────────── */
     startBtn.onclick = (): void => {
       void start().catch((err: Error) => {
         stop();
@@ -695,7 +806,12 @@ interface DocPipLike {
 
     Toolbox.onDispose?.(() => {
       ro?.disconnect();
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
       stop();
+      const w = ocr;
+      ocr = null;
+      void w?.terminate();
     });
   }
 
@@ -713,6 +829,8 @@ interface DocPipLike {
       .rw-slot{border:1px solid var(--border-color,var(--border));border-radius:var(--radius-md);padding:6px 8px;display:grid;gap:6px}
       .rw-slot.is-off{opacity:.5}
       .rw-slot-head,.rw-slot-body{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+      .rw-if-edge,.rw-if-count{display:contents}
+      .rw-slot.is-count .rw-if-edge,.rw-slot:not(.is-count) .rw-if-count{display:none}
       .rw-name{width:7em}
       .rw-rearm{width:4.5em}
       .rw-thumb{display:inline-block;width:32px;height:24px;border:1px solid var(--border-color,var(--border));border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-tertiary)}

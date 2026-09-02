@@ -1,0 +1,209 @@
+/**
+ * 화면 영역 지켜보기 브라우저 시험. 헤드리스 크로미움은 화면을 못 잡으므로
+ * `getDisplayMedia` 를 **캔버스 스트림**으로 바꿔 끼움. 도구는 스트림의 출처를 모름
+ *
+ * 무대(640x360 캔버스) 위에 색 상자와 숫자를 그리고, 도구가
+ *  ① 달라지면 울리고, 같아지면 울리고, 그 사이엔 조용한지
+ *  ② rearm 안에서는 침묵하고 지나면 다시 우는지
+ *  ③ 숫자를 읽어 N초 이하에서 한 번 우는지 (tesseract, 동일 출처 vendor)
+ *  ④ 멈춤 뒤 상태가 처음으로 돌아가는지, 콘솔 오류가 없는지
+ * 를 확인
+ *
+ * 사용: node scripts/smoke-regionwatch.mjs
+ */
+import { chromium } from 'playwright';
+import { serveRepo } from './lib/serve-static.mjs';
+
+const frozen = process.env.URL ? null : await serveRepo();
+const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
+
+const failures = [];
+const check = (ok, why) => {
+  if (ok) process.stdout.write('.');
+  else {
+    process.stdout.write('x');
+    failures.push(why);
+  }
+};
+
+const SW = 640;
+const SH = 360;
+const BOX = { x: 40, y: 40, w: 160, h: 100 };
+const DIGIT = { x: 300, y: 40, w: 200, h: 100 };
+
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+/* 콘솔은 이 도구와 tesseract 에 관한 오류만 센다. 시험 서버에는 글 색인과 계정 서버가 없어 404 와 CORS 가 원래 뜸 */
+page.on('console', (m) => {
+  const text = m.text();
+  if (m.type() === 'error' && /regionwatch\.js|regionwatch-core|tesseract/i.test(text) && !/yawnbot\.mascari4615\.com/.test(text)) errors.push('console: ' + text);
+});
+
+/* 무대와 가짜 화면 공유. 저장된 슬롯(영역, 모드)은 미리 박아 두고 기준 그림만 화면에서 찍기 */
+await page.addInitScript(
+  ({ SW, SH, BOX, DIGIT }) => {
+    const stage = document.createElement('canvas');
+    stage.width = SW;
+    stage.height = SH;
+    const g = stage.getContext('2d');
+    const state = { box: '#20c040', digits: '' };
+    const paint = () => {
+      g.fillStyle = '#202830';
+      g.fillRect(0, 0, SW, SH);
+      g.fillStyle = state.box;
+      g.fillRect(BOX.x, BOX.y, BOX.w, BOX.h);
+      g.fillStyle = '#101418';
+      g.fillRect(DIGIT.x, DIGIT.y, DIGIT.w, DIGIT.h);
+      if (state.digits) {
+        g.fillStyle = '#f4f4f4';
+        g.font = 'bold 64px Arial, sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(state.digits, DIGIT.x + DIGIT.w / 2, DIGIT.y + DIGIT.h / 2);
+      }
+    };
+    paint();
+    setInterval(paint, 100);
+    window.__stage = {
+      set(k, v) {
+        state[k] = v;
+        paint();
+      }
+    };
+    const fires = [];
+    const reads = [];
+    window.__rw = { fires, reads };
+    window.addEventListener('regionwatch:fire', (e) => fires.push({ ...e.detail, at: performance.now() }));
+    window.addEventListener('regionwatch:read', (e) => reads.push(e.detail));
+    const md = navigator.mediaDevices;
+    md.getDisplayMedia = async () => stage.captureStream(10);
+    const slot = (name, mode, rect, extra = {}) => ({
+      name,
+      enabled: true,
+      rect,
+      ref: null,
+      thumb: '',
+      mode,
+      threshold: 0.9,
+      lead: 5,
+      sound: 'ping',
+      rearm: 1,
+      randomDelay: false,
+      ...extra
+    });
+    const off = (name) => slot(name, 'match', null, { enabled: false });
+    localStorage.setItem(
+      'regionwatch.v1',
+      JSON.stringify({
+        sw: SW,
+        sh: SH,
+        volume: 0,
+        notify: false,
+        slots: [slot('chg', 'change', BOX, { rearm: 3 }), slot('mat', 'match', BOX), slot('cnt', 'count', DIGIT, { lead: 5 }), off('4'), off('5'), off('6')]
+      })
+    );
+  },
+  { SW, SH, BOX, DIGIT }
+);
+
+await page.goto(`${BASE}#regionwatch`, { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('#rwStart', { timeout: 20000 });
+
+/* 저장된 슬롯이 화면에 복구됐나 */
+check((await page.inputValue('.rw-slot[data-i="0"] [data-k="mode"]')) === 'change', '슬롯 1 은 달라지면 모드로 복구');
+check((await page.inputValue('.rw-slot[data-i="2"] [data-k="mode"]')) === 'count', '슬롯 3 은 남은 초 모드로 복구');
+check(await page.locator('.rw-slot[data-i="2"].is-count').count() === 1, '남은 초 모드 슬롯은 N초 전 칸을 보여 준다');
+
+/* ① 시작, 기준 찍기 */
+await page.click('#rwStart');
+await page.waitForFunction(() => document.querySelector('.rw-slot[data-i="0"] [data-act="pick"]')?.textContent?.includes('160x100'), null, { timeout: 10000 });
+check(true, '캔버스 스트림으로 화면이 들어왔다 (640x360)');
+await page.click('.rw-slot[data-i="0"] [data-act="ref"]');
+await page.click('.rw-slot[data-i="1"] [data-act="ref"]');
+await page.waitForTimeout(800);
+const simAfterRef = await page.textContent('.rw-slot[data-i="0"] .rw-sim b');
+check(/9\d%|100%/.test(simAfterRef || ''), `기준 직후 닮음은 90% 이상이어야 한다 (지금 ${simAfterRef})`);
+const fires0 = await page.evaluate(() => window.__rw.fires.length);
+check(fires0 === 0, `기준만 찍었을 때는 조용해야 한다 (울림 ${fires0})`);
+
+/* 달라지면 울리고, 같아지면 모드는 조용 */
+await page.evaluate(() => window.__stage.set('box', '#c02020'));
+await page.waitForFunction(() => window.__rw.fires.length >= 1, null, { timeout: 5000 }).catch(() => undefined);
+let fires = await page.evaluate(() => window.__rw.fires.map((f) => f.name));
+check(fires.join(',') === 'chg', `빨강으로 바뀌면 달라지면 슬롯만 울린다 (지금 ${fires.join(',') || '없음'})`);
+
+/* 다시 초록: 같아지면 슬롯이 울리고, 달라지면 슬롯은 다시 무장만 */
+await page.evaluate(() => window.__stage.set('box', '#20c040'));
+await page.waitForFunction(() => window.__rw.fires.length >= 2, null, { timeout: 5000 }).catch(() => undefined);
+fires = await page.evaluate(() => window.__rw.fires.map((f) => f.name));
+check(fires.join(',') === 'chg,mat', `초록으로 돌아오면 같아지면 슬롯이 울린다 (지금 ${fires.join(',')})`);
+
+/* ② rearm 3초 (chg 슬롯): 첫 울림 뒤 3초 안의 빨강은 침묵, 3초가 지난 빨강은 울림.
+   벽시계가 아니라 페이지 안의 시각으로 잰다. 병렬 게이트에서 느려져도 판정이 안 흔들리게 */
+const gapBefore = await page.evaluate(() => performance.now() - window.__rw.fires.find((f) => f.name === 'chg').at);
+await page.evaluate(() => window.__stage.set('box', '#c02020'));
+await page.waitForTimeout(700);
+await page.evaluate(() => window.__stage.set('box', '#20c040'));
+await page.waitForTimeout(400);
+fires = await page.evaluate(() => window.__rw.fires.map((f) => f.name));
+if (gapBefore < 2500) check(fires.length === 2, `rearm 안에서는 침묵 (첫 울림 뒤 ${Math.round(gapBefore)}ms 에 다시 빨강, 지금 ${fires.length}번)`);
+else check(true, `rearm 침묵은 못 쟀다. 첫 울림 뒤 이미 ${Math.round(gapBefore)}ms 지남`);
+await page.waitForFunction(() => performance.now() - window.__rw.fires.find((f) => f.name === 'chg').at > 3200, null, { timeout: 10000 });
+await page.evaluate(() => window.__stage.set('box', '#c02020'));
+await page.waitForFunction((n) => window.__rw.fires.filter((f) => f.name === 'chg').length >= n, 2, { timeout: 5000 }).catch(() => undefined);
+const chgFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'chg').length);
+check(chgFires === 2, `rearm 이 지나면 다시 울린다 (chg ${chgFires}번)`);
+
+/* ③ 숫자 읽기. 15 부터 0 까지 0.9초마다 */
+await page.waitForFunction(() => /준비됨|ready|完了|실패|fail|failed/i.test(document.querySelector('#rwStatus')?.textContent || ''), null, { timeout: 90000 }).catch(() => undefined);
+const ocrStatus = await page.textContent('#rwStatus');
+check(!/실패|fail|failed/i.test(ocrStatus || ''), `숫자 읽기 준비: ${ocrStatus}`);
+const before = await page.evaluate(() => window.__rw.fires.length);
+const readsBefore = await page.evaluate(() => window.__rw.reads.length);
+const idleReads = await page.evaluate(() => window.__rw.reads.filter((r) => r.slot === 2 && r.secs !== null).length);
+check(idleReads === 0, `숫자가 없을 때는 숫자 없음으로 읽는다 (숫자로 읽은 것 ${idleReads})`);
+for (let n = 15; n >= 0; n--) {
+  await page.evaluate((d) => window.__stage.set('digits', d), String(n));
+  await page.waitForTimeout(900);
+}
+await page.waitForTimeout(1200);
+/* 카운트다운 동안의 읽기만 본다. 그 전후는 숫자 없음이 정상 */
+const reads = await page.evaluate((from) => window.__rw.reads.slice(from).filter((r) => r.slot === 2), readsBefore);
+const numeric = reads.filter((r) => r.secs !== null).length;
+check(reads.length >= 8, `숫자 읽기가 돌았다 (읽기 ${reads.length}회)`);
+check(numeric >= Math.floor(reads.length * 0.6), `카운트다운 동안 읽은 것 중 숫자가 60% 이상 (숫자 ${numeric} / ${reads.length}: ${reads.map((r) => r.text || '-').join(' ')})`);
+const cntFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'cnt'));
+check(cntFires.length === 1, `남은 초 슬롯은 한 번만 울린다 (지금 ${cntFires.length}번)`);
+check(cntFires.length === 1 && cntFires[0].secs <= 5 && cntFires[0].secs >= 1, `5초 이하에서 울린다 (지금 ${cntFires[0]?.secs})`);
+const others = (await page.evaluate(() => window.__rw.fires.length)) - before - cntFires.length;
+check(others === 0, `숫자가 바뀌는 동안 다른 슬롯은 조용 (다른 울림 ${others})`);
+
+/* 숫자가 사라졌다 다시 카운트다운: 또 한 번 */
+await page.evaluate(() => window.__stage.set('digits', ''));
+await page.waitForTimeout(2500);
+for (const n of [12, 8, 5, 4, 3]) {
+  await page.evaluate((d) => window.__stage.set('digits', d), String(n));
+  await page.waitForTimeout(900);
+}
+await page.waitForTimeout(1200);
+const cntFires2 = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'cnt').length);
+check(cntFires2 === 2, `숫자가 사라졌다 다시 내려오면 또 울린다 (지금 ${cntFires2}번)`);
+
+/* ④ 멈춤 */
+await page.click('#rwStop');
+await page.waitForTimeout(400);
+check(!(await page.isDisabled('#rwStart')) && (await page.isDisabled('#rwStop')), '멈추면 시작 버튼이 살아난다');
+check((await page.textContent('.rw-slot[data-i="0"] .rw-sim b')) === '-', '멈추면 닮음 표시가 비워진다');
+check(errors.length === 0, `콘솔 오류 없음 (지금 ${errors.length}: ${errors.slice(0, 2).join(' | ')})`);
+
+await browser.close();
+frozen?.close();
+process.stdout.write('\n');
+if (failures.length) {
+  console.error(`[smoke-regionwatch] 실패 ${failures.length}건`);
+  for (const f of failures) console.error('  - ' + f);
+  process.exit(1);
+}
+console.log('[smoke-regionwatch] 전부 통과');

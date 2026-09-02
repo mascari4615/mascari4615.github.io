@@ -335,6 +335,24 @@
   "smoke:calcshell",
   "smoke:timeshell",
   "smoke:vidshell",
+  {
+   "name": "test:regionwatch",
+   "watch": [
+    "src/widgets/tools/shared/regionwatch-core.ts",
+    "scripts/test-regionwatch.mjs"
+   ]
+  },
+  {
+   "name": "smoke:regionwatch",
+   "watch": [
+    "src/widgets/tools/regionwatch.ts",
+    "src/widgets/tools/shared/regionwatch-core.ts",
+    "src/widgets/tools/videotool.ts",
+    "scripts/smoke-regionwatch.mjs",
+    "js/vendor/tesseract/**",
+    "i18n/*/regionwatch.json"
+   ]
+  },
   "smoke:newtools",
   "smoke:shell-layout",
   {
