@@ -40,7 +40,7 @@ import { CAST, EMOTES, castByName, castOfLevel, faceSvg, lineOf } from './cast';
 import { mountMdd } from './mdd';
 import { mountChrome } from './chrome';
 import { DECK_SKINS, deckSkin, setDeckSkin } from './deck';
-import { LESSONS, TUTOR_SIZE, cellOf, isAnswer } from './tutor';
+import { LESSONS, TUTOR_SIZE, TutorRun, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { loadPacks } from '../pack-store';
@@ -162,11 +162,10 @@ interface Session {
        없던 때의 사고 둘: 배우기 끝 타이머가 나간 뒤 로비에서 판을 엶, 조각을 받는 사이 다른 판을
        고르면 먼저 고른 판이 나중에 덮어씀 (2026-09-02 감사) */
     let epoch = 0;
-    let tutorDoneTimer = 0;
+    const tutor = new TutorRun();
     const nextEpoch = (): number => {
       epoch += 1;
-      if (tutorDoneTimer) window.clearTimeout(tutorDoneTimer);
-      tutorDoneTimer = 0;
+      tutor.cancelPending();
       return epoch;
     };
     /* 문서와 창에 건 리스너는 위젯이 내려갈 때 한 번에 끊는다. 핫리로드마다 쌓이던 것 */
@@ -874,7 +873,7 @@ interface Session {
     let hintAt: { action: unknown; until: number } | null = null;
     function canHint(): boolean {
       const g = gameById(gameId);
-      return !!g?.hint && !net && !letter && !tour && !watching && tutorAt === null && (review !== null || (!!match && !match.view().finished));
+      return !!g?.hint && !net && !letter && !tour && !watching && tutor.at === null && (review !== null || (!!match && !match.view().finished));
     }
     function paintHint(): void {
       const b = container.querySelector<HTMLButtonElement>('#acHint');
@@ -1036,7 +1035,7 @@ interface Session {
       (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tap: (a: unknown) => sendAct(a), tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       paintSeats(v, now);
       render?.(v, mySeat, now);
-      if (match && match.moves !== session.seenMoves && tutorAt === null) {
+      if (match && match.moves !== session.seenMoves && tutor.at === null) {
         hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
         /* 봇이 둔 뒤 한마디. 아래 좋은 수와 겹치면 그쪽이 이긴다(덮어쓰기라 마지막이 남는다) */
@@ -1052,7 +1051,7 @@ interface Session {
         session.seenMoves = match.moves;
       }
       /* 내 시계가 10초 아래면 상대가 재촉한다. 한 차례에 한 번 */
-      if (match && !v.finished && tutorAt === null) {
+      if (match && !v.finished && tutor.at === null) {
         const st = v.state as { limit?: number; turnEndsAt?: number; turn?: number } | null;
         if (st?.limit && st.turn === mySeat && st.turnEndsAt && st.turnEndsAt - now <= 10000) {
           if (session.hurriedAt !== match.moves) {
@@ -1075,7 +1074,7 @@ interface Session {
       paintRitual(v);
 
       /* 배우기 정답은 판의 승리가 아니라 다음 장으로 넘기는 손짓 */
-      if (v.finished && tutorAt !== null) {
+      if (v.finished && tutor.at !== null) {
         hideResult();
         return;
       }
@@ -1506,7 +1505,7 @@ interface Session {
          남과 붙는 판에서는 상대 수까지 되감기므로 안 엶 */
       const card = cardById(gameId);
       const solo = card?.seats?.[1] === 1;
-      return !!match && !net && !letter && !replaying && !tour && tutorAt === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
+      return !!match && !net && !letter && !replaying && !tour && tutor.at === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
     }
     function paintUndo(): void {
       const btn = container.querySelector<HTMLButtonElement>('#acUndo');
@@ -1568,7 +1567,7 @@ interface Session {
          사람은 자기가 두고 있다고 믿는다**. 막는 자리는 손이 나가기 전이어야 한다. */
       if (watching) return;
       /* 배우는 중이면 정답 자리만 먹는다 */
-      if (tutorAt !== null) {
+      if (tutor.at !== null) {
         const cell = (a as { cell?: number } | null)?.cell;
         if (typeof cell === 'number') tutorPlay(cell);
         return;
@@ -1779,9 +1778,6 @@ interface Session {
      * 그래서 이 자리에는 그물망도 봇도 없다. 사람 둘이 번갈아 둘 뿐이다.
      */
     let letter: Letter | null = null;
-    /** 배우기. 몇 장째인가. null 이면 안 배우는 중 */
-    let tutorAt: number | null = null;
-
     /**
      * 배우기 시작. 봇이 안 두는 판을 세우고 첫 장을 깖
      * 씨앗은 아무거나. 장면은 `dispatch` 로 심으므로 난수가 판을 안 바꿈
@@ -1799,7 +1795,7 @@ interface Session {
       tour = null;
       watching = false;
       endReview(false);
-      tutorAt = 0;
+      tutor.start();
       gameId = id;
       mySeat = 0;
       show('play');
@@ -1810,21 +1806,16 @@ interface Session {
     /** 그 장의 장면을 깐다. 커널을 새로 세우고 돌을 심는다 */
     function layTutor(): void {
       const g = gameById(gameId);
-      if (!g || tutorAt === null) return;
-      const lesson = LESSONS[tutorAt];
+      if (!g || tutor.at === null) return;
+      const lesson = tutor.lesson;
       if (!lesson) {
         /* 다 배웠으면 곧바로 한 판. 로비로 돌려보내면 처음부터 다시 고른다 */
         $<HTMLElement>('#acLesson').hidden = true;
         const id = gameId;
-        tutorAt = null;
         cancelAnimationFrame(raf);
         match = null;
         say(t('arcade.tutor.done'), 'ok');
-        const run = epoch;
-        tutorDoneTimer = window.setTimeout(() => {
-          tutorDoneTimer = 0;
-          if (run === epoch && tutorAt === null) startSolo(id);
-        }, 900);
+        tutor.finish(() => startSolo(id));
         return;
       }
       /* 봇이 없는 판. 배우는 동안은 상대가 두지 않는다 */
@@ -1853,7 +1844,7 @@ interface Session {
       $<HTMLElement>('#acCutin').hidden = true;
       const box = $<HTMLElement>('#acLesson');
       box.hidden = false;
-      $<HTMLElement>('#acLessonNo').textContent = `${tutorAt + 1} / ${LESSONS.length}`;
+      $<HTMLElement>('#acLessonNo').textContent = `${tutor.at + 1} / ${LESSONS.length}`;
       $<HTMLElement>('#acLessonSay').textContent = t(lesson.say);
       $<HTMLElement>('#acLessonQuit').textContent = t('arcade.btn.quit');
       t0 = performance.now() - match.clock();
@@ -1863,17 +1854,13 @@ interface Session {
 
     /** 배우는 중의 한 수. 맞으면 다음 장, 틀리면 물린다 */
     function tutorPlay(cell: number): void {
-      if (tutorAt === null || !match) return;
-      const lesson = LESSONS[tutorAt];
+      if (tutor.at === null || !match) return;
+      const lesson = tutor.lesson;
+      if (!lesson) return;
       if (isAnswer(lesson, cell)) {
         match.dispatch(mySeat, { cell });
         blip('good');
-        const e = epoch;
-        window.setTimeout(() => {
-          if (e !== epoch || tutorAt === null) return;
-          tutorAt += 1;
-          layTutor();
-        }, 1100);
+        tutor.advance(layTutor);
         return;
       }
       $<HTMLElement>('#acLessonSay').textContent = t(lesson.miss);
@@ -2759,7 +2746,7 @@ interface Session {
       else net.act({ meta: 'emote:' + text });
     });
     $<HTMLButtonElement>('#acLessonQuit').onclick = () => {
-      tutorAt = null;
+      tutor.stop();
       $<HTMLElement>('#acLesson').hidden = true;
       quit();
     };
@@ -2827,7 +2814,7 @@ interface Session {
       render = null;
       replaying = false;
       tape = null;
-      tutorAt = null;
+      tutor.stop();
       $<HTMLElement>('#acLesson').hidden = true;
       plan = null;
       tour = null;

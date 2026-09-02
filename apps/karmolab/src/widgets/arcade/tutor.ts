@@ -104,3 +104,53 @@ export const LESSONS: readonly Lesson[] = [
 export function isAnswer(lesson: Lesson, cell: number): boolean {
   return lesson.answer.some((a) => cellOf(a.x, a.y) === cell);
 }
+
+/** 배우기 한 번의 현재 장면과 다음 장면 예약을 함께 지킨다. */
+export class TutorRun {
+  private index: number | null = null;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+
+  get at(): number | null {
+    return this.index;
+  }
+
+  get lesson(): Lesson | null {
+    return this.index === null ? null : LESSONS[this.index] ?? null;
+  }
+
+  start(): void {
+    this.cancelPending();
+    this.index = 0;
+  }
+
+  stop(): void {
+    this.cancelPending();
+    this.index = null;
+  }
+
+  cancelPending(): void {
+    if (this.timer !== null) clearTimeout(this.timer);
+    this.timer = null;
+  }
+
+  advance(done: () => void, delayMs = 1100): void {
+    if (this.index === null) return;
+    const expected = this.index;
+    this.cancelPending();
+    this.timer = setTimeout(() => {
+      this.timer = null;
+      if (this.index !== expected) return;
+      this.index += 1;
+      done();
+    }, delayMs);
+  }
+
+  finish(done: () => void, delayMs = 900): void {
+    this.cancelPending();
+    this.index = null;
+    this.timer = setTimeout(() => {
+      this.timer = null;
+      if (this.index === null) done();
+    }, delayMs);
+  }
+}

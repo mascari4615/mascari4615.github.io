@@ -19,16 +19,35 @@ const dir = mkdtempSync(join(tmpdir(), 'tutor-'));
 const entry = join(dir, 'entry.ts');
 /* 어디서 부르든 같은 곳을 본다. cwd 기준이면 저장소 뿌리에서 돌 때 깨짐(실측) */
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..').replace(/\\/g, '/');
-writeFileSync(entry, `export { gomoku } from '${root}/src/widgets/arcade/games/gomoku';\nexport { LESSONS, cellOf, TUTOR_SIZE } from '${root}/src/widgets/arcade/tutor';\n`);
+writeFileSync(entry, `export { gomoku } from '${root}/src/widgets/arcade/games/gomoku';\nexport { LESSONS, TutorRun, cellOf, TUTOR_SIZE } from '${root}/src/widgets/arcade/tutor';\n`);
 const out = join(dir, 'tutor.mjs');
 await build({ entryPoints: [entry], bundle: true, format: 'esm', platform: 'node', outfile: out, logLevel: 'silent' });
-const { gomoku, LESSONS, cellOf, TUTOR_SIZE } = await import(pathToFileURL(out).href);
+const { gomoku, LESSONS, TutorRun, cellOf, TUTOR_SIZE } = await import(pathToFileURL(out).href);
 
 let fails = 0;
 const check = (name, ok, note = '') => {
   if (!ok) fails += 1;
   console.log(`  [${ok ? 'O' : 'X'}] ${name}${ok || !note ? '' : `. ${note}`}`);
 };
+
+const run = new TutorRun();
+run.start();
+check('진행표가 첫 장에서 시작한다', run.at === 0 && run.lesson === LESSONS[0]);
+await new Promise((resolve) => run.advance(resolve, 0));
+check('예약한 다음 장으로 한 번만 넘어간다', run.at === 1 && run.lesson === LESSONS[1]);
+let advanced = false;
+run.advance(() => { advanced = true; }, 0);
+run.stop();
+await new Promise((resolve) => setTimeout(resolve, 5));
+check('장면 사이에 나가면 다음 장 예약을 취소한다', run.at === null && !advanced);
+run.start();
+let resumed = false;
+run.finish(() => { resumed = true; }, 0);
+run.start();
+await new Promise((resolve) => setTimeout(resolve, 5));
+check('다른 판을 시작하면 완료 예약을 취소한다', run.at === 0 && !resumed);
+run.stop();
+check('나가면 진행표와 예약을 함께 지운다', run.at === null && run.lesson === null);
 
 const n = TUTOR_SIZE;
 const ctx = { seats: [{}, {}], rng: () => 0.5, now: 0, round: 0, opts: { size: n, renju: true, limit: 0, ai: 1 } };
