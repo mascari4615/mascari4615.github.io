@@ -290,6 +290,57 @@ export class RankedRoster {
   }
 }
 
+/** 등급전 한 번의 대기열, 짝, 참가자와 두 시계를 함께 지킨다. */
+export class RankedRun {
+  limit: number | null = null;
+  paired: RankedMatch | null = null;
+  roster: RankedRoster | null = null;
+  queue: Ranked | null = null;
+  autoStart = false;
+  since = 0;
+  room: RankRoom = 'beginner';
+  others = 0;
+  private dropWaitClock: (() => void) | null = null;
+  private linkTimer: ReturnType<typeof setTimeout> | null = null;
+
+  startWaiting(paint: () => void, clock = intervalWhileVisible): void {
+    this.stopWaiting();
+    this.since = Date.now();
+    this.room = 'beginner';
+    this.others = 0;
+    this.dropWaitClock = clock(paint, 1000);
+  }
+
+  stopWaiting(): void {
+    this.dropWaitClock?.();
+    this.dropWaitClock = null;
+  }
+
+  watchLink(onTimeout: () => void, delayMs = 25000): void {
+    this.stopLinkWatch();
+    this.linkTimer = setTimeout(() => {
+      this.linkTimer = null;
+      onTimeout();
+    }, delayMs);
+  }
+
+  stopLinkWatch(): void {
+    if (this.linkTimer !== null) clearTimeout(this.linkTimer);
+    this.linkTimer = null;
+  }
+
+  reset(): void {
+    this.queue?.cancel();
+    this.queue = null;
+    this.paired = null;
+    this.roster = null;
+    this.limit = null;
+    this.autoStart = false;
+    this.stopWaiting();
+    this.stopLinkWatch();
+  }
+}
+
 export interface Reported {
   applied: boolean;
   /** 아직 상대 말을 기다리는 중 */

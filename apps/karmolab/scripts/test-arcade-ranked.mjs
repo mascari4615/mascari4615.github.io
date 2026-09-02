@@ -16,6 +16,31 @@ assert.equal(ranked.supportsRanked('yacht', [2, 4]), true);
 assert.equal(ranked.supportsRanked('fleet', [2, 4]), false);
 assert.equal(ranked.supportsRanked('speed', [2, 2]), false);
 
+const run = new ranked.RankedRun();
+let waitTick = () => {};
+let waitDrops = 0;
+run.startWaiting(() => {}, (tick, delay) => {
+  waitTick = tick;
+  assert.equal(delay, 1000);
+  return () => { waitDrops += 1; };
+});
+assert.equal(run.room, 'beginner');
+assert.equal(run.others, 0);
+waitTick();
+let queueDrops = 0;
+run.queue = { cancel: () => { queueDrops += 1; } };
+run.paired = { code: 'ABCDE', you: 'me', ids: ['me', 'you'], seat: 0 };
+run.limit = 60;
+let linkExpired = false;
+run.watchLink(() => { linkExpired = true; }, 0);
+run.reset();
+await new Promise((resolve) => setTimeout(resolve, 5));
+assert.equal(linkExpired, false);
+assert.equal(queueDrops, 1);
+assert.equal(waitDrops, 1);
+assert.equal(run.paired, null);
+assert.equal(run.limit, null);
+
 const yachtBuilt = await build({
   entryPoints: ['src/widgets/arcade/games/yacht.ts'],
   bundle: true,

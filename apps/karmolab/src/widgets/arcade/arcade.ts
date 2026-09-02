@@ -63,10 +63,9 @@ import {
   saveTape,
   tapeFromUrl,
   tapeLink,
+  RankedRun,
   RankedRoster,
   supportsRanked,
-  type Ranked,
-  type RankedMatch,
   type RankRoom
 } from './ranked';
 import { matches } from './pick6';
@@ -1129,7 +1128,7 @@ interface Session {
            * (`arcade-verify.ts`). 둘을 나란히 보내면 보고가 먼저 닿는 판이 생기고,
            * 그때는 셀 것이 없어 그냥 통과한다. 그러면 재검증이 있으나 마나가 됨
            */
-          if (rankedMatch && !replaying && !review) {
+          if (rankedRun.paired && !replaying && !review) {
             void (async () => {
               await keepTape();
               await tellRanked(v, draw);
@@ -1233,7 +1232,7 @@ interface Session {
     function sendBoard(v: MatchView<unknown>, now: number): void {
       if (!net?.host) return;
       const g = gameById(gameId);
-      const base = { game: gameId, now, seatOf, rankRoster: rankedRoster?.sync() ?? [] };
+      const base = { game: gameId, now, seatOf, rankRoster: rankedRun.roster?.sync() ?? [] };
       if (!g?.redact) {
         net.sync({ ...base, v: v as unknown as Json });
         return;
@@ -1963,8 +1962,8 @@ interface Session {
         (host ? t('arcade.wait.host', { n: String(peers.length + 1) }) : t('arcade.wait.guest')) +
         (over > 0 ? ', ' + t('arcade.watch.over', { n: String(over) }) : '');
       /* 등급전 방은 시작 버튼도 링크도 없음. 상대는 서버가 정함, 오면 바로 판 */
-      startBtn.style.display = host && !autoStart ? '' : 'none';
-      $<HTMLElement>('.ac-share').style.display = host && !autoStart ? '' : 'none';
+      startBtn.style.display = host && !rankedRun.autoStart ? '' : 'none';
+      $<HTMLElement>('.ac-share').style.display = host && !rankedRun.autoStart ? '' : 'none';
     }
 
     /** 목록에 올린 방. 내리는 손과, 지금 알리는 손 */
@@ -2072,12 +2071,12 @@ interface Session {
      * - 못 올리면 링크 자리를 아예 안 그림. 링크는 있으면 좋은 것
      */
     async function keepTape(): Promise<void> {
-      const m = rankedMatch;
+      const m = rankedRun.paired;
       const box = container.querySelector<HTMLElement>('#acOverTape');
       if (!m || !box) return;
       /* 손님에게는 되살릴 것이 없음. 주인이 올린 뒤 코드로 링크만 물음 */
       const id = tape ? await saveTape(m.code, tape) : await findTape(m.code);
-      if (!id || rankedMatch !== m) return;
+      if (!id || rankedRun.paired !== m) return;
       box.hidden = false;
       box.innerHTML = '<button type="button" id="acTapeCopy">' + esc(t('arcade.tape.copy')) + '</button>';
       const btn = container.querySelector<HTMLButtonElement>('#acTapeCopy');
@@ -2110,17 +2109,13 @@ interface Session {
     /* 등급전 한 수 제한과 임시 경계는 **서버 규칙이 내려 줌** (감사 B6). 전에는 60 과 20 을 여기 적어
        서버 K 경계와 어긋날 자리였음. 짝이 나면 그 답의 값(`moveLimitSec`), 점수를 물으면 그 답의 값(`settleGames`).
        초과하면 커널이 상대 승으로 끝냄(`gomoku.ts` 의 `tick`). 친선전과 혼자 판은 사람이 고름 */
-    let rankedLimit: number | null = null;
+    const rankedRun = new RankedRun();
 
     /** 이 판에 쓸 옵션. 등급전이면 시간 제한을 덮어씀 */
     function matchOpts(id: string): ReturnType<typeof optsFor> {
       const base = optsFor(id);
-      return (rankedMatch || autoStart) && rankedLimit ? { ...base, limit: rankedLimit } : base;
+      return (rankedRun.paired || rankedRun.autoStart) && rankedRun.limit ? { ...base, limit: rankedRun.limit } : base;
     }
-
-    /** 지금 도는 등급전 판. 없으면 친선전이거나 혼자 판 */
-    let rankedMatch: RankedMatch | null = null;
-    let rankedRoster: RankedRoster | null = null;
 
     /**
      * 짝이 났는데 못 붙는 경우 (2026-09-01, 레퍼런스 대조)
@@ -2130,20 +2125,15 @@ interface Session {
      * 11%, ICE 실패의 85%가 NAT 와 방화벽 탓. 우리는 TURN 이 없으니 그만큼은 못 붙음.
      * 서버가 짝을 지어 줬는데 못 붙으면 사람은 빈 판 앞에서 영영 기다림. 그 자리에 말을 줌
      */
-    const LINK_WAIT_MS = 25000;
-    let linkTimer = 0;
-
     function stopLinkWatch(): void {
-      window.clearTimeout(linkTimer);
-      linkTimer = 0;
+      rankedRun.stopLinkWatch();
     }
 
     /** 짝이 난 뒤부터 센다. 상대가 방에 들어오면 멈춘다 */
     function watchLink(): void {
       stopLinkWatch();
-      linkTimer = window.setTimeout(() => {
-        linkTimer = 0;
-        if (!rankedMatch || match || peers.length) return;
+      rankedRun.watchLink(() => {
+        if (!rankedRun.paired || match || peers.length) return;
         const word = t('arcade.rank.nolink');
         /* 아직 판이 안 떴으면 대기 화면에 적는다. 판 위의 띠는 그때 안 보인다 */
         const waiting = $<HTMLElement>('#acWait').style.display !== 'none';
@@ -2157,7 +2147,7 @@ interface Session {
           }
         }
         say(word, 'warn');
-      }, LINK_WAIT_MS);
+      });
     }
 
     /**
@@ -2167,15 +2157,15 @@ interface Session {
      * - 못 보내도 판은 이미 끝났음. 조용히 넘어감
      */
     async function tellRanked(v: MatchView<unknown>, draw: boolean): Promise<void> {
-      const m = rankedMatch;
-      const outcome = rankedRoster?.outcomeFor(v.seats.map((seat) => seat.score));
+      const m = rankedRun.paired;
+      const outcome = rankedRun.roster?.outcomeFor(v.seats.map((seat) => seat.score));
       if (!m || mySeat < 0 || !outcome) return;
       /* 먼저 보고한 쪽은 그 자리에서 답을 못 받음. 상대가 아직 안 보냈기 때문
          - 같은 보고를 다시 던져 확인. 서버는 같은 판을 두 번 안 적고 결과만 돌려줌
          - 세 번(약 12초)까지. 그 안에 상대가 안 보내면 점수는 그대로 대기 */
       for (let tries = 0; tries < 4; tries++) {
         if (tries > 0) await new Promise((r) => setTimeout(r, 4000));
-        if (rankedMatch !== m) return;
+        if (rankedRun.paired !== m) return;
         const said = await reportResult(m, outcome);
         if (!said) return;
         if (said.disagreed) {
@@ -2202,18 +2192,14 @@ interface Session {
         if (tries === 0) say(t('arcade.rank.waiting.other'));
       }
       /* 여기까지 왔으면 상대 보고가 끝내 안 옴. 조용히 두면 점수가 붙은 줄 앎 */
-      if (rankedMatch === m) say(t('arcade.rank.nopoint'), 'warn');
+      if (rankedRun.paired === m) say(t('arcade.rank.nopoint'), 'warn');
     }
 
     /** 등급전 줄. 서 있는 동안만 */
 
-    let ranked: Ranked | null = null;
-    /** 등급전 방은 상대 도착 순간 시작. 시작 버튼을 누를 사람이 없음 */
-    let autoStart = false;
-
     function maybeAutoStart(): void {
-      if (!autoStart || match || !rankedRoster || peers.length < rankedRoster.seats - 1 || !rankedRoster.ready) return;
-      autoStart = false;
+      if (!rankedRun.autoStart || match || !rankedRun.roster || peers.length < rankedRun.roster.seats - 1 || !rankedRun.roster.ready) return;
+      rankedRun.autoStart = false;
       startTogether();
     }
 
@@ -2261,7 +2247,7 @@ interface Session {
         },
         onAct: (peerId, data) => {
           const meta = (data as { meta?: string }).meta;
-          if (rankedRoster?.acceptPeerMeta(peerId, meta)) { maybeAutoStart(); return; }
+          if (rankedRun.roster?.acceptPeerMeta(peerId, meta)) { maybeAutoStart(); return; }
           const seat = seatOf[peerId];
           if (seat === undefined) return;
           if (meta) {
@@ -2294,7 +2280,7 @@ interface Session {
      * - 방치(자기 차례에 안 두는 것) 처리는 아직 사용자 결정 대기. 여기서 안 정함
      */
     function rivalGone(): void {
-      if (!rankedMatch) return;
+      if (!rankedRun.paired) return;
       const bar = container.querySelector<HTMLElement>('#acGoneBar');
       if (!bar) return;
       bar.textContent = t('arcade.rank.gone');
@@ -2307,21 +2293,14 @@ interface Session {
       if (bar) bar.hidden = true;
     }
 
-    /** 줄에 선 때. 기다린 시간을 세는 자리 */
-    let rankedSince = 0;
-    let rankedTick: (() => void) | null = null;
-    /** 지금 줄에 선 방과 그 방의 나 말고 몇. 시계가 이 값을 다시 그림 */
-    let rankedRoom: RankRoom = 'beginner';
-    let rankedOthers = 0;
-
     /** 기다리는 동안 한 줄. 방, 같은 방 인원, 기다린 시간 */
     function paintRankWait(): void {
-      const secs = Math.max(0, Math.round((Date.now() - rankedSince) / 1000));
-      $<HTMLElement>('#acCode').textContent = roomLabel(rankedRoom);
+      const secs = Math.max(0, Math.round((Date.now() - rankedRun.since) / 1000));
+      $<HTMLElement>('#acCode').textContent = roomLabel(rankedRun.room);
       $<HTMLElement>('#acWaitStatus').textContent =
-        t('arcade.rank.waiting', { n: String(rankedOthers) }) +
+        t('arcade.rank.waiting', { n: String(rankedRun.others) }) +
         ', ' + t('arcade.rank.waited', { t: clockText(secs * 1000) }) +
-        (rankedLimit ? ', ' + t('arcade.rank.limit', { n: String(rankedLimit) }) : '');
+        (rankedRun.limit ? ', ' + t('arcade.rank.limit', { n: String(rankedRun.limit) }) : '');
     }
 
     function startRanked(id: string): void {
@@ -2330,36 +2309,31 @@ interface Session {
       gameId = id;
       peers = [];
       show('wait');
-      rankedSince = Date.now();
-      rankedRoom = 'beginner';
-      rankedOthers = 0;
+      rankedRun.reset();
+      rankedRun.startWaiting(paintRankWait);
       $<HTMLElement>('#acWaitSeats').innerHTML = '<span class="ac-seat ac-me">' + esc(myName()) + '</span>';
       paintRankWait();
       /* 나가기가 로비로 가는 문이 아니라 줄에서 빠지는 문임을 글자로 */
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.rank.leave');
-      rankedTick?.();
-      rankedTick = intervalWhileVisible(paintRankWait, 1000);
       startBtn.style.display = 'none';
       $<HTMLElement>('.ac-share').style.display = 'none';
-      ranked?.cancel();
-      ranked = enterQueue(id, myName(), {
+      rankedRun.queue = enterQueue(id, myName(), {
         onWaiting: (room, others, limitSec) => {
-          rankedLimit = limitSec;
-          rankedRoom = room;
-          rankedOthers = others;
+          rankedRun.limit = limitSec;
+          rankedRun.room = room;
+          rankedRun.others = others;
           paintRankWait();
         },
         onMatched: (m) => {
-          ranked = null;
-          rankedTick?.();
-          rankedTick = null;
-          rankedMatch = { code: m.code, you: m.you, ids: m.ids, seat: m.seat };
-          rankedLimit = m.moveLimitSec;
-          rankedRoster = new RankedRoster(rankedMatch, m.host);
+          rankedRun.queue = null;
+          rankedRun.stopWaiting();
+          rankedRun.paired = { code: m.code, you: m.you, ids: m.ids, seat: m.seat };
+          rankedRun.limit = m.moveLimitSec;
+          rankedRun.roster = new RankedRoster(rankedRun.paired, m.host);
           watchLink();
           if (m.host) {
             /* 등급전 방은 링크 안 나눔. 셋째가 들어오면 판이 아니라 구경 */
-            autoStart = true;
+            rankedRun.autoStart = true;
             openRoom(id, false, m.code);
           } else {
             /* 손님 화면 올리기는 지금 놀이와 다를 때만 열림. 미리 채운 이름 비우기
@@ -2370,12 +2344,12 @@ interface Session {
           $<HTMLElement>('#acWaitStatus').textContent = t('arcade.rank.matched', { name: m.opponent });
         },
         onDown: () => {
-          ranked = null;
+          rankedRun.queue = null;
           say(t('arcade.rank.down'), 'warn');
           quit();
         },
         onNeedSignIn: () => {
-          ranked = null;
+          rankedRun.queue = null;
           quit();
           say(t('arcade.rank.signin.why'), 'warn');
           askSignIn();
@@ -2398,7 +2372,7 @@ interface Session {
           if (list.length) stopLinkWatch();
           /* act 는 연결 전 메시지를 보관하지 않는다. 처음 joinRoomAs 에서 보낸 등급전 자리표가
              유실될 수 있으므로 peer 발견 뒤 다시 보내 주인이 명단을 확정하게 한다. */
-          if (rankedRoster && list.length) net?.act({ meta: rankedRoster.joinMeta() });
+          if (rankedRun.roster && list.length) net?.act({ meta: rankedRun.roster.joinMeta() });
           if (was > 0 && !list.length) rivalGone();
         },
         onAct: () => {
@@ -2445,7 +2419,7 @@ interface Session {
             loop();
           }
           seatOf = p.seatOf || {};
-          rankedRoster?.applySync(p.rankRoster);
+          rankedRun.roster?.applySync(p.rankRoster);
           /* **자리가 없으면 -1.** 0 으로 두면 구경꾼이 제가 1번 자리인 줄 알고 수를 두려 든다
              (주인이 흘리므로 판은 안 깨지지만, 화면은 내 차례라고 말한다). */
           mySeat = seatOf[net?.selfId ?? ''] ?? -1;
@@ -2453,7 +2427,7 @@ interface Session {
           shadow = { v: p.v, now: p.now, at: performance.now() };
         }
       });
-      if (rankedRoster) net.act({ meta: rankedRoster.joinMeta() });
+      if (rankedRun.roster) net.act({ meta: rankedRun.roster.joinMeta() });
       }, () => say(t('arcade.room.nonet'), 'warn'));
     }
 
@@ -2472,7 +2446,7 @@ interface Session {
       if (!card) return;
       /* 자리를 정하는 것은 주인 하나다. 0 번은 주인, 그다음은 들어온 차례대로.
          색을 바꾸면 손님들이 앞에, 주인이 맨 뒤(둘이면 손님이 흑) */
-      const take = (rankedRoster ? rankedRoster.orderPeers(peers) : peers).slice(0, card.seats[1] - 1);
+      const take = (rankedRun.roster ? rankedRun.roster.orderPeers(peers) : peers).slice(0, card.seats[1] - 1);
       seatOf = {};
       take.forEach((p, i) => {
         seatOf[p.id] = swap ? i : i + 1;
@@ -2484,7 +2458,7 @@ interface Session {
       withIntro(gameId, () => {
         /* 등급전 명단이 있으면 그 수가 정본. 일반 파티 기본값(셋)으로 봇을 더 앉히면
            서버 명단과 판의 인원이 달라져 결과 합의가 불가능해짐 */
-        beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), rankedRoster?.seats, swap ? others.length : 0);
+        beginMatch(gameId, seats, seedFrom(gameId + String(Date.now())), rankedRun.roster?.seats, swap ? others.length : 0);
         /* 판이 시작된 것을 그 자리에서 알린다. 들어오는 사람이 구경이라는 것을 미리 알게 */
         held?.poke();
       });
@@ -2823,15 +2797,7 @@ interface Session {
       dropIntro?.();
       dropIntro = null;
       /* 줄에 서 있었으면 제외. 안 빠지면 15초간 유령과 짝 */
-      ranked?.cancel();
-      ranked = null;
-      rankedMatch = null;
-      rankedRoster = null;
-      rankedLimit = null;
-      autoStart = false;
-      rankedTick?.();
-      rankedTick = null;
-      stopLinkWatch();
+      rankedRun.reset();
       hideGoneBar();
       $<HTMLElement>('#acWaitQuit').textContent = t('arcade.btn.quit');
       /* 방을 닫으면 목록에서도 내린다. 안 내리면 10분 동안 눌렀는데 아무도 없네가 된다. */
@@ -2934,8 +2900,7 @@ interface Session {
       gone.abort();
       chrome.dispose();
       review?.stop();
-      rankedTick?.();
-      stopLinkWatch();
+      rankedRun.reset();
       mdd.stop();
     });
   }
