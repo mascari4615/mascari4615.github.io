@@ -18,5 +18,7 @@
   "videotool.preview.fail": "이 영상은 미리 못 봅니다",
   "videotool.meta": "{time}, {w}×{h}, {size}",
   "videotool.part.subtitle": "자막",
-  "videotool.btn.recent": "방금 하던 것"
+  "videotool.btn.recent": "방금 하던 것",
+  "videotool.group.watch": "지켜보기",
+  "videotool.part.regionwatch": "화면 영역 지켜보기"
 }

@@ -18,5 +18,7 @@
   "videotool.preview.fail": "この動画はプレビューできません",
   "videotool.meta": "{time}, {w}×{h}, {size}",
   "videotool.part.subtitle": "字幕",
-  "videotool.btn.recent": "さっきの作業"
+  "videotool.btn.recent": "さっきの作業",
+  "videotool.group.watch": "見守り",
+  "videotool.part.regionwatch": "画面領域の見守り"
 }

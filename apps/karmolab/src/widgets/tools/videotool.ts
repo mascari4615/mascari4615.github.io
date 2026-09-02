@@ -40,11 +40,15 @@ import { t, loadNamespace } from '../../lib/i18n';
     {
       label: t('videotool.group.make', undefined, '만들기'),
       jobs: [['screenrec', t('videotool.part.screenrec', undefined, '화면 녹화')]]
+    },
+    {
+      label: t('videotool.group.watch', undefined, '지켜보기'),
+      jobs: [['regionwatch', t('videotool.part.regionwatch', undefined, '화면 영역 지켜보기')]]
     }
   ];
 
-  /** 영상을 안 들고 와도 되는 할 일. 없는 데서 영상을 **만드는** 쪽. */
-  const NO_VIDEO_NEEDED = new Set(['screenrec']);
+  /** 영상을 안 들고 와도 되는 할 일. 없는 데서 영상을 **만드는** 쪽, 화면을 **보는** 쪽. */
+  const NO_VIDEO_NEEDED = new Set(['screenrec', 'regionwatch']);
 
   /** 필름 스트립 장수. 늘리면 예뻐지지만 큰 영상에서 오래 걸린다(한 장마다 되감아 그린다). */
   const FRAMES = 8;

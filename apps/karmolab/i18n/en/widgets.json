@@ -249,5 +249,6 @@
   "widgets.works.title": "Works",
   "widgets.about.title": "About",
   "widgets.recall.title": "Recall",
-  "widgets.uikit.title": "UI kit"
+  "widgets.uikit.title": "UI kit",
+  "widgets.regionwatch.title": "Screen region watch"
 }

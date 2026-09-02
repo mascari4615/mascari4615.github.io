@@ -1460,6 +1460,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/screenrec']
   },
   {
+    id: 'regionwatch',
+    hidden: true, // 영상 도구 위젯의 할 일로 합쳐짐. 주소는 유지
+    bundle: 'videotool',
+    get title() { return t('widgets.regionwatch.title', undefined, "화면 영역 지켜보기"); },
+    category: 'av',
+    get desc() { return t('widgets-desc.regionwatch.desc', undefined, "화면 한 곳을 지켜보다가 기준 모습과 같아지거나 달라지면 소리로 알립니다. 화면은 브라우저를 벗어나지 않습니다"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="8" y="8" width="8" height="5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-dasharray="2 1.5"/><path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/regionwatch']
+  },
+  {
     id: 'voicerec',
     hidden: true, // 파일 도구 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다

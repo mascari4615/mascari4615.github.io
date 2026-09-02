@@ -249,5 +249,6 @@
   "widgets.isitdown.title": "나만 안 되나?",
   "widgets.cleanup.title": "지우개",
   "widgets.videobg.title": "영상 배경 빼기",
-  "widgets.tempmail.title": "잠깐 쓰는 메일"
+  "widgets.tempmail.title": "잠깐 쓰는 메일",
+  "widgets.regionwatch.title": "화면 영역 지켜보기"
 }

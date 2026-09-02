@@ -233,5 +233,6 @@
   "widgets-desc.works.desc": "Things I made. games, VRChat content, tools",
   "widgets-desc.about.desc": "KarmoDDrine. Unity game dev and VRChat content",
   "widgets-desc.recall.desc": "Six a day. Answer first, then compare with the source. What you miss comes back tomorrow",
-  "widgets-desc.uikit.desc": "Catalog of the shared parts widgets are built from, shown with their exact classes"
+  "widgets-desc.uikit.desc": "Catalog of the shared parts widgets are built from, shown with their exact classes",
+  "widgets-desc.regionwatch.desc": "Watch one spot on your screen and get a sound when it matches or differs from a reference look. The screen never leaves the browser"
 }
