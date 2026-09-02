@@ -552,14 +552,20 @@ interface TesseractLike {
         for (const { s, i } of targets) {
           if (!stream || !s.rect) break;
           const r = s.rect;
-          const k = Math.max(1, Math.min(4, Math.round(96 / Math.max(1, r.h))));
-          ocrCanvas.width = r.w * k;
-          ocrCanvas.height = r.h * k;
+          const k = Math.max(1, Math.min(6, Math.round(96 / Math.max(1, r.h))));
+          /* 글자 인식기는 글자가 칸을 꽉 채우면 못 읽음. 키운 뒤 흰 여백 */
+          const pad = Math.round(r.h * k * 0.4);
+          const cw = r.w * k;
+          const ch = r.h * k;
+          ocrCanvas.width = cw + pad * 2;
+          ocrCanvas.height = ch + pad * 2;
           ocrCtx.imageSmoothingEnabled = true;
-          ocrCtx.drawImage(src, r.x, r.y, r.w, r.h, 0, 0, ocrCanvas.width, ocrCanvas.height);
-          const img = ocrCtx.getImageData(0, 0, ocrCanvas.width, ocrCanvas.height);
+          ocrCtx.drawImage(src, r.x, r.y, r.w, r.h, pad, pad, cw, ch);
+          const img = ocrCtx.getImageData(pad, pad, cw, ch);
           binarize(img.data);
-          ocrCtx.putImageData(img, 0, 0);
+          ocrCtx.fillStyle = '#fff';
+          ocrCtx.fillRect(0, 0, ocrCanvas.width, ocrCanvas.height);
+          ocrCtx.putImageData(img, pad, pad);
           let text = '';
           try {
             text = (await w.recognize(ocrCanvas)).data.text;
