@@ -2,11 +2,60 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2211,
-    "days": 11,
+    "commits": 2164,
+    "days": 12,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-09-03",
+      "entries": [
+        {
+          "sha": "28d276ad",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "죽은 편성 칸과 사운드 경로를 바로잡는다"
+        },
+        {
+          "sha": "0641998c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "모바일 조작 피드백을 마무리한다"
+        }
+      ],
+      "quiet": 0,
+      "more": 0
+    },
+    {
+      "date": "2026-09-02",
+      "entries": [
+        {
+          "sha": "a61112c9",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "수치 성장 클릭 피드백을 분명히 한다"
+        },
+        {
+          "sha": "266fc970",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "오프라인 보상을 복귀 팝업으로 보여준다"
+        },
+        {
+          "sha": "88a20c4f",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "영웅별 수치 성장을 개별 클릭으로 나눈다"
+        }
+      ],
+      "quiet": 1,
+      "more": 0
+    },
     {
       "date": "2026-09-01",
       "entries": [
@@ -457,52 +506,10 @@
           "typeLabel": "",
           "scope": "",
           "text": "룰 검사기가 커밋 blob 을 UTF-8 로 읽는다 (TASK-WM-326)"
-        },
-        {
-          "sha": "dc98a6d1",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "매끄러움을 미터가 아니라 <b>속도</b>로 잰다 (TASK-WM-325)"
-        },
-        {
-          "sha": "63eed5c1",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "「못 쟀다」를 빨강으로 안 치는 자리를 하나로 (TASK-WM-324)"
         }
       ],
       "quiet": 14,
-      "more": 67
-    },
-    {
-      "date": "2026-08-12",
-      "entries": [
-        {
-          "sha": "f30f48e4",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "server",
-          "text": "국경을 넘을 때 들고 가는 통행증 — 도장이 찍혀 있다 (WM-253)"
-        },
-        {
-          "sha": "71d4a96e",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "server",
-          "text": "세계가 자기 땅을 안다 — 구역 나누기 1단계 (WM-252)"
-        },
-        {
-          "sha": "a07b677c",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "server",
-          "text": "싸움도 세계가 판정한다 — 몸·때리기·다시 세우기 (WM-251)"
-        }
-      ],
-      "quiet": 11,
-      "more": 52
+      "more": 69
     }
   ]
 }
