@@ -128,6 +128,7 @@
   "widgets.videocompress.title": "영상 용량 줄이기",
   "widgets.video2img.title": "영상에서 사진 뽑기",
   "widgets.screenrec.title": "화면 녹화",
+  "widgets.regionwatch.title": "화면 영역 지켜보기",
   "widgets.voicerec.title": "목소리 녹음",
   "widgets.videotool.title": "영상 도구",
   "widgets.csvjson.title": "CSV ↔ JSON 변환",
@@ -249,6 +250,5 @@
   "widgets.isitdown.title": "나만 안 되나?",
   "widgets.cleanup.title": "지우개",
   "widgets.videobg.title": "영상 배경 빼기",
-  "widgets.tempmail.title": "잠깐 쓰는 메일",
-  "widgets.regionwatch.title": "화면 영역 지켜보기"
+  "widgets.tempmail.title": "잠깐 쓰는 메일"
 }

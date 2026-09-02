@@ -112,6 +112,7 @@
   "widgets-desc.videocompress.desc": "영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다",
   "widgets-desc.video2img.desc": "영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다",
   "widgets-desc.screenrec.desc": "화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다",
+  "widgets-desc.regionwatch.desc": "화면 한 곳을 지켜보다가 기준 모습과 같아지거나 달라지면 소리로 알립니다. 화면은 브라우저를 벗어나지 않습니다",
   "widgets-desc.voicerec.desc": "마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다",
   "widgets-desc.videotool.desc": "영상을 GIF 로 만들고, 구간을 자르고, 소리를 뽑고, 화면을 녹화합니다. 영상이 브라우저를 벗어나지 않습니다",
   "widgets-desc.csvjson.desc": "표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표, 줄바꿈도 안 깨집니다",
@@ -233,6 +234,5 @@
   "widgets-desc.isitdown.desc": "사이트가 죽은 건지 내 인터넷이 문제인지 가려 줍니다. 늘 살아 있는 곳들을 같이 재서 견줍니다",
   "widgets-desc.cleanup.desc": "사진에서 거슬리는 것을 칠해서 지웁니다. 주변 색으로 덮습니다. 사진이 브라우저를 벗어나지 않습니다",
   "widgets-desc.videobg.desc": "짧은 영상에서 사람이나 물체만 남깁니다. 영상이 브라우저를 벗어나지 않습니다",
-  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다",
-  "widgets-desc.regionwatch.desc": "화면 한 곳을 지켜보다가 기준 모습과 같아지거나 달라지면 소리로 알립니다. 화면은 브라우저를 벗어나지 않습니다"
+  "widgets-desc.tempmail.desc": "10분만 사는 메일 주소를 만들어 확인 메일을 받습니다. 주소를 알아도 열쇠 없이는 못 읽습니다"
 }
