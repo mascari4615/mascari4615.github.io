@@ -98,6 +98,17 @@ interface MatchRecipe {
   def: GameDef<unknown, unknown> | null;
 }
 
+/** 판 시작부터 결과 화면까지 함께 움직이는 상태. */
+interface Session {
+  recipe: MatchRecipe;
+  lastBest: number | null;
+  seenMoves: number;
+  hurriedAt: number;
+  ended: boolean;
+  soundedRound: number;
+  resultMeta: { moves: number; ms: number } | null;
+}
+
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
 
@@ -818,9 +829,22 @@ interface MatchRecipe {
     /* ── 판 ──────────────────────────────────────────────────────── */
     let match: Match<unknown, unknown> | null = null;
     /** 판을 만든 규칙 정의 그대로(봇 세기, 고스트까지). 복기와 곁가지는 이걸로 다시 굴려야 같은 판(2026-08-30 실측: 고스트를 빼고 굴려 딴 판이 됐다) */
-    let lastRecipe: MatchRecipe = { seed: 0, seats: [], personas: {}, level: 'normal', def: null };
-    /** 이 판을 시작할 때의 내 최고 기록. 결과에 어제 N으로 적는다. */
-    let lastBest: number | null = null;
+    const session: Session = {
+      recipe: { seed: 0, seats: [], personas: {}, level: 'normal', def: null },
+      lastBest: null,
+      seenMoves: 0,
+      hurriedAt: -1,
+      ended: false,
+      soundedRound: -1,
+      resultMeta: null
+    };
+    const resetMatchSignals = (): void => {
+      session.seenMoves = match?.moves ?? 0;
+      session.hurriedAt = -1;
+      session.ended = false;
+      session.soundedRound = -1;
+      session.resultMeta = null;
+    };
     let tape: Tape<unknown> | null = null;
     /** 편을 갈랐으면 자리→편 표. 개인전이면 null. */
     let plan: Plan | null = null;
@@ -844,10 +868,6 @@ interface MatchRecipe {
     let net: Net | null = null;
     /* 저택 사람의 얼굴, 말풍선, 컷인. 판의 그림은 물어서 씀 (`mdd.ts`) */
     const mdd = mountMdd({ container, view: () => match?.view() ?? shadow?.v ?? null, mySeat: () => mySeat });
-    /** 봇이 방금 두었나 보려고. 수가 늘고 내 차례가 됐으면 봇이 둔 것 */
-    let seenMoves = 0;
-    /** 재촉을 이미 한 수. 한 차례에 한 번만 */
-    let hurriedAt = -1;
     /** 힌트. 규칙이 고른 수와 언제까지 보일지. 복기에서는 그 장면 동안 */
     let hintAt: { action: unknown; until: number } | null = null;
     function canHint(): boolean {
@@ -891,11 +911,6 @@ interface MatchRecipe {
 
     /** 자리를 못 받아 **구경만** 하는 중인가 (TASK-KL-264 D2). */
     let watching = false;
-    /** 이번 판의 끝소리를 이미 울렸나. 매 프레임 울리면 소리가 아니라 경적이 된다. */
-    let ended = false;
-    /** 마지막으로 소리를 낸 판 번호 */
-    let soundedRound = -1;
-
     /** 손님 쪽엔 커널이 없다. 주인이 보낸 판을 들고 그린다. */
     let shadow: { v: MatchView<unknown>; now: number; at: number } | null = null;
 
@@ -952,13 +967,13 @@ interface MatchRecipe {
         .join('');
       /* 어제 N. 기록이 있고 혼자 논 판일 때만. 남과 논 판의 점수는 내 기록과 견줄 것이 아니다. */
       const mineNow = v.seats[mySeat]?.score ?? 0;
-      const record = lastBest !== null && !net && !watching
-        ? (mineNow > lastBest
-            ? t('arcade.best.new', { n: String(mineNow), was: String(lastBest) })
-            : t('arcade.best.was', { n: String(lastBest) }))
+      const record = session.lastBest !== null && !net && !watching
+        ? (mineNow > session.lastBest
+            ? t('arcade.best.new', { n: String(mineNow), was: String(session.lastBest) })
+            : t('arcade.best.was', { n: String(session.lastBest) }))
         : '';
       /* 몇 수에 얼마나 걸렸나. 주인과 혼자 판은 커널에서, 손님은 주인이 보낸 것에서 */
-      const meta = match ? { moves: match.moves, ms: match.clock() } : resultMeta;
+      const meta = match ? { moves: match.moves, ms: match.clock() } : session.resultMeta;
       const count = meta && meta.moves > 0 ? t('arcade.result.moves', { n: String(meta.moves), t: clockText(meta.ms) }) : '';
       $<HTMLElement>('#acOverNote').textContent = [note, count, record].filter(Boolean).join(', ');
       $<HTMLElement>('#acOver').style.display = '';
@@ -1019,27 +1034,27 @@ interface MatchRecipe {
       (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tap: (a: unknown) => sendAct(a), tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
       paintSeats(v, now);
       render?.(v, mySeat, now);
-      if (match && match.moves !== seenMoves && tutorAt === null) {
+      if (match && match.moves !== session.seenMoves && tutorAt === null) {
         hintAt = null;
         const turn = (v.state as { turn?: number } | null)?.turn;
         /* 봇이 둔 뒤 한마디. 아래 좋은 수와 겹치면 그쪽이 이긴다(덮어쓰기라 마지막이 남는다) */
-        if (match.moves > seenMoves && turn === mySeat && !v.finished) mdd.castSay(1 - mySeat, 'move', 0.3);
+        if (match.moves > session.seenMoves && turn === mySeat && !v.finished) mdd.castSay(1 - mySeat, 'move', 0.3);
         /* 방금 둔 수가 넷이면 컷인. 사람이 만들면 리치, 내가 만들면 사람의 위기 */
-        if (match.moves > seenMoves && !v.finished && v.seats.length === 2 && typeof turn === 'number') {
+        if (match.moves > session.seenMoves && !v.finished && v.seats.length === 2 && typeof turn === 'number') {
           const mover = 1 - turn;
           const cue = gameById(gameId)?.cue?.(v.state, mover) ?? null;
           if (cue === 'four') mdd.cutIn(mover === mySeat ? 1 - mySeat : mover, mover === mySeat ? 'danger' : 'four');
           /* 내가 좋은 수를 두면 상대가 한마디. 컷인까지는 아니고 말풍선. 봇의 둔 뒤 한마디보다 이것이 먼저 */
           else if (cue === 'open3' && mover === mySeat) mdd.castSay(1 - mySeat, 'good', 1);
         }
-        seenMoves = match.moves;
+        session.seenMoves = match.moves;
       }
       /* 내 시계가 10초 아래면 상대가 재촉한다. 한 차례에 한 번 */
       if (match && !v.finished && tutorAt === null) {
         const st = v.state as { limit?: number; turnEndsAt?: number; turn?: number } | null;
         if (st?.limit && st.turn === mySeat && st.turnEndsAt && st.turnEndsAt - now <= 10000) {
-          if (hurriedAt !== match.moves) {
-            hurriedAt = match.moves;
+          if (session.hurriedAt !== match.moves) {
+            session.hurriedAt = match.moves;
             mdd.castSay(1 - mySeat, 'hurry', 0.8);
           }
         }
@@ -1070,8 +1085,8 @@ interface MatchRecipe {
         swapBtn.style.display = net?.host ? '' : 'none';
         /* 끝난 판의 말은 **한 번만** 적는다. 매 프레임 다시 적으면 대회 점수판을 적어 놔도
            다음 프레임에 이겼다/졌다로 덮인다(실측. 점수판이 안 보였다). */
-        if (!ended) {
-          ended = true;
+        if (!session.ended) {
+          session.ended = true;
           if (net?.host && match) net.say({ kind: 'result', moves: match.moves, ms: match.clock() });
           v.seats.forEach((sq, i) => { if (i !== mySeat) mdd.cutIn(i, sq.score === top ? 'win' : 'lose'); });
           const draw = win.length === v.seats.length;
@@ -1103,7 +1118,7 @@ interface MatchRecipe {
           /* 곁가지(Try Play)의 끝은 원래 판의 기록을 덮어쓰지 않는다 */
           if (match && !replaying && !review) {
             const g0 = gameById(gameId);
-            if (g0) tape = record(g0, match as never, lastRecipe.seats, lastRecipe.seed) as Tape<unknown>;
+            if (g0) tape = record(g0, match as never, session.recipe.seats, session.recipe.seed) as Tape<unknown>;
           }
           /* 여태 가장 잘한 판이면 남긴다. 다음 판에 이 사람이 옆자리에 앉는다 (`ghost.ts`).
              혼자 둔 판만 남긴다: 여럿이 둔 판의 내 수는 남의 수에 기대어 나온 것이라
@@ -1142,8 +1157,8 @@ interface MatchRecipe {
           console.warn('[arcade] 알림 글을 못 옮겼다. 판은 그대로 간다:', v.note.key, err);
         }
       } else {
-        if (v.round !== soundedRound) {
-          soundedRound = v.round;
+        if (v.round !== session.soundedRound) {
+          session.soundedRound = v.round;
           blip('start');
         }
         say(t('arcade.status.round', { n: String(v.round + 1), of: String(v.rounds) }));
@@ -1375,9 +1390,6 @@ interface MatchRecipe {
     /* ── 끝의 의식 (레퍼런스: 색 바꿔 재대국, 무승부 제안, 수와 시간) ─────────── */
     /** 지금 뜬 제안. 상대 답을 기다리는 동안 두 번 안 보낸다 */
     let offerOpen: 'draw' | 'again' | null = null;
-    /** 손님이 주인에게서 받은 결과 숫자(수, 시간). 손님에게는 커널이 없다 */
-    let resultMeta: { moves: number; ms: number } | null = null;
-
     /** 둘이 두는 판인가(사람 둘). 무승부와 기권은 여기서만 뜻이 있다 */
     function twoHumans(): boolean {
       const v = match?.view() ?? shadow?.v;
@@ -1593,8 +1605,6 @@ interface MatchRecipe {
       offerOpen = null;
       $<HTMLElement>('#acOffer').style.display = 'none';
       watching = false;
-      ended = false;
-      soundedRound = -1;
       /* 빈 자리를 **이름 있는 사람**으로 채운다 (TASK-KL-264). 커널이 채우면 봇 1이 되는데,
          그건 자리를 채운 것이지 같이 논 것이 아니다. 손버릇도 여기서 정해 판 내내 지킨다. */
       /* 인원은 **판이 아니라 오락실이** 정한다 (`seating.ts`). 최솟값으로 채우면 1명부터인
@@ -1624,7 +1634,7 @@ interface MatchRecipe {
          판놀이에서는 엉뚱한 자리를 찌르다 수가 떨어지면 가만히 있고, 판이 안 끝난다(2026-08-30 실측) */
       const past = !net && !tour && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
       /* 끝나면 `noteBest` 가 덮으므로 **시작할 때** 챙겨 둔다. 결과에 어제 N을 적으려면 필요하다. */
-      lastBest = bestOf(id)?.score ?? null;
+      session.lastBest = bestOf(id)?.score ?? null;
       const level = levelNow();
       let def = withBotLevel(g, level, personas);
       if (past && withCrew.length > seats.length) {
@@ -1634,10 +1644,10 @@ interface MatchRecipe {
       }
       noteRecent(id);
       match = new Match(def, seed, withCrew, matchOpts(id)) as Match<unknown, unknown>;
+      resetMatchSignals();
       /* 되살릴 재료. 씨앗과 자리. 이 둘과 누른 것이면 판이 다시 만들어진다(`replay.ts`). */
-      lastRecipe = { seed, seats: withCrew, personas, level, def: def as GameDef<unknown, unknown> };
+      session.recipe = { seed, seats: withCrew, personas, level, def: def as GameDef<unknown, unknown> };
       mdd.clearBubbles();
-      seenMoves = 0;
       withCrew.forEach((sq, i) => { if (sq.bot && castByName(sq.name)) window.setTimeout(() => { if (match) mdd.sayAs(i, lineOf(castByName(sq.name) as NonNullable<ReturnType<typeof castByName>>, 'hello', withCrew[mine]?.name ?? '')); }, 900); });
       tape = null;
       endReview(false);
@@ -1814,9 +1824,8 @@ interface MatchRecipe {
       const seats: SeatSpec[] = [{ name: myName(), bot: false }, { name: t(mdd.on() ? 'arcade.tutor.teacher' : 'arcade.tutor.teacher.plain'), bot: true }];
       cancelAnimationFrame(raf);
       match = new Match(def, 1, seats, { size: TUTOR_SIZE, renju: true, limit: 0, ai: 1 }) as Match<unknown, unknown>;
-      lastRecipe = { seed: 1, seats, personas: {}, level: 'normal', def: def as GameDef<unknown, unknown> };
-      ended = false;
-      soundedRound = -1;
+      resetMatchSignals();
+      session.recipe = { seed: 1, seats, personas: {}, level: 'normal', def: def as GameDef<unknown, unknown> };
       mdd.clearBubbles();
       hintAt = null;
       /* 돌 심기. 차례를 번갈아 맞추려고 빈 곳을 채우는 대신 **그 색 차례일 때만** 둔다 */
@@ -1830,7 +1839,7 @@ interface MatchRecipe {
       }
       /* 내 차례(흑)가 아니면 한 수 더 심어 맞춘다. 장면 표가 흑 차례로 끝나게 짜 두는 것이 먼저 */
       /* 장면 심기는 사람이 둔 것이 아니다. 알림과 컷인을 안 깨운다 */
-      seenMoves = match.moves;
+      session.seenMoves = match.moves;
       mdd.clearBubbles();
       $<HTMLElement>('#acCutin').hidden = true;
       const box = $<HTMLElement>('#acLesson');
@@ -1897,9 +1906,9 @@ interface MatchRecipe {
       mySeat = turnOf(post);
       watching = false;
       replaying = false;
-      ended = false;
-      soundedRound = -1;
       match = deal(g, post) as Match<unknown, unknown>;
+      resetMatchSignals();
+      session.lastBest = null;
       shadow = null;
       mountView(post.game);
       show('play');
@@ -2103,7 +2112,7 @@ interface MatchRecipe {
       if (!gameById(raw.game)) return;
       gameId = raw.game;
       mountView(raw.game);
-      lastRecipe = { seed: raw.seed, seats: raw.seats, personas: {}, level: 'normal', def: null };
+      session.recipe = { seed: raw.seed, seats: raw.seats, personas: {}, level: 'normal', def: null };
       tape = raw;
       mySeat = -1;
       watching = true;
@@ -2428,7 +2437,7 @@ interface MatchRecipe {
           }
           if (kind === 'result') {
             const d = data as { moves?: number; ms?: number };
-            resultMeta = { moves: d.moves ?? 0, ms: d.ms ?? 0 };
+            session.resultMeta = { moves: d.moves ?? 0, ms: d.ms ?? 0 };
             return;
           }
           if (kind !== 'picking') return;
@@ -2569,12 +2578,12 @@ interface MatchRecipe {
       const g = gameById(gameId);
       if (!g || !tape) return;
       /* 판을 만든 정의(고스트 등)로 굴린다. 맨 정의로 굴리면 딴 판이 된다 (2026-08-30 사고) */
-      const { frames, order } = scenes(lastRecipe.def ?? withBotLevel(g, lastRecipe.level, lastRecipe.personas), tape);
+      const { frames, order } = scenes(session.recipe.def ?? withBotLevel(g, session.recipe.level, session.recipe.personas), tape);
       cancelAnimationFrame(raf);
       match = null;
       replaying = true;
       review = { frames, order, at: frames.length - 1, playing: false, speed: 1, timer: null, branch: false };
-      ended = false;
+      session.ended = false;
       hideResult();
       againBtn.style.display = 'none';
       swapBtn.style.display = 'none';
@@ -2645,7 +2654,7 @@ interface MatchRecipe {
     function branchFrom(k: number): boolean {
       const g = gameById(gameId);
       if (!g || !tape || !review) return false;
-      const m = matchAt(lastRecipe.def ?? withBotLevel(g, lastRecipe.level, lastRecipe.personas), tape, k) as Match<unknown, unknown>;
+      const m = matchAt(session.recipe.def ?? withBotLevel(g, session.recipe.level, session.recipe.personas), tape, k) as Match<unknown, unknown>;
       if (m.view().finished) return false;
       /* 내 차례인 수에서만. 봇 차례에서 갈라지면 봇이 먼저 두어 무엇이 내 수인지 헷갈린다(실측) */
       if (g.canAct && !g.canAct(m.view().state as never, mySeat)) return false;
@@ -2653,7 +2662,7 @@ interface MatchRecipe {
       review.branch = true;
       replaying = false;
       match = m;
-      ended = false;
+      resetMatchSignals();
       t0 = performance.now() - m.clock();
       cancelAnimationFrame(raf);
       loop();
@@ -2677,14 +2686,14 @@ interface MatchRecipe {
       if (!review) return;
       tlPlay(false);
       const last = review.frames[review.frames.length - 1];
-      resultMeta = { moves: review.frames.length - 1, ms: last.at };
+      session.resultMeta = { moves: review.frames.length - 1, ms: last.at };
       review = null;
       replaying = false;
       cancelAnimationFrame(raf);
       match = null;
       $<HTMLElement>('#acTimeline').hidden = true;
       if (showOver) {
-        ended = false;
+        session.ended = false;
         paint(last.v, last.at);
       }
     }
@@ -2819,9 +2828,9 @@ interface MatchRecipe {
       hintAt = null;
       offerOpen = null;
       $<HTMLElement>('#acOffer').style.display = 'none';
-      resultMeta = null;
-      ended = false;
-      soundedRound = -1;
+      session.resultMeta = null;
+      session.ended = false;
+      session.soundedRound = -1;
       gameId = '';
       mySeat = 0;
       $<HTMLElement>('#acTimeline').hidden = true;
