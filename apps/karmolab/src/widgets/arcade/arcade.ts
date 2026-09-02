@@ -43,6 +43,7 @@ import { DECK_SKINS, deckSkin, setDeckSkin } from './deck';
 import { LESSONS, TUTOR_SIZE, TutorRun, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { soloPlays, inAppTool, type SoloPlay } from './solo';
+import { LobbyRun } from './lobby';
 import { loadPacks } from '../pack-store';
 import { courseSteps, courseRun } from '../play-course';
 import { lengthOf, secondsOf } from './length';
@@ -114,14 +115,6 @@ interface Session {
 
   const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-  function storedName(): string {
-    try {
-      return (localStorage.getItem('karmolab.arcade.name') || '').trim();
-    } catch {
-      return '';
-    }
-  }
-
   Toolbox.register({
     id: 'arcade',
     title: t('widgets.arcade.title', undefined, '오락실'),
@@ -157,6 +150,7 @@ interface Session {
 
   function draw(container: HTMLElement): void {
     injectStyles();
+    const lobbyRun = new LobbyRun();
     /* 판 세대. 나가기와 새 판 시작이 올림. 늦게 오는 타이머와 조각 로딩은 제 세대가 아니면 손 뗌.
        없던 때의 사고 둘: 배우기 끝 타이머가 나간 뒤 로비에서 판을 엶, 조각을 받는 사이 다른 판을
        고르면 먼저 고른 판이 나중에 덮어씀 (2026-09-02 감사) */
@@ -327,7 +321,7 @@ interface Session {
     const replayBtn = $<HTMLButtonElement>('#acReplay');
     const startBtn = $<HTMLButtonElement>('#acStart');
     const nameInput = $<HTMLInputElement>('#acName');
-    nameInput.value = storedName();
+    nameInput.value = lobbyRun.storedName();
 
     const say = (m: string, kind = ''): void => {
       statusEl.textContent = m;
@@ -549,11 +543,7 @@ interface Session {
     const findEl = $<HTMLInputElement>('#acFind');
 
     function remember(): void {
-      try {
-        localStorage.setItem('karmolab.arcade.name', nameInput.value.trim());
-      } catch {
-        /* 못 적어도 그만 */
-      }
+      lobbyRun.rememberName(nameInput.value);
     }
 
     /**
@@ -564,27 +554,9 @@ interface Session {
      * - 오늘의 세 판보다 **위**에 둔다. 오늘의 세 판은 뭘 할지 모르는 사람을 위한 것이고,
      *   최근은 이미 마음먹고 온 사람의 것
      */
-    const RECENT_KEY = 'karmolab.arcade.recent';
-    const RECENT_MAX = 5;
-
-    function recentList(): string[] {
-      try {
-        const raw = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]') as unknown;
-        return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string').slice(0, RECENT_MAX) : [];
-      } catch {
-        return [];
-      }
-    }
-
     /** 논 놀이를 맨 앞으로. 같은 것을 두 번 안 담는다 */
     function noteRecent(id: string): void {
-      if (!id || !cardById(id)) return;
-      try {
-        const next = [id, ...recentList().filter((x) => x !== id)].slice(0, RECENT_MAX);
-        localStorage.setItem(RECENT_KEY, JSON.stringify(next));
-      } catch {
-        /* 못 적어도 그만 */
-      }
+      lobbyRun.noteRecent(id);
       paintRecent();
     }
 
@@ -592,7 +564,7 @@ interface Session {
     function paintRecent(): void {
       const box = container.querySelector<HTMLElement>('#acRecent');
       if (!box) return;
-      const list = recentList().filter((id) => cardById(id));
+      const list = lobbyRun.recent();
       if (!list.length) {
         box.innerHTML = '';
         return;
@@ -711,8 +683,6 @@ interface Session {
      *
      * 명부는 여기 다시 안 적는다. `apps/play/games.json` 하나가 정본이다(`solo.ts`).
      */
-    let solo: SoloPlay[] = [];
-
     const soloCard = (g: SoloPlay): string =>
       /* `data-obj` 를 같이 쓰지 않는다. 그 이름이 곧 방 게임 몇 종인가를 세는 자리다
          (추천 여섯에서 이미 겪었다: 51종이 54종이 됐다). 생김새만 진열장 물건과 같다 . 
@@ -724,16 +694,14 @@ interface Session {
 
     const paintSolo = (): void => {
       const box = $<HTMLElement>('#acSolo');
-      if (!solo.length) { box.innerHTML = ''; return; }
+      if (!lobbyRun.solo.length) { box.innerHTML = ''; return; }
       const q = findEl.value;
-      const mine = q.trim()
-        ? solo.filter((g) => matches([g.id, g.title, g.lead], q))
-        : solo;
+      const mine = lobbyRun.shownSolo(q);
       if (!mine.length) { box.innerHTML = ''; return; }
 
       /* 오늘의 코스. 셈은 놀이들과 **같은 한 벌**(`play-course`)을 쓴다. 여기서 따로 세면
          하나 남았다가 놀이 안과 오락실에서 서로 다른 말을 한다. */
-      const steps = courseSteps(solo);
+      const steps = courseSteps(lobbyRun.solo);
       const left = steps.filter((x) => !x.done).length;
       const head = q.trim()
         ? ''
@@ -802,7 +770,7 @@ interface Session {
 
     void soloPlays().then((rows) => {
       if (!container.isConnected) return;
-      solo = rows;
+      lobbyRun.setSolo(rows);
       paintSolo();
     });
 

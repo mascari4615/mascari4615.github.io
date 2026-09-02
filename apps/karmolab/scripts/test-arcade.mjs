@@ -32,6 +32,9 @@ const { allFaceUp, autoStep, foundationFor } = await import(pathToFileURL(solOut
 const netOut = join(dir, 'net.mjs');
 await build({ entryPoints: ['src/widgets/arcade/net.ts'], bundle: true, format: 'esm', platform: 'browser', outfile: netOut, logLevel: 'silent' });
 const { OnlineRun } = await import(pathToFileURL(netOut).href);
+const lobbyOut = join(dir, 'lobby.mjs');
+await build({ entryPoints: ['src/widgets/arcade/lobby.ts'], bundle: true, format: 'esm', platform: 'node', outfile: lobbyOut, logLevel: 'silent' });
+const { LobbyRun } = await import(pathToFileURL(lobbyOut).href);
 const VIEWS = CATALOG.map((e) => e.view);
 
 let fails = 0;
@@ -53,6 +56,25 @@ console.log('[arcade] 온라인 방 수명');
   ok(left === 1 && closed === 1, '방을 접으면 연결과 공개 목록을 함께 닫는다');
   ok(online.connection === null && online.listing === null, '닫은 연결 손잡이가 남지 않는다');
   ok(online.peers.length === 0 && Object.keys(online.seatOf).length === 0, '참가자와 자리표가 다음 방으로 새지 않는다');
+}
+
+console.log('[arcade] 로비 수명');
+{
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value)
+  };
+  const lobby = new LobbyRun(storage);
+  lobby.rememberName('  나  ');
+  ok(lobby.storedName() === '나', '이름을 다듬어 다음 로비에 남긴다');
+  ['gomoku', 'auction', 'gomoku', '없는-판'].forEach((id) => lobby.noteRecent(id));
+  ok(JSON.stringify(lobby.recent()) === JSON.stringify(['gomoku', 'auction']), '최근 판은 중복과 없는 판 없이 새것부터 둔다');
+  lobby.setSolo([
+    { id: 'one', title: '하나 맞히기', emoji: '1', url: '/one', lead: '매일 한 문제' },
+    { id: 'word', title: '단어 놀이', emoji: 'A', url: '/word', lead: '낱말 찾기' }
+  ]);
+  ok(lobby.shownSolo('낱말').map((game) => game.id).join() === 'word', '혼자 놀이 검색도 로비 상태가 고른다');
 }
 
 console.log('[arcade] 판 위 말. 네 판이 같은 표현 부품을 쓴다');
