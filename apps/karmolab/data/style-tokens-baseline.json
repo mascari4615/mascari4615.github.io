@@ -46,7 +46,7 @@
   "src/secrets.ts": 2,
   "src/toolbox.ts": 1,
   "src/widgets/alarm.ts": 2,
-  "src/widgets/arcade/arcade.ts": 466,
+  "src/widgets/arcade/arcade.css": 466,
   "src/widgets/arcade/three-board.ts": 2,
   "src/widgets/bluemarble/bluemarble.ts": 36,
   "src/widgets/bon/styles.ts": 9,

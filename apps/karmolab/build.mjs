@@ -190,6 +190,8 @@ for (const rel of entryPoints) {
     format: 'iife',
     platform: 'browser',
     target: ['es2020'],
+    /* 위젯 옆의 .css 는 글자로 묶임. 위젯이 <style> 로 넣음 (오락실 arcade.css). 위젯이 지연 로드라 같이 실려야 하고 셸의 캐시 목록도 안 건드림 */
+    loader: { '.css': 'text' },
     logLevel: 'info'
   });
 }
