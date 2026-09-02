@@ -752,5 +752,14 @@
   "arcade.president.rank.mid": "평민",
   "arcade.president.rank.poor": "빈민",
   "arcade.president.rank.bottom": "대빈민",
-  "arcade.president.swap": "{poor} 이(가) {rich} 에게 {n}장을 바쳤다"
+  "arcade.president.swap": "{poor} 이(가) {rich} 에게 {n}장을 바쳤다",
+  "arcade.blackjack.trioBet": "21+3 +{n}",
+  "arcade.blackjack.trioCancel": "21+3 취소 +{n}",
+  "arcade.blackjack.trioResult": "{result} {n}",
+  "arcade.blackjack.trio.suitedTrips": "같은 무늬 트리플",
+  "arcade.blackjack.trio.straightFlush": "스트레이트 플러시",
+  "arcade.blackjack.trio.trips": "트리플",
+  "arcade.blackjack.trio.straight": "스트레이트",
+  "arcade.blackjack.trio.flush": "플러시",
+  "arcade.blackjack.trio.none": "21+3 아님"
 }

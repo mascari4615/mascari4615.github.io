@@ -752,5 +752,14 @@
   "arcade.president.rank.mid": "平民",
   "arcade.president.rank.poor": "貧民",
   "arcade.president.rank.bottom": "大貧民",
-  "arcade.president.swap": "{poor} が {rich} に {n}枚を献上"
+  "arcade.president.swap": "{poor} が {rich} に {n}枚を献上",
+  "arcade.blackjack.trioBet": "21+3 +{n}",
+  "arcade.blackjack.trioCancel": "21+3 取消 +{n}",
+  "arcade.blackjack.trioResult": "{result} {n}",
+  "arcade.blackjack.trio.suitedTrips": "スーテッドトリップス",
+  "arcade.blackjack.trio.straightFlush": "ストレートフラッシュ",
+  "arcade.blackjack.trio.trips": "スリーカード",
+  "arcade.blackjack.trio.straight": "ストレート",
+  "arcade.blackjack.trio.flush": "フラッシュ",
+  "arcade.blackjack.trio.none": "21+3 なし"
 }

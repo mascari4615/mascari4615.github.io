@@ -23,6 +23,7 @@ import { codeRank, codeSuit } from '../deck';
 import {
   BETS,
   PAIR_BET,
+  TRIO_BET,
   HANDS,
   activeHand,
   options,
@@ -127,6 +128,7 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
       const kind = b.dataset.do as string;
       if (kind === 'bet') send({ kind: 'bet', amount: Number(b.dataset.n || 1) });
       else if (kind === 'pair') send({ kind: 'pair', take: b.dataset.n === '1' });
+      else if (kind === 'trio') send({ kind: 'trio', take: b.dataset.n === '1' });
       else if (kind === 'insure') send({ kind: 'insure', take: b.dataset.n === '1' });
       else send({ kind } as BlackjackAction);
     };
@@ -236,6 +238,12 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
                   result: t('arcade.blackjack.pair.' + st.pairRes),
                   n: String(st.pairPay)
                 })) + '</i>'
+              : '') +
+            (st.trioPay !== undefined
+              ? ' <i>' + esc(t('arcade.blackjack.trioResult', {
+                  result: t('arcade.blackjack.trio.' + st.trioRes),
+                  n: String(st.trioPay)
+                })) + '</i>'
               : '');
           if (head.innerHTML !== html) head.innerHTML = html;
         }
@@ -288,7 +296,12 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
             (me.bet > 0 || (me.pairBet < 1 && me.chips < PAIR_BET + BETS[0]) ? ' disabled' : '') + '>' +
             esc(me.pairBet > 0
               ? t('arcade.blackjack.pairCancel', { n: String(PAIR_BET) })
-              : t('arcade.blackjack.pairBet', { n: String(PAIR_BET) })) + '</button>';
+              : t('arcade.blackjack.pairBet', { n: String(PAIR_BET) })) + '</button>' +
+            '<button class="btn btn-ghost" data-do="trio" data-n="' + (me.trioBet > 0 ? '0' : '1') + '"' +
+            (me.bet > 0 || (me.trioBet < 1 && me.chips < TRIO_BET + BETS[0]) ? ' disabled' : '') + '>' +
+            esc(me.trioBet > 0
+              ? t('arcade.blackjack.trioCancel', { n: String(TRIO_BET) })
+              : t('arcade.blackjack.trioBet', { n: String(TRIO_BET) })) + '</button>';
         } else if (me.bet > 0) {
           lastBet = me.bet;
         } else if (s.phase === 'insure') {

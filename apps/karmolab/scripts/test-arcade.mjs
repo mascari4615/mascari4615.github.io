@@ -34,7 +34,7 @@ await build({ entryPoints: ['src/widgets/arcade/games/hanafuda.ts'], bundle: tru
 const { hanafuda, yakuPoints } = await import(pathToFileURL(hanaOut).href);
 const blackjackOut = join(dir, 'blackjack.mjs');
 await build({ entryPoints: ['src/widgets/arcade/games/blackjack.ts'], bundle: true, format: 'esm', platform: 'node', outfile: blackjackOut, logLevel: 'silent' });
-const { blackjack, perfectPair } = await import(pathToFileURL(blackjackOut).href);
+const { blackjack, perfectPair, twentyOnePlusThree } = await import(pathToFileURL(blackjackOut).href);
 const netOut = join(dir, 'net.mjs');
 await build({ entryPoints: ['src/widgets/arcade/net.ts'], bundle: true, format: 'esm', platform: 'browser', outfile: netOut, logLevel: 'silent' });
 const { OnlineRun } = await import(pathToFileURL(netOut).href);
@@ -108,6 +108,13 @@ console.log('[arcade] 블랙잭 퍼펙트 페어 곁수');
   ok(perfectPair([spade8, club8]).res === 'colored' && perfectPair([spade8, club8]).odds === 12, '같은 색 페어는 12:1');
   ok(perfectPair([spade8, heart8]).res === 'mixed' && perfectPair([spade8, heart8]).odds === 6, '다른 색 페어는 6:1');
   ok(perfectPair([spade8, heart8 + 1]).res === 'none', '끗수가 다르면 곁수를 잃는다');
+  /* 21+3. 카드 번호는 무늬 * 13 + 끗수 - 1 */
+  ok(twentyOnePlusThree([spade8, spade8], spade8).res === 'suitedTrips', '같은 무늬 트리플은 100:1');
+  ok(twentyOnePlusThree([7, 8], 9).res === 'straightFlush', '같은 무늬 8 9 10 은 스트레이트 플러시');
+  ok(twentyOnePlusThree([spade8, club8], heart8).res === 'trips', '무늬가 갈리는 트리플은 30:1');
+  ok(twentyOnePlusThree([0, 14], 28).res === 'straight' && twentyOnePlusThree([0, 24], 25).res === 'straight', '에이스는 아래와 위 둘 다 스트레이트');
+  ok(twentyOnePlusThree([0, 4], 9).res === 'flush', '무늬만 같으면 플러시');
+  ok(twentyOnePlusThree([0, 14], 30).res === 'none', '아무것도 아니면 곁수를 잃는다');
 
   const seats = [{ index: 0, name: '나', bot: false, score: 0 }];
   const ctx = { seats, opts: {}, rng: () => 0.5, now: 0, round: 0 };
@@ -117,6 +124,15 @@ console.log('[arcade] 블랙잭 퍼펙트 페어 곁수');
   ok(side.seats[0].pairBet === 2 && side.seats[0].chips === 98, '본판 전에 곁수 2칩을 따로 건다');
   const dealt = blackjack.reduce(side, { kind: 'bet', amount: 2 }, 0, ctx);
   ok(dealt.seats[0].pairRes === 'perfect' && dealt.seats[0].pairPay === 50 && dealt.seats[0].chips === 148, '첫 두 장을 놓자마자 원금과 25배 순이익을 돌려준다');
+  {
+    const s1 = blackjack.init(ctx);
+    /* 한 장씩 두 바퀴. 내 8 8, 딜러 앞장 8 */
+    s1.shoe = [spade8, heart8, club8, 9];
+    const side = blackjack.reduce(s1, { kind: 'trio', take: true }, 0, ctx);
+    ok(side.seats[0].trioBet === 2 && side.seats[0].chips === 98, '본판 전에 21+3 곁수 2칩을 따로 건다');
+    const dealt = blackjack.reduce(side, { kind: 'bet', amount: 2 }, 0, ctx);
+    ok(dealt.seats[0].trioRes === 'trips' && dealt.seats[0].trioPay === 60 && dealt.seats[0].chips === 158, '딜러 앞장까지 트리플이면 원금과 30배 순이익');
+  }
 }
 
 console.log('[arcade] 온라인 방 수명');

@@ -35,6 +35,8 @@ export const START_CHIPS = 100;
 export const BETS: readonly number[] = [2, 4, 10, 20, 50];
 /** 퍼펙트 페어 곁수는 본판과 따로 2칩만 건다. */
 export const PAIR_BET = 2;
+/** 21+3 곁수도 2칩. 레퍼런스(Evolution 라이브 상)는 페어와 21+3 을 늘 같이 둠 */
+export const TRIO_BET = 2;
 /** 결과를 보여 주고 다음 손으로 넘어가기까지 */
 const SHOW_MS = 2600;
 /** 스플릿 상한. 손 넷까지 */
@@ -53,6 +55,28 @@ export function perfectPair(cards: readonly number[]): { res: PairRes; odds: num
   if (a === b) return { res: 'perfect', odds: 25 };
   if (isRedSuit(a) === isRedSuit(b)) return { res: 'colored', odds: 12 };
   return { res: 'mixed', odds: 6 };
+}
+
+export type TrioRes = 'suitedTrips' | 'straightFlush' | 'trips' | 'straight' | 'flush' | 'none';
+
+/**
+ * 21+3 판정. 내 두 장과 딜러 앞장 석 장의 포커 족보 (감사 D4, 2026-09-03)
+ * 같은 무늬 트리플 100:1, 스트레이트 플러시 40:1, 트리플 30:1, 스트레이트 10:1, 플러시 5:1
+ * 에이스는 아래(A 2 3)와 위(Q K A) 둘 다. 100만 번 시뮬 하우스 엣지 4.5% (6벌 슈)
+ */
+export function twentyOnePlusThree(cards: readonly number[], up: number): { res: TrioRes; odds: number } {
+  if (cards.length < 2) return { res: 'none', odds: 0 };
+  const three = [cards[0], cards[1], up];
+  const ranks = three.map(codeRank).sort((x, y) => x - y);
+  const suited = three.every((c) => codeSuit(c) === codeSuit(three[0]));
+  const trips = ranks[0] === ranks[2];
+  const straight = (ranks[1] === ranks[0] + 1 && ranks[2] === ranks[1] + 1) || (ranks[0] === 1 && ranks[1] === 12 && ranks[2] === 13);
+  if (trips && suited) return { res: 'suitedTrips', odds: 100 };
+  if (straight && suited) return { res: 'straightFlush', odds: 40 };
+  if (trips) return { res: 'trips', odds: 30 };
+  if (straight) return { res: 'straight', odds: 10 };
+  if (suited) return { res: 'flush', odds: 5 };
+  return { res: 'none', odds: 0 };
 }
 
 export interface BjHand {
@@ -85,6 +109,10 @@ export interface BjSeat {
   pairRes?: PairRes;
   /** 곁수의 순이익. 지면 음수 */
   pairPay?: number;
+  /** 21+3 에 따로 건 값 */
+  trioBet: number;
+  trioRes?: TrioRes;
+  trioPay?: number;
   /** 보험 물음에 답했나 */
   answered: boolean;
 }
@@ -110,6 +138,7 @@ export interface BlackjackState {
 export type BlackjackAction =
   | { kind: 'bet'; amount: number }
   | { kind: 'pair'; take: boolean }
+  | { kind: 'trio'; take: boolean }
   | { kind: 'insure'; take: boolean }
   | { kind: 'hit' }
   | { kind: 'stand' }
@@ -174,6 +203,7 @@ const mkSeat = (chips: number): BjSeat => ({
   bet: 0,
   insurance: 0,
   pairBet: 0,
+  trioBet: 0,
   answered: false
 });
 
@@ -321,6 +351,13 @@ const deal = (s: BlackjackState, now: number): void => {
     st.pairPay = pair.odds > 0 ? st.pairBet * pair.odds : -st.pairBet;
     if (pair.odds > 0) st.chips += st.pairBet + st.pairPay;
   }
+  for (const st of s.seats) {
+    if (st.trioBet < 1) continue;
+    const trio = twentyOnePlusThree(st.hands[0].cards, s.dealer[0]);
+    st.trioRes = trio.res;
+    st.trioPay = trio.odds > 0 ? st.trioBet * trio.odds : -st.trioBet;
+    if (trio.odds > 0) st.chips += st.trioBet + st.trioPay;
+  }
   /* 딜러가 에이스를 보이면 보험을 물음 */
   if (codeRank(s.dealer[0]) === 1) {
     s.phase = 'insure';
@@ -356,6 +393,9 @@ const nextHand = (s: BlackjackState): void => {
     st.pairBet = 0;
     delete st.pairRes;
     delete st.pairPay;
+    st.trioBet = 0;
+    delete st.trioRes;
+    delete st.trioPay;
     st.answered = false;
   }
 };
@@ -411,6 +451,21 @@ export const blackjack: GameDef<BlackjackState, BlackjackAction> = {
           if (st.pairBet < 1) return s0;
           st.chips += st.pairBet;
           st.pairBet = 0;
+        }
+        return s;
+      }
+      if (a.kind === 'trio') {
+        if (st0.bet !== 0) return s0;
+        const s = clone(s0);
+        const st = s.seats[seat];
+        if (a.take) {
+          if (st.trioBet > 0 || st.chips < TRIO_BET + BETS[0]) return s0;
+          st.trioBet = TRIO_BET;
+          st.chips -= TRIO_BET;
+        } else {
+          if (st.trioBet < 1) return s0;
+          st.chips += st.trioBet;
+          st.trioBet = 0;
         }
         return s;
       }

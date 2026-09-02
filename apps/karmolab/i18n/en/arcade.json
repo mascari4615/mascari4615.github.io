@@ -752,5 +752,14 @@
   "arcade.president.rank.mid": "Citizen",
   "arcade.president.rank.poor": "Vice scum",
   "arcade.president.rank.bottom": "Scum",
-  "arcade.president.swap": "{poor} handed {n} to {rich}"
+  "arcade.president.swap": "{poor} handed {n} to {rich}",
+  "arcade.blackjack.trioBet": "21+3 +{n}",
+  "arcade.blackjack.trioCancel": "Cancel 21+3 +{n}",
+  "arcade.blackjack.trioResult": "{result} {n}",
+  "arcade.blackjack.trio.suitedTrips": "Suited trips",
+  "arcade.blackjack.trio.straightFlush": "Straight flush",
+  "arcade.blackjack.trio.trips": "Three of a kind",
+  "arcade.blackjack.trio.straight": "Straight",
+  "arcade.blackjack.trio.flush": "Flush",
+  "arcade.blackjack.trio.none": "No 21+3"
 }

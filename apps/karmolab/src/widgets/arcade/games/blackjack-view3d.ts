@@ -21,6 +21,7 @@ import { codeRank, codeSuit } from '../deck';
 import {
   BETS,
   PAIR_BET,
+  TRIO_BET,
   HANDS,
   activeHand,
   options,
@@ -102,6 +103,7 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
       const kind = b.dataset.do as string;
       if (kind === 'bet') send({ kind: 'bet', amount: Number(b.dataset.n || 1) });
       else if (kind === 'pair') send({ kind: 'pair', take: b.dataset.n === '1' });
+      else if (kind === 'trio') send({ kind: 'trio', take: b.dataset.n === '1' });
       else if (kind === 'insure') send({ kind: 'insure', take: b.dataset.n === '1' });
       else send({ kind } as BlackjackAction);
     };
@@ -175,7 +177,13 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
               n: String(me.pairPay)
             })) + '</i>'
           : '';
-        lines.push('<div class="ac-bjline ac-me"><span>' + esc(mine) + res + pair + '</span></div>');
+        const trio = me.trioPay !== undefined
+          ? ' <i>' + esc(t('arcade.blackjack.trioResult', {
+              result: t('arcade.blackjack.trio.' + me.trioRes),
+              n: String(me.trioPay)
+            })) + '</i>'
+          : '';
+        lines.push('<div class="ac-bjline ac-me"><span>' + esc(mine) + res + pair + trio + '</span></div>');
       }
 
       let acts = '';
@@ -198,6 +206,15 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
               me.bet === 0 && (me.pairBet > 0 || me.chips >= PAIR_BET + BETS[0]),
               true,
               ' data-n="' + (me.pairBet > 0 ? '0' : '1') + '"'
+            ) +
+            btn(
+              'trio',
+              me.trioBet > 0
+                ? t('arcade.blackjack.trioCancel', { n: String(TRIO_BET) })
+                : t('arcade.blackjack.trioBet', { n: String(TRIO_BET) }),
+              me.bet === 0 && (me.trioBet > 0 || me.chips >= TRIO_BET + BETS[0]),
+              true,
+              ' data-n="' + (me.trioBet > 0 ? '0' : '1') + '"'
             );
         } else if (me.bet > 0) {
           lastBet = me.bet;
