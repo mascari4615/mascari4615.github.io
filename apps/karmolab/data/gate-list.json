@@ -394,6 +394,7 @@
   "audit:nightly-alive",
   "smoke:arcadeletter",
   "test:arcade:ui",
+  "test:arcade:ui:all",
   "test:arcade:yacht",
   "test:arcade:yacht-ranked",
   "test:arcade:multi",

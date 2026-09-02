@@ -132,7 +132,9 @@ const ts =
   lines + NL +
   `];` + NL + NL +
   `/** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */` + NL +
-  `export const CARDS: GameCard[] = ALL_CARDS.filter((c) => !c.hidden);` + NL + NL +
+  `/** 감춘 판도 검사와 개발에서는 열어 본다. 주소에 all=1 (감사 D8, 2026-09-03). 사람 로비는 그대로 */
+export const CARDS: GameCard[] =
+  typeof location !== 'undefined' && /[?&]all=1(?:&|$)/.test(location.search) ? ALL_CARDS : ALL_CARDS.filter((c) => !c.hidden);` + NL + NL +
   `export const cardById = (id: string): GameCard | undefined => ALL_CARDS.find((c) => c.id === id);` + NL;
 
 writeFileSync(join(root, 'src/widgets/arcade/catalog-meta.generated.ts'), '/*' + ts.slice(2), 'utf8');

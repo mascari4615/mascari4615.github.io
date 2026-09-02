@@ -271,6 +271,7 @@
     "test:arcade:yacht-ranked": "node scripts/smoke-arcade-yacht-ranked.mjs",
     "test:arcade:solo": "node scripts/smoke-arcade-solo.mjs",
     "test:arcade:ui": "node scripts/smoke-arcade.mjs",
+    "test:arcade:ui:all": "node scripts/smoke-arcade.mjs --all",
     "test:arcade:yacht": "node scripts/smoke-arcade-yacht.mjs",
     "test:asciiart:video": "node scripts/smoke-asciiart-video.mjs",
     "test:ask": "node scripts/smoke-ask.mjs",

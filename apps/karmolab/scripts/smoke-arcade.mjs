@@ -39,7 +39,9 @@ async function quitRoom(page) {
 
 const server = await smokeBase();
 const BASE = server.base;
-const PAGE = `${BASE}/apps/karmolab/index.html`;
+/* ARCADE_ALL=1 이면 감춘 판까지 로비에 세워 순회한다 (감사 D8). 평소 로비는 14판 */
+const ALL = !!process.env.ARCADE_ALL || process.argv.includes('--all');
+const PAGE = `${BASE}/apps/karmolab/index.html${ALL ? '?all=1' : ''}`;
 
 const failures = [];
 const check = (name, cond, detail = '') => {

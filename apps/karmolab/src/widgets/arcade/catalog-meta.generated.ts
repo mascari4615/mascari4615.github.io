@@ -76,6 +76,8 @@ export const ALL_CARDS: GameCard[] = [
 ];
 
 /** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */
-export const CARDS: GameCard[] = ALL_CARDS.filter((c) => !c.hidden);
+/** 감춘 판도 검사와 개발에서는 열어 본다. 주소에 all=1 (감사 D8, 2026-09-03). 사람 로비는 그대로 */
+export const CARDS: GameCard[] =
+  typeof location !== 'undefined' && /[?&]all=1(?:&|$)/.test(location.search) ? ALL_CARDS : ALL_CARDS.filter((c) => !c.hidden);
 
 export const cardById = (id: string): GameCard | undefined => ALL_CARDS.find((c) => c.id === id);
