@@ -11,10 +11,11 @@
  *  2 제일 많은 눈만 남기고, 지금 제일 큰 칸에 적음 (전의 유일한 봇)
  *  3 한 굴림 앞 기대값. 남길 조합 32가지를 다 재서 다음 굴림 뒤 최고 칸의 기대값이 제일 큰 것
  *  4 3 + 칸 값 손질. 위 여섯은 덤(63)을 향해 세고, 요트, 큰 스트레이트, 포카드에 0을 적는 것은 벌점
- *  5 남은 굴림을 끝까지 내다봄(두 굴림 앞). **보류**: 리그 실측(혼자 300판) 4 단계 171.4, 5 단계 169.5 로 더 낫지
- *    않고 60배 느렸다(600ms/판). 손질한 칸 값이 두 굴림 앞에서는 오히려 헛짚는다. 지금은 4 와 같은 머리(`LOOK2`)
+ *  5 4 + 아래 칸의 기회비용. 칸 값은 규칙 점수에서 그 칸의 홀로 기대값(`soloOf`)을 뺀 것. 위 칸은 4 의 덤 셈 그대로
+ *    두 굴림 앞 내다보기(`LOOK2`)는 실측(300판) 4 단계 171.4, 5 단계 169.5 로 더 낫지 않고 60배 느려 꺼 둠
  *
  * 리그 실측 2026-08-30 (혼자 12라운드 평균, 씨앗 고정): 1 59.2, 2 108.4, 3 162.9, 4 171.4. 최적 191.77 의 89%
+ * 2026-09-03 (1000판): 4 174.4, 5 181.2 (94.5%). 기회비용에 요트 0 벌점을 더하면 180.0, 기회비용 1.5배는 173.8
  *
  * 규칙은 `yacht.ts` 의 `scoreOf` 가 정본. 여기는 그 값을 두고 고르기만 함
  */
@@ -110,6 +111,8 @@ function valueOf(cat: Cat, dice: number[], sheet: Sheet, level: Level): number {
   if (level < 4) return raw;
   let v = raw;
   const face = FACE[cat];
+  /* 5단계. 아래 칸은 규칙 점수에서 그 칸의 홀로 기대값을 뺀 기회비용. 위 칸은 4단계의 덤 셈 그대로 */
+  if (level >= 5 && !face) return raw - soloOf(cat);
   if (face) {
     /* 덤은 눈마다 셋(par)씩 모으면 정확히 63. par 와의 차이를 값에 얹고, 63 을 넘기는 순간 35 를 그대로 */
     const upperSoFar = UPPER.reduce((a, c) => a + (sheet[c] ?? 0), 0);
@@ -141,6 +144,23 @@ function valueOf(cat: Cat, dice: number[], sheet: Sheet, level: Level): number {
   }
   if (cat === 'choice') v = raw >= 24 ? raw : raw - 8;
   return v;
+}
+
+/**
+ * 칸의 홀로 기대값. 그 칸 하나만 열어 두고 세 굴림을 최적으로 굴렸을 때의 평균 점수 (감사 D5, 2026-09-03)
+ * 5단계의 잣대. "이 칸에 이 점수를 적는 것이 평균보다 얼마나 나은가"로 칸을 고름
+ * 처음 부를 때 한 번 계산(열두 칸, 약 100ms). 규칙 점수만 쓰므로 어느 판에서나 같은 값
+ */
+const SOLO = new Map<Cat, number>();
+function soloOf(cat: Cat): number {
+  const hit = SOLO.get(cat);
+  if (hit !== undefined) return hit;
+  const sheet = Object.fromEntries(CATS.map((c) => [c, c === cat ? null : 0])) as Sheet;
+  const memo = new Map<string, number>();
+  let ev = 0;
+  for (const o of distOf(5)) ev += o.p * value(o.c, 2, sheet, 3, memo);
+  SOLO.set(cat, ev);
+  return ev;
 }
 
 function bestCat(dice: number[], sheet: Sheet, level: Level): { cat: Cat; v: number } {
@@ -214,7 +234,7 @@ function decideNow(dice: number[], sheet: Sheet, rollsLeft: number, level: Level
     return { keep, write: null };
   }
 
-  /* 3, 4, 5. 기대값. 두 굴림 앞(`LOOK2`)은 보류. 위 주석의 실측 */
+  /* 3, 4, 5. 기대값. 두 굴림 앞(`LOOK2`)은 꺼 둠. 위 주석의 실측 */
   const look = Math.min(rollsLeft, level >= 5 && LOOK2 ? 2 : 1);
   /* 두 굴림 앞은 **손질하지 않은 점수**로 훑기(2026-08-31 시도). 그래도 171.4 를 못 넘음
      5단계는 판 전체 기대값 표(칸 2^12 상태)가 있어야 함. 지금은 4단계와 같은 머리(`LOOK2`) */
