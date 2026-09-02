@@ -1,39 +1,38 @@
 /**
  * 화투 짝맞추기 화면 (TASK-KL-242)
  *
- * 내 패를 고르면 **짝이 되는 바닥 패가 밝아진다**. 열두 달을 외운 사람만 놀 수 있으면 안 된다.
- * 짝이 하나뿐이면 바로 가져가고, 없으면 버리기가 뜬다(막히지 않게).
+ * 내 패를 고르면 같은 달의 바닥 패가 밝아짐. 짝이 하나뿐이면 바로 가져감
+ * 2D 공용 상(`table2d.ts`)을 탄다 (2026-09-03). 상대는 위 자리 카드와 뒷면 부채, 가운데 바닥, 아래 내 패
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { cardMark } from '../card';
+import { mountTable } from '../table2d';
 import { monthOf, pointOf, type HanafudaState, type HanafudaAction } from './hanafuda';
 
-/** 달마다 다른 꽃. 그림 없이 글자와 색만으로 열둘을 구분한다. */
+/** 달마다 꽃 이름 한 글자. 실물 화투의 열두 달 */
 const FLOWER = ['松', '梅', '桜', '藤', '菖', '牡', '萩', '芒', '菊', '楓', '柳', '桐'];
 const HUE = [
-  '#166534', '#be185d', '#f472b6', '#7c3aed', '#0891b2', '#dc2626',
-  '#a16207', '#64748b', '#ca8a04', '#b45309', '#15803d', '#7c2d12'
+  '#2f7358', '#b3242c', '#d46a8a', '#6b4bbf', '#2a8bb8', '#c0392b',
+  '#8a5a1e', '#5b6770', '#c08a1e', '#b8571e', '#2e8f6f', '#6f3fa0'
 ];
 
 export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
   id: 'hanafuda',
+  table: true,
   mount(el, act) {
-    el.innerHTML =
-      '<div class="ac-hf">' +
-      '<div class="ac-hfrow"><small id="acHfFl"></small><div id="acHfFloor"></div></div>' +
-      '<div class="ac-hfrow"><small id="acHfMl"></small><div id="acHfHand"></div></div>' +
-      '<div class="ac-hfbar" id="acHfBar"></div>' +
-      '<div class="ac-hfwho" id="acHfWho"></div>' +
-      '</div>';
+    const tb = mountTable(el);
+    tb.center.innerHTML = '<div class="ac-hffloor" id="acHfFloor"></div>';
+    tb.acts.innerHTML = '<span id="acHfBar"></span>';
     const floorEl = el.querySelector('#acHfFloor') as HTMLElement;
-    const handEl = el.querySelector('#acHfHand') as HTMLElement;
     const bar = el.querySelector('#acHfBar') as HTMLElement;
-    const who = el.querySelector('#acHfWho') as HTMLElement;
     let picked = -1;
+    let floorKey = '';
+    let handKey = '';
+    let barKey = '';
 
-    /* 종이는 공용 부품이 정한다. 여기서는 **무엇이 적혀 있는지**(꽃, 달, 색)만 준다. */
-    /* 카드 번호에서 달을 떼고, 끗수를 종이에 적는다. 광 스물과 피 하나가 같아 보이면 고를 것이 없다 */
+    /* 종이는 공용 부품 몫. 여기서는 **무엇이 적혀 있는지**(꽃, 달, 색)만.
+       카드 번호에서 달을 떼고 끗수를 종이에 적음. 광 스물과 피 하나가 같아 보이면 고를 것이 없음 */
     const card = (n: number, o: { can?: boolean; pick?: boolean; data: Record<string, number> }): string => {
       const m = monthOf(n);
       const pt = pointOf(n);
@@ -50,58 +49,66 @@ export const hanafudaView: GameView<HanafudaState, HanafudaAction> = {
       const myTurn = s.turn === mySeat && !v.finished && (s.hands[mySeat]?.length ?? 0) > 0;
       const hand = s.hands[mySeat] ?? [];
       if (!myTurn) picked = -1;
-
       const wanted = picked >= 0 ? hand[picked] : -1;
 
-      (el.querySelector('#acHfFl') as HTMLElement).textContent = t('arcade.hana.floor');
-      (el.querySelector('#acHfMl') as HTMLElement).textContent = t('arcade.hana.mine');
+      tb.paint(v as never, mySeat, (i) => s.hands[i]?.length ?? 0, v.finished ? -1 : s.turn);
+      tb.toast(
+        (v.finished ? '' : myTurn ? t('arcade.table.myTurn') + '. ' : t('arcade.table.turnOf', { who: v.seats[s.turn]?.name ?? '' }) + '. ') +
+        v.seats.map((seat, i) => seat.name + ' ' + (s.taken[i]?.length ?? 0)).join(', ')
+      );
 
-      floorEl.innerHTML = s.floor
-        .map((c, i) => card(c, { can: myTurn && wanted >= 0 && monthOf(c) === monthOf(wanted), data: { f: i } }))
-        .join('');
-      floorEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
-        const i = Number(b.dataset.f);
-        b.onclick = () => {
-          act({ hand: picked, floor: i });
-          picked = -1;
-        };
-      });
-
-      handEl.innerHTML = hand
-        .map((m, i) => card(m, { can: myTurn, pick: i === picked, data: { h: i } }))
-        .join('');
-      handEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
-        const i = Number(b.dataset.h);
-        b.onclick = () => {
-          picked = picked === i ? -1 : i;
-          /* 짝이 하나뿐이면 두 번 누르게 하지 않는다. */
-          if (picked >= 0) {
-            const only = s.floor.map((c, k) => (monthOf(c) === monthOf(hand[picked]) ? k : -1)).filter((k) => k >= 0);
-            if (only.length === 1) {
-              act({ hand: picked, floor: only[0] });
-              picked = -1;
-            }
-          }
-        };
-      });
-
-      const none = picked >= 0 && !s.floor.some((c) => monthOf(c) === monthOf(hand[picked]));
-      bar.innerHTML = none
-        ? '<button class="btn btn-ghost" id="acHfDrop">' + t('arcade.hana.drop') + '</button>'
-        : '<small>' + (myTurn ? t('arcade.hana.hint') : t('arcade.hana.waiting')) + '</small>';
-      const drop = bar.querySelector('#acHfDrop') as HTMLButtonElement | null;
-      if (drop) {
-        drop.onclick = () => {
-          act({ hand: picked, floor: -1 });
-          picked = -1;
-        };
+      const fk = s.floor.join(',') + '|' + wanted + '|' + (myTurn ? 1 : 0);
+      if (fk !== floorKey) {
+        floorKey = fk;
+        floorEl.innerHTML = s.floor
+          .map((c, i) => card(c, { can: myTurn && wanted >= 0 && monthOf(c) === monthOf(wanted), data: { f: i } }))
+          .join('');
+        floorEl.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
+          const i = Number(b.dataset.f);
+          b.onclick = () => {
+            act({ hand: picked, floor: i });
+            picked = -1;
+          };
+        });
       }
 
-      who.innerHTML = v.seats
-        .map((seat, i) =>
-          '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + '">' +
-          seat.name + ' <b>' + (s.taken[i]?.length ?? 0) + '</b></span>')
-        .join('');
+      const hk = hand.join(',') + '|' + picked + '|' + (myTurn ? 1 : 0);
+      if (hk !== handKey) {
+        handKey = hk;
+        tb.hand.innerHTML = hand
+          .map((m, i) => card(m, { can: myTurn, pick: i === picked, data: { h: i } }))
+          .join('');
+        tb.hand.querySelectorAll<HTMLButtonElement>('.ac-pc').forEach((b) => {
+          const i = Number(b.dataset.h);
+          b.onclick = () => {
+            picked = picked === i ? -1 : i;
+            /* 짝이 하나뿐이면 두 번 누르게 하지 않는다 */
+            if (picked >= 0) {
+              const only = s.floor.map((c, k) => (monthOf(c) === monthOf(hand[picked]) ? k : -1)).filter((k) => k >= 0);
+              if (only.length === 1) {
+                act({ hand: picked, floor: only[0] });
+                picked = -1;
+              }
+            }
+          };
+        });
+      }
+
+      const none = picked >= 0 && !s.floor.some((c) => monthOf(c) === monthOf(hand[picked]));
+      const bk = (none ? 'drop' : myTurn ? 'hint' : 'wait');
+      if (bk !== barKey) {
+        barKey = bk;
+        bar.innerHTML = none
+          ? '<button class="btn btn-ghost" id="acHfDrop">' + t('arcade.hana.drop') + '</button>'
+          : '<small>' + (myTurn ? t('arcade.hana.hint') : t('arcade.hana.waiting')) + '</small>';
+        const drop = bar.querySelector('#acHfDrop') as HTMLButtonElement | null;
+        if (drop) {
+          drop.onclick = () => {
+            act({ hand: picked, floor: -1 });
+            picked = -1;
+          };
+        }
+      }
     };
   }
 };

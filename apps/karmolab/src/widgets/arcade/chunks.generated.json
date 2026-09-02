@@ -277,7 +277,7 @@
     "view": "highlow-view",
     "defVar": "highlow",
     "viewVar": "highlowView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "lanterns",
@@ -365,7 +365,7 @@
     "view": "memory-view",
     "defVar": "memory",
     "viewVar": "memoryView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "hitblow",

@@ -50,17 +50,21 @@ for (const g of GAMES) {
     if (!inLobby) { await ctx.close(); continue; }
     await page.click(`[data-obj="${g}"]`, { timeout: 15000 });
     await page.click(`[data-solo="${g}"]`, { timeout: 15000 });
+    /* 입체가 정본(2026-09-01)이라 기본은 방. 방은 캔버스 하나가 판이고 누를 것은 상 위 카드.
+       그래서 캔버스가 떴으면 그려진 것으로, 아니면 평면처럼 글자와 버튼으로 */
     await page.waitForFunction(() => {
       const view = document.querySelector('#acView');
-      return (view?.textContent || '').trim().length > 6 && view.querySelectorAll('button').length > 0;
+      if (!view) return false;
+      if (view.querySelector('canvas')) return true;
+      return (view.textContent || '').trim().length > 6 && view.querySelectorAll('button').length > 0;
     }, undefined, { timeout: 10000 });
     const info = await page.evaluate(() => {
       const view = document.querySelector('#acView');
       const txt = (view?.textContent || '').trim().replace(/\s+/g, ' ');
-      return { btns: document.querySelectorAll('#acView button').length, len: txt.length };
+      return { btns: document.querySelectorAll('#acView button').length, len: txt.length, canvas: !!view?.querySelector('canvas') };
     });
-    check(`${g}: 화면이 그려진다`, info.len > 6, `글자 ${info.len}자`);
-    check(`${g}: 누를 것이 있다`, info.btns > 0, `${info.btns}개`);
+    check(`${g}: 화면이 그려진다`, info.canvas || info.len > 6, info.canvas ? '입체' : `글자 ${info.len}자`);
+    check(`${g}: 누를 것이 있다`, info.canvas || info.btns > 0, info.canvas ? '상 위 카드' : `${info.btns}개`);
     check(`${g}: 안 터진다`, boom.length === 0, boom[0] || '');
   } catch (e) {
     check(`${g}: 열린다`, false, String(e).slice(0, 90));
