@@ -27,6 +27,7 @@ import {
   options,
   total,
   type BjRes,
+  BJ_RESULTS,
   type BlackjackState,
   type BlackjackAction
 } from './blackjack';
@@ -43,8 +44,6 @@ const resKey: Record<BjRes, string> = {
   bust: 'arcade.blackjack.resBust',
   surrender: 'arcade.blackjack.resSurrender'
 };
-
-const RES_ALL = ['bj', 'win', 'push', 'lose', 'bust', 'surrender'] as const;
 
 /** 이 결과에 어떤 소리인가 */
 const soundOf = (res: BjRes): 'good' | 'bad' | 'tap' =>
@@ -236,7 +235,7 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
           if (!row) return;
           syncCards(row.cards, h.cards);
           row.box.classList.toggle('ac-live', s.phase === 'play' && h === cur && !h.done);
-          for (const k of RES_ALL) row.box.classList.toggle('ac-res-' + k, h.res === k);
+          for (const k of BJ_RESULTS) row.box.classList.toggle('ac-res-' + k, h.res === k);
           const bits: string[] = [];
           if (h.cards.length) bits.push('<span>' + total(h.cards) + '</span>');
           else bits.push(

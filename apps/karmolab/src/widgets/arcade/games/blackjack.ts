@@ -38,7 +38,9 @@ const SHOW_MS = 2600;
 /** 스플릿 상한. 손 넷까지 */
 const MAX_HANDS = 4;
 
-export type BjRes = 'bj' | 'win' | 'push' | 'lose' | 'bust' | 'surrender';
+/** 한 손의 결과 여섯. 화면은 이 목록을 읽지 다시 적지 않는다 */
+export const BJ_RESULTS = ['bj', 'win', 'push', 'lose', 'bust', 'surrender'] as const;
+export type BjRes = (typeof BJ_RESULTS)[number];
 
 export interface BjHand {
   /** 카드 번호 0~51 (`deck.ts` 의 셈법) */

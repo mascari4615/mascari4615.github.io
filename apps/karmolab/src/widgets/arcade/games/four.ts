@@ -32,6 +32,9 @@ function drop(b: number[], col: number): number {
   return -1;
 }
 
+/** 이 줄에 둘 수 있나. 화면이 만석을 제 손으로 재지 않게 규칙이 내준다 */
+export const canDrop = (s: FourState, col: number): boolean => drop(s.board, col) >= 0;
+
 function wins(b: number[], cell: number, who: number): boolean {
   const x = cell % W;
   const y = Math.floor(cell / W);

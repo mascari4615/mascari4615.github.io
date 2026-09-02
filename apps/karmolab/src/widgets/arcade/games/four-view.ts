@@ -4,7 +4,7 @@
  * 누르는 곳은 칸이 아니라 **줄**이다. 중력이 자리를 정하므로 칸을 고르게 하면 거짓말이 된다.
  */
 import type { GameView } from '../views';
-import { W, H, type FourState, type FourAction } from './four';
+import { W, H, canDrop, type FourState, type FourAction } from './four';
 
 export const fourView: GameView<FourState, FourAction> = {
   id: 'four',
@@ -30,7 +30,7 @@ export const fourView: GameView<FourState, FourAction> = {
         d.className = 'ac-disc' + (who ? ' ac-p' + who : '') + (i === s.last ? ' ac-last' : '');
       });
       cols.forEach((b, c) => {
-        b.disabled = !myTurn || s.board[c] !== 0;
+        b.disabled = !myTurn || !canDrop(s, c);
       });
       wrap.classList.toggle('ac-waiting', !myTurn);
     };

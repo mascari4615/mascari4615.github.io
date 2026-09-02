@@ -10,6 +10,7 @@
  * 틀린 숫자는 **넣을 수는 있되 표시된다**. 못 넣게 막으면 그건 스도쿠가 아니라 힌트 놀이다.
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
+import { shuffle } from '../rng';
 
 export const N = 6;
 export const BOX_W = 3;
@@ -41,7 +42,7 @@ const boxOf = (c: number): number => Math.floor(rowOf(c) / BOX_H) * BOX_H + Math
 function solve(board: number[], rng: () => number): boolean {
   const at = board.indexOf(0);
   if (at < 0) return true;
-  const nums = [1, 2, 3, 4, 5, 6].sort(() => rng() - 0.5);
+  const nums = shuffle(rng, [1, 2, 3, 4, 5, 6]);
   for (const v of nums) {
     let ok = true;
     for (let i = 0; i < N * N; i++) {
@@ -67,7 +68,7 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
     solve(answer, ctx.rng);
     /* 답에서 구멍을 뚫는다. 모두 같은 문제를 받는다(경주니까). */
     const given = answer.slice();
-    const order = given.map((_, i) => i).sort(() => ctx.rng() - 0.5);
+    const order = shuffle(ctx.rng, given.map((_, i) => i));
     for (let k = 0; k < HOLES; k++) given[order[k]] = 0;
     return {
       answer,
