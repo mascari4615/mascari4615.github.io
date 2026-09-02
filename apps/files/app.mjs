@@ -612,7 +612,8 @@ function loadLaptop() {
     }
     crumb.innerHTML = crumbHtml(bits);
     if (!data.entries.length) {
-      box.innerHTML = '<p class="none">이 폴더는 비어 있습니다.</p>';
+      box.innerHTML = '<p class="none">이 폴더는 비어 있습니다.</p>' + laptopUploadHtml();
+      wireLaptopUpload(p);
       return;
     }
     box.innerHTML = listHead() + data.entries.map((e) => {
@@ -629,11 +630,58 @@ function loadLaptop() {
       if (e.view) acts += link(abs(e.view), '열기');
       if (e.get) acts += link(abs(e.get), '다운로드');
       return row(iconFor(e.name), esc(e.name), fmtSize(e.size), fmtTime(e.at), acts);
-    }).join('');
+    }).join('') + laptopUploadHtml();
+    wireLaptopUpload(p);
   }).catch((error) => {
     const detail = error instanceof Error ? error.message : String(error || 'unknown error');
     box.innerHTML = '<p class="err">내 PC에 연결할 수 없습니다.</p>' +
       '<p class="none">' + esc(detail) + '</p>';
+  });
+}
+
+// ── 내 PC 올리기 ──────────────────────────────────────────────────────────
+// 옛 laptop-ops HTML 화면에 있던 길. 화면 제거 (2026-09-03) 뒤 유일한 올리기 자리
+// 한 개씩 PUT. 폼(multipart)은 서버가 본문을 통째로 메모리에 올림. 실측 300MB 가 1.9GB
+function laptopUploadHtml() {
+  return '<form class="pc-up" id="pc-up">' +
+    '<input type="file" id="pc-up-file" multiple>' +
+    '<button type="submit">이 폴더에 올리기</button>' +
+    '<p class="none" id="pc-up-msg">같은 이름이면 덮지 않고 번호를 붙입니다. 실행 파일은 거부합니다.</p>' +
+    '</form>';
+}
+function wireLaptopUpload(dir) {
+  const form = document.getElementById('pc-up');
+  if (!form) return;
+  const input = document.getElementById('pc-up-file');
+  const msg = document.getElementById('pc-up-msg');
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+    const auth = laptopAuth();
+    if (!auth) {
+      showLaptopGate();
+      return;
+    }
+    const done = [];
+    const failed = [];
+    for (let i = 0; i < files.length; i += 1) {
+      const f = files[i];
+      msg.textContent = '올리는 중 (' + (i + 1) + '/' + files.length + ') ' + f.name;
+      try {
+        const r = await fetch(LAPTOP_API + '/files/api/put?p=' + encodeURIComponent(dir) + '&name=' + encodeURIComponent(f.name), {
+          method: 'PUT',
+          headers: { Authorization: auth },
+          body: f,
+        });
+        if (!r.ok) throw new Error(await r.text());
+        done.push((await r.json()).name);
+      } catch (e) {
+        failed.push(f.name + ' (' + String(e && e.message || e).slice(0, 40) + ')');
+      }
+    }
+    msg.textContent = (done.length ? '올렸습니다: ' + done.join(', ') : '') + (failed.length ? ' / 거부: ' + failed.join(', ') : '');
+    if (done.length) setTimeout(loadLaptop, 800);
   });
 }
 

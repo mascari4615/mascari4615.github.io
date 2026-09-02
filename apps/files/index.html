@@ -319,6 +319,11 @@ input.pick { width: 16px; height: 16px; accent-color: var(--accent); cursor: poi
   font: inherit; font-weight: 600; padding: 9px 20px; border-radius: 8px; cursor: pointer;
 }
 .gate button:hover { filter: brightness(1.08); }
+/* 내 PC 올리기. 목록 아래 한 줄 */
+.pc-up { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); }
+.pc-up input { flex: 1 1 200px; min-width: 0; color: var(--mute); font: inherit; font-size: .8rem; }
+.pc-up button { border: 0; background: var(--accent); color: #fff; font: inherit; font-size: .8rem; font-weight: 600; padding: 7px 12px; border-radius: 7px; cursor: pointer; }
+.pc-up .none { flex-basis: 100%; margin: 0; padding: 0; text-align: left; }
 
 .none, .err { padding: 44px 18px; color: var(--mute); text-align: center; }
 .err { color: var(--danger); }

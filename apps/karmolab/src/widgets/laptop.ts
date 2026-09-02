@@ -22,7 +22,8 @@ import { t, loadNamespace } from '../lib/i18n';
      파일이 읽히는 순간 `t()` 를 부르면 아직 `loadNamespace` 전이라 되받을 글 없는 `t()` 가 던지고,
      그 묶음에 든 위젯이 통째로 안 올라간다(화면엔 오류도 안 뜬다). 부르는 시점을 늦춘다. */
   const doorList = (): { href: string; icon: string; title: string; desc: string }[] => [
-    { href: `${BASE}/files`, icon: '📁', title: t('laptop.t03'), desc: t('laptop.t04') },
+    // 파일: Files 앱 내 PC 탭. 옛 laptop-ops HTML 화면은 2026-09-03 제거
+    { href: 'https://files.mascari4615.com/#laptop/', icon: '📁', title: t('laptop.t03'), desc: t('laptop.t04') },
     { href: `${BASE}/builds`, icon: '🧱', title: t('laptop.t05'), desc: t('laptop.t06') },
     { href: BASE, icon: '🏠', title: t('laptop.t07'), desc: t('laptop.t08') },
   ];
