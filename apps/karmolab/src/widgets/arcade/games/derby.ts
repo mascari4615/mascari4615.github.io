@@ -14,7 +14,7 @@
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
 const HORSES = 5;
-const TRACK = 16;
+export const TRACK = 16;
 const ROUNDS = 3;
 const PURSE = 100;
 /** 한 걸음 나아가는 데 걸리는 시간 */

@@ -399,6 +399,9 @@
 /* 손패 고르기 줄. 바닥(밝은 나무) 위에 뜨므로 어두운 띠를 깔고, 좌하단 자리 카드를 비켜 선다 (대부호 입체) */
 .ac-root .ac-bjacts.ac-tbacts{left:330px;right:16px;bottom:14px;padding:8px 12px;border-radius:12px;background:rgba(16,10,6,.58);backdrop-filter:blur(3px)}
 /* 고른 끗수. 대부호 입체의 손패 버튼 */
+/* 경마 입체. 걸 돈 띠는 한 줄 다 차지, 말 버튼은 그 아래 한 줄 */
+.ac-root .ac-bjacts .ac-dbamt{width:100%;margin:0 0 2px}
+.ac-root .ac-bjacts .ac-dbamt input[type=range]{width:min(280px,60%)}
 .ac-root .ac-bjacts .ac-bjbtn.ac-on{border-color:#e6bd7a;box-shadow:0 0 0 2px rgba(230,189,122,.6);color:#f2d28b}
 .ac-bjbtn{padding:9px 20px;border:0;border-radius:var(--radius-pill);background:linear-gradient(180deg,#8a6a3a,#5d4522);color:#fdf6e6;font-size:var(--font-size-md);font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.4)}
 .ac-bjbtn.ac-ghost{background:rgba(30,26,20,.7);color:#e8dcc4;box-shadow:0 4px 12px rgba(0,0,0,.35)}

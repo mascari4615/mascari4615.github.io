@@ -309,7 +309,7 @@
     "view": "derby-view",
     "defVar": "derby",
     "viewVar": "derbyView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "curling",

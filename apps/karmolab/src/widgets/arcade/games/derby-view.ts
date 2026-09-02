@@ -7,14 +7,11 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { mountTable } from '../table2d';
-import { SEAT_COLOR } from '../paint';
-import { odds, type DerbyState, type DerbyAction } from './derby';
+import { horseSvg } from '../horse';
+import { odds, TRACK, type DerbyState, type DerbyAction } from './derby';
 
 /** 말마다 색 표. 이름 대신 색으로 부름 */
 const SILK = ['🟥', '🟦', '🟩', '🟨', '🟪'];
-/** 경주로 위의 말. 색 네모 대신 달리는 실루엣 (감사 C3). 기수 색은 자리 팔레트 */
-const horseSvg = (i: number): string =>
-  '<svg viewBox="0 0 64 40" width="46" height="29" aria-hidden="true"><path fill="' + SEAT_COLOR[i % SEAT_COLOR.length] + '" d="M6 30c3-8 9-12 17-12h12c4 0 7-2 9-5l4-6 4 2-2 6 8 1c3 0 5 2 5 5v6h-5l-2-4-6 1-2 8h-5l1-7h-9l-3 7h-5l2-8c-6 0-10 2-13 9z"/><path fill="' + SEAT_COLOR[i % SEAT_COLOR.length] + '" opacity=".55" d="M2 33c4-4 8-6 13-6l-3 5z"/></svg>';
 
 export const derbyView: GameView<DerbyState, DerbyAction> = {
   id: 'derby',
@@ -59,7 +56,7 @@ export const derbyView: GameView<DerbyState, DerbyAction> = {
       }
       s.horses.forEach((h, i) => {
         const row = rows[i];
-        const pct = Math.min(100, (h.at / 24) * 100);
+        const pct = Math.min(100, (h.at / TRACK) * 100);
         (row.querySelector('.ac-dblane i') as HTMLElement).style.left = pct + '%';
         const o = '×' + odds(s.horses, i);
         const oddsEl = row.querySelector('.ac-dbodds') as HTMLElement;
