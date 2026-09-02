@@ -118,17 +118,22 @@ function lineValueRaw(s: string): number {
 /** 겹침 평가를 켜나. 단계가 정한다(`think` 가 매번 놓음). 3, 4단계는 옛 평가가 더 셌다(실측: 켜니 4 대 3 이 77 -> 47) */
 let comboOn = false;
 
-/** 줄 하나의 위협 수. 겹침(사삼, 삼삼)을 보려면 줄마다 넷과 열린 셋이 몇인지 알아야 한다 */
+/**
+ * 줄 하나의 위협 수. 겹침(사삼, 삼삼)을 보려면 줄마다 넷과 열린 셋이 몇인지 알아야 함
+ * 묶음: 열린 넷 << 8, 넷 << 4, 열린 셋. 열린 넷은 다섯이 되는 칸이 둘이라 따로 센다(잎의 코앞 판정에 씀)
+ */
 const THREATS = new Map<string, number>();
 function lineThreats(s: string): number {
   const hit = THREATS.get(s);
   if (hit !== undefined) return hit;
-  const fours = count(P_OPEN4, s) + count(P_FOUR, s);
-  const threes = count(P_OPEN3, s);
-  const v = fours * 16 + threes;
+  const v = (count(P_OPEN4, s) << 8) | (count(P_FOUR, s) << 4) | count(P_OPEN3, s);
   if (THREATS.size < 200000) THREATS.set(s, v);
   return v;
 }
+const foursOf = (t: number): number => ((t >> 8) & 15) + ((t >> 4) & 15);
+const threesOf = (t: number): number => t & 15;
+/** 다섯이 되는 빈 칸 수. 열린 넷은 둘, 넷은 하나 */
+const fiveCellsOf = (t: number): number => ((t >> 8) & 15) * 2 + ((t >> 4) & 15);
 
 /**
  * 판 전체를 한 색의 눈으로 매긴 값. 줄마다 글자로 옮겨 잼
@@ -151,8 +156,8 @@ function sideValue(b: number[], n: number, who: number): number {
     total += lineValue(s);
     if (!comboOn) continue;
     const th = lineThreats(s);
-    fours += th >> 4;
-    threes += th & 15;
+    fours += foursOf(th);
+    threes += threesOf(th);
   }
   if (comboOn && total < WEIGHT.open4) {
     if (fours >= 2 || (fours >= 1 && threes >= 1)) total += WEIGHT.open4 * 0.8;
@@ -168,6 +173,170 @@ function evaluate(b: number[], n: number, who: number, toMove: number): number {
   const mine = sideValue(b, n, who);
   const theirs = sideValue(b, n, 3 - who);
   return toMove === who ? mine * 1.15 - theirs : mine - theirs * 1.15;
+}
+
+/* ── 증분 평가 ── 돌 하나가 바뀌면 그 칸을 지나는 줄 넷만 다시 잰다 (감사 D5, 2026-09-03)
+   잎마다 일흔두 줄을 두 색으로 다시 글자로 옮기던 것이 5단계 한 수 최대 312ms 였다.
+   값은 `evaluate` 와 같다(정수 합이라 순서가 달라도 같은 수). 탐색이 놓고 거두는 길만 이 손을 탄다 */
+const CELL_LINES = new Map<number, number[][]>();
+function cellLinesOf(n: number): number[][] {
+  let hit = CELL_LINES.get(n);
+  if (hit) return hit;
+  const ls = linesOf(n);
+  hit = Array.from({ length: n * n }, () => [] as number[]);
+  ls.forEach((line, li) => line.forEach((c) => hit![c].push(li)));
+  CELL_LINES.set(n, hit);
+  return hit;
+}
+
+/** 줄을 숫자 열쇠로. 글자보다 싸다(잎마다 글자를 만들면 그 할당이 비용). 3진수, 17칸이면 1.3억 안 */
+const LINE_MEMO = new Map<number, number>();
+const LINE_THR = new Map<number, number>();
+
+class Eval {
+  private readonly lines: number[][];
+  private readonly cellLines: number[][];
+  /* 색마다(1, 2) 줄마다 값과 위협 수 */
+  private readonly val: [Float64Array, Float64Array];
+  private readonly thr: [Int32Array, Int32Array];
+  private readonly total = [0, 0];
+  private readonly fours = [0, 0];
+  private readonly threes = [0, 0];
+  private readonly fiveCells = [0, 0];
+  /* 되돌리기 더미. 줄 하나에 (줄 번호, 색, 옛 값, 옛 위협) 넷 */
+  private readonly stack: number[] = [];
+  /** 칸 둘레의 돌 열기(`heat` 와 같은 값). 놓고 거둘 때 스물넷 칸만 고침 */
+  readonly heat: Int16Array;
+
+  constructor(private readonly b: number[], private readonly n: number) {
+    this.lines = linesOf(n);
+    this.cellLines = cellLinesOf(n);
+    const L = this.lines.length;
+    this.val = [new Float64Array(L), new Float64Array(L)];
+    this.thr = [new Int32Array(L), new Int32Array(L)];
+    this.heat = new Int16Array(n * n);
+    for (let li = 0; li < L; li += 1) {
+      for (let k = 0; k < 2; k += 1) this.measure(li, k);
+    }
+    for (let c = 0; c < n * n; c += 1) if (b[c] > 0) this.warm(c, 1);
+  }
+
+  /** 돌 하나가 둘레에 주는 열기. 안쪽 여덟 칸 3, 바깥 열여섯 칸 1 */
+  private warm(cell: number, sign: number): void {
+    const n = this.n;
+    const x = cell % n;
+    const y = (cell - x) / n;
+    for (let dy = -2; dy <= 2; dy += 1) {
+      const yy = y + dy;
+      if (yy < 0 || yy >= n) continue;
+      for (let dx = -2; dx <= 2; dx += 1) {
+        if (!dx && !dy) continue;
+        const xx = x + dx;
+        if (xx < 0 || xx >= n) continue;
+        const inner = dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1;
+        this.heat[yy * n + xx] += (inner ? 3 : 1) * sign;
+      }
+    }
+  }
+
+  /** 줄 하나를 한 색의 눈으로 다시 재서 합계에 반영 */
+  private measure(li: number, k: number): void {
+    const who = k + 1;
+    const line = this.lines[li];
+    const b = this.b;
+    let key = 2;
+    let any = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const c = b[line[i]];
+      const d = c === 0 ? 0 : c === who ? 1 : 2;
+      if (d === 1) any = true;
+      key = key * 3 + d;
+    }
+    let v = 0;
+    let t = 0;
+    if (any) {
+      const hv = LINE_MEMO.get(key);
+      if (hv !== undefined) {
+        v = hv;
+        t = LINE_THR.get(key) as number;
+      } else {
+        let s = 'o';
+        for (let i = 0; i < line.length; i += 1) {
+          const c = b[line[i]];
+          s += c === 0 ? '_' : c === who ? 'x' : 'o';
+        }
+        s += 'o';
+        v = lineValue(s);
+        t = lineThreats(s);
+        if (LINE_MEMO.size < 300000) {
+          LINE_MEMO.set(key, v);
+          LINE_THR.set(key, t);
+        }
+      }
+    }
+    const old = this.val[k][li];
+    const oldT = this.thr[k][li];
+    this.total[k] += v - old;
+    this.fours[k] += foursOf(t) - foursOf(oldT);
+    this.threes[k] += threesOf(t) - threesOf(oldT);
+    this.fiveCells[k] += fiveCellsOf(t) - fiveCellsOf(oldT);
+    this.val[k][li] = v;
+    this.thr[k][li] = t;
+  }
+
+  place(cell: number, who: number): void {
+    const ls = this.cellLines[cell];
+    for (const li of ls) {
+      for (let k = 0; k < 2; k += 1) this.stack.push(li, k, this.val[k][li], this.thr[k][li]);
+    }
+    this.b[cell] = who;
+    this.warm(cell, 1);
+    for (const li of ls) for (let k = 0; k < 2; k += 1) this.measure(li, k);
+  }
+
+  undo(cell: number): void {
+    this.b[cell] = 0;
+    this.warm(cell, -1);
+    const ls = this.cellLines[cell];
+    for (let i = ls.length * 2; i > 0; i -= 1) {
+      const t = this.stack.pop() as number;
+      const v = this.stack.pop() as number;
+      const k = this.stack.pop() as number;
+      const li = this.stack.pop() as number;
+      const oldT = this.thr[k][li];
+      this.total[k] += v - this.val[k][li];
+      this.fours[k] += foursOf(t) - foursOf(oldT);
+      this.threes[k] += threesOf(t) - threesOf(oldT);
+      this.fiveCells[k] += fiveCellsOf(t) - fiveCellsOf(oldT);
+      this.val[k][li] = v;
+      this.thr[k][li] = t;
+    }
+  }
+
+  /** 이 색이 다음 수에 다섯을 만들 수 있는 빈 칸 수(패턴으로 센 근사. 렌주 금수는 안 뺀다) */
+  fives(who: number): number {
+    return this.fiveCells[who - 1];
+  }
+
+  /** `sideValue` 와 같은 값 */
+  side(who: number): number {
+    const k = who - 1;
+    let total = this.total[k];
+    if (comboOn && total < WEIGHT.open4) {
+      const fours = this.fours[k];
+      const threes = this.threes[k];
+      if (fours >= 2 || (fours >= 1 && threes >= 1)) total += WEIGHT.open4 * 0.8;
+      else if (threes >= 2) total += WEIGHT.open4 * 0.4;
+    }
+    return total;
+  }
+
+  /** `evaluate` 와 같은 값 */
+  evaluate(who: number, toMove: number): number {
+    const mine = this.side(who);
+    const theirs = this.side(3 - who);
+    return toMove === who ? mine * 1.15 - theirs : mine - theirs * 1.15;
+  }
 }
 
 function at(b: number[], n: number, x: number, y: number): number {
@@ -223,17 +392,29 @@ function pointValue(b: number[], n: number, cell: number, who: number): number {
   let v = 0;
   for (const side of [who, 3 - who]) {
     for (const [dx, dy] of LINE_DIRS) {
-      let s = '';
+      /* 아홉 칸 창을 숫자 열쇠로 먼저 찾고, 없을 때만 글자를 만든다 (프로파일 21%) */
+      let key = 0;
       for (let k = -4; k <= 4; k += 1) {
         const c = k === 0 ? side : at(b, n, x + dx * k, y + dy * k);
-        s += c === 0 ? '_' : c === side ? 'x' : 'o';
+        key = key * 3 + (c === 0 ? 0 : c === side ? 1 : 2);
       }
-      const lv = lineValue('o' + s + 'o');
+      let lv = WINDOW_MEMO.get(key);
+      if (lv === undefined) {
+        let s = '';
+        for (let k = -4; k <= 4; k += 1) {
+          const c = k === 0 ? side : at(b, n, x + dx * k, y + dy * k);
+          s += c === 0 ? '_' : c === side ? 'x' : 'o';
+        }
+        lv = lineValue('o' + s + 'o');
+        WINDOW_MEMO.set(key, lv);
+      }
       v += side === who ? lv : lv * 0.9;
     }
   }
   return v;
 }
+/** 아홉 칸 창의 값. 열쇠는 3진수 아홉 자리(2만 안) */
+const WINDOW_MEMO = new Map<number, number>();
 
 export interface Ask {
   board: number[];
@@ -262,11 +443,12 @@ function heat(b: number[], n: number, cell: number): number {
 }
 
 /** 둘 만한 자리. 돌 둘레 두 칸, 금수 제외. 체로 2배를 거르고 값으로 줄 세운다 */
-function candidates(b: number[], n: number, who: number, banned: Set<number>, width: number): number[] {
+function candidates(b: number[], n: number, who: number, banned: Set<number>, width: number, ev?: Eval): number[] {
   const warm: Array<[number, number]> = [];
   for (let c = 0; c < n * n; c += 1) {
     if (b[c] !== 0 || banned.has(c)) continue;
-    const h = heat(b, n, c);
+    /* 열기는 증분 평가가 들고 있으면 그 표에서. 없으면 그 자리에서 센다 */
+    const h = ev ? ev.heat[c] : heat(b, n, c);
     if (h > 0) warm.push([c, h]);
   }
   warm.sort((p, q) => q[1] - p[1]);
@@ -437,38 +619,34 @@ function isBanned(b: number[], n: number, cell: number): boolean {
 /** 알파베타. `who` 의 눈으로 값을 돌려준다. 노드 예산이 다하면 그 자리 값으로 끊는다 */
 function search(
   b: number[], n: number, who: number, toMove: number, renju: boolean,
-  depth: number, alpha: number, beta: number, width: number, budget: { left: number }
+  depth: number, alpha: number, beta: number, width: number, budget: { left: number }, ev: Eval
 ): number {
   budget.left -= 1;
   if (depth <= 0 || budget.left <= 0) {
-    /* 잎이라도 코앞의 다섯은 본다. 둘 차례가 이기면 그 값, 상대가 넷을 들고 있고 내가 못 이기면 진 값 */
+    /* 잎이라도 코앞의 다섯은 본다. 둘 차례가 이기면 그 값, 상대가 넷을 들고 있고 내가 못 이기면 진 값
+       칸을 다 훑어 `winsAt` 을 부르던 것을 증분 평가의 넷 패턴 수로. 잎마다 450번 부르던 것이 사라짐(프로파일 27%) */
     const foeOf = 3 - toMove;
-    let mineFive = false;
-    let foeFives = 0;
-    for (let c = 0; c < n * n; c += 1) {
-      if (b[c] !== 0 || !near(b, n, c, 1)) continue;
-      if (!mineFive && winsAt(b, n, c, toMove, renju)) mineFive = true;
-      if (foeFives < 2 && winsAt(b, n, c, foeOf, renju)) foeFives += 1;
-    }
+    const mineFive = ev.fives(toMove) > 0;
+    const foeFives = ev.fives(foeOf);
     const sign = toMove === who ? 1 : -1;
     if (mineFive) return sign * WEIGHT.five * 5;
     /* 상대의 넷 하나는 막으면 그만이다. 둘(열린 넷, 사사)은 못 막는다. 하나를 진 것으로 치면 넷만 보면 도망친다(실측: 4단계가 2단계에 25%) */
     if (foeFives >= 2) return -sign * WEIGHT.five * 5;
-    return evaluate(b, n, who, toMove);
+    return ev.evaluate(who, toMove);
   }
   const banned = new Set<number>();
   if (renju && toMove === 1) {
     for (let c = 0; c < n * n; c += 1) if (b[c] === 0 && near(b, n, c, 2) && isBanned(b, n, c)) banned.add(c);
   }
-  const moves = candidates(b, n, toMove, banned, width);
-  if (!moves.length) return evaluate(b, n, who, toMove);
+  const moves = candidates(b, n, toMove, banned, width, ev);
+  if (!moves.length) return ev.evaluate(who, toMove);
   const mine = toMove === who;
   let best = mine ? -Infinity : Infinity;
   for (const c of moves) {
     if (winsAt(b, n, c, toMove, renju)) return mine ? WEIGHT.five * 10 + depth : -(WEIGHT.five * 10 + depth);
-    b[c] = toMove;
-    const v = search(b, n, who, 3 - toMove, renju, depth - 1, alpha, beta, width, budget);
-    b[c] = 0;
+    ev.place(c, toMove);
+    const v = search(b, n, who, 3 - toMove, renju, depth - 1, alpha, beta, width, budget, ev);
+    ev.undo(c);
     if (mine) {
       if (v > best) best = v;
       if (best > alpha) alpha = best;
@@ -540,7 +718,8 @@ export function think(ask: Ask): number {
   }
 
   /* 알파베타. 뿌리에서는 후보를 조금 더 넓게 */
-  const moves = candidates(b, n, who, banned, plan.width + 2);
+  const ev = new Eval(b, n);
+  const moves = candidates(b, n, who, banned, plan.width + 2, ev);
   /**
    * 반복 심화. 2, 4, ... 깊이로 올라가며, **뿌리 후보마다 예산을 똑같이** 나눔.
    * 한 예산을 나눠 쓰면 앞 후보가 다 먹고 뒤 후보는 얕은 값으로 비교돼 엉뚱한 수가 뽑힘
@@ -552,9 +731,9 @@ export function think(ask: Ask): number {
     let starved = false;
     const round: Array<[number, number]> = moves.map((c) => {
       const budget = { left: per };
-      b[c] = who;
-      const v = search(b, n, who, foe, renju, d - 1, -Infinity, Infinity, plan.width, budget);
-      b[c] = 0;
+      ev.place(c, who);
+      const v = search(b, n, who, foe, renju, d - 1, -Infinity, Infinity, plan.width, budget, ev);
+      ev.undo(c);
       if (budget.left <= 0) starved = true;
       return [c, v];
     });
