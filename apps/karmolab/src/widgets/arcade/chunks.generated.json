@@ -13,7 +13,7 @@
     "view": "speed-view",
     "defVar": "speed",
     "viewVar": "speedView",
-    "d3": false
+    "d3": true
   },
   {
     "id": "airhockey",

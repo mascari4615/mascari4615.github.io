@@ -22,7 +22,7 @@ export interface GameCard {
 /** 감춘 것까지 전부. 이름표를 찾을 때만 쓴다 */
 export const ALL_CARDS: GameCard[] = [
   { id: 'reflex', icon: '⚡', kind: 'quick', seats: [2, 8], realtime: true, chunk: 'reflex', hidden: true },
-  { id: 'speed', icon: '⚡', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'speed' },
+  { id: 'speed', icon: '⚡', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'speed', d3: true },
   { id: 'airhockey', icon: '🏒', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'airhockey', hidden: true },
   { id: 'pong', icon: '🏓', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'pong', hidden: true },
   { id: 'whack', icon: '🐹', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'whack', hidden: true },
