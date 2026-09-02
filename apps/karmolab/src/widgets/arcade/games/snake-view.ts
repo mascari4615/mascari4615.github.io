@@ -5,10 +5,9 @@
  * 방향은 누름이 아니라 상태라, 한 번 쓸면 바꿀 때까지 그대로 간다.
  */
 import type { GameView } from '../views';
-import { orb, shade } from '../paint';
+import { orb, shade, SEAT_COLOR } from '../paint';
 import { W, H, type SnakeState, type SnakeAction } from './snake';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
 
 export const snakeView: GameView<SnakeState, SnakeAction> = {
   id: 'snake',

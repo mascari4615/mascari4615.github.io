@@ -10,10 +10,9 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import { ice, orb } from '../paint';
+import { ice, orb, SEAT_COLOR } from '../paint';
 import { W, H, TEE, HOUSE_R, R, type CurlingState, type CurlingAction } from './curling';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
 
 export const curlingView: GameView<CurlingState, CurlingAction> = {
   id: 'curling',

@@ -5,11 +5,11 @@
  * 커널이 이걸 그대로 받는지 보려고 넣었다. 게임마다 한 수의 모양이 다르다는 것을 증명하는 자리.
  */
 import type { GameDef, BotMove } from '../types';
+import { LINE_DIRS } from '../grid';
 
 export const W = 7;
 export const H = 6;
 const NEED = 4;
-const DIRS: Array<[number, number]> = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
 export interface FourState {
   /** 0 = 빈 칸, 1, 2 = 자리 번호+1. `y=0` 이 맨 위 */
@@ -38,7 +38,7 @@ export const canDrop = (s: FourState, col: number): boolean => drop(s.board, col
 function wins(b: number[], cell: number, who: number): boolean {
   const x = cell % W;
   const y = Math.floor(cell / W);
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of LINE_DIRS) {
     let n = 1;
     for (let k = 1; k < NEED; k++) { if (at(b, x + dx * k, y + dy * k) === who) n++; else break; }
     for (let k = 1; k < NEED; k++) { if (at(b, x - dx * k, y - dy * k) === who) n++; else break; }

@@ -8,6 +8,7 @@
  * 랠리가 길어질수록 공이 빨라진다. 안 그러면 잘하는 둘이 붙었을 때 판이 안 끝난다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { duel } from '../grid';
 
 export const W = 80;
 export const H = 120;
@@ -119,7 +120,7 @@ export const pong: GameDef<PongState, PongAction> = {
     const win = s.score[0] > s.score[1] ? 0 : 1;
     return {
       over: true,
-      scores: win === 0 ? [1, 0] : [0, 1],
+      scores: duel(win),
       note: {
         key: 'arcade.pong.win',
         params: {

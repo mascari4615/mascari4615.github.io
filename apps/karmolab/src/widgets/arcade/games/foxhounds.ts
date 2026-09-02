@@ -10,6 +10,7 @@
  * 개는 앞으로만, 여우는 아무 대각선으로. 8×8 어두운 칸만 쓴다(체커와 같은 판).
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { grid } from '../grid';
 
 export const N = 8;
 
@@ -28,8 +29,7 @@ export interface FoxState {
 
 export type FoxAction = { from: number; to: number };
 
-const xy = (c: number): [number, number] => [c % N, Math.floor(c / N)];
-const idx = (x: number, y: number): number => (x < 0 || y < 0 || x >= N || y >= N ? -1 : y * N + x);
+const { xy, idx } = grid(N);
 
 /** 그 말이 갈 수 있는 곳. 여우(0)는 네 방향, 개(1)는 여우 쪽(위)으로만. */
 export function moves(s: FoxState, from: number, seat: number): number[] {

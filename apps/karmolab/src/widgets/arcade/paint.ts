@@ -101,3 +101,6 @@ export function shade(hex: string, amt: number): string {
   );
   return '#' + ch.map((v) => v.toString(16).padStart(2, '0')).join('');
 }
+
+/** 자리 색 여섯. 화면 여덟이 각자 적던 팔레트 (2026-09-02 감사 B4) */
+export const SEAT_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#06b6d4'] as const;

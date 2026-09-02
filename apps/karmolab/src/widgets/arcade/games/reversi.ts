@@ -6,11 +6,9 @@
  * 양쪽 다 둘 데가 없으면 끝. 커널은 이걸 모른다. 게임이 제 차례를 갖기 때문에 그냥 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { DIRS8, duel } from '../grid';
 
 export const N = 8;
-const DIRS: Array<[number, number]> = [
-  [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]
-];
 
 export interface ReversiState {
   /** 0 = 빈 칸, 1, 2 = 자리 번호+1 */
@@ -33,7 +31,7 @@ export function flips(b: number[], cell: number, who: number): number[] {
   const y = Math.floor(cell / N);
   const foe = 3 - who;
   const out: number[] = [];
-  for (const [dx, dy] of DIRS) {
+  for (const [dx, dy] of DIRS8) {
     const line: number[] = [];
     for (let k = 1; k < N; k++) {
       const v = at(b, x + dx * k, y + dy * k);
@@ -117,7 +115,7 @@ export const reversi: GameDef<ReversiState, ReversiAction> = {
     const win = mine > yours ? 0 : 1;
     return {
       over: true,
-      scores: win === 0 ? [1, 0] : [0, 1],
+      scores: duel(win),
       note: {
         key: 'arcade.reversi.win',
         params: { who: ctx.seats[win]?.name ?? '', a: String(Math.max(mine, yours)), b: String(Math.min(mine, yours)) }

@@ -11,6 +11,7 @@
  * 첫 판에서 배울 것이 두 배가 된다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { grid } from '../grid';
 
 export const N = 5;
 
@@ -33,7 +34,7 @@ export type ShogiAction =
   | { kind: 'move'; from: number; to: number }
   | { kind: 'drop'; piece: number; to: number };
 
-const xy = (c: number): [number, number] => [c % N, Math.floor(c / N)];
+const { xy } = grid(N);
 const at = (x: number, y: number): number => (x < 0 || y < 0 || x >= N || y >= N ? -1 : y * N + x);
 const ownerOf = (p: Piece): number => (p === 0 ? -1 : p > 0 ? 0 : 1);
 const kindOf = (p: Piece): number => Math.abs(p);

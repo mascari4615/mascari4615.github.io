@@ -6,10 +6,9 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import { felt, orb, woodRail } from '../paint';
+import { felt, orb, woodRail, SEAT_COLOR } from '../paint';
 import { W, H, BALL_R, POCKETS, type PoolState, type PoolAction } from './pool';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6', '#22c55e', '#eab308'];
 
 export const poolView: GameView<PoolState, PoolAction> = {
   id: 'pool',

@@ -6,10 +6,9 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import { shade } from '../paint';
+import { shade, SEAT_COLOR } from '../paint';
 import { W, H, type TanksState, type TanksAction } from './tanks';
 
-const SEAT_COLOR = ['#ef4444', '#3b82f6'];
 
 export const tanksView: GameView<TanksState, TanksAction> = {
   id: 'tanks',

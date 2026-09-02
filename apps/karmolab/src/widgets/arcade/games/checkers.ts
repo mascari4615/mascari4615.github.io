@@ -9,6 +9,7 @@
  * 막히는 자리라, 오락실 첫 판에는 안 맞는다.
  */
 import type { GameDef, BotMove, Outcome } from '../types';
+import { grid } from '../grid';
 
 export const N = 8;
 
@@ -34,8 +35,7 @@ export type CheckersAction = { from: number; to: number };
 
 const owner = (v: number): number => (v === 0 ? -1 : v === 1 || v === 3 ? 0 : 1);
 const isKing = (v: number): boolean => v >= 3;
-const xy = (c: number): [number, number] => [c % N, Math.floor(c / N)];
-const idx = (x: number, y: number): number => (x < 0 || y < 0 || x >= N || y >= N ? -1 : y * N + x);
+const { xy, idx } = grid(N);
 
 /** 이 말이 갈 수 있는 곳들. `jumpOnly` 면 뛰는 수만. */
 export function movesFrom(b: number[], from: number, jumpOnly = false): CheckersAction[] {
