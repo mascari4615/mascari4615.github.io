@@ -46,6 +46,8 @@ interface AccountSummary {
 const API_BASE =
     (typeof window !== 'undefined' && (window as { KARMOLAB_API_BASE?: string }).KARMOLAB_API_BASE) ||
     'https://yawnbot.mascari4615.com';
+/** Files 화면 정본 주소. 앱은 Tauri `files_navigate` 로 창 전환, 웹은 이 링크 */
+const FILES_URL = 'https://files.mascari4615.com/';
 const USER_DATA_KEY = 'toolbox_user_data';
 
 /** 서버를 기다리다 화면이 멈추면 안 된다. 이 시간을 넘기면 없는 셈 친다. */
@@ -661,6 +663,18 @@ function mountHeaderAccount(): void {
     };
     const isDark = (): boolean => document.documentElement.getAttribute('data-theme') !== 'light';
 
+    /** Files 줄. 웹, 폰에서도 표시 (2026-09-03, 사용자 결정)
+     *  - 전에는 앱 전용. 머리띠 버튼이 Tauri 호출(`files_navigate`)에 묶여 앱만 켰고 메뉴가 그 버튼을 대신 클릭
+     *  - 웹은 주소 하나로 충분. 문은 Cloudflare Access 몫, 여기서 가릴 이유 없음
+     *  - 앱: 머리띠 버튼 클릭. 웹: 같은 탭 이동
+     *  - 돌아오는 길: Files 화면 `← KarmoLab` (앱, 웹 공통) */
+    const filesMenuItem = (): string => {
+        const viaApp = isDesktop() && document.getElementById('filesBtn')?.style.display !== 'none';
+        return viaApp
+            ? `<button type="button" role="menuitem" data-files>${ICON.folder}<span>Files</span></button>`
+            : `<a role="menuitem" href="${FILES_URL}" data-files-web>${ICON.folder}<span>Files</span></a>`;
+    };
+
     /** 안 읽은 알림 수. 종 버튼의 점에서 읽는다. 없으면 빈 글 */
     const bellCountText = (): string => {
         const n = document.querySelector('#headerBell .kl-bell-dot')?.textContent?.trim();
@@ -718,7 +732,7 @@ function mountHeaderAccount(): void {
                        <div class="kam-group">
                            ${document.querySelector('#headerBell .kl-bell-btn') ? `<button type="button" role="menuitem" data-bell>${ICON.bell}<span>${esc(t('account.menu.bell'))}</span>${bellCountText()}</button>` : ''}
                            ${document.getElementById('klChatDock') ? `<button type="button" role="menuitem" data-chat>${ICON.chat}<span>${esc(t('account.menu.chat'))}</span></button>` : ''}
-                           ${isDesktop() && document.getElementById('filesBtn')?.style.display !== 'none' ? `<button type="button" role="menuitem" data-files>${ICON.folder}<span>Files</span></button>` : ''}
+                           ${filesMenuItem()}
                            <button type="button" role="menuitem" data-go="linktree">${ICON.mail}<span>${esc(t('account.menu.links'))}</span></button>
                        </div>
                        ${me || canAccount ? `<div class="kam-group kam-foot">
@@ -742,6 +756,11 @@ function mountHeaderAccount(): void {
         closeThen('[data-bell]', () => (document.querySelector('#headerBell .kl-bell-btn') as HTMLElement | null)?.click());
         closeThen('[data-chat]', () => document.getElementById('klChatDock')?.click());
         closeThen('[data-files]', () => document.getElementById('filesBtn')?.click());
+        /* 웹 Files 줄은 링크. 기본 이동 유지, 메뉴만 닫음 (Ctrl 클릭, 새 탭 보존) */
+        slot.querySelector('[data-files-web]')?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            menuOpen = false;
+        });
         slot.querySelector('[data-signin]')?.addEventListener('click', () => KarmoAccount.signIn());
         slot.querySelector('[data-passkey-in]')?.addEventListener('click', () => {
             void KarmoAccount.signInWithPasskey();

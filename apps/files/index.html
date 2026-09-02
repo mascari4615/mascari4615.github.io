@@ -63,14 +63,15 @@ body {
 }
 .topbar .logo svg { width: 15px; height: 15px; }
 
-/* 데스크톱 전용 이동 손잡이. 웹에서는 안 그린다 */
-/* 데스크톱 전용 손잡이. 상단바 오른쪽에 붙어 카모랩 헤더와 같은 결로 놓인다.
-   따로 한 줄을 차지하면 화면에서 떠 보인다. */
+/* 이동 버튼 묶음. 상단바 오른쪽, 카모랩 헤더와 같은 결
+   따로 한 줄이면 화면에서 떠 보임
+   웹, 폰: `← KarmoLab` 링크 하나. 앱: 새 창, 창 버튼 추가 */
 .desknav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .desknav .go {
   border: 0; background: transparent; color: var(--mute);
   font: inherit; font-size: .8rem; font-weight: 600;
   padding: 5px 10px; border-radius: 7px; cursor: pointer;
+  text-decoration: none; display: inline-flex; align-items: center;
 }
 .desknav .go:hover { color: var(--ink); background: var(--surface-2); }
 .desknav .nav-gap { width: 8px; }

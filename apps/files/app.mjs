@@ -367,16 +367,20 @@ function isDesktop() {
   return typeof globalThis.__TAURI__?.core?.invoke === 'function';
 }
 
-// 데스크톱에서는 이 화면이 카모랩 창을 갈아탄 자리다. 돌아갈 길과 따로 띄울 길을 준다.
-// 웹에서는 둘 다 뜻이 없으므로 아예 안 그린다.
+// 카모랩 복귀 주소. 앱은 Tauri 가 전환 직전 주소를 기억, 웹은 정본 주소
+const KARMOLAB_WEB_URL = 'https://blog.mascari4615.com/karmolab/';
+
+// 데스크톱: 이 화면이 카모랩 창을 갈아탄 자리. 돌아갈 길 + 따로 띄울 길
+// 웹, 폰: 돌아갈 길만 (2026-09-03). 카모랩 계정 메뉴가 웹에서도 여기로 보냄
+// 뒤로가기 불가: 폴더 해시가 쌓여 한 칸씩만 이동. 새 창, 창 버튼은 앱 전용
 function mountDesktopNav() {
   const el = document.getElementById('desknav');
   if (!el) return;
+  el.hidden = false;
   if (!isDesktop()) {
-    el.hidden = true;
+    el.innerHTML = '<a class="go" id="nav-back" href="' + KARMOLAB_WEB_URL + '">← KarmoLab</a>';
     return;
   }
-  el.hidden = false;
   // 아이콘은 카모랩 셸의 창 버튼과 같은 모양이다. 같은 앱인데 결이 다르면 붙인 티가 난다.
   const ico = (d) =>
     '<svg viewBox="0 0 12 12" aria-hidden="true">' + d + '</svg>';
