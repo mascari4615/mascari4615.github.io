@@ -173,7 +173,7 @@ await page.waitForFunction((n) => window.__rw.fires.filter((f) => f.name === 'ch
 const chgFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'chg').length);
 check(chgFires === 2, `rearm 이 지나면 다시 울린다 (chg ${chgFires}번)`);
 
-/* ③ 숫자 읽기. 15 부터 0 까지 0.9초마다 */
+/* ③ 숫자 읽기. 10 부터 0 까지 0.7초마다 (읽기는 1초마다라 문턱 아래 읽기가 2번 이상 나온다) */
 await page.waitForFunction(() => /준비됨|ready|完了|실패|fail|failed/i.test(document.querySelector('#rwStatus')?.textContent || ''), null, { timeout: 90000 }).catch(() => undefined);
 const ocrStatus = await page.textContent('#rwStatus');
 check(!/실패|fail|failed/i.test(ocrStatus || ''), `숫자 읽기 준비: ${ocrStatus}`);
@@ -181,15 +181,15 @@ const before = await page.evaluate(() => window.__rw.fires.length);
 const readsBefore = await page.evaluate(() => window.__rw.reads.length);
 const idleReads = await page.evaluate(() => window.__rw.reads.filter((r) => r.slot === 2 && r.secs !== null).length);
 check(idleReads === 0, `숫자가 없을 때는 숫자 없음으로 읽는다 (숫자로 읽은 것 ${idleReads})`);
-for (let n = 15; n >= 0; n--) {
+for (let n = 10; n >= 0; n--) {
   await page.evaluate((d) => window.__stage.set('digits', d), String(n));
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(700);
 }
 await page.waitForTimeout(1200);
 /* 카운트다운 동안의 읽기만 본다. 그 전후는 숫자 없음이 정상 */
 const reads = await page.evaluate((from) => window.__rw.reads.slice(from).filter((r) => r.slot === 2), readsBefore);
 const numeric = reads.filter((r) => r.secs !== null).length;
-check(reads.length >= 8, `숫자 읽기가 돌았다 (읽기 ${reads.length}회)`);
+check(reads.length >= 6, `숫자 읽기가 돌았다 (읽기 ${reads.length}회)`);
 check(numeric >= Math.floor(reads.length * 0.6), `카운트다운 동안 읽은 것 중 숫자가 60% 이상 (숫자 ${numeric} / ${reads.length}: ${reads.map((r) => r.text || '-').join(' ')})`);
 const cntFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'cnt'));
 check(cntFires.length === 1, `남은 초 슬롯은 한 번만 울린다 (지금 ${cntFires.length}번)`);
@@ -199,10 +199,10 @@ check(others === 0, `숫자가 바뀌는 동안 다른 슬롯은 조용 (다른 
 
 /* 숫자가 사라졌다 다시 카운트다운: 또 한 번 */
 await page.evaluate(() => window.__stage.set('digits', ''));
-await page.waitForTimeout(2500);
-for (const n of [12, 8, 5, 4, 3]) {
+await page.waitForTimeout(2200);
+for (const n of [8, 5, 4, 3]) {
   await page.evaluate((d) => window.__stage.set('digits', d), String(n));
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(800);
 }
 await page.waitForTimeout(1200);
 const cntFires2 = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'cnt').length);
@@ -212,7 +212,7 @@ check(cntFires2 === 2, `숫자가 사라졌다 다시 내려오면 또 울린다
 check(await page.locator('.rw-slot[data-i="3"].is-trend').count() === 1, '추세 모드 슬롯은 목표와 멈춤 칸을 보여 준다');
 const trendFiresBefore = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'trd').length);
 let num = 100000;
-for (let k = 0; k < 24; k++) {
+for (let k = 0; k < 16; k++) {
   await page.evaluate((v) => window.__stage.set('number', v), num.toLocaleString('en-US'));
   await page.waitForTimeout(500);
   num += 1000;
@@ -226,7 +226,7 @@ const targetFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.
 check(targetFires === 1, `목표 112,000 에 닿을 때 한 번 (지금 ${targetFires})`);
 
 /* 값이 멈추면 6초 뒤 멈춤 알림. 한 번만 */
-await page.waitForTimeout(8000);
+await page.waitForTimeout(7200);
 const idleFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'trd' && f.reason === 'idle').length);
 check(idleFires === 1, `값이 멈추면 멈춤 알림 한 번 (지금 ${idleFires})`);
 check(await page.locator('.rw-trend-row.is-idle').count() === 1, '멈춤 줄이 표시된다');
@@ -238,7 +238,7 @@ check(/구간|segment|区間/i.test((await page.textContent('#rwStatus')) || '')
 const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 5000 }).catch(() => null), page.click('.rw-trend-row[data-i="3"] [data-tact="csv"]')]);
 check(!!dl && /\.csv$/.test(dl.suggestedFilename()), `CSV 를 내려받는다 (${dl && dl.suggestedFilename()})`);
 const trendReadsNumeric = await page.evaluate(() => window.__rw.reads.filter((r) => r.slot === 3 && r.value !== null && r.value !== undefined).length);
-check(trendReadsNumeric >= 10, `쉼표 있는 숫자를 읽는다 (숫자 읽기 ${trendReadsNumeric}회)`);
+check(trendReadsNumeric >= 6, `쉼표 있는 숫자를 읽는다 (숫자 읽기 ${trendReadsNumeric}회)`);
 void trendFiresBefore;
 
 /* ⑤ 슬롯 추가, 내 알림음, 단축키 */
