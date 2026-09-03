@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, devices } from 'playwright';
+import { WAIT } from './lib/waits.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const outDir = path.join(root, '.mobile-shots');
@@ -40,7 +41,7 @@ for (const id of ids) {
   await page.goto(url, { waitUntil: 'networkidle' });
   // 배포 전 수정안을 미리 보기 위한 주입 (실물 위에 CSS 만 덮어쓴다)
   if (injectCss) await page.addStyleTag({ content: injectCss });
-  await page.waitForFunction(() => document.fonts?.status === 'loaded', undefined, { timeout: 10000 });
+  await page.waitForFunction(() => document.fonts?.status === 'loaded', undefined, { timeout: WAIT });
 
   const audit = await page.evaluate(() => {
     const docW = document.documentElement.clientWidth;

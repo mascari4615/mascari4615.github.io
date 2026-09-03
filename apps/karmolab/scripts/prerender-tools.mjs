@@ -22,6 +22,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.resolve(root, '../blog/t');
@@ -107,7 +108,7 @@ async function drawOne(id) {
       }, undefined,
       { timeout: 30000 }
     );
-    await page.waitForFunction(() => document.fonts?.status === 'loaded', undefined, { timeout: 10000 });
+    await page.waitForFunction(() => document.fonts?.status === 'loaded', undefined, { timeout: WAIT });
     markup = await page.evaluate(() => {
       const host = document.getElementById('tool-pages');
       const active = host && host.querySelector('.tool-page.active');

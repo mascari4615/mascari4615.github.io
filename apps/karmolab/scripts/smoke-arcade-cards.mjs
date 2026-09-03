@@ -12,6 +12,7 @@
  */
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const GAMES = [
   'blackjack', 'solitaire', 'memory', 'speed', 'highlow', 'president',
@@ -61,7 +62,7 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       if (!view) return false;
       if (view.querySelector('canvas')) return true;
       return (view.textContent || '').trim().length > 6 && view.querySelectorAll('button').length > 0;
-    }, undefined, { timeout: 10000 });
+    }, undefined, { timeout: WAIT });
     const info = await page.evaluate(() => {
       const view = document.querySelector('#acView');
       const txt = (view?.textContent || '').trim().replace(/\s+/g, ' ');
@@ -162,7 +163,7 @@ if (!cantRun) {
       await page.click(`[data-obj="${game}"]`);
       await page.click(`[data-solo="${game}"]`);
       /* 짝맞추기는 손패가 없어 높이 0 이다. 보여야 함이 아니라 공용 상에 붙었나를 잰다. */
-      await page.waitForSelector('#acPlay.ac-table .ac-tb-hand', { state: 'attached', timeout: 10000 });
+      await page.waitForSelector('#acPlay.ac-table .ac-tb-hand', { state: 'attached', timeout: WAIT });
       if (game === 'hanafuda') {
         await page.waitForFunction(() => {
           window.__arcade.state.pending = { seat: window.__arcade.mySeat, pts: 5 };
@@ -190,7 +191,7 @@ if (!cantRun) {
       if (hit) overlaps.push(game);
       await page.click('#acMenu');
       await page.evaluate(() => document.querySelector('#acQuit')?.click());
-      await page.waitForSelector('#acLobby:visible', { timeout: 10000 });
+      await page.waitForSelector('#acLobby:visible', { timeout: WAIT });
     }
     check('내 자리 카드가 열 판의 손패와 행동 줄을 가리지 않는다', overlaps.length === 0, overlaps.join(', '));
   } catch (e) {

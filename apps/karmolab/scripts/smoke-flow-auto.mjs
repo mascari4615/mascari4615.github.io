@@ -12,6 +12,7 @@
  */
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const BASE = livePage('/');
 const problems = [];
@@ -43,7 +44,7 @@ const seed = async (auto) => {
     );
     window.dispatchEvent(new HashChangeEvent('hashchange'));
   }, auto);
-  await page.waitForSelector('.flow-bar', { timeout: 10000 });
+  await page.waitForSelector('.flow-bar', { timeout: WAIT });
 };
 
 const fireResult = () =>

@@ -10,6 +10,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -40,7 +41,7 @@ check((await page.locator('#tmCities .tm-city').count()) === 5, '도시 다섯�
 await page.fill('#pfText', '2026-09-01 오후 3시');
 await page.waitForFunction(
   () => /2026-09-01/.test(document.querySelector('.tm-face[data-face="날짜"] strong')?.textContent || ''), undefined,
-  { timeout: 10000 }
+  { timeout: WAIT }
 ).catch(() => {});
 const face = (k) => page.locator(`.tm-face[data-face="${k}"] strong`).innerText();
 check(/2026-09-01 \(화\)/.test(await face('날짜')), `요일까지 나온다 (지금 ${await face('날짜')})`);
@@ -56,13 +57,13 @@ check(/tm-bad|tm-meh/.test(ny), `같은 순간에 뉴욕은 편한 때가 아니
 
 /* ④ 못 알아들으면 **엉뚱한 날짜를 내밀지 않는다** */
 await page.fill('#pfText', '안녕하세요 반갑습니다');
-await page.waitForFunction(() => !!document.querySelector('#tmNone'), undefined, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#tmNone'), undefined, { timeout: WAIT }).catch(() => {});
 check((await page.locator('#tmNone').count()) === 1, '못 알아들으면 그렇다고 말한다');
 check((await page.locator('#tmFaces').count()) === 0, '못 알아들었으면 얼굴을 안 그린다');
 
 /* ⑤ 다시 알아듣는 것을 적으면 되살아난다 */
 await page.fill('#pfText', '3주 뒤');
-await page.waitForSelector('#tmFaces', { timeout: 10000 });
+await page.waitForSelector('#tmFaces', { timeout: WAIT });
 check((await page.locator('#tmFaces .tm-face').count()) === 6, '다시 적으면 되살아난다');
 check(/D-2[01]/.test(await face('D-Day')), `3주 뒤는 D-21 언저리 (지금 ${await face('D-Day')})`);
 
@@ -91,7 +92,7 @@ check(seoulEases.length >= 2, `한 도시 안에서도 편한 때, 자는 때가
 await page.locator('#tmGrid .tm-grid-row').nth(1).locator('.tm-cell[data-hour="10"]').click();
 await page.waitForFunction(
   () => /10:00/.test(document.querySelector('.tm-face[data-face="시각"] strong')?.textContent || ''), undefined,
-  { timeout: 10000 }
+  { timeout: WAIT }
 ).catch(() => {});
 const picked = await page.locator('.tm-face[data-face="시각"] strong').innerText();
 check(picked === '10:00', `격자를 누르면 그 시각으로 옮겨 간다 (지금 ${picked})`);

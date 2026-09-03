@@ -21,6 +21,7 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { WAIT } from './lib/waits.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = path.resolve(HERE, '..');
@@ -180,14 +181,14 @@ try {
   // ② 열면 오늘의 이름표가 있다. 이게 없으면 익명 규칙 자체가 안 붙은 것이다.
   await openChat(a.page);
   await openChat(b.page);
-  await a.page.waitForSelector('#klChatMe .klchat-who', { timeout: 10000 });
+  await a.page.waitForSelector('#klChatMe .klchat-who', { timeout: WAIT });
   const nameA = (await a.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   const nameB = (await b.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   check('이름표', /\S+\s\S+/.test(nameA), `이름표가 색 동물 모양이 아니다: ${JSON.stringify(nameA)}`);
   check('이름표', nameA !== nameB, `다른 사람인데 이름이 같다 (${nameA})`);
 
   // ③ 지금 여기가 둘을 센다. 흐르는 연결이 양쪽 다 붙었다는 증거다.
-  await a.page.waitForFunction(() => document.querySelector('#klChatHere')?.textContent === '2명', null, { timeout: 10000 });
+  await a.page.waitForFunction(() => document.querySelector('#klChatHere')?.textContent === '2명', null, { timeout: WAIT });
   check('사람 수', true, '');
 
   // ④ 한쪽이 친 말이 다른 쪽 화면에 뜬다. 이 검사의 핵심.

@@ -9,6 +9,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -45,7 +46,7 @@ check(!(await page.locator('#pfTip').isVisible()), '아직 아무것도 안 붙�
 await page.fill('#pfText', '{"name":"karmo","tags":[1,2,3]}');
 await page.waitForSelector('#dvWhat', { timeout: 15000 });
 check((await page.locator('#dvWhat').innerText()).includes('JSON'), '무엇인지 왼쪽에 말해 준다');
-await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length > 0, undefined, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length > 0, undefined, { timeout: WAIT }).catch(() => {});
 const hot = await page.locator('.pf-job.pf-hot').evaluateAll((els) => els.map((e) => e.dataset.job));
 check(hot.includes('jsonfmt'), `JSON 이면 JSON 이 짚혀야 한다 (지금 ${JSON.stringify(hot)})`);
 check(!hot.includes('jwt'), 'JSON 인데 JWT 가 짚히면 안 된다');
@@ -53,7 +54,7 @@ check(await page.locator('#pfTip').isVisible(), '왜 짚었는지 한 줄이 뜬
 
 /* ①-나 **구조 보기** (TASK-KL-286. JSON Crack, JSON Hero)
  * 사람이 JSON 을 여는 이유의 태반은 여기 뭐가 들어 있나다. 글자 대신 나무가 서야 한다. */
-await page.waitForSelector('#dvTree', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#dvTree', { timeout: WAIT }).catch(() => {});
 check((await page.locator('#dvTree').count()) === 1, 'JSON 이면 글자 대신 나무가 선다');
 check((await page.locator('#dvHead').count()) === 0, 'JSON 일 땐 글자 덩어리는 안 보여 준다');
 const rows0 = await page.locator('#dvRows .dv-row, #dvTree .dv-row').count();
@@ -69,10 +70,10 @@ check(after < before, `가지를 누르면 접힌다 (${before} → ${after}줄)
 
 /* 깨진 JSON 은 나무 대신 글자로. 그때가 보기 좋게가 가장 필요한 순간이다 */
 await page.fill('#pfText', '{"a":1,');
-await page.waitForFunction(() => !!document.querySelector('#dvHead'), undefined, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#dvHead'), undefined, { timeout: WAIT }).catch(() => {});
 check((await page.locator('#dvHead').count()) === 1, '깨진 JSON 은 글자로 보여 준다');
 await page.fill('#pfText', '{"name":"karmo","tags":[1,2,3]}');
-await page.waitForSelector('#dvTree', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#dvTree', { timeout: WAIT }).catch(() => {});
 
 /* ② 다른 것을 붙여넣으면 **짚는 것이 갈아 끼워진다**. 옛것이 남으면 거짓말이 된다 */
 await page.fill('#pfText', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dBjftJeZ4CVPmB92K27uhbUJU1p1r_wW1gFWFOEjXk');
@@ -81,7 +82,7 @@ await page.waitForFunction(
     const on = [...document.querySelectorAll('.pf-job.pf-hot')].map((e) => e.dataset.job);
     return on.length === 1 && on[0] === 'jwt';
   }, undefined,
-  { timeout: 10000 }
+  { timeout: WAIT }
 ).catch(() => {});
 const hot2 = await page.locator('.pf-job.pf-hot').evaluateAll((els) => els.map((e) => e.dataset.job));
 check(hot2.length === 1 && hot2[0] === 'jwt', `JWT 로 바뀌면 JWT 만 짚힌다 (지금 ${JSON.stringify(hot2)})`);
@@ -89,7 +90,7 @@ check((await page.locator('#dvWhat').innerText()).includes('JWT'), '왼쪽 말�
 
 /* ③ 그냥 글이면 아무것도 안 짚는다. 억지로 짚으면 틀린 길로 민다 */
 await page.fill('#pfText', '오늘 점심 뭐 먹지, 라고 적어 둔 메모입니다.');
-await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length === 0, undefined, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => document.querySelectorAll('.pf-job.pf-hot').length === 0, undefined, { timeout: WAIT }).catch(() => {});
 check((await page.locator('.pf-job.pf-hot').count()) === 0, '그냥 글이면 아무것도 안 짚는다');
 check(!(await page.locator('#pfTip').isVisible()), '짚을 게 없으면 안내줄도 걷는다');
 

@@ -9,6 +9,7 @@
  */
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const failures = [];
 const check = (name, ok, detail = '') => {
@@ -51,7 +52,7 @@ if (!cantRun) {
     }
   });
   await page.evaluate(() => Toolbox.switchPage('arcade'));
-  await page.waitForSelector('[data-obj="yacht"]', { timeout: 10000 });
+  await page.waitForSelector('[data-obj="yacht"]', { timeout: WAIT });
   await page.click('[data-obj="yacht"]');
   check('야추 상세에 등급전 문이 있다', await page.locator('[data-rank="yacht"]').isVisible());
   await page.click('[data-solo="yacht"]');
@@ -68,7 +69,7 @@ if (!cantRun) {
     await page.waitForFunction(() => {
       const roll = document.querySelector('#acYcRoll');
       return !!roll && !roll.disabled && document.querySelectorAll('.ac-yctable tbody tr').length === 15;
-    }, null, { timeout: 10000 });
+    }, null, { timeout: WAIT });
     check('입체 방이 뜬다', true);
 
     /* 점수표는 늘 보인다(레퍼런스 넷 다 한 화면). 열두 칸 + 위 합, 덤, 합계 */
@@ -87,14 +88,14 @@ if (!cantRun) {
     await page.waitForFunction(() => {
       const roll = document.querySelector('#acYcRoll');
       return window.__arcade?.state?.rolled === 2 && !!roll && !roll.disabled && !/굴리는 중|rolling/i.test(roll.textContent ?? '');
-    }, null, { timeout: 10000 });
+    }, null, { timeout: WAIT });
     const rolled2 = await page.evaluate(() => window.__arcade?.state?.rolled);
     check('한 번 더 굴리면 횟수가 오른다', rolled2 === 2, String(rolled2));
     await page.click('#acYcRoll');
     await page.waitForFunction(() => {
       const hud = document.querySelector('.ac-ychudsub')?.textContent ?? '';
       return /3\s*\/\s*3/.test(hud) && !!document.querySelector('.ac-yccell:not([disabled])');
-    }, null, { timeout: 10000 });
+    }, null, { timeout: WAIT });
     const btn3 = await page.evaluate(() => document.querySelector('.ac-ychudsub')?.textContent || '');
     check('세 번째 굴림까지 실제로 간다', /3\s*\/\s*3/.test(btn3), btn3 || '횟수 없음');
 
@@ -107,13 +108,13 @@ if (!cantRun) {
     await page.click('.ac-yccell');
     /* 시간으로 기다리면 게이트 통짜에서 밀려 흔들린다(2026-08-31 실측: 단독은 통과, 동시는 실패).
        칸이 굳는 것을 조건으로 기다린다 */
-    const wrote = await page.waitForFunction((n) => document.querySelectorAll('.ac-ycdone').length > n, before, { timeout: 10000 })
+    const wrote = await page.waitForFunction((n) => document.querySelectorAll('.ac-ycdone').length > n, before, { timeout: WAIT })
       .then(() => true).catch(() => false);
     const after = await page.evaluate(() => document.querySelectorAll('.ac-ycdone').length);
     check('적으면 칸이 굳는다', wrote, `${before} -> ${after}`);
 
     /* 남의 차례가 되면 내 칸 버튼이 사라진다(남의 차례에 못 적는다) */
-    const leftTurn = await page.waitForFunction(() => document.querySelectorAll('.ac-yccell').length === 0, null, { timeout: 10000 })
+    const leftTurn = await page.waitForFunction(() => document.querySelectorAll('.ac-yccell').length === 0, null, { timeout: WAIT })
       .then(() => true).catch(() => false);
     const cells = await page.evaluate(() => document.querySelectorAll('.ac-yccell').length);
     check('남의 차례에는 적는 칸이 없다', leftTurn, `${cells}개`);

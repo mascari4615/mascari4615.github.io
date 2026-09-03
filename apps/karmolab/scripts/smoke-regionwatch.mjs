@@ -15,6 +15,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -128,7 +129,7 @@ check((await page.inputValue('.rw-slot[data-i="0"] [data-k="name"]')) === 'old1'
 
 /* ① 시작. 크기를 알면 640x360 프로필로 교체 */
 await page.click('#rwStart');
-await page.waitForFunction(() => document.querySelector('.rw-slot[data-i="0"] [data-act="pick"]')?.textContent?.includes('160x100'), null, { timeout: 10000 });
+await page.waitForFunction(() => document.querySelector('.rw-slot[data-i="0"] [data-act="pick"]')?.textContent?.includes('160x100'), null, { timeout: WAIT });
 check(true, '캔버스 스트림으로 화면이 들어왔다 (640x360)');
 check((await page.inputValue('.rw-slot[data-i="0"] [data-k="name"]')) === 'chg', '640x360 프로필의 슬롯으로 바뀐다');
 check((await page.inputValue('.rw-slot[data-i="0"] [data-k="mode"]')) === 'change', '슬롯 1 은 달라지면 모드');
@@ -167,7 +168,7 @@ await page.waitForTimeout(400);
 fires = await page.evaluate(() => window.__rw.fires.map((f) => f.name));
 if (gapBefore < 2500) check(fires.length === 2, `rearm 안에서는 침묵 (첫 울림 뒤 ${Math.round(gapBefore)}ms 에 다시 빨강, 지금 ${fires.length}번)`);
 else check(true, `rearm 침묵은 못 쟀다. 첫 울림 뒤 이미 ${Math.round(gapBefore)}ms 지남`);
-await page.waitForFunction(() => performance.now() - window.__rw.fires.find((f) => f.name === 'chg').at > 3200, null, { timeout: 10000 });
+await page.waitForFunction(() => performance.now() - window.__rw.fires.find((f) => f.name === 'chg').at > 3200, null, { timeout: WAIT });
 await page.evaluate(() => window.__stage.set('box', '#c02020'));
 await page.waitForFunction((n) => window.__rw.fires.filter((f) => f.name === 'chg').length >= n, 2, { timeout: 5000 }).catch(() => undefined);
 const chgFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'chg').length);

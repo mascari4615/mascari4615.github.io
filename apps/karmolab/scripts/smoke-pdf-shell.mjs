@@ -9,6 +9,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -112,7 +113,7 @@ check(got === '보고서.pdf', `할 일 쪽에도 파일이 들어가 있어야 
 
 /* ⑥ 돌아가서 다른 할 일을 골라도 같다 */
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="pdfpagenum"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
 await page.waitForTimeout(900);
@@ -211,7 +212,7 @@ await page.evaluate(() => {
     detail: { type: 'application/pdf', name: '보고서-쪽번호.pdf', from: 'pdfpagenum', size: 4 }
   }));
 });
-await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#pfChain:visible', { timeout: WAIT }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 이어서 줄이 뜬다');
 await page.click('#pfChainUse');
 await page.waitForTimeout(500);
@@ -251,7 +252,7 @@ check(gotMany.length === 2, `합치기에는 둘 다 넘어간다 (지금 ${JSON
 
 /* 하나만 받는 도구에는 **고른 한 장만**. 통째로 밀어 넣으면 엉뚱한 것이 처리된다 */
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="pdfcrop"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 20000 });
 await page.waitForFunction(
@@ -300,7 +301,7 @@ await freshOpenPdf();
 await page.evaluate(() => Toolbox.setPref?.('mat_recent_pdf', ''));
 /* **지워졌는지 확인하고 넘어간다**. 저장이 한 박자 늦으면 옛 기억이 남아, 무엇을 고쳐도
  * 이 판이 초록으로 나온다(돌연변이를 넣어도 안 빨개져서 잡았다). */
-await page.waitForFunction(() => !(Toolbox.getPref?.('mat_recent_pdf', '') || ''), undefined, { timeout: 10000 });
+await page.waitForFunction(() => !(Toolbox.getPref?.('mat_recent_pdf', '') || ''), undefined, { timeout: WAIT });
 await freshOpenPdf();
 check(!(await page.locator('#pfRecent').isVisible()), '처음 온 사람에겐 방금 하던 것이 없다');
 await page.setInputFiles('#pfFile', { name: '보고서.pdf', mimeType: 'application/pdf', buffer: tinyPdf() });

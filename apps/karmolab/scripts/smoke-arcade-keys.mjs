@@ -13,6 +13,7 @@
 import { untilTrue, untilSettled } from './lib/settle.mjs';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다**. 사람이 켜는 `npm run dev`(8813)만 보면 CI 에서는
    늘 못 돌림이다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
@@ -91,7 +92,7 @@ if (!cantRun) {
   await p.waitForSelector('[data-obj="gomoku"]', { timeout: 30000 });
 
   await openGame('gomoku');
-  await p.waitForSelector('#acView .ac-cell', { state: 'visible', timeout: 10000 });
+  await p.waitForSelector('#acView .ac-cell', { state: 'visible', timeout: WAIT });
   check('판이 서면 무대에 초점이 온다', (await p.evaluate(() => document.activeElement?.id)) === 'acStage');
 
   /* 첫 화살표는 고르기 시작이라 0번에 들어간다. 그다음부터 움직인다.
@@ -154,7 +155,7 @@ if (!cantRun) {
     const later = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
     check(`${id}: 짚은 자리가 다시 그려도 남는다`, now0 === 1 && later === 1, `직후 ${now0}, 0.5초 뒤 ${later}`);
     await p.click('#acQuit');
-    await p.waitForSelector('[data-obj]', { timeout: 10000 });
+    await p.waitForSelector('[data-obj]', { timeout: WAIT });
   }
 
   /* ── 한붓그리기: 그림판인데도 키로 긋는다 (TASK-KL-317) ──────────────
@@ -180,7 +181,7 @@ if (!cantRun) {
   check('한붓그리기: 첫 수 뒤엔 붓 끝에 닿는 선만 남는다', opens2 > 0 && opens2 <= 4, `${opens} → ${opens2}개`);
   check('한붓그리기: 엔터가 진짜로 한 획 긋는다', after === before + 1, `${before} → ${after}`);
   await p.click('#acQuit');
-  await p.waitForSelector('[data-obj]', { timeout: 10000 });
+  await p.waitForSelector('[data-obj]', { timeout: WAIT });
 
   /* ── 탁구, 에어하키: 그림판이라도 키로 (TASK-KL-317) ────────────────
      여기서 재는 것 = ① 화살표를 누르고 있으면 **라켓이 실제로 옮겨진다**
@@ -321,7 +322,7 @@ if (!cantRun) {
     if (before !== after || cursor > 0) keyable += 1;
     else mouseOnly.push(id);
     await p.click('#acQuit');
-    await p.waitForSelector('[data-obj]', { timeout: 10000 });
+    await p.waitForSelector('[data-obj]', { timeout: WAIT });
   }
   /**
    * **이 수로는 게이트를 안 건다.** 키로 놀 수 있나를 한 순간에 재려고 세 번 시도했고

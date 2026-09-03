@@ -11,6 +11,7 @@ import { untilSettled, untilTrue } from './lib/settle.mjs';
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
 import { deflateSync } from 'node:zlib';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -92,7 +93,7 @@ check(/3×2/.test(meta), `치수를 읽어야 한다. 이미지 판단의 기준
 
 /* ③ 눌러서 크게 본다 */
 await page.click('#imShot');
-await page.waitForSelector('#imZoom img', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#imZoom img', { timeout: WAIT }).catch(() => {});
 check((await page.locator('#imZoom img').count()) === 1, '누르면 크게 뜬다');
 await page.click('#imZoom');
 /* 재우지 말고 **닫힐 때까지**. 무엇을 기다리는지 아는 자리다(느린 기계에서 200ms 는 모자란다). */
@@ -115,7 +116,7 @@ check(got === '사진.png', `할 일 쪽에도 사진이 들어가 있어야 한
 
 /* ⑥ 돌아가서 다른 할 일을 골라도 같다 */
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="palette"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
 await page.waitForTimeout(900);
@@ -135,12 +136,12 @@ await page.evaluate(() => {
     })
   );
 });
-await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#pfChain:visible', { timeout: WAIT }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 이어서 줄이 뜬다');
 
 /* ⑦-나 **전/후 손잡이** (TASK-KL-285. Squoosh)
  * 이어받아도 되나를 눈으로 재는 자리다. 결과가 나온 순간에만 뜬다. */
-await page.waitForSelector('#imCmp', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#imCmp', { timeout: WAIT }).catch(() => {});
 check((await page.locator('#imCmp').count()) === 1, '결과가 나오면 전/후로 겹쳐 보여 준다');
 check((await page.locator('#imCmp img').count()) === 2, '두 장이 겹쳐 있다(전, 후)');
 const tags = await page.locator('#imCmp .im-cmp-tag').allInnerTexts();

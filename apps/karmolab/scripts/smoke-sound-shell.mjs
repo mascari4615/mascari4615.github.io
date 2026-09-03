@@ -10,6 +10,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -168,13 +169,13 @@ await page.evaluate(() => {
     })
   );
 });
-await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#pfChain:visible', { timeout: WAIT }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 이어서 줄이 뜬다');
 
 /* ⑦ 할 일을 네 번 오가도 **소리틀은 늘어나지 않는다**. 이게 오가다 소리가 죽던 자리다 */
 for (const job of ['audiofade', 'audiolevel', 'audiospeed', 'audiocut']) {
   await page.click('#pfBack');
-  await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+  await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
   await page.locator(`.pf-job[data-job="${job}"]`).click();
   await page.waitForSelector('#pfMount:visible', { timeout: 20000 });
   await page.waitForTimeout(700);

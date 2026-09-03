@@ -21,6 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { launchOrSkip } from './lib/browser.mjs';
 import { stripJekyll } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -139,7 +140,7 @@ try {
   const card = page.locator(`text=${newTitle}`).first();
   if (await card.count()) {
     await card.click();
-    await page.waitForSelector('.wb-detail', { timeout: 10000 }).catch(() => {});
+    await page.waitForSelector('.wb-detail', { timeout: WAIT }).catch(() => {});
   }
   const detail = await text();
   if (!detail.includes(newField)) problems.push(`처음 보는 필드 이름이 상세에 없다. ${newField}`);

@@ -19,6 +19,7 @@
  */
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const URL_TARGET = livePage('/#worldcup');
 const problems = [];
@@ -48,7 +49,7 @@ if (packCount === 0) problems.push('표 칸이 0개다');
 if (packCount > 0) {
   // 처음부터 있는 표 중 하나를 고른다 (오늘의 월드컵이 맨 앞이면 그것이 곧 씨앗 표다).
   await page.locator('#wcPacks button').first().click();
-  await page.waitForSelector('#wcStart', { state: 'visible', timeout: 10000 });
+  await page.waitForSelector('#wcStart', { state: 'visible', timeout: WAIT });
 
   // ② 8강으로. 라운드 칸이 있으면 8강을 고른다(오늘의 월드컵은 라운드가 고정이라 칸이 없다).
   const eight = page.locator('#wcRounds button', { hasText: '8강' });

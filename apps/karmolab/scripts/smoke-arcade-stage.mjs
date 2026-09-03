@@ -12,6 +12,7 @@
 import { chromium } from 'playwright';
 import { untilSettled, untilTrue } from './lib/settle.mjs';
 import { smokeBase } from './lib/smoke-base.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 못 돌림이었다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
@@ -66,7 +67,7 @@ if (!cantRun) {
     const menu = await p.$('#acMenu');
     if (menu && await menu.isVisible()) await menu.click();
     await p.click('#acQuit');
-    await p.waitForSelector('[data-obj]', { timeout: 10000 });
+    await p.waitForSelector('[data-obj]', { timeout: WAIT });
   }
 
   check(`무대 폭이 ${ids.length}판 내내 같다`, widths.size === 1,

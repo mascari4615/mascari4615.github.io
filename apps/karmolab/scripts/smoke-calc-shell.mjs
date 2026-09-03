@@ -10,6 +10,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -56,7 +57,7 @@ check(await page.locator('#pfText').isVisible(), '**쓰는 칸이 계속 보인�
 await page.fill('#pfText', '100 + 200\n3km in mi\n25% of 400');
 await page.waitForFunction(
   () => document.querySelectorAll('#caSheet .ca-row').length === 3, undefined,
-  { timeout: 10000 }
+  { timeout: WAIT }
 ).catch(() => {});
 const a2 = await page.locator('#caSheet .ca-ans').allInnerTexts();
 check(a2.length === 3, '고쳐 쓰면 답도 갈아 끼워진다');
@@ -68,7 +69,7 @@ check(a2[2].replace(/[^\d]/g, '') === '100', `400 의 25% (지금 ${a2[2]})`);
 await page.fill('#pfText', '1000\n이건 글이라 못 셈\n2000\n합계');
 await page.waitForFunction(
   () => document.querySelectorAll('#caSheet .ca-row').length === 4, undefined,
-  { timeout: 10000 }
+  { timeout: WAIT }
 ).catch(() => {});
 check((await page.locator('#caSheet .ca-bad').count()) === 1, '못 센 줄 하나가 표시된다');
 const a3 = await page.locator('#caSheet .ca-ans').allInnerTexts();
@@ -79,7 +80,7 @@ check(a3[3].replace(/[^\d]/g, '') === '3000', `못 센 줄이 있어도 합계�
 await page.fill('#pfText', ['월세 = 550000', '관리비 = 70000', '월세 + 관리비'].join('\n'));
 await page.waitForFunction(
   () => (document.querySelectorAll('#caSheet .ca-row').length === 3), undefined,
-  { timeout: 10000 }
+  { timeout: WAIT }
 ).catch(() => {});
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#pfText', { timeout: 20000 });

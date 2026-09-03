@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { stripJekyll } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -391,7 +392,7 @@ await page.evaluate(() => {
 await page.waitForSelector('.meok', { state: 'attached', timeout: 20000 });
 await page.waitForTimeout(1200);
 /* 되살리기는 창고(IndexedDB)를 거치므로 화면이 뜬 뒤에 온다. 말이 뜰 때까지 기다린다. */
-await page.waitForFunction(() => /되살렸|Restored|復元/.test(window.__meokQ('[data-status]')?.textContent || ''), null, { timeout: 10000 })
+await page.waitForFunction(() => /되살렸|Restored|復元/.test(window.__meokQ('[data-status]')?.textContent || ''), null, { timeout: WAIT })
   .catch(() => problems.push('새로고침 뒤 되살렸다는 말이 안 뜬다'));
 await page.waitForTimeout(500);
 const densityAfter = await inkDensity();

@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { smokeBase } from './lib/smoke-base.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const requestedPlayers = Number(process.argv[2] ?? 0);
 if (requestedPlayers === 0) {
@@ -110,7 +111,7 @@ try {
     }
   }
   await Promise.all(pages.map((page) => page.waitForSelector('#acOver', { state: 'visible', timeout: 30000 })));
-  await pages[0].waitForFunction(() => document.querySelector('#acOver')?.textContent?.trim().length > 0, null, { timeout: 10000 });
+  await pages[0].waitForFunction(() => document.querySelector('#acOver')?.textContent?.trim().length > 0, null, { timeout: WAIT });
   const deadline = Date.now() + 20000;
   while (reports.size < ids.length && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 100));
   const words = [...reports.values()].map((body) => JSON.stringify(body.placements));

@@ -9,6 +9,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -48,7 +49,7 @@ check((await page.locator('#pfText').count()) === 1, '글은 **붙여넣는 칸*
 /* ② 붙여넣으면 세 숫자와 앞머리가 뜬다 */
 await page.fill('#pfText', SAMPLE);
 await page.waitForSelector('#pfFileBar:visible', { timeout: 15000 });
-await page.waitForFunction(() => !!document.querySelector('#txNums'), undefined, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => !!document.querySelector('#txNums'), undefined, { timeout: WAIT }).catch(() => {});
 const nums = await page.locator('#txNums .tx-num strong').allInnerTexts();
 check(nums.length === 3, '글자, 낱말, 줄 세 숫자가 뜬다');
 /* 숫자만 뽑아서 한 번만 견준다. 또는으로 두 갈래를 두면 느슨한 쪽이 늘 이긴다 (KL-278). */
@@ -62,13 +63,13 @@ await page.waitForSelector('[data-operation="slug"]', { timeout: 15000 });
 check((await page.locator('[data-operation="slug"]').count()) === 1, '슬러그는 독립 위젯이 아니라 operation surface에 선다');
 check(/ganada/.test(await page.locator('#opResult').inputValue()), '한글 제목을 로마자 슬러그로 바꾼다');
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="hangulkey"]').click();
 await page.waitForSelector('[data-operation="hangulkey"]', { timeout: 15000 });
 await page.fill('#opInput', 'dkssud gktpdy');
 check((await page.locator('#opResult').inputValue()) === '안녕 하세요', '한영타 operation은 영문과 한글 조각을 자동으로 따로 되돌린다');
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="textclean"]').click();
 await page.waitForSelector('[data-operation="textclean"]', { timeout: 15000 });
 await page.fill('#opInput', '  같은 줄  \n같은 줄\n\n  다음 줄');
@@ -76,20 +77,20 @@ await page.check('[data-control="dedupe"]');
 await page.check('[data-control="squeeze"]');
 check((await page.locator('#opResult').inputValue()) === '같은 줄\n다음 줄', '글 정리는 공용 operation에서 공백, 중복, 빈 줄을 같은 순서로 처리한다');
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="case"]').click();
 await page.waitForSelector('[data-operation="case"]', { timeout: 15000 });
 await page.fill('#opInput', 'XMLHttpRequest');
 await page.selectOption('[data-control="style"]', 'snake');
 check((await page.locator('#opResult').inputValue()) === 'xml_http_request', '표기법 변환은 공용 surface에서 같은 결과를 낸다');
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="linebreak"]').click();
 await page.waitForSelector('[data-operation="linebreak"]', { timeout: 15000 });
 await page.fill('#opInput', 'first line\nsecond line\n\nnew paragraph');
 check((await page.locator('#opResult').inputValue()) === 'first line second line\n\nnew paragraph', '줄바꿈 operation은 문단을 남기고 줄을 잇는다');
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 
 /* ④ 남은 기존 할 일을 고르면 그 자리에서 열린다. 글은 안 사라진다 */
 await page.locator('.pf-job[data-job="textclean"]').click();
@@ -113,7 +114,7 @@ check(/끝줄/.test(got), `할 일 쪽 글 칸에도 글이 들어가 있어야 
 
 /* ⑤ 돌아가서 다른 할 일(묶음 밖 도구 포함)을 골라도 같다 */
 await page.click('#pfBack');
-await page.waitForSelector('#pfJobs:visible', { timeout: 10000 });
+await page.waitForSelector('#pfJobs:visible', { timeout: WAIT });
 await page.locator('.pf-job[data-job="wordfreq"]').click();
 await page.waitForSelector('#pfMount:visible', { timeout: 15000 });
 await page.waitForFunction(
@@ -139,10 +140,10 @@ await page.evaluate(() => {
     })
   );
 });
-await page.waitForSelector('#pfChain:visible', { timeout: 10000 }).catch(() => {});
+await page.waitForSelector('#pfChain:visible', { timeout: WAIT }).catch(() => {});
 check(await page.locator('#pfChain').isVisible(), '결과가 나오면 이어서 줄이 뜬다');
 await page.click('#pfChainUse');
-await page.waitForFunction(() => /정리된 글/.test(document.querySelector('#txHead')?.textContent || ''), undefined, { timeout: 10000 }).catch(() => {});
+await page.waitForFunction(() => /정리된 글/.test(document.querySelector('#txHead')?.textContent || ''), undefined, { timeout: WAIT }).catch(() => {});
 check(
   /정리된 글/.test(await page.locator('#txHead').innerText()),
   '누르면 **그 결과가 손에 든 글이 된다**. 다시 안 붙여넣는다'

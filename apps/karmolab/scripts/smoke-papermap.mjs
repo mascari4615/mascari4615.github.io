@@ -8,6 +8,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -93,7 +94,7 @@ check(geo['옛 바닥 논문'].x < geo['가까운 논문'].x, '옛 논문이 왼
 
 /* ⑤ 칸을 누르면 그 논문으로 간다 */
 const [popup] = await Promise.all([
-  page.waitForEvent('popup', { timeout: 10000 }),
+  page.waitForEvent('popup', { timeout: WAIT }),
   page.locator('.pm-node').nth(1).click()
 ]);
 check(/doi\.org/.test(popup.url()), `칸을 누르면 논문으로 가야 한다 (지금 ${popup.url().slice(0, 40)})`);

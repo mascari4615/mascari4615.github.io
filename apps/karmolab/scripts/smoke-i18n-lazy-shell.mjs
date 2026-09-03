@@ -3,6 +3,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { WAIT } from './lib/waits.mjs';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
@@ -34,7 +35,7 @@ page.on('pageerror', (error) => errors.push(`page: ${error?.message || error}`))
 
 try {
   await page.goto(`http://127.0.0.1:${port}/apps/karmolab/index.html`, { waitUntil: 'networkidle' });
-  await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', null, { timeout: 10000 });
+  await page.waitForFunction(() => typeof Toolbox !== 'undefined' && typeof Toolbox.switchPage === 'function', null, { timeout: WAIT });
   for (const tab of ['settings-display', 'settings-mascot', 'settings-data']) {
     await page.evaluate((tabId) => {
       Toolbox.switchPage('settings');

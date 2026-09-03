@@ -11,6 +11,7 @@
  */
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 /* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버).
    전에는 8813 이 떠 있으면 그걸 썼는데, CI 에는 그 서버가 없어 `ERR_CONNECTION_REFUSED` 로
@@ -57,7 +58,7 @@ if (!cantRun) {
   const after = await (await fetch(API)).json();
   check('같이로 연 방은 목록에 안 뜬다', !after.rooms.some((r) => r.code === quiet), quiet || '');
   await host.click('#acWaitQuit');
-  await host.waitForSelector('[data-obj]', { timeout: 10000 });
+  await host.waitForSelector('[data-obj]', { timeout: WAIT });
 
   /* 이제 같이 찾기(공개) */
   await host.click('[data-obj="gomoku"]');

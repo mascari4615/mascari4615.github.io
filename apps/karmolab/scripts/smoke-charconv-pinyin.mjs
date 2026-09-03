@@ -17,6 +17,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { WAIT } from './lib/waits.mjs';
 
 const NL = String.fromCharCode(10);
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -98,7 +99,7 @@ await page.evaluate(() => {
 });
 
 const fails = [];
-const seen = await page.waitForSelector('#ccModes button', { timeout: 10000 }).catch(() => null);
+const seen = await page.waitForSelector('#ccModes button', { timeout: WAIT }).catch(() => null);
 if (seen === null) {
   fails.push('문자 변환 화면이 안 뜬다 (10초)');
 } else {

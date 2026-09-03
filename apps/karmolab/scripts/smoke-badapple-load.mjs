@@ -10,6 +10,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { WAIT } from './lib/waits.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
@@ -35,7 +36,7 @@ await page.exposeFunction('__recordSample', (intent, measured) => samples.push({
 
 // 배포된 주소(`/badapple/load/`)는 Jekyll 이 만든다. 여기서는 파일을 그대로 내주므로 파일명으로 연다.
 await page.goto(`${base}/apps/karmolab/badapple/load.html`);
-await page.waitForSelector('#blReadout', { timeout: 10000 });
+await page.waitForSelector('#blReadout', { timeout: WAIT });
 await page.evaluate(() => {
   const readout = document.getElementById('blReadout');
   new MutationObserver(() => {

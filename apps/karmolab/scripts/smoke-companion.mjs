@@ -13,6 +13,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { WAIT } from './lib/waits.mjs';
 
 const bot = process.env.COMPANION_BASE ?? 'http://127.0.0.1:4620';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -84,7 +85,7 @@ const state = await page.evaluate(() => ({
 // ②-0 창, 몸, 목소리가 화면에 뜨나. 오늘 사고 셋이 전부 조용히 빠짐이었다.
 // 칸은 상태를 읽어 온 뒤에 그려진다. 곧바로 읽으면 비어 있다(실제로 한 번 비었다).
 await page
-  .waitForFunction(() => document.querySelectorAll('#cmpBits .cmp-bit').length > 0, undefined, { timeout: 10000 })
+  .waitForFunction(() => document.querySelectorAll('#cmpBits .cmp-bit').length > 0, undefined, { timeout: WAIT })
   .catch(() => {});
 const cell = await page.evaluate(() =>
   [...document.querySelectorAll('#cmpBits .cmp-bit')].map((el) => el.textContent ?? ''),

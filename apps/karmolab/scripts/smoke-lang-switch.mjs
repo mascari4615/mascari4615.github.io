@@ -21,6 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LOCALES as ENABLED_LOCALES, catalog } from './lib/locales.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
@@ -73,7 +74,7 @@ const base = `http://127.0.0.1:${PORT_IN_USE}/apps/karmolab/index.html`;
 await page.goto(base, { waitUntil: 'domcontentloaded' });
 /* 버튼 존재만으로는 부족. 셸이 클릭 손잡이를 다는 순간 `aria-haspopup` 이 붙음
    그 전에 누르면 무반응 (2026-08-30 재실행 거짓 빨강) */
-await page.waitForFunction(() => document.getElementById('settingsPageBtn')?.getAttribute('aria-haspopup') === 'menu', undefined, { timeout: 10000 });
+await page.waitForFunction(() => document.getElementById('settingsPageBtn')?.getAttribute('aria-haspopup') === 'menu', undefined, { timeout: WAIT });
 
 /* 이 장이 가진 언어 = 짝 표시. 생성기, 검사와 같은 규칙이다. */
 const tags = await page.$$eval('link[rel="alternate"][hreflang]', (els) =>

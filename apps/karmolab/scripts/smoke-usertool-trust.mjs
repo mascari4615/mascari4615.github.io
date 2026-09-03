@@ -14,6 +14,7 @@
  */
 import { chromium } from 'playwright';
 import { livePage } from './lib/live-url.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const BASE = livePage('/');
 const problems = [];
@@ -71,7 +72,7 @@ await page.waitForSelector('.ut-wrap', { timeout: 20000 });
 // ① 요약. 열기 전에는 없고, 열면 상자 위에 뜬다
 if ((await page.locator('.ut-summary').count()) !== 0) problems.push('안 열었는데 요약이 떠 있다');
 await page.locator('button[data-run]').first().click();
-await page.waitForSelector('.ut-stage iframe', { timeout: 10000 });
+await page.waitForSelector('.ut-stage iframe', { timeout: WAIT });
 const summary = (await page.locator('.ut-summary').first().textContent()) ?? '';
 if (!summary.includes('그림을 그린다')) problems.push(`하는 일이 안 보인다: ${summary}`);
 if (!summary.includes('막힌 것')) problems.push(`막힌 것이 안 보인다: ${summary}`);

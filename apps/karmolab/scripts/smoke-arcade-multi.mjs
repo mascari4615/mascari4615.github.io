@@ -28,6 +28,7 @@
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
 import { waitHydrated } from './lib/hydrated.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 못 돌림이었다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
@@ -80,7 +81,7 @@ async function openRoom(gameId) {
   await host.fill('#acName', '주인');
   await host.click(`[data-obj="${gameId}"]`);
   await host.click(`[data-host="${gameId}"]`);
-  await host.waitForSelector('#acCode', { timeout: 10000 });
+  await host.waitForSelector('#acCode', { timeout: WAIT });
   const code = (await host.locator('#acCode').textContent())?.trim() || '';
   check(`${gameId}: 방 코드가 뜬다`, /^[A-Z2-9]{5}$/.test(code), `"${code}"`);
   if (!code) return null;

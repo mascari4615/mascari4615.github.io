@@ -16,6 +16,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -247,7 +248,7 @@ await page.goto(`${BASE}#bluemarble`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('.bm-canvas', { timeout: 40000 });
 /* 조작부는 접혀 있는 게 기본이다. 펴지 않으면 겹 단추가 지구본 뒤에 깔려 못 눌린다. */
 await page.locator('.bm-menu').click();
-await page.waitForSelector('.bm-wrap.bm-panel', { timeout: 10000 });
+await page.waitForSelector('.bm-wrap.bm-panel', { timeout: WAIT });
 const airChip = page.locator('.bm-chips button', { hasText: '하늘' }).first();
 if ((await airChip.count()) === 0) {
   check(false, '★ 지구본에 하늘 겹 단추가 없다. 겹이 배선에서 빠졌다');

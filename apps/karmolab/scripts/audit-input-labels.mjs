@@ -30,6 +30,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { withoutRetired } from './lib/retired-operations.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -59,7 +60,7 @@ async function auditOne(page, id) {
     await page.waitForFunction((toolId) => {
       const el = document.getElementById('page-' + toolId);
       return !!el && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0;
-    }, id, { timeout: 10000 });
+    }, id, { timeout: WAIT });
     const r = await page.evaluate((toolId) => {
       const el = document.getElementById('page-' + toolId);
       if (!el) return { missing: true };

@@ -24,6 +24,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { stripJekyll } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const blogRoot = path.dirname(path.dirname(root));
@@ -87,7 +88,7 @@ try {
   browser = await chromium.launch();
   const page = await (await browser.newContext({ viewport: { width: 390, height: 780 }, serviceWorkers: 'block' })).newPage();
   await page.goto(`${BASE}/t/${SAMPLE}/`, { waitUntil: 'networkidle' });
-  await page.waitForSelector('.tool-sponsor', { state: 'visible', timeout: 10000 });
+  await page.waitForSelector('.tool-sponsor', { state: 'visible', timeout: WAIT });
 
   const seen = await page.evaluate((toolId) => {
     const slots = [...document.querySelectorAll('.tool-sponsor')];

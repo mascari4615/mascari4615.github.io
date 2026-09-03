@@ -11,6 +11,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { WAIT } from './lib/waits.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -63,7 +64,7 @@ await page.waitForSelector('#bnText', { timeout: 20000 });
 /* ① 만들면 링크가 나온다 */
 await page.fill('#bnText', SECRET);
 await page.click('#bnMake');
-await page.waitForSelector('#bnResult:visible', { timeout: 10000 });
+await page.waitForSelector('#bnResult:visible', { timeout: WAIT });
 const link = await page.inputValue('#bnLink');
 check(link.includes('#n='), `링크가 만들어져야 한다 (지금 ${link.slice(0, 40)})`);
 check(link.includes('/t/burnnote/'), '링크는 도구 상세 주소를 쓴다. 해시는 이 앱에서 어느 도구를 뜻한다');
