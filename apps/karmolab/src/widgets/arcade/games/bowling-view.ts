@@ -7,6 +7,7 @@
 import { t } from '../../../lib/i18n';
 import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
+import { fitCanvas, beginFit } from '../fit-canvas';
 import { createGl, type Gl } from '../gl';
 import { W, H, BALL_R, PIN_R, scoreOf, type BowlingState, type BowlingAction } from './bowling';
 
@@ -86,12 +87,8 @@ export const bowlingView: GameView<BowlingState, BowlingAction> = {
         /* WebGL 이 없으면 위에서 본다. */
         const c = cv.getContext('2d');
         if (c) {
-          const dpr = Math.min(2, window.devicePixelRatio || 1);
-          cv.width = Math.round((cv.clientWidth || 260) * dpr);
-          cv.height = Math.round(((cv.clientWidth || 260) * H) / W * dpr);
-          const k = cv.width / W;
-          c.setTransform(k, 0, 0, k, 0, 0);
-          c.clearRect(0, 0, W, H);
+          /* 캔버스가 칸을 다 덮고 판은 그 안에 맞춤 */
+          beginFit(c, fitCanvas(cv, W, H));
           c.fillStyle = '#e8d5ae';
           c.fillRect(2, 0, W - 4, H);
           for (const b of s.bodies) {

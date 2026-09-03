@@ -305,10 +305,12 @@
 #acPlay.ac-roomfill:not(:has(.ac-t3room)){background:var(--bg-primary)}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{display:flex;align-items:stretch;justify-content:center;overflow:auto;padding:0}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>*{width:100%;max-width:100%;height:100%;box-sizing:border-box}
-/* 세로로 긴 판(컬링 2.6:1, 당구 2:1, 투호 1.5:1)은 폭을 다 주면 캔버스가 3,000px 이 됨 (2026-09-03 실측 1212x3146). 높이에 맞춰 폭을 자름 */
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-cl{width:auto;max-width:min(100%,calc((100vh - 200px) * .385));margin:0 auto}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-pl{width:auto;max-width:min(100%,calc((100vh - 200px) * .5));margin:0 auto}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-th{width:auto;max-width:min(100%,calc((100vh - 200px) * .667));margin:0 auto}
+/* 콘텐츠 칸 전체, 여백 없음 (사용자 확정, 2026-09-03 세 번째 지적). 캔버스 판은 캔버스가 칸을 통째로 덮고(`fit-canvas.ts`), 판은 그 안에 맞춤 */
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>:is(.ac-cl,.ac-pl,.ac-th,.ac-bw,.ac-tk,.ac-fi,.ac-dt,.ac-ah,.ac-pg,.ac-sn,.ac-ms){display:flex;flex-direction:column;margin:0;max-width:none;overflow:hidden}
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>:is(.ac-cl,.ac-pl,.ac-th,.ac-bw,.ac-tk,.ac-fi,.ac-dt,.ac-ah,.ac-pg,.ac-sn) canvas{flex:1 1 0;min-height:0;height:auto;width:100%;max-width:none;aspect-ratio:auto;border:0;border-radius:0;margin:0}
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-ms .ac-msgrid{flex:1 1 0;min-height:0;grid-auto-rows:1fr}
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-ms .ac-mc{aspect-ratio:auto;font-size:min(2.2vh,18px)}
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView .ac-clbar{margin-top:8px}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:48px;height:auto}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:48px;margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border)}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:48px;z-index:8;margin:0}
@@ -742,7 +744,7 @@
 .ac-bws{padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill);font-size:var(--font-size-xs)}
 .ac-bws.ac-me{border-color:var(--accent)}
 .ac-pl{max-width:100%;margin:var(--space-lg) auto}
-.ac-pl canvas{width:100%;display:block;border-radius:var(--radius-lg)}
+.ac-pl canvas{width:100%;display:block;border-radius:var(--radius-lg);background:#3b2a1a}
 .ac-dt{max-width:100%;margin:var(--space-lg) auto;text-align:center}
 .ac-dt canvas{width:100%;max-width:min(100%,62vh);aspect-ratio:1;height:auto;display:block;margin:0 auto}
 .ac-dtleft{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:var(--space-lg) 0}
@@ -798,8 +800,7 @@
 .ac-luline{display:flex;flex-direction:column;gap:4px;align-items:center;margin:var(--space-lg) 0}
 .ac-luline span{padding:4px 12px;border:1px solid var(--border);border-radius:var(--radius-lg);font-size:var(--font-size-sm)}
 .ac-ms{max-width:100%;margin:var(--space-lg) auto}
-.ac-msgrid{display:grid;grid-template-columns:repeat(var(--w),1fr);gap:2px;max-width:min(100%,calc((100vh - 220px) * var(--w) / var(--h,var(--w))));margin:0 auto}
-/* 16x16 은 폭을 다 주면 세로가 화면을 넘침 (2026-09-03 실측). 높이에 맞춰 폭을 자름 */
+.ac-msgrid{display:grid;grid-template-columns:repeat(var(--w),1fr);gap:2px}
 .ac-mc{aspect-ratio:1;border:1px solid var(--border);border-radius:var(--radius-sm);background:color-mix(in srgb,var(--accent) 14%,var(--bg-primary));font-size:min(3.6vw,15px);font-weight:700;padding:0;cursor:pointer;touch-action:none}
 .ac-mc.ac-open{background:var(--bg-primary);cursor:default}
 .ac-mc.ac-flag{color:#ef4444}
@@ -834,7 +835,7 @@
 .ac-osp.ac-at{fill:var(--accent)}
 .ac-osbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:var(--space-lg)}
 .ac-fi{max-width:100%;margin:var(--space-lg) auto;text-align:center}
-.ac-fi canvas{width:100%;display:block;border-radius:var(--radius-lg)}
+.ac-fi canvas{width:100%;display:block;border-radius:var(--radius-lg);background:#04202f}
 .ac-fibtn{width:100%;margin-top:var(--space-lg);font-size:var(--font-size-md)}
 .ac-fibtn.ac-bite{animation:acBite .28s infinite alternate}
 .ac-fi canvas{touch-action:none}
@@ -864,7 +865,7 @@
 .ac-hfbar{min-height:32px;display:flex;justify-content:center;align-items:center}
 .ac-hfwho{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:var(--space-lg)}
 .ac-tk{max-width:100%;margin:var(--space-lg) auto}
-.ac-tk canvas{width:100%;display:block;border-radius:var(--radius-lg)}
+.ac-tk canvas{width:100%;display:block;border-radius:var(--radius-lg);background:#101825}
 .ac-mn{max-width:100%;margin:var(--space-lg) auto}
 .ac-mnrow{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .ac-mnp{aspect-ratio:1;border:1px solid var(--border);border-radius:50%;background:color-mix(in srgb,#a16207 16%,var(--bg-primary));color:inherit;font-size:var(--font-size-md);padding:0;cursor:pointer}

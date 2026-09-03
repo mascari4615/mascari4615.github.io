@@ -7,6 +7,7 @@
 import { t } from '../../../lib/i18n';
 import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
+import { fitCanvas, beginFit } from '../fit-canvas';
 import { shade, SEAT_COLOR } from '../paint';
 import { W, H, type TanksState, type TanksAction } from './tanks';
 
@@ -57,19 +58,15 @@ export const tanksView: GameView<TanksState, TanksAction> = {
       if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
       if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const wpx = cv.clientWidth || 300;
-      const hpx = Math.round((wpx * H) / W);
-      if (cv.width !== Math.round(wpx * dpr)) {
-        cv.width = Math.round(wpx * dpr);
-        cv.height = Math.round(hpx * dpr);
-        cv.style.height = hpx + 'px';
-      }
       const c = cv.getContext('2d');
       if (!c) return;
-      const k = cv.width / W;
+      /* 캔버스가 칸을 다 덮고 마당은 그 안에 맞춤. 남는 자리는 CSS 배경(밤하늘) */
+      const fit = fitCanvas(cv, W, H);
+      const k = fit.k;
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.clearRect(0, 0, fit.pw, fit.ph);
       /* y 를 뒤집는다. 규칙은 위가 크다로 쓰였고 화면은 반대다. */
-      c.setTransform(k, 0, 0, -k, 0, cv.height);
+      c.setTransform(k, 0, 0, -k, fit.ox, fit.oy + H * k);
 
       /* 하늘. 지평선이 밝고 위가 어둡다. 한 색이면 배경이 아니라 벽이 된다. */
       const sky = c.createLinearGradient(0, H, 0, 0);

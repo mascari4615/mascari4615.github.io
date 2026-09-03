@@ -12,6 +12,7 @@
 import { t } from '../../../lib/i18n';
 import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
+import { fitCanvas, beginFit } from '../fit-canvas';
 import { ice, orb, SEAT_COLOR } from '../paint';
 import { W, H, TEE, HOUSE_R, R, type CurlingState, type CurlingAction } from './curling';
 
@@ -60,19 +61,10 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
       if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const cw = cv.clientWidth || 300;
-      const ch = Math.round((cw * H) / W);
-      if (cv.width !== Math.round(cw * dpr) || cv.height !== Math.round(ch * dpr)) {
-        cv.width = Math.round(cw * dpr);
-        cv.height = Math.round(ch * dpr);
-        cv.style.height = ch + 'px';
-      }
       const c = cv.getContext('2d');
       if (!c) return;
-      const k = cv.width / W;
-      c.setTransform(k, 0, 0, k, 0, 0);
-      c.clearRect(0, 0, W, H);
+      /* 캔버스가 칸을 다 덮고 판은 그 안에 맞춤. 남는 자리는 CSS 배경(얼음빛) */
+      beginFit(c, fitCanvas(cv, W, H));
 
       /* 얼음. 공용 붓(`paint.ts`). 평평한 한 색이면 종이가 된다. */
       ice(c, W, H);

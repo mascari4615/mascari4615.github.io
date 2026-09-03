@@ -71,12 +71,11 @@ export const fishingView: GameView<FishState, FishAction> = {
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const wpx = cv.clientWidth || 280;
-      /* 물은 **깊어야** 물로 보인다. 150px 고정이면 넓은 화면에서 띠 한 줄이 된다. */
-      const hpx = Math.round(Math.min(300, Math.max(150, wpx * 0.5)));
-      if (cv.width !== Math.round(wpx * dpr)) {
+      /* 물은 **깊어야** 물로 보인다. 칸이 높이를 주면(전체 화면) 그만큼, 아니면 폭의 절반 */
+      const hpx = cv.clientHeight || Math.round(Math.min(300, Math.max(150, wpx * 0.5)));
+      if (cv.width !== Math.round(wpx * dpr) || cv.height !== Math.round(hpx * dpr)) {
         cv.width = Math.round(wpx * dpr);
         cv.height = Math.round(hpx * dpr);
-        cv.style.height = hpx + 'px';
       }
       const c = cv.getContext('2d');
       if (c) {

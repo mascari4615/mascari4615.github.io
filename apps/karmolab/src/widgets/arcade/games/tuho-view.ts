@@ -11,6 +11,7 @@
 import { t } from '../../../lib/i18n';
 import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
+import { fitCanvas, beginFit } from '../fit-canvas';
 import { createGl, type Gl } from '../gl';
 import { W, H, FROM, POT, EAR_DX, EAR_R, type TuhoState, type TuhoAction } from './tuho';
 import { SEAT_COLOR as SEAT_CSS } from '../paint';
@@ -111,12 +112,8 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
       } else {
         const c = cv.getContext('2d');
         if (c) {
-          const dpr = Math.min(2, window.devicePixelRatio || 1);
-          cv.width = Math.round((cv.clientWidth || 260) * dpr);
-          cv.height = Math.round(((cv.clientWidth || 260) * H) / W * dpr);
-          const k = cv.width / W;
-          c.setTransform(k, 0, 0, k, 0, 0);
-          c.clearRect(0, 0, W, H);
+          /* 캔버스가 칸을 다 덮고 판은 그 안에 맞춤 */
+          beginFit(c, fitCanvas(cv, W, H));
           c.fillStyle = '#5c4d38';
           c.fillRect(0, 0, W, H);
           for (const [x, r, col] of [[POT.x - EAR_DX, EAR_R, '#85522f'], [POT.x + EAR_DX, EAR_R, '#85522f'], [POT.x, POT.r, '#6b3d28']] as Array<[number, number, string]>) {

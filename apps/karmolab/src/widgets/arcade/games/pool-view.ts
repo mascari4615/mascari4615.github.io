@@ -7,6 +7,7 @@
 import { t } from '../../../lib/i18n';
 import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
+import { fitCanvas, beginFit } from '../fit-canvas';
 import { felt, orb, woodRail, SEAT_COLOR } from '../paint';
 import { W, H, BALL_R, POCKETS, type PoolState, type PoolAction } from './pool';
 
@@ -55,18 +56,10 @@ export const poolView: GameView<PoolState, PoolAction> = {
       if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
       if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const cw = cv.clientWidth || 300;
-      const ch = Math.round((cw * H) / W);
-      if (cv.width !== Math.round(cw * dpr) || cv.height !== Math.round(ch * dpr)) {
-        cv.width = Math.round(cw * dpr);
-        cv.height = Math.round(ch * dpr);
-        cv.style.height = ch + 'px';
-      }
       const c = cv.getContext('2d');
       if (!c) return;
-      const k = cv.width / W;
-      c.setTransform(k, 0, 0, k, 0, 0);
+      /* 캔버스가 칸을 다 덮고 상은 그 안에 맞춤. 남는 자리는 CSS 배경(나무) */
+      beginFit(c, fitCanvas(cv, W, H));
 
       /* 천, 나무 쿠션. 공용 붓(`paint.ts`). 판마다 색을 따로 고르지 않는다. */
       felt(c, W, H);

@@ -6,6 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
+import { fitCanvas, beginFit } from '../fit-canvas';
 import { orb, SEAT_COLOR } from '../paint';
 import { R, SECTORS, aimAt, scoreAt, type DartsState, type DartsAction } from './darts';
 
@@ -28,18 +29,14 @@ export const dartsView: GameView<DartsState, DartsAction> = {
       const s = v.state;
       const myTurn = s.won === -1 && s.turn === mySeat;
 
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      /* 정사각은 CSS(`aspect-ratio`)가 잡는다. 여기서는 그 크기에 픽셀만 맞춘다. */
-      const size = cv.clientWidth || 260;
-      if (cv.width !== Math.round(size * dpr)) {
-        cv.width = Math.round(size * dpr);
-        cv.height = Math.round(size * dpr);
-      }
       const c = cv.getContext('2d');
       if (!c) return;
-      const k = cv.width / (R * 2.2);
-      c.setTransform(k, 0, 0, k, cv.width / 2, cv.height / 2);
-      c.clearRect(-R * 1.1, -R * 1.1, R * 2.2, R * 2.2);
+      /* 캔버스가 칸을 다 덮고 과녁은 그 가운데 정사각. 남는 자리는 CSS 배경 */
+      const fit = fitCanvas(cv, R * 2.2, R * 2.2);
+      const k = fit.k;
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.clearRect(0, 0, fit.pw, fit.ph);
+      c.setTransform(k, 0, 0, k, fit.pw / 2, fit.ph / 2);
 
       const SEC = (Math.PI * 2) / 20;
       const ang = (i: number, d: number): number => (i + d) * SEC - Math.PI / 2;
