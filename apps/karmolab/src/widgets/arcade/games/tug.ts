@@ -14,7 +14,8 @@ import type { GameDef, BotMove, Outcome } from '../types';
 export const GOAL = 20;
 const LIMIT_MS = 45000;
 /** 이보다 빨리 누르면 헛심 */
-const BEST_MS = 170;
+/* 사람 연타 평균 6~7회/초(간격 143~167ms)보다 문턱이 느리면 보통 연타가 전부 헛심 (레퍼런스 2026-09-03) */
+const BEST_MS = 120;
 
 export interface TugState {
   /** 줄 위치. 양수면 자리0 쪽 */

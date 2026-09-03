@@ -103,7 +103,8 @@ export const jegi: GameDef<JegiState, JegiAction> = {
      * 대칭인데 결과가 비대칭이면 그건 실력이 아니라 고장이다. 실제로 0번이 97% 이겼고
      * 평균 개수도 95.0 / 91.7 / 88.6 으로 자리 순서 그대로였다(저울 실측). 지우니 0.37 /
      * 0.33 / 0.30, 평균 91.7 / 91.7 / 91.6. 봇마다 다른 손버릇은 좌석 층이 따로 씌운다. */
-    const shake = (ctx.rng() - 0.5) * window_(s.count[seat]) * 1.4;
+    /* 흔들림이 판정 틈을 넘어야 봇도 떨어진다. 1.4 배는 최대 0.7 틈이라 영영 안 떨어졌음. 개수가 늘수록 더 흔들림 */
+    const shake = (ctx.rng() - 0.5) * window_(s.count[seat]) * (2.0 + s.count[seat] * 0.03);
     return { action: { kind: 'kick' }, delayMs: Math.max(0, s.landAt[seat] - ctx.now + shake) };
   }
 };

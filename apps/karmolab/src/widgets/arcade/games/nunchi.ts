@@ -65,8 +65,11 @@ export const nunchi: GameDef<NunchiState, NunchiAction> = {
     if (s.over) return s;
 
     if (ctx.now >= s.endsAt) {
-      /* 시간이 다 됐다. 아직 살아 있고 한 번도 안 외친 사람은 진다. */
-      return { ...s, over: true };
+      /* 시간이 다 됐다. 아직 살아 있고 한 번도 안 외친 사람은 진다. 안 그러면 안 외치는 것이 최선
+         (주석에만 있고 코드에 없었음. 레퍼런스 2026-09-03) */
+      const called = new Set(s.log.flatMap((l) => l.seats));
+      const alive = s.alive.map((v, i) => v && called.has(i));
+      return { ...s, alive, over: true };
     }
 
     if (!s.pending.length) return s;
