@@ -28,12 +28,12 @@ export function applyCdn(html) {
 
 
 /**
- * 글 **목록 장은 없다** (change.karmolab-at-root ②).
+ * 글 목록 장 `/posts/` 는 **정적 `<a>` 목록**이다 (2026-09-03. change.karmolab-at-root ② 를 뒤집음).
  *
- * 목록의 집은 앱 안 커뮤니티 글 판이다 (`/?board=info#community` 와 `me`,
- * change.board-unify ①). 정적 목록 장을 따로 찍으면 같은 목록이 두 군데가 되고
- * 검색 신호도 갈라진다. 여기서는 **글 한 장씩**(`/posts/<slug>/`)만 찍는다.
- * 목록 데이터 정본 = `data/posts-index.json` (빌드 산출, 공개 글만).
+ * 사람 화면의 집은 앱 안 커뮤니티 게시판 (`/?board=info#community` 와 `me`, change.board-unify ①).
+ * 전에는 검색 신호가 갈린다며 정적 목록을 안 찍었고, 그 대가로 `/posts/` 404 와 글 329편에
+ * 링크 0, GSC 판정 발견됨, 크롤 안 감. 목록 장은 `gen-post-pages.mjs` 소관.
+ * 목록 데이터 정본은 `data/posts-index.json` (빌드 산출, 공개 글만)
  */
 
 /**

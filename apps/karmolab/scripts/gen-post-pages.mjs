@@ -337,7 +337,77 @@ const index = visible
 // data/ 판 = 서빙본 (rsync 로 /apps/karmolab/data/ 에 실린다). 커밋 X. 배포마다 새로 (gitignore).
 fs.writeFileSync(path.join(APP_ROOT, 'data', 'posts-index.json'), JSON.stringify(index, null, 1));
 
-// 목록 장은 안 찍는다. 목록의 집은 앱 안 커뮤니티 글 판이다 (post-page.mjs 머리말).
+/* `/posts/` 목록 장 (2026-09-03. change.karmolab-at-root ② 를 뒤집음).
+   전에는 목록 장을 안 찍었다. 목록의 집은 앱 안 커뮤니티 글 판이고, 정적 목록을 따로 두면
+   검색 신호가 갈린다는 이유였다. 실측이 반대로 나왔다. `/posts/` 는 404 였고, 뿌리도 허브도
+   글 329편을 `<a>` 로 안 가리켰다. 글은 사이트맵에만 있었고 GSC 는 그 392장을 발견됨,
+   크롤 안 감으로 3년째 두고 있었다. 링크가 있는 `/t/` 55장은 크롤이 왔다.
+   그래서 목록을 **정적 `<a>` 로** 굽는다. 사람 화면의 집은 여전히 커뮤니티 글 판이라 그리로
+   가는 링크를 위에 둔다. 공개 글만 싣는다 (hidden 열거 방지). 재측정은 seo-측정-원장. */
+{
+    const permalink = '/posts/';
+    // 새 글이 위. index 의 순서에 기대지 않는다 (처음 굽던 날 reverse 로 두었다가 2019 가 맨 위에 왔다).
+    const newest = [...index].sort((a, b) => (a.date < b.date ? 1 : -1));
+    const byYear = new Map();
+    for (const p of newest) {
+        const year = p.date.slice(0, 4);
+        if (!byYear.has(year)) byYear.set(year, []);
+        byYear.get(year).push(p);
+    }
+    const lastmod = index.map((p) => p.lastmod ?? p.date).sort().at(-1) ?? new Date().toISOString();
+    const description = `카모뜨린의 글 ${index.length}편. 게임 개발, 유니티, VRChat, 도구, 기록`;
+    const body =
+        `<nav class="tool-crumb" aria-label="위치"><a href="/">KarmoLab</a>` +
+        `<i aria-hidden="true">›</i><span aria-current="page">글</span></nav>` +
+        `<header class="tool-head"><h1>글</h1></header>` +
+        `<section class="tool-seo tool-hub">` +
+        `<p>${shellEsc(description)}. <a href="/?board=info#community">커뮤니티 글 판에서 보기</a>, <a href="/feed.xml">RSS</a></p>` +
+        [...byYear.entries()]
+            .map(
+                ([year, list]) =>
+                    `<h2>${year} <small>${list.length}편</small></h2><ul>` +
+                    list
+                        .map(
+                            (p) =>
+                                `<li><a href="/posts/${shellEsc(p.slug)}/">${shellEsc(p.title)}</a>` +
+                                ` <time datetime="${shellEsc(p.date)}">${shellEsc(p.date.slice(0, 10))}</time></li>`
+                        )
+                        .join('') +
+                    '</ul>'
+            )
+            .join('') +
+        '</section>';
+
+    let page = shellCommon(SHELL, { permalink, lastModified: lastmod, bootPaths: [] });
+    page = page.replace(/<title>[\s\S]*?<\/title>/, '<title>글 | KarmoDDrine</title>');
+    page = replaceMeta(page, 'name', 'description', description);
+    page = replaceMeta(page, 'property', 'og:description', description);
+    page = replaceMeta(page, 'property', 'og:title', '글');
+    page = replaceMeta(page, 'property', 'og:url', `${SITE}${permalink}`);
+    const shellCanonical = `<link rel="canonical" href="${SITE}/">`;
+    if (!page.includes(shellCanonical)) throw new Error('[gen-post-pages] /posts/ 셸 canonical 자리를 못 찾았다. index.html 확인');
+    page = page.replace(shellCanonical, `<link rel="canonical" href="${SITE}${permalink}">`);
+    const ld = {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: '글',
+        description,
+        url: `${SITE}${permalink}`,
+        inLanguage: 'ko-KR',
+        isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/` },
+    };
+    page = asStaticPage(page, {
+        kind: 'hub',
+        bodyHtml: body,
+        head: `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`,
+    });
+    // 링크가 이 장의 존재 이유. 글 수만큼 안 실렸으면 배포 전에 세움
+    const linked = (page.match(/<a href="\/posts\/[^"/]+\/">/g) ?? []).length;
+    if (linked !== index.length) throw new Error(`[gen-post-pages] /posts/ 목록 링크 ${linked} 이 공개 글 ${index.length} 과 다르다`);
+    fs.writeFileSync(path.join(OUT, 'posts', 'index.html'), page);
+    console.log(`[gen-post-pages] /posts/ 목록 장. 글 ${index.length}편, ${byYear.size}개 해`);
+}
+
 // 피드, 소개, 404 도 함께 굽는다.
 fs.writeFileSync(path.join(OUT, 'feed.xml'), feedXml(index));
 /* 404 도 다른 장과 **같은 셸**을 쓴다 (change.blog-surfaces-as-widgets). 여기만 제 CSS 를
