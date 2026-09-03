@@ -57,7 +57,9 @@ export type YutAction = { kind: 'throw' } | { kind: 'move'; piece: number };
 /** 윷 네 짝을 던진다. 넷 다 엎어지면 모(5), 아니면 젖혀진 수만큼. */
 function roll(rng: () => number): number {
   let up = 0;
-  for (let i = 0; i < 4; i++) if (rng() < 0.5) up++;
+  /* 윷 한 짝이 앞면(평평한 쪽 위)일 확률 0.6. 0.5 는 동전 모델이라 걸이 도와 같고 모가 세 배였음
+     0.6 이면 도 15 개 35 걸 35 윷 13 모 3 (%). 실측 반원기둥 11 34 35 14 2 에 가까움 */
+  for (let i = 0; i < 4; i++) if (rng() < 0.6) up++;
   return up === 0 ? 5 : up;
 }
 

@@ -59,8 +59,9 @@ export const four: GameDef<FourState, FourAction> = {
   seats: [2, 2],
   rounds: 1,
 
-  init() {
-    return { board: new Array(W * H).fill(0), turn: 0, won: -1, last: -1 };
+  init(ctx) {
+    /* 사목은 선공 필승(Allis 1988). 선공을 자리 0 에 박아 두면 늘 같은 쪽이 유리. 씨앗으로 고름 */
+    return { board: new Array(W * H).fill(0), turn: ctx.rng() < 0.5 ? 0 : 1, won: -1, last: -1 };
   },
 
   canAct(s, seat) {

@@ -66,11 +66,12 @@ export const mancala: GameDef<MancalaState, MancalaAction> = {
   seats: [2, 2],
   rounds: 1,
 
-  init() {
+  init(ctx) {
     const board = new Array(14).fill(SEEDS);
     board[STORE[0]] = 0;
     board[STORE[1]] = 0;
-    return { board, turn: 0, last: -1, over: false };
+    /* 칼라(6, 4)는 선공 승(Rawlings 2015). 선공을 씨앗으로 고름 */
+    return { board, turn: ctx.rng() < 0.5 ? 0 : 1, last: -1, over: false };
   },
 
   canAct(s, seat) {
