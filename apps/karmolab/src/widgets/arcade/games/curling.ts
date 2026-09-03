@@ -154,7 +154,8 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
     let stones = s.stones;
     let moving = true;
     /* 한 번에 너무 많이 밟으면 프레임이 튄다. 상한을 둔다(밀린 건 다음 tick 이 마저 밟는다). */
-    for (let n = 0; n < 12 && moving; n++) {
+    /* 틱(16ms)당 네 걸음. 열두 걸음이면 스톤이 0.46초 만에 멎어 볼 수가 없었음 (레퍼런스 2026-09-03) */
+    for (let n = 0; n < 4 && moving; n++) {
       const r = stepPhysics(stones);
       stones = r.stones;
       moving = r.moving;

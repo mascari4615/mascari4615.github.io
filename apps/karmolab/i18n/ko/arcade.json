@@ -761,5 +761,6 @@
   "arcade.blackjack.trio.trips": "트리플",
   "arcade.blackjack.trio.straight": "스트레이트",
   "arcade.blackjack.trio.flush": "플러시",
-  "arcade.blackjack.trio.none": "21+3 아님"
+  "arcade.blackjack.trio.none": "21+3 아님",
+  "arcade.tanks.wind": "바람 {n}"
 }

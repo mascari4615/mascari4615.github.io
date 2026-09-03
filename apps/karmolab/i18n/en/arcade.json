@@ -761,5 +761,6 @@
   "arcade.blackjack.trio.trips": "Three of a kind",
   "arcade.blackjack.trio.straight": "Straight",
   "arcade.blackjack.trio.flush": "Flush",
-  "arcade.blackjack.trio.none": "No 21+3"
+  "arcade.blackjack.trio.none": "No 21+3",
+  "arcade.tanks.wind": "Wind {n}"
 }

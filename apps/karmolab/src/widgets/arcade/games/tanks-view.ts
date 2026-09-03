@@ -20,6 +20,7 @@ export const tanksView: GameView<TanksState, TanksAction> = {
       '<div class="ac-clbar">' +
       '<label><span id="acTkAl"></span><input type="range" id="acTkA" min="5" max="85" value="45"></label>' +
       '<label><span id="acTkPl"></span><input type="range" id="acTkP" min="20" max="100" value="60"></label>' +
+      '<span class="ac-tkwind" id="acTkW"></span>' +
       '<button class="btn btn-primary" id="acTkGo"></button>' +
       '</div></div>';
     const cv = el.querySelector('#acTkCv') as HTMLCanvasElement;
@@ -139,6 +140,11 @@ export const tanksView: GameView<TanksState, TanksAction> = {
       (el.querySelector('#acTkAl') as HTMLElement).textContent = t('arcade.tanks.angle');
       (el.querySelector('#acTkPl') as HTMLElement).textContent = t('arcade.tanks.power');
       go.textContent = s.shell ? t('arcade.tanks.flying') : t('arcade.tanks.fire');
+      /* 바람. 부호가 방향, 크기가 세기. 화살표는 글자로 */
+      const wind = (s.wind > 0 ? '→' : s.wind < 0 ? '←' : '-') + ' ' + Math.abs(s.wind);
+      const windEl = el.querySelector('#acTkW') as HTMLElement;
+      const windText = t('arcade.tanks.wind', { n: wind });
+      if (windEl.textContent !== windText) windEl.textContent = windText;
       ang.disabled = !myTurn;
       pow.disabled = !myTurn;
       go.disabled = !myTurn;

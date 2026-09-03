@@ -41,8 +41,9 @@ export function aimAt(now: number, since: number): { x: number; y: number } {
   const t = (now - since) / SWING_MS;
   /* 두 방향이 서로 다른 빠르기로 흔들려 매번 다른 자리를 지난다(리사주 곡선). */
   return {
-    x: Math.sin(t * Math.PI * 2) * R * 0.72,
-    y: Math.sin(t * Math.PI * 2 * 1.6 + 0.7) * R * 0.72
+    /* 진폭 R. 0.72R 이면 더블 링(0.92~1.0R)에 닿을 수 없었음 (레퍼런스 2026-09-03) */
+    x: Math.sin(t * Math.PI * 2) * R,
+    y: Math.sin(t * Math.PI * 2 * 1.6 + 0.7) * R
   };
 }
 

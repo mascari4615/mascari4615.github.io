@@ -12,6 +12,8 @@ import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 export const W = 100;
 export const H = 60;
 const G = 0.16;
+/** 바람. 정수 -10 ~ 10 */
+const windOf = (rng: () => number): number => Math.round((rng() * 2 - 1) * 10);
 const HP = 3;
 
 export interface Shell {
@@ -32,6 +34,8 @@ export interface TanksState {
   shell: Shell | null;
   /** 마지막으로 떨어진 자리. 화면이 남겨 준다 */
   marks: Array<{ x: number; y: number }>;
+  /** 바람. -10 ~ 10. 차례마다 바뀜. 포탄 x 속도에 걸음마다 바람 x 0.004 (Worms 0~10, ShellShock 의 관례) */
+  wind: number;
   over: boolean;
 }
 
@@ -66,6 +70,7 @@ export const tanks: GameDef<TanksState, TanksAction> = {
       turn: 0,
       shell: null,
       marks: [],
+      wind: windOf(ctx.rng),
       over: false
     };
   },
@@ -105,8 +110,10 @@ export const tanks: GameDef<TanksState, TanksAction> = {
     let hp = s.hp;
     let marks = s.marks;
     let turn = s.turn;
+    let wind = s.wind;
 
     for (let n = 0; n < 8 && sh; n++) {
+      sh.vx += s.wind * 0.004;
       sh.x += sh.vx;
       sh.y += sh.vy;
       sh.vy -= G;
@@ -116,6 +123,7 @@ export const tanks: GameDef<TanksState, TanksAction> = {
         marks = [...marks.slice(-4), { x: Math.max(0, Math.min(W - 1, sh.x)), y: 0 }];
         sh = null;
         turn = 1 - s.turn;
+        wind = windOf(ctx.rng);
         break;
       }
 
@@ -139,13 +147,14 @@ export const tanks: GameDef<TanksState, TanksAction> = {
         marks = [...marks.slice(-4), { x: sh.x, y: sh.y }];
         sh = null;
         turn = 1 - s.turn;
+        wind = windOf(ctx.rng);
         break;
       }
     }
 
     const over = hp.some((v) => v <= 0);
     void ctx;
-    return { ...s, ground, hp, marks, shell: sh, turn, over };
+    return { ...s, ground, hp, marks, shell: sh, turn, wind, over };
   },
 
   outcome(s, ctx): Outcome {

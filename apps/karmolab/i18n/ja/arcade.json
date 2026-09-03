@@ -761,5 +761,6 @@
   "arcade.blackjack.trio.trips": "スリーカード",
   "arcade.blackjack.trio.straight": "ストレート",
   "arcade.blackjack.trio.flush": "フラッシュ",
-  "arcade.blackjack.trio.none": "21+3 なし"
+  "arcade.blackjack.trio.none": "21+3 なし",
+  "arcade.tanks.wind": "風 {n}"
 }

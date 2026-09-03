@@ -169,7 +169,8 @@ export const bowling: GameDef<BowlingState, BowlingAction> = {
     if (!s.moving || s.done) return s;
     let bodies = s.bodies;
     let moving = true;
-    for (let n = 0; n < 12 && moving; n++) {
+    /* 틱(16ms)당 두 걸음. 열두 걸음이면 공이 0.055초 만에 핀에 닿았음 (레퍼런스 2026-09-03) */
+    for (let n = 0; n < 2 && moving; n++) {
       const r = stepPhysics(bodies);
       bodies = r.bodies;
       moving = r.moving;
