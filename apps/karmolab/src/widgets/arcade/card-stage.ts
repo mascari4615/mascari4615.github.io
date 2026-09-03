@@ -471,7 +471,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     /* 상 위를 벗어나면 카드가 허공에 뜬 것처럼 보인다. 작은 줄 폭까지 넣어 안쪽으로 */
     const w = TABLE_W * 0.52;
     const x = n === 1 ? 0 : -w / 2 + (i * w) / (n - 1);
-    return { x, z: rowZ(seat) - TABLE_D * 0.16, s: 0.58 };
+    /* 내 줄과 한 줄 반 띄움. 붙여 두니 내 카드가 남의 줄을 덮었다(2026-09-03 실측). 카메라가 놓인 것을 재서 담으므로 멀어도 잘리지 않음 */
+    return { x, z: rowZ(seat) - TABLE_D * 0.34, s: 0.58 };
   };
 
   /**
@@ -530,6 +531,79 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
    * 세로를 더 찌그러뜨리고 있었음
    */
   let cardTilt = 0;
+  /* 카메라 목표. `fit` 이 정하고 `step` 이 그리로 미끄러진다. 판이 자라도 화면이 튀지 않게 (2026-09-03 사용자 지적: 구도가 판마다 고정) */
+  const camGoal = new Vector3();
+  const lookGoal = new Vector3();
+  const lookNow = new Vector3();
+  let camSnap = true;
+  /* 마지막으로 담은 구역. 조금 바뀐 것으로는 카메라를 안 흔든다 */
+  let lastExt: { halfW: number; halfD: number; z: number } | null = null;
+
+  /**
+   * 구역 하나를 화면에 담는 카메라 자리. 내림각으로 시선축을 정하고, 구역 여덟 점이 다 들어올 때까지 물러섬
+   * 보드(솔리테어, 짝맞추기)와 손패 판이 같이 씀
+   */
+  const fitFocus = (f: { halfW: number; halfD: number; z: number; pitch?: number }, tall: boolean, fill = 0.94): void => {
+    const pitch = ((tall ? 5 : 0) + (f.pitch ?? 58)) * (Math.PI / 180);
+    const sy = Math.sin(pitch);
+    const cz = Math.cos(pitch);
+    const half = Math.tan((camera.fov * Math.PI) / 360);
+    const halfH = half * camera.aspect;
+    const pts: Array<[number, number]> = [
+      [f.halfW, -f.halfD], [-f.halfW, -f.halfD], [f.halfW, f.halfD], [-f.halfW, f.halfD],
+      [0, f.halfD], [0, -f.halfD], [f.halfW, 0], [-f.halfW, 0]
+    ];
+    let dist = Math.max(f.halfW, f.halfD) * 2;
+    for (let it = 0; it < 12; it += 1) {
+      const cy = TOP_Y + dist * sy;
+      const cZ = f.z + dist * cz;
+      let over = 1;
+      for (const [px, pz] of pts) {
+        const vx = px;
+        const vy = TOP_Y - cy;
+        const vz = pz + f.z - cZ;
+        const fz = -(vy * sy + vz * cz);
+        const fy = vy * cz - vz * sy;
+        if (fz <= 0.05) continue;
+        over = Math.max(over, Math.abs(vx) / (halfH * fz * fill), Math.abs(fy) / (half * fz * fill));
+      }
+      if (over <= 1.001) break;
+      dist *= over;
+    }
+    camGoal.set(0, TOP_Y + dist * sy, f.z + dist * cz);
+    lookGoal.set(0, TOP_Y, f.z);
+  };
+
+  /**
+   * 상 위에 놓인 것의 둘레. 카드 목표 자리와 이름표. 손패 판의 카메라가 이걸 담음
+   * 대부호는 세 줄, 도미노는 긴 줄 하나, 화투는 바닥 여덟 장. 판마다 다르니 값을 박지 않고 잼
+   */
+  const extents = (): { halfW: number; halfD: number; z: number } | null => {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    for (const c of live) {
+      const sc = c.mesh.scale.x || 1;
+      const hw = (CARD_W * sc) / 2;
+      const hd = (CARD_H * sc) / 2;
+      minX = Math.min(minX, c.to.x - hw);
+      maxX = Math.max(maxX, c.to.x + hw);
+      minZ = Math.min(minZ, c.to.z - hd);
+      maxZ = Math.max(maxZ, c.to.z + hd);
+    }
+    for (const tag of labelGroup.children) {
+      minZ = Math.min(minZ, tag.position.z - 0.2);
+      maxZ = Math.max(maxZ, tag.position.z + 0.2);
+      minX = Math.min(minX, tag.position.x - 0.6);
+      maxX = Math.max(maxX, tag.position.x + 0.6);
+    }
+    if (!Number.isFinite(minX) || !Number.isFinite(minZ)) return null;
+    /* 좌우는 가운데 맞춤(내 줄이 가운데). 여백은 카드 반 장 */
+    /* 카드 두 장뿐인 판(하이로우)은 그대로 담으면 카드가 화면을 다 먹는다. 상 폭의 3분의 2는 늘 담는다 */
+    const halfW = Math.max(2.3, Math.max(Math.abs(minX), Math.abs(maxX)) + CARD_W * 0.55);
+    return { halfW, halfD: Math.max(1.5, (maxZ - minZ) / 2 + CARD_H * 0.45), z: (minZ + maxZ) / 2 };
+  };
 
   let shown: CardHand[] = [];
   /* 화면은 매 프레임 같은 손패를 다시 준다. 그때마다 새로 놓으면 애니메이션이 늘 처음으로
@@ -544,7 +618,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     renderer.render(scene, camera);
   };
 
-  const fit = (): void => {
+  const fit = (snap = true): void => {
     const { aspect } = core.fit();
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
@@ -556,41 +630,13 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
        * 내림각은 카지노 상과 같은 뜻. 카드 앞면을 읽어야 하므로 거의 위에서,
        * 두께와 겹침이 보일 만큼만 눕힘
        */
-      const f = opts.board.focus;
-      const pitch = ((tall ? 5 : 0) + (f.pitch ?? 58)) * (Math.PI / 180);
-      const sy = Math.sin(pitch);
-      const cz = Math.cos(pitch);
-      const half = Math.tan((camera.fov * Math.PI) / 360);
-      const halfH = half * aspect;
-      const pts: Array<[number, number]> = [
-        [f.halfW, -f.halfD], [-f.halfW, -f.halfD], [f.halfW, f.halfD], [-f.halfW, f.halfD],
-        [0, f.halfD], [0, -f.halfD], [f.halfW, 0], [-f.halfW, 0]
-      ];
-      let dist = Math.max(f.halfW, f.halfD) * 2;
-      for (let it = 0; it < 12; it += 1) {
-        const cy = TOP_Y + dist * sy;
-        const cZ = f.z + dist * cz;
-        let over = 1;
-        for (const [px, pz] of pts) {
-          const vx = px;
-          const vy = TOP_Y - cy;
-          const vz = pz + f.z - cZ;
-          const fz = -(vy * sy + vz * cz);
-          const fy = vy * cz - vz * sy;
-          if (fz <= 0.05) continue;
-          over = Math.max(over, Math.abs(vx) / (halfH * fz * 0.94), Math.abs(fy) / (half * fz * 0.94));
-        }
-        if (over <= 1.001) break;
-        dist *= over;
-      }
-      camera.position.set(0, TOP_Y + dist * sy, f.z + dist * cz);
-      camera.lookAt(0, TOP_Y, f.z);
+      fitFocus(opts.board.focus, tall);
     } else if (opts.board) {
       /* 판 전체가 한 사람 것이라 위에서 내려본다. 상 폭이 화면에 다 들어와야 한다 */
       /* 상 폭과 깊이가 다 들어와야 한다. 시야각 40도라 깊이 쪽이 더 멀다 */
       const need = Math.max(TABLE_W / Math.max(0.6, aspect), TABLE_D * 0.92);
-      camera.position.set(0, TOP_Y + need * 1.42, need * 0.86);
-      camera.lookAt(0, TOP_Y, 0.35);
+      camGoal.set(0, TOP_Y + need * 1.42, need * 0.86);
+      lookGoal.set(0, TOP_Y, 0.35);
     } else if (casino) {
       /**
        * **위에서 내려다본다** (2026-09-01 사용자 확정). 블랙잭에서 사람이 읽을 것은
@@ -648,17 +694,35 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       /* 더 당긴다. 상이 다 보일 이유가 없다는 사용자 확정(2026-09-01, 세 번 지적).
          Classic Blackjack 도 상 좌우가 화면 밖으로 잘린다 */
       dist *= 0.74;
-      camera.position.set(0, TOP_Y + dist * sy, lookZ + dist * cz);
-      camera.lookAt(0, TOP_Y, lookZ);
+      camGoal.set(0, TOP_Y + dist * sy, lookZ + dist * cz);
+      lookGoal.set(0, TOP_Y, lookZ);
       /* 카드 면이 시선축과 직각이 되게. 상은 기울고 카드는 정면 */
       /* 카드는 상에 눕힌다 (2026-09-01 사용자 확정). 카메라 쪽으로 세워 봤더니
          상 위 물건이 아니라 화면에 붙인 그림이 됐다. 크기로만 읽히게 한다 */
       cardTilt = 0;
     } else {
-      camera.position.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
-      /* 내 줄이 화면 아래로 안 잘리게 시선을 조금 앞으로 */
-      camera.lookAt(0, TOP_Y, 0.5);
+      /**
+       * 손패 판(대부호, 도미노, 화투, 등불, 스피드, 하이로우). 상 위에 놓인 것만 담음
+       * 전에는 상 전체를 담는 한 자리라 방이 화면 절반, 카드는 새끼손톱 (2026-09-03 사용자 지적)
+       * 내림각 60도. 블랙잭(62)과 같은 눈높이. 조금 바뀐 구역으로는 안 움직임
+       */
+      const ext = extents();
+      if (!ext) {
+        camGoal.set(0, tall ? 6.6 : 5.4, tall ? 6.2 : 5.6);
+        lookGoal.set(0, TOP_Y, 0.5);
+      } else {
+        const moved = !lastExt || Math.abs(lastExt.halfW - ext.halfW) > 0.25 || Math.abs(lastExt.halfD - ext.halfD) > 0.25 || Math.abs(lastExt.z - ext.z) > 0.25;
+        if (!moved && lastExt && !snap) return;
+        lastExt = ext;
+        fitFocus({ halfW: ext.halfW, halfD: ext.halfD, z: ext.z, pitch: 60 }, tall, 0.9);
+      }
     }
+    if (snap || camSnap) {
+      camSnap = false;
+      camera.position.copy(camGoal);
+      lookNow.copy(lookGoal);
+      camera.lookAt(lookNow);
+    } else wake();
     need = true;
     render();
   };
@@ -680,6 +744,13 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       c.mesh.position.y += Math.sin(Math.PI * k) * hop;
       c.mesh.rotation.z = c.rFrom + (c.rTo - c.rFrom) * e;
       if (k < 1 || now < c.t0) busy = true;
+    }
+    /* 카메라. 목표까지 프레임마다 12%. 카드가 날아오는 동안 같이 움직여 한 동작으로 읽힘 */
+    if (camera.position.distanceToSquared(camGoal) > 1e-5 || lookNow.distanceToSquared(lookGoal) > 1e-5) {
+      camera.position.lerp(camGoal, 0.12);
+      lookNow.lerp(lookGoal, 0.12);
+      camera.lookAt(lookNow);
+      busy = true;
     }
     if (busy || need) {
       need = false;
@@ -829,6 +900,8 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
       }
     }
     shown = hands.map((h) => ({ seat: h.seat, label: h.label, tone: h.tone, cards: h.cards.map((c) => ({ ...c })) }));
+    /* 놓인 것이 바뀌었으니 담을 구역도. 첫 배분은 바로, 그 뒤는 미끄러져서 */
+    if (!opts.board && !casino) fit(before === '');
     need = true;
     wake();
   };
@@ -1148,7 +1221,7 @@ export function mountCardStage(host: HTMLElement, opts: CardStageOpts = {}): Car
     };
   };
 
-  const ro = new ResizeObserver(fit);
+  const ro = new ResizeObserver(() => fit());
   ro.observe(host);
   fit();
   render();
