@@ -6,7 +6,7 @@
  */
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
-import { N, type FleetState, type FleetAction } from './fleet';
+import type { FleetState, FleetAction } from './fleet';
 
 export const fleetView: GameView<FleetState, FleetAction> = {
   id: 'fleet',
@@ -16,19 +16,21 @@ export const fleetView: GameView<FleetState, FleetAction> = {
     const msg = el.querySelector('#acFlMsg') as HTMLElement;
     const wrap = el.querySelector('#acFlG') as HTMLElement;
     let built = 0;
+    let builtN = 0;
 
     return (v, mySeat) => {
       const s = v.state;
       const mine = s.turn === mySeat && !s.over && !v.finished;
 
-      if (built !== v.seats.length) {
+      if (built !== v.seats.length || builtN !== s.n) {
         built = v.seats.length;
+        builtN = s.n;
         wrap.innerHTML = v.seats
           .map((_, i) =>
             '<div class="ac-flone" data-at="' + i + '">' +
             '<div class="ac-flname"></div>' +
-            '<div class="ac-flboard" style="--n:' + N + '">' +
-            Array.from({ length: N * N }, (__, c) => '<button class="ac-flc" data-c="' + c + '"></button>').join('') +
+            '<div class="ac-flboard" style="--n:' + s.n + '">' +
+            Array.from({ length: s.n * s.n }, (__, c) => '<button class="ac-flc" data-c="' + c + '"></button>').join('') +
             '</div></div>')
           .join('');
       }

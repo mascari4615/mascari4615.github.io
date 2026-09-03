@@ -769,5 +769,13 @@
   "arcade.fish.perfect": "완벽! x1.5",
   "arcade.mine.stats": "3BV {b}, 클릭 {c}, 효율 {e}%",
   "arcade.sudoku.wrong": "실수 {n}/3",
-  "arcade.sudoku.out": "실수 3번. 구경"
+  "arcade.sudoku.out": "실수 3번. 구경",
+  "arcade.setup.frames": "프레임",
+  "arcade.setup.frames.3": "3프레임",
+  "arcade.setup.frames.5": "5프레임",
+  "arcade.setup.frames.10": "10프레임",
+  "arcade.setup.mines.9": "초급 9x9 지뢰 10",
+  "arcade.setup.mines.16": "중급 16x16 지뢰 40",
+  "arcade.setup.fleet.8": "8x8 배 넷",
+  "arcade.setup.fleet.10": "10x10 배 다섯"
 }

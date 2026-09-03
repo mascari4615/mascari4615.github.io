@@ -25,6 +25,43 @@ export interface Choice {
 
 /** 놀이마다 고를 것. 없으면 고를 게 없다는 뜻이다 */
 export const SETUPS: Record<string, Choice[]> = {
+  /* 볼링 프레임. 클럽하우스 51 은 5 와 10. 우리 기본 3 은 짧은 판용 (레퍼런스 2026-09-03) */
+  bowling: [
+    {
+      key: 'frames',
+      label: 'arcade.setup.frames',
+      options: [
+        { value: 3, label: 'arcade.setup.frames.3' },
+        { value: 5, label: 'arcade.setup.frames.5' },
+        { value: 10, label: 'arcade.setup.frames.10' }
+      ],
+      fallback: 3
+    }
+  ],
+  /* 지뢰 초급과 중급. 9x9 10 과 16x16 40 (Windows, minesweeper.online) */
+  minesweeper: [
+    {
+      key: 'size',
+      label: 'arcade.setup.size',
+      options: [
+        { value: 9, label: 'arcade.setup.mines.9' },
+        { value: 16, label: 'arcade.setup.mines.16' }
+      ],
+      fallback: 9
+    }
+  ],
+  /* 함대 찾기. 8x8 넷과 표준 10x10 다섯 척 */
+  fleet: [
+    {
+      key: 'size',
+      label: 'arcade.setup.size',
+      options: [
+        { value: 8, label: 'arcade.setup.fleet.8' },
+        { value: 10, label: 'arcade.setup.fleet.10' }
+      ],
+      fallback: 8
+    }
+  ],
   /* 솔리테어 한 장 뽑기와 세 장 뽑기. 레퍼런스 넷 다 첫 화면에 Turn 1 / Turn 3
      한 장이 쉽고(이김 40~55%) 세 장이 정석 */
   solitaire: [

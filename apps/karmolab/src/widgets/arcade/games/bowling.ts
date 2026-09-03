@@ -28,7 +28,9 @@ export const PIN_SPOTS: Array<[number, number]> = (() => {
   return out;
 })();
 
+/* 프레임 수. 시작 화면에서 고름 (클럽하우스 51 은 5/10, 레퍼런스 2026-09-03) */
 const FRAMES = 3;
+export const framesOf = (opts: { frames?: number | boolean }): number => ([3, 5, 10].includes(Number(opts.frames)) ? Number(opts.frames) : FRAMES);
 const FRICTION = 0.992;
 const STOP_V = 0.03;
 
@@ -44,6 +46,8 @@ export interface Body {
 }
 
 export interface BowlingState {
+  /** 이 판의 프레임 수 */
+  frames: number;
   bodies: Body[];
   turn: number;
   /** 자리별 프레임마다 굴린 결과 (쓰러뜨린 수) */
@@ -107,10 +111,10 @@ export function stepPhysics(bodies: Body[]): { bodies: Body[]; moving: boolean }
 const standing = (bodies: Body[]): number => bodies.filter((b) => b.pin && !b.down).length;
 
 /** 볼링 셈. 스트라이크는 다음 두 번, 스페어는 다음 한 번을 더 받는다. */
-export function scoreOf(rolls: number[]): number {
+export function scoreOf(rolls: number[], frames = FRAMES): number {
   let total = 0;
   let i = 0;
-  for (let f = 0; f < FRAMES; f++) {
+  for (let f = 0; f < frames; f++) {
     const a = rolls[i];
     if (a === undefined) break;
     if (a === 10) {
@@ -133,6 +137,7 @@ export const bowling: GameDef<BowlingState, BowlingAction> = {
 
   init(ctx) {
     return {
+      frames: framesOf(ctx.opts),
       bodies: freshPins(),
       turn: 0,
       rolls: ctx.seats.map(() => []),
@@ -195,13 +200,13 @@ export const bowling: GameDef<BowlingState, BowlingAction> = {
       for (let i = 0; i < r.length; ) { if (r[i] === 10) { f++; i += 1; } else { f++; i += 2; } }
       return f;
     }));
-    const done = framesDone >= FRAMES;
+    const done = framesDone >= s.frames;
     return { ...s, bodies: freshPins(), rolls, ball: 0, moving: false, turn: next, done };
   },
 
   outcome(s, ctx): Outcome {
     if (!s.done) return { over: false };
-    const scores = s.rolls.map(scoreOf);
+    const scores = s.rolls.map((r) => scoreOf(r, s.frames));
     const top = Math.max(...scores);
     const winners = ctx.seats.filter((_, i) => scores[i] === top);
     return {

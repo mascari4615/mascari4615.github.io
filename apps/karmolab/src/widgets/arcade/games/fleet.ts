@@ -13,10 +13,15 @@
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 import { grid } from '../grid';
 
+/* 기본 8x8 배 넷(4,3,3,2). 시작 화면에서 표준 10x10 다섯 척(5,4,3,3,2) (Hasbro 1990, 레퍼런스 2026-09-03) */
 export const N = 8;
 const FLEET = [4, 3, 3, 2];
+export const boardOf = (opts: { size?: number | boolean }): { n: number; fleet: number[] } =>
+  Number(opts.size) === 10 ? { n: 10, fleet: [5, 4, 3, 3, 2] } : { n: N, fleet: FLEET };
 
 export interface FleetState {
+  /** 판 한 변 */
+  n: number;
   /** 자리별 배가 놓인 칸. **`redact` 가 남의 것을 지운다** */
   ships: number[][];
   /** 자리별 판에 남은 자국: 0 없음, 1 빗나감, 2 맞음 (이건 모두에게 보인다) */
@@ -30,18 +35,17 @@ export interface FleetState {
 
 export type FleetAction = { at: number; cell: number };
 
-const { xy } = grid(N);
 
 /** 배를 다 놓는다. 겹치면 다시 고른다. */
-function place(rng: () => number): number[] {
+function place(rng: () => number, n: number, fleetSet: number[]): number[] {
   const used = new Set<number>();
   const out: number[] = [];
-  for (const len of FLEET) {
+  for (const len of fleetSet) {
     for (let tries = 0; tries < 500; tries++) {
       const horiz = rng() < 0.5;
-      const x = Math.floor(rng() * (horiz ? N - len + 1 : N));
-      const y = Math.floor(rng() * (horiz ? N : N - len + 1));
-      const cells = Array.from({ length: len }, (_, k) => (y + (horiz ? 0 : k)) * N + x + (horiz ? k : 0));
+      const x = Math.floor(rng() * (horiz ? n - len + 1 : n));
+      const y = Math.floor(rng() * (horiz ? n : n - len + 1));
+      const cells = Array.from({ length: len }, (_, k) => (y + (horiz ? 0 : k)) * n + x + (horiz ? k : 0));
       if (cells.some((c) => used.has(c))) continue;
       cells.forEach((c) => used.add(c));
       out.push(...cells);
@@ -70,9 +74,11 @@ export const fleet: GameDef<FleetState, FleetAction> = {
   rounds: 1,
 
   init(ctx: GameCtx) {
+    const b = boardOf(ctx.opts);
     return {
-      ships: ctx.seats.map(() => place(ctx.rng)),
-      mark: ctx.seats.map(() => new Array(N * N).fill(0)),
+      n: b.n,
+      ships: ctx.seats.map(() => place(ctx.rng, b.n, b.fleet)),
+      mark: ctx.seats.map(() => new Array(b.n * b.n).fill(0)),
       alive: ctx.seats.map(() => true),
       turn: 0,
       last: null,
@@ -95,7 +101,7 @@ export const fleet: GameDef<FleetState, FleetAction> = {
     const cell = a?.cell;
     if (!Number.isInteger(at) || at < 0 || at >= s.alive.length || at === seat) return s;
     if (!s.alive[at]) return s;
-    if (!Number.isInteger(cell) || cell < 0 || cell >= N * N) return s;
+    if (!Number.isInteger(cell) || cell < 0 || cell >= s.n * s.n) return s;
     if (s.mark[at][cell] !== 0) return s;
 
     const hit = s.ships[at].includes(cell);
@@ -137,6 +143,8 @@ export const fleet: GameDef<FleetState, FleetAction> = {
   },
 
   bot(s, seat, ctx): BotMove<FleetAction> | null {
+    const n = s.n;
+    const { xy } = grid(n);
     if (s.over || s.turn !== seat || !s.alive[seat]) return null;
     const foes = s.alive.map((v, i) => (v && i !== seat ? i : -1)).filter((i) => i >= 0);
     if (!foes.length) return null;
@@ -145,13 +153,13 @@ export const fleet: GameDef<FleetState, FleetAction> = {
        그런 자국이 있는 상대를 먼저 보므로, 자연히 끝내러 가는 봇이 된다. */
     for (const at of foes) {
       const m = s.mark[at];
-      for (let c = 0; c < N * N; c++) {
+      for (let c = 0; c < n * n; c++) {
         if (m[c] !== 2) continue;
         const [x, y] = xy(c);
         const around = ([[1, 0], [-1, 0], [0, 1], [0, -1]] as Array<[number, number]>)
           .map(([dx, dy]) => [x + dx, y + dy])
-          .filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < N && ny < N)
-          .map(([nx, ny]) => ny * N + nx)
+          .filter(([nx, ny]) => nx >= 0 && ny >= 0 && nx < n && ny < n)
+          .map(([nx, ny]) => ny * n + nx)
           .filter((k) => m[k] === 0);
         if (around.length) {
           return {
@@ -168,7 +176,7 @@ export const fleet: GameDef<FleetState, FleetAction> = {
     const m = s.mark[at];
     const free: number[] = [];
     const sparse: number[] = [];
-    for (let c = 0; c < N * N; c++) {
+    for (let c = 0; c < n * n; c++) {
       if (m[c] !== 0) continue;
       free.push(c);
       const [x, y] = xy(c);

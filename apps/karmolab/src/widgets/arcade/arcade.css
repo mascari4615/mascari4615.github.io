@@ -798,7 +798,8 @@
 .ac-luline{display:flex;flex-direction:column;gap:4px;align-items:center;margin:var(--space-lg) 0}
 .ac-luline span{padding:4px 12px;border:1px solid var(--border);border-radius:var(--radius-lg);font-size:var(--font-size-sm)}
 .ac-ms{max-width:100%;margin:var(--space-lg) auto}
-.ac-msgrid{display:grid;grid-template-columns:repeat(var(--w),1fr);gap:2px}
+.ac-msgrid{display:grid;grid-template-columns:repeat(var(--w),1fr);gap:2px;max-width:min(100%,calc((100vh - 220px) * var(--w) / var(--h,var(--w))));margin:0 auto}
+/* 16x16 은 폭을 다 주면 세로가 화면을 넘침 (2026-09-03 실측). 높이에 맞춰 폭을 자름 */
 .ac-mc{aspect-ratio:1;border:1px solid var(--border);border-radius:var(--radius-sm);background:color-mix(in srgb,var(--accent) 14%,var(--bg-primary));font-size:min(3.6vw,15px);font-weight:700;padding:0;cursor:pointer;touch-action:none}
 .ac-mc.ac-open{background:var(--bg-primary);cursor:default}
 .ac-mc.ac-flag{color:#ef4444}

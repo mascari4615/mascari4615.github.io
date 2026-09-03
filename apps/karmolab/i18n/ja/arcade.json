@@ -769,5 +769,13 @@
   "arcade.fish.perfect": "パーフェクト x1.5",
   "arcade.mine.stats": "3BV {b}, クリック {c}, 効率 {e}%",
   "arcade.sudoku.wrong": "ミス {n}/3",
-  "arcade.sudoku.out": "ミス3回。見学"
+  "arcade.sudoku.out": "ミス3回。見学",
+  "arcade.setup.frames": "フレーム",
+  "arcade.setup.frames.3": "3フレーム",
+  "arcade.setup.frames.5": "5フレーム",
+  "arcade.setup.frames.10": "10フレーム",
+  "arcade.setup.mines.9": "初級 9x9 地雷10",
+  "arcade.setup.mines.16": "中級 16x16 地雷40",
+  "arcade.setup.fleet.8": "8x8 船4隻",
+  "arcade.setup.fleet.10": "10x10 船5隻"
 }

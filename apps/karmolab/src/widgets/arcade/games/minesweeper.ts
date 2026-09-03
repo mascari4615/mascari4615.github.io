@@ -10,12 +10,19 @@
  */
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
+/* 기본 초급 9x9 지뢰 10. 시작 화면에서 중급 16x16 지뢰 40 을 고를 수 있음 (Windows 와 minesweeper.online 의 단계, 레퍼런스 2026-09-03) */
 export const W = 9;
 export const H = 9;
 const MINES = 10;
 const LIMIT_MS = 180000;
+export const boardOf = (opts: { size?: number | boolean }): { w: number; h: number; mines: number; limit: number } =>
+  Number(opts.size) === 16 ? { w: 16, h: 16, mines: 40, limit: 300000 } : { w: W, h: H, mines: MINES, limit: LIMIT_MS };
 
 export interface SweepState {
+  /** 판 크기와 지뢰 수 */
+  w: number;
+  h: number;
+  mineCount: number;
   /** 자리별 판. 0 안 열림, 1 열림, 2 깃발 */
   seen: number[][];
   /** 지뢰 자리 (모두 같다). **`redact` 가 지운다** */
@@ -42,11 +49,11 @@ export interface SweepState {
 export type SweepAction = { cell: number; flag?: boolean };
 
 /** 3BV. 밭을 다 여는 데 필요한 최소 클릭 수. 순위 사이트가 판 난이도로 쓰는 값 */
-export function bv3Of(mines: number[]): number {
-  const nums = mines.map((_, i) => around(mines, i));
-  const seen = new Array(W * H).fill(false);
+export function bv3Of(mines: number[], w = W, h = H): number {
+  const nums = mines.map((_, i) => around(mines, i, w, h));
+  const seen = new Array(w * h).fill(false);
   let n = 0;
-  for (let c = 0; c < W * H; c += 1) {
+  for (let c = 0; c < w * h; c += 1) {
     if (mines[c] || nums[c] !== 0 || seen[c]) continue;
     /* 빈 칸 덩어리 하나. 둘레 숫자까지 같이 열림 */
     n += 1;
@@ -54,39 +61,39 @@ export function bv3Of(mines: number[]): number {
     seen[c] = true;
     while (stack.length) {
       const k = stack.pop() as number;
-      for (const nb of nbrs(k)) {
+      for (const nb of nbrs(k, w, h)) {
         if (mines[nb] || seen[nb]) continue;
         seen[nb] = true;
         if (nums[nb] === 0) stack.push(nb);
       }
     }
   }
-  for (let c = 0; c < W * H; c += 1) if (!mines[c] && !seen[c]) n += 1;
+  for (let c = 0; c < w * h; c += 1) if (!mines[c] && !seen[c]) n += 1;
   return n;
 }
 
-const nbrs = (c: number): number[] => {
-  const x = c % W;
-  const y = Math.floor(c / W);
+const nbrs = (c: number, w = W, h = H): number[] => {
+  const x = c % w;
+  const y = Math.floor(c / w);
   const out: number[] = [];
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
       if (!dx && !dy) continue;
       const nx = x + dx;
       const ny = y + dy;
-      if (nx >= 0 && ny >= 0 && nx < W && ny < H) out.push(ny * W + nx);
+      if (nx >= 0 && ny >= 0 && nx < w && ny < h) out.push(ny * w + nx);
     }
   }
   return out;
 };
 
 /** 그 칸 둘레의 지뢰 수. 화면과 봇이 같은 값을 봐야 하므로 여기 둔다. */
-export function around(mines: number[], c: number): number {
-  return nbrs(c).filter((n) => mines[n]).length;
+export function around(mines: number[], c: number, w = W, h = H): number {
+  return nbrs(c, w, h).filter((n) => mines[n]).length;
 }
 
 /** 빈 칸이면 이어서 펼친다. 한 칸씩 누르게 하면 지뢰밭이 노동이 된다. */
-function flood(mines: number[], seen: number[], start: number): { seen: number[]; opened: number } {
+function flood(mines: number[], seen: number[], start: number, w: number, h: number): { seen: number[]; opened: number } {
   const out = seen.slice();
   const stack = [start];
   let opened = 0;
@@ -95,7 +102,7 @@ function flood(mines: number[], seen: number[], start: number): { seen: number[]
     if (out[c] === 1) continue;
     out[c] = 1;
     opened++;
-    if (around(mines, c) === 0) for (const n of nbrs(c)) if (out[n] !== 1) stack.push(n);
+    if (around(mines, c, w, h) === 0) for (const n of nbrs(c, w, h)) if (out[n] !== 1) stack.push(n);
   }
   return { seen: out, opened };
 }
@@ -107,21 +114,25 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
   realtime: true,
 
   init(ctx: GameCtx) {
-    const mines = new Array(W * H).fill(0);
+    const b = boardOf(ctx.opts);
+    const mines = new Array(b.w * b.h).fill(0);
     let placed = 0;
-    while (placed < MINES) {
-      const c = Math.floor(ctx.rng() * W * H);
+    while (placed < b.mines) {
+      const c = Math.floor(ctx.rng() * b.w * b.h);
       if (!mines[c]) { mines[c] = 1; placed++; }
     }
     return {
-      seen: ctx.seats.map(() => new Array(W * H).fill(0)),
+      w: b.w,
+      h: b.h,
+      mineCount: b.mines,
+      seen: ctx.seats.map(() => new Array(b.w * b.h).fill(0)),
       mines,
-      nums: mines.map((_, i) => around(mines, i)),
+      nums: mines.map((_, i) => around(mines, i, b.w, b.h)),
       dead: ctx.seats.map(() => false),
       opened: ctx.seats.map(() => 0),
       clicks: ctx.seats.map(() => 0),
-      bv3: bv3Of(mines),
-      endsAt: ctx.now + LIMIT_MS,
+      bv3: bv3Of(mines, b.w, b.h),
+      endsAt: ctx.now + b.limit,
       over: false
     };
   },
@@ -143,7 +154,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
   reduce(s, a, seat, ctx) {
     if (s.over || s.dead[seat]) return s;
     const c = a?.cell;
-    if (typeof c !== 'number' || c < 0 || c >= W * H) return s;
+    if (typeof c !== 'number' || c < 0 || c >= s.w * s.h) return s;
     const mine = s.seen[seat];
     if (!mine) return s;
 
@@ -167,8 +178,8 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
         mines[free[Math.floor(ctx.rng() * free.length)]] = 1;
       }
     }
-    const nums = mines === s.mines ? s.nums : mines.map((_, i) => around(mines, i));
-    const bv3 = mines === s.mines ? s.bv3 : bv3Of(mines);
+    const nums = mines === s.mines ? s.nums : mines.map((_, i) => around(mines, i, s.w, s.h));
+    const bv3 = mines === s.mines ? s.bv3 : bv3Of(mines, s.w, s.h);
     const clicks = s.clicks.map((v, i) => (i === seat ? v + 1 : v));
 
     if (mines[c]) {
@@ -177,11 +188,11 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
       return { ...s, mines, nums, bv3, clicks, dead, seen, boom: seat, over: dead.every(Boolean) };
     }
 
-    const r = flood(mines, mine, c);
+    const r = flood(mines, mine, c, s.w, s.h);
     const seen = s.seen.map((row, i) => (i === seat ? r.seen : row));
     const opened = s.opened.map((v, i) => (i === seat ? v + r.opened : v));
     /* 지뢰 뺀 칸을 다 열었으면 그 사람 승. 판이 끝난다. */
-    const cleared = opened[seat] >= W * H - MINES;
+    const cleared = opened[seat] >= s.w * s.h - s.mineCount;
     return { ...s, mines, nums, bv3, clicks, seen, opened, over: cleared };
   },
 
@@ -221,7 +232,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     for (const c of mine.map((v, i) => (v === 1 ? i : -1)).filter((i) => i >= 0)) {
       const n = s.nums[c];
       if (n !== 0) continue;
-      const shut = nbrs(c).filter((k) => mine[k] === 0);
+      const shut = nbrs(c, s.w, s.h).filter((k) => mine[k] === 0);
       if (shut.length) return { action: { cell: shut[0] }, delayMs: 400 + ctx.rng() * 400 };
     }
     const pick = closed[Math.floor(ctx.rng() * closed.length)];

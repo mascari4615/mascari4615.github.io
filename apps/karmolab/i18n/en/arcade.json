@@ -769,5 +769,13 @@
   "arcade.fish.perfect": "Perfect! x1.5",
   "arcade.mine.stats": "3BV {b}, clicks {c}, efficiency {e}%",
   "arcade.sudoku.wrong": "Mistakes {n}/3",
-  "arcade.sudoku.out": "3 mistakes. Out"
+  "arcade.sudoku.out": "3 mistakes. Out",
+  "arcade.setup.frames": "Frames",
+  "arcade.setup.frames.3": "3 frames",
+  "arcade.setup.frames.5": "5 frames",
+  "arcade.setup.frames.10": "10 frames",
+  "arcade.setup.mines.9": "Beginner 9x9, 10 mines",
+  "arcade.setup.mines.16": "Intermediate 16x16, 40 mines",
+  "arcade.setup.fleet.8": "8x8, 4 ships",
+  "arcade.setup.fleet.10": "10x10, 5 ships"
 }
