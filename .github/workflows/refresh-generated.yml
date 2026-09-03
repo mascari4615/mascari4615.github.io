@@ -8,10 +8,9 @@ name: "굽고 커밋되는 파생물 새로 굽기"
 # 실측 (2026-08-13):
 #  , `data/devlog.json` (게임 개발 기록). 어디서도 안 구워졌다. 다시 구우니 267줄이 바뀌었다.
 #     즉 지금 뭘 만들고 있나 자리에 며칠 전 소식이 걸려 있었다.
-#  , `data/worldcup-tools.json`. 8/08 판(도구 122개)이 8/13 의 도구 138개를 모르고 봇에 심겼다.
 #
-# 왜 사람이 아니라 여기인가: 이 둘은 **시간이 지나기만 해도 낡는다**(devlog 는 게임 저장소의
-# 새 커밋, 월드컵 표는 새로 생긴 도구). 사람이 기억해서 돌리는 일은 예외 없이 두 달 뒤에 멈춘다.
+# 왜 사람이 아니라 여기인가: 이것은 **시간이 지나기만 해도 낡는다**(devlog 는 게임 저장소의
+# 새 커밋). 사람이 기억해서 돌리는 일은 예외 없이 두 달 뒤에 멈춘다.
 #
 # 손으로도 돌릴 수 있다. Actions 에서 Run workflow(workflow_dispatch). 자동만 있고 수동이
 # 없으면 고장났을 때 확인할 방법이 없다.
@@ -82,7 +81,7 @@ jobs:
             exit 0
           fi
           git add $TARGETS
-          git commit -m 'chore(karmolab): 굽고 커밋되는 파생물을 새로 구웠다 (자동)' -m '개발 기록(devlog)과 도구 월드컵 표는 배포가 다시 굽지 않는다. 커밋된 파일이 그대로 사람과 봇에게 나간다. 매일 스스로 굽는다.'
+          git commit -m 'chore(karmolab): 굽고 커밋되는 파생물을 새로 구웠다 (자동)' -m '개발 기록(devlog)은 배포가 다시 굽지 않는다. 커밋된 파일이 그대로 사람에게 나간다. 매일 스스로 굽는다.'
           for i in 1 2 3; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && { echo '[refresh-generated] 새로 구운 것을 밀었다'; exit 0; }
             echo "다시 시도 ${i}"

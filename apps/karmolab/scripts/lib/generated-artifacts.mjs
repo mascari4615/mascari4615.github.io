@@ -60,15 +60,6 @@ export const generated = [
     couldNotMeasure: '최근 120일 커밋이라 다시 구우면 늘 다르다'
   },
   {
-    npm: 'gen:worldcup-tools',
-    outputs: ['data/worldcup-tools.json'],
-    why: '봇이 뜰 때 씨앗 표로 심는다. 낡으면 새 도구가 월드컵에 안 나온다',
-    /* ★ **막지 않는다** (2026-08-13). 이 표는 **도구가 하나 늘 때마다** 낡는다. 이 저장소는
-       세션 여럿이 하루에도 여러 개를 만든다. 막는 게이트로 두면 도구를 만든 사람이 아니라
-       그 뒤에 미는 **모든 세션**이 빨강을 맞고, 굽자면 빌드까지 새로 해야 한다(깨끗한 사본에서). */
-    nightly: true
-  },
-  {
     npm: 'gen:arcade-catalog',
     outputs: ['src/widgets/arcade/catalog-meta.generated.ts', 'src/widgets/arcade/chunks.generated.json'],
     why: '로비가 읽는 명패 + 조각 표. 낡으면 새 게임이 오락실에 안 뜨거나 눌러도 안 열린다'

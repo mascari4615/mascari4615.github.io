@@ -14,7 +14,7 @@
  *
  * 사용: node scripts/bake-clean.mjs <npm 스크립트> [더...]
  *   예) node scripts/bake-clean.mjs gen:og
- *       node scripts/bake-clean.mjs gen:llms gen:worldcup-tools
+ *       node scripts/bake-clean.mjs gen:llms gen:og
  *
  * 하는 일: origin/main 얕은 사본 → `node_modules` 를 이 자리 것으로 이어 붙임 →
  *          (필요하면) 짓기 → 준 스크립트 실행 → **바뀐 산출물만** 이 작업 폴더로 옮겨 놓고 이름을 적는다.

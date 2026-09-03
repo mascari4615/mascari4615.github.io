@@ -278,8 +278,18 @@ const SEED_TABLES: Array<{ file: string; fallbackTitle: string; emoji: string; s
   { file: 'higher-pokemon.json', fallbackTitle: '포켓몬', emoji: '🔴', siteBoard: 'pokemon' },
   { file: 'higher-lol.json', fallbackTitle: '롤 챔피언', emoji: '⚔️', siteBoard: 'lol' },
   { file: 'higher-genshin.json', fallbackTitle: '원신 캐릭터', emoji: '🌠', siteBoard: 'genshin' },
-  // 남의 그림을 퍼다 심을 수는 없다. 이건 **우리가 구운** 도구 공유 카드로 만든 표다.
-  { file: 'worldcup-tools.json', fallbackTitle: 'KarmoLab 도구 월드컵', emoji: '🧰', siteBoard: null },
+];
+
+/**
+ * 접은 씨앗 (2026-09-03, 사용자 결정)
+ *
+ * `worldcup-tools.json` 의 KarmoLab 도구 월드컵 제거. 목록에서 빼는 것만으로는 안 끝남
+ * 이미 심긴 판이 라이브 원장에 있다 (`hb6j2eeq`, 도구 129개, 2026-08-08 심김).
+ * 그래서 이름으로 찾아 **한 번 제거**. 씨앗 목록에 없으니 재심기 없음
+ * 사람이 만든 같은 이름 판은 안 건드린다 (주인이 `karmolab` 인 것만).
+ */
+const RETIRED_SEEDS: Array<{ file: string; title: string }> = [
+  { file: 'worldcup-tools.json', title: 'KarmoLab 도구 월드컵' },
 ];
 
 /** 사이트 표(`{n,i,v}`)를 우리 표 모양(`{name,img,...}`)으로. 모양이 다르면 새로 만들지 않는다. */
@@ -361,6 +371,30 @@ export class KarmolabPackStore {
       this.state.seededFiles = this.state.seeded ? SEED_TABLES.slice(0, 3).map((t) => t.file) : [];
     }
     const already = new Set(this.state.seededFiles);
+
+    /* 접은 씨앗 거두기. 라이브 원장에 남은 것과 그 집계, 우승 기록까지 같이 제거
+       심었음 표시도 지워야 목록에 없는 파일 이름이 남지 않는다. */
+    let retired = 0;
+    for (const seed of RETIRED_SEEDS) {
+      const gone = this.state.packs.filter((p) => p.ownerHandle === SEED_OWNER && p.title === seed.title);
+      if (gone.length === 0) {
+        if (already.delete(seed.file)) this.state.seededFiles = [...already];
+        continue;
+      }
+      for (const pack of gone) {
+        if (this.state.tallies) delete this.state.tallies[pack.id];
+        if (this.state.champions) delete this.state.champions[pack.id];
+      }
+      const ids = new Set(gone.map((p) => p.id));
+      this.state.packs = this.state.packs.filter((p) => !ids.has(p.id));
+      already.delete(seed.file);
+      this.state.seededFiles = [...already];
+      retired += gone.length;
+    }
+    if (retired) {
+      this.save();
+      console.log(`[karmolab-packs] 접은 씨앗 표 ${retired}개를 원장에서 뗐다.`);
+    }
 
     /* 이미 심어 둔 씨앗에 `siteBoard` 표시를 뒤늦게 채운다 (KL 중복 판 고침).
        표시가 붙기 전에 심은 원장이 이미 돌고 있으므로, 다시 심는 게 아니라 **표시만** 붙인다 . 

@@ -340,20 +340,84 @@ describe('씨앗 표의 글자 칸', () => {
     const dir = path.join(tmpRoot, 'site-data2');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(
-      path.join(dir, 'worldcup-tools.json'),
+      path.join(dir, 'higher-pokemon.json'),
       JSON.stringify({
-        title: 'KarmoLab 도구 월드컵',
-        emoji: '🧰',
+        title: '포켓몬',
+        emoji: '🔴',
         fields: [{ key: 'cat', label: '갈래', kind: 'category' }],
-        items: [1, 2, 3, 4].map((n) => ({ n: `도구${n}`, i: `https://example.com/${n}.jpg`, v: { cat: '도구' } }))
+        items: [1, 2, 3, 4].map((n) => ({ n: `포켓몬${n}`, i: `https://example.com/${n}.jpg`, v: { cat: '불' } }))
       }),
       'utf-8'
     );
     const s = new KarmolabPackStore(statePath, dir);
     const made = s.list()[0];
-    expect(made.title).toBe('KarmoLab 도구 월드컵');
+    expect(made.title).toBe('포켓몬');
     expect(made.images).toBe(4);
-    expect(s.get(made.id)!.items[0].cat).toBe('도구');
+    expect(s.get(made.id)!.items[0].cat).toBe('불');
+  });
+});
+
+describe('접은 씨앗 거두기 (2026-09-03 도구 월드컵)', () => {
+  const table = (title: string) => ({
+    title,
+    emoji: '🧰',
+    fields: [{ key: 'cat', label: '갈래', kind: 'category' }],
+    items: [1, 2, 3, 4].map((n) => ({ n: `${title}${n}`, i: `https://example.com/${n}.png`, v: { cat: 'ㄱ' } }))
+  });
+
+  it('이미 심긴 도구 월드컵이 다음에 뜰 때 원장에서 사라진다. 집계와 우승 기록도 같이', () => {
+    const dir = path.join(tmpRoot, 'retire');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    /* 접기 전 원장을 그대로 흉내낸다. 라이브 판(hb6j2eeq)이 이 모양이었다 */
+    const packId = 'hb6j2eeq';
+    fs.writeFileSync(
+      statePath,
+      JSON.stringify({
+        version: 1,
+        packs: [
+          {
+            id: packId,
+            ownerHandle: 'karmolab',
+            title: 'KarmoLab 도구 월드컵',
+            emoji: '🧰',
+            fields: table('x').fields,
+            items: table('x').items.map((i) => ({ name: i.n, img: i.i, cat: 'ㄱ' })),
+            createdAt: '2026-08-08T04:27:49.016Z',
+            updatedAt: '2026-08-08T04:27:49.016Z',
+            opens: 1,
+            forkOf: null,
+            siteBoard: null
+          }
+        ],
+        tallies: { [packId]: { x1: { seen: 3, wins: 2 } } },
+        champions: { [packId]: { x1: 1 } },
+        seededFiles: ['worldcup-tools.json']
+      }),
+      'utf-8'
+    );
+
+    const rows = new KarmolabPackStore(statePath, dir).list();
+    expect(rows.map((p) => p.title)).not.toContain('KarmoLab 도구 월드컵');
+    const saved = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
+    expect(saved.tallies[packId]).toBeUndefined();
+    expect(saved.champions[packId]).toBeUndefined();
+    expect(saved.seededFiles).not.toContain('worldcup-tools.json');
+  });
+
+  it('씨앗 파일이 남아 있어도 다시 안 심는다. 목록에서 뺐다는 뜻이다', () => {
+    const dir = path.join(tmpRoot, 'nore');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('KarmoLab 도구 월드컵')), 'utf-8');
+    expect(new KarmolabPackStore(statePath, dir).list()).toHaveLength(0);
+  });
+
+  it('사람이 만든 같은 이름 표는 안 건드린다. 주인이 다르다', () => {
+    const dir = path.join(tmpRoot, 'mine');
+    fs.mkdirSync(dir, { recursive: true });
+    const s = new KarmolabPackStore(statePath, dir);
+    const made = s.create('someone', sanitizePack({ ...goodPack(), title: 'KarmoLab 도구 월드컵' }));
+    expect(new KarmolabPackStore(statePath, dir).get(made.id)).not.toBeNull();
   });
 });
 
@@ -371,8 +435,8 @@ describe('씨앗을 나중에 늘렸을 때', () => {
     fs.writeFileSync(path.join(dir, 'higher-pokemon.json'), JSON.stringify(table('첫 표')), 'utf-8');
     expect(new KarmolabPackStore(statePath, dir).list()).toHaveLength(1);
 
-    // 나중에 도구 월드컵 표가 생긴다. 다시 뜨면 그것도 심겨야 한다
-    fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('나중 표')), 'utf-8');
+    // 나중에 원신 표 추가. 다시 뜨면 그것도 심겨야 함
+    fs.writeFileSync(path.join(dir, 'higher-genshin.json'), JSON.stringify(table('나중 표')), 'utf-8');
     const after = new KarmolabPackStore(statePath, dir).list().map((p) => p.title).sort();
     expect(after).toEqual(['나중 표', '첫 표']);
   });
@@ -390,13 +454,12 @@ describe('사이트 붙박이 판의 사본 표시 (siteBoard)', () => {
     const dir = path.join(tmpRoot, 'mark');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'higher-pokemon.json'), JSON.stringify(table('포켓몬')), 'utf-8');
-    fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('도구 월드컵')), 'utf-8');
+    fs.writeFileSync(path.join(dir, 'higher-lol.json'), JSON.stringify(table('롤 챔피언')), 'utf-8');
 
     const rows = new KarmolabPackStore(statePath, dir).list();
     const byTitle = Object.fromEntries(rows.map((p) => [p.title, p.siteBoard]));
     expect(byTitle['포켓몬']).toBe('pokemon');
-    // 우리가 구운 표는 사이트에 붙박이로 없다. 표시가 붙으면 목록에서 통째로 사라진다
-    expect(byTitle['도구 월드컵']).toBeNull();
+    expect(byTitle['롤 챔피언']).toBe('lol');
   });
 
   it('표시가 붙기 전에 심어 둔 원장에도 뒤늦게 표시가 채워진다', () => {

@@ -198,7 +198,6 @@
     "gen:type-pool": "node scripts/gen-type-pool.mjs",
     "gen:wm": "node scripts/gen-wm-landing.mjs",
     "gen:word-pool": "node scripts/gen-word-pool.mjs",
-    "gen:worldcup-tools": "node scripts/gen-worldcup-tools.mjs",
     "linux": "node scripts/linux.mjs",
     "measure:detail-critical": "node scripts/measure-detail-critical.mjs",
     "measure:heights": "node scripts/measure-tool-heights.mjs",
