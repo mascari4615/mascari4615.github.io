@@ -7,7 +7,8 @@
  *  ② rearm 안에서는 침묵하고 지나면 다시 우는지
  *  ③ 숫자를 읽어 N초 이하에서 한 번 우는지 (tesseract, 동일 출처 vendor)
  *  ④ 추세 기록: 오르는 숫자의 분당 변화, 목표 도달 한 번, 멈춤 알림, 구간 새로, CSV
- *  ⑤ 멈춤 뒤 상태가 처음으로 돌아가는지, 콘솔 오류가 없는지
+ *  ⑤ 슬롯 추가와 저장, 내 알림음 올리기와 고르기, 단축키로 멈춤과 시작
+ *  ⑥ 멈춤 뒤 상태가 처음으로 돌아가는지, 콘솔 오류가 없는지
  * 를 확인
  *
  * 사용: node scripts/smoke-regionwatch.mjs
@@ -240,7 +241,47 @@ const trendReadsNumeric = await page.evaluate(() => window.__rw.reads.filter((r)
 check(trendReadsNumeric >= 10, `쉼표 있는 숫자를 읽는다 (숫자 읽기 ${trendReadsNumeric}회)`);
 void trendFiresBefore;
 
-/* ⑤ 멈춤 */
+/* ⑤ 슬롯 추가, 내 알림음, 단축키 */
+await page.click('#rwAddSlot');
+await page.waitForTimeout(300);
+check((await page.locator('.rw-slot').count()) === 7, `슬롯 추가로 일곱이 된다 (지금 ${await page.locator('.rw-slot').count()})`);
+const savedSlots = await page.evaluate(() => JSON.parse(localStorage.getItem('regionwatch.v1')).profiles['640x360'].length);
+check(savedSlots === 7, `추가한 슬롯이 프로필에 저장된다 (지금 ${savedSlots})`);
+
+/* 0.2초짜리 wav 를 만들어 올린다. 8kHz 8bit 단일 채널 */
+const wav = (() => {
+  const rate = 8000;
+  const n = Math.round(rate * 0.2);
+  const b = Buffer.alloc(44 + n);
+  b.write('RIFF', 0); b.writeUInt32LE(36 + n, 4); b.write('WAVE', 8); b.write('fmt ', 12);
+  b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate, 28); b.writeUInt16LE(1, 32); b.writeUInt16LE(8, 34);
+  b.write('data', 36); b.writeUInt32LE(n, 40);
+  for (let i = 0; i < n; i++) b[44 + i] = 128 + Math.round(100 * Math.sin((i / rate) * 2 * Math.PI * 660));
+  return b;
+})();
+await page.setInputFiles('#rwSoundFile', { name: 'beep.wav', mimeType: 'audio/wav', buffer: wav });
+await page.waitForFunction(() => /beep\.wav/.test(document.querySelector('#rwSounds')?.textContent || ''), null, { timeout: 5000 }).catch(() => undefined);
+check(/beep\.wav/.test((await page.textContent('#rwSounds')) || ''), `내 알림음이 저장되고 이름이 보인다 (${await page.textContent('#rwSounds')})`);
+check((await page.locator('.rw-slot[data-i="0"] [data-k="sound"] option[value="custom1"]').count()) === 1, '소리 고르기에 내 소리 1 이 있다');
+await page.selectOption('.rw-slot[data-i="0"] [data-k="sound"]', 'custom1');
+await page.waitForTimeout(3300);
+await page.evaluate(() => window.__stage.set('box', '#20c040'));
+await page.waitForTimeout(600);
+const beforeCustom = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'chg').length);
+await page.evaluate(() => window.__stage.set('box', '#c02020'));
+await page.waitForFunction((n) => window.__rw.fires.filter((f) => f.name === 'chg').length > n, beforeCustom, { timeout: 5000 }).catch(() => undefined);
+const afterCustom = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'chg').length);
+check(afterCustom === beforeCustom + 1, `내 소리를 고른 슬롯도 울린다 (${beforeCustom} -> ${afterCustom})`);
+
+/* 단축키: Alt+Shift+S 로 멈추고 다시 시작 */
+await page.keyboard.press('Alt+Shift+KeyS');
+await page.waitForTimeout(400);
+check(!(await page.isDisabled('#rwStart')), '단축키로 멈춘다');
+await page.keyboard.press('Alt+Shift+KeyS');
+await page.waitForFunction(() => document.querySelector('#rwStart')?.disabled === true, null, { timeout: 5000 }).catch(() => undefined);
+check(await page.isDisabled('#rwStart'), '단축키로 다시 시작한다');
+
+/* ⑥ 멈춤 */
 await page.click('#rwStop');
 await page.waitForTimeout(400);
 check(!(await page.isDisabled('#rwStart')) && (await page.isDisabled('#rwStop')), '멈추면 시작 버튼이 살아난다');

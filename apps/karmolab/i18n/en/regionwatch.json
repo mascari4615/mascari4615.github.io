@@ -61,5 +61,12 @@
   "regionwatch.say.idle": "{name} has not changed for {sec}s.",
   "regionwatch.say.segment": "Started a new segment for {name}. Start value {value}.",
   "regionwatch.trend.none": "no number",
-  "regionwatch.hint.trend": "Trend log reads the number in the region every second. Pick tightly around the number."
+  "regionwatch.hint.trend": "Trend log reads the number in the region every second. Pick tightly around the number.",
+  "regionwatch.sound.custom": "My sound {n}",
+  "regionwatch.btn.sounds": "Upload my sounds",
+  "regionwatch.btn.addSlot": "Add slot",
+  "regionwatch.hint.hotkey": "Shortcuts: Alt+Shift+S start/stop, Alt+Shift+P floating window (while this tab is in front)",
+  "regionwatch.say.soundsSaved": "Saved {n} custom sounds. Pick them in a slot's sound.",
+  "regionwatch.err.soundTooBig": "{name} is over 2MB.",
+  "regionwatch.err.soundBad": "Could not read {name} as audio."
 }

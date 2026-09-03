@@ -61,5 +61,12 @@
   "regionwatch.say.idle": "{name} の値が {sec}秒間変わっていません。",
   "regionwatch.say.segment": "{name} の区間を新しく始めました。開始値 {value}。",
   "regionwatch.trend.none": "数字なし",
-  "regionwatch.hint.trend": "推移記録モードは領域の数字を1秒ごとに読んで記録します。数字の周りを狭く選んでください。"
+  "regionwatch.hint.trend": "推移記録モードは領域の数字を1秒ごとに読んで記録します。数字の周りを狭く選んでください。",
+  "regionwatch.sound.custom": "マイ音 {n}",
+  "regionwatch.btn.sounds": "通知音をアップロード",
+  "regionwatch.btn.addSlot": "スロット追加",
+  "regionwatch.hint.hotkey": "ショートカット: Alt+Shift+S 開始と停止, Alt+Shift+P 浮かぶウィンドウ (このタブが前面のとき)",
+  "regionwatch.say.soundsSaved": "通知音を {n} 個保存しました。スロットの音で選んでください。",
+  "regionwatch.err.soundTooBig": "{name} は 2MB を超えています。",
+  "regionwatch.err.soundBad": "{name} を音として読めませんでした。"
 }

@@ -61,5 +61,12 @@
   "regionwatch.say.idle": "{name} 값이 {sec}초 동안 안 바뀌어요.",
   "regionwatch.say.segment": "{name} 구간을 새로 시작했어요. 시작 값 {value}.",
   "regionwatch.trend.none": "숫자 없음",
-  "regionwatch.hint.trend": "추세 기록 모드는 영역의 숫자를 1초마다 읽어 기록합니다. 숫자 주변을 좁게 고르세요."
+  "regionwatch.hint.trend": "추세 기록 모드는 영역의 숫자를 1초마다 읽어 기록합니다. 숫자 주변을 좁게 고르세요.",
+  "regionwatch.sound.custom": "내 소리 {n}",
+  "regionwatch.btn.sounds": "내 알림음 올리기",
+  "regionwatch.btn.addSlot": "슬롯 추가",
+  "regionwatch.hint.hotkey": "단축키: Alt+Shift+S 시작과 멈춤, Alt+Shift+P 떠 있는 창 (이 탭이 앞에 있을 때)",
+  "regionwatch.say.soundsSaved": "내 알림음 {n}개를 저장했어요. 슬롯의 소리에서 고르세요.",
+  "regionwatch.err.soundTooBig": "{name} 은(는) 2MB 를 넘어요.",
+  "regionwatch.err.soundBad": "{name} 을(를) 소리로 읽지 못했어요."
 }

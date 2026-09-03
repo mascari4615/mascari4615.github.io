@@ -40,7 +40,8 @@ import { startDisplayCapture, displayCaptureSupported, type CaptureHandle } from
 import { ensureDigitReader, prepareForOcr, type DigitReader } from './shared/ocr-digits';
 import { openPipPanel, pipSupported, type PipPanel } from './shared/pip-panel';
 
-type Sound = 'ping' | 'double' | 'chime';
+type Sound = 'ping' | 'double' | 'chime' | 'custom1' | 'custom2' | 'custom3';
+const CUSTOM_SOUNDS: Sound[] = ['custom1', 'custom2', 'custom3'];
 
 interface Slot {
   name: string;
@@ -79,7 +80,10 @@ interface Saved {
 }
 
 (function (): void {
-  const SLOTS = 6;
+  const SLOTS_MIN = 6;
+  const SLOTS_MAX = 12;
+  const SOUND_DB = 'regionwatch-sounds';
+  const SOUND_MAX_BYTES = 2 * 1024 * 1024;
   const CHECK_MS = 250;
   const READ_MS = 1000;
   const STORE = 'regionwatch.v1';
@@ -105,10 +109,80 @@ interface Saved {
     };
   }
 
+  /* 내 알림음. IndexedDB 에 파일 바이트, 메모리에 풀어 둔 버퍼 */
+  const soundBuffers = new Map<Sound, AudioBuffer>();
+  const soundNames = new Map<Sound, string>();
+
+  function soundDb(): Promise<IDBDatabase | null> {
+    return new Promise((resolve) => {
+      if (typeof indexedDB === 'undefined') return resolve(null);
+      const req = indexedDB.open(SOUND_DB, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('files');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    });
+  }
+
+  async function loadSounds(): Promise<void> {
+    const db = await soundDb();
+    if (!db) return;
+    await Promise.all(
+      CUSTOM_SOUNDS.map(
+        (key) =>
+          new Promise<void>((resolve) => {
+            const req = db.transaction('files').objectStore('files').get(key);
+            req.onsuccess = () => {
+              const v = req.result as { name: string; bytes: ArrayBuffer } | undefined;
+              if (!v) return resolve();
+              soundNames.set(key, v.name);
+              audioCtx()
+                .decodeAudioData(v.bytes.slice(0))
+                .then((buf) => {
+                  soundBuffers.set(key, buf);
+                  resolve();
+                })
+                .catch(() => resolve());
+            };
+            req.onerror = () => resolve();
+          })
+      )
+    );
+  }
+
+  async function saveSound(key: Sound, file: File): Promise<boolean> {
+    const db = await soundDb();
+    if (!db) return false;
+    const bytes = await file.arrayBuffer();
+    try {
+      soundBuffers.set(key, await audioCtx().decodeAudioData(bytes.slice(0)));
+    } catch {
+      return false;
+    }
+    soundNames.set(key, file.name);
+    return new Promise((resolve) => {
+      const tx = db.transaction('files', 'readwrite');
+      tx.objectStore('files').put({ name: file.name, bytes }, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  }
+
   function play(kind: Sound, volume: number): void {
     try {
       const ctx = audioCtx();
       if (ctx.state === 'suspended') void ctx.resume();
+      const custom = soundBuffers.get(kind);
+      if (custom) {
+        const srcNode = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        srcNode.buffer = custom;
+        gain.gain.value = Math.max(0.001, volume);
+        srcNode.connect(gain);
+        gain.connect(ctx.destination);
+        srcNode.start();
+        return;
+      }
+      if (CUSTOM_SOUNDS.includes(kind)) kind = 'ping';
       const notes: Array<[number, number]> =
         kind === 'ping' ? [[880, 0]] : kind === 'double' ? [[880, 0], [880, 0.28]] : [[660, 0], [880, 0.18], [1100, 0.36]];
       for (const [hz, at0] of notes) {
@@ -152,7 +226,7 @@ interface Saved {
 
   function draw(container: HTMLElement): void {
     injectStyles();
-    const slotRows = Array.from({ length: SLOTS }, (_, i) => `
+    const slotRowHtml = (i: number): string => `
       <div class="rw-slot" data-i="${i}">
         <div class="rw-slot-head">
           <label class="tool-chip rw-on"><input type="checkbox" data-k="enabled" checked> ${i + 1}</label>
@@ -187,12 +261,14 @@ interface Saved {
             <option value="ping">${esc(t('regionwatch.sound.ping'))}</option>
             <option value="double">${esc(t('regionwatch.sound.double'))}</option>
             <option value="chime">${esc(t('regionwatch.sound.chime'))}</option>
+            ${CUSTOM_SOUNDS.map((k, n) => `<option value="${k}">${esc(t('regionwatch.sound.custom').replace('{n}', String(n + 1)))}</option>`).join('')}
           </select>
           <label class="tool-sublabel">${esc(t('regionwatch.label.rearm'))}</label>
           <input type="number" class="mono-input rw-rearm" min="0" max="3600" step="1" data-k="rearm" aria-label="${esc(t('regionwatch.label.rearm'))}">
           <label class="tool-chip"><input type="checkbox" data-k="randomDelay"> ${esc(t('regionwatch.opt.randomDelay'))}</label>
         </div>
-      </div>`).join('');
+      </div>`;
+    const slotRows = Array.from({ length: SLOTS_MIN }, (_, i) => slotRowHtml(i)).join('');
 
     container.innerHTML = `
       <div class="tool-actions tight">
@@ -202,13 +278,19 @@ interface Saved {
         <button class="btn btn-ghost" id="rwTest">${esc(t('regionwatch.btn.test'))}</button>
         <label class="tool-chip"><input type="checkbox" id="rwNotify"> ${esc(t('regionwatch.opt.notify'))}</label>
         <label class="tool-sublabel rw-vol">${esc(t('regionwatch.label.volume'))} <input type="range" id="rwVolume" min="0" max="100" step="5" aria-label="${esc(t('regionwatch.label.volume'))}"></label>
+        <label class="btn btn-ghost rw-file">${esc(t('regionwatch.btn.sounds'))}<input type="file" id="rwSoundFile" accept="audio/*" multiple hidden aria-label="${esc(t('regionwatch.btn.sounds'))}"></label>
+        <span class="tool-hint" id="rwSounds"></span>
+        <span class="tool-hint">${esc(t('regionwatch.hint.hotkey'))}</span>
       </div>
       <div class="rw-grid">
         <div class="rw-left">
           <canvas id="rwPreview" class="rw-preview"></canvas>
           <div class="tool-hint" id="rwHint">${esc(t('regionwatch.hint.idle'))}</div>
         </div>
-        <div class="rw-right" id="rwSlots">${slotRows}</div>
+        <div class="rw-right">
+          <div class="rw-right" id="rwSlots">${slotRows}</div>
+          <div class="tool-actions tight"><button class="btn btn-ghost btn-sm" id="rwAddSlot">${esc(t('regionwatch.btn.addSlot'))}</button></div>
+        </div>
       </div>
       <div class="rw-trend" id="rwTrend" hidden>
         <div class="rw-trend-head">
@@ -236,6 +318,9 @@ interface Saved {
     const preview = $<HTMLCanvasElement>('#rwPreview');
     const hint = $<HTMLElement>('#rwHint');
     const slotsBox = $<HTMLElement>('#rwSlots');
+    const addSlotBtn = $<HTMLButtonElement>('#rwAddSlot');
+    const soundFile = $<HTMLInputElement>('#rwSoundFile');
+    const soundsEl = $<HTMLElement>('#rwSounds');
     const rateEl = $<HTMLElement>('#rwRate');
     const profileEl = $<HTMLElement>('#rwProfile');
     const trendBox = $<HTMLElement>('#rwTrend');
@@ -255,7 +340,7 @@ interface Saved {
     const ocrCanvas = document.createElement('canvas');
     const ocrCtx = ocrCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
-    const slots: Slot[] = Array.from({ length: SLOTS }, (_, i) => newSlot(i));
+    const slots: Slot[] = Array.from({ length: SLOTS_MIN }, (_, i) => newSlot(i));
     let savedSize: [number, number] = [0, 0];
     let vol = 0.7;
 
@@ -266,12 +351,12 @@ interface Saved {
     let lastRead = 0;
     let picking = -1;
     let drag: { x0: number; y0: number; x1: number; y1: number } | null = null;
-    const edge: EdgeState[] = Array.from({ length: SLOTS }, () => ({ wasHit: false, firedAt: -1e9 }));
-    const count: CountState[] = Array.from({ length: SLOTS }, () => ({ last: null, streak: 0, firedAt: -1e9, done: false }));
-    const lastSim: number[] = new Array(SLOTS).fill(-1);
+    const edge: EdgeState[] = Array.from({ length: SLOTS_MIN }, () => ({ wasHit: false, firedAt: -1e9 }));
+    const count: CountState[] = Array.from({ length: SLOTS_MIN }, () => ({ last: null, streak: 0, firedAt: -1e9, done: false }));
+    const lastSim: number[] = new Array(SLOTS_MIN).fill(-1);
     /* 기준을 찍은 직후나 시작 직후의 첫 판정은 상태만 맞추고 침묵. 기준은 지금 모습이라 늘 같음 */
-    const primed: boolean[] = new Array(SLOTS).fill(false);
-    const pending: Array<number | null> = new Array(SLOTS).fill(null);
+    const primed: boolean[] = new Array(SLOTS_MIN).fill(false);
+    const pending: Array<number | null> = new Array(SLOTS_MIN).fill(null);
     let pip: PipPanel | null = null;
     let ocr: DigitReader | null = null;
     let reading = false;
@@ -296,7 +381,8 @@ interface Saved {
 
     const pack = (): SavedSlot[] => slots.map((s) => ({ ...s, ref: s.ref ? btoa(String.fromCharCode(...Array.from(s.ref))) : null }));
     function unpack(list: SavedSlot[]): void {
-      list.slice(0, SLOTS).forEach((s, i) => {
+      while (slots.length < Math.min(list.length, SLOTS_MAX)) addSlot();
+      list.slice(0, SLOTS_MAX).forEach((s, i) => {
         const ref = s.ref ? Uint8ClampedArray.from(atob(s.ref), (c) => c.charCodeAt(0)) : null;
         slots[i] = { ...newSlot(i), ...s, ref };
       });
@@ -345,7 +431,7 @@ interface Saved {
       const mine = profiles[profileKey];
       if (mine) {
         unpack(mine);
-        for (let i = 0; i < SLOTS; i++) resetState(i);
+        for (let i = 0; i < slots.length; i++) resetState(i);
         say(t('regionwatch.say.profile').replace('{size}', profileKey).replace('{n}', String(mine.filter((s) => s.rect).length)), 'ok');
       } else if (savedSize[0] && (savedSize[0] !== w || savedSize[1] !== h)) {
         say(t('regionwatch.warn.size').replace('{a}', `${savedSize[0]}x${savedSize[1]}`).replace('{b}', profileKey), 'error');
@@ -431,7 +517,7 @@ interface Saved {
       const i = Number(el.dataset.i);
       if (btn.dataset.act === 'pick') {
         picking = picking === i ? -1 : i;
-        for (let j = 0; j < SLOTS; j++) paintSlot(j);
+        for (let j = 0; j < slots.length; j++) paintSlot(j);
         hint.textContent = picking >= 0 ? t('regionwatch.hint.pick') : stream ? t('regionwatch.hint.running') : t('regionwatch.hint.idle');
       } else if (btn.dataset.act === 'ref') {
         takeRef(i);
@@ -630,7 +716,24 @@ interface Saved {
       foldedAt: number;
     }
     const newTrend = (): TrendState => ({ samples: [], gate: { recent: [], pendingCount: 0, pendingValue: null }, startT: 0, startV: null, lastV: null, idleFired: false, targetFired: false, foldedAt: 0 });
-    const trend: TrendState[] = Array.from({ length: SLOTS }, newTrend);
+    const trend: TrendState[] = Array.from({ length: SLOTS_MIN }, newTrend);
+
+    /* 슬롯 하나 더. 상태 배열 전부 같이 자란다. 최대 SLOTS_MAX */
+    function addSlot(): boolean {
+      if (slots.length >= SLOTS_MAX) return false;
+      const i = slots.length;
+      slots.push(newSlot(i));
+      edge.push({ wasHit: false, firedAt: -1e9 });
+      count.push({ last: null, streak: 0, firedAt: -1e9, done: false });
+      lastSim.push(-1);
+      primed.push(false);
+      pending.push(null);
+      trend.push(newTrend());
+      slotsBox.insertAdjacentHTML('beforeend', slotRowHtml(i));
+      paintSlot(i);
+      addSlotBtn.disabled = slots.length >= SLOTS_MAX;
+      return true;
+    }
     let windowSec = 300;
     const trendSlots = (): number[] => slots.map((s, i) => (s.mode === 'trend' && s.enabled && s.rect ? i : -1)).filter((i) => i >= 0);
     const fmtNum = (v: number): string => (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 100) / 100));
@@ -803,7 +906,7 @@ interface Saved {
         src.width = w;
         src.height = h;
         enterProfile(w, h);
-        for (let i = 0; i < SLOTS; i++) paintSlot(i);
+        for (let i = 0; i < slots.length; i++) paintSlot(i);
       }
       paint();
       const now = performance.now();
@@ -845,7 +948,7 @@ interface Saved {
       }
       lastCheck = 0;
       lastRead = 0;
-      for (let i = 0; i < SLOTS; i++) resetState(i);
+      for (let i = 0; i < slots.length; i++) resetState(i);
       if (slots.some((x) => (x.mode === 'count' || x.mode === 'trend') && x.enabled)) void ensureOcr();
     }
 
@@ -862,7 +965,7 @@ interface Saved {
       pipBtn.disabled = true;
       picking = -1;
       drag = null;
-      for (let i = 0; i < SLOTS; i++) {
+      for (let i = 0; i < slots.length; i++) {
         resetState(i);
         lastSim[i] = -1;
         paintSim(i, -1, false);
@@ -873,7 +976,7 @@ interface Saved {
       stamps.checks.length = 0;
       stamps.reads.length = 0;
       rateEl.textContent = '';
-      for (let i = 0; i < SLOTS; i++) trend[i] = newTrend();
+      for (let i = 0; i < slots.length; i++) trend[i] = newTrend();
       trendBox.hidden = true;
       closePip();
     }
@@ -916,6 +1019,48 @@ interface Saved {
       else void openPip().then(() => pipBtn.classList.toggle('is-on', !!pip));
     };
     testBtn.onclick = (): void => play('chime', vol);
+    addSlotBtn.onclick = (): void => {
+      if (addSlot()) save();
+    };
+
+    function paintSounds(): void {
+      const names = CUSTOM_SOUNDS.map((k, n) => (soundNames.has(k) ? `${n + 1}: ${soundNames.get(k)}` : '')).filter(Boolean);
+      soundsEl.textContent = names.join(', ');
+    }
+    soundFile.onchange = (): void => {
+      const files = Array.from(soundFile.files || []).slice(0, CUSTOM_SOUNDS.length);
+      soundFile.value = '';
+      void (async () => {
+        let saved = 0;
+        for (let n = 0; n < files.length; n++) {
+          const f = files[n];
+          if (f.size > SOUND_MAX_BYTES) {
+            say(t('regionwatch.err.soundTooBig').replace('{name}', f.name), 'error');
+            continue;
+          }
+          if (await saveSound(CUSTOM_SOUNDS[n], f)) saved++;
+          else say(t('regionwatch.err.soundBad').replace('{name}', f.name), 'error');
+        }
+        paintSounds();
+        if (saved) say(t('regionwatch.say.soundsSaved').replace('{n}', String(saved)), 'ok');
+      })();
+    };
+
+    /* 단축키. 이 탭이 앞에 있을 때만 (브라우저 페이지는 전역 단축키를 못 받는다) */
+    const onKey = (ev: KeyboardEvent): void => {
+      if (!ev.altKey || !ev.shiftKey) return;
+      const tag = (ev.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (ev.code === 'KeyS') {
+        ev.preventDefault();
+        if (stream) stop();
+        else startBtn.click();
+      } else if (ev.code === 'KeyP' && !pipBtn.disabled) {
+        ev.preventDefault();
+        pipBtn.click();
+      }
+    };
+    window.addEventListener('keydown', onKey);
     volume.oninput = (): void => {
       vol = Number(volume.value) / 100;
       save();
@@ -939,14 +1084,17 @@ interface Saved {
     ro?.observe(container);
 
     load();
+    void loadSounds().then(paintSounds);
+    addSlotBtn.disabled = slots.length >= SLOTS_MAX;
     volume.value = String(Math.round(vol * 100));
-    for (let i = 0; i < SLOTS; i++) paintSlot(i);
+    for (let i = 0; i < slots.length; i++) paintSlot(i);
     relayout();
 
     Toolbox.onDispose?.(() => {
       ro?.disconnect();
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('keydown', onKey);
       stop();
       const w = ocr;
       ocr = null;
@@ -989,6 +1137,7 @@ interface Saved {
       .rw-sim.is-hit i{opacity:.8}
       .rw-slot-body input[type=range]{flex:1 1 80px;min-width:80px}
       .rw-vol input[type=range]{width:90px;vertical-align:middle}
+      .rw-file{cursor:pointer}
     `;
     document.head.appendChild(st);
   }
