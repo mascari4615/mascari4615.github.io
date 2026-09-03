@@ -243,8 +243,14 @@ try {
   const twin = await openWindow(CHROME);
   await twin.page.bringToFront();
   await twin.page.mouse.move(150, 150);
-  await twin.page.waitForTimeout(1500);
-  const keys = new Set(rooms.members('home').map((m) => keyOf(m.id)));
+  /* 셋째 사람이 방에 등록될 때까지. 고정 1.5초로 재다 바쁜 CI 에서 2종만 잡혀 빨갰다 (2026-09-03).
+     재는 것은 셋으로 세나이지 몇 초 안에 세나가 아니다 */
+  let keys = new Set();
+  for (const done = Date.now() + 20000; Date.now() < done; ) {
+    keys = new Set(rooms.members('home').map((m) => keyOf(m.id)));
+    if (keys.size >= 3) break;
+    await twin.page.waitForTimeout(250);   // 재움-의도: 다시 세기 전 틈
+  }
   check('IP, UA 가 같아도 다른 사람', keys.size >= 3, `같은 IP, UA 의 다른 브라우저가 접혔다. 방의 사람 이름표 ${keys.size}종`);
   await twin.context.close();
   await a.page.bringToFront();

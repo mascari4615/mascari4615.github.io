@@ -113,7 +113,7 @@ if (!cantRun) {
   if (await recommendation.count()) {
     const id = await recommendation.getAttribute('data-situation');
     await recommendation.click();
-    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: 10000 });
+    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: 30000 });
     await page.click('#acBack');
   }
 
@@ -137,7 +137,7 @@ if (!cantRun) {
           return !!v && v.children.length > 0 && seats >= 1;
         },
         null,
-        { timeout: 10000 }
+        { timeout: 30000 }
       );
       const seats = await page.locator('#acSeats .ac-seat').allTextContents();
       /* 콘텐츠 칸을 다 쓰나 (놀이 화면이 지켜야 할 셋의 3, 사용자 확정 2026-09-01, 세 번째 지적 2026-09-03).
