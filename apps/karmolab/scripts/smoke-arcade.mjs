@@ -25,6 +25,10 @@ import { smokeBase } from './lib/smoke-base.mjs';
 import { waitHydrated } from './lib/hydrated.mjs';
 import { untilSettled } from './lib/settle.mjs';
 
+/* 판이 뜨기를 기다리는 시간. 10초로 두었더니 274 게이트가 함께 도는 CI 에서 판마다 다른 자리가
+   걸렸다 (speed, 오목 평면, 2026-09-03 세 판). 재는 것은 뜨나이지 몇 초 안에 뜨나가 아니다 */
+const WAIT = Number(process.env.KL_ARCADE_WAIT || 30000);
+
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14).
    여태 사람이 켜는 `npm run dev`(8813)만 봤고 없으면 못 돌았다로 끝냈다. 그런데 CI 는 그
    서버를 **한 번도 안 켠다.** 그래서 오락실 화면 검사(게임 51종을 전부 열어 보는 그 검사)가
@@ -126,7 +130,7 @@ if (!cantRun) {
   const noHost = [];
   for (const id of ids) {
     await page.click(`[data-obj="${id}"]`);
-    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: 10000 });
+    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: WAIT });
     if ((await page.locator(`[data-host="${id}"]`).count()) !== 1) noHost.push(id);
     await page.click(`[data-solo="${id}"]`);
     try {
@@ -172,7 +176,7 @@ if (!cantRun) {
       check(`${id}: 혼자 열면 판이 뜨고 빈 자리에 봇이 앉는다`, false, e.message.slice(0, 70));
     }
     await quitRoom(page);
-    await page.waitForSelector('[data-obj]', { timeout: 10000 });
+    await page.waitForSelector('[data-obj]', { timeout: WAIT });
   }
   check('혼자, 같이 두 길이 다 있다', noHost.length === 0, noHost.join(' / '));
 
@@ -184,7 +188,7 @@ if (!cantRun) {
   console.log('[arcade-ui] 반응 측정. 혼자');
   await page.click('[data-obj="reflex"]');
   await page.click('[data-solo="reflex"]');
-  await page.waitForSelector('.ac-choice', { timeout: 10000 });
+  await page.waitForSelector('.ac-choice', { timeout: WAIT });
   const seats = await page.locator('.ac-seat').allTextContents();
   /* 셋이다. 인원은 판이 아니라 오락실이 정한다(`seating.ts`). 전에는 최솟값이라 1명부터인
      판이 혼자 돌았다. 그 수를 여기 상수로 또 적으면 두 곳이 갈리므로 셋을 못 박아 둔다. */
@@ -226,7 +230,7 @@ if (!cantRun) {
    */
   console.log('[arcade-ui] 오목. 입체');
   if (hasReflex) await quitRoom(page);
-  await page.waitForSelector('[data-obj="gomoku"]', { timeout: 10000 });
+  await page.waitForSelector('[data-obj="gomoku"]', { timeout: WAIT });
   await page.click('[data-obj="gomoku"]');
   await page.click('[data-solo="gomoku"]');
   /* 입체 조각은 누른 뒤에 받아 온다. 붙는 데 몇 초가 걸리므로 시간을 재지 말고 기다린다 */
@@ -255,7 +259,7 @@ if (!cantRun) {
   await page.evaluate(() => localStorage.setItem('karmolab.arcade.dim', '2d'));
   await page.click('[data-obj="gomoku"]');
   await page.click('[data-solo="gomoku"]');
-  await page.waitForSelector('.ac-cell', { timeout: 10000 });
+  await page.waitForSelector('.ac-cell', { timeout: WAIT });
   /* 판 크기는 사람이 고름(9, 15, 19). 여기 수를 박으면 고르는 자리를 늘릴 때마다 빨개짐
      제곱수인지와 화점 수만 봄. 그 둘이 맞으면 격자는 제 모양 */
   const pts = await page.locator('.ac-cell').count();
