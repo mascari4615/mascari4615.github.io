@@ -764,5 +764,7 @@
   "arcade.blackjack.trio.none": "21+3 なし",
   "arcade.tanks.wind": "風 {n}",
   "arcade.aim.hint": "盤の上でドラッグして離す",
-  "arcade.aim.fine": "微調整"
+  "arcade.aim.fine": "微調整",
+  "arcade.fish.hold": "押し続ける",
+  "arcade.fish.perfect": "パーフェクト x1.5"
 }

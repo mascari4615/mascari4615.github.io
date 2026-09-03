@@ -764,5 +764,7 @@
   "arcade.blackjack.trio.none": "21+3 아님",
   "arcade.tanks.wind": "바람 {n}",
   "arcade.aim.hint": "판 위에서 끌어서 놓기",
-  "arcade.aim.fine": "세밀 조정"
+  "arcade.aim.fine": "세밀 조정",
+  "arcade.fish.hold": "누르고 있기",
+  "arcade.fish.perfect": "완벽! x1.5"
 }

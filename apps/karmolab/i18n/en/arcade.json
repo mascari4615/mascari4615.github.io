@@ -764,5 +764,7 @@
   "arcade.blackjack.trio.none": "No 21+3",
   "arcade.tanks.wind": "Wind {n}",
   "arcade.aim.hint": "Drag on the board and release",
-  "arcade.aim.fine": "Fine tune"
+  "arcade.aim.fine": "Fine tune",
+  "arcade.fish.hold": "Hold",
+  "arcade.fish.perfect": "Perfect! x1.5"
 }
