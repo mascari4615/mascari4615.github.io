@@ -7,8 +7,8 @@
  * - 입력: 브라우저 화면 공유(`getDisplayMedia`). 화면 녹화와 같은 길
  * - 프레임은 **이 탭 안에서만** 비교, 외부 전송 0. 기준 그림과 영역은 localStorage
  * - 판정 로직은 `shared/regionwatch-core.ts`. 화면 없이 `scripts/test-regionwatch.mjs` 가 실행
- * - 덮어 둔 탭: `MediaStreamTrackProcessor` 프레임 스트림, 시계 없음. 없는 브라우저는 워커 시계
- * - 떠 있는 창(Document Picture-in-Picture): 상태 판을 다른 창 위에
+ * - 캡처, 숫자 읽기, 떠 있는 창은 공용 부품 `shared/screen-capture`, `shared/ocr-digits`, `shared/pip-panel`
+ * - 덮어 둔 탭: 프레임 스트림이 오는 대로 판정, 시계 없음 (공용 부품이 처리)
  * - 시험용 신호: `regionwatch:fire`, `regionwatch:read` CustomEvent (window)
  */
 import { escapeHtml as esc } from './shared/text';
@@ -25,7 +25,6 @@ import {
   decideEdge,
   decideCount,
   parseSeconds,
-  binarize,
   parseNumber,
   slopePerSec,
   secondsToTarget,
@@ -37,6 +36,9 @@ import {
   type GateState
 } from './shared/regionwatch-core';
 import { download } from './shared/video';
+import { startDisplayCapture, displayCaptureSupported, type CaptureHandle } from './shared/screen-capture';
+import { ensureDigitReader, prepareForOcr, type DigitReader } from './shared/ocr-digits';
+import { openPipPanel, pipSupported, type PipPanel } from './shared/pip-panel';
 
 type Sound = 'ping' | 'double' | 'chime';
 
@@ -76,37 +78,12 @@ interface Saved {
   profiles?: Record<string, SavedSlot[]>;
 }
 
-/* 브라우저 전용 API. lib.dom 에 아직 없는 것만 여기서 좁게 선언 */
-interface VideoFrameLike {
-  close(): void;
-  displayWidth: number;
-  displayHeight: number;
-}
-interface TrackProcessorLike {
-  readable: ReadableStream<VideoFrameLike>;
-}
-interface PipWindowLike extends Window {
-  document: Document;
-}
-interface DocPipLike {
-  requestWindow(o: { width: number; height: number }): Promise<PipWindowLike>;
-}
-interface OcrWorker {
-  setParameters(p: Record<string, string>): Promise<unknown>;
-  recognize(img: HTMLCanvasElement): Promise<{ data: { text: string } }>;
-  terminate(): Promise<unknown>;
-}
-interface TesseractLike {
-  createWorker(lang: string, oem: number, opts: Record<string, unknown>): Promise<OcrWorker>;
-}
-
 (function (): void {
   const SLOTS = 6;
   const CHECK_MS = 250;
   const READ_MS = 1000;
   const STORE = 'regionwatch.v1';
   const MAX_DELAY_MS = 3000;
-  const VENDOR = '/apps/karmolab/js/vendor/tesseract/';
 
   const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
@@ -284,8 +261,7 @@ interface TesseractLike {
 
     /* 도는 동안의 상태 */
     let stream: MediaStream | null = null;
-    let video: HTMLVideoElement | null = null;
-    let stopFrames: (() => void) | null = null;
+    let capture: CaptureHandle | null = null;
     let lastCheck = 0;
     let lastRead = 0;
     let picking = -1;
@@ -296,11 +272,8 @@ interface TesseractLike {
     /* 기준을 찍은 직후나 시작 직후의 첫 판정은 상태만 맞추고 침묵. 기준은 지금 모습이라 늘 같음 */
     const primed: boolean[] = new Array(SLOTS).fill(false);
     const pending: Array<number | null> = new Array(SLOTS).fill(null);
-    let pip: PipWindowLike | null = null;
-    let pipBody: HTMLElement | null = null;
-    let pipRate: HTMLElement | null = null;
-    let ocr: OcrWorker | null = null;
-    let ocrLoading: Promise<OcrWorker | null> | null = null;
+    let pip: PipPanel | null = null;
+    let ocr: DigitReader | null = null;
     let reading = false;
     /* 덮어 둔 탭에서도 도는지 사용자가 눈으로 확인하는 수치. 최근 1분의 판정과 읽기 횟수 */
     const stamps: { checks: number[]; reads: number[] } = { checks: [], reads: [] };
@@ -314,7 +287,7 @@ interface TesseractLike {
       rateAt = now;
       const text = t('regionwatch.label.rate').replace('{checks}', String(stamps.checks.length)).replace('{reads}', String(stamps.reads.length));
       rateEl.textContent = text;
-      if (pipRate) pipRate.textContent = text;
+      pip?.setFooter(text);
     }
 
     /* ── 저장, 복구 ───────────────────────────────────────── */
@@ -419,13 +392,7 @@ interface TesseractLike {
       bar.style.width = sim < 0 ? '0' : Math.round(clamp(sim, 0, 1) * 100) + '%';
       txt.textContent = text;
       el.classList.toggle('is-hit', hit);
-      if (pipBody) {
-        const row = pipBody.children[i] as HTMLElement | undefined;
-        if (row) {
-          (row.querySelector('b') as HTMLElement).textContent = text;
-          row.classList.toggle('is-hit', hit);
-        }
-      }
+      pip?.setRow(i, text, hit);
     }
 
     slotsBox.addEventListener('input', (ev) => {
@@ -607,34 +574,16 @@ interface TesseractLike {
     }
 
     /* ── 숫자 읽기 ────────────────────────────────────────── */
-    function ensureOcr(): Promise<OcrWorker | null> {
+    function ensureOcr(): Promise<DigitReader | null> {
       if (ocr) return Promise.resolve(ocr);
-      if (ocrLoading) return ocrLoading;
-      say(t('regionwatch.ocr.loading'));
-      ocrLoading = (async () => {
-        try {
-          await Toolbox.ensureScript('vendor/tesseract/tesseract.min');
-          const T = (window as unknown as { Tesseract?: TesseractLike }).Tesseract;
-          if (!T) throw new Error('Tesseract global');
-          const w = await T.createWorker('eng', 1, {
-            workerPath: VENDOR + 'worker.min.js',
-            corePath: VENDOR + 'tesseract-core-simd-lstm.wasm.js',
-            langPath: VENDOR + 'lang',
-            workerBlobURL: false,
-            gzip: true
-          });
-          await w.setParameters({ tessedit_char_whitelist: '0123456789:,.%-', tessedit_pageseg_mode: '7' });
-          ocr = w;
-          say(t('regionwatch.ocr.ready'), 'ok');
-          return w;
-        } catch (err) {
-          say(t('regionwatch.ocr.fail') + (err as Error).message, 'error');
-          return null;
-        } finally {
-          ocrLoading = null;
-        }
-      })();
-      return ocrLoading;
+      return ensureDigitReader((state, detail) => {
+        if (state === 'loading') say(t('regionwatch.ocr.loading'));
+        else if (state === 'ready') say(t('regionwatch.ocr.ready'), 'ok');
+        else say(t('regionwatch.ocr.fail') + (detail || ''), 'error');
+      }).then((r) => {
+        ocr = r;
+        return r;
+      });
     }
 
     async function readCounts(now: number): Promise<void> {
@@ -647,27 +596,8 @@ interface TesseractLike {
       try {
         for (const { s, i } of targets) {
           if (!stream || !s.rect) break;
-          const r = s.rect;
-          const k = Math.max(1, Math.min(6, Math.round(96 / Math.max(1, r.h))));
-          /* 글자 인식기는 글자가 칸을 꽉 채우면 못 읽음. 키운 뒤 흰 여백 */
-          const pad = Math.round(r.h * k * 0.4);
-          const cw = r.w * k;
-          const ch = r.h * k;
-          ocrCanvas.width = cw + pad * 2;
-          ocrCanvas.height = ch + pad * 2;
-          ocrCtx.imageSmoothingEnabled = true;
-          ocrCtx.drawImage(src, r.x, r.y, r.w, r.h, pad, pad, cw, ch);
-          const img = ocrCtx.getImageData(pad, pad, cw, ch);
-          binarize(img.data);
-          ocrCtx.fillStyle = '#fff';
-          ocrCtx.fillRect(0, 0, ocrCanvas.width, ocrCanvas.height);
-          ocrCtx.putImageData(img, pad, pad);
-          let text = '';
-          try {
-            text = (await w.recognize(ocrCanvas)).data.text;
-          } catch {
-            text = '';
-          }
+          prepareForOcr(src, s.rect, ocrCanvas, ocrCtx);
+          const text = await w.recognize(ocrCanvas);
           bump('reads', performance.now());
           if (s.mode === 'trend') {
             const value = parseNumber(text);
@@ -889,23 +819,25 @@ interface TesseractLike {
     }
 
     async function start(): Promise<void> {
-      if (!navigator.mediaDevices?.getDisplayMedia) {
+      if (!displayCaptureSupported()) {
         say(t('regionwatch.err.unsupported'), 'error');
         return;
       }
-      let s: MediaStream;
-      try {
-        s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 10 }, audio: false });
-      } catch {
+      const c = await startDisplayCapture({
+        frameRate: 10,
+        tickMs: CHECK_MS,
+        onFrame: (f) => onFrame(() => f.draw(sctx), f.width, f.height),
+        onEnded: () => stop()
+      });
+      if (!c) {
         say(t('regionwatch.err.notStarted'));
         return;
       }
-      stream = s;
-      const track = s.getVideoTracks()[0];
-      track.addEventListener('ended', () => stop());
+      capture = c;
+      stream = c.stream;
       startBtn.disabled = true;
       stopBtn.disabled = false;
-      pipBtn.disabled = !('documentPictureInPicture' in window);
+      pipBtn.disabled = !pipSupported();
       hint.textContent = t('regionwatch.hint.running');
       say(t('regionwatch.say.running'), 'ok');
       if (notifyBox.checked && typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -915,53 +847,12 @@ interface TesseractLike {
       lastRead = 0;
       for (let i = 0; i < SLOTS; i++) resetState(i);
       if (slots.some((x) => (x.mode === 'count' || x.mode === 'trend') && x.enabled)) void ensureOcr();
-
-      const Proc = (window as unknown as { MediaStreamTrackProcessor?: new (o: { track: MediaStreamTrack }) => TrackProcessorLike }).MediaStreamTrackProcessor;
-      if (Proc) {
-        /* 프레임이 오는 대로. 덮어 둔 탭에서도 시계 없이 동작 */
-        const reader = new Proc({ track }).readable.getReader();
-        let alive = true;
-        stopFrames = (): void => {
-          alive = false;
-          void reader.cancel().catch(() => undefined);
-        };
-        void (async () => {
-          while (alive) {
-            const { value, done } = await reader.read();
-            if (done || !value) break;
-            try {
-              onFrame(() => sctx.drawImage(value as unknown as CanvasImageSource, 0, 0), value.displayWidth, value.displayHeight);
-            } finally {
-              value.close();
-            }
-          }
-        })();
-        return;
-      }
-      /* 없는 브라우저: 영상 요소 + 워커 시계. 워커 시계는 덮어 둔 탭에서도 안 느려짐 */
-      const v = document.createElement('video');
-      v.muted = true;
-      v.playsInline = true;
-      v.srcObject = s;
-      video = v;
-      await v.play().catch(() => undefined);
-      const worker = new Worker(URL.createObjectURL(new Blob([`setInterval(() => postMessage(0), ${CHECK_MS});`], { type: 'text/javascript' })));
-      worker.onmessage = (): void => {
-        if (!v.videoWidth) return;
-        onFrame(() => sctx.drawImage(v, 0, 0), v.videoWidth, v.videoHeight);
-      };
-      stopFrames = (): void => worker.terminate();
     }
 
     function stop(): void {
-      stopFrames?.();
-      stopFrames = null;
-      stream?.getTracks().forEach((tr) => tr.stop());
+      capture?.stop();
+      capture = null;
       stream = null;
-      if (video) {
-        video.srcObject = null;
-        video = null;
-      }
       pending.forEach((p, i) => {
         if (p !== null) window.clearTimeout(p);
         pending[i] = null;
@@ -989,52 +880,26 @@ interface TesseractLike {
 
     /* ── 떠 있는 창 ───────────────────────────────────────── */
     async function openPip(): Promise<void> {
-      const api = (window as unknown as { documentPictureInPicture?: DocPipLike }).documentPictureInPicture;
-      if (!api) return;
-      try {
-        pip = await api.requestWindow({ width: 260, height: 40 + SLOTS * 26 });
-      } catch {
+      if (!pipSupported()) return;
+      const rows = slots.map((s, i) => ({
+        label: s.name,
+        value: lastSim[i] < 0 ? '-' : Math.round(lastSim[i] * 100) + '%',
+        dim: !s.enabled || !s.rect
+      }));
+      const panel = await openPipPanel(rows, rateEl.textContent || '', () => {
+        pip = null;
+        pipBtn.classList.remove('is-on');
+      });
+      if (!panel) {
         say(t('regionwatch.err.pip'), 'error');
         return;
       }
-      const d = pip.document;
-      d.body.style.cssText = 'margin:0;font:12px system-ui,sans-serif;background:#111;color:#eee;';
-      const box = d.createElement('div');
-      box.style.cssText = 'padding:6px 8px;display:grid;gap:4px;';
-      slots.forEach((s, i) => {
-        const row = d.createElement('div');
-        row.style.cssText = 'display:flex;justify-content:space-between;gap:8px;padding:2px 6px;border-radius:4px;';
-        row.innerHTML = `<span>${esc(s.name)}</span><b>${lastSim[i] < 0 ? '-' : Math.round(lastSim[i] * 100) + '%'}</b>`;
-        if (!s.enabled || !s.rect) row.style.opacity = '0.4';
-        box.appendChild(row);
-      });
-      const style = d.createElement('style');
-      style.textContent = '.is-hit{background:#1f6b3a}';
-      d.head.appendChild(style);
-      d.body.appendChild(box);
-      const rate = d.createElement('div');
-      rate.style.cssText = 'padding:2px 14px 6px;font-size:11px;opacity:.7;';
-      rate.textContent = rateEl.textContent || '';
-      d.body.appendChild(rate);
-      pipBody = box;
-      pipRate = rate;
-      pip.addEventListener('pagehide', () => {
-        pip = null;
-        pipBody = null;
-        pipRate = null;
-        pipBtn.classList.remove('is-on');
-      });
+      pip = panel;
     }
 
     function closePip(): void {
-      try {
-        pip?.close();
-      } catch {
-        /* 이미 닫힌 창 */
-      }
+      pip?.close();
       pip = null;
-      pipBody = null;
-      pipRate = null;
       pipBtn.classList.remove('is-on');
     }
 
