@@ -76,7 +76,8 @@ export const sudokuView: GameView<SudokuState, SudokuAction> = {
       who.innerHTML = v.seats
         .map((seat, i) =>
           '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + '">' +
-          seat.name + ' <b>' + (s.right[i] ?? 0) + '</b>/' + N * N + '</span>')
+          seat.name + ' <b>' + (s.right[i] ?? 0) + '</b>/' + N * N +
+          ((s.wrong?.[i] ?? 0) > 0 ? ' <small>' + t((s.wrong[i] ?? 0) >= 3 ? 'arcade.sudoku.out' : 'arcade.sudoku.wrong', { n: String(s.wrong[i]) }) + '</small>' : '') + '</span>')
         .join('') + (pick < 0 && live ? '<span class="ac-dts">' + t('arcade.sudoku.hint') + '</span>' : '');
     };
   }

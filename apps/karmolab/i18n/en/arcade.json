@@ -766,5 +766,8 @@
   "arcade.aim.hint": "Drag on the board and release",
   "arcade.aim.fine": "Fine tune",
   "arcade.fish.hold": "Hold",
-  "arcade.fish.perfect": "Perfect! x1.5"
+  "arcade.fish.perfect": "Perfect! x1.5",
+  "arcade.mine.stats": "3BV {b}, clicks {c}, efficiency {e}%",
+  "arcade.sudoku.wrong": "Mistakes {n}/3",
+  "arcade.sudoku.out": "3 mistakes. Out"
 }

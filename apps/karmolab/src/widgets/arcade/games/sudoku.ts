@@ -27,6 +27,8 @@ export interface SudokuState {
   filled: number[][];
   /** 자리별 맞게 채운 칸 수 */
   right: number[];
+  /** 자리별 틀린 횟수. 셋이면 그 사람은 끝 (sudoku.com 의 실수 3회 상한, 2026-09-03) */
+  wrong: number[];
   won: number;
   endsAt: number;
   over: boolean;
@@ -102,6 +104,7 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
       given,
       filled: ctx.seats.map(() => given.slice()),
       right: ctx.seats.map(() => 0),
+      wrong: ctx.seats.map(() => 0),
       won: -1,
       endsAt: ctx.now + LIMIT_MS,
       over: false
@@ -114,6 +117,7 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
   },
 
   canAct(s, seat) {
+    if ((s.wrong?.[seat] ?? 0) >= 3) return false;
     return !s.over && s.won === -1 && !!s.filled[seat];
   },
 
@@ -128,12 +132,17 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
 
     const mine = s.filled[seat];
     if (!mine) return s;
+    if ((s.wrong[seat] ?? 0) >= 3) return s;
     const filled = s.filled.map((f, i) => (i === seat ? f.map((v, k) => (k === cell ? value : v)) : f));
     const right = s.right.map((v, i) =>
       i === seat ? filled[i].filter((x, k) => x !== 0 && x === s.answer[k]).length : v
     );
+    const miss = value !== 0 && value !== s.answer[cell];
+    const wrong = s.wrong.map((v, i) => (i === seat && miss ? v + 1 : v));
     const done = right[seat] === N * N;
-    return { ...s, filled, right, won: done ? seat : -1, over: done };
+    /* 다 셋씩 틀리면 판이 끝남. 남은 사람이 없다 */
+    const allOut = wrong.every((w) => w >= 3);
+    return { ...s, filled, right, wrong, won: done ? seat : -1, over: done || allOut };
   },
 
   tick(s, ctx) {

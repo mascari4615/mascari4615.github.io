@@ -31,11 +31,39 @@ export interface SweepState {
   boom?: number;
   /** 자리별 연 칸 수 */
   opened: number[];
+  /** 자리별 누른 수. 열기와 깃발 둘 다. 효율은 3BV / 클릭 (minesweeper.online 의 잣대, 2026-09-03) */
+  clicks: number[];
+  /** 이 밭의 3BV. 빈 칸 덩어리 하나에 1, 덩어리에 안 붙은 숫자 칸마다 1 */
+  bv3: number;
   endsAt: number;
   over: boolean;
 }
 
 export type SweepAction = { cell: number; flag?: boolean };
+
+/** 3BV. 밭을 다 여는 데 필요한 최소 클릭 수. 순위 사이트가 판 난이도로 쓰는 값 */
+export function bv3Of(mines: number[]): number {
+  const nums = mines.map((_, i) => around(mines, i));
+  const seen = new Array(W * H).fill(false);
+  let n = 0;
+  for (let c = 0; c < W * H; c += 1) {
+    if (mines[c] || nums[c] !== 0 || seen[c]) continue;
+    /* 빈 칸 덩어리 하나. 둘레 숫자까지 같이 열림 */
+    n += 1;
+    const stack = [c];
+    seen[c] = true;
+    while (stack.length) {
+      const k = stack.pop() as number;
+      for (const nb of nbrs(k)) {
+        if (mines[nb] || seen[nb]) continue;
+        seen[nb] = true;
+        if (nums[nb] === 0) stack.push(nb);
+      }
+    }
+  }
+  for (let c = 0; c < W * H; c += 1) if (!mines[c] && !seen[c]) n += 1;
+  return n;
+}
 
 const nbrs = (c: number): number[] => {
   const x = c % W;
@@ -91,6 +119,8 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
       nums: mines.map((_, i) => around(mines, i)),
       dead: ctx.seats.map(() => false),
       opened: ctx.seats.map(() => 0),
+      clicks: ctx.seats.map(() => 0),
+      bv3: bv3Of(mines),
       endsAt: ctx.now + LIMIT_MS,
       over: false
     };
@@ -120,7 +150,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     if (a.flag) {
       if (mine[c] === 1) return s;
       const seen = s.seen.map((row, i) => (i === seat ? row.map((v, k) => (k === c ? (v === 2 ? 0 : 2) : v)) : row));
-      return { ...s, seen };
+      return { ...s, seen, clicks: s.clicks.map((v, i) => (i === seat ? v + 1 : v)) };
     }
 
     if (mine[c] !== 0) return s;
@@ -138,11 +168,13 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
       }
     }
     const nums = mines === s.mines ? s.nums : mines.map((_, i) => around(mines, i));
+    const bv3 = mines === s.mines ? s.bv3 : bv3Of(mines);
+    const clicks = s.clicks.map((v, i) => (i === seat ? v + 1 : v));
 
     if (mines[c]) {
       const dead = s.dead.map((v, i) => (i === seat ? true : v));
       const seen = s.seen.map((row, i) => (i === seat ? row.map((v, k) => (k === c ? 1 : v)) : row));
-      return { ...s, mines, nums, dead, seen, boom: seat, over: dead.every(Boolean) };
+      return { ...s, mines, nums, bv3, clicks, dead, seen, boom: seat, over: dead.every(Boolean) };
     }
 
     const r = flood(mines, mine, c);
@@ -150,7 +182,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     const opened = s.opened.map((v, i) => (i === seat ? v + r.opened : v));
     /* 지뢰 뺀 칸을 다 열었으면 그 사람 승. 판이 끝난다. */
     const cleared = opened[seat] >= W * H - MINES;
-    return { ...s, mines, nums, seen, opened, over: cleared };
+    return { ...s, mines, nums, bv3, clicks, seen, opened, over: cleared };
   },
 
   tick(s, ctx) {

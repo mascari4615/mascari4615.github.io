@@ -87,7 +87,13 @@ export const minesweeperView: GameView<SweepState, SweepAction> = {
         .map((seat, i) =>
           '<span class="ac-dts' + (i === mySeat ? ' ac-me' : '') + (s.dead[i] ? ' ac-dead' : '') + '">' +
           seat.name + ' <b>' + (s.opened[i] ?? 0) + '</b></span>')
-        .join('') + (dead ? '<span class="ac-dts">' + t('arcade.mine.dead') + '</span>' : '');
+        .join('') + (dead ? '<span class="ac-dts">' + t('arcade.mine.dead') + '</span>' : '') +
+        /* 계측. 판 난이도(3BV)와 내 클릭과 효율. 순위 사이트가 판 뒤에 보여 주는 셋 (2026-09-03) */
+        '<span class="ac-dts ac-mstat">' + t('arcade.mine.stats', {
+          b: String(s.bv3 ?? 0),
+          c: String(s.clicks?.[mySeat] ?? 0),
+          e: String(s.clicks?.[mySeat] ? Math.round(((s.bv3 ?? 0) / s.clicks[mySeat]) * 100) : 0)
+        }) + '</span>';
     };
   }
 };
