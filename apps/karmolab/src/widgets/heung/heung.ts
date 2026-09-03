@@ -10,6 +10,7 @@ import { ProjectHistory } from './history';
 import { HEUNG_CSS } from './styles';
 import { HEUNG_SHELL } from './shell';
 import { GestureHost } from './gesture';
+import { placeAtPointer } from '../../lib/ui-zoom';
 import { shortcutsHtml } from './shortcuts';
 import { describeInputs, parseMidiMessage } from './midi';
 import { buildPianoView, initialScrollTop, noteName, PIANO_GEOMETRY } from './piano-view';
@@ -356,7 +357,7 @@ import { decodeMidi, encodeMidi } from './midi-file';
       }
     }
     function setEditorExpanded(next: boolean): void { const editor=$<HTMLElement>('[data-role=editor]');if(next&&!editorExpanded)editorReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;editorExpanded=next;editor.classList.toggle('is-expanded',next);editor.toggleAttribute('role',next);editor.toggleAttribute('aria-modal',next);if(next){editor.setAttribute('role','dialog');editor.setAttribute('aria-modal','true');editor.tabIndex=-1;}else{editor.removeAttribute('role');editor.removeAttribute('aria-modal');editor.removeAttribute('tabindex');} $<HTMLElement>('[data-role=backdrop]').classList.toggle('is-open',next);renderEditor();if(next)editor.focus({preventScroll:true});else editorReturnFocus?.focus({preventScroll:true}); }
-    function showContextMenu(x:number,y:number,items:Array<[string,string]>):void{const menu=$<HTMLElement>('[data-role=context]');menu.innerHTML=items.map(([act,label])=>`<button type="button" role="menuitem" data-context-act="${act}">${label}</button>`).join('');menu.hidden=false;menu.style.left=`${Math.min(x,window.innerWidth-200)}px`;menu.style.top=`${Math.min(y,window.innerHeight-menu.offsetHeight-8)}px`;menu.querySelector<HTMLElement>('button')?.focus({preventScroll:true});}
+    function showContextMenu(x:number,y:number,items:Array<[string,string]>):void{const menu=$<HTMLElement>('[data-role=context]');menu.innerHTML=items.map(([act,label])=>`<button type="button" role="menuitem" data-context-act="${act}">${label}</button>`).join('');menu.hidden=false;placeAtPointer(menu,x,y);menu.querySelector<HTMLElement>('button')?.focus({preventScroll:true});}
 
     function renderAll(): void {
       const scrollElement=root.querySelector<HTMLElement>('[data-role=scroll]');const arrangerLeft=scrollElement?.scrollLeft||0;const arrangerTop=scrollElement?.scrollTop||0;

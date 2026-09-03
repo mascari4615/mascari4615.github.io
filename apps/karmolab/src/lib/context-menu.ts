@@ -18,6 +18,7 @@
  * 그걸 앱 흉내로 덮으면 사용자가 자기 브라우저 기능을 잃는다. 데스크톱 앱에서만 정당한 짓이다.
  */
 import { t, loadNamespace } from './i18n';
+import { placeAtPointer } from './ui-zoom';
 
 /* 위젯이 아니라 라이브러리. 아무도 말 묶음을 챙겨 주지 않으므로 스스로 받는다. */
 if (typeof document !== 'undefined') void loadNamespace('ctxmenu');
@@ -108,12 +109,8 @@ export function showContextMenu(x: number, y: number, entries: MenuEntry[]): voi
     /* 화면 밖으로 나가지 않게 뒤집는다. 크기를 재려면 먼저 붙여야 하므로, 안 보이게 붙였다 옮긴다. */
     menu.style.visibility = 'hidden';
     document.body.appendChild(menu);
-    const box = menu.getBoundingClientRect();
-    const pad = 8;
-    const left = x + box.width + pad > window.innerWidth ? Math.max(pad, x - box.width) : x;
-    const top = y + box.height + pad > window.innerHeight ? Math.max(pad, y - box.height) : y;
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
+    /* 자리 계산은 placeAtPointer. 배율 미보정 시 마우스에서 벗어남 */
+    placeAtPointer(menu, x, y);
     menu.style.visibility = '';
     open = menu;
 

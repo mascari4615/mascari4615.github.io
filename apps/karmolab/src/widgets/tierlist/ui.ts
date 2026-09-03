@@ -1,3 +1,5 @@
+import { placeAtPointer } from '../../lib/ui-zoom';
+
 interface TlCtxAction {
     label: string;
     danger?: boolean;
@@ -76,11 +78,8 @@ interface TlDialogApi {
 
         document.body.appendChild(menu);
         menu.querySelector<HTMLButtonElement>('.tl-ctx-item')?.focus();
-        const rect = menu.getBoundingClientRect();
-        if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 8;
-        if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 8;
-        menu.style.left = x + 'px';
-        menu.style.top = y + 'px';
+        /* 배율(html zoom) 보정. 정본 lib/ui-zoom */
+        placeAtPointer(menu, x, y);
 
         setTimeout(() => document.addEventListener('pointerdown', hideContextMenu, { once: true }), 0);
     }
