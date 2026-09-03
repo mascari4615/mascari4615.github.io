@@ -99,12 +99,24 @@ try {
       const main = document.querySelector('.main-content');
       if (!page2 || !main) return null;
       const mainBox = main.getBoundingClientRect();
+      /* 자기 칸 안에서 가로로 도는 넓은 표는 밖으로 나간 게 아니다 (때 도구의 24칸 줄, 2026-09-03).
+         조상 중 overflow-x 가 auto 나 scroll 이고 그 조상 자체는 본문 안이면 봐준다 */
+      const scrollsInside = (e) => {
+        for (let a = e.parentElement; a && a !== page2; a = a.parentElement) {
+          const o = getComputedStyle(a).overflowX;
+          if (o !== 'auto' && o !== 'scroll') continue;
+          const ar = a.getBoundingClientRect();
+          if (ar.right <= mainBox.right + 1 && ar.left >= mainBox.left - 1) return true;
+        }
+        return false;
+      };
       const out = [...page2.querySelectorAll('*')].filter((e) => {
         const cs = getComputedStyle(e);
         if (cs.position === 'fixed' || cs.display === 'none' || cs.visibility === 'hidden') return false;
         const r = e.getBoundingClientRect();
         if (r.width < 1 || r.height < 1) return false;
-        return r.right > mainBox.right + 1 || r.left < mainBox.left - 1;
+        if (!(r.right > mainBox.right + 1 || r.left < mainBox.left - 1)) return false;
+        return !scrollsInside(e);
       });
       return {
         hscroll: document.documentElement.scrollWidth > window.innerWidth + 1,

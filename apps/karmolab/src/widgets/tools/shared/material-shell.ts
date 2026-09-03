@@ -459,6 +459,8 @@ function injectStyles(): void {
 @media (min-width:1100px){
   /* .tab-panel.active{display:block} (0,2,0) 을 이기려고 같은 특이도로 뒤에 둠 */
   .pf-shell.pf-shell{display:grid;grid-template-columns:minmax(0,3fr) minmax(340px,2fr);gap:var(--space-xl);align-items:start;}
+  /* 격자 칸의 자동 최소 폭을 끈다. 안의 넓은 표(때 도구의 24칸 줄)가 칸을 밀어 본문 밖으로 나가던 자리 (2026-09-03 shell-layout 실측) */
+  .pf-shell .pf-left,.pf-shell .pf-right{min-width:0;}
   .pf-shell .pf-head{margin-bottom:0;position:sticky;top:calc(var(--header-h,40px) + var(--space-md));}
   .pf-shell .pf-paste textarea{min-height:300px;}
   .pf-shell .pf-drop{padding:48px 16px;}
