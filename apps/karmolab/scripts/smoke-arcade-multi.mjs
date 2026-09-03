@@ -187,7 +187,8 @@ if (!cantRun) {
   if (auction) {
     const { host, guest } = auction;
     try {
-      await guest.waitForSelector('.ac-au', { timeout: 20000 });
+      /* 평면은 .ac-au, 입체(정본)는 HUD. 2026-09-02 입체 경매를 올리고 평면만 기다려 main 이 빨갰다 */
+      await guest.waitForSelector('.ac-au, #acAuHud', { timeout: 20000 });
       /* 주인이 먼저 부른다. 그 숫자가 손님 창에 뜨면 새는 것이다. 낙찰 전까지는 불렀다 표시뿐. */
       await host.locator('#acAuR').fill('37');
       await host.click('#acAuGo');
