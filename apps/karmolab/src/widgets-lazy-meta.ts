@@ -676,8 +676,9 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'meok',
-    hidden: true, // 이미지 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
-    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    /* 다시 제 위젯으로 (2026-09-03, 사용자 결정. 그 전에는 hidden + bundle:'image').
+       접어 두는 동안 `/t/meok/` 는 404 였다. 주석은 검색 유입 주소는 유지라고 적혀 있었지만
+       숨긴 도구는 장을 안 굽는다. 먹은 문서, 레이어, 타임라인, 저장을 제 것으로 든 완성된 도구다. */
     get title() { return t('widgets.meok.title', undefined, "먹"); },
     category: 'image',
     get desc() { return t('widgets-desc.meok.desc', undefined, "갈아서 칠하고 칸으로 움직인다. 레이어, 붓, 도트 애니메이션"); },

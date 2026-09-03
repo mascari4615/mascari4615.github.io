@@ -177,6 +177,8 @@
   "tools.memo-atlas.lead": "Notes → terrain, peaks and valleys, buried notes, pairs to link, a control beside every number",
   "tools.memo.description": "An online notepad that keeps several notes and moves between them. It saves as you type, and the contents stay in this browser only. No account to make. but clearing your browser data clears them too.",
   "tools.memo.lead": "Multiple notes, autosave, this browser only",
+  "tools.meok.description": "A drawing board that runs inside your browser. Stack layers to paint, and tune brush flow, pressure and stroke smoothing. Rectangle, ellipse, lasso and magic wand keep paint inside the area you picked, and undo is kept stroke by stroke. Chain frames on a timeline for pixel animation and see the frames around you with onion skin. Crop, resize, rotate, correct, filter and cut out the background on the same screen, then export as PNG or a sprite sheet. Your work saves itself, and the picture never leaves your device.",
+  "tools.meok.lead": "Draw in layers, move in frames",
   "tools.mermaidlite.description": "Draws flowcharts and entity relationships written as text, as SVG. without the 3MB library and without a network connection.",
   "tools.mermaidlite.lead": "Flowchart, ER diagram, Download as SVG, Syntax check",
   "tools.mesh3d.description": "Open STL and OBJ 3D files straight in the browser and turn them around. It also tells you the triangle count and the width, depth and height. The file never leaves your device.",
@@ -243,6 +245,8 @@
   "tools.qrread.lead": "Image, paste, camera, tells you the content type, no upload",
   "tools.radix.description": "Convert between number bases. binary, octal, decimal and hexadecimal on one screen. Edit one field and the rest follow, plus any base from 2 to 36 and the bit and byte counts.",
   "tools.radix.lead": "Binary, octal, decimal, hex at once, any base 2-36, bit count",
+  "tools.recall.description": "Pulls six items a day from 311 development topics and asks you first. After you answer, your words sit next to the source, and your verdict sets the next date.",
+  "tools.recall.lead": "Six a day, multiple choice and written, side-by-side check, next date",
   "tools.redact.description": "Redact a screenshot. remove account numbers, addresses and names. It does not cover them over. it destroys the pixels underneath, so the original is not sitting inside the file you download.",
   "tools.redact.lead": "Erased, not covered, blackout or mosaic, location data stripped too, no upload",
   "tools.reference.description": "A reference sheet with git commands, Markdown syntax, HTTP status codes, shortcuts, file extensions and keyboard event codes as tabs in a single widget.",
@@ -326,7 +330,5 @@
   "tools.worldclock.description": "Current time in major cities worldwide alongside the offset from your reference city. Daylight saving and its switch dates are applied automatically, so it stays right across seasons.",
   "tools.worldclock.lead": "40+ cities, offsets, daylight saving handled",
   "tools.ziptool.description": "Bundles files into a ZIP, and lists what is inside a ZIP you received so you can pull out only what you need. Works where you cannot install an archiver.",
-  "tools.ziptool.lead": "Bundle, list contents, extract individually, compression level",
-  "tools.recall.description": "Pulls six items a day from 311 development topics and asks you first. After you answer, your words sit next to the source, and your verdict sets the next date.",
-  "tools.recall.lead": "Six a day, multiple choice and written, side-by-side check, next date"
+  "tools.ziptool.lead": "Bundle, list contents, extract individually, compression level"
 }
