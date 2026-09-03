@@ -57,6 +57,25 @@ function solve(board: number[], rng: () => number): boolean {
   return false;
 }
 
+/** 답이 몇 개인가. 둘이면 그만 센다(유일한지만 알면 됨) */
+function countSolutions(board: number[], limit = 2): number {
+  const at = board.indexOf(0);
+  if (at < 0) return 1;
+  let found = 0;
+  for (let v = 1; v <= 6 && found < limit; v++) {
+    let ok = true;
+    for (let i = 0; i < N * N; i++) {
+      if (board[i] !== v) continue;
+      if (rowOf(i) === rowOf(at) || colOf(i) === colOf(at) || boxOf(i) === boxOf(at)) { ok = false; break; }
+    }
+    if (!ok) continue;
+    board[at] = v;
+    found += countSolutions(board, limit - found);
+    board[at] = 0;
+  }
+  return found;
+}
+
 export const sudoku: GameDef<SudokuState, SudokuAction> = {
   id: 'sudoku',
   seats: [1, 4],
@@ -67,9 +86,17 @@ export const sudoku: GameDef<SudokuState, SudokuAction> = {
     const answer = new Array(N * N).fill(0);
     solve(answer, ctx.rng);
     /* 답에서 구멍을 뚫는다. 모두 같은 문제를 받는다(경주니까). */
+    /* 구멍은 답이 하나로 남을 때만 뚫는다. 안 세고 뚫으면 답이 둘인 문제가 나와 경주가 운이 됨 (레퍼런스 2026-09-03) */
     const given = answer.slice();
     const order = shuffle(ctx.rng, given.map((_, i) => i));
-    for (let k = 0; k < HOLES; k++) given[order[k]] = 0;
+    let holes = 0;
+    for (const c of order) {
+      if (holes >= HOLES) break;
+      const keep = given[c];
+      given[c] = 0;
+      if (countSolutions(given.slice()) === 1) holes += 1;
+      else given[c] = keep;
+    }
     return {
       answer,
       given,

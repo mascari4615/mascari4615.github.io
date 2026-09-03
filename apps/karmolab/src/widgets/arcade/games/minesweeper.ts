@@ -110,7 +110,7 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
     return !s.over && !s.dead[seat];
   },
 
-  reduce(s, a, seat) {
+  reduce(s, a, seat, ctx) {
     if (s.over || s.dead[seat]) return s;
     const c = a?.cell;
     if (typeof c !== 'number' || c < 0 || c >= W * H) return s;
@@ -133,7 +133,8 @@ export const minesweeper: GameDef<SweepState, SweepAction> = {
       if (free.length) {
         mines = mines.slice();
         mines[c] = 0;
-        mines[free[0]] = 1;
+        /* 옮길 자리는 씨앗 난수로. 첫 빈 칸(인덱스 0 쪽)에 몰면 좌상단 밀도가 오름 */
+        mines[free[Math.floor(ctx.rng() * free.length)]] = 1;
       }
     }
     const nums = mines === s.mines ? s.nums : mines.map((_, i) => around(mines, i));
