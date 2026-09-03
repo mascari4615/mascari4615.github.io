@@ -152,7 +152,8 @@ export const bowling: GameDef<BowlingState, BowlingAction> = {
     const power = typeof a?.power === 'number' ? a.power : NaN;
     if (!Number.isFinite(aim) || !Number.isFinite(power)) return s;
 
-    const ang = Math.max(-0.22, Math.min(0.22, aim));
+    /* +-0.22 rad(12.6도)는 +-17 밖이 거터. 실물 중앙에서 거터까지 1.64도. 폭을 +-0.10 으로 (레퍼런스 2026-09-03) */
+    const ang = Math.max(-0.1, Math.min(0.1, aim));
     const pw = Math.max(0.3, Math.min(1, power));
     const speed = 2.2 + pw * 2.4;
     const ball: Body = {

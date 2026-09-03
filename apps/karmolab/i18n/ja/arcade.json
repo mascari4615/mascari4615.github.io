@@ -762,5 +762,7 @@
   "arcade.blackjack.trio.straight": "ストレート",
   "arcade.blackjack.trio.flush": "フラッシュ",
   "arcade.blackjack.trio.none": "21+3 なし",
-  "arcade.tanks.wind": "風 {n}"
+  "arcade.tanks.wind": "風 {n}",
+  "arcade.aim.hint": "盤の上でドラッグして離す",
+  "arcade.aim.fine": "微調整"
 }

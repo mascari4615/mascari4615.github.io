@@ -762,5 +762,7 @@
   "arcade.blackjack.trio.straight": "Straight",
   "arcade.blackjack.trio.flush": "Flush",
   "arcade.blackjack.trio.none": "No 21+3",
-  "arcade.tanks.wind": "Wind {n}"
+  "arcade.tanks.wind": "Wind {n}",
+  "arcade.aim.hint": "Drag on the board and release",
+  "arcade.aim.fine": "Fine tune"
 }

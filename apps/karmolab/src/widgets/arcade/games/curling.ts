@@ -25,7 +25,8 @@ export const R = 5;
 /** 물리 한 걸음. 프레임이 아니라 이 값이 시간을 정한다. */
 const STEP_MS = 16;
 /** 얼음 마찰. 클수록 빨리 선다 */
-const FRICTION = 0.986;
+/* 0.986 이면 세기 20~100 중 52~80 만 하우스(36%). 미끄럽게 하고 속도를 낮춰 폭을 넓힘 (레퍼런스 2026-09-03) */
+const FRICTION = 0.9935;
 /** 이보다 느리면 선 것으로 본다 */
 const STOP_V = 0.02;
 /** 자리마다 몇 개씩 던지나 */
@@ -133,7 +134,7 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
     /* 겨눔은 좌우로만 조금. 컬링은 앞으로 밀어 보내는 놀이다. 세기는 0~1 을 벗어나면 자른다. */
     const ang = Math.max(-0.35, Math.min(0.35, aim));
     const pw = Math.max(0.15, Math.min(1, power));
-    const speed = 1.2 + pw * 2.6;
+    const speed = 0.5 + pw * 0.8;
     const stone: Stone = {
       x: W / 2,
       y: H - 12,

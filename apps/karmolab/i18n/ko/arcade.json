@@ -762,5 +762,7 @@
   "arcade.blackjack.trio.straight": "스트레이트",
   "arcade.blackjack.trio.flush": "플러시",
   "arcade.blackjack.trio.none": "21+3 아님",
-  "arcade.tanks.wind": "바람 {n}"
+  "arcade.tanks.wind": "바람 {n}",
+  "arcade.aim.hint": "판 위에서 끌어서 놓기",
+  "arcade.aim.fine": "세밀 조정"
 }

@@ -5,6 +5,7 @@
  * 겨눔은 흰 공에서 뻗는 점선. 세기는 막대로 따로 받는다(끌기 하나로 둘 다 받으면 폰에서 어긋난다).
  */
 import { t } from '../../../lib/i18n';
+import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
 import { felt, orb, woodRail, SEAT_COLOR } from '../paint';
 import { W, H, BALL_R, POCKETS, type PoolState, type PoolAction } from './pool';
@@ -18,9 +19,12 @@ export const poolView: GameView<PoolState, PoolAction> = {
       '<div class="ac-plscore" id="acPlScore"></div>' +
       '<canvas id="acPlCv"></canvas>' +
       '<div class="ac-clbar">' +
+      '<span class="ac-aimhint" id="acPlHint"></span>' +
+      '<button class="btn btn-primary" id="acPlGo"></button>' +
+      '<details class="ac-fine"><summary id="acPlHintF"></summary>' +
       '<label><span id="acPlAimL"></span><input type="range" id="acPlAim" min="-180" max="180" value="0"></label>' +
       '<label><span id="acPlPowL"></span><input type="range" id="acPlPow" min="15" max="100" value="60"></label>' +
-      '<button class="btn btn-primary" id="acPlGo"></button>' +
+      '</details>' +
       '</div></div>';
     const cv = el.querySelector('#acPlCv') as HTMLCanvasElement;
     const scoreEl = el.querySelector('#acPlScore') as HTMLElement;
@@ -28,10 +32,28 @@ export const poolView: GameView<PoolState, PoolAction> = {
     const pow = el.querySelector('#acPlPow') as HTMLInputElement;
     const go = el.querySelector('#acPlGo') as HTMLButtonElement;
     go.onclick = () => act({ aim: (Number(aim.value) / 180) * Math.PI, power: Number(pow.value) / 100 });
+    /* 끌기 하나로 방향과 세기. 놓으면 발사. 슬라이더는 세밀 조정으로 남김(자판 사용자와 검사) */
+    let canAim = false;
+    const hintEl = el.querySelector('#acPlHint') as HTMLElement;
+    const fineEl = el.querySelector('#acPlHintF') as HTMLElement;
+    mountAimDrag(cv, {
+      mode: 'pull',
+      enabled: () => canAim,
+      onMove: (r) => {
+        if (r.pow <= 0 && r.live) return;
+        aim.value = String(Math.round((lateralOf(r) * 180) / Math.PI));
+        pow.value = String(Math.round(15 + r.pow * 85));
+      },
+      onRelease: () => go.click()
+    });
 
     return (v, mySeat) => {
       const s = v.state;
       const myTurn = s.won === -1 && !s.moving && s.turn === mySeat;
+      canAim = myTurn;
+      const hintText = myTurn ? t('arcade.aim.hint') : '';
+      if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
+      if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cw = cv.clientWidth || 300;

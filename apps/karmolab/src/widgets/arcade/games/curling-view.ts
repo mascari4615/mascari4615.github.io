@@ -5,10 +5,12 @@
  * 거리가 눈으로 안 재진다. 보기 좋으라고 읽기 어렵게 만들면 손해다.
  * (3D 가 값진 자리는 핀이 서 있는 볼링, 당구 쪽이다. 그때 따로 만든다.)
  *
- * 겨눔은 **한 번에 하나씩**: 좌우를 정하고, 세기를 정하고, 던진다. 끌기 한 번으로 둘 다 받으면
- * 폰에서 손가락이 미끄러지는 순간 엉뚱한 데로 간다.
+ * 겨눔은 **끌기 하나** (2026-09-03, 레퍼런스: 8 Ball Pool, Wii, 클럽하우스 51 전부 끌기나 모션).
+ * 옛 걱정(폰에서 손가락이 미끄러지면 엉뚱한 데로)은 `aim-drag` 의 죽은 구역이 받음.
+ * 슬라이더 둘은 세밀 조정으로 접어 둠.
  */
 import { t } from '../../../lib/i18n';
+import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
 import { ice, orb, SEAT_COLOR } from '../paint';
 import { W, H, TEE, HOUSE_R, R, type CurlingState, type CurlingAction } from './curling';
@@ -21,9 +23,12 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
       '<div class="ac-cl">' +
       '<canvas id="acClCv"></canvas>' +
       '<div class="ac-clbar">' +
+      '<span class="ac-aimhint" id="acClHint"></span>' +
+      '<button class="btn btn-primary" id="acClGo"></button>' +
+      '<details class="ac-fine"><summary id="acClHintF"></summary>' +
       '<label><span id="acClAimL"></span><input type="range" id="acClAim" min="-35" max="35" value="0"></label>' +
       '<label><span id="acClPowL"></span><input type="range" id="acClPow" min="20" max="100" value="55"></label>' +
-      '<button class="btn btn-primary" id="acClGo"></button>' +
+      '</details>' +
       '</div></div>';
     const cv = el.querySelector('#acClCv') as HTMLCanvasElement;
     const aim = el.querySelector('#acClAim') as HTMLInputElement;
@@ -32,10 +37,28 @@ export const curlingView: GameView<CurlingState, CurlingAction> = {
     const aimL = el.querySelector('#acClAimL') as HTMLElement;
     const powL = el.querySelector('#acClPowL') as HTMLElement;
     go.onclick = () => act({ aim: Number(aim.value) / 100, power: Number(pow.value) / 100 });
+    /* 끌기 하나로 방향과 세기. 놓으면 발사. 슬라이더는 세밀 조정으로 남김(자판 사용자와 검사) */
+    let canAim = false;
+    const hintEl = el.querySelector('#acClHint') as HTMLElement;
+    const fineEl = el.querySelector('#acClHintF') as HTMLElement;
+    mountAimDrag(cv, {
+      mode: 'pull',
+      enabled: () => canAim,
+      onMove: (r) => {
+        if (r.pow <= 0 && r.live) return;
+        aim.value = String(Math.round(Math.max(-0.35, Math.min(0.35, lateralOf(r))) * 100));
+        pow.value = String(Math.round(20 + r.pow * 80));
+      },
+      onRelease: () => go.click()
+    });
 
     return (v, mySeat) => {
       const s = v.state;
       const myTurn = !s.done && !s.moving && s.turn === mySeat && (s.left[mySeat] ?? 0) > 0;
+      canAim = myTurn;
+      const hintText = myTurn ? t('arcade.aim.hint') : '';
+      if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
+      if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const cw = cv.clientWidth || 300;

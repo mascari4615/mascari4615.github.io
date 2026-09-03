@@ -5,6 +5,7 @@
  * WebGL 을 못 얻는 기기에서는 위에서 내려다보는 2D 로 물러선다(화면이 죽는 것보다 낫다).
  */
 import { t } from '../../../lib/i18n';
+import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
 import { createGl, type Gl } from '../gl';
 import { W, H, BALL_R, PIN_R, scoreOf, type BowlingState, type BowlingAction } from './bowling';
@@ -21,9 +22,12 @@ export const bowlingView: GameView<BowlingState, BowlingAction> = {
       '<canvas id="acBwCv"></canvas>' +
       '<div class="ac-bwscore" id="acBwScore"></div>' +
       '<div class="ac-clbar">' +
-      '<label><span id="acBwAimL"></span><input type="range" id="acBwAim" min="-22" max="22" value="0"></label>' +
-      '<label><span id="acBwPowL"></span><input type="range" id="acBwPow" min="30" max="100" value="70"></label>' +
+      '<span class="ac-aimhint" id="acBwHint"></span>' +
       '<button class="btn btn-primary" id="acBwGo"></button>' +
+      '<details class="ac-fine"><summary id="acBwHintF"></summary>' +
+      '<label><span id="acBwAimL"></span><input type="range" id="acBwAim" min="-10" max="10" value="0"></label>' +
+      '<label><span id="acBwPowL"></span><input type="range" id="acBwPow" min="30" max="100" value="70"></label>' +
+      '</details>' +
       '</div></div>';
     const cv = el.querySelector('#acBwCv') as HTMLCanvasElement;
     const aim = el.querySelector('#acBwAim') as HTMLInputElement;
@@ -31,6 +35,20 @@ export const bowlingView: GameView<BowlingState, BowlingAction> = {
     const go = el.querySelector('#acBwGo') as HTMLButtonElement;
     const scoreEl = el.querySelector('#acBwScore') as HTMLElement;
     go.onclick = () => act({ aim: Number(aim.value) / 100, power: Number(pow.value) / 100 });
+    /* 끌기 하나로 방향과 세기. 놓으면 발사. 슬라이더는 세밀 조정으로 남김(자판 사용자와 검사) */
+    let canAim = false;
+    const hintEl = el.querySelector('#acBwHint') as HTMLElement;
+    const fineEl = el.querySelector('#acBwHintF') as HTMLElement;
+    mountAimDrag(cv, {
+      mode: 'pull',
+      enabled: () => canAim,
+      onMove: (r) => {
+        if (r.pow <= 0 && r.live) return;
+        aim.value = String(Math.round(Math.max(-0.1, Math.min(0.1, lateralOf(r))) * 100));
+        pow.value = String(Math.round(30 + r.pow * 70));
+      },
+      onRelease: () => go.click()
+    });
 
     let gl: Gl | null = null;
     let tried = false;
@@ -38,6 +56,10 @@ export const bowlingView: GameView<BowlingState, BowlingAction> = {
     return (v, mySeat) => {
       const s = v.state;
       const myTurn = !s.done && !s.moving && s.turn === mySeat;
+      canAim = myTurn;
+      const hintText = myTurn ? t('arcade.aim.hint') : '';
+      if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
+      if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
       if (!tried) { tried = true; gl = createGl(cv); }
 

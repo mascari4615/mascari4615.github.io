@@ -9,6 +9,7 @@
  * WebGL 이 없는 기기에서는 위에서 보는 2D 로 물러선다.
  */
 import { t } from '../../../lib/i18n';
+import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
 import { createGl, type Gl } from '../gl';
 import { W, H, FROM, POT, EAR_DX, EAR_R, type TuhoState, type TuhoAction } from './tuho';
@@ -27,9 +28,12 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
       '<canvas id="acThCv"></canvas>' +
       '<div class="ac-thscore" id="acThS"></div>' +
       '<div class="ac-clbar">' +
+      '<span class="ac-aimhint" id="acThHint"></span>' +
+      '<button class="btn btn-primary" id="acThGo"></button>' +
+      '<details class="ac-fine"><summary id="acThHintF"></summary>' +
       '<label><span id="acThAimL"></span><input type="range" id="acThAim" min="0" max="100" value="50"></label>' +
       '<label><span id="acThPowL"></span><input type="range" id="acThPow" min="0" max="100" value="50"></label>' +
-      '<button class="btn btn-primary" id="acThGo"></button>' +
+      '</details>' +
       '</div></div>';
     const cv = el.querySelector('#acThCv') as HTMLCanvasElement;
     const aim = el.querySelector('#acThAim') as HTMLInputElement;
@@ -37,6 +41,20 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
     const go = el.querySelector('#acThGo') as HTMLButtonElement;
     const scoreEl = el.querySelector('#acThS') as HTMLElement;
     go.onclick = () => act({ ang: Number(aim.value) / 100, pow: Number(pow.value) / 100 });
+    /* 끌기 하나로 방향과 세기. 놓으면 발사. 슬라이더는 세밀 조정으로 남김(자판 사용자와 검사) */
+    let canAim = false;
+    const hintEl = el.querySelector('#acThHint') as HTMLElement;
+    const fineEl = el.querySelector('#acThHintF') as HTMLElement;
+    mountAimDrag(cv, {
+      mode: 'pull',
+      enabled: () => canAim,
+      onMove: (r) => {
+        if (r.pow <= 0 && r.live) return;
+        aim.value = String(Math.round((0.5 + Math.max(-0.31, Math.min(0.31, lateralOf(r))) / 0.62) * 100));
+        pow.value = String(Math.round(r.pow * 100));
+      },
+      onRelease: () => go.click()
+    });
 
     let gl: Gl | null = null;
     let tried = false;
@@ -44,6 +62,10 @@ export const tuhoView: GameView<TuhoState, TuhoAction> = {
     return (v, mySeat, now) => {
       const s = v.state;
       const myTurn = !s.over && !s.fly && s.turn === mySeat && s.left[mySeat] > 0;
+      canAim = myTurn;
+      const hintText = myTurn ? t('arcade.aim.hint') : '';
+      if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
+      if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
       if (!tried) { tried = true; gl = createGl(cv); }
 
       /* 날아가는 화살. 시작점에서 떨어질 자리까지, 위로 솟았다 내려온다. */

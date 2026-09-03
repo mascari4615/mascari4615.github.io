@@ -10,13 +10,14 @@
 import type { GameDef, GameCtx, BotMove, Outcome } from '../types';
 
 export const W = 100;
-export const H = 180;
-export const BALL_R = 3.4;
+export const H = 200;
+/* 실물 상 폭 대 공 22.2. 3.4 는 14.7 이라 공이 상을 다 채웠음 (레퍼런스 2026-09-03) */
+export const BALL_R = 2.6;
 /** 구멍. 네 모서리와 긴 변 가운데 둘 */
 export const POCKETS: Array<[number, number]> = [
   [4, 4], [W - 4, 4], [4, H - 4], [W - 4, H - 4], [3, H / 2], [W - 3, H / 2]
 ];
-const POCKET_R = 6.4;
+const POCKET_R = 5.6;
 const FRICTION = 0.985;
 const STOP_V = 0.03;
 /** 이만큼 넣으면 이긴다 */

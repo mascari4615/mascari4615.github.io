@@ -5,6 +5,7 @@
  * 감으로 다시 찍게 된다. 포신도 지금 고른 각도로 돌아가 있어 쏘기 전에 방향이 보인다.
  */
 import { t } from '../../../lib/i18n';
+import { mountAimDrag, lateralOf } from '../aim-drag';
 import type { GameView } from '../views';
 import { shade, SEAT_COLOR } from '../paint';
 import { W, H, type TanksState, type TanksAction } from './tanks';
@@ -18,10 +19,13 @@ export const tanksView: GameView<TanksState, TanksAction> = {
       '<div class="ac-plscore" id="acTkHp"></div>' +
       '<canvas id="acTkCv"></canvas>' +
       '<div class="ac-clbar">' +
-      '<label><span id="acTkAl"></span><input type="range" id="acTkA" min="5" max="85" value="45"></label>' +
-      '<label><span id="acTkPl"></span><input type="range" id="acTkP" min="20" max="100" value="60"></label>' +
+      '<span class="ac-aimhint" id="acTkHint"></span>' +
       '<span class="ac-tkwind" id="acTkW"></span>' +
       '<button class="btn btn-primary" id="acTkGo"></button>' +
+      '<details class="ac-fine"><summary id="acTkHintF"></summary>' +
+      '<label><span id="acTkAl"></span><input type="range" id="acTkA" min="5" max="85" value="45"></label>' +
+      '<label><span id="acTkPl"></span><input type="range" id="acTkP" min="20" max="100" value="60"></label>' +
+      '</details>' +
       '</div></div>';
     const cv = el.querySelector('#acTkCv') as HTMLCanvasElement;
     const hpEl = el.querySelector('#acTkHp') as HTMLElement;
@@ -29,10 +33,29 @@ export const tanksView: GameView<TanksState, TanksAction> = {
     const pow = el.querySelector('#acTkP') as HTMLInputElement;
     const go = el.querySelector('#acTkGo') as HTMLButtonElement;
     go.onclick = () => act({ angle: Number(ang.value), power: Number(pow.value) / 100 });
+    /* 끌기 하나로 방향과 세기. 놓으면 발사. 슬라이더는 세밀 조정으로 남김(자판 사용자와 검사) */
+    let canAim = false;
+    const hintEl = el.querySelector('#acTkHint') as HTMLElement;
+    const fineEl = el.querySelector('#acTkHintF') as HTMLElement;
+    mountAimDrag(cv, {
+      mode: 'push',
+      enabled: () => canAim,
+      onMove: (r) => {
+        if (r.pow <= 0 && r.live) return;
+        const deg = (Math.atan2(-r.dy, Math.abs(r.dx)) * 180) / Math.PI;
+        ang.value = String(Math.round(Math.max(5, Math.min(85, deg))));
+        pow.value = String(Math.round(20 + r.pow * 80));
+      },
+      onRelease: () => go.click()
+    });
 
     return (v, mySeat) => {
       const s = v.state;
       const myTurn = !s.over && !s.shell && s.turn === mySeat;
+      canAim = myTurn;
+      const hintText = myTurn ? t('arcade.aim.hint') : '';
+      if (hintEl.textContent !== hintText) hintEl.textContent = hintText;
+      if (!fineEl.textContent) fineEl.textContent = t('arcade.aim.fine');
 
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const wpx = cv.clientWidth || 300;
