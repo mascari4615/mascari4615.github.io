@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2164,
+    "commits": 2143,
     "days": 12,
     "shown": 60
   },
@@ -10,6 +10,13 @@
     {
       "date": "2026-09-03",
       "entries": [
+        {
+          "sha": "2b2d0f9d",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "전투 피드백과 선택 팝업을 다듬는다"
+        },
         {
           "sha": "28d276ad",
           "type": "fix",
@@ -499,17 +506,10 @@
           "typeLabel": "",
           "scope": "",
           "text": "세계가 하늘의 총 분을 밖에 알려준다 (TASK-WM-327)"
-        },
-        {
-          "sha": "f3fd9208",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "룰 검사기가 커밋 blob 을 UTF-8 로 읽는다 (TASK-WM-326)"
         }
       ],
       "quiet": 14,
-      "more": 69
+      "more": 70
     }
   ]
 }
