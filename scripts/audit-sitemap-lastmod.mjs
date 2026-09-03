@@ -111,34 +111,41 @@ const builtFile = (url) => {
   return candidates.find((f) => fs.existsSync(f) && fs.statSync(f).isFile()) ?? null;
 };
 
-/* 홈 목록과 옛 `/posts/` 목록이 같은 내용을 내므로 검색 대표 주소는 `/` 하나다.
-   Search Console 실측(2026-08-26): Google 은 홈을 대표로 골랐는데 HTML 은 `/posts/`를
-   선언해 홈 색인이 빠졌다. 산출물에서 다시 갈라지면 배포를 세운다. */
+/* 홈과 `/posts/` 는 **서로 다른 장**
+   Search Console 실측(2026-08-26): Chirpy 시절 홈이 글 목록이라 `/posts/` 와 같은 내용이었고,
+   Google 이 홈을 대표로 고른 사이 HTML 은 `/posts/` 를 선언해 홈 색인이 빠졌다.
+   그때 처방은 `/posts/` 를 사이트맵에서 빼기였는데, 2026-09-03 에 그 처방이 다른 값을 치렀다.
+   홈이 앱 셸로 바뀌면서 글 목록이 어디에도 없어졌고, 글 329편으로 가는 `<a>` 가 0 이라
+   GSC 가 그 글들을 발견됨, 크롤 안 감으로 두었다.
+   그래서 지금 세우는 조건은 없음이 아니라 **각자 제 대표 주소를 들 것**이다. */
 const sitemapUrls = blocks.map(loc);
-const homeUrl = sitemapUrls.find((url) => {
-  try {
-    return new URL(url).pathname === '/';
-  } catch {
-    return false;
-  }
-});
-const legacyPostsUrl = sitemapUrls.find((url) => {
-  try {
-    return new URL(url).pathname === '/posts/';
-  } catch {
-    return false;
-  }
-});
-const homeFile = homeUrl ? builtFile(homeUrl) : null;
-const homeCanonical = homeFile
-  ? (fs.readFileSync(homeFile, 'utf8').match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) ?? [])[1]
-  : null;
-if (!homeUrl || !homeFile || homeCanonical !== homeUrl || legacyPostsUrl) {
-  console.error('[audit-sitemap-lastmod] 블로그 대표 주소가 홈 하나로 모이지 않았다:');
-  if (!homeUrl) console.error('  / 가 사이트맵에 없다');
-  else if (!homeFile) console.error(`  홈 파일을 못 찾았다. ${homeUrl}`);
-  else if (homeCanonical !== homeUrl) console.error(`  홈 canonical: ${homeCanonical || '(없음)'} (기대 ${homeUrl})`);
-  if (legacyPostsUrl) console.error(`  중복 목록이 사이트맵에 있다. ${legacyPostsUrl}`);
+const pageAt = (want) => {
+  const url = sitemapUrls.find((u) => {
+    try {
+      return new URL(u).pathname === want;
+    } catch {
+      return false;
+    }
+  });
+  const file = url ? builtFile(url) : null;
+  const canonical = file
+    ? (fs.readFileSync(file, 'utf8').match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i) ?? [])[1]
+    : null;
+  return { url, file, canonical };
+};
+const home = pageAt('/');
+const postsHub = pageAt('/posts/');
+const bad = [];
+if (!home.url) bad.push('/ 가 사이트맵에 없다');
+else if (!home.file) bad.push(`홈 파일을 못 찾았다. ${home.url}`);
+else if (home.canonical !== home.url) bad.push(`홈 canonical: ${home.canonical || '(없음)'} (기대 ${home.url})`);
+if (!postsHub.url) bad.push('/posts/ 목록 장이 사이트맵에 없다. 글로 가는 링크 경로가 사라진다');
+else if (!postsHub.file) bad.push(`목록 장 파일을 못 찾았다. ${postsHub.url}`);
+else if (postsHub.canonical !== postsHub.url)
+  bad.push(`목록 장 canonical: ${postsHub.canonical || '(없음)'} (기대 ${postsHub.url})`);
+if (bad.length > 0) {
+  console.error('[audit-sitemap-lastmod] 홈과 글 목록의 대표 주소가 어긋났다:');
+  for (const line of bad) console.error(`  ${line}`);
   process.exit(1);
 }
 const ROBOTS_META = /<meta[^>]+name\s*=\s*["']robots["'][^>]*>/i;
