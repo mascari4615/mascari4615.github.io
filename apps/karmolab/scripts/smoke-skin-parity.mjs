@@ -90,9 +90,9 @@ async function labels(skin, hash) {
   await page
     .waitForFunction(() => !!document.querySelector('.tool-page.active') || !!document.querySelector('#page-home'), undefined, { timeout: 25000 })
     .catch(() => null);
-  // 재움-의도: 늦게 그려지는 조각(장식, 지연 위젯)이 붙을 틈을 준다. 읽어서 판정하는 값이 아니다
-  await page.waitForTimeout(2000);
-  const out = await page.evaluate(() => {
+  /* 늦게 붙는 조각(언어 안내, 채팅 도크, 알림 종, 도구 머리말)이 다 붙을 때까지. 고정 2초는 CI 가 바쁜 판에서
+     한 스킨만 덜 그려진 채 읽혀 거짓 빨강 6건이 났다 (2026-09-03). 이름표 집합이 두 번 연속 같으면 굳은 것으로 본다 */
+  const read = () => page.evaluate(() => {
     const seen = new Set();
     for (const el of document.querySelectorAll('body *')) {
       const cs = getComputedStyle(el);
@@ -106,6 +106,14 @@ async function labels(skin, hash) {
     }
     return [...seen];
   });
+  let out = await read();
+  const deadline = Date.now() + 12000;
+  while (Date.now() < deadline) {
+    await page.waitForTimeout(1500);   // 재움-의도: 두 번 재서 견주는 틈
+    const again = await read();
+    if (again.length === out.length && again.every((k) => out.includes(k))) break;
+    out = again;
+  }
   await page.close();
   return new Set(out.filter((k) => !SCENE_ONLY.some((s) => k.includes(s))));
 }

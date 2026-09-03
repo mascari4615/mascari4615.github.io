@@ -201,7 +201,9 @@ if (tempPage) fs.rmSync(tempPage, { recursive: true, force: true });
    그 사이에 **새로 생기는 것**도 못 막는다. 그래서 지금보다 늘면 빨강으로 켠다.
    기준선은 오직 내려가야 한다: 줄었으면 그렇게 말하고 다시 적으라고 시킨다.
    `--bless` 로만 다시 적는다. 자동으로 올라가면 그건 래칫이 아니다. */
-const BASELINE = path.join(root, 'data', 'a11y-axe-baseline.json');
+/* 전수 판(233장 classic/dark)은 제 기준선을 따로 둔다. 여섯 장 기준선(0곳)에 대고 재니 여섯 장 밖 도구의
+   묵은 위반 49곳이 매 판 '늘었다' 로 나와 main 이 한 번도 초록이 못 됐다 (2026-09-03). 래칫은 축마다 하나 */
+const BASELINE = path.join(root, 'data', ALL ? 'a11y-axe-all-baseline.json' : 'a11y-axe-baseline.json');
 const key = (f) => `${f.theme}|${f.name}|${f.id}`;
 const now = {};
 for (const f of failures) now[key(f)] = (now[key(f)] || 0) + f.n;
@@ -247,7 +249,7 @@ if (grown.length > 0) {
 const total = Object.values(now).reduce((a, b) => a + b, 0);
 const baseline = Object.values(base).reduce((a, b) => a + b, 0);
 if (shrunk.length > 0) {
-  console.log(`[smoke-a11y] 줄었다 ${baseline} → ${total}곳. 기준선을 다시 적어라: npm run test:a11y -- --bless`);
+  console.log(`[smoke-a11y] 줄었다 ${baseline} → ${total}곳. 기준선을 다시 적어라: npm run ${ALL ? 'test:a11y:all' : 'test:a11y'} -- --bless`);
   process.exit(0);
 }
 console.log(`[smoke-a11y] ${RUN_SCREENS.length}장 x ${RUN_SKINS.join('/')} x ${RUN_THEMES.join('/')} = ${RUN_SCREENS.length*RUN_SKINS.length*RUN_THEMES.length}판. 늘지 않았다 (남은 빚 ${total}곳)`);

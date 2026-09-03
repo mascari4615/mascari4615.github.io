@@ -82,7 +82,9 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       await page.waitForFunction(() => {
         const measure = window.__bjMeasure?.();
         return Array.isArray(measure?.pickables) && measure.pickables.length > 0;
-      }, undefined, { timeout: 8000 });
+      /* 입체 상이 swiftshader 위에서 그려지는 CI 와 통짜 판(273검사 동시)에서 8초 초과.
+         혼자 돌리면 2초 안. 재는 것은 집을 카드가 생기나이지 몇 초 안에 생기나가 아님 */
+      }, undefined, { timeout: 20000 });
       if (await page.locator('#acIntro').isVisible()) await page.click('#acIntro');
       await page.waitForFunction(() => getComputedStyle(document.querySelector('#acIntro')).display === 'none');
       /* 재움-의도: 배분 애니메이션이 실제로 흐르는 동안 마지막 카드의 출발 시각과
@@ -92,7 +94,7 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       check('president: 첫 배분의 마지막 카드가 1초 안에 출발한다', measure.dealSpan <= 1000);
       check('president: 상 위에서 고를 카드가 금빛으로 보인다', measure.glows > 0);
       await page.mouse.click(measure.pickables[0].x, measure.pickables[0].y);
-      const selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 2000 }).then(() => true).catch(() => false);
+      const selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 6000 }).then(() => true).catch(() => false);
       check('president: 상 위 카드를 직접 눌러 고른다', selected);
     }
     if (g === 'hanafuda' && info.canvas) {

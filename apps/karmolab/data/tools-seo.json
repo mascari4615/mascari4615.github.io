@@ -5283,10 +5283,8 @@
         }
       ],
       "related": [
-        "papermap",
         "postgraph",
-        "karmograph",
-        "stash"
+        "karmograph"
       ],
       "edge": [
         "모든 수 옆에 대조군이 붙습니다. 섞은 판, 평평한 판, 아무 순서와 견주지 않은 수는 안 싣습니다.",

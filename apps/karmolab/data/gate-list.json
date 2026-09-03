@@ -277,6 +277,7 @@
   "smoke:batchretry",
   "audit:prerender-home",
   "audit:arcade-contract",
+  "audit:arcade-feel",
   "test:arcade",
   "test:arcade:ranked",
   "test:arcade:ranked-live",

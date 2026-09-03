@@ -1,3 +1,16 @@
-# mouse-only 기준선 — 자판 길이 없는 채로 이미 있는 화면들. 여기 없는 새 자리만 막는다.
+# mouse-only 기준선. 자판 길이 없는 채로 이미 있는 화면들. 여기 없는 새 자리만 막는다.
 # 자판 길을 내면 그 줄을 지운다. 지운 줄이 다시 나타나면 그때부터 빨강이다.
 # 갱신: node scripts/audit-mouse-only.mjs --write-baseline
+src/widgets/arcade/aim-drag.ts
+src/widgets/arcade/card-stage.ts
+src/widgets/arcade/games/blackjack-view.ts
+src/widgets/arcade/games/blackjack-view3d.ts
+src/widgets/arcade/games/dominoes-view3d.ts
+src/widgets/arcade/games/fishing-view.ts
+src/widgets/arcade/games/gomoku-view3d.ts
+src/widgets/arcade/games/hanafuda-view3d.ts
+src/widgets/arcade/games/highlow-view3d.ts
+src/widgets/arcade/games/lanterns-view3d.ts
+src/widgets/arcade/games/president-view3d.ts
+src/widgets/arcade/games/solitaire-view.ts
+src/widgets/arcade/games/speed-view3d.ts

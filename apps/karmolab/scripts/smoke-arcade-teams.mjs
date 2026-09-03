@@ -6,6 +6,7 @@
  */
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
+import { untilTrue } from './lib/settle.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
    CI 에서는 늘 못 돌림이었다. 그 서버를 CI 는 한 번도 안 켠다. 못 도는 검사는 없는 검사다. */
@@ -85,7 +86,7 @@ if (!cantRun) {
     console.log(`  [,] 판이 끝나는 것까지는 못 쟀다. ${id} 은 차례가 도는 놀이라 사람이 둬야 끝난다 (통과 아님)`);
   }
   if (done) {
-    await p.waitForTimeout(700);
+    await untilTrue(p, () => (document.querySelector('#acOverHead')?.textContent ?? '').trim().length > 0 && document.querySelectorAll('.ac-overrow').length > 0);
     const head = await p.locator('#acOverHead').textContent();
     const rows = await p.locator('.ac-overrow').allTextContents();
     check('결과가 편으로 뜬다', /편/.test(head || ''), head || '');

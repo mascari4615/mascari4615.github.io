@@ -18,6 +18,8 @@
  * `npm run test:arcade:ranked-live`
  */
 import { chromium } from 'playwright';
+import { existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { build } from 'esbuild';
@@ -80,6 +82,15 @@ const rankedSrc = built.outputFiles[0].text;
 const verifierPath = path.resolve(
   'src/../..', 'discord-bots', 'apps', 'yawnbot', 'data', 'arcade-verifier.cjs'
 );
+/* CI 는 욘봇을 안 굽는다. 없으면 여기서 굽는다 (MODULE_NOT_FOUND 로 빨갰다, 2026-09-03) */
+if (!existsSync(verifierPath)) {
+  const builder = path.resolve(path.dirname(verifierPath), '..', 'scripts', 'build-arcade-verifier.mjs');
+  const r = spawnSync(process.execPath, [builder], { stdio: 'inherit' });
+  if (r.status !== 0) {
+    console.error('[ranked-live] 검증기를 못 구웠다. 못 잼');
+    process.exit(2);
+  }
+}
 const { verifyTape } = createRequire(import.meta.url)(verifierPath);
 
 const site = await smokeBase();

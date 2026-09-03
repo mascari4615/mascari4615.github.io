@@ -23,6 +23,7 @@
 import { chromium } from 'playwright';
 import { smokeBase } from './lib/smoke-base.mjs';
 import { waitHydrated } from './lib/hydrated.mjs';
+import { untilSettled } from './lib/settle.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14).
    여태 사람이 켜는 `npm run dev`(8813)만 봤고 없으면 못 돌았다로 끝냈다. 그런데 CI 는 그
@@ -136,8 +137,7 @@ if (!cantRun) {
       const seats = await page.locator('#acSeats .ac-seat').allTextContents();
       /* 콘텐츠 칸을 다 쓰나 (놀이 화면이 지켜야 할 셋의 3, 사용자 확정 2026-09-01, 세 번째 지적 2026-09-03).
          판의 제일 큰 물건(캔버스, 판, 무대)이 칸의 폭과 높이 90% 이상, 넘쳐서 스크롤이 나면 안 됨 */
-      await page.waitForTimeout(400);
-      const fill = await page.evaluate(() => {
+      const fill = await untilSettled(page, () => page.evaluate(() => {
         const play = document.querySelector('#acPlay');
         const root = document.querySelector('#acView > *');
         if (!play || !root) return null;
@@ -152,7 +152,7 @@ if (!cantRun) {
         if (!best) best = root.getBoundingClientRect();
         const de = document.documentElement;
         return { w: Math.round((best.width / a.width) * 100), h: Math.round((best.height / a.height) * 100), scroll: de.scrollHeight > de.clientHeight + 4 || play.scrollHeight > play.clientHeight + 4 };
-      });
+      }));
       if (fill) check(`${id}: 콘텐츠 칸을 다 쓴다 (폭 ${fill.w}% 높이 ${fill.h}%${fill.scroll ? ', 넘침' : ''})`, fill.w >= 90 && fill.h >= 90 && !fill.scroll);
       /* 둘 이상이 필요한 게임만 봇이 앉는다. 혼자서도 되는 게임(자리 최소 1)은 나 하나가 정상이다.
        * 봇이 있어야 한다로 못 박으면 그 게임들이 틀린 것처럼 보인다. */

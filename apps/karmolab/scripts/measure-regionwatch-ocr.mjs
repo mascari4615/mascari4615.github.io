@@ -78,6 +78,7 @@ if (/실패|fail/i.test(status || '')) {
   console.error('숫자 읽기 준비 실패: ' + status);
   process.exit(1);
 }
+// 재움-의도: 이 시간 동안 쌓인 읽기 수 자체가 잰 값
 await page.waitForTimeout(SECONDS * 1000);
 const reads = await page.evaluate(() => window.__reads);
 const size = await page.textContent('.rw-slot[data-i="0"] [data-act="pick"]');

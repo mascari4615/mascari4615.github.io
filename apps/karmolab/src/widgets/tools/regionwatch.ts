@@ -13,7 +13,7 @@
  */
 import { escapeHtml as esc } from './shared/text';
 import { statusLine } from './shared/say';
-import { audioCtx } from './shared/media';
+import { audioCtx, loadAudio } from './shared/media';
 import { t, loadNamespace } from '../../lib/i18n';
 import {
   type Rect,
@@ -135,8 +135,7 @@ interface Saved {
               const v = req.result as { name: string; bytes: ArrayBuffer } | undefined;
               if (!v) return resolve();
               soundNames.set(key, v.name);
-              audioCtx()
-                .decodeAudioData(v.bytes.slice(0))
+              loadAudio(new Blob([v.bytes]))
                 .then((buf) => {
                   soundBuffers.set(key, buf);
                   resolve();
@@ -154,7 +153,7 @@ interface Saved {
     if (!db) return false;
     const bytes = await file.arrayBuffer();
     try {
-      soundBuffers.set(key, await audioCtx().decodeAudioData(bytes.slice(0)));
+      soundBuffers.set(key, await loadAudio(file));
     } catch {
       return false;
     }
@@ -1111,25 +1110,26 @@ interface Saved {
       .rw-grid{display:grid;grid-template-columns:minmax(240px,3fr) minmax(300px,2fr);gap:var(--space-md,12px);margin-top:var(--space-md,12px)}
       .rw-grid.is-narrow{grid-template-columns:1fr}
       .rw-grid.is-two .rw-right{grid-template-columns:1fr 1fr}
-      .rw-preview{width:100%;height:auto;display:block;background:var(--bg-tertiary);border:1px solid var(--border-color,var(--border));border-radius:var(--radius-md);cursor:crosshair}
+      .rw-preview{width:100%;height:auto;display:block;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius-md);cursor:crosshair}
       .rw-right{display:grid;gap:6px;align-content:start}
-      .rw-slot{border:1px solid var(--border-color,var(--border));border-radius:var(--radius-md);padding:6px 8px;display:grid;gap:6px}
+      .rw-slot{border:1px solid var(--border);border-radius:var(--radius-md);padding:6px 8px;display:grid;gap:6px}
       .rw-slot.is-off{opacity:.5}
       .rw-slot-head,.rw-slot-body{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
       .rw-if-edge,.rw-if-count,.rw-if-trend{display:contents}
       .rw-slot.is-count .rw-if-edge,.rw-slot.is-trend .rw-if-edge,.rw-slot:not(.is-count) .rw-if-count,.rw-slot:not(.is-trend) .rw-if-trend{display:none}
       .rw-target{width:8em}
       .rw-trend{margin-top:var(--space-md,12px);display:grid;gap:6px}
+      .rw-trend[hidden]{display:none}
       .rw-trend-head{display:flex;gap:8px;align-items:center}
-      .rw-trend-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:12px var(--font-mono);padding:4px 8px;border:1px solid var(--border-color,var(--border));border-radius:var(--radius-sm)}
+      .rw-trend-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:12px var(--font-mono);padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm)}
       .rw-trend-row i{font-style:normal;color:var(--text-tertiary);margin-right:4px}
       .rw-trend-row.is-idle{border-color:var(--accent)}
       .rw-trend-row .rw-idle{color:var(--accent-ink,var(--accent))}
       .rw-trend-row .rw-since{color:var(--text-tertiary);flex:1 1 auto}
-      .rw-chart{width:100%;height:auto;display:block;background:var(--bg-tertiary);border:1px solid var(--border-color,var(--border));border-radius:var(--radius-md)}
+      .rw-chart{width:100%;height:auto;display:block;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius-md)}
       .rw-name{width:7em}
       .rw-rearm{width:4.5em}
-      .rw-thumb{display:inline-block;width:32px;height:24px;border:1px solid var(--border-color,var(--border));border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-tertiary)}
+      .rw-thumb{display:inline-block;width:32px;height:24px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-tertiary)}
       .rw-thumb img{width:100%;height:100%;object-fit:contain;display:block}
       .rw-sim{position:relative;flex:1 1 60px;min-width:60px;height:16px;border-radius:var(--radius-sm);background:var(--bg-tertiary);overflow:hidden;font:11px var(--font-mono);text-align:right}
       .rw-sim i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--accent);opacity:.35;transition:width .2s}

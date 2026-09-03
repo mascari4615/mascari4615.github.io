@@ -122,7 +122,7 @@ if (!got) {
     window.__atlas3d.orbit.rotate(220, 60);
     for (let i = 0; i < 90; i += 1) window.__atlas3d.orbit.update(1 / 60);
   });
-  await page.waitForTimeout(200);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));   // 돌린 뒤 한 프레임이 그려질 때까지
   const shot2 = await page.screenshot();
   const same = Buffer.compare(shot1, shot2) === 0;
   console.log(`  ③ 돌린 뒤 화면이 ${same ? '**그대로다**' : '달라졌다'}`);

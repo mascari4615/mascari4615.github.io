@@ -14,26 +14,13 @@
  * 안 꺼진 것이다.
  */
 import { chromium } from 'playwright';
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
+import { serveRepo } from './lib/serve-static.mjs';
 
 import { fileURLToPath } from 'node:url';
 
-const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
-const site = createServer(async (request, response) => {
-  const url = new URL(request.url, 'http://x');
-  try {
-    const body = await readFile(path.join(SITE_ROOT, decodeURIComponent(url.pathname)));
-    response.writeHead(200, { 'Content-Type': TYPES[path.extname(url.pathname)] ?? 'application/octet-stream' });
-    response.end(body);
-  } catch {
-    response.writeHead(404).end('no');
-  }
-});
-site.listen(8813, '127.0.0.1');
-const PAGE = 'http://127.0.0.1:8813/apps/karmolab/index.html';
+/* 빈 포트에 뜬다. 8813 고정은 CI 에서 옆 검사와 부딪혀 EADDRINUSE 로 죽었다 (2026-09-03) */
+const site = await serveRepo();
+const PAGE = `${site.base}/apps/karmolab/index.html`;
 
 const browser = await chromium.launch();
 const context = await browser.newContext();
@@ -100,7 +87,7 @@ if (after.interval - base.interval > INTERVAL_BUDGET) {
 }
 
 await browser.close();
-site.close();
+await site.close();
 
 if (failures.length) {
   console.error(`[widget-idle] 실패 ${failures.length}건`);

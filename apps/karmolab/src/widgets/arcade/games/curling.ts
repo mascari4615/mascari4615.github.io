@@ -134,7 +134,9 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
     /* 겨눔은 좌우로만 조금. 컬링은 앞으로 밀어 보내는 놀이다. 세기는 0~1 을 벗어나면 자른다. */
     const ang = Math.max(-0.35, Math.min(0.35, aim));
     const pw = Math.max(0.15, Math.min(1, power));
-    const speed = 0.5 + pw * 0.8;
+    /* 세기 0.45~0.75 가 하우스. 0.5+pw*0.8 은 0.85 위만 하우스라 봇(0.56)이 200판 중 199판을
+       0:0 으로 비겼다 (2026-09-03 bench 실측, drift 게이트가 잡음). 1 이면 하우스를 지나 뒤로 나간다 */
+    const speed = 0.565 + pw * 1.367;
     const stone: Stone = {
       x: W / 2,
       y: H - 12,
@@ -203,7 +205,7 @@ export const curling: GameDef<CurlingState, CurlingAction> = {
     if ((s.left[seat] ?? 0) <= 0) return null;
     /* 가운데를 노리되 손이 조금 떨린다. 늘 정확하면 사람이 한 번도 못 이긴다. */
     const aim = (ctx.rng() - 0.5) * 0.12;
-    const power = 0.56 + (ctx.rng() - 0.5) * 0.12;
+    const power = 0.6 + (ctx.rng() - 0.5) * 0.12;
     return { action: { aim, power }, delayMs: 700 + ctx.rng() * 700 };
   }
 };

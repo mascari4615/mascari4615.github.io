@@ -41,15 +41,17 @@ export async function openPipPanel(rows: PipRow[], footer: string, onClose?: () 
     return null;
   }
   const d = win.document;
-  d.body.style.cssText = 'margin:0;font:12px system-ui,sans-serif;background:#111;color:#eee;';
+  /* 떠 있는 창은 딴 문서라 스킨 토큰이 안 닿는다. 본 문서의 값을 읽어 옮긴다 */
+  const tok = (name: string): string => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  d.body.style.cssText = `margin:0;font:12px var(--font-sans,system-ui,sans-serif);background:${tok('--bg-primary')};color:${tok('--text-primary')};`;
   const style = d.createElement('style');
-  style.textContent = '.is-hit{background:#1f6b3a}';
+  style.textContent = `.is-hit{background:${tok('--accent')};color:${tok('--bg-primary')}}`;
   d.head.appendChild(style);
   const box = d.createElement('div');
   box.style.cssText = 'padding:6px 8px;display:grid;gap:4px;';
   rows.forEach((r) => {
     const row = d.createElement('div');
-    row.style.cssText = 'display:flex;justify-content:space-between;gap:8px;padding:2px 6px;border-radius:4px;';
+    row.style.cssText = 'display:flex;justify-content:space-between;gap:8px;padding:2px 6px;border-radius:' + tok('--radius-sm') + ';';
     row.innerHTML = `<span>${esc(r.label)}</span><b>${esc(r.value)}</b>`;
     if (r.hit) row.classList.add('is-hit');
     if (r.dim) row.style.opacity = '0.4';
@@ -57,7 +59,7 @@ export async function openPipPanel(rows: PipRow[], footer: string, onClose?: () 
   });
   d.body.appendChild(box);
   const foot = d.createElement('div');
-  foot.style.cssText = 'padding:2px 14px 6px;font-size:11px;opacity:.7;';
+  foot.style.cssText = 'padding:2px 14px 6px;font-size:' + tok('--font-size-xs') + ';opacity:.7;';
   foot.textContent = footer;
   d.body.appendChild(foot);
   let open = true;

@@ -1,5 +1,5 @@
 {
- "total": 125,
+ "total": 122,
  "files": {
   "css/community.css": 15,
   "css/lotto.css": 1,
@@ -7,7 +7,7 @@
   "css/toolbox.css": 5,
   "css/tools.css": 16,
   "src/widgets/alarm.ts": 1,
-  "src/widgets/arcade/arcade.ts": 64,
+  "src/widgets/arcade/arcade.css": 61,
   "src/widgets/cockpit/task-tab.ts": 1,
   "src/widgets/conch.ts": 1,
   "src/widgets/countdown.ts": 1,

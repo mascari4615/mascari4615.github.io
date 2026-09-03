@@ -91,7 +91,10 @@ function ensureStyle(): void {
 .lang-hint{display:flex;align-items:center;gap:.6rem;justify-content:center;flex-wrap:wrap;
   padding:.45rem .8rem;font-size:.85rem;background:var(--bg-secondary);
   border-bottom:1px solid var(--border);color:var(--text-primary)}
-.lang-hint a{color:inherit;text-decoration:underline;text-underline-offset:.15em}
+.lang-hint a{color:inherit;text-decoration:underline;text-underline-offset:.15em;
+  display:inline-flex;align-items:center;min-height:24px;padding:0 .2rem}
+/* all:unset 이 초점 테두리까지 지운다. 밟았을 때 보여야 한다 (WCAG 2.4.7, CI 실측 2026-09-03) */
+.lang-hint a:focus-visible,.lang-hint button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* 손가락으로 누를 만해야 한다. 닫기 ✕ 가 28x25 라 관문 검사에 걸렸다(기준 32px, 실측 2026-08-13).
    생김새는 그대로 두고 **누를 자리만** 넓힌다. */
 .lang-hint button{all:unset;cursor:pointer;padding:.1rem .45rem;border-radius:.35rem;opacity:.7;

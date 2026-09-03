@@ -735,7 +735,7 @@ interface Session {
          (추천 여섯에서 이미 겪었다: 51종이 54종이 됐다). 생김새만 진열장 물건과 같다 . 
          혼자 놀이를 따로 분류할 이유가 없다는 피드백대로 같은 선반에 이어 놓는다. */
       '<a class="ac-solocard" href="' + esc(g.url) + '" data-solo-go="' + esc(g.id) + '">' +
-      '<span class="ac-objface" style="font-size:44px">' + esc(g.emoji || '🎲') + '</span>' +
+      '<span class="ac-objface">' + esc(g.emoji || '🎲') + '</span>' +
       '<b class="ac-objname">' + esc(g.title) + '</b>' +
       '</a>';
 

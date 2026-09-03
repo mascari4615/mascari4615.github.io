@@ -156,8 +156,9 @@ export const yut: GameDef<YutState, YutAction> = {
         over: false,
         note: {
           key: 'arcade.yut.caughtBy',
-          /* 몇 번째 잡기인지는 안 싣는다. 빼도 검사가 안 빨개졌다(잡기가 드물어 뭉치지 않는다). */
-          params: { who: ctx.seats[s.catcher.by]?.name ?? '' },
+          /* 몇 번째 잡기인지를 싣는다. 같은 사람이 잇달아 잡으면 말이 같아져 두 번째가
+             안 울렸다 (씨앗 777, 사건 6 에 운 횟수 4. 확률을 레퍼런스에 맞춘 뒤 드러남). */
+          params: { who: ctx.seats[s.catcher.by]?.name ?? '', n: String(s.catcher.n) },
           sound: 'good'
         }
       };

@@ -10,6 +10,7 @@
  */
 import { chromium } from 'playwright';
 import { serveRepo } from './lib/serve-static.mjs';
+import { untilSettled } from './lib/settle.mjs';
 
 const frozen = process.env.URL ? null : await serveRepo();
 const BASE = process.env.URL || `${frozen.base}/apps/karmolab/index.html`;
@@ -110,7 +111,8 @@ const headH = await page.evaluate(() => {
 });
 check(headH > 0, '머리띠가 있어야 한다(이 검사의 전제)');
 await page.locator('.bm-menu').click({ force: true }); // 조작부 펼치기
-await page.waitForTimeout(400);
+// 펼침 전환이 멎을 때까지
+await untilSettled(page, () => page.evaluate(() => [...document.querySelectorAll('.bm-wrap,.bm-chips,.bm-body,.bm-card')].map((el) => { const r = el.getBoundingClientRect(); return Math.round(r.top) + ':' + Math.round(r.bottom); }).join(',')), { interval: 250 });
 const covered = await page.evaluate((h) => {
   const sel = ['.bm-menu', '.bm-chips', '.bm-body', '.bm-link', '.bm-card', '.bm-fs', '.bm-day'];
   const bad = [];

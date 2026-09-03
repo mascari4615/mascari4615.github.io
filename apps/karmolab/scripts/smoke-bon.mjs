@@ -104,7 +104,8 @@ const before = await page.evaluate(() => document.querySelector('.bon-art svg').
 const radius = page.locator('.bon-side input[data-num="radius"]');
 await radius.fill('10');
 await radius.dispatchEvent('input');
-await page.waitForTimeout(150);
+// 그림이 바뀔 때까지. 안 바뀌면 아래 check 가 빨강
+await untilTrue(page, (b) => document.querySelector('.bon-art svg').outerHTML !== b, { args: before });
 const after = await page.evaluate(() => document.querySelector('.bon-art svg').outerHTML);
 check('둥글기를 돌리면 그림이 달라진다', before !== after);
 
@@ -209,7 +210,7 @@ check('경계선도 그림에 안 섞인다', !guidesInArt);
 
 // ── 선 도구 ───────────────────────────────
 await page.keyboard.press('l');
-await page.waitForTimeout(100);
+await untilTrue(page, () => document.querySelector('[data-tool="line"]')?.classList.contains('active'));   // 선 도구가 켜질 때까지
 const paths = () => page.evaluate(() => document.querySelectorAll('.bon-art svg path').length);
 const p0 = at(0.15, 0.15);
 const p1 = at(0.6, 0.15);   // 곧은 가로선. 높이 0 이라 크기 0 판정에 걸리면 안 된다
@@ -255,6 +256,7 @@ check('닫으면 선반이 사라진다', await page.evaluate(() => document.que
 
 // 선반이 안 열려도 도구는 계속 돈다 (서버가 죽어 있어도 그림은 그려져야 한다)
 await page.locator('.bon-bar [data-act="shelf-open"]').click();
+// 재움-의도: 선반 서버가 실패로 돌아올 시간을 일부러 흘린다. 그 뒤에도 판이 남아 있나가 잰 값
 await page.waitForTimeout(1200);
 const stillWorks = await page.evaluate(() => !!document.querySelector('.bon-art svg'));
 check('선반이 안 열려도 판은 살아 있다', stillWorks);
@@ -272,7 +274,7 @@ await page.mouse.move(a1.x, a1.y);
 await page.mouse.down();
 await page.mouse.move(a2.x, a2.y, { steps: 6 });
 await page.mouse.up();
-await page.waitForTimeout(250);
+await untilTrue(page, () => !!document.querySelector('.bon-side input[data-box="x"]'));   // 고른 도형의 위치 칸이 뜰 때까지
 check('정렬 검사용 도형이 골라져 있다', await page.evaluate(() => !!document.querySelector('.bon-side input[data-box="x"]')));
 
 const readBox = async () => ({
@@ -310,7 +312,7 @@ check('맞추기도 되돌려진다', (await lastRectWidth()) !== fitted, fitted
 
 // ── 펜 ────────────────────────────────────
 await page.keyboard.press('p');
-await page.waitForTimeout(120);
+await untilTrue(page, () => document.querySelector('[data-tool="pen"]')?.classList.contains('active'));   // 펜이 켜질 때까지
 const pathCount = () => page.evaluate(() => document.querySelectorAll('.bon-art svg path').length);
 const beforePen = await pathCount();
 for (const [fx, fy] of [[0.2, 0.25], [0.5, 0.2], [0.55, 0.5]]) {

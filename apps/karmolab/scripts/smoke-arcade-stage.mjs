@@ -10,6 +10,7 @@
  * 떴다만 보고 크기를 안 재기 때문이다. 안 재는 검사는 안 보는 검사다.
  */
 import { chromium } from 'playwright';
+import { untilSettled, untilTrue } from './lib/settle.mjs';
 import { smokeBase } from './lib/smoke-base.mjs';
 
 /* ★ **dev 서버가 없으면 스스로 띄운다** (2026-08-14). 사람이 켜는 `npm run dev`(8813)만 보다가
@@ -47,8 +48,7 @@ if (!cantRun) {
     await p.click(`[data-obj="${id}"]`);
     await p.click(`[data-solo="${id}"]`);
     await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 }).catch(() => {});
-    await p.waitForTimeout(120);
-    const seen = await p.evaluate(() => {
+    const seen = await untilSettled(p, () => p.evaluate(() => {
       const stage = document.querySelector('#acStage').getBoundingClientRect();
       /* 판에서 제일 넓은/높은 것. 무대를 얼마나 쓰고 있나. */
       const rects = [...document.querySelectorAll('#acView *')].map((e) => e.getBoundingClientRect());
@@ -57,7 +57,7 @@ if (!cantRun) {
         widest: Math.round(Math.max(0, ...rects.map((r) => r.width))),
         tallest: Math.round(Math.max(0, ...rects.map((r) => r.height)))
       };
-    });
+    }));
     widths.set(seen.stage, (widths.get(seen.stage) || 0) + 1);
     /* 가로든 세로든 절반은 써야 무대에 담겼다고 할 수 있다. 무너지면 한 자릿수 px 이 된다.
        세로로 긴 판(컬링, 당구)은 화면에 넣느라 폭을 일부러 좁힌다. 그건 세로가 대신 채운다. */
@@ -81,11 +81,11 @@ if (!cantRun) {
   await p.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
   const small = await p.evaluate(() => Math.round(document.querySelector('.ac-cell').getBoundingClientRect().width));
   await p.click('#acFull');
-  await p.waitForTimeout(700);
-  const big = await p.evaluate(() => ({
+  await untilTrue(p, () => !!document.fullscreenElement);
+  const big = await untilSettled(p, () => p.evaluate(() => ({
     who: document.fullscreenElement?.id ?? null,
     cell: Math.round(document.querySelector('.ac-cell').getBoundingClientRect().width)
-  }));
+  })));
   check('풀스크린 대상은 무대다 (창 전체가 아니라)', big.who === 'acStage', String(big.who));
   check('풀스크린이면 판이 커진다', big.cell > small * 1.3, `${small}px → ${big.cell}px`);
 
@@ -122,11 +122,10 @@ if (!cantRun) {
     await q.click('[data-obj="gomoku"]');
     await q.click('[data-solo="gomoku"]');
     await q.waitForFunction(() => document.querySelector('#acIntro')?.style.display === 'none', null, { timeout: 20000 });
-    await q.waitForTimeout(200);
-    const m = await q.evaluate(() => ({
+    const m = await untilSettled(q, () => q.evaluate(() => ({
       cell: Math.round(document.querySelector('.ac-cell').getBoundingClientRect().width),
       over: Math.round(document.querySelector('#acQuit').getBoundingClientRect().bottom) - window.innerHeight
-    }));
+    })));
     /* 28px. 손가락 최소권장(44px)에는 못 미치지만 칸이 붙어 있는 판이라 여기까지는 눌린다.
        고치기 전 눕힌 화면이 23px 이었고, 그건 옆 칸이 눌리는 크기였다. */
     check(`폰 ${label}: 칸이 눌릴 만하다`, m.cell >= 28, `${m.cell}px`);
