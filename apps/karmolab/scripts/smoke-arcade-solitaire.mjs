@@ -198,7 +198,9 @@ if (!cantRun) {
       state.foundation = Array.from({ length: 4 }, (_, suit) => Array.from({ length: 13 }, (_, rank) => suit * 13 + rank));
       window.__arcade?.tap({ kind: 'draw' });
     });
-    await page.waitForFunction(() => window.__arcade?.finished === true && window.__bjMeasure?.().celebrations === 1, undefined, { timeout: 3000 });
+    // 전체 gate 동시 브라우저 부하 (늦은 3D 렌더 tick 허용)
+    // 고정 sleep 없음 (종료와 축하 상태에 15초 상한)
+    await page.waitForFunction(() => window.__arcade?.finished === true && window.__bjMeasure?.().celebrations === 1, undefined, { timeout: 15000 });
     /* 재움-의도: 끝난 뒤에도 도는 여러 렌더 틱에 축하가 중복되지 않는지 쌓아 본다 */
     await page.waitForTimeout(500);
     const roomWin = await page.evaluate(() => ({
