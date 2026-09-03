@@ -8,6 +8,56 @@
 import type { GameDef, BotMove, Outcome } from '../types';
 import { DIRS8, duel } from '../grid';
 
+/** 봇 단계 1~5. 시작 화면의 상대 고르기 (`setups.ts`). 안 고르면 3 */
+export const levelOf = (opts: { ai?: number | boolean }): number => {
+  const v = Number(opts.ai);
+  return v >= 1 && v <= 5 ? Math.round(v) : 3;
+};
+
+/* 깊이 6 은 한 수 330ms (실측). 5 로 낮추고 끝판(빈 칸 10 아래)은 끝까지 읽음 */
+const REV_DEPTH = [0, 0, 0, 2, 4, 5];
+function revApply(b: number[], cell: number, who: number): number[] {
+  const nb = b.slice();
+  nb[cell] = who;
+  for (const c of flips(b, cell, who)) nb[c] = who;
+  return nb;
+}
+/** 판 값. 자리 가중 합에 둘 수 있는 자리 수(기동력)를 더함. 끝판(빈 칸 12 아래)은 돌 수 */
+function revEval(b: number[], me: number): number {
+  const foe = 3 - me;
+  let empty = 0;
+  let w = 0;
+  let mine = 0;
+  let his = 0;
+  for (let i = 0; i < b.length; i += 1) {
+    if (b[i] === 0) empty += 1;
+    else if (b[i] === me) { w += WEIGHT[i]; mine += 1; } else { w -= WEIGHT[i]; his += 1; }
+  }
+  if (empty <= 12) return (mine - his) * 10 + w;
+  return w + (legal(b, me).length - legal(b, foe).length) * 3;
+}
+function revSearch(b: number[], me: number, toMove: number, depth: number, alpha: number, beta: number): number {
+  const moves = legal(b, toMove);
+  const foe = 3 - toMove;
+  if (!moves.length) {
+    if (!legal(b, foe).length) {
+      let d = 0;
+      for (const v of b) d += v === me ? 1 : v === 0 ? 0 : -1;
+      return d * 1000;
+    }
+    return revSearch(b, me, foe, depth - 1, alpha, beta);
+  }
+  if (depth <= 0) return revEval(b, me);
+  const mine = toMove === me;
+  let best = mine ? -Infinity : Infinity;
+  for (const c of moves) {
+    const v = revSearch(revApply(b, c, toMove), me, foe, depth - 1, alpha, beta);
+    if (mine) { best = Math.max(best, v); alpha = Math.max(alpha, best); } else { best = Math.min(best, v); beta = Math.min(beta, best); }
+    if (beta <= alpha) break;
+  }
+  return best;
+}
+
 export const N = 8;
 
 export interface ReversiState {
@@ -128,13 +178,31 @@ export const reversi: GameDef<ReversiState, ReversiAction> = {
     const who = seat + 1;
     const moves = legal(s.board, who);
     if (!moves.length) return null;
-    /* 많이 뒤집는 수보다 **좋은 자리**를 고른다. 초반에 많이 먹으면 나중에 다 뺏긴다. */
+    const level = levelOf(ctx.opts);
+    const delay = 600 + ctx.rng() * 700;
+    /* 1단계. 아무 데나 */
+    if (level === 1) return { action: { cell: moves[Math.floor(ctx.rng() * moves.length)] }, delayMs: delay };
+    /* 3단계부터 앞을 읽는다. 자리 가중과 기동력 (레퍼런스 2026-09-03: 남들 코너 가중 + 탐색) */
+    let depth = REV_DEPTH[level] ?? 0;
+    const empty = s.board.filter((v) => v === 0).length;
+    if (level >= 4 && empty <= (level === 5 ? 11 : 8)) depth = empty;
+    if (depth > 0) {
+      let best = moves[0];
+      let bestV = -Infinity;
+      for (const c of moves) {
+        const v = revSearch(revApply(s.board, c, who), who, 3 - who, depth - 1, -Infinity, Infinity);
+        if (v > bestV) { bestV = v; best = c; }
+      }
+      return { action: { cell: best }, delayMs: delay };
+    }
+    /* 2단계. 많이 뒤집는 수보다 **좋은 자리**를 고른다. 초반에 많이 먹으면 나중에 다 뺏긴다. */
     let best = moves[0];
     let bestV = -Infinity;
     for (const c of moves) {
       const v = WEIGHT[c] * 3 + flips(s.board, c, who).length;
       if (v > bestV) { bestV = v; best = c; }
     }
-    return { action: { cell: best }, delayMs: 600 + ctx.rng() * 700 };
+    return { action: { cell: best }, delayMs: delay };
   }
+
 };

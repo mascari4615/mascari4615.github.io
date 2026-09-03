@@ -7,6 +7,68 @@
 import type { GameDef, BotMove } from '../types';
 import { LINE_DIRS } from '../grid';
 
+/** 봇 단계 1~5. 시작 화면의 상대 고르기 (`setups.ts`). 안 고르면 3 */
+export const levelOf = (opts: { ai?: number | boolean }): number => {
+  const v = Number(opts.ai);
+  return v >= 1 && v <= 5 ? Math.round(v) : 3;
+};
+
+const FOUR_DEPTH = [0, 0, 2, 4, 6, 8];
+/** 판 값. 넷 창마다 내 돌만 있으면 +, 남 돌만 있으면 -. 셋이면 크게, 가운데 열 웃돈 */
+function fourEval(b: number[], me: number): number {
+  const foe = 3 - me;
+  let v = 0;
+  const score = (cells: number[]): number => {
+    let mine = 0;
+    let his = 0;
+    for (const c of cells) {
+      if (b[c] === me) mine += 1;
+      else if (b[c] === foe) his += 1;
+    }
+    if (mine && his) return 0;
+    if (mine === 3) return 40;
+    if (mine === 2) return 6;
+    if (his === 3) return -44;
+    if (his === 2) return -6;
+    return 0;
+  };
+  for (let y = 0; y < H; y += 1) {
+    for (let x = 0; x < W; x += 1) {
+      if (x + 3 < W) v += score([y * W + x, y * W + x + 1, y * W + x + 2, y * W + x + 3]);
+      if (y + 3 < H) v += score([y * W + x, (y + 1) * W + x, (y + 2) * W + x, (y + 3) * W + x]);
+      if (x + 3 < W && y + 3 < H) v += score([y * W + x, (y + 1) * W + x + 1, (y + 2) * W + x + 2, (y + 3) * W + x + 3]);
+      if (x >= 3 && y + 3 < H) v += score([y * W + x, (y + 1) * W + x - 1, (y + 2) * W + x - 2, (y + 3) * W + x - 3]);
+    }
+  }
+  const mid = Math.floor(W / 2);
+  for (let y = 0; y < H; y += 1) {
+    if (b[y * W + mid] === me) v += 3;
+    else if (b[y * W + mid] === foe) v -= 3;
+  }
+  return v;
+}
+
+function fourSearch(b: number[], me: number, toMove: number, depth: number, alpha: number, beta: number): number {
+  const cols: number[] = [];
+  const mid = (W - 1) / 2;
+  for (let c = 0; c < W; c += 1) if (drop(b, c) >= 0) cols.push(c);
+  cols.sort((a, c) => Math.abs(a - mid) - Math.abs(c - mid));
+  if (!cols.length) return 0;
+  for (const c of cols) {
+    const cell = drop(b, c);
+    if (wins(after(b, cell, toMove), cell, toMove)) return toMove === me ? 100000 + depth : -100000 - depth;
+  }
+  if (depth <= 0) return fourEval(b, me);
+  const mine = toMove === me;
+  let best = mine ? -Infinity : Infinity;
+  for (const c of cols) {
+    const v = fourSearch(after(b, drop(b, c), toMove), me, 3 - toMove, depth - 1, alpha, beta);
+    if (mine) { best = Math.max(best, v); alpha = Math.max(alpha, best); } else { best = Math.min(best, v); beta = Math.min(beta, best); }
+    if (beta <= alpha) break;
+  }
+  return best;
+}
+
 export const W = 7;
 export const H = 6;
 const NEED = 4;
@@ -95,18 +157,38 @@ export const four: GameDef<FourState, FourAction> = {
     const legal: number[] = [];
     for (let c = 0; c < W; c++) if (drop(s.board, c) >= 0) legal.push(c);
     if (!legal.length) return null;
+    const level = levelOf(ctx.opts);
 
     const move = (col: number): BotMove<FourAction> => ({
       action: { col },
       delayMs: 600 + ctx.rng() * 700
     });
 
+    /* 1단계. 이기는 수만 놓치지 않고 나머지는 아무 데나 */
+    if (level === 1) {
+      for (const c of legal) if (wins(after(s.board, drop(s.board, c), me), drop(s.board, c), me)) return move(c);
+      return move(legal[Math.floor(ctx.rng() * legal.length)]);
+    }
+
     /* ① 이길 수 있으면 이긴다 ② 못 이기면 상대의 넷을 막는다. 이 둘만 해도 사람이 진다. */
     for (const c of legal) if (wins(after(s.board, drop(s.board, c), me), drop(s.board, c), me)) return move(c);
     for (const c of legal) if (wins(after(s.board, drop(s.board, c), foe), drop(s.board, c), foe)) return move(c);
 
-    /* ③ 아니면 가운데로. 가운데 줄이 이을 수 있는 방향이 제일 많다.
-     *    단 **상대에게 바로 넷을 내주는 자리는 뺀다**(내가 놓으면 그 위가 상대 자리가 된다). */
+    /* ③ 3단계부터 알파베타. 깊이 4 가 사람과 반반, 8 이면 명인 (레퍼런스 2026-09-03) */
+    const depth = FOUR_DEPTH[level] ?? 0;
+    if (depth > 0) {
+      let best = legal[0];
+      let bestV = -Infinity;
+      const mid = (W - 1) / 2;
+      const order = legal.slice().sort((a, c) => Math.abs(a - mid) - Math.abs(c - mid));
+      for (const c of order) {
+        const v = fourSearch(after(s.board, drop(s.board, c), me), me, foe, depth - 1, -Infinity, Infinity);
+        if (v > bestV) { bestV = v; best = c; }
+      }
+      return move(best);
+    }
+
+    /* 2단계. 가운데로. 상대에게 바로 넷을 내주는 자리는 뺀다 */
     const safe = legal.filter((c) => {
       const mine = drop(s.board, c);
       const above = mine - W;
@@ -118,4 +200,5 @@ export const four: GameDef<FourState, FourAction> = {
     const best = pool.reduce((a, c) => (Math.abs(c - mid) < Math.abs(a - mid) ? c : a), pool[0]);
     return move(best);
   }
+
 };

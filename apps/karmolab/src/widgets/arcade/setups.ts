@@ -25,6 +25,49 @@ export interface Choice {
 
 /** 놀이마다 고를 것. 없으면 고를 게 없다는 뜻이다 */
 export const SETUPS: Record<string, Choice[]> = {
+  /* 보드 셋의 봇 단계. 3단계부터 알파베타 (레퍼런스 2026-09-03: 남들 체커 6~12단계, 점과 상자 4) */
+  four: [
+    {
+      key: 'ai',
+      label: 'arcade.setup.ai',
+      options: [
+        { value: 1, label: 'arcade.setup.ai.1' },
+        { value: 2, label: 'arcade.setup.ai.2' },
+        { value: 3, label: 'arcade.setup.ai.3' },
+        { value: 4, label: 'arcade.setup.ai.4' },
+        { value: 5, label: 'arcade.setup.ai.5' }
+      ],
+      fallback: 3
+    }
+  ],
+  reversi: [
+    {
+      key: 'ai',
+      label: 'arcade.setup.ai',
+      options: [
+        { value: 1, label: 'arcade.setup.ai.1' },
+        { value: 2, label: 'arcade.setup.ai.2' },
+        { value: 3, label: 'arcade.setup.ai.3' },
+        { value: 4, label: 'arcade.setup.ai.4' },
+        { value: 5, label: 'arcade.setup.ai.5' }
+      ],
+      fallback: 3
+    }
+  ],
+  checkers: [
+    {
+      key: 'ai',
+      label: 'arcade.setup.ai',
+      options: [
+        { value: 1, label: 'arcade.setup.ai.1' },
+        { value: 2, label: 'arcade.setup.ai.2' },
+        { value: 3, label: 'arcade.setup.ai.3' },
+        { value: 4, label: 'arcade.setup.ai.4' },
+        { value: 5, label: 'arcade.setup.ai.5' }
+      ],
+      fallback: 3
+    }
+  ],
   /* 볼링 프레임. 클럽하우스 51 은 5 와 10. 우리 기본 3 은 짧은 판용 (레퍼런스 2026-09-03) */
   bowling: [
     {
