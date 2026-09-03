@@ -12,7 +12,7 @@ export interface Rect {
   h: number;
 }
 
-export type Mode = 'match' | 'change' | 'count';
+export type Mode = 'match' | 'change' | 'count' | 'trend';
 
 /** 두 RGBA 그림의 닮은 정도. 1 이 같음, 0 이 정반대 */
 export function similarity(a: Uint8ClampedArray, b: Uint8ClampedArray): number {
@@ -160,4 +160,132 @@ export function binarize(data: Uint8ClampedArray): { inverted: boolean; threshol
     data[j + 3] = 255;
   }
   return { inverted, threshold };
+}
+
+/* ── 추세 기록 ─────────────────────────────────────────────── */
+
+/**
+ * 읽은 글자에서 숫자 하나. 쉼표와 공백 무시, 소수점 허용, % 와 단위 접미 무시.
+ * "1,204,588" -> 1204588, "42.7%" -> 42.7, "12s" -> 12. 숫자가 없으면 null
+ */
+export function parseNumber(text: string): number | null {
+  const s = text.replace(/[oO]/g, '0').replace(/[lI|]/g, '1').replace(/[,\s]/g, '');
+  const m = s.match(/-?\d+(?:\.\d+)?/);
+  if (!m) return null;
+  const v = Number(m[0]);
+  return Number.isFinite(v) ? v : null;
+}
+
+export interface Sample {
+  /** 초 단위 시각 */
+  t: number;
+  v: number;
+}
+
+/** 창 안 표본의 최소제곱 기울기 (초당). 표본 3개 미만이거나 시각이 전부 같으면 null */
+export function slopePerSec(samples: Sample[], windowSec: number, now: number): number | null {
+  const from = now - windowSec;
+  let n = 0;
+  let sx = 0;
+  let sy = 0;
+  let sxx = 0;
+  let sxy = 0;
+  for (const p of samples) {
+    if (p.t < from) continue;
+    n++;
+    sx += p.t;
+    sy += p.v;
+    sxx += p.t * p.t;
+    sxy += p.t * p.v;
+  }
+  if (n < 3) return null;
+  const d = n * sxx - sx * sx;
+  if (Math.abs(d) < 1e-9) return null;
+  return (n * sxy - sx * sy) / d;
+}
+
+/** 목표까지 남은 초. 기울기가 없거나 반대 방향이면 null, 이미 지났으면 0 */
+export function secondsToTarget(current: number, target: number, slope: number | null): number | null {
+  const gap = target - current;
+  if (gap === 0) return 0;
+  if (slope === null || slope === 0) return null;
+  if (Math.sign(gap) !== Math.sign(slope)) return gap * slope < 0 && Math.abs(gap) < Math.abs(slope) ? 0 : null;
+  return gap / slope;
+}
+
+export interface GateState {
+  /** 채택한 최근 값들 (최대 5)  */
+  recent: number[];
+  /** 튀는 값이 이어진 횟수 */
+  pendingCount: number;
+  pendingValue: number | null;
+}
+
+export interface GateResult {
+  accepted: number | null;
+  state: GateState;
+}
+
+/**
+ * 오독 거르기. 최근 채택값 중앙값에서 `ratio` 넘게 튀면 보류.
+ * 같은 쪽으로 `confirm` 번 이어지면 진짜 변화로 보고 채택. 값이 없으면 상태 유지
+ */
+export function gateReading(st: GateState, value: number | null, ratio = 0.3, confirm = 2): GateResult {
+  if (value === null) return { accepted: null, state: st };
+  const recent = st.recent;
+  if (recent.length < 3) return { accepted: value, state: { recent: [...recent, value].slice(-5), pendingCount: 0, pendingValue: null } };
+  const sorted = [...recent].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  const base = Math.max(1, Math.abs(median));
+  const jump = Math.abs(value - median) / base;
+  if (jump <= ratio) return { accepted: value, state: { recent: [...recent, value].slice(-5), pendingCount: 0, pendingValue: null } };
+  const same = st.pendingValue !== null && Math.abs(value - st.pendingValue) / Math.max(1, Math.abs(st.pendingValue)) <= ratio;
+  const count = same ? st.pendingCount + 1 : 1;
+  if (count >= confirm) return { accepted: value, state: { recent: [value], pendingCount: 0, pendingValue: null } };
+  return { accepted: null, state: { recent, pendingCount: count, pendingValue: value } };
+}
+
+/**
+ * 표본 접기. `olderThanSec` 보다 오래된 표본은 `bucketSec` 단위로 하나(마지막 값)만 유지.
+ * 1시간 넘게 돌아도 배열이 1초 표본으로 끝없이 자라지 않게
+ */
+export function foldSamples(samples: Sample[], now: number, olderThanSec = 3600, bucketSec = 10): Sample[] {
+  const cut = now - olderThanSec;
+  const out: Sample[] = [];
+  let lastBucket = Number.NEGATIVE_INFINITY;
+  for (const p of samples) {
+    if (p.t >= cut) {
+      out.push(p);
+      continue;
+    }
+    const b = Math.floor(p.t / bucketSec);
+    if (b === lastBucket) out[out.length - 1] = p;
+    else {
+      out.push(p);
+      lastBucket = b;
+    }
+  }
+  return out;
+}
+
+/** 값이 `idleSec` 동안 안 바뀌었나. 표본이 없으면 false */
+export function isIdle(samples: Sample[], now: number, idleSec: number): boolean {
+  if (!samples.length) return false;
+  const last = samples[samples.length - 1];
+  if (now - last.t > idleSec) return true;
+  for (let i = samples.length - 1; i >= 0; i--) {
+    const p = samples[i];
+    if (p.v !== last.v) return now - p.t >= idleSec;
+    if (now - p.t >= idleSec) return true;
+  }
+  return false;
+}
+
+/** 초를 "1시간 5분", "12분", "40초" 로 */
+export function formatDuration(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  if (s < 60) return `${s}초`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}분`;
+  return `${Math.floor(m / 60)}시간 ${m % 60}분`;
 }

@@ -25,8 +25,18 @@ import {
   decideEdge,
   decideCount,
   parseSeconds,
-  binarize
+  binarize,
+  parseNumber,
+  slopePerSec,
+  secondsToTarget,
+  gateReading,
+  foldSamples,
+  isIdle,
+  formatDuration,
+  type Sample,
+  type GateState
 } from './shared/regionwatch-core';
+import { download } from './shared/video';
 
 type Sound = 'ping' | 'double' | 'chime';
 
@@ -43,18 +53,27 @@ interface Slot {
   threshold: number;
   /** 남은 초 모드: 이 값 이하가 되면 */
   lead: number;
+  /** 추세 기록: 목표 값. null 이면 없음 */
+  target: number | null;
+  /** 추세 기록: 값이 이 초 동안 안 바뀌면 알림. 0 이면 끔 */
+  idleSec: number;
   sound: Sound;
   /** 다시 무장까지 초 */
   rearm: number;
   randomDelay: boolean;
 }
 
+type SavedSlot = Omit<Slot, 'ref'> & { ref: string | null };
+
 interface Saved {
   sw: number;
   sh: number;
   volume: number;
   notify: boolean;
-  slots: Array<Omit<Slot, 'ref'> & { ref: string | null }>;
+  /** 마지막으로 쓴 슬롯. 화면 크기를 아직 모를 때의 기본값 */
+  slots: SavedSlot[];
+  /** 화면 크기("1920x1080")마다 슬롯 한 벌. 창 크기가 바뀌어도 영역을 다시 안 끌게 */
+  profiles?: Record<string, SavedSlot[]>;
 }
 
 /* 브라우저 전용 API. lib.dom 에 아직 없는 것만 여기서 좁게 선언 */
@@ -101,6 +120,8 @@ interface TesseractLike {
       mode: 'match',
       threshold: 0.92,
       lead: 5,
+      target: null,
+      idleSec: 180,
       sound: (['ping', 'double', 'chime'] as Sound[])[i % 3],
       rearm: 5,
       randomDelay: false
@@ -169,6 +190,7 @@ interface TesseractLike {
             <option value="match">${esc(t('regionwatch.mode.match'))}</option>
             <option value="change">${esc(t('regionwatch.mode.change'))}</option>
             <option value="count">${esc(t('regionwatch.mode.count'))}</option>
+            <option value="trend">${esc(t('regionwatch.mode.trend'))}</option>
           </select>
           <span class="rw-if-edge">
             <label class="tool-sublabel">${esc(t('regionwatch.label.threshold'))} <output data-o="threshold">92%</output></label>
@@ -177,6 +199,12 @@ interface TesseractLike {
           <span class="rw-if-count">
             <label class="tool-sublabel">${esc(t('regionwatch.label.lead'))}</label>
             <input type="number" class="mono-input rw-rearm" min="0" max="3600" step="1" data-k="lead" aria-label="${esc(t('regionwatch.label.lead'))}">
+          </span>
+          <span class="rw-if-trend">
+            <label class="tool-sublabel">${esc(t('regionwatch.label.target'))}</label>
+            <input type="number" class="mono-input rw-target" step="any" data-k="target" aria-label="${esc(t('regionwatch.label.target'))}">
+            <label class="tool-sublabel">${esc(t('regionwatch.label.idle'))}</label>
+            <input type="number" class="mono-input rw-rearm" min="0" max="86400" step="1" data-k="idleSec" aria-label="${esc(t('regionwatch.label.idle'))}">
           </span>
           <select data-k="sound" aria-label="${esc(t('regionwatch.label.sound'))}">
             <option value="ping">${esc(t('regionwatch.sound.ping'))}</option>
@@ -205,8 +233,20 @@ interface TesseractLike {
         </div>
         <div class="rw-right" id="rwSlots">${slotRows}</div>
       </div>
+      <div class="rw-trend" id="rwTrend" hidden>
+        <div class="rw-trend-head">
+          <label class="tool-sublabel">${esc(t('regionwatch.label.window'))}
+            <select id="rwWindow" aria-label="${esc(t('regionwatch.label.window'))}">
+              <option value="300">5</option><option value="900">15</option><option value="3600">60</option>
+            </select>
+          </label>
+        </div>
+        <div class="rw-trend-rows" id="rwTrendRows"></div>
+        <canvas id="rwChart" class="rw-chart" width="900" height="160"></canvas>
+      </div>
       <div class="tool-status" id="rwStatus">${esc(t('regionwatch.status.idle'))}</div>
       <div class="tool-hint" id="rwRate"></div>
+      <div class="tool-hint" id="rwProfile"></div>
     `;
 
     const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -220,6 +260,12 @@ interface TesseractLike {
     const hint = $<HTMLElement>('#rwHint');
     const slotsBox = $<HTMLElement>('#rwSlots');
     const rateEl = $<HTMLElement>('#rwRate');
+    const profileEl = $<HTMLElement>('#rwProfile');
+    const trendBox = $<HTMLElement>('#rwTrend');
+    const trendRows = $<HTMLElement>('#rwTrendRows');
+    const windowSel = $<HTMLSelectElement>('#rwWindow');
+    const chart = $<HTMLCanvasElement>('#rwChart');
+    const cctx = chart.getContext('2d') as CanvasRenderingContext2D;
     const say = statusLine($<HTMLElement>('#rwStatus'));
 
     const pctx = preview.getContext('2d') as CanvasRenderingContext2D;
@@ -272,19 +318,32 @@ interface TesseractLike {
     }
 
     /* ── 저장, 복구 ───────────────────────────────────────── */
+    let profiles: Record<string, SavedSlot[]> = {};
+    let profileKey = '';
+
+    const pack = (): SavedSlot[] => slots.map((s) => ({ ...s, ref: s.ref ? btoa(String.fromCharCode(...Array.from(s.ref))) : null }));
+    function unpack(list: SavedSlot[]): void {
+      list.slice(0, SLOTS).forEach((s, i) => {
+        const ref = s.ref ? Uint8ClampedArray.from(atob(s.ref), (c) => c.charCodeAt(0)) : null;
+        slots[i] = { ...newSlot(i), ...s, ref };
+      });
+    }
+
+    function paintProfile(): void {
+      const n = Object.keys(profiles).length;
+      profileEl.textContent = profileKey ? t('regionwatch.label.profile').replace('{size}', profileKey).replace('{n}', String(n)) : '';
+    }
+
     function save(): void {
-      const data: Saved = {
-        sw: src.width,
-        sh: src.height,
-        volume: vol,
-        notify: notifyBox.checked,
-        slots: slots.map((s) => ({ ...s, ref: s.ref ? btoa(String.fromCharCode(...Array.from(s.ref))) : null }))
-      };
+      const packed = pack();
+      if (profileKey) profiles[profileKey] = packed;
+      const data: Saved = { sw: src.width, sh: src.height, volume: vol, notify: notifyBox.checked, slots: packed, profiles };
       try {
         localStorage.setItem(STORE, JSON.stringify(data));
       } catch {
         /* 저장 공간 부족. 도는 데는 지장 없음 */
       }
+      paintProfile();
     }
 
     function load(): void {
@@ -300,13 +359,26 @@ interface TesseractLike {
         savedSize = [d.sw || 0, d.sh || 0];
         vol = typeof d.volume === 'number' ? d.volume : vol;
         notifyBox.checked = !!d.notify;
-        d.slots?.slice(0, SLOTS).forEach((s, i) => {
-          const ref = s.ref ? Uint8ClampedArray.from(atob(s.ref), (c) => c.charCodeAt(0)) : null;
-          slots[i] = { ...newSlot(i), ...s, ref };
-        });
+        profiles = d.profiles && typeof d.profiles === 'object' ? d.profiles : {};
+        if (d.slots) unpack(d.slots);
       } catch {
         /* 옛 저장이 깨졌으면 새로 시작 */
       }
+    }
+
+    /* 화면 크기를 알게 된 순간. 그 크기의 프로필이 있으면 슬롯을 통째로 교체 */
+    function enterProfile(w: number, h: number): void {
+      profileKey = `${w}x${h}`;
+      const mine = profiles[profileKey];
+      if (mine) {
+        unpack(mine);
+        for (let i = 0; i < SLOTS; i++) resetState(i);
+        say(t('regionwatch.say.profile').replace('{size}', profileKey).replace('{n}', String(mine.filter((s) => s.rect).length)), 'ok');
+      } else if (savedSize[0] && (savedSize[0] !== w || savedSize[1] !== h)) {
+        say(t('regionwatch.warn.size').replace('{a}', `${savedSize[0]}x${savedSize[1]}`).replace('{b}', profileKey), 'error');
+      }
+      savedSize = [w, h];
+      save();
     }
 
     /* ── 슬롯 화면 ────────────────────────────────────────── */
@@ -323,6 +395,8 @@ interface TesseractLike {
       (el.querySelector('[data-k="threshold"]') as HTMLInputElement).value = String(Math.round(s.threshold * 100));
       (el.querySelector('[data-o="threshold"]') as HTMLOutputElement).value = Math.round(s.threshold * 100) + '%';
       (el.querySelector('[data-k="lead"]') as HTMLInputElement).value = String(s.lead);
+      (el.querySelector('[data-k="target"]') as HTMLInputElement).value = s.target === null ? '' : String(s.target);
+      (el.querySelector('[data-k="idleSec"]') as HTMLInputElement).value = String(s.idleSec);
       (el.querySelector('[data-k="sound"]') as HTMLSelectElement).value = s.sound;
       (el.querySelector('[data-k="rearm"]') as HTMLInputElement).value = String(s.rearm);
       (el.querySelector('[data-k="randomDelay"]') as HTMLInputElement).checked = s.randomDelay;
@@ -331,9 +405,10 @@ interface TesseractLike {
       pick.classList.toggle('is-on', picking === i);
       const thumb = el.querySelector('.rw-thumb') as HTMLElement;
       thumb.innerHTML = s.thumb ? `<img src="${s.thumb}" alt="">` : '';
-      (el.querySelector('[data-act="ref"]') as HTMLButtonElement).disabled = !s.rect || !stream || s.mode === 'count';
+      (el.querySelector('[data-act="ref"]') as HTMLButtonElement).disabled = !s.rect || !stream || s.mode === 'count' || s.mode === 'trend';
       el.classList.toggle('is-off', !s.enabled);
       el.classList.toggle('is-count', s.mode === 'count');
+      el.classList.toggle('is-trend', s.mode === 'trend');
     }
 
     function paintSim(i: number, sim: number, hit: boolean, label?: string): void {
@@ -365,11 +440,15 @@ interface TesseractLike {
       else if (k === 'mode') {
         s.mode = target.value as Mode;
         paintSlot(i);
-        if (s.mode === 'count' && stream) void ensureOcr();
+        if ((s.mode === 'count' || s.mode === 'trend') && stream) void ensureOcr();
+        trend[i] = newTrend();
+        paintTrend(performance.now() / 1000);
       } else if (k === 'threshold') {
         s.threshold = clamp(Number(target.value) / 100, 0.5, 0.99);
         (el.querySelector('[data-o="threshold"]') as HTMLOutputElement).value = target.value + '%';
       } else if (k === 'lead') s.lead = clamp(Number(target.value) || 0, 0, 3600);
+      else if (k === 'target') s.target = target.value.trim() === '' ? null : Number(target.value);
+      else if (k === 'idleSec') s.idleSec = clamp(Number(target.value) || 0, 0, 86400);
       else if (k === 'sound') s.sound = target.value as Sound;
       else if (k === 'rearm') s.rearm = clamp(Number(target.value) || 0, 0, 3600);
       else if (k === 'randomDelay') s.randomDelay = (target as HTMLInputElement).checked;
@@ -461,7 +540,7 @@ interface TesseractLike {
       picking = -1;
       paintSlot(i);
       if (s.mode !== 'count') takeRef(i);
-      hint.textContent = s.mode === 'count' ? t('regionwatch.hint.count') : t('regionwatch.hint.running');
+      hint.textContent = s.mode === 'count' ? t('regionwatch.hint.count') : s.mode === 'trend' ? t('regionwatch.hint.trend') : t('regionwatch.hint.running');
       save();
     };
     window.addEventListener('mousemove', onMove);
@@ -505,7 +584,7 @@ interface TesseractLike {
     /* ── 판정 ─────────────────────────────────────────────── */
     function check(now: number): void {
       slots.forEach((s, i) => {
-        if (s.mode === 'count') return;
+        if (s.mode === 'count' || s.mode === 'trend') return;
         if (!s.enabled || !s.rect || !s.ref) {
           if (lastSim[i] !== -1) {
             lastSim[i] = -1;
@@ -544,7 +623,7 @@ interface TesseractLike {
             workerBlobURL: false,
             gzip: true
           });
-          await w.setParameters({ tessedit_char_whitelist: '0123456789:', tessedit_pageseg_mode: '7' });
+          await w.setParameters({ tessedit_char_whitelist: '0123456789:,.%-', tessedit_pageseg_mode: '7' });
           ocr = w;
           say(t('regionwatch.ocr.ready'), 'ok');
           return w;
@@ -560,7 +639,7 @@ interface TesseractLike {
 
     async function readCounts(now: number): Promise<void> {
       if (reading) return;
-      const targets = slots.map((s, i) => ({ s, i })).filter(({ s }) => s.mode === 'count' && s.enabled && s.rect);
+      const targets = slots.map((s, i) => ({ s, i })).filter(({ s }) => (s.mode === 'count' || s.mode === 'trend') && s.enabled && s.rect);
       if (!targets.length) return;
       const w = await ensureOcr();
       if (!w || !stream) return;
@@ -589,8 +668,14 @@ interface TesseractLike {
           } catch {
             text = '';
           }
-          const secs = parseSeconds(text);
           bump('reads', performance.now());
+          if (s.mode === 'trend') {
+            const value = parseNumber(text);
+            window.dispatchEvent(new CustomEvent('regionwatch:read', { detail: { slot: i, text: text.trim(), secs: null, value } }));
+            onTrendReading(i, value, now);
+            continue;
+          }
+          const secs = parseSeconds(text);
           window.dispatchEvent(new CustomEvent('regionwatch:read', { detail: { slot: i, text: text.trim(), secs } }));
           const res = decideCount(count[i], secs, { lead: s.lead, rearm: s.rearm }, now);
           count[i] = res.state;
@@ -603,7 +688,158 @@ interface TesseractLike {
       }
     }
 
-    function fire(i: number, detail: { sim?: number; secs?: number | null }): void {
+    /* ── 추세 기록 ────────────────────────────────────────── */
+    interface TrendState {
+      samples: Sample[];
+      gate: GateState;
+      startT: number;
+      startV: number | null;
+      lastV: number | null;
+      idleFired: boolean;
+      targetFired: boolean;
+      foldedAt: number;
+    }
+    const newTrend = (): TrendState => ({ samples: [], gate: { recent: [], pendingCount: 0, pendingValue: null }, startT: 0, startV: null, lastV: null, idleFired: false, targetFired: false, foldedAt: 0 });
+    const trend: TrendState[] = Array.from({ length: SLOTS }, newTrend);
+    let windowSec = 300;
+    const trendSlots = (): number[] => slots.map((s, i) => (s.mode === 'trend' && s.enabled && s.rect ? i : -1)).filter((i) => i >= 0);
+    const fmtNum = (v: number): string => (Math.abs(v) >= 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 100) / 100));
+
+    function onTrendReading(i: number, raw: number | null, now: number): void {
+      const s = slots[i];
+      const st = trend[i];
+      const sec = now / 1000;
+      const g = gateReading(st.gate, raw);
+      st.gate = g.state;
+      if (g.accepted !== null) {
+        if (st.startV === null) {
+          st.startV = g.accepted;
+          st.startT = sec;
+        }
+        st.samples.push({ t: sec, v: g.accepted });
+        st.lastV = g.accepted;
+        if (sec - st.foldedAt > 60) {
+          st.samples = foldSamples(st.samples, sec);
+          st.foldedAt = sec;
+        }
+        if (s.target !== null && !st.targetFired) {
+          const dir = st.startV !== null && s.target < st.startV ? -1 : 1;
+          if ((dir > 0 && g.accepted >= s.target) || (dir < 0 && g.accepted <= s.target)) {
+            st.targetFired = true;
+            fire(i, { value: g.accepted, reason: 'target' });
+          }
+        }
+      }
+      const idle = s.idleSec > 0 && isIdle(st.samples, sec, s.idleSec);
+      if (idle && !st.idleFired) {
+        st.idleFired = true;
+        fire(i, { value: st.lastV, reason: 'idle' });
+      } else if (!idle) st.idleFired = false;
+      paintTrend(sec);
+    }
+
+    function metricsOf(i: number, sec: number): { now: number | null; perMin: number | null; eta: number | null; idle: boolean } {
+      const s = slots[i];
+      const st = trend[i];
+      const k = slopePerSec(st.samples, windowSec, sec);
+      const perMin = k === null ? null : k * 60;
+      const eta = st.lastV === null || s.target === null ? null : secondsToTarget(st.lastV, s.target, k);
+      return { now: st.lastV, perMin, eta, idle: s.idleSec > 0 && isIdle(st.samples, sec, s.idleSec) };
+    }
+
+    function paintTrend(sec: number): void {
+      const ids = trendSlots();
+      trendBox.hidden = ids.length === 0;
+      if (!ids.length) return;
+      const rows = ids.map((i) => {
+        const s = slots[i];
+        const m = metricsOf(i, sec);
+        const st = trend[i];
+        const since = st.startV === null || st.lastV === null ? '' : `${esc(t('regionwatch.trend.since'))} ${formatDuration(sec - st.startT)}, ${st.lastV - st.startV >= 0 ? '+' : ''}${fmtNum(st.lastV - st.startV)}`;
+        const etaText = m.eta === null ? '-' : m.eta === 0 ? '0' : formatDuration(m.eta);
+        const label = m.now === null ? t('regionwatch.trend.none') : `${fmtNum(m.now)} (${m.perMin === null ? '-' : (m.perMin >= 0 ? '+' : '') + fmtNum(m.perMin)}/${t('regionwatch.trend.perMin')})`;
+        paintSim(i, m.now === null ? -1 : 0.5, m.idle, label);
+        return `<div class="rw-trend-row${m.idle ? ' is-idle' : ''}" data-i="${i}">
+          <b>${esc(s.name)}</b>
+          <span><i>${esc(t('regionwatch.trend.now'))}</i> ${m.now === null ? '-' : fmtNum(m.now)}</span>
+          <span><i>${esc(t('regionwatch.trend.perMin'))}</i> ${m.perMin === null ? '-' : (m.perMin >= 0 ? '+' : '') + fmtNum(m.perMin)}</span>
+          <span><i>${esc(t('regionwatch.trend.perHour'))}</i> ${m.perMin === null ? '-' : (m.perMin >= 0 ? '+' : '') + fmtNum(m.perMin * 60)}</span>
+          <span><i>${esc(t('regionwatch.trend.eta'))}</i> ${etaText}</span>
+          ${m.idle ? `<span class="rw-idle">${esc(t('regionwatch.trend.idle'))}</span>` : ''}
+          <span class="rw-since">${since}</span>
+          <button class="btn btn-sm btn-ghost" data-tact="segment">${esc(t('regionwatch.btn.segment'))}</button>
+          <button class="btn btn-sm btn-ghost" data-tact="csv">${esc(t('regionwatch.btn.csv'))}</button>
+        </div>`;
+      });
+      trendRows.innerHTML = rows.join('');
+      if (!document.hidden) paintChart(ids, sec);
+      window.dispatchEvent(new CustomEvent('regionwatch:trend', { detail: ids.map((i) => ({ slot: i, ...metricsOf(i, sec) })) }));
+    }
+
+    function paintChart(ids: number[], sec: number): void {
+      const W = chart.width;
+      const H = chart.height;
+      cctx.clearRect(0, 0, W, H);
+      const from = sec - windowSec;
+      const colors = ['#a99bf5', '#3ddc84', '#ffb020', '#4ea1ff', '#ff5d5d', '#e6e6e6'];
+      ids.forEach((i, n) => {
+        const pts = trend[i].samples.filter((p) => p.t >= from);
+        if (pts.length < 2) return;
+        let lo = Infinity;
+        let hi = -Infinity;
+        for (const p of pts) {
+          lo = Math.min(lo, p.v);
+          hi = Math.max(hi, p.v);
+        }
+        if (hi === lo) hi = lo + 1;
+        const x = (tt: number): number => ((tt - from) / windowSec) * (W - 20) + 10;
+        const y = (v: number): number => H - 10 - ((v - lo) / (hi - lo)) * (H - 20);
+        cctx.strokeStyle = colors[n % colors.length];
+        cctx.lineWidth = 2;
+        cctx.beginPath();
+        pts.forEach((p, k) => (k ? cctx.lineTo(x(p.t), y(p.v)) : cctx.moveTo(x(p.t), y(p.v))));
+        cctx.stroke();
+        const target = slots[i].target;
+        if (target !== null && target >= lo && target <= hi) {
+          cctx.setLineDash([4, 3]);
+          cctx.beginPath();
+          cctx.moveTo(10, y(target));
+          cctx.lineTo(W - 10, y(target));
+          cctx.stroke();
+          cctx.setLineDash([]);
+        }
+      });
+    }
+
+    trendRows.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest('[data-tact]') as HTMLButtonElement | null;
+      if (!btn) return;
+      const i = Number((btn.closest('.rw-trend-row') as HTMLElement).dataset.i);
+      const st = trend[i];
+      if (btn.dataset.tact === 'segment') {
+        const fresh = newTrend();
+        fresh.gate = st.gate;
+        fresh.lastV = st.lastV;
+        if (st.lastV !== null) {
+          fresh.startV = st.lastV;
+          fresh.startT = performance.now() / 1000;
+          fresh.samples = [{ t: fresh.startT, v: st.lastV }];
+        }
+        trend[i] = fresh;
+        say(t('regionwatch.say.segment').replace('{name}', slots[i].name).replace('{value}', st.lastV === null ? '-' : fmtNum(st.lastV)), 'ok');
+        paintTrend(performance.now() / 1000);
+      } else if (btn.dataset.tact === 'csv') {
+        const base = Date.now() - performance.now();
+        const lines = ['time,value', ...st.samples.map((p) => `${new Date(base + p.t * 1000).toISOString()},${p.v}`)];
+        download(new Blob([lines.join('\n')], { type: 'text/csv' }), `${slots[i].name}-${new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-')}.csv`);
+      }
+    });
+    windowSel.onchange = (): void => {
+      windowSec = Number(windowSel.value) || 300;
+      paintTrend(performance.now() / 1000);
+    };
+
+    function fire(i: number, detail: { sim?: number; secs?: number | null; value?: number | null; reason?: 'target' | 'idle' }): void {
       const s = slots[i];
       const delay = s.randomDelay ? Math.random() * MAX_DELAY_MS : 0;
       if (pending[i] !== null) window.clearTimeout(pending[i] as number);
@@ -611,9 +847,13 @@ interface TesseractLike {
         pending[i] = null;
         play(s.sound, vol);
         const msg =
-          detail.secs !== undefined && detail.secs !== null
-            ? t('regionwatch.say.count').replace('{name}', s.name).replace('{secs}', String(detail.secs))
-            : t('regionwatch.say.fired').replace('{name}', s.name);
+          detail.reason === 'target'
+            ? t('regionwatch.say.target').replace('{name}', s.name).replace('{target}', s.target === null ? '' : fmtNum(s.target))
+            : detail.reason === 'idle'
+              ? t('regionwatch.say.idle').replace('{name}', s.name).replace('{sec}', String(s.idleSec))
+              : detail.secs !== undefined && detail.secs !== null
+                ? t('regionwatch.say.count').replace('{name}', s.name).replace('{secs}', String(detail.secs))
+                : t('regionwatch.say.fired').replace('{name}', s.name);
         say(msg, 'ok');
         if (notifyBox.checked && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           try {
@@ -632,10 +872,7 @@ interface TesseractLike {
       if (src.width !== w || src.height !== h) {
         src.width = w;
         src.height = h;
-        if (savedSize[0] && (savedSize[0] !== w || savedSize[1] !== h)) {
-          say(t('regionwatch.warn.size').replace('{a}', `${savedSize[0]}x${savedSize[1]}`).replace('{b}', `${w}x${h}`), 'error');
-          savedSize = [0, 0];
-        }
+        enterProfile(w, h);
         for (let i = 0; i < SLOTS; i++) paintSlot(i);
       }
       paint();
@@ -677,7 +914,7 @@ interface TesseractLike {
       lastCheck = 0;
       lastRead = 0;
       for (let i = 0; i < SLOTS; i++) resetState(i);
-      if (slots.some((x) => x.mode === 'count' && x.enabled)) void ensureOcr();
+      if (slots.some((x) => (x.mode === 'count' || x.mode === 'trend') && x.enabled)) void ensureOcr();
 
       const Proc = (window as unknown as { MediaStreamTrackProcessor?: new (o: { track: MediaStreamTrack }) => TrackProcessorLike }).MediaStreamTrackProcessor;
       if (Proc) {
@@ -745,6 +982,8 @@ interface TesseractLike {
       stamps.checks.length = 0;
       stamps.reads.length = 0;
       rateEl.textContent = '';
+      for (let i = 0; i < SLOTS; i++) trend[i] = newTrend();
+      trendBox.hidden = true;
       closePip();
     }
 
@@ -864,8 +1103,17 @@ interface TesseractLike {
       .rw-slot{border:1px solid var(--border-color,var(--border));border-radius:var(--radius-md);padding:6px 8px;display:grid;gap:6px}
       .rw-slot.is-off{opacity:.5}
       .rw-slot-head,.rw-slot-body{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-      .rw-if-edge,.rw-if-count{display:contents}
-      .rw-slot.is-count .rw-if-edge,.rw-slot:not(.is-count) .rw-if-count{display:none}
+      .rw-if-edge,.rw-if-count,.rw-if-trend{display:contents}
+      .rw-slot.is-count .rw-if-edge,.rw-slot.is-trend .rw-if-edge,.rw-slot:not(.is-count) .rw-if-count,.rw-slot:not(.is-trend) .rw-if-trend{display:none}
+      .rw-target{width:8em}
+      .rw-trend{margin-top:var(--space-md,12px);display:grid;gap:6px}
+      .rw-trend-head{display:flex;gap:8px;align-items:center}
+      .rw-trend-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:12px var(--font-mono);padding:4px 8px;border:1px solid var(--border-color,var(--border));border-radius:var(--radius-sm)}
+      .rw-trend-row i{font-style:normal;color:var(--text-tertiary);margin-right:4px}
+      .rw-trend-row.is-idle{border-color:var(--accent)}
+      .rw-trend-row .rw-idle{color:var(--accent-ink,var(--accent))}
+      .rw-trend-row .rw-since{color:var(--text-tertiary);flex:1 1 auto}
+      .rw-chart{width:100%;height:auto;display:block;background:var(--bg-tertiary);border:1px solid var(--border-color,var(--border));border-radius:var(--radius-md)}
       .rw-name{width:7em}
       .rw-rearm{width:4.5em}
       .rw-thumb{display:inline-block;width:32px;height:24px;border:1px solid var(--border-color,var(--border));border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-tertiary)}

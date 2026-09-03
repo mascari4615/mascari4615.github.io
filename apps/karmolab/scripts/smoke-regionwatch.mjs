@@ -6,7 +6,8 @@
  *  ① 달라지면 울리고, 같아지면 울리고, 그 사이엔 조용한지
  *  ② rearm 안에서는 침묵하고 지나면 다시 우는지
  *  ③ 숫자를 읽어 N초 이하에서 한 번 우는지 (tesseract, 동일 출처 vendor)
- *  ④ 멈춤 뒤 상태가 처음으로 돌아가는지, 콘솔 오류가 없는지
+ *  ④ 추세 기록: 오르는 숫자의 분당 변화, 목표 도달 한 번, 멈춤 알림, 구간 새로, CSV
+ *  ⑤ 멈춤 뒤 상태가 처음으로 돌아가는지, 콘솔 오류가 없는지
  * 를 확인
  *
  * 사용: node scripts/smoke-regionwatch.mjs
@@ -30,6 +31,7 @@ const SW = 640;
 const SH = 360;
 const BOX = { x: 40, y: 40, w: 160, h: 100 };
 const DIGIT = { x: 300, y: 40, w: 200, h: 100 };
+const NUM = { x: 40, y: 200, w: 320, h: 80 };
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
@@ -43,12 +45,12 @@ page.on('console', (m) => {
 
 /* 무대와 가짜 화면 공유. 저장된 슬롯(영역, 모드)은 미리 박아 두고 기준 그림만 화면에서 찍기 */
 await page.addInitScript(
-  ({ SW, SH, BOX, DIGIT }) => {
+  ({ SW, SH, BOX, DIGIT, NUM }) => {
     const stage = document.createElement('canvas');
     stage.width = SW;
     stage.height = SH;
     const g = stage.getContext('2d');
-    const state = { box: '#20c040', digits: '' };
+    const state = { box: '#20c040', digits: '', number: '' };
     const paint = () => {
       g.fillStyle = '#202830';
       g.fillRect(0, 0, SW, SH);
@@ -63,6 +65,15 @@ await page.addInitScript(
         g.textBaseline = 'middle';
         g.fillText(state.digits, DIGIT.x + DIGIT.w / 2, DIGIT.y + DIGIT.h / 2);
       }
+      g.fillStyle = '#101418';
+      g.fillRect(NUM.x, NUM.y, NUM.w, NUM.h);
+      if (state.number) {
+        g.fillStyle = '#f4f4f4';
+        g.font = 'bold 48px Arial, sans-serif';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.fillText(state.number, NUM.x + NUM.w / 2, NUM.y + NUM.h / 2);
+      }
     };
     paint();
     setInterval(paint, 100);
@@ -74,9 +85,11 @@ await page.addInitScript(
     };
     const fires = [];
     const reads = [];
-    window.__rw = { fires, reads };
+    const trends = [];
+    window.__rw = { fires, reads, trends };
     window.addEventListener('regionwatch:fire', (e) => fires.push({ ...e.detail, at: performance.now() }));
     window.addEventListener('regionwatch:read', (e) => reads.push(e.detail));
+    window.addEventListener('regionwatch:trend', (e) => trends.push(e.detail));
     const md = navigator.mediaDevices;
     md.getDisplayMedia = async () => stage.captureStream(10);
     const slot = (name, mode, rect, extra = {}) => ({
@@ -94,32 +107,35 @@ await page.addInitScript(
       ...extra
     });
     const off = (name) => slot(name, 'match', null, { enabled: false });
+    /* 화면 크기별 프로필. 마지막 슬롯은 다른 크기의 것, 640x360 프로필은 따로.
+       공유가 시작돼 크기를 알면 그 프로필로 갈아 끼워야 한다 */
+    const mine = [slot('chg', 'change', BOX, { rearm: 3 }), slot('mat', 'match', BOX), slot('cnt', 'count', DIGIT, { lead: 5 }), slot('trd', 'trend', NUM, { target: 112000, idleSec: 6 }), off('5'), off('6')];
+    const other = [slot('old1', 'match', { x: 0, y: 0, w: 50, h: 50 }), off('old2'), off('old3'), off('old4'), off('old5'), off('old6')];
     localStorage.setItem(
       'regionwatch.v1',
-      JSON.stringify({
-        sw: SW,
-        sh: SH,
-        volume: 0,
-        notify: false,
-        slots: [slot('chg', 'change', BOX, { rearm: 3 }), slot('mat', 'match', BOX), slot('cnt', 'count', DIGIT, { lead: 5 }), off('4'), off('5'), off('6')]
-      })
+      JSON.stringify({ sw: 1280, sh: 720, volume: 0, notify: false, slots: other, profiles: { '1280x720': other, [`${SW}x${SH}`]: mine } })
     );
   },
-  { SW, SH, BOX, DIGIT }
+  { SW, SH, BOX, DIGIT, NUM }
 );
 
 await page.goto(`${BASE}#regionwatch`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('#rwStart', { timeout: 20000 });
 
-/* 저장된 슬롯이 화면에 복구됐나 */
-check((await page.inputValue('.rw-slot[data-i="0"] [data-k="mode"]')) === 'change', '슬롯 1 은 달라지면 모드로 복구');
-check((await page.inputValue('.rw-slot[data-i="2"] [data-k="mode"]')) === 'count', '슬롯 3 은 남은 초 모드로 복구');
-check(await page.locator('.rw-slot[data-i="2"].is-count').count() === 1, '남은 초 모드 슬롯은 N초 전 칸을 보여 준다');
+/* 화면 크기를 모를 때는 마지막 슬롯(다른 크기의 것) 표시 */
+check((await page.inputValue('.rw-slot[data-i="0"] [data-k="name"]')) === 'old1', '공유 전에는 마지막 슬롯이 복구된다');
 
-/* ① 시작, 기준 찍기 */
+/* ① 시작. 크기를 알면 640x360 프로필로 교체 */
 await page.click('#rwStart');
 await page.waitForFunction(() => document.querySelector('.rw-slot[data-i="0"] [data-act="pick"]')?.textContent?.includes('160x100'), null, { timeout: 10000 });
 check(true, '캔버스 스트림으로 화면이 들어왔다 (640x360)');
+check((await page.inputValue('.rw-slot[data-i="0"] [data-k="name"]')) === 'chg', '640x360 프로필의 슬롯으로 바뀐다');
+check((await page.inputValue('.rw-slot[data-i="0"] [data-k="mode"]')) === 'change', '슬롯 1 은 달라지면 모드');
+check((await page.inputValue('.rw-slot[data-i="2"] [data-k="mode"]')) === 'count', '슬롯 3 은 남은 초 모드');
+check(await page.locator('.rw-slot[data-i="2"].is-count').count() === 1, '남은 초 모드 슬롯은 N초 전 칸을 보여 준다');
+check(/640x360/.test((await page.textContent('#rwProfile')) || '') && /2/.test((await page.textContent('#rwProfile')) || ''), `프로필 표시: ${await page.textContent('#rwProfile')}`);
+const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('regionwatch.v1')));
+check(saved.profiles && saved.profiles['1280x720'] && saved.profiles['1280x720'][0].name === 'old1', '다른 크기의 프로필은 그대로 남는다');
 await page.click('.rw-slot[data-i="0"] [data-act="ref"]');
 await page.click('.rw-slot[data-i="1"] [data-act="ref"]');
 await page.waitForTimeout(800);
@@ -191,7 +207,40 @@ await page.waitForTimeout(1200);
 const cntFires2 = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'cnt').length);
 check(cntFires2 === 2, `숫자가 사라졌다 다시 내려오면 또 울린다 (지금 ${cntFires2}번)`);
 
-/* ④ 멈춤 */
+/* ④ 추세 기록. 100,000 부터 0.5초마다 1,000 씩. 목표 112,000 */
+check(await page.locator('.rw-slot[data-i="3"].is-trend').count() === 1, '추세 모드 슬롯은 목표와 멈춤 칸을 보여 준다');
+const trendFiresBefore = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'trd').length);
+let num = 100000;
+for (let k = 0; k < 24; k++) {
+  await page.evaluate((v) => window.__stage.set('number', v), num.toLocaleString('en-US'));
+  await page.waitForTimeout(500);
+  num += 1000;
+}
+await page.waitForTimeout(1500);
+const trendLast = await page.evaluate(() => window.__rw.trends.length ? window.__rw.trends[window.__rw.trends.length - 1].find((x) => x.slot === 3) : null);
+check(!!trendLast && trendLast.now !== null && trendLast.now >= 110000, `지금 값이 읽힌다 (지금 ${trendLast && trendLast.now})`);
+check(!!trendLast && trendLast.perMin !== null && trendLast.perMin > 60000 && trendLast.perMin < 180000, `분당 변화가 실제(120,000/분)에 가깝다 (지금 ${trendLast && Math.round(trendLast.perMin)})`);
+check(!(await page.isHidden('#rwTrend')) && /trd/.test((await page.textContent('#rwTrendRows')) || ''), '추세 판에 슬롯 줄이 있다');
+const targetFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'trd' && f.reason === 'target').length);
+check(targetFires === 1, `목표 112,000 에 닿을 때 한 번 (지금 ${targetFires})`);
+
+/* 값이 멈추면 6초 뒤 멈춤 알림. 한 번만 */
+await page.waitForTimeout(8000);
+const idleFires = await page.evaluate(() => window.__rw.fires.filter((f) => f.name === 'trd' && f.reason === 'idle').length);
+check(idleFires === 1, `값이 멈추면 멈춤 알림 한 번 (지금 ${idleFires})`);
+check(await page.locator('.rw-trend-row.is-idle').count() === 1, '멈춤 줄이 표시된다');
+
+/* 구간 새로, CSV */
+await page.click('.rw-trend-row[data-i="3"] [data-tact="segment"]');
+await page.waitForTimeout(1500);
+check(/구간|segment|区間/i.test((await page.textContent('#rwStatus')) || ''), `구간을 새로 시작한다 (${await page.textContent('#rwStatus')})`);
+const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 5000 }).catch(() => null), page.click('.rw-trend-row[data-i="3"] [data-tact="csv"]')]);
+check(!!dl && /\.csv$/.test(dl.suggestedFilename()), `CSV 를 내려받는다 (${dl && dl.suggestedFilename()})`);
+const trendReadsNumeric = await page.evaluate(() => window.__rw.reads.filter((r) => r.slot === 3 && r.value !== null && r.value !== undefined).length);
+check(trendReadsNumeric >= 10, `쉼표 있는 숫자를 읽는다 (숫자 읽기 ${trendReadsNumeric}회)`);
+void trendFiresBefore;
+
+/* ⑤ 멈춤 */
 await page.click('#rwStop');
 await page.waitForTimeout(400);
 check(!(await page.isDisabled('#rwStart')) && (await page.isDisabled('#rwStop')), '멈추면 시작 버튼이 살아난다');

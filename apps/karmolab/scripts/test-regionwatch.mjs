@@ -180,6 +180,56 @@ for (const [text, want] of [
   check(flat[3] === 255, '한 색뿐이어도 터지지 않는다');
 }
 
+/* ── 추세 기록: 숫자 파서 ── */
+for (const [text, want] of [['1,204,588', 1204588], ['42.7%', 42.7], ['12s', 12], ['  7 ', 7], ['-3', -3], ['', null], ['abc', null], ['1.5k', 1.5], ['O5', 5]]) {
+  eq(core.parseNumber(text), want, `parseNumber(${JSON.stringify(text)})`);
+}
+
+/* ── 기울기와 목표 ── */
+{
+  const s = [];
+  for (let t = 0; t <= 120; t++) s.push({ t, v: 1000 + t * 50 });
+  const k = core.slopePerSec(s, 60, 120);
+  check(k !== null && Math.abs(k - 50) < 1e-6, `일정하게 오르면 기울기 50 (지금 ${k})`);
+  check(core.slopePerSec(s.slice(0, 2), 60, 1) === null, '표본 2개는 null');
+  check(core.slopePerSec([{ t: 5, v: 1 }, { t: 5, v: 2 }, { t: 5, v: 3 }], 60, 5) === null, '시각이 전부 같으면 null');
+  eq(core.secondsToTarget(7000, 10000, 50), 60, '목표까지 60초');
+  eq(core.secondsToTarget(7000, 10000, null), null, '기울기 없으면 null');
+  eq(core.secondsToTarget(7000, 10000, -5), null, '반대 방향이면 null');
+  eq(core.secondsToTarget(10000, 10000, 50), 0, '이미 도달');
+  eq(core.secondsToTarget(100, 0, -10), 10, '내려가는 값도 계산');
+}
+
+/* ── 오독 거르기 ── */
+{
+  let st = { recent: [], pendingCount: 0, pendingValue: null };
+  const feed = (v) => { const r = core.gateReading(st, v); st = r.state; return r.accepted; };
+  eq(feed(1000), 1000, '처음 셋은 그대로 채택');
+  feed(1010); feed(1020);
+  eq(feed(1030), 1030, '30% 안이면 채택');
+  eq(feed(10300), null, '10배 튀면 보류');
+  eq(feed(1040), 1040, '다음 정상값은 채택');
+  eq(feed(9000), null, '튀는 값 첫 번째 보류');
+  eq(feed(9100), 9100, '같은 쪽으로 두 번 이어지면 진짜 변화로 채택');
+  eq(feed(null), null, '숫자 없음은 상태 유지');
+  eq(feed(9200), 9200, '새 기준에서 이어진다');
+}
+
+/* ── 표본 접기와 멈춤 ── */
+{
+  const s = [];
+  for (let t = 0; t < 7200; t++) s.push({ t, v: t });
+  const f = core.foldSamples(s, 7200, 3600, 10);
+  check(f.length === 3600 + 360, `1시간 뒤 표본은 10초 버킷 (지금 ${f.length})`);
+  check(f[0].t === 9 && f[359].t === 3599, '버킷은 마지막 값을 남긴다');
+  const flat = [{ t: 0, v: 5 }, { t: 100, v: 5 }, { t: 200, v: 5 }];
+  check(core.isIdle(flat, 200, 180), '180초 동안 같으면 멈춤');
+  check(!core.isIdle([{ t: 0, v: 5 }, { t: 100, v: 6 }, { t: 200, v: 7 }], 200, 180), '바뀌고 있으면 멈춤 아님');
+  check(core.isIdle([{ t: 0, v: 5 }], 500, 180), '표본이 끊겨도 멈춤');
+  check(!core.isIdle([], 500, 180), '표본 없음은 멈춤 아님');
+  eq(core.formatDuration(40), '40초', '초'); eq(core.formatDuration(600), '10분', '분'); eq(core.formatDuration(3900), '1시간 5분', '시간');
+}
+
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
 if (failures.length) {
