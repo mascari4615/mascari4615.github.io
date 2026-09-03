@@ -188,7 +188,9 @@ if (!cantRun) {
     const { host, guest } = auction;
     try {
       /* 평면은 .ac-au, 입체(정본)는 HUD. 2026-09-02 입체 경매를 올리고 평면만 기다려 main 이 빨갰다 */
-      await guest.waitForSelector('.ac-au, #acAuHud', { timeout: 20000 });
+      /* 세 번째 방이라 앞 두 방의 연결이 아직 안 걷힌 채로 붙는다. CI 에서만 여기서 20초를 넘겨
+         (로컬은 swiftshader 로도 초록) 시간을 늘리고, 넘기면 두 창의 상태를 적어 다음 판에서 읽는다 */
+      await guest.waitForSelector('.ac-au, #acAuHud', { timeout: 45000 });
       /* 주인이 먼저 부른다. 그 숫자가 손님 창에 뜨면 새는 것이다. 낙찰 전까지는 불렀다 표시뿐. */
       await host.locator('#acAuR').fill('37');
       await host.click('#acAuGo');
@@ -201,7 +203,12 @@ if (!cantRun) {
       const leaked = bids.filter((b) => typeof b === 'number' && b >= 0);
       check('남이 부른 값이 손님 창에 아예 안 온다', leaked.length === 0, JSON.stringify(bids));
     } catch (e) {
-      check('경매 판이 손님 창에 뜬다', false, e.message.slice(0, 80));
+      const dump = async (p, who) => p.evaluate((w) => {
+        const a = window.__arcade;
+        return `${w} game=${a?.state?.game ?? a?.game ?? ''} seat=${a?.mySeat} 대기=${document.querySelectorAll('#acWaitSeats .ac-seat').length} 판=${!!document.querySelector('#acPlay')} HUD=${!!document.querySelector('.ac-au, #acAuHud')}`;
+      }, who).catch(() => w + ' 못 읽음');
+      const state = [await dump(host, '주인'), await dump(guest, '손님')].join(' | ');
+      check('경매 판이 손님 창에 뜬다', false, e.message.slice(0, 60) + ' :: ' + state);
     }
     await host.context().close();
     await guest.context().close();

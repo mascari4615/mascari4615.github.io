@@ -263,7 +263,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 .tm-cell{appearance:none;border:0;padding:2px 0;min-width:24px;min-height:24px;border-radius:var(--radius-sm);font-size:var(--font-size-4xs);line-height:1.4;cursor:pointer;color:inherit;}
 .tm-cell.tm-ok{background:rgba(120,200,140,.28);}
 .tm-cell.tm-meh{background:rgba(220,190,120,.26);}
-.tm-cell.tm-bad{background:var(--border);opacity:.5;}
+/* 흐리게 하는 것은 칸이지 숫자가 아니다. opacity 가 글자까지 먹여 대비 4.45 로 axe 빨강,
+   게다가 몇 칸이 tm-bad 인지가 지금 시각에 따라 달라져 CI 가 판마다 흔들렸다 (2026-09-03) */
+.tm-cell.tm-bad{background:color-mix(in srgb, var(--border) 55%, transparent);color:var(--text-secondary);}
 .tm-cell.tm-pick{outline:1px solid var(--accent);}
 /* 초점 표시. 밟히는데 그림이 안 바뀌던 자리 (WCAG 2.4.11) */
 .tm-cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}

@@ -33,8 +33,13 @@ import { untilSettled } from './lib/settle.mjs';
 /* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
 /** 판을 나간다. 방(입체)에서는 나가기가 메뉴 종이 안이라 메뉴부터 연다(2026-08-31 방 버튼 재편) */
 async function quitRoom(page) {
-  const menu = await page.$('#acMenu');
-  if (menu && (await menu.isVisible())) await menu.click();
+  /* 메뉴 열기도 판 안에서 보낸다. 사람 클릭은 요소가 멎기를 기다리는데, 입체 판의 HUD 는
+     느린 그림판(CI 의 swiftshader)에서 계속 미세하게 움직여 30초를 넘겼다 (2026-09-03).
+     여기는 판정이 아니라 다음 판으로 넘어가는 이동이라 멈춤 판정이 필요 없다 */
+  await page.evaluate(() => {
+    const m = document.querySelector('#acMenu');
+    if (m && m.offsetParent !== null) m.click();
+  });
   /* 이 검사는 메뉴 조작이 아니라 52판 순회를 잰다. 병렬 렌더 중 메뉴 종이가 다시
      닫혀도 나가기 동작 자체는 확실히 보내 다음 판의 상태와 섞이지 않게 한다. */
   await page.evaluate(() => document.querySelector('#acQuit')?.click());
