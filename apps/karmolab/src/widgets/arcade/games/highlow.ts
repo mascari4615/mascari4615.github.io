@@ -80,8 +80,11 @@ export const highlow: GameDef<HighLowState, HighLowAction> = {
     const ok = next === s.card || (a.kind === 'high' ? next > s.card : next < s.card);
 
     if (ok) {
-      /* 맞힐수록 배로. 한 장만 더가 이 놀이의 심장이다. */
-      return { ...s, card: next, shown: next, pot: s.pot === 0 ? 1 : s.pot * 2, last: 1, lastBy: seat };
+      /* 맞힐수록 불어남. 배당은 맞힐 확률의 역수 x 0.96 (카지노 Hi Lo 관례. 2배 고정은 K 위를 맞혀도 7 위와 같았음)
+         같은 수도 맞은 것이라 확률에 넣음. 늘 한 칸은 오르게 */
+      const p = a.kind === 'high' ? (13 - s.card + 1) / 13 : s.card / 13;
+      const grown = Math.max(s.pot + 1, Math.round(s.pot * (0.96 / p)));
+      return { ...s, card: next, shown: next, pot: s.pot === 0 ? 1 : grown, last: 1, lastBy: seat };
     }
 
     /* 틀리면 쌓은 것이 다 날아가고 그 판은 끝. */
