@@ -18,11 +18,23 @@ export const R = 50;
 export const SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 const START = 101;
 const THROWS = 3;
+/** 모드. 101/301/501 은 딱 0 으로, 카운트업은 8라운드 합계 (클럽하우스 51 의 셋, 레퍼런스 2026-09-03) */
+export type DartsMode = 101 | 301 | 501 | 'countup';
+export const modeOf = (opts: { mode?: number | boolean }): DartsMode => {
+  const v = Number(opts.mode);
+  if (v === 301 || v === 501) return v;
+  if (v === 8) return 'countup';
+  return START;
+};
+const COUNTUP_ROUNDS = 8;
 /** 겨눔이 한 바퀴 도는 데 걸리는 시간. 짧을수록 어렵다 */
 const SWING_MS = 1500;
 
 export interface DartsState {
-  /** 자리별 남은 점수 */
+  mode: DartsMode;
+  /** 카운트업이면 지난 라운드 수 (모두 한 차례 던지면 1) */
+  round: number;
+  /** 자리별 남은 점수. 카운트업이면 쌓은 점수 */
   left: number[];
   /** 이번 차례에 몇 번 던졌나 */
   thrown: number;
@@ -68,8 +80,11 @@ export const darts: GameDef<DartsState, DartsAction> = {
   realtime: true,
 
   init(ctx) {
+    const mode = modeOf(ctx.opts);
     return {
-      left: ctx.seats.map(() => START),
+      mode,
+      round: 0,
+      left: ctx.seats.map(() => (mode === 'countup' ? 0 : mode)),
       thrown: 0,
       turn: 0,
       since: ctx.now,
@@ -90,6 +105,20 @@ export const darts: GameDef<DartsState, DartsAction> = {
     const got = scoreAt(at.x, at.y);
     const marks = [...s.marks.slice(-8), { x: at.x, y: at.y, score: got, seat }];
 
+    const seats = ctx.seats.length;
+    if (s.mode === 'countup') {
+      /* 카운트업. 쌓기만. 8라운드 뒤 제일 높은 사람 */
+      const left = s.left.map((v, i) => (i === seat ? v + got : v));
+      const thrown = s.thrown + 1;
+      if (thrown < THROWS) return { ...s, left, marks, thrown, since: ctx.now };
+      const round = seat === seats - 1 ? s.round + 1 : s.round;
+      if (round >= COUNTUP_ROUNDS) {
+        const top = Math.max(...left);
+        return { ...s, left, marks, thrown: 0, round, won: left.indexOf(top) };
+      }
+      return { ...s, left, marks, thrown: 0, round, turn: (seat + 1) % seats, since: ctx.now };
+    }
+
     const rest = s.left[seat] - got;
     /* 넘치면 없던 일. 원래 놀이의 버스트. 딱 0 이어야 이긴다. */
     const left = s.left.map((v, i) => (i === seat ? (rest < 0 ? v : rest) : v));
@@ -98,7 +127,6 @@ export const darts: GameDef<DartsState, DartsAction> = {
     const thrown = s.thrown + 1;
     if (thrown < THROWS) return { ...s, left, marks, thrown, since: ctx.now };
 
-    const seats = ctx.seats.length;
     return { ...s, left, marks, thrown: 0, turn: (seat + 1) % seats, since: ctx.now };
   },
 
@@ -112,8 +140,10 @@ export const darts: GameDef<DartsState, DartsAction> = {
     if (s.won === -1) return { over: false };
     return {
       over: true,
-      scores: ctx.seats.map((_, i) => (i === s.won ? 1 : 0)),
-      note: { key: 'arcade.darts.win', params: { who: ctx.seats[s.won]?.name ?? '' } }
+      scores: s.mode === 'countup' ? s.left : ctx.seats.map((_, i) => (i === s.won ? 1 : 0)),
+      note: s.mode === 'countup'
+        ? { key: 'arcade.darts.winCount', params: { who: ctx.seats[s.won]?.name ?? '', n: String(s.left[s.won]) } }
+        : { key: 'arcade.darts.win', params: { who: ctx.seats[s.won]?.name ?? '' } }
     };
   },
 

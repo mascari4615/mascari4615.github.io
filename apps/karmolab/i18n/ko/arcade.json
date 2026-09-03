@@ -777,5 +777,16 @@
   "arcade.setup.mines.9": "초급 9x9 지뢰 10",
   "arcade.setup.mines.16": "중급 16x16 지뢰 40",
   "arcade.setup.fleet.8": "8x8 배 넷",
-  "arcade.setup.fleet.10": "10x10 배 다섯"
+  "arcade.setup.fleet.10": "10x10 배 다섯",
+  "arcade.setup.mode": "모드",
+  "arcade.setup.darts.101": "101 다운",
+  "arcade.setup.darts.301": "301 다운",
+  "arcade.setup.darts.501": "501 다운",
+  "arcade.setup.darts.countup": "카운트업 8라운드",
+  "arcade.darts.winCount": "{who}. {n}점",
+  "arcade.setup.months": "판 수",
+  "arcade.setup.months.1": "한 판",
+  "arcade.setup.months.3": "3개월",
+  "arcade.setup.months.6": "6개월",
+  "arcade.setup.months.12": "12개월"
 }

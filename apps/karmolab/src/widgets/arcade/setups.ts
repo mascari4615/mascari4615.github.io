@@ -25,6 +25,34 @@ export interface Choice {
 
 /** 놀이마다 고를 것. 없으면 고를 게 없다는 뜻이다 */
 export const SETUPS: Record<string, Choice[]> = {
+  /* 다트 모드. 클럽하우스 51 의 카운트업 8라운드, 301, 501. 우리 기본 101 */
+  darts: [
+    {
+      key: 'mode',
+      label: 'arcade.setup.mode',
+      options: [
+        { value: 101, label: 'arcade.setup.darts.101' },
+        { value: 301, label: 'arcade.setup.darts.301' },
+        { value: 501, label: 'arcade.setup.darts.501' },
+        { value: 8, label: 'arcade.setup.darts.countup' }
+      ],
+      fallback: 101
+    }
+  ],
+  /* 화투 판 수. 코이코이 앱 여섯 중 여섯이 3/6/12개월 */
+  hanafuda: [
+    {
+      key: 'months',
+      label: 'arcade.setup.months',
+      options: [
+        { value: 1, label: 'arcade.setup.months.1' },
+        { value: 3, label: 'arcade.setup.months.3' },
+        { value: 6, label: 'arcade.setup.months.6' },
+        { value: 12, label: 'arcade.setup.months.12' }
+      ],
+      fallback: 1
+    }
+  ],
   /* 보드 셋의 봇 단계. 3단계부터 알파베타 (레퍼런스 2026-09-03: 남들 체커 6~12단계, 점과 상자 4) */
   four: [
     {

@@ -59,6 +59,8 @@ export class Match<S, A> {
   private readonly game: GameDef<S, A>;
   private readonly seed: number;
   private round = 0;
+  /** 이 판의 판 수. 옵션이 정하면 그 값 */
+  private rounds = 1;
   private state: S;
   private finished = false;
   private roundOverAt: number | null = null;
@@ -91,6 +93,7 @@ export class Match<S, A> {
   readonly opts: GameOpts;
 
   constructor(game: GameDef<S, A>, seed: number, seats: SeatSpec[], opts: GameOpts = {}) {
+    this.rounds = Math.max(1, game.roundsOf ? game.roundsOf(opts) : game.rounds);
     this.game = game;
     this.seed = seed;
     this.opts = opts;
@@ -185,7 +188,7 @@ export class Match<S, A> {
   view(): MatchView<S> {
     return {
       round: this.round,
-      rounds: this.game.rounds,
+      rounds: this.rounds,
       state: this.state,
       seats: this.seats,
       finished: this.finished,
@@ -317,7 +320,7 @@ export class Match<S, A> {
     this.roundOverAt = null;
     this.note = undefined;
     this.round++;
-    if (this.round >= this.game.rounds) {
+    if (this.round >= this.rounds) {
       this.finished = true;
       return;
     }

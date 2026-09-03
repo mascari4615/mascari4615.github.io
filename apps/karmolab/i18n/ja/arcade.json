@@ -777,5 +777,16 @@
   "arcade.setup.mines.9": "初級 9x9 地雷10",
   "arcade.setup.mines.16": "中級 16x16 地雷40",
   "arcade.setup.fleet.8": "8x8 船4隻",
-  "arcade.setup.fleet.10": "10x10 船5隻"
+  "arcade.setup.fleet.10": "10x10 船5隻",
+  "arcade.setup.mode": "モード",
+  "arcade.setup.darts.101": "101",
+  "arcade.setup.darts.301": "301",
+  "arcade.setup.darts.501": "501",
+  "arcade.setup.darts.countup": "カウントアップ 8ラウンド",
+  "arcade.darts.winCount": "{who}. {n}点",
+  "arcade.setup.months": "月数",
+  "arcade.setup.months.1": "1回",
+  "arcade.setup.months.3": "3か月",
+  "arcade.setup.months.6": "6か月",
+  "arcade.setup.months.12": "12か月"
 }

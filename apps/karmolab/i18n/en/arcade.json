@@ -777,5 +777,16 @@
   "arcade.setup.mines.9": "Beginner 9x9, 10 mines",
   "arcade.setup.mines.16": "Intermediate 16x16, 40 mines",
   "arcade.setup.fleet.8": "8x8, 4 ships",
-  "arcade.setup.fleet.10": "10x10, 5 ships"
+  "arcade.setup.fleet.10": "10x10, 5 ships",
+  "arcade.setup.mode": "Mode",
+  "arcade.setup.darts.101": "101 down",
+  "arcade.setup.darts.301": "301 down",
+  "arcade.setup.darts.501": "501 down",
+  "arcade.setup.darts.countup": "Count Up, 8 rounds",
+  "arcade.darts.winCount": "{who}. {n} points",
+  "arcade.setup.months": "Rounds",
+  "arcade.setup.months.1": "1 round",
+  "arcade.setup.months.3": "3 months",
+  "arcade.setup.months.6": "6 months",
+  "arcade.setup.months.12": "12 months"
 }

@@ -96,6 +96,8 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
   id: 'hanafuda',
   seats: [2, 4],
   rounds: 1,
+  /* 시작 옵션 months. 1 이면 한 판, 3/6/12 개월이면 판을 이어 점수를 쌓음 (코이코이 앱 여섯 중 여섯, 레퍼런스 2026-09-03) */
+  roundsOf: (opts) => ([3, 6, 12].includes(Number(opts.months)) ? Number(opts.months) : 1),
 
   init(ctx) {
     /* 카드 번호는 달 * 4 + 자리. 자리가 끗수를 정한다 */
@@ -113,7 +115,8 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
       claimed: ctx.seats.map(() => 0),
       koi: ctx.seats.map(() => 0),
       pending: null,
-      turn: 0,
+      /* 판마다 선을 돌림 */
+      turn: ctx.round % ctx.seats.length,
       over: false
     };
   },
@@ -188,8 +191,14 @@ export const hanafuda: GameDef<HanafudaState, HanafudaAction> = {
 
   outcome(s, ctx): Outcome {
     if (!s.over) return { over: false };
-    /* 장수가 아니라 끗수. 광 스무 끗과 피 한 끗이 같은 값이면 고를 것이 없다. 족보 점수는 그 위에 */
-    const scores = s.taken.map((t) => t.reduce((a2, c) => a2 + pointOf(c), 0) + yakuOf(t).reduce((a2, y) => a2 + y.pts, 0));
+    /* 장수가 아니라 끗수. 광 스무 끗과 피 한 끗이 같은 값이면 고를 것이 없다. 족보 점수는 그 위에
+       배수 (코이코이 관례): 족보 7점 이상이면 x2, 코이코이를 부르고 진 사람이 있으면 이긴 쪽 족보 x2 */
+    const koiLost = s.koi.some((n, i) => n > 0 && yakuPoints(s.taken[i]) < Math.max(...s.taken.map((t) => yakuPoints(t))));
+    const scores = s.taken.map((t) => {
+      const yaku = yakuPoints(t);
+      const mult = (yaku >= 7 ? 2 : 1) * (koiLost && yaku === Math.max(...s.taken.map((x) => yakuPoints(x))) ? 2 : 1);
+      return t.reduce((a2, c) => a2 + pointOf(c), 0) + yaku * mult;
+    });
     const top = Math.max(...scores);
     const winners = ctx.seats.filter((_, i) => scores[i] === top);
     return {

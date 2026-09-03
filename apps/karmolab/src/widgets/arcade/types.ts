@@ -94,6 +94,8 @@ export interface GameDef<S, A> {
   seats: [min: number, max: number];
   /** 몇 판을 하나. 보드류처럼 한 판이면 1 */
   rounds: number;
+  /** 시작 옵션으로 판 수가 갈리면 이걸로. 있으면 `rounds` 대신 (코이코이 3/6/12개월) */
+  roundsOf?(opts: GameOpts): number;
   /** 이 게임이 시간을 쓰나. 쓰면 커널이 `tick` 을 계속 불러 준다 */
   realtime?: boolean;
 
