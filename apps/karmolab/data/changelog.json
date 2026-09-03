@@ -1,645 +1,645 @@
 {
-  "generatedAt": "2026-08-24",
+  "generatedAt": "2026-09-04",
   "entries": [
     {
-      "sha": "38ae118073",
-      "date": "2026-08-24",
+      "sha": "0d4b49d322",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블로그 글에 커뮤니티 답글을 붙인다"
+      "text": "글 329편으로 가는 정적 목록 장 /posts/ 를 굽는다"
     },
     {
-      "sha": "3d8cf50bc8",
-      "date": "2026-08-24",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "패, 타일 4종을 공용 종이로 - 판마다 제 카드를 그리던 것 폐기"
-    },
-    {
-      "sha": "e82f19cbdf",
-      "date": "2026-08-24",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "글 장이 커뮤니티 글과 같은 집이 된다. 앱 셸 + 겉모습 SSOT (change.board-unify ②)"
-    },
-    {
-      "sha": "4d0f6a481a",
-      "date": "2026-08-24",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "캔버스 판 4종 재질 - 평평한 한 색 칠하기 폐기"
-    },
-    {
-      "sha": "75b7d6f7f2",
-      "date": "2026-08-24",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "판 놀이 4종을 three 무대로. CSS 원근 층 폐기"
-    },
-    {
-      "sha": "bbd88630b3",
-      "date": "2026-08-24",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "오목 입체 화면을 three 로, 알은 교차점에, 결 무늬는 코드로 굽는다"
-    },
-    {
-      "sha": "97f33d9db7",
-      "date": "2026-08-24",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "글 장이 게시판 안처럼 보인다. 판 프레임, 목록 복귀 (change.board-unify ②)"
-    },
-    {
-      "sha": "3c171c3109",
-      "date": "2026-08-23",
+      "sha": "c227915013",
+      "date": "2026-09-03",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "레인에서 글이 안 열리고 커뮤니티가 죽어 있던 두 가지 (change.board-unify ①)"
+      "text": "시간대 칸이 숫자까지 흐려 대비가 모자랐다. 오락실 검사 둘의 CI 실패도 잡는다"
     },
     {
-      "sha": "797df3c5d7",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "핑퐁도 공용 붓으로. 탁구대, 라켓 그림자, 구슬 공"
-    },
-    {
-      "sha": "22a5023c44",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "캔버스 재질 붓 하나로. 당구, 컬링, 에어하키 (캔버스 계열 2, 3호)"
-    },
-    {
-      "sha": "cfe84128ae",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "비슷한 글. KarmoMeaning 의 두 번째 사용처 (change.motion-3d-cores 5단계)"
-    },
-    {
-      "sha": "92d7820f54",
-      "date": "2026-08-23",
+      "sha": "677d139b1d",
+      "date": "2026-09-03",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "게시판이 흔들리고 안 내려가던 것. 폭 규격, 스크롤 주인, 제목 칸 (change.board-unify ①)"
+      "text": "2D 캔버스 판이 콘텐츠 칸을 다 쓴다. 게이트로 52판을 잰다"
     },
     {
-      "sha": "90202a3fca",
-      "date": "2026-08-23",
+      "sha": "0cce0c2497",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "당구에 재질. 천, 쿠션, 구슬 (캔버스 계열 1호)"
+      "text": "다트 모드 넷과 코이코이 판 수, 배수"
     },
     {
-      "sha": "48d1b7d59e",
-      "date": "2026-08-23",
+      "sha": "2cb616c41c",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "사목, 뒤집기, 체커 봇 단계 다섯"
+    },
+    {
+      "sha": "bbccde35b4",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "시작 화면 옵션 셋. 볼링 프레임, 지뢰 크기, 함대 크기"
+    },
+    {
+      "sha": "af2b445fb8",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "지뢰 3BV 와 효율, 스도쿠 실수 3회"
+    },
+    {
+      "sha": "c4451fe17f",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "지켜보기에 슬롯 추가, 내 알림음, 단축키를 더한다"
+    },
+    {
+      "sha": "061d9dde94",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "낚시에 헛입질과 긴장 단계"
+    },
+    {
+      "sha": "0024d73689",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "조준을 끌기 하나로. 컬링, 볼링, 당구, 투호, 탱크"
+    },
+    {
+      "sha": "b1f2482bca",
+      "date": "2026-09-03",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "주사위 눈이 두부(네모)로 나오던 것. 점으로 그린다 + 하이로우 펠트"
+      "text": "재료 도구 칸이 넓은 표에 밀려 본문 밖으로 나가지 않는다"
     },
     {
-      "sha": "59700d3cab",
-      "date": "2026-08-23",
+      "sha": "f1e63a28b8",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "3D 지형도를 손으로. 합류 (change.motion-3d-cores 4단계)"
+      "text": "지켜보기에 화면 크기별 프로필과 추세 기록 모드를 더한다"
     },
     {
-      "sha": "bb3664f98b",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "블랙잭, 스피드도 펠트 위 공용 카드로 (카드 계열 2, 3호)"
-    },
-    {
-      "sha": "867324a9e8",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "KarmoPose. 손, 폰, 마우스를 한 그릇으로 (change.motion-3d-cores 3단계)"
-    },
-    {
-      "sha": "1a170e2528",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "궤도 카메라, 점 구름 + 지형도 돌려 보기 장 (change.motion-3d-cores 2단계)"
-    },
-    {
-      "sha": "b8a067722d",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "카드 한 벌 부품 + 대부호를 펠트 위로 (카드 계열 1호)"
-    },
-    {
-      "sha": "7481af5cbe",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "입체 판 부품 하나로 판 놀이 4종 3D (오목, 오델로, 체커, 따내기 바둑)"
-    },
-    {
-      "sha": "f45be7d58e",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "표현을 규칙에서 떼어낸다. 2D/3D 를 사람이 고른다 (오목 3D 1호)"
-    },
-    {
-      "sha": "d848e7519e",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "KarmoMeaning. 뜻 재기를 굽기에서 꺼내 재사용 코어로 (change.motion-3d-cores)"
-    },
-    {
-      "sha": "cf4a142cee",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "블로그가 게시판의 한 판이 된다. 글 탭 폐지, 판 목록 합류 (change.board-unify ①)"
-    },
-    {
-      "sha": "f72f0a6ccc",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "무대를 화면 크기에 맞춰 키운다. 넓은 화면 2열 + 오목 화점"
-    },
-    {
-      "sha": "30e405c15c",
-      "date": "2026-08-23",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "무대 어휘 1벌 + 오목 나무판 + 캔버스 세로 상한 + 진열장 이름 상시 (change.arcade-redesign)"
-    },
-    {
-      "sha": "ebd7a92b3d",
-      "date": "2026-08-23",
+      "sha": "6c752f2403",
+      "date": "2026-09-03",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "줄어든 코퍼스에서 자 스스로가 낡은 곳 수선 (change.atlas-sources)"
+      "text": "탱크 포탄 걸음을 틱당 둘로. 한 틱에 떨어지던 것"
     },
     {
-      "sha": "191fa670aa",
-      "date": "2026-08-23",
+      "sha": "86e849e5b2",
+      "date": "2026-09-03",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "하이로우 배당을 맞힐 확률의 역수로"
+    },
+    {
+      "sha": "0df36586f6",
+      "date": "2026-09-03",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "스포츠 넷을 레퍼런스 수치에 맞춘다"
+    },
+    {
+      "sha": "eb3c10d6b0",
+      "date": "2026-09-03",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "스도쿠 유일해와 지뢰 첫 클릭을 고친다"
+    },
+    {
+      "sha": "e1eb0f90e2",
+      "date": "2026-09-03",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "보드 셋의 선공과 윷 확률을 레퍼런스에 맞춘다"
+    },
+    {
+      "sha": "e1a2288ba5",
+      "date": "2026-09-03",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "순발력 셋을 레퍼런스 수치에 맞춘다"
+    },
+    {
+      "sha": "0cb1b434c5",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "지형도 굽기 소스 일반화. 화이트리스트 폐기 (change.atlas-sources)"
+      "text": "손패 판의 카메라가 놓인 것을 재서 담는다"
     },
     {
-      "sha": "f9f0708c64",
-      "date": "2026-08-23",
+      "sha": "2148b37661",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "로비를 카드판에서 오브제 진열장으로 재설계 (change.arcade-redesign)"
+      "text": "지켜보기에 분당 판정 표시와 내구 시험 스크립트를 더한다"
     },
     {
-      "sha": "c038fb444a",
-      "date": "2026-08-23",
+      "sha": "c357c59afd",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "블랙잭 21+3 곁수. 퍼펙트 페어 옆에 둔다"
+    },
+    {
+      "sha": "d2b628a547",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "상황으로 오늘의 판을 고른다"
+    },
+    {
+      "sha": "1a6c4e2995",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "블랙잭에 퍼펙트 페어 곁수를 둔다"
+    },
+    {
+      "sha": "a216424d00",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "대부호 계급 교환. 세 판을 잇고 마지막 한 사람까지 둔다"
+    },
+    {
+      "sha": "c5dbba59f2",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "야추 5단계. 아래 칸을 기회비용으로 고른다"
+    },
+    {
+      "sha": "c10742eaf6",
+      "date": "2026-09-03",
       "kind": "perf",
       "label": "빨라짐",
       "tone": "perf",
-      "text": "verify 헛기동 절반 제거 + test:behavior 병렬화 (change.dev-loop-speedup)"
+      "text": "오목 엔진 증분 평가. 5단계 한 수 104ms 에서 10.6ms"
     },
     {
-      "sha": "d0a73d298e",
-      "date": "2026-08-23",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "대비 훑기 3연속 빨강. 생 체크아웃엔 js/ 산출물이 없어 셸이 안 떴다"
-    },
-    {
-      "sha": "f6c8f23aac",
-      "date": "2026-08-23",
+      "sha": "26cf5e7ec1",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "오락실 전용 스킨 + 카드 단추 버그 수정 (change.arcade-redesign)"
+      "text": "화투 코이코이 결정을 잇는다"
     },
     {
-      "sha": "d669cce2d7",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "방 화면에 보안 한 줄이 빠져 있었다 (audit:csp-meta)"
-    },
-    {
-      "sha": "8f0cffabdb",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "간판 살결의 TASK 번호를 KL-346 으로"
-    },
-    {
-      "sha": "531dcb7855",
-      "date": "2026-08-21",
+      "sha": "38287e46ff",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "배지 껍데기 규격을 정하는 정지 컷 스크립트"
+      "text": "솔리테어 승리 연출을 눈앞에 세운다"
     },
     {
-      "sha": "6ba2402cfb",
-      "date": "2026-08-21",
+      "sha": "7c5d14e537",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "배지 껍데기 규격을 정지 컷으로 확정하고 방에 이식한다"
+      "text": "입체 카드 상의 손맛을 마무리한다"
     },
     {
-      "sha": "1d67a1db35",
-      "date": "2026-08-21",
+      "sha": "ad07b8cbe7",
+      "date": "2026-09-03",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "평면 상의 내 자리 겹침을 없앤다"
+    },
+    {
+      "sha": "23417d2281",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "빛을 구워 어느 기계에서나 같은 방을 그린다"
+      "text": "화투 입체. 마흔여덟 장 약도를 코드로 굽는다"
     },
     {
-      "sha": "825d0b14c3",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "돌아가는 줄에 한 자리만 찍고 안 찍혔다라 하지 않는다"
-    },
-    {
-      "sha": "445eb08188",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "자가 보기 전에 도구 장을 찍는다. shell-i18n 이 다섯 달 만에 실제로 돈다"
-    },
-    {
-      "sha": "56d464e191",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "오타 자가 잡은 것들. 이름 둘을 고치고, 못 고치는 둘은 까닭과 함께 허용한다"
-    },
-    {
-      "sha": "0f7e229b77",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "지형도를 master 환경에 맞춘다. 자 열 개를 초록으로"
-    },
-    {
-      "sha": "7cb56d6878",
-      "date": "2026-08-22",
+      "sha": "bbd907a0a0",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "내 글 지형도를 master 로 들인다"
+      "text": "경마 입체. 방 안 경주로와 실루엣 말"
     },
     {
-      "sha": "fa2206015d",
-      "date": "2026-08-22",
+      "sha": "6bdf2c5bd1",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "/works/ 전시 장 + 앱 글 탭 안 읽기 (change.blog-finish ③⑤)"
+      "text": "등불 잇기와 경매 입체"
     },
     {
-      "sha": "326fba7fd1",
-      "date": "2026-08-22",
+      "sha": "a8e630d35e",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "수식 = 빌드타임 KaTeX, 글 그래프 = 위젯 내장 D3 (change.blog-finish ④②)"
+      "text": "도미노 입체. card-stage 에 타일 메시를 더한다"
     },
     {
-      "sha": "eafb2071ac",
-      "date": "2026-08-22",
+      "sha": "de863d53d3",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "사이트 조립 Jekyll → Node. 이 저장소에서 Ruby 소멸 (change.blog-finish ①)"
+      "text": "거짓말 주사위 입체. 야추의 주사위 무대를 빌린다"
     },
     {
-      "sha": "e3993b59ff",
-      "date": "2026-08-22",
+      "sha": "4ad91e3d39",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블로그 컷오버. Chirpy 철거, 글 = KarmoLab 파이프 (change.blog-cutover)"
+      "text": "지켜보기 숫자 읽기에 여백을 두르고 측정 스크립트를 더한다"
     },
     {
-      "sha": "7315d126e7",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "/posts/ 목록 장에 last_modified_at. 없으면 사이트맵 감사가 배포를 세운다"
-    },
-    {
-      "sha": "1dd9ff9330",
-      "date": "2026-08-22",
+      "sha": "f08c1c24f9",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "커뮤니티 글 탭 + /posts/ 목록 장 + 피드 + 배포 결선"
+      "text": "카드 무늬 고르기. 메뉴의 버튼 하나가 기본, 먹, 밤을 돌린다"
     },
     {
-      "sha": "91a9fde53e",
-      "date": "2026-08-22",
+      "sha": "3694e4af58",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "공용 마크다운 렌더러 + 블로그 글 정적 장 생성기"
+      "text": "경마의 말이 색 네모 대신 달리는 실루엣"
     },
     {
-      "sha": "9b8464169a",
-      "date": "2026-08-22",
+      "sha": "3b4f477684",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "블로그 글 표준 md 변환기. Jekyll 방언을 걷어낸다"
+      "text": "지켜보기에 남은 초 모드와 시험 두 벌을 더한다"
     },
     {
-      "sha": "db2d0860d3",
-      "date": "2026-08-22",
+      "sha": "621ee16dbf",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "도구 장 147장이 하던 같은 약속을 도구별 사실로 바꾼다"
+      "text": "화투 족보. 광, 열끗, 띠, 피가 끗수 위에 점수를 얹는다"
     },
     {
-      "sha": "6074e2ee0a",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "붙박이 포트 하나가 남아 검사가 남의 서버를 읽었다 + TASK 번호 KL-348 → KL-349"
-    },
-    {
-      "sha": "904bdf0c6a",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "도구 명부가 두 벌이라 문 없는 도구가 샜다. 그물을 명부 기준으로"
-    },
-    {
-      "sha": "6e7922bd2d",
-      "date": "2026-08-22",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "통합 패널이 번역 묶음을 직접 연다"
-    },
-    {
-      "sha": "b5db82ecea",
-      "date": "2026-08-22",
+      "sha": "bcfaa0cbae",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "AI 환경과 운영 도구를 한곳에 합친다"
+      "text": "판이 끝나면 취향 지문을 남기고 닮은 사람을 보여 준다"
     },
     {
-      "sha": "5cf4486786",
-      "date": "2026-08-22",
+      "sha": "b27f4a58cc",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "채팅을 헤더로 올린다. 왼쪽 아래에서 화면을 가리던 것을 없앴다"
+      "text": "블랙잭 지난 판돈 다시 걸기"
     },
     {
-      "sha": "e5d574a15d",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "5xx 를 링크가 죽었다로 셌다. 상대가 아픈 것이다"
-    },
-    {
-      "sha": "b0fa19700c",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "영토 글의 관련 링크가 장 없는 도구를 가리켰다"
-    },
-    {
-      "sha": "15809bb75e",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "지도 깜빡임의 뿌리 둘을 고친다. 미리 받기 + 스며들기"
-    },
-    {
-      "sha": "4ff247998a",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "지도에 밑바탕 한 겹을 깐다. 어디서든 칸이 비지 않게"
-    },
-    {
-      "sha": "8ae09c6921",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "전체화면 단추가 두부 네모로 떴고, 축소 때 가장자리가 비었다"
-    },
-    {
-      "sha": "eefef66572",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "축소할 때도 깜빡였다. 아랫 층으로 메운다"
-    },
-    {
-      "sha": "c82f423118",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "확대할 때 지도가 깜빡였다. 안 온 칸을 윗 층으로 메운다"
-    },
-    {
-      "sha": "ac6e77b0ac",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "지도가 화면의 절반 속도로만 그려졌다. 30fps → 55fps"
-    },
-    {
-      "sha": "0b76b7046a",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "영토 글을 넣고 en/ja 를 안 넣었다. 빠진 번역 15줄 채움"
-    },
-    {
-      "sha": "6c6915c444",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "지도 자판 조작이 뚝뚝 끊겼다. 누른 동안 미끄러지게"
-    },
-    {
-      "sha": "1b3f711e43",
-      "date": "2026-08-21",
+      "sha": "40f18d0036",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "영토 도구의 상세 페이지 글, 공유 카드, 자리 높이를 채운다"
+      "text": "솔리테어 이김 연출. 쌓은 카드가 차례로 뛰며 한 바퀴 돈다"
     },
     {
-      "sha": "2193f6ed48",
-      "date": "2026-08-21",
+      "sha": "e00fb4f3d0",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "영토 지도를 자판으로도 움직인다"
+      "text": "내 PC 올리기를 Files 화면으로 옮기고 노트북 문을 새 주소로 돌린다"
     },
     {
-      "sha": "0b10a8e732",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "붙박이 자리 번호를 쓰던 검사 넷. 남의 서버를 보고 거짓 빨강을 냈다"
-    },
-    {
-      "sha": "5390e7d515",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "접근성, 대비 검사가 문제 0건을 아무것도 안 보고도 말할 수 있었다"
-    },
-    {
-      "sha": "ba4154ad87",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "셸 다국어 검사가 남의 서버에 물어보고 정상이라 답해 왔다"
-    },
-    {
-      "sha": "437152592e",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "장이 404 여도 한글 0개 = 정상이라 답하던 검사에 바닥을 넣는다"
-    },
-    {
-      "sha": "681d7a0299",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "묶음 정합 검사가 0개를 재고 초록이었다. 14개, 부분 134개를 실제로 잰다"
-    },
-    {
-      "sha": "667e167675",
-      "date": "2026-08-21",
+      "sha": "3b3fcf922e",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "오늘의 월드컵. 하루에 하나, 모두 같은 판"
+      "text": "오락실 판마다 정적 장. 화면 글자 0, 머리 메타만"
     },
     {
-      "sha": "8ace420fad",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "첫 화면 미리 그리기 검사가 깔 것이 없어 배포 말고는 한 번도 안 돌았다"
-    },
-    {
-      "sha": "9eab5d2292",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "재료 껍데기 검사가 옛 키를 봐서 통째로 안 돌고 있었다"
-    },
-    {
-      "sha": "4bbc2412d5",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "타자 대결 자리를 큰 쪽으로 잠근다. 판마다 문장이 달라 34px 갈렸다"
-    },
-    {
-      "sha": "5a6ee9f2b1",
-      "date": "2026-08-21",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "머리띠 언어 단추 글씨가 폰 가독 바닥 아래였다 (11px → 12px)"
-    },
-    {
-      "sha": "30c5145df5",
-      "date": "2026-08-21",
+      "sha": "69cc3b8a85",
+      "date": "2026-09-03",
       "kind": "feat",
       "label": "새로 생김",
       "tone": "new",
-      "text": "즐겨찾기 덱 자리를 자판으로도 바꾼다 (Ctrl/⌘ + 화살표, Home, End)"
+      "text": "Files 로 가는 길을 웹과 폰에도 연다"
     },
     {
-      "sha": "ac3d939d0a",
-      "date": "2026-08-21",
+      "sha": "f883e79839",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "거짓말 주사위, 경매, 경마, 등불잇기가 2D 공용 상을 탄다"
+    },
+    {
+      "sha": "5efa054e31",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "하이로우와 짝맞추기는 2D 상과 입체 둘 다, 도미노와 화투는 2D 상"
+    },
+    {
+      "sha": "8e240001a3",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "스피드가 2D 공용 상과 입체 방을 탄다"
+    },
+    {
+      "sha": "2aadce4442",
+      "date": "2026-09-03",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "대부호 입체. 2D 상에도 방과 같은 우상단 메뉴 하나"
+    },
+    {
+      "sha": "dc49728e84",
+      "date": "2026-09-02",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "2D 공용 상. 대부호가 첫 판으로 탄다"
+    },
+    {
+      "sha": "17e5198507",
+      "date": "2026-09-02",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "로또 장을 고치고 언제 바뀌었나 기록을 안 담았다"
+      "text": "괄호 하나가 빠져 뒤따르는 CSS 217줄이 죽어 있던 것"
     },
     {
-      "sha": "6a4ab80d35",
-      "date": "2026-08-21",
+      "sha": "74ab187bd1",
+      "date": "2026-09-02",
       "kind": "fix",
       "label": "고침",
       "tone": "fix",
-      "text": "기준선 셋이 통째로 안 읽혀, 죄 없는 파일 11개가 새로 늘었다로 세어졌다"
+      "text": "등급전 계약과 Yacht 시간 제한을 잇는다"
+    },
+    {
+      "sha": "df7cb0aa16",
+      "date": "2026-09-02",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "등급전 한 수 제한과 임시 경계를 서버 규칙이 내려준다"
+    },
+    {
+      "sha": "53c47b17a6",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "지켜보기 입력칸 여섯에 화면낭독기 이름을 붙인다"
+    },
+    {
+      "sha": "c1ac36573e",
+      "date": "2026-09-02",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "영상 도구에 화면 영역 지켜보기를 더한다"
+    },
+    {
+      "sha": "5fb411e120",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "close arcade lifecycle leaks"
+    },
+    {
+      "sha": "934b4d0e00",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "오락실 몫 게이트 빨강 넷을 닫는다"
+    },
+    {
+      "sha": "3cc763dedd",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "나가기가 판을 다 내려놓는다. 자리 카드는 바뀐 것만 다시 그린다"
+    },
+    {
+      "sha": "b25e2e1441",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "화면이 규칙을 다시 재지 않는다. 스도쿠 셔플은 공용으로"
+    },
+    {
+      "sha": "5f5c856f81",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "커밋 타입검사의 로컬 의존 경로를 바로잡는다"
+    },
+    {
+      "sha": "c39dda0b50",
+      "date": "2026-09-02",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "야추 공동 순위와 숨은 MMR 분리"
+    },
+    {
+      "sha": "5cd5feb94b",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "도구 전수 접근성 훑기. 어긴 자리 37 -> 12"
+    },
+    {
+      "sha": "5af42eb3b8",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "입체 카드가 뿌옇던 넷. 다이아는 이모지였다"
+    },
+    {
+      "sha": "d63553b8e5",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "지도 검사 넷이 성한 지도에서도 빨갛던 것. WCAG 조항 둘 추가"
+    },
+    {
+      "sha": "4beb9d0314",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "카드를 상에 눕히고 크기와 자리 간격을 다시 잡는다"
+    },
+    {
+      "sha": "950512d8fa",
+      "date": "2026-09-02",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "카드를 정면으로 세우고 키운다. 실제 게임 실측대로"
+    },
+    {
+      "sha": "a503121c87",
+      "date": "2026-09-02",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "솔리테어 구도. 평면은 칸을 다 쓰고 입체는 놀이 자리를 담는다"
+    },
+    {
+      "sha": "5ba178bb18",
+      "date": "2026-09-01",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "솔리테어를 판으로 완성. 두 번 누르기, 자동 마무리, 뽑기 고르기, 시계"
+    },
+    {
+      "sha": "82e5be618d",
+      "date": "2026-09-01",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "axe 가 못 보는 WCAG 2.2 넷을 재는 게이트. 실제 위반 다섯 고침"
+    },
+    {
+      "sha": "fe6183a595",
+      "date": "2026-09-01",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "계약 미달 목록을 파일에서 뽑는다"
+    },
+    {
+      "sha": "ec126ad289",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "판을 다 쓴 뒤 안 눌리던 버튼줄. 무르기가 돌아왔다"
+    },
+    {
+      "sha": "23d85fd755",
+      "date": "2026-09-01",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "블랙잭 상 데포르메 0.55 와 내림각 62도. 상은 화면 밖으로 흘린다"
+    },
+    {
+      "sha": "29727dda92",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "솔리테어 입체 열 겹침을 레퍼런스 값으로"
+    },
+    {
+      "sha": "8825b3419d",
+      "date": "2026-09-01",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "왜 이 점수인지 화면이 말한다. 조작이 막히는 것도 사람 없이 잰다"
+    },
+    {
+      "sha": "bd93786dd8",
+      "date": "2026-09-01",
+      "kind": "feat",
+      "label": "새로 생김",
+      "tone": "new",
+      "text": "unify AI agent runtime paths"
+    },
+    {
+      "sha": "8381890809",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "지도 검사가 없는 연장의 404 를 사고로 세고 있었다"
+    },
+    {
+      "sha": "44cb4b3a80",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "솔리테어 입체를 평면과 나란히. 되돌리기는 무제한"
+    },
+    {
+      "sha": "14f819d797",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "한 번도 안 돌던 검사를 돌리니 경계 부호가 어긋나 있었다"
+    },
+    {
+      "sha": "defb926ca0",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "블랙잭 상을 레퍼런스 수치로. 반타원을 진짜 반원으로"
     }
   ]
 }
