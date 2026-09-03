@@ -112,7 +112,8 @@ export const tanks: GameDef<TanksState, TanksAction> = {
     let turn = s.turn;
     let wind = s.wind;
 
-    for (let n = 0; n < 8 && sh; n++) {
+    /* 틱(16ms)당 두 걸음. 여덟 걸음이면 포탄이 한 틱 안에 떨어져 날아가는 것을 못 봄 (실측 2026-09-03) */
+    for (let n = 0; n < 2 && sh; n++) {
       sh.vx += s.wind * 0.004;
       sh.x += sh.vx;
       sh.y += sh.vy;
