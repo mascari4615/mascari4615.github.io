@@ -30,9 +30,12 @@ export interface CaptureHandle {
 
 export interface CaptureOptions {
   frameRate?: number;
+  /** 화면 소리(탭, 시스템)도 받을지. 녹화 도구용 */
+  audio?: boolean;
   /** 워커 시계 간격(ms). 프로세서가 없는 브라우저에서만 */
   tickMs?: number;
-  onFrame(frame: CaptureFrame): void;
+  /** 프레임이 필요 없으면(녹화만) 생략. 그러면 스트림만 넘기고 프레임 루프는 안 돈다 */
+  onFrame?(frame: CaptureFrame): void;
   onEnded?(): void;
 }
 
@@ -47,7 +50,7 @@ export async function startDisplayCapture(o: CaptureOptions): Promise<CaptureHan
   if (!displayCaptureSupported()) return null;
   let stream: MediaStream;
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: o.frameRate ?? 10 }, audio: false });
+    stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: o.frameRate ?? 10 }, audio: !!o.audio });
   } catch {
     return null;
   }
@@ -68,6 +71,9 @@ export async function startDisplayCapture(o: CaptureOptions): Promise<CaptureHan
     o.onEnded?.();
   });
 
+  const onFrame = o.onFrame;
+  if (!onFrame) return { stream, stop };
+
   const Proc = (window as unknown as { MediaStreamTrackProcessor?: new (x: { track: MediaStreamTrack }) => TrackProcessorLike }).MediaStreamTrackProcessor;
   if (Proc) {
     const reader = new Proc({ track }).readable.getReader();
@@ -79,7 +85,7 @@ export async function startDisplayCapture(o: CaptureOptions): Promise<CaptureHan
         const { value, done } = await reader.read();
         if (done || !value) break;
         try {
-          o.onFrame({ draw: (ctx) => ctx.drawImage(value as unknown as CanvasImageSource, 0, 0), width: value.displayWidth, height: value.displayHeight });
+          onFrame({ draw: (ctx) => ctx.drawImage(value as unknown as CanvasImageSource, 0, 0), width: value.displayWidth, height: value.displayHeight });
         } finally {
           value.close();
         }
@@ -97,7 +103,7 @@ export async function startDisplayCapture(o: CaptureOptions): Promise<CaptureHan
   const worker = new Worker(URL.createObjectURL(new Blob([`setInterval(() => postMessage(0), ${tick});`], { type: 'text/javascript' })));
   worker.onmessage = (): void => {
     if (!alive || !v.videoWidth) return;
-    o.onFrame({ draw: (ctx) => ctx.drawImage(v, 0, 0), width: v.videoWidth, height: v.videoHeight });
+    onFrame({ draw: (ctx) => ctx.drawImage(v, 0, 0), width: v.videoWidth, height: v.videoHeight });
   };
   stopFrames = (): void => {
     worker.terminate();

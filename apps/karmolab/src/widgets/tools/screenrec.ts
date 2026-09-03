@@ -15,6 +15,7 @@ import { statusLine } from './shared/say';
 import { t, loadNamespace } from '../../lib/i18n';
 import { attachMedia } from './shared/media';
 import { intervalWhileVisible } from '../../lib/tick';
+import { startDisplayCapture, displayCaptureSupported, type CaptureHandle } from './shared/screen-capture';
 
 (function (): void {
 
@@ -75,6 +76,8 @@ import { intervalWhileVisible } from '../../lib/tick';
           let recorder: MediaRecorder | null = null;
           let made: Blob | null = null;
           let tracks: MediaStreamTrack[] = [];
+          /* 화면 공유는 공용 부품이 연다. 지켜보기와 같은 길 */
+          let capture: CaptureHandle | null = null;
           /** 녹화 시계를 멈추는 함수 (`lib/tick`). 보이는 동안만 돈다. */
           let stopTicker: (() => void) | null = null;
           let startedAt = 0;
@@ -85,6 +88,8 @@ import { intervalWhileVisible } from '../../lib/tick';
 
           function cleanup(): void {
             stopTicker?.();
+            capture?.stop();
+            capture = null;
             tracks.forEach((t) => t.stop());
             tracks = [];
             startBtn.disabled = false;
@@ -92,7 +97,7 @@ import { intervalWhileVisible } from '../../lib/tick';
           }
 
           async function start(): Promise<void> {
-            if (!navigator.mediaDevices?.getDisplayMedia) {
+            if (!displayCaptureSupported()) {
               say(t('screenrec.err.unsupported'), 'error');
               return;
             }
@@ -100,18 +105,15 @@ import { intervalWhileVisible } from '../../lib/tick';
             saveBtn.disabled = true;
             $<HTMLElement>('#srResult').style.display = 'none';
 
-            let screen: MediaStream;
-            try {
-              screen = await navigator.mediaDevices.getDisplayMedia({
-                video: { frameRate: 30 },
-                audio: $<HTMLInputElement>('#srSysAudio').checked
-              });
-            } catch {
+            /* 브라우저 자체의 공유 중지로 끝낼 수도 있다. 그 경우도 똑같이 마무리 */
+            capture = await startDisplayCapture({ frameRate: 30, audio: $<HTMLInputElement>('#srSysAudio').checked, onEnded: () => stop() });
+            if (!capture) {
               // 사용자가 창 고르기를 취소한 경우. 잘못이 아니므로 조용히 되돌린다
               say(t('screenrec.err.notStarted'));
               return;
             }
-            tracks = screen.getTracks();
+            const screen = capture.stream;
+            tracks = screen.getAudioTracks();
 
             const out = new MediaStream(screen.getVideoTracks());
             const audioIn: MediaStreamAudioSourceNode[] = [];
@@ -144,9 +146,6 @@ import { intervalWhileVisible } from '../../lib/tick';
             const finished = new Promise<Blob>((resolve) => {
               (recorder as MediaRecorder).onstop = () => resolve(new Blob(chunks, { type: mimeType || 'video/webm' }));
             });
-
-            // 브라우저 자체의 공유 중지로 끝낼 수도 있다. 그 경우도 똑같이 마무리해야 한다
-            screen.getVideoTracks()[0].addEventListener('ended', () => stop());
 
             recorder.start(500);
             startedAt = performance.now();
