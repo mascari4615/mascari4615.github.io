@@ -67,6 +67,17 @@ await page
   }, undefined, { timeout: 30000 })
   .catch(() => problems.push('서비스 워커가 껍데기를 안 담았다. 이 검사는 여기서부터 의미가 없다'));
 
+/* 끊기 **전에** 워커 상태를 찍어 둔다. 끊긴 뒤 죽은 창에서는 못 읽는다 (2026-09-04 CI 에서
+   실패 줄이 못 읽음만 남았다). 파일이 있나까지 같이 본다. 못 구운 것과 못 받은 것은 다르다 */
+const swFile = fs.existsSync(path.join(ROOT, 'sw.js')) ? 'sw.js 있음' : 'sw.js 없음';
+const before = await page.evaluate(async () => {
+  const regs = await navigator.serviceWorker?.getRegistrations?.() ?? [];
+  const keys = await caches.keys();
+  const mine = keys.find((k) => k.startsWith('karmolab-'));
+  const cached = mine ? (await (await caches.open(mine)).keys()).length : 0;
+  return `등록 ${regs.length} 범위 ${regs.map((r) => r.scope).join('|')} 제어 ${!!navigator.serviceWorker?.controller} 상태 ${regs[0]?.active?.state ?? '없음'} 캐시 ${mine ?? '없음'} 담긴 것 ${cached}`;
+}).catch((e) => `못 읽음 ${String(e.message || e).slice(0, 40)}`);
+
 if (!problems.length) {
   await context.setOffline(true);
 
@@ -86,7 +97,7 @@ if (!problems.length) {
       const keys = await caches.keys();
       return `등록 ${regs.length} 제어 ${!!navigator.serviceWorker?.controller} 캐시 ${keys.join(',') || '없음'}`;
     }).catch(() => '못 읽음');
-    problems.push(`끊긴 상태에서 첫 화면이 안 열린다 (${homeWhy} :: ${sw})`);
+    problems.push(`끊긴 상태에서 첫 화면이 안 열린다 (${homeWhy.slice(0, 45)} :: 끊기 전 ${before} :: ${swFile} :: 끊은 뒤 ${sw})`);
   }
   else if (!(await page.locator('#tool-pages').count())) problems.push('첫 화면은 왔는데 앱이 안 그려졌다');
 
