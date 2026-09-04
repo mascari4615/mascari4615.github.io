@@ -167,7 +167,9 @@ for (const [name, url] of RUN) {
       if (before === after) {
         const tag = el.tagName.toLowerCase();
         const cls = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean).slice(0, 2).join('.');
-        seen.push(tag + (cls ? '.' + cls : '') + (el.id ? '#' + el.id : ''));
+        /* 클래스도 id 도 없는 버튼이 있다. 그때는 무엇을 하는 버튼인지가 유일한 실마리 */
+        const act = el.getAttribute('data-act') || el.getAttribute('data-tool') || '';
+        seen.push(tag + (cls ? '.' + cls : '') + (el.id ? '#' + el.id : '') + (act ? `[${act}]` : ''));
       }
     }
     return { total: list.length, bad: seen, skipped };

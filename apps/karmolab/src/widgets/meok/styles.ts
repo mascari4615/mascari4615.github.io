@@ -46,7 +46,8 @@ export function injectStyles(): void {
     '.meok-tools input[type=color]{width:100%;height:30px;padding:0;border:1px solid var(--border);border-radius:var(--radius-md);background:none}',
     '.meok-palette{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}',
     '.meok-swatch{aspect-ratio:1;padding:0;border-radius:var(--radius-sm)}',
-    '.meok-mini{font-size:var(--font-size-4xs)!important;padding:5px 4px!important;line-height:1.25;white-space:normal}',
+    /* 누를 곳은 24x24 이상 (WCAG 2.2 2.5.8). 높이가 23px 이었다 */
+    '.meok-mini{font-size:var(--font-size-4xs)!important;padding:5px 4px!important;line-height:1.25;white-space:normal;min-height:24px}',
     '.meok-presets{display:flex;flex-direction:column;gap:3px;margin-bottom:4px}',
     '.meok-presets button{font-size:var(--font-size-4xs);padding:4px 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     '.meok-stage{display:flex;flex-direction:column;min-width:0;min-height:0}',
@@ -101,7 +102,9 @@ export function injectStyles(): void {
     '.meok-layer canvas{width:34px;height:34px;background:#fff;border-radius:var(--radius-sm);image-rendering:pixelated}',
     '.meok-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     '.meok-maskmark{color:var(--accent);font-weight:400}',
-    '.meok-eye,.meok-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:var(--font-size-4xs);color:var(--text-tertiary);opacity:.8}',
+    '.meok-eye,.meok-lock{padding:2px 3px!important;border-color:transparent!important;background:none!important;font-size:var(--font-size-4xs);color:var(--text-tertiary);opacity:.8;min-width:24px;min-height:24px}',
+    /* 밟았을 때 그림이 달라져야 한다 (2.4.11). 이 셋은 표시가 없었다 */
+    '.meok-bar button:focus,.meok-tools button:focus,.meok-layers button:focus,.meok-bar button:focus-visible,.meok-tools button:focus-visible,.meok-layers button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}',
     '@media(max-width:860px){.meok-body{grid-template-columns:60px minmax(0,1fr)}.meok-layers{grid-column:1/-1;border-left:0;border-top:1px solid var(--border);max-height:210px}.meok{height:auto}}'
   ].join('');
   document.head.append(style);
