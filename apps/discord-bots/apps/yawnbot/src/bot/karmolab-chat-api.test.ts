@@ -44,17 +44,19 @@ beforeEach(async () => {
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
   let port = 0;
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    const candidate = 20000 + Math.floor(Math.random() * 20000);
-    if (UNSAFE.has(candidate)) continue;
+    /* 포트 0 은 커널이 빈 자리 배정. 무작위로 찍고 부딪히기보다 안 짐
+       (karmolab-api 시험이 CI 에서 자리를 못 잡아 `:0` 두드리다 죽음. 2026-09-04) */
     const ok = await new Promise<boolean>((resolve) => {
-      server = app.listen(candidate, '127.0.0.1', () => resolve(true));
+      server = app.listen(0, '127.0.0.1', () => resolve(true));
       server.once('error', () => resolve(false));
     });
-    if (ok) {
-      port = candidate;
-      break;
-    }
+    const got = ok ? (server.address() as { port: number } | null)?.port ?? 0 : 0;
+    if (!ok) { try { server.close(); } catch { /* 아직 안 열림 */ } continue; }
+    if (UNSAFE.has(got)) { await new Promise<void>((r) => server.close(() => r())); continue; }
+    port = got;
+    break;
   }
+  if (!port) throw new Error('시험 서버가 자리를 못 잡았다 (스무 번 시도)');
   baseUrl = `http://127.0.0.1:${port}`;
 });
 

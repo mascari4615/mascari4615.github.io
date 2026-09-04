@@ -41,12 +41,23 @@ beforeEach(async () => {
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
   let port = 0;
   for (let attempt = 0; attempt < 20; attempt += 1) {
-    const candidate = 20000 + Math.floor(Math.random() * 20000);
-    if (UNSAFE.has(candidate)) continue;
+    /* 포트 0 은 커널이 빈 자리 배정. 무작위로 찍고 부딪히기보다 안 짐
+       CI 에서 스무 번을 다 지면 `port` 0 인 채로 `http://127.0.0.1:0` 두드림
+       7ms 만에 fetch failed. 코드가 아니라 자리 잡기가 진 것 (2026-09-04 실측) */
     const ok = await new Promise<boolean>((resolve) => {
-      server = app.listen(candidate, '127.0.0.1', () => resolve(true));
+      server = app.listen(0, '127.0.0.1', () => resolve(true));
       server.once('error', () => resolve(false));
     });
+    const got = ok ? (server.address() as { port: number } | null)?.port ?? 0 : 0;
+    if (ok && UNSAFE.has(got)) {
+      await new Promise<void>((r) => server.close(() => r()));
+      continue;
+    }
+    if (!ok) {
+      /* 진 서버를 안 닫으면 다음 판까지 살아 남아 자리 차지 */
+      try { server.close(); } catch { /* 아직 안 열림 */ }
+      continue;
+    }
     if (ok) {
       /* ★ **서버가 놀고 있는 연결을 먼저 끊으면 시험이 헛빨개진다** (2026-08-17 실측).
          노드는 기본으로 5초 논 연결을 닫는데, `fetch`(undici)는 그 연결을 아직 쓸 수 있다고
@@ -55,10 +66,13 @@ beforeEach(async () => {
          (실제로 그렇게 한 판 섰다: karmolab-api.test.ts:1382).
          시험 서버는 놀아도 안 끊는다. 어차피 시험 하나가 끝나면 통째로 닫는다. */
       server.keepAliveTimeout = 0;
-      port = candidate;
+      port = got;
       break;
     }
   }
+  /* 자리를 못 잡았으면 **소리 내어 죽기**. 0 을 그대로 쓰면 검사 하나가 fetch failed 로
+     죽으면서 진짜 까닭이 아무 데도 안 남음 */
+  if (!port) throw new Error('시험 서버가 자리를 못 잡았다 (스무 번 시도)');
   baseUrl = `http://127.0.0.1:${port}`;
 });
 
