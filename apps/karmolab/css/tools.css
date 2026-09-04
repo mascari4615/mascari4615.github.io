@@ -251,6 +251,17 @@
     overflow-y: auto;
 }
 .tool-list:empty { display: none; }
+/* ★ **첫 그림부터 채우는 목록에는 자리를 미리 준다** (2026-09-04 실측).
+   `#loCompare` 는 빈 채로 그려졌다가 위젯 js 가 와서 채운다. 그 순간 아래가 통째로 밀려
+   도구 장 밀림(CLS)의 제일 큰 몫이었다 (0.023, 예산 0.1 인데 판 전체가 0.106~0.120).
+   위 `.cc-stats-early` 와 같은 방식이다. **재서 붙여라. 짐작 금지.**
+   재는 법: 도구 장을 열고 3초 뒤 그 목록의 높이를 본다. 0 이면 붙이지 마라 (빈 칸이 영영 남는다).
+   실측 (대출): 넓은 화면 112px, 640px 이하 192px */
+.tool-list-early { min-height: 112px; }
+.tool-list-early:empty { display: flex; }
+@media (max-width: 640px) {
+    .tool-list-early { min-height: 192px; }
+}
 .tool-list-row {
     display: flex;
     align-items: center;

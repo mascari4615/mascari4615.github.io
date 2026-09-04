@@ -39,21 +39,26 @@ const blogRoot = path.dirname(root);
  *   후보지만 셸 부팅이 그 이름을 이미 붙들고 있어 한 사람이 안전하게 못 뗀다 . 
  *   그 자리는 셸을 가진 슬롯 몫이다(TASK-KL-128 ⑲).
  *   그래서 숫자를 진실대로 두고 1KB 올린다. **다음에 올리려는 사람은 계정부터 떼라.**
- *, 2026-09-04 첫 화면 JS 41 → 45, 도구 화면과 목록 JS 23 → 26, CSS 68 → 69.
- *   CI 실측 첫 화면 44.2, 도구 화면 25.2 / CSS 68.7
+ *, 2026-09-04 첫 화면 JS 41 → 45, 도구 화면과 목록 JS 23 → 26.
+ *   CI 실측 첫 화면 44.2, 도구 화면 25.2
  *   계정은 이미 떼임. 부팅 태그에 없음
  *   커진 자리는 셸 본체. `toolbox.js` 18.2 → 21.5 (2026-09-01 킷, 스킨, WCAG)
  *   나머지는 도구 증가에 딸린 목록. `widgets-index.js` 설계 5.0 → 6.8
  *   팔레트 8.8 은 첫 화면 본체라 못 뗌. 셸 쪼개기는 셸을 가진 판 몫
+ *   `toolbox.js` 는 3,151줄 한 장인데 **묶지 않고 내보내는** 파일이라(build.mjs `bundle: false`)
+ *   가르려면 전역을 나눠 쓰는 규약부터 바꿔야 한다. 한 세션이 안전하게 못 함
  *   **다음에 올리려는 사람은 `toolbox.js` 부터 쪼개라.**
+ *, 2026-09-04 CSS 68 → 69 로 올렸던 것을 **되돌린다**. 안 받는 것을 세고 있었다.
+ *   `<noscript>` 안까지 세는 바람에 도구 화면이 68.7KB 로 잡혔는데, 자바스크립트가 켜진 판에서
+ *   실제로 첫 그림을 붙잡는 것은 41.4KB. 세는 자리를 고쳤으니 천장은 68 그대로
  *
  * 천장(gz, KB). 2026-08-08 KL-128 ①-c/⑱ 직후 실측값 + 여유 10%.
  * 실측: 첫 화면 JS 35.1 / CSS 47.3, 도구 화면, 목록 JS 18.7 / CSS 62.1.
  * 첫 화면 JS 가 큰 것은 **맞다**. 팔레트가 그 화면의 본체라 미룰 수 없다(도구 화면에선 뺐다). */
 const BUDGET = {
   '앱 첫 화면': { file: path.join(root, 'index.html'), js: 45, css: 52 },
-  '도구 화면': { file: path.join(blogRoot, 'blog/t/loan/index.html'), js: 26, css: 69 },
-  '도구 목록': { file: path.join(blogRoot, 'blog/t/index.html'), js: 26, css: 69 }
+  '도구 화면': { file: path.join(blogRoot, 'blog/t/loan/index.html'), js: 26, css: 68 },
+  '도구 목록': { file: path.join(blogRoot, 'blog/t/index.html'), js: 26, css: 68 }
 };
 
 const gz = (p) => {
@@ -80,7 +85,13 @@ for (const [label, spec] of Object.entries(BUDGET)) {
     rows.push(`  ${label.padEnd(10)} 건너뜀 (찍힌 화면이 없다)`);
     continue;
   }
-  const html = fs.readFileSync(spec.file, 'utf8');
+  const raw = fs.readFileSync(spec.file, 'utf8');
+
+  /* ★ **`<noscript>` 안은 세지 않는다** (2026-09-04). 자바스크립트가 꺼진 판에서만 쓰는 대비책이라
+     보통 사람은 한 번도 안 받는다. 그런데 여기서 세고 있었다. 도구 화면은 `tools.css` 를 두 번
+     (한 번은 noscript), 거기에 `randomgen.css` 와 `lotto.css` 까지 얹어 68.7KB 로 잡혔다.
+     실제로 첫 그림을 붙잡는 것은 41.5KB 다. 안 받는 것을 세면 천장이 거짓말을 한다 */
+  const html = raw.replace(/<noscript>[\s\S]*?<\/noscript>/g, '');
 
   /* `media="print"` 로 걸린 스타일은 첫 그림을 안 막는다. 세지 않는다. */
   const cssUrls = [...html.matchAll(/<link[^>]*rel="stylesheet"[^>]*>/g)]

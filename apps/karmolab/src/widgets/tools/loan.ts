@@ -92,7 +92,7 @@ import { download } from './shared/image';
             </div>
 
             <div class="cc-stats cc-stats-early" id="loStats"></div>
-            <div class="tool-list" id="loCompare"></div>
+            <div class="tool-list tool-list-early" id="loCompare"></div>
 
             <div class="field-row" style="margin:16px 0 6px;">
               <div class="tool-sublabel" id="loTableHead" style="margin:0;">${esc(t('loan.table.head'))}</div>

@@ -10,7 +10,98 @@ permalink: /changes.xml
     <atom:link href="https://blog.mascari4615.com/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
-    <lastBuildDate>Thu, 03 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 04 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <item>
+      <title>[고침] 달력과 챗봇과 정규식 도구의 접근성 빚을 갚는다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-8293bd1082</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>달력과 챗봇과 정규식 도구의 접근성 빚을 갚는다</description>
+    </item>
+    <item>
+      <title>[고침] 채팅이 열렸나는 창으로 재고, 두 번째 창의 이름표도 기다린다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-6318152c38</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>채팅이 열렸나는 창으로 재고, 두 번째 창의 이름표도 기다린다</description>
+    </item>
+    <item>
+      <title>[고침] 워커가 안 붙은 판은 못 돌림으로, 대부호는 카드를 돌아가며 찍는다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-0b6b5cbfe4</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>워커가 안 붙은 판은 못 돌림으로, 대부호는 카드를 돌아가며 찍는다</description>
+    </item>
+    <item>
+      <title>[고침] 암호 도구 활성 버튼 대비를 고치고 접근성 검사를 골라 돌 수 있게 한다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-5e5c81e1f6</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>암호 도구 활성 버튼 대비를 고치고 접근성 검사를 골라 돌 수 있게 한다</description>
+    </item>
+    <item>
+      <title>[고침] 이름 없는 입력칸에 이름표를 붙이고 제목 순서를 바로잡는다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-f4e15afc5e</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>이름 없는 입력칸에 이름표를 붙이고 제목 순서를 바로잡는다</description>
+    </item>
+    <item>
+      <title>[고침] 채팅 닻을 되풀이해 눌러 여닫던 것을 멈추고, 실패 자리에 까닭을 남긴다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-bd6509f1f3</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>채팅 닻을 되풀이해 눌러 여닫던 것을 멈추고, 실패 자리에 까닭을 남긴다</description>
+    </item>
+    <item>
+      <title>[고침] 채팅을 눌렀나가 아니라 열렸나까지 본다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-abe1ed25b8</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>채팅을 눌렀나가 아니라 열렸나까지 본다</description>
+    </item>
+    <item>
+      <title>[고침] 끊고 여는 시간을 한 곳에서 정한 값으로 잰다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-b18c131162</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>끊고 여는 시간을 한 곳에서 정한 값으로 잰다</description>
+    </item>
+    <item>
+      <title>[고침] 손님 창에 판이 늦게 온 것과 안 온 것을 가른다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-c79dea6bb5</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>손님 창에 판이 늦게 온 것과 안 온 것을 가른다</description>
+    </item>
+    <item>
+      <title>[고침] 방 명단이 창마다 갈리는 길을 막고 스킨 검사 거짓 빨강을 지운다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-38f4efca5a</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>방 명단이 창마다 갈리는 길을 막고 스킨 검사 거짓 빨강을 지운다</description>
+    </item>
+    <item>
+      <title>[고침] main 이 빨갛던 검사 셋을 잡는다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-6d43e40473</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>main 이 빨갛던 검사 셋을 잡는다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 먹을 다시 제 위젯으로 떼어낸다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-5448847845</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>먹을 다시 제 위젯으로 떼어낸다</description>
+    </item>
+    <item>
+      <title>[고침] 우클릭 메뉴를 마우스 자리에 띄운다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-b8a6596764</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>우클릭 메뉴를 마우스 자리에 띄운다</description>
+    </item>
     <item>
       <title>[새로 생김] 글 329편으로 가는 정적 목록 장 /posts/ 를 굽는다</title>
       <link>https://blog.mascari4615.com/#status</link>
@@ -129,97 +220,6 @@ permalink: /changes.xml
       <guid isPermaLink="false">karmolab-change-e1eb0f90e2</guid>
       <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
       <description>보드 셋의 선공과 윷 확률을 레퍼런스에 맞춘다</description>
-    </item>
-    <item>
-      <title>[고침] 순발력 셋을 레퍼런스 수치에 맞춘다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-e1a2288ba5</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>순발력 셋을 레퍼런스 수치에 맞춘다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 손패 판의 카메라가 놓인 것을 재서 담는다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-0cb1b434c5</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>손패 판의 카메라가 놓인 것을 재서 담는다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 지켜보기에 분당 판정 표시와 내구 시험 스크립트를 더한다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-2148b37661</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>지켜보기에 분당 판정 표시와 내구 시험 스크립트를 더한다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 블랙잭 21+3 곁수. 퍼펙트 페어 옆에 둔다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-c357c59afd</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>블랙잭 21+3 곁수. 퍼펙트 페어 옆에 둔다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 상황으로 오늘의 판을 고른다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-d2b628a547</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>상황으로 오늘의 판을 고른다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 블랙잭에 퍼펙트 페어 곁수를 둔다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-1a6c4e2995</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>블랙잭에 퍼펙트 페어 곁수를 둔다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 대부호 계급 교환. 세 판을 잇고 마지막 한 사람까지 둔다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-a216424d00</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>대부호 계급 교환. 세 판을 잇고 마지막 한 사람까지 둔다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 야추 5단계. 아래 칸을 기회비용으로 고른다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-c5dbba59f2</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>야추 5단계. 아래 칸을 기회비용으로 고른다</description>
-    </item>
-    <item>
-      <title>[빨라짐] 오목 엔진 증분 평가. 5단계 한 수 104ms 에서 10.6ms</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-c10742eaf6</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>오목 엔진 증분 평가. 5단계 한 수 104ms 에서 10.6ms</description>
-    </item>
-    <item>
-      <title>[새로 생김] 화투 코이코이 결정을 잇는다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-26cf5e7ec1</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>화투 코이코이 결정을 잇는다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 솔리테어 승리 연출을 눈앞에 세운다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-38287e46ff</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>솔리테어 승리 연출을 눈앞에 세운다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 입체 카드 상의 손맛을 마무리한다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-7c5d14e537</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>입체 카드 상의 손맛을 마무리한다</description>
-    </item>
-    <item>
-      <title>[고침] 평면 상의 내 자리 겹침을 없앤다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-ad07b8cbe7</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>평면 상의 내 자리 겹침을 없앤다</description>
     </item>
   </channel>
 </rss>
