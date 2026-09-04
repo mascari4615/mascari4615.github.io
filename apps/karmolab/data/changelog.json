@@ -2,6 +2,54 @@
   "generatedAt": "2026-09-05",
   "entries": [
     {
+      "sha": "6c8332e008",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "시험 서버가 자리를 못 잡으면 소리 내어 죽게 한다"
+    },
+    {
+      "sha": "1177963ea4",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "먹의 작은 버튼를 24px 로 키우고 이름 없는 버튼도 찾을 수 있게 한다"
+    },
+    {
+      "sha": "4928bb0eef",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "검사가 죽으며 남긴 브라우저를 판 끝에 거둔다"
+    },
+    {
+      "sha": "7bf133cff1",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "색 도구와 먹과 티어리스트와 생활의 접근성 빚을 갚는다"
+    },
+    {
+      "sha": "8be3ffeb2e",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "꺼도 방에 남나의 통과 조건을 하나로 조인다"
+    },
+    {
+      "sha": "e586f02e33",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "나중에 끼어드는 저장 버튼 자리를 미리 잡는다"
+    },
+    {
       "sha": "82b93adb0a",
       "date": "2026-09-05",
       "kind": "fix",
@@ -592,54 +640,6 @@
       "label": "새로 생김",
       "tone": "new",
       "text": "등급전 한 수 제한과 임시 경계를 서버 규칙이 내려준다"
-    },
-    {
-      "sha": "53c47b17a6",
-      "date": "2026-09-02",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "지켜보기 입력칸 여섯에 화면낭독기 이름을 붙인다"
-    },
-    {
-      "sha": "c1ac36573e",
-      "date": "2026-09-02",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "영상 도구에 화면 영역 지켜보기를 더한다"
-    },
-    {
-      "sha": "5fb411e120",
-      "date": "2026-09-02",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "close arcade lifecycle leaks"
-    },
-    {
-      "sha": "934b4d0e00",
-      "date": "2026-09-02",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "오락실 몫 게이트 빨강 넷을 닫는다"
-    },
-    {
-      "sha": "3cc763dedd",
-      "date": "2026-09-02",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "나가기가 판을 다 내려놓는다. 자리 카드는 바뀐 것만 다시 그린다"
-    },
-    {
-      "sha": "b25e2e1441",
-      "date": "2026-09-02",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "화면이 규칙을 다시 재지 않는다. 스도쿠 셔플은 공용으로"
     }
   ]
 }
