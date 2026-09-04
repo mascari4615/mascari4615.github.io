@@ -1,0 +1,87 @@
+name: "KarmoLab 접근성 전수"
+
+# 왜 따로 있나 (2026-09-05)
+#
+# 좁고 깊은 판은 verify 안에 있다. `test:a11y` 여섯 장을 스킨 둘 판 둘로, `test:wcag` 네 장.
+# 그 밖의 도구 이백 몇십 장 안쪽은 아무도 안 본다. 그래서 빚이 조용히 쌓였다.
+# 2026-09-04 에 세어 보니 49종 104곳이었고, 그 자리를 다 갚는 데 하루가 갔다.
+#
+# 전수는 verify 에 못 넣는다. `test:a11y:all` 이 233장, `KL_WCAG_ALL=1 test:wcag` 가 466판이라
+# 사람 기계에서 한 시간을 넘겨 판정을 못 받았다 (두 검사 모두 실측). verify 는 이미 15분대다.
+#
+# 그래서 하루 한 번 여기서 돌린다. 배포도 verify 도 안 막는다. 빨개도 사이트는 나간다.
+# 대신 **숫자가 남는다**. 늘었으면 그 판이 요약에 적히고, 다음 사람이 그 목록부터 본다.
+
+on:
+  schedule:
+    # 매일 18:10 UTC (한국 새벽 3시 10분). 사람이 안 밀 때
+    - cron: '10 18 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: karmolab-a11y-sweep
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sweep:
+    name: 접근성 전수
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-karmolab
+        with:
+          node-version: '20'
+          chromium: 'true'
+
+      # 검사가 굽힌 것을 읽는다. 안 구우면 `못 돌림` 으로 끝난다 (그건 통과가 아니다)
+      - name: 굽기
+        working-directory: apps/karmolab
+        run: npm run build
+
+      # 두 검사는 서로 안 막는다. 하나가 빨개도 다른 하나의 숫자는 봐야 한다
+      - name: axe 전수 (도구 전부)
+        id: axe
+        continue-on-error: true
+        working-directory: apps/karmolab
+        run: |
+          set -o pipefail
+          KL_A11Y_LIST=1 npm run test:a11y:all 2>&1 | tee /tmp/axe.txt
+
+      - name: WCAG 2.2 전수
+        id: wcag
+        continue-on-error: true
+        working-directory: apps/karmolab
+        run: |
+          set -o pipefail
+          KL_WCAG_ALL=1 npm run test:wcag -- --list 2>&1 | tee /tmp/wcag.txt
+
+      - name: 요약에 적기
+        if: always()
+        run: |
+          {
+            echo '## 접근성 전수'
+            echo
+            echo '### axe (도구 전부)'
+            echo '```'
+            tail -60 /tmp/axe.txt 2>/dev/null || echo '못 돌림'
+            echo '```'
+            echo '### WCAG 2.2'
+            echo '```'
+            tail -40 /tmp/wcag.txt 2>/dev/null || echo '못 돌림'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # 늘었을 때만 빨강. 줄었다는 기준선을 다시 적으라는 말이지 실패가 아니다
+      - name: 늘었나
+        if: always()
+        run: |
+          if grep -q '늘었다' /tmp/axe.txt /tmp/wcag.txt 2>/dev/null; then
+            echo '접근성 위반이 늘었다. 위 요약의 목록을 보고 고쳐라'
+            exit 1
+          fi
+          echo '안 늘었다'
