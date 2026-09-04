@@ -39,6 +39,7 @@
     "allow-task-launcher",
     "allow-terminal",
     "allow-adventure",
+    "allow-recall",
     "allow-claude-env",
     "allow-alarm",
     "allow-agent-team",
