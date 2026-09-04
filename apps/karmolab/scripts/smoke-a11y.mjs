@@ -138,8 +138,17 @@ try {
   process.exit(2);
 }
 
+/**
+ * 이 판에서만 볼 화면. `KL_A11Y_ONLY=status,pulse` 처럼 쉼표로. 이름이나 주소에 든 글자로 고르기
+ *
+ * - 전수 233장은 이 기계에서 한 시간 초과, 판정 못 받음 (2026-09-04 실측)
+ * - 쓰임새는 몇 장 고친 뒤 그것만 재기
+ * - 견주기는 본 화면만. 안 본 화면의 빚은 그대로
+ */
+const ONLY = (process.env.KL_A11Y_ONLY || '').split(',').map((x) => x.trim()).filter(Boolean);
 /** 실제로 돌 화면. 전수 판에서는 도구 전부 */
-const RUN_SCREENS = ALL ? allToolScreens() : SCREENS;
+const RUN_SCREENS = (ALL ? allToolScreens() : SCREENS)
+  .filter(([name, url]) => !ONLY.length || ONLY.some((q) => name.includes(q) || url.includes(q)));
 /** 전수 판은 스킨과 판을 하나로 줄인다 */
 const RUN_SKINS = ALL ? [SKINS[0]] : SKINS;
 const RUN_THEMES = ALL ? [THEMES[THEMES.length - 1]] : THEMES;
@@ -208,6 +217,10 @@ const key = (f) => `${f.theme}|${f.name}|${f.id}`;
 const now = {};
 for (const f of failures) now[key(f)] = (now[key(f)] || 0) + f.n;
 
+if (process.argv.includes('--bless') && ONLY.length) {
+  console.error('[smoke-a11y] 몇 장만 고른 판에서는 기준선을 못 적는다. 안 본 화면의 빚이 지워진다');
+  process.exit(2);
+}
 if (process.argv.includes('--bless')) {
   fs.mkdirSync(path.dirname(BASELINE), { recursive: true });
   fs.writeFileSync(BASELINE, JSON.stringify(now, null, 1) + '\n', 'utf8');
@@ -231,7 +244,9 @@ for (const f of failures) {
   const before = base[k] || 0;
   if (now[k] > before) grown.push({ f, before, after: now[k] });
 }
-const shrunk = Object.entries(base).filter(([k, v]) => (now[k] || 0) < v);
+/* 골라 돈 판에서 안 본 화면은 0 으로 읽힘. 견주기도 본 것만 */
+const scope = ONLY.length ? Object.keys(base).filter((k) => RUN_SCREENS.some(([name]) => k.split('|')[1] === name)) : Object.keys(base);
+const shrunk = scope.filter((k) => (now[k] || 0) < (base[k] || 0));
 
 if (grown.length > 0) {
   console.error(`\n[smoke-a11y] 접근성 위반이 **늘었다** ${grown.length}건
@@ -246,8 +261,8 @@ if (grown.length > 0) {
   process.exit(1);
 }
 
-const total = Object.values(now).reduce((a, b) => a + b, 0);
-const baseline = Object.values(base).reduce((a, b) => a + b, 0);
+const total = scope.reduce((a, k) => a + (now[k] || 0), 0);
+const baseline = scope.reduce((a, k) => a + (base[k] || 0), 0);
 if (shrunk.length > 0) {
   console.log(`[smoke-a11y] 줄었다 ${baseline} → ${total}곳. 기준선을 다시 적어라: npm run ${ALL ? 'test:a11y:all' : 'test:a11y'} -- --bless`);
   process.exit(0);

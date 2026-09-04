@@ -228,7 +228,7 @@ import { markLive } from './tools/shared/say';
                     modeGroup.appendChild(hiddenMode);
                     c.appendChild(modeGroup);
 
-                    Mdd.injectCSS('crypto-mode', '.crypto-mode-btn { background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); }.crypto-mode-btn:hover { background:var(--bg-hover); color:var(--text-primary); }.crypto-mode-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }');
+                    Mdd.injectCSS('crypto-mode', '.crypto-mode-btn { background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); }.crypto-mode-btn:hover { background:var(--bg-hover); color:var(--text-primary); }.crypto-mode-btn.active { background:var(--fill-strong); color:var(--fill-strong-ink); border-color:var(--fill-strong); }');
 
                     const methodGroup = document.createElement('div');
                     methodGroup.className = 'field-group';
