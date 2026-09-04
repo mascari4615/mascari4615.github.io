@@ -88,15 +88,21 @@ export function openRoom(opts: RoomOptions): Room {
   const names = new Map<string, string>();
   const list = (): Peer[] => [...names].map(([id, name]) => ({ id, name }));
 
-  const hello = room.makeAction<{ name: string }>('hello', {
-    onMessage: (data, { peerId }) => {
-      names.set(peerId, String(data?.name || '누군가').slice(0, 12));
-      opts.onPeers?.(list());
-    }
-  });
-
   /* 내 이름은 바뀔 수 있다. 들어온 뒤에 적는 것이 오히려 보통이다. */
   let myName = opts.name || '누군가';
+
+  /* `back` 은 답례 표. 이게 없으면 둘이 서로 되보내다 그친다 */
+  const hello = room.makeAction<{ name: string; back?: boolean }>('hello', {
+    onMessage: (data, { peerId }) => {
+      const knew = names.has(peerId);
+      names.set(peerId, String(data?.name || '누군가').slice(0, 12));
+      opts.onPeers?.(list());
+      /* 처음 듣는 사람에게는 내 이름을 되보낸다. `onPeerJoin` 은 한쪽만 뜰 수 있고
+         (짝짓기 릴레이가 바쁘면 실제로 갈린다), 그러면 명단이 창마다 달라진 채 굳는다.
+         CI 야추 등급전 3, 4인이 그렇게 멎었다 (2026-09-03, 창마다 보이는 사람 수가 2, 2, 3) */
+      if (!knew && !data?.back) hello.send({ name: myName, back: true }, { target: peerId });
+    }
+  });
 
   /* 새로 온 사람에게 곧장 내 이름을 건다. 통째로 뿌리면 이미 아는 사람에게도 다시 간다. */
   room.onPeerJoin = (peerId: string): void => {
