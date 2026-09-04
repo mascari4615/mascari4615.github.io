@@ -20,6 +20,9 @@ const toolButton = (id: string, hotkey: string, label: string, path: string, act
 /** 화면 한 벌. 부르는 쪽이 `container.innerHTML` 에 그대로. */
 export function meokMarkup(): string {
   return     '<div class="meok">' +
+    /* 판을 통째로 쓰는 짜임이라 셸의 도구 제목이 안 붙음. 낭독기가 장 제목 못 찾음
+       눈에 안 보이는 제목 하나 */
+    '<h1 class="kl-sr">' + esc(T('title', '먹')) + '</h1>' +
     '<header class="meok-bar">' +
       '<strong class="meok-logo">먹</strong>' +
       '<input class="meok-name" data-name aria-label="' + esc(T('docName', '그림 이름')) + '">' +
@@ -45,7 +48,7 @@ export function meokMarkup(): string {
       '<button data-act="fullscreen" class="meok-full" title="' + esc(T('fullscreenHelp', '창을 화면 전체로. 다시 누르면 돌아온다')) + '">⛶</button>' +
     '</header>' +
     '<div class="meok-body">' +
-      '<aside class="meok-tools">' +
+      '<div class="meok-tools">' +
         toolButton('brush', 'B', T('toolBrush', '붓'), '<path d="M4 20c2.5.4 4.6-.6 5.4-2.6.5-1.3 0-2.6-1-3.3-1.2-.8-2.8-.5-3.5.8C4 16.4 4.2 18.3 4 20z"/><path d="M10.5 14.8 19.2 5.4a1.7 1.7 0 0 0-2.4-2.4L7.3 11.6"/>', true) +
         toolButton('eraser', 'E', T('toolEraser', '지우개'), '<path d="m5.5 15.5 6-6a2 2 0 0 1 2.8 0l3.7 3.7a2 2 0 0 1 0 2.8l-4 4H8l-2.5-2.5a2 2 0 0 1 0-2z"/><path d="M9.5 20h10"/>') +
         toolButton('fill', 'F', T('toolFill', '채우기'), '<path d="m10 3 8.2 8.2a1.4 1.4 0 0 1 0 2L12 19.4a1.4 1.4 0 0 1-2 0l-6.2-6.2a1.4 1.4 0 0 1 0-2L10 5"/><path d="M20.5 15.5c1 1.4 1.5 2.4 1.5 3a1.5 1.5 0 1 1-3 0c0-.6.5-1.6 1.5-3z" fill="currentColor"/>') +
@@ -61,7 +64,7 @@ export function meokMarkup(): string {
         '<hr>' +
         '<div class="meok-presets" data-presets></div>' +
         '<button data-act="brush-save" class="meok-mini">' + esc(T('brushSave', '이 붓 담기')) + '</button>' +
-      '</aside>' +
+      '</div>' +
       '<section class="meok-stage">' +
         '<div class="meok-brush">' +
           '<label>' + esc(T('size', '굵기')) + '<input data-brush="size" type="range" min="1" max="200" step="1"><b data-out="size"></b></label>' +
@@ -87,7 +90,7 @@ export function meokMarkup(): string {
           '<button data-act="del-frame">－</button>' +
         '</div>' +
       '</section>' +
-      '<aside class="meok-layers">' +
+      '<div class="meok-layers">' +
         '<div class="meok-layer-head">' +
           '<b>' + esc(T('layers', '레이어')) + '</b>' +
           '<button data-act="add-layer" title="' + esc(T('addLayerHelp', '위에 새 레이어')) + '">＋</button>' +
@@ -140,6 +143,6 @@ export function meokMarkup(): string {
             '<button data-act="emote-save">' + esc(T('emoteSave', '한 벌 뽑기')) + '</button>' +
           '</div>' +
         '</details>' +
-      '</aside>' +
+      '</div>' +
     '</div></div>'
 }

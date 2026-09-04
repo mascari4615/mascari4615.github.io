@@ -454,7 +454,16 @@
     transition: transform var(--transition);
 }
 .cc-swatch:hover { transform: translateY(-2px); }
-.cc-swatch-hex { font-family: var(--font-mono); opacity: 0.9; }
+/* 중간 밝기 색은 흰 글자도 검은 글자도 4.5 미만 (`#9959f3` 에서 4.21, 2026-09-04)
+   색은 버튼 전체가 보여 줌. 값 글자에만 어두운 판 */
+.cc-swatch-hex {
+    font-family: var(--font-mono);
+    background: rgba(0, 0, 0, 0.62);
+    color: #fff;
+    text-shadow: none;
+    padding: 0 4px;
+    border-radius: 3px;
+}
 .cc-contrast {
     padding: 16px;
     border: 1px solid var(--border);

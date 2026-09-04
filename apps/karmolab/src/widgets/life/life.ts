@@ -73,6 +73,8 @@ import { intervalWhileVisible } from '../../lib/tick';
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.disabled = true;
+    /* 감싼 이름표에 글자 없음. 낭독기가 못 읽음. 줄 제목을 이름으로 */
+    input.setAttribute('aria-label', opts.label);
 
     const slider = document.createElement('span');
     slider.className = 'life-toggle-slider';

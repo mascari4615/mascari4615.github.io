@@ -142,10 +142,16 @@ import { escapeHtml as esc } from './shared/text';
 
           // 견본 글자색은 견본 자기 밝기로 정한다. 흰 글자로 고정하면 노란색 같은
           // 밝은 견본에서 이름과 코드가 안 보인다 (테마와 무관하게 안 보였다).
+          /* 밝기 문턱으로 흑백 고르기는 중간 색에서 어긋남. `#cc4b56` 에 흰 글자 4.46
+             (2026-09-04 실측). 실제 대비를 재서 큰 쪽 */
           function swatchInk(hex: string): string {
             const rgb = hexToRgb(hex);
             if (rgb == null) return '#fff';
-            return luminance(rgb)> 0.45 ? '#12100c' : '#fff';
+            const ink = '#12100c';
+            const dark = hexToRgb(ink);
+            const onWhite = contrast(rgb, { r: 255, g: 255, b: 255 });
+            const onDark = dark ? contrast(rgb, dark) : 0;
+            return onWhite >= onDark ? '#fff' : ink;
           }
 
           function swatches(list: Array<{ hex: string; label: string }>): string {
@@ -192,12 +198,15 @@ import { escapeHtml as esc } from './shared/text';
             const cb = contrast(rgb, black);
             const verdict = (v: number): string =>
               v>= 7 ? t('colorconv.grade.aaa') : v>= 4.5 ? t('colorconv.grade.aa') : v>= 3 ? t('colorconv.grade.aaLarge') : t('colorconv.grade.fail');
+            /* 이 두 칸은 **낮은 대비를 보여 주는 것이 일**. 눈으로 보라는 견본
+               견본은 그림으로(aria-hidden), 같은 값은 낭독기용 글로 따로 */
             contrastEl.innerHTML = `
-              <div class="cc-contrast" style="background:${norm}; color:#fff;">
+              <p class="kl-sr">${esc(t('colorconv.value.onWhite', { r: cw.toFixed(2) }))} ${esc(verdict(cw))}. ${esc(t('colorconv.value.onBlack', { r: cb.toFixed(2) }))} ${esc(verdict(cb))}</p>
+              <div class="cc-contrast" style="background:${norm}; color:#fff;" aria-hidden="true">
                 <div style="font-weight:700;">${esc(t('colorconv.value.onWhite', { r: cw.toFixed(2) }))}</div>
                 <div style="font-size:var(--font-size-xs); opacity:0.85;">${verdict(cw)}</div>
               </div>
-              <div class="cc-contrast" style="background:${norm}; color:#000;">
+              <div class="cc-contrast" style="background:${norm}; color:#000;" aria-hidden="true">
                 <div style="font-weight:700;">${esc(t('colorconv.value.onBlack', { r: cb.toFixed(2) }))}</div>
                 <div style="font-size:var(--font-size-xs); opacity:0.85;">${verdict(cb)}</div>
               </div>`;

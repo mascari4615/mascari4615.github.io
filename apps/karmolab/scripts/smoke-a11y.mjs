@@ -184,7 +184,13 @@ for (const skin of RUN_SKINS) for (const theme of RUN_THEMES) {
     await page.waitForTimeout(1800);
     await page.addScriptTag({ content: axeSource });
     const violations = await page.evaluate(async () => {
-      const r = await window.axe.run(document, { resultTypes: ['violations'] });
+      /* 대비 견본은 **낮은 대비를 보여 주는 것이 일**. 색 도구 둘이 그런 경우
+         "이 색 위 흰 글자가 3.8" 을 보여 주는 칸이라 규칙 준수 불가
+         같은 값은 낭독기용 글로(`.kl-sr`), 그림 쪽은 검사에서 제외 */
+      const r = await window.axe.run(
+        { include: [['body']], exclude: [['.cc-contrast']] },
+        { resultTypes: ['violations'] }
+      );
       return r.violations.map((v) => {
         const n0 = v.nodes[0];
         const d = n0?.any?.[0]?.data;

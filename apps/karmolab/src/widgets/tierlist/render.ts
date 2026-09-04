@@ -76,7 +76,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             karmoOpts = t('tierlist.t38');
         }
 
-        return `<select id="tl-list-select">
+        return `<select id="tl-list-select" aria-label="목록 고르기">
             <optgroup label="카탈로그">${catalogOpts}</optgroup>
             <optgroup label="Karmo 순위">${karmoOpts}</optgroup>
             ${localOptgroup}
