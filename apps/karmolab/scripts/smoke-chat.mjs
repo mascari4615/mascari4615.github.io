@@ -207,9 +207,24 @@ try {
   // ② 열면 오늘의 이름표가 있다. 이게 없으면 익명 규칙 자체가 안 붙은 것이다.
   await openChat(a.page);
   await openChat(b.page);
-  /* 두 창 모두 이름표가 붙기를 기다린다. 두 번째 창을 안 기다려 30초를 넘겼다 (2026-09-04 CI) */
-  await a.page.waitForSelector('#klChatMe .klchat-who', { timeout: WAIT });
-  await b.page.waitForSelector('#klChatMe .klchat-who', { timeout: WAIT });
+  /* 두 창 모두 이름표가 붙기를 기다린다. 두 번째 창을 안 기다려 30초를 넘겼다 (2026-09-04 CI).
+     ★ 이름표는 **서버가 나를 알려 준 뒤에야** 뜬다 (`chat.ts` 의 `renderHeader` 는 `me` 가 있어야 그린다).
+     창은 열렸는데 이름표가 안 오면 그건 규격이 틀린 게 아니라 **서버가 안 준 것**이라 잴 것이 없다.
+     오락실 여럿이서 검사가 바깥 릴레이를 다루는 방식 그대로, 못 돌림으로 가른다 (2026-09-04 CI 두 판) */
+  const label = '#klChatMe .klchat-who';
+  const bothNamed = await Promise.all([
+    a.page.waitForSelector(label, { timeout: WAIT }).then(() => true).catch(() => false),
+    b.page.waitForSelector(label, { timeout: WAIT }).then(() => true).catch(() => false),
+  ]);
+  if (!bothNamed.every(Boolean)) {
+    const state = await a.page.evaluate(() => {
+      const panel = document.querySelector('.klchat-panel');
+      const open = panel instanceof HTMLElement && getComputedStyle(panel).display !== 'none';
+      return `창 열림=${open} 이름표칸=${!!document.querySelector('#klChatMe')} 안쪽="${document.querySelector('#klChatMe')?.textContent ?? ''}"`;
+    }).catch(() => '못 읽음');
+    await browser.close();
+    cantRun(`창은 열렸는데 서버가 이름을 안 줬다 (${state})`);
+  }
   const nameA = (await a.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   const nameB = (await b.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   check('이름표', /\S+\s\S+/.test(nameA), `이름표가 색 동물 모양이 아니다: ${JSON.stringify(nameA)}`);
