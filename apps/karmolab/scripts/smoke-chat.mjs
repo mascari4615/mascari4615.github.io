@@ -159,7 +159,9 @@ async function openChat(page) {
   /* **눌렀나가 아니라 열렸나까지** 본다 (2026-09-04, CI 두 판). 계정 메뉴가 뜨는 중에 누르면
      항목이 아직 없어 Escape 로 빠지고, 이어서 누른 닻도 메뉴에 가려 창이 안 열린 채 지나갔다.
      그 뒤 이름표를 30초 기다리다 죽는다. 열릴 때까지 사람 길과 닻을 번갈아 눌러 본다 */
-  const opened = () => page.locator('#klChatMe .klchat-who').isVisible().catch(() => false);
+  /* 열렸나의 잣대는 **창이 펴졌나**다. 이름표(`#klChatMe .klchat-who`)는 그보다 늦게 붙어서,
+     그것으로 재면 이미 열린 창을 못 열었다고 읽는다 (2026-09-04 CI: open=true, display=flex 인데 빨강) */
+  const opened = () => page.locator('.klchat-panel').isVisible().catch(() => false);
   /* 닻은 **여닫이**다 (`setOpen` 이 토글). 안 열렸을 때만 누른다. 열렸는지 안 보고 계속 누르면
      열었다 닫았다를 되풀이해 영영 안 열린다 */
   const expanded = () => page.locator('#klChatDock').getAttribute('aria-expanded').then((v) => v === 'true').catch(() => false);
@@ -205,7 +207,9 @@ try {
   // ② 열면 오늘의 이름표가 있다. 이게 없으면 익명 규칙 자체가 안 붙은 것이다.
   await openChat(a.page);
   await openChat(b.page);
+  /* 두 창 모두 이름표가 붙기를 기다린다. 두 번째 창을 안 기다려 30초를 넘겼다 (2026-09-04 CI) */
   await a.page.waitForSelector('#klChatMe .klchat-who', { timeout: WAIT });
+  await b.page.waitForSelector('#klChatMe .klchat-who', { timeout: WAIT });
   const nameA = (await a.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   const nameB = (await b.page.locator('#klChatMe .klchat-who').textContent())?.trim() ?? '';
   check('이름표', /\S+\s\S+/.test(nameA), `이름표가 색 동물 모양이 아니다: ${JSON.stringify(nameA)}`);
