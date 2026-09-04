@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
+import { WAIT } from './lib/waits.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const problems = [];
@@ -69,20 +70,25 @@ await page
 if (!problems.length) {
   await context.setOffline(true);
 
+  /* 끊은 뒤 여는 시간은 `WAIT` 로 잰다 (CI 30초, 로컬 10초). 20초와 8초를 손으로 박아 두었더니
+     274 게이트가 함께 도는 CI 에서 세 검사가 한꺼번에 빨갰다 (2026-09-04 두 판 연속).
+     그때도 워커는 껍데기를 담은 뒤였다. 재는 것은 **워커가 내주나**이지 몇 초 안에 내주나가 아님 */
+  const OPEN = Math.max(WAIT, 20000);
+
   // ① 첫 화면
-  const home = await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => null);
+  const home = await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded', timeout: OPEN }).catch(() => null);
   if (!home) problems.push('끊긴 상태에서 첫 화면이 안 열린다');
   else if (!(await page.locator('#tool-pages').count())) problems.push('첫 화면은 왔는데 앱이 안 그려졌다');
 
   // ③ 무엇이 안 되는지 말한다
-  await page.waitForSelector('#kl-offline-note', { timeout: 8000 }).catch(async () => {
+  await page.waitForSelector('#kl-offline-note', { timeout: WAIT }).catch(async () => {
     const online = await page.evaluate(() => navigator.onLine);
     problems.push(`끊겼는데 아무 말도 없다. 사람은 고장으로 읽고 창을 닫는다 (navigator.onLine=${online})`);
   });
 
   // ② 도구 주소로 바로. 껍데기를 받아 그 도구를 연다
   const deep = await page
-    .goto(`${origin}/t/charcount/`, { waitUntil: 'domcontentloaded', timeout: 20000 })
+    .goto(`${origin}/t/charcount/`, { waitUntil: 'domcontentloaded', timeout: OPEN })
     .catch(() => null);
   if (!deep) {
     problems.push('끊긴 상태에서 도구 주소로 못 들어간다 (브라우저 인터넷 없음)');
@@ -91,7 +97,7 @@ if (!problems.length) {
      * 그러니 그 도구인가가 아니라 **홈으로 떨어지지 않았나**를 본다 . 
      * 오프라인 껍데기가 하는 일은 가려던 곳으로 데려다주는 것이다. */
     const active = await page
-      .waitForFunction(() => document.querySelector('.tool-page.active')?.id ?? null, undefined, { timeout: 15000 })
+      .waitForFunction(() => document.querySelector('.tool-page.active')?.id ?? null, undefined, { timeout: OPEN })
       .then((h) => h.jsonValue())
       .catch(() => null);
     if (!active) problems.push('도구 주소로 들어왔는데 아무 화면도 안 열렸다');
