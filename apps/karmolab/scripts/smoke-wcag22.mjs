@@ -167,6 +167,10 @@ for (const [name, url] of RUN) {
 
   /* ② 2.5.8 누를 크기 24x24. 글 안에 든 링크는 이 조항에서 빠진다 (inline exception) */
   const target = await page.evaluate(() => {
+    /* 조항이 스스로 두는 예외 하나 더. **그 크기가 곧 전하는 뜻일 때**(essential).
+       흥의 건반은 68x16 인데, 높이가 곧 그 음의 줄이다. 24px 로 키우면 한 화면에 드는
+       음이 3분의 2로 줄고 롤과 건반이 어긋난다. 피아노 롤을 쓰는 DAW 가 다 이 짜임이다 */
+    const ESSENTIAL = ['.hu-key'];
     const sel = 'button:not([disabled]), a[href], input[type="checkbox"], input[type="radio"], select, [role="button"]';
     const bad = [];
     for (const el of document.querySelectorAll(sel)) {
@@ -176,6 +180,7 @@ for (const [name, url] of RUN) {
       if (r.width === 0 || r.height === 0) continue;
       /* 글줄 안에 든 링크는 조항이 봐준다. 부모가 글 문단이면 넘긴다 */
       if (el.tagName === 'A' && el.closest('p, li, .tool-hint, .tool-seo')) continue;
+      if (ESSENTIAL.some((q) => el.matches(q))) continue;
       /* 반올림해서 잰다. 상자는 23.996px 로 떨어지는데 사람 눈에도 CSS 에도 24px
          날값으로 재면 24px 로 고친 자리가 영영 안 통과한다 (2026-09-02 실측) */
       if (Math.round(r.width) >= 24 && Math.round(r.height) >= 24) continue;

@@ -40,7 +40,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
 
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('timecalc.label.start'))}</label>
+              <label class="field-label" for="tcList">${esc(t('timecalc.label.start'))}</label>
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">${esc(t('timecalc.aria.start'))}</div>
@@ -60,7 +60,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
             <div class="tool-list" id="tcOut"></div>
 
             <div class="field-group" style="margin-top:var(--space-xl);">
-              <label class="field-label">${esc(t('timecalc.label.lines'))}</label>
+              <label class="field-label" for="tcList">${esc(t('timecalc.label.lines'))}</label>
               <textarea id="tcList" rows="5" spellcheck="false" placeholder="7:45&#10;8:20&#10;6:50"></textarea>
             </div>
             <div class="cc-stats cc-stats-early" id="tcSum"></div>

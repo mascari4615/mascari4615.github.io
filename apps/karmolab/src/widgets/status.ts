@@ -205,7 +205,7 @@ import { appPath } from '../lib/site-base';
                 <div id="stLive"></div>
                 <div>
                     <div class="st-sec-head">
-                        <h3 class="st-sec-title">${esc(t('status.t13'))}</h3>
+                        <h2 class="st-sec-title">${esc(t('status.t13'))}</h2>
                         <span class="st-sec-note">${esc(t('status.t14'))}
                             <a class="st-feed" href="${appPath('changes.xml')}">${esc(t('status.t15'))}</a></span>
                     </div>

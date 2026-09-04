@@ -39,7 +39,7 @@ import { markLive } from './shared/say';
           Mdd.linePreset('tool_run', { msg: t('pick.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('pick.label.list'))}</label>
+              <label class="field-label" for="pkList">${esc(t('pick.label.list'))}</label>
               <textarea id="pkList" rows="6" spellcheck="false" placeholder="${esc(t('pick.ph.list'))}"></textarea>
             </div>
 

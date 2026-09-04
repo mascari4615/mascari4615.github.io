@@ -48,7 +48,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               </div>
             </div>
             <div class="field-group">
-              <label class="field-label">${esc(t('csvjson.label.csv'))}</label>
+              <label class="field-label" for="cjCsv">${esc(t('csvjson.label.csv'))}</label>
               <textarea id="cjCsv" rows="7" spellcheck="false" placeholder="${esc(t('csvjson.ph.csv'))}"></textarea>
             </div>
             <div class="tool-actions tight">
@@ -57,7 +57,7 @@ import { t, loadNamespace } from '../../lib/i18n';
               <button class="btn btn-ghost" id="cjCopy">${esc(t('csvjson.btn.copy'))}</button>
             </div>
             <div class="field-group">
-              <label class="field-label">${esc(t('csvjson.label.json'))}</label>
+              <label class="field-label" for="cjJson">${esc(t('csvjson.label.json'))}</label>
               <textarea id="cjJson" aria-label="${esc(t('csvjson.aria.json'))}" rows="9" spellcheck="false" placeholder="${esc(t('csvjson.ph.json'))}"></textarea>
             </div>
             <div class="tool-status" id="cjStatus">${esc(t('csvjson.status.idle'))}</div>

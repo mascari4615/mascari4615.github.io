@@ -203,7 +203,7 @@ import { markLive } from './tools/shared/say';
 
                     const modeGroup = document.createElement('div');
                     modeGroup.className = 'field-group';
-                    modeGroup.innerHTML = `<label class="field-label">${t('crypto.label.mode')}</label>`;
+                    modeGroup.innerHTML = `<label class="field-label" for="cvIn">${t('crypto.label.mode')}</label>`;
                     const modeWrap = document.createElement('div');
                     modeWrap.className = 'crypto-mode-btns';
                     modeWrap.style.display = 'flex'; modeWrap.style.gap = '8px';

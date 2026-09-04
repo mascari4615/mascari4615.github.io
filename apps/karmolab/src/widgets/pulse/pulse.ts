@@ -146,7 +146,7 @@ import { t, loadNamespace } from '../../lib/i18n';
                 <button class="btn" id="plSeedGo" type="button">${esc(t('pulse.btn.plSeedGo'))}</button>
               </div>
               <div class="pl-past">
-                <h4>${esc(t('pulse.t03'))} <span class="pl-back" id="plBack"></span></h4>
+                <h3>${esc(t('pulse.t03'))} <span class="pl-back" id="plBack"></span></h3>
                 <div class="pl-strip" id="plStrip"></div>
               </div>
             </div>`;

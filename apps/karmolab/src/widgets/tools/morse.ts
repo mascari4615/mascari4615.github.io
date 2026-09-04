@@ -249,12 +249,12 @@ import { markLive } from './shared/say';
             </div>
 
             <div class="field-group">
-              <label class="field-label">${esc(t('morse.label.text'))}</label>
+              <label class="field-label" for="msText">${esc(t('morse.label.text'))}</label>
               <textarea id="msText" rows="3" spellcheck="false" placeholder="SOS"></textarea>
             </div>
 
             <div class="field-group">
-              <label class="field-label">${esc(t('morse.label.code'))}</label>
+              <label class="field-label" for="msCode">${esc(t('morse.label.code'))}</label>
               <textarea id="msCode" rows="3" spellcheck="false" placeholder="... --- ..."></textarea>
             </div>
 

@@ -237,7 +237,7 @@ import {
                     <div class="cb-sidebar-header">
                         <p class="cb-panel-heading">${esc(t('chatbot.t03'))}</p>
                         <div class="field-group">
-                            <label class="field-label">${esc(t('chatbot.t04'))}</label>
+                            <label class="field-label" for="cbModelSelect">${esc(t('chatbot.t04'))}</label>
                             <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
                             <div style="font-size:var(--font-size-xs);color:var(--text-tertiary);">
                                     ${esc(t('chatbot.t05'))} <strong id="cbActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
@@ -245,9 +245,9 @@ import {
                                 <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">${esc(t('chatbot.t06'))}</button>
                             </div>
                         </div>
-                        <label class="cb-model-label">${esc(t('chatbot.t07'))}</label>
+                        <label class="cb-model-label" for="cbModelSelect">${esc(t('chatbot.t07'))}</label>
                         <select id="cbModelSelect" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;"></select>
-                        <label class="cb-model-label" style="margin-top:8px;">API</label>
+                        <label class="cb-model-label" style="margin-top:8px;" for="cbApiSurfaceSelect">API</label>
                         <select id="cbApiSurfaceSelect" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;">
                             <option value="studio">${esc(t('chatbot.opt.studio'))}</option>
                             <option value="vertex">${esc(t('chatbot.opt.vertex'))}</option>
@@ -271,7 +271,7 @@ import {
                         <div class="cb-option-row" style="margin-top:2px;">
                             <input type="range" id="cbTemperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;">
                         </div>
-                        <label class="cb-model-label" style="margin-top:8px;">${esc(t('chatbot.t13'))}</label>
+                        <label class="cb-model-label" style="margin-top:8px;" for="cbSafetyThreshold">${esc(t('chatbot.t13'))}</label>
                         <select id="cbSafetyThreshold" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;"></select>
                     </div>
                 </aside>
@@ -351,7 +351,7 @@ import {
                     </div>
                     <div class="cb-sysprompt">
                         <p class="cb-panel-heading" style="margin-bottom:8px;">${esc(t('chatbot.t25'))}</p>
-                        <label class="cb-mini" style="margin-top:0;">${esc(t('chatbot.t26'))}</label>
+                        <label class="cb-mini" style="margin-top:0;" for="cbSystemPreset">${esc(t('chatbot.t26'))}</label>
                         <select id="cbSystemPreset" style="font-size:var(--font-size-xs);padding:6px 8px;margin-bottom:8px;width:100%;">
                             <option value="">${esc(t('chatbot.t27'))}</option>
                             <option value="__none__">${esc(t('chatbot.opt.none'))}</option>
@@ -376,25 +376,25 @@ import {
                             <button type="button" class="cb-modal-close" id="cbCharEditClose" aria-label="${esc(t('chatbot.title.cbSearchClose'))}">×</button>
                         </div>
                         <div class="cb-modal-body cb-char-modal-body">
-                            <label class="cb-mini" style="margin-top:0;">${esc(t('chatbot.t28'))}</label>
+                            <label class="cb-mini" style="margin-top:0;" for="cbCharacterSelect">${esc(t('chatbot.t28'))}</label>
                             <select id="cbCharacterSelect" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;margin-top:4px;"></select>
-                            <label class="cb-mini">${esc(t('chatbot.t29'))}</label>
+                            <label class="cb-mini" for="cbCharImageModel">${esc(t('chatbot.t29'))}</label>
                             <select id="cbCharImageModel" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;margin-top:4px;"></select>
                             <label class="cb-mini">${esc(t('chatbot.t30'))}</label>
                             <input type="text" id="cbCharName" maxlength="80">
                             <label class="cb-mini">플레이어 ({{user}})</label>
                             <input type="text" id="cbCharUserName" maxlength="80">
-                            <label class="cb-mini">${esc(t('chatbot.t31'))}</label>
+                            <label class="cb-mini" for="cbCharUserNote">${esc(t('chatbot.t31'))}</label>
                             <textarea id="cbCharUserNote" rows="2"></textarea>
-                            <label class="cb-mini">${esc(t('chatbot.t32'))}</label>
+                            <label class="cb-mini" for="cbCharVisual">${esc(t('chatbot.t32'))}</label>
                             <textarea id="cbCharVisual" rows="2"></textarea>
-                            <label class="cb-mini">${esc(t('chatbot.t06'))}</label>
+                            <label class="cb-mini" for="cbCharDesc">${esc(t('chatbot.t06'))}</label>
                             <textarea id="cbCharDesc" rows="2"></textarea>
-                            <label class="cb-mini">${esc(t('chatbot.t33'))}</label>
+                            <label class="cb-mini" for="cbCharPersonality">${esc(t('chatbot.t33'))}</label>
                             <textarea id="cbCharPersonality" rows="2"></textarea>
-                            <label class="cb-mini">${esc(t('chatbot.t34'))}</label>
+                            <label class="cb-mini" for="cbCharScenario">${esc(t('chatbot.t34'))}</label>
                             <textarea id="cbCharScenario" rows="2"></textarea>
-                            <label class="cb-mini">${esc(t('chatbot.t35'))}</label>
+                            <label class="cb-mini" for="cbCharFirstMes">${esc(t('chatbot.t35'))}</label>
                             <textarea id="cbCharFirstMes" rows="2"></textarea>
                             <label class="cb-mini">${esc(t('chatbot.t36'))}</label>
                             <div class="cb-char-row">

@@ -31,11 +31,11 @@ import { t, loadNamespace } from '../../lib/i18n';
 
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('base64.label.text'))}</label>
+              <label class="field-label" for="b6Text">${esc(t('base64.label.text'))}</label>
               <textarea id="b6Text" rows="5" spellcheck="false" placeholder="${esc(t('base64.ph.text'))}"></textarea>
             </div>
             <div class="field-group">
-              <label class="field-label">Base64</label>
+              <label class="field-label" for="b6Code">Base64</label>
               <textarea id="b6Code" rows="5" spellcheck="false" placeholder="7JWI64WV7ZWY7IS47JqU"></textarea>
             </div>
             <div class="field-group">

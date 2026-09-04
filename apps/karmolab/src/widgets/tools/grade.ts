@@ -36,7 +36,7 @@ import { t, loadNamespace } from '../../lib/i18n';
             </div>
 
             <div class="field-group">
-              <label class="field-label">${esc(t('grade.label.courses'))}</label>
+              <label class="field-label" for="grList">${esc(t('grade.label.courses'))}</label>
               <textarea id="grList" rows="8" spellcheck="false" placeholder="3 A+&#10;3 B0&#10;2 A0&#10;1 B+"></textarea>
             </div>
 

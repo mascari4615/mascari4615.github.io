@@ -138,7 +138,7 @@ interface ToolMeta {
                     const paintSecrets = (): void => {
                         const found = new Set(foundLocal());
                         secretSlot.innerHTML =
-                            `<h3 class="cl-sec-title">${esc(t('collection.t02'))} <b>${found.size}</b> / ${SECRETS.length}</h3>` +
+                            `<h2 class="cl-sec-title">${esc(t('collection.t02'))} <b>${found.size}</b> / ${SECRETS.length}</h2>` +
                             '<div class="cl-sec-row">' +
                             SECRETS.map((secret) =>
                                 found.has(secret.id)

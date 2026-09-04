@@ -66,7 +66,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           Mdd.linePreset('tool_run', { msg: t('hashgen.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('hashgen.label.input'))}</label>
+              <label class="field-label" for="hgInput">${esc(t('hashgen.label.input'))}</label>
               <textarea id="hgInput" placeholder="${esc(t('hashgen.ph.input'))}" style="min-height:120px;"></textarea>
             </div>
             <div class="field-group">

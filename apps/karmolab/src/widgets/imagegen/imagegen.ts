@@ -825,7 +825,7 @@ const esc = (v: unknown): string =>
             <div class="ig-layout">
                 <div class="ig-sidebar">
                     <div class="field-group">
-                        <label class="field-label">${esc(t('imagegen.t12'))}</label>
+                        <label class="field-label" for="igModelSelect">${esc(t('imagegen.t12'))}</label>
                         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
                             <div style="font-size:var(--font-size-xs);color:var(--text-tertiary);">
                                 ${esc(t('imagegen.t13'))} <strong id="igActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
@@ -834,11 +834,11 @@ const esc = (v: unknown): string =>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">${esc(t('imagegen.t15'))}</label>
+                        <label class="field-label" for="igModelSelect">${esc(t('imagegen.t15'))}</label>
                         <select id="igModelSelect"></select>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">${esc(t('imagegen.t16'))}</label>
+                        <label class="field-label" for="igApiRoute">${esc(t('imagegen.t16'))}</label>
                         <select id="igApiRoute">
                             <option value="aiStudio">${esc(t('imagegen.opt.aiStudio'))}</option>
                             <option value="vertex">Vertex AI</option>
@@ -848,7 +848,7 @@ const esc = (v: unknown): string =>
                         </div>
                     </div>
                     <div class="field-group" id="igVertexImagenGroup" style="display:none">
-                        <label class="field-label">☁️ Vertex Imagen (GCP)</label>
+                        <label class="field-label" for="igAspectRatio">☁️ Vertex Imagen (GCP)</label>
                         <p style="font-size:var(--font-size-2xs);color:var(--text-tertiary);margin:0 0 8px 0;line-height:1.4;">
                             <code>projects/.../locations/.../publishers/google/models/...:predict</code> ${esc(t('imagegen.t20'))} <code>PROJECT_ID</code>, <code>LOCATION</code>)
                         </p>
@@ -864,30 +864,30 @@ const esc = (v: unknown): string =>
                         </div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">${esc(t('imagegen.t21'))}</label>
+                        <label class="field-label" for="igAspectRatio">${esc(t('imagegen.t21'))}</label>
                         <select id="igAspectRatio">
                             ${ASPECT_RATIOS.map((r: any) => `<option value="${r.value}"${r.value === '16:9' ? ' selected' : ''}>${r.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">${esc(t('imagegen.t22'))}</label>
+                        <label class="field-label" for="igVibe">${esc(t('imagegen.t22'))}</label>
                         <select id="igVibe">
                             ${VIBE_OPTIONS.map((v: any) => `<option value="${v.id}">${v.label}</option>`).join('')}
                         </select>
                         <div class="ig-vibe-info" id="igVibeInfo"></div>
                     </div>
                     <div class="field-group">
-                        <label class="field-label">${esc(t('imagegen.t23'))}</label>
+                        <label class="field-label" for="igSafety">${esc(t('imagegen.t23'))}</label>
                         <select id="igSafety">
                             ${SAFETY_LEVELS.map((s: any) => `<option value="${s.value}"${s.value === 'BLOCK_ONLY_HIGH' ? ' selected' : ''}>${s.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="field-group" id="igNegPromptGroup" style="display:none">
-                        <label class="field-label">${esc(t('imagegen.t24'))} <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
+                        <label class="field-label" for="igPersonGen">${esc(t('imagegen.t24'))} <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
                         <input type="text" id="igNegPrompt" placeholder="${esc(t('imagegen.ph.igNegPrompt'))}">
                     </div>
                     <div class="field-group" id="igPersonGenGroup" style="display:none">
-                        <label class="field-label">${esc(t('imagegen.t25'))} <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
+                        <label class="field-label" for="igPersonGen">${esc(t('imagegen.t25'))} <span style="font-weight:400;color:var(--text-tertiary)">(Imagen)</span></label>
                         <select id="igPersonGen">
                             ${PERSON_GEN_OPTIONS.map((p: any) => `<option value="${p.value}">${p.label}</option>`).join('')}
                         </select>

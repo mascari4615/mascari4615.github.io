@@ -46,7 +46,7 @@ import { appUrl } from '../../lib/site-base';
           Mdd.linePreset('tool_run', { msg: t('qrgen.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('qrgen.label.kind'))}</label>
+              <label class="field-label" for="qrKind">${esc(t('qrgen.label.kind'))}</label>
               <select id="qrKind" aria-label="만들 종류">
                 <option value="text">${esc(t('qrgen.kind.text'))}</option>
                 <option value="wifi">${esc(t('qrgen.kind.wifi'))}</option>
@@ -56,7 +56,7 @@ import { appUrl } from '../../lib/site-base';
             </div>
 
             <div class="field-group" id="qrPanelText">
-              <label class="field-label">${esc(t('qrgen.label.content'))}</label>
+              <label class="field-label" for="qrText">${esc(t('qrgen.label.content'))}</label>
               <textarea id="qrText" placeholder="${appUrl()}" style="min-height:90px;"></textarea>
             </div>
 

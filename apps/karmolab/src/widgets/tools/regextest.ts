@@ -38,7 +38,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
           Mdd.linePreset('tool_run', { msg: t('regextest.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('regextest.label.pattern'))}</label>
+              <label class="field-label" for="rxInput">${esc(t('regextest.label.pattern'))}</label>
               <div style="display:flex; gap:8px; align-items:center;">
                 <span style="color:var(--text-tertiary); font-family:var(--font-mono);">/</span>
                 <input type="text" id="rxPattern" class="mono-input" placeholder="[a-z]+" style="flex:1;">
@@ -53,7 +53,7 @@ import { merged, parse as parseRegex, pieces as regexPieces, toRailroad, type Pi
 
             <div class="tool-split">
               <div class="tool-split-pane">
-                <label class="field-label">${esc(t('regextest.label.text'))}</label>
+                <label class="field-label" for="rxInput">${esc(t('regextest.label.text'))}</label>
                 <textarea id="rxInput" aria-label="${esc(t('regextest.aria.text'))}" class="mono-input" style="min-height:180px;"></textarea>
                 <label class="field-label" style="margin-top:12px;">${esc(t('regextest.label.replace'))}</label>
                 <input type="text" id="rxReplace" class="mono-input" placeholder="[$&]">

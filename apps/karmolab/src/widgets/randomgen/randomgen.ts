@@ -103,7 +103,8 @@ import { inkOn } from '../../lib/ink-on';
                 }
 
                 container.innerHTML = '<div class="randomgen-wide">' +
-                    '<main class="randomgen-display"><div id="randomResults" class="randomgen-results"></div></main>' +
+                    /* 셸이 이미 main 을 하나 들고 있다. 도구 판이 또 열면 보조기기가 본문을 둘로 본다 */
+                    '<div class="randomgen-display"><div id="randomResults" class="randomgen-results"></div></div>' +
                     '<footer class="randomgen-footer">' +
                     '<div class="randomgen-bottom-bar">' +
                     t('randomgen.t04') +

@@ -27,7 +27,7 @@ import { t, loadNamespace } from '../../lib/i18n';
           Mdd.linePreset('tool_run', { msg: t('uuidgen.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('uuidgen.label.kind'))}</label>
+              <label class="field-label" for="uuKind">${esc(t('uuidgen.label.kind'))}</label>
               <select id="uuKind" aria-label="${esc(t('uuidgen.label.kind'))}">
                 <option value="v4">${esc(t('uuidgen.opt.v4'))}</option>
                 <option value="v7">${esc(t('uuidgen.opt.v7'))}</option>

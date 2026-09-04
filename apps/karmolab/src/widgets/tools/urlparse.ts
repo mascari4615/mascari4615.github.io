@@ -29,7 +29,7 @@ import { markLive } from './shared/say';
 
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('urlparse.label.in'))}</label>
+              <label class="field-label" for="upIn">${esc(t('urlparse.label.in'))}</label>
               <textarea id="upIn" rows="4" spellcheck="false" placeholder="${esc(t('urlparse.ph.in'))}"></textarea>
             </div>
 

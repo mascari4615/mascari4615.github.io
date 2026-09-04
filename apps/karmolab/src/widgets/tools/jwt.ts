@@ -61,12 +61,12 @@ import { markLive } from './shared/say';
   function draw(container: HTMLElement): void {
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">${esc(t('jwt.label.input'))}</label>
+              <label class="field-label" for="jwIn">${esc(t('jwt.label.input'))}</label>
               <textarea id="jwIn" rows="4" spellcheck="false" placeholder="${esc(t('jwt.ph.input'))}"></textarea>
             </div>
 
             <div id="jwHeadWrap" style="display:none;">
-              <label class="field-label">${esc(t('jwt.label.head'))}</label>
+              <label class="field-label" for="jwRaw">${esc(t('jwt.label.head'))}</label>
               <div class="tool-list" id="jwHead"></div>
             </div>
 
@@ -76,7 +76,7 @@ import { markLive } from './shared/say';
             </div>
 
             <div id="jwRawWrap" style="display:none; margin-top:var(--space-lg);">
-              <label class="field-label">${esc(t('jwt.label.raw'))}</label>
+              <label class="field-label" for="jwRaw">${esc(t('jwt.label.raw'))}</label>
               <textarea id="jwRaw" aria-label="${esc(t('jwt.aria.raw'))}" rows="8" spellcheck="false" readonly></textarea>
             </div>
 
