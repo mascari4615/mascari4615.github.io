@@ -33,9 +33,15 @@ export function copyOnClick(el: HTMLElement, text: () => string, label: string):
   once();
   el.style.cursor = 'copy';
   el.title = label;
-  /* 자판으로도 닿아야 한다. 마우스로만 되는 자리를 또 만들지 않는다 (TASK-KL-294) */
-  if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
-  if (!el.getAttribute('role')) el.setAttribute('role', 'button');
+  /* 자판으로도 닿아야 한다. 마우스로만 되는 자리를 또 만들지 않는다 (TASK-KL-294)
+     이미 자판이 닿는 칸(입력칸, 글상자, 버튼)에는 역할을 덧씌우지 않는다. `textarea` 에
+     `role="button"` 을 붙이면 그 칸이 가질 수 없는 역할이라 낭독기가 헷갈린다
+     (axe aria-allowed-role. uuid 도구에서 잡혔다) */
+  const native = /^(textarea|input|select|button|a)$/i.test(el.tagName);
+  if (!native) {
+    if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if (!el.getAttribute('role')) el.setAttribute('role', 'button');
+  }
   if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', label);
 
   const go = (): void => {

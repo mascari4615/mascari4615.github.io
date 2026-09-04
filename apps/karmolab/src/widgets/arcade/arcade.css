@@ -113,7 +113,7 @@
 .ac-recommend{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;width:100%;margin:var(--space-lg) 0;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--bg-primary);color:var(--text-primary);text-align:left;cursor:pointer;box-shadow:var(--shadow-float)}
 .ac-recommend:hover{transform:translateY(-2px);border-color:var(--border-hover)}
 .ac-recommendface{display:flex}.ac-recommendface svg{width:48px;height:48px}
-.ac-recommend b,.ac-recommend small{display:block}.ac-recommend b{font-size:var(--font-size-sm)}.ac-recommend small{margin-top:3px;color:var(--text-secondary);font-size:var(--font-size-2xs)}.ac-recommend>i{font-style:normal;font-size:32px}
+.ac-recommend b,.ac-recommend small{display:block}.ac-recommend b{font-size:var(--font-size-sm)}.ac-recommend small{margin-top:3px;color:var(--text-primary);font-size:var(--font-size-2xs)}.ac-recommend>i{font-style:normal;font-size:32px}
 .ac-situations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:var(--space-lg) 0}
 .ac-situation{min-width:0;padding:14px;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--accent-subtle)}
 .ac-situation h2{margin:0;font-size:var(--font-size-md);color:var(--text-primary)}.ac-situation p{min-height:2.6em;margin:4px 0 12px;color:var(--text-secondary);font-size:var(--font-size-2xs);line-height:1.3}

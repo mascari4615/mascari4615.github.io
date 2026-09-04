@@ -56,8 +56,13 @@ export function wireDrop(o: DropWell): void {
   /* **키보드로도 열린다** (TASK-KL-290). 파일 칸을 감춰 두고 상자를 누르게 해 놓으면
    * 마우스가 없는 사람에게는 길이 막힌다. 이 배선은 여태 **두 도구에만** 있었다
    * (`audiocut`, `filehash`). 공용으로 올리니 서른둘이 같이 얻는다. */
-  if (!o.drop.hasAttribute('tabindex')) o.drop.tabIndex = 0;
-  if (!o.drop.getAttribute('role')) o.drop.setAttribute('role', 'button');
+  /* 상자 안에 이미 누를 것이 있으면 상자에 역할을 안 준다. 누를 것 안에 누를 것이 되면
+     낭독기가 둘을 하나로 읽는다 (axe nested-interactive. 그림글자 도구에서 잡혔다) */
+  const ownControl = o.drop.querySelector('button, a[href], [role="button"]');
+  if (!ownControl) {
+    if (!o.drop.hasAttribute('tabindex')) o.drop.tabIndex = 0;
+    if (!o.drop.getAttribute('role')) o.drop.setAttribute('role', 'button');
+  }
   o.drop.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();

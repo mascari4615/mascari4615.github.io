@@ -50,7 +50,7 @@ import { download } from './shared/image';
                     placeholder="${esc(t('burnnote.ph.text', undefined, '비밀번호, 주소, 한 번만 보일 말...'))}"></textarea>
         </div>
         <div class="field-group">
-          <div class="tool-sublabel">${esc(t('burnnote.label.file', undefined, '파일도 함께 (하나, 5MB 까지)'))}</div>
+          <label class="tool-sublabel" for="bnFile">${esc(t('burnnote.label.file', undefined, '파일도 함께 (하나, 5MB 까지)'))}</label>
           <input type="file" id="bnFile">
           <p class="bn-note" id="bnFileNote" style="display:none;"></p>
         </div>

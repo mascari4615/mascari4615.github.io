@@ -110,7 +110,7 @@ export const HEUNG_CSS = `
     .hu-help .hu-keys { flex:none; display:flex; gap:3px; }
     .hu-help kbd { padding:1px 5px; border:1px solid var(--border-hover); border-bottom-width:2px; border-radius:var(--radius-sm); background:var(--bg-tertiary); color:var(--text-secondary); font:10px var(--font-mono); }
     .hu-export { position:fixed; left:50%; top:12%; transform:translateX(-50%); z-index:1000; width:min(420px,92vw); padding:14px; border:1px solid var(--border-hover); border-radius:var(--radius-lg); background:var(--bg-secondary); box-shadow:0 18px 40px rgba(0,0,0,.45); display:grid; gap:8px; }
-    .hu-export h4 { margin:0; font:12px var(--font-mono); color:var(--text-secondary); letter-spacing:.08em; }
+    .hu-export h2 { margin:0; font:12px var(--font-mono); color:var(--text-secondary); letter-spacing:.08em; }
     .hu-export label { display:flex; align-items:center; justify-content:space-between; gap:10px; font:11px var(--font-mono); color:var(--text-tertiary); }
     .hu-export select, .hu-export input { font:11px var(--font-mono); }
     .hu-export-note { font:10px var(--font-mono); color:var(--text-tertiary); line-height:1.5; }
@@ -132,7 +132,7 @@ export const HEUNG_CSS = `
     .hu-side-tabs button { flex:1; border:0; border-right:1px solid var(--border); border-radius:0; }
     .hu-side-body { overflow:auto; padding:10px; min-height:0; }
     .hu-section { margin-bottom:14px; }
-    .hu-section h4 { margin:0 0 7px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--text-tertiary); }
+    .hu-section h2 { margin:0 0 7px; font:10px var(--font-mono); letter-spacing:.1em; color:var(--text-tertiary); }
     .hu-field { display:grid; grid-template-columns:82px minmax(0,1fr); align-items:center; gap:7px; margin:5px 0; font-size:var(--font-size-3xs); color:var(--text-secondary); }
     .hu-field input,.hu-field select { min-width:0; width:100%; margin:0; padding:5px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-primary); color:var(--text-primary); }
     .hu-field input[type=range] { padding:0; accent-color:var(--accent); }

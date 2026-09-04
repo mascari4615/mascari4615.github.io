@@ -24,7 +24,7 @@ import { t, loadNamespace } from '../lib/i18n';
                         <div style="font-size:var(--font-size-xs); color:var(--text-secondary);">${esc(t('countdown.t01'))}</div>
                         <div id="countdownMs" style="font-size:54px; font-variant-numeric: tabular-nums; font-family:monospace; font-weight:900; color:var(--accent-ink); text-shadow:0 0 10px rgba(100,100,250,0.4); letter-spacing:-2px;">0000000000</div>
                         <div style="display:flex; gap:12px; margin-top:20px; align-items:center;">
-                            <span style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('countdown.t02'))}</span>
+                            <label for="countdownTarget" style="font-size:var(--font-size-xs); color:var(--text-tertiary);">${esc(t('countdown.t02'))}</label>
                             <input type="datetime-local" id="countdownTarget" class="input" style="width:200px; padding:6px; font-size:var(--font-size-sm);">
                         </div>
                         <div style="margin-top:15px; font-size:var(--font-size-xs); color:var(--text-tertiary); display:grid; grid-template-columns:1fr; gap:6px; text-align:left; background:var(--bg-secondary); border:1px solid var(--border); padding:15px; border-radius:var(--radius-lg); width:100%; max-width:350px;">

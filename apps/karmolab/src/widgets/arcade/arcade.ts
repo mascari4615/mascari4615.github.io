@@ -795,7 +795,8 @@ interface Session {
         '<div class="ac-packrow">' +
         '<button type="button" class="btn btn-ghost" id="acPackNew">' +
         esc(packs.length ? t('arcade.packs.more') : t('arcade.packs.new')) + '</button>' +
-        '<button type="button" class="btn btn-ghost" id="acPackWell" hidden></button>' +
+        /* 이름은 우물 이름이 오면 갈아 끼운다. 그 전에도 비어 있으면 안 된다 */
+        '<button type="button" class="btn btn-ghost" id="acPackWell" aria-label="' + esc(t('arcade.packs.well', { table: '' })) + '" hidden></button>' +
         '</div>';
       $<HTMLButtonElement>('#acPackNew').onclick = (): void => Toolbox.switchPage?.('packs');
 
@@ -806,8 +807,10 @@ interface Session {
           const today = (body?.wells || []).filter((w) => w.id === body?.today)[0];
           const btn = container.querySelector<HTMLButtonElement>('#acPackWell');
           if (!today || !btn || !container.isConnected) return;
+          /* 글자를 먼저 넣고 그 다음에 보인다. 순서가 반대면 이름 없는 버튼이 한 순간 뜬다 */
+          const label = t('arcade.packs.well', { table: `${today.emoji} ${today.title}` });
+          btn.textContent = label || `${today.emoji} ${today.title}`;
           btn.hidden = false;
-          btn.textContent = t('arcade.packs.well', { table: `${today.emoji} ${today.title}` });
           btn.onclick = (): void => Toolbox.switchPage?.('packwell');
         })
         .catch(() => {

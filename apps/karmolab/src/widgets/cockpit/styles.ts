@@ -33,7 +33,8 @@ const CSS = `
   padding: 8px 16px;
   font-size: var(--font-size-2xs);
   font-weight: 500;
-  color: rgba(226,232,240,0.45);
+  /* 0.45 로 흐리면 3.87:1 이라 못 읽는다 (2026-09-04 실측). 4.5 를 넘는 값으로 */
+  color: rgba(226,232,240,0.62);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: color 0.12s, border-color 0.12s;

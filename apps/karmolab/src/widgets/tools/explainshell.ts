@@ -153,7 +153,8 @@ import { t, loadNamespace } from '../../lib/i18n';
 .ex-tok code{font-family:var(--font-mono,monospace);font-weight:600;}
 .ex-kind{width:1%;white-space:nowrap;opacity:.6;font-size:var(--font-size-2xs);}
 .ex-what strong{font-weight:700;}
-.ex-dim{opacity:.45;}
+/* 0.45 로 흐리면 4.12:1 (2026-09-04 실측). 4.5 를 넘게 */
+.ex-dim{opacity:.62;}
 .ex-unknown .ex-tok code{opacity:.7;}
 .ex-danger{margin:14px 0;padding:12px 14px;border-radius:var(--radius-xl);
   border:1px solid rgba(240,120,120,.5);background:rgba(240,90,90,.10);}

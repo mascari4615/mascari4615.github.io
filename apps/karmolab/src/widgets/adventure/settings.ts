@@ -85,8 +85,10 @@ function makeInput(value: string, placeholder: string, type: 'text' | 'password'
   return input;
 }
 
-function makeSelect(options: { value: string; label: string }[], current: string): HTMLSelectElement {
+function makeSelect(options: { value: string; label: string }[], current: string, name?: string): HTMLSelectElement {
   const select = document.createElement('select');
+  /* 이름표를 못 붙이는 자리다. 낭독기가 무엇을 고르는 칸인지 말할 수 있게 이름을 준다 */
+  if (name) select.setAttribute('aria-label', name);
   select.style.padding = '4px 8px';
   select.style.background = STYLE_TOKENS.bgTertiary;
   select.style.color = STYLE_TOKENS.textPrimary;
@@ -131,6 +133,7 @@ export function buildSettingsPanel(opts: {
   const providerSelect = makeSelect(
     ALL_ADVENTURE_PROVIDERS.map((p: AdventureProvider) => ({ value: p.id, label: p.name })),
     readStringPref(ADV_PROVIDER_PREF_KEY) || 'claude',
+    '제공자 고르기',
   );
   providerSelect.addEventListener('change', () => {
     writeStringPref(ADV_PROVIDER_PREF_KEY, providerSelect.value);
@@ -149,6 +152,7 @@ export function buildSettingsPanel(opts: {
     claudeSelect = makeSelect(
       claudeProvider.availableModels().map((m) => ({ value: m.id, label: m.name })),
       readStringPref('adv_claude_model_id') || claudeProvider.defaultModelId(),
+      'Claude 모델 고르기',
     );
     claudeSelect.addEventListener('change', () => writeStringPref('adv_claude_model_id', claudeSelect!.value));
     claudeCell.appendChild(claudeSelect);
@@ -163,6 +167,7 @@ export function buildSettingsPanel(opts: {
     vertexModelSelect = makeSelect(
       vertexProvider.availableModels().map((m) => ({ value: m.id, label: m.name })),
       readStringPref('adv_vertex_model_id') || vertexProvider.defaultModelId(),
+      'Vertex 모델 고르기',
     );
     vertexModelSelect.addEventListener('change', () =>
       writeStringPref('adv_vertex_model_id', vertexModelSelect!.value),

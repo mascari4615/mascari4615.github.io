@@ -128,7 +128,7 @@ import { t, loadNamespace } from '../lib/i18n';
     const docEl = document.createElement('div');
     docEl.className = 'ytdl-doc';
     docEl.innerHTML = `
-            <h4>${esc(t('youtubedl.t01'))}</h4>
+            <h2>${esc(t('youtubedl.t01'))}</h2>
             <p>1. <strong>${esc(t('youtubedl.t02'))}</strong> ${esc(t('youtubedl.t03'))}</p>
             <p>${esc(t('youtubedl.t04'))} <strong>${esc(t('youtubedl.t05'))}</strong> ${esc(t('youtubedl.t06'))}</p>
             <p>3. <strong>MP3</strong> ${esc(t('youtubedl.t07'))} <strong>MP4</strong> ${esc(t('youtubedl.t08'))}</p>

@@ -22,7 +22,11 @@ export type SayKind = '' | 'ok' | 'error' | 'warn';
  * 바꾸게 하면 판이 커져서 안 하게 된다. 표시만 붙이는 한 줄이면 **그 자리도 읽힌다**.
  */
 export function markLive(el: HTMLElement): void {
-  if (!el.getAttribute('role')) el.setAttribute('role', 'status');
+  /* 입력칸과 글상자에는 `role="status"` 를 못 붙인다. 그 칸이 가질 수 없는 역할이라
+     낭독기가 무엇으로 읽을지 헷갈린다 (axe aria-allowed-role. uuid 도구에서 잡혔다).
+     `aria-live` 만으로도 값이 바뀌면 읽어 준다 */
+  const native = /^(textarea|input|select|button|a)$/i.test(el.tagName);
+  if (!native && !el.getAttribute('role')) el.setAttribute('role', 'status');
   if (!el.getAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
 }
 

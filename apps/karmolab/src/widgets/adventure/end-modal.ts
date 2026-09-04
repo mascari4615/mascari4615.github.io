@@ -78,7 +78,8 @@ export async function showEndModal(session: AdventureSession): Promise<boolean> 
     card.style.flexDirection = 'column';
     card.style.gap = '12px';
 
-    const heading = document.createElement('h3');
+    /* 셸이 h1 을 주고 도구 판은 h2 부터. h3 은 한 단계 건너뛴다 */
+    const heading = document.createElement('h2');
     heading.textContent = t('adventure.t27');
     heading.style.margin = '0';
     heading.style.color = STYLE.accent;

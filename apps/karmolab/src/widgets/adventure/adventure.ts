@@ -56,7 +56,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     });
 
     /* ===== 헤더 ===== */
-    const heading = el('h3', {
+    /* 셸이 h1 을 주고 도구 판은 h2 부터. h3 은 한 단계 건너뛴다 */
+    const heading = el('h2', {
       textContent: t('adventure.t01'),
       style: { margin: '0', color: 'var(--accent)' },
     });
@@ -73,6 +74,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       style: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' },
     });
     providerRow.appendChild(el('strong', { textContent: 'Provider' }));
+    /* 곁의 굵은 글자는 이름표가 아니다. 낭독기가 읽을 이름을 따로 준다 */
     const providerSelect = el('select', {
       style: {
         padding: '4px 8px',
@@ -86,6 +88,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
       const opt = el('option', { value: p.id, textContent: `${p.name} (default: ${p.defaultModelId()})` });
       providerSelect.appendChild(opt);
     }
+    providerSelect.setAttribute('aria-label', 'Provider');
     providerSelect.value = getAdventureProviderIdPref();
     const Tx = (globalThis as unknown as {
       Toolbox?: { setPref?: (key: string, value: unknown) => void };
