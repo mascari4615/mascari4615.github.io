@@ -43,11 +43,14 @@ for (let i = 0; i < RUNS; i++) {
           at: Math.round(e.startTime),
           who: (e.sources || []).slice(0, 3).map((s) => {
             const n = s.node;
-            const el = n && (n.nodeType === 1 ? n : n.parentElement);
+            let el = n && (n.nodeType === 1 ? n : n.parentElement);
+            /* 가상 요소(::before)는 이름이 없어 어느 조각인지 못 찾는다. 진짜 부모까지 올라간다 */
+            while (el && !el.tagName) el = el.parentElement;
             if (!el) return '?';
+            const owner = el.parentElement ? ` in ${el.parentElement.id ? '#' + el.parentElement.id : el.parentElement.tagName.toLowerCase() + String(el.parentElement.className || '').trim().split(/\s+/).filter(Boolean).slice(0, 1).map((x) => '.' + x).join('')}` : '';
             const c = String(el.className?.baseVal ?? el.className ?? '').trim().split(/\s+/)[0];
             const move = Math.round((s.currentRect?.top ?? 0) - (s.previousRect?.top ?? 0));
-            return `${el.id ? '#' + el.id : el.tagName.toLowerCase() + (c ? '.' + c : '')}(${move > 0 ? '↓' : '↑'}${Math.abs(move)}px)`;
+            return `${el.id ? '#' + el.id : el.tagName.toLowerCase() + (c ? '.' + c : '')}${owner}(${move > 0 ? '↓' : '↑'}${Math.abs(move)}px)`;
           })
         });
       }

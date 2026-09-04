@@ -3355,6 +3355,9 @@ html[data-skin="field"] .settings-row-stack:has(.settings-bg-picker) { display: 
     letter-spacing: -.02em;
     color: var(--scene-wm);
     user-select: none;
+
+    height: 272px;
+    overflow: hidden;
 }
 html[data-view="home"] .app-wm::before { content: 'HOME'; }
 html[data-view="tool"] .app-wm::before { content: 'TOOL'; }

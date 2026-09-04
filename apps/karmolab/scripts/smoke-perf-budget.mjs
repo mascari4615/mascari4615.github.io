@@ -269,7 +269,11 @@ async function measure(url, scenario) {
   }
   const snap = await page.evaluate(() => {
     const s = window.KLPerf.snapshot();
-    return { verdict: s.verdict, trust: s.trust };
+    /* 밀림이 넘으면 **무엇이 밀렸나**까지 들고 온다. 수만 보면 다음 사람이 또 처음부터 찾는다 */
+    const shifts = (s.shiftCulprits || [])
+      .slice(0, 4)
+      .map((x) => `${x.value.toFixed(4)} x${x.count} ${x.who}`);
+    return { verdict: s.verdict, trust: s.trust, shifts, cls: s.cls };
   });
   await page.close();
   return { ...snap, errors };
@@ -328,7 +332,13 @@ for (const [screen, url, screenBudget = {}] of TARGETS) {
     if (one) runs.push(one);
   }
   const result = runs.length
-    ? { verdict: median(runs), trust: runs[runs.length - 1].trust, errors: runs.flatMap((r) => r.errors) }
+    /* 밀림은 가장 나쁜 판으로 판정하므로, 무엇이 밀렸나도 **그 판** 것을 들고 온다 */
+    ? {
+        verdict: median(runs),
+        trust: runs[runs.length - 1].trust,
+        errors: runs.flatMap((r) => r.errors),
+        shifts: runs.slice().sort((a, b) => (b.cls ?? 0) - (a.cls ?? 0))[0]?.shifts || []
+      }
     : null;
   console.log(`[perf-budget] ── ${label}${runs.length > 1 ? ` (${runs.length}회, 시간, 크기는 중앙값, 밀림은 가장 나쁜 판)` : ''}`);
   if (!result) {
@@ -360,6 +370,10 @@ for (const [screen, url, screenBudget = {}] of TARGETS) {
   for (const v of rows) {
     const mark = v.state === 'fail' ? 'FAIL' : v.state === 'unknown' ? '못 잼' : ' OK ';
     console.log(`[perf-budget]   ${mark}  ${v.label.padEnd(20)} ${fmt(v).padStart(8)} / 예산 ${limitOf(v)}`);
+    /* 밀림이 넘었으면 무엇이 밀렸는지 그 자리에서 말한다. 수만 보면 다음 사람이 처음부터 찾는다 */
+    if (v.state === 'fail' && /밀림|CLS/i.test(String(v.label)) && result.shifts?.length) {
+      for (const line of result.shifts) console.log(`[perf-budget]         ${line}`);
+    }
   }
   if (!result.trust.ok) console.log(`[perf-budget]   ⚠ 이 판은 비교에 못 쓴다. ${result.trust.why}`);
   if (result.errors.length) console.log(`[perf-budget]   ⚠ 화면 오류 ${result.errors.length}건. ${result.errors[0].slice(0, 120)}`);

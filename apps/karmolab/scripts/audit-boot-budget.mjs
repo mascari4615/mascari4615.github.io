@@ -39,14 +39,21 @@ const blogRoot = path.dirname(root);
  *   후보지만 셸 부팅이 그 이름을 이미 붙들고 있어 한 사람이 안전하게 못 뗀다 . 
  *   그 자리는 셸을 가진 슬롯 몫이다(TASK-KL-128 ⑲).
  *   그래서 숫자를 진실대로 두고 1KB 올린다. **다음에 올리려는 사람은 계정부터 떼라.**
+ *, 2026-09-04 첫 화면 JS 41 → 45, 도구 화면과 목록 JS 23 → 26, CSS 68 → 69.
+ *   CI 실측 첫 화면 44.2, 도구 화면 25.2 / CSS 68.7
+ *   계정은 이미 떼임. 부팅 태그에 없음
+ *   커진 자리는 셸 본체. `toolbox.js` 18.2 → 21.5 (2026-09-01 킷, 스킨, WCAG)
+ *   나머지는 도구 증가에 딸린 목록. `widgets-index.js` 설계 5.0 → 6.8
+ *   팔레트 8.8 은 첫 화면 본체라 못 뗌. 셸 쪼개기는 셸을 가진 판 몫
+ *   **다음에 올리려는 사람은 `toolbox.js` 부터 쪼개라.**
  *
  * 천장(gz, KB). 2026-08-08 KL-128 ①-c/⑱ 직후 실측값 + 여유 10%.
  * 실측: 첫 화면 JS 35.1 / CSS 47.3, 도구 화면, 목록 JS 18.7 / CSS 62.1.
  * 첫 화면 JS 가 큰 것은 **맞다**. 팔레트가 그 화면의 본체라 미룰 수 없다(도구 화면에선 뺐다). */
 const BUDGET = {
-  '앱 첫 화면': { file: path.join(root, 'index.html'), js: 41, css: 52 },
-  '도구 화면': { file: path.join(blogRoot, 'blog/t/loan/index.html'), js: 23, css: 68 },
-  '도구 목록': { file: path.join(blogRoot, 'blog/t/index.html'), js: 23, css: 68 }
+  '앱 첫 화면': { file: path.join(root, 'index.html'), js: 45, css: 52 },
+  '도구 화면': { file: path.join(blogRoot, 'blog/t/loan/index.html'), js: 26, css: 69 },
+  '도구 목록': { file: path.join(blogRoot, 'blog/t/index.html'), js: 26, css: 69 }
 };
 
 const gz = (p) => {

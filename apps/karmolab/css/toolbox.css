@@ -4168,6 +4168,10 @@ html[data-skin="field"] .settings-row-stack:has(.settings-bg-picker) { display: 
     letter-spacing: -.02em;
     color: var(--scene-wm);
     user-select: none;
+    /* 웹폰트가 늦게 오면 320px 글자의 윗선이 9px 움직여 화면이 밀린다 (CLS 0.088, 2026-09-04 실측).
+       상자를 미리 잡고 넘치는 것은 잘라 그 움직임을 가둔다 */
+    height: 272px;
+    overflow: hidden;
 }
 html[data-view="home"] .app-wm::before { content: 'HOME'; }
 html[data-view="tool"] .app-wm::before { content: 'TOOL'; }
