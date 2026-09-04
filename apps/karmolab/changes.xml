@@ -12,6 +12,20 @@ permalink: /changes.xml
     <language>ko</language>
     <lastBuildDate>Sat, 05 Sep 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[고침] 맡아 둘 자리를 CSS 픽셀로 다시 재서 넓힌다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-0be7ed6398</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>맡아 둘 자리를 CSS 픽셀로 다시 재서 넓힌다</description>
+    </item>
+    <item>
+      <title>[고침] 초점을 거부하는 자리를 못 잼으로 세게 한다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-f1c6cf20bf</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>초점을 거부하는 자리를 못 잼으로 세게 한다</description>
+    </item>
+    <item>
       <title>[고침] 시험 서버가 자리를 못 잡으면 소리 내어 죽게 한다</title>
       <link>https://blog.mascari4615.com/#status</link>
       <guid isPermaLink="false">karmolab-change-6c8332e008</guid>
@@ -206,20 +220,6 @@ permalink: /changes.xml
       <guid isPermaLink="false">karmolab-change-c227915013</guid>
       <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
       <description>시간대 칸이 숫자까지 흐려 대비가 모자랐다. 오락실 검사 둘의 CI 실패도 잡는다</description>
-    </item>
-    <item>
-      <title>[고침] 2D 캔버스 판이 콘텐츠 칸을 다 쓴다. 게이트로 52판을 잰다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-677d139b1d</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>2D 캔버스 판이 콘텐츠 칸을 다 쓴다. 게이트로 52판을 잰다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 다트 모드 넷과 코이코이 판 수, 배수</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-0cce0c2497</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>다트 모드 넷과 코이코이 판 수, 배수</description>
     </item>
   </channel>
 </rss>

@@ -1979,6 +1979,11 @@ input[type="date"], input[type="time"], input[type="datetime-local"], input[type
     border-left: 2px solid transparent;
     padding: 10px 14px;
     font-size: var(--font-size-sm);
+    /* ★ **줄 높이를 못 박는다** (2026-09-04 실측). 안 적으면 `normal` 이라 글꼴 지표를 따라감
+       `fonts.css` 는 첫 그림 뒤에 붙는데(일부러 미룬다), 그 순간 입력칸이 35px 에서 41px 로
+       자라 줄마다 6px 씩, 칸 하나에 18px 이 밀림. 그 아래가 통째로 내려간 것이 도구 장 밀림(CLS)
+       0.148 의 몸통. 값은 글꼴이 온 뒤의 높이 그대로라 사람 눈에는 안 바뀜 */
+    line-height: 1.2;
     font-family: inherit;
     color: var(--text-primary);
     outline: none;

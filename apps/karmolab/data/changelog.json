@@ -2,6 +2,22 @@
   "generatedAt": "2026-09-05",
   "entries": [
     {
+      "sha": "0be7ed6398",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "맡아 둘 자리를 CSS 픽셀로 다시 재서 넓힌다"
+    },
+    {
+      "sha": "f1c6cf20bf",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "label": "고침",
+      "tone": "fix",
+      "text": "초점을 거부하는 자리를 못 잼으로 세게 한다"
+    },
+    {
       "sha": "6c8332e008",
       "date": "2026-09-05",
       "kind": "fix",
@@ -624,22 +640,6 @@
       "label": "고침",
       "tone": "fix",
       "text": "괄호 하나가 빠져 뒤따르는 CSS 217줄이 죽어 있던 것"
-    },
-    {
-      "sha": "74ab187bd1",
-      "date": "2026-09-02",
-      "kind": "fix",
-      "label": "고침",
-      "tone": "fix",
-      "text": "등급전 계약과 Yacht 시간 제한을 잇는다"
-    },
-    {
-      "sha": "df7cb0aa16",
-      "date": "2026-09-02",
-      "kind": "feat",
-      "label": "새로 생김",
-      "tone": "new",
-      "text": "등급전 한 수 제한과 임시 경계를 서버 규칙이 내려준다"
     }
   ]
 }
