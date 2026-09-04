@@ -156,16 +156,25 @@ const FIREFOX = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100
  *  구워서 돌리자마자 이 자리에서 멈췄다). */
 async function openChat(page) {
   await page.waitForSelector('#klChatDock', { state: 'attached', timeout: 15000 });
-  const menuBtn = page.locator('#klHeaderMe');
-  if (await menuBtn.isVisible().catch(() => false)) {
-    await menuBtn.click();
-    const item = page.locator('[data-chat]');
-    if (await item.isVisible().catch(() => false)) { await item.click(); return; }
-    await page.keyboard.press('Escape').catch(() => {});
+  /* **눌렀나가 아니라 열렸나까지** 본다 (2026-09-04, CI 두 판). 계정 메뉴가 뜨는 중에 누르면
+     항목이 아직 없어 Escape 로 빠지고, 이어서 누른 닻도 메뉴에 가려 창이 안 열린 채 지나갔다.
+     그 뒤 이름표를 30초 기다리다 죽는다. 열릴 때까지 사람 길과 닻을 번갈아 눌러 본다 */
+  const opened = () => page.locator('#klChatMe .klchat-who').isVisible().catch(() => false);
+  const until = Date.now() + WAIT;
+  while (!(await opened()) && Date.now() < until) {
+    const menuBtn = page.locator('#klHeaderMe');
+    if (await menuBtn.isVisible().catch(() => false)) {
+      await menuBtn.click().catch(() => {});
+      const item = page.locator('[data-chat]');
+      if (await item.isVisible().catch(() => false)) await item.click().catch(() => {});
+      else await page.keyboard.press('Escape').catch(() => {});
+    }
+    if (await opened()) break;
+    /* 계정 메뉴가 아직 안 붙은 판에서는 닻을 코드로 누른다. 사람 길이 막힌 게 아니라
+       그 창이 아직 덜 그려진 것이다 */
+    await page.evaluate(() => document.getElementById('klChatDock')?.click());
+    await page.waitForTimeout(500);   // 재움-의도: 창이 열릴 틈
   }
-  /* 계정 메뉴가 아직 안 붙은 판에서는 닻을 코드로 누른다. 사람 길이 막힌 게 아니라
-     그 창이 아직 덜 그려진 것이다 */
-  await page.evaluate(() => document.getElementById('klChatDock')?.click());
 }
 try {
   const a = await openWindow(CHROME);
