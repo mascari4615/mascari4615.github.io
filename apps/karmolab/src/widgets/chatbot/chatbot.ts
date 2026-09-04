@@ -258,15 +258,15 @@ import {
                     <div class="cb-options">
                         <p class="cb-panel-heading" style="margin-bottom:8px;">${esc(t('chatbot.t10'))}</p>
                         <div class="cb-option-row">
-                            <label>${esc(t('chatbot.t11'))}</label>
+                            <label for="cbWebSearch">${esc(t('chatbot.t11'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbWebSearch"><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-option-row">
-                            <label>${esc(t('chatbot.t12'))}</label>
+                            <label for="cbMemory">${esc(t('chatbot.t12'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbMemory" checked><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-option-row cb-temperature-row">
-                            <label>Temperature <span id="cbTempValue">0.8</span></label>
+                            <label for="cbTemperature">Temperature <span id="cbTempValue">0.8</span></label>
                         </div>
                         <div class="cb-option-row" style="margin-top:2px;">
                             <input type="range" id="cbTemperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;">
@@ -334,11 +334,11 @@ import {
                     <div class="cb-character-block" id="cbCharacterBlock">
                         <p class="cb-panel-heading" style="margin-bottom:8px;">${esc(t('chatbot.t22'))}</p>
                         <div class="cb-option-row" style="margin-bottom:6px;">
-                            <label>${esc(t('chatbot.t23'))}</label>
+                            <label for="cbCharUse">${esc(t('chatbot.t23'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbCharUse" checked><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-option-row" style="margin-bottom:6px;">
-                            <label>${esc(t('chatbot.t24'))}</label>
+                            <label for="cbCharAutoImage">${esc(t('chatbot.t24'))}</label>
                             <label class="cb-toggle"><input type="checkbox" id="cbCharAutoImage"><span class="cb-toggle-slider"></span></label>
                         </div>
                         <div class="cb-char-profile-wrap">

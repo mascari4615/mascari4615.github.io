@@ -78,8 +78,8 @@ import { appPath } from '../lib/site-base';
         .st-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--text-tertiary); }
         .st-dot[data-up="1"] { background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.18); }
         .st-dot[data-up="0"] { background:#f87171; box-shadow:0 0 0 3px rgba(248,113,113,.18); }
-        .st-feed { color:var(--accent-ink); text-decoration:none; }
-        .st-feed:hover { text-decoration:underline; }
+        /* 글 안의 링크는 색만으로 구분하면 안 된다. 곁 글자와 대비가 1.24 였다 (axe link-in-text-block) */
+        .st-feed { color:var(--accent-ink); text-decoration:underline; }
         .st-link { background:none; border:0; padding:0; font:inherit; font-size:var(--font-size-3xs);
             color:var(--accent-ink); cursor:pointer; }
         .st-sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px;

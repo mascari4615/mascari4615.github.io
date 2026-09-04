@@ -404,8 +404,9 @@
     color: var(--text-secondary);
 }
 .rx-mark {
-    background: var(--accent);
-    color: #fff;
+    /* --accent 위 흰 글자는 어두운 판에서 2.44:1 (2026-09-04 실측). 강한 면 짝을 쓴다 */
+    background: var(--fill-strong);
+    color: var(--fill-strong-ink);
     padding: 1px 2px;
     border-radius: 2px;
 }

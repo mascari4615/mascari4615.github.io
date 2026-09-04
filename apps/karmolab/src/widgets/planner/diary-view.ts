@@ -48,10 +48,10 @@ export function buildDiaryView(container: HTMLElement, startDate?: string): Diar
 
     container.innerHTML = `
         <div class="pl-diary">
-            <aside class="pl-diary-side">
+            <div class="pl-diary-side">
                 <input type="search" name="diary-search" class="pl-input pl-diary-search" placeholder="${esc(t('planner.t80'))}">
                 <div class="pl-diary-list"></div>
-            </aside>
+            </div>
             <section class="pl-diary-main">
                 <header class="pl-diary-head">
                     <h3 class="pl-diary-date"></h3>

@@ -89,7 +89,7 @@ import { buildDiaryView, type DiaryViewHandle } from './diary-view';
         .pl-mini-dow { font-size: var(--font-size-4xs); color: var(--text-tertiary); text-align: center; padding: 2px 0; }
         .pl-mini-day { font-size: var(--font-size-3xs); padding: 4px 0; border: none; background: none; color: var(--text-secondary); border-radius: var(--radius-sm); cursor: pointer; position: relative; }
         .pl-mini-day:hover { background: var(--bg-tertiary); }
-        .pl-mini-day--out { color: var(--text-tertiary); opacity: .45; }
+        .pl-mini-day--out { color: var(--text-tertiary); }
         .pl-mini-day--today { background: var(--accent); color: #fff; font-weight: 700; }
         .pl-mini-day--busy::after { content: ''; position: absolute; left: 50%; bottom: 2px; width: 3px; height: 3px; border-radius: 50%; background: currentColor; transform: translateX(-50%); }
 

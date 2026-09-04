@@ -91,11 +91,11 @@ export function buildCalendarView(
 ): CalendarViewHandle {
     container.innerHTML = `
         <div class="pl-cal-layout">
-            <aside class="pl-cal-side">
+            <div class="pl-cal-side">
                 <button type="button" class="btn btn-accent pl-cal-create">${esc(t('planner.t10'))}</button>
                 <div class="pl-mini"></div>
                 <div class="pl-cal-list"></div>
-            </aside>
+            </div>
             <div class="pl-cal-main">
                 <div class="pl-cal-loading" hidden>${esc(t('planner.t11'))}</div>
                 <div class="pl-cal-mount"></div>
@@ -195,6 +195,9 @@ export function buildCalendarView(
 
     const calendar = new Calendar(mount, options);
     calendar.render();
+    /* FullCalendar 의 화살표는 `role="img"` 인데 이름이 없다. 이름은 감싼 버튼이 이미 들고
+       있으므로 아이콘은 숨긴다 (axe role-img-alt 2곳, 2026-09-04) */
+    for (const icon of mount.querySelectorAll('.fc-icon')) icon.setAttribute('aria-hidden', 'true');
 
     /* ===== 받아 오기 ===== */
 

@@ -261,6 +261,20 @@ if (grown.length > 0) {
   process.exit(1);
 }
 
+/* 남은 빚을 자리까지 보여 준다. 수만 보면 어디를 고칠지 모른다 (`KL_A11Y_LIST=1`) */
+if (process.env.KL_A11Y_LIST === '1') {
+  const rows = [...new Map(failures.map((f) => [key(f), f])).values()]
+    .sort((a, b) => (now[key(b)] || 0) - (now[key(a)] || 0));
+  console.log(`
+[smoke-a11y] 남은 자리 ${rows.length}종`);
+  for (const f of rows) {
+    console.log(`  ${f.theme.padEnd(5)} ${f.name}  [${f.impact}] ${f.id}  ${now[key(f)]}곳`);
+    console.log(`        예: ${f.sample.slice(0, 100)}`);
+    if (f.measured) console.log(`        잰 값: ${f.measured}`);
+  }
+  console.log('');
+}
+
 const total = scope.reduce((a, k) => a + (now[k] || 0), 0);
 const baseline = scope.reduce((a, k) => a + (base[k] || 0), 0);
 if (shrunk.length > 0) {
