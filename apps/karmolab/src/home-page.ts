@@ -194,13 +194,16 @@ import { toolIndexPath } from './lib/site-base';
          * **짓는 도중**에 불리고, `account.js` 는 그 뒤에 온다. 그래서 서버가 멀쩡해도 이 칸은
          * 늘 비었다. 도구 화면의 열림 수(`fillToolCount`)는 이미 `whenApiBase()` 를 기다리고
          * 있었는데, 이 자리만 그 줄을 안 썼다(창구는 진작 뚫려 있었다). */
-        if (!(await whenApiBase())) return;
-        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-        if (!base) return;
         /* **물어보는 동안 자리를 잡아 둔다**. 대답이 오면 이 칸이 한 줄(23px) 생기면서 아래가
-           통째로 내려간다(실사이트 밀림 0.042). 못 받으면 도로 놓아 `:empty` 가 이겨 자리가 없어진다. */
+           통째로 내려간다(실사이트 밀림 0.042). 못 받으면 도로 놓아 `:empty` 가 이겨 자리가 없어진다.
+           ★ 잡는 자리를 **맨 앞으로** 옮겼다 (2026-09-04). 계정 조각을 기다린 뒤에 잡았더니
+           그 기다림 동안은 0px 이라, 첫 화면이 가운데 정렬이라 위아래가 21px 씩 밀렸다
+           (실측: 700ms 에 0 에서 20 으로, `.landing-hero` 266 에서 245). 이제 첫 그림부터 자리가 있다. */
         slot.dataset.reserving = '1';
         const unreserve = () => { delete slot.dataset.reserving; };
+        if (!(await whenApiBase())) { unreserve(); return; }
+        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        if (!base) { unreserve(); return; }
         let data;
         try {
             const response = await fetch(base + '/kl/tools/stats');

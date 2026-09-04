@@ -10,7 +10,21 @@ permalink: /changes.xml
     <atom:link href="https://blog.mascari4615.com/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
-    <lastBuildDate>Fri, 04 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 05 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <item>
+      <title>[고침] 꺼도 방에 남나를 마지막 한 번이 아니라 끝내 남았나로 본다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-e99b660896</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>꺼도 방에 남나를 마지막 한 번이 아니라 끝내 남았나로 본다</description>
+    </item>
+    <item>
+      <title>[고침] 오프라인 쪽지가 손가락을 막지 않게 하고, 자리 맡은 값을 다시 잰다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-f211138beb</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>오프라인 쪽지가 손가락을 막지 않게 하고, 자리 맡은 값을 다시 잰다</description>
+    </item>
     <item>
       <title>[고침] 뜨기 전 무게를 제대로 세고, 대출 목록에 자리를 미리 준다</title>
       <link>https://blog.mascari4615.com/#status</link>
@@ -206,20 +220,6 @@ permalink: /changes.xml
       <guid isPermaLink="false">karmolab-change-6c752f2403</guid>
       <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
       <description>탱크 포탄 걸음을 틱당 둘로. 한 틱에 떨어지던 것</description>
-    </item>
-    <item>
-      <title>[고침] 하이로우 배당을 맞힐 확률의 역수로</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-86e849e5b2</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>하이로우 배당을 맞힐 확률의 역수로</description>
-    </item>
-    <item>
-      <title>[고침] 스포츠 넷을 레퍼런스 수치에 맞춘다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-0df36586f6</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>스포츠 넷을 레퍼런스 수치에 맞춘다</description>
     </item>
   </channel>
 </rss>
