@@ -79,7 +79,8 @@
 .ac-shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:22px 8px;align-items:end;justify-items:center;margin:26px auto var(--space-md);max-width:1060px;min-height:180px}
 .ac-obj{position:relative;display:flex;flex-direction:column;align-items:center;background:none;border:0;padding:0;line-height:1;cursor:pointer;transition:transform var(--transition-fast)}
 .ac-obj:hover,.ac-obj:focus-visible{transform:translateY(-3px);z-index:2}
-.ac-obj:focus-visible{outline:none}
+/* 초점 표시를 지우면 자판으로 어디인지 모름 (2026-09-05, 14곳) */
+.ac-obj:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--radius-sm)}
 .ac-objface{display:block;font-size:44px;filter:drop-shadow(0 3px 4px rgba(60,58,48,.18));-webkit-box-reflect:below -8px linear-gradient(transparent 58%,rgba(0,0,0,.16))}
 .ac-objname{margin-top:16px;font-size:var(--font-size-3xs);font-weight:700;color:#8b897b;font-family:var(--font-sans);line-height:1.3;text-align:center;max-width:96px;word-break:keep-all}
 .ac-obj:hover .ac-objname,.ac-obj:focus-visible .ac-objname{color:#3c3a30}

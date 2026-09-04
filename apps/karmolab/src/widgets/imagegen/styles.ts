@@ -102,7 +102,8 @@
             font-size:var(--font-size-2xs); color:var(--text-tertiary);
         }
         .ig-ref-label { font-weight:600; margin-bottom:4px; color:var(--text-secondary); }
-        .ig-ref-card a { color:var(--accent-ink); text-decoration:none; margin-right:12px; }
+        /* 누를 곳은 24px 이상. 글줄이 아니라 나란한 링크 셋이라 조항 밖 (2026-09-05) */
+        .ig-ref-card a { color:var(--accent-ink); text-decoration:underline; margin-right:12px; display:inline-flex; align-items:center; min-height:24px; }
         .ig-ref-card a:hover { text-decoration:underline; }
         .ig-vibe-info .ig-vibe-suffix {
             display:block; margin-top:4px; padding:4px 6px;

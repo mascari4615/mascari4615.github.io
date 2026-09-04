@@ -1760,7 +1760,8 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .wm-nav-btn:hover { border-color: var(--accent); color: var(--text-primary); }
 .wm-nav-btn.is-on { background: var(--band); border-color: transparent; color: var(--band-ink); font-weight: 700; }
-.wm-nav-link { margin-left: auto; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+/* 누를 곳은 24px 이상. 글줄 안 링크가 아니라 길잡이라 조항 밖 (2026-09-05) */
+.wm-nav-link { margin-left: auto; font-size: var(--font-size-2xs); color: var(--text-tertiary); display: inline-flex; align-items: center; min-height: 24px; }
 .wm-nav-link + .wm-nav-link { margin-left: 10px; }
 .wm-body { display: block; }
 .wm-in-cta .btn { flex: 0 0 auto; width: auto; }

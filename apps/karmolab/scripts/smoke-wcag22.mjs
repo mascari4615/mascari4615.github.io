@@ -197,7 +197,9 @@ for (const [name, url] of RUN) {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
       /* 글줄 안에 든 링크는 조항이 봐준다. 부모가 글 문단이면 넘긴다 */
-      if (el.tagName === 'A' && el.closest('p, li, .tool-hint, .tool-seo')) continue;
+      /* 글줄 안에 든 링크는 조항이 봐줌. `span` 도 글줄
+         (상태 도구 피드 링크가 그 안에 있어 51x16 으로 걸림. 2026-09-05) */
+      if (el.tagName === 'A' && el.closest('p, li, span, .tool-hint, .tool-seo')) continue;
       if (ESSENTIAL.some((q) => el.matches(q))) continue;
       /* 반올림해서 잰다. 상자는 23.996px 로 떨어지는데 사람 눈에도 CSS 에도 24px
          날값으로 재면 24px 로 고친 자리가 영영 안 통과한다 (2026-09-02 실측) */
