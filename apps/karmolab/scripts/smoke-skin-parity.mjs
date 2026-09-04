@@ -79,8 +79,8 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
 
 const browser = await chromium.launch({ headless: true });
 
-/** 한 화면 한 스킨의 '보이는 이름표' 집합 */
-async function labels(skin, hash) {
+/** 한 화면 한 스킨을 열고, 이름표를 몇 번이고 다시 읽을 수 있는 손잡이를 돌려준다 */
+async function open(skin, hash) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.addInitScript((s) => {
     try { localStorage.setItem('toolbox_skin', s); localStorage.setItem('toolbox_theme', 'light'); } catch { /* 막힌 판 */ }
@@ -114,17 +114,33 @@ async function labels(skin, hash) {
     if (again.length === out.length && again.every((k) => out.includes(k))) break;
     out = again;
   }
-  await page.close();
-  return new Set(out.filter((k) => !SCENE_ONLY.some((s) => k.includes(s))));
+  const set = () => new Set(out.filter((k) => !SCENE_ONLY.some((s) => k.includes(s))));
+  const refresh = async () => { out = await read(); return set(); };
+  return { page, set: set(), refresh };
 }
 
 const failures = [];
 try {
   for (const hash of list) {
-    const c = await labels('classic', hash);
-    const f = await labels('field', hash);
-    const onlyField = [...f].filter((x) => !c.has(x));
-    const onlyClassic = [...c].filter((x) => !f.has(x));
+    const classic = await open('classic', hash);
+    const field = await open('field', hash);
+    /* 두 판이 저마다 굳어도 **서로 다른 순간**에 굳는다. 계약은 한 순간의 일치가 아니라
+       언젠가 같아짐이므로, 갈리면 둘을 함께 다시 읽는다. 이 되읽기가 없어 CI 에서
+       한쪽만 늦게 붙은 조각(알림 종, 언어 안내, 채팅 도크)이 거짓 빨강을 냈다 (2026-09-04) */
+    let c = classic.set;
+    let f = field.set;
+    const settle = Date.now() + 20000;
+    let onlyField = [...f].filter((x) => !c.has(x));
+    let onlyClassic = [...c].filter((x) => !f.has(x));
+    while ((onlyField.length || onlyClassic.length) && Date.now() < settle) {
+      await classic.page.waitForTimeout(1500);   // 재움-의도: 늦는 쪽이 붙을 틈
+      c = await classic.refresh();
+      f = await field.refresh();
+      onlyField = [...f].filter((x) => !c.has(x));
+      onlyClassic = [...c].filter((x) => !f.has(x));
+    }
+    await classic.page.close();
+    await field.page.close();
     const name = hash || '첫 화면';
     if (onlyField.length) failures.push(`${name}: 필드에만 있다 ${onlyField.slice(0, 6).join(', ')}`);
     if (onlyClassic.length) failures.push(`${name}: 클래식에만 있다 ${onlyClassic.slice(0, 6).join(', ')}`);

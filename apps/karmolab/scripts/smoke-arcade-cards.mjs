@@ -94,8 +94,17 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
       const measure = await page.evaluate(() => window.__bjMeasure?.());
       check('president: 첫 배분의 마지막 카드가 1초 안에 출발한다', measure.dealSpan <= 1000);
       check('president: 상 위에서 고를 카드가 금빛으로 보인다', measure.glows > 0);
-      await page.mouse.click(measure.pickables[0].x, measure.pickables[0].y);
-      const selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 6000 }).then(() => true).catch(() => false);
+      /* 카드 자리는 배분이 다 앉을 때까지 움직인다. 한 번 재고 6초 기다리기만 하면
+         CI 통짜 판에서 손가락이 빈 상에 떨어져 거짓 빨강 (2026-09-04 실측).
+         찍기 직전에 다시 재고, 안 잡히면 다시 잰 자리로 또 찍는다 */
+      let selected = false;
+      const pickBy = Date.now() + 20000;
+      while (!selected && Date.now() < pickBy) {
+        const spot = (await page.evaluate(() => window.__bjMeasure?.()))?.pickables?.[0];
+        if (!spot) { await page.waitForTimeout(500); continue; }
+        await page.mouse.click(spot.x, spot.y);
+        selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 3000 }).then(() => true).catch(() => false);
+      }
       check('president: 상 위 카드를 직접 눌러 고른다', selected);
     }
     if (g === 'hanafuda' && info.canvas) {

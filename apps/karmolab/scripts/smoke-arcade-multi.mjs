@@ -191,7 +191,10 @@ if (!cantRun) {
       /* 평면은 .ac-au, 입체(정본)는 HUD. 2026-09-02 입체 경매를 올리고 평면만 기다려 main 이 빨갰다 */
       /* 세 번째 방이라 앞 두 방의 연결이 아직 안 걷힌 채로 붙는다. CI 에서만 여기서 20초를 넘겨
          (로컬은 swiftshader 로도 초록) 시간을 늘리고, 넘기면 두 창의 상태를 적어 다음 판에서 읽는다 */
-      await guest.waitForSelector('.ac-au, #acAuHud', { timeout: 45000 });
+      /* 45초 판에서도 빨갰는데 그때 찍은 상태에는 HUD 가 있었다 (2026-09-04). 기본 기다림이
+         **보이기**라 입체 HUD 가 붙고도 안 보이는 동안 헛돌았던 것. 재는 것은 손님 창에
+         경매 판이 왔나이므로 붙었나로 본다. 값이 새는지는 아래 bids 검사가 그대로 잡는다 */
+      await guest.waitForSelector('.ac-au, #acAuHud', { state: 'attached', timeout: 45000 });
       /* 주인이 먼저 부른다. 그 숫자가 손님 창에 뜨면 새는 것이다. 낙찰 전까지는 불렀다 표시뿐. */
       await host.locator('#acAuR').fill('37');
       await host.click('#acAuGo');
