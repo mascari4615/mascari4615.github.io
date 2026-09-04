@@ -22,6 +22,7 @@
  * 사용: node scripts/run-gates.mjs <npm-script> [<npm-script> ...]
  */
 import { spawn, execFileSync } from 'node:child_process';
+import { reapHeadless } from './lib/reap-browsers.mjs';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -338,6 +339,14 @@ if (process.env.GITHUB_STEP_SUMMARY) {
       'utf8'
     );
   } catch { /* 요약을 못 적는 것이 판을 세울 이유는 아니다 */ }
+}
+
+/* 검사가 죽으면서 남긴 브라우저를 거둔다. 정본은 `lib/reap-browsers.mjs` 머리말 */
+{
+  const reaped = reapHeadless(startedAt);
+  if (reaped.count > 0) {
+    console.log(`[gates] 검사가 남긴 브라우저 ${reaped.count}개를 거뒀다 (${reaped.mb}MB). 안 닫고 죽은 검사가 있다는 뜻`);
+  }
 }
 
 /* ★ 건너뛴 것을 **소리 내어 적는다**. 조용히 줄어든 초록은 초록이 아니다. 이 저장소는
