@@ -2,11 +2,46 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2143,
+    "commits": 2151,
     "days": 12,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-09-05",
+      "entries": [
+        {
+          "sha": "e9afe4c8",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "선택 팝업을 고정 칸으로 만들기"
+        },
+        {
+          "sha": "c53f6ef9",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "장비 티어를 색으로만 표시"
+        },
+        {
+          "sha": "4962a06e",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "관리 화면을 아이콘으로 접기"
+        },
+        {
+          "sha": "d9f438a9",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "성장 구매 행동을 하나로 정리"
+        }
+      ],
+      "quiet": 21,
+      "more": 0
+    },
     {
       "date": "2026-09-03",
       "entries": [
@@ -471,45 +506,10 @@
           "typeLabel": "",
           "scope": "",
           "text": "되감는 만큼을 <b>그 손짓에 얹힌 도장</b>으로 잰다 (TASK-WM-405)"
-        },
-        {
-          "sha": "0aba6ed3",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "때리기 공평 관문 — 표본을 키우고, 빨강을 <b>왜 못 걸었는지</b>를 적는다 (TASK-WM-404)"
         }
       ],
       "quiet": 0,
-      "more": 144
-    },
-    {
-      "date": "2026-08-13",
-      "entries": [
-        {
-          "sha": "c3e19f44",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "preserve forced damage and input guidance"
-        },
-        {
-          "sha": "35eb8edd",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "창 여럿 관문이 <b>남이 계속 움직이는지</b>까지 본다 (TASK-WM-328)"
-        },
-        {
-          "sha": "cea20947",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "세계가 하늘의 총 분을 밖에 알려준다 (TASK-WM-327)"
-        }
-      ],
-      "quiet": 14,
-      "more": 70
+      "more": 145
     }
   ]
 }
