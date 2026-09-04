@@ -803,7 +803,7 @@ const Toolbox = (() => {
         const byId = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || null;
         /* 가벼운 목록을 먼저 받은 화면은 **나머지(아이콘, 설명)만** 따로 받는다. 전체를 한 벌 더
            받으면 전송량이 그만큼 늘어난다. 전체를 통째로 받은 화면은 아래 `full` 쪽으로 들어온다. */
-        const rest = (typeof window !== 'undefined' && (window as unknown as { KARMOLAB_META_REST?: Record<string, { icon?: string; desc?: string }> }).KARMOLAB_META_REST) || null;
+        const rest = (typeof window !== 'undefined' && (window as unknown as { KARMOLAB_META_REST?: Record<string, { icon?: string; desc?: string; lazyScriptPaths?: string[] }> }).KARMOLAB_META_REST) || null;
         /* ★ **원본에 그대로 꽂는다** (2026-08-12). 예전에는 합친 결과를 새 배열에만 담아
          *   아래 `tools`(이미 등록된 위젯)와 `byId` 만 고쳤다. 그런데 목록, 찾기창은
          *   `KARMOLAB_LAZY_META` 를 그대로 읽는데, 거기엔 아이콘이 끝내 안 들어갔다 . 
@@ -815,6 +815,9 @@ const Toolbox = (() => {
                 if (!m || !m.id || !rest[m.id]) continue;
                 if (!m.icon && rest[m.id].icon) m.icon = rest[m.id].icon;
                 if (!m.desc && rest[m.id].desc) m.desc = rest[m.id].desc;
+                /* 불러올 자리도 여기로. 첫 그림에는 없어도 되지만 열 때는 있어야 함 */
+                const paths = rest[m.id].lazyScriptPaths;
+                if (paths && paths.length && !(m.lazyScriptPaths || []).length) m.lazyScriptPaths = paths;
             }
         }
         const source = full;
@@ -824,6 +827,9 @@ const Toolbox = (() => {
             if (tool) {
                 if (m.icon) tool.icon = m.icon;
                 if (m.desc) tool.desc = m.desc;
+                if (m.lazyScriptPaths && m.lazyScriptPaths.length && !(tool.lazyScriptPaths || []).length) {
+                    tool.lazyScriptPaths = m.lazyScriptPaths;
+                }
             }
             if (byId && byId[m.id]) {
                 if (m.icon) byId[m.id].icon = m.icon;
@@ -1047,10 +1053,16 @@ const Toolbox = (() => {
         if (!tool) return Promise.resolve();
         if (lazyLoadPromises.has(pageId)) return lazyLoadPromises.get(pageId);
 
-        const paths = tool.lazyScriptPaths;
-        if (!paths || !paths.length) {
-            return Promise.resolve();
-        }
+        /* 불러올 자리는 나머지 목록(`widgets-meta-rest`) 몫. 첫 그림에는 안 실림
+           아직 안 왔으면 여기서 데려옴. 조용히 물러나면 도구가 영영 안 열림 */
+        const ensurePaths = async (): Promise<string[]> => {
+            if ((tool.lazyScriptPaths || []).length) return tool.lazyScriptPaths;
+            try {
+                await ensureScript('root/widgets-meta-rest');
+                upgradeMeta();
+            } catch (_) { /* 못 받으면 아래에서 빈 목록으로 걸린다 */ }
+            return tool.lazyScriptPaths || [];
+        };
 
         /* 눌러서 뜰 때까지는 스크립트 한 장이 아니라 **이 묶음 전체**다 (TASK-KL-201) . 
            뒤에 딸린 대기(KARMOLAB_WIDGET_LOADER_WAIT)까지 끝나야 그 위젯이 준비된 것이다.
@@ -1058,6 +1070,8 @@ const Toolbox = (() => {
         const startedAt = performance.now();
         const urls = [];
         const p = (async () => {
+            const paths = await ensurePaths();
+            if (!paths.length) return;
             /* A widget bundle may translate during module evaluation. Establish its
                namespace barrier before inserting the script, not only before tab.build. */
             if (typeof window.__KARMO_LOAD_NAMESPACE === 'function') {

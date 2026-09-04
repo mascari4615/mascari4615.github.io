@@ -218,7 +218,9 @@ for (const rel of entryPoints) {
     console.error('[build] 위젯 메타를 못 읽었다. widgets-lazy-meta.js 모양 확인');
     process.exit(1);
   }
-  const lite = full.map(({ icon, desc, ...rest }) => rest);
+  /* 불러올 자리(`lazyScriptPaths`)도 제외. **도구를 열 때** 필요하지 첫 그림에는 아님
+     252개 몫이 gzip 1.8KB (2026-09-05 실측). 열 때 없으면 셸이 나머지 목록을 먼저 데려옴 */
+  const lite = full.map(({ icon, desc, lazyScriptPaths, ...rest }) => rest);
   writeFileSync(
     join(root, 'js/widgets-index.js'),
     '/* `build.mjs` 가 `widgets-lazy-meta.js` 에서 아이콘, 설명만 빼서 만든다. 손으로 고치지 마라 (TASK-KL-128). */' + NL +
@@ -233,6 +235,7 @@ for (const rel of entryPoints) {
     const only = {};
     if (item.icon) only.icon = item.icon;
     if (item.desc) only.desc = item.desc;
+    if (item.lazyScriptPaths && item.lazyScriptPaths.length) only.lazyScriptPaths = item.lazyScriptPaths;
     if (Object.keys(only).length) rest[item.id] = only;
   }
   writeFileSync(
