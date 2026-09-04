@@ -160,20 +160,35 @@ async function openChat(page) {
      항목이 아직 없어 Escape 로 빠지고, 이어서 누른 닻도 메뉴에 가려 창이 안 열린 채 지나갔다.
      그 뒤 이름표를 30초 기다리다 죽는다. 열릴 때까지 사람 길과 닻을 번갈아 눌러 본다 */
   const opened = () => page.locator('#klChatMe .klchat-who').isVisible().catch(() => false);
+  /* 닻은 **여닫이**다 (`setOpen` 이 토글). 안 열렸을 때만 누른다. 열렸는지 안 보고 계속 누르면
+     열었다 닫았다를 되풀이해 영영 안 열린다 */
+  const expanded = () => page.locator('#klChatDock').getAttribute('aria-expanded').then((v) => v === 'true').catch(() => false);
   const until = Date.now() + WAIT;
   while (!(await opened()) && Date.now() < until) {
-    const menuBtn = page.locator('#klHeaderMe');
-    if (await menuBtn.isVisible().catch(() => false)) {
-      await menuBtn.click().catch(() => {});
+    if (!(await expanded())) {
+      const menuBtn = page.locator('#klHeaderMe');
       const item = page.locator('[data-chat]');
-      if (await item.isVisible().catch(() => false)) await item.click().catch(() => {});
-      else await page.keyboard.press('Escape').catch(() => {});
+      if (await menuBtn.isVisible().catch(() => false)) {
+        await menuBtn.click().catch(() => {});
+        if (await item.isVisible().catch(() => false)) await item.click().catch(() => {});
+        else await page.keyboard.press('Escape').catch(() => {});
+      }
+      /* 계정 메뉴가 아직 안 붙은 판에서는 닻을 코드로 누른다. 사람 길이 막힌 게 아니라
+         그 창이 아직 덜 그려진 것이다 */
+      if (!(await expanded())) await page.evaluate(() => document.getElementById('klChatDock')?.click());
     }
-    if (await opened()) break;
-    /* 계정 메뉴가 아직 안 붙은 판에서는 닻을 코드로 누른다. 사람 길이 막힌 게 아니라
-       그 창이 아직 덜 그려진 것이다 */
-    await page.evaluate(() => document.getElementById('klChatDock')?.click());
-    await page.waitForTimeout(500);   // 재움-의도: 창이 열릴 틈
+    await page.waitForSelector('#klChatMe .klchat-who', { timeout: 3000 }).catch(() => {});
+  }
+  if (!(await opened())) {
+    /* 못 열었으면 무엇이 어떤 꼴이었는지 남긴다. 다음 판에서 이것부터 읽는다 */
+    const why = await page.evaluate(() => {
+      const dock = document.getElementById('klChatDock');
+      const root = document.querySelector('.klchat');
+      const panel = document.querySelector('.klchat-panel');
+      const cs = panel instanceof HTMLElement ? getComputedStyle(panel) : null;
+      return `닻=${!!dock} 펼침=${dock?.getAttribute('aria-expanded')} open=${root?.classList.contains('open')} 판=${!!panel} display=${cs?.display} 인라인=${panel instanceof HTMLElement ? panel.style.display : ''}`;
+    }).catch(() => '못 읽음');
+    console.log(`[smoke-chat] 채팅 창을 못 열었다. ${why}`);
   }
 }
 try {

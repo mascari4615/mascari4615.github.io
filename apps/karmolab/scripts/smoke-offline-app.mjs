@@ -76,8 +76,18 @@ if (!problems.length) {
   const OPEN = Math.max(WAIT, 20000);
 
   // ① 첫 화면
-  const home = await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded', timeout: OPEN }).catch(() => null);
-  if (!home) problems.push('끊긴 상태에서 첫 화면이 안 열린다');
+  let homeWhy = '';
+  const home = await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded', timeout: OPEN })
+    .catch((e) => { homeWhy = String(e.message || e).slice(0, 90); return null; });
+  if (!home) {
+    /* 왜 못 열었는지 남긴다. 시간 초과와 워커가 아예 안 받은 것은 고칠 자리가 다르다 */
+    const sw = await page.evaluate(async () => {
+      const regs = await navigator.serviceWorker?.getRegistrations?.() ?? [];
+      const keys = await caches.keys();
+      return `등록 ${regs.length} 제어 ${!!navigator.serviceWorker?.controller} 캐시 ${keys.join(',') || '없음'}`;
+    }).catch(() => '못 읽음');
+    problems.push(`끊긴 상태에서 첫 화면이 안 열린다 (${homeWhy} :: ${sw})`);
+  }
   else if (!(await page.locator('#tool-pages').count())) problems.push('첫 화면은 왔는데 앱이 안 그려졌다');
 
   // ③ 무엇이 안 되는지 말한다
