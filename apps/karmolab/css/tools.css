@@ -64,6 +64,13 @@
    좁은 화면 156 은 **모자랐고**(일곱이 159 라 3px 씩 밀렸다), 넓은 화면 74 와 두 줄 163 은
    **남았다**(실측 66 과 145. 그만큼 빈 칸이 영영 남아 있었다). 모자라면 밀리고 남으면 빈다. */
 .cc-stats-early { min-height: 66px; }
+/* ★ **나중에 끼어드는 저장 버튼 자리도 미리 준다** (2026-09-04 실측).
+   `그림으로 저장` 버튼은 답이 생긴 뒤에 `result-card.ts` 가 이 칸 바로 뒤에 꽂는다.
+   첫 그림부터 답이 있는 도구(이 클래스가 붙은 것)는 **반드시** 붙으므로, 안 잡아 두면
+   그 순간 아래가 통째로 내려간다 (대출 실측: 넓은 화면 82px, 좁은 화면 92px. 밀림의 제일 큰 몫).
+   버튼이 실제로 들어오면 `cc-stats-carded` 가 붙어 이 자리를 도로 내준다. 두 번 벌지 않는다. */
+.cc-stats-early { margin-bottom: calc(var(--space-lg) + 82px); }
+.cc-stats-early.cc-stats-carded { margin-bottom: var(--space-lg); }
 /* 지금 붙어 있는 열둘 (2026-08-17 실사이트 실측):
      barcode contrast datecalc* grade icsmake interest loan passgen timecalc vat workdays bmi
      (*datecalc 은 두 줄 → .cc-stats-2row)
@@ -76,7 +83,8 @@
 /* 타일이 두 줄인 도구도 있다. 실측으로만 정한다(datecalc 163px). */
 .cc-stats-early.cc-stats-2row { min-height: 145px; }
 @media (max-width: 640px) {
-    .cc-stats-early { min-height: 159px; }
+    .cc-stats-early { min-height: 159px; margin-bottom: calc(var(--space-lg) + 92px); }
+    .cc-stats-early.cc-stats-carded { margin-bottom: var(--space-lg); }
     .cc-stats-early.cc-stats-2row { min-height: 312px; }
 }
 .cc-stat {

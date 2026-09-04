@@ -205,6 +205,9 @@ export function attach(page: HTMLElement, toolTitle: string, toolId: string): vo
             }
         });
         stats.insertAdjacentElement('afterend', button);
+        /* 미리 잡아 둔 자리 내주기. 안 내주면 버튼 자리를 두 번 범
+           (정본은  의 `.cc-stats-early` 아래 주석) */
+        stats.classList.add('cc-stats-carded');
         return true;
     };
 
