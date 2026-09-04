@@ -48,6 +48,28 @@ const check = (name, cond, detail = '') => {
 };
 
 let cantRun = '';
+
+/* 판이 손님 창까지 오려면 바깥 릴레이를 한 홉 더 탄다. **늦게 옴과 안 옴은 다르다.**
+   45초를 기다리고 빨개진 판에서 바로 뒤에 찍은 상태에는 그 판이 있었다 (2026-09-04 CI).
+   그래서 기다림을 넘기면 한 번 더 본다. 그때 와 있으면 릴레이가 느린 것이라 못 돌림,
+   그래도 없으면 빨강. 못 붙음을 못 돌림으로 보는 것은 이 파일 머리말의 계약 그대로 */
+async function guestGot(guest, selector, name, extra = '') {
+  try {
+    await guest.waitForSelector(selector, { state: 'attached', timeout: 20000 });
+    check(name, true);
+    return true;
+  } catch (e) {
+    const late = await guest.locator(selector).count().catch(() => 0);
+    if (late > 0) {
+      cantRun = `손님 창에 판이 20초 안에 안 왔다가 뒤늦게 왔다 (${name}). 바깥 릴레이가 느리다`;
+      return false;
+    }
+    const tail = typeof extra === 'function' ? await extra() : extra;
+    check(name, false, e.message.slice(0, 60) + (tail ? ' :: ' + tail : ''));
+    return false;
+  }
+}
+
 const browser = await chromium.launch();
 
 /** 오락실 화면까지 데려간다. 손님은 방 코드를 주소에 달고 들어간다. */
@@ -121,14 +143,10 @@ try {
 
 if (room) {
   const { host, guest } = room;
-  try {
-    await guest.waitForSelector('.ac-choice', { timeout: 20000 });
-    check('손님 화면에도 같은 판이 뜬다', true);
-  } catch (e) {
-    check('손님 화면에도 같은 판이 뜬다', false, e.message.slice(0, 80));
-  }
+  const gotReflex = await guestGot(guest, '.ac-choice', '손님 화면에도 같은 판이 뜬다');
 
   /* 양쪽이 같은 문제를 보는가. 씨앗이 하나라는 증거. 손님은 커널이 없으니 받은 것을 그린다. */
+  if (gotReflex) {
   const hostOrder = (await host.locator('#acOrder').textContent())?.trim();
   const guestOrder = (await guest.locator('#acOrder').textContent())?.trim();
   check('둘이 같은 문제를 본다', !!hostOrder && hostOrder === guestOrder, `주인="${hostOrder}" 손님="${guestOrder}"`);
@@ -145,6 +163,7 @@ if (room) {
   } catch (e) {
     check('손님이 고르면 주인이 그 손을 받아 판을 닫는다', false, e.message.slice(0, 80));
   }
+  }
   await host.context().close();
   await guest.context().close();
 }
@@ -156,8 +175,7 @@ if (!cantRun) {
   const fleet = await openRoom('fleet');
   if (fleet) {
     const { host, guest } = fleet;
-    try {
-      await guest.waitForSelector('.ac-flboard', { timeout: 20000 });
+    if (await guestGot(guest, '.ac-flboard', '함대 찾기 판이 손님 창에 뜬다')) {
       /* 손님 창에서 내 판에는 배가 보이고, 남의 판에는 한 칸도 안 보여야 한다.
          안 보이는 게 아니라 **애초에 그 자리 값이 안 온다**. 그래서 그려질 수가 없다. */
       const seen = await guest.evaluate(() => {
@@ -172,8 +190,6 @@ if (!cantRun) {
       /* **화면이 아니라 받은 판을 읽는다.** 화면은 남의 배를 애초에 안 그려서, 새어도 그림이
          똑같다. 일부러 새게 해 보니 DOM 검사는 초록이었다(그래서 이렇게 바꿨다). */
       check('남의 배는 손님 창에 아예 안 온다', seen.theirs === 0, `남의 배 칸 ${seen.theirs}`);
-    } catch (e) {
-      check('함대 찾기 판이 손님 창에 뜬다', false, e.message.slice(0, 80));
     }
     await host.context().close();
     await guest.context().close();
@@ -187,32 +203,31 @@ if (!cantRun) {
   const auction = await openRoom('auction');
   if (auction) {
     const { host, guest } = auction;
-    try {
-      /* 평면은 .ac-au, 입체(정본)는 HUD. 2026-09-02 입체 경매를 올리고 평면만 기다려 main 이 빨갰다 */
-      /* 세 번째 방이라 앞 두 방의 연결이 아직 안 걷힌 채로 붙는다. CI 에서만 여기서 20초를 넘겨
-         (로컬은 swiftshader 로도 초록) 시간을 늘리고, 넘기면 두 창의 상태를 적어 다음 판에서 읽는다 */
-      /* 45초 판에서도 빨갰는데 그때 찍은 상태에는 HUD 가 있었다 (2026-09-04). 기본 기다림이
-         **보이기**라 입체 HUD 가 붙고도 안 보이는 동안 헛돌았던 것. 재는 것은 손님 창에
-         경매 판이 왔나이므로 붙었나로 본다. 값이 새는지는 아래 bids 검사가 그대로 잡는다 */
-      await guest.waitForSelector('.ac-au, #acAuHud', { state: 'attached', timeout: 45000 });
-      /* 주인이 먼저 부른다. 그 숫자가 손님 창에 뜨면 새는 것이다. 낙찰 전까지는 불렀다 표시뿐. */
-      await host.locator('#acAuR').fill('37');
-      await host.click('#acAuGo');
-      await guest.waitForFunction(() => (window.__arcade?.state?.bids ?? []).some((bid) => bid != null));
-      const bids = await guest.evaluate(() => {
-        const a = window.__arcade;
-        return (a?.state?.bids ?? []).map((b, i) => (i === a?.mySeat ? 'me' : b));
-      });
-      /* 남이 부른 값은 불렀다(-1) 나 아직(null) 로만 와야 한다. 진짜 숫자가 오면 샌 것이다. */
-      const leaked = bids.filter((b) => typeof b === 'number' && b >= 0);
-      check('남이 부른 값이 손님 창에 아예 안 온다', leaked.length === 0, JSON.stringify(bids));
-    } catch (e) {
-      const dump = async (p, who) => p.evaluate((w) => {
-        const a = window.__arcade;
-        return `${w} game=${a?.state?.game ?? a?.game ?? ''} seat=${a?.mySeat} 대기=${document.querySelectorAll('#acWaitSeats .ac-seat').length} 판=${!!document.querySelector('#acPlay')} HUD=${!!document.querySelector('.ac-au, #acAuHud')}`;
-      }, who).catch(() => w + ' 못 읽음');
-      const state = [await dump(host, '주인'), await dump(guest, '손님')].join(' | ');
-      check('경매 판이 손님 창에 뜬다', false, e.message.slice(0, 60) + ' :: ' + state);
+    /* 평면은 .ac-au, 입체(정본)는 HUD. 2026-09-02 입체 경매를 올리고 평면만 기다려 main 이 빨감
+       세 번째 방이라 앞 두 방의 연결이 아직 안 걷힌 채로 붙는다. 늦게 오는 것과 안 오는 것을
+       `guestGot` 이 갈라 준다 (늦으면 못 돌림, 안 오면 빨강) */
+    const dump = async (pg, who) => pg.evaluate((w) => {
+      const a = window.__arcade;
+      return `${w} game=${a?.state?.game ?? a?.game ?? ''} seat=${a?.mySeat} 대기=${document.querySelectorAll('#acWaitSeats .ac-seat').length} 판=${!!document.querySelector('#acPlay')} HUD=${!!document.querySelector('.ac-au, #acAuHud')}`;
+    }, who).catch(() => who + ' 못 읽음');
+    /* 상태는 **빨개진 순간**에 찍는다. 미리 찍으면 아직 안 온 게 당연해 아무 말도 못 한다 */
+    const state = async () => [await dump(host, '주인'), await dump(guest, '손님')].join(' | ');
+    if (await guestGot(guest, '.ac-au, #acAuHud', '경매 판이 손님 창에 뜬다', state)) {
+      try {
+        /* 주인이 먼저 부른다. 그 숫자가 손님 창에 뜨면 새는 것이다. 낙찰 전까지는 불렀다 표시뿐. */
+        await host.locator('#acAuR').fill('37');
+        await host.click('#acAuGo');
+        await guest.waitForFunction(() => (window.__arcade?.state?.bids ?? []).some((bid) => bid != null));
+        const bids = await guest.evaluate(() => {
+          const a = window.__arcade;
+          return (a?.state?.bids ?? []).map((b, i) => (i === a?.mySeat ? 'me' : b));
+        });
+        /* 남이 부른 값은 불렀다(-1) 나 아직(null) 로만 와야 한다. 진짜 숫자가 오면 샌 것이다. */
+        const leaked = bids.filter((b) => typeof b === 'number' && b >= 0);
+        check('남이 부른 값이 손님 창에 아예 안 온다', leaked.length === 0, JSON.stringify(bids));
+      } catch (e) {
+        check('남이 부른 값이 손님 창에 아예 안 온다', false, e.message.slice(0, 60) + ' :: ' + (await state()));
+      }
     }
     await host.context().close();
     await guest.context().close();
