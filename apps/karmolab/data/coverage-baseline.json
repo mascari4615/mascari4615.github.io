@@ -1,48 +1,54 @@
 {
  "note": "첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.",
- "at": "2026-08-13T15:04:56.796Z",
+ "at": "2026-09-04T23:13:12.269Z",
  "totals": {
-  "cssUnused": 147066,
-  "cssTotal": 168009,
+  "cssUnused": 199204,
+  "cssTotal": 223986,
   "jsUnused": null,
   "jsTotal": null
  },
  "files": [
   {
-   "file": "css/tools.css",
-   "kind": "css",
-   "total": 66790,
-   "unused": 66615
-  },
-  {
    "file": "css/shell-critical.css",
    "kind": "css",
-   "total": 83285,
-   "unused": 64340
+   "total": 124133,
+   "unused": 101380
+  },
+  {
+   "file": "css/tools.css",
+   "kind": "css",
+   "total": 74867,
+   "unused": 74648
   },
   {
    "file": "css/shell-deferred.css",
    "kind": "css",
-   "total": 9109,
-   "unused": 7333
+   "total": 9325,
+   "unused": 7562
+  },
+  {
+   "file": "css/lotto.css",
+   "kind": "css",
+   "total": 6625,
+   "unused": 6625
   },
   {
    "file": "css/randomgen.css",
    "kind": "css",
-   "total": 6088,
-   "unused": 6088
+   "total": 6086,
+   "unused": 6086
+  },
+  {
+   "file": "css/fonts.css",
+   "kind": "css",
+   "total": 1400,
+   "unused": 1400
   },
   {
    "file": "js/vendor/prism/themes-cdn/prism-tomorrow.min.css",
    "kind": "css",
    "total": 1313,
    "unused": 1313
-  },
-  {
-   "file": "css/fonts.css",
-   "kind": "css",
-   "total": 1187,
-   "unused": 1187
   },
   {
    "file": "index.html",

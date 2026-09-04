@@ -28,6 +28,12 @@ const repoRoot = path.dirname(path.dirname(root));
 const BASELINE = path.join(root, 'data/coverage-baseline.json');
 const UPDATE = process.argv.includes('--update');
 
+/* 기준선 이력. **옮길 때는 왜 옮겼는지 여기 한 줄. 조용히 옮기지 마라.**
+ *, 2026-09-04 cssUnused 143.6 → 194.5KB (+50.9). 앞 단계가 빨개서 이 검사가 오래 못 돌았고,
+ *   초록이 되자마자 그 사이 쌓인 것이 한꺼번에 나왔다. 도구가 늘면 그 도구 CSS 가 `tools.css` 에
+ *   붙는데 첫 화면은 그중 하나도 안 쓴다 (`tools.css` 73.0KB 중 72.8KB 안 쓰임).
+ *   **진짜 고침은 도구 CSS 를 도구와 같이 늦게 받는 것**. 그건 셸을 가진 판 몫
+ *   그때까지 숫자를 진실대로 두고 기준선을 옮긴다. 다음에 옮기려는 사람은 먼저 그것부터 보라. */
 /** 기준선보다 이만큼 늘면 회귀. 커버리지는 회차마다 몇 KB 씩 흔들려서 빠듯하게 잡으면 애먼 빨간불이 난다. */
 const GROW_BYTES = 24 * 1024;
 
