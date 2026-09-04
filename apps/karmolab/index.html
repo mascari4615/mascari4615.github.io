@@ -184,6 +184,16 @@ permalink: /
   var sk=localStorage.getItem('toolbox_skin')||'classic';
   document.documentElement.setAttribute('data-theme',t);
   document.documentElement.setAttribute('data-skin',sk);
+  /* 화면 배율도 첫 그림 **전에** 건다. toolbox 가 뜬 뒤에 걸면 그 순간 판이 통째로 다시
+     짜여 화면이 밀린다 (CI 실측 CLS 0.103~0.202, 머리띠와 옆줄과 본문이 한 프레임에 함께
+     움직였다. 2026-09-04). 계산은 toolbox 의 applyUiScale 과 같은 식이어야 두 번 안 밀린다 */
+  var sm=localStorage.getItem('toolbox_ui_scale')||'fit', z=1;
+  if(sm==='fit'&&window.innerWidth>=1024){
+    z=Math.min(window.innerWidth/1440,window.innerHeight/900);
+    z=Math.max(0.6,Math.min(1.75,Math.round(z*100)/100));
+  }
+  document.documentElement.style.zoom = z===1 ? '' : String(z);
+  document.documentElement.dataset.uiScale = String(z);
   /* ★ **글자로 박은 손잡이를 여기서 대신 단다** (2026-08-17). 늦게 받는 스타일 넉 장은
      media="print" + onload 로 달려 있었는데, 그 한 글자 때문에 CSP 에 script-src 를 못 건다
      (그 자물쇠는 인라인 손잡이도 함께 막는다). 같은 일을 여기서 한다. 이미 온 것은 바로,

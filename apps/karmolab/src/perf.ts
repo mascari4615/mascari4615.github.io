@@ -790,6 +790,8 @@
       presentationFloorMs: presentationFloorMs(),
       cls: clsValue(),
       shiftCulprits: shiftCulprits(),
+      /* 언제 밀렸나. 합쳐 놓으면 첫 그림 중인지 조작 뒤인지를 잃는다 */
+      shiftRows: shiftSupported ? shifts.slice() : null,
       /* 판별 부팅을 **분포**로 (RUM 관행). 한 번 재고 빨라졌다는 말은 못 한다. */
       buildStats: buildStats(),
       /* 도메인별로 묶은 요약. 남의 것이 우리 것보다 무겁나는 파일 하나씩 봐서는 안 보인다. */

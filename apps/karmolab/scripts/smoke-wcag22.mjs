@@ -117,7 +117,16 @@ const add = (screen, rule, n, sample) => {
   detail.push(`${screen} [${rule}] ${n}개  예: ${sample}`);
 };
 
-const RUN = ALL ? allToolScreens() : SCREENS;
+/**
+ * 이 판에서만 볼 화면. `KL_WCAG_ONLY=bab,key` 처럼 쉼표로. 이름이나 주소에 든 글자로 고르기
+ *
+ * - 전수 466판은 손으로 돌리기 느림. 쓰임새는 몇 장 고친 뒤 그것만 재기
+ * - 견주기도 본 화면만. 안 본 화면의 빚은 그대로
+ * - 고른 판에서 기준선 갱신은 막음. 부분 결과로 덮으면 안 본 빚이 사라짐
+ */
+const ONLY = (process.env.KL_WCAG_ONLY || '').split(',').map((x) => x.trim()).filter(Boolean);
+const RUN = (ALL ? allToolScreens() : SCREENS)
+  .filter(([name, url]) => !ONLY.length || ONLY.some((q) => name.includes(q) || url.includes(q)));
 for (const [name, url] of RUN) {
   const { ctx, page } = await open(url, false);
 
@@ -280,6 +289,10 @@ if (process.argv.includes('--list')) {
   process.exit(0);
 }
 
+if (process.argv.includes('--bless') && ONLY.length) {
+  console.error('[wcag22] 몇 장만 고른 판에서는 기준선을 못 적는다. 안 본 화면의 빚이 지워진다');
+  process.exit(2);
+}
 if (process.argv.includes('--bless')) {
   fs.mkdirSync(path.dirname(BASELINE), { recursive: true });
   fs.writeFileSync(BASELINE, JSON.stringify(found, null, 1) + '\n', 'utf8');

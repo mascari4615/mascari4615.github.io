@@ -273,7 +273,13 @@ async function measure(url, scenario) {
     const shifts = (s.shiftCulprits || [])
       .slice(0, 4)
       .map((x) => `${x.value.toFixed(4)} x${x.count} ${x.who}`);
-    return { verdict: s.verdict, trust: s.trust, shifts, cls: s.cls };
+    /* 언제 밀렸나까지. 첫 그림 중인지 조작 뒤인지가 고칠 자리를 가른다 */
+    const when = (s.shiftRows || [])
+      .filter((x) => !x.afterInput)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 4)
+      .map((x) => `${x.value.toFixed(4)} @${Math.round(x.at)}ms`);
+    return { verdict: s.verdict, trust: s.trust, shifts: shifts.concat(when.length ? ['시각: ' + when.join(' , ')] : []), cls: s.cls };
   });
   await page.close();
   return { ...snap, errors };
