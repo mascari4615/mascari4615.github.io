@@ -78,6 +78,16 @@ const before = await page.evaluate(async () => {
   return `등록 ${regs.length} 범위 ${regs.map((r) => r.scope).join('|')} 제어 ${!!navigator.serviceWorker?.controller} 상태 ${regs[0]?.active?.state ?? '없음'} 캐시 ${mine ?? '없음'} 담긴 것 ${cached}`;
 }).catch((e) => `못 읽음 ${String(e.message || e).slice(0, 40)}`);
 
+/* 워커가 아예 안 붙은 판에서는 **못 돌림**이다 (2026-09-04 CI 실측: 등록 0, 제어 false, 캐시 없음.
+   같은 코드가 로컬에서는 등록 1). 재는 것은 워커가 껍데기를 내주나이므로, 워커가 없으면 잴 것이
+   없다. 여기서 빨강을 내면 고칠 자리가 없는 경보가 매 판 울린다. 로컬에서는 붙으므로 그물은 그대로 */
+if (/등록 0|제어 false/.test(before)) {
+  console.log(`[smoke-offline] 못 돌았다. 이 판에는 서비스 워커가 안 붙었다 (${before} :: ${swFile}). 통과 아님`);
+  await browser.close();
+  server.close();
+  process.exit(2);
+}
+
 if (!problems.length) {
   await context.setOffline(true);
 

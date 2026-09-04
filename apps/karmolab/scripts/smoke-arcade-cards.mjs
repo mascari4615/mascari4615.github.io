@@ -98,14 +98,21 @@ for (const g of TABLE_ONLY ? [] : GAMES) {
          CI 통짜 판에서 손가락이 빈 상에 떨어져 거짓 빨강 (2026-09-04 실측).
          찍기 직전에 다시 재고, 안 잡히면 다시 잰 자리로 또 찍는다 */
       let selected = false;
+      let tried = 0;
+      let last = '아직 안 재 봄';
       const pickBy = Date.now() + 20000;
       while (!selected && Date.now() < pickBy) {
-        const spot = (await page.evaluate(() => window.__bjMeasure?.()))?.pickables?.[0];
-        if (!spot) { await page.waitForTimeout(500); continue; }
+        const now = await page.evaluate(() => window.__bjMeasure?.());
+        const spots = now?.pickables ?? [];
+        if (!spots.length) { await page.waitForTimeout(500); continue; }
+        /* 한 장만 두드리지 않는다. 가려진 장이 하나 있으면 영영 안 잡힌다. 돌아가며 찍는다 */
+        const spot = spots[tried % spots.length];
+        tried += 1;
+        last = `집을 것 ${spots.length}장, ${tried}번째 (${spot.x},${spot.y}), 판 ${JSON.stringify(now?.canvasRect)}`;
         await page.mouse.click(spot.x, spot.y);
         selected = await page.waitForSelector('#acPrActs .ac-on', { timeout: 3000 }).then(() => true).catch(() => false);
       }
-      check('president: 상 위 카드를 직접 눌러 고른다', selected);
+      check('president: 상 위 카드를 직접 눌러 고른다', selected, last);
     }
     if (g === 'hanafuda' && info.canvas) {
       await page.evaluate(() => {
