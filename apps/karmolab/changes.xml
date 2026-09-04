@@ -12,6 +12,20 @@ permalink: /changes.xml
     <language>ko</language>
     <lastBuildDate>Fri, 04 Sep 2026 00:00:00 GMT</lastBuildDate>
     <item>
+      <title>[고침] 뜨기 전 무게를 제대로 세고, 대출 목록에 자리를 미리 준다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-b9237167e2</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>뜨기 전 무게를 제대로 세고, 대출 목록에 자리를 미리 준다</description>
+    </item>
+    <item>
+      <title>[고침] 부팅 천장을 실측대로 올리고 밀림의 범인을 게이트가 말하게 한다</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-f076f229ed</guid>
+      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
+      <description>부팅 천장을 실측대로 올리고 밀림의 범인을 게이트가 말하게 한다</description>
+    </item>
+    <item>
       <title>[고침] 달력과 챗봇과 정규식 도구의 접근성 빚을 갚는다</title>
       <link>https://blog.mascari4615.com/#status</link>
       <guid isPermaLink="false">karmolab-change-8293bd1082</guid>
@@ -206,20 +220,6 @@ permalink: /changes.xml
       <guid isPermaLink="false">karmolab-change-0df36586f6</guid>
       <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
       <description>스포츠 넷을 레퍼런스 수치에 맞춘다</description>
-    </item>
-    <item>
-      <title>[고침] 스도쿠 유일해와 지뢰 첫 클릭을 고친다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-eb3c10d6b0</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>스도쿠 유일해와 지뢰 첫 클릭을 고친다</description>
-    </item>
-    <item>
-      <title>[고침] 보드 셋의 선공과 윷 확률을 레퍼런스에 맞춘다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-e1eb0f90e2</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>보드 셋의 선공과 윷 확률을 레퍼런스에 맞춘다</description>
     </item>
   </channel>
 </rss>

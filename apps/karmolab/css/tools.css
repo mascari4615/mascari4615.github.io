@@ -59,8 +59,11 @@
    ⚠ 다만 **모든 도구에 주면 안 된다**: 38개 중 열 개만 첫 그림에서 채우고, 나머지는 사람이
    파일, 값을 준 뒤에 채운다(실측). 그 도구들에 자리를 주면 **빈 칸이 영영 남는다**.
    그래서 처음부터 채우는 도구만 이 변형을 붙인다.
-   높이는 실측값이다. 한 줄(타일 셋)이 데스크톱 74~77px, 좁은 화면은 두 줄. */
-.cc-stats-early { min-height: 74px; }
+   높이는 실측값이다. 한 줄(타일 셋)이 데스크톱 66px, 좁은 화면은 두 줄 159px.
+   ★ 2026-09-04 다시 쟀다. 열두 도구를 420px 과 1280px 에서 재니 값이 어긋나 있었다.
+   좁은 화면 156 은 **모자랐고**(일곱이 159 라 3px 씩 밀렸다), 넓은 화면 74 와 두 줄 163 은
+   **남았다**(실측 66 과 145. 그만큼 빈 칸이 영영 남아 있었다). 모자라면 밀리고 남으면 빈다. */
+.cc-stats-early { min-height: 66px; }
 /* 지금 붙어 있는 열둘 (2026-08-17 실사이트 실측):
      barcode contrast datecalc* grade icsmake interest loan passgen timecalc vat workdays bmi
      (*datecalc 은 두 줄 → .cc-stats-2row)
@@ -71,9 +74,9 @@
    재는 법: 도구 장을 열고 1.8초 뒤 `.cc-stats` 의 높이를 본다. 0 보다 크면 이 클래스를 붙이고,
    그 높이를 그대로 min-height 로 쓴다(짐작 금지. 한 줄 74~77px, 두 줄 163px 도 실측값이다). */
 /* 타일이 두 줄인 도구도 있다. 실측으로만 정한다(datecalc 163px). */
-.cc-stats-early.cc-stats-2row { min-height: 163px; }
+.cc-stats-early.cc-stats-2row { min-height: 145px; }
 @media (max-width: 640px) {
-    .cc-stats-early { min-height: 156px; }
+    .cc-stats-early { min-height: 159px; }
     .cc-stats-early.cc-stats-2row { min-height: 312px; }
 }
 .cc-stat {

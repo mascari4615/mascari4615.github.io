@@ -178,8 +178,12 @@ function offlineNote(show: boolean): void {
             undefined,
             '서버에 못 닿고 있어요. 도구는 그대로 씁니다. 로그인, 광장, 저장만 잠시 쉽니다.'
         );
+        /* ★ **손가락은 통과시킨다** (2026-09-04). 이 쪽지에는 누를 것이 없는데 화면 아래에
+           떠 있어서 그 자리의 진짜 조작을 먹었다. 먹의 프레임 줄이 그 아래라 끊긴 동안
+           칸을 못 눌렀다(`smoke-meok` 은 검사 중에 숨기고 지나가 아무도 못 봤다). */
         note.style.cssText =
             'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
+            'pointer-events:none;' +
             'padding:8px 14px;border-radius:var(--radius-pill);font-size:var(--font-size-2xs);' +
             'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
             'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
