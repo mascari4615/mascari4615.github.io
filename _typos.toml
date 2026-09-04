@@ -13,6 +13,11 @@ extend-exclude = [
   # 공유 카드 이미지 목록 — 값이 전부 내용 해시(16진수)라 영어 단어로 오독된다
   "apps/karmolab/img/og/manifest.json",
 
+  # 스터디 맵 임베딩 (생성물) — 값이 좌표와 내용 해시라 영어 낱말로 오독된다
+  # (2026-09-04: `2cb9b0b4afe5e3c6` 의 `afe` 를 `safe` 로 읽어 main 이 빨갰다).
+  # 위 manifest 와 같은 꼴이라 같은 처분. 낱말을 하나씩 허용하면 다음 해시에서 또 난다.
+  "apps/karmolab/data/studymap-atlas.json",
+
   # 지어낸 지도 자료 — 값이 지어낸 이름·좌표·해시 조각이라 영어 낱말로 오독된다
   # (`ede` → edge, `abd` → and 처럼). 사람이 읽는 글이 아니라 자들이 쓰는 가짜 자료다.
   "apps/karmolab/data/memo-atlas-fake.json",
@@ -30,6 +35,8 @@ extend-exclude = [
   # 단어를 하나씩 허용해 봐야 다음 해시에서 또 난다 — 파일째 뺀다.
   "apps/karmolab/data/changelog.json",
   "apps/karmolab/changes.xml",
+  # 같은 생성물, 같은 병 (2026-09-04: `e9afe4c8` 의 `afe`)
+  "apps/karmolab/data/devlog.json",
 
   # 한자 병음 표 — 병음 음절(nin·beng·neng…)이 영어 오타로 읽힌다. 값이 전부 발음이라
   # 단어를 하나씩 허용해 봐야 다음 글자에서 또 난다 — 파일째 뺀다 (2026-08-12).
@@ -45,6 +52,11 @@ extend-exclude = [
 ]
 
 [default.extend-words]
+# === 2026-09-04: 실제 이름과 줄임말 ===
+lits = "lits"            # literals 줄임 (audit-style-tokens 가 뽑은 색 리터럴 목록)
+Paeth = "Paeth"          # PNG 필터 이름 (Paeth predictor). 사람 이름에서 왔다
+ALPH = "ALPH"            # WebP 청크 이름 (투명도). 네 글자 고정 규격
+
 # === 2026-08-12: 새로 든 파일들이 낸 false-positive (verify 를 세우고 있었다) ===
 Neet = "Neet"            # NeetCode — 코딩 문제 학습 사이트 이름 (studymap 자료 링크)
 Trak = "Trak"            # CelesTrak — 위성 궤도 데이터 제공처 이름 (bluemarble 위젯)

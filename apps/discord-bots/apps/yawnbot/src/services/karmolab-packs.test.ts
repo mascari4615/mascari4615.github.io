@@ -406,7 +406,7 @@ describe('접은 씨앗 거두기 (2026-09-03 도구 월드컵)', () => {
   });
 
   it('씨앗 파일이 남아 있어도 다시 안 심는다. 목록에서 뺐다는 뜻이다', () => {
-    const dir = path.join(tmpRoot, 'nore');
+    const dir = path.join(tmpRoot, 'retired-seed');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('KarmoLab 도구 월드컵')), 'utf-8');
     expect(new KarmolabPackStore(statePath, dir).list()).toHaveLength(0);
