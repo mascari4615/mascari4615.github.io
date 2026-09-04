@@ -47,36 +47,6 @@ export interface Net {
   leave(): void;
 }
 
-interface RoomListing {
-  stop(): void;
-  poke(): void;
-}
-
-/** 온라인 방 한 번의 연결, 참가자, 자리표와 공개 목록을 함께 지킨다. */
-export class OnlineRun {
-  connection: Net | null = null;
-  peers: Peer[] = [];
-  seatOf: Record<string, number> = {};
-  listing: RoomListing | null = null;
-
-  leave(): void {
-    this.connection?.leave();
-    this.connection = null;
-    this.peers = [];
-    this.seatOf = {};
-  }
-
-  closeListing(): void {
-    this.listing?.stop();
-    this.listing = null;
-  }
-
-  reset(): void {
-    this.closeListing();
-    this.leave();
-  }
-}
-
 export function connect(roomId: string, host: boolean, myName: string, hooks: NetHooks): Net {
   const room = openRoom({
     appId: APP_ID,

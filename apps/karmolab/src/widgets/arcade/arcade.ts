@@ -77,7 +77,8 @@ import { forWatcher } from './spectate';
 import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
 import { PARTY, partySize } from './seating';
 import type { Render } from './views';
-import { OnlineRun, type Json } from './net';
+import type { Json } from './net';
+import { OnlineRun } from './online-run';
 import { ensureNet } from './net-loader';
 
 declare const Toolbox: {

@@ -35,8 +35,8 @@ const { hanafuda, yakuPoints } = await import(pathToFileURL(hanaOut).href);
 const blackjackOut = join(dir, 'blackjack.mjs');
 await build({ entryPoints: ['src/widgets/arcade/games/blackjack.ts'], bundle: true, format: 'esm', platform: 'node', outfile: blackjackOut, logLevel: 'silent' });
 const { blackjack, perfectPair, twentyOnePlusThree } = await import(pathToFileURL(blackjackOut).href);
-const netOut = join(dir, 'net.mjs');
-await build({ entryPoints: ['src/widgets/arcade/net.ts'], bundle: true, format: 'esm', platform: 'browser', outfile: netOut, logLevel: 'silent' });
+const netOut = join(dir, 'online-run.mjs');
+await build({ entryPoints: ['src/widgets/arcade/online-run.ts'], bundle: true, format: 'esm', platform: 'node', outfile: netOut, logLevel: 'silent' });
 const { OnlineRun } = await import(pathToFileURL(netOut).href);
 const lobbyOut = join(dir, 'lobby.mjs');
 await build({ entryPoints: ['src/widgets/arcade/lobby.ts'], bundle: true, format: 'esm', platform: 'node', outfile: lobbyOut, logLevel: 'silent' });
@@ -707,6 +707,21 @@ console.log('[arcade] 솔리테어 더미 되돌리기');
   const src3 = readFileSync('src/widgets/arcade/games/solitaire-view3d.ts', 'utf8');
   const hard = [src, src3].filter((c) => /passes\s*>=\s*\d/.test(c)).length;
   ok(hard === 0, '화면이 바퀴 수를 손으로 안 적는다 (canDraw 하나만 본다)', `${hard}개 파일`);
+}
+
+/* 로비 묶음에 P2P 가 없다 (2026-09-02 감사 B2 의 약속). trystero 55KB 는 방을 열 때
+   `arcade/net.js` 로만 받는다. `net.ts` 를 값으로 들여오는 줄 하나면 다시 붙는다
+   (2026-09-03 `OnlineRun` 이 그렇게 들어와 arcade.js 가 65 에서 80KB 로 컸다). */
+{
+  const lobbyOut = join(dir, 'lobby-bundle.js');
+  const r = await build({
+    entryPoints: ['src/widgets/arcade/arcade.ts'], bundle: true, format: 'iife', platform: 'browser',
+    target: ['es2020'], loader: { '.css': 'text' }, outfile: lobbyOut, metafile: true, logLevel: 'silent',
+    define: { __KARMOLAB_BUILD__: '"t"', __KARMOLAB_APP_BASE__: '"/apps/karmolab"', __KARMOLAB_COMMIT__: '"t"', __KARMOLAB_GOOGLE_CLIENT_ID__: '""' },
+  });
+  const inputs = Object.keys(Object.values(r.metafile.outputs)[0].inputs);
+  const p2p = inputs.filter((f) => /trystero|lib\/room\.ts|arcade\/net\.ts$/.test(f));
+  ok(p2p.length === 0, '로비 묶음에 P2P 가 없다 (net.ts 는 타입으로만)', p2p.slice(0, 3).join(', '));
 }
 
 console.log(fails ? `[arcade] 실패 ${fails}건` : '[arcade] 커널 통과. 씨앗, 실시간, 차례, 봇, 못 두는 수');
