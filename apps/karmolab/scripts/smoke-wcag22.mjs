@@ -162,6 +162,13 @@ for (const [name, url] of RUN) {
       el.blur();
       const before = shotUp(el);
       el.focus({ preventScroll: true });
+      /* 초점이 안 들어가는 자리가 있다. 접힌 `<details>` 안이 그렇다. 렌더는 되어 상자는
+         있는데 브라우저가 초점을 거부한다. 그걸 표시가 없다로 읽으면 고칠 수 없는 빨강이
+         남는다 (먹의 `trim`, `resize`, `rot-left` 셋. 2026-09-04 실측). 못 잰 것으로 센다 */
+      if (document.activeElement !== el) {
+        skipped.push((el.getAttribute('data-act') || el.id || el.tagName.toLowerCase()) + '(초점 거부)');
+        continue;
+      }
       const after = shotUp(el);
       el.blur();
       if (before === after) {
