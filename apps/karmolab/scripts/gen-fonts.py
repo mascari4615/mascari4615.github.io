@@ -63,6 +63,12 @@ SCAN_FILES = [
 ]
 SCAN_EXT = ('.html', '.ts', '.css', '.js', '.json', '.md')
 SKIP_DIRS = {'node_modules', '.cache', 'vendor', 'samples', 'tierlists'}
+# 도구가 **다루는 내용**은 안 굽는다. `data/` 를 통째로 안 넣는 것과 같은 까닭.
+#   - `*.generated.*` 은 찍어 낸 표. `src/core/han-table.generated.ts` 하나에 한자 5,289자.
+#     그 탓에 한글 조각 264KB -> 996KB, 제목용 314KB -> 1,374KB (2026-09-04 실측)
+#   - `mockdata.ts` 는 검사용 가짜 값
+# 한자와 희귀 글자는 시스템 글꼴 몫. 폭을 맞춰 뒀으므로 섞여도 글 안 밀림.
+SKIP_FILE_MARKS = ('.generated.', 'mockdata.')
 
 
 def source_chars():
@@ -79,7 +85,7 @@ def source_chars():
         for dp, dn, fn in os.walk(os.path.join(HERE, d)):
             dn[:] = [x for x in dn if x not in SKIP_DIRS and not x.startswith('.')]
             for name in fn:
-                if name.endswith(SCAN_EXT):
+                if name.endswith(SCAN_EXT) and not any(m in name for m in SKIP_FILE_MARKS):
                     eat(os.path.join(dp, name))
     return seen
 
