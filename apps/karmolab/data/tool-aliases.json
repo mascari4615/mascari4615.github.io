@@ -61,17 +61,6 @@
     "cssunit": "css px rem em unit 단위",
     "csvjson": "csv json convert 변환",
     "curlkit": "curl 변환 코드생성 fetch axios python go httpie 요청 옮기기",
-    "dailycho": "초성 초성퀴즈 초성맞히기 낱말 퀴즈 cho quiz wordle",
-    "dailytype": [
-      "오늘의타자",
-      "한글타자",
-      "타자연습",
-      "데일리",
-      "타수",
-      "typing",
-      "daily typing",
-      "korean typing"
-    ],
     "datecalc": "date dday calculator 날짜 디데이 dday 며칠 남은날 기념일",
     "devtool": "developer tools 개발자",
     "devtools": "디버그 개발 점검 테스트 devtools debug",
@@ -239,15 +228,6 @@
     "qr": "qr code generator reader 큐알",
     "qrgen": "qr code generator 큐알",
     "qrread": "qr code reader scan 큐알",
-    "quest": [
-      "오늘의 문제",
-      "하루 한 문제",
-      "도구 퀴즈",
-      "진법 문제",
-      "모스 부호 문제",
-      "daily quest",
-      "puzzle of the day"
-    ],
     "radix": "radix binary hex decimal 2진수 16진수",
     "randomgen": "랜덤 제비뽑기 뽑기 추첨 무작위 random 정하기",
     "redact": "redact mask blur 가리기 검게",

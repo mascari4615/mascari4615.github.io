@@ -130,6 +130,10 @@ import { higher } from './games/higher';
 import { higherView } from './games/higher-view';
 import { ghosttype } from './games/ghosttype';
 import { ghosttypeView } from './games/ghosttype-view';
+import { dailycho } from './games/dailycho';
+import { dailychoView } from './games/dailycho-view';
+import { quest } from './games/quest';
+import { questView } from './games/quest-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface CatalogEntry {
@@ -200,5 +204,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: worldcup, view: worldcupView, icon: '👑', kind: 'quick' },
   { def: reaction, view: reactionView, icon: '⚡', kind: 'quick' },
   { def: higher, view: higherView, icon: '📈', kind: 'quick' },
-  { def: ghosttype, view: ghosttypeView, icon: '👻', kind: 'quick' }
+  { def: ghosttype, view: ghosttypeView, icon: '👻', kind: 'quick' },
+  { def: dailycho, view: dailychoView, icon: '🔤', kind: 'puzzle' },
+  { def: quest, view: questView, icon: '🧩', kind: 'puzzle' }
 ];

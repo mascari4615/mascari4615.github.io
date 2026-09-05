@@ -264,13 +264,6 @@
       "sends": "아무것도 안 보냅니다.",
       "to": []
     },
-    "quest": {
-      "where": "ours",
-      "sends": "오늘 푼 기록이 KarmoLab 서버에 남습니다.",
-      "to": [
-        "yawnbot.mascari4615.com"
-      ]
-    },
     "servermonitor": {
       "where": "third-party",
       "sends": "등록한 주소가 살아 있는지 브라우저가 직접 두드립니다. 그 서버에 접속 기록이 남습니다.",

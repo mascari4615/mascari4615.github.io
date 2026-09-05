@@ -1253,3 +1253,14 @@
 .ac-gtok{color:var(--success)}
 .ac-gtbad{color:var(--error);text-decoration:underline}
 .ac-gtcur{background:color-mix(in srgb,var(--accent) 30%,transparent);border-radius:var(--radius-sm)}
+/* ── 오늘의 초성, 오늘의 문제 (change.arcade-absorbs-play). 월드컵의 고르기 틀 위에 ── */
+.ac-cholist{display:flex;flex-direction:column;gap:8px;margin:var(--space-md) 0}
+.ac-chorow{display:grid;grid-template-columns:minmax(6em,8em) auto minmax(8em,12em) 1fr;align-items:center;gap:10px}
+.ac-chohint{letter-spacing:.2em;font-weight:700}
+.ac-cholen{font-size:var(--font-size-xs);color:var(--text-tertiary)}
+.ac-choin,.ac-qsin{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-primary);color:inherit;font:inherit}
+.ac-chomark{font-size:var(--font-size-xs)}
+.ac-qsq{font-size:var(--font-size-md);font-weight:700;text-align:center;margin:var(--space-md) 0}
+.ac-qsrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+.ac-qsin{flex:1;min-width:10em;max-width:20em}
+.ac-qsslot{margin:var(--space-md) 0;border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-md);text-align:left}

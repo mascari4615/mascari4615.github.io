@@ -43,7 +43,7 @@ function resolve(url) {
   if (u === '/' || u === '/index.html') return path.join(APPS, 'karmolab/index.html');
   if (u.startsWith('/apps/karmolab/')) return path.join(APPS, 'karmolab', u.slice('/apps/karmolab/'.length));
   if (u.startsWith('/play')) return path.join(here, 'index.html');
-  for (const [prefix, dir] of [['/higher', 'higher'], ['/quest', 'quest']]) {
+  for (const [prefix, dir] of []) {
     if (!u.startsWith(prefix)) continue;
     if (u.endsWith('.json')) return path.join(APPS, dir, 'data', path.basename(u));
     return path.join(APPS, dir, 'index.html');
@@ -157,50 +157,6 @@ async function brandBg(page) {
   });
 }
 
-/* ── 오늘의 문제 ── */
-{
-  const page = await ctx.newPage();
-  // 이 놀이도 앱 안으로 옮겨졌다. 커뮤니티와 같은 자리(/#quest).
-  await page.goto(`${BASE}/#quest`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1000);
-  {
-    const frame = await page.evaluate(() => ({
-      header: !!document.querySelector('.app-header, header'),
-      base: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
-      titleCard: !!document.querySelector('#page-quest .tool-hero')
-    }));
-    say(frame.header, 'quest: 앱 틀 밖에 있다. 커뮤니티와 같은 자리여야 한다');
-    const brandQ = await brandBg(page);
-    say(!brandQ || frame.base === brandQ, `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.base}, 선언된 값 ${brandQ})`);
-    say(!frame.titleCard, 'quest: 도구 제목 카드가 딸려 왔다');
-  }
-  const q = await page.evaluate(() => ({ problem: document.getElementById('qsQ').textContent.trim(), toolButton: !!document.getElementById('qsTool') }));
-  say(q.problem.length > 5 && !/불러오는|못 불러/.test(q.problem), `quest: 오늘 문제가 안 떴다 (${q.problem.slice(0, 20)})`);
-  say(q.toolButton, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
-  const head = await page.evaluate(() => ({
-    round: document.getElementById('qsDay').textContent,
-    focus: document.activeElement?.id
-  }));
-  say(/#\d+/.test(head.round), `quest: 몇 번째 문제인지가 없다 (${head.round}). 남과 견줄 수가 없다`);
-  say(head.focus === 'qsAns', `quest: 열자마자 답 칸에 커서가 없다 (${head.focus}). 매일 한 번씩 더 눌러야 한다`);
-
-  // 도구는 딴 페이지가 아니라 **문제 밑에서** 펴져야 한다. 그게 이 놀이의 약속이다.
-  await page.click('#qsTool');
-  await page.waitForTimeout(2000);
-  const tool = await page.evaluate(() => {
-    const s = document.getElementById('qsSlot');
-    return { expanded: !!s && !s.hidden, core: (s?.querySelectorAll('input, select, textarea').length || 0) };
-  });
-  say(tool.expanded && tool.core > 0, 'quest: 도구가 그 자리에서 안 펴진다. 답을 얻으러 화면을 떠나야 한다');
-
-  await page.fill('#qsAns', '틀린답');
-  await page.click('#qsForm button[type=submit]');
-  await page.waitForTimeout(600);
-  const said = await page.evaluate(() => (document.getElementById('qsMsg')?.textContent || ''));
-  say(/아닙니다|다 썼/.test(said), `quest: 틀린 답에 아무 말이 없다 (${said})`);
-  await page.close();
-}
-
 /* ── 하나 맞히기 ── */
 {
   const page = await ctx.newPage();
@@ -279,14 +235,16 @@ async function brandBg(page) {
   }));
   say(made.count === initialCount + 1 && /만들었습니다/.test(made.text),
     `packs: 표가 안 만들어졌다 (${made.text}, 표 ${initialCount}→${made.count})`);
-  await page.click('.pk-item [data-go=twenty]');
-  await page.waitForTimeout(1600);
-  const mine = await page.evaluate(() => ({
-    pickedChip: (document.querySelector('#twTopics button[aria-pressed=true]')?.textContent || '').trim(),
-    question: (document.getElementById('twQ')?.textContent || '').trim()
-  }));
-  say(/우리 집 동물/.test(mine.pickedChip), `packs: 내 표로 안 넘어간다 (${mine.pickedChip})`);
-  say(mine.question.length > 4 && !/불러오는|못 불러/.test(mine.question), `packs: 내 표로 질문이 안 나온다 (${mine.question})`);
+  /* 표에서 게임으로 가는 길. 스무고개는 오락실 게임이 됐으므로 그 게임의 페이지로 가는지만
+     (게임 안이 성한지는 karmolab 의 test:arcade 몫) */
+  const go = await page.$('.pk-item [data-arcade=twenty]');
+  say(!!go, 'packs: 만든 표에서 스무고개로 가는 길이 없다');
+  if (go) {
+    await go.click();
+    await page.waitForTimeout(1800);
+    const url = page.url();
+    say(url.indexOf('/t/arcade/twenty/') >= 0, `packs: 스무고개 페이지로 안 간다 (${url})`);
+  }
   await page.close();
 }
 
@@ -298,4 +256,4 @@ if (failures.length) {
   report();
   process.exit(1);
 }
-console.log('[play-smoke] 놀이 다섯. 전환 줄, 색, 놀이 규칙, 내 표까지 전부 성하다');
+console.log('[play-smoke] 하나 맞히기와 내 표가 성하다 (나머지 게임은 오락실로 옮겨 갔다)');

@@ -544,24 +544,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/mesh3d']
   },
   {
-    id: 'dailycho',
-    get title() { return t('widgets.dailycho.title', undefined, "오늘의 초성 맞히기"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.dailycho.desc', undefined, "초성만 보고 낱말 다섯 개. 답은 이 사이트의 도구 이름"); },
-    layout: 'wide',
-    icon: '<path d="M7 8v8M12 8v8M17 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 12h1M20 12h-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/dailycho']
-  },
-  {
-    id: 'dailytype',
-    get title() { return t('widgets.dailytype.title', undefined, "오늘의 한글 타자"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.dailytype.desc', undefined, "매일 바뀌는 세 문장. 전원 같은 문제, 결과는 격자로만 공유"); },
-    layout: 'wide',
-    icon: '<path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 11h2M11 11h2M15 11h2M8 14h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/dailytype']
-  },
-  {
     id: 'chain',
     get title() { return t('widgets.chain.title', undefined, "도구 묶어 쓰기"); },
     category: 'app',
@@ -1570,17 +1552,6 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<circle cx="9" cy="10" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 8v4M7 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/lotto', 'tools/ladder', 'tools/pick', 'tools/draw']
-  },
-  {
-    id: 'quest',
-    get title() { return t('widgets.quest.title', undefined, "오늘의 문제"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.quest.desc', undefined, "도구를 열어야 풀리는 하루 한 문제. 진법, 모스, 해시, 단위"); },
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<path d="M9 8a3 3 0 1 1 4 2.8c-.8.3-1 .9-1 1.7v.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.2" fill="currentColor"/>',
-    lazyScriptPaths: ['quest']
   },
   {
     id: 'packs',

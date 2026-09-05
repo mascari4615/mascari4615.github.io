@@ -7,27 +7,6 @@
       "emoji": "🎯",
       "url": "/daily/",
       "lead": "속성 힌트로 좁혀 오늘의 하나를 맞힌다"
-    },
-    {
-      "id": "quest",
-      "title": "오늘의 문제",
-      "emoji": "🧩",
-      "url": "/#quest",
-      "lead": "도구를 열어야 풀리는 하루 한 문제"
-    },
-    {
-      "id": "dailytype",
-      "title": "오늘의 한글 타자",
-      "emoji": "⌨️",
-      "url": "/t/dailytype/",
-      "lead": "모두 같은 다섯 줄. 오늘 하루만 나오는 문장"
-    },
-    {
-      "id": "dailycho",
-      "title": "오늘의 초성",
-      "emoji": "🔤",
-      "url": "/t/dailycho/",
-      "lead": "초성만 보고 낱말 다섯. 답은 이 사이트의 도구 이름"
     }
   ]
 }

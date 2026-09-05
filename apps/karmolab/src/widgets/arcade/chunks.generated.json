@@ -446,5 +446,21 @@
     "defVar": "ghosttype",
     "viewVar": "ghosttypeView",
     "d3": false
+  },
+  {
+    "id": "dailycho",
+    "chunk": "dailycho",
+    "view": "dailycho-view",
+    "defVar": "dailycho",
+    "viewVar": "dailychoView",
+    "d3": false
+  },
+  {
+    "id": "quest",
+    "chunk": "quest",
+    "view": "quest-view",
+    "defVar": "quest",
+    "viewVar": "questView",
+    "d3": false
   }
 ]

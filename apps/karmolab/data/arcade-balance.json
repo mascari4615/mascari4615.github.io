@@ -2,7 +2,7 @@
   "note": "봇끼리 돌려 잰 오락실 저울. 자리 편향, drawRate, 판 길이. 다시 재기: npm run bench:arcade",
   "measuredOn": "2026-09-05",
   "roundCount": 200,
-  "elapsedSec": 118.2,
+  "elapsedSec": 46.7,
   "game": [
     {
       "id": "airhockey",
@@ -118,6 +118,23 @@
       "singleRound": false,
       "avgSeconds": 43.6,
       "scoreSpread": 1.34,
+      "unfinished": 0
+    },
+    {
+      "id": "dailycho",
+      "kind": "puzzle",
+      "seats": 3,
+      "roundCount": 200,
+      "seatWinRate": [
+        0.318,
+        0.3,
+        0.318
+      ],
+      "slope": 0.033,
+      "drawRate": 0.065,
+      "singleRound": false,
+      "avgSeconds": 9,
+      "scoreSpread": 1.84,
       "unfinished": 0
     },
     {
@@ -587,6 +604,23 @@
       "singleRound": false,
       "avgSeconds": 156,
       "scoreSpread": 3.63,
+      "unfinished": 0
+    },
+    {
+      "id": "quest",
+      "kind": "puzzle",
+      "seats": 3,
+      "roundCount": 200,
+      "seatWinRate": [
+        0.292,
+        0.242,
+        0.345
+      ],
+      "slope": 0.091,
+      "drawRate": 0.12,
+      "singleRound": false,
+      "avgSeconds": 9.2,
+      "scoreSpread": 1.45,
       "unfinished": 0
     },
     {

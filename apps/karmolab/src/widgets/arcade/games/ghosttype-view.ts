@@ -8,6 +8,8 @@
 import { t } from '../../../lib/i18n';
 import type { GameView } from '../views';
 import { cpmOf, MAX_TEXT, MIN_TEXT, type GtState, type GtAction } from './ghosttype';
+import { dateKST } from '../../../core/daily';
+import { puzzleFor } from '../../../core/dailytype';
 
 const PRESET_COUNT = 5;
 
@@ -40,13 +42,18 @@ export const ghosttypeView: GameView<GtState, GtAction> = {
     let shown = '';
     let sent = 0;
 
-    const presets = Array.from({ length: PRESET_COUNT }, (_, i) => t('arcade.ghosttype.preset.' + i)).filter((x) => x && x.indexOf('arcade.ghosttype.preset') < 0);
+    /* 오늘의 문장이 맨 앞. 옛 오늘의 한글 타자를 이 판으로 합쳤다(단계 4). 한국 시간으로 하루 한 벌, 전원 같은 문장 */
+    const today = puzzleFor(dateKST());
+    const daily = { text: today.lines.join(' '), label: t('arcade.ghosttype.today', { n: String(today.day) }) };
+    const presets = [daily.text].concat(
+      Array.from({ length: PRESET_COUNT }, (_, i) => t('arcade.ghosttype.preset.' + i)).filter((x) => x && x.indexOf('arcade.ghosttype.preset') < 0)
+    );
     const list = $('acGtPresets');
-    presets.forEach((text) => {
+    presets.forEach((text, idx) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'ac-gtpreset';
-      b.textContent = text;
+      b.textContent = (idx === 0 ? daily.label + '. ' : '') + text;
       b.setAttribute('aria-pressed', 'false');
       b.onclick = () => {
         chosen = text;
