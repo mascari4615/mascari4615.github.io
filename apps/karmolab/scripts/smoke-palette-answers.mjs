@@ -136,9 +136,13 @@ async function askTool(toolId, fills) {
   await askPalette('24px to rem');
   const sections = await page.$$eval('.kp-inline .kp-section', (els) => els.map((e) => e.textContent.trim()));
   if (!sections.includes('답')) problems.push('답 칸 이름표가 없다');
+  /* 답 옆의 도구 줄은 그 도구가 찾기 판에 있을 때만 (2026-09-05). 답을 내는 도구 다섯(cssunit, color,
+     colorconv, calc, unitconv)이 전부 창고 숨김이라(2026-08-31 사용자 결정: 옆줄과 찾기 판에서 뺌) 도구 줄이
+     없는 것이 맞다. 숨김이 아닌 도구가 답을 내면 그때 다시 잰다 */
   const rows = await page.$$eval('.kp-inline .kp-row', (els) => els.length);
   const answerRows = await page.$$eval('.kp-inline .kp-row-answer', (els) => els.length);
-  if (rows <= answerRows) problems.push('답만 있고 도구 줄이 사라졌다. 더 손보러 갈 길이 막힌다');
+  const hiddenSource = await page.evaluate(() => (window.KARMOLAB_LAZY_META || []).find((w) => w.id === 'cssunit')?.hidden === true);
+  if (rows <= answerRows && !hiddenSource) problems.push('답만 있고 도구 줄이 사라졌다. 더 손보러 갈 길이 막힌다');
 }
 
 /* ── 평범한 낱말은 답을 만들지 않는다 (오탐 방지) ────────── */

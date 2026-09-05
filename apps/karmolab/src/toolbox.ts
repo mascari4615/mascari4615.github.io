@@ -2847,6 +2847,9 @@ const Toolbox = (() => {
         }
         document.documentElement.style.zoom = z === 1 ? '' : String(z);
         document.documentElement.dataset.uiScale = String(z);
+        /* vh, svh 는 zoom 을 모른다. 100svh 가 0.89 배로 그려져 화면 아래 99px 이 빈다 (블루마블 실측 2026-09-05).
+           화면을 꽉 채우는 위젯은 `calc(100svh / var(--ui-zoom))` 로 되돌린다 */
+        document.documentElement.style.setProperty('--ui-zoom', String(z));
     }
     function setUiScale(mode) {
         if (!UI_SCALES.some(s => s.id === mode)) return;

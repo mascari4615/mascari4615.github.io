@@ -105,9 +105,11 @@ import { LOOK_NM, REFRESH_MS, loadSky, nearestPlane, planeSay, sameSky, type Pla
    스스로 정한다: 작은 화면에서도 420px 는 되고, 커도 900px 를 안 넘는다. */
 /* 위쪽 띠(헤더)는 비치는 유리다. 지구를 그 **뒤까지** 올리면 위 칸만 배경색으로 남던 어색함이
    사라진다. 조작부는 그대로 띠 아래에 둔다(가려지면 누를 수 없다). */
-.bm-wrap{--bm-head:52px;position:relative;width:100%;
+/* 머리띠 높이는 셸 것(--header-h, 40px). 52 고정이라 셸 개편 뒤 12px 위로 밀림
+   svh 는 셸 zoom 을 모름. --ui-zoom 으로 되돌림 (둘 다 2026-09-05 라이브 실측: 위 -11px, 아래 110px) */
+.bm-wrap{--bm-head:var(--header-h,52px);position:relative;width:100%;
   margin-top:calc(var(--bm-head) * -1);
-  height:100svh;max-height:100svh;
+  height:calc(100svh / var(--ui-zoom,1));max-height:calc(100svh / var(--ui-zoom,1));
   display:flex;flex-direction:column;
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
 /* 머리띠는 비치는 유리라 지구가 그대로 보인다. 그 위의 글자가 묻히지 않게 **띠 높이만큼**

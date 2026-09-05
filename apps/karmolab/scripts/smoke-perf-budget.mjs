@@ -374,7 +374,9 @@ for (const [screen, url, screenBudget = {}] of TARGETS) {
   const unknowns = rows.filter((v) => v.state === 'unknown');
   const passes = rows.filter((v) => v.state === 'pass');
   for (const v of rows) {
-    const mark = v.state === 'fail' ? 'FAIL' : v.state === 'unknown' ? '못 잼' : ' OK ';
+    /* --regress 는 예산을 반으로 조여 일부러 걸리게 하는 자가 점검. FAIL 로 찍으면 라이브 점검 로그를
+       읽는 사람이 진짜 빨강으로 읽는다 (2026-09-05, 실제로 그랬다). 조임으로 표시 */
+    const mark = v.state === 'fail' ? (REGRESS ? '조임' : 'FAIL') : v.state === 'unknown' ? '못 잼' : ' OK ';
     console.log(`[perf-budget]   ${mark}  ${v.label.padEnd(20)} ${fmt(v).padStart(8)} / 예산 ${limitOf(v)}`);
     /* 밀림이 넘었으면 무엇이 밀렸는지 그 자리에서 말한다. 수만 보면 다음 사람이 처음부터 찾는다 */
     if (v.state === 'fail' && /밀림|CLS/i.test(String(v.label)) && result.shifts?.length) {
