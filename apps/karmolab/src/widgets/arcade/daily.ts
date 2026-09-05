@@ -8,12 +8,17 @@
  *  ① **모두가 같은 셋**을 본다. 날짜에서 뽑으므로 내 브라우저가 정하지 않는다 . 
  *     오늘 그거 했어?가 성립해야 한다(각자 다른 셋이면 그 말이 안 된다).
  *  ② **갈래를 섞는다**(빠른 것, 판 놀이, 그 밖). 셋 다 보드면 그날은 아무도 안 한다.
- *  ③ 날짜는 `play-course.ts` 가 쓰는 그 모양을 그대로 가져다 쓴다. 날짜 셈이 두 벌이면
+ *  ③ 날짜 셈은 여기 한 벌. 두 벌이면
  *     자정 언저리에 어제 것을 오늘로 세는 날이 온다.
  *  ④ 연속일은 **어제까지 이어졌을 때만** 잇는다. 하루 건너뛰면 1부터. 그게 연속의 뜻이다.
  */
-import { courseDay } from '../play-course';
 import type { Kind } from './meta';
+
+/** 오늘(KST). 각 놀이가 저장에 쓰는 것과 같은 모양. 여기서 갈리면 전부 어긋난다 */
+function courseDay(): string {
+  const k = new Date(Date.now() + 9 * 3600e3);
+  return `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
+}
 
 const KEY = 'karmolab.arcade.daily';
 /** 하루에 몇 판 */

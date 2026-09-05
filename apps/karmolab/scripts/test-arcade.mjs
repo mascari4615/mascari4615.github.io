@@ -162,11 +162,6 @@ console.log('[arcade] 로비 수명');
   ok(lobby.storedName() === '나', '이름을 다듬어 다음 로비에 남긴다');
   ['gomoku', 'auction', 'gomoku', '없는-판'].forEach((id) => lobby.noteRecent(id));
   ok(JSON.stringify(lobby.recent()) === JSON.stringify(['gomoku', 'auction']), '최근 판은 중복과 없는 판 없이 새것부터 둔다');
-  lobby.setSolo([
-    { id: 'one', title: '하나 맞히기', emoji: '1', url: '/one', lead: '매일 한 문제' },
-    { id: 'word', title: '단어 놀이', emoji: 'A', url: '/word', lead: '낱말 찾기' }
-  ]);
-  ok(lobby.shownSolo('낱말').map((game) => game.id).join() === 'word', '혼자 놀이 검색도 로비 상태가 고른다');
 }
 
 console.log('[arcade] 판 위 말. 네 판이 같은 표현 부품을 쓴다');

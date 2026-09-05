@@ -11,12 +11,12 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const app = join(dirname(fileURLToPath(import.meta.url)), '..');
+const app = join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), 'data/daily');
 const CONCURRENCY = 24;
 
 const targets = [];
-for (const file of readdirSync(join(app, 'data')).filter((f) => f.endsWith('.json'))) {
-  const topic = JSON.parse(readFileSync(join(app, 'data', file), 'utf8'));
+for (const file of readdirSync(app).filter((f) => f.endsWith('.json') && f !== 'index.json')) {
+  const topic = JSON.parse(readFileSync(join(app, file), 'utf8'));
   for (const item of topic.items) {
     if (item.img) targets.push({ topic: topic.id, name: item.name, url: item.img });
   }

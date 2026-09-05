@@ -11,7 +11,7 @@ import { saveTable } from './lib-table.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '../data/bluearchive.json');
+const OUT = join(dirname(fileURLToPath(import.meta.url)), '../../data/daily/bluearchive.json');
 const BASE = 'https://schaledb.com';
 
 const get = async (path) => {

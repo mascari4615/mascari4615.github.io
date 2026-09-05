@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const OUT = join(here, '../data/pokemon.json');
+const OUT = join(here, '../../data/daily/pokemon.json');
 const CACHE = join(here, '../.cache/pokeapi.json');
 const LAST_ID = 1025; // 9세대 끝
 const CONCURRENCY = 12;

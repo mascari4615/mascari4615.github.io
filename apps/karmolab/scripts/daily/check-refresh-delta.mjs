@@ -16,14 +16,14 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const app = join(dirname(fileURLToPath(import.meta.url)), '..');
-const dataDir = join(app, 'data');
+const app = join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), 'data/daily');
+const dataDir = app;
 
 /** 커밋되어 있는(= 지금 배포된) 표. 없으면 새 주제라 비교할 게 없다. */
 function committed(file) {
   try {
-    const raw = execFileSync('git', ['show', `HEAD:apps/daily/data/${file}`], {
-      cwd: join(app, '../..'),
+    const raw = execFileSync('git', ['show', `HEAD:apps/karmolab/data/daily/${file}`], {
+      cwd: join(app, '../../../..'),
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
     });
@@ -40,7 +40,7 @@ const MAX_SHRINK = 0.03;
 let bad = 0;
 let changed = 0;
 
-for (const file of readdirSync(dataDir).filter((f) => f.endsWith('.json'))) {
+for (const file of readdirSync(dataDir).filter((f) => f.endsWith('.json') && f !== 'index.json')) {
   const now = JSON.parse(readFileSync(join(dataDir, file), 'utf8'));
   const was = committed(file);
   if (!was) {

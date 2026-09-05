@@ -8,7 +8,7 @@ import { saveTable } from './lib-table.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '../data/genshin.json');
+const OUT = join(dirname(fileURLToPath(import.meta.url)), '../../data/daily/genshin.json');
 
 import { ELEMENT, WEAPON, REGION, BODY, playableGenshin, fetchGenshinList } from './rules-genshin.mjs';
 

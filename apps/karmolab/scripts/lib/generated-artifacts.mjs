@@ -79,11 +79,6 @@ export const generated = [
     weight: '배포가 매번 다시 굽는다(build:artifacts)'
   },
   {
-    npm: 'gen:play-roster',
-    outputs: ['data/games.json'],
-    why: '앱이 받아서 로비를 그리는 놀이 명부. 낡으면 새 놀이가 로비에 안 뜬다'
-  },
-  {
     npm: 'gen:type-pool',
     outputs: ['src/core/type-pool.generated.ts'],
     why: '타자 연습이 치는 글월. 낡으면 없어진 도구 설명을 사람이 따라 친다',

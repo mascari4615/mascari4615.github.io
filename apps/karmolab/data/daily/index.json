@@ -1,11 +1,17 @@
 {
-  "$comment": "오늘의 하나 맞히기 주제 명부. 표를 넣고 여기 한 줄 더하면 그 주제가 게임 첫 화면에 생긴다 (change.arcade-absorbs-play)",
+  "$comment": "오늘의 하나 맞히기 주제 명부. 표를 넣고 npm run fetch:daily 를 돌리면 그 주제가 생긴다 (scripts/daily/gen-topics.mjs)",
   "topics": [
     {
       "id": "pokemon",
       "title": "포켓몬",
       "emoji": "🔴",
       "items": 1025
+    },
+    {
+      "id": "bluearchive",
+      "title": "블루 아카이브 학생",
+      "emoji": "🔵",
+      "items": 273
     },
     {
       "id": "lol",
@@ -18,12 +24,6 @@
       "title": "원신 캐릭터",
       "emoji": "🌠",
       "items": 118
-    },
-    {
-      "id": "bluearchive",
-      "title": "블루 아카이브 학생",
-      "emoji": "🔵",
-      "items": 273
     }
   ]
 }

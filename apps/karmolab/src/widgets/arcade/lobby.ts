@@ -1,6 +1,5 @@
 import { cardById } from './catalog-meta.generated';
 import { matches } from './pick6';
-import type { SoloPlay } from './solo';
 
 const NAME_KEY = 'karmolab.arcade.name';
 const RECENT_KEY = 'karmolab.arcade.recent';
@@ -18,7 +17,6 @@ function browserStorage(): LobbyStorage | null {
 
 /** 로비 한 번의 이름, 최근 판과 혼자 놀이 명부를 함께 지킨다. */
 export class LobbyRun {
-  solo: SoloPlay[] = [];
 
   constructor(private readonly storage: LobbyStorage | null = browserStorage()) {}
 
@@ -57,15 +55,5 @@ export class LobbyRun {
     } catch {
       /* 못 적어도 로비는 그대로 쓴다 */
     }
-  }
-
-  setSolo(rows: SoloPlay[]): void {
-    this.solo = rows;
-  }
-
-  shownSolo(query: string): SoloPlay[] {
-    return query.trim()
-      ? this.solo.filter((game) => matches([game.id, game.title, game.lead], query))
-      : this.solo;
   }
 }

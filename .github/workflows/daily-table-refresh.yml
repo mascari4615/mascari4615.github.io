@@ -38,54 +38,33 @@ jobs:
         with:
           node-version: '20'
 
+      - name: 앱 의존성
+        working-directory: apps/karmolab
+        run: npm ci
+
       - name: 표를 새로 받는다
-        working-directory: apps/daily
-        run: npm run fetch:all
+        working-directory: apps/karmolab
+        run: npm run fetch:daily
 
       - name: 바뀐 크기가 넘겨도 되는지 본다
-        working-directory: apps/daily
-        run: npm run check:refresh
-
-      - name: 규칙 시험 + 페이지 생성
-        working-directory: apps/daily
-        run: npm run build
+        working-directory: apps/karmolab
+        run: node scripts/daily/check-refresh-delta.mjs
 
       # 그림 하나가 죽으면 그게 정답인 날 실루엣 판이 통째로 안 풀린다.
       # 여기서만 전수로 본다. 평소 검사는 표본만 본다(수천 장은 매번 보기엔 무겁다).
       - name: 그림이 다 살아 있는지 본다
-        working-directory: apps/daily
-        run: npm run check:images
-
-      # ★ **브라우저 판 번호는 `.github/actions/daily-playwright` 한 곳에** (2026-08-13).
-      #   받는 줄과 무는 줄이 워크플로 세 곳에 여섯 번 적혀 있었다. 갈리면 검사가
-      #   없는 브라우저를 열다 죽는다(KarmoLab 이 같은 모양으로 25판 연속 죽었다).
-      - uses: ./.github/actions/daily-playwright
-
-
-      - name: 새 표로 한 판씩 둬 본다
-        working-directory: apps/daily
-        env:
-          DAILY_PLAYWRIGHT: node_modules/playwright/index.js
-        run: |
-          node scripts/smoke.mjs
-
-      # 공유 카드에 항목 수가 적혀 있다 ("1,025개 중 하나"). 표가 바뀌면 카드도 낡는다.
-      - name: 공유 카드 다시 만든다
-        working-directory: apps/daily
-        # 앞 단계가 여기 node_modules 에 깔아 둔 playwright 를 쓴다. 이웃 앱(karmolab)은 CI 에 없다.
-        env:
-          DAILY_PLAYWRIGHT: node_modules/playwright/index.js
-        run: npm run gen:og
+        working-directory: apps/karmolab
+        run: npm run check:daily-images
 
       - name: 바뀌었으면 넘긴다
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          if git diff --quiet -- apps/daily/data apps/daily/img/og; then
+          if git diff --quiet -- apps/karmolab/data/daily; then
             echo '바뀐 게 없다. 새로 나온 것이 없었다는 뜻이다.'
             exit 0
           fi
-          git add apps/daily/data apps/daily/img/og
+          git add apps/karmolab/data/daily
           git commit -m 'chore(daily): 표를 새로 받았다 (자동, 한국 시각 자정 직후)' -m '새 챔피언, 새 캐릭터가 나와도 표가 그대로면 그 이름은 자동완성에도 없고 정답으로도 안 나온다. 주 1회 스스로 받아 온다.'
           # 사람이 그 사이에 밀어 넣었을 수 있다. 부딪히면 위로 얹고 다시 민다.
           for i in 1 2 3; do

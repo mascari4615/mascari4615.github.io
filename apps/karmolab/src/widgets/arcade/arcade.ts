@@ -42,10 +42,8 @@ import { mountChrome } from './chrome';
 import { DECK_SKINS, deckSkin, setDeckSkin } from './deck';
 import { LESSONS, TUTOR_SIZE, TutorRun, cellOf, isAnswer } from './tutor';
 import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
-import { soloPlays, inAppTool, type SoloPlay } from './solo';
 import { LobbyRun } from './lobby';
 import { loadPacks } from '../pack-store';
-import { courseSteps, courseRun } from '../play-course';
 import { lengthOf, secondsOf } from './length';
 import { notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
@@ -195,7 +193,6 @@ interface Session {
       '<div id="acGames" class="ac-shelf"></div></section>' +
       /* 혼자 놀이. 오락실이 놀이의 **유일한 문**이 되는 자리 (TASK-KL-313).
          방 게임 뒤에 둔다: 여기는 오락실이고, 혼자 놀이는 각자 제 페이지로 나가는 손님이다. */
-      '<div id="acSolo"></div>' +
       /* 놀이의 재료 = 표. 만드는 문이 놀이터에만 있어서, 오락실로 들어온 사람은 우물을
          파 놓고도 못 들어갔다 (TASK-KL-313. 놀이터에서 옮겨 온 자리). */
       '<div id="acPacks"></div>' +
@@ -727,60 +724,6 @@ interface Session {
       wireCards();
     };
 
-    /* ── 혼자 놀이 (TASK-KL-313) ─────────────────────────────────
-     *
-     * 오락실 밖에 놀이터라는 두 번째 문이 있었다. 문이 둘이면 어느 문으로 들어왔느냐가
-     * 무엇을 아는지를 정한다. 오락실만 본 사람은 하나 맞히기를 영영 몰랐다. 그래서 그 문의
-     * 알맹이(오늘의 코스 줄, 놀이 카드)를 여기로 옮기고 저쪽 문은 닫는다.
-     *
-     * 명부는 여기 다시 안 적는다. `apps/play/games.json` 하나가 정본이다(`solo.ts`).
-     */
-    const soloCard = (g: SoloPlay): string =>
-      /* `data-obj` 를 같이 쓰지 않는다. 그 이름이 곧 방 게임 몇 종인가를 세는 자리다
-         (추천 여섯에서 이미 겪었다: 51종이 54종이 됐다). 생김새만 진열장 물건과 같다 . 
-         혼자 놀이를 따로 분류할 이유가 없다는 피드백대로 같은 선반에 이어 놓는다. */
-      '<a class="ac-solocard" href="' + esc(g.url) + '" data-solo-go="' + esc(g.id) + '">' +
-      '<span class="ac-objface">' + esc(g.emoji || '🎲') + '</span>' +
-      '<b class="ac-objname">' + esc(g.title) + '</b>' +
-      '</a>';
-
-    const paintSolo = (): void => {
-      const box = $<HTMLElement>('#acSolo');
-      if (!lobbyRun.solo.length) { box.innerHTML = ''; return; }
-      const q = findEl.value;
-      const mine = lobbyRun.shownSolo(q);
-      if (!mine.length) { box.innerHTML = ''; return; }
-
-      /* 오늘의 코스. 셈은 놀이들과 **같은 한 벌**(`play-course`)을 쓴다. 여기서 따로 세면
-         하나 남았다가 놀이 안과 오락실에서 서로 다른 말을 한다. */
-      const steps = courseSteps(lobbyRun.solo);
-      const left = steps.filter((x) => !x.done).length;
-      const head = q.trim()
-        ? ''
-        : '<p class="ac-solocourse">' +
-          (left
-            ? esc(t('arcade.solo.left', { n: String(left) }))
-            : esc(t('arcade.solo.allDone', { n: String(courseRun(true)) }))) +
-          '</p>';
-
-      /* 갈래 제목 없이 같은 진열장이 이어진다. 방 게임과 혼자 놀이를 사람이 구분할 이유가 없다.
-         코스 줄은 선반 뒤에. 두 선반 사이에 끼면 끊어 읽힌다. */
-      box.innerHTML =
-        '<div class="ac-shelf">' + mine.map(soloCard).join('') + '</div>' +
-        head;
-
-      /* 앱 안의 놀이는 새 페이지를 받을 이유가 없다. 그 자리에서 화면만 바꾼다.
-         밖에 있는 것(`/daily/`)은 진짜 링크 그대로 둔다(새 창, 복사가 살아 있어야 한다). */
-      box.querySelectorAll<HTMLAnchorElement>('a[data-solo-go]').forEach((a) => {
-        const tool = inAppTool(a.getAttribute('href') || '');
-        if (!tool) return;
-        a.onclick = (e): void => {
-          e.preventDefault();
-          Toolbox.switchPage?.(tool);
-        };
-      });
-    };
-
     /* ── 놀이의 재료: 표 (TASK-KL-313. 놀이터에서 옮김) ────────
      *
      * 표를 만들면 높은 쪽 고르기, 스무고개, 이상형 월드컵이 한꺼번에 켜진다. 그런데 그 문이
@@ -823,12 +766,6 @@ interface Session {
         });
     };
 
-    void soloPlays().then((rows) => {
-      if (!container.isConnected) return;
-      lobbyRun.setSolo(rows);
-      paintSolo();
-    });
-
     paintPicks();
     paintGames();
     void paintOpen();
@@ -845,7 +782,6 @@ interface Session {
       paintPicks();
       paintGames();
       void paintOpen();
-      paintSolo();
       paintPacks();
     };
 

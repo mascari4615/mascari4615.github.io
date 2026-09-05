@@ -9,10 +9,6 @@ on:
     paths:
       - apps/blog/**
       - apps/karmolab/**
-      - apps/daily/**
-      - apps/higher/**
-      - apps/quest/**
-      - apps/play/**
       - apps/files/**
       - packages/ai/**
       - packages/badapple/**
@@ -140,16 +136,6 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:shell-pages
 
-      # TASK-KAR-202: 오늘의 하나 맞히기(/daily/). 의존성 0, 번들러 0.
-      # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
-      - name: Build daily guess game
-        working-directory: apps/daily
-        run: npm run build
-      - name: Prepare daily Jekyll pages
-        run: |
-          mkdir -p apps/blog/daily
-          cp -r apps/daily/dist/. apps/blog/daily/
-
       # TASK-KL-089: 놀이 둘. 높은 쪽 고르기, 오늘의 문제는 KarmoLab 앱 안으로 들어갔다
       # (`/#higher`, `/#quest`). 알맹이(위젯 js, 문제 표)는 앱 빌드와
       # 아래 rsync 가 실어 나른다. 여기서는 이미 밖에 나가 있던 옛 주소만 살려 둔다 . 
@@ -160,13 +146,6 @@ jobs:
         run: |
           node apps/files/scripts/collect-web.mjs apps/blog/files
           node apps/files/scripts/build-fixture.mjs apps/blog/files/v
-
-      - name: Prepare moved-game redirects
-        run: |
-          mkdir -p apps/blog/higher apps/blog/quest apps/blog/play
-          cp apps/higher/index.html apps/blog/higher/index.html
-          cp apps/quest/index.html apps/blog/quest/index.html
-          cp apps/play/base.css apps/blog/play/base.css
 
       # TASK-KL-088: 도구별 정적 페이지(/t/<id>/) + 허브(/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
@@ -283,15 +262,6 @@ jobs:
       - name: Stamp KarmoLab assets with content hashes
         working-directory: apps/karmolab
         run: npm run stamp
-
-      # 관문은 도구 페이지가 만들어진 **뒤에** 만든다. 놀이가 그 페이지로 가므로,
-      # 먼저 돌면 그 자리에 파일이 없다고 옳게 멈춘다(실제로 그렇게 배포가 섰다).
-      - name: Build playground hub
-        run: node apps/play/scripts/build.mjs
-      - name: Copy playground hub
-        run: |
-          mkdir -p apps/blog/play
-          cp apps/play/index.html apps/blog/play/index.html
 
       # Jekyll → Node 조립기 (change.blog-finish ①). 로컬 검증 = Jekyll 산출과 트리 diff 0 , 
       # sitemap 388/388 동일, lastmod, CSP 감사 초록. Ruby 는 이 저장소에서 소멸.

@@ -1,1310 +1,1306 @@
 {
- "note": "묶음(gates)에서 도는 검사 이름. 한 줄에 하나. 여기가 정본이다 (package.json 이 아니다). 한 줄은 이름 문자열이거나 {이름, 볼것:[glob...]} 이다. 볼것을 적으면 `npm run gates:changed` 가 그 발판이 안 바뀐 판에서 그 검사를 건너뛴다 (TASK-KL-331). 안 적으면 언제나 돈다. 안전 기본값이다. push, CI 는 볼것과 무관하게 통짜로 돈다.",
- "why": "한 줄에 백스물다섯 개를 늘어놓으니, 세션 여럿이 동시에 늘릴 때마다 충돌이 났고 손으로 합치다 승격 하나가 조용히 사라진 적이 있다(2026-08-14). 한 줄에 하나면 서로 다른 줄을 고치므로 자동으로 합쳐진다.",
- "list": [
-  {
-   "name": "test:markdown",
-   "watch": [
-    "src/lib/markdown/**",
-    "src/widgets/community-markdown.ts",
-    "scripts/test-markdown-render.mjs",
-    "scripts/lib/markdown-node.mjs",
-    "js/vendor/marked.min.js",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:gamification",
-   "watch": [
-    "src/widgets/gamification*",
-    "src/widgets/gamification/**",
-    "scripts/test-gamification.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:planner",
-   "watch": [
-    "src/widgets/planner/**",
-    "scripts/test-planner-core.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:meok",
-   "watch": [
-    "src/widgets/meok/**",
-    "scripts/test-meok-*.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "test:meok:screen",
-  {
-   "name": "test:karmograph",
-   "watch": [
-    "src/widgets/karmograph/**",
-    "src/lib/karmograph/**",
-    "scripts/test-karmograph-*.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:karmograph:render",
-   "watch": [
-    "src/lib/karmograph/render.ts",
-    "src/lib/karmograph/from-mermaid.ts",
-    "src/core/mermaidlite.ts",
-    "src/widgets/docs/**",
-    "js/widgets/docs/*.md",
-    "scripts/test-karmograph-render.mjs",
-    "src/lib/**",
-    "scripts/lib/**",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:ink",
-   "watch": [
-    "src/widgets/ink*",
-    "src/widgets/ink/**",
-    "scripts/test-ink-on.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:radio",
-   "watch": [
-    "src/widgets/radio*",
-    "src/widgets/radio/**",
-    "scripts/test-radio-core.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "test:md",
-  {
-   "name": "test:post-model",
-   "볼것": [
-    "src/lib/post-model.ts",
-    "src/search/providers/post-provider.ts",
-    "scripts/test-post-model.mjs"
-   ]
-  },
-  {
-   "name": "test:docs-pages",
-   "볼것": [
-    "scripts/gen-docs-pages.mjs",
-    "scripts/test-docs-pages.mjs",
-    "data/docs/**",
-    "world/wiki/**"
-   ]
-  },
-  "test:tools",
-  "test:pulse",
-  "test:tool-url",
-  "test:parity",
-  {
-   "name": "test:mesh3d",
-   "watch": [
-    "src/widgets/mesh3d*",
-    "src/widgets/mesh3d/**",
-    "scripts/smoke-mesh3d.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:pinyin",
-   "watch": [
-    "src/widgets/charconv*",
-    "src/widgets/charconv/**",
-    "scripts/smoke-charconv-pinyin.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "test:daily",
-  "test:daily:rollover",
-  "test:compare",
-  "audit:play-urls",
-  "test:mcp",
-  "test:bundles",
-  "audit:script-paths",
-  "audit:orphan-widgets",
-  "audit:shared-bypass",
-  "audit:gate-list",
-  "test:gate-derive",
-  "audit:mouse-only",
-  "audit:registry-impl",
-  "audit:hidden-tab",
-  "audit:material-shell",
-  "audit:text-count",
-  "audit:vendor-globals",
-  "audit:wf-prereq",
-  "test:i18n:pair",
-  "test:names",
-  "audit:cache",
-  {
-   "name": "test:asciiart:video",
-   "watch": [
-    "src/widgets/tools/asciiart.ts",
-    "scripts/smoke-asciiart-video.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:badapple:handoff",
-   "watch": [
-    "src/badapple/**",
-    "badapple/**",
-    "data/badapple/**",
-    "scripts/smoke-badapple-handoff.mjs",
-    "src/toolbox.ts",
-    "src/widgets-lazy-meta.ts",
-    "src/lib/**",
-    "scripts/lib/**",
-    "index.html",
-    "build.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "audit:fonts",
-  "audit:bg-themes",
-  "audit:footer",
-  "audit:privacy",
-  "test:cotext",
-  "test:apicache",
-  "test:contract",
-  "test:lang",
-  "test:meong",
-  "audit:jpegbg",
-  "smoke:deeplink",
-  "smoke:handoff",
-  "test:textcount",
-  "test:corecount",
-  "test:claims",
-  "test:ibatch",
-  "test:vdur",
-  "audit:hidden",
-  "test:a11y",
-  "test:a11y:all",
-  "audit:csp-meta",
-  "audit:serve-fm",
-  "audit:css-tokens",
-  {
-   "name": "audit:style-tokens",
-   "watch": [
-    "src/**",
-    "css/toolbox.css",
-    "index.html",
-    "scripts/audit-style-tokens.mjs",
-    "data/style-tokens-baseline.json"
-   ]
-  },
-  "test:jsontree",
-  "test:dropwell",
-  "test:saylive",
-  "audit:saylive",
-  "audit:iconbtn",
-  "test:copyable",
-  "test:chainrec",
-  "audit:wait",
-  "audit:orphans",
-  "smoke:batchretry",
-  "audit:prerender-home",
-  "audit:arcade-contract",
-  "audit:arcade-feel",
-  "test:arcade",
-  "test:arcade:ranked",
-  "test:arcade:ranked-live",
-  "test:arcade:verify",
-  "test:arcade:tutor",
-  "test:arcade:lifecycle",
-  "test:arcade:ghost",
-  {
-   "name": "test:arcade:bots",
-   "watch": [
-    "src/widgets/arcade/games/gomoku-engine.ts",
-    "src/widgets/arcade/games/gomoku.ts",
-    "scripts/bench-gomoku-ai.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "test:arcade:solitaire",
-  "test:arcade:cards",
-  "test:drift",
-  "test:arcade:solo",
-  "test:play-i18n",
-  "test:tour",
-  "test:pick6",
-  "test:spectate",
-  "test:replay",
-  "test:ghost",
-  "test:mail",
-  "test:teams",
-  "test:burnnote",
-  "test:codeshot",
-  "test:papermap",
-  "test:pwned",
-  "test:fhlookup",
-  "test:phash",
-  "test:cutout",
-  "test:air",
-  "test:xmlfmt",
-  "test:reach",
-  "test:ipreview",
-  "test:sketchy",
-  "test:shell",
-  "test:soundscape",
-  "test:recall:pool",
-  "test:studymap:atlas",
-  "test:studymap:trust",
-  "test:studymap:i18n",
-  "test:studymap:lessons",
-  "test:sniff",
-  "test:calc",
-  "test:when",
-  "smoke:pdfshell",
-  "smoke:imgshell",
-  "smoke:txtshell",
-  "smoke:datashell",
-  "smoke:calcshell",
-  "smoke:timeshell",
-  "smoke:vidshell",
-  {
-   "name": "test:regionwatch",
-   "watch": [
-    "src/widgets/tools/shared/regionwatch-core.ts",
-    "scripts/test-regionwatch.mjs"
-   ]
-  },
-  {
-   "name": "smoke:regionwatch",
-   "watch": [
-    "src/widgets/tools/regionwatch.ts",
-    "src/widgets/tools/shared/regionwatch-core.ts",
-    "src/widgets/tools/videotool.ts",
-    "scripts/smoke-regionwatch.mjs",
-    "js/vendor/tesseract/**",
-    "i18n/*/regionwatch.json"
-   ]
-  },
-  "smoke:newtools",
-  "smoke:shell-layout",
-  {
-   "name": "smoke:tool-boot",
-   "watch": [
-    "src/**",
-    "index.html",
-    "build.mjs",
-    "scripts/entry-points.mjs",
-    "scripts/smoke-tool-boot.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:sidebar-shelf",
-   "watch": [
-    "src/widgets-lazy-meta.ts",
-    "scripts/audit-sidebar-shelf.mjs",
-    "data/sidebar-shelf-baseline.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "smoke:skin-parity",
-   "watch": [
-    "css/toolbox.css",
-    "css/tools.css",
-    "index.html",
-    "src/toolbox.ts",
-    "src/home-page.ts",
-    "scripts/smoke-skin-parity.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "smoke:sndshell",
-  "audit:loose",
-  "test:audiorate",
-  {
-   "name": "audit:i18n-catalog",
-   "watch": [
-    "src/**",
-    "i18n/**",
-    "build.mjs",
-    "scripts/build-i18n.mjs",
-    "scripts/audit-i18n-catalog.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  "audit:i18n-load",
-  "audit:i18n-eager",
-  "audit:generated",
-  "audit:vendor-syntax",
-  "audit:nightly-alive",
-  "smoke:arcadeletter",
-  "test:arcade:ui",
-  "test:arcade:ui:all",
-  "test:arcade:yacht",
-  "test:arcade:yacht-ranked",
-  "test:arcade:multi",
-  "test:garden",
-  "test:favorites",
-  "smoke:pwned",
-  "smoke:codeshot",
-  "smoke:papermap",
-  "smoke:shell",
-  "smoke:soundscape",
-  "test:studymap",
-  "test:orbita",
-  "smoke:arcadeteams",
-  "smoke:burnnote",
-  "test:badapple:home",
-  "test:badapple:load",
-  "test:chat",
-  "test:copresence",
-  "test:widget-idle",
-  "audit:widget-raf",
-  "test:offline",
-  "audit:handoff",
-  "test:paperask",
-  "test:worldbook:unknown",
-  "test:note-sound",
-  "audit:data",
-  "test:search:docs",
-  "test:search:lesson",
-  "test:search:studymap",
-  "test:search:quality",
-  "audit:tool-state",
-  "audit:unwired",
-  "test:tool-search",
-  "test:heung:ux",
-  "smoke:badapple-tool",
-  "audit:shared-builds",
-  "test:heung:midi-file",
-  "test:shard",
-  "test:shell-nav",
-  "test:widgets-alive",
-  "audit:shell-essentials",
-  "test:alive-scope",
-  "test:arcade-limits",
-  "test:tierlist-keys",
-  "test:redeploy-guard",
-  "audit:sleep-read",
-  "audit:entry-sources",
-  "test:shell-i18n",
-  "test:taptarget",
-  "audit:locale-inline",
-  "audit:i18n-stub",
-  "test:new-tool",
-  "test:tempmail",
-  {
-   "name": "audit:atlas-fresh",
-   "watch": [
-    "scripts/audit-memo-atlas-fresh.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "data/memo-atlas.json",
-    "src/widgets/memo-atlas.ts",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-meaning",
-   "watch": [
-    "scripts/audit-atlas-meaning.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:3d",
-   "watch": [
-    "../../packages/3d/src/orbit.mjs",
-    "../../packages/3d/src/points.mjs",
-    "../../packages/3d/src/index.mjs",
-    "../../packages/3d/test/orbit-points-test.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:related",
-   "watch": [
-    "scripts/gen-related-posts.mjs",
-    "scripts/test-related.mjs",
-    "../../packages/meaning/src/embed.mjs",
-    "../../packages/meaning/src/near.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:site-base",
-   "watch": [
-    "scripts/test-site-base.mjs",
-    "scripts/lib/site-base.mjs",
-    "src/lib/site-base.ts",
-    "src/toolbox.ts",
-    "build.mjs"
-   ]
-  },
-  {
-   "name": "test:works",
-   "watch": [
-    "scripts/test-works-list.mjs",
-    "scripts/lib/works-list.mjs",
-    "scripts/gen-post-pages.mjs",
-    "../../apps/blog/_data/works.yml"
-   ]
-  },
-  {
-   "name": "audit:works",
-   "watch": [
-    "scripts/audit-works.mjs",
-    "scripts/lib/works-minor.mjs",
-    "scripts/gen-post-pages.mjs",
-    "../../apps/blog/_data/works.yml"
-   ]
-  },
-  {
-   "name": "test:post-seo",
-   "watch": [
-    "scripts/test-post-seo.mjs",
-    "scripts/gen-post-pages.mjs",
-    "scripts/lib/post-page.mjs"
-   ]
-  },
-  {
-   "name": "test:pose",
-   "watch": [
-    "../../packages/pose/src/source.mjs",
-    "../../packages/pose/src/gesture.mjs",
-    "../../packages/pose/src/hand.mjs",
-    "../../packages/pose/src/index.mjs",
-    "../../packages/pose/test/pose-test.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "smoke:atlas-3d",
-   "watch": [
-    "tools/atlas-3d/index.html",
-    "scripts/smoke-atlas-3d.mjs",
-    "../../packages/pose/src/source.mjs",
-    "../../packages/pose/src/gesture.mjs",
-    "../../packages/3d/src/orbit.mjs",
-    "../../packages/3d/src/points.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:meaning",
-   "watch": [
-    "../../packages/meaning/src/embed.mjs",
-    "../../packages/meaning/src/bias.mjs",
-    "../../packages/meaning/src/near.mjs",
-    "../../packages/meaning/src/index.mjs",
-    "../../packages/meaning/test/parity.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-lane-bias",
-   "watch": [
-    "scripts/audit-atlas-lane-bias.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-trust",
-   "watch": [
-    "scripts/audit-atlas-trust.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "data/memo-atlas.json",
-    "data/atlas-trust-baseline.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-compare",
-   "watch": [
-    "scripts/audit-atlas-compare.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-names",
-   "watch": [
-    "scripts/audit-atlas-names.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-lonely",
-   "watch": [
-    "scripts/audit-atlas-lonely.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-touch",
-   "watch": [
-    "scripts/audit-atlas-touch.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-howto",
-   "watch": [
-    "scripts/audit-atlas-howto.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-remember",
-   "watch": [
-    "scripts/audit-atlas-remember.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-keyboard",
-   "watch": [
-    "scripts/audit-atlas-keyboard.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-colors",
-   "watch": [
-    "scripts/audit-atlas-colors.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-draw",
-   "watch": [
-    "scripts/audit-atlas-draw-budget.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-control",
-   "watch": [
-    "scripts/audit-atlas-control.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-minimap",
-   "watch": [
-    "scripts/audit-atlas-minimap.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-mix",
-   "watch": [
-    "scripts/audit-atlas-mix.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-skeleton",
-   "watch": [
-    "scripts/audit-atlas-skeleton-stable.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-cluster-real",
-   "watch": [
-    "scripts/audit-atlas-cluster-real.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-dbcv",
-   "watch": [
-    "scripts/audit-atlas-dbcv.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-dense",
-   "watch": [
-    "scripts/audit-atlas-dense.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-name-fit",
-   "watch": [
-    "scripts/audit-atlas-name-fit.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-edges",
-   "watch": [
-    "scripts/audit-atlas-edges.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-twins",
-   "watch": [
-    "scripts/audit-atlas-twins.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-ego",
-   "watch": [
-    "scripts/audit-atlas-ego.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-diff",
-   "watch": [
-    "scripts/audit-atlas-diff.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-trail",
-   "watch": [
-    "scripts/audit-atlas-trail.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "scripts/build-memo-atlas.mjs",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-umap",
-   "watch": [
-    "scripts/audit-atlas-umap.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-h0",
-   "watch": [
-    "scripts/audit-atlas-h0.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-skeleton-conf",
-   "watch": [
-    "scripts/audit-atlas-skeleton-confidence.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-skeleton-draw",
-   "watch": [
-    "scripts/audit-atlas-skeleton-drawing.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-tower",
-   "watch": [
-    "scripts/audit-atlas-mapper-tower.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-intrusion",
-   "watch": [
-    "scripts/audit-atlas-intrusion.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-phone",
-   "watch": [
-    "scripts/audit-atlas-phone.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-external",
-   "watch": [
-    "scripts/audit-atlas-external.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-zoom",
-   "watch": [
-    "scripts/audit-atlas-zoom.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-prox",
-   "watch": [
-    "scripts/audit-atlas-prox.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-loops",
-   "watch": [
-    "scripts/audit-atlas-loops.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-hops",
-   "watch": [
-    "scripts/audit-atlas-hops.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-warp",
-   "watch": [
-    "scripts/audit-atlas-warp.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-zoo",
-   "watch": [
-    "scripts/audit-atlas-zoo.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-taskdoi",
-   "watch": [
-    "scripts/audit-atlas-taskdoi.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-revisit",
-   "watch": [
-    "scripts/audit-atlas-revisit.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-suggest",
-   "watch": [
-    "scripts/audit-atlas-suggest.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-novelty",
-   "watch": [
-    "scripts/audit-atlas-novelty.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-share",
-   "watch": [
-    "scripts/audit-atlas-share.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-leak",
-   "watch": [
-    "scripts/audit-atlas-leak.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-seriation",
-   "watch": [
-    "scripts/audit-atlas-seriation.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-delta",
-   "watch": [
-    "scripts/audit-atlas-delta.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-idim",
-   "watch": [
-    "scripts/audit-atlas-idim.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-init",
-   "watch": [
-    "scripts/audit-atlas-init.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-wobble",
-   "watch": [
-    "scripts/audit-atlas-wobble.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-doi",
-   "watch": [
-    "scripts/audit-atlas-doi.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-dip",
-   "watch": [
-    "scripts/audit-atlas-dip.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-label-flicker",
-   "watch": [
-    "scripts/audit-atlas-label-flicker.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-terrain",
-   "watch": [
-    "scripts/audit-atlas-terrain.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-hub",
-   "watch": [
-    "scripts/audit-atlas-hub.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-channels",
-   "watch": [
-    "scripts/audit-atlas-channels.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-a11y",
-   "watch": [
-    "scripts/audit-atlas-a11y.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "smoke:atlas-shell",
-   "watch": [
-    "scripts/smoke-atlas-shell.mjs",
-    "src/widgets/memo-atlas.ts",
-    "js/widgets/memo-atlas.js",
-    "src/toolbox.ts",
-    "i18n",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-honesty",
-   "watch": [
-    "scripts/audit-atlas-honesty.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-near",
-   "watch": [
-    "scripts/audit-atlas-near.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-find",
-   "watch": [
-    "scripts/audit-atlas-find.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-zoom-names",
-   "watch": [
-    "scripts/audit-atlas-zoom-names.mjs",
-    "scripts/build-memo-atlas.mjs",
-    "src/widgets/memo-atlas.ts",
-    "data/memo-atlas.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "audit:atlas-gates-bite",
-   "watch": [
-    "scripts/audit-atlas-gates-bite.mjs",
-    "scripts/audit-atlas-trust.mjs",
-    "scripts/audit-atlas-lane-bias.mjs",
-    "scripts/audit-memo-atlas-fresh.mjs",
-    "scripts/audit-atlas-zoom-names.mjs",
-    "scripts/audit-atlas-near.mjs",
-    "scripts/audit-atlas-honesty.mjs",
-    "scripts/audit-atlas-skeleton-stable.mjs",
-    "scripts/audit-atlas-mix.mjs",
-    "scripts/audit-atlas-lonely.mjs",
-    "scripts/audit-atlas-names.mjs",
-    "scripts/audit-atlas-compare.mjs",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  },
-  {
-   "name": "test:pwa-update",
-   "볼것": [
-    "src/pwa-update.ts",
-    "scripts/test-pwa-update.mjs"
-   ]
-  },
-  {
-   "name": "test:wcag",
-   "watch": [
-    "css/toolbox.css",
-    "css/tools.css",
-    "src/**",
-    "index.html",
-    "scripts/smoke-wcag22.mjs",
-    "data/wcag22-baseline.json",
-    "package.json",
-    "data/gate-list.json"
-   ]
-  }
- ]
+  "note": "묶음(gates)에서 도는 검사 이름. 한 줄에 하나. 여기가 정본이다 (package.json 이 아니다). 한 줄은 이름 문자열이거나 {이름, 볼것:[glob...]} 이다. 볼것을 적으면 `npm run gates:changed` 가 그 발판이 안 바뀐 판에서 그 검사를 건너뛴다 (TASK-KL-331). 안 적으면 언제나 돈다. 안전 기본값이다. push, CI 는 볼것과 무관하게 통짜로 돈다.",
+  "why": "한 줄에 백스물다섯 개를 늘어놓으니, 세션 여럿이 동시에 늘릴 때마다 충돌이 났고 손으로 합치다 승격 하나가 조용히 사라진 적이 있다(2026-08-14). 한 줄에 하나면 서로 다른 줄을 고치므로 자동으로 합쳐진다.",
+  "list": [
+    {
+      "name": "test:markdown",
+      "watch": [
+        "src/lib/markdown/**",
+        "src/widgets/community-markdown.ts",
+        "scripts/test-markdown-render.mjs",
+        "scripts/lib/markdown-node.mjs",
+        "js/vendor/marked.min.js",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:gamification",
+      "watch": [
+        "src/widgets/gamification*",
+        "src/widgets/gamification/**",
+        "scripts/test-gamification.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:planner",
+      "watch": [
+        "src/widgets/planner/**",
+        "scripts/test-planner-core.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:meok",
+      "watch": [
+        "src/widgets/meok/**",
+        "scripts/test-meok-*.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "test:meok:screen",
+    {
+      "name": "test:karmograph",
+      "watch": [
+        "src/widgets/karmograph/**",
+        "src/lib/karmograph/**",
+        "scripts/test-karmograph-*.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:karmograph:render",
+      "watch": [
+        "src/lib/karmograph/render.ts",
+        "src/lib/karmograph/from-mermaid.ts",
+        "src/core/mermaidlite.ts",
+        "src/widgets/docs/**",
+        "js/widgets/docs/*.md",
+        "scripts/test-karmograph-render.mjs",
+        "src/lib/**",
+        "scripts/lib/**",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:ink",
+      "watch": [
+        "src/widgets/ink*",
+        "src/widgets/ink/**",
+        "scripts/test-ink-on.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:radio",
+      "watch": [
+        "src/widgets/radio*",
+        "src/widgets/radio/**",
+        "scripts/test-radio-core.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "test:md",
+    {
+      "name": "test:post-model",
+      "볼것": [
+        "src/lib/post-model.ts",
+        "src/search/providers/post-provider.ts",
+        "scripts/test-post-model.mjs"
+      ]
+    },
+    {
+      "name": "test:docs-pages",
+      "볼것": [
+        "scripts/gen-docs-pages.mjs",
+        "scripts/test-docs-pages.mjs",
+        "data/docs/**",
+        "world/wiki/**"
+      ]
+    },
+    "test:tools",
+    "test:pulse",
+    "test:tool-url",
+    "test:parity",
+    {
+      "name": "test:mesh3d",
+      "watch": [
+        "src/widgets/mesh3d*",
+        "src/widgets/mesh3d/**",
+        "scripts/smoke-mesh3d.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:pinyin",
+      "watch": [
+        "src/widgets/charconv*",
+        "src/widgets/charconv/**",
+        "scripts/smoke-charconv-pinyin.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "test:daily:rollover",
+    "test:compare",
+    "test:mcp",
+    "test:bundles",
+    "audit:script-paths",
+    "audit:orphan-widgets",
+    "audit:shared-bypass",
+    "audit:gate-list",
+    "test:gate-derive",
+    "audit:mouse-only",
+    "audit:registry-impl",
+    "audit:hidden-tab",
+    "audit:material-shell",
+    "audit:text-count",
+    "audit:vendor-globals",
+    "audit:wf-prereq",
+    "test:i18n:pair",
+    "test:names",
+    "audit:cache",
+    {
+      "name": "test:asciiart:video",
+      "watch": [
+        "src/widgets/tools/asciiart.ts",
+        "scripts/smoke-asciiart-video.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:badapple:handoff",
+      "watch": [
+        "src/badapple/**",
+        "badapple/**",
+        "data/badapple/**",
+        "scripts/smoke-badapple-handoff.mjs",
+        "src/toolbox.ts",
+        "src/widgets-lazy-meta.ts",
+        "src/lib/**",
+        "scripts/lib/**",
+        "index.html",
+        "build.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "audit:fonts",
+    "audit:bg-themes",
+    "audit:footer",
+    "audit:privacy",
+    "test:cotext",
+    "test:apicache",
+    "test:contract",
+    "test:lang",
+    "test:meong",
+    "audit:jpegbg",
+    "smoke:deeplink",
+    "smoke:handoff",
+    "test:textcount",
+    "test:corecount",
+    "test:claims",
+    "test:ibatch",
+    "test:vdur",
+    "audit:hidden",
+    "test:a11y",
+    "test:a11y:all",
+    "audit:csp-meta",
+    "audit:serve-fm",
+    "audit:css-tokens",
+    {
+      "name": "audit:style-tokens",
+      "watch": [
+        "src/**",
+        "css/toolbox.css",
+        "index.html",
+        "scripts/audit-style-tokens.mjs",
+        "data/style-tokens-baseline.json"
+      ]
+    },
+    "test:jsontree",
+    "test:dropwell",
+    "test:saylive",
+    "audit:saylive",
+    "audit:iconbtn",
+    "test:copyable",
+    "test:chainrec",
+    "audit:wait",
+    "audit:orphans",
+    "smoke:batchretry",
+    "audit:prerender-home",
+    "audit:arcade-contract",
+    "audit:arcade-feel",
+    "test:arcade",
+    "test:arcade:ranked",
+    "test:arcade:ranked-live",
+    "test:arcade:verify",
+    "test:arcade:tutor",
+    "test:arcade:lifecycle",
+    "test:arcade:ghost",
+    {
+      "name": "test:arcade:bots",
+      "watch": [
+        "src/widgets/arcade/games/gomoku-engine.ts",
+        "src/widgets/arcade/games/gomoku.ts",
+        "scripts/bench-gomoku-ai.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "test:arcade:solitaire",
+    "test:arcade:cards",
+    "test:drift",
+    "test:tour",
+    "test:pick6",
+    "test:spectate",
+    "test:replay",
+    "test:ghost",
+    "test:mail",
+    "test:teams",
+    "test:burnnote",
+    "test:codeshot",
+    "test:papermap",
+    "test:pwned",
+    "test:fhlookup",
+    "test:phash",
+    "test:cutout",
+    "test:air",
+    "test:xmlfmt",
+    "test:reach",
+    "test:ipreview",
+    "test:sketchy",
+    "test:shell",
+    "test:soundscape",
+    "test:recall:pool",
+    "test:studymap:atlas",
+    "test:studymap:trust",
+    "test:studymap:i18n",
+    "test:studymap:lessons",
+    "test:sniff",
+    "test:calc",
+    "test:when",
+    "smoke:pdfshell",
+    "smoke:imgshell",
+    "smoke:txtshell",
+    "smoke:datashell",
+    "smoke:calcshell",
+    "smoke:timeshell",
+    "smoke:vidshell",
+    {
+      "name": "test:regionwatch",
+      "watch": [
+        "src/widgets/tools/shared/regionwatch-core.ts",
+        "scripts/test-regionwatch.mjs"
+      ]
+    },
+    {
+      "name": "smoke:regionwatch",
+      "watch": [
+        "src/widgets/tools/regionwatch.ts",
+        "src/widgets/tools/shared/regionwatch-core.ts",
+        "src/widgets/tools/videotool.ts",
+        "scripts/smoke-regionwatch.mjs",
+        "js/vendor/tesseract/**",
+        "i18n/*/regionwatch.json"
+      ]
+    },
+    "smoke:newtools",
+    "smoke:shell-layout",
+    {
+      "name": "smoke:tool-boot",
+      "watch": [
+        "src/**",
+        "index.html",
+        "build.mjs",
+        "scripts/entry-points.mjs",
+        "scripts/smoke-tool-boot.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:sidebar-shelf",
+      "watch": [
+        "src/widgets-lazy-meta.ts",
+        "scripts/audit-sidebar-shelf.mjs",
+        "data/sidebar-shelf-baseline.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "smoke:skin-parity",
+      "watch": [
+        "css/toolbox.css",
+        "css/tools.css",
+        "index.html",
+        "src/toolbox.ts",
+        "src/home-page.ts",
+        "scripts/smoke-skin-parity.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "smoke:sndshell",
+    "audit:loose",
+    "test:audiorate",
+    {
+      "name": "audit:i18n-catalog",
+      "watch": [
+        "src/**",
+        "i18n/**",
+        "build.mjs",
+        "scripts/build-i18n.mjs",
+        "scripts/audit-i18n-catalog.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    "audit:i18n-load",
+    "audit:i18n-eager",
+    "audit:generated",
+    "audit:vendor-syntax",
+    "audit:nightly-alive",
+    "smoke:arcadeletter",
+    "test:arcade:ui",
+    "test:arcade:ui:all",
+    "test:arcade:yacht",
+    "test:arcade:yacht-ranked",
+    "test:arcade:multi",
+    "test:garden",
+    "test:favorites",
+    "smoke:pwned",
+    "smoke:codeshot",
+    "smoke:papermap",
+    "smoke:shell",
+    "smoke:soundscape",
+    "test:studymap",
+    "test:orbita",
+    "smoke:arcadeteams",
+    "smoke:burnnote",
+    "test:badapple:home",
+    "test:badapple:load",
+    "test:chat",
+    "test:copresence",
+    "test:widget-idle",
+    "audit:widget-raf",
+    "test:offline",
+    "audit:handoff",
+    "test:paperask",
+    "test:worldbook:unknown",
+    "test:note-sound",
+    "audit:data",
+    "test:search:docs",
+    "test:search:lesson",
+    "test:search:studymap",
+    "test:search:quality",
+    "audit:tool-state",
+    "audit:unwired",
+    "test:tool-search",
+    "test:heung:ux",
+    "smoke:badapple-tool",
+    "audit:shared-builds",
+    "test:heung:midi-file",
+    "test:shard",
+    "test:shell-nav",
+    "test:widgets-alive",
+    "audit:shell-essentials",
+    "test:alive-scope",
+    "test:arcade-limits",
+    "test:tierlist-keys",
+    "test:redeploy-guard",
+    "audit:sleep-read",
+    "audit:entry-sources",
+    "test:shell-i18n",
+    "test:taptarget",
+    "audit:locale-inline",
+    "audit:i18n-stub",
+    "test:new-tool",
+    "test:tempmail",
+    {
+      "name": "audit:atlas-fresh",
+      "watch": [
+        "scripts/audit-memo-atlas-fresh.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "src/widgets/memo-atlas.ts",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-meaning",
+      "watch": [
+        "scripts/audit-atlas-meaning.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:3d",
+      "watch": [
+        "../../packages/3d/src/orbit.mjs",
+        "../../packages/3d/src/points.mjs",
+        "../../packages/3d/src/index.mjs",
+        "../../packages/3d/test/orbit-points-test.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:related",
+      "watch": [
+        "scripts/gen-related-posts.mjs",
+        "scripts/test-related.mjs",
+        "../../packages/meaning/src/embed.mjs",
+        "../../packages/meaning/src/near.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:site-base",
+      "watch": [
+        "scripts/test-site-base.mjs",
+        "scripts/lib/site-base.mjs",
+        "src/lib/site-base.ts",
+        "src/toolbox.ts",
+        "build.mjs"
+      ]
+    },
+    {
+      "name": "test:works",
+      "watch": [
+        "scripts/test-works-list.mjs",
+        "scripts/lib/works-list.mjs",
+        "scripts/gen-post-pages.mjs",
+        "../../apps/blog/_data/works.yml"
+      ]
+    },
+    {
+      "name": "audit:works",
+      "watch": [
+        "scripts/audit-works.mjs",
+        "scripts/lib/works-minor.mjs",
+        "scripts/gen-post-pages.mjs",
+        "../../apps/blog/_data/works.yml"
+      ]
+    },
+    {
+      "name": "test:post-seo",
+      "watch": [
+        "scripts/test-post-seo.mjs",
+        "scripts/gen-post-pages.mjs",
+        "scripts/lib/post-page.mjs"
+      ]
+    },
+    {
+      "name": "test:pose",
+      "watch": [
+        "../../packages/pose/src/source.mjs",
+        "../../packages/pose/src/gesture.mjs",
+        "../../packages/pose/src/hand.mjs",
+        "../../packages/pose/src/index.mjs",
+        "../../packages/pose/test/pose-test.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "smoke:atlas-3d",
+      "watch": [
+        "tools/atlas-3d/index.html",
+        "scripts/smoke-atlas-3d.mjs",
+        "../../packages/pose/src/source.mjs",
+        "../../packages/pose/src/gesture.mjs",
+        "../../packages/3d/src/orbit.mjs",
+        "../../packages/3d/src/points.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:meaning",
+      "watch": [
+        "../../packages/meaning/src/embed.mjs",
+        "../../packages/meaning/src/bias.mjs",
+        "../../packages/meaning/src/near.mjs",
+        "../../packages/meaning/src/index.mjs",
+        "../../packages/meaning/test/parity.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-lane-bias",
+      "watch": [
+        "scripts/audit-atlas-lane-bias.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-trust",
+      "watch": [
+        "scripts/audit-atlas-trust.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "data/atlas-trust-baseline.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-compare",
+      "watch": [
+        "scripts/audit-atlas-compare.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-names",
+      "watch": [
+        "scripts/audit-atlas-names.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-lonely",
+      "watch": [
+        "scripts/audit-atlas-lonely.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-touch",
+      "watch": [
+        "scripts/audit-atlas-touch.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-howto",
+      "watch": [
+        "scripts/audit-atlas-howto.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-remember",
+      "watch": [
+        "scripts/audit-atlas-remember.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-keyboard",
+      "watch": [
+        "scripts/audit-atlas-keyboard.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-colors",
+      "watch": [
+        "scripts/audit-atlas-colors.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-draw",
+      "watch": [
+        "scripts/audit-atlas-draw-budget.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-control",
+      "watch": [
+        "scripts/audit-atlas-control.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-minimap",
+      "watch": [
+        "scripts/audit-atlas-minimap.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-mix",
+      "watch": [
+        "scripts/audit-atlas-mix.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-skeleton",
+      "watch": [
+        "scripts/audit-atlas-skeleton-stable.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-cluster-real",
+      "watch": [
+        "scripts/audit-atlas-cluster-real.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-dbcv",
+      "watch": [
+        "scripts/audit-atlas-dbcv.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-dense",
+      "watch": [
+        "scripts/audit-atlas-dense.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-name-fit",
+      "watch": [
+        "scripts/audit-atlas-name-fit.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-edges",
+      "watch": [
+        "scripts/audit-atlas-edges.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-twins",
+      "watch": [
+        "scripts/audit-atlas-twins.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-ego",
+      "watch": [
+        "scripts/audit-atlas-ego.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-diff",
+      "watch": [
+        "scripts/audit-atlas-diff.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-trail",
+      "watch": [
+        "scripts/audit-atlas-trail.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-umap",
+      "watch": [
+        "scripts/audit-atlas-umap.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-h0",
+      "watch": [
+        "scripts/audit-atlas-h0.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-skeleton-conf",
+      "watch": [
+        "scripts/audit-atlas-skeleton-confidence.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-skeleton-draw",
+      "watch": [
+        "scripts/audit-atlas-skeleton-drawing.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-tower",
+      "watch": [
+        "scripts/audit-atlas-mapper-tower.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-intrusion",
+      "watch": [
+        "scripts/audit-atlas-intrusion.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-phone",
+      "watch": [
+        "scripts/audit-atlas-phone.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-external",
+      "watch": [
+        "scripts/audit-atlas-external.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-zoom",
+      "watch": [
+        "scripts/audit-atlas-zoom.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-prox",
+      "watch": [
+        "scripts/audit-atlas-prox.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-loops",
+      "watch": [
+        "scripts/audit-atlas-loops.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-hops",
+      "watch": [
+        "scripts/audit-atlas-hops.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-warp",
+      "watch": [
+        "scripts/audit-atlas-warp.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-zoo",
+      "watch": [
+        "scripts/audit-atlas-zoo.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-taskdoi",
+      "watch": [
+        "scripts/audit-atlas-taskdoi.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-revisit",
+      "watch": [
+        "scripts/audit-atlas-revisit.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-suggest",
+      "watch": [
+        "scripts/audit-atlas-suggest.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-novelty",
+      "watch": [
+        "scripts/audit-atlas-novelty.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-share",
+      "watch": [
+        "scripts/audit-atlas-share.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-leak",
+      "watch": [
+        "scripts/audit-atlas-leak.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-seriation",
+      "watch": [
+        "scripts/audit-atlas-seriation.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-delta",
+      "watch": [
+        "scripts/audit-atlas-delta.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-idim",
+      "watch": [
+        "scripts/audit-atlas-idim.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-init",
+      "watch": [
+        "scripts/audit-atlas-init.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-wobble",
+      "watch": [
+        "scripts/audit-atlas-wobble.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-doi",
+      "watch": [
+        "scripts/audit-atlas-doi.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-dip",
+      "watch": [
+        "scripts/audit-atlas-dip.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-label-flicker",
+      "watch": [
+        "scripts/audit-atlas-label-flicker.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-terrain",
+      "watch": [
+        "scripts/audit-atlas-terrain.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-hub",
+      "watch": [
+        "scripts/audit-atlas-hub.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-channels",
+      "watch": [
+        "scripts/audit-atlas-channels.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-a11y",
+      "watch": [
+        "scripts/audit-atlas-a11y.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "smoke:atlas-shell",
+      "watch": [
+        "scripts/smoke-atlas-shell.mjs",
+        "src/widgets/memo-atlas.ts",
+        "js/widgets/memo-atlas.js",
+        "src/toolbox.ts",
+        "i18n",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-honesty",
+      "watch": [
+        "scripts/audit-atlas-honesty.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-near",
+      "watch": [
+        "scripts/audit-atlas-near.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-find",
+      "watch": [
+        "scripts/audit-atlas-find.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-zoom-names",
+      "watch": [
+        "scripts/audit-atlas-zoom-names.mjs",
+        "scripts/build-memo-atlas.mjs",
+        "src/widgets/memo-atlas.ts",
+        "data/memo-atlas.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "audit:atlas-gates-bite",
+      "watch": [
+        "scripts/audit-atlas-gates-bite.mjs",
+        "scripts/audit-atlas-trust.mjs",
+        "scripts/audit-atlas-lane-bias.mjs",
+        "scripts/audit-memo-atlas-fresh.mjs",
+        "scripts/audit-atlas-zoom-names.mjs",
+        "scripts/audit-atlas-near.mjs",
+        "scripts/audit-atlas-honesty.mjs",
+        "scripts/audit-atlas-skeleton-stable.mjs",
+        "scripts/audit-atlas-mix.mjs",
+        "scripts/audit-atlas-lonely.mjs",
+        "scripts/audit-atlas-names.mjs",
+        "scripts/audit-atlas-compare.mjs",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    },
+    {
+      "name": "test:pwa-update",
+      "볼것": [
+        "src/pwa-update.ts",
+        "scripts/test-pwa-update.mjs"
+      ]
+    },
+    {
+      "name": "test:wcag",
+      "watch": [
+        "css/toolbox.css",
+        "css/tools.css",
+        "src/**",
+        "index.html",
+        "scripts/smoke-wcag22.mjs",
+        "data/wcag22-baseline.json",
+        "package.json",
+        "data/gate-list.json"
+      ]
+    }
+  ]
 }

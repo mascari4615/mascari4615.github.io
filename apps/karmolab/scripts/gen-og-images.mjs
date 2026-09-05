@@ -51,18 +51,8 @@ const SPECIAL_CARDS = {
     title: '도구 전체',
     lead: '텍스트, 이미지, 계산, 개발. 한 곳에서',
     icon: '<path d="M4 6h6v6H4zM14 6h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/>'
-  },
-  /* 놀이 화면들 (TASK-KL-195). 여기 손으로 적는 것은 **놀이가 아닌 두 장**뿐이고,
-     놀이는 `data/games.json` 에서 그대로 읽는다(수를 여기 적지 않는다. 늘어난다). 목록을 두 벌 적으면 그날부터 갈라진다. */
-  play: { title: '놀이터', lead: '하루 한 판씩. 오늘의 판 다섯', emoji: '🎲' },
-  today: { title: '오늘의 판', lead: '매일 자정에 새로. 다섯 판을 끝내면 연속일이 쌓인다', emoji: '🔥' }
+  }
 };
-
-/* 놀이 카드는 놀이 목록에서 파생한다 (`apps/play/games.json` → 이 앱의 data/ 로 실려 온다). */
-const games = JSON.parse(fs.readFileSync(path.join(root, 'data/games.json'), 'utf8')).games || [];
-for (const game of games) {
-  SPECIAL_CARDS[game.id] = { title: game.title, lead: game.lead, emoji: game.emoji };
-}
 
 /**
  * 오락실 51장 (TASK-KL-264 D1).

@@ -13,7 +13,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const app = join(dirname(fileURLToPath(import.meta.url)), '..');
+const app = join(dirname(dirname(dirname(fileURLToPath(import.meta.url)))), 'data/daily');
 
 /** 주제별로 원본에는 몇 개인가를 세는 법. 표를 늘리면 여기 한 줄 늘린다. */
 const COUNTERS = {
@@ -35,8 +35,8 @@ const COUNTERS = {
 };
 
 let stale = 0;
-for (const file of readdirSync(join(app, 'data')).filter((f) => f.endsWith('.json'))) {
-  const topic = JSON.parse(readFileSync(join(app, 'data', file), 'utf8'));
+for (const file of readdirSync(app).filter((f) => f.endsWith('.json'))) {
+  const topic = JSON.parse(readFileSync(join(app, file), 'utf8'));
   const counter = COUNTERS[topic.id];
   if (!counter) {
     console.log(`?  ${topic.id.padEnd(9)} 세는 법이 없다. check-freshness.mjs 에 한 줄 넣어라`);
