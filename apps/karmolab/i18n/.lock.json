@@ -15095,7 +15095,8 @@
     "ziptool.verdict.smaller": "29f49fe158",
     "ziptool.verdict.bigger": "e283b395e5",
     "ziptool.say.made": "7e562f9c3a",
-    "ziptool.say.picked": "19cdbc7c9a"
+    "ziptool.say.picked": "19cdbc7c9a",
+    "arcade.game.daily.desc": "7e725bb711"
   },
   "ja": {
     "about.failed": "f11e2dbbfa",
@@ -30193,6 +30194,7 @@
     "ziptool.verdict.smaller": "29f49fe158",
     "ziptool.verdict.bigger": "e283b395e5",
     "ziptool.say.made": "7e562f9c3a",
-    "ziptool.say.picked": "19cdbc7c9a"
+    "ziptool.say.picked": "19cdbc7c9a",
+    "arcade.game.daily.desc": "7e725bb711"
   }
 }

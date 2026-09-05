@@ -952,7 +952,7 @@
   "arcade.quest.q.time": "How many minutes are {h} hours {m} minutes?",
   "arcade.quest.hint.time": "Turn {h} hours {m} minutes into minutes with the time calculator",
   "arcade.game.daily.name": "Daily Guess",
-  "arcade.game.daily.desc": "Narrow down today's one with attribute hints. Silhouette, name-them-all and grid too. Topics: Pokemon, LoL, Genshin, Blue Archive",
+  "arcade.game.daily.desc": "Narrow down today's one with attribute hints. Silhouette, name-them-all and grid too. Pick a topic from the sets",
   "arcade.daily.pickTopic": "Which set?",
   "arcade.daily.pickMode": "How do we play?",
   "arcade.daily.mode.attr": "Attributes (8 tries)",

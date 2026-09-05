@@ -952,7 +952,7 @@
   "arcade.quest.q.time": "{h}時間{m}分は全部で何分?",
   "arcade.quest.hint.time": "時間計算機で {h}時間{m}分を分に",
   "arcade.game.daily.name": "今日の一つ当て",
-  "arcade.game.daily.desc": "属性ヒントで今日の一つを絞る。シルエット、全部言い、格子も。テーマはポケモン、LoL、原神、ブルアカ",
+  "arcade.game.daily.desc": "属性ヒントで今日の一つを絞る。シルエット、全部言い、格子も。テーマはセットから選ぶ",
   "arcade.daily.pickTopic": "何でやりますか",
   "arcade.daily.pickMode": "どう遊びますか",
   "arcade.daily.mode.attr": "属性 (8回)",

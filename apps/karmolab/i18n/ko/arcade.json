@@ -952,7 +952,7 @@
   "arcade.quest.q.time": "{h}시간 {m}분은 모두 몇 분인가요?",
   "arcade.quest.hint.time": "시간 계산기로 {h}시간 {m}분을 분으로 바꿔 보세요",
   "arcade.game.daily.name": "오늘의 하나 맞히기",
-  "arcade.game.daily.desc": "속성 힌트로 오늘의 하나를 좁혀 맞힌다. 실루엣, 전부대기, 격자판도. 주제는 포켓몬, 롯, 원신, 블루아카",
+  "arcade.game.daily.desc": "속성 힌트로 오늘의 하나를 좁혀 맞힌다. 실루엣, 전부대기, 격자판도. 주제는 표에서 고른다",
   "arcade.daily.pickTopic": "무엇으로 할까요",
   "arcade.daily.pickMode": "어떻게 놀까요",
   "arcade.daily.mode.attr": "속성 (여덟 번)",
