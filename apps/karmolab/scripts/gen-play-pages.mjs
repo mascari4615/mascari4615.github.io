@@ -142,23 +142,7 @@ function jsonLdBlock(game, text, permalink) {
 <script type="application/ld+json">${JSON.stringify(crumb)}</script>`;
 }
 
-/* 오락실로 옮겨 간 놀이의 옛 주소. 색인이 붙어 있던 장이라 빈 404 대신 새 주소로 넘김
-   (change.arcade-absorbs-play). noindex 라 사이트맵에서 빠지고, canonical 은 새 장.
-   한 달 뒤 삭제 판정 */
-const MOVED = { worldcup: '/t/arcade/worldcup/' };
-for (const [id, to] of Object.entries(MOVED)) {
-  const url = `${SITE}${to}`;
-  const html = `<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><title>${esc(id)} moved</title>
-<meta name="robots" content="noindex">
-<link rel="canonical" href="${url}">
-<meta http-equiv="refresh" content="0; url=${to}">
-</head><body><p>이 놀이는 오락실로 옮겨 갔습니다. <a href="${to}">${url}</a></p></body></html>
-`;
-  const dir = path.join(OUT, 'play', id);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
-}
+/* 오락실로 옮겨 간 놀이의 옛 주소(`/play/worldcup/`)는 404. 안내 장을 두지 않는다 (사용자 결정 2026-09-05, 레거시 미지원) */
 
 let made = 0;
 for (const game of roster) {
