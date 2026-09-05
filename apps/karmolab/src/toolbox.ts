@@ -15,7 +15,7 @@
  * │               ─→ gemini.js (AI API)                        │
  * │               ─→ widgets/*.js (개별 도구)                   │
  * │                                                            │
- * │  카테고리:  tool (도구)  /  play (놀이)  /  lab (실험실, 개발중)  /  desktop (데스크톱 앱 전용)  /  null (기타)  │
+ * │  카테고리:  tool (도구)  /  lab (실험실, 개발중)  /  desktop (데스크톱 앱 전용)  /  null (기타)         │
  * └────────────────────────────────────────────────────────────┘
  *
  * 새 도구 추가 방법:
@@ -23,7 +23,7 @@
  * 2. widgets-manifest.js(boot) + widgets-lazy-meta.js(지연 메타 단일 출처)
  * 3. Toolbox.register({ id, title, icon, category, desc, hidden?, tabs }) 호출
  *    - icon: SVG path 문자열 (viewBox 0 0 24 24 기준)
- *    - category: 'app' | 'dev' | 'text' | 'image' | 'av' | 'file' | 'calc' | 'ai' | 'ref' | 'play'
+ *    - category: 'app' | 'dev' | 'text' | 'image' | 'av' | 'file' | 'calc' | 'ai' | 'ref'
  *      (app 은 갈래 밖 고정 진입점. 데스크톱 전용은 category 가 아니라 desktopOnly 플래그)
  *    - desc: 한 줄 설명 (검색, 즐겨찾기용)
  *    - hidden: true면 메뉴에 비표시 (user 등)
@@ -69,7 +69,7 @@ const Toolbox = (() => {
     /* ===== 카테고리 & 메타데이터 ===== */
 
     // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039). 위젯은 일반
-    // 카테고리(tool/lab/play) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
+    // 카테고리(tool/lab) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
     /* 갈래 아홉과 갈래 밖 하나. 정본은 memo 의 앱 셸 System
        예전 넷(tool 196 / play 20 / lab 18 / ref 15)은 tool 하나가 84% 라 갈래로 못 씀
        app 은 갈래가 아니라 왼쪽 목록 맨 위 고정 진입점 */
@@ -83,7 +83,6 @@ const Toolbox = (() => {
         { id: 'calc', label: '계산과 시간', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' },
         { id: 'ai', label: 'AI', icon: '<path d="M12 3l1.8 4.9L18.7 9.7l-4.9 1.8L12 16.4l-1.8-4.9L5.3 9.7l4.9-1.8z"/><circle cx="18" cy="18" r="2"/>' },
         { id: 'ref', label: '참고표', icon: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7h7M8 11h7M8 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' },
-        { id: 'play', label: '놀이', icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
     ];
 
     /* ★ **갈래 표(prefix)와 갈래 내비 목록은 걷어냈다** (2026-08-19).
@@ -519,7 +518,7 @@ const Toolbox = (() => {
             const raw = localStorage.getItem(SIDEBAR_GROUP_KEY);
             if (raw) return JSON.parse(raw);
         } catch (_) {}
-        return { tool: true, play: false, lab: false, misc: true };
+        return { tool: true, lab: false, misc: true };
     }
 
     function setSidebarGroupState(state) {

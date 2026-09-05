@@ -8,7 +8,6 @@ import { intervalWhileVisible } from '../lib/tick';
   Toolbox.register({
     id: 'stone',
     title: t('widgets.stone.title', undefined, "돌"),
-    category: 'play',
     desc: t('widgets-desc.stone.desc', undefined, "돌을 던져 점을 봅니다"),
     layout: 'form',
     icon: '<path d="M12 3C7 3 4 8 4 12s2 8 8 8 8-4 8-8-3-9-8-9z M8 12h8" stroke="currentColor" stroke-width="1.5" fill="none"/>',

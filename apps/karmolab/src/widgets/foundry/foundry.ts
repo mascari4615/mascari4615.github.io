@@ -165,7 +165,6 @@ function buildFoundry(container: HTMLElement): void {
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('foundry') || {} : {}),
     id: 'foundry',
-    category: 'play',
     layout: 'full',
     icon: '<path d="M3 8h18M3 14h18" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/><circle cx="7" cy="17" r="1.2" fill="currentColor"/>',
     tabs: [{ id: 'foundry-main', label: '선반', build: buildFoundry }]

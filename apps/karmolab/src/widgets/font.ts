@@ -7,7 +7,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'fontgacha',
     title: t('widgets.font.title', undefined, "폰트가챠"),
-    category: 'play',
     desc: t('widgets-desc.font.desc', undefined, "가챠로 폰트를 바꿉니다"),
     layout: 'form',
     icon: '<path d="M4 7V4h16v3 M9 20h6 M12 4v16" stroke="currentColor" stroke-width="1.5" fill="none"/>',

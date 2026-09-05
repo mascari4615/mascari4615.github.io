@@ -59,7 +59,6 @@ import { toolPage } from '../../lib/site-base';
   Toolbox.register({
     id: 'timecapsule',
     title: t('widgets.timecapsule.title', undefined, '타임캡슐 편지'),
-    category: 'play',
     desc: t(
       'widgets-desc.timecapsule.desc',
       undefined,

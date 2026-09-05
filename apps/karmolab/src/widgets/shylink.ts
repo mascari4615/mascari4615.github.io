@@ -7,7 +7,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'shylink',
     title: t('widgets.shylink.title', undefined, "어그로"),
-    category: 'play',
     desc: t('widgets-desc.shylink.desc', undefined, "움직이는 링크를 잡는 미니게임"),
     layout: 'form',
     icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>',

@@ -8,7 +8,6 @@ import { loadImage } from './tools/shared/image';
   Toolbox.register({
     id: 'bounce',
     title: t('widgets.bounce.title', undefined, "바운스"),
-    category: 'play',
     desc: t('widgets-desc.bounce.desc', undefined, "공을 튕겨 바운스 게임을 합니다"),
     layout: 'form',
     icon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5" fill="none"/>',

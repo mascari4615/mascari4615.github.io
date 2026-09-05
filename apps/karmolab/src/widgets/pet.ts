@@ -26,7 +26,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'pet',
     title: t('widgets.pet.title', undefined, "쓰다듬기"),
-    category: 'play',
     desc: t('widgets-desc.pet.desc', undefined, "고양이를 쓰다듬고 호감도를 올립니다"),
     layout: 'form',
     icon: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14c-2.67 0-5.18-1.08-7.07-2.83C6.46 15.83 9.11 14 12 14s5.54 1.83 7.07 3.17C17.18 18.92 14.67 20 12 20z" stroke="currentColor" stroke-width="1.5" fill="none"/>',

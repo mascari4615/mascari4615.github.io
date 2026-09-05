@@ -18,7 +18,6 @@ import { t, loadNamespace } from '../../lib/i18n';
   Toolbox.register({
     id: 'draw',
     title: t('widgets.draw.title', undefined, "랜덤 뽑기"),
-    category: 'play',
     desc: t('widgets-desc.draw.desc', undefined, "로또 번호, 사다리타기, 추첨과 팀 나누기를 한 곳에서"),
     layout: 'wide',
     lazyTabs: true, // 안 본 탭은 만들지 않는다

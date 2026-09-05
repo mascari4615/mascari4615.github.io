@@ -14,7 +14,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'particle',
     title: t('widgets.particle.title', undefined, "파티클"),
-    category: 'play',
     desc: t('widgets-desc.particle.desc', undefined, "마우스로 파티클을 움직이고 클릭으로 폭발시킵니다"),
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/><circle cx="18" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="18" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1" fill="currentColor"/>',

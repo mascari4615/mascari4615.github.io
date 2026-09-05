@@ -64,7 +64,6 @@ import { markLive } from './shared/say';
   Toolbox.register({
     id: 'ladder',
     title: t('widgets.ladder.title', undefined, "사다리타기"),
-    category: 'play',
     desc: t('widgets-desc.ladder.desc', undefined, "이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다"),
     layout: 'wide',
     icon: '<path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 8h10M7 13h10M7 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',

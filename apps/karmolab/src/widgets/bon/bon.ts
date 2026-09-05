@@ -880,7 +880,6 @@ function buildBon(container: HTMLElement): void {
   Toolbox.register({
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('bon') || {} : {}),
     id: 'bon',
-    category: 'play',
     layout: 'full',
     icon: '<rect x="3" y="7" width="18" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="3" cy="7" r="1.6" fill="currentColor"/><circle cx="21" cy="17" r="1.6" fill="currentColor"/>',
     tabs: [{ id: 'bon-main', label: '본', build: buildBon }]

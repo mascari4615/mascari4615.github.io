@@ -88,7 +88,6 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
   Toolbox.register({
     id: 'garden',
     title: 'Garden',
-    category: 'play',
     layout: 'full',
     icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('garden') : {}),

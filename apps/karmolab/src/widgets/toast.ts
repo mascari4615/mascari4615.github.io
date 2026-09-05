@@ -7,7 +7,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'toast',
     title: t('widgets.toast.title', undefined, "토스트"),
-    category: 'play',
     desc: t('widgets-desc.toast.desc', undefined, "토스트 알림을 띄웁니다"),
     layout: 'form',
     icon: '<path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z M8 10h8 M8 14h8" stroke="currentColor" stroke-width="1.5" fill="none"/>',

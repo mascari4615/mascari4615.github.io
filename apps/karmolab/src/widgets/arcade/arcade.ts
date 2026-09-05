@@ -117,7 +117,6 @@ interface Session {
   Toolbox.register({
     id: 'arcade',
     title: t('widgets.arcade.title', undefined, '오락실'),
-    category: 'play',
     desc: t(
       'widgets-desc.arcade.desc',
       undefined,

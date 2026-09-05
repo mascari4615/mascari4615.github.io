@@ -19,7 +19,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'bubble',
     title: t('widgets.bubble.title', undefined, "뽁뽁이"),
-    category: 'play',
     desc: t('widgets-desc.bubble.desc', undefined, "뽁뽁이를 터뜨립니다"),
     layout: 'form',
     icon: '<circle cx="9" cy="9" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="9" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="13" cy="17" r="3.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',

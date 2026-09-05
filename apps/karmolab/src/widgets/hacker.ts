@@ -21,7 +21,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'hacker',
     title: t('widgets.hacker.title', undefined, "해커"),
-    category: 'play',
     desc: t('widgets-desc.hacker.desc', undefined, "키보드를 연타해 해커 느낌의 텍스트를 출력합니다"),
     layout: 'form',
     icon: '<path d="M4 17l6-6-6-6 M12 19h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',

@@ -7,7 +7,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'news',
     title: t('widgets.news.title', undefined, "뉴스"),
-    category: 'play',
     desc: t('widgets-desc.news.desc', undefined, "가짜 뉴스 헤드라인을 생성합니다"),
     layout: 'form',
     icon: '<rect x="4" y="4" width="16" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 8h16 M8 4v4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 12h8 M8 16h6" stroke="currentColor" stroke-width="1.5" fill="none"/>',

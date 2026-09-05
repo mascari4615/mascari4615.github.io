@@ -7,7 +7,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'darkroom',
     title: t('widgets.darkroom.title', undefined, "다크룸"),
-    category: 'play',
     desc: t('widgets-desc.darkroom.desc', undefined, "어두운 방에서 마우스로 빛을 비춥니다"),
     layout: 'form',
     icon: '<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 3v18 M3 12h18" stroke="currentColor" stroke-width="1.5" fill="none"/>',

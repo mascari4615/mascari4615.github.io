@@ -4,7 +4,6 @@ import { t, loadNamespace } from '../lib/i18n';
   Toolbox.register({
     id: 'eyes',
     title: t('widgets.eyes.title', undefined, "눈동자"),
-    category: 'play',
     desc: t('widgets-desc.eyes.desc', undefined, "마우스를 따라오는 눈동자"),
     layout: 'form',
     icon: '<path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
