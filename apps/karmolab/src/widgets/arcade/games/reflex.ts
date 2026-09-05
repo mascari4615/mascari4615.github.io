@@ -31,9 +31,22 @@ const COLORS: Array<[string, string]> = [
   ['노랑', '#eab308'], ['보라', '#a855f7'], ['주황', '#f97316']
 ];
 
-/** 판 만들기. 세 갈래를 씨앗으로 고른다. */
+/* 문제 낱말. **규칙 파일은 번역 파일을 못 부른다**. 커널이 규칙을 i18n 없이 돌리고
+   `arcade` 묶음은 늦게 옴. 그래서 COLORS 와 같은 자리에 상수로
+   미끼는 실마리로 되돌리면 답이 달라지게 (겹치면 답이 둘) */
+const LETTERS = '가나다라마바사아자차';
+const QUIZ: Array<[clue: string, answer: string, decoys: string[]]> = [
+  ['ㄱㅇㅇ', '고양이', ['개나리', '기와집', '구운몽']],
+  ['ㅂㄷㅂㄷ', '부들부들', ['부글부글', '보슬보슬', '비틀비틀']],
+  ['ㅅㄱㅊ', '시금치', ['소고기', '사거리', '세계관']],
+  ['ㄴㅁㅇㅋ', '나무위키', ['나무의자', '노란우산', '눈물바다']],
+  ['ㅈㄷㅊ', '자동차', ['지하철도', '자전거길', '주차장문']],
+  ['ㅁㅇㅋ', '마이크', ['만화책', '물안경', '모래성']]
+];
+
+/** 판 만들기. 여섯 갈래를 씨앗으로 (초성, 같은 것, 거꾸로는 번개 대결 위젯에서 받은 것) */
 function makeRound(ctx: GameCtx, limitMs: number): ReflexState {
-  const kind = Math.floor(ctx.rng() * 3);
+  const kind = Math.floor(ctx.rng() * 6);
   let order = '';
   let choices: string[] = [];
   let answer = 0;
@@ -56,6 +69,42 @@ function makeRound(ctx: GameCtx, limitMs: number): ReflexState {
     choices = shuffle(ctx.rng, [...set]).map(String);
     answer = choices.indexOf(String(sum));
     order = `${a} + ${b}`;
+  } else if (kind === 3) {
+    /* 초성. 자음만 보고 낱말 고르기. 미끼는 첫 글자만 같음 */
+    const [clue, answer2, decoys] = pick(ctx.rng, QUIZ);
+    choices = shuffle(ctx.rng, [answer2, ...decoys]);
+    answer = choices.indexOf(answer2);
+    order = clue;
+  } else if (kind === 4) {
+    /* 같은 것. 명령에 뜬 낱말과 똑같은 칸. 미끼는 한 글자만 다름 */
+    const seed = pick(ctx.rng, QUIZ)[1];
+    const wobble = (w: string): string => {
+      const i = Math.floor(ctx.rng() * w.length);
+      const c = LETTERS[Math.floor(ctx.rng() * LETTERS.length)];
+      return w.slice(0, i) + c + w.slice(i + 1);
+    };
+    const decoys = new Set<string>();
+    let spin = 0;
+    while (decoys.size < 3 && spin++ < 40) {
+      const w = wobble(seed);
+      if (w !== seed) decoys.add(w);
+    }
+    choices = shuffle(ctx.rng, [seed, ...decoys]);
+    answer = choices.indexOf(seed);
+    order = `${seed} 찾기!`;
+  } else if (kind === 5) {
+    /* 거꾸로. 명령에 뜬 낱말을 뒤집은 칸 */
+    const seed = pick(ctx.rng, QUIZ)[1];
+    const flipped = [...seed].reverse().join('');
+    const decoys = new Set<string>();
+    let spin = 0;
+    while (decoys.size < 3 && spin++ < 40) {
+      const w = shuffle(ctx.rng, [...seed]).join('');
+      if (w !== flipped) decoys.add(w);
+    }
+    choices = shuffle(ctx.rng, [flipped, ...decoys]);
+    answer = choices.indexOf(flipped);
+    order = `${seed} 거꾸로!`;
   } else {
     /* 글자 말고 색을 골라라. 글자와 색이 어긋난다(스트룹) */
     const target = pick(ctx.rng, COLORS);

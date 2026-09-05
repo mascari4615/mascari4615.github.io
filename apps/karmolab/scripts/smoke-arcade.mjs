@@ -111,7 +111,13 @@ if (!cantRun) {
   const situationCounts = await page.locator('.ac-situation').evaluateAll((rows) =>
     rows.map((row) => row.querySelectorAll('[data-situation]').length)
   );
-  check('같이, 도전, 쉬기 세 선반', situationCounts.length === 3 && situationCounts.every((n) => n === 6), situationCounts.join(','));
+  /* 선반은 셋, 각 최대 여섯. 로비에 세운 판이 열뿐이라(2026-09-05 사용자 결정) 여섯을
+     못 채우는 게 정상. 빈 선반만 막음 */
+  check(
+    '같이, 도전, 쉬기 세 선반',
+    situationCounts.length === 3 && situationCounts.every((n) => n >= 1 && n <= 6),
+    situationCounts.join(',')
+  );
   const recommendation = page.locator('.ac-recommend');
   check('저택 사람의 오늘 추천', await recommendation.count() === 1);
   if (await recommendation.count()) {

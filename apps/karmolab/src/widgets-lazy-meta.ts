@@ -999,8 +999,10 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/timecapsule']
   },
   {
-    // 둘이 붙는 놀이. 목록에서 바로 보여야 한다 (TASK-KL-132).
+    /* 둘이 붙는 놀이. 오락실 '번개 대결'(reflex)로 편입, 문제 갈래 여섯은 거기서
+       목록에서 내림(hidden). 규칙과 화면은 살아 있어 옛 링크로 들어온 방은 그대로 */
     id: 'duel',
+    hidden: true,
     get title() { return t('widgets.duel.title', undefined, "번개 대결"); },
     category: 'play',
     get desc() { return t('widgets-desc.duel.desc', undefined, "몇 초짜리 미니게임으로 둘이 붙습니다. 링크 하나면 바로 시작하고, 방을 우리 서버에 두지 않습니다"); },
