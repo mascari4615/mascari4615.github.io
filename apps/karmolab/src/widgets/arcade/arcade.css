@@ -311,6 +311,12 @@
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>:is(.ac-cl,.ac-pl,.ac-th,.ac-bw,.ac-tk,.ac-fi,.ac-dt,.ac-ah,.ac-pg,.ac-sn) canvas{flex:1 1 0;min-height:0;height:auto;width:100%;max-width:none;aspect-ratio:auto;border:0;border-radius:0;margin:0}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-ms .ac-msgrid{flex:1 1 0;min-height:0;grid-auto-rows:1fr}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-ms .ac-mc{aspect-ratio:auto;font-size:min(2.2vh,18px)}
+/* 네모 판은 폭에 갇혀 세로가 남는다. 남은 만큼 위에 붙어 아래가 비었다 (2026-09-05 실측: 390x844 에서 판 344, 칸 756)
+   칸을 다 쓰는 것이 먼저지만 정사각은 늘릴 수가 없다. 가운데로 맞춘다 (오락실 화면 룰의 판을 안에 맞춘다) */
+/* 네모 판은 폭에 갇혀 세로가 남으면 위에 붙어 아래가 비었다 (2026-09-05 실측: 390x844 에서 판 344, 칸 756)
+   남을 때만 가운데로. 넘칠 때는 위부터 (safe). 폭을 줄여 다 담으면 폰 가로에서 칸이 27px 이 되어 못 누른다 (실측)
+   칸을 다 쓰는 것이 먼저라는 결정은 [놀이 화면이 지켜야 할 셋] */
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-goban{display:flex;flex-direction:column;justify-content:safe center}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView .ac-clbar{margin-top:8px}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:48px;height:auto}
 /* 조작 줄은 한 줄. 좁으면 옆으로 굴린다 (2026-09-05 실측: 390 폭에서 버튼이 눌려 30x100 이 되고 그만이 화면 밖 27px)
