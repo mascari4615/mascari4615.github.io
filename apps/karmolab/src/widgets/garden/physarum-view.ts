@@ -26,7 +26,7 @@ export function buildPhysarum(container: HTMLElement): void {
   function frame(): void { if (paused) return; let stats = null as unknown as PhysarumStats; controls.run(1, () => { stats = sim.step(random); }); if (sim.stepNo === 1900) { sim.damage(); line.textContent = t(`garden.ph.event.${watcher.markDamage(sim.stepNo)}`, { n: sim.stepNo }); } else { const event = watcher.observe(stats, sim.foods.length); if (event) line.textContent = t(`garden.ph.event.${event}`, { n: stats.step }); } draw(stats); if (sim.stepNo >= 5200) plant(); }
   reseed.onclick = plant; pause.onclick = () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.textContent = t(paused ? 'garden.resume' : 'garden.pause'); };
   reseed.textContent = t('garden.reseed'); pause.textContent = t('garden.pause'); name.textContent = t('garden.ph.name'); code.textContent = t('garden.ph.code'); hint.textContent = t('garden.ph.hint');
-  build(); line.textContent = t('garden.ph.today'); loop = gloop(frame);
+  build(); line.textContent = t('garden.ph.today'); loop = gloop(frame, wrap);
   const ro = new ResizeObserver(() => { const r = wrap.getBoundingClientRect(); const w = Math.max(100, Math.floor(r.width / 3)); const h = Math.max(65, Math.floor((r.height || 420) / 3)); if (w !== sim.w || h !== sim.h) build(); }); ro.observe(wrap);
   Toolbox.onDispose?.(() => { loop?.stop(); ro.disconnect(); });
 }

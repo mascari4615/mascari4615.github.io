@@ -91,6 +91,8 @@ import { buildGeneticEvolution } from './genetic-evolution-view';
     layout: 'full',
     icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
     ...(Toolbox.getLazyWidgetPublicMeta ? Toolbox.getLazyWidgetPublicMeta('garden') : {}),
+    // 안 본 갈래는 안 짓는다 (열자마자 10개를 다 지으면 시뮬 10개 동시 구동)
+    lazyTabs: true,
     tabs: [
       {
         id: 'garden',

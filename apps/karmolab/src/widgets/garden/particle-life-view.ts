@@ -84,7 +84,7 @@ export function buildParticleLife(container: HTMLElement): void {
   pause.onclick = () => { paused = !paused; pause.setAttribute('aria-pressed', String(paused)); pause.textContent = t(paused ? 'garden.resume' : 'garden.pause'); };
   reseed.textContent = t('garden.reseed'); pause.textContent = t('garden.pause');
   name.textContent = t('garden.pl.name'); code.textContent = t('garden.pl.code'); hint.textContent = t('garden.pl.hint');
-  resize(); plant(); line.textContent = t('garden.pl.today'); loop = gloop(frame);
+  resize(); plant(); line.textContent = t('garden.pl.today'); loop = gloop(frame, wrap);
   const ro = new ResizeObserver(resize); ro.observe(wrap);
   Toolbox.onDispose?.(() => { loop?.stop(); ro.disconnect(); });
 }

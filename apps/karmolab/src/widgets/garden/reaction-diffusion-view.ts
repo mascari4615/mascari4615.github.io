@@ -120,7 +120,7 @@ export function buildReactionDiffusion(container: HTMLElement): void {
   hint.textContent = t('garden.rd.hint');
   line.textContent = t('garden.rd.today', { name: name.textContent });
   build();
-  loop = gloop(frame);
+  loop = gloop(frame, wrap);
 
   const ro = new ResizeObserver(() => {
     const rect = wrap.getBoundingClientRect();
