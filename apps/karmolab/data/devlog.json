@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2151,
+    "commits": 2191,
     "days": 12,
     "shown": 60
   },
@@ -11,36 +11,50 @@
       "date": "2026-09-05",
       "entries": [
         {
-          "sha": "e9afe4c8",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "idle",
-          "text": "선택 팝업을 고정 칸으로 만들기"
+          "sha": "e4638b80",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "features",
+          "text": "갈래 설치자 셋과 공용 쪽 배선"
         },
         {
-          "sha": "c53f6ef9",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "idle",
-          "text": "장비 티어를 색으로만 표시"
+          "sha": "bb18951b",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "features",
+          "text": "갈래가 자기를 심는다. 씬 조립과 SO 타입 표에서 갈래 이름을 걷어낸다"
         },
         {
-          "sha": "4962a06e",
-          "type": "fix",
-          "typeLabel": "고친 것",
+          "sha": "3c1de2a8",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
           "scope": "idle",
-          "text": "관리 화면을 아이콘으로 접기"
+          "text": "뽑기 연출. 모으기, 터짐, 카드 한 장씩"
         },
         {
-          "sha": "d9f438a9",
+          "sha": "54f8f4c4",
           "type": "fix",
           "typeLabel": "고친 것",
           "scope": "idle",
-          "text": "성장 구매 행동을 하나로 정리"
+          "text": "일제 사격을 카드 누르고 적 누르기로도. 전투 구도를 관리 열 왼쪽으로"
+        },
+        {
+          "sha": "bfcf5123",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "웨이브마다 세상이 튀던 것. 카메라를 시네머신으로, 방은 제자리에"
+        },
+        {
+          "sha": "7740c30b",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "던전 탭. 입장과 소탕, 보상 셋"
         }
       ],
-      "quiet": 21,
-      "more": 0
+      "quiet": 56,
+      "more": 33
     },
     {
       "date": "2026-09-03",
@@ -492,24 +506,10 @@
           "typeLabel": "",
           "scope": "",
           "text": "때린 손짓의 갈래를 센다 (TASK-WM-405)"
-        },
-        {
-          "sha": "1392c298",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "달아나는 사람 쫓으며 때리는 무대를 만든다 (TASK-WM-405)"
-        },
-        {
-          "sha": "c286b29c",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "되감는 만큼을 <b>그 손짓에 얹힌 도장</b>으로 잰다 (TASK-WM-405)"
         }
       ],
       "quiet": 0,
-      "more": 145
+      "more": 147
     }
   ]
 }
