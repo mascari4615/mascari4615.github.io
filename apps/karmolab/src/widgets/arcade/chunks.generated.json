@@ -422,5 +422,13 @@
     "defVar": "worldcup",
     "viewVar": "worldcupView",
     "d3": false
+  },
+  {
+    "id": "reaction",
+    "chunk": "reaction",
+    "view": "reaction-view",
+    "defVar": "reaction",
+    "viewVar": "reactionView",
+    "d3": false
   }
 ]

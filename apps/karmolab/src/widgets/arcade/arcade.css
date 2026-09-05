@@ -1211,3 +1211,15 @@
 .ac-wchist span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill)}
 .ac-wchist img{width:22px;height:22px;object-fit:cover;border-radius:50%}
 @media (max-width:560px){.ac-wcpair{grid-template-columns:1fr;grid-template-rows:1fr 1fr}}
+/* ── 반응속도 (change.arcade-absorbs-play). 칸 하나가 판. 초록이면 누름 ── */
+.ac-rx{display:flex;flex-direction:column;height:100%;min-height:100%;gap:var(--space-md)}
+.ac-rxbox{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--bg-tertiary);color:inherit;font:inherit;cursor:pointer;user-select:none;transition:background .15s}
+.ac-rxbox[class*="ac-rx-wait"]{background:color-mix(in srgb,var(--accent) 6%,var(--bg-primary));border-color:color-mix(in srgb,var(--accent) 30%,var(--border))}
+.ac-rxbox[class*="ac-rx-go"]{background:color-mix(in srgb,var(--success) 45%,var(--bg-primary));border-color:var(--success)}
+.ac-rxbox[class*="ac-rx-early"]{background:color-mix(in srgb,var(--error) 30%,var(--bg-primary));border-color:var(--error)}
+.ac-rxbox[class*="ac-rx-done"]{background:var(--accent-subtle);border-color:var(--accent)}
+.ac-rxicon{font-size:clamp(36px,8vw,64px)}
+.ac-rxtext{font-size:clamp(22px,5vw,40px)}
+.ac-rxsub{font-size:var(--font-size-xs);color:var(--text-secondary);min-height:1.2em}
+.ac-rxrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ac-rxbest{margin:0;text-align:center;font-size:var(--font-size-xs);color:var(--text-tertiary);min-height:1.2em}

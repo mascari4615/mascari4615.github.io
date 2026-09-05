@@ -821,5 +821,20 @@
   "arcade.worldcup.note.same": "두 길이 {rate}% 겹쳤다",
   "arcade.worldcup.taste.near": "{who} 와 {pct}% 같은 취향",
   "arcade.worldcup.taste.far": "{who} 와는 {pct}%",
-  "arcade.worldcup.taste.alone": "이 표를 돌린 사람은 아직 나뿐"
+  "arcade.worldcup.taste.alone": "이 표를 돌린 사람은 아직 나뿐",
+  "arcade.game.reaction.name": "반응속도",
+  "arcade.game.reaction.desc": "초록으로 바뀌는 순간 누르기. 다섯 판, 가장 빠른 손이 그 판을 가진다",
+  "arcade.reaction.wait": "기다리세요...",
+  "arcade.reaction.hint": "초록이 되면 누르세요. 스페이스도 됩니다",
+  "arcade.reaction.go": "지금!",
+  "arcade.reaction.early": "너무 빨랐습니다",
+  "arcade.reaction.earlySub": "이 판은 실격. 다음 판을 기다리세요",
+  "arcade.reaction.earlyShort": "실격",
+  "arcade.reaction.fast": "사람 맞습니까?",
+  "arcade.reaction.good": "꽤 빨라요",
+  "arcade.reaction.best": "내 최고 기록 {ms}ms",
+  "arcade.reaction.none": "아무도 제때 못 눌렀다",
+  "arcade.reaction.fastest": "{who} {ms}ms",
+  "arcade.reaction.ach200": "초고속 반응 200ms",
+  "arcade.reaction.ach150": "번개 반응 150ms"
 }

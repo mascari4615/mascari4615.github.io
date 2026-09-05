@@ -1,5 +1,5 @@
 {
- "total": 123,
+ "total": 122,
  "files": {
   "css/community.css": 15,
   "css/lotto.css": 1,
@@ -22,12 +22,11 @@
   "src/widgets/pet.ts": 2,
   "src/widgets/planner/planner.ts": 1,
   "src/widgets/quest-log/quest-log.ts": 2,
-  "src/widgets/reaction.ts": 1,
   "src/widgets/stone.ts": 1,
   "src/widgets/toast.ts": 1,
   "src/widgets/user.ts": 1
  },
- "colorTotal": 1512,
+ "colorTotal": 1507,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 3,
@@ -104,7 +103,6 @@
   "src/widgets/quest-log/quest-log.ts": 16,
   "src/widgets/servermonitor.ts": 1,
   "src/widgets/shylink.ts": 7,
-  "src/widgets/speed.ts": 5,
   "src/widgets/stash.ts": 4,
   "src/widgets/status.ts": 16,
   "src/widgets/task-launcher.ts": 2,

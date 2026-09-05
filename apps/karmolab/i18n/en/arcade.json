@@ -821,5 +821,20 @@
   "arcade.worldcup.note.same": "Paths overlapped {rate}%",
   "arcade.worldcup.taste.near": "{pct}% the same taste as {who}",
   "arcade.worldcup.taste.far": "{pct}% with {who}",
-  "arcade.worldcup.taste.alone": "You are the only one who ran this set so far"
+  "arcade.worldcup.taste.alone": "You are the only one who ran this set so far",
+  "arcade.game.reaction.name": "Reaction Time",
+  "arcade.game.reaction.desc": "Tap the moment it turns green. Five rounds, the fastest hand takes the round",
+  "arcade.reaction.wait": "Wait...",
+  "arcade.reaction.hint": "Tap when it turns green. Space works too",
+  "arcade.reaction.go": "Now!",
+  "arcade.reaction.early": "Too early",
+  "arcade.reaction.earlySub": "Out this round. Wait for the next one",
+  "arcade.reaction.earlyShort": "early",
+  "arcade.reaction.fast": "Are you even human?",
+  "arcade.reaction.good": "Pretty fast",
+  "arcade.reaction.best": "My best {ms}ms",
+  "arcade.reaction.none": "Nobody tapped in time",
+  "arcade.reaction.fastest": "{who} {ms}ms",
+  "arcade.reaction.ach200": "Ultra fast 200ms",
+  "arcade.reaction.ach150": "Lightning 150ms"
 }

@@ -136,7 +136,7 @@ await page.waitForTimeout(3000);
  * 뒷정리를 보는 자리지 무거운가를 보는 자리가 아니다.
  */
 const WIDGETS = [
-  'reaction', 'particle', 'bounce', 'moon', 'hourglass', 'eyes',
+  'particle', 'bounce', 'moon', 'hourglass', 'eyes',
   'countdown', 'crypto', 'darkroom', 'higher', 'memo', 'news', 'orbita',
 ];
 

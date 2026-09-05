@@ -37,20 +37,6 @@
       "lead": "앞선 사람의 유령과 나란히 달린다. 기록이 주소가 된다"
     },
     {
-      "id": "reaction",
-      "title": "반응속도",
-      "emoji": "⚡",
-      "url": "/#reaction",
-      "lead": "초록으로 바뀌는 순간 누른다"
-    },
-    {
-      "id": "speed",
-      "title": "속도측정",
-      "emoji": "🖱",
-      "url": "/#speed",
-      "lead": "1MB 블럭을 골인까지 끌고 간다"
-    },
-    {
       "id": "dailytype",
       "title": "오늘의 한글 타자",
       "emoji": "⌨️",

@@ -821,5 +821,20 @@
   "arcade.worldcup.note.same": "二人の道が{rate}%重なった",
   "arcade.worldcup.taste.near": "{who}と{pct}%同じ好み",
   "arcade.worldcup.taste.far": "{who}とは{pct}%",
-  "arcade.worldcup.taste.alone": "このセットを回したのはまだ自分だけ"
+  "arcade.worldcup.taste.alone": "このセットを回したのはまだ自分だけ",
+  "arcade.game.reaction.name": "反応速度",
+  "arcade.game.reaction.desc": "緑に変わった瞬間に押す。5回戦、いちばん速い手がその回を取る",
+  "arcade.reaction.wait": "待って...",
+  "arcade.reaction.hint": "緑になったら押す。スペースでも可",
+  "arcade.reaction.go": "今!",
+  "arcade.reaction.early": "早すぎ",
+  "arcade.reaction.earlySub": "この回は失格。次を待って",
+  "arcade.reaction.earlyShort": "失格",
+  "arcade.reaction.fast": "人間ですか?",
+  "arcade.reaction.good": "なかなか速い",
+  "arcade.reaction.best": "自己ベスト {ms}ms",
+  "arcade.reaction.none": "誰も間に合わなかった",
+  "arcade.reaction.fastest": "{who} {ms}ms",
+  "arcade.reaction.ach200": "超高速 200ms",
+  "arcade.reaction.ach150": "稲妻 150ms"
 }

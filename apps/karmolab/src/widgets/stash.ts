@@ -78,7 +78,7 @@ import { t, loadNamespace } from '../lib/i18n';
   const STASH_IDS: string[] = [
     'bounce', 'bubble', 'conch', 'countdown', 'darkroom', 'eyes', 'folder', 'fontgacha',
     'hacker', 'hourglass', 'moon', 'news', 'particle', 'password', 'pet',
-    'reaction', 'shylink', 'speed', 'stone', 'toast', 'ytdownloader'
+    'shylink', 'stone', 'toast', 'ytdownloader'
   ];
 
   Toolbox.register({
