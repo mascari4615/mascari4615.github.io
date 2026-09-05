@@ -1545,6 +1545,22 @@ const Toolbox = (() => {
                 });
                 sidebarNavEl.appendChild(row);
                 const cur = tabs.find(t => t.id === sidebarTab) || tabs[0];
+                /* 지금 열린 도구 한 줄 (app-shell 공백 2026-08-30, 2026-09-05 실측). 탭이 안 따라가니
+                   고른 탭에 그 도구가 없으면 옆줄 어디에도 표시가 없었다 (내 것 0개일 때 늘).
+                   목록 위 한 줄. 목록 안에 있으면 거기서 켜지니 안 그림 (두 번 표시 X) */
+                const nowTool = (currentPageId !== 'home' && !cur.tools.some(t => t.id === currentPageId))
+                    ? tools.find(t => t.id === currentPageId) : null;
+                if (nowTool) {
+                    const nowHead = document.createElement('div');
+                    nowHead.className = 'sidebar-list-head sidebar-now-head';
+                    nowHead.innerHTML = '<span class="sidebar-list-label">// ' + text2('shell.nav.now', '지금') + '</span>';
+                    sidebarNavEl.appendChild(nowHead);
+                    const nowList = document.createElement('div');
+                    nowList.className = 'sidebar-list sidebar-now';
+                    addNavItem(nowList, nowTool);
+                    nowList.lastElementChild.classList.add('active');
+                    sidebarNavEl.appendChild(nowList);
+                }
                 const head = document.createElement('div');
                 head.className = 'sidebar-list-head';
                 head.innerHTML = '<span class="sidebar-list-label">// ' + cur.label + '</span><span class="sidebar-list-count">/ ' + cur.tools.length + '</span>';

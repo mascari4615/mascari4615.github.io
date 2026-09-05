@@ -44,6 +44,7 @@
   "shell.nav.ref": "자료",
   "shell.nav.play": "놀이",
   "shell.nav.mine": "내 것",
+  "shell.nav.now": "지금",
   "shell.nav.all": "전체 도구",
   "shell.nav.all.hint": "전체 도구 찾기 (Ctrl+K)",
   "shell.nav.lab": "실험실, 개발중",

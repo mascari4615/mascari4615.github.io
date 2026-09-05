@@ -44,6 +44,7 @@
   "shell.nav.ref": "資料",
   "shell.nav.play": "あそび",
   "shell.nav.mine": "マイツール",
+  "shell.nav.now": "いま",
   "shell.nav.all": "すべての道具",
   "shell.nav.all.hint": "道具を探す (Ctrl+K)",
   "shell.nav.lab": "実験室, 開発中",

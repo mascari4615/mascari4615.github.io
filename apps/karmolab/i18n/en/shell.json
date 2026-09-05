@@ -44,6 +44,7 @@
   "shell.nav.ref": "Reference",
   "shell.nav.play": "Play",
   "shell.nav.mine": "Mine",
+  "shell.nav.now": "Now open",
   "shell.nav.all": "All tools",
   "shell.nav.all.hint": "Find any tool (Ctrl+K)",
   "shell.nav.lab": "Lab, in progress",
