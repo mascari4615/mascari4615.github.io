@@ -41,6 +41,16 @@ try {
   cantRun = `dev 서버에 못 닿았다. ${e.message}`;
 }
 
+/* 그만은 방 안에서는 메뉴 종이(#acMenu) 안에 있다 (오목 가자 레퍼런스, 2026-09-02). 바로 누르면
+   보이지 않는다로 30초 걸리다 죽는다 (2026-09-05 라이브 실측). 사람이 가는 길대로 메뉴부터.
+   그래도 못 누르면(2D 방 채움에서 버튼이 화면 맨 아래 걸쳐 Playwright 가 시야 밖이라 본다, 1280x900 실측)
+   코드로 누른다. 이 검사가 재는 것은 자판이지 그만 버튼의 자리가 아니다 */
+const quit = async () => {
+  const menu = p.locator('#acMenu');
+  if (await menu.isVisible().catch(() => false)) await menu.click().catch(() => {});
+  await p.click('#acQuit', { timeout: 3000 }).catch(() => p.evaluate(() => document.querySelector('#acQuit')?.click()));
+};
+
 const openGame = async (id) => {
   /* 앞 판이 끝나 결과 딱지가 떠 있으면 목록을 덮는다. 먼저 치운다.
      (안 치우면 목록이 안 보인다로 시간만 끌다 죽는다. 어느 판에서 끝나느냐에 따라 갈린다.) */
@@ -116,7 +126,7 @@ if (!cantRun) {
   const put = await p.evaluate((index) => (document.querySelectorAll('.ac-cell')[index]?.textContent || '').trim(), expectedDown);
   check('엔터가 진짜로 둔다', put === '●', `"${put}"`);
 
-  await p.click('#acQuit');
+  await quit();
 
   /* ── 짚은 자리가 **그림을 다시 그려도 남는가** (2026-08-16) ───────────
      매 프레임 `innerHTML` 을 새로 쓰는 놀이에서는 화살표를 눌러도 테두리가 곧 지워졌다.
@@ -154,7 +164,7 @@ if (!cantRun) {
     await p.waitForTimeout(500);
     const later = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
     check(`${id}: 짚은 자리가 다시 그려도 남는다`, now0 === 1 && later === 1, `직후 ${now0}, 0.5초 뒤 ${later}`);
-    await p.click('#acQuit');
+    await quit();
     await p.waitForSelector('[data-obj]', { timeout: WAIT });
   }
 
@@ -180,7 +190,7 @@ if (!cantRun) {
      격자의 한 점에 모이는 선은 넷을 못 넘는다. */
   check('한붓그리기: 첫 수 뒤엔 붓 끝에 닿는 선만 남는다', opens2 > 0 && opens2 <= 4, `${opens} → ${opens2}개`);
   check('한붓그리기: 엔터가 진짜로 한 획 긋는다', after === before + 1, `${before} → ${after}`);
-  await p.click('#acQuit');
+  await quit();
   await p.waitForSelector('[data-obj]', { timeout: WAIT });
 
   /* ── 탁구, 에어하키: 그림판이라도 키로 (TASK-KL-317) ────────────────
@@ -289,7 +299,7 @@ if (!cantRun) {
       check(`${id}: 키를 넣어도 마우스는 그대로 먹는다`, Math.abs(after - before) > 1,
         `${before?.toFixed?.(1)} → ${after?.toFixed?.(1)}`);
     }
-    await p.click('#acQuit');
+    await quit();
   }
 
   /**
@@ -321,7 +331,7 @@ if (!cantRun) {
     const cursor = await p.evaluate(() => document.querySelectorAll('#acView .ac-key').length);
     if (before !== after || cursor > 0) keyable += 1;
     else mouseOnly.push(id);
-    await p.click('#acQuit');
+    await quit();
     await p.waitForSelector('[data-obj]', { timeout: WAIT });
   }
   /**

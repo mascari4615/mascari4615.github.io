@@ -17,16 +17,10 @@
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const CONCURRENCY = 8;
 
-/* 2026-08-29 실측으로 빠져 있던 자리. 채우면 여기서 뺄 것
-   `/play/` 허브는 `apps/play/scripts/build.mjs` 가 굽는다. 놀이 상세와 생성기가 다름.
+/* 빠진 자리를 알면 여기 적고, 채우면 뺀다. 2026-08-29 다섯(/about/, /play/, /bot/, /wm/, /works/)은
+   2026-09-05 라이브 실측으로 전부 붙어 뺐다.
    `/c/docs/*` 는 사이트맵에서 뺐다 (사용자 결정 2026-08-29). 그래서 이 목록에도 없다 */
-const KNOWN = new Set([
-  '/about/',
-  '/play/',
-  '/bot/',
-  '/wm/',
-  '/works/',
-]);
+const KNOWN = new Set([]);
 
 const done = (code, line) => {
   if (code === 0) console.log(line);

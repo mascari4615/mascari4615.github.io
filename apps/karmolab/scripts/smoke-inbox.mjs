@@ -72,7 +72,18 @@ await page.waitForFunction(() => document.querySelector('#klBell') !== null, und
 });
 
 if (!problems.length) {
-  await page.click('#klBell');
+  /* 종은 옆줄 밑에 `visibility:hidden` 으로 남은 닻이다 (셸 개편, 채팅과 같은 처지. smoke-chat 참고).
+     사람 길은 계정 메뉴의 알림 항목. 메뉴가 아직 안 붙었으면 닻을 코드로 누른다 (2026-09-05) */
+  const menuBtn = page.locator('#klHeaderMe');
+  const item = page.locator('[data-bell]');
+  if (await menuBtn.isVisible().catch(() => false)) {
+    await menuBtn.click().catch(() => {});
+    if (await item.isVisible().catch(() => false)) await item.click().catch(() => {});
+    else await page.keyboard.press('Escape').catch(() => {});
+  }
+  if (!(await page.locator('.kl-bell-panel').isVisible().catch(() => false))) {
+    await page.evaluate(() => document.getElementById('klBell')?.click());
+  }
   await page.waitForSelector('.kl-bell-panel', { timeout: 5000 });
 
   // ① 갈래 줄이 있고, 갈래마다 안 읽은 수가 보인다

@@ -3118,7 +3118,12 @@ html[data-skin="field"][data-theme="dark"] {
 .header-search-box:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .header-search-box .sidebar-search-text { flex: 1; text-align: left; white-space: nowrap; }
 .header-search-box .sidebar-search-kbd { font-family: var(--font-mono); font-size: var(--font-size-4xs); color: var(--text-tertiary); }
-@media (max-width: 768px) { .header-search-box { width: auto; } .header-search-box .sidebar-search-text { display: none; } }
+/* 폰에서는 돋보기 하나. 글자와 Ctrl K 는 숨긴다 (Ctrl K 는 폰에 없고, 10px 글자는 읽기 작다).
+   누를 크기 32x32 (허브 검사의 폰 잣대. 2026-09-05 실측 92x26 이 걸렸다) */
+@media (max-width: 768px) {
+    .header-search-box { width: 32px; height: 32px; min-height: 32px; padding: 0; justify-content: center; }
+    .header-search-box .sidebar-search-text, .header-search-box .sidebar-search-kbd { display: none; }
+}
 
 .sidebar-tabs {
     display: flex;

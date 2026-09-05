@@ -77,7 +77,10 @@ interface ToolMeta {
     }
 
     /** 도감이 세는 것 = 사람이 열 수 있는 도구. 놀이, 문서 같은 화면은 도구가 아니다. */
-    const isTool = (meta: ToolMeta): boolean => meta.category === 'tool';
+    /* 갈래 아홉 체계(2026-08-29)에 'tool' 갈래 없음. 그걸로 거르던 동안 도감 0칸 (2026-09-05 라이브 실측)
+       잣대: 앱 갈래와 장 없는 내부 화면(noPage)만 제외. `hidden` 은 안 봄
+       (창고 도구가 hidden 이라 빼면 28칸. 창고 도구도 쓰면 도장) */
+    const isTool = (meta: ToolMeta): boolean => !!meta.category && meta.category !== 'app' && !(meta as { noPage?: boolean }).noPage;
 
     function allTools(): ToolMeta[] {
         const lazy = ((window as any).KARMOLAB_LAZY_META || []) as ToolMeta[];

@@ -19,6 +19,7 @@
  *       BASE=http://127.0.0.1:8797/apps/blog node scripts/smoke-hub.mjs
  */
 import fs from 'node:fs';
+import { runInNewContext } from 'node:vm';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -31,7 +32,16 @@ const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), '
 /* 작업대로 흡수된 옛 도구는 목록에 카드가 없다. 주소만 살아 있고(숨은 별칭) 누르면
    작업대의 그 조작으로 간다. 목록에서 찾으면 빠졌다로 열여섯 건이 뜬다(2026-08-13).
    목록 정본은 `lib/retired-operations.mjs` 하나다. */
-const expected = withoutRetired(Object.keys(seo));
+/* 목록 장에 일부러 없는 것 둘 (2026-09-05 라이브 실측으로 넷이 빠졌다고 빨갰다):
+   숨긴 도구(`hidden: true`. 옆줄과 찾기 판에서 뺀 것, 2026-08-31 사용자 결정)는 생성기가 카드를 안 찍고,
+   앱 전용(`desktopOnly`)은 브라우저에서 카드가 걷힌다 (위 `data-hub-desktop`). 둘 다 빠진 게 맞다 */
+const manifest = (() => {
+  const sandbox = { window: {} };
+  runInNewContext(fs.readFileSync(path.join(root, 'js/widgets-lazy-meta.js'), 'utf8'), sandbox);
+  return sandbox.window.KARMOLAB_LAZY_META || [];
+})();
+const notOnHub = new Set(manifest.filter((w) => w.hidden || w.desktopOnly).map((w) => w.id));
+const expected = withoutRetired(Object.keys(seo)).filter((id) => !notOnHub.has(id));
 
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
@@ -289,9 +299,13 @@ if (state.firstHref) {
   await phone.goto(`${BASE}/t/`, { waitUntil: 'networkidle', timeout: 30000 });
   await phone.waitForTimeout(700);
   const m = await phone.evaluate(() => {
-    const near = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; };
+    /* 보이지 않는 닻은 안 센다 (2026-09-05). 채팅 닻(#klChatDock)은 옆줄 밑에 1x1 `visibility:hidden`
+       으로 남아 있어 누르기 작은 것으로 찍혔다. 사람이 누르는 자리가 아니다 */
+    const near = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(e).visibility !== 'hidden'; };
     const clipped = [...document.querySelectorAll('body *')]
       .filter((e) => e.scrollWidth > e.clientWidth + 2 && near(e))
+      /* 장식(aria-hidden)의 넘침은 사고가 아니다. 워터마크(.app-wm)는 큰 글자를 일부러 잘라 쓴다 */
+      .filter((e) => !e.closest('[aria-hidden="true"]'))
       .filter((e) => !['auto', 'scroll'].includes(getComputedStyle(e).overflowX))
       /* 일부러 자른 한 줄은 사고가 아니다 (TASK-KL-128. 카드 설명은 한 줄로 자르고 ...를
          붙인다. 뒷부분은 도구를 열면 다 보이고 마우스를 올려도 뜬다). 이 검사가 잡아야 하는
