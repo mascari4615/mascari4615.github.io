@@ -1270,10 +1270,8 @@
 .ac-cholen{font-size:var(--font-size-xs);color:var(--text-tertiary)}
 .ac-choin,.ac-qsin{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-primary);color:inherit;font:inherit}
 .ac-chomark{font-size:var(--font-size-xs)}
-.ac-qsq{font-size:var(--font-size-md);font-weight:700;text-align:center;margin:var(--space-md) 0}
 .ac-qsrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
 .ac-qsin{flex:1;min-width:10em;max-width:20em}
-.ac-qsslot{margin:var(--space-md) 0;border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-md);text-align:left}
 /* ── 오늘의 하나 맞히기 (change.arcade-absorbs-play). 속성 표, 실루엣, 전부대기, 격자판 ── */
 .ac-dyboard{flex:1;min-height:0;overflow:auto;margin-bottom:var(--space-md)}
 .ac-dyrow{display:flex;gap:4px;align-items:stretch;margin-bottom:4px}

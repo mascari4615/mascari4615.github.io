@@ -624,23 +624,6 @@
       "unfinished": 0
     },
     {
-      "id": "quest",
-      "kind": "puzzle",
-      "seats": 3,
-      "roundCount": 200,
-      "seatWinRate": [
-        0.292,
-        0.242,
-        0.345
-      ],
-      "slope": 0.091,
-      "drawRate": 0.12,
-      "singleRound": false,
-      "avgSeconds": 9.2,
-      "scoreSpread": 1.45,
-      "unfinished": 0
-    },
-    {
       "id": "reaction",
       "kind": "quick",
       "seats": 3,
