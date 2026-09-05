@@ -313,7 +313,11 @@
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView>.ac-ms .ac-mc{aspect-ratio:auto;font-size:min(2.2vh,18px)}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView .ac-clbar{margin-top:8px}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acView{bottom:48px;height:auto}
-#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:48px;margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border)}
+/* 조작 줄은 한 줄. 좁으면 옆으로 굴린다 (2026-09-05 실측: 390 폭에서 버튼이 눌려 30x100 이 되고 그만이 화면 밖 27px)
+   버튼을 안 줄이고(flex 0 0 auto) 글자도 안 꺾는다. 판이 한 화면에 들어가는 것이 먼저 */
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls{position:absolute;left:0;right:0;bottom:0;height:48px;margin:0;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:safe center;gap:8px;z-index:8;background:var(--bg-secondary,rgba(0,0,0,.2));border-top:1px solid var(--border);flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls::-webkit-scrollbar{display:none}
+#acPlay.ac-roomfill:not(:has(.ac-t3room)) #acControls>.btn{flex:0 0 auto;white-space:nowrap}
 #acPlay.ac-roomfill:not(:has(.ac-t3room)) #acStatus{position:absolute;left:12px;bottom:48px;z-index:8;margin:0}
 #acPlay.ac-roomfill .ac-t3.ac-t3room{position:absolute;left:0;top:0;width:100%;height:100%;aspect-ratio:auto}
 #acPlay.ac-roomfill .ac-intro{border-radius:0}

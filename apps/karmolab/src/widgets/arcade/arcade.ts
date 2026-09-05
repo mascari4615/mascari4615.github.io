@@ -343,7 +343,11 @@ interface Session {
       /* 사이드바가 본문 위로 겹치는 폭이 있다. 본문 왼쪽만 보면 판이 사이드바 밑으로 들어가
          거기 있는 버튼이 사이드바로 눌린다 (2026-09-01 실측: 1280 폭에서 본문 143, 사이드바 179) */
       const side = document.getElementById('sidebar')?.getBoundingClientRect();
-      const left = Math.max(main?.left ?? 0, side && side.width > 0 ? side.right : 0);
+      /* 폰에서는 옆줄이 화면을 통째로 덮는 겹침 판이다. 그 오른쪽 끝은 화면 끝이라 본문 왼쪽으로 쓰면
+         판이 폭 0 이 된다 (2026-09-05 실측: 390 폭과 740 폭에서 무대 0px, 오목 칸 0px)
+         화면 절반을 넘게 덮으면 옆에 선 줄이 아니라 덮개. 그때는 본문 왼쪽만 본다 */
+      const rail = side && side.width > 0 && side.right <= window.innerWidth * 0.5 ? side.right : 0;
+      const left = Math.max(main?.left ?? 0, rail);
       /* 셸이 좁은 창에서 통째로 축소된다. 잰 값은 화면 자, 넣는 값은 축소 전 자라 그대로 넣으면
          그 배율만큼 왼쪽으로 밀린다 (2026-09-01 실측: 1280 폭 배율 0.8, 사이드바 179 인데 판이 143) */
       const scale = play.offsetWidth > 0 ? play.getBoundingClientRect().width / play.offsetWidth : 1;

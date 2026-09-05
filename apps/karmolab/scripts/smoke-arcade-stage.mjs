@@ -87,8 +87,15 @@ if (!cantRun) {
     who: document.fullscreenElement?.id ?? null,
     cell: Math.round(document.querySelector('.ac-cell').getBoundingClientRect().width)
   })));
-  check('풀스크린 대상은 무대다 (창 전체가 아니라)', big.who === 'acStage', String(big.who));
-  check('풀스크린이면 판이 커진다', big.cell > small * 1.3, `${small}px → ${big.cell}px`);
+  /* ★ **대상은 방이면 판 영역이다** (2026-09-05, 검사가 제품 뒤를 못 따라왔다). 무대만 키우면 자리 카드와
+     버튼이 무대 밖이라 안 보인다는 사용자 실측으로 `chrome.ts` 가 방(`ac-roomfill`)에서는 `#acPlay` 를 키운다.
+     검사는 `acStage` 만 맞다고 봐서 계속 빨갰다. 둘 다 인정하되 **창 전체(html)는 아니어야** 한다 */
+  const fillMode = await p.evaluate(() => document.getElementById('acPlay')?.classList.contains('ac-roomfill') === true);
+  check('풀스크린 대상은 판이다 (창 전체가 아니라)', big.who === (fillMode ? 'acPlay' : 'acStage'), `${big.who} (방 채움 ${fillMode})`);
+  /* ★ **얼마나 커지나는 배치가 정한다** (2026-09-05 실측 63px → 75px, 1.19배). 방 채움이 이미 콘텐츠 칸을
+     다 쓰므로 풀스크린으로 더 얻는 것은 머리띠(40px)와 옆줄(199px) 몫뿐이다. 1.3배 잣대는 무대가 작은 카드였을
+     때 것. 지금 지킬 것은 **커지기는 하는가** (안 커지면 풀스크린이 무의미하다) */
+  check('풀스크린이면 판이 커진다', big.cell > small * 1.05, `${small}px → ${big.cell}px`);
 
   /* **풀스크린에서 단추가 눌리는가.** 브라우저는 풀스크린 대상 밖을 아예 안 그리므로,
      무대만 키우면 나가기, 한 판 더가 통째로 사라진다(실제로 그랬다). DOM 좌표는 이때
