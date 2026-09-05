@@ -154,7 +154,8 @@ export const CATALOG: CatalogEntry[] = [
   { def: nunchi, view: nunchiView, icon: '👀', kind: 'quick' , hidden: true },
   { def: wordchain, view: wordchainView, icon: '🗣️', kind: 'quick' , hidden: true },
   { def: lineup, view: lineupView, icon: '👥', kind: 'quick' , hidden: true },
-  { def: twenty, view: twentyView, icon: '❓', kind: 'quick' , hidden: true },
+  /* 놀이터의 스무고개를 컴퓨터 갈래로 합쳐 로비에 세움 (change.arcade-absorbs-play) */
+  { def: twenty, view: twentyView, icon: '❓', kind: 'quick' },
   { def: snake, view: snakeView, icon: '🐍', kind: 'quick' , hidden: true },
   { def: shellgame, view: shellgameView, icon: '🥄', kind: 'quick' , hidden: true },
   { def: gomoku, view: gomokuView, icon: '⚫', kind: 'board' },

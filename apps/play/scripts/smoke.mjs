@@ -345,36 +345,12 @@ async function brandBg(page) {
   await page.close();
 }
 
-/* ── 스무고개, 내 표 ──────────────────────────────
- * 놀이가 늘었는데 검사가 안 따라오면, 죽은 놀이가 조용히 배포된다. 실제로 높은 쪽 고르기의
- * 누르는 배선이 두 회차 동안 없어진 채 나갔다. 새 놀이도 **한 판을 실제로 굴려** 본다.
+/* ── 내 표 ──────────────────────────────
+ * UGC 가 놀이들의 재료. 만들고 곧바로 놀이 목록에 서는지까지
+ * (스무고개 절은 오락실 판으로 옮겨 가며 뺌. 그 판은 karmolab 의 test:arcade 몫)
  */
 {
   const page = await browser.newPage();
-  await page.goto(`${BASE}/#twenty`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1600);
-  const first = await page.evaluate(() => ({
-    question: (document.getElementById('twQ')?.textContent || '').trim(),
-    candidates: (document.getElementById('twLeft')?.textContent || '').trim(),
-    button: document.querySelectorAll('#twRow [data-say]').length
-  }));
-  say(first.question.length > 4 && !/불러오는|못 불러/.test(first.question), `twenty: 첫 질문이 안 떴다 (${first.question.slice(0, 20)})`);
-  say(first.button === 3, `twenty: 대답 단추가 ${first.button}개다. 예, 아니오, 모르겠어요 셋이어야 한다`);
-  say(/\d/.test(first.candidates), `twenty: 남은 후보 수가 안 보인다 (${first.candidates})`);
-  // 대답하면 후보가 실제로 줄어야 한다. 안 줄면 묻기만 하고 아무 일도 안 하는 놀이다.
-  const before = Number(first.candidates.replace(/\D+/g, ''));
-  await page.click('#twRow [data-say=yes]');
-  await page.waitForTimeout(600);
-  const next = await page.evaluate(() => ({
-    question: (document.getElementById('twQ')?.textContent || '').trim(),
-    candidates: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
-    counted: (document.getElementById('twCount')?.textContent || '').trim()
-  }));
-  say(next.candidates > 0 && next.candidates < before, `twenty: 대답해도 후보가 안 줄었다 (${before} → ${next.candidates})`);
-  say(next.question !== first.question, 'twenty: 같은 질문을 또 묻는다');
-  say(/2/.test(next.counted), `twenty: 몇 번째 질문인지가 안 올라간다 (${next.counted})`);
-
-  // 내 표. UGC 가 이 놀이들의 재료다. 만들고 곧바로 놀이 목록에 서는지까지 본다.
   await page.goto(`${BASE}/#packs`, { waitUntil: 'networkidle' });
   /* ★ **고정 대기 대신 보이는 것을 기다린다** (2026-08-16). 전에는 1400ms 를 세고 곧바로
      눌렀다. 이 화면의 조각은 늦게 실려서, 느린 판에서는 아직 없는 단추를 누르러 갔고

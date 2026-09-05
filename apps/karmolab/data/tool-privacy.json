@@ -320,13 +320,6 @@
         "tile.openstreetmap.org"
       ]
     },
-    "twenty": {
-      "where": "ours",
-      "sends": "오늘 푼 기록이 KarmoLab 서버에 남습니다.",
-      "to": [
-        "yawnbot.mascari4615.com"
-      ]
-    },
     "user": {
       "where": "ours",
       "sends": "계정, 활동 기록을 KarmoLab 서버와 주고받습니다.",

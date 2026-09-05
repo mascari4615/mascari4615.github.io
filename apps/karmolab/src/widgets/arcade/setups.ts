@@ -26,6 +26,18 @@ export interface Choice {
 /** 놀이마다 고를 것. 없으면 고를 게 없다는 뜻이다 */
 export const SETUPS: Record<string, Choice[]> = {
   /* 다트 모드. 클럽하우스 51 의 카운트업 8라운드, 301, 501. 우리 기본 101 */
+  /* 스무고개 갈래. 사람이 답을 쥐고 남이 묻거나, 내가 마음에 정하고 컴퓨터가 묻거나 (change.arcade-absorbs-play) */
+  twenty: [
+    {
+      key: 'mode',
+      label: 'arcade.setup.mode',
+      options: [
+        { value: 0, label: 'arcade.setup.twenty.people' },
+        { value: 1, label: 'arcade.setup.twenty.computer' }
+      ],
+      fallback: 0
+    }
+  ],
   darts: [
     {
       key: 'mode',

@@ -204,7 +204,6 @@
   "widgets-desc.timer.desc": "A countdown timer and a stopwatch with laps. It chimes when time is up",
   "widgets-desc.toast.desc": "Show toast notifications",
   "widgets-desc.tts.desc": "Reads your text aloud. It follows along sentence by sentence, and you can choose the voice and the speed.",
-  "widgets-desc.twenty.desc": "Think of one and it guesses within twenty. Pokémon, LoL champions, Genshin characters",
   "widgets-desc.unicodex.desc": "Finds invisible characters and lookalikes (such as the Cyrillic а), shows them, and removes the ones you pick.",
   "widgets-desc.unitconv.desc": "Converts length, weight, area (including pyeong), volume, temperature, data, speed and time",
   "widgets-desc.urlparse.desc": "Restores mangled addresses, lays out query parameters and strips tracking ones",

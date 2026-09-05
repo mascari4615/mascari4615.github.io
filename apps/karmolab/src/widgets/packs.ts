@@ -20,6 +20,7 @@ import {
 } from '../lib/shared-packs';
 import { t, loadNamespace } from '../lib/i18n';
 import { appQuery, appPath } from '../lib/site-base';
+import { chooseOpt } from './arcade/setups';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -96,7 +97,7 @@ import { appQuery, appPath } from '../lib/site-base';
                   `</span></div>` +
                   `<div class="pk-acts">` +
                   `<button type="button" class="btn btn-ghost" data-up="1">${p.sharedId ? t('packs.t19') : t('packs.t20')}</button>` +
-                  `<button type="button" class="btn btn-ghost" data-go="twenty">${esc(t('packs.t04'))}</button>` +
+                  `<button type="button" class="btn btn-ghost" data-arcade="twenty">${esc(t('packs.t04'))}</button>` +
                   `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">${esc(t('packs.t05'))}</a>` +
                   `<button type="button" class="btn btn-ghost" data-go="higher">${esc(t('packs.t06'))}</button>` +
                   (p.items.filter((it) => it.img).length >= 4
@@ -165,7 +166,11 @@ import { appQuery, appPath } from '../lib/site-base';
                 /* 사생활 모드. 그래도 기본 표로는 놀 수 있다 */
               }
               /* 오락실 판(월드컵)은 그 판의 장으로. 오락실은 열릴 때 그 판의 상세를 편다 (change.arcade-absorbs-play) */
-              if (btn.dataset.arcade) location.href = appPath('t/arcade/' + btn.dataset.arcade + '/');
+              if (btn.dataset.arcade) {
+                /* 스무고개는 컴퓨터가 맞히는 갈래로. 내 표를 들고 가는 길은 그 갈래뿐 */
+                if (btn.dataset.arcade === 'twenty') chooseOpt('twenty', 'mode', 1);
+                location.href = appPath('t/arcade/' + btn.dataset.arcade + '/');
+              }
               else Toolbox.switchPage(btn.dataset.go!);
             }
           });

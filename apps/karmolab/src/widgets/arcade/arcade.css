@@ -1223,3 +1223,8 @@
 .ac-rxsub{font-size:var(--font-size-xs);color:var(--text-secondary);min-height:1.2em}
 .ac-rxrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .ac-rxbest{margin:0;text-align:center;font-size:var(--font-size-xs);color:var(--text-tertiary);min-height:1.2em}
+/* ── 스무고개 컴퓨터 갈래 (change.arcade-absorbs-play). 표 고르기와 찍은 얼굴 ── */
+.ac-twpick{padding:0 var(--space-md)}
+.ac-twface{display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0}
+.ac-twface img{max-width:160px;max-height:160px;object-fit:contain;border-radius:var(--radius-lg)}
+.ac-twface b{font-size:var(--font-size-md)}

@@ -1604,17 +1604,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['packs']
   },
   {
-    id: 'twenty',
-    get title() { return t('widgets.twenty.title', undefined, "스무고개"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.twenty.desc', undefined, "하나를 마음에 정하면 스무 번 안에 맞힙니다. 포켓몬, 롤 챔피언, 원신 캐릭터"); },
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<path d="M9 9a3 3 0 1 1 4 2.8c-.8.3-1 .9-1 1.7v.4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-    lazyScriptPaths: ['twenty']
-  },
-  {
     id: 'higher',
     get title() { return t('widgets.higher.title', undefined, "높은 쪽 고르기"); },
     category: 'play',

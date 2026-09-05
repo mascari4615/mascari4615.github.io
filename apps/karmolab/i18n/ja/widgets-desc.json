@@ -204,7 +204,6 @@
   "widgets-desc.timer.desc": "カウントダウンタイマーとラップ付きストップウォッチ。終わると音で知らせます",
   "widgets-desc.toast.desc": "トースト通知を表示します",
   "widgets-desc.tts.desc": "書いた文を読み上げます。文ごとに追いながら表示し、声と速度を選べます。",
-  "widgets-desc.twenty.desc": "一つ思い浮かべれば二十問以内に当てます. ポケモン, LoL チャンピオン, 原神キャラ",
   "widgets-desc.unicodex.desc": "目に見えない文字や似た文字（キリル文字のаなど）を見つけて表示し、選んだものを削除します。",
   "widgets-desc.unitconv.desc": "長さ, 重さ, 面積(坪), 体積, 温度, データ, 速度, 時間を相互に変換します",
   "widgets-desc.urlparse.desc": "文字化けしたアドレスを戻し、クエリパラメータを展開し、追跡用パラメータを消します",

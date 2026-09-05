@@ -26,7 +26,6 @@ const WHERE = {
   '/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
   '/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
   '/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js'),
-  '/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
   /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다. 검색으로 바로 들어올 수 있게.
      장은 배포 때 찍히므로, 있는지 물을 대상은 장이 아니라 그 장을 채우는 위젯 묶음이다. */
   '/t/dailytype/': path.join(apps, 'karmolab/js/widgets/tools/dailytype.js'),

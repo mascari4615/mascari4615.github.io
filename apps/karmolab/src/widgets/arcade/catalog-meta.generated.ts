@@ -36,7 +36,7 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'nunchi', icon: '👀', kind: 'quick', seats: [2, 6], realtime: true, chunk: 'nunchi', hidden: true },
   { id: 'wordchain', icon: '🗣️', kind: 'quick', seats: [2, 4], realtime: true, chunk: 'wordchain', hidden: true },
   { id: 'lineup', icon: '👥', kind: 'quick', seats: [2, 6], realtime: true, chunk: 'lineup', hidden: true },
-  { id: 'twenty', icon: '❓', kind: 'quick', seats: [2, 4], realtime: false, chunk: 'twenty', hidden: true },
+  { id: 'twenty', icon: '❓', kind: 'quick', seats: [1, 4], realtime: false, chunk: 'twenty' },
   { id: 'snake', icon: '🐍', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'snake', hidden: true },
   { id: 'shellgame', icon: '🥄', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'shell', hidden: true },
   { id: 'gomoku', icon: '⚫', kind: 'board', seats: [2, 2], realtime: false, chunk: 'gomoku', d3: true },

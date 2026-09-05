@@ -357,6 +357,27 @@ for (const g of GAMES) {
   ok(g.seats[0] >= 1 && g.seats[0] <= g.seats[1], `${g.id}: 자리 수가 말이 된다 (${g.seats.join('~')})`);
 }
 
+console.log('[arcade] 스무고개 컴퓨터 갈래. 봇이 표로 묻고 봇이 답을 쥔 채 끝까지 간다 (change.arcade-absorbs-play)');
+{
+  const g = gameById('twenty');
+  const seats = [{ name: 'k', bot: true }, { name: 'a', bot: true }, { name: 'b', bot: true }];
+  let unfinished = null;
+  for (const seed of [12345, 1000, 8919, 16838]) {
+    const m = run(g, seed, seats, null, 400000, { mode: 1 });
+    if (!m.view().finished) { unfinished = seed; break; }
+  }
+  ok(unfinished === null, '컴퓨터 갈래도 봇만으로 끝까지 간다 (씨앗 4개)', unfinished === null ? '' : `씨앗 ${unfinished}`);
+  const m = run(g, 12345, seats, null, 400000, { mode: 1 });
+  const st = m.view().state;
+  ok(st.mode === 1 && st.keeper === 0 && !!st.pack, '컴퓨터 갈래는 첫 자리가 답을 쥐고 표를 싣는다');
+  ok(st.asks.length >= 1 && st.asks.every((x) => x.ask && typeof x.ask.key === 'string'), `질문이 값으로 남는다 (${st.asks.length}개)`);
+  ok(st.won === 1 || st.won === 2 || st.won === 0, `이긴 자리가 정해진다 (${st.won})`);
+  const a = new Match(g, 777, seats, { mode: 1 });
+  const b = new Match(g, 777, seats, { mode: 1 });
+  for (let now = 0; now < 30000; now += 50) { a.step(now); b.step(now); }
+  ok(JSON.stringify(a.view().state) === JSON.stringify(b.view().state), '같은 씨앗이면 컴퓨터 갈래도 같은 길');
+}
+
 console.log('[arcade] 씨앗. 같은 방은 같은 판');
 {
   const a = new Match(gameById('reflex'), seedFrom('KRM7'), [{ name: 'a', bot: false }, { name: 'b', bot: false }]);
