@@ -11,9 +11,9 @@
    (설명은 위 머리말) */
 export const WANT = [
   ['도구 페이지의 이동 경로', '/t/loan/', /class="tool-crumb"/, '도구 한 장에 떨어진 사람이 위로 올라갈 길이 없다'],
-  ['그 이동 경로의 모양', '/apps/karmolab/css/tools.css', /\.tool-crumb\s*\{/, '경로가 맨몸으로 떠서 글자 뭉치처럼 보인다'],
+  ['그 이동 경로의 모양', '/apps/karmolab/css/tools.min.css', /\.tool-crumb\s*\{/, '경로가 맨몸으로 떠서 글자 뭉치처럼 보인다'],
   ['도구 페이지의 찾기 칸', '/t/loan/', /class="tool-seo-find"/, '다른 도구를 찾으려면 목록으로 건너가야 한다'],
-  ['그 찾기 칸의 모양', '/apps/karmolab/css/tools.css', /\.tool-seo-find\s*\{/, '칸과 버튼이 줄도 안 맞고 폰에서 화면이 확대된다'],
+  ['그 찾기 칸의 모양', '/apps/karmolab/css/tools.min.css', /\.tool-seo-find\s*\{/, '칸과 버튼이 줄도 안 맞고 폰에서 화면이 확대된다'],
   /* 기록기는 인라인에서 `js/boot-late.js` 로 옮겼다(자물쇠로 가는 길). 장에는 그 파일을 부르는
      줄만 남는다. `gc.zgo.at` 글자만 찾으면 146장이 전부 없다가 된다(짝 검사 `audit-seo-head`
      가 이미 같은 자리에서 당해 두 갈래로 고쳤다. 여기만 옛 글자를 보고 있었다). */

@@ -154,9 +154,9 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
        script-src 를 걸기 위한 조건). 그래서 여기서 찾는 글자도 바뀐다. 안 바꾸면 **배포가 선다**
        (실제로 네 판이 도구 스타일 자리를 못 찾음으로 죽었다). 뜻은 그대로: 도구 상세 장에서는
        이 스타일을 **막고 그리게** 되돌린다. */
-    '<link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print">';
+    '<link rel="stylesheet" href="/apps/karmolab/css/tools.min.css" media="print">';
   if (!html.includes(TOOLS_CSS_DEFERRED)) throw new Error('셸에서 도구 스타일 자리를 못 찾음. index.html 확인');
-  html = html.replace(TOOLS_CSS_DEFERRED, '<link rel="stylesheet" href="/apps/karmolab/css/tools.css">');
+  html = html.replace(TOOLS_CSS_DEFERRED, '<link rel="stylesheet" href="/apps/karmolab/css/tools.min.css">');
 
   const RANDOMGEN_CSS =
     '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print">';

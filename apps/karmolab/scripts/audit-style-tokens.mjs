@@ -36,7 +36,8 @@ function walk(dir, fn) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) { if (SKIP.has(e.name) === false) walk(p, fn); }
     else if (/\.(ts|css|html)$/.test(e.name) && /\.[0-9a-f]{8}\.css$/.test(e.name) === false
-      && /shell-(critical|deferred)\.css$/.test(e.name) === false) fn(p);
+      /* 파생은 안 센다. 정본에서 센 것을 두 번 세게 된다 (tools.min.css 는 tools.css 에서 설명만 뺀 벌, 2026-09-05) */
+      && /shell-(critical|deferred)\.css$|tools\.min\.css$/.test(e.name) === false) fn(p);
   }
 }
 

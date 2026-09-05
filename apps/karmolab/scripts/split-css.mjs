@@ -114,7 +114,14 @@ function stripComments(css) {
   return out.split(NL).map((l) => l.replace(/[ 	]+$/, '')).filter((l, k, arr) => l.trim() !== '' || (arr[k - 1] || '').trim() !== '').join(NL);
 }
 
+/* 도구 장의 `tools.css` 도 같은 처지다. 정본은 설명이 두껍고(86KB, gzip 21.8KB) 그 설명을 도구 장 149장이
+   첫 그림 전에 받는다. 설명만 빼면 gzip 9.9KB (2026-09-05 실측). 정본은 그대로 두고 내보내는 벌을 따로 굽는다.
+   부르는 자리는 `index.html` 과 `lib/shell-page.mjs` 의 `tools.min.css` */
+const TOOLS_SRC = path.join(root, 'css/tools.css');
+const TOOLS_MIN = 'css/tools.min.css';
 const outputs = {
+  [TOOLS_MIN]:
+    head('도구 장의 스타일. 정본은 `css/tools.css`') + fs.readFileSync(TOOLS_SRC, 'utf8') + '\n',
   [NAMES.critical]:
     head('첫 그림에 필요한 것. 화면 그리기를 막고 기다린다') +
     secs.filter((s) => !isDeferred(s.title)).map((s) => s.text).join('\n') + '\n',
