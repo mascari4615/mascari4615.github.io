@@ -226,7 +226,6 @@
   "widgets-desc.wm.desc": "作っているゲーム. 紹介, 一日体験, 世界図鑑, 物語, お知らせ, 制作中",
   "widgets-desc.workdays.desc": "土日と祝日を除いた営業日を数えます。どの日を外したかも見せます",
   "widgets-desc.worldclock.desc": "都市ごとの現在時刻とソウルとの時差を見ます。サマータイムも自動反映",
-  "widgets-desc.worldcup.desc": "二択だけのトーナメント. 表を作ればそのまま自分の大会になります",
   "widgets-desc.xmlfmt.desc": "XML を見やすく整え、一行にまとめ、JSON に変換します。おかしい所は行・桁で指し示します",
   "widgets-desc.ytdownloader.desc": "YouTube 動画をダウンロードします",
   "widgets-desc.ziptool.desc": "ファイルを ZIP にまとめ、受け取った ZIP の中身を見て取り出します",

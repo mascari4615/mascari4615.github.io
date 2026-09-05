@@ -370,13 +370,6 @@
         "blog.mascari4615.com"
       ]
     },
-    "worldcup": {
-      "where": "ours",
-      "sends": "남이 만든 묶음을 받아 오고, 고른 결과를 서버에 남깁니다.",
-      "to": [
-        "yawnbot.mascari4615.com"
-      ]
-    },
     "recall": {
       "where": "assets",
       "sends": "문항과 강의 본문을 우리 사이트에서 받아 옵니다. 답과 기록은 이 기기에만 남고 어디로도 안 보냅니다.",

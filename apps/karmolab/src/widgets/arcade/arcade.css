@@ -1201,7 +1201,7 @@
 .ac-wcside b{font-size:var(--font-size-md)}
 .ac-wcchamp{text-align:center}
 .ac-wcchamp img{display:block;margin:0 auto;max-width:min(320px,60%);max-height:40vh;object-fit:contain;border-radius:var(--radius-xl)}
-.ac-wcchamp b{display:block;font-size:var(--font-size-xl);margin-top:6px}
+.ac-wcchamp b{display:block;font-size:var(--font-size-title);margin-top:6px}
 .ac-wcacts{display:flex;align-items:center;justify-content:center;gap:var(--space-md);margin-top:var(--space-md)}
 .ac-wcacts .ac-wcstart{margin:0}
 .ac-wclist{list-style:none;padding:0;margin:6px 0 var(--space-md);line-height:1.8}

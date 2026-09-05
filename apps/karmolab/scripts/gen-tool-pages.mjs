@@ -1371,7 +1371,10 @@ function buildArcadeGamePage(g) {
   html = html.replace(/^---\nlayout: none\npermalink: [^\n]*\n/, `---\nlayout: none\npermalink: ${BASE_PATH}/arcade/${g.id}/\n`);
   html = replaceTitle(html, esc(`${name}, 오락실 | KarmoLab`));
   html = html.replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`);
-  const line = `${name}. ${desc}. ${seats}. 혼자서도 여럿이서도, 빈 자리는 봇이 앉는 KarmoLab 오락실`;
+  /* 자리 하나뿐인 판(솔리테어, 월드컵)에 여럿이서도라고 적으면 거짓말 */
+  const line = g.seats[1] === 1
+    ? `${name}. ${desc}. 혼자 하는 KarmoLab 오락실 판`
+    : `${name}. ${desc}. ${seats}. 혼자서도 여럿이서도, 빈 자리는 봇이 앉는 KarmoLab 오락실`;
   html = replaceMeta(html, 'name', 'description', line);
   html = replaceMeta(html, 'property', 'og:title', `${name}, 오락실 | KarmoLab`);
   html = replaceMeta(html, 'property', 'og:description', line);

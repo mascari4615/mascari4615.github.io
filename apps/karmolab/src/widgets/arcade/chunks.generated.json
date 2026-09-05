@@ -414,5 +414,13 @@
     "defVar": "sudoku",
     "viewVar": "sudokuView",
     "d3": false
+  },
+  {
+    "id": "worldcup",
+    "chunk": "worldcup",
+    "view": "worldcup-view",
+    "defVar": "worldcup",
+    "viewVar": "worldcupView",
+    "d3": false
   }
 ]

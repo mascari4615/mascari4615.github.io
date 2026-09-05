@@ -226,7 +226,6 @@
   "widgets-desc.wm.desc": "The game being made. intro, a day in it, world guide, story, news, work in progress",
   "widgets-desc.workdays.desc": "Counts business days with weekends and holidays removed, and shows which days it dropped",
   "widgets-desc.worldclock.desc": "Current time per city and the offset from Seoul, with daylight saving applied",
-  "widgets-desc.worldcup.desc": "A bracket where you pick one of two. build a set and it becomes your own bracket",
   "widgets-desc.xmlfmt.desc": "Pretty-print XML, minify it to one line, or convert it to JSON. Problems are pinned to a line and column",
   "widgets-desc.ytdownloader.desc": "Download a YouTube video",
   "widgets-desc.ziptool.desc": "Bundles files into a ZIP, and lists and extracts a ZIP you received",

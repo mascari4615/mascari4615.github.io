@@ -27,7 +27,6 @@ const WHERE = {
   '/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
   '/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js'),
   '/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
-  '/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
   '/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
   '/#speed': path.join(apps, 'karmolab/js/widgets/speed.js'),
   /* 오늘의 놀이 둘은 해시가 아니라 **제 도구 장**으로 간다. 검색으로 바로 들어올 수 있게.

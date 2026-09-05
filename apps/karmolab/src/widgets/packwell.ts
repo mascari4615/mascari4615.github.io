@@ -17,7 +17,7 @@
 import { loadPacks, putPack, type Pack, type PackField, type PackItem } from './pack-store';
 import { putPick } from './pack-pick';
 import { t, loadNamespace, locale } from '../lib/i18n';
-import { appHash } from '../lib/site-base';
+import { appHash, appPath } from '../lib/site-base';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 const TIMEOUT_MS = 30000;
@@ -357,7 +357,7 @@ interface WellPack {
 
               const links = [
                 numbers > 0 ? `<a class="btn btn-primary" href="${appHash('higher')}">${esc(t('packwell.t14'))}</a>` : '',
-                images >= 4 ? `<a class="btn btn-ghost" href="${appHash('worldcup')}">${esc(t('packwell.t15'))}</a>` : '',
+                images >= 4 ? `<a class="btn btn-ghost" href="${appPath('t/arcade/worldcup/')}">${esc(t('packwell.t15'))}</a>` : '',
                 images >= 2 ? `<a class="btn btn-ghost" href="${appHash('tierlist')}">${esc(t('packwell.t16'))}</a>` : '',
                 `<a class="btn btn-ghost" href="${appHash('packs')}">${esc(t('packwell.t17'))}</a>`,
               ].filter(Boolean);
@@ -520,7 +520,7 @@ interface WellPack {
                   Toolbox.showToast?.(t('packwell.tookIt', { title: pack.title, n: pack.items.length }), 'success', undefined);
                   (view.querySelector('#pwLibAct') as HTMLElement).innerHTML =
                     `<a class="btn btn-primary" href="${appHash('higher')}">${esc(t('packwell.t14'))}</a>` +
-                    `<a class="btn btn-ghost" href="${appHash('worldcup')}">${esc(t('packwell.t15'))}</a>`;
+                    `<a class="btn btn-ghost" href="${appPath('t/arcade/worldcup/')}">${esc(t('packwell.t15'))}</a>`;
                 });
               } catch {
                 if (root.isConnected) {

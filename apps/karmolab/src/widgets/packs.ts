@@ -19,7 +19,7 @@ import {
   type SharedPackSummary
 } from '../lib/shared-packs';
 import { t, loadNamespace } from '../lib/i18n';
-import { appQuery } from '../lib/site-base';
+import { appQuery, appPath } from '../lib/site-base';
 
 (function (): void {
   const esc = (v: string): string =>
@@ -100,7 +100,7 @@ import { appQuery } from '../lib/site-base';
                   `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">${esc(t('packs.t05'))}</a>` +
                   `<button type="button" class="btn btn-ghost" data-go="higher">${esc(t('packs.t06'))}</button>` +
                   (p.items.filter((it) => it.img).length >= 4
-                    ? `<button type="button" class="btn btn-ghost" data-go="worldcup">${esc(t('packs.t07'))}</button>`
+                    ? `<button type="button" class="btn btn-ghost" data-arcade="worldcup">${esc(t('packs.t07'))}</button>`
                     : '') +
                   `<button type="button" class="btn btn-ghost" data-share="1">${esc(t('packs.t08'))}</button>` +
                   `<button type="button" class="btn btn-ghost" data-del="1">${esc(t('packs.t09'))}</button>` +
@@ -157,14 +157,16 @@ import { appQuery } from '../lib/site-base';
               });
               return;
             }
-            if (btn.dataset.go) {
+            if (btn.dataset.go || btn.dataset.arcade) {
               // 놀이가 어느 표로 놀지는 이 한 줄로 정한다. 놀이 쪽은 이것만 읽는다.
               try {
                 localStorage.setItem('karmolab_pack_pick', p.id);
               } catch {
                 /* 사생활 모드. 그래도 기본 표로는 놀 수 있다 */
               }
-              Toolbox.switchPage(btn.dataset.go);
+              /* 오락실 판(월드컵)은 그 판의 장으로. 오락실은 열릴 때 그 판의 상세를 편다 (change.arcade-absorbs-play) */
+              if (btn.dataset.arcade) location.href = appPath('t/arcade/' + btn.dataset.arcade + '/');
+              else Toolbox.switchPage(btn.dataset.go!);
             }
           });
 

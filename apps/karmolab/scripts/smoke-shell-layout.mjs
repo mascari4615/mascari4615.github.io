@@ -42,7 +42,7 @@ const DEFAULT_IDS = [
   'devtool', 'text', 'image', 'pdf', 'sound', 'videotool', 'qr',
   'calc', 'time', 'color', 'unitconv', 'passgen',
   'studymap', 'reference', 'emoji',
-  'randomgen', 'worldcup', 'tierlist', 'arcade', 'memo', 'checklist',
+  'randomgen', 'tierlist', 'arcade', 'memo', 'checklist',
 ];
 const argv = process.argv.slice(2);
 const given = argv.filter((x) => !x.startsWith('--'));
