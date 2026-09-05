@@ -1563,14 +1563,7 @@ a.landing-cta-card:hover { color: inherit; }
     border-left: 1px solid var(--border);
 }
 
-/* 화면 낭독기에만 읽히는 줄. 결과 수가 바뀐 것을 알리는 자리
-   `.kl-sr` 은 같은 값을 이름으로. 머리를 안 그리는 도구의 h1 이 이걸 쓴다 */
-.kl-sr,
-.kp-live {
-    position: absolute; width: 1px; height: 1px;
-    margin: -1px; padding: 0; overflow: hidden;
-    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
+/* `.kl-sr`, `.kp-live` 는 옆줄 목록 아래(첫 CSS 구역)로 옮겼다 (2026-09-05). 여기 두면 뒤로 빠진다 */
 
 /* ── ⌘K 로 뜨는 껍데기 ── */
 .kp-scrim {
@@ -3916,7 +3909,12 @@ html[data-skin="field"][data-theme="dark"] {
 .header-search-box:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .header-search-box .sidebar-search-text { flex: 1; text-align: left; white-space: nowrap; }
 .header-search-box .sidebar-search-kbd { font-family: var(--font-mono); font-size: var(--font-size-4xs); color: var(--text-tertiary); }
-@media (max-width: 768px) { .header-search-box { width: auto; } .header-search-box .sidebar-search-text { display: none; } }
+/* 폰에서는 돋보기 하나. 글자와 Ctrl K 는 숨긴다 (Ctrl K 는 폰에 없고, 10px 글자는 읽기 작다).
+   누를 크기 32x32 (허브 검사의 폰 잣대. 2026-09-05 실측 92x26 이 걸렸다) */
+@media (max-width: 768px) {
+    .header-search-box { width: 32px; height: 32px; min-height: 32px; padding: 0; justify-content: center; }
+    .header-search-box .sidebar-search-text, .header-search-box .sidebar-search-kbd { display: none; }
+}
 
 /* 갈래 탭 줄. 고른 탭만 이름이 붙고 띠 색으로 반전 */
 .sidebar-tabs {
@@ -3958,6 +3956,16 @@ html[data-skin="field"][data-theme="dark"] {
 }
 .sidebar-list-count { color: var(--text-tertiary); }
 .sidebar-list { display: flex; flex-direction: column; gap: var(--row-gap); padding: 0 8px; }
+/* 지금 열린 도구 한 줄. 아래 갈래 목록과 띄운다 */
+.sidebar-now { margin-bottom: 8px; }
+/* 낭독기 전용 줄. 머리를 안 그리는 도구의 h1(흥, 먹)과 결과 수 알림(.kp-live) 몫
+   첫 CSS 구역 필수. 명령 팔레트 구역은 뒤로 빠져(split-css) 그 사이 "흥" 32px 노출 (2026-09-05 검사 실측) */
+.kl-sr,
+.kp-live {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
 /* 행. 필드: 회색 사각 38, 고른 것은 띠 반전 + 왼쪽 강조 3px (R12). 클래식은 토큰이 예전 값 */
 .sidebar-list .nav-item {

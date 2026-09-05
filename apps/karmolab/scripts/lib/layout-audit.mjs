@@ -40,6 +40,10 @@ export async function auditLayout(page, rootSelector, options = {}) {
       if (style.display === 'none' || style.visibility === 'hidden') continue;
       const box = element.getBoundingClientRect();
       if (!box.width || !box.height) continue;
+      /* 낭독기에만 읽히는 줄(`.kl-sr` 꼴. 1x1 에 clip)은 화면 배치가 아니다. 흥의 h1 이 여기 걸려
+         넘쳤다, 나갔다로 찍혔다 (2026-09-05 라이브 실측). 이름이 아니라 모양으로 가른다.
+         크기는 offset 으로 잰다. 셸이 넓은 화면에 zoom 을 걸면 rect 의 1px 이 1.04px 이 된다 (1500 뷰포트 실측) */
+      if (element.offsetWidth <= 1 && element.offsetHeight <= 1 && style.clip !== 'auto') continue;
 
       /* ① 글자가 칸을 넘쳤다.
          빼는 것 셋. (a) 스크롤 되는 칸과 **그 안의 것들**(넓은 게 정상이다),

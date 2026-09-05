@@ -114,7 +114,8 @@ const cards = await page.$$eval('.landing-cta-card', (els) => els.map((e) => e.t
 if (cards.length < 3) {
   problems.push(`첫 화면 카드가 ${cards.length}장뿐이다. ${cards.join(' / ') || '없음'}`);
 }
-for (const must of ['즐겨찾기', '도구 목록', '문서']) {
+/* 문서 카드는 문서 위젯과 같이 사라졌다 (2026-09-05 라이브: 즐겨찾기, 도구 목록, 커뮤니티, 오락실) */
+for (const must of ['즐겨찾기', '도구 목록']) {
   if (!cards.some((c) => c.startsWith(must))) problems.push(`첫 화면에서 ${must} 카드가 사라졌다`);
 }
 /* 위아래 순서는 화면 주인이 정한다 (카드가 먼저인 지금 배치 = KL-129, 사용자 요청).
@@ -173,85 +174,7 @@ if (!titles.some((t) => t.includes('이미지'))) {
   problems.push(`영문 자판 dlalwl dkqcnr로 이미지 도구가 안 나온다. 나온 것: ${titles.slice(0, 3).join(', ') || '없음'}`);
 }
 
-/* ── ③-c 통합 검색은 StudyMap의 정확한 칸까지 연다 ───────── */
-await type('.mjs');
-titles = await rowTitles();
-if (!titles.some((t) => t.includes('.mjs'))) problems.push('.mjs 학습 결과가 안 나온다');
-const studyRow = page.locator('.kp-inline .kp-row').filter({ hasText: '.mjs' }).first();
-if (await studyRow.count()) {
-  const badge = await studyRow.locator('.kp-row-badge').textContent().catch(() => '');
-  if (!badge?.includes('학습')) problems.push('StudyMap 결과에 학습 출처가 없다');
-  /* ★ **지나간 순간을 나중에 보면 진다** (2026-08-16 계측). 표시(`is-flash`)는 칸이 생긴
-     그 프레임에 붙고 **5초 뒤 스스로 떨어진다**. 실측으로 179ms 에 붙어 5.2초에 사라졌다.
-     그런데 여기서는 누른 **뒤에** 칸이 나왔나를 먼저 기다리고, 그게 끝난 다음에야
-     표시가 붙었나를 물었다. 바쁜 판(CI)에서는 그 두 물음 사이가 5초를 넘어
-     **이미 사라진 표시**를 찾게 된다. 제품은 멀쩡한데 검사만 판마다 빨갰다(로컬 3판 중 1판).
-     그래서 누르기 **전에** 지켜보는 자를 심어, 스치고 지나간 것도 사실로 남긴다. */
-  await page.evaluate(() => {
-    window.__flashSeen = false;
-    const check = () => {
-      const n = document.querySelector('.sm-node[data-id="web-build"]');
-      if (n && n.classList.contains('is-flash')) window.__flashSeen = true;
-    };
-    new MutationObserver(check).observe(document.documentElement, {
-      subtree: true, childList: true, attributes: true, attributeFilter: ['class'],
-    });
-    check();
-  });
-  await studyRow.click();
-  /* ★ **번쩍임을 한 번 들여다보기로 재면 진다** (2026-08-15 계측). 칸이 그려진 뒤
-     다음 그림 프레임에서 표시가 붙는데, 여기서는 클릭 직후 한 번만 봐서
-     대부분 그 프레임을 놓쳤다. 제품은 멀쩡한데(200ms 뒤 재면 붙어 있다) 검사만 늘 빨갰다.
-     시간을 박지 말고 **일어났나를 기다린다**. 표시는 5초 뒤 스스로 사라지므로 그 안에 잡힌다. */
-  /* ★ **두 가지를 갈라서 본다** (2026-08-16). 전에는 번쩍임 하나만 기다리고 실패하면
-     이동하지 않는다라고만 말했다. 그런데 못 가는 데는 두 종류가 있다 . 
-     ① StudyMap 장이 아직 안 떴다(느린 판에서 흔하다) ② 떴는데 그 칸을 안 짚었다.
-     둘을 같은 말로 뭉치면 CI 가 빨간데 로컬은 초록일 때 **어느 쪽인지 알 수가 없다**.
-     실제로 그 상태로 하루를 보냈다. 먼저 칸이 생기는지, 그 다음 표시가 붙는지 본다. */
-  const node = await page
-    .waitForSelector('.sm-node[data-id="web-build"]', { timeout: 20000 })
-    .catch(() => null);
-  if (!node) {
-    problems.push('.mjs 결과를 눌렀는데 StudyMap 의 web-build 칸이 20초 안에 안 나온다 (장이 안 열림)');
-  } else {
-    const flashed = await page
-      .waitForFunction(() => window.__flashSeen === true, null, { timeout: 15000 })
-      .catch(() => null);
-    if (!flashed) problems.push('StudyMap 의 web-build 칸은 나왔는데 그 칸을 짚어 주지 않는다 (표시 없음)');
-  }
-  await gotoHome();
-}
-
-await type('비밀번호 저장하지 말고 검증');
-await page.waitForFunction(() => [...document.querySelectorAll('.kp-inline .kp-row-title')]
-  .some((el) => el.textContent?.includes('비밀번호')), null, { timeout: 15000 }).catch(() => null);
-const lessonRow = page.locator('.kp-inline .kp-row').filter({ hasText: '비밀번호' }).first();
-if (!(await lessonRow.count())) problems.push('강의 본문 검색 결과가 안 나온다');
-else {
-  const badge = await lessonRow.locator('.kp-row-badge').textContent().catch(() => '');
-  if (!badge?.includes('강의')) problems.push('강의 결과에 강의 출처가 없다');
-  await lessonRow.click();
-  await page.waitForSelector('.sm-part-title', { timeout: 15000 }).catch(() => null);
-  const partTitle = await page.locator('.sm-part-title').textContent().catch(() => '');
-  if (!partTitle?.includes('비밀번호')) problems.push(`강의 검색 결과가 정확한 장을 열지 않는다. ${partTitle || '장 없음'}`);
-  await gotoHome();
-}
-
-await type('프로젝트 통합 명령 경로');
-await page.waitForFunction(() => [...document.querySelectorAll('.kp-inline .kp-row-title')]
-  .some((el) => el.textContent?.includes('프로젝트 통합 명령')), null, { timeout: 15000 }).catch(() => null);
-const docsRow = page.locator('.kp-inline .kp-row').filter({ hasText: '프로젝트 통합 명령' }).first();
-if (!(await docsRow.count())) problems.push('문서 제목 검색 결과가 안 나온다');
-else {
-  const badge = await docsRow.locator('.kp-row-badge').textContent().catch(() => '');
-  if (!badge?.includes('문서')) problems.push('문서 결과에 문서 출처가 없다');
-  await docsRow.click();
-  await page.waitForFunction(() => [...document.querySelectorAll('.docs-md-main h1,.docs-md-main h2,.docs-md-main h3')]
-    .some((el) => el.textContent?.trim() === '프로젝트 통합 명령, 경로 가이드'), null, { timeout: 15000 }).catch(() => null);
-  const heading = await page.locator('.docs-md-main h1,.docs-md-main h2,.docs-md-main h3').first().textContent().catch(() => '');
-  if (!heading?.includes('프로젝트 통합 명령')) problems.push(`문서 검색 결과가 정확한 문서를 열지 않는다. ${heading || '제목 없음'}`);
-  await gotoHome();
-}
+/* ③-c 와 강의 검색은 지웠다. 스터디 맵 위젯이 2026-09-04 에 사라졌다 (되묻기 하나가 남음). 검사가 없는 장을 찾고 있었다 (2026-09-05 라이브 실측) */
 
 /* ── ④ 메뉴에 숨겨진 묶음 탭도 찾아진다 ────────────────────── */
 await type('base64');
@@ -335,8 +258,11 @@ if (chipsAfterUse.length) {
   const opened = await page.$$eval('.kp-overlay .kp-row', (els) => els.length);
   const children = await page.$$eval('.kp-overlay .kp-row-child', (els) => els.length);
   if (!(await page.$('.kp-overlay .kp-input'))) problems.push('첫 화면 갈래를 눌렀는데 창이 안 뜬다');
-  if (opened < 50) problems.push(`갈래를 펼쳤는데 ${opened}줄뿐이다. 묶음 안의 도구가 빠졌다`);
-  if (!children) problems.push('묶음 탭이 부모 밑에 붙지 않았다. 무엇의 일부인지 알 수 없다');
+  /* 50줄이던 잣대는 창고(2026-08-29, 넉 주 안 연 도구 105개)와 숨김(2026-08-31 사용자 결정) 전의 것.
+     지금 갈래 하나에 보이는 도구는 1~18개다 (2026-09-05 라이브 실측: 개발 1, 놀이 18). 묶음 안 도구도
+     숨김이라 부모 밑 탭은 잴 수가 없다. 지금 지키는 것은 창이 뜨고 줄이 있고 돌아갈 길이 있는가 */
+  if (opened < 1) problems.push(`갈래를 펼쳤는데 ${opened}줄이다. 아무것도 안 나왔다`);
+  void children;
 
   const back = await page.$('.kp-overlay .kp-back');
   if (!back) problems.push('갈래를 펼친 뒤 되돌아갈 길이 없다. 막다른 골목이다');
@@ -361,19 +287,28 @@ if (chipsAfterUse.length) {
  * 그리고 정작 KL-332 의 핵심은 **아무도 안 보고 있었다.** 그 칸은 제 목록을 안 그린다 . 
  * 한 글자만 쳐도 팔레트로 넘겨 **표면을 하나로 유지**하는 것이 전부다. 그게 깨지면
  * 목록이 두 벌이 되는데, 옛 검사(개수 세기)로는 절대 안 잡힌다. 그래서 넘김을 직접 친다. */
+/* 2026-08-30 셸 개편 뒤 머리띠 검색은 입력칸이 아니라 **버튼**(`#sidebarSearchBtn`, 검색 필)
+   누르면 팔레트 창, 거기에 친다. 표면 하나라는 뜻은 그대로 (2026-09-05 검사 갱신) */
+const searchBtn = await page.$('#sidebarSearchBtn');
 const headerInputs = await page.$$eval('.header-bar input, .sidebar input', (els) => els.length);
-if (headerInputs === 0) problems.push('머리띠에 검색칸이 없다. 08-19 에 올리기로 한 것이다 (KL-332)');
-else if (headerInputs > 1) problems.push(`머리띠/옆줄 입력칸이 ${headerInputs}개다. 검색칸은 하나여야 표면이 하나로 남는다`);
+if (!searchBtn) problems.push('머리띠에 검색 버튼(#sidebarSearchBtn)이 없다');
+else if (headerInputs > 0) problems.push(`머리띠/옆줄에 입력칸이 ${headerInputs}개 따로 있다. 검색 표면은 팔레트 하나여야 한다`);
 else {
+  /* 앞 단계(⑩)의 팔레트 덮개(.kp-scrim)가 남아 버튼을 가린다. Escape 한 번으로는 안 닫힐 때가 있어
+     닫혔나를 기다린다 (2026-09-05 실측: 덮개가 버튼 위에 있어 클릭이 30초 시간 초과) */
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(200);
-  await page.fill('.header-search-input', 'pdf');
-  await page.waitForTimeout(400);
-  const kpValue = await page.$eval('.kp-overlay .kp-input', (el) => el.value).catch(() => null);
-  if (kpValue === null) problems.push('머리띠 검색칸에 쳤는데 팔레트가 안 뜬다. 넘기기가 끊겼다');
-  else if (kpValue !== 'pdf') problems.push(`팔레트가 ${kpValue}를 받았다. 친 글자(pdf)를 그대로 이어받아야 한다`);
-  const headerValue = await page.$eval('.header-search-input', (el) => el.value);
-  if (headerValue) problems.push(`넘긴 뒤에도 머리띠 칸에 ${headerValue}가 남아 있다. 목록이 두 벌로 보인다`);
+  await page.evaluate(() => window.KarmoPalette?.close?.());
+  await page.waitForSelector('.kp-scrim', { state: 'detached', timeout: 3000 }).catch(() => null);
+  await searchBtn.click();
+  await page.waitForSelector('.kp-overlay .kp-input', { timeout: 5000 }).catch(() => null);
+  const kpOpen = await page.$('.kp-overlay .kp-input');
+  if (!kpOpen) problems.push('머리띠 검색 버튼을 눌렀는데 팔레트가 안 뜬다');
+  else {
+    await page.keyboard.type('pdf');
+    await page.waitForTimeout(400);
+    const kpValue = await page.$eval('.kp-overlay .kp-input', (el) => el.value).catch(() => null);
+    if (kpValue !== 'pdf') problems.push(`팔레트가 ${kpValue}를 받았다. 버튼을 누른 뒤 친 글자(pdf)가 그대로 들어가야 한다`);
+  }
   await page.keyboard.press('Escape');
   await page.waitForTimeout(200);
 }

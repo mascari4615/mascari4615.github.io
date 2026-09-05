@@ -106,12 +106,13 @@ const deg = parseFloat((v.__armR.match(/rotate\((-?[\d.]+)deg\)/) || [])[1] || '
 note(Math.abs(deg) > 25, `환호인데 오른팔이 ${deg}도밖에 안 올라갔다`);
 
 /* ⑤ 설정이 화면에 먹는다 */
+/* ★ 잴 때 `zoom` 에 속지 마라. 셸이 넓은 화면에서 `html` 에 zoom 을 건다 (1280 에서 0.89, 2026-09-05 실측).
+   getBoundingClientRect 는 zoom 이 먹은 값이라 240 이 214 로 읽힌다. 설정값은 CSS px 이므로 offsetWidth 로 */
 const charBox = () => page.evaluate(() => {
   const c = document.querySelector('.mdd-container');
   const ch = document.querySelector('.mdd-char');
   const av = document.querySelector('.mdd-av');
-  const r = ch.getBoundingClientRect();
-  return { display: getComputedStyle(c).display, w: Math.round(r.width), h: Math.round(r.height),
+  return { display: getComputedStyle(c).display, w: ch.offsetWidth, h: ch.offsetHeight,
            opacity: getComputedStyle(ch).opacity, aspect: av ? av.style.aspectRatio : '' };
 });
 await page.evaluate("Mdd.setMood('idle')");
@@ -153,9 +154,11 @@ await page.evaluate('Mdd.setPrefs({ motion: true })');
 
 /* ⑦ 끌어다 놓으면 벽에 붙고, 새로고침해도 그 벽 */
 const wallGap = () => page.evaluate(() => {
+  /* 벽 여백 16 은 CSS px. zoom 이 걸린 화면에서는 rect 를 zoom 으로 되돌려 잰다 (위 charBox 와 같은 까닭) */
+  const z = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
   const r = document.querySelector('.mdd-container').getBoundingClientRect();
-  return { left: Math.round(r.left), top: Math.round(r.top),
-           right: Math.round(innerWidth - r.right), bottom: Math.round(innerHeight - r.bottom) };
+  return { left: Math.round(r.left / z), top: Math.round(r.top / z),
+           right: Math.round(innerWidth / z - r.right / z), bottom: Math.round(innerHeight / z - r.bottom / z) };
 });
 const dragTo = async (x, y) => {
   const b = await page.locator('.mdd-char').boundingBox();
