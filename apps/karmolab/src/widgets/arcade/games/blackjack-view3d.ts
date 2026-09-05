@@ -191,6 +191,10 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
         '<button type="button" class="ac-bjbtn' + (ghost ? ' ac-ghost' : '') + '" data-do="' + kind + '"' +
         data + (on ? '' : ' disabled') + '>' + esc(label) + '</button>';
 
+      /* 지난 판돈은 분기 밖에서 기록. 분기 안 `else if (me.bet > 0)` 가 insure, play 를 먹어 히트, 스탠드 미표시 (2D 와 같은 버그, 2026-09-05) */
+
+      if (me && me.bet > 0) lastBet = me.bet;
+
       if (me && !s.over) {
         if (s.phase === 'bet') {
           acts = BETS.map((b) =>
@@ -216,8 +220,6 @@ export const view3d: GameView<BlackjackState, BlackjackAction> = {
               true,
               ' data-n="' + (me.trioBet > 0 ? '0' : '1') + '"'
             );
-        } else if (me.bet > 0) {
-          lastBet = me.bet;
         } else if (s.phase === 'insure') {
           const half = Math.floor(me.bet / 2);
           acts =

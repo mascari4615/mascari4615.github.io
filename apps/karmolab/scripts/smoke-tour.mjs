@@ -28,6 +28,12 @@ const fail = [];
 const br = await chromium.launch();
 const p = await (await br.newContext()).newPage();
 await p.route('**/__dev', (r) => r.abort());
+/* 창이 죽었다만 남으면 못 고침 (2026-09-05 실측: 5판에서 한 번). 죽기 전 말을 모아 둠 */
+const pageNotes = [];
+p.on('pageerror', (e) => pageNotes.push('스크립트 오류: ' + String(e.message || e).slice(0, 160)));
+p.on('crash', () => pageNotes.push('렌더러가 죽었다 (crash)'));
+p.on('close', () => pageNotes.push('창이 닫혔다 (close)'));
+p.on('framenavigated', (f) => { if (f === p.mainFrame()) pageNotes.push('주소가 바뀌었다: ' + f.url().slice(-60)); });
 /* ★ **시계를 우리가 쥔다** (2026-08-17 실측). 놀이마다 제 시간 제한이 있고 가장 긴 것은
    스도쿠 **300초**, 지뢰찾기 180초다. 아무 단추나 누르는 이 손으로는 스도쿠가 풀릴 리 없으니,
    그런 판은 **제 시간이 다 돼야** 끝난다. 한 판 150초로 자르면 그 놀이가 뽑히는 순간 무조건 빨강이고,
@@ -36,7 +42,10 @@ await p.route('**/__dev', (r) => r.abort());
 await p.clock.install();
 await p.goto(URL, { waitUntil: 'domcontentloaded' });
 await p.waitForFunction(() => typeof Toolbox !== 'undefined' && !!Toolbox.switchPage, null, { timeout: 30000 });
-await p.evaluate(() => Toolbox.switchPage('arcade'));
+/* 2D 로 열기 (2026-09-05). 이 손은 `#acView button` 만 누르는데 입체 판(기억 등)은 카드가 캔버스라 버튼 없음
+   5판에 기억이 뽑히면 내 차례에서 누를 게 없어 영영 안 끝남 (실측: turn 0, 카드 0/24, 버튼 0)
+   재는 것은 판이 이어지는가. 입체 입력 아님. 자판 검사(smoke-arcade-keys)와 같은 결정 */
+await p.evaluate(() => { localStorage.setItem('karmolab.arcade.dim', '2d'); Toolbox.switchPage('arcade'); });
 await p.waitForSelector('#acTour', { timeout: 20000 });
 await p.click('#acTour');
 
@@ -135,11 +144,13 @@ for (let i = 1; i <= ROUNDS; i++) {
            내 자리에서 같은 자리는 5/5판이다. 그렇다면 그 판은 대회가 **닫힌 뒤**였다는 뜻이다
            (누가 흐름 단추를 눌렀거나 대회가 먼저 끝났거나). 그 둘은 고치는 곳이 다르므로 갈라야 한다. */
         tournament: window.__arcade?.tour ? `${window.__arcade.tour.at + 1}/${window.__arcade.tour.games?.length ?? '?'}판` : '없음(대회가 닫혔다)',
+        /* 놀이 상태의 낯익은 칸들. 있는 것만 찍힘. 멈춘 자리는 이름만으로 못 짚음 (2026-09-05 블랙잭, 기억) */
+        state: (() => { const st = window.__arcade?.state || {}; const pick = {}; for (const k of ['phase', 'hand', 'turn', 'up', 'hideAt', 'over', 'round', 'winner']) if (k in st) pick[k] = st[k]; if (Array.isArray(st.taken)) pick.taken = st.taken.filter(Boolean).length + '/' + st.taken.length; pick.enabledButtons = document.querySelectorAll('#acView button:not([disabled])').length; return JSON.stringify(pick); })(),
       }))
-      .catch(() => ({ game2: '(창이 죽었다)', isDone: false, text: '', now: null, onEnd: null }));
+      .catch(() => ({ game2: '(창이 죽었다) ' + (pageNotes.slice(-4).join(' | ') || '남긴 말 없음'), isDone: false, text: '', now: null, onEnd: null }));
     fail.push(
-      `${i}판이 안 끝났다. game ${stopped.game}, 끝남표시 ${stopped.isDone ? '있음' : '없음'}, 화면: ${stopped.text}`
-        + `, tournament ${stopped.tournament}, 창 시계 ${stopped.now}ms, 이 판이 끝날 시각 ${stopped.onEnd ?? '(그 놀이는 시간 제한이 없다)'}`
+      `${i}판이 안 끝났다. game ${stopped.game2}, 끝남표시 ${stopped.isDone ? '있음' : '없음'}, 화면: ${stopped.text}`
+        + `, tournament ${stopped.tournament}, 창 시계 ${stopped.now}ms, 이 판이 끝날 시각 ${stopped.onEnd ?? '(그 놀이는 시간 제한이 없다)'}, 상태 ${stopped.state ?? ''}`
         + ` (실제로 기다린 시간 ${WAIT_MS / 1000}초 + 감은 시간 ${Math.round(toWrap / 1000)}초 + 누른 횟수 ${Math.round(toWrap / shard)}회+)`
     );
     break;
@@ -162,7 +173,9 @@ for (let i = 1; i <= ROUNDS; i++) {
   if (i === ROUNDS && !st.again.includes('끝')) fail.push(`마지막 판인데 단추가 tournament 끝이 아니다: ${st.again}`);
 
   if (i < ROUNDS) {
-    await p.click('#acAgain');
+    /* 방 채움 배치에서 결과 버튼이 화면 맨 아래 걸쳐 Playwright 가 시야 밖으로 봄 (자판 검사의 그만과 같은 꼴, 2026-09-05 실측)
+     재는 것은 판이 이어지는가. 버튼 자리 아님. 못 누르면 코드로 */
+  await p.click('#acAgain', { timeout: 3000 }).catch(() => p.evaluate(() => document.querySelector('#acAgain')?.click()));
     await p.waitForTimeout(4000);
   }
 }

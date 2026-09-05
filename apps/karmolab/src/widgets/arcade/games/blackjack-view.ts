@@ -279,6 +279,9 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
       let bar = '';
       let hint = '';
       can = { hit: false, stand: false };
+      /* 지난 판돈은 분기 밖에서 기록. 분기 안 `else if (me.bet > 0)` (b27f4a58cc) 가 건 뒤의 insure, play 를 먹어
+         히트, 스탠드 버튼 미표시. 둘러보기 검사가 블랙잭에서 멈추던 원인 (2026-09-05 실측: play 단계, 내 손 2장, 버튼 0) */
+      if (me && me.bet > 0) lastBet = me.bet;
       if (me && !s.over) {
         if (s.phase === 'bet') {
           /* 지난 판돈 다시 걸기. 디지털 블랙잭 관례(레퍼런스 실측) */
@@ -302,8 +305,6 @@ export const blackjackView: GameView<BlackjackState, BlackjackAction> = {
             esc(me.trioBet > 0
               ? t('arcade.blackjack.trioCancel', { n: String(TRIO_BET) })
               : t('arcade.blackjack.trioBet', { n: String(TRIO_BET) })) + '</button>';
-        } else if (me.bet > 0) {
-          lastBet = me.bet;
         } else if (s.phase === 'insure') {
           const half = Math.floor(me.bet / 2);
           bar =
