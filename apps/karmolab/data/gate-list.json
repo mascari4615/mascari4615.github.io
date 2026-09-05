@@ -179,7 +179,6 @@
         "data/gate-list.json"
       ]
     },
-    "test:daily:rollover",
     "test:compare",
     "test:mcp",
     "test:bundles",
