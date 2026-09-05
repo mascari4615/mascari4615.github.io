@@ -122,6 +122,8 @@ import { simon } from './games/simon';
 import { simonView } from './games/simon-view';
 import { sudoku } from './games/sudoku';
 import { sudokuView } from './games/sudoku-view';
+import { worldcup } from './games/worldcup';
+import { worldcupView } from './games/worldcup-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface CatalogEntry {
@@ -186,5 +188,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: minesweeper, view: minesweeperView, icon: '💣', kind: 'puzzle' , hidden: true },
   { def: onestroke, view: onestrokeView, icon: '✏️', kind: 'puzzle' , hidden: true },
   { def: simon, view: simonView, icon: '🎵', kind: 'puzzle' , hidden: true },
-  { def: sudoku, view: sudokuView, icon: '🔢', kind: 'puzzle' , hidden: true }
+  { def: sudoku, view: sudokuView, icon: '🔢', kind: 'puzzle' , hidden: true },
+  /* 놀이에서 옮겨 온 첫 판 (change.arcade-absorbs-play). 정답이 없는 판. 혼자가 기본, 둘이면 길을 견준다 */
+  { def: worldcup, view: worldcupView, icon: '👑', kind: 'quick' }
 ];

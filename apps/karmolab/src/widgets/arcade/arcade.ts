@@ -1096,7 +1096,8 @@ interface Session {
           session.ended = true;
           if (online.connection?.host && match) online.connection.say({ kind: 'result', moves: match.moves, ms: match.clock() });
           v.seats.forEach((sq, i) => { if (i !== mySeat) mdd.cutIn(i, sq.score === top ? 'win' : 'lose'); });
-          const draw = win.length === v.seats.length;
+          /* 혼자 앉은 판(솔리테어, 월드컵)은 비길 상대가 없다. 자리 하나면 비김이 아니라 끝낸 것 */
+          const draw = v.seats.length > 1 && win.length === v.seats.length;
           const mine = watching ? NaN : (v.seats[mySeat]?.score ?? 0);
           say(
             draw ? t('arcade.result.draw') : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
