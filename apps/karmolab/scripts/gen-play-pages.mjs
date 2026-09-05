@@ -127,8 +127,19 @@ function jsonLdBlock(game, text, permalink) {
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
     ...(fs.existsSync(path.join(root, card)) ? { image: `${SITE}/apps/karmolab/${card}` } : {}),
   };
+  /* 빵부스러기. 본문의 tool-crumb 와 같은 셋. 도구 장에는 있었고 놀이 장에는 없었다 (2026-09-05) */
+  const crumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: '놀이터', item: `${SITE}/play/` },
+      { '@type': 'ListItem', position: 3, name: game.title, item: `${SITE}${permalink}` }
+    ]
+  };
   return `
-<script type="application/ld+json">${JSON.stringify(ld)}</script>`;
+<script type="application/ld+json">${JSON.stringify(ld)}</script>
+<script type="application/ld+json">${JSON.stringify(crumb)}</script>`;
 }
 
 let made = 0;
