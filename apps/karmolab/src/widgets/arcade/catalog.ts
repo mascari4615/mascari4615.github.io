@@ -134,6 +134,8 @@ import { dailycho } from './games/dailycho';
 import { dailychoView } from './games/dailycho-view';
 import { quest } from './games/quest';
 import { questView } from './games/quest-view';
+import { daily } from './games/daily';
+import { dailyView } from './games/daily-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface CatalogEntry {
@@ -206,5 +208,6 @@ export const CATALOG: CatalogEntry[] = [
   { def: higher, view: higherView, icon: '📈', kind: 'quick' },
   { def: ghosttype, view: ghosttypeView, icon: '👻', kind: 'quick' },
   { def: dailycho, view: dailychoView, icon: '🔤', kind: 'puzzle' },
-  { def: quest, view: questView, icon: '🧩', kind: 'puzzle' }
+  { def: quest, view: questView, icon: '🧩', kind: 'puzzle' },
+  { def: daily, view: dailyView, icon: '🎯', kind: 'puzzle' }
 ];

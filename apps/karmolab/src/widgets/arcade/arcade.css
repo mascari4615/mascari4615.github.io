@@ -1274,3 +1274,30 @@
 .ac-qsrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
 .ac-qsin{flex:1;min-width:10em;max-width:20em}
 .ac-qsslot{margin:var(--space-md) 0;border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-md);text-align:left}
+/* ── 오늘의 하나 맞히기 (change.arcade-absorbs-play). 속성 표, 실루엣, 전부대기, 격자판 ── */
+.ac-dyboard{flex:1;min-height:0;overflow:auto;margin-bottom:var(--space-md)}
+.ac-dyrow{display:flex;gap:4px;align-items:stretch;margin-bottom:4px}
+.ac-dyhead{color:var(--text-tertiary);font-size:var(--font-size-xs)}
+.ac-dyname{flex:0 0 7em;display:flex;align-items:center;padding:4px 8px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-dyf{flex:1;text-align:center;padding:2px 4px}
+.ac-dyc{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px 4px;border-radius:var(--radius-md);font-size:var(--font-size-xs);border:1px solid var(--border);word-break:break-all}
+.ac-dy-exact{background:color-mix(in srgb,var(--success) 28%,var(--bg-secondary));border-color:var(--success)}
+.ac-dy-near{background:color-mix(in srgb,var(--warning) 28%,var(--bg-secondary));border-color:var(--warning)}
+.ac-dy-wrong{background:var(--bg-secondary)}
+.ac-dysil{text-align:center;margin-bottom:var(--space-md)}
+.ac-dysil img{max-height:34vh;max-width:100%;object-fit:contain;transition:filter .3s ease}
+.ac-dyq{font-size:var(--font-size-md);font-weight:700;text-align:center;margin:0 0 var(--space-md)}
+.ac-dyfound{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ac-dyfound span{padding:4px 10px;border:1px solid var(--success);border-radius:var(--radius-pill);font-size:var(--font-size-xs)}
+.ac-dygrid{margin:0 auto;border-collapse:collapse}
+.ac-dygrid th{padding:6px 8px;font-size:var(--font-size-xs);color:var(--text-secondary);font-weight:600}
+.ac-dygrid td{padding:3px}
+.ac-dycell{width:9em;height:3.4em;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-secondary);color:inherit;font:inherit;font-size:var(--font-size-xs);cursor:pointer;word-break:break-all}
+.ac-dycell.ac-dyon{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--bg-secondary))}
+.ac-dycell.ac-dyfill{border-color:var(--success);background:color-mix(in srgb,var(--success) 20%,var(--bg-secondary));cursor:default}
+.ac-dysug{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px;min-height:1.8em}
+.ac-dysugb{padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-pill);background:var(--bg-secondary);color:inherit;font:inherit;font-size:var(--font-size-xs);cursor:pointer}
+.ac-dysugb:hover{border-color:var(--accent)}
+/* 입력 줄의 버튼은 늘어나지 않는다. 줄바꿈되면 통짜로 퍼져 보인다 (실측) */
+.ac-qsrow .btn{flex:0 0 auto}
+.ac-dy .ac-dyboard{display:flex;flex-direction:column;justify-content:flex-start}

@@ -462,5 +462,13 @@
     "defVar": "quest",
     "viewVar": "questView",
     "d3": false
+  },
+  {
+    "id": "daily",
+    "chunk": "daily",
+    "view": "daily-view",
+    "defVar": "daily",
+    "viewVar": "dailyView",
+    "d3": false
   }
 ]

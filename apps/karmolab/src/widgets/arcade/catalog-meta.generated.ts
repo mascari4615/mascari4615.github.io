@@ -78,7 +78,8 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'higher', icon: '📈', kind: 'quick', seats: [1, 4], realtime: false, chunk: 'higher' },
   { id: 'ghosttype', icon: '👻', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'ghosttype' },
   { id: 'dailycho', icon: '🔤', kind: 'puzzle', seats: [1, 4], realtime: false, chunk: 'dailycho' },
-  { id: 'quest', icon: '🧩', kind: 'puzzle', seats: [1, 4], realtime: false, chunk: 'quest' }
+  { id: 'quest', icon: '🧩', kind: 'puzzle', seats: [1, 4], realtime: false, chunk: 'quest' },
+  { id: 'daily', icon: '🎯', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'daily' }
 ];
 
 /** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */
