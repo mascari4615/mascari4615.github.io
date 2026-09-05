@@ -60,7 +60,7 @@ import { t, loadNamespace } from '../lib/i18n';
         border-radius:var(--radius-sm); padding:9px 11px; }
       .lap-v-k { font-size:.72rem; color:var(--text-tertiary); }
       .lap-v-v { font-size:1.15rem; font-variant-numeric:tabular-nums; color:var(--text-primary); }
-      .lap-v.warn .lap-v-v { color:var(--warning, #e8a33d); }
+      .lap-v.warn .lap-v-v { color:var(--warning); }
       .lap-v.bad .lap-v-v { color:var(--error); }
       .lap-key { display:flex; gap:8px; margin-top:12px; }
       .lap-key input { flex:1; min-width:0; background:var(--bg-secondary); color:var(--text-primary);
