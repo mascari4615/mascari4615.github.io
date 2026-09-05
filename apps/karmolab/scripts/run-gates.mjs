@@ -223,8 +223,21 @@ function runGate(gate) {
        한 덩이로 낸다(머리글 + 그 검사의 output). */
     child.stdout.on('data', (c) => { collected.push(String(c)); collect(c); });
     child.stderr.on('data', (c) => { collected.push(String(c)); collect(c); });
-    child.on('error', (error) => resolve({ status: null, error, tail, output: collected.join('') }));
-    child.on('close', (status) => resolve({ status, error: null, tail, output: collected.join('') }));
+    /* ★ **한 검사가 걸리면 판이 통째로 죽는다.** verify:live 에는 검사마다 바깥 상한(12분)이 있는데
+       여기엔 없었다. 2026-09-05 실측: 자판 검사가 제 도우미를 재귀로 부르며 40분 CPU 100% 로 멈췄고,
+       이 실행기였다면 워크플로 상한까지 전원이 기다렸다. 넘기면 끊고 못 돌림(2)으로 센다. 빨강이 아니라
+       판정 없음이다. 왜 걸렸는지는 그 검사의 마지막 줄에 있다. 윈도우는 shell 로 띄운 손자까지 트리로 죽인다 */
+    let timedOut = false;
+    const limitMs = Number(process.env.KL_GATE_TIMEOUT_MS || 12 * 60 * 1000);
+    const timer = setTimeout(() => {
+      timedOut = true;
+      const note = `⏱ ${Math.round(limitMs / 60000)}분을 넘겨 끊었다. 이 검사는 걸렸다 (못 돌림으로 센다). 마지막 줄을 봐라`;
+      collected.push(note + String.fromCharCode(10)); collect(note);
+      if (process.platform === 'win32') { try { execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' }); } catch { /* 이미 죽음 */ } }
+      else { try { child.kill('SIGKILL'); } catch { /* 이미 죽음 */ } }
+    }, limitMs);
+    child.on('error', (error) => { clearTimeout(timer); resolve({ status: null, error, tail, output: collected.join('') }); });
+    child.on('close', (status) => { clearTimeout(timer); resolve({ status: timedOut ? 2 : status, error: null, tail, output: collected.join('') }); });
   });
 }
 
