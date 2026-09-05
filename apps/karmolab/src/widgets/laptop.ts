@@ -25,6 +25,7 @@ import { t, loadNamespace } from '../lib/i18n';
     // 파일: Files 앱 내 PC 탭. 옛 laptop-ops HTML 화면은 2026-09-03 제거
     { href: 'https://files.mascari4615.com/#laptop/', icon: '📁', title: t('laptop.t03'), desc: t('laptop.t04') },
     { href: `${BASE}/builds`, icon: '🧱', title: t('laptop.t05'), desc: t('laptop.t06') },
+    { href: `${BASE}/pc`, icon: '📈', title: t('laptop.t14'), desc: t('laptop.t15') },
     { href: BASE, icon: '🏠', title: t('laptop.t07'), desc: t('laptop.t08') },
   ];
 
@@ -54,6 +55,20 @@ import { t, loadNamespace } from '../lib/i18n';
       .lap-door-icon { font-size:1.5rem; flex:0 0 auto; }
       .lap-door-title { font-size:.98rem; color:var(--text-primary); }
       .lap-door-desc { font-size:.8rem; color:var(--text-tertiary); margin-top:3px; line-height:1.5; }
+      .lap-vitals { display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px; margin-top:12px; }
+      .lap-v { background:var(--bg-secondary); border:1px solid var(--border, var(--border));
+        border-radius:var(--radius-sm); padding:9px 11px; }
+      .lap-v-k { font-size:.72rem; color:var(--text-tertiary); }
+      .lap-v-v { font-size:1.15rem; font-variant-numeric:tabular-nums; color:var(--text-primary); }
+      .lap-v.warn .lap-v-v { color:var(--warning, #e8a33d); }
+      .lap-v.bad .lap-v-v { color:var(--error); }
+      .lap-key { display:flex; gap:8px; margin-top:12px; }
+      .lap-key input { flex:1; min-width:0; background:var(--bg-secondary); color:var(--text-primary);
+        border:1px solid var(--border, var(--border)); border-radius:var(--radius-sm); padding:7px 10px; font-size:.85rem; }
+      .lap-key button { background:none; border:1px solid var(--border, var(--border)); color:var(--text-tertiary);
+        border-radius:var(--radius-sm); padding:7px 12px; font-size:.8rem; cursor:pointer; }
+      .lap-key button:hover { color:var(--text-primary); }
+      .lap-why { font-size:.78rem; color:var(--text-tertiary); margin-top:8px; }
       .lap-note { margin-top:14px; font-size:.78rem; color:var(--text-tertiary); line-height:1.6; }
     `;
     document.head.appendChild(style);
@@ -94,6 +109,13 @@ import { t, loadNamespace } from '../lib/i18n';
                 </a>`
               ).join('')}
             </div>
+            <div class="lap-vitals" id="lapVitals" hidden></div>
+            <div class="lap-key">
+              <input type="password" id="lapKey" autocomplete="off" placeholder="${esc(t('laptop.t16'))}">
+              <button type="button" id="lapShow">${esc(t('laptop.t17'))}</button>
+              <button type="button" id="lapForget" hidden>${esc(t('laptop.t18'))}</button>
+            </div>
+            <p class="lap-why" id="lapWhy"></p>
             <p class="lap-note">${esc(t('laptop.t01'))}<br>
             ${esc(t('laptop.t02'))}</p>`;
 
@@ -127,8 +149,97 @@ import { t, loadNamespace } from '../lib/i18n';
             }
           }
 
-          again.addEventListener('click', () => void check());
+          const vitalsBox = container.querySelector('#lapVitals') as HTMLElement;
+          const keyInput = container.querySelector('#lapKey') as HTMLInputElement;
+          const showBtn = container.querySelector('#lapShow') as HTMLButtonElement;
+          const forgetBtn = container.querySelector('#lapForget') as HTMLButtonElement;
+          const why = container.querySelector('#lapWhy') as HTMLElement;
+
+          /* ★ 열쇠는 <b>이 브라우저에만</b> 산다. 저장소에 담으면 공개 사이트에 열쇠를 두는 꼴
+             (이 파일 맨 위 원칙). localStorage 는 이 기기 밖으로 안 나가고 서버도 못 읽는다.
+             막힌 브라우저와 시크릿 창에서는 읽기 자체가 던지므로 감싼다. */
+          const KEY_AT = 'laptop.pc.key';
+          const keepKey = (v: string): void => { try { localStorage.setItem(KEY_AT, v); } catch { /* 막힌 브라우저 */ } };
+          const savedKey = (): string => { try { return localStorage.getItem(KEY_AT) ?? ''; } catch { return ''; } };
+          const dropKey = (): void => { try { localStorage.removeItem(KEY_AT); } catch { /* 막힌 브라우저 */ } };
+
+          type Now = {
+            cpuPct?: number; usedPct?: number; netRecvKBs?: number;
+            disks?: { drive: string; usedPct: number }[]; verdict?: string;
+          };
+
+          /** -1 은 못 잰 값 — 0 과 구분한다. 0% 는 한가했다는 뜻이라 섞으면 거짓이 된다. */
+          const shown = (v: number | undefined): string =>
+            typeof v === 'number' && v >= 0 ? `${v}%` : '?';
+
+          const level = (v: number | undefined): string =>
+            typeof v !== 'number' || v < 0 ? '' : v >= 92 ? ' bad' : v >= 80 ? ' warn' : '';
+
+          const cell = (k: string, v: string, cls = ''): string =>
+            `<div class="lap-v${cls}"><div class="lap-v-k">${esc(k)}</div><div class="lap-v-v">${esc(v)}</div></div>`;
+
+          function paint(now: Now): void {
+            const worstDisk = (now.disks ?? []).reduce<{ drive: string; usedPct: number } | undefined>(
+              (worst, one) => (worst === undefined || one.usedPct > worst.usedPct ? one : worst),
+              undefined
+            );
+            const recv = typeof now.netRecvKBs === 'number' && now.netRecvKBs >= 0
+              ? (now.netRecvKBs >= 1024 ? `${(now.netRecvKBs / 1024).toFixed(1)} MB/s` : `${now.netRecvKBs} KB/s`)
+              : '?';
+
+            vitalsBox.innerHTML =
+              cell(t('laptop.g.cpu'), shown(now.cpuPct), level(now.cpuPct)) +
+              cell(t('laptop.g.mem'), shown(now.usedPct), level(now.usedPct)) +
+              (worstDisk === undefined
+                ? ''
+                : cell(`${worstDisk.drive} ${t('laptop.g.disk')}`, shown(worstDisk.usedPct), level(worstDisk.usedPct))) +
+              cell(t('laptop.g.net'), recv);
+            vitalsBox.hidden = false;
+            why.textContent = now.verdict ?? '';
+          }
+
+          async function readVitals(pw: string): Promise<void> {
+            why.textContent = '';
+            try {
+              const res = await fetch(`${BASE}/pc/api?k=${encodeURIComponent(pw)}&lines=1`, {
+                cache: 'no-store',
+                signal: AbortSignal.timeout(15000),
+              });
+              if (res.status === 401) { why.textContent = t('laptop.t19'); return; }
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              const body = (await res.json()) as { ok?: boolean; now?: Now };
+              if (body.ok !== true || body.now === undefined) { why.textContent = t('laptop.t20'); return; }
+              keepKey(pw);
+              forgetBtn.hidden = false;
+              paint(body.now);
+            } catch (e) {
+              why.textContent = (e as Error).message;
+            }
+          }
+
+          showBtn.addEventListener('click', () => {
+            const pw = keyInput.value.trim();
+            if (pw !== '') void readVitals(pw);
+          });
+          keyInput.addEventListener('keydown', (ev) => {
+            if ((ev as KeyboardEvent).key === 'Enter') showBtn.click();
+          });
+          forgetBtn.addEventListener('click', () => {
+            dropKey();
+            keyInput.value = '';
+            vitalsBox.hidden = true;
+            forgetBtn.hidden = true;
+            why.textContent = '';
+          });
+
+          again.addEventListener('click', () => {
+            void check();
+            const pw = savedKey();
+            if (pw !== '') void readVitals(pw);
+          });
           void check();
+          const already = savedKey();
+          if (already !== '') { keyInput.value = already; forgetBtn.hidden = false; void readVitals(already); }
                   });
         },
       },

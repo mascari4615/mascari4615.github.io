@@ -14,5 +14,17 @@
   "laptop.t12": "not reachable right now",
   "laptop.t13": "no answer (it may be asleep)",
   "laptop.pingResult": "{ms}ms, {version}",
-  "laptop.unknownVersion": "version unknown"
+  "laptop.unknownVersion": "version unknown",
+  "laptop.t14": "This PC",
+  "laptop.t15": "CPU, memory, disk, network. Gauges and a month of history",
+  "laptop.t16": "Laptop password, to see gauges right here",
+  "laptop.t17": "Show",
+  "laptop.t18": "Forget",
+  "laptop.t19": "Wrong password",
+  "laptop.t20": "No values came back",
+  "laptop.t21": "unknown",
+  "laptop.g.cpu": "CPU",
+  "laptop.g.mem": "Memory",
+  "laptop.g.disk": "Disk",
+  "laptop.g.net": "Download"
 }

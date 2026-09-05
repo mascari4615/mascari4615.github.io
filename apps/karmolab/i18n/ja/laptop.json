@@ -14,5 +14,17 @@
   "laptop.t12": "いまはつかまらない",
   "laptop.t13": "返事がない (眠っているかもしれない)",
   "laptop.pingResult": "{ms}ms, {version}",
-  "laptop.unknownVersion": "バージョン不明"
+  "laptop.unknownVersion": "バージョン不明",
+  "laptop.t14": "このPCの状態",
+  "laptop.t15": "CPU、メモリ、ディスク、ネットワーク。計器と1か月分の推移",
+  "laptop.t16": "ここで計器を見るにはノートPCのパスワード",
+  "laptop.t17": "見る",
+  "laptop.t18": "消す",
+  "laptop.t19": "パスワードが違う",
+  "laptop.t20": "値を受け取れなかった",
+  "laptop.t21": "不明",
+  "laptop.g.cpu": "CPU",
+  "laptop.g.mem": "メモリ",
+  "laptop.g.disk": "ディスク",
+  "laptop.g.net": "受信速度"
 }

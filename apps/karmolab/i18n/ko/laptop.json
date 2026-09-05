@@ -14,5 +14,17 @@
   "laptop.t12": "지금은 안 잡힌다",
   "laptop.t13": "답이 없다 (자는 중일 수 있다)",
   "laptop.pingResult": "{ms}ms, {version}",
-  "laptop.unknownVersion": "버전 모름"
+  "laptop.unknownVersion": "버전 모름",
+  "laptop.t14": "이 PC 상태",
+  "laptop.t15": "CPU, 메모리, 디스크, 네트워크. 계기와 한 달치 추세",
+  "laptop.t16": "계기를 여기서 바로 보려면 노트북 비밀번호",
+  "laptop.t17": "보기",
+  "laptop.t18": "지운다",
+  "laptop.t19": "비밀번호가 틀렸다",
+  "laptop.t20": "값을 못 받았다",
+  "laptop.t21": "모름",
+  "laptop.g.cpu": "CPU",
+  "laptop.g.mem": "메모리",
+  "laptop.g.disk": "디스크",
+  "laptop.g.net": "받는 속도"
 }
