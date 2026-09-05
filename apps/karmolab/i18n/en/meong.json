@@ -26,5 +26,16 @@
   "meong.choice.grid.9": "9",
   "meong.choice.grid.13": "13",
   "meong.choice.grid.17": "17",
-  "meong.choice.grid.21": "21"
+  "meong.choice.grid.21": "21",
+  "meong.speed": "Speed",
+  "meong.piece.life": "Life grid",
+  "meong.piece.rd": "Reaction-diffusion",
+  "meong.piece.pl": "Particle life",
+  "meong.piece.ph": "Physarum",
+  "meong.piece.ce": "Cyclic ecosystem",
+  "meong.piece.st": "Sand terrarium",
+  "meong.piece.bd": "Boids",
+  "meong.piece.ln": "Lenia",
+  "meong.piece.nc": "Neural CA",
+  "meong.piece.ev": "Evolution"
 }

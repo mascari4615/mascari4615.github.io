@@ -472,7 +472,7 @@
     "test:wcag": "node scripts/smoke-wcag22.mjs",
     "test:when": "node scripts/test-when.mjs",
     "test:widget-i18n": "node scripts/smoke-widget-i18n.mjs",
-    "test:widget-idle": "node scripts/smoke-widget-idle.mjs garden particle bluemarble servermonitor activity chat imageedit arcade",
+    "test:widget-idle": "node scripts/smoke-widget-idle.mjs meong particle bluemarble servermonitor activity chat imageedit arcade",
     "test:widgets-alive": "node scripts/smoke-widgets-alive.mjs",
     "test:workdays": "node scripts/test-workdays.mjs",
     "test:works": "node scripts/test-works-list.mjs",

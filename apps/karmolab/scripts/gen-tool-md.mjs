@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 /*
@@ -33,8 +34,7 @@ const outDir = path.resolve(root, '../blog/tmd');
 const SITE = 'https://blog.mascari4615.com';
 
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
-/* operation으로 흡수한 옛 도구는 독립 검색 문서를 만들지 않는다. */
-const RETIRED_OPERATION_IDS = new Set(['slug', 'caseconv', 'linebreak', 'textclean', 'hangulkey', 'jamo', 'replace', 'listdiff', 'charcount', 'wordfreq', 'textdiff', 'textredact', 'text2pdf', 'text2img', 'lorem', 'checklist']);
+/* 다른 도구로 흡수한 옛 도구는 독립 검색 문서를 만들지 않는다. 목록은 lib 한 곳 */
 const ids = Object.keys(seo).filter((id) => !RETIRED_OPERATION_IDS.has(id));
 
 /**

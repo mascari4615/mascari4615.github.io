@@ -3,9 +3,12 @@
  *
  * 사용자: "이런 식으로 뭔가 이쁜것들 멍때리면서 보기 좋은 것들 계속 더 만들건데"
  *
- * 그래서 이건 **작품 한 개가 아니라 자리**다. 껍데기(캔버스, 손잡이, 멈춤, 저장, 전체화면, 
- * 안 보이면 멈추기)는 여기 한 번만 짓고, 작품은 `pieces.ts` 규약만 지키면 파일 하나씩
- * 늘어난다. 두 번째 작품을 만들 때 다시 지을 것이 없어야 실제로 계속 늘어난다.
+ * 그래서 이건 **작품 한 개가 아니라 자리**다. 껍데기(캔버스, 손잡이, 멈춤, 저장, 전체화면,
+ * 안 보이면 멈추기)는 여기 한 번만. 걸리는 것은 `exhibits.ts` 한 줄씩 늘어나는 구조
+ *
+ * 2026-09-05 에 정원(관찰물 열 개)이 여기로 들어왔다. 정원은 갈래마다 자기 머리글과 단추줄을
+ * 지어, 열 갈래가 한 위젯 안에서 동시에 돌고 손잡이 자리도 제각각이었다. 이제 한 번에 하나만
+ * 서고, 손잡이는 이 화면 하나
  *
  * 화면은 **그림이 주인공**이다. 손잡이는 손을 떼면 사라지고(2.6초), 움직이면 돌아온다.
  * 계기판을 옆에 세워 두면 그림이 설정 미리보기가 되어 버린다. 그건 멍때릴 수 없다.
@@ -14,20 +17,18 @@
  * 그리지도 않는다. 켜 두는 물건이라 이게 배터리 문제로 직결된다.
  */
 import { t, loadNamespace } from '../../lib/i18n';
-import { droste } from './droste';
+import { EXHIBITS, exhibitById, type Exhibit } from './exhibits';
 import { sanitize, type ParamValues, type Piece } from './pieces';
+import type { SimHandle, SimHost } from './sims/sim-host';
 import { download, encode } from '../tools/shared/image';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
 
   const ID = 'meong';
-  const NS = 'meong';
   const STORE = 'karmolab.meong.v1';
   const HINT_SEEN = 'karmolab.meong.hint';
-
-  /** 작품 목록. 늘리는 자리는 여기 한 줄이다. */
-  const PIECES: Piece[] = [droste];
+  const SPEEDS = [0.5, 1, 2, 4];
 
   const meta: Record<string, unknown> = Toolbox.getLazyWidgetPublicMeta
     ? Toolbox.getLazyWidgetPublicMeta(ID)
@@ -50,7 +51,7 @@ import { download, encode } from '../tools/shared/image';
     } catch {
       /* 저장본이 깨졌으면 그냥 기본값으로 시작한다. 여기서 죽으면 화면이 통째로 빈다 */
     }
-    return { piece: PIECES[0].id, seed: Math.random(), params: {} };
+    return { piece: EXHIBITS[0].id, seed: Math.random(), params: {} };
   }
 
   function injectStyles(): void {
@@ -63,7 +64,10 @@ import { download, encode } from '../tools/shared/image';
 /* 밟히는 판인데 outline: none 이라 초점이 안 보이던 자리 (WCAG 2.4.11) */
 .meong-root:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .meong-root:fullscreen { border-radius: 0; }
+/* display 를 준 자리는 hidden 만으로 안 사라진다. 관찰물일 때 그림 손잡이가 그대로 떠 있었다 */
+.meong-root [hidden] { display: none !important; }
 .meong-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.meong-stage { position: absolute; inset: 0; overflow: hidden; }
 .meong-ui { position: absolute; inset: 0; pointer-events: none;
   transition: opacity .45s ease; opacity: 1; }
 .meong-root.is-idle .meong-ui { opacity: 0; }
@@ -82,9 +86,23 @@ import { download, encode } from '../tools/shared/image';
   border: 1px solid rgba(255,255,255,.12); background: rgba(12,14,20,.55);
   color: rgba(255,255,255,.7); backdrop-filter: blur(10px); }
 .meong-chip[aria-pressed="true"] { color: #fff; border-color: rgba(255,255,255,.34); }
+/* 관찰물의 머리글과 사건 문장. 그림 위에 얹히므로 글자만 뜨고 판은 안 뜬다 */
+.meong-head { position: absolute; left: 14px; right: 14px; top: 52px; display: flex; gap: 9px;
+  align-items: baseline; pointer-events: none; text-shadow: 0 1px 12px rgba(0,0,0,.9); }
+.meong-head-name { color: #eef3ff; font-size: var(--font-size-2xs); }
+.meong-head-code, .meong-head-step { color: rgba(210,220,240,.5);
+  font: 11px var(--font-mono, ui-monospace, monospace); }
+.meong-head-step { margin-left: auto; }
+.meong-log { position: absolute; left: 0; right: 0; bottom: 60px; padding: 0 18px;
+  pointer-events: none; text-align: left; }
+.meong-line { display: block; color: #e7ecff; font-size: var(--font-size-xs); line-height: 1.5;
+  text-shadow: 0 1px 12px rgba(0,0,0,.9); opacity: 0; transition: opacity .7s ease; }
+.meong-line.is-show { opacity: 1; }
+.meong-sub { display: block; margin-top: 3px; color: rgba(200,210,235,.42);
+  font: 11px var(--font-mono, ui-monospace, monospace); }
 .meong-panel { position: absolute; right: 14px; top: 14px; width: 232px; pointer-events: auto;
-  padding: 14px; display: none; flex-direction: column; gap: 13px;
-  background: rgba(12,14,20,.72); backdrop-filter: blur(14px);
+  padding: 14px; display: none; flex-direction: column; gap: 13px; max-height: calc(100% - 90px);
+  overflow: auto; background: rgba(12,14,20,.72); backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,.10); border-radius: var(--radius-md, 10px); }
 .meong-panel.is-open { display: flex; }
 .meong-row { display: flex; flex-direction: column; gap: 6px; }
@@ -101,7 +119,7 @@ import { download, encode } from '../tools/shared/image';
 .meong-hint { position: absolute; left: 0; right: 0; bottom: 60px; text-align: center;
   font-size: var(--font-size-3xs); color: rgba(255,255,255,.34); }
 @media (max-width: 620px) { .meong-panel { left: 14px; right: 14px; width: auto; } }
-@media (prefers-reduced-motion: reduce) { .meong-ui { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .meong-ui, .meong-line { transition: none; } }
 `;
     document.head.appendChild(el);
   }
@@ -110,8 +128,9 @@ import { download, encode } from '../tools/shared/image';
     injectStyles();
 
     const saved = loadSaved();
-    let piece = PIECES.find((p) => p.id === saved.piece) ?? PIECES[0];
-    let params: ParamValues = sanitize(piece, saved.params);
+    let exhibit: Exhibit = exhibitById(saved.piece);
+    let piece: Piece | null = exhibit.kind === 'piece' ? exhibit.piece : null;
+    let params: ParamValues = piece ? sanitize(piece, saved.params) : {};
     let seed = typeof saved.seed === 'number' ? saved.seed : Math.random();
 
     const root = document.createElement('div');
@@ -120,7 +139,9 @@ import { download, encode } from '../tools/shared/image';
     const canvas = document.createElement('canvas');
     canvas.className = 'meong-canvas';
     canvas.setAttribute('role', 'img');
-    root.appendChild(canvas);
+    const stage = document.createElement('div');
+    stage.className = 'meong-stage';
+    root.append(canvas, stage);
     const ui = document.createElement('div');
     ui.className = 'meong-ui';
     root.appendChild(ui);
@@ -137,7 +158,10 @@ import { download, encode } from '../tools/shared/image';
     let time = 0;
     let last = 0;
     let running = true;
+    let speed = 1;
     let loop: { stop: () => void } | null = null;
+    /** 지금 선 관찰물. 그림이 서 있으면 null */
+    let sim: SimHandle | null = null;
 
     function fit(): void {
       const rect = root.getBoundingClientRect();
@@ -151,7 +175,7 @@ import { download, encode } from '../tools/shared/image';
     }
 
     function paint(): void {
-      if (!ctx) return;
+      if (!ctx || !piece) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       piece.frame({ ctx, w, h, dpr, time, params, seed });
     }
@@ -165,39 +189,70 @@ import { download, encode } from '../tools/shared/image';
       if (!last) last = now;
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (!onScreen()) return;
-      if (running) time += dt;
+      if (!onScreen() || !piece) return;
+      if (running) time += dt * speed;
       paint();
     }
 
-    fit();
-    root.style.background = piece.bg(params);
+    /* ── 관찰물이 쓰는 껍데기 ──────────────────────────────────────── */
 
-    /** 작품이 고른 첫 장면부터 연다. t=0 이 볼 만하다는 보장이 없다. */
-    function rewind(): void {
-      time = piece.startTime ? piece.startTime(w, h, params) : 0;
-    }
-    rewind();
+    const head = document.createElement('div');
+    head.className = 'meong-head';
+    const headName = document.createElement('span');
+    headName.className = 'meong-head-name';
+    const headCode = document.createElement('span');
+    headCode.className = 'meong-head-code';
+    const headStep = document.createElement('span');
+    headStep.className = 'meong-head-step';
+    head.append(headName, headCode, headStep);
+    const log = document.createElement('div');
+    log.className = 'meong-log';
+    const logLine = document.createElement('span');
+    logLine.className = 'meong-line';
+    const logSub = document.createElement('span');
+    logSub.className = 'meong-sub';
+    log.append(logLine, logSub);
 
-    /* 움직임 줄이기를 켜 둔 사람에게 끝없이 도는 화면을 들이밀지 않는다. 멈춘 채로 열고,
-       보고 싶으면 누르면 된다. 그림 자체는 그대로 한 장 그려 둔다(빈 화면이 아니다). */
-    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (calm) running = false;
+    /** 관찰물이 이번에 얹은 dock 단추와 패널. 갈래를 바꿀 때 걷어 낸다 */
+    let simButtons: HTMLButtonElement[] = [];
+    let simPanels: HTMLElement[] = [];
+    let sayTimer = 0;
 
-    paint();
-    /* 보이는 동안만 돈다 (change.widget-idle-cost). 예전엔 스스로를 다시 걸어서, 다른 화면으로
-       가도 매 프레임 깨어났다 — 할 일은 `onScreen()` 이 걸러 냈지만 깨어나는 것 자체가 값이다
-       (실측: 나온 뒤에도 rAF 120/2초). */
-    loop = Toolbox.raf?.(tick) ?? null;
-
-    const ro = new ResizeObserver(function () {
-      const was = w;
-      fit();
-      // 멈춰 있는 동안 창이 크게 바뀌면 첫 장면 계산이 어긋난다. 그때만 다시 맞춘다.
-      if (!running && Math.abs(w - was) > 1) rewind();
-      if (onScreen()) paint();
-    });
-    ro.observe(root);
+    const host: SimHost = {
+      stage,
+      setName(name: string, code?: string): void {
+        headName.textContent = name;
+        headCode.textContent = code ?? '';
+      },
+      setStep(text: string): void {
+        headStep.textContent = text;
+      },
+      say(line: string, hintText?: string): void {
+        logLine.classList.remove('is-show');
+        window.clearTimeout(sayTimer);
+        sayTimer = window.setTimeout(function () {
+          logLine.textContent = line;
+          logLine.classList.add('is-show');
+        }, 220);
+        logSub.textContent = hintText ?? '';
+      },
+      action(key: string, glyph: string, label: string, fn: () => void): void {
+        const b = iconBtn(glyph, label, fn);
+        b.dataset.simAction = key;
+        dock.insertBefore(b, panelBtn);
+        simButtons.push(b);
+      },
+      panel(el: HTMLElement): void {
+        simPanels.push(el);
+        panel.appendChild(el);
+      },
+      running(): boolean {
+        return running && onScreen();
+      },
+      speed(): number {
+        return speed;
+      }
+    };
 
     /* ── 손잡이가 사라지고 돌아오는 것 ──────────────────────────────── */
 
@@ -212,28 +267,304 @@ import { download, encode } from '../tools/shared/image';
     }
     root.addEventListener('pointermove', wake);
     root.addEventListener('pointerdown', wake);
-    wake();
 
     /* ── 저장 ──────────────────────────────────────────────────────── */
 
     function persist(): void {
       try {
-        localStorage.setItem(STORE, JSON.stringify({ piece: piece.id, seed, params } as Saved));
+        localStorage.setItem(STORE, JSON.stringify({ piece: exhibit.id, seed, params } as Saved));
       } catch {
         /* 저장이 막혀 있어도 보는 데는 지장이 없다 */
       }
     }
 
+    const chips = document.createElement('div');
+    chips.className = 'meong-chips';
+    const panel = document.createElement('div');
+    panel.className = 'meong-panel';
+    const dock = document.createElement('div');
+    dock.className = 'meong-dock';
+    const hint = document.createElement('div');
+    hint.className = 'meong-hint';
+    ui.append(chips, head, panel, log, dock, hint);
+
+    function iconBtn(glyph: string, label: string, onClick: () => void): HTMLButtonElement {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'meong-btn';
+      b.textContent = glyph;
+      b.title = label;
+      b.setAttribute('aria-label', label);
+      b.addEventListener('click', onClick);
+      dock.appendChild(b);
+      return b;
+    }
+
+    /** 그림 한 장을 두 배 해상도로 굽는다. 관찰물은 지금 판을 그대로 뜬다 */
+    function saveImage(): void {
+      let source: HTMLCanvasElement | null = null;
+      if (piece) {
+        /* 화면 그대로 뜨면 배경화면으로 쓰기엔 잔 것. 같은 구도를 두 배 해상도로 다시 그린다
+           작품이 CSS 픽셀 기준으로 그리므로 `dpr` 만 올리면 구도는 그대로고 선만 촘촘해진다. */
+        const big = document.createElement('canvas');
+        big.width = Math.round(w * 2);
+        big.height = Math.round(h * 2);
+        const bctx = big.getContext('2d');
+        if (bctx) {
+          bctx.setTransform(2, 0, 0, 2, 0, 0);
+          piece.frame({ ctx: bctx, w, h, dpr: 2, time, params, seed });
+          source = big;
+        } else {
+          source = canvas;
+        }
+      } else {
+        source = stage.querySelector('canvas');
+      }
+      if (!source) return;
+      // 공용 한 자리(`shared/image`). 굽기, 내려받기, 주소 거두기가 거기 한 벌로 있다.
+      encode(source, 'png')
+        .then(function (blob) {
+          download(blob, 'karmolab-meong-' + exhibit.id + '-' + Math.round(seed * 1e6) + '.png');
+          Toolbox.showToast?.(t('meong.saved'), 'success');
+          Toolbox.trackUse?.('meong-save');
+        })
+        .catch(function () { /* 굽기 실패 = 저장 안 됨. 조용히 넘어간다(원래도 그랬다) */ });
+    }
+
+    /* ── 걸린 것 갈아 끼우기 ───────────────────────────────────────── */
+
+    function mount(next: Exhibit): void {
+      sim?.dispose();
+      sim = null;
+      for (const b of simButtons) b.remove();
+      for (const el of simPanels) el.remove();
+      simButtons = [];
+      simPanels = [];
+      stage.textContent = '';
+      headName.textContent = '';
+      headCode.textContent = '';
+      headStep.textContent = '';
+      logLine.textContent = '';
+      logLine.classList.remove('is-show');
+      logSub.textContent = '';
+
+      exhibit = next;
+      if (next.kind === 'piece') {
+        piece = next.piece;
+        params = sanitize(piece, {});
+        time = piece.startTime ? piece.startTime(w, h, params) : 0;
+        root.style.background = piece.bg(params);
+        canvas.hidden = false;
+        stage.hidden = true;
+        head.hidden = true;
+        log.hidden = true;
+        canvas.setAttribute('aria-label', t('meong.a11y.canvas'));
+        if (onScreen()) paint();
+      } else {
+        piece = null;
+        params = {};
+        canvas.hidden = true;
+        stage.hidden = false;
+        head.hidden = false;
+        log.hidden = false;
+        root.style.background = '#07080c';
+        sim = next.build(host);
+      }
+      seedBtn.hidden = next.kind !== 'piece';
+      speedRow.hidden = next.kind !== 'sim';
+      persist();
+      renderChips();
+      renderPanel();
+    }
+
+    function label(e: Exhibit): string {
+      return t('meong.piece.' + e.id);
+    }
+
+    function renderChips(): void {
+      chips.textContent = '';
+      if (EXHIBITS.length < 2) return;
+      for (const e of EXHIBITS) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'meong-chip';
+        b.textContent = label(e);
+        b.setAttribute('aria-pressed', String(e.id === exhibit.id));
+        b.addEventListener('click', function () {
+          if (e.id === exhibit.id) return;
+          mount(e);
+        });
+        chips.appendChild(b);
+      }
+    }
+
+    /** 그림의 손잡이. 관찰물은 자기가 얹은 것만 있고 여기서 그릴 것이 없다 */
+    function renderPanel(): void {
+      for (const row of Array.from(panel.querySelectorAll('[data-piece-row]'))) row.remove();
+      if (!piece) return;
+      for (const spec of piece.params) {
+        const row = document.createElement('div');
+        row.className = 'meong-row';
+        row.dataset.pieceRow = '1';
+        const id = 'meong-' + exhibit.id + '-' + spec.key;
+        const labelEl = document.createElement('label');
+        labelEl.htmlFor = id;
+        const name = document.createElement('span');
+        name.textContent = t('meong.param.' + spec.key);
+        const val = document.createElement('b');
+        labelEl.append(name, val);
+        row.appendChild(labelEl);
+
+        if (spec.kind === 'range') {
+          const input = document.createElement('input');
+          input.type = 'range';
+          input.id = id;
+          input.name = id;
+          input.min = String(spec.min ?? 0);
+          input.max = String(spec.max ?? 1);
+          input.step = String(spec.step ?? 0.01);
+          input.value = String(params[spec.key]);
+          input.setAttribute('aria-label', t('meong.param.' + spec.key));
+          val.textContent = Number(params[spec.key]).toFixed(2);
+          input.addEventListener('input', function () {
+            params[spec.key] = Number(input.value);
+            val.textContent = Number(input.value).toFixed(2);
+            persist();
+            if (!running && onScreen()) paint();
+          });
+          row.appendChild(input);
+        } else {
+          const seg = document.createElement('div');
+          seg.className = 'meong-seg';
+          seg.id = id;
+          const choices = spec.choices ?? [];
+          val.textContent = '';
+          for (const c of choices) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = t('meong.choice.' + spec.key + '.' + c);
+            b.setAttribute('aria-pressed', String(params[spec.key] === c));
+            b.addEventListener('click', function () {
+              params[spec.key] = c;
+              if (piece) root.style.background = piece.bg(params);
+              persist();
+              renderPanel();
+              if (!running && onScreen()) paint();
+            });
+            seg.appendChild(b);
+          }
+          row.appendChild(seg);
+        }
+        panel.appendChild(row);
+      }
+    }
+
     /* ── 손잡이 (말 묶음이 온 뒤에 그린다) ──────────────────────────── */
 
-    void loadNamespace(NS).then(function () {
-      const chips = document.createElement('div');
-      chips.className = 'meong-chips';
-      const panel = document.createElement('div');
-      panel.className = 'meong-panel';
-      const dock = document.createElement('div');
-      dock.className = 'meong-dock';
-      canvas.setAttribute('aria-label', t('meong.a11y.canvas'));
+    const speedRow = document.createElement('div');
+    speedRow.className = 'meong-row';
+    const playBtn = iconBtn('❚❚', 'pause', function () {
+      running = !running;
+      playBtn.textContent = running ? '❚❚' : '▶';
+      playBtn.title = t('meong.btn.' + (running ? 'pause' : 'play'));
+      playBtn.setAttribute('aria-label', playBtn.title);
+    });
+    const seedBtn = iconBtn('✦', 'seed', function () {
+      seed = Math.random();
+      persist();
+      if (!running && onScreen()) paint();
+    });
+    const panelBtn = iconBtn('☰', 'panel', function () {
+      panelOpen = !panelOpen;
+      panel.classList.toggle('is-open', panelOpen);
+      panelBtn.setAttribute('aria-pressed', String(panelOpen));
+      wake();
+    });
+    panelBtn.setAttribute('aria-pressed', 'false');
+    iconBtn('⤓', 'save', saveImage);
+    iconBtn('⛶', 'full', function () {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void root.requestFullscreen?.();
+    });
+
+    root.addEventListener('keydown', function (e) {
+      if (e.key === ' ') {
+        e.preventDefault();
+        playBtn.click();
+      } else if (e.key === 'f') {
+        if (document.fullscreenElement) void document.exitFullscreen();
+        else void root.requestFullscreen?.();
+      }
+    });
+
+    fit();
+
+    /* 움직임 줄이기를 켜 둔 사람에게 끝없이 도는 화면을 들이밀지 않는다. 멈춘 채로 열고,
+       보고 싶으면 누르면 된다. 그림 자체는 그대로 한 장 그려 둔다(빈 화면이 아니다). */
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (calm) running = false;
+
+    /* 보이는 동안만 돈다 (change.widget-idle-cost). 예전엔 스스로를 다시 걸어서, 다른 화면으로
+       가도 매 프레임 깨어났다 . 할 일은 `onScreen()` 이 걸러 냈지만 깨어나는 것 자체가 값이다
+       (실측: 나온 뒤에도 rAF 120/2초). */
+    loop = Toolbox.raf?.(tick) ?? null;
+
+    const ro = new ResizeObserver(function () {
+      const was = w;
+      fit();
+      // 멈춰 있는 동안 창이 크게 바뀌면 첫 장면 계산이 어긋난다. 그때만 다시 맞춘다.
+      if (piece && !running && Math.abs(w - was) > 1) {
+        time = piece.startTime ? piece.startTime(w, h, params) : 0;
+      }
+      if (piece && onScreen()) paint();
+    });
+    ro.observe(root);
+
+    void loadNamespace('meong').then(function () {
+      return loadNamespace('garden');
+    }).then(function () {
+      playBtn.title = t('meong.btn.pause');
+      playBtn.setAttribute('aria-label', playBtn.title);
+      seedBtn.title = t('meong.btn.seed');
+      seedBtn.setAttribute('aria-label', seedBtn.title);
+      panelBtn.title = t('meong.btn.panel');
+      panelBtn.setAttribute('aria-label', panelBtn.title);
+      const [saveBtn, fullBtn] = Array.from(dock.querySelectorAll('.meong-btn')).slice(3) as HTMLButtonElement[];
+      if (saveBtn) {
+        saveBtn.title = t('meong.btn.save');
+        saveBtn.setAttribute('aria-label', saveBtn.title);
+      }
+      if (fullBtn) {
+        fullBtn.title = t('meong.btn.full');
+        fullBtn.setAttribute('aria-label', fullBtn.title);
+      }
+
+      /* 속도. 관찰물만 쓴다. 그림은 시각의 함수라 같은 손잡이가 그대로 먹지만,
+         손잡이를 두 벌 두면 무엇이 무엇을 바꾸는지가 흐려진다 */
+      const speedLabel = document.createElement('label');
+      const speedName = document.createElement('span');
+      speedName.textContent = t('meong.speed');
+      const speedVal = document.createElement('b');
+      speedVal.textContent = '1×';
+      speedLabel.append(speedName, speedVal);
+      const seg = document.createElement('div');
+      seg.className = 'meong-seg';
+      for (const s of SPEEDS) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = s + '×';
+        b.setAttribute('aria-pressed', String(s === speed));
+        b.addEventListener('click', function () {
+          speed = s;
+          speedVal.textContent = s + '×';
+          for (const other of Array.from(seg.children)) {
+            other.setAttribute('aria-pressed', String(other === b));
+          }
+        });
+        seg.appendChild(b);
+      }
+      speedRow.append(speedLabel, seg);
+      panel.appendChild(speedRow);
 
       /* 안내는 **처음 온 사람에게 한 번만**. 켜 둘 때마다 조작법이 뜨면 그건 잔소리고,
          멍때리는 화면에 글씨가 하나 더 있는 것 자체가 방해다. */
@@ -243,8 +574,6 @@ import { download, encode } from '../tools/shared/image';
       } catch {
         /* 저장이 막혀 있으면 그냥 안 띄운다 */
       }
-      const hint = document.createElement('div');
-      hint.className = 'meong-hint';
       if (!seenHint) {
         hint.textContent = t('meong.hint');
         window.setTimeout(function () {
@@ -256,167 +585,16 @@ import { download, encode } from '../tools/shared/image';
           }
         }, 9000);
       }
-      ui.append(chips, panel, dock, hint);
 
-      function pieceLabel(p: Piece): string {
-        return t('meong.piece.' + p.id);
-      }
-
-      /* 작품 고르개. 하나뿐이면 안 그린다(고를 게 없는 고르개는 고장으로 보인다) */
-      function renderChips(): void {
-        chips.innerHTML = '';
-        if (PIECES.length < 2) return;
-        for (const p of PIECES) {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'meong-chip';
-          b.textContent = pieceLabel(p);
-          b.setAttribute('aria-pressed', String(p.id === piece.id));
-          b.addEventListener('click', function () {
-            piece = p;
-            params = sanitize(piece, {});
-            root.style.background = piece.bg(params);
-            time = 0;
-            persist();
-            renderChips();
-            renderPanel();
-          });
-          chips.appendChild(b);
-        }
-      }
-
-      function renderPanel(): void {
-        panel.innerHTML = '';
-        for (const spec of piece.params) {
-          const row = document.createElement('div');
-          row.className = 'meong-row';
-          const id = 'meong-' + piece.id + '-' + spec.key;
-          const label = document.createElement('label');
-          label.htmlFor = id;
-          const name = document.createElement('span');
-          name.textContent = t('meong.param.' + spec.key);
-          const val = document.createElement('b');
-          label.append(name, val);
-          row.appendChild(label);
-
-          if (spec.kind === 'range') {
-            const input = document.createElement('input');
-            input.type = 'range';
-            input.id = id;
-            input.name = id;
-            input.min = String(spec.min ?? 0);
-            input.max = String(spec.max ?? 1);
-            input.step = String(spec.step ?? 0.01);
-            input.value = String(params[spec.key]);
-            input.setAttribute('aria-label', t('meong.param.' + spec.key));
-            val.textContent = Number(params[spec.key]).toFixed(2);
-            input.addEventListener('input', function () {
-              params[spec.key] = Number(input.value);
-              val.textContent = Number(input.value).toFixed(2);
-              persist();
-              if (!running && onScreen()) paint();
-            });
-            row.appendChild(input);
-          } else {
-            const seg = document.createElement('div');
-            seg.className = 'meong-seg';
-            seg.id = id;
-            const choices = spec.choices ?? [];
-            val.textContent = '';
-            for (const c of choices) {
-              const b = document.createElement('button');
-              b.type = 'button';
-              b.textContent = t('meong.choice.' + spec.key + '.' + c);
-              b.setAttribute('aria-pressed', String(params[spec.key] === c));
-              b.addEventListener('click', function () {
-                params[spec.key] = c;
-                root.style.background = piece.bg(params);
-                persist();
-                renderPanel();
-                if (!running && onScreen()) paint();
-              });
-              seg.appendChild(b);
-            }
-            row.appendChild(seg);
-          }
-          panel.appendChild(row);
-        }
-      }
-
-      function iconBtn(glyph: string, key: string, onClick: () => void): HTMLButtonElement {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'meong-btn';
-        b.textContent = glyph;
-        b.title = t('meong.btn.' + key);
-        b.setAttribute('aria-label', t('meong.btn.' + key));
-        b.addEventListener('click', onClick);
-        dock.appendChild(b);
-        return b;
-      }
-
-      const playBtn = iconBtn('❚❚', 'pause', function () {
-        running = !running;
-        playBtn.textContent = running ? '❚❚' : '▶';
-        playBtn.title = t('meong.btn.' + (running ? 'pause' : 'play'));
-        playBtn.setAttribute('aria-label', playBtn.title);
-      });
-
-      iconBtn('✦', 'seed', function () {
-        seed = Math.random();
-        persist();
-        if (!running && onScreen()) paint();
-      });
-
-      const panelBtn = iconBtn('☰', 'panel', function () {
-        panelOpen = !panelOpen;
-        panel.classList.toggle('is-open', panelOpen);
-        panelBtn.setAttribute('aria-pressed', String(panelOpen));
-        wake();
-      });
-      panelBtn.setAttribute('aria-pressed', 'false');
-
-      iconBtn('⤓', 'save', function () {
-        /* 화면 그대로 뜨면 배경화면으로 쓰기엔 잘다. 같은 구도를 두 배 해상도로 다시 그린다 . 
-           작품이 CSS 픽셀 기준으로 그리므로 `dpr` 만 올리면 구도는 그대로고 선만 촘촘해진다. */
-        const big = document.createElement('canvas');
-        big.width = Math.round(w * 2);
-        big.height = Math.round(h * 2);
-        const bctx = big.getContext('2d');
-        if (bctx) {
-          bctx.setTransform(2, 0, 0, 2, 0, 0);
-          piece.frame({ ctx: bctx, w, h, dpr: 2, time, params, seed });
-        }
-        // 공용 한 자리(`shared/image`). 굽기, 내려받기, 주소 거두기가 거기 한 벌로 있다.
-        encode(bctx ? big : canvas, 'png').then(function (blob) {
-          download(blob, 'karmolab-meong-' + piece.id + '-' + Math.round(seed * 1e6) + '.png');
-          Toolbox.showToast?.(t('meong.saved'), 'success');
-          Toolbox.trackUse?.('meong-save');
-        }).catch(function () { /* 굽기 실패 = 저장 안 됨. 조용히 넘어간다(원래도 그랬다) */ });
-      });
-
-      iconBtn('⛶', 'full', function () {
-        if (document.fullscreenElement) void document.exitFullscreen();
-        else void root.requestFullscreen?.();
-      });
-
-      root.addEventListener('keydown', function (e) {
-        if (e.key === ' ') {
-          e.preventDefault();
-          playBtn.click();
-        } else if (e.key === 'f') {
-          if (document.fullscreenElement) void document.exitFullscreen();
-          else void root.requestFullscreen?.();
-        }
-      });
-
-      renderChips();
-      renderPanel();
+      mount(exhibit);
+      wake();
     });
 
     Toolbox.onDispose?.(function () {
+      sim?.dispose();
       loop?.stop();
       window.clearTimeout(idleTimer);
+      window.clearTimeout(sayTimer);
       ro.disconnect();
     });
   }

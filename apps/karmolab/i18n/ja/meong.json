@@ -26,5 +26,16 @@
   "meong.choice.grid.9": "9",
   "meong.choice.grid.13": "13",
   "meong.choice.grid.17": "17",
-  "meong.choice.grid.21": "21"
+  "meong.choice.grid.21": "21",
+  "meong.speed": "速度",
+  "meong.piece.life": "生命の格子",
+  "meong.piece.rd": "反応拡散",
+  "meong.piece.pl": "粒子生命",
+  "meong.piece.ph": "モジホコリ",
+  "meong.piece.ce": "循環生態系",
+  "meong.piece.st": "砂のテラリウム",
+  "meong.piece.bd": "群れ",
+  "meong.piece.ln": "レニア",
+  "meong.piece.nc": "ニューラルCA",
+  "meong.piece.ev": "進化"
 }

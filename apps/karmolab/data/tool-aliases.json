@@ -82,14 +82,6 @@
     "filetool": "file utility converter 파일",
     "filetype": "file extension type 확장자",
     "flow": "흐름 순서 이어붙이기 자동화 파이프라인 workflow",
-    "garden": [
-      "정원 시뮬",
-      "자라는 격자",
-      "세포 자동자",
-      "지켜보는 화면",
-      "idle garden",
-      "cellular automaton"
-    ],
     "gitcmd": "git command cheatsheet 깃",
     "grade": "gpa grade 학점",
     "gradient": "gradient css linear 그라데이션",
@@ -179,7 +171,13 @@
       "로고 프랙탈",
       "idle screen",
       "zoom loop",
-      "fractal logo"
+      "fractal logo",
+      "정원 시뮬",
+      "자라는 격자",
+      "세포 자동자",
+      "지켜보는 화면",
+      "idle garden",
+      "cellular automaton"
     ],
     "mermaidlite": "머메이드 mermaid 흐름도 flowchart ER다이어그램 erDiagram 다이어그램 SVG",
     "mesh3d": "3D STL OBJ 뷰어 메시 모델 프린터 stl obj viewer mesh model 3d뷰어",

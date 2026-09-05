@@ -474,8 +474,9 @@ if (!CHECK) {
   for (const code of targets) {
     for (const id of RETIRED_OPERATION_IDS) {
       if (!fs.existsSync(path.join(srcDir, id, 'index.html'))) continue; /* 한국어 넘김판이 있는 것만 */
+      const to = retiredTarget(id);
       const path2 = localizedPath(`/t/${id}/`, code);
-      const workbench = localizedPath('/t/text/', code);
+      const workbench = localizedPath(`/t/${to.tool}/`, code);
       const dest = path.join(outRoot, path2.replace(/^\//, ''), 'index.html');
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.writeFileSync(
@@ -487,14 +488,14 @@ permalink: ${path2}
 ` +
           `<!doctype html><html lang="${code}"><head><meta charset="utf-8">` +
           `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-          `<title>${id}. moved into the text tool, KarmoLab</title>` +
+          `<title>${id}. moved into ${to.tool}, KarmoLab</title>` +
           `<link rel="canonical" href="${SITE}${workbench}">` +
           `<meta name="robots" content="noindex,follow">` +
-          `<meta http-equiv="refresh" content="0; url=${workbench}#${id}">` +
+          `<meta http-equiv="refresh" content="0; url=${workbench}${to.hash ? '#' + to.hash : ''}">` +
           `<style>body{font:16px/1.7 system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;padding:24px}` +
           `a{color:#2563eb}</style></head><body><main>` +
-          `<h1>${id}</h1><p>This tool now lives inside the <strong>text tool</strong>.</p>` +
-          `<p><a href="${workbench}#${id}">Open it</a></p></main></body></html>`,
+          `<h1>${id}</h1><p>This tool now lives inside <strong>${to.tool}</strong>.</p>` +
+          `<p><a href="${workbench}${to.hash ? '#' + to.hash : ''}">Open it</a></p></main></body></html>`,
         'utf8'
       );
       made.push(dest);

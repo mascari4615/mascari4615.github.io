@@ -50,8 +50,17 @@ export const RETIRED_OPERATION_IDS = new Set([
   'xmlfmt',
   'configconv',
   'prettyall',
-  'jqplay'
+  'jqplay',
+  /* 정원 (2026-09-05, TASK-KL-247 병합). 위젯이 멍 안의 요소가 됐다. 주소는 살려 두고
+     멍으로 넘긴다. 검색 결과와 북마크가 /t/garden/ 을 가리킨다 */
+  'garden'
 ]);
+
+/** 넘김판이 보내는 자리. 안 적힌 것은 글 작업대의 그 조작으로 간다 */
+export const RETIRED_TARGETS = { garden: { tool: 'meong', hash: '' } };
+
+/** id 하나가 어디로 가는지. `hash` 는 작업대 안의 조작을 고르는 자리 */
+export const retiredTarget = (id) => RETIRED_TARGETS[id] ?? { tool: 'text', hash: id };
 
 /** 원장 id 목록에서 흡수된 것들을 걸러 낸다 */
 export const withoutRetired = (ids) => ids.filter((id) => !RETIRED_OPERATION_IDS.has(id));

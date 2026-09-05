@@ -42,7 +42,7 @@ import {
   Vector2,
   Vector3,
 } from '/packages/3d/vendor/three.module.min.js';
-import { gloop, type GardenLoop } from '../garden/gloop';
+import { gloop, type GardenLoop } from '../../lib/gloop';
 import { mountStageCore } from './stage-core';
 import { dieFaceTexture, feltTexture, leatherTexture, paperTexture, plankTexture, woodTexture } from './texture';
 import { simulateRoll, simulateInCup, sample, type Track } from './dice-physics';

@@ -28,7 +28,7 @@ import {
   Vector2,
   Vector3
 } from '/packages/3d/vendor/three.module.min.js';
-import { gloop, type GardenLoop } from '../garden/gloop';
+import { gloop, type GardenLoop } from '../../lib/gloop';
 import { mountStageCore } from './stage-core';
 import { buildRoom, type Room } from './rooms';
 import { handNow } from './hands';

@@ -48,7 +48,7 @@ import {
   Vector3,
   
 } from '/packages/3d/vendor/three.module.min.js';
-import { gloop, type GardenLoop } from '../garden/gloop';
+import { gloop, type GardenLoop } from '../../lib/gloop';
 import { cloudTexture, clothTexture, contactTexture, coordTexture, leatherTexture, oakTexture, parquetTexture, plankTexture, rugTexture, shaftTexture, shojiTexture, stoneTexture, tatamiTexture, woodTexture } from './texture';
 import type { SceneId } from './scenes';
 import { buildRoom, type Room } from './rooms';

@@ -59,7 +59,7 @@ for (const id of WIDGETS) {
 
 /* ② 보고 있는 동안에는 돈다. 마지막에 연 것이 아직 앞에 있다. 그림이 있는 위젯만 잰다
    (전부가 매 프레임 그리는 것은 아니다. 안 그리는 것이 정상인 위젯도 많다). */
-const LIVE = WIDGETS.filter((id) => ['garden', 'particle', 'bluemarble'].includes(id));
+const LIVE = WIDGETS.filter((id) => ['meong', 'particle', 'bluemarble'].includes(id));
 if (LIVE.length) {
   await page.evaluate((widget) => { location.hash = widget; }, LIVE[LIVE.length - 1]);
   await page.waitForTimeout(1200);

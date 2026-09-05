@@ -26,5 +26,16 @@
   "meong.choice.grid.9": "9",
   "meong.choice.grid.13": "13",
   "meong.choice.grid.17": "17",
-  "meong.choice.grid.21": "21"
+  "meong.choice.grid.21": "21",
+  "meong.speed": "속도",
+  "meong.piece.life": "생명 격자",
+  "meong.piece.rd": "반응 확산",
+  "meong.piece.pl": "입자 생명",
+  "meong.piece.ph": "점균",
+  "meong.piece.ce": "순환 생태계",
+  "meong.piece.st": "모래 테라리움",
+  "meong.piece.bd": "무리",
+  "meong.piece.ln": "레니아",
+  "meong.piece.nc": "신경 격자",
+  "meong.piece.ev": "진화"
 }

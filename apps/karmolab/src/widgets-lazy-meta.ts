@@ -2428,25 +2428,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['territory/territory']
   },
 
-  /* 정원 (TASK-KL-211). 손대지 않는 것을 켜 두고 구경한다. 9칸이 읽는 규칙 하나로
-     도시가 자라고 길이 뚫린다. 무슨 일이 일어났는지는 문장으로 말해 준다. */
-  {
-    id: 'garden',
-    get title() { return t('widgets.garden.title', undefined, "정원"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.garden.desc', undefined, "오늘의 규칙 하나로 스스로 자라는 격자. 손대지 않고 지켜봅니다"); },
-    layout: 'full',
-    icon: '<rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="15" y="3" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/><rect x="3" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".35"/><rect x="15" y="15" width="6" height="6" rx="1" fill="currentColor" opacity=".85"/>',
-    lazyScriptPaths: ['garden/garden']
-  },
-
   /* 멍 (TASK-KL-247). 도구가 아니라 창문. 로고가 스스로 모여 더 큰 로고가 되고, 그
-     안으로 끝없이 빨려 들어간다. 이음매가 없어 언제 켜도 처음부터가 없다. */
+     안으로 끝없이 빨려 들어간다. 이음매가 없어 언제 켜도 처음부터가 없다.
+     2026-09-05 에 정원(TASK-KL-211)이 여기로 들어왔다. 오늘의 규칙으로 자라는 격자와
+     관찰물 아홉이 같은 화면의 요소가 됐다. 옛 /t/garden/ 주소는 여기로 넘긴다. */
   {
     id: 'meong',
     get title() { return t('widgets.meong.title', undefined, "멍"); },
     category: 'play',
-    get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면. 로고가 모여 더 큰 로고가 되고 끝없이 안으로 들어갑니다"); },
+    get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면. 스스로 자라는 격자와 그림을 켜 두고 지켜봅니다"); },
     layout: 'full',
     noHero: true,
     produces: ['image/png'],

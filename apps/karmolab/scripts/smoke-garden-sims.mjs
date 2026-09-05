@@ -36,7 +36,7 @@ function assert(name, condition, details) {
   }
 }
 
-const reaction = await loadTypeScript('src/widgets/garden/reaction-diffusion.ts');
+const reaction = await loadTypeScript('src/widgets/meong/sims/reaction-diffusion.ts');
 const reactionResults = {};
 for (const preset of reaction.REACTION_PRESETS) {
   const model = new reaction.ReactionDiffusion(48, 32);
@@ -49,7 +49,7 @@ assert('Reaction diffusion', Object.values(reactionResults).every(stats =>
   Number.isFinite(stats.active) && stats.active > 0.002 && stats.delta >= 0
 ), reactionResults);
 
-const particle = await loadTypeScript('src/widgets/garden/particle-life.ts');
+const particle = await loadTypeScript('src/widgets/meong/sims/particle-life.ts');
 const particleRandom = seededRandom(0xa4093822);
 const particleWorld = new particle.ParticleLife(particle.makeParticleLifeConfig(particleRandom, 5, 110));
 particleWorld.seed(particleRandom);
@@ -58,7 +58,7 @@ for (let step = 0; step < 320; step++) particleStats = particleWorld.step();
 assert('Particle Life', Number.isFinite(particleStats.kinetic) && particleStats.kinetic > 0 &&
   particleStats.neighborRate > 0 && particleWorld.x.every(value => value >= 0 && value < 1), particleStats);
 
-const physarum = await loadTypeScript('src/widgets/garden/physarum.ts');
+const physarum = await loadTypeScript('src/widgets/meong/sims/physarum.ts');
 const physarumRandom = seededRandom(0x13198a2e);
 const physarumWorld = new physarum.Physarum(48, 32, 180);
 physarumWorld.seed(physarumRandom);
@@ -67,7 +67,7 @@ for (let step = 0; step < 600; step++) physarumStats = physarumWorld.step(physar
 assert('Physarum', physarumStats.coverage > 0.01 && physarumStats.connected >= 1 &&
   physarumWorld.trail.every(value => Number.isFinite(value) && value >= 0), physarumStats);
 
-const cyclic = await loadTypeScript('src/widgets/garden/cyclic-ecosystem.ts');
+const cyclic = await loadTypeScript('src/widgets/meong/sims/cyclic-ecosystem.ts');
 const cyclicResults = [];
 for (let seed = 0; seed < 8; seed++) {
   const cyclicWorld = new cyclic.CyclicEcosystem(72, 48, 5);
@@ -88,7 +88,7 @@ assert('Cyclic ecosystem', cyclicResults.every(result =>
   result.minimumAlive === 5 && result.meanBoundary > 0.08 && result.leaderShare < 0.75
 ), cyclicResults);
 
-const sand = await loadTypeScript('src/widgets/garden/sand-terrarium.ts');
+const sand = await loadTypeScript('src/widgets/meong/sims/sand-terrarium.ts');
 const sandRandom = seededRandom(0x452821e6);
 const sandWorld = new sand.SandTerrarium(64, 40);
 sandWorld.seed(sandRandom);
@@ -101,7 +101,7 @@ for (let step = 0; step < 1200; step++) {
 assert('Sand terrarium', sandStats.counts.reduce((sum, value) => sum + value, 0) === sandWorld.cells.length &&
   totalMoved > 0 && totalGrown > 0 && totalBurned > 0, { moved: totalMoved, grown: totalGrown, burned: totalBurned, counts: [...sandStats.counts] });
 
-const boids = await loadTypeScript('src/widgets/garden/boids.ts');
+const boids = await loadTypeScript('src/widgets/meong/sims/boids.ts');
 const boidWorld = new boids.Boids(90, 2);
 boidWorld.seed(seededRandom(0xbe5466cf));
 let boidStats;
@@ -109,7 +109,7 @@ for (let step = 0; step < 360; step++) boidStats = boidWorld.step();
 assert('Boids', boidStats.flocks >= 1 && boidStats.largestShare > 0.1 && boidStats.alignment > 0 &&
   boidWorld.x.every(value => value >= 0 && value < 1), boidStats);
 
-const lenia = await loadTypeScript('src/widgets/garden/lenia.ts');
+const lenia = await loadTypeScript('src/widgets/meong/sims/lenia.ts');
 const leniaResults = {};
 for (const preset of lenia.LENIA_PRESETS) {
   const model = new lenia.Lenia(96, 64, preset);
@@ -131,7 +131,7 @@ assert('Lenia', Object.values(leniaResults).every(stats =>
   stats.components > 0 && stats.components <= 15 && stats.travel > 0.01
 ), leniaResults);
 
-const neural = await loadTypeScript('src/widgets/garden/neural-ca.ts');
+const neural = await loadTypeScript('src/widgets/meong/sims/neural-ca.ts');
 const neuralResults = {};
 for (const shape of neural.NEURAL_SHAPES) {
   const model = new neural.NeuralCA(72, 48, shape);
@@ -155,7 +155,7 @@ if (failures.length) {
   process.exitCode = 1;
 }
 
-const evolution = await loadTypeScript('src/widgets/garden/genetic-evolution.ts');
+const evolution = await loadTypeScript('src/widgets/meong/sims/genetic-evolution.ts');
 const evolutionResults = [];
 for (let seed = 0; seed < 5; seed++) {
   const world = new evolution.GeneticEvolution(40, 14, 320);

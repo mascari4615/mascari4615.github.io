@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 // 셸을 정적 페이지로 만드는 손질은 한 벌뿐이다 (TASK-KL-129). 목록, 봇 소개, 프로필도 같은 것을 쓴다.
 import { loadShell, shellCommon, replaceMeta, scriptFile, esc } from './lib/shell-page.mjs';
-import { RETIRED_OPERATION_IDS, withoutRetired } from './lib/retired-operations.mjs';
+import { RETIRED_OPERATION_IDS, retiredTarget, withoutRetired } from './lib/retired-operations.mjs';
 
 // 셸(apps/karmolab/index.html)의 제목을 이 장의 제목으로 바꾼다.
 // 예전엔 `'<title>KarmoLab</title>'` 리터럴을 찾아 바꿨는데, 셸 제목에 한 글자만 붙어도
@@ -1418,8 +1418,10 @@ for (const id of RETIRED_OPERATION_IDS) {
   if (!seo[id]) continue;
   const dir = path.join(outDir, id);
   fs.mkdirSync(dir, { recursive: true });
-  const target = `${BASE_PATH}/text/#${id}`;
+  const to = retiredTarget(id);
+  const target = `${BASE_PATH}/${to.tool}/${to.hash ? '#' + to.hash : ''}`;
   const name = esc(heading(id));
+  const into = esc(heading(to.tool));
   fs.writeFileSync(
     path.join(dir, 'index.html'),
     `---
@@ -1429,13 +1431,13 @@ permalink: ${BASE_PATH}/${id}/
 ` +
       `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
       `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<title>${name}. 텍스트 도구로 옮겼습니다, KarmoLab</title>` +
-      `<link rel="canonical" href="${SITE}${BASE_PATH}/text/">` +
+      `<title>${name}. ${into} 안으로 옮겼습니다, KarmoLab</title>` +
+      `<link rel="canonical" href="${SITE}${BASE_PATH}/${to.tool}/">` +
       `<meta name="robots" content="noindex,follow">` +
       `<meta http-equiv="refresh" content="0; url=${target}">` +
       `<style>body{font:16px/1.7 system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;padding:24px}` +
       `a{color:#2563eb}</style></head><body><main>` +
-      `<h1>${name}</h1><p>이 도구는 <strong>텍스트 도구</strong> 안의 할 일로 들어갔습니다.</p>` +
+      `<h1>${name}</h1><p>이 도구는 <strong>${into}</strong> 안으로 들어갔습니다.</p>` +
       `<p><a href="${target}">${name} 열기</a></p></main></body></html>`,
     'utf8'
   );
