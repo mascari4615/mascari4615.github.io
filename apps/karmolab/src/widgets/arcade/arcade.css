@@ -1228,3 +1228,28 @@
 .ac-twface{display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0}
 .ac-twface img{max-width:160px;max-height:160px;object-fit:contain;border-radius:var(--radius-lg)}
 .ac-twface b{font-size:var(--font-size-md)}
+/* ── 높은 쪽 고르기 (change.arcade-absorbs-play). 월드컵의 두 장 틀을 같이 씀 ── */
+.ac-hi .ac-wcside:disabled{cursor:default}
+.ac-hiv{font-size:var(--font-size-md);font-weight:700;color:var(--text-secondary)}
+.ac-wcside.ac-hiwin{border-color:var(--success);background:color-mix(in srgb,var(--success) 14%,var(--bg-secondary))}
+.ac-wcside.ac-hilose{border-color:var(--error);background:color-mix(in srgb,var(--error) 14%,var(--bg-secondary))}
+/* ── 유령 타자 대결 (change.arcade-absorbs-play). 줄마다 달리는 표시, 글, 입력 칸 ── */
+.ac-gt{display:flex;flex-direction:column;height:100%;min-height:100%}
+.ac-gt [hidden]{display:none!important}
+.ac-gtplay{flex:1;display:flex;flex-direction:column;gap:var(--space-md);min-height:0;padding:0 var(--space-md)}
+.ac-gtlist{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--space-md)}
+.ac-gtpreset{text-align:left;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-secondary);color:inherit;font:inherit;cursor:pointer;line-height:1.5}
+.ac-gtpreset[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg-secondary))}
+.ac-gtown,.ac-gtin{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-primary);color:inherit;font:inherit;line-height:1.6;resize:vertical}
+.ac-gtown{margin-bottom:var(--space-md)}
+.ac-gtlanes{display:flex;flex-direction:column;gap:6px}
+.ac-gtlane{display:grid;grid-template-columns:minmax(60px,110px) 1fr minmax(80px,auto);align-items:center;gap:10px;font-size:var(--font-size-xs);color:var(--text-secondary)}
+.ac-gtlane.ac-me{color:var(--text-primary)}
+.ac-gtname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ac-gtrail{position:relative;height:26px;border-bottom:1px dashed var(--border)}
+.ac-gtrunner{position:absolute;bottom:2px;font-size:var(--font-size-lg);transition:left .12s linear}
+.ac-gtstat{text-align:right;font-variant-numeric:tabular-nums}
+.ac-gttext{flex:1;min-height:0;overflow:auto;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-secondary);font-size:var(--font-size-md);line-height:1.9;word-break:break-all;white-space:pre-wrap}
+.ac-gtok{color:var(--success)}
+.ac-gtbad{color:var(--error);text-decoration:underline}
+.ac-gtcur{background:color-mix(in srgb,var(--accent) 30%,transparent);border-radius:var(--radius-sm)}

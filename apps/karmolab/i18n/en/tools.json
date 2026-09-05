@@ -113,8 +113,6 @@
   "tools.filetool.lead": "Batch image convert, stitch, strip location, ZIP, split files",
   "tools.filetype.description": "A table of what a file extension is and what opens it. Split into images, documents, archives, video, code, executables and more.",
   "tools.filetype.lead": "What is this file, what opens it, by category",
-  "tools.ghosttype.description": "A typing duel that fits a whole run into one link. Finish the passage and the rhythm you typed becomes the address; whoever opens it types the same passage racing alongside your ghost.",
-  "tools.ghosttype.lead": "Your typing run becomes a link, duel over any text, never expires",
   "tools.gitcmd.description": "Find the git command by what you are trying to do. Organized by situation rather than by command name, with the irreversible ones grouped and marked.",
   "tools.gitcmd.lead": "Search by situation, dangerous commands flagged, click to copy",
   "tools.grade.description": "Computes your GPA from per-course credits and grades. It is a credit-weighted average, so it differs from a plain one, and it also tells you the grades needed to reach a target GPA.",

@@ -99,7 +99,7 @@ import { chooseOpt } from './arcade/setups';
                   `<button type="button" class="btn btn-ghost" data-up="1">${p.sharedId ? t('packs.t19') : t('packs.t20')}</button>` +
                   `<button type="button" class="btn btn-ghost" data-arcade="twenty">${esc(t('packs.t04'))}</button>` +
                   `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">${esc(t('packs.t05'))}</a>` +
-                  `<button type="button" class="btn btn-ghost" data-go="higher">${esc(t('packs.t06'))}</button>` +
+                  `<button type="button" class="btn btn-ghost" data-arcade="higher">${esc(t('packs.t06'))}</button>` +
                   (p.items.filter((it) => it.img).length >= 4
                     ? `<button type="button" class="btn btn-ghost" data-arcade="worldcup">${esc(t('packs.t07'))}</button>`
                     : '') +

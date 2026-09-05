@@ -430,5 +430,21 @@
     "defVar": "reaction",
     "viewVar": "reactionView",
     "d3": false
+  },
+  {
+    "id": "higher",
+    "chunk": "higher",
+    "view": "higher-view",
+    "defVar": "higher",
+    "viewVar": "higherView",
+    "d3": false
+  },
+  {
+    "id": "ghosttype",
+    "chunk": "ghosttype",
+    "view": "ghosttype-view",
+    "defVar": "ghosttype",
+    "viewVar": "ghosttypeView",
+    "d3": false
   }
 ]

@@ -16,7 +16,6 @@
     "src/widgets/territory/geomap.ts",
     "src/widgets/tools/asciiart.ts",
     "src/widgets/tools/duel.ts",
-    "src/widgets/tools/ghosttype.ts",
     "src/widgets/tools/timer.ts",
     "src/widgets/tools/videocompress.ts",
     "src/widgets/tools/videorotate.ts",

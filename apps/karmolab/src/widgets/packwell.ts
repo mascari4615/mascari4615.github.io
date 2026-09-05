@@ -356,7 +356,7 @@ interface WellPack {
               }
 
               const links = [
-                numbers > 0 ? `<a class="btn btn-primary" href="${appHash('higher')}">${esc(t('packwell.t14'))}</a>` : '',
+                numbers > 0 ? `<a class="btn btn-primary" href="${appPath('t/arcade/higher/')}">${esc(t('packwell.t14'))}</a>` : '',
                 images >= 4 ? `<a class="btn btn-ghost" href="${appPath('t/arcade/worldcup/')}">${esc(t('packwell.t15'))}</a>` : '',
                 images >= 2 ? `<a class="btn btn-ghost" href="${appHash('tierlist')}">${esc(t('packwell.t16'))}</a>` : '',
                 `<a class="btn btn-ghost" href="${appHash('packs')}">${esc(t('packwell.t17'))}</a>`,
@@ -519,7 +519,7 @@ interface WellPack {
                   putPick(saved.id);
                   Toolbox.showToast?.(t('packwell.tookIt', { title: pack.title, n: pack.items.length }), 'success', undefined);
                   (view.querySelector('#pwLibAct') as HTMLElement).innerHTML =
-                    `<a class="btn btn-primary" href="${appHash('higher')}">${esc(t('packwell.t14'))}</a>` +
+                    `<a class="btn btn-primary" href="${appPath('t/arcade/higher/')}">${esc(t('packwell.t14'))}</a>` +
                     `<a class="btn btn-ghost" href="${appPath('t/arcade/worldcup/')}">${esc(t('packwell.t15'))}</a>`;
                 });
               } catch {

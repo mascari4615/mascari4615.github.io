@@ -74,7 +74,9 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'simon', icon: '🎵', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'simon', hidden: true },
   { id: 'sudoku', icon: '🔢', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'sudoku', hidden: true },
   { id: 'worldcup', icon: '👑', kind: 'quick', seats: [1, 1], realtime: false, chunk: 'worldcup' },
-  { id: 'reaction', icon: '⚡', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'reaction' }
+  { id: 'reaction', icon: '⚡', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'reaction' },
+  { id: 'higher', icon: '📈', kind: 'quick', seats: [1, 4], realtime: false, chunk: 'higher' },
+  { id: 'ghosttype', icon: '👻', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'ghosttype' }
 ];
 
 /** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */

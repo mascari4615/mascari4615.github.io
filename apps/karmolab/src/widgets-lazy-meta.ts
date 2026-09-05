@@ -1028,16 +1028,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/duel']
   },
   {
-    // 놀이라 묶음에 안 넣는다. 목록에서 바로 보여야 사람이 들어온다 (TASK-KL-131).
-    id: 'ghosttype',
-    get title() { return t('widgets.ghosttype.title', undefined, "유령 타자 대결"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.ghosttype.desc', undefined, "타자 기록이 주소 하나가 되고, 그 주소를 연 사람은 내 유령과 나란히 달립니다. 아무 글이나 걸 수 있고 주소는 만료되지 않습니다"); },
-    layout: 'wide',
-    icon: '<path d="M12 3a6 6 0 0 0-6 6v10l2-1.6 2 1.6 2-1.6 2 1.6 2-1.6 2 1.6V9a6 6 0 0 0-6-6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M10 10h.01M14 10h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/ghosttype']
-  },
-  {
     // 묶음에 넣지 않는다. 다른 PDF 도구가 한 파일을 고친다면 이건 두 판본을 견준다라
     // 하는 일의 결이 다르고, 목록에서 바로 보여야 하는 도구다 (TASK-KL-130).
     id: 'pdfdiff',
@@ -1602,17 +1592,6 @@ window.KARMOLAB_LAZY_META = [
     icon:
       '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.4"/><path d="M15 13h4M17 11v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['packs']
-  },
-  {
-    id: 'higher',
-    get title() { return t('widgets.higher.title', undefined, "높은 쪽 고르기"); },
-    category: 'play',
-    get desc() { return t('widgets-desc.higher.desc', undefined, "둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬, 롤, 원신"); },
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<path d="M4 18l5-6 4 3 7-9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['higher']
   },
   {
     id: 'lotto',

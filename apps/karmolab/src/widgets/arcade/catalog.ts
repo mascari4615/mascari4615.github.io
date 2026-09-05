@@ -126,6 +126,10 @@ import { worldcup } from './games/worldcup';
 import { worldcupView } from './games/worldcup-view';
 import { reaction } from './games/reaction';
 import { reactionView } from './games/reaction-view';
+import { higher } from './games/higher';
+import { higherView } from './games/higher-view';
+import { ghosttype } from './games/ghosttype';
+import { ghosttypeView } from './games/ghosttype-view';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface CatalogEntry {
@@ -194,5 +198,7 @@ export const CATALOG: CatalogEntry[] = [
   { def: sudoku, view: sudokuView, icon: '🔢', kind: 'puzzle' , hidden: true },
   /* 놀이에서 옮겨 온 첫 판 (change.arcade-absorbs-play). 정답이 없는 판. 혼자가 기본, 둘이면 길을 견준다 */
   { def: worldcup, view: worldcupView, icon: '👑', kind: 'quick' },
-  { def: reaction, view: reactionView, icon: '⚡', kind: 'quick' }
+  { def: reaction, view: reactionView, icon: '⚡', kind: 'quick' },
+  { def: higher, view: higherView, icon: '📈', kind: 'quick' },
+  { def: ghosttype, view: ghosttypeView, icon: '👻', kind: 'quick' }
 ];

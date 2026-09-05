@@ -137,7 +137,7 @@ await page.waitForTimeout(3000);
  */
 const WIDGETS = [
   'particle', 'bounce', 'moon', 'hourglass', 'eyes',
-  'countdown', 'crypto', 'darkroom', 'higher', 'memo', 'news', 'orbita',
+  'countdown', 'crypto', 'darkroom', 'memo', 'news', 'orbita',
 ];
 
 async function idleCounts() {

@@ -135,7 +135,6 @@ const RAW_CHECKS = [
   { name: '글자를 넣으면 반응하는지', cmd: ['npm', 'run', 'test:typing'] },
   { name: '화면 다섯이 넓은 화면, 폰에서 안 넘치는지', cmd: ['npm', 'run', 'test:platform'] },
   { name: '판본 대조가 도는지', cmd: ['npm', 'run', 'test:pdfdiff'] },
-  { name: '타자 대결 한 바퀴가 도는지', cmd: ['npm', 'run', 'test:ghosttype'] },
   { name: '입력칸에 이름이 이어져 있는지', cmd: ['npm', 'run', 'audit:labels'] },
   { name: '밝은 테마, 어두운 테마에서 글씨가 보이는지', cmd: ['npm', 'run', 'test:contrast'] },
   { name: '도구마다 공유 카드가 있는지', cmd: ['npm', 'run', 'audit:cards'] },
