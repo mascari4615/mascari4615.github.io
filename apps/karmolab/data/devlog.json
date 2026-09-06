@@ -2,11 +2,60 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2191,
+    "commits": 2107,
     "days": 12,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-09-06",
+      "entries": [
+        {
+          "sha": "099575af",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "UXML 요소를 못 찾으면 그 자리에서 이름을 말한다"
+        },
+        {
+          "sha": "dae5a87b",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "ci",
+          "text": "방치형 빌드 워크플로의 run 블록을 ASCII 로. 린트가 09-05 부터 빨갰다"
+        },
+        {
+          "sha": "feb585ee",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "ci",
+          "text": "시험 이동과 partial 분리 뒤 빨갛던 관문 셋을 고친다"
+        },
+        {
+          "sha": "a561e13a",
+          "type": "",
+          "typeLabel": "",
+          "scope": "",
+          "text": "refactor(tests): 엔진 밖 시험 145 파일을 엔진 참조 0 어셈블리로 가른다"
+        },
+        {
+          "sha": "ff5b9bd8",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "도감 문구 셋이 옛 .asset 에서 안 읽히던 것"
+        },
+        {
+          "sha": "6acf34b7",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "features",
+          "text": "갈래가 자기 세이브 조각을 낸다. 공용 저장에서 갈래 이름을 걷어낸다"
+        }
+      ],
+      "quiet": 8,
+      "more": 0
+    },
     {
       "date": "2026-09-05",
       "entries": [
@@ -457,59 +506,10 @@
           "typeLabel": "새로 생긴 것",
           "scope": "wm",
           "text": "빌드가 무엇을 왜 실었는지 기계가 답한다 + 예산 상한 (TASK-WM-408)"
-        },
-        {
-          "sha": "7974e56c",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "실황 셋 + 영웅 개성 · 못 사는 다음 것도 보이게 (TASK-WM-406)"
-        },
-        {
-          "sha": "4917ff75",
-          "type": "revert",
-          "typeLabel": "되돌림",
-          "scope": "wm",
-          "text": "패키지 7종 제거를 되돌린다 — 전역 변경이라 본편까지 잘렸다"
-        },
-        {
-          "sha": "8166a7be",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "바닥 격자 + 생산자 맥동 — 게임필 마감 (TASK-WM-406)"
         }
       ],
       "quiet": 8,
-      "more": 38
-    },
-    {
-      "date": "2026-08-14",
-      "entries": [
-        {
-          "sha": "2ac13bf9",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "쫓기 무대는 아직 <b>자</b>다 — 이름을 그렇게 바꾼다 (TASK-WM-405)"
-        },
-        {
-          "sha": "dd27111a",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "남의 걸음을 앞질러 그린다 (TASK-WM-405)"
-        },
-        {
-          "sha": "781c30a3",
-          "type": "",
-          "typeLabel": "",
-          "scope": "",
-          "text": "때린 손짓의 갈래를 센다 (TASK-WM-405)"
-        }
-      ],
-      "quiet": 0,
-      "more": 147
+      "more": 41
     }
   ]
 }
