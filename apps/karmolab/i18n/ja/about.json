@@ -1,3 +1,5 @@
 {
-  "about.failed": "紹介を取得できませんでした"
+  "about.failed": "紹介を取得できませんでした",
+  "about.details": "経歴、学歴、活動を見る",
+  "about.works": "制作したもの"
 }

@@ -26,7 +26,7 @@
   "src/widgets/toast.ts": 1,
   "src/widgets/user.ts": 1
  },
- "colorTotal": 1388,
+ "colorTotal": 1379,
  "colorFiles": {
   "css/community.css": 16,
   "css/lotto.css": 3,
@@ -119,7 +119,6 @@
   "src/widgets/tools/video2img.ts": 1,
   "src/widgets/tools/videotool.ts": 6,
   "src/widgets/user.ts": 5,
-  "src/widgets/usertool.ts": 2,
-  "src/widgets/works.ts": 9
+  "src/widgets/usertool.ts": 2
  }
 }
