@@ -114,7 +114,8 @@ for (const id of ids) {
   check(cfg, `${id}: Toolbox.register 가 호출되지 않음`);
   if (!cfg) continue;
   check(cfg.title === meta.title, `${id}: title 불일치 (위젯 "${cfg.title}" vs 메타 "${meta.title}")`);
-  check(cfg.category === meta.category, `${id}: category 불일치`);
+  /* 분류 생략과 명부의 빈 문자열은 둘 다 분류 없음 */
+  check((cfg.category ?? '') === (meta.category ?? ''), `${id}: category 불일치 (위젯 ${JSON.stringify(cfg.category)} vs 메타 ${JSON.stringify(meta.category)})`);
   check(
     cfg.layout === meta.layout,
     `${id}: layout 불일치 (위젯 "${cfg.layout}" vs 메타 "${meta.layout}"). 두 곳을 함께 고쳐야 한다`

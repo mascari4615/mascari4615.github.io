@@ -22,7 +22,7 @@ const check = (name, ok, detail = '') => {
 };
 
 const server = await smokeBase();
-const PAGE = `${server.base}/apps/karmolab/index.html`;
+const PAGE = `${server.base}/apps/karmolab/index.html?all=1`;
 let cantRun = '';
 
 const browser = await chromium.launch();

@@ -17,7 +17,7 @@ if (requestedPlayers === 0) {
 if (![2, 3, 4].includes(requestedPlayers)) throw new Error('참가자는 2명, 3명 또는 4명이어야 한다');
 
 const server = await smokeBase();
-const pageUrl = `${server.base}/apps/karmolab/index.html`;
+const pageUrl = `${server.base}/apps/karmolab/index.html?all=1`;
 const ids = Array.from({ length: requestedPlayers }, (_, index) => `rank-${String.fromCharCode(97 + index)}`);
 const code = `Y${requestedPlayers}${Date.now().toString(36).toUpperCase().slice(-6)}`;
 const browser = await chromium.launch({

@@ -244,6 +244,31 @@ await page.route('**/kl/air/near*', async (route) => {
   }
 });
 
+/* 반투명 비행기의 합성 전후 픽셀과 배경 재그리기 관찰 */
+await page.evaluate(() => {
+  const probe = window.__bmAirProbe = { frames: 0, calls: 0, changed: 0 };
+  const proto = CanvasRenderingContext2D.prototype;
+  for (const name of ['fill', 'fillRect', 'drawImage']) {
+    const original = proto[name];
+    proto[name] = function (...args) {
+      if (!this.canvas.matches('.bm-canvas')) return original.apply(this, args);
+      if ((name === 'drawImage' && args.length === 5 && args[1] === 0 && args[2] === 0)
+        || (name === 'fillRect' && args[0] === 0 && args[1] === 0 && args[2] >= this.canvas.width)) probe.frames++;
+      const plane = name !== 'drawImage' && /^rgba\(214,\s*238,\s*255,/.test(this.fillStyle);
+      if (!plane) return original.apply(this, args);
+      const m = this.getTransform();
+      const point = m.transformPoint(new DOMPoint(name === 'fillRect' ? args[0] : 0, name === 'fillRect' ? args[1] : 0));
+      const x = Math.max(0, Math.min(this.canvas.width - 24, Math.floor(point.x) - 12));
+      const y = Math.max(0, Math.min(this.canvas.height - 24, Math.floor(point.y) - 12));
+      const before = this.getImageData(x, y, 24, 24).data;
+      const result = original.apply(this, args);
+      const after = this.getImageData(x, y, 24, 24).data;
+      probe.calls++;
+      if (after.some((value, i) => value !== before[i])) probe.changed++;
+      return result;
+    };
+  }
+});
 await page.goto(`${BASE}#bluemarble`, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('.bm-canvas', { timeout: 40000 });
 /* 조작부는 접혀 있는 게 기본이다. 펴지 않으면 겹 단추가 지구본 뒤에 깔려 못 눌린다. */
@@ -270,38 +295,19 @@ if ((await airChip.count()) === 0) {
     check(/하늘에 \d+대|잡히는 게 없습니다/.test(said), `★ 받은 결과를 사람 말로 말한다 (지금 ${said})`);
     check(!/하늘에 0대/.test(said), '0대를 n대로 말하지 않는다 (없으면 없다고 말해야 한다)');
 
-    /*
-     * ★ **말만 하고 안 그리는 것**이 이 겹에서 제일 그럴듯한 고장이다. 상태 줄은 받아 온
-     * 수를 말하므로 그리기가 통째로 죽어도 초록으로 보인다. 그래서 픽셀을 센다:
-     * 비행기 색(214,238,255 계열)이 겹을 끄면 사라져야 한다.
-     */
-    const planePixels = () =>
-      page.evaluate(() => {
-        const c = document.querySelector('.bm-canvas');
-        const ctx = c.getContext('2d');
-        const d = ctx.getImageData(0, 0, c.width, c.height).data;
-        let n = 0;
-        for (let i = 0; i < d.length; i += 4) {
-          if (d[i] > 195 && d[i] < 235 && d[i + 1] > 225 && d[i + 2] > 245) n++;
-        }
-        return n;
-      });
-    const onCount = await planePixels();
     if (/잡히는 게 없습니다/.test(said)) {
       skip('그 하늘이 실제로 0대였다. 그리기는 못 쟀다(잡을 게 없으면 그릴 것도 없다)');
     } else {
-      check(onCount > 0, `★ 비행기가 실제로 그려진다 (그 색 픽셀 ${onCount}개)`);
-      await airChip.click(); // 끈다
-      /* 지구본은 다음 프레임에 다시 그린다. 400ms 로 세면 아직 옛 그림을 읽어 7 -> 7 처럼 안 줄었다가 나온다
-         (2026-08-31 실측, 통짜 판에서 두 번). 값이 멎을 때까지 기다린다 */
-      let offCount = await planePixels();
-      for (let i = 0; i < 12; i += 1) {
-        await page.waitForTimeout(150);
-        const now = await planePixels();
-        if (now === offCount && now < onCount) break;
-        offCount = now;
-      }
-      check(offCount < onCount, `겹을 끄면 사라진다 (${onCount} → ${offCount})`);
+      const painted = await page.waitForFunction(() => window.__bmAirProbe.changed > 0, null, { timeout: WAIT })
+        .then(() => true).catch(() => false);
+      check(painted, '비행기 그리기가 실제 픽셀을 바꾼다');
+      await airChip.click();
+      const off = await page.evaluate(() => ({ ...window.__bmAirProbe }));
+      const repainted = await page.waitForFunction((frames) => window.__bmAirProbe.frames >= frames + 3,
+        off.frames, { timeout: WAIT }).then(() => true).catch(() => false);
+      const after = await page.evaluate(() => ({ ...window.__bmAirProbe }));
+      check(repainted && after.calls === off.calls,
+        `하늘 겹을 끄면 배경만 다시 그린다 (프레임 ${after.frames - off.frames}, 비행기 ${after.calls - off.calls})`);
     }
   }
 }

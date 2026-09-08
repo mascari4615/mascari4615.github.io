@@ -258,7 +258,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'randomgen',
     get title() { return t('widgets.randomgen.title', undefined, "랜덤 생성기"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.randomgen.desc', undefined, "창작용 키워드, 주제를 랜덤으로 뽑습니다"); },
     layout: 'wide',
     icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="16" y1="3" x2="22" y2="3"/><line x1="19" y1="0" x2="19" y2="6"/>',
@@ -684,7 +684,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'tierlist',
     get title() { return t('widgets.tierlist.title', undefined, "티어리스트"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.tierlist.desc', undefined, "후보 풀(주제별 요소)에서 순위 인스턴스를 만들고, 블로그, 로컬 JSON으로 주고받기 (개발 중)"); },
     layout: 'form',
     icon: '<path d="M3 3h18v4H3zM3 9h14v4H3zM3 15h10v4H3z"/>',
@@ -725,7 +725,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'conch',
     get title() { return t('widgets.conch.title', undefined, "소라고동"); },
-    category: 'play',
+    category: '',
     hidden: true,
     get desc() { return t('widgets-desc.conch.desc', undefined, "소라고동에게 질문합니다"); },
     layout: 'form',
@@ -736,7 +736,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'pulse',
     hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.pulse.title', undefined, "박동"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.pulse.desc', undefined, "아무 의미 없는 것을 아주 규칙적으로 내보내는 방송국 7개. 세 글자, 종, 눈금, 낱말, 한 줄, 무늬, 점 (TASK-KL-207)"); },
     layout: 'full',
     icon: '<path d="M2 12h4l3-8 4 16 3-8h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
@@ -992,7 +992,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'timecapsule',
     hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.timecapsule.title', undefined, "타임캡슐 편지"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.timecapsule.desc', undefined, "정한 날 전에는 아무도 못 여는 편지를 만듭니다. 맡아 두는 서버가 없어 잠긴 편지 자체가 주소가 됩니다"); },
     layout: 'wide',
     icon: '<rect x="4" y="9" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
@@ -1004,7 +1004,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'duel',
     hidden: true,
     get title() { return t('widgets.duel.title', undefined, "번개 대결"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.duel.desc', undefined, "몇 초짜리 미니게임으로 둘이 붙습니다. 링크 하나면 바로 시작하고, 방을 우리 서버에 두지 않습니다"); },
     layout: 'wide',
     noHero: true,
@@ -1549,7 +1549,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'draw',
     get title() { return t('widgets.draw.title', undefined, "랜덤 뽑기"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.draw.desc', undefined, "로또 번호, 사다리타기, 추첨과 팀 나누기를 한 곳에서"); },
     layout: 'wide',
     icon: '<circle cx="9" cy="10" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 8v4M7 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -1558,7 +1558,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'packs',
     get title() { return t('widgets.packs.title', undefined, "내 표 만들기"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.packs.desc', undefined, "놀이에 쓸 표를 직접 만듭니다. 스프레드시트에서 붙여넣기 한 판이면 됩니다"); },
     layout: 'wide',
     noHero: true,
@@ -1571,7 +1571,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 뽑기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.lotto.title', undefined, "로또 번호 생성"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.lotto.desc', undefined, "로또 6/45 와 연금복권720+ 번호를 뽑고, 최신 회차와 자동으로 대조합니다"); },
     layout: 'form',
     icon: '<circle cx="8" cy="9" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="15" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7v4M6 9h4" stroke="currentColor" stroke-width="1.4"/>',
@@ -1934,7 +1934,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 뽑기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.ladder.title', undefined, "사다리타기"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.ladder.desc', undefined, "이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다"); },
     layout: 'wide',
     icon: '<path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 8h10M7 13h10M7 18h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
@@ -2162,7 +2162,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true, // 뽑기 위젯의 탭으로 합쳐짐. 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     get title() { return t('widgets.pick.title', undefined, "추첨, 팀 나누기"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.pick.desc', undefined, "명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게"); },
     layout: 'form',
     icon: '<circle cx="7" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
@@ -2336,23 +2336,23 @@ window.KARMOLAB_LAZY_META = [
   /* ───── 잡동사니 (Stash). TASK-KL-034 ─────
    * 사이드바 hide (hidden: true). 잡동사니 위젯 안에서 inline render + 자동 작동.
    * 직접 진입 (Toolbox.switchPage) 가능. 21 개 dead 위젯 자산 보존. */
-  { id: 'bounce', get title() { return t('widgets.bounce.title', undefined, "바운스"); }, category: 'play', get desc() { return t('widgets-desc.bounce.desc', undefined, "공을 튕겨 바운스 게임을 합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bounce'] },
-  { id: 'bubble', get title() { return t('widgets.bubble.title', undefined, "뽁뽁이"); }, category: 'play', get desc() { return t('widgets-desc.bubble.desc', undefined, "뽁뽁이를 터뜨립니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bubble'] },
+  { id: 'bounce', get title() { return t('widgets.bounce.title', undefined, "바운스"); }, category: '', get desc() { return t('widgets-desc.bounce.desc', undefined, "공을 튕겨 바운스 게임을 합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bounce'] },
+  { id: 'bubble', get title() { return t('widgets.bubble.title', undefined, "뽁뽁이"); }, category: '', get desc() { return t('widgets-desc.bubble.desc', undefined, "뽁뽁이를 터뜨립니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bubble'] },
   { id: 'countdown', get title() { return t('widgets.countdown.title', undefined, "카운트다운"); }, category: 'calc', get desc() { return t('widgets-desc.countdown.desc', undefined, "카운트다운 타이머를 설정합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['countdown'] },
-  { id: 'darkroom', get title() { return t('widgets.darkroom.title', undefined, "다크룸"); }, category: 'play', get desc() { return t('widgets-desc.darkroom.desc', undefined, "어두운 방에서 마우스로 빛을 비춥니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['darkroom'] },
-  { id: 'eyes', get title() { return t('widgets.eyes.title', undefined, "눈동자"); }, category: 'play', get desc() { return t('widgets-desc.eyes.desc', undefined, "마우스를 따라오는 눈동자"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['eyes'] },
-  { id: 'folder', get title() { return t('widgets.folder.title', undefined, "에러"); }, category: 'play', get desc() { return t('widgets-desc.folder.desc', undefined, "폴더가 무한 증식하는 이스터에그"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['folder'] },
-  { id: 'fontgacha', get title() { return t('widgets.fontgacha.title', undefined, "폰트가챠"); }, category: 'play', get desc() { return t('widgets-desc.fontgacha.desc', undefined, "가챠로 폰트를 바꿉니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['font'] },
-  { id: 'hacker', get title() { return t('widgets.hacker.title', undefined, "해커"); }, category: 'play', get desc() { return t('widgets-desc.hacker.desc', undefined, "키보드를 연타해 해커 느낌의 텍스트를 출력합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
+  { id: 'darkroom', get title() { return t('widgets.darkroom.title', undefined, "다크룸"); }, category: '', get desc() { return t('widgets-desc.darkroom.desc', undefined, "어두운 방에서 마우스로 빛을 비춥니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['darkroom'] },
+  { id: 'eyes', get title() { return t('widgets.eyes.title', undefined, "눈동자"); }, category: '', get desc() { return t('widgets-desc.eyes.desc', undefined, "마우스를 따라오는 눈동자"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['eyes'] },
+  { id: 'folder', get title() { return t('widgets.folder.title', undefined, "에러"); }, category: '', get desc() { return t('widgets-desc.folder.desc', undefined, "폴더가 무한 증식하는 이스터에그"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['folder'] },
+  { id: 'fontgacha', get title() { return t('widgets.fontgacha.title', undefined, "폰트가챠"); }, category: '', get desc() { return t('widgets-desc.fontgacha.desc', undefined, "가챠로 폰트를 바꿉니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['font'] },
+  { id: 'hacker', get title() { return t('widgets.hacker.title', undefined, "해커"); }, category: '', get desc() { return t('widgets-desc.hacker.desc', undefined, "키보드를 연타해 해커 느낌의 텍스트를 출력합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
   { id: 'hourglass', get title() { return t('widgets.hourglass.title', undefined, "모래시계"); }, category: 'calc', get desc() { return t('widgets-desc.hourglass.desc', undefined, "모래시계 타이머를 실행합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
   { id: 'moon', get title() { return t('widgets.moon.title', undefined, "달 위상"); }, category: 'calc', get desc() { return t('widgets-desc.moon.desc', undefined, "오늘의 달 위상을 확인합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
-  { id: 'news', get title() { return t('widgets.news.title', undefined, "뉴스"); }, category: 'play', get desc() { return t('widgets-desc.news.desc', undefined, "가짜 뉴스 헤드라인을 생성합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
-  { id: 'particle', get title() { return t('widgets.particle.title', undefined, "파티클"); }, category: 'play', get desc() { return t('widgets-desc.particle.desc', undefined, "마우스로 파티클을 움직이고 클릭으로 폭발시킵니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
-  { id: 'password', get title() { return t('widgets.password.title', undefined, "비번"); }, category: 'play', get desc() { return t('widgets-desc.password.desc', undefined, "4자리 비밀번호를 힌트 보며 맞히는 놀이"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
-  { id: 'pet', get title() { return t('widgets.pet.title', undefined, "쓰다듬기"); }, category: 'play', get desc() { return t('widgets-desc.pet.desc', undefined, "고양이를 쓰다듬고 호감도를 올립니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['pet'] },
-  { id: 'shylink', get title() { return t('widgets.shylink.title', undefined, "어그로"); }, category: 'play', get desc() { return t('widgets-desc.shylink.desc', undefined, "움직이는 링크를 잡는 미니게임"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['shylink'] },
-  { id: 'stone', get title() { return t('widgets.stone.title', undefined, "돌"); }, category: 'play', get desc() { return t('widgets-desc.stone.desc', undefined, "돌을 던져 점을 봅니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['stone'] },
-  { id: 'toast', get title() { return t('widgets.toast.title', undefined, "토스트"); }, category: 'play', get desc() { return t('widgets-desc.toast.desc', undefined, "토스트 알림을 띄웁니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['toast'] },
+  { id: 'news', get title() { return t('widgets.news.title', undefined, "뉴스"); }, category: '', get desc() { return t('widgets-desc.news.desc', undefined, "가짜 뉴스 헤드라인을 생성합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
+  { id: 'particle', get title() { return t('widgets.particle.title', undefined, "파티클"); }, category: '', get desc() { return t('widgets-desc.particle.desc', undefined, "마우스로 파티클을 움직이고 클릭으로 폭발시킵니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
+  { id: 'password', get title() { return t('widgets.password.title', undefined, "비번"); }, category: '', get desc() { return t('widgets-desc.password.desc', undefined, "4자리 비밀번호를 힌트 보며 맞히는 놀이"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
+  { id: 'pet', get title() { return t('widgets.pet.title', undefined, "쓰다듬기"); }, category: '', get desc() { return t('widgets-desc.pet.desc', undefined, "고양이를 쓰다듬고 호감도를 올립니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['pet'] },
+  { id: 'shylink', get title() { return t('widgets.shylink.title', undefined, "어그로"); }, category: '', get desc() { return t('widgets-desc.shylink.desc', undefined, "움직이는 링크를 잡는 미니게임"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['shylink'] },
+  { id: 'stone', get title() { return t('widgets.stone.title', undefined, "돌"); }, category: '', get desc() { return t('widgets-desc.stone.desc', undefined, "돌을 던져 점을 봅니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['stone'] },
+  { id: 'toast', get title() { return t('widgets.toast.title', undefined, "토스트"); }, category: '', get desc() { return t('widgets-desc.toast.desc', undefined, "토스트 알림을 띄웁니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['toast'] },
   { id: 'ytdownloader', get title() { return t('widgets.ytdownloader.title', undefined, "유튜브 다운로드"); }, category: 'av', get desc() { return t('widgets-desc.ytdownloader.desc', undefined, "유튜브 영상을 다운로드합니다"); }, hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['youtubedl'] },
 
   /* 잡동사니 위젯 본체 */
@@ -2382,7 +2382,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'heung',
     title: '흥',
-    category: 'play',
+    category: '',
     desc: '멀티트랙 녹음, MIDI 편곡, 믹싱, WAV 출력을 한 프로젝트에서 완성하는 브라우저 DAW',
     layout: 'full',
     noHero: true,
@@ -2397,7 +2397,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'orbita',
     hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     get title() { return t('widgets.orbita.title', undefined, "ORBITA"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.orbita.desc', undefined, "궤도에 색을 찍어 만드는 폴리리듬 시퀀서. 브라우저 신스 + MIDI 출력"); },
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".8"/><circle cx="12" cy="3" r="1.8" fill="currentColor"/><circle cx="17" cy="12" r="1.4" fill="currentColor"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/>',
@@ -2409,7 +2409,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'bluemarble',
     get title() { return t('widgets.bluemarble.title', undefined, "블루마블"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.bluemarble.desc', undefined, "지금 이 순간의 지구. 낮과 밤, 도시 불빛, 방금 난 지진, 머리 위의 ISS"); },
     layout: 'full',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 10h17M4.2 15h15.6" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/><path d="M12 3c3 3.6 3 13.4 0 18M12 3C9 6.6 9 16.4 12 21" stroke="currentColor" stroke-width="1.1" opacity=".5" fill="none"/>',
@@ -2421,7 +2421,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'territory',
     get title() { return t('widgets.territory.title', undefined, "영토"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.territory.desc', undefined, "우리 동네 땅 주인은 CU 인가 GS25 인가. 편의점, 카페, 햄버거 브랜드 점령도"); },
     layout: 'full',
     icon: '<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".55"/>',
@@ -2435,7 +2435,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'meong',
     get title() { return t('widgets.meong.title', undefined, "멍"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.meong.desc', undefined, "멍때리며 보는 화면. 스스로 자라는 격자와 그림을 켜 두고 지켜봅니다"); },
     layout: 'full',
     noHero: true,
@@ -2449,7 +2449,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'arcade',
     get title() { return t('widgets.arcade.title', undefined, "오락실"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.arcade.desc', undefined, "여러 미니게임을 혼자서도 여럿이서도 합니다. 사람이 모자란 자리는 봇이 앉습니다"); },
     layout: 'wide',
     noHero: true,
@@ -2464,7 +2464,7 @@ window.KARMOLAB_LAZY_META = [
     hidden: true,   // 옆줄과 찾기 판에서 뺌 (2026-08-31 사용자 결정)
     noPage: true,
     get title() { return t('widgets.collection.title', undefined, "도감"); },
-    category: 'play',
+    category: '',
     get desc() { return t('widgets-desc.collection.desc', undefined, "써 본 도구에 도장이 찍힌다. 몇 칸이나 채웠나"); },
     layout: 'wide',
     noHero: true,

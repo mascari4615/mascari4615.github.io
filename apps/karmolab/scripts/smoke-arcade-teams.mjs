@@ -13,7 +13,7 @@ import { untilTrue } from './lib/settle.mjs';
 /* 잴 자리는 한 곳에서 정한다. `lib/smoke-base.mjs` (시키지 않으면 늘 자기 서버). */
 const server = await smokeBase();
 const BASE = server.base;
-const PAGE = `${BASE}/apps/karmolab/index.html`;
+const PAGE = `${BASE}/apps/karmolab/index.html?all=1`;
 const fails = [];
 const check = (name, cond, detail = '') => {
   console.log(`  [${cond ? 'O' : 'X'}] ${name}${cond || !detail ? '' : '. ' + detail}`);
