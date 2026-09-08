@@ -789,6 +789,57 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
 .tool-hub-group a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border); }
 .tool-hub-group a:hover { color: var(--accent-ink); border-bottom-color: var(--accent); }
 
+/* 만든 것 다섯 (change.karmolab-axis). 유틸 카드보다 큼, 한 줄 설명 안 자름. 이 장의 주인: 크기로 표시 */
+.tool-hub-axis { margin-top: 18px; }
+.tool-hub-axis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+.tool-hub-axis-card {
+    display: block;
+    padding: 16px 16px 14px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    text-decoration: none;
+    transition: all var(--transition);
+}
+.tool-hub-axis-card:hover { transform: translateY(-2px); background: var(--bg-hover, var(--bg-tertiary)); }
+.tool-hub-axis-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-md, 1.05rem); line-height: 1.3; margin-bottom: 6px; }
+.tool-hub-axis-card span { display: block; color: var(--text-secondary); font-size: var(--font-size-xs); line-height: 1.5; }
+
+/* 그 밖의 도구 (change.karmolab-axis). 접힌 목록 안: **이름만**. 쉼표 기능 나열 133장 = AI 티. 설명은 도구 장 몫 */
+.tool-hub-all {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+.tool-hub-all > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.tool-hub-all > summary::-webkit-details-marker { display: none; }
+.tool-hub-all > summary::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid var(--text-secondary);
+    border-bottom: 1.5px solid var(--text-secondary);
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+}
+.tool-hub-all[open] > summary::before { transform: rotate(45deg); }
+.tool-hub-all > summary .tool-hub-group { margin: 0; }
+.tool-hub-all .tool-hub-card span { display: none; }
+.tool-hub-all .tool-hub-card { contain-intrinsic-size: auto 40px; padding: 8px 12px; }
+.tool-hub-all .tool-hub-card strong { margin-bottom: 0; }
+.tool-hub-all .tool-hub-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+
 /* 창고 (2026-08-29). 넉 주 동안 아무도 안 연 도구 105개가 여기로 내려왔다.
    지운 것이 아니라 접은 것이라, 눌러서 펴는 자리라는 게 보여야 한다.
    진열된 분류들과 확실히 갈라 놓으려고 위에 선을 하나 긋는다. */

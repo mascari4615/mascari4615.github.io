@@ -1262,6 +1262,33 @@ a.landing-cta-card:hover { color: inherit; }
     color: var(--text-primary);
     letter-spacing: 0.01em;
 }
+/* 다섯 장 아래 한 줄 (change.karmolab-axis). 도구 목록, 즐겨찾기, 커뮤니티: 카드 아닌 글자 링크. 카드로 올리면 유틸 사이트 첫 화면 */
+.landing-more {
+    margin: 10px 0 0;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+}
+.landing-more a,
+.landing-more button {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: 0;
+    /* WCAG 2.2 target-size: 누르는 자리 24px 이상 (test:wcag 측정) */
+    min-height: 24px;
+    padding: 2px 4px;
+    display: inline-flex;
+    align-items: center;
+    font: inherit;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    cursor: pointer;
+}
+.landing-more a:hover,
+.landing-more button:hover { color: var(--accent); }
 
 /* ═══════ 첫 화면 자리잡기. 늦게 와도 안 튀게 (TASK-KL-201) ═══════
    **이 구역은 절대 뒤로 빼지 마라**. 색이 아니라 *자리* 다.

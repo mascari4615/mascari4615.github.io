@@ -1054,12 +1054,38 @@ function buildHub() {
   );
   html = html.replace('<body>', '<body class="tool-hub-page">');
 
+  /* 만든 것 다섯이 맨 위 (change.karmolab-axis, 사용자 결정 2026-09-08).
+     전에는 유틸 133장이 갈래 11개로 바로 깔렸다. JSON 포맷터, BMI, QR 이 앞에 있으면 이 장은
+     유틸 사이트 표준 세트로 읽힌다. 구글도 같은 판정이었다(`/t/` 크롤링됨, 색인 안 됨, 석 달 클릭 0).
+     유틸은 아래 접힌 목록으로 내리고 이름만 남긴다. 주소, 사이트맵, 찾기는 그대로다.
+     이름과 한 줄은 위젯 메타와 i18n 에서 읽는다. 여기 손으로 적으면 갈라진다. */
+  const AXIS = [
+    { id: 'meok', href: `${BASE_PATH}/meok/` },
+    { id: 'heung', href: `/#heung` },
+    { id: 'karmograph', href: `/#karmograph` },
+    { id: 'arcade', href: `${BASE_PATH}/arcade/` },
+    { id: 'wm', href: `/#wm` }
+  ];
+  const descKo = JSON.parse(fs.readFileSync(path.join(root, 'i18n/ko/widgets-desc.json'), 'utf8'));
+  const axisCards = AXIS.map(({ id, href }) => {
+    const meta = widgetById[id];
+    if (!meta) throw new Error(`[gen-tool-pages] 축 위젯이 명부에 없다: ${id}`);
+    const desc = descKo[`widgets-desc.${id}.desc`] || '';
+    return `        <a class="tool-hub-axis-card" href="${href}"><strong>${esc(meta.title)}</strong><span>${esc(desc)}</span></a>`;
+  }).join(String.fromCharCode(10));
+
   const hubBody = `<section class="tool-seo tool-hub">
       <nav class="tool-crumb" aria-label="위치"><a href="/">KarmoLab</a><i aria-hidden="true">›</i><span aria-current="page">도구</span></nav>
       <!-- 큰제목은 검색엔진이 이 문서가 무엇인가로 읽는 자리다. 도구 한 단어로는
-           목록인지 도구 하나인지도 흐리다. 몇 가지인지까지 담되 숫자는 만들 때 세어 넣는다. -->
-      <h1>도구 ${ids.length}가지</h1>
+           목록인지 도구 하나인지도 흐리다. 수는 접힌 목록의 제목이 든다(만들 때 세어 넣는다). -->
+      <h1>KarmoLab 도구</h1>
       <p class="tool-seo-lead">삶을 섞고 술을 바꿀 시간.</p>
+      <section class="tool-hub-axis" aria-label="만든 것">
+        <h2 class="tool-hub-group">만든 것</h2>
+        <div class="tool-hub-axis-grid">
+${axisCards}
+        </div>
+      </section>
       <!-- 놀러 온 사람이 도구를 만나고, 도구 쓰던 사람이 놀 이유가 생긴다 (TASK-KL-089). -->
       <p class="tool-hub-quest"><a href="/higher/">높은 쪽 고르기</a>, <a href="/quest/">오늘의 문제</a>. 놀다 가세요</p>
 
@@ -1079,8 +1105,13 @@ function buildHub() {
         <h2 class="tool-hub-group tool-hub-mine-title">내가 쓰는 것</h2>
         <div class="tool-hub-grid tool-hub-mine-grid"></div>
       </section>
+      <!-- 유틸 도구 전부는 접어서 낸다 (change.karmolab-axis). 스크립트 없이도 열리는 details 라
+           크롤러도 사람도 다 본다. 안에서는 이름만 보인다(CSS). 찾는 중에는 스크립트가 열어 준다. -->
+      <details class="tool-hub-all" id="tool-hub-all">
+        <summary><span class="tool-hub-group">그 밖의 도구<span class="tool-hub-count" data-total="${ids.length}">${ids.length}</span></span></summary>
 ${toc}
 ${cards}
+      </details>
       <p class="tool-seo-note">
         각 도구의 계산은 브라우저 안에서만 이뤄지며 입력한 내용은 저장, 전송되지 않습니다.
         <a href="/">KarmoLab 전체 보기</a>, <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
@@ -1108,8 +1139,13 @@ ${cards}
           g.remove();
         }
       });
-      var h1 = document.querySelector('.tool-hub h1');
-      if (h1) h1.textContent = '도구 ' + document.querySelectorAll('.tool-hub-card').length + '가지';
+      /* 수는 접힌 목록의 제목이 든다 (change.karmolab-axis). 걷어 낸 만큼 다시 센다. */
+      var allBadge = document.querySelector('.tool-hub-all > summary .tool-hub-count');
+      if (allBadge) {
+        var left = document.querySelectorAll('.tool-hub-all .tool-hub-card').length;
+        allBadge.setAttribute('data-total', String(left));
+        allBadge.textContent = String(left);
+      }
     })();
     </script>
     <script data-hub-find>
@@ -1169,6 +1205,15 @@ ${cards}
         });
         /* 창고는 접혀 있어서, 걸러 찾은 것이 그 안에 있으면 사람 눈에는 없는 것과 같다.
            찾는 중에는 열어 주고, 다 지우면 도로 접는다. 하나도 안 걸리면 통째로 숨긴다. */
+        /* 유틸 목록은 접혀 있다 (change.karmolab-axis). 찾는 중에는 열고, 다 지우면
+           사람이 손으로 열어 둔 상태로 되돌린다. */
+        var all = document.querySelector('.tool-hub-all');
+        if (all) {
+          if (q) { if (!all.open) { all.open = true; all.dataset.autoOpen = '1'; } }
+          else if (all.dataset.autoOpen) { all.open = false; delete all.dataset.autoOpen; }
+          var allBadge = all.querySelector(':scope > summary .tool-hub-count');
+          if (allBadge) allBadge.textContent = q ? hit : allBadge.getAttribute('data-total');
+        }
         var archive = document.querySelector('.tool-hub-archive');
         if (archive) {
           var archiveHit = [].slice.call(archive.querySelectorAll('.tool-hub-card')).filter(function (c) { return c.style.display !== 'none'; }).length;

@@ -38,10 +38,10 @@ import { toolIndexPath } from './lib/site-base';
          * 예전엔 작은 KarmoLab 위에 큰 KarmoLab이 또 있었다. 같은 말이 두 줄이었다. */
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
-        /* 제목 위 한 줄 라벨. 필드 스킨에서만 표시 (CSS). 날짜와 도구 수는 사람별 값 아님, 미리 그려도 무방 */
-        const toolCount = Array.isArray(window.KARMOLAB_LAZY_META) ? window.KARMOLAB_LAZY_META.length : 0;
+        /* 제목 위 한 줄 라벨. 필드 스킨에서만 표시 (CSS). 날짜는 사람별 값 아님, 미리 그려도 무방.
+           도구 수(`TOOLS 243`)는 뺐다 (change.karmolab-axis). 수가 크다는 것이 자랑이 아니라 유틸 사이트로 읽히는 첫 신호였다. */
         hero.innerHTML = `
-            <p class="landing-label" aria-hidden="true">// ${new Date().toISOString().slice(0, 10)} / TOOLS ${toolCount}</p>
+            <p class="landing-label" aria-hidden="true">// ${new Date().toISOString().slice(0, 10)}</p>
             <h1 class="landing-title">KarmoLab</h1>
             <p class="landing-tagline">${t('site.tagline', undefined, '삶을 섞고 술을 바꿀 시간')}</p>
         `;
@@ -60,30 +60,33 @@ import { toolIndexPath } from './lib/site-base';
             window.KarmoPalette.mountInline(palette);
         }
 
-        /* 갈 곳 카드는 찾는 칸 **아래** 한 줄로 (사용자 요청).
-         * 카드마다 제목+설명 두 줄이던 것을 아이콘+이름 한 줄로 줄였다. 다섯 장이 한 줄에
-         * 들어가야 검색창이 주인공이라는 화면 구성이 유지된다. 설명은 각 화면이 스스로 한다. */
+        /* 갈 곳 카드: 찾는 칸 **아래** 한 줄 (사용자 요청). 아이콘+이름 한 줄, 다섯 장 한 줄 배치. 검색창이 주인공
+         *
+         * 다섯 장은 **내가 만든 것** (change.karmolab-axis, 사용자 결정 2026-09-08)
+         * 전: 즐겨찾기, 도구 목록, 커뮤니티, 오락실 -> 유틸 사이트로 읽힘
+         * 유틸 도구: 검색과 아래 글자 링크로만. 이름: 위젯 제목 열쇠 그대로 (두 벌 금지) */
         const cta = document.createElement('div');
         cta.className = 'landing-cta';
+        const axis = [
+            ['meok', 'widgets.meok.title', '먹', '<path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M13 7l3 3"/>'],
+            ['heung', 'widgets.heung.title', '흥', '<path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/>'],
+            ['karmograph', 'widgets.karmograph.title', 'KarmoGraph', '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="8" r="2.5"/><circle cx="10" cy="18" r="2.5"/><path d="M8.3 7l7.4 1M7 8.5l2 7M16.5 10l-5 6"/>'],
+            ['arcade', 'widgets.arcade.title', '오락실', '<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/>'],
+            ['wm', 'widgets.wm.title', 'Witch-Mendokusai', '<path d="M12 3l2 5h5l-4 3.5 1.5 5.5L12 14l-4.5 3 1.5-5.5L5 8h5z"/>']
+        ];
         cta.innerHTML = `
             <div class="landing-cta-grid">
-                <button type="button" class="landing-cta-card" data-goto="favorites">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
-                    <span class="landing-cta-card-title">${t('site.cta.favorites', undefined, '즐겨찾기')}</span>
-                </button>
-                <a class="landing-cta-card" href="${toolIndexPath()}">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
-                    <span class="landing-cta-card-title">${t('site.cta.tools', undefined, '도구 목록')}</span>
-                </a>
-                <button type="button" class="landing-cta-card" data-goto="community">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></span>
-                    <span class="landing-cta-card-title">${t('site.cta.community', undefined, '커뮤니티')}</span>
-                </button>
-                <button type="button" class="landing-cta-card" data-goto="arcade">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></span>
-                    <span class="landing-cta-card-title">${t('site.cta.arcade', undefined, '오락실')}</span>
-                </button>
+                ${axis.map(([id, key, fallback, icon]) => `
+                <button type="button" class="landing-cta-card" data-goto="${id}">
+                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></span>
+                    <span class="landing-cta-card-title">${escapeHtml(t(key, undefined, fallback))}</span>
+                </button>`).join('')}
             </div>
+            <p class="landing-more">
+                <a href="${toolIndexPath()}">${escapeHtml(t('site.cta.tools', undefined, '도구 목록'))}</a>
+                <button type="button" data-goto="favorites">${escapeHtml(t('site.cta.favorites', undefined, '즐겨찾기'))}</button>
+                <button type="button" data-goto="community">${escapeHtml(t('site.cta.community', undefined, '커뮤니티'))}</button>
+            </p>
         `;
         landing.appendChild(cta);
 
