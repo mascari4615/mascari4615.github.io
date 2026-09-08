@@ -10,7 +10,21 @@ permalink: /changes.xml
     <atom:link href="https://blog.mascari4615.com/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
-    <lastBuildDate>Tue, 08 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 09 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <item>
+      <title>[새로 생김] 프로필과 작업물 통합, 연표 선택 보기</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-b858fcb989</guid>
+      <pubDate>Wed, 09 Sep 2026 00:00:00 GMT</pubDate>
+      <description>프로필과 작업물 통합, 연표 선택 보기</description>
+    </item>
+    <item>
+      <title>[고침] 숨긴 게임 검증과 분류 명부 동기화</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-3b2832fdd7</guid>
+      <pubDate>Wed, 09 Sep 2026 00:00:00 GMT</pubDate>
+      <description>숨긴 게임 검증과 분류 명부 동기화</description>
+    </item>
     <item>
       <title>[새로 생김] 오목 로비 구성과 추천 기능 제거</title>
       <link>https://blog.mascari4615.com/#status</link>
@@ -206,20 +220,6 @@ permalink: /changes.xml
       <guid isPermaLink="false">karmolab-change-3707e37f38</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
       <description>라이브 점검 빨강 16 중 여섯을 갚는다</description>
-    </item>
-    <item>
-      <title>[고침] 월드컵 설명문에서 표 이름을 뺀다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-12f4559edc</guid>
-      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>월드컵 설명문에서 표 이름을 뺀다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 월드컵 장 제목과 설명에 만들기 검색어, 놀이 장에 빵부스러기 구조화 데이터</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-948e40b312</guid>
-      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>월드컵 장 제목과 설명에 만들기 검색어, 놀이 장에 빵부스러기 구조화 데이터</description>
     </item>
   </channel>
 </rss>
