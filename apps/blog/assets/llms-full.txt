@@ -4,7 +4,7 @@ permalink: /llms-full.txt
 
 # KarmoLab
 
-> 브라우저에서 바로 쓰는 도구 149개와 놀이. 설치, 로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환, 계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
+> 브라우저에서 바로 쓰는 도구 146개와 놀이. 설치, 로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환, 계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
 
 한국어가 기본입니다. 한국 규칙(만 나이 3종, 사업자등록번호 검증숫자, 대체공휴일, 한글 자모, 한영타)을 정확히 다루는 것이 이 사이트의 강점입니다.
 
@@ -23,7 +23,7 @@ permalink: /llms-full.txt
   `[{"tool":"base64","op":"encode","args":{"text":"안녕"}},{"tool":"hashgen","op":"text","args":{"text":"$1","algo":"SHA256"}}]`
   해시처럼 **지어내면 안 되는 값**은 이렇게 부르는 편이 안전합니다. 중간에 글자가 바뀔 자리가 없습니다.
 
-## 도구 149개
+## 도구 146개
 
 - [apitest](https://blog.mascari4615.com/t/apitest/): 연산 목록, 예시 요청 만들기, 예시 답 만들기, 목 서버에 붙일 표
 - [arcade](https://blog.mascari4615.com/t/arcade/): 미니게임 아홉 가지, 혼자도 여럿도, 빈 자리는 봇이, 방을 서버에 두지 않음
@@ -60,8 +60,6 @@ permalink: /llms-full.txt
 - [cssunit](https://blog.mascari4615.com/t/cssunit/): px, rem, em, pt, %, 자주 쓰는 크기표
 - [csvjson](https://blog.mascari4615.com/t/csvjson/): 양방향, 구분자 선택, 숫자 자동 인식
 - [curlkit](https://blog.mascari4615.com/t/curlkit/): curl → fetch/axios/python/go/node/httpie, 따옴표, 헤더 안 샘
-- [dailycho](https://blog.mascari4615.com/t/dailycho/): 매일 다섯 문제, 전원 같은 문제, 답은 도구 이름
-- [dailytype](https://blog.mascari4615.com/t/dailytype/): 매일 세 문장, 전원 같은 문제, 타수와 정확도
 - [datecalc](https://blog.mascari4615.com/t/datecalc/): D-Day, 두 날짜 사이, 평일만, 100일, 주년 기념일
 - [devtool](https://blog.mascari4615.com/t/devtool/): JSON, JWT, 정규식, 해시, UUID, 크론, URL, 암호화
 - [diff](https://blog.mascari4615.com/t/diff/): 줄 견주기, 구조 견주기(옮김 구분), 골라서 합치기
@@ -79,7 +77,6 @@ permalink: /llms-full.txt
 - [filesplit](https://blog.mascari4615.com/t/filesplit/): 조각 크기 선택, 순서 자동 정렬, 검사값으로 동일함 확인, 업로드 없음
 - [filetool](https://blog.mascari4615.com/t/filetool/): 이미지 일괄 변환, 이어 붙이기, 위치정보 지우기, ZIP, 파일 나누기
 - [filetype](https://blog.mascari4615.com/t/filetype/): 무슨 파일인가, 무엇으로 여는가, 분류별
-- [ghosttype](https://blog.mascari4615.com/t/ghosttype/): 내 타자 기록이 주소가 된다, 아무 글이나 걸고 겨루기, 만료 없음
 - [gitcmd](https://blog.mascari4615.com/t/gitcmd/): 상황으로 찾기, 위험 명령 표시, 눌러서 복사
 - [grade](https://blog.mascari4615.com/t/grade/): 4.5, 4.3 만점, 가중 평균, 목표 평점 역산
 - [gradient](https://blog.mascari4615.com/t/gradient/): 실시간 미리보기, 직선, 퍼짐, 방향 조절, 탁함 비교, CSS 복사

@@ -10,216 +10,216 @@ permalink: /changes.xml
     <atom:link href="https://blog.mascari4615.com/changes.xml" rel="self" type="application/rss+xml"/>
     <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
     <language>ko</language>
-    <lastBuildDate>Sat, 05 Sep 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 08 Sep 2026 00:00:00 GMT</lastBuildDate>
     <item>
-      <title>[고침] 맡아 둘 자리를 CSS 픽셀로 다시 재서 넓힌다</title>
+      <title>[새로 생김] 오목 로비 구성과 추천 기능 제거</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-0be7ed6398</guid>
+      <guid isPermaLink="false">karmolab-change-b77f059dc0</guid>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 GMT</pubDate>
+      <description>오목 로비 구성과 추천 기능 제거</description>
+    </item>
+    <item>
+      <title>[고침] 언어별 도구 장 생성기에 retiredTarget import 누락. 09-05 부터 배포 4번 실패</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-9807065abe</guid>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 GMT</pubDate>
+      <description>언어별 도구 장 생성기에 retiredTarget import 누락. 09-05 부터 배포 4번 실패</description>
+    </item>
+    <item>
+      <title>[새로 생김] 소개 한 장. 작업물 장과 링크 위젯을 /about/ 에 합치고 삭제, 리다이렉트 없음</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-91faa4fd10</guid>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 GMT</pubDate>
+      <description>소개 한 장. 작업물 장과 링크 위젯을 /about/ 에 합치고 삭제, 리다이렉트 없음</description>
+    </item>
+    <item>
+      <title>[새로 생김] 옆줄 첫 탭을 만든 것 다섯으로</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-afae257f59</guid>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 GMT</pubDate>
+      <description>옆줄 첫 탭을 만든 것 다섯으로</description>
+    </item>
+    <item>
+      <title>[새로 생김] 첫 화면과 도구 장을 만든 것 다섯으로 재편</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-937eb5362d</guid>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 GMT</pubDate>
+      <description>첫 화면과 도구 장을 만든 것 다섯으로 재편</description>
+    </item>
+    <item>
+      <title>[새로 생김] 정원을 멍의 요소로 합침, 정원 위젯 폐기</title>
+      <link>https://blog.mascari4615.com/#status</link>
+      <guid isPermaLink="false">karmolab-change-7d6fc8d509</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>맡아 둘 자리를 CSS 픽셀로 다시 재서 넓힌다</description>
+      <description>정원을 멍의 요소로 합침, 정원 위젯 폐기</description>
     </item>
     <item>
-      <title>[고침] 초점을 거부하는 자리를 못 잼으로 세게 한다</title>
+      <title>[고침] 정원 열면 시뮬 10개가 동시에 돌던 것</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-f1c6cf20bf</guid>
+      <guid isPermaLink="false">karmolab-change-4f4e5f7e87</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>초점을 거부하는 자리를 못 잼으로 세게 한다</description>
+      <description>정원 열면 시뮬 10개가 동시에 돌던 것</description>
     </item>
     <item>
-      <title>[고침] 시험 서버가 자리를 못 잡으면 소리 내어 죽게 한다</title>
+      <title>[새로 생김] 로비에 열 판만 세우고 번개 대결을 오락실로 들인다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-6c8332e008</guid>
+      <guid isPermaLink="false">karmolab-change-2d6274e289</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>시험 서버가 자리를 못 잡으면 소리 내어 죽게 한다</description>
+      <description>로비에 열 판만 세우고 번개 대결을 오락실로 들인다</description>
     </item>
     <item>
-      <title>[고침] 먹의 작은 버튼를 24px 로 키우고 이름 없는 버튼도 찾을 수 있게 한다</title>
+      <title>[새로 생김] 오락실 오늘의 문제 삭제</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-1177963ea4</guid>
+      <guid isPermaLink="false">karmolab-change-6e64b9a547</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>먹의 작은 버튼를 24px 로 키우고 이름 없는 버튼도 찾을 수 있게 한다</description>
+      <description>오락실 오늘의 문제 삭제</description>
     </item>
     <item>
-      <title>[고침] 검사가 죽으며 남긴 브라우저를 판 끝에 거둔다</title>
+      <title>[고침] 라이브 필수 목록이 옛 놀이 주소를 보고 있었다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-4928bb0eef</guid>
+      <guid isPermaLink="false">karmolab-change-2fbc50fc7d</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>검사가 죽으며 남긴 브라우저를 판 끝에 거둔다</description>
+      <description>라이브 필수 목록이 옛 놀이 주소를 보고 있었다</description>
     </item>
     <item>
-      <title>[고침] 색 도구와 먹과 티어리스트와 생활의 접근성 빚을 갚는다</title>
+      <title>[고침] 노트북 계기 경고색을 스킨 토큰으로</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-7bf133cff1</guid>
+      <guid isPermaLink="false">karmolab-change-39ca581ee3</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>색 도구와 먹과 티어리스트와 생활의 접근성 빚을 갚는다</description>
+      <description>노트북 계기 경고색을 스킨 토큰으로</description>
     </item>
     <item>
-      <title>[고침] 꺼도 방에 남나의 통과 조건을 하나로 조인다</title>
+      <title>[새로 생김] 노트북 위젯에 이 PC 상태 문과 계기 넷</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-8be3ffeb2e</guid>
+      <guid isPermaLink="false">karmolab-change-494b221454</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>꺼도 방에 남나의 통과 조건을 하나로 조인다</description>
+      <description>노트북 위젯에 이 PC 상태 문과 계기 넷</description>
     </item>
     <item>
-      <title>[고침] 나중에 끼어드는 저장 버튼 자리를 미리 잡는다</title>
+      <title>[고침] 하나 맞히기 설명과 주석에서 주제 이름을 뺀다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-e586f02e33</guid>
+      <guid isPermaLink="false">karmolab-change-d48a23e1bd</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>나중에 끼어드는 저장 버튼 자리를 미리 잡는다</description>
+      <description>하나 맞히기 설명과 주석에서 주제 이름을 뺀다</description>
     </item>
     <item>
-      <title>[고침] 방문 수 자리를 묻기 전에 잡는다</title>
+      <title>[새로 생김] 하나 맞히기를 오락실 게임 하나로. 네 갈래 전부 (change.arcade-absorbs-play 4)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-82b93adb0a</guid>
+      <guid isPermaLink="false">karmolab-change-a89af3bbd8</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>방문 수 자리를 묻기 전에 잡는다</description>
+      <description>하나 맞히기를 오락실 게임 하나로. 네 갈래 전부 (change.arcade-absorbs-play 4)</description>
     </item>
     <item>
-      <title>[고침] 한자 표를 글꼴 굽기에서 빼 한글 뭉치가 부풀던 것을 막는다</title>
+      <title>[고침] 폰에서 네모 판이 위에 붙고 아래가 비던 것. 남을 때만 가운데로</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-fc207298c5</guid>
+      <guid isPermaLink="false">karmolab-change-cdddb8f923</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>한자 표를 글꼴 굽기에서 빼 한글 뭉치가 부풀던 것을 막는다</description>
+      <description>폰에서 네모 판이 위에 붙고 아래가 비던 것. 남을 때만 가운데로</description>
     </item>
     <item>
-      <title>[고침] 화면 배율을 첫 그림 전에 걸어 판이 통째로 밀리던 것을 멈춘다</title>
+      <title>[고침] 폰에서 판이 폭 0 으로 무너지던 것. 무대 검사 빨강 7 을 갚는다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-5b3a14e0f8</guid>
+      <guid isPermaLink="false">karmolab-change-508133a365</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>화면 배율을 첫 그림 전에 걸어 판이 통째로 밀리던 것을 멈춘다</description>
+      <description>폰에서 판이 폭 0 으로 무너지던 것. 무대 검사 빨강 7 을 갚는다</description>
     </item>
     <item>
-      <title>[고침] 꺼도 방에 남나를 마지막 한 번이 아니라 끝내 남았나로 본다</title>
+      <title>[새로 생김] 오늘의 초성과 오늘의 문제를 오락실 게임으로, 한글 타자는 유령 타자에 합침 (change.arcade-absorbs-play 4)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-e99b660896</guid>
+      <guid isPermaLink="false">karmolab-change-67d5ed8bda</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>꺼도 방에 남나를 마지막 한 번이 아니라 끝내 남았나로 본다</description>
+      <description>오늘의 초성과 오늘의 문제를 오락실 게임으로, 한글 타자는 유령 타자에 합침 (change.arcade-absorbs-play 4)</description>
     </item>
     <item>
-      <title>[고침] 오프라인 쪽지가 손가락을 막지 않게 하고, 자리 맡은 값을 다시 잰다</title>
+      <title>[고침] 블랙잭에서 걸고 나면 히트, 스탠드 버튼이 안 그려지던 것 (2D, 3D)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-f211138beb</guid>
+      <guid isPermaLink="false">karmolab-change-87fd7c2705</guid>
       <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
-      <description>오프라인 쪽지가 손가락을 막지 않게 하고, 자리 맡은 값을 다시 잰다</description>
+      <description>블랙잭에서 걸고 나면 히트, 스탠드 버튼이 안 그려지던 것 (2D, 3D)</description>
     </item>
     <item>
-      <title>[고침] 뜨기 전 무게를 제대로 세고, 대출 목록에 자리를 미리 준다</title>
+      <title>[새로 생김] 높은 쪽 고르기와 유령 타자를 오락실 게임으로 (change.arcade-absorbs-play 3)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-b9237167e2</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>뜨기 전 무게를 제대로 세고, 대출 목록에 자리를 미리 준다</description>
+      <guid isPermaLink="false">karmolab-change-2332a780d3</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>높은 쪽 고르기와 유령 타자를 오락실 게임으로 (change.arcade-absorbs-play 3)</description>
     </item>
     <item>
-      <title>[고침] 부팅 천장을 실측대로 올리고 밀림의 범인을 게이트가 말하게 한다</title>
+      <title>[새로 생김] 스무고개를 오락실 판 하나로. 컴퓨터가 맞히는 갈래 (change.arcade-absorbs-play 2)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-f076f229ed</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>부팅 천장을 실측대로 올리고 밀림의 범인을 게이트가 말하게 한다</description>
+      <guid isPermaLink="false">karmolab-change-bbf2f0273a</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>스무고개를 오락실 판 하나로. 컴퓨터가 맞히는 갈래 (change.arcade-absorbs-play 2)</description>
     </item>
     <item>
-      <title>[고침] 달력과 챗봇과 정규식 도구의 접근성 빚을 갚는다</title>
+      <title>[고침] 게이트 실행기에 검사별 상한 시간을 둔다 (12분, 넘기면 못 돌림)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-8293bd1082</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>달력과 챗봇과 정규식 도구의 접근성 빚을 갚는다</description>
+      <guid isPermaLink="false">karmolab-change-0231fe768a</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>게이트 실행기에 검사별 상한 시간을 둔다 (12분, 넘기면 못 돌림)</description>
     </item>
     <item>
-      <title>[고침] 채팅이 열렸나는 창으로 재고, 두 번째 창의 이름표도 기다린다</title>
+      <title>[빨라짐] 도구 장이 받는 tools.css 에서 설명을 뺀 벌을 굽는다. gzip 21.8KB 에서 10.3KB</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-6318152c38</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>채팅이 열렸나는 창으로 재고, 두 번째 창의 이름표도 기다린다</description>
+      <guid isPermaLink="false">karmolab-change-87fa984968</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>도구 장이 받는 tools.css 에서 설명을 뺀 벌을 굽는다. gzip 21.8KB 에서 10.3KB</description>
     </item>
     <item>
-      <title>[고침] 워커가 안 붙은 판은 못 돌림으로, 대부호는 카드를 돌아가며 찍는다</title>
+      <title>[새로 생김] 반응속도를 오락실 커널 판으로, 속도측정은 지운다 (change.arcade-absorbs-play 2)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-0b6b5cbfe4</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>워커가 안 붙은 판은 못 돌림으로, 대부호는 카드를 돌아가며 찍는다</description>
+      <guid isPermaLink="false">karmolab-change-4f88938c85</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>반응속도를 오락실 커널 판으로, 속도측정은 지운다 (change.arcade-absorbs-play 2)</description>
     </item>
     <item>
-      <title>[고침] 암호 도구 활성 버튼 대비를 고치고 접근성 검사를 골라 돌 수 있게 한다</title>
+      <title>[고침] 사이트맵 검사에서 허브 149장 대조를 떼고 사고 둘만 본다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-5e5c81e1f6</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>암호 도구 활성 버튼 대비를 고치고 접근성 검사를 골라 돌 수 있게 한다</description>
+      <guid isPermaLink="false">karmolab-change-d2075611d4</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>사이트맵 검사에서 허브 149장 대조를 떼고 사고 둘만 본다</description>
     </item>
     <item>
-      <title>[고침] 이름 없는 입력칸에 이름표를 붙이고 제목 순서를 바로잡는다</title>
+      <title>[고침] 블루마블 틀이 화면을 채우고, 라이브 점검 빨강 둘을 더 갚는다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-f4e15afc5e</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>이름 없는 입력칸에 이름표를 붙이고 제목 순서를 바로잡는다</description>
+      <guid isPermaLink="false">karmolab-change-ba2ba3bfcd</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>블루마블 틀이 화면을 채우고, 라이브 점검 빨강 둘을 더 갚는다</description>
     </item>
     <item>
-      <title>[고침] 채팅 닻을 되풀이해 눌러 여닫던 것을 멈추고, 실패 자리에 까닭을 남긴다</title>
+      <title>[고침] 라이브 점검 빨강 셋 더 갚고, 셸 CSS 는 정본(toolbox.css)에 다시 넣는다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-bd6509f1f3</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>채팅 닻을 되풀이해 눌러 여닫던 것을 멈추고, 실패 자리에 까닭을 남긴다</description>
+      <guid isPermaLink="false">karmolab-change-e15521ad5a</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>라이브 점검 빨강 셋 더 갚고, 셸 CSS 는 정본(toolbox.css)에 다시 넣는다</description>
     </item>
     <item>
-      <title>[고침] 채팅을 눌렀나가 아니라 열렸나까지 본다</title>
+      <title>[새로 생김] 이상형 월드컵을 오락실 커널 판으로 (change.arcade-absorbs-play 1)</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-abe1ed25b8</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>채팅을 눌렀나가 아니라 열렸나까지 본다</description>
+      <guid isPermaLink="false">karmolab-change-f639a0ea5d</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>이상형 월드컵을 오락실 커널 판으로 (change.arcade-absorbs-play 1)</description>
     </item>
     <item>
-      <title>[고침] 끊고 여는 시간을 한 곳에서 정한 값으로 잰다</title>
+      <title>[고침] 라이브 점검 빨강 16 중 여섯을 갚는다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-b18c131162</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>끊고 여는 시간을 한 곳에서 정한 값으로 잰다</description>
+      <guid isPermaLink="false">karmolab-change-3707e37f38</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>라이브 점검 빨강 16 중 여섯을 갚는다</description>
     </item>
     <item>
-      <title>[고침] 손님 창에 판이 늦게 온 것과 안 온 것을 가른다</title>
+      <title>[고침] 월드컵 설명문에서 표 이름을 뺀다</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-c79dea6bb5</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>손님 창에 판이 늦게 온 것과 안 온 것을 가른다</description>
+      <guid isPermaLink="false">karmolab-change-12f4559edc</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>월드컵 설명문에서 표 이름을 뺀다</description>
     </item>
     <item>
-      <title>[고침] 방 명단이 창마다 갈리는 길을 막고 스킨 검사 거짓 빨강을 지운다</title>
+      <title>[새로 생김] 월드컵 장 제목과 설명에 만들기 검색어, 놀이 장에 빵부스러기 구조화 데이터</title>
       <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-38f4efca5a</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>방 명단이 창마다 갈리는 길을 막고 스킨 검사 거짓 빨강을 지운다</description>
-    </item>
-    <item>
-      <title>[고침] main 이 빨갛던 검사 셋을 잡는다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-6d43e40473</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>main 이 빨갛던 검사 셋을 잡는다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 먹을 다시 제 위젯으로 떼어낸다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-5448847845</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>먹을 다시 제 위젯으로 떼어낸다</description>
-    </item>
-    <item>
-      <title>[고침] 우클릭 메뉴를 마우스 자리에 띄운다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-b8a6596764</guid>
-      <pubDate>Fri, 04 Sep 2026 00:00:00 GMT</pubDate>
-      <description>우클릭 메뉴를 마우스 자리에 띄운다</description>
-    </item>
-    <item>
-      <title>[새로 생김] 글 329편으로 가는 정적 목록 장 /posts/ 를 굽는다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-0d4b49d322</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>글 329편으로 가는 정적 목록 장 /posts/ 를 굽는다</description>
-    </item>
-    <item>
-      <title>[고침] 시간대 칸이 숫자까지 흐려 대비가 모자랐다. 오락실 검사 둘의 CI 실패도 잡는다</title>
-      <link>https://blog.mascari4615.com/#status</link>
-      <guid isPermaLink="false">karmolab-change-c227915013</guid>
-      <pubDate>Thu, 03 Sep 2026 00:00:00 GMT</pubDate>
-      <description>시간대 칸이 숫자까지 흐려 대비가 모자랐다. 오락실 검사 둘의 CI 실패도 잡는다</description>
+      <guid isPermaLink="false">karmolab-change-948e40b312</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>월드컵 장 제목과 설명에 만들기 검색어, 놀이 장에 빵부스러기 구조화 데이터</description>
     </item>
   </channel>
 </rss>
