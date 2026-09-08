@@ -1497,7 +1497,11 @@ const Toolbox = (() => {
              * 탭 첫 칸은 내 것(별). 고른 탭은 저장, 도구를 열면 그 갈래로 따라감 */
             const SIDEBAR_TAB_KEY = 'toolbox_sidebar_tab';
             const STAR_ICON = '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>';
-            let sidebarTab = localStorage.getItem(SIDEBAR_TAB_KEY) || 'mine';
+            /* 만든 것 탭이 첫 자리, 기본 (change.karmolab-axis, 사용자 결정 2026-09-08).
+               첫 화면 카드 다섯과 같은 차례. 유틸 갈래는 그 뒤 */
+            const MADE_IDS = ['meok', 'heung', 'karmograph', 'arcade', 'wm'];
+            const MADE_ICON = '<path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M13 7l3 3"/>';
+            let sidebarTab = localStorage.getItem(SIDEBAR_TAB_KEY) || 'made';
             function catToolsOf(catId) {
                 const list = tools.filter(t => t.category === catId
                     && !hiddenSet.has(t.id)
@@ -1510,14 +1514,16 @@ const Toolbox = (() => {
             rebuildMineGroup = () => {
                 sidebarNavEl.textContent = '';
                 const mine = sections().slice(0, 1)[0];
-                const tabs = [{ id: 'mine', label: mine ? mine.label : '', icon: STAR_ICON, tools: mine ? mine.tools : [], empty: mine ? mine.empty : '' }]
+                const made = MADE_IDS.map(id => tools.find(t => t.id === id)).filter(Boolean);
+                const tabs = [{ id: 'made', label: text2('shell.nav.made', '만든 것'), icon: MADE_ICON, tools: made, empty: '' }]
+                    .concat([{ id: 'mine', label: mine ? mine.label : '', icon: STAR_ICON, tools: mine ? mine.tools : [], empty: mine ? mine.empty : '' }])
                     .concat(getCategories().map(cat => ({ id: cat.id, label: cat.label, icon: cat.icon || '', tools: catToolsOf(cat.id), empty: '' }))
                         .filter(t => t.tools.length));
                 /* 탭을 끈 상태(all): 도구 전부. 켜진 탭을 다시 누르면 여기로 */
                 const allTools = tools.filter(t => t.category !== 'app' && !hiddenSet.has(t.id) && !(isDesktopOnlyTool(t) && !isDesktopApp()))
                     .sort((a, b) => String(a.title || a.id).localeCompare(String(b.title || b.id), 'ko'));
                 tabs.push({ id: 'all', label: text2('shell.nav.all', '전부'), icon: '', tools: allTools, empty: '' });
-                if (!tabs.some(t => t.id === sidebarTab)) sidebarTab = 'mine';
+                if (!tabs.some(t => t.id === sidebarTab)) sidebarTab = 'made';
                 const row = document.createElement('div');
                 row.className = 'sidebar-tabs';
                 row.setAttribute('role', 'tablist');
