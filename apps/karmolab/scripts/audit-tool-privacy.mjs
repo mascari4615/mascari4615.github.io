@@ -34,7 +34,7 @@ let touched = 0;
 
 for (const tool of roster) {
   const scan = scanTool(root, tool);
-  /* 주소가 **글에 박혀 있는 것**은 나감이 아니다. 링크 모음(`favorites`)은 남의
+  /* 주소가 **글에 박혀 있는 것**은 나감이 아니다. 링크 모음(`favorites`, `linktree`)은 남의
      주소를 수십 개 들고 있지만 누르기 전엔 아무것도 안 부른다. 부르는 자리가 있어야 센다. */
   const reaches = scan.calls > 0 || scan.ai > 0;
   const verdict = declared[tool.id];

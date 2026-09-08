@@ -137,6 +137,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['favorites']
   },
   {
+    id: 'linktree',
+    noPage: true,
+    get title() { return t('widgets.linktree.title', undefined, "링크"); },
+    category: '',
+    get desc() { return t('widgets-desc.linktree.desc', undefined, "개발자 연락처 & 링크 모음"); },
+    layout: 'narrow',
+    icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    lazyScriptPaths: ['linktree/linktree']
+  },
+  {
     /* 디버그 창도 부팅에서 뺐다 (TASK-KL-204). 데스크톱 앱에서만 쓰는 것을 **웹으로 오는
        사람까지 받고 있었다**(첫 화면에서 12KB, 한 번도 안 그린다).
        `desktopOnly` 지연 위젯 선례 = 서버 모니터. */
@@ -681,7 +691,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tierlist/tierlist']
   },
   {
-    /* 소개. 제 주소(`/about/`)가 따로 있다. 작업물과 링크도 이 한 장 (2026-09-08). */
+    /* 작업물. 제 주소(`/works/`)가 따로 있으므로 도구 상세 장은 안 만든다 (noPage). */
+    id: 'works',
+    noPage: true,
+    get title() { return t('widgets.works.title', undefined, "작업물"); },
+    category: 'app',
+    get desc() { return t('widgets-desc.works.desc', undefined, "만든 것들. 게임, VRChat 콘텐츠, 도구"); },
+    layout: 'wide',
+    icon: '<rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    lazyScriptPaths: ['works']
+  },
+  {
+    /* 소개. 제 주소(`/about/`)가 따로 있다. */
     id: 'about',
     noPage: true,
     get title() { return t('widgets.about.title', undefined, "소개"); },
@@ -689,7 +710,7 @@ window.KARMOLAB_LAZY_META = [
     get desc() { return t('widgets-desc.about.desc', undefined, "카모뜨린. 유니티 게임 개발, VRChat 콘텐츠 제작"); },
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="8" r="1" fill="currentColor"/>',
-    lazyScriptPaths: ['about/about']
+    lazyScriptPaths: ['about']
   },
   {
     id: 'postgraph',

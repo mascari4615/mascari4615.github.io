@@ -60,7 +60,7 @@
   "shell.sidebar.links": "リンク, お問い合わせ",
   "shell.sidebar.linksTitle": "連絡先とリンク",
   "shell.desktop_only_note": "このツールはデスクトップアプリでのみ動作します. このパソコンの中身を読む必要があるためです。以下の説明はブラウザでもそのまま読めます。",
-  "shell.nav.about": "◆ 紹介",
-  "shell.nav.aboutTitle": "カモッドリン. 経歴, 制作物, リンク",
+  "shell.nav.works": "◆ 制作物",
+  "shell.nav.worksTitle": "作ったもの. ゲーム, VRChat コンテンツ, ツール",
   "shell.sidebar.collapse": "サイドバーの折りたたみ (Ctrl+B)"
 }

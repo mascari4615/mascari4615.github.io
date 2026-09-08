@@ -42,6 +42,7 @@ export function appUrl(rest = '') {
  */
 export const NON_APP_PREFIXES = [
     '/posts/',
+    '/works/',
     '/about/',
     '/daily/',
     '/files/',

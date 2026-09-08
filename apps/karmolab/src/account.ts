@@ -491,7 +491,7 @@ function currentToolId(): string | null {
     // 앱 안: #<도구id>. 홈, 계정 화면 등은 도구가 아니다.
     const hash = location.hash.replace(/^#/, '');
     if (!/^[a-z0-9][a-z0-9-]*$/.test(hash)) return null;
-    if (hash === 'home' || hash === 'user' || hash === 'settings' || hash === 'plaza') return null;
+    if (hash === 'home' || hash === 'user' || hash === 'settings' || hash === 'linktree' || hash === 'plaza') return null;
     return hash;
 }
 
@@ -737,7 +737,7 @@ function mountHeaderAccount(): void {
                            ${document.querySelector('#headerBell .kl-bell-btn') ? `<button type="button" role="menuitem" data-bell>${ICON.bell}<span>${esc(t('account.menu.bell'))}</span>${bellCountText()}</button>` : ''}
                            ${document.getElementById('klChatDock') ? `<button type="button" role="menuitem" data-chat>${ICON.chat}<span>${esc(t('account.menu.chat'))}</span></button>` : ''}
                            ${filesMenuItem()}
-                           <a role="menuitem" href="/about/">${ICON.mail}<span>${esc(t('account.menu.links'))}</span></a>
+                           <button type="button" role="menuitem" data-go="linktree">${ICON.mail}<span>${esc(t('account.menu.links'))}</span></button>
                        </div>
                        ${me || canAccount ? `<div class="kam-group kam-foot">
                            ${me ? t('account.t08') : ''}
