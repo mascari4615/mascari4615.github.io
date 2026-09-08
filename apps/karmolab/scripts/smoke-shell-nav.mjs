@@ -92,7 +92,7 @@ try {
 
   /* 첫 화면 큰 단추(favorites, arcade, docs)는 **자바스크립트가 그린 뒤** 생긴다 . 
      붙박이 표시와 같은 위임으로 먹는지 따로 본다(2026-08-17 에 그 넷을 옮겼다). */
-  for (const place of ['community', 'plaza', 'linktree', 'arcade', 'favorites']) {
+  for (const place of ['community', 'plaza', 'arcade', 'favorites']) {
     if (!mark.includes(place)) continue;
     const result = await page.evaluate((g) => {
       Toolbox.switchPage('home');

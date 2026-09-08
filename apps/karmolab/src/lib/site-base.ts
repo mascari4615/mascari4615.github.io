@@ -51,7 +51,6 @@ export function profilePath(handle: string): string {
  */
 export const NON_APP_PREFIXES = [
     '/posts/',
-    '/works/',
     '/about/',
     '/daily/',
     '/files/',
