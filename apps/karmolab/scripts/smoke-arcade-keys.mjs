@@ -59,8 +59,7 @@ const openGame = async (id) => {
     if (over && over.style.display !== 'none') document.querySelector('#acQuit')?.click();
   });
   /* 로비가 돌아올 때까지 기다린다. 판을 끝내고 나오는 길은 놀이마다 몇 백 ms 씩 다르다. */
-  await p.waitForSelector('#acFind', { state: 'visible', timeout: 20000 });
-  await p.fill('#acFind', '');
+  await p.waitForSelector('.ac-banner', { state: 'visible', timeout: 20000 });
   /* 숨김 게임도 키 입력 회귀 대상이다. 기존 카드의 클릭 핸들러는 dataset을 누를 때 읽으므로
      테스트에서만 첫 카드를 해당 id로 바꿔 숨김 게임의 상세 화면을 연다. */
   if (!(await p.locator(`[data-obj="${id}"]`).count())) {

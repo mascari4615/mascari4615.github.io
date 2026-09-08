@@ -1,5 +1,4 @@
 import { cardById } from './catalog-meta.generated';
-import { matches } from './pick6';
 
 const NAME_KEY = 'karmolab.arcade.name';
 const RECENT_KEY = 'karmolab.arcade.recent';

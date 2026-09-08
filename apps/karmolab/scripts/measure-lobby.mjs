@@ -30,10 +30,10 @@ try {
     });
     await page.goto(PAGE + '#arcade', { waitUntil: 'domcontentloaded' });
     await waitHydrated(page, '[data-obj]', { timeout: 30000 });
-    await page.waitForSelector('.ac-obj', { timeout: 20000 });
+    await page.waitForSelector('.ac-banner', { timeout: 20000 });
     const got = await page.evaluate(() => {
       const h = window.innerHeight;
-      const all = [...document.querySelectorAll('.ac-obj')];
+      const all = [...document.querySelectorAll('.ac-banner')];
       const seen = all.filter((el) => {
         const r = el.getBoundingClientRect();
         return r.top < h && r.bottom > 0 && r.height > 0;

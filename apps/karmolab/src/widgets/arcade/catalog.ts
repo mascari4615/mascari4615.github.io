@@ -147,7 +147,7 @@ export interface CatalogEntry {
 }
 
 export const CATALOG: CatalogEntry[] = [
-  { def: reflex, view: reflexView, icon: '⚡', kind: 'quick' },
+  { def: reflex, view: reflexView, icon: '⚡', kind: 'quick' , hidden: true },
   { def: speed, view: speedView, icon: '⚡', kind: 'quick' , hidden: true },
   { def: airhockey, view: airhockeyView, icon: '🏒', kind: 'quick' , hidden: true },
   { def: pong, view: pongView, icon: '🏓', kind: 'quick' , hidden: true },
@@ -177,11 +177,11 @@ export const CATALOG: CatalogEntry[] = [
   { def: mancala, view: mancalaView, icon: '🪵', kind: 'board' , hidden: true },
   { def: foxhounds, view: foxhoundsView, icon: '🦊', kind: 'board' , hidden: true },
   { def: capturego, view: capturegoView, icon: '⚫', kind: 'board' , hidden: true },
-  { def: blackjack, view: blackjackView, icon: '♠️', kind: 'card' },
-  { def: solitaire, view: solitaireView, icon: '🃏', kind: 'card' },
+  { def: blackjack, view: blackjackView, icon: '♠️', kind: 'card' , hidden: true },
+  { def: solitaire, view: solitaireView, icon: '🃏', kind: 'card' , hidden: true },
   { def: president, view: presidentView, icon: '👑', kind: 'card' , hidden: true },
   { def: dominoes, view: dominoesView, icon: '🀄', kind: 'card' , hidden: true },
-  { def: yacht, view: yachtView, icon: '🎲', kind: 'card' },
+  { def: yacht, view: yachtView, icon: '🎲', kind: 'card' , hidden: true },
   { def: highlow, view: highlowView, icon: '🔺', kind: 'card' , hidden: true },
   { def: lanterns, view: lanternsView, icon: '🏮', kind: 'card' , hidden: true },
   { def: liars, view: liarsView, icon: '🎲', kind: 'card' , hidden: true },
@@ -201,10 +201,10 @@ export const CATALOG: CatalogEntry[] = [
   { def: simon, view: simonView, icon: '🎵', kind: 'puzzle' , hidden: true },
   { def: sudoku, view: sudokuView, icon: '🔢', kind: 'puzzle' , hidden: true },
   /* 놀이에서 옮겨 온 첫 판 (change.arcade-absorbs-play). 정답이 없는 판. 혼자가 기본, 둘이면 길을 견준다 */
-  { def: worldcup, view: worldcupView, icon: '👑', kind: 'quick' },
-  { def: reaction, view: reactionView, icon: '⚡', kind: 'quick' },
-  { def: higher, view: higherView, icon: '📈', kind: 'quick' },
+  { def: worldcup, view: worldcupView, icon: '👑', kind: 'quick' , hidden: true },
+  { def: reaction, view: reactionView, icon: '⚡', kind: 'quick' , hidden: true },
+  { def: higher, view: higherView, icon: '📈', kind: 'quick' , hidden: true },
   { def: ghosttype, view: ghosttypeView, icon: '👻', kind: 'quick' , hidden: true },
-  { def: dailycho, view: dailychoView, icon: '🔤', kind: 'puzzle' },
-  { def: daily, view: dailyView, icon: '🎯', kind: 'puzzle' }
+  { def: dailycho, view: dailychoView, icon: '🔤', kind: 'puzzle' , hidden: true },
+  { def: daily, view: dailyView, icon: '🎯', kind: 'puzzle' , hidden: true }
 ];

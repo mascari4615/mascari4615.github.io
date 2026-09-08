@@ -105,27 +105,13 @@ if (!cantRun) {
 let ids = [];
 if (!cantRun) {
   console.log('[arcade-ui] 로비');
-  /* 로비 = 진열장. 카드 대신 물건(`data-obj`)이 서고, 시작 단추는 물건을 집은 화면에 뜬다. */
+  /* 로비 게임 배너(`data-obj`). 추천 기능 재등장 검사 */
   const objs = await page.locator('[data-obj]').count();
-  check('진열장에 물건이 선다', objs >= 2, `${objs}개`);
-  const situationCounts = await page.locator('.ac-situation').evaluateAll((rows) =>
-    rows.map((row) => row.querySelectorAll('[data-situation]').length)
-  );
-  /* 선반은 셋, 각 최대 여섯. 로비에 세운 판이 열뿐이라(2026-09-05 사용자 결정) 여섯을
-     못 채우는 게 정상. 빈 선반만 막음 */
-  check(
-    '같이, 도전, 쉬기 세 선반',
-    situationCounts.length === 3 && situationCounts.every((n) => n >= 1 && n <= 6),
-    situationCounts.join(',')
-  );
-  const recommendation = page.locator('.ac-recommend');
-  check('저택 사람의 오늘 추천', await recommendation.count() === 1);
-  if (await recommendation.count()) {
-    const id = await recommendation.getAttribute('data-situation');
-    await recommendation.click();
-    await page.waitForSelector(`[data-solo="${id}"]`, { timeout: 30000 });
-    await page.click('#acBack');
-  }
+  check('로비에 게임 배너가 있다', objs >= 1, `${objs}개`);
+  const gone = await page.locator('.ac-situation, .ac-recommend, .ac-today, .ac-recent, #acFind').count();
+  check('추천과 오늘의 세 판이 없다', gone === 0, `${gone}개`);
+  const hello = await page.locator('.ac-homesay').count();
+  check('왼쪽 캐릭터 한마디', hello === 1);
 
   /* **모든 게임을 한 번씩 열어 본다.** 51개가 되어도 이 고리가 알아서 늘어난다 . 
    * 새 게임을 넣을 때 화면 검사를 새로 짤 필요가 없다는 뜻이다.
@@ -149,12 +135,17 @@ if (!cantRun) {
         null,
         { timeout: 30000 }
       );
+      /* 입체 컨테이너와 캔버스 생성 사이의 빈 화면 제외 */
+      if (await page.locator('#acView .ac-t3').count()) {
+        await page.waitForSelector('#acView .ac-t3 canvas', { timeout: WAIT });
+      }
       const seats = await page.locator('#acSeats .ac-seat').allTextContents();
       /* 콘텐츠 칸을 다 쓰나 (놀이 화면이 지켜야 할 셋의 3, 사용자 확정 2026-09-01, 세 번째 지적 2026-09-03).
          판의 제일 큰 물건(캔버스, 판, 무대)이 칸의 폭과 높이 90% 이상, 넘쳐서 스크롤이 나면 안 됨 */
       const fill = await untilSettled(page, () => page.evaluate(() => {
         const play = document.querySelector('#acPlay');
-        const root = document.querySelector('#acView > *');
+        /* 첫 자식은 그래픽 가속 안내일 수 있으므로 게임 영역 전체 탐색 */
+        const root = document.querySelector('#acView');
         if (!play || !root) return null;
         const a = play.getBoundingClientRect();
         /* 뿌리는 CSS 가 100% 로 늘려 놓아 늘 크다. 실제로 그려진 것(캔버스, 판, 무대) 중 제일 큰 것을 잰다 */
@@ -316,4 +307,4 @@ if (failures.length) {
   console.log(`[arcade-ui] 실패 ${failures.length}건`);
   process.exit(1);
 }
-console.log(`[arcade-ui] 화면 통과. 게임 ${ids.length}종 전부 열림, 봇 착석, 시계, 다섯 판, 오목 착수`);
+console.log(`[arcade-ui] 화면 통과. 게임 ${ids.length}종 열림, 봇 착석, 오목 착수. 반응 측정 ${ids.includes('reflex') ? '검사' : '미검증'}`);

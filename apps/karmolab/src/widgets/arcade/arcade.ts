@@ -28,7 +28,7 @@ import { ensureGame, gameById } from './loader';
 import { Match, type MatchView, type SeatSpec } from './kernel';
 import type { GameDef } from './types';
 import { seedFrom } from './rng';
-import { iconOf, kindOf } from './meta';
+import { iconOf } from './meta';
 import { viewById, view3dById, ensureView3d } from './loader';
 import { makeCode, inviteLink } from '../../lib/room-code';
 import { blip, setBlipVoice } from '../../lib/blip';
@@ -41,9 +41,7 @@ import { mountMdd } from './mdd';
 import { mountChrome } from './chrome';
 import { DECK_SKINS, deckSkin, setDeckSkin } from './deck';
 import { LESSONS, TUTOR_SIZE, TutorRun, cellOf, isAnswer } from './tutor';
-import { todayPicks, dailyState, markPlayed, PICKS } from './daily';
 import { LobbyRun } from './lobby';
-import { loadPacks } from '../pack-store';
 import { lengthOf, secondsOf } from './length';
 import { notePlay, noteBest, bestOf } from './plays';
 import { withGhost, GHOST_NAME } from './ghost';
@@ -67,13 +65,11 @@ import {
   supportsRanked,
   type RankRoom
 } from './ranked';
-import { matches } from './pick6';
 import { ranks } from './rank';
 import { intervalWhileVisible } from '../../lib/tick';
 import { record, scenes, matchAt, ReviewRun, type Tape } from './replay';
 import { forWatcher } from './spectate';
-import { pickGames, award, isOver, ROUNDS, type TourState } from './tour';
-import { PARTY, partySize } from './seating';
+import { partySize } from './seating';
 import type { Render } from './views';
 import type { Json } from './net';
 import { OnlineRun } from './online-run';
@@ -166,41 +162,35 @@ interface Session {
     container.classList.add('ac-root');
     if (typeof Mdd !== 'undefined') Mdd?.linePreset?.('tool_run', { msg: t('arcade.mdd') });
 
-    /* 로비 = **진열장**. 카드도 테두리도 없다. 따뜻한 상아색 탁자 위에 게임이 물건처럼
-       놓이고, 올리면 이름표가 서고, 누르면 그 물건이 가운데로 온다(#acDetail). */
+    /* 로비 구성 (사용자 결정 2026-09-08).
+       왼쪽 캐릭터(그림은 점선 자리) + 한마디, 오른쪽 게임 배너. 배너는 스팀 급 통과 게임만.
+       추천(오늘의 세 판, 캐릭터 추천, 이건 어때, 상황 묶음, 대회, 찾기)은 코드째 뺐다. */
     container.innerHTML =
       '<div id="acLobby">' +
-      '<div class="ac-top">' +
-      '<span class="ac-brand">' + esc(t('widgets.arcade.title', undefined, '오락실')) + '</span>' +
-      '<span class="ac-sub">' + esc(t('arcade.lobby.hint')) + '</span>' +
-      '<input type="search" id="acFind" class="ac-find" placeholder="' + esc(t('arcade.find.hint')) +
-      '" aria-label="' + esc(t('arcade.find.hint')) + '">' +
+      /* 홈 전체. 게임을 집으면(#acDetail) 통째로 접힌다. */
+      '<div id="acShelfAll" class="ac-home">' +
+      '<div class="ac-homechar">' +
+      '<div class="ac-homebody" aria-hidden="true"></div>' +
+      '<p class="ac-homesay">' + esc(t('arcade.home.hello')) + '</p>' +
+      '<p class="ac-homename">' + esc(CAST.alisa.name) + '</p>' +
+      '</div>' +
+      '<div class="ac-homeright">' +
+      '<div class="ac-hometop">' +
       '<label class="ac-namechip">' + esc(t('arcade.label.name')) +
       '<input type="text" id="acName" maxlength="12" placeholder="' + esc(t('arcade.name.default')) +
       '" aria-label="' + esc(t('arcade.aria.name')) + '"></label>' +
       '</div>' +
-      /* 진열장과 그 딸린 것들. 물건을 집으면(#acDetail) 통째로 접힌다. */
-      '<div id="acShelfAll">' +
       '<div class="ac-room" id="acRoom" style="display:none"></div>' +
+      '<h1 class="ac-hometitle">' + esc(t('widgets.arcade.title', undefined, '오락실')) + '</h1>' +
+      '<div id="acGames" class="ac-banners"></div>' +
       '<div id="acOpen"></div>' +
-      /* 방금 논 것으로 돌아가는 줄. 오늘의 세 판보다 위에 둔다. 이미 마음먹고 온 사람이 먼저다 */
-      '<div class="ac-recent" id="acRecent"></div>' +
-      '<div class="ac-today" id="acToday"></div>' +
-      '<div id="acPicks"></div>' +
-      '<section class="ac-catalog" aria-labelledby="acCatalogTitle">' +
-      '<h2 class="ac-kind" id="acCatalogTitle">' + esc(t('arcade.situation.all')) + '</h2>' +
-      '<div id="acGames" class="ac-shelf"></div></section>' +
-      /* 혼자 놀이. 오락실이 놀이의 **유일한 문**이 되는 자리 (TASK-KL-313).
-         방 게임 뒤에 둔다: 여기는 오락실이고, 혼자 놀이는 각자 제 페이지로 나가는 손님이다. */
-      /* 놀이의 재료 = 표. 만드는 문이 놀이터에만 있어서, 오락실로 들어온 사람은 우물을
-         파 놓고도 못 들어갔다 (TASK-KL-313. 놀이터에서 옮겨 온 자리). */
-      '<div id="acPacks"></div>' +
       '<div class="ac-foot">' +
       '<div class="ac-level" id="acLevel" role="group" aria-label="' + esc(t('arcade.level.aria')) + '">' +
       ['mild', 'normal', 'spicy']
         .map((v) => '<button data-level="' + v + '">' + esc(t('arcade.level.' + v)) + '</button>')
         .join('') +
       '<small>' + esc(t('arcade.level.note')) + '</small></div>' +
+      '</div>' +
       '</div>' +
       '</div>' +
       '<div id="acDetail" style="display:none"></div>' +
@@ -375,24 +365,6 @@ interface Session {
       document.documentElement.classList.toggle('ac-playing', which === 'play');
     };
 
-    /* ── 로비 ──────────────────────────────────────────────────────
-     *
-     * **진열장의 물건 하나.** 카드가 아니라 물건이다. 이름은 올렸을 때만 이름표로 선다.
-     * 크기는 id 에서 결정적으로 뽑는다: 진열장이 자를 대고 그린 듯 균일하면 물건이 아니라
-     * 아이콘 표가 된다. 이름표의 번호 = 명부 순서 (사람이 몇 번으로 부를 수 있게). */
-    const objOf = (g: (typeof CARDS)[number]): string => {
-      const sizes = [40, 46, 52, 58];
-      const size = sizes[(g.id.charCodeAt(0) + g.id.length) % sizes.length];
-      /* 이름은 **상시** 보인다. 그림만으로는 무슨 놀이인지 모른다(사용자 실측 피드백).
-         물건 밑의 작은 값표처럼, 진열장 감은 지키고 접근성만 얹는다. */
-      return (
-        '<button class="ac-obj" data-obj="' + g.id + '">' +
-        '<span class="ac-objface" style="font-size:' + size + 'px">' + iconOf(g.id) + '</span>' +
-        '<b class="ac-objname">' + esc(t('arcade.game.' + g.id + '.name')) + '</b>' +
-        '</button>'
-      );
-    };
-
     /**
      * 물건을 집으면. 진열장이 접히고 그 물건이 탁자 가운데로 온다.
      * 시작 단추의 data-* 는 카드 시절 그대로다(`wireCards`, 화면 검사가 같은 이름을 본다).
@@ -507,90 +479,13 @@ interface Session {
       $<HTMLElement>('#acShelfAll').style.display = '';
     }
 
-    /* 오늘의 세 판. 51개 앞에서 뭘 하지를 대신 정해 준다 (TASK-KL-264). */
-    paintRecent();
-    const picks = todayPicks(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id) })));
-    const paintToday = (): void => {
-      const st = dailyState();
-      $<HTMLElement>('#acToday').innerHTML =
-        '<h2 class="ac-kind">' + esc(t('arcade.today.title')) +
-        ' <i>' + st.done.length + '/' + PICKS + '</i>' +
-        (st.streak > 0 ? '<b class="ac-streak">🔥 ' + esc(t('arcade.today.streak', { n: String(st.streak) })) + '</b>' : '') +
-        '</h2>' +
-        '<div class="ac-todaystrip">' +
-        picks
-          .map((id) =>
-            /* 표를 따로 쓴다. `data-solo` 를 쓰면 게임 몇 종인가를 세는 자리가 셋만큼 샌다(실측 54종). */
-            '<button class="ac-todaycard' + (st.done.includes(id) ? ' ac-done' : '') + '" data-today="' + id + '">' +
-            '<span>' + iconOf(id) + '</span>' + esc(t('arcade.game.' + id + '.name')) +
-            (st.done.includes(id) ? ' ✓' : '') + '</button>')
-          .join('') +
-        '<button class="btn btn-primary ac-tourbtn" id="acTour">' + esc(t('arcade.tour.start', { n: String(ROUNDS) })) + '</button>' +
-        '</div>';
-      container.querySelectorAll<HTMLButtonElement>('.ac-todaycard').forEach((b) => {
-        b.onclick = (): void => {
-          remember();
-          startSolo(String(b.dataset.today));
-        };
-      });
-      const tourBtn = container.querySelector<HTMLButtonElement>('#acTour');
-      if (tourBtn) tourBtn.onclick = startTour;
-    };
-    paintToday();
-
-    /* ── 추천 여섯 칸 + 찾기 (TASK-KL-264 F4) ──────────────────────
-     *
-     * 51개를 갈래로 묶어 늘어놓는 것만으로는 부족했다. 묶어도 51개는 51개다. 그래서 위에
-     * **여섯 칸**을 두고(내가 안 해 본 것 먼저), 그래도 특정 판을 찾는 사람을 위해 **찾기**를 둔다.
-     * 찾는 중에는 갈래 제목도 추천도 걷어 낸다. 찾는 사람에게 그건 전부 방해다. */
-    const findEl = $<HTMLInputElement>('#acFind');
-
     function remember(): void {
       lobbyRun.rememberName(nameInput.value);
     }
 
-    /**
-     * 방금 논 놀이 (2026-09-01, 레퍼런스 대조)
-     *
-     * - 진열장에 쉰한 개. 어제 놀던 것을 다시 찾으려면 눈으로 훑거나 검색해야 했음
-     * - CrazyGames 는 옆줄 맨 위에 최근 플레이를 둔다(홈, 최근, 새것, 인기 순. 게임 4,500개)
-     * - 오늘의 세 판보다 **위**에 둔다. 오늘의 세 판은 뭘 할지 모르는 사람을 위한 것이고,
-     *   최근은 이미 마음먹고 온 사람의 것
-     */
-    /** 논 놀이를 맨 앞으로. 같은 것을 두 번 안 담는다 */
+    /** 논 놀이를 기억만 한다. 로비에 최근 줄은 없다 (change.omok-steam-level) */
     function noteRecent(id: string): void {
       lobbyRun.noteRecent(id);
-      paintRecent();
-    }
-
-    /** 최근 줄. 없으면 아예 안 그린다 */
-    function paintRecent(): void {
-      const box = container.querySelector<HTMLElement>('#acRecent');
-      if (!box) return;
-      const list = lobbyRun.recent();
-      if (!list.length) {
-        box.innerHTML = '';
-        return;
-      }
-      box.innerHTML =
-        '<h2 class="ac-kind">' + esc(t('arcade.recent.title')) + '</h2>' +
-        '<div class="ac-recentstrip">' +
-        list
-          .map(
-            (id) =>
-              '<button class="ac-recentcard" data-recent="' + esc(id) + '">' +
-              '<span>' + iconOf(id) + '</span>' +
-              esc(t('arcade.game.' + id + '.name')) +
-              '</button>'
-          )
-          .join('') +
-        '</div>';
-      container.querySelectorAll<HTMLButtonElement>('[data-recent]').forEach((b) => {
-        b.onclick = (): void => {
-          remember();
-          openDetail(String(b.dataset.recent));
-        };
-      });
     }
 
     /** 카드는 찾을 때마다 다시 그려지므로 배선도 그때마다 다시 한다. */
@@ -618,15 +513,6 @@ interface Session {
       on('data-pickfind', 'pickfind', (id) => openRoom(id, true));
       on('data-rank', 'rank', startRanked);
     }
-
-    /** 이 게임이 검색어에 걸리나. 이름, 설명, 갈래, 길이 어디든. */
-    const hayOf = (id: string): string[] => [
-      id,
-      t('arcade.game.' + id + '.name'),
-      t('arcade.game.' + id + '.desc'),
-      t('arcade.kind.' + kindOf(id)),
-      t('arcade.len.' + lengthOf(id))
-    ];
 
     /**
      * 지금 열린 방. 혼자 연 사람이 남을 만나는 유일한 길 (arcade-next ★2).
@@ -663,109 +549,23 @@ interface Session {
       });
     };
 
-    const situationObjOf = (g: (typeof CARDS)[number]): string =>
-      '<button type="button" class="ac-situationobj" data-situation="' + esc(g.id) + '">' +
-      '<span>' + iconOf(g.id) + '</span><b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b></button>';
+    /* 게임 배너. 통과한 게임만 `CARDS` 에 있다(`catalog.ts` 의 hidden). 이름, 한 줄, 인원과 길이.
+       `data-obj` 는 화면 검사와 `wireCards` 가 보는 이름이라 그대로 둔다. */
+    const bannerOf = (g: (typeof CARDS)[number]): string =>
+      '<button type="button" class="ac-banner" data-obj="' + g.id + '">' +
+      '<b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b>' +
+      '<span>' + esc(t('arcade.game.' + g.id + '.desc')) + '</span>' +
+      '<small>' + esc(g.seats[0] === g.seats[1]
+        ? t('arcade.seats.exact', { n: String(g.seats[0]) })
+        : t('arcade.seats.range', { min: String(g.seats[0]), max: String(g.seats[1]) })) +
+      ', ' + esc(t('arcade.len.' + lengthOf(g.id))) + '</small>' +
+      '</button>';
 
-    /* 전 종목 원장은 그대로 두고, 그 앞에서 지금의 마음에 맞는 작은 갈래만 먼저 고르게 한다. */
-    const paintPicks = (): void => {
-      const box = $<HTMLElement>('#acPicks');
-      if (findEl.value.trim()) { box.innerHTML = ''; return; }
-      const recommended = cardById(picks[0]);
-      const people = [CAST.yawn, CAST.alisa, CAST.ling];
-      const person = people[picks[0].split('').reduce((n, ch) => n + ch.charCodeAt(0), 0) % people.length];
-      const six = (...groups: Array<Array<(typeof CARDS)[number]>>): Array<(typeof CARDS)[number]> => {
-        const seen = new Set<string>();
-        return groups.flat().filter((g) => {
-          if (seen.has(g.id)) return false;
-          seen.add(g.id);
-          return true;
-        }).slice(0, 6);
-      };
-      const situations = [
-        { key: 'together', games: six(CARDS.filter((g) => g.seats[1] >= 4)) },
-        { key: 'challenge', games: six(
-          CARDS.filter((g) => supportsRanked(g.id, g.seats)),
-          CARDS.filter((g) => !g.realtime && g.seats[0] >= 2)
-        ) },
-        { key: 'relax', games: six(
-          CARDS.filter((g) => g.seats[0] === 1),
-          CARDS.filter((g) => !g.realtime)
-        ) }
-      ];
-      box.innerHTML =
-        (recommended
-          ? '<button type="button" class="ac-recommend" data-situation="' + esc(recommended.id) + '">' +
-            '<span class="ac-recommendface">' + faceSvg(person, 'glad') + '</span>' +
-            '<span><b>' + esc(t('arcade.situation.recommend', { who: person.name })) + '</b>' +
-            '<small>' + esc(t('arcade.situation.recommendLine', {
-              game: t('arcade.game.' + recommended.id + '.name')
-            })) + '</small></span><i>' + iconOf(recommended.id) + '</i></button>'
-          : '') +
-        '<div class="ac-situations">' +
-        situations.map((s) =>
-          '<section class="ac-situation" aria-labelledby="acSituation-' + s.key + '">' +
-          '<h2 id="acSituation-' + s.key + '">' + esc(t('arcade.situation.' + s.key)) + '</h2>' +
-          '<p>' + esc(t('arcade.situation.' + s.key + '.note')) + '</p>' +
-          '<div>' + s.games.map(situationObjOf).join('') + '</div></section>'
-        ).join('') + '</div>';
-      wireCards();
-    };
-
-    /* 진열장. 갈래 제목 없이 전부 한 탁자에. 찾는 중에는 걸리는 물건만 남긴다. */
     const paintGames = (): void => {
-      const q = findEl.value;
-      const box = $<HTMLElement>('#acGames');
-      const mine = q.trim() ? CARDS.filter((g) => matches(hayOf(g.id), q)) : CARDS;
-      box.innerHTML = mine.length
-        ? mine.map((g) => objOf(g)).join('')
-        : '<p class="ac-none">' + esc(t('arcade.find.none')) + '</p>';
+      $<HTMLElement>('#acGames').innerHTML = CARDS.map(bannerOf).join('');
       wireCards();
     };
 
-    /* ── 놀이의 재료: 표 (TASK-KL-313. 놀이터에서 옮김) ────────
-     *
-     * 표를 만들면 높은 쪽 고르기, 스무고개, 이상형 월드컵이 한꺼번에 켜진다. 그런데 그 문이
-     * 놀이터 화면에만 있었다. 오락실로 들어온 사람에게는 없는 기능이었다.
-     *
-     * fail-open: 오늘의 표(우물)에 못 닿으면 그 줄만 없다. 오락실은 그대로 선다.
-     */
-    const paintPacks = (): void => {
-      const box = $<HTMLElement>('#acPacks');
-      if (findEl.value.trim()) { box.innerHTML = ''; return; }
-      const packs = loadPacks();
-      box.innerHTML =
-        '<h2 class="ac-kind">' + esc(t('arcade.packs.title')) + '</h2>' +
-        '<p class="ac-solocourse">' +
-        esc(packs.length ? t('arcade.packs.mine', { n: String(packs.length) }) : t('arcade.packs.none')) +
-        '</p>' +
-        '<div class="ac-packrow">' +
-        '<button type="button" class="btn btn-ghost" id="acPackNew">' +
-        esc(packs.length ? t('arcade.packs.more') : t('arcade.packs.new')) + '</button>' +
-        /* 이름은 우물 이름이 오면 갈아 끼운다. 그 전에도 비어 있으면 안 된다 */
-        '<button type="button" class="btn btn-ghost" id="acPackWell" aria-label="' + esc(t('arcade.packs.well', { table: '' })) + '" hidden></button>' +
-        '</div>';
-      $<HTMLButtonElement>('#acPackNew').onclick = (): void => Toolbox.switchPage?.('packs');
-
-      /* 오늘의 표 = 서버가 날짜(KST)로 고른 한 벌. 누구에게나 같아야 겨룰 수 있다. */
-      void fetch('https://yawnbot.mascari4615.com/kl/wells')
-        .then((r) => (r.ok ? r.json() : null))
-        .then((body: { wells?: Array<{ id: string; title: string; emoji: string }>; today?: string } | null) => {
-          const today = (body?.wells || []).filter((w) => w.id === body?.today)[0];
-          const btn = container.querySelector<HTMLButtonElement>('#acPackWell');
-          if (!today || !btn || !container.isConnected) return;
-          /* 글자를 먼저 넣고 그 다음에 보인다. 순서가 반대면 이름 없는 버튼이 한 순간 뜬다 */
-          const label = t('arcade.packs.well', { table: `${today.emoji} ${today.title}` });
-          btn.textContent = label || `${today.emoji} ${today.title}`;
-          btn.hidden = false;
-          btn.onclick = (): void => Toolbox.switchPage?.('packwell');
-        })
-        .catch(() => {
-          /* 우물에 못 닿으면 이 단추만 없다 */
-        });
-    };
-
-    paintPicks();
     paintGames();
     void paintOpen();
     /* 목록은 살아 있는 것이라 가끔 다시 본다. 로비에 있을 때만. */
@@ -773,16 +573,6 @@ interface Session {
     Toolbox.onDispose?.(intervalWhileVisible(() => {
       if (lobby.style.display !== 'none') void paintOpen();
     }, 20000));
-    paintPacks();
-
-    /* 찾는 중에는 오늘의 셋도 접는다. 찾는 사람은 이미 무엇을 할지 정했다. */
-    findEl.oninput = (): void => {
-      $<HTMLElement>('#acToday').style.display = findEl.value.trim() ? 'none' : '';
-      paintPicks();
-      paintGames();
-      void paintOpen();
-      paintPacks();
-    };
 
     /* ── 판 ──────────────────────────────────────────────────────── */
     let match: Match<unknown, unknown> | null = null;
@@ -821,7 +611,7 @@ interface Session {
     let hintAt: { action: unknown; until: number } | null = null;
     function canHint(): boolean {
       const g = gameById(gameId);
-      return !!g?.hint && !online.connection && !letter && !tour && !watching && tutor.at === null && (review !== null || (!!match && !match.view().finished));
+      return !!g?.hint && !online.connection && !letter && !watching && tutor.at === null && (review !== null || (!!match && !match.view().finished));
     }
     function paintHint(): void {
       const b = container.querySelector<HTMLButtonElement>('#acHint');
@@ -977,7 +767,7 @@ interface Session {
       /* 이 판이 **언제 저절로 끝나나**(`endsAt`)도 같이 내놓는다. 놀이마다 제한이 25초에서 300초까지 다르다.
          밖에서 기다리는 검사가 그걸 모르면 제 맘대로 잡은 참을성으로 안 끝났다고 적는다(2026-08-17 실측:
          참을성 60초인데 지뢰찾기 제한이 180초라, 그 놀이가 뽑히면 무조건 빨강이었다). */
-      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tap: (a: unknown) => sendAct(a), refresh: () => render?.(v, mySeat, now), tour: tour ? { at: tour.at, games: tour.games, points: tour.points } : null };
+      (window as unknown as { __arcade?: unknown }).__arcade = { game: gameId, mySeat, state: v.state, finished: v.finished, endsAt: (v.state as { endsAt?: number } | undefined)?.endsAt ?? null, realtime: cardById(gameId)?.realtime === true, hint: (v as { hint?: unknown }).hint ?? null, tap: (a: unknown) => sendAct(a), refresh: () => render?.(v, mySeat, now) };
       paintSeats(v, now);
       render?.(v, mySeat, now);
       if (match && match.moves !== session.seenMoves && tutor.at === null) {
@@ -1042,25 +832,10 @@ interface Session {
             draw ? t('arcade.result.draw') : t('arcade.result.win', { who: win.map((s) => s.name).join(', ') }),
             'ok'
           );
-          /* 이긴 판만 세지 않는다. 이겨야 세면 봇 세기를 순한맛으로 낮추는 놀이가 된다. */
-          markPlayed(gameId, picks);
-          paintToday();
           /* 구경꾼에게는 이기고 지는 소리가 없다. 남의 승부다. */
           blip(watching ? 'good' : draw ? 'good' : mine === top ? 'win' : 'lose');
           buzz(watching ? 'tap' : draw ? 'tap' : mine === top ? 'win' : 'lose');
-          let note = '';
-          if (tour) {
-            tour = award(tour, v.seats.map((x) => x.score));
-            const board = v.seats.map((x, i) => x.name + ' ' + (tour?.points[i] ?? 0)).join(', ');
-            note = t('arcade.tour.standing', {
-              n: String(Math.min(tour.at, ROUNDS)),
-              of: String(tour.games.length),
-              board
-            });
-            say(note, 'ok');
-            againBtn.textContent = isOver(tour) ? t('arcade.tour.done') : t('arcade.tour.next');
-            againBtn.style.display = '';
-          }
+          const note = '';
           /* 끝난 순간의 기록을 챙긴다. 다음 판을 시작하면 커널이 새로 만들어져 사라진다. */
           /* 곁가지(Try Play)의 끝은 원래 판의 기록을 덮어쓰지 않는다 */
           if (match && !replaying && !review) {
@@ -1348,7 +1123,7 @@ interface Session {
       $<HTMLButtonElement>('#acDraw').style.display = live && twoHumans() ? '' : 'none';
       $<HTMLButtonElement>('#acResign').style.display = live && twoHumans() ? '' : 'none';
       /* 색 바꿔 한 판 더: 끝난 판, 두 자리 판, 혼자거나 주인. 대회와 편지는 아님 */
-      const canSwap = v.finished && v.seats.length === 2 && !tour && !letter && !replaying && (!online.connection || online.connection.host);
+      const canSwap = v.finished && v.seats.length === 2 && !letter && !replaying && (!online.connection || online.connection.host);
       $<HTMLButtonElement>('#acSwapColor').style.display = canSwap ? '' : 'none';
     }
 
@@ -1451,7 +1226,7 @@ interface Session {
          남과 붙는 판에서는 상대 수까지 되감기므로 안 엶 */
       const card = cardById(gameId);
       const solo = card?.seats?.[1] === 1;
-      return !!match && !online.connection && !letter && !replaying && !tour && tutor.at === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
+      return !!match && !online.connection && !letter && !replaying && tutor.at === null && (card?.kind === 'board' || solo) && match.tape.length > 0 && !match.view().finished;
     }
     function paintUndo(): void {
       const btn = container.querySelector<HTMLButtonElement>('#acUndo');
@@ -1541,9 +1316,6 @@ interface Session {
       else online.connection?.act({ a: a as Json });
     }
 
-    /** 대회가 돌고 있으면 여기 있다 (혼자 하는 대회. 여럿 대회는 다음 걸음). */
-    let tour: TourState | null = null;
-
     function beginMatch(id: string, seats: SeatSpec[], seed: number, want?: number, mine = 0, run = nextEpoch()): void {
       const g = gameById(id);
       /* 조각이 아직이면 **받아서 다시 들어온다** (TASK-KL-242 쪼개기). 부르는 자리가 예닐곱인데
@@ -1565,11 +1337,10 @@ interface Session {
          판 17개가 혼자 열었을 때 봇 없이 혼자 돈다. 경주에 상대가 없었다(F1 실측). */
       /* 편을 가른 판은 인원을 편이 정한다(넷). 그 밖에는 오락실이 정한다(`seating.ts`). */
       const need = Math.max(0, (want ?? partySize(g)) - seats.length);
-      /* 대회 중이면 다섯 판 내내 **같은 사람들**과 논다. 또 깜냥한테 졌다가 되려면 그래야 한다. */
-      const crew = tour ? tour.crew.slice(0, need) : pickBots(need);
+      const crew = pickBots(need);
       /* 판놀이는 저택 사람이 앉는다(MDD). 단계가 사람을 고른다(임시 대응, `cast.ts`) */
       /* 단계(`ai`)가 있는 놀이 전부(오목, 야추). 봇이 여럿이면 남은 사람도 차례로 앉는다(야추는 넷까지). MDD 스위치를 따른다 */
-      if (mdd.on() && !tour && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
+      if (mdd.on() && crew.length && (cardById(id)?.kind === 'board' || SETUPS[id]?.some((c) => c.key === 'ai'))) {
         const first = castOfLevel(Number(optsFor(id).ai) || 3);
         const rest = Object.values(CAST).filter((c) => c.slug !== first.slug);
         crew[0] = { ...crew[0], name: first.name };
@@ -1586,7 +1357,7 @@ interface Session {
          혼자 놀 때만. 여럿이 있는 방에 내 지난 판을 끼워 넣으면 자리가 하나 줄어든다. */
       /* 판놀이(오목처럼 둘이 번갈아 두는 것)에는 안 앉힌다. 고스트는 남의 판 수를 시각대로 흉내 낼 뿐이라
          판놀이에서는 엉뚱한 자리를 찌르다 수가 떨어지면 가만히 있고, 판이 안 끝난다(2026-08-30 실측) */
-      const past = !online.connection && !tour && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
+      const past = !online.connection && cardById(id)?.kind !== 'board' ? bestOf(id) : null;
       /* 끝나면 `noteBest` 가 덮으므로 **시작할 때** 챙겨 둔다. 결과에 어제 N을 적으려면 필요하다. */
       session.lastBest = bestOf(id)?.score ?? null;
       const level = levelNow();
@@ -1696,27 +1467,6 @@ interface Session {
       Toolbox.onDispose?.(stopTick);
     }
 
-    /** 대회. 다섯 판을 이어서. 점수는 판마다 등수로 매긴다(점수의 뜻이 판마다 달라서다). */
-    function startTour(): void {
-      online.leave();
-      tour = {
-        games: pickGames(CARDS.map((g) => ({ id: g.id, kind: kindOf(g.id), seats: g.seats }))),
-        at: 0,
-        points: new Array(PARTY).fill(0) as number[],
-        crew: pickBots(PARTY - 1)
-      };
-      nextTourGame();
-    }
-
-    function nextTourGame(): void {
-      if (!tour || isOver(tour)) return;
-      const id = tour.games[tour.at];
-      const run = nextEpoch();
-      show('play');
-      withIntro(id, () =>
-        beginMatch(id, [{ name: myName(), bot: false }], seedFrom(id + String(Date.now())), undefined, 0, run));
-    }
-
     /* ── 편지로 두기 (TASK-KL-264 D5) ─────────────────────────────
      *
      * 방을 안 연다. 판 전체가 링크 안에 있고, **한 수 두면 새 링크가 나온다.**
@@ -1736,7 +1486,6 @@ interface Session {
       online.leave();
       plan = null;
       letter = null;
-      tour = null;
       watching = false;
       endReview(false);
       tutor.start();
@@ -1838,7 +1587,6 @@ interface Session {
         return;
       }
       online.leave();
-      tour = null;
       letter = post;
       gameId = post.game;
       /* **내 자리는 다음에 둘 자리다.** 링크를 받은 사람이 지금 둘 사람이므로. */
@@ -2697,7 +2445,7 @@ interface Session {
       replayBtn.style.display = 'none';
       hideResult();
       paintRoom();
-      paintPicks();
+      paintGames();
       show('lobby');
     };
 
@@ -2720,7 +2468,6 @@ interface Session {
       tutor.stop();
       $<HTMLElement>('#acLesson').hidden = true;
       plan = null;
-      tour = null;
       letter = null;
       $<HTMLElement>('#acLetter').style.display = 'none';
       watching = false;
@@ -2751,10 +2498,6 @@ interface Session {
       dropPlay();
       hideResult();
       paintRoom();
-      /* 방금 논 것이 **로비 전체**에 바로 반영돼야 한다. 추천 여섯의 차례뿐 아니라
-         카드의 🏅 최고 N도 그렇다. 추천만 다시 그렸더니 기록을 세우고 나와도 뱃지가
-         안 붙어 있었다(실측). 로비를 반만 갱신하면 반은 옛 화면이다. */
-      paintPicks();
       paintGames();
       show('lobby');
     };
@@ -2819,17 +2562,6 @@ interface Session {
     $<HTMLButtonElement>('#acWaitQuit').onclick = quit;
 
     againBtn.onclick = (): void => {
-      if (tour) {
-        /* 대회 중이면 한 판 더가 다음 판이 된다. 다 돌았으면 대회를 닫고 로비로. */
-        if (isOver(tour)) {
-          tour = null;
-          againBtn.textContent = t('arcade.btn.again');
-          quit();
-          return;
-        }
-        nextTourGame();
-        return;
-      }
       if (!gameId) return;
       if (online.connection?.host) startTogether();
       else startSolo(gameId);

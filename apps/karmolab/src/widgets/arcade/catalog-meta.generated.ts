@@ -21,7 +21,7 @@ export interface GameCard {
 
 /** 감춘 것까지 전부. 이름표를 찾을 때만 쓴다 */
 export const ALL_CARDS: GameCard[] = [
-  { id: 'reflex', icon: '⚡', kind: 'quick', seats: [2, 8], realtime: true, chunk: 'reflex' },
+  { id: 'reflex', icon: '⚡', kind: 'quick', seats: [2, 8], realtime: true, chunk: 'reflex', hidden: true },
   { id: 'speed', icon: '⚡', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'speed', d3: true, hidden: true },
   { id: 'airhockey', icon: '🏒', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'airhockey', hidden: true },
   { id: 'pong', icon: '🏓', kind: 'quick', seats: [2, 2], realtime: true, chunk: 'pong', hidden: true },
@@ -50,11 +50,11 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'mancala', icon: '🪵', kind: 'board', seats: [2, 2], realtime: false, chunk: 'mancala', hidden: true },
   { id: 'foxhounds', icon: '🦊', kind: 'board', seats: [2, 2], realtime: false, chunk: 'foxhounds', hidden: true },
   { id: 'capturego', icon: '⚫', kind: 'board', seats: [2, 2], realtime: false, chunk: 'capturego', d3: true, hidden: true },
-  { id: 'blackjack', icon: '♠️', kind: 'card', seats: [1, 4], realtime: false, chunk: 'blackjack', d3: true },
-  { id: 'solitaire', icon: '🃏', kind: 'card', seats: [1, 1], realtime: false, chunk: 'solitaire', d3: true },
+  { id: 'blackjack', icon: '♠️', kind: 'card', seats: [1, 4], realtime: false, chunk: 'blackjack', d3: true, hidden: true },
+  { id: 'solitaire', icon: '🃏', kind: 'card', seats: [1, 1], realtime: false, chunk: 'solitaire', d3: true, hidden: true },
   { id: 'president', icon: '👑', kind: 'card', seats: [3, 4], realtime: false, chunk: 'president', d3: true, hidden: true },
   { id: 'dominoes', icon: '🀄', kind: 'card', seats: [2, 4], realtime: false, chunk: 'dominoes', d3: true, hidden: true },
-  { id: 'yacht', icon: '🎲', kind: 'card', seats: [2, 4], realtime: false, chunk: 'yacht', d3: true },
+  { id: 'yacht', icon: '🎲', kind: 'card', seats: [2, 4], realtime: false, chunk: 'yacht', d3: true, hidden: true },
   { id: 'highlow', icon: '🔺', kind: 'card', seats: [1, 4], realtime: false, chunk: 'highlow', d3: true, hidden: true },
   { id: 'lanterns', icon: '🏮', kind: 'card', seats: [2, 3], realtime: false, chunk: 'lanterns', d3: true, hidden: true },
   { id: 'liars', icon: '🎲', kind: 'card', seats: [2, 4], realtime: true, chunk: 'liars', d3: true, hidden: true },
@@ -73,15 +73,15 @@ export const ALL_CARDS: GameCard[] = [
   { id: 'onestroke', icon: '✏️', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'onestroke', hidden: true },
   { id: 'simon', icon: '🎵', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'simon', hidden: true },
   { id: 'sudoku', icon: '🔢', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'sudoku', hidden: true },
-  { id: 'worldcup', icon: '👑', kind: 'quick', seats: [1, 1], realtime: false, chunk: 'worldcup' },
-  { id: 'reaction', icon: '⚡', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'reaction' },
-  { id: 'higher', icon: '📈', kind: 'quick', seats: [1, 4], realtime: false, chunk: 'higher' },
+  { id: 'worldcup', icon: '👑', kind: 'quick', seats: [1, 1], realtime: false, chunk: 'worldcup', hidden: true },
+  { id: 'reaction', icon: '⚡', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'reaction', hidden: true },
+  { id: 'higher', icon: '📈', kind: 'quick', seats: [1, 4], realtime: false, chunk: 'higher', hidden: true },
   { id: 'ghosttype', icon: '👻', kind: 'quick', seats: [1, 4], realtime: true, chunk: 'ghosttype', hidden: true },
-  { id: 'dailycho', icon: '🔤', kind: 'puzzle', seats: [1, 4], realtime: false, chunk: 'dailycho' },
-  { id: 'daily', icon: '🎯', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'daily' }
+  { id: 'dailycho', icon: '🔤', kind: 'puzzle', seats: [1, 4], realtime: false, chunk: 'dailycho', hidden: true },
+  { id: 'daily', icon: '🎯', kind: 'puzzle', seats: [1, 4], realtime: true, chunk: 'daily', hidden: true }
 ];
 
-/** 로비, 찾기, 오늘의 세 판, 무작위가 보는 목록 */
+/** 로비와 무작위가 보는 목록 (통과한 게임만) */
 /** 감춘 판도 검사와 개발에서는 열어 본다. 주소에 all=1 (감사 D8, 2026-09-03). 사람 로비는 그대로 */
 export const CARDS: GameCard[] =
   typeof location !== 'undefined' && /[?&]all=1(?:&|$)/.test(location.search) ? ALL_CARDS : ALL_CARDS.filter((c) => !c.hidden);
