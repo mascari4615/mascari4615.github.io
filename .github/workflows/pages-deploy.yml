@@ -168,7 +168,8 @@ jobs:
 
       # 블로그 = KarmoLab 파이프 산출 (change.blog-cutover. Chirpy 철거 완료).
       # 글 정본 = apps/karmolab/content/{posts,drafts,about.md} (git). gen-post-pages 가
-      # 상세 329장 + `/posts/` 정적 목록(2026-09-03) + `/about/` + `/works/` + `/feed.xml` + `/404.html` 을 굽고,
+      # 상세 329장 + `/posts/` 정적 목록(2026-09-03) + `/about/` + `/feed.xml` + `/404.html` 을 굽고,
+      # (`/works/` 는 2026-09-08 소개 한 장에 합쳐 삭제. rm 은 옛 산출 정리용으로 남긴다)
       # 여기서 apps/blog 로 복사하면 Jekyll 이 front matter(permalink, lastmod)만 처리해 싣는다.
       # `data/posts-index.json`(공개 글만)은 아래 rsync 로 실려 커뮤니티 글 탭이 읽는다.
       - name: Generate blog pages (posts, home, about, feed)
@@ -178,7 +179,6 @@ jobs:
           rm -rf ../blog/posts ../blog/about ../blog/works
           cp -r content/pages/posts ../blog/posts
           cp -r content/pages/about ../blog/about
-          cp -r content/pages/works ../blog/works
           cp content/pages/feed.xml ../blog/feed.xml
           cp content/pages/404.html ../blog/404.html
 
