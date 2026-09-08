@@ -30,7 +30,7 @@ import {
 } from './lib/locales.mjs';
 import { toLocalePage, addAlternatesToSource } from './lib/locale-page.mjs';
 import { toLocaleHub } from './lib/locale-hub.mjs';
-import { withoutRetired, RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
+import { withoutRetired, retiredTarget, RETIRED_OPERATION_IDS } from './lib/retired-operations.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
