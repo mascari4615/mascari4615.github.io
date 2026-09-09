@@ -25,6 +25,13 @@ import type { DashPanelCtx } from './kit';
     usage: Usage; activeMs: number; toolCalls: number; edits: number; commits: number;
     models: Record<string, number>;
   };
+  /**
+   * 프롬프트 이력은 Bucket 과 소스가 다름. `byDay`, `byMonth` 는 transcript 남은
+   * 세션만 포함, `promptsByDay`, `promptsByMonth` 는 셸 history 전량 포함.
+   * 2026-09-09 실측: 1년 창에서 byDay 합 6347, promptsByDay 합 12619 (coverage.historyPrompts 와 일치).
+   * 프롬프트 수는 언제나 promptsBy* 사용.
+   */
+  type PromptStat = { prompts: number; sessions: number; chars?: number; withTranscript?: number };
   type Rollups = {
     generatedAt: string;
     host: string;
@@ -33,7 +40,11 @@ import type { DashPanelCtx } from './kit';
     byRepo: Record<string, Bucket>;
     byModel: Record<string, Bucket>;
     byHour: Record<string, Bucket>;
-    coverage?: { lastHistory?: string; firstHistory?: string; claudeTranscripts?: number };
+    promptsByDay?: Record<string, PromptStat>;
+    promptsByMonth?: Record<string, PromptStat>;
+    coverage?: {
+      lastHistory?: string; firstHistory?: string; claudeTranscripts?: number; historyPrompts?: number;
+    };
   };
 
   const ROOT_DIR = 'data/ai-usage';
@@ -109,12 +120,7 @@ import type { DashPanelCtx } from './kit';
    * 막대 그림. **비어 있는 날도 자리를 차지한다**. 안 그러면 쉬었던 구간이 사라져
    * 매일 했던 것처럼 보임. 날짜를 채워 그리기.
    */
-  function drawBars(
-    canvas: HTMLCanvasElement,
-    days: string[],
-    byDay: Record<string, Bucket>,
-    metric: (b: Bucket) => number
-  ): void {
+  function drawBars(canvas: HTMLCanvasElement, days: string[], vals: number[]): void {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -126,7 +132,6 @@ import type { DashPanelCtx } from './kit';
     ctx.clearRect(0, 0, w, h);
     if (!days.length) return;
 
-    const vals = days.map((d) => (byDay[d] ? metric(byDay[d]) : 0));
     let max = 0;
     for (const v of vals) if (v > max) max = v;
     if (max <= 0) max = 1;
@@ -160,17 +165,43 @@ import type { DashPanelCtx } from './kit';
     ctx.globalAlpha = 1;
   }
 
-  /** 오늘부터 거꾸로 n 일의 키. */
+  const KST_OFFSET_MS = 9 * 3600000;
+
+  /** 롤업 날짜 키는 KST 고정. 기기 지역시로 만들면 시차만큼 창이 밀린다. */
+  function kstDayKey(ms: number): string {
+    const d = new Date(ms + KST_OFFSET_MS);
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return d.getUTCFullYear() + '-' + m + '-' + day;
+  }
+
+  /** KST 오늘부터 거꾸로 n 일의 키. */
   function lastDays(n: number): string[] {
     const out: string[] = [];
-    const now = new Date();
-    for (let i = n - 1; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 86400000);
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      out.push(d.getFullYear() + '-' + m + '-' + day);
-    }
+    const now = Date.now();
+    for (let i = n - 1; i >= 0; i--) out.push(kstDayKey(now - i * 86400000));
     return out;
+  }
+
+  /** 날짜 키 하나의 지표 값. 프롬프트만 소스가 promptsByDay. */
+  function dayValue(roll: Rollups, id: MetricId, get: (b: Bucket) => number, key: string): number {
+    if (id === 'prompts' && roll.promptsByDay) return roll.promptsByDay[key]?.prompts || 0;
+    const b = roll.byDay[key];
+    return b ? get(b) || 0 : 0;
+  }
+
+  /** 달 키 하나의 지표 값. 위와 같은 이유로 프롬프트는 promptsByMonth. */
+  function monthValue(roll: Rollups, id: MetricId, get: (b: Bucket) => number, key: string): number {
+    if (id === 'prompts' && roll.promptsByMonth) return roll.promptsByMonth[key]?.prompts || 0;
+    const b = (roll.byMonth || {})[key];
+    return b ? get(b) || 0 : 0;
+  }
+
+  /** 창 안의 프롬프트 합. promptsByDay 가 없는 옛 롤업만 byDay 로 물러선다. */
+  function promptsInWindow(roll: Rollups, days: string[]): number {
+    let n = 0;
+    for (const d of days) n += dayValue(roll, 'prompts', (b) => b.prompts, d);
+    return n;
   }
 
   function topList(rec: Record<string, Bucket>, pick: (b: Bucket) => number, limit: number): Array<[string, number]> {
@@ -256,6 +287,7 @@ import type { DashPanelCtx } from './kit';
       const days = lastDays(span);
       const picked = days.filter((d) => roll.byDay[d]).map((d) => roll.byDay[d]);
       const total = sum(picked);
+      const totalPrompts = promptsInWindow(roll, days);
       const m = METRICS.filter((x) => x.id === metric)[0];
 
       const chips = Array.from(spanEl.querySelectorAll('button'));
@@ -267,13 +299,18 @@ import type { DashPanelCtx } from './kit';
       numsEl.innerHTML =
         '<div class="au-num"><b>' + esc(usd(total.cost)) + '</b><span>환산가</span></div>' +
         '<div class="au-num"><b>' + esc(short(total.sessions)) + '</b><span>세션</span></div>' +
-        '<div class="au-num"><b>' + esc(short(total.prompts)) + '</b><span>프롬프트</span></div>' +
+        '<div class="au-num"><b>' + esc(short(totalPrompts)) + '</b><span>프롬프트</span></div>' +
         '<div class="au-num"><b>' + esc(hours(total.activeMs)) + '</b><span>붙어 있던 시간</span></div>';
 
-      drawBars(canvas, days, roll.byDay, m.get);
+      drawBars(canvas, days, days.map((d) => dayValue(roll, m.id, m.get, d)));
 
-      const months = Object.keys(roll.byMonth || {}).sort().reverse().slice(0, 6);
-      const monthRows: Array<[string, number]> = months.map((k) => [k, m.get(roll.byMonth[k]) || 0]);
+      /* 달 목록도 소스가 갈린다. 프롬프트만 있는 달이 빠지지 않게 키를 합집합으로 모은다. */
+      const monthKeys: string[] = Object.keys(roll.byMonth || {});
+      for (const k of Object.keys(roll.promptsByMonth || {})) {
+        if (monthKeys.indexOf(k) < 0) monthKeys.push(k);
+      }
+      const months = monthKeys.sort().reverse().slice(0, 6);
+      const monthRows: Array<[string, number]> = months.map((k) => [k, monthValue(roll, m.id, m.get, k)]);
 
       restEl.innerHTML =
         listHtml('달마다 (' + m.label + ')', monthRows, m.fmt) +

@@ -27,6 +27,27 @@ const DEVICE_CODE_URL = 'https://github.com/login/device/code';
 const TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GRANT_DEVICE = 'urn:ietf:params:oauth:grant-type:device_code';
 
+/* 속도 제한. IP 당 분당 20회, isolate 메모리 Map. 정확한 전역 제한이 목적이 아니라
+   폭주 완화가 목적이라 이 정도로 충분함. isolate 재시작되면 카운트도 같이 비워짐. */
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const rateLimitHits = new Map();
+
+function checkRateLimit(request) {
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  const hits = (rateLimitHits.get(ip) || []).filter((t) => t > windowStart);
+  if (hits.length >= RATE_LIMIT_MAX) {
+    rateLimitHits.set(ip, hits);
+    const retryAfterMs = hits[0] + RATE_LIMIT_WINDOW_MS - now;
+    return { ok: false, retryAfterSec: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+  }
+  hits.push(now);
+  rateLimitHits.set(ip, hits);
+  return { ok: true };
+}
+
 function corsHeaders(request, env) {
   const allowed = String(env.ALLOWED_ORIGIN || '')
     .split(',')
@@ -70,9 +91,19 @@ export default {
     const cors = corsHeaders(request, env);
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (cors['access-control-allow-origin'] === 'null') {
-      return json({ error: 'origin_not_allowed' }, 403, cors);
+      const origin = request.headers.get('origin') || '(없음)';
+      return json({ error: 'origin_not_allowed', origin }, 403, cors);
     }
     if (request.method !== 'POST') return json({ error: 'method_not_allowed' }, 405, cors);
+
+    const rateLimit = checkRateLimit(request);
+    if (!rateLimit.ok) {
+      return json(
+        { error: 'rate_limited' },
+        429,
+        { ...cors, 'retry-after': String(rateLimit.retryAfterSec) },
+      );
+    }
 
     const clientId = env.GITHUB_CLIENT_ID;
     if (!clientId) return json({ error: 'relay_misconfigured' }, 500, cors);
@@ -102,6 +133,7 @@ export default {
       return json(out.body, out.status, cors);
     }
 
+    /* 만료 끈 App 에서는 호출 안 됨. 경로만 남겨 둠. */
     if (path.endsWith('/device/refresh')) {
       const refreshToken = payload.refresh_token;
       if (!refreshToken) return json({ error: 'missing_refresh_token' }, 400, cors);

@@ -131,6 +131,14 @@ export function hours(ms: number): string {
   return (ms / 3600000).toFixed(ms >= 36000000 ? 0 : 1) + '시간';
 }
 
+/**
+ * href 에 넣어도 되는 주소인가. https 만 통과, 나머지는 null.
+ * 밖에서 온 주소를 그대로 걸었을 때 javascript: 같은 것이 링크가 되는 것 방지.
+ */
+export function httpsUrl(s: unknown): string | null {
+  return typeof s === 'string' && /^https:\/\//i.test(s) ? s : null;
+}
+
 /** 화면에 넣기 전에. 저장소에서 온 글자는 남이 쓴 것으로 친다. */
 export function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) =>

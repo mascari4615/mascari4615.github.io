@@ -21,7 +21,7 @@
  * 설정은 코드에 안 박는다. `data/mydash-config.json` 을 읽는다 (예시는 같은 폴더의
  * `mydash-config.example.json`). 없으면 화면이 무엇을 채워야 하는지 적어 줌.
  */
-import { dashRegistry, esc } from './kit';
+import { dashRegistry, esc, httpsUrl } from './kit';
 import type { DashEntry, DashPanel, DashRepoRead } from './kit';
 
 declare const Toolbox:
@@ -90,8 +90,10 @@ declare const Toolbox:
     return v.expiresAt !== null && v.expiresAt - 30000 < Date.now();
   }
 
-  /* ── 실패의 종류를 나눈다. 화면이 다르게 말해야 하는 것만 나눈다. */
-  type FailKind = 'auth' | 'notfound' | 'config' | 'net';
+  /* ── 실패의 종류 구분. 화면이 다르게 말해야 하는 것만 구분.
+     ratelimit 은 auth 와 별도 갈래. 요청 한도에 걸린 사람에게 로그인이 풀렸다고 말하면
+     멀쩡한 토큰을 버리고 재로그인하는 문제 방지. */
+  type FailKind = 'auth' | 'ratelimit' | 'notfound' | 'config' | 'net';
   class DashError extends Error {
     kind: FailKind;
     constructor(kind: FailKind, message: string) {
@@ -132,6 +134,11 @@ declare const Toolbox:
     error?: string;
   };
 
+  /* 몸통에 error 를 실어 보내는 것이 정상인 창구.
+     기기 흐름 폴링의 authorization_pending 과 slow_down 은 실패가 아니라 진행 중이고,
+     갱신의 실패는 저장 토큰을 지울지 말지를 부르는 쪽이 가려야 한다. 그래서 이 둘만 예외. */
+  const BODY_ERROR_LEAVES = ['/device/token', '/device/refresh'];
+
   async function relayPost<T>(cfg: Config, leaf: string, body: Record<string, string>): Promise<T> {
     let res: Response;
     try {
@@ -144,12 +151,29 @@ declare const Toolbox:
       /* 여기서 죽는 가장 흔한 이유는 릴레이가 CORS 를 안 열었거나 주소가 틀린 것이다. */
       throw new DashError('net', '릴레이에 못 닿았다. 주소와 CORS 를 확인');
     }
+    /* 401 만 인증 실패로 친다. 5xx 와 그 밖은 그때 못 닿은 것이라 토큰을 버릴 이유가 아니다. */
+    if (res.status === 401) throw new DashError('auth', '릴레이가 401 을 줬다');
     if (!res.ok) throw new DashError('net', '릴레이가 ' + res.status + ' 를 줬다');
+    let data: unknown;
     try {
-      return (await res.json()) as T;
+      data = await res.json();
     } catch {
       throw new DashError('net', '릴레이 응답이 JSON 이 아니다');
     }
+    if (!data || typeof data !== 'object') throw new DashError('net', '릴레이 응답이 객체가 아니다');
+    const rec = data as Record<string, unknown>;
+    /* ★ GitHub 은 HTTP 200 몸통에 {"error": ...} 를 넣는다. 안 보면 화면이 받는 중에 멈춘다. */
+    if (!BODY_ERROR_LEAVES.includes(leaf) && typeof rec.error === 'string' && rec.error) {
+      throw new DashError('net', 'GitHub: ' + rec.error);
+    }
+    if (leaf === '/device/code') {
+      for (const key of ['device_code', 'user_code', 'verification_uri']) {
+        if (typeof rec[key] !== 'string' || !rec[key]) {
+          throw new DashError('net', '릴레이 응답에 ' + key + ' 가 없다');
+        }
+      }
+    }
+    return data as T;
   }
 
   function tokenFrom(reply: TokenReply): Saved {
@@ -163,30 +187,69 @@ declare const Toolbox:
     };
   }
 
-  /** 갱신. 실패하면 **조용히 지운다**. 그다음은 다시 로그인 길이다. */
-  async function refresh(cfg: Config, saved: Saved): Promise<Saved | null> {
-    if (!saved.refresh) return null;
-    if (saved.refreshExpiresAt !== null && saved.refreshExpiresAt < Date.now()) return null;
+  /**
+   * 갱신 결과 셋.
+   * - ok: 새 토큰
+   * - dead: GitHub 명시적 거절. 저장 토큰 삭제
+   * - keep: 네트워크나 5xx. **삭제 안 함**. 이번 요청만 실패, 다음에 재시도
+   */
+  type RefreshOut = { kind: 'ok'; saved: Saved } | { kind: 'dead' } | { kind: 'keep' };
+
+  /** GitHub 이 이 이름을 대면 갱신 토큰이 죽은 것. 그 밖의 이름은 다음에 다시 해 본다. */
+  const DEAD_REFRESH_ERRORS = ['bad_refresh_token', 'unauthorized_client', 'incorrect_client_credentials', 'access_denied'];
+
+  async function refreshOnce(cfg: Config, saved: Saved): Promise<RefreshOut> {
+    if (!saved.refresh) return { kind: 'dead' };
+    if (saved.refreshExpiresAt !== null && saved.refreshExpiresAt < Date.now()) return { kind: 'dead' };
+    let reply: TokenReply;
     try {
-      const reply = await relayPost<TokenReply>(cfg, '/device/refresh', { refresh_token: saved.refresh });
-      if (!reply.access_token) return null;
-      const next = tokenFrom(reply);
-      saveToken(next);
-      return next;
-    } catch {
-      return null;
+      reply = await relayPost<TokenReply>(cfg, '/device/refresh', { refresh_token: saved.refresh });
+    } catch (e) {
+      return (e as DashError).kind === 'auth' ? { kind: 'dead' } : { kind: 'keep' };
     }
+    if (reply.error) return DEAD_REFRESH_ERRORS.includes(reply.error) ? { kind: 'dead' } : { kind: 'keep' };
+    if (!reply.access_token) return { kind: 'keep' };
+    const next = tokenFrom(reply);
+    saveToken(next);
+    return { kind: 'ok', saved: next };
   }
 
-  /** 지금 쓸 수 있는 토큰. 없거나 죽었으면 null. */
+  /* 패널 둘이 같은 순간에 읽으면 갱신이 두 번 나가고, 늦게 온 쪽이 먼저 받은 토큰 덮어쓰기 발생.
+     진행 중인 갱신 하나로 병합. */
+  let refreshing: Promise<RefreshOut> | null = null;
+  function refresh(cfg: Config, saved: Saved): Promise<RefreshOut> {
+    if (refreshing) return refreshing;
+    const p = refreshOnce(cfg, saved).then(
+      (out) => {
+        if (refreshing === p) refreshing = null;
+        return out;
+      },
+      (e) => {
+        if (refreshing === p) refreshing = null;
+        throw e;
+      }
+    );
+    refreshing = p;
+    return p;
+  }
+
+  /**
+   * 지금 쓸 수 있는 토큰. 없거나 죽었으면 null.
+   * 갱신을 못 해 본 것(네트워크, 5xx)은 null 이 아니라 예외. 로그인이 풀린 것과 별개.
+   */
   async function liveToken(cfg: Config): Promise<string | null> {
     const saved = loadSaved();
     if (!saved) return null;
+    /* 만료를 안 밝힌 토큰은 만료가 없는 토큰. 갱신을 시도조차 안 하고 그대로 쓴다. */
+    if (saved.expiresAt === null) return saved.token;
     if (!isExpired(saved)) return saved.token;
-    const next = await refresh(cfg, saved);
-    if (next) return next.token;
-    saveToken(null);
-    return null;
+    const out = await refresh(cfg, saved);
+    if (out.kind === 'ok') return out.saved.token;
+    if (out.kind === 'dead') {
+      saveToken(null);
+      return null;
+    }
+    throw new DashError('net', '토큰 갱신에 못 닿았다. 잠시 뒤 다시');
   }
 
   /* ── 저장소 읽기 ───────────────────────────────────────────────── */
@@ -216,7 +279,18 @@ declare const Toolbox:
            GitHub 이 일부러 안 가른다(있는지조차 안 알려 준다). 우리도 안 가른다. */
         throw new DashError('notfound', path + ' 를 못 읽는다 (없거나, 이 계정에 권한이 없다)');
       }
-      if (res.status === 403) throw new DashError('auth', 'GitHub 이 막았다 (요청 한도이거나 App 권한 부족)');
+      if (res.status === 403 || res.status === 429) {
+        /* 403 은 로그인이 풀린 것과 무관. 요청 한도가 대부분이고, 토큰은 정상.
+           한도 머리표가 있으면 풀리는 시각까지 표시. */
+        const left = res.headers.get('x-ratelimit-remaining');
+        const reset = Number(res.headers.get('x-ratelimit-reset'));
+        if (left !== null && Number.isFinite(reset) && reset > 0) {
+          const at = new Date(reset * 1000);
+          const hhmm = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0');
+          throw new DashError('ratelimit', 'GitHub 요청 한도. ' + hhmm + ' 뒤 다시');
+        }
+        throw new DashError('ratelimit', 'GitHub 이 막았다 (요청 한도이거나 App 권한 부족)');
+      }
       if (!res.ok) throw new DashError('net', 'GitHub 이 ' + res.status + ' 를 줬다');
       return res;
     }
@@ -264,7 +338,9 @@ declare const Toolbox:
       '.myd-stat{font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
       '.myd-who{margin-left:auto;font-size:var(--font-size-2xs);color:var(--text-tertiary);display:flex;gap:8px;align-items:center}',
       '.myd-nav{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}',
+      /* 누르는 것은 폰에서 44x44 아래로 안 내려간다. 칩도 예외가 아니다. */
       '.myd-nav button{flex:0 0 auto;padding:6px 12px;font:inherit;font-size:var(--font-size-2xs);cursor:pointer;',
+      'min-height:44px;min-width:44px;',
       'background:transparent;color:var(--text-secondary);border:1px solid currentColor;border-radius:var(--radius-pill)}',
       '.myd-nav button.on{color:var(--text-primary);background:var(--bg-hover)}',
       '.myd-body{min-height:200px}',
@@ -276,7 +352,7 @@ declare const Toolbox:
       'border:1px solid var(--border);user-select:all;word-break:break-all}',
       '.myd-btn{padding:10px 16px;font:inherit;cursor:pointer;border-radius:var(--radius-md);',
       'background:var(--accent-dim);color:var(--text-primary);border:1px solid var(--accent);text-decoration:none;',
-      'display:inline-block;text-align:center;min-height:44px;line-height:24px}',
+      'display:inline-block;text-align:center;min-height:44px;min-width:44px;line-height:24px}',
       '.myd-btn.ghost{background:transparent;border-color:var(--border);color:var(--text-secondary)}',
       '.myd-btn:hover{background:var(--bg-hover)}',
       '.myd-warn{padding:10px 12px;border-radius:var(--radius-md);background:var(--warning-subtle);',
@@ -315,9 +391,11 @@ declare const Toolbox:
       }
       cleanups = [];
     }
-    /* 맨바깥 이름을 여기서 바로 쓰면, 그 이름이 아예 없는 판(가짜 셸로 재는 자리)에서
-       ReferenceError 로 위젯이 통째로 안 뜬다. window 쪽으로 묻는다 (memo-atlas 와 같은 손). */
-    (window as unknown as { Toolbox?: { onDispose?: (fn: () => void) => void } }).Toolbox?.onDispose?.(disposePanel);
+    /* 맨바깥 이름 `Toolbox` 우선 확인, 없는 자리(가짜 셸로 재는 테스트)에서만 window 로 확인.
+       셸은 `const Toolbox` 로 생성하고 const 는 window 에 안 붙음. window 만 보면 실서비스에서
+       등록이 통째로 헛돌아 기기 흐름 폴링이 위젯 이탈 뒤에도 안 멈추는 문제 (memo-atlas 와 동일 패턴). */
+    const disposeBox = (typeof Toolbox !== 'undefined' && Toolbox) ? Toolbox : (window as unknown as { Toolbox?: unknown }).Toolbox;
+    (disposeBox as { onDispose?: (fn: () => void) => void } | undefined)?.onDispose?.(disposePanel);
 
     function say(html: string): void {
       disposePanel();
@@ -384,13 +462,17 @@ declare const Toolbox:
         return;
       }
       const deadline = Date.now() + (start.expires_in || 900) * 1000;
+      /* 릴레이가 준 주소다. https 가 아니면 링크로 안 걸고 글자로만 보여 준다. */
+      const openUrl = httpsUrl(start.verification_uri);
       say(
         '<div class="myd-card">' +
           '<div class="myd-note">아래 코드를 GitHub 에 넣으세요. 이 화면은 그대로 두면 됩니다.</div>' +
           '<div class="myd-code" data-code="1">' + esc(start.user_code) + '</div>' +
           '<div class="myd-row">' +
-          '<a class="myd-btn" target="_blank" rel="noopener noreferrer" href="' +
-          esc(start.verification_uri) + '">GitHub 열기</a>' +
+          (openUrl
+            ? '<a class="myd-btn" target="_blank" rel="noopener noreferrer" href="' +
+              esc(openUrl) + '">GitHub 열기</a>'
+            : '<span class="myd-note">' + esc(start.verification_uri) + ' 를 직접 여세요.</span>') +
           '<button class="myd-btn ghost" data-copy="1">코드 복사</button>' +
           '<button class="myd-btn ghost" data-cancel="1">그만두기</button>' +
           '</div>' +
@@ -460,6 +542,9 @@ declare const Toolbox:
       navEl.hidden = true;
       navEl.textContent = '';
       whoEl.textContent = '';
+      /* 머리말에는 패널이 적어 둔 host 이름이 남아 있다. 안 지우면 로그아웃한 화면에
+         읽던 저장소 이름이 그대로 걸린다. 로그인 전 화면과 같아야 한다. */
+      statEl.textContent = '';
       showLoggedOut(cfg);
     }
 
@@ -468,7 +553,8 @@ declare const Toolbox:
       const repo = makeRepo(cfg);
       whoEl.innerHTML =
         '<span>' + esc(cfg.owner + '/' + cfg.repo) + '</span>' +
-        '<button class="myd-btn ghost" data-logout="1" style="min-height:0;padding:4px 10px">나가기</button>';
+        /* 여기만 44px 아래로 내리면 폰에서 못 누른다. 좁게 보이려고 padding 만 줄인다. */
+        '<button class="myd-btn ghost" data-logout="1" style="padding:4px 10px">나가기</button>';
       (whoEl.querySelector('[data-logout]') as HTMLElement | null)?.addEventListener('click', () => logout(cfg));
 
       const panels = reg.panels;
@@ -534,9 +620,12 @@ declare const Toolbox:
       if (kind === 'auth') {
         showLoggedOut(cfg, '로그인이 풀렸습니다. 다시 로그인하세요.');
         navEl.hidden = true;
+        navEl.textContent = '';
         whoEl.textContent = '';
+        statEl.textContent = '';
         return;
       }
+      statEl.textContent = '';
       bodyEl.innerHTML =
         '<div class="myd-card"><div class="myd-warn">' +
         esc(err && err.message ? err.message : '알 수 없는 실패') +
@@ -560,7 +649,14 @@ declare const Toolbox:
         else showLoggedOut(null, err.message);
         return;
       }
-      const token = await liveToken(cfg);
+      let token: string | null;
+      try {
+        token = await liveToken(cfg);
+      } catch (e) {
+        /* 갱신을 못 해 본 것. 저장 토큰은 그대로 두고 이번 화면만 로그인 길로 보낸다. */
+        showLoggedOut(cfg, (e as Error).message);
+        return;
+      }
       if (token) void showDashboard(cfg);
       else showLoggedOut(cfg);
     })();

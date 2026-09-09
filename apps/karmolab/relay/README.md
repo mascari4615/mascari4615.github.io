@@ -24,6 +24,7 @@ ADR 은 "정적 사이트만"을 전제했다. 실제로는 **정적 사이트 +
 | Homepage URL | 사이트 주소 |
 | Callback URL | 안 쓴다. 아무 주소나 넣어도 된다 |
 | **Enable Device Flow** | **켠다.** 이게 꺼져 있으면 기기 코드 요청이 실패한다 |
+| **Expire user authorization tokens** | **끈다.** 재로그인 없이 쓰려는 결정. 릴레이에 시크릿이 없어 토큰 탈취 시 대응은 GitHub 설정에서 App 인가 취소(폰 분실 등) |
 | Webhook | 끈다 |
 | Repository permissions → **Contents** | **Read-only** |
 | Where can this be installed | Only on this account |
@@ -38,8 +39,13 @@ ADR 은 "정적 사이트만"을 전제했다. 실제로는 **정적 사이트 +
 
 ## 2. 릴레이 배포
 
+릴레이 소스나 `wrangler.toml` 이 main 에 오르면 `.github/workflows/deploy-mydash-relay.yml` 이
+자동 배포한다. 주소는 `https://mydash-relay.mascari4615.com`.
+
+수동 배포는 `relay` 폴더에서:
+
 ```sh
-npx wrangler deploy apps/karmolab/relay/github-device-relay.mjs --name mydash-relay
+npx wrangler deploy
 ```
 
 환경변수 (Cloudflare 대시보드 → Settings → Variables):
@@ -47,13 +53,13 @@ npx wrangler deploy apps/karmolab/relay/github-device-relay.mjs --name mydash-re
 | 이름 | 값 | 비밀? |
 | --- | --- | --- |
 | `GITHUB_CLIENT_ID` | 1번에서 적어 둔 Client ID | 아니오 (그래도 여기 두면 사이트를 안 고치고 바꾼다) |
-| `ALLOWED_ORIGIN` | `https://mascari4615.github.io` (쉼표로 여럿) | 아니오 |
+| `ALLOWED_ORIGIN` | `https://blog.mascari4615.com,https://mascari4615.github.io` (쉼표로 여럿) | 아니오 |
 | `GITHUB_CLIENT_SECRET` | **넣지 않는다** (OAuth App 으로 할 때만) | 예, 넣는다면 `wrangler secret put` |
 
 확인:
 
 ```sh
-curl -X POST https://<릴레이>/device/code -H 'origin: https://mascari4615.github.io'
+curl -X POST https://<릴레이>/device/code -H 'origin: https://blog.mascari4615.com'
 # → {"device_code":"...","user_code":"XXXX-XXXX","verification_uri":"https://github.com/login/device",...}
 ```
 
@@ -64,7 +70,7 @@ curl -X POST https://<릴레이>/device/code -H 'origin: https://mascari4615.git
 `apps/karmolab/data/mydash-config.example.json` 을 **`mydash-config.json` 으로 복사**하고 채운다.
 
 ```json
-{ "relay": "https://mydash-relay.<계정>.workers.dev", "owner": "Mascari4615", "repo": "memo", "branch": "main" }
+{ "relay": "https://mydash-relay.mascari4615.com", "owner": "Mascari4615", "repo": "memo", "branch": "main" }
 ```
 
 이 파일은 **공개 배포된다.** 비밀값을 넣지 않는다. 위 넷은 전부 공개해도 되는 값이다.
@@ -87,7 +93,5 @@ cd apps/karmolab && npm run build
 
 ## 알아 둘 것
 
-- 이 폴더는 `scripts/assemble-site.mjs` 의 SKIP 목록에 없다. 그대로 두면 `_site` 로 복사돼
-  워커 소스가 공개된다. 비밀이 없으니 새는 것은 없지만, 싫으면 SKIP 정규식에 `relay` 를 더한다.
-- GitHub App 사용자 토큰은 만료를 켜 두면 8시간이다. 셸이 refresh 를 먼저 시도하고,
-  실패하면 로그인 화면으로 돌린다.
+- 이 폴더는 `scripts/assemble-site.mjs` 의 SKIP 목록에 없다. `pages-deploy` 의 rsync 로
+  릴레이 소스가 사이트에 그대로 실린다. 비밀이 없어 새는 것이 없으니 그대로 둔다.
