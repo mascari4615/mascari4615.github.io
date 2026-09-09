@@ -90,10 +90,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45  # 멈춘 판이 6시간 도는 것을 막는다 (기본값 360분)
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: npm
@@ -130,7 +130,7 @@ jobs:
 
       - name: Cache Cargo
         if: steps.tauri.outputs.run == 'always'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
