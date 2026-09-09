@@ -15,6 +15,31 @@ function setup() {
 }
 
 describe('수집과 알림 경로', () => {
+  it.each([
+    ['We will reset Codex usage.', 'scheduled', '시각 미정'],
+    ['We have reset Codex usage.', 'completed', '완료를 알린 시각'],
+    ['We will credit a banked reset.', 'scheduled', '시각 미정'],
+  ])('시각 언급 없이 초기화 내용으로 알림: %s', async (text, status, description) => {
+    const { create, fetchPosts } = setup();
+    fetchPosts.mockResolvedValueOnce([post('1', text)]);
+    const monitor = create();
+    await monitor.refresh();
+    const send = vi.fn().mockResolvedValue(undefined);
+    expect(await monitor.deliver(send)).toBe(1);
+    const signal = send.mock.calls[0][0];
+    expect(signal.status).toBe(status);
+    expect(signal.timing).toBeNull();
+    expect(buildResetEmbed(signal, now).toJSON().description).toContain(description);
+  });
+  it('시각이 있어도 초기화 내용이 없는 글은 알림 제외', async () => {
+    const { create, fetchPosts } = setup();
+    fetchPosts.mockResolvedValueOnce([post('1', 'Codex news at 6pm PT. The new model lands in 3 hours.')]);
+    const monitor = create();
+    await monitor.refresh();
+    const send = vi.fn();
+    expect(await monitor.deliver(send)).toBe(0);
+    expect(send).not.toHaveBeenCalled();
+  });
   it('조회는 발송 기록을 소비하지 않음, 재시작 뒤 중복 방지', async () => {
     const { create } = setup();
     const first = create();

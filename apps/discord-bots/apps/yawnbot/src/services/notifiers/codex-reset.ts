@@ -187,11 +187,12 @@ export function startCodexResetNotifier(client: Client): void {
     console.log('[CodexReset] 자동 수집 비활성. /코덱스 조회 사용 가능');
     return;
   }
-  const configured = Number(process.env.YAWNBOT_CODEX_RESET_INTERVAL_MIN || 10);
-  const minutes = Number.isFinite(configured) ? Math.min(60, Math.max(5, configured)) : 10;
+  const configured = Number(process.env.YAWNBOT_CODEX_RESET_INTERVAL_MIN || 60);
+  const minutes = Number.isFinite(configured) ? Math.min(60, Math.max(5, configured)) : 60;
   const run = () => { void triggerCodexResetOnce(client).catch(error => console.warn('[CodexReset] 알림 실패:', error instanceof Error ? error.message : 'unknown')); };
   timer = setInterval(run, minutes * 60_000);
   timer.unref();
+  console.log(`[CodexReset] 자동 수집 활성 (${minutes}분 간격)`);
   run();
 }
 
