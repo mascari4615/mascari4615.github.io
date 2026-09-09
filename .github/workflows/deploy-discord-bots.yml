@@ -359,8 +359,19 @@ jobs:
           }
 
           if (-not $failed) {
+            $env:PLAYWRIGHT_BROWSERS_PATH = 'C:/ProgramData/YawnBot/playwright'
+            & node node_modules/playwright-core/cli.js install chromium --only-shell
+            if ($LASTEXITCODE -ne 0) { $failed = 'browser install failed' }
+          }
+
+          if (-not $failed) {
             & npm run build:yawnbot
             if ($LASTEXITCODE -ne 0) { $failed = 'build:yawnbot failed' }
+          }
+
+          if (-not $failed) {
+            & npm -w apps/yawnbot run smoke:codex-browser
+            if ($LASTEXITCODE -ne 0) { $failed = 'browser smoke failed' }
           }
 
           if ($failed) {

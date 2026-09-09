@@ -128,7 +128,8 @@ export function createBrowserResetSource(author: string, sessionFile = browserSe
     const state = readBrowserSession(sessionFile);
     const modified = fs.statSync(sessionFile).mtimeMs;
     const current = generation;
-    const browser = await chromium.launch({ channel: 'msedge', headless: true, chromiumSandbox: true, timeout: 20_000 });
+    const channel = process.env.YAWNBOT_CODEX_RESET_BROWSER === 'chromium' ? undefined : 'msedge';
+    const browser = await chromium.launch({ channel, headless: true, chromiumSandbox: true, timeout: 20_000 });
     activeBrowsers.add(browser);
     const deadline = setTimeout(() => { void browser.close(); }, 180_000);
     deadline.unref();

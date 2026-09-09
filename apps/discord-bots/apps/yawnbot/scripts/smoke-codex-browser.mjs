@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { chromium } from 'playwright-core';
 const require = createRequire(import.meta.url);
+require('../dist/src/load-env.js');
+const { chromium } = await import('playwright-core');
 const { readTimelineCards, discoverBrowserPosts, readBrowserPost } = require('../dist/src/services/sources/codex-reset-browser.js');
 const { ResetMonitor } = require('../dist/src/services/notifiers/codex-reset.js');
 const author = 'thsottiaux';
@@ -12,8 +13,9 @@ const card = (id, name = author, body = 'We have reset Codex usage.', pinned = f
   <div data-testid="User-Name"><a href="/${name}">${name}</a><a href="/${name}/status/${id}"><time datetime="${at}">now</time></a></div>
   ${body ? `<div data-testid="tweetText" lang="en">${body}</div>` : ''}</article>`;
 let browser;
-try { browser = await chromium.launch({ channel: 'msedge', headless: true, chromiumSandbox: true }); }
-catch { console.error('CANNOT-RUN: 설치된 Edge 필요'); process.exit(2); }
+const channel = process.env.YAWNBOT_CODEX_RESET_BROWSER === 'chromium' ? undefined : 'msedge';
+try { browser = await chromium.launch({ channel, headless: true, chromiumSandbox: true }); }
+catch (error) { console.error(`CANNOT-RUN: ${channel || 'chromium'} 실행 실패: ${error.message.split('\n')[0]}`); process.exit(2); }
 let passed = 0;
 try {
   const context = await browser.newContext();
@@ -54,5 +56,5 @@ try {
   const restarted = new ResetMonitor({ author, store, fetchPosts: async () => [] });
   await restarted.refresh(); await restarted.deliver(async signal => sent.push(signal.post.id));
   assert.deepEqual(sent, ['103', '105']); passed++;
-  console.log(`PASS: Edge 실제 DOM + 수집/판정/중복 방지 ${passed}건. X 네트워크/Discord 발송 없는 fixture 검사`);
+  console.log(`PASS: ${channel || 'chromium'} 실제 DOM + 수집/판정/중복 방지 ${passed}건. X 네트워크/Discord 발송 없는 fixture 검사`);
 } finally { await browser.close(); }
