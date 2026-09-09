@@ -122,6 +122,7 @@ assets/js/graph-view/
 # deploy git clean -fd 가 untracked 을 삭제하므로 ignored 라야 survive.
 # 글롭 = 새 notifier 가 같은 함정 반복 안 하게. TASK-YB-007 / YB-027.
 apps/discord-bots/apps/yawnbot/data/*-state.json
+apps/discord-bots/apps/yawnbot/data/codex-reset-state.json.tmp
 
 # 등급전 장부. 사람들의 점수와 패보 (change.arcade-online).
 # 여기 없으면 배포마다 git clean -fd 가 지워 모든 점수가 1500 으로 돌아간다.
@@ -235,3 +236,4 @@ apps/files/.upload-*.log
 
 # 개발 서버 로그. 레인마다 생기고 커밋할 것이 아니다
 dev.log
+apps/discord-bots/apps/yawnbot/data/codex-reset-browser/

@@ -37,6 +37,9 @@ YAWNBOT_NEWS_CHANNEL_ID=1490364315545636935
 # off 센티넬: none/off/-/0 = 폴링 비활성. 빈값/미설정은 전체(google,hn,gn) 폴백이라 끄기 아님 주의.
 YAWNBOT_NEWS_SOURCES=off
 
+# 초기화 공지 자동 수집. 노트북 전용 X 로그인 필요
+YAWNBOT_CODEX_RESET_ENABLED=1
+
 # ── 웹 결산 페이지 (TASK-YB-042) ──
 # 봇이 `/결산` 답에 붙이는 링크의 앞부분. 노트북 express(4615)를 named tunnel 이
 # 이 주소로 내보낸다. 비어 있으면 링크만 생략되고 카드는 그대로 뜬다.

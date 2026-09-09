@@ -93,6 +93,7 @@ import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifi
 import { getServerStatsRecorder } from './services/server-stats';
 import { startWeeklyWrapped, stopWeeklyWrapped } from './services/notifiers/weekly-wrapped';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
+import { startCodexResetNotifier, stopCodexResetNotifier } from './services/notifiers/codex-reset';
 import { startBrainResurface, stopBrainResurface } from './services/notifiers/brain-resurface';
 
 const client = new Client({
@@ -561,6 +562,7 @@ client.once('clientReady', async () => {
 
   startPresenceRotation(client);
   startUnityFreeNotifier(client);
+  startCodexResetNotifier(client);
   // TASK-YB-021: outbound heartbeat (push 모델, 자체 구현. 제3자 의존 0).
   // 봇이 memo orphan 브랜치에 시각 기록 → github.io Actions watcher 가 신선도
   // 감시. 인증 = 기존 MEMO_GITHUB_PAT(digest-webhook 과 동일). egress 단절은
@@ -794,6 +796,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopMemoSync();
   stopUnityFreeNotifier();
   stopNewsNotifier();
+  await stopCodexResetNotifier();
   stopWeeklyWrapped();
   stopBrainResurface();
   stopProactive();

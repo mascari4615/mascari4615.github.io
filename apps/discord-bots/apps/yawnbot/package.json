@@ -3,6 +3,9 @@
   "private": true,
   "main": "dist/src/main.js",
   "scripts": {
+    "codex:login": "node dist/cli/codex-reset-browser.js",
+    "codex:check": "node dist/cli/codex-reset-browser.js --check",
+    "smoke:codex-browser": "node scripts/smoke-codex-browser.mjs",
     "build": "npm run build:verifier && tsc -p tsconfig.json && npm run audit:counters && npm run check:notify",
     "test": "vitest run",
     "start": "node dist/src/main.js",
@@ -27,11 +30,11 @@
     "build:verifier": "node scripts/build-arcade-verifier.mjs"
   },
   "dependencies": {
-    "@karmo/arcade": "file:../../../../packages/arcade",
-    "@karmo/ai": "file:../../../../packages/ai",
     "@discord-bots/common": "*",
     "@discordjs/voice": "^0.19.2",
     "@google/generative-ai": "^0.21.0",
+    "@karmo/ai": "file:../../../../packages/ai",
+    "@karmo/arcade": "file:../../../../packages/arcade",
     "cheerio": "1.0.0-rc.12",
     "discord.js": "^14.26.0",
     "dotenv": "^16.6.1",
@@ -41,6 +44,7 @@
     "node-edge-tts": "^1.2.10",
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.7",
+    "playwright-core": "1.63.0",
     "youtube-dl-exec": "^3.1.4",
     "youtubei.js": "^17.0.1"
   },

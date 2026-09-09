@@ -76,6 +76,7 @@ import { handleGallery } from './gallery';
 import { handleProfile } from './profile';
 import { handleAtkupUnity } from './atkup';
 import { handleWrapped } from './wrapped';
+import { buildCodexResetCommand, handleCodexReset } from './codex-reset';
 import { CharacterService } from '../../services/character-service';
 import { buildArcade, handleArcade, arcadeAutocomplete } from './arcade';
 
@@ -148,6 +149,11 @@ async function characterSlugAutocomplete(ctx: BotContext, interaction: Autocompl
 }
 
 export const SLASH_COMMANDS: SlashCommand[] = [
+  {
+    name: '코덱스',
+    builder: buildCodexResetCommand,
+    run: async (_ctx, interaction) => handleCodexReset(interaction),
+  },
   {
     /* TASK-KL-264 D4. 놀자는 말을 꺼내는 데 드는 걸음을 넷에서 하나로. */
     name: '오락실',

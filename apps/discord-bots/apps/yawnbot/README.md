@@ -67,6 +67,7 @@ YouTube, TTS, 클립, 대기열은 **`/music`** 아래 **서브커맨드**로만
 |------|------|
 | `/yawn` `질문` | **필수** 질문 문자열. **선택** `api`: 기본(.env) / Google AI Studio / Vertex AI. 런타임에 호출 도메인 고름(각각에 맞는 키가 `.env`에 있어야 함). **선택** `model`: 모델 ID(예 `gemini-2.5-pro`); 비우면 `GEMINI_MODEL`, 패키지 기본. 구현: `@karmo/ai/node`의 `generateBlobTextFromEnvWithOptions`. 채널 **최근 메시지** 맥락(`YAWN_CONTEXT_MESSAGES`), 시스템 톤(`YAWN_SYSTEM_PROMPT`) |
 | `/character` | DM/채널별 활성 캐릭터 관리. `list`, `switch <slug>`, `info [slug]`, `reset`. [자세히](./docs/character-system.md) |
+| `/코덱스` | 최근 초기화 공지와 한국시간. `트윗`에 X 링크 입력 시 API 키 없이 원문 조회. 긴 글 일부만 반환되면 판정 보류 |
 | `/기억` | 활성 캐릭터의 메모리 관리. `확인`, `저장`, `수정 <내용>`, `핫로그`. [자세히](./docs/character-system.md) |
 | `/cursor-edit` | [관리자] 로컬 Cursor 에이전트 |
 | `/admin-reload` / `/admin-save` | [관리자] 데이터 리로드, 저장 |
@@ -139,6 +140,16 @@ Discord, Gemini, Cursor, 카카오 익스포트 키 목록은 [.env.template](./
 | `VOICE_DEBUG` | `1`이면 `@discordjs/voice` 네트워킹 디버그와 상태 전이 로그가 나옵니다. `4014`가 아닌 close는 라이브러리가 곧바로 `signalling`으로 돌리므로, 원인 파악 시 **`[voice] [NW] Discord 음성 WebSocket close code:`** 줄을 보면 됩니다. 민감 정보(세션, 키, IP)가 섞이므로 상시 켜두지 말 것. |
 
 ---
+
+## Codex 초기화 소식
+
+- `/코덱스`: 최근 초기화 공지와 한국시간. `/코덱스 트윗:<URL>`: 개별 링크 조회
+- prod에서 10분 간격 Edge 브라우저 수집, 기존 운영 알림 채널 사용
+- 노트북 YawnBot 폴더에서 `npm run codex:login` 실행 후 열린 Edge에서 X 로그인
+- `npm run codex:check`: 외부 알림 없이 실제 수집 검사. 수집 기록 위치는 변경하지 않음
+- 로그인 상태는 `data/codex-reset-browser/`에 저장. Git/백업 공유에 포함 금지
+- 로그인 필요/수집 중단은 운영 채널에 최대 6시간마다 1회 안내
+- 최초 로그인과 장기 자동 수집은 별도 운영 검증 필요
 
 ## 자주 쓰는 링크
 
