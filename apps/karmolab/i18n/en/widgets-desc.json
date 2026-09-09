@@ -125,6 +125,7 @@
   "widgets-desc.moon.desc": "Check today's moon phase",
   "widgets-desc.morse.desc": "Turns letters into Morse and reads it back. Korean Morse plus sound and light playback",
   "widgets-desc.my-ai.desc": "Subscriptions, environment, and connection status for the AI services I use. all in one place.",
+  "widgets-desc.mydash.desc": "Read your own private repository from your phone. Only you see it, after signing in",
   "widgets-desc.nettool.desc": "Counts where a CIDR starts and ends and how many hosts fit, and checks whether two ranges overlap. It looks up port numbers too.",
   "widgets-desc.news.desc": "Generate fake news headlines",
   "widgets-desc.numword.desc": "Reads numbers out in Korean and turns Korean number words back into digits. the wording used on contracts and receipts",

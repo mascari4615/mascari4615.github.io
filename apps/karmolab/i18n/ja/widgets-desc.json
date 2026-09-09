@@ -125,6 +125,7 @@
   "widgets-desc.moon.desc": "今日の月の位相を確認します",
   "widgets-desc.morse.desc": "文字をモールス信号にし、信号を文字に戻します。ハングルモールスと音・光の再生に対応",
   "widgets-desc.my-ai.desc": "利用中の AI のサブスク・環境・接続状態を一か所で確認。",
+  "widgets-desc.mydash.desc": "自分の private リポジトリをスマホから読みます。ログインした本人にだけ見えます",
   "widgets-desc.nettool.desc": "CIDRの範囲と収容ホスト数を数え、二つの範囲が重なるか確認します。ポート番号も調べられます。",
   "widgets-desc.news.desc": "偽ニュース見出しを作ります",
   "widgets-desc.numword.desc": "数字をハングルで読み、ハングルの数を数字に戻します。契約書・領収書の金額表記に",

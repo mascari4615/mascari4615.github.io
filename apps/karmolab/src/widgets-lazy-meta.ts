@@ -208,6 +208,23 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['memo-atlas']
   },
   {
+    /* 개인 대시보드 (1단계). 셸 하나 + 패널 여럿.
+     * 데이터는 private `memo` 저장소에 그대로 두고, **로그인한 브라우저가 GitHub 에서 직접**
+     * 읽음. 이 사이트는 그 데이터를 보관하지도 거치지도 않음.
+     * `noPage`: 상세 페이지 안 만듦. 남에게는 로그인하세요 한 장이라 SEO 가 뜻 없음.
+     * `hidden` 은 **안 쓴다**. 숨기면 셸의 `resolveVisibleTool` 이 걸러서 주인도 못 연다. */
+    id: 'mydash',
+    noPage: true,
+    get title() { return t('widgets.mydash.title', undefined, "내 대시보드"); },
+    category: 'app',
+    get desc() { return t('widgets-desc.mydash.desc', undefined, "내 private 저장소를 폰에서 본다. 로그인한 사람만 보인다"); },
+    layout: 'form',
+    icon: '<rect x="3" y="3" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+    /* ★ **순서가 규약이다.** 패널이 먼저 명부(`window.KarmoDash`)에 붙고, 셸이 마지막에
+       그 명부를 읽어 칩을 만든다. 패널을 더 붙일 때는 이 배열의 **셸 앞에** 넣는다. */
+    lazyScriptPaths: ['mydash/ai-usage', 'mydash/shell']
+  },
+  {
     id: 'activity',
     noPage: true,
     get title() { return t('widgets.activity.title', undefined, "활동 기록"); },
