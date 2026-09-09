@@ -1,0 +1,56 @@
+name: Deploy mydash Relay
+
+# 개인 대시보드(mydash) 의 GitHub 기기 흐름 릴레이 Worker 를 push 로 배포
+# deploy-files-worker.yml 과 같은 모양. 같은 저장소 Secret `CLOUDFLARE_API_TOKEN` 사용
+#
+# 이 Worker 에는 비밀 없음. GitHub App 기기 흐름은 client secret 미사용,
+# Client ID 와 허용 origin 은 wrangler.toml 의 [vars] 에 공개 값
+# 통과시키는 것은 기기 코드와 토큰 요청뿐. 저장소 데이터는 안 지남
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/karmolab/relay/github-device-relay.mjs'
+      - 'apps/karmolab/relay/wrangler.toml'
+      - '.github/workflows/deploy-mydash-relay.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-mydash-relay
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check token
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN 없음. 저장소 Secret 에 넣어야 Worker 배포 가능"
+            exit 1
+          fi
+
+      - name: Deploy worker
+        working-directory: apps/karmolab/relay
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4 deploy
+
+      # 배포 생존 확인. origin 없는 요청은 403 origin_not_allowed 가 정상
+      - name: Smoke
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://mydash-relay.mascari4615.com/device/code)
+          echo "no-origin -> $code"
+          [ "$code" = "403" ] || { echo "::error::릴레이 응답이 예상과 다름 ($code)"; exit 1; }

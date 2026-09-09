@@ -1,0 +1,13 @@
+name = "mydash-relay"
+main = "github-device-relay.mjs"
+compatibility_date = "2026-09-10"
+
+# 주소 고정용. 사이트 설정(data/mydash-config.json)이 배포 결과를 안 기다리게
+# custom_domain 이면 wrangler 가 DNS 레코드까지 생성 (files 워커와 같은 zone)
+routes = [{ pattern = "mydash-relay.mascari4615.com", custom_domain = true }]
+
+# 비밀값 없음. GitHub App 기기 흐름은 client secret 미사용
+# Client ID 는 공개 값. 사이트 origin 은 쉼표로 여럿 가능
+[vars]
+GITHUB_CLIENT_ID = "Iv23liwmOWcREeN7qrlw"
+ALLOWED_ORIGIN = "https://blog.mascari4615.com,https://mascari4615.github.io"
