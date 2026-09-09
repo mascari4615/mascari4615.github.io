@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2012,
+    "commits": 2014,
     "days": 12,
     "shown": 60
   },
@@ -10,6 +10,20 @@
     {
       "date": "2026-09-09",
       "entries": [
+        {
+          "sha": "6f197e2c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "extend C2 panels to tabs and dialogs"
+        },
+        {
+          "sha": "e0d50b0e",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "camera",
+          "text": "fade marked pillars while preserving orbit distance"
+        },
         {
           "sha": "841c4552",
           "type": "feat",
@@ -37,17 +51,10 @@
           "typeLabel": "고친 것",
           "scope": "camera",
           "text": "keep climbing view outside walls and add exploration course"
-        },
-        {
-          "sha": "61122a30",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "idle",
-          "text": "preserve wave movement and show dungeon stages"
         }
       ],
       "quiet": 0,
-      "more": 0
+      "more": 1
     },
     {
       "date": "2026-09-08",
@@ -499,17 +506,10 @@
           "typeLabel": "새로 생긴 것",
           "scope": "tooling",
           "text": "CoplayDev Unity-MCP 제거 — 공식 Unity CLI 통로로 단일화 (TASK-WM-412)"
-        },
-        {
-          "sha": "1aeaf107",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-413",
-          "text": "솥이 서기도 전에 젓고, 12초에 포기했다 — 둘 다 없앤다"
         }
       ],
       "quiet": 1,
-      "more": 11
+      "more": 12
     }
   ]
 }
