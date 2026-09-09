@@ -1,6 +1,6 @@
-name = "mydash-relay"
+﻿name = "mydash-relay"
 main = "github-device-relay.mjs"
-compatibility_date = "2026-09-10"
+compatibility_date = "2026-09-01"
 
 # 주소 고정용. 사이트 설정(data/mydash-config.json)이 배포 결과를 안 기다리게
 # custom_domain 이면 wrangler 가 DNS 레코드까지 생성 (files 워커와 같은 zone)
