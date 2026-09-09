@@ -146,6 +146,8 @@ Discord, Gemini, Cursor, 카카오 익스포트 키 목록은 [.env.template](./
 - `/코덱스`: 최근 초기화 공지와 한국시간. `/코덱스 트윗:<URL>`: 개별 링크 조회
 - prod에서 10분 간격 전용 headless 브라우저 수집, 기존 운영 알림 채널 사용
 - 노트북 YawnBot 폴더에서 `npm run codex:login` 실행 후 열린 Edge에서 X 로그인
+- 기존 Edge 로그인 재사용: `edge://inspect`의 Remote debugging 허용 후 `npm run codex:login:edge`. 연결 승인 요청이 뜨면 확인. X 인증 저장 뒤 원격 디버깅을 꺼도 수집 가능
+- 기존 Edge 연결은 X 도메인 쿠키만 저장. 확인용 빈 탭만 닫고 기존 탭 유지. 다른 컴퓨터의 로그인 상태는 복사하지 않음
 - `npm run codex:check`: 외부 알림 없이 실제 수집 검사. 수집 기록 위치는 변경하지 않음
 - 로그인 상태는 `data/codex-reset-browser/`에 저장. Git/백업 공유에 포함 금지
 - 로그인 필요/수집 중단은 운영 채널에 최대 6시간마다 1회 안내

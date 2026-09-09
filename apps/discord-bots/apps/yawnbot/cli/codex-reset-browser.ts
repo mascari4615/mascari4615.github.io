@@ -6,6 +6,7 @@ import { chromium } from 'playwright-core';
 import { browserSessionPath, createBrowserResetSource, ResetBrowserError, saveBrowserSession } from '../src/services/sources/codex-reset-browser';
 import { classifyResetPost, DEFAULT_RESET_AUTHOR } from '../src/services/sources/codex-reset';
 import { buildResetEmbed } from '../src/services/notifiers/codex-reset';
+import { readExistingEdgeSession } from '../src/services/sources/codex-reset-edge';
 
 async function main(): Promise<void> {
   const author = process.env.YAWNBOT_CODEX_RESET_AUTHOR?.trim() || DEFAULT_RESET_AUTHOR;
@@ -22,6 +23,12 @@ async function main(): Promise<void> {
     const sid = execFileSync('whoami.exe', ['/user', '/fo', 'csv', '/nh'], { encoding: 'utf8', windowsHide: true }).match(/S-1-5-[\d-]+/)?.[0];
     if (!sid) throw new Error('현재 Windows 계정 확인 실패');
     execFileSync('icacls.exe', [path.dirname(file), '/inheritance:r', '/grant:r', `*${sid}:(OI)(CI)F`, '*S-1-5-18:(OI)(CI)F', '*S-1-5-32-544:(OI)(CI)F'], { windowsHide: true, stdio: 'ignore' });
+  }
+  if (process.argv.includes('--from-edge')) {
+    console.log('기존 Edge에 연결합니다. 브라우저에 연결 허용 요청이 뜨면 확인하세요.');
+    saveBrowserSession(await readExistingEdgeSession(), file);
+    console.log('기존 Edge의 X 로그인 저장됨. 창과 탭은 유지. 원격 디버깅은 이제 꺼도 됩니다. npm run codex:check로 실제 수집을 확인하세요.');
+    return;
   }
   const browser = await chromium.launch({ channel: 'msedge', headless: false, chromiumSandbox: true });
   try {

@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 const require = createRequire(import.meta.url);
 require('../dist/src/load-env.js');
 const { chromium } = await import('playwright-core');
 const { readTimelineCards, discoverBrowserPosts, readBrowserPost } = require('../dist/src/services/sources/codex-reset-browser.js');
 const { ResetMonitor } = require('../dist/src/services/notifiers/codex-reset.js');
+const { readExistingEdgeSession, parseEdgeDebugEndpoint } = require('../dist/src/services/sources/codex-reset-edge.js');
 const author = 'thsottiaux';
 const at = new Date().toISOString();
 const url = id => `https://x.com/${author}/status/${id}`;
@@ -56,5 +60,35 @@ try {
   const restarted = new ResetMonitor({ author, store, fetchPosts: async () => [] });
   await restarted.refresh(); await restarted.deliver(async signal => sent.push(signal.post.id));
   assert.deepEqual(sent, ['103', '105']); passed++;
-  console.log(`PASS: ${channel || 'chromium'} 실제 DOM + 수집/판정/중복 방지 ${passed}건. X 네트워크/Discord 발송 없는 fixture 검사`);
 } finally { await browser.close(); }
+
+const tempRoot = path.resolve(os.tmpdir());
+const profile = fs.mkdtempSync(path.join(tempRoot, 'yawnbot-edge-fixture-'));
+let existing;
+try {
+  existing = await chromium.launchPersistentContext(profile, {
+    channel, headless: true, chromiumSandbox: true, args: ['--remote-debugging-port=0'],
+  });
+  await existing.route('**/*', route => route.abort());
+  await existing.addCookies([
+    { name: 'auth_token', value: 'fixture-only', domain: '.x.com', path: '/', httpOnly: true, secure: true },
+    { name: 'private_other_site', value: 'must-not-export', domain: 'example.com', path: '/' },
+  ]);
+  const portFile = path.join(profile, 'DevToolsActivePort');
+  const session = await readExistingEdgeSession(portFile);
+  assert.deepEqual(session.cookies.map(cookie => cookie.name), ['auth_token']);
+  assert.deepEqual(session.origins, []); passed++;
+  assert.equal(existing.pages().length, 1);
+  assert.equal(await existing.pages()[0].evaluate(() => location.href), 'about:blank');
+  assert.equal((await existing.cookies('https://example.com')).length, 1); passed++;
+  await existing.clearCookies({ name: 'auth_token' });
+  await assert.rejects(readExistingEdgeSession(portFile), /먼저 X에 로그인/); passed++;
+  assert.throws(() => parseEdgeDebugEndpoint('9222\nhttps://example.com'), /주소 확인 실패/);
+  assert.throws(() => parseEdgeDebugEndpoint('65536\n/devtools/browser/abc'), /주소 확인 실패/); passed++;
+} finally {
+  await existing?.close();
+  assert.equal(path.dirname(path.resolve(profile)), tempRoot);
+  assert.ok(path.basename(profile).startsWith('yawnbot-edge-fixture-'));
+  fs.rmSync(profile, { recursive: true, force: true });
+}
+console.log(`PASS: ${channel || 'chromium'} 실제 DOM + 수집/판정/중복 방지/기존 Edge 연결 ${passed}건. X 네트워크/Discord 발송 없는 fixture 검사`);

@@ -4,6 +4,7 @@
   "main": "dist/src/main.js",
   "scripts": {
     "codex:login": "node dist/cli/codex-reset-browser.js",
+    "codex:login:edge": "node dist/cli/codex-reset-browser.js --from-edge",
     "codex:check": "node dist/cli/codex-reset-browser.js --check",
     "smoke:codex-browser": "node scripts/smoke-codex-browser.mjs",
     "build": "npm run build:verifier && tsc -p tsconfig.json && npm run audit:counters && npm run check:notify",
