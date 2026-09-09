@@ -99,7 +99,7 @@ function defaultSources() {
   if (!memo) return [];
   return [normalizeSource({
     root: memo, name: 'memo', exclude: SOURCE_EXCLUDE, laneAlias: MEMO_LANE_ALIAS,
-    xBookmarks: 'brain/x-bookmarks.json',
+    xBookmarks: 'data/bookmarks/x-bookmarks.json',
   }, KARMOLAB)];
 }
 
@@ -266,9 +266,22 @@ function collectBookmarks(file) {
   return docs;
 }
 
-/** 소스마다 제 북마크 파일을 붓는다. 자리는 소스 정의가 안다. */
+/**
+ * 소스마다 제 북마크 파일을 붓는 자리, 위치는 소스 정의 소관.
+ *
+ * xBookmarks 선언인데 파일 부재 시 무음 0건 금지, optional 소스 예외 외엔 즉시 중단.
+ * 무음 0건은 "북마크 없음"과 "경로 오류"를 구분 불가로 만드는 원인,
+ * 2026-09 굽기 경로 소실 후 0건 사고 전례.
+ */
 function collectBookmarksAll() {
-  return SOURCES.flatMap((src) => (src.xBookmarks ? collectBookmarks(path.join(src.root, src.xBookmarks)) : []));
+  return SOURCES.flatMap((src) => {
+    if (!src.xBookmarks) return [];
+    const file = path.join(src.root, src.xBookmarks);
+    if (!fs.existsSync(file) && !src.optional) {
+      throw new Error(`북마크 소스 파일이 없다: ${file} (소스 ${src.name})`);
+    }
+    return collectBookmarks(file);
+  });
 }
 
 /**

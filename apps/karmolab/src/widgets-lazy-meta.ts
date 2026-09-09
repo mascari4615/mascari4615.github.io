@@ -222,7 +222,7 @@ window.KARMOLAB_LAZY_META = [
     icon: '<rect x="3" y="3" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/>',
     /* ★ **순서가 규약이다.** 패널이 먼저 명부(`window.KarmoDash`)에 붙고, 셸이 마지막에
        그 명부를 읽어 칩을 만든다. 패널을 더 붙일 때는 이 배열의 **셸 앞에** 넣는다. */
-    lazyScriptPaths: ['mydash/ai-usage', 'mydash/shell']
+    lazyScriptPaths: ['mydash/ai-usage', 'mydash/bookmarks', 'mydash/shell']
   },
   {
     id: 'activity',
