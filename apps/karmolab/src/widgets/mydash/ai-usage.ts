@@ -72,7 +72,9 @@ import type { DashPanelCtx } from './kit';
       '.au-num b{display:block;font-size:1.25rem;line-height:1.3;font-variant-numeric:tabular-nums}',
       '.au-num span{font-size:var(--font-size-3xs);color:var(--text-tertiary)}',
       '.au-chips{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}',
-      '.au-chips button{flex:0 0 auto;padding:5px 11px;font:inherit;font-size:var(--font-size-2xs);cursor:pointer;',
+      /* 손가락 최소 44px. 높이는 min-height 로 벌리고 세로 padding 은 줄여 글자 위치 유지. */
+      '.au-chips button{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;',
+      'min-height:44px;min-width:44px;padding:0 11px;font:inherit;font-size:var(--font-size-2xs);cursor:pointer;',
       'background:transparent;color:var(--text-secondary);border:1px solid currentColor;border-radius:var(--radius-pill)}',
       '.au-chips button.on{color:var(--text-primary);background:var(--bg-hover)}',
       '.au-chart{width:100%;height:150px;display:block;border-radius:var(--radius-lg);background:var(--bg-secondary);touch-action:pan-y}',

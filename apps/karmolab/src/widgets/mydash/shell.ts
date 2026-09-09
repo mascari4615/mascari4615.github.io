@@ -96,9 +96,12 @@ declare const Toolbox:
   type FailKind = 'auth' | 'ratelimit' | 'notfound' | 'config' | 'net';
   class DashError extends Error {
     kind: FailKind;
-    constructor(kind: FailKind, message: string) {
+    /** 429 를 준 쪽이 알려 준 대기 초. 없으면 부르는 쪽이 알아서 정함. */
+    retryAfterSec: number | null;
+    constructor(kind: FailKind, message: string, retryAfterSec: number | null = null) {
       super(message);
       this.kind = kind;
+      this.retryAfterSec = retryAfterSec;
     }
   }
 
@@ -153,6 +156,13 @@ declare const Toolbox:
     }
     /* 401 만 인증 실패로 친다. 5xx 와 그 밖은 그때 못 닿은 것이라 토큰을 버릴 이유가 아니다. */
     if (res.status === 401) throw new DashError('auth', '릴레이가 401 을 줬다');
+    /* 429 는 못 닿은 것이 아니라 잠깐 기다리라는 뜻. net 으로 던지면 폴링이 로그인 화면으로
+       떨어져 흐름이 끊긴다. ratelimit 으로 갈라 부르는 쪽이 기다렸다 다시 오게 함. */
+    if (res.status === 429) {
+      const raw = Number(res.headers.get('retry-after'));
+      const sec = Number.isFinite(raw) && raw > 0 ? Math.ceil(raw) : null;
+      throw new DashError('ratelimit', '릴레이 요청 한도. 잠시 뒤 다시', sec);
+    }
     if (!res.ok) throw new DashError('net', '릴레이가 ' + res.status + ' 를 줬다');
     let data: unknown;
     try {
@@ -509,6 +519,15 @@ declare const Toolbox:
         try {
           reply = await relayPost<TokenReply>(cfg, '/device/token', { device_code: start.device_code });
         } catch (e) {
+          const err = e as DashError;
+          /* 릴레이 한도는 실패가 아니라 진행 중. slow_down 과 같은 자리에서 처리.
+             흐름을 안 끊고 retry-after (없으면 지금 간격의 2배) 만큼 쉬었다 다시 */
+          if (err && err.kind === 'ratelimit') {
+            const backoff = err.retryAfterSec ? err.retryAfterSec * 1000 : wait * 2;
+            pollEl.textContent = '요청이 몰려 잠시 쉬는 중...';
+            window.setTimeout(() => void tick(), backoff);
+            return;
+          }
           showLoggedOut(cfg, (e as Error).message);
           return;
         }

@@ -27,16 +27,26 @@ const DEVICE_CODE_URL = 'https://github.com/login/device/code';
 const TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GRANT_DEVICE = 'urn:ietf:params:oauth:grant-type:device_code';
 
-/* 속도 제한. IP 당 분당 20회, isolate 메모리 Map. 정확한 전역 제한이 목적이 아니라
-   폭주 완화가 목적이라 이 정도로 충분함. isolate 재시작되면 카운트도 같이 비워짐. */
-const RATE_LIMIT_MAX = 20;
+/* 속도 제한. IP 당 분당 60회, isolate 메모리 Map. 정확한 전역 제한이 목적이 아니라
+   폭주 완화가 목적이라 이 정도로 충분함. isolate 재시작되면 카운트도 같이 비워짐.
+   60 인 이유: 로그인 한 번이 device/code 1회 + 5초 폴링 12회 = 약 13회. 20 이면 같은
+   NAT 뒤 기기 둘만 돼도 넘음. 실사용의 4배를 남겨 둠. */
+const RATE_LIMIT_MAX = 60;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const rateLimitHits = new Map();
+
+/* 창 지난 IP 항목 제거. 안 지우면 Map 이 단조 증가해 isolate 가 살아 있는 동안 메모리를 먹음. */
+function sweepRateLimit(windowStart) {
+  for (const [key, times] of rateLimitHits) {
+    if (!times.length || times[times.length - 1] <= windowStart) rateLimitHits.delete(key);
+  }
+}
 
 function checkRateLimit(request) {
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   const now = Date.now();
   const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  sweepRateLimit(windowStart);
   const hits = (rateLimitHits.get(ip) || []).filter((t) => t > windowStart);
   if (hits.length >= RATE_LIMIT_MAX) {
     rateLimitHits.set(ip, hits);
@@ -59,6 +69,8 @@ function corsHeaders(request, env) {
     'access-control-allow-origin': ok ? origin : 'null',
     'access-control-allow-methods': 'POST, OPTIONS',
     'access-control-allow-headers': 'content-type, accept',
+    /* 429 를 받은 브라우저가 retry-after 를 읽어야 백오프를 계산함. 노출 안 하면 못 봄. */
+    'access-control-expose-headers': 'retry-after',
     'access-control-max-age': '86400',
     vary: 'Origin',
   };
