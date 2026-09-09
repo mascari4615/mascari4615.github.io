@@ -1,4 +1,10 @@
 {
+  "arcade.lobby.play": "Play game",
+  "arcade.lobby.change": "Change game",
+  "arcade.lobby.choose": "What shall we play?",
+  "arcade.lobby.close": "Close",
+  "arcade.lobby.search": "Search games",
+  "arcade.lobby.empty": "No matching games.",
   "arcade.tab": "Arcade",
   "arcade.mdd": "The experiment is ready, assistant. Take a seat.",
   "arcade.label.name": "Name",

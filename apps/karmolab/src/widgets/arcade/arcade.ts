@@ -21,6 +21,8 @@
  * (번개 대결에서 겪었다). 판정은 한 곳에서만.
  */
 import arcadeCss from './arcade.css';
+import characterLobbyCss from './character-lobby.css';
+import { mountCharacterLobby } from './character-lobby';
 import { t, loadNamespace } from '../../lib/i18n';
 import { CARDS, cardById } from './catalog-meta.generated';
 import { SETUPS, optsFor, chooseOpt } from './setups';
@@ -136,7 +138,7 @@ interface Session {
     if (document.getElementById('ac-style')) return;
     const el = document.createElement('style');
     el.id = 'ac-style';
-    el.textContent = arcadeCss;
+    el.textContent = arcadeCss + characterLobbyCss;
     document.head.appendChild(el);
   }
 
@@ -162,9 +164,7 @@ interface Session {
     container.classList.add('ac-root');
     if (typeof Mdd !== 'undefined') Mdd?.linePreset?.('tool_run', { msg: t('arcade.mdd') });
 
-    /* 로비 구성 (사용자 결정 2026-09-08).
-       왼쪽 캐릭터(그림은 점선 자리) + 한마디, 오른쪽 게임 배너. 배너는 스팀 급 통과 게임만.
-       추천(오늘의 세 판, 캐릭터 추천, 이건 어때, 상황 묶음, 대회, 찾기)은 코드째 뺐다. */
+    /* 캐릭터 로비. 선택 게임 하나와 별도 전체 목록, 통과한 게임 명부 사용 */
     container.innerHTML =
       '<div id="acLobby">' +
       /* 홈 전체. 게임을 집으면(#acDetail) 통째로 접힌다. */
@@ -549,22 +549,8 @@ interface Session {
       });
     };
 
-    /* 게임 배너. 통과한 게임만 `CARDS` 에 있다(`catalog.ts` 의 hidden). 이름, 한 줄, 인원과 길이.
-       `data-obj` 는 화면 검사와 `wireCards` 가 보는 이름이라 그대로 둔다. */
-    const bannerOf = (g: (typeof CARDS)[number]): string =>
-      '<button type="button" class="ac-banner" data-obj="' + g.id + '">' +
-      '<b>' + esc(t('arcade.game.' + g.id + '.name')) + '</b>' +
-      '<span>' + esc(t('arcade.game.' + g.id + '.desc')) + '</span>' +
-      '<small>' + esc(g.seats[0] === g.seats[1]
-        ? t('arcade.seats.exact', { n: String(g.seats[0]) })
-        : t('arcade.seats.range', { min: String(g.seats[0]), max: String(g.seats[1]) })) +
-      ', ' + esc(t('arcade.len.' + lengthOf(g.id))) + '</small>' +
-      '</button>';
-
-    const paintGames = (): void => {
-      $<HTMLElement>('#acGames').innerHTML = CARDS.map(bannerOf).join('');
-      wireCards();
-    };
+    const characterLobby = mountCharacterLobby($<HTMLElement>('#acShelfAll'), CARDS, openDetail, gone.signal);
+    const paintGames = (): void => characterLobby.refresh();
 
     paintGames();
     void paintOpen();

@@ -1,4 +1,10 @@
 {
+  "arcade.lobby.play": "게임 시작",
+  "arcade.lobby.change": "게임 바꾸기",
+  "arcade.lobby.choose": "어떤 게임 할까?",
+  "arcade.lobby.close": "닫기",
+  "arcade.lobby.search": "게임 검색",
+  "arcade.lobby.empty": "찾는 게임이 없어요.",
   "arcade.tab": "오락실",
   "arcade.mdd": "실험 준비됐어요, 조수님. 자리에 앉으세요.",
   "arcade.label.name": "이름",

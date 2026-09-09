@@ -1,0 +1,51 @@
+.ac-character-lobby{--ac-home-text:#eee9e3;--ac-home-muted:#d6c4cc;--ac-home-gold:#d8a4b8;position:relative;isolation:isolate;display:block;min-height:640px;height:calc(100svh - 100px);padding:32px 4%;overflow:hidden;background:#191522 url('/apps/karmolab/img/arcade/lobby-background.png') center/cover;font-family:system-ui,sans-serif;color:#eee9e3}
+.ac-character-lobby:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#14132210 20%,#14132230 55%,#141322a0),linear-gradient(0deg,#10121fd9,transparent 40%);z-index:-1;pointer-events:none}
+.ac-character-lobby .ac-homechar{position:absolute;inset:5% 42% 0 -7%;min-height:0;pointer-events:none;z-index:-1}
+.ac-character-lobby .ac-homebody{position:absolute;inset:0;border:0;border-radius:0;background:url('/apps/karmolab/img/arcade/lobby-character.png') center bottom/contain no-repeat;filter:brightness(.82)}
+.ac-character-lobby .ac-homesay{left:16%;top:auto;bottom:9%;padding:0;background:none;color:#f2dfd4;font-size:25px;text-shadow:0 2px 12px #120919;width:auto;max-width:none}
+.ac-character-lobby .ac-homename{display:none}
+.ac-character-lobby .ac-hometitle{position:absolute;left:5%;top:30px;font-size:31px;letter-spacing:3px;margin:0;text-shadow:0 2px 12px #17101c}
+.ac-character-lobby .ac-homeright{width:47%;margin-left:auto;gap:12px;height:100%;justify-content:center}
+.ac-character-lobby .ac-hometop{position:absolute;right:4%;top:27px;align-items:center}
+.ac-character-lobby .ac-namechip{font-size:11px}
+.ac-character-lobby .ac-namechip input{border-color:#baa0b066;color:#eee3e9;background:#17121f99}
+.ac-character-lobby #acGames{max-width:none;display:block}
+.ac-feature{position:relative;height:clamp(245px,36svh,440px);background:#35303c;overflow:hidden;clip-path:polygon(4% 0,100% 0,100% 95%,96% 100%,0 100%,0 5%)}
+.ac-feature-art,.ac-feature-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ac-feature:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#131421ef,transparent 80%);pointer-events:none}
+.ac-feature-copy{position:absolute;left:26px;right:25px;bottom:25px;z-index:1}
+.ac-feature-copy small{font:10px monospace;letter-spacing:4px;color:#e0b9a6}
+.ac-feature-copy h2{font-size:42px;line-height:1.2;letter-spacing:-1px;margin:8px 0 12px;color:#f2e9e0}
+.ac-feature-copy p{font-size:12px;color:#ddced3;margin:0}
+.ac-lobby-actions{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:10px}
+.ac-lobby-actions button{border:0;border-radius:0;padding:19px 20px;min-height:76px;font:700 19px system-ui;cursor:pointer;text-align:left;white-space:nowrap}
+.ac-lobby-actions .ac-enter{background:#eee9df;color:#292634;display:flex;justify-content:space-between;align-items:center;clip-path:polygon(0 0,100% 0,95% 100%,0 100%)}
+.ac-lobby-actions .ac-enter b{font-size:28px;font-weight:400}
+.ac-lobby-actions .ac-library-open{background:#30303de8;color:#e8dce6;border:1px solid #b8a5b550;font-size:16px}
+.ac-character-lobby button:focus-visible,.ac-library button:focus-visible{outline:3px solid #8cd6d4;outline-offset:3px}
+.ac-character-lobby .ac-foot{margin-top:4px;opacity:.85}
+.ac-character-lobby #acOpen{max-height:110px;overflow:auto}
+.ac-character-lobby #acRoom{background:#211927db;color:#eee2e4}
+.ac-cover-fallback{height:100%;display:grid;place-items:center;background:linear-gradient(145deg,#756079,#27384a);font-size:72px}
+.ac-cover-fallback svg{width:45%;height:45%;max-height:180px}
+.ac-library{box-sizing:border-box;margin:auto;color:#e9e1ea;background:#191925;border:1px solid #796475;padding:28px;width:min(1200px,94vw);max-width:94vw;max-height:90svh;box-shadow:0 25px 100px #0008}
+.ac-library::backdrop{background:#0c0b19db;backdrop-filter:blur(8px)}
+.ac-library-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
+.ac-library-head h2{font-size:27px;margin:0;color:#eee2e9}
+.ac-library-close{padding:9px 15px;background:none;color:#d8c1d0;border:1px solid #8b7387;cursor:pointer}
+.ac-library .ac-library-search{box-sizing:border-box;width:100%;padding:12px 15px;margin-bottom:24px;border:1px solid #655268;background:#ffffff08;color:#eee3ea;font:inherit}
+.ac-library-covers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px 16px}
+.ac-game-cover{position:relative;aspect-ratio:2/2.7;overflow:hidden;background:#30293b;color:#f3e8e4;border:0;padding:0;cursor:pointer;text-align:left;transition:transform .15s}
+.ac-game-cover:hover{transform:translateY(-4px)}
+.ac-game-cover[aria-pressed=true]{outline:2px solid #a1d6d2;outline-offset:2px}
+.ac-game-cover img{width:100%;height:100%;object-fit:cover}
+.ac-game-cover:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#141321 5%,transparent 85%)}
+.ac-game-cover>span{position:absolute;left:15px;right:12px;bottom:18px;z-index:1}
+.ac-game-cover small{display:block;font:8px monospace;letter-spacing:2px;color:#ddbcbd}
+.ac-game-cover b{display:block;font-size:22px;margin-top:7px;line-height:1.2}
+.ac-library-empty{padding:40px;text-align:center}
+@media(max-width:1000px){.ac-character-lobby{min-height:560px;padding:25px 3%}.ac-character-lobby .ac-homeright{width:48%}.ac-lobby-actions button{padding:14px;font-size:17px}.ac-feature-copy h2{font-size:34px}.ac-library-covers{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:680px){.ac-character-lobby{height:auto;min-height:850px;padding:20px}.ac-character-lobby .ac-homechar{inset:60px 5% auto -15%;height:420px}.ac-character-lobby .ac-homesay{font-size:21px;bottom:10%}.ac-character-lobby .ac-hometitle{top:25px;left:22px;font-size:24px}.ac-character-lobby .ac-hometop{top:24px;right:20px}.ac-character-lobby .ac-homeright{width:100%;padding-top:400px;height:auto}.ac-feature{height:245px}.ac-character-lobby .ac-foot{margin-top:12px}.ac-library{padding:18px}.ac-library-covers{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}.ac-game-cover b{font-size:22px}}
+.ac-lobby-music{background:#211a28aa;color:#efdce5;border:1px solid #b895a866;padding:7px 12px;cursor:pointer;font:11px monospace}
+.ac-character-lobby{height:var(--ac-lobby-height,640px);min-height:480px}.ac-character-lobby .ac-homechar{height:95%;align-self:auto}.ac-character-lobby .ac-feature{height:clamp(200px,calc(var(--ac-lobby-height,640px)*.5),440px)}
+@media(max-width:680px){.ac-character-lobby{height:auto;min-height:850px}.ac-character-lobby .ac-homechar{height:420px}.ac-character-lobby .ac-homesay{display:none}.ac-character-lobby .ac-feature{height:245px}}

@@ -1,4 +1,10 @@
 {
+  "arcade.lobby.play": "ゲーム開始",
+  "arcade.lobby.change": "ゲームを変更",
+  "arcade.lobby.choose": "何して遊ぶ？",
+  "arcade.lobby.close": "閉じる",
+  "arcade.lobby.search": "ゲーム検索",
+  "arcade.lobby.empty": "ゲームが見つかりません。",
   "arcade.tab": "ゲームコーナー",
   "arcade.mdd": "実験の準備できました、助手さん。席についてください。",
   "arcade.label.name": "名前",

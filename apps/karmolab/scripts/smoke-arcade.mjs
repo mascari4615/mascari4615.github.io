@@ -103,6 +103,12 @@ if (!cantRun) {
 }
 
 let ids = [];
+async function chooseGame(id) {
+  await page.click('.ac-library-open');
+  await page.fill('.ac-library-search', '');
+  await page.click(`.ac-game-cover[data-game="${id}"]`);
+  await page.click(`[data-obj="${id}"]`);
+}
 if (!cantRun) {
   console.log('[arcade-ui] 로비');
   /* 로비 게임 배너(`data-obj`). 추천 기능 재등장 검사 */
@@ -118,10 +124,12 @@ if (!cantRun) {
    * 깊은 검사(시계, 판정)는 아래에서 두 게임만 본다. 여기서는 뜨고, 자리가 차고, 뭔가 그려졌나.
    * 혼자, 같이 두 길도 여기서 같이 본다. 집은 화면마다 두 단추가 있어야 한다. */
   console.log('[arcade-ui] 모든 게임. 열어 보기');
-  ids = await page.$$eval('[data-obj]', (bs) => bs.map((b) => b.dataset.obj));
+  await page.click('.ac-library-open');
+  ids = await page.$$eval('.ac-game-cover', (bs) => bs.map((b) => b.dataset.game));
+  await page.click('.ac-library-close');
   const noHost = [];
   for (const id of ids) {
-    await page.click(`[data-obj="${id}"]`);
+    await chooseGame(id);
     await page.waitForSelector(`[data-solo="${id}"]`, { timeout: WAIT });
     if ((await page.locator(`[data-host="${id}"]`).count()) !== 1) noHost.push(id);
     await page.click(`[data-solo="${id}"]`);
@@ -183,7 +191,7 @@ if (!cantRun) {
   if (!hasReflex) console.log('[arcade-ui] 반응 측정. 로비에 없어 건너뜀 (통과 아님)');
   if (hasReflex) {
   console.log('[arcade-ui] 반응 측정. 혼자');
-  await page.click('[data-obj="reflex"]');
+  await chooseGame('reflex');
   await page.click('[data-solo="reflex"]');
   await page.waitForSelector('.ac-choice', { timeout: WAIT });
   const seats = await page.locator('.ac-seat').allTextContents();
@@ -227,8 +235,8 @@ if (!cantRun) {
    */
   console.log('[arcade-ui] 오목. 입체');
   if (hasReflex) await quitRoom(page);
-  await page.waitForSelector('[data-obj="gomoku"]', { timeout: WAIT });
-  await page.click('[data-obj="gomoku"]');
+  await page.waitForSelector('.ac-library-open', { timeout: WAIT });
+  await chooseGame('gomoku');
   await page.click('[data-solo="gomoku"]');
   /* 입체 조각은 누른 뒤에 받아 온다. 붙는 데 몇 초가 걸리므로 시간을 재지 말고 기다린다 */
   let gl = true;
@@ -254,7 +262,7 @@ if (!cantRun) {
   await quitRoom(page);
   /* 사람이 2D 를 고른 것과 같은 자리에 적는다. 껍데기가 읽는 곳이 여기 하나다 */
   await page.evaluate(() => localStorage.setItem('karmolab.arcade.dim', '2d'));
-  await page.click('[data-obj="gomoku"]');
+  await chooseGame('gomoku');
   await page.click('[data-solo="gomoku"]');
   await page.waitForSelector('.ac-cell', { timeout: WAIT });
   /* 판 크기는 사람이 고름(9, 15, 19). 여기 수를 박으면 고르는 자리를 늘릴 때마다 빨개짐
