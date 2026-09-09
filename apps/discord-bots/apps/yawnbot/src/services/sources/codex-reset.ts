@@ -112,9 +112,12 @@ export function classifyResetPost(post: ResetPost): ResetSignal | null {
   if (!relevant) return null;
   const both = banked && /\b(?:double reset|not only|also.*(?:full|global) reset|full reset.*also)\b/i.test(text);
   const future = /\b(?:will|going to|plan to)\b.{0,100}\b(?:reset|credit)\b|\b(?:lands?|landing)\b/i.test(text);
-  const completed = /\b(?:have|has|just|now|already)\s+(?:been\s+)?reset\b|\breset\s+(?:usage|limits|quota)\b|\ball reset for everyone\b|\breset (?:has been|is) (?:propagated|applied|complete)\b/i.test(text);
-  const resetClauses = text.split(/[.!?\n]+/).filter(s => /\breset\b/i.test(s)).join(' ');
-  const speculative = /\b(?:maybe|might|could|should|hope|wish|please|if)\b|\?/i.test(resetClauses) || /\b(?:did|have|will|can)\s+(?:you|we)\b.{0,50}\breset\b[^.!]*\?/i.test(text);
+  const resetClauses = text.split(/[.!?\n]+/).filter(s => /\breset\b/i.test(s));
+  // 과거 일을 회고한 문장의 reset을 새 완료 공지로 보내지 않음. 별도 현재 공지 문장은 유지.
+  const retrospective = /\b(?:remember(?:ed)?|recall(?:ed)?|forgot(?:ten)?|yesterday|previously|back then|in the middle|last (?:week|month|year)|\d+ (?:days?|weeks?|months?) ago)\b/i;
+  const completed = resetClauses.some(clause => !retrospective.test(clause)
+    && /\b(?:have|has|just|now|already)\s+(?:been\s+)?reset\b|\breset\s+(?:usage|limits|quota)\b|\ball reset for everyone\b|\breset (?:has been|is) (?:propagated|applied|complete)\b/i.test(clause));
+  const speculative = /\b(?:maybe|might|could|should|hope|wish|please|if)\b|\?/i.test(resetClauses.join(' ')) || /\b(?:did|have|will|can)\s+(?:you|we)\b.{0,50}\breset\b[^.!]*\?/i.test(text);
   const status = post.truncated || speculative ? 'uncertain' : future ? 'scheduled' : completed ? 'completed' : 'uncertain';
   return { post, kind: both ? 'both' : banked ? 'banked' : 'reset', status, timing: status === 'scheduled' ? inferResetTiming(post) : null };
 }

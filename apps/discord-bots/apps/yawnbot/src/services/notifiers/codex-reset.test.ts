@@ -92,6 +92,17 @@ describe('수집과 알림 경로', () => {
     const changed = new ResetMonitor({ author: 'different', store, fetchPosts: async () => [] });
     expect(changed.snapshot().signals).toEqual([]);
   });
+  it('저장된 과거 회고의 이전 완료 판정도 갱신해 자동 발송 방지', async () => {
+    const { store, create, fetchPosts } = setup();
+    const signal = { ...classifyResetPost(post('1', 'Last week we reset usage.'))!, status: 'completed' as const };
+    store.save({ author: 'thsottiaux', seen: ['1'], sent: [], signals: [signal], checkedAt: null });
+    fetchPosts.mockResolvedValueOnce([]);
+    const monitor = create();
+    await monitor.refresh();
+    expect(monitor.snapshot().signals[0].status).toBe('uncertain');
+    expect(await monitor.deliver(vi.fn())).toBe(0);
+    expect(store.load().seen).toEqual(['1']);
+  });
   it('수집 오류 알림은 재시작 뒤에도 6시간 제한', async () => {
     const { create } = setup();
     const send = vi.fn().mockResolvedValue(undefined);

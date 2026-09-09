@@ -14,6 +14,12 @@ describe('초기화 공지 분류', () => {
     ['We might reset the Codex quota tomorrow.', 'reset', 'uncertain'],
     ['Did you reset Codex usage?', 'reset', 'uncertain'],
     ['Please reset Codex usage for us.', 'reset', 'uncertain'],
+    ['You forgot the part where I reset usage twice in the middle', 'reset', 'uncertain'],
+    ['We reset usage last week.', 'reset', 'uncertain'],
+    ['Last month we reset Codex limits.', 'reset', 'uncertain'],
+    ['We reset usage yesterday. We have just reset usage again.', 'reset', 'completed'],
+    ['We reset usage last week. We will reset usage in 2 hours.', 'reset', 'scheduled'],
+    ['We have reset usage twice today.', 'reset', 'completed'],
   ])('%s', (text, kind, status) => {
     expect(classifyResetPost(post(text))).toMatchObject({ kind, status });
   });

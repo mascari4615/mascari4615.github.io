@@ -86,7 +86,7 @@ export class ResetMonitor {
     const latestId = this.state.seen.reduce((max, id) => BigInt(id) > BigInt(max) ? id : max, '0');
     const posts = await this.deps.fetchPosts(latestId === '0' ? undefined : latestId);
     const seen = new Set(this.state.seen);
-    const signals = [...this.state.signals];
+    const signals = this.state.signals.map(signal => classifyResetPost(signal.post)).filter((signal): signal is ResetSignal => signal !== null);
     for (const post of posts) {
       if (seen.has(post.id)) continue;
       const signal = classifyResetPost(post);
