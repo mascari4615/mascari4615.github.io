@@ -44,6 +44,7 @@ import type { DashPanelCtx } from './kit';
     promptsByMonth?: Record<string, PromptStat>;
     coverage?: {
       lastHistory?: string; firstHistory?: string; claudeTranscripts?: number; historyPrompts?: number;
+      historySessions?: number;
     };
   };
 
@@ -84,7 +85,7 @@ import type { DashPanelCtx } from './kit';
       '.au-line{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:var(--font-size-2xs)}',
       '.au-line em{font-style:normal;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.au-line i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text-primary)}',
-      '.au-bar{grid-column:1/-1;height:3px;border-radius:2px;background:var(--accent);opacity:.45}',
+      '.au-bar{grid-column:1/-1;height:3px;border-radius:var(--radius-pill);background:var(--accent);opacity:.45}',
       '.au-foot{font-size:var(--font-size-3xs);color:var(--text-tertiary);line-height:1.7}',
     ].join('');
     document.head.appendChild(el);
@@ -185,16 +186,22 @@ import type { DashPanelCtx } from './kit';
     return out;
   }
 
-  /** 날짜 키 하나의 지표 값. 프롬프트만 소스가 promptsByDay. */
+  /**
+   * 날짜 키 하나의 지표 값. 프롬프트와 세션은 소스가 promptsByDay.
+   * byDay 의 sessions 는 transcript 가 남은 세션만 센다. 2026-09-10 실측:
+   * 1년 창에서 byDay 246, promptsByDay 702. 창이 넓을수록 과소 확대
+   */
   function dayValue(roll: Rollups, id: MetricId, get: (b: Bucket) => number, key: string): number {
     if (id === 'prompts' && roll.promptsByDay) return roll.promptsByDay[key]?.prompts || 0;
+    if (id === 'sessions' && roll.promptsByDay) return roll.promptsByDay[key]?.sessions || 0;
     const b = roll.byDay[key];
     return b ? get(b) || 0 : 0;
   }
 
-  /** 달 키 하나의 지표 값. 위와 같은 이유로 프롬프트는 promptsByMonth. */
+  /** 달 키 하나의 지표 값. 위와 같은 이유로 프롬프트와 세션은 promptsByMonth. */
   function monthValue(roll: Rollups, id: MetricId, get: (b: Bucket) => number, key: string): number {
     if (id === 'prompts' && roll.promptsByMonth) return roll.promptsByMonth[key]?.prompts || 0;
+    if (id === 'sessions' && roll.promptsByMonth) return roll.promptsByMonth[key]?.sessions || 0;
     const b = (roll.byMonth || {})[key];
     return b ? get(b) || 0 : 0;
   }
@@ -203,6 +210,22 @@ import type { DashPanelCtx } from './kit';
   function promptsInWindow(roll: Rollups, days: string[]): number {
     let n = 0;
     for (const d of days) n += dayValue(roll, 'prompts', (b) => b.prompts, d);
+    return n;
+  }
+
+  /**
+   * 창 안의 세션 합. 프롬프트와 같은 소스.
+   * promptsByDay 가 아예 없는 옛 롤업은 coverage.historySessions 로 후퇴
+   * (그 값은 창이 아니라 전량이라, 이 자리에서는 근사).
+   * 날짜를 넘긴 세션은 날마다 한 번씩 세므로 coverage.historySessions 보다 클 수 있음
+   */
+  function sessionsInWindow(roll: Rollups, days: string[]): number {
+    if (!roll.promptsByDay) {
+      const fromCoverage = roll.coverage?.historySessions;
+      if (typeof fromCoverage === 'number' && fromCoverage > 0) return fromCoverage;
+    }
+    let n = 0;
+    for (const d of days) n += dayValue(roll, 'sessions', (b) => b.sessions, d);
     return n;
   }
 
@@ -290,6 +313,7 @@ import type { DashPanelCtx } from './kit';
       const picked = days.filter((d) => roll.byDay[d]).map((d) => roll.byDay[d]);
       const total = sum(picked);
       const totalPrompts = promptsInWindow(roll, days);
+      const totalSessions = sessionsInWindow(roll, days);
       const m = METRICS.filter((x) => x.id === metric)[0];
 
       const chips = Array.from(spanEl.querySelectorAll('button'));
@@ -300,7 +324,7 @@ import type { DashPanelCtx } from './kit';
 
       numsEl.innerHTML =
         '<div class="au-num"><b>' + esc(usd(total.cost)) + '</b><span>환산가</span></div>' +
-        '<div class="au-num"><b>' + esc(short(total.sessions)) + '</b><span>세션</span></div>' +
+        '<div class="au-num"><b>' + esc(short(totalSessions)) + '</b><span>세션</span></div>' +
         '<div class="au-num"><b>' + esc(short(totalPrompts)) + '</b><span>프롬프트</span></div>' +
         '<div class="au-num"><b>' + esc(hours(total.activeMs)) + '</b><span>붙어 있던 시간</span></div>';
 

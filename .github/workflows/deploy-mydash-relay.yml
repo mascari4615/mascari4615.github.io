@@ -49,8 +49,19 @@ jobs:
         run: npx --yes wrangler@4 deploy
 
       # 배포 생존 확인. origin 없는 요청은 403 origin_not_allowed 가 정상
+      #
+      # 처음 배포한 주소는 DNS 가 아직 안 퍼져서 curl 이 exit 6 (호스트 못 찾음) 으로 죽는다.
+      # 한 번 재고 실패로 적으면 멀쩡한 배포가 빨갛게 나온다. 10초 간격 6회까지 다시 잰다.
+      # 마지막까지 000 (못 닿음) 이면 실패. 403 이 나오면 그 자리에서 통과.
       - name: Smoke
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://mydash-relay.mascari4615.com/device/code)
-          echo "no-origin -> $code"
+          url=https://mydash-relay.mascari4615.com/device/code
+          code=000
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$url" || true)
+            [ -n "$code" ] || code=000
+            echo "try $i: no-origin -> $code"
+            [ "$code" = "403" ] && break
+            [ "$i" = "6" ] || sleep 10
+          done
           [ "$code" = "403" ] || { echo "::error::릴레이 응답이 예상과 다름 ($code)"; exit 1; }

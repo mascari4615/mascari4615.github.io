@@ -29,6 +29,9 @@ declare const Toolbox:
       register: (m: unknown) => void;
       getLazyWidgetPublicMeta?: (id: string) => object;
       onDispose?: (fn: () => void) => void;
+      /* 셸이 내주면 쓴다. 지금 셸에는 없어서 저장 자리를 직접 본다 (아래 pinSelf). */
+      isPinned?: (id: string) => boolean;
+      togglePin?: (id: string) => boolean;
     }
   | undefined;
 
@@ -82,6 +85,50 @@ declare const Toolbox:
       else window.localStorage.removeItem(STORE_KEY);
     } catch {
       /* 못 적었다. 이번 화면 동안은 memoryToken 으로 산다. 새로고침하면 다시 로그인이다. */
+    }
+  }
+
+  /* ── 다시 찾아올 길 ────────────────────────────────────────────
+     이 도구는 category 'app' 이라 도구 목록에서 빠지고 (`getCategories` 가 'app' 을 거른다)
+     갈래 메뉴에도 안 뜬다. 주소를 외운 사람만 다시 온다.
+     한 번 로그인했으면 셸 옆줄의 "내 것" 칸에 꽂아 둔다. 저장 자리는 셸과 같은 열쇠
+     (`src/toolbox.ts` 의 PINNED_KEY). 셸이 다음 로드에서 그 칸을 그린다.
+     뺄 때는 안 건드린다. 로그아웃은 토큰을 지우는 것이지 즐겨찾기를 지우는 것이 아니다. */
+  const PINNED_KEY = 'toolbox_pinned_tools';
+  const SELF_ID = 'mydash';
+
+  /** 맨바깥 이름 우선, 없는 자리(가짜 셸)에서만 window. 아래 등록부와 같은 손. */
+  function toolbox(): NonNullable<typeof Toolbox> | undefined {
+    const w = window as unknown as { Toolbox?: NonNullable<typeof Toolbox> };
+    return (typeof Toolbox !== 'undefined' && Toolbox) ? Toolbox : w.Toolbox;
+  }
+
+  function readPins(): string[] {
+    try {
+      const raw = window.localStorage.getItem(PINNED_KEY);
+      const arr = raw ? (JSON.parse(raw) as unknown) : [];
+      return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function pinSelf(): void {
+    const box = toolbox();
+    try {
+      /* 셸이 공개 함수를 주면 그것부터. 화면에 있는 별과 옆줄을 그 자리에서 맞춤
+         토글이라 이미 꽂혀 있을 때 부르면 빠진다. 반드시 먼저 확인. */
+      if (box && typeof box.togglePin === 'function') {
+        const on = typeof box.isPinned === 'function' ? box.isPinned(SELF_ID) : readPins().indexOf(SELF_ID) >= 0;
+        if (!on) box.togglePin(SELF_ID);
+        return;
+      }
+      const pins = readPins();
+      if (pins.indexOf(SELF_ID) >= 0) return;
+      pins.push(SELF_ID);
+      window.localStorage.setItem(PINNED_KEY, JSON.stringify(pins));
+    } catch {
+      /* 저장이 막힌 판. 이번 화면은 그대로 돌고, 다음에 다시 로그인하면 또 시도한다. */
     }
   }
 
@@ -391,6 +438,9 @@ declare const Toolbox:
 
     /* 패널이 붙여 둔 뒷정리. 패널을 갈아 끼울 때마다 부른다. 안 부르면 타이머가 쌓인다. */
     let cleanups: Array<() => void> = [];
+    /* 지금 보던 패널을 다시 그리는 함수. 오류 카드의 "다시 시도" 가 호출
+       로그인 화면으로 갈 때마다 비운다. */
+    let reopenPanel: (() => void) | null = null;
     function disposePanel(): void {
       for (const fn of cleanups) {
         try {
@@ -404,8 +454,7 @@ declare const Toolbox:
     /* 맨바깥 이름 `Toolbox` 우선 확인, 없는 자리(가짜 셸로 재는 테스트)에서만 window 로 확인.
        셸은 `const Toolbox` 로 생성하고 const 는 window 에 안 붙음. window 만 보면 실서비스에서
        등록이 통째로 헛돌아 기기 흐름 폴링이 위젯 이탈 뒤에도 안 멈추는 문제 (memo-atlas 와 동일 패턴). */
-    const disposeBox = (typeof Toolbox !== 'undefined' && Toolbox) ? Toolbox : (window as unknown as { Toolbox?: unknown }).Toolbox;
-    (disposeBox as { onDispose?: (fn: () => void) => void } | undefined)?.onDispose?.(disposePanel);
+    toolbox()?.onDispose?.(disposePanel);
 
     function say(html: string): void {
       disposePanel();
@@ -533,6 +582,8 @@ declare const Toolbox:
         }
         if (reply.access_token) {
           saveToken(tokenFrom(reply));
+          /* 로그인에 성공한 사람만 꽂는다. 남이 열어 본 화면에는 안 남는다. */
+          pinSelf();
           void showDashboard(cfg);
           return;
         }
@@ -558,6 +609,7 @@ declare const Toolbox:
 
     function logout(cfg: Config): void {
       saveToken(null);
+      reopenPanel = null;
       navEl.hidden = true;
       navEl.textContent = '';
       whoEl.textContent = '';
@@ -622,6 +674,13 @@ declare const Toolbox:
         }
       };
 
+      /* 같은 패널을 다시 연다. `open` 은 같은 id 면 아무것도 안 하므로 표식을 먼저 비운다. */
+      reopenPanel = (): void => {
+        const p = panels.filter((x) => x.id === current)[0] || panels[0];
+        current = '';
+        open(p);
+      };
+
       for (const p of panels) {
         const b = document.createElement('button');
         b.textContent = p.title;
@@ -632,11 +691,21 @@ declare const Toolbox:
       open(panels[0]);
     }
 
-    /** 패널이 던진 것. **다시 로그인 길이 늘 보여야 한다**. 여기서 막히면 화면이 끝이다. */
+    /**
+     * 패널이 던진 것. 여기서 막히면 화면이 끝이라 나갈 길이 늘 하나는 있어야 함
+     *
+     * ★ 나갈 길이 **실패의 종류마다 다르다**. 요청 한도와 네트워크는 토큰이 멀쩡한데
+     * 잠깐 못 닿은 것이다. 여기서 토큰을 지우면 멀쩡한 로그인을 버리고 기기 흐름을
+     * 처음부터 다시 타게 된다 (한도에 걸린 사람에게 더 많은 요청을 시킨다).
+     * 그래서 ratelimit 과 net 은 토큰을 그대로 두고 패널만 다시 그림
+     * auth 는 위에서 이미 로그인 화면으로 보냈고, notfound 와 config 는 계정이나 설정을
+     * 바꿔야 풀리므로 토큰을 지우는 다시 로그인 유지
+     */
     function onPanelFail(cfg: Config, e: unknown): void {
       const err = e as DashError;
       const kind: FailKind = err && err.kind ? err.kind : 'net';
       if (kind === 'auth') {
+        reopenPanel = null;
         showLoggedOut(cfg, '로그인이 풀렸습니다. 다시 로그인하세요.');
         navEl.hidden = true;
         navEl.textContent = '';
@@ -644,15 +713,24 @@ declare const Toolbox:
         statEl.textContent = '';
         return;
       }
+      const transient = kind === 'ratelimit' || kind === 'net';
       statEl.textContent = '';
       bodyEl.innerHTML =
         '<div class="myd-card"><div class="myd-warn">' +
         esc(err && err.message ? err.message : '알 수 없는 실패') +
         '</div><div class="myd-row">' +
-        '<button class="myd-btn ghost" data-relogin="1">다시 로그인</button>' +
+        (transient
+          ? '<button class="myd-btn ghost" data-retry="1">다시 시도</button>'
+          : '<button class="myd-btn ghost" data-relogin="1">다시 로그인</button>') +
         '</div></div>';
+      (bodyEl.querySelector('[data-retry]') as HTMLElement | null)?.addEventListener('click', () => {
+        /* 토큰은 그대로. 보던 패널만 다시 그린다. 패널이 없으면 목록부터 다시. */
+        if (reopenPanel) reopenPanel();
+        else void showDashboard(cfg);
+      });
       (bodyEl.querySelector('[data-relogin]') as HTMLElement | null)?.addEventListener('click', () => {
         saveToken(null);
+        reopenPanel = null;
         showLoggedOut(cfg);
       });
     }
@@ -684,10 +762,7 @@ declare const Toolbox:
   /* ── 등록.
      맨바깥 이름 `Toolbox` 를 먼저 본다 (셸은 `const Toolbox` 로 만든다. const 는 window 에 안 붙는다).
      memo-atlas 가 이걸로 크게 덴 자리라 같은 손을 쓴다. */
-  const w = window as unknown as {
-    Toolbox?: { register: (m: unknown) => void; getLazyWidgetPublicMeta?: (id: string) => object };
-  };
-  const box = ((typeof Toolbox !== 'undefined' && Toolbox) ? Toolbox : w.Toolbox) as typeof w.Toolbox;
+  const box = toolbox();
   if (box) {
     const meta = box.getLazyWidgetPublicMeta
       ? box.getLazyWidgetPublicMeta('mydash')
