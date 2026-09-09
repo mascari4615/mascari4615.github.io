@@ -25,7 +25,7 @@ async function main(): Promise<void> {
     execFileSync('icacls.exe', [path.dirname(file), '/inheritance:r', '/grant:r', `*${sid}:(OI)(CI)F`, '*S-1-5-18:(OI)(CI)F', '*S-1-5-32-544:(OI)(CI)F'], { windowsHide: true, stdio: 'ignore' });
   }
   if (process.argv.includes('--from-edge')) {
-    console.log('기존 Edge에 연결합니다. 브라우저에 연결 허용 요청이 뜨면 확인하세요.');
+    console.log('기존 Edge에 연결합니다. 브라우저에 연결 허용 요청이 뜨면 확인하세요. 이 요청 하나를 최대 10분 기다립니다.');
     saveBrowserSession(await readExistingEdgeSession(), file);
     console.log('기존 Edge의 X 로그인 저장됨. 창과 탭은 유지. 원격 디버깅은 이제 꺼도 됩니다. npm run codex:check로 실제 수집을 확인하세요.');
     return;

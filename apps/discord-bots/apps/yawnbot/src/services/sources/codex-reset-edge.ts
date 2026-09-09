@@ -27,7 +27,7 @@ export async function readExistingEdgeSession(portFile = edgeDebugPortFile()): P
   }
   const endpoint = parseEdgeDebugEndpoint(fs.readFileSync(portFile, 'utf8'));
   let browser;
-  try { browser = await chromium.connectOverCDP(endpoint, { timeout: 60_000 }); }
+  try { browser = await chromium.connectOverCDP(endpoint, { timeout: 600_000, noDefaults: true }); }
   catch { throw new ResetBrowserError('unavailable', '기존 Edge 연결 실패. 원격 디버깅과 브라우저의 연결 허용 요청을 확인하세요.'); }
   let ownPage: Page | undefined;
   try {
