@@ -2,11 +2,102 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 2006,
+    "commits": 2012,
     "days": 12,
     "shown": 60
   },
   "days": [
+    {
+      "date": "2026-09-09",
+      "entries": [
+        {
+          "sha": "841c4552",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "인형 중심 분리 패널과 전장 배경 적용"
+        },
+        {
+          "sha": "155590eb",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "camera",
+          "text": "anticipate orbit obstruction before contact"
+        },
+        {
+          "sha": "26f82893",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "camera",
+          "text": "isolate orbit rotation from tracking references"
+        },
+        {
+          "sha": "3ec6a349",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "camera",
+          "text": "keep climbing view outside walls and add exploration course"
+        },
+        {
+          "sha": "61122a30",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "preserve wave movement and show dungeon stages"
+        }
+      ],
+      "quiet": 0,
+      "more": 0
+    },
+    {
+      "date": "2026-09-08",
+      "entries": [
+        {
+          "sha": "99ce7b6e",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "traversal",
+          "text": "복귀 위치 보정 충돌과 활공 안내 수정"
+        },
+        {
+          "sha": "70dc2264",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "던전 v2. 본판 위 두 번째 전장, 난이도 3 x 스테이지 5, 나가기"
+        },
+        {
+          "sha": "d8f057aa",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "traversal",
+          "text": "등반과 활공 시험 Stage 연결"
+        },
+        {
+          "sha": "46a31d38",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "idle",
+          "text": "던전은 이제 안에 들어가 싸우는 시간 제한 판. 규칙은 SO"
+        },
+        {
+          "sha": "6582b974",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "movement",
+          "text": "지상 가감속과 아날로그 저속 이동, 웅크리기 충돌 처리"
+        },
+        {
+          "sha": "de563969",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "idle",
+          "text": "손가락 툴팁이 위에 자리 없으면 옆으로. 아래는 손바닥에 가린다"
+        }
+      ],
+      "quiet": 2,
+      "more": 1
+    },
     {
       "date": "2026-09-06",
       "entries": [
@@ -415,101 +506,10 @@
           "typeLabel": "고친 것",
           "scope": "WM-413",
           "text": "솥이 서기도 전에 젓고, 12초에 포기했다 — 둘 다 없앤다"
-        },
-        {
-          "sha": "d80cec02",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-413",
-          "text": "이유를 짐작하지 말고 재게 한다 — 사다리에 「솥」 칸이 없었다"
-        },
-        {
-          "sha": "cc8b940e",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-413",
-          "text": "파수꾼이 솥을 짓기도 전에 「남이 가져갔다」며 끝냈다"
         }
       ],
       "quiet": 1,
-      "more": 9
-    },
-    {
-      "date": "2026-08-17",
-      "entries": [
-        {
-          "sha": "d921608e",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "idle",
-          "text": "put buy verbs on the three live panes (TASK-WM-406)"
-        },
-        {
-          "sha": "30158c04",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "안내가 「앉혀라」를 안 말해 점만 찍혀 있었다 (TASK-WM-406)"
-        },
-        {
-          "sha": "64439084",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "「남의 서버 안 부른다」 감시가 잠들어 있었다 (TASK-WM-406)"
-        },
-        {
-          "sha": "ce56491b",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "그리는 자리가 시간을 흘리고 있었다 — 누를수록 장식이 빨라졌다 (TASK-WM-406)"
-        },
-        {
-          "sha": "9d1895ce",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "룰 게이트가 기준선을 CRLF 로 적어 <유령 수정>을 남겼다 (TASK-WM-406)"
-        },
-        {
-          "sha": "f4116f80",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "「어디서 파는 게 빠른가」도 판을 건드리며 찾고 있었다 (TASK-WM-406)"
-        }
-      ],
-      "quiet": 25,
-      "more": 95
-    },
-    {
-      "date": "2026-08-16",
-      "entries": [
-        {
-          "sha": "1986ce99",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "ci",
-          "text": "「검사를 못 돌렸다」를 「게임이 깨졌다」와 안 섞는다 (TASK-WM-406)"
-        },
-        {
-          "sha": "4e5ad5fd",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "wm",
-          "text": "컴파일러 쉼 층(Compat)은 부를 이름이 없다 — 미배선 감사에 사유와 함께 적는다"
-        },
-        {
-          "sha": "4d75e0d1",
-          "type": "feat",
-          "typeLabel": "새로 생긴 것",
-          "scope": "wm",
-          "text": "빌드가 무엇을 왜 실었는지 기계가 답한다 + 예산 상한 (TASK-WM-408)"
-        }
-      ],
-      "quiet": 8,
-      "more": 41
+      "more": 11
     }
   ]
 }

@@ -1,3 +1,5 @@
 {
-  "about.failed": "Could not load the about page"
+  "about.failed": "Could not load the about page",
+  "about.details": "Experience, education, activities",
+  "about.works": "Selected work"
 }
